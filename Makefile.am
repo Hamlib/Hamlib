@@ -16,7 +16,7 @@ SUBDIRS = macros include lib $(subdirs) src @BACKEND_LIST@ @ROT_BACKEND_LIST@ \
 # tcl, perl, and kylix subdirs are no longer distributed
 DIST_SUBDIRS = macros include lib $(subdirs) src c++ bindings tests doc \
 	icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc \
-	rpcrig winradio easycomm fodtrack rpcrot drake rotorez \
+	winradio easycomm fodtrack drake rotorez \
 	flexradio sartek lowe rft rs tapr kit skanti prm80 wj racal tuner \
 	gs232a heathkit spid ars m2 amsat
 
@@ -50,7 +50,6 @@ dist-win32:
 	&& ../../$(top_srcdir)/configure --disable-static \
 			--host=i586-mingw32msvc \
 			--prefix=`pwd`/../_inst \
-			--without-rpc-backends \
 			PKG_CONFIG_LIBDIR=../../$(libusb_win32_bin_path)/lib/pkgconfig \
 	&& make $(AM_MAKEFLAGS) install
 	mkdir -p $(zipdir)/bin $(zipdir)/lib/msvc $(zipdir)/lib/gcc $(zipdir)/include

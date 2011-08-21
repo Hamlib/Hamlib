@@ -43,7 +43,7 @@ Hamlib also enables developers to develop professional looking
 GUI's towards a standard control library API, and they would not have
 to worry about the underlying connection towards physical hardware.
 
-Serial (RS232) connectivity is built in as are RPC, IP (also via a socket
+Serial (RS232) connectivity is built in as well as IP (also via a socket
 utility), and USB.  Other connectivity will follow afterwards.
 
 
@@ -90,8 +90,6 @@ $ tree -d -I .git
 ├── racal
 ├── rft
 ├── rotorez
-├── rpcrig
-├── rpcrot
 ├── rs
 ├── sartek
 ├── skanti
@@ -250,7 +248,6 @@ Optional, but highly recommended:
 * libxml2 devel                     # xml2-config --version
 * libgd2 devel                      # gdlib-config --version
 * libusb devel                      # libusb-config --version (not 1.0.0!)
-* RPC devel (libc-dev)              # rpcgen --version
 
 N.B  The libusb package is required for building most of the 'kit' backend.
 The older version is needed, not 1.0.0 or higher.  Debian and derivatives
@@ -503,8 +500,8 @@ Contributed code to the Hamlib frontend must be released under the LGPL.
 Contributed code to Hamlib backends must follow backend current license.
 Needless to say, the LGPL is the license of choice.
 
-End user applications like rigctl, rotctl and RPC daemons should be released
-under the GPL, so any contributed code must follow the license.
+End user applications like rigctl, rotctl and networked daemons should be
+released under the GPL, so any contributed code must follow the license.
 
 
 8.2 Coding guidelines and style

@@ -184,10 +184,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/hamlib-rft.la
 %{_libdir}/hamlib-rotorez.so
 %{_libdir}/hamlib-rotorez.la
-%{_libdir}/hamlib-rpcrig.so
-%{_libdir}/hamlib-rpcrig.la
-%{_libdir}/hamlib-rpcrot.so
-%{_libdir}/hamlib-rpcrot.la
 %{_libdir}/hamlib-sartek.so
 %{_libdir}/hamlib-sartek.la
 %{_libdir}/hamlib-skanti.so
@@ -207,13 +203,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/hamlib-yaesu.so
 %{_libdir}/hamlib-yaesu.la
 %{_bindir}/rigctl
-%{_sbindir}/rpc.rigd
 %{_mandir}/man1/rigctl.1.gz
-%{_mandir}/man8/rpc.rigd.8.gz
 %{_bindir}/rotctl
-%{_sbindir}/rpc.rotd
 %{_mandir}/man1/rotctl.1.gz
-%{_mandir}/man8/rpc.rotd.8.gz
 %{_bindir}/rigmem
 %{_mandir}/man1/rigmem.1.gz
 %{_bindir}/rigswr
@@ -251,8 +243,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/hamlib-racal.a
 %{_libdir}/hamlib-rft.a
 %{_libdir}/hamlib-rotorez.a
-%{_libdir}/hamlib-rpcrig.a
-%{_libdir}/hamlib-rpcrot.a
 %{_libdir}/hamlib-sartek.a
 %{_libdir}/hamlib-skanti.a
 %{_libdir}/hamlib-tapr.a

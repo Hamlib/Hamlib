@@ -15,7 +15,7 @@ Cygwin is fully updated):
 # export CC="gcc -mno-cygwin"
 # export CXX="g++ -mno-cygwin"
 # ./autogen.sh --prefix=/usr/local --disable-static  \
---without-rpc-backends --without-tcl-binding --without-perl-binding \
+--without-tcl-binding --without-perl-binding \
 --without-python-binding --build=i686-pc-cygwin --host=i686-pc-mingw32 \
 --target=i686-pc-mingw32
 Note: on subsequent runs you can replace ./autogen.sh with ./configure
