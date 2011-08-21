@@ -8,23 +8,21 @@
  * via serial interface to a Heathkit HD 1780 Intellirotor.
  *
  * Heathkit is a trademark of Heath Company
- * 
  *
- *    
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation; either
- *  version 2 of the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
+ *   This library is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+ *   You should have received a copy of the GNU Lesser General Public
+ *   License along with this library; if not, write to the Free Software
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -82,7 +80,7 @@ const struct rot_caps hd1780_rot_caps = {
   .post_write_delay =   500,
   .timeout =            60000,
   .retry =              0,
-	
+
   .min_az = 	        0,
   .max_az =  	        360,
   .min_el = 	        0,
@@ -170,7 +168,7 @@ static int hd1780_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t elev
   if (azimuth < 0 || azimuth > 360)
     return -RIG_EINVAL;
 
-	
+
   sprintf(cmdstr, "%03.0f", azimuth);    /* Target bearing */
   err = hd1780_send_priv_cmd(rot, cmdstr);
   if (err != RIG_OK)
@@ -190,7 +188,7 @@ static int hd1780_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t elev
   if ((ok[0] != '\r')||(ok[1] != '\n'))
 	return -RIG_ETRUNC;
 
-	
+
   return RIG_OK;
 }
 
@@ -225,8 +223,8 @@ static int hd1780_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *el
     return -RIG_ETRUNC;
 
   /*
-   * HD 1780 returns a four octet string consisting of 
-   * three octets containing the rotor's position in degrees followed by a 
+   * HD 1780 returns a four octet string consisting of
+   * three octets containing the rotor's position in degrees followed by a
    * space and a <CR> and a <LF>.  The
    * space is ignored when passing the string to atof().
    */
@@ -241,7 +239,7 @@ static int hd1780_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *el
 
   *azimuth = tmp;
   *elevation = 0;               /* assume aiming at the horizon */
- 
+
   rig_debug(RIG_DEBUG_TRACE,
             "%s: azimuth = %.1f deg; elevation = %.1f deg\n",
             __func__, *azimuth, *elevation);
@@ -268,9 +266,9 @@ static int hd1780_send_priv_cmd(ROT *rot, const char *cmdstr) {
 
   if (!rot)
     return -RIG_EINVAL;
-	
+
   rs = &rot->state;
-	
+
   err = write_block(&rs->rotport, cmdstr, strlen(cmdstr));
   if (err != RIG_OK)
     return err;
@@ -288,7 +286,7 @@ DECLARE_INITROT_BACKEND(heathkit)
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   rot_register(&hd1780_rot_caps);
-  
+
   return RIG_OK;
 }
 
