@@ -2,21 +2,20 @@
  *  Hamlib KIT backend - DDS-60 description
  *  Copyright (c) 2007 by Stephane Fillod
  *
- *	$Id: dds60.c,v 1.1 2007-10-23 21:56:30 fillods Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -68,7 +67,7 @@ static const struct confparams dds60_cfg_params[] = {
 			"0", RIG_CONF_NUMERIC, { .n = { 0, MHz(180), 1 } }
 	},
 	{ TOK_MULTIPLIER, "multiplier", "Multiplier", "Optional X6 multiplier",
-			"1", RIG_CONF_CHECKBUTTON 
+			"1", RIG_CONF_CHECKBUTTON
 	},
 	{ TOK_IFMIXFREQ, "phase_mod", "Phase Modulation", "Phase modulation in degrees",
 			"0", RIG_CONF_NUMERIC, { .n = { 0, 360, PHASE_INCR } }
@@ -86,7 +85,7 @@ static int dds60_get_conf(RIG *rig, token_t token, char *val);
 /*
  * The DDS-60 kit exists with a AD9851 chip (60 MHz),
  * as well as with the AD9850 chip (30 MHz) (no multiplier).
- * There is an option to enable/disable the AD9851 X6 multiplier. 
+ * There is an option to enable/disable the AD9851 X6 multiplier.
  * http://www.amqrp.org/kits/dds60/
  * http://www.analog.com/en/prod/0,2877,AD9851,00.html
  *
@@ -332,7 +331,7 @@ int dds60_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	frg = (unsigned long)(((double)freq + priv->if_mix_freq) /
 				osc_ref * 4294967296.0 + 0.5);
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: word %lu, X6 multipler %d, phase %.2f\n", 
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: word %lu, X6 multipler %d, phase %.2f\n",
 			__FUNCTION__, frg, priv->multiplier, priv->phase_step*PHASE_INCR);
 
 	control = priv->multiplier ? 0x01 : 0x00;

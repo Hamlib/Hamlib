@@ -2,21 +2,20 @@
  *  Hamlib KIT backend - Digital World Traveller DRM receiver description
  *  Copyright (c) 2005-2008 by Stephane Fillod
  *
- *	$Id: dwt.c,v 1.5 2008-12-09 22:07:21 fillods Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -49,7 +48,7 @@
 /*
  * Coding Technologies Digital World Traveller DRM tuner.
  *
- * TODO: rig_scan, set/get FM mode (mono/stereo), 
+ * TODO: rig_scan, set/get FM mode (mono/stereo),
  * 		get antenna mode (loop/wire),
  *		get low intermediate frequency (LIF) which may vary up to +-667 Hz
  *		and may be additionally increased of up to 2000 Hz
@@ -244,39 +243,39 @@ int dwtdll_init(RIG *rig)
 	/* Get process addresses from dll for function access */
 	priv->FrontendOpen =
 		(FNCFrontendOpen) GetProcAddress(priv->dll, "FrontendOpen");
-	priv->FrontendClose = 
+	priv->FrontendClose =
 		(FNCFrontendClose) GetProcAddress(priv->dll, "FrontendClose");
-	priv->FrontendGetId = 
+	priv->FrontendGetId =
 		(FNCFrontendGetId) GetProcAddress(priv->dll, "FrontendGetId");
-	priv->FrontendSetMode = 
+	priv->FrontendSetMode =
 		(FNCFrontendSetMode) GetProcAddress(priv->dll, "FrontendSetMode");
-	priv->FrontendGetMode = 
+	priv->FrontendGetMode =
 		(FNCFrontendGetMode) GetProcAddress(priv->dll, "FrontendGetMode");
-	priv->FrontendSetFrequency = 
+	priv->FrontendSetFrequency =
 		(FNCFrontendSetFrequency) GetProcAddress(priv->dll, "FrontendSetFrequency");
-	priv->FrontendGetFrequency = 
+	priv->FrontendGetFrequency =
 		(FNCFrontendGetFrequency) GetProcAddress(priv->dll, "FrontendGetFrequency");
-	priv->FrontendGetRfLevel = 
+	priv->FrontendGetRfLevel =
 		(FNCFrontendGetRfLevel) GetProcAddress(priv->dll, "FrontendGetRfLevel");
-	priv->FrontendGetLIF = 
+	priv->FrontendGetLIF =
 		(FNCFrontendGetLIF) GetProcAddress(priv->dll, "FrontendGetLIF");
-	priv->FrontendStartScan = 
+	priv->FrontendStartScan =
 		(FNCFrontendStartScan) GetProcAddress(priv->dll, "FrontendStartScan");
-	priv->FrontendStopScan = 
+	priv->FrontendStopScan =
 		(FNCFrontendStopScan) GetProcAddress(priv->dll, "FrontendStopScan");
-	priv->FrontendGetScanStatus = 
+	priv->FrontendGetScanStatus =
 		(FNCFrontendGetScanStatus) GetProcAddress(priv->dll, "FrontendGetScanStatus");
-	priv->FrontendSetRfAttenuator = 
+	priv->FrontendSetRfAttenuator =
 		(FNCFrontendSetRfAttenuator) GetProcAddress(priv->dll, "FrontendSetRfAttenuator");
-	priv->FrontendGetRfAttenuator = 
+	priv->FrontendGetRfAttenuator =
 		(FNCFrontendGetRfAttenuator) GetProcAddress(priv->dll, "FrontendGetRfAttenuator");
-	priv->FrontendSetAntennaMode = 
+	priv->FrontendSetAntennaMode =
 		(FNCFrontendSetAntennaMode) GetProcAddress(priv->dll, "FrontendSetAntennaMode");
-	priv->FrontendGetAntennaMode = 
+	priv->FrontendGetAntennaMode =
 		(FNCFrontendGetAntennaMode) GetProcAddress(priv->dll, "FrontendGetAntennaMode");
-	priv->FrontendSetFmMode = 
+	priv->FrontendSetFmMode =
 		(FNCFrontendSetFmMode) GetProcAddress(priv->dll, "FrontendSetFmMode");
-	priv->FrontendGetFmMode = 
+	priv->FrontendGetFmMode =
 		(FNCFrontendGetFmMode) GetProcAddress(priv->dll, "FrontendGetFmMode");
 
 	rig->state.priv = (void*)priv;
@@ -345,7 +344,7 @@ int dwtdll_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 int dwtdll_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 	struct dwtdll_priv_data *priv = (struct dwtdll_priv_data *)rig->state.priv;
-	
+
 	*freq = (freq_t) priv->FrontendGetFrequency();
 
 	return RIG_OK;
@@ -366,7 +365,7 @@ int dwtdll_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	}
 
 	ret = priv->FrontendSetMode(dwtmode);
-	
+
 	return ret < 0 ? -RIG_EIO : RIG_OK;
 }
 
@@ -394,7 +393,7 @@ int dwtdll_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
 	struct dwtdll_priv_data *priv = (struct dwtdll_priv_data *)rig->state.priv;
 	short ret=0;
-	
+
 	switch(level) {
 	case RIG_LEVEL_ATT:
 		ret = priv->FrontendSetRfAttenuator(val.i ? 1 : 0);
@@ -606,8 +605,8 @@ int dwt_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	if (r < 0) {
 		/* we get EPIPE if the firmware stalls the endpoint. */
 		if (errno != EPIPE)
-			rig_debug (RIG_DEBUG_ERR, 
-					"usb_control_msg failed: %s\n", 
+			rig_debug (RIG_DEBUG_ERR,
+					"usb_control_msg failed: %s\n",
 					usb_strerror ());
 		return -RIG_EIO;
 	}
