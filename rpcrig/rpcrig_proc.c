@@ -2,21 +2,20 @@
  *  Hamlib RPC server - procedures
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: rpcrig_proc.c,v 1.8 2003-04-22 19:31:47 fillods Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -133,13 +132,13 @@ rigstate_res *getrigstate_1_svc(void *arg, struct svc_req *svc)
 
 	memcpy(res.rigstate_res_u.state.tuning_steps, rs->tuning_steps,
 					sizeof(tuning_step_s)*TSLSTSIZ);
-	memcpy(res.rigstate_res_u.state.filters, rs->filters, 
+	memcpy(res.rigstate_res_u.state.filters, rs->filters,
 					sizeof(filter_s)*FLTLSTSIZ);
-	memcpy(res.rigstate_res_u.state.chan_list, rs->chan_list, 
+	memcpy(res.rigstate_res_u.state.chan_list, rs->chan_list,
 					sizeof(chan_s)*CHANLSTSIZ);
-	memcpy(res.rigstate_res_u.state.rx_range_list, rs->rx_range_list, 
+	memcpy(res.rigstate_res_u.state.rx_range_list, rs->rx_range_list,
 					sizeof(freq_range_s)*FRQRANGESIZ);
-	memcpy(res.rigstate_res_u.state.tx_range_list, rs->tx_range_list, 
+	memcpy(res.rigstate_res_u.state.tx_range_list, rs->tx_range_list,
 					sizeof(freq_range_s)*FRQRANGESIZ);
 
 	res.rigstatus = RIG_OK;
@@ -372,7 +371,7 @@ val_res *getfunc_1_svc(setting_arg *arg, struct svc_req *svc)
 
 	setting = setting_x2t(&arg->setting);
 	val.i = arg->val.i;
-	res.rigstatus = rig_get_func(the_rpc_rig, arg->vfo, setting, 
+	res.rigstatus = rig_get_func(the_rpc_rig, arg->vfo, setting,
 					&res.val_res_u.val.i);
 
 	return &res;
