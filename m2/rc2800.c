@@ -1,19 +1,20 @@
 /*
  *  Hamlib Rotator backend - M2 RC2800
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
+ *
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -70,17 +71,17 @@ static int rc2800_parse (char *s, char *device, float *value)
   int i, msgtype=0, errcode=0;
 
   rig_debug(RIG_DEBUG_TRACE, "%s: device return->%s", __func__, s);
-  
+
   int len = strlen(s);
   if (len == 0)
     return -RIG_EPROTO;
-  
+
   if (len > 7)
   {
-    if (*s == 'A' || *s == 'E') 
+    if (*s == 'A' || *s == 'E')
     {
       *device = *s;
-    
+
       if (!strncmp(s+2, "ERR=", 4))
       {
         msgtype=1;
@@ -103,14 +104,14 @@ static int rc2800_parse (char *s, char *device, float *value)
   {
     rig_debug(RIG_DEBUG_TRACE, "%s: device=%c value=%3.1f\n", __func__, *device, *value);
     return RIG_OK;
-  } 
+  }
   else if (msgtype == 1)
   {
     rig_debug(RIG_DEBUG_TRACE, "%s: driver error code %d\n", __func__, errcode);
     *device = ' ';
     return RIG_OK;
-  } 
-   
+  }
+
   return -RIG_EPROTO;
 }
 
@@ -200,9 +201,9 @@ rc2800_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
   char cmdstr[64];
   int retval1, retval2;
-  
+
   rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
-  
+
   num_sprintf(cmdstr, "A%3.1f"CR, az);
   retval1 = rc2800_transaction(rot, cmdstr, NULL, 0);
 
@@ -270,14 +271,14 @@ rc2800_rot_stop(ROT *rot)
   /* Stop AZ*/
   retval = rc2800_transaction(rot, "A" CR, NULL, 0); /* select AZ */
   retval = rc2800_transaction(rot, "S" CR, NULL, 0); /* STOP */
-  
+
   /* do not overwhelm the MCU? */
   usleep(200*1000);
 
   /* Stop EL*/
   retval = rc2800_transaction(rot, "E" CR, NULL, 0); /* select EL */
   retval = rc2800_transaction(rot, "S" CR, NULL, 0); /* STOP */
-  
+
   return retval;
 }
 
