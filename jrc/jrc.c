@@ -3,19 +3,19 @@
  *  Copyright (c) 2001-2010 by Stephane Fillod
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -303,7 +303,7 @@ int jrc_set_vfo(RIG *rig, vfo_t vfo)
 	}
 
 	cmd_len = sprintf((char *) cmdbuf, "%c" EOM, vfo_function);
-	
+
 	retval = jrc_transaction (rig, (char *) cmdbuf, cmd_len, NULL, NULL);
 
 	return retval;
@@ -598,7 +598,7 @@ int jrc_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 	  case RIG_LEVEL_BWC:
 	  if (priv->pbs_len == 3)
 		  val.i /= 10;
-	  
+
 	  cmd_len = sprintf(cmdbuf, "W%0*d" EOM, priv->pbs_len,  val.i);
 
 	  return jrc_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
@@ -838,7 +838,7 @@ int jrc_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	  sscanf(lvlbuf+1, "%d", &lvl);
 	  if (priv->pbs_len == 3)
 		  lvl *= 10;
-	  
+
 	  val->i = lvl;
 	  break;
 #endif
@@ -1071,7 +1071,7 @@ int jrc_get_powerstat(RIG *rig, powerstat_t *status)
 
 		return retval;
 	}
-		
+
 }
 
 /*
@@ -1159,7 +1159,7 @@ int jrc_set_chan(RIG *rig, const channel_t *chan)
 	int	retval, cmd_len;
 
 	sprintf(cmdbuf,"K%03d000",chan->channel_num);
-	
+
 	if (chan->levels[rig_setting2idx(RIG_LEVEL_ATT)].i == 20)
 		cmdbuf[4] = '1';
 
@@ -1167,9 +1167,9 @@ int jrc_set_chan(RIG *rig, const channel_t *chan)
 			&cmdbuf[6], &cmdbuf[5]);
 	if (retval != RIG_OK)
 	  return retval;
-	
+
 	sprintf(cmdbuf+7,"%0*"PRIll, priv->max_freq_len, (int64_t)chan->freq);
-	
+
 	if (priv->mem_len==17) {
 		switch (chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i) {
 			case RIG_AGC_SLOW : cmdbuf[priv->mem_len-2] = '0'; break;
@@ -1182,7 +1182,7 @@ int jrc_set_chan(RIG *rig, const channel_t *chan)
 		sprintf(cmdbuf+priv->mem_len-4,"%03d", chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i);
 	}
 
-	cmd_len = priv->mem_len;	
+	cmd_len = priv->mem_len;
 	return jrc_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
 }
 
@@ -1244,7 +1244,7 @@ int jrc_get_chan(RIG *rig, channel_t *chan)
 		strncpy(freqbuf,membuf+7,priv->max_freq_len);
 		freqbuf[priv->max_freq_len] = 0x00;
 		chan->freq = strtol(freqbuf,NULL, 10);
-		
+
 		if (priv->mem_len==17) {
 			switch (membuf[priv->mem_len-2]){
 				case '0' : chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i = RIG_AGC_SLOW; break;
