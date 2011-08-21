@@ -1,22 +1,22 @@
 /*
  *  Hamlib CI-V backend - description of IC-7000 and variations
- *  Adapted from IC-7800 code 2006 by Kent Hill 
+ *  Adapted from IC-7800 code 2006 by Kent Hill
  *  Copyright (c) 2004-2010 by Stephane Fillod
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -106,7 +106,7 @@
  *
  * TODO: complete command set (esp. the $1A bunch!) and testing..
  */
-static const struct icom_priv_caps IC7000_priv_caps = { 
+static const struct icom_priv_caps IC7000_priv_caps = {
 		0x70,	/* default address */
 		0,		/* 731 mode */
 		ic7000_ts_sc_list
@@ -115,8 +115,8 @@ static const struct icom_priv_caps IC7000_priv_caps = {
 
 const struct rig_caps ic7000_caps = {
 .rig_model =  RIG_MODEL_IC7000,
-.model_name = "IC-7000", 
-.mfg_name =  "Icom", 
+.model_name = "IC-7000",
+.mfg_name =  "Icom",
 .version =  BACKEND_VER ".2",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
@@ -129,13 +129,13 @@ const struct rig_caps ic7000_caps = {
 .serial_data_bits =  8,
 .serial_stop_bits =  1,
 .serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_NONE, 
+.serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
 .timeout =  200,
-.retry =  3, 
+.retry =  3,
 .has_get_func =  IC7000_FUNCS,
-.has_set_func =  IC7000_FUNCS, 
+.has_set_func =  IC7000_FUNCS,
 .has_get_level =  IC7000_LEVELS,
 .has_set_level =  RIG_LEVEL_SET(IC7000_LEVELS),
 .has_get_parm =  IC7000_PARMS,
@@ -167,15 +167,15 @@ const struct rig_caps ic7000_caps = {
 
 .rx_range_list1 =   { {kHz(30),MHz(199.999999),IC7000_ALL_RX_MODES,-1,-1,IC7000_VFOS},
 	{MHz(400),MHz(470), IC7000_ALL_RX_MODES,-1,-1,IC7000_VFOS}, RIG_FRNG_END, },
-.tx_range_list1 =   {	
+.tx_range_list1 =   {
 	FRQ_RNG_HF(1,IC7000_OTHER_TX_MODES, W(2),W(100),IC7000_VFOS,RIG_ANT_1),
 	FRQ_RNG_6m(1,IC7000_OTHER_TX_MODES, W(2),W(100),IC7000_VFOS,RIG_ANT_1),
 	FRQ_RNG_2m(1,IC7000_OTHER_TX_MODES, W(2),W(50),IC7000_VFOS,RIG_ANT_2),
-	FRQ_RNG_70cm(1,IC7000_OTHER_TX_MODES, W(2), W(35), IC7000_VFOS, RIG_ANT_2),	
+	FRQ_RNG_70cm(1,IC7000_OTHER_TX_MODES, W(2), W(35), IC7000_VFOS, RIG_ANT_2),
 	FRQ_RNG_HF(1,IC7000_AM_TX_MODES, W(1),W(40),IC7000_VFOS,RIG_ANT_1),   /* AM class */
 	FRQ_RNG_6m(1,IC7000_AM_TX_MODES, W(1),W(40),IC7000_VFOS,RIG_ANT_1),   /* AM class */
 	FRQ_RNG_2m(1,IC7000_AM_TX_MODES, W(2),W(20),IC7000_VFOS,RIG_ANT_2),
-	FRQ_RNG_70cm(1,IC7000_OTHER_TX_MODES, W(2), W(14), IC7000_VFOS, RIG_ANT_2),	
+	FRQ_RNG_70cm(1,IC7000_OTHER_TX_MODES, W(2), W(14), IC7000_VFOS, RIG_ANT_2),
    	RIG_FRNG_END, },
 
 .rx_range_list2 =   { {kHz(30),MHz(199.999999),IC7000_ALL_RX_MODES,-1,-1,IC7000_VFOS},
@@ -184,11 +184,11 @@ const struct rig_caps ic7000_caps = {
 	FRQ_RNG_HF(2,IC7000_OTHER_TX_MODES, W(2),W(100),IC7000_VFOS,RIG_ANT_1),
 	FRQ_RNG_6m(2,IC7000_OTHER_TX_MODES, W(2),W(100),IC7000_VFOS,RIG_ANT_1),
 	FRQ_RNG_2m(2,IC7000_OTHER_TX_MODES, W(2),W(50),IC7000_VFOS,RIG_ANT_2),
-	FRQ_RNG_70cm(2,IC7000_OTHER_TX_MODES, W(2), W(35), IC7000_VFOS, RIG_ANT_2),	
+	FRQ_RNG_70cm(2,IC7000_OTHER_TX_MODES, W(2), W(35), IC7000_VFOS, RIG_ANT_2),
 	FRQ_RNG_HF(2,IC7000_AM_TX_MODES, W(1),W(40),IC7000_VFOS,RIG_ANT_1),   /* AM class */
 	FRQ_RNG_6m(2,IC7000_AM_TX_MODES, W(1),W(40),IC7000_VFOS,RIG_ANT_1),   /* AM class */
 	FRQ_RNG_2m(2,IC7000_AM_TX_MODES, W(2),W(20),IC7000_VFOS,RIG_ANT_2),
-	FRQ_RNG_70cm(2,IC7000_OTHER_TX_MODES, W(2), W(14), IC7000_VFOS, RIG_ANT_2),	
+	FRQ_RNG_70cm(2,IC7000_OTHER_TX_MODES, W(2), W(14), IC7000_VFOS, RIG_ANT_2),
     	RIG_FRNG_END, },
 
 .tuning_steps = {
@@ -215,8 +215,8 @@ const struct rig_caps ic7000_caps = {
 		{RIG_MODE_FM, kHz(10)},
 		{RIG_MODE_FM, kHz(15)},
 		{RIG_MODE_FM, kHz(7)},
-		{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(500)}, 
-		{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(250)}, 
+		{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(500)},
+		{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(250)},
 		{RIG_MODE_CW|RIG_MODE_CWR, kHz(1.2)},
 		{RIG_MODE_RTTY|RIG_MODE_RTTYR, kHz(2.4)},
 		{RIG_MODE_AM, kHz(6)},
@@ -225,7 +225,7 @@ const struct rig_caps ic7000_caps = {
 		{RIG_MODE_WFM, kHz(280)},
 		RIG_FLT_END,
 	},
-	
+
 .str_cal = IC7000_STR_CAL,
 
 .cfgparams =  icom_cfg_params,

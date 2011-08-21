@@ -3,19 +3,19 @@
  *  Copyright (c) 2000-2010 by Stephane Fillod
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 /*
@@ -53,7 +53,7 @@
 #define DELTAII_STR_CAL { 0, { } }
 
 
-static const struct icom_priv_caps delta2_priv_caps = { 
+static const struct icom_priv_caps delta2_priv_caps = {
 		0x01,	/* default address */
 		1,		/* 731 mode */
 		ic737_ts_sc_list  /* TODO: ts_sc_list */
@@ -61,9 +61,9 @@ static const struct icom_priv_caps delta2_priv_caps = {
 
 const struct rig_caps delta2_caps = {
 .rig_model =  RIG_MODEL_DELTAII,
-.model_name = "Delta II", 
-.mfg_name =  "Ten-Tec", 
-.version =  "0.1", 
+.model_name = "Delta II",
+.mfg_name =  "Ten-Tec",
+.version =  "0.1",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -75,13 +75,13 @@ const struct rig_caps delta2_caps = {
 .serial_data_bits =  8,
 .serial_stop_bits =  1,
 .serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_NONE, 
+.serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
 .timeout =  200,
-.retry =  3, 
+.retry =  3,
 .has_get_func =  RIG_FUNC_NONE,
-.has_set_func =  RIG_FUNC_NONE, 
+.has_set_func =  RIG_FUNC_NONE,
 .has_get_level =  RIG_LEVEL_NONE,
 .has_set_level =  RIG_LEVEL_NONE,
 .has_get_parm =  RIG_PARM_NONE,
@@ -103,20 +103,20 @@ const struct rig_caps delta2_caps = {
 
 .chan_list =  {
     /* TODO: 32 simplex, 16 duplex */
-    { 0, 47, RIG_MTYPE_MEM, IC_MIN_MEM_CAP }, 
+    { 0, 47, RIG_MTYPE_MEM, IC_MIN_MEM_CAP },
                 RIG_CHAN_END, },
 .rx_range_list1 =   {
 	RIG_FRNG_END, },
 .tx_range_list1 =  { RIG_FRNG_END, },
 
 /* These limits measured on Omni VI SN 1A10473 */
-.rx_range_list2 =   { 
+.rx_range_list2 =   {
     {kHz(100),kHz(29999),DELTAII_ALL_RX_MODES,-1,-1,DELTAII_VFO_ALL},
 	RIG_FRNG_END, },
 
 /* Note: There is no AM mode. */
-.tx_range_list2 =  { 
-    {kHz(1800),MHz(2)-1,DELTAII_OTHER_TX_MODES,5000,100000,DELTAII_VFO_ALL}, 
+.tx_range_list2 =  {
+    {kHz(1800),MHz(2)-1,DELTAII_OTHER_TX_MODES,5000,100000,DELTAII_VFO_ALL},
     {kHz(3500),MHz(4)-1,DELTAII_OTHER_TX_MODES,5000,100000,DELTAII_VFO_ALL},
 	{MHz(7),kHz(7300),DELTAII_OTHER_TX_MODES,5000,100000,DELTAII_VFO_ALL},
     {kHz(10100),kHz(10150),DELTAII_OTHER_TX_MODES,5000,100000,DELTAII_VFO_ALL},

@@ -2,21 +2,20 @@
  *  Hamlib CI-V backend - description of the OptoScan535
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: os535.c,v 1.10 2004-09-26 08:35:03 fillods Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -57,7 +56,7 @@ extern struct confparams opto_ext_parms[];
  * TODO: srch_dcs, srch_ctcss, rcv_dtmf, and make icom_probe opto aware
  */
 
-static const struct icom_priv_caps os535_priv_caps = { 
+static const struct icom_priv_caps os535_priv_caps = {
 		0x80,	/* default address */
 		0,		/* 731 mode */
 		NULL,
@@ -66,9 +65,9 @@ static const struct icom_priv_caps os535_priv_caps = {
 
 const struct rig_caps os535_caps = {
 .rig_model =  RIG_MODEL_OS535,
-.model_name = "OptoScan535", 
-.mfg_name =  "Optoelectronics", 
-.version =  "0.3", 
+.model_name = "OptoScan535",
+.mfg_name =  "Optoelectronics",
+.version =  "0.3",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_SCANNER,
@@ -80,13 +79,13 @@ const struct rig_caps os535_caps = {
 .serial_data_bits =  8,
 .serial_stop_bits =  1,
 .serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_NONE, 
+.serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
 .timeout =  200,
-.retry =  3, 
+.retry =  3,
 .has_get_func =  RIG_FUNC_NONE,
-.has_set_func =  RIG_FUNC_NONE, 
+.has_set_func =  RIG_FUNC_NONE,
 .has_get_level =  OS535_LEVELS,
 .has_set_level =  RIG_LEVEL_AF,
 .has_get_parm =  RIG_PARM_NONE,

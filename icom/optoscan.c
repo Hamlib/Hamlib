@@ -2,21 +2,20 @@
  *  Hamlib CI-V backend - OptoScan extensions
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: optoscan.c,v 1.14 2006-10-07 20:45:40 csete Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -51,7 +50,7 @@ const struct confparams opto_ext_parms[] = {
   { TOK_DTMFPEND, "dtmfpend", "DTMF Digit Pending", "DTMF Digit Pending", NULL, RIG_CONF_CHECKBUTTON, {} },
   { TOK_DTMFOVRR, "dtmfovrr", "DTMF Buffer Overflow", "DTMF Buffer Overflow", NULL, RIG_CONF_CHECKBUTTON, {} },
   { TOK_CTCSSACT, "ctcssact", "CTCSS Tone Active", "CTCSS Tone Active", NULL, RIG_CONF_CHECKBUTTON, {} },
-  { TOK_DCSACT,   "dcsact", "DCS Code Active", "DCS Code Active", NULL, RIG_CONF_CHECKBUTTON, {} }, 
+  { TOK_DCSACT,   "dcsact", "DCS Code Active", "DCS Code Active", NULL, RIG_CONF_CHECKBUTTON, {} },
   { RIG_CONF_END, NULL, }
 };
 
@@ -84,7 +83,7 @@ int optoscan_open(RIG *rig)
 		priv->pltstate = pltstate;
 
 		/* select REMOTE control */
-		retval = icom_transaction (rig, C_CTL_MISC, S_OPTO_REMOTE, 
+		retval = icom_transaction (rig, C_CTL_MISC, S_OPTO_REMOTE,
 						NULL, 0, ackbuf, &ack_len);
 		if (retval != RIG_OK) {
 			free(pltstate);
@@ -116,7 +115,7 @@ int optoscan_close(RIG *rig)
 		priv = (struct icom_priv_data*)rs->priv;
 
 		/* select LOCAL control */
-		retval = icom_transaction (rig, C_CTL_MISC, S_OPTO_LOCAL, 
+		retval = icom_transaction (rig, C_CTL_MISC, S_OPTO_LOCAL,
 						NULL, 0, ackbuf, &ack_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -148,7 +147,7 @@ const char* optoscan_get_info(RIG *rig)
 		priv = (struct icom_priv_data*)rs->priv;
 
 		/* select LOCAL control */
-		retval = icom_transaction (rig, C_CTL_MISC, S_OPTO_RDID, 
+		retval = icom_transaction (rig, C_CTL_MISC, S_OPTO_RDID,
 						NULL, 0, ackbuf, &ack_len);
 		if (retval != RIG_OK)
 				return NULL;
@@ -162,7 +161,7 @@ const char* optoscan_get_info(RIG *rig)
 		sprintf(info, "OptoScan%c%c%c, software version %d.%d, "
 						"interface version %d.%d\n",
 						ackbuf[2], ackbuf[3], ackbuf[4],
-						ackbuf[5] >> 4, ackbuf[5] & 0xf, 
+						ackbuf[5] >> 4, ackbuf[5] & 0xf,
 						ackbuf[6] >> 4, ackbuf[6] & 0xf);
 
 		return info;
@@ -241,27 +240,27 @@ int optoscan_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
 					 '*','#'};
 		caps = rig->caps;
 		digitpos=0;
-	       
+
 		do {
-		  retval = icom_transaction(rig, C_CTL_MISC, S_OPTO_RDDTMF, 
+		  retval = icom_transaction(rig, C_CTL_MISC, S_OPTO_RDDTMF,
 					    NULL,0,dtmfbuf, &len);
 		  if (retval != RIG_OK)
 		    return retval;
-		  
+
 		  if (len != 3) {
 		    rig_debug(RIG_DEBUG_ERR,"optoscan_recv_dtmf: ack NG (%#.2x), len=%d\n", dtmfbuf[0], len);
 		    return -RIG_ERJCTED;
 		  }
-		  
+
 		  digit = dtmfbuf[2];
-		  
+
 		  if( digit < 0x16 )
 		    {
 		      digits[digitpos] = xlate[digit];
 		      digitpos++;
 		    }
 		} while( (digit != 0x99) && (digitpos < *length) );
-		  
+
 		*length = digitpos;
 		digits[digitpos]=0;
 
@@ -330,7 +329,7 @@ int optoscan_set_ext_parm(RIG *rig, token_t token, value_t val)
 			"len=%d\n", __FUNCTION__, ackbuf[0], ack_len);
 		return -RIG_ERJCTED;
 	}
-	
+
 	return RIG_OK;
 }
 
@@ -347,7 +346,7 @@ int optoscan_get_ext_parm(RIG *rig, token_t token, value_t *val)
 
   if (retval != RIG_OK)
     return retval;
-  
+
   switch(token) {
   case TOK_TAPECNTL:
     val->i = status_block.tape_enabled;
@@ -451,10 +450,10 @@ int optoscan_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
   int icom_val;
   int cmdhead;
   int retval;
-  
+
   rs = &rig->state;
   priv = (struct icom_priv_data*)rs->priv;
-  
+
   if( level != RIG_LEVEL_AF )
     {
       switch (level) {
@@ -466,24 +465,24 @@ int optoscan_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	rig_debug(RIG_DEBUG_ERR,"Unsupported get_level %d", level);
 	return -RIG_EINVAL;
       }
-      
+
       retval = icom_transaction (rig, lvl_cn, lvl_sc, NULL, 0,
 				 lvlbuf, &lvl_len);
       if (retval != RIG_OK)
 	return retval;
-      
+
       /*
        * strbuf should contain Cn,Sc,Data area
        */
       cmdhead = (lvl_sc == -1) ? 1:2;
       lvl_len -= cmdhead;
-      
+
       if (lvlbuf[0] != ACK && lvlbuf[0] != lvl_cn) {
 	rig_debug(RIG_DEBUG_ERR,"optoscan_get_level: ack NG (%#.2x), "
 		  "len=%d\n", lvlbuf[0],lvl_len);
 	return -RIG_ERJCTED;
       }
-      
+
       /*
        * The result is a 3 digit BCD, but in *big endian* order: 0000..0255
        * (from_bcd is little endian)
@@ -493,15 +492,15 @@ int optoscan_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
   else /* level == RIG_LEVEL_AF */
     {
       retval = optoscan_get_status_block(rig,&status_block);
-      
+
       if (retval != RIG_OK)
 	return retval;
-      
+
       icom_val = 0;
       if( status_block.speaker_enabled == 1 )
 	icom_val = 255;
     }
-  
+
   switch (level) {
   case RIG_LEVEL_RAWSTR:
     val->i = icom_val;
@@ -512,14 +511,14 @@ int optoscan_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     else
       val->i = icom_val;
   }
-  
+
   rig_debug(RIG_DEBUG_TRACE,"optoscan_get_level: %d %d %d %f\n", lvl_len,
 	    icom_val, val->i, val->f);
-  
+
   return RIG_OK;
 }
 
-/* OS456 Pipeline tuning algorithm:                                          
+/* OS456 Pipeline tuning algorithm:
  *	Step 2:  Send the next frequency and mode to the receiver using the
  *		 TRANSFER NEXT FREQUENCY/MODE command.
  *
@@ -564,7 +563,7 @@ int optoscan_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
     {
       /* time for CIV command to be sent. this is subtracted from */
       /* rcvr settle time */
-      state->usleep_time = (1000000 / (rig->state.rigport.parm.serial.rate)) 
+      state->usleep_time = (1000000 / (rig->state.rigport.parm.serial.rate))
 	* 13 * 9;
 
       rc=cb(rig,vfo,&(state->next_freq),&(state->next_mode),
@@ -594,7 +593,7 @@ int optoscan_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 	}
 
       optoscan_wait_timer(rig,state); /*Step 5*/
-      
+
       ser_get_car(&rs->rigport,&pin_state);
       if( pin_state ) /*Step 6*/
 	{
@@ -621,10 +620,10 @@ static int optoscan_get_status_block(RIG *rig, struct optostat *status_block)
 
   retval = icom_transaction (rig, C_CTL_MISC, S_OPTO_RDSTAT, NULL, 0,
 			     ackbuf, &ack_len);
-  
+
   if (retval != RIG_OK)
     return retval;
-  
+
   switch( rig->caps->rig_model )
     {
     case RIG_MODEL_OS456:
@@ -644,8 +643,8 @@ static int optoscan_get_status_block(RIG *rig, struct optostat *status_block)
 	      "len=%d\n", ackbuf[0], ack_len);
     return -RIG_ERJCTED;
   }
-  
-  if( ackbuf[2] & 1 )  status_block->remote_control = 1;  
+
+  if( ackbuf[2] & 1 )  status_block->remote_control = 1;
   if( ackbuf[2] & 2 )  status_block->DTMF_pending = 1;
   if( ackbuf[2] & 4 )  status_block->DTMF_overrun = 1;
   if( ackbuf[2] & 16 ) status_block->squelch_open = 1;
@@ -690,7 +689,7 @@ static int optoscan_send_freq(RIG *rig,pltstate_t *state)
   freq=state->next_freq;
   mode=state->next_mode;
 
-  memset(buff,0,OPTO_BUFF_SIZE);  
+  memset(buff,0,OPTO_BUFF_SIZE);
 
   to_bcd(buff,freq,5*2); /* to_bcd requires nibble len */
 
@@ -715,7 +714,7 @@ static int optoscan_RTS_toggle(RIG *rig)
 
   rs=&rig->state;
   ser_get_rts(&rs->rigport,&state);
-  ser_set_rts(&rs->rigport,!state); 
+  ser_set_rts(&rs->rigport,!state);
 
   return RIG_OK;
 }
@@ -739,7 +738,7 @@ static int optoscan_wait_timer(RIG *rig, pltstate_t *state)
 
   gettimeofday(&(state->timer_current),NULL);
 
-  usec_diff = abs( (state->timer_current.tv_usec) - 
+  usec_diff = abs( (state->timer_current.tv_usec) -
 		   (state->timer_start.tv_usec) );
 
   if( usec_diff < settle_usec )

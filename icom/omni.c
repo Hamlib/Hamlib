@@ -3,19 +3,20 @@
  *  Copyright (c) 2000-2010 by Stephane Fillod
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
  */
 
 /* Improvements by Martin Ewing, AA6E, 3/2008
@@ -54,7 +55,7 @@ static int omni6_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 static int omni6_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
 static int omni6_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
 
-static const struct icom_priv_caps omnivip_priv_caps = { 
+static const struct icom_priv_caps omnivip_priv_caps = {
 		0x04,	/* default address */
 		0,		/* 731 mode */
 		NULL    /* TODO */
@@ -62,9 +63,9 @@ static const struct icom_priv_caps omnivip_priv_caps = {
 
 const struct rig_caps omnivip_caps = {
 .rig_model =  RIG_MODEL_OMNIVIP,
-.model_name = "Omni VI Plus", 
-.mfg_name =  "Ten-Tec", 
-.version =  "0.2", 
+.model_name = "Omni VI Plus",
+.mfg_name =  "Ten-Tec",
+.version =  "0.2",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -76,13 +77,13 @@ const struct rig_caps omnivip_caps = {
 .serial_data_bits =  8,
 .serial_stop_bits =  1,
 .serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_NONE, 
+.serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
 .timeout =  200,
-.retry =  3, 
+.retry =  3,
 .has_get_func =  RIG_FUNC_NONE,
-.has_set_func =  RIG_FUNC_NONE, 
+.has_set_func =  RIG_FUNC_NONE,
 .has_get_level =  RIG_LEVEL_NONE,
 .has_set_level =  RIG_LEVEL_NONE,
 .has_get_parm =  RIG_PARM_NONE,
@@ -100,14 +101,14 @@ const struct rig_caps omnivip_caps = {
 .transceive =  RIG_TRN_RIG,
 .bank_qty =   0,
 .chan_desc_sz =  0,
-.chan_list =  { { 0, 99, RIG_MTYPE_MEM, IC_MIN_MEM_CAP }, 
+.chan_list =  { { 0, 99, RIG_MTYPE_MEM, IC_MIN_MEM_CAP },
                 RIG_CHAN_END, },
 .rx_range_list1 =   {
 	RIG_FRNG_END, },
 .tx_range_list1 =  { RIG_FRNG_END, },
 
 /* These limits measured on Omni VI SN 1A10473 */
-.rx_range_list2 =   { 
+.rx_range_list2 =   {
     {kHz(1770),kHz(2330),OMNIVIP_ALL_RX_MODES,-1,-1,OMNIVIP_VFO_ALL},
     {kHz(3471),kHz(4030),OMNIVIP_ALL_RX_MODES,-1,-1,OMNIVIP_VFO_ALL},
     {kHz(6821),kHz(7338),OMNIVIP_ALL_RX_MODES,-1,-1,OMNIVIP_VFO_ALL},
@@ -120,8 +121,8 @@ const struct rig_caps omnivip_caps = {
 	RIG_FRNG_END, },
 
 /* Note: There is no AM mode. */
-.tx_range_list2 =  { 
-    {kHz(1800),MHz(2)-1,OMNIVIP_OTHER_TX_MODES,5000,100000,OMNIVIP_VFO_ALL}, 
+.tx_range_list2 =  {
+    {kHz(1800),MHz(2)-1,OMNIVIP_OTHER_TX_MODES,5000,100000,OMNIVIP_VFO_ALL},
     {kHz(3500),MHz(4)-1,OMNIVIP_OTHER_TX_MODES,5000,100000,OMNIVIP_VFO_ALL},
 	{MHz(7),kHz(7300),OMNIVIP_OTHER_TX_MODES,5000,100000,OMNIVIP_VFO_ALL},
     {kHz(10100),kHz(10150),OMNIVIP_OTHER_TX_MODES,5000,100000,OMNIVIP_VFO_ALL},
@@ -180,7 +181,7 @@ int omni6_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
 	sc = ptt == RIG_PTT_ON ? 0x1 : 0x2;
 
-/* 
+/*
  * Ignore ACK/NAK on this command, because in CW mode, the Omni VI
  * does not send an ACK.
  */
@@ -190,7 +191,7 @@ int omni6_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 	return RIG_OK;
 }
 
-/* 
+/*
  * These 'rit' commands actually deal with an offset frequency.  The operator
  * must select rit on/off or xit on/off manually to apply this offset.
  * Omni VI's rit uses 9's complement for negative freq, and freqs are in units
@@ -198,13 +199,13 @@ int omni6_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
  * Note that Omni VI rejects rit > 9980, but takes rit >= -9990. So the
  * rit limit should be +/- 9.98 kHz.
  */
- 
+
 int omni6_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
 	unsigned char freqbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
 	int freq_len, ack_len=sizeof(ackbuf), retval;
     shortfreq_t rit10;
-    
+
     rit10 = rit / 10;                           // 10 Hz resolution for Omni
     if (rit10 < 0) rit10 += 10000L;             // 9's compl.
     freq_len = 2;
@@ -222,8 +223,8 @@ int omni6_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 	return RIG_OK;
 }
 
-/* 
- * Note: icom.c does not provide a get_rit method. It would have been 
+/*
+ * Note: icom.c does not provide a get_rit method. It would have been
  * wrong for the Omni VI, anyway, so we implement it here.
  */
 
@@ -232,7 +233,7 @@ int omni6_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
     unsigned char buffer[MAXFRAMELEN];
     int buffer_len, retval;
     shortfreq_t my_rit;
-    
+
     retval = icom_transaction (rig, C_RD_OFFS, -1, NULL, 0,
                     buffer, & buffer_len);
     if (retval != RIG_OK)

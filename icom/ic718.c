@@ -4,19 +4,19 @@
  *  Caps submitted by Chuck Gilkes WD0FCL/4
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -38,7 +38,7 @@
 
 /* tx doesn't have WFM.
  * 100W in all modes but AM (40W)
- */ 
+ */
 #define IC718_OTHER_TX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR)
 #define IC718_AM_TX_MODES (RIG_MODE_AM)
 
@@ -68,7 +68,7 @@
 
 
 
-static const struct icom_priv_caps IC718_priv_caps = { 
+static const struct icom_priv_caps IC718_priv_caps = {
 		0x5e,	/* default address */
 		0,		/* 731 mode */
 		ic718_ts_sc_list
@@ -76,8 +76,8 @@ static const struct icom_priv_caps IC718_priv_caps = {
 
 const struct rig_caps ic718_caps = {
 .rig_model =  RIG_MODEL_IC718,
-.model_name = "IC-718", 
-.mfg_name =  "Icom", 
+.model_name = "IC-718",
+.mfg_name =  "Icom",
 .version =  BACKEND_VER ".1",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
@@ -90,13 +90,13 @@ const struct rig_caps ic718_caps = {
 .serial_data_bits =  8,
 .serial_stop_bits =  1,
 .serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_NONE, 
+.serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
 .timeout =  200,
-.retry =  3, 
+.retry =  3,
 .has_get_func =  IC718_FUNC_ALL,
-.has_set_func =  IC718_FUNC_ALL, 
+.has_set_func =  IC718_FUNC_ALL,
 .has_get_level =  IC718_LEVEL_ALL,
 .has_set_level =  RIG_LEVEL_SET(IC718_LEVEL_ALL),
 .has_get_parm =  RIG_PARM_NONE,
@@ -162,7 +162,7 @@ const struct rig_caps ic718_caps = {
 		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR, kHz(1.8)},	/* FL-222 */
 		{RIG_MODE_AM, kHz(6)},					/* mid w/ bultin FL-94 */
 		{RIG_MODE_AM, kHz(2.4)},				/* narrow w/ bultin FL-272 */
-		RIG_FLT_END,		
+		RIG_FLT_END,
 	},
 
 .cfgparams =  icom_cfg_params,

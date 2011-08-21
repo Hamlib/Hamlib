@@ -2,19 +2,20 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2011 by Stephane Fillod
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
+ *
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 #ifdef HAVE_CONFIG_H
@@ -218,7 +219,7 @@ const struct ts_sc_list ic910_ts_sc_list[] = {
         { 0, 0 },
 };
 
-/* rtty filter list for some DSP rigs ie PRO */ 
+/* rtty filter list for some DSP rigs ie PRO */
 #define RTTY_FIL_NB 5
 const pbwidth_t rtty_fil[] = {
 	Hz(250),
@@ -226,7 +227,7 @@ const pbwidth_t rtty_fil[] = {
 	Hz(350),
 	Hz(500),
 	kHz(1),
-	0, 
+	0,
 };
 
 struct icom_addr {
@@ -497,15 +498,15 @@ int icom_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 }
 
 
-/* icom_get_dsp_flt 
+/* icom_get_dsp_flt
 	returns the dsp filter width in hz or 0 if the command is not implemented or error.
     This allows the default parameters to be assigned from the get_mode routine if the command is not implemented.
 	Assumes rig != null and the current mode is in mode.
-	
-	Has been tested for IC-746pro,  Should work on the all dsp rigs ie pro models. 
+
+	Has been tested for IC-746pro,  Should work on the all dsp rigs ie pro models.
 	The 746 documentation says it has the get_if_filter, but doesn't give any decoding information ? Please test.
 */
-	
+
 pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode) {
 
 	int retval, res_len, rfstatus;
@@ -612,11 +613,11 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	priv_caps = (const struct icom_priv_caps *) rig->caps->priv;
 
 	if (priv_caps->r2i_mode != NULL) {	/* call priv code if defined */
-	    	err = priv_caps->r2i_mode(rig, mode, width, 
+	    	err = priv_caps->r2i_mode(rig, mode, width,
 				&icmode, &icmode_ext);
-	} 
+	}
 	else {					/* else call default */
-		err = rig2icom_mode(rig, mode, width, 
+		err = rig2icom_mode(rig, mode, width,
 				&icmode, &icmode_ext);
 	}
 
@@ -696,7 +697,7 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	 * For DSP rigs these are presets, can be programmed for 30 - 41 bandwidths, depending on mode.
 	 * Lets check for dsp filters
 	 */
-	
+
 	if ((retval = icom_get_dsp_flt(rig, *mode)) !=0)
              *width = retval;
 
@@ -1400,7 +1401,7 @@ int icom_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
  * icom_get_rptr_shift
  * Assumes rig!=NULL, rig->state.priv!=NULL, rptr_shift!=NULL
  * will not work for IC-746 Pro
- * NOTE: seems not to work (tested on IC-706MkIIG), please report --SF 
+ * NOTE: seems not to work (tested on IC-706MkIIG), please report --SF
  */
 int icom_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 {
@@ -2126,7 +2127,7 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 		rig_debug(RIG_DEBUG_ERR,"icom_get_func: wrong frame len=%d\n",
 					ack_len);
 		return -RIG_EPROTO;
-	} 
+	}
 	if (func != RIG_FUNC_FBKIN)
 		*status = ackbuf[2];
 	else
@@ -2317,7 +2318,7 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 
 /*
  * icom_set_ctcss_tone
- * Assumes rig!=NULL, rig->state.priv!=NULL 
+ * Assumes rig!=NULL, rig->state.priv!=NULL
  *
  * Works for 746 pro and should work for 756 xx and 7800
  */
@@ -2464,7 +2465,7 @@ int icom_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 	/* check this tone exists. That's better than nothing. */
 	for (i = 0; caps->ctcss_list[i] != 0 && i<52; i++) {
 		if (caps->ctcss_list[i] == *tone)
-			return RIG_OK;	
+			return RIG_OK;
 	}
 
 	rig_debug(RIG_DEBUG_ERR,"icom_get_ctcss_sql: CTCSS NG "
@@ -2474,7 +2475,7 @@ int icom_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 
 /*
  * icom_set_dcs_code
- * Assumes rig!=NULL, rig->state.priv!=NULL 
+ * Assumes rig!=NULL, rig->state.priv!=NULL
  */
 int icom_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 {
@@ -2589,7 +2590,7 @@ int icom_get_powerstat(RIG *rig, powerstat_t *status)
 		/* so use one of the more innculous 'set mode' commands instead */
 		cmd_len = 1;
 		cmdbuf[0] = S_PRM_TIME;
-		retval = icom_transaction(rig, C_CTL_MEM, S_MEM_MODE_SLCT, 
+		retval = icom_transaction(rig, C_CTL_MEM, S_MEM_MODE_SLCT,
 					cmdbuf, cmd_len, ackbuf, &ack_len);
 		if (retval != RIG_OK)
 			return retval;
@@ -2687,7 +2688,7 @@ int icom_set_ant(RIG * rig, vfo_t vfo, ant_t ant)
         case RIG_ANT_2: i_ant = 1; break;
         case RIG_ANT_3: i_ant = 2; break;
         case RIG_ANT_4: i_ant = 3; break;
-        default: 
+        default:
 			rig_debug(RIG_DEBUG_ERR,"Unsupported ant %#x", ant);
 			return -RIG_EINVAL;
     }
@@ -2729,7 +2730,7 @@ int icom_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
 					"len=%d\n", ackbuf[0],ack_len);
 		return -RIG_ERJCTED;
 	}
-	
+
     /* Note: with IC756/IC-756Pro/IC-7800, ackbuf[2] deals with [RX ANT] */
 
 	*ant = RIG_ANT_N(ackbuf[1]);

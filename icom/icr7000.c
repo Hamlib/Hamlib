@@ -2,21 +2,20 @@
  *  Hamlib CI-V backend - IC-R7000 and IC-R7100 descriptions
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: icr7000.c,v 1.9 2004-09-26 08:35:03 fillods Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -85,7 +84,7 @@ const struct rig_caps icr7000_caps = {
 .has_get_level =  RIG_LEVEL_NONE,
 .has_set_level =  RIG_LEVEL_NONE,
 .has_get_parm =  RIG_PARM_NONE,
-.has_set_parm =  RIG_PARM_NONE, 
+.has_set_parm =  RIG_PARM_NONE,
 .level_gran =  {},
 .parm_gran =  {},
 .ctcss_list =  NULL,
@@ -101,7 +100,7 @@ const struct rig_caps icr7000_caps = {
 .bank_qty =   0,
 .chan_desc_sz =  0,
 
-.chan_list =  { 
+.chan_list =  {
 	{   1,  99, RIG_MTYPE_MEM },
 	RIG_CHAN_END, },
 
@@ -194,7 +193,7 @@ const struct rig_caps icr7100_caps = {
 .has_get_level =  ICR7100_LEVELS,
 .has_set_level =  RIG_LEVEL_SET(ICR7100_LEVELS),
 .has_get_parm =  ICR7100_PARMS,
-.has_set_parm =  RIG_PARM_SET(ICR7100_PARMS), 
+.has_set_parm =  RIG_PARM_SET(ICR7100_PARMS),
 .level_gran = {
 	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
 },
@@ -213,7 +212,7 @@ const struct rig_caps icr7100_caps = {
 .bank_qty =   0,
 .chan_desc_sz =  0,
 
-.chan_list =  { 
+.chan_list =  {
 	{     1,   99, RIG_MTYPE_MEM },		/* TBC */
 	{ 0x0900, 0x0909, RIG_MTYPE_EDGE },	/* 2 by 2 */
 	{ 0x0910, 0x0919, RIG_MTYPE_EDGE },	/* 2 by 2 */
@@ -297,8 +296,8 @@ static int r7000_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
 	long long f = (long long)freq;
 
-	/* 
-	 * The R7000 cannot set freqencies higher than 1GHz, 
+	/*
+	 * The R7000 cannot set freqencies higher than 1GHz,
 	 * this is done by flipping a switch on the front panel and
 	 * stripping the most significant digit.
 	 * This is the only change with the common icom_set_freq

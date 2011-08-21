@@ -3,27 +3,27 @@
  *  Adapted by J.Watson from IC-7000 code (c) 2004 by Stephane Fillod
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
-/* 
+/*
  * 26Mar09: Corrected tuning steps and added data modes.
  * 25Mar09: Initial release
  */
- 
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -63,7 +63,7 @@
 #define IC7200_ANTS (RIG_ANT_1) /* ant-1 is Hf-6m */
 
 /*
- * FIXME: This is a guess real measures please! 
+ * FIXME: This is a guess real measures please!
  */
 #define IC7200_STR_CAL { 2, \
 	{ \
@@ -76,7 +76,7 @@
  *
  * TODO: complete command set (esp. the $1A bunch!) and testing..
  */
-static const struct icom_priv_caps IC7200_priv_caps = { 
+static const struct icom_priv_caps IC7200_priv_caps = {
 		0x76,	/* default address */
 		0,		/* 731 mode */
 		ic7200_ts_sc_list
@@ -85,9 +85,9 @@ static const struct icom_priv_caps IC7200_priv_caps = {
 
 const struct rig_caps ic7200_caps = {
 .rig_model =  RIG_MODEL_IC7200,
-.model_name = "IC-7200", 
-.mfg_name =  "Icom", 
-.version =  BACKEND_VER, 
+.model_name = "IC-7200",
+.mfg_name =  "Icom",
+.version =  BACKEND_VER,
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -99,13 +99,13 @@ const struct rig_caps ic7200_caps = {
 .serial_data_bits =  8,
 .serial_stop_bits =  1,
 .serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_NONE, 
+.serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
 .timeout =  200,
-.retry =  3, 
+.retry =  3,
 .has_get_func =  IC7200_FUNCS,
-.has_set_func =  IC7200_FUNCS, 
+.has_set_func =  IC7200_FUNCS,
 .has_get_level =  IC7200_LEVELS,
 .has_set_level =  RIG_LEVEL_SET(IC7200_LEVELS),
 .has_get_parm =  IC7200_PARMS,
@@ -135,7 +135,7 @@ const struct rig_caps ic7200_caps = {
 	},
 
 .rx_range_list1 =   { {kHz(30),MHz(60),IC7200_ALL_RX_MODES,-1,-1,IC7200_VFOS}, RIG_FRNG_END, },
-.tx_range_list1 =   {	
+.tx_range_list1 =   {
 	FRQ_RNG_HF(1,IC7200_OTHER_TX_MODES, W(2),W(100),IC7200_VFOS,RIG_ANT_1),
 	FRQ_RNG_6m(1,IC7200_OTHER_TX_MODES, W(2),W(100),IC7200_VFOS,RIG_ANT_1),
 	FRQ_RNG_HF(1,IC7200_AM_TX_MODES, W(1),W(40),IC7200_VFOS,RIG_ANT_1),   /* AM class */
@@ -145,7 +145,7 @@ const struct rig_caps ic7200_caps = {
 .rx_range_list2 =   { {kHz(30),MHz(60),IC7200_ALL_RX_MODES,-1,-1,IC7200_VFOS}, RIG_FRNG_END, },
 .tx_range_list2 =  { /* needs the 5 mhz channels added */
 	FRQ_RNG_HF(2,IC7200_OTHER_TX_MODES, W(2),W(100),IC7200_VFOS,RIG_ANT_1),
-	FRQ_RNG_6m(2,IC7200_OTHER_TX_MODES, W(2),W(100),IC7200_VFOS,RIG_ANT_1),	
+	FRQ_RNG_6m(2,IC7200_OTHER_TX_MODES, W(2),W(100),IC7200_VFOS,RIG_ANT_1),
 	FRQ_RNG_HF(2,IC7200_AM_TX_MODES, W(1),W(40),IC7200_VFOS,RIG_ANT_1),   /* AM class */
 	FRQ_RNG_6m(2,IC7200_AM_TX_MODES, W(1),W(40),IC7200_VFOS,RIG_ANT_1),   /* AM class */
     	RIG_FRNG_END, },
@@ -166,8 +166,8 @@ const struct rig_caps ic7200_caps = {
 		{RIG_MODE_SSB, kHz(2.4)},
 		{RIG_MODE_SSB, kHz(1.8)},
 		{RIG_MODE_SSB, kHz(3)},
-		{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(500)}, 
-		{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(250)}, 
+		{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(500)},
+		{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(250)},
 		{RIG_MODE_CW|RIG_MODE_CWR, kHz(1.2)},
 		{RIG_MODE_RTTY|RIG_MODE_RTTYR, kHz(2.4)},
 		{RIG_MODE_AM, kHz(6)},
@@ -175,7 +175,7 @@ const struct rig_caps ic7200_caps = {
 		{RIG_MODE_AM, kHz(9)},
 		RIG_FLT_END,
 	},
-	
+
 .str_cal = IC7200_STR_CAL,
 
 .cfgparams =  icom_cfg_params,

@@ -3,19 +3,19 @@
  *  Copyright (c) 2000-2010 by Stephane Fillod
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -40,9 +40,9 @@
 #define IC756_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_FM)
 #define IC756_1HZ_TS_MODES IC756_ALL_RX_MODES
 
-/* 
+/*
  * 100W in all modes but AM (40W)
- */ 
+ */
 #define IC756_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_FM)
 #define IC756_AM_TX_MODES (RIG_MODE_AM)
 
@@ -84,7 +84,7 @@
 /*
  * ic756 rig capabilities.
  */
-static const struct icom_priv_caps ic756_priv_caps = { 
+static const struct icom_priv_caps ic756_priv_caps = {
 		0x50,	/* default address */
 		0,		/* 731 mode */
 		ic756_ts_sc_list
@@ -92,9 +92,9 @@ static const struct icom_priv_caps ic756_priv_caps = {
 
 const struct rig_caps ic756_caps = {
 .rig_model =  RIG_MODEL_IC756,
-.model_name = "IC-756", 
-.mfg_name =  "Icom", 
-.version =  BACKEND_VER, 
+.model_name = "IC-756",
+.mfg_name =  "Icom",
+.version =  BACKEND_VER,
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -106,13 +106,13 @@ const struct rig_caps ic756_caps = {
 .serial_data_bits =  8,
 .serial_stop_bits =  1,
 .serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_NONE, 
+.serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
 .timeout =  200,
-.retry =  3, 
+.retry =  3,
 .has_get_func =  IC756PRO_FUNC_ALL,
-.has_set_func =  IC756PRO_FUNC_ALL, 
+.has_set_func =  IC756PRO_FUNC_ALL,
 .has_get_level =  IC756PRO_LEVEL_ALL,
 .has_set_level =  RIG_LEVEL_SET(IC756PRO_LEVEL_ALL),
 .has_get_parm =  RIG_PARM_NONE,
@@ -227,7 +227,7 @@ const struct rig_caps ic756_caps = {
  * TODO: check every paramters,
  * 		add antenna capabilities
  */
-static const struct icom_priv_caps ic756pro_priv_caps = { 
+static const struct icom_priv_caps ic756pro_priv_caps = {
 		0x5c,	/* default address */
 		0,		/* 731 mode */
 		ic756pro_ts_sc_list
@@ -235,9 +235,9 @@ static const struct icom_priv_caps ic756pro_priv_caps = {
 
 const struct rig_caps ic756pro_caps = {
 .rig_model =  RIG_MODEL_IC756PRO,
-.model_name = "IC-756PRO", 
-.mfg_name =  "Icom", 
-.version =  BACKEND_VER, 
+.model_name = "IC-756PRO",
+.mfg_name =  "Icom",
+.version =  BACKEND_VER,
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -249,13 +249,13 @@ const struct rig_caps ic756pro_caps = {
 .serial_data_bits =  8,
 .serial_stop_bits =  1,
 .serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_NONE, 
+.serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
 .timeout =  200,
-.retry =  3, 
+.retry =  3,
 .has_get_func =  IC756PRO_FUNC_ALL,
-.has_set_func =  IC756PRO_FUNC_ALL, 
+.has_set_func =  IC756PRO_FUNC_ALL,
 .has_get_level =  IC756PRO_LEVEL_ALL,
 .has_set_level =  RIG_LEVEL_SET(IC756PRO_LEVEL_ALL),
 .has_get_parm =  RIG_PARM_NONE,
@@ -374,7 +374,7 @@ const struct rig_caps ic756pro_caps = {
  * TODO: check every paramters,
  * 		add antenna capabilities
  */
-static const struct icom_priv_caps ic756pro2_priv_caps = { 
+static const struct icom_priv_caps ic756pro2_priv_caps = {
 		0x64,	/* default address */
 		0,		/* 731 mode */
 		ic756pro_ts_sc_list
@@ -412,7 +412,7 @@ static const struct confparams ic756pro2_ext_parms[] = {
  * STRING: val.cs for set, val.s for get
  * CHECKBUTTON: val.i 0/1
  */
- 
+
  /*IC-756Pro Rig parameters Only available in this namespace*/
 #define S_MEM_SC_LEN		2	/* 756PRO S_MEM subcmd length */
 #define S_MEM_SBASS		0x501	/* SSB TX tone bass level */
@@ -439,9 +439,9 @@ static int ic756pro2_get_ext_parm(RIG *rig, token_t token, value_t *val);
 
 const struct rig_caps ic756pro2_caps = {
 .rig_model =  RIG_MODEL_IC756PROII,
-.model_name = "IC-756PROII", 
-.mfg_name =  "Icom", 
-.version =  BACKEND_VER, 
+.model_name = "IC-756PROII",
+.mfg_name =  "Icom",
+.version =  BACKEND_VER,
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -453,13 +453,13 @@ const struct rig_caps ic756pro2_caps = {
 .serial_data_bits =  8,
 .serial_stop_bits =  1,
 .serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_NONE, 
+.serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
 .timeout =  200,
-.retry =  3, 
+.retry =  3,
 .has_get_func =  IC756PRO_FUNC_ALL,
-.has_set_func =  IC756PRO_FUNC_ALL, 
+.has_set_func =  IC756PRO_FUNC_ALL,
 .has_get_level =  IC756PRO_LEVEL_ALL,
 .has_set_level =  RIG_LEVEL_SET(IC756PRO_LEVEL_ALL),
 .has_get_parm =  RIG_PARM_NONE,
@@ -654,12 +654,12 @@ static int ic756pro2_get_ext_parm(RIG *rig, token_t token, value_t *val)
 	struct icom_priv_data *priv;
 	struct rig_state *rs;
 	const struct confparams *cfp;
-	
+
 	unsigned char resbuf[MAXFRAMELEN];
 	int res_len, icom_val=0;
 	int cmdhead;
 	int retval;
-	
+
 	int ep_cmd = C_CTL_MEM;
 	int ep_sc;             /* Subcommand in $1A $05xx */
 
@@ -686,7 +686,7 @@ static int ic756pro2_get_ext_parm(RIG *rig, token_t token, value_t *val)
 		rig_debug(RIG_DEBUG_ERR,"Unsupported get_ext_parm %d", token);
 		return -RIG_EINVAL;
 	}
-	
+
 	retval = icom_transaction (rig, ep_cmd, ep_sc, NULL, 0,
 					resbuf, &res_len);
 	if (retval != RIG_OK)
@@ -726,11 +726,11 @@ static int ic756pro2_get_ext_parm(RIG *rig, token_t token, value_t *val)
 		 rig_debug(RIG_DEBUG_ERR,"%s: protocol error (%#.2x), "
 			"len=%d\n", __FUNCTION__,resbuf[0],res_len);
 		return -RIG_EPROTO;
-		
+
 	}
 	rig_debug(RIG_DEBUG_TRACE,"%s: %d %d %d %f\n",
 			__FUNCTION__, res_len, icom_val, val->i, val->f);
-	
+
 	return RIG_OK;
 }
 
@@ -742,7 +742,7 @@ static int ic756pro2_get_ext_parm(RIG *rig, token_t token, value_t *val)
  * TODO: check every paramters,
  * 		add antenna capabilities
  */
-static const struct icom_priv_caps ic756pro3_priv_caps = { 
+static const struct icom_priv_caps ic756pro3_priv_caps = {
 		0x6e,	/* default address */
 		0,		/* 731 mode */
 		ic756pro_ts_sc_list
@@ -782,8 +782,8 @@ static const struct icom_priv_caps ic756pro3_priv_caps = {
 
 const struct rig_caps ic756pro3_caps = {
 .rig_model =  RIG_MODEL_IC756PROIII,
-.model_name = "IC-756PROIII", 
-.mfg_name =  "Icom", 
+.model_name = "IC-756PROIII",
+.mfg_name =  "Icom",
 .version =  BACKEND_VER ".1",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
@@ -796,13 +796,13 @@ const struct rig_caps ic756pro3_caps = {
 .serial_data_bits =  8,
 .serial_stop_bits =  1,
 .serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_NONE, 
+.serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
 .timeout =  200,
-.retry =  3, 
+.retry =  3,
 .has_get_func =  IC756PRO_FUNC_ALL,
-.has_set_func =  IC756PRO_FUNC_ALL, 
+.has_set_func =  IC756PRO_FUNC_ALL,
 .has_get_level =  IC756PRO_LEVEL_ALL,
 .has_set_level =  RIG_LEVEL_SET(IC756PRO_LEVEL_ALL),
 .has_get_parm =  IC756PROIII_PARMS,

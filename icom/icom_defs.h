@@ -3,19 +3,19 @@
  *  Copyright (c) 2000-2010 by Stephane Fillod
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -52,7 +52,7 @@
 
  	Most radios have 2 or 3 recieve passbands available.  Where only 2 are available they
 	are selected by 01 for wide and 02 for narrow  Actual bandwidth is determined by the filters
-	installed.  With the newer DSP rigs there are 3 presets 01 = wide 02 = middle and 03 = narrow. 
+	installed.  With the newer DSP rigs there are 3 presets 01 = wide 02 = middle and 03 = narrow.
 	Acutally you can set change any of these presets to any thing you want.
 
  * Notes:
@@ -117,12 +117,12 @@
 
 #define S_R7000_SSB	0x05	/* Set to SSB on R-7000 */
 
-/* filter width coding for older ICOM rigs with 2 filter width */ 
+/* filter width coding for older ICOM rigs with 2 filter width */
 /* there is no special 'wide' for that rigs */
 #define PD_MEDIUM_2	0x01	/* Medium */
 #define PD_NARROW_2	0x02	/* Narrow */
 
-/* filter width coding for newer ICOM rigs with 3 filter width */ 
+/* filter width coding for newer ICOM rigs with 3 filter width */
 #define PD_WIDE_3	0x01	/* Wide */
 #define PD_MEDIUM_3	0x02	/* Medium */
 #define PD_NARROW_3	0x03	/* Narrow */
@@ -383,7 +383,7 @@
  * tokens are used ext_lvl and ext_parm funtions in the individual rig files.
  * Extra parameters which are rig specific should be coded in the individual rig files and token #s < 100.
  */
- 
+
 #define TOKEN_BACKEND(t) (t)
 
 #define TOK_RTTY_FLTR TOKEN_BACKEND(100)
