@@ -56,21 +56,21 @@ remote repository, "origin"):
   git commit -a     # Commit all modified files locally
 
 * Create a new branch for the release:
-  git branch Hamlib-1.2.14
+  git branch Hamlib-1.2.15
 
 * Push the changes (check for validity):
   git push origin       # pushes previous commit to sf.net repository
-  git push -u origin Hamlib-1.2.14         # push the branch and set "upstream"
+  git push -u origin Hamlib-1.2.15         # push the branch and set "upstream"
 
 * Update the version in the macro AC_INIT of configure.ac (advance to next
-  version, e.g. 1.2.15~git) and the libhamlib_la_LDFLAGS value in
+  version, e.g. 1.2.16~git) and the libhamlib_la_LDFLAGS value in
   src/Makefile.am and c++/Makefile.am to match. e.g.:
-  libhamlib_la_LDFLAGS = $(WINLDFLAGS) $(OSXLDFLAGS) -no-undefined -version-info @ABI_VERSION@:15:0
+  libhamlib_la_LDFLAGS = $(WINLDFLAGS) $(OSXLDFLAGS) -no-undefined -version-info @ABI_VERSION@:16:0
 
   Note that -version-info is a libtool flag and reflects ABI compatibility.
-  In @ABI_VERSION@:15:0, ABI_VERSION is set in configure.ac, 15 is the
+  In @ABI_VERSION@:16:0, ABI_VERSION is set in configure.ac, 16 is the
   revision, and :0 should remain 0.  When the API is changed, ABI_VERSION
-  will be advanced, and revision (e.g. :15) will be reset to 0.
+  will be advanced, and revision (e.g. :16) will be reset to 0.
 
   Format is ABI version:revision:age.  Setting age to other than 0 causes
   strange DLL naming in Win32 cross-compile builds.
@@ -84,7 +84,7 @@ which will be advanced for the next release candidate or stripped for final
 release:
 
 * Checkout the release branch:
-  git checkout Hamlib-1.2.14
+  git checkout Hamlib-1.2.15
 
 * Edit config.ac, commit it and push it.  The branch is now ready for
   rc testing/release.
@@ -126,8 +126,9 @@ See README.build-win32 for information on prerequisites, etc.
 
   - Documentation (requires doxygen)
       make -C doc doc
-      ssh shell.sourceforge.net mkdir /home/project-web/h/ha/hamlib/htdocs/manuals/x-y-z
-      scp -r doc/html shell.sourceforge.net:/home/project-web/h/ha/hamlib/htdocs/manuals/x-y-z/.
+      ssh -t USER,hamlib@shell.sourceforge.net create
+      mkdir /home/project-web/hamlib/htdocs/manuals/x-y-z
+      scp -r doc/html/* USER,hamlib@shell.sourceforge.net:/home/project-web/hamlib/htdocs/manuals/x-y-z/.
       Edit Wiki Documentation section
 
   - Supported Radios/Rotators
