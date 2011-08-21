@@ -2,21 +2,20 @@
  *  Hamlib Kenwood backend - TS140 description
  *  Copyright (c) 2000-2009 by Stephane Fillod
  *
- *	$Id: ts140.c,v 1.14 2009-02-20 14:19:27 fillods Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -121,7 +120,7 @@ const struct rig_caps ts140_caps = {
 			RIG_CHAN_END,
 		},
 
-.rx_range_list1 =  { 
+.rx_range_list1 =  {
 	{kHz(50),kHz(34999),TS140_ALL_MODES,-1,-1,TS140_VFO},
 	RIG_FRNG_END,
   }, /* rx range */
@@ -138,7 +137,7 @@ const struct rig_caps ts140_caps = {
 .tx_range_list2 =  {
     FRQ_RNG_HF(2,TS140_OTHER_TX_MODES,W(5),W(100),TS140_VFO,TS140_ANTS),
     FRQ_RNG_HF(2,TS140_AM_TX_MODES,W(2),W(40),TS140_VFO,TS140_ANTS),
-    RIG_FRNG_END,    
+    RIG_FRNG_END,
   }, /* tx range */
 .tuning_steps =  {		/* FIXME: Done */
 	 {TS140_ALL_MODES,10},

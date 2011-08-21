@@ -2,21 +2,20 @@
  *  Hamlib Kenwood backend - TS870S description
  *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: ts870s.c,v 1.54 2009-02-03 23:22:58 azummo Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -58,7 +57,7 @@ static struct kenwood_priv_caps  ts870s_priv_caps  = {
 		.cmdtrm =  EOM_KEN,
 };
 
-/* only the ts870s and ts2000 support get_vfo with the 'FR;' command 
+/* only the ts870s and ts2000 support get_vfo with the 'FR;' command
    NOTE: using byte 31 in 'IF' will also work. TODO: check other rigs */
 static int ts870s_get_vfo(RIG *rig, vfo_t *vfo)
 {
@@ -84,7 +83,7 @@ static int ts870s_get_vfo(RIG *rig, vfo_t *vfo)
 		case '0': *vfo = RIG_VFO_A; break;
 		case '1': *vfo = RIG_VFO_B; break;
 		case '2': *vfo = RIG_VFO_MEM; break;
-		default: 
+		default:
 			rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %c\n",
 							__func__,vfobuf[2]);
 			return -RIG_EPROTO;
@@ -110,7 +109,7 @@ static int ts870s_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     return -RIG_ERJCTED;
   }
 
-  switch (buf[2]) 
+  switch (buf[2])
   {
     case MD_CW:         *mode = RIG_MODE_CW; break;
     case MD_CWR:	*mode = RIG_MODE_CWR; break;
@@ -138,7 +137,7 @@ static int ts870s_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 			__func__,buf_len);
     return -RIG_ERJCTED;
   }
-  
+
   *width = 10 * atoi(&buf[2]);
 
   return RIG_OK;
@@ -149,7 +148,7 @@ static int ts870s_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   char buf[16];
   int kmode, retval;
 
-  switch (mode) 
+  switch (mode)
   {
     case RIG_MODE_CW:       kmode = MD_CW; break;
     case RIG_MODE_CWR:      kmode = MD_CWR; break;
@@ -169,8 +168,8 @@ static int ts870s_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   retval = kenwood_simple_cmd(rig, buf);
   if (retval != RIG_OK) return retval;
 
-/* 
- * This rig will simply use an IF bandpass which is closest to width, 
+/*
+ * This rig will simply use an IF bandpass which is closest to width,
  * so we don't need to check the value...
  */
   sprintf(buf, "FW%04d", (int)width/10);
@@ -240,7 +239,7 @@ static int ts870s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 			lvlbuf[7]='\0';
 			i=atoi(&lvlbuf[3]);
-			if(i == 30) 
+			if(i == 30)
 				val->f = 150.0; /* infinity :-) */
 			else
 				val->f = 60.0/(30.0-(float)i)-1.0;
@@ -330,7 +329,7 @@ static int ts870s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			sscanf (lvlbuf + 2, "%d", &lvl);
 			val->f = lvl/100.;
 			break;
-			
+
 
 		case RIG_LEVEL_AF:
 			return get_kenwood_level(rig, "AG", 2, &val->f);
@@ -434,11 +433,11 @@ const struct rig_caps ts870s_caps = {
 			RIG_CHAN_END,
 		},
 
-.rx_range_list1 =  { 
+.rx_range_list1 =  {
 	{kHz(100),MHz(30),TS870S_ALL_MODES,-1,-1,TS870S_VFO,TS870S_ANTS},
 	RIG_FRNG_END,
   }, /* rx range */
-.tx_range_list1 =  { 
+.tx_range_list1 =  {
 	FRQ_RNG_HF(1, TS870S_OTHER_TX_MODES, W(5), W(100), TS870S_VFO, TS870S_ANTS), /* 100W class */
 	FRQ_RNG_HF(1, TS870S_AM_TX_MODES, W(2), W(25), TS870S_VFO, TS870S_ANTS), /* 25W class */
 	RIG_FRNG_END,

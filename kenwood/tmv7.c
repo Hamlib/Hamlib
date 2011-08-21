@@ -3,19 +3,19 @@
  *  Copyright (c) 2004-2010 by Stephane Fillod
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -137,7 +137,7 @@ const struct rig_caps tmv7_caps = {
 .chan_desc_sz =  6,
 
 
-.chan_list =  { 
+.chan_list =  {
 		{  1, 90 , RIG_MTYPE_MEM , {TMV7_CHANNEL_CAPS}},  /* normal MEM VHF */
 		{ 101, 190, RIG_MTYPE_MEM , {TMV7_CHANNEL_CAPS}},  /* normal MEM UHF */
 		{  201,206, RIG_MTYPE_EDGE , {TMV7_CHANNEL_CAPS}}, /* L MEM */
@@ -254,7 +254,7 @@ int tmv7_decode_event (RIG *rig)
         if (rig->callbacks.freq_event) {
             rig->callbacks.freq_event(rig, RIG_VFO_A, freq, rig->callbacks.freq_arg);
         }
-	/* 
+	/*
         if (rig->callbacks.mode_event) {
             rig->callbacks.mode_event(rig, RIG_VFO_A, mode, RIG_PASSBAND_NORMAL,
 							rig->callbacks.mode_arg);
@@ -310,7 +310,7 @@ int tmv7_decode_event (RIG *rig)
             case 0:     bandmode = RIG_VFO_VFO;  break;
             case 2:     bandmode = RIG_VFO_MEM;  break;
           /*  case 3:     bandmode = RIG_VFO_CALL; break; */
-            default:    bandmode = RIG_VFO_CURR; break; 
+            default:    bandmode = RIG_VFO_CURR; break;
         }
         rig_debug(RIG_DEBUG_TRACE, "%s: Mode of Band event -  %d\n", __func__,  bandmode);
 
@@ -553,7 +553,7 @@ int tmv7_set_channel(RIG *rig, const channel_t *chan)
     int retval;
     size_t ack_len;
     char req[64];
-    long freq;   
+    long freq;
     int chn, step, shift, tone, ctcss, tonefq, ctcssfq;
 
     chn=chan->channel_num;
@@ -576,7 +576,7 @@ int tmv7_set_channel(RIG *rig, const channel_t *chan)
             rig_debug(RIG_DEBUG_ERR, "%s: not supported shift\n", __func__);
             return -RIG_EINVAL;
     }
-    
+
     if(chan->ctcss_tone==0) {
 	 tone=0;tonefq=9;
     } else {

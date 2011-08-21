@@ -2,21 +2,20 @@
  *  Hamlib Kenwood backend - TS680 description
  *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: ts680.c,v 1.13 2009-02-13 19:29:16 azummo Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -121,7 +120,7 @@ const struct rig_caps ts680s_caps = {
 			RIG_CHAN_END,
 		},
 
-.rx_range_list1 =  { 
+.rx_range_list1 =  {
 	{kHz(50),kHz(34999),TS680_ALL_MODES,-1,-1,TS680_VFO},
 	{MHz(45),kHz(59999),TS680_ALL_MODES,-1,-1,TS680_VFO},
 	RIG_FRNG_END,
@@ -144,7 +143,7 @@ const struct rig_caps ts680s_caps = {
     FRQ_RNG_HF(2,TS680_AM_TX_MODES,W(2),W(40),TS680_VFO,TS680_ANTS),
     FRQ_RNG_6m(2,TS680_OTHER_TX_MODES,W(1),W(10),TS680_VFO,TS680_ANTS),
     FRQ_RNG_6m(2,TS680_AM_TX_MODES,W(1),W(4),TS680_VFO,TS680_ANTS),
-    RIG_FRNG_END,    
+    RIG_FRNG_END,
   }, /* tx range */
 .tuning_steps =  {		/* FIXME: Done */
 	 {TS680_ALL_MODES,10},

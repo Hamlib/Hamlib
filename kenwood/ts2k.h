@@ -2,21 +2,20 @@
  *  Hamlib TS2000 backend - main header
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: ts2k.h,v 1.3 2002-06-30 10:17:03 dedmons Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -125,13 +124,13 @@ int ts2k_set_trn(RIG *rig, int trn);
 int ts2k_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch);
 int ts2k_scan_on(RIG *rig, char ch);
 int ts2k_scan_off(RIG *rig);
-int ts2k_get_channel(RIG *rig, channel_t *chan); 
-int ts2k_set_channel(RIG *rig, const channel_t *chan); 
+int ts2k_get_channel(RIG *rig, channel_t *chan);
+int ts2k_set_channel(RIG *rig, const channel_t *chan);
 char *ts2k_get_ctrl(RIG *rig);
 int ts2k_set_ctrl(RIG *rig, int ptt, int ctrl);
 int ts2k_vfo_ctrl(RIG *rig, vfo_t vfo);
-int ts2k_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *tone); 
-int ts2k_set_dcs_code(RIG *rig, vfo_t vfo, tone_t  tone); 
+int ts2k_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *tone);
+int ts2k_set_dcs_code(RIG *rig, vfo_t vfo, tone_t  tone);
 int ts2k_get_int(char *c, int i);
 int ts2k_sat_off(RIG *rig, vfo_t vfo);
 int ts2k_sat_on(RIG *rig, vfo_t vfo);
@@ -148,7 +147,7 @@ int ts2k_set_split(RIG *rig, vfo_t vfo, split_t  split);
 int ts2k_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq);
 int ts2k_set_split_freq(RIG *rig, vfo_t vfo, freq_t  tx_freq);
 int ts2k_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *txmode, pbwidth_t *txwidth);
-int ts2k_set_split_mode(RIG *rig, vfo_t vfo, rmode_t  txmode, pbwidth_t  txwidth); 
+int ts2k_set_split_mode(RIG *rig, vfo_t vfo, rmode_t  txmode, pbwidth_t  txwidth);
 int ts2k_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts);
 int ts2k_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts);
 int ts2k_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *freq);
