@@ -2,21 +2,20 @@
  *  Hamlib Lowe backend - main file
  *  Copyright (c) 2003-2005 by Stephane Fillod
  *
- *	$Id: lowe.c,v 1.5 2006-10-07 18:01:31 csete Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -93,7 +92,7 @@ int lowe_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	char freqbuf[16], ackbuf[16];
 	int freq_len, ack_len, retval;
 
-	/* 
+	/*
 	 */
 	freq_len = sprintf(freqbuf,"FRQ%f" EOM, (float)freq/1000);
 	retval = lowe_transaction(rig, freqbuf, freq_len, ackbuf, &ack_len);
@@ -299,7 +298,7 @@ DECLARE_PROBERIG_BACKEND(lowe)
 	}
 
 	/*
-	 * not found... 
+	 * not found...
 	 */
 	if (memcmp(idbuf, "ID" EOM, 3)) /* catch loopback serial */
 		rig_debug(RIG_DEBUG_VERBOSE,"probe_lowe: found unknown device "
