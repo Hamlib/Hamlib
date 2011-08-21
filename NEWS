@@ -5,6 +5,10 @@ Copyright (C) 2000-2011  Stephane Fillod, and others
 
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
+Version 1.2.15
+	* New rotator backends: Celestron (telescope mount)
+	* Fixes and features: K3
+
 Version 1.2.14
 	2011-08-01
 	* New models: SigFox Transfox, TH-D72A, IC-7410, IC-9100, IC-R9500, KX3,

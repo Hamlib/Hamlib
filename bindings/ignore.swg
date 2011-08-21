@@ -91,6 +91,10 @@
 %ignore ROT_BACKEND_ARS;
 %ignore ROT_AMSAT;
 %ignore ROT_BACKEND_AMSAT;
+%ignore ROT_TS7400;
+%ignore ROT_BACKEND_TS7400;
+%ignore ROT_CELESTRON;
+%ignore ROT_BACKEND_CELESTRON;
 
 %ignore PRIfreq;
 %ignore SCNfreq;

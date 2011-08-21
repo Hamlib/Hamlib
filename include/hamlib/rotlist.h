@@ -100,6 +100,7 @@
 #define ROT_BACKEND_EASYCOMM "easycomm"
 #define ROT_MODEL_EASYCOMM1 ROT_MAKE_MODEL(ROT_EASYCOMM, 1)
 #define ROT_MODEL_EASYCOMM2 ROT_MAKE_MODEL(ROT_EASYCOMM, 2)
+#define ROT_MODEL_TRAKBOX ROT_MAKE_MODEL(ROT_EASYCOMM, 3)
 
 /*! \def ROT_MODEL_FODTRACK
  *  \brief A macro that returns the model number of the Fodtrack backend.
@@ -264,6 +265,16 @@
 #define ROT_BACKEND_TS7400 "ts7400"
 #define ROT_MODEL_TS7400 ROT_MAKE_MODEL(ROT_TS7400, 1)
 
+/*! \def ROT_MODEL_NEXSTAR
+ *  \brief A macro that returns the model number of the NEXSTAR backend.
+ *
+ *  The CELESTRON backend can be used with rotators that support the Celestron
+ *  protocol and alike.
+ */
+#define ROT_CELESTRON 14
+#define ROT_BACKEND_CELESTRON "celestron"
+#define ROT_MODEL_NEXSTAR ROT_MAKE_MODEL(ROT_CELESTRON, 1)
+
 
 /*! \typedef typedef int rot_model_t
     \brief Convenience type definition for rotator model.
@@ -292,6 +303,7 @@ typedef int rot_model_t;
         { ROT_ARS, ROT_BACKEND_ARS }, \
         { ROT_AMSAT, ROT_BACKEND_AMSAT }, \
         { ROT_TS7400, ROT_BACKEND_TS7400 }, \
+        { ROT_CELESTRON, ROT_BACKEND_CELESTRON }, \
         { 0, NULL }, /* end */  \
 }
 
