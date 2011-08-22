@@ -14,19 +14,19 @@
  *  Copyright (c) 2000-2010 by Stephane Fillod
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -47,15 +47,15 @@
  * Configuration options available in the rig->state struct.
  */
 static const struct confparams frontend_cfg_params[] = {
-	{ TOK_PATHNAME, "rig_pathname", "Rig path name", 
+	{ TOK_PATHNAME, "rig_pathname", "Rig path name",
 			"Path name to the device file of the rig",
-			"/dev/rig", RIG_CONF_STRING, 
+			"/dev/rig", RIG_CONF_STRING,
 	},
-	{ TOK_WRITE_DELAY, "write_delay", "Write delay", 
+	{ TOK_WRITE_DELAY, "write_delay", "Write delay",
 			"Delay in ms between each byte sent out",
 			"0", RIG_CONF_NUMERIC, { .n = { 0, 1000, 1 } }
 	},
-	{ TOK_POST_WRITE_DELAY, "post_write_delay", "Post write delay", 
+	{ TOK_POST_WRITE_DELAY, "post_write_delay", "Post write delay",
 			"Delay in ms between each command sent out",
 			"0", RIG_CONF_NUMERIC, { .n = { 0, 1000, 1 } }
 	},
@@ -65,34 +65,34 @@ static const struct confparams frontend_cfg_params[] = {
 	{ TOK_RETRY, "retry", "Retry", "Max number of retry",
 			"0", RIG_CONF_NUMERIC, { .n = { 0, 10, 1 } }
 	},
-	{ TOK_ITU_REGION, "itu_region", "ITU region", 
+	{ TOK_ITU_REGION, "itu_region", "ITU region",
 			"ITU region this rig has been manufactured for (freq. band plan)",
 			"0", RIG_CONF_NUMERIC, { .n = { 1, 3, 1 } }
 	},
 
-	{ TOK_VFO_COMP, "vfo_comp", "VFO compensation", 
+	{ TOK_VFO_COMP, "vfo_comp", "VFO compensation",
 			"VFO compensation in ppm",
 			"0", RIG_CONF_NUMERIC, { .n = { 0.0, 1000.0, .001 } }
 	},
-	{ TOK_POLL_INTERVAL, "poll_interval", "Polling interval", 
+	{ TOK_POLL_INTERVAL, "poll_interval", "Polling interval",
 			"Polling interval in millisecond for transceive emulation",
 			"500", RIG_CONF_NUMERIC, { .n = { 0, 1000000, 1 } }
 	},
-	{ TOK_PTT_TYPE, "ptt_type", "PTT type", 
+	{ TOK_PTT_TYPE, "ptt_type", "PTT type",
 			"Push-To-Talk interface type override",
 			"RIG", RIG_CONF_COMBO, { .c = {{ "RIG", "DTR", "RTS", "Parallel", "None", NULL }} }
 	},
-	{ TOK_PTT_PATHNAME, "ptt_pathname", "PTT path name", 
+	{ TOK_PTT_PATHNAME, "ptt_pathname", "PTT path name",
 			"Path name to the device file of the Push-To-Talk",
-			"/dev/rig", RIG_CONF_STRING, 
+			"/dev/rig", RIG_CONF_STRING,
 	},
-	{ TOK_DCD_TYPE, "dcd_type", "DCD type", 
+	{ TOK_DCD_TYPE, "dcd_type", "DCD type",
 			"Data Carrier Detect (or squelch) interface type override",
 			"RIG", RIG_CONF_COMBO, { .c = {{ "RIG", "DSR", "CTS", "CD", "Parallel", "None", NULL }} }
 	},
-	{ TOK_DCD_PATHNAME, "dcd_pathname", "DCD path name", 
+	{ TOK_DCD_PATHNAME, "dcd_pathname", "DCD path name",
 			"Path name to the device file of the Data Carrier Detect (or squelch)",
-			"/dev/rig", RIG_CONF_STRING, 
+			"/dev/rig", RIG_CONF_STRING,
 	},
 
 	{ RIG_CONF_END, NULL, }
@@ -100,32 +100,32 @@ static const struct confparams frontend_cfg_params[] = {
 
 
 static const struct confparams frontend_serial_cfg_params[] = {
-	{ TOK_SERIAL_SPEED, "serial_speed", "Serial speed", 
+	{ TOK_SERIAL_SPEED, "serial_speed", "Serial speed",
 			"Serial port baud rate",
 			"0", RIG_CONF_NUMERIC, { .n = { 300, 115200, 1 } }
 	},
-	{ TOK_DATA_BITS, "data_bits", "Serial data bits", 
+	{ TOK_DATA_BITS, "data_bits", "Serial data bits",
 			"Serial port data bits",
 			"8", RIG_CONF_NUMERIC, { .n = { 5, 8, 1 } }
 	},
-	{ TOK_STOP_BITS, "stop_bits", "Serial stop bits", 
+	{ TOK_STOP_BITS, "stop_bits", "Serial stop bits",
 			"Serial port stop bits",
 			"1", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } }
 	},
-	{ TOK_PARITY, "serial_parity", "Serial parity", 
+	{ TOK_PARITY, "serial_parity", "Serial parity",
 			"Serial port parity",
 			"None", RIG_CONF_COMBO, { .c = {{ "None", "Odd", "Even", "Mark", "Space", NULL }} }
 	},
-	{ TOK_HANDSHAKE, "serial_handshake", "Serial handshake", 
+	{ TOK_HANDSHAKE, "serial_handshake", "Serial handshake",
 			"Serial port handshake",
 			"None", RIG_CONF_COMBO, { .c = {{ "None", "XONXOFF", "Hardware", NULL }} }
 	},
 
-	{ TOK_RTS_STATE, "rts_state", "RTS state", 
+	{ TOK_RTS_STATE, "rts_state", "RTS state",
 			"Serial port set state of RTS signal for external powering",
 			"Unset", RIG_CONF_COMBO, { .c = {{ "Unset", "ON", "OFF", NULL }} }
 	},
-	{ TOK_DTR_STATE, "dtr_state", "DTR state", 
+	{ TOK_DTR_STATE, "dtr_state", "DTR state",
 			"Serial port set state of DTR signal for external powering",
 			"Unset", RIG_CONF_COMBO, { .c = {{ "Unset", "ON", "OFF", NULL }} }
 	},
@@ -142,10 +142,10 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         const struct rig_caps *caps;
         struct rig_state *rs;
         int val_i;
- 
+
         caps = rig->caps;
         rs = &rig->state;
- 
+
         switch(token) {
         case TOK_PATHNAME:
                 strncpy(rs->rigport.pathname, val, FILPATHLEN-1);
@@ -174,7 +174,7 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
                 }
                 rs->rigport.retry = val_i;
                 break;
- 
+
         case TOK_SERIAL_SPEED:
                 if (rs->rigport.type.rig != RIG_PORT_SERIAL)
                         return -RIG_EINVAL;
@@ -212,7 +212,7 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
                         rs->rigport.parm.serial.parity = RIG_PARITY_MARK;
                 else if (!strcmp(val, "Space"))
                         rs->rigport.parm.serial.parity = RIG_PARITY_SPACE;
-                else 
+                else
                         return -RIG_EINVAL;
                 break;
         case TOK_HANDSHAKE:
@@ -224,10 +224,10 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
                         rs->rigport.parm.serial.handshake = RIG_HANDSHAKE_XONXOFF;
                 else if (!strcmp(val, "Hardware"))
                         rs->rigport.parm.serial.handshake = RIG_HANDSHAKE_HARDWARE;
-                else 
+                else
                         return -RIG_EINVAL;
                 break;
- 
+
         case TOK_RTS_STATE:
                 if (rs->rigport.type.rig != RIG_PORT_SERIAL)
                         return -RIG_EINVAL;
@@ -237,10 +237,10 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
                         rs->rigport.parm.serial.rts_state = RIG_SIGNAL_ON;
                 else if (!strcmp(val, "OFF"))
                         rs->rigport.parm.serial.rts_state = RIG_SIGNAL_OFF;
-                else 
+                else
                         return -RIG_EINVAL;
                 break;
- 
+
         case TOK_DTR_STATE:
                 if (rs->rigport.type.rig != RIG_PORT_SERIAL)
                         return -RIG_EINVAL;
@@ -250,10 +250,10 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
                         rs->rigport.parm.serial.dtr_state = RIG_SIGNAL_ON;
                 else if (!strcmp(val, "OFF"))
                         rs->rigport.parm.serial.dtr_state = RIG_SIGNAL_OFF;
-                else 
+                else
                         return -RIG_EINVAL;
                 break;
- 
+
         case TOK_ITU_REGION:
                 if (1 != sscanf(val, "%d", &val_i)){
                         return -RIG_EINVAL;//value format error
@@ -292,14 +292,14 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
                         rs->pttport.type.ptt = RIG_PTT_PARALLEL;
                 else if (!strcmp(val, "None"))
                         rs->pttport.type.ptt = RIG_PTT_NONE;
-                else 
+                else
                         return -RIG_EINVAL;
                 break;
 
         case TOK_PTT_PATHNAME:
                 strncpy(rs->pttport.pathname, val, FILPATHLEN-1);
                 break;
- 
+
         case TOK_DCD_TYPE:
                 if (!strcmp(val, "RIG"))
                         rs->dcdport.type.dcd = RIG_DCD_RIG;
@@ -313,14 +313,14 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
                         rs->dcdport.type.dcd = RIG_DCD_PARALLEL;
                 else if (!strcmp(val, "None"))
                         rs->dcdport.type.dcd = RIG_DCD_NONE;
-                else 
+                else
                         return -RIG_EINVAL;
                 break;
 
         case TOK_DCD_PATHNAME:
                 strncpy(rs->dcdport.pathname, val, FILPATHLEN-1);
                 break;
- 
+
 
         case TOK_VFO_COMP:
                 rs->vfo_comp = atof(val);
@@ -328,8 +328,8 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         case TOK_POLL_INTERVAL:
                 rs->poll_interval = atof(val);
                 break;
- 
- 
+
+
         default:
                 return -RIG_EINVAL;
         }
@@ -366,7 +366,7 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
 		sprintf(val, "%d", rs->rigport.retry);
 		break;
 	case TOK_ITU_REGION:
-		sprintf(val, "%d", 
+		sprintf(val, "%d",
 			rs->itu_region == 1 ? RIG_ITU_REGION1 : RIG_ITU_REGION2);
 		break;
 	case TOK_SERIAL_SPEED:
@@ -454,11 +454,11 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
  * \param data	Any data to be passed to cfunc
  *
  * Executes \a cfunc on all the elements stored in the conf table.
- * rig_token_foreach starts first with backend conf table, then finish 
+ * rig_token_foreach starts first with backend conf table, then finish
  * with frontend table.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
  * set appropriately).
  */
 int HAMLIB_API rig_token_foreach(RIG *rig, int (*cfunc)(const struct confparams *, rig_ptr_t), rig_ptr_t data)
@@ -549,10 +549,10 @@ token_t HAMLIB_API rig_token_lookup(RIG *rig, const char *name)
  * \param token	The parameter
  * \param val	The value to set the parameter to
  *
- *  Sets a configuration parameter. 
+ *  Sets a configuration parameter.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
  * set appropriately).
  *
  * \sa rig_get_conf()
@@ -590,8 +590,8 @@ int HAMLIB_API rig_set_conf(RIG *rig, token_t token, const char *val)
  *  Retrieves the value of a configuration paramter associated with \a token.
  *  The location pointed to by val must be large enough to hold the value of the config.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
  * set appropriately).
  *
  * \sa rig_set_conf()

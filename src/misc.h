@@ -2,21 +2,20 @@
  *  Hamlib Interface - toolbox header
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: misc.h,v 1.18 2005-01-24 23:03:25 fillods Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -47,7 +46,7 @@ void dump_hex(const unsigned char ptr[], size_t size);
  * BCD conversion routines.
  * to_bcd converts a long long int to a little endian BCD array,
  * 	and return a pointer to this array.
- * from_bcd converts a little endian BCD array to long long int 
+ * from_bcd converts a little endian BCD array to long long int
  *  reprensentation, and return it.
  * bcd_len is the number of digits in the BCD array.
  */
@@ -78,9 +77,9 @@ extern HAMLIB_EXPORT(int) rig_check_cache_timeout(const struct timeval *tv, int 
 extern HAMLIB_EXPORT(void) rig_force_cache_timeout(struct timeval *tv);
 
 
-#ifdef PRId64 
+#ifdef PRId64
 /** \brief printf(3) format to be used for long long (64bits) type */
-#define PRIll PRId64 
+#define PRIll PRId64
 #else
 #ifdef FBSD4
 #define PRIll "qd"
@@ -89,9 +88,9 @@ extern HAMLIB_EXPORT(void) rig_force_cache_timeout(struct timeval *tv);
 #endif
 #endif
 
-#ifdef SCNd64 
+#ifdef SCNd64
 /** \brief scanf(3) format to be used for long long (64bits) type */
-#define SCNll SCNd64 
+#define SCNll SCNd64
 #else
 #ifdef FBSD4
 #define SCNll "qd"

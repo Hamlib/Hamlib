@@ -3,21 +3,20 @@
  *  Copyright (c) 2000-2009 by Stephane Fillod
  *  Copyright (c) 2000-2003 by Frank Singleton
  *
- *		$Id: cal.c,v 1.7 2007-11-05 03:48:14 aa6e Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -48,9 +47,9 @@
 
  * cal_table_t is a data type suited to hold linear calibration
  * cal_table_t.size tell the number of plot cal_table_t.table contains
- * If a value is below or equal to cal_table_t.table[0].raw, 
+ * If a value is below or equal to cal_table_t.table[0].raw,
  * rig_raw2val() will return cal_table_t.table[0].val
- * If a value is greater or equal to cal_table_t.table[cal_table_t.size-1].raw, 
+ * If a value is greater or equal to cal_table_t.table[cal_table_t.size-1].raw,
  * rig_raw2val() will return cal_table_t.table[cal_table_t.size-1].val
  */
 
@@ -84,13 +83,13 @@ float HAMLIB_API rig_raw2val(int rawval, const cal_table_t *cal)
 
 #ifdef WANT_CHEAP_WNO_FP
 	/* cheap, less accurate, but no fp needed */
-	interpolation = ((cal->table[i].raw - rawval) * 
+	interpolation = ((cal->table[i].raw - rawval) *
 			 (cal->table[i].val - cal->table[i-1].val)) /
 			  (cal->table[i].raw - cal->table[i-1].raw);
 
 	return cal->table[i].val - interpolation;
 #else
-	interpolation = ((cal->table[i].raw - rawval) * 
+	interpolation = ((cal->table[i].raw - rawval) *
 			 (float)(cal->table[i].val - cal->table[i-1].val)) /
 			  (float)(cal->table[i].raw - cal->table[i-1].raw);
 #endif

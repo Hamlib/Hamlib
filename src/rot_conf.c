@@ -3,19 +3,19 @@
  *  Copyright (c) 2000-2010 by Stephane Fillod
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -49,15 +49,15 @@
  * Configuration options available in the rot->state struct.
  */
 static const struct confparams rotfrontend_cfg_params[] = {
-	{ TOK_PATHNAME, "rot_pathname", "Rig path name", 
+	{ TOK_PATHNAME, "rot_pathname", "Rig path name",
 			"Path name to the device file of the rotator",
-			"/dev/rotator", RIG_CONF_STRING, 
+			"/dev/rotator", RIG_CONF_STRING,
 	},
-	{ TOK_WRITE_DELAY, "write_delay", "Write delay", 
+	{ TOK_WRITE_DELAY, "write_delay", "Write delay",
 			"Delay in ms between each byte sent out",
 			"0", RIG_CONF_NUMERIC, { .n = { 0, 1000, 1 } }
 	},
-	{ TOK_POST_WRITE_DELAY, "post_write_delay", "Post write delay", 
+	{ TOK_POST_WRITE_DELAY, "post_write_delay", "Post write delay",
 			"Delay in ms between each command sent out",
 			"0", RIG_CONF_NUMERIC, { .n = { 0, 1000, 1 } }
 	},
@@ -89,23 +89,23 @@ static const struct confparams rotfrontend_cfg_params[] = {
 };
 
 static const struct confparams rotfrontend_serial_cfg_params[] = {
-	{ TOK_SERIAL_SPEED, "serial_speed", "Serial speed", 
+	{ TOK_SERIAL_SPEED, "serial_speed", "Serial speed",
 			"Serial port baud rate",
 			"0", RIG_CONF_NUMERIC, { .n = { 300, 115200, 1 } }
 	},
-	{ TOK_DATA_BITS, "data_bits", "Serial data bits", 
+	{ TOK_DATA_BITS, "data_bits", "Serial data bits",
 			"Serial port data bits",
 			"8", RIG_CONF_NUMERIC, { .n = { 5, 8, 1 } }
 	},
-	{ TOK_STOP_BITS, "stop_bits", "Serial stop bits", 
+	{ TOK_STOP_BITS, "stop_bits", "Serial stop bits",
 			"Serial port stop bits",
 			"1", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } }
 	},
-	{ TOK_PARITY, "serial_parity", "Serial parity", 
+	{ TOK_PARITY, "serial_parity", "Serial parity",
 			"Serial port parity",
 			"None", RIG_CONF_COMBO, { .c = {{ "None", "Odd", "Even", "Mark", "Space", NULL }} }
 	},
-	{ TOK_HANDSHAKE, "serial_handshake", "Serial handshake", 
+	{ TOK_HANDSHAKE, "serial_handshake", "Serial handshake",
 			"Serial port handshake",
 			"None", RIG_CONF_COMBO, { .c = {{ "None", "XONXOFF", "Hardware", NULL }} }
 	},
@@ -190,7 +190,7 @@ int frontrot_set_conf(ROT *rot, token_t token, const char *val)
 			rs->rotport.parm.serial.parity = RIG_PARITY_MARK;
 		else if (!strcmp(val, "Space"))
 			rs->rotport.parm.serial.parity = RIG_PARITY_SPACE;
-		else 
+		else
 			return -RIG_EINVAL;
 		break;
 	case TOK_HANDSHAKE:
@@ -202,7 +202,7 @@ int frontrot_set_conf(ROT *rot, token_t token, const char *val)
 			rs->rotport.parm.serial.handshake = RIG_HANDSHAKE_XONXOFF;
 		else if (!strcmp(val, "Hardware"))
 			rs->rotport.parm.serial.handshake = RIG_HANDSHAKE_HARDWARE;
-		else 
+		else
 			return -RIG_EINVAL;
 		break;
 
@@ -319,7 +319,7 @@ int frontrot_get_conf(ROT *rot, token_t token, char *val)
  * \param rot non-null
  * \param cfunc function(..)
  * \param data
- * 
+ *
  * start first with backend conf table, then finish with frontend table
  */
 int HAMLIB_API rot_token_foreach(ROT *rot, int (*cfunc)(const struct confparams *, rig_ptr_t), rig_ptr_t data)
@@ -385,7 +385,7 @@ const struct confparams * HAMLIB_API rot_confparam_lookup(ROT *rot, const char *
  * \brief Simple lookup returning token id associated with name
  * \param rot
  * \param name
- * \return token enum 
+ * \return token enum
  */
 token_t HAMLIB_API rot_token_lookup(ROT *rot, const char *name)
 {
@@ -404,10 +404,10 @@ token_t HAMLIB_API rot_token_lookup(ROT *rot, const char *name)
  * \param token	The parameter
  * \param val	The value to set the parameter to
  *
- *  Sets a configuration parameter. 
+ *  Sets a configuration parameter.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
  * set appropriately).
  *
  * \sa rot_get_conf()
@@ -444,8 +444,8 @@ int HAMLIB_API rot_set_conf(ROT *rot, token_t token, const char *val)
  *
  *  Retrieves the value of a configuration paramter associated with \a token.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
  * set appropriately).
  *
  * \sa rot_set_conf()

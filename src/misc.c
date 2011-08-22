@@ -2,19 +2,19 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000-2011 by Stephane Fillod
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -62,7 +62,7 @@
  * packed two digits per octet, in little-endian order
  * (e.g. byte order 90 78 56 34 12 for 1234567890 Hz).
  *
- * bcd_len is the number of BCD digits, usually 10 or 8 in 1-Hz units, 
+ * bcd_len is the number of BCD digits, usually 10 or 8 in 1-Hz units,
  * and 6 digits in 100-Hz units for Tx offset data.
  *
  * Hope the compiler will do a good job optimizing it (esp. w/the 64bit freq)
@@ -125,7 +125,7 @@ unsigned long long HAMLIB_API from_bcd(const unsigned char bcd_data[], unsigned 
 		f *= 10;
 		f += bcd_data[i] & 0x0f;
 	}
-	
+
 	return f;
 }
 
@@ -254,7 +254,7 @@ const char * HAMLIB_API rig_strstatus(enum rig_status_e status)
 }
 
 
-static struct { 
+static struct {
 		rmode_t mode;
 		const char *str;
 } mode_str[] = {
@@ -319,7 +319,7 @@ const char * HAMLIB_API rig_strrmode(rmode_t mode)
 	return "";
 }
 
-static struct { 
+static struct {
 	vfo_t vfo;
 	const char *str;
 } vfo_str[] = {
@@ -374,8 +374,8 @@ const char * HAMLIB_API rig_strvfo(vfo_t vfo)
 	return "";
 }
 
-static struct { 
-	setting_t func; 
+static struct {
+	setting_t func;
 	const char *str;
 } func_str[] = {
 	{ RIG_FUNC_FAGC, "FAGC" },
@@ -450,7 +450,7 @@ const char * HAMLIB_API rig_strfunc(setting_t func)
 	return "";
 }
 
-static struct { 
+static struct {
 	setting_t level;
 	const char *str;
 } level_str[] = {
@@ -527,7 +527,7 @@ const char * HAMLIB_API rig_strlevel(setting_t level)
 	return "";
 }
 
-static struct { 
+static struct {
 	setting_t parm;
 	const char *str;
 } parm_str[] = {
@@ -580,7 +580,7 @@ const char * HAMLIB_API rig_strparm(setting_t parm)
 	return "";
 }
 
-static struct { 
+static struct {
 	vfo_op_t vfo_op;
 	const char *str;
 } vfo_op_str[] = {
@@ -639,7 +639,7 @@ const char * HAMLIB_API rig_strvfop(vfo_op_t op)
 	return "";
 }
 
-static struct { 
+static struct {
 	scan_t rscan;
 	const char *str;
 } scan_str[] = {
@@ -723,7 +723,7 @@ rptr_shift_t HAMLIB_API rig_parse_rptr_shift(const char *s)
 		return RIG_RPT_SHIFT_NONE;
 }
 
-static struct { 
+static struct {
 	chan_type_t mtype;
 	const char *str;
 } mtype_str[] = {

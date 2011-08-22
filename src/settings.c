@@ -16,21 +16,20 @@
  *  Hamlib Interface - func/level/parm
  *  Copyright (c) 2000-2010 by Stephane Fillod
  *
- *	$Id: settings.c,v 1.14 2009-02-20 12:26:13 fillods Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -68,8 +67,8 @@
  * The level value \a val can be a float or an integer. See #value_t
  * for more information.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
  * set appropriately).
  *
  * \sa rig_has_set_level(), rig_get_level()
@@ -122,8 +121,8 @@ int HAMLIB_API rig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
  * 		+30=30, +40=40, +50=50 and +60=60. This is the responsability
  * 		of the backend to return values calibrated for this scale.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
  * set appropriately).
  *
  * \sa rig_has_get_level(), rig_set_level()
@@ -145,11 +144,11 @@ int HAMLIB_API rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	/*
 	 * Special case(frontend emulation): calibrated S-meter reading
 	 */
-	if (level == RIG_LEVEL_STRENGTH && 
+	if (level == RIG_LEVEL_STRENGTH &&
 			(caps->has_get_level & RIG_LEVEL_STRENGTH) == 0 &&
 			rig_has_get_level(rig,RIG_LEVEL_RAWSTR) &&
 			rig->state.str_cal.size) {
-	
+
 		value_t rawstr;
 
 		retcode = rig_get_level(rig, vfo, RIG_LEVEL_RAWSTR, &rawstr);
@@ -182,12 +181,12 @@ int HAMLIB_API rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
  * \param parm	The parameter
  * \param val	The value to set the parameter
  *
- *  Sets a parameter. 
+ *  Sets a parameter.
  *  The parameter value \a val can be a float or an integer. See #value_t
  *  for more information.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
  * set appropriately).
  *
  * \sa rig_has_set_parm(), rig_get_parm()
@@ -213,8 +212,8 @@ int HAMLIB_API rig_set_parm(RIG *rig, setting_t parm, value_t val)
  *  The parameter value \a val can be a float or an integer. See #value_t
  *  for more information.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
  * set appropriately).
  *
  * \sa rig_has_get_parm(), rig_set_parm()
@@ -339,7 +338,7 @@ setting_t HAMLIB_API rig_has_set_parm(RIG *rig, setting_t parm)
  *
  * 	EXAMPLE: if (rig_has_get_func(my_rig,RIG_FUNC_FAGC)) disp_fagc_button();
  *
- *  \return a bit map of supported functions, 
+ *  \return a bit map of supported functions,
  *  otherwise 0 if none supported.
  *
  * \sa rig_has_set_func(), rig_get_func()
@@ -363,7 +362,7 @@ setting_t HAMLIB_API rig_has_get_func(RIG *rig, setting_t func)
  *
  * 	EXAMPLE: if (rig_has_set_func(my_rig,RIG_FUNC_FAGC)) disp_fagc_button();
  *
- * \return a bit map of supported functions, 
+ * \return a bit map of supported functions,
  * otherwise 0 if none supported.
  *
  * \sa rig_set_func(), rig_has_get_func()
@@ -385,11 +384,11 @@ setting_t HAMLIB_API rig_has_set_func(RIG *rig, setting_t func)
  *
  * Activate/de-activate a function of the radio.
  *
- * The \a status argument is a non null value for "activate", 
+ * The \a status argument is a non null value for "activate",
  * "de-activate" otherwise, much as TRUE/FALSE definitions in C language.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
  * set appropriately).
  *
  * \sa rig_get_func()
@@ -434,12 +433,12 @@ int HAMLIB_API rig_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
  *
  *  Retrieves the status (on/off) of a function of the radio.
  *  Upon return, \a status will hold the status of the function,
- *  The value pointer to by the \a status argument is a non null 
+ *  The value pointer to by the \a status argument is a non null
  *  value for "on", "off" otherwise, much as TRUE/FALSE
  *  definitions in C language.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
  * set appropriately).
  *
  * \sa rig_set_func()
@@ -481,10 +480,10 @@ int HAMLIB_API rig_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
  * \param token	The parameter
  * \param val	The value to set the parameter to
  *
- *  Sets an level extra parameter. 
+ *  Sets an level extra parameter.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
  * set appropriately).
  *
  * \sa rig_get_ext_level()
@@ -528,8 +527,8 @@ int HAMLIB_API rig_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val
  *
  *  Retrieves the value of a level extra parameter associated with \a token.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
  * set appropriately).
  *
  * \sa rig_set_ext_level()
@@ -570,10 +569,10 @@ int HAMLIB_API rig_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *va
  * \param token	The parameter
  * \param val	The value to set the parameter to
  *
- *  Sets an parm extra parameter. 
+ *  Sets an parm extra parameter.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
  * set appropriately).
  *
  * \sa rig_get_ext_parm()
@@ -597,8 +596,8 @@ int HAMLIB_API rig_set_ext_parm(RIG *rig, token_t token, value_t val)
  *
  *  Retrieves the value of a parm extra parameter associated with \a token.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
  * set appropriately).
  *
  * \sa rig_set_ext_parm()

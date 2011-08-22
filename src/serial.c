@@ -6,19 +6,19 @@
  *  ham packet softmodem written by Thomas Sailer, HB9JNX.
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -101,14 +101,14 @@ int HAMLIB_API serial_open(hamlib_port_t *rp) {
   fd = OPEN(rp->pathname, O_RDWR | O_NOCTTY | O_NDELAY);
 
   if (fd == -1) {
-    
+
     /* Could not open the port. */
-    
-    rig_debug(RIG_DEBUG_ERR, "%s: Unable to open %s - %s\n", 
+
+    rig_debug(RIG_DEBUG_ERR, "%s: Unable to open %s - %s\n",
 						__func__, rp->pathname, strerror(errno));
     return -RIG_EIO;
   }
- 
+
   rp->fd = fd;
 
   err = serial_setup(rp);
@@ -148,7 +148,7 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
   /*
    * Get the current options for the port...
    */
-  
+
 #if defined(HAVE_TERMIOS_H)
   tcgetattr(fd, &options);
 #elif defined(HAVE_TERMIO_H)
@@ -200,7 +200,7 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
 	speed = B115200;	/* awsome! */
     break;
   default:
-    rig_debug(RIG_DEBUG_ERR, "%s: unsupported rate specified: %d\n", 
+    rig_debug(RIG_DEBUG_ERR, "%s: unsupported rate specified: %d\n",
 					__func__, rp->parm.serial.rate);
 	CLOSE(fd);
     return -RIG_ECONF;
@@ -212,7 +212,7 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
   /*
    * Enable the receiver and set local mode...
    */
-  
+
   options.c_cflag |= (CLOCAL | CREAD);
 
   /*
@@ -245,7 +245,7 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
 /*
  * Set stop bits to requested values.
  *
- */  
+ */
 
   switch(rp->parm.serial.stop_bits) {
   case 1:
@@ -267,7 +267,7 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
 /*
  * Set parity to requested values.
  *
- */  
+ */
 
   switch(rp->parm.serial.parity) {
   case RIG_PARITY_NONE:
@@ -305,7 +305,7 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
 /*
  * Set flow control to requested mode
  *
- */  
+ */
 
   switch(rp->parm.serial.handshake) {
   case RIG_HANDSHAKE_NONE:
@@ -356,24 +356,24 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
   /*
    * Finally, set the new options for the port...
    */
-  
+
 #if defined(HAVE_TERMIOS_H)
   if (tcsetattr(fd, TCSANOW, &options) == -1) {
-		rig_debug(RIG_DEBUG_ERR, "%s: tcsetattr failed: %s\n", 
+		rig_debug(RIG_DEBUG_ERR, "%s: tcsetattr failed: %s\n",
 					__func__, strerror(errno));
 		CLOSE(fd);
 		return -RIG_ECONF;		/* arg, so close! */
   }
 #elif defined(HAVE_TERMIO_H)
   if (IOCTL(fd, TCSETA, &options) == -1) {
-		rig_debug(RIG_DEBUG_ERR, "%s: ioctl(TCSETA) failed: %s\n", 
+		rig_debug(RIG_DEBUG_ERR, "%s: ioctl(TCSETA) failed: %s\n",
 					__func__, strerror(errno));
 		CLOSE(fd);
 		return -RIG_ECONF;		/* arg, so close! */
   }
 #else	/* sgtty */
   if (IOCTL(fd, TIOCSETP, &sg) == -1) {
-		rig_debug(RIG_DEBUG_ERR, "%s: ioctl(TIOCSETP) failed: %s\n", 
+		rig_debug(RIG_DEBUG_ERR, "%s: ioctl(TIOCSETP) failed: %s\n",
 					__func__, strerror(errno));
 		CLOSE(fd);
 		return -RIG_ECONF;		/* arg, so close! */
@@ -468,7 +468,7 @@ int HAMLIB_API ser_set_dtr(hamlib_port_t *p, int state)
 	unsigned int y = TIOCM_DTR;
 
 #if defined(TIOCMBIS) && defined(TIOCMBIC)
-	return IOCTL(p->fd, state ? TIOCMBIS : TIOCMBIC, &y) < 0 ? 
+	return IOCTL(p->fd, state ? TIOCMBIS : TIOCMBIC, &y) < 0 ?
 			-RIG_EIO : RIG_OK;
 #else
 	if (IOCTL(p->fd, TIOCMGET, &y) < 0) {
