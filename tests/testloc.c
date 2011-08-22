@@ -8,7 +8,6 @@
  * to >= 1 or <= 6.  If two locators are given, then the qrb is also
  * calculated.
  *
- *	$Id: testloc.c,v 1.12 2004-01-16 21:19:03 fillods Exp $
  *
  */
 

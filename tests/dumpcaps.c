@@ -3,19 +3,19 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation; either version 2 of the License, or
+ *   (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *   You should have received a copy of the GNU General Public License along
+ *   with this program; if not, write to the Free Software Foundation, Inc.,
+ *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
 
@@ -155,8 +155,8 @@ int dumpcaps (RIG* rig, FILE *fout)
 			fprintf(fout, "Serial speed: %d..%d bauds, %d%c%d %s\n", caps->serial_rate_min,
 					caps->serial_rate_max, caps->serial_data_bits,
 					caps->serial_parity == RIG_PARITY_NONE ? 'N':
-					caps->serial_parity == RIG_PARITY_ODD ? 'O' : 
-					caps->serial_parity == RIG_PARITY_EVEN ? 'E' : 
+					caps->serial_parity == RIG_PARITY_ODD ? 'O' :
+					caps->serial_parity == RIG_PARITY_EVEN ? 'E' :
 					caps->serial_parity == RIG_PARITY_MARK ? 'M' : 'S',
 					caps->serial_stop_bits,
 					caps->serial_handshake == RIG_HANDSHAKE_NONE ? "" :
@@ -449,7 +449,7 @@ int dumpcaps (RIG* rig, FILE *fout)
 	fprintf(fout, "Can Reset:\t%c\n", caps->reset != NULL ? 'Y' : 'N');
 	fprintf(fout, "Can get Ant:\t%c\n", caps->get_ant != NULL ? 'Y' : 'N');
 	fprintf(fout, "Can set Ant:\t%c\n", caps->set_ant != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can set Transceive:\t%c\n", caps->set_trn != NULL ? 'Y' : 
+	fprintf(fout, "Can set Transceive:\t%c\n", caps->set_trn != NULL ? 'Y' :
 			caps->transceive == RIG_TRN_RIG ? 'E' : 'N');
 	fprintf(fout, "Can get Transceive:\t%c\n", caps->get_trn != NULL ? 'Y' : 'N');
 	fprintf(fout, "Can set Func:\t%c\n", caps->set_func != NULL ? 'Y' : 'N');

@@ -4,23 +4,21 @@
  * This program output swr curve value
  * using Hamlib.
  *
- * $Id: rigswr.c,v 1.3 2005-04-04 22:26:38 fillods Exp $  
  *
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation; either version 2 of the License, or
+ *   (at your option) any later version.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- * 
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License along
+ *   with this program; if not, write to the Free Software Foundation, Inc.,
+ *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 #ifdef HAVE_CONFIG_H
@@ -40,7 +38,7 @@
 #include "misc.h"
 
 
-/* 
+/*
  * Prototypes
  */
 static void usage();
@@ -48,7 +46,7 @@ static void version();
 static int set_conf(RIG *rig, char *conf_parms);
 
 /*
- * Reminder: when adding long options, 
+ * Reminder: when adding long options,
  *  keep up to date SHORT_OPTIONS, usage()'s output and man page. thanks.
  * NB: do NOT use -W since it's reserved by POSIX.
  */
@@ -72,7 +70,7 @@ static struct option long_options[] =
 
 
 int main (int argc, char *argv[])
-{ 
+{
 	RIG *rig;		/* handle to rig (nstance) */
 	rig_model_t my_model = RIG_MODEL_DUMMY;
 
@@ -189,7 +187,7 @@ int main (int argc, char *argv[])
   	rig = rig_init(my_model);
 
 	if (!rig) {
-		fprintf(stderr, "Unknown rig num %d, or initialization error.\n", 
+		fprintf(stderr, "Unknown rig num %d, or initialization error.\n",
 						my_model);
 		fprintf(stderr, "Please check with --list option.\n");
 		exit(2);
@@ -236,9 +234,9 @@ int main (int argc, char *argv[])
 
 	freq=atof(argv[optind++]);
 	freqstop=atof(argv[optind++]);
-	if (optind < argc) 
+	if (optind < argc)
 		step=atof(argv[optind]);
-	
+
 	rig_set_freq(rig,RIG_VFO_CURR,freq);
 	rig_set_mode(rig,RIG_VFO_CURR,RIG_MODE_CW,RIG_PASSBAND_NORMAL);
 

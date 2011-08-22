@@ -3,23 +3,20 @@
  *             Copyright (C) 2008-2010 Stephane Fillod
  *
  *
- *	$Id: memsave.c,v 1.11 2008-04-27 09:56:06 fillods Exp $  
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation; either version 2 of the License, or
+ *   (at your option) any later version.
  *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- * 
+ *   You should have received a copy of the GNU General Public License along
+ *   with this program; if not, write to the Free Software Foundation, Inc.,
+ *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -42,7 +39,7 @@ static int dump_xml_chan(RIG *rig, channel_t **chan, int channel_num, const chan
 #endif
 
 int xml_save (RIG *rig, const char *outfilename)
-{ 
+{
 #ifdef HAVE_XML2
 	int retval;
 	xmlDocPtr Doc;
@@ -69,7 +66,7 @@ int xml_save (RIG *rig, const char *outfilename)
 
         xmlFreeDoc(Doc);
 	xmlCleanupParser();
- 
+
 	return 0;
 #else
 	return -RIG_ENAVAIL;
@@ -98,7 +95,7 @@ int dump_xml_chan(RIG *rig, channel_t **chan_pp, int chan_num, const chan_t *cha
 
 	if (*chan_pp == NULL) {
 		/*
-		 * Hamlib frontend demand application an allocated 
+		 * Hamlib frontend demand application an allocated
 		 * channel_t pointer for next round.
 		 */
 		*chan_pp = &chan;
@@ -221,7 +218,7 @@ int dump_xml_chan(RIG *rig, channel_t **chan_pp, int chan_num, const chan_t *cha
 		sprintf(attrbuf,"%x",chan.flags);
 		xmlNewProp(node, (unsigned char *) "flags", (unsigned char *) attrbuf);
 	}
-	
+
   return 0;
 }
 #endif

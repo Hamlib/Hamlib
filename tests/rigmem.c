@@ -5,23 +5,21 @@
  * This program exercises the backup and restore of a radio
  * using Hamlib.
  *
- * $Id: rigmem.c,v 1.5 2005-04-20 14:47:56 fillods Exp $  
  *
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation; either version 2 of the License, or
+ *   (at your option) any later version.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- * 
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License along
+ *   with this program; if not, write to the Free Software Foundation, Inc.,
+ *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 #ifdef HAVE_CONFIG_H
@@ -45,7 +43,7 @@
 #define MAXNBOPT 100	/* max number of different options */
 
 
-/* 
+/*
  * external prototype
  */
 
@@ -59,7 +57,7 @@ extern int csv_load (RIG *rig, const char *infilename);
 extern int csv_parm_save (RIG *rig, const char *outfilename);
 extern int csv_parm_load (RIG *rig, const char *infilename);
 
-/* 
+/*
  * Prototypes
  */
 void usage();
@@ -69,7 +67,7 @@ int set_conf(RIG *rig, char *conf_parms);
 int clear_chans (RIG *rig, const char *infilename);
 
 /*
- * Reminder: when adding long options, 
+ * Reminder: when adding long options,
  * 		keep up to date SHORT_OPTIONS, usage()'s output and man page. thanks.
  * NB: do NOT use -W since it's reserved by POSIX.
  */
@@ -97,7 +95,7 @@ static struct option long_options[] =
 int all;
 
 int main (int argc, char *argv[])
-{ 
+{
 	RIG *rig;		/* handle to rig (nstance) */
 	rig_model_t my_model = RIG_MODEL_DUMMY;
 
@@ -108,7 +106,7 @@ int main (int argc, char *argv[])
 	int serial_rate = 0;
 	char *civaddr = NULL;	/* NULL means no need to set conf */
 	char conf_parms[MAXCONFLEN] = "";
-	extern char csv_sep; 
+	extern char csv_sep;
 
 	while(1) {
 		int c;
@@ -201,7 +199,7 @@ int main (int argc, char *argv[])
   	rig = rig_init(my_model);
 
 	if (!rig) {
-		fprintf(stderr, "Unknown rig num %d, or initialization error.\n", 
+		fprintf(stderr, "Unknown rig num %d, or initialization error.\n",
 						my_model);
 		fprintf(stderr, "Please check with --list option.\n");
 		exit(2);
@@ -217,14 +215,14 @@ int main (int argc, char *argv[])
     if (rig->caps->set_channel == NULL && rig->caps->get_channel == NULL &&
             rig->caps->set_chan_all_cb == NULL && rig->caps->get_chan_all_cb == NULL &&
             (rig->caps->set_mem == NULL || rig->caps->set_vfo == NULL)) {
-		fprintf(stderr, "Error: rig num %d has no memory support implemented/available.\n", 
+		fprintf(stderr, "Error: rig num %d has no memory support implemented/available.\n",
 						my_model);
 		exit(3);
     }
 
     /* check channel description */
     if (rig->caps->chan_list[0].type == 0) {
-		fprintf(stderr, "Error: rig num %d has no channel list.\n", 
+		fprintf(stderr, "Error: rig num %d has no channel list.\n",
 						my_model);
 		exit(3);
     }
@@ -247,7 +245,7 @@ int main (int argc, char *argv[])
 	if (verbose > 0)
 			printf("Opened rig model %d, '%s'\n", rig->caps->rig_model,
 							rig->caps->model_name);
-	rig_debug(RIG_DEBUG_VERBOSE, "Backend version: %s, Status: %s\n", 
+	rig_debug(RIG_DEBUG_VERBOSE, "Backend version: %s, Status: %s\n",
 					rig->caps->version, rig_strstatus(rig->caps->status));
 
 	/* on some rigs, this accelerates the backup/restore */
