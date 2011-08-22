@@ -2,21 +2,20 @@
  *  Hamlib TenTenc backend - RX-320 PC-Radio description
  *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: rx320.c,v 1.10 2008-12-03 22:36:34 fillods Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -38,9 +37,9 @@
 
 #define RX320_VFO (RIG_VFO_A)
 
-/* 
+/*
  * Modified 11/18/2008, Josh Rovero, KK1D
- * Calibration via comparison with JRC NRD-525.  
+ * Calibration via comparison with JRC NRD-525.
  * Highy non-linear....
  */
 #define RX320_STR_CAL { 17, { \
@@ -66,7 +65,7 @@
 /*
  * rx320 receiver capabilities.
  *
- * protocol is documented at 
+ * protocol is documented at
  *		http://www.tentec.com/rx320prg.zip
  *
  * TODO:
@@ -94,8 +93,8 @@ const struct rig_caps rx320_caps = {
 .retry =  3,
 
 /*
- * Added S-meter read support, Josh Rovero KK1D 
- * Only get_level is for RIG_LEVEL_RAWSTR 
+ * Added S-meter read support, Josh Rovero KK1D
+ * Only get_level is for RIG_LEVEL_RAWSTR
  */
 .has_get_func =  RIG_FUNC_NONE,
 .has_set_func =  RIG_FUNC_NONE,
@@ -106,7 +105,7 @@ const struct rig_caps rx320_caps = {
 .level_gran = {
 	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 10000 } },
 	[LVL_AF] = { .min = { .f = 0 }, .max = { .f = 1 }, .step = { .f = 1.0/64 } },
-    [LVL_IF] = { .min = { .i = -2000 }, .max = { .i = 2000 }, .step = { .i = 10} }, 
+    [LVL_IF] = { .min = { .i = -2000 }, .max = { .i = 2000 }, .step = { .i = 10} },
     [LVL_CWPITCH] = { .min = { .i = 0}, .max = { .i = 2000 }, .step = { .i = 100} }
 },
 .parm_gran =  {},

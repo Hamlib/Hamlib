@@ -3,19 +3,19 @@
  *  Copyright (c) 2003-2009 by Stephane Fillod
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -44,7 +44,7 @@
 				RIG_LEVEL_CWPITCH|RIG_LEVEL_AGC| \
 				RIG_LEVEL_ATT|RIG_LEVEL_PREAMP)
 
-#define RX340_ANTS (RIG_ANT_1) 
+#define RX340_ANTS (RIG_ANT_1)
 
 #define RX340_PARMS (RIG_PARM_NONE)
 
@@ -77,7 +77,7 @@ static const char* rx340_get_info(RIG *rig);
 /*
  * RX340 receiver capabilities.
  *
- * Protocol is documented at 
+ * Protocol is documented at
  *		http://radio.tentec.com/downloads/receivers/RX340
  *
  * TODO: from/to memory, scan, get_level, ..
@@ -289,7 +289,7 @@ int rx340_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	char freqbuf[16];
 
 	freq_len = num_sprintf(freqbuf, "F%.6f" EOM, freq/1e6);
-	
+
 	retval = write_block(&rs->rigport, freqbuf, freq_len);
 
 	return retval;
@@ -313,7 +313,7 @@ int rx340_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if (buf_len < 2 || buf[0] != 'F' || num_sscanf(buf+1, "%lf", &f) != 1)
         return -RIG_EPROTO;
-    
+
 	*freq = f*1e6;
 
 	return RIG_OK;
@@ -378,7 +378,7 @@ int rx340_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     if (buf_len < 4 || buf[0] != 'D' || buf[2] != 'I')
         return -RIG_EPROTO;
-    
+
 	switch (buf[1]) {
         case RX340_USB: *mode = RIG_MODE_USB; break;
         case RX340_LSB: *mode = RIG_MODE_LSB; break;
@@ -397,7 +397,7 @@ int rx340_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     if (num_sscanf(buf+3, "%lf", &f) != 1)
         return -RIG_EPROTO;
-    
+
 	*width = f*1e3;
 
 	return RIG_OK;
@@ -434,7 +434,7 @@ int rx340_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
      case RIG_LEVEL_RF:
 		cmd_len = sprintf(cmdbuf, "A%d" EOM, 120-(int)(val.f*120));
         break;
-            
+
     case RIG_LEVEL_SQL:
 		cmd_len = sprintf(cmdbuf, "Q%d" EOM, 150-(int)(val.f*150));
         break;

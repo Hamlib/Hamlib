@@ -1,23 +1,23 @@
 /*
  *  Hamlib Tentec Pegasus TT550 backend - main file
- *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
- *
- *   You should have received a copy of the GNU Library General Public
- *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- *
  *  Heavily modified for 550 support from the original tentec.c
- *                            (c) Oct 2002, Jan,Feb 2004- Ken Koster N7IPB
+ *               (c) Oct 2002, Jan,Feb 2004- Ken Koster N7IPB
+ *
+ *
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
+ *
+ *   This library is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Lesser General Public
+ *   License along with this library; if not, write to the Free Software
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
  */
 
 #ifdef HAVE_CONFIG_H
@@ -93,7 +93,7 @@ tt550_transaction (RIG * rig, const char *cmd, int cmd_len, char *data,
     }
 
   /*
-   * no data expected, TODO: flush input? 
+   * no data expected, TODO: flush input?
    */
   if (!data || !data_len) {
     Unhold_Decode (rig);
@@ -144,7 +144,7 @@ tt550_tx_control (RIG * rig, char oper)
   * This function controls the tuner operations.
   *
   *
-  * The LDG tuner listens on the Pegasus' RS-232 
+  * The LDG tuner listens on the Pegasus' RS-232
   * Rx Data line. The interface is one-way. The tuner can't
   * respond at all. The Pegasus will respond with Z<cr> when
   * it sees the commands meant for the tuner. This is normal.
@@ -704,7 +704,7 @@ tt550_set_rx_mode (RIG * rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     }
 
   /*
-   * backup current values in case we fail to write to port 
+   * backup current values in case we fail to write to port
    */
   saved_mode = priv->rx_mode;
   saved_width = priv->width;
@@ -803,7 +803,7 @@ tt550_set_tx_mode (RIG * rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     }
 
-  /* 
+  /*
    * The tx filter array contains just the allowed filter values, but the
    * command assumes that the first allowed value is at offset 7.  We add
    * 7 to compensate for the array difference
@@ -971,7 +971,7 @@ tt550_set_level (RIG * rig, vfo_t vfo, setting_t level, value_t val)
 
       case RIG_LEVEL_ATT:
 	/*
-	 * attenuator is either on or off 
+	 * attenuator is either on or off
 	 */
 	cmd_len = sprintf (cmdbuf, "B%c" EOM, val.i < 15 ? '0' : '1');
 	retval = write_block (&rs->rigport, cmdbuf, cmd_len);
@@ -1242,7 +1242,7 @@ tt550_get_ptt (RIG * rig, vfo_t vfo, ptt_t * ptt)
   /*
    * The 550 doesn't have an explicit command to return ptt status, so we fake it
    * with the request for signal strength which returns a 'T' for the first
-   * character if we're transmitting 
+   * character if we're transmitting
    */
   len = 7;
   retval = tt550_transaction (rig, "?S" EOM, 3, buf, &len);

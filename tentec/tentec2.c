@@ -2,21 +2,20 @@
  *  Hamlib Tentec backend - Argonaut, Jupiter, RX-350
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: tentec2.c,v 1.6 2006-10-07 17:38:05 csete Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 /*
@@ -27,7 +26,7 @@
  *	and used on-air.
  *
  *	Note for anyone wishing to expand on the command set.
- *	Recommend using the 
+ *	Recommend using the
  *
  *		tentec_transaction (rig, sendbuf, sendlen, rcvbuf, &rcv_len)
  *
@@ -47,7 +46,7 @@
  *			"Z\r" ----> you need to check for that condition
  *
  *	The tentec_transaction(...) function will always terminate the rcvbuf with a null
- *	character.  The pointer to the receive buffer length MUST be initialized to the 
+ *	character.  The pointer to the receive buffer length MUST be initialized to the
  *	length of the max # chars for that command PLUS 1 for the terminator.
  *	For the above command, rcv_len should be 6.
 */
@@ -122,7 +121,7 @@ int tentec2_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 	if (retval != RIG_OK || ret_len != 2)
 		return -RIG_EINVAL;
-		
+
 	if (freqbuf[0] == 'G')
 		return RIG_OK;
 
@@ -142,7 +141,7 @@ int tentec2_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		if ((retval = tentec2_get_vfo(rig, &vfo)) != RIG_OK)
 			return retval;
 	}
-	
+
 	switch(vfo) {
 	case RIG_VFO_A: break;
 	case RIG_VFO_B: freqbuf[1] = 'B'; break;
@@ -157,7 +156,7 @@ int tentec2_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 // or it will respond
 // "Z\r" meaning the command was rejected
 	ret_len = 9;
-	
+
 	retval = tentec_transaction (rig, freqbuf, strlen(freqbuf), freqbuf, &ret_len);
 	if (retval != RIG_OK)
 		return retval;
@@ -166,10 +165,10 @@ int tentec2_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		return -RIG_ERJCTED;
 	if (ret_len < 6)
 		return -RIG_EINVAL;
-		
-	*freq = (unsigned int)((freqbuf[1] & 0x0FF) << 24) + 
-			(unsigned int)((freqbuf[2] & 0x0FF) << 16) + 
-			(unsigned int)((freqbuf[3] & 0x0FF) << 8) + 
+
+	*freq = (unsigned int)((freqbuf[1] & 0x0FF) << 24) +
+			(unsigned int)((freqbuf[2] & 0x0FF) << 16) +
+			(unsigned int)((freqbuf[3] & 0x0FF) << 8) +
 			(unsigned int)(freqbuf[4] & 0x0FF);
 
 	return RIG_OK;
@@ -204,12 +203,12 @@ int tentec2_set_vfo(RIG *rig, vfo_t vfo)
 	}
 
 	ret_len = 3;
-	
+
 	retval = tentec_transaction (rig, vfobuf, 5, vfobuf, &ret_len);
-	
+
 	if (retval != RIG_OK)
 		return retval;
-		
+
 	if (vfobuf[0] == 'G')
 		return RIG_OK;
 
@@ -224,7 +223,7 @@ int tentec2_get_vfo(RIG *rig, vfo_t *vfo)
 {
 	int ret_len, retval;
 	unsigned char vfobuf[16] = "?E\r";
-	
+
 	ret_len = 7;
 	retval = tentec_transaction (rig, (char *) vfobuf, 3, (char *) vfobuf, &ret_len);
 	if (retval != RIG_OK)
@@ -237,7 +236,7 @@ int tentec2_get_vfo(RIG *rig, vfo_t *vfo)
 
 	if (ret_len == 2 && vfobuf[0] == 'Z')
 		return -RIG_ERJCTED;
-		
+
     if (ret_len != 6)
 		return -RIG_EPROTO;
 
@@ -263,9 +262,9 @@ int tentec2_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 		retbuf[1] = 1;
 	else
 		retbuf[1] = 0;
-		
+
 	ret_len = 3;
-	retval = tentec_transaction( rig, retbuf, 4, retbuf, &ret_len ); 
+	retval = tentec_transaction( rig, retbuf, 4, retbuf, &ret_len );
 
 	if (retval != RIG_OK)
 		return retval;
@@ -273,7 +272,7 @@ int tentec2_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 	if (ret_len == 2 && retbuf[0] == 'Z')
 		return -RIG_ERJCTED;
 
-	return RIG_OK;								
+	return RIG_OK;
 }
 
 /*
@@ -302,7 +301,7 @@ int tentec2_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 
 	if (ret_len != 4)
 		return -RIG_EPROTO;
-		
+
 	*split = splitbuf[1] == 0 ? RIG_SPLIT_OFF : RIG_SPLIT_ON;
 
 	return RIG_OK;
@@ -333,10 +332,10 @@ int tentec2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	}
 
 	ttmode_a = ttmode_b = ttmode;
-	
+
 	strcpy((char *) mdbuf, "*M00\r" );
 	ret_len = 3;
-	mdbuf[2] = ttmode_a; mdbuf[3] = ttmode_b;	
+	mdbuf[2] = ttmode_a; mdbuf[3] = ttmode_b;
 	retval = tentec_transaction (rig, (char *) mdbuf, 5, (char *) mdbuf, &ret_len);
 
 	if (retval != RIG_OK)
@@ -363,12 +362,12 @@ int tentec2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	mdbuf[2] = ttfilter;
 	ret_len = 3;
 	retval = tentec_transaction (rig, (char *) mdbuf, 5, (char *) mdbuf, &ret_len);
-	
+
 	if (retval != RIG_OK)
 		return retval;
 	if (ret_len == 2 && mdbuf[0] == 'Z')
 		return -RIG_ERJCTED;
-	
+
 	return RIG_OK;
 }
 
@@ -428,7 +427,7 @@ int tentec2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	ttfilter = mdbuf[1];
 	if (ttfilter < 0 || ttfilter > 36)
 		return -RIG_EPROTO;
-		
+
 	if (ttfilter < 16)
 		*width = (ttfilter + 4) * 50;
 	else
@@ -447,15 +446,15 @@ int tentec2_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 	int retval, ret_len;
 	char retbuf[10];
 
-	ret_len = 3;	
-	retval = tentec_transaction (	rig, 
-									ptt==RIG_PTT_ON? "#1\r" : "#0\r", 3, 
+	ret_len = 3;
+	retval = tentec_transaction (	rig,
+									ptt==RIG_PTT_ON? "#1\r" : "#0\r", 3,
 									retbuf, &ret_len);
 	if (retval != RIG_OK)
 		return retval;
 	if (ret_len == 2 && retbuf[0] == 'G')
 		return RIG_OK;
-		
+
 	return -RIG_ERJCTED;
 
 }
