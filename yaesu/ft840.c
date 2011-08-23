@@ -9,22 +9,19 @@
  * via serial interface to an FT-840 using the "CAT" interface
  *
  *
- * $Id: ft840.c,v 1.1 2009-01-04 10:40:34 fillods Exp $
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
+ *   This library is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation; either
- *  version 2 of the License, or (at your option) any later version.
- *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
- *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+ *   You should have received a copy of the GNU Lesser General Public
+ *   License along with this library; if not, write to the Free Software
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -93,7 +90,7 @@
 #undef USE_FT840_GET_PTT
 #undef USE_FT840_SET_RIT
 
-/* 
+/*
  * API local implementation
  *
  */
@@ -343,18 +340,18 @@ const struct rig_caps ft840_caps = {
 
 static int ft840_init(RIG *rig) {
   struct ft840_priv_data *priv;
-  
+
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   if (!rig)
     return -RIG_EINVAL;
-  
+
   priv = (struct ft840_priv_data *)malloc(sizeof(struct ft840_priv_data));
   if (!priv)                       /* whoops! memory shortage! */
     return -RIG_ENOMEM;
-  
+
   /*
-   * Copy native cmd set to private cmd storage area 
+   * Copy native cmd set to private cmd storage area
    */
   memcpy(priv->pcs, ncmd, sizeof(ncmd));
 
@@ -363,7 +360,7 @@ static int ft840_init(RIG *rig) {
   priv->read_update_delay = FT840_DEFAULT_READ_TIMEOUT; /* set update timeout to safe value */
   priv->current_vfo =  RIG_VFO_MAIN;  /* default to whatever */
   rig->state.priv = (void *)priv;
-  
+
   return RIG_OK;
 }
 
@@ -381,25 +378,25 @@ static int ft840_cleanup(RIG *rig) {
 
   if (!rig)
     return -RIG_EINVAL;
-  
+
   if (rig->state.priv)
     free(rig->state.priv);
   rig->state.priv = NULL;
-  
+
   return RIG_OK;
 }
 
 
 /*
  * rig_open
- * 
+ *
  */
 
 static int ft840_open(RIG *rig) {
   struct rig_state *rig_s;
   struct ft840_priv_data *priv;
   int err;
- 
+
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   if (!rig)
@@ -426,7 +423,7 @@ static int ft840_open(RIG *rig) {
 
 /*
  * rig_close
- * 
+ *
  */
 
 static int ft840_close(RIG *rig) {
@@ -503,7 +500,7 @@ static int ft840_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 
   if (!rig)
     return -RIG_EINVAL;
-  
+
   priv = (struct ft840_priv_data *)rig->state.priv;
 
   if (vfo == RIG_VFO_CURR) {
@@ -792,7 +789,7 @@ static int ft840_set_vfo(RIG *rig, vfo_t vfo) {
     return -RIG_EINVAL;
 
   rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
-  
+
   priv = (struct ft840_priv_data *)rig->state.priv;
 
   if (vfo == RIG_VFO_CURR) {
@@ -830,7 +827,7 @@ static int ft840_set_vfo(RIG *rig, vfo_t vfo) {
   }
 
   rig_debug(RIG_DEBUG_TRACE, "%s: set cmd_index = %i\n", __func__, cmd_index);
-  
+
   err = ft840_send_static_cmd(rig, cmd_index);
   if (err != RIG_OK)
     return err;
@@ -858,7 +855,7 @@ static int ft840_get_vfo(RIG *rig, vfo_t *vfo) {
 
   if (!rig)
     return -RIG_EINVAL;
-  
+
   priv = (struct ft840_priv_data *)rig->state.priv;
 
   /* Get flags for VFO status */
@@ -866,7 +863,7 @@ static int ft840_get_vfo(RIG *rig, vfo_t *vfo) {
                               FT840_STATUS_FLAGS_LENGTH);
   if (err != RIG_OK)
     return err;
-  
+
   status_0 = priv->update_data[FT840_SUMO_DISPLAYED_STATUS_0];
   stat_vfo = status_0 & SF_VFO_MASK;    /* get VFO active bits */
   stat_mem = status_0 & SF_MEM_MASK;    /* get MEM active bits */
@@ -878,7 +875,7 @@ static int ft840_get_vfo(RIG *rig, vfo_t *vfo) {
   rig_debug(RIG_DEBUG_TRACE,
             "%s: stat_mem = 0x%02x\n", __func__, stat_mem);
 
-  /* 
+  /*
    * translate vfo and mem status from ft840 to generic.
    *
    * First a test is made on bits 6 and 7 of status_0.  Bit 7 is set
@@ -1000,7 +997,7 @@ static int ft840_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt) {
 
   if (!rig)
     return -RIG_EINVAL;
-  
+
   priv = (struct ft840_priv_data *)rig->state.priv;
 
   /* Get flags for VFO status */
@@ -1008,7 +1005,7 @@ static int ft840_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt) {
                               FT840_STATUS_FLAGS_LENGTH);
   if (err != RIG_OK)
     return err;
-  
+
   status_2 = priv->update_data[FT840_SUMO_DISPLAYED_STATUS_2];
   stat_ptt = status_2 & SF_PTT_MASK;    /* get PTT active bit */
 
@@ -1053,7 +1050,7 @@ static int ft840_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
   rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
   rig_debug(RIG_DEBUG_TRACE, "%s: passed split = 0x%02x\n", __func__, split);
-  
+
   switch(split) {
   case RIG_SPLIT_OFF:
     cmd_index = FT840_NATIVE_SPLIT_OFF;
@@ -1215,7 +1212,7 @@ static int ft840_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit) {
 
   if (!rig)
     return -RIG_EINVAL;
-  
+
   rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
 
   priv = (struct ft840_priv_data *)rig->state.priv;
@@ -1349,9 +1346,9 @@ static int ft840_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val) {
                                 FT840_STATUS_FLAGS_LENGTH);
     if (err != RIG_OK)
       return err;
-  
+
     p = &priv->update_data[FT840_SUMO_METER];
-  
+
     /*
      * My FT-840 returns a range of 0x00 to 0x44 for S0 to S9 and 0x44 to
      * 0x9d for S9 to S9 +60
@@ -1372,7 +1369,7 @@ static int ft840_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val) {
     } else {
       val->i = ((*p - 72) / 1.4667);
     }
-  
+
     rig_debug(RIG_DEBUG_TRACE, "%s: calculated level = %i\n", __func__, val->i);
 
     break;
@@ -1453,7 +1450,7 @@ static int ft840_get_update_data(RIG *rig, unsigned char ci, unsigned char rl) {
 
   if (!rig)
     return -RIG_EINVAL;
-  
+
   priv = (struct ft840_priv_data *)rig->state.priv;
   rig_s = &rig->state;
 
@@ -1487,7 +1484,7 @@ static int ft840_send_static_cmd(RIG *rig, unsigned char ci) {
   struct rig_state *rig_s;
   struct ft840_priv_data *priv;
   int err;
- 
+
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   if (!rig)
@@ -1495,7 +1492,7 @@ static int ft840_send_static_cmd(RIG *rig, unsigned char ci) {
 
   priv = (struct ft840_priv_data *)rig->state.priv;
   rig_s = &rig->state;
-  
+
   if (!priv->pcs[ci].ncomp) {
     rig_debug(RIG_DEBUG_TRACE,
               "%s: Attempt to send incomplete sequence\n", __func__);
@@ -1531,7 +1528,7 @@ static int ft840_send_dynamic_cmd(RIG *rig, unsigned char ci,
   struct rig_state *rig_s;
   struct ft840_priv_data *priv;
   int err;
- 
+
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   if (!rig)
@@ -1584,7 +1581,7 @@ static int ft840_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq) {
   struct rig_state *rig_s;
   struct ft840_priv_data *priv;
   int err;
- 
+
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   if (!rig)
@@ -1646,7 +1643,7 @@ static int ft840_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit) {
   unsigned char p1;
   unsigned char p2;
   int err;
- 
+
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   if (!rig)

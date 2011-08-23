@@ -4,21 +4,20 @@
  * This shared library provides an API for communicating
  * via serial interface to an FT-1000MP using the "CAT" interface
  *
- *	$Id: ft1000mp.c,v 1.8 2008-01-10 12:12:47 n0nb Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -126,9 +125,9 @@ static const yaesu_cmd_set_t ncmd[] = {
 
 #define FT1000MP_ALL_RX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_AM|RIG_MODE_FM)
 
-/* 
+/*
  * TX caps
- */ 
+ */
 
 #define FT1000MP_OTHER_TX_MODES (RIG_MODE_CW| RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_FM) /* 100 W class */
 #define FT1000MP_AM_TX_MODES (RIG_MODE_AM )    /* set 25W max */
@@ -146,11 +145,11 @@ static const yaesu_cmd_set_t ncmd[] = {
  * 33 CTCSS sub-audible tones
  */
 static const tone_t ft1000mp_ctcss_list[] = {
-	      670,        719,        770,        825,        885,      
+	      670,        719,        770,        825,        885,
 	948,       1000, 1035, 1072, 1109, 1148, 1188,       1230, 1273,
 	1318, 1365, 1413, 1462, 1514, 1567, 1598, 1622,       1679,
-	      1738,       1799,       1862,       1928,            
-	2035,       2107, 2181, 2257,       2336, 2418, 2503,      
+	      1738,       1799,       1862,       1928,
+	2035,       2107, 2181, 2257,       2336, 2418, 2503,
 	0,
 };
 
@@ -242,13 +241,13 @@ const struct rig_caps ft1000mp_caps = {
   .transceive =         RIG_TRN_OFF,
   .bank_qty =           0,
   .chan_desc_sz =       0,
-  .chan_list =          { 
+  .chan_list =          {
 				{   1,  99, RIG_MTYPE_MEM, FT1000MP_MEM_CAP },
 				{ 100, 108, RIG_MTYPE_EDGE },	/* P1 .. P9 */
 				{ 109, 113, RIG_MTYPE_MEMOPAD }, /* Q1 .. Q5 */
 				RIG_CHAN_END,
 			},
-  .rx_range_list1 =     { 
+  .rx_range_list1 =     {
     {kHz(100), MHz(30), FT1000MP_ALL_RX_MODES, -1, -1, FT1000MP_VFOS, FT1000MP_ANTS },   /* General coverage + ham */
     RIG_FRNG_END,
   }, /* Region 1 rx ranges */
@@ -367,13 +366,13 @@ const struct rig_caps ft1000mpmkv_caps = {
   .transceive =         RIG_TRN_OFF,
   .bank_qty =           0,
   .chan_desc_sz =       0,
-  .chan_list =          { 
+  .chan_list =          {
 				{   1,  99, RIG_MTYPE_MEM, FT1000MP_MEM_CAP },
 				{ 100, 108, RIG_MTYPE_EDGE },	/* P1 .. P9 */
 				{ 109, 113, RIG_MTYPE_MEMOPAD }, /* Q1 .. Q5 */
 				RIG_CHAN_END,
 			},
-  .rx_range_list1 =     { 
+  .rx_range_list1 =     {
     {kHz(100), MHz(30), FT1000MP_ALL_RX_MODES, -1, -1, FT1000MP_VFOS, FT1000MP_ANTS },   /* General coverage + ham */
     RIG_FRNG_END,
   }, /* Region 1 rx ranges */
@@ -492,13 +491,13 @@ const struct rig_caps ft1000mpmkvfld_caps = {
   .transceive =         RIG_TRN_OFF,
   .bank_qty =           0,
   .chan_desc_sz =       0,
-  .chan_list =          { 
+  .chan_list =          {
 				{   1,  99, RIG_MTYPE_MEM, FT1000MP_MEM_CAP },
 				{ 100, 108, RIG_MTYPE_EDGE },	/* P1 .. P9 */
 				{ 109, 113, RIG_MTYPE_MEMOPAD }, /* Q1 .. Q5 */
 				RIG_CHAN_END,
 			},
-  .rx_range_list1 =     { 
+  .rx_range_list1 =     {
     {kHz(100), MHz(30), FT1000MP_ALL_RX_MODES, -1, -1, FT1000MP_VFOS, FT1000MP_ANTS },   /* General coverage + ham */
     RIG_FRNG_END,
   }, /* Region 1 rx ranges */
@@ -580,22 +579,22 @@ const struct rig_caps ft1000mpmkvfld_caps = {
 
 
 /*
- * _init 
+ * _init
  *
  */
 
 int ft1000mp_init(RIG *rig) {
   struct ft1000mp_priv_data *p;
-  
+
   rig_debug(RIG_DEBUG_TRACE,"ft1000mp: ft1000mp_init called \n");
 
-  
+
   p = (struct ft1000mp_priv_data*)malloc(sizeof(struct ft1000mp_priv_data));
   if (!p)                       /* whoops! memory shortage! */
     return -RIG_ENOMEM;
-  
+
   /*
-   * Copy native cmd set to private cmd storage area 
+   * Copy native cmd set to private cmd storage area
    */
   memcpy(p->pcs,ncmd,sizeof(ncmd));
 
@@ -605,7 +604,7 @@ int ft1000mp_init(RIG *rig) {
   p->current_vfo =  RIG_VFO_A;  /* default to VFO_A ? */
 
   rig->state.priv = (void*)p;
-  
+
   return RIG_OK;
 }
 
@@ -620,25 +619,25 @@ int ft1000mp_cleanup(RIG *rig) {
 
   rig_debug(RIG_DEBUG_VERBOSE, "ft1000mp: ft1000mp_cleanup called\n");
 
-  
+
   if (rig->state.priv)
     free(rig->state.priv);
   rig->state.priv = NULL;
-  
+
   return RIG_OK;
 }
 
 
 /*
  * ft1000mp_open  routine
- * 
+ *
  */
 
 int ft1000mp_open(RIG *rig) {
   struct rig_state *rig_s;
   struct ft1000mp_priv_data *p;
   unsigned char *cmd;           /* points to sequence to send */
- 
+
   rig_debug(RIG_DEBUG_VERBOSE, "ft1000mp: ft1000mp_open called\n");
 
   rig_s = &rig->state;
@@ -649,8 +648,8 @@ int ft1000mp_open(RIG *rig) {
   rig_debug(RIG_DEBUG_TRACE,"ft1000mp: rig_open: post_write_delay = %i msec \n",
             rig_s->rigport.post_write_delay);
 
-  /* 
-   * Copy native cmd PACING  to private cmd storage area 
+  /*
+   * Copy native cmd PACING  to private cmd storage area
    */
   memcpy(&p->p_cmd, &ncmd[FT1000MP_NATIVE_PACING].nseq, YAESU_CMD_LENGTH);
   p->p_cmd[3] = p->pacing;      /* get pacing value, and store in private cmd */
@@ -699,8 +698,8 @@ int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
   	  rig_debug(RIG_DEBUG_WARN,"ft1000mp: unknown VFO %d\n", vfo);
 	  return -RIG_EINVAL;
   }
-  /* 
-   * Copy native cmd freq_set to private cmd storage area 
+  /*
+   * Copy native cmd freq_set to private cmd storage area
    */
   memcpy(&p->p_cmd,&ncmd[cmd_index].nseq,YAESU_CMD_LENGTH);
 
@@ -730,7 +729,7 @@ int ft1000mp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft1000mp: ft1000mp_get_freq called\n");
 
-  
+
   priv = (struct ft1000mp_priv_data*)rig->state.priv;
 
 
@@ -781,7 +780,7 @@ int ft1000mp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
 
   rig_debug(RIG_DEBUG_TRACE,"ft1000mp: generic mode = %x\n", mode);
 
-  /* 
+  /*
    * translate mode from generic to ft1000mp specific
    */
   switch(mode) {
@@ -816,13 +815,13 @@ int ft1000mp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
 
   /*
    * phew! now send cmd to rig
-   */ 
+   */
   ft1000mp_send_priv_cmd(rig,cmd_index);
 
   rig_debug(RIG_DEBUG_TRACE,"ft1000mp: cmd_index = %i\n", cmd_index);
 
   return RIG_OK;                /* good */
-  
+
 }
 
 
@@ -838,7 +837,7 @@ int ft1000mp_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft1000mp: ft1000mp_get_mode called\n");
 
-  
+
   priv = (struct ft1000mp_priv_data*)rig->state.priv;
 
   if (vfo == RIG_VFO_A || vfo == RIG_VFO_B) {
@@ -862,13 +861,13 @@ int ft1000mp_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
   else
     mymode = priv->update_data[FT1000MP_SUMO_VFO_A_MODE]; /* CURR_VFO is VFOA offset */
 
- 
+
   rig_debug(RIG_DEBUG_TRACE,"ft1000mp: mymode = %x (before)\n", mymode);
   mymode &= MODE_MASK;
-  
+
   rig_debug(RIG_DEBUG_TRACE,"ft1000mp: mymode = %x (after)\n", mymode);
 
-  /* 
+  /*
    * translate mode from ft1000mp to generic.
    * TODO: Add DATA, and Narrow modes.  CW on LSB? -N0NB
    */
@@ -894,9 +893,9 @@ int ft1000mp_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
 
   default:
     return -RIG_EINVAL;         /* sorry, wrong mode */
-    break; 
+    break;
   }
- 
+
   rig_debug(RIG_DEBUG_TRACE,"ft1000mp: mode = %s\n", rig_strrmode(*mode));
 
   /* TODO: set real IF filter selection */
@@ -919,15 +918,15 @@ int ft1000mp_set_vfo(RIG *rig, vfo_t vfo) {
 
   rig_debug(RIG_DEBUG_TRACE,"ft1000mp: ft1000mp_set_vfo called %s\n", rig_strvfo(vfo));
 
-  
+
   p = (struct ft1000mp_priv_data*)rig->state.priv;
   rig_s = &rig->state;
-  
-  
-  /* 
+
+
+  /*
    * RIG_VFO_VFO/RIG_VFO_MEM are not available
    * so try to emulate them.
-   * looks like there's no RIG_VFO_MEM, maybe setting mem# 
+   * looks like there's no RIG_VFO_MEM, maybe setting mem#
    * switch to it automatically?
    */
 
@@ -953,10 +952,10 @@ int ft1000mp_set_vfo(RIG *rig, vfo_t vfo) {
     rig_debug(RIG_DEBUG_VERBOSE,"ft1000mp: Unknown default VFO %d\n", vfo);
     return -RIG_EINVAL;         /* sorry, wrong VFO */
   }
-  
+
   /*
    * phew! now send cmd to rig
-   */ 
+   */
   ft1000mp_send_priv_cmd(rig,cmd_index);
 
   return RIG_OK;
@@ -976,7 +975,7 @@ int ft1000mp_get_vfo(RIG *rig, vfo_t *vfo) {
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft1000mp: ft1000mp_get_vfo called\n");
 
-  
+
   p = (struct ft1000mp_priv_data*)rig->state.priv;
 
   /* Get flags for VFO status */
@@ -991,7 +990,7 @@ int ft1000mp_get_vfo(RIG *rig, vfo_t *vfo) {
 	  *vfo = p->current_vfo = RIG_VFO_B;
   else
 	  *vfo = p->current_vfo = RIG_VFO_A;
-  
+
   rig_debug(RIG_DEBUG_TRACE,"ft1000mp: vfo status = %x %x\n", p->update_data[0], p->update_data[1]);
 
   return RIG_OK;
@@ -1013,8 +1012,8 @@ int ft1000mp_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit) {
 
   rig_debug(RIG_DEBUG_TRACE,"ft1000mp: requested freq = %li Hz \n", rit);
 
-  /* 
-   * Copy native cmd freq_set to private cmd storage area 
+  /*
+   * Copy native cmd freq_set to private cmd storage area
    */
   memcpy(&priv->p_cmd,&ncmd[FT1000MP_NATIVE_RIT_ON].nseq,YAESU_CMD_LENGTH);
 
@@ -1098,8 +1097,8 @@ int ft1000mp_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit) {
 
   rig_debug(RIG_DEBUG_TRACE,"ft1000mp: requested freq = %li Hz \n", xit);
 
-  /* 
-   * Copy native cmd freq_set to private cmd storage area 
+  /*
+   * Copy native cmd freq_set to private cmd storage area
    */
   memcpy(&priv->p_cmd,&ncmd[FT1000MP_NATIVE_XIT_ON].nseq,YAESU_CMD_LENGTH);
 
@@ -1247,8 +1246,8 @@ int ft1000mp_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt) {
   unsigned char cmd_index;      /* index of sequence to send */
 
   rig_debug(RIG_DEBUG_TRACE,"ft1000mp: ft1000mp_set_ptt called %d\n", ptt);
-  
-  cmd_index = ptt ? FT1000MP_NATIVE_PTT_ON : FT1000MP_NATIVE_PTT_OFF; 
+
+  cmd_index = ptt ? FT1000MP_NATIVE_PTT_ON : FT1000MP_NATIVE_PTT_OFF;
 
   ft1000mp_send_priv_cmd(rig,cmd_index);
 
@@ -1275,7 +1274,7 @@ static int ft1000mp_get_update_data(RIG *rig, unsigned char ci, unsigned char rl
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft1000mp: ft1000mp_get_update_data called\n");
 
-  
+
   p = (struct ft1000mp_priv_data*)rig->state.priv;
   rig_s = &rig->state;
 
@@ -1301,14 +1300,14 @@ static int ft1000mp_send_priv_cmd(RIG *rig, unsigned char ci) {
   struct ft1000mp_priv_data *p;
   unsigned char *cmd;           /* points to sequence to send */
   unsigned char cmd_index;      /* index of sequence to send */
- 
+
   rig_debug(RIG_DEBUG_VERBOSE,"ft1000mp: ft1000mp_send_priv_cmd called\n");
 
 
 
   p = (struct ft1000mp_priv_data*)rig->state.priv;
   rig_s = &rig->state;
-  
+
   cmd_index = ci;               /* get command */
 
   if (! p->pcs[cmd_index].ncomp) {
@@ -1318,7 +1317,7 @@ static int ft1000mp_send_priv_cmd(RIG *rig, unsigned char ci) {
 
   cmd = (unsigned char *) p->pcs[cmd_index].nseq; /* get native sequence */
   write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
-  
+
   return RIG_OK;
 
 }

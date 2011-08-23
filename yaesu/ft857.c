@@ -14,22 +14,19 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft857.c,v 1.13 2009-02-20 09:55:16 fillods Exp $  
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
+ *   This library is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation; either
- *  version 2 of the License, or (at your option) any later version.
- *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
- *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+ *   You should have received a copy of the GNU Lesser General Public
+ *   License along with this library; if not, write to the Free Software
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -139,8 +136,8 @@ static const yaesu_cmd_set_t ncmd[] = {
 
 const struct rig_caps ft857_caps = {
   .rig_model = 		RIG_MODEL_FT857,
-  .model_name = 	"FT-857", 
-  .mfg_name = 		"Yaesu", 
+  .model_name = 	"FT-857",
+  .mfg_name = 		"Yaesu",
   .version = 		"0.4",
   .copyright = 		"LGPL",
   .status = 		RIG_STATUS_BETA,
@@ -153,13 +150,13 @@ const struct rig_caps ft857_caps = {
   .serial_data_bits = 	8,
   .serial_stop_bits = 	2,
   .serial_parity = 	RIG_PARITY_NONE,
-  .serial_handshake = 	RIG_HANDSHAKE_NONE, 
+  .serial_handshake = 	RIG_HANDSHAKE_NONE,
   .write_delay = 	FT857_WRITE_DELAY,
   .post_write_delay = 	FT857_POST_WRITE_DELAY,
   .timeout = 		FT857_TIMEOUT,
-  .retry = 		0, 
+  .retry = 		0,
   .has_get_func =       RIG_FUNC_NONE,
-  .has_set_func = 	RIG_FUNC_LOCK | RIG_FUNC_TONE | RIG_FUNC_TSQL, 
+  .has_set_func = 	RIG_FUNC_LOCK | RIG_FUNC_TONE | RIG_FUNC_TSQL,
   .has_get_level = 	RIG_LEVEL_STRENGTH | RIG_LEVEL_RFPOWER,
   .has_set_level = 	RIG_LEVEL_NONE,
   .has_get_parm = 	RIG_PARM_NONE,
@@ -180,12 +177,12 @@ const struct rig_caps ft857_caps = {
   .chan_list =          { RIG_CHAN_END, },
   .vfo_ops =            RIG_OP_TOGGLE,
 
-  .rx_range_list1 =  { 
+  .rx_range_list1 =  {
     {kHz(100),MHz(56), FT857_ALL_RX_MODES,-1,-1},
     {MHz(76), MHz(108),RIG_MODE_WFM,      -1,-1},
     {MHz(118),MHz(164),FT857_ALL_RX_MODES,-1,-1},
     {MHz(420),MHz(470),FT857_ALL_RX_MODES,-1,-1},
-    RIG_FRNG_END, 
+    RIG_FRNG_END,
   },
   .tx_range_list1 =  {
     FRQ_RNG_HF(1,FT857_OTHER_TX_MODES, W(10),W(100),FT857_VFO_ALL,FT857_ANTS),
@@ -197,16 +194,16 @@ const struct rig_caps ft857_caps = {
     FRQ_RNG_70cm(1,FT857_OTHER_TX_MODES, W(2),W(20),FT857_VFO_ALL,FT857_ANTS),
     /* AM class */
     FRQ_RNG_70cm(1,FT857_AM_TX_MODES, W(0.5),W(5),FT857_VFO_ALL,FT857_ANTS),
-    RIG_FRNG_END, 
+    RIG_FRNG_END,
   },
 
 
-  .rx_range_list2 =  { 
+  .rx_range_list2 =  {
     {kHz(100),MHz(56), FT857_ALL_RX_MODES,-1,-1},
     {MHz(76), MHz(108),RIG_MODE_WFM,      -1,-1},
     {MHz(118),MHz(164),FT857_ALL_RX_MODES,-1,-1},
     {MHz(420),MHz(470),FT857_ALL_RX_MODES,-1,-1},
-    RIG_FRNG_END, 
+    RIG_FRNG_END,
   },
   .tx_range_list2 =  {
     FRQ_RNG_HF(2,FT857_OTHER_TX_MODES, W(10),W(100),FT857_VFO_ALL,FT857_ANTS),
@@ -218,7 +215,7 @@ const struct rig_caps ft857_caps = {
     FRQ_RNG_70cm(2,FT857_OTHER_TX_MODES, W(2),W(20),FT857_VFO_ALL,FT857_ANTS),
     /* AM class */
     FRQ_RNG_70cm(2,FT857_AM_TX_MODES, W(0.5),W(5),FT857_VFO_ALL,FT857_ANTS),
-    RIG_FRNG_END, 
+    RIG_FRNG_END,
   },
 
   .tuning_steps =  {
@@ -239,7 +236,7 @@ const struct rig_caps ft857_caps = {
 //        {RIG_MODE_RTTY, kHz(2.2)},
 //        {RIG_MODE_AM, kHz(6)},
 //        {RIG_MODE_FM, kHz(15)},
-//        {RIG_MODE_PKTFM, kHz(15)},	
+//        {RIG_MODE_PKTFM, kHz(15)},
 //        {RIG_MODE_FM, kHz(9)},
 //        {RIG_MODE_PKTFM, kHz(9)},
 //        {RIG_MODE_WFM, kHz(230)},	/* ?? */
@@ -247,10 +244,10 @@ const struct rig_caps ft857_caps = {
     },
 
   .priv = 		NULL,
-  .rig_init = 		ft857_init, 
-  .rig_cleanup = 	ft857_cleanup, 
-  .rig_open = 		ft857_open, 
-  .rig_close = 		ft857_close, 
+  .rig_init = 		ft857_init,
+  .rig_cleanup = 	ft857_cleanup,
+  .rig_open = 		ft857_open,
+  .rig_close = 		ft857_close,
   .set_freq = 		ft857_set_freq,
   .get_freq = 		ft857_get_freq,
   .set_mode = 		ft857_set_mode,
@@ -296,14 +293,14 @@ const struct rig_caps ft857_caps = {
   .set_parm = 		NULL,
   .get_parm = 		NULL,
   .vfo_op =             ft857_vfo_op,
-}; 
+};
 
 /* ---------------------------------------------------------------------- */
 
 int ft857_init(RIG *rig)
 {
   struct ft857_priv_data *p;
-  
+
   rig_debug(RIG_DEBUG_VERBOSE,"ft857:ft857_init called \n");
 
   if ((p = calloc(1, sizeof(struct ft857_priv_data))) == NULL)
@@ -313,7 +310,7 @@ int ft857_init(RIG *rig)
   memcpy(p->pcs, ncmd, sizeof(ncmd));
 
   rig->state.priv = (void*) p;
-  
+
   return RIG_OK;
 }
 
@@ -324,7 +321,7 @@ int ft857_cleanup(RIG *rig)
   if (rig->state.priv)
     free(rig->state.priv);
   rig->state.priv = NULL;
-  
+
   return RIG_OK;
 }
 
@@ -629,7 +626,7 @@ static int ft857_read_ack(RIG *rig)
 static int ft857_send_cmd(RIG *rig, int index)
 {
   struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
- 
+
   if (p->pcs[index].ncomp == 0) {
     rig_debug(RIG_DEBUG_VERBOSE, "ft857: Incomplete sequence\n");
     return -RIG_EINTERNAL;
@@ -646,7 +643,7 @@ static int ft857_send_icmd(RIG *rig, int index, unsigned char *data)
 {
   struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
   unsigned char cmd[YAESU_CMD_LENGTH];
- 
+
   if (p->pcs[index].ncomp == 1) {
     rig_debug(RIG_DEBUG_VERBOSE, "ft857: Complete sequence\n");
     return -RIG_EINTERNAL;

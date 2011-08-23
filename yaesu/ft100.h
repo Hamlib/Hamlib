@@ -8,22 +8,19 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft100.h,v 1.9 2009-02-14 16:46:36 fillods Exp $  
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
+ *   This library is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation; either
- *  version 2 of the License, or (at your option) any later version.
- *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
- *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+ *   You should have received a copy of the GNU Lesser General Public
+ *   License along with this library; if not, write to the Free Software
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -54,7 +51,7 @@ enum ft100_native_cmd_e {
   FT100_NATIVE_CAT_SET_CLAR_FREQ,
   FT100_NATIVE_CAT_SET_VFOAB,
   FT100_NATIVE_CAT_SET_VFOA,
-  FT100_NATIVE_CAT_SET_VFOB,   
+  FT100_NATIVE_CAT_SET_VFOB,
   FT100_NATIVE_CAT_SPLIT_ON,
   FT100_NATIVE_CAT_SPLIT_OFF,
   FT100_NATIVE_CAT_SET_RPT_SHIFT_MINUS,
@@ -77,7 +74,7 @@ enum ft100_native_cmd_e {
   FT100_NATIVE_CAT_PWR_OFF,
   FT100_NATIVE_CAT_READ_STATUS,
   FT100_NATIVE_CAT_READ_METERS,
-  FT100_NATIVE_CAT_READ_FLAGS,   
+  FT100_NATIVE_CAT_READ_FLAGS,
   FT100_NATIVE_SIZE		/* end marker */
 };
 
@@ -86,9 +83,9 @@ typedef enum ft100_native_cmd_e ft100_native_cmd_t;
 
 /*
  *  we are able to get way more info
- *  than we can set 
- * 
- */ 
+ *  than we can set
+ *
+ */
 typedef struct
 {
    unsigned char band_no;
@@ -109,7 +106,7 @@ typedef struct
  FT100_STATUS_INFO;
 
 
-typedef struct 
+typedef struct
 {
    unsigned char mic_switch_1;
    unsigned char tx_fwd_power;
@@ -123,7 +120,7 @@ typedef struct
 }
  FT100_METER_INFO;
 
-typedef struct 
+typedef struct
 {
    unsigned char byte[8];
 }
@@ -168,7 +165,7 @@ static int ft100_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 static int ft100_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
 
 static int ft100_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift);
-//static int ft100_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *shift);			 
+//static int ft100_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *shift);
 
 static int ft100_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code);
 //static int ft100_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code);

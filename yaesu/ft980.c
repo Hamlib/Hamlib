@@ -6,19 +6,19 @@
  * via serial interface to an FT-980 using the "CAT" interface
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -187,7 +187,7 @@ const struct rig_caps ft980_caps = {
   .bank_qty =           0,
   .chan_desc_sz =       0,
 
-  .chan_list =          { 
+  .chan_list =          {
 				{1, 16, RIG_MTYPE_MEM, FT980_MEM_CAP},
 			},
 
@@ -423,7 +423,7 @@ static void dump_memory(_ft980_memory_t *memory) {
   dump_freq(memory->mem_5);
   dump_vfo(memory->vfo_5);
   dump_mode(memory->mode_5);
- 
+
   rig_debug(RIG_DEBUG_VERBOSE, "mem_6          :");
   dump_freq(memory->mem_6);
   dump_vfo(memory->vfo_6);
@@ -604,7 +604,7 @@ int ft980_get_status_data(RIG *rig)
 
 /*
  * ft980_open  routine
- * 
+ *
  */
 int ft980_open(RIG *rig)
 {
@@ -712,7 +712,7 @@ int ft980_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   struct ft980_priv_data *priv = (struct ft980_priv_data *)rig->state.priv;
   unsigned char md;
 
-  /* 
+  /*
    * translate mode from generic to ft980 specific
    */
   switch(mode) {
@@ -729,7 +729,7 @@ int ft980_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   if (width != RIG_PASSBAND_NORMAL && width < rig_passband_normal(rig, mode)) {
     switch(md) {
        case MD_CW: md = MD_CWN; break;
-       case MD_AM: md = MD_AMN; break;	 
+       case MD_AM: md = MD_AMN; break;
     }
   }
 
@@ -818,9 +818,9 @@ int ft980_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
   return -RIG_ENIMPL;
 
   /*
-   * this can be misleading as Yaesu call it "Full duplex" 
+   * this can be misleading as Yaesu call it "Full duplex"
    * or "sat mode", and split Yaesu terms is repeater shift.
-   */ 
+   */
   cmd[4] = split == RIG_SPLIT_ON ? 0x0e : 0x8e;
 
   return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);

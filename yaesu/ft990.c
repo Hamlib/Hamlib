@@ -8,20 +8,19 @@
  * via serial interface to an FT-990 using the "CAT" interface
  *
  *
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation; either
- *  version 2 of the License, or (at your option) any later version.
+ *   This library is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
- *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+ *   You should have received a copy of the GNU Lesser General Public
+ *   License along with this library; if not, write to the Free Software
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -2322,7 +2321,7 @@ int ft990_get_channel (RIG *rig, channel_t *chan)
         chan->vfo = RIG_VFO_MEM;
   }
 
-  /* 
+  /*
    * Get data for selected VFO/MEM
    */
   err = ft990_get_update_data(rig, ci, chan->channel_num);
@@ -2334,14 +2333,14 @@ int ft990_get_channel (RIG *rig, channel_t *chan)
   if (p->bpf & FT990_EMPTY_MEM)
     return RIG_OK;
 
-  /* 
+  /*
    * Get RX frequency
    */
   chan->freq = ((((p->basefreq[0] << 8) + p->basefreq[1]) << 8) +
                    p->basefreq[2]) * 10;
 
   /*
-   * Get RX operating mode 
+   * Get RX operating mode
    */
   switch(p->mode) {
     case FT990_MODE_LSB:
@@ -2458,7 +2457,7 @@ int ft990_get_channel (RIG *rig, channel_t *chan)
     chan->tx_freq = ((((p->basefreq[0] << 8) + p->basefreq[1]) << 8) +
                      p->basefreq[2]) * 10;
     /*
-     * Get RX operating mode 
+     * Get RX operating mode
      */
     switch(p->mode) {
       case FT990_MODE_LSB:

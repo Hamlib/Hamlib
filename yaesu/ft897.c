@@ -12,22 +12,19 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft897.c,v 1.10 2009-01-12 12:29:17 n0nb Exp $  
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
+ *   This library is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation; either
- *  version 2 of the License, or (at your option) any later version.
- *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
- *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+ *   You should have received a copy of the GNU Lesser General Public
+ *   License along with this library; if not, write to the Free Software
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -177,8 +174,8 @@ static const yaesu_cmd_set_t ncmd[] = {
 
 const struct rig_caps ft897_caps = {
   .rig_model = 		RIG_MODEL_FT897,
-  .model_name = 	"FT-897", 
-  .mfg_name = 		"Yaesu", 
+  .model_name = 	"FT-897",
+  .mfg_name = 		"Yaesu",
   .version = 		"0.3.3",
   .copyright = 		"LGPL",
   .status = 		RIG_STATUS_BETA,
@@ -191,13 +188,13 @@ const struct rig_caps ft897_caps = {
   .serial_data_bits = 	8,
   .serial_stop_bits = 	2,
   .serial_parity = 	RIG_PARITY_NONE,
-  .serial_handshake = 	RIG_HANDSHAKE_NONE, 
+  .serial_handshake = 	RIG_HANDSHAKE_NONE,
   .write_delay = 	FT897_WRITE_DELAY,
   .post_write_delay = 	FT897_POST_WRITE_DELAY,
   .timeout = 		FT897_TIMEOUT,
-  .retry = 		0, 
+  .retry = 		0,
   .has_get_func =       RIG_FUNC_NONE,
-  .has_set_func = 	RIG_FUNC_LOCK | RIG_FUNC_TONE | RIG_FUNC_TSQL, 
+  .has_set_func = 	RIG_FUNC_LOCK | RIG_FUNC_TONE | RIG_FUNC_TSQL,
   .has_get_level = 	RIG_LEVEL_STRENGTH | RIG_LEVEL_RFPOWER | RIG_LEVEL_SWR | RIG_LEVEL_RAWSTR,
   .has_set_level = 	RIG_LEVEL_NONE,
   .has_get_parm = 	RIG_PARM_NONE,
@@ -218,12 +215,12 @@ const struct rig_caps ft897_caps = {
   .chan_list =          { RIG_CHAN_END, },
   .vfo_ops =		RIG_OP_TOGGLE,
 
-  .rx_range_list1 =  { 
+  .rx_range_list1 =  {
     {kHz(100),MHz(56), FT897_ALL_RX_MODES,-1,-1},
     {MHz(76), MHz(108),RIG_MODE_WFM,      -1,-1},
     {MHz(118),MHz(164),FT897_ALL_RX_MODES,-1,-1},
     {MHz(420),MHz(470),FT897_ALL_RX_MODES,-1,-1},
-    RIG_FRNG_END, 
+    RIG_FRNG_END,
   },
   .tx_range_list1 =  {
     FRQ_RNG_HF(1,FT897_OTHER_TX_MODES, W(10),W(100),FT897_VFO_ALL,FT897_ANTS),
@@ -235,16 +232,16 @@ const struct rig_caps ft897_caps = {
     FRQ_RNG_70cm(1,FT897_OTHER_TX_MODES, W(2),W(20),FT897_VFO_ALL,FT897_ANTS),
     /* AM class */
     FRQ_RNG_70cm(1,FT897_AM_TX_MODES, W(0.5),W(5),FT897_VFO_ALL,FT897_ANTS),
-    RIG_FRNG_END, 
+    RIG_FRNG_END,
   },
 
 
-  .rx_range_list2 =  { 
+  .rx_range_list2 =  {
     {kHz(100),MHz(56), FT897_ALL_RX_MODES,-1,-1},
     {MHz(76), MHz(108),RIG_MODE_WFM,      -1,-1},
     {MHz(118),MHz(164),FT897_ALL_RX_MODES,-1,-1},
     {MHz(420),MHz(470),FT897_ALL_RX_MODES,-1,-1},
-    RIG_FRNG_END, 
+    RIG_FRNG_END,
   },
   .tx_range_list2 =  {
     FRQ_RNG_HF(2,FT897_OTHER_TX_MODES, W(10),W(100),FT897_VFO_ALL,FT897_ANTS),
@@ -256,7 +253,7 @@ const struct rig_caps ft897_caps = {
     FRQ_RNG_70cm(2,FT897_OTHER_TX_MODES, W(2),W(20),FT897_VFO_ALL,FT897_ANTS),
     /* AM class */
     FRQ_RNG_70cm(2,FT897_AM_TX_MODES, W(0.5),W(5),FT897_VFO_ALL,FT897_ANTS),
-    RIG_FRNG_END, 
+    RIG_FRNG_END,
   },
 
   .tuning_steps =  {
@@ -285,10 +282,10 @@ const struct rig_caps ft897_caps = {
     },
 
   .priv = 		NULL,
-  .rig_init = 		ft897_init, 
-  .rig_cleanup = 	ft897_cleanup, 
-  .rig_open = 		ft897_open, 
-  .rig_close = 		ft897_close, 
+  .rig_init = 		ft897_init,
+  .rig_cleanup = 	ft897_cleanup,
+  .rig_open = 		ft897_open,
+  .rig_close = 		ft897_close,
   .set_freq = 		ft897_set_freq,
   .get_freq = 		ft897_get_freq,
   .set_mode = 		ft897_set_mode,
@@ -334,14 +331,14 @@ const struct rig_caps ft897_caps = {
   .set_parm = 		NULL,
   .get_parm = 		NULL,
   .vfo_op =		ft897_vfo_op,
-}; 
+};
 
 /* ---------------------------------------------------------------------- */
 
 int ft897_init(RIG *rig)
 {
   struct ft897_priv_data *p;
-  
+
   rig_debug(RIG_DEBUG_VERBOSE,"ft897:ft897_init called \n");
 
   if ((p = calloc(1, sizeof(struct ft897_priv_data))) == NULL)
@@ -351,7 +348,7 @@ int ft897_init(RIG *rig)
   memcpy(p->pcs, ncmd, sizeof(ncmd));
 
   rig->state.priv = (void*) p;
-  
+
   return RIG_OK;
 }
 
@@ -362,7 +359,7 @@ int ft897_cleanup(RIG *rig)
   if (rig->state.priv)
     free(rig->state.priv);
   rig->state.priv = NULL;
-  
+
   return RIG_OK;
 }
 
@@ -688,7 +685,7 @@ static int ft897_read_ack(RIG *rig)
 static int ft897_send_cmd(RIG *rig, int index)
 {
   struct ft897_priv_data *p = (struct ft897_priv_data *) rig->state.priv;
- 
+
   if (p->pcs[index].ncomp == 0) {
     rig_debug(RIG_DEBUG_VERBOSE, "ft897: Incomplete sequence\n");
     return -RIG_EINTERNAL;
@@ -705,7 +702,7 @@ static int ft897_send_icmd(RIG *rig, int index, unsigned char *data)
 {
   struct ft897_priv_data *p = (struct ft897_priv_data *) rig->state.priv;
   unsigned char cmd[YAESU_CMD_LENGTH];
- 
+
   if (p->pcs[index].ncomp == 1) {
     rig_debug(RIG_DEBUG_VERBOSE, "ft897: Complete sequence\n");
     return -RIG_EINTERNAL;

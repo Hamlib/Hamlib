@@ -2,24 +2,24 @@
  * hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
  *
  * yaesu.h - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
- *		     (C) Stephane Fillod 2001-2010
+ *           (C) Stephane Fillod 2001-2010
  *
  * Common yaesu declarations for hamlib
  *
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation; either
- *  version 2 of the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
+ *   This library is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+ *   You should have received a copy of the GNU Lesser General Public
+ *   License along with this library; if not, write to the Free Software
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -42,7 +42,7 @@ struct yaesu_cmd_set {
   unsigned char nseq[YAESU_CMD_LENGTH];	/* native cmd sequence */
 };
 
-typedef struct yaesu_cmd_set yaesu_cmd_set_t; 
+typedef struct yaesu_cmd_set yaesu_cmd_set_t;
 
 extern const struct rig_caps ft100_caps;
 extern const struct rig_caps ft450_caps;

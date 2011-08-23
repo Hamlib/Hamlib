@@ -4,21 +4,20 @@
  * This shared library provides an API for communicating
  * via serial interface to an FRG-100 using the "CAT" interface
  *
- *	$Id: frg100.c,v 1.5 2006-10-07 15:51:38 csete Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -123,11 +122,11 @@ const struct rig_caps frg100_caps = {
   .transceive =         RIG_TRN_OFF,
   .bank_qty =           0,
   .chan_desc_sz =       0,
-  .chan_list =          { 
+  .chan_list =          {
 	  {      1,  0x32, RIG_MTYPE_MEM, FRG100_MEM_CAP },
 	  {   0x33,  0x34, RIG_MTYPE_EDGE },
 			},
-  .rx_range_list1 =     { 
+  .rx_range_list1 =     {
     {kHz(50), MHz(30), FRG100_MODES, -1, -1, FRG100_VFOS, FRG100_ANTS },
     RIG_FRNG_END,
   }, /* Region 1 rx ranges */
@@ -176,12 +175,12 @@ const struct rig_caps frg100_caps = {
 
 /*
  * frg100_open  routine
- * 
+ *
  */
 int frg100_open(RIG *rig)
 {
   unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x0e};
- 
+
   rig_debug(RIG_DEBUG_TRACE, "frg100: frg100_open called\n");
 
   /* send 0 delay pacing */
@@ -258,7 +257,7 @@ int frg100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
   unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0xf7};
   int retval;
- 
+
   if (level != RIG_LEVEL_RAWSTR)
 	  return -RIG_EINVAL;
 
@@ -273,7 +272,7 @@ int frg100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
   retval = read_block(&rig->state.rigport, (char *) cmd, 5);
 
   if (retval < 1) {
-	rig_debug(RIG_DEBUG_ERR,"%s: read meter failed %d\n", 
+	rig_debug(RIG_DEBUG_ERR,"%s: read meter failed %d\n",
 			__FUNCTION__,retval);
 
 	return retval < 0 ? retval : -RIG_EIO;
@@ -298,7 +297,7 @@ int mode2rig(RIG *rig, rmode_t mode, pbwidth_t width)
 {
   int md;
 
-  /* 
+  /*
    * translate mode from generic to frg100 specific
    */
   switch(mode) {
@@ -318,7 +317,7 @@ int mode2rig(RIG *rig, rmode_t mode, pbwidth_t width)
 	else
 		md = MODE_FMW;
 	break;
-  case RIG_MODE_CW:	
+  case RIG_MODE_CW:
   	if (width != RIG_PASSBAND_NORMAL ||
 		  width < rig_passband_normal(rig, mode))
 		md = MODE_CWN;
@@ -335,8 +334,8 @@ int mode2rig(RIG *rig, rmode_t mode, pbwidth_t width)
 #if 0
 int rig2mode(RIG *rig, int md, rmode_t *mode, pbwidth_t *width)
 {
-  /* 
-   * translate mode from frg100 specific to generic 
+  /*
+   * translate mode from frg100 specific to generic
    */
   switch(md) {
   case MODE_USB:	*mode = RIG_MODE_USB; break;

@@ -5,19 +5,19 @@
  * via serial interface to an FT-736R using the "CAT" interface
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -131,10 +131,10 @@ const struct rig_caps ft736_caps = {
   .transceive =         RIG_TRN_OFF,
   .bank_qty =           0,
   .chan_desc_sz =       0,
-  .chan_list =          { 
+  .chan_list =          {
 				RIG_CHAN_END,
 			},
-  .rx_range_list1 =     { 
+  .rx_range_list1 =     {
     {MHz(50), MHz(53.99999), FT736_MODES, -1, -1, FT736_VFOS },
     {MHz(144), MHz(145.99999), FT736_MODES, -1, -1, FT736_VFOS },
     {MHz(430), MHz(439.99999), FT736_MODES, -1, -1, FT736_VFOS },
@@ -210,14 +210,14 @@ const struct rig_caps ft736_caps = {
 
 /*
  * ft736_open  routine
- * 
+ *
  */
 int ft736_open(RIG *rig)
 {
   unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x00};
   struct ft736_priv_data *priv;
   int ret;
- 
+
   rig_debug(RIG_DEBUG_TRACE, "%s called\n",__FUNCTION__);
 
   priv = (struct ft736_priv_data*)malloc(sizeof(struct ft736_priv_data));
@@ -239,7 +239,7 @@ int ft736_open(RIG *rig)
 int ft736_close(RIG *rig)
 {
   unsigned char cmd[YAESU_CMD_LENGTH] = { 0x80, 0x80, 0x80, 0x80, 0x80};
- 
+
   rig_debug(RIG_DEBUG_TRACE, "%s called\n",__FUNCTION__);
 
   free(rig->state.priv);
@@ -287,7 +287,7 @@ int ft736_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   if (priv->split == RIG_SPLIT_ON)
       cmd[4] = 0x17;
 
-  /* 
+  /*
    * translate mode from generic to ft736 specific
    */
   switch(mode) {
@@ -321,9 +321,9 @@ int ft736_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
   int ret;
 
   /*
-   * this can be misleading as Yaesu call it "Full duplex" 
+   * this can be misleading as Yaesu call it "Full duplex"
    * or "sat mode", and split Yaesu terms is repeater shift.
-   */ 
+   */
   cmd[4] = split == RIG_SPLIT_ON ? 0x0e : 0x8e;
 
   ret = write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
@@ -354,7 +354,7 @@ int ft736_set_split_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   unsigned char md;
 
 
-  /* 
+  /*
    * translate mode from generic to ft736 specific
    */
   switch(mode) {
@@ -408,7 +408,7 @@ int ft736_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
   retval = read_block(&rig->state.rigport, (char *) cmd, 5);
 
   if (retval < 1) {
-	rig_debug(RIG_DEBUG_ERR,"%s: read squelch failed %d\n", 
+	rig_debug(RIG_DEBUG_ERR,"%s: read squelch failed %d\n",
 			__FUNCTION__,retval);
 
 	return retval < 0 ? retval : -RIG_EIO;
@@ -422,7 +422,7 @@ int ft736_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
   unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0xf7};
   int retval;
- 
+
   if (level != RIG_LEVEL_RAWSTR)
 	  return -RIG_EINVAL;
 
@@ -437,7 +437,7 @@ int ft736_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
   retval = read_block(&rig->state.rigport, (char *) cmd, 5);
 
   if (retval < 1) {
-	rig_debug(RIG_DEBUG_ERR,"%s: read meter failed %d\n", 
+	rig_debug(RIG_DEBUG_ERR,"%s: read meter failed %d\n",
 			__FUNCTION__,retval);
 
 	return retval < 0 ? retval : -RIG_EIO;
