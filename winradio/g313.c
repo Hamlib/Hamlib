@@ -1,19 +1,19 @@
 /*
- *  Hamlib WiNRADiO backend - WR-G313  
+ *  Hamlib WiNRADiO backend - WR-G313
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -71,9 +71,9 @@ int g313_get_conf(RIG *rig, token_t token, char *val);
 
 /* #pragma pack(1)       // set byte packing */
 typedef struct {
-	int	bLength;		
-	char	szSerNum[9];	
-	char	szProdName[9];	
+	int	bLength;
+	char	szSerNum[9];
+	char	szProdName[9];
 	DWORD	dwMinFreq;
 	DWORD	dwMaxFreq;
 	BYTE	bNumBands;
@@ -114,7 +114,7 @@ typedef HANDLE (__stdcall *TStartWaveOut)(LONG hRadio,LONG WaveOutDeviceIndex);
 typedef void (__stdcall *TStopWaveOut)(HANDLE hWaveOut);
 
 struct g313_priv_data {
-	HMODULE dll;		
+	HMODULE dll;
 	int hRadio;
 
 	FNCOpenRadioDevice OpenRadioDevice;
@@ -131,21 +131,21 @@ struct g313_priv_data {
 	FNCGetIFGain GetIFGain;
 	FNCGetSignalStrengthdBm GetSignalStrengthdBm;
 	FNCGetRawSignalStrength GetRawSignalStrength;
-	FNCG3GetInfo G3GetInfo;	
-	
-		
+	FNCG3GetInfo G3GetInfo;
+
+
 	HMODULE WinMM;
 	TwaveOutGetDevCaps	waveOutGetDevCaps;
-	TwaveOutGetNumDevs waveOutGetNumDevs;	
-	
+	TwaveOutGetNumDevs waveOutGetNumDevs;
+
 	HMODULE hWRG313WO;
-	
+
 	int	WaveOutDeviceID;
-	
-	HANDLE	hWaveOut;	
+
+	HANDLE	hWaveOut;
 	TStartWaveOut StartWaveOut;
 	TStopWaveOut  StopWaveOut;
-	
+
 	int		Opened;
 };
 
@@ -183,7 +183,7 @@ const struct rig_caps g313_caps = {
 		    	RIG_FRNG_END, },
   .tx_range_list2 =  { RIG_FRNG_END, },
 
-  .tuning_steps =  { {G313_MODES,1}, 
+  .tuning_steps =  { {G313_MODES,1},
   		  	RIG_TS_END, },
 
   .filters =       { {G313_MODES, kHz(12)},
@@ -191,8 +191,8 @@ const struct rig_caps g313_caps = {
 
   .cfgparams = g313_cfg_params,
   .set_conf = g313_set_conf,
-  .get_conf = g313_get_conf,                  
-                  
+  .get_conf = g313_get_conf,
+
   .rig_init =     g313_init,
   .rig_cleanup =  g313_cleanup,
   .rig_open =     g313_open,
@@ -200,7 +200,7 @@ const struct rig_caps g313_caps = {
 
   .set_freq =     g313_set_freq,
   .get_freq =     g313_get_freq,
-  
+
   .set_powerstat =   g313_set_powerstat,
   .get_powerstat =   g313_get_powerstat,
   .set_level =     g313_set_level,
@@ -214,60 +214,60 @@ const struct rig_caps g313_caps = {
 int g313_init(RIG *rig)
 {
 	struct g313_priv_data *priv;
-			
+
 	priv = (struct g313_priv_data*)malloc(sizeof(struct g313_priv_data));
 	if (!priv) {
-		/* whoops! memory shortage! */		
+		/* whoops! memory shortage! */
 		return -RIG_ENOMEM;
 	}
 
 	priv->WaveOutDeviceID=-1;
-	
+
 	priv->Opened=0;
 	priv->hWaveOut=NULL;
-	
+
 	priv->WinMM=LoadLibrary("WinMM.dll");
-	
+
 	if(priv->WinMM==NULL)
 	{
 		free(priv);
 		return -RIG_EIO;
 	}
-	
+
 	priv->hWRG313WO=LoadLibrary("WRG313WO.dll");
-	
+
 	if(priv->hWRG313WO==NULL)
 	{
 		rig_debug(RIG_DEBUG_ERR, "%s: Unable to LoadLibrary WRG313WO.dll\n",
-				__FUNCTION__);		
+				__FUNCTION__);
 		FreeLibrary(priv->WinMM);
 		free(priv);
 		return -RIG_EIO;
 	}
-	
+
 	priv->StartWaveOut=(TStartWaveOut)GetProcAddress(priv->hWRG313WO,"StartWaveOut");
 	priv->StopWaveOut=(TStopWaveOut)GetProcAddress(priv->hWRG313WO,"StopWaveOut");
-	
+
 	if(!priv->StartWaveOut || !priv->StopWaveOut)
 	{
 		rig_debug(RIG_DEBUG_ERR, "%s: Unable to load valid WRG313WO.dll library\n",
-				__FUNCTION__);		
+				__FUNCTION__);
 		FreeLibrary(priv->hWRG313WO);
 		FreeLibrary(priv->WinMM);
 		free(priv);
-		return -RIG_EIO;		
+		return -RIG_EIO;
 	}
-	
-	
+
+
 	/* Try to load required dll */
 	priv->dll = LoadLibrary(WRG313DLL);
 
-	if (!priv->dll) {		
+	if (!priv->dll) {
 		rig_debug(RIG_DEBUG_ERR, "%s: Unable to LoadLibrary %s\n",
 				__FUNCTION__, WRG313DLL);
-		FreeLibrary(priv->hWRG313WO);			
+		FreeLibrary(priv->hWRG313WO);
 		FreeLibrary(priv->WinMM);
-		free(priv);		
+		free(priv);
 		return -RIG_EIO;	/* huh! */
 	}
 
@@ -287,14 +287,14 @@ int g313_init(RIG *rig)
 	priv->SetAGC = (FNCSetAGC) GetProcAddress(priv->dll, "SetAGC");
 	priv->GetAGC = (FNCGetAGC) GetProcAddress(priv->dll, "GetAGC");
 	priv->SetIFGain = (FNCSetIFGain) GetProcAddress(priv->dll, "SetIFGain");
-	priv->GetIFGain = (FNCGetIFGain) GetProcAddress(priv->dll, "GetIFGain");	
+	priv->GetIFGain = (FNCGetIFGain) GetProcAddress(priv->dll, "GetIFGain");
 	priv->GetSignalStrengthdBm =
 		(FNCGetSignalStrengthdBm) GetProcAddress(priv->dll, "GetSignalStrengthdBm");
 	priv->GetRawSignalStrength =
-		(FNCGetRawSignalStrength) GetProcAddress(priv->dll, "GetRawSignalStrength");	
+		(FNCGetRawSignalStrength) GetProcAddress(priv->dll, "GetRawSignalStrength");
 	priv->G3GetInfo = (FNCG3GetInfo) GetProcAddress(priv->dll, "G3GetInfo");
-	
-	
+
+
 	if(!priv->OpenRadioDevice || !priv->CloseRadioDevice || !priv->G3SetFrequency ||
 	   !priv->G3GetFrequency || !priv->SetPower || !priv->GetPower || !priv->SetAtten ||
 	   !priv->GetAtten || !priv->SetAGC || !priv->GetAGC || !priv->SetIFGain || !priv->GetIFGain ||
@@ -308,27 +308,27 @@ int g313_init(RIG *rig)
 		free(priv);
 		return -RIG_EIO;
 	}
-	
+
 	priv->waveOutGetDevCaps=(TwaveOutGetDevCaps)GetProcAddress(priv->WinMM,"waveOutGetDevCapsA");
-	priv->waveOutGetNumDevs=(TwaveOutGetNumDevs)GetProcAddress(priv->WinMM,"waveOutGetNumDevs");	
-	
-	
+	priv->waveOutGetNumDevs=(TwaveOutGetNumDevs)GetProcAddress(priv->WinMM,"waveOutGetNumDevs");
+
+
 	rig->state.priv = (void*)priv;
-	
-	
+
+
 	return RIG_OK;
 }
- 
+
 int g313_findVSC(struct g313_priv_data *priv)
 {
  int OutIndex;
  WAVEOUTCAPS Caps;
  int Count;
  int i;
- 
+
 	OutIndex=-1;
 	Count=priv->waveOutGetNumDevs();
-	
+
 	for(i=0;i<Count;i++)
 	{
 		if(priv->waveOutGetDevCaps(i, &Caps, sizeof(Caps))==MMSYSERR_NOERROR)
@@ -340,7 +340,7 @@ int g313_findVSC(struct g313_priv_data *priv)
 			}
 		}
 	}
-	
+
 	return OutIndex;
 }
 
@@ -350,29 +350,29 @@ int g313_open(RIG *rig)
 	int device_num;
 	int Count;
 	int id;
-			
+
 	device_num = atoi(rig->state.rigport.pathname);
-	
+
 	Count=priv->waveOutGetNumDevs();
-	
+
 	if(Count==0)
 	{
-		return -RIG_EIO; 
+		return -RIG_EIO;
 	}
-	
+
 	if(priv->WaveOutDeviceID==-2)
 	{
 		id=g313_findVSC(priv);
-	}	
+	}
 	else
 	{
 		id=priv->WaveOutDeviceID;
 	}
-	
-	
+
+
 	/* Open Winradio receiver handle */
 	priv->hRadio = priv->OpenRadioDevice(device_num);
-		
+
 	if (priv->hRadio == 0)
 	{
 		return -RIG_EIO;	/* huh! */
@@ -380,16 +380,16 @@ int g313_open(RIG *rig)
 
 	/* Make sure the receiver is switched on */
 	priv->SetPower(priv->hRadio, TRUE);
-	
+
 	if(id>-3)
 	{
 		priv->hWaveOut=priv->StartWaveOut(priv->hRadio,id);
-		
+
 		if(priv->hWaveOut==NULL)
 		{
 			priv->CloseRadioDevice(priv->hRadio);
 			return -RIG_EIO;
-		}		
+		}
 	}
 	else
 	{
@@ -398,7 +398,7 @@ int g313_open(RIG *rig)
 
 
 	priv->Opened=1;
-	
+
 	return RIG_OK;
 }
 
@@ -406,19 +406,19 @@ int g313_close(RIG *rig)
 {
 	struct g313_priv_data *priv = (struct g313_priv_data *)rig->state.priv;
 
-	
+
 	if(!priv->Opened)
 	{
 		return RIG_OK;
 	}
-	
+
 	priv->Opened=0;
-	
+
 	if(priv->hWaveOut)
 	{
 		priv->StopWaveOut(priv->hWaveOut);
 	}
-	priv->CloseRadioDevice(priv->hRadio);	
+	priv->CloseRadioDevice(priv->hRadio);
 
 	return RIG_OK;
 }
@@ -429,18 +429,18 @@ int g313_cleanup(RIG *rig)
 
 	if (!rig)
 		return -RIG_EINVAL;
-		
+
 	priv=(struct g313_priv_data *)rig->state.priv;
 
 	/* Clean up the dll access */
 	FreeLibrary(priv->dll);
 	FreeLibrary(priv->WinMM);
 	FreeLibrary(priv->hWRG313WO);
-		
-	
+
+
 	if (rig->state.priv)
 		free(rig->state.priv);
-	rig->state.priv = NULL;	
+	rig->state.priv = NULL;
 
 	return RIG_OK;
 }
@@ -449,7 +449,7 @@ int g313_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
 	struct g313_priv_data *priv = (struct g313_priv_data *)rig->state.priv;
 	int ret;
-	
+
 	ret = priv->G3SetFrequency(priv->hRadio, (DWORD) (freq));
 	ret = ret==TRUE ? RIG_OK : -RIG_EIO;
 
@@ -459,7 +459,7 @@ int g313_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 int g313_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 	struct g313_priv_data *priv = (struct g313_priv_data *)rig->state.priv;
-	
+
 	*freq = (freq_t) priv->G3GetFrequency(priv->hRadio);
 
 	return *freq != 0 ? RIG_OK : -RIG_EIO;
@@ -469,7 +469,7 @@ int g313_set_powerstat(RIG *rig, powerstat_t status)
 {
 	struct g313_priv_data *priv = (struct g313_priv_data *)rig->state.priv;
 	int ret;
-	
+
 	ret = priv->SetPower(priv->hRadio, status==RIG_POWER_ON ? TRUE : FALSE);
 	ret = ret==TRUE ? RIG_OK : -RIG_EIO;
 
@@ -480,7 +480,7 @@ int g313_get_powerstat(RIG *rig, powerstat_t *status)
 {
 	struct g313_priv_data *priv = (struct g313_priv_data *)rig->state.priv;
 	int ret;
-	
+
 	ret = priv->GetPower(priv->hRadio);
 	*status = ret==TRUE ? RIG_POWER_ON : RIG_POWER_OFF;
 
@@ -491,7 +491,7 @@ int g313_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
 	struct g313_priv_data *priv = (struct g313_priv_data *)rig->state.priv;
 	int ret, agc;
-	
+
 	switch(level) {
 	case RIG_LEVEL_ATT:
 		ret = priv->SetAtten(priv->hRadio, val.i != 0 ? TRUE : FALSE);
@@ -525,7 +525,7 @@ int g313_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
 	struct g313_priv_data *priv = (struct g313_priv_data *)rig->state.priv;
 	int ret;
-	
+
 	ret = RIG_OK;
 
 	switch(level) {
@@ -544,14 +544,14 @@ int g313_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				return -RIG_EINVAL;
 		}
 		break;
-		
+
 	case RIG_LEVEL_STRENGTH:
 		val->i = priv->GetSignalStrengthdBm(priv->hRadio)/10+73;
 		break;
 
 	case RIG_LEVEL_RAWSTR:
 		val->i = priv->GetRawSignalStrength(priv->hRadio);
-		break;		
+		break;
 
 	default:
 		return -RIG_EINVAL;
@@ -578,9 +578,9 @@ static const char* g313_get_info(RIG *rig)
 int g313_set_conf(RIG *rig, token_t token, const char *val)
 {
  struct g313_priv_data *priv = (struct g313_priv_data *)rig->state.priv;
- int id;	
+ int id;
 
-	switch(token) 
+	switch(token)
 	{
 	    case WAVEOUT_SOUNDCARDID:
 		    if (val[0] == '0' && val[1] == 'x')
@@ -591,21 +591,21 @@ int g313_set_conf(RIG *rig, token_t token, const char *val)
 			{
 				return -RIG_EINVAL;
 			}
-			
-			priv->WaveOutDeviceID=id;		
-			
+
+			priv->WaveOutDeviceID=id;
+
 			if(priv->Opened)
 			{
 				if(id==-2)
 				{
 					id=g313_findVSC(priv);
 				}
-				
+
 				if(priv->hWaveOut)
 				{
-					priv->StopWaveOut(priv->hWaveOut);					
+					priv->StopWaveOut(priv->hWaveOut);
 				}
-				
+
 				if(id>-3)
 				{
 					priv->hWaveOut=priv->StartWaveOut(priv->hRadio,id);
@@ -615,7 +615,7 @@ int g313_set_conf(RIG *rig, token_t token, const char *val)
 					priv->hWaveOut=NULL;
 				}
 			}
-			
+
 		    break;
 	    default:
 		    return -RIG_EINVAL;
@@ -627,7 +627,7 @@ int g313_get_conf(RIG *rig, token_t token, char *val)
 {
  struct g313_priv_data *priv = (struct g313_priv_data *)rig->state.priv;
 
-	switch(token) 
+	switch(token)
 	{
 		case WAVEOUT_SOUNDCARDID:
 			sprintf(val,"%d",priv->WaveOutDeviceID);

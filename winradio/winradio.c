@@ -3,21 +3,20 @@
  *  Copyright (C) 2001 pab@users.sourceforge.net
  *  Derived from hamlib code (C) 2000-2009 Stephane Fillod.
  *
- *	$Id: winradio.c,v 1.23 2009-01-11 13:21:21 fillods Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -136,7 +135,7 @@ int wr_set_func(RIG *rig, vfo_t vfo, setting_t func, int status) {
   }
   default:
     return -RIG_EINVAL;
-  }    
+  }
 }
 
 int wr_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status) {
@@ -149,7 +148,7 @@ int wr_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status) {
   }
   default:
     return -RIG_EINVAL;
-  }   
+  }
 }
 
 
@@ -179,7 +178,7 @@ int wr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val) {
   }
   default:
     return -RIG_EINVAL;
-  }    
+  }
 }
 
 int wr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val) {
@@ -217,7 +216,7 @@ int wr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val) {
   }
   default:
     return -RIG_EINVAL;
-  }   
+  }
 }
 
 /*
