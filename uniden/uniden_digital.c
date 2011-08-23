@@ -2,21 +2,20 @@
  *  Hamlib Uniden backend - uniden_digital backend
  *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: uniden_digital.c,v 1.7 2008-10-22 04:11:28 roger-linux Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -50,7 +49,7 @@
  * firmware_load.  These commands are defined within DSctl code.
  *
  * There are two methods of retrieving the next memory location
- * (aka frequency bank).  Use either the "Get Next Location" or 
+ * (aka frequency bank).  Use either the "Get Next Location" or
  * use the address returned from one of the commands.  If you decide
  * the latter method, the order is slightly confusing but, I have it
  * well documented within DSctl.  The latter method is also as much
@@ -168,14 +167,14 @@ transaction_write:
 	    retval = -RIG_EINVAL;
 	    goto transaction_quit;
     }
-		
+
 	if (strcmp(data, "FER"EOM)) {
 	    /*  Framing error */
 	    rig_debug(RIG_DEBUG_VERBOSE, "%s: Framing Error for '%s'\n", __FUNCTION__, cmdstr);
 	    retval = -RIG_EINVAL;
 	    goto transaction_quit;
     }
-		
+
 	if (strcmp(data, "ORER"EOM)) {
 	    /*  Overrun error */
 	    rig_debug(RIG_DEBUG_VERBOSE, "%s: Overrun Error for '%s'\n", __FUNCTION__, cmdstr);
@@ -204,7 +203,7 @@ transaction_write:
      * Check that received the correct reply. The first two characters
      * should be the same as command.
      */
-    if (replystr && replystr[0] && (data[0] != replystr[0] || 
+    if (replystr && replystr[0] && (data[0] != replystr[0] ||
 			    (replystr[1] && data[1] != replystr[1]))) {
          /*
           * TODO: When RIG_TRN is enabled, we can pass the string
@@ -236,16 +235,16 @@ const char * uniden_digital_get_info(RIG *rig)
 	size_t info_len=BUFSZ/2, mdlinfo_len=BUFSZ/2;
 	int ret;
 
-	
+
 	/* GET CURRENT STATUS -- STS */
 	ret = uniden_digital_transaction (rig, "STS" EOM, 3, NULL, infobuf, &info_len);
-	
+
 	/* NOTE FOR ME: Check Buffer Size with what we got returned in info_len.
 	 * Don't know the max length of return on these units, so check frequently!
 	 * Use five v's (-vvvvv) to activate output. */
 	rig_debug(RIG_DEBUG_VERBOSE, "%s: DEBUG BUFSZ'%i'\n", __FUNCTION__, BUFSZ);
 	rig_debug(RIG_DEBUG_VERBOSE, "%s: DEBUG info_len'%i'\n", __FUNCTION__, info_len);
-	
+
 	if (ret != RIG_OK)
 		return NULL;
 
@@ -257,7 +256,7 @@ const char * uniden_digital_get_info(RIG *rig)
      * XXX indicates the BCD996T returns some non-printable ascii chars
 	 * within it's comma separated fields. See pg 30-32 of BCD996T_Protocol.pdf.
 	 * These chars cause abnomalies on stdout! */
-	
+
 	/* FIXME: Strip or replace non-printable chars return from STS command!
 	 * (Below is a snip from DSctl utils.c file)
 	 *
@@ -273,9 +272,9 @@ const char * uniden_digital_get_info(RIG *rig)
 
 	if (info_len >= BUFSZ) {
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: DEBUG Max BUFSZ Reached: info_len  = '%i'\n", __FUNCTION__, info_len);
-		info_len = BUFSZ-1; 
+		info_len = BUFSZ-1;
 	}
-		
+
 	infobuf[info_len] = '\0';
 
 	/* VR not on every rig <- This doesn't belong here for the newer BCD* units*/
@@ -292,11 +291,11 @@ const char * uniden_digital_get_info(RIG *rig)
 	{
 		infobuf[info_len] = '\0';
 	}*/
-	
-	
+
+
 	/* GET MODEL INFO -- MDL */
 	ret = uniden_digital_transaction (rig, "MDL" EOM, 3, NULL, infobuf+info_len, &mdlinfo_len);
-	
+
 	if (ret == RIG_OK)
 	{
 		infobuf[info_len] = '\n';
@@ -318,8 +317,8 @@ const char * uniden_digital_get_info(RIG *rig)
 	{
 		infobuf[info_len] = '\0';
 	}
-	
-	
+
+
 	/* skip beginning "STS, " */
 	/* FIXME: What about clipping the above two other  MDL & VER Commands? */
 	return infobuf+4;
