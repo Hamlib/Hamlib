@@ -2,19 +2,19 @@
  *  Hamlib Rotator backend - Celestron
  *  Copyright (c) 2011 by Stephane Fillod
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -109,10 +109,10 @@ celestron_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
   char cmdstr[32];
   int retval;
-  
+
   rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
-  
-  /* 
+
+  /*
     Note: if the telescope has not been aligned, the RA/DEC values will not be meaningful and the AZM-ALT values will
         be relative to where the telescope was powered on. After alignment, RA/DEC values will reflect the actual sky,
         azimuth will be indexed to North equals 0 and altitude will be indexed with 0 equal to the orientation where the optical
@@ -168,7 +168,7 @@ celestron_stop(ROT *rot)
 
   /* Cancel Goto */
   retval = celestron_transaction(rot, "M", NULL, 0);
-  
+
   return retval;
 }
 
