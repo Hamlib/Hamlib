@@ -1,5 +1,4 @@
-/*  $Id:                                                                      $
- *
+/*
  *  Hamlib KIT backend - FiFi-SDR Receiver(/Tuner) description
  *  Copyright (c) 2010 by Rolf Meeser
  *

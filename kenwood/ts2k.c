@@ -62,7 +62,6 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: ts2k.c,v 1.8 2009-02-03 23:22:58 azummo Exp $
  */
 
 

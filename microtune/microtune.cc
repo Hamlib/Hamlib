@@ -2,7 +2,6 @@
  *  Hamlib Microtune backend - main file
  *  Copyright (c) 2003 by Stephane Fillod
  *
- *	$Id: microtune.cc,v 1.3 2003-10-20 20:34:02 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -139,7 +138,7 @@ int microtune_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
   double actual_freq;
   bool status;
-  
+
   struct microtune_priv_data *priv = (struct microtune_priv_data *)rig->state.priv;
 
   status = priv->board->set_RF_freq((double)freq, &actual_freq);
@@ -153,7 +152,7 @@ int microtune_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 
 int microtune_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
-{ 
+{
   struct microtune_priv_data *priv = (struct microtune_priv_data *)rig->state.priv;
 
   *freq = priv->actual_freq;
