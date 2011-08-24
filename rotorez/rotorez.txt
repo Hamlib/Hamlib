@@ -1,10 +1,8 @@
-$Id: rotorez.txt,v 1.4 2009-01-17 14:47:13 n0nb Exp $
-
 January 17, 2009:
 
 As of version 0.5 of the rotorez backend, the serial
 timeout has been shortened to 1500 mS and the retry count reduced to 2
-to speed up  recovery when flushing the buffer as described below. 
+to speed up  recovery when flushing the buffer as described below.
 Also, four tokens have been defined in rotorez.h for the set_conf
 function used by `rotctl' and `rotctld'. They are:
 
@@ -35,8 +33,8 @@ If the RotorEZ should receive an invalid command, such as an the ';'
 character while the rotor is not in motion, as sent by the rotorez_rot_stop
 function ('S' command from `rotctl'), it will output the following
 string, "C2000 IDIOM V1.4S " into the input buffer.  A new function,
-rotorez_flush_buffer, flushes the buffer by reading it until a timeout 
-occurs.  Once the timeout occurs, this function returns and the buffer is 
+rotorez_flush_buffer, flushes the buffer by reading it until a timeout
+occurs.  Once the timeout occurs, this function returns and the buffer is
 presumed to be empty.  Should read_block return an IO error, it is passed
 back to the application.
 
@@ -55,7 +53,7 @@ for Yaesu rotors manufactured and sold by Idiom Press,
 http://www.idiompres.com
 
 The Hy-Gain DCU-1/DCU-1X Digital Control Unit supports a subset of
-these commands--AP1XXX; and AM1;  The DCU-1/DCU-1X is manufactured 
+these commands--AP1XXX; and AM1;  The DCU-1/DCU-1X is manufactured
 and sold by Hy-Gain, http://www.hy-gain.com
 
 From: "sales@idiompress.com" <info@idiompress.com>

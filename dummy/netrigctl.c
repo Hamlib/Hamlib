@@ -3,19 +3,19 @@
  *  Copyright (c) 2001-2010 by Stephane Fillod
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -202,7 +202,7 @@ chan_t chan_list[CHANLSTSIZ]; /*!< Channel list, zero ended */
   if (ret <= 0)
 	return (ret < 0) ? ret : -RIG_EPROTO;
 
-  ret = sscanf (buf, "%d%d%d%d%d%d%d", 
+  ret = sscanf (buf, "%d%d%d%d%d%d%d",
 		  &rs->preamp[0], &rs->preamp[1],
 		  &rs->preamp[2], &rs->preamp[3],
 		  &rs->preamp[4], &rs->preamp[5],
@@ -215,7 +215,7 @@ chan_t chan_list[CHANLSTSIZ]; /*!< Channel list, zero ended */
   if (ret <= 0)
 	return (ret < 0) ? ret : -RIG_EPROTO;
 
-  ret = sscanf (buf, "%d%d%d%d%d%d%d", 
+  ret = sscanf (buf, "%d%d%d%d%d%d%d",
 		  &rs->attenuator[0], &rs->attenuator[1],
 		  &rs->attenuator[2], &rs->attenuator[3],
 		  &rs->attenuator[4], &rs->attenuator[5],
@@ -1376,7 +1376,7 @@ const struct rig_caps netrigctl_caps = {
   .get_mode =     netrigctl_get_mode,
   .set_vfo =      netrigctl_set_vfo,
   .get_vfo =      netrigctl_get_vfo,
-  
+
   .set_powerstat =  netrigctl_set_powerstat,
   .get_powerstat =  netrigctl_get_powerstat,
   .set_level =     netrigctl_set_level,

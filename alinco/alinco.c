@@ -3,19 +3,19 @@
  *  Copyright (c) 2001-2010 by Stephane Fillod
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -125,7 +125,7 @@ int alinco_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *
 			return retval;
 		retval -= 2;
 		echobuf[retval] = 0;
-		if (strcmp(echobuf, "OK") == 0) 
+		if (strcmp(echobuf, "OK") == 0)
 			return RIG_OK;
 		else
 			return -RIG_ERJCTED;
@@ -156,10 +156,10 @@ int alinco_set_vfo(RIG *rig, vfo_t vfo)
 		switch (vfo) {
 		case RIG_VFO_A: vfo_num = '1'; break;
 		case RIG_VFO_B: vfo_num = '2'; break;
-		case RIG_VFO_MEM: 
-			return alinco_transaction (rig, AL CMD_MEMMD "0" EOM, 
+		case RIG_VFO_MEM:
+			return alinco_transaction (rig, AL CMD_MEMMD "0" EOM,
 							strlen(AL CMD_MEMMD "0" EOM), NULL, NULL);
-		default: 
+		default:
 			rig_debug(RIG_DEBUG_ERR,"alinco_set_vfo: unsupported VFO %d\n",
 								vfo);
 			return -RIG_EINVAL;
@@ -178,7 +178,7 @@ int alinco_get_vfo(RIG *rig, vfo_t *vfo)
 		char vfobuf[BUFSZ];
 		int vfo_len, retval;
 
-		retval = alinco_transaction(rig, AL CMD_RMV EOM, 
+		retval = alinco_transaction(rig, AL CMD_RMV EOM,
 						strlen(AL CMD_RMV EOM), vfobuf, &vfo_len);
 		if (retval != RIG_OK)
 			return retval;
@@ -224,13 +224,13 @@ int alinco_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 }
 
 /*
- * where databuf points to a 26 char long buffer 
+ * where databuf points to a 26 char long buffer
  */
 static int current_data_read(RIG *rig, char *databuf)
 {
 		int data_len, retval;
 
-		retval = alinco_transaction (rig, AL CMD_RDATA EOM, 
+		retval = alinco_transaction (rig, AL CMD_RDATA EOM,
 						strlen(AL CMD_RDATA EOM), databuf, &data_len);
 		if (retval != RIG_OK)
 			return retval;
@@ -296,7 +296,7 @@ int alinco_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		 * TODO: please DX77 owners, check this, I'm not sure
 		 * 			which passband is default!
 		 */
-		if (width != RIG_PASSBAND_NORMAL && 
+		if (width != RIG_PASSBAND_NORMAL &&
 						width < rig_passband_normal(rig, mode))
 				wide_filter = 0;
 		else
@@ -359,7 +359,7 @@ int alinco_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 		int cmd_len;
 		char cmdbuf[BUFSZ];
 
-		cmd_len = sprintf(cmdbuf, AL CMD_SPLT "%d" EOM, 
+		cmd_len = sprintf(cmdbuf, AL CMD_SPLT "%d" EOM,
 						split==RIG_SPLIT_ON ? 1 : 0);
 
 		return alinco_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
@@ -374,7 +374,7 @@ int alinco_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 		int splt_len, retval;
 		char spltbuf[BUFSZ];
 
-		retval = alinco_transaction (rig, AL CMD_RSPLT EOM, 
+		retval = alinco_transaction (rig, AL CMD_RSPLT EOM,
 						strlen(AL CMD_RSPLT EOM), spltbuf, &splt_len);
 		if (retval != RIG_OK)
 			return retval;
@@ -682,7 +682,7 @@ int alinco_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		switch (level) {
 		case RIG_LEVEL_RAWSTR:
 				/* read A/D converted value */
-			retval = alinco_transaction (rig, AL CMD_SMETER "1" EOM, 
+			retval = alinco_transaction (rig, AL CMD_SMETER "1" EOM,
 							strlen(AL CMD_SMETER "1" EOM), lvlbuf, &lvl_len);
 			if (retval != RIG_OK)
 				return retval;
@@ -726,7 +726,7 @@ int alinco_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 
 		case RIG_LEVEL_RFPOWER:
-			retval = alinco_transaction (rig, AL CMD_RPOWER EOM, 
+			retval = alinco_transaction (rig, AL CMD_RPOWER EOM,
 							strlen(AL CMD_RPOWER EOM), lvlbuf, &lvl_len);
 			if (retval != RIG_OK)
 				return retval;
@@ -788,7 +788,7 @@ int alinco_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 	unsigned char tonebuf[BUFSZ];
 	int tone_len;
 	int i;
-								 
+
 	caps = rig->caps;
 
 /* TODO: replace 200 by something like RIGTONEMAX */
@@ -800,7 +800,7 @@ int alinco_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 			return -RIG_EINVAL;
 
 	tone_len = sprintf((char *) tonebuf, AL CMD_CTCSS "%02d" EOM, i+1);
-	
+
 	return alinco_transaction (rig, (char *) tonebuf, tone_len, NULL, NULL);
 }
 
@@ -813,7 +813,7 @@ int alinco_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 		char pttbuf[BUFSZ];
 		int ptt_len, retval;
 
-		retval = alinco_transaction (rig, AL CMD_PTT EOM, 
+		retval = alinco_transaction (rig, AL CMD_PTT EOM,
 						strlen(AL CMD_PTT EOM), pttbuf, &ptt_len);
 		if (retval != RIG_OK)
 			return retval;
@@ -898,7 +898,7 @@ int alinco_get_mem(RIG *rig, vfo_t vfo, int *ch)
 		char membuf[BUFSZ];
 		int mem_len, retval;
 
-		retval = alinco_transaction (rig, AL CMD_RMEM EOM, 
+		retval = alinco_transaction (rig, AL CMD_RMEM EOM,
 						strlen(AL CMD_RMEM EOM), membuf, &mem_len);
 		if (retval != RIG_OK)
 			return retval;

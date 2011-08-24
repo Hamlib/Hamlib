@@ -4,23 +4,20 @@
  * The code is rather ugly since this is only a try out.
  *
  *
- *    $Id: rigmatrix.c,v 1.22 2008-05-13 13:35:34 y32kn Exp $  
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation; either version 2 of the License, or
+ *   (at your option) any later version.
  *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- * 
+ *   You should have received a copy of the GNU General Public License along
+ *   with this program; if not, write to the Free Software Foundation, Inc.,
+ *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 #include <stdio.h>
@@ -103,10 +100,10 @@ int print_caps_sum(const struct rig_caps *caps, void *data)
  */
 int print_caps_parameters(const struct rig_caps *caps, void *data)
 {
-	printf("<A NAME=\"parms%d\"><TR><TD>%s</TD><TD>", 
+	printf("<A NAME=\"parms%d\"><TR><TD>%s</TD><TD>",
 					caps->rig_model,
 					caps->model_name);
-	
+
 	switch (caps->ptt_type) {
 	case RIG_PTT_RIG:
 			printf("rig");
@@ -164,7 +161,7 @@ int print_caps_parameters(const struct rig_caps *caps, void *data)
 			printf("Unknown");
 	}
 
-	printf("</TD><TD>%d</TD><TD>%d</TD><TD>%d%c%d</TD><TD>%s</TD>", 
+	printf("</TD><TD>%d</TD><TD>%d</TD><TD>%d%c%d</TD><TD>%s</TD>",
 					caps->serial_rate_min, caps->serial_rate_max,
 					caps->serial_data_bits,
 					caps->serial_parity==RIG_PARITY_NONE?'N':
@@ -192,10 +189,10 @@ int print_caps_parameters(const struct rig_caps *caps, void *data)
  */
 int print_caps_caps(const struct rig_caps *caps, void *data)
 {
-	printf("<A NAME=\"caps%d\"><TR><TD>%s</TD>", 
+	printf("<A NAME=\"caps%d\"><TR><TD>%s</TD>",
 					caps->rig_model,
 					caps->model_name);
-	
+
 	/* targetable_vfo is not a function, but a boolean */
 	print_yn(caps->targetable_vfo);
 
@@ -247,11 +244,11 @@ int print_caps_parm(const struct rig_caps *caps, void *data)
 
 	parm = (*(int*)data)? caps->has_set_parm : caps->has_get_parm;
 
-	printf("<A NAME=\"%sparm%d\"><TR><TD>%s</TD>", 
+	printf("<A NAME=\"%sparm%d\"><TR><TD>%s</TD>",
 					(*(int*)data)? "set":"get",
 					caps->rig_model,
 					caps->model_name);
-	
+
 	/*
 	 * bitmap_parm: only those who have a label
 	 */
@@ -277,11 +274,11 @@ int print_caps_level(const struct rig_caps *caps, void *data)
 
 	level = (*(int*)data)? caps->has_set_level : caps->has_get_level;
 
-	printf("<A NAME=\"%slevel%d\"><TR><TD>%s</TD>", 
+	printf("<A NAME=\"%slevel%d\"><TR><TD>%s</TD>",
 					(*(int*)data)? "set":"get",
 					caps->rig_model,
 					caps->model_name);
-	
+
 	/*
 	 * bitmap_level: only those who have a label
 	 */
@@ -307,11 +304,11 @@ int print_caps_func(const struct rig_caps *caps, void *data)
 
 	func = (*(int*)data)? caps->has_set_func : caps->has_get_func;
 
-	printf("<A NAME=\"%sfunc%d\"><TR><TD>%s</TD>", 
+	printf("<A NAME=\"%sfunc%d\"><TR><TD>%s</TD>",
 					(*(int*)data)? "set":"get",
 					caps->rig_model,
 					caps->model_name);
-	
+
 	/*
 	 * bitmap_func: only those who have a label
 	 */
@@ -332,11 +329,11 @@ int print_caps_func(const struct rig_caps *caps, void *data)
  */
 int print_caps_range(const struct rig_caps *caps, void *data)
 {
-	create_png_range(caps->rx_range_list2, caps->tx_range_list2, 
+	create_png_range(caps->rx_range_list2, caps->tx_range_list2,
 					caps->rig_model);
 
 	printf("<A NAME=\"rng%d\"><TR><TD>%s</TD>"
-					"<TD><IMG SRC=\"range%d.png\"></TD></TR></A>", 
+					"<TD><IMG SRC=\"range%d.png\"></TD></TR></A>",
 					caps->rig_model,
 					caps->model_name,
 					caps->rig_model);
@@ -391,7 +388,7 @@ static void draw_range(const freq_range_t range_list[], gdImagePtr im_rng, int h
 		 */
 		start_pix = range_list[i].start;
 		end_pix = range_list[i].end;
-		if ((range_list[i].start > MHz(30) && range_list[i].start < MHz(300)) 
+		if ((range_list[i].start > MHz(30) && range_list[i].start < MHz(300))
 				|| (range_list[i].start < MHz(30) && range_list[i].end > MHz(30))) {
 			start_pix = (start_pix-MHz(30)) / MHz(300) * RANGE_WIDTH;
 			end_pix = (end_pix-MHz(30)) / MHz(300) * RANGE_WIDTH;
@@ -410,7 +407,7 @@ static void draw_range(const freq_range_t range_list[], gdImagePtr im_rng, int h
 		 */
 		start_pix = range_list[i].start;
 		end_pix = range_list[i].end;
-		if ((range_list[i].start > MHz(300) && range_list[i].start < GHz(3)) 
+		if ((range_list[i].start > MHz(300) && range_list[i].start < GHz(3))
 				|| (range_list[i].start < MHz(300) && range_list[i].end > MHz(300))) {
 			start_pix = (start_pix-MHz(300)) / GHz(3) * RANGE_WIDTH;
 			end_pix = (end_pix-MHz(300)) / GHz(3) * RANGE_WIDTH;
@@ -466,11 +463,11 @@ int create_png_range(const freq_range_t rx_range_list[],
 	gdImageRectangle(im_rng, IM_LGD, UHF_H, IM_LGD+RANGE_WIDTH-1, UHF_H+RANGE_HEIGHT-1, black);
 
 	/* gdImageStringUp */
-	gdImageString(im_rng, gdFontSmall, 1, HF_H+1, 
+	gdImageString(im_rng, gdFontSmall, 1, HF_H+1,
 		(unsigned char *) "HF", black);
-	gdImageString(im_rng, gdFontSmall, 1, VHF_H+1, 
+	gdImageString(im_rng, gdFontSmall, 1, VHF_H+1,
 		(unsigned char *) "VHF", black);
-	gdImageString(im_rng, gdFontSmall, 1, UHF_H+1, 
+	gdImageString(im_rng, gdFontSmall, 1, UHF_H+1,
 		(unsigned char *) "UHF", black);
 
 	/* Make output image interlaced (allows "fade in" in some viewers,
@@ -488,7 +485,7 @@ int create_png_range(const freq_range_t rx_range_list[],
 }
 
 int main (int argc, char *argv[])
-{ 
+{
 	int status;
 	time_t gentime;
 	int set_or_get;

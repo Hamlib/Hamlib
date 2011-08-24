@@ -2,21 +2,20 @@
  *  Hamlib AOR backend - AR7030 description
  *  Copyright (c) 2000-2006 by Stephane Fillod & Fritz Melchert
  *
- *	$Id: ar7030.c,v 1.7 2006-10-07 21:10:11 csete Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -24,7 +23,7 @@
 // Version 2004.12.13 F.Melchert (DC9RP)
 // Version 2004.11.29 F.Melchert (DC9RP)
 //
- 
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -39,7 +38,7 @@
 #include "idx_builtin.h"
 
 
-/* 
+/*
  * Maintainer wanted!
  *
  * TODO:
@@ -129,7 +128,7 @@ static void setLock(RIG *rig, int level)
   }
 }
 
-// Level 2 = 0x82	As level 1, but display update suspended. In revisions before 1.4 
+// Level 2 = 0x82	As level 1, but display update suspended. In revisions before 1.4
 // 			squelch operation is inhibited, which results in no audio output
 // 			after a mode change. In revision 1.4 squelch operation continues
 // 			and mode changing is as expected.
@@ -137,7 +136,7 @@ static void setLock(RIG *rig, int level)
 
 
 
-static void setMemPtr(RIG *rig, int page, int address) 
+static void setMemPtr(RIG *rig, int page, int address)
 {
   rxr_writeByte(rig, 0x50 + page);			//Set Page
   if (address <= 0xFF) {				//*** <= 8 Bit Adresse ***
@@ -154,19 +153,19 @@ static void setMemPtr(RIG *rig, int page, int address)
 * Routines                                                                  *
 ****************************************************************************/
 // Routine 0	Reset	Setup receiver as at switch-on.
-static void Execute_Routine_0(RIG *rig) 
+static void Execute_Routine_0(RIG *rig)
 {
   //setLock(rig, 1);		//Set Lock Level
   rxr_writeByte(rig, 0x20);
   //unlock(rig);			//Set UnLock Level
 }
-// Routine 1	Set frequency	Program local oscillator from frequ area and setup 
+// Routine 1	Set frequency	Program local oscillator from frequ area and setup
 //		RF filters and oscillator range.
-// Routine 2	Set mode	Setup from mode byte in memory and display mode, 
+// Routine 2	Set mode	Setup from mode byte in memory and display mode,
 //		select preferred filter and PBS, BFO values etc.
 // currently not used
 #if 0
-static void Execute_Routine_2_1(RIG *rig, char mp , char ad , int numSteps) 
+static void Execute_Routine_2_1(RIG *rig, char mp , char ad , int numSteps)
 {
   setLock(rig, 1);		//Set Lock Level
   setMemPtr(rig, mp , ad );	//page, address
@@ -177,7 +176,7 @@ static void Execute_Routine_2_1(RIG *rig, char mp , char ad , int numSteps)
 }
 #endif
 // Routine 3	Set passband	Setup all IF parameters from filter, pbsval and bfoval bytes.
-static void Execute_Routine_3_1(RIG *rig, char mp , char ad , int numSteps) 
+static void Execute_Routine_3_1(RIG *rig, char mp , char ad , int numSteps)
 {
   setLock(rig, 1);		//Set Lock Level
   setMemPtr(rig, mp , ad );	//page, address
@@ -187,28 +186,28 @@ static void Execute_Routine_3_1(RIG *rig, char mp , char ad , int numSteps)
   unlock(rig);			//Set UnLock Level
 }
 // Routine 4	Set all	Set all receiver parameters from current memory values
-static void Execute_Routine_4_1(RIG *rig, char mp , char ad , int numSteps) 
+static void Execute_Routine_4_1(RIG *rig, char mp , char ad , int numSteps)
 {
   setLock(rig, 1);		//Set Lock Level
   setMemPtr(rig, mp , ad );	//page, address
   // 0x30 = Set H-register  x  --->  H-register (4-bits)
-  //        The high order 4-bits of each byte sent to the receiver is the operation code, 
-  //        the low order 4-bits is data (shown here as x) 
+  //        The high order 4-bits of each byte sent to the receiver is the operation code,
+  //        the low order 4-bits is data (shown here as x)
   rxr_writeByte(rig, 0x30 | (0x0F & (char)(numSteps>>4)));
-  // 0x60 = Write data  Hx  
-  //        --->  [Page, Address] Address register + 1  
-  //        --->  Address register 0  
-  //        --->  H-register,  0  
+  // 0x60 = Write data  Hx
+  //        --->  [Page, Address] Address register + 1
+  //        --->  Address register 0
+  //        --->  H-register,  0
   //        --->  Mask register
   rxr_writeByte(rig, 0x60 | (0x0F & (char)(numSteps)));
 
-  //Execute routine 
-  //Set all Set all receiver parameters from current memory values  
+  //Execute routine
+  //Set all Set all receiver parameters from current memory values
   rxr_writeByte(rig, 0x24);
   unlock(rig);			//Set UnLock Level
 }
 
-static void Execute_Routine_4_3(RIG *rig, char mp , char ad , int numSteps) 
+static void Execute_Routine_4_3(RIG *rig, char mp , char ad , int numSteps)
 {
   setLock(rig, 1);		//Set Lock Level
   setMemPtr(rig, mp , ad );	//page, address
@@ -219,8 +218,8 @@ static void Execute_Routine_4_3(RIG *rig, char mp , char ad , int numSteps)
   rxr_writeByte(rig, 0x30 | (0x0F & (char)(numSteps>>4)));
   rxr_writeByte(rig, 0x60 | (0x0F & (char)(numSteps)));
 
-  //Execute routine 
-  //Set all Set all receiver parameters from current memory values  
+  //Execute routine
+  //Set all Set all receiver parameters from current memory values
   rxr_writeByte(rig, 0x24);
   unlock(rig);			//Set UnLock Level
 }
@@ -228,7 +227,7 @@ static void Execute_Routine_4_3(RIG *rig, char mp , char ad , int numSteps)
 // Routine 5	Set audio	Setup audio controller from memory register values.
 // currently not used
 #if 0
-static void Execute_Routine_5_1(RIG *rig, char mp , char ad , int numSteps) 
+static void Execute_Routine_5_1(RIG *rig, char mp , char ad , int numSteps)
 {
   setLock(rig, 1);		//Set Lock Level
   setMemPtr(rig, mp , ad );	//page, address
@@ -239,9 +238,9 @@ static void Execute_Routine_5_1(RIG *rig, char mp , char ad , int numSteps)
 }
 #endif
 
-// Routine 6	Set RF-IF	Setup RF Gain, IF Gain and AGC speed. Also sets Notch Filter and 
+// Routine 6	Set RF-IF	Setup RF Gain, IF Gain and AGC speed. Also sets Notch Filter and
 //				Noise Blanker if these options are fitted.
-static void Execute_Routine_6_1(RIG *rig, char mp , char ad , int numSteps) 
+static void Execute_Routine_6_1(RIG *rig, char mp , char ad , int numSteps)
 {
   setLock(rig, 1);		//Set Lock Level
   setMemPtr(rig, mp , ad );	//page, address
@@ -250,8 +249,8 @@ static void Execute_Routine_6_1(RIG *rig, char mp , char ad , int numSteps)
   rxr_writeByte(rig, 0x26);
   unlock(rig);			//Set UnLock Level
 }
-// Routine 14	Read signal strength	
-// Transmits byte representing received signal strength (read from AGC voltage). 
+// Routine 14	Read signal strength
+// Transmits byte representing received signal strength (read from AGC voltage).
 // Output is 8-bit binary in range 0 to 255.
 static int Execute_Routine_14(RIG *rig)
 {
@@ -270,7 +269,7 @@ static int Execute_Routine_14(RIG *rig)
 // 2 = Mode down button	7 = * button
 // 3 = Fast button	8 = Menu button
 // 4 = Filter button	9 = Power button
-static void Execute_Operate_button(RIG *rig, char button) 
+static void Execute_Operate_button(RIG *rig, char button)
 {
   // setLock(rig, 1);		//Set Lock Level
   rxr_writeByte(rig, 0xa0 | (0x0F & button));
@@ -279,7 +278,7 @@ static void Execute_Operate_button(RIG *rig, char button)
 
 
 
- 
+
 static int ar7030_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
   // frequ    Mem_Page=0   Address=1A
@@ -301,28 +300,28 @@ static int ar7030_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
   frequ_i = frequ_i + (int)(rxr_readByte(rig));
   *freq =  ((float)(frequ_i) * 2.65508890157896);
   return RIG_OK;
-} 
- 
+}
+
 
 /*!
-Current mode :- 
-		RIG_MODE_NONE =  	0,	< None 
-1 = AM		RIG_MODE_AM =    	(1<<0),	< Amplitude Modulation 
-5 = CW		RIG_MODE_CW =    	(1<<1),	< CW 
-7 = USB		RIG_MODE_USB =		(1<<2),	< Upper Side Band 
-6 = LSB		RIG_MODE_LSB =		(1<<3),	< Lower Side Band 
-4 = Data	RIG_MODE_RTTY =		(1<<4),	< Remote Teletype 
-3 = NFM 	RIG_MODE_FM =    	(1<<5),	< "narrow" band FM 
-		RIG_MODE_WFM =   	(1<<6),	< broadcast wide FM 
-		RIG_MODE_CWR =   	(1<<7),	< CW reverse sideband 
-		RIG_MODE_RTTYR =	(1<<8),	< RTTY reverse sideband 
-2 = Sync	RIG_MODE_AMS =    	(1<<9),	< Amplitude Modulation Synchronous 
-		RIG_MODE_PKTLSB =       (1<<10),< Packet/Digital LSB mode (dedicated port) 
-		RIG_MODE_PKTUSB =       (1<<11),< Packet/Digital USB mode (dedicated port) 
-		RIG_MODE_PKTFM =        (1<<12),< Packet/Digital FM mode (dedicated port) 
-		RIG_MODE_ECSSUSB =      (1<<13),< Exalted Carrier Single Sideband USB 
-		RIG_MODE_ECSSLSB =      (1<<14),< Exalted Carrier Single Sideband LSB 
-		RIG_MODE_FAX =          (1<<15) < Facsimile Mode 
+Current mode :-
+		RIG_MODE_NONE =  	0,	< None
+1 = AM		RIG_MODE_AM =    	(1<<0),	< Amplitude Modulation
+5 = CW		RIG_MODE_CW =    	(1<<1),	< CW
+7 = USB		RIG_MODE_USB =		(1<<2),	< Upper Side Band
+6 = LSB		RIG_MODE_LSB =		(1<<3),	< Lower Side Band
+4 = Data	RIG_MODE_RTTY =		(1<<4),	< Remote Teletype
+3 = NFM 	RIG_MODE_FM =    	(1<<5),	< "narrow" band FM
+		RIG_MODE_WFM =   	(1<<6),	< broadcast wide FM
+		RIG_MODE_CWR =   	(1<<7),	< CW reverse sideband
+		RIG_MODE_RTTYR =	(1<<8),	< RTTY reverse sideband
+2 = Sync	RIG_MODE_AMS =    	(1<<9),	< Amplitude Modulation Synchronous
+		RIG_MODE_PKTLSB =       (1<<10),< Packet/Digital LSB mode (dedicated port)
+		RIG_MODE_PKTUSB =       (1<<11),< Packet/Digital USB mode (dedicated port)
+		RIG_MODE_PKTFM =        (1<<12),< Packet/Digital FM mode (dedicated port)
+		RIG_MODE_ECSSUSB =      (1<<13),< Exalted Carrier Single Sideband USB
+		RIG_MODE_ECSSLSB =      (1<<14),< Exalted Carrier Single Sideband LSB
+		RIG_MODE_FAX =          (1<<15) < Facsimile Mode
 */
 static int ar7030_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
@@ -384,7 +383,7 @@ static int ar7030_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   // filter    Mem_Page=0   Address=34
   // Current filter number (1 to 6).
   Execute_Routine_4_1(rig, 0, 0x34, filter_num);
-  
+
   return RIG_OK;
 }
 
@@ -418,7 +417,7 @@ static int ar7030_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
       break;
     default :
       return -RIG_EINVAL;
-  }  
+  }
   // fltbw    Mem_Page=0   Address=38
   // Filter bandwidth dezimal in Hz.
   // Filter bandwidth (2 BCD digits : x.x kHz).
@@ -430,62 +429,62 @@ static int ar7030_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
   }
 
   return RIG_OK;
-  
+
 }
 
 
 /*!
-	RIG_LEVEL_NONE =	0,	< None 
-	RIG_LEVEL_PREAMP =	(1<<0),	< Preamp, arg int (dB) 
-	RIG_LEVEL_ATT =		(1<<1),	< Attenuator, arg int (dB) 
-	RIG_LEVEL_VOX =		(1<<2),	< VOX delay, arg int (tenth of seconds) 
-af_vol	RIG_LEVEL_AF =		(1<<3),	< Volume, arg float [0.0..1.0] 
+	RIG_LEVEL_NONE =	0,	< None
+	RIG_LEVEL_PREAMP =	(1<<0),	< Preamp, arg int (dB)
+	RIG_LEVEL_ATT =		(1<<1),	< Attenuator, arg int (dB)
+	RIG_LEVEL_VOX =		(1<<2),	< VOX delay, arg int (tenth of seconds)
+af_vol	RIG_LEVEL_AF =		(1<<3),	< Volume, arg float [0.0..1.0]
 rfgain	RIG_LEVEL_RF =		(1<<4),	< RF gain (not TX power), arg float [-0.4..0.0..0.1 > -40..0..10 dB]
-sqlval	RIG_LEVEL_SQL =		(1<<5),	< Squelch, arg float [0.0 .. 1.0] 
-	RIG_LEVEL_IF =		(1<<6),	< IF, arg int (Hz) 
-	RIG_LEVEL_APF =		(1<<7),	< APF, arg float [0.0 .. 1.0] 
-	RIG_LEVEL_NR =		(1<<8),	< Noise Reduction, arg float [0.0 .. 1.0] 
-	RIG_LEVEL_PBT_IN =	(1<<9),	< Twin PBT (inside), arg float [0.0 .. 1.0] 
-	RIG_LEVEL_PBT_OUT =	(1<<10),< Twin PBT (outside), arg float [0.0 .. 1.0] 
-bfoval	RIG_LEVEL_CWPITCH =	(1<<11),< CW pitch, arg int (Hz) 
-	RIG_LEVEL_RFPOWER =	(1<<12),< RF Power, arg float [0.0 .. 1.0] 
-	RIG_LEVEL_MICGAIN =	(1<<13),< MIC Gain, arg float [0.0 .. 1.0] 
-	RIG_LEVEL_KEYSPD =	(1<<14),< Key Speed, arg int (WPM) 
-	RIG_LEVEL_NOTCHF =	(1<<15),< Notch Freq., arg int (Hz) 
-	RIG_LEVEL_COMP =	(1<<16),< Compressor, arg float [0.0 .. 1.0] 
+sqlval	RIG_LEVEL_SQL =		(1<<5),	< Squelch, arg float [0.0 .. 1.0]
+	RIG_LEVEL_IF =		(1<<6),	< IF, arg int (Hz)
+	RIG_LEVEL_APF =		(1<<7),	< APF, arg float [0.0 .. 1.0]
+	RIG_LEVEL_NR =		(1<<8),	< Noise Reduction, arg float [0.0 .. 1.0]
+	RIG_LEVEL_PBT_IN =	(1<<9),	< Twin PBT (inside), arg float [0.0 .. 1.0]
+	RIG_LEVEL_PBT_OUT =	(1<<10),< Twin PBT (outside), arg float [0.0 .. 1.0]
+bfoval	RIG_LEVEL_CWPITCH =	(1<<11),< CW pitch, arg int (Hz)
+	RIG_LEVEL_RFPOWER =	(1<<12),< RF Power, arg float [0.0 .. 1.0]
+	RIG_LEVEL_MICGAIN =	(1<<13),< MIC Gain, arg float [0.0 .. 1.0]
+	RIG_LEVEL_KEYSPD =	(1<<14),< Key Speed, arg int (WPM)
+	RIG_LEVEL_NOTCHF =	(1<<15),< Notch Freq., arg int (Hz)
+	RIG_LEVEL_COMP =	(1<<16),< Compressor, arg float [0.0 .. 1.0]
 agcspd	RIG_LEVEL_AGC =		(1<<17),< AGC, arg int (see enum agc_level_e)
-					Current AGC speed : 0 = Fast 2 = Slow 1 = Medium 3 = Off. 
-	RIG_LEVEL_BKINDL =	(1<<18),< BKin Delay, arg int (tenth of dots) 
-	RIG_LEVEL_BALANCE =	(1<<19),< Balance (Dual Watch), arg float [0.0 .. 1.0] 
-	RIG_LEVEL_METER =	(1<<20),< Display meter, arg int (see enum meter_level_e) 
+					Current AGC speed : 0 = Fast 2 = Slow 1 = Medium 3 = Off.
+	RIG_LEVEL_BKINDL =	(1<<18),< BKin Delay, arg int (tenth of dots)
+	RIG_LEVEL_BALANCE =	(1<<19),< Balance (Dual Watch), arg float [0.0 .. 1.0]
+	RIG_LEVEL_METER =	(1<<20),< Display meter, arg int (see enum meter_level_e)
 
-	RIG_LEVEL_VOXGAIN =	(1<<21),< VOX gain level, arg float [0.0 .. 1.0] 
-	RIG_LEVEL_VOXDELAY =		  RIG_LEVEL_VOX,	< VOX delay, arg int (tenth of seconds) 
-	RIG_LEVEL_ANTIVOX =	(1<<22),< anti-VOX level, arg float [0.0 .. 1.0] 
-	RIG_LEVEL_LINEOUT =	(1<<23),< Lineout Volume, arg float [0.0 .. 1.0] 
+	RIG_LEVEL_VOXGAIN =	(1<<21),< VOX gain level, arg float [0.0 .. 1.0]
+	RIG_LEVEL_VOXDELAY =		  RIG_LEVEL_VOX,	< VOX delay, arg int (tenth of seconds)
+	RIG_LEVEL_ANTIVOX =	(1<<22),< anti-VOX level, arg float [0.0 .. 1.0]
+	RIG_LEVEL_LINEOUT =	(1<<23),< Lineout Volume, arg float [0.0 .. 1.0]
 
-		< These ones are not settable 
+		< These ones are not settable
 Rou.14	RIG_LEVEL_RAWSTR =	(1<<26),< Raw (A/D) value for signal strength, specific to each rig, arg int
 	RIG_LEVEL_SQLSTAT =	(1<<27),< SQL status, arg int (open=1/closed=0). Deprecated, use get_dcd
-					  instead 
-	RIG_LEVEL_SWR =		(1<<28),< SWR, arg float 
-	RIG_LEVEL_ALC =		(1<<29),< ALC, arg float 
+					  instead
+	RIG_LEVEL_SWR =		(1<<28),< SWR, arg float
+	RIG_LEVEL_ALC =		(1<<29),< ALC, arg float
 smval	RIG_LEVEL_STRENGTH =	(1<<30) < Effective (calibrated) signal strength relative to S9, arg int(dB)
-	RIG_LEVEL_BWC =		(1<<31) < Bandwidth Control, arg int (Hz) 
+	RIG_LEVEL_BWC =		(1<<31) < Bandwidth Control, arg int (Hz)
 */
 static int ar7030_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
   switch(level)
   {
     case RIG_LEVEL_AF :
-      // af_vol    Mem_Page=0   Address=1E 
+      // af_vol    Mem_Page=0   Address=1E
       // Main channel volume (6-bits, values 15 to 63)
       val.f = (val.f * 50) + 15;
       if (val.f < 15){val.f = 15;}
       if (val.f > 63){val.f = 63;}
       Execute_Routine_4_1(rig, 0 ,0x1e , val.f);
       return RIG_OK;
-    case RIG_LEVEL_RF : 
+    case RIG_LEVEL_RF :
       // rfgain    Mem_Page=0   Address=30
       // Current RF gain setting (0 to 5) (0=max gain)
       val.f = ((val.f * 10) - 1) * -1;
@@ -493,14 +492,14 @@ static int ar7030_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
       if (val.f > 5){val.f = 5;}
       Execute_Routine_6_1(rig, 0 ,0x30 , val.f) ;
       return RIG_OK;
-    case RIG_LEVEL_SQL : 
+    case RIG_LEVEL_SQL :
       // sqlval    Mem_Page=0   Address=33
       // Squelch value (current setting)(values 0 to 150)
       if (val.f < 0){val.f = 0;}
       if (val.f > 1){val.f = 1;}
       Execute_Routine_6_1(rig, 0 ,0x33 , val.f * 150);
       return RIG_OK;
-    case RIG_LEVEL_CWPITCH : 
+    case RIG_LEVEL_CWPITCH :
       // bfoval    Mem_Page=0   Address=36
       // BFO offset in Hz (x33.19Hz)(values -4248.320 to 4215.130kHz).
       val.i = val.i * 100 / 3319;
@@ -508,7 +507,7 @@ static int ar7030_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
       if (val.i > 127){val.i = 127;}
       Execute_Routine_3_1(rig, 0 ,0x36 , val.i);
       return RIG_OK;
-    case RIG_LEVEL_AGC : 
+    case RIG_LEVEL_AGC :
       //ar7030 agcspd 3 > RIG_AGC_OFF
       //                > RIG_AGC_SUPERFAST
       //ar7030 agcspd 0 > RIG_AGC_FAST
@@ -517,18 +516,18 @@ static int ar7030_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
       //ar7030 agcspd 1 > RIG_AGC_MEDIUM
       // agcspd    Mem_Page=0   Address=32
       // Current AGC speed : 0 = Fast 2 = Slow 1 = Medium 3 = Off
-      switch (val.i) 
+      switch (val.i)
       {
-        case RIG_AGC_OFF: 
+        case RIG_AGC_OFF:
           Execute_Routine_6_1(rig, 0 ,0x32 , 3);
           break;
-        case RIG_AGC_SLOW: 
+        case RIG_AGC_SLOW:
           Execute_Routine_6_1(rig, 0 ,0x32 , 2);
           break;
-        case RIG_AGC_MEDIUM: 
+        case RIG_AGC_MEDIUM:
           Execute_Routine_6_1(rig, 0 ,0x32 , 1);
           break;
-        case RIG_AGC_FAST: 
+        case RIG_AGC_FAST:
           Execute_Routine_6_1(rig, 0 ,0x32 , 0);
           break;
         default:
@@ -550,27 +549,27 @@ static int ar7030_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
       // af_vol    Mem_Page=0   Address=1E
       // Main channel volume (6-bits, values 15 to 63)
       setMemPtr(rig ,0 ,0x1e);
-      val->f = (float)(rxr_readByte(rig) - 15) / 50; 
+      val->f = (float)(rxr_readByte(rig) - 15) / 50;
       return RIG_OK;
-    case RIG_LEVEL_RF : 
+    case RIG_LEVEL_RF :
       // rfgain    Mem_Page=0   Address=30
       // Current RF gain setting (0 to 5) (0=max gain)
       setMemPtr(rig ,0 ,0x30);
       val->f = (float)((rxr_readByte(rig) * -1) + 1) / 10;
       return RIG_OK;
-    case RIG_LEVEL_SQL : 
+    case RIG_LEVEL_SQL :
       // sqlval    Mem_Page=0   Address=33
       // Squelch value (current setting)(values 0 to 150)
       setMemPtr(rig ,0 ,0x33);
       val->f = (float)rxr_readByte(rig) / 150;
       return RIG_OK;
-    case RIG_LEVEL_CWPITCH : 
+    case RIG_LEVEL_CWPITCH :
       // bfoval    Mem_Page=0   Address=36
       // BFO offset in Hz (x33.19Hz)(values -4248.320 to 4215.130kHz).
       setMemPtr(rig ,0 ,0x36);
       val->i = ((char)rxr_readByte(rig) * 3319) / 100;
       return RIG_OK;
-    case RIG_LEVEL_AGC : 
+    case RIG_LEVEL_AGC :
       //ar7030 agcspd 3 > RIG_AGC_OFF
       //                > RIG_AGC_SUPERFAST,
       //ar7030 agcspd 0 > RIG_AGC_FAST,
@@ -580,35 +579,35 @@ static int ar7030_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
       // agcspd    Mem_Page=0   Address=32
       // Current AGC speed : 0 = Fast 2 = Slow 1 = Medium 3 = Off
       setMemPtr(rig ,0 ,0x32);
-      switch (rxr_readByte(rig)) 
+      switch (rxr_readByte(rig))
       {
-        case 0: 
+        case 0:
           val->i = RIG_AGC_FAST;
           break;
         case 1:
           val->i = RIG_AGC_MEDIUM;
           break;
-        case 2: 
+        case 2:
           val->i = RIG_AGC_SLOW;
           break;
-        case 3: 
-          val->i = RIG_AGC_OFF; 
+        case 3:
+          val->i = RIG_AGC_OFF;
           break;
         default:
           return -RIG_EINVAL;
       }
       return RIG_OK;
-//    case RIG_LEVEL_LINEOUT : 
-// geht nicht in hamlib 
+//    case RIG_LEVEL_LINEOUT :
+// geht nicht in hamlib
 //      // af_axl    Mem_Page=0   Address=23   Bit=0 - 5
 //      setMemPtr(rig ,0 ,0x23);
-//      val->f = ((float)(rxr_readByte(rig) - 27) * 2) / 100; 
+//      val->f = ((float)(rxr_readByte(rig) - 27) * 2) / 100;
 //      // af_axr    Mem_Page=0   Address=24   Bit=0 - 5
 //      return RIG_OK;
 
     case RIG_LEVEL_RAWSTR :
       // Routine 14  Read signal strength
-      // Read signal strength Transmits byte representing received signal strength 
+      // Read signal strength Transmits byte representing received signal strength
       // (read from AGC voltage). Output is 8-bit binary in range 0 to 255
       val->i = Execute_Routine_14(rig);
       return RIG_OK;
@@ -642,10 +641,10 @@ static int ar7030_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 static int ar7030_set_powerstat(RIG *rig, powerstat_t status)
 {
-  // Radio power state. 
-  // 0 > RIG_POWER_OFF      Power off 
-  // 1 > RIG_POWER_ON       Power on 
-  // 2 > RIG_POWER_STANDBY  Standby 
+  // Radio power state.
+  // 0 > RIG_POWER_OFF      Power off
+  // 1 > RIG_POWER_ON       Power on
+  // 2 > RIG_POWER_STANDBY  Standby
   switch (status) {
 
   case RIG_POWER_OFF:
@@ -676,14 +675,14 @@ static int ar7030_get_powerstat(RIG *rig, powerstat_t *status)
 
 static int ar7030_reset(RIG *rig, reset_t reset)
 {
-  // Reset operation. 
-  // 0 > RIG_RESET_NONE    No reset 
-  // 1 > RIG_RESET_SOFT    Software reset 
-  // 2 > RIG_RESET_VFO     VFO reset 
-  // 3 > RIG_RESET_MCALL   Memory clear 
-  // 4 > RIG_RESET_MASTER  Master reset 
+  // Reset operation.
+  // 0 > RIG_RESET_NONE    No reset
+  // 1 > RIG_RESET_SOFT    Software reset
+  // 2 > RIG_RESET_VFO     VFO reset
+  // 3 > RIG_RESET_MCALL   Memory clear
+  // 4 > RIG_RESET_MASTER  Master reset
   switch(reset) {
-    
+
     // Routine 0  Reset  Setup receiver as at switch-on.
   case RIG_RESET_SOFT :
     Execute_Routine_0(rig) ;
@@ -698,11 +697,11 @@ static int ar7030_reset(RIG *rig, reset_t reset)
 
 
 
- 
- 
- 
- 
- 
+
+
+
+
+
 
 
 
@@ -792,11 +791,11 @@ const struct rig_caps ar7030_caps = {
         /* mode/filter list, .remember =  order matters! */
 .filters =  {
         /* mode/filter list, .remember =  order matters! */
-		{RIG_MODE_SSB|RIG_MODE_CW, kHz(3)}, 
+		{RIG_MODE_SSB|RIG_MODE_CW, kHz(3)},
 		{RIG_MODE_SSB|RIG_MODE_CW, kHz(0.8)}, 	/* narrow */
 		{RIG_MODE_SSB, kHz(4.8)},	/* wide */
 		{RIG_MODE_CW,  kHz(9.5)},	/* wide */
-		{RIG_MODE_FM|RIG_MODE_AM, kHz(15)}, 
+		{RIG_MODE_FM|RIG_MODE_AM, kHz(15)},
 		{RIG_MODE_FM|RIG_MODE_AM, kHz(6)}, 	/* narrow */
 		{RIG_MODE_FM|RIG_MODE_AM, kHz(30)}, /* wide */
 		RIG_FLT_END,
@@ -809,17 +808,17 @@ const struct rig_caps ar7030_caps = {
 //  .rig_open =     ar7030_open,
 //  .rig_close =    ar7030_close,
 
-  .set_freq =     ar7030_set_freq,	
-  .get_freq =     ar7030_get_freq,	
-  .set_mode =     ar7030_set_mode,    
-  .get_mode =     ar7030_get_mode,    
+  .set_freq =     ar7030_set_freq,
+  .get_freq =     ar7030_get_freq,
+  .set_mode =     ar7030_set_mode,
+  .get_mode =     ar7030_get_mode,
 //  .set_vfo =      ar7030_set_vfo,
 //  .get_vfo =      ar7030_get_vfo,
-  
+
   .set_powerstat =  ar7030_set_powerstat,
   .get_powerstat =  ar7030_get_powerstat,
-  .set_level =    ar7030_set_level,   
-  .get_level =    ar7030_get_level,   
+  .set_level =    ar7030_set_level,
+  .get_level =    ar7030_get_level,
 //  .set_func =      ar7030_set_func,
 //  .get_func =      ar7030_get_func,
 //  .set_parm =      ar7030_set_parm,

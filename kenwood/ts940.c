@@ -2,21 +2,20 @@
  *  Hamlib Kenwood backend - TS940 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ts940.c,v 1.8 2009-01-28 23:30:59 azummo Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -107,12 +106,12 @@ const struct rig_caps ts940_caps = {
 			RIG_CHAN_END,
 		},
 
-.rx_range_list1 =  { 
+.rx_range_list1 =  {
 	{kHz(500),MHz(30),TS940_ALL_MODES,-1,-1,TS940_VFO},
 	RIG_FRNG_END,
   }, /* rx range */
 
-.tx_range_list1 =  { 
+.tx_range_list1 =  {
 	FRQ_RNG_HF(1,TS940_OTHER_TX_MODES, W(5),W(250),TS940_VFO,TS940_ANTS),
 	FRQ_RNG_HF(1,TS940_AM_TX_MODES, W(4),W(140),TS940_VFO,TS940_ANTS),   /* AM class */
 	RIG_FRNG_END,

@@ -3,19 +3,19 @@
  *  Copyright (c) 2000-2010 by Stephane Fillod
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -37,9 +37,9 @@
 
 #define IC736_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM)
 
-/* 
+/*
  * 100W in all modes but AM (40W)
- */ 
+ */
 #define IC736_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM)
 #define IC736_AM_TX_MODES (RIG_MODE_AM)
 
@@ -54,7 +54,7 @@
 
 /*
  */
-static const struct icom_priv_caps ic736_priv_caps = { 
+static const struct icom_priv_caps ic736_priv_caps = {
 		0x40,	/* default address */
 		0,		/* 731 mode */
 		ic737_ts_sc_list
@@ -62,9 +62,9 @@ static const struct icom_priv_caps ic736_priv_caps = {
 
 const struct rig_caps ic736_caps = {
 .rig_model =  RIG_MODEL_IC736,
-.model_name = "IC-736", 
-.mfg_name =  "Icom", 
-.version =  BACKEND_VER, 
+.model_name = "IC-736",
+.mfg_name =  "Icom",
+.version =  BACKEND_VER,
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -76,7 +76,7 @@ const struct rig_caps ic736_caps = {
 .serial_data_bits =  8,
 .serial_stop_bits =  1,
 .serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_NONE, 
+.serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
 .timeout =  200,
@@ -126,7 +126,7 @@ const struct rig_caps ic736_caps = {
 	{kHz(500),MHz(30),IC736_ALL_RX_MODES,-1,-1,IC736_VFO_ALL,IC736_ANTS},
 	{MHz(50),MHz(54),IC736_ALL_RX_MODES,-1,-1,IC736_VFO_ALL,IC736_ANTS},
 	RIG_FRNG_END, },
-.tx_range_list2 =  { 
+.tx_range_list2 =  {
 	FRQ_RNG_HF(2,IC736_OTHER_TX_MODES, W(5),W(100),IC736_VFO_ALL,IC736_ANTS),
 	FRQ_RNG_6m(2,IC736_OTHER_TX_MODES, W(5),W(100),IC736_VFO_ALL,IC736_ANTS),
 	FRQ_RNG_HF(2,IC736_AM_TX_MODES, W(4),W(40),IC736_VFO_ALL,IC736_ANTS),	/* AM class */

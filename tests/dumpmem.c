@@ -3,23 +3,20 @@
  * This programs dumps the mmeory contents of a rig.
  *
  *
- *    $Id: dumpmem.c,v 1.10 2008-04-27 09:56:06 fillods Exp $  
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation; either version 2 of the License, or
+ *   (at your option) any later version.
  *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- * 
+ *   You should have received a copy of the GNU General Public License along
+ *   with this program; if not, write to the Free Software Foundation, Inc.,
+ *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 
@@ -36,7 +33,7 @@ static char *decode_modes(rmode_t modes);
 static int dump_chan(RIG *rig, int chan_num);
 
 int main (int argc, char *argv[])
-{ 
+{
 	RIG *my_rig;
 	int status,i,j;
 
@@ -65,7 +62,7 @@ int main (int argc, char *argv[])
 	  printf("rig_set_vfo: error = %s \n", rigerror(status));
 	}
 
-/* 
+/*
  * chan_t is used to describe what memory your rig is equipped with
  * cf. chan_list field in caps
  * Example for the Ic706MkIIG (99 memory channels, 2 scan edges, 2 call chans):
@@ -188,7 +185,7 @@ int dump_chan(RIG *rig, int chan_num)
 		printf("\n");
 	} else
 			printf("none\n");
-	
+
   if (rig_has_set_level(rig, RIG_LEVEL_PREAMP))
 	printf("PREAMP: %ddB\n",chan.levels[rig_setting2idx(RIG_LEVEL_PREAMP)].i);
   if (rig_has_set_level(rig, RIG_LEVEL_ATT))

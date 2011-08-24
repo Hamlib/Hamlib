@@ -3,21 +3,20 @@
  *  Hamlib GNUradio backend - main file
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: gnuradio.cc,v 1.9 2004-05-17 21:09:43 fillods Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -260,7 +259,7 @@ int gr_open(RIG *rig)
   rig_open(priv->tuner);
 
   /* TODO:
-   * 	copy priv->tuner->rx_range/tx_range to rig->state, 
+   * 	copy priv->tuner->rx_range/tx_range to rig->state,
    * 	and override available modes with gnuradio's
    */
 
@@ -273,7 +272,7 @@ int gr_open(RIG *rig)
 
 
   /* ** Source ** */
-  
+
   // --> short
 
 #if 0
@@ -500,7 +499,7 @@ int gr_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
   char fstr[20];
 
   sprintf_freq(fstr, freq);
-  rig_debug(RIG_DEBUG_TRACE,"%s called: %s %s\n", 
+  rig_debug(RIG_DEBUG_TRACE,"%s called: %s %s\n",
  			__FUNCTION__, rig_strvfo(vfo), fstr);
 
   ret = rig_get_freq(priv->tuner, RIG_VFO_CURR, &tuner_freq);
@@ -510,7 +509,7 @@ int gr_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
   /* check if we're out of current IF window
    * TODO: with several VFO's, center the IF inbetween if out of window
    */
-  if (freq < tuner_freq || 
+  if (freq < tuner_freq ||
 		  freq /* + mode_width */ > tuner_freq+GR_MAX_FREQUENCY(priv)) {
 	  /*
 	   * do not set tuner to freq, but center it
@@ -580,7 +579,7 @@ int gr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   if (width == RIG_PASSBAND_NORMAL)
 	  width = rig_passband_normal(rig, mode);
   sprintf_freq(buf, width);
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s %s %s\n", 
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s %s %s\n",
   		__FUNCTION__, rig_strvfo(vfo), rig_strrmode(mode), buf);
 
   if (mode == chan->mode && width == chan->width)
@@ -737,7 +736,7 @@ int gnuradio_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 	  sprintf(lstr, "%f", val.f);
   else
 	  sprintf(lstr, "%d", val.i);
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s %s\n",__FUNCTION__, 
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s %s\n",__FUNCTION__,
 				  rig_strlevel(level), lstr);
   /* TODO: check val is in range */
 
@@ -771,7 +770,7 @@ int gnuradio_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
   if (idx < RIG_SETTING_MAX)
   	*val = chan->levels[idx];
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n",__FUNCTION__, 
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n",__FUNCTION__,
 				  rig_strlevel(level));
 
   return RIG_OK;
@@ -843,7 +842,7 @@ int gnuradio_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
   shortfreq_t ts;
   int ret = RIG_OK;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n",__FUNCTION__, 
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n",__FUNCTION__,
 				  rig_strvfop(op));
 
   switch (op) {

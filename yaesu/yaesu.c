@@ -7,20 +7,19 @@
  * via serial interface to a Yaesu rig
  *
  *
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation; either
- *  version 2 of the License, or (at your option) any later version.
+ *   This library is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
- *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+ *   You should have received a copy of the GNU Lesser General Public
+ *   License along with this library; if not, write to the Free Software
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -141,7 +140,7 @@ DECLARE_PROBERIG_BACKEND(yaesu)
 	for (rates_idx = 0; rates[rates_idx]; rates_idx++) {
 		port->parm.serial.rate = rates[rates_idx];
 		port->timeout = 2*1000/rates[rates_idx] + 50;
-	
+
 		retval = serial_open(port);
 		if (retval != RIG_OK)
 			return RIG_MODEL_NONE;
@@ -159,7 +158,7 @@ DECLARE_PROBERIG_BACKEND(yaesu)
 	if (retval != RIG_OK || id_len < 0)
 		return RIG_MODEL_NONE;
 
-	/* 
+	/*
 	 * reply should be [Flag1,Flag2,Flag3,ID1,ID2]
 	 */
 	if (id_len != 5 || id_len != 6) {
@@ -183,7 +182,7 @@ DECLARE_PROBERIG_BACKEND(yaesu)
 	}
 
 	/*
-	 * not found in known table.... 
+	 * not found in known table....
 	 * update yaesu_id_list[]!
 	 */
 	rig_debug(RIG_DEBUG_WARN,"probe_yaesu: found unknown device "

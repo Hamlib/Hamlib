@@ -5,22 +5,20 @@
  * via serial interface to an FT-1000MP using the "CAT" interface
  *
  *
- *    $Id: ft1000mp.h,v 1.2 2008-03-27 02:35:51 n0nb Exp $  
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
- *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
  */
 
 
@@ -49,7 +47,7 @@
  * 8N2 and 1 start bit = 11 bits at 4800 bps => effective byte rate = 1 byte in 2.2917 msec
  * => 28 bytes in 64 msec
  *
- * delay for 1 byte = 2.2917 + (pace_interval * 5) 
+ * delay for 1 byte = 2.2917 + (pace_interval * 5)
  *
  * pace_interval          time to read 345 bytes
  * ------------           ----------------------
@@ -171,22 +169,22 @@ typedef enum ft1000mp_native_cmd_e ft1000mp_native_cmd_t;
 
 
 /*
- * Some useful offsets in the status update map (offset) 
+ * Some useful offsets in the status update map (offset)
  *
  */
 
-#define FT1000MP_SUMO_DISPLAYED_STATUS           0x00    
-#define FT1000MP_SUMO_DISPLAYED_FREQ             0x01    
+#define FT1000MP_SUMO_DISPLAYED_STATUS           0x00
+#define FT1000MP_SUMO_DISPLAYED_FREQ             0x01
 #define FT1000MP_SUMO_VFO_A_FREQ                 0x01
 #define FT1000MP_SUMO_VFO_B_FREQ                 0x11
 #define FT1000MP_SUMO_VFO_A_CLAR                 0x05
 #define FT1000MP_SUMO_VFO_B_CLAR                 0x15
 #define FT1000MP_SUMO_VFO_A_MODE                 0x07
 #define FT1000MP_SUMO_VFO_B_MODE                 0x17
-    
 
 
-/* 
+
+/*
  * API local implementation
  *
  */

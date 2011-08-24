@@ -12,22 +12,19 @@
  * copied back and adopted for the FT-817.
  *
  *
- *    $Id: ft817.c,v 1.18 2008-11-03 20:48:09 csete Exp $  
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
+ *   This library is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation; either
- *  version 2 of the License, or (at your option) any later version.
- *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
- *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+ *   You should have received a copy of the GNU Lesser General Public
+ *   License along with this library; if not, write to the Free Software
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -167,11 +164,11 @@ const struct rig_caps ft817_caps = {
 	.serial_data_bits =    8,
 	.serial_stop_bits =    2,
 	.serial_parity =       RIG_PARITY_NONE,
-	.serial_handshake =    RIG_HANDSHAKE_NONE, 
+	.serial_handshake =    RIG_HANDSHAKE_NONE,
 	.write_delay =         FT817_WRITE_DELAY,
 	.post_write_delay =    FT817_POST_WRITE_DELAY,
 	.timeout =             FT817_TIMEOUT,
-	.retry =               0, 
+	.retry =               0,
 	.has_get_func =        RIG_FUNC_NONE,
 	.has_set_func =        RIG_FUNC_LOCK | RIG_FUNC_TONE | RIG_FUNC_TSQL,
 	.has_get_level =       RIG_LEVEL_STRENGTH | RIG_LEVEL_RAWSTR | RIG_LEVEL_RFPOWER,
@@ -194,12 +191,12 @@ const struct rig_caps ft817_caps = {
 	.chan_desc_sz =        0,
 	.chan_list =           { RIG_CHAN_END, },
 
-	.rx_range_list1 =  { 
+	.rx_range_list1 =  {
 		{kHz(100),MHz(56), FT817_ALL_RX_MODES,-1,-1},
 		{MHz(76), MHz(108),RIG_MODE_WFM,      -1,-1},
 		{MHz(118),MHz(164),FT817_ALL_RX_MODES,-1,-1},
 		{MHz(420),MHz(470),FT817_ALL_RX_MODES,-1,-1},
-		RIG_FRNG_END, 
+		RIG_FRNG_END,
 	},
 	.tx_range_list1 =  {
 		FRQ_RNG_HF(1, FT817_OTHER_TX_MODES, W(0.5), W(5), FT817_VFO_ALL, FT817_ANTS),
@@ -214,16 +211,16 @@ const struct rig_caps ft817_caps = {
 		FRQ_RNG_70cm(1, FT817_OTHER_TX_MODES, W(0.5),W(5),FT817_VFO_ALL,FT817_ANTS),
 		FRQ_RNG_70cm(1, FT817_AM_TX_MODES, W(0.5),W(1.5),FT817_VFO_ALL,FT817_ANTS),
 
-		RIG_FRNG_END, 
+		RIG_FRNG_END,
 	},
 
 
-	.rx_range_list2 =  { 
+	.rx_range_list2 =  {
 		{kHz(100),MHz(56), FT817_ALL_RX_MODES,-1,-1},
 		{MHz(76), MHz(108),RIG_MODE_WFM,      -1,-1},
 		{MHz(118),MHz(164),FT817_ALL_RX_MODES,-1,-1},
 		{MHz(420),MHz(470),FT817_ALL_RX_MODES,-1,-1},
-		RIG_FRNG_END, 
+		RIG_FRNG_END,
 	},
 
 	.tx_range_list2 =  {
@@ -240,14 +237,14 @@ const struct rig_caps ft817_caps = {
 		FRQ_RNG_70cm(2, FT817_OTHER_TX_MODES, W(0.5),W(5),FT817_VFO_ALL,FT817_ANTS),
 		FRQ_RNG_70cm(2, FT817_AM_TX_MODES, W(0.5),W(1.5),FT817_VFO_ALL,FT817_ANTS),
 
-		RIG_FRNG_END, 
+		RIG_FRNG_END,
 	},
 
 	.tuning_steps =  {
 		{FT817_SSB_CW_RX_MODES,Hz(10)},
 		{FT817_AM_FM_RX_MODES|RIG_MODE_WFM,Hz(100)},
 		RIG_TS_END,
-	},  
+	},
 
 	.filters = {
 		{FT817_SSB_CW_RX_MODES, kHz(2.2)},  /* normal passband */
@@ -259,12 +256,12 @@ const struct rig_caps ft817_caps = {
 	},
 
     .str_cal = FT817_STR_CAL,
- 
+
 	.priv = 		NULL,
 	.rig_init = 		ft817_init,
-	.rig_cleanup =          ft817_cleanup, 
-	.rig_open = 		ft817_open, 
-	.rig_close = 		ft817_close, 
+	.rig_cleanup =          ft817_cleanup,
+	.rig_open = 		ft817_open,
+	.rig_close = 		ft817_close,
 	.set_freq = 		ft817_set_freq,
 	.get_freq = 		ft817_get_freq,
 	.set_mode = 		ft817_set_mode,
@@ -335,14 +332,14 @@ const struct rig_caps ft817_caps = {
 	.set_channel =          NULL,
 	.get_channel =          NULL,
 	/* there are some more */
-}; 
+};
 
 /* ---------------------------------------------------------------------- */
 
 int ft817_init (RIG *rig)
 {
 	struct ft817_priv_data *p;
-  
+
 	rig_debug (RIG_DEBUG_VERBOSE,"ft817: ft817_init called \n");
 
 	if ((p = calloc(1, sizeof(struct ft817_priv_data))) == NULL)
@@ -352,7 +349,7 @@ int ft817_init (RIG *rig)
 	memcpy(p->pcs, ncmd, sizeof(ncmd));
 
 	rig->state.priv = (void*) p;
-  
+
 	return RIG_OK;
 }
 
@@ -363,7 +360,7 @@ int ft817_cleanup (RIG *rig)
 	if (rig->state.priv)
 		free(rig->state.priv);
 	rig->state.priv = NULL;
-  
+
 	return RIG_OK;
 }
 
@@ -575,7 +572,7 @@ static int ft817_get_pometer_level(RIG *rig, value_t *val)
 	if ((p->tx_status & 0x80) == 0) {
         /* the rig has 10 bars on its display */
         val->f = (p->tx_status & 0x0F) / 10.0;
-        
+
     }
 	else {
 		val->f = 0.0;
@@ -598,7 +595,7 @@ static int ft817_get_smeter_level(RIG *rig, value_t *val)
 	//n = (p->rx_status & 0x0F) - 9;
 
 	//val->i = n * ((n > 0) ? 10 : 6);
-    
+
     /* S-meter value is returned in the lower 4 bits.
        0x00 = S0 (-54dB)
        0x01 = S1
@@ -609,7 +606,7 @@ static int ft817_get_smeter_level(RIG *rig, value_t *val)
        0x0B = S9+20 and so on
     */
     n = (p->rx_status & 0x0F);
-    
+
     if (n < 0x0A) {
         val->i = (6*n)-54;
     }
@@ -713,7 +710,7 @@ static int ft817_read_ack(RIG *rig)
 static int ft817_send_cmd(RIG *rig, int index)
 {
 	struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
- 
+
 	if (p->pcs[index].ncomp == 0) {
 		rig_debug(RIG_DEBUG_VERBOSE, "ft817: Incomplete sequence\n");
 		return -RIG_EINTERNAL;
@@ -730,7 +727,7 @@ static int ft817_send_icmd(RIG *rig, int index, unsigned char *data)
 {
 	struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
 	unsigned char cmd[YAESU_CMD_LENGTH];
- 
+
 	if (p->pcs[index].ncomp == 1) {
 		rig_debug(RIG_DEBUG_VERBOSE, "ft817: Complete sequence\n");
 		return -RIG_EINTERNAL;

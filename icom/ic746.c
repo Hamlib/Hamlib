@@ -3,19 +3,19 @@
  *  Copyright (c) 2000-2010 by Stephane Fillod
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -51,10 +51,10 @@
 #define IC746_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM)
 #define IC746_1HZ_TS_MODES IC746_ALL_RX_MODES
 
-/* 
+/*
  * 100W in all modes but AM (40W)
  * deleted rig_mode_tx_modes
- */ 
+ */
 #define IC746_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_FM)
 #define IC746_AM_TX_MODES (RIG_MODE_AM)
 
@@ -106,7 +106,7 @@
 	.dcs_code = 1,	\
 	.flags = 1,	\
 	.channel_desc = 1, \
-} 
+}
 
 /* Memory channel buffer structure for IC-746 pro and ?
  Note requires an ack_buff of 64 bytes and data length is 46.
@@ -118,7 +118,7 @@ typedef struct {
 	unsigned char mode;
 	unsigned char pb;		/* passband or filter selection*/
 	unsigned char data;		/* data port 0=off 1=on */
-	unsigned char dup;		/* duplex, tone, tonesql and DTCS 
+	unsigned char dup;		/* duplex, tone, tonesql and DTCS
 					Values in hex are "or"ed together
 					00 = Simplex
 					10 = -DUP
@@ -134,7 +134,7 @@ typedef struct {
 	} dcs;
 } channel_str_t;
 
-	
+
 
 typedef struct {
 	char chan_flag; 	/* split 0x10 = on; scan select 0x01 = on */
@@ -160,7 +160,7 @@ static int ic746pro_get_ext_parm(RIG *rig, token_t token, value_t *val);
 /*
  * ic746 rig capabilities.
  */
-static const struct icom_priv_caps ic746_priv_caps = { 
+static const struct icom_priv_caps ic746_priv_caps = {
 		0x56,	/* default address */
 		0,		/* 731 mode */
 		ic756pro_ts_sc_list
@@ -168,8 +168,8 @@ static const struct icom_priv_caps ic746_priv_caps = {
 
 const struct rig_caps ic746_caps = {
 .rig_model =  RIG_MODEL_IC746,
-.model_name = "IC-746", 
-.mfg_name =  "Icom", 
+.model_name = "IC-746",
+.mfg_name =  "Icom",
 .version =  BACKEND_VER,
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
@@ -182,13 +182,13 @@ const struct rig_caps ic746_caps = {
 .serial_data_bits =  8,
 .serial_stop_bits =  1,
 .serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_NONE, 
+.serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
 .timeout =  200,
-.retry =  3, 
+.retry =  3,
 .has_get_func =  IC746_FUNC_ALL,
-.has_set_func =  IC746_FUNC_ALL, 
+.has_set_func =  IC746_FUNC_ALL,
 .has_get_level =  IC746_LEVEL_ALL,
 .has_set_level =  RIG_LEVEL_SET(IC746_LEVEL_ALL),
 .has_get_parm =  RIG_PARM_NONE,
@@ -361,12 +361,12 @@ static const struct confparams ic746pro_ext_parms[] = {
  * STRING: val.cs for set, val.s for get
  * CHECKBUTTON: val.i 0/1
  */
- 
+
 
 /*
  * ic746pro rig capabilities.
  */
-static const struct icom_priv_caps ic746pro_priv_caps = { 
+static const struct icom_priv_caps ic746pro_priv_caps = {
 		0x66,	/* default address */
 		0,		/* 731 mode */
 		ic756pro_ts_sc_list
@@ -374,8 +374,8 @@ static const struct icom_priv_caps ic746pro_priv_caps = {
 
 const struct rig_caps ic746pro_caps = {
 .rig_model =  RIG_MODEL_IC746PRO,
-.model_name = "IC-746PRO", 
-.mfg_name =  "Icom", 
+.model_name = "IC-746PRO",
+.mfg_name =  "Icom",
 .version =  BACKEND_VER,
 .copyright =  "LGPL",
 .status =  RIG_STATUS_STABLE,
@@ -388,13 +388,13 @@ const struct rig_caps ic746pro_caps = {
 .serial_data_bits =  8,
 .serial_stop_bits =  1,
 .serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_NONE, 
+.serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
 .timeout =  200,
-.retry =  3, 
+.retry =  3,
 .has_get_func =  IC746_FUNC_ALL,
-.has_set_func =  IC746_FUNC_ALL, 
+.has_set_func =  IC746_FUNC_ALL,
 .has_get_level =  IC746_LEVEL_ALL,
 .has_set_level =  RIG_LEVEL_SET(IC746_LEVEL_ALL),
 .has_get_parm =  IC746_GET_PARM,
@@ -610,12 +610,12 @@ static int ic746pro_get_ext_parm(RIG *rig, token_t token, value_t *val)
 	struct icom_priv_data *priv;
 	struct rig_state *rs;
 	const struct confparams *cfp;
-	
+
 	unsigned char resbuf[MAXFRAMELEN];
 	int res_len, icom_val=0;
 	int cmdhead;
 	int retval;
-	
+
 	int ep_cmd = C_CTL_MEM;
 	int ep_sc;             /* Subcommand in $1A $05xx */
 
@@ -636,7 +636,7 @@ static int ic746pro_get_ext_parm(RIG *rig, token_t token, value_t *val)
 		rig_debug(RIG_DEBUG_ERR,"Unsupported get_ext_parm %d", token);
 		return -RIG_EINVAL;
 	}
-	
+
 	retval = icom_transaction (rig, ep_cmd, ep_sc, NULL, 0,
 					resbuf, &res_len);
 	if (retval != RIG_OK)
@@ -676,11 +676,11 @@ static int ic746pro_get_ext_parm(RIG *rig, token_t token, value_t *val)
 		 rig_debug(RIG_DEBUG_ERR,"%s: protocol error (%#.2x), "
 			"len=%d\n", __FUNCTION__,resbuf[0],res_len);
 		return -RIG_EPROTO;
-		
+
 	}
 	rig_debug(RIG_DEBUG_TRACE,"%s: %d %d %d %f\n",
 			__FUNCTION__, res_len, icom_val, val->i, val->f);
-	
+
 	return RIG_OK;
 }
 
@@ -801,7 +801,7 @@ int ic746_get_parm(RIG *rig, setting_t parm, value_t *val)
 		}
 	}
 
-	icom_val = from_bcd_be(resbuf+cmdhead, res_len*2);	
+	icom_val = from_bcd_be(resbuf+cmdhead, res_len*2);
 	if (RIG_PARM_IS_FLOAT(parm))
 		val->f = (float)icom_val/255;
 	else
@@ -816,7 +816,7 @@ int ic746_get_parm(RIG *rig, setting_t parm, value_t *val)
 /*
  * ic746pro_get_channel
  * Assumes rig!=NULL, rig->state.priv!=NULL, chan!=NULL
- * 
+ *
  * If memory is empty it will return RIG_OK,but every thing will be null. Where do we boundary check?
  */
 int ic746pro_get_channel(RIG *rig, channel_t *chan)
@@ -872,7 +872,7 @@ int ic746pro_get_channel(RIG *rig, channel_t *chan)
 		chan->scan_group = 0;
 		chan->flags = RIG_CHFLAG_SKIP;
 		strcpy(chan->channel_desc, "         ");
-		
+
 		/*
 		 * chanbuf should contain Cn,Sc, Chan #, Data area
 		 */
@@ -881,7 +881,7 @@ int ic746pro_get_channel(RIG *rig, channel_t *chan)
 								chan_len);
 				return -RIG_ERJCTED;
 		}
-		
+
 		/* do this only if not a blank channel */
 		if (chan_len != 1) {
 
@@ -916,7 +916,7 @@ int ic746pro_get_channel(RIG *rig, channel_t *chan)
 			chan->ctcss_tone = from_bcd_be(membuf->rx.tone, 6);
 			chan->ctcss_sql = from_bcd_be(membuf->rx.tone_sql, 6);
 			chan->dcs_code = from_bcd_be(membuf->rx.dcs.code, 4);
-			/* The dcs information include in the channel includes polarity information 
+			/* The dcs information include in the channel includes polarity information
 			for both tx and receive.  Both directions are enabled when in dcs mode */
 
 			chan->tx_freq = from_bcd(membuf->tx.freq, freq_len*2);

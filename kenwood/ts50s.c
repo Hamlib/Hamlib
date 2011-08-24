@@ -2,21 +2,20 @@
  *  Hamlib Kenwood backend - TS50 description
  *  Copyright (c) 2002-2004 by Stephane Fillod
  *
- *	$Id: ts50s.c,v 1.14 2009-01-28 23:30:58 azummo Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -99,7 +98,7 @@ const struct rig_caps ts50s_caps = {
 			{ 90, 99, RIG_MTYPE_EDGE },
 		  	RIG_CHAN_END,
 		   },
-.rx_range_list1 =  { 
+.rx_range_list1 =  {
 	{kHz(500),MHz(30),TS50_ALL_MODES,-1,-1,TS50_VFO},
 	RIG_FRNG_END,
   },

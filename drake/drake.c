@@ -2,21 +2,20 @@
  *  Hamlib Drake backend - main file
  *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: drake.c,v 1.19 2008-12-16 22:40:02 fillods Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -193,7 +192,7 @@ int drake_set_vfo(RIG *rig, vfo_t vfo)
 		cmd_len = sprintf((char *) cmdbuf, "V%c" EOM, vfo_function);
 	if ((vfo_function=='F')||(vfo_function=='C'))
 		cmd_len = sprintf((char *) cmdbuf, "%c" EOM, vfo_function);
-	
+
 	retval = drake_transaction (rig, (char *) cmdbuf, cmd_len, (char *) ackbuf, &ack_len);
 	return retval;
 }
@@ -232,7 +231,7 @@ int drake_get_vfo(RIG *rig, vfo_t *vfo)
 	  			return -RIG_EINVAL;
 		}
 	}
-	
+
 	return RIG_OK;
 }
 
@@ -444,14 +443,14 @@ int drake_set_mem(RIG *rig, vfo_t vfo, int ch)
 	priv->curr_ch = ch;
 
 	len = sprintf(buf, "C%03d" EOM, ch);
-	
+
 	retval = drake_transaction (rig, buf, len, ackbuf, &ack_len);
 
 	if (ack_len != 2) {
 		rig_debug(RIG_DEBUG_ERR,"drake_set_mem: could not set channel %03d.\n", ch);
 		retval = -RIG_ERJCTED;
 	}
-	
+
 	return retval;
 }
 
@@ -483,7 +482,7 @@ int drake_get_mem(RIG *rig, vfo_t vfo, int *ch)
 	*ch = chan;
 
 	priv->curr_ch = chan;
-	
+
 	return RIG_OK;
 }
 
@@ -509,7 +508,7 @@ int drake_set_chan(RIG *rig, const channel_t *chan)
 		if (retval != RIG_OK)
 			return retval;
 	}
-	
+
 	/* set all memory features */
 	drake_set_ant(rig, RIG_VFO_CURR, chan->ant);
 	drake_set_freq(rig, RIG_VFO_CURR, chan->freq);
@@ -524,13 +523,13 @@ int drake_set_chan(RIG *rig, const channel_t *chan)
 					chan->levels[rig_setting2idx(RIG_LEVEL_ATT)]);
 	drake_set_func(rig, RIG_VFO_CURR, RIG_FUNC_MN,
 					(chan->funcs & RIG_FUNC_MN) == RIG_FUNC_MN);
-	
+
 	mdbuf_len = sprintf(mdbuf, "PR" EOM "%03d" EOM, chan->channel_num);
 	retval = drake_transaction (rig, mdbuf, mdbuf_len, ackbuf, &ack_len);
-	
+
 	if (old_vfo == RIG_VFO_MEM)
 		drake_set_mem(rig, RIG_VFO_CURR, old_chan);
-	
+
 	return retval;
 }
 
@@ -572,18 +571,18 @@ int drake_get_chan(RIG *rig, channel_t *chan)
 	chan->scan_group = 0;
 	chan->flags = RIG_CHFLAG_SKIP;
 	strcpy(chan->channel_desc, "       ");
-	
+
 	drake_get_vfo(rig, &old_vfo);
 	old_chan = 0;
 
 	if (old_vfo == RIG_VFO_MEM)
 		old_chan = priv->curr_ch;
-	
+
 	//go to new channel
 	retval = drake_set_mem(rig, RIG_VFO_CURR, chan->channel_num);
 	if (retval != RIG_OK)
 		return RIG_OK;
-	
+
 	//now decypher it
 	retval = drake_transaction (rig, "RA" EOM, 3, mdbuf, &mdbuf_len);
 	if (retval != RIG_OK)
@@ -597,30 +596,30 @@ int drake_get_chan(RIG *rig, channel_t *chan)
 
 	if ((mdbuf[5] >= '4') && (mdbuf[5] <= '?'))
 		chan->funcs |= RIG_FUNC_NB;
-	
+
 	switch(mdbuf[5] & 0x33){
 		case '0': chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i = RIG_AGC_OFF; break;
 		case '2': chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i = RIG_AGC_FAST; break;
 		case '3': chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i = RIG_AGC_SLOW; break;
 		default : chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i = RIG_AGC_FAST;
 	}
-	
+
 	if ((mdbuf[6] & 0x3c) == '8')
 		chan->levels[rig_setting2idx(RIG_LEVEL_PREAMP)].i = 10;
-	
+
 	if ((mdbuf[6] & 0x3c) == '4')
 		chan->levels[rig_setting2idx(RIG_LEVEL_ATT)].i = 10;
 
 	if ((mdbuf[6] & 0x32) =='2');
 		chan->funcs |= RIG_FUNC_MN;
-	
+
 	switch(mdbuf[7] & 0x3c){
 		case '0': chan->ant = RIG_ANT_1; break;
 		case '4': chan->ant = RIG_ANT_3; break;
 		case '8': chan->ant = RIG_ANT_2; break;
 		default : chan->ant = RIG_ANT_NONE;
 	}
-	
+
 	switch(mdbuf[8] & 0x37){
 		case '0': chan->width = s_Hz(500); break;
 		case '1': chan->width = s_Hz(1800); break;
@@ -634,7 +633,7 @@ int drake_get_chan(RIG *rig, channel_t *chan)
 		switch(mdbuf[7] & 0x33){
 	  		case '0': chan->mode = RIG_MODE_LSB; break;
 			case '1': chan->mode = RIG_MODE_RTTY; break;
-			case '2': chan->mode = RIG_MODE_FM; 
+			case '2': chan->mode = RIG_MODE_FM;
 						chan->width = s_Hz(12000); break;
 			default : chan->mode = RIG_MODE_NONE;
 		}
@@ -655,20 +654,20 @@ int drake_get_chan(RIG *rig, channel_t *chan)
 		else if (chan->mode == RIG_MODE_LSB)
 			chan->mode = RIG_MODE_ECSSLSB;
 	}
-	
+
 	strncpy(freqstr,mdbuf+11,9);
 	freqstr[9] = 0x00;
 	if ((mdbuf[21] == 'k') || (mdbuf[21] == 'K'))
 		chan->freq = strtod(freqstr,NULL) * 1000.0;
 	if ((mdbuf[21] == 'm') || (mdbuf[21] == 'M'))
 		chan->freq = strtod(freqstr,NULL) * 1000000.0;
-	
-	
+
+
 	strncpy(chan->channel_desc, mdbuf+25, 7);
 
 	//now put the radio back the way it was
 	if (old_vfo != RIG_VFO_MEM) {
-		retval = drake_set_vfo(rig, RIG_VFO_VFO);	
+		retval = drake_set_vfo(rig, RIG_VFO_VFO);
 		if (retval != RIG_OK)
 			return retval;
 	}
@@ -677,7 +676,7 @@ int drake_get_chan(RIG *rig, channel_t *chan)
 		if (retval != RIG_OK)
 			return retval;
 	}
-	
+
 	return RIG_OK;
 }
 

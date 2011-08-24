@@ -8,22 +8,19 @@
  * box (FIF-232C) or similar (max232 + some capacitors :-)
  *
  *
- *    $Id: ft747.h,v 1.5 2005-04-03 19:27:59 fillods Exp $  
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
+ *   This library is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation; either
- *  version 2 of the License, or (at your option) any later version.
- *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
- *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+ *   You should have received a copy of the GNU Lesser General Public
+ *   License along with this library; if not, write to the Free Software
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -37,7 +34,7 @@
  */
 #define FT747_STATUS_UPDATE_DATA_LENGTH      344
 
-#define FT747_PACING_DEFAULT_VALUE           0 
+#define FT747_PACING_DEFAULT_VALUE           0
 #define FT747_WRITE_DELAY                    5 /* manual say 50 ms, but it doesn't work though */
 
 
@@ -50,12 +47,12 @@
  * 8N2 and 1 start bit = 11 bits at 4800 bps => effective byte rate = 1 byte in 2.2917 msec
  * => 345 bytes in 790 msec
  *
- * delay for 1 byte = 2.2917 + (pace_interval * 5) 
+ * delay for 1 byte = 2.2917 + (pace_interval * 5)
  *
  * pace_interval          time to read 345 bytes
  * ------------           ----------------------
  *
- *     0                       790 msec           
+ *     0                       790 msec
  *     1                       2515 msec
  *     2                       4240 msec
  *    255                      441 sec => 7 min 21 seconds
@@ -130,10 +127,10 @@ typedef enum ft747_native_cmd_e ft747_native_cmd_t;
 #define MODE_CWN    0x84
 #define MODE_USB    0x08
 #define MODE_LSB    0x10
-#define MODE_NAR    0x80   
+#define MODE_NAR    0x80
 
 /* All relevent bits */
-#define MODE_MASK   0x9f   
+#define MODE_MASK   0x9f
 
 
 /*
@@ -159,23 +156,23 @@ typedef enum ft747_native_cmd_e ft747_native_cmd_t;
 
 
 /*
- * Some useful offsets in the status update map (offset) 
+ * Some useful offsets in the status update map (offset)
  *
  * Manual appears to be full of mistakes regarding offsets etc.. -- FS
  *
  */
 
 #define FT747_SUMO_DISPLAYED_MEM              0x17
-#define FT747_SUMO_DISPLAYED_MODE             0x18    
-#define FT747_SUMO_DISPLAYED_STATUS           0x00    
-#define FT747_SUMO_DISPLAYED_FREQ             0x01    
+#define FT747_SUMO_DISPLAYED_MODE             0x18
+#define FT747_SUMO_DISPLAYED_STATUS           0x00
+#define FT747_SUMO_DISPLAYED_FREQ             0x01
 #define FT747_SUMO_VFO_A_FREQ                 0x09
 #define FT747_SUMO_VFO_B_FREQ                 0x11
-    
 
 
-/* 
- * API local implementation 
+
+/*
+ * API local implementation
  */
 
 static int ft747_init(RIG *rig);

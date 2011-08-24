@@ -1,23 +1,22 @@
 /*
  *  Hamlib AOR backend - AR5000 description
- *  
+ *
  *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: ar5000.c,v 1.12 2008-04-11 17:10:45 fillods Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -46,7 +45,7 @@
 #define AR5000_VFO (RIG_VFO_A | RIG_VFO_B | RIG_VFO_C | RIG_VFO_N(3) | RIG_VFO_N(4))
 
 /* As reported with rigctl 'l RAWSTR' for AR5000A S/n: 171218
-   on 7040kHz / CW / 3kHz Bw. 
+   on 7040kHz / CW / 3kHz Bw.
 
    The data available on http://www.aoruk.com did not match very well on HF */
 #define AR5000_STR_CAL { 16, { \
@@ -181,16 +180,16 @@ const struct rig_caps ar5000_caps = {
 	{AR5000_MODES,kHz(50)},
 	{AR5000_MODES,kHz(100)},
 	{AR5000_MODES,kHz(500)},
-#if 0 
+#if 0
 	{AR5000_MODES,0},	/* any tuning step */
 #endif
 	RIG_TS_END,
     },
         /* mode/filter list, .remember =  order matters! */
     .filters =  {
-	{RIG_MODE_SSB|RIG_MODE_SAL|RIG_MODE_SAH|RIG_MODE_CW, kHz(3)}, 
+	{RIG_MODE_SSB|RIG_MODE_SAL|RIG_MODE_SAH|RIG_MODE_CW, kHz(3)},
 	{RIG_MODE_CW, Hz(500)},   /* narrow */
-	{RIG_MODE_AM|RIG_MODE_SAM, kHz(6)}, 
+	{RIG_MODE_AM|RIG_MODE_SAM, kHz(6)},
 	{RIG_MODE_AM|RIG_MODE_SAM, kHz(3)},    /* narrow */
 	{RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_SAM, kHz(15)},
 	{RIG_MODE_FM, kHz(6)},    /* narrow */
@@ -323,16 +322,16 @@ const struct rig_caps ar5000a_caps = {
 	{AR5000_MODES,kHz(50)},
 	{AR5000_MODES,kHz(100)},
 	{AR5000_MODES,kHz(500)},
-#if 0 
+#if 0
 	{AR5000_MODES,0},	/* any tuning step */
 #endif
 	RIG_TS_END,
     },
         /* mode/filter list, .remember =  order matters! */
     .filters =  {
-	{RIG_MODE_SSB|RIG_MODE_SAL|RIG_MODE_SAH|RIG_MODE_CW, kHz(3)}, 
+	{RIG_MODE_SSB|RIG_MODE_SAL|RIG_MODE_SAH|RIG_MODE_CW, kHz(3)},
 	{RIG_MODE_CW, Hz(500)},   /* narrow */
-	{RIG_MODE_AM|RIG_MODE_SAM, kHz(6)}, 
+	{RIG_MODE_AM|RIG_MODE_SAM, kHz(6)},
 	{RIG_MODE_AM|RIG_MODE_SAM, kHz(3)},    /* narrow */
 	{RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_SAM, kHz(15)},
 	{RIG_MODE_FM, kHz(6)},    /* narrow */

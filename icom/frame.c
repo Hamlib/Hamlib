@@ -3,19 +3,19 @@
  *  Copyright (c) 2000-2010 by Stephane Fillod
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -49,7 +49,7 @@
  * 		The smallest frame is 6 bytes, the biggest is at least 13 bytes.
  */
 int make_cmd_frame(char frame[], char re_id, char ctrl_id, char cmd, int subcmd, const unsigned char *data, int data_len)
-{	
+{
 	int i = 0;
 
 #if 0
@@ -70,7 +70,7 @@ int make_cmd_frame(char frame[], char re_id, char ctrl_id, char cmd, int subcmd,
 		else if ((j = subcmd & 0xff00)) frame[i++] = j >> 8;
 #endif
 		frame[i++] = subcmd & 0xff;
-	}	
+	}
 	if (data_len != 0) {
 		memcpy(frame+i, data, data_len);
 		i += data_len;
@@ -83,14 +83,14 @@ int make_cmd_frame(char frame[], char re_id, char ctrl_id, char cmd, int subcmd,
 
 /*
  * icom_one_transaction
- * 
+ *
  * We assume that rig!=NULL, rig->state!= NULL, payload!=NULL, data!=NULL, data_len!=NULL
  * Otherwise, you'll get a nice seg fault. You've been warned!
  * payload can be NULL if payload_len == 0
  * subcmd can be equal to -1 (no subcmd wanted)
  * if no answer is to be expected, data_len must be set to NULL to tell so
  *
- * return RIG_OK if transaction completed, 
+ * return RIG_OK if transaction completed,
  * or a negative value otherwise indicating the error.
  */
 int icom_one_transaction (RIG *rig, int cmd, int subcmd, const unsigned char *payload, int payload_len, unsigned char *data, int *data_len)
@@ -112,8 +112,8 @@ int icom_one_transaction (RIG *rig, int cmd, int subcmd, const unsigned char *pa
 	frm_len = make_cmd_frame((char *) sendbuf, priv->re_civ_addr, ctrl_id, cmd,
 				subcmd, payload, payload_len);
 
-	/* 
-	 * should check return code and that write wrote cmd_len chars! 
+	/*
+	 * should check return code and that write wrote cmd_len chars!
 	 */
 	Hold_Decode(rig);
 
@@ -135,7 +135,7 @@ int icom_one_transaction (RIG *rig, int cmd, int subcmd, const unsigned char *pa
 		 * 		- if we get a timeout, then retry to send the frame,
 		 * 			up to rs->retry times.
 		 */
-	
+
 		retval = read_icom_frame(&rs->rigport, buf);
 		if (retval == -RIG_ETIMEOUT || retval == 0)
 		  {
@@ -149,7 +149,7 @@ int icom_one_transaction (RIG *rig, int cmd, int subcmd, const unsigned char *pa
 		    Unhold_Decode(rig);
 		    return retval;
 		  }
-	
+
 		switch (buf[retval-1])
 		  {
 		  case COL:
@@ -165,8 +165,8 @@ int icom_one_transaction (RIG *rig, int cmd, int subcmd, const unsigned char *pa
 		    Unhold_Decode(rig);
 		    return -RIG_BUSERROR;
 		  }
-	
-		if (retval != frm_len) 
+
+		if (retval != frm_len)
 		  {
 		    /* Not the same length??? */
 		    /* Problem on ci-v bus? */
@@ -193,20 +193,20 @@ int icom_one_transaction (RIG *rig, int cmd, int subcmd, const unsigned char *pa
 	}
 
 	/*
-	 * wait for ACK ... 
+	 * wait for ACK ...
 	 * FIXME: handle pading/collisions
 	 * ACKFRMLEN is the smallest frame we can expect from the rig
 	 */
 	frm_len = read_icom_frame(&rs->rigport, buf);
 	Unhold_Decode(rig);
-	
-	if (frm_len < 0) 
+
+	if (frm_len < 0)
 	  {
 	    /* RIG_TIMEOUT: timeout getting response, return timeout */
 	    /* other error: return it */
 	    return frm_len;
 	  }
-	
+
 	switch (buf[frm_len-1])
 	  {
 	  case COL:
@@ -231,13 +231,13 @@ int icom_one_transaction (RIG *rig, int cmd, int subcmd, const unsigned char *pa
 	/*
 	 * TODO: check addresses in reply frame
 	 */
-	
+
 	return RIG_OK;
 }
 
 /*
  * icom_transaction
- * 
+ *
  * This function honors rigport.retry count.
  *
  * We assume that rig!=NULL, rig->state!= NULL, payload!=NULL, data!=NULL, data_len!=NULL
@@ -245,7 +245,7 @@ int icom_one_transaction (RIG *rig, int cmd, int subcmd, const unsigned char *pa
  * payload can be NULL if payload_len == 0
  * subcmd can be equal to -1 (no subcmd wanted)
  *
- * return RIG_OK if transaction completed, 
+ * return RIG_OK if transaction completed,
  * or a negative value otherwise indicating the error.
  */
 int icom_transaction (RIG *rig, int cmd, int subcmd, const unsigned char *payload, int payload_len, unsigned char *data, int *data_len)
@@ -286,7 +286,7 @@ int read_icom_frame(hamlib_port_t *p, unsigned char rxbuffer[])
 	 */
 	do
 	{
-	   int i = read_string(p, rx_ptr, MAXFRAMELEN-read, 
+	   int i = read_string(p, rx_ptr, MAXFRAMELEN-read,
 			  icom_block_end, icom_block_end_length);
 	   if (i < 0) /* die on errors */
 	      return i;
@@ -298,7 +298,7 @@ int read_icom_frame(hamlib_port_t *p, unsigned char rxbuffer[])
 	   /* OK, we got something. add it in and continue */
 	   read   += i;
 	   rx_ptr += i;
-	} while ((rxbuffer[read-1] != FI) && (rxbuffer[read-1] != COL));   
+	} while ((rxbuffer[read-1] != FI) && (rxbuffer[read-1] != COL));
 	return read;
 }
 
@@ -314,7 +314,7 @@ int read_icom_frame(hamlib_port_t *p, unsigned char rxbuffer[])
  * TODO: be more exhaustive
  * assumes rig!=NULL
  */
-int rig2icom_mode(RIG *rig, rmode_t mode, pbwidth_t width, 
+int rig2icom_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 				unsigned char *md, signed char *pd)
 {
 	unsigned char icmode;
@@ -355,7 +355,7 @@ int rig2icom_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 					icmode_ext = PD_WIDE_3;	/* default to Wide */
 			}
 	}
-	
+
 	*md = icmode;
 	*pd = icmode_ext;
 	return RIG_OK;
@@ -395,7 +395,7 @@ void icom2rig_mode(RIG *rig, unsigned char md, int pd, rmode_t *mode, pbwidth_t 
 						md);
 		*mode = RIG_MODE_NONE;
 	}
-	
+
 	/* Most rigs return 1-wide, 2-narrow; or if it has 3 filters: 1-wide, 2-middle,
            3-narrow. (Except for the 706 mkIIg 0-wide, 1-middle, 2-narrow.)  For DSP
            rigs these are presets, which can be programmed for 30 - 41 bandwidths,
@@ -404,17 +404,17 @@ void icom2rig_mode(RIG *rig, unsigned char md, int pd, rmode_t *mode, pbwidth_t 
 	if (rig->caps->rig_model == RIG_MODEL_IC706MKIIG ||
             rig->caps->rig_model == RIG_MODEL_IC706 ||
             rig->caps->rig_model ==  RIG_MODEL_IC706MKII) pd++;
-	
+
 	switch (pd) {
-		case 0x01: 
+		case 0x01:
                   /* if no wide filter defined it's the default */
-                  if (!(*width = rig_passband_wide(rig, *mode)))  
+                  if (!(*width = rig_passband_wide(rig, *mode)))
                     *width = rig_passband_normal(rig, *mode);
                   break;
 
 		case 0x02:
                   if ((*width = rig_passband_wide(rig, *mode)))
-                    *width = rig_passband_normal(rig, *mode); 
+                    *width = rig_passband_normal(rig, *mode);
                   else
                     /* This really just depends on how you program the table. */
                     *width = rig_passband_narrow(rig, *mode);
@@ -426,7 +426,7 @@ void icom2rig_mode(RIG *rig, unsigned char md, int pd, rmode_t *mode, pbwidth_t 
 
 		case -1:
                   break;		/* no passband data */
-	
+
 	        default:
                   rig_debug(RIG_DEBUG_ERR,"icom: Unsupported Icom mode width %#.2x\n", pd);
 	}

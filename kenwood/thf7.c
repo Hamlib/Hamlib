@@ -2,21 +2,20 @@
  *  Hamlib Kenwood backend - TH-F7 description
  *  Copyright (c) 2001-2009 by Stephane Fillod
  *
- *	$Id: thf7.c,v 1.17 2009-02-03 23:22:58 azummo Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -58,12 +57,12 @@
 	TH_CHANNEL_CAPS,\
 	.flags=1,	\
 	.dcs_code=1,	\
-	.dcs_sql=1,	
+	.dcs_sql=1,
 
 #define THF7_CHANNEL_CAPS_WO_LO	\
 	TH_CHANNEL_CAPS,\
 	.dcs_code=1,	\
-	.dcs_sql=1,	
+	.dcs_sql=1,
 
 /* CTCSS 01..42 */
 static const tone_t thf7_ctcss_list[] = {
@@ -156,7 +155,7 @@ const struct rig_caps thf7e_caps = {
 .chan_desc_sz =  8,
 
 
-.chan_list =  { 
+.chan_list =  {
 		{  0,  399, RIG_MTYPE_MEM , {THF7_CHANNEL_CAPS}},  /* normal MEM */
 		{  400,409, RIG_MTYPE_EDGE, {THF7_CHANNEL_CAPS}},  /* L0-L9 lower scan limit */
 		{  410,419, RIG_MTYPE_EDGE, {THF7_CHANNEL_CAPS}},  /* U0-U9 upper scan limit */

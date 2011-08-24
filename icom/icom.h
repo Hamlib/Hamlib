@@ -2,19 +2,20 @@
  *  Hamlib CI-V backend - main header
  *  Copyright (c) 2000-2011 by Stephane Fillod
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
+ *
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -51,7 +52,7 @@
 	.freq = 1,	\
 	.mode = 1,	\
 	.width = 1,	\
-} 
+}
 
 /*
  * common channel caps.
@@ -66,7 +67,7 @@
 	.tx_mode = 1,	\
 	.tx_width = 1,	\
 	.rptr_offs = 1,	\
-} 
+}
 
 /*
  * S-Meter data for uncalibrated rigs
@@ -99,14 +100,14 @@ struct icom_priv_caps {
 	int civ_731_mode; /* Off: freqs on 10 digits, On: freqs on 8 digits */
 	const struct ts_sc_list *ts_sc_list;
 	int settle_time; /*!< Receiver settle time, in ms */
-	int (*r2i_mode)(RIG *rig, rmode_t mode, pbwidth_t width, 
+	int (*r2i_mode)(RIG *rig, rmode_t mode, pbwidth_t width,
 		unsigned char *md, signed char *pd); /*< backend specific code
-						       to convert bandwidth and 
+						       to convert bandwidth and
 						       mode to cmd tokens */
-	void (*i2r_mode)(RIG *rig, unsigned char md, int pd, 
+	void (*i2r_mode)(RIG *rig, unsigned char md, int pd,
 		rmode_t *mode, pbwidth_t *width);    /*< backend specific code
-						       to convert response 
-						       tokens to bandwidth and 
+						       to convert response
+						       tokens to bandwidth and
 						       mode */
 	int serial_full_duplex; /*!< Whether RXD&TXD are not tied together */
 };

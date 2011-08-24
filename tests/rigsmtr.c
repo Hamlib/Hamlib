@@ -3,23 +3,21 @@
  *
  * This program output S-meter vs. Azimuth curve using Hamlib.
  *
- * $Id: rigsmtr.c,v 1.2 2008-01-05 15:06:35 fillods Exp $  
  *
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation; either version 2 of the License, or
+ *   (at your option) any later version.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- * 
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License along
+ *   with this program; if not, write to the Free Software Foundation, Inc.,
+ *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 #ifdef HAVE_CONFIG_H
@@ -41,7 +39,7 @@
 #include "misc.h"
 
 
-/* 
+/*
  * Prototypes
  */
 static void usage();
@@ -50,7 +48,7 @@ static int set_conf_rig(RIG *rig, char *conf_parms);
 static int set_conf_rot(ROT *rot, char *conf_parms);
 
 /*
- * Reminder: when adding long options, 
+ * Reminder: when adding long options,
  *   keep up to date SHORT_OPTIONS, usage()'s output and man page. thanks.
  * NB: do NOT use -W since it's reserved by POSIX.
  */
@@ -76,7 +74,7 @@ static struct option long_options[] =
 
 
 int main (int argc, char *argv[])
-{ 
+{
 	RIG *rig;		/* handle to rig (instance) */
 	ROT *rot;		/* handle to rotator (instance) */
 	rig_model_t rig_model = RIG_MODEL_DUMMY;
@@ -201,7 +199,7 @@ int main (int argc, char *argv[])
   	rig = rig_init(rig_model);
 
 	if (!rig) {
-		fprintf(stderr, "Unknown rig num %d, or initialization error.\n", 
+		fprintf(stderr, "Unknown rig num %d, or initialization error.\n",
 						rig_model);
 		fprintf(stderr, "Please check with --list option.\n");
 		exit(2);
@@ -246,7 +244,7 @@ int main (int argc, char *argv[])
   	rot = rot_init(rot_model);
 
 	if (!rot) {
-		fprintf(stderr, "Unknown rot num %d, or initialization error.\n", 
+		fprintf(stderr, "Unknown rot num %d, or initialization error.\n",
 						rot_model);
 		fprintf(stderr, "Please check with --list option.\n");
 		exit(2);
@@ -280,7 +278,7 @@ int main (int argc, char *argv[])
 
 
 	/*******************************/
-	if (optind < argc) 
+	if (optind < argc)
 		step = atof(argv[optind])*1e6;
 
 	fprintf(stderr,"Setting rotator to azimuth %.1f°\n",rot->state.min_az);
@@ -294,7 +292,7 @@ int main (int argc, char *argv[])
 
 	fprintf(stderr,"Now initiating full 360° rotation...\n");
 	rot_set_position (rot, rot->state.max_az, 0);
-	
+
 	/* TODO: check CW or CCW */
 	/* disable AGC? */
 

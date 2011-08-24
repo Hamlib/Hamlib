@@ -3,21 +3,20 @@
  *  Copyright (c) 2000-2009 by Stephane Fillod
  *  Copyright (c) 2000-2003 by Frank Singleton
  *
- *	$Id: iofunc.c,v 1.20 2008-11-05 23:07:38 fillods Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -74,14 +73,14 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 			return status;
 		if (p->parm.serial.rts_state != RIG_SIGNAL_UNSET &&
 				p->parm.serial.handshake != RIG_HANDSHAKE_HARDWARE) {
-			status = ser_set_rts(p, 
+			status = ser_set_rts(p,
 					p->parm.serial.rts_state == RIG_SIGNAL_ON);
 			want_state_delay = 1;
 		}
 		if (status != 0)
 			return status;
 		if (p->parm.serial.dtr_state != RIG_SIGNAL_UNSET) {
-			status = ser_set_dtr(p, 
+			status = ser_set_dtr(p,
 					p->parm.serial.dtr_state == RIG_SIGNAL_ON);
 			want_state_delay = 1;
 		}
@@ -299,14 +298,14 @@ int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
 
 		  /* FIXME in Y2038 ... */
 		  gettimeofday(&tv, NULL);
-		  date_delay = p->post_write_delay*1000 - 
+		  date_delay = p->post_write_delay*1000 -
 				  		((tv.tv_sec - p->post_write_date.tv_sec)*1000000 +
 				  		 (tv.tv_usec - p->post_write_date.tv_usec));
 		  if (date_delay > 0) {
 				/*
-				 * optional delay after last write 
+				 * optional delay after last write
 				 */
-				usleep(date_delay); 
+				usleep(date_delay);
 		  }
 		  p->post_write_date.tv_sec = 0;
   }
@@ -316,7 +315,7 @@ int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
   	for (i=0; i < count; i++) {
 		ret = port_write(p, txbuffer+i, 1);
 		if (ret != 1) {
-			rig_debug(RIG_DEBUG_ERR,"%s():%d failed %d - %s\n", 
+			rig_debug(RIG_DEBUG_ERR,"%s():%d failed %d - %s\n",
 				__FUNCTION__, __LINE__, ret, strerror(errno));
 			return -RIG_EIO;
     	}
@@ -325,12 +324,12 @@ int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
   } else {
 	ret = port_write(p, txbuffer, count);
 	if (ret != count) {
-		rig_debug(RIG_DEBUG_ERR,"%s():%d failed %d - %s\n", 
+		rig_debug(RIG_DEBUG_ERR,"%s():%d failed %d - %s\n",
 			__FUNCTION__, __LINE__, ret, strerror(errno));
 		return -RIG_EIO;
     	}
   }
-  
+
   if (p->post_write_delay > 0) {
 #ifdef WANT_NON_ACTIVE_POST_WRITE_DELAY
 #define POST_WRITE_DELAY_TRSHLD 10
@@ -349,7 +348,7 @@ int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
   }
   rig_debug(RIG_DEBUG_TRACE,"TX %d bytes\n",count);
   dump_hex((unsigned char *) txbuffer,count);
-  
+
   return RIG_OK;
 }
 
@@ -363,7 +362,7 @@ int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
  *
  * Read "num" bytes from "fd" and put results into
  * an array of unsigned char pointed to by "rxbuffer"
- * 
+ *
  * Blocks on read until timeout hits.
  *
  * It then reads "num" bytes into rxbuffer.
@@ -373,7 +372,7 @@ int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
  */
 
 int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
-{  
+{
   fd_set rfds, efds;
   struct timeval tv, tv_timeout;
   int rd_count, total_count = 0;
@@ -407,7 +406,7 @@ int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
 		return -RIG_EIO;
 	}
 	if (FD_ISSET(p->fd, &efds)) {
-		rig_debug(RIG_DEBUG_ERR, "%s: fd error after %d chars\n", 
+		rig_debug(RIG_DEBUG_ERR, "%s: fd error after %d chars\n",
                                   __FUNCTION__, total_count);
 		return -RIG_EIO;
 	}
@@ -484,12 +483,12 @@ int HAMLIB_API read_string(hamlib_port_t *p, char *rxbuffer, size_t rxmax, const
 
 	if (retval < 0) {
 		dump_hex((unsigned char *) rxbuffer, total_count);
-		rig_debug(RIG_DEBUG_ERR, "%s: select error after %d chars: %s\n", 
+		rig_debug(RIG_DEBUG_ERR, "%s: select error after %d chars: %s\n",
                                   __FUNCTION__, total_count, strerror(errno));
 		return -RIG_EIO;
 	}
 	if (FD_ISSET(p->fd, &efds)) {
-		rig_debug(RIG_DEBUG_ERR, "%s: fd error after %d chars\n", 
+		rig_debug(RIG_DEBUG_ERR, "%s: fd error after %d chars\n",
                                   __FUNCTION__, total_count);
 		return -RIG_EIO;
 	}

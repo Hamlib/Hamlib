@@ -3,19 +3,19 @@
  *  Copyright (c) 2009-2010 by Stephane Fillod
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -75,7 +75,7 @@ static int ic7800_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
  *
  * TODO: complete command set (esp. the $1A bunch!) and testing..
  */
-static const struct icom_priv_caps ic7800_priv_caps = { 
+static const struct icom_priv_caps ic7800_priv_caps = {
 		0x6a,	/* default address */
 		0,		/* 731 mode */
 		ic756pro_ts_sc_list
@@ -84,8 +84,8 @@ static const struct icom_priv_caps ic7800_priv_caps = {
 
 const struct rig_caps ic7800_caps = {
 .rig_model =  RIG_MODEL_IC7800,
-.model_name = "IC-7800", 
-.mfg_name =  "Icom", 
+.model_name = "IC-7800",
+.mfg_name =  "Icom",
 .version =  BACKEND_VER ".2",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
@@ -98,13 +98,13 @@ const struct rig_caps ic7800_caps = {
 .serial_data_bits =  8,
 .serial_stop_bits =  1,
 .serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_NONE, 
+.serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
 .timeout =  200,
-.retry =  3, 
+.retry =  3,
 .has_get_func =  IC7800_FUNCS,
-.has_set_func =  IC7800_FUNCS, 
+.has_set_func =  IC7800_FUNCS,
 .has_get_level =  IC7800_LEVELS,
 .has_set_level =  RIG_LEVEL_SET(IC7800_LEVELS),
 .has_get_parm =  IC7800_PARMS,

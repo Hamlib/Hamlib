@@ -2,21 +2,20 @@
  *  Hamlib Kenwood backend - TS2000 description
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: ts2k.c,v 1.8 2009-02-03 23:22:58 azummo Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -63,7 +62,6 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: ts2k.c,v 1.8 2009-02-03 23:22:58 azummo Exp $
  */
 
 
@@ -183,7 +181,7 @@ ts2k_transaction(RIG * rig, const char *cmdstr, int cmd_len,
 	int retry_read = 0;
 	char *errtxt;
 
-#define MAX_RETRY_READ 5 
+#define MAX_RETRY_READ 5
 
 	rs = &rig->state;
 	rs->hold_decode = 1;
@@ -312,7 +310,7 @@ ts2k_transaction(RIG * rig, const char *cmdstr, int cmd_len,
  * Assumes rig!=NULL
  *
  *	status:		VFOA, VFOB, VFOC, Main, Sub,
- *			MEMA, MEMC, CALLA, CALLC 
+ *			MEMA, MEMC, CALLA, CALLC
  *			VFO_AB, VFO_BA, ...
  *		They all work!		--Dale
  */
@@ -471,7 +469,7 @@ int ts2k_set_vfo(RIG * rig, vfo_t vfo)
 			retval = ts2k_sat_on(rig, vfo);
 				if (retval != RIG_OK)
 					return retval;
-			sat_on = 1;			
+			sat_on = 1;
 		} else {
 			rig_debug(RIG_DEBUG_ERR, __func__ \
 				  ": VFO not changed, only PTT/CTRL\n");
@@ -527,13 +525,13 @@ int ts2k_sat_on(RIG *rig, vfo_t vfo)
 	// FIXME: Add Sat Trace here!
 
 	// Trace REV
-	if(vfo & RIG_CTRL_REV) 
-		ack[7] = '1';	// sat trace REV 
+	if(vfo & RIG_CTRL_REV)
+		ack[7] = '1';	// sat trace REV
 	else
 		ack[7] = '0';
 
 	// CTRL to main or sub?
-	if ((vfo & RIG_VFO_CTRL) && (vfo & RIG_CTRL_SUB)) 	
+	if ((vfo & RIG_VFO_CTRL) && (vfo & RIG_CTRL_SUB))
 		ack[5] = '1';	// sat CTRL on sub
 	else
 		ack[5] = '0';	// sat CTRL on main
@@ -654,7 +652,7 @@ int ts2k_get_vfo(RIG * rig, vfo_t * vfo)
 			*vfo = RIG_VFO_B;
 			break;
 		case '2':
-			if (ctrl_ptt[3] == '0')	// we use CTRL as Active Transceiver. 
+			if (ctrl_ptt[3] == '0')	// we use CTRL as Active Transceiver.
 				*vfo = RIG_VFO_MEM_A;
 			else if (ctrl_ptt[3] == '1')
 				*vfo = RIG_VFO_MEM_C;
@@ -677,7 +675,7 @@ int ts2k_get_vfo(RIG * rig, vfo_t * vfo)
 			return -RIG_EPROTO;
 
 		}		// end switch
-	} else {		// end rx == tx; start split checks. 
+	} else {		// end rx == tx; start split checks.
 		rig_debug(RIG_DEBUG_ERR, "ts2k_get_vfo: Split.\n");
 
 		if (r_vfo == '0' && vfobuf[2] == '1')
@@ -926,7 +924,7 @@ int ts2k_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 	dc = ts2k_get_ctrl(rig);	// will get fixed
 //	m = dc[2]; s = dc[3];		// set defaults
 
-// FIXME: Just handles simple stuff RIG_VFO_CURR,VFOA,VFOB,VFOC; *may* work as intended. 
+// FIXME: Just handles simple stuff RIG_VFO_CURR,VFOA,VFOB,VFOC; *may* work as intended.
 	ctrl = '0';			// Assume Main
 	if(vfo & RIG_CTRL_SUB)		// Change only if sub (bitwise, not logical)
 		ctrl = '1';
@@ -1042,7 +1040,7 @@ int ts2k_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 	return RIG_OK;
 }
 
-/* 
+/*
  * assumes f!=NULL
  */
 static int
@@ -1266,7 +1264,7 @@ int ts2k_set_func(RIG * rig, vfo_t vfo, setting_t func, int status)
 }
 
 
-/* 
+/*
  * assumes status!=NULL
  * works for any 'format 1' command
  */
@@ -1818,7 +1816,7 @@ rig_model_t probe_ts2k(port_t * port)
 	if (retval != RIG_OK)
 		return RIG_MODEL_NONE;
 
-	/* 
+	/*
 	 * reply should be something like 'IDxxx;'
 	 */
 	if (id_len != 5 || id_len != 6) {
@@ -1852,7 +1850,7 @@ rig_model_t probe_ts2k(port_t * port)
 		}
 	}
 	/*
-	 * not found in known table.... 
+	 * not found in known table....
 	 * update ts2k_id_list[]!
 	 */
 	rig_debug(RIG_DEBUG_WARN,
@@ -1969,7 +1967,7 @@ int int_n(char *tmp, char *src, const int cnt)
  *	    PTT	__    __ CTRL	'0' = main; '1' = sub
  *		   \ /
  *		"dc00;"	PTT && CTRL both on main
- *		"dc01;"	PTT on main; CTRL on sub 
+ *		"dc01;"	PTT on main; CTRL on sub
  *		"dc10;"	PTT on sub; CTRL both on main
  *		"dc11;"	PTT && CTRL both on sub
  */
@@ -2008,7 +2006,7 @@ int ts2k_set_ctrl(RIG * rig, int ptt, int ctrl)
 	buf = ts2k_get_ctrl(rig);
 	if(buf==NULL) {
 		rig_debug(RIG_DEBUG_VERBOSE, __func__ \
-			": returned NULL!\n"); 
+			": returned NULL!\n");
 		return -RIG_EINVAL;
 	}
 	rig_debug(RIG_DEBUG_VERBOSE, __func__": curr='%s',"
@@ -2425,9 +2423,9 @@ int ts2k_get_channel(RIG * rig, channel_t *chan)
 // send request for both rx mem and tx mem
 	for(i=0; i<2; i++) {	// 0=rx; 1=tx
 
-		mrcmd_len = sprintf(mrcmd, "mr%01d%03u;", i, chan->channel_num); 
+		mrcmd_len = sprintf(mrcmd, "mr%01d%03u;", i, chan->channel_num);
 		ack_len = 60;	// must be reset inside loop!
-		retval = ts2k_transaction(rig, mrcmd, mrcmd_len, ack, &ack_len); 
+		retval = ts2k_transaction(rig, mrcmd, mrcmd_len, ack, &ack_len);
 		CHKERR(retval);
 
 		rig_debug(RIG_DEBUG_ERR, __func__": read \n\t'%s'\n", ack);
@@ -2467,7 +2465,7 @@ int ts2k_get_channel(RIG * rig, channel_t *chan)
 //	chan->channel_num = ;	// already set?
 
 // The following may be used to indicate we're reading limits (290-299).
-// At any rate, it's currently unused. 
+// At any rate, it's currently unused.
 	chan->bank_num = 0;	// I merge the two--do not use! --Dale
 
 	chan->lock = int_n(tmp, &mrtxt[0][18], 1);
@@ -2617,7 +2615,7 @@ int ts2k_set_channel(RIG * rig, const channel_t *chan)
 
 		// FIXME: now readback the string and make sure it worked!
 	}
-	
+
 	return retval;
 }
 
@@ -2627,7 +2625,7 @@ int ts2k_set_channel(RIG * rig, const channel_t *chan)
  *	(Taken from my revision of ts2k_set_vfo())
  *
  *	status:		VFOA, VFOB, VFOC, Main, Sub,
- *			MEMA, MEMC, CALLA, CALLC 
+ *			MEMA, MEMC, CALLA, CALLC
  *			VFO_AB, VFO_BA, ...
  *		They all work!		--Dale
  */
@@ -2779,8 +2777,8 @@ int ts2k_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 		retval = ts2k_set_vfo(rig, v);	// already set?
 		CHKERR(retval);
 		break;
-		
-	case RIG_VFO_CALL_A:	// 
+
+	case RIG_VFO_CALL_A:	//
 	case RIG_VFO_CALL_C:
 	default:
 		rig_debug(RIG_DEBUG_ERR, __func__": vfo 'defaulted'\n");
@@ -2793,7 +2791,7 @@ int ts2k_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 
 	switch(scan) {
 
-	case RIG_SCAN_STOP: 
+	case RIG_SCAN_STOP:
 		return ts2k_scan_off(rig);
 		break;
 
@@ -2869,7 +2867,7 @@ int ts2k_get_parm(RIG *rig, setting_t parm, value_t *val)
 	case RIG_PARM_TIME:
 		return -RIG_ENAVAIL;
 	default:
-		return -RIG_EINTERNAL;	
+		return -RIG_EINTERNAL;
 	}
 	acklen = 30;
 	retval = ts2k_transaction(rig, cmd, cmdlen, ack, &acklen);

@@ -6,19 +6,20 @@
  *  Copyright (C) 2009 Andrew Nilsson (andrew.nilsson@gmail.com)
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
  */
 
 #ifdef HAVE_CONFIG_H
@@ -454,7 +455,7 @@ static int setBPF(RIG *rig, int enable)
 
     if (nBytes < 0)
         return -RIG_EIO;
-  
+
 	if (nBytes > 2) {
 
 		nBytes = usb_control_msg(udh, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
@@ -470,7 +471,7 @@ static int setBPF(RIG *rig, int enable)
                     i, (double) FilterCrossOver[i] / (1UL << 5));
 		}
 		rig_debug (RIG_DEBUG_TRACE, "  BPF Enabled: %d\n",
-                FilterCrossOver[(nBytes / 2) - 1]); 
+                FilterCrossOver[(nBytes / 2) - 1]);
 	}
     return RIG_OK;
 }
@@ -493,7 +494,7 @@ int si570xxxusb_open(RIG *rig)
 			(char *) &version, sizeof(version), rig->state.rigport.timeout);
 
 	if (ret != 2) {
-		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg failed: %s\n", 
+		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg failed: %s\n",
 					__func__,
 					usb_strerror ());
 		return -RIG_EIO;
@@ -543,7 +544,7 @@ const char * si570xxxusb_get_info(RIG *rig)
 			(char *) &version, sizeof(version), rig->state.rigport.timeout);
 
 	if (ret != 2) {
-		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg failed: %s\n", 
+		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg failed: %s\n",
 					__func__,
 					usb_strerror ());
 		return NULL;
@@ -561,15 +562,15 @@ static const int HS_DIV_MAP[] = {4,5,6,7,-1,9,-1,11};
 static int calcDividers(RIG *rig, double f, struct solution* solution)
 {
 	struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)rig->state.priv;
-	struct solution sols[8]; 
+	struct solution sols[8];
 	int i;
 	int imin;
 	double fmin;
 	double y;
-	
+
 	// Count down through the dividers
 	for (i=7;i >= 0;i--) {
-		
+
 		if (HS_DIV_MAP[i] > 0) {
 			sols[i].HS_DIV = i;
 			y = (SI570_DCO_HIGH + SI570_DCO_LOW) / (2 * f);
@@ -590,7 +591,7 @@ static int calcDividers(RIG *rig, double f, struct solution* solution)
 	}
 	imin = -1;
 	fmin = 10000000000000000.0;
-		
+
 	for (i=0; i < 8; i++) {
 		if ((sols[i].f0 >= SI570_DCO_LOW) && (sols[i].f0 <= SI570_DCO_HIGH)) {
 			if (sols[i].f0 < fmin) {
@@ -599,14 +600,14 @@ static int calcDividers(RIG *rig, double f, struct solution* solution)
 			}
 		}
 	}
-		
+
 	if (imin >= 0) {
 		solution->HS_DIV = sols[imin].HS_DIV;
 		solution->N1 = sols[imin].N1;
 		solution->f0 = sols[imin].f0;
 		solution->RFREQ = sols[imin].f0 / priv->osc_freq;
 
-	    rig_debug(RIG_DEBUG_TRACE, "%s: solution: HS_DIV = %d, N1 = %d, f0 = %f, RFREQ = %f\n", 
+	    rig_debug(RIG_DEBUG_TRACE, "%s: solution: HS_DIV = %d, N1 = %d, f0 = %f, RFREQ = %f\n",
 			__func__, solution->HS_DIV, solution->N1, solution->f0, solution->RFREQ);
 
 		return 1;
@@ -626,7 +627,7 @@ static void setLongWord(uint32_t value, unsigned char * bytes)
 	bytes[1] = ((value & 0xff00) >> 8) & 0xff;
 	bytes[2] = ((value & 0xff0000) >> 16) & 0xff;
 	bytes[3] = ((value & 0xff000000) >> 24) & 0xff;
-} 
+}
 
 
 int si570xxxusb_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
@@ -656,7 +657,7 @@ int si570xxxusb_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	RFREQ_frac = round((theSolution.RFREQ - RFREQ_int)*268435456);
 	setLongWord(RFREQ_int, intBuffer);
 	setLongWord(RFREQ_frac, fracBuffer);
-	
+
 	buffer[5] = fracBuffer[0];
 	buffer[4] = fracBuffer[1];
 	buffer[3] = fracBuffer[2];
@@ -670,19 +671,19 @@ int si570xxxusb_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	ret = usb_control_msg(udh, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_OUT,
 			request, value, index, (char*)buffer, sizeof(buffer), rig->state.rigport.timeout);
 
-	rig_debug(RIG_DEBUG_TRACE, "%s: Freq=%.6f MHz, Real=%.6f MHz, buf=%02x%02x%02x%02x%02x%02x\n", 
+	rig_debug(RIG_DEBUG_TRACE, "%s: Freq=%.6f MHz, Real=%.6f MHz, buf=%02x%02x%02x%02x%02x%02x\n",
 			__func__, freq/1e6, f,
 			buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5]);
 
 
 	if (!ret) {
-		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg failed: %s\n", 
+		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg failed: %s\n",
 					__func__,
 					usb_strerror ());
 		return -RIG_EIO;
 	}
 
-	rig_debug(RIG_DEBUG_TRACE, "%s: Result buf=%02x%02x\n", 
+	rig_debug(RIG_DEBUG_TRACE, "%s: Result buf=%02x%02x\n",
 			__func__, buffer[0], buffer[1]);
 
 	return RIG_OK;
@@ -704,7 +705,7 @@ int si570xxxusb_set_freq_by_value(RIG *rig, vfo_t vfo, freq_t freq)
 
 	setLongWord(round(f * 2097152.0), buffer);
 
-	rig_debug(RIG_DEBUG_TRACE, "%s: Freq=%.6f MHz, Real=%.6f MHz, buf=%02x%02x%02x%02x\n", 
+	rig_debug(RIG_DEBUG_TRACE, "%s: Freq=%.6f MHz, Real=%.6f MHz, buf=%02x%02x%02x%02x\n",
 			__func__, freq/1e6, f,
 			buffer[0], buffer[1], buffer[2], buffer[3]);
 
@@ -712,13 +713,13 @@ int si570xxxusb_set_freq_by_value(RIG *rig, vfo_t vfo, freq_t freq)
 			request, value, index, (char*)buffer, sizeof(buffer), rig->state.rigport.timeout);
 
 	if (!ret) {
-		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg failed: %s\n", 
+		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg failed: %s\n",
 					__func__,
 					usb_strerror ());
 		return -RIG_EIO;
 	}
 
-	rig_debug(RIG_DEBUG_TRACE, "%s: Result buf=%02x%02x\n", 
+	rig_debug(RIG_DEBUG_TRACE, "%s: Result buf=%02x%02x\n",
 			__func__, buffer[0], buffer[1]);
 
 	return RIG_OK;
@@ -734,7 +735,7 @@ static double calculateFrequency(RIG *rig, const unsigned char * buffer)
 	int N1 = ((buffer[1] & 0xc0 ) >> 6) + ((buffer[0] & 0x1f) * 4);
 	int HS_DIV = (buffer[0] & 0xE0) >> 5;
 	double fout = priv->osc_freq * RFREQ / ((N1 + 1) * HS_DIV_MAP[HS_DIV]);
-	
+
 	rig_debug (RIG_DEBUG_VERBOSE,
 			"%s: Registers 7..13: %02x%02x%02x%02x%02x%02x\n",
 			__func__,
@@ -768,7 +769,7 @@ int si570xxxusb_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 			(char *)buffer, sizeof(buffer), rig->state.rigport.timeout);
 
 	if (ret <= 0) {
-		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg failed: %s\n", 
+		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg failed: %s\n",
 					__func__,
 					usb_strerror ());
 		return -RIG_EIO;
@@ -791,7 +792,7 @@ int si570xxxusb_get_freq_by_value(RIG *rig, vfo_t vfo, freq_t *freq)
 			(char *)&iFreq, sizeof(iFreq), rig->state.rigport.timeout);
 
 	if (ret != 4) {
-		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg failed: %s\n", 
+		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg failed: %s\n",
 					__func__,
 					usb_strerror ());
 		return -RIG_EIO;
@@ -814,12 +815,12 @@ int si570xxxusb_set_ptt(RIG * rig, vfo_t vfo, ptt_t ptt)
 	buffer[0] = 0;
 	buffer[1] = 0;
 	buffer[2] = 0;
-	
+
 	ret = usb_control_msg(udh, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
 			REQUEST_SET_PTT, (ptt == RIG_PTT_ON) ? 1 : 0, 0,
 			(char *)buffer, sizeof(buffer), rig->state.rigport.timeout);
 	if (ret < 0) {
-		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg failed: %s\n", 
+		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg failed: %s\n",
 					__func__,
 					usb_strerror ());
 		return -RIG_EIO;

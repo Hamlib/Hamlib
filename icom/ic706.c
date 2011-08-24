@@ -3,19 +3,19 @@
  *  Copyright (c) 2000-2010 by Stephane Fillod
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -63,7 +63,7 @@ static int ic706_r2i_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 
 /* tx doesn't have WFM.
  * 100W in all modes but AM (40W)
- */ 
+ */
 #define IC706_OTHER_TX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM)
 #define IC706_AM_TX_MODES (RIG_MODE_AM)
 
@@ -80,7 +80,7 @@ static int ic706_r2i_mode(RIG *rig, rmode_t mode, pbwidth_t width,
  * IC706IIG_REAL_STR_CAL is accurate measurements
  * IC706IIG_STR_CAL is what the S-meter displays
  *
- * calibration data was obtained from W8WWV 
+ * calibration data was obtained from W8WWV
  * 	http://www.seed-solutions.com/gregordy/
  */
 #define IC706IIG_REAL_STR_CAL { 16, \
@@ -129,7 +129,7 @@ static int ic706_r2i_mode(RIG *rig, rmode_t mode, pbwidth_t width,
  * Notice that some rigs share the same functions.
  * Also this struct is READONLY!
  */
-static const struct icom_priv_caps ic706_priv_caps = { 
+static const struct icom_priv_caps ic706_priv_caps = {
 		0x48,	/* default address */
 		0,		/* 731 mode */
 		ic706_ts_sc_list,
@@ -138,8 +138,8 @@ static const struct icom_priv_caps ic706_priv_caps = {
 
 const struct rig_caps ic706_caps = {
 .rig_model =  RIG_MODEL_IC706,
-.model_name = "IC-706", 
-.mfg_name =  "Icom", 
+.model_name = "IC-706",
+.mfg_name =  "Icom",
 .version =  BACKEND_VER ".1",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
@@ -152,13 +152,13 @@ const struct rig_caps ic706_caps = {
 .serial_data_bits =  8,
 .serial_stop_bits =  1,
 .serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_NONE, 
+.serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
 .timeout =  200,
-.retry =  3, 
+.retry =  3,
 .has_get_func =  RIG_FUNC_NONE,
-.has_set_func =  RIG_FUNC_NONE, 
+.has_set_func =  RIG_FUNC_NONE,
 .has_get_level =  RIG_LEVEL_NONE,
 .has_set_level =  RIG_LEVEL_NONE,
 .has_get_parm =  RIG_PARM_NONE,
@@ -261,7 +261,7 @@ const struct rig_caps ic706_caps = {
 };
 
 
-static const struct icom_priv_caps ic706mkii_priv_caps = { 
+static const struct icom_priv_caps ic706mkii_priv_caps = {
 		0x4e,	/* default address */
 		0,		/* 731 mode */
 		ic706_ts_sc_list,
@@ -270,8 +270,8 @@ static const struct icom_priv_caps ic706mkii_priv_caps = {
 
 const struct rig_caps ic706mkii_caps = {
 .rig_model =  RIG_MODEL_IC706MKII,
-.model_name = "IC-706MkII", 
-.mfg_name =  "Icom", 
+.model_name = "IC-706MkII",
+.mfg_name =  "Icom",
 .version =  BACKEND_VER ".1",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
@@ -284,11 +284,11 @@ const struct rig_caps ic706mkii_caps = {
 .serial_data_bits =  8,
 .serial_stop_bits =  1,
 .serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_NONE, 
+.serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
 .timeout =  200,
-.retry =  3, 
+.retry =  3,
 .has_get_func =  RIG_FUNC_NONE,
 .has_set_func =  RIG_FUNC_NONE,
 .has_get_level =  RIG_LEVEL_NONE,
@@ -410,13 +410,13 @@ const struct rig_caps ic706mkii_caps = {
 	.rptr_shift = 1, /* only set */	\
 	.funcs = IC706IIG_FUNC_ALL, \
 	.levels = RIG_LEVEL_SET(IC706IIG_LEVEL_ALL), \
-} 
+}
 
 /*
  * Basically, the IC706MKIIG is an IC706MKII plus UHF, a DSP
  * and 50W VHF
  */
-static const struct icom_priv_caps ic706mkiig_priv_caps = { 
+static const struct icom_priv_caps ic706mkiig_priv_caps = {
 		0x58,	/* default address */
 		0,		/* 731 mode */
 		ic706_ts_sc_list,
@@ -425,8 +425,8 @@ static const struct icom_priv_caps ic706mkiig_priv_caps = {
 
 const struct rig_caps ic706mkiig_caps = {
 .rig_model =  RIG_MODEL_IC706MKIIG,
-.model_name = "IC-706MkIIG", 
-.mfg_name =  "Icom", 
+.model_name = "IC-706MkIIG",
+.mfg_name =  "Icom",
 .version =  BACKEND_VER ".2",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_STABLE,
@@ -439,13 +439,13 @@ const struct rig_caps ic706mkiig_caps = {
 .serial_data_bits =  8,
 .serial_stop_bits =  1,
 .serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_NONE, 
+.serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
 .timeout =  200,
-.retry =  3, 
+.retry =  3,
 .has_get_func =  IC706IIG_FUNC_ALL,
-.has_set_func =  IC706IIG_FUNC_ALL, 
+.has_set_func =  IC706IIG_FUNC_ALL,
 .has_get_level =  IC706IIG_LEVEL_ALL,
 .has_set_level =  RIG_LEVEL_SET(IC706IIG_LEVEL_ALL),
 .has_get_parm =  RIG_PARM_NONE,

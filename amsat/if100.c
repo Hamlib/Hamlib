@@ -3,19 +3,19 @@
  *  Copyright (c) 2011 by Stephane Fillod
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -47,13 +47,13 @@ if100_set_position(ROT *rot, azimuth_t az, elevation_t el)
     float az_scale, el_scale;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
-    
+
     az_scale = 255./(rot->state.max_az - rot->state.min_az);
     el_scale = 255./180;
-    
+
     az_i = (int)round((az - rot->state.min_az) * az_scale);
     el_i = (int)round(el * el_scale);
-    
+
     rig_debug(RIG_DEBUG_TRACE, "%s output az: %d el: %d\n", __func__, az_i, el_i);
     dataout = ((el_i & 0xff) << 8) + (az_i & 0xff);
 

@@ -4,23 +4,21 @@
  * This program exercises the backup and restore of a radio
  * using Hamlib. CSV primitives
  *
- * $Id: memcsv.c,v 1.8 2005-04-20 14:47:04 fillods Exp $  
  *
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation; either version 2 of the License, or
+ *   (at your option) any later version.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- * 
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License along
+ *   with this program; if not, write to the Free Software Foundation, Inc.,
+ *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 #ifdef HAVE_CONFIG_H
@@ -41,7 +39,7 @@
 #include "sprintflst.h"
 
 
-/* 
+/*
  * external prototype
  */
 
@@ -49,7 +47,7 @@ extern int all;
 
 char csv_sep = ',';	/* CSV separator */
 
-/* 
+/*
  * Prototypes
  */
 static int dump_csv_chan(RIG *rig, channel_t **chan, int channel_num, const chan_t *chan_list, rig_ptr_t arg);
@@ -268,14 +266,14 @@ int dump_csv_chan(RIG *rig, channel_t **chan_pp, int channel_num, const chan_t *
 
 	if (*chan_pp == NULL) {
 		/*
-		 * Hamlib frontend demand application an allocated 
+		 * Hamlib frontend demand application an allocated
 		 * channel_t pointer for next round.
 		 */
 		*chan_pp = &chan;
 
 		return RIG_OK;
 	}
-	
+
 	fprintf(f,"%d%c",chan.channel_num, csv_sep);
 
 	if (mem_caps->bank_num) {

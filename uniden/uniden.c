@@ -2,21 +2,20 @@
  *  Hamlib Uniden backend - main file
  *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: uniden.c,v 1.15 2008-10-07 18:58:08 fillods Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -206,7 +205,7 @@ transaction_write:
      * Check that received the correct reply. The first two characters
      * should be the same as command.
      */
-    if (replystr && replystr[0] && (data[0] != replystr[0] || 
+    if (replystr && replystr[0] && (data[0] != replystr[0] ||
 			    (replystr[1] && data[1] != replystr[1]))) {
          /*
           * TODO: When RIG_TRN is enabled, we can pass the string
@@ -338,7 +337,7 @@ int uniden_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		level_len = sprintf(levelbuf, "AT%c"EOM,
 				val.i != 0 ? 'N':'F');
 		break;
-		
+
 	default:
 		rig_debug(RIG_DEBUG_ERR,"Unsupported set_level %d", level);
 		return -RIG_EINVAL;
@@ -640,11 +639,11 @@ DECLARE_PROBERIG_BACKEND(uniden)
 	for (rates_idx = 0; rates[rates_idx]; rates_idx++) {
 		port->parm.serial.rate = rates[rates_idx];
 		port->timeout = 2*1000/rates[rates_idx] + 50;
-	
+
 		retval = serial_open(port);
 		if (retval != RIG_OK)
 			return RIG_MODEL_NONE;
-	
+
 		retval = write_block(port, "SI"EOM, 3);
 		id_len = read_string(port, idbuf, IDBUFSZ, EOM, 1);
 		close(port->fd);
@@ -656,7 +655,7 @@ DECLARE_PROBERIG_BACKEND(uniden)
 	if (retval != RIG_OK || id_len < 0 || memcmp(idbuf, "SI ", 3))
 		return RIG_MODEL_NONE;
 
-	/* 
+	/*
 	 * reply should be something like 'SI xxx,xx,xx\x0d'
 	 */
 	if (id_len < 4) {
@@ -681,7 +680,7 @@ DECLARE_PROBERIG_BACKEND(uniden)
 	}
 
 	/*
-	 * not found in known table.... 
+	 * not found in known table....
 	 * update uniden_id_list[]!
 	 */
 	rig_debug(RIG_DEBUG_WARN,"probe_uniden: found unknown device "

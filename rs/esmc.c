@@ -2,21 +2,20 @@
  *  Hamlib R&S backend - ESMC description
  *  Copyright (c) 2009 by Stephane Fillod
  *
- *	$Id: esmc.c,v 1.5 2009/08/02 12:23:46 fillods Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -59,7 +58,7 @@
  * ESMC rig capabilities.
  *
  * Needs option ESMC-R2 for computer operation RS232C/RS422/RS485
- * 
+ *
  * http://www2.rohde-schwarz.com/file/ESMC_25.pdf
  */
 
@@ -117,7 +116,7 @@ const struct rig_caps esmc_caps = {
  * ESMC-T0 0.5 MHz to 30 MHz
  * ESMC-FE 20 MHz to 3 GHz
  */
-.rx_range_list1 =  { 
+.rx_range_list1 =  {
 	{kHz(20),MHz(650),ESMC_MODES,-1,-1,ESMC_VFO},
 	RIG_FRNG_END,
   },

@@ -4,19 +4,19 @@
  *  Copyright (c) 2000-2003 by Frank Singleton
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -109,7 +109,7 @@ static int add_opened_rot(ROT *rot)
 }
 
 static int remove_opened_rot(ROT *rot)
-{	
+{
 	struct opened_rot_l *p,*q;
 	q = NULL;
 
@@ -132,9 +132,9 @@ static int remove_opened_rot(ROT *rot)
 /**
  * \brief execs cfunc() on each opened rot
  * \param cfunc	The function to be executed on each rot
- * \param data	Data pointer to be passed to cfunc() 
+ * \param data	Data pointer to be passed to cfunc()
  *
- *  Calls cfunc() function for each opened rot. 
+ *  Calls cfunc() function for each opened rot.
  *  The contents of the opened rot table
  *  is processed in random order according to a function
  *  pointed to by \a cfunc, whic is called with two arguments,
@@ -149,7 +149,7 @@ static int remove_opened_rot(ROT *rot)
  */
 
 int foreach_opened_rot(int (*cfunc)(ROT *, rig_ptr_t), rig_ptr_t data)
-{	
+{
 	struct opened_rot_l *p;
 
 	for (p=opened_rot_list; p; p=p->next) {
@@ -163,7 +163,7 @@ int foreach_opened_rot(int (*cfunc)(ROT *, rig_ptr_t), rig_ptr_t data)
  * \brief allocate a new #ROT handle
  * \param rot_model	The rot model for this new handle
  *
- * Allocates a new #ROT handle and initializes the associated data 
+ * Allocates a new #ROT handle and initializes the associated data
  * for \a rot_model.
  *
  * \return a pointer to the #ROT handle otherwise NULL if memory allocation
@@ -189,8 +189,8 @@ ROT * HAMLIB_API rot_init(rot_model_t rot_model)
 
 	/*
 	 * okay, we've found it. Allocate some memory and set it to zeros,
-	 * and especially the initialize the callbacks 
-	 */ 
+	 * and especially the initialize the callbacks
+	 */
 	rot = calloc(1, sizeof(ROT));
 	if (rot == NULL) {
 		/*
@@ -206,7 +206,7 @@ ROT * HAMLIB_API rot_init(rot_model_t rot_model)
 
 	/*
 	 * populate the rot->state
-	 * TODO: read the Preferences here! 
+	 * TODO: read the Preferences here!
 	 */
 
 	rs = &rot->state;
@@ -248,7 +248,7 @@ ROT * HAMLIB_API rot_init(rot_model_t rot_model)
 
 	rs->rotport.fd = -1;
 
-	/* 
+	/*
 	 * let the backend a chance to setup his private data
 	 * This must be done only once defaults are setup,
 	 * so the backend init can override rot_state.
@@ -273,8 +273,8 @@ ROT * HAMLIB_API rot_init(rot_model_t rot_model)
  * Opens communication to a rotator which \a ROT handle has been passed
  * by argument.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
  * set appropriately).
  *
  * \retval RIG_EINVAL	\a rot is NULL or unconsistent.
@@ -347,12 +347,12 @@ int HAMLIB_API rot_open(ROT *rot)
 
 	rs->comm_state = 1;
 
-	/* 
+	/*
 	 * Maybe the backend has something to initialize
 	 * In case of failure, just close down and report error code.
 	 */
 	if (caps->rot_open != NULL) {
-		status = caps->rot_open(rot);	
+		status = caps->rot_open(rot);
 		if (status != RIG_OK) {
 			return status;
 		}
@@ -368,8 +368,8 @@ int HAMLIB_API rot_open(ROT *rot)
  * Closes communication to a rotator which \a ROT handle has been passed
  * by argument that was previously open with rot_open().
  *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
  * set appropriately).
  *
  * \sa rot_cleanup(), rot_open()
@@ -430,11 +430,11 @@ int HAMLIB_API rot_close(ROT *rot)
  * \brief release a rot handle and free associated memory
  * \param rot	The #ROT handle of the radio to be closed
  *
- * Releases a rot struct which port has eventualy been closed already 
+ * Releases a rot struct which port has eventualy been closed already
  * with rot_close().
  *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
  * set appropriately).
  *
  * \sa rot_init(), rot_close()
@@ -454,7 +454,7 @@ int HAMLIB_API rot_cleanup(ROT *rot)
 		rot_close(rot);
 
 	/*
-	 * basically free up the priv struct 
+	 * basically free up the priv struct
 	 */
 	if (rot->caps->rot_cleanup)
 		rot->caps->rot_cleanup(rot);
@@ -508,8 +508,8 @@ int HAMLIB_API rot_set_position (ROT *rot, azimuth_t azimuth, elevation_t elevat
  *
  *  Retrieves the current azimuth and elevation of the rotator.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
  * set appropriately).
  *
  * \sa rot_set_position()
@@ -536,8 +536,8 @@ int HAMLIB_API rot_get_position (ROT *rot, azimuth_t *azimuth, elevation_t *elev
  *
  *  Park the antenna.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
  * set appropriately).
  *
  */
@@ -563,8 +563,8 @@ int HAMLIB_API rot_park (ROT *rot)
  *
  *  Stop the rotator.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
  * set appropriately).
  *
  */
@@ -591,8 +591,8 @@ int HAMLIB_API rot_stop (ROT *rot)
  *
  *  Resets the rotator.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
  * set appropriately).
  *
  */
@@ -641,9 +641,9 @@ int HAMLIB_API rot_move (ROT *rot, int direction, int speed)
  * \param rot	The rot handle
  *
  * Retrieves some general information from the rotator.
- * This can include firmware revision, exact model name, or just nothing. 
+ * This can include firmware revision, exact model name, or just nothing.
  *
- * \return a pointer to static memory containing the ASCIIZ string 
+ * \return a pointer to static memory containing the ASCIIZ string
  * if the operation has been sucessful, otherwise NULL if an error occured
  * or get_info not part of capabilities.
  */

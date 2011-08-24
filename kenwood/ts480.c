@@ -2,21 +2,20 @@
  *  Hamlib Kenwood backend - TS480 description
  *  Copyright (c) 2000-2004 by Stephane Fillod and Juergen Rinas
  *
- *	$Id: ts480.c,v 1.12 2009-02-03 22:56:06 azummo Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -357,7 +356,7 @@ const struct rig_caps ts480_caps = {
          {TS480_ALL_MODES,MHz(1)},
          {TS480_ALL_MODES,0},   /* any tuning step */
          RIG_TS_END,
-        },  
+        },
         /* mode/filter list, remember: order matters! */
   .filters =  {
                 {RIG_MODE_SSB, kHz(2.4)},
@@ -405,7 +404,7 @@ const struct rig_caps ts480_caps = {
  * my notes:
  *  format with:  indent --line-length 200 ts480.c
  *
- * for the TS480 the function NR and BC have tree state: NR0,1,2 and BC0,1,2 
+ * for the TS480 the function NR and BC have tree state: NR0,1,2 and BC0,1,2
  * this cannot be send through the on/off logic of set_function!
  */
 

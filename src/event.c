@@ -4,19 +4,19 @@
  *  Copyright (c) 2000-2003 by Frank Singleton
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -253,7 +253,7 @@ static int search_rig_and_decode(RIG *rig, rig_ptr_t data)
 	/*
 	 * so far, only file oriented ports have event reporting support
 	 */
-	if (rig->state.rigport.type.rig != RIG_PORT_SERIAL || 
+	if (rig->state.rigport.type.rig != RIG_PORT_SERIAL ||
 			rig->state.rigport.fd == -1)
 		return -1;
 
@@ -269,12 +269,12 @@ static int search_rig_and_decode(RIG *rig, rig_ptr_t data)
 	/* Read status immediately. */
 	tv.tv_sec = 0;
 	tv.tv_usec = 0;
-	
+
 	/* don't use FIONREAD to detect activity
 	 * since it is less portable than select
 	 * REM: EINTR possible with 0sec timeout? retval==0?
 	 */
-	retval = select(rig->state.rigport.fd+1, &rfds, NULL, NULL, &tv);                                                      
+	retval = select(rig->state.rigport.fd+1, &rfds, NULL, NULL, &tv);
 	if (retval < 0) {
 		rig_debug(RIG_DEBUG_ERR, "search_rig_and_decode: select: %s\n",
 								strerror(errno));
@@ -345,7 +345,7 @@ static int search_rig_and_poll(RIG *rig, rig_ptr_t data)
 		retval = rig->caps->get_mode(rig, RIG_VFO_CURR, &rmode, &width);
 		if (retval == RIG_OK) {
  			if (rmode != rs->current_mode || width != rs->current_width) {
-				rig->callbacks.mode_event(rig, RIG_VFO_CURR, 
+				rig->callbacks.mode_event(rig, RIG_VFO_CURR,
 						rmode, width, rig->callbacks.mode_arg);
 			}
 	 		rs->current_mode = rmode;
@@ -424,8 +424,8 @@ static RETSIGTYPE sa_sigalrmhandler(int signum)
  *
  *  Install a callback for freq events, to be called when in transceive mode.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
  * set appropriately).
  *
  * \sa rig_set_trn()
@@ -450,8 +450,8 @@ int HAMLIB_API rig_set_freq_callback(RIG *rig, freq_cb_t cb, rig_ptr_t arg)
  *
  *  Install a callback for mode events, to be called when in transceive mode.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
  * set appropriately).
  *
  * \sa rig_set_trn()
@@ -476,8 +476,8 @@ int HAMLIB_API rig_set_mode_callback(RIG *rig, mode_cb_t cb, rig_ptr_t arg)
  *
  *  Install a callback for vfo events, to be called when in transceive mode.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
  * set appropriately).
  *
  * \sa rig_set_trn()
@@ -502,8 +502,8 @@ int HAMLIB_API rig_set_vfo_callback(RIG *rig, vfo_cb_t cb, rig_ptr_t arg)
  *
  *  Install a callback for ptt events, to be called when in transceive mode.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
  * set appropriately).
  *
  * \sa rig_set_trn()
@@ -528,8 +528,8 @@ int HAMLIB_API rig_set_ptt_callback(RIG *rig, ptt_cb_t cb, rig_ptr_t arg)
  *
  *  Install a callback for dcd events, to be called when in transceive mode.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
  * set appropriately).
  *
  * \sa rig_set_trn()
@@ -556,8 +556,8 @@ int HAMLIB_API rig_set_dcd_callback(RIG *rig, dcd_cb_t cb, rig_ptr_t arg)
  *  Install a callback for pipelined tuning module, to be called when the
  *  rig_scan( SCAN_PLT ) loop needs a new frequency, mode and width.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
  * set appropriately).
  *
  * \sa rig_set_trn()
@@ -575,14 +575,14 @@ int HAMLIB_API rig_set_pltune_callback(RIG *rig, pltune_cb_t cb, rig_ptr_t arg)
 }
 
 /**
- * \brief control the transceive mode 
+ * \brief control the transceive mode
  * \param rig	The rig handle
  * \param trn	The transceive status to set to
  *
  *  Enable/disable the transceive handling of a rig and kick off async mode.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
  * set appropriately).
  *
  * \sa rig_get_trn()
@@ -693,11 +693,11 @@ int HAMLIB_API rig_set_trn(RIG *rig, int trn)
  * \param rig	The rig handle
  * \param trn	The location where to store the current transceive mode
  *
- *  Retrieves the current status of the transceive mode, i.e. if radio 
+ *  Retrieves the current status of the transceive mode, i.e. if radio
  *  sends new status automatically when some changes happened on the radio.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
  * set appropriately).
  *
  * \sa rig_set_trn()

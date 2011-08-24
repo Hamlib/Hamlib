@@ -3,19 +3,19 @@
  *  Copyright (c) 2010 by Stephane Fillod
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -174,7 +174,7 @@ const struct rig_caps ts590_caps = {
          {TS590_ALL_MODES,MHz(1)},
          {TS590_ALL_MODES,0},   /* any tuning step */
          RIG_TS_END,
-        },  
+        },
         /* mode/filter list, remember: order matters! */
   .filters =  {
                 {RIG_MODE_SSB, kHz(2.2)},
@@ -233,7 +233,7 @@ const struct rig_caps ts590_caps = {
 
 
 /*
- * for the TS480 the function NR and BC have tree state: NR0,1,2 and BC0,1,2 
+ * for the TS480 the function NR and BC have tree state: NR0,1,2 and BC0,1,2
  * this cannot be send through the on/off logic of set_function!
  */
 

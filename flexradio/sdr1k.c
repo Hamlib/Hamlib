@@ -3,19 +3,19 @@
  *  Copyright (c) 2003-2010 by Stephane Fillod
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -381,7 +381,7 @@ int sdr1k_set_ptt (RIG *rig, vfo_t vfo, ptt_t ptt)
 {
 	return set_bit(rig, L_BAND, 6, ptt == RIG_PTT_ON);
 }
-  
+
 
 int sdr1k_set_level (RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
@@ -395,7 +395,7 @@ int sdr1k_set_level (RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		return -RIG_EINVAL;
 	}
 }
-  
+
 
 int
 write_latch (RIG *rig, latch_t which, unsigned value, unsigned mask)
@@ -405,7 +405,7 @@ write_latch (RIG *rig, latch_t which, unsigned value, unsigned mask)
 
   if (!(L_EXT <= which && which <= L_DDS1))
     return -RIG_EINVAL;
-  
+
   par_lock (pport);
   priv->shadow[which] = (priv->shadow[which] & ~mask) | (value & mask);
   par_write_data (pport, priv->shadow[which]);
@@ -450,7 +450,7 @@ int
 set_bit (RIG *rig, latch_t reg, unsigned bit, unsigned state)
 {
 	unsigned val;
-	
+
 	val = state ? 1<<bit : 0;
 
 	return write_latch (rig, reg, val, 1<<bit);

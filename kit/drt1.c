@@ -2,21 +2,20 @@
  *  Hamlib KIT backend - Sat-Schneider DRT1/SAD1 DRM receiver description
  *  Copyright (c) 2004-2005 by Stephane Fillod
  *
- *	$Id: drt1.c,v 1.4 2005-04-03 12:27:15 fillods Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -285,7 +284,7 @@ Inputs (SDI(O)); SCLK und I/O UPDATE haves 5V TTL level, so that a
 /*
  * Introduce delay after changing the bit state
  * FIXME: This implementation may not work for very fast computers,
- * 		or smart compilers. However, nanosleep can have 
+ * 		or smart compilers. However, nanosleep can have
  * 		granularity > 10ms!
  */
 static int ad_delay(int m)
@@ -365,7 +364,7 @@ static int ad_write_reg(hamlib_port_t *port, unsigned addr, unsigned nb_bytes, u
 	ad_ioupd(port, 0);	/* DTR 0 */
 
 	return RIG_OK;
-}	
+}
 
 /* Register serial adresses */
 #define CFR1	0x0
@@ -406,7 +405,7 @@ int drt1_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 	/* all frequencies are in Hz */
 	frg = (unsigned long)(((double)freq + priv->if_mix_freq) /
-				(priv->osc_freq * priv->ref_mult) 
+				(priv->osc_freq * priv->ref_mult)
 				* 4294967296.0);
 
 	rig_debug(RIG_DEBUG_VERBOSE, "%s: [%#lx]\n", __FUNCTION__,frg);

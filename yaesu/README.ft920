@@ -1,8 +1,6 @@
 Quirks, known bugs, and other notes.
 ====================================
 
-$Id: README.ft920,v 1.3 2003-01-19 04:47:59 n0nb Exp $
-
 In this document I'll try to describe the behavior of the Yaesu FT-920
 transceiver with Hamlib.  Some of these are limitations of the radio
 while others are programming trade-offs with Hamlib.
@@ -11,13 +9,13 @@ This document is organized by Hamlib function calls and documents observed
 behavior with each call.
 
 rig_set_mode
-    *   No matter the status of the main display, MEM or VFO, display 
+    *   No matter the status of the main display, MEM or VFO, display
         will be set to VFO mode if RIG_VFO_A or RIG_VFO_VFO is passed.
-    *   If radio is in MEM or MEM TUNE state, main display mode can be 
-        changed when RIG_VFO_MEM or RIG_VFO_MAIN is passed.  
+    *   If radio is in MEM or MEM TUNE state, main display mode can be
+        changed when RIG_VFO_MEM or RIG_VFO_MAIN is passed.
     *   When RIG_VFO_CURR is passed, the display will be set per the VFO
         stored by the last rig_get_vfo call.
-    *   Modes DATA USB and DATA FM cannot be set at this time 
+    *   Modes DATA USB and DATA FM cannot be set at this time
         (Hamlib limitation).  See below.
     *   My FT-920 does not support USB/LSB narrow so attempting to
         set a narrow passband with these modes will return an Invalib
@@ -29,34 +27,34 @@ rig_get_mode
     *   DATA LSB is mapped to RIG_MODE_RTTY.
     *   I would like to hear from anyone who gets a narrow passband
         value in USB/LSB mode returned.
-        
+
 rig_set_freq
-    *   When passed RIG_VFO_A or RIG_VFO_VFO the main display is forced 
+    *   When passed RIG_VFO_A or RIG_VFO_VFO the main display is forced
         to VFO mode and then the frequency is set.
     *   When passed RIG_VFO_B or RIG_VFO_SUB, the sub display frequency
         is set.
-    *   When passed RIG_VFO_MEM, or RIG_VFO_MAIN, the main display 
-        frequency is set regardless of whether the main display is in 
+    *   When passed RIG_VFO_MEM, or RIG_VFO_MAIN, the main display
+        frequency is set regardless of whether the main display is in
         memory (thus activating MEM Tune) or VFO mode.
     *   When RIG_VFO_CURR is passed, the display will be set per the VFO
         stored by the last rig_get_vfo call.
     *   RIG_TARGETABLE_ALL is properly handled (I think).
 
 rig_get_freq
-    *   When passed RIG_VFO_A or RIG_VFO_VFO, the radio returns the 
-        frequency in the main VFO, even if the main display is in MEM or 
+    *   When passed RIG_VFO_A or RIG_VFO_VFO, the radio returns the
+        frequency in the main VFO, even if the main display is in MEM or
         MEM Tune.
     *   When passed RIG_VFO_B or RIG_VFO_SUB, the sub-display frequency
         is returned.
-    *   When passed RIG_VFO_MEM or RIG_VFO_MAIN, the current main display 
+    *   When passed RIG_VFO_MEM or RIG_VFO_MAIN, the current main display
         frequency is returned regardless of main display mode.
     *   When passed RIG_VFO_CURR, the display will be read per the VFO
         stored by the last rig_get_vfo call.
 
 rig_set_vfo
-    *   When called with RIG_VFO_A or RIG_VFO_VFO, the radio appears to 
-        do nothing, however, rig_state->current_vfo will be updated.  
-    *   When called with RIG_VFO_B, the radio will swap the main and sub 
+    *   When called with RIG_VFO_A or RIG_VFO_VFO, the radio appears to
+        do nothing, however, rig_state->current_vfo will be updated.
+    *   When called with RIG_VFO_B, the radio will swap the main and sub
         displays, the same as if the front panel A<>B button is pressed.
     *   No provision exists to make VFO-B (sub display) the active RX
         through CAT.
@@ -66,7 +64,7 @@ rig_get_split
         but Hamlib only supports an indication that the radio is split.
     *   The VFO value passed is not used by the ft920 backend lib.
         FIXME: Is this a problem?
-        
+
 rig_set_split
     *   When called with RIG_SPLIT_OFF the radio will make TX A active if
         TX B was active, otherwise no change.
@@ -74,15 +72,15 @@ rig_set_split
         TX A was active, otherwise no change.
     *   The FT-920 has no capability to change the active RX to RX B (sub
         display) through CAT.  Thus if VFO-B is active RX/TX the setting
-        RIG_SPLIT_ON will make no visible change on the radio.  
+        RIG_SPLIT_ON will make no visible change on the radio.
     *   The VFO value passed is not used by the ft920 backend lib.
         FIXME: Is this a problem?
-    
+
 rig_set_split_freq
     *   Backend simply wraps rig_set_freq--calling app needs to specify
         target VFO to set frequency.  Should backend determine split
         and set "proper" VFO?
-    
+
 rig_get_split_freq
     *   Backend simply wraps rig_get_freq--calling app needs to specify
         target VFO to set frequency.  Should backend determine split
@@ -92,7 +90,7 @@ rig_set_split_mode
     *   Backend simply wraps rig_set_mode--calling app needs to specify
         target VFO to set frequency.  Should backend determine split
         and set "proper" VFO?
-    
+
 rig_get_split_mode
     *   Backend simply wraps rig_get_mode--calling app needs to specify
         target VFO to set frequency.  Should backend determine split
@@ -101,14 +99,14 @@ rig_get_split_mode
 rig_set_rit
     *   Hamlib specificies that passing 0 as the RIT frequency disables
         RIT.  Thus there is no way to meet the spec and mimic the front
-        panel RIT off function whilst keeping the RIT offset on the 
+        panel RIT off function whilst keeping the RIT offset on the
         display.  The Hamlib spec causes behavior analogous to shutting
         RIT off and then pressing the Clear button.
     *   There is no direct way to set RIT offset of VFOB/SUB.  However,
         rig_set_vfo can be used to swap VFO B and main, then set RIT, then
         call rig_set_vfo to swap VFO B and main.
         FIXME: Should backend do this automatically?
-        
+
 rig_get_rit
     *   Backend returns clarifier offset regardless of whether RIT is on.
     *   vfo is honored and stored RIT is returned.
@@ -116,7 +114,7 @@ rig_get_rit
 rig_set_xit
     *   Hamlib specificies that passing 0 as the XIT frequency disables
         XIT.  Thus there is no way to meet the spec and mimic the front
-        panel XIT off function whilst keeping the XIT offset on the 
+        panel XIT off function whilst keeping the XIT offset on the
         display.  The Hamlib spec causes behavior analogous to shutting
         XIT off and then pressing the Clear button.
     *   There is no direct way to set XIT offset of VFOB/SUB.  However,

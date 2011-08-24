@@ -2,21 +2,20 @@
  *  Hamlib bindings - Rig interface
  *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: rig.swg,v 1.9 2008-05-04 21:42:04 fillods Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -460,7 +459,7 @@ typedef struct Rig {
 		return s;
 	}
 
-	int get_func(setting_t func, vfo_t vfo = RIG_VFO_CURR) { 
+	int get_func(setting_t func, vfo_t vfo = RIG_VFO_CURR) {
 		int status;
 		self->error_status = rig_get_func(self->rig, vfo, func, &status);
 		return status;
@@ -471,7 +470,7 @@ typedef struct Rig {
 #ifndef SWIGJAVA
 	/* TODO */
 	void get_level(setting_t level, vfo_t vfo = RIG_VFO_CURR)
-		{ value_t val; self->error_status = rig_get_level(self->rig, vfo, level, &val); 
+		{ value_t val; self->error_status = rig_get_level(self->rig, vfo, level, &val);
 			//if (RIG_LEVEL_IS_FLOAT(level))
 			/* TODO: dynamic casting */
 		}
@@ -482,7 +481,7 @@ typedef struct Rig {
 
 %{
 
-/* 
+/*
  * these ones returns 2 values, here is a perl example:
  * 	($mode, $width) = $rig->get_mode();
  */

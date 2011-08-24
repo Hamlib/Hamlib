@@ -2,23 +2,20 @@
  * memload.c - Copyright (C) 2003 Thierry Leconte
  *
  *
- *	$Id: memload.c,v 1.6 2006-10-07 19:56:57 csete Exp $  
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation; either version 2 of the License, or
+ *   (at your option) any later version.
  *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- * 
+ *   You should have received a copy of the GNU General Public License along
+ *   with this program; if not, write to the Free Software Foundation, Inc.,
+ *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
  */
 
 
@@ -43,7 +40,7 @@ static int set_chan(RIG *rig, channel_t *chan ,xmlNodePtr node);
 
 
 int xml_load (RIG *my_rig, const char *infilename)
-{ 
+{
 #ifdef HAVE_XML2
 	xmlDocPtr Doc;
 	xmlNodePtr node;
@@ -99,7 +96,7 @@ int xml_load (RIG *my_rig, const char *infilename)
 }
 
 int xml_parm_load (RIG *my_rig, const char *infilename)
-{ 
+{
 	return -RIG_ENIMPL;
 }
 
@@ -122,31 +119,31 @@ int set_chan(RIG *rig, channel_t *chan, xmlNodePtr node)
 
 	/* find chanel caps */
 	for(i=0;i<CHANLSTSIZ ;i++)
-		if (rig->state.chan_list[i].start<=n && rig->state.chan_list[i].end>=n) 
+		if (rig->state.chan_list[i].start<=n && rig->state.chan_list[i].end>=n)
 			break;
 
 	fprintf(stderr,"node %d %d\n",n,i);
 
 	if (rig->state.chan_list[i].mem_caps.bank_num) {
 		prop=xmlGetProp(node, (unsigned char *) "bank_num");
-		if(prop!=NULL) 
+		if(prop!=NULL)
 			chan->bank_num = atoi((char *) prop);
 	}
 
 	if (rig->state.chan_list[i].mem_caps.channel_desc) {
 			prop=xmlGetProp(node, (unsigned char *) "channel_desc");
-			if(prop!=NULL) 
+			if(prop!=NULL)
 				strncpy(chan->channel_desc, (char *) prop, 7);
 	}
 
 	if (rig->state.chan_list[i].mem_caps.ant) {
 		prop=xmlGetProp(node, (unsigned char *) "ant");
-		if(prop!=NULL) 
+		if(prop!=NULL)
 			chan->ant = atoi((char *) prop);
 	}
 	if (rig->state.chan_list[i].mem_caps.freq) {
 		prop=xmlGetProp(node, (unsigned char *) "freq");
-		if(prop!=NULL) 
+		if(prop!=NULL)
 			sscanf((char *) prop,"%"SCNfreq,&chan->freq);
 	}
 	if (rig->state.chan_list[i].mem_caps.mode) {
@@ -156,12 +153,12 @@ int set_chan(RIG *rig, channel_t *chan, xmlNodePtr node)
 	}
 	if (rig->state.chan_list[i].mem_caps.width) {
 		prop=xmlGetProp(node, (unsigned char *) "width");
-		if(prop!=NULL) 
+		if(prop!=NULL)
 			chan->width = atoi((char *) prop);
 	}
 	if (rig->state.chan_list[i].mem_caps.tx_freq) {
 		prop=xmlGetProp(node, (unsigned char *) "tx_freq");
-		if(prop!=NULL) 
+		if(prop!=NULL)
 			sscanf((char *) prop,"%"SCNfreq,&chan->tx_freq);
 	}
 	if (rig->state.chan_list[i].mem_caps.tx_mode) {
@@ -171,7 +168,7 @@ int set_chan(RIG *rig, channel_t *chan, xmlNodePtr node)
 	}
 	if (rig->state.chan_list[i].mem_caps.tx_width) {
 		prop=xmlGetProp(node, (unsigned char *)"tx_width");
-		if(prop!=NULL) 
+		if(prop!=NULL)
 			chan->tx_width = atoi((char *) prop);
 	}
 	if (rig->state.chan_list[i].mem_caps.split) {
@@ -201,62 +198,62 @@ int set_chan(RIG *rig, channel_t *chan, xmlNodePtr node)
 		}
 		if (rig->state.chan_list[i].mem_caps.rptr_offs && chan->rptr_shift!=RIG_RPT_SHIFT_NONE) {
 			prop=xmlGetProp(node, (unsigned char *)"rptr_offs");
-			if(prop!=NULL) 
+			if(prop!=NULL)
 				chan->rptr_offs = atoi((char *) prop);
-		}	
+		}
 	}
 	if (rig->state.chan_list[i].mem_caps.tuning_step) {
 		prop=xmlGetProp(node, (unsigned char *)"tuning_step");
-		if(prop!=NULL) 
+		if(prop!=NULL)
 			chan->tuning_step = atoi((char *) prop);
 	}
 	if (rig->state.chan_list[i].mem_caps.rit) {
 		prop=xmlGetProp(node, (unsigned char *)"rit");
-		if(prop!=NULL) 
+		if(prop!=NULL)
 			chan->rit = atoi((char *) prop);
 	}
 	if (rig->state.chan_list[i].mem_caps.xit) {
 		prop=xmlGetProp(node, (unsigned char *)"xit");
-		if(prop!=NULL) 
+		if(prop!=NULL)
 			chan->xit = atoi((char *) prop);
 	}
 	if (rig->state.chan_list[i].mem_caps.funcs) {
 		prop=xmlGetProp(node, (unsigned char *)"funcs");
-		if(prop!=NULL) 
+		if(prop!=NULL)
 			sscanf((char *) prop,"%lx",&chan->funcs);
 	}
 	if (rig->state.chan_list[i].mem_caps.ctcss_tone) {
 		prop=xmlGetProp(node, (unsigned char *)"ctcss_tone");
-		if(prop!=NULL) 
+		if(prop!=NULL)
 			chan->ctcss_tone = atoi((char *) prop);
 	}
 	if (rig->state.chan_list[i].mem_caps.ctcss_sql) {
 		prop=xmlGetProp(node, (unsigned char *)"ctcss_sql");
-		if(prop!=NULL) 
+		if(prop!=NULL)
 			chan->ctcss_sql = atoi((char *) prop);
 	}
 	if (rig->state.chan_list[i].mem_caps.dcs_code) {
 		prop=xmlGetProp(node, (unsigned char *)"dcs_code");
-		if(prop!=NULL) 
+		if(prop!=NULL)
 			chan->dcs_code = atoi((char *) prop);
 	}
 	if (rig->state.chan_list[i].mem_caps.dcs_sql) {
 		prop=xmlGetProp(node, (unsigned char *)"dcs_sql");
-		if(prop!=NULL) 
+		if(prop!=NULL)
 			chan->dcs_sql = atoi((char *) prop);
 	}
 	if (rig->state.chan_list[i].mem_caps.scan_group) {
 		prop=xmlGetProp(node, (unsigned char *)"scan_group");
-		if(prop!=NULL) 
+		if(prop!=NULL)
 			chan->scan_group = atoi((char *) prop);
 	}
 	if (rig->state.chan_list[i].mem_caps.flags) {
 		prop=xmlGetProp(node, (unsigned char *)"flags");
-		if(prop!=NULL) 
+		if(prop!=NULL)
 			sscanf((char *) prop,"%x",&chan->flags);
 	}
 
-	
+
   return 0;
 }
 #endif

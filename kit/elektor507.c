@@ -3,19 +3,19 @@
  *  Copyright (c) 2007-2010 by Stephane Fillod
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -78,7 +78,7 @@ static const char * elektor507_get_info(RIG *rig);
 
 
 static int cy_update_pll(RIG *rig, unsigned char IICadr);
-static int i2c_write_regs(RIG *rig, unsigned char IICadr, int reg_count, unsigned char reg_adr, 
+static int i2c_write_regs(RIG *rig, unsigned char IICadr, int reg_count, unsigned char reg_adr,
 		unsigned char reg_val1, unsigned char reg_val2, unsigned char reg_val3);
 #define i2c_write_reg(rig, IICadr, reg_adr, reg_val) \
 		i2c_write_regs(rig, IICadr, 1, reg_adr, reg_val, 0, 0)
@@ -99,7 +99,7 @@ static int i2c_write_regs(RIG *rig, unsigned char IICadr, int reg_count, unsigne
 
 
 /* Some type definitions needed for dll access */
-typedef enum 
+typedef enum
 {
   FT_OK = 0,
   FT_INVALID_HANDLE = 1,
@@ -241,7 +241,7 @@ int elektor507_init(RIG *rig)
 		return -RIG_EIO;	/* huh! */
 	}
 
-	/* 
+	/*
 	 * Get process addresses from dll for function access
 	 */
 
@@ -249,16 +249,16 @@ int elektor507_init(RIG *rig)
 	extra_priv->FT_Open =
 		(FNCFT_Open) GetProcAddress(extra_priv->dll, "FT_Open");
 	/* Close_USB_Device */
-	extra_priv->FT_Close = 
+	extra_priv->FT_Close =
 		(FNCFT_Close) GetProcAddress(extra_priv->dll, "FT_Close");
 	/* Set_USB_Device_BitMode */
-	extra_priv->FT_SetBitMode = 
+	extra_priv->FT_SetBitMode =
 		(FNCFT_SetBitMode) GetProcAddress(extra_priv->dll, "FT_SetBitMode");
 	/* Set_USB_Device_BaudRate */
-	extra_priv->FT_SetBaudRate = 
+	extra_priv->FT_SetBaudRate =
 		(FNCFT_SetBaudRate) GetProcAddress(extra_priv->dll, "FT_SetBaudRate");
 	/* Write_USB_Device_Buffer */
-	extra_priv->FT_Write = 
+	extra_priv->FT_Write =
 		(FNCFT_Write) GetProcAddress(extra_priv->dll, "FT_Write");
 
 	rig->state.priv = (void*)priv;
@@ -268,7 +268,7 @@ int elektor507_init(RIG *rig)
 
 int elektor507_ftdi_write_data(RIG *rig, void *FTOutBuf, unsigned long BufferSize)
 {
-	struct elektor507_extra_priv_data *extra_priv = 
+	struct elektor507_extra_priv_data *extra_priv =
 		&((struct elektor507_priv_data *)rig->state.priv)->extra_priv;
 	FT_Result ret;
 	int Result;
@@ -402,7 +402,7 @@ int elektor507_libusb_setup(RIG *rig)
 #if 1
 	ret =  usb_control_msg(udh, 0x40, 0, 0, index, NULL, 0, FTDI_USB_WRITE_TIMEOUT);
 	if (ret != 0) {
-		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg reset failed: %s\n", 
+		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg reset failed: %s\n",
 					__FUNCTION__,
 					usb_strerror ());
 		return -RIG_EIO;
@@ -417,7 +417,7 @@ int elektor507_libusb_setup(RIG *rig)
 
 	ret = usb_control_msg(udh, 0x40, 0x0B, usb_val, index, NULL, 0, FTDI_USB_WRITE_TIMEOUT);
 	if (ret != 0) {
-		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg bitbangmode failed: %s\n", 
+		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg bitbangmode failed: %s\n",
 					__FUNCTION__,
 					usb_strerror ());
 		return -RIG_EIO;
@@ -431,7 +431,7 @@ int elektor507_libusb_setup(RIG *rig)
 	index = 0;
 	ret = usb_control_msg(udh, 0x40, 3, usb_val, index, NULL, 0, FTDI_USB_WRITE_TIMEOUT);
 	if (ret != 0) {
-		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg baudrate failed: %s\n", 
+		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg baudrate failed: %s\n",
 					__FUNCTION__,
 					usb_strerror ());
 		return -RIG_EIO;
@@ -451,8 +451,8 @@ int elektor507_ftdi_write_data(RIG *rig, void *FTOutBuf, unsigned long BufferSiz
 	if (ret < 0) {
 		/* we get EPIPE if the firmware stalls the endpoint. */
 		if (errno != EPIPE)
-			rig_debug (RIG_DEBUG_ERR, 
-					"usb_bulk_write failed: %s\n", 
+			rig_debug (RIG_DEBUG_ERR,
+					"usb_bulk_write failed: %s\n",
 					usb_strerror ());
 		return -RIG_EIO;
 	}
@@ -736,7 +736,7 @@ static void find_P_Q_DIV1N(struct elektor507_priv_data *priv, freq_t freq)
 	/*
 	 * Q:2..129
 	 * P:8..2055, best 16..1023 (because of Pump)
-	 
+
 	   For stable operation:
 	   + REF/Qtotal must not fall below 250kHz (
 	   + P*(REF/Qtotal) must not be above 400 MHz or below 100 MHz
@@ -760,7 +760,7 @@ static void find_P_Q_DIV1N(struct elektor507_priv_data *priv, freq_t freq)
 
 	VCO = ((double)priv->osc_freq/priv->Q)*priv->P;
 	if (VCO < 100e3 || VCO > 400e3)
-		rig_debug(RIG_DEBUG_VERBOSE, "%s: Unstable parameters for VCO=%.1f\n", 
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: Unstable parameters for VCO=%.1f\n",
 			__FUNCTION__, VCO);
 }
 #endif	/* ORIG_ALGORITHM */
@@ -780,7 +780,7 @@ static void find_P_Q_DIV1N(struct elektor507_priv_data *priv, freq_t freq)
 	/*
 	 * Q:2..129
 	 * P:8..2055, best 16..1023 (because of Pump)
-	 
+
 	   For stable operation:
 	   + REF/Qtotal must not fall below 250kHz (
 	   + P*(REF/Qtotal) must not be above 400 MHz or below 100 MHz
@@ -804,7 +804,7 @@ static void find_P_Q_DIV1N(struct elektor507_priv_data *priv, freq_t freq)
 
 	for (div1n = div1n_min; div1n <= div1n_max; div1n++) {
 		// P/Qtotal = FREQ4*DIV1N/REF
-		// (Q*int(r) + frac(r)*Q)/Q 
+		// (Q*int(r) + frac(r)*Q)/Q
 		for (q = q_max; q >= 2; q--) {
 			p = q*freq4*div1n/priv->osc_freq;
 #if 1
@@ -828,7 +828,7 @@ static void find_P_Q_DIV1N(struct elektor507_priv_data *priv, freq_t freq)
 
 	VCO = ((double)priv->osc_freq/priv->Q)*priv->P;
 	if (VCO < vco_min || VCO > 400e3)
-		rig_debug(RIG_DEBUG_VERBOSE, "%s: Unstable parameters for VCO=%.1f\n", 
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: Unstable parameters for VCO=%.1f\n",
 			__FUNCTION__, VCO);
 }
 #endif	/* default alternative to ORIG_ALGORITHM */
@@ -904,12 +904,12 @@ int elektor507_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	find_P_Q_DIV1N(priv, freq); /* Compute PLL parameters */
 
 	elektor507_get_freq(rig, vfo, &final_freq);
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: Freq=%.0f kHz, delta=%d Hz, Div1N=%d, P=%d, Q=%d, FREQ_ALGORITHM=%d\n", 
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: Freq=%.0f kHz, delta=%d Hz, Div1N=%d, P=%d, Q=%d, FREQ_ALGORITHM=%d\n",
 			__FUNCTION__, freq/kHz(1), (int)(final_freq-freq), priv->Div1N, priv->P, priv->Q, FREQ_ALGORITHM);
 
 	if ((double)priv->osc_freq/priv->Q < 250)
-		rig_debug(RIG_DEBUG_WARN, 
-				"%s: Unstable parameters for REF/Qtotal=%.1f\n", 
+		rig_debug(RIG_DEBUG_WARN,
+				"%s: Unstable parameters for REF/Qtotal=%.1f\n",
 			__FUNCTION__, (double)priv->osc_freq/priv->Q);
 
 	ret = cy_update_pll(rig, CY_I2C_RAM_ADR);
@@ -935,7 +935,7 @@ int elektor507_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 	struct elektor507_priv_data *priv = (struct elektor507_priv_data *)rig->state.priv;
 	int ret=0;
 	int att=0;
-	
+
 	switch(level) {
 	case RIG_LEVEL_ATT:
 		/* val.i */
@@ -966,7 +966,7 @@ int elektor507_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
 	struct elektor507_priv_data *priv = (struct elektor507_priv_data *)rig->state.priv;
 	int ret=0;
-	
+
 	switch(level) {
 	case RIG_LEVEL_ATT:
 
@@ -995,7 +995,7 @@ int elektor507_set_ant(RIG * rig, vfo_t vfo, ant_t ant)
 
 	rig_debug(RIG_DEBUG_TRACE,"%s called\n", __FUNCTION__);
 
-	/* 
+	/*
 	 * FTDI: RTS, CTS, DTR
 	 *
 	 * A4,A5,A6 are not connected
@@ -1047,18 +1047,18 @@ static int cy_update_pll(RIG *rig, unsigned char IICadr)
 	int Pump;
 	int ret;
 
-	/* 
+	/*
 	 * PLL Pump setting according to table 9
 	 */
         if (priv->P < 45)
 		Pump = 0;
-	else 
+	else
         if (priv->P < 480)
 		Pump = 1;
-	else 
+	else
         if (priv->P < 640)
 		Pump = 2;
-	else 
+	else
         if (priv->P < 800)
 		Pump = 3;
 	else
@@ -1163,7 +1163,7 @@ static void ftdi_I2C_Stop(RIG *rig)
 	  SCL=0, SDA=0
 	  SCL=1
 	  SCL=0
-	
+
 	No Acknowledge:
 	  SCL=0, SDA=1
 	  SCL=1
@@ -1187,7 +1187,7 @@ static void ftdi_I2C_Write_Byte(RIG *rig, unsigned char c)
 }
 
 
-int i2c_write_regs(RIG *rig, unsigned char IICadr, int reg_count, unsigned char reg_adr, 
+int i2c_write_regs(RIG *rig, unsigned char IICadr, int reg_count, unsigned char reg_adr,
 		unsigned char reg_val1, unsigned char reg_val2, unsigned char reg_val3)
 {
 	struct elektor507_priv_data *priv = (struct elektor507_priv_data *)rig->state.priv;

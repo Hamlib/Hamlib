@@ -2,21 +2,20 @@
  *  Hamlib Tentec backend - main file
  *  Copyright (c) 2001-2009 by Stephane Fillod
  *
- *	$Id: tentec.c,v 1.19 2009-01-11 12:42:24 fillods Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -149,7 +148,7 @@ int tentec_trx_open(RIG *rig)
 	int retval;
 
 	/*
-	 * be kind: use XX first, and do 'Dsp Program Execute' only 
+	 * be kind: use XX first, and do 'Dsp Program Execute' only
 	 * in " DSP START" state.
 	 */
 	retval = tentec_transaction (rig, "P1" EOM, 3, NULL, NULL);
@@ -176,12 +175,12 @@ static void tentec_tuning_factor_calc(RIG *rig)
 
     /* computed fcor only used if mode is not CW */
     fcor = (int)floor((double)priv->width / 2.0) + 200;
-    	
+
     switch (priv->mode) {
     case RIG_MODE_AM:
     case RIG_MODE_FM:
         mcor=0; break;
-	case RIG_MODE_CW: 
+	case RIG_MODE_CW:
 	    mcor=-1; cwbfo = priv->cwbfo; fcor = 0; break;
     case RIG_MODE_LSB:
 		mcor=-1; break;
@@ -219,11 +218,11 @@ int tentec_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	priv->freq = freq;
 	tentec_tuning_factor_calc(rig);
 
-	freq_len = sprintf(freqbuf, "N%c%c%c%c%c%c" EOM, 
+	freq_len = sprintf(freqbuf, "N%c%c%c%c%c%c" EOM,
 						priv->ctf >> 8, priv->ctf & 0xff,
 						priv->ftf >> 8, priv->ftf & 0xff,
 						priv->btf >> 8, priv->btf & 0xff);
-	
+
 	retval = write_block(&rs->rigport, freqbuf, freq_len);
 	if (retval != RIG_OK) {
 		priv->freq = old_freq;
@@ -287,7 +286,7 @@ int tentec_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 			return -RIG_EINVAL;
 	}
 
-		/* backup current values 
+		/* backup current values
 		 * in case we fail to write to port
 		 */
 	saved_mode = priv->mode;
@@ -301,7 +300,7 @@ int tentec_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	mdbuf_len = sprintf(mdbuf,  "W%c" EOM
 								"N%c%c%c%c%c%c" EOM
 								"M%c" EOM,
-						ttfilter, 
+						ttfilter,
 						priv->ctf >> 8, priv->ctf & 0xff,
 						priv->ftf >> 8, priv->ftf & 0xff,
 						priv->btf >> 8, priv->btf & 0xff,
@@ -358,12 +357,12 @@ int tentec_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		return retval;
 
 	case RIG_LEVEL_AF:
-		/* FIXME: support also separate Lineout setting 
+		/* FIXME: support also separate Lineout setting
 		 * -> need to create RIG_LEVEL_LINEOUT ?
 		 */
 		cmd_len = sprintf(cmdbuf, "C\x7f%c" EOM, (int)((1.0 - val.f) * 63.0));
 		retval = write_block(&rs->rigport, cmdbuf, cmd_len);
-		if (retval == RIG_OK) 
+		if (retval == RIG_OK)
 				priv->lnvol = priv->spkvol = val.f;
 		return retval;
 
@@ -371,12 +370,12 @@ int tentec_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         priv->pbt = val.i;
         retval = tentec_set_freq(rig, vfo, priv->freq);
         return retval;
-            
+
     case RIG_LEVEL_CWPITCH:
         priv->cwbfo = val.i;
         if(priv->mode == RIG_MODE_CW) {
             retval = tentec_set_freq(rig, vfo, priv->freq);
-        }    
+        }
         return retval;
 
 	default:

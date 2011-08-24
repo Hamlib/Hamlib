@@ -2,21 +2,20 @@
 *  Hamlib Kenwood backend - TS850 description
 *  Copyright (c) 2000-2004 by Stephane Fillod
 *
-*	$Id: ts850.c,v 1.35 2009-02-20 12:22:19 fillods Exp $
 *
-*   This library is free software; you can redistribute it and/or modify
-*   it under the terms of the GNU Library General Public License as
-*   published by the Free Software Foundation; either version 2 of
-*   the License, or (at your option) any later version.
-*
-*   This program is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*   GNU Library General Public License for more details.
-*
-*   You should have received a copy of the GNU Library General Public
-*   License along with this library; if not, write to the Free Software
-*   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
+ *
+ *   This library is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Lesser General Public
+ *   License along with this library; if not, write to the Free Software
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 *
 */
 
@@ -113,14 +112,14 @@ const struct rig_caps ts850_caps = {
 	.post_write_delay =  100,
 	.timeout =  480000,  // When you tune a Kenwood, the reply is delayed until you stop.
 	.retry =  0,
-	
+
 	.has_get_func =  TS850_FUNC_ALL,
 	.has_set_func =  TS850_FUNC_ALL,
 	.has_get_level =  TS850_LEVEL_GET,
 	.has_set_level =  TS850_LEVEL_SET,
 	.has_get_parm =  RIG_PARM_NONE,
 	.has_set_parm =  RIG_PARM_NONE,
-	.level_gran =  {},            
+	.level_gran =  {},
 	.parm_gran =  {},
 	.extparms = ts850_ext_parms,
   	.ctcss_list =  kenwood38_ctcss_list,
@@ -140,12 +139,12 @@ const struct rig_caps ts850_caps = {
 		{ 90, 99, RIG_MTYPE_EDGE ,{TS850_CHANNEL_CAPS}},
 		RIG_CHAN_END,
 	},
-	
-	.rx_range_list1 =  { 
+
+	.rx_range_list1 =  {
 		{kHz(100),MHz(30),TS850_ALL_MODES,-1,-1,TS850_VFO},
 		RIG_FRNG_END,
 	}, /* rx range */
-	.tx_range_list1 =  { 
+	.tx_range_list1 =  {
 		{kHz(1810),kHz(1850),TS850_OTHER_TX_MODES,W(5),W(100),TS850_VFO},	/* 100W class */
 		{kHz(1810),kHz(1850),TS850_AM_TX_MODES,W(2),W(40),TS850_VFO},		/* 40W class */
 		{kHz(3500),kHz(3800),TS850_OTHER_TX_MODES,W(5),W(100),TS850_VFO},
@@ -166,7 +165,7 @@ const struct rig_caps ts850_caps = {
 		{MHz(28),kHz(29700),TS850_AM_TX_MODES,W(2),W(40),TS850_VFO},
 		RIG_FRNG_END,
 	},
-	
+
 	.rx_range_list2 =  {
 		{kHz(100),MHz(30),TS850_ALL_MODES,-1,-1,TS850_VFO},
 		RIG_FRNG_END,
@@ -207,7 +206,7 @@ const struct rig_caps ts850_caps = {
 	},
 	.str_cal = TS850_STR_CAL,
 	.priv =  (void *)&ts850_priv_caps,
-	
+
         .rig_init = kenwood_init,
         .rig_cleanup = kenwood_cleanup,
 	.set_freq =  kenwood_set_freq,
@@ -247,19 +246,19 @@ int ts850_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 	unsigned char c;
 	int retval, len, i;
 	size_t info_len;
-	
+
 	info_len = 0;
 	if (rit == 0)
 		kenwood_transaction(rig, "RT0", 3, infobuf, &info_len);
 	else
 		kenwood_transaction(rig, "RT1", 3, infobuf, &info_len);
-	
+
 	if (rit > 0)
 		c = 'U';
 	else
 		c = 'D';
 	len = sprintf(buf, "R%c", c);
-	
+
 	info_len = 0;
 	retval = kenwood_transaction(rig, "RC", 2, infobuf, &info_len);
 	for (i = 0; i < abs(rint(rit/20)); i++)
@@ -267,7 +266,7 @@ int ts850_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 		info_len = 0;
 		retval = kenwood_transaction(rig, buf, len, infobuf, &info_len);
 	}
-	
+
 	return RIG_OK;
 }
 
@@ -277,13 +276,13 @@ int ts850_set_xit(RIG * rig, vfo_t vfo, shortfreq_t xit)
 	unsigned char c;
 	int retval, len, i;
 	size_t info_len;
-	
+
 	info_len = 0;
 	if (xit == 0)
 		kenwood_transaction(rig, "XT0", 3, infobuf, &info_len);
 	else
 		kenwood_transaction(rig, "XT1", 3, infobuf, &info_len);
-	
+
 	info_len = 0;
 	retval = kenwood_transaction(rig, "RC", 2, infobuf, &info_len);
 	if (xit > 0)
@@ -291,13 +290,13 @@ int ts850_set_xit(RIG * rig, vfo_t vfo, shortfreq_t xit)
 	else
 		c = 'D';
 	len = sprintf(buf, "R%c", c);
-	
+
 	for (i = 0; i < abs(rint(xit/20)); i++)
 	{
 		info_len = 0;
 		retval = kenwood_transaction(rig, buf, len, infobuf, &info_len);
 	}
-	
+
 	return RIG_OK;
 }
 
@@ -323,10 +322,10 @@ int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	char lvlbuf[50];
 	int i, retval;
 	size_t lvl_len;
-	
+
 	if(vfo!=RIG_VFO_CURR)
 		return -RIG_EINVAL;
-	
+
 	switch (level) {
 		case RIG_LEVEL_RAWSTR:
 		lvl_len = 50;
@@ -336,7 +335,7 @@ int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		lvlbuf[6]='\0';
 		val->i=atoi(&lvlbuf[2]);
 		break;
-		
+
 		case RIG_LEVEL_STRENGTH:
 		lvl_len = 50;
 		retval = kenwood_transaction (rig, "SM", 2, lvlbuf, &lvl_len);
@@ -347,7 +346,7 @@ int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		//val->i = (val->i * 4) - 54;  Old approximate way of doing it.
 		val->i = (int)rig_raw2val(val->i,&rig->caps->str_cal);
 		break;
-		
+
 		case RIG_LEVEL_SWR:
 			lvl_len = 0;
 		retval = kenwood_transaction (rig, "RM1", 3, lvlbuf, &lvl_len);
@@ -359,12 +358,12 @@ int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			return retval;
 		lvlbuf[7]='\0';
 		i=atoi(&lvlbuf[3]);
-		if(i == 30) 
+		if(i == 30)
 			val->f = 150.0; /* infinity :-) */
 		else
 			val->f = 60.0/(30.0-(float)i)-1.0;
 		break;
-		
+
 		case RIG_LEVEL_COMP:
 			lvl_len = 0;
 		retval = kenwood_transaction (rig, "RM2", 3, lvlbuf, &lvl_len);
@@ -377,7 +376,7 @@ int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		lvlbuf[7]='\0';
 		val->f=(float)atoi(&lvlbuf[3])/30.0;
 		break;
-		
+
 		case RIG_LEVEL_ALC:
 			lvl_len = 0;
 		retval = kenwood_transaction (rig, "RM3", 3, lvlbuf, &lvl_len);
@@ -390,7 +389,7 @@ int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		lvlbuf[7]='\0';
 		val->f=(float)atoi(&lvlbuf[3])/30.0;
 		break;
-		
+
 		case RIG_LEVEL_CWPITCH:
 			lvl_len = 25;
 		retval = kenwood_transaction (rig, "PT", 2, lvlbuf, &lvl_len);
@@ -400,8 +399,8 @@ int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		val->i=atoi(&lvlbuf[2]);
 		val->i=(val->i-8)*50+800;
 		break;
-		
-		
+
+
 		default:
 			return kenwood_get_level (rig, vfo, level, val);
 	}
@@ -415,7 +414,7 @@ int ts850_set_channel (RIG * rig, const channel_t * chan)
 	size_t mem_len;
 	int num,freq,tx_freq,tone;
 	char mode,tx_mode,split,tones;
-	
+
 	num=chan->channel_num;
 	freq=(int)chan->freq;
 	mode=mode_to_char(chan->mode);
@@ -428,7 +427,7 @@ int ts850_set_channel (RIG * rig, const channel_t * chan)
 		tx_mode='\0';
 		split='0';
 	}
-	
+
 	for (tone = 1; rig->caps->ctcss_list[tone-1] != 0 && tone<39; tone++) {
 		if (rig->caps->ctcss_list[tone-1] == chan->ctcss_tone)
 			break;
@@ -439,20 +438,20 @@ int ts850_set_channel (RIG * rig, const channel_t * chan)
 		tones='0';
 		tone=0;
 	}
-	
+
 	cmd_len = sprintf(cmdbuf, "MW0 %02d%011d%c0%c%02d ",
 					  num,freq,mode,tones,tone);
 	mem_len = 0;
 	retval = kenwood_transaction (rig, cmdbuf, cmd_len, membuf, &mem_len);
 	if (retval != RIG_OK)
 		return retval;
-	
+
 	cmd_len = sprintf(cmdbuf, "MW1 %02d%011d%c0%c%02d ",
 					  num,tx_freq,tx_mode,tones,tone);
 	mem_len = 0;
 	retval = kenwood_transaction (rig, cmdbuf, cmd_len, membuf, &mem_len);
 	if (retval != RIG_OK)
 		return retval;
-	
+
 	return RIG_OK;
 }

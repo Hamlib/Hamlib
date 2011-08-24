@@ -2,21 +2,20 @@
  *  Hamlib WiNRADiO backend - WR3500 description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: wr3500.c,v 1.6 2008-10-26 13:54:52 y32kn Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -80,7 +79,7 @@ const struct rig_caps wr3500_caps = {
 		    	RIG_FRNG_END, },
   .tx_range_list2 =  { RIG_FRNG_END, },
 
-  .tuning_steps =  { {RIG_MODE_SSB|RIG_MODE_CW,1}, 
+  .tuning_steps =  { {RIG_MODE_SSB|RIG_MODE_CW,1},
   		  {RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_WFM,10}, RIG_TS_END, },
 
   .filters =       { {RIG_MODE_SSB|RIG_MODE_CW, kHz(2.5)},
@@ -99,7 +98,7 @@ const struct rig_caps wr3500_caps = {
   .get_freq =     wr_get_freq,
   .set_mode =     wr_set_mode,
   .get_mode =     wr_get_mode,
-  
+
   .set_powerstat =   wr_set_powerstat,
   .get_powerstat =   wr_get_powerstat,
   .set_level =     wr_set_level,

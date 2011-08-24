@@ -2,21 +2,20 @@
  *  Hamlib TenTenc backend - TT-588 description
  *  Copyright (c) 2003-2009 by Stephane Fillod
  *
- *	$Id: omnivii.c,v 1.3 2009-01-12 19:29:30 fillods Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -54,7 +53,7 @@ struct tt588_priv_data {
 				RIG_LEVEL_COMP|/*RIG_LEVEL_PREAMP|*/ \
 				RIG_LEVEL_SWR|RIG_LEVEL_ATT)
 
-#define TT588_ANTS (RIG_ANT_1|RIG_ANT_2) 
+#define TT588_ANTS (RIG_ANT_1|RIG_ANT_2)
 
 #define TT588_PARMS (RIG_PARM_NONE)
 
@@ -84,7 +83,7 @@ static int tt588_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 /*
  * tt588 transceiver capabilities.
  *
- * Protocol is documented at 
+ * Protocol is documented at
  *		http://www.rfsquared.com/
  *
  * Only set_freq is supposed to work.
@@ -336,7 +335,7 @@ int tt588_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 	resp_len = 32;
 	retval = tt588_transaction (rig, (char *) cmdbuf, cmd_len, (char *) respbuf, &resp_len);
 
-	if (retval != RIG_OK) 
+	if (retval != RIG_OK)
 		return retval;
 
 	curVfo = which_vfo(rig, vfo);
@@ -381,7 +380,7 @@ int tt588_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
                           which_vfo(rig, vfo),
                           bytes[3], bytes[2], bytes[1], bytes[0]);
 
-	return tt588_transaction(rig, (char *) cmdbuf, cmd_len, NULL, NULL); 
+	return tt588_transaction(rig, (char *) cmdbuf, cmd_len, NULL, NULL);
 }
 
 /*
@@ -410,10 +409,10 @@ int tt588_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 	switch (which_vfo(rig, vfo)) {
 	case 'A':
-		ttmode = respbuf[1]; 
+		ttmode = respbuf[1];
 		break;
 	case 'B':
-		ttmode = respbuf[2]; 
+		ttmode = respbuf[2];
 		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n",
@@ -570,7 +569,7 @@ int tt588_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	else
 		width = tt588_filter_number((int) width);
 
-	cmd_len = sprintf((char *) cmdbuf, "*W%c" EOM, (unsigned char) width); 
+	cmd_len = sprintf((char *) cmdbuf, "*W%c" EOM, (unsigned char) width);
 	return tt588_transaction (rig, (char *) cmdbuf, cmd_len, NULL, NULL);
 }
 
@@ -803,7 +802,7 @@ printf("%f\n", sstr);
 
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported level %d\n", 
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported level %d\n",
 				__FUNCTION__, level);
 		return -RIG_EINVAL;
 	}
@@ -860,7 +859,7 @@ int tt588_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		break;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported level %d\n", 
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported level %d\n",
 				__FUNCTION__, level);
 		return -RIG_EINVAL;
 	}

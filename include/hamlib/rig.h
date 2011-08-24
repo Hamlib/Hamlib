@@ -4,19 +4,19 @@
  *  Copyright (c) 2000-2011 by Stephane Fillod
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -243,7 +243,7 @@ enum rig_status_e {
   RIG_STATUS_BETA,		/*!< Beta quality */
   RIG_STATUS_STABLE,		/*!< Stable */
   RIG_STATUS_BUGGY		/*!< Was stable, but something broke it! */
-/*  RIG_STATUS_NEW	*	*!< Initial release of code 
+/*  RIG_STATUS_NEW	*	*!< Initial release of code
  *  				!! Use of RIG_STATUS_NEW is deprecated. Do not use it anymore */
 };
 
@@ -502,7 +502,7 @@ typedef long token_t;
  * \brief parameter types
  *
  *   Used with configuration, parameter and extra-parm tables.
- * 
+ *
  *   Current internal implementation
  *   NUMERIC: val.f or val.i
  *   COMBO: val.i, starting from 0.  Points to a table of strings or asci stored values.
@@ -866,7 +866,7 @@ struct tuning_step_list {
  * the first entry in the array will be the default
  * filter to use for the normal passband of this mode.
  * The first entry in the array below the default normal passband
- * is the default narrow passband and the first entry in the array 
+ * is the default narrow passband and the first entry in the array
  * above the default normal passband is the default wide passband.
  * Note: if there's no lower width or upper width, then narrow or
  * respectively wide passband is equal to the default normal passband.
@@ -880,7 +880,7 @@ struct tuning_step_list {
  *
  * The width field is the narrowest passband in a transmit/receive chain
  * with regard to different IF.
- * 
+ *
  * \sa rig_set_mode, rig_passband_normal, rig_passband_narrow, rig_passband_wide
  */
 struct filter_list {
@@ -999,7 +999,7 @@ typedef struct channel_cap channel_cap_t;
  *
  * Definition of memory types. Depending on the type, the content
  * of the memory channel has to be interpreted accordingly.
- * For instance, a RIG_MTYPE_EDGE channel_t will hold only a start 
+ * For instance, a RIG_MTYPE_EDGE channel_t will hold only a start
  * or stop frequency.
  *
  * \sa chan_list
@@ -1079,10 +1079,10 @@ struct cal_table {
  * cal_table_t is a data type suited to hold linear calibration.
  * cal_table_t.size tells the number of plots cal_table_t.table contains.
  *
- * If a value is below or equal to cal_table_t.table[0].raw, 
+ * If a value is below or equal to cal_table_t.table[0].raw,
  * rig_raw2val() will return cal_table_t.table[0].val.
  *
- * If a value is greater or equal to cal_table_t.table[cal_table_t.size-1].raw, 
+ * If a value is greater or equal to cal_table_t.table[cal_table_t.size-1].raw,
  * rig_raw2val() will return cal_table_t.table[cal_table_t.size-1].val.
  */
 typedef struct cal_table cal_table_t;
@@ -1367,7 +1367,7 @@ typedef hamlib_port_t port_t;
 #endif
 
 
-/** 
+/**
  * \brief Rig state containing live data and customized fields.
  *
  * This struct contains live data, as well as a copy of capability fields
@@ -1418,7 +1418,7 @@ struct rig_state {
   gran_t parm_gran[RIG_SETTING_MAX];	/*!< parm granularity */
 
 
-	/* 
+	/*
 	 * non overridable fields, internal use
 	 */
 
@@ -1452,7 +1452,7 @@ typedef int (*pltune_cb_t) (RIG *, vfo_t, freq_t *, rmode_t *, pbwidth_t *, rig_
 /**
  * \brief Callback functions and args for rig event.
  *
- * Some rigs are able to notify the host computer the operator changed 
+ * Some rigs are able to notify the host computer the operator changed
  * the freq/mode from the front panel, depressed a button, etc.
  *
  * Events from the rig are received through async io,
@@ -1460,7 +1460,7 @@ typedef int (*pltune_cb_t) (RIG *, vfo_t, freq_t *, rmode_t *, pbwidth_t *, rig_
  *
  * Don't set these fields directly, use rig_set_freq_callback et. al. instead.
  *
- * Callbacks suit event based programming very well, 
+ * Callbacks suit event based programming very well,
  * really appropriate in a GUI.
  *
  * \sa rig_set_freq_callback, rig_set_mode_callback, rig_set_vfo_callback,

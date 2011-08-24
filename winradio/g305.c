@@ -2,21 +2,20 @@
  *  Hamlib WiNRADiO backend - WR-G305 description
  *  Copyright (c) 2001-2009 by Stephane Fillod
  *
- *	$Id: g305.c,v 1.2 2009-02-20 12:38:29 fillods Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -63,9 +62,9 @@ static const char* g3_get_info(RIG *rig);
 
 /* #pragma pack(1)       // set byte packing */
 typedef struct {
-	int	bLength;		
-	char	szSerNum[9];	
-	char	szProdName[9];	
+	int	bLength;
+	char	szSerNum[9];
+	char	szProdName[9];
 	DWORD	dwMinFreq;
 	DWORD	dwMaxFreq;
 	BYTE	bNumBands;
@@ -153,7 +152,7 @@ const struct rig_caps g305_caps = {
 		    	RIG_FRNG_END, },
   .tx_range_list2 =  { RIG_FRNG_END, },
 
-  .tuning_steps =  { {G305_MODES,1}, 
+  .tuning_steps =  { {G305_MODES,1},
   		  	RIG_TS_END, },
 
   .filters =       { {G305_MODES, kHz(12)},
@@ -166,7 +165,7 @@ const struct rig_caps g305_caps = {
 
   .set_freq =     g3_set_freq,
   .get_freq =     g3_get_freq,
-  
+
   .set_powerstat =   g3_set_powerstat,
   .get_powerstat =   g3_get_powerstat,
   .set_level =     g3_set_level,
@@ -273,7 +272,7 @@ int g3_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
 	struct g3_priv_data *priv = (struct g3_priv_data *)rig->state.priv;
 	int ret;
-	
+
 	ret = priv->G3SetFrequency(priv->hRadio, (DWORD) (freq));
 	ret = ret==TRUE ? RIG_OK : -RIG_EIO;
 
@@ -283,7 +282,7 @@ int g3_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 int g3_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 	struct g3_priv_data *priv = (struct g3_priv_data *)rig->state.priv;
-	
+
 	*freq = (freq_t) priv->G3GetFrequency(priv->hRadio);
 
 	return *freq != 0 ? RIG_OK : -RIG_EIO;
@@ -293,7 +292,7 @@ int g3_set_powerstat(RIG *rig, powerstat_t status)
 {
 	struct g3_priv_data *priv = (struct g3_priv_data *)rig->state.priv;
 	int ret;
-	
+
 	ret = priv->SetPower(priv->hRadio, status==RIG_POWER_ON ? TRUE : FALSE);
 	ret = ret==TRUE ? RIG_OK : -RIG_EIO;
 
@@ -304,7 +303,7 @@ int g3_get_powerstat(RIG *rig, powerstat_t *status)
 {
 	struct g3_priv_data *priv = (struct g3_priv_data *)rig->state.priv;
 	int ret;
-	
+
 	ret = priv->GetPower(priv->hRadio);
 	*status = ret==TRUE ? RIG_POWER_ON : RIG_POWER_OFF;
 
@@ -315,7 +314,7 @@ int g3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
 	struct g3_priv_data *priv = (struct g3_priv_data *)rig->state.priv;
 	int ret, agc;
-	
+
 	switch(level) {
 	case RIG_LEVEL_ATT:
 		ret = priv->SetAtten(priv->hRadio, val.i != 0 ? TRUE : FALSE);
@@ -349,7 +348,7 @@ int g3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
 	struct g3_priv_data *priv = (struct g3_priv_data *)rig->state.priv;
 	int ret;
-	
+
 	ret = RIG_OK;
 
 	switch(level) {

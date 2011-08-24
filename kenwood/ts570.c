@@ -2,21 +2,20 @@
  *  Hamlib Kenwood backend - TS570 description
  *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: ts570.c,v 1.42 2009-02-03 23:22:58 azummo Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -70,7 +69,7 @@ static int ts570_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     return -RIG_ERJCTED;
   }
 
-  switch (buf[2]) 
+  switch (buf[2])
   {
     case MD_CW:         *mode = RIG_MODE_CW; break;
     case MD_CWR:	*mode = RIG_MODE_CWR; break;
@@ -87,13 +86,13 @@ static int ts570_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
       return -RIG_EINVAL;
   }
 
-/* 
- * Use FW (Filter Width) for CW and RTTY, 
+/*
+ * Use FW (Filter Width) for CW and RTTY,
  * SL (dsp Slope Low cut-off)  for all the other modes.
  * This is how it works on the TS870S, which does not have SL/SH commands.
  * TODO: combine SL and SH to set/read bandwidth....
  */
-  switch (*mode) 
+  switch (*mode)
   {
     case RIG_MODE_CW:
     case RIG_MODE_CWR:
@@ -161,7 +160,7 @@ static int ts570_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   retval = kenwood_simple_cmd(rig, buf);
   if (retval != RIG_OK) return retval;
 
-  switch (mode) 
+  switch (mode)
   {
     case RIG_MODE_CW:
     case RIG_MODE_CWR:
@@ -194,7 +193,7 @@ int ts570_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
 		char fctbuf[6];
 
-		/* Filter unimplemented RIG_FUNC_TUNER and allow settings 0..2 for 
+		/* Filter unimplemented RIG_FUNC_TUNER and allow settings 0..2 for
 		 * RIG_FUNC_NR.
 		 * Send all other requests to kenwood_set_func()
 		 */
@@ -208,7 +207,7 @@ int ts570_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 		case RIG_FUNC_TUNER:
 			sprintf(fctbuf,"AC %c0", (0==status)?'0':'1');
  			return kenwood_simple_cmd(rig, fctbuf);
-		
+
 		default:
 			return kenwood_set_func(rig, vfo, func, status);
 		}
@@ -228,7 +227,7 @@ int ts570_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 		int retval;
 
 		fct_len = 50;
-		/* filter unimplemented RIG_FUNC_TUNER  
+		/* filter unimplemented RIG_FUNC_TUNER
 		 * and send all other requests to kenwood_get_func()
 		 */
 		switch (func) {
@@ -238,11 +237,11 @@ int ts570_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 				return retval;
 
 			if (fct_len != 4) {
-				rig_debug(RIG_DEBUG_ERR,"kenwood_get_func: " 
+				rig_debug(RIG_DEBUG_ERR,"kenwood_get_func: "
 					"wrong answer len=%d\n", fct_len);
 				return -RIG_ERJCTED;
 			}
-			
+
 			*status = atoi(&fctbuf[2]);
 			break;
 
@@ -252,7 +251,7 @@ int ts570_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 				return retval;
 
 			if (fct_len != 6) {
-				rig_debug(RIG_DEBUG_ERR,"kenwood_get_func: " 
+				rig_debug(RIG_DEBUG_ERR,"kenwood_get_func: "
 					"wrong answer len=%d\n", fct_len);
 				return -RIG_ERJCTED;
 			}
@@ -300,10 +299,10 @@ ts570_set_level (RIG * rig, vfo_t vfo, setting_t level, value_t val)
 
     case RIG_LEVEL_RFPOWER:
       /* level for TS570D is from 0.. 100W in SSB and CW */
-      kenwood_val = val.f * 100;	
+      kenwood_val = val.f * 100;
       sprintf (levelbuf, "PC%03d", kenwood_val);
       return kenwood_simple_cmd(rig, levelbuf);
-      
+
     case RIG_LEVEL_MICGAIN:
       /* level is from 0..100 */
       kenwood_val = val.f * 100;
@@ -313,7 +312,7 @@ ts570_set_level (RIG * rig, vfo_t vfo, setting_t level, value_t val)
     default:
       return kenwood_set_level (rig, vfo, level, val);
     }
-  
+
   return RIG_OK;		/* never reached */
 }
 
@@ -387,7 +386,7 @@ ts570_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
     default:
  	return kenwood_get_level (rig, vfo, level, val);
     }
-  
+
   return RIG_OK;		/* never reached */
 }
 
@@ -403,12 +402,12 @@ int ts570_get_split_vfo(RIG * rig, vfo_t vfo, split_t * split, vfo_t * tx_vfo)
 	int retval;
 
 	retval = kenwood_transaction(rig, "FR", 2, ack, &acklen);
-	if (retval != RIG_OK)  
+	if (retval != RIG_OK)
 		return retval;
 
 
 	retval = kenwood_transaction(rig, "FT", 2, ack2, &ack2len);
-	if (retval != RIG_OK)  
+	if (retval != RIG_OK)
 		return retval;
 
 	if (ack[2] != ack2[2]) {
@@ -447,7 +446,7 @@ int ts570_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 		case RIG_VFO_A: vfo_function = '0'; break;
 		case RIG_VFO_B: vfo_function = '1'; break;
 		case RIG_VFO_MEM: vfo_function = '2'; break;
-		default: 
+		default:
 			rig_debug(RIG_DEBUG_ERR,"ts570_set_split_vfo: unsupported VFO %d\n",
 							vfo);
 			return -RIG_EINVAL;
@@ -465,10 +464,10 @@ int ts570_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 		case RIG_VFO_A: vfo_function = '0'; break;
 		case RIG_VFO_B: vfo_function = '1'; break;
 		case RIG_VFO_MEM: vfo_function = '2'; break;
-		default: 
+		default:
 			rig_debug(RIG_DEBUG_ERR,"ts570_set_split_vfo: unsupported VFO %d\n", txvfo);
 			return -RIG_EINVAL;
-		} 
+		}
 		/* set TX VFO */
 		cmd_len = sprintf(cmdbuf, "FT%c%c", vfo_function, cmd_trm(rig));
 		retval = kenwood_simple_cmd(rig, cmdbuf);
@@ -481,7 +480,7 @@ int ts570_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 			/* first ask for it */
 			ack_len = 10;
 			retval = kenwood_transaction(rig, "FR", 2, ackbuf, &ack_len);
-			if (retval != RIG_OK)  
+			if (retval != RIG_OK)
 				return retval;
 			/* and then set it to both vfo's */
 			vfo_function = ackbuf[2];
@@ -703,7 +702,7 @@ const struct rig_caps ts570s_caps = {
 			{ 90, 99, RIG_MTYPE_EDGE, TS570_MEM_CAP },
 		  	RIG_CHAN_END,
 		   },
-.rx_range_list1 =  { 
+.rx_range_list1 =  {
 	{kHz(500),MHz(60),TS570_ALL_MODES,-1,-1,TS570_VFO,TS570_ANTS},
 	RIG_FRNG_END,
   }, /* rx range */
@@ -881,7 +880,7 @@ const struct rig_caps ts570d_caps = {
 			{ 90, 99, RIG_MTYPE_EDGE, TS570_MEM_CAP  },
 		  	RIG_CHAN_END,
 		   },
-.rx_range_list1 =  { 
+.rx_range_list1 =  {
 	{kHz(500),MHz(30),TS570_ALL_MODES,-1,-1,TS570_VFO,TS570_ANTS},
 	RIG_FRNG_END,
   }, /* rx range */

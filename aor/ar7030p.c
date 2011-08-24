@@ -2,21 +2,22 @@
 /*
  *  Hamlib AOR backend - AR7030 Plus description
  *  Copyright (c) 2000-2010 by Stephane Fillod & Fritz Melchert
+ *  Copyright (c) 2009-2010 by Larry Gadallah (VE6VQ)
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -96,7 +97,7 @@
    - Width
    - Scan lockout
    - PBT
-   - Squelch 
+   - Squelch
    - ID
  */
 #define AR7030P_MEM_CAP { \
@@ -130,7 +131,7 @@ static const struct ar7030p_priv_caps ar7030p_priv_caps = {
 
 #define NB_CHAN 400		/* see caps->chan_list */
 
-struct ar7030p_priv_data 
+struct ar7030p_priv_data
 {
   vfo_t curr_vfo;
   vfo_t last_vfo;	/* VFO A or VFO B, when in MEM mode */
@@ -140,7 +141,7 @@ struct ar7030p_priv_data
   value_t parms[ RIG_SETTING_MAX ];
 
   channel_t *curr;	/* points to vfo_a, vfo_b or mem[] */
-  
+
   channel_t vfo_a;
   channel_t vfo_b;
   channel_t mem[ NB_CHAN ];
@@ -148,7 +149,7 @@ struct ar7030p_priv_data
   struct ext_list *ext_parms;
 };
 
-static const struct confparams ar7030p_ext_levels[] = 
+static const struct confparams ar7030p_ext_levels[] =
 {
   { TOK_EL_MAGICLEVEL, "MGL", "Magic level", "Magic level, as an example",
     NULL, RIG_CONF_NUMERIC, { .n = { 0, 1, .001 } } },
@@ -162,7 +163,7 @@ static const struct confparams ar7030p_ext_levels[] =
   { RIG_CONF_END, NULL, }
 };
 
-static const struct confparams ar7030p_ext_parms[] = 
+static const struct confparams ar7030p_ext_parms[] =
 {
   { TOK_EP_MAGICPARM, "MGP", "Magic parm", "Magic parameter, as an example",
     NULL, RIG_CONF_NUMERIC, { .n = { 0, 1, .001 } } },
@@ -250,7 +251,7 @@ static int ar7030p_init( RIG *rig )
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __func__);
 
-  priv = (struct ar7030p_priv_data *) 
+  priv = (struct ar7030p_priv_data *)
     malloc( sizeof( struct ar7030p_priv_data ) );
 
   if (!priv)
@@ -270,7 +271,7 @@ static int ar7030p_init( RIG *rig )
 
     memset(priv->mem, 0, sizeof( priv->mem ) );
 
-    for ( i = 0; i < NB_CHAN; i++ ) 
+    for ( i = 0; i < NB_CHAN; i++ )
     {
       priv->mem[ i ].channel_num = i;
       priv->mem[ i ].vfo = RIG_VFO_MEM;
@@ -293,7 +294,7 @@ static int ar7030p_init( RIG *rig )
 	return -RIG_ENOMEM;
       }
       else
-      {	
+      {
 	priv->vfo_b.ext_levels = alloc_init_ext( ar7030p_ext_levels );
       }
 
@@ -330,7 +331,7 @@ static int ar7030p_cleanup( RIG *rig )
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  for ( i = 0; i < NB_CHAN; i++ ) 
+  for ( i = 0; i < NB_CHAN; i++ )
   {
     free( priv->mem[ i ].ext_levels );
   }
@@ -344,7 +345,7 @@ static int ar7030p_cleanup( RIG *rig )
   {
     free( rig->state.priv );
   }
-  
+
   rig->state.priv = NULL;
 
   return( rc );
@@ -473,7 +474,7 @@ static int ar7030p_set_freq( RIG * rig, vfo_t vfo, freq_t freq )
   {
     caps = rig->caps;
 
-    if ( ( caps->rx_range_list1[ 0 ].end   > freq ) && 
+    if ( ( caps->rx_range_list1[ 0 ].end   > freq ) &&
 	 ( caps->rx_range_list1[ 0 ].start < freq ) )
     {
       switch( vfo )
@@ -592,7 +593,7 @@ static int ar7030p_set_mode( RIG * rig, vfo_t vfo, rmode_t mode,
 	    }
 	  }
 
-	  rig_debug( RIG_DEBUG_VERBOSE, "%s: width %d ar_filter %d filterTab[%d] %d\n", 
+	  rig_debug( RIG_DEBUG_VERBOSE, "%s: width %d ar_filter %d filterTab[%d] %d\n",
                      __func__, width, ar_filter, i, filterTab[i] );
 	}
       }
@@ -632,7 +633,7 @@ static int ar7030p_get_mode( RIG * rig, vfo_t vfo, rmode_t * mode,
 
   rc = lockRx( rig, LOCK_1 );
   if ( RIG_OK == rc )
-  { 
+  {
     /* TODO - deal with selected VFO */
     rc = readByte( rig, WORKING, MODE, &m );
     if ( RIG_OK == rc )
@@ -658,7 +659,7 @@ static int ar7030p_get_mode( RIG * rig, vfo_t vfo, rmode_t * mode,
  * /param chan Channel number (0-399)
  * /param freq Pointer to frequency value
  * /param mode Pointer to mode value (1-7)
- * /param filt Pointer to filter value (1-6) 
+ * /param filt Pointer to filter value (1-6)
  * /param pbs Pointer to passband tuning value
  * /param sql Pointer to squelch value (0-255)
  * /param id Pointer to channel ident string (14 chars)
@@ -698,14 +699,14 @@ static void ar7030p_get_memory( RIG * rig, const unsigned int chan,
     }
     else
     {
-      rc = readByte( rig, EEPROM3, (MEY_SQ + ((chan - 176) * 16) ), &v ); /* mey_sq */  
+      rc = readByte( rig, EEPROM3, (MEY_SQ + ((chan - 176) * 16) ), &v ); /* mey_sq */
     }
 
     if ( RIG_OK == rc )
     {
       *sql = v;
     }
-  
+
     /* Frequency, mode and filter values */
     if ( 100 > chan )
     {
@@ -795,7 +796,7 @@ static int ar7030p_set_level( RIG * rig, vfo_t vfo, setting_t level,
     {
     case RIG_LEVEL_PREAMP:
       /* Scale parameter */
-      if ( 10 <= val.i ) 
+      if ( 10 <= val.i )
       {
 	v = (unsigned char) 0;
       }
@@ -813,7 +814,7 @@ static int ar7030p_set_level( RIG * rig, vfo_t vfo, setting_t level,
 
     case RIG_LEVEL_ATT:
       /* Scale parameter */
-      if ( 10 > val.i ) 
+      if ( 10 > val.i )
       {
 	v = (unsigned char) 1;
       }
@@ -829,7 +830,7 @@ static int ar7030p_set_level( RIG * rig, vfo_t vfo, setting_t level,
       {
 	v = (unsigned char) 4;
       }
-      else 
+      else
       {
         v = (unsigned char) 5;
       }
@@ -947,7 +948,7 @@ static int ar7030p_get_level( RIG * rig, vfo_t vfo, setting_t level,
   int i;
 
   rc = lockRx( rig, LOCK_1 );
-  if ( RIG_OK == rc ) 
+  if ( RIG_OK == rc )
   {
     /* TODO - deal with selected VFO */
     switch ( level )
@@ -993,7 +994,7 @@ static int ar7030p_get_level( RIG * rig, vfo_t vfo, setting_t level,
 	default:
 	case 0:
 	case 1:
-	  val->i = 0;    
+	  val->i = 0;
 	};
 
 	rig_debug( RIG_DEBUG_VERBOSE, "%s: rfgain %d (%d)\n",
@@ -1078,7 +1079,7 @@ static int ar7030p_get_level( RIG * rig, vfo_t vfo, setting_t level,
 
 	/* Scale parameter */
 	val->i = (int) ((float) (x) / NOTCH_STEP_HZ);
-      
+
         rig_debug( RIG_DEBUG_VERBOSE, "%s: nchfr %d (%d)\n",
 		   __func__, x, val->i );
       }
@@ -1133,7 +1134,7 @@ static int ar7030p_set_vfo( RIG * rig, vfo_t vfo )
 
   assert( NULL != rig );
 
-  switch( vfo ) 
+  switch( vfo )
   {
   case RIG_VFO_B:
     if ( RIG_VFO_B != priv->curr_vfo )
@@ -1311,7 +1312,7 @@ static int ar7030p_get_dcd( RIG * rig, vfo_t vfo, dcd_t * dcd )
   assert( NULL != dcd );
 
   rc = lockRx( rig, LOCK_1 );
-  if ( RIG_OK == rc ) 
+  if ( RIG_OK == rc )
   {
     rc = readByte( rig, WORKING, BITS + 2, &v );
     if ( RIG_OK == rc )
@@ -1424,7 +1425,7 @@ static int ar7030p_set_powerstat( RIG * rig, powerstat_t status )
     case RIG_POWER_OFF:
       break;
 
-    case RIG_POWER_ON: 
+    case RIG_POWER_ON:
       break;
 
     default:
@@ -1563,14 +1564,14 @@ static int ar7030p_get_channel( RIG * rig, channel_t * chan )
     }
     else
     {
-      rc = readByte( rig, EEPROM3, (MEY_SQ + ((ch - 176) * 16) ), &v ); /* mey_sq */  
+      rc = readByte( rig, EEPROM3, (MEY_SQ + ((ch - 176) * 16) ), &v ); /* mey_sq */
     }
 
     if ( RIG_OK == rc )
     {
       chan->levels[ LVL_SQL ].f = (float) v / 255.0;
     }
-  
+
     /* Frequency, mode and filter values */
     if ( 100 > ch )
     {

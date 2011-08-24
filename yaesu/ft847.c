@@ -8,21 +8,20 @@
  * This shared library provides an API for communicating
  * via serial interface to an FT-847 using the "CAT" interface.
  *
- * $Id: ft847.c,v 1.34 2009-02-20 12:33:52 fillods Exp $  
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation; either
- *  version 2 of the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
+ *   This library is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+ *   You should have received a copy of the GNU Lesser General Public
+ *   License along with this library; if not, write to the Free Software
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -72,7 +71,7 @@ static int ft847_send_priv_cmd(RIG *rig, int cmd_index);
 /* Incomplete sequences (0) must be completed with extra parameters */
 /* eg: mem number, or freq etc.. */
 
-static const yaesu_cmd_set_t ncmd[] = { 
+static const yaesu_cmd_set_t ncmd[] = {
   { 1, { 0x00, 0x00, 0x00, 0x00, 0x00 } }, /* CAT = On */
   { 1, { 0x00, 0x00, 0x00, 0x00, 0x80 } }, /* CAT = Off */
   { 1, { 0x00, 0x00, 0x00, 0x00, 0x08 } }, /* ptt on */
@@ -156,8 +155,8 @@ static const yaesu_cmd_set_t ncmd[] = {
 };
 
 
-/* 
- * Receiver caps 
+/*
+ * Receiver caps
  */
 
 
@@ -168,7 +167,7 @@ static const yaesu_cmd_set_t ncmd[] = {
 /* tx doesn't have WFM.
  * 100W in 160-6m (25 watts AM carrier)
  * 50W in 2m/70cm (12.5 watts AM carrier)
- */ 
+ */
 
 #define FT847_OTHER_TX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM)
 #define FT847_AM_TX_MODES (RIG_MODE_AM)
@@ -194,7 +193,7 @@ static const yaesu_cmd_set_t ncmd[] = {
  * c.f. ft847_set_ctcss_tone()
  */
 static const tone_t ft847_ctcss_list[] = {
-  670,  693,  719,  744,  770,  797,  825,  854,  885,  915, 
+  670,  693,  719,  744,  770,  797,  825,  854,  885,  915,
   948,  974, 1000, 1035, 1072, 1109, 1148, 1188, 1230, 1273,
  1318, 1365, 1413, 1462, 1514, 1567, 1622, 1679, 1738, 1799,
  1862, 1928, 2035, 2107, 2181, 2257, 2336, 2418, 2503,
@@ -210,8 +209,8 @@ static const tone_t ft847_ctcss_list[] = {
 
 const struct rig_caps ft847_caps = {
 .rig_model =  RIG_MODEL_FT847,
-.model_name = "FT-847", 
-.mfg_name =  "Yaesu", 
+.model_name = "FT-847",
+.mfg_name =  "Yaesu",
 .version =  "0.5",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
@@ -224,7 +223,7 @@ const struct rig_caps ft847_caps = {
 .serial_data_bits =  8,
 .serial_stop_bits =  2,
 .serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_NONE, 
+.serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  FT847_WRITE_DELAY,
 .post_write_delay =  FT847_POST_WRITE_DELAY,
 .timeout =  1000,
@@ -276,7 +275,7 @@ const struct rig_caps ft847_caps = {
 
     RIG_FRNG_END, }, /* tx range end */
 
-.rx_range_list2 =  
+.rx_range_list2 =
   { {kHz(100),MHz(30),FT847_ALL_RX_MODES,-1,-1}, /* rx range begin */
     {MHz(36),MHz(76),FT847_ALL_RX_MODES,-1,-1},
     {MHz(108),MHz(174),FT847_ALL_RX_MODES,-1,-1},
@@ -284,7 +283,7 @@ const struct rig_caps ft847_caps = {
 
     RIG_FRNG_END, }, /* rx range end */
 
-.tx_range_list2 = 
+.tx_range_list2 =
   {
     FRQ_RNG_HF(2,FT847_OTHER_TX_MODES, W(5),W(100),FT847_VFOS,FT847_ANTS),
     FRQ_RNG_HF(2,FT847_AM_TX_MODES, W(1),W(25),FT847_VFOS,FT847_ANTS),
@@ -304,12 +303,12 @@ const struct rig_caps ft847_caps = {
     {FT847_SSB_CW_RX_MODES,10}, /* fast */
     {FT847_SSB_CW_RX_MODES,100}, /* faster */
 
-    
+
     {FT847_AM_FM_RX_MODES,10}, /* normal */
     {FT847_AM_FM_RX_MODES,100}, /* fast  */
-        
+
     RIG_TS_END,
-  },  
+  },
       /* mode/filter list, .remember =  order matters! */
 .filters =  {
 		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR, kHz(2.2)},
@@ -322,10 +321,10 @@ const struct rig_caps ft847_caps = {
   },
 
 .priv =   NULL,
-.rig_init =   ft847_init, 
-.rig_cleanup =  ft847_cleanup, 
-.rig_open =   ft847_open, 
-.rig_close =  ft847_close, 
+.rig_init =   ft847_init,
+.rig_cleanup =  ft847_cleanup,
+.rig_open =   ft847_open,
+.rig_close =  ft847_close,
 
 .set_freq =   ft847_set_freq,		/* set freq */
 .get_freq =  ft847_get_freq,		/* get freq */
@@ -356,18 +355,18 @@ const struct rig_caps ft847_caps = {
  */
 
 /*
- * setup *priv 
+ * setup *priv
  * serial port is already open (rig->state->fd)
  */
 
 int ft847_init(RIG *rig) {
   struct ft847_priv_data *p;
-  
+
   rig_debug(RIG_DEBUG_VERBOSE,"%s called \n", __func__);
 
   if (!rig)
     return -RIG_EINVAL;
-  
+
   p = (struct ft847_priv_data*)malloc(sizeof(struct ft847_priv_data));
   if (!p) {
 				/* whoops! memory shortage! */
@@ -377,7 +376,7 @@ int ft847_init(RIG *rig) {
 
   p->sat_mode = RIG_SPLIT_OFF;
   rig->state.priv = (void*)p;
-  
+
   return RIG_OK;
 }
 
@@ -390,20 +389,20 @@ int ft847_init(RIG *rig) {
 int ft847_cleanup(RIG *rig) {
   if (!rig)
     return -RIG_EINVAL;
-  
+
   if (rig->state.priv)
     free(rig->state.priv);
   rig->state.priv = NULL;
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft847:ft847_cleanup called \n");
-  
+
   return RIG_OK;
 }
 
 
 /*
  * ft847_open  routine
- * 
+ *
  */
 
 int ft847_open(RIG *rig) {
@@ -417,7 +416,7 @@ int ft847_open(RIG *rig) {
 
 /*
  * ft847_close  routine
- * 
+ *
  */
 
 int ft847_close(RIG *rig) {
@@ -442,7 +441,7 @@ static int ft847_send_priv_cmd(RIG *rig, int cmd_index) {
 
   struct rig_state *rig_s;
   unsigned char *cmd;		/* points to sequence to send */
- 
+
   if (!rig)
     return -RIG_EINVAL;
 
@@ -452,7 +451,7 @@ static int ft847_send_priv_cmd(RIG *rig, int cmd_index) {
   }
 
   rig_s = &rig->state;
-  
+
   cmd = (unsigned char *) ncmd[cmd_index].nseq; /* get native sequence */
 
   return write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
@@ -467,7 +466,7 @@ static int opcode_vfo(RIG *rig, unsigned char * cmd, int cmd_index, vfo_t vfo)
 {
   struct ft847_priv_data *p = (struct ft847_priv_data*)rig->state.priv;
 
-  memcpy(cmd, &ncmd[cmd_index].nseq,YAESU_CMD_LENGTH);  
+  memcpy(cmd, &ncmd[cmd_index].nseq,YAESU_CMD_LENGTH);
 
   /* If the sat_mode is not enabled,
    * then leave the OpCode untouched (MAIN VFO) */
@@ -496,7 +495,7 @@ static int opcode_vfo(RIG *rig, unsigned char * cmd, int cmd_index, vfo_t vfo)
 
 /*
  * Set frequency to freq Hz. Note 10 Hz resolution -- YUK -- FS
- * 	 
+ *
  */
 
 
@@ -512,7 +511,7 @@ int ft847_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft847: requested freq = %"PRIfreq" Hz, vfo=%s\n",
 		  freq, rig_strvfo(vfo));
-  
+
   ret = opcode_vfo(rig, p_cmd, FT_847_NATIVE_CAT_SET_FREQ_MAIN, vfo);
   if (ret != RIG_OK)
 	  return ret;
@@ -548,7 +547,7 @@ static int get_freq_and_mode(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode,
 
   cmd_index = FT_847_NATIVE_CAT_GET_FREQ_MODE_STATUS_MAIN;
 
-  memcpy(p_cmd,&ncmd[cmd_index].nseq,YAESU_CMD_LENGTH);  
+  memcpy(p_cmd,&ncmd[cmd_index].nseq,YAESU_CMD_LENGTH);
 
   /* change opcode according to vfo */
   n = opcode_vfo(rig, p_cmd, cmd_index, vfo);
@@ -573,15 +572,15 @@ static int get_freq_and_mode(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode,
   case MD_LSB: *mode = RIG_MODE_LSB; break;
   case MD_USB: *mode = RIG_MODE_USB; break;
 
-  case MD_CWN: 
+  case MD_CWN:
 		*width = rig_passband_narrow(rig, RIG_MODE_CW);
-  case MD_CW:  
+  case MD_CW:
 		*mode = RIG_MODE_CW;
 		break;
 
   case MD_CWNR:
 		*width = rig_passband_narrow(rig, RIG_MODE_CW);
-  case MD_CWR: 
+  case MD_CWR:
 		*mode = RIG_MODE_CWR;
 		break;
 
@@ -593,8 +592,8 @@ static int get_freq_and_mode(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode,
 
   case MD_FMN:
 		*width = rig_passband_narrow(rig, RIG_MODE_FM);
-  case MD_FM:  
-		*mode = RIG_MODE_FM; 
+  case MD_FM:
+		*mode = RIG_MODE_FM;
 		break;
   default:
     *mode = RIG_MODE_NONE;
@@ -630,7 +629,7 @@ int ft847_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
   unsigned char p_cmd[YAESU_CMD_LENGTH]; /* sequence to send */
   int ret;
 
-  /* 
+  /*
    * translate mode from generic to ft847 specific
    */
 
@@ -684,14 +683,14 @@ int ft847_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
       break;
     default:
       rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode/width: %s/%d, narrow: %d\n",
-		      __FUNCTION__, rig_strrmode(mode), width, 
+		      __FUNCTION__, rig_strrmode(mode), width,
 		      rig_passband_narrow(rig, mode));
-      return -RIG_EINVAL;		/* sorry, wrong MODE/WIDTH combo  */    
+      return -RIG_EINVAL;		/* sorry, wrong MODE/WIDTH combo  */
     }
   } else {
-  		if (width != RIG_PASSBAND_NORMAL && 
+  		if (width != RIG_PASSBAND_NORMAL &&
 						width != rig_passband_normal(rig, mode)) {
-      		return -RIG_EINVAL;		/* sorry, wrong MODE/WIDTH combo  */    
+      		return -RIG_EINVAL;		/* sorry, wrong MODE/WIDTH combo  */
 		}
 	}
   /*
@@ -796,7 +795,7 @@ int ft847_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt) {
 
   /*
    * phew! now send cmd to rig
-   */ 
+   */
 
   return ft847_send_priv_cmd(rig,cmd_index);
 
@@ -906,11 +905,11 @@ static int ft847_get_smeter_level(RIG *rig, value_t *val)
   if (n < 0)
     return n;
 
-  /* 
+  /*
    * The FT-847 S-meter readings over CAT returns
    * an integer that corresponds to the number of
    * 'dots' lit in the display. Use a conversion
-   * function to convert the raw signal strength to dB 
+   * function to convert the raw signal strength to dB
    */
   n = val->i;
   if (n < 4)  /* <= S1 */
@@ -921,7 +920,7 @@ static int ft847_get_smeter_level(RIG *rig, value_t *val)
     n -= 19;
     val->i = (n * 5);
   }
-  
+
   return RIG_OK;
 }
 
@@ -951,7 +950,7 @@ static int ft847_get_alc_level(RIG *rig, value_t *val)
  * and PO/ALC in transmit mode.  There is no way
  * to determine whether it's PO or ALC, unfortunately.
  */
-int ft847_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t * val) 
+int ft847_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t * val)
 {
   if (vfo != RIG_VFO_CURR)
     return -RIG_ENTARGET;
@@ -1012,10 +1011,10 @@ int ft847_set_ctcss_tone (RIG *rig, vfo_t vfo, tone_t tone)
    * 39 CTCSS CAT codes corresponding to ft847_ctcss_list
    */
   static const unsigned char ft847_ctcss_cat[] = {
-  0x3F, 0x39, 0x1F, 0x3E, 0x0F, 0x3D, 0x1E, 0x3C, 0x0E, 0x3B, 
-  0x1D, 0x3A, 0x0D, 0x1C, 0x0C, 0x1B, 0x0B, 0x1A, 0x0A, 0x19, 
-  0x09, 0x18, 0x08, 0x17, 0x07, 0x16, 0x06, 0x15, 0x05, 0x14, 
-  0x04, 0x13, 0x03, 0x12, 0x02, 0x11, 0x01, 0x10, 0x00, 
+  0x3F, 0x39, 0x1F, 0x3E, 0x0F, 0x3D, 0x1E, 0x3C, 0x0E, 0x3B,
+  0x1D, 0x3A, 0x0D, 0x1C, 0x0C, 0x1B, 0x0B, 0x1A, 0x0A, 0x19,
+  0x09, 0x18, 0x08, 0x17, 0x07, 0x16, 0x06, 0x15, 0x05, 0x14,
+  0x04, 0x13, 0x03, 0x12, 0x02, 0x11, 0x01, 0x10, 0x00,
   };
 
   ret = opcode_vfo(rig, p_cmd, FT_847_NATIVE_CAT_SET_CTCSS_FREQ_MAIN, vfo);
@@ -1094,7 +1093,7 @@ int ft847_set_rptr_offs (RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
   if (vfo != RIG_VFO_CURR)
     return -RIG_ENTARGET;
 
-  memcpy(p_cmd,&ncmd[FT_847_NATIVE_CAT_SET_RPT_OFFSET].nseq,YAESU_CMD_LENGTH);  
+  memcpy(p_cmd,&ncmd[FT_847_NATIVE_CAT_SET_RPT_OFFSET].nseq,YAESU_CMD_LENGTH);
 
 
   to_bcd_be(p_cmd,rptr_offs/10,8);	/* store bcd format in in p_cmd */

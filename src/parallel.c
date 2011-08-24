@@ -3,19 +3,19 @@
  *  Copyright (c) 2000-2010 by Stephane Fillod
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -73,7 +73,7 @@
 #include <dev/ppbus/ppbconf.h>
 #endif
 
-/* 
+/*
  * These control port bits are active low.
  * We toggle them so that this weirdness doesn't get propagated
  * through our interface.
@@ -199,7 +199,7 @@ int HAMLIB_API par_write_data(hamlib_port_t *port, unsigned char data)
 #elif defined(WIN32)
 	unsigned int dummy;
 
-	if (!(DeviceIoControl((HANDLE)(port->fd), NT_IOCTL_DATA, &data, sizeof(data), 
+	if (!(DeviceIoControl((HANDLE)(port->fd), NT_IOCTL_DATA, &data, sizeof(data),
 			NULL, 0, (LPDWORD)&dummy, NULL))) {
 		rig_debug(RIG_DEBUG_ERR, "%s: DeviceIoControl failed!\n", __FUNCTION__);
 		return -RIG_EIO;
@@ -229,7 +229,7 @@ int HAMLIB_API par_read_data(hamlib_port_t *port, unsigned char *data)
 	unsigned char ret;
 	unsigned int dummy;
 
-	if (!(DeviceIoControl((HANDLE)(port->fd), NT_IOCTL_STATUS, NULL, 0, &ret, 
+	if (!(DeviceIoControl((HANDLE)(port->fd), NT_IOCTL_STATUS, NULL, 0, &ret,
           		sizeof(ret), (LPDWORD)&dummy, NULL))) {
 		rig_debug(RIG_DEBUG_ERR, "%s: DeviceIoControl failed!\n", __FUNCTION__);
 		return -RIG_EIO;
@@ -278,7 +278,7 @@ int HAMLIB_API par_write_control(hamlib_port_t *port, unsigned char control)
   /* Deal with inversion issues. */
   ctr ^= wm & C1284_INVERTED;
   ctr = (ctr & ~wm) ^ (ctr & wm);
-  if (!(DeviceIoControl((HANDLE)(port->fd), NT_IOCTL_CONTROL, &ctr, 
+  if (!(DeviceIoControl((HANDLE)(port->fd), NT_IOCTL_CONTROL, &ctr,
           sizeof(ctr), &dummyc, sizeof(dummyc), (LPDWORD)&dummy, NULL))) {
       rig_debug(RIG_DEBUG_ERR,"frob_control: DeviceIoControl failed!\n");
       return -RIG_EIO;
@@ -314,7 +314,7 @@ int HAMLIB_API par_read_control(hamlib_port_t *port, unsigned char *control)
 	unsigned char ret;
 	unsigned int dummy;
 
-	if (!(DeviceIoControl((HANDLE)(port->fd), NT_IOCTL_CONTROL, NULL, 0, &ret, 
+	if (!(DeviceIoControl((HANDLE)(port->fd), NT_IOCTL_CONTROL, NULL, 0, &ret,
 			sizeof(ret), (LPDWORD)&dummy, NULL))) {
 		rig_debug(RIG_DEBUG_ERR, "%s: DeviceIoControl failed!\n", __FUNCTION__);
 		return -RIG_EIO;
@@ -351,7 +351,7 @@ int HAMLIB_API par_read_status(hamlib_port_t *port, unsigned char *status)
 	unsigned char ret;
 	unsigned int dummy;
 
-	if (!(DeviceIoControl((HANDLE)(port->fd), NT_IOCTL_STATUS, NULL, 0, &ret, 
+	if (!(DeviceIoControl((HANDLE)(port->fd), NT_IOCTL_STATUS, NULL, 0, &ret,
 			sizeof(ret), (LPDWORD)&dummy, NULL))) {
 		rig_debug(RIG_DEBUG_ERR, "%s: DeviceIoControl failed!\n", __FUNCTION__);
 		return -RIG_EIO;
@@ -450,7 +450,7 @@ int par_ptt_set(hamlib_port_t *p, ptt_t pttx)
 		return status;
 		}
 	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n", 
+		rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n",
 						p->type.ptt);
 		return -RIG_EINVAL;
 	}
@@ -476,12 +476,12 @@ int par_ptt_get(hamlib_port_t *p, ptt_t *pttx)
 		par_unlock (p);
 
 		*pttx = (ctl & PARPORT_CONTROL_INIT) &&
-		            !(ctl & PARPORT_CONTROL_STROBE) ? 
+		            !(ctl & PARPORT_CONTROL_STROBE) ?
 					RIG_PTT_ON : RIG_PTT_OFF;
 		return status;
 		}
 	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n", 
+		rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n",
 						p->type.ptt);
 		return -RIG_ENAVAIL;
 	}
@@ -503,12 +503,12 @@ int par_dcd_get(hamlib_port_t *p, dcd_t *dcdx)
 		int status;
 
 		status = par_read_data(p, &reg);
-		*dcdx = reg & (1<<p->parm.parallel.pin) ? 
+		*dcdx = reg & (1<<p->parm.parallel.pin) ?
 				RIG_DCD_ON:RIG_DCD_OFF;
 		return status;
 		}
 	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported DCD type %d\n", 
+		rig_debug(RIG_DEBUG_ERR,"Unsupported DCD type %d\n",
 						p->type.dcd);
 		return -RIG_ENAVAIL;
 	}

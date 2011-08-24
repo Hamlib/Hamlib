@@ -2,21 +2,20 @@
  *  Hamlib TenTenc backend - TT-550 PC-Radio description
  *  Copyright (c) 2002-2004 by Stephane Fillod
  *
- *	$Id: pegasus.c,v 1.7 2004-02-15 11:05:32 fillods Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -49,7 +48,7 @@
 
 #define TT550_VFO (RIG_VFO_A )
 #define TT550_VFO_OPS (RIG_OP_TUNE)
-/* 
+/*
  * a bit coarse, but I don't have a TT550, and the manual is not
  * verbose on the subject. Please test it and report! --SF
  */
@@ -61,7 +60,7 @@
 /*
  * tt550 receiver capabilities.
  *
- * protocol is documented at 
+ * protocol is documented at
  *		http://www.tentec.com/550/550prg2.pdf
  *
  * TODO:

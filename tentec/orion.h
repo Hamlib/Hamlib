@@ -3,19 +3,19 @@
  *  Copyright (c) 2004-2006 by Stephane Fillod & Martin Ewing
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -38,7 +38,7 @@
  *
  * Orion's own  memory channel holds a freq, mode, and bandwidth.
  * May be captured from VFO A or B and applied to VFO A or B.
- * It cannot directly be read or written from the computer! 
+ * It cannot directly be read or written from the computer!
  */
 #define TT565_MEM_CAP {        \
 	.freq = 1,      \
@@ -106,9 +106,9 @@ struct tt565_priv_data {
 				RIG_LEVEL_SWR|RIG_LEVEL_ATT)
 
 /** \brief Orion Tx/Rx Antennas*/
-#define TT565_ANTS (RIG_ANT_1|RIG_ANT_2) 
+#define TT565_ANTS (RIG_ANT_1|RIG_ANT_2)
 /** \brief Orion Rx Antennas*/
-#define TT565_RXANTS (TT565_ANTS|RIG_ANT_3) 
+#define TT565_RXANTS (TT565_ANTS|RIG_ANT_3)
 
 /** \brief Orion Parameters */
 #define TT565_PARMS (RIG_PARM_NONE)
@@ -180,7 +180,7 @@ struct tt565_priv_data {
 	7015679 < freq < 7015936, etc.  Use ascii mode. */
 
 /**
- * 
+ *
  * \brief tt565 transceiver capabilities.
  *
  * All of the Orion's personality is defined here!
@@ -217,7 +217,7 @@ const struct rig_caps tt565_caps = {
 .has_get_parm =  TT565_PARMS,
 .has_set_parm =  TT565_PARMS,
 
-.level_gran = {}, 
+.level_gran = {},
 .parm_gran =  {},
 .ctcss_list =  NULL,
 .dcs_list =  NULL,

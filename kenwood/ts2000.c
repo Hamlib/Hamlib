@@ -2,21 +2,20 @@
  *  Hamlib Kenwood backend - TS2000 description
  *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: ts2000.c,v 1.27 2009-02-03 23:22:58 azummo Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -295,7 +294,7 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			}
 
 			sscanf(lvlbuf+2, "%d", &lvl);
-			if (lvl < 10) /* just checking for main receiver preamp setting */ 
+			if (lvl < 10) /* just checking for main receiver preamp setting */
 					val->i = 0;
 			if (lvl > 9)
 					val->i = rig->state.preamp[0];
@@ -313,13 +312,13 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			}
 
 			sscanf(lvlbuf+2, "%d", &lvl);
-			
+
 			if (lvl < 100)  /* just checking main band attenuator */
 				val->i = 0;
 			if (lvl > 99)
 				val->i = rig->state.attenuator[0];  /* Since the TS-2000 only has one step on the attenuator */
 			break;
-			
+
 		case RIG_LEVEL_VOX:
 			retval = kenwood_transaction (rig, "VD", 2, lvlbuf, &lvl_len);
 			if (retval != RIG_OK)
@@ -332,7 +331,7 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			sscanf(lvlbuf+2, "%d", &lvl);
 			val->i = lvl / 100;
 			break;
-		
+
 	        case RIG_LEVEL_AF:
 			retval = kenwood_transaction (rig, "AG0", 3, lvlbuf, &lvl_len);
 			if (retval != RIG_OK)
@@ -345,7 +344,7 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			sscanf(lvlbuf+2, "%d", &lvl);
 			val->f = lvl / 255.0;
 			break;
-		
+
 		case RIG_LEVEL_RF:
 			retval = kenwood_transaction (rig, "RG", 2, lvlbuf, &lvl_len);
 			if (retval != RIG_OK)
@@ -358,7 +357,7 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			sscanf(lvlbuf+2, "%d", &lvl);
 			val->f = lvl / 255.0;
 			break;
-		
+
 		case RIG_LEVEL_SQL:
 			retval = kenwood_transaction (rig, "SQ0", 3, lvlbuf, &lvl_len);
 			if (retval != RIG_OK)
@@ -384,7 +383,7 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			sscanf(lvlbuf+8, "%d", &lvl);
 			val->i = 400 + (50 * lvl);
 			break;
-	
+
 		case RIG_LEVEL_RFPOWER:
 			retval = kenwood_transaction (rig, "PC", 2, lvlbuf, &lvl_len);
 			if (retval != RIG_OK)
@@ -397,7 +396,7 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			sscanf(lvlbuf+3, "%d", &lvl);
 			val->f = lvl / 100.0; /* FIXME: for 1.2GHZ need to divide by 10 */
         	  	break;
-	
+
 		case RIG_LEVEL_MICGAIN:
 			retval = kenwood_transaction (rig, "MG", 2, lvlbuf, &lvl_len);
 			if (retval != RIG_OK)
@@ -410,7 +409,7 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			sscanf(lvlbuf+2, "%d", &lvl);
 			val->f = lvl / 100.0;
 			break;
-		
+
 		case RIG_LEVEL_KEYSPD:
 			retval = kenwood_transaction (rig, "KS", 2, lvlbuf, &lvl_len);
 			if (retval != RIG_OK)
@@ -441,8 +440,8 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			lvl = lvl / 1000;
 			val->f = lvl / 100.0;
 			break;
-		
-			
+
+
 		case RIG_LEVEL_AGC: /* FIX ME: ts2000 returns 0 -20 for AGC */
 			ret = get_kenwood_level(rig, "GT", 2, &val->f);
 			agclevel = 255.0 * val->f;
@@ -465,7 +464,7 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			sscanf(lvlbuf+2, "%d", &lvl);
 			val->i = lvl / 100;
 			break;
-		
+
 		case RIG_LEVEL_BALANCE:
 			return -RIG_ENIMPL;
 		    break;
@@ -482,7 +481,7 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			sscanf(lvlbuf+2, "%d", &lvl);
 			val->i = lvl / 10000;
 			break;
-		
+
 		case RIG_LEVEL_VOXGAIN:
 			retval = kenwood_transaction (rig, "VG", 2, lvlbuf, &lvl_len);
 			if (retval != RIG_OK)
@@ -499,7 +498,7 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		case RIG_LEVEL_ANTIVOX:
 			return -RIG_ENIMPL;
 			break;
-		
+
 		case RIG_LEVEL_RAWSTR:
 		case RIG_LEVEL_STRENGTH:
 			retval = kenwood_transaction (rig, "SM0", 3, lvlbuf, &lvl_len);

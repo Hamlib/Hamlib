@@ -4,19 +4,19 @@
  *  This code is inspired by work from Pablo GARCIA - EA4TX
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -65,7 +65,7 @@
 #define NUM_SAMPLES 3
 
 /* TODO: take into account ADC res (8 bits -> 1.4 deg at 360 deg)
- * Rem: at 360 deg/mn, that's 6 deg/sec. 
+ * Rem: at 360 deg/mn, that's 6 deg/sec.
  */
 #define AZ_RANGE 3.
 #define EL_RANGE 2.
@@ -372,7 +372,7 @@ ars_move(ROT *rot, int direction, int speed)
         // Relay AUX -> Off
         CHKPPRET(ars_clear_data_pin(rot, DTA_PIN02 | DTA_PIN04 | DTA_PIN08));
         CHKPPRET(ars_clear_ctrl_pin(rot, CTL_PIN17 | CTL_PIN16));
-        // AZ stop 
+        // AZ stop
     }
 
     par_unlock (pport);

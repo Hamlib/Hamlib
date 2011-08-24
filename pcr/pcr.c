@@ -5,19 +5,19 @@
  *  Copyright (C) 2007-09 by Alessandro Zummo <a.zummo@towertech.it>
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 /*
@@ -464,7 +464,7 @@ pcr_init(RIG * rig)
 
 	priv->sub_rcvr = priv->main_rcvr;
 	priv->current_vfo = RIG_VFO_MAIN;
-	
+
 	rig->state.priv		= (rig_ptr_t) priv;
 	rig->state.transceive	= RIG_TRN_OFF;
 
@@ -505,7 +505,7 @@ pcr_open(RIG * rig)
 	int wanted_serial_rate;
 	int startup_serial_rate;
 
-	/* 
+	/*
 	 * initial communication is at 9600bps for PCR 100/1000
 	 * once the power is on, the serial speed can be changed with G1xx
 	 */
@@ -1391,7 +1391,7 @@ pcr_set_anl(RIG * rig, vfo_t vfo, int status)
 }
 
 
-/* Antenna Diversity/Tuners - J00xx - 
+/* Antenna Diversity/Tuners - J00xx -
  *      02=Dual Diversity ON, 1 display using 2 tuners
  *      01=Single Diversity OFF, 1 display using 1 tuner
  *      00=OFF Diversity OFF, 2 displays using 2 tuners

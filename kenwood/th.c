@@ -4,19 +4,19 @@
  *  Copyright (C) 2010 by Alessandro Zummo
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -416,7 +416,7 @@ th_get_vfo_char(RIG *rig, vfo_t *vfo, char *vfoch)
 	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
 	/* Get VFO band */
-	
+
 	retval = kenwood_transaction(rig, "BC", 2, buf, &buf_size);
 	if (retval != RIG_OK)
 		return retval;
@@ -424,7 +424,7 @@ th_get_vfo_char(RIG *rig, vfo_t *vfo, char *vfoch)
 	case 5: /*original case BC 0*/
 	  vfoc = buf[3];
 	  break;
-	case 7: /*intended for D700 BC 0,0*/ 
+	case 7: /*intended for D700 BC 0,0*/
 	  if ((buf[0]=='B') &&(buf[1]=='C') && (buf[2]==' ') && (buf[4]=',')){
 	    vfoc = buf[3];
 	  } else {
@@ -522,13 +522,13 @@ int tm_set_vfo_bc2 (RIG *rig, vfo_t vfo)
         case RIG_VFO_VFO:
             vfonum = 0;
             /* put back split mode when toggling */
-            txvfonum = (priv->split == RIG_SPLIT_ON && 
+            txvfonum = (priv->split == RIG_SPLIT_ON &&
                 rig->state.tx_vfo == RIG_VFO_B) ? 1 : vfonum;
             break;
         case RIG_VFO_B:
             vfonum = 1;
             /* put back split mode when toggling */
-            txvfonum = (priv->split == RIG_SPLIT_ON && 
+            txvfonum = (priv->split == RIG_SPLIT_ON &&
                 rig->state.tx_vfo == RIG_VFO_A) ? 0 : vfonum;
             break;
         case RIG_VFO_MEM:
@@ -938,7 +938,7 @@ th_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		case RIG_VFO_VFO:
 		case RIG_VFO_MEM:
 			vch = '0'; break;
-		case RIG_VFO_B: 
+		case RIG_VFO_B:
 			vch = '1'; break;
 		default:
 			return kenwood_wrong_vfo(__func__, vfo);
@@ -997,7 +997,7 @@ th_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		break;
 
 	case RIG_LEVEL_RFPOWER:
-		sprintf(buf, "PC %c",vch); 
+		sprintf(buf, "PC %c",vch);
 		retval = kenwood_transaction(rig, buf, strlen(buf), ackbuf, &ack_len);
 		if (retval != RIG_OK)
 			return retval;
@@ -1076,7 +1076,7 @@ int th_set_level (RIG *rig, vfo_t vfo, setting_t level, value_t val)
 	case RIG_VFO_MEM:
 		vch = '0';
 		break;
-	case RIG_VFO_B: 
+	case RIG_VFO_B:
 		vch = '1';
 		break;
 	default:
@@ -1419,9 +1419,9 @@ th_set_mem(RIG *rig, vfo_t vfo, int ch)
 	tvfo = (vfo == RIG_VFO_CURR) ? rig->state.current_vfo : vfo;
 
 	switch (tvfo) {
-	case RIG_VFO_VFO: 
-	case RIG_VFO_MEM: 
-	case RIG_VFO_A: 
+	case RIG_VFO_VFO:
+	case RIG_VFO_MEM:
+	case RIG_VFO_A:
 		vsel = '0';
 		break;
 	case RIG_VFO_B:
@@ -1471,7 +1471,7 @@ th_get_mem(RIG *rig, vfo_t vfo, int *ch)
 
 	switch (tvfo) {
 	case RIG_VFO_VFO:
-	case RIG_VFO_MEM: 
+	case RIG_VFO_MEM:
 	case RIG_VFO_A:
 		membuf = "MC 0";
 		break;
@@ -1590,7 +1590,7 @@ int th_get_channel(RIG *rig, channel_t *chan)
 	vfo_t vfo;
 	const struct kenwood_priv_caps *priv=(const struct kenwood_priv_caps *)rig->caps->priv;
 	const chan_t *chan_caps;
-   
+
 	if (chan->vfo == RIG_VFO_MEM) {
 
 		chan_caps = rig_lookup_mem_caps(rig, chan->channel_num);
@@ -1759,7 +1759,7 @@ int th_get_channel(RIG *rig, channel_t *chan)
 		chan->dcs_sql=chan->dcs_code=0;
 
 	chan->tx_freq=RIG_FREQ_NONE;
-	if (shift==RIG_RPT_SHIFT_NONE && 
+	if (shift==RIG_RPT_SHIFT_NONE &&
 			((chan_caps->type==RIG_MTYPE_MEM && chan_caps->start == 0) ||
 				chan_caps->type==RIG_MTYPE_CALL)) {
 		/* split ? */
@@ -1783,12 +1783,12 @@ int th_get_channel(RIG *rig, channel_t *chan)
 		else
 			sprintf(membuf, "MNA %s%03d",mr_extra,channel_num);
 		ack_len=ACKBUF_LEN;
-	
+
 		/* Get memory name */
 		retval = kenwood_transaction(rig, membuf, strlen(membuf), ackbuf, &ack_len);
 		if (retval != RIG_OK)
 			return retval;
-	
+
 		if (ack_len > rig->caps->chan_desc_sz)
 			ack_len = rig->caps->chan_desc_sz;
 
@@ -1857,7 +1857,7 @@ int th_set_channel(RIG *rig, const channel_t *chan)
 			return -RIG_EINVAL;
 		tonefq++;
 	}
-	
+
 	if (chan->ctcss_sql==0) {
 		ctcss=0;
 		ctcssfq=8;
@@ -1971,7 +1971,7 @@ int th_set_channel(RIG *rig, const channel_t *chan)
 		/* Without DCS,mode */
 		retval = sprintf(membuf, "%s,%011"PRIll",%X,%d,%d,%d,%d,,%02d,,%02d,%09"PRIll"%s",
 			req, (int64_t)chan->freq, step, shift, rev, tone,
-			ctcss, tonefq, ctcssfq, 
+			ctcss, tonefq, ctcssfq,
 			(int64_t)abs(chan->rptr_offs), lockoutstr
 			);
 	}
@@ -1983,7 +1983,7 @@ int th_set_channel(RIG *rig, const channel_t *chan)
 		return retval;
 
 	/* split ? */
-	if (chan->tx_freq!=RIG_FREQ_NONE && 
+	if (chan->tx_freq!=RIG_FREQ_NONE &&
 			((chan_caps->type==RIG_MTYPE_MEM && chan_caps->start == 0) ||
 				chan_caps->type==RIG_MTYPE_CALL)) {
 

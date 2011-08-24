@@ -1,23 +1,23 @@
 /*
  *  Hamlib Kenwood backend - IC-10 interface for:
- *  			TS-940, TS-811, TS-711, TS-440, and R-5000
+ *    TS-940, TS-811, TS-711, TS-440, and R-5000
  *
  *  Copyright (c) 2000-2010 by Stephane Fillod and others
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -71,7 +71,7 @@ int ic10_cmd_trim (char *data, int data_len) {
 /**
  * ic10_transaction
  * Assumes rig!=NULL rig->state!=NULL rig->caps!=NULL
-**/ 
+**/
 int ic10_transaction (RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
 {
 	int retval;
@@ -94,11 +94,11 @@ int ic10_transaction (RIG *rig, const char *cmd, int cmd_len, char *data, int *d
 	if (retval < 0)
 		return retval;
 	*data_len = retval;
- 
+
     return RIG_OK;
 }
 
-/* 
+/*
  * Get the anwser of IF command, with retry handling
  */
 static int get_ic10_if (RIG *rig, char *data)
@@ -112,7 +112,7 @@ static int get_ic10_if (RIG *rig, char *data)
 		if (retval != RIG_OK)
 			continue;
 
-		if (retval == RIG_OK && 
+		if (retval == RIG_OK &&
 				(data_len < priv->if_len ||
 				 data[0] != 'I' || data[1] != 'F')) {
 			rig_debug(RIG_DEBUG_WARN,"%s: unexpected answer %s, len=%d\n",
@@ -141,7 +141,7 @@ int ic10_set_vfo(RIG *rig, vfo_t vfo)
 	case RIG_VFO_B: vfo_function = '1'; break;
 	case RIG_VFO_MEM: vfo_function = '2'; break;
 	case RIG_VFO_CURR: return RIG_OK;
-	default: 
+	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %d\n",
 						__func__, vfo);
 		return -RIG_EINVAL;
@@ -182,7 +182,7 @@ int ic10_get_vfo(RIG *rig, vfo_t *vfo)
 	case '0': *vfo = RIG_VFO_A; break;
 	case '1': *vfo = RIG_VFO_B; break;
 	case '2': *vfo = RIG_VFO_MEM; break;
-	default: 
+	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %c\n",
 					__func__, c);
 		return -RIG_EPROTO;
@@ -196,7 +196,7 @@ int ic10_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 	char ackbuf[16];
 	int ack_len;
 
-	return ic10_transaction (rig, split==RIG_SPLIT_ON? "SP1;":"SP0;", 4, 
+	return ic10_transaction (rig, split==RIG_SPLIT_ON? "SP1;":"SP0;", 4,
 					ackbuf, &ack_len);
 }
 
@@ -283,12 +283,12 @@ int ic10_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	case RIG_MODE_FM   :	mode_letter = MD_FM; break;
 	case RIG_MODE_AM   :	mode_letter = MD_AM; break;
 	case RIG_MODE_RTTY :	mode_letter = MD_FSK; break;
-	default: 
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %d\n", 
+	default:
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %d\n",
 				__func__,mode);
 		return -RIG_EINVAL;
 	}
-	
+
 	mode_len = sprintf(modebuf,"MD%c;", mode_letter);
 	retval = ic10_transaction (rig, modebuf, mode_len, ackbuf, &ack_len);
 
@@ -438,7 +438,7 @@ int ic10_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 	switch (ptt) {
 	case RIG_PTT_OFF: ptt_letter = 'R'; break;
 	case RIG_PTT_ON : ptt_letter = 'T'; break;
-	default: 
+	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported PTT %d\n",
 				__func__,ptt);
 		return -RIG_EINVAL;
@@ -697,7 +697,7 @@ int ic10_set_parm(RIG *rig, setting_t parm, value_t val)
 		return ic10_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
 		break;
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported set_parm %d\n", 
+		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported set_parm %d\n",
 				__func__,parm);
 		return -RIG_EINVAL;
 	}
@@ -738,7 +738,7 @@ int ic10_get_parm(RIG *rig, setting_t parm, value_t *val)
 					10*lvlbuf[7] + lvlbuf[8];	/* seconds */
 		break;
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported get_parm %d\n", 
+		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported get_parm %d\n",
 				__func__,parm);
 		return -RIG_EINVAL;
 	}
@@ -839,7 +839,7 @@ int ic10_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 	switch(op) {
 	case RIG_OP_UP    :	cmd = "UP;"; break;
 	case RIG_OP_DOWN  :	cmd = "DN;"; break;
-	default: 
+	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported op %#x\n",
 						__func__,op);
 		return -RIG_EINVAL;
@@ -858,7 +858,7 @@ int ic10_scan(RIG * rig, vfo_t vfo, scan_t scan, int ch)
 	char ackbuf[16];
 	int ack_len;
 
-	return ic10_transaction (rig, scan==RIG_SCAN_STOP? "SC0;":"SC1;", 4, 
+	return ic10_transaction (rig, scan==RIG_SCAN_STOP? "SC0;":"SC1;", 4,
 						ackbuf, &ack_len);
 }
 
@@ -934,7 +934,7 @@ int ic10_decode_event (RIG *rig)
 	case '0': vfo = RIG_VFO_A; break;
 	case '1': vfo = RIG_VFO_B; break;
 	case '2': vfo = RIG_VFO_MEM; break;
-	default: 
+	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %c\n",
 					__func__, c);
 		return -RIG_EPROTO;
@@ -968,7 +968,7 @@ int ic10_decode_event (RIG *rig)
 		rig->callbacks.freq_event(rig, vfo, freq, rig->callbacks.freq_arg);
 	}
 	if (rig->callbacks.mode_event) {
-		rig->callbacks.mode_event(rig, vfo, mode, RIG_PASSBAND_NORMAL, 
+		rig->callbacks.mode_event(rig, vfo, mode, RIG_PASSBAND_NORMAL,
 		rig->callbacks.mode_arg);
 	}
 	if (rig->callbacks.ptt_event) {

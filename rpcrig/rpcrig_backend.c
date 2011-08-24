@@ -2,21 +2,20 @@
  *  Hamlib RPC backend - main file
  *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: rpcrig_backend.c,v 1.20 2008-10-31 22:14:10 fillods Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -155,7 +154,7 @@ static int rpcrig_init(RIG *rig)
 	struct rpcrig_priv_data *priv;
 	if (!rig || !rig->caps)
 		return -RIG_EINVAL;
-	
+
 	rig->state.priv = malloc(sizeof(struct rpcrig_priv_data));
 	if (!rig->state.priv) {
 		/* whoops! memory shortage! */
@@ -243,7 +242,7 @@ static int rpcrig_open(RIG *rig)
 	 * 		 This for example breaks reentrancy
 	 */
 	//memcpy(&rpcrig_caps, caps, sizeof(struct rig_caps));
-	
+
 	/*
 	 * TODO: get these from RPC instead
 	 */
@@ -269,20 +268,20 @@ static int rpcrig_open(RIG *rig)
 	rs->max_ifshift = rs_res->rigstate_res_u.state.max_ifshift;
 	rs->announces = rs_res->rigstate_res_u.state.announces;
 
-	memcpy(rs->preamp, rs_res->rigstate_res_u.state.preamp, 
+	memcpy(rs->preamp, rs_res->rigstate_res_u.state.preamp,
 					sizeof(int)*MAXDBLSTSIZ);
-	memcpy(rs->attenuator, rs_res->rigstate_res_u.state.attenuator, 
+	memcpy(rs->attenuator, rs_res->rigstate_res_u.state.attenuator,
 					sizeof(int)*MAXDBLSTSIZ);
 
-	memcpy(rs->tuning_steps, rs_res->rigstate_res_u.state.tuning_steps, 
+	memcpy(rs->tuning_steps, rs_res->rigstate_res_u.state.tuning_steps,
 					sizeof(struct tuning_step_list)*TSLSTSIZ);
-	memcpy(rs->filters, rs_res->rigstate_res_u.state.filters, 
+	memcpy(rs->filters, rs_res->rigstate_res_u.state.filters,
 					sizeof(struct filter_list)*FLTLSTSIZ);
-	memcpy(rs->chan_list, rs_res->rigstate_res_u.state.chan_list, 
+	memcpy(rs->chan_list, rs_res->rigstate_res_u.state.chan_list,
 					sizeof(chan_t)*CHANLSTSIZ);
-	memcpy(rs->rx_range_list, rs_res->rigstate_res_u.state.rx_range_list, 
+	memcpy(rs->rx_range_list, rs_res->rigstate_res_u.state.rx_range_list,
 					sizeof(freq_range_t)*FRQRANGESIZ);
-	memcpy(rs->tx_range_list, rs_res->rigstate_res_u.state.tx_range_list, 
+	memcpy(rs->tx_range_list, rs_res->rigstate_res_u.state.tx_range_list,
 					sizeof(freq_range_t)*FRQRANGESIZ);
 
 	for (i=0; i<FRQRANGESIZ && !RIG_IS_FRNG_END(rs->rx_range_list[i]); i++) {
@@ -1046,7 +1045,7 @@ struct rig_caps rpcrig_caps = {
   .get_mode =     rpcrig_get_mode,
   .set_vfo =      rpcrig_set_vfo,
   .get_vfo =      rpcrig_get_vfo,
-  
+
   .set_powerstat =  rpcrig_set_powerstat,
   .get_powerstat =  rpcrig_get_powerstat,
   .set_level =     rpcrig_set_level,

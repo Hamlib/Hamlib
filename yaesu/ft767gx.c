@@ -8,22 +8,19 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id:
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
+ *   This library is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU Lesser General Public
- *  License as published by the Free Software Foundation; either
- *  version 2 of the License, or (at your option) any later version.
- *
- *  This library is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *  Lesser General Public License for more details.
- *
- *  You should have received a copy of the GNU Lesser General Public
- *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+ *   You should have received a copy of the GNU Lesser General Public
+ *   License along with this library; if not, write to the Free Software
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -205,17 +202,17 @@ static int rig2ctcss(RIG *rig, unsigned char tn, tone_t *tone);
  */
 
 
-/* 
- * Receiver caps 
+/*
+ * Receiver caps
  */
 
 #define FT767GX_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_PKTFM)
 #define FT767GX_HF_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB)
 
 
-/* 
+/*
  * TX caps
- */ 
+ */
 
 #define FT767GX_ALL_TX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_PKTFM)
 #define FT767GX_HF_TX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB)
@@ -251,13 +248,13 @@ const tone_t static_767gx_ctcss_list[] = {
  */
 
 const struct rig_caps ft767gx_caps = {
-  .rig_model =        RIG_MODEL_FT767, 
-  .model_name =       "FT-767GX", 
-  .mfg_name =         "Yaesu", 
+  .rig_model =        RIG_MODEL_FT767,
+  .model_name =       "FT-767GX",
+  .mfg_name =         "Yaesu",
   .version =           "0.2",
   .copyright =         "LGPL",
-  .status =            RIG_STATUS_BETA, 
-  .rig_type =          RIG_TYPE_TRANSCEIVER, 
+  .status =            RIG_STATUS_BETA,
+  .rig_type =          RIG_TYPE_TRANSCEIVER,
   .ptt_type =          RIG_PTT_RIG,
   .dcd_type =          RIG_DCD_NONE,
   .port_type =         RIG_PORT_SERIAL,
@@ -295,37 +292,37 @@ const struct rig_caps ft767gx_caps = {
 
   .tx_range_list1 =    { RIG_FRNG_END, },
 
-  .rx_range_list2 =    { { .start = kHz(100), .end = 29999999, 
-			.modes = FT767GX_ALL_RX_MODES,.low_power = -1,.high_power = -1}, 
+  .rx_range_list2 =    { { .start = kHz(100), .end = 29999999,
+			.modes = FT767GX_ALL_RX_MODES,.low_power = -1,.high_power = -1},
 		      RIG_FRNG_END, }, /* rx range */
 
   .tx_range_list2 =    { {kHz(1500),1999900,FT767GX_HF_TX_MODES,.low_power = 5000,.high_power = 100000},
-    
+
     {.start = kHz(3500),3999900,FT767GX_HF_TX_MODES,5000,100000},
-    
+
     {.start = kHz(7000),7499900,FT767GX_HF_TX_MODES,5000,100000},
-    
+
     {.start = MHz(10),10499900,FT767GX_HF_TX_MODES,5000,100000},
-    
+
     {.start = MHz(14),14499900,FT767GX_HF_TX_MODES,5000,100000},
-    
+
     {.start = MHz(18),18499900,FT767GX_HF_TX_MODES,5000,100000},
-    
+
     {.start = MHz(21),21499900,FT767GX_HF_TX_MODES,5000,100000},
-    
+
     {.start = kHz(24500),24999900,FT767GX_HF_TX_MODES,5000,100000},
-    
+
     {.start = MHz(28),29999900,FT767GX_HF_TX_MODES,5000,100000},
-    
+
     {.start = MHz(50),59999900,FT767GX_ALL_TX_MODES,5000,10000},
-    
+
     {.start = MHz(144),147999900,FT767GX_ALL_TX_MODES,5000,10000},
-    
+
     {.start = MHz(430),449999990,FT767GX_ALL_TX_MODES,5000,10000},
-    
+
     RIG_FRNG_END, },
 
-  
+
   .tuning_steps =  {
     {FT767GX_ALL_RX_MODES,10},
     {FT767GX_ALL_RX_MODES,100},
@@ -340,8 +337,8 @@ const struct rig_caps ft767gx_caps = {
 
   .priv =   NULL, /* private data */
 
-  .rig_init =   ft767_init, 
-  .rig_cleanup =    ft767_cleanup, 
+  .rig_init =   ft767_init,
+  .rig_cleanup =    ft767_cleanup,
   .rig_open =   ft767_open,				/* port opened */
   .rig_close =  ft767_close,				/* port closed */
 
@@ -369,21 +366,21 @@ const struct rig_caps ft767gx_caps = {
 };
 
 /*
- * _init 
+ * _init
  *
  */
 
 
 int ft767_init(RIG *rig) {
   struct ft767_priv_data *p;
-  
+
   if (!rig)
     return -RIG_EINVAL;
-  
+
   p = (struct ft767_priv_data*)malloc(sizeof(struct ft767_priv_data));
-  if (!p)			/* whoops! memory shortage! */    
+  if (!p)			/* whoops! memory shortage! */
     return -RIG_ENOMEM;
-  
+
   rig_debug(RIG_DEBUG_TRACE,"%s called\n", __FUNCTION__);
 
   /* TODO: read pacing from preferences */
@@ -397,7 +394,7 @@ int ft767_init(RIG *rig) {
   p->ack_cmd[3] = 00;
   p->ack_cmd[4] = 0x0B;
   rig->state.priv = (void*)p;
-  
+
   return RIG_OK;
 }
 
@@ -410,26 +407,26 @@ int ft767_init(RIG *rig) {
 int ft767_cleanup(RIG *rig) {
   if (!rig)
     return -RIG_EINVAL;
-  
+
   rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
 
   if (rig->state.priv)
     free(rig->state.priv);
   rig->state.priv = NULL;
-  
+
   return RIG_OK;
 }
 
 /*
  * ft767_open  routine
- * 
+ *
  */
 
 int ft767_open(RIG *rig)
 {
   struct ft767_priv_data *priv = (struct ft767_priv_data*)rig->state.priv;
   int retval;
- 
+
   serial_flush(&rig->state.rigport);
 
   /* send 0 delay PACING cmd to rig  */
@@ -452,7 +449,7 @@ int ft767_open(RIG *rig)
 
 /*
  * ft767_close  routine
- * 
+ *
  */
 
 int ft767_close(RIG *rig)
@@ -609,7 +606,7 @@ int ft767_set_vfo(RIG *rig, vfo_t vfo) {
   }
 
   priv->current_vfo = vfo;
-  
+
   retval = ft767_enter_CAT(rig);
   if (retval < 0) {
 	rig_debug(RIG_DEBUG_ERR,"%s: enter_CAT %d\n", __FUNCTION__, retval);
@@ -637,7 +634,7 @@ int ft767_get_vfo(RIG *rig, vfo_t *vfo) {
   retval = ft767_get_update_data(rig);	/* get whole shebang from rig */
   if (retval < 0)
 	  return retval;
-  
+
   *vfo = rig2vfo(priv->update_data[STATUS_FLAGS]);
 
   return RIG_OK;
@@ -651,7 +648,7 @@ int ft767_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
   retval = ft767_get_update_data(rig);	/* get whole shebang from rig */
   if (retval < 0)
 	  return retval;
-  
+
   *ptt = priv->update_data[STATUS_FLAGS] & 0x01 ?  RIG_PTT_ON : RIG_PTT_OFF;
   return RIG_OK;
 }
@@ -1033,7 +1030,7 @@ int ft767_set_split_vfo(RIG * rig, vfo_t vfo, split_t split, vfo_t tx_vfo) {
     default:
       return -RIG_EINVAL;		/* sorry, wrong VFO */
     }
-    
+
     serial_flush(&rig->state.rigport);
 
     retval = ft767_enter_CAT(rig);
@@ -1045,7 +1042,7 @@ int ft767_set_split_vfo(RIG * rig, vfo_t vfo, split_t split, vfo_t tx_vfo) {
     /* See whether we need to toggle the split state */
     curr_split = priv->update_data[STATUS_FLAGS] & STATUS_MASK_SPLIT;
     if (curr_split) curr_split = RIG_SPLIT_ON;
-    
+
     if (curr_split != split) {
       cmd[3] = SUBCMD_SPLIT;
       cmd[4] = CMD_MULTICMD;
@@ -1080,7 +1077,7 @@ int ft767_set_split_vfo(RIG * rig, vfo_t vfo, split_t split, vfo_t tx_vfo) {
 	return retval;
       }
     }
-    
+
     retval = ft767_leave_CAT(rig);
     if (retval < 0) {
       rig_debug(RIG_DEBUG_ERR,"%s: leave_CAT %d\n", __FUNCTION__, retval);
@@ -1245,7 +1242,7 @@ int ft767_send_block_and_ack(RIG *rig, unsigned char *cmd, size_t length)
   retval = read_block(&rig->state.rigport,
 		      (char *) cmd_echo_buf,
 		      YAESU_CMD_LENGTH);
-    
+
   /* see if it matches the command we sent */
   if (memcmp(cmd_echo_buf, cmd, YAESU_CMD_LENGTH)) {
     rig_debug(RIG_DEBUG_ERR,"%s: Command echo doesn't match\n",
@@ -1255,7 +1252,7 @@ int ft767_send_block_and_ack(RIG *rig, unsigned char *cmd, size_t length)
 
   /* send the ACK */
   write_block(&rig->state.rigport, (char *) priv->ack_cmd, YAESU_CMD_LENGTH);
-  
+
   /* read back the response (status bytes) */
   retval = read_block(&rig->state.rigport,
 		      (char *) priv->rx_data,
@@ -1290,7 +1287,7 @@ int ft767_get_update_data(RIG *rig)
   /*  unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x01, CMD_CHECK}; */
   struct ft767_priv_data *priv = (struct ft767_priv_data*)rig->state.priv;
   int retval;
- 
+
   serial_flush(&rig->state.rigport);
 
   /* Entering CAT updates our data structures */
@@ -1317,7 +1314,7 @@ int ft767_set_split(RIG *rig, unsigned int split)
   struct ft767_priv_data *priv = (struct ft767_priv_data*)rig->state.priv;
   int retval;
   unsigned int curr_split;
- 
+
   serial_flush(&rig->state.rigport);
 
   /* Entering CAT updates our data structures */
@@ -1381,7 +1378,7 @@ int mode2rig(RIG *rig, rmode_t mode)
 {
   int md;
 
-  /* 
+  /*
    * translate mode from generic to ft767 specific
    */
   switch(mode) {
@@ -1399,8 +1396,8 @@ int mode2rig(RIG *rig, rmode_t mode)
 
   int rig2mode(RIG *rig, int md, rmode_t *mode, pbwidth_t *width)
 {
-  /* 
-   * translate mode from ft767 specific to generic 
+  /*
+   * translate mode from ft767 specific to generic
    */
   switch(md & 0x07) {
   case MODE_LSB:	*mode = RIG_MODE_LSB; break;
@@ -1416,8 +1413,8 @@ int mode2rig(RIG *rig, rmode_t mode)
 }
 
 int rig2ctcss(RIG *rig, unsigned char tn, tone_t *tone) {
-  /* 
-   * translate tone from ft767 specific to generic 
+  /*
+   * translate tone from ft767 specific to generic
    */
   switch(tn) {
 #ifdef USE_YAESU_PUBLISHED_TONES
