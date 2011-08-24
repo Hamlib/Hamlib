@@ -1,8 +1,6 @@
 /*
  *  Hamlib Kenwood backend - TS450S description
- *  Copyright (c) 2000-2004 by Stephane Fillod
- *
- *	$Id: ts450s.c,v 1.30 2009-02-06 14:15:12 azummo Exp $
+ *  Copyright (c) 2000-2011 by Stephane Fillod
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -71,17 +69,24 @@ static const struct confparams ts450_ext_parms[] = {
 static int ts450_open(RIG *rig)
 {
 	int err;
+	int maxtries;
 
 	err = kenwood_open(rig);
 	if (err != RIG_OK)
 		return err;
 
+	maxtries = rig->state.rigport.retry;
+	/* no retry for this command that may be missing */
+	rig->state.rigport.retry = 0;
+
 	err = kenwood_simple_transaction(rig, "TO", 3);
 	if (err != RIG_OK) {
-        	rig_debug(RIG_DEBUG_TRACE, "%s: tone unit not detected\n", __func__);
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: tone unit not detected\n", __func__);
 		rig->state.has_set_func &= ~RIG_FUNC_TONE;
 		rig->state.has_get_func &= ~RIG_FUNC_TONE;
 	}
+
+	rig->state.rigport.retry = maxtries;
 
 	return RIG_OK;
 }
@@ -105,7 +110,7 @@ const struct rig_caps ts450s_caps = {
 	.rig_model	= RIG_MODEL_TS450S,
 	.model_name	= "TS-450S",
 	.mfg_name	= "Kenwood",
-	.version	= BACKEND_VER,
+	.version	= BACKEND_VER ".1",
 	.copyright	= "LGPL",
 	.status		= RIG_STATUS_BETA,
 	.rig_type	= RIG_TYPE_TRANSCEIVER,
