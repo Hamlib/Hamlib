@@ -124,11 +124,9 @@ static const struct confparams rotfrontend_serial_cfg_params[] = {
  */
 int frontrot_set_conf(ROT *rot, token_t token, const char *val)
 {
-	const struct rot_caps *caps;
 	struct rot_state *rs;
 	int val_i;
 
-	caps = rot->caps;
 	rs = &rot->state;
 
 	switch(token) {
@@ -234,11 +232,9 @@ int frontrot_set_conf(ROT *rot, token_t token, const char *val)
  */
 int frontrot_get_conf(ROT *rot, token_t token, char *val)
 {
-	const struct rot_caps *caps;
 	struct rot_state *rs;
 	const char *s;
 
-	caps = rot->caps;
 	rs = &rot->state;
 
 	switch(token) {

@@ -342,11 +342,9 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
  */
 static int frontend_get_conf(RIG *rig, token_t token, char *val)
 {
-	const struct rig_caps *caps;
 	struct rig_state *rs;
 	const char *s;
 
-	caps = rig->caps;
 	rs = &rig->state;
 
 	switch(token) {
