@@ -453,6 +453,9 @@ int ts570_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 		}
 		/* set RX VFO */
 		cmd_len = sprintf(cmdbuf, "FR%c%c", vfo_function, cmd_trm(rig));
+		if (cmd_len < 0)
+			return -RIG_ETRUNC;
+
 		retval = kenwood_simple_cmd(rig, cmdbuf);
 		if (retval != RIG_OK)
 			return retval;
@@ -470,6 +473,9 @@ int ts570_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 		}
 		/* set TX VFO */
 		cmd_len = sprintf(cmdbuf, "FT%c%c", vfo_function, cmd_trm(rig));
+		if (cmd_len < 0)
+			return -RIG_ETRUNC;
+
 		retval = kenwood_simple_cmd(rig, cmdbuf);
 		if (retval != RIG_OK)
 			return retval;
@@ -485,6 +491,9 @@ int ts570_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 			/* and then set it to both vfo's */
 			vfo_function = ackbuf[2];
 			cmd_len = sprintf(cmdbuf, "FT%c%c", vfo_function, cmd_trm(rig));
+			if (cmd_len < 0)
+				return -RIG_ETRUNC;
+
 			retval = kenwood_simple_cmd(rig, cmdbuf);
 			if (retval != RIG_OK)
 				return retval;
@@ -511,7 +520,7 @@ int ts570_set_channel (RIG * rig, const channel_t * chan)
                 int retval, cmd_len;
 		size_t mem_len;
 		int num,freq,tx_freq,tone;
-		char mode,tx_mode,split,tones;
+		char mode,tx_mode,tones;
 
 		num=chan->channel_num;
 		freq=(int)chan->freq;
@@ -519,11 +528,9 @@ int ts570_set_channel (RIG * rig, const channel_t * chan)
 		if(chan->split==RIG_SPLIT_ON) {
 			tx_freq=(int)chan->tx_freq;
 			tx_mode=mode_to_char(chan->tx_mode);
-			split='1';
 		} else {
 			tx_freq=0;
 			tx_mode='\0';
-			split='0';
 		}
 
         	for (tone = 1; rig->caps->ctcss_list[tone-1] != 0 && tone<39; tone++) {
@@ -539,6 +546,9 @@ int ts570_set_channel (RIG * rig, const channel_t * chan)
 
                 cmd_len = sprintf(cmdbuf, "MW0 %02d%011d%c0%c%02d ",
 		 num,freq,mode,tones,tone);
+		if (cmd_len < 0)
+			return -RIG_ETRUNC;
+
                 mem_len = 0;
                 retval = kenwood_transaction (rig, cmdbuf, cmd_len, membuf, &mem_len);
                 if (retval != RIG_OK)
@@ -546,6 +556,9 @@ int ts570_set_channel (RIG * rig, const channel_t * chan)
 
                 cmd_len = sprintf(cmdbuf, "MW1 %02d%011d%c0%c%02d ",
 		 num,tx_freq,tx_mode,tones,tone);
+		if (cmd_len < 0)
+			return -RIG_ETRUNC;
+
                 mem_len = 0;
                 retval = kenwood_transaction (rig, cmdbuf, cmd_len, membuf, &mem_len);
                 if (retval != RIG_OK)
@@ -589,23 +602,36 @@ int ts570_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 
         info_len = 0;
         if (rit == 0) {
-        	kenwood_transaction(rig, "RT0", 3, infobuf, &info_len);
-		return RIG_OK;
-	} else
-        	kenwood_transaction(rig, "RT1", 3, infobuf, &info_len);
+		retval = kenwood_transaction(rig, "RT0", 3, infobuf, &info_len);
+		if (retval != RIG_OK)
+			return retval;
+		else
+			return RIG_OK;
+	} else {
+		retval = kenwood_transaction(rig, "RT1", 3, infobuf, &info_len);
+		if (retval != RIG_OK)
+			return retval;
+	}
 
         if (rit > 0)
                 c = 'U';
         else
                 c = 'D';
         len = sprintf(buf, "R%c", c);
+	if (len < 0)
+		return -RIG_ETRUNC;
 
         info_len = 0;
         retval = kenwood_transaction(rig, "RC", 2, infobuf, &info_len);
+	if (retval != RIG_OK)
+		return retval;
+
         for (i = 0; i < abs(rint(rit/10)); i++)
         {
                 info_len = 0;
                 retval = kenwood_transaction(rig, buf, len, infobuf, &info_len);
+		if (retval != RIG_OK)
+			return retval;
         }
 
         return RIG_OK;
@@ -620,23 +646,36 @@ int ts570_set_xit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 
         info_len = 0;
         if (rit == 0) {
-        	kenwood_transaction(rig, "XT0", 3, infobuf, &info_len);
-		return RIG_OK;
-	} else
-        	kenwood_transaction(rig, "XT1", 3, infobuf, &info_len);
+		retval = kenwood_transaction(rig, "XT0", 3, infobuf, &info_len);
+		if (retval != RIG_OK)
+			return retval;
+		else
+			return RIG_OK;
+	} else {
+		retval = kenwood_transaction(rig, "XT1", 3, infobuf, &info_len);
+		if (retval != RIG_OK)
+			return retval;
+	}
 
         if (rit > 0)
                 c = 'U';
         else
                 c = 'D';
         len = sprintf(buf, "R%c", c);
+	if (len < 0)
+		return -RIG_ETRUNC;
 
         info_len = 0;
         retval = kenwood_transaction(rig, "RC", 2, infobuf, &info_len);
+	if (retval != RIG_OK)
+		return retval;
+
         for (i = 0; i < abs(rint(rit/10)); i++)
         {
                 info_len = 0;
                 retval = kenwood_transaction(rig, buf, len, infobuf, &info_len);
+		if (retval != RIG_OK)
+			return retval;
         }
 
         return RIG_OK;

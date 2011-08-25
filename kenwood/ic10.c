@@ -661,7 +661,11 @@ int ic10_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 	int cmdlen, fct_len, ack_len;
 
 	switch (func) {
-	case RIG_FUNC_LOCK: cmdlen = sprintf(cmdbuf,"LK"); break;
+	case RIG_FUNC_LOCK:
+		cmdlen = sprintf(cmdbuf,"LK");
+		if (cmdlen < 0)
+			return -RIG_ETRUNC;
+		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported set_func %#x",
 				__func__,func);
@@ -669,6 +673,9 @@ int ic10_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 	}
 
 	fct_len = sprintf(fctbuf,"%s%c;", cmdbuf, status==0?'0':'1');
+	if (fct_len < 0)
+		return -RIG_ETRUNC;
+
 	return ic10_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
 
 	return RIG_OK;
