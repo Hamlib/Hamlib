@@ -794,6 +794,8 @@ pcr_set_mode(RIG * rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	buf_len = sprintf((char *) buf, "K%c%010" PRIll "0%c0%c00",
 			is_sub_rcvr(rig, vfo) ? '1':'0',
 			(int64_t) rcvr->last_freq, pcrmode, pcrfilter);
+	if (buf_len < 0)
+		return -RIG_ETRUNC;
 
 	err = pcr_transaction(rig, (char *) buf);
 	if (err != RIG_OK)
