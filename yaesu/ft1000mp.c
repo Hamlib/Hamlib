@@ -912,16 +912,12 @@ int ft1000mp_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
  */
 
 int ft1000mp_set_vfo(RIG *rig, vfo_t vfo) {
-  struct rig_state *rig_s;
   struct ft1000mp_priv_data *p;
   unsigned char cmd_index = 0;      /* index of sequence to send */
 
   rig_debug(RIG_DEBUG_TRACE,"ft1000mp: ft1000mp_set_vfo called %s\n", rig_strvfo(vfo));
 
-
   p = (struct ft1000mp_priv_data*)rig->state.priv;
-  rig_s = &rig->state;
-
 
   /*
    * RIG_VFO_VFO/RIG_VFO_MEM are not available

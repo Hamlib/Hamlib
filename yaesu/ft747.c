@@ -577,13 +577,10 @@ int ft747_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
  *
  */
 int ft747_set_vfo(RIG *rig, vfo_t vfo) {
-  struct rig_state *rig_s;
   struct ft747_priv_data *p;
   unsigned char cmd_index;	/* index of sequence to send */
 
-
   p = (struct ft747_priv_data*)rig->state.priv;
-  rig_s = &rig->state;
 
   switch(vfo) {
 
@@ -824,12 +821,9 @@ static int ft747_get_update_data(RIG *rig) {
 static int ft747_send_priv_cmd(RIG *rig, unsigned char ci) {
 
   struct rig_state *rig_s;
-  struct ft747_priv_data *p;
   unsigned char *cmd;		/* points to sequence to send */
   unsigned char cmd_index;	/* index of sequence to send */
 
-
-  p = (struct ft747_priv_data*)rig->state.priv;
   rig_s = &rig->state;
 
   cmd_index = ci;		/* get command */
