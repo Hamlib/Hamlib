@@ -167,6 +167,8 @@ tt550_ldg_control (RIG * rig, char oper)
   char cmdbuf[4], lvlbuf[32];
 
   cmd_len = sprintf (cmdbuf, "$%c" EOM, oper);
+  if (cmd_len < 0)
+    return cmd_len;
   lvl_len = 3;
   retval = tt550_transaction (rig, cmdbuf, 3, lvlbuf, &lvl_len);
   /*
@@ -1293,14 +1295,13 @@ int
 tt550_set_func (RIG * rig, vfo_t vfo, setting_t func, int status)
 {
   unsigned char fctbuf[16];
-  int fct_len, ack_len;
+  int fct_len;
   struct tt550_priv_data *priv = (struct tt550_priv_data *) rig->state.priv;
   struct rig_state *rs = &rig->state;
 
   /* Optimize:
    *   sort the switch cases with the most frequent first
    */
-  ack_len = 0;
   switch (func)
     {
       case RIG_FUNC_VOX:
@@ -1522,7 +1523,7 @@ tt550_decode_event (RIG * rig)
   unsigned char buf[MAXFRAMELEN];
   int data_len;
   short movement = 0;
-  char key;
+//  char key;
 
 
   rig_debug (RIG_DEBUG_VERBOSE, "tt550: tt550_decode_event called\n");
@@ -1560,7 +1561,7 @@ tt550_decode_event (RIG * rig)
 	      {
 		movement = buf[1] << 8;
 		movement = movement | buf[2];
-		key = buf[3];
+//		key = buf[3];
 		rig_debug (RIG_DEBUG_VERBOSE,
 			   "tt550: Step Direction = %d\n", movement);
 		if (movement > 0)
