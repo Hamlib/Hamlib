@@ -662,13 +662,8 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
  */
 int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-	struct icom_priv_data *priv;
-	struct rig_state *rs;
 	unsigned char modebuf[MAXFRAMELEN];
 	int mode_len, retval;
-
-	rs = &rig->state;
-	priv = (struct icom_priv_data*)rs->priv;
 
 	retval = icom_transaction (rig, C_RD_MODE, -1, NULL, 0,
 				modebuf, &mode_len);
@@ -768,7 +763,6 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
  */
 int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-	struct icom_priv_data *priv;
 	struct rig_state *rs;
 	unsigned char lvlbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
 	int ack_len=sizeof(ackbuf), lvl_len;
@@ -777,7 +771,6 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 	int i, retval;
 
 	rs = &rig->state;
-	priv = (struct icom_priv_data*)rs->priv;
 
 
 	/*
@@ -980,7 +973,6 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
  */
 int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-	struct icom_priv_data *priv;
 	struct rig_state *rs;
 	unsigned char lvlbuf[MAXFRAMELEN], lvl2buf[MAXFRAMELEN];
 	int lvl_len, lvl2_len;
@@ -990,7 +982,6 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	int retval;
 
 	rs = &rig->state;
-	priv = (struct icom_priv_data*)rs->priv;
 
 	lvl2_len = 0;
 
@@ -2820,15 +2811,11 @@ int icom_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
  */
 int icom_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 {
-	struct icom_priv_data *priv;
-	struct rig_state *rs;
 	unsigned char scanbuf[MAXFRAMELEN];
 	unsigned char ackbuf[MAXFRAMELEN];
 	int scan_len, ack_len=sizeof(ackbuf), retval;
 	int scan_cn, scan_sc;
 
-	rs = &rig->state;
-	priv = (struct icom_priv_data*)rs->priv;
 
 	scan_len = 0;
 	scan_cn = C_CTL_SCAN;

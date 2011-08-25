@@ -137,14 +137,9 @@ int optoscan_close(RIG *rig)
  */
 const char* optoscan_get_info(RIG *rig)
 {
-		struct icom_priv_data *priv;
-		struct rig_state *rs;
 		unsigned char ackbuf[16];
 		int ack_len, retval;
 		static char info[64];
-
-		rs = &rig->state;
-		priv = (struct icom_priv_data*)rs->priv;
 
 		/* select LOCAL control */
 		retval = icom_transaction (rig, C_CTL_MISC, S_OPTO_RDID,
@@ -173,11 +168,8 @@ const char* optoscan_get_info(RIG *rig)
  */
 int optoscan_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 {
-		const struct rig_caps *caps;
 		unsigned char tonebuf[MAXFRAMELEN];
 		int tone_len, retval;
-
-		caps = rig->caps;
 
 		retval = icom_transaction(rig, C_CTL_MISC, S_OPTO_RDCTCSS, NULL, 0,
 												tonebuf, &tone_len);
@@ -205,11 +197,8 @@ int optoscan_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
  */
 int optoscan_get_dcs_code(RIG * rig, vfo_t vfo, tone_t *code)
 {
-		const struct rig_caps *caps;
 		unsigned char tonebuf[MAXFRAMELEN];
 		int tone_len, retval;
-
-		caps = rig->caps;
 
 		retval = icom_transaction(rig, C_CTL_MISC, S_OPTO_RDDCS, NULL, 0,
 												tonebuf, &tone_len);
@@ -232,13 +221,11 @@ int optoscan_get_dcs_code(RIG * rig, vfo_t vfo, tone_t *code)
 
 int optoscan_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
 {
-		const struct rig_caps *caps;
 		unsigned char dtmfbuf[MAXFRAMELEN],digit;
 		int len, retval, digitpos;
 		unsigned char xlate[] = {'0','1','2','3','4','5','6',
 					 '7','8','9','A','B','C','D',
 					 '*','#'};
-		caps = rig->caps;
 		digitpos=0;
 
 		do {
@@ -282,13 +269,11 @@ int optoscan_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
 int optoscan_set_ext_parm(RIG *rig, token_t token, value_t val)
 {
 	unsigned char epbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
-	int ack_len, val_len;
+	int ack_len;
 	int retval,subcode;
 
 	memset(epbuf,0,MAXFRAMELEN);
 	memset(ackbuf,0,MAXFRAMELEN);
-
-	val_len = 1;
 
 	switch(token) {
 	case TOK_TAPECNTL:
@@ -385,16 +370,11 @@ int optoscan_get_ext_parm(RIG *rig, token_t token, value_t *val)
  */
 int optoscan_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-		struct icom_priv_data *priv;
-		struct rig_state *rs;
 		unsigned char lvlbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
 		int ack_len;
 		int lvl_cn, lvl_sc;		/* Command Number, Subcommand */
 		int icom_val;
 		int retval;
-
-		rs = &rig->state;
-		priv = (struct icom_priv_data*)rs->priv;
 
 		memset(lvlbuf,0,MAXFRAMELEN);
 
@@ -442,17 +422,12 @@ int optoscan_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 int optoscan_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
   struct optostat status_block;
-  struct icom_priv_data *priv;
-  struct rig_state *rs;
   unsigned char lvlbuf[MAXFRAMELEN];
   int lvl_len;
   int lvl_cn, lvl_sc;		/* Command Number, Subcommand */
   int icom_val;
   int cmdhead;
   int retval;
-
-  rs = &rig->state;
-  priv = (struct icom_priv_data*)rs->priv;
 
   if( level != RIG_LEVEL_AF )
     {
@@ -674,18 +649,10 @@ static int optoscan_get_status_block(RIG *rig, struct optostat *status_block)
 static int optoscan_send_freq(RIG *rig,pltstate_t *state)
 {
   unsigned char buff[OPTO_BUFF_SIZE];
-  struct icom_priv_data *priv;
-  struct rig_state *rs;
-  const hamlib_port_t *port;
-  int fd;
   char md,pd;
   freq_t freq;
   rmode_t mode;
 
-  port = &(rig->state.rigport);
-  fd = port->fd;
-  rs = &rig->state;
-  priv = (struct icom_priv_data*)rs->priv;
   freq=state->next_freq;
   mode=state->next_mode;
 
