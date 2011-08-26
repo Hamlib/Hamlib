@@ -129,7 +129,7 @@ static int rpcrot_open(ROT *rot)
 	model_x *mdl_res;
 	rotstate_res *rs_res;
 	rot_model_t model;
-	const struct rot_caps *caps;
+//	const struct rot_caps *caps;
 	char *server, *s;
 
 	rs = &rot->state;
@@ -168,7 +168,7 @@ static int rpcrot_open(ROT *rot)
 	 * autoload if necessary
 	 */
 	rot_check_backend(model);
-	caps = rot_get_caps(model);
+//	caps = rot_get_caps(model);
 
 	/*
 	 * Load state values from remote rotator.
