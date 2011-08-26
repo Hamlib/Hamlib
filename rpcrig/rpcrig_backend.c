@@ -194,7 +194,7 @@ static int rpcrig_open(RIG *rig)
 	model_x *mdl_res;
 	rigstate_res *rs_res;
 	rig_model_t model;
-	const struct rig_caps *caps;
+//	const struct rig_caps *caps;
 	char *server, *s;
 	int i;
 
@@ -235,7 +235,7 @@ static int rpcrig_open(RIG *rig)
 	 */
 	rig_check_backend(model);
 
-	caps = rig_get_caps(model);
+//	caps = rig_get_caps(model);
 
 	/*
 	 * TODO: decide if it's the way to go.
