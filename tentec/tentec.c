@@ -483,6 +483,7 @@ DECLARE_INITRIG_BACKEND(tentec)
 	rig_register(&tt538_caps);
 	rig_register(&tt585_caps);
 	rig_register(&tt588_caps);
+	rig_register(&tt599_caps);
 	rig_register(&rx320_caps);
 	rig_register(&rx331_caps);
 	rig_register(&rx340_caps);

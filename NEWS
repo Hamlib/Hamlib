@@ -6,6 +6,7 @@ Copyright (C) 2000-2011  Stephane Fillod, and others
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 Version 1.2.15
+	* New models: TT-599 Eagle
 	* New rotator backends: Celestron (telescope mount)
 	* Fixes and features: K3
 

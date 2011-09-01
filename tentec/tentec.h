@@ -1,6 +1,6 @@
 /*
  *  Hamlib Tentec backend - main header
- *  Copyright (c) 2001-2010 by Stephane Fillod
+ *  Copyright (c) 2001-2011 by Stephane Fillod
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -74,6 +74,7 @@ extern const struct rig_caps tt585_caps;
 extern const struct rig_caps tt588_caps;
 extern const struct rig_caps tt550_caps;
 extern const struct rig_caps tt565_caps;
+extern const struct rig_caps tt599_caps;
 extern const struct rig_caps rx331_caps;
 
 

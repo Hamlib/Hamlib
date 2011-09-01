@@ -1,6 +1,7 @@
 /*
  *  Hamlib TenTenc backend - TT-565 headers
- *  Copyright (c) 2004-2006 by Stephane Fillod & Martin Ewing
+ *  Copyright (c) 2004-2011 by Stephane Fillod
+ *  Copyright (c) 2004-2006 by Martin Ewing
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -180,7 +181,6 @@ struct tt565_priv_data {
 	7015679 < freq < 7015936, etc.  Use ascii mode. */
 
 /**
- *
  * \brief tt565 transceiver capabilities.
  *
  * All of the Orion's personality is defined here!
@@ -318,6 +318,174 @@ const struct rig_caps tt565_caps = {
 /* V2 is default. S-Meter cal table may be changed if V1 firmware detected. */
 .str_cal = TT565_STR_CAL_V2,
 };
+
+/*
+ * Eagle TT-599 share the same ability as Orion's
+ */
+#define TT599_MODES (RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR|\
+            /* optional */ RIG_MODE_AM|RIG_MODE_FM)
+#define TT599_RXMODES TT599_MODES
+#define TT599_FUNCS (RIG_FUNC_ANF)
+#define TT599_LEVELS (RIG_LEVEL_RAWSTR| \
+				RIG_LEVEL_SWR|RIG_LEVEL_RFPOWER| \
+				RIG_LEVEL_NR|RIG_LEVEL_AGC| \
+				RIG_LEVEL_PREAMP|RIG_LEVEL_ATT)
+#define TT599_PARMS (RIG_PARM_NONE)
+#define TT599_MEM_CAP  { \
+	.freq = 1,      \
+	.mode = 1,      \
+	.width = 1,     \
+	.split = 1,     \
+	.tx_freq = 1,   \
+}
+#define TT599_ANTS (RIG_ANT_1)
+#define TT599_RXANTS TT599_ANTS
+#define TT599_VFO (RIG_VFO_A|RIG_VFO_B)
+#define TT599_VFO_OPS (RIG_OP_TO_VFO|RIG_OP_FROM_VFO)
+
+/*
+ * Random guess, to be measured. See FAQ at http://hamlib.org
+ */
+#define TT599_STR_CAL { 3, { \
+                { 10., -48. }, /* S1 = min. indication */ \
+                { 94.,   0. }, /* S9 */ \
+                { 161., 50. }, \
+        } }
+
+/**
+ * \brief tt599 transceiver capabilities.
+ *
+ * All of the Eagle's personality is defined here!
+ *
+ * Protocol is documented in Programmers Reference Manual V1.001 at
+ *		http://www.tentec.com/index.php?id=360#down
+ *
+ */
+const struct rig_caps tt599_caps = {
+.rig_model =  RIG_MODEL_TT599,
+.model_name = "TT-599 Eagle",
+.mfg_name =  "Ten-Tec",
+.version =  "0.4",
+.copyright =  "LGPL",
+.status =  RIG_STATUS_UNTESTED,
+.rig_type =  RIG_TYPE_TRANSCEIVER,
+.ptt_type =  RIG_PTT_RIG,
+.dcd_type =  RIG_DCD_NONE,
+.port_type =  RIG_PORT_SERIAL,
+.serial_rate_min =  57600,
+.serial_rate_max =  57600,
+.serial_data_bits =  8,
+.serial_stop_bits =  1,
+.serial_parity =  RIG_PARITY_NONE,
+.serial_handshake =  RIG_HANDSHAKE_HARDWARE,
+.write_delay =  0,          /* no delay between characters written */
+.post_write_delay =  10,    /* ms delay between writes DEBUGGING HERE */
+.timeout =  200,            /* ms */
+.retry =  3,
+
+.has_get_func =  TT599_FUNCS,
+.has_set_func =  TT599_FUNCS,
+.has_get_level =  TT599_LEVELS|RIG_LEVEL_RF,
+.has_set_level =  RIG_LEVEL_SET(TT599_LEVELS),
+.has_get_parm =  TT599_PARMS,
+.has_set_parm =  TT599_PARMS,
+
+.level_gran = {},
+.parm_gran =  {},
+.ctcss_list =  NULL,
+.dcs_list =  NULL,
+.preamp =   { 10, RIG_DBLST_END },
+.attenuator =   { 12, RIG_DBLST_END },
+.max_rit =  kHz(0),
+.max_xit =  kHz(0),
+.max_ifshift =  kHz(0),
+.vfo_ops = TT599_VFO_OPS,
+.targetable_vfo =  RIG_TARGETABLE_FREQ,
+.transceive =  RIG_TRN_OFF,
+.bank_qty =   0,
+.chan_desc_sz =  0,
+
+.chan_list =  {
+		{   1, 100, RIG_MTYPE_MEM, TT599_MEM_CAP },
+		},
+
+.rx_range_list1 =  {
+	FRQ_RNG_HF(1,TT599_RXMODES, -1,-1,RIG_VFO_N(0),TT599_RXANTS),
+	FRQ_RNG_6m(1,TT599_RXMODES, -1,-1,RIG_VFO_N(0),TT599_RXANTS),
+	{kHz(500),MHz(30),TT599_RXMODES,-1,-1,RIG_VFO_N(1),TT599_RXANTS},
+	RIG_FRNG_END,
+  },
+.tx_range_list1 =  {
+	FRQ_RNG_HF(1,TT599_MODES, W(5),W(100),RIG_VFO_N(0),TT599_ANTS),
+	FRQ_RNG_6m(1,TT599_MODES, W(5),W(100),RIG_VFO_N(0),TT599_ANTS),
+	RIG_FRNG_END,
+  },
+
+.rx_range_list2 =  {
+	FRQ_RNG_HF(2,TT599_RXMODES, -1,-1,RIG_VFO_N(0),TT599_RXANTS),
+	FRQ_RNG_6m(2,TT599_RXMODES, -1,-1,RIG_VFO_N(0),TT599_RXANTS),
+	{MHz(5.25),MHz(5.40),TT599_RXMODES,-1,-1,RIG_VFO_N(0),TT599_RXANTS},
+	{kHz(500),MHz(30),TT599_RXMODES,-1,-1,RIG_VFO_N(1),TT599_RXANTS},
+	RIG_FRNG_END,
+  },
+.tx_range_list2 =  {
+	FRQ_RNG_HF(2,TT599_MODES, W(5),W(100),RIG_VFO_N(0),TT599_ANTS),
+	FRQ_RNG_6m(2,TT599_MODES, W(5),W(100),RIG_VFO_N(0),TT599_ANTS),
+	{MHz(5.25),MHz(5.40),TT599_MODES,W(5),W(100),RIG_VFO_N(0),TT599_ANTS},
+	RIG_FRNG_END,
+  },
+
+.tuning_steps =  {
+	 {TT599_RXMODES,1},
+	 {TT599_RXMODES,10},
+	 {TT599_RXMODES,100},
+	 {TT599_RXMODES,kHz(1)},
+	 {TT599_RXMODES,kHz(10)},
+	 RIG_TS_END,
+	},
+        /* mode/filter list, remember: order matters! */
+.filters =  {
+	/*  15kHz, 6kHz, 2.4kHz, 1.0kHz */
+    /* 9MHz IF filters: 2.4K standard */
+    /* optional = 300, 600, 1.8k, 6k, 15k */
+		{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB, kHz(2.4)},
+		{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB, 600},
+		{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB, 300},
+		{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB, kHz(1.8)},
+		{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB, kHz(6)},
+		{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB, 0}, /* 127 filters */
+		{RIG_MODE_AM, kHz(6)},
+		{RIG_MODE_FM, kHz(15)},
+		RIG_FLT_END,
+	},
+.priv =  (void*)NULL,
+
+.rig_init =  tt565_init,
+.rig_cleanup =  tt565_cleanup,
+.rig_open = tt565_open,
+
+.set_freq =  tt565_set_freq,
+.get_freq =  tt565_get_freq,
+.set_vfo =  tt565_set_vfo,
+.get_vfo =  tt565_get_vfo,
+.set_mode =  tt565_set_mode,
+.get_mode =  tt565_get_mode,
+.set_split_vfo =  tt565_set_split_vfo,
+.get_split_vfo =  tt565_get_split_vfo,
+.set_level =  tt565_set_level,
+.get_level =  tt565_get_level,
+.set_mem =  tt565_set_mem,
+.get_mem =  tt565_get_mem,
+.set_ptt =  tt565_set_ptt,
+.get_ptt =  tt565_get_ptt,
+.vfo_op =  tt565_vfo_op,
+.get_info =  tt565_get_info,
+.get_func = tt565_get_func,
+.set_func = tt565_set_func,
+
+.str_cal = TT599_STR_CAL,
+};
+
 
 /*
  * Function definitions below
