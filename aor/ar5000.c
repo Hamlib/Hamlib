@@ -403,7 +403,6 @@ int format5k_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width)
 	case RIG_MODE_WFM:
 	case RIG_MODE_FM:  aormode = AR5K_FM; break;
 	case RIG_MODE_LSB: aormode = AR5K_LSB; break;
-	case RIG_MODE_SSB:
 	case RIG_MODE_USB: aormode = AR5K_USB; break;
 	case RIG_MODE_CW:  aormode = AR5K_CW; break;
 	case RIG_MODE_SAM: aormode = AR5K_SAM; break;

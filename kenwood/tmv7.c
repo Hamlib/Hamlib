@@ -554,9 +554,8 @@ int tmv7_set_channel(RIG *rig, const channel_t *chan)
     size_t ack_len;
     char req[64];
     long freq;
-    int chn, step, shift, tone, ctcss, tonefq, ctcssfq;
+    int step, shift, tone, ctcss, tonefq, ctcssfq;
 
-    chn=chan->channel_num;
     freq=(long)chan->freq;
 
     for(step=0; rig->state.tuning_steps[step].ts!=0;step++)

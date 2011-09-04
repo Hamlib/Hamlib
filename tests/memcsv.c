@@ -147,6 +147,9 @@ int csv_parm_save (RIG *rig, const char *outfilename)
 		if (!ms || !ms[0])
 			continue;
 		ret = rig_get_parm(rig, parm, &val);
+		if (ret != RIG_OK)
+			return ret;
+
 		if (RIG_PARM_IS_FLOAT(parm))
 			fprintf(f, "%f%c", val.f, csv_sep);
 		else

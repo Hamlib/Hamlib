@@ -72,7 +72,6 @@ static int netrigctl_open(RIG *rig)
 {
   int ret, len, i;
   struct rig_state *rs = &rig->state;
-  rig_model_t model;
   int prot_ver;
   char cmd[CMD_MAX];
   char buf[BUF_MAX];
@@ -94,8 +93,6 @@ static int netrigctl_open(RIG *rig)
   ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
   if (ret <= 0)
 	return (ret < 0) ? ret : -RIG_EPROTO;
-
-  model = atoi(buf);
 
   ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
   if (ret <= 0)

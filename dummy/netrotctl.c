@@ -63,7 +63,6 @@ static int netrotctl_open(ROT *rot)
 {
   int ret, len;
   struct rot_state *rs = &rot->state;
-  rot_model_t model;
   int prot_ver;
   char cmd[CMD_MAX];
   char buf[BUF_MAX];
@@ -85,8 +84,6 @@ static int netrotctl_open(ROT *rot)
   ret = read_string(&rot->state.rotport, buf, BUF_MAX, "\n", sizeof("\n"));
   if (ret <= 0)
 	return (ret < 0) ? ret : -RIG_EPROTO;
-
-  model = atoi(buf);
 
   ret = read_string(&rot->state.rotport, buf, BUF_MAX, "\n", sizeof("\n"));
   if (ret <= 0)

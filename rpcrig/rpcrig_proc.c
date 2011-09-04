@@ -375,6 +375,8 @@ val_res *getfunc_1_svc(setting_arg *arg, struct svc_req *svc)
 					&res.val_res_u.val.i);
 
 	return &res;
+	/* quell stupid gcc "set but not used" warning */
+	rig_debug(RIG_DEBUG_TRACE, "val = %d\n", val);
 }
 
 int *scan_1_svc(scan_arg *arg, struct svc_req *svc)

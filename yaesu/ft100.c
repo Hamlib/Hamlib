@@ -371,14 +371,12 @@ int ft100_close(RIG *rig) {
 static int ft100_send_priv_cmd(RIG *rig, unsigned char cmd_index) {
 
   struct rig_state *rig_s;
-  struct ft100_priv_data *priv;
   unsigned char *cmd;		/* points to sequence to send */
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called (%d)\n", __func__, cmd_index);
 
   if (!rig)  return -RIG_EINVAL;
 
-  priv = (struct ft100_priv_data*)rig->state.priv;
   rig_s = &rig->state;
 
   cmd = (unsigned char *) &ncmd[cmd_index].nseq; /* get native sequence */
@@ -436,13 +434,10 @@ static int ft100_read_flags(RIG *rig)
 
 int ft100_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
   struct rig_state *rig_s;
-  struct ft100_priv_data *priv;
   unsigned char p_cmd[YAESU_CMD_LENGTH];
   unsigned char cmd_index;	/* index of sequence to send */
 
   if (!rig)  return -RIG_EINVAL;
-
-  priv = (struct ft100_priv_data*)rig->state.priv;
 
   rig_s = &rig->state;
 

@@ -90,7 +90,7 @@ int main (int argc, char *argv[])
 	char rig_conf_parms[MAXCONFLEN] = "";
 	char rot_conf_parms[MAXCONFLEN] = "";
 
-	int with_rot = 1;
+	/* int with_rot = 1; */
 	azimuth_t azimuth;
 	elevation_t elevation;
 	unsigned step = 1000000;	/* 1e6 us */
@@ -260,8 +260,8 @@ int main (int argc, char *argv[])
 		strncpy(rot->state.rotport.pathname, rot_file, FILPATHLEN);
 
 	/* FIXME: bound checking and port type == serial */
-	if (serial_rate != 0)
-		rot->state.rotport.parm.serial.rate = serial_rate;
+	if (rot_serial_rate != 0)
+		rot->state.rotport.parm.serial.rate = rot_serial_rate;
 
 	retcode = rot_open(rot);
 	if (retcode != RIG_OK && rot_model != ROT_MODEL_DUMMY) {
@@ -269,8 +269,11 @@ int main (int argc, char *argv[])
 		exit(2);
 	}
 
-	if (rot_model == ROT_MODEL_DUMMY)
-		with_rot = 1;
+	/* Commenting out to quell "set but not used" warning.
+	 * Enable when needed for further functionality.  -N0NB
+	 */
+	/* if (rot_model == ROT_MODEL_DUMMY) */
+	/* 	with_rot = 1; */
 
 	if (verbose > 0)
 		printf("Opened rotator model %d, '%s'\n", rot->caps->rot_model,

@@ -217,6 +217,8 @@ int racal_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	int freq_len;
 
 	freq_len = sprintf(freqbuf, "F%0g", (double)(freq/MHz(1)));
+	if (freq_len < 0)
+		return -RIG_ETRUNC;
 
 	return racal_transaction (rig, freqbuf, NULL, NULL);
 }

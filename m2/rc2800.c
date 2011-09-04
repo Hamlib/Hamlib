@@ -86,16 +86,22 @@ static int rc2800_parse (char *s, char *device, float *value)
       {
         msgtype=1;
         i = sscanf(s+6, "%d", &errcode);
+	if (i == EOF)
+	  return -RIG_EINVAL;
       }
       else if (!strncmp(s+2, "P=", 2))
       {
         msgtype=2;
         i = num_sscanf(s+5, "%f", value);
+	if (i == EOF)
+	  return -RIG_EINVAL;
       }
       else if (s[1] == '=')
       {
         msgtype=2;
         i = num_sscanf(s+2, "%f", value);
+	if (i == EOF)
+	  return -RIG_EINVAL;
       }
     }
   }

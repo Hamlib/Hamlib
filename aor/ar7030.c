@@ -83,7 +83,11 @@ static int rxr_readByte(RIG *rig)
   unsigned char buf[] = {0x71}; // Read command
   int retval;
   retval = write_block(&rig->state.rigport, (char *) buf, 1);
+  if (retval != RIG_OK)
+    return retval;
   retval = read_block(&rig->state.rigport, (char *) response, 1);
+  if (retval != RIG_OK)
+    return retval;
   return response[0];
 }
 
@@ -258,7 +262,11 @@ static int Execute_Routine_14(RIG *rig)
   unsigned char buf[] = {0x2e}; // Read command
   int retval;
   retval = write_block(&rig->state.rigport, (char *) buf, 1);
+  if (retval != RIG_OK)
+    return retval;
   retval = read_block(&rig->state.rigport, (char *) response, 1);
+  if (retval != RIG_OK)
+    return retval;
   return response[0];
 }
 

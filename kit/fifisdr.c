@@ -355,15 +355,12 @@ const char * fifisdr_get_info (RIG *rig)
 	static char buf[64];
 	int ret;
 	uint32_t svn_version;
-	int version;
-
 
 	ret = fifisdr_usb_read(rig, REQUEST_FIFISDR_READ, 0, 0, (char *)&svn_version, sizeof(svn_version));
 	if (ret != RIG_OK) {
 		return NULL;
 	}
 
-	version = svn_version;
 	snprintf(buf, sizeof(buf), "Firmware version: %d", svn_version);
 
 	return buf;

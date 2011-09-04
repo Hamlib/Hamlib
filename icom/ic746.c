@@ -549,17 +549,12 @@ const struct rig_caps ic746pro_caps = {
  */
 static int ic746pro_set_ext_parm(RIG *rig, token_t token, value_t val)
 {
-	struct icom_priv_data *priv;
-	struct rig_state *rs;
 	unsigned char epbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
 	int ack_len, ep_len, val_len;
 	int ep_cmd = C_CTL_MEM;
 	int ep_sc;             /* Subcommand in $1A $05xx */
 	int icom_val = 0;
 	int retval;
-
-	rs = &rig->state;
-	priv = (struct icom_priv_data*)rs->priv;
 
 	ep_len = 0;	/* 0 implies BCD data */
 	val_len = 1;
@@ -607,8 +602,6 @@ static int ic746pro_set_ext_parm(RIG *rig, token_t token, value_t val)
  */
 static int ic746pro_get_ext_parm(RIG *rig, token_t token, value_t *val)
 {
-	struct icom_priv_data *priv;
-	struct rig_state *rs;
 	const struct confparams *cfp;
 
 	unsigned char resbuf[MAXFRAMELEN];
@@ -618,9 +611,6 @@ static int ic746pro_get_ext_parm(RIG *rig, token_t token, value_t *val)
 
 	int ep_cmd = C_CTL_MEM;
 	int ep_sc;             /* Subcommand in $1A $05xx */
-
-	rs = &rig->state;
-	priv = (struct icom_priv_data*)rs->priv;
 
 	switch(token) {
 	case TOK_SSBBASS:

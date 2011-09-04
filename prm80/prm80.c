@@ -140,6 +140,8 @@ int prm80_reset(RIG *rig, reset_t reset)
 	 * master reset ?
 	 */
 	retval = prm80_transaction (rig, "0", 1, NULL, NULL);
+	if (retval != RIG_OK)
+		return retval;
 
 	return RIG_OK;
 }

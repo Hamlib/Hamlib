@@ -1063,7 +1063,6 @@ th_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 int th_set_level (RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
 	char vch, buf[12];
-	size_t ack_len;
 	vfo_t tvfo;
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
@@ -1082,8 +1081,6 @@ int th_set_level (RIG *rig, vfo_t vfo, setting_t level, value_t val)
 	default:
 		return kenwood_wrong_vfo(__func__, vfo);
 	}
-
-	ack_len = ACKBUF_LEN;
 
 	switch (level) {
 

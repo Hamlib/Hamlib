@@ -126,6 +126,8 @@ int skanti_reset(RIG *rig, reset_t reset)
 	 */
 
 	retval = skanti_transaction (rig, "0" EOM, strlen("0" EOM), NULL, NULL);
+	if (retval != RIG_OK)
+		return retval;
 
 	return RIG_OK;
 }

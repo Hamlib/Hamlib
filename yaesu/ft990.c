@@ -2222,14 +2222,10 @@ int ft990_get_mem(RIG *rig, vfo_t vfo, int *ch)
  */
 int ft990_set_channel (RIG *rig, const channel_t *chan)
 {
-  struct ft990_priv_data *priv;
-
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   if (!rig)
     return -RIG_EINVAL;
-
-  priv = (struct ft990_priv_data *) rig->state.priv;
 
   return -RIG_ENIMPL;
 }

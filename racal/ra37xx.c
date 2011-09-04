@@ -281,6 +281,8 @@ int ra37xx_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	int freq_len;
 
 	freq_len = sprintf(freqbuf, "F%ld", (unsigned long)freq);
+	if (freq_len < 0)
+		return -RIG_ETRUNC;
 
 	return ra37xx_transaction (rig, freqbuf, NULL, NULL);
 }
@@ -337,6 +339,8 @@ int ra37xx_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 #else
 	sprintf(buf, "M%d", ra_mode);
 #endif
+
+	rig_debug(RIG_DEBUG_TRACE, "%s: widthtype = %i, widthnum = %i\n", __func__, widthtype, widthnum);
 
 	return ra37xx_transaction (rig, buf, NULL, NULL);
 }

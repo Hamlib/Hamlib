@@ -248,10 +248,15 @@ int ts850_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 	size_t info_len;
 
 	info_len = 0;
-	if (rit == 0)
-		kenwood_transaction(rig, "RT0", 3, infobuf, &info_len);
-	else
-		kenwood_transaction(rig, "RT1", 3, infobuf, &info_len);
+	if (rit == 0) {
+		retval = kenwood_transaction(rig, "RT0", 3, infobuf, &info_len);
+		if (retval != RIG_OK)
+			return retval;
+	} else {
+		retval = kenwood_transaction(rig, "RT1", 3, infobuf, &info_len);
+		if (retval != RIG_OK)
+			return retval;
+	}
 
 	if (rit > 0)
 		c = 'U';
@@ -261,10 +266,15 @@ int ts850_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 
 	info_len = 0;
 	retval = kenwood_transaction(rig, "RC", 2, infobuf, &info_len);
+	if (retval != RIG_OK)
+		return retval;
+
 	for (i = 0; i < abs(rint(rit/20)); i++)
 	{
 		info_len = 0;
 		retval = kenwood_transaction(rig, buf, len, infobuf, &info_len);
+		if (retval != RIG_OK)
+			return retval;
 	}
 
 	return RIG_OK;
@@ -278,13 +288,21 @@ int ts850_set_xit(RIG * rig, vfo_t vfo, shortfreq_t xit)
 	size_t info_len;
 
 	info_len = 0;
-	if (xit == 0)
-		kenwood_transaction(rig, "XT0", 3, infobuf, &info_len);
-	else
-		kenwood_transaction(rig, "XT1", 3, infobuf, &info_len);
+	if (xit == 0) {
+		retval = kenwood_transaction(rig, "XT0", 3, infobuf, &info_len);
+		if (retval != RIG_OK)
+			return retval;
+	} else {
+		retval = kenwood_transaction(rig, "XT1", 3, infobuf, &info_len);
+		if (retval != RIG_OK)
+			return retval;
+	}
 
 	info_len = 0;
 	retval = kenwood_transaction(rig, "RC", 2, infobuf, &info_len);
+	if (retval != RIG_OK)
+		return retval;
+
 	if (xit > 0)
 		c = 'U';
 	else
@@ -295,6 +313,8 @@ int ts850_set_xit(RIG * rig, vfo_t vfo, shortfreq_t xit)
 	{
 		info_len = 0;
 		retval = kenwood_transaction(rig, buf, len, infobuf, &info_len);
+		if (retval != RIG_OK)
+			return retval;
 	}
 
 	return RIG_OK;
@@ -413,7 +433,7 @@ int ts850_set_channel (RIG * rig, const channel_t * chan)
 	int retval, cmd_len;
 	size_t mem_len;
 	int num,freq,tx_freq,tone;
-	char mode,tx_mode,split,tones;
+	char mode,tx_mode,tones;
 
 	num=chan->channel_num;
 	freq=(int)chan->freq;
@@ -421,11 +441,9 @@ int ts850_set_channel (RIG * rig, const channel_t * chan)
 	if(chan->split==RIG_SPLIT_ON) {
 		tx_freq=(int)chan->tx_freq;
 		tx_mode=mode_to_char(chan->tx_mode);
-		split='1';
 	} else {
 		tx_freq=0;
 		tx_mode='\0';
-		split='0';
 	}
 
 	for (tone = 1; rig->caps->ctcss_list[tone-1] != 0 && tone<39; tone++) {
