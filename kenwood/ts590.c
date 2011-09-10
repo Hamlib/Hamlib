@@ -70,11 +70,11 @@ const struct rig_caps ts590_caps = {
   .rig_model = RIG_MODEL_TS590S,
   .model_name = "TS-590S",
   .mfg_name = "Kenwood",
-  .version = BACKEND_VER,
+  .version = BACKEND_VER ".1",
   .copyright = "LGPL",
-  .status = RIG_STATUS_UNTESTED,
+  .status = RIG_STATUS_BETA,
   .rig_type = RIG_TYPE_TRANSCEIVER,
-  .ptt_type = RIG_PTT_RIG,
+  .ptt_type = RIG_PTT_RIG_MICDATA,
   .dcd_type = RIG_DCD_RIG,
   .port_type = RIG_PORT_SERIAL,
   .serial_rate_min = 4800,
@@ -230,12 +230,6 @@ const struct rig_caps ts590_caps = {
   .vfo_ops = TS590_VFO_OPS,
   .vfo_op =  kenwood_vfo_op,
 };
-
-
-/*
- * for the TS480 the function NR and BC have tree state: NR0,1,2 and BC0,1,2
- * this cannot be send through the on/off logic of set_function!
- */
 
 
 /*
