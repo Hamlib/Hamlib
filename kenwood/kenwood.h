@@ -118,6 +118,8 @@ int kenwood_get_ext_parm(RIG *rig, token_t token, value_t *val);
 int kenwood_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone);
 int kenwood_set_ctcss_tone_tn(RIG *rig, vfo_t vfo, tone_t tone);
 int kenwood_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone);
+int kenwood_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone);
+int kenwood_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone);
 int kenwood_set_powerstat(RIG *rig, powerstat_t status);
 int kenwood_get_powerstat(RIG *rig, powerstat_t *status);
 int kenwood_reset(RIG *rig, reset_t reset);

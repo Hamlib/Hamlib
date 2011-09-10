@@ -1538,8 +1538,6 @@ int kenwood_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
  *
  * Warning! This is untested stuff! May work at least on TS-870S
  * 	Please owners report to me <fillods@users.sourceforge.net>, thanks. --SF
-
- * TODO: TS-2000 uses CN/CT
  */
 int kenwood_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
@@ -1579,8 +1577,8 @@ int kenwood_set_ctcss_tone_tn(RIG *rig, vfo_t vfo, tone_t tone)
 	char buf[6];
 	int i;
 
-	/* XXX 38 is a fixed constant */
-	for (i = 0; caps->ctcss_list[i] != 0 && i < 38; i++) {
+	/* XXX 40 is a fixed constant */
+	for (i = 0; caps->ctcss_list[i] != 0 && i < 40; i++) {
 		if (tone == caps->ctcss_list[i])
 			break;
 	}
@@ -1639,6 +1637,70 @@ int kenwood_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 
 	return RIG_OK;
 }
+
+int kenwood_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
+{
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+	if (!rig)
+		return -RIG_EINVAL;
+
+	const struct rig_caps *caps = rig->caps;
+	char buf[6];
+	int i;
+
+	for (i = 0; caps->ctcss_list[i] != 0 && i < 40; i++) {
+		if (tone == caps->ctcss_list[i])
+			break;
+	}
+
+	if (tone != caps->ctcss_list[i])
+		return -RIG_EINVAL;
+
+	sprintf(buf, "CN%02d", i + 1);
+
+	return kenwood_simple_cmd(rig, buf);
+}
+
+int kenwood_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
+{
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+	if (!rig || !tone)
+		return -RIG_EINVAL;
+
+	const struct rig_caps *caps;
+	char tonebuf[6];
+	int i, retval;
+	unsigned int tone_idx;
+
+	caps = rig->caps;
+
+	retval = kenwood_safe_transaction(rig, "CT", tonebuf, 6, 5);
+	if (retval != RIG_OK)
+		return retval;
+
+	tone_idx = atoi(tonebuf+2);
+
+	if (tone_idx == 0) {
+		rig_debug(RIG_DEBUG_ERR, "%s: CTCSS is zero (%s)\n",
+					__func__, tonebuf);
+		return -RIG_EPROTO;
+	}
+
+	/* check this tone exists. That's better than nothing. */
+	for (i = 0; i<tone_idx; i++) {
+		if (caps->ctcss_list[i] == 0) {
+			rig_debug(RIG_DEBUG_ERR, "%s: CTCSS NG (%04d)\n",
+						__func__, tone_idx);
+			return -RIG_EPROTO;
+		}
+	}
+	*tone = caps->ctcss_list[tone_idx-1];
+
+	return RIG_OK;
+}
+
 
 /*
  * set the aerial/antenna to use
