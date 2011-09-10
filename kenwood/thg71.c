@@ -77,6 +77,8 @@ static int thg71_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 
 /*
  * th-g71 rig capabilities.
+ *
+ * http://www.iw5edi.com/ham-radio/files/TH-G71_Serial_Protocol.pdf
  */
 const struct rig_caps thg71_caps = {
 .rig_model =  RIG_MODEL_THG71,
