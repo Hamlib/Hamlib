@@ -52,6 +52,10 @@ char csv_sep = ',';	/* CSV separator */
  */
 static int dump_csv_chan(RIG *rig, channel_t **chan, int channel_num, const chan_t *chan_list, rig_ptr_t arg);
 static void dump_csv_name(const channel_cap_t *mem_caps, FILE *f);
+static int set_channel_data(RIG *rig, channel_t *chan,  char **line_key, char **line_data);
+static char* mystrtok( char *s, char delim );
+static int  tokenize_line( char *line, char **token_list, size_t siz, char delim );
+static int find_on_list( char **list, char *what );
 
 int csv_save (RIG *rig, const char *outfilename);
 int csv_load (RIG *rig, const char *infilename);
@@ -79,10 +83,146 @@ int csv_save (RIG *rig, const char *outfilename)
 	return status;
 }
 
+/**  csv_load assumes the first line in a csv file is a key line,
+     defining entries and their number. First line should not 
+     contain 'empty column', i.e. two adjacent commas.
+     Each next line should contain the same number of entries.
+     However, empty columns (two adjacent commas) are allowed.
+     \param rig - a pointer to the rig
+     \param infilename - a string with a file name to write to
+*/
 int csv_load (RIG *rig, const char *infilename)
 {
-	return -RIG_ENIMPL;
-	/* for every channel, fscanf, parse, set_chan */
+    int status = RIG_OK;
+    FILE *f;
+    char *key_list[ 64 ];
+    char *value_list[ 64 ];
+    char keys[ 256 ];
+    char line[ 256 ];
+    channel_t chan;
+
+    f = fopen(infilename, "r");
+    if (!f) return -1;
+    
+   /* First read the first line, containing the key */
+   if( fgets( keys, sizeof( keys ), f ) != NULL ){
+
+      /* fgets stores '\n' in a buffer, get rid of it */
+      keys[ strlen( keys )-1 ] = '\0';
+      printf("Read the key: %s\n", keys );
+      
+      /* Tokenize the key list */
+      if( !tokenize_line( keys, key_list, sizeof(key_list)/sizeof(char*), ',' ) ){
+         fprintf( stderr, "Invalid (possibly too long or empty) key line, cannot continue.\n" );
+         return -1;
+      }
+   }else{
+      /* File exists, but is empty */
+      return -1;
+   }
+
+   /* Next, read the file line by line */
+   while ( fgets ( line, sizeof line, f ) != NULL ){ 
+      /* Tokenize the line */
+      if( !tokenize_line( line, value_list, sizeof(value_list)/sizeof(char*), ',' ) ){
+         fprintf( stderr, "Invalid (possibly too long or empty) line ignored\n" );
+         continue;
+      }
+      /* Parse a line, write channel data into chan */
+      set_channel_data( rig, &chan, key_list, value_list );
+ 
+      /* Write a rig memory */
+      status=rig_set_channel(rig, &chan);
+
+      if (status != RIG_OK ) {
+            fprintf( stderr, "rig_get_channel: error = %s \n", rigerror(status));
+            return status;
+      }
+
+   }
+   fclose( f );
+   return status;
+}
+
+/**  Function to break a line into a list of tokens. Delimiters are 
+    replaced by end-of-string characters ('\0'), and a list of pointers
+    to thus created substrings is created.
+    \param line (input) - a line to be tokenized, the line will be modified!
+    \param token_list (output) - a resulting table containing pointers to
+         tokens, or NULLs (the table will be initially nulled )
+         all the pointers schould point to addresses within the line 
+    \param siz (input) - size of the table
+    \param delim (input) - delimiter character
+    \return number of tokens on success, 0 if \param token_list is too small to contain all the tokens,
+            or if line was empty.
+*/
+static int  tokenize_line( char *line, char **token_list, size_t siz, char delim ){
+   size_t i;
+   char *tok;
+   
+//    printf("Starting tokenizer, line pointer %x, list pointer %x, list size = %d...", line, token_list, siz);
+   /* Erase the table */
+   for( i = 0; i < siz; i++ ){
+      token_list[i] = NULL;
+   }
+//    printf(", list emptied!\n");
+   /* Empty line passed? */
+   if( line == NULL ) return 0;
+   /* Reinitialize, find the first token */
+   i = 0;
+   tok = mystrtok( line, delim );
+   /* Line contains no delim */
+   if( tok == NULL ) return 0;
+   token_list[ i++ ] = tok;
+//    printf("First token is: %s\n", tok);
+   
+   /* Find the remaining tokens */
+   while( i < siz ){
+      tok = mystrtok( NULL, delim );
+//       printf("Next token: %s\n", tok );
+      /* If NULL, no more tokens left */
+      if( (tok == NULL)  ) break;
+      /* Add token to the list */
+      token_list[ i++ ] = tok;
+   }
+//    printf("Finished tokenizing, i = %d, siz = %d\n", i, siz);
+   /* Any tokens left? */
+   if( i == siz ){
+      return 0; 
+   }else{
+      return i;
+   }
+}
+
+/** Tokenizer that handles two delimiters by returning an empty string.
+    First param (input) is a string to be tokenized, second is a delimiter (input)
+    This tokenizer accepts only one delimiter! 
+    \param s - string to divide on first run, NULL on each next
+    \param delim - delimiter
+    \return pointer to token, or NULL if there are no more tokens 
+    \sa "man strtok" 
+    */
+static char* mystrtok( char *s, char delim ){
+   static size_t pos = 0, length = 0;
+   static char *str = 0;
+   if( s != NULL ){
+      str = s;
+      pos = 0;
+      length = strlen( str );
+   }else{
+   }
+   if( str[ pos+1 ] == '\0' ) return NULL;
+   size_t i,ent_pos = pos;
+   for( i = pos; i < length; ){
+      if( str[i] == delim ){
+         str[i] = '\0';
+         pos = i+1;
+         return str+ent_pos;
+      }else{
+         i++;
+      }
+   }
+   return str + ent_pos;
 }
 
 static int print_parm_name(RIG *rig, const struct confparams *cfp, rig_ptr_t ptr)
@@ -173,7 +313,7 @@ int csv_parm_load (RIG *rig, const char *infilename)
 
 /* *********************** */
 
-
+/* Caution! Keep the function consistent with dump_csv_chan and set_channel_data! */
 void dump_csv_name(const channel_cap_t *mem_caps, FILE *f)
 {
 	fprintf(f, "num%c", csv_sep);
@@ -255,6 +395,7 @@ void dump_csv_name(const channel_cap_t *mem_caps, FILE *f)
 }
 
 
+/* Caution! Keep the function consistent with dump_csv_name and set_channel_data! */
 int dump_csv_chan(RIG *rig, channel_t **chan_pp, int channel_num, const chan_t *chan_list, rig_ptr_t arg)
 {
 	FILE *f = arg;
@@ -363,3 +504,208 @@ int dump_csv_chan(RIG *rig, channel_t **chan_pp, int channel_num, const chan_t *
 	return RIG_OK;
 }
 
+/**  Function to parse a line read from csv file and store the data into
+     appropriate fields of channel_t. The function must be consistent
+     with dump_csv_name and dump_csv_chan.
+     \param rig - a pointer to the rig
+     \param chan - a pointer to channel_t structure with channel data
+     \param line_key_list - a pointer to a table of strings with "keys"
+     \param line_data_list - a pointer to a table of strings with values
+     \return 0 on success, negative value on error
+*/
+int set_channel_data(RIG *rig, channel_t *chan, char **line_key_list, char **line_data_list){
+
+   int i,j,n;
+   
+   memset(chan,0,sizeof(channel_t));
+   chan->vfo = RIG_VFO_CURR;
+   
+   i = find_on_list( line_key_list, "num" );
+   if( i < 0 ){
+        fprintf(stderr,"No channel number\n");
+        return -1;
+   }
+   n = chan->channel_num = atoi( line_data_list[ i ] );
+
+    /* find chanel caps of appropriate memory group? */
+   for(j=0; j < CHANLSTSIZ; j++)
+        if( rig->state.chan_list[j].start <= n && rig->state.chan_list[j].end >= n) 
+            break;
+
+   printf("Requested channel number %d, list number %d\n",n,j);
+
+   const channel_cap_t *mem_caps = &rig->state.chan_list[j].mem_caps;
+
+    if (mem_caps->bank_num) {
+        i = find_on_list( line_key_list,  "bank_num" );
+        if( i >= 0 ){
+           chan->bank_num = atoi( line_data_list[ i ] );
+        }
+    }
+
+    if (mem_caps->channel_desc) {
+        i = find_on_list( line_key_list,  "channel_desc" );
+        if( i >= 0 ){
+           strncpy( chan->channel_desc, line_data_list[ i ], rig->caps->chan_desc_sz-1 );
+           chan->channel_desc[ rig->caps->chan_desc_sz ] = '\0';
+        }
+    }
+    if (mem_caps->ant) {
+        i = find_on_list( line_key_list,  "ant" );
+        if( i >= 0 ){
+           chan->ant = atoi( line_data_list[ i ] );
+        }
+    }
+    if (mem_caps->freq) {
+        i = find_on_list( line_key_list,  "freq" );
+        if( i >= 0 ){
+           chan->freq = atoi( line_data_list[ i ] );
+        }
+    }
+    if (mem_caps->mode) {
+        i = find_on_list( line_key_list,  "mode" );
+        if( i >= 0 ){
+           chan->mode = rig_parse_mode( line_data_list[ i ] );
+        }
+    }
+    if (mem_caps->width) {
+        i = find_on_list( line_key_list,  "width" );
+        if( i >= 0 ){
+           chan->width = atoi( line_data_list[ i ] );
+        }
+    }
+    if (mem_caps->tx_freq) {
+        i = find_on_list( line_key_list,  "tx_freq" );
+        if( i >= 0 ){
+           sscanf( line_data_list[i], "%"SCNfreq, &chan->tx_freq );
+        }
+    }
+    if (mem_caps->tx_mode) {
+        i = find_on_list( line_key_list,  "tx_mode" );
+        if( i >= 0 ){
+           chan->tx_mode = rig_parse_mode( line_data_list[ i ] );
+        }
+   }
+    if (mem_caps->tx_width) {
+        i = find_on_list( line_key_list,  "tx_width" );
+        if( i >= 0 ){
+           chan->tx_width = atoi( line_data_list[ i ] );
+        }
+    }
+    if (mem_caps->split) {
+        chan->split=RIG_SPLIT_OFF;
+        i = find_on_list( line_key_list,  "split" );
+        if( i >= 0 ){
+           if( strcmp( line_data_list[i], "on" ) == 0 ) {
+                chan->split=RIG_SPLIT_ON;
+                if (mem_caps->tx_vfo) {
+                    i = find_on_list( line_key_list, "tx_vfo" );
+                    if( i >= 0 )
+                        sscanf( line_data_list[i],"%x",&chan->tx_vfo);
+                }
+           }
+        }
+    }
+    if (mem_caps->rptr_shift) {
+        i = find_on_list( line_key_list,  "rptr_shift" );
+        if( i >= 0 ){
+            switch( line_data_list[i][0] ) {
+            case '=': chan->rptr_shift=RIG_RPT_SHIFT_NONE;
+                     break;
+            case '+': chan->rptr_shift=RIG_RPT_SHIFT_PLUS;
+                     break;
+            case '-': chan->rptr_shift=RIG_RPT_SHIFT_MINUS;
+                     break;
+            }
+            if( mem_caps->rptr_offs && chan->rptr_shift != RIG_RPT_SHIFT_NONE ){
+                  i = find_on_list( line_key_list, "rptr_offs" );
+                  if( i >= 0 ) 
+                     chan->rptr_offs = atoi( line_data_list[ i ] );
+            }
+        }
+    }
+    if (mem_caps->tuning_step) {
+        i = find_on_list( line_key_list,  "tuning_step" );
+        if( i >= 0 ){
+           chan->tuning_step = atoi( line_data_list[ i ] );
+        }
+    }
+    if (mem_caps->rit) {
+        i = find_on_list( line_key_list,  "rit" );
+        if( i >= 0 ){
+           chan->rit = atoi( line_data_list[ i ] );
+        }
+    }
+    if (mem_caps->xit) {
+        i = find_on_list( line_key_list,  "xit" );
+        if( i >= 0 ){
+           chan->xit = atoi( line_data_list[ i ] );
+        }
+    }
+    if (mem_caps->funcs) {
+        i = find_on_list( line_key_list,  "funcs" );
+        if( i >= 0 ){
+            sscanf( line_data_list[i], "%lx", &chan->funcs );
+        }
+    }
+    if (mem_caps->ctcss_tone) {
+        i = find_on_list( line_key_list,  "ctcss_tone" );
+        if( i >= 0 ){
+           chan->ctcss_tone = atoi( line_data_list[ i ] );
+        }
+    }
+    if (mem_caps->ctcss_sql) {
+        i = find_on_list( line_key_list,  "ctcss_sql" );
+        if( i >= 0 ){
+           chan->ctcss_sql = atoi( line_data_list[ i ] );
+        }
+    }
+    if (mem_caps->dcs_code) {
+        i = find_on_list( line_key_list,  "dcs_code" );
+        if( i >= 0 ){
+           chan->dcs_code = atoi( line_data_list[ i ] );
+        }
+    }
+    if (mem_caps->dcs_sql) {
+        i = find_on_list( line_key_list,  "dcs_sql" );
+        if( i >= 0 ){
+           chan->dcs_sql = atoi( line_data_list[ i ] );
+        }
+    }
+    if (mem_caps->scan_group) {
+        i = find_on_list( line_key_list,  "scan_group" );
+        if( i >= 0 ){
+           chan->scan_group = atoi( line_data_list[ i ] );
+        }
+    }
+    if (mem_caps->flags) {
+        i = find_on_list( line_key_list,  "flags" );
+        if( i >= 0 ){
+            sscanf( line_data_list[i], "%x", &chan->flags );
+        }
+    }
+   return 0;
+}
+
+/** Find a string on the list. Assumes the last element on the list is NULL
+    \param list - a list
+    \param what - a string to find
+    \return string position on the list on success, 
+           -1 if string not found or if string is empty
+*/
+int find_on_list( char **list, char *what ){
+   int i = 0;
+   if( !what ) return -1;
+   while( list[i] != NULL ){
+      if( strcmp( list[i], what ) == 0 ){
+         return i;
+      }else{
+         i++;
+      }
+   }
+   if( !list[i] ){
+      return -1;
+   }else{
+      return i;
+   }
+}
