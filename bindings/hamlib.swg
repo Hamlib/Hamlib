@@ -42,6 +42,9 @@
 %include typemaps.i
 %include exception.i
 %include cstring.i
+#ifdef SWIGPYTHON
+%include python/file.i
+#endif
 
 %apply double *OUTPUT { double *distance, double *azimuth };
 %apply int *OUTPUT { int *degrees, int *minutes, double *seconds, int *sw };

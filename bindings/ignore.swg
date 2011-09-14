@@ -1,5 +1,4 @@
 /* unsupported Hamlib's calls */
-%ignore rig_debug;
 
 /* useless macros */
 %ignore _RIG_H;
