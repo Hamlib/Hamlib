@@ -1,7 +1,7 @@
 /*
  *  Hamlib Kenwood backend - Elecraft K3 description
  *  Copyright (c) 2002-2009 by Stephane Fillod
- *  Copyright (C) 2010 by Nate Bargmann, n0nb@arrl.net
+ *  Copyright (C) 2010,2011 by Nate Bargmann, n0nb@arrl.net
  *
  *   This library is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU Lesser General Public
@@ -33,6 +33,7 @@
 #include "bandplan.h"
 #include "elecraft.h"
 #include "token.h"
+#include "cal.h"
 
 #define K3_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|\
 	RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_PKTUSB|\
@@ -69,6 +70,7 @@ int k3_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit);
 int k3_set_xit(RIG * rig, vfo_t vfo, shortfreq_t rit);
 int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width);
 int k3_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width);
+int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
 
 /* Private helper functions */
@@ -91,7 +93,7 @@ const struct rig_caps k3_caps = {
 	.rig_model =		RIG_MODEL_K3,
 	.model_name =		"K3/KX3",
 	.mfg_name =		"Elecraft",
-	.version =		"20110603",
+	.version =		"20111122",
 	.copyright =		"LGPL",
 	.status =		RIG_STATUS_BETA,
 	.rig_type =		RIG_TYPE_TRANSCEIVER,
@@ -183,7 +185,6 @@ const struct rig_caps k3_caps = {
 		{RIG_MODE_FM, kHz(13)}, /* TBC */
 		RIG_FLT_END,
 	},
-	.str_cal = K3_STR_CAL,
 	.priv =  (void *)&k3_priv_caps,
 
 	.rig_init =		kenwood_init,
@@ -211,7 +212,7 @@ const struct rig_caps k3_caps = {
 	.set_ext_parm =		kenwood_set_ext_parm,
 	.get_ext_parm =		kenwood_get_ext_parm,
 	.set_level =		kenwood_set_level,
-	.get_level =		kenwood_get_level,
+	.get_level =		k3_get_level,
 	.set_ext_level =	k3_set_ext_level,
 	.get_ext_level =	k3_get_ext_level,
 	.vfo_op =		kenwood_vfo_op,
@@ -423,11 +424,7 @@ int k3_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
 	if (!rig)
 		return -RIG_EINVAL;
 
-//	char buf[KENWOOD_MAX_BUF_LEN];
 	int err;
-//	const struct confparams *cfp;
-
-//	cfp = rig_ext_lookup_tok(rig, token);
 
 	switch(token) {
 	case TOK_RIT_CLR:
@@ -585,6 +582,67 @@ int k3_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width
 
 	return -RIG_ENAVAIL;
 }
+
+
+/*
+ * Handle S-meter (SM, SMH) level locally and pass rest to kenwood_get_level()
+ */
+int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+	if (!rig || !val)
+		return -RIG_EINVAL;
+
+	char lvlbuf[50];
+	int retval;
+	struct kenwood_priv_data *priv = rig->state.priv;
+
+	switch (level) {
+	case RIG_LEVEL_STRENGTH:
+		/* As of FW rev 4.37 the K3 supports an 'SMH' command that
+		 * offers a higher resolution, 0-100 (mine went to 106),
+		 * rawstr value for more precise S-meter reporting.
+		 */
+		retval = strncmp(priv->k3_fw_rev, "4.37", 4);
+		if (retval < 0) {
+			cal_table_t str_cal = K3_SM_CAL;
+
+			retval = kenwood_safe_transaction(rig, "SM", lvlbuf, 10, 7);
+			if (retval != RIG_OK)
+				return retval;
+
+			sscanf(lvlbuf+2, "%d", &val->i);	/* rawstr */
+
+			val->i = (int) rig_raw2val(val->i, &str_cal);
+		} else if (retval >= 0) {
+			cal_table_t str_cal = K3_SMH_CAL;
+
+			retval = kenwood_safe_transaction(rig, "SMH", lvlbuf, 10, 7);
+			if (retval != RIG_OK)
+				return retval;
+
+			sscanf(lvlbuf+3, "%d", &val->i);	/* rawstr */
+
+			val->i = (int) rig_raw2val(val->i, &str_cal);
+		} else {
+			rig_debug(RIG_DEBUG_ERR, "%s: Firmware version comparison failed!\n",
+				  __func__);
+			return -RIG_EINVAL;
+		}
+
+		break;
+
+	default:
+		retval = kenwood_get_level(rig, vfo, level, val);
+		if (retval != RIG_OK)
+			return retval;
+		break;
+	}
+
+	return RIG_OK;
+}
+
 
 
 

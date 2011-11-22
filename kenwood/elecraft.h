@@ -76,7 +76,7 @@ int elecraft_open(RIG *rig);
  * Table is RASTR value from SM command and dB relative to S9 == 0
  * (see rig_get_level() in src/settings.c
  */
-#define K3_STR_CAL { 16, \
+#define K3_SM_CAL { 16, \
 	{ \
 		{ 0, -54 }, \
 		{ 1, -42 }, \
@@ -94,6 +94,37 @@ int elecraft_open(RIG *rig);
 		{ 13, 50 }, \
 		{ 14, 55 }, \
 		{ 15, 60 }, \
+	} }
+
+
+/* K3 defines 100 values--0-100 in high resolution mode.
+ * Table is RASTR value from SMH command and dB relative to S9 == 0
+ * (see rig_get_level() in src/settings.c
+ */
+#define K3_SMH_CAL { 22, \
+	{ \
+		{ 0, -54 }, \
+		{ 5, -48 }, \
+		{ 9, -42 }, \
+		{ 14, -36 }, \
+		{ 22, -30 }, \
+		{ 24, -24 }, \
+		{ 28, -18 }, \
+		{ 33, -12 }, \
+		{ 38, -6 }, \
+		{ 42, 0 }, \
+		{ 47, 5 }, \
+		{ 53, 10 }, \
+		{ 58, 15 }, \
+		{ 63, 20 }, \
+		{ 68, 25 }, \
+		{ 73, 30 }, \
+		{ 78, 35 }, \
+		{ 83, 40 }, \
+		{ 88, 45 }, \
+		{ 93, 50 }, \
+		{ 98, 55 }, \
+		{ 103, 60 }, \
 	} }
 
 
