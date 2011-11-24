@@ -460,7 +460,7 @@ int HAMLIB_API read_string(hamlib_port_t *p, char *rxbuffer, size_t rxmax, const
 				int stopset_len)
 {
   fd_set rfds, efds;
-  struct timeval tv, tv_timeout;
+  struct timeval tv, tv_timeout, start_time, end_time, elapsed_time;
   int rd_count, total_count = 0;
   int retval;
 
@@ -469,6 +469,9 @@ int HAMLIB_API read_string(hamlib_port_t *p, char *rxbuffer, size_t rxmax, const
    */
   tv_timeout.tv_sec = p->timeout/1000;
   tv_timeout.tv_usec = (p->timeout%1000)*1000;
+
+  /* Store the time of the read loop start */
+  gettimeofday(&start_time, NULL);
 
   while (total_count < rxmax-1) {
 	tv = tv_timeout;	/* select may have updated it */
@@ -515,8 +518,12 @@ int HAMLIB_API read_string(hamlib_port_t *p, char *rxbuffer, size_t rxmax, const
   rxbuffer[total_count] = '\000';
 
   if (total_count == 0) {
-    rig_debug(RIG_DEBUG_WARN, "%s: timedout without reading a character\n",
-		    __FUNCTION__);
+    /* Record timeout time and caculate elapsed time */
+    gettimeofday(&end_time, NULL);
+    timersub(&end_time, &start_time, &elapsed_time);
+
+    rig_debug(RIG_DEBUG_WARN, "%s: timedout %d.%d seconds without reading a character.\n",
+		    __FUNCTION__, elapsed_time.tv_sec, elapsed_time.tv_usec);
     return -RIG_ETIMEOUT;
   }
 
