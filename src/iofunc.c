@@ -160,8 +160,8 @@ int HAMLIB_API port_close(hamlib_port_t *p, rig_port_t port_type)
 			break;
 
 		default:
-		    rig_debug(RIG_DEBUG_ERR, "%s: Unknown port type %d\n",
-						__func__, port_type);
+		    rig_debug(RIG_DEBUG_ERR, "%s(): Unknown port type %d\n",
+			      __func__, port_type);
             /* fall through */
 		case RIG_PORT_DEVICE:
 			ret = close(p->fd);
@@ -316,7 +316,7 @@ int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
 		ret = port_write(p, txbuffer+i, 1);
 		if (ret != 1) {
 			rig_debug(RIG_DEBUG_ERR,"%s():%d failed %d - %s\n",
-				__FUNCTION__, __LINE__, ret, strerror(errno));
+				__func__, __LINE__, ret, strerror(errno));
 			return -RIG_EIO;
     	}
     	usleep(p->write_delay*1000);
@@ -325,7 +325,7 @@ int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
 	ret = port_write(p, txbuffer, count);
 	if (ret != count) {
 		rig_debug(RIG_DEBUG_ERR,"%s():%d failed %d - %s\n",
-			__FUNCTION__, __LINE__, ret, strerror(errno));
+			__func__, __LINE__, ret, strerror(errno));
 		return -RIG_EIO;
     	}
   }
@@ -346,7 +346,7 @@ int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
 				   /* otherwise some yaesu rigs get confused */
 				   /* with sequential fast writes*/
   }
-  rig_debug(RIG_DEBUG_TRACE,"TX %d bytes\n",count);
+  rig_debug(RIG_DEBUG_TRACE,"%s(): TX %d bytes\n", __func__, count);
   dump_hex((unsigned char *) txbuffer,count);
 
   return RIG_OK;
@@ -374,7 +374,7 @@ int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
 int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
 {
   fd_set rfds, efds;
-  struct timeval tv, tv_timeout;
+  struct timeval tv, tv_timeout, start_time, end_time, elapsed_time;
   int rd_count, total_count = 0;
   int retval;
 
@@ -385,6 +385,9 @@ int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
   tv_timeout.tv_sec = p->timeout/1000;
   tv_timeout.tv_usec = (p->timeout%1000)*1000;
 
+  /* Store the time of the read loop start */
+  gettimeofday(&start_time, NULL);
+
   while (count > 0) {
 	tv = tv_timeout;	/* select may have updated it */
 
@@ -394,20 +397,27 @@ int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
 
 	retval = port_select(p, p->fd+1, &rfds, NULL, &efds, &tv);
 	if (retval == 0) {
+		/* Record timeout time and caculate elapsed time */
+		gettimeofday(&end_time, NULL);
+		timersub(&end_time, &start_time, &elapsed_time);
+
 		dump_hex((unsigned char *) rxbuffer, total_count);
-		rig_debug(RIG_DEBUG_WARN, "read_block: timedout after %d chars\n",
-						total_count);
+		rig_debug(RIG_DEBUG_WARN, "%s(): Timed out %d.%d seconds after %d chars\n",
+			  __func__, elapsed_time.tv_sec, elapsed_time.tv_usec, total_count);
+
 		return -RIG_ETIMEOUT;
 	}
 	if (retval < 0) {
 		dump_hex((unsigned char *) rxbuffer, total_count);
-		rig_debug(RIG_DEBUG_ERR,"read_block: select error after %d chars: "
-						"%s\n", total_count, strerror(errno));
+		rig_debug(RIG_DEBUG_ERR,"%s(): select() error after %d chars: %s\n",
+			  __func__, total_count, strerror(errno));
+
 		return -RIG_EIO;
 	}
 	if (FD_ISSET(p->fd, &efds)) {
-		rig_debug(RIG_DEBUG_ERR, "%s: fd error after %d chars\n",
-                                  __FUNCTION__, total_count);
+		rig_debug(RIG_DEBUG_ERR, "%s(): fd error after %d chars\n",
+			  __func__, total_count);
+
 		return -RIG_EIO;
 	}
 
@@ -417,16 +427,18 @@ int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
 	 */
 	rd_count = port_read(p, rxbuffer+total_count, count);
 	if (rd_count < 0) {
-		rig_debug(RIG_DEBUG_ERR, "read_block: read failed - %s\n",
-							strerror(errno));
+		rig_debug(RIG_DEBUG_ERR, "%s(): read() failed - %s\n",
+			  __func__, strerror(errno));
+
 		return -RIG_EIO;
 	}
 	total_count += rd_count;
 	count -= rd_count;
   }
 
-  rig_debug(RIG_DEBUG_TRACE,"RX %d bytes\n",total_count);
+  rig_debug(RIG_DEBUG_TRACE,"%s(): RX %d bytes\n", __func__, total_count);
   dump_hex((unsigned char *) rxbuffer, total_count);
+
   return total_count;			/* return bytes count read */
 }
 
@@ -486,13 +498,15 @@ int HAMLIB_API read_string(hamlib_port_t *p, char *rxbuffer, size_t rxmax, const
 
 	if (retval < 0) {
 		dump_hex((unsigned char *) rxbuffer, total_count);
-		rig_debug(RIG_DEBUG_ERR, "%s: select error after %d chars: %s\n",
-                                  __FUNCTION__, total_count, strerror(errno));
+		rig_debug(RIG_DEBUG_ERR, "%s(): select() error after %d chars: %s\n",
+			  __func__, total_count, strerror(errno));
+
 		return -RIG_EIO;
 	}
 	if (FD_ISSET(p->fd, &efds)) {
-		rig_debug(RIG_DEBUG_ERR, "%s: fd error after %d chars\n",
-                                  __FUNCTION__, total_count);
+		rig_debug(RIG_DEBUG_ERR, "%s(): fd error after %d chars\n",
+			  __func__, total_count);
+
 		return -RIG_EIO;
 	}
 
@@ -503,8 +517,9 @@ int HAMLIB_API read_string(hamlib_port_t *p, char *rxbuffer, size_t rxmax, const
         rd_count = port_read(p, &rxbuffer[total_count], 1);
 	if (rd_count < 0) {
 		dump_hex((unsigned char *) rxbuffer, total_count);
-		rig_debug(RIG_DEBUG_ERR, "%s: read failed - %s\n",__FUNCTION__,
-                            strerror(errno));
+		rig_debug(RIG_DEBUG_ERR, "%s(): read() failed - %s\n",
+			  __func__, strerror(errno));
+
 		return -RIG_EIO;
 	}
         ++total_count;
@@ -522,13 +537,15 @@ int HAMLIB_API read_string(hamlib_port_t *p, char *rxbuffer, size_t rxmax, const
     gettimeofday(&end_time, NULL);
     timersub(&end_time, &start_time, &elapsed_time);
 
-    rig_debug(RIG_DEBUG_WARN, "%s: timedout %d.%d seconds without reading a character.\n",
-		    __FUNCTION__, elapsed_time.tv_sec, elapsed_time.tv_usec);
+    rig_debug(RIG_DEBUG_WARN, "%s(): Timed out %d.%d seconds without reading a character.\n",
+	      __func__, elapsed_time.tv_sec, elapsed_time.tv_usec);
+
     return -RIG_ETIMEOUT;
   }
 
-  rig_debug(RIG_DEBUG_TRACE,"RX %d characters\n",total_count);
+  rig_debug(RIG_DEBUG_TRACE,"%s(): RX %d characters\n", __func__, total_count);
   dump_hex((unsigned char *) rxbuffer, total_count);
+
   return total_count;			/* return bytes count read */
 }
 
