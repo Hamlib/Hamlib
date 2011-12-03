@@ -588,26 +588,28 @@ via the Hamlib API.  From an application's perspective, setting a specific
 level includes all messages at that level and all at any lower level.
 
 In the library, passing RIG_DEBUG_ERR to rig_debug() limits display of that
-message to a level setting of ERR or BUG.  Use of a given level can show the
-value of a critical variable without the need of a TRACE level message which
-can get lost in the stream of output produced by low-level Hamlib functions.
+message to a level setting of ERR or any higher level.  In this case if the
+application sets the message level to RIG_DEBUG_INFO, the message will not
+be seen.  Use of a given level can show the value of a critical variable
+without the need of a TRACE level message where it can get lost in the
+stream of output produced by low-level Hamlib functions.
 
 Here are my (N0NB's) suggested use of rig_debug() levels in backends.
 
 * Many backend functions should have an initial call to rig_debug() as follows:
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s() entered\n", __func__);
 
   The use of RIG_DEBUG_VERBOSE allows tracking the chain of function calls
   through the backend while still keeping rigctl's output mostly
   uncluttered by use of the -vvvv switch.
 
 * Developers will want to call rig_debug() to display values of critical
-  variable(s) in a backend function.  For this RIG_DEBUG_VERBOSE should be
-  a good choice as the output won't be lost in the stream of RIG_DEBUG_TRACE
-  level output by various low-level Hamlib functions (rigctl -vvvv).  It will
-  also match the display of the values of critical variable(s) with the
-  function calls as above.
+  variable(s) in a backend function.  For this RIG_DEBUG_VERBOSE
+  (rigctl -vvvv) should be a good choice as the output won't be lost in the
+  stream of RIG_DEBUG_TRACE (rigctl -vvvvv) level output by various
+  low-level Hamlib functions.  It will also match the display of the values
+  of critical variable(s) with the function calls as above.
 
 * Use RIG_DEBUG_TRACE when it makes sense to see the variable(s) in the
   context of a lot of low-level debugging output (rigctl -vvvvv).
@@ -622,6 +624,8 @@ scribe) so fixing these when working in a given backend is encouraged.
 If an application sets the debugging level to RIG_DEBUG_NONE, then
 rig_debug() functions will produce no output.  Therefore rig_debug() cannot
 be counted on to output a message in all runtime cases.
+
+The debugging levels may be an area for consideration in API_3.
 
 
 8.3 Submitting patches
