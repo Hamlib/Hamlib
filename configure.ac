@@ -56,8 +56,8 @@ AC_ISC_POSIX
 AC_MINIX
 AC_PROG_CC()
 AC_DIAGNOSE([obsolete],[AM_PROG_CC_STDC:
-	your code should no longer depend upon `am_cv_prog_cc_stdc', but upon
-	`ac_cv_prog_cc_stdc'.  Remove this warning and the assignment when
+	your code should no longer depend upon 'am_cv_prog_cc_stdc', but upon
+	'ac_cv_prog_cc_stdc'.  Remove this warning and the assignment when
 	you adjust the code.  You can also remove the above call to
 	AC_PROG_CC if you already called it elsewhere.])
 am_cv_prog_cc_stdc=$ac_cv_prog_cc_stdc
