@@ -7,7 +7,7 @@ AC_PREREQ(2.59)
 ## ------------------------ ##
 ## Autoconf initialisation. ##
 ## ------------------------ ##
-dnl Please do not use '-' in the version number, 'make rpm' will fail,
+dnl Please do not use '-' in the version number, as package managers will fail,
 dnl however, the use of '~' should be fine as apt (others?) will treat
 dnl it as an earlier version than the actual release.  TNX KA6MAL
 dnl PACKAGE_NAME + " " + PACKAGE_VERSION must not exceed 20 chars!
@@ -46,7 +46,6 @@ AC_PROG_CPP
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
-AC_CHECK_PROGS(RPMBUILD, rpmbuild, rpm)
 
 dnl Pkgconfig
 PKG_PROG_PKG_CONFIG
@@ -542,8 +541,7 @@ amsat/Makefile
 ts7400/Makefile
 celestron/Makefile
 scripts/Makefile
-hamlib.pc
-hamlib.spec]
+hamlib.pc]
 )
 AC_OUTPUT
 
