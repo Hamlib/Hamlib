@@ -545,3 +545,26 @@ hamlib.pc]
 )
 AC_OUTPUT
 
+echo \
+"----------------------------------------------------------------------
+
+ ${PACKAGE_NAME} Version ${PACKAGE_VERSION} configuration:
+
+ Prefix		${prefix}
+ Compiler	${CC} ${CFLAGS} ${CPPFLAGS}
+
+
+ Package features:
+	With C++ binding	${cf_with_cxx_binding}
+	With Perl binding	${cf_with_perl_binding}
+	With Python binding	${cf_with_python_binding}
+	With TCL binding	${build_tcl}
+	Enable Rig Matrix	${enable_rigmatrix}
+	Enable WinRadio		${cf_with_winradio}
+	Enable USRP		${cf_with_usrp}
+	Enable USB backends	${cf_with_libusb}
+	Enable RPC backends	${cf_with_rpc_backends}
+	Enable shared libs	${enable_shared}
+	Enable static libs	${enable_static}
+
+-----------------------------------------------------------------------"
