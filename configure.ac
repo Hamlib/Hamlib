@@ -7,7 +7,7 @@ AC_PREREQ(2.59)
 ## ------------------------ ##
 ## Autoconf initialisation. ##
 ## ------------------------ ##
-dnl Please do not use '-' in the version number, 'make rpm' will fail,
+dnl Please do not use '-' in the version number, as package managers will fail,
 dnl however, the use of '~' should be fine as apt (others?) will treat
 dnl it as an earlier version than the actual release.  TNX KA6MAL
 dnl PACKAGE_NAME + " " + PACKAGE_VERSION must not exceed 20 chars!
@@ -46,7 +46,6 @@ AC_PROG_CPP
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
-AC_CHECK_PROGS(RPMBUILD, rpmbuild, rpm)
 
 dnl Pkgconfig
 PKG_PROG_PKG_CONFIG
@@ -542,8 +541,30 @@ amsat/Makefile
 ts7400/Makefile
 celestron/Makefile
 scripts/Makefile
-hamlib.pc
-hamlib.spec]
+hamlib.pc]
 )
 AC_OUTPUT
 
+echo \
+"----------------------------------------------------------------------
+
+ ${PACKAGE_NAME} Version ${PACKAGE_VERSION} configuration:
+
+ Prefix		${prefix}
+ Compiler	${CC} ${CFLAGS} ${CPPFLAGS}
+
+
+ Package features:
+	With C++ binding	${cf_with_cxx_binding}
+	With Perl binding	${cf_with_perl_binding}
+	With Python binding	${cf_with_python_binding}
+	With TCL binding	${build_tcl}
+	Enable Rig Matrix	${enable_rigmatrix}
+	Enable WinRadio		${cf_with_winradio}
+	Enable USRP		${cf_with_usrp}
+	Enable USB backends	${cf_with_libusb}
+	Enable RPC backends	${cf_with_rpc_backends}
+	Enable shared libs	${enable_shared}
+	Enable static libs	${enable_static}
+
+-----------------------------------------------------------------------"
