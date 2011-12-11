@@ -133,6 +133,18 @@ const tone_t kenwood38_ctcss_list[] = {
 };
 
 
+/*
+ * 42 CTCSS sub-audible tones
+ */
+const tone_t kenwood42_ctcss_list[] = {
+         670,  693,  719,  744,  770,  797,  825,  854,  885,  915,  948,
+	 974, 1000, 1035, 1072, 1109, 1148, 1188, 1230, 1273, 1318,
+	1365, 1413, 1462, 1514, 1567, 1622, 1679, 1738, 1799, 1862,
+        1928, 2035, 2065, 2107, 2181, 2257, 2291, 2336, 2418, 2503, 2541,
+	0,
+};
+
+
 /* Token definitions for .cfgparams in rig_caps
  *
  * See enum rig_conf_e and struct confparams in rig.h
@@ -2522,6 +2534,7 @@ DECLARE_INITRIG_BACKEND(kenwood)
 	rig_register(&thf7e_caps);
 	rig_register(&thg71_caps);
 	rig_register(&tmv7_caps);
+	rig_register(&tmd710_caps);
 
 	rig_register(&ts590_caps);
 	rig_register(&ts590_caps);
