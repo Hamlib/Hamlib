@@ -81,6 +81,7 @@ struct kenwood_priv_data {
 extern rmode_t kenwood_mode_table[KENWOOD_MODE_TABLE_MAX];
 
 extern const tone_t kenwood38_ctcss_list[];
+extern const tone_t kenwood42_ctcss_list[];
 
 int kenwood_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 				size_t *data_len);
@@ -171,6 +172,7 @@ extern const struct rig_caps thf7a_caps;
 extern const struct rig_caps thf7e_caps;
 extern const struct rig_caps thg71_caps;
 extern const struct rig_caps tmv7_caps;
+extern const struct rig_caps tmd710_caps;
 
 extern const struct rig_caps ts440_caps;
 extern const struct rig_caps ts940_caps;
