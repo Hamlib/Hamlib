@@ -139,7 +139,7 @@ const struct rig_caps transfox_caps = {
 	.priv =  (void *)&transfox_priv_caps,
 
 	.rig_init =		kenwood_init,
-	.rig_cleanup =		kenwood_cleanup,
+	.rig_cleanup =	kenwood_cleanup,
 	.rig_open =		transfox_open,
 	.set_freq =		kenwood_set_freq,
 	.get_freq =		kenwood_get_freq,
@@ -169,6 +169,8 @@ const struct rig_caps transfox_caps = {
 int transfox_open(RIG *rig)
 {
 	rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
+
+	rig->state.current_vfo = RIG_VFO_A;
 
 	/* do not call kenwood_open(rig), rig has no "ID" command */
 
