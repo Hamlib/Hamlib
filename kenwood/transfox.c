@@ -19,7 +19,6 @@
  *
  *  See the file 'COPYING.LIB' in the main Hamlib distribution directory for
  *  the complete text of the GNU Lesser Public License version 2.1.
- *
  */
 
 #ifdef HAVE_CONFIG_H
@@ -70,9 +69,9 @@ const struct rig_caps transfox_caps = {
 	.rig_model =		RIG_MODEL_TRANSFOX,
 	.model_name =		"Transfox",
 	.mfg_name =		"SigFox",
-	.version =		"20110322",
+	.version =		"20111223",
 	.copyright =		"LGPL",
-	.status =		RIG_STATUS_UNTESTED,
+	.status =		RIG_STATUS_ALPHA,
 	.rig_type =		RIG_TYPE_TUNER,
 	.ptt_type =		RIG_PTT_RIG,
 	.dcd_type =		RIG_DCD_NONE,
@@ -171,7 +170,9 @@ int transfox_open(RIG *rig)
 {
 	rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-	return kenwood_open(rig);
+	/* do not call kenwood_open(rig), rig has no "ID" command */
+
+	return RIG_OK;
 }
 
 int transfox_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
