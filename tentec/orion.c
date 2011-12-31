@@ -1,6 +1,6 @@
 /*
  *  Hamlib TenTenc backend - TT-565 description
- *  Copyright (c) 2004-2008 by Martin Ewing
+ *  Copyright (c) 2004-2011 by Martin Ewing
  *  Copyright (c) 2004-2010 by Stephane Fillod
  *
  *
@@ -43,6 +43,8 @@
  * Big reliability improvement (for fldigi, v 2.062a) 2/15/2008
  * Jan., 2009:
  * Remove RIG_LEVEL_STRENGTH, so that frontend can handle it.
+ * Dec., 2011: Implement VFO range checking. Adjust range_lists for max coverage.
+ * Fix tt565_transaction for case of Morse (/) command.
  */
 
 /* Known issues & to-do list:
@@ -60,7 +62,7 @@
  * \file orion.c
  * \brief Backend for Tentec Orion 565 / 566
  *
- * This documentation is experimental, to see how we can do it for the backends.
+ * This backend supports the Ten-Tec Orion (565) and Orion II (566) transceivers.
  * \n This backend tested mostly with firmware versions 1.372 and 2.062a
  */
 
@@ -131,7 +133,8 @@ static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 
         /* no data expected, TODO: flush input? */
         if (!data || !data_len) {
-                if (*cmd != '*') {     // i.e. was not a 'write' to rig...
+        	/* If it's not a 'write' to rig or a Morse command, there must be data. */
+                if ((*cmd != '*') && (*cmd != '/')) {
                     rig_debug(RIG_DEBUG_ERR,"cmd reject 1\n");
                     return -RIG_ERJCTED;
                     }
@@ -228,7 +231,8 @@ int tt565_cleanup(RIG *rig)
  * \param rig
  * \brief tt565_open routine
  *
- * Open the rig - check firmware version issues
+ * Open the rig - check f * This backend supports the Ten-Tec Orion (565) and Orion II (566) transceivers.
+irmware version issues
  */
  int tt565_open(RIG *rig)
  {
@@ -313,10 +317,33 @@ static char which_vfo(const RIG *rig, vfo_t vfo)
  * assumes rig->state.priv!=NULL
  * \n assumes priv->mode in AM,CW,LSB or USB.
  */
+
 int tt565_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-	int cmd_len, retval;
+	int cmd_len, retval, i, in_range;
+	freq_range_t this_range;
 	char cmdbuf[TT565_BUFSIZE];
+	/* Check for valid frequency request.
+	 * Find freq range that includes current request and
+	 * matches the VFO A/B setting. c.f. rig_get_range().
+	 * Recall VFOA = ham only, VFOB = gen coverage for Hamlib.
+	 * (We assume VFOA = Main RXTX and VFOB = Sub RX.)
+	 * If outside range, return RIG_ERJECTED for compatibility vs icom.c etc.
+	 */
+	in_range = FALSE;
+	for (i=0; i<FRQRANGESIZ; i++) {
+		this_range = rig->state.rx_range_list[i];
+		if (this_range.start == 0 && this_range.end == 0) {
+			break;		/* have come to early end of range list */
+		}
+		/* We don't care about mode setting, but vfo must match. */
+		if (freq >= this_range.start && freq <= this_range.end &&
+				( this_range.vfo == rig->state.current_vfo )) {
+			in_range = TRUE;
+			break;
+		}
+	}
+	if(!in_range) return -RIG_ERJCTED;	/* Sorry, invalid freq request */
 #ifdef TT565_ASCII_FREQ
 /*  Use ASCII mode to set frequencies */
 	cmd_len = sprintf (cmdbuf, "*%cF%"PRIll EOM,
@@ -326,7 +353,7 @@ int tt565_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     /* Use binary mode */
     /* Set frequency using Orion's binary mode (short) sequence.
     The short sequence transfers faster and may require less Orion
-    firmware effort. */
+    firmware effort, but some bugs are reported. */
 
     /* Construct command packet by brute force. */
 	unsigned int myfreq;
@@ -1552,14 +1579,14 @@ int tt565_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 {
 	int msg_len, retval, ic, cmdl;
 	char morsecmd[8];
-	static int keyer_set = 0;	/*Shouldn't be here!*/
+	static int keyer_set = FALSE;	/*Shouldn't be here!*/
 
 /*  Force keyer on. */
 	if (!keyer_set) {
 	    retval = tt565_transaction(rig, "*CK1" EOM, 5, NULL, NULL);
 	    if (retval != RIG_OK)
 		return retval;
-	    keyer_set = 1;
+	    keyer_set = TRUE;
 	    usleep(100000);	/* 100 msec - guess */
 	}
 	msg_len = strlen(msg);
@@ -1568,6 +1595,7 @@ int tt565_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 	for (ic = 0; ic < msg_len; ic++) {
 		cmdl = sprintf(morsecmd,"/%c" EOM, msg[ic]);
 		retval = tt565_transaction(rig,morsecmd,cmdl,NULL,NULL);
+		printf("retval=%X\n", retval);
 		if (retval != RIG_OK)
 			return retval;
 	}
