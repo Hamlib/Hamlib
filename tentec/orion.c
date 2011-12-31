@@ -1595,7 +1595,6 @@ int tt565_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 	for (ic = 0; ic < msg_len; ic++) {
 		cmdl = sprintf(morsecmd,"/%c" EOM, msg[ic]);
 		retval = tt565_transaction(rig,morsecmd,cmdl,NULL,NULL);
-		printf("retval=%X\n", retval);
 		if (retval != RIG_OK)
 			return retval;
 	}
