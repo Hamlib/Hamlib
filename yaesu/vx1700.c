@@ -105,7 +105,7 @@ const struct rig_caps vx1700_caps = {
     .copyright =  "LGPL",
     .status =   RIG_STATUS_ALPHA,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
-    .ptt_type =  RIG_PTT_RIG,
+    .ptt_type =  RIG_PTT_RIG_MICDATA,
     .dcd_type =  RIG_DCD_NONE,	/* we have DCD pin in DATA Jack, but get_dcd() is unavailable (yet?) */
     .port_type =  RIG_PORT_SERIAL,
     .serial_rate_min =  4800,
@@ -658,12 +658,85 @@ static int vx1700_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     }
 }
 
+static int vx1700_set_ptt_gps_jack(ptt_t ptt){
+    (void) ptt;
+
+    /*
+     * FIXME
+     *
+     * We are using GPIO to manage PTT pin in GPS/Data jack.
+     * This highly binded to our specific device, so it makes
+     * no sense to put our code here.
+     * On regular PC this should be managed in another way,
+     * probably via DTR/RTS.
+     */
+    return -RIG_EINVAL;
+}
+
 static int vx1700_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt){
-    (void) rig;
-    (void) vfo;
+    rmode_t		mode;
+    pbwidth_t		width;
+    int			ret;
+    unsigned char	reply[VX1700_STATUS_FLAGS_LENGTH];
+
     rig_debug(RIG_DEBUG_TRACE, "%s, ptt=%d\n", __func__, ptt);
-    return vx1700_do_static_cmd(rig, (ptt == RIG_PTT_OFF) ?
-                                VX1700_NATIVE_PTT_OFF : VX1700_NATIVE_PTT_ON);
+
+    /*
+     * We have 3 PTT source on Vertex Standard VX-1700:
+     *   1) ptt on radio garniture (not checked, FIXME)
+     *   2) PTT commands inside CAT operation protocol
+     *      - select radio garniture as audio input/output source
+     *      - does not work in RTTY/RTTYR modes
+     *   3) PTT pin in GPS/Data jack
+     *      - select GPS/Data jack as input/output source
+     *      - does not work in CW/AM modes
+     */
+    if ((ret = vx1700_get_mode(rig, vfo, &mode, &width)) != RIG_OK) return ret;
+    switch(mode){
+	case RIG_MODE_AM:
+	case RIG_MODE_CW:
+	    switch(ptt){
+		case RIG_PTT_ON:
+		case RIG_PTT_ON_MIC:
+		    return vx1700_do_static_cmd(rig, VX1700_NATIVE_PTT_ON);
+		case RIG_PTT_OFF:
+		    return vx1700_do_static_cmd(rig, VX1700_NATIVE_PTT_OFF);
+		default:
+		    return -RIG_EINVAL;
+	    }
+	case RIG_MODE_LSB:
+	case RIG_MODE_USB:
+	    switch(ptt){
+		case RIG_PTT_ON:
+		case RIG_PTT_ON_MIC:
+		    return vx1700_do_static_cmd(rig, VX1700_NATIVE_PTT_ON);
+		case RIG_PTT_ON_DATA:
+		    return vx1700_set_ptt_gps_jack(RIG_PTT_ON);
+		case RIG_PTT_OFF:
+		    if ((ret = vx1700_read_status_flags(rig, reply)) != RIG_OK) return ret;
+		    if (reply[1] & VX1700_SF_PTT_BY_CAT){
+			/* PTT was turned on by CAT command, turn it off accordingly */
+			return vx1700_do_static_cmd(rig, VX1700_NATIVE_PTT_OFF);
+		    }
+		    /* PTT was turned on via special pin on GPS/DATA jack */
+		    return vx1700_set_ptt_gps_jack(RIG_PTT_OFF);
+		default:
+		    return -RIG_EINVAL;
+	    }
+	case RIG_MODE_RTTY:
+	case RIG_MODE_RTTYR:
+	    switch(ptt){
+		case RIG_PTT_ON:
+		case RIG_PTT_ON_DATA:
+		    return vx1700_set_ptt_gps_jack(RIG_PTT_ON);
+		case RIG_PTT_OFF:
+		    return vx1700_set_ptt_gps_jack(RIG_PTT_OFF);
+		default:
+		    return -RIG_EINVAL;
+	    }
+	default:
+	    return -RIG_EINVAL;
+    }
 }
 
 static int vx1700_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt){
@@ -671,8 +744,9 @@ static int vx1700_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt){
     unsigned char	reply[VX1700_STATUS_FLAGS_LENGTH];
 
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
+
     if ((ret = vx1700_read_status_flags(rig, reply)) != RIG_OK) return ret;
-    *ptt = (reply[1] & VX1700_SF_PTT_BY_CAT) ? RIG_PTT_ON : RIG_PTT_OFF;
+    *ptt = (reply[2] & VX1700_SF_TRANSMISSION_ON) ? RIG_PTT_ON : RIG_PTT_OFF;
     return RIG_OK;
 }
 
