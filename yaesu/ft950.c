@@ -162,7 +162,6 @@ const struct rig_caps ft950_caps = {
         {RIG_MODE_SSB,                Hz(2700)},    /*        SSB */
         {RIG_MODE_SSB,                Hz(2600)},    /*        SSB */
         {RIG_MODE_SSB,                Hz(2500)},    /*        SSB */
-        {RIG_MODE_SSB,                Hz(2450)},    /*        SSB */
         {RIG_MODE_SSB,                Hz(2250)},    /*        SSB */
         {RIG_MODE_SSB,                Hz(2100)},    /*        SSB */
         {RIG_MODE_SSB,                Hz(1950)},    /*        SSB */
