@@ -1,6 +1,6 @@
 /*
  *  Hamlib CI-V backend - main header
- *  Copyright (c) 2000-2011 by Stephane Fillod
+ *  Copyright (c) 2000-2012 by Stephane Fillod
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -238,6 +238,7 @@ extern const struct rig_caps ic271_caps;
 extern const struct rig_caps ic275_caps;
 extern const struct rig_caps ic471_caps;
 extern const struct rig_caps ic475_caps;
+extern const struct rig_caps ic1275_caps;
 
 extern const struct rig_caps omnivip_caps;
 extern const struct rig_caps delta2_caps;

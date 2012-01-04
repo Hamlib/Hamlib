@@ -1,6 +1,6 @@
 /*
  *  Hamlib CI-V backend - main file
- *  Copyright (c) 2000-2011 by Stephane Fillod
+ *  Copyright (c) 2000-2012 by Stephane Fillod
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -252,9 +252,7 @@ const struct confparams icom_cfg_params[] = {
 
 /*
  * Please, if the default CI-V address of your rig is listed as UNKNOWN_ADDR,
- * send the value to <f4cfe@users.sourceforge.net> for inclusion. Thanks --SF
- *
- * TODO: sort this list with most frequent rigs first.
+ * send the value to <fillods@users.sourceforge.net> for inclusion. Thanks --SF
  */
 static const struct icom_addr icom_addr_list[] = {
 	{ RIG_MODEL_IC703, 0x68 },
@@ -3184,6 +3182,7 @@ DECLARE_INITRIG_BACKEND(icom)
 	rig_register(&ic275_caps);
 	rig_register(&ic471_caps);
 	rig_register(&ic475_caps);
+	rig_register(&ic1275_caps);
 
 	rig_register(&os535_caps);
 	rig_register(&os456_caps);
