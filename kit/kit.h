@@ -1,6 +1,6 @@
 /*
  *  Hamlib KIT backend - main header
- *  Copyright (c) 2004-2010 by Stephane Fillod
+ *  Copyright (c) 2004-2012 by Stephane Fillod
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -36,6 +36,7 @@ extern const struct rig_caps dds60_caps;
 extern const struct rig_caps miniVNA_caps;
 extern const struct rig_caps funcube_caps;
 extern const struct rig_caps fifisdr_caps;
+extern const struct rig_caps hiqsdr_caps;
 
 extern const struct rot_caps pcrotor_caps;
 

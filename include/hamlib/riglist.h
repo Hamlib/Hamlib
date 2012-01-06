@@ -1,7 +1,7 @@
 /*
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000-2003 by Frank Singleton
- *  Copyright (c) 2000-2011 by Stephane Fillod
+ *  Copyright (c) 2000-2012 by Stephane Fillod
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -481,6 +481,7 @@
 #define RIG_MODEL_SI570PICUSB RIG_MAKE_MODEL(RIG_KIT, 11) /* SoftRock Si570 PIC */
 #define RIG_MODEL_FIFISDR RIG_MAKE_MODEL(RIG_KIT, 12) /* FiFi-SDR USB */
 #define RIG_MODEL_FUNCUBEDONGLE RIG_MAKE_MODEL(RIG_KIT, 13)	/* FunCUBE Dongle */
+#define RIG_MODEL_HIQSDR RIG_MAKE_MODEL(RIG_KIT, 14)	/* HiQSDR */
 
 	/*
 	 * SW/FM/TV tuner cards supported by Video4Linux,*BSD, ..

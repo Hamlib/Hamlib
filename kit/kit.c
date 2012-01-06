@@ -1,6 +1,6 @@
 /*
  *  Hamlib KIT backend - main file
- *  Copyright (c) 2004-2010 by Stephane Fillod
+ *  Copyright (c) 2004-2012 by Stephane Fillod
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -44,6 +44,7 @@ DECLARE_INITRIG_BACKEND(kit)
 	rig_register(&drt1_caps);
 	rig_register(&dds60_caps);
 	rig_register(&miniVNA_caps);
+	rig_register(&hiqsdr_caps);
 
 #if (defined(HAVE_LIBUSB) && defined(HAVE_USB_H))
 	rig_register(&si570avrusb_caps);
