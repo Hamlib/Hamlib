@@ -1,7 +1,7 @@
 /*
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2003 by Frank Singleton
- *  Copyright (c) 2000-2011 by Stephane Fillod
+ *  Copyright (c) 2000-2012 by Stephane Fillod
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -170,7 +170,8 @@ typedef enum rig_port_e {
   RIG_PORT_ULTRA,		/*!< IrDA Ultra protocol! */
   RIG_PORT_RPC,			/*!< RPC wrapper */
   RIG_PORT_PARALLEL,		/*!< Parallel port */
-  RIG_PORT_USB			/*!< USB port */
+  RIG_PORT_USB,			/*!< USB port */
+  RIG_PORT_UDP_NETWORK	/*!< UDP Network socket type */
 } rig_port_t;
 
 /**

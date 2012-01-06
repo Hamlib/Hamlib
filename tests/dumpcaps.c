@@ -1,5 +1,5 @@
 /*
- * dumpcaps.c - Copyright (C) 2000-2011 Stephane Fillod
+ * dumpcaps.c - Copyright (C) 2000-2012 Stephane Fillod
  * This programs dumps the capabilities of a backend rig.
  *
  *
@@ -174,6 +174,9 @@ int dumpcaps (RIG* rig, FILE *fout)
 			break;
 	case RIG_PORT_NETWORK:
 			fprintf(fout, "Network link\n");
+			break;
+	case RIG_PORT_UDP_NETWORK:
+			fprintf(fout, "UDP Network link\n");
 			break;
 	case RIG_PORT_NONE:
 			fprintf(fout, "None\n");

@@ -1,6 +1,6 @@
 /*
  *  Hamlib Interface - main file
- *  Copyright (c) 2000-2011 by Stephane Fillod
+ *  Copyright (c) 2000-2012 by Stephane Fillod
  *  Copyright (c) 2000-2003 by Frank Singleton
  *
  *
@@ -29,7 +29,7 @@
  * \file src/rotator.c
  * \brief Rotator interface
  * \author Stephane Fillod
- * \date 2000-2011
+ * \date 2000-2012
  *
  * Hamlib interface is a frontend implementing rotator wrapper functions.
  */
@@ -69,6 +69,8 @@
 #define DEFAULT_SERIAL_PORT "\\\\.\\COM1"
 #elif BSD
 #define DEFAULT_SERIAL_PORT "/dev/cuaa0"
+#elif MACOSX
+#define DEFAULT_SERIAL_PORT "/dev/cu.usbserial"
 #else
 #define DEFAULT_SERIAL_PORT "/dev/ttyS0"
 #endif
@@ -234,6 +236,7 @@ ROT * HAMLIB_API rot_init(rot_model_t rot_model)
 	break;
 
 	case RIG_PORT_NETWORK:
+	case RIG_PORT_UDP_NETWORK:
 	strncpy(rs->rotport.pathname, "127.0.0.1:4533", FILPATHLEN);
 	break;
 
@@ -333,6 +336,8 @@ int HAMLIB_API rot_open(ROT *rot)
 			break;	/* ez :) */
 
 	case RIG_PORT_NETWORK:
+	case RIG_PORT_UDP_NETWORK:
+        /* FIXME: default port */
 		status = network_open(&rs->rotport, 4533);
 		if (status < 0)
 			return status;
@@ -411,6 +416,7 @@ int HAMLIB_API rot_close(ROT *rot)
 			usb_port_close(&rs->rotport);
 			break;
 		case RIG_PORT_NETWORK:
+		case RIG_PORT_UDP_NETWORK:
 			network_close(&rs->rotport);
 			break;
 		default:

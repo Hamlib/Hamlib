@@ -1,5 +1,5 @@
 /*
- * rigmatrix.c - Copyright (C) 2000,2001,2002 Stephane Fillod
+ * rigmatrix.c - Copyright (C) 2000-2012 Stephane Fillod
  * This program generates the supported rig matrix in HTML format.
  * The code is rather ugly since this is only a try out.
  *
@@ -153,6 +153,9 @@ int print_caps_parameters(const struct rig_caps *caps, void *data)
 			break;
 	case RIG_PORT_NETWORK:
 			printf("network");
+			break;
+	case RIG_PORT_UDP_NETWORK:
+			printf("UDP network");
 			break;
 	case RIG_PORT_NONE:
 			printf("None");

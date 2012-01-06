@@ -1,6 +1,6 @@
 /*
  *  Hamlib Interface - main file
- *  Copyright (c) 2000-2011 by Stephane Fillod
+ *  Copyright (c) 2000-2012 by Stephane Fillod
  *  Copyright (c) 2000-2003 by Frank Singleton
  *
  *
@@ -30,7 +30,7 @@
  * \brief Ham Radio Control Libraries interface
  * \author Stephane Fillod
  * \author Frank Singleton
- * \date 2000-2011
+ * \date 2000-2012
  *
  * Hamlib provides a user-callable API, a set of "front-end" routines that
  * call rig-specific "back-end" routines which actually communicate with
@@ -82,7 +82,7 @@ const char hamlib_version[21] = "Hamlib " PACKAGE_VERSION;
  * \brief Hamlib copyright notice
  */
 const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
-  "Copyright (C) 2000-2011 Stephane Fillod\n"
+  "Copyright (C) 2000-2012 Stephane Fillod\n"
   "Copyright (C) 2000-2003 Frank Singleton\n"
   "This is free software; see the source for copying conditions.  There is NO\n"
   "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.";
@@ -94,6 +94,8 @@ const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
 #define DEFAULT_SERIAL_PORT "\\\\.\\COM1"
 #elif BSD
 #define DEFAULT_SERIAL_PORT "/dev/cuaa0"
+#elif MACOSX
+#define DEFAULT_SERIAL_PORT "/dev/cu.usbserial"
 #else
 #define DEFAULT_SERIAL_PORT "/dev/ttyS0"
 #endif
@@ -303,6 +305,7 @@ RIG * HAMLIB_API rig_init(rig_model_t rig_model)
 	break;
 
 	case RIG_PORT_NETWORK:
+	case RIG_PORT_UDP_NETWORK:
 	strncpy(rs->rigport.pathname, "127.0.0.1:4532", FILPATHLEN);
 	break;
 

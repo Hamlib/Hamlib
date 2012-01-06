@@ -1,6 +1,6 @@
 /*
  *  Hamlib Interface - generic file based io functions
- *  Copyright (c) 2000-2009 by Stephane Fillod
+ *  Copyright (c) 2000-2012 by Stephane Fillod
  *  Copyright (c) 2000-2003 by Frank Singleton
  *
  *
@@ -119,6 +119,7 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 		break;	/* ez :) */
 
 	case RIG_PORT_NETWORK:
+	case RIG_PORT_UDP_NETWORK:
         /* FIXME: hardcoded network port */
 		status = network_open(p, 4532);
 		if (status < 0)
@@ -156,6 +157,7 @@ int HAMLIB_API port_close(hamlib_port_t *p, rig_port_t port_type)
 			ret = usb_port_close(p);
 			break;
 		case RIG_PORT_NETWORK:
+		case RIG_PORT_UDP_NETWORK:
 			ret = network_close(p);
 			break;
 
@@ -193,7 +195,7 @@ static ssize_t port_read(hamlib_port_t *p, void *buf, size_t count)
         }
     }
     return ret;
-  } else if (p->type.rig == RIG_PORT_NETWORK)
+  } else if (p->type.rig == RIG_PORT_NETWORK || p->type.rig == RIG_PORT_UDP_NETWORK)
 	return recv(p->fd, buf, count, 0);
   else
 	return read(p->fd, buf, count);
@@ -203,7 +205,7 @@ static ssize_t port_write(hamlib_port_t *p, const void *buf, size_t count)
 {
   if (p->type.rig == RIG_PORT_SERIAL)
 	return win32_serial_write(p->fd, buf, count);
-  else if (p->type.rig == RIG_PORT_NETWORK)
+  else if (p->type.rig == RIG_PORT_NETWORK || p->type.rig == RIG_PORT_UDP_NETWORK)
 	return send(p->fd, buf, count, 0);
   else
 	return write(p->fd, buf, count);

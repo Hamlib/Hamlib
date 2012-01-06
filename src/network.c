@@ -1,6 +1,6 @@
 /*
  *  Hamlib Interface - network communication low-level support
- *  Copyright (c) 2000-2010 by Stephane Fillod
+ *  Copyright (c) 2000-2012 by Stephane Fillod
  *
  *   This library is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU Lesser General Public
@@ -102,7 +102,10 @@ int network_open(hamlib_port_t *rp, int default_port)
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = PF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
+	if (rp->type.rig == RIG_PORT_UDP_NETWORK)
+		hints.ai_socktype = SOCK_DGRAM;
+	else
+		hints.ai_socktype = SOCK_STREAM;
 
 	if (rp->pathname[0] == ':') {
 		portstr = rp->pathname+1;
