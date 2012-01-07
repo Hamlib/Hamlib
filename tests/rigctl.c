@@ -271,7 +271,7 @@ int main (int argc, char *argv[])
 	}
 
 	if (rig_file)
-		strncpy(my_rig->state.rigport.pathname, rig_file, FILPATHLEN);
+		strncpy(my_rig->state.rigport.pathname, rig_file, FILPATHLEN - 1);
 
 	/*
 	 * ex: RIG_PTT_PARALLEL and /dev/parport0
@@ -281,9 +281,9 @@ int main (int argc, char *argv[])
 	if (dcd_type != RIG_DCD_NONE)
 		my_rig->state.dcdport.type.dcd = dcd_type;
 	if (ptt_file)
-		strncpy(my_rig->state.pttport.pathname, ptt_file, FILPATHLEN);
+		strncpy(my_rig->state.pttport.pathname, ptt_file, FILPATHLEN - 1);
 	if (dcd_file)
-		strncpy(my_rig->state.dcdport.pathname, dcd_file, FILPATHLEN);
+		strncpy(my_rig->state.dcdport.pathname, dcd_file, FILPATHLEN - 1);
 	/* FIXME: bound checking and port type == serial */
 	if (serial_rate != 0)
 		my_rig->state.rigport.parm.serial.rate = serial_rate;
