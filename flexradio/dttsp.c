@@ -383,7 +383,7 @@ int dttsp_ipc_init(RIG *rig)
   if (!cmdpath)
     cmdpath = DEFAULT_DTTSP_CMD_PATH;
 
-  strncpy(rig->state.rigport.pathname, cmdpath, FILPATHLEN);
+  strncpy(rig->state.rigport.pathname, cmdpath, FILPATHLEN - 1);
 
   return RIG_OK;
 }
@@ -423,7 +423,7 @@ int dttsp_ipc_open(RIG *rig)
   p = getenv ( "SDR_METERPATH" );
   if (!p) {
     meterpath = priv->meter_port.pathname;
-  	strncpy(meterpath, rig->state.rigport.pathname, FILPATHLEN);
+	strncpy(meterpath, rig->state.rigport.pathname, FILPATHLEN - 1);
   	p = strrchr(meterpath, '/');
   	strcpy(p+1, "SDRmeter");
 	p = meterpath;
