@@ -1,7 +1,8 @@
 INCLUDES = @INCLUDES@ @INCLTDL@
 RIGSRC = rig.c serial.c misc.c register.c event.c cal.c conf.c tones.c \
 		rotator.c locator.c rot_reg.c rot_conf.c iofunc.c ext.c \
-		mem.c settings.c parallel.c usb_port.c debug.c network.c
+		mem.c settings.c parallel.c usb_port.c debug.c network.c \
+		cm108.c
 
 lib_LTLIBRARIES = libhamlib.la
 libhamlib_la_SOURCES = $(RIGSRC)
@@ -12,5 +13,5 @@ libhamlib_la_LIBADD = @LIBLTDL@ $(top_builddir)/lib/libmisc.la \
 
 noinst_HEADERS = event.h misc.h serial.h iofunc.h cal.h tones.h \
 		rot_conf.h token.h idx_builtin.h register.h par_nt.h \
-		parallel.h usb_port.h network.h
+		parallel.h usb_port.h network.h cm108.h
 

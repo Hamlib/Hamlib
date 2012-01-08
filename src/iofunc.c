@@ -52,7 +52,7 @@
 #include "parallel.h"
 #include "usb_port.h"
 #include "network.h"
-
+#include "cm108.h"
 
 /**
  * \brief Open a hamlib_port based on its rig port type
@@ -100,6 +100,12 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 		if (status < 0)
 			return status;
 		break;
+
+        case RIG_PORT_CM108:
+                status = cm108_open(p);
+                if (status < 0)
+                        return status;
+                break;
 
 	case RIG_PORT_DEVICE:
 		status = open(p->pathname, O_RDWR, 0);
@@ -152,6 +158,9 @@ int HAMLIB_API port_close(hamlib_port_t *p, rig_port_t port_type)
 			break;
 		case RIG_PORT_PARALLEL:
 			ret = par_close(p);
+			break;
+		case RIG_PORT_CM108:
+			ret = cm108_close(p);
 			break;
 		case RIG_PORT_USB:
 			ret = usb_port_close(p);

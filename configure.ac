@@ -77,7 +77,7 @@ AC_CHECK_HEADERS([alloca.h argz.h malloc.h memory.h string.h strings.h])
 AC_CHECK_HEADERS([stdlib.h values.h rpc/rpc.h rpc/rpcent.h net/errno.h])
 AC_CHECK_HEADERS([fcntl.h sys/ioctl.h sys/time.h sys/param.h unistd.h getopt.h errno.h])
 AC_CHECK_HEADERS([sys/ioccom.h sgtty.h term.h termio.h termios.h])
-AC_CHECK_HEADERS([linux/ppdev.h linux/parport.h linux/ioctl.h])
+AC_CHECK_HEADERS([linux/ppdev.h linux/parport.h linux/ioctl.h linux/hidraw.h])
 AC_CHECK_HEADERS([dev/ppbus/ppi.h dev/ppbus/ppbconf.h])
 AC_CHECK_HEADERS([sys/socket.h netinet/in.h netdb.h arpa/inet.h ws2tcpip.h])
 

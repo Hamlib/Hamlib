@@ -80,15 +80,19 @@ static const struct confparams frontend_cfg_params[] = {
 	},
 	{ TOK_PTT_TYPE, "ptt_type", "PTT type",
 			"Push-To-Talk interface type override",
-			"RIG", RIG_CONF_COMBO, { .c = {{ "RIG", "DTR", "RTS", "Parallel", "None", NULL }} }
+			"RIG", RIG_CONF_COMBO, { .c = {{ "RIG", "DTR", "RTS", "Parallel", "CM108", "None", NULL }} }
 	},
 	{ TOK_PTT_PATHNAME, "ptt_pathname", "PTT path name",
 			"Path name to the device file of the Push-To-Talk",
 			"/dev/rig", RIG_CONF_STRING,
 	},
+	{ TOK_PTT_BITNUM, "ptt_bitnum", "PTT bit [0-7]",
+			"Push-To-Talk GPIO bit number",
+			"2", RIG_CONF_NUMERIC, { .n = { 0, 7, 1 } }
+	},
 	{ TOK_DCD_TYPE, "dcd_type", "DCD type",
 			"Data Carrier Detect (or squelch) interface type override",
-			"RIG", RIG_CONF_COMBO, { .c = {{ "RIG", "DSR", "CTS", "CD", "Parallel", "None", NULL }} }
+			"RIG", RIG_CONF_COMBO, { .c = {{ "RIG", "DSR", "CTS", "CD", "Parallel", "CM108", "None", NULL }} }
 	},
 	{ TOK_DCD_PATHNAME, "dcd_pathname", "DCD path name",
 			"Path name to the device file of the Data Carrier Detect (or squelch)",
@@ -290,6 +294,8 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
                         rs->pttport.type.ptt = RIG_PTT_SERIAL_RTS;
                 else if (!strcmp(val, "Parallel"))
                         rs->pttport.type.ptt = RIG_PTT_PARALLEL;
+                else if (!strcmp(val, "CM108"))
+                        rs->pttport.type.ptt = RIG_PTT_CM108;
                 else if (!strcmp(val, "None"))
                         rs->pttport.type.ptt = RIG_PTT_NONE;
                 else
@@ -298,6 +304,13 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
 
         case TOK_PTT_PATHNAME:
                 strncpy(rs->pttport.pathname, val, FILPATHLEN-1);
+                break;
+
+        case TOK_PTT_BITNUM:
+                if (1 != sscanf(val, "%d", &val_i)){
+                        return -RIG_EINVAL;//value format error
+		}
+                rs->pttport.ptt_bitnum=val_i;
                 break;
 
         case TOK_DCD_TYPE:
@@ -311,6 +324,8 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
                         rs->dcdport.type.dcd = RIG_DCD_SERIAL_CAR;
                 else if (!strcmp(val, "Parallel"))
                         rs->dcdport.type.dcd = RIG_DCD_PARALLEL;
+                else if (!strcmp(val, "CM108"))
+                        rs->dcdport.type.dcd = RIG_DCD_CM108;
                 else if (!strcmp(val, "None"))
                         rs->dcdport.type.dcd = RIG_DCD_NONE;
                 else

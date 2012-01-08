@@ -85,7 +85,8 @@
 #define TOK_DCD_TYPE	TOKEN_FRONTEND(32)
 /** \brief  DCD pathname override */
 #define TOK_DCD_PATHNAME	TOKEN_FRONTEND(33)
-
+/** \brief  CM108 GPIO bit number for PTT */
+#define TOK_PTT_BITNUM        TOKEN_FRONTEND(34)
 /*
  * rig specific tokens
  */

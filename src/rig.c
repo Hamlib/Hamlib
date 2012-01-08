@@ -66,6 +66,7 @@
 #include "usb_port.h"
 #include "network.h"
 #include "event.h"
+#include "cm108.h"
 
 /**
  * \brief Hamlib release number
@@ -107,6 +108,23 @@ const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
 #else
 #define DEFAULT_PARALLEL_PORT "/dev/parport0"
 #endif
+
+#if defined(WIN32) && !defined(__CYGWIN__)
+#define DEFAULT_CM108_PORT "fixme"
+#elif BSD
+#define DEFAULT_CM108_PORT "fixme"
+#else
+#define DEFAULT_CM108_PORT "/dev/hidraw0"
+#endif
+
+#if defined(WIN32) && !defined(__CYGWIN__)
+#define DEFAULT_CM108_PTT_BITNUM "fixme"
+#elif BSD
+#define DEFAULT_CM108_PTT_BITNUM "fixme"
+#else
+#define DEFAULT_CM108_PTT_BITNUM 2
+#endif
+
 
 #define CHECK_RIG_ARG(r) (!(r) || !(r)->caps || !(r)->state.comm_state)
 
@@ -302,6 +320,14 @@ RIG * HAMLIB_API rig_init(rig_model_t rig_model)
 
 	case RIG_PORT_PARALLEL:
 	strncpy(rs->rigport.pathname, DEFAULT_PARALLEL_PORT, FILPATHLEN - 1);
+	break;
+
+	/* Adding support for CM108 GPIO.  This is compatible with CM108 series
+	 * USB audio chips from CMedia and SSS1623 series USB audio chips from 3S
+	 */
+	case RIG_PORT_CM108:
+	strncpy(rs->rigport.pathname, DEFAULT_CM108_PORT, FILPATHLEN);
+	rs->rigport.ptt_bitnum = DEFAULT_CM108_PTT_BITNUM;
 	break;
 
 	case RIG_PORT_NETWORK:
@@ -500,6 +526,14 @@ int HAMLIB_API rig_open(RIG *rig)
         else
 			par_ptt_set(&rs->pttport, RIG_PTT_OFF);
 		break;
+	case RIG_PTT_CM108:
+		rs->pttport.fd = cm108_open(&rs->pttport);
+		if (rs->pttport.fd < 0)
+			rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n",
+				  rs->pttport.pathname);
+		else
+			cm108_ptt_set(&rs->pttport, RIG_PTT_OFF);
+		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR, "Unsupported PTT type %d\n",
 						rs->pttport.type.ptt);
@@ -627,6 +661,10 @@ int HAMLIB_API rig_close(RIG *rig)
 	case RIG_PTT_PARALLEL:
         par_ptt_set(&rs->pttport, RIG_PTT_OFF);
         port_close(&rs->pttport, RIG_PORT_PARALLEL);
+		break;
+	case RIG_PTT_CM108:
+	cm108_ptt_set(&rs->pttport, RIG_PTT_OFF);
+	port_close(&rs->pttport, RIG_PORT_CM108);
 		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR, "Unsupported PTT type %d\n",
@@ -1173,6 +1211,9 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 	case RIG_PTT_PARALLEL:
 		return par_ptt_set(&rig->state.pttport, ptt);
 
+	case RIG_PTT_CM108:
+		return cm108_ptt_set(&rig->state.pttport, ptt);
+
 	case RIG_PTT_NONE:
 		return -RIG_ENAVAIL;	/* not available */
 	default:
@@ -1251,6 +1292,12 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 			return caps->get_ptt(rig, vfo, ptt);
 
 		return par_ptt_get(&rig->state.pttport, ptt);
+
+	case RIG_PTT_CM108:
+		if (caps->get_ptt)
+			return caps->get_ptt(rig, vfo, ptt);
+
+		return cm108_ptt_get(&rig->state.pttport, ptt);
 
 	case RIG_PTT_NONE:
 		return -RIG_ENAVAIL;	/* not available */

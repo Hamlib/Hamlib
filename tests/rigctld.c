@@ -195,6 +195,8 @@ int main (int argc, char *argv[])
 					ptt_type = RIG_PTT_SERIAL_RTS;
 				else if (!strcmp(optarg, "PARALLEL"))
 					ptt_type = RIG_PTT_PARALLEL;
+				else if (!strcmp(optarg, "CM108"))
+					ptt_type = RIG_PTT_CM108;
 				else if (!strcmp(optarg, "NONE"))
 					ptt_type = RIG_PTT_NONE;
 				else
