@@ -669,13 +669,13 @@ static int fifisdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			if (ret == RIG_OK) {
 				val->i = 0;
 				switch (fifi_agc) {
-					case 0:	val->f = RIG_AGC_OFF;		break;
-					case 1:	val->f = RIG_AGC_SUPERFAST;	break;
-					case 2:	val->f = RIG_AGC_FAST;		break;
-					case 3:	val->f = RIG_AGC_SLOW;		break;
-					case 4:	val->f = RIG_AGC_USER;		break;
-					case 5:	val->f = RIG_AGC_MEDIUM;	break;
-					case 6:	val->f = RIG_AGC_AUTO;		break;
+					case 0:	val->i = RIG_AGC_OFF;		break;
+					case 1:	val->i = RIG_AGC_SUPERFAST;	break;
+					case 2:	val->i = RIG_AGC_FAST;		break;
+					case 3:	val->i = RIG_AGC_SLOW;		break;
+					case 4:	val->i = RIG_AGC_USER;		break;
+					case 5:	val->i = RIG_AGC_MEDIUM;	break;
+					case 6:	val->i = RIG_AGC_AUTO;		break;
 				}
 			}
 		break;
