@@ -216,7 +216,7 @@ main (int argc, char *argv[])
 	}
 
 	if (rot_file)
-		strncpy(the_rpc_rot->state.rotport.pathname, rot_file, FILPATHLEN);
+		strncpy(the_rpc_rot->state.rotport.pathname, rot_file, FILPATHLEN - 1);
 	/* FIXME: bound checking and port type == serial */
 	if (serial_rate != 0)
 		the_rpc_rot->state.rotport.parm.serial.rate = serial_rate;
