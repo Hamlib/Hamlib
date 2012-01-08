@@ -50,7 +50,7 @@ int main (int argc, char *argv[])
 		exit(1); /* whoops! something went wrong (mem alloc?) */
 	}
 
-	strncpy(my_rig->state.rigport.pathname, SERIAL_PORT, FILPATHLEN);
+	strncpy(my_rig->state.rigport.pathname, SERIAL_PORT, FILPATHLEN - 1);
 
 	if (rig_open(my_rig))
 			exit(2);

@@ -1,4 +1,4 @@
-/* 
+/*
  * Hamlib rig_bench program
  */
 
@@ -15,7 +15,7 @@
 #define SERIAL_PORT "/dev/ttyS0"
 
 int main (int argc, char *argv[])
-{ 
+{
 	RIG *my_rig;		/* handle to rig (nstance) */
 	int retcode;		/* generic return code from functions */
 	rig_model_t myrig_model;
@@ -26,7 +26,7 @@ int main (int argc, char *argv[])
 	rig_set_debug(RIG_DEBUG_ERR);
 
  	/*
-	 * allocate memory, setup & open port 
+	 * allocate memory, setup & open port
 	 */
 
 	if (argc < 2) {
@@ -38,7 +38,7 @@ int main (int argc, char *argv[])
 		myport.parm.serial.stop_bits = 1;
 		myport.parm.serial.parity = RIG_PARITY_NONE;
 		myport.parm.serial.handshake = RIG_HANDSHAKE_NONE;
-		strncpy(myport.pathname, SERIAL_PORT, FILPATHLEN);
+		strncpy(myport.pathname, SERIAL_PORT, FILPATHLEN - 1);
 
 		rig_load_all_backends();
 		myrig_model = rig_probe(&myport);
@@ -60,7 +60,7 @@ int main (int argc, char *argv[])
 				my_rig->caps->version, rig_strstatus(my_rig->caps->status));
 	printf("Serial speed: %d bauds\n", my_rig->state.rigport.parm.serial.rate);
 
-	strncpy(my_rig->state.rigport.pathname,SERIAL_PORT,FILPATHLEN);
+	strncpy(my_rig->state.rigport.pathname,SERIAL_PORT,FILPATHLEN - 1);
 
 	retcode = rig_open(my_rig);
 	if (retcode != RIG_OK) {

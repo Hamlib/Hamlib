@@ -1,4 +1,4 @@
-/* 
+/*
  * Hamlib sample program to test transceive mode (async event)
  */
 
@@ -22,7 +22,7 @@ int myfreq_event(RIG *rig, vfo_t vfo, freq_t freq, rig_ptr_t arg)
 
 
 int main (int argc, char *argv[])
-{ 
+{
 	RIG *my_rig;		/* handle to rig (nstance) */
 	int retcode;		/* generic return code from functions */
 	int i, count = 0;
@@ -35,7 +35,7 @@ int main (int argc, char *argv[])
 	printf("testrig:hello, I am your main() !\n");
 
  	/*
-	 * allocate memory, setup & open port 
+	 * allocate memory, setup & open port
 	 */
 
 	my_rig = rig_init(atoi(argv[1]));
@@ -45,7 +45,7 @@ int main (int argc, char *argv[])
 			exit(1); /* whoops! something went wrong (mem alloc?) */
 	}
 
-	strncpy(my_rig->state.rigport.pathname, SERIAL_PORT, FILPATHLEN);
+	strncpy(my_rig->state.rigport.pathname, SERIAL_PORT, FILPATHLEN - 1);
 
 	if (rig_open(my_rig))
 			exit(2);
@@ -57,13 +57,13 @@ int main (int argc, char *argv[])
 	 * Must add checking of functionality map prior to command execution -- FS
 	 *
 	 */
-	
+
 
 	retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 439700000);
 
 	if (retcode != RIG_OK ) {
 	  printf("rig_set_freq: error = %s \n", rigerror(retcode));
-	} 
+	}
 
 	rig_set_freq_callback(my_rig, myfreq_event, (rig_ptr_t)&count);
 
@@ -71,7 +71,7 @@ int main (int argc, char *argv[])
 
 	if (retcode != RIG_OK ) {
 	  printf("rig_set_trn: error = %s \n", rigerror(retcode));
-	} 
+	}
 
 
 	for (i=0;i<12;i++)

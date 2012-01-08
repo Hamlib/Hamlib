@@ -1,4 +1,4 @@
-/* 
+/*
  * Hamlib sample program
  */
 
@@ -11,7 +11,7 @@
 #define SERIAL_PORT "/dev/ttyS0"
 
 int main (int argc, char *argv[])
-{ 
+{
 	RIG *my_rig;		/* handle to rig (nstance) */
 	freq_t freq;		/* frequency  */
 	rmode_t rmode;		/* radio mode of operation */
@@ -25,7 +25,7 @@ int main (int argc, char *argv[])
 	printf("testrig:hello, I am your main() !\n");
 
  	/*
-	 * allocate memory, setup & open port 
+	 * allocate memory, setup & open port
 	 */
 
 	if (argc < 2) {
@@ -37,7 +37,7 @@ int main (int argc, char *argv[])
 			myport.parm.serial.stop_bits = 1;
 			myport.parm.serial.parity = RIG_PARITY_NONE;
 			myport.parm.serial.handshake = RIG_HANDSHAKE_NONE;
-			strncpy(myport.pathname, SERIAL_PORT, FILPATHLEN);
+			strncpy(myport.pathname, SERIAL_PORT, FILPATHLEN - 1);
 
 			rig_load_all_backends();
 			myrig_model = rig_probe(&myport);
@@ -46,14 +46,14 @@ int main (int argc, char *argv[])
 	}
 
 	my_rig = rig_init(myrig_model);
-		
+
 	if (!my_rig) {
 		fprintf(stderr,"Unknown rig num: %d\n", myrig_model);
 		fprintf(stderr,"Please check riglist.h\n");
 		exit(1); /* whoops! something went wrong (mem alloc?) */
 	}
 
-	strncpy(my_rig->state.rigport.pathname,SERIAL_PORT,FILPATHLEN);
+	strncpy(my_rig->state.rigport.pathname,SERIAL_PORT,FILPATHLEN - 1);
 
 	retcode = rig_open(my_rig);
 	if (retcode != RIG_OK) {
@@ -87,11 +87,11 @@ int main (int argc, char *argv[])
 	 * Examples of checking return code are further down.
 	 *
 	 */
-	
+
 	/* 10m FM Narrow */
 
 	retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 28350125); /* 10m */
-	retcode = rig_set_mode(my_rig, RIG_VFO_CURR, RIG_MODE_FM, 
+	retcode = rig_set_mode(my_rig, RIG_VFO_CURR, RIG_MODE_FM,
 					rig_passband_narrow(my_rig, RIG_MODE_FM));
 	sleep(3);		/* so you can see it -- FS */
 
@@ -116,7 +116,7 @@ int main (int argc, char *argv[])
 	/* 80m AM NArrow */
 
 	retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 3980000); /* 80m  */
-	retcode = rig_set_mode(my_rig, RIG_VFO_CURR, RIG_MODE_AM, 
+	retcode = rig_set_mode(my_rig, RIG_VFO_CURR, RIG_MODE_AM,
 					rig_passband_narrow(my_rig, RIG_MODE_FM));
 	sleep(3);
 
@@ -154,19 +154,19 @@ int main (int argc, char *argv[])
 
 	if (retcode != RIG_OK ) {
 	  printf("rig_set_freq: error = %s \n", rigerror(retcode));
-	} 
+	}
 
 	retcode = rig_set_mode(my_rig, RIG_VFO_CURR, RIG_MODE_LSB, RIG_PASSBAND_NORMAL);
 
 	if (retcode != RIG_OK ) {
 	  printf("rig_set_mode: error = %s \n", rigerror(retcode));
-	} 
+	}
 
 	retcode = rig_set_ptt(my_rig, RIG_VFO_A, RIG_PTT_ON ); /* stand back ! */
 
 	if (retcode != RIG_OK ) {
 	  printf("rig_set_ptt: error = %s \n", rigerror(retcode));
-	} 
+	}
 
 	sleep(1);
 
@@ -174,7 +174,7 @@ int main (int argc, char *argv[])
 
 	if (retcode != RIG_OK ) {
 	  printf("rig_set_ptt: error = %s \n", rigerror(retcode));
-	} 
+	}
 
 	sleep(1);
 
@@ -192,7 +192,7 @@ int main (int argc, char *argv[])
 	}
 
 	retcode = rig_get_freq(my_rig, RIG_VFO_CURR, &freq);
-	
+
 	if (retcode == RIG_OK ) {
 	  printf("rig_get_freq: freq = %"PRIfreq"\n", freq);
 	} else {

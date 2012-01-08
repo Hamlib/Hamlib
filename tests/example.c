@@ -1,5 +1,5 @@
 /*  This is a elementary program calling Hamlib to do some useful things.
- *  
+ *
  *  Edit to specify your rig model and serial port, and baud rate
  *  before compiling.
  *  To compile:
@@ -29,7 +29,7 @@ int main() {
 	my_rig = rig_init(RIG_MODEL_TT565); // your rig model.
 /* Set up serial port, baud rate */
 	rig_file = "/dev/ttyUSB0";        // your serial device
-	strncpy(my_rig->state.rigport.pathname, rig_file, FILPATHLEN);
+	strncpy(my_rig->state.rigport.pathname, rig_file, FILPATHLEN - 1);
 	my_rig->state.rigport.parm.serial.rate = 57600; // your baud rate
 /* Open my rig */
 	retcode = rig_open(my_rig);
@@ -38,7 +38,7 @@ int main() {
 	printf("Rig_info: '%s'\n", info_buf);
 
 /* Note: As a general practice, we should check to see if a given
- * function is within the rig's capabilities before calling it, but 
+ * function is within the rig's capabilities before calling it, but
  * we are simplifying here. Also, we should check each call's returned
  * status in case of error.  (That's an inelegant way to catch an unsupported
  * operation.)
