@@ -223,7 +223,7 @@ ROT * HAMLIB_API rot_init(rot_model_t rot_model)
 
 	switch (caps->port_type) {
 	case RIG_PORT_SERIAL:
-	strncpy(rs->rotport.pathname, DEFAULT_SERIAL_PORT, FILPATHLEN);
+	strncpy(rs->rotport.pathname, DEFAULT_SERIAL_PORT, FILPATHLEN - 1);
 	rs->rotport.parm.serial.rate = caps->serial_rate_max;	/* fastest ! */
 	rs->rotport.parm.serial.data_bits = caps->serial_data_bits;
 	rs->rotport.parm.serial.stop_bits = caps->serial_stop_bits;
@@ -232,16 +232,16 @@ ROT * HAMLIB_API rot_init(rot_model_t rot_model)
 	break;
 
 	case RIG_PORT_PARALLEL:
-	strncpy(rs->rotport.pathname, DEFAULT_PARALLEL_PORT, FILPATHLEN);
+	strncpy(rs->rotport.pathname, DEFAULT_PARALLEL_PORT, FILPATHLEN - 1);
 	break;
 
 	case RIG_PORT_NETWORK:
 	case RIG_PORT_UDP_NETWORK:
-	strncpy(rs->rotport.pathname, "127.0.0.1:4533", FILPATHLEN);
+	strncpy(rs->rotport.pathname, "127.0.0.1:4533", FILPATHLEN - 1);
 	break;
 
 	default:
-	strncpy(rs->rotport.pathname, "", FILPATHLEN);
+	strncpy(rs->rotport.pathname, "", FILPATHLEN - 1);
 	}
 
 	rs->min_el = caps->min_el;

@@ -292,7 +292,7 @@ RIG * HAMLIB_API rig_init(rig_model_t rig_model)
 
 	switch (caps->port_type) {
 	case RIG_PORT_SERIAL:
-	strncpy(rs->rigport.pathname, DEFAULT_SERIAL_PORT, FILPATHLEN);
+	strncpy(rs->rigport.pathname, DEFAULT_SERIAL_PORT, FILPATHLEN - 1);
 	rs->rigport.parm.serial.rate = caps->serial_rate_max;	/* fastest ! */
 	rs->rigport.parm.serial.data_bits = caps->serial_data_bits;
 	rs->rigport.parm.serial.stop_bits = caps->serial_stop_bits;
@@ -301,16 +301,16 @@ RIG * HAMLIB_API rig_init(rig_model_t rig_model)
 	break;
 
 	case RIG_PORT_PARALLEL:
-	strncpy(rs->rigport.pathname, DEFAULT_PARALLEL_PORT, FILPATHLEN);
+	strncpy(rs->rigport.pathname, DEFAULT_PARALLEL_PORT, FILPATHLEN - 1);
 	break;
 
 	case RIG_PORT_NETWORK:
 	case RIG_PORT_UDP_NETWORK:
-	strncpy(rs->rigport.pathname, "127.0.0.1:4532", FILPATHLEN);
+	strncpy(rs->rigport.pathname, "127.0.0.1:4532", FILPATHLEN - 1);
 	break;
 
 	default:
-	strncpy(rs->rigport.pathname, "", FILPATHLEN);
+	strncpy(rs->rigport.pathname, "", FILPATHLEN - 1);
 	}
 
 	rs->rigport.write_delay = caps->write_delay;
