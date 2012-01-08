@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH RIGCTLD "8" "January 6, 2012" "Hamlib" "Rig Control Daemon"
+.TH RIGCTLD "8" "January 7, 2012" "Hamlib" "Rig Control Daemon"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -58,8 +58,7 @@ Please report bugs and provide feedback at the e-mail address given in the
 \fIREPORTING BUGS\fP section.  Patches and code enhancements are also welcome.
 .SH OPTIONS
 This program follows the usual GNU command line syntax, with long
-options starting with two dashes ('-').  At a minimum the -m and -r options
-are required (not optional).
+options starting with two dashes ('-').
 .PP
 Here is a summary of the supported options:
 .TP
@@ -70,15 +69,15 @@ Select radio model number. See the -l, --list option below.
 Use \fIdevice\fP as the file name of the port the radio is connected.
 Often a serial port, but could be a USB to serial adapter or USB port device.
 Typically /dev/ttyS0, /dev/ttyS1, /dev/ttyUSB0, etc. on Linux or COM1, COM2,
-etc. on Win32.  Maximum length of 99 characters
+etc. on Win32.
 .TP
 .B \-p, --ptt-file=device
 Use \fIdevice\fP as the file name of the Push-To-Talk device using a
-device file as described above.  Maximum length of 99 characters
+device file as described above.
 .TP
 .B \-d, --dcd-file=device
 Use \fIdevice\fP as the file name of the Data Carrier Detect device using a
-device file as described above.  Maximum length of 99 characters
+device file as described above.
 .TP
 .B \-P, --ptt-type=type
 Use \fItype\fP of Push-To-Talk device.
@@ -660,7 +659,7 @@ Copyright \(co 2000-2010 Stephane Fillod
 .br
 Copyright \(co 2011-2012 Nate Bargmann
 .br
-Copyright \(co 2000-2012 the Hamlib Group.
+Copyright \(co 2000-2010 the Hamlib Group.
 .PP
 This is free software; see the source for copying conditions.
 There is NO warranty; not even for MERCHANTABILITY
