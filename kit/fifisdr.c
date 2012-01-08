@@ -69,6 +69,16 @@
 #define FIFISDR_PRODUCT_NAME		"FiFi-SDR"
 
 
+/* All level controls */
+#define FIFISDR_LEVEL_ALL			(0						\
+									| RIG_LEVEL_PREAMP 		\
+									| RIG_LEVEL_STRENGTH 	\
+									| RIG_LEVEL_AF 			\
+									| RIG_LEVEL_AGC 		\
+									| RIG_LEVEL_SQL			\
+									)
+
+
 
 static int fifisdr_init(RIG *rig);
 static int fifisdr_cleanup(RIG *rig);
@@ -92,11 +102,10 @@ static int fifisdr_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *va
 /* Extra levels definitions */
 static const struct confparams fifisdr_ext_levels[] = {
 	{ TOK_LVL_FMCENTER, "fmcenter", "FM center", "Center frequency deviation of FM signal",
-		NULL, RIG_CONF_NUMERIC, { .n = { -kHz(50), kHz(50), Hz(1) } }
+		NULL, RIG_CONF_NUMERIC, { .n = { -kHz(5), kHz(5), Hz(1) } }
 	},
 	{ RIG_CONF_END, NULL, }
 };
-
 
 
 /** Private instance data. */
@@ -111,8 +120,8 @@ const struct rig_caps fifisdr_caps = {
 	.rig_model = RIG_MODEL_FIFISDR,
 	.model_name = "FiFi-SDR",
 	.mfg_name = "FiFi",
-	.version = "0.3",
-	.copyright = "GPL",
+	.version = "0.4",
+	.copyright = "LGPL",
 	.status = RIG_STATUS_BETA,
 
 	.rig_type = RIG_TYPE_RECEIVER,
@@ -127,8 +136,8 @@ const struct rig_caps fifisdr_caps = {
 
 	.has_get_func = RIG_FUNC_NONE,
 	.has_set_func = RIG_FUNC_NONE,
-	.has_get_level = RIG_LEVEL_PREAMP | RIG_LEVEL_STRENGTH,
-	.has_set_level = RIG_LEVEL_SET(RIG_LEVEL_PREAMP),
+	.has_get_level = FIFISDR_LEVEL_ALL,
+	.has_set_level = RIG_LEVEL_SET(FIFISDR_LEVEL_ALL),
 	.has_get_parm = RIG_PARM_NONE,
 	.has_set_parm = RIG_PARM_SET(RIG_PARM_NONE),
 
@@ -173,17 +182,33 @@ const struct rig_caps fifisdr_caps = {
 	.tx_range_list2 = { RIG_FRNG_END, },
 
 	.tuning_steps = {
-		{RIG_MODE_AM | RIG_MODE_SSB | RIG_MODE_FM, Hz(1)},
+		{RIG_MODE_SSB, Hz(1)},
+		{RIG_MODE_SSB, Hz(10)},
+		{RIG_MODE_SSB, Hz(50)},
+		{RIG_MODE_AM, Hz(10)},
+		{RIG_MODE_AM, Hz(50)},
+		{RIG_MODE_AM, Hz(100)},
+		{RIG_MODE_FM, kHz(0.1)},
+		{RIG_MODE_FM, kHz(5)},
+		{RIG_MODE_FM, kHz(6.25)},
+		{RIG_MODE_FM, kHz(10)},
+		{RIG_MODE_FM, kHz(12.5)},
+		{RIG_MODE_FM, kHz(20)},
+		{RIG_MODE_FM, kHz(25)},
+		{RIG_MODE_FM, kHz(100)},
 		RIG_TS_END,
 	},
 	/* mode/filter list, remember: order matters! */
 	.filters = {
-		{RIG_MODE_SSB, kHz(2.7)},
+		{RIG_MODE_SSB, kHz(2.7)},	/* normal */
+		{RIG_MODE_SSB, kHz(2.2)},
 		{RIG_MODE_SSB, kHz(3.3)},
-		{RIG_MODE_SSB, kHz(1.8)},
-		{RIG_MODE_AM,  kHz(6.0)},
+		{RIG_MODE_AM,  kHz(8.0)},	/* normal */
+		{RIG_MODE_AM,  kHz(6.2)},
+		{RIG_MODE_AM,  kHz(10.0)},
+		{RIG_MODE_FM,  kHz(9.0)},	/* normal */
+		{RIG_MODE_FM,  kHz(6.0)},
 		{RIG_MODE_FM,  kHz(12.5)},
-		{RIG_MODE_FM,  kHz(9.0)},
 		RIG_FLT_END,
 	},
 
@@ -507,6 +532,9 @@ static int fifisdr_set_level (RIG * rig, vfo_t vfo, setting_t level, value_t val
 {
 	int ret = RIG_OK;
 	uint8_t fifi_preamp;
+	int16_t fifi_volume;
+	uint8_t fifi_squelch;
+	uint8_t fifi_agc;
 
 
 	switch (level) {
@@ -520,6 +548,54 @@ static int fifisdr_set_level (RIG * rig, vfo_t vfo, setting_t level, value_t val
 			ret = fifisdr_usb_write(rig, REQUEST_FIFISDR_WRITE, 0,
 									19,	/* Preamp */
 									(char *)&fifi_preamp, sizeof(fifi_preamp));
+		break;
+
+		/* RX volume control */
+		case RIG_LEVEL_AF:
+			/* Transform Hamlib value (float: 0...1) to an integer range (0...100) */
+			fifi_volume = (int16_t)(val.f * 100.0f);
+			if (fifi_volume < 0) {
+				fifi_volume = 0;
+			}
+			if (fifi_volume > 100) {
+				fifi_volume = 100;
+			}
+			ret = fifisdr_usb_write(rig, REQUEST_FIFISDR_WRITE, 0,
+									14,	/* Demodulator volume */
+									(char *)&fifi_volume, sizeof(fifi_volume));
+		break;
+
+		/* Squelch level */
+		case RIG_LEVEL_SQL:
+			/* Transform Hamlib value (float: 0...1) to an integer range (0...100) */
+			fifi_squelch = (uint8_t)(val.f * 100.0f);
+			if (fifi_squelch < 0) {
+				fifi_squelch = 0;
+			}
+			if (fifi_squelch > 100) {
+				fifi_squelch = 100;
+			}
+			ret = fifisdr_usb_write(rig, REQUEST_FIFISDR_WRITE, 0,
+									20,	/* Squelch control */
+									(char *)&fifi_squelch, sizeof(fifi_squelch));
+		break;
+
+		/* AGC */
+		case RIG_LEVEL_AGC:
+			/* Transform Hamlib enum value to FiFi-SDR selector */
+			fifi_agc = 0;
+			switch ((enum agc_level_e)val.i) {
+				case RIG_AGC_OFF:		fifi_agc = 0;	break;
+				case RIG_AGC_SUPERFAST:	fifi_agc = 1;	break;
+				case RIG_AGC_FAST:		fifi_agc = 2;	break;
+				case RIG_AGC_SLOW:		fifi_agc = 3;	break;
+				case RIG_AGC_USER:		fifi_agc = 4;	break;
+				case RIG_AGC_MEDIUM:	fifi_agc = 5;	break;
+				case RIG_AGC_AUTO:		fifi_agc = 6;	break;
+			}
+			ret = fifisdr_usb_write(rig, REQUEST_FIFISDR_WRITE, 0,
+									21,	/* AGC template */
+									(char *)&fifi_agc, sizeof(fifi_agc));
 		break;
 
 		/* Unsupported option */
@@ -537,6 +613,9 @@ static int fifisdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	int ret = RIG_OK;
 	uint32_t fifi_meter = 0;
 	uint8_t fifi_preamp = 0;
+	int16_t fifi_volume = 0;
+	uint8_t fifi_squelch = 0;
+	uint8_t fifi_agc = 0;
 
 
 	switch (level) {
@@ -550,6 +629,53 @@ static int fifisdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				val->i = 0;
 				if (fifi_preamp != 0) {
 					val->i = 6;
+				}
+			}
+		break;
+
+		/* RX volume control */
+		case RIG_LEVEL_AF:
+			ret = fifisdr_usb_read(rig, REQUEST_FIFISDR_READ, 0,
+								   14,	/* Demodulator volume */
+								   (char *)&fifi_volume, sizeof(fifi_volume));
+			if (ret == RIG_OK) {
+				/* Value is in % (0...100) */
+				val->f = 0.0f;
+				if ((fifi_volume >=0) && (fifi_volume <= 100)) {
+					val->f = (float)fifi_volume / 100.0f;
+				}
+			}
+		break;
+
+		/* Squelch level */
+		case RIG_LEVEL_SQL:
+			ret = fifisdr_usb_read(rig, REQUEST_FIFISDR_READ, 0,
+								   20,	/* Squelch control */
+								   (char *)&fifi_squelch, sizeof(fifi_squelch));
+			if (ret == RIG_OK) {
+				/* Value is in % (0...100) */
+				val->f = 0.0f;
+				if (fifi_squelch <= 100) {
+					val->f = (float)fifi_squelch / 100.0f;
+				}
+			}
+		break;
+
+		/* AGC */
+		case RIG_LEVEL_AGC:
+			ret = fifisdr_usb_read(rig, REQUEST_FIFISDR_READ, 0,
+								   21,	/* AGC template */
+								   (char *)&fifi_agc, sizeof(fifi_agc));
+			if (ret == RIG_OK) {
+				val->i = 0;
+				switch (fifi_agc) {
+					case 0:	val->f = RIG_AGC_OFF;		break;
+					case 1:	val->f = RIG_AGC_SUPERFAST;	break;
+					case 2:	val->f = RIG_AGC_FAST;		break;
+					case 3:	val->f = RIG_AGC_SLOW;		break;
+					case 4:	val->f = RIG_AGC_USER;		break;
+					case 5:	val->f = RIG_AGC_MEDIUM;	break;
+					case 6:	val->f = RIG_AGC_AUTO;		break;
 				}
 			}
 		break;
