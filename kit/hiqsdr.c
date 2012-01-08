@@ -198,7 +198,7 @@ static unsigned compute_sample_rate(const struct hiqsdr_priv_data *priv)
 	rx_control = (unsigned)(priv->ref_clock / (8. * 8. * priv->sample_rate)) - 1;
 
 	if (rx_control > 39)
-		rx_control = 39; 
+		rx_control = 39;
 
 	return rx_control;
 }
@@ -269,7 +269,7 @@ int hiqsdr_init(RIG *rig)
   priv->split = RIG_SPLIT_OFF;
   priv->ref_clock = REFCLOCK;
   priv->sample_rate = DEFAULT_SAMPLE_RATE;
-  strncpy(rig->state.rigport.pathname, "192.168.2.196:48248", FILPATHLEN);
+  strncpy(rig->state.rigport.pathname, "192.168.2.196:48248", FILPATHLEN - 1);
 
   return RIG_OK;
 }
