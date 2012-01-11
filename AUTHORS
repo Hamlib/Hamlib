@@ -28,6 +28,9 @@ S: Status, one of the following:
 
 Backends:
 
+[adat: ADT-200A]
+M: Frank Goenninger DG1SBG
+
 [alinco: DX77-T]
 M: Ben Coleman NJ8J
 

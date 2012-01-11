@@ -63,6 +63,8 @@
 %ignore RIG_BACKEND_TUNER;
 %ignore RIG_RS;
 %ignore RIG_BACKEND_RS;
+%ignore RIG_ADAT;
+%ignore RIG_BACKEND_ADAT;
 
 %ignore ROT_DUMMY;
 %ignore ROT_BACKEND_DUMMY;

@@ -507,6 +507,14 @@
 #define RIG_MODEL_PRM8060 RIG_MAKE_MODEL(RIG_PRM80, 1)
 #define RIG_MODEL_PRM8070 RIG_MAKE_MODEL(RIG_PRM80, 2)
 
+        /*
+         * ADAT by HB9CBU
+         *
+         * ADDED: frgo (DG1SBG), 2012-01-01
+         */
+#define RIG_ADAT 29
+#define RIG_BACKEND_ADAT "adat"
+#define RIG_MODEL_ADT_200A RIG_MAKE_MODEL(RIG_ADAT, 1)
 
 	/*
 	 * TODO:
@@ -554,6 +562,7 @@ typedef int rig_model_t;
 		{ RIG_TUNER, RIG_BACKEND_TUNER }, \
 		{ RIG_RS, RIG_BACKEND_RS }, \
 		{ RIG_PRM80, RIG_BACKEND_PRM80 }, \
+		{ RIG_ADAT, RIG_BACKEND_ADAT }, \
 		{ 0, NULL }, /* end */  \
 }
 
