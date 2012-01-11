@@ -1341,7 +1341,6 @@ typedef struct {
   int retry;			/*!< Maximum number of retries, 0 to disable */
 
   char pathname[FILPATHLEN];	/*!< Port pathname */
-  int ptt_bitnum;	/*< Bit number for CM108 GPIO PTT */
   union {
 	struct {
 		int rate;	/*!< Serial baud rate */
@@ -1355,6 +1354,9 @@ typedef struct {
 	struct {
 		int pin;	/*!< Parallel port pin number */
 	} parallel;		/*!< parallel attributes */
+	struct {
+		int ptt_bitnum;	/*< Bit number for CM108 GPIO PTT */
+	} cm108;		/*!< CM108 attributes */
 	struct {
 		int vid;	/*!< Vendor ID */
 		int pid;	/*!< Product ID */

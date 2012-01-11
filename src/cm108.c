@@ -1,6 +1,6 @@
 /*
  *  Hamlib Interface - CM108 HID communication low-level support
- *  Copyright (c) 2000-2010 by Stephane Fillod
+ *  Copyright (c) 2000-2012 by Stephane Fillod
  *  Copyright (c) 2011 by Andrew Errington
  *  CM108 detection code Copyright (c) Thomas Sailer used with permission
  *
@@ -119,6 +119,7 @@ int cm108_open(hamlib_port_t *port)
 	}
 	else
 	{
+		close(fd);
 		rig_debug(RIG_DEBUG_VERBOSE,"cm108:No cm108 (or compatible) device detected \n");
 		return -RIG_EINVAL;
 	}
@@ -172,14 +173,14 @@ int cm108_ptt_set(hamlib_port_t *p, ptt_t pttx)
 		// byte 3: xxxx xxxx     SPDIF
 
 		rig_debug(RIG_DEBUG_VERBOSE,"cm108:cm108_ptt_set bit number %d to state %d\n",
-				p->ptt_bitnum, (pttx == RIG_PTT_ON) ? 1 : 0);
+				p->parm.cm108.ptt_bitnum, (pttx == RIG_PTT_ON) ? 1 : 0);
 
 		char out_rep[] = {
 			0x00, // report number
 			// HID output report
 			0x00,
-			(pttx == RIG_PTT_ON) ? (1 << p->ptt_bitnum) : 0, // set GPIO
-			1 << p->ptt_bitnum, // Data direction register (1=output)
+			(pttx == RIG_PTT_ON) ? (1 << p->parm.cm108.ptt_bitnum) : 0, // set GPIO
+			1 << p->parm.cm108.ptt_bitnum, // Data direction register (1=output)
 			0x00
 		};
 
@@ -217,7 +218,6 @@ int cm108_ptt_get(hamlib_port_t *p, ptt_t *pttx)
 	switch(p->type.ptt) {
 	case RIG_PTT_CM108:
 		{
-		unsigned char ctl;
 		int status;
 		return -RIG_ENIMPL;
 		return status;
@@ -248,7 +248,6 @@ int cm108_dcd_get(hamlib_port_t *p, dcd_t *dcdx)
 	switch(p->type.dcd) {
 	case RIG_DCD_CM108:
 		{
-		unsigned char reg;
 		int status;
 		return -RIG_ENIMPL;
 		return status;

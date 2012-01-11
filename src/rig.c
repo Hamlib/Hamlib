@@ -327,7 +327,7 @@ RIG * HAMLIB_API rig_init(rig_model_t rig_model)
 	 */
 	case RIG_PORT_CM108:
 	strncpy(rs->rigport.pathname, DEFAULT_CM108_PORT, FILPATHLEN);
-	rs->rigport.ptt_bitnum = DEFAULT_CM108_PTT_BITNUM;
+	rs->rigport.parm.cm108.ptt_bitnum = DEFAULT_CM108_PTT_BITNUM;
 	break;
 
 	case RIG_PORT_NETWORK:

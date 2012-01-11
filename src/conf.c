@@ -7,7 +7,7 @@
  * \file src/conf.c
  * \brief Rig configuration interface
  * \author Stephane Fillod
- * \date 2000-2010
+ * \date 2000-2012
  */
 /*
  *  Hamlib Interface - configuration interface
@@ -310,7 +310,7 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
                 if (1 != sscanf(val, "%d", &val_i)){
                         return -RIG_EINVAL;//value format error
 		}
-                rs->pttport.ptt_bitnum=val_i;
+                rs->pttport.parm.cm108.ptt_bitnum=val_i;
                 break;
 
         case TOK_DCD_TYPE:
