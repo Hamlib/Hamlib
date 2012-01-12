@@ -1,7 +1,7 @@
 
 lib_LTLIBRARIES = libhamlib++.la
 libhamlib___la_SOURCES = rigclass.cc rotclass.cc
-libhamlib___la_LDFLAGS = -no-undefined -version-info @ABI_VERSION@:15:0
+libhamlib___la_LDFLAGS = -no-undefined -version-info @ABI_VERSION@:16:0
 libhamlib___la_LIBADD = $(top_builddir)/src/libhamlib.la
 
 check_PROGRAMS = testcpp
