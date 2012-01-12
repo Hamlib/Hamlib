@@ -1,6 +1,8 @@
+# Current Autotools documentation suggests that DejaGNU is obsolete
+# and replaced by Autotest.  TODO: implement Autotest
 
-AUTOMAKE_OPTIONS = dejagnu
-DEJATOOL = testfreq testbcd testloc rigctl
+# AUTOMAKE_OPTIONS = dejagnu
+# DEJATOOL = testfreq testbcd testloc rigctl
 
 DISTCLEANFILES = rigctl.log rigctl.sum testbcd.log testbcd.sum
 
@@ -73,4 +75,29 @@ rigmatrix.html: rigmatrix_head.html rigmatrix listrigs
 	./rigctl -l |sort -n | $(srcdir)/rig_split_lst.awk -v lst_dir="sup-info"
 
 EXTRA_DIST = rigmatrix_head.html rig_split_lst.awk $(man_MANS) testctld.pl testrotctld.pl
+
+# Support 'make check' target for simple tests
+check_SCRIPTS = testrig.sh testfreq.sh testbcd.sh testloc.sh
+
+TESTS = $(check_SCRIPTS)
+
+
+testrig.sh:
+	echo './testrig 1' > testrig.sh
+	chmod +x ./testrig.sh
+
+testfreq.sh:
+	echo './testfreq' > testfreq.sh
+	chmod +x ./testfreq.sh
+
+testbcd.sh:
+	echo './testbcd 146520000 10' > testbcd.sh
+	chmod +x ./testbcd.sh
+
+testloc.sh:
+	echo './testloc EM79UT96LW 5' > testloc.sh
+	chmod +x ./testloc.sh
+
+
+CLEANFILES = testrig.sh testfreq.sh testbcd.sh testloc.sh
 
