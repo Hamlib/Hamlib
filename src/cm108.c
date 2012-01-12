@@ -161,7 +161,6 @@ int cm108_ptt_set(hamlib_port_t *p, ptt_t pttx)
 	switch(p->type.ptt) {
 	case RIG_PTT_CM108:
 		{
-		int status;
 
 		// Build a packet for CM108 HID to turn GPIO bit on or off.
 		// Packet is 4 bytes, preceded by a 'report number' byte
@@ -192,7 +191,7 @@ int cm108_ptt_set(hamlib_port_t *p, ptt_t pttx)
 		// Send the HID packet
 		nw = write(p->fd, out_rep, sizeof(out_rep));
 		if (nw < 0) {
-			status = -RIG_EIO;
+			return -RIG_EIO;
 		}
 
 		return RIG_OK;
