@@ -287,8 +287,8 @@ int
 tmd710_pull_fo(RIG * rig,vfo_t vfo, tmd710_fo *fo_struct) {
   char cmdbuf[50];
   char buf[50];
-  int vfonum;
-  int  retval;
+  int vfonum = 0;
+  int retval;
 
   rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
@@ -300,7 +300,7 @@ tmd710_pull_fo(RIG * rig,vfo_t vfo, tmd710_fo *fo_struct) {
     vfonum = 0;
     break;
   case (RIG_VFO_B):
-    vfonum = 0;
+    vfonum = 1;
     break;
 
   }
