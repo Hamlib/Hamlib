@@ -1,25 +1,38 @@
 // ---------------------------------------------------------------------------
-//    ADT-200A 
+//    ADT-200A
 // ---------------------------------------------------------------------------
 //
 //  adt_200a.h
 //
 //  Created by Frank Goenninger DG1SBG.
-//  Copyright © 2011, 2012 Frank Goenninger. Creative Commons License.
+//  Copyright © 2011, 2012 Frank Goenninger.
 //
-//  $Header$
+//   This library is free software; you can redistribute it and/or
+//   modify it under the terms of the GNU Lesser General Public
+//   License as published by the Free Software Foundation; either
+//   version 2.1 of the License, or (at your option) any later version.
+//
+//   This library is distributed in the hope that it will be useful,
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//   Lesser General Public License for more details.
+//
+//   You should have received a copy of the GNU Lesser General Public
+//   License along with this library; if not, write to the Free Software
+//   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
 
 #if !defined( __ADT_200A_INCLUDED__ )
 #define __ADT_200A_INCLUDED__
 
 // ---------------------------------------------------------------------------
-//    ADAT INCLUDES 
+//    ADAT INCLUDES
 // ---------------------------------------------------------------------------
 
 #include "adat.h"
 
 // ---------------------------------------------------------------------------
-//    ADT-200A USB DEFINITIONS 
+//    ADT-200A USB DEFINITIONS
 // ---------------------------------------------------------------------------
 
 #define ADT_200A_VENDOR_ID	                    0x0403
@@ -39,7 +52,7 @@
 #define ADT_200A_USB_OUTPUT_MAX_PACKET_SIZE     64
 
 // ---------------------------------------------------------------------------
-//    ADT-200A CAPS DEFINITIONS 
+//    ADT-200A CAPS DEFINITIONS
 // ---------------------------------------------------------------------------
 
 #define ADT_200A_GET_LEVEL \
@@ -99,7 +112,7 @@
 #define ADT_200A_FUNCS (RIG_FUNC_VOX|RIG_FUNC_NB|RIG_FUNC_NR)
 
 // ---------------------------------------------------------------------------
-//    END OF FILE 
+//    END OF FILE
 // ---------------------------------------------------------------------------
 
 #endif

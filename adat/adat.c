@@ -1,32 +1,45 @@
 // ---------------------------------------------------------------------------
-//    ADAT Hamlib Backend 
+//    ADAT Hamlib Backend
 // ---------------------------------------------------------------------------
 //
 //  adat.c
 //
 //  Created by Frank Goenninger DG1SBG.
-//  Copyright © 2011, 2012 Frank Goenninger. Creative Commons License.
+//  Copyright © 2011, 2012 Frank Goenninger.
 //
-//  $Header$
+//   This library is free software; you can redistribute it and/or
+//   modify it under the terms of the GNU Lesser General Public
+//   License as published by the Free Software Foundation; either
+//   version 2.1 of the License, or (at your option) any later version.
+//
+//   This library is distributed in the hope that it will be useful,
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//   Lesser General Public License for more details.
+//
+//   You should have received a copy of the GNU Lesser General Public
+//   License along with this library; if not, write to the Free Software
+//   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
 // ---------------------------------------------------------------------------
-//    SYSTEM INCLUDES 
+//    SYSTEM INCLUDES
 // ---------------------------------------------------------------------------
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h> 
+#include <string.h>
 #include <unistd.h>
 #include <math.h>
 #include <ctype.h>
 #include <time.h>
 
 // ---------------------------------------------------------------------------
-//    HAMLIB INCLUDES 
+//    HAMLIB INCLUDES
 // ---------------------------------------------------------------------------
 
 #include "hamlib/rig.h"
@@ -37,13 +50,13 @@
 #include "num_stdio.h"
 
 // ---------------------------------------------------------------------------
-//    ADAT INCLUDES 
+//    ADAT INCLUDES
 // ---------------------------------------------------------------------------
 
 #include "adat.h"
 
 // ---------------------------------------------------------------------------
-//    GLOBAL DEFINITIONS 
+//    GLOBAL DEFINITIONS
 // ---------------------------------------------------------------------------
 
 #if !defined( NDEDBUG )
@@ -53,7 +66,7 @@
 #undef ADAT_DEBUG // manual override ...
 
 // ---------------------------------------------------------------------------
-//    ADAT GLOBAL VARIABLES 
+//    ADAT GLOBAL VARIABLES
 // ---------------------------------------------------------------------------
 
 // DEBUG STUFF
@@ -65,50 +78,50 @@ static int gFnLevel = 0;
 static adat_mode_list_t the_adat_mode_list =
 {
     ADAT_NR_MODES,
-    
+
     {
         {
             ADAT_MODE_STR_CW_R,
             ADAT_MODE_RNR_CW_R,
             ADAT_MODE_ANR_CW_R
         },
-        
+
         {
             ADAT_MODE_STR_CW,
             ADAT_MODE_RNR_CW,
             ADAT_MODE_ANR_CW
         },
-        
+
         {
             ADAT_MODE_STR_LSB,
             ADAT_MODE_RNR_LSB,
             ADAT_MODE_ANR_LSB
         },
-        
+
         {
             ADAT_MODE_STR_USB,
             ADAT_MODE_RNR_USB,
             ADAT_MODE_ANR_USB
         },
-        
+
         {
             ADAT_MODE_STR_AM,
             ADAT_MODE_RNR_AM,
             ADAT_MODE_ANR_AM
         },
-        
+
         {
             ADAT_MODE_STR_AM_SL,
             ADAT_MODE_RNR_AM_SL,
             ADAT_MODE_ANR_AM_SL
         },
-        
+
         {
             ADAT_MODE_STR_AM_SU,
             ADAT_MODE_RNR_AM_SU,
             ADAT_MODE_ANR_AM_SU
         },
-        
+
         {
             ADAT_MODE_STR_FM,
             ADAT_MODE_RNR_FM,
@@ -119,23 +132,23 @@ static adat_mode_list_t the_adat_mode_list =
 
 // ADAT VFOS
 
-static adat_vfo_list_t the_adat_vfo_list = 
+static adat_vfo_list_t the_adat_vfo_list =
 {
     ADAT_NR_VFOS,
-    
+
     {
         {
             ADAT_VFO_STR_A,
             ADAT_VFO_RNR_A,
             ADAT_VFO_ANR_A
         },
-        
+
         {
             ADAT_VFO_STR_B,
             ADAT_VFO_RNR_B,
             ADAT_VFO_ANR_B
         },
-        
+
         {
             ADAT_VFO_STR_C,
             ADAT_VFO_RNR_C,
@@ -150,12 +163,12 @@ static adat_vfo_list_t the_adat_vfo_list =
 
 // -- NIL --  (Marks the end of a cmd list)
 #if 0
-static adat_cmd_def_t adat_cmd_nil = 
+static adat_cmd_def_t adat_cmd_nil =
 {
     ADAT_CMD_DEF_NIL,
     ADAT_CMD_KIND_WITHOUT_RESULT,
     NULL,
-    
+
     0,
     {
         NULL
@@ -164,12 +177,12 @@ static adat_cmd_def_t adat_cmd_nil =
 #endif
 // -- ADAT SPECIAL: DISPLAY OFF --
 
-static adat_cmd_def_t adat_cmd_display_off = 
+static adat_cmd_def_t adat_cmd_display_off =
 {
     ADAT_CMD_DEF_ADAT_SPECIAL,
     ADAT_CMD_KIND_WITHOUT_RESULT,
     NULL,
-    
+
     1,
     {
         ADAT_CMD_DEF_STRING_DISPLAY_OFF
@@ -178,12 +191,12 @@ static adat_cmd_def_t adat_cmd_display_off =
 
 // -- ADAT SPECIAL: DISPLAY ON --
 
-static adat_cmd_def_t adat_cmd_display_on = 
+static adat_cmd_def_t adat_cmd_display_on =
 {
     ADAT_CMD_DEF_ADAT_SPECIAL,
     ADAT_CMD_KIND_WITHOUT_RESULT,
     NULL,
-    
+
     1,
     {
         ADAT_CMD_DEF_STRING_DISPLAY_ON
@@ -194,12 +207,12 @@ static adat_cmd_def_t adat_cmd_display_on =
 
 // -- ADAT SPECIAL: GET SERIAL NR --
 
-static adat_cmd_def_t adat_cmd_get_serial_nr = 
+static adat_cmd_def_t adat_cmd_get_serial_nr =
 {
     ADAT_CMD_DEF_ADAT_SPECIAL,
     ADAT_CMD_KIND_WITH_RESULT,
     adat_cmd_fn_get_serial_nr,
-    
+
     1,
     {
         ADAT_CMD_DEF_STRING_GET_SERIAL_NR
@@ -208,12 +221,12 @@ static adat_cmd_def_t adat_cmd_get_serial_nr =
 
 // -- ADAT SPECIAL: GET FIRMWARE VERSION --
 
-static adat_cmd_def_t adat_cmd_get_fw_version = 
+static adat_cmd_def_t adat_cmd_get_fw_version =
 {
     ADAT_CMD_DEF_ADAT_SPECIAL,
     ADAT_CMD_KIND_WITH_RESULT,
     adat_cmd_fn_get_fw_version,
-    
+
     1,
     {
         ADAT_CMD_DEF_STRING_GET_FW_VERSION
@@ -223,12 +236,12 @@ static adat_cmd_def_t adat_cmd_get_fw_version =
 
 // -- ADAT SPECIAL: GET HARDWARE VERSION --
 
-static adat_cmd_def_t adat_cmd_get_hw_version = 
+static adat_cmd_def_t adat_cmd_get_hw_version =
 {
     ADAT_CMD_DEF_ADAT_SPECIAL,
     ADAT_CMD_KIND_WITH_RESULT,
     adat_cmd_fn_get_hw_version,
-    
+
     1,
     {
         ADAT_CMD_DEF_STRING_GET_HW_VERSION
@@ -237,12 +250,12 @@ static adat_cmd_def_t adat_cmd_get_hw_version =
 
 // -- ADAT SPECIAL: GET FIRMWARE VERSION --
 
-static adat_cmd_def_t adat_cmd_get_id_code = 
+static adat_cmd_def_t adat_cmd_get_id_code =
 {
     ADAT_CMD_DEF_ADAT_SPECIAL,
     ADAT_CMD_KIND_WITH_RESULT,
     adat_cmd_fn_get_id_code,
-    
+
     1,
     {
         ADAT_CMD_DEF_STRING_GET_ID_CODE
@@ -251,12 +264,12 @@ static adat_cmd_def_t adat_cmd_get_id_code =
 
 // -- ADAT SPECIAL: GET GUI FIRMWARE VERSION --
 
-static adat_cmd_def_t adat_cmd_get_gui_fw_version = 
+static adat_cmd_def_t adat_cmd_get_gui_fw_version =
 {
     ADAT_CMD_DEF_ADAT_SPECIAL,
     ADAT_CMD_KIND_WITH_RESULT,
     adat_cmd_fn_get_gui_fw_version,
-    
+
     1,
     {
         ADAT_CMD_DEF_STRING_GET_GUI_FW_VERSION
@@ -265,12 +278,12 @@ static adat_cmd_def_t adat_cmd_get_gui_fw_version =
 
 // -- ADAT SPECIAL: GET OPTIONS --
 
-static adat_cmd_def_t adat_cmd_get_options = 
+static adat_cmd_def_t adat_cmd_get_options =
 {
     ADAT_CMD_DEF_ADAT_SPECIAL,
     ADAT_CMD_KIND_WITH_RESULT,
     adat_cmd_fn_get_options,
-    
+
     1,
     {
         ADAT_CMD_DEF_STRING_GET_OPTIONS
@@ -279,12 +292,12 @@ static adat_cmd_def_t adat_cmd_get_options =
 
 // -- ADAT SPECIAL: GET CALLSIGN --
 
-static adat_cmd_def_t adat_cmd_get_callsign = 
+static adat_cmd_def_t adat_cmd_get_callsign =
 {
     ADAT_CMD_DEF_ADAT_SPECIAL,
     ADAT_CMD_KIND_WITH_RESULT,
     adat_cmd_fn_get_callsign,
-    
+
     1,
     {
         ADAT_CMD_DEF_STRING_GET_CALLSIGN
@@ -293,12 +306,12 @@ static adat_cmd_def_t adat_cmd_get_callsign =
 
 // -- ADAT SPECIAL: SET CALLSIGN --
 
-static adat_cmd_def_t adat_cmd_set_callsign = 
+static adat_cmd_def_t adat_cmd_set_callsign =
 {
     ADAT_CMD_DEF_ADAT_SPECIAL,
     ADAT_CMD_KIND_WITHOUT_RESULT,
     adat_cmd_fn_set_callsign,
-    
+
     1,
     {
         ADAT_CMD_DEF_STRING_SET_CALLSIGN
@@ -309,22 +322,22 @@ static adat_cmd_def_t adat_cmd_set_callsign =
 
 // -- GET FREQ --
 
-static adat_cmd_def_t adat_cmd_get_freq = 
+static adat_cmd_def_t adat_cmd_get_freq =
 {
     ADAT_CMD_DEF_GET_FREQ,
     ADAT_CMD_KIND_WITH_RESULT,
-    
+
     adat_cmd_fn_get_freq,
-    
+
     1,
     {
         ADAT_CMD_DEF_STRING_GET_FREQ
     }
 };
 
-static adat_cmd_list_t adat_cmd_list_get_freq = 
+static adat_cmd_list_t adat_cmd_list_get_freq =
 {
-    1, 
+    1,
     {
         &adat_cmd_get_freq
     }
@@ -332,22 +345,22 @@ static adat_cmd_list_t adat_cmd_list_get_freq =
 
 // -- SET FREQ --
 
-static adat_cmd_def_t adat_cmd_set_freq = 
+static adat_cmd_def_t adat_cmd_set_freq =
 {
     ADAT_CMD_DEF_SET_FREQ,
     ADAT_CMD_KIND_WITHOUT_RESULT,
-    
+
     adat_cmd_fn_set_freq,
-    
+
     1,
     {
         ADAT_CMD_DEF_STRING_SET_FREQ
     }
 };
 
-static adat_cmd_list_t adat_cmd_list_set_freq = 
+static adat_cmd_list_t adat_cmd_list_set_freq =
 {
-    4, 
+    4,
     {
         &adat_cmd_display_off,
         &adat_cmd_set_freq,
@@ -357,9 +370,9 @@ static adat_cmd_list_t adat_cmd_list_set_freq =
 };
 // -- GET VFO --
 
-static adat_cmd_list_t adat_cmd_list_get_vfo = 
+static adat_cmd_list_t adat_cmd_list_get_vfo =
 {
-    1, 
+    1,
     {
         &adat_cmd_get_freq,
     }
@@ -367,22 +380,22 @@ static adat_cmd_list_t adat_cmd_list_get_vfo =
 
 // -- GET MODE --
 
-static adat_cmd_def_t adat_cmd_get_mode = 
+static adat_cmd_def_t adat_cmd_get_mode =
 {
     ADAT_CMD_DEF_GET_MODE,
     ADAT_CMD_KIND_WITH_RESULT,
-    
+
     adat_cmd_fn_get_mode,
-    
+
     1,
     {
         ADAT_CMD_DEF_STRING_GET_MODE
     }
 };
 
-static adat_cmd_list_t adat_cmd_list_get_mode = 
+static adat_cmd_list_t adat_cmd_list_get_mode =
 {
-    1, 
+    1,
     {
         &adat_cmd_get_mode
     }
@@ -390,13 +403,13 @@ static adat_cmd_list_t adat_cmd_list_get_mode =
 
 // -- SET VFO --
 
-static adat_cmd_def_t adat_cmd_set_vfo = 
+static adat_cmd_def_t adat_cmd_set_vfo =
 {
     ADAT_CMD_DEF_SET_VFO,
     ADAT_CMD_KIND_WITHOUT_RESULT,
-    
+
     adat_cmd_fn_set_vfo,
-    
+
     2,
     {
         ADAT_CMD_DEF_STRING_SWITCH_ON_VFO,
@@ -404,9 +417,9 @@ static adat_cmd_def_t adat_cmd_set_vfo =
     }
 };
 
-static adat_cmd_list_t adat_cmd_list_set_vfo = 
+static adat_cmd_list_t adat_cmd_list_set_vfo =
 {
-    3, 
+    3,
     {
         &adat_cmd_display_off,
         &adat_cmd_set_vfo,
@@ -417,22 +430,22 @@ static adat_cmd_list_t adat_cmd_list_set_vfo =
 
 // -- SET MODE --
 
-static adat_cmd_def_t adat_cmd_set_mode = 
+static adat_cmd_def_t adat_cmd_set_mode =
 {
     ADAT_CMD_DEF_SET_MODE,
     ADAT_CMD_KIND_WITHOUT_RESULT,
-    
+
     adat_cmd_fn_set_mode,
-    
+
     1,
     {
         ADAT_CMD_DEF_STRING_SET_MODE
     }
 };
 
-static adat_cmd_list_t adat_cmd_list_set_mode = 
+static adat_cmd_list_t adat_cmd_list_set_mode =
 {
-    4, 
+    4,
     {
         &adat_cmd_display_off,
         &adat_cmd_set_vfo,
@@ -443,22 +456,22 @@ static adat_cmd_list_t adat_cmd_list_set_mode =
 
 // -- SET PTT --
 
-static adat_cmd_def_t adat_cmd_set_ptt = 
+static adat_cmd_def_t adat_cmd_set_ptt =
 {
     ADAT_CMD_DEF_SET_PTT,
     ADAT_CMD_KIND_WITHOUT_RESULT,
-    
+
     adat_cmd_fn_set_ptt,
-    
+
     1,
     {
         ADAT_CMD_DEF_STRING_SET_PTT
     }
 };
 
-static adat_cmd_list_t adat_cmd_list_set_ptt = 
+static adat_cmd_list_t adat_cmd_list_set_ptt =
 {
-    1, 
+    1,
     {
         // &adat_cmd_display_off,
         // &adat_cmd_set_vfo,
@@ -469,22 +482,22 @@ static adat_cmd_list_t adat_cmd_list_set_ptt =
 
 // -- GET PTT --
 
-static adat_cmd_def_t adat_cmd_get_ptt = 
+static adat_cmd_def_t adat_cmd_get_ptt =
 {
     ADAT_CMD_DEF_GET_PTT,
     ADAT_CMD_KIND_WITH_RESULT,
-    
+
     adat_cmd_fn_get_ptt,
-    
+
     1,
     {
         ADAT_CMD_DEF_STRING_GET_PTT
     }
 };
 
-static adat_cmd_list_t adat_cmd_list_get_ptt = 
+static adat_cmd_list_t adat_cmd_list_get_ptt =
 {
-    1, 
+    1,
     {
         &adat_cmd_get_ptt
     }
@@ -492,9 +505,9 @@ static adat_cmd_list_t adat_cmd_list_get_ptt =
 
 // -- GET POWER STATUS --
 
-static adat_cmd_list_t adat_cmd_list_get_powerstatus = 
+static adat_cmd_list_t adat_cmd_list_get_powerstatus =
 {
-    1, 
+    1,
     {
         &adat_cmd_get_id_code
     }
@@ -502,9 +515,9 @@ static adat_cmd_list_t adat_cmd_list_get_powerstatus =
 
 // -- GET INFO --
 
-static adat_cmd_list_t adat_cmd_list_get_info = 
+static adat_cmd_list_t adat_cmd_list_get_info =
 {
-    7, 
+    7,
     {
         &adat_cmd_get_serial_nr,
         &adat_cmd_get_id_code,
@@ -518,9 +531,9 @@ static adat_cmd_list_t adat_cmd_list_get_info =
 
 // -- OPEN ADAT --
 
-static adat_cmd_list_t adat_cmd_list_open_adat = 
+static adat_cmd_list_t adat_cmd_list_open_adat =
 {
-    8, 
+    8,
     {
         &adat_cmd_get_serial_nr,
         &adat_cmd_get_id_code,
@@ -535,29 +548,29 @@ static adat_cmd_list_t adat_cmd_list_open_adat =
 
 // -- ADAT SPECIAL: RECOVER FROM ERROR --
 
-static adat_cmd_list_t adat_cmd_list_recover_from_error = 
+static adat_cmd_list_t adat_cmd_list_recover_from_error =
 {
-    1, 
+    1,
     {
         &adat_cmd_display_on
     }
 };
 
 // ---------------------------------------------------------------------------
-//    IMPLEMEMTATION 
+//    IMPLEMEMTATION
 // ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
-// trimwhitespace - taken from Stackoverflow 
+// trimwhitespace - taken from Stackoverflow
 // http://stackoverflow.com/questions/122616/how-do-i-trim-leading-trailing-whitespace-in-a-standard-way
 // ---------------------------------------------------------------------------
 // Status: RELEASED
 
 size_t trimwhitespace( char *out, size_t len, const char *str )
 {
- 
+
     gFnLevel++;
-    rig_debug( RIG_DEBUG_TRACE, 
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. In -> \"%s\", %d.\n",
               gFnLevel, __func__, __FILE__, __LINE__, str, len );
 
@@ -566,38 +579,38 @@ size_t trimwhitespace( char *out, size_t len, const char *str )
         gFnLevel--;
         return 0;
     }
-    
+
     const char *end;
     size_t out_size;
-    
+
     // Trim leading space
     while(isspace(*str)) str++;
-    
+
     if(*str == 0)  // All spaces?
     {
         out = NULL;
         gFnLevel--;
         return 1;
     }
-    
+
     // Trim trailing space
     end = str + strlen(str) - 1;
     while(end > str && isspace(*end)) end--;
     end++;
-    
+
     // Set output size to minimum of trimmed string length and buffer size minus 1
     // out_size = (end - str) < len-1 ? (end - str) : len-1; BUG !
     out_size = (end - str) < len-1 ? (end - str) : len;
-    
+
     // Copy trimmed string and add null terminator
     memcpy(out, str, out_size);
     out[out_size] = 0;
 
-    rig_debug( RIG_DEBUG_TRACE, 
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Out -> \"%s\", %d.\n",
-              gFnLevel, __func__, __FILE__, __LINE__, out, out_size );    
+              gFnLevel, __func__, __FILE__, __LINE__, out, out_size );
     gFnLevel--;
-    
+
     return out_size;
 }
 
@@ -612,38 +625,38 @@ int adat_print_cmd( adat_cmd_def_ptr pCmd )
 
     int nI  = 0;
 
-    rig_debug( RIG_DEBUG_TRACE, 
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %s (%s:%d): ENTRY.\n",
               __func__, __FILE__, __LINE__ );
-   
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT COMMAND:\n");
 
-    rig_debug( RIG_DEBUG_TRACE, 
+    rig_debug( RIG_DEBUG_TRACE,
               "*** -> Command ID = %lld\n",
               pCmd->nCmdId );
 
-    rig_debug( RIG_DEBUG_TRACE, 
+    rig_debug( RIG_DEBUG_TRACE,
               "*** -> Command kind = %d\n",
               pCmd->nCmdKind );
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** -> Command FN Ptr = 0x%08x\n",
               pCmd->pfCmdFn );
-    
+
     while ( nI < pCmd->nNrCmdStrs )
     {
-        rig_debug( RIG_DEBUG_TRACE, 
+        rig_debug( RIG_DEBUG_TRACE,
                    "*** -> Command String %d = \"%s\"\n",
                    nI, pCmd->pacCmdStrs[ nI ] );
         nI++;
     }
 
-    rig_debug( RIG_DEBUG_TRACE, 
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %s (%s:%d): EXIT. Return Code = %d\n",
               __func__, __FILE__, __LINE__,
               nRC );
-    
+
     return nRC;
 }
 
@@ -662,24 +675,24 @@ int adat_parse_freq( char                    *pcStr,
                      freq_t                  *nFreq )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    rig_debug( RIG_DEBUG_TRACE, 
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pcStr = \"%s\"\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pcStr );
-    
+
     if( pcStr != NULL )
     {
         int    _nVFO  = 0;
         freq_t _nFreq = 0;
-        
+
         char   *pcEnd = NULL;
-        
+
         if( nMode == ADAT_FREQ_PARSE_MODE_WITH_VFO )
         {
             // Get VFO from response string
-    
+
             _nVFO = strtol( pcStr, &pcEnd, 10 );
 
             // Save VFO
@@ -690,7 +703,7 @@ int adat_parse_freq( char                    *pcStr,
         {
             pcEnd = pcStr;
         }
-        
+
         if(( _nVFO != 0 ) || // VFO = 0 -> Current VFO not active.
            ( nMode == ADAT_FREQ_PARSE_MODE_WITHOUT_VFO ))
         {
@@ -698,41 +711,41 @@ int adat_parse_freq( char                    *pcStr,
             char   acUnitBuf[ ADAT_BUFSZ + 1 ];
             int    nI       = 0;
             double dTmpFreq = 0.0;
-            
+
             memset( acValueBuf, 0, ADAT_BUFSZ + 1 );
             memset( acUnitBuf, 0, ADAT_BUFSZ + 1 );
-            
+
             // Get Freq Value from response string
-    
+
             while(( isalpha( *pcEnd ) == 0 ) ||
                   ( *pcEnd == '.' ))
             {
                 acValueBuf[ nI++ ] = *pcEnd;
                 pcEnd += sizeof( char );
             }
-    
+
             dTmpFreq = strtod( acValueBuf, (char**) NULL );
 
-            rig_debug( RIG_DEBUG_TRACE, 
+            rig_debug( RIG_DEBUG_TRACE,
                       "*** ADAT: %d acValueBuf = \"%s\", dTmpFreq = %f, *pcEnd = %c\n",
                       gFnLevel, acValueBuf, dTmpFreq, *pcEnd );
-            
+
             // Get Freq Unit from response string
-    
+
             nI = 0;
             while( isalpha( *pcEnd ) != 0 )
             {
                 acUnitBuf[ nI++ ] = *pcEnd;
                 pcEnd += sizeof( char );
-            }            
+            }
 
-            rig_debug( RIG_DEBUG_TRACE, 
+            rig_debug( RIG_DEBUG_TRACE,
                       "*** ADAT: %d acUnitBuf = \"%s\"\n",
                       gFnLevel, acUnitBuf );
 
             // Normalize to Hz
 
-            if( !strncmp( acUnitBuf, 
+            if( !strncmp( acUnitBuf,
                           ADAT_FREQ_UNIT_HZ,
                           ADAT_FREQ_UNIT_HZ_LEN ))
             {
@@ -740,7 +753,7 @@ int adat_parse_freq( char                    *pcStr,
             }
             else
             {
-                if( !strncmp( acUnitBuf, 
+                if( !strncmp( acUnitBuf,
                               ADAT_FREQ_UNIT_KHZ,
                               ADAT_FREQ_UNIT_KHZ_LEN ))
                 {
@@ -748,7 +761,7 @@ int adat_parse_freq( char                    *pcStr,
                 }
                 else
                 {
-                    if( !strncmp( acUnitBuf, 
+                    if( !strncmp( acUnitBuf,
                                   ADAT_FREQ_UNIT_MHZ,
                                   ADAT_FREQ_UNIT_MHZ_LEN ))
                     {
@@ -756,7 +769,7 @@ int adat_parse_freq( char                    *pcStr,
                     }
                     else
                     {
-                        if( !strncmp( acUnitBuf, 
+                        if( !strncmp( acUnitBuf,
                                       ADAT_FREQ_UNIT_GHZ,
                                       ADAT_FREQ_UNIT_GHZ_LEN ))
                         {
@@ -771,28 +784,28 @@ int adat_parse_freq( char                    *pcStr,
                 }
 
             }
-            
+
             // Save Freq
-            
+
             *nFreq = _nFreq;
         }
     }
     else
     {
         // If input string is NULL set Freq and VFO also to NULL
-        
+
         *nFreq = 0;
         *nVFO  = 0;
     }
-    
+
     // Done
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
                "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d, nVFO = %d, nFreq = %f\n",
                gFnLevel, __func__, __FILE__, __LINE__,
                nRC, *nVFO, *nFreq );
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -808,20 +821,20 @@ int adat_parse_mode( char     *pcStr,
     int nRC = RIG_OK;
 
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pcStr = \"%s\"\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pcStr );
-    
+
     if( pcStr != NULL )
-    {        
+    {
         int nI    = 0;
         int nFini = 0;
-        
+
         while(( nI < the_adat_mode_list.nNrModes ) && ( nFini == 0 ))
         {
-            if( !strcmp( pcStr, 
+            if( !strcmp( pcStr,
                          the_adat_mode_list.adat_modes[ nI ].pcADATModeStr ))
             {
                 *nRIGMode = the_adat_mode_list.adat_modes[ nI ].nRIGMode;
@@ -836,19 +849,19 @@ int adat_parse_mode( char     *pcStr,
     else
     {
         // If input string is NULL ...
-        
+
         *nRIGMode  = RIG_MODE_NONE;
         pcADATMode = NULL;
     }
-    
+
     // Done
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d, Mode = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRC, *nRIGMode );
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -863,14 +876,14 @@ int adat_mode_rnr2anr( rmode_t  nRIGMode,
     int nRC   = RIG_OK;
     int nI    = 0;
     int nFini = 0;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: nRIGMode = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRIGMode );
-        
+
     while(( nI < the_adat_mode_list.nNrModes ) && ( nFini == 0 ))
     {
         if( the_adat_mode_list.adat_modes[ nI ].nRIGMode == nRIGMode )
@@ -883,22 +896,22 @@ int adat_mode_rnr2anr( rmode_t  nRIGMode,
              nI++;
         }
     }
-    
+
     if( nFini == 0 )
     {
         // No valid Mode given
-        
+
         nRC = -RIG_EINVAL;
     }
-    
+
     // Done
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d, ADAT Mode = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRC, *nADATMode );
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -913,14 +926,14 @@ int adat_mode_anr2rnr( int      nADATMode,
     int nRC        = RIG_OK;
     int nI    = 0;
     int nFini = 0;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: nRIGMode = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRIGMode );
-    
+
     while(( nI < the_adat_mode_list.nNrModes ) && ( nFini == 0 ))
     {
         if( the_adat_mode_list.adat_modes[ nI ].nADATMode == nADATMode )
@@ -933,22 +946,22 @@ int adat_mode_anr2rnr( int      nADATMode,
             nI++;
         }
     }
-    
+
     if( nFini == 0 )
     {
         // No valid Mode given
-        
+
         nRC = -RIG_EINVAL;
     }
-    
+
     // Done
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d, RIG Mode = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRC, *nRIGMode );
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -962,19 +975,19 @@ int adat_parse_vfo( char   *pcStr,
                     int    *nADATVFONr )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pcStr = \"%s\"\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pcStr );
-    
+
     if( pcStr != NULL )
-    {        
+    {
         int nI    = 0;
         int nFini = 0;
-        
+
         while(( nI < the_adat_vfo_list.nNrVFOs ) && ( nFini == 0 ))
         {
             if( !strcmp( pcStr,
@@ -989,7 +1002,7 @@ int adat_parse_vfo( char   *pcStr,
                 nI++;
             }
         }
-        
+
         if( nFini == 0 )
         {
             nRC = -RIG_EINVAL;
@@ -998,19 +1011,19 @@ int adat_parse_vfo( char   *pcStr,
     else
     {
         // If input string is NULL ...
-        
+
         *nRIGVFONr  = RIG_VFO_NONE;
         *nADATVFONr = 0;
     }
-    
+
     // Done
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d, RIG VFO Nr = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRC, *nRIGVFONr );
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -1025,14 +1038,14 @@ int adat_vfo_rnr2anr( vfo_t  nRIGVFONr,
     int nRC   = RIG_OK;
     int nI    = 0;
     int nFini = 0;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: nRIGVFONr = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRIGVFONr );
-    
+
     while(( nI < the_adat_vfo_list.nNrVFOs ) && ( nFini == 0 ))
     {
         if( the_adat_vfo_list.adat_vfos[ nI ].nRIGVFONr == nRIGVFONr )
@@ -1045,22 +1058,22 @@ int adat_vfo_rnr2anr( vfo_t  nRIGVFONr,
             nI++;
         }
     }
-    
+
     if( nFini == 0 )
     {
         // No valid Mode given
-        
+
         nRC = -RIG_EINVAL;
     }
-    
+
     // Done
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d, ADAT VFO Nr = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRC, *nADATVFONr );
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -1075,14 +1088,14 @@ int adat_vfo_anr2rnr( int   nADATVFONr,
     int nRC        = RIG_OK;
     int nI    = 0;
     int nFini = 0;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: nADATVFONr = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nADATVFONr );
-    
+
     while(( nI < the_adat_vfo_list.nNrVFOs ) && ( nFini == 0 ))
     {
         if( the_adat_vfo_list.adat_vfos[ nI ].nADATVFONr == nADATVFONr )
@@ -1095,22 +1108,22 @@ int adat_vfo_anr2rnr( int   nADATVFONr,
             nI++;
         }
     }
-    
+
     if( nFini == 0 )
     {
         // No valid ADAT VFO Nr given
-        
+
         nRC = -RIG_EINVAL;
     }
-    
+
     // Done
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d, RIG VFO Nr = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRC, *nRIGVFONr );
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -1123,34 +1136,34 @@ int adat_parse_ptt( char *pcStr,
                     int  *nADATPTTStatus )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pcStr = \"%s\"\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pcStr );
-    
+
     if(( pcStr != NULL ) && ( strlen( pcStr ) > 0 ))
-    {        
+    {
         *nADATPTTStatus = strtol( pcStr, NULL, 10 );
     }
     else
     {
         // If input string is NULL ...
-        
+
         *nADATPTTStatus = ADAT_PTT_STATUS_ANR_OFF;
         nRC             = -RIG_EINVAL;
     }
-    
+
     // Done
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRC );
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -1163,16 +1176,16 @@ int adat_ptt_rnr2anr( ptt_t  nRIGPTTStatus,
                       int   *nADATPTTStatus )
 {
     int nRC   = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: nRIGPTTStatus = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRIGPTTStatus );
 
 
-    switch( nRIGPTTStatus ) 
+    switch( nRIGPTTStatus )
     {
         case ADAT_PTT_STATUS_RNR_ON:
             *nADATPTTStatus = ADAT_PTT_STATUS_ANR_ON;
@@ -1181,20 +1194,20 @@ int adat_ptt_rnr2anr( ptt_t  nRIGPTTStatus,
         case ADAT_PTT_STATUS_RNR_OFF:
             *nADATPTTStatus = ADAT_PTT_STATUS_ANR_OFF;
             break;
-            
+
         default:
             nRC = -RIG_EINVAL;
             break;
     }
-    
+
     // Done
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d, ADAT PTT Status = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRC, *nADATPTTStatus );
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -1207,20 +1220,20 @@ int adat_ptt_anr2rnr( int   nADATPTTStatus,
                       ptt_t *nRIGPTTStatus )
 {
     int nRC        = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: nADATPTTStatus = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nADATPTTStatus );
 
-    switch( nADATPTTStatus ) 
+    switch( nADATPTTStatus )
     {
         case ADAT_PTT_STATUS_ANR_ON:
             *nRIGPTTStatus = ADAT_PTT_STATUS_RNR_ON;
             break;
-            
+
         case ADAT_PTT_STATUS_ANR_OFF:
             *nRIGPTTStatus = ADAT_PTT_STATUS_RNR_OFF;
             break;
@@ -1229,15 +1242,15 @@ int adat_ptt_anr2rnr( int   nADATPTTStatus,
             nRC = -RIG_EINVAL;
             break;
     }
-    
+
     // Done
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d, RIG PTT Status = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRC, *nRIGPTTStatus );
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -1254,30 +1267,30 @@ int adat_ptt_anr2rnr( int   nADATPTTStatus,
 // ---------------------------------------------------------------------------
 // Status: RELEASED
 
-int adat_send( RIG  *pRig, 
+int adat_send( RIG  *pRig,
                char *pcData )
 {
     int               nRC       = RIG_OK;
     struct rig_state *pRigState = &pRig->state;
 
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%08x, pcData = %s\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig, pcData );
-       
-    serial_flush( &pRigState->rigport );
-    
-    nRC = write_block( &pRigState->rigport, pcData, strlen( pcData ));   
 
-    rig_debug( RIG_DEBUG_TRACE, 
+    serial_flush( &pRigState->rigport );
+
+    nRC = write_block( &pRigState->rigport, pcData, strlen( pcData ));
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRC );
-    
+
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -1286,33 +1299,33 @@ int adat_send( RIG  *pRig,
 // ---------------------------------------------------------------------------
 // Status: RELEASED
 
-int adat_receive( RIG  *pRig, 
+int adat_receive( RIG  *pRig,
                   char *pcData )
 {
     int               nRC       = RIG_OK;
     struct rig_state *pRigState = &pRig->state;
 
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-  
+
     nRC = read_string( &pRigState->rigport, pcData, ADAT_RESPSZ, ADAT_EOL, 1 );
 
     if( nRC > 0 )
     {
         nRC = RIG_OK;
     }
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRC );
-    
+
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -1324,14 +1337,14 @@ int adat_receive( RIG  *pRig,
 int adat_priv_set_cmd( RIG *pRig, char *pcCmd, int nCmdKind )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%08x, pcCmd = \"%s\"\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig, pcCmd );
-    
+
     if(( pRig == NULL ))
     {
         nRC = -RIG_EARG;
@@ -1342,20 +1355,20 @@ int adat_priv_set_cmd( RIG *pRig, char *pcCmd, int nCmdKind )
 
         if( pPriv->pcCmd != NULL )
             free( pPriv->pcCmd );
-        
+
         pPriv->pcCmd    = strdup( pcCmd );
         pPriv->nCmdKind = nCmdKind;
-    }    
-    
+    }
+
     // Done !
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRC );
-    
+
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -1367,14 +1380,14 @@ int adat_priv_set_cmd( RIG *pRig, char *pcCmd, int nCmdKind )
 int adat_priv_set_result( RIG *pRig, char *pcResult )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%08x, pcResult = \"%s\"\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig, pcResult );
-    
+
     if(( pRig == NULL ))
     {
         nRC = -RIG_EARG;
@@ -1382,26 +1395,26 @@ int adat_priv_set_result( RIG *pRig, char *pcResult )
     else
     {
         adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
-        
+
         if( pPriv->pcResult != NULL )
             free( pPriv->pcResult );
-        
+
         pPriv->pcResult = strdup( pcResult );
 
-        rig_debug( RIG_DEBUG_TRACE, 
+        rig_debug( RIG_DEBUG_TRACE,
                   "*** ADAT: %d pPriv->pcResult = \"%s\"\n",
                   gFnLevel, pPriv->pcResult );
-    }    
-    
+    }
+
     // Done !
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRC );
-    
+
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -1413,14 +1426,14 @@ int adat_priv_set_result( RIG *pRig, char *pcResult )
 int adat_priv_clear_result( RIG *pRig )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%08x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     if(( pRig == NULL ))
     {
         nRC = -RIG_EARG;
@@ -1428,22 +1441,22 @@ int adat_priv_clear_result( RIG *pRig )
     else
     {
         adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
-        
+
         if( pPriv->pcResult != NULL )
             free( pPriv->pcResult );
-        
+
         pPriv->pcResult = NULL;
-    }    
-    
+    }
+
     // Done !
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRC );
-    
+
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -1455,14 +1468,14 @@ int adat_priv_clear_result( RIG *pRig )
 int adat_get_single_cmd_result( RIG *pRig )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%08x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     if(( pRig == NULL ))
     {
         nRC = -RIG_EARG;
@@ -1471,11 +1484,11 @@ int adat_get_single_cmd_result( RIG *pRig )
     {
         adat_priv_data_ptr   pPriv     = (adat_priv_data_ptr) pRig->state.priv;
         struct rig_state    *pRigState = &pRig->state;
-        
+
         nRC = adat_send( pRig, pPriv->pcCmd );
-        
-        if(( nRC == RIG_OK ) && 
-           ( pPriv->nCmdKind == ADAT_CMD_KIND_WITH_RESULT )) 
+
+        if(( nRC == RIG_OK ) &&
+           ( pPriv->nCmdKind == ADAT_CMD_KIND_WITH_RESULT ))
         {
             char  acBuf[ ADAT_RESPSZ + 1 ];
             char  acBuf2[ ADAT_RESPSZ + 1 ];
@@ -1483,16 +1496,16 @@ int adat_get_single_cmd_result( RIG *pRig )
             char *pcBufEnd    = NULL;
             char *pcPos       = NULL;
             char *pcResult    = NULL;
-            
+
             memset( acBuf, 0, ADAT_RESPSZ + 1 );
             memset( acBuf2, 0, ADAT_RESPSZ + 1 );
-                                    
+
             nRC = adat_receive( pRig, acBuf );
 
-            rig_debug( RIG_DEBUG_TRACE, 
+            rig_debug( RIG_DEBUG_TRACE,
                       "*** ADAT: %d acBuf ........ = 0x%08x\n",
                       gFnLevel, acBuf );
-            
+
             nBufLength = strlen( acBuf );
             pcBufEnd   = acBuf + nBufLength - 1;
             pcPos      = acBuf;
@@ -1500,13 +1513,13 @@ int adat_get_single_cmd_result( RIG *pRig )
             if(( nRC == RIG_OK ) && ( pcPos != NULL ))
             {
                 int   nLength = 0;
-                
+
                 if( *pcPos == '\0' ) // Adjust for 00 byte at beginning ...
-                    pcPos++;         // No, please don't ask me why this 
+                    pcPos++;         // No, please don't ask me why this
                                      // happens ... ;-)
-                
+
                 pcResult = pcPos;    // Save position
-                
+
                 if( pcPos < pcBufEnd )
                 {
                     nLength = strlen( pcPos );
@@ -1523,19 +1536,19 @@ int adat_get_single_cmd_result( RIG *pRig )
                         {
                             pcPos += sizeof( char );
 
-                            rig_debug( RIG_DEBUG_TRACE, 
+                            rig_debug( RIG_DEBUG_TRACE,
                                       "*** ADAT: %d pcPos ........ = 0x%08x\n",
                                       gFnLevel, pcPos );
 
-                            rig_debug( RIG_DEBUG_TRACE, 
+                            rig_debug( RIG_DEBUG_TRACE,
                                       "*** ADAT: %d pcBufEnd ..... = 0x%08x\n",
                                       gFnLevel, pcBufEnd );
 
-                            rig_debug( RIG_DEBUG_TRACE, 
+                            rig_debug( RIG_DEBUG_TRACE,
                                       "*** ADAT: %d nBufLength ... = %d\n",
                                       gFnLevel, nBufLength );
 
-                            rig_debug( RIG_DEBUG_TRACE, 
+                            rig_debug( RIG_DEBUG_TRACE,
                                       "*** ADAT: %d pcPos2 ....... = 0x%08x\n",
                                       gFnLevel, pcPos2 );
 
@@ -1552,7 +1565,7 @@ int adat_get_single_cmd_result( RIG *pRig )
                 {
                     nRC = -RIG_EINVAL;
                 }
-                
+
                 if( nRC == RIG_OK )
                 {
                     adat_priv_set_result( pRig, pcResult );
@@ -1563,21 +1576,21 @@ int adat_get_single_cmd_result( RIG *pRig )
                 }
             }
         }
-        
+
         serial_flush( &pRigState->rigport );
-        
+
         pPriv->nRC = nRC;
-    }    
-    
+    }
+
     // Done !
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRC );
-    
+
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -1589,14 +1602,14 @@ int adat_get_single_cmd_result( RIG *pRig )
 int adat_cmd_recover_from_error( RIG *pRig, int nError )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%08x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     if(( pRig == NULL ))
     {
         nRC = -RIG_EARG;
@@ -1606,7 +1619,7 @@ int adat_cmd_recover_from_error( RIG *pRig, int nError )
         adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
 
         // Recover from communication error
-        
+
         if(( nError == RIG_ETIMEOUT ) ||
            ( nError == RIG_EPROTO ) ||
            ( nError == RIG_EIO ))
@@ -1616,25 +1629,25 @@ int adat_cmd_recover_from_error( RIG *pRig, int nError )
 
             rig_open( pRig );
         }
-        
+
         // Reset critical Priv values
-        
+
         pPriv->nRC = RIG_OK;
-        
-        // Execute recovery commands 
-        
+
+        // Execute recovery commands
+
         (void) adat_transaction( pRig, &adat_cmd_list_recover_from_error );
-    }    
-    
+    }
+
     // Done !
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRC );
-    
+
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -1646,14 +1659,14 @@ int adat_cmd_recover_from_error( RIG *pRig, int nError )
 int adat_cmd_fn_get_callsign( RIG *pRig )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     if(( pRig == NULL ))
     {
         nRC = -RIG_EARG;
@@ -1661,8 +1674,8 @@ int adat_cmd_fn_get_callsign( RIG *pRig )
     else
     {
         adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
-        
-        nRC = adat_priv_set_cmd( pRig, 
+
+        nRC = adat_priv_set_cmd( pRig,
                                  ADAT_CMD_DEF_STRING_GET_CALLSIGN,
                                  ADAT_CMD_KIND_WITH_RESULT );
         if( nRC == RIG_OK )
@@ -1672,22 +1685,22 @@ int adat_cmd_fn_get_callsign( RIG *pRig )
             {
                 pPriv->pcCallsign = strdup( pPriv->pcResult );
 
-                rig_debug( RIG_DEBUG_TRACE, 
+                rig_debug( RIG_DEBUG_TRACE,
                           "*** ADAT: %d pPriv->pcCallsign = \"%s\"\n",
-                          gFnLevel, pPriv->pcCallsign );               
+                          gFnLevel, pPriv->pcCallsign );
             }
         }
-    }    
-    
+    }
+
     // Done !
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d  %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRC );
-    
+
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -1699,14 +1712,14 @@ int adat_cmd_fn_get_callsign( RIG *pRig )
 int adat_cmd_fn_set_callsign( RIG *pRig )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     if(( pRig == NULL ))
     {
         nRC = -RIG_EARG;
@@ -1714,29 +1727,29 @@ int adat_cmd_fn_set_callsign( RIG *pRig )
     else
     {
         char acBuf[ ADAT_BUFSZ + 1 ];
-        
+
         memset( acBuf, 0, ADAT_BUFSZ + 1 );
-        
+
         strcpy( acBuf, ADAT_CMD_DEF_STRING_SET_CALLSIGN );
         strcat( acBuf, "DG1SBG"ADAT_CR );
-        
+
         nRC = adat_priv_set_cmd( pRig, acBuf,
                                  ADAT_CMD_KIND_WITHOUT_RESULT);
         if( nRC == RIG_OK )
         {
             nRC = adat_get_single_cmd_result( pRig );
         }
-    }    
-    
+    }
+
     // Done !
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRC );
-    
+
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -1749,14 +1762,14 @@ int adat_cmd_fn_set_callsign( RIG *pRig )
 int adat_cmd_fn_get_serial_nr( RIG *pRig )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     if(( pRig == NULL ))
     {
         nRC = -RIG_EARG;
@@ -1764,8 +1777,8 @@ int adat_cmd_fn_get_serial_nr( RIG *pRig )
     else
     {
         adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
-        
-        nRC = adat_priv_set_cmd( pRig, 
+
+        nRC = adat_priv_set_cmd( pRig,
                                  ADAT_CMD_DEF_STRING_GET_SERIAL_NR,
                                  ADAT_CMD_KIND_WITH_RESULT );
         if( nRC == RIG_OK )
@@ -1775,21 +1788,21 @@ int adat_cmd_fn_get_serial_nr( RIG *pRig )
             {
                 pPriv->pcSerialNr = strdup( pPriv->pcResult );
 
-                rig_debug( RIG_DEBUG_TRACE, 
+                rig_debug( RIG_DEBUG_TRACE,
                           "*** ADAT: %d pPriv->pcSerialNr = \"%s\"\n",
-                          gFnLevel, pPriv->pcSerialNr );                
+                          gFnLevel, pPriv->pcSerialNr );
             }
         }
-    }    
-    
+    }
+
     // Done !
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRC );
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -1801,14 +1814,14 @@ int adat_cmd_fn_get_serial_nr( RIG *pRig )
 int adat_cmd_fn_get_fw_version( RIG *pRig )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     if(( pRig == NULL ))
     {
         nRC = -RIG_EARG;
@@ -1816,8 +1829,8 @@ int adat_cmd_fn_get_fw_version( RIG *pRig )
     else
     {
         adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
-        
-        nRC = adat_priv_set_cmd( pRig, 
+
+        nRC = adat_priv_set_cmd( pRig,
                                  ADAT_CMD_DEF_STRING_GET_FW_VERSION,
                                  ADAT_CMD_KIND_WITH_RESULT );
         if( nRC == RIG_OK )
@@ -1827,22 +1840,22 @@ int adat_cmd_fn_get_fw_version( RIG *pRig )
             {
                 pPriv->pcFWVersion = strdup( pPriv->pcResult );
 
-                rig_debug( RIG_DEBUG_TRACE, 
+                rig_debug( RIG_DEBUG_TRACE,
                           "*** ADAT: %d pPriv->pcFWVersion = \"%s\"\n",
                           gFnLevel, pPriv->pcFWVersion );
             }
         }
-    }    
-    
+    }
+
     // Done !
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRC );
-    
+
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -1854,14 +1867,14 @@ int adat_cmd_fn_get_fw_version( RIG *pRig )
 int adat_cmd_fn_get_hw_version( RIG *pRig )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     if(( pRig == NULL ))
     {
         nRC = -RIG_EARG;
@@ -1869,8 +1882,8 @@ int adat_cmd_fn_get_hw_version( RIG *pRig )
     else
     {
         adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
-        
-        nRC = adat_priv_set_cmd( pRig, 
+
+        nRC = adat_priv_set_cmd( pRig,
                                  ADAT_CMD_DEF_STRING_GET_HW_VERSION,
                                  ADAT_CMD_KIND_WITH_RESULT );
         if( nRC == RIG_OK )
@@ -1880,21 +1893,21 @@ int adat_cmd_fn_get_hw_version( RIG *pRig )
             {
                 pPriv->pcHWVersion = strdup( pPriv->pcResult );
 
-                rig_debug( RIG_DEBUG_TRACE, 
+                rig_debug( RIG_DEBUG_TRACE,
                           "*** ADAT: %d pPriv->pcHWVersion = \"%s\"\n",
                           gFnLevel, pPriv->pcHWVersion );
             }
         }
-    }    
-    
+    }
+
     // Done !
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRC );
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -1906,14 +1919,14 @@ int adat_cmd_fn_get_hw_version( RIG *pRig )
 int adat_cmd_fn_get_gui_fw_version( RIG *pRig )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     if(( pRig == NULL ))
     {
         nRC = -RIG_EARG;
@@ -1921,8 +1934,8 @@ int adat_cmd_fn_get_gui_fw_version( RIG *pRig )
     else
     {
         adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
-        
-        nRC = adat_priv_set_cmd( pRig, 
+
+        nRC = adat_priv_set_cmd( pRig,
                                  ADAT_CMD_DEF_STRING_GET_GUI_FW_VERSION,
                                  ADAT_CMD_KIND_WITH_RESULT );
         if( nRC == RIG_OK )
@@ -1932,22 +1945,22 @@ int adat_cmd_fn_get_gui_fw_version( RIG *pRig )
             {
                 pPriv->pcGUIFWVersion = strdup( pPriv->pcResult );
 
-                rig_debug( RIG_DEBUG_TRACE, 
+                rig_debug( RIG_DEBUG_TRACE,
                           "*** ADAT: %d pPriv->pcGUIFWVersion = \"%s\"\n",
                           gFnLevel, pPriv->pcGUIFWVersion );
             }
         }
-    }    
-    
+    }
+
     // Done !
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRC );
-    
+
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -1959,14 +1972,14 @@ int adat_cmd_fn_get_gui_fw_version( RIG *pRig )
 int adat_cmd_fn_get_id_code( RIG *pRig )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     if(( pRig == NULL ))
     {
         nRC = -RIG_EARG;
@@ -1974,8 +1987,8 @@ int adat_cmd_fn_get_id_code( RIG *pRig )
     else
     {
         adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
-        
-        nRC = adat_priv_set_cmd( pRig, 
+
+        nRC = adat_priv_set_cmd( pRig,
                                  ADAT_CMD_DEF_STRING_GET_ID_CODE,
                                  ADAT_CMD_KIND_WITH_RESULT );
         if( nRC == RIG_OK )
@@ -1985,21 +1998,21 @@ int adat_cmd_fn_get_id_code( RIG *pRig )
             {
                 pPriv->pcIDCode = strdup( pPriv->pcResult );
 
-                rig_debug( RIG_DEBUG_TRACE, 
+                rig_debug( RIG_DEBUG_TRACE,
                           "*** ADAT: %d pPriv->pcIDCode = \"%s\"\n",
                           gFnLevel, pPriv->pcIDCode );
             }
         }
-    }    
-    
+    }
+
     // Done !
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRC );
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -2011,14 +2024,14 @@ int adat_cmd_fn_get_id_code( RIG *pRig )
 int adat_cmd_fn_get_options( RIG *pRig )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     if(( pRig == NULL ))
     {
         nRC = -RIG_EARG;
@@ -2026,8 +2039,8 @@ int adat_cmd_fn_get_options( RIG *pRig )
     else
     {
         adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
-        
-        nRC = adat_priv_set_cmd( pRig, 
+
+        nRC = adat_priv_set_cmd( pRig,
                                  ADAT_CMD_DEF_STRING_GET_OPTIONS,
                                  ADAT_CMD_KIND_WITH_RESULT );
         if( nRC == RIG_OK )
@@ -2037,21 +2050,21 @@ int adat_cmd_fn_get_options( RIG *pRig )
             {
                 pPriv->pcOptions = strdup( pPriv->pcResult );
 
-                rig_debug( RIG_DEBUG_TRACE, 
+                rig_debug( RIG_DEBUG_TRACE,
                           "*** ADAT: %d pPriv->pcOptions = \"%s\"\n",
                           gFnLevel, pPriv->pcOptions );
             }
         }
-    }    
-    
+    }
+
     // Done !
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRC );
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -2063,14 +2076,14 @@ int adat_cmd_fn_get_options( RIG *pRig )
 int adat_cmd_fn_get_mode( RIG *pRig )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     if(( pRig == NULL ))
     {
         nRC = -RIG_EARG;
@@ -2078,30 +2091,30 @@ int adat_cmd_fn_get_mode( RIG *pRig )
     else
     {
         adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
-        
-        nRC = adat_priv_set_cmd( pRig, 
+
+        nRC = adat_priv_set_cmd( pRig,
                                 ADAT_CMD_DEF_STRING_GET_MODE,
                                 ADAT_CMD_KIND_WITH_RESULT );
         if( nRC == RIG_OK )
         {
             nRC = adat_get_single_cmd_result( pRig );
             if( nRC == RIG_OK )
-            {              
+            {
                 nRC = adat_parse_mode( pPriv->pcResult,
                                        &(pPriv->nRIGMode),
                                        pPriv->acADATMode );
             }
         }
-    }    
-    
+    }
+
     // Done !
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRC );
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -2113,14 +2126,14 @@ int adat_cmd_fn_get_mode( RIG *pRig )
 int adat_cmd_fn_set_mode( RIG *pRig )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     if(( pRig == NULL ))
     {
         nRC = -RIG_EARG;
@@ -2128,9 +2141,9 @@ int adat_cmd_fn_set_mode( RIG *pRig )
     else
     {
         adat_priv_data_ptr pPriv     = (adat_priv_data_ptr) pRig->state.priv;
-        
+
         // Translate Mode from RIG Mode Nr to ADAT Mode Nr
-        
+
         nRC = adat_mode_rnr2anr( pPriv->nRIGMode, &(pPriv->nADATMode) );
 
         if( nRC == RIG_OK )
@@ -2138,34 +2151,34 @@ int adat_cmd_fn_set_mode( RIG *pRig )
             // Prepare Command
 
             char acBuf[ ADAT_BUFSZ + 1 ];
-            
+
             memset( acBuf, 0, ADAT_BUFSZ + 1 );
-        
+
             snprintf( acBuf, ADAT_BUFSZ, "%s%02d%s",
                       ADAT_CMD_DEF_STRING_SET_MODE,
                       (int) pPriv->nADATMode,
                       ADAT_EOM );
-        
+
             nRC = adat_priv_set_cmd( pRig, acBuf, ADAT_CMD_KIND_WITHOUT_RESULT );
-        
+
             // Execute Command
-        
+
             if( nRC == RIG_OK )
             {
                 nRC = adat_get_single_cmd_result( pRig );
             }
         }
-    }    
-    
+    }
+
     // Done !
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRC );
-    
+
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -2179,12 +2192,12 @@ int adat_cmd_fn_get_freq( RIG *pRig )
     int nRC = RIG_OK;
 
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     if(( pRig == NULL ))
     {
         nRC = -RIG_EARG;
@@ -2193,39 +2206,39 @@ int adat_cmd_fn_get_freq( RIG *pRig )
     {
         adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
 
-        nRC = adat_priv_set_cmd( pRig, 
+        nRC = adat_priv_set_cmd( pRig,
                                  ADAT_CMD_DEF_STRING_GET_FREQ,
                                  ADAT_CMD_KIND_WITH_RESULT );
         if( nRC == RIG_OK )
         {
             nRC = adat_get_single_cmd_result( pRig );
             if( nRC == RIG_OK )
-            {              
+            {
                 nRC = adat_parse_freq( pPriv->pcResult,
                                        ADAT_FREQ_PARSE_MODE_WITH_VFO,
                                        &(pPriv->nCurrentVFO),
                                        &(pPriv->nFreq) );
 
-                rig_debug( RIG_DEBUG_TRACE, 
+                rig_debug( RIG_DEBUG_TRACE,
                           "*** ADAT: %d pPriv->nCurrentVFO = %d, Freq [Hz] = %f\n",
                           gFnLevel, pPriv->nCurrentVFO, pPriv->nFreq );
                 if( nRC == RIG_OK )
                 {
-                    nRC = adat_vfo_anr2rnr( pPriv->nCurrentVFO, 
+                    nRC = adat_vfo_anr2rnr( pPriv->nCurrentVFO,
                                             &(pPriv->nRIGVFONr) );
                 }
             }
         }
-    }    
-    
+    }
+
     // Done !
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRC );
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -2237,14 +2250,14 @@ int adat_cmd_fn_get_freq( RIG *pRig )
 int adat_cmd_fn_set_freq( RIG *pRig )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
                "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%x\n",
                gFnLevel, __func__, __FILE__, __LINE__,
                pRig );
-    
+
     if(( pRig == NULL ))
     {
         nRC = -RIG_EARG;
@@ -2253,31 +2266,31 @@ int adat_cmd_fn_set_freq( RIG *pRig )
     {
         adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
         char               acBuf[ ADAT_BUFSZ + 1 ];
-                
+
         // Get frequency of selected VFO
-        
+
         memset( acBuf, 0, ADAT_BUFSZ + 1 );
-        
+
         snprintf( acBuf, ADAT_BUFSZ, "%s%d%s",
                   ADAT_CMD_DEF_STRING_SET_FREQ,
                   (int) pPriv->nFreq,
                   ADAT_EOM );
-                
+
         nRC = adat_priv_set_cmd( pRig, acBuf, ADAT_CMD_KIND_WITHOUT_RESULT );
         if( nRC == RIG_OK )
         {
             nRC = adat_get_single_cmd_result( pRig );
         }
-    }    
-    
+    }
+
     // Done !
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
                "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
                gFnLevel, __func__, __FILE__, __LINE__,
                nRC );
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -2293,14 +2306,14 @@ int adat_cmd_fn_set_freq( RIG *pRig )
 int adat_cmd_fn_set_vfo( RIG *pRig )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     if(( pRig == NULL ))
     {
         nRC = -RIG_EARG;
@@ -2309,15 +2322,15 @@ int adat_cmd_fn_set_vfo( RIG *pRig )
     {
         adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
         char               acBuf[ ADAT_BUFSZ + 1 ];
-        
+
         // Switch on VFO
-        
+
         memset( acBuf, 0, ADAT_BUFSZ + 1 );
-        
+
         snprintf( acBuf, ADAT_BUFSZ, ADAT_CMD_DEF_STRING_SWITCH_ON_VFO,
                  (int) pPriv->nCurrentVFO,
                  ADAT_EOM );
-        
+
         nRC = adat_priv_set_cmd( pRig, acBuf, ADAT_CMD_KIND_WITHOUT_RESULT );
         if( nRC == RIG_OK )
         {
@@ -2329,8 +2342,8 @@ int adat_cmd_fn_set_vfo( RIG *pRig )
                           ADAT_CMD_DEF_STRING_SET_VFO_AS_MAIN_VFO,
                           (int) pPriv->nCurrentVFO,
                           ADAT_EOM );
-                    
-                nRC = adat_priv_set_cmd( pRig, acBuf, 
+
+                nRC = adat_priv_set_cmd( pRig, acBuf,
                                         ADAT_CMD_KIND_WITHOUT_RESULT );
                 if( nRC == RIG_OK )
                 {
@@ -2338,16 +2351,16 @@ int adat_cmd_fn_set_vfo( RIG *pRig )
                 }
             }
         }
-    }    
-    
+    }
+
     // Done !
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRC );
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -2359,14 +2372,14 @@ int adat_cmd_fn_set_vfo( RIG *pRig )
 int adat_cmd_fn_get_ptt( RIG *pRig )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     if(( pRig == NULL ))
     {
         nRC = -RIG_EARG;
@@ -2374,34 +2387,34 @@ int adat_cmd_fn_get_ptt( RIG *pRig )
     else
     {
         adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
-        
-        nRC = adat_priv_set_cmd( pRig, 
+
+        nRC = adat_priv_set_cmd( pRig,
                                 ADAT_CMD_DEF_STRING_GET_PTT,
                                 ADAT_CMD_KIND_WITH_RESULT );
         if( nRC == RIG_OK )
         {
             nRC = adat_get_single_cmd_result( pRig );
             if( nRC == RIG_OK )
-            {              
+            {
                 nRC = adat_parse_ptt( pPriv->pcResult,
                                      &(pPriv->nADATPTTStatus) );
                 if( nRC == RIG_OK )
                 {
-                    nRC = adat_ptt_anr2rnr( pPriv->nADATPTTStatus, 
+                    nRC = adat_ptt_anr2rnr( pPriv->nADATPTTStatus,
                                             &(pPriv->nRIGPTTStatus) );
                 }
             }
         }
-    }    
-    
+    }
+
     // Done !
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRC );
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -2413,14 +2426,14 @@ int adat_cmd_fn_get_ptt( RIG *pRig )
 int adat_cmd_fn_set_ptt( RIG *pRig )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     if(( pRig == NULL ))
     {
         nRC = -RIG_EARG;
@@ -2430,25 +2443,25 @@ int adat_cmd_fn_set_ptt( RIG *pRig )
         adat_priv_data_ptr  pPriv    = (adat_priv_data_ptr) pRig->state.priv;
         char                acBuf[ ADAT_BUFSZ + 1 ];
         char               *pcPTTStr = NULL;
-        
+
         memset( acBuf, 0, ADAT_BUFSZ + 1 );
-        
+
         // Switch PTT
-        
+
         switch( pPriv->nOpCode )
         {
             case ADAT_OPCODE_PTT_SWITCH_ON:
-                
+
                 pPriv->nADATPTTStatus = ADAT_PTT_STATUS_ANR_ON;
                 nRC = adat_ptt_anr2rnr( ADAT_PTT_STATUS_ANR_ON,
                                         &(pPriv->nRIGPTTStatus) );
                 pcPTTStr = ADAT_CMD_PTT_STR_ON;
                 break;
-                
+
             case ADAT_OPCODE_PTT_SWITCH_OFF:
                 pPriv->nADATPTTStatus = ADAT_PTT_STATUS_ANR_OFF;
                 nRC = adat_ptt_anr2rnr( ADAT_PTT_STATUS_ANR_OFF,
-                                        &(pPriv->nRIGPTTStatus) );                
+                                        &(pPriv->nRIGPTTStatus) );
                 pcPTTStr = ADAT_CMD_PTT_STR_OFF;
                 break;
 
@@ -2456,29 +2469,29 @@ int adat_cmd_fn_set_ptt( RIG *pRig )
                 nRC = -RIG_EINVAL;
                 break;
         }
-        
+
         if( nRC == RIG_OK )
         {
             snprintf( acBuf, ADAT_BUFSZ, ADAT_CMD_DEF_STRING_SET_PTT,
                      pcPTTStr,
                      ADAT_EOM );
-        
+
             nRC = adat_priv_set_cmd( pRig, acBuf, ADAT_CMD_KIND_WITHOUT_RESULT );
             if( nRC == RIG_OK )
             {
                 nRC = adat_get_single_cmd_result( pRig );
             }
         }
-    }    
-    
+    }
+
     // Done !
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRC );
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -2492,19 +2505,19 @@ int adat_cmd_fn_set_ptt( RIG *pRig )
 // adat_transaction is a generalized command processor able to execute
 // commands of type adat_cmd_def_t .
 
-int adat_transaction( RIG                *pRig, 
+int adat_transaction( RIG                *pRig,
                       adat_cmd_list_ptr   pCmdList )
 {
-    int nRC   = RIG_OK; 
+    int nRC   = RIG_OK;
     int nFini = 0;  // = 1 -> Stop executing commands
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%08x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     if(( pRig == NULL ))
     {
         nRC = -RIG_EARG;
@@ -2514,52 +2527,52 @@ int adat_transaction( RIG                *pRig,
         int                nI    = 0;
         adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
 
-        rig_debug( RIG_DEBUG_TRACE, 
+        rig_debug( RIG_DEBUG_TRACE,
                   "*** ADAT: %d %s (%s:%d): Nr of commands = %d\n",
                   gFnLevel, __func__, __FILE__, __LINE__,
                   pCmdList->nNrCmds );
-        
+
         while(( nRC == RIG_OK ) && ( nFini == 0 ) && ( nI < pCmdList->nNrCmds ))
-        {   
+        {
             adat_cmd_def_ptr pCmd = NULL;
-            
+
             pCmd = pCmdList->adat_cmds[ nI ];
-            
+
             if(( pCmd != NULL ) && ( pCmd->nCmdId != ADAT_CMD_DEF_NIL ))
             {
-                
-                rig_debug( RIG_DEBUG_TRACE, 
+
+                rig_debug( RIG_DEBUG_TRACE,
                            "*** ADAT: %d About to execute ADAT Command ... \n",
                           gFnLevel, __func__, __FILE__, __LINE__);
                 adat_print_cmd( pCmd );
-                
+
                 // Execute Command
-                
+
                 if( pCmd->pfCmdFn != NULL )
                 {
-                    rig_debug( RIG_DEBUG_TRACE, 
+                    rig_debug( RIG_DEBUG_TRACE,
                               "*** ADAT: %d Calling function via fn ptr ... \n",
                               gFnLevel );
                     nRC = pCmd->pfCmdFn( pRig );
                 }
                 else
                 {
-                    rig_debug( RIG_DEBUG_TRACE, 
-                              "*** ADAT: %d Sending command string ... \n", 
+                    rig_debug( RIG_DEBUG_TRACE,
+                              "*** ADAT: %d Sending command string ... \n",
                               gFnLevel );
-                    
+
                     if( pCmd->pacCmdStrs != NULL )
                     {
                         int  nJ       = 0;
-                        
+
                         if( pCmd->nNrCmdStrs > 0 )
                         {
-                            rig_debug( RIG_DEBUG_TRACE, 
+                            rig_debug( RIG_DEBUG_TRACE,
                                       "*** ADAT: %d pacCmdStrs[%d] = %s\n",
                                       gFnLevel, nJ, pCmd->pacCmdStrs[ nJ ] );
 
                             while(( nJ < pCmd->nNrCmdStrs ) &&
-                                  ( nRC == RIG_OK )         && 
+                                  ( nRC == RIG_OK )         &&
                                   ( pCmd->pacCmdStrs[ nJ ] != NULL ))
                             {
                                 nRC = adat_send( pRig, pCmd->pacCmdStrs[ nJ ] );
@@ -2568,14 +2581,14 @@ int adat_transaction( RIG                *pRig,
                                     if( pCmd->nCmdKind == ADAT_CMD_KIND_WITH_RESULT )
                                     {
                                         char acBuf[ ADAT_RESPSZ + 1 ];
-                            
+
                                         memset( acBuf, 0, ADAT_RESPSZ + 1 );
-                            
+
                                         nRC = adat_receive( pRig, acBuf );
                                         pPriv->pcResult = strdup( acBuf );
                                     }
                                 }
-                            
+
                                 nJ++;
                             }
                         }
@@ -2586,28 +2599,28 @@ int adat_transaction( RIG                *pRig,
                 {
                     (void) adat_cmd_recover_from_error( pRig, nRC );
                 }
-            
+
                 nI++;
             }
             else
             {
                nFini = 1;
             }
-            
+
             // sleep between cmds - ADAT needs time to act upoon cmds
-            
+
             usleep( ADAT_SLEEP_MICROSECONDS_BETWEEN_CMDS );
         }
     }
-    
+
     // Done !
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRC );
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -2620,31 +2633,31 @@ adat_priv_data_ptr adat_new_priv_data( RIG *pRig )
 {
     int                 nRC   = 0;
     adat_priv_data_ptr  pPriv = NULL;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%08x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     if( pRig != NULL )
     {
         // Init Priv Data
-        
+
         pPriv = (adat_priv_data_ptr) calloc( sizeof( adat_priv_data_t ), 1 );
         if ( pPriv != NULL )
         {
             char acBuf[ ADAT_BUFSZ + 1 ];
             memset( acBuf, 0, ADAT_BUFSZ + 1 );
-            
+
             // FIXME: pointless code at init time
 #if 0
             nRC = adat_get_conf( pRig, TOKEN_ADAT_PRODUCT_NAME, acBuf );
             if( nRC == 0)
             {
                 pPriv->pcProductName = strdup( acBuf );
- 
+
                 pRig->state.priv = (void *) pPriv;
             }
 #else
@@ -2660,13 +2673,13 @@ adat_priv_data_ptr adat_new_priv_data( RIG *pRig )
     {
         nRC = -RIG_EARG;
     }
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Value = 0x%x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
-              pPriv );  
+              pPriv );
     gFnLevel--;
-    
+
     return pPriv;
 }
 
@@ -2678,60 +2691,60 @@ adat_priv_data_ptr adat_new_priv_data( RIG *pRig )
 void adat_del_priv_data( adat_priv_data_t **ppPriv )
 {
     int nRC = 0;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: ppPrivData = 0x%08x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               ppPriv );
-    
+
     if(( ppPriv != NULL ) && ( *ppPriv != NULL ))
     {
         // Delete / Free Priv Data
-        
+
         if( (*ppPriv)->pcProductName != NULL )
-        { 
+        {
             free( (*ppPriv)->pcProductName );
         }
 
         if( (*ppPriv)->pcSerialNr != NULL )
-        { 
+        {
             free( (*ppPriv)->pcSerialNr );
         }
 
         if( (*ppPriv)->pcHWVersion != NULL )
-        { 
+        {
             free( (*ppPriv)->pcHWVersion );
         }
 
         if( (*ppPriv)->pcFWVersion != NULL )
-        { 
+        {
             free( (*ppPriv)->pcFWVersion );
         }
 
         if( (*ppPriv)->pcGUIFWVersion != NULL )
-        { 
+        {
             free( (*ppPriv)->pcGUIFWVersion );
         }
 
         if( (*ppPriv)->pcOptions != NULL )
-        { 
+        {
             free( (*ppPriv)->pcOptions );
         }
 
         if( (*ppPriv)->pcIDCode != NULL )
-        { 
+        {
             free( (*ppPriv)->pcIDCode );
         }
 
         if( (*ppPriv)->pcCallsign != NULL )
-        { 
+        {
             free( (*ppPriv)->pcCallsign );
         }
 
         // Free priv struct itself
-        
+
         free( (*ppPriv) );
         *ppPriv = NULL;
     }
@@ -2739,12 +2752,12 @@ void adat_del_priv_data( adat_priv_data_t **ppPriv )
     {
         nRC = -RIG_EARG;
     }
-        
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT.\n",
-              gFnLevel, __func__, __FILE__, __LINE__);  
+              gFnLevel, __func__, __FILE__, __LINE__);
     gFnLevel--;
-    
+
     return;
 };
 
@@ -2756,16 +2769,16 @@ void adat_del_priv_data( adat_priv_data_t **ppPriv )
 int adat_init( RIG *pRig )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%08x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     // Check Params
-    
+
     if( pRig == NULL )
     {
         nRC = -RIG_EARG;
@@ -2773,24 +2786,24 @@ int adat_init( RIG *pRig )
     else
     {
         adat_priv_data_ptr pPriv = NULL;
-        
+
         // Get new Priv Data
-        
+
         pPriv = adat_new_priv_data( pRig );
         if( pPriv == NULL )
         {
             nRC = -RIG_ENOMEM;
         }
     }
-    
+
     // Done !
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRC );
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -2802,14 +2815,14 @@ int adat_init( RIG *pRig )
 int adat_cleanup( RIG *pRig )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%08x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     if( pRig == NULL )
     {
         nRC = -RIG_EARG;
@@ -2822,13 +2835,13 @@ int adat_cleanup( RIG *pRig )
             pRig->state.priv = NULL;
         }
     }
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
-              nRC );  
+              nRC );
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -2840,16 +2853,16 @@ int adat_cleanup( RIG *pRig )
 int adat_open( RIG *pRig )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%08x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     // Check Params
-    
+
     if( pRig == NULL )
     {
         nRC = -RIG_EARG;
@@ -2857,22 +2870,22 @@ int adat_open( RIG *pRig )
     else
     {
         // grace period for the radio to be there
-        
+
         sleep( ADAT_SLEEP_AFTER_RIG_OPEN );
-        
+
         // Now get basic info from ADAT TRX
-                
+
         nRC = adat_transaction( pRig, &adat_cmd_list_open_adat );
     }
-    
+
     // Done !
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               nRC );
     gFnLevel--;
-    
+
     return nRC;
 }
 
@@ -2885,16 +2898,16 @@ const char * adat_get_info( RIG *pRig )
 {
     int         nRC = RIG_OK;
     static char acBuf[ 512 ];
-    
+
     gFnLevel++;
-    
+
     rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%08x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     memset( acBuf, 0, 512 );
-    
+
     if( pRig != NULL )
     {
         nRC = adat_transaction( pRig, &adat_cmd_list_get_info );
@@ -2902,28 +2915,28 @@ const char * adat_get_info( RIG *pRig )
         {
             adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
 
-            snprintf( acBuf, 512, 
-                      "ADAT ADT-200A, Callsign: %s, S/N: %s, ID Code: %s, Options: %s, FW: %s, GUI FW: %s, HW: %s",                     
+            snprintf( acBuf, 512,
+                      "ADAT ADT-200A, Callsign: %s, S/N: %s, ID Code: %s, Options: %s, FW: %s, GUI FW: %s, HW: %s",
                       pPriv->pcCallsign,
-                      pPriv->pcSerialNr, 
-                      pPriv->pcIDCode, 
+                      pPriv->pcSerialNr,
+                      pPriv->pcIDCode,
                       pPriv->pcOptions,
-                      pPriv->pcFWVersion, 
-                      pPriv->pcGUIFWVersion, 
+                      pPriv->pcFWVersion,
+                      pPriv->pcGUIFWVersion,
                       pPriv->pcHWVersion );
         }
     }
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Value ='%s'\n",
               gFnLevel, __func__, __FILE__, __LINE__,
-              acBuf );  
+              acBuf );
     gFnLevel--;
-    
+
     return acBuf;
 }
 
-// ---------------------------------------------------------------------------  
+// ---------------------------------------------------------------------------
 // Function adat_set_freq
 // ---------------------------------------------------------------------------
 // Status: RELEASED
@@ -2933,14 +2946,14 @@ int adat_set_freq( RIG *pRig, vfo_t vfo, freq_t freq )
     int nRC = RIG_OK;
 
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%08x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     // Check Params
-    
+
     if( pRig == NULL )
     {
         nRC = -RIG_EARG;
@@ -2948,22 +2961,22 @@ int adat_set_freq( RIG *pRig, vfo_t vfo, freq_t freq )
     else
     {
         adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
-        
+
         pPriv->nFreq = freq;
-        
+
         nRC = adat_transaction( pRig, &adat_cmd_list_set_freq );
     }
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
-              nRC );  
+              nRC );
     gFnLevel--;
-    
+
     return nRC;
 }
 
-// ---------------------------------------------------------------------------  
+// ---------------------------------------------------------------------------
 // Function adat_get_freq
 // ---------------------------------------------------------------------------
 // Status: RELEASED
@@ -2973,14 +2986,14 @@ int adat_get_freq( RIG *pRig, vfo_t vfo, freq_t *freq )
     int nRC = RIG_OK;
 
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%08x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     // Check Params
-    
+
     if( pRig == NULL )
     {
         nRC = -RIG_EARG;
@@ -2988,22 +3001,22 @@ int adat_get_freq( RIG *pRig, vfo_t vfo, freq_t *freq )
     else
     {
         adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
-        
-        nRC = adat_transaction( pRig, &adat_cmd_list_get_freq );        
+
+        nRC = adat_transaction( pRig, &adat_cmd_list_get_freq );
 
         *freq = pPriv->nFreq;
     }
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
-              nRC );  
+              nRC );
     gFnLevel--;
-    
+
     return nRC;
 }
 
-// ---------------------------------------------------------------------------  
+// ---------------------------------------------------------------------------
 // Function adat_set_level
 // ---------------------------------------------------------------------------
 // Status: IN WORK
@@ -3011,16 +3024,16 @@ int adat_get_freq( RIG *pRig, vfo_t vfo, freq_t *freq )
 int adat_set_level( RIG *pRig, vfo_t vfo, setting_t level, value_t val )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%08x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     // Check Params
-    
+
     if( pRig == NULL )
     {
         nRC = -RIG_EARG;
@@ -3028,19 +3041,19 @@ int adat_set_level( RIG *pRig, vfo_t vfo, setting_t level, value_t val )
     else
     {
         //adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
-        
+
     }
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
-              nRC );  
+              nRC );
     gFnLevel--;
-    
+
     return nRC;
 }
 
-// ---------------------------------------------------------------------------  
+// ---------------------------------------------------------------------------
 // Function adat_get_level
 // ---------------------------------------------------------------------------
 // Status: IN WORK
@@ -3048,16 +3061,16 @@ int adat_set_level( RIG *pRig, vfo_t vfo, setting_t level, value_t val )
 int adat_get_level( RIG *pRig, vfo_t vfo, setting_t level, value_t *val )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%08x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     // Check Params
-    
+
     if( pRig == NULL )
     {
         nRC = -RIG_EARG;
@@ -3067,17 +3080,17 @@ int adat_get_level( RIG *pRig, vfo_t vfo, setting_t level, value_t *val )
         //adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
 
     }
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
-              nRC );  
+              nRC );
     gFnLevel--;
-    
+
     return nRC;
 }
 
-// ---------------------------------------------------------------------------  
+// ---------------------------------------------------------------------------
 // Function adat_set_mode
 // ---------------------------------------------------------------------------
 // Status: RELEASED
@@ -3085,45 +3098,45 @@ int adat_get_level( RIG *pRig, vfo_t vfo, setting_t level, value_t *val )
 int adat_set_mode(RIG *pRig, vfo_t vfo, rmode_t mode, pbwidth_t width )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%08x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
 
     // Check Params
-    
+
     if( pRig == NULL )
     {
         nRC = -RIG_EARG;
     }
     else
-    {      
+    {
         adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
-        
+
         pPriv->nRIGMode    = mode;
         nRC = adat_vfo_rnr2anr( vfo, &(pPriv->nCurrentVFO) );
-        
+
         if( width == RIG_PASSBAND_NORMAL )
             width = rig_passband_normal( pRig, mode );
-        
+
         pPriv->nWidth = width;
-        
+
         nRC = adat_transaction( pRig, &adat_cmd_list_set_mode );
     }
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
-              nRC );  
+              nRC );
     gFnLevel--;
-    
+
     return nRC;
 }
 
-// ---------------------------------------------------------------------------  
+// ---------------------------------------------------------------------------
 // Function adat_get_mode
 // ---------------------------------------------------------------------------
 // Status: RELEASED
@@ -3133,14 +3146,14 @@ int adat_get_mode( RIG *pRig, vfo_t vfo, rmode_t *mode, pbwidth_t *width )
 	int nRC = RIG_OK;
 
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%08x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
 
     // Check Params
-    
+
     if( pRig == NULL )
     {
         nRC = -RIG_EARG;
@@ -3154,19 +3167,19 @@ int adat_get_mode( RIG *pRig, vfo_t vfo, rmode_t *mode, pbwidth_t *width )
         {
             *mode = pPriv->nRIGMode;
             *width = pPriv->nWidth;
-        }        
+        }
     }
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
-              nRC );  
+              nRC );
     gFnLevel--;
-    
+
 	return nRC;
 }
 
-// ---------------------------------------------------------------------------  
+// ---------------------------------------------------------------------------
 // Function adat_get_vfo
 // ---------------------------------------------------------------------------
 // Status: RELEASED
@@ -3174,16 +3187,16 @@ int adat_get_mode( RIG *pRig, vfo_t vfo, rmode_t *mode, pbwidth_t *width )
 int adat_get_vfo( RIG *pRig, vfo_t *vfo )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%08x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     // Check Params
-    
+
     if( pRig == NULL )
     {
         nRC = -RIG_EARG;
@@ -3191,22 +3204,22 @@ int adat_get_vfo( RIG *pRig, vfo_t *vfo )
     else
     {
         adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
-        
+
         nRC = adat_transaction( pRig, &adat_cmd_list_get_vfo );
-        
+
         *vfo = pPriv->nRIGVFONr;
     }
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
-              nRC );  
+              nRC );
     gFnLevel--;
-    
-    return nRC;    
+
+    return nRC;
 }
 
-// ---------------------------------------------------------------------------  
+// ---------------------------------------------------------------------------
 // Function adat_set_vfo
 // ---------------------------------------------------------------------------
 // Status: RELEASED
@@ -3214,16 +3227,16 @@ int adat_get_vfo( RIG *pRig, vfo_t *vfo )
 int adat_set_vfo( RIG *pRig, vfo_t vfo )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%08x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     // Check Params
-    
+
     if( pRig == NULL )
     {
         nRC = -RIG_EARG;
@@ -3231,24 +3244,24 @@ int adat_set_vfo( RIG *pRig, vfo_t vfo )
     else
     {
         adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
-        
+
         nRC = adat_vfo_rnr2anr( vfo, &(pPriv->nCurrentVFO) );
         if( nRC == RIG_OK )
         {
-            nRC = adat_transaction( pRig, &adat_cmd_list_set_vfo );       
+            nRC = adat_transaction( pRig, &adat_cmd_list_set_vfo );
         }
     }
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
-              nRC );  
+              nRC );
     gFnLevel--;
-    
-    return nRC;    
+
+    return nRC;
 }
 
-// ---------------------------------------------------------------------------  
+// ---------------------------------------------------------------------------
 // Function adat_get_ptt
 // ---------------------------------------------------------------------------
 // Status: RELEASED
@@ -3256,16 +3269,16 @@ int adat_set_vfo( RIG *pRig, vfo_t vfo )
 int adat_get_ptt( RIG *pRig, vfo_t vfo, ptt_t *ptt )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%08x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     // Check Params
-    
+
     if( pRig == NULL )
     {
         nRC = -RIG_EARG;
@@ -3273,22 +3286,22 @@ int adat_get_ptt( RIG *pRig, vfo_t vfo, ptt_t *ptt )
     else
     {
         adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
-        
+
         nRC = adat_transaction( pRig, &adat_cmd_list_get_ptt );
-        
+
         *ptt = pPriv->nRIGPTTStatus;
     }
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
-              nRC );  
+              nRC );
     gFnLevel--;
-    
-    return nRC;    
+
+    return nRC;
 }
 
-// ---------------------------------------------------------------------------  
+// ---------------------------------------------------------------------------
 // Function adat_set_ptt
 // ---------------------------------------------------------------------------
 // Status: RELEASED
@@ -3296,16 +3309,16 @@ int adat_get_ptt( RIG *pRig, vfo_t vfo, ptt_t *ptt )
 int adat_set_ptt( RIG *pRig, vfo_t vfo, ptt_t ptt )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%08x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     // Check Params
-    
+
     if( pRig == NULL )
     {
         nRC = -RIG_EARG;
@@ -3313,13 +3326,13 @@ int adat_set_ptt( RIG *pRig, vfo_t vfo, ptt_t ptt )
     else
     {
         adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
-        
+
         switch( ptt )
         {
             case RIG_PTT_ON:
                 pPriv->nOpCode = ADAT_OPCODE_PTT_SWITCH_ON;
                 break;
-                
+
             case RIG_PTT_OFF:
                 pPriv->nOpCode = ADAT_OPCODE_PTT_SWITCH_OFF;
                 break;
@@ -3328,41 +3341,41 @@ int adat_set_ptt( RIG *pRig, vfo_t vfo, ptt_t ptt )
                 nRC = -RIG_EINVAL;
                 break;
         }
-        
+
         if( nRC == RIG_OK )
         {
-            nRC = adat_transaction( pRig, &adat_cmd_list_set_ptt );       
+            nRC = adat_transaction( pRig, &adat_cmd_list_set_ptt );
         }
     }
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
-              nRC );  
+              nRC );
     gFnLevel--;
-    
-    return nRC;    
+
+    return nRC;
 }
 
-// ---------------------------------------------------------------------------  
+// ---------------------------------------------------------------------------
 // Function adat_power2mW
 // ---------------------------------------------------------------------------
 // Status: RELEASED
 
-int adat_power2mW( RIG * pRig, unsigned int *mwpower, float power, 
+int adat_power2mW( RIG * pRig, unsigned int *mwpower, float power,
                    freq_t freq, rmode_t mode )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%08x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     // Check Params
-    
+
     if(( pRig == NULL ) || ( mwpower == NULL ))
     {
         nRC = -RIG_EARG;
@@ -3372,34 +3385,34 @@ int adat_power2mW( RIG * pRig, unsigned int *mwpower, float power,
         *mwpower = power * ADAT_MAX_POWER_IN_mW;
     }
 
-    rig_debug( RIG_DEBUG_TRACE, 
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
-              nRC );  
+              nRC );
     gFnLevel--;
 
-    return nRC;    
+    return nRC;
 }
 
-// ---------------------------------------------------------------------------  
+// ---------------------------------------------------------------------------
 // Function adat_mW2power
 // ---------------------------------------------------------------------------
 // Status: RELEASED
 
-int adat_mW2power( RIG * pRig, float *power, unsigned int mwpower, 
+int adat_mW2power( RIG * pRig, float *power, unsigned int mwpower,
                      freq_t freq, rmode_t mode )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%08x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     // Check Params
-    
+
     if(( pRig == NULL ) || ( power == NULL ))
     {
         nRC = -RIG_EARG;
@@ -3408,17 +3421,17 @@ int adat_mW2power( RIG * pRig, float *power, unsigned int mwpower,
     {
         *power = mwpower / ((float)ADAT_MAX_POWER_IN_mW);
     }
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
-              nRC );  
+              nRC );
     gFnLevel--;
-    
-    return nRC;    
+
+    return nRC;
 }
 
-// ---------------------------------------------------------------------------  
+// ---------------------------------------------------------------------------
 // Function adat_get_powerstat
 // ---------------------------------------------------------------------------
 // Status: RELEASED
@@ -3426,16 +3439,16 @@ int adat_mW2power( RIG * pRig, float *power, unsigned int mwpower,
 int adat_get_powerstat( RIG *pRig, powerstat_t *status )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%08x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     // Check Params
-    
+
     if( pRig == NULL )
     {
         nRC = -RIG_EARG;
@@ -3443,11 +3456,11 @@ int adat_get_powerstat( RIG *pRig, powerstat_t *status )
     else
     {
         //adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
-        
+
         nRC = adat_transaction( pRig, &adat_cmd_list_get_powerstatus );
-        
+
         // nRC < 0 -> Power is off.
-        
+
         if( nRC == RIG_OK )
         {
             *status = RIG_POWER_ON;
@@ -3458,18 +3471,18 @@ int adat_get_powerstat( RIG *pRig, powerstat_t *status )
             nRC = RIG_OK;
         }
     }
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
-              nRC );  
+              nRC );
     gFnLevel--;
-    
-    return nRC;    
+
+    return nRC;
 }
 
 
-// ---------------------------------------------------------------------------  
+// ---------------------------------------------------------------------------
 // Function adat_set_conf
 // ---------------------------------------------------------------------------
 // Status: IN WORK
@@ -3479,14 +3492,14 @@ int adat_set_conf( RIG *pRig, token_t token, const char *val )
     int nRC = RIG_OK;
 
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%08x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
 
     // Check Params
-    
+
     if( pRig == NULL )
     {
         nRC = -RIG_EARG;
@@ -3505,16 +3518,16 @@ int adat_set_conf( RIG *pRig, token_t token, const char *val )
         }
     }
 
-    rig_debug( RIG_DEBUG_TRACE, 
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
-              nRC );  
+              nRC );
     gFnLevel--;
-    
+
 	return nRC;
 }
 
-// ---------------------------------------------------------------------------  
+// ---------------------------------------------------------------------------
 // Function adat_get_conf
 // ---------------------------------------------------------------------------
 // Status: IN WORK
@@ -3522,16 +3535,16 @@ int adat_set_conf( RIG *pRig, token_t token, const char *val )
 int adat_get_conf(RIG *pRig, token_t token, char *val)
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%08x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     // Check Params
-    
+
     if( pRig == NULL )
     {
         nRC = -RIG_EARG;
@@ -3539,8 +3552,8 @@ int adat_get_conf(RIG *pRig, token_t token, char *val)
     else
     {
         adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
-    
-        switch( token ) 
+
+        switch( token )
         {
             case TOKEN_ADAT_PRODUCT_NAME:
                 val = pPriv->pcProductName;
@@ -3550,16 +3563,16 @@ int adat_get_conf(RIG *pRig, token_t token, char *val)
         }
     }
 
-    rig_debug( RIG_DEBUG_TRACE, 
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
-              nRC );  
+              nRC );
     gFnLevel--;
-    
+
 	return nRC;
 }
 
-// ---------------------------------------------------------------------------  
+// ---------------------------------------------------------------------------
 // Function adat_reset
 // ---------------------------------------------------------------------------
 // Status: IN WORK
@@ -3567,16 +3580,16 @@ int adat_get_conf(RIG *pRig, token_t token, char *val)
 int adat_reset( RIG *pRig, reset_t reset )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%08x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     // Check Params
-    
+
     if( pRig == NULL )
     {
         nRC = -RIG_EARG;
@@ -3584,19 +3597,19 @@ int adat_reset( RIG *pRig, reset_t reset )
     else
     {
         //adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
-        
+
     }
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
-              nRC );  
+              nRC );
     gFnLevel--;
-    
+
 	return nRC;
 }
 
-// ---------------------------------------------------------------------------  
+// ---------------------------------------------------------------------------
 // Function adat_handle_event
 // ---------------------------------------------------------------------------
 // Status: IN WORK
@@ -3604,16 +3617,16 @@ int adat_reset( RIG *pRig, reset_t reset )
 int adat_handle_event( RIG *pRig )
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%08x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
-    
+
     // Check Params
-    
+
     if( pRig == NULL )
     {
         nRC = -RIG_EARG;
@@ -3622,21 +3635,21 @@ int adat_handle_event( RIG *pRig )
     {
         //adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
         char               acBuf[ ADAT_RESPSZ + 1 ];
-        
+
         memset( acBuf, 0, ADAT_RESPSZ + 1 );
         adat_receive( pRig, acBuf );
-        
-        rig_debug( RIG_DEBUG_TRACE, 
+
+        rig_debug( RIG_DEBUG_TRACE,
                   "*** ADAT: %d Event data = \"%s\"\n",
                   gFnLevel, acBuf );
     }
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
-              nRC );  
+              nRC );
     gFnLevel--;
-    
+
 	return nRC;
 }
 
@@ -3649,11 +3662,11 @@ int adat_handle_event( RIG *pRig )
 DECLARE_INITRIG_BACKEND(adat)
 {
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
+
 #if 0
-    rig_debug( RIG_DEBUG_TRACE, 
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY.\n",
               gFnLevel, __func__, __FILE__, __LINE__ );
 #endif
@@ -3662,13 +3675,13 @@ DECLARE_INITRIG_BACKEND(adat)
 #if 0
     rig_debug( RIG_DEBUG_VERBOSE, "ADAT: Rig ADT-200A registered.\n" );
 
-    rig_debug( RIG_DEBUG_TRACE, 
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
-              nRC );  
+              nRC );
 #endif
     gFnLevel--;
-    
+
 	return nRC;
 }
 
@@ -3678,28 +3691,28 @@ DECLARE_INITRIG_BACKEND(adat)
 // Status: UNTESTED
 
 DECLARE_PROBERIG_BACKEND(adat)
-{   
+{
     int nRC = RIG_OK;
-    
+
     gFnLevel++;
-    
-    rig_debug( RIG_DEBUG_TRACE, 
+
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY.\n",
               gFnLevel, __func__, __FILE__, __LINE__ );
-    
+
 	if (!port)
 		return RIG_MODEL_NONE;
-    
+
 	if (port->type.rig != RIG_PORT_SERIAL)
 		return RIG_MODEL_NONE;
-    
+
 	port->write_delay = port->post_write_delay = 10;
 	port->parm.serial.stop_bits = 0;
 	port->retry = 1;
-    
-       
+
+
 	nRC = serial_open(port);
-    
+
     if( nRC != RIG_OK)
     {
       nRC = RIG_MODEL_NONE;
@@ -3708,15 +3721,15 @@ DECLARE_PROBERIG_BACKEND(adat)
     {
         char acBuf[ ADAT_RESPSZ + 1 ];
         int  nRead = 0;
-        
+
         memset( acBuf, 0, ADAT_RESPSZ + 1 );
-        
-		nRC = write_block( port, 
-                          ADAT_CMD_DEF_STRING_GET_ID_CODE, 
+
+		nRC = write_block( port,
+                          ADAT_CMD_DEF_STRING_GET_ID_CODE,
                           strlen( ADAT_CMD_DEF_STRING_GET_ID_CODE ) );
 		nRead = read_string(port, acBuf, ADAT_RESPSZ, ADAT_EOM, 1);
         close( port->fd );
-        
+
 		if(( nRC != RIG_OK || nRead < 0 ))
         {
             nRC = RIG_MODEL_NONE;
@@ -3725,17 +3738,17 @@ DECLARE_PROBERIG_BACKEND(adat)
         {
             rig_debug( RIG_DEBUG_VERBOSE, "ADAT: %d Received ID = %s.",
                        gFnLevel, acBuf );
-            
+
             nRC = RIG_MODEL_ADT_200A;
         }
 	}
 
-    rig_debug( RIG_DEBUG_TRACE, 
+    rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
               gFnLevel, __func__, __FILE__, __LINE__,
-              nRC );  
+              nRC );
     gFnLevel--;
-    
+
 	return nRC;
 }
 

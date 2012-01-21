@@ -1,13 +1,25 @@
 // ---------------------------------------------------------------------------
-//    ADT-200A HAMLIB BACKEND 
+//    ADT-200A HAMLIB BACKEND
 // ---------------------------------------------------------------------------
 //
 //  adt_200a.c
 //
 //  Created by Frank Goenninger DG1SBG.
-//  Copyright © 2011, 2012 Frank Goenninger. Creative Commons License.
-// 
-//  $Header$
+//  Copyright © 2011, 2012 Frank Goenninger.
+//
+//   This library is free software; you can redistribute it and/or
+//   modify it under the terms of the GNU Lesser General Public
+//   License as published by the Free Software Foundation; either
+//   version 2.1 of the License, or (at your option) any later version.
+//
+//   This library is distributed in the hope that it will be useful,
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//   Lesser General Public License for more details.
+//
+//   You should have received a copy of the GNU Lesser General Public
+//   License along with this library; if not, write to the Free Software
+//   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 
 #ifdef HAVE_CONFIG_H
@@ -15,25 +27,25 @@
 #endif
 
 // ---------------------------------------------------------------------------
-//    ADT-200A INCLUDES 
+//    ADT-200A INCLUDES
 // ---------------------------------------------------------------------------
 
 #include "adt_200a.h"
 
 // ---------------------------------------------------------------------------
-//    GLOBAL DEFINITIONS 
+//    GLOBAL DEFINITIONS
 // ---------------------------------------------------------------------------
 
 // GLOBAL VARS
 
-// static const struct confparams adt_200a_cfg_params[] = 
+// static const struct confparams adt_200a_cfg_params[] =
 // {
 //  { TOKEN_PRODUCT_NAME, "usb_product_name", "USB Product Name", "USB Product Name (DSP Bo
 //    Model + ' Serial '+ ID Code, e.g. 'TRX3C Serial C945D5B' )",
 //    ADT_200A_PRODUCT_NAME, RIG_CONF_STRING, { .n = { 0,0,0 } }
 //  },
-//  
-//  { RIG_CONF_END, NULL, }  
+//
+//  { RIG_CONF_END, NULL, }
 //};
 
 
@@ -41,7 +53,7 @@
 //    ADT-200A HAMLIB CAPS / DESCRIPTION
 // ---------------------------------------------------------------------------
 
-const struct rig_caps adt_200a_caps = 
+const struct rig_caps adt_200a_caps =
 {
     .rig_model          =  RIG_MODEL_ADT_200A,
     .model_name         =  "ADT-200A",
@@ -63,7 +75,7 @@ const struct rig_caps adt_200a_caps =
     .post_write_delay   =  20,
     .timeout            =  250,
     .retry              =  3,
-  
+
     .has_get_func       =  ADT_200A_FUNCS,
     .has_set_func       =  ADT_200A_FUNCS,
     .has_get_level      =  ADT_200A_GET_LEVEL,
@@ -82,45 +94,45 @@ const struct rig_caps adt_200a_caps =
     .targetable_vfo     =  RIG_TARGETABLE_NONE,
     .transceive         =  0,
     .bank_qty           =  1,
-  
+
     .chan_desc_sz     =  ADAT_MEM_DESC_SIZE,
-    .chan_list        =  
-    { 
+    .chan_list        =
+    {
         {   0,  99, RIG_MTYPE_MEM, ADAT_MEM_CAPS },
-        RIG_CHAN_END, 
+        RIG_CHAN_END,
     },
-  
-    .rx_range_list1 =  
+
+    .rx_range_list1 =
     {
         { kHz(10), MHz(30), ADT_200A_MODES, -1, -1, ADT_200A_VFO },
         RIG_FRNG_END,
     },
 
-    .tx_range_list1 =  
+    .tx_range_list1 =
     {
         { kHz(10), MHz(30), ADT_200A_MODES, mW(100), W(50), ADT_200A_VFO },
         RIG_FRNG_END,
     },
 
-    .rx_range_list2 =  
+    .rx_range_list2 =
     {
         { kHz(10), MHz(30), ADT_200A_MODES, -1, -1, ADT_200A_VFO },
         RIG_FRNG_END,
     },
-    
-    .tx_range_list2 =  
+
+    .tx_range_list2 =
     {
         { kHz(10), MHz(30), ADT_200A_MODES, mW(100), W(50), ADT_200A_VFO },
         RIG_FRNG_END,
     },
 
-    .tuning_steps =  
+    .tuning_steps =
     {
         { ADT_200A_MODES, RIG_TS_ANY }, // TODO: get actual list here
         RIG_TS_END,
     },
-  
-    .filters =  
+
+    .filters =
     {
         { RIG_MODE_CW|RIG_MODE_CWR, Hz(50) },
         { RIG_MODE_CW|RIG_MODE_CWR, Hz(75) },
@@ -160,42 +172,42 @@ const struct rig_caps adt_200a_caps =
         { RIG_MODE_FM, Hz(12000) },
         RIG_FLT_END,
     },
-  
+
     // .cfgparams          =  adt_200a_cfg_params,
-  
+
     .rig_init           =  adat_init,
     .rig_cleanup        =  adat_cleanup,
     .rig_open           =  adat_open,
     .reset              =  adat_reset,
-    
+
     .set_conf           =  adat_set_conf,
     .get_conf           =  adat_get_conf,
-    
+
     .set_freq           =  adat_set_freq,
     .get_freq           =  adat_get_freq,
-  
+
     .get_level          =  adat_get_level,
     .set_level          =  adat_set_level,
-    
+
     .set_mode           =  adat_set_mode,
     .get_mode           =  adat_get_mode,
-    
+
     .get_vfo            =  adat_get_vfo,
     .set_vfo            =  adat_set_vfo,
-  
+
     .get_ptt            =  adat_get_ptt,
     .set_ptt            =  adat_set_ptt,
-    
+
     .decode_event       =  adat_handle_event,
-    
+
     .get_info           =  adat_get_info,
-    
+
     .power2mW           =  adat_power2mW,
     .mW2power           =  adat_mW2power,
-    
+
     .get_powerstat      =  adat_get_powerstat
 };
 
 // ---------------------------------------------------------------------------
-//    END OF FILE 
+//    END OF FILE
 // ---------------------------------------------------------------------------

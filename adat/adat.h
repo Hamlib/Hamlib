@@ -3,11 +3,24 @@
 // ---------------------------------------------------------------------------
 //
 //  adat.h
-//  
-//  Created by Frank Goenninger DG1SBG.
-//  Copyright © 2011, 2012 Frank Goenninger. Creative Commons License.
 //
-//  $Header$
+//  Created by Frank Goenninger DG1SBG.
+//  Copyright © 2011, 2012 Frank Goenninger.
+//
+//   This library is free software; you can redistribute it and/or
+//   modify it under the terms of the GNU Lesser General Public
+//   License as published by the Free Software Foundation; either
+//   version 2.1 of the License, or (at your option) any later version.
+//
+//   This library is distributed in the hope that it will be useful,
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//   Lesser General Public License for more details.
+//
+//   You should have received a copy of the GNU Lesser General Public
+//   License along with this library; if not, write to the Free Software
+//   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
 
 #if !defined( __ADAT_INCLUDED__ )
 #define __ADAT_INCLUDED__
@@ -18,13 +31,13 @@
 
 
 // ---------------------------------------------------------------------------
-//    HAMLIB INCLUDES 
+//    HAMLIB INCLUDES
 // ---------------------------------------------------------------------------
 
 #include "hamlib/rig.h"
 
 // ---------------------------------------------------------------------------
-//    GLOBAL DEFINITIONS 
+//    GLOBAL DEFINITIONS
 // ---------------------------------------------------------------------------
 
 #define ADAT_BUFSZ                 256
@@ -92,7 +105,7 @@
 // ADAT_MODE_RNR_... -> The Hamlib number of the mode: RIG_MODE_...
 // ADAT_MODE_ANR_... -> The ADAT Nr representing the mode when setting it
 
-#define ADAT_MODE_STR_CW_R         "CW-R"          
+#define ADAT_MODE_STR_CW_R         "CW-R"
 #define ADAT_MODE_RNR_CW_R         RIG_MODE_CWR
 #define ADAT_MODE_ANR_CW_R         0
 
@@ -138,10 +151,10 @@
 #define ADAT_PWR_LVL_RNR_00            100 // 100 mW
 
 #define ADAT_PWR_LVL_ANR_01              1
-#define ADAT_PWR_LVL_RNR_01            300 // 300 mW  
+#define ADAT_PWR_LVL_RNR_01            300 // 300 mW
 
 #define ADAT_PWR_LVL_ANR_02              2
-#define ADAT_PWR_LVL_RNR_02           1000 // ... 
+#define ADAT_PWR_LVL_RNR_02           1000 // ...
 
 #define ADAT_PWR_LVL_ANR_03              3
 #define ADAT_PWR_LVL_RNR_03           2000
@@ -313,66 +326,66 @@
 // -- ADAT SPECIAL: RECOVER FROM ERROR --
 
 // ---------------------------------------------------------------------------
-//    ADAT PRIVATE DATA 
+//    ADAT PRIVATE DATA
 // ---------------------------------------------------------------------------
 
-typedef struct _adat_priv_data 
+typedef struct _adat_priv_data
 {
     int           nOpCode;
-    
+
     char         *pcProductName; // Future use (USB direct I/O)
-    
+
     // ADAT device info
-    
+
     char         *pcSerialNr;
     char         *pcIDCode;
     char         *pcOptions;
     char         *pcFWVersion;
     char         *pcHWVersion;
     char         *pcGUIFWVersion;
-    
+
     char         *pcCallsign;
-    
+
     // ADAT Operational Settings: will change during TRX use
-    
+
     int           nCurrentVFO;
     vfo_t         nRIGVFONr;
-    
+
 	freq_t        nFreq;
     char          acRXFreq[ ADAT_BUFSZ ];
     char          acTXFreq[ ADAT_BUFSZ ];
-    
+
 	rmode_t       nRIGMode;
     char          acADATMode[ ADAT_MODE_LENGTH + 1 ];
     int           nADATMode;
-    
+
 	pbwidth_t     nWidth;
-    
+
     int           nADATPTTStatus;
     ptt_t         nRIGPTTStatus;
-    
-    
+
+
     value_t       mNB1;
     value_t       mNB2;
-    
+
 	value_t       mAGC;
 	value_t       mRFGain;
 	value_t       mIFShift;
 	value_t       mRawStr;
-    
-    // ADAT Command-related Values 
-    
+
+    // ADAT Command-related Values
+
     char         *pcCmd;
     int           nCmdKind;
-    
+
     char         *pcResult;
     int           nRC;
-    
-} adat_priv_data_t, 
+
+} adat_priv_data_t,
 * adat_priv_data_ptr;
 
 // ---------------------------------------------------------------------------
-//    ADAT CAT COMMAND DATA TYPE DECLARATIONS 
+//    ADAT CAT COMMAND DATA TYPE DECLARATIONS
 // ---------------------------------------------------------------------------
 
 typedef unsigned long long adat_cmd_id_t; // Bit mask for commands. Each command
@@ -380,38 +393,38 @@ typedef unsigned long long adat_cmd_id_t; // Bit mask for commands. Each command
 
 // adat_cmd_def : ADAT COMMAND DEFINITION.
 // Basic idea: Each command can be made of several strings to be sent
-// to the ADAT device. Therefore it is possible to build aggregated 
-// commands which will be executed as a set of individual commands 
+// to the ADAT device. Therefore it is possible to build aggregated
+// commands which will be executed as a set of individual commands
 // executed by adat_transaction(). The last value as returned by the
 // commands will be set as overall command result.
 
-typedef enum 
+typedef enum
 {
     ADAT_CMD_KIND_WITH_RESULT    = 0,  // After sending a command to the ADAT,
     // a result has to be read.
-    ADAT_CMD_KIND_WITHOUT_RESULT = 1 
-    
+    ADAT_CMD_KIND_WITHOUT_RESULT = 1
+
 } adat_cmd_kind_t;
 
 typedef struct _adat_cmd_def_t
 {
     adat_cmd_id_t    nCmdId;        // Bit indicating this cmd
     adat_cmd_kind_t  nCmdKind;      // Defines if result expected
-    
+
     int              (*pfCmdFn)( RIG *pRig ); // Fn to be called to execute this cmd
-    
-    int              nNrCmdStrs;    // Oh my, C as a language ... I'd love to 
+
+    int              nNrCmdStrs;    // Oh my, C as a language ... I'd love to
     // switch to Common Lisp ... What a hack here ...
     char            *pacCmdStrs[];  // Commands to be executed if no CmdFn given
-    
-} adat_cmd_def_t, 
+
+} adat_cmd_def_t,
 * adat_cmd_def_ptr;
 
 typedef struct _adat_cmd_table_t
 {
     int              nNrCmds;
     adat_cmd_def_ptr adat_cmds[];
-    
+
 } adat_cmd_table_t,
 * adat_cmd_table_ptr;
 
@@ -419,19 +432,19 @@ typedef struct _adat_cmd_list_t
 {
     int              nNrCmds;
     adat_cmd_def_ptr adat_cmds[];
-    
+
 } adat_cmd_list_t,
 * adat_cmd_list_ptr;
 
 // ---------------------------------------------------------------------------
-//    OTHER ADAT DATA TYPES 
+//    OTHER ADAT DATA TYPES
 // ---------------------------------------------------------------------------
 
 typedef enum
 {
     ADAT_FREQ_PARSE_MODE_WITH_VFO     = 0,
     ADAT_FREQ_PARSE_MODE_WITHOUT_VFO  = 1
-    
+
 } adat_freq_parse_mode_t;
 
 // ADAT MODE DEFINITION
@@ -441,16 +454,16 @@ typedef struct _adat_mode_def
     char     *pcADATModeStr;
     rmode_t   nRIGMode;
     int       nADATMode;
-    
+
 } adat_mode_def_t,
 * adat_mode_def_ptr;
 
 typedef struct _adat_mode_list
 {
     int nNrModes;
-    
+
     adat_mode_def_t adat_modes[ ADAT_NR_MODES ];
-    
+
 } adat_mode_list_t,
 * adat_mode_list_ptr;
 
@@ -461,21 +474,21 @@ typedef struct _adat_vfo_def
     char     *pcADATVFOStr;
     vfo_t     nRIGVFONr;
     int       nADATVFONr;
-    
+
 } adat_vfo_def_t,
 * adat_vfo_def_ptr;
 
 typedef struct _adat_vfo_list
 {
     int nNrVFOs;
-    
+
     adat_vfo_def_t adat_vfos[ ADAT_NR_VFOS ];
-    
+
 } adat_vfo_list_t,
 * adat_vfo_list_ptr;
 
 // ---------------------------------------------------------------------------
-//    ADAT INTERNAL FUNCTION DECLARATIONS 
+//    ADAT INTERNAL FUNCTION DECLARATIONS
 // ---------------------------------------------------------------------------
 
 // Helper functions
@@ -539,7 +552,7 @@ int adat_cmd_fn_get_ptt( RIG * );
 int adat_cmd_fn_set_ptt( RIG * );
 
 // ---------------------------------------------------------------------------
-//    ADAT FUNCTION DECLARATIONS 
+//    ADAT FUNCTION DECLARATIONS
 // ---------------------------------------------------------------------------
 
 int adat_init( RIG * );
@@ -580,7 +593,7 @@ int adat_get_powerstat( RIG *, powerstat_t * );
 extern const struct rig_caps adt_200a_caps;
 
 // ---------------------------------------------------------------------------
-//    END OF FILE 
+//    END OF FILE
 // ---------------------------------------------------------------------------
 
 #endif
