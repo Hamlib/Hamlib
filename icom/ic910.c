@@ -169,7 +169,7 @@ static int ic910_set_freq(RIG* rig, vfo_t vfo, freq_t freq)
 	if (retval!=RIG_OK) return retval;
     }
 
-    if (compareFrequencies(rig, freq, otherfreq))
+    if (compareFrequencies(rig, freq, otherfreq) == 0)
          icom_swap_bands(rig);
 
     icom_set_vfo(rig, vfo);
