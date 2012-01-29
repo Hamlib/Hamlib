@@ -318,9 +318,6 @@ int dwtdll_cleanup(RIG *rig)
 {
 	struct dwtdll_priv_data *priv = (struct dwtdll_priv_data *)rig->state.priv;
 
-	if (!rig)
-		return -RIG_EINVAL;
-
 	/* Clean up the dll access */
 	FreeLibrary(priv->dll);
 

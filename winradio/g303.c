@@ -254,9 +254,6 @@ int g3_cleanup(RIG *rig)
 {
 	struct g3_priv_data *priv = (struct g3_priv_data *)rig->state.priv;
 
-	if (!rig)
-		return -RIG_EINVAL;
-
 	/* Clean up the dll access */
 	FreeLibrary(priv->dll);
 

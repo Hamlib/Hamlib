@@ -305,9 +305,6 @@ int elektor507_cleanup(RIG *rig)
 {
 	struct elektor507_priv_data *priv = (struct elektor507_priv_data *)rig->state.priv;
 
-	if (!rig)
-		return -RIG_EINVAL;
-
 	/* Clean up the dll access */
 	FreeLibrary(priv->extra_priv.dll);
 

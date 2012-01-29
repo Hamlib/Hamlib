@@ -323,9 +323,6 @@ int ft757_cleanup(RIG *rig)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called.\n", __func__);
 
-    if (!rig)
-        return -RIG_EINVAL;
-
     if (rig->state.priv)
         free(rig->state.priv);
     rig->state.priv = NULL;
@@ -344,9 +341,6 @@ int ft757_open(RIG *rig)
     int retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called.\n", __func__);
-
-    if (!rig)
-        return -RIG_EINVAL;
 
     /* FT757GX has a write-only serial port: don't try to read status data */
     if (rig->caps->rig_model == RIG_MODEL_FT757) {

@@ -114,10 +114,12 @@ int csv_load (RIG *rig, const char *infilename)
       /* Tokenize the key list */
       if( !tokenize_line( keys, key_list, sizeof(key_list)/sizeof(char*), ',' ) ){
          fprintf( stderr, "Invalid (possibly too long or empty) key line, cannot continue.\n" );
+         fclose(f);
          return -1;
       }
    }else{
       /* File exists, but is empty */
+      fclose(f);
       return -1;
    }
 
@@ -136,6 +138,7 @@ int csv_load (RIG *rig, const char *infilename)
 
       if (status != RIG_OK ) {
             fprintf( stderr, "rig_get_channel: error = %s \n", rigerror(status));
+            fclose(f);
             return status;
       }
 
