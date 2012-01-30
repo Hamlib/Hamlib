@@ -113,6 +113,7 @@ const struct rig_caps hiqsdr_caps = {
   .ptt_type =       RIG_PTT_RIG,
   .dcd_type =       RIG_DCD_NONE,
   .port_type =      RIG_PORT_UDP_NETWORK,
+  .timeout =        500,
   .has_get_func =   HIQSDR_FUNC,
   .has_set_func =   HIQSDR_FUNC,
   .has_get_level =  HIQSDR_LEVEL,
@@ -121,26 +122,24 @@ const struct rig_caps hiqsdr_caps = {
   .has_set_parm = 	 RIG_PARM_SET(HIQSDR_PARM),
   .ctcss_list = 	 NULL,
   .dcs_list =   	 NULL,
-  .chan_list = 	 {
-			RIG_CHAN_END,
-		 },
+  .chan_list = 	 { RIG_CHAN_END, },
   .scan_ops = 	 HIQSDR_SCAN,
   .vfo_ops = 	 HIQSDR_VFO_OP,
   .transceive =     RIG_TRN_OFF,
-  .attenuator =     { RIG_DBLST_END, }, // TODO
-  .preamp = 	 { RIG_DBLST_END, },    // TODO
+  .attenuator =     { 2, 4, 6, 10, 20, 30, 44, RIG_DBLST_END }, // -2dB steps in fact
+  .preamp = 	 { 10, RIG_DBLST_END, },    // TODO
 
   .rx_range_list1 =  { {.start=kHz(100),.end=MHz(66),.modes=HIQSDR_MODES,
 		    .low_power=-1,.high_power=-1,HIQSDR_VFO,HIQSDR_ANT},
 		    RIG_FRNG_END, },
   .tx_range_list1 =  { {.start=kHz(100),.end=MHz(66),.modes=HIQSDR_MODES,
-		    .low_power=W(1),.high_power=W(100),HIQSDR_VFO,HIQSDR_ANT},
+		    .low_power=mW(1),.high_power=mW(50),HIQSDR_VFO,HIQSDR_ANT},
 		    RIG_FRNG_END, },
   .rx_range_list2 =  { {.start=kHz(100),.end=MHz(66),.modes=HIQSDR_MODES,
 		    .low_power=-1,.high_power=-1,HIQSDR_VFO,HIQSDR_ANT},
 		    RIG_FRNG_END, },
   .tx_range_list2 =  { {.start=kHz(100),.end=MHz(66),.modes=HIQSDR_MODES,
-		    .low_power=W(1),.high_power=W(100),HIQSDR_VFO,HIQSDR_ANT},
+		    .low_power=mW(1),.high_power=mW(50),HIQSDR_VFO,HIQSDR_ANT},
 		    RIG_FRNG_END, },
   .tuning_steps =  { {HIQSDR_MODES,1}, RIG_TS_END, },
   .filters =      {
@@ -277,12 +276,17 @@ int hiqsdr_init(RIG *rig)
 int hiqsdr_open(RIG *rig)
 {
   struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data*)rig->state.priv;
+#if 0
+  const char buf_send_to_me[] = { 0x72, 0x72 };
+  int ret;
+#endif
 
   rig_debug(RIG_DEBUG_TRACE,"%s called\n", __func__);
 
-
+  /* magic value */
   priv->control_frame[0] = 'S';
   priv->control_frame[1] = 't';
+  /* zero tune phase */
   memset(priv->control_frame+2, 0, 8);
   /* TX output level */
   priv->control_frame[10] = 120;
@@ -291,13 +295,23 @@ int hiqsdr_open(RIG *rig)
   /* decimation: 48 kSpls */
   priv->control_frame[12] = compute_sample_rate(priv);
 
-
+  /* firmware version */
   priv->control_frame[13] = 0x00;
+  /* X1 connector */
   priv->control_frame[14] = 0x00;
+  /* Attenuator */
   priv->control_frame[15] = 0x00;
+  /* AntSwitch */
   priv->control_frame[16] = 0x00;
   /* RFU */
   memset(priv->control_frame+17, 0, 5);
+
+#if 0
+  /* Send the samples to me. FIXME: send to port 48247 */
+  ret = write_block(&rig->state.rigport, buf_send_to_me, sizeof(buf_send_to_me));
+  if (ret != RIG_OK)
+      return RIG_OK;
+#endif
 
   return RIG_OK;
 }
