@@ -122,6 +122,7 @@ int win32_serial_close(int fd);
 int win32_serial_read(int fd, void *b, int size);
 int win32_serial_write(int fd, const char *Str, int length);
 int win32_serial_ioctl(int fd, int request, ... );
+int win32_serial_fcntl(int fd, int command, ...);
 /*
  * lcc winsock.h conflicts
  */
@@ -135,12 +136,14 @@ int win32_serial_select(int, struct fd_set *, struct fd_set *, struct fd_set *, 
 #define READ win32_serial_read
 #define WRITE win32_serial_write
 #define IOCTL win32_serial_ioctl
+#define FCNTL win32_serial_fcntl
 
+#if 0
+/* local functions */
 void termios_interrupt_event_loop( int , int );
 void termios_setflags( int , int[] );
 struct termios_list *find_port( int );
 int usleep(unsigned int usec);
-int fcntl(int fd, int command, ...);
 const char *get_dos_port(const char *);
 void set_errno(int);
 char *sterror(int);
@@ -148,6 +151,8 @@ int B_to_CBR(int);
 int CBR_to_B(int);
 int termios_to_bytesize(int);
 int bytesize_to_termios(int);
+#endif
+
 int tcgetattr(int Fd, struct termios *s_termios);
 int tcsetattr(int Fd, int when, struct termios *);
 speed_t cfgetospeed(struct termios *s_termios);
@@ -165,8 +170,10 @@ int tcsendbreak ( int , int );
 int fstat(int fd, ... );
 */
 void cfmakeraw(struct termios *s_termios);
+#if 0
 int termiosGetParityErrorChar( int );
 void termiosSetParityError( int, char );
+#endif
 
 #define O_NOCTTY	0400	/* not for fcntl */
 #define O_NONBLOCK	 00004

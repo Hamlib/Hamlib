@@ -4,6 +4,10 @@
 
 #if defined(WIN32) && !defined(HAVE_TERMIOS_H)
 
+#ifdef HAVE_UNISTD_H
+#include <unistd.h> /* usleep() */
+#endif
+
 #undef DEBUG
 #undef TRACE
 
@@ -88,6 +92,8 @@ struct termios_list
 };
 struct termios_list *first_tl = NULL;
 
+static struct termios_list *find_port( int );
+
 /*----------------------------------------------------------
 serial_test
 
@@ -122,7 +128,7 @@ int win32_serial_test( char * filename )
 	return(ret);
 }
 
-void termios_setflags( int fd, int termios_flags[] )
+static void termios_setflags( int fd, int termios_flags[] )
 {
 	struct termios_list *index = find_port( fd );
 	int i, result;
@@ -160,6 +166,7 @@ void termios_setflags( int fd, int termios_flags[] )
 	}
 }
 
+#if 0
 /*----------------------------------------------------------
 get_fd()
 
@@ -248,6 +255,7 @@ void dump_termios_list( char *foo )
 	printf( "============== %s end  ===============\n", foo );
 #endif
 }
+#endif
 
 /*----------------------------------------------------------
 set_errno()
@@ -260,7 +268,7 @@ set_errno()
    comments:   FIXME
 ----------------------------------------------------------*/
 
-void set_errno( int error )
+static void set_errno( int error )
 {
 	my_errno = error;
 }
@@ -277,7 +285,7 @@ usleep()
    comments:
 ----------------------------------------------------------*/
 
-void usleep( unsigned long usec )
+static void usleep( unsigned long usec )
 {
 	Sleep( usec/1000 );
 }
@@ -294,7 +302,7 @@ CBR_toB()
    comments:
 ----------------------------------------------------------*/
 
-int CBR_to_B( int Baud )
+static int CBR_to_B( int Baud )
 {
 	ENTER( "CBR_to_B" );
 	switch ( Baud )
@@ -352,7 +360,7 @@ B_to_CBR()
    comments:      None
 ----------------------------------------------------------*/
 
-int B_to_CBR( int Baud )
+static int B_to_CBR( int Baud )
 {
 	int ret;
 	ENTER( "B_to_CBR" );
@@ -414,7 +422,7 @@ bytesize_to_termios()
    comments:
 ----------------------------------------------------------*/
 
-int bytesize_to_termios( int ByteSize )
+static int bytesize_to_termios( int ByteSize )
 {
 	ENTER( "bytesize_to_termios" );
 	switch ( ByteSize )
@@ -438,7 +446,7 @@ termios_to_bytesize()
    comments:
 ----------------------------------------------------------*/
 
-int termios_to_bytesize( int cflag )
+static int termios_to_bytesize( int cflag )
 {
 	ENTER( "termios_to_bytesize" );
 	switch ( cflag & CSIZE )
@@ -463,7 +471,7 @@ get_dos_port()
    comments:
 ----------------------------------------------------------*/
 
-const char *get_dos_port( char const *name )
+static const char *get_dos_port( char const *name )
 {
 	ENTER( "get_dos_port" );
 	if ( !strcmp( name, "/dev/cua0" ) ) return( "COM1" );
@@ -486,7 +494,7 @@ ClearErrors()
    comments:
 ----------------------------------------------------------*/
 
-int ClearErrors( struct termios_list *index, COMSTAT *Stat )
+static int ClearErrors( struct termios_list *index, COMSTAT *Stat )
 {
 	unsigned long ErrCode;
 	int ret;
@@ -545,6 +553,7 @@ int ClearErrors( struct termios_list *index, COMSTAT *Stat )
 	return( ret );
 }
 
+#if 0
 /*----------------------------------------------------------
 FillDCB()
 
@@ -556,7 +565,7 @@ FillDCB()
    comments:
 ----------------------------------------------------------*/
 
-BOOL FillDCB( DCB *dcb, unsigned long *hCommPort, COMMTIMEOUTS Timeout )
+static BOOL FillDCB( DCB *dcb, unsigned long *hCommPort, COMMTIMEOUTS Timeout )
 {
 
 	ENTER( "FillDCB" );
@@ -601,6 +610,7 @@ BOOL FillDCB( DCB *dcb, unsigned long *hCommPort, COMMTIMEOUTS Timeout )
 	LEAVE( "FillDCB" );
 	return ( TRUE ) ;
 }
+#endif
 
 /*----------------------------------------------------------
 serial_close()
@@ -708,7 +718,7 @@ void cfmakeraw( struct termios *s_termios )
 }
 
 /*----------------------------------------------------------
-init_termios()
+init_serial_struct()
 
    accept:
    perform:
@@ -718,7 +728,7 @@ init_termios()
    comments:
 ----------------------------------------------------------*/
 
-BOOL init_serial_struct( struct serial_struct *sstruct )
+static BOOL init_serial_struct( struct serial_struct *sstruct )
 {
 	ENTER( "init_serial_struct" );
 
@@ -779,7 +789,7 @@ init_termios()
    comments:
 ----------------------------------------------------------*/
 
-BOOL init_termios(struct termios *ttyset )
+static BOOL init_termios(struct termios *ttyset )
 {
 	ENTER( "init_termios" );
 	if ( !ttyset )
@@ -820,7 +830,7 @@ port_opened()
    comments:
 ----------------------------------------------------------*/
 
-int port_opened( const char *filename )
+static int port_opened( const char *filename )
 {
 	struct termios_list *index = first_tl;
 
@@ -859,7 +869,7 @@ open_port()
 	structure in Serial_select.
 ----------------------------------------------------------*/
 
-int open_port( struct termios_list *port )
+static int open_port( struct termios_list *port )
 {
 	ENTER( "open_port" );
 	port->hComm = CreateFile( port->filename,
@@ -934,7 +944,7 @@ termios_list()
    comments:
 ----------------------------------------------------------*/
 
-struct termios_list *find_port( int fd )
+static struct termios_list *find_port( int fd )
 {
 
 	char message[80];
@@ -973,7 +983,7 @@ get_free_fd()
    comments:
 ----------------------------------------------------------*/
 
-int get_free_fd()
+static int get_free_fd()
 {
 	int next, last;
 	struct termios_list *index = first_tl;
@@ -1022,7 +1032,7 @@ add_port()
    comments:
 ----------------------------------------------------------*/
 
-struct termios_list *add_port( const char *filename )
+static struct termios_list *add_port( const char *filename )
 {
 	struct termios_list *index = first_tl;
 	struct termios_list *port;
@@ -1114,7 +1124,7 @@ check_port_capabilities()
    comments:
 ----------------------------------------------------------*/
 
-int check_port_capabilities( struct termios_list *index )
+static int check_port_capabilities( struct termios_list *index )
 {
 	COMMPROP cp;
 	DCB	dcb;
@@ -1810,7 +1820,7 @@ termios_to_DCB()
    win32api:     None
    comments:
 ----------------------------------------------------------*/
-int termios_to_DCB( struct termios *s_termios, DCB *dcb )
+static int termios_to_DCB( struct termios *s_termios, DCB *dcb )
 {
 	ENTER( "termios_to_DCB" );
 	s_termios->c_ispeed = s_termios->c_ospeed = s_termios->c_cflag & CBAUD;
@@ -1884,7 +1894,7 @@ DCB_to_termios()
    win32api:     None
    comments:
 ----------------------------------------------------------*/
-void DCB_to_termios( DCB *dcb, struct termios *s_termios )
+static void DCB_to_termios( DCB *dcb, struct termios *s_termios )
 {
 	ENTER( "DCB_to_termios" );
 	s_termios->c_ispeed = CBR_to_B( dcb->BaudRate );
@@ -1903,7 +1913,7 @@ show_DCB()
    win32api:     None
    comments:
 ----------------------------------------------------------*/
-void show_DCB( myDCB )
+static void show_DCB( DCB myDCB )
 {
 
 #ifdef DEBUG_HOSED
@@ -2553,6 +2563,8 @@ int tcflush( int fd, int queue_selector )
 	struct termios_list *index;
 	int old_flag;
 
+	ENTER( "tcflush" );
+
 	index = find_port( fd );
 	if( !index)
 	{
@@ -2566,12 +2578,6 @@ int tcflush( int fd, int queue_selector )
 	SetCommMask( index->hComm, index->event_flag );
 	index->tx_happened = 1;
 */
-	ENTER( "tcflush" );
-	if ( !index )
-	{
-		LEAVE( "tcflush" );
-		return -1;
-	}
 
 	index->tx_happened = 1;
 	switch( queue_selector )
@@ -3116,7 +3122,7 @@ fcntl()
    comments:    FIXME
 ----------------------------------------------------------*/
 
-int fcntl( int fd, int command, ... )
+int win32_serial_fcntl( int fd, int command, ... )
 {
 	int arg, ret = 0;
 	va_list ap;
@@ -3161,6 +3167,7 @@ int fcntl( int fd, int command, ... )
 	return ret;
 }
 
+#if 0
 /*----------------------------------------------------------
 termios_interrupt_event_loop()
 
@@ -3171,7 +3178,7 @@ termios_interrupt_event_loop()
    win32api:
    comments:
 ----------------------------------------------------------*/
-void termios_interrupt_event_loop( int fd, int flag )
+static void termios_interrupt_event_loop( int fd, int flag )
 {
 	struct termios_list * index = find_port( fd );
 	if ( !index )
@@ -3189,6 +3196,7 @@ void termios_interrupt_event_loop( int fd, int flag )
 	index->interrupt = flag;
 	return;
 }
+#endif
 
 /*----------------------------------------------------------
 Serial_select()
@@ -3446,6 +3454,7 @@ fail:
 #endif /* asdf */
 #endif /* __LCC__ */
 
+#if 0
 /*----------------------------------------------------------
 termiosSetParityError()
 
@@ -3457,7 +3466,7 @@ termiosSetParityError()
    comments:    No idea how to do this in Unix  (handle in read?)
 ----------------------------------------------------------*/
 
-int termiosGetParityErrorChar( int fd )
+static int termiosGetParityErrorChar( int fd )
 {
 	struct termios_list *index;
 	DCB	dcb;
@@ -3485,12 +3494,12 @@ termiosSetParityError()
    comments:    No idea how to do this in Unix  (handle in read?)
 ----------------------------------------------------------*/
 
-void termiosSetParityError( int fd, char value )
+static void termiosSetParityError( int fd, char value )
 {
 	DCB	dcb;
 	struct termios_list *index;
 
-	ENTER( "termiosGetParityErrorChar" );
+	ENTER( "termiosSetParityErrorChar" );
 	index = find_port( fd );
 	if ( !index )
 	{
@@ -3500,8 +3509,10 @@ void termiosSetParityError( int fd, char value )
 	GetCommState( index->hComm, &dcb );
 	dcb.ErrorChar = value;
 	SetCommState( index->hComm, &dcb );
-	LEAVE( "termiosGetParityErrorChar" );
+	LEAVE( "termiosSetParityErrorChar" );
 }
+#endif
+
 /*----------------------- END OF LIBRARY -----------------*/
 
 #endif	/* WIN32 */
