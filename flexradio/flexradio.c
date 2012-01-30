@@ -1,6 +1,6 @@
 /*
  *  Hamlib Flexradio backend
- *  Copyright (c) 2003-2007 by Stephane Fillod
+ *  Copyright (c) 2003-2012 by Stephane Fillod
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -39,6 +39,7 @@ DECLARE_INITRIG_BACKEND(flexradio)
 	rig_register(&sdr1k_rig_caps);
 	//rig_register(&sdr1krfe_rig_caps);
 	rig_register(&dttsp_rig_caps);
+	rig_register(&dttsp_udp_rig_caps);
 
 	return RIG_OK;
 }

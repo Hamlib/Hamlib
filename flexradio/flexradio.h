@@ -1,6 +1,6 @@
 /*
  *  Hamlib FLEXRADIO backend - main header
- *  Copyright (c) 2004-2007 by Stephane Fillod
+ *  Copyright (c) 2004-2012 by Stephane Fillod
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -27,5 +27,6 @@
 extern const struct rig_caps sdr1k_rig_caps;
 extern const struct rig_caps sdr1krfe_rig_caps;
 extern const struct rig_caps dttsp_rig_caps;
+extern const struct rig_caps dttsp_udp_rig_caps;
 
 #endif /* _FLEXRADIO_H */

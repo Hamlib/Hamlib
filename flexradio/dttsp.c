@@ -1,6 +1,6 @@
 /*
  *  Hamlib DttSP backend - main file
- *  Copyright (c) 2001-2009 by Stephane Fillod
+ *  Copyright (c) 2001-2012 by Stephane Fillod
  *
  *  Some code derived from DttSP
  *  Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 by Frank Brickle, AB2KT and Bob McGwier, N4HY
@@ -48,9 +48,11 @@
  * 2 interfaces of DttSP are supported: IPC & UDP
  *
  * TODO: Transmit setup
+ *  http://openhpsdr.org/wiki/index.php?title=Ghpsdr
  */
 
 #define DEFAULT_DTTSP_CMD_PATH "/dev/shm/SDRcommands"
+#define DEFAULT_DTTSP_CMD_NET_ADDR "127.0.0.1:19001"
 #define DEFAULT_SAMPLE_RATE 48000
 
 /* DttSP constants */
@@ -75,29 +77,12 @@ struct dttsp_priv_data {
 	int rx_delta_f;
 
     hamlib_port_t meter_port;
-
-#if 0
-    union {
-        /* IPC specific */
-        struct {
-	        /* DttSP meter handle */
-	        int meter_fd;
-        };
-        /* UDP specific RIG_PORT_NETWORK_UDP */
-        struct {
-            unsigned short port;
-            struct sockaddr_in clnt;
-            int clen, flags, sock;
-            char buff[DTTSP_PORT_CLIENT_BUFSIZE];
-            int size, used;
-        };
-#endif
 };
 
-static int dttsp_ipc_init(RIG *rig);
-static int dttsp_ipc_cleanup(RIG *rig);
-static int dttsp_ipc_open(RIG *rig);
-static int dttsp_ipc_close(RIG *rig);
+static int dttsp_init(RIG *rig);
+static int dttsp_cleanup(RIG *rig);
+static int dttsp_open(RIG *rig);
+static int dttsp_close(RIG *rig);
 
 static int dttsp_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int dttsp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
@@ -116,10 +101,14 @@ static int dttsp_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
 
 
 #define TOK_TUNER_MODEL TOKEN_BACKEND(1)
+#define TOK_SAMPLE_RATE TOKEN_BACKEND(2)
 
 const struct confparams dttsp_cfg_params[] = {
 	{ TOK_TUNER_MODEL, "tuner_model", "Tuner model", "Hamlib rig tuner model number",
 		"1" /* RIG_MODEL_DUMMY */, RIG_CONF_NUMERIC, { /* .n = */ { 0, 100000, 1 } }
+	},
+	{ TOK_SAMPLE_RATE, "sample_rate", "Sample rate", "DttSP sample rate in Spls/sec",
+		"48000", RIG_CONF_NUMERIC, { /* .n = */ { 8000, 192000, 1 } }
 	},
 	/*
 	 * TODO: IF_center_freq, etc.
@@ -172,7 +161,7 @@ const struct rig_caps dttsp_rig_caps = {
   .rig_model =      RIG_MODEL_DTTSP,
   .model_name =     "DttSP IPC",
   .mfg_name =       "DTTS Microwave Society",
-  .version =        "0.1",
+  .version =        "0.2",
   .copyright =      "GPL",
   .status =         RIG_STATUS_ALPHA,
   .rig_type =       RIG_TYPE_COMPUTER,
@@ -218,10 +207,87 @@ const struct rig_caps dttsp_rig_caps = {
 
   .priv =  NULL,
 
-  .rig_init =     dttsp_ipc_init,
-  .rig_cleanup =  dttsp_ipc_cleanup,
-  .rig_open =     dttsp_ipc_open,
-  .rig_close =    dttsp_ipc_close,
+  .rig_init =     dttsp_init,
+  .rig_cleanup =  dttsp_cleanup,
+  .rig_open =     dttsp_open,
+  .rig_close =    dttsp_close,
+
+  .cfgparams =	  dttsp_cfg_params,
+  .set_conf =     dttsp_set_conf,
+  .get_conf =     dttsp_get_conf,
+
+  .set_freq =     dttsp_set_freq,
+  .get_freq =     dttsp_get_freq,
+
+  .set_mode =     dttsp_set_mode,
+
+  .set_level =	  dttsp_set_level,
+  .get_level =	  dttsp_get_level,
+
+  .set_func =	  dttsp_set_func,
+
+  .set_rit =	  dttsp_set_rit,
+  .get_rit =	  dttsp_get_rit,
+
+  .set_ant =      dttsp_set_ant,
+};
+
+/*
+ * The same as the previous IPC, but of type RIG_PORT_UDP_NETWORK
+ */
+const struct rig_caps dttsp_udp_rig_caps = {
+  .rig_model =      RIG_MODEL_DTTSP_UDP,
+  .model_name =     "DttSP UDP",
+  .mfg_name =       "DTTS Microwave Society",
+  .version =        "0.2",
+  .copyright =      "GPL",
+  .status =         RIG_STATUS_ALPHA,
+  .rig_type =       RIG_TYPE_COMPUTER,
+  .targetable_vfo = 	 RIG_TARGETABLE_ALL,
+  .ptt_type =       RIG_PTT_RIG,
+  .dcd_type =       RIG_DCD_RIG,
+  .port_type =      RIG_PORT_UDP_NETWORK,
+  .timeout =        500,
+  .has_get_func =   DTTSP_FUNC,
+  .has_set_func =   DTTSP_FUNC,
+  .has_get_level =  DTTSP_LEVEL,
+  .has_set_level =  RIG_LEVEL_SET(DTTSP_LEVEL),
+  .has_get_parm = 	 DTTSP_PARM,
+  .has_set_parm = 	 RIG_PARM_SET(DTTSP_PARM),
+  .ctcss_list = 	 NULL,
+  .dcs_list =   	 NULL,
+  .chan_list = 	 { RIG_CHAN_END, },
+  .scan_ops = 	 DTTSP_SCAN,
+  .vfo_ops = 	 DTTSP_VFO_OP,
+  .transceive =     RIG_TRN_OFF,
+  .attenuator =     { RIG_DBLST_END, },
+  .preamp = 	 { RIG_DBLST_END, },
+  /* In fact, RX and TX ranges are dependant on the tuner */
+  .rx_range_list1 =  { {.start=kHz(150),.end=MHz(1500),.modes=DTTSP_MODES,
+		    .low_power=-1,.high_power=-1,DTTSP_VFO},
+		    RIG_FRNG_END, },
+  .tx_range_list1 =  { RIG_FRNG_END, }, /* TODO */
+  .rx_range_list2 =  { {.start=kHz(150),.end=MHz(1500),.modes=DTTSP_MODES,
+		    .low_power=-1,.high_power=-1,DTTSP_VFO},
+		    RIG_FRNG_END, },
+  .tx_range_list2 =  { RIG_FRNG_END, }, /* TODO */
+  .tuning_steps =  { {DTTSP_MODES,1}, {DTTSP_MODES,RIG_TS_ANY}, RIG_TS_END, },
+  .filters =      {
+		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR, kHz(2.4)},
+		{RIG_MODE_AM|RIG_MODE_DSB|RIG_MODE_SAM, kHz(8)},
+		{RIG_MODE_FM, kHz(15)},
+		{DTTSP_MODES, RIG_FLT_ANY},
+		RIG_FLT_END,
+  },
+
+  .str_cal = DTTSP_REAL_STR_CAL,
+
+  .priv =  NULL,
+
+  .rig_init =     dttsp_init,
+  .rig_cleanup =  dttsp_cleanup,
+  .rig_open =     dttsp_open,
+  .rig_close =    dttsp_close,
 
   .cfgparams =	  dttsp_cfg_params,
   .set_conf =     dttsp_set_conf,
@@ -248,12 +314,7 @@ static int send_command(RIG *rig, const char *cmdstr, size_t buflen)
 {
     int ret;
 
-    if (rig->state.rigport.type.rig == RIG_PORT_NETWORK) {
-        ret = -RIG_ENIMPL;
-    } else {
-        /* IPC */
-        ret = write_block (&rig->state.rigport, cmdstr, buflen);
-    }
+    ret = write_block (&rig->state.rigport, cmdstr, buflen);
 
     return ret;
 }
@@ -264,14 +325,7 @@ static int fetch_meter (RIG *rig, int *label, float *data, int npts)
     int ret, buf_len;
     char buf[sizeof(float)*MAXMETERPTS*MAXRX];
 
-    if (priv->meter_port.type.rig == RIG_PORT_NETWORK) {
-#if 0
-        if (!select(cp->sock + 1, &fds, 0, 0, &tv))
-                         return -1;
-        if (recvfrom(cp->sock, cp->buff, cp->size, cp->flags,
-                                          (struct sockaddr *) &cp->clnt, &cp->clen) <= 0)
-                           return -2;
-#endif
+    if (priv->meter_port.type.rig == RIG_PORT_UDP_NETWORK) {
         buf_len = sizeof(int) + npts * sizeof(float);
 
         ret = read_block(&priv->meter_port, buf, buf_len);
@@ -318,6 +372,9 @@ int dttsp_set_conf(RIG *rig, token_t token, const char *val)
 	case TOK_TUNER_MODEL:
 		priv->tuner_model = atoi(val);
 		break;
+	case TOK_SAMPLE_RATE:
+		priv->sample_rate = atoi(val);
+		break;
 	default:
 		/* if it's not for the dttsp backend, maybe it's for the tuner */
 		if (priv->tuner)
@@ -345,6 +402,9 @@ int dttsp_get_conf(RIG *rig, token_t token, char *val)
 	case TOK_TUNER_MODEL:
 		sprintf(val, "%d", priv->tuner_model);
 		break;
+	case TOK_SAMPLE_RATE:
+		sprintf(val, "%d", priv->sample_rate);
+		break;
 	default:
 		/* if it's not for the dttsp backend, maybe it's for the tuner */
 		if (priv->tuner)
@@ -355,13 +415,13 @@ int dttsp_get_conf(RIG *rig, token_t token, char *val)
 	return RIG_OK;
 }
 
-int dttsp_ipc_init(RIG *rig)
+int dttsp_init(RIG *rig)
 {
   struct dttsp_priv_data *priv;
   const char *cmdpath;
   char *p;
 
-  priv = (struct dttsp_priv_data*)malloc(sizeof(struct dttsp_priv_data));
+  priv = (struct dttsp_priv_data*)calloc(1, sizeof(struct dttsp_priv_data));
   if (!priv)
 	  return -RIG_ENOMEM;
   rig->state.priv = (void*)priv;
@@ -381,7 +441,8 @@ int dttsp_ipc_init(RIG *rig)
 
   cmdpath = getenv ( "SDR_PARMPATH" );
   if (!cmdpath)
-    cmdpath = DEFAULT_DTTSP_CMD_PATH;
+    cmdpath = rig->state.rigport.type.rig == RIG_PORT_UDP_NETWORK ?
+        DEFAULT_DTTSP_CMD_NET_ADDR : DEFAULT_DTTSP_CMD_PATH;
 
   strncpy(rig->state.rigport.pathname, cmdpath, FILPATHLEN - 1);
 
@@ -389,7 +450,7 @@ int dttsp_ipc_init(RIG *rig)
 }
 
 
-int dttsp_ipc_open(RIG *rig)
+int dttsp_open(RIG *rig)
 {
   struct dttsp_priv_data *priv = (struct dttsp_priv_data*)rig->state.priv;
   int ret;
@@ -402,7 +463,8 @@ int dttsp_ipc_open(RIG *rig)
   /*
    * prevent l8ps
    */
-  if (priv->tuner_model == RIG_MODEL_DTTSP) {
+  if (priv->tuner_model == RIG_MODEL_DTTSP ||
+          priv->tuner_model == RIG_MODEL_DTTSP_UDP) {
 	  return -RIG_ECONF;
   }
 
@@ -420,19 +482,32 @@ int dttsp_ipc_open(RIG *rig)
   }
 
   /* open DttSP meter pipe */
+  priv->meter_port.post_write_delay = rig->state.rigport.post_write_delay;
+  priv->meter_port.timeout = rig->state.rigport.timeout;
+  priv->meter_port.retry = rig->state.rigport.retry;
+
   p = getenv ( "SDR_METERPATH" );
   if (!p) {
     meterpath = priv->meter_port.pathname;
 	strncpy(meterpath, rig->state.rigport.pathname, FILPATHLEN - 1);
-  	p = strrchr(meterpath, '/');
-  	strcpy(p+1, "SDRmeter");
-	p = meterpath;
+    if (rig->state.rigport.type.rig == RIG_PORT_UDP_NETWORK) {
+        p = strrchr(meterpath, ':');
+        if (p)
+            strcpy(p+1, "19003");
+        else
+            strcat(meterpath, ":19003");
+        p = meterpath;
+    } else {
+        p = strrchr(meterpath, '/');
+        if (p)
+            strcpy(p+1, "SDRmeter");
+    }
   }
   if (!p) {
 	/* disabled */
 	priv->meter_port.fd = -1;
   } else {
-    priv->meter_port.type.rig = RIG_PORT_DEVICE;
+	priv->meter_port.type.rig = rig->state.rigport.type.rig;
   	ret = port_open(&priv->meter_port);
     if (ret < 0)
         return ret;
@@ -463,7 +538,7 @@ int dttsp_ipc_open(RIG *rig)
 }
 
 
-int dttsp_ipc_close(RIG *rig)
+int dttsp_close(RIG *rig)
 {
   struct dttsp_priv_data *priv = (struct dttsp_priv_data*)rig->state.priv;
 
@@ -475,7 +550,7 @@ int dttsp_ipc_close(RIG *rig)
   return RIG_OK;
 }
 
-int dttsp_ipc_cleanup(RIG *rig)
+int dttsp_cleanup(RIG *rig)
 {
   struct dttsp_priv_data *priv = (struct dttsp_priv_data*)rig->state.priv;
 
@@ -751,7 +826,7 @@ int dttsp_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
 
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 
@@ -759,7 +834,7 @@ int dttsp_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 
