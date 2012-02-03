@@ -31,7 +31,7 @@ DONE
    and avoid duplication.
 
 9. If read from rig takes > "n" seconds, then no longer
-   block on read, just return error. 
+   block on read, just return error.
 
 10. Improve Makefiles (autoconf?)
 
@@ -40,15 +40,15 @@ DONE
 15. Handle retransmissions (no more than n) if timeout (->backends)
 16. Write .spec (rpm) and .deb (debian) package files
 
-17a. Add support for a configurable debug level (none, function calls, 
+17a. Add support for a configurable debug level (none, function calls,
 	packet traces)
 
 17b. In serial.c (and non serial too), use buffered IO instead of read/write,
 	for better performance. Use flushing with fwrite.
 
-18. Get CVS updates mailed to our hamlib-cvs-digest list
+18. Get Git updates mailed to our hamlib-cvs-digest list
 19. specify how to access Reverse modes (CWR, RTTYR). through set_mode?
-22. handle nicely different versions of same rig coming for 
+22. handle nicely different versions of same rig coming for
 	ITU region1/region2 ham band (-> freq ranges in capabilities)
 
 11. Add some scanning routines [ 1.1.2? ]

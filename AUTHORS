@@ -213,44 +213,59 @@ M: Terry Embry, KJ4EED
 M: Jacob Heder
 
 
+[CM108 GPIO PTT]
+M: Andrew Errington, ZL3AME
+
+
 Rotators
 [celestron]
 M: Stephane Fillod, F8CFE
 C: Eric/N3KQX
 
+
 [easycomm]
 M: Luc Langehegermann, LX2GT
 C: Francois Retief
 
+
 [fodtrack]
 M: Luc Langehegermann, LX2GT
+
 
 [amsat/if-100]
 M: Stephane Fillod, F8CFE
 C: Patrick Strasser, OE6PSE
 
+
 [heathkit:HD 1780 Intellirotor]
 M: Rob Frohne, KL7NA
+
 
 [rotorez]
 M: Nate Bargmann, N0NB
 
+
 [spid]
 M: Norvald H. Ryeng, LA6YKA
+
 
 [m2]
 M: Magne Mæhre, LA1BFA
 C: Ron Patterson, W6FM
 
+
 [ars]
 M: Stephane Fillod, F8CFE
 C: Chris Bryant, G3WIE
 
+
 [ts7400]
 M: Øystein Hårberg, LA7LKA
 
+
 [Frontend]
 M: Stephane Fillod, F8CFE
+
 
 [src/locator.c]
 M: Dave Hines, M1CXW
@@ -274,6 +289,7 @@ M: Berndt Josef Wulf, VK5ABN
 M: Stephane Fillod, F8CFE
 C: VB & testing by Darren Hatcher, G0WCW
 C: VB.NET wrapper by Michael Benz
+
 
 [packaging: debian]
 M: Kamal Mostafa, KA6MAL
@@ -342,4 +358,4 @@ Terry Dawson, VK2KTJ, <terry (at) users.sourceforge.net>
 Øystein Hårberg, LA7LKA, <oystein.haarberg (at) netrunner.nu>
 Alexander Sack <pisymbol (at) gmail.com>
 Nirgal Vourgère <contact_hamlib (at) nirgal.com>
-
+Andrew Errington <a.errington (at) lancaster.ac.uk>

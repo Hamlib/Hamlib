@@ -6,10 +6,14 @@ Copyright (C) 2000-2012  Stephane Fillod, and others
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 Version 1.2.15
+	2012-02-02
 	* New models: TT-599 Eagle, IC-RX7, IC-1275, HiQSDR, ADAT ADT-200A,
-		DttSP UDP
+		DttSP UDP, TM-D710
 	* New rotator backends: Celestron (telescope mount)
-	* Fixes and features: K3
+	* Fixes and features: K3, various other rigs
+	* Update LGPL/GPL header boilerplate
+	* Quell various compiler errors
+	* Add CM108 PTT capability
 
 Version 1.2.14
 	2011-08-01
