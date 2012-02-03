@@ -120,7 +120,7 @@ const struct rig_caps fifisdr_caps = {
 	.rig_model = RIG_MODEL_FIFISDR,
 	.model_name = "FiFi-SDR",
 	.mfg_name = "FiFi",
-	.version = "0.4",
+	.version = "0.5",
 	.copyright = "LGPL",
 	.status = RIG_STATUS_BETA,
 

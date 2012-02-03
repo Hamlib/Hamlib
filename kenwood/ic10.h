@@ -22,7 +22,7 @@
 #ifndef _IC10_H
 #define _IC10_H 1
 
-#define IC10_VER	"0.6"
+#define IC10_VER	"0.6.1"
 
 int ic10_cmd_trim (char *data, int data_len);
 int ic10_transaction (RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len);
