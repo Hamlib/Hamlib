@@ -264,10 +264,6 @@ disabled by passing `--without-tcl-binding', `--without-perl-binding',
 and/or '--without-python-binding'.  Note that these bindings are disabled
 by default.
 
-   Some platfroms may have trouble compiling the RPC support (e.g. Mac OS X).
-in such a case, the rpcrig and rpcrot backends may be disabled
-with the `--without-rpc-backends' option.
-
    Building static libraries can be disabled by use of the `--disable-static'
 option.  This will reduce the installed size of Hamlib considerably.
 

@@ -45,8 +45,8 @@ Here is a summary of the supported options:
 .B \-m, --model=id
 Select radio model number. See model list (use 'rigctl -l').
 .sp
-NB: \fBrigctl\fP (or third party software) will use rig model 1901
-when using \fBrpc.rigd\fP or rig model 2 for NET rigctl (rigctld).
+NB: \fBrigctl\fP (or third party software) will use rig model 2
+for NET rigctl (rigctld).
 .TP
 .B \-r, --rig-file=device
 Use \fIdevice\fP as the file name of the port the radio is connected.
@@ -448,14 +448,10 @@ specifying a command terminator for the 'w' command:
 .sp
 $ rigctl -m 229 -r /dev/ttyUSB0 -t';'
 .sp
-Start \fBrigctl\fP using \fBrpc.rigd\fP and setting the frequency and mode:
-.sp
-$ rigctl -m 1901 -r localhost F 7253500 M LSB 0
-.sp
 Connect to a running \fBrigctld\fP with rig model 2 ("NET rigctl") on the
-local host and specifying the TCP port:
+local host and specifying the TCP port, setting frequency and mode:
 .sp
-$ rigctl -m 2 -r localhost:4532
+$ rigctl -m 2 -r localhost:4532 F 7253500 M LSB 0
 .SH DIAGNOSTICS
 The \fB-v\fP, \fB--verbose\fP option allows different levels of diagnostics
 to be output to \fBstderr\fP and correspond to -v for BUG, -vv for ERR,
@@ -486,7 +482,7 @@ Written by Stephane Fillod, Nate Bargmann, and the Hamlib Group
 .PP
 <http://www.hamlib.org>.
 .SH COPYRIGHT
-Copyright \(co 2000-2010 Stephane Fillod
+Copyright \(co 2000-2011 Stephane Fillod
 .br
 Copyright \(co 2010-2012 Nate Bargmann
 .br
@@ -497,5 +493,4 @@ There is NO warranty; not even for MERCHANTABILITY
 or FITNESS FOR A PARTICULAR PURPOSE.
 .SH SEE ALSO
 .BR hamlib (3),
-.BR rpc.rigd (8)
 .BR rigctld(8)

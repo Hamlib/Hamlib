@@ -414,6 +414,7 @@
  *  The RPC backend can be used to connect and send commands to a rig server,
  *  \c rpc.rigd, running on a remote machine. Using this client/server scheme,
  *  several clients can control and monitor the same rig hardware.
+ *  \deprecated
  */
 #define RIG_RPC 19
 #define RIG_BACKEND_RPC "rpcrig"
@@ -555,7 +556,7 @@ typedef int rig_model_t;
 		{ RIG_TENTEC, RIG_BACKEND_TENTEC }, \
 		{ RIG_ALINCO, RIG_BACKEND_ALINCO }, \
 		{ RIG_KACHINA, RIG_BACKEND_KACHINA }, \
-		{ RIG_RPC, RIG_BACKEND_RPC }, \
+		/* { RIG_RPC, RIG_BACKEND_RPC }, */ \
 		{ RIG_TAPR, RIG_BACKEND_TAPR }, \
 		{ RIG_FLEXRADIO, RIG_BACKEND_FLEXRADIO }, \
 		{ RIG_RFT, RIG_BACKEND_RFT }, \

@@ -45,8 +45,8 @@ Here is s summary of the supported options:
 .B \-m, --model=id
 Select rotator model number. See model list (use 'rotctl -l').
 .sp
-NB: \fBrotctl\fP (or third party software) will use rig model 1901
-when using \fBrpc.rotd\fP or rig model 2 for NET rotctl (rotctld).
+NB: \fBrotctl\fP (or third party software) will use rig model 2
+for NET rotctl (rotctld).
 .TP
 .B \-r, --rot-file=device
 Use \fIdevice\fP as the file name of the port the rotator is connected.
@@ -241,9 +241,9 @@ Start \fBrotctl\fP using \fBrpc.rotd\fP and querying the position:
 $ rotctl -m 101 -r localhost \\get_pos
 .sp
 Connect to a running \fBrotctld\fP with rotor model 2 ("NET rotctl") on the
-local host and specifying the TCP port:
+local host and specifying the TCP port, and querying the position:
 .sp
-$ rotctl -m 2 -r localhost:4533
+$ rotctl -m 2 -r localhost:4533 \\get_pos
 .SH DIAGNOSTICS
 The \fB-v\fP, \fB--version\fP option allows different levels of diagnostics
 to be output to \fBstderr\fP and correspond to -v for BUG, -vv for ERR,
@@ -273,7 +273,7 @@ Written by Stephane Fillod, Nate Bargmann, and the Hamlib Group
 .PP
 <http://www.hamlib.org>.
 .SH COPYRIGHT
-Copyright \(co 2000-2010 Stephane Fillod
+Copyright \(co 2000-2011 Stephane Fillod
 .br
 Copyright \(co 2011-2012 Nate Bargmann
 .br
@@ -284,6 +284,5 @@ There is NO warranty; not even for MERCHANTABILITY
 or FITNESS FOR A PARTICULAR PURPOSE.
 .SH SEE ALSO
 .BR hamlib (3),
-.BR rpc.rotd (8)
 .BR rotctld (8)
 

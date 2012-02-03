@@ -11,7 +11,7 @@ dnl Please do not use '-' in the version number, as package managers will fail,
 dnl however, the use of '~' should be fine as apt (others?) will treat
 dnl it as an earlier version than the actual release.  TNX KA6MAL
 dnl PACKAGE_NAME + " " + PACKAGE_VERSION must not exceed 20 chars!
-AC_INIT([Hamlib],[1.2.15~rc1],[hamlib-developer@lists.sourceforge.net],[hamlib],[http://www.hamlib.org])
+AC_INIT([Hamlib],[3.0~git],[hamlib-developer@lists.sourceforge.net],[hamlib],[http://www.hamlib.org])
 AC_CONFIG_SRCDIR([include/hamlib/rig.h])
 AC_CONFIG_MACRO_DIR([macros])
 
@@ -26,7 +26,7 @@ AM_MAINTAINER_MODE
 ## ------------------------------- ##
 ## Hamlib  specific configuration. ##
 ## ------------------------------- ##
-ABI_VERSION=2
+ABI_VERSION=3
 
 dnl Pick up the Hamlib macros.
 AM_ACLOCAL_INCLUDE([macros])
@@ -74,7 +74,7 @@ dnl Checks for header files.
 AC_HEADER_DIRENT
 AC_HEADER_STDC
 AC_CHECK_HEADERS([alloca.h argz.h malloc.h memory.h string.h strings.h])
-AC_CHECK_HEADERS([stdlib.h values.h rpc/rpc.h rpc/rpcent.h net/errno.h])
+AC_CHECK_HEADERS([stdlib.h values.h net/errno.h])
 AC_CHECK_HEADERS([fcntl.h sys/ioctl.h sys/time.h sys/param.h unistd.h getopt.h errno.h])
 AC_CHECK_HEADERS([sys/ioccom.h sgtty.h term.h termio.h termios.h])
 AC_CHECK_HEADERS([linux/ppdev.h linux/parport.h linux/ioctl.h linux/hidraw.h])
@@ -415,37 +415,18 @@ else
 fi
 AC_MSG_RESULT($cf_with_libusb)
 
-# prepare backend dependencies before adding rpcrig and rpcrot dirs
+# prepare backend dependencies
 # otherwise parallel 'make -jn' will fail
 for be in ${BACKEND_LIST} ; do
 	BACKENDEPS="${BACKENDEPS} \$(top_builddir)/${be}/hamlib-${be}.la"
 done
 
-# prepare backend dependencies before adding rpcrig and rpcrot dirs
+# prepare backend dependencies
 # otherwise parallel 'make -jn' will fail
 for be in ${ROT_BACKEND_LIST} ; do
     ROT_BACKENDEPS="${ROT_BACKENDEPS} \$(top_builddir)/${be}/hamlib-${be}.la"
 done
 
-
-AC_CHECK_PROG(cf_with_rpcgen, rpcgen, [yes], [no])
-AC_MSG_CHECKING(whether to build rpc backends)
-# RPCRig must be the last one added to BACKEND_LIST
-# because it links against other backends (build order)
-if test "${ac_cv_header_rpc_rpc_h}" = "yes" -a "${cf_with_rpcgen}" = "yes"; then
-	cf_with_rpc=yes
-else
-	cf_with_rpc=no
-fi
-AC_ARG_WITH(rpc-backends,
-        [  --without-rpc-backends   do not build rpcrig and rpcrot backends],
-        [cf_with_rpc_backends=$withval],
-        [cf_with_rpc_backends=$cf_with_rpc])
-AC_MSG_RESULT($cf_with_rpc_backends)
-if test "${cf_with_rpc_backends}" = "yes"; then
-    BACKEND_LIST="$BACKEND_LIST rpcrig"
-    ROT_BACKEND_LIST="$ROT_BACKEND_LIST rpcrot"
-fi
 
 # dlopen force or preopen self for static version ?
 BACKENDLNK="-dlopen force"
@@ -525,8 +506,6 @@ gs232a/Makefile
 heathkit/Makefile
 spid/Makefile
 sartek/Makefile
-rpcrig/Makefile
-rpcrot/Makefile
 src/Makefile
 c++/Makefile
 bindings/Makefile

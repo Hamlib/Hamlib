@@ -87,7 +87,6 @@ Optional, but highly recommended for a complete build:
 * libxml2 devel                     # xml2-config --version
 * libgd2 devel                      # gdlib-config --version
 * libusb devel                      # libusb-config --version (not 1.0.0!)
-* RPC devel (libc-dev)              # rpcgen --version
 
 N.B  The libusb package is required for building most of the 'kit' backend.
 The older version is needed, not 1.0.0 or higher.  Debian and derivatives
@@ -179,8 +178,6 @@ yaesu,etc:          rig backends
 easycomm,rotorez,
 sartek, etc:        rotator backends
 dummy:              virtual dummy rig and rotator, for developer's use.
-rpcrig:             special networked rig backend (through RPC)
-rpcrot:             special networked rotator backend (through RPC)
 lib:                library for functions missing on your system
 libltdl:            wrapper for shared module loader
 bindings            Perl, Python, Tcl, and Visual Basic bindings

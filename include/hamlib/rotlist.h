@@ -76,6 +76,7 @@
  *  The RPC backend can be used to connect and send commands to a rotator server,
  *  \c rpc.rotd, running on a remote machine. Using this client/server scheme,
  *  several clients can control and monitor the same rotator hardware.
+ *  \deprecated
  */
 #define ROT_RPC 1
 #define ROT_BACKEND_RPC "rpcrot"
@@ -290,7 +291,7 @@ typedef int rot_model_t;
  */
 #define ROT_BACKEND_LIST {		\
         { ROT_DUMMY, ROT_BACKEND_DUMMY }, \
-        { ROT_RPC, ROT_BACKEND_RPC }, \
+        /* { ROT_RPC, ROT_BACKEND_RPC }, */ \
         { ROT_EASYCOMM, ROT_BACKEND_EASYCOMM }, \
         { ROT_FODTRACK, ROT_BACKEND_FODTRACK }, \
         { ROT_ROTOREZ, ROT_BACKEND_ROTOREZ }, \
