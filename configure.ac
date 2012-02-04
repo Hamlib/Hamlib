@@ -1,7 +1,9 @@
 ## Process this file with autoconf to create configure. -*- autoconf -*-
 
-## FIXME: Is this really new enough? ##
-AC_PREREQ(2.59)
+dnl Autoconf 2.67 is in Debian Squeeze--is an older version needed
+dnl for some other distribution?
+## FIXME: Is this too new? ##
+AC_PREREQ(2.67)
 
 
 ## ------------------------ ##
@@ -18,7 +20,9 @@ AC_CONFIG_MACRO_DIR([macros])
 ## ------------------------ ##
 ## Automake Initialisation. ##
 ## ------------------------ ##
-AM_INIT_AUTOMAKE(AC_PACKAGE_TARNAME, AC_PACKAGE_VERSION, -)
+dnl Passing AC_PACKAGE_TARNAME, AC_PACKAGE_VERSION to AM_INIT_AUTOMAKE is
+dnl obsolete as these values are obtained from the AC_INIT macro.
+AM_INIT_AUTOMAKE([-Wall])
 AC_CONFIG_HEADERS([include/config.h])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 AM_MAINTAINER_MODE
@@ -92,7 +96,8 @@ fi
 
 AC_SYS_POSIX_TERMIOS()
 
-INCLUDES="${INCLUDES} -I\$(top_srcdir)/include -I\$(top_srcdir)/src -I\$(top_srcdir)/lib"
+# Add Hamlib header include paths
+AM_CPPFLAGS="${AM_CPPFLAGS} -I\$(top_srcdir)/include -I\$(top_srcdir)/src -I\$(top_srcdir)/lib"
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_SIZE_T
@@ -184,7 +189,7 @@ AC_SUBST(LIBLTDL)
 
 case "$host_os" in
 freebsd*)
-	INCLUDES="-I/usr/local/include ${INCLUDES}"
+	AM_CPPFLAGS="-I/usr/local/include ${AM_CPPFLAGS}"
 	AM_LDFLAGS="${AM_LDFLAGS} -L/usr/local/lib"
 	AC_SUBST([AM_LDFLAGS])
 	;;
@@ -470,7 +475,7 @@ AC_SUBST(BINDING_UNINSTALL)
 AC_SUBST(BINDING_LIST)
 AC_SUBST(BINDING_LIB_TARGETS)
 
-AC_SUBST(INCLUDES)
+AC_SUBST(AM_CPPFLAGS)
 
 AC_CONFIG_FILES([Makefile
 macros/Makefile
@@ -543,7 +548,6 @@ echo \
 	Enable WinRadio		${cf_with_winradio}
 	Enable USRP		${cf_with_usrp}
 	Enable USB backends	${cf_with_libusb}
-	Enable RPC backends	${cf_with_rpc_backends}
 	Enable shared libs	${enable_shared}
 	Enable static libs	${enable_static}
 

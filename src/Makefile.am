@@ -1,4 +1,4 @@
-INCLUDES = @INCLUDES@ @INCLTDL@
+AM_CPPFLAGS = @AM_CPPFLAGS@ @INCLTDL@
 RIGSRC = rig.c serial.c misc.c register.c event.c cal.c conf.c tones.c \
 		rotator.c locator.c rot_reg.c rot_conf.c iofunc.c ext.c \
 		mem.c settings.c parallel.c usb_port.c debug.c network.c \

@@ -3,8 +3,7 @@
 # more information on swig at http://www.swig.org
 #
 
-#INCLUDES = @INCLUDES@ -Dbool=char -I@PERL_INC_DIR@ @TCL_INCLUDE_SPEC@ -I$(top_srcdir)/bindings
-INCLUDES = @INCLUDES@ -I$(top_srcdir)/bindings @TCL_INCLUDE_SPEC@ @PYTHON_CPPFLAGS@
+AM_CPPFLAGS = @AM_CPPFLAGS@ -I$(top_srcdir)/bindings @TCL_INCLUDE_SPEC@ @PYTHON_CPPFLAGS@
 
 SWGFILES = hamlib.swg ignore.swg rig.swg rotator.swg
 
@@ -16,6 +15,7 @@ BUILT_SOURCES=
 MOSTLYCLEANFILES=
 
 AM_CFLAGS = -fno-strict-aliasing
+
 ##########################################
 # Perl binding
 
@@ -96,7 +96,7 @@ check-tcl: all-tcl
 install-tcl:
 clean-tcl:
 distclean-tcl: clean-tcl
-uninstall-tcl: 
+uninstall-tcl:
 
 endif
 
@@ -137,7 +137,7 @@ hamlibpy_wrap.c: hamlib.swg $(SWGDEP)
 install-py:
 clean-py:
 distclean-py:
-uninstall-py: 
+uninstall-py:
 
 ##########################################
 lib_LTLIBRARIES = $(tcl_ltlib)
