@@ -20,7 +20,7 @@ AM_CFLAGS = -fno-strict-aliasing
 # Perl binding
 
 hamlibperl_wrap.c: hamlib.swg $(SWIGDEP)
-	$(SWIG) -perl5 -shadow @INCLUDES@ -I$(top_srcdir)/bindings -o $@ \
+	$(SWIG) -perl5 -shadow @AM_CPPFLAGS@ -I$(top_srcdir)/bindings -o $@ \
 			`test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
 
 Hamlib-pl.mk: $(srcdir)/Makefile.PL
@@ -28,7 +28,7 @@ Hamlib-pl.mk: $(srcdir)/Makefile.PL
 	perl `test -f Makefile.PL || echo '$(srcdir)/'`Makefile.PL \
 			MAKEFILE="Hamlib-pl.mk" \
 			PREFIX="$(prefix)" \
-			INC="$(INCLUDES)"  \
+			INC="$(AM_CPPFLAGS)"  \
 			CC="$(CC)"  \
 			OBJECT="hamlibperl_wrap.o" \
 			VERSION="$(PACKAGE_VERSION)" \
@@ -85,7 +85,7 @@ pkgIndex.tcl: Makefile
 	echo 'package ifneeded Hamlib $(PKG_VER) [list load [file join $$dir $(DLL)] Hamlib]' > pkgIndex.tcl
 
 hamlibtcl_wrap.c: hamlib.swg $(SWGDEP)
-	$(SWIG) -tcl -pkgversion $(PKG_VER) @INCLUDES@ -I$(top_srcdir)/bindings -o $@ \
+	$(SWIG) -tcl -pkgversion $(PKG_VER) @AM_CPPFLAGS@ -I$(top_srcdir)/bindings -o $@ \
 		`test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
 
 all-tcl: pkgIndex.tcl $(tcl_ltlib)
@@ -131,7 +131,7 @@ BUILT_SOURCES += hamlibpy_wrap.c Hamlib.py
 
 Hamlib.py: hamlibpy_wrap.c
 hamlibpy_wrap.c: hamlib.swg $(SWGDEP)
-	$(SWIG) -python @INCLUDES@ -I$(top_srcdir)/bindings -o $@ \
+	$(SWIG) -python @AM_CPPFLAGS@ -I$(top_srcdir)/bindings -o $@ \
 		`test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
 
 install-py:
