@@ -38,7 +38,9 @@ else
 	exit $EX_NOINPUT
 fi
 
-RELEASE=`/usr/bin/awk 'BEGIN{FS="["; RS="]"} /\[1\./ {print $2}' ./configure.ac`
+# FIXME: Determine RELEASE only from AC_INIT line to avoid any other similar
+# values and avoid hard coded version number.
+RELEASE=`/usr/bin/awk 'BEGIN{FS="["; RS="]"} /\[3\./ {print $2}' ./configure.ac`
 INST_DIR=`pwd`/mingw-inst
 ZIP_DIR=`pwd`/hamlib-VB.NET-${RELEASE}
 LIBUSB_WIN32_BIN_PATH=${BUILD_DIR}/${LIBUSB_VER}
