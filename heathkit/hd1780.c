@@ -81,8 +81,8 @@ const struct rot_caps hd1780_rot_caps = {
   .timeout =            60000,
   .retry =              0,
 
-  .min_az = 	        0,
-  .max_az =  	        360,
+  .min_az = 	        -180,
+  .max_az =  	        180,
   .min_el = 	        0,
   .max_el =  	        0,
 
@@ -165,7 +165,7 @@ static int hd1780_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t elev
   if (!rot)
     return -RIG_EINVAL;
 
-  if (azimuth < 0 || azimuth > 360)
+  if ((azimuth - 180 < hd1780_rot_caps.min_az) || (azimuth - 180 > hd1780_rot_caps.max_az))
     return -RIG_EINVAL;
 
 
