@@ -2675,9 +2675,9 @@ adat_priv_data_ptr adat_new_priv_data( RIG *pRig )
     }
 
     rig_debug( RIG_DEBUG_TRACE,
-              "*** ADAT: %d %s (%s:%d): EXIT. Return Value = 0x%x\n",
+              "*** ADAT: %d %s (%s:%d): EXIT. RC = %d, pPriv = 0x%x\n",
               gFnLevel, __func__, __FILE__, __LINE__,
-              pPriv );
+              nRC, pPriv );
     gFnLevel--;
 
     return pPriv;
@@ -2754,8 +2754,9 @@ void adat_del_priv_data( adat_priv_data_t **ppPriv )
     }
 
     rig_debug( RIG_DEBUG_TRACE,
-              "*** ADAT: %d %s (%s:%d): EXIT.\n",
-              gFnLevel, __func__, __FILE__, __LINE__);
+              "*** ADAT: %d %s (%s:%d): EXIT. RC = %d.\n",
+              gFnLevel, __func__, __FILE__, __LINE__,
+              nRC );
     gFnLevel--;
 
     return;
