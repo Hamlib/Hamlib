@@ -101,66 +101,67 @@ int main (int argc, char *argv[])
 
 		switch(c) {
 			case 'h':
-					usage();
-					exit(0);
+				usage();
+				exit(0);
 			case 'V':
-					version();
-					exit(0);
+				version();
+				exit(0);
 			case 'm':
-					if (!optarg) {
-							usage();	/* wrong arg count */
-							exit(1);
-					}
-					my_model = atoi(optarg);
-					break;
-			case 'r':
-					if (!optarg) {
-							usage();	/* wrong arg count */
-							exit(1);
-					}
-					rot_file = optarg;
-					break;
-			case 's':
-					if (!optarg) {
-							usage();	/* wrong arg count */
-							exit(1);
-					}
-					serial_rate = atoi(optarg);
-					break;
-			case 'C':
-					if (!optarg) {
-							usage();	/* wrong arg count */
-							exit(1);
-					}
-					if (*conf_parms != '\0')
-							strcat(conf_parms, ",");
-					strncat(conf_parms, optarg, MAXCONFLEN-strlen(conf_parms));
-					break;
-			case 't':
-					if (!optarg) {
-						usage();        /* wrong arg count */
-						exit(1);
-					}
-					if (strlen(optarg) > 1)
-						send_cmd_term = strtol(optarg, NULL, 0);
-					else
-						send_cmd_term = optarg[0];
-					break;
-			case 'v':
-					verbose++;
-					break;
-			case 'L':
-					show_conf++;
-					break;
-			case 'l':
-					list_models();
-					exit(0);
-			case 'u':
-					dump_caps_opt++;
-					break;
-			default:
-					usage();	/* unknown option? */
+				if (!optarg) {
+					usage();	/* wrong arg count */
 					exit(1);
+				}
+				my_model = atoi(optarg);
+				break;
+			case 'r':
+				if (!optarg) {
+					usage();	/* wrong arg count */
+					exit(1);
+				}
+				rot_file = optarg;
+				break;
+			case 's':
+				if (!optarg) {
+					usage();	/* wrong arg count */
+					exit(1);
+				}
+				serial_rate = atoi(optarg);
+				break;
+			case 'C':
+				if (!optarg) {
+					usage();	/* wrong arg count */
+					exit(1);
+				}
+				if (*conf_parms != '\0')
+					strcat(conf_parms, ",");
+				strncat(conf_parms, optarg, MAXCONFLEN-strlen(conf_parms));
+				break;
+			case 't':
+				if (!optarg) {
+					usage();        /* wrong arg count */
+					exit(1);
+				}
+				if (strlen(optarg) > 1)
+					send_cmd_term = strtol(optarg, NULL, 0);
+				else
+					send_cmd_term = optarg[0];
+				break;
+			case 'v':
+				verbose++;
+				break;
+			case 'L':
+				show_conf++;
+				break;
+			case 'l':
+				rig_set_debug(0);
+				list_models();
+				exit(0);
+			case 'u':
+				dump_caps_opt++;
+				break;
+			default:
+				usage();	/* unknown option? */
+				exit(1);
 		}
 	}
 
@@ -247,21 +248,21 @@ int main (int argc, char *argv[])
 void usage()
 {
 	printf("Usage: rotctl [OPTION]... [COMMAND]...\n"
-	   "Send COMMANDs to a connected antenna rotator.\n\n");
+		"Send COMMANDs to a connected antenna rotator.\n\n");
 
 
 	printf(
-	"  -m, --model=ID             select rotator model number. See model list\n"
-	"  -r, --rot-file=DEVICE      set device of the rotator to operate on\n"
-	"  -s, --serial-speed=BAUD    set serial speed of the serial port\n"
-	"  -t, --send-cmd-term=CHAR   set send_cmd command termination char\n"
-	"  -C, --set-conf=PARM=VAL    set config parameters\n"
-	"  -L, --show-conf            list all config parameters\n"
-	"  -l, --list                 list all model numbers and exit\n"
-    "  -u, --dump-caps            dump capabilities and exit\n"
-	"  -v, --verbose              set verbose mode, cumulative\n"
-	"  -h, --help                 display this help and exit\n"
-	"  -V, --version              output version information and exit\n\n"
+		"  -m, --model=ID             select rotator model number. See model list\n"
+		"  -r, --rot-file=DEVICE      set device of the rotator to operate on\n"
+		"  -s, --serial-speed=BAUD    set serial speed of the serial port\n"
+		"  -t, --send-cmd-term=CHAR   set send_cmd command termination char\n"
+		"  -C, --set-conf=PARM=VAL    set config parameters\n"
+		"  -L, --show-conf            list all config parameters\n"
+		"  -l, --list                 list all model numbers and exit\n"
+		"  -u, --dump-caps            dump capabilities and exit\n"
+		"  -v, --verbose              set verbose mode, cumulative\n"
+		"  -h, --help                 display this help and exit\n"
+		"  -V, --version              output version information and exit\n\n"
 		);
 
 	usage_rot(stdout);
