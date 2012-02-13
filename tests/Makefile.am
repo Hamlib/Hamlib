@@ -19,7 +19,7 @@ rotctld_SOURCES = rotctld.c rotctl_parse.c dumpcaps_rot.c
 rigswr_SOURCES = rigswr.c
 rigsmtr_SOURCES = rigsmtr.c
 rigmem_SOURCES = rigmem.c memsave.c memload.c memcsv.c sprintflst.c
-noinst_HEADERS = sprintflst.h rigctl_parse.h rotctl_parse.h
+noinst_HEADERS = sprintflst.h rigctl_parse.h rotctl_parse.h uthash.h
 
 EXTRA_PROGRAMS = rigmatrix rigctld rotctld
 

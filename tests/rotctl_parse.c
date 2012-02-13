@@ -40,6 +40,9 @@
 
 #include "rotctl_parse.h"
 
+/* Hash table implementation See:  http://uthash.sourceforge.net/ */
+#include "uthash.h"
+
 #ifdef HAVE_PTHREAD
 #include <pthread.h>
 
@@ -149,6 +152,64 @@ struct test_table *find_cmd_entry(int cmd)
 
 	return &test_list[i];
 }
+
+/* Structure for hash table provided by uthash.h
+ *
+ * Structure and hash funtions patterned after/copied from example.c
+ * distributed with the uthash package. See:  http://uthash.sourceforge.net/
+ */
+struct mod_lst
+{
+	int id;			/* caps->rot_model This is the hash key */
+	char mfg_name[32];	/* caps->mfg_name */
+	char model_name[32];	/* caps->model_name */
+	char version[32];	/* caps->version */
+	char status[32];	/* caps->status */
+	UT_hash_handle hh;	/* makes this structure hashable */
+};
+
+/* Hash declaration.  Must be initialized to NULL */
+struct mod_lst *models = NULL;
+
+/* Add model information to the hash */
+void hash_add_model(int id, const char *mfg_name, const char *model_name,
+                     const char *version, const char *status)
+{
+	struct mod_lst *s;
+
+	s = (struct mod_lst*)malloc(sizeof(struct mod_lst));
+
+	s->id = id;
+	snprintf(s->mfg_name, sizeof(s->mfg_name), "%s", mfg_name);
+	snprintf(s->model_name, sizeof(s->model_name), "%s", model_name);
+	snprintf(s->version, sizeof(s->version), "%s", version);
+	snprintf(s->status, sizeof(s->status), "%s", status);
+
+	HASH_ADD_INT(models, id, s);	/* id: name of key field */
+}
+
+/* Hash sorting functions */
+int hash_model_id_sort(struct mod_lst *a, struct mod_lst *b)
+{
+	return (a->id - b->id);
+}
+
+void hash_sort_by_model_id()
+{
+    HASH_SORT(models, hash_model_id_sort);
+}
+
+/* Delete hash */
+void hash_delete_all() {
+	struct mod_lst *current_model, *tmp;
+
+	HASH_ITER(hh, models, current_model, tmp) {
+		HASH_DEL(models, current_model);	/* delete it (models advances to next) */
+		free(current_model);			/* free it */
+	}
+}
+
+
 /*
  * TODO: use Lex?
  */
@@ -524,11 +585,22 @@ int print_conf_list(const struct confparams *cfp, rig_ptr_t data)
 	return 1;  /* != 0, we want them all ! */
 }
 
-static int print_model_list(const struct rot_caps *caps, void *data)
+static int hash_model_list(const struct rot_caps *caps, void *data)
 {
-	printf("%-8d%-16s%-25s%-10s%s\n", caps->rot_model, caps->mfg_name,
-			caps->model_name, caps->version, rig_strstatus(caps->status));
+
+	hash_add_model(caps->rot_model, caps->mfg_name, caps->model_name,
+	               caps->version, rig_strstatus(caps->status));
 	return 1;  /* !=0, we want them all ! */
+}
+
+void print_model_list()
+{
+	struct mod_lst *s;
+
+	for (s = models; s != NULL; s = (struct mod_lst *)(s->hh.next)) {
+		printf("%6d  %-23s%-24s%-16s%s\n", s->id, s->mfg_name,
+		       s->model_name, s->version, s->status);
+	}
 }
 
 void list_models()
@@ -537,12 +609,16 @@ void list_models()
 
 	rot_load_all_backends();
 
-	printf("Rot#    Mfg             Model                    Vers.\n");
-	status = rot_list_foreach(print_model_list, NULL);
+	printf(" Rig #  Mfg                    Model                   Version         Status\n");
+	status = rot_list_foreach(hash_model_list, NULL);
 	if (status != RIG_OK ) {
 		printf("rot_list_foreach: error = %s \n", rigerror(status));
 		exit(2);
 	}
+
+	hash_sort_by_model_id();
+	print_model_list();
+	hash_delete_all();
 }
 
 
