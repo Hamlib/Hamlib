@@ -68,21 +68,6 @@
 #define ROT_MODEL_NETROTCTL ROT_MAKE_MODEL(ROT_DUMMY, 2)
 
 	/*
-	 * RPC Network pseudo-backend
-	 */
-/*! \def ROT_MODEL_RPC
- *  \brief A macro that returns the model number of the RPC Network pseudo-backend.
- *
- *  The RPC backend can be used to connect and send commands to a rotator server,
- *  \c rpc.rotd, running on a remote machine. Using this client/server scheme,
- *  several clients can control and monitor the same rotator hardware.
- *  \deprecated
- */
-#define ROT_RPC 1
-#define ROT_BACKEND_RPC "rpcrot"
-#define ROT_MODEL_RPC ROT_MAKE_MODEL(ROT_RPC, 1)
-
-	/*
 	 * Easycomm
 	 */
 /*! \def ROT_MODEL_EASYCOMM1

@@ -408,18 +408,6 @@
 #define RIG_MODEL_505DSP RIG_MAKE_MODEL(RIG_KACHINA, 1)
 
 
-/*! \def RIG_MODEL_RPC
- *  \brief A macro that returns the model number of the RPC Network pseudo-backend.
- *
- *  The RPC backend can be used to connect and send commands to a rig server,
- *  \c rpc.rigd, running on a remote machine. Using this client/server scheme,
- *  several clients can control and monitor the same rig hardware.
- *  \deprecated
- */
-#define RIG_RPC 19
-#define RIG_BACKEND_RPC "rpcrig"
-#define RIG_MODEL_RPC RIG_MAKE_MODEL(RIG_RPC, 1)
-
 	/*
 	 * Gnuradio backend
 	 */

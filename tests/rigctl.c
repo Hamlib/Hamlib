@@ -124,36 +124,36 @@ int main (int argc, char *argv[])
 				exit(0);
 			case 'm':
 				if (!optarg) {
-						usage();	/* wrong arg count */
-						exit(1);
+					usage();	/* wrong arg count */
+					exit(1);
 				}
 				my_model = atoi(optarg);
 				break;
 			case 'r':
 				if (!optarg) {
-						usage();	/* wrong arg count */
-						exit(1);
+					usage();	/* wrong arg count */
+					exit(1);
 				}
 				rig_file = optarg;
 				break;
 			case 'p':
 				if (!optarg) {
-						usage();	/* wrong arg count */
-						exit(1);
+					usage();	/* wrong arg count */
+					exit(1);
 				}
 				ptt_file = optarg;
 				break;
 			case 'd':
 				if (!optarg) {
-						usage();	/* wrong arg count */
-						exit(1);
+					usage();	/* wrong arg count */
+					exit(1);
 				}
 				dcd_file = optarg;
 				break;
 			case 'P':
 				if (!optarg) {
-						usage();	/* wrong arg count */
-						exit(1);
+					usage();	/* wrong arg count */
+					exit(1);
 				}
 				if (!strcmp(optarg, "RIG"))
 					ptt_type = RIG_PTT_RIG;
@@ -172,8 +172,8 @@ int main (int argc, char *argv[])
 				break;
 			case 'D':
 				if (!optarg) {
-						usage();	/* wrong arg count */
-						exit(1);
+					usage();	/* wrong arg count */
+					exit(1);
 				}
 				if (!strcmp(optarg, "RIG"))
 					dcd_type = RIG_DCD_RIG;
@@ -194,8 +194,8 @@ int main (int argc, char *argv[])
 				break;
 			case 'c':
 				if (!optarg) {
-						usage();	/* wrong arg count */
-						exit(1);
+					usage();	/* wrong arg count */
+					exit(1);
 				}
 				civaddr = optarg;
 				break;
@@ -211,18 +211,18 @@ int main (int argc, char *argv[])
 				break;
 			case 's':
 				if (!optarg) {
-						usage();	/* wrong arg count */
-						exit(1);
+					usage();	/* wrong arg count */
+					exit(1);
 				}
 				serial_rate = atoi(optarg);
 				break;
 			case 'C':
 				if (!optarg) {
-						usage();	/* wrong arg count */
-						exit(1);
+					usage();	/* wrong arg count */
+					exit(1);
 				}
 				if (*conf_parms != '\0')
-						strcat(conf_parms, ",");
+					strcat(conf_parms, ",");
 				strncat(conf_parms, optarg, MAXCONFLEN-strlen(conf_parms));
 				break;
 			case 'o':
@@ -235,6 +235,7 @@ int main (int argc, char *argv[])
 				show_conf++;
 				break;
 			case 'l':
+				rig_set_debug(verbose);
 				list_models();
 				exit(0);
 			case 'u':
