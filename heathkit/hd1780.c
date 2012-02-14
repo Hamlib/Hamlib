@@ -165,10 +165,10 @@ static int hd1780_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t elev
   if (!rot)
     return -RIG_EINVAL;
 
-  if ((azimuth - 180 < hd1780_rot_caps.min_az) || (azimuth - 180 > hd1780_rot_caps.max_az))
+  if (azimuth < hd1780_rot_caps.min_az || azimuth > hd1780_rot_caps.max_az)
     return -RIG_EINVAL;
 
-
+  if(azimuth < 0) azimuth = azimuth + 360;
   sprintf(cmdstr, "%03.0f", azimuth);    /* Target bearing */
   err = hd1780_send_priv_cmd(rot, cmdstr);
   if (err != RIG_OK)
@@ -177,7 +177,6 @@ static int hd1780_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t elev
   err = hd1780_send_priv_cmd(rot, execstr); /* Execute command */
   if (err != RIG_OK)
     return err;
-
 /* We need to look for the <CR> +<LF> to signify that everything finished.  The HD 1780
  * sends a <CR> when it is finished rotating.
  */
