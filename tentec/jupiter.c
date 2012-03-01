@@ -1,6 +1,6 @@
 /*
  *  Hamlib TenTenc backend - TT-538 description
- *  Copyright (c) 2003-2005 by Stephane Fillod
+ *  Copyright (c) 2003-2012 by Stephane Fillod, Martin Ewing
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -17,6 +17,12 @@
  *   License along with this library; if not, write to the Free Software
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
+ */
+
+/* Extended and corrected by Martin Ewing AA6E 2/2012
+ * This backend tested with firmware v 1.330.
+ * Firmware version >=1.18 is probably required.
+ * Reference: Jupiter Model 538 Programmer's Reference Guide Rev. 1.1
  */
 
 #ifdef HAVE_CONFIG_H
@@ -43,20 +49,19 @@ struct tt538_priv_data {
 
 #define TT538_FUNCS (RIG_FUNC_NR|RIG_FUNC_ANF)
 
-#define TT538_LEVELS_OLD (RIG_LEVEL_RAWSTR|/*RIG_LEVEL_NB|*/ \
-				RIG_LEVEL_RF|RIG_LEVEL_IF| \
+#define TT538_LEVELS (RIG_LEVEL_RAWSTR| \
+				/*RIG_LEVEL_NB|RIG_LEVEL_NR|RIG_LEVEL_ANF| */ \
+				RIG_LEVEL_SQL| \
+				RIG_LEVEL_RF| \
 				RIG_LEVEL_AF|RIG_LEVEL_AGC| \
-				RIG_LEVEL_SQL|RIG_LEVEL_ATT)
-
-#define TT538_LEVELS (RIG_LEVEL_RAWSTR|/*RIG_LEVEL_NB|*/ \
-				RIG_LEVEL_SQL|/*RIG_LEVEL_IF|*/ \
-				RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD| \
-				RIG_LEVEL_RF|RIG_LEVEL_NR| \
-				/*RIG_LEVEL_ANF|*/RIG_LEVEL_MICGAIN| \
-				RIG_LEVEL_AF|RIG_LEVEL_AGC| \
-				RIG_LEVEL_VOXGAIN|RIG_LEVEL_VOX| \
-				RIG_LEVEL_COMP|/*RIG_LEVEL_PREAMP|*/ \
 				RIG_LEVEL_SWR|RIG_LEVEL_ATT)
+
+/* Note TT538 supports NB, NR, and AN levels -- to be implemented */
+
+#define TT538_LEVELS_SET (RIG_LEVEL_SQL|RIG_LEVEL_RF| \
+				/*RIG_LEVEL_NB|RIG_LEVEL_NR|RIG_LEVEL_ANF| */ \
+				RIG_LEVEL_AF| \
+				RIG_LEVEL_AGC|RIG_LEVEL_ATT)
 
 #define TT538_ANTS (RIG_ANT_1)
 
@@ -83,6 +88,7 @@ static int tt538_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 static int tt538_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 static char which_vfo(const RIG *rig, vfo_t vfo);
 static int tt538_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+static int tt538_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 
 /*
  * tt538 transceiver capabilities.
@@ -91,7 +97,7 @@ static int tt538_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
  *		http://www.rfsquared.com/
  *
  * Only set_freq is supposed to work.
- * This is a skelton.
+ * This is a skelton.v
  */
 const struct rig_caps tt538_caps = {
 .rig_model =  RIG_MODEL_TT538,
@@ -118,7 +124,7 @@ const struct rig_caps tt538_caps = {
 .has_get_func =  TT538_FUNCS,
 .has_set_func =  TT538_FUNCS,
 .has_get_level =  TT538_LEVELS,
-.has_set_level =  RIG_LEVEL_SET(TT538_LEVELS),
+.has_set_level =  TT538_LEVELS_SET,
 .has_get_parm =  TT538_PARMS,
 .has_set_parm =  TT538_PARMS,
 .level_gran =  {},                 /* FIXME: granularity */
@@ -186,6 +192,7 @@ const struct rig_caps tt538_caps = {
 .set_mode =  tt538_set_mode,
 .get_mode =  tt538_get_mode,
 .get_level =  tt538_get_level,
+.set_level = tt538_set_level,
 .set_split_vfo =  tentec2_set_split_vfo,
 .get_split_vfo =  tentec2_get_split_vfo,
 .set_ptt =  tentec2_set_ptt,
@@ -588,7 +595,8 @@ int tt538_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
 	char	sunits[6];
 	float	fwd, refl, sstr;
-	int retval, cmd_len, lvl_len;
+	float 	ratio, swr;
+	int 	retval, cmd_len, lvl_len;
 	unsigned char cmdbuf[16],lvlbuf[32];
 
 
@@ -620,8 +628,12 @@ int tt538_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			return -RIG_EPROTO;
 		}
 		refl = (float) lvlbuf[1];
-
-		val->f = fwd/refl;
+		ratio = refl / fwd;
+		if (ratio > 0.9)
+			swr = 10.0;	/* practical maximum SWR, avoid div by 0 */
+		else
+			swr = 1.0 / (1.0 - ratio);
+		val->f = swr;
 		break;
 
 	case RIG_LEVEL_RAWSTR:
@@ -634,36 +646,13 @@ int tt538_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 					__FUNCTION__, lvlbuf);
 			return -RIG_EPROTO;
 		}
-
-#if 0
-		sprintf((char *) sunits, "%c%c.%c%c",
-			lvlbuf[1], lvlbuf[2], lvlbuf[3], lvlbuf[4]);
-		sscanf(sunits, "%f", &sstr);
-		val->f = sstr;
-printf("%f\n", val->f);
-#endif
-
+		/* Jupiter returns actual S value in 1/100s of an S unit, but
+		Hamlib wants an integer result.  We return S units * 100 to maintain
+		precision. */
 		sprintf(sunits, "%c%c.%c%c",
 			lvlbuf[1], lvlbuf[2], lvlbuf[3], lvlbuf[4]);
 		sscanf(sunits, "%f", &sstr);
-		val->i = (int) sstr;
-
-		break;
-
-	case RIG_LEVEL_RFPOWER:
-
-		/* Get forward power in volts. */
-		lvl_len = 32;
-		retval = tt538_transaction (rig, "?P" EOM, 3, (char *) lvlbuf, &lvl_len);
-		if (retval != RIG_OK)
-			return retval;
-		if (lvlbuf[0] != 'P' || lvl_len != 4) {
-			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
-					__FUNCTION__, lvlbuf);
-			return -RIG_EPROTO;
-		}
-		val->f = 100 * (float) lvlbuf[1] / 0xff;
-
+		val->i = (int) (100 * sstr);
 		break;
 
 	case RIG_LEVEL_AGC:
@@ -680,10 +669,13 @@ printf("%f\n", val->f);
 			return -RIG_EPROTO;
 		}
 
-		switch(lvlbuf[1]) {
-		case '1': val->i=RIG_AGC_SLOW; break;
-		case '2': val->i=RIG_AGC_MEDIUM; break;
-		case '3': val->i=RIG_AGC_FAST; break;
+		switch(lvlbuf[1]&0xf) {
+			/* Prog. Man. claims Jupiter returns '1', '2', and '3', but not so if
+			   AGC was set by program! So look at 2nd hex digit only. */
+			case 1: val->i=RIG_AGC_SLOW; break;
+			case 2: val->i=RIG_AGC_MEDIUM; break;
+			case 3: val->i=RIG_AGC_FAST; break;
+
 		default: return -RIG_EPROTO;
 		}
 		break;
@@ -706,27 +698,6 @@ printf("%f\n", val->f);
 		val->f = (float) lvlbuf[1] / 127;
 		break;
 
-	case RIG_LEVEL_IF:
-#if 0
-NO IF MONITOR??
-		cmd_len = sprintf((char *) cmdbuf, "?R%cP" EOM,
-                                  which_receiver(rig, vfo));
-
-		retval = tt538_transaction (rig, (char *) cmdbuf, cmd_len, (char *) lvlbuf, &lvl_len);
-		if (retval != RIG_OK)
-			return retval;
-
-		if (lvlbuf[1] != 'R' || lvlbuf[3] != 'P' || lvl_len < 5) {
-			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
-					__FUNCTION__, lvlbuf);
-			return -RIG_EPROTO;
-		}
-
-		val->i = atoi(lvlbuf+4);
-#endif
-		val->i = 0;
-		break;
-
 	case RIG_LEVEL_RF:
 
 		cmd_len = sprintf((char *) cmdbuf, "?I" EOM);
@@ -740,7 +711,9 @@ NO IF MONITOR??
 					__FUNCTION__, lvlbuf);
 			return -RIG_EPROTO;
 		}
-
+		/* Note: Any RF gain over "50%" on front panel 
+			returns 1.00 (firmware 1.281) on test rig. 
+			However RF set level seems OK. Firmware problem? -AA6E */
 		val->f = 1 - (float) lvlbuf[1] / 0xff;
 		break;
 
@@ -759,11 +732,6 @@ NO IF MONITOR??
 		val->i = lvlbuf[1];
 		break;
 
-	case RIG_LEVEL_PREAMP:
-		/* Receiver does not contain a preamp */
-		val->i=0;
-		break;
-
 	case RIG_LEVEL_SQL:
 
 		cmd_len = sprintf((char *) cmdbuf, "?H" EOM);
@@ -779,43 +747,6 @@ NO IF MONITOR??
 		val->f = ((float) lvlbuf[1] / 127);
 		break;
 
-	case RIG_LEVEL_MICGAIN:
-
-		lvl_len = 3;
-		retval = tt538_transaction (rig, "?O" EOM, 3, (char *) lvlbuf, &lvl_len);
-		if (retval != RIG_OK)
-			return retval;
-
-		if (lvlbuf[0] != 'O' || lvl_len != 3) {
-			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
-					__FUNCTION__, lvlbuf);
-			return -RIG_EPROTO;
-		}
-
-		val->f = (float) lvlbuf[2] / 0x0f;
-		break;
-
-	case RIG_LEVEL_COMP:
-		/* Query S units signal level. */
-		lvl_len = 32;
-		retval = tt538_transaction (rig, "?S" EOM, 3, (char *) lvlbuf, &lvl_len);
-		if (retval != RIG_OK)
-			return retval;
-
-		if (lvlbuf[0] != 'S' || lvl_len != 6) {
-			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
-					__FUNCTION__, lvlbuf);
-			return -RIG_EPROTO;
-		}
-
-		sprintf((char *) sunits, "%c%c.%c%c",
-			lvlbuf[1], lvlbuf[2], lvlbuf[3], lvlbuf[4]);
-		sscanf(sunits, "%f", &sstr);
-printf("%f\n", sstr);
-		val->f = sstr;
-		break;
-
-
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported level %d\n",
 				__FUNCTION__, level);
@@ -825,3 +756,55 @@ printf("%f\n", sstr);
 	return RIG_OK;
 }
 
+/*
+ * tt538_set_level
+ * Assumes rig!=NULL, val!=NULL
+ */
+int tt538_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+{
+	char	cc, cmdbuf[32];
+	int	cmd_len, retval;
+	
+	switch (level) {
+	
+		case RIG_LEVEL_AGC:
+			switch(val.i) {
+				case RIG_AGC_FAST:   cc = '3'; break;
+				case RIG_AGC_MEDIUM: cc = '2'; break;
+				case RIG_AGC_SLOW:   cc = '1'; break;
+				default: cc = '2';
+			}
+			cmd_len = sprintf(cmdbuf, "*G%c" EOM, cc);
+			printf("*G%c\n", cc);
+			break;
+		
+		case RIG_LEVEL_AF:
+			cmd_len = sprintf(cmdbuf, "*U%c" EOM, (int)(127 * val.f));
+			break;
+	
+		case RIG_LEVEL_RF:
+			cmd_len = sprintf(cmdbuf, "*I%c" EOM, (int)(127 * val.f));
+			break;
+	
+		case RIG_LEVEL_ATT:
+			if (val.i)
+				cc = '1';
+			else
+				cc = '0';
+			cmd_len = sprintf(cmdbuf, "*J%c" EOM, cc);
+			break;
+	
+		case RIG_LEVEL_SQL:
+			cmd_len = sprintf(cmdbuf, "*H%c" EOM, (int)(127 * val.f));
+			break;
+	
+		default:
+			rig_debug(RIG_DEBUG_ERR,"%s: unsupported level %d\n",
+				__FUNCTION__, level);
+			return -RIG_EINVAL;
+	}
+	retval = tt538_transaction (rig, cmdbuf, cmd_len, NULL,NULL);
+	if (retval != RIG_OK)
+		return retval;
+	return RIG_OK;
+}
