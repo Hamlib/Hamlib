@@ -775,7 +775,6 @@ int tt538_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 				default: cc = '2';
 			}
 			cmd_len = sprintf(cmdbuf, "*G%c" EOM, cc);
-			printf("*G%c\n", cc);
 			break;
 		
 		case RIG_LEVEL_AF:
