@@ -95,15 +95,12 @@ static int tt538_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
  *
  * Protocol is documented at
  *		http://www.rfsquared.com/
- *
- * Only set_freq is supposed to work.
- * This is a skelton.v
  */
 const struct rig_caps tt538_caps = {
 .rig_model =  RIG_MODEL_TT538,
 .model_name = "TT-538 Jupiter",
 .mfg_name =  "Ten-Tec",
-.version =  "0.4",
+.version =  "0.6",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,

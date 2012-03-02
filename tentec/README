@@ -1,3 +1,10 @@
+Jupiter (538)
+    (29 February 2012, AA6E)
+    The Jupiter needs current firmware, at least version 1,18.  Earlier
+    firmware apparently had a different command protocol.
+    Most available commands are now implemented, with exception of NB,
+    NR, and AN.
+
 Omni VI (563), VI Plus (564)
     (26 March 2008, AA6E)
     Note that the Omni uses an Icom-style command interface.  The Omni
