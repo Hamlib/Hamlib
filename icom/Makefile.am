@@ -14,4 +14,6 @@ hamlib_icom_la_LDFLAGS = -no-undefined -module -avoid-version
 hamlib_icom_la_LIBADD = $(top_builddir)/lib/libmisc.la \
 			$(top_builddir)/src/libhamlib.la
 
+EXTRA_DIST = README.icom TODO.icom
+
 noinst_HEADERS = frame.h icom.h icom_defs.h optoscan.h

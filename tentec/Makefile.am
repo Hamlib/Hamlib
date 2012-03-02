@@ -7,4 +7,6 @@ hamlib_tentec_la_LDFLAGS = -no-undefined -module -avoid-version
 hamlib_tentec_la_LIBADD = $(top_builddir)/src/libhamlib.la \
 			  $(top_builddir)/lib/libmisc.la
 
+EXTRA_DIST = README
+
 noinst_HEADERS = tentec.h tentec2.h tt550.h orion.h rx331.h
