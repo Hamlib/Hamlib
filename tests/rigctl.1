@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH RIGCTL "1" "January 7, 2012" "Hamlib" "Radio Control Program"
+.TH RIGCTL "1" "March 1, 2012" "Hamlib" "Radio Control Program"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -107,7 +107,13 @@ Set config parameter.  e.g. stop_bits=2
 Use -L option for a list.
 .TP
 .B \-l, --list
-List all model numbers defined in \fBHamlib\fP and exit.
+List all model numbers defined in \fBHamlib\fP and exit.  As of 1.2.15.1
+the list is sorted by model number.
+.sp
+\fBN.B.\fP In Linux the list can be scrolled back using Shift-PageUp/
+Shift-PageDown, or using the scrollbars of a virtual terminal in X or
+the cmd window in Windows.  The output can be piped to 'more' or 'less',
+e.g. 'rigctl -l | more'.
 .TP
 .B \-u, --dump-caps
 Dump capabilities for the radio defined with -m above and exit.
