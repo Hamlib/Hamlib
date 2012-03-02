@@ -9,10 +9,10 @@ If you don't know the number, listrigs can give it to you,
 
     Rig#    Mfg           Model           Vers.
     1       Hamlib        Dummy           0.1
-    1506    Winradio      WR-3500         0.6
+    105     Yaesu         FT-747GX        0.1
     210     Kenwood       TS-870S         0.1
     311     Icom          IC-706MkIIG     0.2
-    105     Yaesu         FT-747GX        0.1
+    1506    Winradio      WR-3500         0.6
     [etc.]
 
 In any case, you are encouraged to check for correct initialization
