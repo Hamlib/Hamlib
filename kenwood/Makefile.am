@@ -14,4 +14,6 @@ hamlib_kenwood_la_SOURCES = $(TSSRCLIST) $(THSRCLIST) $(IC10SRCLIST) \
 hamlib_kenwood_la_LDFLAGS = -no-undefined -module -avoid-version
 hamlib_kenwood_la_LIBADD = $(top_builddir)/src/libhamlib.la @MATH_LIBS@
 
+EXTRA_DIST = README.kenwood README.k2 README.k3
+
 noinst_HEADERS = kenwood.h th.h ic10.h elecraft.h
