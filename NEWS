@@ -7,12 +7,14 @@ Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 
 Version 1.2.15.1
-	2012-03-??
+	2012-03-11
 	* HD-1780 rotor endpoint limit fix
-        * Quell adat compile warnings
-        * Sort rig/rot list output from rig/rotctl (-l) by model #
+	* Quell adat compile warnings
+	* Sort rig/rot list output from rig/rotctl (-l) by model #
 	* TenTec Jupiter (TT538) fixes
 	* Include various backend notes files
+	* Document sorted -l output for <rig|rot>ctl[d]
+	* Updates README.betatester and README.developer
 
 Version 1.2.15
 	2012-02-02
