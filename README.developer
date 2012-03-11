@@ -236,8 +236,8 @@ distributions may differ).
 * Gnu make  (or any modern one, BSD okay)   # make --version
 * autoconf      2.59                        # autoconf --version
 * automake      1.7                         # automake --version
-* libtool       2.2.6b                      # libtool --version
-* libltdl-dev   2.2.6b
+* libtool       2.2.6b+                     # libtool --version
+* libltdl-dev   2.2.6b+
 * Git for connection to hamlib.git.sourceforge.net
 
 N.B. Hamlib requires libtool >= 2.2.6b in compliance with CVE-2009-3736.
@@ -253,7 +253,7 @@ Optional, but highly recommended:
 * libusb devel                      # libusb-config --version (not 1.0.0!)
 * RPC devel (libc-dev)              # rpcgen --version
 
-N.B  The libusb package is required for building most of the 'kit' backend.
+N.B.:  The libusb package is required for building most of the 'kit' backend.
 The older version is needed, not 1.0.0 or higher.  Debian and derivatives
 package libusb 0.1.12 which is what is needed.
 
@@ -283,7 +283,7 @@ versions seen in the previous section (most systems will be fine with the
 default names, only do this if a problem arises).
 
     cd hamlib
-    sh ./autogen.sh --disable-static CFLAGS="-g -O0"
+    sh ./autogen.sh [--disable-static] [CFLAGS=<"-g -O0">]
     make
     make install
 
@@ -291,7 +291,7 @@ If you don't want the build files cluttering the source directories, do the
 following in the same parent directory of hamlib:
 
     mkdir build && cd build
-    sh ../hamlib/autogen.sh  --disable-static CFLAGS="-g -O0"
+    sh ../hamlib/autogen.sh  [--disable-static] [CFLAGS=<"-g -O0">]
     make
     make install
 
