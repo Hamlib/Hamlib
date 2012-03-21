@@ -1,6 +1,6 @@
 /*
  *  Hamlib Kenwood backend - TS950 description
- *  Copyright (c) 2002-2004 by Stephane Fillod
+ *  Copyright (c) 2002-2012 by Stephane Fillod 
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -19,6 +19,11 @@
  *
  */
 
+/*
+ * Edited by Martin Ewing AA6E, March, 2012
+ * The '950 has a relatively small command set.
+ */
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -33,23 +38,23 @@
 #define TS950_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_FM|RIG_MODE_RTTY)
 #define TS950_AM_TX_MODES RIG_MODE_AM
 
-#define TS950_FUNC_ALL (RIG_FUNC_TSQL)
-
-#define TS950_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN)
-
 #define TS950_VFO (RIG_VFO_A|RIG_VFO_B)
+
+#define TS950_GET_LEVEL (RIG_LEVEL_RAWSTR)
 
 #define cmd_trm(rig) ((struct kenwood_priv_caps *)(rig)->caps->priv)->cmdtrm
 static struct kenwood_priv_caps  ts950_priv_caps  = {
 		.cmdtrm =  EOM_KEN,
 };
 
-
 /*
- * ts950sdx rig capabilities.
+ * This backend should work with all models in the TS-950 series (TS-950S, SDX, etc.)
+ * There are minor differences between the SDX and other models, but they are
+ * in commands not implemented here.
  *
- * part of infos comes from .http = //www.kenwood.net/
+ * Reference: TS-950series External Control Instruction Manual (1992)
  */
+ 
 const struct rig_caps ts950sdx_caps = {
 .rig_model =  RIG_MODEL_TS950SDX,
 .model_name = "TS-950SDX",
@@ -72,17 +77,20 @@ const struct rig_caps ts950sdx_caps = {
 .timeout =  200,
 .retry =  3,
 
-.has_get_func =  TS950_FUNC_ALL,
-.has_set_func =  TS950_FUNC_ALL,
-.has_get_level =  TS950_LEVEL_ALL,
-.has_set_level =  RIG_LEVEL_SET(TS950_LEVEL_ALL),
+.has_get_func =  RIG_FUNC_NONE,
+.has_set_func =  RIG_FUNC_NONE, 
+
+.has_get_level =  TS950_GET_LEVEL,
+.has_set_level =  RIG_LEVEL_NONE,
 .has_get_parm =  RIG_PARM_NONE,
-.has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
-.level_gran =  {},                 /* FIXME: granularity */
+.has_set_parm =  RIG_PARM_NONE, 
+
+.level_gran =  {},
 .parm_gran =  {},
 .ctcss_list =  kenwood38_ctcss_list,
 .dcs_list =  NULL,
-.preamp =   { RIG_DBLST_END, },	/* FIXME: preamp list */
+.preamp =   { RIG_DBLST_END, },
+/* atten settings are not available in CAT interface */
 .attenuator =   { 6, 12, 18, RIG_DBLST_END, },
 .max_rit =  kHz(9.99),
 .max_xit =  kHz(9.99),
@@ -160,7 +168,9 @@ const struct rig_caps ts950sdx_caps = {
 .set_xit =  kenwood_set_xit,
 .get_xit =  kenwood_get_xit,
 .set_mode =  kenwood_set_mode,
-.get_mode =  kenwood_get_mode,
+/* 950 can't read mode
+ * .get_mode =  kenwood_get_mode, 
+ */
 .set_vfo =  kenwood_set_vfo,
 .get_vfo =  kenwood_get_vfo_if,
 .set_ctcss_tone =  kenwood_set_ctcss_tone,
@@ -168,11 +178,15 @@ const struct rig_caps ts950sdx_caps = {
 .get_ptt =  kenwood_get_ptt,
 .set_ptt =  kenwood_set_ptt,
 .get_dcd =  kenwood_get_dcd,
-.set_func =  kenwood_set_func,
-.get_func =  kenwood_get_func,
-.set_level =  kenwood_set_level,
+/* Things that the '950 doesn't do ...
+ * .set_func =  kenwood_set_func,
+ * .get_func =  kenwood_get_func,
+ * .set_level =  kenwood_set_level,
+ */
 .get_level =  kenwood_get_level,
-.send_morse =  kenwood_send_morse,
+/* 
+ * .send_morse =  kenwood_send_morse,
+ */
 .vfo_op =  kenwood_vfo_op,
 .set_mem =  kenwood_set_mem,
 .get_mem =  kenwood_get_mem,
@@ -183,3 +197,4 @@ const struct rig_caps ts950sdx_caps = {
 .reset =  kenwood_reset,
 
 };
+
