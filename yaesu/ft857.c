@@ -119,8 +119,17 @@ static const yaesu_cmd_set_t ncmd[] = {
   { 1, { 0x00, 0x00, 0x00, 0x00, 0x00 } }, /* pwr wakeup sequence */
   { 1, { 0x00, 0x00, 0x00, 0x00, 0x0f } }, /* pwr on */
   { 1, { 0x00, 0x00, 0x00, 0x00, 0x8f } }, /* pwr off */
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0xbb } }, /* eeprom read */
 };
 
+enum ft857_digi {
+  FT857_DIGI_RTTY_L = 0,
+  FT857_DIGI_RTTY_U,
+  FT857_DIGI_PSK_L,
+  FT857_DIGI_PSK_U,
+  FT857_DIGI_USER_L,
+  FT857_DIGI_USER_U,
+};
 
 #define FT857_ALL_RX_MODES      (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|\
                                  RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM)
@@ -133,6 +142,8 @@ static const yaesu_cmd_set_t ncmd[] = {
 
 #define FT857_VFO_ALL           (RIG_VFO_A|RIG_VFO_B)
 #define FT857_ANTS              0
+
+static int ft857_send_icmd(RIG *rig, int index, unsigned char *data);
 
 const struct rig_caps ft857_caps = {
   .rig_model = 		RIG_MODEL_FT857,
@@ -372,6 +383,30 @@ static int check_cache_timeout(struct timeval *tv)
   }
 }
 
+static int ft857_read_eeprom(RIG *rig, unsigned short addr, unsigned char *out)
+{
+  struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
+  unsigned char data[YAESU_CMD_LENGTH];
+  int n;
+
+  memcpy(data, (char *)p->pcs[FT857_NATIVE_CAT_EEPROM_READ].nseq, YAESU_CMD_LENGTH);
+
+  data[0] = addr >> 8;
+  data[1] = addr & 0xfe;
+
+  write_block(&rig->state.rigport, (char *) data, YAESU_CMD_LENGTH);
+
+  if ((n = read_block(&rig->state.rigport, (char *) data, 2)) < 0)
+    return n;
+
+  if (n != 2)
+    return -RIG_EIO;
+
+  *out = data[addr % 2];
+
+  return RIG_OK;
+}
+
 static int ft857_get_status(RIG *rig, int status)
 {
   struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
@@ -410,6 +445,13 @@ static int ft857_get_status(RIG *rig, int status)
 
   if (n != len)
     return -RIG_EIO;
+
+  if (status == FT857_NATIVE_CAT_GET_FREQ_MODE_STATUS) {
+    if ((n = ft857_read_eeprom(rig, 0x0078, &p->fm_status[5])) < 0)
+      return n;
+
+    p->fm_status[5] >>= 5;
+  }
 
   gettimeofday(tv, NULL);
 
@@ -475,6 +517,13 @@ int ft857_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
   case 0x0a:
   case 0x8a:
     *mode = RIG_MODE_RTTY;
+    if (p->fm_status[5] == FT857_DIGI_RTTY_U) {
+      *mode = RIG_MODE_RTTYR;
+    } else if (p->fm_status[5] == FT857_DIGI_PSK_U || p->fm_status[5] == FT857_DIGI_USER_U) {
+      *mode = RIG_MODE_PKTUSB;
+    } else if (p->fm_status[5] == FT857_DIGI_PSK_L || p->fm_status[5] == FT857_DIGI_USER_L) {
+      *mode = RIG_MODE_PKTLSB;
+    }
     break;
   case 0x0c:
   case 0x8c:
