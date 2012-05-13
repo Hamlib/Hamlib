@@ -298,7 +298,8 @@ This protocol is primarily used by the \fINET rotctl\fP (rotctl model 2) backend
 which allows applications already written for Hamlib's C API to take advantage
 of \fBrotctld\fP without the need of rewriting application code.  An
 application's user can select rotor model 2 ("NET rotctl") and then set
-rot_pathname to "localhost:4533" or other network host:port.
+rot_pathname to "localhost:4533" or other network host:port (set by the \fI-t\fP
+option above).
 .PP
 \fBExtended Response Protocol\fP
 .PP
@@ -323,7 +324,8 @@ the command was prepended by '+'.
 rules 1 and 2.  Records from rule 3 are only returned when data values must be
 returned to the client.
 .PP
-An example response to a \fI+P\fP command (note the prepended '+'):
+An example response to a \fI+P\fP command  command sent from the shell prompt
+(note the prepended '+'):
 .sp
 $ echo "+P 90 45" | nc -w 1 localhost 4533
 .br
@@ -414,7 +416,8 @@ Start \fBrotctld\fP for RotorEZ using COM2 on Win32:
 $ rotctl -m 401 -r COM2
 .sp
 Connect to the already running \fBrotctld\fP, and set position to
-135.0 degrees azimuth and 30.0 degrees elevation with a 1 second read timeout:
+135.0 degrees azimuth and 30.0 degrees elevation with a 1 second read timeout
+from the shell prompt:
 .sp
 $ echo "\\set_pos 135.0 30.0" | nc -w 1 localhost 4533
 .sp

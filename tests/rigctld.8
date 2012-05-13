@@ -490,7 +490,8 @@ This protocol is primarily used by the \fINET rigctl\fP (rigctl model 2)
 backend which allows applications already written for Hamlib's C API to take
 advantage of \fBrigctld\fP without the need of rewriting application code.  An
 application's user can select rig model 2 ("NET rigctl") and then set
-rig_pathname to "localhost:4532" or other network host:port.
+rig_pathname to "localhost:4532" or other network host:port (set by the \fI-t\fP
+option above).
 .PP
 \fBExtended Response Protocol\fP
 .PP
@@ -516,7 +517,8 @@ the command was prepended by '+'.
 rules 1 and 2.  Lines from rule 3 are only returned when data values must be
 returned to the client.
 .PP
-An example response to a \fI+\\set_mode\fP command (note the prepended '+'):
+An example response to a \fI+\\set_mode\fP command sent from the shell prompt
+(note the prepended '+'):
 .sp
 $ echo "+M USB 2400" | nc -w 1 localhost 4532
 .br
@@ -586,7 +588,7 @@ Or, using the pipe character '|' returns:
 .sp
 get_mode:|Mode: USB|Passband: 2400|RPRT 0
 .sp
-And a \\set_pos command prepended with a '|' returns:
+And a \\set_mode command prepended with a '|' returns:
 .sp
 set_mode: USB 2400|RPRT 0
 .PP
@@ -627,9 +629,13 @@ Start \fBrigctld\fP for an Elecraft K3 using COM2 on Win32:
 $ rigctld -m 229 -r COM2
 .sp
 Connect to the already running \fBrigctld\fP, and set current frequency to
-14.266 MHz with a 1 second read timeout using the default protocol:
+14.266 MHz with a 1 second read timeout using the default protocol from the
+shell prompt:
 .PP
 $ echo "\\set_freq 14266000" | nc -w 1 localhost 4532
+Connect to a running \fBrigctld\fP with \fBrigctl\fP on the local host:
+.PP
+$ rigctl -m2
 .SH DIAGNOSTICS
 The \fB-v\fP, \fB--verbose\fP, option allows different levels of diagnostics
 to be output to \fBstderr\fP and correspond to -v for BUG, -vv for ERR,
