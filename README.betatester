@@ -70,23 +70,24 @@ will be needed.  See 'configure --help' for more information.
 Here is a list of development packages needed for a complete build of the
 library (Debian package names are listed, other distributions may differ):
 
-* Gnu C or any C99 compliant compiler       # gcc --version
-* Gnu make  (or any modern one, BSD okay)   # make --version
-* Git for connection to hamlib.svn.sourceforge.net
+* Gnu C (gcc) or any C99 compliant compiler  # gcc --version
+* Gnu make  (or any modern one, BSD okay)    # make --version
+* libltdl-dev   2.2.6b+
 
 N.B. The Debian and derivatives (Ubuntu and friends) 'build-essentials'
 package will install a number of tools and minimize the number of packages
 that need to be installed manually.
 
 Optional, but highly recommended for a complete build:
-* GNU C++                           # g++ --version
-* swig (for bindings)   1.3.14      # swig -version
+* GNU C++ (g++)                     # g++ --version
+* swig (for bindings) 1.3.14+       # swig -version
 * perl devel                        # h2xs
 * tcl devel                         # tcltk-depends
 * python devel                      # python-config
 * libxml2 devel                     # xml2-config --version
 * libgd2 devel                      # gdlib-config --version
 * libusb devel                      # libusb-config --version (not 1.0.0!)
+* Git for connection to hamlib.git.sourceforge.net
 
 N.B  The libusb package is required for building most of the 'kit' backend.
 The older version is needed, not 1.0.0 or higher.  Debian and derivatives
@@ -102,14 +103,14 @@ Git master branch daily snapshot build:
 Reading the INSTALL file in top directory will explain in more detail how
 to do the following commands.
 
-        ./configure --disable-static --prefix=/usr/local
+        ./configure [--disable-static] [--prefix=</usr/local>]
         make
         make install
 
 The prefix argument is optional.  Convention is that local packages be
 placed in /usr/local away from distribution installed packages  This is the
 default location for the snapshots so it may be disregarded unless you wish
-to install Hamlib elsewhere.  The --disable-static option speeds up
+to install Hamlib elsewhere.  The '--disable-static' option speeds up
 compilation if you don't plan to use static libraries (static libraries are
 usually not needed).
 
