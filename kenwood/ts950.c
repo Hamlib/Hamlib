@@ -1,6 +1,6 @@
 /*
  *  Hamlib Kenwood backend - TS950 description
- *  Copyright (c) 2002-2012 by Stephane Fillod 
+ *  Copyright (c) 2002-2012 by Stephane Fillod
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -52,9 +52,9 @@ static struct kenwood_priv_caps  ts950_priv_caps  = {
  * There are minor differences between the SDX and other models, but they are
  * in commands not implemented here.
  *
- * Reference: TS-950series External Control Instruction Manual (1992)
+ * Reference: TS-950 series External Control Instruction Manual (1992)
  */
- 
+
 const struct rig_caps ts950sdx_caps = {
 .rig_model =  RIG_MODEL_TS950SDX,
 .model_name = "TS-950SDX",
@@ -78,12 +78,12 @@ const struct rig_caps ts950sdx_caps = {
 .retry =  3,
 
 .has_get_func =  RIG_FUNC_NONE,
-.has_set_func =  RIG_FUNC_NONE, 
+.has_set_func =  RIG_FUNC_NONE,
 
 .has_get_level =  TS950_GET_LEVEL,
 .has_set_level =  RIG_LEVEL_NONE,
 .has_get_parm =  RIG_PARM_NONE,
-.has_set_parm =  RIG_PARM_NONE, 
+.has_set_parm =  RIG_PARM_NONE,
 
 .level_gran =  {},
 .parm_gran =  {},
@@ -168,9 +168,7 @@ const struct rig_caps ts950sdx_caps = {
 .set_xit =  kenwood_set_xit,
 .get_xit =  kenwood_get_xit,
 .set_mode =  kenwood_set_mode,
-/* 950 can't read mode
- * .get_mode =  kenwood_get_mode, 
- */
+.get_mode =  kenwood_get_mode_if,
 .set_vfo =  kenwood_set_vfo,
 .get_vfo =  kenwood_get_vfo_if,
 .set_ctcss_tone =  kenwood_set_ctcss_tone,
@@ -184,7 +182,7 @@ const struct rig_caps ts950sdx_caps = {
  * .set_level =  kenwood_set_level,
  */
 .get_level =  kenwood_get_level,
-/* 
+/*
  * .send_morse =  kenwood_send_morse,
  */
 .vfo_op =  kenwood_vfo_op,
