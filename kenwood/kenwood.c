@@ -983,7 +983,8 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 	if (rig->caps->rig_model == RIG_MODEL_TS450S
 		|| rig->caps->rig_model == RIG_MODEL_TS690S
-		|| rig->caps->rig_model == RIG_MODEL_TS850) {
+		|| rig->caps->rig_model == RIG_MODEL_TS850
+		|| rig->caps->rig_model == RIG_MODEL_TS950SDX) {
 
 		err = kenwood_set_filter(rig, width);
 		/* non fatal */
@@ -1087,7 +1088,8 @@ int kenwood_get_mode_if(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 	if (rig->caps->rig_model == RIG_MODEL_TS450S
 		|| rig->caps->rig_model == RIG_MODEL_TS690S
-		|| rig->caps->rig_model == RIG_MODEL_TS850) {
+		|| rig->caps->rig_model == RIG_MODEL_TS850
+		|| rig->caps->rig_model == RIG_MODEL_TS950SDX) {
 
 		err = kenwood_get_filter(rig, width);
 		/* non fatal */
