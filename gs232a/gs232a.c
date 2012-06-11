@@ -1,6 +1,6 @@
 /*
  *  Hamlib Rotator backend - GS-232A
- *  Copyright (c) 2001-2010 by Stephane Fillod
+ *  Copyright (c) 2001-2012 by Stephane Fillod
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -36,8 +36,8 @@
 
 #include "gs232a.h"
 
-#define EOM "\r\n"
-#define REPLY_EOM "\r"
+#define EOM "\r"
+#define REPLY_EOM "\r\n"
 
 #define BUFSZ 64
 
@@ -57,7 +57,7 @@
  *   RIG_REJECTED  -  if a negative acknowledge was received or command not
  *                    recognized by rig.
  */
-int
+static int
 gs232a_transaction (ROT *rot, const char *cmdstr,
 				char *data, size_t data_len)
 {
@@ -240,7 +240,7 @@ const struct rot_caps gs232a_rot_caps = {
   .rot_model =      ROT_MODEL_GS232A,
   .model_name =     "GS-232A",
   .mfg_name =       "Yaesu",
-  .version =        "0.2",
+  .version =        "0.3",
   .copyright = 	    "LGPL",
   .status =         RIG_STATUS_BETA,
   .rot_type =       ROT_TYPE_OTHER,
