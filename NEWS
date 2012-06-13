@@ -6,6 +6,12 @@ Copyright (C) 2000-2012  Stephane Fillod, and others
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 
+Version 1.2.15.2rc1
+	2012-08-01
+	* Read eeprom value for digital mode from FT-857
+	* Clean up TS-950 series commands and read mode using IF command
+	* Fix GS-232A/B rotor command terminations
+
 Version 1.2.15.1
 	2012-03-11
 	* HD-1780 rotor endpoint limit fix
