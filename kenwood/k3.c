@@ -93,7 +93,7 @@ const struct rig_caps k3_caps = {
 	.rig_model =		RIG_MODEL_K3,
 	.model_name =		"K3/KX3",
 	.mfg_name =		"Elecraft",
-	.version =		"20111122",
+	.version =		"20120615",
 	.copyright =		"LGPL",
 	.status =		RIG_STATUS_BETA,
 	.rig_type =		RIG_TYPE_TRANSCEIVER,
@@ -161,6 +161,7 @@ const struct rig_caps k3_caps = {
 		},
 
 	/* mode/filter list, remember: order matters! */
+	/* Values are arbitrary based on common K3 filter options. */
 	.filters =  {
 		{RIG_MODE_SSB, kHz(2.7)},
 		{RIG_MODE_SSB, kHz(2.8)},
@@ -367,6 +368,21 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	 * width string value must be padded with leading '0' to equal four
 	 * characters.
 	 */
+
+	/* passband widths vary by mode so gather lower and upper limits */
+	pbwidth_t pb_nar = rig_passband_narrow(rig, mode);
+	pbwidth_t pb_wid = rig_passband_wide(rig, mode);
+
+	if (width < 0)
+		width = labs(width);
+
+	if (width == RIG_PASSBAND_NORMAL)
+		width = rig_passband_normal(rig, mode);
+	else if (width < pb_nar)
+		width = pb_nar;
+	else if (width > pb_wid)
+		width = pb_wid;
+
 	sprintf(cmd_s, "BW%04ld", width / 10);
 	err = kenwood_simple_cmd(rig, cmd_s);
 	if (err != RIG_OK)
