@@ -104,7 +104,7 @@ const struct rig_caps k2_caps = {
 	.rig_model =		RIG_MODEL_K2,
 	.model_name =		"K2",
 	.mfg_name =		"Elecraft",
-	.version =		"20110603",
+	.version =		"20120615",
 	.copyright =		"LGPL",
 	.status =		RIG_STATUS_BETA,
 	.rig_type =		RIG_TYPE_TRANSCEIVER,
@@ -298,11 +298,17 @@ int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		return -RIG_EINVAL;
 	}
 
+	if (width < 0)
+		width = labs(width);
+
 	/* Step through the filter list looking for the best match
 	 * for the passed in width.  The choice is to select the filter
 	 * that is wide enough for the width without being too narrow
 	 * if possible.
 	 */
+	if (width == RIG_PASSBAND_NORMAL)
+		width = rig_passband_normal(rig, mode);
+
 	if (width > flt->filt_list[0].width || ((flt->filt_list[0].width >= width)
 		&& (width > flt->filt_list[1].width))) {
 		width = flt->filt_list[0].width;
