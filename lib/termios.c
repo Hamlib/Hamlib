@@ -1066,7 +1066,7 @@ static struct termios_list *add_port( const char *filename )
 */
 	port->MSR = 0;
 
-	strcpy(port->filename, filename );
+	strncpy(port->filename, filename, sizeof(port->filename)-1);
 	/* didnt free well? strdup( filename ); */
 	if( ! port->filename )
 		goto fail;
@@ -1182,14 +1182,24 @@ int win32_serial_open( const char *filename, int flags, ... )
 {
 	struct termios_list *index;
 	char message[80];
+	char fullfilename[80];
 
 	ENTER( "serial_open" );
-	if ( port_opened( filename ) )
+
+	fullfilename[sizeof(fullfilename)-1] = '\0';
+	/* according to http://support.microsoft.com/kb/115831
+	 * this is necessary for COM ports larger than COM9 */
+	if (memcmp(filename, "\\\\.\\", 4) != 0)
+		snprintf(fullfilename, sizeof(fullfilename)-1, "\\\\.\\%s", filename);
+	else
+		strncpy(fullfilename, filename, sizeof(fullfilename)-1);
+
+	if ( port_opened( fullfilename ) )
 	{
 		report( "Port is already opened\n" );
 		return( -1 );
 	}
-	index = add_port( filename );
+	index = add_port( fullfilename );
 	if( !index )
 	{
 		report( "serial_open !index\n" );
@@ -1201,7 +1211,7 @@ int win32_serial_open( const char *filename, int flags, ... )
 	if ( open_port( index ) )
 	{
 		sprintf( message, "serial_open():  Invalid Port Reference for %s\n",
-			filename );
+			fullfilename );
 		report( message );
 		win32_serial_close( index->fd );
 		return -1;
