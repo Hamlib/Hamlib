@@ -971,8 +971,15 @@ int getCalLevel( RIG * rig, unsigned char rawAgc, int *dbm )
   assert( NULL != rig );
   assert( NULL != dbm );
 
+  rig_debug( RIG_DEBUG_VERBOSE, "%s: raw AGC %03d\n", __func__, rawAgc );
+ 
   for ( i = 0; i < rig->state.str_cal.size; i++ )
   {
+    *dbm = rig->state.str_cal.table[ i ].val;
+
+    rig_debug( RIG_DEBUG_VERBOSE, "%s: got cal table[ %d ] dBm value %d\n", __func__, i, *dbm);
+
+    /* if the remaining difference in the raw value is negative */
     if ( 0 > ( raw - rig->state.str_cal.table[ i ].raw ) )
     {
       /* calculate step size */
@@ -981,28 +988,61 @@ int getCalLevel( RIG * rig, unsigned char rawAgc, int *dbm )
         step = rig->state.str_cal.table[ i ].val -
 	       rig->state.str_cal.table[ i - 1 ].val;
       }
+      else
+      {
+        step = 20; /* HACK - try and fix mimimum AGC readings */
+      }
 
-      /* interpolate final value */
+      rig_debug( RIG_DEBUG_VERBOSE, "%s: got step size %d\n", __func__, step);
+
+      /* interpolate the final value */
+      *dbm -= step; /* HACK - table seems to be off by one index */
       *dbm += (int) ( ( (double) raw / (double) rig->state.str_cal.table[ i ].raw ) * (double) step );
 
+      rig_debug( RIG_DEBUG_VERBOSE, "%s: interpolated dBm value %d\n", __func__, *dbm);
+
+      /* we're done, stop going through the table */
       break;
     }
     else
     {
+      /* calculate the remaining raw value */
       raw = raw - rig->state.str_cal.table[ i ].raw;
-      *dbm = rig->state.str_cal.table[ i ].val;
+
+      rig_debug( RIG_DEBUG_VERBOSE, "%s: residual raw value %d\n", __func__, raw);
     }
   }
 
-  /* Factor in RFAGC setting */
-  rc = readByte( rig, WORKING, RFGAIN, &v );
+  /* Factor in Attenuator/preamp settings */
+  /* 40 0x028  rxcon 3 bytes  Receiver control register mapping */
+  rc = readByte( rig, WORKING, RXCON, &v );
   if ( RIG_OK == rc )
   {
-    *dbm += ( (int) v * -10 ) + 10;
+    if ( 0x80 & v ) /* byte 1 bit 7  rx_atn        Attenuator enable */
+    {
+      if ( 0xa0 & v )
+      {
+        /* HACK - Settings menu on radio says Atten step is 10 dB, not 20 dB */
+        *dbm += 20; /* byte 1 bit 5  rx_atr        Atten : 0 = 20dB / 1 = 40dB */
+      }
+      else
+      {
+        *dbm += 10; /* byte 1 bit 5  rx_atr        Atten : 0 = 20dB / 1 = 40dB */
+      }
+    }
+
+    if ( 0x10 & v ) /* byte 1 bit 4  rx_pre        Preamplifier enable */
+    {
+      *dbm -= 10;
+    }
+
+    rig_debug( RIG_DEBUG_VERBOSE, "%s: RXCON 0x%02x, adjusted dBm value %d\n", __func__, (int) v, *dbm);
   }
 
   /* Adjust to S9 == 0 scale */
   *dbm += 73; /* S9 == -73 dBm */
+
+  rig_debug( RIG_DEBUG_VERBOSE, "%s: S9 adjusted dBm value %d\n", __func__, *dbm);
 
   return ( rc );
 }
