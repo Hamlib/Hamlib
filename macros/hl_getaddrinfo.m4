@@ -33,7 +33,37 @@ AC_CHECK_TYPES([struct addrinfo],[],[],[
      #endif
   ])
 
-AC_CHECK_FUNCS([getaddrinfo gai_strerror])
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+    #include <sys/types.h>
+    #if HAVE_NETDB_H
+    # include <netdb.h>
+    #endif
+    #ifdef HAVE_SYS_SOCKET_H
+    # include <sys/socket.h>
+    #elif HAVE_WS2TCPIP_H
+    # include <ws2tcpip.h>
+    #endif
+    #include <stddef.h>
+    ]],
+    [[getaddrinfo("", "", NULL, NULL);]])],
+    [ac_cv_func_getaddrinfo=yes
+     AC_DEFINE(HAVE_GETADDRINFO,[1],[Define if getaddrinfo is available])],
+    [ac_cv_func_getaddrinfo=no])
+
+
+AC_CHECK_DECLS([gai_strerror], [], [], [[
+            #include <sys/types.h>
+            #ifdef HAVE_SYS_SOCKET_H
+            #include <sys/socket.h>
+            #endif
+            #ifdef HAVE_NETDB_H
+            #include <netdb.h>
+            #endif
+            #ifdef HAVE_WS2TCPIP_H
+            #include <ws2tcpip.h>
+            #endif
+            #include <stddef.h>
+          ]])
 
 dnl Checks for replacements
 AC_REPLACE_FUNCS([getaddrinfo])
@@ -96,9 +126,9 @@ int getaddrinfo(const char *node, const char *service,
 void freeaddrinfo(struct addrinfo *res);
 #endif
 
-#if !defined(HAVE_GAI_STRERROR) && !defined(gai_strerror)
+#if !defined(HAVE_DECL_GAI_STRERROR) && !defined(gai_strerror)
 const char *gai_strerror(int errcode);
-#endif /* !HAVE_GAI_STRERROR */
+#endif /* !HAVE_DECL_GAI_STRERROR */
 
 #ifdef  __cplusplus
 }
