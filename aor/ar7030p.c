@@ -382,6 +382,10 @@ static int ar7030p_open( RIG * rig )
 
       rig->state.str_cal.table[ i ].val = rig->caps->str_cal.table[ i ].val;
       rig->state.str_cal.table[ i ].raw = (int) v;
+
+      rig_debug( RIG_DEBUG_VERBOSE, "%s: index %d, val %d, raw %d\n", 
+                                    __func__, i, rig->state.str_cal.table[ i ].val, 
+                                                 rig->state.str_cal.table[ i ].raw);
     }
 
     if ( RIG_OK == rc )
