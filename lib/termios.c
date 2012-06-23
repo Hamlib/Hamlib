@@ -67,7 +67,9 @@
 #define SIGIO 0
 
 int my_errno;
+#if 0
 extern int errno;
+#endif
 struct termios_list
 {
 	char filename[80];
@@ -344,8 +346,8 @@ static int CBR_to_B( int Baud )
 		case CBR_3500000:	return( B3500000 );
 		case CBR_4000000:	return( B4000000 );
 		default:
-			set_errno(EINVAL );
-			return -1;
+			/* assume custom baudrate */
+			return( Baud );
 	}
 }
 
@@ -382,12 +384,13 @@ static int B_to_CBR( int Baud )
 		case B9600:	ret = CBR_9600;		break;
 		case B14400:	ret = CBR_14400;	break;
 		case B19200:	ret = CBR_19200;	break;
+		case B28800:	ret = CBR_28800;	break;
 		case B38400:	ret = CBR_38400;	break;
 		case B57600:	ret = CBR_57600;	break;
 		case B115200:	ret = CBR_115200;	break;
 		case B128000:	ret = CBR_128000;	break;
-		case B256000: 	ret = CBR_256000;	break;
 		case B230400:	ret = CBR_230400;	break;
+		case B256000: 	ret = CBR_256000;	break;
 		case B460800:	ret = CBR_460800;	break;
 		case B500000:	ret = CBR_500000;	break;
 		case B576000:	ret = CBR_576000;	break;
@@ -402,10 +405,8 @@ static int B_to_CBR( int Baud )
 		case B4000000:	ret = CBR_4000000;	break;
 
 		default:
-			fprintf( stderr, "B_to_CBR: invalid baudrate: %#o\n",
-				Baud );
-			set_errno( EINVAL );
-			return -1;
+			/* assume custom baudrate */
+			return Baud;
 	}
 	LEAVE( "B_to_CBR" );
 	return ret;
@@ -1353,9 +1354,9 @@ serial_read()
 int win32_serial_read( int fd, void *vb, int size )
 {
 	long start, now;
-	unsigned long nBytes = 0, total = 0, error;
+	unsigned long nBytes = 0, total = 0;
 	/* unsigned long waiting = 0; */
-	int err, vmin;
+	int err;
 	struct termios_list *index;
 	char message[80];
 	COMSTAT stat;
@@ -1385,14 +1386,12 @@ int win32_serial_read( int fd, void *vb, int size )
 
 	if ( index->open_flags & O_NONBLOCK  )
 	{
-		int ret;
-		vmin = 0;
 		/* pull mucho-cpu here? */
 		do {
 #ifdef DEBUG_VERBOSE
 			report( "vmin=0\n" );
 #endif /* DEBUG_VERBOSE */
-			ret = ClearErrors( index, &stat);
+			ClearErrors( index, &stat);
 /*
 			usleep(1000);
 			usleep(50);
@@ -1416,11 +1415,11 @@ int win32_serial_read( int fd, void *vb, int size )
 #ifdef DEBUG_VERBOSE
 		report( "vmin!=0\n" );
 #endif /* DEBUG_VERBOSE */
-		vmin = index->ttyset->c_cc[VMIN];
+		/* vmin = index->ttyset->c_cc[VMIN]; */
 
 		c = clock() + index->ttyset->c_cc[VTIME] * CLOCKS_PER_SEC / 10;
 		do {
-			error = ClearErrors( index, &stat);
+			ClearErrors( index, &stat);
 			usleep(1000);
 		} while ( c > clock() );
 
@@ -1430,7 +1429,7 @@ int win32_serial_read( int fd, void *vb, int size )
 	while ( size > 0 )
 	{
 		nBytes = 0;
-		/* ret = ClearErrors( index, &stat); */
+		/* ClearErrors( index, &stat); */
 
 		index->rol.Offset = index->rol.OffsetHigh = 0;
 		ResetEvent( index->rol.hEvent );
@@ -1557,14 +1556,13 @@ int win32_serial_read( int fd, void *vb, int size )
 	ClearErrors( index, &Stat );
 	if ( index->open_flags & O_NONBLOCK  )
 	{
-		int ret;
 		vmin = 0;
 		/* pull mucho-cpu here? */
 		do {
 #ifdef DEBUG_VERBOSE
 			report( "vmin=0\n" );
 #endif /* DEBUG_VERBOSE */
-			ret = ClearErrors( index, &Stat);
+			ClearErrors( index, &Stat);
 /*
 			usleep(1000);
 			usleep(50);
@@ -1604,7 +1602,7 @@ int win32_serial_read( int fd, void *vb, int size )
 	while ( size > 0 )
 	{
 		nBytes = 0;
-		/* ret = ClearErrors( index, &Stat); */
+		/* ClearErrors( index, &Stat); */
 
 		index->rol.Offset = index->rol.OffsetHigh = 0;
 		ResetEvent( index->rol.hEvent );
@@ -1713,16 +1711,17 @@ int cfsetospeed( struct termios *s_termios, speed_t speed )
 {
 	char message[80];
 	ENTER( "cfsetospeed" );
+	/* clear baudrate */
+	s_termios->c_cflag &= ~CBAUD;
 	if ( speed & ~CBAUD )
 	{
 		sprintf( message, "cfsetospeed: not speed: %#o\n", speed );
 		report( message );
-		return 0;
+		/* continue assuming its a custom baudrate */
+		s_termios->c_cflag |= B38400;  /* use 38400 during custom */
+		s_termios->c_cflag |= CBAUDEX; /* use CBAUDEX for custom */
 	}
-	s_termios->c_ispeed = s_termios->c_ospeed = speed;
-	/* clear baudrate */
-	s_termios->c_cflag &= ~CBAUD;
-	if( speed )
+    else if( speed )
 	{
 		s_termios->c_cflag |= speed;
 	}
@@ -1731,6 +1730,7 @@ int cfsetospeed( struct termios *s_termios, speed_t speed )
 		/* PC blows up with speed 0 handled in Java */
 		s_termios->c_cflag |= B9600;
 	}
+	s_termios->c_ispeed = s_termios->c_ospeed = speed;
 	LEAVE( "cfsetospeed" );
 	return 1;
 }
@@ -1833,7 +1833,8 @@ termios_to_DCB()
 static int termios_to_DCB( struct termios *s_termios, DCB *dcb )
 {
 	ENTER( "termios_to_DCB" );
-	s_termios->c_ispeed = s_termios->c_ospeed = s_termios->c_cflag & CBAUD;
+	if ( !(s_termios->c_cflag & CBAUDEX) )
+		s_termios->c_ispeed = s_termios->c_ospeed = s_termios->c_cflag & CBAUD;
 	dcb->BaudRate        = B_to_CBR( s_termios->c_ispeed );
 	dcb->ByteSize = termios_to_bytesize( s_termios->c_cflag );
 
@@ -2129,7 +2130,6 @@ int tcgetattr( int fd, struct termios *s_termios )
 		s_termios->c_cflag &= ~CSTOPB;
 	}
 
-
 	/* PARENB enable parity bit */
 	s_termios->c_cflag &= ~( PARENB | PARODD | CMSPAR );
 	myDCB.fParity = 1;
@@ -2358,7 +2358,7 @@ int tcsetattr( int fd, int when, struct termios *s_termios )
 	/* FIXME: IMAXBEL: if input buffer full, send bell */
 
 	/* no DTR control in termios? */
-	dcb.fDtrControl     = DTR_CONTROL_ENABLE;
+	dcb.fDtrControl     = DTR_CONTROL_DISABLE;
 	/* no DSR control in termios? */
 	dcb.fOutxDsrFlow    = FALSE;
 	/* DONT ignore rx bytes when DSR is OFF */
@@ -2719,7 +2719,7 @@ int win32_serial_ioctl( int fd, int request, ... )
 {
 	unsigned long dwStatus = 0;
 	va_list ap;
-	int *arg, ret, result, old_flag;
+	int *arg, ret, old_flag;
 	char message[80];
 
 #ifdef TIOCGSERIAL
@@ -2729,8 +2729,6 @@ int win32_serial_ioctl( int fd, int request, ... )
 	COMSTAT Stat;
 
 	struct termios_list *index;
-	struct async_struct *astruct;
-	struct serial_multiport_struct *mstruct;
 #ifdef TIOCGICOUNT
 	struct serial_icounter_struct *sistruct;
 #endif  /* TIOCGICOUNT */
@@ -2895,12 +2893,10 @@ int win32_serial_ioctl( int fd, int request, ... )
 			if ( *arg & TIOCM_RTS )
 			{
 				index->MSR |= TIOCM_RTS;
-				result &= SETRTS;
 			}
 			else
 			{
 				index->MSR &= ~TIOCM_RTS;
-				result &= CLRRTS;
 			}
 			if( EscapeCommFunction( index->hComm,
 				( *arg & TIOCM_RTS ) ? SETRTS : CLRRTS ) )
@@ -3008,15 +3004,8 @@ int win32_serial_ioctl( int fd, int request, ... )
 			return(0);
 			break;
 		case TIOCSERGSTRUCT:
-			astruct = va_arg( ap, struct async_struct * );
-			va_end( ap );
-			return -ENOIOCTLCMD;
 		case TIOCSERGETMULTI:
-			mstruct = va_arg( ap, struct serial_multiport_struct * );
-			va_end( ap );
-			return -ENOIOCTLCMD;
 		case TIOCSERSETMULTI:
-			mstruct = va_arg( ap, struct serial_multiport_struct * );
 			va_end( ap );
 			return -ENOIOCTLCMD;
 		case TIOCMIWAIT:
