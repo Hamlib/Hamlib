@@ -22,6 +22,9 @@
 | This file was taken from rxtx-2.1-7pre16 and adaptated for Hamlib.
 --------------------------------------------------------------------------*/
 
+#ifndef _WIN32TERMIOS_H
+#define _WIN32TERMIOS_H
+
 #ifndef _WIN32S_H_
 #define _WIN32S_H_
 #include <windows.h>
@@ -37,9 +40,8 @@
 #define YACK() \
 { \
 	char *allocTextBuf, message[80]; \
-	unsigned long nChars; \
 	unsigned int errorCode = GetLastError(); \
-	nChars = FormatMessage ( \
+	FormatMessage ( \
 		FORMAT_MESSAGE_ALLOCATE_BUFFER | \
 		FORMAT_MESSAGE_FROM_SYSTEM, \
 		NULL, \
@@ -455,3 +457,5 @@ find a way to get/set buad_base and divisor directly.
 
 
 #define CMSPAR      010000000000  /* mark or space parity */
+
+#endif /* _WIN32TERMIOS_H */
