@@ -122,10 +122,10 @@ void freeaddrinfo(struct addrinfo *res)
 }
 #endif /* !HAVE_GETADDRINFO */
 
-#if !defined(HAVE_GAI_STRERROR) && !defined(gai_strerror)
+#if !defined(HAVE_DECL_GAI_STRERROR) && !defined(gai_strerror)
 const char *gai_strerror(int errcode)
 {
 	return strerror(errcode);
 }
-#endif /* !HAVE_GAI_STRERROR */
+#endif /* !HAVE_DECL_GAI_STRERROR */
 
