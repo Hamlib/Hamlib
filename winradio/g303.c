@@ -76,7 +76,7 @@ typedef struct {
 	DWORD	dwRefClk1;
 	DWORD	dwRefClk2;
 	BYTE	IF1DAC[8];
-} RADIO_INFO __attribute__((packed));
+} __attribute__((packed)) RADIO_INFO;
 /* #pragma pack()       // set back the default packing */
 
 /* Some type definitions needed for dll access */
