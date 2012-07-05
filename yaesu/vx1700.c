@@ -4,7 +4,7 @@
  *  Code based on VX-1700 CAT manual:
  *  http://www.vertexstandard.com/downloadFile.cfm?FileID=3397&FileCatID=135&FileName=VX-1700_CAT_MANUAL_10_14_2008.pdf&FileContentType=application%2Fpdf
  *
- *  WARNING: this manual have two errors
+ *  WARNING: this manual has two errors
  *    1) Status Update Command (10h), U=01 returns  0..199 for channels 1..200
  *    2) Frequency Data (bytes 1--4 of 9-Byte VFO Data Assignment, Status Update
  *       Command (10h), U=02 and U=03) uses bytes 1--3 for frequency, byte 4 is
@@ -100,7 +100,7 @@ struct vx1700_priv_data{
 const struct rig_caps vx1700_caps = {
     .rig_model =  RIG_MODEL_VX1700,
     .model_name =  "VX-1700",
-    .mfg_name =  "Vertex Standart",
+    .mfg_name =  "Vertex Standard",
     .version =  "1.1",
     .copyright =  "LGPL",
     .status =   RIG_STATUS_ALPHA,
