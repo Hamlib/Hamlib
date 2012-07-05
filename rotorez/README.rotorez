@@ -21,7 +21,7 @@ rot_set_position
     *   Values passed for elevation are ignored.  The protocol only supports
         azimuthal positioning
 
-rot_set_position
+rot_get_position
     *   Position reading is returned in whole degrees from 0 to 359.
     *   Not supported by DCU-1/DCU-1X.
 
