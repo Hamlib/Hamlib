@@ -38,6 +38,38 @@
  *  http://www.hiqsdr.org
  */
 
+/* From the hardware file hiqsdr/quisk_hardware.py:
+	# want_udp_status is a 14-byte string with numbers in little-endian order:
+	#	[0:2]		'St'
+	#	[2:6]		Rx tune phase
+	#	[6:10]		Tx tune phase
+	#	[10]		Tx output level 0 to 255
+	#	[11]		Tx control bits:
+	#		0x01	Enable CW transmit
+	#		0x02	Enable all other transmit
+	#		0x04	Use the HiQSDR extended IO pins not present in the 2010 QEX ver 1.0
+	#		0x08	The key is down (software key)
+	#	[12]	Rx control bits
+	#			Second stage decimation less one, 1-39, six bits
+	#	[13]	zero or firmware version number
+	# The above is used for firmware  version 1.0.
+	# Version 1.1 adds eight more bytes for the HiQSDR conntrol ports:
+	#	[14]	X1 connector:  Preselect pins 69, 68, 65, 64; Preamp pin 63, Tx LED pin 57
+	#	[15]	Attenuator pins 84, 83, 82, 81, 80
+	#	[16]	More bits: AntSwitch pin 41 is 0x01
+	#	[17:22] The remaining five bytes are sent as zero.
+	# Version 1.2 uses the same format as 1.1, but adds the "Qs" command (see below).
+	# Version 1.3 adds features needed by the new quisk_vna.py program:
+	#	[17]	This one byte must be zero
+	#	[18:20]	This is vna_count, the number of VNA data points; or zero for normal operation
+	#	[20:22]	These two bytes mmust be zero
+
+# The "Qs" command is a two-byte UDP packet sent to the control port.  It returns the hardware status
+# as the above string, except that the string starts with "Qs" instead of "St".  Do not send the "Qs" command
+# from Quisk, as it interferes with the "St" command.  The "Qs" command is meant to be used from an
+# external program, such as HamLib or a logging program.
+*/
+
 /* HiQSDR constants */
 
 #define REFCLOCK 122880000
@@ -50,7 +82,8 @@ struct hiqsdr_priv_data {
 	split_t split;
 	int sample_rate;
 	double ref_clock;
-    unsigned char control_frame[CTRL_FRAME_LEN];
+	unsigned char control_frame[CTRL_FRAME_LEN];	/* control string sent to the hardware */
+	unsigned char received_frame[CTRL_FRAME_LEN];	/* current control string as received from the hardware */
 };
 
 static int hiqsdr_init(RIG *rig);
@@ -61,10 +94,15 @@ static int hiqsdr_close(RIG *rig);
 static int hiqsdr_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int hiqsdr_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 static int hiqsdr_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
+static int hiqsdr_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
 static int hiqsdr_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
+static int hiqsdr_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq);
 static int hiqsdr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+static int hiqsdr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 static int hiqsdr_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+static int hiqsdr_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 static int hiqsdr_set_ant(RIG *rig, vfo_t vfo, ant_t ant);
+static int hiqsdr_get_ant(RIG *rig, vfo_t vfo, ant_t *ant);
 
 static int hiqsdr_set_conf(RIG *rig, token_t token, const char *val);
 static int hiqsdr_get_conf(RIG *rig, token_t token, char *val);
@@ -105,7 +143,7 @@ const struct rig_caps hiqsdr_caps = {
   .rig_model =      RIG_MODEL_HIQSDR,
   .model_name =     "HiQSDR",
   .mfg_name =       "N2ADR",
-  .version =        "0.1",
+  .version =        "0.2",
   .copyright =      "LGPL",
   .status =         RIG_STATUS_UNTESTED,
   .rig_type =       RIG_TYPE_TUNER,
@@ -163,17 +201,58 @@ const struct rig_caps hiqsdr_caps = {
   .get_freq =     hiqsdr_get_freq,
 
   .set_split_freq = hiqsdr_set_split_freq,
+  .get_split_freq = hiqsdr_get_split_freq,
+
   .set_split_vfo = hiqsdr_set_split_vfo,
+  .get_split_vfo = hiqsdr_get_split_vfo,
 
   .set_mode =     hiqsdr_set_mode,
+  .get_mode =     hiqsdr_get_mode,
 
   .set_ptt =      hiqsdr_set_ptt,
+  .get_ptt =      hiqsdr_get_ptt,
+
   .set_ant =      hiqsdr_set_ant,
+  .get_ant =      hiqsdr_get_ant,
 
   .set_level =	  hiqsdr_set_level,
   .get_level =	  hiqsdr_get_level,
 };
 
+
+static void hiqsdr_discard(RIG *rig)
+{  /* Read the UDP port until no more data remains - limit the number of reads for safety */
+  struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)rig->state.priv;
+  int i, ret, timeout;
+
+  timeout = rig->state.rigport.timeout;		/* save timeout and replace with a smaller value */
+  rig->state.rigport.timeout = 10;
+  for (i = 0; i < 5; i++) {
+    ret = read_block(&rig->state.rigport, (char*)priv->received_frame, CTRL_FRAME_LEN);
+    if (ret < 0)
+      break;
+  }
+  rig->state.rigport.timeout = timeout;
+}
+
+static int hiqsdr_query(RIG *rig)
+{  /* Send a "Qs" command to the hardware to return the current control string */
+  struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)rig->state.priv;
+  int ret;
+
+  hiqsdr_discard(rig);
+  priv->received_frame[0] = 'Q';
+  priv->received_frame[1] = 's';
+  ret = write_block(&rig->state.rigport, (const char*)priv->received_frame, 2);
+  if (ret != RIG_OK)
+    return ret;
+  ret = read_block(&rig->state.rigport, (char*)priv->received_frame, CTRL_FRAME_LEN);
+  if (ret < 0)
+    return ret;
+  else if (ret != CTRL_FRAME_LEN)
+    return -RIG_EPROTO;
+  return RIG_OK;
+}
 
 static int send_command(RIG *rig)
 {
@@ -181,11 +260,8 @@ static int send_command(RIG *rig)
 	int ret;
 
 	ret = write_block(&rig->state.rigport, (const char*)priv->control_frame, CTRL_FRAME_LEN);
-#if 0
-	ret = read_block(&rig->state.rigport, (char*)priv->control_frame, CTRL_FRAME_LEN);
-	if (ret != CTRL_FRAME_LEN)
-		ret = ret < 0 ? ret : -RIG_EPROTO;
-#endif
+	/* All commands send back the current hardware state string */
+	hiqsdr_discard(rig);	/* throw away the response */
 
     return ret;
 }
@@ -368,12 +444,37 @@ int hiqsdr_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
   return ret;
 }
 
+int hiqsdr_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
+{
+  struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)rig->state.priv;
+  uint32_t rxphase32;
+  int ret;
+
+  ret = hiqsdr_query(rig);
+  if (ret != RIG_OK)
+    return ret;
+  rxphase32 = (uint32_t)priv->received_frame[2]
+            | (uint32_t)priv->received_frame[3] << 8
+            | (uint32_t)priv->received_frame[4] << 16
+            | (uint32_t)priv->received_frame[5] << 24;
+  *freq = (freq_t)((double)rxphase32 * priv->ref_clock / (1ULL<<32) + 0.5);
+  return RIG_OK;
+}
+
 static int hiqsdr_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
   struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data*)rig->state.priv;
 
   priv->split = split;
 
+  return RIG_OK;
+}
+
+int hiqsdr_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
+{
+  struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)rig->state.priv;
+
+  *split = priv->split;
   return RIG_OK;
 }
 
@@ -400,9 +501,21 @@ int hiqsdr_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 }
 
 
-int hiqsdr_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
+int hiqsdr_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
-  return -RIG_ENIMPL;
+  struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)rig->state.priv;
+  uint32_t txphase32;
+  int ret;
+
+  ret = hiqsdr_query(rig);
+  if (ret != RIG_OK)
+    return ret;
+  txphase32 = (uint32_t)priv->received_frame[6]
+            | (uint32_t)priv->received_frame[7] << 8
+            | (uint32_t)priv->received_frame[8] << 16
+            | (uint32_t)priv->received_frame[9] << 24;
+  *tx_freq = (freq_t)((double)txphase32 * priv->ref_clock / (1ULL<<32) + 0.5);
+  return RIG_OK;
 }
 
 int hiqsdr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
@@ -423,6 +536,25 @@ int hiqsdr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   ret = send_command (rig);
 
   return ret;
+}
+
+int hiqsdr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+{
+  struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)rig->state.priv;
+  int ret;
+
+  ret = hiqsdr_query(rig);
+  if (ret != RIG_OK)
+    return ret;
+  if (priv->received_frame[11] & 0x01) {
+    *mode = RIG_MODE_CW;
+    *width = 500;			/* the bandwidth is unknown */
+  }
+  else {
+    *mode = RIG_MODE_USB;	/* We only know that the mode is not CW */
+    *width = 2800;			/* the bandwidth is unknown */
+  }
+  return RIG_OK;
 }
 
 int hiqsdr_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
@@ -448,6 +580,23 @@ int hiqsdr_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
   return ret;
 }
 
+int hiqsdr_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
+{
+  struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)rig->state.priv;
+  int ret;
+
+  ret = hiqsdr_query(rig);
+  if (ret != RIG_OK)
+    return ret;
+  if (priv->received_frame[11] & 0x08)		/* Status of software PTT */
+    *ptt = RIG_PTT_ON;
+  else if (priv->received_frame[14] & 0x01)	/* Status of software PTT and hardware PTT */
+    *ptt = RIG_PTT_ON;
+  else
+    *ptt = RIG_PTT_OFF;
+  return RIG_OK;
+}
+
 int hiqsdr_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
 {
   struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)rig->state.priv;
@@ -467,13 +616,28 @@ int hiqsdr_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
   return ret;
 }
 
+int hiqsdr_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
+{
+  struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)rig->state.priv;
+  int ret;
+
+  ret = hiqsdr_query(rig);
+  if (ret != RIG_OK)
+    return ret;
+  if (priv->received_frame[16] & 0x01)
+    *ant = RIG_ANT_2;
+  else
+    *ant = RIG_ANT_1;
+  return RIG_OK;
+}
+
 
 /*
  */
 int hiqsdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
   struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)rig->state.priv;
-  int ret = RIG_OK;
+  int ret = RIG_OK, dB;
 
   switch (level) {
   case RIG_LEVEL_PREAMP:
@@ -483,8 +647,29 @@ int hiqsdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
           priv->control_frame[14] &= ~0x02;
       break;
   case RIG_LEVEL_ATT:
-      /* FIXME: val->i should be looked up from the att list */
-      priv->control_frame[14] = val.i & 0x1f;
+      /* The attenuator pins provide 2, 4, 8, 10, 20 dB */
+      dB = val.i;
+      priv->control_frame[15] = 0;
+      if (dB >= 20) {
+          priv->control_frame[15] |= 0x10;
+          dB -= 20;
+      }
+      if (dB >= 10) {
+          priv->control_frame[15] |= 0x08;
+          dB -= 10;
+      }
+      if (dB >= 8) {
+          priv->control_frame[15] |= 0x04;
+          dB -= 8;
+      }
+      if (dB >= 4) {
+          priv->control_frame[15] |= 0x02;
+          dB -= 4;
+      }
+      if (dB >= 2) {
+          priv->control_frame[15] |= 0x01;
+          dB -= 2;
+      }
       break;
   case RIG_LEVEL_RFPOWER:
     /* TX output level */
@@ -501,6 +686,35 @@ int hiqsdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
 static int hiqsdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-	return -RIG_ENIMPL;
+  struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)rig->state.priv;
+  int ret;
+
+  ret = hiqsdr_query(rig);
+  if (ret != RIG_OK)
+    return ret;
+  switch (level) {
+  case RIG_LEVEL_PREAMP:
+      if (priv->received_frame[14] & 0x02)
+          val->i = 1;
+      else
+          val->i = 0;
+      break;
+  case RIG_LEVEL_ATT:
+      val->i = 0;
+      if (priv->received_frame[15] & 0x10) val->i += 20;
+      if (priv->received_frame[15] & 0x08) val->i += 10;
+      if (priv->received_frame[15] & 0x04) val->i +=  8;
+      if (priv->received_frame[15] & 0x02) val->i +=  4;
+      if (priv->received_frame[15] & 0x01) val->i +=  2;
+      break;
+  case RIG_LEVEL_RFPOWER:
+    /* TX output level */
+    val->f = (unsigned)priv->received_frame[10] / 255.0;
+	break;
+  default:
+	return -RIG_EINVAL;
+  }
+
+	return RIG_OK;
 }
 
