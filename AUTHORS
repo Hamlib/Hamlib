@@ -133,6 +133,10 @@ C: Fabrice, F4AVI
 [kit: Elektor SDR]
 C: John Nogatch, AC6SL
 
+[kit: HiQSDR]
+M: Jim Ahlstrom, N2ADR
+
+
 [pcr: pcr100,pcr1000]
 M: Alessandro Zummo, IZ1PRB
 C: Darren Hatcher, G0WCW
