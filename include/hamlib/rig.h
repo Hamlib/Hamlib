@@ -82,7 +82,7 @@ extern HAMLIB_EXPORT_VAR(const char) hamlib_copyright[];
  * of rig_errcode_e definitions in case of error, or 0 when successful.
  */
 enum rig_errcode_e {
-	RIG_OK=0,		/*!< No error, operation completed sucessfully */
+	RIG_OK=0,		/*!< No error, operation completed successfully */
 	RIG_EINVAL,		/*!< invalid parameter */
 	RIG_ECONF,		/*!< invalid configuration (serial,..) */
 	RIG_ENOMEM,		/*!< memory shortage */

@@ -142,7 +142,7 @@ static struct opened_rig_l *opened_rig_list = { NULL };
  * TODO: localise the messages..
  */
 static const char *rigerror_table[] = {
-	"Command completed sucessfully",
+	"Command completed successfully",
 	"Invalid parameter",
 	"Invalid configuration",
 	"Memory shortage",
