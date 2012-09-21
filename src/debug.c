@@ -109,6 +109,16 @@ void HAMLIB_API rig_set_debug(enum rig_debug_level_e debug_level)
 /**
  * \param debug_level
  * \brief Useful for dump_hex, etc.
+ *
+ * This function compares the "needed" debug level to the level
+ * set by rig_set_debug().
+ *
+ * For example, rig_debug() calls this function and tests its return
+ * value.  If the return is false, the needed level for debugging output
+ * to the console is higher than the set level and the debugging message
+ * is supressed.
+ *
+ * \sa rig_set_debug
  */
 int HAMLIB_API rig_need_debug(enum rig_debug_level_e debug_level)
 {
