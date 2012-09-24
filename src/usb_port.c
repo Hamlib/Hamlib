@@ -112,6 +112,18 @@ static struct usb_dev_handle *find_and_open_device(const hamlib_port_t *port)
 	rig_debug(RIG_DEBUG_VERBOSE, "%s: looking for device %04x:%04x...",
 		__func__, port->parm.usb.vid, port->parm.usb.pid);
 
+	/* Generate libusb debugging along with Hamlib debugging levels */
+	if (rig_need_debug(RIG_DEBUG_TRACE))
+		usb_set_debug(4);	/* libusb LOG_DEBUG */
+	else if (rig_need_debug(RIG_DEBUG_VERBOSE))
+		usb_set_debug(3);	/* libusb LOG_INFO */
+	else if (rig_need_debug(RIG_DEBUG_WARN))
+		usb_set_debug(2);	/* libusb LOG_WARNING */
+	else if (rig_need_debug(RIG_DEBUG_ERR) || rig_need_debug(RIG_DEBUG_BUG))
+		usb_set_debug(1);	/* libusb LOG_ERROR */
+	else
+		usb_set_debug(0);	/* libusb LOG_OFF */
+
 	for (bus = usb_get_busses(); bus != NULL; bus = bus->next) {
 		for (dev = bus->devices; dev != NULL; dev = dev->next) {
 
@@ -291,6 +303,9 @@ int usb_port_open(hamlib_port_t *port)
 int usb_port_close(hamlib_port_t *port)
 {
 	struct usb_dev_handle *udh = port->handle;
+
+	/* set debugging off before closing the port */
+	usb_set_debug(0);	/* libusb LOG_OFF */
 
 	usb_release_interface (udh, port->parm.usb.iface);
 
