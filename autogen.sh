@@ -13,12 +13,14 @@ LIBTOOLIZE=libtoolize
 AUTOCONF=autoconf
 AUTOMAKE=automake
 
-srcdir=`dirname $0`
-test -z "$srcdir" && srcdir=.
+# variables below this line should not need modification
+SRCDIR=`dirname $0`
+test -z "$SRCDIR" && SRCDIR=.
 
 ORIGDIR=`pwd`
-cd $srcdir
+
 PROJECT=hamlib
+
 TEST_TYPE=-f
 FILE=include/hamlib/rig.h
 
@@ -49,6 +51,8 @@ if test "$DIE" -eq 1; then
         exit 1
 fi
 
+cd $SRCDIR
+
 test $TEST_TYPE $FILE || {
         echo "You must run this script in the top-level $PROJECT directory"
         exit 1
@@ -73,4 +77,4 @@ if test -z "$*"; then
         echo "to pass any to it, please specify them on the $0 command line."
 fi
 
-$srcdir/configure --enable-maintainer-mode "$@"
+$SRCDIR/configure --enable-maintainer-mode "$@"
