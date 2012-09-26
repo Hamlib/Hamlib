@@ -70,11 +70,11 @@
 static struct sigaction hamlib_trn_oldact, hamlib_trn_poll_oldact;
 
 #ifdef HAVE_SIGINFO_T
-static RETSIGTYPE sa_sigioaction(int signum, siginfo_t *si, void *data);
-static RETSIGTYPE sa_sigalrmaction(int signum, siginfo_t *si, void *data);
+static void sa_sigioaction(int signum, siginfo_t *si, void *data);
+static void sa_sigalrmaction(int signum, siginfo_t *si, void *data);
 #else
-static RETSIGTYPE sa_sigiohandler(int signum);
-static RETSIGTYPE sa_sigalrmhandler(int signum);
+static void sa_sigiohandler(int signum);
+static void sa_sigalrmhandler(int signum);
 #endif
 #endif
 
@@ -367,7 +367,7 @@ static int search_rig_and_poll(RIG *rig, rig_ptr_t data)
  * then call rig->caps->decode_event()  (this is done by search_rig)
  */
 #ifdef HAVE_SIGINFO_T
-static RETSIGTYPE sa_sigioaction(int signum, siginfo_t *si, rig_ptr_t data)
+static void sa_sigioaction(int signum, siginfo_t *si, rig_ptr_t data)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "sa_sigioaction: activity detected\n");
 
@@ -376,7 +376,7 @@ static RETSIGTYPE sa_sigioaction(int signum, siginfo_t *si, rig_ptr_t data)
 
 #else
 
-static RETSIGTYPE sa_sigiohandler(int signum)
+static void sa_sigiohandler(int signum)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "sa_sigiohandler: activity detected\n");
 
@@ -394,7 +394,7 @@ static RETSIGTYPE sa_sigiohandler(int signum)
  * then call get_freq and check for changes  (this is done by search_rig)
  */
 #ifdef HAVE_SIGINFO_T
-static RETSIGTYPE sa_sigalrmaction(int signum, siginfo_t *si, rig_ptr_t data)
+static void sa_sigalrmaction(int signum, siginfo_t *si, rig_ptr_t data)
 {
 	rig_debug(RIG_DEBUG_TRACE, "sa_sigalrmaction entered\n");
 
@@ -403,7 +403,7 @@ static RETSIGTYPE sa_sigalrmaction(int signum, siginfo_t *si, rig_ptr_t data)
 
 #else
 
-static RETSIGTYPE sa_sigalrmhandler(int signum)
+static void sa_sigalrmhandler(int signum)
 {
 	rig_debug(RIG_DEBUG_TRACE, "sa_sigalrmhandler entered\n");
 
