@@ -2,14 +2,15 @@
 
 MACROS = \
 	aclocal-include.m4 \
-	acx_pthread.m4 \
-	lf_warnings.m4 \
+	ax_append_flag.m4 \
+	ax_cflags_warn_all.m4 \
+	ax_pthread.m4 \
+	ax_python_devel.m4 \
 	gr_doxygen.m4 \
 	gr_pwin32.m4 \
 	gr_swig.m4 \
 	hl_getaddrinfo.m4 \
 	perl.m4 \
-	ac_python_devel.m4 \
 	tcl.m4
 
 
