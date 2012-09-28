@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH RIGCTLD "8" "March 1, 2012" "Hamlib" "Rig Control Daemon"
+.TH RIGCTLD "8" "September 27, 2012" "Hamlib" "Rig Control Daemon"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -21,13 +21,15 @@ rigctld \- Hamlib TCP rig control daemon
 .B rigctld
 [\fIOPTION\fR]...
 .SH DESCRIPTION
-The \fBrigctld\fP program is a NEW \fBHamlib\fP rig control daemon ready for
-testing that handles client requests via TCP sockets. This allows multiple
-user programs to share one radio (this needs testing). Multiple radios can be
-controlled on different TCP ports by use of multiple \fBrigctld\fP processes.
-The syntax of the commands are the same as \fBrigctl\fP. It is hoped that
-\fBrigctld\fP will be especially useful for client authors using languages
-such as Perl, Python, PHP, and others.
+The \fBrigctld\fP program is a NEW \fBHamlib\fP rig control daemon
+ready for testing that handles client requests via TCP sockets. This
+allows multiple user programs to share one radio (this needs testing),
+except on Win32 where pthreads are not available. Multiple radios can
+be controlled on different TCP ports by use of multiple \fBrigctld\fP
+processes.  The syntax of the commands are the same as
+\fBrigctl\fP. It is hoped that \fBrigctld\fP will be especially useful
+for client authors using languages such as Perl, Python, PHP, and
+others.
 .PP
 .\" TeX users may be more comfortable with the \fB<whatever>\fP and
 .\" \fI<whatever>\fP escape sequences to invoke bold face and italics,
@@ -100,12 +102,16 @@ Icom rigs.
 .TP
 .B \-T, --listen-addr=IPADDR
 Use \fIIPADDR\fP as the listening IP address. The default is ANY.
+.sp
+N.B.: This option seems mandatory on Win32, eg: -T 127.0.0.1
 .TP
 .B \-t, --port=number
 Use \fInumber\fP as the TCP listening port. The default is 4532.
 .sp
 \fBN.B.\fP: As \fBrotctld\fP's default port is 4533, it is advisable to use even
 numbered ports for \fBrigctld\fP, e.g. 4532, 4534, 4536, etc.
+.sp
+N.B.: This option seems mandatory on Win32, eg: -t 4532
 .TP
 .B \-L, --show-conf
 List all config parameters for the radio defined with -m above.
@@ -615,7 +621,7 @@ the included \fBtestctld.pl\fP script:
 \fI\\dump_caps\fP
 .SH EXAMPLES
 Start \fBrigctld\fP for a Yaesu FT-920 using a USB-to-serial adapter and
-backgrounding:
+backgrounding on Linux:
 .PP
 $ rigctld -m 114 -r /dev/ttyUSB1 &
 .PP
@@ -624,27 +630,35 @@ setting baud rate and stop bits, and backgrounding:
 .PP
 $ rigctld -m 114 -r /dev/ttyUSB1 -s 4800 -C stop_bits=2 &
 .PP
-Start \fBrigctld\fP for an Elecraft K3 using COM2 on Win32:
+Start \fBrigctld\fP for an Elecraft K3 using COM2 on Win32 and specifying 
+the listening address and port:
 .sp
-$ rigctld -m 229 -r COM2
+C:\\> rigctld -m 229 -r COM2 -T 127.0.0.1 -t 4532
 .sp
 Connect to the already running \fBrigctld\fP, and set current frequency to
 14.266 MHz with a 1 second read timeout using the default protocol from the
-shell prompt:
+shell prompt on POSIX:
 .PP
 $ echo "\\set_freq 14266000" | nc -w 1 localhost 4532
-Connect to a running \fBrigctld\fP with \fBrigctl\fP on the local host:
 .PP
-$ rigctl -m2
+Connect to a running \fBrigctld\fP with \fBrigctl\fP on the local host
+on POSIX:
+.sp
+$ rigctl -m 2
+.sp
+and on Win32:
+.sp
+C:\\> rigctl -m 2 -r 127.0.0.1:4532
 .SH DIAGNOSTICS
 The \fB-v\fP, \fB--verbose\fP, option allows different levels of diagnostics
 to be output to \fBstderr\fP and correspond to -v for BUG, -vv for ERR,
 -vvv for WARN, -vvvv for VERBOSE, or -vvvvv for TRACE.
 .PP
-A given verbose level is useful for providing needed debugging information to
-the email address below.  For example, TRACE output shows all of the values
-sent to and received from the radio which is very useful for radio backend
-library development and may be requested by the developers.  See the
+A given verbose level is useful for providing needed debugging
+information to the email address below.  For example, TRACE output shows
+all of the values sent to and received from the radio which is very
+useful for radio backend library development and may be requested by the
+developers.  See the
 \fBREADME.betatester\fP and \fBREADME.developer\fP files for more information.
 .SH SECURITY
 No authentication whatsoever; DO NOT leave this TCP port open wide to the

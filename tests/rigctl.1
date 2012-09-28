@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH RIGCTL "1" "March 1, 2012" "Hamlib" "Radio Control Program"
+.TH RIGCTL "1" "September 27, 2012" "Hamlib" "Radio Control Program"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -53,6 +53,15 @@ Use \fIdevice\fP as the file name of the port the radio is connected.
 Often a serial port, but could be a USB to serial adapter.  Typically
 /dev/ttyS0, /dev/ttyS1, /dev/ttyUSB0, etc. on Linux or COM1, COM2, etc.
 on Win32.
+.sp
+Also used to specify the host and port to connect to a listening rotctld daemon
+on POSIX:
+.sp
+-r localhost:4532
+.sp
+and on Win32:
+.sp
+-r 127.0.0.1:4532
 .TP
 .B \-p, --ptt-file=device
 Use \fIdevice\fP as the file name of the Push-To-Talk device using a
@@ -442,7 +451,7 @@ $ rigctl -m 114 -r /dev/ttyUSB1
 Start \fBrigctl\fP for a Yaesu FT-920 using COM1 on Win32 while generating
 TRACE output to \fBstderr\fP:
 .sp
-$ rigctl -m 114 -r COM1 -vvvvv
+C:\\> rigctl -m 114 -r COM1 -vvvvv
 .sp
 Start \fBrigctl\fP for a Yaesu FT-920 using a USB to serial adapter while
 setting baud rate and stop bits:
@@ -459,9 +468,13 @@ Start \fBrigctl\fP using \fBrpc.rigd\fP and setting the frequency and mode:
 $ rigctl -m 1901 -r localhost F 7253500 M LSB 0
 .sp
 Connect to a running \fBrigctld\fP with rig model 2 ("NET rigctl") on the
-local host and specifying the TCP port:
+local host and specifying the TCP port on POSIX:
 .sp
 $ rigctl -m 2 -r localhost:4532
+.sp
+and on Win32:
+.sp
+C:\\> rigctl -m 2 -r 127.0.0.1:4532
 .SH DIAGNOSTICS
 The \fB-v\fP, \fB--verbose\fP option allows different levels of diagnostics
 to be output to \fBstderr\fP and correspond to -v for BUG, -vv for ERR,

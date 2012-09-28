@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH ROTCTLD "8" "March 1, 2012" "Hamlib" "Rotator Control Daemon"
+.TH ROTCTLD "8" "September 27, 2012" "Hamlib" "Rotator Control Daemon"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -21,13 +21,15 @@ rotctld \- Hamlib TCP rotator control daemon
 .B rotctld
 [\fIOPTION\fR]...
 .SH DESCRIPTION
-The \fBrotctld\fP program is an NEW \fBHamlib\fP rotator control daemon ready
-for testing that handles client requests via TCP sockets. This allows multiple
-user programs to share one rotator (this needs testing). Multiple rotators can
-be controlled on different TCP ports by use of multiple \fBrotctld\fP processes.
-The syntax of the commands are the same as \fBrotctl\fP. It is hoped that
-\fBrotctld\fP will be especially useful for client authors using languages such
-as Perl, Python, PHP, and others.
+The \fBrotctld\fP program is an NEW \fBHamlib\fP rotator control
+daemon ready for testing that handles client requests via TCP
+sockets. This allows multiple user programs to share one rotator (this
+needs testing), except on Win32 where pthreads are not
+available. Multiple rotators can be controlled on different TCP ports
+by use of multiple \fBrotctld\fP processes.  The syntax of the
+commands are the same as \fBrotctl\fP. It is hoped that \fBrotctld\fP
+will be especially useful for client authors using languages such as
+Perl, Python, PHP, and others.
 .PP
 .\" TeX users may be more comfortable with the \fB<whatever>\fP and
 .\" \fI<whatever>\fP escape sequences to invoke bold face and italics,
@@ -78,12 +80,16 @@ backend capabilities (set by -m above) as the default.
 .TP
 .B \-T, --listen-addr=IPADDR
 Use \fIIPADDR\fP as the listening IP address. The default is ANY.
+.sp
+N.B.: This option seems mandatory on Win32, eg: -T 127.0.0.1
 .TP
 .B \-t, --port=number
 Use \fInumber\fP as the TCP listening port. The default is 4533.
 .sp
 \fBN.B.\fP: As \fBrigctld\fP's default port is 4532, it is advisable to use odd
 numbered ports for \fBrotctld\fP, e.g. 4533, 4535, 4537, etc.
+.sp
+N.B.: This option seems mandatory on Win32, eg: -t 4533
 .TP
 .B \-L, --show-conf
 List all config parameters for the rotator defined with -m above.
@@ -407,13 +413,13 @@ Extended Response protocol and the included \fBtestrotctld.pl\fP script.
 .PP
 .SH EXAMPLES
 Start \fBrotctld\fP for a Ham IV rotor with the RotorEZ installed using a
-USB-to-serial adapter and backgrounding:
+USB-to-serial adapter and backgrounding on Linux:
 .sp
 $ rotctld -m 401 -r /dev/ttyUSB1 &
 .sp
-Start \fBrotctld\fP for RotorEZ using COM2 on Win32:
+Start \fBrotctld\fP for RotorEZ using COM3 on Win32:
 .sp
-$ rotctl -m 401 -r COM2
+C:\\> rotctld -m 401 -r COM3 -T 127.0.0.1 -t 4533
 .sp
 Connect to the already running \fBrotctld\fP, and set position to
 135.0 degrees azimuth and 30.0 degrees elevation with a 1 second read timeout
@@ -421,9 +427,14 @@ from the shell prompt:
 .sp
 $ echo "\\set_pos 135.0 30.0" | nc -w 1 localhost 4533
 .sp
-Connect to a running \fBrotctld\fP with \fBrotctl\fP on the local host:
+Connect to a running \fBrotctld\fP with \fBrotctl\fP on the local host
+on POSIX:
 .sp
 $ rotctl -m2
+.sp
+and on Win32:
+.sp
+C:\\> rotctl -m 2 -r 127.0.0.1:4533
 .SH DIAGNOSTICS
 The \fB-v\fP, \fB--version\fP option allows different levels of diagnostics
 to be output to \fBstderr\fP and correspond to -v for BUG, -vv for ERR,

@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH ROTCTL "1" "March 1, 2012" "Hamlib" "Rotator Control Program"
+.TH ROTCTL "1" "September 27, 2012" "Hamlib" "Rotator Control Program"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -28,11 +28,11 @@ interactive mode if none are provided on the command line.
 .\" TeX users may be more comfortable with the \fB<whatever>\fP and
 .\" \fI<whatever>\fP escape sequences to invode bold face and italics,
 .\" respectively.
-Keep in mind that \fBHamlib\fP is BETA level software.
-While a lot of backend libraries lack complete rig support, the basic functions
-are usually well supported.  The API may change without publicized notice,
-while an advancement of the minor version (e.g. 1.1.x to 1.2.x) indicates such
-a change.
+Keep in mind that \fBHamlib\fP is BETA level software. While a lot of
+backend libraries lack complete rig support, the basic functions are
+usually well supported.  The API may change without publicized notice,
+while an advancement of the minor version (e.g. 1.1.x to 1.2.x)
+indicates such a change.
 .PP
 Please report bugs and provide feedback at the e-mail address given in the
 REPORTING BUGS section.  Patches and code enhancements are also welcome.
@@ -53,6 +53,15 @@ Use \fIdevice\fP as the file name of the port the rotator is connected.
 Often a serial port, but could be a USB to serial adapter or USB port device.
 Typically /dev/ttyS0, /dev/ttyS1, /dev/ttyUSB0, etc. on Linux or COM1, COM2,
 etc. on Win32.
+.sp
+Also used to specify the host and port to connect to a listening rotctld daemon
+on POSIX:
+.sp
+-r localhost:4533
+.sp
+and on Win32:
+.sp
+-r 127.0.0.1:4533
 .TP
 .B \-s, --serial-speed=baud
 Set serial speed to \fIbaud\fP rate. Uses maximum serial speed from rotator
@@ -240,16 +249,20 @@ $ rotctl -m 401 -r /dev/ttyS0
 .sp
 Start \fBrotctl\fP for RotorEZ using COM2 on Win32:
 .sp
-$ rotctl -m 401 -r COM2
+C:\\> rotctl -m 401 -r COM2
 .sp
 Start \fBrotctl\fP using \fBrpc.rotd\fP and querying the position:
 .sp
 $ rotctl -m 101 -r localhost \\get_pos
 .sp
 Connect to a running \fBrotctld\fP with rotor model 2 ("NET rotctl") on the
-local host and specifying the TCP port:
+local host and specifying the TCP port on POSIX:
 .sp
 $ rotctl -m 2 -r localhost:4533
+.sp
+and on Win32:
+.sp
+C:\\> rotctl -m 2 -r 127.0.0.1:4533
 .SH DIAGNOSTICS
 The \fB-v\fP, \fB--version\fP option allows different levels of diagnostics
 to be output to \fBstderr\fP and correspond to -v for BUG, -vv for ERR,
