@@ -50,16 +50,16 @@ AC_PROG_MAKE_SET
 dnl Pkgconfig
 PKG_PROG_PKG_CONFIG
 
-AC_AIX
-AC_ISC_POSIX
-AC_MINIX
-AC_PROG_CC()
-AC_DIAGNOSE([obsolete],[AM_PROG_CC_STDC:
-	your code should no longer depend upon 'am_cv_prog_cc_stdc', but upon
-	'ac_cv_prog_cc_stdc'.  Remove this warning and the assignment when
-	you adjust the code.  You can also remove the above call to
-	AC_PROG_CC if you already called it elsewhere.])
-am_cv_prog_cc_stdc=$ac_cv_prog_cc_stdc
+dnl AC_AIX
+dnl AC_ISC_POSIX
+dnl AC_MINIX
+dnl AC_PROG_CC()
+dnl AC_DIAGNOSE([obsolete],[AM_PROG_CC_STDC:
+dnl 	your code should no longer depend upon 'am_cv_prog_cc_stdc', but upon
+dnl 	'ac_cv_prog_cc_stdc'.  Remove this warning and the assignment when
+dnl 	you adjust the code.  You can also remove the above call to
+dnl 	AC_PROG_CC if you already called it elsewhere.])
+dnl am_cv_prog_cc_stdc=$ac_cv_prog_cc_stdc
 
 AC_PROG_GCC_TRADITIONAL
 AC_C_CONST
@@ -81,7 +81,7 @@ AC_CHECK_HEADERS([linux/ppdev.h linux/parport.h linux/ioctl.h linux/hidraw.h])
 AC_CHECK_HEADERS([dev/ppbus/ppi.h dev/ppbus/ppbconf.h])
 AC_CHECK_HEADERS([sys/socket.h netinet/in.h netdb.h arpa/inet.h ws2tcpip.h])
 
-dnl Check for Mingw support
+dnl Check for Mingw (Win32 Sleep) support
 GR_PWIN32
 
 ACX_PTHREAD
@@ -97,7 +97,7 @@ INCLUDES="${INCLUDES} -I\$(top_srcdir)/include -I\$(top_srcdir)/src -I\$(top_src
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_SIZE_T
 AC_HEADER_TIME
-AC_TYPE_SIGNAL
+dnl AC_TYPE_SIGNAL
 AC_CHECK_TYPES([siginfo_t],[],[],[#include <signal.h>])
 
 dnl Checks for libraries.
@@ -173,10 +173,12 @@ AC_LIBOBJ(dummy)
 ## libtool  Initialisation. ##
 ## ------------------------ ##
 ## N.b. LT_INIT([dlopen], [win32-dll])  does not work for older libtool
-AC_LIBTOOL_DLOPEN
-AC_LIBTOOL_WIN32_DLL
-AC_PROG_LIBTOOL
-AM_PROG_LIBTOOL
+LT_PREREQ([2.2.6b])
+LT_INIT([dlopen win32-dll])
+dnl AC_LIBTOOL_DLOPEN
+dnl AC_LIBTOOL_WIN32_DLL
+dnl AC_PROG_LIBTOOL
+dnl AM_PROG_LIBTOOL
 INCLTDL=""
 LIBLTDL="-lltdl"
 AC_SUBST(INCLTDL)
@@ -214,6 +216,9 @@ mingw* | pw32* | cygwin*)
   LIBLTDL="-L\$(top_builddir)/libltdl -lltdlc"
   AC_SUBST(INCLTDL)
   AC_SUBST(LIBLTDL)
+  # Enable ld's "auto import" for executables
+  WINEXELDFLAGS="-Wl,--enable-auto-import"
+  AC_SUBST([WINEXELDFLAGS])
   ;;
 esac
 
