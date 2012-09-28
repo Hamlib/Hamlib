@@ -160,7 +160,7 @@ http://www-cs-students.stanford.edu/~blynn/gitmagic/
 1.1.2 Providing patches with Git
 
 Git provides tools to generate patches and submit them to the Hamlib developers
-via email.  Use of these tools is prefered as Git allows credit to be given
+via email.  Use of these tools is preferred as Git allows credit to be given
 to the author and submitter of the patches.  Please submit the patches to
 the hamlib-developer mailing list.  See section 8.3.
 

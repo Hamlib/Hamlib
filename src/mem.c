@@ -814,7 +814,7 @@ static int map_chan (RIG *rig, channel_t **chan, int channel_num, const chan_t *
  * \param arg	Arbitrary argument passed back to \a chan_cb
  *
  *  Write the data associated with a all the memory channels.
- *  This is the prefered method to support clonable rigs.
+ *  This is the preferred method to support clonable rigs.
  *
  * \return RIG_OK if the operation has been sucessful, otherwise
  * a negative value if an error occured (in which case, cause is
@@ -849,7 +849,7 @@ int HAMLIB_API rig_set_chan_all_cb (RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
  * \param arg	Arbitrary argument passed back to \a chan_cb
  *
  *  Retrieves the data associated with a all the memory channels.
- *  This is the prefered method to support clonable rigs.
+ *  This is the preferred method to support clonable rigs.
  *
  *  \a chan_cb is called first with no data in chan (chan equals NULL).
  *  This means the application has to provide a struct where to store
@@ -1005,7 +1005,7 @@ int set_parm_all_cb_generic (RIG *rig, confval_cb_t parm_cb, rig_ptr_t cfgps,
  *
  * Writes the data associated with all the memory channels,
  * and rigs memory parameters, by callback.
- * This is the prefered method to support clonable rigs.
+ * This is the preferred method to support clonable rigs.
  *
  * \return RIG_OK if the operation has been sucessful, otherwise
  * a negative value if an error occured (in which case, cause is
@@ -1053,7 +1053,7 @@ int HAMLIB_API rig_set_mem_all_cb (RIG *rig, chan_cb_t chan_cb, confval_cb_t par
  *
  * Retrieves the data associated with all the memory channels,
  * and rigs memory parameters, by callback.
- * This is the prefered method to support clonable rigs.
+ * This is the preferred method to support clonable rigs.
  *
  * \return RIG_OK if the operation has been sucessful, otherwise
  * a negative value if an error occured (in which case, cause is
@@ -1156,7 +1156,7 @@ int HAMLIB_API rig_set_mem_all (RIG *rig, const channel_t chans[], const struct 
  *
  * Retrieves the data associated with all the memory channels,
  * and rigs memory parameters.
- * This is the prefered method to support clonable rigs.
+ * This is the preferred method to support clonable rigs.
  *
  * \return RIG_OK if the operation has been sucessful, otherwise
  * a negative value if an error occured (in which case, cause is

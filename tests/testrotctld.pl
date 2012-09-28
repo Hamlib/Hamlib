@@ -54,7 +54,7 @@ my $ret_val;
 
 # Error values returned from rotctld by Hamlib name
 my %errstr = (
-    RIG_OK          => "0",     # No error, operation completed sucessfully
+    RIG_OK          => "0",     # No error, operation completed successfully
     RIG_EINVAL      => "-1",    # invalid parameter
     RIG_ECONF       => "-2",    # invalid configuration (serial,..)
     RIG_ENOMEM      => "-3",    # memory shortage

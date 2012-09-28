@@ -287,6 +287,15 @@ EOD`
 	#
 	AC_MSG_CHECKING([consistency of all components of python development environment])
 	# save current global flags
+	####
+	#### Why does this macro expect ac_save_LIBS and ac_save_CPPFLAGS to
+	#### be set?  configure doesn't appear to set them automatically,
+	#### so this macro trashes any pre-set CPPFLAGS and LIBS when it runs!
+	#### Hack to fix that:
+	ac_save_LIBS="$LIBS"
+	ac_save_CPPFLAGS="$CPPFLAGS"
+	####
+	####
 	LIBS="$ac_save_LIBS $PYTHON_LDFLAGS $PYTHON_EXTRA_LDFLAGS $PYTHON_EXTRA_LIBS"
 	CPPFLAGS="$ac_save_CPPFLAGS $PYTHON_CPPFLAGS"
 	AC_LANG_PUSH([C])
