@@ -2,13 +2,18 @@ Hamlib - Ham Radio Control Libraries
 
 Copyright (C) 2000,2001  Frank Singleton
 Copyright (C) 2000,2001  Stephane Fillod
-Copyright (C) 2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
+Copyright (C) 2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
               The Hamlib Group
+
+See the included README file for more information on Hamlib and the Hamlib
+Project or visit http://www.hamlib.org for documentation and links to the
+source code of Hamlib.
 
 The 'AUTHORS' file lists contributors known as the The Hamlib Group.
 
-The frontend library source code files and associated bankend library
-source code files are licensed and released under the LGPL:
+The frontend library source code files and associated backend library
+source code files are licensed and released under the Lesser GNU Public
+License (LGPL):
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -29,7 +34,7 @@ Public License.
 
 
 Various other supplied program source files and example source files are
-licensed and released under the GPL:
+licensed and released under the GNU Public License (GPL):
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
