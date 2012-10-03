@@ -2,7 +2,8 @@ Hamlib - Ham Radio Control Libraries
 
 Copyright (C) 2000,2001  Frank Singleton
 Copyright (C) 2000,2001  Stephane Fillod
-Copyright (C) 2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012
+Copyright (C) 2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,
+              2010,2011,2012
               The Hamlib Group
 
 See the included README file for more information on Hamlib and the Hamlib
@@ -22,12 +23,13 @@ License (LGPL):
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-    Lesser General Public License for more details.
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
     License along with this library; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+    MA 02110-1301 USA
 
 The included file 'COPYING.LIB' is a copy of the GNU Lesser General
 Public License.
