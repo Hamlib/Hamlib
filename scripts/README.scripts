@@ -1,5 +1,5 @@
 The scripts/ directory will contain helper scripts for building Hamlib
-binary releases for Win32 and possibly other target platforms.  EAch
+binary releases for Win32 and possibly other target platforms.  Each
 script should be accompanied by a companion README file with information
 on the script and build requirements.
 
@@ -9,3 +9,5 @@ build-win32.sh for building Win32 DLLs and EXEs for use with MS VC++.
 
 build-VB.NET.sh for building Win32 DLLs and EXEs for use with MS VB.NET
 2002 Framework 1.1
+
+hamlib.nsi for building an executable installer for Win32.
