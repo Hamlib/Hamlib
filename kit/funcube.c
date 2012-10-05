@@ -312,7 +312,7 @@ int get_freq_v0(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 	struct funcube_priv_data *priv = (struct funcube_priv_data *)rig->state.priv;
 
-	rig_debug(RIG_DEBUG_TRACE, "%s: frequency is not read from the device, the value shown is the last succesfully set.\n",__func__);
+	rig_debug(RIG_DEBUG_TRACE, "%s: frequency is not read from the device, the value shown is the last successfully set.\n",__func__);
 	*freq = priv->freq;
 
 	return RIG_OK;

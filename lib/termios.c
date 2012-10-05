@@ -1220,7 +1220,7 @@ int win32_serial_open( const char *filename, int flags, ... )
 
 	if( check_port_capabilities( index ) )
 	{
-		report( "check_port_capabilites!" );
+		report( "check_port_capabilities!" );
 		win32_serial_close( index->fd );
 		return -1;
 	}
