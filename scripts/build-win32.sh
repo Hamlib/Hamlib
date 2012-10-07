@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Builds Hamlib 3.x Win32 binary distribution.
+
 # A script to build a set of Win32 binary DLLs from a Hamlib tarball.
 # This script assumes that the Hamlib tarball has been extracted to the
 # directory specified in $build_dir and that libusb-win32-bin-1.x.y.z has also
@@ -37,8 +39,6 @@ else
 	exit $EX_NOINPUT
 fi
 
-# FIXME: Determine RELEASE only from AC_INIT line to avoid any other similar
-# values and avoid hard coded version number.
 RELEASE=`/usr/bin/awk 'BEGIN{FS="["; RS="]"} /\[3\./ {print $2}' ./configure.ac`
 INST_DIR=`pwd`/mingw-inst
 ZIP_DIR=`pwd`/hamlib-win32-${RELEASE}
@@ -50,7 +50,7 @@ cat > README.win32-bin <<END_OF_README
 What is it?
 ===========
 
-This ZIP archive contains a build of Hamlib-$RELEASE
+This ZIP archive or Windows installer contains a build of Hamlib-$RELEASE
 cross-compiled for Win32 using MinGW under Xubuntu Linux 10.10 (nice, heh!).
 
 The DLL has a cdecl interface for MS VC++.
@@ -68,20 +68,32 @@ reasonable choice.
 
 Make sure *all* the .DLL files are in your PATH (leave them in the bin
 directory and set the PATH).  To set the PATH environment variable in
-Windows 2000 and Windows XP (need info on Vista and Win 7) do the following:
+Windows 2000, Windows XP, and Windows 7 (need info on Vista) do the
+following:
 
- * Right-click on "My Computer"
- * Select "Properties" from the pop-up menu
- * Click the "Advanced" tab of the "System Properties" dialog
- * Click the "Environment Variables" button
+ * W2k/XP: Right-click on "My Computer"
+   Win7: Right-click on "Computer"
+
+ * W2k/XP: Click the "Advanced" tab of the "System Properties" dialog
+   Win7: Click the "Advanced system settings" link in the System dialog
+
+ * Click the "Environment Variables" button of the pop-up dialog
+
  * Select "Path" in the "System variables" box of the "Environment Variables"
    dialog
+
+   NB: If you are not the administrator, system policy may not allow editing
+   the path variable.  The complete path to an executable file will need to
+   be given to run one of the Hamlib programs.
+
  * Click the Edit button
- * Now add the Hamlib path in the "Variable Value: edit box.  Be sure to put
+
+ * Now add the Hamlib path in the "Variable Value:" edit box.  Be sure to put
    a semi-colon ';' after the last path before adding the Hamlib path (NB. The
    entire path is highlighted and will be erased upon typing a character so
    click in the box to unselect the text first.  The PATH is important!!)
-   Append the Hamlib path, e.g. C:\Program Files\hamlib-win32-1.2.14~git\bin
+   Append the Hamlib path, e.g. C:\Program Files\hamlib-win32-3.0~git\bin
+
  * Click OK for all three dialog boxes to save your changes.
 
 
@@ -99,10 +111,10 @@ In short, the command syntax is of the form:
 
   rigctl -m 120 -r COM1 -vvvvv
 
-  -m -> Radio model 120, or Yaesu FT-817 (use -l for a list)
+  -m -> Radio model 120, or Yaesu FT-817 (use 'rigctl -l' for a list)
   -r -> Radio device, in this case COM1
   -v -> Verbosity level.  For testing four or five v characters are required.
-        Five v's set a debug level of TRACE which generates a lot of screen
+        Five 'v's set a debug level of TRACE which generates a lot of screen
         output showing communication to the radio and values of important
         variables.  These traces are vital information for Hamlib rig backend
         development.
@@ -118,12 +130,19 @@ Edit|Paste from the typical GUI menu).
 All feedback is welcome to the mail address below.
 
 
+Uninstall
+=========
+
+To uninstall, simply delete the Hamlib directory.  You may wish to edit the
+PATH as above to remove the Hamlib bin path, if desired.
+
+
 Information for Win32 Programmers
 =================================
 
-There's a .LIB import library for MS-VC++ in lib/msvc.  Simply #include
+There is a .LIB import library for MS-VC++ in lib/msvc.  Simply #include
 <hamlib/rig.h> (add directory to include path), include the .LIB in your
-project and you're done. Note: MS-VC++ cannot compile all the Hamlib code,
+project and you are done. Note: MS-VC++ cannot compile all the Hamlib code,
 but the API defined by rig.h has been made MSVC friendly :-)
 
 As the source code for the library DLLs is licensed under the LGPL, your
@@ -149,18 +168,15 @@ http://www.hamlib.org
 END_OF_README
 
 
-# Import internal ./libltdl and build it for mingw32
-libtoolize --ltdl
-cd libltdl; ./configure --host=i586-mingw32msvc && make; cd ..
-
 # Configure and build hamlib for mingw32, with libusb-win32
 
 ./configure --disable-static \
  --host=i586-mingw32msvc \
  --prefix=`pwd`/mingw-inst \
- --without-rpc-backends \
  --without-cxx-binding \
+ --with-included-ltdl \
  PKG_CONFIG_LIBDIR=${LIBUSB_WIN32_BIN_PATH}/lib/pkgconfig
+
 
 make install
 
@@ -178,7 +194,7 @@ for f in AUTHORS ChangeLog COPYING COPYING.LIB LICENSE README README.betatester 
 cd tests
 
 for f in rigctl.1 rigctld.8 rigmem.1 rigsmtr.1 rigswr.1 rotctl.1 rotctld.8 ; do \
-	groff -mandoc >${f}.ps ${f} ; ps2pdf ${f}.ps ; rm ${f}.ps ; \
+    groff -mandoc >${f}.ps ${f} ; ps2pdf ${f}.ps ; rm ${f}.ps ; \
     cp -a ${f}.pdf ${ZIP_DIR}/pdf/. ; done
 
 cd ${BUILD_DIR}/$1
@@ -196,3 +212,4 @@ cp -a ${LIBUSB_WIN32_BIN_PATH}/bin/x86/libusb0_x86.dll ${ZIP_DIR}/bin/libusb0.dl
 # Need VC++ free toolkit installed (default Wine directory installation shown)
 ( cd ${ZIP_DIR}/lib/msvc/ && wine ~/.wine/drive_c/Program\ Files/Microsoft\ Visual\ C++\ Toolkit\ 2003/bin/link.exe /lib /machine:i386 /def:libhamlib-2.def )
 zip -r hamlib-win32-${RELEASE}.zip `basename ${ZIP_DIR}`
+

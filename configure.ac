@@ -21,6 +21,7 @@ AC_INIT([Hamlib],
 
 AC_CONFIG_SRCDIR([include/hamlib/rig.h])
 AC_CONFIG_MACRO_DIR([macros])
+AC_CONFIG_HEADERS([include/config.h])
 
 
 ## ------------------------ ##
@@ -29,14 +30,13 @@ AC_CONFIG_MACRO_DIR([macros])
 dnl Passing AC_PACKAGE_TARNAME, AC_PACKAGE_VERSION to AM_INIT_AUTOMAKE is
 dnl obsolete as these values are obtained from the AC_INIT macro.
 AM_INIT_AUTOMAKE([-Wall])
-AC_CONFIG_HEADERS([include/config.h])
 
 dnl Clean compilation output makes compiler warnings more visible
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 dnl TODO: Maintainer mode has arguments against its use.
 dnl       Consider its removal at some point.
-AM_MAINTAINER_MODE
+dnl AM_MAINTAINER_MODE
 
 
 ## ------------------------------ ##
@@ -162,7 +162,7 @@ dnl Checks for libraries.
 AC_CHECK_FUNC([sin], [MATH_LIBS=""], [MATH_LIBS="-lm"])
 AC_SUBST([MATH_LIBS])
 
-dnl Interactive UNIX?  You've got to be kidding!
+dnl Interactive UNIX?  You have got to be kidding!
 dnl #--------------------------------------------------------------------
 dnl # Interactive UNIX requires -linet instead of -lsocket, plus it
 dnl # needs net/errno.h to define the socket-related error codes.
@@ -176,10 +176,10 @@ dnl AC_CHECK_LIB([inet], [main], [LIBS="$LIBS -linet"], [], [])
 #   special considerations:
 #   1. Use "connect" and "accept" to check for -lsocket, and
 #      "gethostbyname" to check for -lnsl.
-#   2. Use each function name only once:  can't redo a check because
-#      autoconf caches the results of the last check and won't redo it.
+#   2. Use each function name only once:  cannot redo a check because
+#      autoconf caches the results of the last check and will not redo it.
 #   3. Use -lnsl and -lsocket only if they supply procedures that
-#      aren't already present in the normal libraries.  This is because
+#      are not already present in the normal libraries.  This is because
 #      IRIX 5.2 has libraries, but they aren't needed and they're
 #      bogus:  they goof up name resolution if used.
 #   4. On some SVR4 systems, can't use -lsocket without -lnsl too.
@@ -243,7 +243,7 @@ AC_CHECK_FUNCS([strcasecmp strchr strdup strerror strrchr strstr strtol])
 AC_CHECK_FUNCS([cfmakeraw setitimer ioctl sigaction])
 AC_FUNC_ALLOCA
 
-dnl Doesn't seem to be needed anymore
+dnl Does not seem to be needed anymore
 dnl AC_FUNC_MALLOC
 
 dnl Obsolecent macro
@@ -258,59 +258,70 @@ AC_LIBOBJ([dummy])
 ## ------------------------ ##
 ## N.b. LT_INIT([dlopen], [win32-dll])  does not work for older libtool
 LT_PREREQ([2.2.6b])
+
+# Name the subdirectory that contains libltdl sources
+LT_CONFIG_LTDL_DIR([libltdl])
+
+# Name the subdirectory that contains libltdl sources
 LT_INIT([dlopen win32-dll])
+
+# Enable building of the convenience libltdl library
+# (requires --with-included-ltdl be given to configure for the included
+# libltdl to be used), useful on systems where libltdl-dev is not installed.
+LTDL_INIT([convenience])
+
 dnl AC_LIBTOOL_DLOPEN
 dnl AC_LIBTOOL_WIN32_DLL
 dnl AC_PROG_LIBTOOL
 dnl AM_PROG_LIBTOOL
-INCLTDL=""
-LIBLTDL="-lltdl"
-AC_SUBST([INCLTDL])
-AC_SUBST([LIBLTDL])
+dnl INCLTDL=""
+dnl LIBLTDL="-lltdl"
+dnl AC_SUBST([INCLTDL])
+dnl AC_SUBST([LIBLTDL])
 
 
-## ---------------------------------- ##
-## Custom host libtool configurations ##
-## ---------------------------------- ##
+## -------------------------- ##
+## Custom host configurations ##
+## -------------------------- ##
 AS_CASE(["$host_os"],
         [freebsd*], [
-        AM_CPPFLAGS="-I/usr/local/include ${AM_CPPFLAGS}"
-        AM_LDFLAGS="${AM_LDFLAGS} -L/usr/local/lib"
-        AC_SUBST([AM_LDFLAGS])],
+	  AM_CPPFLAGS="-I/usr/local/include ${AM_CPPFLAGS}"
+	  AM_LDFLAGS="${AM_LDFLAGS} -L/usr/local/lib"
+	  AC_SUBST([AM_LDFLAGS])],
 
         [darwin* | rhapsody*], [
-        # Trick from http://fink.sourceforge.net/doc/porting/
-        # TODO: check the compiler actually does support these options
-        CFLAGS="${CFLAGS} -no-cpp-precomp"
-        CXXFLAGS="${CXXFLAGS} -no-cpp-precomp"
+	  # Trick from http://fink.sourceforge.net/doc/porting/
+	  # TODO: check the compiler actually does support these options
+	  CFLAGS="${CFLAGS} -no-cpp-precomp"
+	  CXXFLAGS="${CXXFLAGS} -no-cpp-precomp"
 
-        # Tell the OS X linker to allocate enough space inside the
-        # libhamlib.X.dylib shared object for install_name_tool(1) to
-        # work. This is useful when including hamlib in an app bundle.
-        OSXLDFLAGS="-Wl,-headerpad_max_install_names"
-        AC_SUBST([OSXLDFLAGS])],
+	  # Tell the OS X linker to allocate enough space inside the
+	  # libhamlib.X.dylib shared object for install_name_tool(1) to
+	  # work. This is useful when including hamlib in an app bundle.
+	  OSXLDFLAGS="-Wl,-headerpad_max_install_names"
+	  AC_SUBST([OSXLDFLAGS])],
 
         [mingw* | pw32* | cygwin*], [
-        WINLDFLAGS="-Wl,--output-def,libhamlib.def -Wl,--add-stdcall-alias"
-        AC_SUBST([WINLDFLAGS])
+	  WINLDFLAGS="-Wl,--output-def,libhamlib.def -Wl,--add-stdcall-alias"
+	  AC_SUBST([WINLDFLAGS])
 
-        # Prerequisite for Mingw build (import and build internal ./libltdl):
-        #   $ libtoolize --ltdl
-        #   $ ( cd libltdl; ./configure --host=i586-mingw32msvc && make )
-        # Use internal ./libltdl during configure:
-        CFLAGS="${CFLAGS} -I./libltdl"
+dnl	  # Prerequisite for Mingw build (import and build internal ./libltdl):
+dnl	  #   $ libtoolize --ltdl
+dnl	  #   $ ( cd libltdl; ./configure --host=i586-mingw32msvc && make )
+dnl	  # Use internal ./libltdl during configure:
+dnl	  CFLAGS="${CFLAGS} -I./libltdl"
 
-        # use internal $(top_builddir)/libltdl during build:
-        INCLTDL="-I\$(top_builddir)/libltdl"
-        AC_SUBST([INCLTDL])
+dnl	  # use internal $(top_builddir)/libltdl during build:
+dnl	  INCLTDL="-I\$(top_builddir)/libltdl"
+dnl	  AC_SUBST([INCLTDL])
 
-        #   - use internal $(top_builddir)/libltdl during build and library 'ltdlc':
-        LIBLTDL="-L\$(top_builddir)/libltdl -lltdlc"
-        AC_SUBST([LIBLTDL])
+dnl	  #   - use internal $(top_builddir)/libltdl during build and library 'ltdlc':
+dnl	  LIBLTDL="-L\$(top_builddir)/libltdl -lltdlc"
+dnl	  AC_SUBST([LIBLTDL])
 
-        # Enable ld's "auto import" for executables
-        WINEXELDFLAGS="-Wl,--enable-auto-import"
-        AC_SUBST([WINEXELDFLAGS])
+	  # Enable ld's "auto import" for executables
+	  WINEXELDFLAGS="-Wl,--enable-auto-import"
+	  AC_SUBST([WINEXELDFLAGS])
         ])
 
 ## ---------------------- ##
@@ -318,12 +329,15 @@ AS_CASE(["$host_os"],
 ## ---------------------- ##
 
 dnl Check whether we can actually find ltdl.h
-AC_CHECK_HEADER([ltdl.h],
-                [AC_MSG_RESULT([yes])],
-                [AC_MSG_ERROR([ltdl.h not found.  Please install the libltdl development
-files package which provides /usr/include/ltdl.h
-(perhaps called 'libltdl-dev' or 'libltdl-devel').])
-                ])
+dnl (only needed if not using included libltdl).
+AS_IF([test "${with_included_ltdl}" = "no"], [
+      AC_CHECK_HEADER([ltdl.h],
+		      [AC_MSG_RESULT([yes])],
+		      [AC_MSG_ERROR([ltdl.h not found.  Please install the libltdl development
+      files package which provides /usr/include/ltdl.h
+      (perhaps called 'libltdl-dev' or 'libltdl-devel').])
+		      ])
+      ])
 
 
 dnl Check if C99 struct initializers are supported
@@ -406,7 +420,7 @@ AS_IF([test "${cf_with_cxx_binding}" = "yes"],
       [BINDINGS="${BINDINGS} c++"])
 
 
-dnl Check if perl-binding not wanted, default is to not build it
+dnl Check if perl-binding is wanted, default is to not build it
 
 # Perl binding
 AC_MSG_CHECKING([whether to build perl binding and demo])
@@ -442,7 +456,7 @@ AC_ARG_WITH([tcl-binding],
             [build_tcl=no])
 AC_MSG_RESULT([$build_tcl])
 
-dnl SC_PATH_TCLCONFIG and SC_LOAD_TCLCONFIG from macros/tcl.m4 
+dnl SC_PATH_TCLCONFIG and SC_LOAD_TCLCONFIG from macros/tcl.m4
 AS_IF([test x"${build_tcl}" = "xyes"],[
       SC_PATH_TCLCONFIG
       SC_LOAD_TCLCONFIG
@@ -690,6 +704,8 @@ echo \
         With Perl binding       ${cf_with_perl_binding}
         With Python binding     ${cf_with_python_binding}
         With TCL binding        ${build_tcl}
+        With included ltdl      ${with_included_ltdl}
+
         Enable Rig Matrix       ${enable_rigmatrix}
         Enable WinRadio         ${cf_with_winradio}
         Enable USRP             ${cf_with_usrp}

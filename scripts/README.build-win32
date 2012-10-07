@@ -11,10 +11,9 @@ In these steps the release or daily snapshot tarball is unpacked in ~/builds
 for the Win32 build and all operations are done from there unless otherwise
 noted.
 
-Under Linux you need the mingw32 package to cross-compile it, an internal
-copy of libltdl (configured and built as below), zip to create the archive,
-the tofrodos or dos2unix package installed to convert to DOS text format,
-and Wine plus the free MVC++Toolkit available from:
+Under Linux you need the mingw32 package to cross-compile it, zip to create
+the archive, the tofrodos or dos2unix package installed to convert to DOS
+text format, and Wine plus the free MVC++Toolkit available from:
 
 http://uploading.com/files/HNH73WB3/VCToolkitSetup%28v1.01%29%282004.07.06%29.zip.html
 
@@ -64,13 +63,19 @@ Build for Win32, cross-compile on Linux:
 Extract the Hamlib tarball into ~/builds (if you prefer another directory
 be sure to edit the BUILD_DIR variable in the build-win32.sh script):
 
-        $ tar xvfz ~/Downloads/hamlib-1.2.14~git-72c52d6-20110618.tar.gz
+        $ tar xvfz ~/Downloads/hamlib-3.0~git-???????-20121007.tar.gz
 
-Invoke the build-win32.sh script (it requires a Bash shell) with the name
-of the directory/Hamlib version to build (you need not cd into the hamlib
-directory, although it won't hurt.  The script uses absolute paths):
+Invoke the build-win32.sh script (it requires a Bash shell) with the name of
+the directory/Hamlib version to build (you need not cd into the hamlib
+directory, although it won't hurt.  The build-win32 script uses absolute
+paths):
 
-        build-win32.sh hamlib-1.2.14~git
+        $ build-win32.sh hamlib-3.0~git
+
+Note: As of 7 Oct 2012 the build should be independent of installed libtool
+versions as libltdl is included in the source tarball (enabled with the
+‘--with-included-ltdl’ option to the configure script (which this script
+passes to configure)).  The note below should now be obsolete.
 
 Note: At this time (18 Jun 2011) the build will fail on Debian Unstable due
 to a libtool version mismatch between libtool 2.2.6b included in the

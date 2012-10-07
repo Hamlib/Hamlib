@@ -77,4 +77,5 @@ if test -z "$*"; then
         echo "to pass any to it, please specify them on the $0 command line."
 fi
 
-$SRCDIR/configure --enable-maintainer-mode "$@"
+# $SRCDIR/configure --enable-maintainer-mode "$@"
+$SRCDIR/configure "$@"
