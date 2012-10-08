@@ -144,9 +144,9 @@ GR_PWIN32
 
 dnl macros/ax_pthread.m4
 AX_PTHREAD
-AS_IF([test x"$ax_pthread_ok" = xyes], [
-        CFLAGS="${CFLAGS} ${PTHREAD_CFLAGS}"
-        CXXFLAGS="${CFLAGS} ${PTHREAD_CFLAGS}"
+AS_IF([test x"$ax_pthread_ok" = "xyes"], [
+      CFLAGS="${CFLAGS} ${PTHREAD_CFLAGS}"
+      CXXFLAGS="${CFLAGS} ${PTHREAD_CFLAGS}"
 ])
 
 AC_SYS_POSIX_TERMIOS()
@@ -214,7 +214,8 @@ AS_IF([test "$hl_checkBoth" = 1], [
         AC_CHECK_FUNC([accept], [hl_checkNsl=0], [LIBS=$hl2_oldLibs])
         ])
 
-AC_CHECK_FUNC([gethostbyname],[],
+AC_CHECK_FUNC([gethostbyname],
+              [],
               [AC_CHECK_LIB([nsl],
                             [main],
                             [NET_LIBS="$NET_LIBS -lnsl"],
@@ -223,7 +224,8 @@ AC_CHECK_FUNC([gethostbyname],[],
               ])
 
 # Winsock2
-AC_CHECK_FUNC([gethostbyname], [],
+AC_CHECK_FUNC([gethostbyname],
+              [],
               [AC_CHECK_LIB([ws2_32],
                             [main],
                             [NET_LIBS="$NET_LIBS -lws2_32"],
@@ -293,45 +295,45 @@ dnl AC_SUBST([LIBLTDL])
 ## Custom host configurations ##
 ## -------------------------- ##
 AS_CASE(["$host_os"],
-        [freebsd*], [
-	  AM_CPPFLAGS="-I/usr/local/include ${AM_CPPFLAGS}"
-	  AM_LDFLAGS="${AM_LDFLAGS} -L/usr/local/lib"
-	  AC_SUBST([AM_LDFLAGS])],
+    [freebsd*], [
+        AM_CPPFLAGS="-I/usr/local/include ${AM_CPPFLAGS}"
+        AM_LDFLAGS="${AM_LDFLAGS} -L/usr/local/lib"
+        AC_SUBST([AM_LDFLAGS])],
 
-        [darwin* | rhapsody*], [
-	  # Trick from http://fink.sourceforge.net/doc/porting/
-	  # TODO: check the compiler actually does support these options
-	  CFLAGS="${CFLAGS} -no-cpp-precomp"
-	  CXXFLAGS="${CXXFLAGS} -no-cpp-precomp"
+    [darwin* | rhapsody*], [
+        # Trick from http://fink.sourceforge.net/doc/porting/
+        # TODO: check the compiler actually does support these options
+        CFLAGS="${CFLAGS} -no-cpp-precomp"
+        CXXFLAGS="${CXXFLAGS} -no-cpp-precomp"
 
-	  # Tell the OS X linker to allocate enough space inside the
-	  # libhamlib.X.dylib shared object for install_name_tool(1) to
-	  # work. This is useful when including hamlib in an app bundle.
-	  OSXLDFLAGS="-Wl,-headerpad_max_install_names"
-	  AC_SUBST([OSXLDFLAGS])],
+        # Tell the OS X linker to allocate enough space inside the
+        # libhamlib.X.dylib shared object for install_name_tool(1) to
+        # work. This is useful when including hamlib in an app bundle.
+        OSXLDFLAGS="-Wl,-headerpad_max_install_names"
+        AC_SUBST([OSXLDFLAGS])],
 
-        [mingw* | pw32* | cygwin*], [
-	  WINLDFLAGS="-Wl,--output-def,libhamlib.def -Wl,--add-stdcall-alias"
-	  AC_SUBST([WINLDFLAGS])
+    [mingw* | pw32* | cygwin*], [
+        WINLDFLAGS="-Wl,--output-def,libhamlib.def -Wl,--add-stdcall-alias"
+        AC_SUBST([WINLDFLAGS])
 
-dnl	  # Prerequisite for Mingw build (import and build internal ./libltdl):
-dnl	  #   $ libtoolize --ltdl
-dnl	  #   $ ( cd libltdl; ./configure --host=i586-mingw32msvc && make )
-dnl	  # Use internal ./libltdl during configure:
-dnl	  CFLAGS="${CFLAGS} -I./libltdl"
+dnl     # Prerequisite for Mingw build (import and build internal ./libltdl):
+dnl     #   $ libtoolize --ltdl
+dnl     #   $ ( cd libltdl; ./configure --host=i586-mingw32msvc && make )
+dnl     # Use internal ./libltdl during configure:
+dnl     CFLAGS="${CFLAGS} -I./libltdl"
 
-dnl	  # use internal $(top_builddir)/libltdl during build:
-dnl	  INCLTDL="-I\$(top_builddir)/libltdl"
-dnl	  AC_SUBST([INCLTDL])
+dnl     # use internal $(top_builddir)/libltdl during build:
+dnl     INCLTDL="-I\$(top_builddir)/libltdl"
+dnl     AC_SUBST([INCLTDL])
 
-dnl	  #   - use internal $(top_builddir)/libltdl during build and library 'ltdlc':
-dnl	  LIBLTDL="-L\$(top_builddir)/libltdl -lltdlc"
-dnl	  AC_SUBST([LIBLTDL])
+dnl     #   - use internal $(top_builddir)/libltdl during build and library 'ltdlc':
+dnl     LIBLTDL="-L\$(top_builddir)/libltdl -lltdlc"
+dnl     AC_SUBST([LIBLTDL])
 
-	  # Enable ld's "auto import" for executables
-	  WINEXELDFLAGS="-Wl,--enable-auto-import"
-	  AC_SUBST([WINEXELDFLAGS])
-        ])
+        # Enable ld's "auto import" for executables
+        WINEXELDFLAGS="-Wl,--enable-auto-import"
+        AC_SUBST([WINEXELDFLAGS])
+    ])
 
 ## ---------------------- ##
 ## External package tests ##
@@ -339,13 +341,14 @@ dnl	  AC_SUBST([LIBLTDL])
 
 dnl Check whether we can actually find ltdl.h
 dnl (only needed if not using included libltdl).
-AS_IF([test "${with_included_ltdl}" = "no"], [
+AS_IF([test x"${with_included_ltdl}" = "xno"], [
       AC_CHECK_HEADER([ltdl.h],
-		      [AC_MSG_RESULT([yes])],
-		      [AC_MSG_ERROR([ltdl.h not found.  Please install the libltdl development
-      files package which provides /usr/include/ltdl.h
-      (perhaps called 'libltdl-dev' or 'libltdl-devel').])
-		      ])
+                      [AC_MSG_RESULT([yes])],
+                      [AC_MSG_ERROR([""
+"ltdl.h not found.  Please install the libltdl development files package which"
+"provides /usr/include/ltdl.h (perhaps called 'libltdl-dev' or 'libltdl-devel')."
+                      ])
+            ])
       ])
 
 
@@ -388,7 +391,7 @@ AC_ARG_ENABLE([rigmatrix],
 
 AC_MSG_CHECKING([whether to build rigmatrix])
 AC_MSG_RESULT([$enable_rigmatrix])
-AS_IF([test "${enable_rigmatrix}" = "no"],
+AS_IF([test x"${enable_rigmatrix}" = "xno"],
       [RIGMATRIX=],
       [RIGMATRIX="rigmatrix"])
 
@@ -425,7 +428,7 @@ AC_ARG_WITH([cxx-binding],
             [cf_with_cxx_binding=$cf_with_cxx])
 AC_MSG_RESULT([$cf_with_cxx_binding])
 
-AS_IF([test "${cf_with_cxx_binding}" = "yes"],
+AS_IF([test x"${cf_with_cxx_binding}" = "xyes"],
       [BINDINGS="${BINDINGS} c++"])
 
 
@@ -441,16 +444,17 @@ AC_ARG_WITH([perl-binding],
 AC_MSG_RESULT([$cf_with_perl_binding])
 
 dnl SC_PATH_PERLINC from macros/perl.m4
-AS_IF([test "${cf_with_perl_binding}" = "yes"],[
-       SC_PATH_PERLINC
-       BINDING_LIST="${BINDING_LIST} perl"
-       BINDING_ALL="${BINDING_ALL} all-perl"
-       BINDING_CHECK="${BINDING_CHECK} check-perl"
-       BINDING_CLEAN="${BINDING_CLEAN} clean-perl"
-       BINDING_DISTCLEAN="${BINDING_DISTCLEAN} distclean-perl"
-       BINDING_DISTCHECK="${BINDING_DISTCHECK} distcheck-perl"
-       BINDING_INSTALL_EXEC="${BINDING_INSTALL_EXEC} install-perl"
-       BINDING_UNINSTALL="${BINDING_UNINSTALL} uninstall-perl"])
+AS_IF([test x"${cf_with_perl_binding}" = "xyes"],[
+      SC_PATH_PERLINC
+      BINDING_LIST="${BINDING_LIST} perl"
+      BINDING_ALL="${BINDING_ALL} all-perl"
+      BINDING_CHECK="${BINDING_CHECK} check-perl"
+      BINDING_CLEAN="${BINDING_CLEAN} clean-perl"
+      BINDING_DISTCLEAN="${BINDING_DISTCLEAN} distclean-perl"
+      BINDING_DISTCHECK="${BINDING_DISTCHECK} distcheck-perl"
+      BINDING_INSTALL_EXEC="${BINDING_INSTALL_EXEC} install-perl"
+      BINDING_UNINSTALL="${BINDING_UNINSTALL} uninstall-perl"
+      ])
 
 
 dnl Kylix binding has been removed because unmaintained. Volunteers welcome.
@@ -508,7 +512,7 @@ AC_ARG_WITH([python-binding],
 AC_MSG_RESULT([$cf_with_python_binding])
 
 dnl AX_PYTHON_DEVEL from macros/ax_python_devel.m4
-AS_IF([test "${cf_with_python_binding}" = "yes"],[
+AS_IF([test x"${cf_with_python_binding}" = "xyes"],[
       AM_PATH_PYTHON([2.1],, [:])
       AX_PYTHON_DEVEL
 
@@ -538,12 +542,12 @@ AC_ARG_ENABLE([winradio],
               [cf_with_winradio="yes"])
 AC_MSG_RESULT([$cf_with_winradio])
 
-AS_IF([test "${cf_with_winradio}" = "yes"],
+AS_IF([test x"${cf_with_winradio}" = "xyes"],
       [BACKEND_LIST="$BACKEND_LIST winradio"])
 
 
-AS_IF([test "${cf_with_cxx}" = "yes"],[
-      # stuff that requires C++ support
+# stuff that requires C++ support
+AS_IF([test x"${cf_with_cxx}" = "xyes"],[
 
       AC_MSG_CHECKING([whether to build USRP backend])
       AC_ARG_ENABLE([usrp],
@@ -553,7 +557,7 @@ AS_IF([test "${cf_with_cxx}" = "yes"],[
                     [cf_with_usrp="no"])
       AC_MSG_RESULT([$cf_with_usrp])
 
-      AS_IF([test "${cf_with_usrp}" = "yes"],[
+      AS_IF([test x"${cf_with_usrp}" = "xyes"],[
             PKG_CHECK_MODULES([USRP],
                               [usrp >= 0.8],
                               [AC_DEFINE([HAVE_USRP],[1],[Define if usrp is available])
@@ -622,7 +626,7 @@ AC_SUBST([ROT_BACKENDEPS])
 
 
 AC_CHECK_PROG([cf_with_bindings], [swig], [yes], [no], [$PATH])
-AS_IF([test "${cf_with_bindings}" = "yes"], [
+AS_IF([test x"${cf_with_bindings}" = "xyes"], [
       cf_with_bindings=no
 
       SWIG_PROG(1.3.22)
