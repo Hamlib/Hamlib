@@ -10,7 +10,7 @@ RIGSRC = rig.c serial.c misc.c register.c event.c cal.c conf.c tones.c \
 
 lib_LTLIBRARIES = libhamlib.la
 libhamlib_la_SOURCES = $(RIGSRC)
-libhamlib_la_LDFLAGS = $(WINLDFLAGS) $(OSXLDFLAGS) -no-undefined -version-info @ABI_VERSION@:0:0
+libhamlib_la_LDFLAGS = $(WINLDFLAGS) $(OSXLDFLAGS) -no-undefined -version-info @ABI_VERSION@:@ABI_REVISION@:@ABI_AGE@
 libhamlib_la_CFLAGS = -DIN_HAMLIB $(AM_CFLAGS) -DHAMLIB_MODULE_DIR=\"$(pkglibdir)\"
 
 # $(LIBLTDL) is set by LTDL_INIT macro

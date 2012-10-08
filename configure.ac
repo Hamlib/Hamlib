@@ -47,16 +47,26 @@ dnl added to AC_CONFIG_FILES near the end of this file.  See README.developer
 BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc drake lowe rft rs kit skanti prm80 tapr flexradio wj racal tuner adat"
 ROT_BACKEND_LIST="dummy easycomm fodtrack gs232a heathkit kit rotorez sartek spid ars m2 amsat ts7400 celestron"
 
+dnl See README.release on setting these values
+# Values given to -version-info when linking.  See libtool documentation.
+# Set them here to keep c++/Makefile and src/Makefile in sync.
 ABI_VERSION=3
+ABI_REVISION=0
+ABI_AGE=1
 
 AC_DEFINE_UNQUOTED([ABI_VERSION], [$ABI_VERSION], [Frontend ABI version])
+AC_DEFINE_UNQUOTED([ABI_REVISION], [$ABI_REVISION], [Frontend ABI revision])
+AC_DEFINE_UNQUOTED([ABI_AGE], [$ABI_AGE], [Frontend ABI age])
+
 AC_SUBST([ABI_VERSION])
+AC_SUBST([ABI_REVISION])
+AC_SUBST([ABI_AGE])
 
 dnl Pick up the Hamlib macros.
 dnl macros/aclocal-include.m4
 dnl AM_ACLOCAL_INCLUDE([macros])
 
-dnl directory for docs (html)
+# directory for docs (html)
 hamlibdocdir=$datadir/doc/hamlib
 AC_SUBST([hamlibdocdir])
 
@@ -76,7 +86,7 @@ AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 
-dnl Pkgconfig
+dnl Pkgconfig assists when using certain external packages
 PKG_PROG_PKG_CONFIG
 
 dnl AC_AIX
@@ -91,7 +101,6 @@ dnl     'ac_cv_prog_cc_stdc'.  Remove this warning and the assignment when
 dnl     you adjust the code.  You can also remove the above call to
 dnl     AC_PROG_CC if you already called it elsewhere.])
 dnl am_cv_prog_cc_stdc=$ac_cv_prog_cc_stdc
-
 
 ## ----------------------------------- ##
 ## Miscellaneous configuration macros  ##

@@ -1,4 +1,3 @@
-
 This file is a release HOWTO, more or less a reminder before releasing
 a new version of Hamlib.
 
@@ -20,7 +19,7 @@ Before deciding release:
   of each year will provide about a month of testing before release.
 
 * Update the configuration:
-    clean the tree:
+    clean the tree (removing all files not tracked by Git):
         make dist clean; git clean -dxf
 
 Releasing Hamlib:
@@ -45,7 +44,7 @@ remote repository, "origin"):
   local repository to origin/master:
 
   $ git reset --hard origin/master
-  HEAD is now at 522229d chmod +x autogen.sh
+  HEAD is now at ??????? Last commit message summary
 
     Thanks, Kamal Mostafa, KA6MAL
 
@@ -56,21 +55,27 @@ remote repository, "origin"):
   git commit -a     # Commit all modified files locally
 
 * Create a new branch for the release:
-  git branch Hamlib-1.2.15
+  git branch Hamlib-3.1
 
 * Push the changes (check for validity):
   git push origin       # pushes previous commit to sf.net repository
-  git push -u origin Hamlib-1.2.15         # push the branch and set "upstream"
+  git push -u origin Hamlib-3.1         # push the branch and set "upstream"
 
 * Update the version in the macro AC_INIT of configure.ac (advance to next
-  version, e.g. 1.2.16~git) and the libhamlib_la_LDFLAGS value in
-  src/Makefile.am and c++/Makefile.am to match. e.g.:
-  libhamlib_la_LDFLAGS = $(WINLDFLAGS) $(OSXLDFLAGS) -no-undefined -version-info @ABI_VERSION@:16:0
+  version, e.g. 3.1~git) and the ABI_RELEASE value in configure.ac.
 
-  Note that -version-info is a libtool flag and reflects ABI compatibility.
-  In @ABI_VERSION@:16:0, ABI_VERSION is set in configure.ac, 16 is the
-  revision, and :0 should remain 0.  When the API is changed, ABI_VERSION
-  will be advanced, and revision (e.g. :16) will be reset to 0.
+  Note that -version-info is a libtool link mode argument and reflects ABI
+  compatibility between Hamlib releases.  The values of ABI_VERSION,
+  ABI_REVISION, and ABI_AGE are set in configure.ac. ABI_VERSION should be
+  advanced when the ABI is affected by changes in the library interface.
+  ABI_REVISION is the revision and indicates source changes in Hamlib but no
+  change in ABI.  ABI_AGE reflects backward compatibity to a previous version.
+  Per the libtool manual, this value is subtracted from ABI_VERSION to note
+  compatible prior versions.  Per the libtool manual, so long as the library
+  interface is added to and nothing is removed or changed, backward
+  compatibity should exist.  When the API is changed, ABI_VERSION will be
+  advanced, ABI_REVISION will be reset to 0, and ABI_AGE may be advanced
+  pending API/ABI changes.
 
   Format is ABI version:revision:age.  Setting age to other than 0 causes
   strange DLL naming in Win32 cross-compile builds.
@@ -84,7 +89,7 @@ which will be advanced for the next release candidate or stripped for final
 release:
 
 * Checkout the release branch:
-  git checkout Hamlib-1.2.15
+  git checkout Hamlib-3.1
 
 * Edit config.ac, commit it and push it.  The branch is now ready for
   rc testing/release.
@@ -93,7 +98,7 @@ release:
     ./autogen.sh
     make dist
 
-    The resulting tarball--hamlib-1.x.y[.z].tar.gz--should be tested as much
+    The resulting tarball--hamlib-3.y[.z].tar.gz--should be tested as much
     as possible to assure compilation integrity. etc.
 
 
@@ -113,8 +118,8 @@ See README.build-win32 for information on prerequisites, etc.
 * Release the file(s)
   - https://sourceforge.net/projects/hamlib/files/
   - Select Hamlib
-  - Click Add Folder, name it X.Y.Z[.a]
-  - Select X.Y.Z[.a]
+  - Click Add Folder, name it X.Y[.Z]
+  - Select X.Y[.Z]
   - Click Add File button
   - Click Choose File button
   - Click Upload
