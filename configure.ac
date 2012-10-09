@@ -214,6 +214,7 @@ AS_IF([test "$hl_checkBoth" = 1], [
         AC_CHECK_FUNC([accept], [hl_checkNsl=0], [LIBS=$hl2_oldLibs])
         ])
 
+# separate Name Service Library
 AC_CHECK_FUNC([gethostbyname],
               [],
               [AC_CHECK_LIB([nsl],
@@ -223,7 +224,7 @@ AC_CHECK_FUNC([gethostbyname],
                             [])
               ])
 
-# Winsock2
+# Winsock2 32 bit
 AC_CHECK_FUNC([gethostbyname],
               [],
               [AC_CHECK_LIB([ws2_32],
@@ -363,14 +364,24 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]],
                   ])
 
 
-dnl libxml2 required rigmem xml support
-PKG_CHECK_MODULES([LIBXML2],
-                  [libxml-2.0],
-                  [AC_DEFINE([HAVE_XML2],
-                             [1],
-                             [Define if libxml2 is available])],
-                  [AC_MSG_WARN([libxml-2.0 pkg-config not found, XML support will be disabled])
-                  ])
+# libxml2 required rigmem xml support, make it user optional
+AC_MSG_CHECKING([whether to build rigmem XML support])
+AC_ARG_WITH([xml-support],
+            [AS_HELP_STRING([--with-xml-support],
+                            [build rigmem with XML support @<:@default=no@:>@])],
+            [cf_with_xml_support=$withval],
+            [cf_with_xml_support=no])
+AC_MSG_RESULT([$cf_with_xml_support])
+
+AS_IF([test x"${cf_with_xml_support}" = "xyes"], [
+      PKG_CHECK_MODULES([LIBXML2],
+                        [libxml-2.0],
+                        [AC_DEFINE([HAVE_XML2],
+                                   [1],
+                                   [Define if libxml2 is available])],
+                        [AC_MSG_WARN([libxml-2.0 pkg-config not found, XML support will be disabled])
+                        ])
+      ])
 
 AC_SUBST([LIBXML2_LIBS])
 AC_SUBST([LIBXML2_CFLAGS])
@@ -713,17 +724,18 @@ echo \
 
 
  Package features:
-        With C++ binding        ${cf_with_cxx_binding}
-        With Perl binding       ${cf_with_perl_binding}
-        With Python binding     ${cf_with_python_binding}
-        With TCL binding        ${build_tcl}
-        With included ltdl      ${with_included_ltdl}
+        With C++ binding            ${cf_with_cxx_binding}
+        With Perl binding           ${cf_with_perl_binding}
+        With Python binding         ${cf_with_python_binding}
+        With TCL binding            ${build_tcl}
+        With rigmem XML support     ${cf_with_xml_support}
+        With included ltdl          ${with_included_ltdl}
 
-        Enable Rig Matrix       ${enable_rigmatrix}
-        Enable WinRadio         ${cf_with_winradio}
-        Enable USRP             ${cf_with_usrp}
-        Enable USB backends     ${cf_with_libusb}
-        Enable shared libs      ${enable_shared}
-        Enable static libs      ${enable_static}
+        Enable Rig Matrix           ${enable_rigmatrix}
+        Enable WinRadio             ${cf_with_winradio}
+        Enable USRP                 ${cf_with_usrp}
+        Enable USB backends         ${cf_with_libusb}
+        Enable shared libs          ${enable_shared}
+        Enable static libs          ${enable_static}
 
 -----------------------------------------------------------------------"
