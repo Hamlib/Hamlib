@@ -1,6 +1,6 @@
 Hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
          (C) Stephane Fillod 2000-2011
-         (C) The Hamlib Group 2000-2011
+         (C) The Hamlib Group 2000-2012
 
 The purpose of this project is to provide stable, flexible, shared libraries
 that enable quicker development of Amateur Radio Equipment Control
@@ -41,7 +41,9 @@ Frontend Library
 
 libhamlib.so -  frontend lib that provides generic API
                 for all RIG types. This is what Application
-                programmers will "see".
+                programmers will "see".  Will have different
+                names on other platforms, e.g. libhamlib-2.dll
+                on MS windows.
 
 Backend Examples are:
 ---------------------
@@ -129,30 +131,28 @@ Like other software projects, Hamlib uses a version numbering scheme to help
 program authors and users understand which releases are compatible and which
 are not.  Hamlib releases now follow the format of:
 
-Major.minor.release.incremental
+Major.minor.incremental
 
 Where
 
-Major:		Equals 1 for this C language API implementation of rig
-control and won't change. Any successor that is a major code rewrite or
-differing implementation would have this number advanced (not too likely).
+Major:  Currently at 3, but can be advanced when changes to the API require
+client programs to be rewritten to take advantage of new features of
+Hamlib.  This number has advanced a couple of times throughout the life of
+Hamlib.  Advancement of the major number is only for frontend API changes
+that require modification of client source.  ABI compatibility is presently
+maintained to prior releases so that a program linked to an earlier
+1.2.Y.[Z] release will work with a later 3.Y[.Z] release without
+recompiling.  Itis our intention to maintain such ABI compatibility as long
+as practical.
 
-Minor:		Currently at 2, but can be advanced when changes to the API
-require client programs to be rewritten to continue to use Hamlib.  This
-number has advanced a couple of times throughout the life of Hamlib.
-Advancement of the minor number is only for frontend API changes that
-require modification of client source.  Also indicates ABI compatibility so
-that a program linked to an earlier 1.X.Y release will work with a later
-1.X.Y release without recompiling.
-
-Release:	This number advances when either new backend(s) or new rig
+Minor:  This number advances when either new backend(s) or new rig
 model(s) to existing backend(s) are added.  Advancing this number informs
 client program authors (and users of those programs) that new model/backend
 support has been added.  Will also include bug fixes since the last
 Incremental release.
 
-Incremental:	May be undefined (e.g. Hamlib 1.2.14) and would advance to 1
-(e.g. Hamlib 1.2.14.1) for any bug fixes or feature additions to existing
+Incremental:    May be undefined (e.g. Hamlib 3.0) and would advance to 1
+(e.g. Hamlib 3.0.1) for any bug fixes or feature additions to existing
 model(s) or backend(s), then to 2, etc.  New rig models or backends are not
 included in Incremental.  When Release is advanced, Incremental will reset
 to undefined and will not be included as part of the version number.

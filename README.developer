@@ -1,6 +1,6 @@
 Hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
          (C) Stephane Fillod 2000-2011
-         (C) The Hamlib Group 2000-2011
+         (C) The Hamlib Group 2000-2012
 
 Take a look at http://sourceforge.net/projects/hamlib/
 Here you will find a mail list, and the latest releases.
@@ -28,7 +28,9 @@ Frontend Library
 
 libhamlib.so -  frontend lib that provides generic API
                 for all RIG types. This is what Application
-                programmers will "see".
+                programmers will "see".  Will have different
+                names on other platforms, e.g. libhamlib-2.dll
+                on MS windows.
 
 Backend Examples are:
 ---------------------
@@ -232,8 +234,8 @@ distributions may differ).
 
 * Gnu C or any C99 compliant compiler       # gcc --version
 * Gnu make  (or any modern one, BSD okay)   # make --version
-* autoconf      2.59                        # autoconf --version
-* automake      1.7                         # automake --version
+* autoconf      2.67                        # autoconf --version
+* automake      1.11                        # automake --version
 * libtool       2.2.6b+                     # libtool --version
 * libltdl-dev   2.2.6b+
 * Git for connection to hamlib.git.sourceforge.net
@@ -275,12 +277,12 @@ files, i.e. configure, config.guess, Makefile, etc.  Hence after a fresh
 checkout, you'll have to generate those files.
 
 To proceed, first edit the autogen.sh script, and set appropriately the
-AUTOCONF, AUTOHEADER, AUTOHEADER, and ACLOCAL variables with the required
-versions seen in the previous section (most systems will be fine with the
-default names, only do this if a problem arises).
+AUTOCONF, AUTOMAKE, and LIBTOOLIZE variables with the required versions seen
+in the previous section (most systems will be fine with the default names,
+only do this if a problem arises and please let us know).
 
     cd hamlib
-    sh ./autogen.sh [--disable-static] [CFLAGS=<"-g -O0">]
+    sh ./autogen.sh [--disable-static] [CFLAGS="-g -O0"]
     make
     make install
 
@@ -288,7 +290,7 @@ If you don't want the build files cluttering the source directories, do the
 following in the same parent directory of hamlib:
 
     mkdir build && cd build
-    sh ../hamlib/autogen.sh  [--disable-static] [CFLAGS=<"-g -O0">]
+    sh ../hamlib/autogen.sh  [--disable-static] [CFLAGS="-g -O0"]
     make
     make install
 
@@ -316,14 +318,6 @@ Swig binding support for those scripting languages.
 
 NOTE: The autogen.sh script has only to be run the first time after a fresh
 checkout or when a Makefile.am or other build file is modified or added.
-
-The difference between building as a beta tester and a developer is in the
-'--enable-maintainer-mode' option passed to configure from autogen.sh.  This
-option will add new Makefile targets and dependencies and not force a
-rebuild of the Makefiles when make is executed.  This is why we recommend
-that beta testers use the daily Git master branch snapshot from:
-
-http://n0nb.users.sourceforge.net
 
 For a Tcl build, add this if needed:
 
@@ -514,10 +508,10 @@ http://www.kernel.org/doc/Documentation/CodingStyle
 Hamlib is a code base from many contributors and a variety of styles have
 been employed.  If you work on a source file, go ahead and apply good
 judgment and clean it up per the kernel style guide.  Lining things up
-nicely with 8 space tabs (use tabs, not spaces) is an excellent start.
-Next, put spaces in assignments to aid readability.  Align closing braces
-with the opening block's keyword.  In function definitions put the opening
-brace on its own line under the definition's parameter line.
+nicely is an excellent start. Next, put spaces in assignments to aid
+readability.  Align closing braces with the opening block's keyword.  In
+function definitions put the opening brace on its own line under the
+definition's parameter line.
 
 Hamlib source code is no place for an entry into the obsfucated C contest!
 Many of us are hobbyists and write this for fun.  Easy to read and
@@ -622,7 +616,7 @@ If an application sets the debugging level to RIG_DEBUG_NONE, then
 rig_debug() functions will produce no output.  Therefore rig_debug() cannot
 be counted on to output a message in all runtime cases.
 
-The debugging levels may be an area for consideration in API_3.
+The debugging levels may be an area for consideration in Hamlib 3.
 
 
 8.3 Submitting patches
@@ -633,7 +627,7 @@ to be given to the author and submitter of the patches.  Alternately,
 patches can be submitted in unified format (diff -u), against the Git master
 branch or a given release (please note well which one!). Both formats make
 patches easily readable. The patches are to be sent to the hamlib-developer
-mailing list ( hamlib-developer@lists.sourceforge.net). If the file is too
+mailing list (hamlib-developer@lists.sourceforge.net). If the file is too
 big, you can send it as a compressed attachment.
 
 
@@ -642,7 +636,7 @@ big, you can send it as a compressed attachment.
 Simply summarize your changes when the files are committed to Git or, if
 providing patches to the mailing list, provide a summary so the uploader can
 include it in the commit message which will show in the commit log (Git
-formatted emails will inlcude this already).
+formatted emails will include this already).
 
 
 8.4 Git commit access
