@@ -10,7 +10,7 @@
 
 # Change the following to match the versions installed on your system
 LIBTOOLIZE=libtoolize
-AUTOCONF=autoconf
+AUTORECONF=autoreconf
 AUTOMAKE=automake
 
 # variables below this line should not need modification
@@ -26,9 +26,9 @@ FILE=include/hamlib/rig.h
 
 DIE=0
 
-($AUTOCONF --version) < /dev/null > /dev/null 2>&1 || {
+($AUTORECONF --version) < /dev/null > /dev/null 2>&1 || {
         echo
-        echo "You must have autoconf installed to compile $PROJECT."
+        echo "You must have autoreconf installed to compile $PROJECT."
         echo "Download the appropriate package for your distribution,"
         DIE=1
 }
@@ -64,11 +64,11 @@ test $TEST_TYPE $FILE || {
 ### subtools are processed in the correct order.                ###
 ###################################################################
 
-echo "Running 'autoreconf -is' to process configure.ac"
+echo "Running '$AUTORECONF -is' to process configure.ac"
 echo "and generate the configure script."
 
 # Tell autoreconf to install missing files as symbolic links
-autoreconf -is
+$AUTORECONF -is
 
 cd $ORIGDIR
 
@@ -77,5 +77,4 @@ if test -z "$*"; then
         echo "to pass any to it, please specify them on the $0 command line."
 fi
 
-# $SRCDIR/configure --enable-maintainer-mode "$@"
 $SRCDIR/configure "$@"
