@@ -102,19 +102,18 @@ Git master branch daily snapshot build:
 Reading the INSTALL file in top directory will explain in more detail how
 to do the following commands.
 
-        ./configure [--disable-static] [--prefix=</usr/local>]
+        ./configure [--prefix=$HOME/local]
         make
         make install
 
 The prefix argument is optional.  Convention is that local packages be
 placed in /usr/local away from distribution installed packages  This is the
 default location for the snapshots so it may be disregarded unless you wish
-to install Hamlib elsewhere.  The '--disable-static' option speeds up
-compilation if you don't plan to use static libraries (static libraries are
-usually not needed).
+to install Hamlib elsewhere.  The example above would install Hamlib to
+the user's home directory under the 'local' subdirectory.
 
 Other useful options are '--with-perl-binding' or '--with-python-binding' or
-'--enable-tcl-binding' if you are interested in Swig binding support for
+'--with-tcl-binding' if you are interested in Swig binding support for
 those scripting languages  If you are unsure it is safe to ignore these
 options.
 

@@ -26,12 +26,13 @@ linking with Windows apps:
 1. To create the dlls, do the following from within Cygwin (assumes
 Cygwin is fully updated):
 
-# export CC="gcc -mno-cygwin"
-# export CXX="g++ -mno-cygwin"
-# ./autogen.sh --prefix=/usr/local --disable-static  \
---without-tcl-binding --without-perl-binding \
---without-python-binding --build=i686-pc-cygwin --host=i686-pc-mingw32 \
+$ export CC="gcc -mno-cygwin"
+$ export CXX="g++ -mno-cygwin"
+$ ./autogen.sh --prefix=/usr/local \
+--build=i686-pc-cygwin \
+--host=i686-pc-mingw32 \
 --target=i686-pc-mingw32
+
 Note: on subsequent runs you can replace ./autogen.sh with ./configure
 unless there are modifications to any .ac, .m4, or Makefile.am file.
 In that case, "make clean", and re-run autogen as above.

@@ -170,8 +170,7 @@ END_OF_README
 
 # Configure and build hamlib for mingw32, with libusb-win32
 
-./configure --disable-static \
- --host=i586-mingw32msvc \
+./configure --host=i586-mingw32msvc \
  --prefix=`pwd`/mingw-inst \
  --without-cxx-binding \
  --with-included-ltdl \
@@ -188,7 +187,7 @@ cp -a ${INST_DIR}/include/hamlib ${ZIP_DIR}/include/.; todos ${ZIP_DIR}/include/
 rm ${ZIP_DIR}/include/hamlib/{rig,rot}class.h
 
 for f in AUTHORS ChangeLog COPYING COPYING.LIB LICENSE README README.betatester README.win32-bin THANKS ; do \
-	cp -a ${f} ${ZIP_DIR}/${f}.txt ; todos ${ZIP_DIR}/${f}.txt ; done
+    cp -a ${f} ${ZIP_DIR}/${f}.txt ; todos ${ZIP_DIR}/${f}.txt ; done
 
 # Generate PDF documents from nroff formatted man files
 cd tests

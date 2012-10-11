@@ -29,15 +29,6 @@ main directory and do the following:
      The configure script has several options to configure Hamlib.  See the
      Optional Features section below.
 
-     N.B. If you know that you won't need static libaries (most applications
-     dynamically link Hamlib by default) invoke `configure' as follows:
-
-        $ ./configure --disable-static
-
-     This will result in a much smaller Hamlib installation (and faster
-     compilation :-) ).  See also the "Hamlib specific Features" section
-     below for other `configure' options.
-
      While running, `configure' prints some messages telling you which
      features it is checking for.
 
@@ -287,7 +278,4 @@ has no effect on rigctld/rotctld).  You may get a make error (which means it
 will quit before compilation is complete) if the
 --with-[perl|python|tcl]-binding option(s) are given and the Swig package is
 not installed.
-
-   Building static libraries can be disabled by use of the `--disable-static'
-option.  This will reduce the installed size of Hamlib considerably.
 

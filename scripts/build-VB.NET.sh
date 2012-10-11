@@ -175,17 +175,12 @@ mv include/hamlib/rig_dll.h include/hamlib/rig_dll.h.orig
 sed -e 's/__cdecl/__stdcall/' <include/hamlib/rig_dll.h.orig >include/hamlib/rig_dll.h
 rm include/hamlib/rig_dll.h.orig
 
-# Import internal ./libltdl and build it for mingw32
-libtoolize --ltdl
-cd libltdl; ./configure --host=i586-mingw32msvc && make; cd ..
-
 # Configure and build hamlib for mingw32, with libusb-win32
 
-./configure --disable-static \
- --host=i586-mingw32msvc \
+./configure --host=i586-mingw32msvc \
  --prefix=`pwd`/mingw-inst \
- --without-rpc-backends \
  --without-cxx-binding \
+ --with-included-ltdl \
  PKG_CONFIG_LIBDIR=${LIBUSB_WIN32_BIN_PATH}/lib/pkgconfig
 
 make install
@@ -198,10 +193,9 @@ cp -a ${INST_DIR}/include/hamlib ${ZIP_DIR}/include/.; todos ${ZIP_DIR}/include/
 rm ${ZIP_DIR}/include/hamlib/{rig,rot}class.h
 
 for f in AUTHORS ChangeLog COPYING COPYING.LIB LICENSE README README.betatester README.VB.NET-bin THANKS ; do \
-	cp -a ${f} ${ZIP_DIR}/${f}.txt ; todos ${ZIP_DIR}/${f}.txt ; done
+    cp -a ${f} ${ZIP_DIR}/${f}.txt ; todos ${ZIP_DIR}/${f}.txt ; done
 
 # Copy build files into specific locations for Zip file
-cp -a ${INST_DIR}/bin/{rigctld.exe,rigctl.exe,rigmem.exe,rigsmtr.exe,rigswr.exe,rotctld.exe,rotctl.exe} ${ZIP_DIR}/bin/.
 cp -a ${INST_DIR}/lib/hamlib/hamlib-*.dll ${ZIP_DIR}/bin/.
 cp -a ${INST_DIR}/bin/libhamlib-?.dll ${ZIP_DIR}/bin/.
 cp -a ${INST_DIR}/lib/libhamlib.dll.a ${ZIP_DIR}/lib/gcc/.
@@ -213,3 +207,4 @@ cp -a ${LIBUSB_WIN32_BIN_PATH}/bin/x86/libusb0_x86.dll ${ZIP_DIR}/bin/libusb0.dl
 # Need VC++ free toolkit installed (default Wine directory installation shown)
 ( cd ${ZIP_DIR}/lib/msvc/ && wine ~/.wine/drive_c/Program\ Files/Microsoft\ Visual\ C++\ Toolkit\ 2003/bin/link.exe /lib /machine:i386 /def:libhamlib-2.def )
 zip -r hamlib-VB.NET-${RELEASE}.zip `basename ${ZIP_DIR}`
+

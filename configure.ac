@@ -268,33 +268,29 @@ AC_LIBOBJ([dummy])
 ## ------------------------ ##
 ## libtool  Initialisation. ##
 ## ------------------------ ##
-## N.b. LT_INIT([dlopen], [win32-dll])  does not work for older libtool
+
 LT_PREREQ([2.2.6b])
 
-# Name the subdirectory that contains libltdl sources
+dnl Name the subdirectory that contains libltdl sources
 LT_CONFIG_LTDL_DIR([libltdl])
 
-# Name the subdirectory that contains libltdl sources
-LT_INIT([dlopen win32-dll])
+dnl N.B. LT_INIT([dlopen], [win32-dll]) does not work for older libtool
+dnl so require new enough version above.  Disable static library builds as
+dnl the frontend and backend libs are not linked.  May need a recipe outside
+dnl of Libtool if these are needed.
+LT_INIT([dlopen win32-dll disable-static])
 
-# Enable building of the convenience libltdl library
-# (requires --with-included-ltdl be given to configure for the included
-# libltdl to be used), useful on systems where libltdl-dev is not installed.
+dnl Enable building of the convenience libltdl library
+dnl (requires --with-included-ltdl be given to configure for the included
+dnl libltdl to be used instead of an installed version), useful on systems
+dnl where libltdl-dev is not installed.
 LTDL_INIT([convenience])
-
-dnl AC_LIBTOOL_DLOPEN
-dnl AC_LIBTOOL_WIN32_DLL
-dnl AC_PROG_LIBTOOL
-dnl AM_PROG_LIBTOOL
-dnl INCLTDL=""
-dnl LIBLTDL="-lltdl"
-dnl AC_SUBST([INCLTDL])
-dnl AC_SUBST([LIBLTDL])
 
 
 ## -------------------------- ##
 ## Custom host configurations ##
 ## -------------------------- ##
+
 AS_CASE(["$host_os"],
     [freebsd*], [
         AM_CPPFLAGS="-I/usr/local/include ${AM_CPPFLAGS}"
@@ -317,24 +313,11 @@ AS_CASE(["$host_os"],
         WINLDFLAGS="-Wl,--output-def,libhamlib.def -Wl,--add-stdcall-alias"
         AC_SUBST([WINLDFLAGS])
 
-dnl     # Prerequisite for Mingw build (import and build internal ./libltdl):
-dnl     #   $ libtoolize --ltdl
-dnl     #   $ ( cd libltdl; ./configure --host=i586-mingw32msvc && make )
-dnl     # Use internal ./libltdl during configure:
-dnl     CFLAGS="${CFLAGS} -I./libltdl"
-
-dnl     # use internal $(top_builddir)/libltdl during build:
-dnl     INCLTDL="-I\$(top_builddir)/libltdl"
-dnl     AC_SUBST([INCLTDL])
-
-dnl     #   - use internal $(top_builddir)/libltdl during build and library 'ltdlc':
-dnl     LIBLTDL="-L\$(top_builddir)/libltdl -lltdlc"
-dnl     AC_SUBST([LIBLTDL])
-
         # Enable ld's "auto import" for executables
         WINEXELDFLAGS="-Wl,--enable-auto-import"
         AC_SUBST([WINEXELDFLAGS])
     ])
+
 
 ## ---------------------- ##
 ## External package tests ##
