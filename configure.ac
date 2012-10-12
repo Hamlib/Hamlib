@@ -9,6 +9,7 @@ AC_PREREQ([2.67])
 ## ------------------------ ##
 ## Autoconf initialisation. ##
 ## ------------------------ ##
+
 dnl Please do not use '-' in the version number, as package managers will fail,
 dnl however, the use of '~' should be fine as apt (others?) will treat
 dnl it as an earlier version than the actual release.  TNX KA6MAL
@@ -23,10 +24,14 @@ AC_CONFIG_SRCDIR([include/hamlib/rig.h])
 AC_CONFIG_MACRO_DIR([macros])
 AC_CONFIG_HEADERS([include/config.h])
 
+dnl Place build system provided programs in this directory.
+AC_CONFIG_AUX_DIR([build-aux])
+
 
 ## ------------------------ ##
 ## Automake Initialisation. ##
 ## ------------------------ ##
+
 dnl Passing AC_PACKAGE_TARNAME, AC_PACKAGE_VERSION to AM_INIT_AUTOMAKE is
 dnl obsolete as these values are obtained from the AC_INIT macro.
 AM_INIT_AUTOMAKE([-Wall])
@@ -42,6 +47,7 @@ dnl AM_MAINTAINER_MODE
 ## ------------------------------ ##
 ## Hamlib specific configuration. ##
 ## ------------------------------ ##
+
 dnl New backends must be listed here!  Also the new Makefile path must be
 dnl added to AC_CONFIG_FILES near the end of this file.  See README.developer
 BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc drake lowe rft rs kit skanti prm80 tapr flexradio wj racal tuner adat"
@@ -77,6 +83,7 @@ AM_CPPFLAGS="${AM_CPPFLAGS} -I\$(top_srcdir)/include -I\$(top_srcdir)/src -I\$(t
 ## --------------- ##
 ## Program checks  ##
 ## --------------- ##
+
 dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_CXX
@@ -102,9 +109,11 @@ dnl     you adjust the code.  You can also remove the above call to
 dnl     AC_PROG_CC if you already called it elsewhere.])
 dnl am_cv_prog_cc_stdc=$ac_cv_prog_cc_stdc
 
+
 ## ----------------------------------- ##
 ## Miscellaneous configuration macros  ##
 ## ----------------------------------- ##
+
 dnl The latest Autoconf manual (2.69) states these macros are obsolecent.
 AC_PROG_GCC_TRADITIONAL
 AC_C_CONST
@@ -124,6 +133,7 @@ AM_PROG_CC_C_O
 ## ------------------------------------------ ##
 ## Various parts of Hamlib need these headers ##
 ## ------------------------------------------ ##
+
 AC_HEADER_DIRENT
 AC_HEADER_STDC
 AC_CHECK_HEADERS([alloca.h argz.h malloc.h memory.h string.h strings.h])
@@ -138,6 +148,7 @@ AC_CHECK_HEADERS([sys/socket.h netinet/in.h netdb.h arpa/inet.h ws2tcpip.h])
 ## ------------------------------------ ##
 ## System capability and library checks ##
 ## ------------------------------------ ##
+
 dnl Check for Mingw (Win32 Sleep) support
 # macros/gr_pwin32.m4
 GR_PWIN32
@@ -525,7 +536,6 @@ AM_CONDITIONAL([ENABLE_PYTHON], [test x"${cf_with_python_binding}" = "xyes"])
 ## ----------------- ##
 ## Optional backends ##
 ## ----------------- ##
-dnl Backend list
 
 # Winradio only under Linux (until someone ports it on other os)
 AC_MSG_CHECKING([whether to build winradio backend])
