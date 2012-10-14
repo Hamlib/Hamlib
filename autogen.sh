@@ -64,11 +64,11 @@ test $TEST_TYPE $FILE || {
 ### subtools are processed in the correct order.                ###
 ###################################################################
 
-echo "Running '$AUTORECONF -is' to process configure.ac"
+echo "Running '$AUTORECONF -i' to process configure.ac"
 echo "and generate the configure script."
 
-# Tell autoreconf to install missing files as symbolic links
-$AUTORECONF -is
+# Tell autoreconf to install needed build system files
+$AUTORECONF -i
 
 cd $ORIGDIR
 
