@@ -231,14 +231,14 @@ Win32
 =====
 - Debian system with mingw32msvc cross-compiler
 
-	./configure --with-included-ltdl --host=i586-mingw32msvc
+    ./configure --with-included-ltdl --host=i586-mingw32msvc
 
 - Mingw compiler under Cygwin
-	CC="gcc -mno-cygwin" CXX="g++ -mno-cygwin" \
+    CC="gcc -mno-cygwin" CXX="g++ -mno-cygwin" \
     ./configure --with-included-ltdl --host=i686-pc-mingw32
 
 - Cygwin
-	Native Cygwin requires no special options besides regular ones.
+    Native Cygwin requires no special options besides regular ones.
 
 N.B. See the 'build-win32.sh' script and its associated README.build-win32 file
 in the 'scripts' directory for complete details on build a Win32 binary.
@@ -258,10 +258,10 @@ are:
   --with-tcl=PATH         directory containing tcl configuration (tclConfig.sh)
   --with-python-binding   build python binding and demo [default=no]
 
-    Optional features that are disabled by default but may require specialized
-hardware are:
+    Optional features that may require specialized hardware are:
 
-  --enable-rigmatrix      generate rigmatrix tool (requires libgd)
+  --disable-html-matrix   do not generate HTML rig feature matrix (requires
+                          libgd-dev) [default=check]
   --disable-winradio      do not build winradio backend [default=yes]
   --enable-usrp           build USRP backend [default=no]
 
@@ -278,4 +278,3 @@ has no effect on rigctld/rotctld).  You may get a make error (which means it
 will quit before compilation is complete) if the
 --with-[perl|python|tcl]-binding option(s) are given and the Swig package is
 not installed.
-

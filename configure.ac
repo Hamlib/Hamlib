@@ -382,25 +382,28 @@ AC_SUBST([LIBXML2_CFLAGS])
 
 
 dnl Check if libgd-dev is installed, so we can enable rigmatrix
-AC_ARG_ENABLE([rigmatrix],
-              [AS_HELP_STRING([--enable-rigmatrix],
-                              [generate rigmatrix tool (requires libgd)])],
-              [AC_CHECK_HEADERS([gd.h],
-                                [AC_CHECK_LIB([gd],
-                                              [gdImageCreate],
-                                              [enable_rigmatrix=yes],
-                                              [enable_rigmatrix=no],
-                                              [-lz])
-                                ])],
-              [enable_rigmatrix=no])
+AC_MSG_CHECKING([whether to build HTML rig feature matrix])
+AC_ARG_ENABLE([html-matrix],
+    [AS_HELP_STRING([--disable-html-matrix],
+        [do not generate HTML rig feature matrix (requires libgd-dev) @<:@default=check@:>@])],
+        [cf_enable_html_matrix=no],
+        [cf_enable_html_matrix=check]
+    )
 
-AC_MSG_CHECKING([whether to build rigmatrix])
-AC_MSG_RESULT([$enable_rigmatrix])
-AS_IF([test x"${enable_rigmatrix}" = "xno"],
-      [RIGMATRIX=],
-      [RIGMATRIX="rigmatrix"])
+AC_MSG_RESULT([$cf_enable_html_matrix])
 
-AC_SUBST([RIGMATRIX])
+AS_IF([test x"$cf_enable_html_matrix" != "xno"],
+    [AC_CHECK_HEADERS([gd.h],
+        [AC_CHECK_LIB([gd],
+            [gdImageCreate],
+            [cf_enable_html_matrix=yes],
+            [cf_enable_html_matrix=no],
+            [-lz])],
+        [cf_enable_html_matrix=no]
+        )
+    ])
+
+AM_CONDITIONAL([HTML_MATRIX], [test x"${cf_enable_html_matrix}" = "xyes"])
 
 
 ## ----------------- ##
@@ -717,18 +720,18 @@ echo \
 
 
  Package features:
-        With C++ binding            ${cf_with_cxx_binding}
-        With Perl binding           ${cf_with_perl_binding}
-        With Python binding         ${cf_with_python_binding}
-        With TCL binding            ${build_tcl}
-        With rigmem XML support     ${cf_with_xml_support}
-        With included ltdl          ${with_included_ltdl}
+    With C++ binding                ${cf_with_cxx_binding}
+    With Perl binding               ${cf_with_perl_binding}
+    With Python binding             ${cf_with_python_binding}
+    With TCL binding                ${build_tcl}
+    With rigmem XML support         ${cf_with_xml_support}
+    With included ltdl              ${with_included_ltdl}
 
-        Enable Rig Matrix           ${enable_rigmatrix}
-        Enable WinRadio             ${cf_with_winradio}
-        Enable USRP                 ${cf_with_usrp}
-        Enable USB backends         ${cf_with_libusb}
-        Enable shared libs          ${enable_shared}
-        Enable static libs          ${enable_static}
+    Enable HTML rig feature matrix  ${cf_enable_html_matrix}
+    Enable WinRadio                 ${cf_with_winradio}
+    Enable USRP                     ${cf_with_usrp}
+    Enable USB backends             ${cf_with_libusb}
+    Enable shared libs              ${enable_shared}
+    Enable static libs              ${enable_static}
 
 -----------------------------------------------------------------------"
