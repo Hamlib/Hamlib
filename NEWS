@@ -6,6 +6,12 @@ Copyright (C) 2000-2012  Stephane Fillod, and others
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 
+Version 1.2.15.3
+	2012-11-01
+	* Fix configure.ac so that rigctld/rotcld work on Win32 platform
+	* Add NSIS script to build executable installer on Win32 platform
+	* Remove unsupported commands on IC-756 (non-Pro model) from AK6I
+
 Version 1.2.15.2
 	2012-08-05
 	* Read eeprom value for digital mode from FT-857
