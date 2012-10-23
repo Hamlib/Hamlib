@@ -39,10 +39,6 @@ AM_INIT_AUTOMAKE([-Wall])
 dnl Clean compilation output makes compiler warnings more visible
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
-dnl TODO: Maintainer mode has arguments against its use.
-dnl       Consider its removal at some point.
-dnl AM_MAINTAINER_MODE
-
 
 ## ------------------------------ ##
 ## Hamlib specific configuration. ##
@@ -68,10 +64,6 @@ AC_SUBST([ABI_VERSION])
 AC_SUBST([ABI_REVISION])
 AC_SUBST([ABI_AGE])
 
-dnl Pick up the Hamlib macros.
-dnl macros/aclocal-include.m4
-dnl AM_ACLOCAL_INCLUDE([macros])
-
 # directory for docs (html)
 hamlibdocdir=$datadir/doc/hamlib
 AC_SUBST([hamlibdocdir])
@@ -91,23 +83,10 @@ AC_PROG_CPP
 AC_PROG_AWK
 AC_PROG_INSTALL
 AC_PROG_LN_S
-AC_PROG_MAKE_SET
+dnl AC_PROG_MAKE_SET
 
 dnl Pkgconfig assists when using certain external packages
 PKG_PROG_PKG_CONFIG
-
-dnl AC_AIX
-dnl AC_ISC_POSIX
-dnl AC_MINIX
-
-dnl AC_PROG_CC
-
-dnl AC_DIAGNOSE([obsolete],[AM_PROG_CC_STDC:
-dnl     your code should no longer depend upon 'am_cv_prog_cc_stdc', but upon
-dnl     'ac_cv_prog_cc_stdc'.  Remove this warning and the assignment when
-dnl     you adjust the code.  You can also remove the above call to
-dnl     AC_PROG_CC if you already called it elsewhere.])
-dnl am_cv_prog_cc_stdc=$ac_cv_prog_cc_stdc
 
 
 ## ----------------------------------- ##
@@ -121,7 +100,6 @@ AC_C_CONST
 AC_C_INLINE
 
 dnl Set warnings for compilation
-dnl LF_SET_WARNINGS
 # macros/ax_cflags_warn_all.m4
 AX_CFLAGS_WARN_ALL
 AX_CXXFLAGS_WARN_ALL
@@ -134,8 +112,10 @@ AM_PROG_CC_C_O
 ## Various parts of Hamlib need these headers ##
 ## ------------------------------------------ ##
 
-AC_HEADER_DIRENT
-AC_HEADER_STDC
+dnl Obsolescent
+dnl AC_HEADER_DIRENT
+dnl AC_HEADER_STDC
+
 AC_CHECK_HEADERS([alloca.h argz.h malloc.h memory.h string.h strings.h])
 AC_CHECK_HEADERS([stdlib.h values.h net/errno.h])
 AC_CHECK_HEADERS([fcntl.h sys/ioctl.h sys/time.h sys/param.h unistd.h getopt.h errno.h])
@@ -153,7 +133,7 @@ dnl Check for Mingw (Win32 Sleep) support
 # macros/gr_pwin32.m4
 GR_PWIN32
 
-dnl macros/ax_pthread.m4
+# macros/ax_pthread.m4
 AX_PTHREAD
 AS_IF([test x"$ax_pthread_ok" = "xyes"], [
       CFLAGS="${CFLAGS} ${PTHREAD_CFLAGS}"
@@ -166,7 +146,6 @@ AC_SYS_POSIX_TERMIOS()
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_SIZE_T
 AC_HEADER_TIME
-dnl AC_TYPE_SIGNAL
 AC_CHECK_TYPES([siginfo_t],[],[],[[#include <signal.h>]])
 
 
@@ -181,13 +160,6 @@ dnl Checks for libraries.
 #--------------------------------------------------------------------
 AC_CHECK_FUNC([sin], [MATH_LIBS=""], [MATH_LIBS="-lm"])
 AC_SUBST([MATH_LIBS])
-
-dnl Interactive UNIX?  You have got to be kidding!
-dnl #--------------------------------------------------------------------
-dnl # Interactive UNIX requires -linet instead of -lsocket, plus it
-dnl # needs net/errno.h to define the socket-related error codes.
-dnl #--------------------------------------------------------------------
-dnl AC_CHECK_LIB([inet], [main], [LIBS="$LIBS -linet"], [], [])
 
 #--------------------------------------------------------------------
 #   Check for the existence of the -lsocket and -lnsl libraries.
@@ -247,7 +219,7 @@ AC_CHECK_FUNC([gethostbyname],
 
 LIBS="$LIBS $NET_LIBS"
 
-dnl macros/hl_getaddrinfo.m4
+# macros/hl_getaddrinfo.m4
 HL_GETADDRINFO
 
 LIBS=$hl_oldLibs
@@ -255,22 +227,11 @@ AC_SUBST([NET_LIBS])
 ## End Hamlib socket test ##
 
 
-dnl No source file tests for HAVE_LIBSYSLOG set by the following
-dnl AC_CHECK_LIB macro so commenting.  May remove later.
-dnl # OS/2 needs this
-dnl AC_CHECK_LIB(syslog,syslog)
-
 dnl Checks for library functions.
 AC_CHECK_FUNCS([atexit snprintf select memmove memset])
 AC_CHECK_FUNCS([strcasecmp strchr strdup strerror strrchr strstr strtol])
 AC_CHECK_FUNCS([cfmakeraw setitimer ioctl sigaction])
 AC_FUNC_ALLOCA
-
-dnl Does not seem to be needed anymore
-dnl AC_FUNC_MALLOC
-
-dnl Obsolecent macro
-dnl AC_FUNC_VPRINTF
 
 AC_LIBOBJ([termios])
 AC_LIBOBJ([dummy])
@@ -463,9 +424,6 @@ AS_IF([test x"${cf_with_perl_binding}" = "xyes"],[
       BINDING_INSTALL_EXEC="${BINDING_INSTALL_EXEC} install-perl"
       BINDING_UNINSTALL="${BINDING_UNINSTALL} uninstall-perl"
       ])
-
-
-dnl Kylix binding has been removed because unmaintained. Volunteers welcome.
 
 
 # Tcl binding
