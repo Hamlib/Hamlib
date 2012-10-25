@@ -6,7 +6,45 @@ Copyright (C) 2000-2012  Stephane Fillod, and others
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 Version 3.0
+	2013-??-??
 	* Kill RPC backends and rpc.rigd/rpc.rotd
+	* Build system updates--remove obsolete macros, autogen.sh now
+		runs autoreconf to invoke Autotools to bootstrap the build
+		system, libltdl is installed into the source tree as a part
+		of the build system bootstrap and is included in the source
+		tarball, ABI version is set to be compatible with the 1.2
+		series, all Autotools installed files are copied rather than
+		symlinked and put in the build-aux directory, building
+		rigmem and rigmatrix are now user selectable at configure
+		run time, building static libraries are disabled by default.
+	* IC-R8500: Add RIG_LEVEL_AF to has_set_level.  TNX John, EI7IG
+
+Version 1.2.15.3
+	2012-11-01
+	* Fix configure.ac so that rigctld/rotcld work on Win32 platform
+	* Add NSIS script to build executable installer on Win32 platform
+	* Remove unsupported commands on IC-756 (non-Pro model) from AK6I
+
+Version 1.2.15.2
+	2012-08-05
+	* Read eeprom value for digital mode from FT-857
+	* Clean up TS-950 series commands and read mode using IF command
+	* Fix GS-232A/B rotor command terminations
+	* Fix warnings and other issues found by mingw-w64
+	* Allow seamless access to ports higher than COM9 on Windows
+	* Fix ineffective packed attribute on WinRadio
+	* Correct low signal strength S-meter error on AR7030+
+	* Updates to HiQSDR by Jim, N2ADR
+
+Version 1.2.15.1
+	2012-03-11
+	* HD-1780 rotor endpoint limit fix
+	* Quell adat compile warnings
+	* Sort rig/rot list output from rig/rotctl (-l) by model #
+	* TenTec Jupiter (TT538) fixes
+	* Include various backend notes files
+	* Document sorted -l output for <rig|rot>ctl[d]
+	* Updates README.betatester and README.developer
 
 Version 1.2.15
 	2012-02-02

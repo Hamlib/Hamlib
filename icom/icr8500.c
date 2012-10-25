@@ -95,7 +95,7 @@ const struct rig_caps icr8500_caps = {
 .has_get_func =  RIG_FUNC_NONE,
 .has_set_func =  ICR8500_FUNC_ALL,
 .has_get_level =  ICR8500_LEVEL_ALL,
-.has_set_level =  RIG_LEVEL_SET(ICR8500_LEVEL_ALL),
+.has_set_level =  RIG_LEVEL_SET(ICR8500_LEVEL_ALL|RIG_LEVEL_AF),
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
 .level_gran = {
@@ -198,5 +198,3 @@ const struct rig_caps icr8500_caps = {
 /*
  * Function definitions below
  */
-
-
