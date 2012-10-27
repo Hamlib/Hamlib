@@ -779,7 +779,7 @@ static int netrigctl_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  len = sprintf(cmd, "S %s\n", rig_strvfo(tx_vfo));
+  len = sprintf(cmd, "S %d %s\n", split, rig_strvfo(tx_vfo));
 
   ret = netrigctl_transaction(rig, cmd, len, buf);
   if (ret > 0)
