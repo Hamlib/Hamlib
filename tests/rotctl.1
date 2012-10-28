@@ -133,6 +133,14 @@ A summary of commands is included below (In the case of "set" commands the
 quoted string is replaced by the value in the description.  In the case of
 "get" commands the quoted string is the key name of the value returned.):
 .TP
+.B Q|q, exit rotctl
+Exit rotctl in interactive mode.
+.sp
+When rotctl is controlling the rotor directly, will close the rotor backend and
+port.  When rotctl is connected to rotctld (rotor model 2), the TCP/IP connection
+to rotctld is closed and rotctld remains running, available for another TCP/IP
+network connection.
+.TP
 .B P, set_pos 'Azimuth' 'Elevation'
 Set position: Azimuth and Elevation as double precision floating point values.
 .TP
@@ -305,4 +313,3 @@ or FITNESS FOR A PARTICULAR PURPOSE.
 .BR hamlib (3),
 .BR rpc.rotd (8)
 .BR rotctld (8)
-
