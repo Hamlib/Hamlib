@@ -179,6 +179,7 @@ const struct rig_caps adt_200a_caps =
     .rig_cleanup        =  adat_cleanup,
     .rig_open           =  adat_open,
     .reset              =  adat_reset,
+    .rig_close          =  adat_close,
 
     .set_conf           =  adat_set_conf,
     .get_conf           =  adat_get_conf,
