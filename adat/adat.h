@@ -510,7 +510,6 @@ int adat_parse_ptt( char *, int * );
 int adat_ptt_rnr2anr( ptt_t, int * );
 int adat_ptt_anr2rnr( int, ptt_t * );
 
-
 int adat_send( RIG *, char * );
 int adat_receive( RIG *, char * );
 
@@ -559,6 +558,7 @@ int adat_init( RIG * );
 int adat_cleanup( RIG * );
 int adat_reset( RIG *, reset_t );
 int adat_open( RIG * );
+int adat_close( RIG * );
 
 int adat_set_conf( RIG *, token_t, const char *val );
 int adat_get_conf( RIG *, token_t, char *val );

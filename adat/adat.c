@@ -535,16 +535,27 @@ static adat_cmd_list_t adat_cmd_list_open_adat =
 {
     8,
     {
+        &adat_cmd_display_off,
         &adat_cmd_get_serial_nr,
         &adat_cmd_get_id_code,
         &adat_cmd_get_fw_version,
         &adat_cmd_get_gui_fw_version,
         &adat_cmd_get_hw_version,
         &adat_cmd_get_options,
-        &adat_cmd_set_callsign,
+        &adat_cmd_set_callsign
+    }
+};
+
+// -- CLOSE ADAT --
+
+static adat_cmd_list_t adat_cmd_list_close_adat =
+{
+    1,
+    {
         &adat_cmd_display_on
     }
 };
+
 
 // -- ADAT SPECIAL: RECOVER FROM ERROR --
 
@@ -599,8 +610,8 @@ size_t trimwhitespace( char *out, size_t len, const char *str )
     end++;
 
     // Set output size to minimum of trimmed string length and buffer size minus 1
-    // out_size = (end - str) < len-1 ? (end - str) : len-1; BUG !
-    out_size = (end - str) < len-1 ? (end - str) : len;
+    //out_size = (end - str) < len-1 ? (end - str) : len - 1;
+    out_size = strlen( str );
 
     // Copy trimmed string and add null terminator
     memcpy(out, str, out_size);
@@ -1506,8 +1517,6 @@ int adat_get_single_cmd_result( RIG *pRig )
                       "*** ADAT: %d acBuf ........ = 0x%08x\n",
                       gFnLevel, acBuf );
 
-            nBufLength = strlen( acBuf );
-            pcBufEnd   = acBuf + nBufLength - 1;
             pcPos      = acBuf;
 
             if(( nRC == RIG_OK ) && ( pcPos != NULL ))
@@ -1517,6 +1526,9 @@ int adat_get_single_cmd_result( RIG *pRig )
                 if( *pcPos == '\0' ) // Adjust for 00 byte at beginning ...
                     pcPos++;         // No, please don't ask me why this
                                      // happens ... ;-)
+
+                nBufLength = strlen( pcPos );
+                pcBufEnd   = pcPos + nBufLength - 1;
 
                 pcResult = pcPos;    // Save position
 
@@ -2877,6 +2889,46 @@ int adat_open( RIG *pRig )
         // Now get basic info from ADAT TRX
 
         nRC = adat_transaction( pRig, &adat_cmd_list_open_adat );
+    }
+
+    // Done !
+
+    rig_debug( RIG_DEBUG_TRACE,
+              "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
+              gFnLevel, __func__, __FILE__, __LINE__,
+              nRC );
+    gFnLevel--;
+
+    return nRC;
+}
+
+// ---------------------------------------------------------------------------
+// Function adat_close
+// ---------------------------------------------------------------------------
+// Status: RELEASED
+
+int adat_close( RIG *pRig )
+{
+    int nRC = RIG_OK;
+
+    gFnLevel++;
+
+    rig_debug( RIG_DEBUG_TRACE,
+              "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = 0x%08x\n",
+              gFnLevel, __func__, __FILE__, __LINE__,
+              pRig );
+
+    // Check Params
+
+    if( pRig == NULL )
+    {
+        nRC = -RIG_EARG;
+    }
+    else
+    {
+        // Now switch to interactive mode
+
+        nRC = adat_transaction( pRig, &adat_cmd_list_close_adat );
     }
 
     // Done !
