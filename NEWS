@@ -17,7 +17,6 @@ Version 3.0
 		symlinked and put in the build-aux directory, building
 		rigmem and rigmatrix are now user selectable at configure
 		run time, building static libraries are disabled by default.
-	* IC-R8500: Add RIG_LEVEL_AF to has_set_level.  TNX John, EI7IG
 
 Version 1.2.15.3
 	2012-11-01
@@ -26,6 +25,8 @@ Version 1.2.15.3
 	* Remove unsupported commands on IC-756 (non-Pro model) from AK6I
 	* Fix set_split in netrigctl.c to properly accept the split
 		value.  TNX, N2ADR.
+	* IC-R8500: Add RIG_LEVEL_AF to has_set_level.  TNX John, EI7IG
+	* ADAT updates from Frank, DG1SBG, needed for stable operation.
 
 Version 1.2.15.2
 	2012-08-05
