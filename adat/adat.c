@@ -337,8 +337,9 @@ static adat_cmd_def_t adat_cmd_get_freq =
 
 static adat_cmd_list_t adat_cmd_list_get_freq =
 {
-    1,
+    2,
     {
+        &adat_cmd_display_off,
         &adat_cmd_get_freq
     }
 };
@@ -360,20 +361,20 @@ static adat_cmd_def_t adat_cmd_set_freq =
 
 static adat_cmd_list_t adat_cmd_list_set_freq =
 {
-    4,
+    3,
     {
         &adat_cmd_display_off,
         &adat_cmd_set_freq,
         &adat_cmd_get_freq,
-        &adat_cmd_display_on
     }
 };
 // -- GET VFO --
 
 static adat_cmd_list_t adat_cmd_list_get_vfo =
 {
-    1,
+    2,
     {
+        &adat_cmd_display_off,
         &adat_cmd_get_freq,
     }
 };
@@ -395,8 +396,9 @@ static adat_cmd_def_t adat_cmd_get_mode =
 
 static adat_cmd_list_t adat_cmd_list_get_mode =
 {
-    1,
+    2,
     {
+        &adat_cmd_display_off,
         &adat_cmd_get_mode
     }
 };
@@ -419,11 +421,10 @@ static adat_cmd_def_t adat_cmd_set_vfo =
 
 static adat_cmd_list_t adat_cmd_list_set_vfo =
 {
-    3,
+    2,
     {
         &adat_cmd_display_off,
-        &adat_cmd_set_vfo,
-        &adat_cmd_display_on
+        &adat_cmd_set_vfo
     }
 };
 
@@ -445,12 +446,11 @@ static adat_cmd_def_t adat_cmd_set_mode =
 
 static adat_cmd_list_t adat_cmd_list_set_mode =
 {
-    4,
+    3,
     {
         &adat_cmd_display_off,
         &adat_cmd_set_vfo,
         &adat_cmd_set_mode,
-        &adat_cmd_display_on
     }
 };
 
@@ -471,12 +471,10 @@ static adat_cmd_def_t adat_cmd_set_ptt =
 
 static adat_cmd_list_t adat_cmd_list_set_ptt =
 {
-    1,
+    2,
     {
-        // &adat_cmd_display_off,
-        // &adat_cmd_set_vfo,
         &adat_cmd_set_ptt,
-        // &adat_cmd_display_on
+        &adat_cmd_display_off
     }
 };
 
@@ -497,8 +495,9 @@ static adat_cmd_def_t adat_cmd_get_ptt =
 
 static adat_cmd_list_t adat_cmd_list_get_ptt =
 {
-    1,
+    2,
     {
+        &adat_cmd_display_off,
         &adat_cmd_get_ptt
     }
 };
@@ -579,8 +578,11 @@ static adat_cmd_list_t adat_cmd_list_recover_from_error =
 
 size_t trimwhitespace( char *out, size_t len, const char *str )
 {
+    char    *end      = NULL;
+    size_t   out_size = 0;
 
     gFnLevel++;
+
     rig_debug( RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): ENTRY. In -> \"%s\", %d.\n",
               gFnLevel, __func__, __FILE__, __LINE__, str, len );
@@ -590,9 +592,6 @@ size_t trimwhitespace( char *out, size_t len, const char *str )
         gFnLevel--;
         return 0;
     }
-
-    const char *end;
-    size_t out_size;
 
     // Trim leading space
     while(isspace(*str)) str++;
@@ -605,8 +604,13 @@ size_t trimwhitespace( char *out, size_t len, const char *str )
     }
 
     // Trim trailing space
-    end = str + strlen(str) - 1;
-    while(end > str && isspace(*end)) end--;
+    end = (char *)(str + strlen(str) - 1);
+    while(end > str && isspace(*end))
+    {
+      *end = '\0';
+      end--;
+    }
+
     end++;
 
     // Set output size to minimum of trimmed string length and buffer size minus 1
@@ -1264,14 +1268,6 @@ int adat_ptt_anr2rnr( int   nADATPTTStatus,
 
     return nRC;
 }
-
-
-
-
-
-
-
-
 
 // ---------------------------------------------------------------------------
 // adat_send
@@ -2597,6 +2593,11 @@ int adat_transaction( RIG                *pRig,
                                         memset( acBuf, 0, ADAT_RESPSZ + 1 );
 
                                         nRC = adat_receive( pRig, acBuf );
+                                        while(( nRC == RIG_OK ) &&
+                                              ( strncmp( acBuf, ADAT_BOM, strlen( ADAT_BOM )) != 0))
+                                        {
+                                          nRC = adat_receive( pRig, acBuf );
+                                        }
                                         pPriv->pcResult = strdup( acBuf );
                                     }
                                 }
