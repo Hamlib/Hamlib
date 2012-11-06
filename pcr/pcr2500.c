@@ -79,8 +79,8 @@ const struct rig_caps pcr2500_caps = {
 	.serial_parity		= RIG_PARITY_NONE,
 	.serial_handshake	= RIG_HANDSHAKE_HARDWARE,
 
-	.write_delay		= 12,
-	.post_write_delay	= 2,
+	.write_delay		= 0,
+	.post_write_delay	= 0,
 	.timeout		= 400,
 	.retry			= 3,
 
