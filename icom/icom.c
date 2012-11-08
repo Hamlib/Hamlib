@@ -1897,17 +1897,20 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 	unsigned char fctbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
 	int fct_len, acklen, retval;
 	int fct_cn, fct_sc;		/* Command Number, Subcommand */
+	/* r8500, the problem rig */
+	int r8500 = (rig->caps->rig_model == RIG_MODEL_ICR8500)? 1 : 0;
 
 	/*
 	 * except for IC-R8500
 	 */
 	fctbuf[0] = status? 0x01:0x00;
-	fct_len = rig->caps->rig_model == RIG_MODEL_ICR8500 ? 0 : 1;
+	fct_len = r8500 ? 0 : 1;
 
 	switch (func) {
 	case RIG_FUNC_FAGC:
 		fct_cn = C_CTL_FUNC;
-		fct_sc = S_FUNC_AGC;
+		fct_sc = (r8500)?(status)?S_FUNC_AGCON:S_FUNC_AGCOFF:S_FUNC_AGC;
+		/* fct_sc = S_FUNC_AGC; */
 		/* note: should it be a LEVEL only, and no func? --SF */
 		if (status != 0)
 			fctbuf[0] = 0x03;	/* default to 0x03 in IC746 pro super-fast */
@@ -1916,7 +1919,8 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 		break;
 	case RIG_FUNC_NB:
 		fct_cn = C_CTL_FUNC;
-		fct_sc = S_FUNC_NB;
+		fct_sc = (r8500)?(status)?S_FUNC_NBON:S_FUNC_NBOFF:S_FUNC_NB;
+		/* fct_sc = S_FUNC_NB; */
 		break;
 	case RIG_FUNC_COMP:
 		fct_cn = C_CTL_FUNC;
@@ -1960,7 +1964,8 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 		break;
 	case RIG_FUNC_APF:
 		fct_cn = C_CTL_FUNC;
-		fct_sc = S_FUNC_APF;
+		fct_sc = (r8500)?(status)?S_FUNC_APFON:S_FUNC_APFOFF:S_FUNC_APF;
+		/* fct_sc = S_FUNC_APF; */
 		break;
 	case RIG_FUNC_MON:
 		fct_cn = C_CTL_FUNC;

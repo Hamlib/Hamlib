@@ -35,7 +35,7 @@
 
 #define ICR8500_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_TSQL|RIG_FUNC_APF)
 
-#define ICR8500_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_APF|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR)
+#define ICR8500_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_APF|RIG_LEVEL_SQL|RIG_LEVEL_IF|RIG_LEVEL_RAWSTR)
 
 #define ICR8500_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL)
 
@@ -100,15 +100,16 @@ const struct rig_caps icr8500_caps = {
 .has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
 .level_gran = {
 	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
+	[LVL_IF] = { .min = { .i = 0 }, .max = { .i = 255 }, .step = { .i = 1 } },
 },
 .parm_gran =  {},
 .ctcss_list =  NULL,	/* FIXME: CTCSS/DCS list */
 .dcs_list =  NULL,
-.preamp =   { 10, RIG_DBLST_END, },
-.attenuator =   { 20, RIG_DBLST_END, },
+.preamp =   { RIG_DBLST_END, },
+.attenuator =   { 10, 20, 30, RIG_DBLST_END, },
 .max_rit =  Hz(9999),
 .max_xit =  Hz(0),
-.max_ifshift =  Hz(0),
+.max_ifshift =  kHz(1.2),
 .targetable_vfo =  0,
 .vfo_ops =  ICR8500_OPS,
 .scan_ops =  ICR8500_SCAN_OPS,
