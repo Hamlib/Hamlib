@@ -248,8 +248,8 @@ DECLARE_INITRIG_BACKEND(winradio)
 #ifdef _WIN32
 	rig_register(&g303_caps);
 	rig_register(&g305_caps);
-	rig_register(&g313_caps);
 #endif
+	rig_register(&g313_caps);
 
 	return RIG_OK;
 }
