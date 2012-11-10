@@ -93,10 +93,6 @@ PKG_PROG_PKG_CONFIG
 ## Miscellaneous configuration macros  ##
 ## ----------------------------------- ##
 
-dnl The latest Autoconf manual (2.69) states these macros are obsolecent.
-AC_PROG_GCC_TRADITIONAL
-AC_C_CONST
-
 AC_C_INLINE
 
 dnl Set warnings for compilation
@@ -112,17 +108,11 @@ AM_PROG_CC_C_O
 ## Various parts of Hamlib need these headers ##
 ## ------------------------------------------ ##
 
-dnl Obsolescent
-dnl AC_HEADER_DIRENT
-dnl AC_HEADER_STDC
-
-AC_CHECK_HEADERS([alloca.h argz.h malloc.h memory.h string.h strings.h])
-AC_CHECK_HEADERS([stdlib.h values.h net/errno.h])
-AC_CHECK_HEADERS([fcntl.h sys/ioctl.h sys/time.h sys/param.h unistd.h getopt.h errno.h])
-AC_CHECK_HEADERS([sys/ioccom.h sgtty.h term.h termio.h termios.h])
-AC_CHECK_HEADERS([linux/ppdev.h linux/parport.h linux/ioctl.h linux/hidraw.h])
-AC_CHECK_HEADERS([dev/ppbus/ppi.h dev/ppbus/ppbconf.h])
-AC_CHECK_HEADERS([sys/socket.h netinet/in.h netdb.h arpa/inet.h ws2tcpip.h])
+AC_CHECK_HEADERS([errno.h fcntl.h getopt.h limits.h locale.h malloc.h \
+netdb.h sgtty.h stddef.h termio.h termios.h values.h ws2tcpip.h \
+arpa/inet.h dev/ppbus/ppbconf.hdev/ppbus/ppi.h \
+linux/hidraw.h linux/ioctl.h linux/parport.h linux/ppdev.h  netinet/in.h \
+sys/ioccom.h sys/ioctl.h sys/param.h sys/socket.h sys/time.h])
 
 
 ## ------------------------------------ ##
@@ -228,12 +218,15 @@ AC_SUBST([NET_LIBS])
 
 
 dnl Checks for library functions.
-AC_CHECK_FUNCS([atexit snprintf select memmove memset])
-AC_CHECK_FUNCS([strcasecmp strchr strdup strerror strrchr strstr strtol])
-AC_CHECK_FUNCS([cfmakeraw setitimer ioctl sigaction])
+AC_CHECK_FUNCS([cfmakeraw floor getpagesize getpagesize gettimeofday inet_ntoa \
+ioctl memchr memmove memset pow rint select setitimer setlocale sigaction \
+snprintf socket sqrt strchr strdup strerror strncasecmp strrchr strstr strtol])
 AC_FUNC_ALLOCA
 
+dnl Use Hamlib's termios
 AC_LIBOBJ([termios])
+
+dnl Assure libmisc is not empty
 AC_LIBOBJ([dummy])
 
 
@@ -299,7 +292,7 @@ dnl Check whether we can actually find ltdl.h
 dnl (only needed if not using included libltdl).
 AS_IF([test x"${with_included_ltdl}" = "xno"], [
       AC_CHECK_HEADER([ltdl.h],
-                      [AC_MSG_RESULT([yes])],
+                      [],
                       [AC_MSG_ERROR([""
 "ltdl.h not found.  Please install the libltdl development files package which"
 "provides /usr/include/ltdl.h (perhaps called 'libltdl-dev' or 'libltdl-devel')."
