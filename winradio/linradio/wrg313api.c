@@ -1,3 +1,5 @@
+#ifndef _WIN32
+
 #include <dlfcn.h>
 #include <stdio.h>
 
@@ -165,3 +167,5 @@ void UninitAPI(void)
         hWRAPI=0;
     }
 }
+
+#endif
