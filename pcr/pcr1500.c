@@ -85,7 +85,8 @@ const struct rig_caps pcr1500_caps = {
 	.has_set_parm		= RIG_PARM_NONE,
 
 	.level_gran = {
-		[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
+		[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 }, .step = { .i = 1 } },
+		[LVL_NR] = { .min = { .f = 0 }, .max = { .f = 16.0 }, .step = { .f = 1.0 } },
 		/* XXX check this */
 		[LVL_IF] = { .min = { .i = -1270 }, .max = { .i = 1270 }, .step = { .i = 10 } },
 	},

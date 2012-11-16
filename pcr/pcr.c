@@ -144,7 +144,7 @@ static int pcr_set_bfo_shift(RIG *rig, vfo_t vfo, int level);          // J4Axx
 static int pcr_set_vsc(RIG *rig, vfo_t vfo, int level);                // J50xx
 static int pcr_set_dsp(RIG *rig, vfo_t vfo, int level);                // J80xx
 static int pcr_set_dsp_state(RIG *rig, vfo_t vfo, int level);          // J8100=off J8101=on
-#if 0 /* unused; re-enabled as needed. */
+#if 1 /* unused; re-enabled as needed. */
 static int pcr_set_dsp_noise_reducer(RIG *rig, vfo_t vfo, int level);  // J82xx
 #endif /* unused */
 static int pcr_set_dsp_auto_notch(RIG *rig, vfo_t vfo, int level);     // J83xx
@@ -955,12 +955,14 @@ pcr_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 {
 	int err = -RIG_ENIMPL;
 
-	if (RIG_LEVEL_IS_FLOAT(level))
+	if (RIG_LEVEL_IS_FLOAT(level)) {
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: level = %d, val = %f\n",
 				__func__, level, val.f);
-        else
+	}
+        else {
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: level = %d, val = %d\n",
 				__func__, level, val.i);
+	}
 
 	switch (level) {
 	case RIG_LEVEL_ATT:
@@ -1005,7 +1007,8 @@ pcr_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 		 *
 		 * Later on we can set if the DSP features are on or off in set_func
 		 */
-		return pcr_set_dsp(rig, vfo, (int) val.f);
+		/* return pcr_set_dsp(rig, vfo, (int) val.f); */
+		return pcr_set_dsp_noise_reducer(rig, vfo, val.f);
 	}
 
 	return err;
@@ -1095,13 +1098,17 @@ pcr_set_func(RIG * rig, vfo_t vfo, setting_t func, int status)
 	switch (func) {
 	case RIG_FUNC_NR: /* sets DSP noise reduction on or off */
 		/* status = 00 for off or 01 for on
-		 * Note that the user should switch the DSP unit on first
-		 * using the set level function RIG_LEVEL_NR
+		 * always enable the DSP unit
+		 * even if only to turn it off
 		 */
-		if (status == 1)
+		if (status == 1) {
+			pcr_set_dsp(rig, vfo, 1);
 			return pcr_set_dsp_state(rig, vfo, 1);
-		else
+		}
+		else {
+			pcr_set_dsp(rig, vfo, 1);
 			return pcr_set_dsp_state(rig, vfo, 0);
+		}
 		break;
 
 	case RIG_FUNC_ANF: /* DSP auto notch filter */
@@ -1499,7 +1506,7 @@ pcr_set_dsp_state(RIG * rig, vfo_t vfo, int level)
  *  the level of NR set by values 0x01 to 0x10 (1 to 16 inclusive)
  */
 
-#if 0 /* unused; re-enabled as needed. */
+#if 1 /* unused; re-enabled as needed. */
 int
 pcr_set_dsp_noise_reducer(RIG * rig, vfo_t vfo, int level)
 {
