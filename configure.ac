@@ -418,6 +418,8 @@ AS_IF([test x"${cf_with_perl_binding}" = "xyes"],[
       BINDING_UNINSTALL="${BINDING_UNINSTALL} uninstall-perl"
       ])
 
+AM_CONDITIONAL([ENABLE_PERL], [test x"${cf_with_perl_binding}" = "xyes"])
+
 
 # Tcl binding
 AC_MSG_CHECKING([Whether to build Tcl bindings and demos])
@@ -448,7 +450,6 @@ AS_IF([test x"${build_tcl}" = "xyes"],[
       BINDING_INSTALL_EXEC="${BINDING_INSTALL_EXEC} install-tcl"
       BINDING_UNINSTALL="${BINDING_UNINSTALL} uninstall-tcl"
       BINDING_LIB_TARGETS="${BINDING_LIB_TARGETS} \$(tcl_ltlib)"])
-
 
 AM_CONDITIONAL([ENABLE_TCL], [test x"${build_tcl}" = "xyes"])
 AC_SUBST([TCL_LIB_SPEC])

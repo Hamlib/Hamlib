@@ -5,19 +5,31 @@
 
 AM_CPPFLAGS = @AM_CPPFLAGS@ -I$(top_srcdir)/bindings @TCL_INCLUDE_SPEC@ @PYTHON_CPPFLAGS@
 
+AM_CFLAGS = -fno-strict-aliasing
+
 SWGFILES = hamlib.swg ignore.swg rig.swg rotator.swg
 
 SWGDEP=$(top_srcdir)/include/hamlib/rig.h $(top_srcdir)/include/hamlib/riglist.h \
 	$(top_srcdir)/include/hamlib/rotator.h $(top_srcdir)/include/hamlib/rotlist.h \
 	$(SWGFILES)
 
+EXTRA_DIST = $(SWGFILES) \
+	Makefile.PL perltest.pl tcltest.tcl pytest.py
+
+noinst_SCRIPTS = perltest.pl tcltest.tcl pytest.py hamlibvb.bas
+
 BUILT_SOURCES=
 MOSTLYCLEANFILES=
 
-AM_CFLAGS = -fno-strict-aliasing
 
+if ENABLE_PERL
 ##########################################
 # Perl binding
+
+BUILT_SOURCES += hamlibperl_wrap.c
+MOSTLYCLEANFILES += hamlibperl_wrap.c Hamlib.pm Hamlib.bs
+## DISTCLEANFILES = Hamlib-pl.mk Hamlib-pl.mk.old
+DISTCLEANFILES = Hamlib-pl.mk.old
 
 hamlibperl_wrap.c: hamlib.swg $(SWIGDEP)
 	$(SWIG) -perl5 -shadow @AM_CPPFLAGS@ -I$(top_srcdir)/bindings -o $@ \
@@ -59,6 +71,9 @@ install-perl: Hamlib-pl.mk
 uninstall-perl: ## Hamlib-pl.mk
 ##	$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk uninstall
 
+endif
+# Perl
+
 
 if ENABLE_TCL
 ##########################################
@@ -99,6 +114,8 @@ distclean-tcl: clean-tcl
 uninstall-tcl:
 
 endif
+# TCL
+
 
 ##########################################
 # Python binding
@@ -124,8 +141,6 @@ python_PYTHON = Hamlib.py
 
 _Hamlib_la_LTLIBRARIES = $(python_ltlib)
 
-endif
-
 MOSTLYCLEANFILES+= hamlibpy_wrap.c Hamlib.py *.pyc
 BUILT_SOURCES += hamlibpy_wrap.c Hamlib.py
 
@@ -139,6 +154,10 @@ clean-py:
 distclean-py:
 uninstall-py:
 
+endif
+# Python
+
+
 ##########################################
 lib_LTLIBRARIES = $(tcl_ltlib)
 # lib_LTLIBRARIES = @BINDING_LIB_TARGETS@
@@ -151,16 +170,3 @@ distclean-local: @BINDING_DISTCLEAN@
 distcheck-local: @BINDING_DISTCHECK@
 install-exec-local: @BINDING_INSTALL_EXEC@
 uninstall-local: @BINDING_UNINSTALL@
-
-
-EXTRA_DIST = $(SWGFILES) \
-			Makefile.PL perltest.pl tcltest.tcl pytest.py
-
-BUILT_SOURCES += hamlibperl_wrap.c
-
-## DISTCLEANFILES = Hamlib-pl.mk Hamlib-pl.mk.old
-DISTCLEANFILES = Hamlib-pl.mk.old
-
-MOSTLYCLEANFILES += hamlibperl_wrap.c Hamlib.pm Hamlib.bs
-
-noinst_SCRIPTS = perltest.pl tcltest.tcl pytest.py hamlibvb.bas
