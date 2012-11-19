@@ -126,25 +126,24 @@ python_ltlib = _Hamlib.la
 
 #pythondir = @pythondir@
 
+MOSTLYCLEANFILES+= hamlibpy_wrap.c Hamlib.py *.pyc
+BUILT_SOURCES += hamlibpy_wrap.c Hamlib.py
+
+nodist_python_PYTHON = Hamlib.py
 nodist__Hamlib_la_SOURCES = hamlibpy_wrap.c
+
 _Hamlib_la_LDFLAGS = -no-undefined -module -avoid-version
 _Hamlib_la_LIBADD = $(top_builddir)/src/libhamlib.la
-
 _Hamlib_ladir = $(pythondir)
+_Hamlib_la_LTLIBRARIES = $(python_ltlib)
 
 all-py: $(python_ltlib)
 
 check-py: all-py
 	$(srcdir)/pytest.py || echo "Python test failed" 1>&2
 
-nodist_python_PYTHON = Hamlib.py
-
-_Hamlib_la_LTLIBRARIES = $(python_ltlib)
-
-MOSTLYCLEANFILES+= hamlibpy_wrap.c Hamlib.py *.pyc
-BUILT_SOURCES += hamlibpy_wrap.c Hamlib.py
-
 Hamlib.py: hamlibpy_wrap.c
+
 hamlibpy_wrap.c: hamlib.swg $(SWGDEP)
 	$(SWIG) -python @AM_CPPFLAGS@ -I$(top_srcdir)/bindings -o $@ \
 		`test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
