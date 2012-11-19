@@ -137,7 +137,7 @@ all-py: $(python_ltlib)
 check-py: all-py
 	$(srcdir)/pytest.py || echo "Python test failed" 1>&2
 
-python_PYTHON = Hamlib.py
+nodist_python_PYTHON = Hamlib.py
 
 _Hamlib_la_LTLIBRARIES = $(python_ltlib)
 
