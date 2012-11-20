@@ -34,9 +34,9 @@
 # LICENSE
 #
 #   Copyright (c) 2009 Sebastian Huber <sebastian-huber@web.de>
-#   Copyright (c) 2009 Alan W. Irwin <irwin@beluga.phys.uvic.ca>
+#   Copyright (c) 2009 Alan W. Irwin
 #   Copyright (c) 2009 Rafael Laboissiere <rafael@laboissiere.net>
-#   Copyright (c) 2009 Andrew Collier <colliera@ukzn.ac.za>
+#   Copyright (c) 2009 Andrew Collier
 #   Copyright (c) 2009 Matteo Settenvini <matteo@member.fsf.org>
 #   Copyright (c) 2009 Horst Knorr <hk_classes@knoda.org>
 #
@@ -66,7 +66,7 @@
 #   modified version of the Autoconf Macro, you may extend this special
 #   exception to the GPL to apply to your modified version as well.
 
-#serial 8
+#serial 11
 
 AU_ALIAS([AC_PYTHON_DEVEL], [AX_PYTHON_DEVEL])
 AC_DEFUN([AX_PYTHON_DEVEL],[

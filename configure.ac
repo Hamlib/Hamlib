@@ -487,6 +487,30 @@ AS_IF([test x"${cf_with_python_binding}" = "xyes"],[
 
 AM_CONDITIONAL([ENABLE_PYTHON], [test x"${cf_with_python_binding}" = "xyes"])
 
+dnl Only search for Swig if one or more bindings are enabled.
+AS_IF([test "x${BINDING_ALL}" != "x"],
+    [# macros/ax_pkg_swig.m4
+    AX_PKG_SWIG([1.3.22],
+        [BINDINGS="${BINDINGS} bindings"
+        cf_with_bindings="yes"],
+        [AC_MSG_ERROR([SWIG is required to build bindings...])
+        ])],
+    [cf_with_bindings="no"])
+
+AC_MSG_CHECKING([whether to build bindings])
+AC_MSG_RESULT([$cf_with_bindings])
+
+AC_SUBST([BINDINGS])
+AC_SUBST([BINDING_ALL])
+AC_SUBST([BINDING_CHECK])
+AC_SUBST([BINDING_CLEAN])
+AC_SUBST([BINDING_DISTCLEAN])
+AC_SUBST([BINDING_DISTCHECK])
+AC_SUBST([BINDING_INSTALL_EXEC])
+AC_SUBST([BINDING_UNINSTALL])
+AC_SUBST([BINDING_LIST])
+AC_SUBST([BINDING_LIB_TARGETS])
+
 
 ## ----------------- ##
 ## Optional backends ##
@@ -582,32 +606,8 @@ done
 AC_SUBST([ROT_BACKEND_LIST])
 AC_SUBST([ROT_BACKENDLNK])
 AC_SUBST([ROT_BACKENDEPS])
-
-
-AC_CHECK_PROG([cf_with_bindings], [swig], [yes], [no], [$PATH])
-AS_IF([test x"${cf_with_bindings}" = "xyes"], [
-      cf_with_bindings=no
-
-      SWIG_PROG(1.3.22)
-      AS_IF([test "${SWIG}" != "false" -a "x${BINDING_ALL}" != "x"], [
-            BINDINGS="${BINDINGS} bindings"
-            cf_with_bindings=yes])
-      ])
-
-AC_MSG_CHECKING([whether to build bindings])
-AC_MSG_RESULT([$cf_with_bindings])
-AC_SUBST([BINDINGS])
-AC_SUBST([BINDING_ALL])
-AC_SUBST([BINDING_CHECK])
-AC_SUBST([BINDING_CLEAN])
-AC_SUBST([BINDING_DISTCLEAN])
-AC_SUBST([BINDING_DISTCHECK])
-AC_SUBST([BINDING_INSTALL_EXEC])
-AC_SUBST([BINDING_UNINSTALL])
-AC_SUBST([BINDING_LIST])
-AC_SUBST([BINDING_LIB_TARGETS])
-
 AC_SUBST([AM_CPPFLAGS])
+
 
 AC_CONFIG_FILES([Makefile
 macros/Makefile
