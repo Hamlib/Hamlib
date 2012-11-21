@@ -3,7 +3,7 @@
 MACROS = \
 	ax_append_flag.m4 \
 	ax_cflags_warn_all.m4 \
-	ax_pkg_swig \
+	ax_pkg_swig.m4 \
 	ax_pthread.m4 \
 	ax_python_devel.m4 \
 	gr_doxygen.m4 \
