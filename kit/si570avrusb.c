@@ -50,8 +50,10 @@
 
 static int si570avrusb_init(RIG *rig);
 static int si570picusb_init(RIG *rig);
+static int fasdr_init(RIG *rig);
 static int si570xxxusb_cleanup(RIG *rig);
 static int si570xxxusb_open(RIG *rig);
+static int fasdr_open(RIG *rig);
 static int si570xxxusb_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int si570xxxusb_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 static int si570xxxusb_set_freq_by_value(RIG *rig, vfo_t vfo, freq_t freq);
@@ -78,6 +80,9 @@ static const char *si570xxxusb_get_info(RIG *rig);
 #define TOK_MULTIPLIER	TOKEN_BACKEND(3)
 #define TOK_I2C_ADDR	TOKEN_BACKEND(4)
 #define TOK_BPF     	TOKEN_BACKEND(5)
+
+#define F_CAL_STATUS 1  //1 byte
+#define F_CRYST 2       //4 byte
 
 static const struct confparams si570xxxusb_cfg_params[] = {
 	{ TOK_OSCFREQ, "osc_freq", "Oscillator freq", "Oscillator frequency in Hz",
@@ -138,7 +143,7 @@ const struct rig_caps si570avrusb_caps = {
 .model_name = "Si570 AVR-USB",
 .mfg_name =  "SoftRock",
 .version =  "0.2",
-.copyright =  "GPL",
+.copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TUNER,
 .ptt_type =  RIG_PTT_RIG,
@@ -219,7 +224,7 @@ const struct rig_caps si570picusb_caps = {
 .model_name = "Si570 PIC-USB",
 .mfg_name =  "KTH-SDR kit",
 .version =  "0.2",
-.copyright =  "GPL",
+.copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TUNER,
 .ptt_type =  RIG_PTT_NONE,
@@ -284,6 +289,87 @@ const struct rig_caps si570picusb_caps = {
 
 };
 
+/*
+ * Funkamateur Sdr with Si570
+ *
+ * Same USB interface as AVR-USB, except different product string
+ * and Oscilator correction may be stored on the device
+ *
+ *   http://www.funkamateur.de
+ *   ( BX- 200 )
+ */
+
+const struct rig_caps fasdr_caps = {
+.rig_model =  RIG_MODEL_FASDR,
+.model_name = "FA-SDR",
+.mfg_name =  "Funkamatuer",
+.version =  "0.1",
+.copyright =  "LGPL",
+.status =  RIG_STATUS_ALPHA,
+.rig_type =  RIG_FLAG_TUNER|RIG_FLAG_TRANSMITTER,
+.ptt_type =  RIG_PTT_RIG,
+.dcd_type =  RIG_DCD_NONE,
+.port_type =  RIG_PORT_USB,
+.write_delay =  0,
+.post_write_delay =  0,
+.timeout =  500,
+.retry = 0,
+
+.has_get_func =  SI570AVRUSB_FUNC,
+.has_set_func =  SI570AVRUSB_FUNC,
+.has_get_level =  SI570AVRUSB_LEVEL_ALL,
+.has_set_level =  RIG_LEVEL_SET(SI570AVRUSB_LEVEL_ALL),
+.has_get_parm =  SI570AVRUSB_PARM_ALL,
+.has_set_parm =  RIG_PARM_SET(SI570AVRUSB_PARM_ALL),
+.level_gran =  {},
+.parm_gran =  {},
+.ctcss_list =  NULL,
+.dcs_list =  NULL,
+.preamp =   { RIG_DBLST_END },
+.attenuator =   { RIG_DBLST_END },
+.max_rit =  Hz(0),
+.max_xit =  Hz(0),
+.max_ifshift =  Hz(0),
+.targetable_vfo =  0,
+.transceive =  RIG_TRN_RIG,
+.bank_qty =   0,
+.chan_desc_sz =  0,
+
+.chan_list =  { RIG_CHAN_END, },
+
+.rx_range_list1 =  {
+    /* probably higher upper range, depending on type (CMOS, LVDS, ..) */
+    {kHz(1800),MHz(30),SI570AVRUSB_MODES,-1,-1,SI570AVRUSB_VFO},
+    RIG_FRNG_END,
+  },
+.tx_range_list1 =  { RIG_FRNG_END, },
+.rx_range_list2 =  {
+    {kHz(1800),MHz(30),SI570AVRUSB_MODES,-1,-1,SI570AVRUSB_VFO},
+    RIG_FRNG_END,
+  },
+.tx_range_list2 =  { RIG_FRNG_END, },
+.tuning_steps =  {
+     {SI570AVRUSB_MODES,Hz(1)},
+     RIG_TS_END,
+    },
+        /* mode/filter list, remember: order matters! */
+.filters =  {
+        RIG_FLT_END,
+    },
+.cfgparams =  si570xxxusb_cfg_params,
+
+.rig_init =     fasdr_init,
+.rig_cleanup =  si570xxxusb_cleanup,
+.rig_open =     fasdr_open,
+.set_conf =  si570xxxusb_set_conf,
+.get_conf =  si570xxxusb_get_conf,
+
+.set_freq    =  si570xxxusb_set_freq,
+.get_freq    =  si570xxxusb_get_freq,
+.set_ptt    =  si570xxxusb_set_ptt,
+.get_info    =  si570xxxusb_get_info,
+
+};
 
 
 /*
@@ -355,11 +441,117 @@ int si570picusb_init(RIG *rig)
 	rp->parm.usb.alt = 0;	/* necessary ? */
 
 	rp->parm.usb.vendor_name = VENDOR_NAME;
-	rp->parm.usb.product = PIC_PRODUCT_NAME;
+    rp->parm.usb.product = PIC_PRODUCT_NAME;
 
 	rig->state.priv = (void*)priv;
 
 	return RIG_OK;
+}
+/*
+ * FA-SDR
+ */
+
+int fasdr_init(RIG *rig)
+{
+    hamlib_port_t *rp = &rig->state.rigport;
+    struct si570xxxusb_priv_data *priv;
+
+    priv = (struct si570xxxusb_priv_data*)calloc(sizeof(struct si570xxxusb_priv_data), 1);
+    if (!priv) {
+        /* whoops! memory shortage! */
+        return -RIG_ENOMEM;
+    }
+
+    priv->osc_freq = SI570_NOMINAL_XTALL_FREQ;
+    /* QSD/QSE */
+    priv->multiplier = 4;
+
+    priv->i2c_addr = SI570_I2C_ADDR;
+    /* disable BPF, because it may share PTT I/O line */
+    priv->bpf = 0;
+
+    rp->parm.usb.vid = USBDEV_SHARED_VID;
+    rp->parm.usb.pid = USBDEV_SHARED_PID;
+
+    /* no usb_set_configuration() and usb_claim_interface() */
+    rp->parm.usb.iface = -1;
+    rp->parm.usb.conf = 1;
+    rp->parm.usb.alt = 0;	/* necessary ? */
+
+    rp->parm.usb.vendor_name = VENDOR_NAME;
+    rp->parm.usb.product = AVR_PRODUCT_NAME;
+
+    rig->state.priv = (void*)priv;
+
+    return RIG_OK;
+}
+
+
+int fasdr_open(RIG *rig)
+{
+    struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)rig->state.priv;
+    struct usb_dev_handle *udh = rig->state.rigport.handle;
+    int ret,i;
+    double f;
+    unsigned char buffer[4];
+    unsigned short version;
+
+    rig_debug(RIG_DEBUG_TRACE,"%s called\n", __func__);
+
+
+    ret = usb_control_msg(udh, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
+            REQUEST_READ_VERSION, 0x0E00, 0,
+            (char *) &version, sizeof(version), rig->state.rigport.timeout);
+
+    if (ret != 2) {
+        rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg failed: %s\n",
+                    __func__,
+                    usb_strerror ());
+        return -RIG_EIO;
+    }
+
+    priv->version = version; // Unsure how to get firmware version
+
+    ret=usb_control_msg(udh,
+                        USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
+                        REQUEST_READ_EEPROM,F_CAL_STATUS,0,(char *) buffer,1,
+                        rig->state.rigport.timeout);
+    if( ret !=1)
+       return -RIG_EIO;
+
+
+    rig_debug(RIG_DEBUG_VERBOSE,"%s: calibration byte %x", __func__,buffer[0]);
+
+//        ret = usb_control_msg(udh,
+//                USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
+//                REQUEST_READ_XTALL, 0, 0, (char *) &iFreq, sizeof(iFreq),
+//                rig->state.rigport.timeout);
+    if(buffer[0] == 0xFF )
+    {
+        rig_debug(RIG_DEBUG_VERBOSE,"%s: Device not calibrated",__func__);
+        return RIG_OK;
+    }
+    for(i=0; i<4; i++)
+    {
+        ret = usb_control_msg(udh,
+                USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
+                              REQUEST_READ_EEPROM,F_CRYST + i, 0,(char *) &buffer[i], 1,
+                rig->state.rigport.timeout);
+        if (ret != 1)
+            return -RIG_EIO;
+    }
+    priv->osc_freq=  buffer[0];
+    f=buffer[1];
+    priv->osc_freq +=f/256.;
+    f=buffer[2];
+    priv->osc_freq +=f/(256.*256.);
+    f=buffer[3];
+    priv->osc_freq +=f/(256.*256.*256.);
+
+    rig_debug(RIG_DEBUG_VERBOSE,"%s: using Xtall at %.3f MHz\n",
+            __func__, priv->osc_freq);
+
+    return RIG_OK;
 }
 
 

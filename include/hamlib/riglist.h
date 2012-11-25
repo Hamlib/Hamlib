@@ -472,6 +472,7 @@
 #define RIG_MODEL_FIFISDR RIG_MAKE_MODEL(RIG_KIT, 12) /* FiFi-SDR USB */
 #define RIG_MODEL_FUNCUBEDONGLE RIG_MAKE_MODEL(RIG_KIT, 13)	/* FunCUBE Dongle */
 #define RIG_MODEL_HIQSDR RIG_MAKE_MODEL(RIG_KIT, 14)	/* HiQSDR */
+#define RIG_MODEL_FASDR RIG_MAKE_MODEL(RIG_KIT,15) /* Funkamateur Sdr */
 
 	/*
 	 * SW/FM/TV tuner cards supported by Video4Linux,*BSD, ..

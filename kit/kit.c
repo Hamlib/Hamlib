@@ -51,6 +51,7 @@ DECLARE_INITRIG_BACKEND(kit)
 	rig_register(&si570picusb_caps);
 	rig_register(&funcube_caps);
 	rig_register(&fifisdr_caps);
+	rig_register(&fasdr_caps);
 #endif
 #if (defined(HAVE_LIBUSB) && defined(HAVE_USB_H)) || defined(_WIN32)
     /* rigs with alternate DLL support on Win32 */
