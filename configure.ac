@@ -421,71 +421,68 @@ AS_IF([test x"${cf_with_perl_binding}" = "xyes"],[
 AM_CONDITIONAL([ENABLE_PERL], [test x"${cf_with_perl_binding}" = "xyes"])
 
 
+dnl Check for python availability, so we can enable HamlibPy
+# Python bindings
+AC_MSG_CHECKING([whether to build python binding and demo])
+AC_ARG_WITH([python-binding],
+    [AS_HELP_STRING([--with-python-binding],
+        [build python binding and demo @<:@default=no@:>@])],
+    [cf_with_python_binding=$withval],
+    [cf_with_python_binding=no])
+AC_MSG_RESULT([$cf_with_python_binding])
+
+dnl AX_PYTHON_DEVEL from macros/ax_python_devel.m4
+AS_IF([test x"${cf_with_python_binding}" = "xyes"],[
+    AM_PATH_PYTHON([2.1],, [:])
+    AX_PYTHON_DEVEL
+
+    BINDING_LIST="${BINDING_LIST} python"
+    BINDING_ALL="${BINDING_ALL} all-py"
+    BINDING_CHECK="${BINDING_CHECK} check-py"
+    BINDING_CLEAN="${BINDING_CLEAN} clean-py"
+    BINDING_DISTCLEAN="${BINDING_DISTCLEAN} distclean-py"
+    BINDING_INSTALL_EXEC="${BINDING_INSTALL_EXEC} install-py"
+    BINDING_UNINSTALL="${BINDING_UNINSTALL} uninstall-py"
+    BINDING_LIB_TARGETS="${BINDING_LIB_TARGETS} \$(python_ltlib)"])
+
+AM_CONDITIONAL([ENABLE_PYTHON], [test x"${cf_with_python_binding}" = "xyes"])
+
+
 # Tcl binding
 AC_MSG_CHECKING([Whether to build Tcl bindings and demos])
 AC_ARG_WITH([tcl-binding],
-            [AS_HELP_STRING([--with-tcl-binding],
-                            [build Tcl binding and demo @<:@default=no@:>@])],
-            [build_tcl=$withval],
-            [build_tcl=no])
+    [AS_HELP_STRING([--with-tcl-binding],
+        [build Tcl binding and demo @<:@default=no@:>@])],
+    [build_tcl=$withval],
+    [build_tcl=no])
 AC_MSG_RESULT([$build_tcl])
 
 dnl SC_PATH_TCLCONFIG and SC_LOAD_TCLCONFIG from macros/tcl.m4
 AS_IF([test x"${build_tcl}" = "xyes"],[
-      SC_PATH_TCLCONFIG
-      SC_LOAD_TCLCONFIG
+    SC_PATH_TCLCONFIG
+    SC_LOAD_TCLCONFIG
 
-      tcl_save_CPPFLAGS=$CPPFLAGS
-      CPPFLAGS="$CPPFLAGS $TCL_INCLUDE_SPEC"
-      AC_CHECK_HEADERS([tcl.h],
-                       [],
-                       [AC_MSG_ERROR([Unable to find Tcl headers])])
-      CPPFLAGS=$tcl_save_CPPFLAGS
+    tcl_save_CPPFLAGS=$CPPFLAGS
+    CPPFLAGS="$CPPFLAGS $TCL_INCLUDE_SPEC"
+    AC_CHECK_HEADERS([tcl.h],
+        [],
+        [AC_MSG_ERROR([Unable to find Tcl headers])])
+    CPPFLAGS=$tcl_save_CPPFLAGS
 
-      BINDING_LIST="${BINDING_LIST} tcl"
-      BINDING_ALL="${BINDING_ALL} all-tcl"
-      BINDING_CHECK="${BINDING_CHECK} check-tcl"
-      BINDING_CLEAN="${BINDING_CLEAN} clean-tcl"
-      BINDING_DISTCLEAN="${BINDING_DISTCLEAN} distclean-tcl"
-      BINDING_INSTALL_EXEC="${BINDING_INSTALL_EXEC} install-tcl"
-      BINDING_UNINSTALL="${BINDING_UNINSTALL} uninstall-tcl"
-      BINDING_LIB_TARGETS="${BINDING_LIB_TARGETS} \$(tcl_ltlib)"])
+    BINDING_LIST="${BINDING_LIST} tcl"
+    BINDING_ALL="${BINDING_ALL} all-tcl"
+    BINDING_CHECK="${BINDING_CHECK} check-tcl"
+    BINDING_CLEAN="${BINDING_CLEAN} clean-tcl"
+    BINDING_DISTCLEAN="${BINDING_DISTCLEAN} distclean-tcl"
+    BINDING_INSTALL_EXEC="${BINDING_INSTALL_EXEC} install-tcl"
+    BINDING_UNINSTALL="${BINDING_UNINSTALL} uninstall-tcl"
+    BINDING_LIB_TARGETS="${BINDING_LIB_TARGETS} \$(tcl_ltlib)"])
 
 AM_CONDITIONAL([ENABLE_TCL], [test x"${build_tcl}" = "xyes"])
 AC_SUBST([TCL_LIB_SPEC])
 AC_SUBST([TCL_INCLUDE_SPEC])
 AC_SUBST([TCL_SHLIB_SUFFIX])
 
-
-dnl Not sure where this goes...
-# TODO: require "${ac_cv_header_sys_socket_h}" = "no"
-
-
-dnl Check for python availability, so we can enable HamlibPy
-# Python bindings
-AC_MSG_CHECKING([whether to build python binding and demo])
-AC_ARG_WITH([python-binding],
-            [AS_HELP_STRING([--with-python-binding],
-                            [build python binding and demo @<:@default=no@:>@])],
-            [cf_with_python_binding=$withval],
-            [cf_with_python_binding=no])
-AC_MSG_RESULT([$cf_with_python_binding])
-
-dnl AX_PYTHON_DEVEL from macros/ax_python_devel.m4
-AS_IF([test x"${cf_with_python_binding}" = "xyes"],[
-      AM_PATH_PYTHON([2.1],, [:])
-      AX_PYTHON_DEVEL
-
-      BINDING_LIST="${BINDING_LIST} python"
-      BINDING_ALL="${BINDING_ALL} all-py"
-      BINDING_CHECK="${BINDING_CHECK} check-py"
-      BINDING_CLEAN="${BINDING_CLEAN} clean-py"
-      BINDING_DISTCLEAN="${BINDING_DISTCLEAN} distclean-py"
-      BINDING_INSTALL_EXEC="${BINDING_INSTALL_EXEC} install-py"
-      BINDING_UNINSTALL="${BINDING_UNINSTALL} uninstall-py"
-      BINDING_LIB_TARGETS="${BINDING_LIB_TARGETS} \$(python_ltlib)"])
-
-AM_CONDITIONAL([ENABLE_PYTHON], [test x"${cf_with_python_binding}" = "xyes"])
 
 dnl Only search for Swig if one or more bindings are enabled.
 AS_IF([test "x${BINDING_ALL}" != "x"],
@@ -510,6 +507,10 @@ AC_SUBST([BINDING_INSTALL_EXEC])
 AC_SUBST([BINDING_UNINSTALL])
 AC_SUBST([BINDING_LIST])
 AC_SUBST([BINDING_LIB_TARGETS])
+
+
+dnl Not sure where this goes...
+dnl # TODO: require "${ac_cv_header_sys_socket_h}" = "no"
 
 
 ## ----------------- ##

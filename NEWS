@@ -17,6 +17,13 @@ Version 3.0
 		symlinked and put in the build-aux directory, building
 		rigmem and rigmatrix are now user selectable at configure
 		run time, building static libraries are disabled by default.
+		Fixed TCL binding installation, fixed Perl binding build so it
+		is not invoked by 'make dist' and clean up build files.  Cleaned
+		up bindings builds to occur in alphabetical order.  Use new
+		ax_pkg_swig macro and update ax_python_devel macro.
+	* IC-PCR1500/2500 default write_delay to 0, IC-746/756, IC-PCR8500
+		fixes, pcr.c, pcr1500.c: Add DSP support.  TNX Paul, KE7ZZ
+	* WinRadio G313 updates.  TNX Julian Campbel
 
 Version 1.2.15.3
 	2012-11-01

@@ -27,9 +27,7 @@ if ENABLE_PERL
 # Perl binding
 
 BUILT_SOURCES += hamlibperl_wrap.c
-MOSTLYCLEANFILES += hamlibperl_wrap.c Hamlib.pm Hamlib.bs
-## DISTCLEANFILES = Hamlib-pl.mk Hamlib-pl.mk.old
-DISTCLEANFILES = Hamlib-pl.mk.old
+MOSTLYCLEANFILES += hamlibperl_wrap.c Hamlib.pm Hamlib.bs Hamlib-pl.mk.old
 
 hamlibperl_wrap.c: hamlib.swg $(SWIGDEP)
 	$(SWIG) -perl5 -shadow @AM_CPPFLAGS@ -I$(top_srcdir)/bindings -o $@ \
@@ -57,6 +55,7 @@ check-perl: all-perl
 clean-perl: Hamlib-pl.mk
 	$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk clean
 
+## 'distclean' target is a NOOP in Hamlib-pl.mk
 distclean-perl: ## Hamlib-pl.mk
 ##	$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk distclean
 
@@ -75,52 +74,9 @@ endif
 # Perl
 
 
-if ENABLE_TCL
-##########################################
-# Tcl binding
-
-BUILT_SOURCES+= hamlibtcl_wrap.c
-MOSTLYCLEANFILES+= hamlibtcl_wrap.c pkgIndex.tcl
-
-tcl_ltlib = hamlibtcl.la
-
-tcldir = $(prefix)/lib/tcl
-
-PKG_VER=1.0
-DLL=hamlibtcl-$(PKG_VER)@TCL_SHLIB_SUFFIX@
-
-nodist_hamlibtcl_la_SOURCES = hamlibtcl_wrap.c
-hamlibtcl_la_LDFLAGS = -no-undefined -module -release $(PKG_VER) -avoid-version @TCL_LIB_SPEC@
-hamlibtcl_la_LIBADD = $(top_builddir)/src/libhamlib.la
-
-hamlibtcl_ladir = $(tcldir)
-hamlibtcl_la_DATA = pkgIndex.tcl
-
-pkgIndex.tcl: Makefile
-	echo 'package ifneeded Hamlib $(PKG_VER) [list load [file join $$dir $(DLL)] Hamlib]' > pkgIndex.tcl
-
-hamlibtcl_wrap.c: hamlib.swg $(SWGDEP)
-	$(SWIG) -tcl -pkgversion $(PKG_VER) @AM_CPPFLAGS@ -I$(top_srcdir)/bindings -o $@ \
-		`test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
-
-all-tcl: pkgIndex.tcl $(tcl_ltlib)
-
-check-tcl: all-tcl
-	TCLLIBPATH=$(builddir)/.libs $(srcdir)/tcltest.tcl || echo "Tcl test failed" 1>&2
-
-install-tcl:
-clean-tcl:
-distclean-tcl: clean-tcl
-uninstall-tcl:
-
-endif
-# TCL
-
-
+if ENABLE_PYTHON
 ##########################################
 # Python binding
-
-if ENABLE_PYTHON
 
 python_ltlib = _Hamlib.la
 
@@ -157,9 +113,52 @@ endif
 # Python
 
 
+if ENABLE_TCL
 ##########################################
-lib_LTLIBRARIES = $(tcl_ltlib)
-# lib_LTLIBRARIES = @BINDING_LIB_TARGETS@
+# Tcl binding
+
+BUILT_SOURCES+= hamlibtcl_wrap.c
+MOSTLYCLEANFILES+= hamlibtcl_wrap.c pkgIndex.tcl
+
+tcl_ltlib = hamlibtcl.la
+
+tcldir = $(libdir)/tcl/Hamlib
+
+PKG_VER=@ABI_VERSION@.@ABI_REVISION@
+DLL=hamlibtcl-$(PKG_VER)@TCL_SHLIB_SUFFIX@
+
+nodist_hamlibtcl_la_SOURCES = hamlibtcl_wrap.c
+hamlibtcl_la_LDFLAGS = -no-undefined -module -release $(PKG_VER) -avoid-version @TCL_LIB_SPEC@
+hamlibtcl_la_LIBADD = $(top_builddir)/src/libhamlib.la
+
+hamlibtcl_ladir = $(tcldir)
+hamlibtcl_la_DATA = pkgIndex.tcl
+
+# Install hamlibtcl.la into the tcltk/Hamlib directory set by $hamlibtcl_ladir
+hamlibtcl_la_LTLIBRARIES = $(tcl_ltlib)
+
+# Having the first occurance of 'hamlib' capitalized seemed to cause confusion
+# for the TCL interpreter loading the Hamlib module.
+pkgIndex.tcl: Makefile
+	echo 'package ifneeded hamlib $(PKG_VER) [list load [file join $$dir $(DLL)] Hamlib]' > pkgIndex.tcl
+
+hamlibtcl_wrap.c: hamlib.swg $(SWGDEP)
+	$(SWIG) -tcl -pkgversion $(PKG_VER) @AM_CPPFLAGS@ -I$(top_srcdir)/bindings -o $@ \
+		`test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
+
+all-tcl: pkgIndex.tcl $(tcl_ltlib)
+
+check-tcl: all-tcl
+	TCLLIBPATH=$(builddir)/.libs $(srcdir)/tcltest.tcl || echo "Tcl test failed" 1>&2
+
+install-tcl:
+clean-tcl:
+distclean-tcl: clean-tcl
+uninstall-tcl:
+
+endif
+# TCL
+
 
 all-local: @BINDING_ALL@
 

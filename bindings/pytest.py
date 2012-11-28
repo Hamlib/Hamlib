@@ -5,12 +5,11 @@ import sys
 
 sys.path.append ('.')
 sys.path.append ('.libs')
-sys.path.append ('/usr/local/hamlib/python')
 
 import Hamlib
 
 def StartUp ():
-    print "Python",sys.version[:5],"test,", Hamlib.cvar.hamlib_version
+    print "Python", sys.version[:5], "test,", Hamlib.cvar.hamlib_version, "\n"
 
     #Hamlib.rig_set_debug (Hamlib.RIG_DEBUG_TRACE)
     Hamlib.rig_set_debug (Hamlib.RIG_DEBUG_NONE)
@@ -27,68 +26,75 @@ def StartUp ():
     region = my_rig.get_conf(1073741944)
     rpath = my_rig.get_conf("rig_pathname")
     retry = my_rig.get_conf("retry")
-    print "status(str):",Hamlib.rigerror(my_rig.error_status)
-    print "get_conf: path=",rpath,", retry =",retry,", ITU region=",region
+    print "status(str):\t\t",Hamlib.rigerror(my_rig.error_status)
+    print "get_conf:\t\tpath = %s, retry = %s, ITU region = %s" \
+        % (rpath, retry, region)
 
     my_rig.set_freq (5700000000,Hamlib.RIG_VFO_B)
-    print "freq:",my_rig.get_freq()
+    print "freq:\t\t\t",my_rig.get_freq()
     my_rig.set_freq (145550000)
     my_rig.set_vfo (Hamlib.RIG_VFO_B)
     #my_rig.set_vfo ("VFOA")
 
     (mode, width) = my_rig.get_mode()
-    print "mode:",Hamlib.rig_strrmode(mode),", bandwidth:",width
+    print "mode:\t\t\t",Hamlib.rig_strrmode(mode),"\nbandwidth:\t\t",width
     my_rig.set_mode(Hamlib.RIG_MODE_CW)
     (mode, width) = my_rig.get_mode()
-    print "mode:",Hamlib.rig_strrmode(mode),", bandwidth:",width
+    print "mode:\t\t\t",Hamlib.rig_strrmode(mode),"\nbandwidth:\t\t",width
 
-    print "ITU_region: ",my_rig.state.itu_region
-    print "Backend copyright: ",my_rig.caps.copyright
+    print "ITU_region:\t\t",my_rig.state.itu_region
+    print "Backend copyright:\t",my_rig.caps.copyright
 
-    print "Model:",my_rig.caps.model_name
-    print "Manufacturer:",my_rig.caps.mfg_name
-    print "Backend version:",my_rig.caps.version
-    print "Backend license:",my_rig.caps.copyright
-    print "Rig info:", my_rig.get_info()
+    print "Model:\t\t\t",my_rig.caps.model_name
+    print "Manufacturer:\t\t",my_rig.caps.mfg_name
+    print "Backend version:\t",my_rig.caps.version
+    print "Backend license:\t",my_rig.caps.copyright
+    print "Rig info:\t\t", my_rig.get_info()
 
     my_rig.set_level ("VOX",  1)
-    print "VOX level: ",my_rig.get_level_i("VOX")
+    print "VOX level:\t\t",my_rig.get_level_i("VOX")
     my_rig.set_level (Hamlib.RIG_LEVEL_VOX, 5)
-    print "VOX level: ", my_rig.get_level_i(Hamlib.RIG_LEVEL_VOX)
+    print "VOX level:\t\t", my_rig.get_level_i(Hamlib.RIG_LEVEL_VOX)
 
-    print "strength: ", my_rig.get_level_i(Hamlib.RIG_LEVEL_STRENGTH)
-    print "status: ",my_rig.error_status
-    print "status(str):",Hamlib.rigerror(my_rig.error_status)
+    print "strength:\t\t", my_rig.get_level_i(Hamlib.RIG_LEVEL_STRENGTH)
+    print "status:\t\t\t",my_rig.error_status
+    print "status(str):\t\t",Hamlib.rigerror(my_rig.error_status)
 
     chan = Hamlib.channel(Hamlib.RIG_VFO_B)
 
     my_rig.get_channel(chan)
-    print "get_channel status: ",my_rig.error_status
+    print "get_channel status:\t",my_rig.error_status
 
-    print "VFO: ",Hamlib.rig_strvfo(chan.vfo),", ",chan.freq
+    print "VFO:\t\t\t",Hamlib.rig_strvfo(chan.vfo),", ",chan.freq
     my_rig.close ()
 
     print "\nSome static functions:"
 
-    err, long1, lat1 = Hamlib.locator2longlat("IN98EC")
-    err, long2, lat2 = Hamlib.locator2longlat("DM33DX")
-    err, loc1 = Hamlib.longlat2locator(long1, lat1, 3)
-    err, loc2 = Hamlib.longlat2locator(long2, lat2, 3)
-    print "Loc1: IN98EC -> ",loc1
-    print "Loc2: DM33DX -> ",loc2
+    err, lon1, lat1 = Hamlib.locator2longlat("IN98XC")
+    err, lon2, lat2 = Hamlib.locator2longlat("DM33DX")
+    err, loc1 = Hamlib.longlat2locator(lon1, lat1, 3)
+    err, loc2 = Hamlib.longlat2locator(lon2, lat2, 3)
+    print "Loc1:\t\tIN98XC -> %9.4f, %9.4f -> %s" % (lon1, lat1, loc1)
+    print "Loc2:\t\tDM33DX -> %9.4f, %9.4f -> %s" % (lon2, lat2, loc2)
 
-    # TODO: qrb should normalize?
-    err, dist, az = Hamlib.qrb(long1, lat1, long2, lat2)
-    if az > 180:
-        az -= 360
+    err, dist, az = Hamlib.qrb(lon1, lat1, lon2, lat2)
     longpath = Hamlib.distance_long_path(dist)
-    print "Distance: ",dist," km, long path: ",longpath
-    err, deg, min, sec, sw = Hamlib.dec2dms(az)
-    az2 = Hamlib.dms2dec(deg, min, sec, sw)
-    if sw:
-        deg = -deg
-    print "Bearing: ",az,", ",deg,"° ",min,"' ",sec,", recoded: ",az2
+    print "Distance:\t%.3f km, azimuth %.2f, long path:\t%.3f km" \
+        % (dist, az, longpath)
 
+    # dec2dms expects values from 180 to -180
+    # sw is 1 when deg is negative (west or south) as 0 cannot be signed
+    err, deg1, mins1, sec1, sw1 = Hamlib.dec2dms(lon1)
+    err, deg2, mins2, sec2, sw2 = Hamlib.dec2dms(lat1)
+
+    lon3 = Hamlib.dms2dec(deg1, mins1, sec1, sw1)
+    lat3 = Hamlib.dms2dec(deg2, mins2, sec2, sw2)
+
+    print 'Longitude:\t%4.4f, %4d° %2d\' %2d" %1s\trecoded: %9.4f' \
+        % (lon1, deg1, mins1, sec1, ('W' if sw1 else 'E'), lon3)
+
+    print 'Latitude:\t%4.4f, %4d° %2d\' %2d" %1s\trecoded: %9.4f' \
+        % (lat1, deg2, mins2, sec2, ('S' if sw2 else 'N'), lat3)
 
 if __name__ == '__main__':
     StartUp ()
