@@ -1,7 +1,7 @@
 Hamlib -- History of visible changes.
 
 Copyright (C) 2000-2003  Frank Singleton
-Copyright (C) 2000-2012  Stephane Fillod, and others
+Copyright (C) 2000-2013  Stephane Fillod, and others
 
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
@@ -28,9 +28,13 @@ Version 3.0
 		fixes, pcr.c, pcr1500.c: Add DSP support.  TNX Paul, KE7ZZ
 	* WinRadio G313 updates.  TNX Julian Campbel
 	* Readline editing and history support added to rigctl interactive
-	  mode.  Implement options for reading and writing history file.
+		mode.  Implement options for reading and writing history file.
 	* Readline editing and history support added to rotctl interactive
-	  mode.  Implement options for reading and writing history file.
+		mode.  Implement options for reading and writing history file.
+	* A new manual draft written in Texinfo added.  Both GNU Info and single
+		HTML files are built and distributed, requires makeinfo.
+	* Android build system support.  See android/README.android.  Android
+		Makefile fragments are included in source tarballs.
 
 Version 1.2.15.3
 	2012-11-01

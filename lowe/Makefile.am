@@ -6,3 +6,5 @@ hamlib_lowe_la_LDFLAGS = -no-undefined -module -avoid-version
 hamlib_lowe_la_LIBADD = $(top_builddir)/src/libhamlib.la
 
 noinst_HEADERS = lowe.h
+
+EXTRA_DIST = Android.mk

@@ -706,6 +706,7 @@ adat/Makefile
 ts7400/Makefile
 celestron/Makefile
 scripts/Makefile
+android/Makefile
 hamlib.pc])
 
 AC_OUTPUT

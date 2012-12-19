@@ -1,6 +1,6 @@
 EXTRA_DIST = include/ep93xx_adc.h include/io.h include/peekpoke.h \
 	include/readADC.h include/io.c include/peekpoke.c include/readADC.c \
-	include/test7400ADC.c
+	include/test7400ADC.c Android.mk
 
 pkglib_LTLIBRARIES = hamlib-ts7400.la
 hamlib_ts7400_la_SOURCES = ts7400.c

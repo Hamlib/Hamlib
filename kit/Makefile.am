@@ -28,4 +28,4 @@ hamlib_kit_la_LIBADD = $(top_builddir)/lib/libmisc.la \
 
 noinst_HEADERS = kit.h usrp_impl.h si570avrusb.h funcube.h
 
-EXTRA_DIST = README.funcubedongle
+EXTRA_DIST = README.funcubedongle Android.mk

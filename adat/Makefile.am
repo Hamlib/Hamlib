@@ -6,3 +6,5 @@ hamlib_adat_la_LDFLAGS = -no-undefined -module -avoid-version
 hamlib_adat_la_LIBADD = $(top_builddir)/src/libhamlib.la
 
 noinst_HEADERS = adat.h adt_200a.h
+
+EXTRA_DIST = Android.mk

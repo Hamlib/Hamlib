@@ -16,7 +16,7 @@ hamlib_yaesu_la_LIBADD = $(top_builddir)/lib/libmisc.la \
 			 @MATH_LIBS@ \
 			$(top_builddir)/src/libhamlib.la
 
-EXTRA_DIST = README.ft890 README.ft920
+EXTRA_DIST = README.ft890 README.ft920 Android.mk
 
 noinst_HEADERS = ft100.h ft747.h ft817.h ft847.h ft890.h ft900.h ft920.h \
 		 ft1000mp.h ft857.h ft897.h ft990.h yaesu.h  \

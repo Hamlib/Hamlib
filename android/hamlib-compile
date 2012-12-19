@@ -1,0 +1,18 @@
+#!/bin/bash
+set -e
+
+tmp=`dirname $0`
+HAMLIB=`readlink -f $tmp/..`
+
+cd $HAMLIB
+
+rm -f $HAMLIB/include/config.h
+
+if [ -n "$1" ]; then
+    ndk-build NDK_PROJECT_PATH=$HAMLIB APP_BUILD_SCRIPT=$HAMLIB/Android.mk $1
+    exit
+fi
+
+
+ndk-build NDK_PROJECT_PATH=$HAMLIB APP_BUILD_SCRIPT=$HAMLIB/Android.mk hamlib
+ndk-build NDK_PROJECT_PATH=$HAMLIB APP_BUILD_SCRIPT=$HAMLIB/Android.mk

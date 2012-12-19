@@ -7,6 +7,6 @@ hamlib_winradio_la_SOURCES = $(WRSRCLIST) winradio.c
 hamlib_winradio_la_LDFLAGS = -no-undefined -module -avoid-version
 hamlib_winradio_la_LIBADD = $(top_builddir)/src/libhamlib.la
 
-EXTRA_DIST = NOTES
+EXTRA_DIST = NOTES Android.mk
 
 noinst_HEADERS = winradio.h linradio/radio_ioctl.h linradio/wrapi.h linradio/wrg313api.h

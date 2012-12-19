@@ -43,6 +43,10 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#ifdef ANDROID
+#include <android/log.h>
+#endif
+
 #include <hamlib/rig.h>
 
 #include "misc.h"
@@ -142,6 +146,28 @@ void HAMLIB_API rig_debug(enum rig_debug_level_e debug_level, const char *fmt, .
 	}
 
 	va_end(ap);
+#ifdef ANDROID
+    int a;
+    va_start(ap, fmt);
+    switch (debug_level){
+//        case RIG_DEBUG_NONE:
+        case RIG_DEBUG_BUG:
+            a = ANDROID_LOG_FATAL; break;
+        case RIG_DEBUG_ERR:
+            a = ANDROID_LOG_ERROR; break;
+        case RIG_DEBUG_WARN:
+            a = ANDROID_LOG_WARN; break;
+        case RIG_DEBUG_VERBOSE:
+            a = ANDROID_LOG_VERBOSE; break;
+        case RIG_DEBUG_TRACE:
+            a = ANDROID_LOG_VERBOSE; break;
+        default:
+            a = ANDROID_LOG_DEBUG; break;
+    }
+    __android_log_vprint(a, PACKAGE_NAME, fmt, ap);
+
+	va_end(ap);
+#endif
 }
 
 /**

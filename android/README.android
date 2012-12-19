@@ -1,0 +1,17 @@
+This is android port of hamlib
+(C) 2012 Ladislav Vaiz <ok1zia@nagano.cz>
+
+Notes:
+* use hamlib-compile script to build hamlib for android
+* script deletes file include/config.h, it conflicts with android/config.h
+* android port implements ltdl interface and calls dlfcn functions directly
+* RPC is not present on android
+* ARS backend is compiled without pthreads because of deprecated pthread_cancel
+* I don'k know how to connect to real radio:
+** Bluetooth API is available only under Java, not from native code
+** FTDI USB to serial converter driver is not included in standard kernel. It should work on rooted device.
+** But NET rigctl works fine
+* Backends are named libhamlib-vendor.so, I don't know how to include libraries without lib prefix into APK
+
+Happy hacking
+73 Lada, OK1ZIA

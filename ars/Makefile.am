@@ -6,3 +6,5 @@ hamlib_ars_la_LIBADD = $(top_builddir)/lib/libmisc.la \
 				$(top_builddir)/src/libhamlib.la
 
 noinst_HEADERS = ars.h
+
+EXTRA_DIST = Android.mk

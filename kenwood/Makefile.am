@@ -9,11 +9,11 @@ THSRCLIST = thd7.c thf7.c thg71.c tmd700.c tmv7.c thf6a.c thd72.c tmd710.c
 
 pkglib_LTLIBRARIES = hamlib-kenwood.la
 hamlib_kenwood_la_SOURCES = $(TSSRCLIST) $(THSRCLIST) $(IC10SRCLIST) \
-			    	kenwood.c th.c ic10.c elecraft.c transfox.c
+				kenwood.c th.c ic10.c elecraft.c transfox.c
 
 hamlib_kenwood_la_LDFLAGS = -no-undefined -module -avoid-version
 hamlib_kenwood_la_LIBADD = $(top_builddir)/src/libhamlib.la @MATH_LIBS@
 
-EXTRA_DIST = README.kenwood README.k2 README.k3
+EXTRA_DIST = README.kenwood README.k2 README.k3 Android.mk
 
 noinst_HEADERS = kenwood.h th.h ic10.h elecraft.h

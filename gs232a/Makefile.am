@@ -5,3 +5,5 @@ hamlib_gs232a_la_LDFLAGS = -no-undefined -module -avoid-version
 hamlib_gs232a_la_LIBADD = $(top_builddir)/src/libhamlib.la
 
 noinst_HEADERS = gs232a.h
+
+EXTRA_DIST = Android.mk

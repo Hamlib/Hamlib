@@ -5,3 +5,5 @@ hamlib_celestron_la_LDFLAGS = -no-undefined -module -avoid-version
 hamlib_celestron_la_LIBADD = $(top_builddir)/src/libhamlib.la
 
 noinst_HEADERS = celestron.h
+
+EXTRA_DIST = Android.mk

@@ -5,3 +5,5 @@ hamlib_sartek_la_LDFLAGS = -no-undefined -module -avoid-version
 hamlib_sartek_la_LIBADD = $(top_builddir)/src/libhamlib.la
 
 noinst_HEADERS = sartek.h
+
+EXTRA_DIST = Android.mk

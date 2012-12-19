@@ -7,3 +7,5 @@ hamlib_uniden_la_LDFLAGS = -no-undefined -module -avoid-version
 hamlib_uniden_la_LIBADD = $(top_builddir)/src/libhamlib.la
 
 noinst_HEADERS = uniden.h uniden_digital.h
+
+EXTRA_DIST = Android.mk

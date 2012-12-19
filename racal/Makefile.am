@@ -7,3 +7,5 @@ hamlib_racal_la_LIBADD = $(top_builddir)/src/libhamlib.la \
 						 $(top_builddir)/lib/libmisc.la
 
 noinst_HEADERS = racal.h ra37xx.h
+
+EXTRA_DIST = Android.mk

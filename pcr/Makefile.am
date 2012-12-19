@@ -7,3 +7,5 @@ hamlib_pcr_la_LIBADD = $(top_builddir)/src/libhamlib.la \
 		       $(top_builddir)/lib/libmisc.la
 
 noinst_HEADERS = pcr.h
+
+EXTRA_DIST = Android.mk

@@ -21,3 +21,4 @@ noinst_HEADERS = event.h misc.h serial.h iofunc.h cal.h tones.h \
 		rot_conf.h token.h idx_builtin.h register.h par_nt.h \
 		parallel.h usb_port.h network.h cm108.h
 
+EXTRA_DIST = Android.mk
