@@ -18,11 +18,17 @@ int main (int argc, char *argv[])
 	pbwidth_t width;
 	vfo_t vfo;		/* vfo selection */
 	int strength;		/* S-Meter level */
+	int rit = 0;		/* RIT status */
+	int xit = 0;		/* XIT status */
 	int retcode;		/* generic return code from functions */
+
 	rig_model_t myrig_model;
 
 
-	printf("testrig:hello, I am your main() !\n");
+	printf("testrig: Hello, I am your main() !\n");
+
+	/* Turn off backend debugging ouput */
+	rig_set_debug_level(RIG_DEBUG_NONE);
 
  	/*
 	 * allocate memory, setup & open port
@@ -90,59 +96,166 @@ int main (int argc, char *argv[])
 
 	/* 10m FM Narrow */
 
-	retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 28350125); /* 10m */
+	printf("\nSetting 10m FM Narrow...\n");
+
+	retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 29620000); /* 10m */
 	retcode = rig_set_mode(my_rig, RIG_VFO_CURR, RIG_MODE_FM,
 					rig_passband_narrow(my_rig, RIG_MODE_FM));
-	sleep(3);		/* so you can see it -- FS */
+
+	if (retcode != RIG_OK ) {
+	  printf("rig_set_freq: error = %s \n", rigerror(retcode));
+	}
+
+	rig_get_freq(my_rig, RIG_VFO_CURR, &freq);
+	rig_get_mode(my_rig, RIG_VFO_CURR, &rmode, &width);
+
+	printf(" Freq: %.6f MHz, Mode: %s, Passband: %.3f kHz\n\n",
+			freq / 1000000, rig_strrmode(rmode), width / 1000.0);
+	sleep(1);		/* so you can see it -- FS */
 
 	/* 15m USB */
 
+	printf("Setting 15m USB...\n");
+
 	retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 21235175); /* 15m  */
-	retcode = rig_set_mode(my_rig, RIG_VFO_CURR, RIG_MODE_USB, RIG_PASSBAND_NORMAL);
-	sleep(3);
+	retcode = rig_set_mode(my_rig, RIG_VFO_CURR, RIG_MODE_USB,
+					rig_passband_normal(my_rig, RIG_MODE_USB));
 
-	/* AM Broadcast band */
+	if (retcode != RIG_OK ) {
+	  printf("rig_set_freq: error = %s \n", rigerror(retcode));
+	}
 
-	retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 770000); /* KAAM */
-	retcode = rig_set_mode(my_rig, RIG_VFO_CURR, RIG_MODE_AM, RIG_PASSBAND_NORMAL);
-	sleep(3);
+	rig_get_freq(my_rig, RIG_VFO_CURR, &freq);
+	rig_get_mode(my_rig, RIG_VFO_CURR, &rmode, &width);
+
+	printf(" Freq: %.6f MHz, Mode: %s, Passband: %.3f kHz\n\n",
+			freq / 1000000, rig_strrmode(rmode), width / 1000.0);
+	sleep(1);
 
 	/* 40m LSB */
 
+	printf("Setting 40m LSB...\n");
+
 	retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 7250100); /* 40m  */
 	retcode = rig_set_mode(my_rig, RIG_VFO_CURR, RIG_MODE_LSB, RIG_PASSBAND_NORMAL);
-	sleep(3);
 
-	/* 80m AM NArrow */
+	if (retcode != RIG_OK ) {
+	  printf("rig_set_freq: error = %s \n", rigerror(retcode));
+	}
 
-	retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 3980000); /* 80m  */
+	rig_get_freq(my_rig, RIG_VFO_CURR, &freq);
+	rig_get_mode(my_rig, RIG_VFO_CURR, &rmode, &width);
+
+	printf(" Freq: %.6f MHz, Mode: %s, Passband: %.3f kHz\n\n",
+			freq / 1000000, rig_strrmode(rmode), width / 1000.0);
+	sleep(1);
+
+	/* 80m AM Narrow */
+
+	printf("Setting 80m AM Narrow...\n");
+
+	retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 3885000); /* 80m  */
 	retcode = rig_set_mode(my_rig, RIG_VFO_CURR, RIG_MODE_AM,
-					rig_passband_narrow(my_rig, RIG_MODE_FM));
-	sleep(3);
+					rig_passband_narrow(my_rig, RIG_MODE_AM));
+
+	if (retcode != RIG_OK ) {
+	  printf("rig_set_freq: error = %s \n", rigerror(retcode));
+	}
+
+	rig_get_freq(my_rig, RIG_VFO_CURR, &freq);
+	rig_get_mode(my_rig, RIG_VFO_CURR, &rmode, &width);
+
+	printf(" Freq: %.6f MHz, Mode: %s, Passband: %.3f kHz\n\n",
+			freq / 1000000, rig_strrmode(rmode), width / 1000.0);
+	sleep(1);
 
 	/* 160m CW Normal */
 
+	printf("Setting 160m CW...\n");
+
 	retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 1875000); /* 160m  */
 	retcode = rig_set_mode(my_rig, RIG_VFO_CURR, RIG_MODE_CW, RIG_PASSBAND_NORMAL);
-	sleep(3);
+
+	if (retcode != RIG_OK ) {
+	  printf("rig_set_freq: error = %s \n", rigerror(retcode));
+	}
+
+	rig_get_freq(my_rig, RIG_VFO_CURR, &freq);
+	rig_get_mode(my_rig, RIG_VFO_CURR, &rmode, &width);
+
+	printf(" Freq: %.3f kHz, Mode: %s, Passband: %li Hz\n\n",
+			freq / 1000, rig_strrmode(rmode), width );
+	sleep(1);
 
 	/* 160m CW Narrow -- The band is noisy tonight -- FS*/
 
+	printf("Setting 160m CW Narrow...\n");
+
 	retcode = rig_set_mode(my_rig, RIG_VFO_CURR, RIG_MODE_CW,
-					rig_passband_narrow(my_rig, RIG_MODE_FM));
-	sleep(3);
+					rig_passband_narrow(my_rig, RIG_MODE_CW));
+
+	if (retcode != RIG_OK ) {
+	  printf("rig_set_freq: error = %s \n", rigerror(retcode));
+	}
+
+	rig_get_freq(my_rig, RIG_VFO_CURR, &freq);
+	rig_get_mode(my_rig, RIG_VFO_CURR, &rmode, &width);
+
+	printf(" Freq: %.3f kHz, Mode: %s, Passband: %li Hz\n\n",
+			freq / 1000, rig_strrmode(rmode), width);
+	sleep(1);
+
+	/* AM Broadcast band */
+
+	printf("Setting Medium Wave AM...\n");
+
+	retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 770000); /* KAAM */
+	retcode = rig_set_mode(my_rig, RIG_VFO_CURR, RIG_MODE_AM, RIG_PASSBAND_NORMAL);
+
+	if (retcode != RIG_OK ) {
+	  printf("rig_set_freq: error = %s \n", rigerror(retcode));
+	}
+
+	rig_get_freq(my_rig, RIG_VFO_CURR, &freq);
+	rig_get_mode(my_rig, RIG_VFO_CURR, &rmode, &width);
+
+	printf(" Freq: %.3f kHz, Mode: %s, Passband: %.3f kHz\n\n",
+			freq / 1000, rig_strrmode(rmode), width / 1000.0);
+	sleep(1);
 
 	/* 20m USB on VFO_A */
 
+	printf("Setting 20m on VFO A with two functions...\n");
+
 	retcode = rig_set_vfo(my_rig, RIG_VFO_A);
 	retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 14250375); /* cq de vk3fcs */
-	sleep(3);
+
+	if (retcode != RIG_OK ) {
+	  printf("rig_set_freq: error = %s \n", rigerror(retcode));
+	}
+
+	rig_get_freq(my_rig, RIG_VFO_CURR, &freq);
+	rig_get_vfo(my_rig, &vfo);
+
+	printf(" Freq: %.6f MHz, VFO: %s\n\n", freq / 1000000, rig_strvfo(vfo));
+
+	sleep(1);
 
 	/* 20m USB on VFO_A , with only 1 call */
 
+	printf("Setting  20m on VFO A with one function...\n");
 	retcode = rig_set_freq(my_rig, RIG_VFO_A, 14295125); /* cq de vk3fcs */
-	sleep(3);
 
+	if (retcode != RIG_OK ) {
+	  printf("rig_set_freq: error = %s \n", rigerror(retcode));
+	}
+
+	rig_get_freq(my_rig, RIG_VFO_CURR, &freq);
+	rig_get_vfo(my_rig, &vfo);
+
+	printf(" Freq: %.6f MHz, VFO: %s\n\n", freq / 1000000, rig_strvfo(vfo));
+
+	sleep(1);
 
 
 #if 0
@@ -152,16 +265,16 @@ int main (int argc, char *argv[])
 	sleep(2);
 #endif
 
-	if (retcode != RIG_OK ) {
-	  printf("rig_set_freq: error = %s \n", rigerror(retcode));
-	}
-
+	printf("Setting rig Mode to LSB.\n");
 	retcode = rig_set_mode(my_rig, RIG_VFO_CURR, RIG_MODE_LSB, RIG_PASSBAND_NORMAL);
 
 	if (retcode != RIG_OK ) {
 	  printf("rig_set_mode: error = %s \n", rigerror(retcode));
 	}
 
+	sleep(1);
+
+	printf("Setting rig PTT ON.\n");
 	retcode = rig_set_ptt(my_rig, RIG_VFO_A, RIG_PTT_ON ); /* stand back ! */
 
 	if (retcode != RIG_OK ) {
@@ -170,6 +283,7 @@ int main (int argc, char *argv[])
 
 	sleep(1);
 
+	printf("Setting rig PTT OFF.\n");
 	retcode = rig_set_ptt(my_rig, RIG_VFO_A, RIG_PTT_OFF ); /* phew ! */
 
 	if (retcode != RIG_OK ) {
@@ -183,6 +297,7 @@ int main (int argc, char *argv[])
 	 *
 	 */
 
+	printf("\nGet various raw rig values:\n");
 	retcode = rig_get_vfo(my_rig, &vfo); /* try to get vfo info */
 
 	if (retcode == RIG_OK ) {
@@ -215,6 +330,25 @@ int main (int argc, char *argv[])
 	  printf("rig_get_strength: error =  %s \n", rigerror(retcode));
 	}
 
+	if (rig_has_set_func(my_rig, RIG_FUNC_RIT)) {
+		retcode = rig_set_func(my_rig, RIG_VFO_CURR, RIG_FUNC_RIT, 1);
+		printf("rig_set_func: Setting RIT ON\n");
+	}
+
+	if (rig_has_get_func(my_rig, RIG_FUNC_RIT)) {
+		retcode = rig_get_func(my_rig, RIG_VFO_CURR, RIG_FUNC_RIT, &rit);
+		printf("rig_get_func: RIT: %d\n", rit);
+	}
+
+	if (rig_has_set_func(my_rig, RIG_FUNC_XIT)) {
+		retcode = rig_set_func(my_rig, RIG_VFO_CURR, RIG_FUNC_XIT, 1);
+		printf("rig_set_func: Setting XIT ON\n");
+	}
+
+	if (rig_has_get_func(my_rig, RIG_FUNC_XIT)) {
+		retcode = rig_get_func(my_rig, RIG_VFO_CURR, RIG_FUNC_XIT, &xit);
+		printf("rig_get_func: XIT: %d\n", xit);
+	}
 
 	rig_close(my_rig); /* close port */
 	rig_cleanup(my_rig); /* if you care about memory */

@@ -748,13 +748,14 @@ enum rig_func_e {
 	RIG_FUNC_ABM =     	(1<<21),/*!< \c ABM -- Auto Band Mode */
 	RIG_FUNC_BC =     	(1<<22),/*!< \c BC -- Beat Canceller */
 	RIG_FUNC_MBC =     	(1<<23),/*!< \c MBC -- Manual Beat Canceller */
-	/* 			(1<<24), used to be RIG_FUNC_LMP, see RIG_PARM_BACKLIGHT instead) */
+	RIG_FUNC_RIT =		(1<<24),/*!< \c RIT -- Receiver Incremental Tuning */
 	RIG_FUNC_AFC =    	(1<<25),/*!< \c AFC -- Auto Frequency Control ON/OFF */
 	RIG_FUNC_SATMODE =	(1<<26),/*!< \c SATMODE -- Satellite mode ON/OFF */
 	RIG_FUNC_SCOPE =  	(1<<27),/*!< \c SCOPE -- Simple bandscope ON/OFF */
 	RIG_FUNC_RESUME =	(1<<28),/*!< \c RESUME -- Scan auto-resume */
 	RIG_FUNC_TBURST =	(1<<29),/*!< \c TBURST -- 1750 Hz tone burst */
-	RIG_FUNC_TUNER =	(1<<30) /*!< \c TUNER -- Enable automatic tuner */
+	RIG_FUNC_TUNER =	(1<<30),/*!< \c TUNER -- Enable automatic tuner */
+	RIG_FUNC_XIT =		(1<<31),/*!< \c XIT -- Transmitter Incremental Tuning */
 };
 
 /*

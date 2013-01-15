@@ -408,6 +408,8 @@ static struct {
 	{ RIG_FUNC_RESUME, "RESUME" },
 	{ RIG_FUNC_TBURST, "TBURST" },
 	{ RIG_FUNC_TUNER, "TUNER" },
+	{ RIG_FUNC_RIT, "RIT" },
+	{ RIG_FUNC_XIT, "XIT" },
 	{ RIG_FUNC_NONE, "" },
 };
 

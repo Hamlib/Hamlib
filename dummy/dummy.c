@@ -336,7 +336,11 @@ static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   		rig_strvfo(vfo), rig_strrmode(mode), buf);
 
   curr->mode = mode;
-  curr->width = width;
+
+  if (width == RIG_PASSBAND_NORMAL)
+    curr->width = rig_passband_normal(rig, mode);
+  else
+    curr->width = width;
 
   return RIG_OK;
 }
@@ -1410,7 +1414,8 @@ static int dummy_mW2power(RIG * rig, float *power, unsigned int mwpower,
  * Dummy rig capabilities.
  */
 
-#define DUMMY_FUNC  (((setting_t)-1)&~(0xc1000000U))	/* has it all */
+/* #define DUMMY_FUNC  (((setting_t)-1)&~(0x40000000U))	*/ /* has it all */
+#define DUMMY_FUNC  ((setting_t)-1)	/* has it all */
 #define DUMMY_LEVEL (((setting_t)-1)&~(1<<27))
 #define DUMMY_PARM  ((setting_t)-1)
 
