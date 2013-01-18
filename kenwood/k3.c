@@ -1,7 +1,7 @@
 /*
  *  Hamlib Kenwood backend - Elecraft K3 description
  *  Copyright (c) 2002-2009 by Stephane Fillod
- *  Copyright (C) 2010,2011 by Nate Bargmann, n0nb@arrl.net
+ *  Copyright (C) 2010,2011,2012,2013 by Nate Bargmann, n0nb@arrl.net
  *
  *   This library is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU Lesser General Public
@@ -39,7 +39,7 @@
 	RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_PKTUSB|\
 	RIG_MODE_PKTLSB)
 
-#define K3_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_LOCK)
+#define K3_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_LOCK|RIG_FUNC_RIT|RIG_FUNC_XIT)
 
 #define K3_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_PREAMP|RIG_LEVEL_AGC|RIG_LEVEL_SQL|\
 	RIG_LEVEL_STRENGTH|RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD|\
@@ -71,10 +71,10 @@ int k3_set_xit(RIG * rig, vfo_t vfo, shortfreq_t rit);
 int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width);
 int k3_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width);
 int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-
+int k3_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 
 /* Private helper functions */
-int set_rit_xit(RIG * rig, char *func, shortfreq_t rit);
+int set_rit_xit(RIG *rig, shortfreq_t rit);
 
 
 /*
@@ -93,7 +93,7 @@ const struct rig_caps k3_caps = {
 	.rig_model =		RIG_MODEL_K3,
 	.model_name =		"K3/KX3",
 	.mfg_name =		"Elecraft",
-	.version =		"20120615",
+	.version =		"20130118",
 	.copyright =		"LGPL",
 	.status =		RIG_STATUS_BETA,
 	.rig_type =		RIG_TYPE_TRANSCEIVER,
@@ -209,7 +209,7 @@ const struct rig_caps k3_caps = {
 	.set_ptt =		kenwood_set_ptt,
 	.get_dcd =		kenwood_get_dcd,
 	.set_func =		kenwood_set_func,
-	.get_func =		kenwood_get_func,
+	.get_func =		k3_get_func,
 	.set_ext_parm =		kenwood_set_ext_parm,
 	.get_ext_parm =		kenwood_get_ext_parm,
 	.set_level =		kenwood_set_level,
@@ -522,25 +522,18 @@ int k3_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 
 /*
  * k3_set_rit() -- Differs from from generic Kenwood function as K3 can set
- * RIT to an arbitrary offset.  When rit == 0, the RIT offset is cleared and
- * the RIT is turned on when given a value other than 0.
+ * RIT to an arbitrary offset.  When rit == 0, the RIT offset is cleared.
  */
 int k3_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
 	int err;
-	char func[16];
 
 	if (!rig)
 		return -RIG_EINVAL;
 
-	if (rit == 0)
-		snprintf(func, 4, "RT0");
-	else
-		snprintf(func, 4, "RT1");
-
-	err = set_rit_xit(rig, func, rit);
+	err = set_rit_xit(rig, rit);
 	if (err != RIG_OK)
 		return err;
 
@@ -550,25 +543,18 @@ int k3_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 
 /*
  * k3_set_xit() -- Differs from from generic Kenwood function as K3 can set
- * XIT to an arbitrary offset.  When rit == 0, the XIT offset is cleared and
- * the XIT is turned on when given a value other than 0.
+ * XIT to an arbitrary offset.  When rit == 0, the XIT offset is cleared.
  */
 int k3_set_xit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
 	int err;
-	char func[16];
 
 	if (!rig)
 		return -RIG_EINVAL;
 
-	if (rit == 0)
-		snprintf(func, 4, "XT0");
-	else
-		snprintf(func, 4, "XT1");
-
-	err = set_rit_xit(rig, func, rit);
+	err = set_rit_xit(rig, rit);
 	if (err != RIG_OK)
 		return err;
 
@@ -660,6 +646,31 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 }
 
 
+/*
+ * Some functions, notably RIT and XIT On/Off status, can be queried
+ * on the K3.  Those functions are handled here and others are passed
+ * through to kenwood_get_func().
+ */
+int k3_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
+{
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+	if (!rig || !status)
+		return -RIG_EINVAL;
+
+	switch (func) {
+	case RIG_FUNC_RIT:
+		return get_kenwood_func(rig, "RT", status);
+
+	case RIG_FUNC_XIT:
+		return get_kenwood_func(rig, "XT", status);
+
+	default:
+		return kenwood_get_func(rig, vfo, func, status);
+	}
+}
+
+
 
 
 /* Private K3 helper functions */
@@ -667,9 +678,9 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 /*
  * set_rit_xit() -- Differs from from generic Kenwood function as K3 can set
  * RIT/XIT to an arbitrary offset.  When rit == 0, the RIT/XIT offset is
- * cleared and the RIT/XIT is turned on when given a value other than 0.
+ * cleared.
  */
-int set_rit_xit(RIG * rig, char *func, shortfreq_t rit)
+int set_rit_xit(RIG *rig, shortfreq_t rit)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -681,20 +692,15 @@ int set_rit_xit(RIG * rig, char *func, shortfreq_t rit)
 		return -RIG_EINVAL;
 
 	if (rit == 0) {
-		/* Clear offset first */
+		/* Clear offset and return */
 		err = kenwood_simple_cmd(rig, "RC");
-		if (err != RIG_OK)
-			return err;
-
-		/* K3 RIT|XIT Off command */
-		err = kenwood_simple_cmd(rig, func);
 		if (err != RIG_OK)
 			return err;
 
 		return RIG_OK;
 	}
 
-	/* Set offset and turn on RIT|XIT */
+	/* Set offset */
 	if (rit <= 9999 && rit >= -9999) {
 		offs = (rit < 0) ? '-' : '+';
 		snprintf(cmd, 8, "RO%c%04d", offs, abs((int)rit));
@@ -703,10 +709,6 @@ int set_rit_xit(RIG * rig, char *func, shortfreq_t rit)
 		if (err != RIG_OK)
 			return err;
 
-		/* K3 RIT ON command */
-		err = kenwood_simple_cmd(rig, func);
-		if (err != RIG_OK)
-			return err;
 	} else {
 		return -RIG_EINVAL;
 	}

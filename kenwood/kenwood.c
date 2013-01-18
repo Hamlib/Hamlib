@@ -1,7 +1,8 @@
 /*
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2011 by Stephane Fillod
- *  Copyright (C) 2009 Alessandro Zummo <a.zummo@towertech.it>
+ *  Copyright (C) 2009,2010 Alessandro Zummo <a.zummo@towertech.it>
+ *  Copyright (C) 2009,2010,2011,2012,2013 by Nate Bargmann, n0nb@n0nb.us
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -1453,6 +1454,14 @@ int kenwood_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 		sprintf(buf, "MX%c", (status == 0) ? '0' : '1');
 		return kenwood_simple_cmd(rig, buf);
 
+	case RIG_FUNC_RIT:
+		sprintf(buf, "RT%c", (status == 0) ? '0' : '1');
+		return kenwood_simple_cmd(rig, buf);
+
+	case RIG_FUNC_XIT:
+		sprintf(buf, "XT%c", (status == 0) ? '0' : '1');
+		return kenwood_simple_cmd(rig, buf);
+
 	default:
 		rig_debug(RIG_DEBUG_ERR, "Unsupported set_func %#x", func);
 		return -RIG_EINVAL;
@@ -1465,7 +1474,7 @@ int kenwood_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
  * works for any 'format 1' command
  * answer is always 4 bytes: two byte command id, status and terminator
  */
-static int get_kenwood_func(RIG *rig, const char *cmd, int *status)
+int get_kenwood_func(RIG *rig, const char *cmd, int *status)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 

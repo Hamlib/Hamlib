@@ -1,6 +1,6 @@
 /*
  *  Hamlib Elecraft backend--support extensions to Kenwood commands
- *  Copyright (C) 2010 by Nate Bargmann, n0nb@n0nb.us
+ *  Copyright (C) 2010,2011 by Nate Bargmann, n0nb@n0nb.us
  *
  *
  *   This library is free software; you can redistribute it and/or

@@ -1,6 +1,8 @@
 /*
  *  Hamlib Kenwood backend - main header
  *  Copyright (c) 2000-2011 by Stephane Fillod
+ *  Copyright (C) 2009,2010 Alessandro Zummo <a.zummo@towertech.it>
+ *  Copyright (C) 2009,2010,2011,2012,2013 by Nate Bargmann, n0nb@n0nb.us
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -147,6 +149,7 @@ int kenwood_get_trn(RIG *rig, int *trn);
 
 /* only use if returned string has length 6, e.g. 'SQ011;' */
 int get_kenwood_level(RIG *rig, const char *cmd, int cmd_len, float *f);
+int get_kenwood_func(RIG *rig, const char *cmd, int *status);
 
 extern const struct rig_caps ts950sdx_caps;
 extern const struct rig_caps ts50s_caps;
