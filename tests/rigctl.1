@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH RIGCTL "1" "March 1, 2012" "Hamlib" "Radio Control Program"
+.TH RIGCTL "1" "January 23, 2013" "Hamlib" "Radio Control Program"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -179,6 +179,10 @@ Set 'Mode': USB, LSB, CW, CWR, RTTY, RTTYR, AM, FM, WFM, AMS,
 PKTLSB, PKTUSB, PKTFM, ECSSUSB, ECSSLSB, FAX, SAM, SAL, SAH, DSB.
 .sp
 Set 'Passband' in Hz, or '0' for the Hamlib backend default.
+.sp
+\fBN.B.\fP Passing a '?' (query) as the first argument instead of 'Mode'
+will return a space separated list of radio backend supported Modes.  Use
+this to determine the supported Modes of a given radio backend.
 .TP
 .B m, get_mode
 Get 'Mode' 'Passband'.
@@ -271,6 +275,10 @@ PKTLSB, PKTUSB, PKTFM, ECSSUSB, ECSSLSB, FAX, SAM, SAL, SAH, DSB.
 .sp
 The 'TX Passband' is the exact passband in Hz, or '0' for the Hamlib
 backend default.
+.sp
+\fBN.B.\fP Passing a '?' (query) as the first argument instead of 'TX Mode'
+will return a space separated list of radio backend supported TX Modes.  Use
+this to determine the supported TX Modes of a given radio backend.
 .TP
 .B x, get_split_mode
 Get 'TX Mode' and 'TX Passband'.
@@ -295,19 +303,27 @@ Set 'Func' 'Func Status'.
 .sp
 Func is one of: FAGC, NB, COMP, VOX, TONE, TSQL,
 SBKIN, FBKIN, ANF, NR, AIP, APF, MON, MN, RF, ARO, LOCK, MUTE, VSC, REV, SQL,
-ABM, BC, MBC, AFC, SATMODE, SCOPE, RESUME, TBURST, TUNER.
+ABM, BC, MBC, RIT, AFC, SATMODE, SCOPE, RESUME, TBURST, TUNER, XIT.
 .sp
 Func Status argument is a non null value for "activate", "de-activate"
-otherwise, much as TRUE/FALSE definitions in C language.
-.TP
-.B u, get_func
-Get 'Func' 'Func Status'.
+otherwise, much as TRUE/FALSE definitions in C language (true is non-zero and
+false is zero).
 .sp
-Returns Func as a string from \fIset_func\fP above and Func status as a non
-null value.
+\fBN.B.\fP Passing a '?' (query) as the first argument instead of 'Func' will
+return a space separated list of radio backend supported Set functions.  Use
+this to determine the supported functions of a given radio backend.
+.TP
+.B u, get_func 'Func'
+Get 'Func Status'.
+.sp
+Returns 'Func Status' as a non null value for the 'Func' passed.
+.sp
+\fBN.B.\fP Passing a '?' (query) as the first argument instead of 'Func' will
+return a space separated list of radio backend supported Get functions.  Use
+this to determine the supported functions of a given radio backend.
 .TP
 .B L, set_level 'Level' 'Level Value'
-Set 'Level' and 'Level Value'.
+Set 'Level' 'Level Value'.
 .sp
 Level is one of: PREAMP, ATT, VOX, AF, RF, SQL, IF, APF, NR, PBT_IN, PBT_OUT,
 CWPITCH, RFPOWER, MICGAIN, KEYSPD, NOTCHF, COMP, AGC (0:OFF, 1:SUPERFAST,
@@ -315,23 +331,37 @@ CWPITCH, RFPOWER, MICGAIN, KEYSPD, NOTCHF, COMP, AGC (0:OFF, 1:SUPERFAST,
 ANTIVOX, SLOPE_LOW, SLOPE_HIGH, RAWSTR, SWR, ALC, STRENGTH.
 .sp
 The Level Value can be a float or an integer.
-.TP
-.B l, get_level
-Get 'Level' 'Level Value'.
 .sp
-Returns Level as a string from \fIset_level\fP above and Level value as a float
-or integer.
+\fBN.B.\fP Passing a '?' (query) as the first argument instead of 'Level' will
+return a space separated list of radio backend supported Set levels.  Use
+this to determine the supported levels of a given radio backend.
+.TP
+.B l, get_level 'Level'
+Get 'Level Value'.
+.sp
+Returns 'Level Value' as a float or integer for the 'Level' passed.
+.sp
+\fBN.B.\fP Passing a '?' (query) as the first argument instead of 'Level' will
+return a space separated list of radio backend supported Get levels.  Use
+this to determine the supported levels of a given radio backend.
 .TP
 .B P, set_parm 'Parm' 'Parm Value'
 Set 'Parm' 'Parm Value'
 .sp
 Parm is one of: ANN, APO, BACKLIGHT, BEEP, TIME, BAT, KEYLIGHT.
-.TP
-.B p, get_parm
-Get 'Parm' 'Parm Value'.
 .sp
-Returns Parm as a string from \fIset_parm\fP above and Parm Value as a float or
-integer.
+\fBN.B.\fP Passing a '?' (query) as the first argument instead of 'Parm' will
+return a space separated list of radio backend supported Set parameters.  Use
+this to determine the supported parameters of a given radio backend.
+.TP
+.B p, get_parm 'Parm'
+Get 'Parm Value'.
+.sp
+Returns 'Parm Value' as a float or integer for the 'Parm' passed.
+.sp
+\fBN.B.\fP Passing a '?' (query) as the first argument instead of 'Parm' will
+return a space separated list of radio backend supported Get parameters.  Use
+this to determine the supported parameters of a given radio backend.
 .TP
 .B B, set_bank 'Bank'
 Set 'Bank'.  Sets the current memory bank number.
@@ -347,11 +377,19 @@ Perform 'Mem/VFO Op'.
 .sp
 Mem VFO operation is one of: CPY, XCHG, FROM_VFO, TO_VFO, MCL, UP, DOWN,
 BAND_UP, BAND_DOWN, LEFT, RIGHT, TUNE, TOGGLE.
+.sp
+\fBN.B.\fP Passing a '?' (query) as the first argument instead of 'Mem/VFO Op'
+will return a space separated list of radio backend supported Set Mem/VFO Ops.
+Use this to determine the supported Mem/VFO Ops of a given radio backend.
 .TP
 .B g, scan 'Scan Fct' 'Scan Channel'
 Perform 'Scan Fct' 'Scan Channel'.
 .sp
 Scan function/channel is one of: STOP, MEM, SLCT, PRIO, PROG, DELTA, VFO, PLT.
+.sp
+\fBN.B.\fP Passing a '?' (query) as the first argument instead of 'Scan Fct'
+will return a space separated list of radio backend supported Scan Functions.
+Use this to determine the supported Scan Functions of a given radio backend.
 .TP
 .B H, set_channel 'Channel'
 Set memory 'Channel' data. Not implemented yet.
@@ -361,6 +399,11 @@ Get memory 'Channel' data. Not implemented yet.
 .TP
 .B A, set_trn 'Transceive'
 Set 'Transceive' mode (reporting event): OFF, RIG, POLL.
+.sp
+\fBN.B.\fP Passing a '?' (query) as the first argument instead of 'Transceive'
+will return a space separated list of radio backend supported Scan Transceive
+modes.  Use this to determine the supported Transceive modes of a given radio
+backend.
 .TP
 .B a, get_trn
 Get 'Transceive' mode (reporting event) as in \fIset_trn\fP above.
@@ -498,7 +541,7 @@ Written by Stephane Fillod, Nate Bargmann, and the Hamlib Group
 .SH COPYRIGHT
 Copyright \(co 2000-2011 Stephane Fillod
 .br
-Copyright \(co 2010-2012 Nate Bargmann
+Copyright \(co 2010-2013 Nate Bargmann
 .br
 Copyright \(co 2000-2010 the Hamlib Group.
 .sp
