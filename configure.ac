@@ -127,7 +127,7 @@ GR_PWIN32
 AX_PTHREAD
 AS_IF([test x"$ax_pthread_ok" = "xyes"], [
       CFLAGS="${CFLAGS} ${PTHREAD_CFLAGS}"
-      CXXFLAGS="${CFLAGS} ${PTHREAD_CFLAGS}"
+      CXXFLAGS="${CXXFLAGS} ${PTHREAD_CFLAGS}"
 ])
 
 AC_SYS_POSIX_TERMIOS()
