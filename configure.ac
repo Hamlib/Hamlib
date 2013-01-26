@@ -321,6 +321,27 @@ AC_ARG_WITH([xml-support],
             [cf_with_xml_support=no])
 AC_MSG_RESULT([$cf_with_xml_support])
 
+
+dnl Check for pkg-config presence and if not installed define a dummy macro
+dnl to disable libxml2 use.  Code borrowed from:
+dnl http://lists.gnu.org/archive/html/automake/2011-03/msg00008.html
+# Check for pkg-config program, used for configuring some libraries.
+#
+m4_define_default([PKG_PROG_PKG_CONFIG],
+    [AC_MSG_CHECKING([pkg-config])
+    AC_MSG_RESULT([no])])
+
+PKG_PROG_PKG_CONFIG
+
+# If the pkg-config autoconf support isn't installed, define its
+# autoconf macro to disable any packages depending on it.
+#
+m4_define_default([PKG_CHECK_MODULES],
+    [AC_MSG_CHECKING([$1])
+    AC_MSG_RESULT([no])
+    $4])
+
+
 AS_IF([test x"${cf_with_xml_support}" = "xyes"], [
       PKG_CHECK_MODULES([LIBXML2],
                         [libxml-2.0],
