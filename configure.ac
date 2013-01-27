@@ -557,7 +557,8 @@ echo \
  ${PACKAGE_NAME} Version ${PACKAGE_VERSION} configuration:
 
  Prefix		${prefix}
- Compiler	${CC} ${CFLAGS} ${CPPFLAGS}
+ C Compiler	${CC} ${CFLAGS} ${CPPFLAGS}
+ C++ Compiler	${CXX} ${CXXFLAGS} ${CPPFLAGS}
 
 
  Package features:
