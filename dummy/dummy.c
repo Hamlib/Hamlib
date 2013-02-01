@@ -1414,13 +1414,16 @@ static int dummy_mW2power(RIG * rig, float *power, unsigned int mwpower,
  * Dummy rig capabilities.
  */
 
-/* #define DUMMY_FUNC  (((setting_t)-1)&~(0x40000000U))	*/ /* has it all */
-#define DUMMY_FUNC  ((setting_t)-1)	/* has it all */
-#define DUMMY_LEVEL (((setting_t)-1)&~(1<<27))
-#define DUMMY_PARM  ((setting_t)-1)
+/*
+ * The following macros set bitmasks for the various funcs, levels, parms,
+ * etc.  This dummy backend claims support for almost all of them.
+ */
+#define DUMMY_FUNC  ((setting_t)-1UL) /* All possible functions */
+#define DUMMY_LEVEL (((setting_t)-1UL)&~(1UL<<27)) /* All levels except SQLSTAT */
+#define DUMMY_PARM  ((setting_t)-1UL) /* All possible parms */
 
-#define DUMMY_VFO_OP  0x7ffffffL
-#define DUMMY_SCAN	0x7ffffffL
+#define DUMMY_VFO_OP  0x7ffffffUL /* All possible VFO OPs */
+#define DUMMY_SCAN    0x7ffffffUL /* All possible scan OPs */
 
 #define DUMMY_VFOS (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)
 
