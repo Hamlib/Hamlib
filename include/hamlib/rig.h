@@ -650,17 +650,17 @@ enum rig_level_e {
 	RIG_LEVEL_VOXGAIN =	(1<<21),/*!< \c VOXGAIN -- VOX gain level, arg float [0.0 ... 1.0] */
 	RIG_LEVEL_VOXDELAY =  RIG_LEVEL_VOX,	/*!< Synonym of RIG_LEVEL_VOX */
 	RIG_LEVEL_ANTIVOX =	(1<<22),/*!< \c ANTIVOX -- anti-VOX level, arg float [0.0 ... 1.0] */
-	RIG_LEVEL_SLOPE_LOW = (1<<23),/*!< \c SLOPE_LOW -- Slope tune, low frequency cut, */
-	RIG_LEVEL_SLOPE_HIGH = (1<<24),/*!< \c SLOPE_HIGH -- Slope tune, high frequency cut, */
-	RIG_LEVEL_BKIN_DLYMS = (1<<25),/*!< \c BKIN_DLYMS -- BKin Delay, arg int Milliseconds */
+	RIG_LEVEL_SLOPE_LOW =	(1<<23),/*!< \c SLOPE_LOW -- Slope tune, low frequency cut, */
+	RIG_LEVEL_SLOPE_HIGH =	(1<<24),/*!< \c SLOPE_HIGH -- Slope tune, high frequency cut, */
+	RIG_LEVEL_BKIN_DLYMS =	(1<<25),/*!< \c BKIN_DLYMS -- BKin Delay, arg int Milliseconds */
 
-		/*!< These ones are not settable */
+	/*!< These are not settable */
 	RIG_LEVEL_RAWSTR =	(1<<26),/*!< \c RAWSTR -- Raw (A/D) value for signal strength, specific to each rig, arg int */
 	RIG_LEVEL_SQLSTAT =	(1<<27),/*!< \c SQLSTAT -- SQL status, arg int (open=1/closed=0). Deprecated, use get_dcd instead */
 	RIG_LEVEL_SWR =		(1<<28),/*!< \c SWR -- SWR, arg float [0.0 ... infinite] */
 	RIG_LEVEL_ALC =		(1<<29),/*!< \c ALC -- ALC, arg float */
-	RIG_LEVEL_STRENGTH =(1<<30) /*!< \c STRENGTH -- Effective (calibrated) signal strength relative to S9, arg int (dB) */
-	/*RIG_LEVEL_BWC =		(1<<31)*/ /*!< Bandwidth Control, arg int (Hz) */
+	RIG_LEVEL_STRENGTH =	(1<<30) /*!< \c STRENGTH -- Effective (calibrated) signal strength relative to S9, arg int (dB) */
+	/*RIG_LEVEL_BWC =	(1<<31)*/ /*!< Bandwidth Control, arg int (Hz) */
 };
 
 #define RIG_LEVEL_FLOAT_LIST (RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_APF|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_COMP|RIG_LEVEL_BALANCE|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX)
@@ -718,45 +718,53 @@ typedef unsigned long setting_t;
  * \brief Rig Function Settings
  *
  * Various operating functions supported by a rig.\n
- * \c STRING used in rigctl
+ * \c STRING used in rigctl/rigctld
  *
  * \sa rig_parse_func() rig_strfunc()
  */
-enum rig_func_e {
-	RIG_FUNC_NONE =    	0,	/*!< '' -- No Function */
-	RIG_FUNC_FAGC =    	(1<<0),	/*!< \c FAGC -- Fast AGC */
-	RIG_FUNC_NB =	    	(1<<1),	/*!< \c NB -- Noise Blanker */
-	RIG_FUNC_COMP =    	(1<<2),	/*!< \c COMP -- Speech Compression */
-	RIG_FUNC_VOX =    	(1<<3),	/*!< \c VOX -- Voice Operated Relay */
-	RIG_FUNC_TONE =    	(1<<4),	/*!< \c TONE -- CTCSS Tone */
-	RIG_FUNC_TSQL =    	(1<<5),	/*!< \c TSQL -- CTCSS Activate/De-activate */
-	RIG_FUNC_SBKIN =    	(1<<6),	/*!< \c SBKIN -- Semi Break-in (CW mode) */
-	RIG_FUNC_FBKIN =    	(1<<7),	/*!< \c FBKIN -- Full Break-in (CW mode) */
-	RIG_FUNC_ANF =    	(1<<8),	/*!< \c ANF -- Automatic Notch Filter (DSP) */
-	RIG_FUNC_NR =     	(1<<9),	/*!< \c NR -- Noise Reduction (DSP) */
-	RIG_FUNC_AIP =     	(1<<10),/*!< \c AIP -- RF pre-amp (AIP on Kenwood, IPO on Yaesu, etc.) */
-	RIG_FUNC_APF =     	(1<<11),/*!< \c APF -- Auto Passband/Audio Peak Filter */
-	RIG_FUNC_MON =     	(1<<12),/*!< \c MON -- Monitor transmitted signal */
-	RIG_FUNC_MN =     	(1<<13),/*!< \c MN -- Manual Notch */
-	RIG_FUNC_RF =     	(1<<14),/*!< \c RF -- RTTY Filter */
-	RIG_FUNC_ARO =     	(1<<15),/*!< \c ARO -- Auto Repeater Offset */
-	RIG_FUNC_LOCK =     	(1<<16),/*!< \c LOCK -- Lock */
-	RIG_FUNC_MUTE =     	(1<<17),/*!< \c MUTE -- Mute */
-	RIG_FUNC_VSC =     	(1<<18),/*!< \c VSC -- Voice Scan Control */
-	RIG_FUNC_REV =     	(1<<19),/*!< \c REV -- Reverse transmit and receive frequencies */
-	RIG_FUNC_SQL =     	(1<<20),/*!< \c SQL -- Turn Squelch Monitor on/off */
-	RIG_FUNC_ABM =     	(1<<21),/*!< \c ABM -- Auto Band Mode */
-	RIG_FUNC_BC =     	(1<<22),/*!< \c BC -- Beat Canceller */
-	RIG_FUNC_MBC =     	(1<<23),/*!< \c MBC -- Manual Beat Canceller */
-	RIG_FUNC_RIT =		(1<<24),/*!< \c RIT -- Receiver Incremental Tuning */
-	RIG_FUNC_AFC =    	(1<<25),/*!< \c AFC -- Auto Frequency Control ON/OFF */
-	RIG_FUNC_SATMODE =	(1<<26),/*!< \c SATMODE -- Satellite mode ON/OFF */
-	RIG_FUNC_SCOPE =  	(1<<27),/*!< \c SCOPE -- Simple bandscope ON/OFF */
-	RIG_FUNC_RESUME =	(1<<28),/*!< \c RESUME -- Scan auto-resume */
-	RIG_FUNC_TBURST =	(1<<29),/*!< \c TBURST -- 1750 Hz tone burst */
-	RIG_FUNC_TUNER =	(1<<30),/*!< \c TUNER -- Enable automatic tuner */
-	RIG_FUNC_XIT =		(1<<31),/*!< \c XIT -- Transmitter Incremental Tuning */
-};
+/*
+ * The C standard dictates that an enum constant is a 32 bit signed integer.
+ * Setting a constant's bit 31 created a negative value that on amd64 had the
+ * upper 32 bits set as well when assigned to the misc.c:func_str structure.
+ * This caused misc.c:rig_strfunc() to fail its comparison for RIG_FUNC_XIT
+ * on amd64 (x86_64).  To use bit 31 as an unsigned long, preprocessor macros
+ * have been used instead as a 'const unsigned long' which cannot be used to
+ * initialize the func_str.func members.  TNX KA6MAL, AC6SL.  - N0NB
+ */
+#define RIG_FUNC_NONE    0         /*!< '' -- No Function */
+#define RIG_FUNC_FAGC    (1UL<<0)  /*!< \c FAGC -- Fast AGC */
+#define RIG_FUNC_NB      (1UL<<1)  /*!< \c NB -- Noise Blanker */
+#define RIG_FUNC_COMP    (1UL<<2)  /*!< \c COMP -- Speech Compression */
+#define RIG_FUNC_VOX     (1UL<<3)  /*!< \c VOX -- Voice Operated Relay */
+#define RIG_FUNC_TONE    (1UL<<4)  /*!< \c TONE -- CTCSS Tone */
+#define RIG_FUNC_TSQL    (1UL<<5)  /*!< \c TSQL -- CTCSS Activate/De-activate */
+#define RIG_FUNC_SBKIN   (1UL<<6)  /*!< \c SBKIN -- Semi Break-in (CW mode) */
+#define RIG_FUNC_FBKIN   (1UL<<7)  /*!< \c FBKIN -- Full Break-in (CW mode) */
+#define RIG_FUNC_ANF     (1UL<<8)  /*!< \c ANF -- Automatic Notch Filter (DSP) */
+#define RIG_FUNC_NR      (1UL<<9)  /*!< \c NR -- Noise Reduction (DSP) */
+#define RIG_FUNC_AIP     (1UL<<10) /*!< \c AIP -- RF pre-amp (AIP on Kenwood, IPO on Yaesu, etc.) */
+#define RIG_FUNC_APF     (1UL<<11) /*!< \c APF -- Auto Passband/Audio Peak Filter */
+#define RIG_FUNC_MON     (1UL<<12) /*!< \c MON -- Monitor transmitted signal */
+#define RIG_FUNC_MN      (1UL<<13) /*!< \c MN -- Manual Notch */
+#define RIG_FUNC_RF      (1UL<<14) /*!< \c RF -- RTTY Filter */
+#define RIG_FUNC_ARO     (1UL<<15) /*!< \c ARO -- Auto Repeater Offset */
+#define RIG_FUNC_LOCK    (1UL<<16) /*!< \c LOCK -- Lock */
+#define RIG_FUNC_MUTE    (1UL<<17) /*!< \c MUTE -- Mute */
+#define RIG_FUNC_VSC     (1UL<<18) /*!< \c VSC -- Voice Scan Control */
+#define RIG_FUNC_REV     (1UL<<19) /*!< \c REV -- Reverse transmit and receive frequencies */
+#define RIG_FUNC_SQL     (1UL<<20) /*!< \c SQL -- Turn Squelch Monitor on/off */
+#define RIG_FUNC_ABM     (1UL<<21) /*!< \c ABM -- Auto Band Mode */
+#define RIG_FUNC_BC      (1UL<<22) /*!< \c BC -- Beat Canceller */
+#define RIG_FUNC_MBC     (1UL<<23) /*!< \c MBC -- Manual Beat Canceller */
+#define RIG_FUNC_RIT     (1UL<<24) /*!< \c RIT -- Receiver Incremental Tuning */
+#define RIG_FUNC_AFC     (1UL<<25) /*!< \c AFC -- Auto Frequency Control ON/OFF */
+#define RIG_FUNC_SATMODE (1UL<<26) /*!< \c SATMODE -- Satellite mode ON/OFF */
+#define RIG_FUNC_SCOPE   (1UL<<27) /*!< \c SCOPE -- Simple bandscope ON/OFF */
+#define RIG_FUNC_RESUME  (1UL<<28) /*!< \c RESUME -- Scan auto-resume */
+#define RIG_FUNC_TBURST  (1UL<<29) /*!< \c TBURST -- 1750 Hz tone burst */
+#define RIG_FUNC_TUNER   (1UL<<30) /*!< \c TUNER -- Enable automatic tuner */
+#define RIG_FUNC_XIT     (1UL<<31) /*!< \c XIT -- Transmitter Incremental Tuning */
+
 
 /*
  * power unit macros, converts to mW
@@ -796,8 +804,8 @@ typedef enum {
 	RIG_MODE_SAM =          (1<<16),/*!< \c SAM -- Synchronous AM double sideband */
 	RIG_MODE_SAL =          (1<<17),/*!< \c SAL -- Synchronous AM lower sideband */
 	RIG_MODE_SAH =          (1<<18),/*!< \c SAH -- Synchronous AM upper (higher) sideband */
-	RIG_MODE_DSB =			(1<<19), /*!< \c DSB -- Double sideband suppressed carrier */
-    RIG_MODE_TESTS_MAX               /*!< \c MUST ALWAYS BE LAST, Max Count for dumpcaps.c */
+	RIG_MODE_DSB =		(1<<19),/*!< \c DSB -- Double sideband suppressed carrier */
+	RIG_MODE_TESTS_MAX              /*!< \c MUST ALWAYS BE LAST, Max Count for dumpcaps.c */
 } rmode_t;
 
 
