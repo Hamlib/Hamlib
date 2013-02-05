@@ -1,5 +1,7 @@
 /*
  * rotctl_parse.c - (C) Stephane Fillod 2000-2010
+ *                  (C) Nate Bargmann 2003,2007,2010,2011,2012,2013
+ *                  (C) The Hamlib Group 2002,2006,2011
  *
  * This program test/control a rotator using Hamlib.
  * It takes commands in interactive mode as well as
@@ -252,7 +254,6 @@ static int scanfc(FILE *fin, const char *format, void *p)
 
 extern int interactive;
 extern int prompt;
-extern int opt_end;
 extern char send_cmd_term;
 int ext_resp = 0;
 unsigned char resp_sep = '\n';      /* Default response separator */
@@ -500,7 +501,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 		/* only for rotctld */
 		if (interactive && !prompt) {
 			/* netrotctl RIG_OK */
-			if (!(cmd_entry->flags & ARG_OUT) && !opt_end && !ext_resp)
+			if (!(cmd_entry->flags & ARG_OUT) && !ext_resp)
 				fprintf(fout, NETROTCTL_RET "0\n");
 
 			/* Extended Response protocol */
@@ -509,10 +510,6 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 				ext_resp = 0;
 				resp_sep = '\n';
 			}
-
-			/* Nate's protocol (obsolete) */
-			else if ((cmd_entry->flags & ARG_OUT) && opt_end)
-				fprintf(fout, "END\n");
 		}
 	}
 
@@ -1085,4 +1082,3 @@ declare_proto_rot(dist_sp2dist_lp)
 
 	return RIG_OK;
 }
-

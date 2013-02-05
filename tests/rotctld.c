@@ -1,5 +1,6 @@
 /*
  * rotctld.c - (C) Stephane Fillod 2000-2011
+ *             (C) Nate Bargmann 2010,2011,2012,2013
  *
  * This program test/control a rotator using Hamlib.
  * It takes commands from network connection.
@@ -78,7 +79,7 @@ void usage();
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:s:C:t:T:LuevhVl"
+#define SHORT_OPTIONS "m:r:s:C:t:T:LuvhVl"
 static struct option long_options[] =
 {
 	{"model",       1, 0, 'm'},
@@ -90,7 +91,6 @@ static struct option long_options[] =
 	{"set-conf",    1, 0, 'C'},
 	{"show-conf",   0, 0, 'L'},
 	{"dump-caps",   0, 0, 'u'},
-	{"end-marker",  0, 0, 'e'},
 	{"verbose",     0, 0, 'v'},
 	{"help",        0, 0, 'h'},
 	{"version",     0, 0, 'V'},
@@ -99,7 +99,6 @@ static struct option long_options[] =
 
 int interactive = 1;    /* no cmd because of daemon */
 int prompt= 0 ;         /* Daemon mode for rigparse return string */
-int opt_end= 0 ;        /* END marker for rotctld */
 
 const char *portno = "4533";
 const char *src_addr = NULL; /* INADDR_ANY */
@@ -198,10 +197,6 @@ int main (int argc, char *argv[])
 				exit(0);
 			case 'u':
 				dump_caps_opt++;
-				break;
-			case 'e':
-				opt_end = 1;
-				fprintf(stderr, "-e|--end-marker option is deprecated!\nPlease consider using the Extended Response protocol instead.\n");
 				break;
 			default:
 				usage();	/* unknown option? */
@@ -461,7 +456,6 @@ void usage()
 	"  -L, --show-conf            list all config parameters\n"
 	"  -l, --list                 list all model numbers and exit\n"
 	"  -u, --dump-caps            dump capabilities and exit\n"
-	"  -e, --end-marker           use END marker in rotctld protocol (obsolete)\n"
 	"  -v, --verbose              set verbose mode, cumulative\n"
 	"  -h, --help                 display this help and exit\n"
 	"  -V, --version              output version information and exit\n\n",
@@ -471,4 +465,3 @@ void usage()
 
 	printf("\nReport bugs to <hamlib-developer@lists.sourceforge.net>.\n");
 }
-

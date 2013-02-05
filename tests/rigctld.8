@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH RIGCTLD "8" "January 23, 2013" "Hamlib" "Rig Control Daemon"
+.TH RIGCTLD "8" "February 5, 2013" "Hamlib" "Rig Control Daemon"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -132,13 +132,6 @@ Set vfo mode, requiring an extra VFO argument in front of each appropriate
 command (except \fI\\set_vfo\fP!). Otherwise, 'currVFO' is assumed when this
 option is not set and an extra VFO argument is not used.  See \fI\\chk_vfo\fP
 below.
-.TP
-.B \-e, --end-marker
-Use END marker in rigctld protocol.
-.sp
-\fBN.B.\fP: This option should be considered obsolete.  Please consider using
-the Extended Response protocol instead (see \fIPROTOCOL\fP below).  This option
-will be removed in a future Hamlib release.
 .TP
 .B \-v, --verbose
 Set verbose mode, cumulative (see \fIDIAGNOSTICS\fP below).

@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH ROTCTLD "8" "March 1, 2012" "Hamlib" "Rotator Control Daemon"
+.TH ROTCTLD "8" "February 5, 2013" "Hamlib" "Rotator Control Daemon"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -103,14 +103,7 @@ the cmd window in Windows.  The output can be piped to 'more' or 'less',
 e.g. 'rotctld -l | more'.
 .TP
 .B \-u, --dump-caps
-Dump capabilities for the radio defined with -m above and exit.
-.TP
-.B \-e, --end-marker
-Use END marker in rotctld protocol.
-.sp
-N.B.: This option should be considered obsolete.  Please consider using the
-Extended Response protocol instead (see \fIPROTOCOL\fP below).  This option
-will be removed in a future Hamlib release.
+Dump capabilities for the rotator defined with -m above and exit.
 .TP
 .B \-v, --verbose
 Set verbose mode, cumulative (see DIAGNOSTICS below).
@@ -457,7 +450,7 @@ Written by Stephane Fillod, Nate Bargmann, and the Hamlib Group
 .SH COPYRIGHT
 Copyright \(co 2000-2009 Stephane Fillod
 .br
-Copyright \(co 2011-2012 Nate Bargmann
+Copyright \(co 2011-2013 Nate Bargmann
 .br
 Copyright \(co 2000-2009 the Hamlib Group.
 .PP

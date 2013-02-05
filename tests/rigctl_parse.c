@@ -1,7 +1,8 @@
 /*
  * rigctl_parse.c - (C) Stephane Fillod 2000-2011
+ *                  (C) Nate Bargmann 2003,2006,2008,2010,2011,2012,2013
  *                  (C) Terry Embry 2008-2009
- *                  (C) The Hamlib Group 2010
+ *                  (C) The Hamlib Group 2002,2006,2007,2008,2009,2010,2011
  *
  * This program tests/controls a radio using Hamlib.
  * It takes commands in interactive mode as well as
@@ -349,7 +350,6 @@ static int scanfc(FILE *fin, const char *format, void *p)
 
 extern int interactive;
 extern int prompt;
-extern int opt_end;
 extern int vfo_mode;
 extern char send_cmd_term;
 int ext_resp = 0;
@@ -599,7 +599,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 		if (interactive && !prompt) {
 			/* netrigctl RIG_OK */
 			if (!(cmd_entry->flags & ARG_OUT)
-				&& !opt_end && !ext_resp && cmd != 0xf0)
+				&& !ext_resp && cmd != 0xf0)
 				fprintf(fout, NETRIGCTL_RET "0\n");
 
 			/* Extended Response protocol */
@@ -608,10 +608,6 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 				ext_resp = 0;
 				resp_sep = '\n';
 			}
-
-			/* Nate's protocol (obsolete) */
-			else if ((cmd_entry->flags & ARG_OUT) && opt_end)
-				fprintf(fout, "END\n");
 		}
 	}
 
@@ -2301,4 +2297,3 @@ declare_proto_rig(halt)
 
 	return RIG_OK;
 }
-

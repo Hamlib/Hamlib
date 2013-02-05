@@ -8,6 +8,7 @@ Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 Version 3.0
 	2013-??-??
 	* Kill RPC backends and rpc.rigd/rpc.rotd
+	* Remove -e|--end-marker option from rigctld and rotctld
 	* Build system updates--remove obsolete macros, autogen.sh now
 		runs autoreconf to invoke Autotools to bootstrap the build
 		system, libltdl is installed into the source tree as a part
@@ -20,7 +21,9 @@ Version 3.0
 		Fixed TCL binding installation, fixed Perl binding build so it
 		is not invoked by 'make dist' and clean up build files.  Cleaned
 		up bindings builds to occur in alphabetical order.  Use new
-		ax_pkg_swig macro and update ax_python_devel macro.
+		ax_pkg_swig macro and update ax_python_devel macro.  Test for
+		presence of pkg-config before testing for pkg-config use.
+	* Implement new RIT/XIT activation/deactivation through rig_get/set_func()
 	* IC-PCR1500/2500 default write_delay to 0, IC-746/756, IC-PCR8500
 		fixes, pcr.c, pcr1500.c: Add DSP support.  TNX Paul, KE7ZZ
 	* WinRadio G313 updates.  TNX Julian Campbel

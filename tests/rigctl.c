@@ -1,5 +1,7 @@
 /*
- * rigctl.c - (C) Stephane Fillod 2000-2009
+ * rigctl.c - (C) Stephane Fillod 2000-2010
+ *            (C) Nate Bargmann 2003,2006,2008,2010,2011,2012,2013
+ *            (C) The Hamlib Group 2002,2006,2007,2012
  *
  * This program test/control a radio using Hamlib.
  * It takes commands in interactive mode as well as
@@ -83,7 +85,6 @@ static struct option long_options[] =
 
 int interactive = 1;    /* if no cmd on command line, switch to interactive */
 int prompt = 1;         /* Print prompt in rigctl */
-int opt_end = 0;        /* only used by rigctld */
 int vfo_mode = 0;       /* vfo_mode = 0 means target VFO is 'currVFO' */
 
 char send_cmd_term = '\r';  /* send_cmd termination char */
@@ -371,4 +372,3 @@ void usage(void)
 	printf("\nReport bugs to <hamlib-developer@lists.sourceforge.net>.\n");
 
 }
-
