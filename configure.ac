@@ -112,7 +112,7 @@ AC_CHECK_HEADERS([errno.h fcntl.h getopt.h limits.h locale.h malloc.h \
 netdb.h sgtty.h stddef.h termio.h termios.h values.h ws2tcpip.h \
 arpa/inet.h dev/ppbus/ppbconf.hdev/ppbus/ppi.h \
 linux/hidraw.h linux/ioctl.h linux/parport.h linux/ppdev.h  netinet/in.h \
-sys/ioccom.h sys/ioctl.h sys/param.h sys/socket.h sys/time.h])
+sys/ioccom.h sys/ioctl.h sys/param.h sys/socket.h sys/stat.h sys/time.h])
 
 
 ## ------------------------------------ ##
@@ -354,6 +354,28 @@ AS_IF([test x"${cf_with_xml_support}" = "xyes"], [
 
 AC_SUBST([LIBXML2_LIBS])
 AC_SUBST([LIBXML2_CFLAGS])
+
+
+dnl Check if readline support in rigctl/rotctl is wanted
+AC_MSG_CHECKING([whether to use readline in rigctl/rotctl])
+AC_ARG_WITH([readline],
+    [AS_HELP_STRING([--without-readline],
+        [disable readline in rigctl/rotctl @<:@default=yes@:>@])],
+        [cf_with_readline_support=no],
+        [cf_with_readline_support=yes]
+    )
+
+AC_MSG_RESULT([$cf_with_readline_support])
+
+AS_IF([test x"$cf_with_readline_support" != "xno"], [
+    # macros/ax_lib_readline.m4
+    AX_LIB_READLINE
+    ])
+
+AS_IF([test x"$ax_cv_lib_readline" = "xno"], [
+    AC_MSG_WARN([readline support not found, using internal input handling.])
+    cf_with_readline_support=no
+    ])
 
 
 dnl Check if libgd-dev is installed, so we can enable rigmatrix
@@ -701,6 +723,7 @@ echo \
     With TCL binding                ${build_tcl}
     With rigmem XML support         ${cf_with_xml_support}
     With included ltdl              ${with_included_ltdl}
+    With Readline support           ${cf_with_readline_support}
 
     Enable HTML rig feature matrix  ${cf_enable_html_matrix}
     Enable WinRadio                 ${cf_with_winradio}
