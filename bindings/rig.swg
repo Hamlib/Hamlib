@@ -29,6 +29,11 @@ typedef struct Rig {
 	int do_exception;
 } Rig;
 
+typedef char * char_string;
+typedef const char * const_char_string;
+typedef channel_t * channel_t_p;
+typedef channel_t * const_channel_t_p;
+
 %}
 
 %extend channel {
@@ -54,7 +59,7 @@ typedef struct Rig {
 %array_class(tone_t, toneArray);
 
 /*
- * decalre wrapper method with one argument besides RIG* and optional no target vfo
+ * declare wrapper method with one argument besides RIG* and optional no target vfo
  */
 #define METHOD1(f, t1) void f (t1 _##t1  _VFO_DECL) \
 				{ self->error_status = rig_##f(self->rig  _VFO_ARG, _##t1); }
@@ -62,15 +67,16 @@ typedef struct Rig {
 				{ self->error_status = rig_##f(self->rig  _VFO_ARG, _##t1##_1, _##t2##_2); }
 #define METHOD2_INIT(f, t1, t2, i2) void f (t1 _##t1##_1, t2 _##t2##_2 = i2  _VFO_DECL) \
 				{ self->error_status = rig_##f(self->rig  _VFO_ARG, _##t1##_1, _##t2##_2); }
-
+#define METHOD3(f, t1) void f ( vfo_t vfo, t1 _##t1) \
+				{ self->error_status = rig_##f(self->rig  _VFO_ARG, _##t1); }
 /*
- * decalre wrapper method with one output argument besides RIG* (no target vfo)
+ * declare wrapper method with one output argument besides RIG* (no target vfo)
  */
 #define METHOD1GET(f, t1) t1 f (void) \
 				{ t1 _##t1; self->error_status = rig_##f(self->rig, &_##t1); return _##t1; }
 
 /*
- * decalre wrapper method with one output argument besides RIG* and vfo
+ * declare wrapper method with one output argument besides RIG* and vfo
  */
 #define METHOD1VGET(f, t1) t1 f (vfo_t vfo = RIG_VFO_CURR) \
 				{ t1 _##t1; self->error_status = rig_##f(self->rig, vfo, &_##t1); return _##t1; }
@@ -267,28 +273,28 @@ typedef struct Rig {
 #define _VFO_ARG	,vfo
 #define _VFO_DECL	,vfo_t vfo = RIG_VFO_CURR
 
-	METHOD1(set_freq, freq_t)
+	METHOD3(set_freq, freq_t)
 	METHOD2_INIT(set_mode, rmode_t, pbwidth_t, RIG_PASSBAND_NORMAL)
-	METHOD1(set_ptt, ptt_t)
-	METHOD1(set_rptr_shift, rptr_shift_t)
-	METHOD1(set_rptr_offs, shortfreq_t)
-	METHOD1(set_ctcss_tone, tone_t)
-	METHOD1(set_dcs_code, tone_t)
-	METHOD1(set_ctcss_sql, tone_t)
+	METHOD3(set_ptt, ptt_t)
+	METHOD3(set_rptr_shift, rptr_shift_t)
+	METHOD3(set_rptr_offs, shortfreq_t)
+	METHOD3(set_ctcss_tone, tone_t)
+	METHOD3(set_dcs_code, tone_t)
+	METHOD3(set_ctcss_sql, tone_t)
 	METHOD1(set_dcs_sql, tone_t)
-	METHOD1(set_split_freq, freq_t)
+	METHOD3(set_split_freq, freq_t)
 	METHOD2_INIT(set_split_mode, rmode_t, pbwidth_t, RIG_PASSBAND_NORMAL)
 	METHOD2(set_split_vfo, split_t, vfo_t)
-	METHOD1(set_rit, shortfreq_t)
-	METHOD1(set_xit, shortfreq_t)
-	METHOD1(set_ts, shortfreq_t)
-	METHOD1(set_ant, ant_t)
+	METHOD3(set_rit, shortfreq_t)
+	METHOD3(set_xit, shortfreq_t)
+	METHOD3(set_ts, shortfreq_t)
+	METHOD3(set_ant, ant_t)
 	METHOD2(set_func, setting_t, int)
-	METHOD1(set_bank, int)
-	METHOD1(set_mem, int)
-	METHOD1(send_dtmf, const_char_string)
-	METHOD1(send_morse, const_char_string)
-	METHOD1(vfo_op, vfo_op_t)
+	METHOD3(set_bank, int)
+	METHOD3(set_mem, int)
+	METHOD3(send_dtmf, const_char_string)
+	METHOD3(send_morse, const_char_string)
+	METHOD3(vfo_op, vfo_op_t)
 	METHOD2(scan, scan_t, int)
 	METHODSIMPLESET(level, int, i, RIG_LEVEL_IS_FLOAT(stg))
 	METHODSIMPLESET(level, float, f, !RIG_LEVEL_IS_FLOAT(stg))
@@ -521,4 +527,3 @@ struct channel *Rig_get_chan_all(Rig *self)
 }
 
 %}
-

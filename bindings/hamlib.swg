@@ -64,14 +64,6 @@
 %include <hamlib/rotlist.h>
 %include <hamlib/rotator.h>
 
-/* needed because rig.swg and rotator.swg macros require identifiers like arg (no spaces) */
-%header %{
-	typedef char * char_string;
-	typedef const char * const_char_string;
-	typedef channel_t * channel_t_p;
-	typedef channel_t * const_channel_t_p;
-%}
-
 /*
  * The Rig "class"
  */
@@ -90,5 +82,3 @@
   %include "python.i"
   %include "whatever.i"
  */
-
-

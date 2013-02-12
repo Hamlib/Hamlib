@@ -29,10 +29,12 @@ typedef struct Rot {
 	int do_exception;
 } Rot;
 
+typedef const char * const_char_string;
+
 %}
 
 /*
- * decalre wrapper method with 0,1,2 arguments besides ROT*
+ * declare wrapper method with 0,1,2 arguments besides ROT*
  */
 #define ROTMETHOD0(f) void f () \
 				{ self->error_status = rot_##f(self->rot); }
