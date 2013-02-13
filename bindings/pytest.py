@@ -30,10 +30,10 @@ def StartUp ():
     print "get_conf:\t\tpath = %s, retry = %s, ITU region = %s" \
         % (rpath, retry, region)
 
-    my_rig.set_freq (5700000000,Hamlib.RIG_VFO_B)
-    print "freq:\t\t\t",my_rig.get_freq()
-    my_rig.set_freq (145550000)
+    my_rig.set_freq (Hamlib.RIG_VFO_B, 5700000000)
     my_rig.set_vfo (Hamlib.RIG_VFO_B)
+    print "freq:\t\t\t",my_rig.get_freq()
+    my_rig.set_freq (Hamlib.RIG_VFO_A, 145550000)
     #my_rig.set_vfo ("VFOA")
 
     (mode, width) = my_rig.get_mode()
@@ -66,6 +66,10 @@ def StartUp ():
     print "get_channel status:\t",my_rig.error_status
 
     print "VFO:\t\t\t",Hamlib.rig_strvfo(chan.vfo),", ",chan.freq
+
+    print "\nSending Morse, '73'"
+    my_rig.send_morse(Hamlib.RIG_VFO_A, "73")
+
     my_rig.close ()
 
     print "\nSome static functions:"

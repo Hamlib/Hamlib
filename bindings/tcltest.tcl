@@ -21,7 +21,7 @@ rig_set_debug $RIG_DEBUG_NONE
 Rig my_rig $RIG_MODEL_DUMMY
 
 my_rig open
-my_rig set_freq 145550000
+my_rig set_freq $RIG_VFO_A 145550000
 
 puts "status:\t\t[my_rig cget -error_status]"
 
@@ -50,6 +50,9 @@ puts "status:\t\t[my_rig cget -error_status]"
 puts "strength:\t[my_rig get_level_i $RIG_LEVEL_STRENGTH]"
 puts "status:\t\t[my_rig cget -error_status]"
 puts "status(str):\t[rigerror [my_rig cget -error_status]]"
+
+puts "\nSending Morse, '73'"
+my_rig send_morse $RIG_VFO_A "73"
 
 my_rig close
 #my_rig cleanup

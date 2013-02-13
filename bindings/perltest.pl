@@ -23,7 +23,7 @@ $retry = $rig->get_conf("retry");
 print "get_conf:\t\tpath = \"$rpath\", retry = $retry, ITU region = $region\n";
 
 
-$rig->set_freq(14266000, $Hamlib::RIG_VFO_A);
+$rig->set_freq($Hamlib::RIG_VFO_A, 14266000);
 
 $f = $rig->get_freq();
 print "freq:\t\t\t$f\n";
@@ -61,6 +61,9 @@ $rig->get_channel($chan);
 print "get_channel status:\t$rig->{error_status} = ".Hamlib::rigerror($rig->{error_status})."\n";
 
 print "VFO:\t\t\t".Hamlib::rig_strvfo($chan->{vfo}).", $chan->{freq}\n";
+
+print "\nSending Morse, '73'\n";
+$rig->send_morse($Hamlib::RIG_VFO_A, "73");
 
 $rig->close();
 
