@@ -34,8 +34,20 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <errno.h>
-
 #include <getopt.h>
+
+#ifdef HAVE_LIBREADLINE
+#  if defined(HAVE_READLINE_READLINE_H)
+#    include <readline/readline.h>
+#  elif defined(HAVE_READLINE_H)    /* !defined(HAVE_READLINE_READLINE_H) */
+#    include <readline.h>
+#  else                             /* !defined(HAVE_READLINE_H) */
+extern char *readline ();
+#  endif                            /* HAVE_READLINE_H */
+#else
+/* no readline */
+#endif                              /* HAVE_LIBREADLINE */
+
 
 #include <hamlib/rig.h>
 #include "misc.h"
@@ -82,6 +94,14 @@ static struct option long_options[] =
 };
 
 #define MAXCONFLEN 128
+
+/* variable for readline support */
+#ifdef HAVE_LIBREADLINE
+static const int have_rl = 1;
+#else                               /* no readline */
+static const int have_rl = 0;
+#endif
+
 
 int interactive = 1;    /* if no cmd on command line, switch to interactive */
 int prompt = 1;         /* Print prompt in rigctl */
@@ -326,6 +346,14 @@ int main (int argc, char *argv[])
 			my_rig->caps->version, rig_strstatus(my_rig->caps->status));
 
 	exitcode = 0;
+
+#ifdef HAVE_LIBREADLINE
+
+	if (interactive && prompt && have_rl) {
+		rl_readline_name = "rigctl";
+	}
+
+#endif	/* HAVE_LIBREADLINE */
 
 	do {
 		retcode = rigctl_parse(my_rig, stdin, stdout, argv, argc);
