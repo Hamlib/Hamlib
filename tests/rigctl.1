@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH RIGCTL "1" "January 23, 2013" "Hamlib" "Radio Control Program"
+.TH RIGCTL "1" "February 20, 2013" "Hamlib" "Radio Control Program"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -31,14 +31,14 @@ interactive mode if none are provided on the command line.
 Keep in mind that \fBHamlib\fP is BETA level software.
 While a lot of backend libraries lack complete rig support, the basic functions
 are usually well supported.  The API may change without publicized notice,
-while an advancement of the minor version (e.g. 1.1.x to 1.2.x) indicates such
+while an advancement of the major version (e.g. 1.x to 3.x) indicates such
 a change.
 .PP
 Please report bugs and provide feedback at the e-mail address given in the
 REPORTING BUGS section.  Patches and code enhancements are also welcome.
 .SH OPTIONS
 This program follows the usual GNU command line syntax, with long
-options starting with two dashes (`-').
+options starting with two dashes ('-').
 .PP
 Here is a summary of the supported options:
 .TP
@@ -120,7 +120,27 @@ Dump capabilities for the radio defined with -m above and exit.
 .TP
 .B \-o, --vfo
 Set vfo mode, requiring an extra VFO argument in front of each appropriate
-command. Otherwise, VFO_CURR is assumed when this option is not set.
+command. Otherwise, 'currVFO' is assumed when this option is not set.
+.TP
+.B \-i, --read-history
+Read previously saved command and argument history from a file
+(default '~/.rigctl_history') for the current session.  Available when
+\fBrigctl\fP is built with Readline support (see READLINE below).
+.sp
+\fBN.B.\fP To read a history file stored in another directory, set the
+RIGCTL_HIST_DIR environment variable, e.g. 'RIGCTL_HIST_DIR=~/tmp rigctl -i'.
+When RIGCTL_HIST_DIR is not set, the value of HOME is used.
+.TP
+.B \-I, --save-history
+Write current session and previous session(s), if -i option is given, command and
+argument history to a file (default '~/.rigctl_history') at the end of the current
+session.  Complete commands with arguments are saved as a single line to be
+recalled and used or edited.  Available when \fBrigctl\fP is built with Readline
+support (see READLINE below).
+.sp
+\fBN.B.\fP To write a history file in another directory, set the RIGCTL_HIST_DIR
+environment variable, e.g. 'RIGCTL_HIST_DIR=~/tmp rigctl -I'.  When RIGCTL_HIST_DIR
+is not set, the value of HOME is used.
 .TP
 .B \-v, --verbose
 Set verbose mode, cumulative (see DIAGNOSTICS below).
@@ -142,7 +162,10 @@ the operation will fail with a \fBHamlib\fP error code.
 Commands can be entered either as a single char, or as a long command name.
 Basically, the commands do not take a dash in front of them on the command
 line, as the options do. They may be typed in when in interactive mode
-or provided as argument(s) in command line interface mode.
+or provided as argument(s) in command line interface mode.  In interactive
+mode commands and their arguments may be entered on a single line:
+.sp
+Rig command: M LSB 2400
 .PP
 Since most of the \fBHamlib\fP operations have a \fIset\fP and a \fIget\fP
 method, an upper case letter will be used for \fIset\fP method whereas the
@@ -150,7 +173,7 @@ corresponding lower case letter refers to the \fIget\fP method.  Each operation
 also has a long name; in interactive mode, prepend a backslash to enter a long
 command name.
 .sp
-Example: Use "\\dump_caps" to see what this radio can do.
+Example: Use '\\dump_caps' to see what this radio and backend support.
 .PP
 Please note that the backend for the radio to be controlled, or the radio
 itself may not support some commands. In that case, the operation will fail
@@ -509,6 +532,45 @@ Connect to a running \fBrigctld\fP with rig model 2 ("NET rigctl") on the
 local host and specifying the TCP port, setting frequency and mode:
 .sp
 $ rigctl -m 2 -r localhost:4532 F 7253500 M LSB 0
+.SH READLINE
+If Readline library development files are found at configure time, \fBrigctl\fP
+will be conditonally built with Readline support for command and argument entry.
+Readline command key bindings are at their defaults as described in the Readline
+manual (\fIhttp://cnswww.cns.cwru.edu/php/chet/readline/rluserman.html\fP)
+although \fBrigctl\fP sets the name 'rigctl' which can be used in Conditional
+Init Constructs in the Readline Init File ('~/.inputrc' by default) for custom
+keybindings unique to \fBrigctl\fP.
+
+Command history is available with Readline support as described in the Readline
+History manual
+(\fIhttp://cnswww.cns.cwru.edu/php/chet/readline/history.html#SEC1\fP).  Command
+and argument strings are stored as single lines even when arguments are prompted
+for input individually.  Commands and arguments are not validated and are stored
+as typed with values separated by a single space.
+
+Normally session history is not saved, however, use of either of the
+\fI-i/--read-history\fP or \fI-I/--save-history\fP options when starting
+\fBrigctl\fP will cause any previously saved history to be read in and/or the
+current and any previous session history (assuming the -i and -I options are
+given together) will be written out when \fBrigctl\fP is closed.  Each option is
+mutually exclusive, i.e. either may be given separately or in combination.  This
+is useful to save a set of commands and then read them later but not write the
+modified history for a consistent set of test commands in interactive mode, for
+example.
+
+History is stored in '~/.rigctl_history' by default although the destination
+directory may be changed by setting the RIGCTL_HIST_DIR environment variable.
+When RIGCTL_HIST_DIR is unset, the value of the HOME environment variable is
+used instead.  Only the destination directory may be changed at this time.
+
+If Readline support is not found at configure time the original internal command
+handler is used.  Readline is not used for \fBrigctl\fP commands entered on the
+command line regardless if Readline support is built in or not.
+
+\fBN.B.\fP Readline support is not included in the Windows 32 binary builds
+supplied by the Hamlib Project.  Running \fBrigctl\fP on the Windows 32 platform
+in the 'cmd' shell does give session command line history, however, it is not
+saved to disk between sessions.
 .SH DIAGNOSTICS
 The \fB-v\fP, \fB--verbose\fP option allows different levels of diagnostics
 to be output to \fBstderr\fP and correspond to -v for BUG, -vv for ERR,

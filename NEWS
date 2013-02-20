@@ -27,6 +27,8 @@ Version 3.0
 	* IC-PCR1500/2500 default write_delay to 0, IC-746/756, IC-PCR8500
 		fixes, pcr.c, pcr1500.c: Add DSP support.  TNX Paul, KE7ZZ
 	* WinRadio G313 updates.  TNX Julian Campbel
+	* Readline editing and history support added to rigctl interactive
+	  mode.  Implement options for reading and writing history file.
 
 Version 1.2.15.3
 	2012-11-01
