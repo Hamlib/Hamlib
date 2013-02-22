@@ -33,8 +33,19 @@
 #include <string.h>
 #include <unistd.h>
 #include <ctype.h>
-
 #include <errno.h>
+
+#ifdef HAVE_LIBREADLINE
+#  if defined(HAVE_READLINE_READLINE_H)
+#    include <readline/readline.h>
+#  elif defined(HAVE_READLINE_H)    /* !defined(HAVE_READLINE_READLINE_H) */
+#    include <readline.h>
+#  else                             /* !defined(HAVE_READLINE_H) */
+extern char *readline ();
+#  endif                            /* HAVE_READLINE_H */
+#else
+/* no readline */
+#endif                              /* HAVE_LIBREADLINE */
 
 #include <hamlib/rotator.h>
 #include "serial.h"
@@ -69,6 +80,16 @@ static pthread_mutex_t rot_mutex = PTHREAD_MUTEX_INITIALIZER;
 #define ARG_NONE	0
 #define ARG_IN  (ARG_IN1|ARG_IN2|ARG_IN3|ARG_IN4)
 #define ARG_OUT  (ARG_OUT1|ARG_OUT2|ARG_OUT3|ARG_OUT4)
+
+/* variables for readline support */
+#ifdef HAVE_LIBREADLINE
+static char *input_line = (char *)NULL;
+static char *result = (char *)NULL;
+static char *parsed_input[sizeof(char) * 7];
+static const int have_rl = 1;
+#else                               /* no readline */
+static const int have_rl = 0;
+#endif
 
 struct test_table {
 	unsigned char cmd;
@@ -212,6 +233,38 @@ void hash_delete_all() {
 }
 
 
+#ifdef HAVE_LIBREADLINE
+/* Frees allocated memory and sets pointers to NULL before calling readline
+ * and then parses the input into space separated tokens.
+ */
+static void rp_getline(const char *s)
+{
+	int i;
+
+	/* free allocated memory and set pointers to NULL */
+	if (input_line) {
+		free(input_line);
+		input_line = (char *)NULL;
+	}
+
+	if (result) {
+		result = (char *)NULL;
+	}
+
+	/* cmd, arg1, arg2, arg3, arg4, arg5, arg6
+	 * arg5 and arg 6 are currently unused.
+	 */
+	for (i = 0; i < 7; i++)
+		parsed_input[i] = NULL;
+
+	/* Action!  Returns typed line with newline stripped. */
+	input_line = readline(s);
+}
+
+
+#endif
+
+
 /*
  * TODO: use Lex?
  */
@@ -264,194 +317,510 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 	unsigned char cmd;
 	struct test_table *cmd_entry;
 
-	char arg1[MAXARGSZ + 1], *p1;
-	char arg2[MAXARGSZ + 1], *p2;
-	char arg3[MAXARGSZ + 1], *p3;
-	char arg4[MAXARGSZ + 1], *p4;
-	char *p5, *p6;
+	char arg1[MAXARGSZ + 1], *p1 = NULL;
+	char arg2[MAXARGSZ + 1], *p2 = NULL;
+	char arg3[MAXARGSZ + 1], *p3 = NULL;
+	char arg4[MAXARGSZ + 1], *p4 = NULL;
+	char *p5 = NULL;
+	char *p6 = NULL;
 	static int last_was_ret = 1;
 
-	if (interactive) {
-		if (prompt)
-			fprintf_flush(fout, "\nRotator command: ");
+	/* cmd, internal, rotctld */
+	if (!(interactive && prompt && have_rl)) {
+		if (interactive) {
+			if (prompt)
+				fprintf_flush(fout, "\nRotator command: ");
 
-		do {
-			if (scanfc(fin, "%c", &cmd) < 1)
-				return -1;
-
-			/* Extended response protocol requested with leading '+' on command
-			 * string--rotctld only!
-			 */
-			if (cmd == '+' && !prompt) {
-				ext_resp = 1;
+			do {
 				if (scanfc(fin, "%c", &cmd) < 1)
 					return -1;
-			} else if (cmd == '+' && prompt) {
-				return 0;
-			}
 
-			if (cmd != '\\' && cmd != '_' && cmd != '#' && ispunct(cmd) && !prompt) {
-				ext_resp = 1;
-				resp_sep = cmd;
-				if (scanfc(fin, "%c", &cmd) < 1)
-					return -1;
-			} else if (cmd != '\\' && cmd != '?' && cmd != '_' && cmd != '#' && ispunct(cmd) && prompt) {
-				return 0;
-			}
-
-			/* command by name */
-			if (cmd == '\\') {
-				unsigned char cmd_name[MAXNAMSIZ], *pcmd = cmd_name;
-				int c_len = MAXNAMSIZ;
-
-				if (scanfc(fin, "%c", pcmd) < 1)
-					return -1;
-
-				while(c_len-- && (isalnum(*pcmd) || *pcmd == '_' ))
-					if (scanfc(fin, "%c", ++pcmd) < 1)
+				/* Extended response protocol requested with leading '+' on command
+				 * string--rotctld only!
+				 */
+				if (cmd == '+' && !prompt) {
+					ext_resp = 1;
+					if (scanfc(fin, "%c", &cmd) < 1)
 						return -1;
-
-				*pcmd = '\0';
-				cmd = parse_arg((char *) cmd_name);
-				break;
-			}
-
-			if (cmd == 0x0a || cmd == 0x0d) {
-				if (last_was_ret) {
-					if (prompt) {
-						fprintf_flush(fout, "? for help, q to quit.\n");
-					}
+				} else if (cmd == '+' && prompt) {
 					return 0;
 				}
-				last_was_ret = 1;
+
+				if (cmd != '\\' && cmd != '_' && cmd != '#' && ispunct(cmd) && !prompt) {
+					ext_resp = 1;
+					resp_sep = cmd;
+					if (scanfc(fin, "%c", &cmd) < 1)
+						return -1;
+				} else if (cmd != '\\' && cmd != '?' && cmd != '_' && cmd != '#' && ispunct(cmd) && prompt) {
+					return 0;
+				}
+
+				/* command by name */
+				if (cmd == '\\') {
+					unsigned char cmd_name[MAXNAMSIZ], *pcmd = cmd_name;
+					int c_len = MAXNAMSIZ;
+
+					if (scanfc(fin, "%c", pcmd) < 1)
+						return -1;
+
+					while(c_len-- && (isalnum(*pcmd) || *pcmd == '_' ))
+						if (scanfc(fin, "%c", ++pcmd) < 1)
+							return -1;
+
+					*pcmd = '\0';
+					cmd = parse_arg((char *) cmd_name);
+					break;
+				}
+
+				if (cmd == 0x0a || cmd == 0x0d) {
+					if (last_was_ret) {
+						if (prompt) {
+							fprintf_flush(fout, "? for help, q to quit.\n");
+						}
+						return 0;
+					}
+					last_was_ret = 1;
+				}
+			} while (cmd == 0x0a || cmd == 0x0d);
+
+			last_was_ret = 0;
+
+			/* comment line */
+			if (cmd == '#') {
+				while( cmd != '\n' && cmd != '\r')
+					if (scanfc(fin, "%c", &cmd) < 1)
+						return -1;
+				return 0;
 			}
-		} while (cmd == 0x0a || cmd == 0x0d);
+			if (cmd == 'Q' || cmd == 'q')
+				return 1;
+			if (cmd == '?') {
+				usage_rot(fout);
+				fflush(fout);
+				return 0;
+			}
+		} else {
+			/* parse rest of command line */
+			if (optind >= argc)
+				return 1;
+			if (argv[optind][1] == '\0')
+					cmd = argv[optind][0];
+			else
+					cmd = parse_arg(argv[optind]);
+			optind++;
+		}
 
-		last_was_ret = 0;
-
-		/* comment line */
-		if (cmd == '#') {
-			while( cmd != '\n' && cmd != '\r')
-				if (scanfc(fin, "%c", &cmd) < 1)
-					return -1;
+		cmd_entry = find_cmd_entry(cmd);
+		if (!cmd_entry) {
+			fprintf_flush(stderr, "Command '%c' not found!\n", cmd);
 			return 0;
 		}
-		if (cmd == 'Q' || cmd == 'q')
+
+		if ((cmd_entry->flags & ARG_IN_LINE) &&
+				(cmd_entry->flags & ARG_IN1) && cmd_entry->arg1) {
+			if (interactive) {
+				char *nl;
+				if (prompt)
+					fprintf_flush(fout, "%s: ", cmd_entry->arg1);
+				if (fgets(arg1, MAXARGSZ, fin) == NULL)
+					return -1;
+				if (arg1[0] == 0xa)
+					if (fgets(arg1, MAXARGSZ, fin) == NULL)
+						return -1;
+				nl = strchr(arg1, 0xa);
+				if (nl) *nl = '\0';	/* chomp */
+				p1 = arg1[0]==' '?arg1+1:arg1;
+			} else {
+				if (!argv[optind]) {
+					fprintf(stderr, "Invalid arg for command '%s'\n",
+								cmd_entry->name);
+					exit(1);
+				}
+				p1 = argv[optind++];
+			}
+		} else 	if ((cmd_entry->flags & ARG_IN1) && cmd_entry->arg1) {
+			if (interactive) {
+				if (prompt)
+					fprintf_flush(fout, "%s: ", cmd_entry->arg1);
+				if (scanfc(fin, "%s", arg1) < 1)
+					return -1;
+				p1 = arg1;
+			} else {
+				if (!argv[optind]) {
+					fprintf(stderr, "Invalid arg for command '%s'\n",
+								cmd_entry->name);
+					exit(1);
+				}
+				p1 = argv[optind++];
+			}
+		}
+		if (p1 && p1[0]!='?' && (cmd_entry->flags & ARG_IN2) && cmd_entry->arg2) {
+			if (interactive) {
+				if (prompt)
+					fprintf_flush(fout, "%s: ", cmd_entry->arg2);
+				if (scanfc(fin, "%s", arg2) < 1)
+					return -1;
+				p2 = arg2;
+			} else {
+				if (!argv[optind]) {
+					fprintf(stderr, "Invalid arg for command '%s'\n",
+								cmd_entry->name);
+					exit(1);
+				}
+				p2 = argv[optind++];
+			}
+		}
+		if (p1 && p1[0]!='?' && (cmd_entry->flags & ARG_IN3) && cmd_entry->arg3) {
+			if (interactive) {
+				if (prompt)
+					fprintf_flush(fout, "%s: ", cmd_entry->arg3);
+				if (scanfc(fin, "%s", arg3) < 1)
+					return -1;
+				p3 = arg3;
+			} else {
+				if (!argv[optind]) {
+					fprintf(stderr, "Invalid arg for command '%s'\n",
+								cmd_entry->name);
+					exit(1);
+				}
+				p3 = argv[optind++];
+			}
+		}
+
+		if (p1 && p1[0]!='?' && (cmd_entry->flags & ARG_IN4) && cmd_entry->arg4) {
+			if (interactive) {
+				if (prompt)
+					fprintf_flush(fout, "%s: ", cmd_entry->arg4);
+				if (scanfc(fin, "%s", arg4) < 1)
+					return -1;
+				p4 = arg4;
+			} else {
+				if (!argv[optind]) {
+					fprintf(stderr, "Invalid arg for command '%s'\n",
+								cmd_entry->name);
+					exit(1);
+				}
+				p4 = argv[optind++];
+			}
+		}
+	}
+
+#ifdef HAVE_LIBREADLINE
+
+	if (interactive && prompt && have_rl) {
+		int j, x;
+
+		rl_instream = fin;
+		rl_outstream = fout;
+
+		rp_getline("\nRotator command: ");
+
+		/* EOF (Ctl-D) received on empty input line, bail out gracefully. */
+		if (!input_line) {
+			fprintf_flush(fout, "\n");
 			return 1;
-		if (cmd == '?') {
+		}
+
+		/* Q or q to quit */
+		if (!(strncasecmp(input_line, "q", 1)))
+			return 1;
+
+		/* '?' for help */
+		if (!(strncmp(input_line, "?", 1))) {
 			usage_rot(fout);
 			fflush(fout);
 			return 0;
 		}
-	} else {
-		/* parse rest of command line */
-		if (optind >= argc)
+
+		/* '#' for comment */
+		if (!(strncmp(input_line, "#", 1)))
+			return 0;
+
+		/* Blank line entered */
+		if (!(strcmp(input_line, ""))) {
+			fprintf(fout, "? for help, q to quit.\n");
+			fflush(fout);
+			return 0;
+		}
+
+		rig_debug(RIG_DEBUG_BUG, "%s: input_line: %s\n", __func__, input_line);
+
+		/* Split input_line on any number of spaces to get the command token
+		 * Tabs are intercepted by readline for completion and a newline
+		 * causes readline to return the typed text.  If more than one
+		 * argument is given, it will be parsed out later.
+		 */
+		result = strtok(input_line, " ");
+
+		/* parsed_input stores pointers into input_line where the token strings
+		 * start.
+		 */
+		if (result) {
+			parsed_input[0] = result;
+		} else {
+			/* Oops!  Invoke GDB!! */
+			fprintf_flush(fout, "\n");
 			return 1;
-		if (argv[optind][1] == '\0')
-				cmd = argv[optind][0];
-		else
-				cmd = parse_arg(argv[optind]);
-		optind++;
-	}
-
-	cmd_entry = find_cmd_entry(cmd);
-	if (!cmd_entry) {
-		fprintf_flush(stderr, "Command '%c' not found!\n", cmd);
-		return 0;
-	}
-
-	p1 = p2 = p3 = p4 = p5 = p6 = NULL;
-
-	if ((cmd_entry->flags & ARG_IN_LINE) &&
-			(cmd_entry->flags & ARG_IN1) && cmd_entry->arg1) {
-		if (interactive) {
-			char *nl;
-			if (prompt)
-				fprintf_flush(fout, "%s: ", cmd_entry->arg1);
-			if (fgets(arg1, MAXARGSZ, fin) == NULL)
-                return -1;
-			if (arg1[0] == 0xa)
-				if (fgets(arg1, MAXARGSZ, fin) == NULL)
-                    return -1;
-			nl = strchr(arg1, 0xa);
-			if (nl) *nl = '\0';	/* chomp */
-			p1 = arg1[0]==' '?arg1+1:arg1;
-		} else {
-			if (!argv[optind]) {
-				fprintf(stderr, "Invalid arg for command '%s'\n",
-							cmd_entry->name);
-				exit(1);
-			}
-			p1 = argv[optind++];
 		}
-	} else 	if ((cmd_entry->flags & ARG_IN1) && cmd_entry->arg1) {
-		if (interactive) {
-			if (prompt)
-				fprintf_flush(fout, "%s: ", cmd_entry->arg1);
-			if (scanfc(fin, "%s", arg1) < 1)
-				return -1;
+
+		/* At this point parsed_input contains the typed text of the command
+		 * with surrounding space characters removed.
+		 */
+
+		/* Single character command */
+		if ((strlen(parsed_input[0]) == 1) && (*parsed_input[0] != '\\')) {
+			cmd = *parsed_input[0];
+		}
+
+		/* Test the command token, parsed_input[0] */
+		else if ((*parsed_input[0] == '\\') && (strlen(parsed_input[0]) > 1)) {
+			char cmd_name[MAXNAMSIZ];
+
+			/* if there is no terminating '\0' character in the source string,
+			 * srncpy() doesn't add one even if the supplied length is less
+			 * than the destination array.  Truncate the source string here.
+			 */
+			 if (strlen(parsed_input[0] + 1) >= MAXNAMSIZ)
+				*(parsed_input[0] + MAXNAMSIZ) = '\0';
+
+			/* The starting position of the source string is the first
+			 * character past the initial '\'.  Using MAXNAMSIZ for the
+			 * length leaves enough space for the '\0' string terminator in the
+			 * cmd_name array.
+			 */
+			strncpy(cmd_name, parsed_input[0] + 1, MAXNAMSIZ);
+
+			/* Sanity check as valid multiple character commands consist of
+			 * alpha-numeric characters and the underscore ('_') character.
+			 */
+			for (j = 0; cmd_name[j] != '\0'; j++) {
+				if (!(isalnum(cmd_name[j]) || cmd_name[j] == '_')) {
+					fprintf(stderr, "Valid multiple character command names contain alpha-numeric characters plus '_'\n");
+					return 0;
+				}
+			}
+
+			cmd = parse_arg(cmd_name);
+		}
+		/* Single '\' entered, prompt again */
+		 else if ((*parsed_input[0] == '\\') && (strlen(parsed_input[0]) == 1)) {
+			return 0;
+		}
+		/* Multiple characters but no leading '\' */
+		else {
+			fprintf(stderr, "Precede multiple character command names with '\\'\n");
+			return 0;
+		}
+
+		cmd_entry = find_cmd_entry(cmd);
+		if (!cmd_entry) {
+			if (cmd == '\0')
+				fprintf(stderr, "Command '%s' not found!\n", parsed_input[0]);
+			else
+				fprintf(stderr, "Command '%c' not found!\n", cmd);
+
+			return 0;
+		}
+
+		/* \send_cmd, \send_morse */
+		if ((cmd_entry->flags & ARG_IN_LINE) &&
+				(cmd_entry->flags & ARG_IN1) && cmd_entry->arg1) {
+			/* Check for a non-existent delimiter so as to not break up
+			 * remaining line into separate tokens (spaces OK).
+			 */
+			result = strtok(NULL, "\0");
+
+			if (result) {
+				x = 1;
+				parsed_input[x] = result;
+			} else {
+				x = 0;
+				char pmptstr[(strlen(cmd_entry->arg1) + 3)];
+
+				strcpy(pmptstr, cmd_entry->arg1);
+				strcat(pmptstr, ": ");
+
+				rp_getline(pmptstr);
+
+				/* Blank line entered */
+				if (!(strcmp(input_line, ""))) {
+					fprintf(fout, "? for help, q to quit.\n");
+					fflush(fout);
+					return 0;
+				}
+
+				if (input_line)
+					parsed_input[x] = input_line;
+				else {
+					fprintf_flush(fout, "\n");
+					return 1;
+				}
+			}
+
+			/* The arg1 array size is MAXARGSZ + 1 so truncate it to fit if larger. */
+			if (strlen(parsed_input[x]) > MAXARGSZ)
+				parsed_input[x][MAXARGSZ] = '\0';
+
+			strcpy(arg1, parsed_input[x]);
 			p1 = arg1;
-		} else {
-			if (!argv[optind]) {
-				fprintf(stderr, "Invalid arg for command '%s'\n",
-							cmd_entry->name);
-				exit(1);
-			}
-			p1 = argv[optind++];
 		}
-	}
-	if (p1 && p1[0]!='?' && (cmd_entry->flags & ARG_IN2) && cmd_entry->arg2) {
-		if (interactive) {
-			if (prompt)
-				fprintf_flush(fout, "%s: ", cmd_entry->arg2);
-			if (scanfc(fin, "%s", arg2) < 1)
-				return -1;
+
+		/* Normal argument parsing. */
+		else if ((cmd_entry->flags & ARG_IN1) && cmd_entry->arg1) {
+			result = strtok(NULL, " ");
+
+			if (result) {
+				x = 1;
+				parsed_input[x] = result;
+			} else {
+				x = 0;
+				char pmptstr[(strlen(cmd_entry->arg1) + 3)];
+
+				strcpy(pmptstr, cmd_entry->arg1);
+				strcat(pmptstr, ": ");
+
+				rp_getline(pmptstr);
+
+				if (!(strcmp(input_line, ""))) {
+					fprintf(fout, "? for help, q to quit.\n");
+					fflush(fout);
+					return 0;
+				}
+
+				result = strtok(input_line, " ");
+
+				if (result) {
+					parsed_input[x] = result;
+				} else {
+					fprintf_flush(fout, "\n");
+					return 1;
+				}
+			}
+
+			if (strlen(parsed_input[x]) > MAXARGSZ)
+				parsed_input[x][MAXARGSZ] = '\0';
+
+			strcpy(arg1, parsed_input[x]);
+			p1 = arg1;
+		}
+		if (p1 && p1[0] != '?' && (cmd_entry->flags & ARG_IN2) && cmd_entry->arg2) {
+			result = strtok(NULL, " ");
+
+			if (result) {
+				x = 2;
+				parsed_input[x] = result;
+			} else {
+				x = 0;
+				char pmptstr[(strlen(cmd_entry->arg2) + 3)];
+
+				strcpy(pmptstr, cmd_entry->arg2);
+				strcat(pmptstr, ": ");
+
+				rp_getline(pmptstr);
+
+				if (!(strcmp(input_line, ""))) {
+					fprintf(fout, "? for help, q to quit.\n");
+					fflush(fout);
+					return 0;
+				}
+
+				result = strtok(input_line, " ");
+
+				if (result) {
+					parsed_input[x] = result;
+				} else {
+					fprintf_flush(fout, "\n");
+					return 1;
+				}
+			}
+
+			if (strlen(parsed_input[x]) > MAXARGSZ)
+				parsed_input[x][MAXARGSZ] = '\0';
+
+			strcpy(arg2, parsed_input[x]);
 			p2 = arg2;
-		} else {
-			if (!argv[optind]) {
-				fprintf(stderr, "Invalid arg for command '%s'\n",
-							cmd_entry->name);
-				exit(1);
-			}
-			p2 = argv[optind++];
 		}
-	}
-	if (p1 && p1[0]!='?' && (cmd_entry->flags & ARG_IN3) && cmd_entry->arg3) {
-		if (interactive) {
-			if (prompt)
-				fprintf_flush(fout, "%s: ", cmd_entry->arg3);
-			if (scanfc(fin, "%s", arg3) < 1)
-				return -1;
-			p3 = arg3;
-		} else {
-			if (!argv[optind]) {
-				fprintf(stderr, "Invalid arg for command '%s'\n",
-							cmd_entry->name);
-				exit(1);
+		if (p1 && p1[0] != '?' && (cmd_entry->flags & ARG_IN3) && cmd_entry->arg3) {
+			result = strtok(NULL, " ");
+
+			if (result) {
+				x = 3;
+				parsed_input[x] = result;
+			} else {
+				x = 0;
+				char pmptstr[(strlen(cmd_entry->arg3) + 3)];
+
+				strcpy(pmptstr, cmd_entry->arg3);
+				strcat(pmptstr, ": ");
+
+				rp_getline(pmptstr);
+
+				if (!(strcmp(input_line, ""))) {
+					fprintf(fout, "? for help, q to quit.\n");
+					fflush(fout);
+					return 0;
+				}
+
+				result = strtok(input_line, " ");
+
+				if (result) {
+					parsed_input[x] = result;
+				} else {
+					fprintf_flush(fout, "\n");
+					return 1;
+				}
 			}
-			p3 = argv[optind++];
+
+			if (strlen(parsed_input[x]) > MAXARGSZ)
+				parsed_input[x][MAXARGSZ] = '\0';
+
+			strcpy(arg3, parsed_input[x]);
+			p3 = arg3;
+		}
+		if (p1 && p1[0] != '?' && (cmd_entry->flags & ARG_IN4) && cmd_entry->arg4) {
+			result = strtok(NULL, " ");
+
+			if (result) {
+				x = 4;
+				parsed_input[x] = result;
+			} else {
+				x = 0;
+				char pmptstr[(strlen(cmd_entry->arg4) + 3)];
+
+				strcpy(pmptstr, cmd_entry->arg4);
+				strcat(pmptstr, ": ");
+
+				rp_getline(pmptstr);
+
+				if (!(strcmp(input_line, ""))) {
+					fprintf(fout, "? for help, q to quit.\n");
+					fflush(fout);
+					return 0;
+				}
+
+				result = strtok(input_line, " ");
+
+				if (result) {
+					parsed_input[x] = result;
+				} else {
+					fprintf_flush(fout, "\n");
+					return 1;
+				}
+			}
+
+			if (strlen(parsed_input[x]) > MAXARGSZ)
+				parsed_input[x][MAXARGSZ] = '\0';
+
+			strcpy(arg4, parsed_input[x]);
+			p4 = arg4;
 		}
 	}
 
-	if (p1 && p1[0]!='?' && (cmd_entry->flags & ARG_IN4) && cmd_entry->arg4) {
-		if (interactive) {
-			if (prompt)
-				fprintf_flush(fout, "%s: ", cmd_entry->arg4);
-			if (scanfc(fin, "%s", arg4) < 1)
-				return -1;
-			p4 = arg4;
-		} else {
-			if (!argv[optind]) {
-				fprintf(stderr, "Invalid arg for command '%s'\n",
-							cmd_entry->name);
-				exit(1);
-			}
-			p4 = argv[optind++];
-		}
-	}
+#endif	/* HAVE_LIBREADLINE */
+
 
 	/*
-	 * mutex locking needed because rigctld is multithreaded
+	 * mutex locking needed because rotctld is multithreaded
 	 * and hamlib is not MT-safe
 	 */
 #ifdef HAVE_PTHREAD
@@ -531,7 +900,7 @@ void usage_rot(FILE *fout)
 {
 	int i, nbspaces;
 
-	fprintf(fout, "Commands (some may not be available for this rig):\n");
+	fprintf(fout, "Commands (some may not be available for this rotator):\n");
 	for (i = 0; test_list[i].cmd != 0; i++) {
 		fprintf(fout, "%c: %-12s(", isprint(test_list[i].cmd) ?
 				test_list[i].cmd : '?', test_list[i].name);
@@ -548,6 +917,8 @@ void usage_rot(FILE *fout)
 
 		fprintf(fout, ")\n");
 	}
+
+	fprintf(fout, "\n\nPrepend long command names with '\\', e.g. '\\dump_state'\n");
 }
 
 
