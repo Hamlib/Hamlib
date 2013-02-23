@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH ROTCTL "1" "March 1, 2012" "Hamlib" "Rotator Control Program"
+.TH ROTCTL "1" "February 22, 2013" "Hamlib" "Rotator Control Program"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -29,23 +29,23 @@ interactive mode if none are provided on the command line.
 .\" \fI<whatever>\fP escape sequences to invode bold face and italics,
 .\" respectively.
 Keep in mind that \fBHamlib\fP is BETA level software.
-While a lot of backend libraries lack complete rig support, the basic functions
+While a lot of backend libraries lack complete rotator support, the basic functions
 are usually well supported.  The API may change without publicized notice,
-while an advancement of the minor version (e.g. 1.1.x to 1.2.x) indicates such
+while an advancement of the minor version (e.g. 1.x to 3.x) indicates such
 a change.
 .PP
 Please report bugs and provide feedback at the e-mail address given in the
 REPORTING BUGS section.  Patches and code enhancements are also welcome.
 .SH OPTIONS
 This program follows the usual GNU command line syntax, with long
-options starting with two dashes (`-').
+options starting with two dashes ('-').
 
-Here is s summary of the supported options:
+Here is a summary of the supported options:
 .TP
 .B \-m, --model=id
 Select rotator model number. See model list (use 'rotctl -l').
 .sp
-NB: \fBrotctl\fP (or third party software) will use rig model 2
+NB: \fBrotctl\fP (or third party software) will use rotator model 2
 for NET rotctl (rotctld).
 .TP
 .B \-r, --rot-file=device
@@ -86,6 +86,26 @@ Shift-PageDown, or using the scrollbars of a virtual terminal in X or
 the cmd window in Windows.  The output can be piped to 'more' or 'less',
 e.g. 'rotctl -l | more'.
 .TP
+.B \-i, --read-history
+Read previously saved command and argument history from a file
+(default '~/.rotctl_history') for the current session.  Available when
+\fBrotctl\fP is built with Readline support (see READLINE below).
+.sp
+\fBN.B.\fP To read a history file stored in another directory, set the
+ROTCTL_HIST_DIR environment variable, e.g. 'ROTCTL_HIST_DIR=~/tmp rotctl -i'.
+When ROTCTL_HIST_DIR is not set, the value of HOME is used.
+.TP
+.B \-I, --save-history
+Write current session and previous session(s), if -i option is given, command and
+argument history to a file (default '~/.rotctl_history') at the end of the current
+session.  Complete commands with arguments are saved as a single line to be
+recalled and used or edited.  Available when \fBrotctl\fP is built with Readline
+support (see READLINE below).
+.sp
+\fBN.B.\fP To write a history file in another directory, set the ROTCTL_HIST_DIR
+environment variable, e.g. 'ROTCTL_HIST_DIR=~/tmp rotctl -I'.  When ROTCTL_HIST_DIR
+is not set, the value of HOME is used.
+.TP
 .B \-v, --verbose
 Set verbose mode, cumulative (see DIAGNOSTICS below).
 .TP
@@ -106,7 +126,10 @@ the operation will fail with a \fBHamlib\fP error code.
 Commands can be entered either as a single char, or as a long command name.
 Basically, the commands do not take a dash in front of them, as
 the options do. They may be typed in when in interactive mode
-or provided as argument(s) in command line interface mode.
+or provided as argument(s) in command line interface mode.  In interactive
+mode commands and their arguments may be entered on a single line:
+.sp
+Rotator command: P 123 45
 .PP
 Since most of the \fBHamlib\fP operations have a \fIset\fP and a \fIget\fP
 method, an upper case letter will be used for \fIset\fP method whereas the
@@ -188,8 +211,8 @@ Both are floating point values.  The precision of the returned square is
 controlled by 'Loc Len' which should be an even numbered integer value between
 2 and 12.
 .sp
-For example, "+L -170.000000 -85.000000 12\\n" returns
-"Locator: AA55AA00AA00\\n".
+For example, "L -170.000000 -85.000000 12" returns
+"Locator: AA55AA00AA00".
 .TP
 .B  l, loc2lonlat 'Locator'
 Returns 'Longitude' and 'Latitude' in decimal degrees at the approximate
@@ -198,8 +221,8 @@ variables internally, some rounding error occurs).  West longitude is
 expressed as a negative value.  South latitude is expressed as a negative
 value.  Locator can be from 2 to 12 characters in length.
 .sp
-For example, "+l AA55AA00AA00\\n" returns "Longitude: -169.999983\\nLatitude:
--84.999991\\n".
+For example, "l AA55AA00AA00" returns "Longitude: -169.999983 Latitude:
+-84.999991".
 .TP
 .B D, dms2dec 'Degrees' 'Minutes' 'Seconds' 'S/W'
 Returns 'Dec Degrees', a signed floating point value.
@@ -258,6 +281,45 @@ Connect to a running \fBrotctld\fP with rotor model 2 ("NET rotctl") on the
 local host and specifying the TCP port, and querying the position:
 .sp
 $ rotctl -m 2 -r localhost:4533 \\get_pos
+.SH READLINE
+If Readline library development files are found at configure time, \fBrotctl\fP
+will be conditonally built with Readline support for command and argument entry.
+Readline command key bindings are at their defaults as described in the Readline
+manual (\fIhttp://cnswww.cns.cwru.edu/php/chet/readline/rluserman.html\fP)
+although \fBrotctl\fP sets the name 'rotctl' which can be used in Conditional
+Init Constructs in the Readline Init File ('~/.inputrc' by default) for custom
+keybindings unique to \fBrotctl\fP.
+
+Command history is available with Readline support as described in the Readline
+History manual
+(\fIhttp://cnswww.cns.cwru.edu/php/chet/readline/history.html#SEC1\fP).  Command
+and argument strings are stored as single lines even when arguments are prompted
+for input individually.  Commands and arguments are not validated and are stored
+as typed with values separated by a single space.
+
+Normally session history is not saved, however, use of either of the
+\fI-i/--read-history\fP or \fI-I/--save-history\fP options when starting
+\fBrotctl\fP will cause any previously saved history to be read in and/or the
+current and any previous session history (assuming the -i and -I options are
+given together) will be written out when \fBrotctl\fP is closed.  Each option is
+mutually exclusive, i.e. either may be given separately or in combination.  This
+is useful to save a set of commands and then read them later but not write the
+modified history for a consistent set of test commands in interactive mode, for
+example.
+
+History is stored in '~/.rotctl_history' by default although the destination
+directory may be changed by setting the ROTCTL_HIST_DIR environment variable.
+When ROTCTL_HIST_DIR is unset, the value of the HOME environment variable is
+used instead.  Only the destination directory may be changed at this time.
+
+If Readline support is not found at configure time the original internal command
+handler is used.  Readline is not used for \fBrotctl\fP commands entered on the
+command line regardless if Readline support is built in or not.
+
+\fBN.B.\fP Readline support is not included in the Windows 32 binary builds
+supplied by the Hamlib Project.  Running \fBrotctl\fP on the Windows 32 platform
+in the 'cmd' shell does give session command line history, however, it is not
+saved to disk between sessions.
 .SH DIAGNOSTICS
 The \fB-v\fP, \fB--version\fP option allows different levels of diagnostics
 to be output to \fBstderr\fP and correspond to -v for BUG, -vv for ERR,
@@ -289,7 +351,7 @@ Written by Stephane Fillod, Nate Bargmann, and the Hamlib Group
 .SH COPYRIGHT
 Copyright \(co 2000-2011 Stephane Fillod
 .br
-Copyright \(co 2011-2012 Nate Bargmann
+Copyright \(co 2011-2013 Nate Bargmann
 .br
 Copyright \(co 2000-2010 the Hamlib Group
 .PP

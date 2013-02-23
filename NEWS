@@ -29,6 +29,8 @@ Version 3.0
 	* WinRadio G313 updates.  TNX Julian Campbel
 	* Readline editing and history support added to rigctl interactive
 	  mode.  Implement options for reading and writing history file.
+	* Readline editing and history support added to rotctl interactive
+	  mode.  Implement options for reading and writing history file.
 
 Version 1.2.15.3
 	2012-11-01
