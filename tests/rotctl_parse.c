@@ -47,6 +47,20 @@ extern char *readline ();
 /* no readline */
 #endif                              /* HAVE_LIBREADLINE */
 
+#ifdef HAVE_READLINE_HISTORY
+#  if defined(HAVE_READLINE_HISTORY_H)
+#    include <readline/history.h>
+#  elif defined(HAVE_HISTORY_H)
+#    include <history.h>
+#  else                             /* !defined(HAVE_HISTORY_H) */
+extern void add_history ();
+extern int write_history ();
+extern int read_history ();
+#  endif                            /* defined(HAVE_READLINE_HISTORY_H) */
+                                    /* no history */
+#endif                              /* HAVE_READLINE_HISTORY */
+
+
 #include <hamlib/rotator.h>
 #include "serial.h"
 #include "misc.h"
@@ -87,6 +101,11 @@ static char *input_line = (char *)NULL;
 static char *result = (char *)NULL;
 static char *parsed_input[sizeof(char) * 7];
 static const int have_rl = 1;
+
+#ifdef HAVE_READLINE_HISTORY
+static char *rp_hist_buf = (char *)NULL;
+#endif
+
 #else                               /* no readline */
 static const int have_rl = 0;
 #endif
@@ -510,6 +529,13 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 	if (interactive && prompt && have_rl) {
 		int j, x;
 
+#ifdef HAVE_READLINE_HISTORY
+		/* Minimum space for 32+1+128+1+128+1+128+1+128+1+128+1+128+1 = 807
+		 * chars, so allocate 896 chars cleared to zero for safety.
+		 */
+		rp_hist_buf = (char *)calloc(896, sizeof(char));
+#endif
+
 		rl_instream = fin;
 		rl_outstream = fout;
 
@@ -564,14 +590,20 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 		}
 
 		/* At this point parsed_input contains the typed text of the command
-		 * with surrounding space characters removed.
+		 * with surrounding space characters removed.  If Readline History is
+		 * available, copy the command string into a history buffer.
 		 */
 
 		/* Single character command */
 		if ((strlen(parsed_input[0]) == 1) && (*parsed_input[0] != '\\')) {
 			cmd = *parsed_input[0];
-		}
 
+#ifdef HAVE_READLINE_HISTORY
+			/* Store what is typed, not validated, for history. */
+			if (rp_hist_buf)
+				strncpy(rp_hist_buf, parsed_input[0], 1);
+#endif
+		}
 		/* Test the command token, parsed_input[0] */
 		else if ((*parsed_input[0] == '\\') && (strlen(parsed_input[0]) > 1)) {
 			char cmd_name[MAXNAMSIZ];
@@ -583,6 +615,10 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 			 if (strlen(parsed_input[0] + 1) >= MAXNAMSIZ)
 				*(parsed_input[0] + MAXNAMSIZ) = '\0';
 
+#ifdef HAVE_READLINE_HISTORY
+			if (rp_hist_buf)
+				strncpy(rp_hist_buf, parsed_input[0], MAXNAMSIZ);
+#endif
 			/* The starting position of the source string is the first
 			 * character past the initial '\'.  Using MAXNAMSIZ for the
 			 * length leaves enough space for the '\0' string terminator in the
@@ -622,7 +658,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 			return 0;
 		}
 
-		/* \send_cmd, \send_morse */
+		/* \send_cmd */
 		if ((cmd_entry->flags & ARG_IN_LINE) &&
 				(cmd_entry->flags & ARG_IN1) && cmd_entry->arg1) {
 			/* Check for a non-existent delimiter so as to not break up
@@ -661,6 +697,12 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 			if (strlen(parsed_input[x]) > MAXARGSZ)
 				parsed_input[x][MAXARGSZ] = '\0';
 
+#ifdef HAVE_READLINE_HISTORY
+			if (rp_hist_buf) {
+				strncat(rp_hist_buf, " ", 1);
+				strncat(rp_hist_buf, parsed_input[x], MAXARGSZ);
+			}
+#endif
 			strcpy(arg1, parsed_input[x]);
 			p1 = arg1;
 		}
@@ -700,6 +742,12 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 			if (strlen(parsed_input[x]) > MAXARGSZ)
 				parsed_input[x][MAXARGSZ] = '\0';
 
+#ifdef HAVE_READLINE_HISTORY
+			if (rp_hist_buf) {
+				strncat(rp_hist_buf, " ", 1);
+				strncat(rp_hist_buf, parsed_input[x], MAXARGSZ);
+			}
+#endif
 			strcpy(arg1, parsed_input[x]);
 			p1 = arg1;
 		}
@@ -737,6 +785,12 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 			if (strlen(parsed_input[x]) > MAXARGSZ)
 				parsed_input[x][MAXARGSZ] = '\0';
 
+#ifdef HAVE_READLINE_HISTORY
+			if (rp_hist_buf) {
+				strncat(rp_hist_buf, " ", 1);
+				strncat(rp_hist_buf, parsed_input[x], MAXARGSZ);
+			}
+#endif
 			strcpy(arg2, parsed_input[x]);
 			p2 = arg2;
 		}
@@ -774,6 +828,12 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 			if (strlen(parsed_input[x]) > MAXARGSZ)
 				parsed_input[x][MAXARGSZ] = '\0';
 
+#ifdef HAVE_READLINE_HISTORY
+			if (rp_hist_buf) {
+				strncat(rp_hist_buf, " ", 1);
+				strncat(rp_hist_buf, parsed_input[x], MAXARGSZ);
+			}
+#endif
 			strcpy(arg3, parsed_input[x]);
 			p3 = arg3;
 		}
@@ -811,9 +871,22 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 			if (strlen(parsed_input[x]) > MAXARGSZ)
 				parsed_input[x][MAXARGSZ] = '\0';
 
+#ifdef HAVE_READLINE_HISTORY
+			if (rp_hist_buf) {
+				strncat(rp_hist_buf, " ", 1);
+				strncat(rp_hist_buf, parsed_input[x], MAXARGSZ);
+			}
+#endif
 			strcpy(arg4, parsed_input[x]);
 			p4 = arg4;
 		}
+#ifdef HAVE_READLINE_HISTORY
+		if (rp_hist_buf) {
+			add_history(rp_hist_buf);
+			free(rp_hist_buf);
+			rp_hist_buf = (char *)NULL;
+		}
+#endif
 	}
 
 #endif	/* HAVE_LIBREADLINE */

@@ -47,6 +47,20 @@ extern char *readline ();
 /* no readline */
 #endif                              /* HAVE_LIBREADLINE */
 
+#ifdef HAVE_READLINE_HISTORY
+#  if defined(HAVE_READLINE_HISTORY_H)
+#    include <readline/history.h>
+#  elif defined(HAVE_HISTORY_H)
+#    include <history.h>
+#  else                             /* !defined(HAVE_HISTORY_H) */
+extern void add_history ();
+extern int write_history ();
+extern int read_history ();
+#  endif                            /* defined(HAVE_READLINE_HISTORY_H) */
+                                    /* no history */
+#endif                              /* HAVE_READLINE_HISTORY */
+
+
 #include <hamlib/rotator.h>
 #include "misc.h"
 
@@ -255,6 +269,9 @@ int main (int argc, char *argv[])
 #ifdef HAVE_LIBREADLINE
 	if (interactive && prompt && have_rl) {
 		rl_readline_name = "rigctl";
+#ifdef HAVE_READLINE_HISTORY
+		using_history();	/* Initialize Readline History */
+#endif
 	}
 #endif	/* HAVE_LIBREADLINE */
 
