@@ -252,6 +252,7 @@ Optional, but highly recommended:
 * libxml2 devel                     # xml2-config --version
 * libgd2 devel                      # gdlib-config --version
 * libusb devel                      # libusb-config --version (not 1.0.0!)
+* libreadline devel                 # ver 5.2 or newer
 
 N.B.:  The libusb package is required for building most of the 'kit' backend.
 The older version is needed, not 1.0.0 or higher.  Debian and derivatives

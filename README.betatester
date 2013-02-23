@@ -1,6 +1,6 @@
 Hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
          (C) Stephane Fillod 2000-2011
-         (C) The Hamlib Group 2000-2012
+         (C) The Hamlib Group 2000-2013
 
 Why does Hamlib need beta-testers?
 ==================================
@@ -86,6 +86,7 @@ Optional, but highly recommended for a complete build:
 * libxml2 devel                     # xml2-config --version
 * libgd2 devel                      # gdlib-config --version
 * libusb devel                      # libusb-config --version (not 1.0.0!)
+* libreadline devel                 # ver 5.2 or newer
 * Git for connection to hamlib.git.sourceforge.net
 
 N.B  The libusb package is required for building most of the 'kit' backend.
@@ -315,4 +316,3 @@ Needless to say, patches are also very welcome (see README.developer).  :-)
 
 
 Stephane - F8CFE and The Hamlib Group
-
