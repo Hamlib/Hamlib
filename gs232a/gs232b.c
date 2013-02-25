@@ -146,7 +146,7 @@ static int
 gs232b_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
     char posbuf[32];
-    int retval, angle;
+    int retval, int_az, int_el;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
 
@@ -156,17 +156,16 @@ gs232b_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     }
 
     /* parse "AZ=aaa   EL=eee" */
-    if (sscanf(posbuf+3, "%d", &angle) != 1) {
-        rig_debug(RIG_DEBUG_ERR, "%s: wrong reply '%s'\n", __FUNCTION__, posbuf);
-        return -RIG_EPROTO;
-    }
-    *az = (azimuth_t)angle;
 
-    if (sscanf(posbuf+11, "%d", &angle) != 1) {
+    /* With the format string containing a space character as one of the
+     * directives, any amount of space is matched, including none in the input.
+     */
+    if (sscanf(posbuf, "AZ=%d EL=%d", &int_az, &int_el) != 2) {
         rig_debug(RIG_DEBUG_ERR, "%s: wrong reply '%s'\n", __FUNCTION__, posbuf);
         return -RIG_EPROTO;
     }
-    *el = (elevation_t)angle;
+    *az = (azimuth_t)int_az;
+    *el = (elevation_t)int_el;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: (az, el) = (%.1f, %.1f)\n",
 		   __FUNCTION__, *az, *el);
