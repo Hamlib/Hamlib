@@ -64,10 +64,6 @@ AC_SUBST([ABI_VERSION])
 AC_SUBST([ABI_REVISION])
 AC_SUBST([ABI_AGE])
 
-# directory for docs (html)
-hamlibdocdir=$datadir/doc/hamlib
-AC_SUBST([hamlibdocdir])
-
 # Add Hamlib header include paths
 AM_CPPFLAGS="${AM_CPPFLAGS} -I\$(top_srcdir)/include -I\$(top_srcdir)/src -I\$(top_srcdir)/lib"
 
