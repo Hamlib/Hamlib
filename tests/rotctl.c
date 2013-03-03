@@ -33,8 +33,38 @@
 #include <string.h>
 #include <unistd.h>
 #include <ctype.h>
-
+#include <errno.h>
 #include <getopt.h>
+
+#ifdef HAVE_LIBREADLINE
+#  if defined(HAVE_READLINE_READLINE_H)
+#    include <readline/readline.h>
+#  elif defined(HAVE_READLINE_H)    /* !defined(HAVE_READLINE_READLINE_H) */
+#    include <readline.h>
+#  else                             /* !defined(HAVE_READLINE_H) */
+extern char *readline ();
+#  endif                            /* HAVE_READLINE_H */
+#else
+/* no readline */
+#endif                              /* HAVE_LIBREADLINE */
+
+#ifdef HAVE_READLINE_HISTORY
+#  include <sys/stat.h>
+#  define HST_SHRT_OPTS "iI"
+#  if defined(HAVE_READLINE_HISTORY_H)
+#    include <readline/history.h>
+#  elif defined(HAVE_HISTORY_H)
+#    include <history.h>
+#  else                             /* !defined(HAVE_HISTORY_H) */
+extern void add_history ();
+extern int write_history ();
+extern int read_history ();
+#  endif                            /* defined(HAVE_READLINE_HISTORY_H) */
+#else
+/* no history */
+#define HST_SHRT_OPTS ""
+#endif                              /* HAVE_READLINE_HISTORY */
+
 
 #include <hamlib/rotator.h>
 #include "misc.h"
@@ -63,6 +93,10 @@ static struct option long_options[] =
 	{"set-conf", 1, 0, 'C'},
 	{"show-conf",0, 0, 'L'},
 	{"dump-caps",0, 0, 'u'},
+#ifdef HAVE_READLINE_HISTORY
+	{"read-history", 0, 0, 'i'},
+	{"save-history", 0, 0, 'I'},
+#endif
 	{"verbose",  0, 0, 'v'},
 	{"help",     0, 0, 'h'},
 	{"version",  0, 0, 'V'},
@@ -70,6 +104,14 @@ static struct option long_options[] =
 };
 
 #define MAXCONFLEN 128
+
+/* variable for readline support */
+#ifdef HAVE_LIBREADLINE
+static const int have_rl = 1;
+#else                               /* no readline */
+static const int have_rl = 0;
+#endif
+
 
 int interactive = 1;    /* if no cmd on command line, switch to interactive */
 int prompt = 1;         /* Print prompt in rotctl */
@@ -87,6 +129,14 @@ int main (int argc, char *argv[])
 	int verbose = 0;
 	int show_conf = 0;
 	int dump_caps_opt = 0;
+#ifdef HAVE_READLINE_HISTORY
+	int rd_hist = 0;
+	int sv_hist = 0;
+	const char *hist_dir = NULL;
+	const char hist_file[] = "/.rotctl_history";
+	char *hist_path = NULL;
+	struct stat hist_dir_stat;
+#endif
 	const char *rot_file=NULL;
 	int serial_rate = 0;
 	char conf_parms[MAXCONFLEN] = "";
@@ -95,7 +145,7 @@ int main (int argc, char *argv[])
 		int c;
 		int option_index = 0;
 
-		c = getopt_long (argc, argv, SHORT_OPTIONS,
+		c = getopt_long (argc, argv, SHORT_OPTIONS HST_SHRT_OPTS,
 			long_options, &option_index);
 		if (c == -1)
 			break;
@@ -147,6 +197,14 @@ int main (int argc, char *argv[])
 				else
 					send_cmd_term = optarg[0];
 				break;
+#ifdef HAVE_READLINE_HISTORY
+			case 'i':
+				rd_hist++;
+				break;
+			case 'I':
+				sv_hist++;
+				break;
+#endif
 			case 'v':
 				verbose++;
 				break;
@@ -233,6 +291,34 @@ int main (int argc, char *argv[])
 
 	exitcode = 0;
 
+#ifdef HAVE_LIBREADLINE
+	if (interactive && prompt && have_rl) {
+		rl_readline_name = "rotctl";
+#ifdef HAVE_READLINE_HISTORY
+		using_history();	/* Initialize Readline History */
+
+		if (rd_hist || sv_hist) {
+			if (!(hist_dir = getenv("ROTCTL_HIST_DIR")))
+				hist_dir = getenv("HOME");
+
+			if (((stat(hist_dir, &hist_dir_stat) == -1) && (errno == ENOENT))
+				|| !(S_ISDIR(hist_dir_stat.st_mode))) {
+				fprintf(stderr, "Warning: %s is not a directory!\n", hist_dir);
+			}
+
+			hist_path = (char *)calloc((sizeof(char) * (strlen(hist_dir) + strlen(hist_file) + 1)), sizeof(char));
+
+			strncpy(hist_path, hist_dir, strlen(hist_dir));
+			strncat(hist_path, hist_file, strlen(hist_file));
+		}
+
+		if (rd_hist && hist_path)
+			if (read_history(hist_path) == ENOENT)
+				fprintf(stderr, "Warning: Could not read history from %s\n", hist_path);
+#endif
+	}
+#endif	/* HAVE_LIBREADLINE */
+
 	do {
 		retcode = rotctl_parse(my_rot, stdin, stdout, argv, argc);
 		if (retcode == 2)
@@ -240,6 +326,20 @@ int main (int argc, char *argv[])
 	}
 	while (retcode == 0 || retcode == 2);
 
+#ifdef HAVE_LIBREADLINE
+	if (interactive && prompt && have_rl) {
+#ifdef HAVE_READLINE_HISTORY
+		if (sv_hist && hist_path)
+			if (write_history(hist_path) == ENOENT)
+				fprintf(stderr, "\nWarning: Could not write history to %s\n", hist_path);
+
+		if ((rd_hist || sv_hist) && hist_path) {
+			free(hist_path);
+			hist_path = (char *)NULL;
+		}
+	}
+#endif
+#endif
 	rot_close(my_rot); /* close port */
 	rot_cleanup(my_rot); /* if you care about memory */
 
@@ -261,6 +361,10 @@ void usage()
 		"  -L, --show-conf            list all config parameters\n"
 		"  -l, --list                 list all model numbers and exit\n"
 		"  -u, --dump-caps            dump capabilities and exit\n"
+#ifdef HAVE_READLINE_HISTORY
+		"  -i, --read-history         read prior interactive session history\n"
+		"  -I, --save-history         save current interactive session history\n"
+#endif
 		"  -v, --verbose              set verbose mode, cumulative\n"
 		"  -h, --help                 display this help and exit\n"
 		"  -V, --version              output version information and exit\n\n"

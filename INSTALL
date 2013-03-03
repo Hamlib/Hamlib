@@ -251,6 +251,7 @@ enabled with options beginning with '--with-'.  At this time these options
 are:
 
   --with-xml-support      build rigmem with XML support [default=no]
+  --without-readline      disable readline in rigctl/rotctl [default=yes]
   --without-cxx-binding   do not build C++ binding and demo [default=yes]
   --with-perl-binding     build perl binding and demo [default=no]
   --with-perl-inc         directory containing perl includes
