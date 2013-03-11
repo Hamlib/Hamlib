@@ -1,4 +1,5 @@
-EXTRA_DIST = hamlib.cfg index.doxygen hamlib.css footer.html
+EXTRA_DIST = nutshell.texi getting_started.texi fdl.texi \
+	hamlib.cfg index.doxygen hamlib.css footer.html
 
 dist_doc_DATA = Hamlib_design.png hamlib.html hamlib.pdf
 
