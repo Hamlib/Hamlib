@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH RIGCTL "1" "February 20, 2013" "Hamlib" "Radio Control Program"
+.TH RIGCTL "1" "March 12, 2013" "Hamlib" "Radio Control Program"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -226,8 +226,11 @@ Returns VFO as a string from \fIset_vfo\fP above.
 .B J, set_rit 'RIT'
 Set 'RIT', in Hz, can be + or -.
 .sp
-A value of '0' resets RIT and *should* turn RIT off.  If not, file a bug report
-against the Hamlib backend.
+A value of '0' resets RIT and *should* turn RIT off.  If not, file a bug
+report against the Hamlib backend.
+.sp
+\fBN.B\fP This functionality is under transition and in the future will
+need to be activated with the \fIset_func\fP command.
 .TP
 .B j, get_rit
 Get 'RIT', in Hz.
@@ -235,8 +238,11 @@ Get 'RIT', in Hz.
 .B Z, set_xit 'XIT'
 Set 'XIT', in Hz can be + or -.
 .sp
-A value of '0' resets RIT and *should* turn RIT off.  If not, file a bug report
-against the Hamlib backend.
+A value of '0' resets XIT and *should* turn XIT off.  If not, file a bug
+report against the Hamlib backend.
+.sp
+\fBN.B\fP This functionality is under transition and in the future will
+need to be activated with the \fIset_func\fP command.
 .TP
 .B z, get_xit
 Get 'XIT', in Hz.
