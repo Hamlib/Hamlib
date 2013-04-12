@@ -53,6 +53,7 @@ This manual is for Ham Radio Control Libraries (Hamlib) (version @value{VERSION}
 * Copying and Redistribution::
 * Hamlib in a Nutshell::
 * Getting started::
+* Utility programs::
 * GNU Free Documentation License::
 * Working with Git::
 * List of Figures::
@@ -134,6 +135,12 @@ release(s).
 @chapter Getting started
 
 @include getting_started.texi
+
+@c ------------ Chapter ------------
+@node Utility programs
+@chapter Utility programs reference
+
+@include utility_programs.texi
 
 @c ----------------- Appendixes start here ------------------
 
