@@ -28,7 +28,11 @@ autom4te.cache/
 bindings/Hamlib.py
 bindings/hamlibvb.bas
 bindings/hamlibpy_wrap.c
+build-aux/
 doc/hamlib.cfg
+doc/hamlib.info
+doc/stamp-vti
+doc/version.texi
 hamlib-*.tar.gz
 include/config.h
 include/config.h.in
