@@ -241,11 +241,18 @@ dnl the frontend and backend libs are not linked.  May need a recipe outside
 dnl of Libtool if these are needed.
 LT_INIT([dlopen win32-dll disable-static])
 
-dnl Enable building of the convenience libltdl library
+dnl Enable building of the convenience libltdl library recursively
 dnl (requires --with-included-ltdl be given to configure for the included
 dnl libltdl to be used instead of an installed version), useful on systems
 dnl where libltdl-dev is not installed.
-LTDL_INIT([convenience])
+LTDL_INIT([convenience recursive])
+
+dnl Ugly hack to work around libtool LT_CONFIG_H bug #12262
+dnl http://lists.gnu.org/archive/html/bug-libtool/2012-08/msg00007.html
+AC_CONFIG_COMMANDS_PRE([LT_CONFIG_H=`expr "$LT_CONFIG_H" : '.*/\(.*\)'`])
+
+dnl Only build libtldl if it is needed.
+AM_CONDITIONAL([BUILD_LIBLTDL], [test x"${with_included_ltdl}" = "xyes"])
 
 
 ## -------------------------- ##
@@ -652,6 +659,7 @@ AC_SUBST([AM_CPPFLAGS])
 AC_CONFIG_FILES([Makefile
 macros/Makefile
 include/Makefile
+libltdl/Makefile
 lib/Makefile
 dummy/Makefile
 yaesu/Makefile
