@@ -59,6 +59,10 @@ This software is copyrighted. The library license is LGPL, and the *.EXE
 files licenses are GPL.  Hamlib comes WITHOUT ANY WARRANTY. See the
 LICENSE.txt, COPYING.txt, and COPYING.LIB.txt files.
 
+A draft user manual in HTML format is included in the doc directory.  As it
+covers the four main Hamlib utilities the respective PDF files are no longer
+included separately.
+
 
 Installation and Configuration
 ==============================
@@ -176,12 +180,13 @@ END_OF_README
  --with-included-ltdl \
  PKG_CONFIG_LIBDIR=${LIBUSB_WIN32_BIN_PATH}/lib/pkgconfig
 
-
 make install
 
-mkdir -p ${ZIP_DIR}/bin ${ZIP_DIR}/lib/msvc ${ZIP_DIR}/lib/gcc ${ZIP_DIR}/include ${ZIP_DIR}/pdf
+mkdir -p ${ZIP_DIR}/bin ${ZIP_DIR}/lib/msvc ${ZIP_DIR}/lib/gcc ${ZIP_DIR}/include ${ZIP_DIR}/pdf ${ZIP_DIR}/doc
 cp -a src/libhamlib.def ${ZIP_DIR}/lib/msvc/libhamlib-2.def; todos ${ZIP_DIR}/lib/msvc/libhamlib-2.def
 cp -a ${INST_DIR}/include/hamlib ${ZIP_DIR}/include/.; todos ${ZIP_DIR}/include/hamlib/*.h
+cp -a doc/Hamlib_design.png ${ZIP_DIR}/doc
+cp -a doc/hamlib.html ${ZIP_DIR}/doc
 
 # C++ binding is useless on win32 because of ABI
 rm ${ZIP_DIR}/include/hamlib/{rig,rot}class.h
@@ -192,7 +197,7 @@ for f in AUTHORS ChangeLog COPYING COPYING.LIB LICENSE README README.betatester 
 # Generate PDF documents from nroff formatted man files
 cd tests
 
-for f in rigctl.1 rigctld.8 rigmem.1 rigsmtr.1 rigswr.1 rotctl.1 rotctld.8 ; do \
+for f in rigmem.1 rigsmtr.1 rigswr.1; do \
     groff -mandoc >${f}.ps ${f} ; ps2pdf ${f}.ps ; rm ${f}.ps ; \
     cp -a ${f}.pdf ${ZIP_DIR}/pdf/. ; done
 
