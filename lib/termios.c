@@ -2593,23 +2593,23 @@ int tcflush( int fd, int queue_selector )
 	switch( queue_selector )
 	{
 		case TCIFLUSH:
-			if ( !PurgeComm( index->hComm, PURGE_RXABORT ) )
+			if ( !PurgeComm( index->hComm, PURGE_RXABORT|PURGE_RXCLEAR ) )
 			{
 				goto fail;
 			}
 			break;
 		case TCOFLUSH:
-			if ( !PurgeComm( index->hComm, PURGE_TXABORT ) )
+			if ( !PurgeComm( index->hComm, PURGE_TXABORT|PURGE_TXCLEAR ) )
 			{
 				goto fail;
 			}
 			break;
 		case TCIOFLUSH:
-			if ( !PurgeComm( index->hComm, PURGE_TXABORT ) )
+			if ( !PurgeComm( index->hComm, PURGE_TXABORT|PURGE_TXCLEAR ) )
 			{
 				goto fail;
 			}
-			if ( !PurgeComm( index->hComm, PURGE_RXABORT ) )
+			if ( !PurgeComm( index->hComm, PURGE_RXABORT|PURGE_RXCLEAR ) )
 			{
 				goto fail;
 			}
