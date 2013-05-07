@@ -349,7 +349,7 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
   /*
    * VTIME in deciseconds, rp->timeout in miliseconds
    */
-  options.c_cc[VTIME] = rp->timeout / 100;
+  options.c_cc[VTIME] = (rp->timeout + 99) / 100;
   options.c_cc[VMIN] = 1;
 
   /*
