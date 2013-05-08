@@ -1,4 +1,4 @@
-EXTRA_DIST = hamlib.cfg index.doxygen hamlib.css footer.html
+EXTRA_DIST = hamlib.cfg index.doxygen hamlib.css footer.html Hamlib_design.eps
 
 dist_doc_DATA = Hamlib_design.png hamlib.html
 

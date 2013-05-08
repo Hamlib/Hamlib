@@ -45,11 +45,6 @@ main directory and do the following:
 
         $ make check
 
-     Be careful: 'make check' needs an already installed hamlib library. That
-     means that this step has to wait until you finished step 4 (and 5).
-
-     TODO: Fix 'make check' to work before installation.
-
   4. Type `make install' to install the programs and any data files and
      documentation. Type `make uninstall' to undo the installation.
 
@@ -227,8 +222,8 @@ find the X include and library files automatically, but if it doesn't,
 you can use the `configure' options `--x-includes=DIR' and
 `--x-libraries=DIR' to specify their locations.
 
-Win32
-=====
+MS Windows
+==========
 - Debian system with mingw32msvc cross-compiler
 
     ./configure --with-included-ltdl --host=i586-mingw32msvc

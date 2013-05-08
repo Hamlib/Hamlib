@@ -52,16 +52,20 @@ utility), and USB.  Other connectivity will follow afterwards.
 General Guidelines.
 -------------------
 
-0. The top level directory looks like this as of 13 Feb 2011
+0. The top level directory looks like this as of 07 May 2013
 (Note, it has grown considerably).
 
 $ tree -d -I .git
 .
+├── adat
 ├── alinco
+├── amsat
+├── android
 ├── aor
 ├── ars
 ├── bindings
 ├── c++
+├── celestron
 ├── doc
 ├── drake
 ├── dummy
@@ -73,13 +77,13 @@ $ tree -d -I .git
 ├── heathkit
 ├── icom
 ├── include
-│   └── hamlib
+│   └── hamlib
 ├── jrc
 ├── kachina
 ├── kenwood
 ├── kit
 ├── kylix
-│   └── tests
+│   └── tests
 ├── lib
 ├── lowe
 ├── m2
@@ -94,25 +98,28 @@ $ tree -d -I .git
 ├── rotorez
 ├── rs
 ├── sartek
+├── scripts
 ├── skanti
 ├── spid
 ├── src
 ├── tapr
 ├── tentec
 ├── tests
-│   ├── config
-│   ├── rigctl.test
-│   ├── testbcd.test
-│   ├── testfreq.test
-│   └── testloc.test
+│   ├── config
+│   ├── rigctl.test
+│   ├── testbcd.test
+│   ├── testfreq.test
+│   └── testloc.test
+├── ts7400
+│   └── include
 ├── tuner
 ├── uniden
 ├── winradio
-│   └── linradio
+│   └── linradio
 ├── wj
 └── yaesu
 
-56 directories
+61 directories
 
 
 1. Building
@@ -123,12 +130,12 @@ file.  This document introduces hacking the code of Hamlib.
 
 1.1 Obtaining sources: git clone
 
-  git clone git://hamlib.git.sourceforge.net/gitroot/hamlib/hamlib
+  git clone git://git.code.sf.net/p/hamlib/code hamlib
 
 The clone has to only be done the first time.
 
 After the initial clone, whenever you want to update your local
-repository, issue the following command in the root directory of hamlib.
+repository, issue the following command in the root directory of Hamlib:
 
   git pull
 
@@ -137,6 +144,10 @@ repository (what Git calls origin by default).  This command actually
 combines two Git commands, fetch and merge into one that will first check
 for conflicting changes between your local repository and the remote
 (origin) repository and will not apply any changes if conflicts are found.
+
+A pull can be restricted to just a single branch if desired:
+
+  git pull origin master
 
 
 1.1.1 Obtaining more info on Git
@@ -239,7 +250,8 @@ distributions may differ).
 * libtool       2.2.6b+                     # libtool --version
 * libltdl-dev   2.2.6b+
 * pkg-config    0.25                        # pkg-config --version
-* Git for connection to hamlib.git.sourceforge.net
+* Git for connection to git.code.sf.net/p/hamlib/code
+* texinfo       4.13a                       # makeinfo --version
 
 N.B. Hamlib requires libtool >= 2.2.6b in compliance with CVE-2009-3736.
 
@@ -253,6 +265,7 @@ Optional, but highly recommended:
 * libgd2 devel                      # gdlib-config --version
 * libusb devel                      # libusb-config --version (not 1.0.0!)
 * libreadline devel                 # ver 5.2 or newer
+* texlive                           # 5.1 tested with 'make distcheck'
 
 N.B.:  The libusb package is required for building most of the 'kit' backend.
 The older version is needed, not 1.0.0 or higher.  Debian and derivatives
@@ -297,7 +310,7 @@ following in the same parent directory of hamlib:
 Note: In the examples above, passing the CFLAGS environment variable is
 optional.
 
-This will keep the binary output files seperate from the source tree and aid
+This will keep the binary output files separate from the source tree and aid
 in development by reducing clutter in the source tree.
 
 Once you've run `autogen.sh', make sure you've got some recent config.guess
@@ -362,13 +375,14 @@ So far, Hamlib has been tested successfully under the following systems:
 
     * Debian i386 (plus derivatives--Ubuntu, etc.)
     * Debian sid mipsel
+    * Raspbian armhf (Raspberry Pi Debian derivative)
     * RedHat i386
     * Linux ppc
     * Slackware i386
     * FreeBSD & NetBSD
     * Solaris 2.6
     * Mac OS X
-    * win32: Cygwin, Mingw
+    * MS Windows: Cygwin, Mingw
 
 
 2. How to add a new backend
@@ -555,6 +569,15 @@ Portability issues to watch:
     * 64 bit int: avoid them in API
     * printf/scanf of 64bit int: use PRIll and SCNll
     * printf/scanf of freq_t: use PRIfreq and SCNfreq
+
+Testing:
+
+    * The acid test for the build system is 'make distcheck' which will
+      make a distribution tarball, extract, configure, and build it in a
+      subdirectory, run 'make check', install it, uninstall it, and clean
+      it up.  When all those tests pass, the GNU build system declares the
+      package ready for distribution.  This is a good test if you have
+      touched the build system files or added a backend.
 
 
 8.2.1 Use of rig_debug() function

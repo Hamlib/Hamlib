@@ -5,9 +5,19 @@ libhamlib___la_LDFLAGS = -no-undefined -version-info @ABI_VERSION@:@ABI_REVISION
 libhamlib___la_LIBADD = $(top_builddir)/src/libhamlib.la
 
 check_PROGRAMS = testcpp
-TESTS = testcpp
 
 testcpp_SOURCES = testcpp.cc
 testcpp_LDADD = libhamlib++.la
 testcpp_LDFLAGS = @BACKENDLNK@
 testcpp_DEPENDENCIES = libhamlib++.la @BACKENDEPS@
+
+check_SCRIPTS = testcpp.sh
+
+TESTS = $(check_SCRIPTS)
+
+
+testcpp.sh:
+	echo 'LD_LIBRARY_PATH=$(top_builddir)/dummy/.libs ./testcpp' > testcpp.sh
+	chmod +x ./testcpp.sh
+
+CLEANFILES = testcpp.sh

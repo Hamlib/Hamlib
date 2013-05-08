@@ -88,7 +88,7 @@ TESTS = $(check_SCRIPTS)
 
 
 testrig.sh:
-	echo './testrig 1' > testrig.sh
+	echo 'LD_LIBRARY_PATH=$(top_builddir)/dummy/.libs ./testrig 1' > testrig.sh
 	chmod +x ./testrig.sh
 
 testfreq.sh:
