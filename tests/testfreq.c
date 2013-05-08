@@ -1,5 +1,5 @@
 
-/* 
+/*
  * Very simple test program to check freq convertion --SF
  * This is mainly to test kHz, MHz, GHz macros and int64_t support.
  */
@@ -28,11 +28,11 @@ int main (int argc, char *argv[])
 #endif
 
 	printf("%s\n", hamlib_version);
-	printf("caps size: %d\n", sizeof(struct rig_caps));
-	printf("state size: %d\n", sizeof(struct rig_state));
-	printf("RIG size: %d\n", sizeof(struct rig));
-	printf("freq_t size: %d\n", sizeof(freq_t));
-	printf("shortfreq_t size: %d\n", sizeof(shortfreq_t));
+	printf("caps size: %lu\n", sizeof(struct rig_caps));
+	printf("state size: %lu\n", sizeof(struct rig_state));
+	printf("RIG size: %lu\n", sizeof(struct rig));
+	printf("freq_t size: %lu\n", sizeof(freq_t));
+	printf("shortfreq_t size: %lu\n", sizeof(shortfreq_t));
 
 	/* freq on 31bits test */
 	f = GHz(2);
