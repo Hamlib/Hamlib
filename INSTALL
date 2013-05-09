@@ -90,12 +90,17 @@ main directory and do the following:
 
         /usr/local/lib
 
-     On Debian systems since at least 4.0 (Etch) and its derivatives (Ubuntu,
-     etc.), a file will need to be created in the /etc/ld.so.conf.d directory.
-     It doesn't seem to matter what you name it so long as it ends in .conf
-     and local.conf is a good choice.  Place the following line in it:
+     Most modern distributions have an /etc/ld.so.conf.d/ directory where
+     local configuration can be made. Later versions of Debian and
+     derivatives have a file named 'libc.conf' in this directory.  The
+     contents of libc.conf are:
 
+        # libc default configuration
         /usr/local/lib
+
+     If your system does not have such a file, one will need to be created
+     and then `ldconfig' will need to be run as the root user so that
+     applications using the Hamlib libraries can find them.
 
      Now `ldconfig' can be run.
 

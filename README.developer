@@ -341,6 +341,18 @@ For a Tcl build, add this if needed:
 Note: C-shell users may have to run autogen.sh and make through a bourne
 shell instead, or pass "SHELL=bash" as a parameter to make.
 
+Some basic testing is accomplished with the 'make check' target which will
+run a few predetermined tests using the 'dummy' (rig model 1) backend and
+some other Hamlib functions in the build tree. This is a basic sanity check
+and cannot test all backends.
+
+Likewise, a complete test of the build system is accomplished with
+'make distcheck' which exercises a complete build sequence from creating
+a distribution tarball, building, installing, uninstalling, and cleaning
+Hamlib.  All packages listed above except for Swig and Doxygen are required
+for this target as neither the bindings or old documentation are generated
+in a default build.
+
 NOTE!  If Hamlib has not been previously installed as a locally built
 package you will need to make sure that `ldconfig' is configured correctly
 and run periodically after `make install'.  Most modern distributions have
