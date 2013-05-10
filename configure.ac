@@ -219,6 +219,9 @@ ioctl memchr memmove memset pow rint select setitimer setlocale sigaction \
 snprintf socket sqrt strchr strdup strerror strncasecmp strrchr strstr strtol])
 AC_FUNC_ALLOCA
 
+dnl AC_LIBOBJ replacement functions directory
+AC_CONFIG_LIBOBJ_DIR([lib])
+
 dnl Use Hamlib's termios
 AC_LIBOBJ([termios])
 
