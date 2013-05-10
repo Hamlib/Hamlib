@@ -53,7 +53,7 @@ int ic10_cmd_trim (char *data, int data_len) {
 				__func__, data_len);
 
        /* suck up additional spaces at end of the data buffer */
-        for (i=data_len; !isdigit(data[i-1]); i--) {
+        for (i=data_len; !isdigit((int)data[i-1]); i--) {
                data_len = data_len-1;
         	rig_debug(RIG_DEBUG_TRACE,"%s: data['%d'] is '%c'\n",
                                 __func__, i-1, data[i-1]);

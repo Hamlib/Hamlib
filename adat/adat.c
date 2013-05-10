@@ -594,7 +594,7 @@ size_t trimwhitespace( char *out, size_t len, const char *str )
     }
 
     // Trim leading space
-    while(isspace(*str)) str++;
+    while(isspace((int)*str)) str++;
 
     if(*str == 0)  // All spaces?
     {
@@ -605,7 +605,7 @@ size_t trimwhitespace( char *out, size_t len, const char *str )
 
     // Trim trailing space
     end = (char *)(str + strlen(str) - 1);
-    while(end > str && isspace(*end))
+    while(end > str && isspace((int)*end))
     {
       *end = '\0';
       end--;
@@ -732,7 +732,7 @@ int adat_parse_freq( char                    *pcStr,
 
             // Get Freq Value from response string
 
-            while(( isalpha( *pcEnd ) == 0 ) ||
+            while(( isalpha( (int)*pcEnd ) == 0 ) ||
                   ( *pcEnd == '.' ))
             {
                 acValueBuf[ nI++ ] = *pcEnd;
@@ -748,7 +748,7 @@ int adat_parse_freq( char                    *pcStr,
             // Get Freq Unit from response string
 
             nI = 0;
-            while( isalpha( *pcEnd ) != 0 )
+            while( isalpha( (int)*pcEnd ) != 0 )
             {
                 acUnitBuf[ nI++ ] = *pcEnd;
                 pcEnd += sizeof( char );

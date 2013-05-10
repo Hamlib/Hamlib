@@ -630,7 +630,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 			 * alpha-numeric characters and the underscore ('_') character.
 			 */
 			for (j = 0; cmd_name[j] != '\0'; j++) {
-				if (!(isalnum(cmd_name[j]) || cmd_name[j] == '_')) {
+				if (!(isalnum((int)cmd_name[j]) || cmd_name[j] == '_')) {
 					fprintf(stderr, "Valid multiple character command names contain alpha-numeric characters plus '_'\n");
 					return 0;
 				}

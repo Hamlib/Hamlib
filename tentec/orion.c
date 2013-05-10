@@ -918,7 +918,7 @@ const char *tt565_get_info(RIG *rig)
 
 	/* filter out any non-graphic characters */
 	for (i=0; i < strlen(buf); i++)
-		if (!isgraph(buf[i])) buf[i] = ' ';   // bad chars -> spaces
+		if (!isgraph((int)buf[i])) buf[i] = ' ';   // bad chars -> spaces
 	return buf;
     }
 

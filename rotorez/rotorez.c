@@ -420,7 +420,7 @@ static int rotorez_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *e
 		} else if (err == AZ_READ_LEN && az[0] == ';') {
 			/* Check if remaining chars are digits if az[0] == ';' */
 			for (p = az + 1;p < az + 4; p++)
-				if (isdigit(*p))
+				if (isdigit((int)*p))
 					continue;
 				else
 					err = -RIG_EINVAL;
@@ -493,14 +493,14 @@ static int erc_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *eleva
 		/* Check if remaining chars are digits if az[3] == ';' */
 		if (az[3] == ';') {
 			for (p = az; p < az + 3; p++)
-				if (isdigit(*p))
+				if (isdigit((int)*p))
 					continue;
 				else
 					err = -RIG_EINVAL;
 		} else if (az[0] == ';') {
 			/* Check if remaining chars are digits if az[0] == ';' */
 			for (p = az + 1;p < az + 4; p++)
-				if (isdigit(*p))
+				if (isdigit((int)*p))
 					continue;
 				else
 					err = -RIG_EINVAL;

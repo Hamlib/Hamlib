@@ -1297,7 +1297,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		if (lvlbuf[2] == '0')
 			val->i = 0;
-		else if (isdigit(lvlbuf[2])) {
+		else if (isdigit((int)lvlbuf[2])) {
 			lvl = lvlbuf[2]-'0';
 			for (i=0; i<lvl && i<MAXDBLSTSIZ; i++) {
 				if (rig->state.preamp[i] == 0) {

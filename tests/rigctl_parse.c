@@ -724,7 +724,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 			 * alpha-numeric characters and the underscore ('_') character.
 			 */
 			for (j = 0; cmd_name[j] != '\0'; j++) {
-				if (!(isalnum(cmd_name[j]) || cmd_name[j] == '_')) {
+				if (!(isalnum((int)cmd_name[j]) || cmd_name[j] == '_')) {
 					fprintf(stderr, "Valid multiple character command names contain alpha-numeric characters plus '_'\n");
 					return 0;
 				}
@@ -807,7 +807,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 #endif
 			/* Sanity check, VFO names are alpha only. */
 			for (j = 0; j < MAXNAMSIZ && parsed_input[x][j] != '\0'; j++) {
-				if (!(isalpha(parsed_input[x][j]))) {
+				if (!(isalpha((int)parsed_input[x][j]))) {
 					parsed_input[x][j] = '\0';
 
 					break;
@@ -2106,7 +2106,7 @@ declare_proto_rig(set_channel)
 
 	memset(&chan, 0, sizeof(channel_t));
 
-	if (isdigit(arg1[0])) {
+	if (isdigit((int)arg1[0])) {
 		chan.vfo = RIG_VFO_MEM;
 		CHKSCN1ARG(sscanf(arg1, "%d", &chan.channel_num));
 		/*
@@ -2280,7 +2280,7 @@ declare_proto_rig(get_channel)
 
 	memset(&chan, 0, sizeof(channel_t));
 
-	if (isdigit(arg1[0])) {
+	if (isdigit((int)arg1[0])) {
 		chan.vfo = RIG_VFO_MEM;
 		CHKSCN1ARG(sscanf(arg1, "%d", &chan.channel_num));
 	} else {
