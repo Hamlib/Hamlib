@@ -1,4 +1,5 @@
 #ifndef _WIN32
+#ifndef __CYGWIN__
 
 #include <dlfcn.h>
 #include <stdio.h>
@@ -168,4 +169,5 @@ void UninitAPI(void)
     }
 }
 
-#endif
+#endif	/* not __CYGWIN__ */
+#endif	/* not _WIN32 */

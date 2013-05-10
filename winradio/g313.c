@@ -28,6 +28,7 @@
 #define G313_MODES (RIG_MODE_NONE)
 
 #ifdef _WIN32
+#ifdef __CYGWIN__
 
 #ifdef HAVE_WINDOWS_H
 #include <windows.h>
@@ -642,7 +643,7 @@ int g313_get_conf(RIG *rig, token_t token, char *val)
 	return RIG_OK;
 }
 
-/* end _WIN32 */
+/* end _WIN32 and __CYGWIN__ */
 #else
 
 /* linux, maybe other posix */
@@ -1148,4 +1149,5 @@ const struct rig_caps g313_caps =
   .get_info =      g313_get_info,
 };
 
+#endif	/* not __CYGWIN__ */
 #endif	/* not _WIN32 */

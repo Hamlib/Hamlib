@@ -246,10 +246,18 @@ DECLARE_INITRIG_BACKEND(winradio)
 
 	/* Receivers with DLL only available under Windows */
 #ifdef _WIN32
+#ifdef __CYGWIN__
 	rig_register(&g303_caps);
 	rig_register(&g305_caps);
 #endif
+#endif
+
+	/* Not available on MS Windows */
+#ifndef _WIN32
+#ifndef __CYGWIN__
 	rig_register(&g313_caps);
+#endif
+#endif
 
 	return RIG_OK;
 }
