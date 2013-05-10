@@ -17,6 +17,8 @@ libhamlib_la_CFLAGS = -DIN_HAMLIB $(AM_CFLAGS) -DHAMLIB_MODULE_DIR=\"$(pkglibdir
 libhamlib_la_LIBADD = $(LIBLTDL) $(top_builddir)/lib/libmisc.la \
 		      @NET_LIBS@ @MATH_LIBS@ $(LIBUSB_LIBS)
 
+libhamlib_la_DEPENDENCIES = $(LTDLDEPS) $(top_builddir)/lib/libmisc.la
+
 noinst_HEADERS = event.h misc.h serial.h iofunc.h cal.h tones.h \
 		rot_conf.h token.h idx_builtin.h register.h par_nt.h \
 		parallel.h usb_port.h network.h cm108.h
