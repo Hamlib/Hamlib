@@ -28,6 +28,7 @@
 #define G313_MODES (RIG_MODE_NONE)
 
 #ifdef _WIN32
+#else
 #ifdef __CYGWIN__
 
 #ifdef HAVE_WINDOWS_H
