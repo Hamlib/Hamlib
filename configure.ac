@@ -79,8 +79,9 @@ AC_PROG_CPP
 AC_PROG_AWK
 AC_PROG_INSTALL
 AC_PROG_LN_S
-dnl AC_PROG_MAKE_SET
-AM_PROG_AR
+
+dnl Broke on older Automake, so test for its existence.
+m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 
 dnl Pkgconfig assists when using certain external packages
 PKG_PROG_PKG_CONFIG
