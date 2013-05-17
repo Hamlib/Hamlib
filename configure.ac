@@ -80,6 +80,7 @@ AC_PROG_AWK
 AC_PROG_INSTALL
 AC_PROG_LN_S
 dnl AC_PROG_MAKE_SET
+AM_PROG_AR
 
 dnl Pkgconfig assists when using certain external packages
 PKG_PROG_PKG_CONFIG
@@ -105,10 +106,18 @@ AM_PROG_CC_C_O
 ## ------------------------------------------ ##
 
 AC_CHECK_HEADERS([errno.h fcntl.h getopt.h limits.h locale.h malloc.h \
-netdb.h sgtty.h stddef.h termio.h termios.h values.h ws2tcpip.h \
+netdb.h sgtty.h stddef.h termio.h termios.h values.h \
 arpa/inet.h dev/ppbus/ppbconf.hdev/ppbus/ppi.h \
 linux/hidraw.h linux/ioctl.h linux/parport.h linux/ppdev.h  netinet/in.h \
 sys/ioccom.h sys/ioctl.h sys/param.h sys/socket.h sys/stat.h sys/time.h])
+
+dnl set host_os variable
+AC_CANONICAL_HOST
+
+dnl ws2tcpip.h not provided by cygwin and its test causes a configure warning.
+AS_IF([test "${host_os}" != "cygwin"], [
+       AC_CHECK_HEADERS([ws2tcpip.h])
+])
 
 
 ## ------------------------------------ ##
@@ -262,6 +271,7 @@ AM_CONDITIONAL([BUILD_LIBLTDL], [test x"${with_included_ltdl}" = "xyes"])
 ## Custom host configurations ##
 ## -------------------------- ##
 
+dnl The host_os variable is set by the AC_CANONICAL_HOST macro above.
 AS_CASE(["$host_os"],
     [freebsd*], [
         AM_CPPFLAGS="-I/usr/local/include ${AM_CPPFLAGS}"
