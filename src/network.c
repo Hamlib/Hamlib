@@ -59,6 +59,9 @@
 #include <sys/socket.h>
 #elif HAVE_WS2TCPIP_H
 #include <ws2tcpip.h>
+#	if defined(HAVE_WSPIAPI_H)
+#		include <wspiapi.h>
+#	endif
 #endif
 
 #include "hamlib/rig.h"

@@ -116,8 +116,9 @@ dnl set host_os variable
 AC_CANONICAL_HOST
 
 dnl ws2tcpip.h not provided by cygwin and its test causes a configure warning.
+dnl wspiapi.h provides needed freeaddrinfo function on W2k systems.
 AS_IF([test "${host_os}" != "cygwin"], [
-       AC_CHECK_HEADERS([ws2tcpip.h])
+       AC_CHECK_HEADERS([ws2tcpip.h wspiapi.h])
 ])
 
 

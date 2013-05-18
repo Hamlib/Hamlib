@@ -48,6 +48,9 @@
 #elif HAVE_WS2TCPIP_H
 #include <ws2tcpip.h>
 #include <fcntl.h>
+#	if defined(HAVE_WSPIAPI_H)
+#		include <wspiapi.h>
+#	endif
 #endif
 #ifdef HAVE_NETDB_H
 #include <netdb.h>
