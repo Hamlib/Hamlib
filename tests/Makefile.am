@@ -29,6 +29,8 @@ LDADD = $(top_builddir)/src/libhamlib.la $(top_builddir)/lib/libmisc.la
 DEPENDENCIES = $(top_builddir)/src/libhamlib.la
 
 rigmem_CFLAGS = $(AM_CFLAGS) @LIBXML2_CFLAGS@
+rigctld_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+rotctld_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 
 ## Linker options
 listrigs_LDFLAGS = @BACKENDLNK@

@@ -1,3 +1,4 @@
+AM_CFLAGS = @AM_CFLAGS@ $(PTHREAD_CFLAGS)
 
 pkglib_LTLIBRARIES = hamlib-ars.la
 hamlib_ars_la_SOURCES = ars.c

@@ -94,9 +94,10 @@ PKG_PROG_PKG_CONFIG
 AC_C_INLINE
 
 dnl Set warnings for compilation
+dnl CFLAGS and CXXFLAGS are reserved for user, so set their AM_* counterparts.
 # macros/ax_cflags_warn_all.m4
-AX_CFLAGS_WARN_ALL
-AX_CXXFLAGS_WARN_ALL
+AX_CFLAGS_WARN_ALL([AM_CFLAGS])
+AX_CXXFLAGS_WARN_ALL([AM_CXXFLAGS])
 
 dnl Automake macro for rigmem compilation
 AM_PROG_CC_C_O
@@ -130,12 +131,11 @@ dnl Check for Mingw (Win32 Sleep) support
 # macros/gr_pwin32.m4
 GR_PWIN32
 
+dnl If pthread support is found, this macro defines HAVE_PTHREAD and
+dnl AC_SUBST's PTHREAD_LIBS, PTHREAD_CFLAGS, and PTHREAD_CC making those
+dnl variables available in Makefiles.
 # macros/ax_pthread.m4
 AX_PTHREAD
-AS_IF([test x"$ax_pthread_ok" = "xyes"], [
-      CFLAGS="${CFLAGS} ${PTHREAD_CFLAGS}"
-      CXXFLAGS="${CXXFLAGS} ${PTHREAD_CFLAGS}"
-])
 
 AC_SYS_POSIX_TERMIOS()
 
@@ -283,8 +283,8 @@ AS_CASE(["$host_os"],
     [darwin* | rhapsody*], [
         # Trick from http://fink.sourceforge.net/doc/porting/
         # TODO: check the compiler actually does support these options
-        CFLAGS="${CFLAGS} -no-cpp-precomp"
-        CXXFLAGS="${CXXFLAGS} -no-cpp-precomp"
+        AM_CFLAGS="${AM_CFLAGS} -no-cpp-precomp"
+        AM_CXXFLAGS="${AM_CXXFLAGS} -no-cpp-precomp"
 
         # Tell the OS X linker to allocate enough space inside the
         # libhamlib.X.dylib shared object for install_name_tool(1) to
@@ -613,11 +613,11 @@ AM_CONDITIONAL([ENABLE_CXX], [test x"${cf_with_cxx}" = "xyes"])
 AM_CONDITIONAL([HAVE_USRP], [test x"${cf_with_usrp}" = "xyes"])
 
 
+dnl Defines LIBUSB_CFLAGS and LIBUSB_LIBS as precious variables
+dnl so they appear in all Makefiles.
+# macros/pkg.m4
 PKG_CHECK_MODULES([LIBUSB], [libusb >= 0.1], [],
                   [AC_MSG_WARN([libusb pkg-config not found, USB backends will be disabled])])
-
-CFLAGS="${CFLAGS} ${LIBUSB_CFLAGS}"
-CXXFLAGS="${CXXFLAGS} ${LIBUSB_CFLAGS}"
 
 AC_CHECK_HEADERS([usb.h])
 AC_MSG_CHECKING([whether to build USB backends])
@@ -668,7 +668,11 @@ done
 AC_SUBST([ROT_BACKEND_LIST])
 AC_SUBST([ROT_BACKENDLNK])
 AC_SUBST([ROT_BACKENDEPS])
+
+dnl Output accumulated flags to the Makefile files.
 AC_SUBST([AM_CPPFLAGS])
+AC_SUBST([AM_CFLAGS])
+AC_SUBST([AM_CXXFLAGS])
 
 
 AC_CONFIG_FILES([Makefile
@@ -732,9 +736,9 @@ echo \
  ${PACKAGE_NAME} Version ${PACKAGE_VERSION} configuration:
 
  Prefix         ${prefix}
- C Compiler     ${CC} ${CFLAGS} ${CPPFLAGS}
- C++ Compiler   ${CXX} ${CXXFLAGS} ${CPPFLAGS}
-
+ Preprocessor   ${CPP} ${CPPFLAGS}
+ C Compiler     ${CC} ${CFLAGS}
+ C++ Compiler   ${CXX} ${CXXFLAGS}
 
  Package features:
     With C++ binding                ${cf_with_cxx_binding}

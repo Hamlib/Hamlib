@@ -1,11 +1,12 @@
-AM_CFLAGS = @LIBUSB_CFLAGS@
+AM_CFLAGS = @AM_CFLAGS@ $(LIBUSB_CFLAGS)
 
 # FIXME: compile usrp only if CXX available
 KITSRCLIST = elektor304.c drt1.c dwt.c usrp.c elektor507.c \
 	     dds60.c miniVNA.c si570avrusb.c funcube.c fifisdr.c hiqsdr.c
 
 if HAVE_USRP
-    AM_CXXFLAGS = @USRP_CFLAGS@
+    # Append to the already defined AM_CXXFLAGS that exists outside the conditional.
+    AM_CXXFLAGS += @USRP_CFLAGS@
     KITSRCLIST += usrp_impl.cc
     hamlib_kit_la_LINK = $(CXXLINK) $(hamlib_kit_la_LDFLAGS)
 else
