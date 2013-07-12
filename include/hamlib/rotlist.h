@@ -261,6 +261,15 @@
 #define ROT_BACKEND_CELESTRON "celestron"
 #define ROT_MODEL_NEXSTAR ROT_MAKE_MODEL(ROT_CELESTRON, 1)
 
+/*! \def ROT_MODEL_ETHER6
+ *  \brief A macro that returns the model number of the Ether6 backend.
+ *
+ *  The Ether6 backend can be used with rotators that support the Ether6
+ *  protocol and alike.
+ */
+#define ROT_ETHER6 15
+#define ROT_BACKEND_ETHER6 "ether6"
+#define ROT_MODEL_ETHER6 ROT_MAKE_MODEL(ROT_ETHER6, 1)
 
 /*! \typedef typedef int rot_model_t
     \brief Convenience type definition for rotator model.
@@ -290,6 +299,7 @@ typedef int rot_model_t;
         { ROT_AMSAT, ROT_BACKEND_AMSAT }, \
         { ROT_TS7400, ROT_BACKEND_TS7400 }, \
         { ROT_CELESTRON, ROT_BACKEND_CELESTRON }, \
+        { ROT_ETHER6, ROT_BACKEND_ETHER6 }, \
         { 0, NULL }, /* end */  \
 }
 

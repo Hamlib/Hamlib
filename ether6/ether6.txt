@@ -1,0 +1,26 @@
+jro@sunny:~ $ socat stdio tcp4:etherrape:2701
+
+rotor status
+cw   az=-87 el=88 v=50 ad0=370
+
+rotor cw
+rotor ccw
+rotor stop
+rotor park
+
+rotor state
+-180/180 0/90
+
+.... all commands
+
+rotor move
+rotor status
+rotor state
+rotor cw
+rotor ccw
+rotor stop
+rotor park
+rotor setparkpos
+rotor calibrate
+rotor get calibrate
+

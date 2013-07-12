@@ -1,0 +1,34 @@
+Quirks, known bugs, and other notes.
+====================================
+
+In this document I will try to describe the operation of the rotor Ethersex
+interfaces.  The project Ethersex (www.ethersex.de) provides a simple
+linking against its own projects.  The software runs on Atmel AVR
+processors.
+
+The rotor control I realized for the following AVR boards:
+
+  * etherrape   http://www.lochraster.org/etherrape/
+and
+  * AVR-NET-IO  http://www.pollin.de/shop/dt/MTQ5OTgxOTk-/Bausaetze_Module/Bausaetze/Bausatz_AVR_NET_IO.html
+  
+The functioning of the etersex rotor control is easy. A voltage of 0 - 5 V
+indicates the direction of rotation. One output for CW, CCW and, if
+necessary, the brake control. When creating the software (Ethersex) can be
+adjusted by a more detailed configuration menu. The controller supports only
+a subset of the command set of rotor position.
+
+  * set position
+  * get position
+  * park
+  * stop
+  * move (turn cw or ccw)
+  
+A detailed description of the software can be found at Ethersex:
+
+http://www.ethersex.de/index.php/Rotor_(Deutsch)
+
+An example of the direct control via the command found in the File ether6.txt
+
+Does anyone have any suggestions or comments send an e mail to dg9oaa@darc.de
+
