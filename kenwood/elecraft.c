@@ -41,6 +41,15 @@ static const struct elec_ext_id_str elec_ext_id_str_lst[] = {
 };
 
 
+/* K3 firmware revision level, will be assigned to the fw_rev pointer in
+ * kenwood_priv_data structure at runtime in electraft_open().  The array is
+ * declared here so that the sizeof operator can be used in the call to
+ * elecraft_get_firmware_revision_level() to calculate the exact size of the
+ * array for the call to strncpy().
+ */
+static char k3_fw_rev[KENWOOD_MAX_BUF_LEN];
+
+
 /* Private Elecraft extra levels definitions
  *
  * Token definitions for .cfgparams in rig_caps
@@ -63,7 +72,7 @@ const struct confparams elecraft_ext_levels[] = {
 /* Private function declarations */
 int verify_kenwood_id(RIG *rig, char *id);
 int elecraft_get_extension_level(RIG *rig, const char *cmd, int *ext_level);
-int elecraft_get_firmware_revision_level(RIG *rig, const char *cmd, char *fw_rev);
+int elecraft_get_firmware_revision_level(RIG *rig, const char *cmd, char *fw_rev, size_t fw_rev_sz);
 
 /* Shared backend function definitions */
 
@@ -93,6 +102,12 @@ int elecraft_open(RIG *rig)
 	 * and thereafter shall be treated as READ ONLY!
 	 */
 	struct kenwood_priv_data *priv = rig->state.priv;
+
+	/* As k3_fw_rev is declared static, it is persistent so the structure
+	 * can point to it.  This way was chosen to allow the compiler to
+	 * calculate the size of the array to resolve a bug found by gcc 4.8.x
+	 */
+	priv->fw_rev = k3_fw_rev;
 
 	/* Use check for "ID017;" to verify rig is reachable */
 	err = verify_kenwood_id(rig, id);
@@ -124,7 +139,9 @@ int elecraft_open(RIG *rig)
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: K3 level is %d, %s\n", __func__,
 			priv->k3_ext_lvl, elec_ext_id_str_lst[priv->k3_ext_lvl].id);
 
-		err = elecraft_get_firmware_revision_level(rig, "RVM", priv->k3_fw_rev);
+		err = elecraft_get_firmware_revision_level(rig, "RVM", priv->fw_rev,
+				(sizeof(k3_fw_rev) / sizeof(k3_fw_rev[0])));
+
 		if (err != RIG_OK)
 			return err;
 
@@ -220,7 +237,8 @@ int elecraft_get_extension_level(RIG *rig, const char *cmd, int *ext_level)
 
 /* Determine firmware revision level */
 
-int elecraft_get_firmware_revision_level(RIG *rig, const char *cmd, char *fw_rev)
+int elecraft_get_firmware_revision_level(RIG *rig, const char *cmd,
+                                         char *fw_rev, size_t fw_rev_sz)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -232,23 +250,28 @@ int elecraft_get_firmware_revision_level(RIG *rig, const char *cmd, char *fw_rev
 	char buf[KENWOOD_MAX_BUF_LEN];
 	size_t size = KENWOOD_MAX_BUF_LEN;
 
-	err = kenwood_transaction(rig, cmd, sizeof(cmd), buf, &size);
+	/* Get the actual firmware revision number. */
+	err = kenwood_transaction(rig, cmd, strlen(cmd), buf, &size);
+
 	if (err != RIG_OK) {
-		rig_debug(RIG_DEBUG_VERBOSE, "%s: Cannot get firmeware revision level\n", __func__);
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: Cannot get firmware revision level\n", __func__);
 		return err;
 	}
 
-	/* Get the actual firmware revision number. */
+	/* Now buf[] contains the string from the K3 which includes the command
+	 * and the firmware revision number as:  "RVM04.67".
+	 */
+
 	bufptr = &buf[0];
 
 	/* Skip the command string */
-	bufptr += sizeof(cmd);
+	bufptr += strlen(cmd);
 
-	/* Ignore leading zero's */
+	/* Skip leading zero(s) as the revision number has the format of: "04.67" */
 	while (bufptr && *bufptr == '0') { bufptr++; }
 
 	/* Copy out */
-	strncpy(fw_rev, bufptr, sizeof(bufptr));
+	strncpy(fw_rev, bufptr, fw_rev_sz - 1);
 
 	rig_debug(RIG_DEBUG_VERBOSE, "%s: Elecraft firmware revision is %s\n", __func__, fw_rev);
 

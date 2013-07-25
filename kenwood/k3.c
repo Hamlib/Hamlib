@@ -606,7 +606,7 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		 * offers a higher resolution, 0-100 (mine went to 106),
 		 * rawstr value for more precise S-meter reporting.
 		 */
-		retval = strncmp(priv->k3_fw_rev, "4.37", 4);
+		retval = strncmp(priv->fw_rev, "4.37", 4);
 		if (retval < 0) {
 			cal_table_t str_cal = K3_SM_CAL;
 
@@ -715,4 +715,3 @@ int set_rit_xit(RIG *rig, shortfreq_t rit)
 
 	return RIG_OK;
 }
-
