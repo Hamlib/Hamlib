@@ -56,7 +56,7 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([
 		#include <windows.h>
 		#include <winbase.h>
 		], [ Sleep(0); ])],
-		[AC_DEFINE(HAVE_SSLEEP,1,[Define to 1 if you have win32 Sleep])
+		[AC_DEFINE(HAVE_SSLEEP,1,[Define to 1 if you have Windows Sleep])
 		AC_MSG_RESULT(yes)],
 		AC_MSG_RESULT(no)
 		)
@@ -73,6 +73,7 @@ int getopt (int argc, char * const argv[], const char * optstring);
 extern char * optarg;
 extern int optind, opterr, optopt;
 #endif
+
 #ifndef HAVE_GETOPT_LONG
 struct option;
 int getopt_long (int argc, char * const argv[], const char * optstring,
@@ -81,16 +82,6 @@ int getopt_long (int argc, char * const argv[], const char * optstring,
 
 #ifndef HAVE_USLEEP
 int usleep(unsigned long usec);	/* SUSv2 */
-#endif
-
-#if defined(HAVE_SSLEEP) && !defined(HAVE_SLEEP)
-#ifdef HAVE_WINBASE_H
-#include <windows.h>
-#include <winbase.h>
-#endif
-/* TODO: what about SleepEx? */
-/* static inline unsigned int sleep (unsigned int nb_sec) { Sleep(nb_sec*1000); return 0; } */
-#define sleep(seconds) Sleep((seconds)*1000)
 #endif
 
 #ifndef HAVE_GETTIMEOFDAY

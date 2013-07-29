@@ -8,6 +8,21 @@
 #include <stdlib.h>
 #include <hamlib/rig.h>
 
+/* HAVE_SSLEEP is defined when Windows Sleep is found
+ * HAVE_SLEEP is defined when POSIX sleep is found
+ * _WIN32 is defined when compiling with MinGW
+ *
+ * When cross-compiling from POSIX to Windows using MinGW, HAVE_SLEEP
+ * will often be defined by configure although it is not supported by
+ * MinGW.  So substitute the sleep definition below in such a case and
+ * when compiling on Windows using MinGW where HAVE_SLEEP will be
+ * undefined.
+ */
+#if defined(HAVE_SSLEEP) && (!defined(HAVE_SLEEP) || defined(_WIN32))
+#include "hl_sleep.h"
+#endif
+
+
 #define SERIAL_PORT "/dev/ttyS0"
 
 int myfreq_event(RIG *rig, vfo_t vfo, freq_t freq, rig_ptr_t arg)
