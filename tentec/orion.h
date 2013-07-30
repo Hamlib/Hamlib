@@ -31,8 +31,8 @@
  * This backend supports the Ten-Tec Orion (565) and Orion II (566) transceivers.
  */
 
-#define TRUE	(1)
-#define FALSE	(0)
+#define TRUE	1
+#define FALSE	0
 #define TT565_BUFSIZE 16
 
 /**
