@@ -37,8 +37,6 @@
 
 #include "easycomm.h"
 
-#define USE_CUSTOM_CODE 1
-
 /* ************************************************************************* */
 /**
  *  easycomm_transaction
@@ -97,58 +95,23 @@ easycomm_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
     char cmdstr[16], ackbuf[32];
     int retval;
-    int t;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
 
-#ifdef USE_CUSTOM_CODE
-    sprintf(cmdstr, "!");   /* Custom implementation: Remove later */
-#else
     sprintf(cmdstr, "AZ EL \n");
-#endif
 
     retval = easycomm_transaction(rot, cmdstr, ackbuf, sizeof(ackbuf));
 	if (retval != RIG_OK) {
-		return retval;
+	  return retval;
 	}
 
     /* Parse parse string to extract AZ,EL values */
-#ifdef USE_CUSTOM_CODE
-    retval = sscanf(ackbuf, "TM%i AZ%f EL%f", &t, az, el);
-    if (retval != 3) {
-        rig_debug(RIG_DEBUG_ERR, "%s: unknown replay (%s)\n", __FUNCTION__, ackbuf);
+    retval = sscanf(ackbuf, "AZ%f EL%f", az, el);
+    if (retval != 2) {
+        rig_debug(RIG_DEBUG_ERR, "%s: unknown response (%s)\n", __FUNCTION__, ackbuf);
         return -RIG_ERJCTED;
     }
-#ifndef USETESTCODE
-    /* Correct for desimal point. */
-    *az /= 10.0;
-    *el /= 10.0;
-#else
-    /* Debugging code, remove later */
-
-    rig_debug(RIG_DEBUG_TRACE, "  (az, el) = (%.1f, %.1f)\n", *az, *el);
-
-    *az /= 10.0;
-    *el /= 10.0;
-
-    rig_debug(RIG_DEBUG_TRACE, "  (az, el) = (%f, %f)\n", *az, *el);
-    rig_debug(RIG_DEBUG_TRACE, "  (az, el) = (%.2f, %.2f)\n", *az, *el);
-
-    /* Note: For some reason I found that the result of this expression
-     * does not give accurate results.
-     * The first printf give the correct value.
-     * The second printf give incorrect value, while
-     * the third printf give correct values.
-     *
-     * I get  az = 42.79999 when it should be 42.8
-     */
-#endif
-
-#else
-    *az = 45.3;
-    *el = 10.3;
-#endif
-	return RIG_OK;
+    return RIG_OK;
 }
 
 static int
@@ -328,4 +291,3 @@ DECLARE_INITROT_BACKEND(easycomm)
 
 /* ************************************************************************* */
 /* end of file */
-
