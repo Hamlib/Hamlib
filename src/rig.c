@@ -503,21 +503,28 @@ int HAMLIB_API rig_open(RIG *rig)
 		break;
 	case RIG_PTT_SERIAL_RTS:
 	case RIG_PTT_SERIAL_DTR:
-		if (rs->pttport.pathname[0] == '\0' &&
-				rs->rigport.type.rig == RIG_PORT_SERIAL)
-			strcpy(rs->pttport.pathname, rs->rigport.pathname);
-		rs->pttport.fd = ser_open(&rs->pttport);
-		if (rs->pttport.fd < 0)
-			rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n",
-						rs->pttport.pathname);
-        else {
-			/* Needed on Linux because the kernel forces RTS/DTR at open */
-			if (rs->pttport.type.ptt == RIG_PTT_SERIAL_DTR)
-				ser_set_dtr(&rs->pttport, RIG_PTT_OFF);
-			else if (rs->pttport.type.ptt == RIG_PTT_SERIAL_RTS)
-				ser_set_rts(&rs->pttport, RIG_PTT_OFF);
-		}
-		break;
+	  if (rs->pttport.pathname[0] == '\0' &&
+	      rs->rigport.type.rig == RIG_PORT_SERIAL)
+	    strcpy(rs->pttport.pathname, rs->rigport.pathname);
+	  if (!strcmp(rs->pttport.pathname, rs->rigport.pathname))
+	    {
+	      rs->pttport.fd = rs->rigport.fd;
+	    }
+	  else
+	    {
+	      rs->pttport.fd = ser_open(&rs->pttport);
+	      if (rs->pttport.fd < 0)
+		rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n",
+			  rs->pttport.pathname);
+	      else {
+		/* Needed on Linux because the kernel forces RTS/DTR at open */
+		if (rs->pttport.type.ptt == RIG_PTT_SERIAL_DTR)
+		  ser_set_dtr(&rs->pttport, RIG_PTT_OFF);
+		else if (rs->pttport.type.ptt == RIG_PTT_SERIAL_RTS)
+		  ser_set_rts(&rs->pttport, RIG_PTT_OFF);
+	      }
+	    }
+	  break;
 	case RIG_PTT_PARALLEL:
 		rs->pttport.fd = par_open(&rs->pttport);
 		if (rs->pttport.fd < 0)
@@ -652,11 +659,17 @@ int HAMLIB_API rig_close(RIG *rig)
 		break;
 	case RIG_PTT_SERIAL_RTS:
 		ser_set_rts(&rs->pttport, RIG_PTT_OFF);
-		port_close(&rs->pttport, RIG_PORT_SERIAL);
+		if (rs->pttport.fd != rs->rigport.fd)
+		  {
+		    port_close(&rs->pttport, RIG_PORT_SERIAL);
+		  }
 		break;
 	case RIG_PTT_SERIAL_DTR:
 		ser_set_dtr(&rs->pttport, RIG_PTT_OFF);
-		port_close(&rs->pttport, RIG_PORT_SERIAL);
+		if (rs->pttport.fd != rs->rigport.fd)
+		  {
+		    port_close(&rs->pttport, RIG_PORT_SERIAL);
+		  }
 		break;
 	case RIG_PTT_PARALLEL:
         par_ptt_set(&rs->pttport, RIG_PTT_OFF);
