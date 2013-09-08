@@ -38,11 +38,9 @@
 #include <stdio.h>
 #include <sys/types.h>
 
-/* This is libtool's dl wrapper */
-#include <ltdl.h>
-
 #include <hamlib/rotator.h>
 
+#include "register.h"
 
 #ifndef PATH_MAX
 # define PATH_MAX       1024
@@ -50,18 +48,78 @@
 
 #define ROT_BACKEND_MAX 32
 
+#define DEFINE_INITROT_BACKEND(backend) \
+	int MAKE_VERSIONED_FN(PREFIX_INITROTS, ABI_VERSION, backend(void *be_handle)); \
+	rig_model_t MAKE_VERSIONED_FN(PREFIX_PROBEROTS, ABI_VERSION, backend(hamlib_port_t *port, rig_probe_func_t cfunc, rig_ptr_t data))
+
+
+#define ROT_FUNCNAMA(backend) MAKE_VERSIONED_FN(PREFIX_INITROTS, ABI_VERSION, backend)
+#define ROT_FUNCNAMB(backend) MAKE_VERSIONED_FN(PREFIX_PROBEROTS, ABI_VERSION, backend)
+
+#define ROT_FUNCNAM(backend) ROT_FUNCNAMA(backend),ROT_FUNCNAMB(backend)
+
+
+DEFINE_INITROT_BACKEND(dummy);
+DEFINE_INITROT_BACKEND(rpc);
+DEFINE_INITROT_BACKEND(easycomm);
+DEFINE_INITROT_BACKEND(fodtrack);
+DEFINE_INITROT_BACKEND(rotorez);
+DEFINE_INITROT_BACKEND(sartek);
+DEFINE_INITROT_BACKEND(gs232a);
+DEFINE_INITROT_BACKEND(kit);
+DEFINE_INITROT_BACKEND(heathkit);
+DEFINE_INITROT_BACKEND(spid);
+DEFINE_INITROT_BACKEND(m2);
+DEFINE_INITROT_BACKEND(ars);
+DEFINE_INITROT_BACKEND(amsat);
+DEFINE_INITROT_BACKEND(ts7400);
+DEFINE_INITROT_BACKEND(celestron);
+DEFINE_INITROT_BACKEND(ether6);
+
+/*! \def ROT_BACKEND_LIST
+ *  \brief Static list of rotator models.
+ *
+ *  This is a NULL terminated list of available rotator backends. Each entry
+ *  in the list consists of two fields: The branch number, which is an integer,
+ *  and the branch name, which is a character string.
+ *  An external library, loaded dynamically, could add its own functions pointers
+ *  in this array.
+ */
+static struct {
+	int be_num;
+	const char *be_name;
+	int (*be_init)(void *);
+	rot_model_t (*be_probe)(hamlib_port_t *);
+} rot_backend_list[ROT_BACKEND_MAX] = 
+{		
+        { ROT_DUMMY, ROT_BACKEND_DUMMY, ROT_FUNCNAMA(dummy) }, 
+        /* { ROT_RPC, ROT_BACKEND_RPC, ROT_FUNCNAMA(rpc) }, */ 
+        { ROT_EASYCOMM, ROT_BACKEND_EASYCOMM, ROT_FUNCNAMA(easycomm) }, 
+        { ROT_FODTRACK, ROT_BACKEND_FODTRACK, ROT_FUNCNAMA(fodtrack) }, 
+        { ROT_ROTOREZ, ROT_BACKEND_ROTOREZ, ROT_FUNCNAMA(rotorez) }, 
+        { ROT_SARTEK, ROT_BACKEND_SARTEK, ROT_FUNCNAMA(sartek) }, 
+        { ROT_GS232A, ROT_BACKEND_GS232A, ROT_FUNCNAMA(gs232a) }, 
+        { ROT_KIT, ROT_BACKEND_KIT, ROT_FUNCNAMA(kit) }, 
+        { ROT_HEATHKIT, ROT_BACKEND_HEATHKIT, ROT_FUNCNAMA(heathkit) }, 
+        { ROT_SPID, ROT_BACKEND_SPID, ROT_FUNCNAMA(spid) }, 
+        { ROT_M2, ROT_BACKEND_M2, ROT_FUNCNAMA(m2) }, 
+        { ROT_ARS, ROT_BACKEND_ARS, ROT_FUNCNAMA(ars) }, 
+        { ROT_AMSAT, ROT_BACKEND_AMSAT, ROT_FUNCNAMA(amsat) }, 
+        { ROT_TS7400, ROT_BACKEND_TS7400, ROT_FUNCNAMA(ts7400) }, 
+        { ROT_CELESTRON, ROT_BACKEND_CELESTRON, ROT_FUNCNAMA(celestron) }, 
+        { ROT_ETHER6, ROT_BACKEND_ETHER6, ROT_FUNCNAMA(ether6) }, 
+        { 0, NULL }, /* end */  
+};
+
+// Apparently, no rotator can be probed.
+
 /*
- * ROT_BACKEND_LIST is defined in rotlist.h, please keep it up to data,
+ * ROT_BACKEND_LIST is here, please keep it up to data,
  * 	ie. each time you give birth to a new backend
  * Also, it should be possible to register "external" backend,
  * that is backend that were not known by Hamlib at compile time.
  * Maybe, rotlist.h should reserve some numbers for them? --SF
  */
-static struct {
-	int be_num;
-	const char *be_name;
-    rot_model_t (*be_probe)(hamlib_port_t *);
-} rot_backend_list[ROT_BACKEND_MAX] = ROT_BACKEND_LIST;
 
 
 /*
@@ -70,7 +128,6 @@ static struct {
  */
 struct rot_list {
 	const struct rot_caps *caps;
-	lt_dlhandle handle;			/* handle returned by lt_dlopen() */
 	struct rot_list *next;
 };
 
@@ -110,7 +167,7 @@ int HAMLIB_API rot_register(const struct rot_caps *caps)
 
 	hval = HASH_FUNC(caps->rot_model);
 	p->caps = caps;
-	p->handle = NULL;
+	// p->handle = NULL;
 	p->next = rot_hash_table[hval];
 	rot_hash_table[hval] = p;
 
@@ -257,92 +314,30 @@ int rot_load_all_backends()
 	return RIG_OK;
 }
 
-
-#define MAXFUNCNAMELEN 64
 /*
  * rot_load_backend
  * Dynamically load a rot backend through dlopen mechanism
  */
 int HAMLIB_API rot_load_backend(const char *be_name)
 {
-# define PREFIX "hamlib-"
-
-	lt_dlhandle be_handle;
-    int (*be_init)(rig_ptr_t);
 	int status;
-	char libname[PATH_MAX];
-	char initfname[MAXFUNCNAMELEN];
-	char probefname[MAXFUNCNAMELEN];
+	int (*be_init)(rig_ptr_t);
 	int i;
 
-	/*
-	 * lt_dlinit may be called several times
-	 */
-#if 0
-	LTDL_SET_PRELOADED_SYMBOLS();
-#endif
-
-	status = lt_dlinit();
-	if (status) {
-    		rot_debug(RIG_DEBUG_ERR, "rot_backend_load: lt_dlinit for %s "
-							"failed: %s\n", be_name, lt_dlerror());
-    		return -RIG_EINTERNAL;
-	}
-
-	lt_dladdsearchdir(HAMLIB_MODULE_DIR);
-
-	rot_debug(RIG_DEBUG_VERBOSE, "rot: loading backend %s\n",be_name);
-
-	/*
-	 * add hamlib directory here
-	 */
-	snprintf (libname, sizeof (libname), PREFIX"%s", be_name);
-
-	be_handle = lt_dlopenext (libname);
-
-	/*
-	 * external module not found? try dlopenself for backends
-	 * compiled in static
-	 */
-	if (!be_handle) {
-		rig_debug(RIG_DEBUG_VERBOSE, "rig:  lt_dlopen(\"%s\") failed (%s), "
-										"trying static symbols...\n",
-										libname, lt_dlerror());
-		be_handle = lt_dlopen (NULL);
-	}
-
-	if (!be_handle) {
-		rot_debug(RIG_DEBUG_ERR, "rot:  lt_dlopen(\"%s\") failed (%s)\n",
-						libname, lt_dlerror());
-		return -RIG_EINVAL;
-    }
-
-    snprintf(initfname, MAXFUNCNAMELEN, "initrots%d_%s", ABI_VERSION, be_name);
-    be_init = (int (*)(rig_ptr_t)) lt_dlsym (be_handle, initfname);
-	if (!be_init) {
-			rot_debug(RIG_DEBUG_ERR, "rot: dlsym(%s) failed (%s)\n",
-						initfname, lt_dlerror());
-			lt_dlclose(be_handle);
-			return -RIG_EINVAL;
-	}
-
-
-	/*
-	 * register probe function if present
-	 * NOTE: rot_load_backend might have been called upon a backend
-	 * 	not in rotlist.h! In this case, do nothing.
-	 */
 	for (i=0; i<ROT_BACKEND_MAX && rot_backend_list[i].be_name; i++) {
-		if (!strncmp(be_name, rot_backend_list[i].be_name, 64)) {
-			snprintf(probefname, MAXFUNCNAMELEN, "probeallrots%d_%s", ABI_VERSION, be_name);
-    			rot_backend_list[i].be_probe = (rot_model_t (*)(hamlib_port_t *))
-						lt_dlsym (be_handle, probefname);
-				break;
+		if (!strcmp(be_name, rot_backend_list[i].be_name)) {
+			be_init = rot_backend_list[i].be_init;
+			if( be_init == NULL )
+			{
+				printf("Null\n");
+				return -EINVAL;
+			}
+			status = (*be_init)(NULL);
+ 			return status;
 		}
 	}
 
-	status = (*be_init)(be_handle);
+	return -EINVAL;
 
- 	return status;
 }
 

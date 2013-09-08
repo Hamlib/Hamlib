@@ -276,41 +276,6 @@
 */
 typedef int rot_model_t;
 
-/*! \def ROT_BACKEND_LIST
- *  \brief Static list of rotator models.
- *
- *  This is a NULL terminated list of available rotator backends. Each entry
- *  in the list consists of two fields: The branch number, which is an integer,
- *  and the branch name, which is a character string.
- */
-#define ROT_BACKEND_LIST {		\
-        { ROT_DUMMY, ROT_BACKEND_DUMMY }, \
-        /* { ROT_RPC, ROT_BACKEND_RPC }, */ \
-        { ROT_EASYCOMM, ROT_BACKEND_EASYCOMM }, \
-        { ROT_FODTRACK, ROT_BACKEND_FODTRACK }, \
-        { ROT_ROTOREZ, ROT_BACKEND_ROTOREZ }, \
-        { ROT_SARTEK, ROT_BACKEND_SARTEK }, \
-        { ROT_GS232A, ROT_BACKEND_GS232A }, \
-        { ROT_KIT, ROT_BACKEND_KIT }, \
-        { ROT_HEATHKIT, ROT_BACKEND_HEATHKIT }, \
-        { ROT_SPID, ROT_BACKEND_SPID }, \
-        { ROT_M2, ROT_BACKEND_M2 }, \
-        { ROT_ARS, ROT_BACKEND_ARS }, \
-        { ROT_AMSAT, ROT_BACKEND_AMSAT }, \
-        { ROT_TS7400, ROT_BACKEND_TS7400 }, \
-        { ROT_CELESTRON, ROT_BACKEND_CELESTRON }, \
-        { ROT_ETHER6, ROT_BACKEND_ETHER6 }, \
-        { 0, NULL }, /* end */  \
-}
-
-/*
- * struct rot_backend_list {
- *		rot_model_t model;
- *		const char *backend;
- * } rot_backend_list[] = ROT_LIST;
- *
- */
-
 #endif /* _ROTLIST_H */
 
 /** @} */

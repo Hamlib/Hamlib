@@ -1725,6 +1725,10 @@ extern HAMLIB_EXPORT(scan_t) rig_parse_scan(const char *s);
 extern HAMLIB_EXPORT(rptr_shift_t) rig_parse_rptr_shift(const char *s);
 extern HAMLIB_EXPORT(chan_type_t) rig_parse_mtype(const char *s);
 
+struct addrinfo;
+extern HAMLIB_EXPORT(int) rig_getaddrinfo(const char *node, const char *service,
+	const struct addrinfo *hints, struct addrinfo **res);
+extern HAMLIB_EXPORT(void) rig_freeaddrinfo(struct addrinfo *res);
 
 __END_DECLS
 

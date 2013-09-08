@@ -841,4 +841,19 @@ void HAMLIB_API rig_force_cache_timeout(struct timeval *tv)
     tv->tv_usec = 0;
 }
 
+
+int HAMLIB_API rig_getaddrinfo(const char *node, const char *service,
+	const struct addrinfo *hints, struct addrinfo **res)
+{
+	return getaddrinfo(node, service, hints, res);
+}
+
+void HAMLIB_API rig_freeaddrinfo(struct addrinfo *res)
+{
+	freeaddrinfo(res);
+}
+
+
+
+
 /** @} */

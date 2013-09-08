@@ -13,9 +13,11 @@ SUBDIRS =
 if BUILD_LIBLTDL
 SUBDIRS += libltdl
 endif
-SUBDIRS += macros include lib src \
+# SUBDIRS += macros include lib src
+SUBDIRS += macros include lib \
 	@BACKEND_LIST@ \
 	@ROT_BACKEND_LIST@ \
+	src \
 	@BINDINGS@ \
 	tests doc android
 

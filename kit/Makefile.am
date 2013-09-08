@@ -8,24 +8,29 @@ if HAVE_USRP
     # Append to the already defined AM_CXXFLAGS that exists outside the conditional.
     AM_CXXFLAGS += @USRP_CFLAGS@
     KITSRCLIST += usrp_impl.cc
-    hamlib_kit_la_LINK = $(CXXLINK) $(hamlib_kit_la_LDFLAGS)
+    libhamlib_kit_la_LINK = $(CXXLINK) $(libhamlib_kit_la_LDFLAGS)
 else
     # automake gets confused and invokes the C++ linker via libtool regardless
     # of whether or not HAVE_USRP enables the .cc source.  This override forces
     # automake to invoke the C linker as no C++ is involved:
-    hamlib_kit_la_LINK = $(LINK) $(hamlib_kit_la_LDFLAGS)
+    libhamlib_kit_la_LINK = $(LINK) $(libhamlib_kit_la_LDFLAGS)
 endif
 
 KITROTSRCLIST = pcrotor.c
 
-pkglib_LTLIBRARIES = hamlib-kit.la
-hamlib_kit_la_SOURCES = $(KITSRCLIST) $(KITROTSRCLIST) kit.c
-hamlib_kit_la_LDFLAGS = -no-undefined -module -avoid-version
-hamlib_kit_la_LIBADD = $(top_builddir)/lib/libmisc.la \
+noinst_LTLIBRARIES = libhamlib-kit.la
+libhamlib_kit_la_SOURCES = $(KITSRCLIST) $(KITROTSRCLIST) kit.c
+libhamlib_kit_la_CFLAGS = -DIN_HAMLIB $(AM_CFLAGS)
+# libhamlib_kit_la_LDFLAGS = -no-undefined -module -avoid-version
+#hamlib_kit_la_LIBADD = $(top_builddir)/lib/libmisc.la \
+#		       $(USRP_LIBS) \
+#		       $(LIBUSB_LIBS) \
+#		       @MATH_LIBS@ \
+#		       $(top_builddir)/src/libhamlib.la
+libhamlib_kit_la_LIBADD =  \
 		       $(USRP_LIBS) \
 		       $(LIBUSB_LIBS) \
-		       @MATH_LIBS@ \
-		       $(top_builddir)/src/libhamlib.la
+		       @MATH_LIBS@
 
 noinst_HEADERS = kit.h usrp_impl.h si570avrusb.h funcube.h
 

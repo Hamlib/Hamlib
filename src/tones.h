@@ -102,7 +102,7 @@ static const tone_t static_full_dcs_list[] = {
  * These arrays cannot be shared on Win32 systems,
  * because DLL's vars don't have constant address.
  */
-#if (defined(_WIN32) || defined(__CYGWIN__)) && !defined(IN_HAMLIB)
+#if (defined(_WIN32) || defined(__CYGWIN__)) // && !defined(IN_HAMLIB)
 #define common_ctcss_list static_common_ctcss_list
 #define full_ctcss_list static_full_ctcss_list
 #define full_dcs_list static_full_dcs_list

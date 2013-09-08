@@ -53,13 +53,15 @@
 #	endif
 #endif
 
+#include <hamlib/rig.h>
+
 /*
  * Replacement for getaddrinfo. Only one addrinfo is returned.
  * Weak checking.
  * Return 0 when success, otherwise -1.
  */
 #ifndef HAVE_GETADDRINFO
-int getaddrinfo(const char *node, const char *service,
+int HAMLIB_API getaddrinfo(const char *node, const char *service,
 	const struct addrinfo *hints, struct addrinfo **res)
 {
     struct addrinfo *p;
@@ -118,7 +120,7 @@ int getaddrinfo(const char *node, const char *service,
     return 0;
 }
 
-void freeaddrinfo(struct addrinfo *res)
+void HAMLIB_API freeaddrinfo(struct addrinfo *res)
 {
 	free(res->ai_addr);
 	free(res);

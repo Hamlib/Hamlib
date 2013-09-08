@@ -28,10 +28,12 @@ GRIO_SOURCES = 		\
 	microtune_4702.cc	\
 	microtune_eval_board.cc
 
-pkglib_LTLIBRARIES = hamlib-microtune.la
-hamlib_microtune_la_SOURCES =  $(MTSRCLIST) $(GRIO_SOURCES) microtune.cc
-hamlib_microtune_la_LDFLAGS = -no-undefined -module -avoid-version
-hamlib_microtune_la_LIBADD = $(top_builddir)/src/libhamlib.la -lstdc++
+noinst_LTLIBRARIES = libhamlib-microtune.la
+libhamlib_microtune_la_SOURCES =  $(MTSRCLIST) $(GRIO_SOURCES) microtune.cc
+libhamlib_microtune_la_CFLAGS = -DIN_HAMLIB $(AM_CFLAGS)
+# libhamlib_microtune_la_LDFLAGS = -no-undefined -module -avoid-version
+#libhamlib_microtune_la_LIBADD = $(top_builddir)/src/libhamlib.la -lstdc++
+hamlib_microtune_la_LIBADD = -lstdc++
 
 noinst_HEADERS = 		\
 	i2c.h			\

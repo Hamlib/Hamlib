@@ -1,10 +1,11 @@
 AORSRCLIST = ar8200.c ar8000.c ar5000.c ar3000.c ar7030.c ar3030.c \
 	     ar2700.c ar8600.c ar7030p.c ar7030p_utils.c sr2200.c
 
-pkglib_LTLIBRARIES = hamlib-aor.la
-hamlib_aor_la_SOURCES = $(AORSRCLIST) aor.c
-hamlib_aor_la_LDFLAGS = -no-undefined -module -avoid-version
-hamlib_aor_la_LIBADD = $(top_builddir)/src/libhamlib.la
+noinst_LTLIBRARIES = libhamlib-aor.la
+libhamlib_aor_la_SOURCES = $(AORSRCLIST) aor.c
+libhamlib_aor_la_CFLAGS = -DIN_HAMLIB $(AM_CFLAGS)
+# libhamlib_aor_la_LDFLAGS = -no-undefined -module -avoid-version
+# hamlib_aor_la_LIBADD = $(top_builddir)/src/libhamlib.la
 
 EXTRA_DIST = README.aor README.ar5000 README.ar7030 Android.mk
 

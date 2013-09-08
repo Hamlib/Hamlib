@@ -519,44 +519,6 @@
 */
 typedef int rig_model_t;
 
-
-/*! \def RIG_BACKEND_LIST
- *  \brief Static list of rig models.
- *
- *  This is a NULL terminated list of available rig backends. Each entry
- *  in the list consists of two fields: The branch number, which is an integer,
- *  and the branch name, which is a character string.
- */
-#define RIG_BACKEND_LIST {		\
-		{ RIG_DUMMY, RIG_BACKEND_DUMMY }, \
-		{ RIG_YAESU, RIG_BACKEND_YAESU }, \
-		{ RIG_KENWOOD, RIG_BACKEND_KENWOOD }, \
-		{ RIG_ICOM, RIG_BACKEND_ICOM }, \
-		{ RIG_PCR, RIG_BACKEND_PCR }, \
-		{ RIG_AOR, RIG_BACKEND_AOR }, \
-		{ RIG_JRC, RIG_BACKEND_JRC }, \
-		{ RIG_UNIDEN, RIG_BACKEND_UNIDEN }, \
-		{ RIG_DRAKE, RIG_BACKEND_DRAKE }, \
-		{ RIG_LOWE, RIG_BACKEND_LOWE }, \
-		{ RIG_RACAL, RIG_BACKEND_RACAL }, \
-		{ RIG_WJ, RIG_BACKEND_WJ }, \
-		{ RIG_SKANTI, RIG_BACKEND_SKANTI }, \
-		{ RIG_WINRADIO, RIG_BACKEND_WINRADIO }, \
-		{ RIG_TENTEC, RIG_BACKEND_TENTEC }, \
-		{ RIG_ALINCO, RIG_BACKEND_ALINCO }, \
-		{ RIG_KACHINA, RIG_BACKEND_KACHINA }, \
-		/* { RIG_RPC, RIG_BACKEND_RPC }, */ \
-		{ RIG_TAPR, RIG_BACKEND_TAPR }, \
-		{ RIG_FLEXRADIO, RIG_BACKEND_FLEXRADIO }, \
-		{ RIG_RFT, RIG_BACKEND_RFT }, \
-		{ RIG_KIT, RIG_BACKEND_KIT }, \
-		{ RIG_TUNER, RIG_BACKEND_TUNER }, \
-		{ RIG_RS, RIG_BACKEND_RS }, \
-		{ RIG_PRM80, RIG_BACKEND_PRM80 }, \
-		{ RIG_ADAT, RIG_BACKEND_ADAT }, \
-		{ 0, NULL }, /* end */  \
-}
-
 /*
  * struct rig_backend_list {
  *		rig_model_t model;

@@ -47,7 +47,9 @@ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 dnl New backends must be listed here!  Also the new Makefile path must be
 dnl added to AC_CONFIG_FILES near the end of this file.  See README.developer
 BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc drake lowe rft rs kit skanti prm80 tapr flexradio wj racal tuner adat"
-ROT_BACKEND_LIST="dummy easycomm fodtrack gs232a heathkit kit rotorez sartek spid ars m2 amsat ts7400 celestron ether6"
+# ROT_BACKEND_LIST="dummy easycomm fodtrack gs232a heathkit kit rotorez sartek spid ars m2 amsat ts7400 celestron ether6"
+# Beware of duplication. At the end we will have a single list.
+ROT_BACKEND_LIST="easycomm fodtrack gs232a heathkit rotorez sartek spid ars m2 amsat ts7400 celestron ether6"
 
 dnl See README.release on setting these values
 # Values given to -version-info when linking.  See libtool documentation.
@@ -261,7 +263,7 @@ dnl libltdl to be used instead of an installed version), useful on systems
 dnl where libltdl-dev is not installed.
 LTDL_INIT([convenience recursive])
 
-dnl Ugly hack to work around libtool LT_CONFIG_H bug #12262
+## dnl Ugly hack to work around libtool LT_CONFIG_H bug #12262
 dnl http://lists.gnu.org/archive/html/bug-libtool/2012-08/msg00007.html
 AC_CONFIG_COMMANDS_PRE([LT_CONFIG_H=`expr "$LT_CONFIG_H" : '.*/\(.*\)'`])
 
@@ -637,13 +639,13 @@ AC_MSG_RESULT([$cf_with_libusb])
 # otherwise parallel 'make -jn' will fail
 
 for be in ${BACKEND_LIST} ; do
-        BACKENDEPS="${BACKENDEPS} \$(top_builddir)/${be}/hamlib-${be}.la"
+        BACKENDEPS="${BACKENDEPS} \$(top_builddir)/${be}/libhamlib-${be}.la"
 done
 
 # dlopen force or preopen self for static version ?
-BACKENDLNK="-dlopen force"
+BACKENDLNK=""
 for be in ${BACKEND_LIST} ; do
-        BACKENDLNK="${BACKENDLNK} -dlopen \$(top_builddir)/${be}/hamlib-${be}.la"
+        BACKENDLNK="${BACKENDLNK} \$(top_builddir)/${be}/libhamlib-${be}.la"
 done
 AC_SUBST([BACKEND_LIST])
 AC_SUBST([BACKENDLNK])
@@ -657,13 +659,13 @@ AC_SUBST([BACKENDEPS])
 # otherwise parallel 'make -jn' will fail
 
 for be in ${ROT_BACKEND_LIST} ; do
-        ROT_BACKENDEPS="${ROT_BACKENDEPS} \$(top_builddir)/${be}/hamlib-${be}.la"
+        ROT_BACKENDEPS="${ROT_BACKENDEPS} \$(top_builddir)/${be}/libhamlib-${be}.la"
 done
 
 # dlopen force or preopen self for static version ?
-ROT_BACKENDLNK="-dlopen force"
+ROT_BACKENDLNK=""
 for be in ${ROT_BACKEND_LIST} ; do
-        ROT_BACKENDLNK="${ROT_BACKENDLNK} -dlopen \$(top_builddir)/${be}/hamlib-${be}.la"
+        ROT_BACKENDLNK="${ROT_BACKENDLNK} \$(top_builddir)/${be}/libhamlib-${be}.la"
 done
 AC_SUBST([ROT_BACKEND_LIST])
 AC_SUBST([ROT_BACKENDLNK])

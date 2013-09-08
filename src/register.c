@@ -37,8 +37,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 
-/* This is libtool's dl wrapper */
-#include <ltdl.h>
+#include <register.h>
 
 #include <hamlib/rig.h>
 
@@ -48,18 +47,93 @@
 
 #define RIG_BACKEND_MAX 32
 
+#define DEFINE_INITRIG_BACKEND(backend) \
+	int MAKE_VERSIONED_FN(PREFIX_INITRIG, ABI_VERSION, backend(void *be_handle)); \
+	rig_model_t MAKE_VERSIONED_FN(PREFIX_PROBERIG, ABI_VERSION, backend(hamlib_port_t *port, rig_probe_func_t cfunc, rig_ptr_t data))
+
+#define RIG_FUNCNAMA(backend) MAKE_VERSIONED_FN(PREFIX_INITRIG, ABI_VERSION, backend)
+#define RIG_FUNCNAMB(backend) MAKE_VERSIONED_FN(PREFIX_PROBERIG, ABI_VERSION, backend)
+
+#define RIG_FUNCNAM(backend) RIG_FUNCNAMA(backend),RIG_FUNCNAMB(backend)
+
 /*
- * RIG_BACKEND_LIST is defined in riglist.h, please keep it up to data,
+ * RIG_BACKEND_LIST is defined here, please keep it up to data,
  * 	ie. each time you give birth to a new backend
  * Also, it should be possible to register "external" backend,
  * that is backend that were not known by Hamlib at compile time.
  * Maybe, riglist.h should reserve some numbers for them? --SF
  */
+DEFINE_INITRIG_BACKEND(dummy);
+DEFINE_INITRIG_BACKEND(yaesu);
+DEFINE_INITRIG_BACKEND(kenwood);
+DEFINE_INITRIG_BACKEND(icom);
+DEFINE_INITRIG_BACKEND(pcr);
+DEFINE_INITRIG_BACKEND(aor);
+DEFINE_INITRIG_BACKEND(jrc);
+DEFINE_INITRIG_BACKEND(uniden);
+DEFINE_INITRIG_BACKEND(drake);
+DEFINE_INITRIG_BACKEND(lowe);
+DEFINE_INITRIG_BACKEND(racal);
+DEFINE_INITRIG_BACKEND(wj);
+DEFINE_INITRIG_BACKEND(skanti);
+DEFINE_INITRIG_BACKEND(winradio);
+DEFINE_INITRIG_BACKEND(tentec);
+DEFINE_INITRIG_BACKEND(alinco);
+DEFINE_INITRIG_BACKEND(kachina);
+// DEFINE_INITRIG_BACKEND(rpc);
+DEFINE_INITRIG_BACKEND(tapr);
+DEFINE_INITRIG_BACKEND(flexradio);
+DEFINE_INITRIG_BACKEND(rft);
+DEFINE_INITRIG_BACKEND(kit);
+DEFINE_INITRIG_BACKEND(tuner);
+DEFINE_INITRIG_BACKEND(rs);
+DEFINE_INITRIG_BACKEND(prm80);
+DEFINE_INITRIG_BACKEND(adat);
+
+
+
+/*! \def rig_backend_list
+ *  \brief Static list of rig models.
+ *
+ *  This is a NULL terminated list of available rig backends. Each entry
+ *  in the list consists of two fields: The branch number, which is an integer,
+ *  and the branch name, which is a character string.
+ */
 static struct {
 	int be_num;
 	const char *be_name;
+	int (* be_init_all)(void * handle);
 	rig_model_t (* be_probe_all)(hamlib_port_t*, rig_probe_func_t, rig_ptr_t);
-} rig_backend_list[RIG_BACKEND_MAX] = RIG_BACKEND_LIST;
+} rig_backend_list[RIG_BACKEND_MAX] = 
+{		
+		{ RIG_DUMMY, RIG_BACKEND_DUMMY, RIG_FUNCNAMA(dummy) }, 
+		{ RIG_YAESU, RIG_BACKEND_YAESU, RIG_FUNCNAM(yaesu) }, 
+		{ RIG_KENWOOD, RIG_BACKEND_KENWOOD, RIG_FUNCNAM(kenwood) }, 
+		{ RIG_ICOM, RIG_BACKEND_ICOM, RIG_FUNCNAM(icom) }, 
+		{ RIG_PCR, RIG_BACKEND_PCR, RIG_FUNCNAMA(pcr) }, 
+		{ RIG_AOR, RIG_BACKEND_AOR, RIG_FUNCNAMA(aor) }, 
+		{ RIG_JRC, RIG_BACKEND_JRC, RIG_FUNCNAMA(jrc) }, 
+		{ RIG_UNIDEN, RIG_BACKEND_UNIDEN, RIG_FUNCNAM(uniden) }, 
+		{ RIG_DRAKE, RIG_BACKEND_DRAKE, RIG_FUNCNAM(drake) }, 
+		{ RIG_LOWE, RIG_BACKEND_LOWE, RIG_FUNCNAM(lowe) }, 
+		{ RIG_RACAL, RIG_BACKEND_RACAL, RIG_FUNCNAMA(racal) }, 
+		{ RIG_WJ, RIG_BACKEND_WJ, RIG_FUNCNAMA(wj) }, 
+		{ RIG_SKANTI, RIG_BACKEND_SKANTI, RIG_FUNCNAMA(skanti) }, 
+		{ RIG_WINRADIO, RIG_BACKEND_WINRADIO, RIG_FUNCNAMA(winradio) }, 
+		{ RIG_TENTEC, RIG_BACKEND_TENTEC, RIG_FUNCNAMA(tentec) }, 
+		{ RIG_ALINCO, RIG_BACKEND_ALINCO, RIG_FUNCNAMA(alinco) }, 
+		{ RIG_KACHINA, RIG_BACKEND_KACHINA, RIG_FUNCNAMA(kachina) }, 
+		/* { RIG_RPC, RIG_BACKEND_RPC, RIG_FUNCNAM(rpc) }, */ 
+		{ RIG_TAPR, RIG_BACKEND_TAPR, RIG_FUNCNAMA(tapr) }, 
+		{ RIG_FLEXRADIO, RIG_BACKEND_FLEXRADIO, RIG_FUNCNAMA(flexradio) }, 
+		{ RIG_RFT, RIG_BACKEND_RFT, RIG_FUNCNAMA(rft) }, 
+		{ RIG_KIT, RIG_BACKEND_KIT, RIG_FUNCNAMA(kit) }, 
+		{ RIG_TUNER, RIG_BACKEND_TUNER, RIG_FUNCNAMA(tuner) }, 
+		{ RIG_RS, RIG_BACKEND_RS, RIG_FUNCNAMA(rs) }, 
+		{ RIG_PRM80, RIG_BACKEND_PRM80, RIG_FUNCNAMA(prm80) }, 
+		{ RIG_ADAT, RIG_BACKEND_ADAT, RIG_FUNCNAM(adat) }, 
+		{ 0, NULL }, /* end */  
+};
 
 /*
  * This struct to keep track of known rig models.
@@ -67,7 +141,6 @@ static struct {
  */
 struct rig_list {
 	const struct rig_caps *caps;
-	lt_dlhandle handle;			/* handle returned by lt_dlopen() */
 	struct rig_list *next;
 };
 
@@ -107,7 +180,7 @@ int HAMLIB_API rig_register(const struct rig_caps *caps)
 
 	hval = HASH_FUNC(caps->rig_model);
 	p->caps = caps;
-	p->handle = NULL;
+	// p->handle = NULL;
 	p->next = rig_hash_table[hval];
 	rig_hash_table[hval] = p;
 
@@ -284,105 +357,30 @@ int rig_load_all_backends()
 }
 
 
-#define MAXFUNCNAMELEN 64
 typedef int (*backend_init_t)(rig_ptr_t);
 
 /*
- * rig_check_backend_version
- * Check that the versioned init function name for be_name is the correct version.
- */
-static int rig_check_backend_version(const lt_dlhandle be_handle, const char *be_name,
-						backend_init_t *be_init)
-{
-	char initfname[MAXFUNCNAMELEN];
-
-	snprintf(initfname, MAXFUNCNAMELEN, "initrigs%d_%s", ABI_VERSION, be_name);
-	*be_init = (backend_init_t) lt_dlsym(be_handle, initfname);
-	if (!*be_init) {
-		rig_debug(RIG_DEBUG_ERR, "rig:  dlsym(%s) failed (%s)\n",
-					initfname, lt_dlerror());
-		return -RIG_EINVAL;
-	}
-
-	return RIG_OK;
-}
-
-/*
  * rig_load_backend
- * Dynamically load a rig backend through dlopen mechanism
  */
 int HAMLIB_API rig_load_backend(const char *be_name)
 {
-# define PREFIX "hamlib-"
-
-	lt_dlhandle be_handle;
-	backend_init_t be_init;
-	int status;
-	char libname[PATH_MAX];
-	char probefname[MAXFUNCNAMELEN];
 	int i;
+	backend_init_t be_init;
 
-	/*
-	 * lt_dlinit may be called several times
-	 *
-	 * FIXME: make static build seamless
-	 */
-#if 0
-	LTDL_SET_PRELOADED_SYMBOLS();
-#endif
-
-	status = lt_dlinit();
-	if (status) {
-    		rig_debug(RIG_DEBUG_ERR, "rig_backend_load: lt_dlinit for %s "
-							"failed: %s\n", be_name, lt_dlerror());
-    		return -RIG_EINTERNAL;
-	}
-
-	lt_dladdsearchdir(HAMLIB_MODULE_DIR);
-
-	rig_debug(RIG_DEBUG_VERBOSE, "rig: loading backend %s\n",be_name);
-
-	/*
-	 * add hamlib directory here
-	 */
-	snprintf (libname, sizeof (libname), PREFIX"%s", be_name);
-
-	be_handle = lt_dlopenext (libname);
-
-	/*
-	 * external module not found? try dlopenself for backends
-	 * compiled in static
-	 */
-	if (!be_handle || rig_check_backend_version(be_handle, be_name, &be_init) != RIG_OK) {
-		rig_debug(RIG_DEBUG_VERBOSE, "rig:  lt_dlopen(\"%s\") failed (%s), "
-						"trying static symbols...\n",
-						libname, lt_dlerror());
-		be_handle = lt_dlopen (NULL);
-		if (!be_handle || rig_check_backend_version(be_handle, be_name, &be_init) != RIG_OK) {
-			rig_debug(RIG_DEBUG_ERR, "rig:  lt_dlopen(\"%s\") failed (%s)\n",
-						libname, lt_dlerror());
-			return -RIG_EINVAL;
-		}
-	}
-
-
-	/*
-	 * register probe function if present
-	 * NOTE: rig_load_backend might have been called upon a backend
-	 * 	not in riglist.h! In this case, do nothing.
-	 */
 	for (i=0; i<RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++) {
-		if (!strncmp(be_name, rig_backend_list[i].be_name, 64)) {
-    			snprintf(probefname, MAXFUNCNAMELEN, "probeallrigs%d_%s", ABI_VERSION, be_name);
-    			rig_backend_list[i].be_probe_all =
-				(rig_model_t (*)(hamlib_port_t*, rig_probe_func_t, rig_ptr_t))
-						lt_dlsym (be_handle, probefname);
-				break;
+		if (!strcmp(be_name, rig_backend_list[i].be_name)) {
+			be_init = rig_backend_list[i].be_init_all ;
+			if(be_init)
+			{
+				return (*be_init)(NULL);
+			}
+			else
+			{
+				return -RIG_EINVAL;
+			}
 		}
 	}
 
-	status = (*be_init)(be_handle);
-
- 	return status;
+	return -RIG_EINVAL;
 }
 

@@ -1,8 +1,9 @@
 
-pkglib_LTLIBRARIES = hamlib-celestron.la
-hamlib_celestron_la_SOURCES = celestron.c
-hamlib_celestron_la_LDFLAGS = -no-undefined -module -avoid-version
-hamlib_celestron_la_LIBADD = $(top_builddir)/src/libhamlib.la
+noinst_LTLIBRARIES = libhamlib-celestron.la
+libhamlib_celestron_la_SOURCES = celestron.c
+libhamlib_celestron_la_CFLAGS = -DIN_HAMLIB $(AM_CFLAGS)
+# libhamlib_celestron_la_LDFLAGS = -no-undefined -module -avoid-version
+# hamlib_celestron_la_LIBADD = $(top_builddir)/src/libhamlib.la
 
 noinst_HEADERS = celestron.h
 

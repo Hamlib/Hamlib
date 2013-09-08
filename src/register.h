@@ -39,24 +39,18 @@
 #error ABI_VERSION undefined! Did you include config.h?
 #endif
 
-#ifdef DECLARE_INITRIG_BACKEND
-#undef DECLARE_INITRIG_BACKEND
-#endif
-#define DECLARE_INITRIG_BACKEND(backend) EXTERN_C BACKEND_EXPORT(int) MAKE_VERSIONED_FN(initrigs, ABI_VERSION, backend(void *be_handle))
+#define PREFIX_INITRIG initrigs
+#define PREFIX_PROBERIG probeallrigs
 
-#ifdef DECLARE_PROBERIG_BACKEND
-#undef DECLARE_PROBERIG_BACKEND
-#endif
-#define DECLARE_PROBERIG_BACKEND(backend) EXTERN_C BACKEND_EXPORT(rig_model_t) MAKE_VERSIONED_FN(probeallrigs, ABI_VERSION, backend(hamlib_port_t *port, rig_probe_func_t cfunc, rig_ptr_t data))
+#define DECLARE_INITRIG_BACKEND(backend) EXTERN_C BACKEND_EXPORT(int) MAKE_VERSIONED_FN(PREFIX_INITRIG, ABI_VERSION, backend(void *be_handle))
 
-#ifdef DECLARE_INITROT_BACKEND
-#undef DECLARE_INITROT_BACKEND
-#endif
-#define DECLARE_INITROT_BACKEND(backend) EXTERN_C BACKEND_EXPORT(int) MAKE_VERSIONED_FN(initrots, ABI_VERSION, backend(void *be_handle))
+#define DECLARE_PROBERIG_BACKEND(backend) EXTERN_C BACKEND_EXPORT(rig_model_t) MAKE_VERSIONED_FN(PREFIX_PROBERIG, ABI_VERSION, backend(hamlib_port_t *port, rig_probe_func_t cfunc, rig_ptr_t data))
 
-#ifdef DECLARE_PROBEROT_BACKEND
-#undef DECLARE_PROBEROT_BACKEND
-#endif
-#define DECLARE_PROBEROT_BACKEND(backend) EXTERN_C BACKEND_EXPORT(rot_model_t) MAKE_VERSIONED_FN(probeallrots, ABI_VERSION, backend(hamlib_port_t *port, rig_probe_func_t cfunc, rig_ptr_t data))
+#define PREFIX_INITROTS initrots
+#define PREFIX_PROBEROTS probeallrots
+
+#define DECLARE_INITROT_BACKEND(backend) EXTERN_C BACKEND_EXPORT(int) MAKE_VERSIONED_FN(PREFIX_INITROTS, ABI_VERSION, backend(void *be_handle))
+
+#define DECLARE_PROBEROT_BACKEND(backend) EXTERN_C BACKEND_EXPORT(rot_model_t) MAKE_VERSIONED_FN(PREFIX_PROBEROTS, ABI_VERSION, backend(hamlib_port_t *port, rig_probe_func_t cfunc, rig_ptr_t data))
 
 #endif	/* _REGISTER_H */
