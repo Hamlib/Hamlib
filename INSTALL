@@ -1,200 +1,219 @@
-Installation Instructions
-*************************
-
-Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2004, 2005,
-2006, 2007, 2008, 2009 Free Software Foundation, Inc.
-
-   Copying and distribution of this file, with or without modification,
-are permitted in any medium without royalty provided the copyright
-notice and this notice are preserved.  This file is offered as-is,
-without warranty of any kind.
-
 Basic Installation
 ==================
 
-   Briefly, the shell commands `./configure; make; make install' should
-configure, build, and install this package.  The following
-more-detailed instructions are generic; see the `README' file for
-instructions specific to this package.  Some packages provide this
-`INSTALL' file but do not implement all of the features documented
-below.  The lack of an optional feature in a given package is not
-necessarily a bug.  More recommendations for GNU packages can be found
-in *note Makefile Conventions: (standards)Makefile Conventions.
+For more information specific to Hamlib, please read the README as well as
+README.betatester and the first part of README.developer to see which
+additional development packages are needed. This source code distribution is
+autoconfiguring and you should be able to compile it and install it without
+manual interventions such as editing Makefiles, configuration files, and so
+on. These are generic instructions for people who are not familiar with
+installing autoconfiguring software (along with some Hamlib-specific
+information).
+
+The simplest way to compile this package is to enter the source code
+main directory and do the following:
+
+  1. Configure the source code by typing:
+
+        $ ./configure
+
+     If you are planning to install the package into your home directory
+     or to a location other than `/usr/local' then add the flag
+     `--prefix=PATH' to `configure'. For example, if your home directory
+     is `/home/username' and you would like to install it to a directory
+     named 'local' you can configure the package to install itself
+     there by invoking:
+
+        $ ./configure --prefix=$HOME/local
+
+     The configure script has several options to configure Hamlib.  See the
+     Optional Features section below.
+
+     While running, `configure' prints some messages telling you which
+     features it is checking for.
+
+  2. Compile the package by typing:
+
+        $ make
+
+     Running `make' takes a while.  Since Hamlib is a package, now is the
+     time to go get a cup of coffee.
+
+  3. Some packages are bundled with self-tests for source-code verification.
+     If this package includes such tests, you can optionally run them after
+     compilation by typing
+
+        $ make check
+
+  4. Type `make install' to install the programs and any data files and
+     documentation. Type `make uninstall' to undo the installation.
+
+     N.B.  Be aware that Super User (root) privileges will be required to
+     install to /usr/local or any other system location outside of your home
+     directory.  Many distributions include the `sudo' command which will
+     permit you to install Hamlib after entering your password.  Otherwise
+     you will need to log in as 'root'.
+
+     During installation, the following files go to the following directories:
+        Executables          -> /prefix/bin
+        Libraries            -> /prefix/lib
+        Public header files  -> /prefix/include
+        Man pages            -> /prefix/man/man?
+        Info files           -> /prefix/info
+        Doc files            -> /prefix/share/doc/<prog name>
+        Share files          -> /prefix/share/<prog name>
+     where `prefix' is either `/usr/local' or the PATH that you specified
+     in the `--prefix' flag.
+
+     If any of these directories do not presently exist, they will be
+     created on demand.
+
+     If you are installing in your home directory make sure that
+     `/home/username/bin' is in your path. If you're using the bash shell
+     add these lines at the end of your .bashrc file:
+
+        PATH="/home/username/bin:${PATH}"
+        export PATH
+
+     If you are using csh or tcsh, then use this line instead:
+
+        setenv PATH /home/username/bin:${PATH}
+
+     By prepending your home directory to the rest of the PATH you can
+     override systemwide installed software with your own custom installation.
+
+  5. After installation you may need to update the ld.so.cache as the
+     installation files are placed in /usr/local/lib by default.  On most
+     systems this is easily accomplished by running the `ldconfig' command
+     as the superuser (root).  The following line may need to be added to
+     /etc/ld.so.conf:
+
+        /usr/local/lib
+
+     Most modern distributions have an /etc/ld.so.conf.d/ directory where
+     local configuration can be made. Later versions of Debian and
+     derivatives have a file named 'libc.conf' in this directory.  The
+     contents of libc.conf are:
+
+        # libc default configuration
+        /usr/local/lib
+
+     If your system does not have such a file, one will need to be created
+     and then `ldconfig' will need to be run as the root user so that
+     applications using the Hamlib libraries can find them.
+
+     Now `ldconfig' can be run.
+
+     While the programs built along with Hamlib will probably work fine
+     without running `ldconfig', experience has shown that precompiled
+     binaries like Fldigi will not be able to find a locally compiled
+     libhamlib.so.2 without updating the ld.so.cache.
+
+  6. You can remove the program binaries and object files from the
+     source code directory by typing `make clean'.  To also remove the
+     files that `configure' created (so you can compile the package for
+     a different kind of computer), type `make distclean'.  The
+     `configure' program will need to be run again to recompile Hamlib.
+
+  7. You can optionally generate the Doxygen documentation files:
+
+        cd doc
+        make doc
+
+     The HTML output files are provided for binary releases on the hamlib.org
+     web site.
+
+  8. Finally, if you wish to remove Hamlib, run `make uninstall' as
+     superuser (root), unless Hamlib was installed into your home directory,
+     from the Hamlib source directory.  This will work unless `make distclean'
+     has been run.
+
+Compiler configuration (Advanced usage)
+=======================================
+
+   The `configure' shell script is responsible for choosing and configuring
+the compiler(s).
+
+The following options allow you to specify whether you
+want to enable or disable various debugging mechanisms:
+
+`--enable-warnings'
+      Make the compilers very picky about warnings. Try this whenever you
+      write new code since it may catch a few bugs. This is not active by
+      default because all too often warnings can be too picky and scare
+      the end-user.
+
+All programs are compiled with optimization level 2 by default (-O2).
+Occasionally that confuses the debugger when code is inlined. To disable
+optimization and enable debugging, set the shell environment variables
+CFLAGS, CXXFLAGS. On the bash shell, you can do this
+like this:
+
+  $ export CFLAGS="-g"
+  $ export CXXFLAGS="-g"
+
+On the tcsh shell, use the `setenv' command instead:
+
+  % setenv CFLAGS "-g"
+  ...etc...
+
+For other shells, please consult your shell's documentation.
+
+Similarly, you can increase the optimization level by assigning these
+variables to "-g -O3".
+
+Depending on what languages the package uses, some of these options may
+or may not be available. To see what is available, type:
+    % sh ./configure --help
+
+About the configure script
+==========================
 
    The `configure' shell script attempts to guess correct values for
 various system-dependent variables used during compilation.  It uses
 those values to create a `Makefile' in each directory of the package.
 It may also create one or more `.h' files containing system-dependent
 definitions.  Finally, it creates a shell script `config.status' that
-you can run in the future to recreate the current configuration, and a
-file `config.log' containing compiler output (useful mainly for
-debugging `configure').
-
-   It can also use an optional file (typically called `config.cache'
-and enabled with `--cache-file=config.cache' or simply `-C') that saves
-the results of its tests to speed up reconfiguring.  Caching is
-disabled by default to prevent problems with accidental use of stale
-cache files.
+you can run in the future to recreate the current configuration, a file
+`config.cache' that saves the results of its tests to speed up
+reconfiguring, and a file `config.log' containing compiler output
+(useful mainly for debugging `configure').
 
    If you need to do unusual things to compile the package, please try
 to figure out how `configure' could check whether to do them, and mail
 diffs or instructions to the address given in the `README' so they can
-be considered for the next release.  If you are using the cache, and at
-some point `config.cache' contains results you don't want to keep, you
-may remove or edit it.
+be considered for the next release.  If at some point `config.cache'
+contains results you don't want to keep, you may remove or edit it.
 
-   The file `configure.ac' (or `configure.in') is used to create
-`configure' by a program called `autoconf'.  You need `configure.ac' if
-you want to change it or regenerate `configure' using a newer version
-of `autoconf'.
+   The file `configure.ac' is used to create `configure' by a program
+called `autoreconf'.  You only need `configure.ac' if you want to change
+it or regenerate `configure' using a newer version of `autoconf'.  This
+project uses a custom `autogen.sh' for running autoreconf in a developer's
+checkout of Hamlib from a source repository.
 
-   The simplest way to compile this package is:
+Advanced installation options.
+==============================
 
-  1. `cd' to the directory containing the package's source code and type
-     `./configure' to configure the package for your system.
-
-     Running `configure' might take a while.  While running, it prints
-     some messages telling which features it is checking for.
-
-  2. Type `make' to compile the package.
-
-  3. Optionally, type `make check' to run any self-tests that come with
-     the package, generally using the just-built uninstalled binaries.
-
-  4. Type `make install' to install the programs and any data files and
-     documentation.  When installing into a prefix owned by root, it is
-     recommended that the package be configured and built as a regular
-     user, and only the `make install' phase executed with root
-     privileges.
-
-  5. Optionally, type `make installcheck' to repeat any self-tests, but
-     this time using the binaries in their final installed location.
-     This target does not install anything.  Running this target as a
-     regular user, particularly if the prior `make install' required
-     root privileges, verifies that the installation completed
-     correctly.
-
-  6. You can remove the program binaries and object files from the
-     source code directory by typing `make clean'.  To also remove the
-     files that `configure' created (so you can compile the package for
-     a different kind of computer), type `make distclean'.  There is
-     also a `make maintainer-clean' target, but that is intended mainly
-     for the package's developers.  If you use it, you may have to get
-     all sorts of other programs in order to regenerate files that came
-     with the distribution.
-
-  7. Often, you can also type `make uninstall' to remove the installed
-     files again.  In practice, not all packages have tested that
-     uninstallation works correctly, even though it is required by the
-     GNU Coding Standards.
-
-  8. Some packages, particularly those that use Automake, provide `make
-     distcheck', which can by used by developers to test that all other
-     targets like `make install' and `make uninstall' work correctly.
-     This target is generally not run by end users.
-
-Compilers and Options
-=====================
-
-   Some systems require unusual options for compilation or linking that
-the `configure' script does not know about.  Run `./configure --help'
-for details on some of the pertinent environment variables.
-
-   You can give `configure' initial values for configuration parameters
-by setting variables in the command line or in the environment.  Here
-is an example:
-
-     ./configure CC=c99 CFLAGS=-g LIBS=-lposix
-
-   *Note Defining Variables::, for more details.
-
-Compiling For Multiple Architectures
-====================================
-
-   You can compile the package for more than one kind of computer at the
-same time, by placing the object files for each architecture in their
-own directory.  To do this, you can use GNU `make'.  `cd' to the
-directory where you want the object files and executables to go and run
-the `configure' script.  `configure' automatically checks for the
-source code in the directory that `configure' is in and in `..'.  This
-is known as a "VPATH" build.
-
-   With a non-GNU `make', it is safer to compile the package for one
-architecture at a time in the source code directory.  After you have
-installed the package for one architecture, use `make distclean' before
-reconfiguring for another architecture.
-
-   On MacOS X 10.5 and later systems, you can create libraries and
-executables that work on multiple system types--known as "fat" or
-"universal" binaries--by specifying multiple `-arch' options to the
-compiler but only a single `-arch' option to the preprocessor.  Like
-this:
-
-     ./configure CC="gcc -arch i386 -arch x86_64 -arch ppc -arch ppc64" \
-                 CXX="g++ -arch i386 -arch x86_64 -arch ppc -arch ppc64" \
-                 CPP="gcc -E" CXXCPP="g++ -E"
-
-   This is not guaranteed to produce working output in all cases, you
-may have to build one architecture at a time and combine the results
-using the `lipo' tool if you have problems.
-
-Installation Names
-==================
-
-   By default, `make install' installs the package's commands under
-`/usr/local/bin', include files under `/usr/local/include', etc.  You
-can specify an installation prefix other than `/usr/local' by giving
-`configure' the option `--prefix=PREFIX', where PREFIX must be an
-absolute file name.
+   The `configure' script also understands the following more advanced
+options, to handle situations for which `--prefix' alone is not sufficient.
 
    You can specify separate installation prefixes for
 architecture-specific files and architecture-independent files.  If you
-pass the option `--exec-prefix=PREFIX' to `configure', the package uses
-PREFIX as the prefix for installing programs and libraries.
-Documentation and other data files still use the regular prefix.
+give `configure' the option `--exec-prefix=PATH', the package will use
+PATH as the prefix for installing programs and libraries.
+Documentation and other data files will still use the regular prefix.
 
    In addition, if you use an unusual directory layout you can give
-options like `--bindir=DIR' to specify different values for particular
+options like `--bindir=PATH' to specify different values for particular
 kinds of files.  Run `configure --help' for a list of the directories
-you can set and what kinds of files go in them.  In general, the
-default for these options is expressed in terms of `${prefix}', so that
-specifying just `--prefix' will affect all of the other directory
-specifications that were not explicitly provided.
-
-   The most portable way to affect installation locations is to pass the
-correct locations to `configure'; however, many packages provide one or
-both of the following shortcuts of passing variable assignments to the
-`make install' command line to change installation locations without
-having to reconfigure or recompile.
-
-   The first method involves providing an override variable for each
-affected directory.  For example, `make install
-prefix=/alternate/directory' will choose an alternate location for all
-directory configuration variables that were expressed in terms of
-`${prefix}'.  Any directories that were specified during `configure',
-but not in terms of `${prefix}', must each be overridden at install
-time for the entire installation to be relocated.  The approach of
-makefile variable overrides for each directory variable is required by
-the GNU Coding Standards, and ideally causes no recompilation.
-However, some platforms have known limitations with the semantics of
-shared libraries that end up requiring recompilation when using this
-method, particularly noticeable in packages that use GNU Libtool.
-
-   The second method involves providing the `DESTDIR' variable.  For
-example, `make install DESTDIR=/alternate/directory' will prepend
-`/alternate/directory' before all installation names.  The approach of
-`DESTDIR' overrides is not required by the GNU Coding Standards, and
-does not work on platforms that have drive letters.  On the other hand,
-it does better at avoiding recompilation issues, and works well even
-when some directory options were not specified in terms of `${prefix}'
-at `configure' time.
-
-Optional Features
-=================
+you can set and what kinds of files go in them.
 
    If the package supports it, you can cause programs to be installed
 with an extra prefix or suffix on their names by giving `configure' the
 option `--program-prefix=PREFIX' or `--program-suffix=SUFFIX'.
+
+Optional Features
+=================
 
    Some packages pay attention to `--enable-FEATURE' options to
 `configure', where FEATURE indicates an optional part of the package.
@@ -208,158 +227,71 @@ find the X include and library files automatically, but if it doesn't,
 you can use the `configure' options `--x-includes=DIR' and
 `--x-libraries=DIR' to specify their locations.
 
-   Some packages offer the ability to configure how verbose the
-execution of `make' will be.  For these packages, running `./configure
---enable-silent-rules' sets the default to minimal output, which can be
-overridden with `make V=1'; while running `./configure
---disable-silent-rules' sets the default to verbose, which can be
-overridden with `make V=0'.
+MS Windows
+==========
+- Debian system with mingw32msvc cross-compiler
 
-Particular systems
-==================
+    ./configure --with-included-ltdl --host=i586-mingw32msvc
 
-   On HP-UX, the default C compiler is not ANSI C compatible.  If GNU
-CC is not installed, it is recommended to use the following options in
-order to use an ANSI C compiler:
+- Mingw compiler under Cygwin
+    CC="gcc -mno-cygwin" CXX="g++ -mno-cygwin" \
+    ./configure --with-included-ltdl --host=i686-pc-mingw32
 
-     ./configure CC="cc -Ae -D_XOPEN_SOURCE=500"
+- Cygwin
+    Native Cygwin requires no special options besides regular ones.
 
-and if that doesn't work, install pre-built binaries of GCC for HP-UX.
+N.B. See the 'build-win32.sh' script and its associated README.build-win32 file
+in the 'scripts' directory for complete details on build a Win32 binary.
 
-   On OSF/1 a.k.a. Tru64, some versions of the default C compiler cannot
-parse its `<wchar.h>' header file.  The option `-nodtk' can be used as
-a workaround.  If GNU CC is not installed, it is therefore recommended
-to try
+Hamlib Specific Features
+========================
 
-     ./configure CC="cc"
+    Various Hamlib features requiring the presence of third party packages are
+enabled with options beginning with '--with-'.  At this time these options
+are:
 
-and if that doesn't work, try
+  --with-xml-support      build rigmem with XML support [default=no]
+  --without-readline      disable readline in rigctl/rotctl [default=yes]
+  --without-cxx-binding   do not build C++ binding and demo [default=yes]
+  --with-perl-binding     build perl binding and demo [default=no]
+  --with-perl-inc         directory containing perl includes
+  --with-python-binding   build python binding and demo [default=no]
+  --with-tcl-binding      build Tcl binding and demo [default=no]
+  --with-tcl=PATH         directory containing tcl configuration (tclConfig.sh)
 
-     ./configure CC="cc -nodtk"
+    Optional features that may require specialized hardware are:
 
-   On Solaris, don't put `/usr/ucb' early in your `PATH'.  This
-directory contains several dysfunctional programs; working variants of
-these programs are available in `/usr/bin'.  So, if you need `/usr/ucb'
-in your `PATH', put it _after_ `/usr/bin'.
+  --disable-html-matrix   do not generate HTML rig feature matrix (requires
+                          libgd-dev) [default=check]
+  --disable-winradio      do not build winradio backend [default=yes]
+  --enable-usrp           build USRP backend [default=no]
 
-   On Haiku, software installed for all users goes in `/boot/common',
-not `/usr/local'.  It is recommended to use the following options:
+Bindings notes
+--------------
 
-     ./configure --prefix=/boot/common
+   Should you encounter any problem with the build of the C++ binding,
+you can disable this optional part by passing `--without-cxx-binding'
+to the configure script (may happen under MacOSX).
 
-Specifying the System Type
-==========================
+    Note that the Perl, Python, and TCL bindings are disabled by default so
+they will need to be specifically enabled for language binding support (this
+has no effect on rigctld/rotctld).  You may get a make error (which means it
+will quit before compilation is complete) if the
+--with-[perl|python|tcl]-binding option(s) are given and the Swig package is
+not installed.
 
-   There may be some features `configure' cannot figure out
-automatically, but needs to determine by the type of machine the package
-will run on.  Usually, assuming the package is built to be run on the
-_same_ architectures, `configure' can figure that out, but if it prints
-a message saying it cannot guess the machine type, give it the
-`--build=TYPE' option.  TYPE can either be a short name for the system
-type, such as `sun4', or a canonical name which has the form:
+    Perl and Python bindings should be installed into a 'configure' runtime
+discovered location under the default prefix.
 
-     CPU-COMPANY-SYSTEM
+    The TCL binding will be installed into $(libdir)/tcl/Hamlib (default).  If a
+non-default --prefix is passed to 'configure', the 'lappend' line in tcltest.tcl
+script will need to be modified accordingly so the script can load the Hamlib
+package.  As TCL doesn't seem to have a "standard" location for additional
+packages and since there seemed to be no common location among distributions,
+this path was chosen abitrarily.  Any patches to improve installation path
+discovery of local packages are welcome.
 
-where SYSTEM can have one of these forms:
-
-     OS
-     KERNEL-OS
-
-   See the file `config.sub' for the possible values of each field.  If
-`config.sub' isn't included in this package, then this package doesn't
-need to know the machine type.
-
-   If you are _building_ compiler tools for cross-compiling, you should
-use the option `--target=TYPE' to select the type of system they will
-produce code for.
-
-   If you want to _use_ a cross compiler, that generates code for a
-platform different from the build platform, you should specify the
-"host" platform (i.e., that on which the generated programs will
-eventually be run) with `--host=TYPE'.
-
-Sharing Defaults
-================
-
-   If you want to set default values for `configure' scripts to share,
-you can create a site shell script called `config.site' that gives
-default values for variables like `CC', `cache_file', and `prefix'.
-`configure' looks for `PREFIX/share/config.site' if it exists, then
-`PREFIX/etc/config.site' if it exists.  Or, you can set the
-`CONFIG_SITE' environment variable to the location of the site script.
-A warning: not all `configure' scripts look for a site script.
-
-Defining Variables
-==================
-
-   Variables not defined in a site shell script can be set in the
-environment passed to `configure'.  However, some packages may run
-configure again during the build, and the customized values of these
-variables may be lost.  In order to avoid this problem, you should set
-them in the `configure' command line, using `VAR=value'.  For example:
-
-     ./configure CC=/usr/local2/bin/gcc
-
-causes the specified `gcc' to be used as the C compiler (unless it is
-overridden in the site shell script).
-
-Unfortunately, this technique does not work for `CONFIG_SHELL' due to
-an Autoconf bug.  Until the bug is fixed you can use this workaround:
-
-     CONFIG_SHELL=/bin/bash /bin/bash ./configure CONFIG_SHELL=/bin/bash
-
-`configure' Invocation
-======================
-
-   `configure' recognizes the following options to control how it
-operates.
-
-`--help'
-`-h'
-     Print a summary of all of the options to `configure', and exit.
-
-`--help=short'
-`--help=recursive'
-     Print a summary of the options unique to this package's
-     `configure', and exit.  The `short' variant lists options used
-     only in the top level, while the `recursive' variant lists options
-     also present in any nested packages.
-
-`--version'
-`-V'
-     Print the version of Autoconf used to generate the `configure'
-     script, and exit.
-
-`--cache-file=FILE'
-     Enable the cache: use and save the results of the tests in FILE,
-     traditionally `config.cache'.  FILE defaults to `/dev/null' to
-     disable caching.
-
-`--config-cache'
-`-C'
-     Alias for `--cache-file=config.cache'.
-
-`--quiet'
-`--silent'
-`-q'
-     Do not print messages saying which checks are being made.  To
-     suppress all normal output, redirect it to `/dev/null' (any error
-     messages will still be shown).
-
-`--srcdir=DIR'
-     Look for the package's source code in directory DIR.  Usually
-     `configure' can determine that directory automatically.
-
-`--prefix=DIR'
-     Use DIR as the installation prefix.  *note Installation Names::
-     for more details, including other options available for fine-tuning
-     the installation locations.
-
-`--no-create'
-`-n'
-     Run the configure checks, but stop before creating any output
-     files.
-
-`configure' also accepts some other, not widely useful, options.  Run
-`configure --help' for more details.
-
+    When running 'make uninstall' the installed files for the Python and TCL
+modules are removed.  The Perl files will remain due to a design decision
+of the Perl MakeMaker module.  Installed Perl binding files will need to be
+removed manually.
