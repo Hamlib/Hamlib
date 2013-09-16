@@ -34,7 +34,7 @@ AC_CONFIG_AUX_DIR([build-aux])
 
 dnl Passing AC_PACKAGE_TARNAME, AC_PACKAGE_VERSION to AM_INIT_AUTOMAKE is
 dnl obsolete as these values are obtained from the AC_INIT macro.
-AM_INIT_AUTOMAKE([-Wall])
+AM_INIT_AUTOMAKE([-Wall subdir-objects])
 
 dnl Clean compilation output makes compiler warnings more visible
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
@@ -255,7 +255,7 @@ dnl N.B. LT_INIT([dlopen], [win32-dll]) does not work for older libtool
 dnl so require new enough version above.  Disable static library builds as
 dnl the frontend and backend libs are not linked.  May need a recipe outside
 dnl of Libtool if these are needed.
-LT_INIT([dlopen win32-dll disable-static])
+LT_INIT([dlopen win32-dll])
 
 dnl Enable building of the convenience libltdl library recursively
 dnl (requires --with-included-ltdl be given to configure for the included
@@ -263,7 +263,7 @@ dnl libltdl to be used instead of an installed version), useful on systems
 dnl where libltdl-dev is not installed.
 LTDL_INIT([convenience recursive])
 
-## dnl Ugly hack to work around libtool LT_CONFIG_H bug #12262
+dnl Ugly hack to work around libtool LT_CONFIG_H bug #12262
 dnl http://lists.gnu.org/archive/html/bug-libtool/2012-08/msg00007.html
 AC_CONFIG_COMMANDS_PRE([LT_CONFIG_H=`expr "$LT_CONFIG_H" : '.*/\(.*\)'`])
 

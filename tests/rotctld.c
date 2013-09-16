@@ -295,7 +295,7 @@ int main (int argc, char *argv[])
 	hints.ai_flags = AI_PASSIVE;    /* For wildcard IP address */
 	hints.ai_protocol = 0;          /* Any protocol */
 
-	retcode = rig_getaddrinfo(src_addr, portno, &hints, &result);
+	retcode = getaddrinfo(src_addr, portno, &hints, &result);
 	if (retcode != 0) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(retcode));
 		exit(2);
@@ -318,7 +318,7 @@ int main (int argc, char *argv[])
 		exit (1);
 	}
 
-	rig_freeaddrinfo(result);           /* No longer needed */
+	freeaddrinfo(result);           /* No longer needed */
 
 	if (listen(sock_listen,4) < 0) {
 		rig_debug(RIG_DEBUG_ERR, "listening: %s\n", strerror(errno));
