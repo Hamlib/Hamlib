@@ -1,13 +1,8 @@
-TENTECSRCLIST = rx320.c rx340.c rx350.c rx331.c \
-		pegasus.c argonaut.c orion.c jupiter.c omnivii.c paragon.c
+TENTECSRC = rx320.c rx340.c rx350.c rx331.c rx331.h tt550.c tt550.h \
+	pegasus.c argonaut.c orion.c orion.h jupiter.c omnivii.c paragon.c \
+	tentec.c tentec.h tentec2.c tentec2.h
 
 noinst_LTLIBRARIES = libhamlib-tentec.la
-libhamlib_tentec_la_SOURCES = $(TENTECSRCLIST) tentec.c tentec2.c tt550.c
-libhamlib_tentec_la_CFLAGS = -DIN_HAMLIB $(AM_CFLAGS)
-# libhamlib_tentec_la_LDFLAGS = -no-undefined -module -avoid-version
-#hamlib_tentec_la_LIBADD = $(top_builddir)/src/libhamlib.la \
-#			  $(top_builddir)/lib/libmisc.la
+libhamlib_tentec_la_SOURCES = $(TENTECSRC)
 
 EXTRA_DIST = README Android.mk
-
-noinst_HEADERS = tentec.h tentec2.h tt550.h orion.h rx331.h

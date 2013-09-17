@@ -1,13 +1,15 @@
 AM_CFLAGS = @AM_CFLAGS@ $(LIBUSB_CFLAGS)
 
 # FIXME: compile usrp only if CXX available
-KITSRCLIST = elektor304.c drt1.c dwt.c usrp.c elektor507.c \
-	     dds60.c miniVNA.c si570avrusb.c funcube.c fifisdr.c hiqsdr.c
+
+KITSRC = elektor304.c drt1.c dwt.c usrp.c elektor507.c dds60.c miniVNA.c \
+	si570avrusb.c si570avrusb.h funcube.c funcube.h fifisdr.c hiqsdr.c \
+	kit.c kit.h usrp_impl.h
 
 if HAVE_USRP
     # Append to the already defined AM_CXXFLAGS that exists outside the conditional.
     AM_CXXFLAGS += @USRP_CFLAGS@
-    KITSRCLIST += usrp_impl.cc
+    KITSRC += usrp_impl.cc
     libhamlib_kit_la_LINK = $(CXXLINK) $(libhamlib_kit_la_LDFLAGS)
 else
     # automake gets confused and invokes the C++ linker via libtool regardless
@@ -16,22 +18,10 @@ else
     libhamlib_kit_la_LINK = $(LINK) $(libhamlib_kit_la_LDFLAGS)
 endif
 
-KITROTSRCLIST = pcrotor.c
+KITROTSRC = pcrotor.c
 
 noinst_LTLIBRARIES = libhamlib-kit.la
-libhamlib_kit_la_SOURCES = $(KITSRCLIST) $(KITROTSRCLIST) kit.c
-libhamlib_kit_la_CFLAGS = -DIN_HAMLIB $(AM_CFLAGS)
-# libhamlib_kit_la_LDFLAGS = -no-undefined -module -avoid-version
-#hamlib_kit_la_LIBADD = $(top_builddir)/lib/libmisc.la \
-#		       $(USRP_LIBS) \
-#		       $(LIBUSB_LIBS) \
-#		       @MATH_LIBS@ \
-#		       $(top_builddir)/src/libhamlib.la
-libhamlib_kit_la_LIBADD =  \
-		       $(USRP_LIBS) \
-		       $(LIBUSB_LIBS) \
-		       @MATH_LIBS@
-
-noinst_HEADERS = kit.h usrp_impl.h si570avrusb.h funcube.h
+libhamlib_kit_la_SOURCES = $(KITSRC) $(KITROTSRC)
+libhamlib_kit_la_LIBADD = $(USRP_LIBS) $(LIBUSB_LIBS) @MATH_LIBS@
 
 EXTRA_DIST = README.funcubedongle Android.mk

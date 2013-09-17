@@ -1,11 +1,6 @@
-KACHINASRCLIST = 505dsp.c
+KACHINASRC = 505dsp.c kachina.c kachina.h
 
 noinst_LTLIBRARIES = libhamlib-kachina.la
-libhamlib_kachina_la_SOURCES = $(KACHINASRCLIST) kachina.c
-libhamlib_kachina_la_CFLAGS = -DIN_HAMLIB $(AM_CFLAGS)
-# libhamlib_kachina_la_LDFLAGS = -no-undefined -module -avoid-version
-#hamlib_kachina_la_LIBADD = $(top_builddir)/src/libhamlib.la
-
-noinst_HEADERS = kachina.h
+libhamlib_kachina_la_SOURCES = $(KACHINASRC)
 
 EXTRA_DIST = Android.mk

@@ -1,25 +1,17 @@
 ## Process this file with automake to produce Makefile.in
 
 ## Yeasu radios that use the legacy CAT commands
-YAESUSRC =  ft100.c ft747.c ft817.c ft847.c ft890.c ft900.c ft920.c \
-		ft1000mp.c ft857.c ft897.c ft990.c frg8800.c \
-		ft757gx.c ft736.c frg100.c frg9600.c ft1000d.c \
-		vr5000.c ft767gx.c ft840.c ft980.c vx1700.c
+YAESUSRC = ft100.c ft100.h ft747.c ft747.h ft817.c ft817.h ft847.c ft847.h \
+	ft890.c ft890.h ft900.c ft900.h ft920.c ft920.h ft1000mp.c ft1000mp.h \
+	ft857.c ft857.h ft897.c ft897.h ft990.c ft990.h frg8800.c ft757gx.c \
+	ft757gx.h ft736.c frg100.c frg9600.c ft1000d.c vr5000.c ft767gx.c \
+	ft767gx.h ft840.c ft840.h ft980.c vx1700.c vx1700.h
 
 ## Yaesu radios that use the new Kenwood style CAT commands
-NEWCATSRC = newcat.c ft450.c ft950.c ft2000.c ft9000.c ft5000.c
+NEWCATSRC = newcat.c newcat.h ft450.c ft450.h ft950.c ft950.h ft2000.c \
+	ft2000.h ft9000.c ft9000.h ft5000.c ft5000.h
 
 noinst_LTLIBRARIES = libhamlib-yaesu.la
-libhamlib_yaesu_la_SOURCES = $(YAESUSRC) $(NEWCATSRC) yaesu.c
-libhamlib_yaesu_la_CFLAGS = -DIN_HAMLIB $(AM_CFLAGS)
-# libhamlib_yaesu_la_LDFLAGS = -no-undefined -module -avoid-version
-#hamlib_yaesu_la_LIBADD = $(top_builddir)/lib/libmisc.la \
-#			 @MATH_LIBS@ \
-#			$(top_builddir)/src/libhamlib.la
+libhamlib_yaesu_la_SOURCES = $(YAESUSRC) $(NEWCATSRC) yaesu.c yaesu.h
 
 EXTRA_DIST = README.ft890 README.ft920 Android.mk
-
-noinst_HEADERS = ft100.h ft747.h ft817.h ft847.h ft890.h ft900.h ft920.h \
-		 ft1000mp.h ft857.h ft897.h ft990.h yaesu.h  \
-		 ft757gx.h ft767gx.h ft450.h ft950.h ft2000.h ft9000.h ft5000.h \
-		 ft840.h vx1700.h newcat.h

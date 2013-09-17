@@ -1,17 +1,14 @@
+GNURADIOSRC =  mc4020.c graudio.c gnuradio.h gr.c gnuradio.cc am.h demod.h
+	       gr_priv.h HrAGC.h nfm.h ssb.h wfm.h \
 
 AM_CFLAGS = @AM_CFLAGS@ @GNURADIO_CFLAGS@ $(PTHREAD_CFLAGS)
 AM_CXXFLAGS = @AM_CXXFLAGS@ @GNURADIO_CFLAGS@ $(PTHREAD_CFLAGS)
 
 noinst_LTLIBRARIES = hamlib-gnuradio.la
-hamlib_gnuradio_la_SOURCES = mc4020.c graudio.c gr.c gnuradio.cc
-
-# hamlib_gnuradio_la_LDFLAGS = -no-undefined -module -avoid-version
-hamlib_gnuradio_la_CFLAGS = -DIN_HAMLIB $(AM_CFLAGS)
+hamlib_gnuradio_la_SOURCES = $(GNURADIOSRC)
 
 # requires libgnuradio, libfftw and c++
 hamlib_gnuradio_la_LIBADD = $(top_builddir)/src/libhamlib.la @GNURADIO_LIBS@ -lstdc++ $(PTHREAD_LIBS)
-
-noinst_HEADERS = gnuradio.h gr_priv.h demod.h nfm.h am.h ssb.h wfm.h HrAGC.h
 
 
 check_PROGRAMS = testgr
@@ -20,4 +17,3 @@ testgr_SOURCES = testgr.cc
 testgr_LDADD = $(top_builddir)/src/libhamlib.la @GNURADIO_LIBS@
 testgr_LDFLAGS = @BACKENDLNK@
 testgr_DEPENDENCIES = @BACKENDEPS@ $(top_builddir)/src/libhamlib.la
-
