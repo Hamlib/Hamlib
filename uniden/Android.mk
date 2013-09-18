@@ -7,9 +7,8 @@ LOCAL_SRC_FILES := bc895.c bc898.c bc245.c pro2052.c bc780.c bc250.c \
 		uniden.c uniden_digital.c
 LOCAL_MODULE := uniden
 
-LOCAL_MODULE_FILENAME := libhamlib-$(LOCAL_MODULE)
 LOCAL_CFLAGS := -DHAVE_CONFIG_H
 LOCAL_C_INCLUDES := android include src
 LOCAL_LDLIBS := -lhamlib -Lobj/local/armeabi
 
-include $(BUILD_SHARED_LIBRARY)
+include $(BUILD_STATIC_LIBRARY)

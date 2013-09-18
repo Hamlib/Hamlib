@@ -1,4 +1,5 @@
 TOP_PATH := $(call my-dir)
+
 include $(TOP_PATH)/src/Android.mk
 
 include $(TOP_PATH)/adat/Android.mk
@@ -10,6 +11,7 @@ include $(TOP_PATH)/celestron/Android.mk
 include $(TOP_PATH)/drake/Android.mk
 include $(TOP_PATH)/dummy/Android.mk
 include $(TOP_PATH)/easycomm/Android.mk
+include $(TOP_PATH)/ether6/Android.mk
 include $(TOP_PATH)/flexradio/Android.mk
 include $(TOP_PATH)/fodtrack/Android.mk
 include $(TOP_PATH)/gs232a/Android.mk

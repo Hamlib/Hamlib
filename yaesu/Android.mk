@@ -11,9 +11,8 @@ LOCAL_SRC_FILES := ft100.c ft747.c ft817.c ft847.c ft890.c ft900.c ft920.c \
 
 LOCAL_MODULE := yaesu
 
-LOCAL_MODULE_FILENAME := libhamlib-$(LOCAL_MODULE)
 LOCAL_CFLAGS := -DHAVE_CONFIG_H
 LOCAL_C_INCLUDES := android include src
 LOCAL_LDLIBS := -lhamlib -Lobj/local/armeabi
 
-include $(BUILD_SHARED_LIBRARY)
+include $(BUILD_STATIC_LIBRARY)

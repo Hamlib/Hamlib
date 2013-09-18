@@ -10,9 +10,8 @@ LOCAL_SRC_FILES := ts850.c ts870s.c ts570.c ts450s.c ts950.c ts50s.c \
 		kenwood.c th.c ic10.c elecraft.c transfox.c
 LOCAL_MODULE := kenwood
 
-LOCAL_MODULE_FILENAME := libhamlib-$(LOCAL_MODULE)
 LOCAL_CFLAGS := -DHAVE_CONFIG_H
 LOCAL_C_INCLUDES := android include src
 LOCAL_LDLIBS := -lhamlib -Lobj/local/armeabi
 
-include $(BUILD_SHARED_LIBRARY)
+include $(BUILD_STATIC_LIBRARY)

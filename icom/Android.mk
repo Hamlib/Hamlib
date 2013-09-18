@@ -14,9 +14,8 @@ LOCAL_SRC_FILES := ic706.c icr8500.c ic735.c ic775.c ic756.c  \
 		icom.c frame.c optoscan.c
 LOCAL_MODULE := icom
 
-LOCAL_MODULE_FILENAME := libhamlib-$(LOCAL_MODULE)
 LOCAL_CFLAGS := -DHAVE_CONFIG_H
 LOCAL_C_INCLUDES := android include src
 LOCAL_LDLIBS := -lhamlib -Lobj/local/armeabi
 
-include $(BUILD_SHARED_LIBRARY)
+include $(BUILD_STATIC_LIBRARY)

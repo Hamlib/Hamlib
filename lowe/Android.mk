@@ -5,9 +5,8 @@ include $(CLEAR_VARS)
 LOCAL_SRC_FILES := hf235.c lowe.c
 LOCAL_MODULE := lowe
 
-LOCAL_MODULE_FILENAME := libhamlib-$(LOCAL_MODULE)
 LOCAL_CFLAGS := -DHAVE_CONFIG_H
 LOCAL_C_INCLUDES := android include src
 LOCAL_LDLIBS := -lhamlib -Lobj/local/armeabi
 
-include $(BUILD_SHARED_LIBRARY)
+include $(BUILD_STATIC_LIBRARY)
