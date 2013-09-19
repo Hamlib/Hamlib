@@ -248,7 +248,6 @@ distributions may differ).
 * autoconf      2.67                        # autoconf --version
 * automake      1.11                        # automake --version
 * libtool       2.2.6b+                     # libtool --version
-* libltdl-dev   2.2.6b+
 * pkg-config    0.25                        # pkg-config --version
 * Git for connection to git.code.sf.net/p/hamlib/code
 * texinfo       4.13a                       # makeinfo --version

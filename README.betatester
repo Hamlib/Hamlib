@@ -194,7 +194,6 @@ easycomm,rotorez,
 sartek, etc:        rotator backends
 dummy:              virtual dummy rig and rotator, for testing use.
 lib:                library for functions missing on your system
-libltdl:            wrapper for shared module loader
 bindings            Perl, Python, Tcl, and Visual Basic bindings
 c++:                C++ bindings
 doc:                documentation base and scripts to extract from src

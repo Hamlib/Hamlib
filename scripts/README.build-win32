@@ -72,17 +72,6 @@ paths):
 
         $ build-win32.sh hamlib-3.0~git
 
-Note: As of 7 Oct 2012 the build should be independent of installed libtool
-versions as libltdl is included in the source tarball (enabled with the
-‘--with-included-ltdl’ option to the configure script (which this script
-passes to configure)).  The note below should now be obsolete.
-
-Note: At this time (18 Jun 2011) the build will fail on Debian Unstable due
-to a libtool version mismatch between libtool 2.2.6b included in the
-mingw32/gcc-mingw32 packages and the later libtool 2.4 installed on Unstable
-and Testing.  Users of Debian Stable (Squeeze) and Ubuntu 10.10 (Maverick)
-should be able to build the Win32 DLLs.
-
 
 Release Info
 ============

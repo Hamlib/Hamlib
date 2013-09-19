@@ -112,7 +112,7 @@ AM_PROG_CC_C_O
 ## Various parts of Hamlib need these headers ##
 ## ------------------------------------------ ##
 
-AC_CHECK_HEADERS([errno.h fcntl.h getopt.h limits.h locale.h malloc.h \
+AC_CHECK_HEADERS([dlfcn.h errno.h fcntl.h getopt.h limits.h locale.h malloc.h \
 netdb.h sgtty.h stddef.h termio.h termios.h values.h \
 arpa/inet.h dev/ppbus/ppbconf.hdev/ppbus/ppi.h \
 linux/hidraw.h linux/ioctl.h linux/parport.h linux/ppdev.h  netinet/in.h \
@@ -235,6 +235,14 @@ ioctl memchr memmove memset pow rint select setitimer setlocale sigaction \
 snprintf socket sqrt strchr strdup strerror strncasecmp strrchr strstr strtol])
 AC_FUNC_ALLOCA
 
+# Check for libdl and set DL_LIB if found
+AC_CHECK_LIB([dl],
+	     [dlopen],
+	     [DL_LIB="-ldl"],
+	     [],
+	     [])
+AC_SUBST([DL_LIB])
+
 dnl AC_LIBOBJ replacement functions directory
 AC_CONFIG_LIBOBJ_DIR([lib])
 
@@ -251,27 +259,9 @@ AC_LIBOBJ([dummy])
 
 LT_PREREQ([2.2.6b])
 
-dnl Name the subdirectory that contains libltdl sources
-LT_CONFIG_LTDL_DIR([libltdl])
-
-dnl N.B. LT_INIT([dlopen], [win32-dll]) does not work for older libtool
-dnl so require new enough version above.  Disable static library builds as
-dnl the frontend and backend libs are not linked.  May need a recipe outside
-dnl of Libtool if these are needed.
-LT_INIT([dlopen win32-dll])
-
-dnl Enable building of the convenience libltdl library recursively
-dnl (requires --with-included-ltdl be given to configure for the included
-dnl libltdl to be used instead of an installed version), useful on systems
-dnl where libltdl-dev is not installed.
-LTDL_INIT([convenience recursive])
-
-dnl Ugly hack to work around libtool LT_CONFIG_H bug #12262
-dnl http://lists.gnu.org/archive/html/bug-libtool/2012-08/msg00007.html
-AC_CONFIG_COMMANDS_PRE([LT_CONFIG_H=`expr "$LT_CONFIG_H" : '.*/\(.*\)'`])
-
-dnl Only build libtldl if it is needed.
-AM_CONDITIONAL([BUILD_LIBLTDL], [test x"${with_included_ltdl}" = "xyes"])
+dnl N.B. LT_INIT([win32-dll]) does not work for older libtool
+dnl so require new enough version above.
+LT_INIT([win32-dll])
 
 
 ## -------------------------- ##
@@ -310,19 +300,6 @@ AS_CASE(["$host_os"],
 ## ---------------------- ##
 ## External package tests ##
 ## ---------------------- ##
-
-dnl Check whether we can actually find ltdl.h
-dnl (only needed if not using included libltdl).
-AS_IF([test x"${with_included_ltdl}" = "xno"], [
-      AC_CHECK_HEADER([ltdl.h],
-                      [],
-                      [AC_MSG_ERROR([""
-"ltdl.h not found.  Please install the libltdl development files package which"
-"provides /usr/include/ltdl.h (perhaps called 'libltdl-dev' or 'libltdl-devel')."
-                      ])
-            ])
-      ])
-
 
 dnl Check if C99 struct initializers are supported
 AC_MSG_CHECKING([whether C99 struct/array initializers are supported])
@@ -683,7 +660,6 @@ AC_SUBST([AM_CXXFLAGS])
 AC_CONFIG_FILES([Makefile
 macros/Makefile
 include/Makefile
-libltdl/Makefile
 lib/Makefile
 dummy/Makefile
 yaesu/Makefile
@@ -752,7 +728,6 @@ echo \
     With Python binding             ${cf_with_python_binding}
     With TCL binding                ${build_tcl}
     With rigmem XML support         ${cf_with_xml_support}
-    With included ltdl              ${with_included_ltdl}
     With Readline support           ${cf_with_readline_support}
 
     Enable HTML rig feature matrix  ${cf_enable_html_matrix}

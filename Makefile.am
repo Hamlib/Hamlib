@@ -9,19 +9,14 @@ pkgconfig_DATA = hamlib.pc
 EXTRA_DIST = PLAN TODO LICENSE hamlib.m4 hamlib.pc.in README.developer \
 	README.betatester README.win32 Android.mk
 
-SUBDIRS =
-if BUILD_LIBLTDL
-SUBDIRS += libltdl
-endif
-# SUBDIRS += macros include lib src
-SUBDIRS += macros include lib \
+SUBDIRS = macros include lib \
 	@BACKEND_LIST@ \
 	@ROT_BACKEND_LIST@ \
 	src \
 	@BINDINGS@ \
 	tests doc android
 
-DIST_SUBDIRS = libltdl macros include lib src c++ bindings tests doc \
+DIST_SUBDIRS = macros include lib src c++ bindings tests doc \
 	icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc \
 	winradio adat easycomm fodtrack drake rotorez \
 	flexradio sartek lowe rft rs tapr kit skanti prm80 wj racal tuner \

@@ -180,7 +180,6 @@ rm include/hamlib/rig_dll.h.orig
 ./configure --host=i586-mingw32msvc \
  --prefix=`pwd`/mingw-inst \
  --without-cxx-binding \
- --with-included-ltdl \
  PKG_CONFIG_LIBDIR=${LIBUSB_WIN32_BIN_PATH}/lib/pkgconfig
 
 make install

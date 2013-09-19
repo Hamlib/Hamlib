@@ -35,6 +35,12 @@ Version 3.0
 		HTML files are built and distributed, requires makeinfo.
 	* Android build system support.  See android/README.android.  Android
 		Makefile fragments are included in source tarballs.
+	* Monolithic library, thanks to Remi Chateauneu for the majority of
+		the work!  This allows enabling of a single static library so
+		static libs are enabled by default.  Removes dependency on libltdl.
+	* Fixes to easycomm, TNX Steve AI4QR.
+	* Fixes to port handling allowing PTT and CAT on the same port.  TNX
+		Bill, G4WJS.
 
 Version 1.2.15.3
 	2012-11-01

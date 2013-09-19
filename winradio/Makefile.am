@@ -4,5 +4,6 @@ WRSRC = wr1000.c wr1500.c wr1550.c wr3100.c wr3150.c wr3500.c wr3700.c \
 
 noinst_LTLIBRARIES = libhamlib-winradio.la
 libhamlib_winradio_la_SOURCES = $(WRSRC)
+libhamlib_winradio_la_LDFLAGS = @DL_LIB@
 
 EXTRA_DIST = NOTES Android.mk

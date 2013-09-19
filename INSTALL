@@ -231,11 +231,11 @@ MS Windows
 ==========
 - Debian system with mingw32msvc cross-compiler
 
-    ./configure --with-included-ltdl --host=i586-mingw32msvc
+    ./configure --host=i586-mingw32msvc
 
 - Mingw compiler under Cygwin
     CC="gcc -mno-cygwin" CXX="g++ -mno-cygwin" \
-    ./configure --with-included-ltdl --host=i686-pc-mingw32
+    ./configure --host=i686-pc-mingw32
 
 - Cygwin
     Native Cygwin requires no special options besides regular ones.
