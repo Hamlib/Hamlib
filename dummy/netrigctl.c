@@ -65,9 +65,6 @@ static int netrigctl_transaction(RIG *rig, char *cmd, int len, char *buf)
 }
 
 
-/*
- * mimics rpcrig_open() from rpcrig/rpcrig_backend.c
- */
 static int netrigctl_open(RIG *rig)
 {
   int ret, len, i;
@@ -1426,4 +1423,3 @@ const struct rig_caps netrigctl_caps = {
   .set_channel = 	netrigctl_set_channel,
   .get_channel = 	netrigctl_get_channel,
 };
-

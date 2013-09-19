@@ -39,7 +39,7 @@ File change summary:	(Hopefully, I'll keep this updated...)
 			It just occured to me that it would be very nice to
 			have a default hamlib menu.  If a rig don't have any
 			or no menu functions yet, the levels and other items
-			can be presented as a default menu. 
+			can be presented as a default menu.
 
 	ts2000.c	Inserted my version.  mv'd orig to ts2000.c.orig
 	ts2000.h	renamed ts2000.c to ts2000.h
@@ -64,7 +64,6 @@ File change summary:	(Hopefully, I'll keep this updated...)
 			kylix/hamlib_rigapi.pas	// same as rig.h (Hold the Press!)
 			kenwood/	// ok
 			pcr/		// ok
-			rpcrig/		// ok
 			src/		// ok
 			tests/dumpcaps.c	// uses bitwise mask (&)
 			yaesu/ft100.c	// uses RIG_VFO1 directly, etc...

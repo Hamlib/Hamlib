@@ -60,7 +60,6 @@
 
 
 DEFINE_INITROT_BACKEND(dummy);
-DEFINE_INITROT_BACKEND(rpc);
 DEFINE_INITROT_BACKEND(easycomm);
 DEFINE_INITROT_BACKEND(fodtrack);
 DEFINE_INITROT_BACKEND(rotorez);
@@ -90,25 +89,24 @@ static struct {
 	const char *be_name;
 	int (*be_init)(void *);
 	rot_model_t (*be_probe)(hamlib_port_t *);
-} rot_backend_list[ROT_BACKEND_MAX] = 
-{		
-        { ROT_DUMMY, ROT_BACKEND_DUMMY, ROT_FUNCNAMA(dummy) }, 
-        /* { ROT_RPC, ROT_BACKEND_RPC, ROT_FUNCNAMA(rpc) }, */ 
-        { ROT_EASYCOMM, ROT_BACKEND_EASYCOMM, ROT_FUNCNAMA(easycomm) }, 
-        { ROT_FODTRACK, ROT_BACKEND_FODTRACK, ROT_FUNCNAMA(fodtrack) }, 
-        { ROT_ROTOREZ, ROT_BACKEND_ROTOREZ, ROT_FUNCNAMA(rotorez) }, 
-        { ROT_SARTEK, ROT_BACKEND_SARTEK, ROT_FUNCNAMA(sartek) }, 
-        { ROT_GS232A, ROT_BACKEND_GS232A, ROT_FUNCNAMA(gs232a) }, 
-        { ROT_KIT, ROT_BACKEND_KIT, ROT_FUNCNAMA(kit) }, 
-        { ROT_HEATHKIT, ROT_BACKEND_HEATHKIT, ROT_FUNCNAMA(heathkit) }, 
-        { ROT_SPID, ROT_BACKEND_SPID, ROT_FUNCNAMA(spid) }, 
-        { ROT_M2, ROT_BACKEND_M2, ROT_FUNCNAMA(m2) }, 
-        { ROT_ARS, ROT_BACKEND_ARS, ROT_FUNCNAMA(ars) }, 
-        { ROT_AMSAT, ROT_BACKEND_AMSAT, ROT_FUNCNAMA(amsat) }, 
-        { ROT_TS7400, ROT_BACKEND_TS7400, ROT_FUNCNAMA(ts7400) }, 
-        { ROT_CELESTRON, ROT_BACKEND_CELESTRON, ROT_FUNCNAMA(celestron) }, 
-        { ROT_ETHER6, ROT_BACKEND_ETHER6, ROT_FUNCNAMA(ether6) }, 
-        { 0, NULL }, /* end */  
+} rot_backend_list[ROT_BACKEND_MAX] =
+{
+        { ROT_DUMMY, ROT_BACKEND_DUMMY, ROT_FUNCNAMA(dummy) },
+        { ROT_EASYCOMM, ROT_BACKEND_EASYCOMM, ROT_FUNCNAMA(easycomm) },
+        { ROT_FODTRACK, ROT_BACKEND_FODTRACK, ROT_FUNCNAMA(fodtrack) },
+        { ROT_ROTOREZ, ROT_BACKEND_ROTOREZ, ROT_FUNCNAMA(rotorez) },
+        { ROT_SARTEK, ROT_BACKEND_SARTEK, ROT_FUNCNAMA(sartek) },
+        { ROT_GS232A, ROT_BACKEND_GS232A, ROT_FUNCNAMA(gs232a) },
+        { ROT_KIT, ROT_BACKEND_KIT, ROT_FUNCNAMA(kit) },
+        { ROT_HEATHKIT, ROT_BACKEND_HEATHKIT, ROT_FUNCNAMA(heathkit) },
+        { ROT_SPID, ROT_BACKEND_SPID, ROT_FUNCNAMA(spid) },
+        { ROT_M2, ROT_BACKEND_M2, ROT_FUNCNAMA(m2) },
+        { ROT_ARS, ROT_BACKEND_ARS, ROT_FUNCNAMA(ars) },
+        { ROT_AMSAT, ROT_BACKEND_AMSAT, ROT_FUNCNAMA(amsat) },
+        { ROT_TS7400, ROT_BACKEND_TS7400, ROT_FUNCNAMA(ts7400) },
+        { ROT_CELESTRON, ROT_BACKEND_CELESTRON, ROT_FUNCNAMA(celestron) },
+        { ROT_ETHER6, ROT_BACKEND_ETHER6, ROT_FUNCNAMA(ether6) },
+        { 0, NULL }, /* end */
 };
 
 // Apparently, no rotator can be probed.
@@ -340,4 +338,3 @@ int HAMLIB_API rot_load_backend(const char *be_name)
 	return -EINVAL;
 
 }
-

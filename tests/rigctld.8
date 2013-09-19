@@ -666,14 +666,15 @@ $ rigctld -m 114 -r /dev/ttyUSB1 -s 4800 -C stop_bits=2 &
 Start \fBrigctld\fP for an Elecraft K3 using COM2 on Win32:
 .sp
 $ rigctld -m 229 -r COM2
-.sp
+.PP
 Connect to the already running \fBrigctld\fP, and set current frequency to
 14.266 MHz with a 1 second read timeout using the default protocol from the
 shell prompt:
-.PP
+.sp
 $ echo "\\set_freq 14266000" | nc -w 1 localhost 4532
-Connect to a running \fBrigctld\fP with \fBrigctl\fP on the local host:
 .PP
+Connect to a running \fBrigctld\fP with \fBrigctl\fP on the local host:
+.sp
 $ rigctl -m2
 .SH DIAGNOSTICS
 The \fB-v\fP, \fB--verbose\fP, option allows different levels of diagnostics

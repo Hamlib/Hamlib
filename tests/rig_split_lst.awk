@@ -39,7 +39,6 @@ BEGIN {
 	bkendlst[16]="tentec"
 	bkendlst[17]="alinco"
 	bkendlst[18]="kachina"
-	bkendlst[19]="rpcrig"
 	bkendlst[20]="gnuradio"
 	bkendlst[21]="microtune"
 	bkendlst[22]="tapr"
@@ -87,4 +86,3 @@ END {
 		print "</table></center></body></html>" >> lst_dir"/"bkendlst[bke]"_lst.html"
 	}
 }
-
