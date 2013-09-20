@@ -45,8 +45,11 @@
  * MinGW.  So substitute the sleep definition below in such a case and
  * when compiling on Windows using MinGW where HAVE_SLEEP will be
  * undefined.
+ *
+ * FIXME:  Needs better handling for all versions of MinGW.
+ *
  */
-#if defined(HAVE_SSLEEP) && (!defined(HAVE_SLEEP) || defined(_WIN32))
+#if (defined(HAVE_SSLEEP) || defined(_WIN32)) && (!defined(HAVE_SLEEP))
 #include "hl_sleep.h"
 #endif
 
@@ -591,4 +594,3 @@ int tt585_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 
     return write_block(&rig->state.rigport, cmd, strlen(cmd));
 }
-
