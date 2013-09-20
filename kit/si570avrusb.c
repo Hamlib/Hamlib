@@ -50,6 +50,8 @@
 
 static int si570avrusb_init(RIG *rig);
 static int si570picusb_init(RIG *rig);
+static int si570peaberry1_init(RIG *rig);
+static int si570peaberry2_init(RIG *rig);
 static int fasdr_init(RIG *rig);
 static int si570xxxusb_cleanup(RIG *rig);
 static int si570xxxusb_open(RIG *rig);
@@ -72,8 +74,10 @@ static const char *si570xxxusb_get_info(RIG *rig);
  */
 
 #define VENDOR_NAME			"www.obdev.at"
+#define PEABERRY_VENDOR_NAME		"AE9RB"   /* Only for V1, V2 uses the 'standard' obdev name */
 #define AVR_PRODUCT_NAME		"DG8SAQ-I2C"
 #define PIC_PRODUCT_NAME		"KTH-SDR-KIT"
+#define PEABERRY_PRODUCT_NAME		"Peaberry SDR"
 
 
 #define TOK_OSCFREQ	TOKEN_BACKEND(1)
@@ -198,6 +202,158 @@ const struct rig_caps si570avrusb_caps = {
 .cfgparams =  si570xxxusb_cfg_params,
 
 .rig_init =     si570avrusb_init,
+.rig_cleanup =  si570xxxusb_cleanup,
+.rig_open =     si570xxxusb_open,
+.set_conf =  si570xxxusb_set_conf,
+.get_conf =  si570xxxusb_get_conf,
+
+.set_freq    =  si570xxxusb_set_freq,
+.get_freq    =  si570xxxusb_get_freq,
+.set_ptt    =  si570xxxusb_set_ptt,
+.get_info    =  si570xxxusb_get_info,
+
+};
+
+/*
+ * Peaberry V1
+ * http://www.ae9rb.com
+ */
+const struct rig_caps si570peaberry1_caps = {
+.rig_model =  RIG_MODEL_SI570PEABERRY1,
+.model_name = "Si570 Peaberry V1",
+.mfg_name =  "AE9RB",
+.version =  "0.2",
+.copyright =  "GPL",
+.status =  RIG_STATUS_BETA,
+.rig_type =  RIG_TYPE_TUNER,
+.ptt_type =  RIG_PTT_RIG,
+.dcd_type =  RIG_DCD_NONE,
+.port_type =  RIG_PORT_USB,
+.write_delay =  0,
+.post_write_delay =  0,
+.timeout =  500,
+.retry = 0,
+
+.has_get_func =  SI570AVRUSB_FUNC,
+.has_set_func =  SI570AVRUSB_FUNC,
+.has_get_level =  SI570AVRUSB_LEVEL_ALL,
+.has_set_level =  RIG_LEVEL_SET(SI570AVRUSB_LEVEL_ALL),
+.has_get_parm =  SI570AVRUSB_PARM_ALL,
+.has_set_parm =  RIG_PARM_SET(SI570AVRUSB_PARM_ALL),
+.level_gran =  {},
+.parm_gran =  {},
+.ctcss_list =  NULL,
+.dcs_list =  NULL,
+.preamp =   { RIG_DBLST_END },
+.attenuator =   { RIG_DBLST_END },
+.max_rit =  Hz(0),
+.max_xit =  Hz(0),
+.max_ifshift =  Hz(0),
+.targetable_vfo =  0,
+.transceive =  RIG_TRN_OFF,
+.bank_qty =   0,
+.chan_desc_sz =  0,
+
+.chan_list =  { RIG_CHAN_END, },
+
+.rx_range_list1 =  {
+    /* probably higher upper range, depending on type (CMOS, LVDS, ..) */
+    {kHz(800),MHz(53.7),SI570AVRUSB_MODES,-1,-1,SI570AVRUSB_VFO},
+	RIG_FRNG_END,
+  },
+.tx_range_list1 =  { RIG_FRNG_END, },
+.rx_range_list2 =  {
+    {kHz(800),MHz(53.7),SI570AVRUSB_MODES,-1,-1,SI570AVRUSB_VFO},
+	RIG_FRNG_END,
+  },
+.tx_range_list2 =  { RIG_FRNG_END, },
+.tuning_steps =  {
+	 {SI570AVRUSB_MODES,Hz(1)},
+	 RIG_TS_END,
+	},
+        /* mode/filter list, remember: order matters! */
+.filters =  {
+		RIG_FLT_END,
+	},
+.cfgparams =  si570xxxusb_cfg_params,
+
+.rig_init =     si570peaberry1_init,
+.rig_cleanup =  si570xxxusb_cleanup,
+.rig_open =     si570xxxusb_open,
+.set_conf =  si570xxxusb_set_conf,
+.get_conf =  si570xxxusb_get_conf,
+
+.set_freq    =  si570xxxusb_set_freq,
+.get_freq    =  si570xxxusb_get_freq,
+.set_ptt    =  si570xxxusb_set_ptt,
+.get_info    =  si570xxxusb_get_info,
+
+};
+
+/*
+ * Peaberry V2
+ * http://www.ae9rb.com
+ */
+const struct rig_caps si570peaberry2_caps = {
+.rig_model =  RIG_MODEL_SI570PEABERRY2,
+.model_name = "Si570 Peaberry V2",
+.mfg_name =  "AE9RB",
+.version =  "0.2",
+.copyright =  "GPL",
+.status =  RIG_STATUS_BETA,
+.rig_type =  RIG_TYPE_TUNER,
+.ptt_type =  RIG_PTT_RIG,
+.dcd_type =  RIG_DCD_NONE,
+.port_type =  RIG_PORT_USB,
+.write_delay =  0,
+.post_write_delay =  0,
+.timeout =  500,
+.retry = 0,
+
+.has_get_func =  SI570AVRUSB_FUNC,
+.has_set_func =  SI570AVRUSB_FUNC,
+.has_get_level =  SI570AVRUSB_LEVEL_ALL,
+.has_set_level =  RIG_LEVEL_SET(SI570AVRUSB_LEVEL_ALL),
+.has_get_parm =  SI570AVRUSB_PARM_ALL,
+.has_set_parm =  RIG_PARM_SET(SI570AVRUSB_PARM_ALL),
+.level_gran =  {},
+.parm_gran =  {},
+.ctcss_list =  NULL,
+.dcs_list =  NULL,
+.preamp =   { RIG_DBLST_END },
+.attenuator =   { RIG_DBLST_END },
+.max_rit =  Hz(0),
+.max_xit =  Hz(0),
+.max_ifshift =  Hz(0),
+.targetable_vfo =  0,
+.transceive =  RIG_TRN_OFF,
+.bank_qty =   0,
+.chan_desc_sz =  0,
+
+.chan_list =  { RIG_CHAN_END, },
+
+.rx_range_list1 =  {
+    /* probably higher upper range, depending on type (CMOS, LVDS, ..) */
+    {kHz(800),MHz(53.7),SI570AVRUSB_MODES,-1,-1,SI570AVRUSB_VFO},
+	RIG_FRNG_END,
+  },
+.tx_range_list1 =  { RIG_FRNG_END, },
+.rx_range_list2 =  {
+    {kHz(800),MHz(53.7),SI570AVRUSB_MODES,-1,-1,SI570AVRUSB_VFO},
+	RIG_FRNG_END,
+  },
+.tx_range_list2 =  { RIG_FRNG_END, },
+.tuning_steps =  {
+	 {SI570AVRUSB_MODES,Hz(1)},
+	 RIG_TS_END,
+	},
+        /* mode/filter list, remember: order matters! */
+.filters =  {
+		RIG_FLT_END,
+	},
+.cfgparams =  si570xxxusb_cfg_params,
+
+.rig_init =     si570peaberry2_init,
 .rig_cleanup =  si570xxxusb_cleanup,
 .rig_open =     si570xxxusb_open,
 .set_conf =  si570xxxusb_set_conf,
@@ -404,6 +560,82 @@ int si570avrusb_init(RIG *rig)
 
 	rp->parm.usb.vendor_name = VENDOR_NAME;
 	rp->parm.usb.product = AVR_PRODUCT_NAME;
+
+	rig->state.priv = (void*)priv;
+
+	return RIG_OK;
+}
+
+/*
+ * Peaberry V1 model (AVR version with different vendor/product name)
+ */
+int si570peaberry1_init(RIG *rig)
+{
+	hamlib_port_t *rp = &rig->state.rigport;
+	struct si570xxxusb_priv_data *priv;
+
+	priv = (struct si570xxxusb_priv_data*)calloc(sizeof(struct si570xxxusb_priv_data), 1);
+	if (!priv) {
+		/* whoops! memory shortage! */
+		return -RIG_ENOMEM;
+	}
+
+	priv->osc_freq = SI570_NOMINAL_XTALL_FREQ;
+	/* QSD/QSE */
+	priv->multiplier = 4;
+
+	priv->i2c_addr = SI570_I2C_ADDR;
+	/* disable BPF, because it may share PTT I/O line */
+	priv->bpf = 0;
+
+	rp->parm.usb.vid = USBDEV_SHARED_VID;
+	rp->parm.usb.pid = USBDEV_SHARED_PID;
+
+	/* no usb_set_configuration() and usb_claim_interface() */
+	rp->parm.usb.iface = -1;
+	rp->parm.usb.conf = 1;
+	rp->parm.usb.alt = 0;	/* necessary ? */
+
+	rp->parm.usb.vendor_name = PEABERRY_VENDOR_NAME;
+	rp->parm.usb.product = PEABERRY_PRODUCT_NAME;
+
+	rig->state.priv = (void*)priv;
+
+	return RIG_OK;
+}
+
+/*
+ * Peaberry V2 model (AVR version with different product name)
+ */
+int si570peaberry2_init(RIG *rig)
+{
+	hamlib_port_t *rp = &rig->state.rigport;
+	struct si570xxxusb_priv_data *priv;
+
+	priv = (struct si570xxxusb_priv_data*)calloc(sizeof(struct si570xxxusb_priv_data), 1);
+	if (!priv) {
+		/* whoops! memory shortage! */
+		return -RIG_ENOMEM;
+	}
+
+	priv->osc_freq = SI570_NOMINAL_XTALL_FREQ;
+	/* QSD/QSE */
+	priv->multiplier = 4;
+
+	priv->i2c_addr = SI570_I2C_ADDR;
+	/* disable BPF, because it may share PTT I/O line */
+	priv->bpf = 0;
+
+	rp->parm.usb.vid = USBDEV_SHARED_VID;
+	rp->parm.usb.pid = USBDEV_SHARED_PID;
+
+	/* no usb_set_configuration() and usb_claim_interface() */
+	rp->parm.usb.iface = -1;
+	rp->parm.usb.conf = 1;
+	rp->parm.usb.alt = 0;	/* necessary ? */
+
+	rp->parm.usb.vendor_name = VENDOR_NAME;
+	rp->parm.usb.product = PEABERRY_PRODUCT_NAME;
 
 	rig->state.priv = (void*)priv;
 
@@ -838,7 +1070,8 @@ int si570xxxusb_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	unsigned char fracBuffer[4];
 	unsigned char intBuffer[4];
 
-	if (priv->version >= 0x0f00 || rig->caps->rig_model == RIG_MODEL_SI570PICUSB)
+	if (priv->version >= 0x0f00 || rig->caps->rig_model == RIG_MODEL_SI570PICUSB ||
+			rig->caps->rig_model == RIG_MODEL_SI570PEABERRY1 || rig->caps->rig_model == RIG_MODEL_SI570PEABERRY2)
 		return si570xxxusb_set_freq_by_value(rig, vfo, freq);
 
 	f = (freq * priv->multiplier)/1e6;
@@ -953,7 +1186,8 @@ int si570xxxusb_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 	unsigned char buffer[6];
 	int ret;
 
-	if (priv->version >= 0x0f00 || rig->caps->rig_model == RIG_MODEL_SI570PICUSB)
+	if (priv->version >= 0x0f00 || rig->caps->rig_model == RIG_MODEL_SI570PICUSB ||
+			rig->caps->rig_model == RIG_MODEL_SI570PEABERRY1 || rig->caps->rig_model == RIG_MODEL_SI570PEABERRY2)
 		return si570xxxusb_get_freq_by_value(rig, vfo, freq);
 
 	ret = usb_control_msg(udh, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
@@ -1022,4 +1256,3 @@ int si570xxxusb_set_ptt(RIG * rig, vfo_t vfo, ptt_t ptt)
 }
 
 #endif	/* defined(HAVE_LIBUSB) && defined(HAVE_USB_H) */
-

@@ -473,6 +473,8 @@
 #define RIG_MODEL_FUNCUBEDONGLE RIG_MAKE_MODEL(RIG_KIT, 13)	/* FunCUBE Dongle */
 #define RIG_MODEL_HIQSDR RIG_MAKE_MODEL(RIG_KIT, 14)	/* HiQSDR */
 #define RIG_MODEL_FASDR RIG_MAKE_MODEL(RIG_KIT,15) /* Funkamateur Sdr */
+#define RIG_MODEL_SI570PEABERRY1 RIG_MAKE_MODEL(RIG_KIT, 16) /* Peaberry V1 */
+#define RIG_MODEL_SI570PEABERRY2 RIG_MAKE_MODEL(RIG_KIT, 17) /* Peaberry V2 */
 
 	/*
 	 * SW/FM/TV tuner cards supported by Video4Linux,*BSD, ..
