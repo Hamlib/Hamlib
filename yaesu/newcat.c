@@ -4023,7 +4023,6 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         return err;
 
     if (newcat_is_rig(rig, RIG_MODEL_FT9000) ||
-            newcat_is_rig(rig, RIG_MODEL_FT2000) ||
             newcat_is_rig(rig, RIG_MODEL_FTDX5000))
         main_sub_vfo = (RIG_VFO_B == vfo) ? '1' : '0';
 
@@ -4164,7 +4163,6 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         return err;
 
     if (newcat_is_rig(rig, RIG_MODEL_FT9000) ||
-            newcat_is_rig(rig, RIG_MODEL_FT2000) ||
             newcat_is_rig(rig, RIG_MODEL_FTDX5000))
         main_sub_vfo = (RIG_VFO_B == vfo) ? '1' : '0';
 
