@@ -492,10 +492,6 @@ int HAMLIB_API rig_open(RIG *rig)
         return status;
 
 
-	/*
-	 * FIXME: what to do if PTT open fails or PTT unsupported?
-	 * 			fail rig_open?  remember unallocating..
-	 */
 	switch(rs->pttport.type.ptt) {
 	case RIG_PTT_NONE:
 	case RIG_PTT_RIG:
@@ -514,8 +510,11 @@ int HAMLIB_API rig_open(RIG *rig)
 	    {
 	      rs->pttport.fd = ser_open(&rs->pttport);
 	      if (rs->pttport.fd < 0)
-		rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n",
-			  rs->pttport.pathname);
+		{
+		  rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n",
+			    rs->pttport.pathname);
+		  status = -RIG_EIO;
+		}
 	      else {
 		/* Needed on Linux because the kernel forces RTS/DTR at open */
 		if (rs->pttport.type.ptt == RIG_PTT_SERIAL_DTR)
@@ -528,22 +527,29 @@ int HAMLIB_API rig_open(RIG *rig)
 	case RIG_PTT_PARALLEL:
 		rs->pttport.fd = par_open(&rs->pttport);
 		if (rs->pttport.fd < 0)
-			rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n",
-						rs->pttport.pathname);
+		  {
+		    rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n",
+			      rs->pttport.pathname);
+		    status = -RIG_EIO;
+		  }
         else
 			par_ptt_set(&rs->pttport, RIG_PTT_OFF);
 		break;
 	case RIG_PTT_CM108:
 		rs->pttport.fd = cm108_open(&rs->pttport);
 		if (rs->pttport.fd < 0)
-			rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n",
-				  rs->pttport.pathname);
+		  {
+		    rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n",
+			      rs->pttport.pathname);
+		    status = -RIG_EIO;
+		  }
 		else
 			cm108_ptt_set(&rs->pttport, RIG_PTT_OFF);
 		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR, "Unsupported PTT type %d\n",
 						rs->pttport.type.ptt);
+		status = -RIG_ECONF;
 	}
 
 	switch(rs->dcdport.type.dcd) {
@@ -558,19 +564,32 @@ int HAMLIB_API rig_open(RIG *rig)
 			strcpy(rs->dcdport.pathname, rs->rigport.pathname);
 		rs->dcdport.fd = ser_open(&rs->dcdport);
 		if (rs->dcdport.fd < 0)
-			rig_debug(RIG_DEBUG_ERR, "Cannot open DCD device \"%s\"\n",
-						rs->dcdport.pathname);
+		  {
+		    rig_debug(RIG_DEBUG_ERR, "Cannot open DCD device \"%s\"\n",
+			      rs->dcdport.pathname);
+		    status = -RIG_EIO;
+		  }
 		break;
 	case RIG_DCD_PARALLEL:
 		rs->dcdport.fd = par_open(&rs->dcdport);
 		if (rs->dcdport.fd < 0)
-			rig_debug(RIG_DEBUG_ERR, "Cannot open DCD device \"%s\"\n",
-						rs->dcdport.pathname);
+		  {
+		    rig_debug(RIG_DEBUG_ERR, "Cannot open DCD device \"%s\"\n",
+			      rs->dcdport.pathname);
+		    status = -RIG_EIO;
+		  }
 		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR, "Unsupported DCD type %d\n",
 						rs->dcdport.type.dcd);
+		status = -RIG_ECONF;
 	}
+
+	if (status < 0)
+	  {
+	    port_close (&rs->rigport, rs->rigport.type.rig);
+	    return status;
+	  }
 
 	add_opened_rig(rig);
 
