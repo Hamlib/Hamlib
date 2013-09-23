@@ -566,7 +566,7 @@ AC_ARG_ENABLE([winradio],
               [AS_HELP_STRING([--disable-winradio],
                               [do not build winradio backend @<:@default=yes@:>@])],
               [cf_with_winradio="no"],
-              [cf_with_winradio="yes"])
+              [cf_with_winradio="yes" AC_DEFINE([HAVE_WINRADIO],[1],[Define if winradio backend is built])])
 AC_MSG_RESULT([$cf_with_winradio])
 
 AS_IF([test x"${cf_with_winradio}" = "xyes"],
