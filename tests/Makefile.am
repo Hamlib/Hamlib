@@ -25,7 +25,7 @@ noinst_HEADERS = sprintflst.h rigctl_parse.h rotctl_parse.h uthash.h
 
 
 # all the programs need this
-LDADD = $(top_builddir)/src/libhamlib.la $(top_builddir)/lib/libmisc.la
+LDADD = $(top_builddir)/src/libhamlib.la $(top_builddir)/lib/libmisc.la $(LIBUSB_LIBS)
 DEPENDENCIES = $(top_builddir)/src/libhamlib.la
 
 rigmem_CFLAGS = $(AM_CFLAGS) @LIBXML2_CFLAGS@

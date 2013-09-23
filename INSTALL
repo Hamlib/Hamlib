@@ -134,20 +134,10 @@ Compiler configuration (Advanced usage)
    The `configure' shell script is responsible for choosing and configuring
 the compiler(s).
 
-The following options allow you to specify whether you
-want to enable or disable various debugging mechanisms:
-
-`--enable-warnings'
-      Make the compilers very picky about warnings. Try this whenever you
-      write new code since it may catch a few bugs. This is not active by
-      default because all too often warnings can be too picky and scare
-      the end-user.
-
 All programs are compiled with optimization level 2 by default (-O2).
 Occasionally that confuses the debugger when code is inlined. To disable
 optimization and enable debugging, set the shell environment variables
-CFLAGS, CXXFLAGS. On the bash shell, you can do this
-like this:
+CFLAGS, CXXFLAGS. On the bash shell, you can do this like this:
 
   $ export CFLAGS="-g"
   $ export CXXFLAGS="-g"
@@ -160,7 +150,16 @@ On the tcsh shell, use the `setenv' command instead:
 For other shells, please consult your shell's documentation.
 
 Similarly, you can increase the optimization level by assigning these
-variables to "-g -O3".
+variables to "-O3".
+
+These variables may also follow all options on the configure command line:
+
+    ./configure --prefix="$HOME/local" [more options] CFLAGS="-g -O0" CXXFLAGS="-g -O0"
+
+which will set the installation path to the the directory named 'local' under
+user's home directory(executables will be installed to $HOME/local/bin,
+header files to $HOME/local/include, and so on) and tells the C and C++
+compilers to enable debugging symbols and disable optimizations.
 
 Depending on what languages the package uses, some of these options may
 or may not be available. To see what is available, type:
@@ -222,16 +221,26 @@ is something like `gnu-as' or `x' (for the X Window System).  The
 `README' should mention any `--enable-' and `--with-' options that the
 package recognizes.
 
-   For packages that use the X Window System, `configure' can usually
-find the X include and library files automatically, but if it doesn't,
-you can use the `configure' options `--x-includes=DIR' and
-`--x-libraries=DIR' to specify their locations.
+   The configure script enables both shared and static Hamlib library builds
+by default.  In some cases only one or the other is needed.  The following
+options control the type of library:
+
+    --disable-shared            # Only build a static library
+    --disable-static            # Only build a shared library
+
+   Shared libraries (DLLs on Windows) are used most often, however, there are
+times when it is desirable to have Hamlib included as a built-in part of an
+application which the use a static library (see Static Build below).
 
 MS Windows
 ==========
 - Debian system with mingw32msvc cross-compiler
 
     ./configure --host=i586-mingw32msvc
+
+- Debian system with MinGW W64 cross-compiler for Windows 32 bit
+
+    ./configure --host=i686-w64-mingw32
 
 - Mingw compiler under Cygwin
     CC="gcc -mno-cygwin" CXX="g++ -mno-cygwin" \
@@ -241,7 +250,8 @@ MS Windows
     Native Cygwin requires no special options besides regular ones.
 
 N.B. See the 'build-win32.sh' script and its associated README.build-win32 file
-in the 'scripts' directory for complete details on build a Win32 binary.
+in the 'scripts' directory for complete details on building a Windows 32 binary
+with MSVCC library support.
 
 Hamlib Specific Features
 ========================
@@ -295,3 +305,42 @@ discovery of local packages are welcome.
 modules are removed.  The Perl files will remain due to a design decision
 of the Perl MakeMaker module.  Installed Perl binding files will need to be
 removed manually.
+
+Static Build
+============
+
+Note, the following is still experimental.
+
+   As noted above, there are times when including Hamlib as part of an
+application may be thought to ease its distribution.  As a static library is
+built by default the following notes may assist application authors.
+
+   The 'kit' backend depends on libusb.  To link libusb statically set the
+following environment variable on the 'configure' command line:
+
+    LIBUSB_LIBS="/usr/lib/i386-linux-gnu/libusb.a"
+
+do note that the absolute path to 'libusb.a' may well be quite different on
+other systems.
+
+   By default the GNU linker (ld) will include most all symbols in a static
+library into the executable.  As it may be desired to only include the actual
+symbols used by the application, set the following environment variables on
+the command line of the application's 'configure' script:
+
+    CFLAGS="-fdata-sections -ffunction-sections" LDFLAGS="-Wl,--gc-sections"
+
+These can be set on the Hamlib 'configure' script's command line to see the
+effect on the Hamlib utilities when they are built as statically linked
+applicatins (--disable-shared option passed to 'configure').  With these
+environment variables it can be seen that 'rigctl' contains no rotor symbols
+nor does 'rotctl' contain any rig symbols.
+
+   Combining the above, everything above may be put together:
+
+    ./configure --disable-shared --prefix="$HOME/local" --without-cxx-binding \
+    --disable-winradio CFLAGS="-fdata-sections -ffunction-sections" \
+    LDFLAGS="-Wl,--gc-sections" LIBUSB_LIBS="/usr/lib/i386-linux-gnu/libusb.a"
+
+to make a static only Hamlib library, statically link libusb, and include only
+the needed symbols in the Hamlib utilities linking to libhamlib.a.
