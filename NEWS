@@ -41,6 +41,8 @@ Version 3.0
 	* Fixes to easycomm, TNX Steve AI4QR.
 	* Fixes to port handling allowing PTT and CAT on the same port.  TNX
 		Bill, G4WJS.
+	* New Peaberry models V1 and V2 added to kit backend.  TNX ON8VQ
+		and R2AEE.
 
 Version 1.2.15.3
 	2012-11-01
