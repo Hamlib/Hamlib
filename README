@@ -22,37 +22,23 @@ to reach the Wiki.
 Hamlib Design
 -------------
 
-The shared libs will provide functions for both radio control,
-and data retrieval from the radio.
+The library provides functions for both radio and rotator control,
+and data retrieval from the radio or rotator.  A number of functions useful
+for calculating distance and bearing and grid square conversion are included.
 
-The structure of the libraries will be as follows.
-
-(1)  There will be 1 frontend library "libhamlib" that
-     provides the generic API for user applications.
-
-(2)  There will be "n" backend libraries that "wrap"
-     rig specific communications inside frontend API.
-
-(3)  Frontend lib will load (on demand) the appropriate
-     backend lib as required.
-
-Frontend Library
-----------------
-
-libhamlib.so -  frontend lib that provides generic API
-                for all RIG types. This is what Application
-                programmers will "see".  Will have different
-                names on other platforms, e.g. libhamlib-2.dll
-                on MS windows.
+libhamlib.so -  library that provides generic API for all RIG types.
+    This is what Application programmers will "see".  Will have different
+    names on other platforms, e.g. libhamlib-2.dll on MS windows.  Also
+    contains all radio and rotator "backends" (formerly in their own
+    dlopen'ed libraries) provided by Hamlib.
 
 Backend Examples are:
 ---------------------
 
-1.hamlib-yaesu.so will provide connectivity to Yaesu
-  FT 747GX Transceiver, FT 847 "Earth Station", etc. via a standard API.
+1. yaesu will provide connectivity to Yaesu FT 747GX Transceiver, FT 847
+   "Earth Station", etc. via a standard API.
 
-2. hamlib-xxxx.so will provide connectivity to the Wiz-bang
-   moon-melter 101A (yikes..)
+2. xxxx. will provide connectivity to the Wiz-bang moon-melter 101A (yikes..)
 
 Hamlib will also enable developers to develop professional looking GUI's
 towards a standard control library API, and they would not have to worry

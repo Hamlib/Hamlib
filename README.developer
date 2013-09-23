@@ -9,37 +9,23 @@ See README for frontend/backend outline.
 See README.betatester for background on testing Hamlib.
 
 
-The shared libs provide functions for both radio control,
-and data retrieval from the radio.
+The library provides functions for both radio and rotator control,
+and data retrieval from the radio or rotator.  A number of functions useful
+for calculating distance and bearing and grid square conversion are included.
 
-The structure of the libraries is as follows.
-
-(1)	There is one frontend library "libhamlib" that
-	provides the generic API for user applications.
-
-(2)	There are "n" backend libraries that "wrap"
-	rig specific communications inside frontend API.
-
-(3)	Frontend lib loads (on demand) the appropriate
-	backend lib as required.
-
-Frontend Library
-----------------
-
-libhamlib.so -  frontend lib that provides generic API
-                for all RIG types. This is what Application
-                programmers will "see".  Will have different
-                names on other platforms, e.g. libhamlib-2.dll
-                on MS windows.
+libhamlib.so -  library that provides generic API for all RIG types.
+    This is what Application programmers will "see".  Will have different
+    names on other platforms, e.g. libhamlib-2.dll on MS windows.  Also
+    contains all radio and rotator "backends" (formerly in their own
+    dlopen'ed libraries) provided by Hamlib.
 
 Backend Examples are:
 ---------------------
 
-1.hamlib-yaesu.so will provide connectivity to Yaesu
-  FT 747GX Transceiver, FT 847 "Earth Station", etc. via a standard API.
+1. yaesu will provide connectivity to Yaesu FT 747GX Transceiver, FT 847
+   "Earth Station", etc. via a standard API.
 
-2. hamlib-xxxx.so will provide connectivity to the Wiz-bang
-   moon-melter 101A (yikes..)
+2. xxxx. will provide connectivity to the Wiz-bang moon-melter 101A (yikes..)
 
 Hamlib also enables developers to develop professional looking
 GUI's towards a standard control library API, and they would not have
@@ -307,14 +293,15 @@ following in the same parent directory of hamlib:
     make install
 
 Note: In the examples above, passing the CFLAGS environment variable is
-optional.
+optional as shown using the square brackets..
 
 This will keep the binary output files separate from the source tree and aid
 in development by reducing clutter in the source tree.
 
 Once you've run `autogen.sh', make sure you've got some recent config.guess
 and config.sub (needed to guess your system type).  Anything of at least
-year 2004 should be fine, unless you run some exotic hardware/software system:
+year 2004 should be fine, unless you run some exotic hardware/software system
+(modern Linux distributions and Cygwin keep these up to date):
 
     ./config.guess --version
     ./config.sub --version
@@ -400,6 +387,7 @@ So far, Hamlib has been tested successfully under the following systems:
 
     The rule is one backend per protocol family.
     Try to share code between rigs of the same family, if applicable.
+    The steps in Section 3 below will need to be followed as well.
 
     2.1. mkdir mybackend
          Create a new subdir, of the name of the protocol backend.
@@ -413,7 +401,19 @@ So far, Hamlib has been tested successfully under the following systems:
     2.4. Add "mybackend/Makefile" in the AC_CONFIG_FILES macro at the bottom
          of configure.ac.
 
-    2.5. Create mybackend/Makefile.am, mybackend.c mybackend.h
+    2.5. Add DEFINE_INITRIG_BACKEND(mybackend); to the end of the existing list
+         in src/register.c or, for a new rotor backend, add
+         DEFINE_INITROT_BACKEND(myrotbackend); to src/rot_reg.c.
+
+    2.6. Add { RIG_MYBACKEND, RIG_BACKEND_MYBACKEND, RIG_FUNCNAM(mybackend) }, to
+         the rig_backend_list structure in src/register.c or, add
+         { ROT_MYROTBACKEND, ROT_BACKEND_MYROTBACKEND, ROT_FUNCNAMA(myrotbackend) },
+         to the rot_backend_list structure in src/rot_reg.c.
+
+    2.7. Add the new backend to include/hamlib/riglist.h or include/hamlib/rotlist.h
+         by selecting the next higher backend ID number.
+
+    2.8. Create mybackend/Makefile.am, mybackend.c mybackend.h
          Use 'dummy' backend as a template.
          Here are commands for the bourne shell:
 
@@ -422,7 +422,7 @@ So far, Hamlib has been tested successfully under the following systems:
 
          make in topdir to rebuild all
 
-    2.6. Commit your work to your local repository. (developer access to
+    2.9. Commit your work to your local repository. (developer access to
          Hamlib Git required for pushing to the canonical Hamlib repository
          (origin))  Provide patches to the mailing list:
          (Please let N0NB know if the commands below are incorrect)
@@ -435,7 +435,9 @@ So far, Hamlib has been tested successfully under the following systems:
 
          While specifying each file individually as above allows for fine-
          grained control, git offers a wildcard shortcut to add all new files:
+
          $ git add .
+
          Be careful!  If you have other files that were created as part of the
          build process, this command will add them too unless they match a
          pattern in .gitignore.  Always check with 'git status' first!
@@ -448,16 +450,17 @@ So far, Hamlib has been tested successfully under the following systems:
          variables will be started where a more detailed message may be
          composed.
 
-    2.7  If you have developer access to the Git repository hosted at Source
+    2.10 If you have developer access to the Git repository hosted at Source
          Forge, you can do the following:
          $ git push origin
 
          Your changes will now be available to others.
 
+
 3. How to add a new model to an existing backend
 
     3.1. make sure there's already a (unique) ID for the model to be added
-         in include/hamlib/riglist.h
+         in include/hamlib/riglist.h or include/hamlib/rotlist.h
 
     3.2. locate the existing backend
     3.3. Clone the most similar model in the backend
