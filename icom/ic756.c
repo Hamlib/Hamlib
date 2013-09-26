@@ -82,12 +82,39 @@
 	} }
 
 /*
+ *  This function deals with the older type radios with only 2 filter widths
+ *  (0 - normal, 1 - narrow)
+ */
+static int r2i_mode(RIG *rig, rmode_t mode, pbwidth_t width,
+		    unsigned char *md, signed char *pd)
+{
+  int err;
+
+  err = rig2icom_mode(rig, mode, width, md, pd);
+
+  if (err != RIG_OK)
+    return err;
+
+  if (PD_WIDE_3 == *pd)
+    {
+      *pd = PD_MEDIUM_2;
+    }
+  else if (*pd > PD_WIDE_3)
+    {
+      (*pd)--;
+    }
+
+  return RIG_OK;
+}
+
+/*
  * ic756 rig capabilities.
  */
 static const struct icom_priv_caps ic756_priv_caps = {
 		0x50,	/* default address */
 		0,		/* 731 mode */
-		ic756_ts_sc_list
+		ic756_ts_sc_list,
+		.r2i_mode = r2i_mode
 };
 
 const struct rig_caps ic756_caps = {
@@ -170,11 +197,12 @@ const struct rig_caps ic756_caps = {
 	/* mode/filter list, remember: order matters! */
 .filters = 	{
 		{RIG_MODE_SSB|RIG_MODE_RTTY, kHz(2.4)},
+		{RIG_MODE_CW, kHz(2.4)},
 		{RIG_MODE_CW, Hz(500)},
-		{RIG_MODE_AM, kHz(8)},
+		{RIG_MODE_AM, kHz(9)},
 		{RIG_MODE_AM, kHz(2.4)},
 		{RIG_MODE_FM, kHz(15)},
-		{RIG_MODE_FM, kHz(8)},
+		{RIG_MODE_FM, kHz(9)},
 		RIG_FLT_END,
 	},
 .str_cal = IC756PRO_STR_CAL,
