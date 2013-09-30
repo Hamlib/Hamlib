@@ -3758,8 +3758,13 @@ int newcat_set_tx_vfo(RIG * rig, vfo_t tx_vfo) {
             return -RIG_EINVAL;
     }
 
-    if (newcat_is_rig(rig, RIG_MODEL_FT950))
-        p1 = p1 + 2;            /* FT950 non-Toggle */
+    /* TODO: G4WJS - FT-450 only has toggle command so not sure how to
+       definitively set the TX VFO (VS; doesn't seem to help
+       either) */
+    if (newcat_is_rig(rig, RIG_MODEL_FT950) ||
+            newcat_is_rig(rig, RIG_MODEL_FT2000) ||
+            newcat_is_rig(rig, RIG_MODEL_FTDX5000))
+        p1 = p1 + 2;            /* use non-Toggle commands */
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", "FT", p1, cat_term);
 
