@@ -355,6 +355,26 @@ AS_IF([test x"${cf_with_xml_support}" = "xyes"], [
 AC_SUBST([LIBXML2_LIBS])
 AC_SUBST([LIBXML2_CFLAGS])
 
+dnl Defines LIBUSB_CFLAGS and LIBUSB_LIBS as precious variables
+dnl so they appear in all Makefiles.
+# macros/pkg.m4
+PKG_CHECK_MODULES([LIBUSB], [libusb >= 0.1],
+                  [AC_CHECK_HEADERS([usb.h])
+                  AC_DEFINE([HAVE_LIBUSB],
+                             [1],
+                             [Define if libusb is available])
+                  cf_with_libusb="yes"
+                  LIBUSB="libusb"],
+                  [cf_with_libusb="no"
+                  LIBUSB=""])
+
+AS_IF([test x"${cf_with_libusb}" = xno],
+      [AC_MSG_WARN([libusb pkg-config not found, USB backends will be disabled])
+      ])
+
+# Only used in hamlib.pc.in
+AC_SUBST([LIBUSB])
+
 
 dnl Check if readline support in rigctl/rotctl is wanted
 AC_MSG_CHECKING([whether to use readline in rigctl/rotctl])
@@ -593,23 +613,6 @@ AS_IF([test x"${cf_with_cxx}" = "xyes"],[
       ])
 AM_CONDITIONAL([ENABLE_CXX], [test x"${cf_with_cxx}" = "xyes"])
 AM_CONDITIONAL([HAVE_USRP], [test x"${cf_with_usrp}" = "xyes"])
-
-
-dnl Defines LIBUSB_CFLAGS and LIBUSB_LIBS as precious variables
-dnl so they appear in all Makefiles.
-# macros/pkg.m4
-PKG_CHECK_MODULES([LIBUSB], [libusb >= 0.1], [],
-                  [AC_MSG_WARN([libusb pkg-config not found, USB backends will be disabled])])
-
-AC_CHECK_HEADERS([usb.h])
-AC_MSG_CHECKING([whether to build USB backends])
-
-AS_IF([test x"${LIBUSB_LIBS}" = x],
-      [cf_with_libusb="no"],
-      [cf_with_libusb="yes"],
-      [AC_DEFINE([HAVE_LIBUSB],[1],[Define if libusb is available])
-      ])
-AC_MSG_RESULT([$cf_with_libusb])
 
 
 ## -------------------------------- ##

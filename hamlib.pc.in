@@ -7,8 +7,7 @@ Name: @PACKAGE_NAME@
 Description: Library to control radio and rotator equipment.
 URL: @PACKAGE_URL@
 Version: @PACKAGE_VERSION@
-Requires.private: libusb >= 0.1
-Conflicts: libusb >= 1.0
-Cflags: -I${includedir}
+Requires.private: @LIBUSB@
+Cflags: -I${includedir} @PTHREAD_CFLAGS@
 Libs: -L${libdir} -lhamlib
-Libs.private: -lm -ldl -lpthread
+Libs.private: @MATH_LIBS@ @DL_LIB@ @PTHREAD_LIBS@
