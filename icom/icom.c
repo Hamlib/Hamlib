@@ -593,6 +593,58 @@ int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width) {
 }
 
 /*
+ * icom_set_mode_with_data
+ */
+int icom_set_mode_with_data (RIG * rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
+{
+  int retval;
+  unsigned char datamode;
+  unsigned char ackbuf[MAXFRAMELEN];
+  int ack_len=sizeof(ackbuf);
+  rmode_t icom_mode;
+
+  switch (mode)
+    {
+    case RIG_MODE_PKTUSB: icom_mode = RIG_MODE_USB; break;
+    case RIG_MODE_PKTLSB: icom_mode = RIG_MODE_LSB; break;
+    case RIG_MODE_PKTFM: icom_mode = RIG_MODE_FM; break;
+    default: icom_mode = mode; break;
+    };
+
+  retval = icom_set_mode (rig, vfo, icom_mode, width);
+
+  if (RIG_OK == retval)
+    {
+      if (RIG_MODE_PKTUSB == mode || RIG_MODE_PKTLSB == mode || RIG_MODE_PKTFM == mode)
+	{
+	  datamode = 0x01;
+	}
+      else
+	{
+	  datamode = 0x00;
+	}
+
+      retval = icom_transaction (rig, C_CTL_MEM, S_MEM_DATA_MODE, &datamode, 1,
+				 ackbuf, &ack_len);
+      if (retval != RIG_OK)
+	{
+	  rig_debug(RIG_DEBUG_ERR,"%s: protocol error (%#.2x), "
+		    "len=%d\n", __FUNCTION__,ackbuf[0],ack_len);
+	}
+      else
+	{
+	  if (ack_len != 1 || ackbuf[0] != ACK)
+	    {
+	      rig_debug(RIG_DEBUG_ERR,"%s: command not supported ? (%#.2x), "
+			"len=%d\n", __FUNCTION__,ackbuf[0],ack_len);
+	    }
+	}
+    }
+
+  return retval;
+}
+
+/*
  * icom_set_mode
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
@@ -649,6 +701,56 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 #endif
 
 	return RIG_OK;
+}
+
+/*
+ * icom_get_mode_with_data
+ *
+ * newer Icom rigs support data mode with ACC-1 audio input and MIC muted
+ */
+int icom_get_mode_with_data(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+{
+  unsigned char databuf[MAXFRAMELEN];
+  int data_len, retval;
+
+  retval = icom_get_mode (rig, vfo, mode, width);
+
+  if (RIG_OK == retval && (RIG_MODE_USB == *mode || RIG_MODE_LSB == *mode || RIG_MODE_FM == *mode))
+    {
+      /*
+       * fetch data mode on/off
+       */
+      retval = icom_transaction (rig, C_CTL_MEM, S_MEM_DATA_MODE, 0, 0,
+				 databuf, &data_len);
+      if (retval != RIG_OK)
+	{
+	  rig_debug(RIG_DEBUG_ERR,"%s: protocol error (%#.2x), "
+		    "len=%d\n", __FUNCTION__, databuf[0], data_len);
+	  return -RIG_ERJCTED;
+	}
+
+      /*
+       * databuf should contain Cn,Sc
+       */
+      data_len -= 2;
+      if (data_len != 1)
+	{
+	  rig_debug(RIG_DEBUG_ERR,"%s: wrong frame len=%d\n",
+			__FUNCTION__, data_len);
+	  return -RIG_ERJCTED;
+	}
+      if (0x01 == databuf[1])
+	{
+	  switch (*mode)
+	    {
+	    case RIG_MODE_USB: *mode = RIG_MODE_PKTUSB; break;
+	    case RIG_MODE_LSB: *mode = RIG_MODE_PKTLSB; break;
+	    case RIG_MODE_FM: *mode = RIG_MODE_PKTFM; break;
+	    default: break;
+	    }
+	}
+    }
+  return retval;
 }
 
 /*
@@ -1623,7 +1725,7 @@ int icom_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width
 		if (status != RIG_OK)
 			return status;
 
-		status = icom_set_mode(rig, RIG_VFO_CURR, tx_mode, tx_width);
+		status = rig->caps->set_mode(rig, RIG_VFO_CURR, tx_mode, tx_width);
 		if (status != RIG_OK)
 			return status;
 
@@ -1642,7 +1744,7 @@ int icom_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width
 	if (status != RIG_OK)
 		return status;
 
-	status = icom_set_mode(rig, RIG_VFO_CURR, tx_mode, tx_width);
+	status = rig->caps->set_mode(rig, RIG_VFO_CURR, tx_mode, tx_width);
 	if (status != RIG_OK)
 		return status;
 
@@ -1671,7 +1773,7 @@ int icom_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_wid
 		if (status != RIG_OK)
 			return status;
 
-		status = icom_get_mode(rig, RIG_VFO_CURR, tx_mode, tx_width);
+		status = rig->caps->get_mode(rig, RIG_VFO_CURR, tx_mode, tx_width);
 		if (status != RIG_OK)
 			return status;
 
@@ -1690,7 +1792,7 @@ int icom_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_wid
 	if (status != RIG_OK)
 		return status;
 
-	status = icom_get_mode(rig, RIG_VFO_CURR, tx_mode, tx_width);
+	status = rig->caps->get_mode(rig, RIG_VFO_CURR, tx_mode, tx_width);
 	if (status != RIG_OK)
 		return status;
 
