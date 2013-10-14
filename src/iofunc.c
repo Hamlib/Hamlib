@@ -504,8 +504,17 @@ int HAMLIB_API read_string(hamlib_port_t *p, char *rxbuffer, size_t rxmax, const
 	efds = rfds;
 
 	retval = port_select(p, p->fd+1, &rfds, NULL, &efds, &tv);
-        if (retval == 0)    /* Timed out */
-            break;
+	if (retval == 0) {
+		/* Record timeout time and caculate elapsed time */
+		gettimeofday(&end_time, NULL);
+		timersub(&end_time, &start_time, &elapsed_time);
+
+		dump_hex((unsigned char *) rxbuffer, total_count);
+		rig_debug(RIG_DEBUG_WARN, "%s(): Timed out %d.%d seconds after %d chars\n",
+			  __func__, elapsed_time.tv_sec, elapsed_time.tv_usec, total_count);
+
+		return -RIG_ETIMEOUT;
+	}
 
 	if (retval < 0) {
 		dump_hex((unsigned char *) rxbuffer, total_count);
@@ -542,17 +551,6 @@ int HAMLIB_API read_string(hamlib_port_t *p, char *rxbuffer, size_t rxmax, const
    * null chars within th received buffer.
    */
   rxbuffer[total_count] = '\000';
-
-  if (total_count == 0) {
-    /* Record timeout time and caculate elapsed time */
-    gettimeofday(&end_time, NULL);
-    timersub(&end_time, &start_time, &elapsed_time);
-
-    rig_debug(RIG_DEBUG_WARN, "%s(): Timed out %d.%d seconds without reading a character.\n",
-	      __func__, elapsed_time.tv_sec, elapsed_time.tv_usec);
-
-    return -RIG_ETIMEOUT;
-  }
 
   rig_debug(RIG_DEBUG_TRACE,"%s(): RX %d characters\n", __func__, total_count);
   dump_hex((unsigned char *) rxbuffer, total_count);
