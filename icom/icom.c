@@ -193,6 +193,23 @@ const struct ts_sc_list ic7000_ts_sc_list[] = {
 	{ 0, 0 },
 };
 
+const struct ts_sc_list ic7100_ts_sc_list[] = {
+	{ 10,			0x00 },
+	{ 100,			0x01 },
+	{ kHz(1),		0x02 },
+	{ kHz(5),		0x03 },
+	{ kHz(6.25),		0x04 },
+	{ kHz(9),		0x05 },
+	{ kHz(10),		0x06 },
+	{ kHz(12.5),		0x07 },
+	{ kHz(20),		0x08 },
+	{ kHz(25),		0x09 },
+	{ kHz(50),		0x0A },
+	{ kHz(100),		0x0B },
+	{ MHz(1),		0x0C },
+	{ 0,			0x00 },
+};
+
 const struct ts_sc_list ic7200_ts_sc_list[] = {
 	{ 10, 0x00 },
 	{ 100, 0x01 },
@@ -315,6 +332,7 @@ static const struct icom_addr icom_addr_list[] = {
 	{ RIG_MODEL_OS535, 0x80 }, /* same address as IC-7410 */
 	{ RIG_MODEL_ICID1, 0x01 },
 	{ RIG_MODEL_IC7000, 0x70 },
+	{ RIG_MODEL_IC7100, 0x88 },
 	{ RIG_MODEL_IC7200, 0x76 },
 	{ RIG_MODEL_IC7700, 0x74 },
 	{ RIG_MODEL_NONE, 0 },
@@ -1403,6 +1421,7 @@ int icom_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
 	retval = icom_transaction (rig, C_CTL_PTT, S_PTT, NULL, 0,
 					pttbuf, &ptt_len);
+
 	if (retval != RIG_OK)
 		return retval;
 
@@ -3266,6 +3285,7 @@ DECLARE_INITRIG_BACKEND(icom)
 	rig_register(&ic78_caps);
 	rig_register(&ic7800_caps);
 	rig_register(&ic7000_caps);
+	rig_register(&ic7100_caps);
 	rig_register(&ic7200_caps);
 	rig_register(&ic781_caps);
 	rig_register(&ic707_caps);

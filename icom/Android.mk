@@ -10,7 +10,7 @@ LOCAL_SRC_FILES := ic706.c icr8500.c ic735.c ic775.c ic756.c  \
 		ic765.c ic781.c ic471.c id1.c icr9000.c icr9500.c \
 		icr10.c icr20.c icr71.c icr72.c icr75.c icrx7.c \
 		ic707.c ic728.c ic751.c ic761.c \
-		ic78.c ic7800.c ic7000.c ic7200.c ic7600.c ic7700.c \
+		ic78.c ic7800.c ic7000.c ic7100.c ic7200.c ic7600.c ic7700.c \
 		icom.c frame.c optoscan.c
 LOCAL_MODULE := icom
 

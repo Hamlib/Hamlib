@@ -496,6 +496,7 @@ int HAMLIB_API rig_open(RIG *rig)
 	case RIG_PTT_NONE:
 	case RIG_PTT_RIG:
 	case RIG_PTT_RIG_MICDATA:
+	case RIG_PTT_SERIAL_CAT:
 		break;
 	case RIG_PTT_SERIAL_RTS:
 	case RIG_PTT_SERIAL_DTR:
@@ -675,6 +676,7 @@ int HAMLIB_API rig_close(RIG *rig)
 	case RIG_PTT_NONE:
 	case RIG_PTT_RIG:
 	case RIG_PTT_RIG_MICDATA:
+	case RIG_PTT_SERIAL_CAT:
 		break;
 	case RIG_PTT_SERIAL_RTS:
 		ser_set_rts(&rs->pttport, RIG_PTT_OFF);
@@ -1207,7 +1209,6 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 		return -RIG_EINVAL;
 
 	caps = rig->caps;
-
 	switch (rig->state.pttport.type.ptt) {
 	case RIG_PTT_RIG:
 		if (ptt == RIG_PTT_ON_MIC || ptt == RIG_PTT_ON_DATA)
@@ -1239,6 +1240,12 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
 	case RIG_PTT_SERIAL_RTS:
 		return ser_set_rts(&rig->state.pttport, ptt!=RIG_PTT_OFF);
+
+	case RIG_PTT_SERIAL_CAT:
+		if (ptt == RIG_PTT_ON_MIC || ptt == RIG_PTT_ON_DATA)
+			ptt = RIG_PTT_ON;
+		retcode = caps->set_ptt(rig, vfo, ptt);
+		return retcode;
 
 	case RIG_PTT_PARALLEL:
 		return par_ptt_set(&rig->state.pttport, ptt);
