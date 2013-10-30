@@ -140,6 +140,24 @@ static int ts870s_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
   *width = 10 * atoi(&buf[2]);
 
+  if (RIG_MODE_USB == *mode || RIG_MODE_LSB == *mode || RIG_MODE_AM == *mode)
+    {
+      /* we only have HPF value and need LPF as well to calculate bandwidth */
+
+      retval = kenwood_transaction (rig, "IS", 2, buf, &buf_len);
+      if (retval != RIG_OK)
+	return retval;
+
+      if (buf_len != 8 || buf[1] != 'S')
+	{
+	  rig_debug(RIG_DEBUG_ERR,"%s: unexpected IS answer, len=%d\n",
+		    __func__,buf_len);
+	  return -RIG_ERJCTED;
+	}
+
+      *width = atoi (&buf[3]) - *width; /* bandwidth <- LPF - HPF */
+    }
+
   return RIG_OK;
 }
 
@@ -147,6 +165,7 @@ static int ts870s_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
   char buf[16];
   int kmode, retval;
+  pbwidth_t mode_default_hpf;
 
   switch (mode)
   {
@@ -168,12 +187,35 @@ static int ts870s_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   retval = kenwood_simple_cmd(rig, buf);
   if (retval != RIG_OK) return retval;
 
-/*
- * This rig will simply use an IF bandpass which is closest to width,
- * so we don't need to check the value...
- */
-  sprintf(buf, "FW%04d", (int)width/10);
-  return kenwood_simple_cmd(rig, buf);
+  if (RIG_PASSBAND_NORMAL != width) /* leave well alone if default passband requested */
+    {
+      if (RIG_MODE_USB == mode || RIG_MODE_LSB == mode || RIG_MODE_AM == mode)
+	{
+	  /* we assume the HPF is set to default and set the LPF to
+	     give the best approximaation of the requested width */
+	  if (RIG_MODE_AM == mode)
+	    {
+	      mode_default_hpf = 300;
+	    }
+	  else
+	    {
+	      mode_default_hpf = 100;
+	    }
+	  sprintf(buf, "IS %04d", (int)(width + mode_default_hpf));
+	  retval = kenwood_simple_cmd(rig, buf);
+	}
+      else
+	{
+	  /*
+	   * This rig will simply use an IF bandpass which is closest to width,
+	   * so we don't need to check the value...
+	   */
+	  sprintf(buf, "FW%04d", (int)width/10);
+	  retval = kenwood_simple_cmd(rig, buf);
+	}
+    }
+
+  return retval;
 }
 
 int ts870s_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
@@ -500,6 +542,8 @@ const struct rig_caps ts870s_caps = {
 .get_mode =  ts870s_get_mode,
 .set_vfo =  kenwood_set_vfo,
 .get_vfo =  ts870s_get_vfo,
+.set_split_vfo = kenwood_set_split_vfo,
+.get_split_vfo = kenwood_get_split_vfo_if,
 .set_ctcss_tone =  kenwood_set_ctcss_tone,
 .get_ctcss_tone =  kenwood_get_ctcss_tone,
 .get_ptt =  kenwood_get_ptt,
