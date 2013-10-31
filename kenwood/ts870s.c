@@ -144,6 +144,7 @@ static int ts870s_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     {
       /* we only have HPF value and need LPF as well to calculate bandwidth */
 
+      buf_len = 50;
       retval = kenwood_transaction (rig, "IS", 2, buf, &buf_len);
       if (retval != RIG_OK)
 	return retval;
