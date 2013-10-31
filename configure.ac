@@ -85,11 +85,13 @@ AC_PROG_AWK
 AC_PROG_INSTALL
 AC_PROG_LN_S
 
+# TODO: check whether CXX is functional
+AC_CHECK_PROG([cf_with_cxx], ["${CXX}"], [yes], [no])
+
+AM_CONDITIONAL([ENABLE_CXX], [test x"${cf_with_cxx}" = "xyes"])
+
 dnl Broke on older Automake, so test for its existence.
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
-
-dnl Pkgconfig assists when using certain external packages
-PKG_PROG_PKG_CONFIG
 
 
 ## ----------------------------------- ##
@@ -235,14 +237,6 @@ ioctl memchr memmove memset pow rint select setitimer setlocale sigaction \
 snprintf socket sqrt strchr strdup strerror strncasecmp strrchr strstr strtol])
 AC_FUNC_ALLOCA
 
-# Check for libdl and set DL_LIB if found
-AC_CHECK_LIB([dl],
-	     [dlopen],
-	     [DL_LIB="-ldl"],
-	     [],
-	     [])
-AC_SUBST([DL_LIB])
-
 dnl AC_LIBOBJ replacement functions directory
 AC_CONFIG_LIBOBJ_DIR([lib])
 
@@ -312,65 +306,25 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]],
                   ])
 
 
-# libxml2 required rigmem xml support, make it user optional
-AC_MSG_CHECKING([whether to build rigmem XML support])
-AC_ARG_WITH([xml-support],
-            [AS_HELP_STRING([--with-xml-support],
-                            [build rigmem with XML support @<:@default=no@:>@])],
-            [cf_with_xml_support=$withval],
-            [cf_with_xml_support=no])
-AC_MSG_RESULT([$cf_with_xml_support])
+dnl Check for libusb, treat LIBUSB_LIBS and LIBUSB_CFLAGS as precious variables
+AC_ARG_VAR([LIBUSB_CFLAGS], [C compiler flags for libusb, overriding configure defaults])
+AC_ARG_VAR([LIBUSB_LIBS], [linker flags for libusb, overriding configure check (useful for specifying static libusb.a (see INSTALL))])
 
+cf_with_libusb="no"
 
-dnl Check for pkg-config presence and if not installed define a dummy macro
-dnl to disable libxml2 use.  Code borrowed from:
-dnl http://lists.gnu.org/archive/html/automake/2011-03/msg00008.html
-# Check for pkg-config program, used for configuring some libraries.
-#
-m4_define_default([PKG_PROG_PKG_CONFIG],
-    [AC_MSG_CHECKING([pkg-config])
-    AC_MSG_RESULT([no])])
+AS_IF([test -z $LIBUSB_LIBS],
+      [AC_CHECK_LIB([usb], [usb_init], [LIBUSB_LIBS="-lusb" cf_with_libusb="yes"],
+                    [AC_MSG_WARN([usb_init was not found in libusb--USB backends will be disabled])])
+      ], [cf_with_libusb="yes"])
 
-PKG_PROG_PKG_CONFIG
+LIBUSB=""
 
-# If the pkg-config autoconf support isn't installed, define its
-# autoconf macro to disable any packages depending on it.
-#
-m4_define_default([PKG_CHECK_MODULES],
-    [AC_MSG_CHECKING([$1])
-    AC_MSG_RESULT([no])
-    $4])
-
-
-AS_IF([test x"${cf_with_xml_support}" = "xyes"], [
-      PKG_CHECK_MODULES([LIBXML2],
-                        [libxml-2.0],
-                        [AC_DEFINE([HAVE_XML2],
-                                   [1],
-                                   [Define if libxml2 is available])],
-                        [AC_MSG_WARN([libxml-2.0 pkg-config not found, XML support will be disabled])
-                        ])
-      ])
-
-AC_SUBST([LIBXML2_LIBS])
-AC_SUBST([LIBXML2_CFLAGS])
-
-dnl Defines LIBUSB_CFLAGS and LIBUSB_LIBS as precious variables
-dnl so they appear in all Makefiles.
-# macros/pkg.m4
-PKG_CHECK_MODULES([LIBUSB], [libusb >= 0.1],
-                  [AC_CHECK_HEADERS([usb.h])
-                  AC_DEFINE([HAVE_LIBUSB],
-                             [1],
-                             [Define if libusb is available])
-                  cf_with_libusb="yes"
-                  LIBUSB="libusb"],
-                  [cf_with_libusb="no"
-                  LIBUSB=""])
-
-AS_IF([test x"${cf_with_libusb}" = xno],
-      [AC_MSG_WARN([libusb pkg-config not found, USB backends will be disabled])
-      ])
+AS_IF([test x"${cf_with_libusb}" = "xyes"],
+      [AC_CHECK_HEADERS([usb.h])
+       AC_DEFINE([HAVE_LIBUSB],
+                 [1],
+                 [Define if libusb is available])
+       LIBUSB="libusb"])
 
 # Only used in hamlib.pc.in
 AC_SUBST([LIBUSB])
@@ -423,6 +377,71 @@ AS_IF([test x"$cf_enable_html_matrix" != "xno"],
 AM_CONDITIONAL([HTML_MATRIX], [test x"${cf_enable_html_matrix}" = "xyes"])
 
 
+## ------------------ ##
+## PKG Config support ##
+## ------------------ ##
+
+dnl These features rely on the external pkg-config functionality being available.
+dnl Test for pkg-config only when these features are enabled.
+
+# libxml2 required rigmem xml support, make it user optional
+AC_MSG_CHECKING([whether to build rigmem XML support])
+AC_ARG_WITH([xml-support],
+            [AS_HELP_STRING([--with-xml-support],
+                            [build rigmem with XML support @<:@default=no@:>@])],
+            [cf_with_xml_support=$withval],
+            [cf_with_xml_support=no])
+AC_MSG_RESULT([$cf_with_xml_support])
+
+
+# USRP needs a C++ compiler, tested for presence above.
+AS_IF([test x"${cf_with_cxx}" = "xyes"], [
+      AC_MSG_CHECKING([whether to build USRP backend])
+      AC_ARG_ENABLE([usrp],
+                    [AS_HELP_STRING([--enable-usrp],
+                                    [build USRP backend @<:@default=no@:>@])],
+                    [cf_with_usrp=$enableval],
+                    [cf_with_usrp="no"])
+      AC_MSG_RESULT([$cf_with_usrp])
+      ])
+
+dnl Only check for pkg-config when either of the dependent features are enabled.
+
+AS_IF([test x"${cf_with_xml_support}" = "xyes" || test x"${cf_with_usrp}" = "xyes"], [
+dnl Check for pkg-config presence and if not installed define a dummy macro
+dnl to disable libxml2 and USRP use.  Code borrowed from:
+dnl http://lists.gnu.org/archive/html/automake/2011-03/msg00008.html
+dnl
+dnl Check for pkg-config program, used for configuring some libraries.
+       m4_define_default([PKG_PROG_PKG_CONFIG],
+		         [AC_MSG_CHECKING([pkg-config])
+			  AC_MSG_RESULT([no])])
+
+       PKG_PROG_PKG_CONFIG
+
+dnl If the pkg-config autoconf support isn't installed, define its
+dnl autoconf macro to disable any packages depending on it.
+       m4_define_default([PKG_CHECK_MODULES],
+			 [AC_MSG_CHECKING([$1])
+			  AC_MSG_RESULT([no])
+			  $4])
+      ])
+
+
+AS_IF([test x"${cf_with_xml_support}" = "xyes"], [
+      PKG_CHECK_MODULES([LIBXML2],
+                        [libxml-2.0],
+                        [AC_DEFINE([HAVE_XML2],
+                                   [1],
+                                   [Define if libxml2 is available])],
+                        [AC_MSG_WARN([libxml-2.0 pkg-config not found, XML support will be disabled])
+                        ])
+      ])
+
+AC_SUBST([LIBXML2_LIBS])
+AC_SUBST([LIBXML2_CFLAGS])
+
+
 ## ----------------- ##
 ## Language bindings ##
 ## ----------------- ##
@@ -442,9 +461,6 @@ BINDING_LIB_TARGETS=""
 dnl Check if cxx-binding not wanted, default is to build it
 
 # C++ binding
-# TODO: check whether CXX is functional
-AC_CHECK_PROG([cf_with_cxx], ["${CXX}"], [yes], [no])
-
 AC_MSG_CHECKING([whether to build C++ binding and demo])
 AC_ARG_WITH([cxx-binding],
             [AS_HELP_STRING([--without-cxx-binding],
@@ -572,15 +588,11 @@ AC_SUBST([BINDING_LIST])
 AC_SUBST([BINDING_LIB_TARGETS])
 
 
-dnl Not sure where this goes...
-dnl # TODO: require "${ac_cv_header_sys_socket_h}" = "no"
-
-
 ## ----------------- ##
 ## Optional backends ##
 ## ----------------- ##
 
-# Winradio only under Linux (until someone ports it on other os)
+dnl Winradio only under Linux (until someone ports it on other os)
 AC_MSG_CHECKING([whether to build winradio backend])
 AC_ARG_ENABLE([winradio],
               [AS_HELP_STRING([--disable-winradio],
@@ -590,28 +602,22 @@ AC_ARG_ENABLE([winradio],
 AC_MSG_RESULT([$cf_with_winradio])
 
 AS_IF([test x"${cf_with_winradio}" = "xyes"],
-      [BACKEND_LIST="$BACKEND_LIST winradio"])
-
-
-# stuff that requires C++ support
-AS_IF([test x"${cf_with_cxx}" = "xyes"],[
-
-      AC_MSG_CHECKING([whether to build USRP backend])
-      AC_ARG_ENABLE([usrp],
-                    [AS_HELP_STRING([--enable-usrp],
-                                    [build USRP backend @<:@default=no@:>@])],
-                    [cf_with_usrp=$enableval],
-                    [cf_with_usrp="no"])
-      AC_MSG_RESULT([$cf_with_usrp])
-
-      AS_IF([test x"${cf_with_usrp}" = "xyes"],[
-            PKG_CHECK_MODULES([USRP],
-                              [usrp >= 0.8],
-                              [AC_DEFINE([HAVE_USRP],[1],[Define if usrp is available])
-                              ])
-            ])
+      [BACKEND_LIST="$BACKEND_LIST winradio"
+dnl Check for libdl and set DL_LIB if found--used for linradio backend
+       AC_CHECK_LIB([dl], [dlopen], [DL_LIB="-ldl"],
+                    [AC_MSG_WARN([dlopen was not found in libdl--linradio backend will be disabled])])
+       AC_SUBST([DL_LIB])
       ])
-AM_CONDITIONAL([ENABLE_CXX], [test x"${cf_with_cxx}" = "xyes"])
+
+
+dnl stuff that requires C++ support
+AS_IF([test x"${cf_with_usrp}" = "xyes"],[
+       PKG_CHECK_MODULES([USRP],
+                         [usrp >= 0.8],
+                         [AC_DEFINE([HAVE_USRP],[1],[Define if usrp is available])
+                         ])
+      ])
+
 AM_CONDITIONAL([HAVE_USRP], [test x"${cf_with_usrp}" = "xyes"])
 
 
@@ -619,17 +625,17 @@ AM_CONDITIONAL([HAVE_USRP], [test x"${cf_with_usrp}" = "xyes"])
 ## Prepare rig backend dependencies ##
 ## -------------------------------- ##
 
-# otherwise parallel 'make -jn' will fail
+dnl otherwise parallel 'make -jn' will fail
 
 for be in ${BACKEND_LIST} ; do
         BACKENDEPS="${BACKENDEPS} \$(top_builddir)/${be}/libhamlib-${be}.la"
 done
 
-# dlopen force or preopen self for static version ?
 BACKENDLNK=""
 for be in ${BACKEND_LIST} ; do
         BACKENDLNK="${BACKENDLNK} \$(top_builddir)/${be}/libhamlib-${be}.la"
 done
+
 AC_SUBST([BACKEND_LIST])
 AC_SUBST([BACKENDLNK])
 AC_SUBST([BACKENDEPS])
@@ -645,14 +651,19 @@ for be in ${ROT_BACKEND_LIST} ; do
         ROT_BACKENDEPS="${ROT_BACKENDEPS} \$(top_builddir)/${be}/libhamlib-${be}.la"
 done
 
-# dlopen force or preopen self for static version ?
 ROT_BACKENDLNK=""
 for be in ${ROT_BACKEND_LIST} ; do
         ROT_BACKENDLNK="${ROT_BACKENDLNK} \$(top_builddir)/${be}/libhamlib-${be}.la"
 done
+
 AC_SUBST([ROT_BACKEND_LIST])
 AC_SUBST([ROT_BACKENDLNK])
 AC_SUBST([ROT_BACKENDEPS])
+
+
+## ------------ ##
+## Final output ##
+## ------------ ##
 
 dnl Output accumulated flags to the Makefile files.
 AC_SUBST([AM_CPPFLAGS])

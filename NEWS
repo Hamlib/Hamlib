@@ -43,6 +43,14 @@ Version 3.0
 		Bill, G4WJS.
 	* New Peaberry models V1 and V2 added to kit backend.  TNX ON8VQ
 		and R2AEE.
+	* New IC-7100 model.  TNX Martin, CT1IQI.
+	* Use AC_CHECK_LIB macro to search for libusb rather than rely on
+	    pkg-config.  Preserve environment variables LIBUSB_CFLAGS and
+	    LIBUSB_LIBS as user precious variables.  Two features,
+	    --with-xml-support and --enable-usrp still rely on pkg-config so
+	    only invoke pkg-config when either or both of these features are
+	    selected.  Only the Winradio g313 model uses libdl so test for it
+	    only when Winradio backend is enabled.
 
 Version 1.2.15.3
 	2012-11-01

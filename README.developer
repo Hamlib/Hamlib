@@ -234,7 +234,6 @@ distributions may differ).
 * autoconf      2.67                        # autoconf --version
 * automake      1.11                        # automake --version
 * libtool       2.2.6b+                     # libtool --version
-* pkg-config    0.25                        # pkg-config --version
 * Git for connection to git.code.sf.net/p/hamlib/code
 * texinfo       4.13a                       # makeinfo --version
 
@@ -251,6 +250,7 @@ Optional, but highly recommended:
 * libusb devel                      # libusb-config --version (not 1.0.0!)
 * libreadline devel                 # ver 5.2 or newer
 * texlive                           # 5.1 tested with 'make distcheck'
+* pkg-config            0.9.0       # pkg-config --version (libxml and USRP)
 
 N.B.:  The libusb package is required for building most of the 'kit' backend.
 The older version is needed, not 1.0.0 or higher.  Debian and derivatives

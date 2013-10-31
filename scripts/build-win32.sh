@@ -4,9 +4,9 @@
 
 # A script to build a set of Win32 binary DLLs from a Hamlib tarball.
 # This script assumes that the Hamlib tarball has been extracted to the
-# directory specified in $build_dir and that libusb-win32-bin-1.x.y.z has also
-# been extracted to $build_dir and a libusb.pc file has been created.  The
-# MS VC++Toolkit must also be installed.
+# directory specified in $BUILD_DIR and that libusb-win32-bin-1.x.y.z has also
+# been extracted to $BUILD_DIR.  The MS VC++Toolkit must also be installed
+# and working with Wine.
 #
 # See README.build-win32 for complete details.
 
@@ -17,6 +17,13 @@ BUILD_DIR=~/builds
 # Set this to LibUSB archive extracted in $BUILD_DIR
 LIBUSB_VER=libusb-win32-bin-1.2.4.0
 
+# uncomment the correct HOST_ARCH= line for your minGW installation
+# HOST_ARCH=i586-mingw32msvc
+HOST_ARCH=i686-w64-mingw32
+
+# Set to the strip name for your version of minGW
+# HOST_ARCH_STRIP=i586-mingw32msvc-strip
+HOST_ARCH_STRIP=i686-w64-mingw32-strip
 
 # Error return codes.  See /usr/include/sysexits.h
 EX_USAGE=64
@@ -51,7 +58,8 @@ What is it?
 ===========
 
 This ZIP archive or Windows installer contains a build of Hamlib-$RELEASE
-cross-compiled for Win32 using MinGW under Xubuntu Linux 10.10 (nice, heh!).
+cross-compiled for MS Windows 32 bit using MinGW under Debian GNU/Linux
+(nice, heh!).
 
 The DLL has a cdecl interface for MS VC++.
 
@@ -72,8 +80,8 @@ reasonable choice.
 
 Make sure *all* the .DLL files are in your PATH (leave them in the bin
 directory and set the PATH).  To set the PATH environment variable in
-Windows 2000, Windows XP, and Windows 7 (need info on Vista) do the
-following:
+Windows 2000, Windows XP, and Windows 7 (need info on Vista and Windows 8)
+do the following:
 
  * W2k/XP: Right-click on "My Computer"
    Win7: Right-click on "Computer"
@@ -174,10 +182,13 @@ END_OF_README
 
 # Configure and build hamlib for mingw32, with libusb-win32
 
-./configure --host=i586-mingw32msvc \
+./configure --host=${HOST_ARCH} \
  --prefix=`pwd`/mingw-inst \
  --without-cxx-binding \
- PKG_CONFIG_LIBDIR=${LIBUSB_WIN32_BIN_PATH}/lib/pkgconfig
+ --disable-static \
+ CPPFLAGS="-I${LIBUSB_WIN32_BIN_PATH}/include" \
+ LDFLAGS="-L${LIBUSB_WIN32_BIN_PATH}/lib/gcc"
+
 
 make install
 
@@ -204,15 +215,17 @@ cd ${BUILD_DIR}/$1
 
 # Copy build files into specific locations for Zip file
 cp -a ${INST_DIR}/bin/{rigctld.exe,rigctl.exe,rigmem.exe,rigsmtr.exe,rigswr.exe,rotctld.exe,rotctl.exe} ${ZIP_DIR}/bin/.
-cp -a ${INST_DIR}/lib/hamlib/hamlib-*.dll ${ZIP_DIR}/bin/.
 cp -a ${INST_DIR}/bin/libhamlib-?.dll ${ZIP_DIR}/bin/.
 cp -a ${INST_DIR}/lib/libhamlib.dll.a ${ZIP_DIR}/lib/gcc/.
 
-# NB: Do not strip libusb0.dll
-i586-mingw32msvc-strip ${ZIP_DIR}/bin/*.exe ${ZIP_DIR}/bin/*hamlib-*.dll
-cp -a ${LIBUSB_WIN32_BIN_PATH}/bin/x86/libusb0_x86.dll ${ZIP_DIR}/bin/libusb0.dll
+# NB: Strip Hamlib DLLs and EXEs
+${HOST_ARCH_STRIP} ${ZIP_DIR}/bin/*.exe ${ZIP_DIR}/bin/*hamlib-*.dll
+
+# Copy needed third party DLLs
+cp -a /usr/i686-w64-mingw32/lib/libwinpthread-1.dll ${ZIP_DIR}/bin/.
 
 # Need VC++ free toolkit installed (default Wine directory installation shown)
 ( cd ${ZIP_DIR}/lib/msvc/ && wine ~/.wine/drive_c/Program\ Files/Microsoft\ Visual\ C++\ Toolkit\ 2003/bin/link.exe /lib /machine:i386 /def:libhamlib-2.def )
+
 zip -r hamlib-win32-${RELEASE}.zip `basename ${ZIP_DIR}`
 

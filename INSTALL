@@ -154,15 +154,23 @@ variables to "-O3".
 
 These variables may also follow all options on the configure command line:
 
-    ./configure --prefix="$HOME/local" [more options] CFLAGS="-g -O0" CXXFLAGS="-g -O0"
+    ./configure --prefix="$HOME/local" [more options] \
+    CFLAGS="-g -O0" \
+    CXXFLAGS="-g -O0"
 
 which will set the installation path to the the directory named 'local' under
 user's home directory(executables will be installed to $HOME/local/bin,
 header files to $HOME/local/include, and so on) and tells the C and C++
 compilers to enable debugging symbols and disable optimizations.
 
+N.B. When setting environment variables on the configure command line, always
+put them last so the configure script is aware of them and can store them in
+the cache.  When placed before the configure script on the command line, they
+cannot be cached.
+
 Depending on what languages the package uses, some of these options may
 or may not be available. To see what is available, type:
+
     % sh ./configure --help
 
 About the configure script
@@ -242,9 +250,19 @@ MS Windows
 
     ./configure --host=i686-w64-mingw32
 
+- Specifying the directory of libusb for a Windows build using MinGW as
+  libusb must be installed separately, use the following environment
+  variables after all other options.
+
+    ./configure [other options] \
+    CPPFLAGS="-I/path_to_libusb/include" \
+    LDFLAGS="-L/path_to_libusb/lib/gcc"
+
 - Mingw compiler under Cygwin
-    CC="gcc -mno-cygwin" CXX="g++ -mno-cygwin" \
-    ./configure --host=i686-pc-mingw32
+
+    ./configure --host=i686-pc-mingw32 \
+    CC="gcc -mno-cygwin" \
+    CXX="g++ -mno-cygwin"
 
 - Cygwin
     Native Cygwin requires no special options besides regular ones.
