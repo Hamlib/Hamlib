@@ -562,27 +562,169 @@ int k3_set_xit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 }
 
 
-/* The K3 *always* uses VFOB for TX.  Do we continually switch VFOs and
- * possibly irritate the user?  Better just to return -RIG_ENAVAIL
- * until this is resolved.
+/*
+ * The K3 *always* uses VFOB for TX.
  */
-int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
+int k3_set_split_mode(RIG * rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	return -RIG_ENAVAIL;
+  if (!rig)
+    return -RIG_EINVAL;
+
+  int err;
+  char cmd_s[16];
+
+  switch (tx_mode) {
+  case RIG_MODE_PKTLSB:
+    tx_mode = RIG_MODE_RTTYR;
+    strncpy(cmd_s, "DT0", 5);
+    break;
+  case RIG_MODE_PKTUSB:
+    tx_mode = RIG_MODE_RTTY;
+    strncpy(cmd_s, "DT0", 5);
+    break;
+  case RIG_MODE_RTTY:
+  case RIG_MODE_RTTYR:
+    strncpy(cmd_s, "DT1", 5);
+    break;
+  default:
+    break;
+  }
+
+  struct kenwood_priv_caps *caps = kenwood_caps(rig);
+  char buf[6];
+  char kmode;
+
+  kmode = rmode2kenwood(tx_mode, caps->mode_table);
+  if (kmode < 0 ) {
+    rig_debug(RIG_DEBUG_WARN, "%s: unsupported mode '%s'\n",
+	      __func__, rig_strrmode(tx_mode));
+    return -RIG_EINVAL;
+  }
+
+  sprintf(buf, "MD$%c", '0' + kmode);
+  err = kenwood_simple_cmd(rig, buf);
+  if (err != RIG_OK)
+    return err;
+
+  /* Now set data sub-mode.  K3 needs to be in a DATA mode before setting
+   * the sub-mode.
+   */
+  if (tx_mode == RIG_MODE_PKTLSB || tx_mode == RIG_MODE_PKTUSB
+      || tx_mode == RIG_MODE_RTTY || tx_mode == RIG_MODE_RTTYR) {
+    err = kenwood_simple_cmd(rig, cmd_s);
+    if (err != RIG_OK)
+      return err;
+  }
+
+  /* and set the requested bandwidth.  On my K3, the bandwidth is rounded
+   * down to the nearest 50 Hz, i.e. sending BW0239; will cause the bandwidth
+   * to be set to 2.350 kHz.  As the width must be divided by 10, 10 Hz values
+   * between 0 and 4 round down to the nearest 100 Hz and values between 5
+   * and 9 round down to the nearest 50 Hz.
+   *
+   * tx_width string value must be padded with leading '0' to equal four
+   * characters.
+   */
+
+  /* passband widths vary by mode so gather lower and upper limits */
+  pbwidth_t pb_nar = rig_passband_narrow(rig, tx_mode);
+  pbwidth_t pb_wid = rig_passband_wide(rig, tx_mode);
+
+  if (tx_width < 0)
+    tx_width = labs(tx_width);
+
+  if (tx_width == RIG_PASSBAND_NORMAL)
+    tx_width = rig_passband_normal(rig, tx_mode);
+  else if (tx_width < pb_nar)
+    tx_width = pb_nar;
+  else if (tx_width > pb_wid)
+    tx_width = pb_wid;
+
+  sprintf(cmd_s, "BW$%04ld", tx_width / 10);
+  err = kenwood_simple_cmd(rig, cmd_s);
+  if (err != RIG_OK)
+    return err;
+
+  return RIG_OK;
 }
 
 
-/* The K3 *always* uses VFOB for TX.  Do we continually switch VFOs and
- * possibly irritate the user?  Better just to return -RIG_ENAVAIL
- * until this is resolved.
+/* The K3 *always* uses VFOB for TX.
  */
 int k3_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+  rig_debug (RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	return -RIG_ENAVAIL;
+  if (!rig || !tx_mode || !tx_width)
+    return -RIG_EINVAL;
+
+  char buf[KENWOOD_MAX_BUF_LEN];
+  int err;
+  rmode_t temp_m;
+
+  struct kenwood_priv_caps *caps = kenwood_caps (rig);
+
+  err = kenwood_safe_transaction(rig, "MD$", buf, KENWOOD_MAX_BUF_LEN, 5);
+  if (err != RIG_OK)
+    return err;
+
+  temp_m = kenwood2rmode (buf[3] - '0', caps->mode_table);
+
+  if (temp_m == RIG_MODE_RTTY) {
+    err = kenwood_safe_transaction(rig, "DT", buf, KENWOOD_MAX_BUF_LEN, 4);
+    if (err != RIG_OK) {
+      rig_debug(RIG_DEBUG_VERBOSE, "%s: Cannot read K3 DT value\n",
+		__func__);
+      return err;
+    }
+    switch(atoi(&buf[2])) {
+    case K3_MODE_DATA_A:
+      *tx_mode = RIG_MODE_PKTUSB;
+      break;
+    case K3_MODE_AFSK_A:
+      *tx_mode = RIG_MODE_RTTY;
+      break;
+    default:
+      rig_debug(RIG_DEBUG_VERBOSE, "%s: unsupported data sub-mode %c\n",
+		__func__, buf[2]);
+      return -RIG_EINVAL;
+    }
+  } else if (temp_m == RIG_MODE_RTTYR) {
+    err = kenwood_safe_transaction(rig, "DT", buf, KENWOOD_MAX_BUF_LEN, 4);
+    if (err != RIG_OK) {
+      rig_debug(RIG_DEBUG_VERBOSE, "%s: Cannot read K3 DT value\n",
+		__func__);
+      return err;
+    }
+    switch(atoi(&buf[2])) {
+    case K3_MODE_DATA_A:
+      *tx_mode = RIG_MODE_PKTLSB;
+      break;
+    case K3_MODE_AFSK_A:
+      *tx_mode = RIG_MODE_RTTYR;
+      break;
+    default:
+      rig_debug(RIG_DEBUG_VERBOSE, "%s: unsupported data sub-mode %c\n",
+		__func__, buf[2]);
+      return -RIG_EINVAL;
+    }
+  } else {
+    *tx_mode = temp_m;
+  }
+
+  /* The K3 is not limited to specific filter widths so we can query
+   * the actual bandwidth using the BW$ command
+   */
+  err = kenwood_safe_transaction(rig, "BW$", buf, KENWOOD_MAX_BUF_LEN, 9);
+  if (err != RIG_OK) {
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: Cannot read K3 BW$ value\n", __func__);
+    return err;
+  }
+  *tx_width = atoi(&buf[3]) * 10;
+
+  return RIG_OK;
 }
 
 
