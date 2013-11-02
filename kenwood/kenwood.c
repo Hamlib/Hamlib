@@ -251,8 +251,6 @@ transaction_write:
 			goto transaction_write;
 		goto transaction_quit;
 	}
-	else
-		*datasize = retval;
 
 	/* Check that command termination is correct */
 	if (strchr(cmdtrm, data[strlen(data)-1])==NULL) {
@@ -293,6 +291,11 @@ transaction_write:
 		goto transaction_quit;
 	}
 	}
+
+	*datasize = retval;	/* this is retval from successful
+				   read_string above, don't assign
+				   until here because IN value is
+				   needed for retries */
 
 	/* always give back a null terminated string without
 	 * the command terminator.
