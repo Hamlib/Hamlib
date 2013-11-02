@@ -255,47 +255,58 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	if (err != RIG_OK)
 		return err;
 
-	if (temp_m == RIG_MODE_RTTY) {
-		err = kenwood_safe_transaction(rig, "DT", buf, KENWOOD_MAX_BUF_LEN, 4);
-		if (err != RIG_OK) {
-			rig_debug(RIG_DEBUG_VERBOSE, "%s: Cannot read K3 DT value\n",
-						__func__);
-			return err;
-		}
-		switch(atoi(&buf[2])) {
-		case K3_MODE_DATA_A:
-			*mode = RIG_MODE_PKTUSB;
-			break;
-		case K3_MODE_AFSK_A:
-			*mode = RIG_MODE_RTTY;
-			break;
-		default:
-			rig_debug(RIG_DEBUG_VERBOSE, "%s: unsupported data sub-mode %c\n",
-						__func__, buf[2]);
-			return -RIG_EINVAL;
-		}
-	} else if (temp_m == RIG_MODE_RTTYR) {
-		err = kenwood_safe_transaction(rig, "DT", buf, KENWOOD_MAX_BUF_LEN, 4);
-		if (err != RIG_OK) {
-			rig_debug(RIG_DEBUG_VERBOSE, "%s: Cannot read K3 DT value\n",
-						__func__);
-			return err;
-		}
-		switch(atoi(&buf[2])) {
-		case K3_MODE_DATA_A:
-			*mode = RIG_MODE_PKTLSB;
-			break;
-		case K3_MODE_AFSK_A:
-			*mode = RIG_MODE_RTTYR;
-			break;
-		default:
-			rig_debug(RIG_DEBUG_VERBOSE, "%s: unsupported data sub-mode %c\n",
-						__func__, buf[2]);
-			return -RIG_EINVAL;
-		}
-	} else {
+	if (temp_m == RIG_MODE_RTTY)
+	  {
+	    err = kenwood_safe_transaction(rig, "DT", buf, KENWOOD_MAX_BUF_LEN, 4);
+	    if (err != RIG_OK)
+	      {
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: Cannot read K3 DT value\n",
+			  __func__);
+		return err;
+	      }
+	    switch(atoi(&buf[2]))
+	      {
+	      case K3_MODE_DATA_A:
+	      case K3_MODE_PSK_D:
+		*mode = RIG_MODE_PKTUSB;
+		break;
+	      case K3_MODE_AFSK_A:
+		*mode = RIG_MODE_PKTLSB;
+		break;
+	      default:
 		*mode = temp_m;
-	}
+		break;
+	      }
+	  }
+	else if (temp_m == RIG_MODE_RTTYR)
+	  {
+	    err = kenwood_safe_transaction(rig, "DT", buf, KENWOOD_MAX_BUF_LEN, 4);
+	    if (err != RIG_OK)
+	      {
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: Cannot read K3 DT value\n",
+			  __func__);
+		return err;
+	      }
+	    switch(atoi(&buf[2]))
+	      {
+	      case K3_MODE_DATA_A:
+	      case K3_MODE_PSK_D:
+		*mode = RIG_MODE_PKTLSB;
+		break;
+	      case K3_MODE_AFSK_A:
+		*mode = RIG_MODE_PKTUSB;
+		break;
+	      case K3_MODE_FSK_D:
+		break;
+	      default:
+		*mode = temp_m;
+		break;
+	      }
+	  }
+	else
+	  {
+		*mode = temp_m;
+	  }
 
 	/* The K3 is not limited to specific filter widths so we can query
 	 * the actual bandwidth using the BW command
@@ -313,8 +324,24 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 /* k3_set_mode()
  *
- * As with k3_get_mode(), the K3 can also set the data submodes which allows
- * use of RIG_MODE_PKTUSB and RIG_MODE_PKLSB.
+ * As with k3_get_mode(), the K3 can also set the data sub-modes which
+ * allows use of RIG_MODE_PKTUSB and RIG_MODE_PKTLSB.
+ *
+ * The K3 supports AFSK & FSK sub-modes and for the D versions it also
+ * has an internal RTTY and PSK31 decoder. The decoder sub-modes are
+ * reported as FSK (RTTY) and the AFSK sub-modes are reported as
+ * PKT(USB & LSB). LSB modes are assumed to be RTTY and USB modes are
+ * assumed to be PKT(PSK, WS modes etc.).
+ *
+ * For mode set the data sub-modes are set as follows:
+ *
+ * RTTY -> FSK D normal (LSB) VFO shows MARK QRG
+ * RTTYR -> FSK D reversed (USB) VFO shows MARK QRG
+ * PKTUSB -> DATA A normal (USB) VFO shows suppressed carrier QRG
+ * PKTLSB -> AFSK A normal (LSB) optimised for RTTY VFO shows MARK QRG
+
+ * Not all data sub-mode combinations are possible but the above
+ * mapping seems most likely to cover the user requirements.
  */
 
 int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
@@ -329,16 +356,16 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 	switch (mode) {
 	case RIG_MODE_PKTLSB:
-		mode = RIG_MODE_RTTYR;
-		strncpy(cmd_s, "DT0", 5);
+		mode = RIG_MODE_RTTY;
+		strncpy(cmd_s, "DT1", 5); /* AFSK A mode - AFSK on LSB optimised for RTTY, VFO dial is MARK */
 		break;
 	case RIG_MODE_PKTUSB:
 		mode = RIG_MODE_RTTY;
-		strncpy(cmd_s, "DT0", 5);
+		strncpy(cmd_s, "DT0", 5); /* DATA A mode - AFSK on USB general, VFO dial is suppressed carrier QRG */
 		break;
 	case RIG_MODE_RTTY:
 	case RIG_MODE_RTTYR:
-		strncpy(cmd_s, "DT1", 5);
+		strncpy(cmd_s, "DT2", 5); /* FSK D mode - direct FSK keying, LSB is "normal", VFO dial is MARK */
 		break;
 	default:
 		break;
@@ -575,22 +602,23 @@ int k3_set_split_mode(RIG * rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
   int err;
   char cmd_s[16];
 
-  switch (tx_mode) {
-  case RIG_MODE_PKTLSB:
-    tx_mode = RIG_MODE_RTTYR;
-    strncpy(cmd_s, "DT0", 5);
-    break;
-  case RIG_MODE_PKTUSB:
-    tx_mode = RIG_MODE_RTTY;
-    strncpy(cmd_s, "DT0", 5);
-    break;
-  case RIG_MODE_RTTY:
-  case RIG_MODE_RTTYR:
-    strncpy(cmd_s, "DT1", 5);
-    break;
-  default:
-    break;
-  }
+  switch (tx_mode)
+    {
+    case RIG_MODE_PKTLSB:
+      tx_mode = RIG_MODE_RTTY;
+      strncpy(cmd_s, "DT1", 5); /* AFSK A mode - AFSK on LSB optimised for RTTY, VFO dial is MARK */
+      break;
+    case RIG_MODE_PKTUSB:
+      tx_mode = RIG_MODE_RTTY;
+      strncpy(cmd_s, "DT0", 5); /* DATA A mode - AFSK on USB general, VFO dial is suppressed carrier QRG */
+      break;
+    case RIG_MODE_RTTY:
+    case RIG_MODE_RTTYR:
+      strncpy(cmd_s, "DT2", 5); /* FSK D mode - direct FSK keying, LSB is "normal", VFO dial is MARK */
+      break;
+    default:
+      break;
+    }
 
   struct kenwood_priv_caps *caps = kenwood_caps(rig);
   char buf[6];
@@ -679,18 +707,19 @@ int k3_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width
 		__func__);
       return err;
     }
-    switch(atoi(&buf[2])) {
-    case K3_MODE_DATA_A:
-      *tx_mode = RIG_MODE_PKTUSB;
-      break;
-    case K3_MODE_AFSK_A:
-      *tx_mode = RIG_MODE_RTTY;
-      break;
-    default:
-      rig_debug(RIG_DEBUG_VERBOSE, "%s: unsupported data sub-mode %c\n",
-		__func__, buf[2]);
-      return -RIG_EINVAL;
-    }
+    switch(atoi(&buf[2]))
+      {
+      case K3_MODE_DATA_A:
+      case K3_MODE_PSK_D:
+	*tx_mode = RIG_MODE_PKTUSB;
+	break;
+      case K3_MODE_AFSK_A:
+	*tx_mode = RIG_MODE_PKTLSB;
+	break;
+      default:
+	*tx_mode = temp_m;
+	break;
+      }
   } else if (temp_m == RIG_MODE_RTTYR) {
     err = kenwood_safe_transaction(rig, "DT", buf, KENWOOD_MAX_BUF_LEN, 4);
     if (err != RIG_OK) {
@@ -698,18 +727,21 @@ int k3_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width
 		__func__);
       return err;
     }
-    switch(atoi(&buf[2])) {
-    case K3_MODE_DATA_A:
-      *tx_mode = RIG_MODE_PKTLSB;
-      break;
-    case K3_MODE_AFSK_A:
-      *tx_mode = RIG_MODE_RTTYR;
-      break;
-    default:
-      rig_debug(RIG_DEBUG_VERBOSE, "%s: unsupported data sub-mode %c\n",
-		__func__, buf[2]);
-      return -RIG_EINVAL;
-    }
+    switch(atoi(&buf[2]))
+      {
+      case K3_MODE_DATA_A:
+      case K3_MODE_PSK_D:
+	*tx_mode = RIG_MODE_PKTLSB;
+	break;
+      case K3_MODE_AFSK_A:
+	*tx_mode = RIG_MODE_PKTUSB;
+	break;
+      case K3_MODE_FSK_D:
+	break;
+      default:
+	*tx_mode = temp_m;
+	break;
+      }
   } else {
     *tx_mode = temp_m;
   }
