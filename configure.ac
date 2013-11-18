@@ -114,7 +114,7 @@ AM_PROG_CC_C_O
 ## Various parts of Hamlib need these headers ##
 ## ------------------------------------------ ##
 
-AC_CHECK_HEADERS([dlfcn.h errno.h fcntl.h getopt.h limits.h locale.h malloc.h \
+AC_CHECK_HEADERS([errno.h fcntl.h getopt.h limits.h locale.h malloc.h \
 netdb.h sgtty.h stddef.h termio.h termios.h values.h \
 arpa/inet.h dev/ppbus/ppbconf.hdev/ppbus/ppi.h \
 linux/hidraw.h linux/ioctl.h linux/parport.h linux/ppdev.h  netinet/in.h \
@@ -601,13 +601,37 @@ AC_ARG_ENABLE([winradio],
               [cf_with_winradio="yes" AC_DEFINE([HAVE_WINRADIO],[1],[Define if winradio backend is built])])
 AC_MSG_RESULT([$cf_with_winradio])
 
+DL_LIBS=""
+
 AS_IF([test x"${cf_with_winradio}" = "xyes"],
       [BACKEND_LIST="$BACKEND_LIST winradio"
-dnl Check for libdl and set DL_LIB if found--used for linradio backend
-       AC_CHECK_LIB([dl], [dlopen], [DL_LIB="-ldl"],
+dnl Check for libdl and set DL_LIBS if found--used for linradio WR-G313 backend.
+       AC_CHECK_LIB([dl], [dlopen], [DL_LIBS="-ldl"],
                     [AC_MSG_WARN([dlopen was not found in libdl--linradio backend will be disabled])])
-       AC_SUBST([DL_LIB])
       ])
+
+dnl Set conditional compilation for G-313.
+AS_CASE(["$host_os"],
+        [mingw* | pw32* | cygwin ], [
+             AM_CONDITIONAL(G313_LINUX_GNU, false)
+             AM_CONDITIONAL(G313_WINDOWS, true)
+        ],
+dnl As g313-posix.c has a hard dependency on linux/types.h
+dnl via linradio/wrg313api.h, disable compilation on other POSIX.
+        [ *linux-gnu ], [
+             AM_CONDITIONAL(G313_LINUX_GNU, true)
+             AM_CONDITIONAL(G313_WINDOWS, false)
+        ],
+        [
+             AM_CONDITIONAL(G313_LINUX_GNU, false)
+             AM_CONDITIONAL(G313_WINDOWS, false)
+        ])
+
+dnl If libdl is present, check for its header file.
+AS_IF([test x"${DL_LIBS}" = "x-ldl"],
+      [AC_CHECK_HEADERS([dlfcn.h])])
+
+AC_SUBST([DL_LIBS])
 
 
 dnl stuff that requires C++ support

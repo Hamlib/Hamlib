@@ -166,7 +166,7 @@ extern LOAD_CALIBRATION_FILE LoadCalibrationFile;
 extern RESET_CALIBRATION ResetCalibration;
 extern GET_API_VERSION GetAPIVersion;
 
-int InitAPI(void);
+int InitAPI(void *hWRAPI);
 void UninitAPI(void);
 
 #endif
