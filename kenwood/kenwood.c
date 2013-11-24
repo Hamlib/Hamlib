@@ -732,7 +732,26 @@ int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split, vfo_t *txvfo
 	/* Remember whether split is on, for kenwood_set_vfo */
 	priv->split = *split;
 
-	/* TODO: find where is the txvfo.. */
+	/* find where is the txvfo.. */
+	switch (priv->info[30])
+	  {
+	  case '0':
+	    *txvfo = (*split) ? RIG_VFO_B : RIG_VFO_A;
+	  break;
+
+	  case '1':
+	    *txvfo = (*split) ? RIG_VFO_A : RIG_VFO_B;
+	  break;
+
+	  case '2':
+	    *txvfo = RIG_VFO_MEM; /* SPLIT MEM operation doesn't involve VFO A or VFO B */
+	    break;
+
+	  default:
+	    rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %c\n",
+		      __func__, priv->info[30]);
+	    return -RIG_EPROTO;
+	  }
 
 	return RIG_OK;
 }
