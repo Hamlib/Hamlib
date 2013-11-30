@@ -1025,6 +1025,38 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	char kmode;
 	int err;
 
+	if (RIG_MODEL_TS590S == rig->caps->rig_model)
+	  {
+	    /* supports DATA sub modes */
+	    char data_mode = '0';
+	    switch (mode)
+	      {
+	      case RIG_MODE_PKTUSB:
+		data_mode = '1';
+		mode = RIG_MODE_USB;
+		break;
+
+	      case RIG_MODE_PKTLSB:
+		data_mode = '1';
+		mode = RIG_MODE_LSB;
+		break;
+
+	      case RIG_MODE_PKTFM:
+		data_mode = '1';
+		mode = RIG_MODE_FM;
+		break;
+
+	      default: break;
+	      }
+
+	    sprintf (buf, "DA%c", data_mode);
+	    int retval = kenwood_simple_cmd (rig, buf);
+	    if (RIG_OK != retval)
+	      {
+		return retval;
+	      }
+	  }
+
 	kmode = rmode2kenwood(mode, caps->mode_table);
 	if (kmode < 0 ) {
 		rig_debug(RIG_DEBUG_WARN, "%s: unsupported mode '%s'\n",
@@ -1115,6 +1147,26 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 		return retval;
 
 	*mode = kenwood2rmode(modebuf[2] - '0', caps->mode_table);
+
+	if (RIG_MODEL_TS590S == rig->caps->rig_model)
+	  {
+	    /* supports DATA sub-modes */
+	    retval = kenwood_safe_transaction (rig, "DA", modebuf, 6, 4);
+	    if (retval != RIG_OK)
+	      {
+		return retval;
+	      }
+	    if ('1' == modebuf[2])
+	      {
+		switch (*mode)
+		  {
+		  case RIG_MODE_USB: *mode = RIG_MODE_PKTUSB; break;
+		  case RIG_MODE_LSB: *mode = RIG_MODE_PKTLSB; break;
+		  case RIG_MODE_FM: *mode = RIG_MODE_PKTFM; break;
+		  default: break;
+		  }
+	      }
+	  }
 
 	/* XXX ? */
 	*width = rig_passband_normal(rig, *mode);
