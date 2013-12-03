@@ -1024,11 +1024,11 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	char buf[6];
 	char kmode;
 	int err;
+	char data_mode = '0';
 
 	if (RIG_MODEL_TS590S == rig->caps->rig_model)
 	  {
 	    /* supports DATA sub modes */
-	    char data_mode = '0';
 	    switch (mode)
 	      {
 	      case RIG_MODE_PKTUSB:
@@ -1048,13 +1048,6 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 	      default: break;
 	      }
-
-	    sprintf (buf, "DA%c", data_mode);
-	    int retval = kenwood_simple_cmd (rig, buf);
-	    if (RIG_OK != retval)
-	      {
-		return retval;
-	      }
 	  }
 
 	kmode = rmode2kenwood(mode, caps->mode_table);
@@ -1068,6 +1061,17 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	err = kenwood_simple_cmd(rig, buf);
 	if (err != RIG_OK)
 		return err;
+
+	if (RIG_MODEL_TS590S == rig->caps->rig_model)
+	  {
+	    /* supports DATA sub modes - see above */
+	    sprintf (buf, "DA%c", data_mode);
+	    int retval = kenwood_simple_cmd (rig, buf);
+	    if (RIG_OK != retval)
+	      {
+		return retval;
+	      }
+	  }
 
 	if (rig->caps->rig_model == RIG_MODEL_TS450S
 		|| rig->caps->rig_model == RIG_MODEL_TS690S
