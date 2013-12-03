@@ -457,6 +457,27 @@ int kenwood_open(RIG *rig)
 	char *idptr;
 	char id[KENWOOD_MAX_BUF_LEN];
 
+	if (RIG_MODEL_TS590S == rig->caps->rig_model)
+	  {
+	    /* we need the firmware version for these rigs to deal with f/w defects */
+	    char buffer[KENWOOD_MAX_BUF_LEN];
+	    static char fw_version[5];
+	    size_t size = KENWOOD_MAX_BUF_LEN;
+	    struct kenwood_priv_data * priv = rig->state.priv;
+
+	    err = kenwood_transaction (rig, "FV", 0, buffer, &size);
+	    if (RIG_OK != err)
+	      {
+		rig_debug (RIG_DEBUG_ERR, "%s: cannot get f/w version\n", __func__);
+		return err;
+	      }
+	    /* store the data between "FV" and ";" which should be a
+	       f/w version string of the form n.n e.g. 1.07 */
+	    priv->fw_rev = strncpy (fw_version, &buffer[2], size - 3);
+
+	    rig_debug (RIG_DEBUG_TRACE, "%s: found f/w version %s\n", __func__, priv->fw_rev);
+	  }
+
 	/* get id in buffer, will be null terminated */
 	err = kenwood_get_id(rig, id);
 	if (err != RIG_OK) {

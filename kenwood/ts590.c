@@ -186,6 +186,7 @@ const struct rig_caps ts590_caps = {
   .priv = (void *) &ts590_priv_caps,
   .rig_init = kenwood_init,
   .rig_cleanup = kenwood_cleanup,
+  .rig_open = kenwood_open,
   .set_freq = kenwood_set_freq,
   .get_freq = kenwood_get_freq,
   .set_rit = kenwood_set_rit,	/*  FIXME should this switch to rit mode or just set the frequency? */
