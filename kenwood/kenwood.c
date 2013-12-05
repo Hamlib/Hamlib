@@ -843,7 +843,37 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	}
 	sprintf(freqbuf, "F%c%011ld", vfo_letter, (long)freq);
 
-	return kenwood_simple_cmd(rig, freqbuf);
+	int err = kenwood_simple_cmd(rig, freqbuf);
+
+	if (RIG_OK == err && 'B' == vfo_letter && RIG_MODEL_TS590S == rig->caps->rig_model)
+	  {
+	    /* TS590s f/w rev 1.07 or earlier has a defect that means
+	       frequency set on TX VFO in split mode may not be set
+	       correctly when the TX VFO is VFO B.
+
+	       The cleanest way to fix this is to read VFO A and set
+	       VFO A to the read frequency, a redundant sequence that
+	       has the side effect of setting the VFO B frequency
+	       correctly.
+
+	       The symptom of the defect is either TX on the wrong
+	       frequency (i.e. TX on a frequency different from that
+	       showing on VFO B) or no output.
+
+	       Here we don't bother to work out if the rig is in split
+	       mode, we simply always read and set VFO A every time
+	       VFO B has its frequency set. */
+
+	    err = kenwood_safe_transaction (rig, "FA", freqbuf, 16, 14);
+	    if (RIG_OK != err)
+	      {
+		return err;
+	      }
+	    freqbuf[13] = '\0';
+	    err = kenwood_simple_cmd (rig, freqbuf);
+	  }
+
+	return err;
 }
 
 int kenwood_get_freq_if(RIG *rig, vfo_t vfo, freq_t *freq)
