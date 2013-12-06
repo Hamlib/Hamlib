@@ -75,9 +75,7 @@ struct kenwood_priv_data {
     int k3_ext_lvl;		/* Initial K3 extension level */
     int k2_md_rtty;		/* K2 RTTY mode available flag, 1 = RTTY, 0 = N/A */
     char *fw_rev;		/* firmware revision level */
-    int ptt_state;		/* some rigs don't tell PTT state so
-				   we store an assumed value here for
-				   them */
+    unsigned fw_rev_uint;	/* firmware revison as a number 1.07 -> 107 */
 };
 
 

@@ -474,7 +474,18 @@ int kenwood_open(RIG *rig)
 	    /* store the data between "FV" and ";" which should be a
 	       f/w version string of the form n.n e.g. 1.07 */
 	    priv->fw_rev = strncpy (fw_version, &buffer[2], size - 3);
-
+	    char * dot_pos = strchr (buffer, '.');
+	    if (dot_pos)
+	      {
+		*dot_pos = '\0';
+		buffer[size - 1] = '\0';
+		priv->fw_rev_uint = atoi (&buffer[2]) * 100 + atoi (dot_pos + 1);
+	      }
+	    else
+	      {
+		rig_debug (RIG_DEBUG_ERR, "%s: cannot get f/w version\n", __func__);
+		return -RIG_EPROTO;
+	      }
 	    rig_debug (RIG_DEBUG_TRACE, "%s: found f/w version %s\n", __func__, priv->fw_rev);
 	  }
 
@@ -852,7 +863,8 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 	int err = kenwood_simple_cmd(rig, freqbuf);
 
-	if (RIG_OK == err && 'B' == vfo_letter && RIG_MODEL_TS590S == rig->caps->rig_model)
+	struct kenwood_priv_data * priv = rig->state.priv;
+	if (RIG_OK == err && 'B' == vfo_letter && RIG_MODEL_TS590S == rig->caps->rig_model && priv->fw_rev_uint <= 107)
 	  {
 	    /* TS590s f/w rev 1.07 or earlier has a defect that means
 	       frequency set on TX VFO in split mode may not be set
