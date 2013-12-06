@@ -780,6 +780,10 @@ int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split, vfo_t *txvfo
 
 /*
  * kenwood_get_vfo_if using byte 31 of the IF information field
+ *
+ * Specifically this needs to return the RX VFO, the IF command tells
+ * us the TX VFO in split TX mode when transmitting so we need to swap
+ * results sometimes.
  */
 int kenwood_get_vfo_if(RIG *rig, vfo_t *vfo)
 {
@@ -795,24 +799,27 @@ int kenwood_get_vfo_if(RIG *rig, vfo_t *vfo)
 	if (retval != RIG_OK)
 		return retval;
 
-	switch (priv->info[30]) {
-	case '0':
-		*vfo = RIG_VFO_A;
-		break;
+	int split_and_transmitting = '1' == priv->info[32] && '1' == priv->info[28];
 
-	case '1':
-		*vfo = RIG_VFO_B;
-		break;
+	switch (priv->info[30])
+	  {
+	  case '0':
+	    *vfo = split_and_transmitting ? RIG_VFO_B : RIG_VFO_A;
+	  break;
 
-	case '2':
-		*vfo = RIG_VFO_MEM;
-		break;
+	  case '1':
+	    *vfo = split_and_transmitting ? RIG_VFO_A : RIG_VFO_B;
+	  break;
 
-	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %c\n",
-					__func__, priv->info[30]);
-		return -RIG_EPROTO;
-	}
+	  case '2':
+	    *vfo = RIG_VFO_MEM;
+	    break;
+
+	  default:
+	    rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %c\n",
+		      __func__, priv->info[30]);
+	    return -RIG_EPROTO;
+	  }
 	return RIG_OK;
 }
 
