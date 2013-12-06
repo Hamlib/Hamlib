@@ -864,32 +864,40 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	int err = kenwood_simple_cmd(rig, freqbuf);
 
 	struct kenwood_priv_data * priv = rig->state.priv;
-	if (RIG_OK == err && 'B' == vfo_letter && RIG_MODEL_TS590S == rig->caps->rig_model && priv->fw_rev_uint <= 107)
+	if (RIG_OK == err && RIG_MODEL_TS590S == rig->caps->rig_model && priv->fw_rev_uint <= 107 && ('A' == vfo_letter || 'B' == vfo_letter))
 	  {
 	    /* TS590s f/w rev 1.07 or earlier has a defect that means
 	       frequency set on TX VFO in split mode may not be set
-	       correctly when the TX VFO is VFO B.
-
-	       The cleanest way to fix this is to read VFO A and set
-	       VFO A to the read frequency, a redundant sequence that
-	       has the side effect of setting the VFO B frequency
 	       correctly.
 
 	       The symptom of the defect is either TX on the wrong
 	       frequency (i.e. TX on a frequency different from that
-	       showing on VFO B) or no output.
+	       showing on the TX VFO) or no output.
 
-	       Here we don't bother to work out if the rig is in split
-	       mode, we simply always read and set VFO A every time
-	       VFO B has its frequency set. */
+	       We use an IF command to find out if we have just set
+	       the "back" VFO when the rig is in split mode. If we
+	       have; we then read the other VFO and set it to what we
+	       read - a null transaction that fixes the defect. */
 
-	    err = kenwood_safe_transaction (rig, "FA", freqbuf, 16, 14);
+	    err = kenwood_get_if(rig);
 	    if (RIG_OK != err)
 	      {
 		return err;
 	      }
-	    freqbuf[13] = '\0';
-	    err = kenwood_simple_cmd (rig, freqbuf);
+
+	    if ('1' == priv->info[32] && priv->info[30] != ('A' == vfo_letter ? '0' : '1'))
+	      {
+		/* split mode and setting "back" VFO */
+
+		/* set other VFO to whatever it is at currently */
+		err = kenwood_safe_transaction (rig, 'A' == vfo_letter ? "FB" : "FA", freqbuf, 16, 14);
+		if (RIG_OK != err)
+		  {
+		    return err;
+		  }
+		freqbuf[13] = '\0';
+		err = kenwood_simple_cmd (rig, freqbuf);
+	      }
 	  }
 
 	return err;
