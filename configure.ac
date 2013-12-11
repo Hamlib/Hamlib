@@ -46,10 +46,11 @@ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 dnl New backends must be listed here!  Also the new Makefile path must be
 dnl added to AC_CONFIG_FILES near the end of this file.  See README.developer
-BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc drake lowe rft rs kit skanti prm80 tapr flexradio wj racal tuner adat"
-# ROT_BACKEND_LIST="dummy easycomm fodtrack gs232a heathkit kit rotorez sartek spid ars m2 amsat ts7400 celestron ether6"
-# Beware of duplication. At the end we will have a single list.
-ROT_BACKEND_LIST="easycomm fodtrack gs232a heathkit rotorez sartek spid ars m2 amsat ts7400 celestron ether6"
+dnl Beware of duplication should a backend directory include both rig and
+dnl rotor definitions, e.g. "dummy".  Optional backends will not be listed
+dnl here but will be added later, e.g. "winradio".
+BACKEND_LIST="adat alinco aor drake dummy flexradio icom jrc kachina kenwood kit lowe pcr prm80 racal rft rs skanti tapr tentec tuner uniden wj yaesu"
+ROT_BACKEND_LIST="amsat ars celestron easycomm ether6 fodtrack gs232a heathkit m2 rotorez sartek spid ts7400"
 
 dnl See README.release on setting these values
 # Values given to -version-info when linking.  See libtool documentation.
@@ -414,17 +415,17 @@ dnl http://lists.gnu.org/archive/html/automake/2011-03/msg00008.html
 dnl
 dnl Check for pkg-config program, used for configuring some libraries.
        m4_define_default([PKG_PROG_PKG_CONFIG],
-		         [AC_MSG_CHECKING([pkg-config])
-			  AC_MSG_RESULT([no])])
+                [AC_MSG_CHECKING([pkg-config]
+                 AC_MSG_RESULT([no])])
 
        PKG_PROG_PKG_CONFIG
 
 dnl If the pkg-config autoconf support isn't installed, define its
 dnl autoconf macro to disable any packages depending on it.
        m4_define_default([PKG_CHECK_MODULES],
-			 [AC_MSG_CHECKING([$1])
-			  AC_MSG_RESULT([no])
-			  $4])
+                [AC_MSG_CHECKING([$1])
+                 AC_MSG_RESULT([no])
+                 $4])
       ])
 
 
@@ -655,13 +656,7 @@ for be in ${BACKEND_LIST} ; do
         BACKENDEPS="${BACKENDEPS} \$(top_builddir)/${be}/libhamlib-${be}.la"
 done
 
-BACKENDLNK=""
-for be in ${BACKEND_LIST} ; do
-        BACKENDLNK="${BACKENDLNK} \$(top_builddir)/${be}/libhamlib-${be}.la"
-done
-
 AC_SUBST([BACKEND_LIST])
-AC_SUBST([BACKENDLNK])
 AC_SUBST([BACKENDEPS])
 
 
@@ -675,13 +670,7 @@ for be in ${ROT_BACKEND_LIST} ; do
         ROT_BACKENDEPS="${ROT_BACKENDEPS} \$(top_builddir)/${be}/libhamlib-${be}.la"
 done
 
-ROT_BACKENDLNK=""
-for be in ${ROT_BACKEND_LIST} ; do
-        ROT_BACKENDLNK="${ROT_BACKENDLNK} \$(top_builddir)/${be}/libhamlib-${be}.la"
-done
-
 AC_SUBST([ROT_BACKEND_LIST])
-AC_SUBST([ROT_BACKENDLNK])
 AC_SUBST([ROT_BACKENDEPS])
 
 

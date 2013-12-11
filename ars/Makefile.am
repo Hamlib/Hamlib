@@ -1,4 +1,4 @@
-AM_CFLAGS = @AM_CFLAGS@ $(PTHREAD_CFLAGS)
+AM_CFLAGS += $(PTHREAD_CFLAGS)
 
 noinst_LTLIBRARIES = libhamlib-ars.la
 libhamlib_ars_la_SOURCES = ars.c ars.h

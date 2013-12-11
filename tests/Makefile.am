@@ -10,98 +10,47 @@ bin_PROGRAMS = rigctl rigmem rigswr rigsmtr rotctl rigctld rotctld
 
 man_MANS = rigctl.1 rigmem.1 rigswr.1 rigsmtr.1 rotctl.1 rigctld.8 rotctld.8
 
-check_PROGRAMS = dumpmem testrig testtrn testbcd testfreq listrigs \
-		 testloc rig_bench
+check_PROGRAMS = dumpmem testrig testtrn testbcd testfreq listrigs testloc rig_bench
 
-rigctl_SOURCES = rigctl.c rigctl_parse.c dumpcaps.c sprintflst.c
-rigctld_SOURCES = rigctld.c rigctl_parse.c dumpcaps.c sprintflst.c
-rotctl_SOURCES = rotctl.c rotctl_parse.c dumpcaps_rot.c
-rotctld_SOURCES = rotctld.c rotctl_parse.c dumpcaps_rot.c
+RIGCOMMONSRC = rigctl_parse.c rigctl_parse.h dumpcaps.c sprintflst.c sprintflst.h uthash.h
+ROTCOMMONSRC = rotctl_parse.c rotctl_parse.h dumpcaps_rot.c uthash.h
+
+rigctl_SOURCES = rigctl.c $(RIGCOMMONSRC)
+rigctld_SOURCES = rigctld.c $(RIGCOMMONSRC)
+rotctl_SOURCES = rotctl.c $(ROTCOMMONSRC)
+rotctld_SOURCES = rotctld.c $(ROTCOMMONSRC)
 rigswr_SOURCES = rigswr.c
 rigsmtr_SOURCES = rigsmtr.c
-rigmem_SOURCES = rigmem.c memsave.c memload.c memcsv.c sprintflst.c
-
-noinst_HEADERS = sprintflst.h rigctl_parse.h rotctl_parse.h uthash.h
+rigmem_SOURCES = rigmem.c memsave.c memload.c memcsv.c sprintflst.c sprintflst.h
 
 
 # all the programs need this
-LDADD = $(top_builddir)/src/libhamlib.la $(top_builddir)/lib/libmisc.la $(LIBUSB_LIBS)
-DEPENDENCIES = $(top_builddir)/src/libhamlib.la
+LDADD = $(top_builddir)/src/libhamlib.la $(top_builddir)/lib/libmisc.la
 
-rigmem_CFLAGS = $(AM_CFLAGS) @LIBXML2_CFLAGS@
+rigmem_CFLAGS = $(AM_CFLAGS) $(LIBXML2_CFLAGS)
 rigctld_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 rotctld_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 
-## Linker options
-##########"  IN FACT, WILL BE USELESS, THERE WILL BE ONLY libhamlib.a AT THE END. OR libhamlib.so.
-########## EVEN libmisc WILL NOT APPEAR.
-###### listrigs_LDFLAGS = @BACKENDLNK@
-listrigs_LDFLAGS =
-###### dumpmem_LDFLAGS = @BACKENDLNK@
-dumpmem_LDFLAGS =
-###### testrig_LDFLAGS = @BACKENDLNK@
-testrig_LDFLAGS =
-###### rig_bench_LDFLAGS = $(top_builddir)/lib/libmisc.la @BACKENDLNK@
-rig_bench_LDFLAGS =
-###### testtrn_LDFLAGS = @BACKENDLNK@
-testtrn_LDFLAGS =
-###### rigctl_LDFLAGS = @BACKENDLNK@ $(PTHREAD_LIBS) @WINEXELDFLAGS@
-rigctl_LDFLAGS = $(PTHREAD_LIBS) @WINEXELDFLAGS@
-###### rigswr_LDFLAGS = @BACKENDLNK@ @WINEXELDFLAGS@
-rigswr_LDFLAGS = @WINEXELDFLAGS@
-###### rigsmtr_LDFLAGS = @BACKENDLNK@ @WINEXELDFLAGS@
-rigsmtr_LDFLAGS = @WINEXELDFLAGS@
-###### rigmem_LDFLAGS = @BACKENDLNK@ @LIBXML2_LIBS@ @WINEXELDFLAGS@
-rigmem_LDFLAGS = @LIBXML2_LIBS@ @WINEXELDFLAGS@
-###### rotctl_LDFLAGS = @ROT_BACKENDLNK@ $(PTHREAD_LIBS) @WINEXELDFLAGS@
-rotctl_LDFLAGS = $(PTHREAD_LIBS) @WINEXELDFLAGS@
-###### rigctld_LDFLAGS = @BACKENDLNK@ $(PTHREAD_LIBS) @NET_LIBS@ @WINEXELDFLAGS@
-rigctld_LDFLAGS = $(PTHREAD_LIBS) @NET_LIBS@ @WINEXELDFLAGS@
-###### rotctld_LDFLAGS = @ROT_BACKENDLNK@ $(PTHREAD_LIBS) @NET_LIBS@ @WINEXELDFLAGS@
-rotctld_LDFLAGS = $(PTHREAD_LIBS) @NET_LIBS@ @WINEXELDFLAGS@
+rigctl_LDADD = $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
+rigctld_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
+rotctl_LDADD = $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
+rotctld_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
+rigmem_LDADD = $(LIBXML2_LIBS) $(LDADD)
 
-# temporary hack
-testbcd_LDFLAGS = -dlpreopen self
-testloc_LDFLAGS = -dlpreopen self
-
-
-## Dependencies
-
-##### dumpmem_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
-##### testrig_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
-##### rig_bench_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
-##### testtrn_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
-##### listrigs_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
-##### rigctl_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
-##### rigmem_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
-##### rigswr_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
-##### rigsmtr_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
-##### rotctl_DEPENDENCIES = $(DEPENDENCIES) @ROT_BACKENDEPS@
-##### rigctld_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
-##### rotctld_DEPENDENCIES = $(DEPENDENCIES) @ROT_BACKENDEPS@
-
-dumpmem_DEPENDENCIES = $(DEPENDENCIES)
-testrig_DEPENDENCIES = $(DEPENDENCIES)
-rig_bench_DEPENDENCIES = $(DEPENDENCIES)
-testtrn_DEPENDENCIES = $(DEPENDENCIES)
-listrigs_DEPENDENCIES = $(DEPENDENCIES)
-rigctl_DEPENDENCIES = $(DEPENDENCIES)
-rigmem_DEPENDENCIES = $(DEPENDENCIES)
-rigswr_DEPENDENCIES = $(DEPENDENCIES)
-rigsmtr_DEPENDENCIES = $(DEPENDENCIES)
-rotctl_DEPENDENCIES = $(DEPENDENCIES)
-rigctld_DEPENDENCIES = $(DEPENDENCIES)
-rotctld_DEPENDENCIES = $(DEPENDENCIES)
-
+# Linker options
+rigctl_LDFLAGS = $(WINEXELDFLAGS)
+rigswr_LDFLAGS = $(WINEXELDFLAGS)
+rigsmtr_LDFLAGS = $(WINEXELDFLAGS)
+rigmem_LDFLAGS = $(WINEXELDFLAGS)
+rotctl_LDFLAGS = $(WINEXELDFLAGS)
+rigctld_LDFLAGS = $(WINEXELDFLAGS)
+rotctld_LDFLAGS = $(WINEXELDFLAGS)
 
 
 if HTML_MATRIX
 EXTRA_PROGRAMS = rigmatrix
 # rigmatrix needs libgd
-##### rigmatrix_LDFLAGS = -lgd -lz @BACKENDLNK@
-##### rigmatrix_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 rigmatrix_LDFLAGS = -lgd -lz
-rigmatrix_DEPENDENCIES = $(DEPENDENCIES)
 rigmatrix.html: rigmatrix_head.html rigmatrix listrigs
 	mkdir -p sup-info/support
 	( cat $(srcdir)/rigmatrix_head.html && cd sup-info && ../rigmatrix ) > sup-info/rigmatrix.html

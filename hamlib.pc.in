@@ -10,4 +10,4 @@ Version: @PACKAGE_VERSION@
 Requires.private: @LIBUSB@
 Cflags: -I${includedir} @PTHREAD_CFLAGS@
 Libs: -L${libdir} -lhamlib
-Libs.private: @MATH_LIBS@ @DL_LIB@ @PTHREAD_LIBS@
+Libs.private: @MATH_LIBS@ @DL_LIBS@ @PTHREAD_LIBS@

@@ -25,6 +25,11 @@
 #include <stdlib.h>
 
 #include <hamlib/rig.h>
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "misc.h"
 
 #define SERIAL_PORT "/dev/ttyS0"

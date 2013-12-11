@@ -8,12 +8,11 @@ RIGSRC = rig.c serial.c serial.h misc.c misc.h register.c register.h event.c \
 
 lib_LTLIBRARIES = libhamlib.la
 libhamlib_la_SOURCES = $(RIGSRC)
-libhamlib_la_LDFLAGS = $(WINLDFLAGS) $(OSXLDFLAGS) -no-undefined -version-info @ABI_VERSION@:@ABI_REVISION@:@ABI_AGE@
+libhamlib_la_LDFLAGS = $(WINLDFLAGS) $(OSXLDFLAGS) -no-undefined -version-info $(ABI_VERSION):$(ABI_REVISION):$(ABI_AGE)
 
 libhamlib_la_LIBADD = $(top_builddir)/lib/libmisc.la \
-		      @BACKENDEPS@ @ROT_BACKENDEPS@ \
-		      @NET_LIBS@ @MATH_LIBS@ $(LIBUSB_LIBS)
+	$(BACKENDEPS) $(ROT_BACKENDEPS) $(NET_LIBS) $(MATH_LIBS) $(LIBUSB_LIBS)
 
-libhamlib_la_DEPENDENCIES = $(top_builddir)/lib/libmisc.la @BACKENDEPS@ @ROT_BACKENDEPS@
+libhamlib_la_DEPENDENCIES = $(top_builddir)/lib/libmisc.la $(BACKENDEPS) $(ROT_BACKENDEPS)
 
 EXTRA_DIST = Android.mk

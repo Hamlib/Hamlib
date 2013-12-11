@@ -1,4 +1,4 @@
-AM_CFLAGS = @AM_CFLAGS@ $(LIBUSB_CFLAGS)
+AM_CFLAGS += $(LIBUSB_CFLAGS)
 
 # FIXME: compile usrp only if CXX available
 
@@ -8,7 +8,7 @@ KITSRC = elektor304.c drt1.c dwt.c usrp.c elektor507.c dds60.c miniVNA.c \
 
 if HAVE_USRP
     # Append to the already defined AM_CXXFLAGS that exists outside the conditional.
-    AM_CXXFLAGS += @USRP_CFLAGS@
+    AM_CXXFLAGS += $(USRP_CFLAGS)
     KITSRC += usrp_impl.cc
     libhamlib_kit_la_LINK = $(CXXLINK) $(libhamlib_kit_la_LDFLAGS)
 else
@@ -22,6 +22,6 @@ KITROTSRC = pcrotor.c
 
 noinst_LTLIBRARIES = libhamlib-kit.la
 libhamlib_kit_la_SOURCES = $(KITSRC) $(KITROTSRC)
-libhamlib_kit_la_LIBADD = $(USRP_LIBS) $(LIBUSB_LIBS) @MATH_LIBS@
+libhamlib_kit_la_LIBADD = $(USRP_LIBS) $(LIBUSB_LIBS) $(MATH_LIBS)
 
 EXTRA_DIST = README.funcubedongle Android.mk

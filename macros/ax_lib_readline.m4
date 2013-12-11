@@ -58,7 +58,9 @@
 #   and this notice are preserved. This file is offered as-is, without any
 #   warranty.
 
-#serial 6
+#serial 6.1
+
+# For Hamlib, set READLINE_LIBS instead of LIBS
 
 AU_ALIAS([VL_LIB_READLINE], [AX_LIB_READLINE])
 AC_DEFUN([AX_LIB_READLINE], [
@@ -89,6 +91,7 @@ AC_DEFUN([AX_LIB_READLINE], [
   ])
 
   if test "$ax_cv_lib_readline" != "no"; then
+    ORIG_LIBS="$LIBS"
     LIBS="$LIBS $ax_cv_lib_readline"
     AC_DEFINE(HAVE_LIBREADLINE, 1,
               [Define if you have a readline compatible library])
@@ -103,5 +106,8 @@ AC_DEFUN([AX_LIB_READLINE], [
                 [Define if your readline library has \`add_history'])
       AC_CHECK_HEADERS(history.h readline/history.h)
     fi
+    LIBS="$ORIG_LIBS"
+    READLINE_LIBS="$ax_cv_lib_readline"
+    AC_SUBST([READLINE_LIBS])
   fi
 ])dnl

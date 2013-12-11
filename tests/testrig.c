@@ -6,7 +6,12 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
+
 #include <hamlib/rig.h>
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 /* HAVE_SSLEEP is defined when Windows Sleep is found
  * HAVE_SLEEP is defined when POSIX sleep is found

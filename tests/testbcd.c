@@ -40,7 +40,7 @@ int main (int argc, char *argv[])
 	printf("BCD: %2.2x",b[0]);
 	for (i = 1; i < (digits+1)/2; i++)
 		printf(",%2.2x",b[i]);
-	printf("\nResult after recoding: %llu\n", from_bcd(b, digits));
+	printf("\nResult after recoding: %"PRIll"\n", from_bcd(b, digits));
 
 	printf("\nBig Endian mode\n");
 	printf("Frequency: %"PRIfreq"\n",f);
@@ -48,7 +48,7 @@ int main (int argc, char *argv[])
 	printf("BCD: %2.2x",b[0]);
 	for (i = 1; i < (digits+1)/2; i++)
 		printf(",%2.2x",b[i]);
-	printf("\nResult after recoding: %llu\n", from_bcd_be(b, digits));
+	printf("\nResult after recoding: %"PRIll"\n", from_bcd_be(b, digits));
 
 	return 0;
 }

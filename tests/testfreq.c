@@ -28,11 +28,11 @@ int main (int argc, char *argv[])
 #endif
 
 	printf("%s\n", hamlib_version);
-	printf("caps size: %lu\n", sizeof(struct rig_caps));
-	printf("state size: %lu\n", sizeof(struct rig_state));
-	printf("RIG size: %lu\n", sizeof(struct rig));
-	printf("freq_t size: %lu\n", sizeof(freq_t));
-	printf("shortfreq_t size: %lu\n", sizeof(shortfreq_t));
+	printf("caps size: %lu\n", (long unsigned) sizeof(struct rig_caps));
+	printf("state size: %lu\n", (long unsigned) sizeof(struct rig_state));
+	printf("RIG size: %lu\n", (long unsigned) sizeof(struct rig));
+	printf("freq_t size: %lu\n", (long unsigned) sizeof(freq_t));
+	printf("shortfreq_t size: %lu\n", (long unsigned) sizeof(shortfreq_t));
 
 	/* freq on 31bits test */
 	f = GHz(2);
