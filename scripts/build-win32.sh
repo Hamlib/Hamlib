@@ -223,6 +223,10 @@ ${HOST_ARCH_STRIP} ${ZIP_DIR}/bin/*.exe ${ZIP_DIR}/bin/*hamlib-*.dll
 
 # Copy needed third party DLLs
 cp -a /usr/i686-w64-mingw32/lib/libwinpthread-1.dll ${ZIP_DIR}/bin/.
+cp -a ${LIBUSB_WIN32_BIN_PATH}/bin/x86/libusb0_x86.dll ${ZIP_DIR}/bin/libusb0.dll
+
+# Required for MinGW with GCC 4.8
+cp -a /usr/lib/gcc/i686-w64-mingw32/4.8/libgcc_s_sjlj-1.dll ${ZIP_DIR}/bin/libgcc_s_sjlj-1.dll
 
 # Need VC++ free toolkit installed (default Wine directory installation shown)
 ( cd ${ZIP_DIR}/lib/msvc/ && wine ~/.wine/drive_c/Program\ Files/Microsoft\ Visual\ C++\ Toolkit\ 2003/bin/link.exe /lib /machine:i386 /def:libhamlib-2.def )
