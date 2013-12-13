@@ -83,6 +83,7 @@ Optional, but highly recommended for a complete build:
 * perl devel                        # h2xs
 * tcl devel                         # tcltk-depends
 * python devel                      # python-config
+* zlib devel                        # Needed by configure's test for Python
 * libxml2 devel                     # xml2-config --version
 * libgd2 devel                      # gdlib-config --version
 * libusb devel                      # libusb-config --version (not 1.0.0!)
