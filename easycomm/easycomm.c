@@ -51,25 +51,36 @@
 static int
 easycomm_transaction (ROT *rot, const char *cmdstr, char *data, size_t data_len)
 {
-	struct rot_state *rs;
-    int retval;
+  struct rot_state *rs;
+  int retval;
 
-	rs = &rot->state;
-	retval = write_block(&rs->rotport, cmdstr, strlen(cmdstr));
-	if (retval != RIG_OK) {
-		return retval;
-	}
+  rig_debug(RIG_DEBUG_TRACE, "%s called: %s\n", __FUNCTION__, cmdstr);
 
-    if (data == NULL || data_len <= 0)
-        return RIG_OK;  /* don't want a reply */
+  if (!rot )
+    return -RIG_EINVAL;
 
-    retval = read_string(&rs->rotport, data, data_len, "\n", 1);
-    if (retval < 0)
-        return retval;  /* error */
+  rs = &rot->state;
+  serial_flush(&rs->rotport);
+  retval = write_block(&rs->rotport, cmdstr, strlen(cmdstr));
+  if (retval != RIG_OK) {
+      goto transaction_quit;
+  }
 
-    /* TODO: Error checking */
+  if (data == NULL || data_len <= 0)
+    return RIG_OK;  /* don't want a reply */
 
-    return RIG_OK;
+  memset(data,0,data_len);
+  retval = read_string(&rs->rotport, data, data_len, "\n", 1);
+  if (retval < 0) {
+    rig_debug(RIG_DEBUG_TRACE, "%s read_string failed with status %d\n", __FUNCTION__, retval);
+    goto transaction_quit;
+  } else {
+    rig_debug(RIG_DEBUG_TRACE, "%s read_string: %s\n", __FUNCTION__, data);
+    retval = RIG_OK;
+  }
+
+  transaction_quit:
+  return retval;
 }
 
 /* ************************************************************************* */
@@ -102,10 +113,12 @@ easycomm_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
     retval = easycomm_transaction(rot, cmdstr, ackbuf, sizeof(ackbuf));
 	if (retval != RIG_OK) {
+	  rig_debug(RIG_DEBUG_TRACE, "%s got error: %d\n", __FUNCTION__, retval);
 	  return retval;
 	}
 
     /* Parse parse string to extract AZ,EL values */
+    rig_debug(RIG_DEBUG_TRACE, "%s got response: %s\n", __FUNCTION__, ackbuf);
     retval = sscanf(ackbuf, "AZ%f EL%f", az, el);
     if (retval != 2) {
         rig_debug(RIG_DEBUG_ERR, "%s: unknown response (%s)\n", __FUNCTION__, ackbuf);

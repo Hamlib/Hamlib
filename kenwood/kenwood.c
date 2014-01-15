@@ -2747,5 +2747,7 @@ DECLARE_INITRIG_BACKEND(kenwood)
 
 	rig_register(&transfox_caps);
 
+	rig_register(&f6k_caps);
+
 	return RIG_OK;
 }
