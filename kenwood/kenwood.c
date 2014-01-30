@@ -538,7 +538,7 @@ static int kenwood_get_if(RIG *rig)
 }
 
 
-/* FR FT
+/* FN FR FT
  *  Sets the RX/TX VFO or M.CH mode of the transceiver, does not set split
  *  VFO, but leaves it unchanged if in split VFO mode.
  *
@@ -579,13 +579,19 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
 
 	sprintf(cmdbuf, "FR%c", vfo_function);
 
+	if (rig->caps->rig_model == RIG_MODEL_TS50)
+	  {
+	    cmdbuf[1] = 'N';
+	  }
+
 	/* set RX VFO */
 	retval = kenwood_simple_cmd(rig, cmdbuf);
 	if (retval != RIG_OK)
 		return retval;
 
+	/* if FN command then there's no FT or FR */
 	/* If split mode on, the don't change TxVFO */
-	if (priv->split != RIG_SPLIT_OFF)
+	if ('N' == cmdbuf[1] || priv->split != RIG_SPLIT_OFF)
 		return RIG_OK;
 
 	/* set TX VFO */
@@ -649,6 +655,33 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 	}
 	/* set TX VFO */
 	sprintf(cmdbuf, "FT%c", vfo_function);
+	retval = kenwood_simple_cmd(rig, cmdbuf);
+	if (retval != RIG_OK)
+		return retval;
+
+	/* Remember whether split is on, for kenwood_set_vfo */
+	priv->split = split;
+
+	return RIG_OK;
+}
+
+
+/* SP
+ *  Sets the split mode of the transceivers that have the FN command.
+ *
+ */
+int kenwood_set_split(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
+{
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+	if (!rig)
+		return -RIG_EINVAL;
+
+	struct kenwood_priv_data *priv = rig->state.priv;
+	char cmdbuf[6];
+	int retval;
+
+	sprintf(cmdbuf, "SP%c", RIG_SPLIT_ON == split ? '1' : '0');
 	retval = kenwood_simple_cmd(rig, cmdbuf);
 	if (retval != RIG_OK)
 		return retval;

@@ -100,6 +100,7 @@ int kenwood_open(RIG *rig);
 
 int kenwood_set_vfo(RIG *rig, vfo_t vfo);
 int kenwood_get_vfo_if(RIG *rig, vfo_t *vfo);
+int kenwood_set_split(RIG *rig, vfo_t vfo , split_t split, vfo_t txvfo);
 int kenwood_set_split_vfo(RIG *rig, vfo_t vfo , split_t split, vfo_t txvfo);
 int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split, vfo_t *txvfo);
 
