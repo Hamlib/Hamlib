@@ -1156,6 +1156,8 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		|| rig->caps->rig_model == RIG_MODEL_TS850
 		|| rig->caps->rig_model == RIG_MODEL_TS950SDX) {
 
+		if (RIG_PASSBAND_NORMAL == width)
+		    width = rig_passband_normal(rig, mode);
 		err = kenwood_set_filter(rig, width);
 		/* non fatal */
 	}
