@@ -55,6 +55,23 @@
 /* longlat2locator */
 %cstring_bounded_output(char *locator_res, 13)
 
+%immutable confparams::name;
+%immutable confparams::label;
+%immutable confparams::tooltip;
+%immutable confparams::dflt;
+%immutable cs;
+%immutable rig_caps::model_name;
+%immutable rig_caps::mfg_name;
+%immutable rig_caps::version;
+%immutable rig_caps::copyright;
+
+%immutable clone_combo_set;
+%immutable clone_combo_get;
+
+%immutable rot_caps::model_name;
+%immutable rot_caps::mfg_name;
+%immutable rot_caps::version;
+%immutable rot_caps::copyright;
 
 %include <hamlib/rig_dll.h>
 
