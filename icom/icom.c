@@ -752,16 +752,23 @@ int icom_get_mode_with_data(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width
 	}
 
       /*
-       * databuf should contain Cn,Sc
+       * databuf should contain Cn,Sc,D0[,D1]
        */
       data_len -= 2;
-      if (data_len != 1)
+      if (1 > data_len || data_len > 2)	/* manual says 1 byte answer
+					   but at least IC756 ProIII
+					   sends 2 - second byte
+					   appears to be same as
+					   second byte from 04 command
+					   which is filter preset
+					   number, whatever it is we
+					   ignore it */
 	{
 	  rig_debug(RIG_DEBUG_ERR,"%s: wrong frame len=%d\n",
 			__FUNCTION__, data_len);
 	  return -RIG_ERJCTED;
 	}
-      if (0x01 == databuf[1])
+      if (0x01 == databuf[2])	/* 0x01 -> data mode, 0x00 -> not data mode */
 	{
 	  switch (*mode)
 	    {
