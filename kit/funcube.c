@@ -50,6 +50,7 @@
 #include "funcube.h"
 
 static int funcube_init(RIG *rig);
+static int funcubeplus_init(RIG *rig);
 static int funcube_cleanup(RIG *rig);
 static int funcube_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int funcube_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
@@ -142,6 +143,68 @@ const struct rig_caps funcube_caps = {
 .get_info    =  funcube_get_info,
 };
 
+
+const struct rig_caps funcubeplus_caps = {
+.rig_model =  RIG_MODEL_FUNCUBEDONGLEPLUS,
+.model_name = "FUNcube Dongle Pro+",
+.mfg_name =  "AMSAT-UK",
+.version =  "0.2",
+.copyright =  "GPL",
+.status =  RIG_STATUS_BETA,
+.rig_type =  RIG_TYPE_TUNER,
+.ptt_type =  RIG_PTT_RIG,
+.dcd_type =  RIG_DCD_NONE,
+.port_type =  RIG_PORT_USB,
+.write_delay =  0,
+.post_write_delay =  0,
+.timeout =  1000,
+.retry = 0,
+
+.has_get_func =  RIG_FUNC_NONE,
+.has_set_func =  RIG_FUNC_NONE,
+.has_get_level =  RIG_LEVEL_ATT | RIG_LEVEL_STRENGTH | RIG_LEVEL_PREAMP,
+.has_set_level =  RIG_LEVEL_ATT | RIG_LEVEL_PREAMP,
+.has_get_parm =  RIG_PARM_NONE,
+.has_set_parm =  RIG_PARM_NONE,
+.level_gran =  {},
+.parm_gran =  {},
+.ctcss_list =  NULL,
+.dcs_list =  NULL,
+.preamp = { 5, 10, 15, 20, 25, 30, RIG_DBLST_END, },
+.attenuator = { 2, 5, RIG_DBLST_END, },
+.max_rit =  Hz(0),
+.max_xit =  Hz(0),
+.max_ifshift =  Hz(0),
+.targetable_vfo =  0,
+.transceive =  RIG_TRN_OFF,
+.bank_qty =   0,
+.chan_desc_sz =  0,
+
+.chan_list =  { RIG_CHAN_END, },
+
+.rx_range_list1 =  {
+    {kHz(150),MHz(1900),RIG_MODE_USB,-1,-1,RIG_VFO_A},
+	RIG_FRNG_END,
+  },
+.tuning_steps =  {
+	 {RIG_MODE_USB,kHz(1)},
+	 RIG_TS_END,
+	},
+.filters =  {
+	{RIG_MODE_USB, kHz(192)},
+	RIG_FLT_END,
+    },
+.cfgparams =  funcube_cfg_params,
+
+.rig_init =     funcubeplus_init,
+.rig_cleanup =  funcube_cleanup,
+.set_freq    =  funcube_set_freq,
+.get_freq    =  funcube_get_freq,
+.get_level   =  funcube_get_level,
+.set_level   =  funcube_set_level,
+.get_info    =  funcube_get_info,
+};
+
 int funcube_init(RIG *rig)
 {
 	hamlib_port_t *rp = &rig->state.rigport;
@@ -163,6 +226,33 @@ int funcube_init(RIG *rig)
 
 	rp->parm.usb.vendor_name = VENDOR_NAME;
 	rp->parm.usb.product = PRODUCT_NAME;
+
+	rig->state.priv = (void*)priv;
+
+	return RIG_OK;
+}
+
+int funcubeplus_init(RIG *rig)
+{
+	hamlib_port_t *rp = &rig->state.rigport;
+	struct funcube_priv_data *priv;
+
+	priv = (struct funcube_priv_data*)calloc(sizeof(struct funcube_priv_data), 1);
+	if (!priv) {
+		/* whoops! memory shortage! */
+		return -RIG_ENOMEM;
+	}
+
+	priv->freq = 0;
+
+	rp->parm.usb.vid = VID;
+	rp->parm.usb.pid = PIDPLUS;
+	rp->parm.usb.conf = FUNCUBE_CONFIGURATION;
+	rp->parm.usb.iface = FUNCUBE_INTERFACE;
+	rp->parm.usb.alt = FUNCUBE_ALTERNATIVE_SETTING;
+
+	rp->parm.usb.vendor_name = VENDOR_NAME;
+	rp->parm.usb.product = PRODUCT_NAMEPLUS;
 
 	rig->state.priv = (void*)priv;
 
