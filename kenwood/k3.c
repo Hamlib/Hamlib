@@ -297,7 +297,6 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 		*mode = RIG_MODE_PKTUSB;
 		break;
 	      case K3_MODE_FSK_D:
-		break;
 	      default:
 		*mode = temp_m;
 		break;
