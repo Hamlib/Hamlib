@@ -351,20 +351,21 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		return -RIG_EINVAL;
 
 	int err;
+	char cmd_m[4];
 	char cmd_s[16];
 
 	switch (mode) {
 	case RIG_MODE_PKTLSB:
 		mode = RIG_MODE_RTTY;
-		strncpy(cmd_s, "DT1", 5); /* AFSK A mode - AFSK on LSB optimised for RTTY, VFO dial is MARK */
+		strncpy(cmd_m, "DT1", 4); /* AFSK A mode - AFSK on LSB optimised for RTTY, VFO dial is MARK */
 		break;
 	case RIG_MODE_PKTUSB:
 		mode = RIG_MODE_RTTY;
-		strncpy(cmd_s, "DT0", 5); /* DATA A mode - AFSK on USB general, VFO dial is suppressed carrier QRG */
+		strncpy(cmd_m, "DT0", 4); /* DATA A mode - AFSK on USB general, VFO dial is suppressed carrier QRG */
 		break;
 	case RIG_MODE_RTTY:
 	case RIG_MODE_RTTYR:
-		strncpy(cmd_s, "DT2", 5); /* FSK D mode - direct FSK keying, LSB is "normal", VFO dial is MARK */
+		strncpy(cmd_m, "DT2", 4); /* FSK D mode - direct FSK keying, LSB is "normal", VFO dial is MARK */
 		break;
 	default:
 		break;
@@ -374,16 +375,6 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	err = kenwood_set_mode(rig, vfo, mode, width);
 	if (err != RIG_OK)
 		return err;
-
-	/* Now set data sub-mode.  K3 needs to be in a DATA mode before setting
-	 * the sub-mode.
-	 */
-	if (mode == RIG_MODE_PKTLSB || mode == RIG_MODE_PKTUSB
-		|| mode == RIG_MODE_RTTY || mode == RIG_MODE_RTTYR) {
-		err = kenwood_simple_cmd(rig, cmd_s);
-		if (err != RIG_OK)
-			return err;
-	}
 
 	/* and set the requested bandwidth.  On my K3, the bandwidth is rounded
 	 * down to the nearest 50 Hz, i.e. sending BW0239; will cause the bandwidth
@@ -413,6 +404,17 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	err = kenwood_simple_cmd(rig, cmd_s);
 	if (err != RIG_OK)
 		return err;
+
+	/* Now set data sub-mode.  K3 needs to be in a DATA mode before setting
+	 * the sub-mode.
+	 */
+	if (mode == RIG_MODE_PKTLSB || mode == RIG_MODE_PKTUSB
+	    || mode == RIG_MODE_RTTY || mode == RIG_MODE_RTTYR)
+	  {
+	    err = kenwood_simple_cmd(rig, cmd_m);
+	    if (err != RIG_OK)
+	      return err;
+	  }
 
 	return RIG_OK;
 }
@@ -599,21 +601,22 @@ int k3_set_split_mode(RIG * rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
     return -RIG_EINVAL;
 
   int err;
+  char cmd_m[4];
   char cmd_s[16];
 
   switch (tx_mode)
     {
     case RIG_MODE_PKTLSB:
       tx_mode = RIG_MODE_RTTY;
-      strncpy(cmd_s, "DT1", 5); /* AFSK A mode - AFSK on LSB optimised for RTTY, VFO dial is MARK */
+      strncpy(cmd_m, "DT1", 5); /* AFSK A mode - AFSK on LSB optimised for RTTY, VFO dial is MARK */
       break;
     case RIG_MODE_PKTUSB:
       tx_mode = RIG_MODE_RTTY;
-      strncpy(cmd_s, "DT0", 5); /* DATA A mode - AFSK on USB general, VFO dial is suppressed carrier QRG */
+      strncpy(cmd_m, "DT0", 5); /* DATA A mode - AFSK on USB general, VFO dial is suppressed carrier QRG */
       break;
     case RIG_MODE_RTTY:
     case RIG_MODE_RTTYR:
-      strncpy(cmd_s, "DT2", 5); /* FSK D mode - direct FSK keying, LSB is "normal", VFO dial is MARK */
+      strncpy(cmd_m, "DT2", 5); /* FSK D mode - direct FSK keying, LSB is "normal", VFO dial is MARK */
       break;
     default:
       break;
@@ -634,16 +637,6 @@ int k3_set_split_mode(RIG * rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
   err = kenwood_simple_cmd(rig, buf);
   if (err != RIG_OK)
     return err;
-
-  /* Now set data sub-mode.  K3 needs to be in a DATA mode before setting
-   * the sub-mode.
-   */
-  if (tx_mode == RIG_MODE_PKTLSB || tx_mode == RIG_MODE_PKTUSB
-      || tx_mode == RIG_MODE_RTTY || tx_mode == RIG_MODE_RTTYR) {
-    err = kenwood_simple_cmd(rig, cmd_s);
-    if (err != RIG_OK)
-      return err;
-  }
 
   /* and set the requested bandwidth.  On my K3, the bandwidth is rounded
    * down to the nearest 50 Hz, i.e. sending BW0239; will cause the bandwidth
@@ -673,6 +666,16 @@ int k3_set_split_mode(RIG * rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
   err = kenwood_simple_cmd(rig, cmd_s);
   if (err != RIG_OK)
     return err;
+
+  /* Now set data sub-mode.  K3 needs to be in a DATA mode before setting
+   * the sub-mode.
+   */
+  if (tx_mode == RIG_MODE_PKTLSB || tx_mode == RIG_MODE_PKTUSB
+      || tx_mode == RIG_MODE_RTTY || tx_mode == RIG_MODE_RTTYR) {
+    err = kenwood_simple_cmd(rig, cmd_m);
+    if (err != RIG_OK)
+      return err;
+  }
 
   return RIG_OK;
 }
