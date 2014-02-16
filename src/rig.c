@@ -118,9 +118,11 @@ const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
 #endif
 
 #if defined(WIN32) && !defined(__CYGWIN__)
-#define DEFAULT_CM108_PTT_BITNUM "fixme"
+/* FIXME: Determine correct GPIO bit number for W32 using MinGW. */
+#define DEFAULT_CM108_PTT_BITNUM 2
 #elif BSD
-#define DEFAULT_CM108_PTT_BITNUM "fixme"
+/* FIXME: Determine correct GPIO bit number for *BSD. */
+#define DEFAULT_CM108_PTT_BITNUM 2
 #else
 #define DEFAULT_CM108_PTT_BITNUM 2
 #endif
