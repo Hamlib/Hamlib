@@ -337,8 +337,8 @@ int main (int argc, char *argv[])
 			free(hist_path);
 			hist_path = (char *)NULL;
 		}
-	}
 #endif
+	}
 #endif
 	rot_close(my_rot); /* close port */
 	rot_cleanup(my_rot); /* if you care about memory */

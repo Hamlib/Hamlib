@@ -430,8 +430,8 @@ int main (int argc, char *argv[])
 			free(hist_path);
 			hist_path = (char *)NULL;
 		}
-	}
 #endif
+	}
 #endif
 	rig_close(my_rig); /* close port */
 	rig_cleanup(my_rig); /* if you care about memory */
