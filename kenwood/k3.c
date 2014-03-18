@@ -608,15 +608,15 @@ int k3_set_split_mode(RIG * rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
     {
     case RIG_MODE_PKTLSB:
       tx_mode = RIG_MODE_RTTY;
-      strncpy(cmd_m, "DT1", 5); /* AFSK A mode - AFSK on LSB optimised for RTTY, VFO dial is MARK */
+      strncpy(cmd_m, "DT1", 4); /* AFSK A mode - AFSK on LSB optimised for RTTY, VFO dial is MARK */
       break;
     case RIG_MODE_PKTUSB:
       tx_mode = RIG_MODE_RTTY;
-      strncpy(cmd_m, "DT0", 5); /* DATA A mode - AFSK on USB general, VFO dial is suppressed carrier QRG */
+      strncpy(cmd_m, "DT0", 4); /* DATA A mode - AFSK on USB general, VFO dial is suppressed carrier QRG */
       break;
     case RIG_MODE_RTTY:
     case RIG_MODE_RTTYR:
-      strncpy(cmd_m, "DT2", 5); /* FSK D mode - direct FSK keying, LSB is "normal", VFO dial is MARK */
+      strncpy(cmd_m, "DT2", 4); /* FSK D mode - direct FSK keying, LSB is "normal", VFO dial is MARK */
       break;
     default:
       break;
