@@ -98,6 +98,7 @@ typedef struct rig_pltstate {
 struct icom_priv_caps {
 	unsigned char re_civ_addr;	/* the remote dlft equipment's CI-V address*/
 	int civ_731_mode; /* Off: freqs on 10 digits, On: freqs on 8 digits */
+	int no_xchg; /* Off: use VFO XCHG to set other VFO, On: use set VFO to set other VFO */
 	const struct ts_sc_list *ts_sc_list;
 	int settle_time; /*!< Receiver settle time, in ms */
 	int (*r2i_mode)(RIG *rig, rmode_t mode, pbwidth_t width,
@@ -116,6 +117,7 @@ struct icom_priv_caps {
 struct icom_priv_data {
 	unsigned char re_civ_addr;	/* the remote equipment's CI-V address*/
 	int civ_731_mode; /* Off: freqs on 10 digits, On: freqs on 8 digits */
+	int no_xchg; /* Off: use VFO XCHG to set other VFO, On: use set VFO to set other VFO */
 	pltstate_t *pltstate;	/* only on optoscan */
 };
 

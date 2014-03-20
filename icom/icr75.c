@@ -97,6 +97,7 @@ static int icr75_get_channel(RIG *rig, channel_t *chan);
 static const struct icom_priv_caps icr75_priv_caps = {
 		0x5a,	/* default address */
 		0,		/* 731 mode */
+    0,    /* no XCHG */
 		r75_ts_sc_list
 };
 

@@ -109,6 +109,7 @@
 static const struct icom_priv_caps IC7000_priv_caps = {
 		0x70,	/* default address */
 		0,		/* 731 mode */
+    0,    /* no XCHG */
 		ic7000_ts_sc_list
 };
 

@@ -50,6 +50,7 @@
 static const struct icom_priv_caps ic735_priv_caps = {
 		0x04,	/* default address */
 		1,		/* 731 mode */
+    0,    /* no XCHG */
 		ic737_ts_sc_list
 };
 

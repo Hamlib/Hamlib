@@ -79,6 +79,7 @@
 static const struct icom_priv_caps IC7200_priv_caps = {
 		0x76,	/* default address */
 		0,		/* 731 mode */
+    0,    /* no XCHG */
 		ic7200_ts_sc_list
 };
 

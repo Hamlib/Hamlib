@@ -255,6 +255,7 @@ struct icom_addr {
 
 #define TOK_CIVADDR TOKEN_BACKEND(1)
 #define TOK_MODE731 TOKEN_BACKEND(2)
+#define TOK_NOXCHG TOKEN_BACKEND(3)
 
 const struct confparams icom_cfg_params[] = {
 	{ TOK_CIVADDR, "civaddr", "CI-V address", "Transceiver's CI-V address",
@@ -262,6 +263,9 @@ const struct confparams icom_cfg_params[] = {
 	},
 	{ TOK_MODE731, "mode731", "CI-V 731 mode", "CI-V operating frequency "
 			"data length, needed for IC731 and IC735",
+			"0", RIG_CONF_CHECKBUTTON
+	},
+	{ TOK_NOXCHG, "no_xchg", "No VFO XCHG", "Don't Use VFO XCHG to set other VFO mode and Frequency",
 			"0", RIG_CONF_CHECKBUTTON
 	},
 	{ RIG_CONF_END, NULL, }
@@ -378,6 +382,7 @@ int icom_init(RIG *rig)
 
 	priv->re_civ_addr = priv_caps->re_civ_addr;
 	priv->civ_731_mode = priv_caps->civ_731_mode;
+	priv->no_xchg = priv_caps->no_xchg;
 
 	return RIG_OK;
 }
@@ -1359,6 +1364,9 @@ int icom_set_conf(RIG *rig, token_t token, const char *val)
 	case TOK_MODE731:
 		priv->civ_731_mode = atoi(val) ? 1:0;
 		break;
+	case TOK_NOXCHG:
+		priv->no_xchg = atoi(val) ? 1:0;
+		break;
 	default:
 		return -RIG_EINVAL;
 	}
@@ -1384,6 +1392,9 @@ int icom_get_conf(RIG *rig, token_t token, char *val)
 		break;
 	case TOK_MODE731:
 		sprintf(val, "%d", priv->civ_731_mode);
+		break;
+	case TOK_NOXCHG:
+		sprintf(val, "%d", priv->no_xchg);
 		break;
 	default:
 		return -RIG_EINVAL;
@@ -1654,9 +1665,14 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
 	int status;
 	vfo_t rx_vfo, tx_vfo;
+	struct icom_priv_data *priv;
+	struct rig_state *rs;
+
+	rs = &rig->state;
+	priv = (struct icom_priv_data*)rs->priv;
 
 	/* This method works also in memory mode(RIG_VFO_MEM) */
-	if (rig_has_vfo_op(rig, RIG_OP_XCHG)) {
+	if (!priv->no_xchg && rig_has_vfo_op(rig, RIG_OP_XCHG)) {
 		status = icom_vfo_op(rig, vfo, RIG_OP_XCHG);
 		if (status != RIG_OK)
 			return status;
@@ -1701,9 +1717,14 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
 	int status;
 	vfo_t rx_vfo, tx_vfo;
+	struct icom_priv_data *priv;
+	struct rig_state *rs;
+
+	rs = &rig->state;
+	priv = (struct icom_priv_data*)rs->priv;
 
 	/* This method works also in memory mode(RIG_VFO_MEM) */
-	if (rig_has_vfo_op(rig, RIG_OP_XCHG)) {
+	if (!priv->no_xchg && rig_has_vfo_op(rig, RIG_OP_XCHG)) {
 		status = icom_vfo_op(rig, vfo, RIG_OP_XCHG);
 		if (status != RIG_OK)
 			return status;
@@ -1748,9 +1769,14 @@ int icom_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width
 {
 	int status;
 	vfo_t rx_vfo, tx_vfo;
+	struct icom_priv_data *priv;
+	struct rig_state *rs;
+
+	rs = &rig->state;
+	priv = (struct icom_priv_data*)rs->priv;
 
 	/* This method works also in memory mode(RIG_VFO_MEM) */
-	if (rig_has_vfo_op(rig, RIG_OP_XCHG)) {
+	if (!priv->no_xchg && rig_has_vfo_op(rig, RIG_OP_XCHG)) {
 		status = icom_vfo_op(rig, vfo, RIG_OP_XCHG);
 		if (status != RIG_OK)
 			return status;
@@ -1796,9 +1822,14 @@ int icom_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_wid
 {
 	int status;
 	vfo_t rx_vfo, tx_vfo;
+	struct icom_priv_data *priv;
+	struct rig_state *rs;
+
+	rs = &rig->state;
+	priv = (struct icom_priv_data*)rs->priv;
 
 	/* This method works also in memory mode(RIG_VFO_MEM) */
-	if (rig_has_vfo_op(rig, RIG_OP_XCHG)) {
+	if (!priv->no_xchg && rig_has_vfo_op(rig, RIG_OP_XCHG)) {
 		status = icom_vfo_op(rig, vfo, RIG_OP_XCHG);
 		if (status != RIG_OK)
 			return status;
