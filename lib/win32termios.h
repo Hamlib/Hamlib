@@ -39,7 +39,7 @@
 #endif /* TRACE */
 #define YACK() \
 { \
-	char *allocTextBuf, message[80]; \
+	char *allocTextBuf, message[1024]; \
 	unsigned int errorCode = GetLastError(); \
 	FormatMessage ( \
 		FORMAT_MESSAGE_ALLOCATE_BUFFER | \
@@ -50,7 +50,7 @@
 		(LPSTR)&allocTextBuf, \
 		16, \
 		NULL ); \
-	sprintf( message, "Error 0x%x at %s(%d): %s\n", errorCode, __FILE__, __LINE__, allocTextBuf); \
+	snprintf( message, sizeof (message), "Error 0x%x at %s(%d): %s\n", errorCode, __FILE__, __LINE__, allocTextBuf); \
 	report_error( message ); \
 	LocalFree(allocTextBuf); \
 }
