@@ -78,6 +78,7 @@ static int ic7800_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 static const struct icom_priv_caps ic7800_priv_caps = {
 		0x6a,	/* default address */
 		0,		/* 731 mode */
+    0,    /* no XCHG */
 		ic756pro_ts_sc_list
 };
 

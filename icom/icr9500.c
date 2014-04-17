@@ -64,6 +64,7 @@
 static const struct icom_priv_caps icr9500_priv_caps = {
 	0x72,   /* default address */
 	0,      /* 731 mode */
+  0,      /* no XCHG */
 	r9500_ts_sc_list
 };
 

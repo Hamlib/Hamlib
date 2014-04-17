@@ -97,6 +97,7 @@
 static const struct icom_priv_caps ic9100_priv_caps = {
     0x7c,           /* default address */
     0,              /* 731 mode */
+    0,              /* no XCHG */
     ic910_ts_sc_list,   /* FIXME */
 };
 

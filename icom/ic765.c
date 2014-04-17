@@ -53,6 +53,7 @@
 static const struct icom_priv_caps ic765_priv_caps = {
 	0x2c,	/* default address */
 	0,		/* 731 mode */
+  0,    /* no XCHG */
 	ic737_ts_sc_list
 };
 

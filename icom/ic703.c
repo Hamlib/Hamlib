@@ -79,6 +79,7 @@
 static const struct icom_priv_caps ic703_priv_caps = {
 		0x68,	/* default address */
 		0,		/* 731 mode */
+    0,    /* no XCHG */
 		ic706_ts_sc_list
 };
 

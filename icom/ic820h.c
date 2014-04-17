@@ -48,7 +48,8 @@
  */
 static const struct icom_priv_caps ic820h_priv_caps = {
    	0x42,   		/* default address */
-	1,				/* 731 mode */
+    1,          /* 731 mode */
+    0,          /* no XCHG */
    	ic737_ts_sc_list
 };
 

@@ -163,6 +163,7 @@ static int ic746pro_get_ext_parm(RIG *rig, token_t token, value_t *val);
 static const struct icom_priv_caps ic746_priv_caps = {
 		0x56,	/* default address */
 		0,		/* 731 mode */
+    0,    /* no XCHG */
 		ic756pro_ts_sc_list
 };
 
@@ -369,6 +370,7 @@ static const struct confparams ic746pro_ext_parms[] = {
 static const struct icom_priv_caps ic746pro_priv_caps = {
 		0x66,	/* default address */
 		0,		/* 731 mode */
+    0,    /* no XCHG */
 		ic756pro_ts_sc_list
 };
 
