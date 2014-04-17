@@ -415,7 +415,7 @@ dnl http://lists.gnu.org/archive/html/automake/2011-03/msg00008.html
 dnl
 dnl Check for pkg-config program, used for configuring some libraries.
        m4_define_default([PKG_PROG_PKG_CONFIG],
-                [AC_MSG_CHECKING([pkg-config]
+                [AC_MSG_CHECKING([pkg-config])
                  AC_MSG_RESULT([no])])
 
        PKG_PROG_PKG_CONFIG
