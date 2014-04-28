@@ -143,6 +143,8 @@ static int ft857_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int ft857_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 static int ft857_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 static int ft857_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+static int ft857_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq, rmode_t mode, pbwidth_t width);
+static int ft857_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode, pbwidth_t *width);
 static int ft857_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
 static int ft857_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
 // static int ft857_set_vfo(RIG *rig, vfo_t vfo);

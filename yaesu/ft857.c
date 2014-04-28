@@ -268,6 +268,8 @@ const struct rig_caps ft857_caps = {
   .get_dcd = 		ft857_get_dcd,
   .set_rptr_shift = 	ft857_set_rptr_shift,
   .set_rptr_offs = 	ft857_set_rptr_offs,
+  .set_split_freq_mode = 	ft857_set_split_freq_mode,
+  .get_split_freq_mode = 	ft857_get_split_freq_mode,
   .set_split_vfo = 	ft857_set_split_vfo,
   .get_split_vfo =	ft857_get_split_vfo,
   .set_rit = 		ft857_set_rit,
@@ -434,6 +436,65 @@ static int ft857_get_status(RIG *rig, int status)
 
 /* ---------------------------------------------------------------------- */
 
+static int ft857_read_ack(RIG *rig)
+{
+#if (FT857_POST_WRITE_DELAY == 0)
+  char dummy;
+  int n;
+
+  if ((n = read_block(&rig->state.rigport, &dummy, 1)) < 0) {
+    rig_debug(RIG_DEBUG_ERR, "ft857: error reading ack\n");
+    return n;
+  }
+
+  rig_debug(RIG_DEBUG_TRACE,"ft857: ack received (%d)\n", dummy);
+
+  if (dummy != 0)
+    return -RIG_ERJCTED;
+#endif
+
+  return RIG_OK;
+}
+
+/*
+ * private helper function to send a private command sequence.
+ * Must only be complete sequences.
+ */
+static int ft857_send_cmd(RIG *rig, int index)
+{
+  struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
+
+  if (p->pcs[index].ncomp == 0) {
+    rig_debug(RIG_DEBUG_VERBOSE, "ft857: Incomplete sequence\n");
+    return -RIG_EINTERNAL;
+  }
+
+  write_block(&rig->state.rigport, (char *) p->pcs[index].nseq, YAESU_CMD_LENGTH);
+  return ft857_read_ack(rig);
+}
+
+/*
+ * The same for incomplete commands.
+ */
+static int ft857_send_icmd(RIG *rig, int index, unsigned char *data)
+{
+  struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
+  unsigned char cmd[YAESU_CMD_LENGTH];
+
+  if (p->pcs[index].ncomp == 1) {
+    rig_debug(RIG_DEBUG_VERBOSE, "ft857: Complete sequence\n");
+    return -RIG_EINTERNAL;
+  }
+
+  cmd[YAESU_CMD_LENGTH - 1] = p->pcs[index].nseq[YAESU_CMD_LENGTH - 1];
+  memcpy(cmd, data, YAESU_CMD_LENGTH - 1);
+
+  write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
+  return ft857_read_ack(rig);
+}
+
+/* ---------------------------------------------------------------------- */
+
 int ft857_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
   struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
@@ -448,22 +509,11 @@ int ft857_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
   *freq = from_bcd_be(p->fm_status, 8) * 10;
 
-  return RIG_OK;
+  return -RIG_OK;
 }
 
-int ft857_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
-{
-  struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
-  int n;
-
-  if (vfo != RIG_VFO_CURR)
-    return -RIG_ENTARGET;
-
-  if (check_cache_timeout(&p->fm_status_tv))
-    if ((n = ft857_get_status(rig, FT857_NATIVE_CAT_GET_FREQ_MODE_STATUS)) < 0)
-      return n;
-
-  switch (p->fm_status[4] & 0x7f) {
+static void get_mode(RIG *rig, struct ft857_priv_data *priv, rmode_t *mode, pbwidth_t *width) {
+  switch (priv->fm_status[4] & 0x7f) {
   case 0x00:
     *mode = RIG_MODE_LSB;
     break;
@@ -486,7 +536,7 @@ int ft857_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     *mode = RIG_MODE_FM;
     break;
   case 0x0a:
-    switch (p->fm_status[5])
+    switch (priv->fm_status[5])
       {
       case FT857_DIGI_RTTY_L: *mode = RIG_MODE_RTTY; break;
       case FT857_DIGI_RTTY_U: *mode = RIG_MODE_RTTYR; break;
@@ -503,7 +553,7 @@ int ft857_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     *mode = RIG_MODE_NONE;
   }
 
-	if (p->fm_status[4] & 0x80)		/* narrow */
+	if (priv->fm_status[4] & 0x80) /* narrow */
 		{
 			*width = rig_passband_narrow (rig, *mode);
 		}
@@ -511,8 +561,45 @@ int ft857_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 		{
 			*width = RIG_PASSBAND_NORMAL;
 		}
+}
+
+int ft857_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+{
+  struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
+  int n;
+
+  if (vfo != RIG_VFO_CURR)
+    return -RIG_ENTARGET;
+
+  if (check_cache_timeout(&p->fm_status_tv))
+    if ((n = ft857_get_status(rig, FT857_NATIVE_CAT_GET_FREQ_MODE_STATUS)) < 0)
+      return n;
+
+  get_mode (rig, p, mode, width);
 
   return RIG_OK;
+}
+
+int ft857_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode, pbwidth_t *width)
+{
+  int retcode;
+
+  if (vfo != RIG_VFO_CURR && vfo != RIG_VFO_TX)
+    return -RIG_ENTARGET;
+
+  retcode = ft857_send_cmd(rig, FT857_NATIVE_CAT_SET_VFOAB);
+  if (RIG_OK != retcode) {
+    return retcode;
+  }
+
+  retcode = ft857_get_freq (rig, RIG_VFO_CURR, freq);
+  if (RIG_OK == retcode) {
+    get_mode (rig, (struct ft857_priv_data *)rig->state.priv, mode, width);
+  }
+
+  ft857_send_cmd(rig, FT857_NATIVE_CAT_SET_VFOAB); /* always try and
+                                                      return to orig VFO */
+  return retcode;
 }
 
 int ft857_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
@@ -636,67 +723,6 @@ int ft857_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
   return RIG_OK;
 }
 
-/* ---------------------------------------------------------------------- */
-
-static int ft857_read_ack(RIG *rig)
-{
-#if (FT857_POST_WRITE_DELAY == 0)
-  char dummy;
-  int n;
-
-  if ((n = read_block(&rig->state.rigport, &dummy, 1)) < 0) {
-    rig_debug(RIG_DEBUG_ERR, "ft857: error reading ack\n");
-    return n;
-  }
-
-  rig_debug(RIG_DEBUG_TRACE,"ft857: ack received (%d)\n", dummy);
-
-  if (dummy != 0)
-    return -RIG_ERJCTED;
-#endif
-
-  return RIG_OK;
-}
-
-/*
- * private helper function to send a private command sequence.
- * Must only be complete sequences.
- */
-static int ft857_send_cmd(RIG *rig, int index)
-{
-  struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
-
-  if (p->pcs[index].ncomp == 0) {
-    rig_debug(RIG_DEBUG_VERBOSE, "ft857: Incomplete sequence\n");
-    return -RIG_EINTERNAL;
-  }
-
-  write_block(&rig->state.rigport, (char *) p->pcs[index].nseq, YAESU_CMD_LENGTH);
-  return ft857_read_ack(rig);
-}
-
-/*
- * The same for incomplete commands.
- */
-static int ft857_send_icmd(RIG *rig, int index, unsigned char *data)
-{
-  struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
-  unsigned char cmd[YAESU_CMD_LENGTH];
-
-  if (p->pcs[index].ncomp == 1) {
-    rig_debug(RIG_DEBUG_VERBOSE, "ft857: Complete sequence\n");
-    return -RIG_EINTERNAL;
-  }
-
-  cmd[YAESU_CMD_LENGTH - 1] = p->pcs[index].nseq[YAESU_CMD_LENGTH - 1];
-  memcpy(cmd, data, YAESU_CMD_LENGTH - 1);
-
-  write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
-  return ft857_read_ack(rig);
-}
-
-/* ---------------------------------------------------------------------- */
-
 int ft857_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
   unsigned char data[YAESU_CMD_LENGTH - 1];
@@ -763,6 +789,28 @@ int ft857_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   rig_force_cache_timeout(&((struct ft857_priv_data *) rig->state.priv)->fm_status_tv);
 
   return ft857_send_cmd(rig, index);
+}
+
+int ft857_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq, rmode_t mode, pbwidth_t width)
+{
+  int retcode;
+
+  if (vfo != RIG_VFO_CURR && vfo != RIG_VFO_TX)
+    return -RIG_ENTARGET;
+
+  retcode = ft857_send_cmd(rig, FT857_NATIVE_CAT_SET_VFOAB);
+  if (RIG_OK != retcode) {
+    return retcode;
+  }
+
+  retcode = ft857_set_freq (rig, RIG_VFO_CURR, freq);
+  if (RIG_OK == retcode) {
+    retcode = ft857_set_mode (rig, RIG_VFO_CURR, mode, width);
+  }
+
+  ft857_send_cmd(rig, FT857_NATIVE_CAT_SET_VFOAB); /* always try and
+                                                      return to orig VFO */
+  return retcode;
 }
 
 int ft857_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
