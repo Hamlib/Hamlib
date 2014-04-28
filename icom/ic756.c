@@ -241,6 +241,8 @@ const struct rig_caps ic756_caps = {
 .get_split_freq =  icom_get_split_freq,
 .set_split_mode =  icom_set_split_mode,
 .get_split_mode =  icom_get_split_mode,
+.set_split_freq_mode =  icom_set_split_freq_mode,
+.get_split_freq_mode =  icom_get_split_freq_mode,
 .set_split_vfo =  icom_set_split_vfo,
 .get_split_vfo =  icom_mem_get_split_vfo,
 
@@ -390,6 +392,8 @@ const struct rig_caps ic756pro_caps = {
 .get_split_freq =  icom_get_split_freq,
 .set_split_mode =  icom_set_split_mode,
 .get_split_mode =  icom_get_split_mode,
+.set_split_freq_mode =  icom_set_split_freq_mode,
+.get_split_freq_mode =  icom_get_split_freq_mode,
 .set_split_vfo =  icom_set_split_vfo,
 .get_split_vfo =  icom_mem_get_split_vfo,
 
@@ -596,6 +600,8 @@ const struct rig_caps ic756pro2_caps = {
 .get_split_freq =  icom_get_split_freq,
 .set_split_mode =  icom_set_split_mode,
 .get_split_mode =  icom_get_split_mode,
+.set_split_freq_mode =  icom_set_split_freq_mode,
+.get_split_freq_mode =  icom_get_split_freq_mode,
 .set_split_vfo =  icom_set_split_vfo,
 .get_split_vfo =  icom_mem_get_split_vfo,
 
@@ -933,6 +939,8 @@ const struct rig_caps ic756pro3_caps = {
 .get_split_freq =  icom_get_split_freq,
 .set_split_mode =  icom_set_split_mode,
 .get_split_mode =  icom_get_split_mode,
+.set_split_freq_mode =  icom_set_split_freq_mode,
+.get_split_freq_mode =  icom_get_split_freq_mode,
 .set_split_vfo =  icom_set_split_vfo,
 .get_split_vfo =  icom_mem_get_split_vfo,
 
