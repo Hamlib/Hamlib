@@ -1241,6 +1241,10 @@ struct rig_caps {
 			       pbwidth_t tx_width);
   int (*get_split_mode) (RIG * rig, vfo_t vfo, rmode_t * tx_mode,
 			       pbwidth_t * tx_width);
+  int (*set_split_freq_mode) (RIG * rig, vfo_t vfo, freq_t tx_freq,
+             rmode_t tx_mode, pbwidth_t tx_width);
+  int (*get_split_freq_mode) (RIG * rig, vfo_t vfo, freq_t * tx_freq,
+             rmode_t * tx_mode, pbwidth_t * tx_width);
 
   int (*set_split_vfo) (RIG * rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
   int (*get_split_vfo) (RIG * rig, vfo_t vfo, split_t * split, vfo_t *tx_vfo);
@@ -1559,6 +1563,8 @@ extern HAMLIB_EXPORT(int) rig_set_split_freq HAMLIB_PARAMS((RIG *rig, vfo_t vfo,
 extern HAMLIB_EXPORT(int) rig_get_split_freq HAMLIB_PARAMS((RIG *rig, vfo_t vfo, freq_t *tx_freq));
 extern HAMLIB_EXPORT(int) rig_set_split_mode HAMLIB_PARAMS((RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width));
 extern HAMLIB_EXPORT(int) rig_get_split_mode HAMLIB_PARAMS((RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width));
+extern HAMLIB_EXPORT(int) rig_set_split_freq_mode HAMLIB_PARAMS((RIG *rig, vfo_t vfo, freq_t tx_freq, rmode_t tx_mode, pbwidth_t tx_width));
+extern HAMLIB_EXPORT(int) rig_get_split_freq_mode HAMLIB_PARAMS((RIG *rig, vfo_t vfo, freq_t * tx_freq, rmode_t *tx_mode, pbwidth_t *tx_width));
 extern HAMLIB_EXPORT(int) rig_set_split_vfo HAMLIB_PARAMS((RIG*, vfo_t rx_vfo, split_t split, vfo_t tx_vfo));
 extern HAMLIB_EXPORT(int) rig_get_split_vfo HAMLIB_PARAMS((RIG*, vfo_t rx_vfo, split_t *split, vfo_t *tx_vfo));
 #define rig_set_split(r,v,s) rig_set_split_vfo((r),(v),(s),RIG_VFO_CURR)

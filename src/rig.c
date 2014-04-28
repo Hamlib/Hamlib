@@ -1993,6 +1993,97 @@ int HAMLIB_API rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth
 
 
 /**
+ * \brief set the split frequency and mode
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param tx_freq The transmit frequency to set to
+ * \param tx_mode	The transmit split mode to set to
+ * \param tx_width	The transmit split width to set to
+ *
+ *  Sets the split(TX) frequency and mode.
+ *
+ *  This function maybe optimized on some rig back ends, where the TX
+ *  VFO cannot be directly addressed, to reduce the number of times
+ *  the rig VFOs have to be exchanged or swapped to complete this
+ *  combined function.
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
+ * set appropriately).
+ *
+ * \sa rig_set_split_freq(), rig_set_split_mode(), rig_get_split_freq_mode()
+ */
+
+int HAMLIB_API rig_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq, rmode_t tx_mode, pbwidth_t tx_width)
+{
+	const struct rig_caps *caps;
+	int retcode;
+
+	if (CHECK_RIG_ARG(rig))
+		return -RIG_EINVAL;
+
+	caps = rig->caps;
+
+  if (caps->set_split_freq_mode) {
+    return caps->set_split_freq_mode (rig, vfo, tx_freq, tx_mode, tx_width);
+  }
+
+  retcode = rig_set_split_freq (rig, vfo, tx_freq);
+  if (RIG_OK == retcode) {
+    retcode = rig_set_split_mode (rig, vfo, tx_mode, tx_width);
+  }
+
+  return retcode;
+}
+
+/**
+ * \brief get the current split frequency and mode
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param tx_freq The location where to store the current transmit frequency
+ * \param tx_mode	The location where to store the current transmit split mode
+ * \param tx_width	The location where to store the current transmit split width
+ *
+ *  Retrieves the current split(TX) frequency, mode and passband.
+ *  If the backend is unable to determine the width, the \a tx_width
+ *  will be set to RIG_PASSBAND_NORMAL as a default.
+ *  The value stored at \a tx_mode location equals RIG_MODE_NONE
+ *  when the current mode of the VFO is not defined (e.g. blank memory).
+ *
+ *  This function maybe optimized on some rig back ends, where the TX
+ *  VFO cannot be directly addressed, to reduce the number of times
+ *  the rig VFOs have to be exchanged or swapped to complete this
+ *  combined function.
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
+ * set appropriately).
+ *
+ * \sa rig_get_split_freq(), rig_get_split_mode(), rig_set_split_freq_mode()
+ */
+int HAMLIB_API rig_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *tx_freq, rmode_t *tx_mode, pbwidth_t *tx_width)
+{
+	const struct rig_caps *caps;
+	int retcode;
+
+	if (CHECK_RIG_ARG(rig) || !tx_freq || !tx_mode || !tx_width)
+		return -RIG_EINVAL;
+
+	caps = rig->caps;
+
+  if (caps->get_split_freq_mode) {
+    return caps->get_split_freq_mode (rig, vfo, tx_freq, tx_mode, tx_width);
+  }
+
+  retcode = rig_get_split_freq (rig, vfo, tx_freq);
+  if (RIG_OK == retcode) {
+    retcode = rig_get_split_mode (rig, vfo, tx_mode, tx_width);
+  }
+
+  return retcode;
+}
+
+/**
  * \brief set the split mode
  * \param rig	The rig handle
  * \param vfo	The target VFO

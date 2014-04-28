@@ -182,6 +182,8 @@ declare_proto_rig(set_split_freq);
 declare_proto_rig(get_split_freq);
 declare_proto_rig(set_split_mode);
 declare_proto_rig(get_split_mode);
+declare_proto_rig(set_split_freq_mode);
+declare_proto_rig(get_split_freq_mode);
 declare_proto_rig(set_split_vfo);
 declare_proto_rig(get_split_vfo);
 declare_proto_rig(set_ts);
@@ -228,7 +230,7 @@ declare_proto_rig(pause);
  * NB: 'q' 'Q' '?' are reserved by interactive mode interface
  * 		do NOT use -W since it's reserved by POSIX.
  *
- *	Available alphabetic letters: -.--------K-----*-----W-Y-
+ *	Available alphabetic letters: -.--------------*-----W-Y-
  */
 static struct test_table test_list[] = {
 	{ 'F', "set_freq",          ACTION(set_freq),       ARG_IN, "Frequency" },
@@ -239,6 +241,8 @@ static struct test_table test_list[] = {
 	{ 'i', "get_split_freq",    ACTION(get_split_freq), ARG_OUT, "TX Frequency" },
 	{ 'X', "set_split_mode",    ACTION(set_split_mode), ARG_IN, "TX Mode", "TX Passband" },
 	{ 'x', "get_split_mode",    ACTION(get_split_mode), ARG_OUT, "TX Mode", "TX Passband" },
+  { 'K', "set_split_freq_mode", ACTION(set_split_freq_mode), ARG_IN, "TX Frequency", "TX Mode", "TX Passband" },
+  { 'k', "get_split_freq_mode", ACTION(get_split_freq_mode), ARG_OUT, "TX Frequency", "TX Mode", "TX Passband" },
 	{ 'S', "set_split_vfo",     ACTION(set_split_vfo),  ARG_IN, "Split", "TX VFO" },
 	{ 's', "get_split_vfo",     ACTION(get_split_vfo),  ARG_OUT, "Split", "TX VFO" },
 	{ 'N', "set_ts",            ACTION(set_ts),         ARG_IN, "Tuning Step" },
@@ -1734,6 +1738,52 @@ declare_proto_rig(get_split_mode)
 	fprintf(fout, "%s%c", rig_strrmode(mode), resp_sep);
 	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
 		fprintf(fout, "%s: ", cmd->arg2);
+	fprintf(fout, "%ld%c", width, resp_sep);
+
+	return status;
+}
+
+/* 'K' */
+declare_proto_rig(set_split_freq_mode)
+{
+  freq_t freq;
+	rmode_t mode;
+	int	 width;
+	vfo_t txvfo = RIG_VFO_TX;
+
+	if (!strcmp(arg1, "?")) {
+		char s[SPRINTF_MAX_SIZE];
+		sprintf_mode(s, rig->state.mode_list);
+		fprintf(fout, "%s\n", s);
+		return RIG_OK;
+	}
+
+	CHKSCN1ARG(sscanf(arg1, "%"SCNfreq, &freq));
+	mode = rig_parse_mode(arg2);
+	CHKSCN1ARG(sscanf(arg3, "%d", &width));
+	return rig_set_split_freq_mode(rig, txvfo, freq, mode, (pbwidth_t) width);
+}
+
+/* 'k' */
+declare_proto_rig(get_split_freq_mode)
+{
+	int status;
+  freq_t freq;
+	rmode_t mode;
+	pbwidth_t width;
+	vfo_t txvfo = RIG_VFO_TX;
+
+	status = rig_get_split_freq_mode(rig, txvfo, &freq, &mode, &width);
+	if (status != RIG_OK)
+		return status;
+	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+		fprintf(fout, "%s: ", cmd->arg1);
+	fprintf(fout, "%"PRIll"%c", (int64_t)freq, resp_sep);
+	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+		fprintf(fout, "%s: ", cmd->arg2);
+	fprintf(fout, "%s%c", rig_strrmode(mode), resp_sep);
+	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+		fprintf(fout, "%s: ", cmd->arg3);
 	fprintf(fout, "%ld%c", width, resp_sep);
 
 	return status;
