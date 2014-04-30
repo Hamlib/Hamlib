@@ -179,6 +179,42 @@ Please note that the backend for the radio to be controlled, or the radio
 itself may not support some commands. In that case, the operation will fail
 with a \fBHamlib\fP error message.
 .PP
+As an alternative to the READLINE command history features a special
+command of a single dash ('-') may be used to read commands from
+standard input.  Commands must be separated by whitespace similar to
+the commands given on the command line.  Comments may be added using
+the '#' character, all text up until the end of the current line
+including the '#' character is ignored.
+.sp
+Example:
+$ cat <<.EOF. >cmds.txt
+> # File of commands
+> v f m	# query rig
+> V VFOB F 14200000 M CW 500	# set rig
+> v f m	# query rig
+> .EOF.
+
+$ rigctl -m1 - <cmds.txt
+
+v VFOA
+
+f 145000000
+
+m FM
+15000
+
+V VFOB
+F 14200000
+M CW 500
+v VFOB
+
+f 14200000
+
+m CW
+500
+
+$
+.PP
 Here is a summary of the supported commands (In the case of "set" commands the
 quoted string is replaced by the value in the description.  In the case of "get"
 commands the quoted string is the key name of the value returned.):

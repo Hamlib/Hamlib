@@ -79,9 +79,12 @@ extern int read_history ();
 static pthread_mutex_t rig_mutex = PTHREAD_MUTEX_INITIALIZER;
 #endif
 
+#define STR1(S) #S
+#define STR(S) STR1(S)
+
 #define MAXNAMSIZ 32
 #define MAXNBOPT 100	/* max number of different options */
-
+#define MAXARGSZ 127
 
 #define ARG_IN1  0x01
 #define ARG_OUT1 0x02
@@ -407,15 +410,79 @@ static int scanfc(FILE *fin, const char *format, void *p)
 	} while(1);
 }
 
+/*
+ * function to get the next word from the command line or from stdin
+ * until stdin exhausted. stdin is read if the special token '-' is
+ * found on the command line.
+ *
+ * returns EOF when words exhausted
+ * returns <0 is error number
+ * returns >=0 when successful
+ */
+static int next_word (char *buffer, int argc, char *argv[], int newline)
+{
+  int ret;
+  char c;
+  static int reading_stdin;
+
+  if (!reading_stdin)
+    {
+      if (optind >= argc) return EOF;
+      else if ('-' == argv[optind][0])
+        {
+          ++optind;
+          reading_stdin = 1;
+        }
+    }
+
+  if (reading_stdin)
+    {
+      do
+        {
+          do ret = scanf (" %c%" STR(MAXARGSZ) "[^ \t\n#]", &c, &buffer[1]); while (EINTR == ret);
+          if (ret > 0 && '#' == c)
+            {
+              do ret = scanf ("%*[^\n]"); while (EINTR == ret); /* consume comments */
+              ret = 0;
+            }
+        }
+      while (!ret);
+      if (EOF == ret) reading_stdin = 0;
+      else if (ret < 0)
+        {
+          rig_debug (RIG_DEBUG_ERR, "scanf: %s\n", strerror (errno));
+          reading_stdin = 0;
+        }
+      else
+        {
+          buffer[0] = c;
+          buffer[1 == ret ? 1 : MAXARGSZ] = '\0';
+          if (newline) putchar ('\n');
+          fputs (buffer, stdout);
+          putchar (' ');
+        }
+    }
+
+  if (!reading_stdin)
+    {
+			if (optind < argc)
+        {
+          strncpy (buffer, argv[optind++], MAXARGSZ);
+          buffer[MAXARGSZ] = '\0';
+          ret = 1;
+        }
+      else ret = EOF;
+    }
+
+  return ret;
+}
+
 #define fprintf_flush(f, a...) \
             ({ int __ret; \
                __ret = fprintf((f), a); \
 			   fflush((f)); \
                __ret; \
             })
-
-#define MAXARGSZ 127
-
 
 extern int interactive;
 extern int prompt;
@@ -430,6 +497,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 	unsigned char cmd;
 	struct test_table *cmd_entry = NULL;
 
+	char command[MAXARGSZ+1];
 	char arg1[MAXARGSZ+1], *p1 = NULL;
 	char arg2[MAXARGSZ+1], *p2 = NULL;
 	char arg3[MAXARGSZ+1], *p3 = NULL;
@@ -513,13 +581,14 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 			}
 		} else {
 			/* parse rest of command line */
-			if (optind >= argc)
-				return 1;
-			if (argv[optind][1] == '\0')
-				cmd = argv[optind][0];
-			else
-				cmd = parse_arg(argv[optind]);
-			optind++;
+      retcode = next_word (command, argc, argv, 1);
+      if (EOF == retcode) return 1;
+      else if (retcode < 0) return retcode;
+      else if ('\0' == command[1]) {
+        cmd = command[0];
+      } else {
+        cmd = parse_arg (command);
+      }
 		}
 
 		cmd_entry = find_cmd_entry(cmd);
@@ -536,12 +605,13 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 					return -1;
 				vfo = rig_parse_vfo(arg1);
 			} else {
-				if (!argv[optind]) {
+        retcode = next_word (arg1, argc, argv, 0);
+        if (EOF == retcode) {
 					fprintf(stderr, "Invalid arg for command '%s'\n",
-								cmd_entry->name);
-					exit(1);
-				}
-				vfo = rig_parse_vfo(argv[optind++]);
+                  cmd_entry->name);
+        }
+        else if (retcode < 0) return retcode;
+				vfo = rig_parse_vfo(arg1);
 			}
 		}
 
@@ -560,12 +630,14 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 				if (nl) *nl = '\0';	/* chomp */
 				p1 = arg1[0] == ' ' ? arg1 + 1 : arg1;
 			} else {
-				if (!argv[optind]) {
+        retcode = next_word (arg1, argc, argv, 0);
+        if (EOF == retcode) {
 					fprintf(stderr, "Invalid arg for command '%s'\n",
-								cmd_entry->name);
-					exit(1);
-				}
-				p1 = argv[optind++];
+                  cmd_entry->name);
+          return 1;
+        }
+        else if (retcode < 0) return retcode;
+				p1 = arg1;
 			}
 		} else
 		  if ((cmd_entry->flags & ARG_IN1) && cmd_entry->arg1) {
@@ -576,12 +648,14 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 					return -1;
 				p1 = arg1;
 			} else {
-				if (!argv[optind]) {
+        retcode = next_word (arg1, argc, argv, 0);
+        if (EOF == retcode) {
 					fprintf(stderr, "Invalid arg for command '%s'\n",
-								cmd_entry->name);
-					exit(1);
-				}
-				p1 = argv[optind++];
+                  cmd_entry->name);
+          return 1;
+        }
+        else if (retcode < 0) return retcode;
+				p1 = arg1;
 			}
 		}
 		if (p1 && p1[0] != '?' && (cmd_entry->flags & ARG_IN2) && cmd_entry->arg2) {
@@ -592,12 +666,14 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 					return -1;
 				p2 = arg2;
 			} else {
-				if (!argv[optind]) {
+        retcode = next_word (arg2, argc, argv, 0);
+        if (EOF == retcode) {
 					fprintf(stderr, "Invalid arg for command '%s'\n",
-								cmd_entry->name);
-					exit(1);
-				}
-				p2 = argv[optind++];
+                  cmd_entry->name);
+          return 1;
+        }
+        else if (retcode < 0) return retcode;
+				p2 = arg2;
 			}
 		}
 		if (p1 && p1[0] != '?' && (cmd_entry->flags & ARG_IN3) && cmd_entry->arg3) {
@@ -608,12 +684,14 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 					return -1;
 				p3 = arg3;
 			} else {
-				if (!argv[optind]) {
+        retcode = next_word (arg3, argc, argv, 0);
+        if (EOF == retcode) {
 					fprintf(stderr, "Invalid arg for command '%s'\n",
-								cmd_entry->name);
-					exit(1);
-				}
-				p3 = argv[optind++];
+                  cmd_entry->name);
+          return 1;
+        }
+        else if (retcode < 0) return retcode;
+				p3 = arg3;
 			}
 		}
 	}
@@ -1124,7 +1202,11 @@ void usage_rig(FILE *fout)
 			fprintf(fout, ")%*s", nbspaces, " ");
 	}
 
-	fprintf(fout, "\n\nPrepend long command names with '\\', e.g. '\\dump_state'\n");
+	fprintf(fout, "\n\nIn interactive mode prefix long command names with '\\', e.g. '\\dump_state'\n\n"
+          "The special command '-' may be used to further commands from standard input\n"
+          "Commands and arguments read from standard input must be white space separated,\n"
+          "comments are allowed, comments start with the # character and continue to the end\n"
+          "of the line.\n");
 }
 
 
