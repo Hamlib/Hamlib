@@ -549,6 +549,9 @@ rig's protocol (see your radio's computer control documentation).
 The command terminator, set by the \fIsend-cmd-term\fP option above, will
 terminate each command string sent to the radio.  This character should not be
 a part of the input string.
+.TP
+.B pause 'Seconds'
+Pause for the given whole number of seconds before sending the next command.
 .SH EXAMPLES
 Start \fBrigctl\fP for a Yaesu FT-920 using a USB to serial adapter on Linux in
 interactive mode:
