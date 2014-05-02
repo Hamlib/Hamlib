@@ -68,6 +68,23 @@ extern int read_history ();
 #include "serial.h"
 #include "sprintflst.h"
 
+/* HAVE_SSLEEP is defined when Windows Sleep is found
+ * HAVE_SLEEP is defined when POSIX sleep is found
+ * _WIN32 is defined when compiling with MinGW
+ *
+ * When cross-compiling from POSIX to Windows using MinGW, HAVE_SLEEP
+ * will often be defined by configure although it is not supported by
+ * MinGW.  So substitute the sleep definition below in such a case and
+ * when compiling on Windows using MinGW where HAVE_SLEEP will be
+ * undefined.
+ *
+ * FIXME:  Needs better handling for all versions of MinGW.
+ *
+ */
+#if (defined(HAVE_SSLEEP) || defined(_WIN32)) && (!defined(HAVE_SLEEP))
+#include "hl_sleep.h"
+#endif
+
 #include "rigctl_parse.h"
 
 /* Hash table implementation See:  http://uthash.sourceforge.net/ */
@@ -200,6 +217,7 @@ declare_proto_rig(send_dtmf);
 declare_proto_rig(recv_dtmf);
 declare_proto_rig(chk_vfo);
 declare_proto_rig(halt);
+declare_proto_rig(pause);
 
 
 /*
@@ -277,6 +295,7 @@ static struct test_table test_list[] = {
 	{ 0x8f,"dump_state",        dump_state,     ARG_OUT|ARG_NOVFO },
 	{ 0xf0,"chk_vfo",           chk_vfo,        ARG_NOVFO },	/* rigctld only--check for VFO mode */
 	{ 0xf1,"halt",              halt,           ARG_NOVFO },	/* rigctld only--halt the daemon */
+	{ 0x8c, "pause",            pause,          ARG_IN, "Seconds" },
 	{ 0x00, "", NULL },
 };
 
@@ -1205,8 +1224,8 @@ void usage_rig(FILE *fout)
 	fprintf(fout, "\n\nIn interactive mode prefix long command names with '\\', e.g. '\\dump_state'\n\n"
           "The special command '-' may be used to further commands from standard input\n"
           "Commands and arguments read from standard input must be white space separated,\n"
-          "comments are allowed, comments start with the # character and continue to the end\n"
-          "of the line.\n");
+          "comments are allowed, comments start with the # character and continue to the\n"
+          "end of the line.\n");
 }
 
 
@@ -2857,5 +2876,14 @@ declare_proto_rig(halt)
     /* a bit rough, TODO: clean daemon shutdown */
     exit(0);
 
+	return RIG_OK;
+}
+
+/* '0x8c'--pause processing */
+declare_proto_rig(pause)
+{
+  unsigned seconds;
+	CHKSCN1ARG(sscanf(arg1, "%u", &seconds));
+  sleep (seconds);
 	return RIG_OK;
 }
