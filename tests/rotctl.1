@@ -151,21 +151,21 @@ the '#' character, all text up until the end of the current line
 including the '#' character is ignored.
 .sp
 Example:
-$ cat <<.EOF. >cmds.txt
-> # File of commands
-> set_pos 180.0 10.0	# rotate
-> pause 30  # wait for action to complete
-> get_pos   # query rotator
-> .EOF.
-
-$ rotctl -m1 - <cmds.txt
-
-set_pos 180.0 10.0
-pause 30
-get_pos 180.000000
-10.000000
-
-$
+ $ cat <<.EOF. >cmds.txt
+ > # File of commands
+ > set_pos 180.0 10.0	# rotate
+ > pause 30  # wait for action to complete
+ > get_pos   # query rotator
+ > .EOF.
+ 
+ $ rotctl -m1 - <cmds.txt
+ 
+ set_pos 180.0 10.0
+ pause 30
+ get_pos 180.000000
+ 10.000000
+ 
+ $
 .PP
 A summary of commands is included below (In the case of "set" commands the
 quoted string is replaced by the value in the description.  In the case of
