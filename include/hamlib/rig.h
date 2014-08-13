@@ -1335,7 +1335,7 @@ struct rig_caps {
  *
  * Of course, looks like OO painstakingly programmed in C, sigh.
  */
-typedef struct {
+typedef struct hamlib_port {
   union {
 	rig_port_t rig;		/*!< Communication port type */
 	ptt_type_t ptt;		/*!< PTT port type */
