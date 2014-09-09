@@ -31,11 +31,13 @@
 #include "token.h"
 
 #define AZ_READ_LEN 4
+#define RT21_AZ_LEN 6
 
 extern const struct rot_caps rotorez_rot_caps;
 extern const struct rot_caps rotorcard_rot_caps;
 extern const struct rot_caps dcu_rot_caps;
 extern const struct rot_caps erc_rot_caps;
+extern const struct rot_caps rt21_rot_caps;
 
 /*
  * Tokens used by rotorez_rot_set_conf and the 'C' command in rotctl
