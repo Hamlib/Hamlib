@@ -292,7 +292,7 @@ const struct rot_caps rt21_rot_caps = {
 	.rot_model =		ROT_MODEL_RT21,
 	.model_name =		"RT-21",
 	.mfg_name =		"Green Heron",
-	.version =		"2014-09-08",
+	.version =		"2014-09-12a",
 	.copyright =		"LGPL",
 	.status =		RIG_STATUS_ALPHA,
 	.rot_type =		ROT_TYPE_OTHER,
@@ -309,7 +309,7 @@ const struct rot_caps rt21_rot_caps = {
 	.retry =		2,
 
 	.min_az =		0,
-	.max_az =		360,
+	.max_az =		359.9,
 	.min_el =		0,
 	.max_el =		0,
 
@@ -582,17 +582,14 @@ static int erc_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *eleva
 
 
 /*
- * Get position from Green Heron RT-21 series of controllers
- * Returns current azimuth position in degrees and tenths.
- * Range returned from RT-21 is a float, 0.0 to 359.9 degrees
- * Elevation is set to 0
+ * Get position from Green Heron RT-21 series of controllers Returns
+ * current azimuth position in degrees and tenths.  Range returned from
+ * RT-21 is a float, 0.0 to 359.9 degrees Elevation is set to 0
  */
 
 static int rt21_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *elevation) {
 	struct rot_state *rs;
-	char cmdstr[5] = "BI1;";
-	char az[7];		/* read azimuth string */
-	char *p = NULL;
+	char az[8];		/* read azimuth string */
 	azimuth_t tmp = 0;
 	int err;
 
@@ -601,52 +598,45 @@ static int rt21_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *elev
 	if (!rot)
 		return -RIG_EINVAL;
 
-	do {
-		err = rotorez_send_priv_cmd(rot, cmdstr);
-		if (err != RIG_OK)
-			return err;
-
-		rs = &rot->state;
-
-		err = read_block(&rs->rotport, az, RT21_AZ_LEN);
-		if (err != RT21_AZ_LEN)
-			return -RIG_ETRUNC;
-
-		/* The azimuth string should be 'xxx.y;' beginning at offset 0.  If the
-		 * first character is not a digit, it's likely something needs
-		 * debugging.
-		 */
-		if (err == RT21_AZ_LEN && isdigit(az[0])) {
-			continue;
-		} else {
-			err = -RIG_EINVAL;
-		}
-
-	} while (err == -RIG_EINVAL);
-
-	/*
-	 * RT-21 returns a six octet string consisting of by three octets
-	 * containing the rotor's position in degrees, one octet containing a
-	 * decimal '.', one octet containing the rotor's position in tenths of a
-	 * degree, and one octet with the terminating ';'--'XXX.Y;'.  The
-	 * semi-colon is ignored when passing the string to atof().
+	/* 'BI1' is an RT-21 specific command that queries for a floating
+	 * point position (to the tenth of a degree).
 	 */
-	az[5] = 0x00;		/* NULL terminated string, truncating ';' */
-	p = az;
-	tmp = (azimuth_t)atof(p);
-	rig_debug(RIG_DEBUG_TRACE, "%s: \"%s\" after conversion = %.1f\n",
-			__func__, p, tmp);
+	err = rotorez_send_priv_cmd(rot, "BI1;");
+	if (err != RIG_OK)
+		return err;
 
-	if (tmp == 360.0)
-		tmp = 0;
-	else if (tmp < 0.0 || tmp > 359.9)
+	rs = &rot->state;
+
+	err = read_string(&rs->rotport, az, RT21_AZ_LEN + 1, ";", strlen(";"));
+	if (err < 0)	/* read_string returns negative on error. */
+		return err;
+
+	/* RT-21 returns a five to six octet string consisting of one to
+	 * three octets containing the rotor's position in degrees, one
+	 * octet containing a decimal '.', one octet containing the rotor's
+	 * position in tenths of a degree, and one octet with the
+	 * terminating ';' with a leading space as padding--'[xx| ]x.y;'.
+	 * Seems as though at least five characters are returned and a
+	 * space is used as a leading pad character if needed.
+	 */
+	if ((isdigit(az[0])) || (isspace(az[0]))) {
+		tmp = strtof(az, NULL);
+		rig_debug(RIG_DEBUG_TRACE, "%s: \"%s\" after conversion = %.1f\n",
+			  __func__, az, tmp);
+
+		if (tmp == 360.0)
+			tmp = 0;
+		else if (tmp < 0.0 || tmp > 359.9)
+			return -RIG_EINVAL;
+
+		*azimuth = tmp;
+		*elevation = 0.0;	/* RT-21 backend does not support el at this time. */
+		rig_debug(RIG_DEBUG_TRACE,
+			  "%s: azimuth = %.1f deg; elevation = %.1f deg\n",
+			  __func__, *azimuth, *elevation);
+	} else {
 		return -RIG_EINVAL;
-
-	*azimuth = tmp;
-	*elevation = 0.0;	/* RT-21 backend does not support el at this time. */
-	rig_debug(RIG_DEBUG_TRACE,
-			"%s: azimuth = %.1f deg; elevation = %.1f deg\n",
-			__func__, *azimuth, *elevation);
+	}
 
 	return RIG_OK;
 }
@@ -858,4 +848,3 @@ DECLARE_INITROT_BACKEND(rotorez)
 
 	return RIG_OK;
 }
-
