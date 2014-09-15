@@ -61,6 +61,7 @@ static int rotorez_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t ele
 static int rotorez_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *elevation);
 static int erc_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *elevation);
 static int rt21_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *elevation);
+static int rt21_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t elevation);
 
 static int rotorez_rot_reset(ROT *rot, rot_reset_t reset);
 static int rotorez_rot_stop(ROT *rot);
@@ -292,7 +293,7 @@ const struct rot_caps rt21_rot_caps = {
 	.rot_model =		ROT_MODEL_RT21,
 	.model_name =		"RT-21",
 	.mfg_name =		"Green Heron",
-	.version =		"2014-09-12a",
+	.version =		"2014-09-14",
 	.copyright =		"LGPL",
 	.status =		RIG_STATUS_ALPHA,
 	.rot_type =		ROT_TYPE_OTHER,
@@ -318,7 +319,7 @@ const struct rot_caps rt21_rot_caps = {
 
 	.rot_init =		rotorez_rot_init,
 	.rot_cleanup =		rotorez_rot_cleanup,
-	.set_position =		rotorez_rot_set_position,
+	.set_position =		rt21_rot_set_position,
 	.get_position =		rt21_rot_get_position,
 //	.stop =				rotorez_rot_stop,
 //	.set_conf =			rotorez_rot_set_conf,
@@ -408,6 +409,35 @@ static int rotorez_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t ele
 		return err;
 
 	err = rotorez_send_priv_cmd(rot, execstr);	/* Execute command */
+	if (err != RIG_OK)
+		return err;
+
+	return RIG_OK;
+}
+
+
+/*
+ * RT-21 Set position.
+ *
+ * RT-21 has a custom command to set azimuth to a precision of 1/10 of a
+ * degree--"AP1XXX.Y\r;".  XXX must be zero padded.  The '\r' causes the
+ * command to be executed immediately (no need to send "AM1;").
+ */
+
+static int rt21_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t elevation) {
+	char cmdstr[16];
+	int err;
+
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+	if (!rot)
+		return -RIG_EINVAL;
+
+	if (azimuth < 0 || azimuth > 360)
+		return -RIG_EINVAL;
+
+	sprintf(cmdstr, "AP1%05.1f\r;", azimuth);	/* Total field width of 5 chars */
+	err = rotorez_send_priv_cmd(rot, cmdstr);
 	if (err != RIG_OK)
 		return err;
 
