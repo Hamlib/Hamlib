@@ -413,13 +413,12 @@ typedef enum {
  */
 typedef enum {
   RIG_PTT_NONE = 0,		/*!< No PTT available */
-  RIG_PTT_RIG,			/*!< Legacy PTT */
+  RIG_PTT_RIG,			/*!< Legacy PTT (CAT PTT) */
   RIG_PTT_SERIAL_DTR,		/*!< PTT control through serial DTR signal */
   RIG_PTT_SERIAL_RTS,		/*!< PTT control through serial RTS signal */
   RIG_PTT_PARALLEL,		/*!< PTT control through parallel port */
-  RIG_PTT_RIG_MICDATA,		/*!< Legacy PTT, supports RIG_PTT_ON_MIC/RIG_PTT_ON_DATA */
-  RIG_PTT_CM108,		/*!< PTT control through CM108 GPIO pin */
-  RIG_PTT_SERIAL_CAT		/*!< PTT control through serial command sequence*/
+  RIG_PTT_RIG_MICDATA,		/*!< Legacy PTT (CAT PTT), supports RIG_PTT_ON_MIC/RIG_PTT_ON_DATA */
+  RIG_PTT_CM108		/*!< PTT control through CM108 GPIO pin */
 } ptt_type_t;
 
 /**
