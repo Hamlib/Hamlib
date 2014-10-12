@@ -103,9 +103,9 @@ int cm108_open(hamlib_port_t *port)
 	&&
 	  (
 	    (hiddevinfo.vendor == 0x0d8c &&	// CM108/109/119/119A
-                (hiddevinfo.product >= 0x0008 &&
-                hiddevinfo.product <= 0x000f ||
-                hiddevinfo.product == 0x013a)
+	     ((hiddevinfo.product >= 0x0008 &&
+	       hiddevinfo.product <= 0x000f) ||
+	      hiddevinfo.product == 0x013a)
 	    )
 	    ||
 	    (hiddevinfo.vendor == 0x0c76 &&	// SSS1621/23
