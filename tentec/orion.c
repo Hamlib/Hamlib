@@ -465,7 +465,7 @@ int tt565_get_vfo(RIG *rig, vfo_t *vfo)
 /**
  * \param rig must != NULL
  * \param vfo Rx vfo specifier token
- * \param split (ignored - why?)
+ * \param split
  * \param tx_vfo Tx vfo specifier token
  * \returns RIG_OK or < 0
  * \brief Set split operating mode
@@ -479,9 +479,9 @@ int tt565_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 	char cmdbuf[TT565_BUFSIZE];
 
 	cmd_len = sprintf (cmdbuf, "*KV%c%c%c" EOM,
-			which_vfo(rig, vfo),
-			'N',			/* FIXME */
-			which_vfo(rig, tx_vfo));
+                     which_vfo(rig, vfo),
+                     'N',			/* FIXME */
+                     which_vfo(rig, RIG_SPLIT_ON == split ? tx_vfo : vfo));
 
 	retval = tt565_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
 
@@ -529,7 +529,7 @@ int tt565_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 		return -RIG_EPROTO;
 	}
 
-	ttreceiver = vfo == RIG_VFO_SUB ? respbuf[3] : respbuf[4];
+	ttreceiver = vfo == RIG_VFO_SUB ? respbuf[4] : respbuf[3];
 
 	*tx_vfo = tt2vfo(respbuf[5]);
 
