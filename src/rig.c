@@ -471,27 +471,38 @@ int HAMLIB_API rig_open(RIG *rig)
 
 	rs->rigport.fd = -1;
 
-	if (rs->rigport.type.rig == RIG_PORT_SERIAL) {
-
-		if (rs->rigport.parm.serial.rts_state != RIG_SIGNAL_UNSET &&
-				(rs->pttport.type.ptt == RIG_PTT_SERIAL_RTS ||
-				rs->rigport.parm.serial.handshake == RIG_HANDSHAKE_HARDWARE)) {
-
-			rig_debug(RIG_DEBUG_ERR, "Cannot set RTS with PTT by RTS or hardware handshare \"%s\"\n",
-						rs->rigport.pathname);
-            return -RIG_ECONF;
-		}
-		if (rs->rigport.parm.serial.dtr_state != RIG_SIGNAL_UNSET &&
-				rs->pttport.type.ptt == RIG_PTT_SERIAL_DTR) {
-			rig_debug(RIG_DEBUG_ERR, "Cannot set DTR with PTT by DTR\"%s\"\n",
-						rs->rigport.pathname);
-            return -RIG_ECONF;
-		}
+	if (rs->rigport.type.rig == RIG_PORT_SERIAL)
+    {
+      if (rs->rigport.parm.serial.rts_state != RIG_SIGNAL_UNSET &&
+          rs->rigport.parm.serial.handshake == RIG_HANDSHAKE_HARDWARE)
+        {
+          rig_debug(RIG_DEBUG_ERR, "Cannot set RTS with hardware handshake \"%s\"\n",
+                    rs->rigport.pathname);
+          return -RIG_ECONF;
+        }
+      if (!strcmp(rs->pttport.pathname, rs->rigport.pathname))
+        {
+          /* check for control line conflicts */
+          if (rs->rigport.parm.serial.rts_state != RIG_SIGNAL_UNSET &&
+              rs->pttport.type.ptt == RIG_PTT_SERIAL_RTS)
+            {
+              rig_debug(RIG_DEBUG_ERR, "Cannot set RTS with PTT by RTS \"%s\"\n",
+                        rs->rigport.pathname);
+              return -RIG_ECONF;
+            }
+          if (rs->rigport.parm.serial.dtr_state != RIG_SIGNAL_UNSET &&
+              rs->pttport.type.ptt == RIG_PTT_SERIAL_DTR)
+            {
+              rig_debug(RIG_DEBUG_ERR, "Cannot set DTR with PTT by DTR \"%s\"\n",
+                        rs->rigport.pathname);
+              return -RIG_ECONF;
+            }
+        }
     }
 
-    status = port_open(&rs->rigport);
-    if (status < 0)
-        return status;
+  status = port_open(&rs->rigport);
+  if (status < 0)
+    return status;
 
 
 	switch(rs->pttport.type.ptt) {
@@ -512,17 +523,17 @@ int HAMLIB_API rig_open(RIG *rig)
 	    {
 	      rs->pttport.fd = ser_open(&rs->pttport);
 	      if (rs->pttport.fd < 0)
-		{
-		  rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n",
-			    rs->pttport.pathname);
-		  status = -RIG_EIO;
-		}
+          {
+            rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n",
+                      rs->pttport.pathname);
+            status = -RIG_EIO;
+          }
 	      else {
-		/* Needed on Linux because the kernel forces RTS/DTR at open */
-		if (rs->pttport.type.ptt == RIG_PTT_SERIAL_DTR)
-		  ser_set_dtr(&rs->pttport, RIG_PTT_OFF);
-		else if (rs->pttport.type.ptt == RIG_PTT_SERIAL_RTS)
-		  ser_set_rts(&rs->pttport, RIG_PTT_OFF);
+          /* Needed on Linux because the kernel forces RTS/DTR at open */
+          if (rs->pttport.type.ptt == RIG_PTT_SERIAL_DTR)
+            ser_set_dtr(&rs->pttport, RIG_PTT_OFF);
+          else if (rs->pttport.type.ptt == RIG_PTT_SERIAL_RTS)
+            ser_set_rts(&rs->pttport, RIG_PTT_OFF);
 	      }
 	    }
 	  break;
@@ -531,10 +542,10 @@ int HAMLIB_API rig_open(RIG *rig)
 		if (rs->pttport.fd < 0)
 		  {
 		    rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n",
-			      rs->pttport.pathname);
+                  rs->pttport.pathname);
 		    status = -RIG_EIO;
 		  }
-        else
+    else
 			par_ptt_set(&rs->pttport, RIG_PTT_OFF);
 		break;
 	case RIG_PTT_CM108:
@@ -542,7 +553,7 @@ int HAMLIB_API rig_open(RIG *rig)
 		if (rs->pttport.fd < 0)
 		  {
 		    rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n",
-			      rs->pttport.pathname);
+                  rs->pttport.pathname);
 		    status = -RIG_EIO;
 		  }
 		else
@@ -550,7 +561,7 @@ int HAMLIB_API rig_open(RIG *rig)
 		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR, "Unsupported PTT type %d\n",
-						rs->pttport.type.ptt);
+              rs->pttport.type.ptt);
 		status = -RIG_ECONF;
 	}
 
@@ -568,7 +579,7 @@ int HAMLIB_API rig_open(RIG *rig)
 		if (rs->dcdport.fd < 0)
 		  {
 		    rig_debug(RIG_DEBUG_ERR, "Cannot open DCD device \"%s\"\n",
-			      rs->dcdport.pathname);
+                  rs->dcdport.pathname);
 		    status = -RIG_EIO;
 		  }
 		break;
@@ -577,13 +588,13 @@ int HAMLIB_API rig_open(RIG *rig)
 		if (rs->dcdport.fd < 0)
 		  {
 		    rig_debug(RIG_DEBUG_ERR, "Cannot open DCD device \"%s\"\n",
-			      rs->dcdport.pathname);
+                  rs->dcdport.pathname);
 		    status = -RIG_EIO;
 		  }
 		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR, "Unsupported DCD type %d\n",
-						rs->dcdport.type.dcd);
+              rs->dcdport.type.dcd);
 		status = -RIG_ECONF;
 	}
 
@@ -611,19 +622,19 @@ int HAMLIB_API rig_open(RIG *rig)
 	/*
 	 * trigger state->current_vfo first retrieval
 	 */
-        if (rig_get_vfo(rig, &rs->current_vfo) == RIG_OK)
+  if (rig_get_vfo(rig, &rs->current_vfo) == RIG_OK)
 		rs->tx_vfo = rs->current_vfo;
 
 #if 0
-        /*
-         * Check the current tranceive state of the rig
-         */
-        if (rs->transceive == RIG_TRN_RIG) {
-            int retval, trn;
-            retval = rig_get_trn(rig, &trn);
-            if (retval == RIG_OK && trn == RIG_TRN_RIG)
-                add_trn_rig(rig);
-        }
+  /*
+   * Check the current tranceive state of the rig
+   */
+  if (rs->transceive == RIG_TRN_RIG) {
+    int retval, trn;
+    retval = rig_get_trn(rig, &trn);
+    if (retval == RIG_OK && trn == RIG_TRN_RIG)
+      add_trn_rig(rig);
+  }
 #endif
 	return RIG_OK;
 }
