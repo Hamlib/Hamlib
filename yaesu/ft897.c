@@ -470,7 +470,7 @@ int ft897_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
   *freq = from_bcd_be(p->fm_status, 8) * 10;
 
-  return -RIG_OK;
+  return RIG_OK;
 }
 
 int ft897_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
