@@ -639,29 +639,31 @@ int icom_set_mode_with_data (RIG * rig, vfo_t vfo, rmode_t mode, pbwidth_t width
   if (RIG_OK == retval)
     {
       if (RIG_MODE_PKTUSB == mode || RIG_MODE_PKTLSB == mode || RIG_MODE_PKTFM == mode)
-	{
-	  datamode = 0x01;
-	}
+        {
+          datamode = 0x01;      /* some rigs (e.g. IC-7700 & IC-7800)
+                                   have D1/2/3 but we cannot know
+                                   which to set so just set D1 */
+        }
       else
-	{
-	  datamode = 0x00;
-	}
+        {
+          datamode = 0x00;
+        }
 
       retval = icom_transaction (rig, C_CTL_MEM, S_MEM_DATA_MODE, &datamode, 1,
-				 ackbuf, &ack_len);
+                                 ackbuf, &ack_len);
       if (retval != RIG_OK)
-	{
-	  rig_debug(RIG_DEBUG_ERR,"%s: protocol error (%#.2x), "
-		    "len=%d\n", __FUNCTION__,ackbuf[0],ack_len);
-	}
+        {
+          rig_debug(RIG_DEBUG_ERR,"%s: protocol error (%#.2x), "
+                    "len=%d\n", __FUNCTION__,ackbuf[0],ack_len);
+        }
       else
-	{
-	  if (ack_len != 1 || ackbuf[0] != ACK)
-	    {
-	      rig_debug(RIG_DEBUG_ERR,"%s: command not supported ? (%#.2x), "
-			"len=%d\n", __FUNCTION__,ackbuf[0],ack_len);
-	    }
-	}
+        {
+          if (ack_len != 1 || ackbuf[0] != ACK)
+            {
+              rig_debug(RIG_DEBUG_ERR,"%s: command not supported ? (%#.2x), "
+                        "len=%d\n", __FUNCTION__,ackbuf[0],ack_len);
+            }
+        }
     }
 
   return retval;
@@ -687,12 +689,12 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	priv_caps = (const struct icom_priv_caps *) rig->caps->priv;
 
 	if (priv_caps->r2i_mode != NULL) {	/* call priv code if defined */
-	    	err = priv_caps->r2i_mode(rig, mode, width,
-				&icmode, &icmode_ext);
+    err = priv_caps->r2i_mode(rig, mode, width,
+                              &icmode, &icmode_ext);
 	}
 	else {					/* else call default */
 		err = rig2icom_mode(rig, mode, width,
-				&icmode, &icmode_ext);
+                        &icmode, &icmode_ext);
 	}
 
 	if (err < 0)
@@ -707,24 +709,24 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		icmode_ext = -1;
 
 	retval = icom_transaction (rig, C_SET_MODE, icmode, (unsigned char *) &icmode_ext,
-                                   (icmode_ext == -1 ? 0 : 1), ackbuf, &ack_len);
+                             (icmode_ext == -1 ? 0 : 1), ackbuf, &ack_len);
 	if (retval != RIG_OK)
 		return retval;
 
 	if (ack_len != 1 || ackbuf[0] != ACK) {
 		rig_debug(RIG_DEBUG_ERR,"icom_set_mode: ack NG (%#.2x), "
-					"len=%d\n", ackbuf[0],ack_len);
+              "len=%d\n", ackbuf[0],ack_len);
 		return -RIG_ERJCTED;
 	}
 
 #if 0
-    /* Tentative DSP filter setting ($1A$03), but not supported by every rig,
-     * and some models like IC910/Omni VI Plus have a different meaning for
-     * this subcommand
-     */
+  /* Tentative DSP filter setting ($1A$03), but not supported by every rig,
+   * and some models like IC910/Omni VI Plus have a different meaning for
+   * this subcommand
+   */
 	if ( (rig->caps->rig_model != RIG_MODEL_IC910) &&
-	    (rig->caps->rig_model != RIG_MODEL_OMNIVIP) )
-        icom_set_dsp_flt(rig, mode, width);
+       (rig->caps->rig_model != RIG_MODEL_OMNIVIP) )
+    icom_set_dsp_flt(rig, mode, width);
 #endif
 
 	return RIG_OK;
@@ -748,41 +750,41 @@ int icom_get_mode_with_data(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width
        * fetch data mode on/off
        */
       retval = icom_transaction (rig, C_CTL_MEM, S_MEM_DATA_MODE, 0, 0,
-				 databuf, &data_len);
+                                 databuf, &data_len);
       if (retval != RIG_OK)
-	{
-	  rig_debug(RIG_DEBUG_ERR,"%s: protocol error (%#.2x), "
-		    "len=%d\n", __FUNCTION__, databuf[0], data_len);
-	  return -RIG_ERJCTED;
-	}
+        {
+          rig_debug(RIG_DEBUG_ERR,"%s: protocol error (%#.2x), "
+                    "len=%d\n", __FUNCTION__, databuf[0], data_len);
+          return -RIG_ERJCTED;
+        }
 
       /*
        * databuf should contain Cn,Sc,D0[,D1]
        */
       data_len -= 2;
       if (1 > data_len || data_len > 2)	/* manual says 1 byte answer
-					   but at least IC756 ProIII
-					   sends 2 - second byte
-					   appears to be same as
-					   second byte from 04 command
-					   which is filter preset
-					   number, whatever it is we
-					   ignore it */
-	{
-	  rig_debug(RIG_DEBUG_ERR,"%s: wrong frame len=%d\n",
-			__FUNCTION__, data_len);
-	  return -RIG_ERJCTED;
-	}
-      if (0x01 == databuf[2])	/* 0x01 -> data mode, 0x00 -> not data mode */
-	{
-	  switch (*mode)
-	    {
-	    case RIG_MODE_USB: *mode = RIG_MODE_PKTUSB; break;
-	    case RIG_MODE_LSB: *mode = RIG_MODE_PKTLSB; break;
-	    case RIG_MODE_FM: *mode = RIG_MODE_PKTFM; break;
-	    default: break;
-	    }
-	}
+                                           but at least IC756 ProIII
+                                           sends 2 - second byte
+                                           appears to be same as
+                                           second byte from 04 command
+                                           which is filter preset
+                                           number, whatever it is we
+                                           ignore it */
+        {
+          rig_debug(RIG_DEBUG_ERR,"%s: wrong frame len=%d\n",
+                    __FUNCTION__, data_len);
+          return -RIG_ERJCTED;
+        }
+      if (databuf[2])	/* 0x01/0x02/0x03 -> data mode, 0x00 -> not data mode */
+        {
+          switch (*mode)
+            {
+            case RIG_MODE_USB: *mode = RIG_MODE_PKTUSB; break;
+            case RIG_MODE_LSB: *mode = RIG_MODE_PKTLSB; break;
+            case RIG_MODE_FM: *mode = RIG_MODE_PKTFM; break;
+            default: break;
+            }
+        }
     }
   return retval;
 }
