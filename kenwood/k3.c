@@ -751,7 +751,7 @@ int k3_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width
   /* The K3 is not limited to specific filter widths so we can query
    * the actual bandwidth using the BW$ command
    */
-  err = kenwood_safe_transaction(rig, "BW$", buf, KENWOOD_MAX_BUF_LEN, 9);
+  err = kenwood_safe_transaction(rig, "BW$", buf, KENWOOD_MAX_BUF_LEN, 8);
   if (err != RIG_OK) {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: Cannot read K3 BW$ value\n", __func__);
     return err;
