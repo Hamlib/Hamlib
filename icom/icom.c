@@ -534,6 +534,7 @@ pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode) {
 	int retval, res_len, rfstatus;
 	unsigned char resbuf[MAXFRAMELEN];
 	value_t rfwidth;
+  unsigned char fw_sub_cmd = RIG_MODEL_IC7200 == rig->caps->rig_model ? 0x02 : S_MEM_FILT_WDTH;
 
 	if (rig_has_get_func(rig, RIG_FUNC_RF) && (mode & (RIG_MODE_RTTY | RIG_MODE_RTTYR))) {
         if(!rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_RF, &rfstatus) && (rfstatus)) {
@@ -544,7 +545,7 @@ pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode) {
             return rtty_fil[rfwidth.i];
 		}
 	}
-	retval = icom_transaction (rig, C_CTL_MEM, S_MEM_FILT_WDTH, 0, 0,
+	retval = icom_transaction (rig, C_CTL_MEM, fw_sub_cmd, 0, 0,
 			resbuf, &res_len);
 	if (retval != RIG_OK) {
 		rig_debug(RIG_DEBUG_ERR,"%s: protocol error (%#.2x), "
@@ -571,6 +572,7 @@ int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width) {
 	unsigned char flt_ext;
 	value_t rfwidth;
 	int ack_len=sizeof(ackbuf), flt_idx;
+  unsigned char fw_sub_cmd = RIG_MODEL_IC7200 == rig->caps->rig_model ? 0x02 : S_MEM_FILT_WDTH;
 
     if (width == RIG_PASSBAND_NORMAL)
         width = rig_passband_normal(rig, mode);
@@ -599,7 +601,7 @@ int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width) {
 
     to_bcd(&flt_ext, flt_idx, 2);
 
-	retval = icom_transaction (rig, C_CTL_MEM, S_MEM_FILT_WDTH, &flt_ext, 1,
+	retval = icom_transaction (rig, C_CTL_MEM, fw_sub_cmd, &flt_ext, 1,
 			ackbuf, &ack_len);
 	if (retval != RIG_OK) {
 		rig_debug(RIG_DEBUG_ERR,"%s: protocol error (%#.2x), "
@@ -625,6 +627,7 @@ int icom_set_mode_with_data (RIG * rig, vfo_t vfo, rmode_t mode, pbwidth_t width
   unsigned char ackbuf[MAXFRAMELEN];
   int ack_len=sizeof(ackbuf);
   rmode_t icom_mode;
+  unsigned char dm_sub_cmd = RIG_MODEL_IC7200 == rig->caps->rig_model ? 0x04 : S_MEM_DATA_MODE;
 
   switch (mode)
     {
@@ -649,7 +652,7 @@ int icom_set_mode_with_data (RIG * rig, vfo_t vfo, rmode_t mode, pbwidth_t width
           datamode = 0x00;
         }
 
-      retval = icom_transaction (rig, C_CTL_MEM, S_MEM_DATA_MODE, &datamode, 1,
+      retval = icom_transaction (rig, C_CTL_MEM, dm_sub_cmd, &datamode, 1,
                                  ackbuf, &ack_len);
       if (retval != RIG_OK)
         {
@@ -741,6 +744,7 @@ int icom_get_mode_with_data(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width
 {
   unsigned char databuf[MAXFRAMELEN];
   int data_len, retval;
+  unsigned char dm_sub_cmd = RIG_MODEL_IC7200 == rig->caps->rig_model ? 0x04 : S_MEM_DATA_MODE;
 
   retval = icom_get_mode (rig, vfo, mode, width);
 
@@ -749,7 +753,7 @@ int icom_get_mode_with_data(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width
       /*
        * fetch data mode on/off
        */
-      retval = icom_transaction (rig, C_CTL_MEM, S_MEM_DATA_MODE, 0, 0,
+      retval = icom_transaction (rig, C_CTL_MEM, dm_sub_cmd, 0, 0,
                                  databuf, &data_len);
       if (retval != RIG_OK)
         {
