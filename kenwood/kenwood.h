@@ -188,6 +188,7 @@ extern const struct rig_caps r5000_caps;
 
 extern const struct rig_caps ts480_caps;
 extern const struct rig_caps ts590_caps;
+extern const struct rig_caps ts590sg_caps;
 extern const struct rig_caps thf6a_caps;
 
 extern const struct rig_caps transfox_caps;

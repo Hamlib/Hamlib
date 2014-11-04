@@ -76,7 +76,8 @@ static const struct kenwood_id kenwood_id_list[] = {
 	{ RIG_MODEL_TS570S, 18 },
 	{ RIG_MODEL_TS2000, 19 },
 	{ RIG_MODEL_TS480, 20 },
-	{ RIG_MODEL_TS590S, 21 },    /* TBC */
+	{ RIG_MODEL_TS590S, 21 },
+	{ RIG_MODEL_TS590SG, 23 },
 	{ RIG_MODEL_NONE, UNKNOWN_ID },	/* end marker */
 };
 
@@ -97,7 +98,8 @@ static const struct kenwood_id_string kenwood_id_string_list[] = {
 	{ RIG_MODEL_TS570S,	"018" },
 	{ RIG_MODEL_TS2000,	"019" },
 	{ RIG_MODEL_TS480,	"020" },
-	{ RIG_MODEL_TS590S,	"021" },    /* TBC */
+	{ RIG_MODEL_TS590S,	"021" },
+	{ RIG_MODEL_TS590SG,	"023" },
 	{ RIG_MODEL_THD7A,	"TH-D7" },
 	{ RIG_MODEL_THD7AG,	"TH-D7G" },
 	{ RIG_MODEL_TMD700,	"TM-D700" },
@@ -1104,7 +1106,8 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	int err;
 	char data_mode = '0';
 
-	if (RIG_MODEL_TS590S == rig->caps->rig_model)
+	if (RIG_MODEL_TS590S == rig->caps->rig_model
+      || RIG_MODEL_TS590SG == rig->caps->rig_model)
 	  {
 	    /* supports DATA sub modes */
 	    switch (mode)
@@ -1140,7 +1143,8 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	if (err != RIG_OK)
 		return err;
 
-	if (RIG_MODEL_TS590S == rig->caps->rig_model)
+	if (RIG_MODEL_TS590S == rig->caps->rig_model
+      || RIG_MODEL_TS590SG == rig->caps->rig_model)
 	  {
 	    /* supports DATA sub modes - see above */
 	    sprintf (buf, "DA%c", data_mode);
@@ -1232,7 +1236,8 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 	*mode = kenwood2rmode(modebuf[2] - '0', caps->mode_table);
 
-	if (RIG_MODEL_TS590S == rig->caps->rig_model)
+	if (RIG_MODEL_TS590S == rig->caps->rig_model
+      || RIG_MODEL_TS590SG == rig->caps->rig_model)
 	  {
 	    /* supports DATA sub-modes */
 	    retval = kenwood_safe_transaction (rig, "DA", modebuf, 6, 4);
