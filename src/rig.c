@@ -456,7 +456,7 @@ int HAMLIB_API rig_open(RIG *rig)
 {
 	const struct rig_caps *caps;
 	struct rig_state *rs;
-	int status;
+	int status = RIG_OK;
 
 	rig_debug(RIG_DEBUG_VERBOSE,"rig:rig_open called \n");
 
@@ -528,14 +528,15 @@ int HAMLIB_API rig_open(RIG *rig)
                       rs->pttport.pathname);
             status = -RIG_EIO;
           }
-	      else {
-          /* Needed on Linux because the kernel forces RTS/DTR at open */
-          if (rs->pttport.type.ptt == RIG_PTT_SERIAL_DTR)
-            ser_set_dtr(&rs->pttport, RIG_PTT_OFF);
-          else if (rs->pttport.type.ptt == RIG_PTT_SERIAL_RTS)
-            ser_set_rts(&rs->pttport, RIG_PTT_OFF);
-	      }
 	    }
+    if (RIG_OK == status) 
+      {
+        /* Needed on Linux because the kernel forces RTS/DTR at open */
+        if (rs->pttport.type.ptt == RIG_PTT_SERIAL_DTR)
+          ser_set_dtr(&rs->pttport, RIG_PTT_OFF);
+        else if (rs->pttport.type.ptt == RIG_PTT_SERIAL_RTS)
+          ser_set_rts(&rs->pttport, RIG_PTT_OFF);
+      }
 	  break;
 	case RIG_PTT_PARALLEL:
 		rs->pttport.fd = par_open(&rs->pttport);
