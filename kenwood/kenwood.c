@@ -432,7 +432,7 @@ int kenwood_init(RIG *rig)
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: if_len = %d\n", __func__, caps->if_len);
 
-	return RIG_OK;
+  return RIG_OK;
 }
 
 int kenwood_cleanup(RIG *rig)
@@ -519,7 +519,14 @@ int kenwood_open(RIG *rig)
 				__func__, kenwood_id_string_list[i].id);
 
 		if (kenwood_id_string_list[i].model == rig->caps->rig_model)
-			return RIG_OK;
+      {
+        /* Currently we cannot cope with AI mode so turn it off in
+           case last client left it on */
+        kenwood_set_trn(rig, RIG_TRN_OFF); /* ignore status in case
+                                              it's not supported */
+        
+        return RIG_OK;
+      }
 
 		/* driver mismatch */
 		rig_debug(RIG_DEBUG_ERR,
