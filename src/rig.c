@@ -480,7 +480,8 @@ int HAMLIB_API rig_open(RIG *rig)
                     rs->rigport.pathname);
           return -RIG_ECONF;
         }
-      if (!strcmp(rs->pttport.pathname, rs->rigport.pathname))
+      if ('\0' == rs->pttport.pathname[0]
+          || !strcmp(rs->pttport.pathname, rs->rigport.pathname))
         {
           /* check for control line conflicts */
           if (rs->rigport.parm.serial.rts_state != RIG_SIGNAL_UNSET &&
@@ -529,13 +530,17 @@ int HAMLIB_API rig_open(RIG *rig)
             status = -RIG_EIO;
           }
 	    }
-    if (RIG_OK == status) 
+    if (RIG_OK == status)
       {
         /* Needed on Linux because the kernel forces RTS/DTR at open */
         if (rs->pttport.type.ptt == RIG_PTT_SERIAL_DTR)
-          ser_set_dtr(&rs->pttport, RIG_PTT_OFF);
+          status = ser_set_dtr(&rs->pttport, RIG_PTT_OFF);
         else if (rs->pttport.type.ptt == RIG_PTT_SERIAL_RTS)
-          ser_set_rts(&rs->pttport, RIG_PTT_OFF);
+          status = ser_set_rts(&rs->pttport, RIG_PTT_OFF);
+        if (status != RIG_OK)
+          {
+            rig_debug(RIG_DEBUG_ERR, "%s: Cannot set serial control line - %s\n", __func__, strerror(errno));
+          }
       }
 	  break;
 	case RIG_PTT_PARALLEL:
