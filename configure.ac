@@ -619,13 +619,17 @@ AS_CASE(["$host_os"],
         ],
 dnl As g313-posix.c has a hard dependency on linux/types.h
 dnl via linradio/wrg313api.h, disable compilation on other POSIX.
-        [ *linux-gnu ], [
+dnl (Certain systems have extra characters following "-gnu" such as
+dnl the Raspberry Pi which is "linux-gnueabihf"; presume that "linux-gnu"
+dnl is a sufficient test.)
+        [ *linux-gnu* ], [
              AM_CONDITIONAL(G313_LINUX_GNU, true)
              AM_CONDITIONAL(G313_WINDOWS, false)
         ],
         [
              AM_CONDITIONAL(G313_LINUX_GNU, false)
              AM_CONDITIONAL(G313_WINDOWS, false)
+             AC_DEFINE([OTHER_POSIX], [1], [Compilation on POSIX other than Linux])
         ])
 
 dnl If libdl is present, check for its header file.
