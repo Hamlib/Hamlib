@@ -537,10 +537,6 @@ int HAMLIB_API rig_open(RIG *rig)
           status = ser_set_dtr(&rs->pttport, RIG_PTT_OFF);
         else if (rs->pttport.type.ptt == RIG_PTT_SERIAL_RTS)
           status = ser_set_rts(&rs->pttport, RIG_PTT_OFF);
-        if (status != RIG_OK)
-          {
-            rig_debug(RIG_DEBUG_ERR, "%s: Cannot set serial control line - %s\n", __func__, strerror(errno));
-          }
       }
 	  break;
 	case RIG_PTT_PARALLEL:
