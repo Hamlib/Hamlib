@@ -524,7 +524,7 @@ int kenwood_open(RIG *rig)
            case last client left it on */
         kenwood_set_trn(rig, RIG_TRN_OFF); /* ignore status in case
                                               it's not supported */
-        
+
         return RIG_OK;
       }
 
@@ -2114,7 +2114,7 @@ int kenwood_set_trn(RIG *rig, int trn)
 		return -RIG_EINVAL;
 
 	return kenwood_simple_transaction(rig,
-		(trn == RIG_TRN_RIG) ? "AI1" : "AI0", 4);
+		(trn == RIG_TRN_RIG) ? "AI1" : "AI0", 0);
 }
 
 /*
