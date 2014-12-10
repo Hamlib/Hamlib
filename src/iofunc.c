@@ -505,16 +505,19 @@ int HAMLIB_API read_string(hamlib_port_t *p, char *rxbuffer, size_t rxmax, const
 
 	retval = port_select(p, p->fd+1, &rfds, NULL, &efds, &tv);
 	if (retval == 0) {
-		/* Record timeout time and caculate elapsed time */
-		gettimeofday(&end_time, NULL);
-		timersub(&end_time, &start_time, &elapsed_time);
+    if (0 == total_count) {
+      /* Record timeout time and caculate elapsed time */
+      gettimeofday(&end_time, NULL);
+      timersub(&end_time, &start_time, &elapsed_time);
 
-		dump_hex((unsigned char *) rxbuffer, total_count);
-		rig_debug(RIG_DEBUG_WARN, "%s(): Timed out %d.%d seconds after %d chars\n",
-			  __func__, elapsed_time.tv_sec, elapsed_time.tv_usec, total_count);
+      dump_hex((unsigned char *) rxbuffer, total_count);
+      rig_debug(RIG_DEBUG_WARN, "%s(): Timed out %d.%d seconds after %d chars\n",
+                __func__, elapsed_time.tv_sec, elapsed_time.tv_usec, total_count);
 
-		return -RIG_ETIMEOUT;
-	}
+      return -RIG_ETIMEOUT;
+    }
+    break;                      /* return what we have read */
+  }
 
 	if (retval < 0) {
 		dump_hex((unsigned char *) rxbuffer, total_count);
