@@ -1397,9 +1397,10 @@ int win32_serial_read( int fd, void *vb, int size )
           if (stat.cbInQue < index->ttyset->c_cc[VMIN])
             {
               /*
-                usleep(1000);
                 usleep(50);
               */
+              usleep(100);     /* don't hog the CPU while waiting */
+
               /* we should use -1 instead of 0 for disabled timeout */
               now = GetTickCount();
               if (index->ttyset->c_cc[VTIME] &&
@@ -3258,7 +3259,7 @@ int  win32_serial_select( int  n,  fd_set  *readfds,  fd_set  *writefds,
 		   this does happen.  loops ~twice on a 350 Mzh with
 		   usleep(1000000)
 		*/
-		usleep(10000);
+		/* usleep(10000); */
 		LEAVE( "serial_uselect" );
 		return(0);
 	}
@@ -3334,7 +3335,7 @@ int  win32_serial_select( int  n,  fd_set  *readfds,  fd_set  *writefds,
 	}
 end:
 	/*  You may want to chop this out for lower latency */
-	usleep(1000);
+	/* usleep(1000); */
 	LEAVE( "serial_select" );
 	return( 1 );
 timeout:
@@ -3361,7 +3362,7 @@ int  win32_serial_select( int  n,  fd_set  *readfds,  fd_set  *writefds,
 	ENTER( "serial_select" );
 	if ( fd <= 0 )
 	{
-		usleep(1000);
+		/* usleep(1000); */
 		return 1;
 	}
 	index = find_port( fd );
@@ -3376,7 +3377,7 @@ int  win32_serial_select( int  n,  fd_set  *readfds,  fd_set  *writefds,
 	}
 	while(!index->event_flag )
 	{
-		usleep(1000);
+		/* usleep(1000); */
 		return -1;
 	}
 
