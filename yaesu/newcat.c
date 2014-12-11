@@ -3941,9 +3941,15 @@ int newcat_vfomem_toggle(RIG * rig)
 }
 
 /*
- * Writes a null terminated command string in priv->cmd_str to the CAT
- * port and returns a response from the rig in priv->ret_data which is
- * also null terminated.
+ * Writes a null  terminated command string from  priv->cmd_str to the
+ * CAT  port and  returns a  response from  the rig  in priv->ret_data
+ * which is also null terminated.
+ *
+ * Honors the 'retry'  capabilities field by resending  the command up
+ * to 'retry' times until a valid response is received. In the special
+ * cases of receiving  a valid response to a different  command or the
+ * "?;" busy please wait response; the command is not resent but up to
+ * 'retry' retries to receive a valid response are made.
  */
 int newcat_get_cmd (RIG *rig)
 {
@@ -3951,46 +3957,55 @@ int newcat_get_cmd (RIG *rig)
   struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
   int retry_count = 0;
   int rc = -RIG_EPROTO;
-  int bytes_read;
 
   while (rc != RIG_OK && retry_count++ <= state->rigport.retry)
     {
-      /* send the command */
-      rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
-      if (RIG_OK != (rc = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str))))
+      if (rc != -RIG_BUSBUSY)
         {
-          return rc;
+          /* send the command */
+          rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
+          if (RIG_OK != (rc = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str))))
+            {
+              return rc;
+            }
         }
 
       /* read the reply */
-      if ((bytes_read = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data),
-                                    &cat_term, sizeof(cat_term))) <= 0)
+      if ((rc = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data),
+                            &cat_term, sizeof(cat_term))) <= 0)
         {
-          continue;             /* retry */
+          continue;             /* usually a timeout - retry */
         }
       rig_debug(RIG_DEBUG_TRACE, "%s: read count = %d, ret_data = %s\n",
-                __func__, bytes_read, priv->ret_data);
+                __func__, rc, priv->ret_data);
+      rc = RIG_OK;              /* received something */
 
-      /* Check that command termination is correct */
+      /* Check that command termination is correct - alternative is
+         response is longer that the buffer */
       if (!strchr(&cat_term, priv->ret_data[strlen(priv->ret_data) - 1]))
         {
           rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n",
                     __func__, priv->ret_data);
+          rc = -RIG_BUSBUSY;    /* don't write command again */
+                                /* we could decrement retry_count
+                                   here but there is a danger of
+                                   infinite looping so we just use up
+                                   a retry for safety's sake */
           continue;             /* retry */
         }
 
       /* check for error codes */
       if (2 == strlen(priv->ret_data))
         {
-          /* The following error responses are documented for Kenwood
-             but not for Yaesu, but at least one of them is known to
-             occur in that the FT-450 certainly responds to "IF;"
-             occasionally with "?;". The others are harmless even of
+          /* The following error responses  are documented for Kenwood
+             but not for  Yaesu, but at least one of  them is known to
+             occur  in that  the  FT-450 certainly  responds to  "IF;"
+             occasionally with  "?;". The others are  harmless even of
              they do not occur as they are unambiguous. */
           switch (priv->ret_data[0])
             {
             case 'N':
-              /* Command recognised by rig but invalid data entered. */
+              /* Command recognized by rig but invalid data entered. */
               rig_debug(RIG_DEBUG_VERBOSE, "%s: NegAck for '%s'\n", __func__, priv->cmd_str);
               return -RIG_ENAVAIL;
 
@@ -4007,11 +4022,12 @@ int newcat_get_cmd (RIG *rig)
               break;            /* retry */
 
             case '?':
-              /* Command not understood by rig */
-              rig_debug(RIG_DEBUG_ERR, "%s: Unknown command '%s' or rig busy\n", __func__, priv->cmd_str);
-              rc = -RIG_ERJCTED;
-              break;            /* retry */
+              /* Rig busy wait please */
+              rig_debug(RIG_DEBUG_ERR, "%s: Rig busy\n", __func__, priv->cmd_str);
+              rc = -RIG_BUSBUSY;
+              break;            /* retry read only */
             }
+          continue;
         }
 
       /* verify that reply was to the command we sent */
@@ -4024,7 +4040,7 @@ int newcat_get_cmd (RIG *rig)
            */
           rig_debug(RIG_DEBUG_ERR, "%s: wrong reply %.2s for command %.2s\n",
                     __func__, priv->ret_data, priv->cmd_str);
-          rc = -RIG_BUSBUSY;    /* retry */
+          rc = -RIG_BUSBUSY;    /* retry read only */
         }
     }
 
