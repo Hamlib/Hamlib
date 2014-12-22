@@ -114,16 +114,16 @@ static const struct kenwood_id_string kenwood_id_string_list[] = {
 };
 
 rmode_t kenwood_mode_table[KENWOOD_MODE_TABLE_MAX] = {
-	 [0] = RIG_MODE_NONE,
-	 [1] = RIG_MODE_LSB,
-	 [2] = RIG_MODE_USB,
-	 [3] = RIG_MODE_CW,
-	 [4] = RIG_MODE_FM,
-	 [5] = RIG_MODE_AM,
-	 [6] = RIG_MODE_RTTY,
-	 [7] = RIG_MODE_CWR,
-	 [8] = RIG_MODE_NONE,	/* TUNE mode */
-	 [9] = RIG_MODE_RTTYR
+	[0] = RIG_MODE_NONE,
+	[1] = RIG_MODE_LSB,
+	[2] = RIG_MODE_USB,
+	[3] = RIG_MODE_CW,
+	[4] = RIG_MODE_FM,
+	[5] = RIG_MODE_AM,
+	[6] = RIG_MODE_RTTY,
+	[7] = RIG_MODE_CWR,
+	[8] = RIG_MODE_NONE,	/* TUNE mode */
+	[9] = RIG_MODE_RTTYR
 };
 
 /*
@@ -395,10 +395,13 @@ char rmode2kenwood(rmode_t mode, const rmode_t mode_table[])
 
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	for(i = 0; i < KENWOOD_MODE_TABLE_MAX; i++) {
-		if (mode_table[i] == mode)
-			return i;
-	}
+  if (mode != RIG_MODE_NONE)
+    {
+      for(i = 0; i < KENWOOD_MODE_TABLE_MAX; i++) {
+        if (mode_table[i] == mode)
+          return i;
+      }
+    }
 	return -1;
 }
 
