@@ -27,23 +27,23 @@
 #include <string.h>
 #include "token.h"
 
-#define BACKEND_VER	"0.8"
+#define BACKEND_VER "0.9"
 
 #define EOM_KEN ';'
 #define EOM_TH '\r'
 
-#define KENWOOD_MODE_TABLE_MAX	10
-#define KENWOOD_MAX_BUF_LEN		50 /* max answer len, arbitrary */
+#define KENWOOD_MODE_TABLE_MAX  10
+#define KENWOOD_MAX_BUF_LEN   50 /* max answer len, arbitrary */
 
 
 /* Tokens for Parameters common to multiple rigs.
  * Use token # >= 1 or <= 100.  Defined here so they will be
  * available in Kenwood name space.
  */
-#define TOK_VOICE	TOKEN_BACKEND(1)
-#define TOK_FINE	TOKEN_BACKEND(2)
-#define TOK_XIT		TOKEN_BACKEND(3)
-#define TOK_RIT		TOKEN_BACKEND(4)
+#define TOK_VOICE TOKEN_BACKEND(1)
+#define TOK_FINE  TOKEN_BACKEND(2)
+#define TOK_XIT   TOKEN_BACKEND(3)
+#define TOK_RIT   TOKEN_BACKEND(4)
 
 /* Token structure assigned to .cfgparams in rig_caps */
 extern const struct confparams kenwood_cfg_params[];
@@ -63,19 +63,19 @@ extern const struct confparams kenwood_cfg_params[];
 #define MD_FSKR '9'
 
 struct kenwood_priv_caps {
-    char cmdtrm;		/* Command termination chars (ken=';' or th='\r') */
-    int if_len;			/* length of IF; anwser */
+    char cmdtrm;    /* Command termination chars (ken=';' or th='\r') */
+    int if_len;     /* length of IF; anwser */
     rmode_t *mode_table;
 };
 
 struct kenwood_priv_data {
     char info[KENWOOD_MAX_BUF_LEN];
-    split_t split;		/* current split state */
-    int k2_ext_lvl;		/* Initial K2 extension level */
-    int k3_ext_lvl;		/* Initial K3 extension level */
-    int k2_md_rtty;		/* K2 RTTY mode available flag, 1 = RTTY, 0 = N/A */
-    char *fw_rev;		/* firmware revision level */
-    unsigned fw_rev_uint;	/* firmware revison as a number 1.07 -> 107 */
+    split_t split;    /* current split state */
+    int k2_ext_lvl;   /* Initial K2 extension level */
+    int k3_ext_lvl;   /* Initial K3 extension level */
+    int k2_md_rtty;   /* K2 RTTY mode available flag, 1 = RTTY, 0 = N/A */
+    char *fw_rev;   /* firmware revision level */
+    unsigned fw_rev_uint; /* firmware revison as a number 1.07 -> 107 */
 };
 
 
@@ -88,9 +88,9 @@ extern const tone_t kenwood38_ctcss_list[];
 extern const tone_t kenwood42_ctcss_list[];
 
 int kenwood_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
-				size_t *data_len);
+        size_t *data_len);
 int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
-				size_t buf_size, size_t expected);
+        size_t buf_size, size_t expected);
 
 rmode_t kenwood2rmode(unsigned char mode, const rmode_t mode_table[]);
 char rmode2kenwood(rmode_t mode, const rmode_t mode_table[]);
@@ -199,27 +199,27 @@ extern const struct rig_caps f6k_caps;
 /* use when not interested in the answer, but want to check its len */
 static int inline kenwood_simple_transaction(RIG *rig, const char *cmd, size_t expected)
 {
-	char buf[20];
-	return kenwood_safe_transaction(rig, cmd, buf, sizeof(buf), expected);
+  char buf[20];
+  return kenwood_safe_transaction(rig, cmd, buf, sizeof(buf), expected);
 }
 
 /* no answer needed at all */
 static int inline kenwood_simple_cmd(RIG *rig, const char *cmd)
 {
-	char buf[20];
-	return kenwood_safe_transaction(rig, cmd, buf, sizeof(buf), 0);
+  char buf[20];
+  return kenwood_safe_transaction(rig, cmd, buf, sizeof(buf), 0);
 }
 
 /* answer is the same as the command */
 static int inline kenwood_cmd(RIG *rig, const char *cmd)
 {
-	char buf[20];
-	int lenz = strlen(cmd)+1;
+  char buf[20];
+  int lenz = strlen(cmd)+1;
 
-	if (lenz > sizeof(buf))
-	  return -RIG_ENOMEM;
-	else
-	  return kenwood_safe_transaction(rig, cmd, buf, sizeof(buf), lenz);
+  if (lenz > sizeof(buf))
+    return -RIG_ENOMEM;
+  else
+    return kenwood_safe_transaction(rig, cmd, buf, sizeof(buf), lenz);
 }
 
 #endif /* _KENWOOD_H */
