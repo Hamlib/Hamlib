@@ -30,8 +30,6 @@
 
 #include <hamlib/rig.h>
 #include "kenwood.h"
-#include "ic10.h"
-
 
 #define TS570_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
 #define TS570_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
@@ -710,8 +708,8 @@ const struct rig_caps ts570s_caps = {
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  30,
-.timeout = 1000,
-.retry =  3,
+.timeout = 400,
+.retry =  5,
 
 .has_get_func =  TS570_FUNC_ALL,
 .has_set_func =  TS570_FUNC_ALL,
@@ -825,7 +823,7 @@ const struct rig_caps ts570s_caps = {
 .rig_init = kenwood_init,
 .rig_cleanup = kenwood_cleanup,
 .set_freq =  kenwood_set_freq,
-.get_freq =  ic10_get_freq,
+.get_freq =  kenwood_get_freq_if,
 .set_rit =  ts570_set_rit,
 .get_rit =  kenwood_get_rit,
 .set_xit =  ts570_set_xit,
@@ -889,8 +887,8 @@ const struct rig_caps ts570d_caps = {
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  30,
-.timeout =  1000,
-.retry =  3,
+.timeout = 400,
+.retry =  5,
 
 .has_get_func =  TS570_FUNC_ALL,
 .has_set_func =  TS570_FUNC_ALL,
@@ -1009,7 +1007,7 @@ const struct rig_caps ts570d_caps = {
 .rig_init = kenwood_init,
 .rig_cleanup = kenwood_cleanup,
 .set_freq =  kenwood_set_freq,
-.get_freq =  ic10_get_freq,
+.get_freq =  kenwood_get_freq_if,
 .set_rit =  ts570_set_rit,
 .get_rit =  kenwood_get_rit,
 .set_xit =  ts570_set_xit,

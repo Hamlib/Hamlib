@@ -197,7 +197,7 @@ th_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	freq_sent = freq_sent >= MHz(470) ? (round(freq_sent/10000)*10000) : freq_sent;
 	sprintf(buf, "FQ %011"PRIll",%X", (int64_t) freq_sent, step);
 
-	return kenwood_cmd(rig, buf);
+	return kenwood_simple_cmd(rig, buf);
 }
 
 /*
@@ -270,7 +270,7 @@ th_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 	sprintf(mdbuf, "MD %c", kmode);
 
-	retval = kenwood_cmd(rig, mdbuf);
+	retval = kenwood_simple_cmd(rig, mdbuf);
 	if (retval != RIG_OK)
 		return retval;
 
@@ -403,7 +403,7 @@ th_set_vfo(RIG *rig, vfo_t vfo)
 		return kenwood_wrong_vfo(__func__, vfo);
 	}
 
-	return kenwood_cmd(rig, cmd);
+	return kenwood_simple_cmd(rig, cmd);
 }
 
 int
@@ -548,7 +548,7 @@ int tm_set_vfo_bc2 (RIG *rig, vfo_t vfo)
 	}
 
 	sprintf(vfobuf, "VMC %d,%d", vfonum, vfomode);
-	retval = kenwood_cmd(rig, vfobuf);
+	retval = kenwood_simple_cmd(rig, vfobuf);
 	if (retval != RIG_OK)
         return retval;
 
@@ -556,7 +556,7 @@ int tm_set_vfo_bc2 (RIG *rig, vfo_t vfo)
         return RIG_OK;
 
     sprintf(vfobuf, "BC %d,%d", vfonum, txvfonum);
-    retval = kenwood_cmd(rig, vfobuf);
+    retval = kenwood_simple_cmd(rig, vfobuf);
 	if (retval != RIG_OK)
         return retval;
 
@@ -599,12 +599,12 @@ int th_set_split_vfo (RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 
     /* Set VFO mode. To be done for TX vfo also? */
 	sprintf(vfobuf, "VMC %d,0", vfonum);
-	retval = kenwood_cmd(rig, vfobuf);
+	retval = kenwood_simple_cmd(rig, vfobuf);
 	if (retval != RIG_OK)
         return retval;
 
     sprintf(vfobuf, "BC %d,%d", vfonum, txvfonum);
-    retval = kenwood_cmd(rig, vfobuf);
+    retval = kenwood_simple_cmd(rig, vfobuf);
 	if (retval != RIG_OK)
         return retval;
 
@@ -652,7 +652,7 @@ int th_get_split_vfo (RIG *rig, vfo_t vfo, split_t *split, vfo_t *txvfo)
 int
 th_set_trn(RIG *rig, int trn)
 {
-	return kenwood_cmd(rig, (trn == RIG_TRN_RIG) ? "AI 1" : "AI 0");
+	return kenwood_simple_cmd(rig, (trn == RIG_TRN_RIG) ? "AI 1" : "AI 0");
 }
 
 /*
@@ -747,7 +747,7 @@ th_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
 static int th_tburst(RIG *rig, vfo_t vfo, int status)
 {
-	return kenwood_cmd(rig, (status == 1) ? "TT" : "RX");
+	return kenwood_simple_cmd(rig, (status == 1) ? "TT" : "RX");
 }
 
 /*
@@ -766,7 +766,7 @@ static int th_set_kenwood_func(RIG *rig, const char *cmd, int status)
 	buf[BUFSZ-1] = '\0';
 	strncat(buf, status ? " 1" : " 0", BUFSZ-1);
 
-	return kenwood_cmd(rig, buf);
+	return kenwood_simple_cmd(rig, buf);
 }
 
 
@@ -901,11 +901,11 @@ th_set_parm(RIG *rig, setting_t parm, value_t val)
 
 	case RIG_PARM_APO:
 		if (val.i > 30)
-			return kenwood_cmd(rig, "APO 2");
+			return kenwood_simple_cmd(rig, "APO 2");
 		else if (val.i > 0)
-			return kenwood_cmd(rig, "APO 1");
+			return kenwood_simple_cmd(rig, "APO 1");
 		else
-			return kenwood_cmd(rig, "APO 0");
+			return kenwood_simple_cmd(rig, "APO 0");
 
 	default:
 		rig_debug(RIG_DEBUG_ERR, "%s: Unsupported parm %#x\n", __func__, parm);
@@ -1089,29 +1089,29 @@ int th_set_level (RIG *rig, vfo_t vfo, setting_t level, value_t val)
 			(int)(val.f*(rig->caps->level_gran[LVL_RFPOWER].max.i - rig->caps->level_gran[LVL_RFPOWER].min.i))
 			+ rig->caps->level_gran[LVL_RFPOWER].min.i);
 
-		return kenwood_cmd(rig, buf);
+		return kenwood_simple_cmd(rig, buf);
 
 	case RIG_LEVEL_SQL :
 		sprintf(buf, "SQ %c,%02x", vch,
 			(int)(val.f*(rig->caps->level_gran[LVL_SQL].max.i-rig->caps->level_gran[LVL_SQL].min.i))
 			+ rig->caps->level_gran[LVL_SQL].min.i);
-		return kenwood_cmd(rig, buf);
+		return kenwood_simple_cmd(rig, buf);
 
 	case RIG_LEVEL_AF :
 		sprintf(buf, "AG %c,%02x", vch, (int)(val.f * 32.0));
-		return kenwood_cmd(rig, buf);
+		return kenwood_simple_cmd(rig, buf);
 
 	case RIG_LEVEL_ATT :
 		sprintf(buf, "ATT %c", val.i ? '1' : '0');
-		return kenwood_cmd(rig, buf);
+		return kenwood_simple_cmd(rig, buf);
 
 	case RIG_LEVEL_BALANCE :
 		sprintf(buf, "BAL %c", '4' - (int) (val.f * ('4'-'0')));
-		return kenwood_cmd(rig, buf);
+		return kenwood_simple_cmd(rig, buf);
 
 	case RIG_LEVEL_VOXGAIN:
 		sprintf(buf, "VXG %d", (int) (val.f * 9));
-		return kenwood_cmd(rig, buf);
+		return kenwood_simple_cmd(rig, buf);
 
 	case RIG_LEVEL_VOXDELAY: /* "VXD" */
 		return -RIG_ENIMPL;
@@ -1501,7 +1501,7 @@ th_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
 	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-	return kenwood_cmd(rig, (ptt == RIG_PTT_ON) ? "TX" : "RX");
+	return kenwood_simple_cmd(rig, (ptt == RIG_PTT_ON) ? "TX" : "RX");
 }
 
 int th_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
@@ -1558,13 +1558,13 @@ int th_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 
 	switch (op) {
 	case RIG_OP_UP:
-	   	return kenwood_cmd(rig, "UP");
+		return kenwood_simple_cmd(rig, "UP");
 
 	case RIG_OP_DOWN:
-	   	return kenwood_cmd(rig, "DW");
+		return kenwood_simple_cmd(rig, "DW");
 
 	case RIG_OP_TO_VFO:
-	   	return kenwood_cmd(rig, "MSH");
+		return kenwood_simple_cmd(rig, "MSH");
 
 	default:
 		return -RIG_EINVAL;
@@ -2037,7 +2037,7 @@ int th_set_ant(RIG * rig, vfo_t vfo, ant_t ant)
 		return -RIG_EINVAL;
 	}
 
-	return kenwood_cmd(rig, cmd);
+	return kenwood_simple_cmd(rig, cmd);
 }
 
 

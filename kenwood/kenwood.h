@@ -199,27 +199,14 @@ extern const struct rig_caps f6k_caps;
 /* use when not interested in the answer, but want to check its len */
 static int inline kenwood_simple_transaction(RIG *rig, const char *cmd, size_t expected)
 {
-  char buf[20];
-  return kenwood_safe_transaction(rig, cmd, buf, sizeof(buf), expected);
+  struct kenwood_priv_data *priv = rig->state.priv;
+  return kenwood_safe_transaction(rig, cmd, priv->info, KENWOOD_MAX_BUF_LEN, expected);
 }
 
 /* no answer needed at all */
 static int inline kenwood_simple_cmd(RIG *rig, const char *cmd)
 {
-  char buf[20];
-  return kenwood_safe_transaction(rig, cmd, buf, sizeof(buf), 0);
-}
-
-/* answer is the same as the command */
-static int inline kenwood_cmd(RIG *rig, const char *cmd)
-{
-  char buf[20];
-  int lenz = strlen(cmd)+1;
-
-  if (lenz > sizeof(buf))
-    return -RIG_ENOMEM;
-  else
-    return kenwood_safe_transaction(rig, cmd, buf, sizeof(buf), lenz);
+  return kenwood_safe_transaction(rig, cmd, NULL, 0, 0);
 }
 
 #endif /* _KENWOOD_H */

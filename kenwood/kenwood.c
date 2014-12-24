@@ -205,6 +205,7 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, int cmd_len,
   int len;
   int retry_read = 0;
   int reply_expected = data && *datasize > 0;
+  size_t length = *datasize;
   static char const verify[] = "AI;"; /* command we can always send
                                          to any rig even when the rig
                                          is busy */
@@ -235,6 +236,8 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, int cmd_len,
     len++;
   }
 
+  *datasize = length;           /* reset as may be a retry */
+
   serial_flush(&rs->rigport);
   retval = write_block(&rs->rigport, cmd, len);
 
@@ -256,7 +259,7 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, int cmd_len,
 
   retval = read_string(&rs->rigport, priv->info, reply_expected ? *datasize : strlen (verify) + 2, cmdtrm, strlen(cmdtrm));
   if (retval < 0) {
-    if (retry_read++ < rig->state.rigport.retry)
+    if (retry_read++ < rig->caps->retry)
       goto transaction_write;
     goto transaction_quit;
   }
@@ -264,7 +267,7 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, int cmd_len,
   /* Check that command termination is correct */
   if (strchr(cmdtrm, priv->info[strlen(priv->info)-1])==NULL) {
     rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n", __func__, priv->info);
-    if (retry_read++ < rig->state.rigport.retry)
+    if (retry_read++ < rig->caps->retry)
       goto transaction_write;
     retval = -RIG_EPROTO;
     goto transaction_quit;
@@ -280,22 +283,26 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, int cmd_len,
     case 'O':
       /* Too many characters sent without a carriage return */
       rig_debug(RIG_DEBUG_VERBOSE, "%s: Overflow for '%s'\n", __func__, cmdstr);
-      if (retry_read++ < rig->state.rigport.retry)
+      if (retry_read++ < rig->caps->retry)
         goto transaction_write;
       retval = -RIG_EPROTO;
       goto transaction_quit;
     case 'E':
       /* Communication error */
       rig_debug(RIG_DEBUG_VERBOSE, "%s: Communication error for '%s'\n", __func__, cmdstr);
-      if (retry_read++ < rig->state.rigport.retry)
+      if (retry_read++ < rig->caps->retry)
         goto transaction_write;
       retval = -RIG_EIO;
       goto transaction_quit;
     case '?':
-      /* Command not understood by rig */
-      rig_debug(RIG_DEBUG_ERR, "%s: Unknown command '%s'\n", __func__, cmdstr);
-      if (retry_read++ < rig->state.rigport.retry)
-        goto transaction_write;
+      /* Command not understood by rig or rig busy */
+      rig_debug(RIG_DEBUG_ERR, "%s: Unknown command or rig busy '%s'\n", __func__, cmdstr);
+      if (retry_read++ < rig->caps->retry)
+        {
+          rig_debug(RIG_DEBUG_ERR, "%s: Retrying shortly\n", __func__);
+          usleep (rig->caps->timeout * 1000);
+          goto transaction_write;
+        }
       retval = -RIG_ERJCTED;
       goto transaction_quit;
     }
@@ -317,15 +324,13 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, int cmd_len,
     rig_debug(RIG_DEBUG_ERR, "%s: wrong reply %c%c for command %c%c\n",
               __func__, priv->info[0], priv->info[1], cmdstr[0], cmdstr[1]);
 
-    if (retry_read++ < rig->state.rigport.retry)
-      goto transaction_write;
+          if (retry_read++ < rig->caps->retry)
+            goto transaction_write;
 
-    retval =  -RIG_EPROTO;
-    goto transaction_quit;
-  }
+          retval =  -RIG_EPROTO;
+          goto transaction_quit;
+        }
 
-  if (reply_expected)
-    {
       /* always give back a null terminated string without
        * the command terminator.
        */
@@ -368,26 +373,35 @@ int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
 {
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  if (!rig || !buf)
+  if (!rig || !cmd)
     return -RIG_EINVAL;
 
   int err;
+  int retry = 0;
 
   if (expected == 0)
     buf_size = 0;
 
-  err = kenwood_transaction(rig, cmd, strlen(cmd), buf, &buf_size);
-  if (err != RIG_OK)
-    return err;
+  do
+    {
+      size_t length = buf_size;
+      err = kenwood_transaction(rig, cmd, strlen(cmd), buf, &length);
+      if (err != RIG_OK)        /* return immediately on error as any
+                                   retries handled at lower level */
+        return err;
 
-  if (buf_size != expected) {
-    rig_debug(RIG_DEBUG_ERR, "%s: wrong answer; len for cmd %s: "
-          "expected = %d, got %d\n",
-          __func__, cmd, expected, buf_size);
-    return -RIG_EPROTO;
-  }
+      if (length != expected) /* worth retrying as some rigs
+                                   occasionally send short results */
+        {
+          rig_debug(RIG_DEBUG_ERR, "%s: wrong answer; len for cmd %s: "
+                    "expected = %d, got %d\n",
+                    __func__, cmd, expected, length);
+          err =  -RIG_EPROTO;
+          usleep (rig->caps->timeout * 1000);
+        }
+    } while (err != RIG_OK && ++retry < rig->caps->retry);
 
-  return RIG_OK;
+  return err;
 }
 
 rmode_t kenwood2rmode(unsigned char mode, const rmode_t mode_table[])
