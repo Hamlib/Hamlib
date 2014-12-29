@@ -503,18 +503,13 @@ int k2_probe_mdfw(RIG *rig, struct kenwood_priv_data *priv)
 
 	/* First try to put the K2 into RTTY mode and check if it's available. */
 	err = kenwood_simple_cmd(rig, "MD6");
-	if (err != RIG_OK)
+	if (err != RIG_OK && err != -RIG_ERJCTED)
 		return err;
 
-	/* Check for mode and test to see if K2 reports RTTY. */
-	err = kenwood_safe_transaction(rig, "MD", buf, KENWOOD_MAX_BUF_LEN, 4);
-	if (err != RIG_OK)
-		return err;
-
-	if (strcmp("MD6", buf) == 0)
-		priv->k2_md_rtty = 1;		/* set flag for RTTY mode installed */
+	if (-RIG_ERJCTED == err)
+		priv->k2_md_rtty = 0;		/* set flag for RTTY mode installed */
 	else
-		priv->k2_md_rtty = 0;		/* RTTY module not installed */
+		priv->k2_md_rtty = 1;		/* RTTY module not installed */
 	rig_debug(RIG_DEBUG_VERBOSE, "%s: RTTY flag is: %d\n", __func__, priv->k2_md_rtty);
 
 	i = (priv->k2_md_rtty == 1) ? 2 : 1;
