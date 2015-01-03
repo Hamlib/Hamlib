@@ -169,6 +169,7 @@ extern const struct rig_caps ts930_caps;
 extern const struct rig_caps ts2000_caps;
 extern const struct rig_caps k2_caps;
 extern const struct rig_caps k3_caps;
+extern const struct rig_caps xg3_caps;
 extern const struct rig_caps trc80_caps;
 
 extern const struct rig_caps thd7a_caps;

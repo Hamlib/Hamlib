@@ -26,6 +26,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "serial.h"
 #include "elecraft.h"
 #include "kenwood.h"
 
@@ -110,10 +111,38 @@ int elecraft_open(RIG *rig)
 	priv->fw_rev = k3_fw_rev;
 
 	/* Use check for "ID017;" to verify rig is reachable */
-	err = verify_kenwood_id(rig, id);
-	if (err != RIG_OK)
-		return err;
+	rig_debug(RIG_DEBUG_TRACE, "%s: rig_model=%d,%d\n", __func__,rig->caps->rig_model,RIG_MODEL_XG3);
+	if (rig->caps->rig_model == RIG_MODEL_XG3) { // XG3 doesn't have ID
+		struct rig_state *rs = &rig->state;
+		char *cmd = "V;";
+		char data[32];
 
+		strcpy(data,"EMPTY");
+		// Not going to get carried away with retries and such
+		err = write_block(&rs->rigport, cmd, strlen(cmd));
+		if (err != RIG_OK) {
+			rig_debug(RIG_DEBUG_TRACE, "%s: XG3 cannot request identification\n", __func__);
+			return err;
+		}
+		err = read_string(&rs->rigport, id, sizeof(id), ";", 1);
+		if (err < 0) {
+			rig_debug(RIG_DEBUG_TRACE, "%s: XG3 cannot get identification\n", __func__);
+			return err;
+		}
+
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: id=%s\n", __func__,id);
+#if 0
+		if (err != RIG_OK) {
+			rig_debug(RIG_DEBUG_TRACE, "%s: cannot get identification\n", __func__);
+			return err;
+		}
+#endif
+	}
+	else { // Standard Kenwood
+		err = verify_kenwood_id(rig, id);
+		if (err != RIG_OK)
+			return err;
+	}
 	switch(rig->caps->rig_model) {
 	case RIG_MODEL_K2:
 		err = elecraft_get_extension_level(rig, "K2", &priv->k2_ext_lvl);
@@ -145,6 +174,10 @@ int elecraft_open(RIG *rig)
 		if (err != RIG_OK)
 			return err;
 
+		break;
+	case RIG_MODEL_XG3:
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: XG3 level is %d, %s\n", __func__,
+			priv->k3_ext_lvl, elec_ext_id_str_lst[priv->k3_ext_lvl].id);
 		break;
 	default:
 		rig_debug(RIG_DEBUG_WARN, "%s: unrecognized rig model %d\n",

@@ -311,7 +311,7 @@ transaction_write:
 	 * Check that we received the correct reply. The first two characters
 	 * should be the same as command.
 	 */
-	if (cmdstr && (data[0] != cmdstr[0] || data[1] != cmdstr[1])) {
+	if (cmdstr && (data[0] != cmdstr[0] || (cmdstr[1] != '\0' && data[1] != cmdstr[1]))) {
 		/*
 		 * TODO: When RIG_TRN is enabled, we can pass the string
 		 * to the decoder for callback. That way we don't ignore
@@ -2737,6 +2737,7 @@ DECLARE_INITRIG_BACKEND(kenwood)
 	rig_register(&trc80_caps);
 	rig_register(&k2_caps);
 	rig_register(&k3_caps);
+	rig_register(&xg3_caps);
 
 	rig_register(&ts440_caps);
 	rig_register(&ts940_caps);

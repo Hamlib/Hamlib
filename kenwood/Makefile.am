@@ -1,6 +1,6 @@
 
 TSSRC = ts850.c ts870s.c ts570.c ts450s.c ts950.c ts50s.c \
-	ts790.c ts2000.c k2.c k3.c ts930.c \
+	ts790.c ts2000.c k2.c k3.c xg3.c ts930.c \
 	ts680.c ts690.c ts140.c ts480.c trc80.c ts590.c \
 	flex6xxx.c
 

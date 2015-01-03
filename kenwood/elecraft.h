@@ -36,7 +36,8 @@ enum elec_ext_id_e {
 	K22,		/* K2 Extended mode */
 	K23,		/* K2 Extended mode/rtty_off */
 	K30,		/* K3 Normal mode */
-	K31		/* K3 Extended mode */
+	K31,		/* K3 Extended mode */
+	XG3		/* XG3 */
 };
 
 struct elec_ext_id_str {
