@@ -206,7 +206,7 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, int cmd_len,
   int retry_read = 0;
   int reply_expected = data && *datasize > 0;
   size_t length = *datasize;
-  static char const verify[] = "AI;"; /* command we can always send
+  static char const verify[] = "ID;"; /* command we can always send
                                          to any rig even when the rig
                                          is busy */
 
@@ -257,7 +257,7 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, int cmd_len,
     }
   }
 
-  retval = read_string(&rs->rigport, priv->info, reply_expected ? *datasize : strlen (verify) + 2, cmdtrm, strlen(cmdtrm));
+  retval = read_string(&rs->rigport, priv->info, reply_expected ? *datasize : strlen (verify) + 5, cmdtrm, strlen(cmdtrm));
   if (retval < 0) {
     if (retry_read++ < rig->caps->retry)
       goto transaction_write;
