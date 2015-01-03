@@ -132,8 +132,8 @@ const struct rig_caps k2_caps = {
 	.serial_handshake =	RIG_HANDSHAKE_NONE,
 	.write_delay =		0,	/* Timing between bytes */
 	.post_write_delay =	100,	/* Timing between command strings */
-	.timeout =		600,	/* FA and FB make take up to 500 ms on band change */
-	.retry =		3,
+	.timeout =		2000,	/* FA and FB make take up to 500 ms on band change */
+	.retry =		10,
 
 	.has_get_func =		K2_FUNC_ALL,
 	.has_set_func =		K2_FUNC_ALL,
