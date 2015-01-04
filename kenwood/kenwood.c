@@ -650,7 +650,8 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
 
   sprintf(cmdbuf, "FR%c", vfo_function);
 
-  if (rig->caps->rig_model == RIG_MODEL_TS50)
+  if (rig->caps->rig_model == RIG_MODEL_TS50
+      || rig->caps->rig_model == RIG_MODEL_TS940)
     {
       cmdbuf[1] = 'N';
     }
@@ -801,14 +802,15 @@ int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split, vfo_t *txvfo
   priv->split = *split;
 
   /* find where is the txvfo.. */
+  int transmitting = '1' == priv->info[28];
   switch (priv->info[30])
     {
     case '0':
-      *txvfo = (*split) ? RIG_VFO_B : RIG_VFO_A;
+      *txvfo = (*split && !transmitting) ? RIG_VFO_B : RIG_VFO_A;
     break;
 
     case '1':
-      *txvfo = (*split) ? RIG_VFO_A : RIG_VFO_B;
+      *txvfo = (*split && !transmitting) ? RIG_VFO_A : RIG_VFO_B;
     break;
 
     case '2':
@@ -2395,7 +2397,12 @@ int kenwood_get_channel(RIG *rig, channel_t *chan)
   struct kenwood_priv_caps *caps = kenwood_caps(rig);
 
   /* put channel num in the command string */
-  sprintf(cmd, "MR0 %02d", chan->channel_num);
+  char bank = ' ';
+  if (rig->caps->rig_model == RIG_MODEL_TS940)
+    {
+      bank = '0' + chan->bank_num;
+    }
+  sprintf(cmd, "MR0%c%02d", bank, chan->channel_num);
 
   err = kenwood_safe_transaction(rig, cmd, buf, 26, 24);
   if (err != RIG_OK)
@@ -2406,7 +2413,7 @@ int kenwood_get_channel(RIG *rig, channel_t *chan)
   chan->vfo = RIG_VFO_VFO;
 
   /* MR0 1700005890000510   ;
-   * MRs ccfffffffffffMLTtt ;
+   * MRsbccfffffffffffMLTtt ;
    */
 
   /* parse from right to left */
@@ -2439,6 +2446,10 @@ int kenwood_get_channel(RIG *rig, channel_t *chan)
   buf[6] = '\0';
   chan->channel_num = atoi(&buf[4]);
 
+  if (buf[3] >= '0' && buf[3] <= '9')
+    {
+      chan->bank_num = buf[3] - '0';
+    }
 
   /* split freq */
   cmd[2] = '1';
@@ -2504,25 +2515,34 @@ int kenwood_set_channel(RIG *rig, const channel_t *chan)
       tone = 0;
   }
 
-  sprintf(buf, "MW0 %02d%011d%c%c%c%02d ", /* note the space at the end */
-    chan->channel_num,
-    (int) chan->freq,
-    '0' + mode,
-    (chan->flags & RIG_CHFLAG_SKIP) ? '1' : '0',
-    chan->ctcss_tone ? '1' : '0',
-    chan->ctcss_tone ? (tone + 1) : 0);
+  char bank = ' ';
+  if (rig->caps->rig_model == RIG_MODEL_TS940)
+    {
+      bank = '0' + chan->bank_num;
+    }
+
+  sprintf(buf, "MW0%c%02d%011"PRIll"%c%c%c%02d ", /* note the space at
+                                                     the end */
+          bank,
+          chan->channel_num,
+          (int64_t)chan->freq,
+          '0' + mode,
+          (chan->flags & RIG_CHFLAG_SKIP) ? '1' : '0',
+          chan->ctcss_tone ? '1' : '0',
+          chan->ctcss_tone ? (tone + 1) : 0);
 
   err = kenwood_simple_cmd(rig, buf);
   if (err != RIG_OK)
     return err;
 
-  sprintf(buf, "MW1 %02d%011d%c%c%c%02d ",
-    chan->channel_num,
-    (chan->split == RIG_SPLIT_ON) ? ((int) chan->tx_freq) : 0,
-    (chan->split == RIG_SPLIT_ON) ? ('0' + tx_mode) : '0',
-    (chan->flags & RIG_CHFLAG_SKIP) ? '1' : '0',
-    chan->ctcss_tone ? '1' : '0',
-    chan->ctcss_tone ? (tone + 1) : 0);
+  sprintf(buf, "MW1%c%02d%011"PRIll"%c%c%c%02d ",
+          bank,
+          chan->channel_num,
+          (int64_t)(chan->split == RIG_SPLIT_ON ? chan->tx_freq : 0),
+          (chan->split == RIG_SPLIT_ON) ? ('0' + tx_mode) : '0',
+          (chan->flags & RIG_CHFLAG_SKIP) ? '1' : '0',
+          chan->ctcss_tone ? '1' : '0',
+          chan->ctcss_tone ? (tone + 1) : 0);
 
   return kenwood_simple_cmd(rig, buf);
 }
