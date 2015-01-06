@@ -279,6 +279,18 @@
 #define ROT_BACKEND_ETHER6 "ether6"
 #define ROT_MODEL_ETHER6 ROT_MAKE_MODEL(ROT_ETHER6, 1)
 
+
+/*! \def ROT_MODEL_CNCTRK
+ *  \brief A macro that returns the model number of the CNCTRK backend.
+ *
+ *  The CNCTRK backend can be used with rotators that support,
+ *  the LinuxCNC running Axis GUI interface.
+ */
+#define ROT_CNCTRK 16
+#define ROT_BACKEND_CNCTRK "cnctrk"
+#define ROT_MODEL_CNCTRK ROT_MAKE_MODEL(ROT_CNCTRK, 1)
+
+
 /*! \typedef typedef int rot_model_t
     \brief Convenience type definition for rotator model.
 */
