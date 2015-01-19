@@ -185,10 +185,13 @@ int elecraft_open(RIG *rig)
 		return -RIG_EINVAL;
 	}
 
-  /* Currently we cannot cope with AI mode so turn it off in case last
-     client left it on */
-  kenwood_set_trn(rig, RIG_TRN_OFF); /* ignore status in case it's not
-                                        supported */
+	if (RIG_MODEL_XG3 != rig->caps->rig_model)
+		{
+			/* currently we cannot cope with AI mode so turn it off in case
+				 last client left it on */
+			kenwood_set_trn(rig, RIG_TRN_OFF); /* ignore status in case it's
+																						not supported */
+		}
 
 	return RIG_OK;
 }

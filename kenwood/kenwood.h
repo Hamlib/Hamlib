@@ -76,6 +76,7 @@ struct kenwood_priv_data {
     int k2_md_rtty;   /* K2 RTTY mode available flag, 1 = RTTY, 0 = N/A */
     char *fw_rev;   /* firmware revision level */
     unsigned fw_rev_uint; /* firmware revison as a number 1.07 -> 107 */
+    void * data;          /* model specific data */
 };
 
 

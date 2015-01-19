@@ -206,9 +206,12 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, int cmd_len,
   int retry_read = 0;
   int reply_expected = data && *datasize > 0;
   size_t length = *datasize;
-  static char const verify[] = "ID;"; /* command we can always send
-                                         to any rig even when the rig
-                                         is busy */
+  static char const std_verify[] = "ID;"; /* command we can always
+                                             send to any rig even when
+                                             the rig is busy */
+  static char const shrt_verify[] = ";"; /* alternate short verify
+                                            command XG3 etc. */
+  char const * verify = ',' == cmdstr[1] ? shrt_verify : std_verify;
 
   rs = &rig->state;
   rs->hold_decode = 1;
@@ -314,15 +317,17 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, int cmd_len,
    * single character commands we only check the first character in
    * that case.
    */
-  if (!(reply_expected && priv->info[0] == cmdstr[0] && (cmdstr[1] == '\0' || priv->info[1] == cmdstr[1]))
-      || (!reply_expected && verify[0] == priv->info[0] && (verify[1] == '\0' || verify[1] == priv->info[1]))) {
-    /*
-     * TODO: When RIG_TRN is enabled, we can pass the string
-     * to the decoder for callback. That way we don't ignore
-     * any commands.
-     */
-    rig_debug(RIG_DEBUG_ERR, "%s: wrong reply %c%c for command %c%c\n",
-              __func__, priv->info[0], priv->info[1], cmdstr[0], cmdstr[1]);
+  if (reply_expected)
+    {
+      if (priv->info[0] != cmdstr[0] || (cmdstr[1] && priv->info[1] != cmdstr[1]))
+        {
+          /*
+           * TODO: When RIG_TRN is enabled, we can pass the string to
+           * the decoder for callback. That way we don't ignore any
+           * commands.
+           */
+          rig_debug(RIG_DEBUG_ERR, "%s: wrong reply %c%c for command %c%c\n",
+                    __func__, priv->info[0], priv->info[1], cmdstr[0], cmdstr[1]);
 
           if (retry_read++ < rig->caps->retry)
             goto transaction_write;
@@ -331,16 +336,35 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, int cmd_len,
           goto transaction_quit;
         }
 
-      /* always give back a null terminated string without
-       * the command terminator.
+      /* always give back a null terminated string without the command
+       * terminator.
        */
       int len = (*datasize < retval ? *datasize : retval) - 1;
       strncpy (data, priv->info, len);
       data[len] = '\0';
       *datasize = retval; /* this is retval from successful
-                             read_string above, don't assign
-                             until here because IN value is
-                             needed for retries */
+                             read_string above, don't assign until
+                             here because IN value is needed for
+                             retries */
+    }
+  else
+    {
+      if (verify[0] != priv->info[0] || (verify[1] && verify[1] != priv->info[1]))
+        {
+          /*
+           * TODO: When RIG_TRN is enabled, we can pass the string to
+           * the decoder for callback. That way we don't ignore any
+           * commands.
+           */
+          rig_debug(RIG_DEBUG_ERR, "%s: wrong reply %c%c for command verification %c%c\n",
+                    __func__, priv->info[0], priv->info[1], verify[0], verify[1]);
+
+          if (retry_read++ < rig->caps->retry)
+            goto transaction_write;
+
+          retval =  -RIG_EPROTO;
+          goto transaction_quit;
+        }
     }
   retval = RIG_OK;
 
