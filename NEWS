@@ -1,12 +1,12 @@
 Hamlib -- History of visible changes.
 
 Copyright (C) 2000-2003  Frank Singleton
-Copyright (C) 2000-2013  Stephane Fillod, and others
+Copyright (C) 2000-2015  Stephane Fillod, and others
 
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 Version 3.0
-	2013-??-??
+	2015-??-??
 	* Kill RPC backends and rpc.rigd/rpc.rotd
 	* Remove -e|--end-marker option from rigctld and rotctld
 	* Build system updates--remove obsolete macros, autogen.sh now
@@ -51,6 +51,7 @@ Version 3.0
 	    only invoke pkg-config when either or both of these features are
 	    selected.  Only the Winradio g313 model uses libdl so test for it
 	    only when Winradio backend is enabled.
+	* New IC-M700PRO.
 
 Version 1.2.15.3
 	2012-11-01

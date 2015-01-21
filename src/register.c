@@ -1,6 +1,6 @@
 /*
  *  Hamlib Interface - provides registering for dynamically loadable backends.
- *  Copyright (c) 2000-2005 by Stephane Fillod
+ *  Copyright (c) 2000-2015 by Stephane Fillod
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -67,6 +67,7 @@ DEFINE_INITRIG_BACKEND(dummy);
 DEFINE_INITRIG_BACKEND(yaesu);
 DEFINE_INITRIG_BACKEND(kenwood);
 DEFINE_INITRIG_BACKEND(icom);
+DEFINE_INITRIG_BACKEND(icmarine);
 DEFINE_INITRIG_BACKEND(pcr);
 DEFINE_INITRIG_BACKEND(aor);
 DEFINE_INITRIG_BACKEND(jrc);
@@ -111,6 +112,7 @@ static struct {
 		{ RIG_YAESU, RIG_BACKEND_YAESU, RIG_FUNCNAM(yaesu) },
 		{ RIG_KENWOOD, RIG_BACKEND_KENWOOD, RIG_FUNCNAM(kenwood) },
 		{ RIG_ICOM, RIG_BACKEND_ICOM, RIG_FUNCNAM(icom) },
+		{ RIG_ICMARINE, RIG_BACKEND_ICMARINE, RIG_FUNCNAMA(icmarine) },
 		{ RIG_PCR, RIG_BACKEND_PCR, RIG_FUNCNAMA(pcr) },
 		{ RIG_AOR, RIG_BACKEND_AOR, RIG_FUNCNAMA(aor) },
 		{ RIG_JRC, RIG_BACKEND_JRC, RIG_FUNCNAMA(jrc) },

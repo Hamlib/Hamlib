@@ -1,7 +1,7 @@
 /*
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000-2003 by Frank Singleton
- *  Copyright (c) 2000-2012 by Stephane Fillod
+ *  Copyright (c) 2000-2015 by Stephane Fillod
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -513,6 +513,14 @@
 #define RIG_ADAT 29
 #define RIG_BACKEND_ADAT "adat"
 #define RIG_MODEL_ADT_200A RIG_MAKE_MODEL(RIG_ADAT, 1)
+
+        /*
+         * ICOM Marine
+         */
+#define RIG_ICMARINE 30
+#define RIG_BACKEND_ICMARINE "icmarine"
+#define RIG_MODEL_IC_M700PRO RIG_MAKE_MODEL(RIG_ICMARINE, 1)
+#define RIG_MODEL_IC_M802 RIG_MAKE_MODEL(RIG_ICMARINE, 2)
 
 	/*
 	 * TODO:
