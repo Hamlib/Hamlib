@@ -618,7 +618,8 @@ DECLARE_INITRIG_BACKEND(icmarine)
 	rig_debug(RIG_DEBUG_VERBOSE, "icmarine: _init called\n");
 
 	rig_register(&icm700pro_caps);
-	//rig_register(&icm802_caps);
+	rig_register(&icm710_caps);
+	rig_register(&icm802_caps);
 
 	return RIG_OK;
 }

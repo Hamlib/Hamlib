@@ -65,6 +65,8 @@
 %ignore RIG_BACKEND_RS;
 %ignore RIG_ADAT;
 %ignore RIG_BACKEND_ADAT;
+%ignore RIG_ICMARINE;
+%ignore RIG_BACKEND_ICMARINE;
 
 %ignore ROT_DUMMY;
 %ignore ROT_BACKEND_DUMMY;

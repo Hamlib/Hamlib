@@ -51,7 +51,7 @@ Version 3.0
 	    only invoke pkg-config when either or both of these features are
 	    selected.  Only the Winradio g313 model uses libdl so test for it
 	    only when Winradio backend is enabled.
-	* New IC-M700PRO.
+	* New IC-M700PRO, IC-M710, IC-M802.
 
 Version 1.2.15.3
 	2012-11-01

@@ -2,7 +2,7 @@ LOCAL_PATH:= $(call my-dir)
 
 include $(CLEAR_VARS)
 
-LOCAL_SRC_FILES := icm700pro.c icm802.c  \
+LOCAL_SRC_FILES := icm700pro.c icm710.c icm802.c  \
 		icmarine.c
 LOCAL_MODULE := icmarine
 
