@@ -1,6 +1,6 @@
 /*
  *  Hamlib CI-V backend - main header
- *  Copyright (c) 2000-2012 by Stephane Fillod
+ *  Copyright (c) 2000-2015 by Stephane Fillod
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -254,5 +254,6 @@ extern const struct rig_caps os535_caps;
 
 extern const struct rig_caps ic92d_caps;
 extern const struct rig_caps id1_caps;
+extern const struct rig_caps id5100_caps;
 
 #endif /* _ICOM_H */
