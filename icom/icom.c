@@ -1,6 +1,6 @@
 /*
  *  Hamlib CI-V backend - main file
- *  Copyright (c) 2000-2012 by Stephane Fillod
+ *  Copyright (c) 2000-2015 by Stephane Fillod
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -3367,6 +3367,7 @@ DECLARE_INITRIG_BACKEND(icom)
 
 	rig_register(&ic92d_caps);
 	rig_register(&id1_caps);
+	rig_register(&id5100_caps);
 
 	return RIG_OK;
 }
