@@ -34,7 +34,7 @@
 #include "elecraft.h"
 
 
-#define K2_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR)
+#define K2_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB)
 
 #define K2_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_LOCK)
 
@@ -46,6 +46,18 @@
 
 #define K2_ANTS (RIG_ANT_1|RIG_ANT_2)
 
+static rmode_t k2_mode_table[KENWOOD_MODE_TABLE_MAX] = {
+  [0] = RIG_MODE_NONE,
+  [1] = RIG_MODE_LSB,
+  [2] = RIG_MODE_USB,
+  [3] = RIG_MODE_CW,
+  [4] = RIG_MODE_NONE,
+  [5] = RIG_MODE_NONE,
+  [6] = RIG_MODE_PKTLSB,        /* AFSK */
+  [7] = RIG_MODE_CWR,
+  [8] = RIG_MODE_NONE,          /* TUNE mode */
+  [9] = RIG_MODE_PKTUSB         /* AFSK */
+};
 
 /* kenwood_transaction() will add this to command strings
  * sent to the rig and remove it from strings returned from
@@ -53,6 +65,7 @@
  */
 static struct kenwood_priv_caps k2_priv_caps  = {
 	.cmdtrm =  EOM_KEN,
+  .mode_table = k2_mode_table,
 };
 
 
@@ -119,8 +132,8 @@ const struct rig_caps k2_caps = {
 	.serial_handshake =	RIG_HANDSHAKE_NONE,
 	.write_delay =		0,	/* Timing between bytes */
 	.post_write_delay =	100,	/* Timing between command strings */
-	.timeout =		600,	/* FA and FB make take up to 500 ms on band change */
-	.retry =		3,
+	.timeout =		2000,	/* FA and FB make take up to 500 ms on band change */
+	.retry =		10,
 
 	.has_get_func =		K2_FUNC_ALL,
 	.has_set_func =		K2_FUNC_ALL,
@@ -187,7 +200,7 @@ const struct rig_caps k2_caps = {
 	.filters =  {
 		{RIG_MODE_SSB, kHz(2.5)},
 		{RIG_MODE_CW|RIG_MODE_CWR, Hz(500)},
-		{RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(500)},
+		{RIG_MODE_PKTLSB|RIG_MODE_PKTUSB, kHz(2.5)},
 		RIG_FLT_END,
 	},
 	.priv =  (void *)&k2_priv_caps,
@@ -287,8 +300,8 @@ int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	case RIG_MODE_CWR:
 		flt = &k2_fwmd_cw;
 		break;
-	case RIG_MODE_RTTY:
-	case RIG_MODE_RTTYR:
+	case RIG_MODE_PKTLSB:
+	case RIG_MODE_PKTUSB:
 		if (priv->k2_md_rtty == 0)
 			return -RIG_EINVAL;		/* RTTY module not installed */
 		else
@@ -489,19 +502,20 @@ int k2_probe_mdfw(RIG *rig, struct kenwood_priv_data *priv)
 	/* Now begin the process of querying the available modes and filters. */
 
 	/* First try to put the K2 into RTTY mode and check if it's available. */
+	priv->k2_md_rtty = 0;		/* Assume RTTY module not installed */
 	err = kenwood_simple_cmd(rig, "MD6");
-	if (err != RIG_OK)
+	if (err != RIG_OK && err != -RIG_ERJCTED)
 		return err;
+	if (RIG_OK == err)
+		{
+			/* Read back mode and test to see if K2 reports RTTY. */
+			err = kenwood_safe_transaction(rig, "MD", buf, KENWOOD_MAX_BUF_LEN, 4);
+			if (err != RIG_OK)
+				return err;
 
-	/* Check for mode and test to see if K2 reports RTTY. */
-	err = kenwood_safe_transaction(rig, "MD", buf, KENWOOD_MAX_BUF_LEN, 4);
-	if (err != RIG_OK)
-		return err;
-
-	if (strcmp("MD6", buf) == 0)
-		priv->k2_md_rtty = 1;		/* set flag for RTTY mode installed */
-	else
-		priv->k2_md_rtty = 0;		/* RTTY module not installed */
+			if (!strcmp("MD6", buf))
+				priv->k2_md_rtty = 1;		/* set flag for RTTY mode enabled */
+		}
 	rig_debug(RIG_DEBUG_VERBOSE, "%s: RTTY flag is: %d\n", __func__, priv->k2_md_rtty);
 
 	i = (priv->k2_md_rtty == 1) ? 2 : 1;

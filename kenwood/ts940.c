@@ -28,7 +28,6 @@
 #include <hamlib/rig.h>
 #include "bandplan.h"
 #include "kenwood.h"
-#include "ic10.h"
 
 
 #define TS940_ALL_MODES (RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_CW|RIG_MODE_SSB)
@@ -44,6 +43,14 @@
 
 #define TS940_VFO_OPS (RIG_OP_UP|RIG_OP_DOWN)
 #define TS940_SCAN_OPS (RIG_SCAN_VFO)
+
+/* memory capabilities */
+#define TS940_MEM_CAP {	\
+	.freq = 1,		\
+	.mode = 1,		\
+	.tx_freq=1,		\
+	.tx_mode=1,		\
+}
 
 static struct kenwood_priv_caps  ts940_priv_caps  = {
 	.cmdtrm =  EOM_KEN,
@@ -61,7 +68,7 @@ const struct rig_caps ts940_caps = {
 .rig_model =  RIG_MODEL_TS940,
 .model_name = "TS-940S",
 .mfg_name =  "Kenwood",
-.version =  BACKEND_VER "." IC10_VER,
+.version =  BACKEND_VER ".7",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -76,8 +83,8 @@ const struct rig_caps ts940_caps = {
 .serial_handshake =  RIG_HANDSHAKE_HARDWARE,
 .write_delay =  100,
 .post_write_delay =  150,
-.timeout =  200,
-.retry =  3,
+.timeout =  600,
+.retry =  5,
 
 .has_get_func =  RIG_FUNC_NONE,
 .has_set_func =  TS940_FUNC_ALL,
@@ -99,12 +106,13 @@ const struct rig_caps ts940_caps = {
 .bank_qty =   0,
 .chan_desc_sz =  0,
 
-
+/* four banks of 10 memories */
 .chan_list =  {
-			{  0, 89, RIG_MTYPE_MEM, {IC10_CHANNEL_CAPS}  },	/* TBC */
-			{ 90, 99, RIG_MTYPE_EDGE, {IC10_CHANNEL_CAPS} },
-			RIG_CHAN_END,
-		},
+		{  0, 0, RIG_MTYPE_EDGE, TS940_MEM_CAP},	/* TBC */
+		{  1, 8, RIG_MTYPE_MEM, TS940_MEM_CAP},	/* TBC */
+		{  9, 9, RIG_MTYPE_EDGE, TS940_MEM_CAP},	/* TBC */
+		RIG_CHAN_END,
+	},
 
 .rx_range_list1 =  {
 	{kHz(500),MHz(30),TS940_ALL_MODES,-1,-1,TS940_VFO},
@@ -146,28 +154,28 @@ const struct rig_caps ts940_caps = {
 .rig_init = kenwood_init,
 .rig_cleanup = kenwood_cleanup,
 .set_freq =  kenwood_set_freq,
-.get_freq =  ic10_get_freq,
+.get_freq =  kenwood_get_freq,
 .set_rit =  kenwood_set_rit,
 .get_rit =  kenwood_get_rit,
 .set_xit =  kenwood_set_xit,
 .get_xit =  kenwood_get_xit,
 .set_mode =  kenwood_set_mode,
-.get_mode =  ic10_get_mode,
-.set_vfo =  ic10_set_vfo,
-.get_vfo =  ic10_get_vfo,
-.set_split_vfo =  ic10_set_split_vfo,
-.get_split_vfo =  ic10_get_split_vfo,
+.get_mode =  kenwood_get_mode_if,
+.set_vfo =  kenwood_set_vfo,
+.get_vfo =  kenwood_get_vfo_if,
+.set_split_vfo =  kenwood_set_split,
+.get_split_vfo =  kenwood_get_split_vfo_if,
 .set_ptt =  kenwood_set_ptt,
-.get_ptt =  ic10_get_ptt,
+.get_ptt =  kenwood_get_ptt,
 .set_func =  kenwood_set_func,
 .vfo_op =  kenwood_vfo_op,
 .set_mem =  kenwood_set_mem,
-.get_mem =  ic10_get_mem,
+.get_mem =  kenwood_get_mem_if,
 .set_trn =  kenwood_set_trn,
 .scan =  kenwood_scan,
-.set_channel = ic10_set_channel,
-.get_channel = ic10_get_channel,
-.decode_event = ic10_decode_event,
+.set_channel = kenwood_set_channel,
+.get_channel = kenwood_get_channel,
+/* .decode_event = ic10_decode_event, */
 
 };
 
