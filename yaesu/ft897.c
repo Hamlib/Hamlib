@@ -729,6 +729,9 @@ int ft897_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
   /* fill in the frequency */
   to_bcd_be(data, (freq + 5) / 10, 8);
 
+  /*invalidate frequency cache*/
+  rig_force_cache_timeout(&((struct ft897_priv_data *) rig->state.priv)->fm_status_tv);
+
   return ft897_send_icmd(rig, FT897_NATIVE_CAT_SET_FREQ, data);
 }
 
