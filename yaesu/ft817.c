@@ -754,6 +754,9 @@ int ft817_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	/* fill in the frequency */
 	to_bcd_be(data, (freq + 5) / 10, 8);
 
+	rig_force_cache_timeout(
+	    &((struct ft817_priv_data *)rig->state.priv)->fm_status_tv);
+
 	return ft817_send_icmd(rig, FT817_NATIVE_CAT_SET_FREQ, data);
 }
 
@@ -814,6 +817,9 @@ int ft817_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 /* 	if (width != RIG_PASSBAND_NORMAL) */
 /* 		return -RIG_EINVAL; */
 
+	rig_force_cache_timeout(
+	    &((struct ft817_priv_data *)rig->state.priv)->fm_status_tv);
+
 	return ft817_send_cmd(rig, index);
 }
 
@@ -838,6 +844,9 @@ int ft817_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 	}
 
 	n = ft817_send_cmd(rig, index);
+
+	rig_force_cache_timeout(
+	    &((struct ft817_priv_data *)rig->state.priv)->tx_status_tv);
 
 	if (n < 0 && n != -RIG_ERJCTED)
 		return n;
