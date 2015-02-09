@@ -675,6 +675,8 @@ int ft980_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
   /* store bcd format in cmd (MSB) */
   to_bcd(cmd,freq/10,8);
 
+  rig_force_cache_timeout(&priv->status_tv);
+
   /* Frequency set */
   return ft980_transaction(rig, cmd, UPDATE_DATA_OFS(&priv->update_data,5), 5);
 }
@@ -734,6 +736,8 @@ int ft980_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   }
 
   cmd[3] = md;
+
+  rig_force_cache_timeout(&priv->status_tv);
 
   /* Mode set */
   return ft980_transaction(rig, cmd, UPDATE_DATA_OFS(&priv->update_data,22), 22);
