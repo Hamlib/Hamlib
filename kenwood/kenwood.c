@@ -40,6 +40,11 @@
 
 #include "kenwood.h"
 
+#ifndef max
+#define max(a,b) (((a) (b)) ? (a) : (b))
+#define min(a,b) (((a) < (b)) ? (a) : (b))
+#endif
+
 struct kenwood_id {
   rig_model_t model;
   int id;
@@ -191,12 +196,15 @@ const struct confparams kenwood_cfg_params[] = {
 int kenwood_transaction(RIG *rig, const char *cmdstr, int cmd_len,
         char *data, size_t *datasize)
 {
+  char buffer[KENWOOD_MAX_BUF_LEN]; /* use our own buffer since
+                                       verification may need a longer
+                                       buffer than the user supplied one */
+
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   if (!rig || !datasize || !cmdstr)
     return -RIG_EINVAL;
 
-  struct kenwood_priv_data *priv = rig->state.priv;
   struct kenwood_priv_caps *caps = kenwood_caps(rig);
   struct rig_state *rs;
   int retval;
@@ -205,7 +213,6 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, int cmd_len,
   int len;
   int retry_read = 0;
   int reply_expected = data && *datasize > 0;
-  size_t length = *datasize;
   static char const std_verify[] = "ID;"; /* command we can always
                                              send to any rig even when
                                              the rig is busy */
@@ -239,8 +246,6 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, int cmd_len,
     len++;
   }
 
-  *datasize = length;           /* reset as may be a retry */
-
   serial_flush(&rs->rigport);
   retval = write_block(&rs->rigport, cmd, len);
 
@@ -260,7 +265,8 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, int cmd_len,
     }
   }
 
-  retval = read_string(&rs->rigport, priv->info, reply_expected ? *datasize : strlen (verify) + 5, cmdtrm, strlen(cmdtrm));
+  len = min (reply_expected ? *datasize : strlen (verify) + 5, KENWOOD_MAX_BUF_LEN);
+  retval = read_string(&rs->rigport, buffer, len, cmdtrm, strlen(cmdtrm));
   if (retval < 0) {
     if (retry_read++ < rig->caps->retry)
       goto transaction_write;
@@ -268,16 +274,16 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, int cmd_len,
   }
 
   /* Check that command termination is correct */
-  if (strchr(cmdtrm, priv->info[strlen(priv->info)-1])==NULL) {
-    rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n", __func__, priv->info);
+  if (strchr(cmdtrm, buffer[strlen(buffer)-1])==NULL) {
+    rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n", __func__, buffer);
     if (retry_read++ < rig->caps->retry)
       goto transaction_write;
     retval = -RIG_EPROTO;
     goto transaction_quit;
   }
 
-  if (strlen(priv->info) == 2) {
-    switch (priv->info[0]) {
+  if (strlen(buffer) == 2) {
+    switch (buffer[0]) {
     case 'N':
       /* Command recognised by rig but invalid data entered. */
       rig_debug(RIG_DEBUG_VERBOSE, "%s: NegAck for '%s'\n", __func__, cmdstr);
@@ -319,7 +325,7 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, int cmd_len,
    */
   if (reply_expected)
     {
-      if (priv->info[0] != cmdstr[0] || (cmdstr[1] && priv->info[1] != cmdstr[1]))
+      if (buffer[0] != cmdstr[0] || (cmdstr[1] && buffer[1] != cmdstr[1]))
         {
           /*
            * TODO: When RIG_TRN is enabled, we can pass the string to
@@ -327,7 +333,7 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, int cmd_len,
            * commands.
            */
           rig_debug(RIG_DEBUG_ERR, "%s: wrong reply %c%c for command %c%c\n",
-                    __func__, priv->info[0], priv->info[1], cmdstr[0], cmdstr[1]);
+                    __func__, buffer[0], buffer[1], cmdstr[0], cmdstr[1]);
 
           if (retry_read++ < rig->caps->retry)
             goto transaction_write;
@@ -336,20 +342,18 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, int cmd_len,
           goto transaction_quit;
         }
 
-      /* always give back a null terminated string without the command
-       * terminator.
-       */
-      int len = (*datasize < retval ? *datasize : retval) - 1;
-      strncpy (data, priv->info, len);
-      data[len] = '\0';
-      *datasize = retval; /* this is retval from successful
-                             read_string above, don't assign until
-                             here because IN value is needed for
-                             retries */
+      if (retval > 0)
+        {
+          /* move the result excluding the command terminator into the
+             caller buffer */
+          *datasize = min (*datasize, retval) - 1;
+          strncpy (data, buffer, *datasize);
+          data[*datasize] = '\0';
+        }
     }
   else
     {
-      if (verify[0] != priv->info[0] || (verify[1] && verify[1] != priv->info[1]))
+      if (verify[0] != buffer[0] || (verify[1] && verify[1] != buffer[1]))
         {
           /*
            * TODO: When RIG_TRN is enabled, we can pass the string to
@@ -357,7 +361,7 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, int cmd_len,
            * commands.
            */
           rig_debug(RIG_DEBUG_ERR, "%s: wrong reply %c%c for command verification %c%c\n",
-                    __func__, priv->info[0], priv->info[1], verify[0], verify[1]);
+                    __func__, buffer[0], buffer[1], verify[0], verify[1]);
 
           if (retry_read++ < rig->caps->retry)
             goto transaction_write;
