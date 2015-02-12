@@ -173,7 +173,7 @@ int
 ts2k_transaction(RIG * rig, const char *cmdstr, int cmd_len,
 		 char *data, size_t * datasize)
 {
-//      return kenwood_transaction(rig, cmdstr, cmd_len, data, datasize);
+//      return kenwood_transaction(rig, cmdstr, data, datasize);
 
 	struct rig_state *rs;
 	int retval;

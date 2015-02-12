@@ -391,7 +391,7 @@ int k2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	if (err != RIG_OK)
 		return err;
 
-	err = kenwood_safe_transaction(rig, "FW", buf, KENWOOD_MAX_BUF_LEN, 9);
+	err = kenwood_safe_transaction(rig, "FW", buf, KENWOOD_MAX_BUF_LEN, 8);
 	if (err != RIG_OK)
 		return err;
 
@@ -436,7 +436,7 @@ int k2_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 
 	switch(token) {
 	case TOK_TX_STAT:
-		err = kenwood_safe_transaction(rig, "TQ", buf, KENWOOD_MAX_BUF_LEN, 4);
+		err = kenwood_safe_transaction(rig, "TQ", buf, KENWOOD_MAX_BUF_LEN, 3);
 		if (err != RIG_OK)
 			return err;
 		if (cfp->type == RIG_CONF_CHECKBUTTON) {
@@ -483,14 +483,14 @@ int k2_probe_mdfw(RIG *rig, struct kenwood_priv_data *priv)
 		return err;
 
 	/* Check for mode and store it for later. */
-	err = kenwood_safe_transaction(rig, "MD", buf, KENWOOD_MAX_BUF_LEN, 4);
+	err = kenwood_safe_transaction(rig, "MD", buf, KENWOOD_MAX_BUF_LEN, 3);
 	if (err != RIG_OK)
 		return err;
 
 	strcpy(mode, buf);
 
 	/* Check for filter width and store it for later. */
-	err = kenwood_safe_transaction(rig, "FW", buf, KENWOOD_MAX_BUF_LEN, 9);
+	err = kenwood_safe_transaction(rig, "FW", buf, KENWOOD_MAX_BUF_LEN, 8);
 	if (err != RIG_OK)
 		return err;
 
@@ -509,7 +509,7 @@ int k2_probe_mdfw(RIG *rig, struct kenwood_priv_data *priv)
 	if (RIG_OK == err)
 		{
 			/* Read back mode and test to see if K2 reports RTTY. */
-			err = kenwood_safe_transaction(rig, "MD", buf, KENWOOD_MAX_BUF_LEN, 4);
+			err = kenwood_safe_transaction(rig, "MD", buf, KENWOOD_MAX_BUF_LEN, 3);
 			if (err != RIG_OK)
 				return err;
 
@@ -618,7 +618,7 @@ int k2_pop_fw_lst(RIG *rig, const char *cmd)
 		if (err != RIG_OK)
 			return err;
 
-		err = kenwood_safe_transaction(rig, "FW", buf, KENWOOD_MAX_BUF_LEN, 9);
+		err = kenwood_safe_transaction(rig, "FW", buf, KENWOOD_MAX_BUF_LEN, 8);
 		if (err != RIG_OK)
 			return err;
 

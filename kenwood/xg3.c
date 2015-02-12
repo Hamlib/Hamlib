@@ -593,7 +593,7 @@ int xg3_get_ptt(RIG * rig, vfo_t vfo, ptt_t * ptt)
     char pttbuf[6];
     int retval;
 
-    retval = kenwood_safe_transaction(rig, "O", pttbuf, 6, 5);
+    retval = kenwood_safe_transaction(rig, "O", pttbuf, 6, 4);
     if (retval != RIG_OK)
         return retval;
 
@@ -643,7 +643,7 @@ int xg3_get_parm(RIG *rig, setting_t parm, value_t *val)
     switch (parm) 
     {
         case RIG_PARM_BACKLIGHT:
-            retval = kenwood_safe_transaction(rig, "G", replybuf, 6, 5);
+            retval = kenwood_safe_transaction(rig, "G", replybuf, 6, 4);
             if (retval == RIG_OK) {
                 sscanf(&replybuf[3],"%d",&ival);
                 (*val).f = (3-ival)/3.0;

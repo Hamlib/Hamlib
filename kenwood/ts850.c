@@ -244,16 +244,16 @@ int ts850_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 {
 	char buf[50], infobuf[50];
 	unsigned char c;
-	int retval, len, i;
+	int retval, i;
 	size_t info_len;
 
 	info_len = 0;
 	if (rit == 0) {
-		retval = kenwood_transaction(rig, "RT0", 3, infobuf, &info_len);
+		retval = kenwood_transaction(rig, "RT0", infobuf, &info_len);
 		if (retval != RIG_OK)
 			return retval;
 	} else {
-		retval = kenwood_transaction(rig, "RT1", 3, infobuf, &info_len);
+		retval = kenwood_transaction(rig, "RT1", infobuf, &info_len);
 		if (retval != RIG_OK)
 			return retval;
 	}
@@ -262,17 +262,17 @@ int ts850_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 		c = 'U';
 	else
 		c = 'D';
-	len = sprintf(buf, "R%c", c);
+	sprintf(buf, "R%c", c);
 
 	info_len = 0;
-	retval = kenwood_transaction(rig, "RC", 2, infobuf, &info_len);
+	retval = kenwood_transaction(rig, "RC", infobuf, &info_len);
 	if (retval != RIG_OK)
 		return retval;
 
 	for (i = 0; i < abs(rint(rit/20)); i++)
 	{
 		info_len = 0;
-		retval = kenwood_transaction(rig, buf, len, infobuf, &info_len);
+		retval = kenwood_transaction(rig, buf, infobuf, &info_len);
 		if (retval != RIG_OK)
 			return retval;
 	}
@@ -284,22 +284,22 @@ int ts850_set_xit(RIG * rig, vfo_t vfo, shortfreq_t xit)
 {
 	char buf[50], infobuf[50];
 	unsigned char c;
-	int retval, len, i;
+	int retval, i;
 	size_t info_len;
 
 	info_len = 0;
 	if (xit == 0) {
-		retval = kenwood_transaction(rig, "XT0", 3, infobuf, &info_len);
+		retval = kenwood_transaction(rig, "XT0", infobuf, &info_len);
 		if (retval != RIG_OK)
 			return retval;
 	} else {
-		retval = kenwood_transaction(rig, "XT1", 3, infobuf, &info_len);
+		retval = kenwood_transaction(rig, "XT1", infobuf, &info_len);
 		if (retval != RIG_OK)
 			return retval;
 	}
 
 	info_len = 0;
-	retval = kenwood_transaction(rig, "RC", 2, infobuf, &info_len);
+	retval = kenwood_transaction(rig, "RC", infobuf, &info_len);
 	if (retval != RIG_OK)
 		return retval;
 
@@ -307,12 +307,12 @@ int ts850_set_xit(RIG * rig, vfo_t vfo, shortfreq_t xit)
 		c = 'U';
 	else
 		c = 'D';
-	len = sprintf(buf, "R%c", c);
+	sprintf(buf, "R%c", c);
 
 	for (i = 0; i < abs(rint(xit/20)); i++)
 	{
 		info_len = 0;
-		retval = kenwood_transaction(rig, buf, len, infobuf, &info_len);
+		retval = kenwood_transaction(rig, buf, infobuf, &info_len);
 		if (retval != RIG_OK)
 			return retval;
 	}
@@ -349,19 +349,17 @@ int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	switch (level) {
 		case RIG_LEVEL_RAWSTR:
 		lvl_len = 50;
-		retval = kenwood_transaction (rig, "SM", 2, lvlbuf, &lvl_len);
+		retval = kenwood_transaction (rig, "SM", lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
-		lvlbuf[6]='\0';
 		val->i=atoi(&lvlbuf[2]);
 		break;
 
 		case RIG_LEVEL_STRENGTH:
 		lvl_len = 50;
-		retval = kenwood_transaction (rig, "SM", 2, lvlbuf, &lvl_len);
+		retval = kenwood_transaction (rig, "SM", lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
-		lvlbuf[6]='\0';
 		val->i=atoi(&lvlbuf[2]);
 		//val->i = (val->i * 4) - 54;  Old approximate way of doing it.
 		val->i = (int)rig_raw2val(val->i,&rig->caps->str_cal);
@@ -369,14 +367,13 @@ int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		case RIG_LEVEL_SWR:
 			lvl_len = 0;
-		retval = kenwood_transaction (rig, "RM1", 3, lvlbuf, &lvl_len);
+		retval = kenwood_transaction (rig, "RM1", lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 		lvl_len = 50;
-		retval = kenwood_transaction (rig, "RM", 2, lvlbuf, &lvl_len);
+		retval = kenwood_transaction (rig, "RM", lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
-		lvlbuf[7]='\0';
 		i=atoi(&lvlbuf[3]);
 		if(i == 30)
 			val->f = 150.0; /* infinity :-) */
@@ -386,36 +383,33 @@ int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		case RIG_LEVEL_COMP:
 			lvl_len = 0;
-		retval = kenwood_transaction (rig, "RM2", 3, lvlbuf, &lvl_len);
+		retval = kenwood_transaction (rig, "RM2", lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 		lvl_len = 50;
-		retval = kenwood_transaction (rig, "RM", 2, lvlbuf, &lvl_len);
+		retval = kenwood_transaction (rig, "RM", lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
-		lvlbuf[7]='\0';
 		val->f=(float)atoi(&lvlbuf[3])/30.0;
 		break;
 
 		case RIG_LEVEL_ALC:
 			lvl_len = 0;
-		retval = kenwood_transaction (rig, "RM3", 3, lvlbuf, &lvl_len);
+		retval = kenwood_transaction (rig, "RM3", lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 		lvl_len = 50;
-		retval = kenwood_transaction (rig, "RM", 2, lvlbuf, &lvl_len);
+		retval = kenwood_transaction (rig, "RM", lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
-		lvlbuf[7]='\0';
 		val->f=(float)atoi(&lvlbuf[3])/30.0;
 		break;
 
 		case RIG_LEVEL_CWPITCH:
 			lvl_len = 25;
-		retval = kenwood_transaction (rig, "PT", 2, lvlbuf, &lvl_len);
+		retval = kenwood_transaction (rig, "PT", lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
-		lvlbuf[4]='\0';
 		val->i=atoi(&lvlbuf[2]);
 		val->i=(val->i-8)*50+800;
 		break;
@@ -430,7 +424,7 @@ int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 int ts850_set_channel (RIG * rig, const channel_t * chan)
 {
 	char cmdbuf[30], membuf[30];
-	int retval, cmd_len;
+	int retval;
 	size_t mem_len;
 	int num,freq,tx_freq,tone;
 	char mode,tx_mode,tones;
@@ -457,17 +451,17 @@ int ts850_set_channel (RIG * rig, const channel_t * chan)
 		tone=0;
 	}
 
-	cmd_len = sprintf(cmdbuf, "MW0 %02d%011d%c0%c%02d ",
-					  num,freq,mode,tones,tone);
+	sprintf(cmdbuf, "MW0 %02d%011d%c0%c%02d ",
+					num,freq,mode,tones,tone);
 	mem_len = 0;
-	retval = kenwood_transaction (rig, cmdbuf, cmd_len, membuf, &mem_len);
+	retval = kenwood_transaction (rig, cmdbuf, membuf, &mem_len);
 	if (retval != RIG_OK)
 		return retval;
 
-	cmd_len = sprintf(cmdbuf, "MW1 %02d%011d%c0%c%02d ",
-					  num,tx_freq,tx_mode,tones,tone);
+	sprintf(cmdbuf, "MW1 %02d%011d%c0%c%02d ",
+					num,tx_freq,tx_mode,tones,tone);
 	mem_len = 0;
-	retval = kenwood_transaction (rig, cmdbuf, cmd_len, membuf, &mem_len);
+	retval = kenwood_transaction (rig, cmdbuf, membuf, &mem_len);
 	if (retval != RIG_OK)
 		return retval;
 

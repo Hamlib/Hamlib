@@ -54,7 +54,7 @@
 
 static struct kenwood_priv_caps  ts940_priv_caps  = {
 	.cmdtrm =  EOM_KEN,
-	.if_len =  29,
+	.if_len =  28,
 };
 
 /*

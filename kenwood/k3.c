@@ -257,7 +257,7 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 	if (temp_m == RIG_MODE_RTTY)
 	  {
-	    err = kenwood_safe_transaction(rig, "DT", buf, KENWOOD_MAX_BUF_LEN, 4);
+	    err = kenwood_safe_transaction(rig, "DT", buf, KENWOOD_MAX_BUF_LEN, 3);
 	    if (err != RIG_OK)
 	      {
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: Cannot read K3 DT value\n",
@@ -280,7 +280,7 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	  }
 	else if (temp_m == RIG_MODE_RTTYR)
 	  {
-	    err = kenwood_safe_transaction(rig, "DT", buf, KENWOOD_MAX_BUF_LEN, 4);
+	    err = kenwood_safe_transaction(rig, "DT", buf, KENWOOD_MAX_BUF_LEN, 3);
 	    if (err != RIG_OK)
 	      {
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: Cannot read K3 DT value\n",
@@ -310,7 +310,7 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	/* The K3 is not limited to specific filter widths so we can query
 	 * the actual bandwidth using the BW command
 	 */
-	err = kenwood_safe_transaction(rig, "BW", buf, KENWOOD_MAX_BUF_LEN, 7);
+	err = kenwood_safe_transaction(rig, "BW", buf, KENWOOD_MAX_BUF_LEN, 6);
 	if (err != RIG_OK) {
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: Cannot read K3 BW value\n", __func__);
 		return err;
@@ -515,7 +515,7 @@ int k3_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 
 	switch(token) {
 	case TOK_IF_FREQ:
-		err = kenwood_safe_transaction(rig, "FI", buf, KENWOOD_MAX_BUF_LEN, 7);
+		err = kenwood_safe_transaction(rig, "FI", buf, KENWOOD_MAX_BUF_LEN, 6);
 		if (err != RIG_OK)
 			return err;
 		if (cfp->type == RIG_CONF_NUMERIC) {
@@ -527,7 +527,7 @@ int k3_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 		}
 		break;
 	case TOK_TX_STAT:
-		err = kenwood_safe_transaction(rig, "TQ", buf, KENWOOD_MAX_BUF_LEN, 4);
+		err = kenwood_safe_transaction(rig, "TQ", buf, KENWOOD_MAX_BUF_LEN, 3);
 		if (err != RIG_OK)
 			return err;
 		if (cfp->type == RIG_CONF_CHECKBUTTON) {
@@ -696,14 +696,14 @@ int k3_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width
 
   struct kenwood_priv_caps *caps = kenwood_caps (rig);
 
-  err = kenwood_safe_transaction(rig, "MD$", buf, KENWOOD_MAX_BUF_LEN, 5);
+  err = kenwood_safe_transaction(rig, "MD$", buf, KENWOOD_MAX_BUF_LEN, 4);
   if (err != RIG_OK)
     return err;
 
   temp_m = kenwood2rmode (buf[3] - '0', caps->mode_table);
 
   if (temp_m == RIG_MODE_RTTY) {
-    err = kenwood_safe_transaction(rig, "DT", buf, KENWOOD_MAX_BUF_LEN, 4);
+    err = kenwood_safe_transaction(rig, "DT", buf, KENWOOD_MAX_BUF_LEN, 3);
     if (err != RIG_OK) {
       rig_debug(RIG_DEBUG_VERBOSE, "%s: Cannot read K3 DT value\n",
 		__func__);
@@ -723,7 +723,7 @@ int k3_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width
 	break;
       }
   } else if (temp_m == RIG_MODE_RTTYR) {
-    err = kenwood_safe_transaction(rig, "DT", buf, KENWOOD_MAX_BUF_LEN, 4);
+    err = kenwood_safe_transaction(rig, "DT", buf, KENWOOD_MAX_BUF_LEN, 3);
     if (err != RIG_OK) {
       rig_debug(RIG_DEBUG_VERBOSE, "%s: Cannot read K3 DT value\n",
 		__func__);
@@ -751,7 +751,7 @@ int k3_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width
   /* The K3 is not limited to specific filter widths so we can query
    * the actual bandwidth using the BW$ command
    */
-  err = kenwood_safe_transaction(rig, "BW$", buf, KENWOOD_MAX_BUF_LEN, 8);
+  err = kenwood_safe_transaction(rig, "BW$", buf, KENWOOD_MAX_BUF_LEN, 7);
   if (err != RIG_OK) {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: Cannot read K3 BW$ value\n", __func__);
     return err;
@@ -786,7 +786,7 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		if (retval < 0) {
 			cal_table_t str_cal = K3_SM_CAL;
 
-			retval = kenwood_safe_transaction(rig, "SM", lvlbuf, 10, 7);
+			retval = kenwood_safe_transaction(rig, "SM", lvlbuf, 10, 6);
 			if (retval != RIG_OK)
 				return retval;
 
@@ -796,7 +796,7 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		} else if (retval >= 0) {
 			cal_table_t str_cal = K3_SMH_CAL;
 
-			retval = kenwood_safe_transaction(rig, "SMH", lvlbuf, 10, 7);
+			retval = kenwood_safe_transaction(rig, "SMH", lvlbuf, 10, 6);
 			if (retval != RIG_OK)
 				return retval;
 

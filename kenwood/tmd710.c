@@ -310,7 +310,7 @@ tmd710_pull_fo(RIG * rig,vfo_t vfo, tmd710_fo *fo_struct) {
   //return kenwood_wrong_vfo(__func__, vfo);
   snprintf(cmdbuf,49,"FO %d",vfonum);
   
-  retval = kenwood_safe_transaction(rig, cmdbuf, buf, sizeof(buf), 49);
+  retval = kenwood_safe_transaction(rig, cmdbuf, buf, sizeof(buf), 48);
   if (retval != RIG_OK)
     return retval;
   
@@ -350,7 +350,7 @@ tmd710_push_fo(RIG * rig,vfo_t vfo, tmd710_fo *fo_struct) {
 		      fo_struct->dsc_val, fo_struct->offset,
 		      fo_struct->mode);
   
-  retval = kenwood_safe_transaction(rig, cmdbuf, buf, sizeof(buf), 49);
+  retval = kenwood_safe_transaction(rig, cmdbuf, buf, sizeof(buf), 48);
   if (retval != RIG_OK)
     return retval;
   
@@ -819,11 +819,11 @@ tmd710_get_vfo_char(RIG *rig, vfo_t *vfo, char *vfoch)
 
 	/* Get VFO band */
 	
-	retval = kenwood_transaction(rig, "BC", 2, buf, &buf_size);
+	retval = kenwood_transaction(rig, "BC", buf, &buf_size);
 	if (retval != RIG_OK)
 		return retval;
 	switch (buf_size) {
-	case 7: /*intended for D700 BC 0,0*/
+	case 6: /*intended for D700 BC 0,0*/
 	  if ((buf[0]=='B') &&(buf[1]=='C') && (buf[2]==' ') && (buf[4]=',')){
 	    vfoc = buf[3];
 	  } else {
@@ -853,7 +853,7 @@ tmd710_get_vfo_char(RIG *rig, vfo_t *vfo, char *vfoch)
 	
 	snprintf(cmdbuf, 9, "VM %c", vfoc);
 
-	retval = kenwood_safe_transaction(rig, cmdbuf, buf, 10, 7);
+	retval = kenwood_safe_transaction(rig, cmdbuf, buf, 10, 6);
 	if (retval != RIG_OK)
 		return retval;
 
@@ -930,7 +930,7 @@ int tmd710_set_vfo (RIG *rig, vfo_t vfo)
             /* get current band */
 	  snprintf(vfobuf, 10, "BC");
             ack_len=16;
-            retval = kenwood_transaction(rig, vfobuf, strlen(vfobuf), ackbuf, &ack_len);
+            retval = kenwood_transaction(rig, vfobuf, ackbuf, &ack_len);
             if (retval != RIG_OK)
                 return retval;
             txvfonum = vfonum = ackbuf[3]-'0';

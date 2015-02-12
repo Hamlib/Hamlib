@@ -203,7 +203,7 @@ const char* transfox_get_info(RIG *rig)
 
     firmbuf[0] = '\0';
 
-	retval = kenwood_transaction(rig, "CS", 2, firmbuf, &firmlen);
+	retval = kenwood_transaction(rig, "CS", firmbuf, &firmlen);
 	if (retval != RIG_OK)
 		return NULL;
 

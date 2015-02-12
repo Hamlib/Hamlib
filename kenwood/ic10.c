@@ -107,7 +107,7 @@ static int get_ic10_if (RIG *rig, char *data)
 	int i, data_len, retval=!RIG_OK;
 
 	for (i=0; retval!=RIG_OK && i < rig->caps->retry; i++) {
-		data_len = 38;
+		data_len = 37;
 		retval = ic10_transaction (rig, "IF;", 3, data, &data_len);
 		if (retval != RIG_OK)
 			continue;

@@ -253,7 +253,7 @@ int elecraft_get_extension_level(RIG *rig, const char *cmd, int *ext_level)
 	char buf[KENWOOD_MAX_BUF_LEN];
 	char *bufptr;
 
-	err = kenwood_safe_transaction(rig, cmd, buf, KENWOOD_MAX_BUF_LEN, 4);
+	err = kenwood_safe_transaction(rig, cmd, buf, KENWOOD_MAX_BUF_LEN, 3);
 	if (err != RIG_OK) {
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: Cannot get K2|K3 ID\n", __func__);
 		return err;
@@ -292,7 +292,7 @@ int elecraft_get_firmware_revision_level(RIG *rig, const char *cmd,
 	size_t size = KENWOOD_MAX_BUF_LEN;
 
 	/* Get the actual firmware revision number. */
-	err = kenwood_transaction(rig, cmd, strlen(cmd), buf, &size);
+	err = kenwood_transaction(rig, cmd, buf, &size);
 
 	if (err != RIG_OK) {
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: Cannot get firmware revision level\n", __func__);

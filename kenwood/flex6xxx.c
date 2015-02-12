@@ -99,7 +99,7 @@ static int flex6k_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
   int index;
   int retval;
 
-  retval = kenwood_safe_transaction(rig, "MD", modebuf, 6, 4);
+  retval = kenwood_safe_transaction(rig, "MD", modebuf, 6, 3);
   if (retval != RIG_OK)
     return retval;
 
@@ -116,10 +116,10 @@ static int flex6k_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
    */
   switch (vfo) {
   case RIG_VFO_A:
-    retval = kenwood_safe_transaction(rig, "ZZFI", modebuf, 10, 7);
+    retval = kenwood_safe_transaction(rig, "ZZFI", modebuf, 10, 6);
     break;
   case RIG_VFO_B:
-    retval = kenwood_safe_transaction(rig, "ZZFJ", modebuf, 10, 7);
+    retval = kenwood_safe_transaction(rig, "ZZFJ", modebuf, 10, 6);
     break;
   default:
     rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);

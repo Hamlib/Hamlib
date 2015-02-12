@@ -197,7 +197,7 @@ int thg71_decode_event (RIG *rig)
     size_t asyncbuf_len = ACKBUF_LEN;
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-    retval = kenwood_transaction(rig, NULL, 0, asyncbuf, &asyncbuf_len);
+    retval = kenwood_transaction(rig, NULL, asyncbuf, &asyncbuf_len);
     if (retval != RIG_OK)
         return retval;
 
@@ -317,7 +317,7 @@ int thg71_get_mode (RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	}
 
 	/* try to guess from frequency */
-    retval = kenwood_transaction(rig, "FQ", 3, ackbuf, &ack_len);
+    retval = kenwood_transaction(rig, "FQ", ackbuf, &ack_len);
         if (retval != RIG_OK)
         return retval;
 
@@ -357,7 +357,7 @@ int thg71_set_vfo (RIG *rig, vfo_t vfo)
         }
 
     ack_len = 0;
-    retval = kenwood_transaction(rig, vfobuf, strlen(vfobuf), ackbuf, &ack_len);
+    retval = kenwood_transaction(rig, vfobuf, ackbuf, &ack_len);
         if (retval != RIG_OK)
         return retval;
 
@@ -372,7 +372,7 @@ int thg71_get_vfo (RIG *rig, vfo_t *vfo)
     size_t ack_len=ACKBUF_LEN;
     int vch;
 
-    retval = kenwood_transaction(rig, "VMC 0" , 6, ackbuf, &ack_len);
+    retval = kenwood_transaction(rig, "VMC 0" , ackbuf, &ack_len);
         if (retval != RIG_OK)
         return retval;
 
@@ -404,7 +404,7 @@ int thg71_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
     ack_len = 0;
     if(status==1) {
-    retval = kenwood_transaction(rig, "TT", 3, ackbuf, &ack_len);
+    retval = kenwood_transaction(rig, "TT", ackbuf, &ack_len);
         if (retval != RIG_OK)
         	return retval;
 
@@ -431,7 +431,7 @@ int thg71_open(RIG *rig)
 
 	/* fill state.rx/tx range_list */
     ack_len=ACKBUF_LEN;
-    retval = kenwood_transaction(rig, "FL", 3, ackbuf, &ack_len);
+    retval = kenwood_transaction(rig, "FL", ackbuf, &ack_len);
         if (retval != RIG_OK)
         	return retval;
 
