@@ -179,7 +179,6 @@ const struct confparams kenwood_cfg_params[] = {
  * Parameters:
  * cmdstr:    Command to be sent to the rig. cmdstr can also be NULL,
  *        indicating that only a reply is needed (nothing will be sent).
- * cmd_len:   Not used
  * data:    Buffer for reply string.  Can be NULL, indicating that no reply
  *        is needed and will return with RIG_OK after command was sent.
  * datasize: in: Size of buffer. It is the caller's responsibily to provide
