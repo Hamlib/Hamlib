@@ -67,11 +67,10 @@ static int ts870s_get_vfo(RIG *rig, vfo_t *vfo)
 
 
 		/* query RX VFO */
-		vfo_len = 50;
-		retval = kenwood_transaction (rig, "FR", vfobuf, &vfo_len);
+		retval = kenwood_transaction (rig, "FR", vfobuf, sizeof (vfobuf));
 		if (retval != RIG_OK)
 			return retval;
-
+		vfo_len = strlen (vfobuf);
 		if (vfo_len != 3 || vfobuf[1] != 'R') {
 			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer %s, "
 						"len=%d\n",__func__,vfobuf, vfo_len);
@@ -98,10 +97,10 @@ static int ts870s_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
   int retval;
 
   buf_len = 50;
-  retval = kenwood_transaction (rig, "MD", buf, &buf_len);
+  retval = kenwood_transaction (rig, "MD", buf, sizeof (buf));
   if (retval != RIG_OK)
     return retval;
-
+	buf_len = strlen (buf);
   if (buf_len != 3 || buf[1] != 'D')
   {
     rig_debug(RIG_DEBUG_ERR,"%s: unexpected MD answer, len=%d\n",
@@ -126,11 +125,10 @@ static int ts870s_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
       return -RIG_EINVAL;
   }
 
-  buf_len = 50;
-  retval = kenwood_transaction (rig, "FW", buf, &buf_len);
+  retval = kenwood_transaction (rig, "FW", buf, sizeof (buf));
   if (retval != RIG_OK)
     return retval;
-
+	buf_len = strlen (buf);
   if (buf_len != 6 || buf[1] != 'W')
   {
     rig_debug(RIG_DEBUG_ERR,"%s: unexpected FW answer, len=%d\n",
@@ -144,11 +142,10 @@ static int ts870s_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     {
       /* we only have HPF value and need LPF as well to calculate bandwidth */
 
-      buf_len = 50;
-      retval = kenwood_transaction (rig, "IS", buf, &buf_len);
+      retval = kenwood_transaction (rig, "IS", buf, sizeof (buf));
       if (retval != RIG_OK)
 	return retval;
-
+	buf_len = strlen (buf);
       if (buf_len != 7 || buf[1] != 'S')
 	{
 	  rig_debug(RIG_DEBUG_ERR,"%s: unexpected IS answer, len=%d\n",
@@ -244,13 +241,12 @@ static int ts870s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		int lvl, retval;
 		int i, ret, agclevel;
 
-		lvl_len = 50;
 		switch (level) {
 		case RIG_LEVEL_STRENGTH:
-			retval = kenwood_transaction (rig, "SM", lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "SM", lvlbuf, sizeof (lvlbuf));
 			if (retval != RIG_OK)
 				return retval;
-
+			lvl_len = strlen (lvlbuf);
 			if (lvl_len != 6 || lvlbuf[1] != 'M') {
 				rig_debug(RIG_DEBUG_ERR,"ts870s_get_level: "
 								"wrong answer len=%d\n", lvl_len);
@@ -263,19 +259,16 @@ static int ts870s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 
 		case RIG_LEVEL_SWR:
-			lvl_len = 50;
-			retval = kenwood_transaction (rig, "RM", lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "RM", lvlbuf, sizeof (lvlbuf));
 			if (retval != RIG_OK)
 				return retval;
 			/* set meter to SWR if needed */
 			if (lvlbuf[2] != '1')
 			{
-				lvl_len = 0;
-				retval = kenwood_transaction (rig, "RM1", lvlbuf, &lvl_len);
+				retval = kenwood_transaction (rig, "RM1", NULL, 0);
 				if (retval != RIG_OK)
 					return retval;
-				lvl_len = 50;
-				retval = kenwood_transaction (rig, "RM", lvlbuf, &lvl_len);
+				retval = kenwood_transaction (rig, "RM", lvlbuf, sizeof (lvlbuf));
 				if (retval != RIG_OK)
 					return retval;
 			}
@@ -288,19 +281,16 @@ static int ts870s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 
 		case RIG_LEVEL_COMP:
-			lvl_len = 50;
-			retval = kenwood_transaction (rig, "RM", lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "RM", lvlbuf, sizeof (lvlbuf));
 			if (retval != RIG_OK)
 				return retval;
 			/* set meter to COMP if needed */
 			if (lvlbuf[2] != '2')
 			{
-				lvl_len = 0;
-				retval = kenwood_transaction (rig, "RM2", lvlbuf, &lvl_len);
+				retval = kenwood_transaction (rig, "RM2", NULL, 0);
 				if (retval != RIG_OK)
 					return retval;
-				lvl_len = 50;
-				retval = kenwood_transaction (rig, "RM", lvlbuf, &lvl_len);
+				retval = kenwood_transaction (rig, "RM", lvlbuf, sizeof (lvlbuf));
 				if (retval != RIG_OK)
 					return retval;
 			}
@@ -309,19 +299,16 @@ static int ts870s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 
 		case RIG_LEVEL_ALC:
-			lvl_len = 50;
-			retval = kenwood_transaction (rig, "RM", lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "RM", lvlbuf, sizeof (lvlbuf));
 			if (retval != RIG_OK)
 				return retval;
 			/* set meter to ALC if needed */
 			if (lvlbuf[2] != '3')
 			{
-				lvl_len = 0;
-				retval = kenwood_transaction (rig, "RM3", lvlbuf, &lvl_len);
+				retval = kenwood_transaction (rig, "RM3", NULL, 0);
 				if (retval != RIG_OK)
 					return retval;
-				lvl_len = 50;
-				retval = kenwood_transaction (rig, "RM", lvlbuf, &lvl_len);
+				retval = kenwood_transaction (rig, "RM", lvlbuf, sizeof (lvlbuf));
 				if (retval != RIG_OK)
 					return retval;
 			}
@@ -330,10 +317,10 @@ static int ts870s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 
 		case RIG_LEVEL_ATT:
-			retval = kenwood_transaction (rig, "RA", lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "RA", lvlbuf, sizeof (lvlbuf));
 			if (retval != RIG_OK)
 				return retval;
-
+			lvl_len = strlen (lvlbuf);
 			if (lvl_len != 4) {
 				rig_debug(RIG_DEBUG_ERR,"ts870s_get_level: "
 								"unexpected answer len=%d\n", lvl_len);
@@ -357,9 +344,10 @@ static int ts870s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 		case RIG_LEVEL_RFPOWER:
 			/* RFPOWER is 0..100 and not 0..255 like all the other levels*/
-			retval = kenwood_transaction (rig, "PC", lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "PC", lvlbuf, sizeof (lvlbuf));
 			if (retval != RIG_OK)
 				return retval;
+			lvl_len = strlen (lvlbuf);
 			if (lvl_len != 5 || lvlbuf[1] != 'C')
 			{
 				rig_debug(RIG_DEBUG_ERR,"ts870s_get_level: "

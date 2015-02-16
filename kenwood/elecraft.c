@@ -289,10 +289,9 @@ int elecraft_get_firmware_revision_level(RIG *rig, const char *cmd,
 	int err;
 	char *bufptr;
 	char buf[KENWOOD_MAX_BUF_LEN];
-	size_t size = KENWOOD_MAX_BUF_LEN;
 
 	/* Get the actual firmware revision number. */
-	err = kenwood_transaction(rig, cmd, buf, &size);
+	err = kenwood_transaction(rig, cmd, buf, sizeof (buf));
 
 	if (err != RIG_OK) {
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: Cannot get firmware revision level\n", __func__);

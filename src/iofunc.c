@@ -487,6 +487,9 @@ int HAMLIB_API read_string(hamlib_port_t *p, char *rxbuffer, size_t rxmax, const
   int rd_count, total_count = 0;
   int retval;
 
+	if (!p || !rxbuffer) return -RIG_EINVAL;
+	if (rxmax < 1) return 0;
+
   /*
    * Wait up to timeout ms.
    */

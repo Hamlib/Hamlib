@@ -184,16 +184,15 @@ const struct confparams kenwood_cfg_params[] = {
  *        is needed and will return with RIG_OK after command was sent.
  * datasize: in: Size of buffer. It is the caller's responsibily to provide
  *         a large enough buffer for all possible replies for a command.
- *      out: Location where to store number of bytes read.
  *
  * returns:
- *   RIG_OK -   if no error occured.
+ *   RIG_OK -   if no error occurred.
  *   RIG_EIO -    if an I/O error occured while sending/receiving data.
  *   RIG_ETIMEOUT - if timeout expires without any characters received.
  *   RIG_REJECTED - if a negative acknowledge was received or command not
  *          recognized by rig.
  */
-int kenwood_transaction(RIG *rig, const char *cmdstr, char *data, size_t *datasize)
+int kenwood_transaction(RIG *rig, const char *cmdstr, char *data, size_t datasize)
 {
   char buffer[KENWOOD_MAX_BUF_LEN]; /* use our own buffer since
                                        verification may need a longer
@@ -201,7 +200,7 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data, size_t *datasi
 
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  if (!rig || !datasize || !cmdstr)
+  if (!rig || (!cmdstr && !datasize) || datasize < 0 || (datasize && !data))
     return -RIG_EINVAL;
 
   struct kenwood_priv_caps *caps = kenwood_caps(rig);
@@ -211,7 +210,6 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data, size_t *datasi
   char *cmd;
   int len;
   int retry_read = 0;
-  int reply_expected = !cmdstr || (data && *datasize > 0);
   static char const std_verify[] = "ID;"; /* command we can always
                                              send to any rig even when
                                              the rig is busy */
@@ -256,7 +254,7 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data, size_t *datasi
         goto transaction_quit;
     }
 
-  if (!reply_expected) {
+  if (!datasize) {
     rig->state.hold_decode = 0;
 
     /* no reply expected so we need to write a command that always
@@ -267,7 +265,7 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data, size_t *datasi
     }
   }
 
-  len = min (reply_expected ? *datasize : strlen (verify) + 5, KENWOOD_MAX_BUF_LEN);
+  len = min (datasize ? datasize : strlen (verify) + 5, KENWOOD_MAX_BUF_LEN);
   retval = read_string(&rs->rigport, buffer, len, cmdtrm, strlen(cmdtrm));
   if (retval < 0) {
     if (retry_read++ < rig->caps->retry)
@@ -337,7 +335,7 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data, size_t *datasi
    * single character commands we only check the first character in
    * that case.
    */
-  if (reply_expected)
+  if (datasize)
     {
       if (cmdstr && (buffer[0] != cmdstr[0] || (cmdstr[1] && buffer[1] != cmdstr[1])))
         {
@@ -360,9 +358,9 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data, size_t *datasi
         {
           /* move the result excluding the command terminator into the
              caller buffer */
-          *datasize = min (*datasize, retval) - 1;
-          strncpy (data, buffer, *datasize);
-          data[*datasize] = '\0';
+          len = min (datasize, retval) - 1;
+          strncpy (data, buffer, len);
+          data[len] = '\0';
         }
     }
   else
@@ -426,12 +424,12 @@ int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
 
   do
     {
-      size_t length = buf_size;
-      err = kenwood_transaction(rig, cmd, buf, &length);
+      err = kenwood_transaction(rig, cmd, buf, buf_size);
       if (err != RIG_OK)        /* return immediately on error as any
                                    retries handled at lower level */
         return err;
 
+      size_t length = strlen (buf);
       if (length != expected) /* worth retrying as some rigs
                                    occasionally send short results */
         {
@@ -531,31 +529,27 @@ int kenwood_open(RIG *rig)
   if (RIG_MODEL_TS590S == rig->caps->rig_model)
     {
       /* we need the firmware version for these rigs to deal with f/w defects */
-      char buffer[KENWOOD_MAX_BUF_LEN];
-      static char fw_version[5];
-      size_t size = KENWOOD_MAX_BUF_LEN;
+      static char fw_version[7];
       struct kenwood_priv_data * priv = rig->state.priv;
 
-      err = kenwood_transaction (rig, "FV", buffer, &size);
+      err = kenwood_transaction (rig, "FV", fw_version, sizeof (fw_version));
       if (RIG_OK != err)
         {
-    rig_debug (RIG_DEBUG_ERR, "%s: cannot get f/w version\n", __func__);
-    return err;
+          rig_debug (RIG_DEBUG_ERR, "%s: cannot get f/w version\n", __func__);
+          return err;
         }
-      /* store the data between "FV" and ";" which should be a
-         f/w version string of the form n.n e.g. 1.07 */
-      priv->fw_rev = strncpy (fw_version, &buffer[2], size - 3);
-      char * dot_pos = strchr (buffer, '.');
+      /* store the data  after the "FV" which should be  a f/w version
+         string of the form n.n e.g. 1.07 */
+      priv->fw_rev = &fw_version[2];
+      char * dot_pos = strchr (fw_version, '.');
       if (dot_pos)
         {
-    *dot_pos = '\0';
-    buffer[size - 1] = '\0';
-    priv->fw_rev_uint = atoi (&buffer[2]) * 100 + atoi (dot_pos + 1);
+          priv->fw_rev_uint = atoi (&fw_version[2]) * 100 + atoi (dot_pos + 1);
         }
       else
         {
-    rig_debug (RIG_DEBUG_ERR, "%s: cannot get f/w version\n", __func__);
-    return -RIG_EPROTO;
+          rig_debug (RIG_DEBUG_ERR, "%s: cannot get f/w version\n", __func__);
+          return -RIG_EPROTO;
         }
       rig_debug (RIG_DEBUG_TRACE, "%s: found f/w version %s\n", __func__, priv->fw_rev);
     }
@@ -626,9 +620,7 @@ int kenwood_get_id(RIG *rig, char *buf)
   if (!rig)
     return -RIG_EINVAL;
 
-  size_t size = KENWOOD_MAX_BUF_LEN;
-
-  return kenwood_transaction(rig, "ID", buf, &size);
+  return kenwood_transaction(rig, "ID", buf, KENWOOD_MAX_BUF_LEN);
 }
 
 
@@ -1510,11 +1502,10 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
   if (!rig || !val)
     return -RIG_EINVAL;
 
-  char lvlbuf[50];
+  char lvlbuf[KENWOOD_MAX_BUF_LEN];
   int retval;
   int lvl;
   int i, ret, agclevel;
-  size_t lvl_len;
 
   switch (level) {
   case RIG_LEVEL_RAWSTR:
@@ -1615,16 +1606,14 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     return ret;
 
   case RIG_LEVEL_SLOPE_LOW:
-    lvl_len = 50;
-    retval = kenwood_transaction (rig, "SL", lvlbuf, &lvl_len);
+    retval = kenwood_transaction (rig, "SL", lvlbuf, sizeof (lvlbuf));
     if (retval != RIG_OK)
       return retval;
     val->i=atoi(&lvlbuf[2]);
     break;
 
   case RIG_LEVEL_SLOPE_HIGH:
-    lvl_len = 50;
-    retval = kenwood_transaction (rig, "SH", lvlbuf, &lvl_len);
+    retval = kenwood_transaction (rig, "SH", lvlbuf, sizeof (lvlbuf));
     if (retval != RIG_OK)
       return retval;
     val->i=atoi(&lvlbuf[2]);

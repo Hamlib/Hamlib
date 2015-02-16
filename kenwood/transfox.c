@@ -196,14 +196,13 @@ int transfox_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 const char* transfox_get_info(RIG *rig)
 {
 	static char firmbuf[32];
-    size_t firmlen = sizeof firmbuf;
 	int retval;
 
 	rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     firmbuf[0] = '\0';
 
-	retval = kenwood_transaction(rig, "CS", firmbuf, &firmlen);
+		retval = kenwood_transaction(rig, "CS", firmbuf, sizeof (firmbuf));
 	if (retval != RIG_OK)
 		return NULL;
 

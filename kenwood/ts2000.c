@@ -371,16 +371,16 @@ int ts2000_get_channel(RIG *rig, channel_t *chan)
 
 	int err;
 	char buf[52];
-	size_t buf_size = 52;
 	char cmd[8];
 	struct kenwood_priv_caps *caps = kenwood_caps(rig);
 
 	/* put channel num in the command string */
 	sprintf(cmd, "MR0%03d;", chan->channel_num);
 
-	err = kenwood_transaction(rig, cmd, buf, &buf_size );
+	err = kenwood_transaction(rig, cmd, buf, sizeof (buf));
 	if (err != RIG_OK)
 		return err;
+	size_t length = strlen (buf);
 	memset(chan, 0x00, sizeof(channel_t));
 
 	chan->vfo = RIG_VFO_MEM;
@@ -393,7 +393,7 @@ int ts2000_get_channel(RIG *rig, channel_t *chan)
 	 */
 	/* First check if a name is assigned.
 	   Name is returned at positions 41-48 (counting from 0) */
-	if( buf_size > 41 ){
+	if( length > 41 ){
 // 	  rig_debug(RIG_DEBUG_VERBOSE, "Copying channel description: %s\n", &buf[ 41 ] );
 	  strcpy( chan->channel_desc, &buf[ 41 ] );
 	}
@@ -505,8 +505,7 @@ int ts2000_get_channel(RIG *rig, channel_t *chan)
 
 	/* Check split freq */
 	cmd[2] = '1';
-	buf_size = 52;
-	err = kenwood_transaction(rig, cmd, buf, &buf_size );
+	err = kenwood_transaction(rig, cmd, buf, sizeof (buf));
 	if (err != RIG_OK)
 		return err;
 
@@ -642,8 +641,7 @@ int ts2000_set_channel(RIG *rig, const channel_t *chan)
 		);
 	rig_debug( RIG_DEBUG_VERBOSE, "The command will be: %s\n", buf );
 
-    size_t tmp=0;
-	err = kenwood_transaction(rig, buf, NULL, &tmp );
+	err = kenwood_transaction(rig, buf, NULL, 0);
 	if (err != RIG_OK)
 		return err;
 	
@@ -666,8 +664,7 @@ int ts2000_set_channel(RIG *rig, const channel_t *chan)
 		);
 	  rig_debug( RIG_DEBUG_VERBOSE, "Split, the command will be: %s\n", buf );
 	
-      tmp = 0;
-	  err = kenwood_transaction(rig, buf, NULL, &tmp );
+	  err = kenwood_transaction(rig, buf, NULL, 0);
 	}
 	return err;
 }
@@ -687,9 +684,10 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		switch (level) {
 
 		case RIG_LEVEL_PREAMP:
-			retval = kenwood_transaction (rig, "PA", lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "PA", lvlbuf, sizeof (lvlbuf));
 			if (retval != RIG_OK)
 				return retval;
+			lvl_len = strlen (lvlbuf);
 			if ((lvl_len != 4)){ /*TS-2000 returns 4 chars for PA; */
 				rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer len=%d\n",
 					       __func__, lvl_len);
@@ -704,10 +702,10 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 
 		case RIG_LEVEL_ATT:
-			retval = kenwood_transaction (rig, "RA", lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "RA", lvlbuf, sizeof (lvlbuf));
 			if (retval != RIG_OK)
 				return retval;
-
+			lvl_len = strlen (lvlbuf);
 			if ((lvl_len != 6)){ /* TS-2000 returns 6 chars for RA; */
 				rig_debug(RIG_DEBUG_ERR,"ts2000_get_level: "
 								"unexpected answer len=%d\n", lvl_len);
@@ -723,9 +721,10 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 
 		case RIG_LEVEL_VOX:
-			retval = kenwood_transaction (rig, "VD", lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "VD", lvlbuf, sizeof (lvlbuf));
 			if (retval != RIG_OK)
 				return retval;
+			lvl_len = strlen (lvlbuf);
 			if (lvl_len != 6) {
 				rig_debug(RIG_DEBUG_ERR,"ts2000_get_level: "
 					"unexpected answer len=%d\n", lvl_len);
@@ -736,9 +735,10 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 
 	        case RIG_LEVEL_AF:
-			retval = kenwood_transaction (rig, "AG0", lvlbuf, &lvl_len);
+						retval = kenwood_transaction (rig, "AG0", lvlbuf, sizeof (lvlbuf));
 			if (retval != RIG_OK)
 				return retval;
+			lvl_len = strlen (lvlbuf);
 			if (lvl_len != 6) {
 				rig_debug(RIG_DEBUG_ERR,"ts2000_get_level: "
 					"unexpected answer len=%d\n", lvl_len);
@@ -749,9 +749,10 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 
 		case RIG_LEVEL_RF:
-			retval = kenwood_transaction (rig, "RG", lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "RG", lvlbuf, sizeof (lvlbuf));
 			if (retval != RIG_OK)
 				return retval;
+			lvl_len = strlen (lvlbuf);
 			if (lvl_len != 5) {
 				rig_debug(RIG_DEBUG_ERR,"ts2000_get_level: "
 					"unexpected answer len=%d\n", lvl_len);
@@ -762,9 +763,10 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 
 		case RIG_LEVEL_SQL:
-			retval = kenwood_transaction (rig, "SQ0", lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "SQ0", lvlbuf, sizeof (lvlbuf));
 			if (retval != RIG_OK)
 				return retval;
+			lvl_len = strlen (lvlbuf);
 			if (lvl_len != 6) {
 				rig_debug(RIG_DEBUG_ERR,"ts2000_get_level: "
 					"unexpected answer len=%d\n", lvl_len);
@@ -775,9 +777,10 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 
 		case RIG_LEVEL_CWPITCH:
-			retval = kenwood_transaction (rig, "EX0310000", lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "EX0310000", lvlbuf, sizeof (lvlbuf));
 			if (retval != RIG_OK)
 				return retval;
+			lvl_len = strlen (lvlbuf);
 			if (lvl_len != 15) {
 				rig_debug(RIG_DEBUG_ERR,"ts2000_get_level: "
 					"unexpected answer len=%d answer=%s\n", lvl_len, lvlbuf);
@@ -788,9 +791,10 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 
 		case RIG_LEVEL_RFPOWER:
-			retval = kenwood_transaction (rig, "PC", lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "PC", lvlbuf, sizeof (lvlbuf));
 			if (retval != RIG_OK)
 				return retval;
+			lvl_len = strlen (lvlbuf);
 			if (lvl_len != 5) {
 				rig_debug(RIG_DEBUG_ERR,"ts2000_get_level: "
 					"unexpected answer len=%d\n", lvl_len);
@@ -801,9 +805,10 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         	  	break;
 
 		case RIG_LEVEL_MICGAIN:
-			retval = kenwood_transaction (rig, "MG", lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "MG", lvlbuf, sizeof (lvlbuf));
 			if (retval != RIG_OK)
 				return retval;
+			lvl_len = strlen (lvlbuf);
 			if (lvl_len != 5) {
 				rig_debug(RIG_DEBUG_ERR,"ts2000_get_level: "
 					"unexpected answer len=%d\n", lvl_len);
@@ -814,9 +819,10 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 
 		case RIG_LEVEL_KEYSPD:
-			retval = kenwood_transaction (rig, "KS", lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "KS", lvlbuf, sizeof (lvlbuf));
 			if (retval != RIG_OK)
 				return retval;
+			lvl_len = strlen (lvlbuf);
 			if (lvl_len != 5) {
 				rig_debug(RIG_DEBUG_ERR,"ts2000_get_level: "
 					"unexpected answer len=%d\n", lvl_len);
@@ -831,9 +837,10 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 
 		case RIG_LEVEL_COMP:
-			retval = kenwood_transaction (rig, "PL", lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "PL", lvlbuf, sizeof (lvlbuf));
 			if (retval != RIG_OK)
 				return retval;
+			lvl_len = strlen (lvlbuf);
 			if (lvl_len != 8) {
 				rig_debug(RIG_DEBUG_ERR,"ts2000_get_level: "
 					"unexpected answer len=%d\n", lvl_len);
@@ -856,9 +863,10 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 
 		case RIG_LEVEL_BKINDL:
-			retval = kenwood_transaction (rig, "SD", lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "SD", lvlbuf, sizeof (lvlbuf));
 			if (retval != RIG_OK)
 				return retval;
+			lvl_len = strlen (lvlbuf);
 			if (lvl_len != 6) {
 				rig_debug(RIG_DEBUG_ERR,"ts2000_get_level: "
 					"unexpected answer len=%d\n", lvl_len);
@@ -873,9 +881,10 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		    break;
 
 		case RIG_LEVEL_METER:
-			retval = kenwood_transaction (rig, "RM", lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "RM", lvlbuf, sizeof (lvlbuf));
 			if (retval != RIG_OK)
 				return retval;
+			lvl_len = strlen (lvlbuf);
 			if (lvl_len != 7) {
 				rig_debug(RIG_DEBUG_ERR,"ts2000_get_level: "
 					"unexpected answer len=%d\n", lvl_len);
@@ -886,9 +895,10 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 
 		case RIG_LEVEL_VOXGAIN:
-			retval = kenwood_transaction (rig, "VG", lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "VG", lvlbuf, sizeof (lvlbuf));
 			if (retval != RIG_OK)
 				return retval;
+			lvl_len = strlen (lvlbuf);
 			if (lvl_len != 5) {
 				rig_debug(RIG_DEBUG_ERR,"ts2000_get_level: "
 					"unexpected answer len=%d\n", lvl_len);
@@ -904,10 +914,10 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		case RIG_LEVEL_RAWSTR:
 		case RIG_LEVEL_STRENGTH:
-			retval = kenwood_transaction (rig, "SM0", lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "SM0", lvlbuf, sizeof (lvlbuf));
 			if (retval != RIG_OK)
 				return retval;
-
+			lvl_len = strlen (lvlbuf);
 			if (( (lvl_len !=7)) || lvlbuf[1] != 'M') {
 				/* TS-2000 returns 8 bytes for S meter level */
 				rig_debug(RIG_DEBUG_ERR,"%s: wrong answer len=%d\n",
