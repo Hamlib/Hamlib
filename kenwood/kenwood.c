@@ -200,7 +200,7 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data, size_t datasiz
 
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  if (!rig || (!cmdstr && !datasize) || datasize < 0 || (datasize && !data))
+  if (!rig || (!cmdstr && !datasize) || (datasize && !data))
     return -RIG_EINVAL;
 
   struct kenwood_priv_caps *caps = kenwood_caps(rig);
