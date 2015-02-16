@@ -182,7 +182,7 @@ static int ts870s_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   }
 
   sprintf(buf, "MD%c", kmode);
-  retval = kenwood_simple_cmd(rig, buf);
+  retval = kenwood_transaction(rig, buf, NULL, 0);
   if (retval != RIG_OK) return retval;
 
   if (RIG_PASSBAND_NORMAL != width) /* leave well alone if default passband requested */
@@ -200,7 +200,7 @@ static int ts870s_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	      mode_default_hpf = 100;
 	    }
 	  sprintf(buf, "IS %04d", (int)(width + mode_default_hpf));
-	  retval = kenwood_simple_cmd(rig, buf);
+	  retval = kenwood_transaction(rig, buf, NULL, 0);
 	}
       else
 	{
@@ -209,7 +209,7 @@ static int ts870s_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	   * so we don't need to check the value...
 	   */
 	  sprintf(buf, "FW%04d", (int)width/10);
-	  retval = kenwood_simple_cmd(rig, buf);
+	  retval = kenwood_transaction(rig, buf, NULL, 0);
 	}
     }
 
@@ -225,7 +225,7 @@ int ts870s_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 	case RIG_LEVEL_RFPOWER:
 		intval = val.f * 100;
 		sprintf(levelbuf, "PC%03d", intval);
-		return kenwood_simple_cmd(rig, levelbuf);
+		return kenwood_transaction(rig, levelbuf, NULL, 0);
 		break;
 
 	default:

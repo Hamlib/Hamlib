@@ -203,10 +203,4 @@ static int inline kenwood_simple_transaction(RIG *rig, const char *cmd, size_t e
   return kenwood_safe_transaction(rig, cmd, priv->info, KENWOOD_MAX_BUF_LEN, expected);
 }
 
-/* no answer needed at all */
-static int inline kenwood_simple_cmd(RIG *rig, const char *cmd)
-{
-  return kenwood_safe_transaction(rig, cmd, NULL, 0, 0);
-}
-
 #endif /* _KENWOOD_H */

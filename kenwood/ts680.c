@@ -66,7 +66,7 @@ static int ts680_set_vfo(RIG *rig, vfo_t vfo)
                 }
 
                 sprintf(cmdbuf, "FN%c", vfo_function); /* The 680 and 140 need this to set the VFO on the radio */
-                return kenwood_simple_cmd(rig, cmdbuf);
+                return kenwood_transaction(rig, cmdbuf, NULL, 0);
 }
 
 /*

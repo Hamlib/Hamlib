@@ -940,7 +940,7 @@ int tmd710_set_vfo (RIG *rig, vfo_t vfo)
 	}
 
 	snprintf(vfobuf,9, "VM %d,%d", vfonum, vfomode);
-	retval = kenwood_simple_cmd(rig, vfobuf);
+	retval = kenwood_transaction(rig, vfobuf, NULL, 0);
 	if (retval != RIG_OK)
         return retval;
 
@@ -948,7 +948,7 @@ int tmd710_set_vfo (RIG *rig, vfo_t vfo)
         return RIG_OK;
 
     snprintf(vfobuf, 15, "BC %d,%d", vfonum, txvfonum);
-    retval = kenwood_simple_cmd(rig, vfobuf);
+    retval = kenwood_transaction(rig, vfobuf, NULL, 0);
 	if (retval != RIG_OK)
         return retval;
 

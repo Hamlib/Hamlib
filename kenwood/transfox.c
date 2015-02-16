@@ -219,24 +219,24 @@ int transfox_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
 	case RIG_LEVEL_ATT:
 		if (val.i == 0) {
-			ret = kenwood_simple_cmd(rig, "C30");
+			ret = kenwood_transaction(rig, "C30", NULL, 0);
 			if (ret != RIG_OK)
 				return ret;
-			ret = kenwood_simple_cmd(rig, "C20");
+			ret = kenwood_transaction(rig, "C20", NULL, 0);
 			if (ret != RIG_OK)
 				return ret;
         } else if (val.i == 10) {
-				ret = kenwood_simple_cmd(rig, "C30");
+			ret = kenwood_transaction(rig, "C30", NULL, 0);
 				if (ret != RIG_OK)
 					return ret;
-				ret = kenwood_simple_cmd(rig, "C21");
+				ret = kenwood_transaction(rig, "C21", NULL, 0);
 				if (ret != RIG_OK)
 					return ret;
         } else if (val.i == 20) {
-				ret = kenwood_simple_cmd(rig, "C31");
+			ret = kenwood_transaction(rig, "C31", NULL, 0);
 				if (ret != RIG_OK)
 					return ret;
-				ret = kenwood_simple_cmd(rig, "C21");
+				ret = kenwood_transaction(rig, "C21", NULL, 0);
 				if (ret != RIG_OK)
 					return ret;
 		}
@@ -244,24 +244,24 @@ int transfox_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
 	case RIG_LEVEL_PREAMP:
 		if (val.i == 0) {
-			ret = kenwood_simple_cmd(rig, "C30");
+			ret = kenwood_transaction(rig, "C30", NULL, 0);
 			if (ret != RIG_OK)
 				return ret;
-			ret = kenwood_simple_cmd(rig, "C20");
+			ret = kenwood_transaction(rig, "C20", NULL, 0);
 			if (ret != RIG_OK)
 				return ret;
         } else if (val.i == 22) {
-				ret = kenwood_simple_cmd(rig, "C30");
+			ret = kenwood_transaction(rig, "C30", NULL, 0);
 				if (ret != RIG_OK)
 					return ret;
-				ret = kenwood_simple_cmd(rig, "C22");
+				ret = kenwood_transaction(rig, "C22", NULL, 0);
 				if (ret != RIG_OK)
 					return ret;
         } else if (val.i == 44) {
-				ret = kenwood_simple_cmd(rig, "C32");
+			ret = kenwood_transaction(rig, "C32", NULL, 0);
 				if (ret != RIG_OK)
 					return ret;
-				ret = kenwood_simple_cmd(rig, "C22");
+				ret = kenwood_transaction(rig, "C22", NULL, 0);
 				if (ret != RIG_OK)
 					return ret;
 		}

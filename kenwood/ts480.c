@@ -136,7 +136,7 @@ kenwood_ts480_set_level (RIG * rig, vfo_t vfo, setting_t level, value_t val)
       return -RIG_EINVAL;
     }
 
-  return kenwood_simple_cmd(rig, levelbuf);
+  return kenwood_transaction(rig, levelbuf, NULL, 0);
 }
 
 

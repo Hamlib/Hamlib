@@ -247,7 +247,7 @@ int xg3_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
             return -RIG_EINVAL;
     }
 
-    return kenwood_simple_cmd(rig, levelbuf);
+    return kenwood_transaction(rig, levelbuf, NULL, 0);
 }
 
 /*
@@ -386,7 +386,7 @@ int xg3_set_freq(RIG * rig, vfo_t vfo, freq_t freq)
     {
         sprintf(cmdbuf, "F,%011ld", (long)freq);
     }
-    int err = kenwood_simple_cmd(rig, cmdbuf);
+    int err = kenwood_transaction(rig, cmdbuf, NULL, 0);
 
     return err;
 }
@@ -465,7 +465,7 @@ int xg3_set_powerstat(RIG * rig, powerstat_t status)
     if (status == RIG_POWER_OFF)
     {
         priv->powerstat = RIG_POWER_OFF;
-        return kenwood_simple_cmd(rig, cmd);
+        return kenwood_transaction(rig, cmd, NULL, 0);
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s invalid powerstat request status=%d\n",
@@ -481,7 +481,7 @@ int xg3_get_powerstat(RIG * rig, powerstat_t * status)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     const char *cmd = "G";      // any command to test will do
-    int retval = kenwood_simple_cmd(rig, cmd);
+    int retval = kenwood_transaction(rig, cmd, NULL, 0);
     if (retval != RIG_OK)
         return retval;
 
@@ -519,7 +519,7 @@ int xg3_set_mem(RIG * rig, vfo_t vfo, int ch)
         return -RIG_EINVAL;
     }
     sprintf(cmdbuf, "C,%02d;", ch);
-    retval = kenwood_simple_cmd(rig, cmdbuf);
+    retval = kenwood_transaction(rig, cmdbuf, NULL, 0);
     if (retval != RIG_OK)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s invalid set_mem cmd=%d\n", __func__,
@@ -542,7 +542,7 @@ int xg3_get_mem(RIG * rig, vfo_t vfo, int *ch)
 
     struct rig_state *rs = &rig->state;
     sprintf(cmdbuf, "C;");
-    retval = kenwood_simple_cmd(rig, cmdbuf);
+    retval = kenwood_transaction(rig, cmdbuf, NULL, 0);
     if (retval != RIG_OK)
         return retval;
 

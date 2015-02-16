@@ -183,9 +183,9 @@ int thd72_open(RIG *rig)
 {
     int ret;
 
-    kenwood_simple_cmd(rig, "");
+    kenwood_transaction(rig, "", NULL, 0);
 
-    ret = kenwood_simple_cmd(rig, "TC1");
+    ret = kenwood_transaction(rig, "TC1", NULL, 0);
     if (ret != RIG_OK)
         return ret;
 
@@ -247,7 +247,7 @@ int thd72_get_chan_all_cb (RIG * rig, chan_cb_t chan_cb, rig_ptr_t arg)
     char block[BLOCK_SZ];
     char resp[CMD_SZ];
 
-    ret = kenwood_simple_cmd(rig, "0M PROGRAM");
+    ret = kenwood_transaction(rig, "0M PROGRAM", NULL, 0);
     if (ret != RIG_OK)
         return ret;
 
