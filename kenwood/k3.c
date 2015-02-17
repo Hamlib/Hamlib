@@ -401,7 +401,7 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		width = pb_wid;
 
 	sprintf(cmd_s, "BW%04ld", width / 10);
-	err = kenwood_simple_cmd(rig, cmd_s);
+	err = kenwood_transaction(rig, cmd_s, NULL, 0);
 	if (err != RIG_OK)
 		return err;
 
@@ -411,7 +411,7 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	if (mode == RIG_MODE_PKTLSB || mode == RIG_MODE_PKTUSB
 	    || mode == RIG_MODE_RTTY || mode == RIG_MODE_RTTYR)
 	  {
-	    err = kenwood_simple_cmd(rig, cmd_m);
+	    err = kenwood_transaction(rig, cmd_m, NULL, 0);
 	    if (err != RIG_OK)
 	      return err;
 	  }
@@ -437,7 +437,7 @@ int k3_set_vfo(RIG *rig, vfo_t vfo)
 
 	switch (vfo) {
 	case RIG_VFO_B:
-		err = kenwood_simple_cmd(rig, "SWT11");
+		err = kenwood_transaction(rig, "SWT11", NULL, 0);
 		if (err != RIG_OK)
 			return err;
 		break;
@@ -473,7 +473,7 @@ int k3_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
 	switch(token) {
 	case TOK_RIT_CLR:
 		/* Clear offset */
-		err = kenwood_simple_cmd(rig, "RC");
+		err = kenwood_transaction(rig, "RC", NULL, 0);
 		if (err != RIG_OK)
 			return err;
 
@@ -634,7 +634,7 @@ int k3_set_split_mode(RIG * rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
   }
 
   sprintf(buf, "MD$%c", '0' + kmode);
-  err = kenwood_simple_cmd(rig, buf);
+  err = kenwood_transaction(rig, buf, NULL, 0);
   if (err != RIG_OK)
     return err;
 
@@ -663,7 +663,7 @@ int k3_set_split_mode(RIG * rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
     tx_width = pb_wid;
 
   sprintf(cmd_s, "BW$%04ld", tx_width / 10);
-  err = kenwood_simple_cmd(rig, cmd_s);
+  err = kenwood_transaction(rig, cmd_s, NULL, 0);
   if (err != RIG_OK)
     return err;
 
@@ -672,7 +672,7 @@ int k3_set_split_mode(RIG * rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
    */
   if (tx_mode == RIG_MODE_PKTLSB || tx_mode == RIG_MODE_PKTUSB
       || tx_mode == RIG_MODE_RTTY || tx_mode == RIG_MODE_RTTYR) {
-    err = kenwood_simple_cmd(rig, cmd_m);
+    err = kenwood_transaction(rig, cmd_m, NULL, 0);
     if (err != RIG_OK)
       return err;
   }
@@ -869,7 +869,7 @@ int set_rit_xit(RIG *rig, shortfreq_t rit)
 
 	if (rit == 0) {
 		/* Clear offset and return */
-		err = kenwood_simple_cmd(rig, "RC");
+		err = kenwood_transaction(rig, "RC", NULL, 0);
 		if (err != RIG_OK)
 			return err;
 
@@ -881,7 +881,7 @@ int set_rit_xit(RIG *rig, shortfreq_t rit)
 		offs = (rit < 0) ? '-' : '+';
 		snprintf(cmd, 8, "RO%c%04d", offs, abs((int)rit));
 
-		err = kenwood_simple_cmd(rig, cmd);
+		err = kenwood_transaction(rig, cmd, NULL, 0);
 		if (err != RIG_OK)
 			return err;
 

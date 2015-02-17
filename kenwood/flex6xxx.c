@@ -224,7 +224,7 @@ static int flex6k_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   }
 
   sprintf(buf, "MD%c", '0' + kmode);
-  err = kenwood_simple_cmd(rig, buf);
+  err = kenwood_transaction(rig, buf, NULL, 0);
   if (err != RIG_OK)
     return err;
 
@@ -252,7 +252,7 @@ static int flex6k_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     return -RIG_EINVAL;
   }
 
-  err = kenwood_simple_cmd(rig, buf);
+  err = kenwood_transaction(rig, buf, NULL, 0);
   if (err != RIG_OK)
     return err;
   return RIG_OK;

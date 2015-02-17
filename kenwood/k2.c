@@ -347,16 +347,16 @@ int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	if (err != RIG_OK)
 		return err;
 
-	err = kenwood_simple_cmd(rig, "K22");
+	err = kenwood_transaction(rig, "K22", NULL, 0);
 	if (err != RIG_OK)
 		return err;
 
 	/* Set the filter slot */
-	err = kenwood_simple_cmd(rig, fcmd);
+	err = kenwood_transaction(rig, fcmd, NULL, 0);
 	if (err != RIG_OK)
 		return err;
 
-	err = kenwood_simple_cmd(rig, "K20");
+	err = kenwood_transaction(rig, "K20", NULL, 0);
 	if (err != RIG_OK)
 		return err;
 
@@ -387,7 +387,7 @@ int k2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	if (err != RIG_OK)
 		return err;
 
-	err = kenwood_simple_cmd(rig, "K22");
+	err = kenwood_transaction(rig, "K22", NULL, 0);
 	if (err != RIG_OK)
 		return err;
 
@@ -395,7 +395,7 @@ int k2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	if (err != RIG_OK)
 		return err;
 
-	err = kenwood_simple_cmd(rig, "K20");
+	err = kenwood_transaction(rig, "K20", NULL, 0);
 	if (err != RIG_OK)
 		return err;
 
@@ -478,7 +478,7 @@ int k2_probe_mdfw(RIG *rig, struct kenwood_priv_data *priv)
 	/* The K2 extension level has been stored by elecraft_open().  Now set rig
 	 * to K22 for detailed query of mode and filter width values...
 	 */
-	err = kenwood_simple_cmd(rig, "K22");
+	err = kenwood_transaction(rig, "K22", NULL, 0);
 	if (err != RIG_OK)
 		return err;
 
@@ -503,7 +503,7 @@ int k2_probe_mdfw(RIG *rig, struct kenwood_priv_data *priv)
 
 	/* First try to put the K2 into RTTY mode and check if it's available. */
 	priv->k2_md_rtty = 0;		/* Assume RTTY module not installed */
-	err = kenwood_simple_cmd(rig, "MD6");
+	err = kenwood_transaction(rig, "MD6", NULL, 0);
 	if (err != RIG_OK && err != -RIG_ERJCTED)
 		return err;
 	if (RIG_OK == err)
@@ -565,15 +565,15 @@ int k2_mdfw_rest(RIG *rig, const char *mode, const char *fw)
 	if (strlen(mode) != 3 || strlen(fw) != 7)
 		return -RIG_EINVAL;
 
-	err = kenwood_simple_cmd(rig, mode);
+	err = kenwood_transaction(rig, mode, NULL, 0);
 	if (err != RIG_OK)
 		return err;
 
-	err = kenwood_simple_cmd(rig, fw);
+	err = kenwood_transaction(rig, fw, NULL, 0);
 	if (err != RIG_OK)
 		return err;
 
-	err = kenwood_simple_cmd(rig, "K20");
+	err = kenwood_transaction(rig, "K20", NULL, 0);
 	if (err != RIG_OK)
 		return err;
 
@@ -607,14 +607,14 @@ int k2_pop_fw_lst(RIG *rig, const char *cmd)
 		return -RIG_EINVAL;
 
 	/* Set the mode */
-	err = kenwood_simple_cmd(rig, cmd);
+	err = kenwood_transaction(rig, cmd, NULL, 0);
 	if (err != RIG_OK)
 		return err;
 
 	for (f = 1; f < 5; f++) {
 		snprintf(fcmd, 8, "FW0000%d", f);
 
-		err = kenwood_simple_cmd(rig, fcmd);
+		err = kenwood_transaction(rig, fcmd, NULL, 0);
 		if (err != RIG_OK)
 			return err;
 

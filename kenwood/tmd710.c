@@ -812,17 +812,17 @@ int
 tmd710_get_vfo_char(RIG *rig, vfo_t *vfo, char *vfoch)
 {
 	char cmdbuf[10], buf[10], vfoc;
-	size_t buf_size=10;
 	int retval;
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
 	/* Get VFO band */
 	
-	retval = kenwood_transaction(rig, "BC", buf, &buf_size);
+	retval = kenwood_transaction(rig, "BC", buf, sizeof (buf));
 	if (retval != RIG_OK)
 		return retval;
-	switch (buf_size) {
+  size_t length = strlen (buf);
+	switch (length) {
 	case 6: /*intended for D700 BC 0,0*/
 	  if ((buf[0]=='B') &&(buf[1]=='C') && (buf[2]==' ') && (buf[4]=',')){
 	    vfoc = buf[3];
@@ -832,7 +832,7 @@ tmd710_get_vfo_char(RIG *rig, vfo_t *vfo, char *vfoch)
 	  }
 	  break;
 	default:
-	  rig_debug(RIG_DEBUG_ERR, "%s: Unexpected answer length '%c'\n", __func__, buf_size);
+	  rig_debug(RIG_DEBUG_ERR, "%s: Unexpected answer length '%c'\n", __func__, length);
 	  return -RIG_EPROTO;
 	  break;
 	}
@@ -907,8 +907,6 @@ int tmd710_set_vfo (RIG *rig, vfo_t vfo)
     char vfobuf[16], ackbuf[16];
     int vfonum, txvfonum, vfomode=0;
     int retval;
-    size_t ack_len;
-
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called %s\n", __func__, rig_strvfo(vfo));
 
@@ -928,9 +926,8 @@ int tmd710_set_vfo (RIG *rig, vfo_t vfo)
             break;
         case RIG_VFO_MEM:
             /* get current band */
-	  snprintf(vfobuf, 10, "BC");
-            ack_len=16;
-            retval = kenwood_transaction(rig, vfobuf, ackbuf, &ack_len);
+          snprintf(vfobuf, 10, "BC");
+          retval = kenwood_transaction(rig, vfobuf, ackbuf, sizeof (ackbuf));
             if (retval != RIG_OK)
                 return retval;
             txvfonum = vfonum = ackbuf[3]-'0';
@@ -943,7 +940,7 @@ int tmd710_set_vfo (RIG *rig, vfo_t vfo)
 	}
 
 	snprintf(vfobuf,9, "VM %d,%d", vfonum, vfomode);
-	retval = kenwood_simple_cmd(rig, vfobuf);
+	retval = kenwood_transaction(rig, vfobuf, NULL, 0);
 	if (retval != RIG_OK)
         return retval;
 
@@ -951,7 +948,7 @@ int tmd710_set_vfo (RIG *rig, vfo_t vfo)
         return RIG_OK;
 
     snprintf(vfobuf, 15, "BC %d,%d", vfonum, txvfonum);
-    retval = kenwood_simple_cmd(rig, vfobuf);
+    retval = kenwood_transaction(rig, vfobuf, NULL, 0);
 	if (retval != RIG_OK)
         return retval;
 

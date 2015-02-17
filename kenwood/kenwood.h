@@ -88,8 +88,7 @@ extern rmode_t kenwood_mode_table[KENWOOD_MODE_TABLE_MAX];
 extern const tone_t kenwood38_ctcss_list[];
 extern const tone_t kenwood42_ctcss_list[];
 
-int kenwood_transaction(RIG *rig, const char *cmd, char *data,
-        size_t *data_len);
+int kenwood_transaction(RIG *rig, const char *cmd, char *data, size_t data_len);
 int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
         size_t buf_size, size_t expected);
 
@@ -202,12 +201,6 @@ static int inline kenwood_simple_transaction(RIG *rig, const char *cmd, size_t e
 {
   struct kenwood_priv_data *priv = rig->state.priv;
   return kenwood_safe_transaction(rig, cmd, priv->info, KENWOOD_MAX_BUF_LEN, expected);
-}
-
-/* no answer needed at all */
-static int inline kenwood_simple_cmd(RIG *rig, const char *cmd)
-{
-  return kenwood_safe_transaction(rig, cmd, NULL, 0, 0);
 }
 
 #endif /* _KENWOOD_H */
