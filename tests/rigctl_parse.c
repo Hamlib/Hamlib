@@ -1454,6 +1454,13 @@ declare_proto_rig(get_mode)
 /* 'V' */
 declare_proto_rig(set_vfo)
 {
+	if (!strcmp(arg1, "?")) {
+		char s[SPRINTF_MAX_SIZE];
+		sprintf_vfo(s, rig->state.vfo_list);
+		fprintf(fout, "%s\n", s);
+		return RIG_OK;
+	}
+
 	return rig_set_vfo(rig, rig_parse_vfo(arg1));
 }
 
@@ -1739,6 +1746,14 @@ declare_proto_rig(set_split_vfo)
 	vfo_t tx_vfo;
 
 	CHKSCN1ARG(sscanf(arg1, "%d", &split));
+
+	if (!strcmp(arg2, "?")) {
+		char s[SPRINTF_MAX_SIZE];
+		sprintf_vfo(s, rig->state.vfo_list);
+		fprintf(fout, "%s\n", s);
+		return RIG_OK;
+	}
+
 	tx_vfo = rig_parse_vfo(arg2);
 	if (tx_vfo == RIG_VFO_NONE)
 		return -RIG_EINVAL;
