@@ -509,7 +509,7 @@ static int ClearErrors( struct termios_list *index, COMSTAT *Stat )
 #ifdef DEBUG_ERRORS
 	if ( ErrCode )
 	{
-		printf("%i frame %i %i overrun %i %i  parity %u %i brk %i %i\n",
+		printf("%i frame %i %i overrun %li %i  parity %u %i brk %i %i\n",
 			(int) ErrCode,
 			(int) ErrCode & CE_FRAME,
 			index->sis->frame,
@@ -1445,7 +1445,7 @@ int win32_serial_read( int fd, void *vb, int size )
 #ifdef DEBUG_VERBOSE
         /* warning Roy Rogers! */
         sprintf(message, " ========== ReadFile = %i %s\n",
-                ( int ) nBytes, (char *) dest + total );
+                ( int ) nBytes, *((char *) dest + total) );
         report( message );
 #endif /* DEBUG_VERBOSE */
 
@@ -3306,7 +3306,7 @@ int  win32_serial_select( int  n,  fd_set  *readfds,  fd_set  *writefds,
 		SetCommMask( index->hComm, index->event_flag );
 		ClearErrors( index, &Stat );
 		if ( !WaitCommEvent( index->hComm, &dwCommEvent,
-			&index->sol ) )
+			&index->rol ) )
 		{
 			/* WaitCommEvent failed probably overlapped though */
 			if ( GetLastError() != ERROR_IO_PENDING )
@@ -3320,7 +3320,7 @@ int  win32_serial_select( int  n,  fd_set  *readfds,  fd_set  *writefds,
 		    be needed
 		*/
 		ClearErrors( index, &Stat );
-		wait = WaitForSingleObject( index->sol.hEvent, 100 );
+		wait = WaitForSingleObject( index->rol.hEvent, 100 );
 		switch ( wait )
 		{
 			case WAIT_OBJECT_0:
