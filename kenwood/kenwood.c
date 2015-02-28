@@ -264,7 +264,7 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data, size_t datasiz
     }
   }
 
-  len = min (datasize ? datasize : strlen (verify) + 5, KENWOOD_MAX_BUF_LEN);
+  len = min (datasize ? datasize : strlen (verify) + 7, KENWOOD_MAX_BUF_LEN);
   retval = read_string(&rs->rigport, buffer, len, cmdtrm, strlen(cmdtrm));
   if (retval < 0) {
     if (retry_read++ < rig->caps->retry)
@@ -565,6 +565,11 @@ int kenwood_open(RIG *rig)
     rig_debug(RIG_DEBUG_ERR, "%s: unknown id type (%s)\n", __func__, id);
     return -RIG_EPROTO;
   }
+
+  if (!strcmp ("IDID900", id)) /* DDUtil in TS-2000 mode */
+    {
+      strcpy (id, "ID019");  /* fake it */
+    }
 
   /* check for a white space and skip it */
   idptr = &id[2];
