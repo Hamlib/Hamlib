@@ -181,7 +181,7 @@ const struct confparams kenwood_cfg_params[] = {
  *        indicating that only a reply is needed (nothing will be sent).
  * data:    Buffer for reply string.  Can be NULL, indicating that no reply
  *        is needed and will return with RIG_OK after command was sent.
- * datasize: in: Size of buffer. It is the caller's responsibily to provide
+ * datasize: Size of buffer. It is the caller's responsibily to provide
  *         a large enough buffer for all possible replies for a command.
  *
  * returns:
@@ -264,7 +264,8 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data, size_t datasiz
     }
   }
 
-  len = min (datasize ? datasize : strlen (verify) + 7, KENWOOD_MAX_BUF_LEN);
+  /* allow one extra byte for terminator we don't return */
+  len = min (datasize ? datasize + 1 : strlen (verify) + 7, KENWOOD_MAX_BUF_LEN);
   retval = read_string(&rs->rigport, buffer, len, cmdtrm, strlen(cmdtrm));
   if (retval < 0) {
     if (retry_read++ < rig->caps->retry)
