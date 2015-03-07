@@ -343,6 +343,7 @@ int xg3_set_vfo(RIG * rig, vfo_t vfo)
     if (!rig || !vfo)
         return -RIG_EINVAL;
 
+    if (vfo != RIG_VFO_A) return -RIG_EINVAL;
     // We don't actually set the vfo on the XG3
     // But we need this so we can set frequencies on the band buttons
     priv->curr_vfo = vfo;
