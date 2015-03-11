@@ -223,8 +223,8 @@ const struct rig_caps ic7100_caps = {
 .get_freq =  icom_get_freq,
 .set_freq =  icom_set_freq,
 
-.get_mode =  icom_get_mode,
-.set_mode =  icom_set_mode,
+.get_mode =  icom_get_mode_with_data,
+.set_mode =  icom_set_mode_with_data,
 
 .get_vfo =  NULL,
 .set_vfo =  icom_set_vfo,
