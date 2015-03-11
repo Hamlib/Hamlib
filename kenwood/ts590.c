@@ -30,6 +30,10 @@
 #include "idx_builtin.h"
 #include "kenwood.h"
 
+
+/* Function declarations  */
+const char* ts590_get_info(RIG *rig);
+
 #define TS590_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR)
 #define TS590_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
 #define TS590_AM_TX_MODES RIG_MODE_AM
@@ -204,7 +208,7 @@ const struct rig_caps ts590_caps = {
   .get_dcd = kenwood_get_dcd,
   .set_powerstat = kenwood_set_powerstat,
   .get_powerstat = kenwood_get_powerstat,
-  .get_info = kenwood_get_info,
+  .get_info = ts590_get_info,
   .reset = kenwood_reset,
   .set_ant = kenwood_set_ant,
   .get_ant = kenwood_get_ant,
@@ -402,3 +406,29 @@ const struct rig_caps ts590sg_caps = {
 /*
  * Function definitions below
  */
+
+/*
+ * ts590_get_info
+ * This is not documented in the manual as of 3/11/15 but confirmed from Kenwood
+ * "TY" produces "TYK 00" for example
+ */
+const char* ts590_get_info(RIG *rig)
+{
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  if (!rig)
+    return "*rig == NULL";
+
+  char firmbuf[10];
+  int retval;
+
+  retval = kenwood_safe_transaction(rig, "TY", firmbuf, 10, 6);
+  if (retval != RIG_OK)
+    return NULL;
+
+  switch (firmbuf[2]) {
+    case 'K': return "Firmware: USA version";
+    case 'E': return "Firmware: European version";
+    default: return "Firmware: unknown";
+  }
+}
