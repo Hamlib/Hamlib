@@ -567,7 +567,13 @@ int kenwood_open(RIG *rig)
     return -RIG_EPROTO;
   }
 
-  if (!strcmp ("IDID900", id)) /* DDUtil in TS-2000 mode */
+  if (!strcmp ("IDID900", id)   /* DDUtil in TS-2000 mode */
+      || !strcmp ("ID900", id)  /* PowerSDR after ZZID; command */
+      || !strcmp ("ID904", id)  /* SmartSDR Flex-6700 */
+      || !strcmp ("ID905", id)  /* PowerSDR Flex-6500 */
+      || !strcmp ("ID906", id)  /* PowerSDR Flex-6700R */
+      || !strcmp ("ID907", id)  /* PowerSDR Flex-6300 */
+      )
     {
       strcpy (id, "ID019");  /* fake it */
     }
