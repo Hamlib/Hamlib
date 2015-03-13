@@ -360,19 +360,19 @@ static int ts870s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 
 		case RIG_LEVEL_AF:
-			return get_kenwood_level(rig, "AG", 2, &val->f);
+			return get_kenwood_level(rig, "AG", &val->f);
 
 		case RIG_LEVEL_RF:
-			return get_kenwood_level(rig, "RG", 2, &val->f);
+			return get_kenwood_level(rig, "RG", &val->f);
 
 		case RIG_LEVEL_SQL:
-			return get_kenwood_level(rig, "SQ", 2, &val->f);
+			return get_kenwood_level(rig, "SQ", &val->f);
 
 		case RIG_LEVEL_MICGAIN:
-			return get_kenwood_level(rig, "MG", 2, &val->f);
+			return get_kenwood_level(rig, "MG", &val->f);
 
 		case RIG_LEVEL_AGC:
-			ret = get_kenwood_level(rig, "GT", 2, &val->f);
+			ret = get_kenwood_level(rig, "GT", &val->f);
 			agclevel = 255 * val->f;
 			if (agclevel == 0) val->i = 0;
 			else if (agclevel < 85) val->i = 1;
