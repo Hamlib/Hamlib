@@ -405,6 +405,29 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
             return -RIG_ENIMPL;             /* Only VFO_A or VFO_B are valid */
     }
 
+    char target_vfo = 'A' == c ? '0' : '1';
+    if (RIG_MODEL_FT450 == caps->rig_model)
+      {
+        /* The FT450 only accepts F[A|B]nnnnnnnn; commands for the
+           current VFO so we must use the VS[0|1]; command to check
+           and select the correct VFO before setting the frequency
+        */
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VS%c", cat_term);
+        if (RIG_OK != (err = newcat_get_cmd (rig)))
+          {
+            return err;
+          }
+        if (priv->ret_data[2] != target_vfo)
+          {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VS%c%c", target_vfo, cat_term);
+            rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
+            if ( RIG_OK != (err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str))))
+              {
+                return err;
+              }
+          }
+      }
+
     // W1HKJ
     // creation of the priv structure guarantees that the string can be NEWCAT_DATA_LEN
     // bytes in length.  the snprintf will only allow (NEWCAT_DATA_LEN - 1) chars
@@ -413,9 +436,23 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
     // including leading fill zeros
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "F%c%08d%c", c, (int)freq, cat_term);
-
     rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
-    return write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    if (RIG_OK != (err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str))))
+      {
+        return err;
+      }
+
+    if (RIG_MODEL_FT450 == caps->rig_model && priv->ret_data[2] != target_vfo)
+      {
+        /* revert current VFO */
+        rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->ret_data);
+        if (RIG_OK != (err = write_block(&state->rigport, priv->ret_data, strlen(priv->ret_data))))
+          {
+            return err;
+          }
+      }
+
+    return RIG_OK;
 }
 
 

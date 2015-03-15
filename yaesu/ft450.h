@@ -112,19 +112,4 @@
 
 #define FT450_POST_WRITE_DELAY               5
 
-
-/*
- * API local implementation
- *
- */
-
-//static int ft450_init(RIG *rig);
-//static int ft450_cleanup(RIG *rig);
-//static int ft450_open(RIG *rig);
-//static int ft450_close(RIG *rig);
-
-//static int ft450_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
-
-//static int ft450_set_vfo(RIG *rig, vfo_t vfo);
-
 #endif /* _FT450_H */
