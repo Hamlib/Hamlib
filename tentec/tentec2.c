@@ -363,7 +363,7 @@ int tentec2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	if (ret_len != 2 || mdbuf[0] != 'G')
 		return -RIG_ERJCTED;
 
-	if (width != RIG_PASSBAND_NORMAL) /* with NORMAL we leave width alone */
+	if (RIG_PASSBAND_NORMAL == width) /* with NORMAL we leave width alone */
 		return RIG_OK;
 
 	/*
@@ -373,7 +373,11 @@ int tentec2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	 *              ..
 	 * Filter 36: 3000
 	 */
-	if (width < 1000)
+	if (width < 200)
+		ttfilter = 0;
+	else if (width > 3000)
+		ttfilter = 36;
+	else if (width < 1000)
 		ttfilter = (width / 50) - 4;
 	else
 		ttfilter = (width / 100) + 6;
