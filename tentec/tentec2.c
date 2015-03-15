@@ -259,9 +259,9 @@ int tentec2_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 	char retbuf[10] = "*Ox\r";
 
 	if (split == RIG_SPLIT_ON)
-		retbuf[1] = 1;
+		retbuf[2] = 1;
 	else
-		retbuf[1] = 0;
+		retbuf[2] = 0;
 
 	ret_len = 3;
 	retval = tentec_transaction( rig, retbuf, 4, retbuf, &ret_len );
