@@ -46,6 +46,7 @@ int tentec2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 int tentec2_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
 int tentec2_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
 int tentec2_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+int tentec2_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 int tentec2_reset(RIG *rig, reset_t reset);
 const char* tentec2_get_info(RIG *rig);
 

@@ -149,6 +149,7 @@ const struct rig_caps tt516_caps = {
 .set_split_vfo =  tentec2_set_split_vfo,
 .get_split_vfo =  tentec2_get_split_vfo,
 .set_ptt =  tentec2_set_ptt,
+.get_ptt =  tentec2_get_ptt,
 .reset =  tentec2_reset,
 .get_info =  tentec2_get_info,
 

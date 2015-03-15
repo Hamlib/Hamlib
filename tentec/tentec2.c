@@ -119,13 +119,13 @@ int tentec2_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	ret_len = 3;
 	retval = tentec_transaction (rig, freqbuf, 7, freqbuf, &ret_len);
 
-	if (retval != RIG_OK || ret_len != 2)
+	if (retval != RIG_OK)
 		return -RIG_EINVAL;
 
-	if (freqbuf[0] == 'G')
-		return RIG_OK;
+	if (ret_len != 2 || freqbuf[0] != 'G')
+		return -RIG_ERJCTED;
 
-	return -RIG_ERJCTED;
+	return RIG_OK;
 }
 
 /*
@@ -163,6 +163,7 @@ int tentec2_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 	if (ret_len == 2 && freqbuf[0] == 'Z')
 		return -RIG_ERJCTED;
+
 	if (ret_len != 8)
 		return -RIG_EINVAL;
 
@@ -209,10 +210,10 @@ int tentec2_set_vfo(RIG *rig, vfo_t vfo)
 	if (retval != RIG_OK)
 		return retval;
 
-	if (ret_len == 2 && vfobuf[0] == 'G')
-		return RIG_OK;
+	if (ret_len != 2 || vfobuf[0] != 'G')
+		return -RIG_ERJCTED;
 
-	return -RIG_ERJCTED;
+	return RIG_OK;
 }
 
 /*
@@ -269,10 +270,10 @@ int tentec2_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 	if (retval != RIG_OK)
 		return retval;
 
-	if (ret_len == 2 && retbuf[0] == 'G')
-		return RIG_OK;
+	if (ret_len != 2 || retbuf[0] != 'G')
+		return -RIG_ERJCTED;
 
-	return -RIG_ERJCTED;
+	return RIG_OK;
 }
 
 /*
@@ -359,34 +360,35 @@ int tentec2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	if (retval != RIG_OK)
 		return retval;
 
-	if (ret_len == 2 && mdbuf[0] == 'G')
-		{
-			if (width == RIG_PASSBAND_NORMAL)
-				width = rig_passband_normal(rig, mode);
+	if (ret_len != 2 || mdbuf[0] != 'G')
+		return -RIG_ERJCTED;
 
-			/*
-			 * Filter  0:  200
-			 *              ..
-			 * Filter 16: 1000
-			 *              ..
-			 * Filter 36: 3000
-			 */
-			if (width < 1000)
-				ttfilter = (width / 50) - 4;
-			else
-				ttfilter = (width / 100) + 6;
+	if (width != RIG_PASSBAND_NORMAL) /* with NORMAL we leave width alone */
+		return RIG_OK;
 
-			strcpy (mdbuf, "*Wn\r");
-			mdbuf[2] = ttfilter;
-			ret_len = 3;
-			retval = tentec_transaction (rig, mdbuf, 4, mdbuf, &ret_len);
+	/*
+	 * Filter  0:  200
+	 *              ..
+	 * Filter 16: 1000
+	 *              ..
+	 * Filter 36: 3000
+	 */
+	if (width < 1000)
+		ttfilter = (width / 50) - 4;
+	else
+		ttfilter = (width / 100) + 6;
 
-			if (retval != RIG_OK)
-				return retval;
-			if (ret_len == 2 && mdbuf[0] == 'G')
-				return RIG_OK;
-		}
-	return -RIG_ERJCTED;
+	strcpy (mdbuf, "*Wn\r");
+	mdbuf[2] = ttfilter;
+	ret_len = 3;
+	retval = tentec_transaction (rig, mdbuf, 4, mdbuf, &ret_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	if (ret_len != 2 || mdbuf[0] != 'G')
+		return -RIG_ERJCTED;
+
+	return RIG_OK;
 }
 
 
@@ -476,11 +478,42 @@ int tentec2_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 									retbuf, &ret_len);
 	if (retval != RIG_OK)
 		return retval;
-	if (ret_len == 2 && retbuf[0] == 'G')
-		return RIG_OK;
 
-	return -RIG_ERJCTED;
+	if (ret_len != 2 || retbuf[0] != 'G')
+		return -RIG_ERJCTED;
 
+	return RIG_OK;
+}
+
+
+/*
+ * tentec2_get_ptt
+ * Assumes rig!=NULL
+ */
+int tentec2_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
+{
+	int ret_len, retval;
+	char buf[7] = "?C\r";
+
+	ret_len = 7;
+	retval = tentec_transaction (rig, buf, 3, buf, &ret_len);
+	if (retval != RIG_OK)
+		return retval;
+
+// ArgoV sends back 6 character string
+// "Cnn\rG\r" where nn is the status word
+// or 2 character failure string
+// "Z\r"
+
+	if (ret_len == 2 && buf[0] == 'Z')
+		return -RIG_ERJCTED;
+
+	if (ret_len != 6)
+		return -RIG_EPROTO;
+
+	*ptt = buf[2] & 0x01 ? RIG_PTT_ON : RIG_PTT_OFF;
+
+	return RIG_OK;
 }
 
 
@@ -532,5 +565,3 @@ const char *tentec2_get_info(RIG *rig)
 
 	return buf;
 }
-
-
