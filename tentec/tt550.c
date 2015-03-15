@@ -117,7 +117,7 @@ tt550_transaction (RIG * rig, const char *cmd, int cmd_len, char *data,
     return 0;
   }
 
-  retval = read_string (&rs->rigport, data, *data_len, "", 0);
+  retval = read_string (&rs->rigport, data, *data_len, NULL, 0);
   if (retval == -RIG_ETIMEOUT)
 	retval = 0;
   if (retval < 0)

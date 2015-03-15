@@ -630,6 +630,7 @@ int tt538_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		break;
 
 	case RIG_LEVEL_RAWSTR:
+		lvl_len = 32;
 		retval = tt538_transaction (rig, "?S" EOM, 3, (char *) lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
