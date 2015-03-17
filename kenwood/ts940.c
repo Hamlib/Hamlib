@@ -52,9 +52,22 @@
 	.tx_mode=1,		\
 }
 
+static rmode_t ts940_mode_table[KENWOOD_MODE_TABLE_MAX] = {
+	[0] = RIG_MODE_NONE,
+	[1] = RIG_MODE_LSB,
+	[2] = RIG_MODE_USB,
+	[3] = RIG_MODE_CW,
+	[4] = RIG_MODE_FM,
+	[5] = RIG_MODE_AM,
+	[6] = RIG_MODE_NONE,
+	[7] = RIG_MODE_NONE,
+	[8] = RIG_MODE_NONE,
+	[9] = RIG_MODE_NONE
+};
+
 static struct kenwood_priv_caps  ts940_priv_caps  = {
 	.cmdtrm =  EOM_KEN,
-	.if_len =  28,
+	.mode_table = ts940_mode_table
 };
 
 /*
