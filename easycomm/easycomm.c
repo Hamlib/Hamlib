@@ -179,7 +179,7 @@ easycomm_rot_move(ROT *rot, int direction, int speed)
     int retval;
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
 
-    /* Note: speed is unused at the moment */
+   /* For EasyComm 1/2/3 */
     switch (direction) {
     case ROT_MOVE_UP:       /* Elevation increase */
         sprintf(cmdstr, "MU\n");
@@ -203,6 +203,62 @@ easycomm_rot_move(ROT *rot, int direction, int speed)
         return retval;
 
     return RIG_OK;
+}
+
+static int
+easycomm_rot_move_velocity(ROT *rot, int direction, int speed)
+{
+    char cmdstr[24], ackbuf[32];
+    int retval;
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
+    if(speed<0 && speed>9999)
+       rig_debug(RIG_DEBUG_ERR,"%s: Invalid speed value!(0-9999) (%d)\n", __FUNCTION__, speed);
+       return -RIG_EINVAL;
+
+    /* Speed for EasyComm 3 */
+    switch (direction) {
+    case ROT_MOVE_UP:       /* Elevation increase */
+        sprintf(cmdstr, "VU%04d\n", speed);
+        break;
+    case ROT_MOVE_DOWN:     /* Elevation decrease */
+        sprintf(cmdstr, "VD%04d\n", speed);
+        break;
+    case ROT_MOVE_LEFT:     /* Azimuth decrease */
+        sprintf(cmdstr, "VL%04d\n", speed);
+        break;
+    case ROT_MOVE_RIGHT:    /* Azimuth increase */
+        sprintf(cmdstr, "VR%04d\n", speed);
+        break;
+    default:
+        rig_debug(RIG_DEBUG_ERR,"%s: Invalid direction value! (%d)\n", __FUNCTION__, direction);
+        return -RIG_EINVAL;
+    }
+
+    retval = easycomm_transaction(rot, cmdstr, ackbuf, sizeof(ackbuf));
+    if (retval != RIG_OK)
+        return retval;
+
+    return RIG_OK;
+}
+
+easycomm_rot_get_info(ROT *rot)
+{
+    char cmdstr[16], ackbuf[32];
+    int retval;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
+
+    sprintf(cmdstr, "IN\n");
+
+    retval = easycomm_transaction(rot, cmdstr, ackbuf, sizeof(ackbuf));
+	if (retval != RIG_OK) {
+	  rig_debug(RIG_DEBUG_TRACE, "%s got error: %d\n", __FUNCTION__, retval);
+	  return retval;
+	}
+
+    /* Parse parse string to extract AZ,EL values */
+    rig_debug(RIG_DEBUG_TRACE, "%s got response: %s\n", __FUNCTION__, ackbuf);
+    return ackbuf;
 }
 
 /* ************************************************************************* */
@@ -290,6 +346,50 @@ const struct rot_caps easycomm2_rot_caps = {
   .get_info =  NULL,
 };
 
+/* EasycommIII provides changes Moving functions and info.
+ */
+const struct rot_caps easycomm3_rot_caps = {
+  .rot_model =      ROT_MODEL_EASYCOMM3,
+  .model_name =     "EasycommIII",
+  .mfg_name =       "Hamlib",
+  .version =        "0.3",
+  .copyright = 	 "LGPL",
+  .status =         RIG_STATUS_ALPHA,
+  .rot_type =       ROT_TYPE_OTHER,
+  .port_type =      RIG_PORT_SERIAL,
+  .serial_rate_min =  9600,
+  .serial_rate_max =  19200,
+  .serial_data_bits =  8,
+  .serial_stop_bits =  1,
+  .serial_parity =  RIG_PARITY_NONE,
+  .serial_handshake =  RIG_HANDSHAKE_NONE,
+  .write_delay =  0,
+  .post_write_delay =  0,
+  .timeout =  200,
+  .retry =  3,
+
+  .min_az = 	0.0,
+  .max_az =  	360.0,
+  .min_el = 	0.0,
+  .max_el =  	180.0,
+
+  .priv =  NULL,	/* priv */
+
+  .rot_init =  NULL,
+  .rot_cleanup =  NULL,
+  .rot_open =  NULL,
+  .rot_close =  NULL,
+
+  .get_position =  easycomm_rot_get_position,
+  .set_position =  easycomm_rot_set_position,
+  .stop = 	easycomm_rot_stop,
+  .park =  easycomm_rot_park,
+  .reset =  easycomm_rot_reset,
+  .move =  easycomm_rot_move_velocity,
+
+  .get_info =  NULL,
+};
+
 /* ************************************************************************* */
 
 DECLARE_INITROT_BACKEND(easycomm)
@@ -298,7 +398,7 @@ DECLARE_INITROT_BACKEND(easycomm)
 
     rot_register(&easycomm1_rot_caps);
     rot_register(&easycomm2_rot_caps);
-
+    rot_register(&easycomm3_rot_caps);
 	return RIG_OK;
 }
 

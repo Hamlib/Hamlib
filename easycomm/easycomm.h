@@ -25,5 +25,6 @@
 
 extern const struct rot_caps easycomm1_rot_caps;
 extern const struct rot_caps easycomm2_rot_caps;
+extern const struct rot_caps easycomm3_rot_caps;
 
 #endif /* _ROT_EASYCOMM_H */
