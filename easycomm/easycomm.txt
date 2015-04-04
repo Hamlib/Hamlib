@@ -38,8 +38,8 @@ The Host PC can issue the following commands -:
 Command		Meaning			Perameters
 -------		-------			----------
 
-AZ		Azimuth             number - 1 decimal place
-EL		Elevation           number - 1 decimal place
+AZ		Azimuth             number - 1 decimal place [deg]
+EL		Elevation           number - 1 decimal place [deg]
 UP		Uplink freq         in Hertz
 DN		Downlink freq		in Hertz
 DM		Downlink Mode       ascii, eg SSB, FM
@@ -83,3 +83,17 @@ ALxxx		Alarm, where xxxx is an ascii string with the alarm info.
 
 Chris Jackson, G7UPN
 
+EASYCOMM III Standard
+--------------------
+
+The EasyComm 3 standard is an extension of the version 2 with the additional features:
+
+
+Command		Meaning			Perameters
+-------		-------			----------
+
+IN		Get Status string
+VL		Velocity Left	    number [mdeg/s]
+VR		Velocity Right	    number [mdeg/s]
+VU		Velocity Up	    number [mdeg/s]
+VD		Velocity Down	    number [mdeg/s]
