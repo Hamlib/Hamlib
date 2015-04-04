@@ -27,4 +27,17 @@ extern const struct rot_caps easycomm1_rot_caps;
 extern const struct rot_caps easycomm2_rot_caps;
 extern const struct rot_caps easycomm3_rot_caps;
 
+/*
+ * Tokens used by rotorez_rot_set_conf and get_conf and the 'C' command in rotctl
+ * and rotctld.
+ */
+#define TOK_GET_STATUS       TOKEN_BACKEND(1)
+#define TOK_GET_ERROR        TOKEN_BACKEND(2)
+#define TOK_GET_VERSION      TOKEN_BACKEND(3)
+#define TOK_GET_INPUT        TOKEN_BACKEND(4)
+#define TOK_GET_ANALOG_INPUT     TOKEN_BACKEND(5)
+#define TOK_GET_CONFIG       TOKEN_BACKEND(6)
+#define TOK_SET_CONFIG       TOKEN_BACKEND(7)
+
+
 #endif /* _ROT_EASYCOMM_H */

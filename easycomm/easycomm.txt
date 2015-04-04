@@ -1,6 +1,5 @@
 The following are the specifications for the EasyComm interfaces which
-are available with the WiSP programs.  Both EasyComm 1 and EasyComm2 are
-available in WiSP32.  Only EasyComm1 is available with WiSP31.  The EasyComm
+are available with the WiSP programs. The EasyComm
 interfaces are for use by those who wish to design their own radio and rotor
 controllers.
 
@@ -91,9 +90,23 @@ The EasyComm 3 standard is an extension of the version 2 with the additional fea
 
 Command		Meaning			Perameters
 -------		-------			----------
-
-IN		Get Status string
 VL		Velocity Left	    number [mdeg/s]
 VR		Velocity Right	    number [mdeg/s]
 VU		Velocity Up	    number [mdeg/s]
 VD		Velocity Down	    number [mdeg/s]
+GS		Get status register
+GE		Get error register
+CR		Read config         register [0-255]
+CW		Write config        register [0-255]
+
+A proposed configuration of configuration registers:
+Register	Meaning			Value
+-------		-------			----------
+0		MaxSpeed		number	
+a		Overshoot		0/1/-
+b		Jamming			0/1/-
+c		Endpoints		0/1/-
+d		Unstick			0/1/-
+
+
+73, Alexander Schultze
