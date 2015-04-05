@@ -2,6 +2,7 @@
  *  Hamlib Rotator backend - Easycom
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *  Contributed by Francois Retief <fgretief@sun.ac.za>
+ *  Copyright (c) 2014 by Alexander Schultze <alexschultze@gmail.com>
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -267,7 +268,7 @@ static const char * easycomm_rot_get_info(ROT *rot)
 
 static int easycomm_rot_get_conf(ROT *rot, token_t token, char *val) {
 	char cmdstr[16], ackbuf[32];
-	int err;
+	int retval;
 
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 	rig_debug(RIG_DEBUG_TRACE, "%s: token = %d", __func__, token);
@@ -313,7 +314,7 @@ static int easycomm_rot_get_conf(ROT *rot, token_t token, char *val) {
    
     rig_debug(RIG_DEBUG_TRACE, "%s got response: %s\n", __FUNCTION__, ackbuf);
      /* Return given string at correct position*/
-		*val = &ackbuf[2]; /* CCxxxxxx */
+		val = &ackbuf[2]; /* CCxxxxxx */
     return RIG_OK;
 }
 
@@ -326,7 +327,7 @@ static int easycomm_rot_get_conf(ROT *rot, token_t token, char *val) {
 
 static int easycomm_rot_set_conf(ROT *rot, token_t token, const char *val) {
 	char cmdstr[16], ackbuf[32];
-	int err;
+	int retval;
 
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 	rig_debug(RIG_DEBUG_TRACE, "%s: token = %d", __func__, token);
@@ -336,7 +337,7 @@ static int easycomm_rot_set_conf(ROT *rot, token_t token, const char *val) {
 		
 	switch(token) {
 	case TOK_SET_CONFIG:
-		sprintf(cmdstr, "CW%s\n;",*val);
+		sprintf(cmdstr, "CW%s\n;",val);
 		break;		
 	default:
 		return -RIG_EINVAL;
@@ -365,7 +366,7 @@ const struct rot_caps easycomm1_rot_caps = {
   .rot_model =      ROT_MODEL_EASYCOMM1,
   .model_name =     "EasycommI",
   .mfg_name =       "Hamlib",
-  .version =        "0.3",
+  .version =        "0.4",
   .copyright = 	 "LGPL",
   .status =         RIG_STATUS_BETA,
   .rot_type =       ROT_TYPE_OTHER,
@@ -400,7 +401,7 @@ const struct rot_caps easycomm2_rot_caps = {
   .rot_model =      ROT_MODEL_EASYCOMM2,
   .model_name =     "EasycommII",
   .mfg_name =       "Hamlib",
-  .version =        "0.3",
+  .version =        "0.4",
   .copyright = 	 "LGPL",
   .status =         RIG_STATUS_BETA,
   .rot_type =       ROT_TYPE_OTHER,
@@ -434,7 +435,8 @@ const struct rot_caps easycomm2_rot_caps = {
   .park =  easycomm_rot_park,
   .reset =  easycomm_rot_reset,
   .move =  easycomm_rot_move,
-
+  .set_conf = easycomm_rot_set_conf,
+  .get_conf = easycomm_rot_get_conf,
   .get_info =  easycomm_rot_get_info,
 };
 
@@ -444,7 +446,7 @@ const struct rot_caps easycomm3_rot_caps = {
   .rot_model =      ROT_MODEL_EASYCOMM3,
   .model_name =     "EasycommIII",
   .mfg_name =       "Hamlib",
-  .version =        "0.3",
+  .version =        "0.4",
   .copyright = 	 "LGPL",
   .status =         RIG_STATUS_ALPHA,
   .rot_type =       ROT_TYPE_OTHER,
@@ -479,7 +481,7 @@ const struct rot_caps easycomm3_rot_caps = {
   .reset =  easycomm_rot_reset,
   .move =  easycomm_rot_move_velocity,
   .set_conf = easycomm_rot_set_conf,
-  .get_conf = easycomm_rot_set_conf,
+  .get_conf = easycomm_rot_get_conf,
   .get_info =  easycomm_rot_get_info,
 };
 
