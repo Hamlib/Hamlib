@@ -2,6 +2,7 @@
  *  Hamlib Rotator backend - Easycom
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *  Contributed by Francois Retief <fgretief@sun.ac.za>
+ *  Copyright (c) 2014 by Alexander Schultze <alexschultze@gmail.com>
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -241,24 +242,115 @@ easycomm_rot_move_velocity(ROT *rot, int direction, int speed)
     return RIG_OK;
 }
 
-easycomm_rot_get_info(ROT *rot)
+/*
+ * Get Info
+ * returns the model name string
+ */
+static const char * easycomm_rot_get_info(ROT *rot)
 {
-    char cmdstr[16], ackbuf[32];
-    int retval;
+	const struct rot_caps *rc;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    sprintf(cmdstr, "IN\n");
+	if (!rot)
+		return (const char *)-RIG_EINVAL;
 
-    retval = easycomm_transaction(rot, cmdstr, ackbuf, sizeof(ackbuf));
+	rc = rot->caps;
+
+	return rc->model_name;
+}
+
+/*
+ * Receive status / configuration / output
+ *
+ * For configuration registers, *val must contain string of register e.g. '0'-'f'
+ */
+
+static int easycomm_rot_get_conf(ROT *rot, token_t token, char *val) {
+	char cmdstr[16], ackbuf[32];
+	int retval;
+
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+	rig_debug(RIG_DEBUG_TRACE, "%s: token = %d", __func__, token);
+
+	if (!rot)
+		return -RIG_EINVAL;
+		
+	switch(token) {
+	case TOK_GET_STATUS:
+		sprintf(cmdstr, "GS\n;");
+		break;
+	case TOK_GET_ERRORS:
+		sprintf(cmdstr, "GE\n;");
+		break;
+	case TOK_GET_INPUT:
+		sprintf(cmdstr, "IP\n;");
+		break;
+	case TOK_GET_ANALOG_INPUT:
+		sprintf(cmdstr, "AN\n;");
+		break;
+	case TOK_GET_VERSION:
+		sprintf(cmdstr, "VE\n;");
+		break;	
+	case TOK_GET_CONFIG:
+		sprintf(cmdstr, "CR %c\n;",*val);
+		break;		
+	default:
+	
+	
+		return -RIG_EINVAL;
+	}
+	rig_debug(RIG_DEBUG_TRACE, "%s: cmdstr = %s, *val = %c\n", __func__, cmdstr, *val);
+
+
+
+	retval = easycomm_transaction(rot, cmdstr, ackbuf, sizeof(ackbuf));
+	
 	if (retval != RIG_OK) {
 	  rig_debug(RIG_DEBUG_TRACE, "%s got error: %d\n", __FUNCTION__, retval);
 	  return retval;
 	}
 
-    /* Parse parse string to extract AZ,EL values */
+   
     rig_debug(RIG_DEBUG_TRACE, "%s got response: %s\n", __FUNCTION__, ackbuf);
-    return ackbuf;
+     /* Return given string at correct position*/
+		val = &ackbuf[2]; /* CCxxxxxx */
+    return RIG_OK;
+}
+
+/*
+ * Set configuration
+ *
+ * For configuration registers, *val must contain char of register e.g. '0'-'f' followed by setting
+ * e.g. x,yyyyy
+ */
+
+static int easycomm_rot_set_conf(ROT *rot, token_t token, const char *val) {
+	char cmdstr[16], ackbuf[32];
+	int retval;
+
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+	rig_debug(RIG_DEBUG_TRACE, "%s: token = %d", __func__, token);
+
+	if (!rot)
+		return -RIG_EINVAL;
+		
+	switch(token) {
+	case TOK_SET_CONFIG:
+		sprintf(cmdstr, "CW%s\n;",val);
+		break;		
+	default:
+		return -RIG_EINVAL;
+	}
+	rig_debug(RIG_DEBUG_TRACE, "%s: cmdstr = %s, *val = %c\n", __func__, cmdstr, *val);
+
+	retval = easycomm_transaction(rot, cmdstr, ackbuf, sizeof(ackbuf));
+	
+	if (retval != RIG_OK) {
+	  rig_debug(RIG_DEBUG_TRACE, "%s got error: %d\n", __FUNCTION__, retval);
+	  return retval;
+	}
+    return RIG_OK;
 }
 
 /* ************************************************************************* */
@@ -274,7 +366,7 @@ const struct rot_caps easycomm1_rot_caps = {
   .rot_model =      ROT_MODEL_EASYCOMM1,
   .model_name =     "EasycommI",
   .mfg_name =       "Hamlib",
-  .version =        "0.3",
+  .version =        "0.4",
   .copyright = 	 "LGPL",
   .status =         RIG_STATUS_BETA,
   .rot_type =       ROT_TYPE_OTHER,
@@ -299,6 +391,7 @@ const struct rot_caps easycomm1_rot_caps = {
 
   .set_position =  easycomm_rot_set_position,
   .stop = 	easycomm_rot_stop,
+  .get_info =  easycomm_rot_get_info,
 };
 
 /* EasycommII implement most of the functions. Again the radio tags
@@ -308,7 +401,7 @@ const struct rot_caps easycomm2_rot_caps = {
   .rot_model =      ROT_MODEL_EASYCOMM2,
   .model_name =     "EasycommII",
   .mfg_name =       "Hamlib",
-  .version =        "0.3",
+  .version =        "0.4",
   .copyright = 	 "LGPL",
   .status =         RIG_STATUS_BETA,
   .rot_type =       ROT_TYPE_OTHER,
@@ -342,8 +435,9 @@ const struct rot_caps easycomm2_rot_caps = {
   .park =  easycomm_rot_park,
   .reset =  easycomm_rot_reset,
   .move =  easycomm_rot_move,
-
-  .get_info =  NULL,
+  .set_conf = easycomm_rot_set_conf,
+  .get_conf = easycomm_rot_get_conf,
+  .get_info =  easycomm_rot_get_info,
 };
 
 /* EasycommIII provides changes Moving functions and info.
@@ -352,7 +446,7 @@ const struct rot_caps easycomm3_rot_caps = {
   .rot_model =      ROT_MODEL_EASYCOMM3,
   .model_name =     "EasycommIII",
   .mfg_name =       "Hamlib",
-  .version =        "0.3",
+  .version =        "0.4",
   .copyright = 	 "LGPL",
   .status =         RIG_STATUS_ALPHA,
   .rot_type =       ROT_TYPE_OTHER,
@@ -386,8 +480,9 @@ const struct rot_caps easycomm3_rot_caps = {
   .park =  easycomm_rot_park,
   .reset =  easycomm_rot_reset,
   .move =  easycomm_rot_move_velocity,
-
-  .get_info =  NULL,
+  .set_conf = easycomm_rot_set_conf,
+  .get_conf = easycomm_rot_get_conf,
+  .get_info =  easycomm_rot_get_info,
 };
 
 /* ************************************************************************* */
