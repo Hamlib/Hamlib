@@ -1328,30 +1328,16 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
   if (RIG_MODEL_TS990S == rig->caps->rig_model)
     {
+      /* The TS990s has targetable read mode but can only set the mode
+         of the current VFO :( So we need to toggle the operating VFO
+         to set the "back" VFO mode. This is done here rather than not
+         setting caps.targetable_vfo to not include
+         RIG_TARGETABLE_MODE since the toggle is not required for
+         reading the mode. */
       char c;
-      char v;
-
-      if (RIG_VFO_CURR == vfo || RIG_VFO_VFO == vfo)
-        {
-          if (RIG_OK != (err = kenwood_get_vfo_main_sub (rig, &vfo)))
-            {
-              return err;
-            }
-        }
-      switch (vfo)
-        {
-        case RIG_VFO_MAIN:
-          v = '0';
-          break;
-
-        case RIG_VFO_SUB:
-          v = '1';
-          break;
-
-        default:
-          rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);
-          return -RIG_EINVAL;
-        }
+      vfo_t curr_vfo;
+      err = kenwood_get_vfo_main_sub (rig, &curr_vfo);
+      if (err != RIG_OK) return err;
       if (kmode <= 9)
         {
           c = '0' + kmode;
@@ -1360,26 +1346,33 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         {
           c = 'A' + kmode - 10;
         }
-      sprintf(buf, "OM%c%c", v, c);
+      if (vfo != curr_vfo)
+        {
+          err = kenwood_set_vfo_main_sub (rig, vfo);
+          if (err != RIG_OK) return err;
+        }
+      sprintf(buf, "OM0%c", c); /* target vfo is ignored */
+      int err = kenwood_transaction(rig, buf, NULL, 0);
+      if (vfo != curr_vfo)
+        {
+          int err2 = kenwood_set_vfo_main_sub (rig, curr_vfo);
+          if (RIG_OK == err && err2 != RIG_OK) return err2;
+        }
     }
   else
     {
       sprintf(buf, "MD%c", '0' + kmode);
+      err = kenwood_transaction(rig, buf, NULL, 0);
     }
-  err = kenwood_transaction(rig, buf, NULL, 0);
-  if (err != RIG_OK)
-    return err;
+  if (err != RIG_OK) return err;
 
   if (RIG_MODEL_TS590S == rig->caps->rig_model
       || RIG_MODEL_TS590SG == rig->caps->rig_model)
     {
       /* supports DATA sub modes - see above */
       sprintf (buf, "DA%c", data_mode);
-      int retval = kenwood_transaction (rig, buf, NULL, 0);
-      if (RIG_OK != retval)
-        {
-          return retval;
-        }
+      err = kenwood_transaction (rig, buf, NULL, 0);
+      if (err != RIG_OK) return err;
     }
 
   if (rig->caps->rig_model == RIG_MODEL_TS450S
