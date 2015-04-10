@@ -796,6 +796,12 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 
   if (RIG_MODEL_TS990S == rig->caps->rig_model)
     {
+      if (split)
+        {
+          // Rx MAIN/Tx SUB is the only split method
+          retval = kenwood_set_vfo_main_sub (rig, RIG_VFO_MAIN);
+          if (retval != RIG_OK) return retval;
+        }
       sprintf(cmdbuf, "TB%c", RIG_SPLIT_ON == split ? '1' : '0');
       return kenwood_transaction(rig, cmdbuf, NULL, 0);
     }
@@ -1346,14 +1352,14 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         {
           c = 'A' + kmode - 10;
         }
-      if (vfo != curr_vfo)
+      if (vfo != RIG_VFO_CURR && vfo != curr_vfo)
         {
           err = kenwood_set_vfo_main_sub (rig, vfo);
           if (err != RIG_OK) return err;
         }
       sprintf(buf, "OM0%c", c); /* target vfo is ignored */
       int err = kenwood_transaction(rig, buf, NULL, 0);
-      if (vfo != curr_vfo)
+      if (vfo != RIG_VFO_CURR && vfo != curr_vfo)
         {
           int err2 = kenwood_set_vfo_main_sub (rig, curr_vfo);
           if (RIG_OK == err && err2 != RIG_OK) return err2;
