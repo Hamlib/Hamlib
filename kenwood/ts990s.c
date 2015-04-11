@@ -329,7 +329,6 @@ const struct rig_caps ts990s_caps = {
 .get_ctcss_tone =  kenwood_get_ctcss_tone,
 .set_ctcss_sql =  kenwood_set_ctcss_sql,
 .get_ctcss_sql =  kenwood_get_ctcss_sql,
-.get_ptt =  kenwood_get_ptt,
 .set_ptt =  kenwood_set_ptt,
 .get_dcd =  kenwood_get_dcd,
 .set_func =  kenwood_set_func,
