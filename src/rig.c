@@ -505,7 +505,6 @@ int HAMLIB_API rig_open(RIG *rig)
   if (status < 0)
     return status;
 
-
 	switch(rs->pttport.type.ptt) {
 	case RIG_PTT_NONE:
 	case RIG_PTT_RIG:
@@ -519,6 +518,15 @@ int HAMLIB_API rig_open(RIG *rig)
 	  if (!strcmp(rs->pttport.pathname, rs->rigport.pathname))
 	    {
 	      rs->pttport.fd = rs->rigport.fd;
+
+				/* Needed on Linux because the serial port driver sets RTS/DTR
+					 on open - only need to address the PTT line as we offer
+					 config parameters to control the other (dtr_state &
+					 rts_state) */
+				if (rs->pttport.type.ptt == RIG_PTT_SERIAL_DTR)
+						status = ser_set_dtr(&rs->pttport, 0);
+				if (rs->pttport.type.ptt == RIG_PTT_SERIAL_RTS) 
+						status = ser_set_rts(&rs->pttport, 0);
 	    }
 	  else
 	    {
@@ -529,15 +537,17 @@ int HAMLIB_API rig_open(RIG *rig)
                       rs->pttport.pathname);
             status = -RIG_EIO;
           }
+				if (rs->pttport.type.ptt == RIG_PTT_SERIAL_DTR
+						|| rs->pttport.type.ptt == RIG_PTT_SERIAL_RTS) 
+					{
+						/* Needed on Linux because the serial port driver sets
+							 RTS/DTR high on open - set both low since we offer no
+							 control of the non-PTT line and low is better than
+							 high */
+						status = ser_set_dtr(&rs->pttport, 0);
+						status = ser_set_rts(&rs->pttport, 0);
+					}
 	    }
-    if (RIG_OK == status)
-      {
-        /* Needed on Linux because the kernel forces RTS/DTR at open */
-        if (rs->pttport.type.ptt == RIG_PTT_SERIAL_DTR)
-          status = ser_set_dtr(&rs->pttport, 0);
-        else if (rs->pttport.type.ptt == RIG_PTT_SERIAL_RTS)
-          status = ser_set_rts(&rs->pttport, 0);
-      }
 	  break;
 	case RIG_PTT_PARALLEL:
 		rs->pttport.fd = par_open(&rs->pttport);
