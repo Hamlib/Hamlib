@@ -69,6 +69,25 @@ typedef char ncboolean;
 }
 
 /*
+ * future - private data
+ *
+ * FIXME: Does this need to be exposed to the application/frontend through
+ * rig_caps.priv?  I'm guessing not since it's private to the backend.  -N0NB
+ */
+
+struct newcat_priv_data {
+    unsigned int        read_update_delay;              /* depends on pacing value */
+//    vfo_t               current_vfo;                    /* active VFO from last cmd */
+    char                cmd_str[NEWCAT_DATA_LEN];       /* command string buffer */
+    char                ret_data[NEWCAT_DATA_LEN];      /* returned data--max value, most are less */
+    int                 current_mem;                    /* private memory channel number */
+    int                 rig_id;                         /* rig id from CAT Command ID; */
+    int width_frequency; /* width of FA/FB freq response */
+    int offset_rit; /* offset of rit in response */
+};
+
+
+/*
  * Functions considered to be Stable:
  *
  * Functions considered to be Beta:

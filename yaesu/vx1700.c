@@ -487,10 +487,10 @@ static int vx1700_init(RIG *rig){
     struct vx1700_priv_data	*priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
-    priv = malloc(sizeof(struct vx1700_priv_data));
+
+    priv = calloc(1, sizeof(struct vx1700_priv_data));
     if (priv == NULL) return -RIG_ENOMEM;
 
-    memset(priv, 0, sizeof(struct vx1700_priv_data));
     priv->ch = 1;
     rig->state.priv = (rig_ptr_t)priv;
     return RIG_OK;

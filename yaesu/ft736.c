@@ -220,7 +220,7 @@ int ft736_open(RIG *rig)
 
   rig_debug(RIG_DEBUG_TRACE, "%s called\n",__FUNCTION__);
 
-  priv = (struct ft736_priv_data*)malloc(sizeof(struct ft736_priv_data));
+  priv = (struct ft736_priv_data *) calloc(1, sizeof(struct ft736_priv_data));
   if (!priv)
       return -RIG_ENOMEM;
 

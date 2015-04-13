@@ -299,13 +299,11 @@ const struct rig_caps ft747_caps = {
 int ft747_init(RIG *rig) {
   struct ft747_priv_data *p;
 
-  p = (struct ft747_priv_data*)malloc(sizeof(struct ft747_priv_data));
+  p = (struct ft747_priv_data* ) calloc(1, sizeof(struct ft747_priv_data));
   if (!p)			/* whoops! memory shortage! */
     return -RIG_ENOMEM;
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft747:ft747_init called \n");
-
-  memset(p, 0, sizeof(struct ft747_priv_data));
 
   rig->state.priv = (void*)p;
 

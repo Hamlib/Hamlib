@@ -287,7 +287,7 @@ int ft990_init(RIG *rig) {
   if (!rig)
     return -RIG_EINVAL;
 
-  priv = (struct ft990_priv_data *)malloc(sizeof(struct ft990_priv_data));
+  priv = (struct ft990_priv_data *) calloc(1, sizeof(struct ft990_priv_data));
 
   if (!priv)
     return -RIG_ENOMEM;

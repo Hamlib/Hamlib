@@ -325,10 +325,8 @@ int ft100_init(RIG *rig) {
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __func__);
 
-  priv = (struct ft100_priv_data*)malloc(sizeof(struct ft100_priv_data));
+  priv = (struct ft100_priv_data *) calloc(1, sizeof(struct ft100_priv_data));
   if (!priv)  return -RIG_ENOMEM;
-
-  memset(priv, 0, sizeof(struct ft100_priv_data));
 
   rig->state.priv = (void*)priv;
 

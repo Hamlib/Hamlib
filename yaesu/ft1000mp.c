@@ -589,7 +589,7 @@ int ft1000mp_init(RIG *rig) {
   rig_debug(RIG_DEBUG_TRACE,"ft1000mp: ft1000mp_init called \n");
 
 
-  p = (struct ft1000mp_priv_data*)malloc(sizeof(struct ft1000mp_priv_data));
+  p = (struct ft1000mp_priv_data *) calloc(1, sizeof(struct ft1000mp_priv_data));
   if (!p)                       /* whoops! memory shortage! */
     return -RIG_ENOMEM;
 

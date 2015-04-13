@@ -284,7 +284,7 @@ static int ft900_init(RIG *rig) {
   if (!rig)
     return -RIG_EINVAL;
 
-  priv = (struct ft900_priv_data *)malloc(sizeof(struct ft900_priv_data));
+  priv = (struct ft900_priv_data *) calloc(1, sizeof(struct ft900_priv_data));
   if (!priv)                       /* whoops! memory shortage! */
     return -RIG_ENOMEM;
 

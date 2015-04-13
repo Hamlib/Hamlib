@@ -614,7 +614,7 @@ int ft980_open(RIG *rig)
 
   rig_debug(RIG_DEBUG_TRACE, "%s called\n",__FUNCTION__);
 
-  rig->state.priv = malloc(sizeof (struct ft980_priv_data));
+  rig->state.priv = calloc(1, sizeof (struct ft980_priv_data));
   if (!rig->state.priv)
       return -RIG_ENOMEM;
 

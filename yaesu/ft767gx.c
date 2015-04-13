@@ -377,7 +377,7 @@ int ft767_init(RIG *rig) {
   if (!rig)
     return -RIG_EINVAL;
 
-  p = (struct ft767_priv_data*)malloc(sizeof(struct ft767_priv_data));
+  p = (struct ft767_priv_data *) calloc(1, sizeof(struct ft767_priv_data));
   if (!p)			/* whoops! memory shortage! */
     return -RIG_ENOMEM;
 

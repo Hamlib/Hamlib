@@ -242,7 +242,7 @@ int vr5000_init(RIG *rig)
 {
   struct vr5000_priv_data *priv;
 
-  priv = (struct vr5000_priv_data*)malloc(sizeof(struct vr5000_priv_data));
+  priv = (struct vr5000_priv_data *) calloc(1, sizeof(struct vr5000_priv_data));
   if (!priv)  return -RIG_ENOMEM;
 
   rig->state.priv = (void*)priv;

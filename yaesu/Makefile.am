@@ -8,8 +8,8 @@ YAESUSRC = ft100.c ft100.h ft747.c ft747.h ft817.c ft817.h ft847.c ft847.h \
 	ft767gx.h ft840.c ft840.h ft980.c vx1700.c vx1700.h
 
 ## Yaesu radios that use the new Kenwood style CAT commands
-NEWCATSRC = newcat.c newcat.h ft450.c ft450.h ft950.c ft950.h ft2000.c \
-	ft2000.h ft9000.c ft9000.h ft5000.c ft5000.h ft1200.c ft1200.h
+NEWCATSRC = newcat.c newcat.h ft450.c ft450.h ft950.c ft950.h ft991.c ft991.h \
+	ft2000.c ft2000.h ft9000.c ft9000.h ft5000.c ft5000.h ft1200.c ft1200.h
 
 noinst_LTLIBRARIES = libhamlib-yaesu.la
 libhamlib_yaesu_la_SOURCES = $(YAESUSRC) $(NEWCATSRC) yaesu.c yaesu.h
