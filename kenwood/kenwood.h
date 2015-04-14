@@ -32,7 +32,7 @@
 #define EOM_KEN ';'
 #define EOM_TH '\r'
 
-#define KENWOOD_MODE_TABLE_MAX  10
+#define KENWOOD_MODE_TABLE_MAX  24
 #define KENWOOD_MAX_BUF_LEN   50 /* max answer len, arbitrary */
 
 
@@ -100,7 +100,9 @@ int kenwood_cleanup(RIG *rig);
 int kenwood_open(RIG *rig);
 
 int kenwood_set_vfo(RIG *rig, vfo_t vfo);
+int kenwood_set_vfo_main_sub(RIG *rig, vfo_t vfo);
 int kenwood_get_vfo_if(RIG *rig, vfo_t *vfo);
+int kenwood_get_vfo_main_sub(RIG *rig, vfo_t *vfo);
 int kenwood_set_split(RIG *rig, vfo_t vfo , split_t split, vfo_t txvfo);
 int kenwood_set_split_vfo(RIG *rig, vfo_t vfo , split_t split, vfo_t txvfo);
 int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split, vfo_t *txvfo);
@@ -151,7 +153,7 @@ int kenwood_set_trn(RIG *rig, int trn);
 int kenwood_get_trn(RIG *rig, int *trn);
 
 /* only use if returned string has length 6, e.g. 'SQ011;' */
-int get_kenwood_level(RIG *rig, const char *cmd, int cmd_len, float *f);
+int get_kenwood_level(RIG *rig, const char *cmd, float *f);
 int get_kenwood_func(RIG *rig, const char *cmd, int *status);
 
 extern const struct rig_caps ts950sdx_caps;

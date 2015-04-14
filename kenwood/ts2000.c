@@ -854,7 +854,7 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 
 		case RIG_LEVEL_AGC: /* FIX ME: ts2000 returns 0 -20 for AGC */
-			ret = get_kenwood_level(rig, "GT", 2, &val->f);
+			ret = get_kenwood_level(rig, "GT", &val->f);
 			agclevel = 255.0 * val->f;
 			if (agclevel == 0) val->i = 0;
 			else if (agclevel < 85) val->i = 1;

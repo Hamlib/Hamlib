@@ -139,7 +139,7 @@ typedef struct rig RIG;
 #define FRQRANGESIZ 30
 #define MAXCHANDESC 30		/* describe channel eg: "WWV 5Mhz" */
 #define TSLSTSIZ 20		/* max tuning step list size, zero ended */
-#define FLTLSTSIZ 42		/* max mode/filter list size, zero ended */
+#define FLTLSTSIZ 60		/* max mode/filter list size, zero ended */
 #define MAXDBLSTSIZ 8		/* max preamp/att levels supported, zero ended */
 #define CHANLSTSIZ 16		/* max mem_list size, zero ended */
 #define MAX_CAL_LENGTH 32	/* max calibration plots in cal_table_t */
@@ -805,6 +805,7 @@ typedef enum {
 	RIG_MODE_SAL =          (1<<17),/*!< \c SAL -- Synchronous AM lower sideband */
 	RIG_MODE_SAH =          (1<<18),/*!< \c SAH -- Synchronous AM upper (higher) sideband */
 	RIG_MODE_DSB =		(1<<19),/*!< \c DSB -- Double sideband suppressed carrier */
+	RIG_MODE_FMN =		(1<<21),/*!< \c FMN -- FM Narrow Kenwood ts990s */
 	RIG_MODE_TESTS_MAX              /*!< \c MUST ALWAYS BE LAST, Max Count for dumpcaps.c */
 } rmode_t;
 
