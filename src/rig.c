@@ -534,9 +534,9 @@ int HAMLIB_API rig_open(RIG *rig)
       {
         /* Needed on Linux because the kernel forces RTS/DTR at open */
         if (rs->pttport.type.ptt == RIG_PTT_SERIAL_DTR)
-          status = ser_set_dtr(&rs->pttport, RIG_PTT_OFF);
+          status = ser_set_dtr(&rs->pttport, 0);
         else if (rs->pttport.type.ptt == RIG_PTT_SERIAL_RTS)
-          status = ser_set_rts(&rs->pttport, RIG_PTT_OFF);
+          status = ser_set_rts(&rs->pttport, 0);
       }
 	  break;
 	case RIG_PTT_PARALLEL:
@@ -692,14 +692,14 @@ int HAMLIB_API rig_close(RIG *rig)
 	case RIG_PTT_RIG_MICDATA:
 		break;
 	case RIG_PTT_SERIAL_RTS:
-		ser_set_rts(&rs->pttport, RIG_PTT_OFF);
+		ser_set_rts(&rs->pttport, 0);
 		if (rs->pttport.fd != rs->rigport.fd)
 		  {
 		    port_close(&rs->pttport, RIG_PORT_SERIAL);
 		  }
 		break;
 	case RIG_PTT_SERIAL_DTR:
-		ser_set_dtr(&rs->pttport, RIG_PTT_OFF);
+		ser_set_dtr(&rs->pttport, 0);
 		if (rs->pttport.fd != rs->rigport.fd)
 		  {
 		    port_close(&rs->pttport, RIG_PORT_SERIAL);
