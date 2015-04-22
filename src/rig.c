@@ -537,15 +537,19 @@ int HAMLIB_API rig_open(RIG *rig)
                       rs->pttport.pathname);
             status = -RIG_EIO;
           }
-				if (rs->pttport.type.ptt == RIG_PTT_SERIAL_DTR
-						|| rs->pttport.type.ptt == RIG_PTT_SERIAL_RTS) 
+				if (RIG_OK == status
+						&& (rs->pttport.type.ptt == RIG_PTT_SERIAL_DTR
+								|| rs->pttport.type.ptt == RIG_PTT_SERIAL_RTS))
 					{
 						/* Needed on Linux because the serial port driver sets
 							 RTS/DTR high on open - set both low since we offer no
 							 control of the non-PTT line and low is better than
 							 high */
 						status = ser_set_dtr(&rs->pttport, 0);
-						status = ser_set_rts(&rs->pttport, 0);
+						if (RIG_OK == status)
+							{
+								status = ser_set_rts(&rs->pttport, 0);
+							}
 					}
 	    }
 	  break;
