@@ -33,6 +33,7 @@
 
 #include "hamlib/rig.h"
 #include "serial.h"
+#include "parallel.h"
 #include "misc.h"
 #include "tones.h"
 #include "idx_builtin.h"
@@ -412,10 +413,22 @@ static int dummy_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 static int dummy_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
   struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+  int status = 0;
+  ptt_t par_status = RIG_PTT_OFF;
 
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
   *ptt = priv->ptt;
 
+  // sneak a look at the hardware PTT and OR that in with our result
+  // as if it had keyed us
+  switch (rig->state.pttport.type.ptt)
+    {
+    case RIG_PTT_SERIAL_DTR: ser_get_dtr (&rig->state.pttport, &status); break;
+    case RIG_PTT_SERIAL_RTS: ser_get_rts (&rig->state.pttport, &status); break;
+    case RIG_PTT_PARALLEL: par_ptt_get (&rig->state.pttport, &par_status); break;
+    default: break;
+    }
+  *ptt = *ptt || status || RIG_PTT_ON == par_status;
   return RIG_OK;
 }
 
