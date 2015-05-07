@@ -143,6 +143,7 @@ void HAMLIB_API rig_debug(enum rig_debug_level_e debug_level, const char *fmt, .
 			rig_debug_stream = stderr;
 
 		vfprintf (rig_debug_stream, fmt, ap);
+		fflush(rig_debug_stream);
 	}
 
 	va_end(ap);
