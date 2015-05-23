@@ -405,6 +405,10 @@ int tt588_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 
 	int cmd_len, resp_len, retval;
 	unsigned char cmdbuf[16], respbuf[32];
+	struct tt588_priv_data *priv = (struct tt588_priv_data *) rig->state.priv;
+
+	if (vfo == RIG_VFO_CURR)
+		vfo = priv->vfo_curr;
 
 	if(check_vfo(vfo)==FALSE) {
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __FUNCTION__, rig_strvfo(vfo));
