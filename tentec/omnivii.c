@@ -983,6 +983,10 @@ int tt588_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 	int retval, cmd_len, resp_len;
 	char cmdbuf[16],respbuf[16];
 
+	if (tx_vfo == RIG_VFO_SUB) {
+		tx_vfo = RIG_VFO_B;
+	}
+
 	rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s split=%d tx_vfo=%s\n", __FUNCTION__, rig_strvfo(vfo),split,rig_strvfo(tx_vfo));
 	if(check_vfo(vfo)==FALSE) {
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __FUNCTION__, rig_strvfo(vfo));
