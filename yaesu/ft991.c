@@ -34,6 +34,7 @@
 #include "config.h"
 #endif
 
+#include <string.h>
 #include "hamlib/rig.h"
 #include "bandplan.h"
 #include "serial.h"
@@ -53,9 +54,9 @@ const struct rig_caps ft991_caps = {
     .rig_model =          RIG_MODEL_FT991,
     .model_name =         "FT-991",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".1",
+    .version =            NEWCAT_VER ".2",
     .copyright =          "LGPL",
-    .status =             RIG_STATUS_ALPHA,
+    .status =             RIG_STATUS_BETA,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
     .ptt_type =           RIG_PTT_RIG,
     .dcd_type =           RIG_DCD_NONE,
@@ -192,12 +193,12 @@ const struct rig_caps ft991_caps = {
     .get_freq =           newcat_get_freq,
     .set_mode =           newcat_set_mode,
     .get_mode =           newcat_get_mode,
-    .set_vfo =            newcat_set_vfo,
     .get_vfo =            newcat_get_vfo,
     .set_ptt =            newcat_set_ptt,
     .get_ptt =            newcat_get_ptt,
-    .set_split_vfo =      newcat_set_split_vfo,
-    .get_split_vfo =      newcat_get_split_vfo,
+    .set_split_vfo =      ft991_set_split_vfo,
+    .get_split_vfo =      ft991_get_split_vfo,
+    .get_split_mode =     ft991_get_split_mode,
     .set_rit =            newcat_set_rit,
     .get_rit =            newcat_get_rit,
     .set_xit =            newcat_set_xit,
@@ -231,13 +232,173 @@ const struct rig_caps ft991_caps = {
 
 };
 
+/*
+ * rig_set_split_vfo*
+ *
+ * Set split operation for a given VFO
+ *
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   vfo        | input  | currVFO, VFOA, VFOB, MEM
+ *   split      | input  | 0 = off, 1 = on
+ *   tx_vfo     | input  | currVFO, VFOA, VFOB
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments: Passing currVFO to vfo or tx_vfo will use the currently
+ *           selected VFO obtained from the priv->current_vfo data structure.
+ *           Only VFOA and VFOB are valid assignments for the tx_vfo.
+ *           The tx_vfo is loaded first when assigning MEM to vfo to ensure
+ *           the correct TX VFO is selected by the rig in split mode.
+ *           An error is returned if vfo and tx_vfo are the same.
+ */
+int ft991_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
+{
+  struct newcat_priv_data *priv;
+  struct rig_state *state;
+  unsigned char ci;
+  int err;
+
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  if (!rig)
+    return -RIG_EINVAL;
+
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed split = 0x%02x\n", __func__, split);
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed tx_vfo = 0x%02x\n", __func__, tx_vfo);
+
+  priv = (struct newcat_priv_data *)rig->state.priv;
+  state = &rig->state;
+
+  // RX VFO and TX VFO cannot be the same, no support for MEM as TX VFO
+  if (vfo == tx_vfo || tx_vfo == RIG_VFO_MEM)
+    return -RIG_ENTARGET;
+
+  switch(split) {
+    case RIG_SPLIT_ON:
+      ci = '3';
+      break;
+    case RIG_SPLIT_OFF:
+      ci = '2';
+      break;
+    default:
+      return -RIG_EINVAL;
+  }
+
+  snprintf(priv->cmd_str, sizeof(priv->cmd_str), "FT%c;", ci);
+  if ( RIG_OK != (err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str))))  {
+    rig_debug(RIG_DEBUG_ERR, "%s: write_block err = %d\n", __func__, err);
+    return err;
+  }
+
+  return RIG_OK;
+}
+
+/*
+ * rig_get_split_vfo*
+ *
+ * Get split mode status for a given VFO
+ *
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   vfo        | input  | currVFO, Main, VFO, VFOA, VFOB, MEM
+ *   split *    | output | 0 = on, 1 = off
+ *   tx_vfo *   | output | VFOA, VFOB
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments: The passed value for the vfo is ignored since can only split one way
+ */
+int ft991_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
+{
+  struct newcat_priv_data *priv;
+  int err;
+
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  if (!rig)
+    return -RIG_EINVAL;
+
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
+
+  priv = (struct newcat_priv_data *)rig->state.priv;
+
+  snprintf(priv->cmd_str, sizeof(priv->cmd_str), "FT;");
+  if (RIG_OK != (err = newcat_get_cmd (rig)))
+    return err;
+
+  // Get split mode status
+  *split = priv->ret_data[2]=='1'; // 1=VFOB TX so is in split mode
+  rig_debug(RIG_DEBUG_TRACE, "%s: set split = 0x%02x\n", __func__, *split);
+
+  *tx_vfo = RIG_VFO_A;
+  rig_debug(RIG_DEBUG_TRACE, "%s: set tx_vfo = 0x%02x\n", __func__, *tx_vfo);
+
+  return RIG_OK;
+}
+
+/*
+ * rig_get_split_mode*
+ *
+ * Get the '991 split TX mode
+ *
+ * Parameter    | Type      | Accepted/expected values
+ * ------------------------------------------------------------------
+ * *rig         | input     | pointer to private data
+ * vfo          | input     | currVFO, VFOA, VFOB, MEM
+ * *tx_mode     | output    | supported modes
+ * *tx_width    | output    | supported widths
+ * ------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments:    Checks to see if the 991 is in split mode, if so it
+ *              checks which VFO is set for TX and then gets the
+ *              mode and passband of that VFO and stores it into *tx_mode
+ *              and tx_width respectively.  If not in split mode returns
+ *              RIG_MODE_NONE and 0 Hz.
+ *
+ */
+
+int ft991_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width)
+{
+    int err;
+    split_t split;
+    vfo_t split_vfo;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!rig)
+        return -RIG_EINVAL;
+
+    err = ft991_get_split_vfo(rig, vfo, &split, &split_vfo);
+    if (err != RIG_OK)
+        return err;
+
+    switch ((int)split) {
+    case TRUE:              /* '991 is in split mode */
+        err = newcat_get_mode(rig, split_vfo, tx_mode, tx_width);
+        if (err != RIG_OK)
+            return err;
+        break;
+    default:
+        *tx_mode = RIG_MODE_NONE;
+        *tx_width = 0;
+        break;
+    }
+    return RIG_OK;
+}
+
 int ft991_init(RIG *rig) {
   struct newcat_priv_data *priv;
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __func__);
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called, version %s\n", __func__,rig->caps->version);
   int ret = newcat_init(rig);
   if (ret != RIG_OK) return ret;
   priv = (struct newcat_priv_data *)rig->state.priv;
   priv->width_frequency = 9;
   priv->offset_rit = 13;
+  rig->state.current_vfo = RIG_VFO_A;
   return RIG_OK;
 }

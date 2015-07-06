@@ -49,7 +49,7 @@
 
 /* TRX caps */
 
-#define FT991_OTHER_TX_MODES (RIG_MODE_CW| RIG_MODE_USB| RIG_MODE_LSB ) /* 100 W class */
+#define FT991_OTHER_TX_MODES (RIG_MODE_CW| RIG_MODE_USB| RIG_MODE_LSB | RIG_MODE_PKTUSB | RIG_MODE_PKTLSB ) /* 100 W class */
 #define FT991_AM_TX_MODES (RIG_MODE_AM)    /* set 25W max */
 
 #define FT991_LEVELS (RIG_LEVEL_ATT|RIG_LEVEL_PREAMP|\
@@ -67,7 +67,7 @@
 
 #define FT991_VFO_OPS (RIG_OP_TUNE|RIG_OP_CPY|RIG_OP_XCHG|\
                RIG_OP_UP|RIG_OP_DOWN|RIG_OP_BAND_UP|RIG_OP_BAND_DOWN|\
-               RIG_OP_TO_VFO|RIG_OP_FROM_VFO|RIG_OP_TOGGLE)
+               RIG_OP_TO_VFO|RIG_OP_FROM_VFO)
 
 /* TBC */
 #define FT991_STR_CAL { 16, \
@@ -122,5 +122,10 @@
 
 /* Prototypes */
 int ft991_init(RIG *rig);
+int ft991_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
+int ft991_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
+int ft991_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width);
+/* Reuse newcat_get_cmd */
+extern int newcat_get_cmd(RIG *rig);
 
 #endif /* _FT991_H */

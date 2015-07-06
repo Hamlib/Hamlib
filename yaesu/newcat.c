@@ -58,6 +58,7 @@ typedef enum nc_rigid_e {
     NC_RIGID_NONE            = 0,
     NC_RIGID_FT450           = 241,
     NC_RIGID_FT950           = 310,
+    NC_RIGID_FT991           = 135,
     NC_RIGID_FT2000          = 251,
     NC_RIGID_FT2000D         = 252,
     NC_RIGID_FT1200          = 583,
@@ -77,6 +78,7 @@ typedef struct _yaesu_newcat_commands {
     char                *command;
     ncboolean           ft450;
     ncboolean           ft950;
+    ncboolean           ft991;
     ncboolean           ft2000;
     ncboolean           ft9000;
     ncboolean           ft5000;
@@ -100,112 +102,113 @@ typedef struct _yaesu_newcat_commands {
  *
  */
 static const yaesu_newcat_commands_t valid_commands[] = {
-    /*   Command    FT-450  FT-950  FT-2000 FT-9000 FT-5000 FT-1200*/
-    {"AB",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"AC",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"AG",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"AI",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"AM",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"AN",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"BA",      FALSE,  FALSE,  FALSE,  FALSE,  FALSE, TRUE    },
-    {"BC",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"BD",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"BI",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"BP",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"BS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"BU",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"BY",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"CH",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"CN",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"CO",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"CS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"CT",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"DA",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"DN",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"DT",      FALSE,  FALSE,  FALSE,  FALSE, FALSE, TRUE    },
-    {"DP",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE, FALSE   },
-    {"DS",      TRUE,   FALSE,  TRUE,   TRUE,   TRUE, FALSE    },
-    {"ED",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"EK",      FALSE,  TRUE,   TRUE,   TRUE,   FALSE, TRUE   },
-    {"EN",      FALSE,  FALSE,  FALSE,  FALSE,  FALSE, TRUE   },
-    {"EU",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"EX",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"FA",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"FB",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"FK",      FALSE,  TRUE,   TRUE,   TRUE,   FALSE, FALSE   },
-    {"FR",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"FS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"FT",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"GT",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"ID",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"IF",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"IS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"KM",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"KP",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"KR",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"KS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"KY",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"LK",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"LM",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"MA",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"MC",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"MD",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"MG",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"MK",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, FALSE   },
-    {"ML",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"MR",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"MS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"MW",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"MX",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"NA",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"NB",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"NL",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"NR",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"OI",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"OS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"PA",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"PB",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"PC",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"PL",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"PR",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"PS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"QI",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"QR",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"QS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"RA",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"RC",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"RD",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"RF",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"RG",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"RI",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"RL",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"RM",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"RO",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"RP",      TRUE,   FALSE,  FALSE,  FALSE,  FALSE, FALSE   },
-    {"RS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"RT",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"RU",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"SC",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"SD",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"SF",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"SH",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"SM",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"SQ",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"ST",      TRUE,   FALSE,  FALSE,  FALSE,  FALSE, FALSE   },
-    {"SV",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"TS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"TX",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"UL",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"UP",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"VD",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"VF",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"VG",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"VM",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"VR",      TRUE,   FALSE,  FALSE,  FALSE,  FALSE, FALSE   },
-    {"VS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"VV",      TRUE,   FALSE,  FALSE,  FALSE,  FALSE, FALSE   },
-    {"VX",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
-    {"XT",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE, TRUE    },
+/*   Command    FT-450  FT-950  FT-991  FT-2000 FT-9000 FT-5000 FT-1200*/
+    {"AB",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"AC",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"AG",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"AI",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"AM",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"AN",      FALSE,  TRUE,   FALSE,  TRUE,   TRUE,   TRUE,   TRUE    },
+    {"BA",      FALSE,  FALSE,  TRUE,   FALSE,  FALSE,  FALSE,  TRUE    },
+    {"BC",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"BD",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"BI",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"BP",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"BS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"BU",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"BY",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"CH",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"CN",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"CO",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"CS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"CT",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"DA",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"DN",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"DT",      FALSE,  FALSE,  TRUE,   FALSE,  FALSE,  FALSE,  TRUE    },
+    {"DP",      FALSE,  TRUE,   FALSE,  TRUE,   TRUE,   TRUE,   FALSE   },
+    {"DS",      TRUE,   FALSE,  FALSE,  TRUE,   TRUE,   TRUE,   FALSE   },
+    {"ED",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"EK",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   FALSE,  TRUE    },
+    {"EN",      FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE    },
+    {"EU",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"EX",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"FA",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"FB",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"FK",      FALSE,  TRUE,   FALSE,  TRUE,   TRUE,   FALSE,  FALSE   },
+    {"FR",      FALSE,  TRUE,   FALSE,  TRUE,   TRUE,   TRUE,   TRUE    },
+    {"FS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"FT",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"GT",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"ID",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"IF",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"IS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"KM",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"KP",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"KR",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"KS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"KY",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"LK",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"LM",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"MA",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"MC",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"MD",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"MG",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"MK",      TRUE,   TRUE,   FALSE,  TRUE,   TRUE,   TRUE,   FALSE   },
+    {"ML",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"MR",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"MS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"MW",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"MX",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"NA",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"NB",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"NL",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"NR",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"OI",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"OS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"PA",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"PB",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"PC",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"PL",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"PR",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"PS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"QI",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"QR",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"QS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"RA",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"RC",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"RD",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"RF",      FALSE,  TRUE,   FALSE,  TRUE,   TRUE,   TRUE,   TRUE    },
+    {"RG",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"RI",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"RL",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"RM",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"RO",      FALSE,  TRUE,   FALSE,  TRUE,   TRUE,   TRUE,   TRUE    },
+    {"RP",      TRUE,   FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE   },
+    {"RS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"RT",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"RU",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"SC",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"SD",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"SF",      FALSE,  TRUE,   FALSE,  TRUE,   TRUE,   TRUE,   TRUE    },
+    {"SH",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"SM",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"SQ",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"ST",      TRUE,   FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE   },
+    {"SV",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"TS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"TX",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"UL",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"UP",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"VD",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"VF",      FALSE,  TRUE,   FALSE,  TRUE,   TRUE,   TRUE,   TRUE    },
+    {"VG",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"VM",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"VR",      TRUE,   FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE   },
+    {"VS",      TRUE,   TRUE,   FALSE,  TRUE,   TRUE,   TRUE,   TRUE    },
+    {"VV",      TRUE,   FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE   },
+    {"VX",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"XT",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"ZI",      FALSE,  FALSE,  TRUE,   FALSE,  FALSE,  FALSE,  FALSE   },
 };
 int                     valid_commands_count = sizeof(valid_commands) / sizeof(yaesu_newcat_commands_t);
 
@@ -224,9 +227,10 @@ static int newcat_set_faststep(RIG * rig, ncboolean fast_step);
 static int newcat_get_faststep(RIG * rig, ncboolean * fast_step);
 static int newcat_get_rigid(RIG * rig);
 static int newcat_get_vfo_mode(RIG * rig, vfo_t * vfo_mode);
-static int newcat_get_cmd(RIG * rig);
 static int newcat_vfomem_toggle(RIG * rig);
 static ncboolean newcat_valid_command(RIG *rig, char *command);
+/* NewCAT Exposed Functions */
+int newcat_get_cmd(RIG * rig);
 
 
 /*
@@ -429,18 +433,20 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
     if (width_frequency == 0) width_frequency = 8; // default to 8
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "F%c%0*d%c", c, width_frequency, (int)freq, cat_term);
-    rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
+    rig_debug(RIG_DEBUG_TRACE, "%s:%d cmd_str = %s\n", __func__, __LINE__, priv->cmd_str);
     if (RIG_OK != (err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str))))
       {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s:%d write_block err = %d\n", __func__, __LINE__, err);
         return err;
       }
 
     if (RIG_MODEL_FT450 == caps->rig_model && priv->ret_data[2] != target_vfo)
       {
         /* revert current VFO */
-        rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->ret_data);
+        rig_debug(RIG_DEBUG_TRACE, "%s:%d cmd_str = %s\n", __func__, __LINE__, priv->ret_data);
         if (RIG_OK != (err = write_block(&state->rigport, priv->ret_data, strlen(priv->ret_data))))
           {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s:%d write_block err = %d\n", __func__, __LINE__, err);
             return err;
           }
       }
@@ -505,7 +511,7 @@ int newcat_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
     sscanf(priv->ret_data+2, "%"SCNfreq, freq);
 
     rig_debug(RIG_DEBUG_TRACE,
-            "%s: freq = %"PRIfreq" Hz for vfo 0x%02x\n", __func__, freq, vfo);
+            "%s: freq = %"PRIfreq" Hz for vfo 0x%02x\n", __func__, *freq, vfo);
 
     return RIG_OK;
 }
@@ -727,16 +733,6 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo) {
     state = &rig->state;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called, passed vfo = 0x%02x\n", __func__, vfo);
-
-    if (newcat_is_rig(rig, RIG_MODEL_FT991))
-      {
-        if (vfo==RIG_VFO_A) { /* FT991 does not have VS -- pretend we do for VFO_A */
-          return RIG_OK;
-        }
-        else {
-          return -RIG_EINVAL;
-        }
-      }
 
     if (!newcat_valid_command(rig, command))
         return -RIG_ENAVAIL;
@@ -3280,6 +3276,7 @@ ncboolean newcat_valid_command(RIG *rig, char *command) {
     const struct rig_caps *caps;
     ncboolean is_ft450;
     ncboolean is_ft950;
+    ncboolean is_ft991;
     ncboolean is_ft2000;
     ncboolean is_ft9000;
     ncboolean is_ft5000;
@@ -3289,6 +3286,7 @@ ncboolean newcat_valid_command(RIG *rig, char *command) {
     int search_low;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s %s\n", __func__,command);
 
     if (!rig) {
         rig_debug(RIG_DEBUG_ERR, "%s: Rig argument is invalid\n", __func__);
@@ -3309,13 +3307,14 @@ ncboolean newcat_valid_command(RIG *rig, char *command) {
 
     is_ft450 = newcat_is_rig(rig, RIG_MODEL_FT450);
     is_ft950 = newcat_is_rig(rig, RIG_MODEL_FT950);
+    is_ft991 = newcat_is_rig(rig, RIG_MODEL_FT991);
     is_ft2000 = newcat_is_rig(rig, RIG_MODEL_FT2000);
     is_ft9000 = newcat_is_rig(rig, RIG_MODEL_FT9000);
     is_ft5000 = newcat_is_rig(rig, RIG_MODEL_FTDX5000);
     is_ft1200 = newcat_is_rig(rig, RIG_MODEL_FT1200);
 
 
-    if (!is_ft450 && !is_ft950 && !is_ft2000 && !is_ft5000 && !is_ft9000 & !is_ft1200 ) {
+    if (!is_ft450 && !is_ft950 && !is_ft991 && !is_ft2000 && !is_ft5000 && !is_ft9000 & !is_ft1200 ) {
         rig_debug(RIG_DEBUG_ERR, "%s: '%s' is unknown\n",
                 __func__, caps->model_name);
         return FALSE;
@@ -3344,6 +3343,8 @@ ncboolean newcat_valid_command(RIG *rig, char *command) {
             if (is_ft450 && valid_commands[search_index].ft450)
                 return TRUE;
             else if (is_ft950 && valid_commands[search_index].ft950)
+                return TRUE;
+            else if (is_ft991 && valid_commands[search_index].ft991)
                 return TRUE;
             else if (is_ft2000 && valid_commands[search_index].ft2000)
                 return TRUE;
@@ -3617,6 +3618,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     char narrow = '0';
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s vfo=%d, mode=%d, width=%d\n", __func__, vfo, mode, width);
 
     if (!newcat_valid_command(rig, "SH"))
         return -RIG_ENAVAIL;
