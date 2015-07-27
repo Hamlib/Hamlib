@@ -118,7 +118,7 @@
 
 /* Delay sequential fast writes */
 
-#define FT991_POST_WRITE_DELAY               5
+#define FT991_POST_WRITE_DELAY               50
 
 /* Prototypes */
 int ft991_init(RIG *rig);
