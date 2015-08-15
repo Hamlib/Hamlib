@@ -2270,6 +2270,7 @@ int newcat_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val)
             /*
              * Read only levels
              */
+        case RIG_LEVEL_STRENGTH:
         case RIG_LEVEL_RAWSTR:
             if (!newcat_valid_command(rig, "SM"))
                 return -RIG_ENAVAIL;
@@ -2346,6 +2347,11 @@ int newcat_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val)
             val->i = 5000 / val->i;   /* ms -to- tenth_dots-per-second */
             if (val->i < 1)
                 val->i = 1;
+            break;
+        case RIG_LEVEL_STRENGTH: // Yaesu's return straight s-meter answers
+            // Return dbS9 -- does >S9 mean 10dB increments? If not, add to rig driver
+            if (val->i > 0) val->i = (atoi(retlvl)-9)*10;
+            else val->i = (atoi(retlvl)-9)*6;  // Return dbS9  does >S9 mean 10dB increments?
             break;
         case RIG_LEVEL_RAWSTR:
         case RIG_LEVEL_KEYSPD:

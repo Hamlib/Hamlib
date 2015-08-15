@@ -54,7 +54,7 @@ const struct rig_caps ft991_caps = {
     .rig_model =          RIG_MODEL_FT991,
     .model_name =         "FT-991",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".3",
+    .version =            NEWCAT_VER ".4",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_BETA,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -191,7 +191,7 @@ const struct rig_caps ft991_caps = {
 
     .set_freq =           newcat_set_freq,
     .get_freq =           newcat_get_freq,
-    .set_mode =           newcat_set_mode,
+    .set_mode =           ft991_set_mode,
     .get_mode =           newcat_get_mode,
     .get_vfo =            newcat_get_vfo,
     .set_ptt =            newcat_set_ptt,
@@ -199,6 +199,7 @@ const struct rig_caps ft991_caps = {
     .set_split_vfo =      ft991_set_split_vfo,
     .get_split_vfo =      ft991_get_split_vfo,
     .get_split_mode =     ft991_get_split_mode,
+    .set_split_mode =     ft991_set_split_mode,
     .set_rit =            newcat_set_rit,
     .get_rit =            newcat_get_rit,
     .set_xit =            newcat_set_xit,
@@ -255,45 +256,45 @@ const struct rig_caps ft991_caps = {
  */
 int ft991_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
-  struct newcat_priv_data *priv;
-  struct rig_state *state;
-  unsigned char ci;
-  int err;
+    struct newcat_priv_data *priv;
+    struct rig_state *state;
+    unsigned char ci;
+    int err;
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  if (!rig)
-    return -RIG_EINVAL;
+    if (!rig)
+        return -RIG_EINVAL;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
-  rig_debug(RIG_DEBUG_TRACE, "%s: passed split = 0x%02x\n", __func__, split);
-  rig_debug(RIG_DEBUG_TRACE, "%s: passed tx_vfo = 0x%02x\n", __func__, tx_vfo);
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed split = 0x%02x\n", __func__, split);
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed tx_vfo = 0x%02x\n", __func__, tx_vfo);
 
-  priv = (struct newcat_priv_data *)rig->state.priv;
-  state = &rig->state;
+    priv = (struct newcat_priv_data *)rig->state.priv;
+    state = &rig->state;
 
-  // RX VFO and TX VFO cannot be the same, no support for MEM as TX VFO
-  if (vfo == tx_vfo || tx_vfo == RIG_VFO_MEM)
-    return -RIG_ENTARGET;
+    // RX VFO and TX VFO cannot be the same, no support for MEM as TX VFO
+    if (vfo == tx_vfo || tx_vfo == RIG_VFO_MEM)
+        return -RIG_ENTARGET;
 
-  switch(split) {
-    case RIG_SPLIT_ON:
-      ci = '3';
-      break;
-    case RIG_SPLIT_OFF:
-      ci = '2';
-      break;
-    default:
-      return -RIG_EINVAL;
-  }
+    switch(split) {
+        case RIG_SPLIT_ON:
+            ci = '3';
+            break;
+        case RIG_SPLIT_OFF:
+            ci = '2';
+            break;
+        default:
+            return -RIG_EINVAL;
+    }
 
-  snprintf(priv->cmd_str, sizeof(priv->cmd_str), "FT%c;", ci);
-  if ( RIG_OK != (err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str))))  {
-    rig_debug(RIG_DEBUG_ERR, "%s: write_block err = %d\n", __func__, err);
-    return err;
-  }
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "FT%c;", ci);
+    if ( RIG_OK != (err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str))))  {
+      rig_debug(RIG_DEBUG_ERR, "%s: write_block err = %d\n", __func__, err);
+      return err;
+    }
 
-  return RIG_OK;
+    return RIG_OK;
 }
 
 /*
@@ -314,30 +315,31 @@ int ft991_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
  */
 int ft991_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
-  struct newcat_priv_data *priv;
-  int err;
+    struct newcat_priv_data *priv;
+    int err;
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  if (!rig)
-    return -RIG_EINVAL;
+    if (!rig)
+        return -RIG_EINVAL;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
 
-  priv = (struct newcat_priv_data *)rig->state.priv;
+    priv = (struct newcat_priv_data *)rig->state.priv;
 
-  snprintf(priv->cmd_str, sizeof(priv->cmd_str), "FT;");
-  if (RIG_OK != (err = newcat_get_cmd (rig)))
-    return err;
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "FT;");
+    if (RIG_OK != (err = newcat_get_cmd (rig)))
+        return err;
 
-  // Get split mode status
-  *split = priv->ret_data[2]=='1'; // 1=VFOB TX so is in split mode
-  rig_debug(RIG_DEBUG_TRACE, "%s: set split = 0x%02x\n", __func__, *split);
+    // Get split mode status
+    *split = priv->ret_data[2]=='1'; // 1=VFOB TX so is in split mode
+    rig_debug(RIG_DEBUG_TRACE, "%s: get split = 0x%02x\n", __func__, *split);
 
-  *tx_vfo = RIG_VFO_A;
-  rig_debug(RIG_DEBUG_TRACE, "%s: set tx_vfo = 0x%02x\n", __func__, *tx_vfo);
+    *tx_vfo = RIG_VFO_A;
+    if (*split) *tx_vfo = RIG_VFO_B;
+    rig_debug(RIG_DEBUG_TRACE, "%s: get tx_vfo = 0x%02x\n", __func__, *tx_vfo);
 
-  return RIG_OK;
+    return RIG_OK;
 }
 
 /*
@@ -364,31 +366,98 @@ int ft991_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 
 int ft991_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width)
 {
+    struct newcat_priv_data *priv;
     int err;
-    split_t split;
-    vfo_t split_vfo;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!rig)
         return -RIG_EINVAL;
 
-    err = ft991_get_split_vfo(rig, vfo, &split, &split_vfo);
-    if (err != RIG_OK)
-        return err;
+    priv = (struct newcat_priv_data *)rig->state.priv;
 
-    switch ((int)split) {
-    case TRUE:              /* '991 is in split mode */
-        err = newcat_get_mode(rig, split_vfo, tx_mode, tx_width);
-        if (err != RIG_OK)
-            return err;
-        break;
-    default:
-        *tx_mode = RIG_MODE_NONE;
-        *tx_width = 0;
-        break;
-    }
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "OI;");
+    if (RIG_OK != (err = newcat_get_cmd (rig)))
+        return err;
+    *tx_mode = priv->ret_data[22];
+
     return RIG_OK;
+}
+
+/*
+ * rig_set_split_mode
+ *
+ * Set the '991 split TX mode
+ *
+ * Parameter    | Type      | Accepted/expected values
+ * ------------------------------------------------------------------
+ * *rig         | input     | pointer to private data
+ * vfo          | input     | currVFO, VFOA, VFOB, MEM
+ * tx_mode      | input     | supported modes
+ * tx_width     | input     | supported widths
+ * ------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments:    Passsband is not set here.
+ *              FT991 apparentlhy cannot set VFOB mode directly
+ *              So we'll just set A and swap A into B
+ *
+ */
+
+int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
+{
+    struct newcat_priv_data *priv;
+    struct rig_state *state;
+    int err;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!rig)
+        return -RIG_EINVAL;
+    state = &rig->state;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = %i\n", __func__, tx_mode);
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed width = %li Hz\n", __func__, tx_width);
+
+    priv = (struct newcat_priv_data *)rig->state.priv;
+
+    // Change mode on VFOA and make VFOB match VFOA
+    if (RIG_OK != (err = newcat_set_mode(rig,RIG_VFO_A,tx_mode,tx_width))) {
+        return err;
+    }
+    // Copy A to B
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "AB;");
+    if (RIG_OK != (err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str))))
+      {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s:%d write_block err = %d\n", __func__, __LINE__, err);
+        return err;
+      }
+
+#if 0
+    if (RIG_OK != (err = newcat_get_cmd (rig)))
+        return err;
+#endif
+    return RIG_OK;
+}
+
+
+int ft991_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
+{
+  struct newcat_priv_data *priv;
+  int err;
+
+  // FT991 can't set VFOB mode directly so we always set VFOA
+  // We will always make VFOB match VFOA mode
+  newcat_set_mode(rig, RIG_VFO_A, mode, width);
+
+  priv = (struct newcat_priv_data *)rig->state.priv;
+
+  // Copy A to B
+  snprintf(priv->cmd_str, sizeof(priv->cmd_str), "AB;");
+  if (RIG_OK != (err = newcat_get_cmd (rig)))
+    return err;
+  return RIG_OK;
 }
 
 int ft991_init(RIG *rig) {

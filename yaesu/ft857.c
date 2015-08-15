@@ -57,6 +57,7 @@
 #include "config.h"
 #endif
 
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>  	/* String function definitions */
 #include <unistd.h>  	/* UNIX standard function definitions */
@@ -149,7 +150,7 @@ const struct rig_caps ft857_caps = {
   .rig_model = 		RIG_MODEL_FT857,
   .model_name = 	"FT-857",
   .mfg_name = 		"Yaesu",
-  .version = 		"0.4",
+  .version = 		"0.5",
   .copyright = 		"LGPL",
   .status = 		RIG_STATUS_BETA,
   .rig_type = 		RIG_TYPE_TRANSCEIVER,
@@ -582,10 +583,14 @@ static int ft857_get_pometer_level(RIG *rig, value_t *val)
       return n;
 
   /* Valid only if PTT is on */
-  if ((p->tx_status & 0x80) == 0)
-    val->f = ((p->tx_status & 0x0F) / 15.0);
+  if ((p->tx_status & 0x80) == 0) {
+    // convert watts to dBm
+    val->i = 10 * log10(p->tx_status & 0x0F) + 30;
+    // now convert to db over S9
+    val->i += 73;
+  }
   else
-    val->f = 0.0;
+    val->i = -911; // invalid value return
 
   return RIG_OK;
 }
@@ -599,9 +604,7 @@ static int ft857_get_smeter_level(RIG *rig, value_t *val)
     if ((n = ft857_get_status(rig, FT857_NATIVE_CAT_GET_RX_STATUS)) < 0)
       return n;
 
-  n = (p->rx_status & 0x0F) - 9;
-
-  val->i = n * ((n > 0) ? 10 : 6);
+  val->i = n = (p->rx_status & 0x0F)  * 6 - 20;  // Convert S level to dB
 
   return RIG_OK;
 }
