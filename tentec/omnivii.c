@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include <serial.h>
 #include <hamlib/rig.h>
@@ -122,9 +123,9 @@ const struct rig_caps tt588_caps = {
 .rig_model =  RIG_MODEL_TT588,
 .model_name = "TT-588 Omni VII",
 .mfg_name =  "Ten-Tec",
-.version =  "0.4",
+.version =  "0.5",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_BETA,
+.status =  RIG_STATUS_STABLE,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_NONE,
@@ -762,12 +763,33 @@ int tt588_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		}
 
 		// Reply in the form S0944 for 44 dB over S9 in ASCII
-		// S9=0db S0=-54dB
-		if ((lvlbuf[1]&0x80)==0) { // then we're not in transmit mode so we're good
-			val->i = (int)((lvlbuf[2]-'0') * 6 - 54)+ (lvlbuf[3]-'0')*10 + (lvlbuf[4]-'0');
+		// S0600 is S6 (0 db over S9)
+		// S9=34db S0=-20dB
+		// So you can read the exact S-meter from the 1st 2 bytes
+		// 2nd set of bytes is S9-relative
+		if ((lvlbuf[1]&0x80)==0) { // then we're not in tx mode so we're good
+			// 1st two bytes are the S-level
+			sscanf((char*)lvlbuf,"S%02d",&val->i);
+			val->i  = (val->i - 9) * 6; // convert S meter to dBS9 relative
+			rig_debug(RIG_DEBUG_TRACE,"%s: meter= %ddB\n",	__FUNCTION__, val->i);
 		}
 		else {
-			val->i = 0; // we'll just return SWR=0 if transmit is on
+			// transmit reply example S<0x8f><0x01> 0x0f=15 watts, 0x01
+			// it appears 0x01 refelected = 0W since 0 means not read yet
+			int reflected = (int)lvlbuf[2];
+			reflected  = reflected>0 ? reflected-1 : 0;
+			// computer transmit power
+			int strength = (int)(lvlbuf[1]&0x7f)-reflected;
+			rig_debug(RIG_DEBUG_TRACE,"%s: strength fwd=%d, rev=%d\n",	__FUNCTION__, strength, reflected);
+			if (strength > 0) { // convert watts to dbM
+				val->i = 10 * log10(strength) + 30;
+				// now convert to db over 1uV
+				val->i += 73;
+			}
+			else {
+				val->i = 0;
+			}
+			rig_debug(RIG_DEBUG_TRACE,"%s: strength= %ddB\n",	__FUNCTION__, val->i);
 		}
 
 		break;
