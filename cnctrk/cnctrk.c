@@ -83,7 +83,7 @@ const struct rot_caps cnctrk_rot_caps = {
 
 DECLARE_INITROT_BACKEND(cnctrk)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+	rig_debug(RIG_DEBUG_VERBOSE, "cnctrk: _init called\n");
 
 	rot_register(&cnctrk_rot_caps);
 
