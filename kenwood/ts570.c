@@ -692,7 +692,7 @@ const struct rig_caps ts570s_caps = {
 .write_delay =  0,
 .post_write_delay =  30,
 .timeout = 400,
-.retry =  5,
+.retry =  10,
 
 .has_get_func =  TS570_FUNC_ALL,
 .has_set_func =  TS570_FUNC_ALL,
@@ -871,7 +871,7 @@ const struct rig_caps ts570d_caps = {
 .write_delay =  0,
 .post_write_delay =  30,
 .timeout = 400,
-.retry =  5,
+.retry =  10,
 
 .has_get_func =  TS570_FUNC_ALL,
 .has_set_func =  TS570_FUNC_ALL,

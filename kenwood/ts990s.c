@@ -141,7 +141,7 @@ const struct rig_caps ts990s_caps = {
 .write_delay =  0,
 .post_write_delay =  50,	/* ms */
 .timeout =  200,
-.retry =  3,
+.retry =  10,
 
 .has_get_func =  TS2000_FUNC_ALL,
 .has_set_func =  TS2000_FUNC_ALL,
