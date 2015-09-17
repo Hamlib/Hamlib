@@ -74,7 +74,7 @@ const struct rig_caps ts811_caps = {
 .write_delay =  0,
 .post_write_delay =  0,
 .timeout =  1000,
-.retry =  3,
+.retry =  10,
 
 .has_get_func =  TS811_FUNC_ALL,
 .has_set_func =  TS811_FUNC_ALL,

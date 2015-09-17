@@ -78,7 +78,7 @@ const struct rig_caps ts440_caps = {
 .write_delay =  20,
 .post_write_delay =  30,
 .timeout =  200,
-.retry =  3,
+.retry =  10,
 
 .has_get_func =  RIG_FUNC_NONE,
 .has_set_func =  TS440_FUNC_ALL,

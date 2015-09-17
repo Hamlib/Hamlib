@@ -109,7 +109,7 @@ const struct rig_caps k3_caps = {
 	.write_delay =		0,	/* Timing between bytes */
 	.post_write_delay =	100,	/* Timing between command strings */
 	.timeout =		600,	/* FA and FB make take up to 500 ms on band change */
-	.retry =		3,
+	.retry =		10,
 
 	.has_get_func =		K3_FUNC_ALL,
 	.has_set_func =		K3_FUNC_ALL,
