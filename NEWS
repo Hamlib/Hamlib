@@ -6,7 +6,7 @@ Copyright (C) 2000-2015  Stephane Fillod, and others
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 Version 3.0
-	2015-09-01
+	2015-09-20
 	* Kill RPC backends and rpc.rigd/rpc.rotd
 	* Remove -e|--end-marker option from rigctld and rotctld
 	* Build system updates--remove obsolete macros, autogen.sh now
