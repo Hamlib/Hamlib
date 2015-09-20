@@ -5,6 +5,11 @@ Copyright (C) 2000-2015  Stephane Fillod, and others
 
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
+Version 3.0.1
+	2015-10-??
+	* Fix kenwood_set_mode for ts590s and mode CW, RTTY or AM.
+	  Tks Tom, DL1JBE
+
 Version 3.0
 	2015-09-20
 	* Kill RPC backends and rpc.rigd/rpc.rotd
