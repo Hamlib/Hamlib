@@ -1197,7 +1197,7 @@ int kenwood_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 
   if (rit == 0)
     return kenwood_transaction(rig, "RC", NULL, 0);
-  
+
   sprintf(buf, "R%c", (rit > 0) ? 'U' : 'D');
 
   retval = kenwood_transaction(rig, "RC", NULL, 0);
@@ -1206,7 +1206,7 @@ int kenwood_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 
   for (i = 0; i < abs(rint(rit/10)); i++)
     retval = kenwood_transaction(rig, buf, NULL, 0);
-  
+
   return retval;
 }
 
@@ -1375,10 +1375,17 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   if (RIG_MODEL_TS590S == rig->caps->rig_model
       || RIG_MODEL_TS590SG == rig->caps->rig_model)
     {
-      /* supports DATA sub modes - see above */
-      sprintf (buf, "DA%c", data_mode);
-      err = kenwood_transaction (rig, buf, NULL, 0);
-      if (err != RIG_OK) return err;
+      if (!(RIG_MODE_CW == mode
+         || RIG_MODE_CWR == mode
+         || RIG_MODE_AM == mode
+         || RIG_MODE_RTTY == mode
+	 || RIG_MODE_RTTYR == mode))
+        {
+	  /* supports DATA sub modes - see above */
+	  sprintf (buf, "DA%c", data_mode);
+	  err = kenwood_transaction (rig, buf, NULL, 0);
+	  if (err != RIG_OK) return err;
+	}
     }
 
   if (rig->caps->rig_model == RIG_MODEL_TS450S
