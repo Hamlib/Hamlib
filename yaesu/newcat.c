@@ -42,6 +42,7 @@
 
 #include "hamlib/rig.h"
 #include "iofunc.h"
+#include "serial.h"
 #include "newcat.h"
 
 /* global variables */
@@ -231,6 +232,7 @@ static int newcat_vfomem_toggle(RIG * rig);
 static ncboolean newcat_valid_command(RIG *rig, char *command);
 /* NewCAT Exposed Functions */
 int newcat_get_cmd(RIG * rig);
+int newcat_set_cmd (RIG *rig);
 
 
 /*
@@ -352,7 +354,6 @@ int newcat_close(RIG *rig) {
 int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
     const struct rig_caps *caps;
     struct newcat_priv_data *priv;
-    struct rig_state *state;
     char c;
     int err;
 
@@ -363,10 +364,6 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 
     priv = (struct newcat_priv_data *)rig->state.priv;
     caps = rig->caps;
-    state = &rig->state;
-//    vfo_t tvfo;
-
-//    tvfo = (vfo == RIG_VFO_CURR || vfo == RIG_VFO_VFO) ? state->current_vfo : vfo;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
 //    rig_debug(RIG_DEBUG_TRACE, "%s: translated vfo = 0x%02x\n", __func__, tvfo);
@@ -415,7 +412,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
           {
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VS%c%c", target_vfo, cat_term);
             rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
-            if ( RIG_OK != (err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str))))
+            if ( RIG_OK != (err = newcat_set_cmd(rig)))
               {
                 return err;
               }
@@ -434,9 +431,9 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "F%c%0*d%c", c, width_frequency, (int)freq, cat_term);
     rig_debug(RIG_DEBUG_TRACE, "%s:%d cmd_str = %s\n", __func__, __LINE__, priv->cmd_str);
-    if (RIG_OK != (err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str))))
+    if (RIG_OK != (err = newcat_set_cmd(rig)))
       {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s:%d write_block err = %d\n", __func__, __LINE__, err);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s:%d command err = %d\n", __func__, __LINE__, err);
         return err;
       }
 
@@ -444,9 +441,9 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
       {
         /* revert current VFO */
         rig_debug(RIG_DEBUG_TRACE, "%s:%d cmd_str = %s\n", __func__, __LINE__, priv->ret_data);
-        if (RIG_OK != (err = write_block(&state->rigport, priv->ret_data, strlen(priv->ret_data))))
+        if (RIG_OK != (err = newcat_set_cmd(rig)))
           {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s:%d write_block err = %d\n", __func__, __LINE__, err);
+            rig_debug(RIG_DEBUG_VERBOSE, "%s:%d command err = %d\n", __func__, __LINE__, err);
             return err;
           }
       }
@@ -520,12 +517,9 @@ int newcat_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     struct newcat_priv_data *priv;
-    struct rig_state *state;
     int err;
 
     priv = (struct newcat_priv_data *)rig->state.priv;
-    state = &rig->state;
-
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -590,7 +584,7 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             return -RIG_EINVAL;
     }
 
-    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    err = newcat_set_cmd(rig);
     if (err != RIG_OK)
         return err;
 
@@ -788,7 +782,7 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo) {
 
     rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
 
-    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    err = newcat_set_cmd(rig);
     if (err != RIG_OK)
         return err;
 
@@ -870,7 +864,7 @@ int newcat_get_vfo(RIG *rig, vfo_t *vfo) {
 
 int newcat_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
-    struct rig_state *state = &rig->state;
+    struct newcat_priv_data *priv  = (struct newcat_priv_data *)rig->state.priv;
     int err;
     char txon[] = "TX1;";
     char txoff[] = "TX0;";
@@ -880,10 +874,15 @@ int newcat_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     switch(ptt) {
         case RIG_PTT_ON:
-            err = write_block(&state->rigport, txon, strlen(txon));
-            break;
+          /* Build the command string */
+          snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s", txon);
+          rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
+          err = newcat_set_cmd(rig);
+          break;
         case RIG_PTT_OFF:
-            err = write_block(&state->rigport, txoff, strlen(txoff));
+          snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s", txoff);
+          rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
+          err = newcat_set_cmd(rig);
             break;
         default:
             return -RIG_EINVAL;
@@ -939,7 +938,6 @@ int newcat_get_dcd(RIG * rig, vfo_t vfo, dcd_t * dcd)
 
 int newcat_set_rptr_shift(RIG * rig, vfo_t vfo, rptr_shift_t rptr_shift)
 {
-    struct rig_state *state = &rig->state;
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int err;
     char c;
@@ -975,7 +973,7 @@ int newcat_set_rptr_shift(RIG * rig, vfo_t vfo, rptr_shift_t rptr_shift)
     }
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c%c", command, main_sub_vfo, c, cat_term);
-    return write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    return newcat_set_cmd(rig);
 }
 
 
@@ -1149,7 +1147,6 @@ int newcat_get_split_vfo(RIG * rig, vfo_t vfo, split_t * split, vfo_t *tx_vfo)
 
 int newcat_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 {
-    struct rig_state *state = &rig->state;
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
 
     if (!newcat_valid_command(rig, "RT"))
@@ -1167,7 +1164,7 @@ int newcat_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
     else
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC%cRU%04d%cRT1%c", cat_term, abs(rit), cat_term, cat_term);
 
-    return write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    return newcat_set_cmd(rig);
 }
 
 
@@ -1213,7 +1210,6 @@ int newcat_get_rit(RIG * rig, vfo_t vfo, shortfreq_t * rit)
 
 int newcat_set_xit(RIG * rig, vfo_t vfo, shortfreq_t xit)
 {
-    struct rig_state *state = &rig->state;
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
 
     if (!newcat_valid_command(rig, "XT"))
@@ -1231,7 +1227,7 @@ int newcat_set_xit(RIG * rig, vfo_t vfo, shortfreq_t xit)
     else
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC%cRU%04d%cXT1%c", cat_term, abs(xit), cat_term, cat_term);
 
-    return write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    return newcat_set_cmd(rig);
 }
 
 
@@ -1381,7 +1377,6 @@ int newcat_get_tone(RIG * rig, vfo_t vfo, tone_t * tone)
 
 int newcat_set_ctcss_tone(RIG * rig, vfo_t vfo, tone_t tone)
 {
-    struct rig_state *state = &rig->state;
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int err;
     int i;
@@ -1422,7 +1417,7 @@ int newcat_set_ctcss_tone(RIG * rig, vfo_t vfo, tone_t tone)
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CN%c%02d%cCT%c2%c", main_sub_vfo, i, cat_term, main_sub_vfo, cat_term);
     }
 
-    return write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    return newcat_set_cmd(rig);
 }
 
 
@@ -1755,7 +1750,6 @@ int newcat_reset(RIG * rig, reset_t reset)
 
 int newcat_set_ant(RIG * rig, vfo_t vfo, ant_t ant)
 {
-    struct rig_state *state = &rig->state;
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int err;
     char which_ant;
@@ -1807,7 +1801,7 @@ int newcat_set_ant(RIG * rig, vfo_t vfo, ant_t ant)
     }
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c%c", command, main_sub_vfo, which_ant, cat_term);
-    return write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    return newcat_set_cmd(rig);
 }
 
 
@@ -2142,7 +2136,7 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
             return -RIG_EINVAL;
     }
 
-    return write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    return newcat_set_cmd(rig);
 }
 
 
@@ -2419,7 +2413,6 @@ int newcat_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 
 int newcat_set_func(RIG * rig, vfo_t vfo, setting_t func, int status)
 {
-    struct rig_state *state = &rig->state;
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int err;
     char main_sub_vfo = '0';
@@ -2507,7 +2500,7 @@ int newcat_set_func(RIG * rig, vfo_t vfo, setting_t func, int status)
             return -RIG_EINVAL;
     }
 
-    return write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    return newcat_set_cmd(rig);
 }
 
 
@@ -2731,7 +2724,6 @@ int newcat_set_bank(RIG * rig, vfo_t vfo, int bank)
 
 int newcat_set_mem(RIG * rig, vfo_t vfo, int ch)
 {
-    struct rig_state *state = &rig->state;
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int err, i;
     ncboolean restore_vfo;
@@ -2795,7 +2787,7 @@ int newcat_set_mem(RIG * rig, vfo_t vfo, int ch)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
 
-    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    err = newcat_set_cmd(rig);
     if (err != RIG_OK)
       return err;
 
@@ -2837,7 +2829,6 @@ int newcat_get_mem(RIG * rig, vfo_t vfo, int *ch)
 
 int newcat_vfo_op(RIG * rig, vfo_t vfo, vfo_op_t op)
 {
-    struct rig_state *state = &rig->state;
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int err;
     char main_sub_vfo = '0';
@@ -2901,7 +2892,7 @@ int newcat_vfo_op(RIG * rig, vfo_t vfo, vfo_op_t op)
             return -RIG_EINVAL;
     }
 
-    return write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    return newcat_set_cmd(rig);
 }
 
 
@@ -2916,7 +2907,6 @@ int newcat_scan(RIG * rig, vfo_t vfo, scan_t scan, int ch)
 int newcat_set_trn(RIG * rig, int trn)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
-    struct rig_state *state = &rig->state;
     char c;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -2933,7 +2923,7 @@ int newcat_set_trn(RIG * rig, int trn)
 
     rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
 
-    return write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    return newcat_set_cmd(rig);
 }
 
 
@@ -3094,7 +3084,7 @@ int newcat_set_channel(RIG * rig, const channel_t * chan)
     rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
 
     /* Set Memory Channel */
-    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    err = newcat_set_cmd(rig);
     if (err != RIG_OK)
         return err;
 
@@ -3387,7 +3377,6 @@ ncboolean newcat_is_rig(RIG * rig, rig_model_t model) {
  * newcat_set_tx_vfo does not set priv->curr_vfo
  */
 int newcat_set_tx_vfo(RIG * rig, vfo_t tx_vfo) {
-    struct rig_state *state = &rig->state;
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int err;
     char p1;
@@ -3433,7 +3422,7 @@ int newcat_set_tx_vfo(RIG * rig, vfo_t tx_vfo) {
     rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
 
     /* Set TX VFO */
-    return write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    return newcat_set_cmd(rig);
 }
 
 
@@ -3542,7 +3531,6 @@ int newcat_scale_float(int scale, float fval) {
 
 int newcat_set_narrow(RIG * rig, vfo_t vfo, ncboolean narrow)
 {
-    struct rig_state *state = &rig->state;
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int err;
     char c;
@@ -3571,7 +3559,7 @@ int newcat_set_narrow(RIG * rig, vfo_t vfo, ncboolean narrow)
 
     rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
 
-    return write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    return newcat_set_cmd(rig);
 }
 
 
@@ -3616,7 +3604,6 @@ int newcat_get_narrow(RIG * rig, vfo_t vfo, ncboolean * narrow)
 
 int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-    struct rig_state *state = &rig->state;
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int err;
     char width_str[6];        /* extra larger buffer */
@@ -3882,7 +3869,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
 
     /* Set RX Bandwidth */
-    return write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    return newcat_set_cmd(rig);
 }
 
 
@@ -4088,7 +4075,6 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 
 int newcat_set_faststep(RIG * rig, ncboolean fast_step)
 {
-    struct rig_state *state = &rig->state;
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     char c;
 
@@ -4106,7 +4092,7 @@ int newcat_set_faststep(RIG * rig, ncboolean fast_step)
 
     rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
 
-    return write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    return newcat_set_cmd(rig);
 }
 
 
@@ -4214,7 +4200,6 @@ int newcat_get_vfo_mode(RIG * rig, vfo_t * vfo_mode)
 
 int newcat_vfomem_toggle(RIG * rig)
 {
-    struct rig_state *state = &rig->state;
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     char command[] = "VM";
 
@@ -4228,7 +4213,7 @@ int newcat_vfomem_toggle(RIG * rig)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
 
-    return write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    return newcat_set_cmd(rig);
 }
 
 /*
@@ -4332,6 +4317,110 @@ int newcat_get_cmd (RIG *rig)
           rig_debug(RIG_DEBUG_ERR, "%s: wrong reply %.2s for command %.2s\n",
                     __func__, priv->ret_data, priv->cmd_str);
           rc = -RIG_BUSBUSY;    /* retry read only */
+        }
+    }
+
+  return rc;
+}
+
+/*
+ * Writes a null  terminated command string from  priv->cmd_str to the
+ * CAT  port that is not expected to have a response.
+ *
+ * Honors the 'retry'  capabilities field by resending  the command up
+ * to 'retry' times until a valid response is received. In the special
+ * cases of receiving  a valid response to a different  command or the
+ * "?;" busy please wait response; the command is not resent but up to
+ * 'retry' retries to receive a valid response are made.
+ */
+int newcat_set_cmd (RIG *rig)
+{
+  struct rig_state *state = &rig->state;
+  struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+  int retry_count = 0;
+  int rc = -RIG_EPROTO;
+  /* pick a basic quick query command for verification */
+  char const * const verify_cmd = RIG_MODEL_FT9000 == rig->caps->rig_model ? "AI;" : "ID;";
+
+  while (rc != RIG_OK && retry_count++ <= state->rigport.retry)
+    {
+      serial_flush (&state->rigport); /* discard any unsolicited data */
+      /* send the command */
+      rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
+      if (RIG_OK != (rc = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str))))
+        {
+          return rc;
+        }
+
+      /* send the verification command */
+      rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", verify_cmd);
+      if (RIG_OK != (rc = write_block(&state->rigport, verify_cmd, strlen(verify_cmd))))
+        {
+          return rc;
+        }
+
+      /* read the reply */
+      if ((rc = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data),
+                            &cat_term, sizeof(cat_term))) <= 0)
+        {
+          continue;             /* usually a timeout - retry */
+        }
+      rig_debug(RIG_DEBUG_TRACE, "%s: read count = %d, ret_data = %s\n",
+                __func__, rc, priv->ret_data);
+      rc = RIG_OK;              /* received something */
+
+      /* check for error codes */
+      if (2 == strlen(priv->ret_data))
+        {
+          /* The following error responses  are documented for Kenwood
+             but not for  Yaesu, but at least one of  them is known to
+             occur  in that  the  FT-450 certainly  responds to  "IF;"
+             occasionally with  "?;". The others are  harmless even of
+             they do not occur as they are unambiguous. */
+          switch (priv->ret_data[0])
+            {
+            case 'N':
+              /* Command recognized by rig but invalid data entered. */
+              rig_debug(RIG_DEBUG_VERBOSE, "%s: NegAck for '%s'\n", __func__, priv->cmd_str);
+              return -RIG_ENAVAIL;
+
+            case 'O':
+              /* Too many characters sent without a carriage return */
+              rig_debug(RIG_DEBUG_VERBOSE, "%s: Overflow for '%s'\n", __func__, priv->cmd_str);
+              rc = -RIG_EPROTO;
+              break;            /* retry */
+
+            case 'E':
+              /* Communication error */
+              rig_debug(RIG_DEBUG_VERBOSE, "%s: Communication error for '%s'\n", __func__, priv->cmd_str);
+              rc = -RIG_EIO;
+              break;            /* retry */
+
+            case '?':
+              /* Rig busy wait please */
+              rig_debug(RIG_DEBUG_ERR, "%s: Rig busy\n", __func__, priv->cmd_str);
+              /* read the verify command reply */
+              read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data),
+                          &cat_term, sizeof(cat_term));
+              rig_debug(RIG_DEBUG_TRACE, "%s: read count = %d, ret_data = %s\n",
+                        __func__, rc, priv->ret_data);
+              rc = -RIG_BUSBUSY;
+              break;            /* retry */
+            }
+        }
+      else
+        {
+          /* Check that response prefix and response termination is
+             correct - alternative is response is longer that the
+             buffer */
+          if (strncmp(verify_cmd, priv->ret_data, strlen(verify_cmd) - 1)
+              || !strchr(&cat_term, priv->ret_data[strlen(priv->ret_data) - 1]))
+            {
+              rig_debug(RIG_DEBUG_ERR, "%s: Unexpected verify command response '%s'\n",
+                        __func__, priv->ret_data);
+              rc = -RIG_BUSBUSY;
+              continue;             /* retry */
+            }
         }
     }
 
