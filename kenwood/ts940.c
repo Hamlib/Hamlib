@@ -94,8 +94,6 @@ const struct rig_caps ts940_caps = {
 .serial_stop_bits =  2,
 .serial_parity =  RIG_PARITY_NONE,
 .serial_handshake =  RIG_HANDSHAKE_HARDWARE,
-.write_delay =  100,
-.post_write_delay =  150,
 .timeout =  600,
 .retry =  10,
 
