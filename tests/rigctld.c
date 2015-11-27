@@ -167,7 +167,6 @@ int main (int argc, char *argv[])
 	char *civaddr = NULL;	/* NULL means no need to set conf */
 	char conf_parms[MAXCONFLEN] = "";
 
-	int sockopt;
 	struct addrinfo hints, *result, *saved_result;
 	int sock_listen;
 	int reuseaddr = 1;
@@ -403,7 +402,7 @@ int main (int argc, char *argv[])
 		exit(1);
 	}
 
-	sockopt = SO_SYNCHRONOUS_NONALERT;
+	int sockopt = SO_SYNCHRONOUS_NONALERT;
 	setsockopt(INVALID_SOCKET, SOL_SOCKET, SO_OPENTYPE, (char *)&sockopt, sizeof(sockopt));
 #endif
 

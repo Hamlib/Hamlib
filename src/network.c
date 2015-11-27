@@ -118,7 +118,7 @@ int network_open(hamlib_port_t *rp, int default_port)
 	int fd;				/* File descriptor for the port */
 	int status;
 	struct addrinfo hints, *res, *saved_res;
-	char *hoststr, *portstr, *bracketstr1, *bracketstr2;
+	char *hoststr = NULL, *portstr = NULL, *bracketstr1, *bracketstr2;
 	char hostname[FILPATHLEN];
 	char defaultportstr[8];
 
@@ -171,11 +171,11 @@ int network_open(hamlib_port_t *rp, int default_port)
 						{
 							*portstr++ = '\0';
 						}
-					else
-						{
-							sprintf(defaultportstr, "%d", default_port);
-							portstr = defaultportstr;
-						}
+				}
+			if (!portstr)
+				{
+					sprintf(defaultportstr, "%d", default_port);
+					portstr = defaultportstr;
 				}
 		}
 
