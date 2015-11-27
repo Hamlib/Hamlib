@@ -68,7 +68,7 @@
 struct handle_data {
 	ROT *rot;
 	int sock;
-	struct sockaddr_in cli_addr;
+	struct sockaddr_storage cli_addr;
 	socklen_t clilen;
 };
 
@@ -111,6 +111,36 @@ char send_cmd_term = '\r';     /* send_cmd termination char */
 #define MAXCONFLEN 128
 
 
+static void handle_error (enum rig_debug_level_e lvl, const char *msg)
+{
+	int e;
+#ifdef __MINGW32__
+	LPVOID lpMsgBuf;
+
+	lpMsgBuf = (LPVOID)"Unknown error";
+	e = WSAGetLastError();
+	if (FormatMessage(
+			FORMAT_MESSAGE_ALLOCATE_BUFFER |
+			FORMAT_MESSAGE_FROM_SYSTEM |
+			FORMAT_MESSAGE_IGNORE_INSERTS,
+			NULL, e,
+			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+				// Default language
+			(LPTSTR)&lpMsgBuf, 0, NULL))
+		{
+			rig_debug (lvl, "%s: Network error %d: %s\n", msg, e, lpMsgBuf);
+			LocalFree(lpMsgBuf);
+		}
+	else
+		{
+			rig_debug (lvl, "%s: Network error %d\n", msg, e);
+		}
+#else
+	e = errno;
+	rig_debug (lvl, "%s: Network error %d: %s\n", msg, e, strerror (e));
+#endif
+}
+
 int main (int argc, char *argv[])
 {
 	ROT *my_rot;		/* handle to rot (instance) */
@@ -125,9 +155,11 @@ int main (int argc, char *argv[])
 	int serial_rate = 0;
 	char conf_parms[MAXCONFLEN] = "";
 
-	struct addrinfo hints, *result;
+	struct addrinfo hints, *result, *saved_result;
 	int sock_listen;
 	int reuseaddr = 1;
+	char host[NI_MAXHOST];
+	char serv[NI_MAXSERV];
 
 	while(1) {
 		int c;
@@ -213,7 +245,7 @@ int main (int argc, char *argv[])
 	rig_debug(RIG_DEBUG_VERBOSE, "Report bugs to "
 			"<hamlib-developer@lists.sourceforge.net>\n\n");
 
-  	my_rot = rot_init(my_model);
+	my_rot = rot_init(my_model);
 
 	if (!my_rot) {
 		fprintf(stderr, "Unknown rot num %d, or initialization error.\n",
@@ -301,27 +333,56 @@ int main (int argc, char *argv[])
 		exit(2);
 	}
 
-	sock_listen = socket(result->ai_family, result->ai_socktype,
-			result->ai_protocol);
-	if (sock_listen < 0)  {
-		perror("ERROR opening socket");
-		exit(1);
-	}
+	saved_result = result;
 
-	if (setsockopt(sock_listen, SOL_SOCKET, SO_REUSEADDR,
-				(char *)&reuseaddr,sizeof(reuseaddr)) < 0) {
-		rig_debug(RIG_DEBUG_ERR, "setsockopt: %s\n", strerror(errno));
-		exit (1);
-	}
-	if (bind(sock_listen, result->ai_addr, result->ai_addrlen) < 0) {
-		rig_debug(RIG_DEBUG_ERR, "binding: %s\n", strerror(errno));
-		exit (1);
-	}
+	do
+		{
+			sock_listen = socket(result->ai_family, result->ai_socktype,
+													 result->ai_protocol);
+			if (sock_listen < 0)  {
+				handle_error (RIG_DEBUG_ERR, "socket");
+				freeaddrinfo(result);           /* No longer needed */
+				exit(1);
+			}
 
-	freeaddrinfo(result);           /* No longer needed */
+			if (setsockopt(sock_listen, SOL_SOCKET, SO_REUSEADDR,
+										 (char *)&reuseaddr,sizeof(reuseaddr)) < 0) {
+				handle_error (RIG_DEBUG_ERR, "setsockopt");
+				freeaddrinfo(result);           /* No longer needed */
+				exit (1);
+			}
 
-	if (listen(sock_listen,4) < 0) {
-		rig_debug(RIG_DEBUG_ERR, "listening: %s\n", strerror(errno));
+#ifdef __MINGW32__
+			/* allow IPv4 mapped to IPv6 clients, MS default this to 1! */
+			sockopt = 0;
+      if (setsockopt(sock_listen, IPPROTO_IPV6, IPV6_V6ONLY,
+										 (char *)&sockopt, sizeof(sockopt)) < 0) {
+				handle_error (RIG_DEBUG_ERR, "setsockopt");
+				freeaddrinfo(saved_result);		/* No longer needed */
+				exit (1);
+			}
+#endif
+
+      if (0 == bind(sock_listen, result->ai_addr, result->ai_addrlen)) {
+				break;
+			}
+			handle_error (RIG_DEBUG_WARN, "binding failed (trying next interface)");
+#ifdef __MINGW32__
+			closesocket (sock_listen);
+#else
+			close (sock_listen);
+#endif
+		} while ((result = result->ai_next) != NULL);
+
+	freeaddrinfo(saved_result);		/* No longer needed */
+  if (NULL == result)
+		{
+			rig_debug(RIG_DEBUG_ERR, "bind error - no available interface\n");
+			exit (1);
+		}
+
+	if (listen(sock_listen, 4) < 0) {
+		handle_error (RIG_DEBUG_ERR, "listening");
 		exit (1);
 	}
 
@@ -346,13 +407,17 @@ int main (int argc, char *argv[])
 		arg->sock = accept(sock_listen, (struct sockaddr *) &arg->cli_addr,
 				&arg->clilen);
 		if (arg->sock < 0) {
-			rig_debug(RIG_DEBUG_ERR, "accept: %s\n", strerror(errno));
+			handle_error (RIG_DEBUG_ERR, "accept");
 			break;
 		}
 
-		rig_debug(RIG_DEBUG_VERBOSE, "Connection opened from %s:%d\n",
-				inet_ntoa(arg->cli_addr.sin_addr),
-				ntohs(arg->cli_addr.sin_port));
+		if ((retcode = getnameinfo ((struct sockaddr const *)&arg->cli_addr, arg->clilen, host, sizeof (host)
+																, serv, sizeof (serv), NI_NOFQDN)) < 0)
+			{
+				rig_debug (RIG_DEBUG_WARN, "Peer lookup error: %s", gai_strerror (retcode));
+			}
+		rig_debug(RIG_DEBUG_VERBOSE, "Connection opened from %s:%s\n",
+							host, serv);
 
 #ifdef HAVE_PTHREAD
 		pthread_attr_init(&attr);
@@ -389,6 +454,8 @@ void * handle_socket(void *arg)
 	FILE *fsockin;
 	FILE *fsockout;
 	int retcode;
+	char host[NI_MAXHOST];
+	char serv[NI_MAXSERV];
 
 #ifdef __MINGW32__
 	int sock_osfhandle = _open_osfhandle(handle_data_arg->sock, _O_RDONLY);
@@ -424,9 +491,14 @@ void * handle_socket(void *arg)
 	}
 	while (retcode == 0 || retcode == 2);
 
-	rig_debug(RIG_DEBUG_VERBOSE, "Connection closed from %s:%d\n",
-				inet_ntoa(handle_data_arg->cli_addr.sin_addr),
-				ntohs(handle_data_arg->cli_addr.sin_port));
+	if ((retcode = getnameinfo ((struct sockaddr const *)&handle_data_arg->cli_addr
+															, handle_data_arg->clilen, host, sizeof (host)
+															, serv, sizeof (serv), NI_NOFQDN)) < 0)
+		{
+			rig_debug (RIG_DEBUG_WARN, "Peer lookup error: %s", gai_strerror (retcode));
+		}
+	rig_debug(RIG_DEBUG_VERBOSE, "Connection closed from %s:%s\n",
+						host, serv);
 
 	fclose(fsockin);
 	fclose(fsockout);
