@@ -77,6 +77,7 @@ struct kenwood_priv_data {
     char *fw_rev;   /* firmware revision level */
     int trn_state;  /* AI state discovered at startup */
     unsigned fw_rev_uint; /* firmware revison as a number 1.07 -> 107 */
+    char verify_cmd[4];   /* command used to verify set commands */
     void * data;          /* model specific data */
 };
 

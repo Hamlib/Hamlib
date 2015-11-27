@@ -205,6 +205,7 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data, size_t datasiz
   if (!rig || (!cmdstr && !datasize) || (datasize && !data))
     return -RIG_EINVAL;
 
+  struct kenwood_priv_data * priv = rig->state.priv;
   struct kenwood_priv_caps *caps = kenwood_caps(rig);
   struct rig_state *rs;
   int retval;
@@ -212,12 +213,6 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data, size_t datasiz
   char *cmd;
   int len;
   int retry_read = 0;
-  static char const std_verify[] = "ID;"; /* command we can always
-                                             send to any rig even when
-                                             the rig is busy */
-  static char const shrt_verify[] = ";"; /* alternate short verify
-                                            command XG3 etc. */
-  char const * verify = ',' == cmdstr[1] ? shrt_verify : std_verify;
 
   rs = &rig->state;
   rs->hold_decode = 1;
@@ -262,13 +257,14 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data, size_t datasiz
     /* no reply expected so we need to write a command that always
        gives a reply so we can read any error replies from the actual
        command being sent without blocking */
-    if (RIG_OK != (retval = write_block (&rs->rigport, verify, strlen (verify)))) {
+    if (RIG_OK != (retval = write_block (&rs->rigport, priv->verify_cmd
+                                         , strlen (priv->verify_cmd)))) {
       goto transaction_quit;
     }
   }
 
   /* allow one extra byte for terminator we don't return */
-  len = min (datasize ? datasize + 1 : strlen (verify) + 7, KENWOOD_MAX_BUF_LEN);
+  len = min (datasize ? datasize + 1 : strlen (priv->verify_cmd) + 13, KENWOOD_MAX_BUF_LEN);
   retval = read_string(&rs->rigport, buffer, len, cmdtrm, strlen(cmdtrm));
   if (retval < 0) {
     if (retry_read++ < rig->caps->retry)
@@ -368,7 +364,8 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data, size_t datasiz
     }
   else
     {
-      if (verify[0] != buffer[0] || (verify[1] && verify[1] != buffer[1]))
+      if (priv->verify_cmd[0] != buffer[0]
+          || (priv->verify_cmd[1] && priv->verify_cmd[1] != buffer[1]))
         {
           /*
            * TODO: When RIG_TRN is enabled, we can pass the string to
@@ -376,7 +373,8 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data, size_t datasiz
            * commands.
            */
           rig_debug(RIG_DEBUG_ERR, "%s: wrong reply %c%c for command verification %c%c\n",
-                    __func__, buffer[0], buffer[1], verify[0], verify[1]);
+                    __func__, buffer[0], buffer[1]
+                    , priv->verify_cmd[0], priv->verify_cmd[1]);
 
           if (retry_read++ < rig->caps->retry)
             goto transaction_write;
@@ -487,9 +485,8 @@ int kenwood_init(RIG *rig)
     return -RIG_ENOMEM;
 
   memset(priv, 0x00, sizeof(struct kenwood_priv_data));
-
+  strcpy (priv->verify_cmd, RIG_MODEL_XG3 == rig->caps->rig_model ? ";" : "ID;");
   priv->split = RIG_SPLIT_OFF;
-
   rig->state.priv = priv;
 
   /* default mode_table */
@@ -559,10 +556,29 @@ int kenwood_open(RIG *rig)
 
   /* get id in buffer, will be null terminated */
   err = kenwood_get_id(rig, id);
-  if (err != RIG_OK) {
-    rig_debug(RIG_DEBUG_ERR, "%s: cannot get identification\n", __func__);
-    return err;
-  }
+  if (RIG_MODEL_XG3 != rig->caps->rig_model && -RIG_ETIMEOUT == err)
+    {
+      /* Some Kenwood emulations have no ID command response :(
+       * Try an FA command to see is anyone is listening */
+      char buffer[KENWOOD_MAX_BUF_LEN];
+      err = kenwood_transaction (rig, "FA", buffer, sizeof (buffer));
+      if (RIG_OK != err)
+        {
+          rig_debug (RIG_DEBUG_ERR, "%s: no response from rig\n", __func__);
+          return err;
+        }
+      /* here we know there is something that responds to FA but not
+         to ID so use FA as the command verification command */
+      strcpy (priv->verify_cmd, "FA;");
+      strcpy (id, "ID019");     /* fake a TS-2000 */
+    }
+  else
+    {
+      if (err != RIG_OK) {
+        rig_debug(RIG_DEBUG_ERR, "%s: cannot get identification\n", __func__);
+        return err;
+      }
+    }
 
   /* id is something like 'IDXXX' or 'ID XXX' */
   if (strlen(id) < 5) {
