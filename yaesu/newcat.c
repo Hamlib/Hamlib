@@ -306,24 +306,28 @@ int newcat_cleanup(RIG *rig) {
  */
 
 int newcat_open(RIG *rig) {
-    struct rig_state *rig_s;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!rig)
         return -RIG_EINVAL;
 
-    //    priv = (struct newcat_priv_data *)rig->state.priv;
-    rig_s = &rig->state;
+    struct newcat_priv_data * priv = rig->state.priv;
+    struct rig_state * rig_s = &rig->state;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: write_delay = %i msec\n",
             __func__, rig_s->rigport.write_delay);
     rig_debug(RIG_DEBUG_TRACE, "%s: post_write_delay = %i msec\n",
             __func__, rig_s->rigport.post_write_delay);
 
+    /* get current AI state so it can be restored */
+    priv->trn_state = -1;
+    newcat_get_trn (rig, &priv->trn_state); /* ignore errors */
     /* Currently we cannot cope with AI mode so turn it off in case
        last client left it on */
-    return newcat_set_trn (rig, RIG_TRN_OFF);
+    newcat_set_trn(rig, RIG_TRN_OFF); /* ignore status in case it's
+                                         not supported */
+    return RIG_OK;
 }
 
 
@@ -338,7 +342,14 @@ int newcat_close(RIG *rig) {
 
     if (!rig)
         return -RIG_EINVAL;
-
+    struct newcat_priv_data * priv = rig->state.priv;
+    if (priv->trn_state >= 0)
+      {
+        /* restore AI state */
+        newcat_set_trn (rig, priv->trn_state); /* ignore status in
+                                                   case it's not
+                                                   supported */
+      }
     return RIG_OK;
 }
 

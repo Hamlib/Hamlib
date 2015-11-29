@@ -75,6 +75,7 @@ struct kenwood_priv_data {
     int k3_ext_lvl;   /* Initial K3 extension level */
     int k2_md_rtty;   /* K2 RTTY mode available flag, 1 = RTTY, 0 = N/A */
     char *fw_rev;   /* firmware revision level */
+    int trn_state;  /* AI state discovered at startup */
     unsigned fw_rev_uint; /* firmware revison as a number 1.07 -> 107 */
     void * data;          /* model specific data */
 };
@@ -98,6 +99,7 @@ char rmode2kenwood(rmode_t mode, const rmode_t mode_table[]);
 int kenwood_init(RIG *rig);
 int kenwood_cleanup(RIG *rig);
 int kenwood_open(RIG *rig);
+int kenwood_close(RIG *rig);
 
 int kenwood_set_vfo(RIG *rig, vfo_t vfo);
 int kenwood_set_vfo_main_sub(RIG *rig, vfo_t vfo);

@@ -208,6 +208,7 @@ const struct rig_caps k2_caps = {
 	.rig_init =		kenwood_init,
 	.rig_cleanup =		kenwood_cleanup,
 	.rig_open =		k2_open,
+	.rig_close =		kenwood_close,
 	.set_freq =		kenwood_set_freq,
 	.get_freq =		kenwood_get_freq,
 	.set_mode =		k2_set_mode,

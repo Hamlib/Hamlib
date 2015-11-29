@@ -242,6 +242,7 @@ const struct rig_caps thf6a_caps = {
 	.rig_init	= thf6a_init,
 	.rig_cleanup	= kenwood_cleanup,
 	.rig_open	= thf6a_open,
+	.rig_close	= kenwood_close,
 
 	.set_freq	= th_set_freq,
 	.get_freq	= th_get_freq,

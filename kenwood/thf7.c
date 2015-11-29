@@ -236,6 +236,7 @@ const struct rig_caps thf7e_caps = {
 	.rig_init	= thf7e_init,
 	.rig_cleanup	= kenwood_cleanup,
 	.rig_open	= thf7e_open,
+	.rig_close	= kenwood_close,
 
 	.set_freq	= th_set_freq,
 	.get_freq	= th_get_freq,

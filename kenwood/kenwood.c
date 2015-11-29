@@ -525,6 +525,7 @@ int kenwood_open(RIG *rig)
   if (!rig)
     return -RIG_EINVAL;
 
+  struct kenwood_priv_data *priv = rig->state.priv;
   int err, i;
   char *idptr;
   char id[KENWOOD_MAX_BUF_LEN];
@@ -533,7 +534,6 @@ int kenwood_open(RIG *rig)
     {
       /* we need the firmware version for these rigs to deal with f/w defects */
       static char fw_version[7];
-      struct kenwood_priv_data * priv = rig->state.priv;
 
       err = kenwood_transaction (rig, "FV", fw_version, sizeof (fw_version));
       if (RIG_OK != err)
@@ -597,6 +597,9 @@ int kenwood_open(RIG *rig)
 
     if (kenwood_id_string_list[i].model == rig->caps->rig_model)
       {
+        /* get current AI state so it can be restored */
+        priv->trn_state = -1;
+        kenwood_get_trn (rig, &priv->trn_state); /* ignore errors */
         /* Currently we cannot cope with AI mode so turn it off in
            case last client left it on */
         kenwood_set_trn(rig, RIG_TRN_OFF); /* ignore status in case
@@ -618,6 +621,21 @@ int kenwood_open(RIG *rig)
           __func__, id);
 
   return -RIG_EPROTO;
+}
+
+
+int kenwood_close(RIG *rig)
+{
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+  if (!rig) return -RIG_EINVAL;
+  struct kenwood_priv_data *priv = rig->state.priv;
+  if (priv->trn_state >= 0)
+    {
+      /* restore AI state */
+      kenwood_set_trn (rig, priv->trn_state); /* ignore status in case
+                                                 it's not supported */
+    }
+  return RIG_OK;
 }
 
 

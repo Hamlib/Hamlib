@@ -84,6 +84,7 @@ struct newcat_priv_data {
     int                 rig_id;                         /* rig id from CAT Command ID; */
     int width_frequency; /* width of FA/FB freq response */
     int offset_rit; /* offset of rit in response */
+    int trn_state;  /* AI state found at startup */
 };
 
 

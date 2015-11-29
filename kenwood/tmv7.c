@@ -191,7 +191,7 @@ const struct rig_caps tmv7_caps = {
 .rig_init = kenwood_init,
 .rig_cleanup = kenwood_cleanup,
 .rig_open = kenwood_open,
-.rig_close =  NULL,
+.rig_close = kenwood_close,
 
 .set_freq =  th_set_freq,
 .get_freq =  th_get_freq,
