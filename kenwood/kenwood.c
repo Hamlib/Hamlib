@@ -2550,13 +2550,11 @@ int kenwood_set_trn(RIG *rig, int trn)
 
   if (RIG_MODEL_TS990S == rig->caps->rig_model)
     {
-      return kenwood_simple_transaction(rig,
-                                        (trn == RIG_TRN_RIG) ? "AI2" : "AI0", 0);
+      return kenwood_transaction(rig, (trn == RIG_TRN_RIG) ? "AI2" : "AI0", NULL, 0);
     }
   else
     {
-      return kenwood_simple_transaction(rig,
-                                        (trn == RIG_TRN_RIG) ? "AI1" : "AI0", 0);
+      return kenwood_transaction(rig, (trn == RIG_TRN_RIG) ? "AI1" : "AI0", NULL, 0);
     }
 }
 
@@ -2592,8 +2590,7 @@ int kenwood_set_powerstat(RIG *rig, powerstat_t status)
   if (!rig)
     return -RIG_EINVAL;
 
-  return kenwood_simple_transaction(rig,
-    (status == RIG_POWER_ON) ? "PS1" : "PS0", 4);
+  return kenwood_transaction(rig, (status == RIG_POWER_ON) ? "PS1" : "PS0", NULL, 0);
 }
 
 /*
