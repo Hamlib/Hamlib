@@ -365,6 +365,12 @@ argument is not used.  See @command{chk_vfo} below.
 @*
 @end ifhtml
 
+@item -n
+@itemx --no-restore-ai
+On exit @command{rigctl} restores the state of auto information (AI)
+on the controlled rig. If this is not desired, for example if you are
+using @command{rigctl} to turn AI mode on or off, pass this option.
+
 @item -i
 @itemx --read-history
 Read previously saved command and argument history from a file

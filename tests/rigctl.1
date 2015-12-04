@@ -122,6 +122,11 @@ Dump capabilities for the radio defined with -m above and exit.
 Set vfo mode, requiring an extra VFO argument in front of each appropriate
 command. Otherwise, 'currVFO' is assumed when this option is not set.
 .TP
+.B \-n, --no-restore-ai
+On exit 'rigctl' restores the state of auto information (AI) on the
+controlled rig. If this is not desired, for example if you are
+using 'rigctl' to turn AI mode on or off, pass this option.
+.TP
 .B \-i, --read-history
 Read previously saved command and argument history from a file
 (default '~/.rigctl_history') for the current session.  Available when

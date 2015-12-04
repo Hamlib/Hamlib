@@ -43,6 +43,7 @@
 #include "hamlib/rig.h"
 #include "iofunc.h"
 #include "serial.h"
+#include "misc.h"
 #include "newcat.h"
 
 /* global variables */
@@ -343,7 +344,7 @@ int newcat_close(RIG *rig) {
     if (!rig)
         return -RIG_EINVAL;
     struct newcat_priv_data * priv = rig->state.priv;
-    if (priv->trn_state >= 0)
+    if (!no_restore_ai && priv->trn_state >= 0)
       {
         /* restore AI state */
         newcat_set_trn (rig, priv->trn_state); /* ignore status in

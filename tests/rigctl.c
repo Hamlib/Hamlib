@@ -87,7 +87,7 @@ void usage(void);
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:p:d:P:D:s:c:t:lC:LuovhV"
+#define SHORT_OPTIONS "m:r:p:d:P:D:s:c:t:lC:LuonvhV"
 static struct option long_options[] =
 {
 	{"model",           1, 0, 'm'},
@@ -104,6 +104,7 @@ static struct option long_options[] =
 	{"show-conf",       0, 0, 'L'},
 	{"dump-caps",       0, 0, 'u'},
 	{"vfo",             0, 0, 'o'},
+	{"no-restore-ai",   0, 0, 'n'},
 #ifdef HAVE_READLINE_HISTORY
 	{"read-history",    0, 0, 'i'},
 	{"save-history",    0, 0, 'I'},
@@ -278,6 +279,9 @@ int main (int argc, char *argv[])
 			case 'o':
 				vfo_mode++;
 				break;
+		  case 'n':
+			  rig_no_restore_ai();
+        break;
 #ifdef HAVE_READLINE_HISTORY
 			case 'i':
 				rd_hist++;
@@ -461,6 +465,7 @@ void usage(void)
 	"  -l, --list                 list all model numbers and exit\n"
 	"  -u, --dump-caps            dump capabilities and exit\n"
 	"  -o, --vfo                  do not default to VFO_CURR, require extra vfo arg\n"
+	"  -n, --no-restore-ai        do not restore auto information mode on rig\n"
 #ifdef HAVE_READLINE_HISTORY
 	"  -i, --read-history         read prior interactive session history\n"
 	"  -I, --save-history         save current interactive session history\n"

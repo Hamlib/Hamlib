@@ -645,7 +645,7 @@ int kenwood_close(RIG *rig)
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
   if (!rig) return -RIG_EINVAL;
   struct kenwood_priv_data *priv = rig->state.priv;
-  if (priv->trn_state >= 0)
+  if (!no_restore_ai && priv->trn_state >= 0)
     {
       /* restore AI state */
       kenwood_set_trn (rig, priv->trn_state); /* ignore status in case

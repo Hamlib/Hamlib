@@ -1726,6 +1726,7 @@ extern HAMLIB_EXPORT(scan_t) rig_parse_scan(const char *s);
 extern HAMLIB_EXPORT(rptr_shift_t) rig_parse_rptr_shift(const char *s);
 extern HAMLIB_EXPORT(chan_type_t) rig_parse_mtype(const char *s);
 
+HAMLIB_EXPORT(void) rig_no_restore_ai();
 
 __END_DECLS
 
