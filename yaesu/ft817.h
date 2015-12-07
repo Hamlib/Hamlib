@@ -106,6 +106,7 @@ enum ft817_native_cmd_e {
 	FT817_NATIVE_CAT_PWR_WAKE,
 	FT817_NATIVE_CAT_PWR_ON,
 	FT817_NATIVE_CAT_PWR_OFF,
+  FT817_NATIVE_CAT_EEPROM_READ,
 	FT817_NATIVE_SIZE		/* end marker */
 };
 
@@ -126,7 +127,7 @@ struct ft817_priv_data {
 
 	/* freq & mode status */
 	struct timeval fm_status_tv;
-	unsigned char fm_status[YAESU_CMD_LENGTH];
+	unsigned char fm_status[YAESU_CMD_LENGTH+1];
 };
 
 /* fixme: why declare static? it has no effect */
@@ -152,6 +153,7 @@ static int ft817_set_rit        (RIG *rig, vfo_t vfo, shortfreq_t rit);
 static int ft817_get_dcd        (RIG *rig, vfo_t vfo, dcd_t *dcd);
 static int ft817_set_powerstat  (RIG *rig, powerstat_t status);
 static int ft817_vfo_op         (RIG *rig, vfo_t vfo, vfo_op_t op);
+static int ft817_get_split_vfo  (RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
 static int ft817_set_split_vfo  (RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
 static int ft817_power2mW       (RIG *rig, unsigned int *mwpower, float power,
                                  freq_t freq, rmode_t mode);

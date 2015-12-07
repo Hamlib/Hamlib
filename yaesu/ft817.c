@@ -80,7 +80,7 @@ static const yaesu_cmd_set_t ncmd[] = {
 	{ 1, { 0x00, 0x00, 0x00, 0x00, 0x00 } }, /* lock on */
 	{ 1, { 0x00, 0x00, 0x00, 0x00, 0x80 } }, /* lock off */
 	{ 1, { 0x00, 0x00, 0x00, 0x00, 0x08 } }, /* ptt on */
-	{ 1, { 0x00, 0x00, 0x00, 0x01, 0x88 } }, /* ptt off */
+	{ 1, { 0x00, 0x00, 0x00, 0x00, 0x88 } }, /* ptt off */
 	{ 0, { 0x00, 0x00, 0x00, 0x00, 0x01 } }, /* set freq */
 	{ 1, { 0x00, 0x00, 0x00, 0x00, 0x07 } }, /* mode set main LSB */
 	{ 1, { 0x01, 0x00, 0x00, 0x00, 0x07 } }, /* mode set main USB */
@@ -113,16 +113,26 @@ static const yaesu_cmd_set_t ncmd[] = {
 	{ 1, { 0x00, 0x00, 0x00, 0x00, 0x00 } }, /* pwr wakeup sequence */
 	{ 1, { 0x00, 0x00, 0x00, 0x00, 0x0f } }, /* pwr on */
 	{ 1, { 0x00, 0x00, 0x00, 0x00, 0x8f } }, /* pwr off */
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0xbb } }, /* eeprom read */
+};
+
+enum ft817_digi {
+  FT817_DIGI_RTTY_L = 0,
+  FT817_DIGI_RTTY_U,
+  FT817_DIGI_PSK_L,
+  FT817_DIGI_PSK_U,
+  FT817_DIGI_USER_L,
+  FT817_DIGI_USER_U,
 };
 
 #define FT817_ALL_RX_MODES      (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_PKTFM|\
-                                 RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM)
+                                 RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM|RIG_MODE_PKTUSB)
 #define FT817_SSB_CW_RX_MODES   (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_RTTY)
 #define FT817_CWN_RX_MODES      (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY)
 #define FT817_AM_FM_RX_MODES    (RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_PKTFM)
 
 #define FT817_OTHER_TX_MODES    (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|\
-                                 RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM)
+                                 RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM|RIG_MODE_PKTUSB)
 #define FT817_AM_TX_MODES       (RIG_MODE_AM)
 
 #define FT817_VFO_ALL           (RIG_VFO_A|RIG_VFO_B)
@@ -257,7 +267,6 @@ const struct rig_caps ft817_caps = {
 
     .str_cal = FT817_STR_CAL,
 
-	.priv = 		NULL,
 	.rig_init = 		ft817_init,
 	.rig_cleanup =          ft817_cleanup,
 	.rig_open = 		ft817_open,
@@ -266,72 +275,24 @@ const struct rig_caps ft817_caps = {
 	.get_freq = 		ft817_get_freq,
 	.set_mode = 		ft817_set_mode,
 	.get_mode = 		ft817_get_mode,
-	.set_vfo = 		NULL,
-	.get_vfo = 		NULL,
 	.set_ptt = 		ft817_set_ptt,
 	.get_ptt = 		ft817_get_ptt,
 	.get_dcd = 		ft817_get_dcd,
 	.set_rptr_shift = 	ft817_set_rptr_shift,
-	.get_rptr_shift = 	NULL,
 	.set_rptr_offs = 	ft817_set_rptr_offs,
-	.get_rptr_offs = 	NULL,
-	.set_split_freq = 	NULL,
-	.get_split_freq = 	NULL,
-	.set_split_mode = 	NULL,
-	.get_split_mode = 	NULL,
 	.set_split_vfo = 	ft817_set_split_vfo,
-	.get_split_vfo =	NULL, /* possible, but works only if PTT is ON */
+	.get_split_vfo =	ft817_get_split_vfo,
 	.set_rit = 		ft817_set_rit,
-	.get_rit = 		NULL,
-	.set_xit = 		NULL,
-	.get_xit = 		NULL,
-	.set_ts = 		NULL,
-	.get_ts = 		NULL,
 	.set_dcs_code = 	ft817_set_dcs_code,
-	.get_dcs_code = 	NULL,
-	.set_tone =             NULL,
-	.get_tone =             NULL,
 	.set_ctcss_tone = 	ft817_set_ctcss_tone,
-	.get_ctcss_tone = 	NULL,
 	.set_dcs_sql = 	        ft817_set_dcs_sql,
-	.get_dcs_sql =          NULL,
-	.set_tone_sql =         NULL,
-	.get_tone_sql =         NULL,
 	.set_ctcss_sql = 	ft817_set_ctcss_sql,
-	.get_ctcss_sql = 	NULL,
     .power2mW =             ft817_power2mW,
     .mW2power =             ft817_mW2power,
 	.set_powerstat = 	ft817_set_powerstat,
-	.get_powerstat = 	NULL,
-	.reset = 		NULL,
-	.set_ant = 		NULL,
-	.get_ant = 		NULL,
-	.set_level = 		NULL,
 	.get_level = 		ft817_get_level,
 	.set_func = 		ft817_set_func,
-	.get_func = 		NULL,
-	.set_parm = 		NULL,
-	.get_parm = 		NULL,
-	.set_ext_level =        NULL,
-	.get_ext_level =        NULL,
-	.set_ext_parm =         NULL,
-	.get_ext_parm =         NULL,
-	.set_conf =             NULL,
-	.get_conf =             NULL,
-	.send_dtmf =            NULL,
-	.recv_dtmf =            NULL,
-	.send_morse =           NULL,
-	.set_bank =             NULL,
-	.set_mem =              NULL,
-	.get_mem =              NULL,
 	.vfo_op =               ft817_vfo_op,
-	.scan =                 NULL,
-	.set_trn =              NULL,
-	.get_trn =              NULL,
-	.decode_event =         NULL,
-	.set_channel =          NULL,
-	.get_channel =          NULL,
-	/* there are some more */
 };
 
 /* ---------------------------------------------------------------------- */
@@ -411,6 +372,30 @@ static int check_cache_timeout(struct timeval *tv)
 	}
 }
 
+static int ft817_read_eeprom(RIG *rig, unsigned short addr, unsigned char *out)
+{
+  struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
+  unsigned char data[YAESU_CMD_LENGTH];
+  int n;
+
+  memcpy(data, (char *)p->pcs[FT817_NATIVE_CAT_EEPROM_READ].nseq, YAESU_CMD_LENGTH);
+
+  data[0] = addr >> 8;
+  data[1] = addr & 0xfe;
+
+  write_block(&rig->state.rigport, (char *) data, YAESU_CMD_LENGTH);
+
+  if ((n = read_block(&rig->state.rigport, (char *) data, 2)) < 0)
+    return n;
+
+  if (n != 2)
+    return -RIG_EIO;
+
+  *out = data[addr % 2];
+
+  return RIG_OK;
+}
+
 static int ft817_get_status(RIG *rig, int status)
 {
 	struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
@@ -450,6 +435,13 @@ static int ft817_get_status(RIG *rig, int status)
 	if (n != len)
 		return -RIG_EIO;
 
+  if (status == FT817_NATIVE_CAT_GET_FREQ_MODE_STATUS) {
+    if ((n = ft817_read_eeprom(rig, 0x0065, &p->fm_status[5])) < 0)
+      return n;
+
+    p->fm_status[5] >>= 5;
+  }
+
 	gettimeofday(tv, NULL);
 
 	return RIG_OK;
@@ -486,10 +478,7 @@ int ft817_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 		if ((n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_FREQ_MODE_STATUS)) < 0)
 			return n;
 
-	/* set normal width now, narrow will override this later */
-	*width = RIG_PASSBAND_NORMAL;
-
-	switch (p->fm_status[4]) {
+	switch (p->fm_status[4] & 0x7f) {
 	case 0x00:
 		*mode = RIG_MODE_LSB;
 		break;
@@ -511,33 +500,62 @@ int ft817_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	case 0x08:
 		*mode = RIG_MODE_FM;
 		break;
-	case 0x0A:
-		*mode = RIG_MODE_RTTY;
-		break;
+  case 0x0a:
+    switch (p->fm_status[5])
+      {
+      case FT817_DIGI_RTTY_L: *mode = RIG_MODE_RTTY; break;
+      case FT817_DIGI_RTTY_U: *mode = RIG_MODE_RTTYR; break;
+      case FT817_DIGI_PSK_L: *mode = RIG_MODE_PKTLSB; break;
+      case FT817_DIGI_PSK_U: *mode = RIG_MODE_PKTUSB; break;
+      case FT817_DIGI_USER_L: *mode = RIG_MODE_PKTLSB; break;
+      case FT817_DIGI_USER_U: *mode = RIG_MODE_PKTUSB; break;
+      }
+    break;
 	case 0x0C:
 		*mode = RIG_MODE_PKTFM;
 		break;
-
-	/* "extra modes" which are not documented in the manual */
-	case 0x82:
-		*mode = RIG_MODE_CW;
-		*width = rig_passband_narrow (rig, RIG_MODE_CW);
-		break;
-	case 0x83:
-		*mode = RIG_MODE_CWR;
-		*width = rig_passband_narrow (rig, RIG_MODE_CW);
-		break;
-	case 0x8A:
-		*mode = RIG_MODE_RTTY;
-		*width = rig_passband_narrow (rig, RIG_MODE_CW);
-		break;
-
 	default:
 		*mode = RIG_MODE_NONE;
 	}
 
+	if (p->fm_status[4] & 0x80)		/* narrow */
+		{
+			*width = rig_passband_narrow (rig, *mode);
+		}
+	else
+		{
+			*width = RIG_PASSBAND_NORMAL;
+		}
 
 	return RIG_OK;
+}
+
+int ft817_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
+{
+  struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
+  int n;
+
+  if (vfo != RIG_VFO_CURR)
+    return -RIG_ENTARGET;
+
+  if (check_cache_timeout(&p->tx_status_tv))
+    if ((n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_TX_STATUS)) < 0)
+      return n;
+
+  if (p->tx_status & 0x80)
+    {
+      // TX status not valid when in RX
+      unsigned char c;
+      if ((n = ft817_read_eeprom(rig, 0x007a, &c)) < 0) /* get split status */
+        return n;
+      *split = (c & 0x80) ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
+    }
+  else
+    {
+      *split = (p->tx_status & 0x20) ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
+    }
+
+  return RIG_OK;
 }
 
 int ft817_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)

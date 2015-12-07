@@ -121,7 +121,7 @@ static const yaesu_cmd_set_t ncmd[] = {
   { 1, { 0x00, 0x00, 0x00, 0x00, 0x00 } }, /* lock on */
   { 1, { 0x00, 0x00, 0x00, 0x00, 0x80 } }, /* lock off */
   { 1, { 0x00, 0x00, 0x00, 0x00, 0x08 } }, /* ptt on */
-  { 1, { 0x00, 0x00, 0x00, 0x01, 0x88 } }, /* ptt off */
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x88 } }, /* ptt off */
   { 0, { 0x00, 0x00, 0x00, 0x00, 0x01 } }, /* set freq */
   { 1, { 0x00, 0x00, 0x00, 0x00, 0x07 } }, /* mode set main LSB */
   { 1, { 0x01, 0x00, 0x00, 0x00, 0x07 } }, /* mode set main USB */
@@ -157,16 +157,25 @@ static const yaesu_cmd_set_t ncmd[] = {
   { 1, { 0x00, 0x00, 0x00, 0x00, 0x00 } }, /* pwr wakeup sequence */
   { 1, { 0x00, 0x00, 0x00, 0x00, 0x0f } }, /* pwr on */
   { 1, { 0x00, 0x00, 0x00, 0x00, 0x8f } }, /* pwr off */
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0xbb } }, /* eeprom read */
 };
 
+enum ft897_digi {
+  FT897_DIGI_RTTY_L = 0,
+  FT897_DIGI_RTTY_U,
+  FT897_DIGI_PSK_L,
+  FT897_DIGI_PSK_U,
+  FT897_DIGI_USER_L,
+  FT897_DIGI_USER_U,
+};
 
 #define FT897_ALL_RX_MODES      (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|\
-                                 RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM)
+                                 RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM|RIG_MODE_PKTUSB)
 #define FT897_SSB_CW_RX_MODES   (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|RIG_MODE_LSB)
 #define FT897_AM_FM_RX_MODES    (RIG_MODE_AM|RIG_MODE_FM)
 
 #define FT897_OTHER_TX_MODES    (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_USB|\
-                                 RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM)
+                                 RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM|RIG_MODE_PKTUSB)
 #define FT897_AM_TX_MODES       (RIG_MODE_AM)
 
 #define FT897_VFO_ALL           (RIG_VFO_A|RIG_VFO_B)
@@ -281,7 +290,6 @@ const struct rig_caps ft897_caps = {
         RIG_FLT_END,
     },
 
-  .priv = 		NULL,
   .rig_init = 		ft897_init,
   .rig_cleanup = 	ft897_cleanup,
   .rig_open = 		ft897_open,
@@ -290,46 +298,20 @@ const struct rig_caps ft897_caps = {
   .get_freq = 		ft897_get_freq,
   .set_mode = 		ft897_set_mode,
   .get_mode = 		ft897_get_mode,
-  .set_vfo = 		NULL,
-  .get_vfo = 		NULL,
   .set_ptt = 		ft897_set_ptt,
   .get_ptt = 		ft897_get_ptt,
   .get_dcd = 		ft897_get_dcd,
   .set_rptr_shift = 	ft897_set_rptr_shift,
-  .get_rptr_shift = 	NULL,
   .set_rptr_offs = 	ft897_set_rptr_offs,
-  .get_rptr_offs = 	NULL,
-  .set_split_freq = 	NULL,
-  .get_split_freq = 	NULL,
-  .set_split_mode = 	NULL,
-  .get_split_mode = 	NULL,
   .set_split_vfo =	ft897_set_split_vfo,
   .get_split_vfo =	ft897_get_split_vfo,
   .set_rit = 		ft897_set_rit,
-  .get_rit = 		NULL,
-  .set_xit = 		NULL,
-  .get_xit = 		NULL,
-  .set_ts = 		NULL,
-  .get_ts = 		NULL,
   .set_dcs_code = 	ft897_set_dcs_code,
-  .get_dcs_code = 	NULL,
   .set_ctcss_tone = 	ft897_set_ctcss_tone,
-  .get_ctcss_tone = 	NULL,
   .set_dcs_sql = 	ft897_set_dcs_sql,
-  .get_dcs_sql = 	NULL,
   .set_ctcss_sql = 	ft897_set_ctcss_sql,
-  .get_ctcss_sql = 	NULL,
-  .set_powerstat = 	NULL,
-  .get_powerstat = 	NULL,
-  .reset = 		NULL,
-  .set_ant = 		NULL,
-  .get_ant = 		NULL,
-  .set_level = 		NULL,
   .get_level = 		ft897_get_level,
   .set_func = 		ft897_set_func,
-  .get_func = 		NULL,
-  .set_parm = 		NULL,
-  .get_parm = 		NULL,
   .vfo_op =		ft897_vfo_op,
 };
 
@@ -410,6 +392,30 @@ static int check_cache_timeout(struct timeval *tv)
   }
 }
 
+static int ft897_read_eeprom(RIG *rig, unsigned short addr, unsigned char *out)
+{
+  struct ft897_priv_data *p = (struct ft897_priv_data *) rig->state.priv;
+  unsigned char data[YAESU_CMD_LENGTH];
+  int n;
+
+  memcpy(data, (char *)p->pcs[FT897_NATIVE_CAT_EEPROM_READ].nseq, YAESU_CMD_LENGTH);
+
+  data[0] = addr >> 8;
+  data[1] = addr & 0xfe;
+
+  write_block(&rig->state.rigport, (char *) data, YAESU_CMD_LENGTH);
+
+  if ((n = read_block(&rig->state.rigport, (char *) data, 2)) < 0)
+    return n;
+
+  if (n != 2)
+    return -RIG_EIO;
+
+  *out = data[addr % 2];
+
+  return RIG_OK;
+}
+
 static int ft897_get_status(RIG *rig, int status)
 {
   struct ft897_priv_data *p = (struct ft897_priv_data *) rig->state.priv;
@@ -449,6 +455,13 @@ static int ft897_get_status(RIG *rig, int status)
   if (n != len)
     return -RIG_EIO;
 
+  if (status == FT897_NATIVE_CAT_GET_FREQ_MODE_STATUS) {
+    if ((n = ft897_read_eeprom(rig, 0x0078, &p->fm_status[5])) < 0)
+      return n;
+
+    p->fm_status[5] >>= 5;
+  }
+
   gettimeofday(tv, NULL);
 
   return RIG_OK;
@@ -485,7 +498,7 @@ int ft897_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     if ((n = ft897_get_status(rig, FT897_NATIVE_CAT_GET_FREQ_MODE_STATUS)) < 0)
       return n;
 
-  switch (p->fm_status[4]) {
+  switch (p->fm_status[4] & 0x7f) {
   case 0x00:
     *mode = RIG_MODE_LSB;
     break;
@@ -493,11 +506,9 @@ int ft897_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     *mode = RIG_MODE_USB;
     break;
   case 0x02:
-  case 0x82:
     *mode = RIG_MODE_CW;
     break;
   case 0x03:
-  case 0x83:
     *mode = RIG_MODE_CWR;
     break;
   case 0x04:
@@ -507,22 +518,34 @@ int ft897_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     *mode = RIG_MODE_WFM;
     break;
   case 0x08:
-  case 0x88:
     *mode = RIG_MODE_FM;
     break;
   case 0x0a:
-  case 0x8a:
-    *mode = RIG_MODE_RTTY;
+    switch (p->fm_status[5])
+      {
+      case FT897_DIGI_RTTY_L: *mode = RIG_MODE_RTTY; break;
+      case FT897_DIGI_RTTY_U: *mode = RIG_MODE_RTTYR; break;
+      case FT897_DIGI_PSK_L: *mode = RIG_MODE_PKTLSB; break;
+      case FT897_DIGI_PSK_U: *mode = RIG_MODE_PKTUSB; break;
+      case FT897_DIGI_USER_L: *mode = RIG_MODE_PKTLSB; break;
+      case FT897_DIGI_USER_U: *mode = RIG_MODE_PKTUSB; break;
+      }
     break;
   case 0x0c:
-  case 0x8c:
     *mode = RIG_MODE_PKTFM;
     break;
   default:
     *mode = RIG_MODE_NONE;
   }
 
-  *width = RIG_PASSBAND_NORMAL;
+	if (p->fm_status[4] & 0x80)		/* narrow */
+		{
+			*width = rig_passband_narrow (rig, *mode);
+		}
+	else
+		{
+			*width = RIG_PASSBAND_NORMAL;
+		}
 
   return RIG_OK;
 }
@@ -881,7 +904,18 @@ int ft897_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
     if ((n = ft897_get_status(rig, FT897_NATIVE_CAT_GET_TX_STATUS)) < 0)
       return n;
 
-  *split = ((p->tx_status & 0x20) == 0) ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
+  if (p->tx_status & 0x80)
+    {
+      // TX status not valid when in RX
+      unsigned char c;
+      if ((n = ft897_read_eeprom(rig, 0x008d, &c)) < 0) /* get split status */
+        return n;
+      *split = (c & 0x80) ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
+    }
+  else
+    {
+      *split = (p->tx_status & 0x20) ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
+    }
 
   return RIG_OK;
 }

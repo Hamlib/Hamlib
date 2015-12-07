@@ -108,6 +108,7 @@ enum ft897_native_cmd_e {
   FT897_NATIVE_CAT_PWR_WAKE,
   FT897_NATIVE_CAT_PWR_ON,
   FT897_NATIVE_CAT_PWR_OFF,
+  FT897_NATIVE_CAT_EEPROM_READ,
   FT897_NATIVE_SIZE		/* end marker */
 };
 
@@ -128,7 +129,7 @@ struct ft897_priv_data {
 
   /* freq & mode status */
   struct timeval fm_status_tv;
-  unsigned char fm_status[YAESU_CMD_LENGTH];
+  unsigned char fm_status[YAESU_CMD_LENGTH+1];
 };
 
 
