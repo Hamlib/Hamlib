@@ -806,17 +806,13 @@ int ft817_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		break;
 
 	case RIG_MODE_RTTY:
-		index = FT817_NATIVE_CAT_SET_MODE_DIG;
-		break;
+  case RIG_MODE_PKTUSB:
+    /* user has to have correct DIG mode setup on rig */
+    index = FT817_NATIVE_CAT_SET_MODE_DIG;
+    break;
 
 	case RIG_MODE_FM:
 		index = FT817_NATIVE_CAT_SET_MODE_FM;
-		break;
-
-	case RIG_MODE_WFM:
-		/* can not be set, it is implicit when changing band */
-//		index = FT817_NATIVE_CAT_SET_MODE_FM;
-		return -RIG_EINVAL;
 		break;
 
 	case RIG_MODE_CWR:

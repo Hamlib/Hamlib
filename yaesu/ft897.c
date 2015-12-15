@@ -780,13 +780,12 @@ int ft897_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   case RIG_MODE_LSB:
     index = FT897_NATIVE_CAT_SET_MODE_LSB;
     break;
-  case RIG_MODE_RTTY:
+	case RIG_MODE_RTTY:
+  case RIG_MODE_PKTUSB:
+    /* user has to have correct DIG mode setup on rig */
     index = FT897_NATIVE_CAT_SET_MODE_DIG;
     break;
   case RIG_MODE_FM:
-    index = FT897_NATIVE_CAT_SET_MODE_FM;
-    break;
-  case RIG_MODE_WFM:
     index = FT897_NATIVE_CAT_SET_MODE_FM;
     break;
   case RIG_MODE_CWR:
