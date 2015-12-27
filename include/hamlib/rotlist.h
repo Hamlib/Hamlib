@@ -291,6 +291,15 @@
 #define ROT_MODEL_CNCTRK ROT_MAKE_MODEL(ROT_CNCTRK, 1)
 
 
+/*! \def ROT_MODEL_PROSISTEL
+ *  \brief A macro that returns the model number of the PROSISTEL backend.
+ *
+ */
+#define ROT_PROSISTEL 17
+#define ROT_BACKEND_PROSISTEL "prosistel"
+#define ROT_MODEL_PROSISTEL ROT_MAKE_MODEL(ROT_PROSISTEL, 1)
+
+
 /*! \typedef typedef int rot_model_t
     \brief Convenience type definition for rotator model.
 */

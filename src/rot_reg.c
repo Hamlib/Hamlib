@@ -75,6 +75,7 @@ DEFINE_INITROT_BACKEND(ts7400);
 DEFINE_INITROT_BACKEND(celestron);
 DEFINE_INITROT_BACKEND(ether6);
 DEFINE_INITROT_BACKEND(cnctrk);
+DEFINE_INITROT_BACKEND(prosistel);
 
 /*! \def ROT_BACKEND_LIST
  *  \brief Static list of rotator models.
@@ -108,6 +109,7 @@ static struct {
         { ROT_CELESTRON, ROT_BACKEND_CELESTRON, ROT_FUNCNAMA(celestron) },
         { ROT_ETHER6, ROT_BACKEND_ETHER6, ROT_FUNCNAMA(ether6) },
         { ROT_CNCTRK, ROT_BACKEND_CNCTRK, ROT_FUNCNAMA(cnctrk) },
+        { ROT_PROSISTEL, ROT_BACKEND_PROSISTEL, ROT_FUNCNAMA(prosistel) },
         { 0, NULL }, /* end */
 };
 
