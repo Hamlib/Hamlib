@@ -133,7 +133,7 @@ static int prosistel_rot_open(ROT *rot)
   //MCU continuously sends position data when CPM enabled
   num_sprintf(cmdstr, STX"AS"CR);
   retval = prosistel_transaction(rot, cmdstr, NULL, 0);
-  return RIG_OK;
+  return retval;
 }
 
 
@@ -141,15 +141,28 @@ static int prosistel_rot_open(ROT *rot)
 static int prosistel_rot_set_position(ROT *rot, azimuth_t az, elevation_t el) {
 
 	char cmdstr[64];
-	int retval1, retval2;
+	int retval;
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called: %.2f %.2f\n", __func__,
 			az, el);
 
   num_sprintf(cmdstr, STX"AG%03.0f"CR, az);
-  retval1 = prosistel_transaction(rot, cmdstr, NULL, 0);
+  retval = prosistel_transaction(rot, cmdstr, NULL, 0);
+  if(retval!=RIG_OK) {
+	  return retval;
+	  }
 
-  return retval1;
+  /*
+   * Elevation section: have no hardware to test
+  memset(cmdstr,0,64);
+  num_sprintf(cmdstr, STX"EG%03.0f"CR, el);
+  retval = prosistel_transaction(rot, cmdstr, NULL, 0);
+  if(retval!=RIG_OK) {
+	  return retval;
+	  }
+
+   */
+  return retval;
 }
 
 
@@ -166,6 +179,9 @@ static int prosistel_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
 	num_sprintf(cmdstr, STX"A?"CR);
 	retval = prosistel_transaction(rot, cmdstr, data, 20);
+	 if(retval!=RIG_OK) {
+		 return retval;
+		 }
 
 	posstr[0]=data[5];
 	posstr[1]=data[6];
@@ -174,7 +190,22 @@ static int prosistel_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 	rig_debug(RIG_DEBUG_VERBOSE, "%s got position %s converted to %d\n", __func__,posstr,posval);
 	*az = (azimuth_t) posval;
 
-  return RIG_OK;
+
+	/*
+	 * Elevation section: have no hardware to test
+	memset(cmdstr,0,64);
+	num_sprintf(cmdstr, STX"E?"CR);
+	retval = prosistel_transaction(rot, cmdstr, data, 20);
+
+	posstr[0]=data[5];
+	posstr[1]=data[6];
+	posstr[2]=data[7];
+	posval=atoi(posstr);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s got position %s converted to %d\n", __func__,posstr,posval);
+	*el = (azimuth_t) posval;
+	*/
+
+  return retval;
 }
 
 
@@ -187,9 +218,9 @@ static int prosistel_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
 const struct rot_caps prosistel_rot_caps = {
   .rot_model =      ROT_MODEL_PROSISTEL,
-  .model_name =     "Prosistel",
+  .model_name =     "Prosistel D",
   .mfg_name =       "Prosistel",
-  .version =        "0.2",
+  .version =        "0.3",
   .copyright = 	    "LGPL",
   .status =         RIG_STATUS_BETA,
   .rot_type =       ROT_TYPE_AZIMUTH,
