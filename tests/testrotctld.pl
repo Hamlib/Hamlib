@@ -9,7 +9,7 @@
 # provide a bit of example code for Perl scripting.
 #
 # This program utilizes the Extended Response protocol of rotctld in line
-# response mode.  See the rotctld(8) man page for details.
+# response mode.  See the rotctld(1) man page for details.
 
 #############################################################################
 #    This program is free software; you can redistribute it and/or modify
@@ -373,7 +373,7 @@ do {
     elsif ($user_in =~ /^\?|^help\b$/) {
         print <<EOF;
 
-Commands are entered in the same format as described in the rotctld(8)
+Commands are entered in the same format as described in the rotctld(1)
 man page.  e.g. generally lower case letters call \\get commands and upper
 case letters call \\set commands or long command names may be used.  An
 exception are the locator commands where paired conversions are arbitrarily
@@ -648,7 +648,7 @@ Enables debugging output to the console.
 
 =head1 COMMANDS
 
-Commands are the same as described in the rotctld(8) man page.  This is only
+Commands are the same as described in the rotctld(1) man page.  This is only
 a brief summary.
 
     P, \set_pos         Set the rotor's Azimuth and Elevation
