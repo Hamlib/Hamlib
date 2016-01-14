@@ -441,7 +441,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
     int width_frequency = priv->width_frequency;
     if (width_frequency == 0) width_frequency = 8; // default to 8
 
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "F%c%0*d%c", c, width_frequency, (int)freq, cat_term);
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "F%c%0*lld%c", c, width_frequency, (long long)freq, cat_term);
     rig_debug(RIG_DEBUG_TRACE, "%s:%d cmd_str = %s\n", __func__, __LINE__, priv->cmd_str);
     if (RIG_OK != (err = newcat_set_cmd(rig)))
       {
