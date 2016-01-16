@@ -231,8 +231,17 @@ system hierarchy.  Perhaps you want to install to your home directory
 instead:
 
 @example
-@command{./configure --prefix=~/local}
+@command{./configure --prefix=$HOME/local}
 @end example
+
+@quotation Note
+For practice you may wish to start out using the
+@samp{--prefix=$HOME/local} option to install the Hamlib files into
+your home directory and avoid overwriting any version of Hamlib
+installed into the system directories.  The code examples in the
+remainder of this manual will assume Hamlib has been installed to
+@samp{$HOME/local}.
+@end quotation
 
 All of the files will be installed in the @file{local} directory of
 your home directory.  @file{local} will be created if it does not
