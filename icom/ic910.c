@@ -134,46 +134,49 @@ static int icom_swap_bands(RIG* rig) {
 
 static int ic910_set_freq(RIG* rig, vfo_t vfo, freq_t freq)
  {
-    int retval;
-    freq_t otherfreq;
-    freq_t oldfreq;
+   int retval;
+   freq_t otherfreq;
+   freq_t oldfreq;
 
-    if (vfo==RIG_VFO_CURR) {
-	/* try to detect active subband */
-	retval=icom_get_freq(rig, RIG_VFO_CURR, &oldfreq);
-	if (retval!=RIG_OK) return retval;
+   retval=icom_get_freq(rig, vfo, &oldfreq);
+   if (retval!=RIG_OK) return retval;
 
-        icom_set_vfo(rig, RIG_VFO_SUB);
+   if (!compareFrequencies(rig, freq, oldfreq)) {
+     /* we are on the wrong band */
+     if (vfo==RIG_VFO_CURR) {
+       /* try to detect active subband */
+       icom_set_vfo(rig, RIG_VFO_SUB);
 
-	retval=icom_get_freq(rig, RIG_VFO_CURR, &otherfreq);
-	if (retval!=RIG_OK) return retval;
+       retval=icom_get_freq(rig, RIG_VFO_CURR, &otherfreq);
+       if (retval!=RIG_OK) return retval;
 
-	if (otherfreq == oldfreq) {
-	    /* were already in subband */
-	    vfo = RIG_VFO_SUB;
-	    icom_set_vfo(rig, RIG_VFO_MAIN);
-	    retval=icom_get_freq(rig, RIG_VFO_CURR, &otherfreq);
-	    if (retval!=RIG_OK) return retval;
-	} else {
-	    /* we were in mainband */
-	    vfo = RIG_VFO_MAIN;
-	}
-    } else {
-	/* get the freq of the other band */
-	if (vfo==RIG_VFO_MAIN)
-	    icom_set_vfo(rig, RIG_VFO_SUB);
-	else
-	    icom_set_vfo(rig, RIG_VFO_MAIN);
+       if (otherfreq == oldfreq) {
+         /* were already in subband */
+         vfo = RIG_VFO_SUB;
+         icom_set_vfo(rig, RIG_VFO_MAIN);
+         retval=icom_get_freq(rig, RIG_VFO_CURR, &otherfreq);
+         if (retval!=RIG_OK) return retval;
+       } else {
+         /* we were in mainband */
+         vfo = RIG_VFO_MAIN;
+       }
+     } else {
+       /* get the freq of the other band */
+       if (vfo==RIG_VFO_MAIN)
+         icom_set_vfo(rig, RIG_VFO_SUB);
+       else
+         icom_set_vfo(rig, RIG_VFO_MAIN);
 
-	retval=icom_get_freq(rig, RIG_VFO_CURR, &otherfreq);
-	if (retval!=RIG_OK) return retval;
-    }
+       retval=icom_get_freq(rig, RIG_VFO_CURR, &otherfreq);
+       if (retval!=RIG_OK) return retval;
+     }
 
-    if (compareFrequencies(rig, freq, otherfreq) == 0)
-         icom_swap_bands(rig);
+     if (compareFrequencies(rig, freq, otherfreq))
+       icom_swap_bands(rig);
 
-    icom_set_vfo(rig, vfo);
-    return icom_set_freq(rig, RIG_VFO_CURR, freq);
+     icom_set_vfo(rig, vfo);
+   }
+   return icom_set_freq(rig, RIG_VFO_CURR, freq);
  }
 
 /*
