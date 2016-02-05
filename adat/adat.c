@@ -665,7 +665,7 @@ int adat_print_cmd( adat_cmd_def_ptr pCmd )
               "*** ADAT COMMAND:\n");
 
     rig_debug( RIG_DEBUG_TRACE,
-              "*** -> Command ID = %lld\n",
+              "*** -> Command ID = %"PRIll"\n",
               pCmd->nCmdId );
 
     rig_debug( RIG_DEBUG_TRACE,
@@ -1369,7 +1369,7 @@ int adat_priv_set_cmd( RIG *pRig, char *pcCmd, int nCmdKind )
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig, pcCmd );
 
-    if(( pRig == NULL ))
+    if( pRig == NULL )
     {
         nRC = -RIG_EARG;
     }
@@ -1412,7 +1412,7 @@ int adat_priv_set_result( RIG *pRig, char *pcResult )
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig, pcResult );
 
-    if(( pRig == NULL ))
+    if( pRig == NULL )
     {
         nRC = -RIG_EARG;
     }
@@ -1458,7 +1458,7 @@ int adat_priv_clear_result( RIG *pRig )
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
 
-    if(( pRig == NULL ))
+    if( pRig == NULL )
     {
         nRC = -RIG_EARG;
     }
@@ -1500,7 +1500,7 @@ int adat_get_single_cmd_result( RIG *pRig )
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
 
-    if(( pRig == NULL ))
+    if( pRig == NULL )
     {
         nRC = -RIG_EARG;
     }
@@ -1635,7 +1635,7 @@ int adat_cmd_recover_from_error( RIG *pRig, int nError )
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
 
-    if(( pRig == NULL ))
+    if( pRig == NULL )
     {
         nRC = -RIG_EARG;
     }
@@ -1692,7 +1692,7 @@ int adat_cmd_fn_get_callsign( RIG *pRig )
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
 
-    if(( pRig == NULL ))
+    if( pRig == NULL )
     {
         nRC = -RIG_EARG;
     }
@@ -1745,7 +1745,7 @@ int adat_cmd_fn_set_callsign( RIG *pRig )
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
 
-    if(( pRig == NULL ))
+    if( pRig == NULL )
     {
         nRC = -RIG_EARG;
     }
@@ -1795,7 +1795,7 @@ int adat_cmd_fn_get_serial_nr( RIG *pRig )
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
 
-    if(( pRig == NULL ))
+    if( pRig == NULL )
     {
         nRC = -RIG_EARG;
     }
@@ -1847,7 +1847,7 @@ int adat_cmd_fn_get_fw_version( RIG *pRig )
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
 
-    if(( pRig == NULL ))
+    if( pRig == NULL )
     {
         nRC = -RIG_EARG;
     }
@@ -1900,7 +1900,7 @@ int adat_cmd_fn_get_hw_version( RIG *pRig )
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
 
-    if(( pRig == NULL ))
+    if( pRig == NULL )
     {
         nRC = -RIG_EARG;
     }
@@ -1952,7 +1952,7 @@ int adat_cmd_fn_get_gui_fw_version( RIG *pRig )
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
 
-    if(( pRig == NULL ))
+    if( pRig == NULL )
     {
         nRC = -RIG_EARG;
     }
@@ -2005,7 +2005,7 @@ int adat_cmd_fn_get_id_code( RIG *pRig )
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
 
-    if(( pRig == NULL ))
+    if( pRig == NULL )
     {
         nRC = -RIG_EARG;
     }
@@ -2057,7 +2057,7 @@ int adat_cmd_fn_get_options( RIG *pRig )
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
 
-    if(( pRig == NULL ))
+    if( pRig == NULL )
     {
         nRC = -RIG_EARG;
     }
@@ -2109,7 +2109,7 @@ int adat_cmd_fn_get_mode( RIG *pRig )
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
 
-    if(( pRig == NULL ))
+    if( pRig == NULL )
     {
         nRC = -RIG_EARG;
     }
@@ -2159,7 +2159,7 @@ int adat_cmd_fn_set_mode( RIG *pRig )
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
 
-    if(( pRig == NULL ))
+    if( pRig == NULL )
     {
         nRC = -RIG_EARG;
     }
@@ -2223,7 +2223,7 @@ int adat_cmd_fn_get_freq( RIG *pRig )
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
 
-    if(( pRig == NULL ))
+    if( pRig == NULL )
     {
         nRC = -RIG_EARG;
     }
@@ -2283,7 +2283,7 @@ int adat_cmd_fn_set_freq( RIG *pRig )
                gFnLevel, __func__, __FILE__, __LINE__,
                pRig );
 
-    if(( pRig == NULL ))
+    if( pRig == NULL )
     {
         nRC = -RIG_EARG;
     }
@@ -2339,7 +2339,7 @@ int adat_cmd_fn_set_vfo( RIG *pRig )
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
 
-    if(( pRig == NULL ))
+    if( pRig == NULL )
     {
         nRC = -RIG_EARG;
     }
@@ -2405,7 +2405,7 @@ int adat_cmd_fn_get_ptt( RIG *pRig )
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
 
-    if(( pRig == NULL ))
+    if( pRig == NULL )
     {
         nRC = -RIG_EARG;
     }
@@ -2459,7 +2459,7 @@ int adat_cmd_fn_set_ptt( RIG *pRig )
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
 
-    if(( pRig == NULL ))
+    if( pRig == NULL )
     {
         nRC = -RIG_EARG;
     }
@@ -2543,7 +2543,7 @@ int adat_transaction( RIG                *pRig,
               gFnLevel, __func__, __FILE__, __LINE__,
               pRig );
 
-    if(( pRig == NULL ))
+    if( pRig == NULL )
     {
         nRC = -RIG_EARG;
     }
