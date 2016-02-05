@@ -118,6 +118,7 @@ struct icom_priv_data {
 	unsigned char re_civ_addr;	/* the remote equipment's CI-V address*/
 	int civ_731_mode; /* Off: freqs on 10 digits, On: freqs on 8 digits */
 	int no_xchg; /* Off: use VFO XCHG to set other VFO, On: use set VFO to set other VFO */
+	int no_1a_03_cmd;							/* rig doesn't tell IF widths */
 	pltstate_t *pltstate;	/* only on optoscan */
 };
 

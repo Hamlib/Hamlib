@@ -221,9 +221,8 @@ int icom_one_transaction (RIG *rig, int cmd, int subcmd, const unsigned char *pa
 	    return  -RIG_EPROTO;
 	  }
 
-	if (frm_len < ACKFRMLEN) {
-	  return  -RIG_EPROTO;
-	}
+	if (frm_len < ACKFRMLEN) return -RIG_EPROTO;
+	if (NAK == buf[frm_len - 2]) return -RIG_ERJCTED;
 
 	*data_len = frm_len-(ACKFRMLEN-1);
 	memcpy(data, buf+4, *data_len);
@@ -256,7 +255,7 @@ int icom_transaction (RIG *rig, int cmd, int subcmd, const unsigned char *payloa
 
 	do {
 		retval = icom_one_transaction (rig, cmd, subcmd, payload, payload_len, data, data_len);
-		if (retval == RIG_OK)
+		if (retval == RIG_OK || retval == -RIG_ERJCTED)
 			break;
 	} while (retry-- > 0);
 

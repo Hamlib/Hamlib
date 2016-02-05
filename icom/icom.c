@@ -365,7 +365,7 @@ int icom_init(RIG *rig)
 
 	priv_caps = (const struct icom_priv_caps *) caps->priv;
 
-	priv = (struct icom_priv_data*)malloc(sizeof(struct icom_priv_data));
+	priv = (struct icom_priv_data*)calloc(1, sizeof(struct icom_priv_data));
 	if (!priv) {
 		/* whoops! memory shortage! */
 		return -RIG_ENOMEM;
@@ -535,31 +535,37 @@ pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode) {
 	unsigned char resbuf[MAXFRAMELEN];
 	value_t rfwidth;
   unsigned char fw_sub_cmd = RIG_MODEL_IC7200 == rig->caps->rig_model ? 0x02 : S_MEM_FILT_WDTH;
+	struct icom_priv_data * priv = (struct icom_priv_data*)rig->state.priv;
 
 	if (rig_has_get_func(rig, RIG_FUNC_RF) && (mode & (RIG_MODE_RTTY | RIG_MODE_RTTYR))) {
-        if(!rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_RF, &rfstatus) && (rfstatus)) {
-		    retval = rig_get_ext_parm (rig, TOK_RTTY_FLTR, &rfwidth);
-        if (retval != RIG_OK || rfwidth.i >= RTTY_FIL_NB)
-            return 0;	/* use default */
-		else
-            return rtty_fil[rfwidth.i];
+		if(!rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_RF, &rfstatus) && (rfstatus)) {
+			retval = rig_get_ext_parm (rig, TOK_RTTY_FLTR, &rfwidth);
+			if (retval != RIG_OK || rfwidth.i >= RTTY_FIL_NB)
+				return 0;	/* use default */
+			else
+				return rtty_fil[rfwidth.i];
 		}
 	}
+	if (priv->no_1a_03_cmd) return 0;
 	retval = icom_transaction (rig, C_CTL_MEM, fw_sub_cmd, 0, 0,
-			resbuf, &res_len);
+														 resbuf, &res_len);
+	if (-RIG_ERJCTED == retval) {
+		priv->no_1a_03_cmd = -1;		/* do not keep asking */
+		return 0;
+	}
 	if (retval != RIG_OK) {
 		rig_debug(RIG_DEBUG_ERR,"%s: protocol error (%#.2x), "
-                "len=%d\n", __FUNCTION__,resbuf[0],res_len);
-        return 0;	/* use default */
+							"len=%d\n", __FUNCTION__,resbuf[0],res_len);
+		return 0;	/* use default */
 	}
 	if (res_len == 3 && resbuf[0] == C_CTL_MEM) {
 		int i;
 		i = (int) from_bcd(resbuf + 2, 2);
 
 		if (mode & RIG_MODE_AM)
-            return (i  + 1)* 200; /* Ic_7800 */
+			return (i  + 1)* 200; /* Ic_7800 */
 		else if (mode & (RIG_MODE_CW | RIG_MODE_USB | RIG_MODE_LSB | RIG_MODE_RTTY | RIG_MODE_RTTYR))
-            return i < 10 ? (i+1) * 50 : (i -4) * 100;
+			return i < 10 ? (i+1) * 50 : (i -4) * 100;
 	}
 
 	return 0;
