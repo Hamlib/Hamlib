@@ -152,7 +152,7 @@ const struct rig_caps tt588_caps = {
 .ctcss_list =  NULL,
 .dcs_list =  NULL,
 .preamp =   { 10, RIG_DBLST_END }, /* FIXME: real value */
-.attenuator =   { 15, RIG_DBLST_END },
+.attenuator =   { 6, 12, 18, RIG_DBLST_END },
 .max_rit =  Hz(8192),
 .max_xit =  Hz(8192),
 .max_ifshift =  kHz(2),
@@ -230,7 +230,6 @@ const struct rig_caps tt588_caps = {
 .set_xit = tt588_set_xit,
 .get_rit = tt588_get_xit,
 .set_rit = tt588_set_rit,
-.attenuator =   { 6, 12, 18, RIG_DBLST_END },
 // Antenna functions only in remote mode -- prototypes provided
 //.get_ant = tt588_get_ant,
 //.set_ant = tt588_set_ant

@@ -391,7 +391,7 @@ tt550_init (RIG * rig)
   priv->width = kHz (2.4);
   priv->tx_width = kHz (2.4);
   priv->tx_cwbfo = priv->cwbfo = kHz (0.7);
-  priv->agc = 0.5;		/* medium */
+  priv->agc = 2;		/* medium */
   priv->lineout = priv->spkvol = 0.0;	/* mute */
   priv->stepsize = 100;		/* default to 100Hz tuning step */
 
