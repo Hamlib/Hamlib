@@ -48,7 +48,7 @@
 
 /* global variables */
 static const char cat_term = ';';             /* Yaesu command terminator */
-static const char cat_unknown_cmd[] = "?;";   /* Yaesu ? */
+// static const char cat_unknown_cmd[] = "?;";   /* Yaesu ? */
 
 /* Internal Backup and Restore VFO Memory Channels */
 #define NC_MEM_CHANNEL_NONE  2012
@@ -441,7 +441,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
     int width_frequency = priv->width_frequency;
     if (width_frequency == 0) width_frequency = 8; // default to 8
 
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "F%c%0*lld%c", c, width_frequency, (long long)freq, cat_term);
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "F%c%0*"PRIll"%c", c, width_frequency, (int64_t)freq, cat_term);
     rig_debug(RIG_DEBUG_TRACE, "%s:%d cmd_str = %s\n", __func__, __LINE__, priv->cmd_str);
     if (RIG_OK != (err = newcat_set_cmd(rig)))
       {
@@ -1166,15 +1166,15 @@ int newcat_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 
     if (rit > rig->caps->max_rit)
         rit = rig->caps->max_rit;   /* + */
-    else if (abs(rit) > rig->caps->max_rit)
+    else if (labs(rit) > rig->caps->max_rit)
         rit = - rig->caps->max_rit;  /* - */
 
     if (rit == 0)
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC%cRT0%c", cat_term, cat_term);
     else if (rit < 0)
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC%cRD%04d%cRT1%c", cat_term, abs(rit), cat_term, cat_term);
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC%cRD%04ld%cRT1%c", cat_term, labs(rit), cat_term, cat_term);
     else
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC%cRU%04d%cRT1%c", cat_term, abs(rit), cat_term, cat_term);
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC%cRU%04ld%cRT1%c", cat_term, labs(rit), cat_term, cat_term);
 
     return newcat_set_cmd(rig);
 }
@@ -1229,15 +1229,15 @@ int newcat_set_xit(RIG * rig, vfo_t vfo, shortfreq_t xit)
 
     if (xit > rig->caps->max_xit)
         xit = rig->caps->max_xit;   /* + */
-    else if (abs(xit) > rig->caps->max_xit)
+    else if (labs(xit) > rig->caps->max_xit)
         xit = - rig->caps->max_xit;  /* - */
 
     if (xit == 0)
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC%cXT0%c", cat_term, cat_term);
     else if (xit < 0)
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC%cRD%04d%cXT1%c", cat_term, abs(xit), cat_term, cat_term);
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC%cRD%04ld%cXT1%c", cat_term, labs(xit), cat_term, cat_term);
     else
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC%cRU%04d%cXT1%c", cat_term, abs(xit), cat_term, cat_term);
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC%cRU%04ld%cXT1%c", cat_term, labs(xit), cat_term, cat_term);
 
     return newcat_set_cmd(rig);
 }
