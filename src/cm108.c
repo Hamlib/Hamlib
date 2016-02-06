@@ -82,7 +82,7 @@ int cm108_open(hamlib_port_t *port)
 	rig_debug(RIG_DEBUG_VERBOSE,"cm108:cm108_open called \n");
 
 
-	if (!port->pathname)
+	if (!port->pathname[0])
 		return -RIG_EINVAL;
 
 	fd = open(port->pathname, O_RDWR);

@@ -128,7 +128,7 @@ int par_open(hamlib_port_t *port)
 	int mode;
 #endif
 
-	if (!port->pathname)
+	if (!port->pathname[0])
 		return -RIG_EINVAL;
 
 #ifdef HAVE_LINUX_PPDEV_H

@@ -141,7 +141,7 @@ int network_open(hamlib_port_t *rp, int default_port)
 		hints.ai_socktype = SOCK_STREAM;
 
 	hoststr = NULL;								/* default of all local interfaces */
-	if (rp->pathname && rp->pathname[0] == ':')
+	if (rp->pathname[0] == ':')
 		{
 			portstr = rp->pathname + 1;
 		}
