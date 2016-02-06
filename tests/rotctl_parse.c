@@ -1115,7 +1115,7 @@ int print_conf_list(const struct confparams *cfp, rig_ptr_t data)
 					cfp->u.n.min, cfp->u.n.max, cfp->u.n.step);
 		break;
 	case RIG_CONF_COMBO:
-		if (!cfp->u.c.combostr)
+		if (!cfp->u.c.combostr[0])
 			break;
 		printf("\tCombo: %s", cfp->u.c.combostr[0]);
 		for (i = 1 ; i < RIG_COMBO_MAX && cfp->u.c.combostr[i]; i++)
