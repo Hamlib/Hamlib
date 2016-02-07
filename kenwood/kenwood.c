@@ -972,7 +972,10 @@ int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split, vfo_t *txvfo
   priv->split = *split;
 
   /* find where is the txvfo.. */
-  int transmitting = '1' == priv->info[28];
+  /* Elecraft info[30] does not track split VFO when transmitting */
+  int transmitting = '1' == priv->info[28]
+    && RIG_MODEL_K2 != rig->caps->rig_model
+    && RIG_MODEL_K3 != rig->caps->rig_model;
   switch (priv->info[30])
     {
     case '0':
@@ -1018,8 +1021,12 @@ int kenwood_get_vfo_if(RIG *rig, vfo_t *vfo)
   if (retval != RIG_OK)
     return retval;
 
-  int split_and_transmitting = '1' == priv->info[32] && '1' == priv->info[28];
-
+  /* Elecraft info[30] does not track split VFO when transmitting */
+  int split_and_transmitting =
+    '1' == priv->info[28] /* transmitting */
+    && '1' == priv->info[32]               /* split */
+    && RIG_MODEL_K2 != rig->caps->rig_model
+    && RIG_MODEL_K3 != rig->caps->rig_model;
   switch (priv->info[30])
     {
     case '0':
