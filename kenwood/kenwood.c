@@ -849,7 +849,6 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
       rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);
       return -RIG_EINVAL;
     }
-
     /* set RX VFO */
     sprintf(cmdbuf, "FR%c", vfo_function);
     retval = kenwood_transaction(rig, cmdbuf, NULL, 0);
@@ -875,6 +874,15 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
   default:
     rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, txvfo);
     return -RIG_EINVAL;
+  }
+  if (RIG_MODEL_K2 == rig->caps->rig_model
+      || RIG_MODEL_K3 == rig->caps->rig_model) {
+    /* do not attempt redundant split change commands on Elecraft as
+       they impact output power when transmitting */
+    if (RIG_OK == (retval = kenwood_safe_transaction (rig, "FT", cmdbuf, sizeof (cmdbuf), 3)))
+      {
+        if (cmdbuf[2] == vfo_function) return RIG_OK;
+      }
   }
   /* set TX VFO */
   sprintf(cmdbuf, "FT%c", vfo_function);
