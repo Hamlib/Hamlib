@@ -85,7 +85,7 @@ struct tt588_priv_data {
 // #define TT588_FSK '6'
 #define EOM "\015"      /* CR */
 #define FALSE 0
-#define TRUE (!FALSE)
+#define TRUE 1
 
 static int tt588_init(RIG *rig);
 static int tt588_reset(RIG *rig, reset_t reset);
