@@ -577,12 +577,13 @@ Hamlib should also compile with the following common compilers:
     * gcc-4.x and newer
     * in shared and static
     * C++ compiler against rig.h, riglist.h, rotator.h
+    * clang compiler
 
 Portability issues to watch:
 
     * little vs. big endian systems (use shifts or adhoc functions)
     * 64 bit int: avoid them in API
-    * printf/scanf of 64bit int: use PRIll and SCNll
+    * printf/scanf of 64bit int: use PRIll (cast value to int64_t) and SCNll
     * printf/scanf of freq_t: use PRIfreq and SCNfreq
 
 Testing:
