@@ -1090,7 +1090,7 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);
     return -RIG_EINVAL;
   }
-  sprintf(freqbuf, "F%c%011lld", vfo_letter, (long long)freq);
+  sprintf(freqbuf, "F%c%011"PRIll, vfo_letter, (int64_t)freq);
 
   int err = kenwood_transaction(rig, freqbuf, NULL, 0);
 
