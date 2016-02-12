@@ -352,7 +352,7 @@ int main (int argc, char *argv[])
 				exit (1);
 			}
 
-#ifdef __MINGW32__
+#if defined(__MINGW32__) && HAVE_WS2TCPIP_H
 			/* allow IPv4 mapped to IPv6 clients, MS default this to 1! */
 			sockopt = 0;
       if (setsockopt(sock_listen, IPPROTO_IPV6, IPV6_V6ONLY,
