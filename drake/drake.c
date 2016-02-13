@@ -610,7 +610,7 @@ int drake_get_chan(RIG *rig, channel_t *chan)
 	if ((mdbuf[6] & 0x3c) == '4')
 		chan->levels[rig_setting2idx(RIG_LEVEL_ATT)].i = 10;
 
-	if ((mdbuf[6] & 0x32) =='2');
+	if ((mdbuf[6] & 0x32) =='2')
 		chan->funcs |= RIG_FUNC_MN;
 
 	switch(mdbuf[7] & 0x3c){
