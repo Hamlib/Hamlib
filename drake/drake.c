@@ -71,19 +71,21 @@ int drake_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *d
 	serial_flush(&rs->rigport);
 
 	retval = write_block(&rs->rigport, cmd, cmd_len);
+
 	if (retval != RIG_OK)
 		return retval;
 
-
 	/* no data expected, TODO: flush input? */
 	if (!data || !data_len)
-			return 0;
+		return 0;
 
 	retval = read_string(&rs->rigport, data, BUFSZ, LF, 1);
+
 	if (retval == -RIG_ETIMEOUT)
 		retval = 0;
 	if (retval < 0)
 		return retval;
+
 	*data_len = retval;
 
 	return RIG_OK;
@@ -138,32 +140,36 @@ int drake_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  */
 int drake_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-		int freq_len, retval;
-		char freqbuf[BUFSZ];
-		double f;
-		char fmult;
+	int freq_len, retval;
+	char freqbuf[BUFSZ];
+	double f;
+	char fmult;
 
-		retval = drake_transaction (rig, "RF" EOM, 3, freqbuf, &freq_len);
-		if (retval != RIG_OK)
-		  return retval;
+	retval = drake_transaction (rig, "RF" EOM, 3, freqbuf, &freq_len);
 
-		/* RA command returns *fffff.ff*mHz<CR> */
-		if (freq_len != 15) {
-		  rig_debug(RIG_DEBUG_ERR,"drake_get_freq: wrong answer %s, "
-			    "len=%d\n", freqbuf, freq_len);
-		  return -RIG_ERJCTED;
-		}
-		fmult = freqbuf[10];
-		freqbuf[9] = '\0';
+	if (retval != RIG_OK)
+		return retval;
 
-		/* extract freq */
-		sscanf(freqbuf+1, "%lf", &f);
+	/* RA command returns *fffff.ff*mHz<CR> */
+	if (freq_len != 15) {
+		rig_debug(RIG_DEBUG_ERR,"drake_get_freq: wrong answer %s, "
+			  "len=%d\n", freqbuf, freq_len);
+		return -RIG_ERJCTED;
+	}
+
+	fmult = freqbuf[10];
+	freqbuf[9] = '\0';
+
+	/* extract freq */
+	sscanf(freqbuf+1, "%lf", &f);
+	f *= 1000.0;
+
+	if (fmult=='M'||fmult=='m')
 		f *= 1000.0;
-		if (fmult=='M'||fmult=='m')
-		  f *= 1000.0;
-		*freq = (freq_t)f;
 
-		return RIG_OK;
+	*freq = (freq_t)f;
+
+	return RIG_OK;
 }
 
 /*
@@ -183,11 +189,12 @@ int drake_set_vfo(RIG *rig, vfo_t vfo)
 	case RIG_VFO_MEM: vfo_function = 'C'; break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"drake_set_vfo: unsupported VFO %d\n",
-							vfo);
+			  vfo);
 		return -RIG_EINVAL;
 	}
 
 	cmd_len = 0;
+
 	if ((vfo_function=='A')||(vfo_function=='B'))
 		cmd_len = sprintf((char *) cmdbuf, "V%c" EOM, vfo_function);
 	if ((vfo_function=='F')||(vfo_function=='C'))
@@ -205,17 +212,18 @@ int drake_set_vfo(RIG *rig, vfo_t vfo)
 int drake_get_vfo(RIG *rig, vfo_t *vfo)
 {
 	int mdbuf_len, retval;
-    char mdbuf[BUFSZ];
+	char mdbuf[BUFSZ];
 	char cvfo;
 
 	retval = drake_transaction (rig, "RA" EOM, 3, mdbuf, &mdbuf_len);
+
 	if (retval != RIG_OK)
-	  return retval;
+		return retval;
 
 	if (mdbuf_len < 35) {
-	  rig_debug(RIG_DEBUG_ERR,"drake_get_vfo: wrong answer %s, "
-		    "len=%d\n", mdbuf, mdbuf_len);
-	  return -RIG_ERJCTED;
+		rig_debug(RIG_DEBUG_ERR,"drake_get_vfo: wrong answer %s, "
+			  "len=%d\n", mdbuf, mdbuf_len);
+		return -RIG_ERJCTED;
 	}
 
 	if (mdbuf[0]=='*')
@@ -226,9 +234,9 @@ int drake_get_vfo(RIG *rig, vfo_t *vfo)
 		case '0' : *vfo = RIG_VFO_B; break;
 		case '8' : *vfo = RIG_VFO_A; break;
 		default : rig_debug(RIG_DEBUG_ERR,
-					"drake_get_vfo: unsupported vfo %c\n", cvfo);
-	  			*vfo = RIG_VFO_VFO;
-	  			return -RIG_EINVAL;
+				    "drake_get_vfo: unsupported vfo %c\n", cvfo);
+			*vfo = RIG_VFO_VFO;
+			return -RIG_EINVAL;
 		}
 	}
 
@@ -257,7 +265,7 @@ int drake_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	case RIG_MODE_RTTY:     mode_sel = MD_RTTY; break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"drake_set_mode: "
-						"unsupported mode %d\n", mode);
+			  "unsupported mode %d\n", mode);
 		return -RIG_EINVAL;
 	}
 
@@ -280,17 +288,18 @@ int drake_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		case 6000: width_sel = '6'; break;
 		default:
 			rig_debug(RIG_DEBUG_ERR,"drake_set_mode: "
-						"unsupported width %d\n", width);
-		return -RIG_EINVAL;
+				  "unsupported width %d\n", width);
+			return -RIG_EINVAL;
 		}
 		mdbuf_len = sprintf((char *) mdbuf, "W%c" EOM, width_sel);
 		retval = drake_transaction (rig, (char *) mdbuf, mdbuf_len, (char *) ackbuf, &ack_len);
 	}
 
 	if ((mode == RIG_MODE_AMS) || (mode == RIG_MODE_ECSSUSB) || (mode == RIG_MODE_ECSSLSB) ||
-		(mode == RIG_MODE_AM) || (mode == RIG_MODE_USB) || (mode == RIG_MODE_LSB)) {
+	    (mode == RIG_MODE_AM) || (mode == RIG_MODE_USB) || (mode == RIG_MODE_LSB)) {
 		mdbuf_len = sprintf((char *) mdbuf, "S%c" EOM,
-			((mode == RIG_MODE_AMS) || (mode==RIG_MODE_ECSSUSB) || (mode==RIG_MODE_ECSSLSB))?'O':'F');
+				    ((mode == RIG_MODE_AMS) || (mode==RIG_MODE_ECSSUSB) || (mode==RIG_MODE_ECSSLSB))
+				    ? 'O' : 'F');
 		retval = drake_transaction (rig, (char *) mdbuf, mdbuf_len, (char *) ackbuf, &ack_len);
 	}
 
@@ -311,13 +320,14 @@ int drake_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	char csynch;
 
 	retval = drake_transaction (rig, "RM" EOM, 3, mdbuf, &mdbuf_len);
+
 	if (retval != RIG_OK)
-	  return retval;
+		return retval;
 
 	if (mdbuf_len != 8) {
-	  rig_debug(RIG_DEBUG_ERR,"drake_get_mode: wrong answer %s, "
-		    "len=%d\n", mdbuf, mdbuf_len);
-	  return -RIG_ERJCTED;
+		rig_debug(RIG_DEBUG_ERR,"drake_get_mode: wrong answer %s, "
+			  "len=%d\n", mdbuf, mdbuf_len);
+		return -RIG_ERJCTED;
 	}
 
 	cmode = mdbuf[3];
@@ -331,48 +341,48 @@ int drake_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	case '3': *width = s_Hz(4000); break;
 	case '4': *width = s_Hz(6000); break;
 	default :
-	  rig_debug(RIG_DEBUG_ERR,
-		    "drake_get_mode: unsupported width %c\n",
-		    cwidth);
-	  *width = RIG_PASSBAND_NORMAL;
-	  return -RIG_EINVAL;
+		rig_debug(RIG_DEBUG_ERR,
+			  "drake_get_mode: unsupported width %c\n",
+			  cwidth);
+		*width = RIG_PASSBAND_NORMAL;
+		return -RIG_EINVAL;
 	}
 
 	if ((cwidth >= '0') && (cwidth <= '4')) {
-	  switch(cmode & 0x33){
-	  case '0': *mode = RIG_MODE_LSB; break;
-	  case '1': *mode = RIG_MODE_RTTY; break;
-	  case '2': *mode = RIG_MODE_FM; *width = s_Hz(12000); break;
-	  default :
-	    rig_debug(RIG_DEBUG_ERR,
-		      "drake_get_mode: unsupported mode %c\n",
-		      cmode);
-	    *mode = RIG_MODE_NONE;
-	    return -RIG_EINVAL;
-	  }
+		switch(cmode & 0x33){
+		case '0': *mode = RIG_MODE_LSB; break;
+		case '1': *mode = RIG_MODE_RTTY; break;
+		case '2': *mode = RIG_MODE_FM; *width = s_Hz(12000); break;
+		default :
+			rig_debug(RIG_DEBUG_ERR,
+				  "drake_get_mode: unsupported mode %c\n",
+				  cmode);
+			*mode = RIG_MODE_NONE;
+			return -RIG_EINVAL;
+		}
 	} else {
-	  switch(cmode & 0x33){
-	  case '0': *mode = RIG_MODE_USB; break;
-	  case '1': *mode = RIG_MODE_CW; break;
-	  case '2': *mode = RIG_MODE_AM; break;
-	  default :
-	    rig_debug(RIG_DEBUG_ERR,
-		      "drake_get_mode: unsupported mode %c\n",
-		      cmode);
-	    *mode = RIG_MODE_NONE;
-	    return -RIG_EINVAL;
-	  }
+		switch(cmode & 0x33){
+		case '0': *mode = RIG_MODE_USB; break;
+		case '1': *mode = RIG_MODE_CW; break;
+		case '2': *mode = RIG_MODE_AM; break;
+		default :
+			rig_debug(RIG_DEBUG_ERR,
+				  "drake_get_mode: unsupported mode %c\n",
+				  cmode);
+			*mode = RIG_MODE_NONE;
+			return -RIG_EINVAL;
+		}
 	}
 
 	if ((csynch & 0x34) == '4') {
-	if (*mode == RIG_MODE_AM)
-		*mode = RIG_MODE_AMS;
-	else
-	if (*mode == RIG_MODE_USB)
-		*mode = RIG_MODE_ECSSUSB;
-	else
-	if (*mode == RIG_MODE_LSB)
-		*mode = RIG_MODE_ECSSLSB;
+		if (*mode == RIG_MODE_AM)
+			*mode = RIG_MODE_AMS;
+		else
+			if (*mode == RIG_MODE_USB)
+				*mode = RIG_MODE_ECSSUSB;
+			else
+				if (*mode == RIG_MODE_LSB)
+					*mode = RIG_MODE_ECSSLSB;
 	}
 	return RIG_OK;
 }
@@ -404,13 +414,14 @@ int drake_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
 	char cant;
 
 	retval = drake_transaction (rig, "RM" EOM, 3, mdbuf, &mdbuf_len);
+
 	if (retval != RIG_OK)
-	  return retval;
+		return retval;
 
 	if (mdbuf_len != 8) {
-	  rig_debug(RIG_DEBUG_ERR,"drake_get_ant: wrong answer %s, "
-		    "len=%d\n", mdbuf, mdbuf_len);
-	  return -RIG_ERJCTED;
+		rig_debug(RIG_DEBUG_ERR,"drake_get_ant: wrong answer %s, "
+			  "len=%d\n", mdbuf, mdbuf_len);
+		return -RIG_ERJCTED;
 	}
 
 	cant = mdbuf[3];
@@ -420,11 +431,11 @@ int drake_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
 	case '4': *ant = RIG_ANT_3; break;
 	case '8': *ant = RIG_ANT_2; break;
 	default :
-	  rig_debug(RIG_DEBUG_ERR,
-		    "drake_get_ant: unsupported antenna %c\n",
-		    cant);
-	  *ant = RIG_ANT_NONE;
-	  return -RIG_EINVAL;
+		rig_debug(RIG_DEBUG_ERR,
+			  "drake_get_ant: unsupported antenna %c\n",
+			  cant);
+		*ant = RIG_ANT_NONE;
+		return -RIG_EINVAL;
 	}
 
 	return RIG_OK;
@@ -437,7 +448,7 @@ int drake_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
 int drake_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
 	int len, ack_len, retval;
-    char buf[16], ackbuf[16];
+	char buf[16], ackbuf[16];
 	struct drake_priv_data *priv = rig->state.priv;
 
 	priv->curr_ch = ch;
@@ -462,17 +473,18 @@ int drake_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
 	struct drake_priv_data *priv = rig->state.priv;
 	int mdbuf_len, retval;
-    char mdbuf[BUFSZ];
+	char mdbuf[BUFSZ];
 	int chan;
 
 	retval = drake_transaction (rig, "RC" EOM, 3, mdbuf, &mdbuf_len);
+
 	if (retval != RIG_OK)
-	  return retval;
+		return retval;
 
 	if (mdbuf_len != 6) {
-	  rig_debug(RIG_DEBUG_ERR,"drake_get_mem: wrong answer %s, "
-		    "len=%d\n", mdbuf, mdbuf_len);
-	  return -RIG_ERJCTED;
+		rig_debug(RIG_DEBUG_ERR,"drake_get_mem: wrong answer %s, "
+			  "len=%d\n", mdbuf, mdbuf_len);
+		return -RIG_ERJCTED;
 	}
 
 	mdbuf[4] = '\0';
@@ -495,7 +507,7 @@ int drake_set_chan(RIG *rig, const channel_t *chan)
 	struct drake_priv_data *priv = rig->state.priv;
 	vfo_t	old_vfo;
 	int		old_chan;
-    char	mdbuf[16], ackbuf[16];
+	char	mdbuf[16], ackbuf[16];
 	int		mdbuf_len, ack_len, retval;
 
 	drake_get_vfo(rig, &old_vfo);
@@ -514,15 +526,15 @@ int drake_set_chan(RIG *rig, const channel_t *chan)
 	drake_set_freq(rig, RIG_VFO_CURR, chan->freq);
 	drake_set_mode(rig, RIG_VFO_CURR, chan->mode, chan->width);
 	drake_set_func(rig, RIG_VFO_CURR, RIG_FUNC_NB,
-					(chan->funcs & RIG_FUNC_NB) == RIG_FUNC_NB);
+		       (chan->funcs & RIG_FUNC_NB) == RIG_FUNC_NB);
 	drake_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_AGC,
-					chan->levels[rig_setting2idx(RIG_LEVEL_AGC)]);
+			chan->levels[rig_setting2idx(RIG_LEVEL_AGC)]);
 	drake_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_PREAMP,
-					chan->levels[rig_setting2idx(RIG_LEVEL_PREAMP)]);
+			chan->levels[rig_setting2idx(RIG_LEVEL_PREAMP)]);
 	drake_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_ATT,
-					chan->levels[rig_setting2idx(RIG_LEVEL_ATT)]);
+			chan->levels[rig_setting2idx(RIG_LEVEL_ATT)]);
 	drake_set_func(rig, RIG_VFO_CURR, RIG_FUNC_MN,
-					(chan->funcs & RIG_FUNC_MN) == RIG_FUNC_MN);
+		       (chan->funcs & RIG_FUNC_MN) == RIG_FUNC_MN);
 
 	mdbuf_len = sprintf(mdbuf, "PR" EOM "%03d" EOM, chan->channel_num);
 	retval = drake_transaction (rig, mdbuf, mdbuf_len, ackbuf, &ack_len);
@@ -542,7 +554,7 @@ int drake_get_chan(RIG *rig, channel_t *chan)
 	struct drake_priv_data *priv = rig->state.priv;
 	vfo_t	old_vfo;
 	int		old_chan;
-    char	mdbuf[BUFSZ],freqstr[BUFSZ];
+	char	mdbuf[BUFSZ],freqstr[BUFSZ];
 	int		mdbuf_len, retval;
 
 	chan->vfo = RIG_VFO_MEM;
@@ -586,22 +598,22 @@ int drake_get_chan(RIG *rig, channel_t *chan)
 	//now decypher it
 	retval = drake_transaction (rig, "RA" EOM, 3, mdbuf, &mdbuf_len);
 	if (retval != RIG_OK)
-	  return retval;
+		return retval;
 
 	if (mdbuf_len < 35) {
-	  rig_debug(RIG_DEBUG_ERR,"drake_get_channel: wrong answer %s, "
-		    "len=%d\n", mdbuf, mdbuf_len);
-	  return -RIG_ERJCTED;
+		rig_debug(RIG_DEBUG_ERR,"drake_get_channel: wrong answer %s, "
+			  "len=%d\n", mdbuf, mdbuf_len);
+		return -RIG_ERJCTED;
 	}
 
 	if ((mdbuf[5] >= '4') && (mdbuf[5] <= '?'))
 		chan->funcs |= RIG_FUNC_NB;
 
 	switch(mdbuf[5] & 0x33){
-		case '0': chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i = RIG_AGC_OFF; break;
-		case '2': chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i = RIG_AGC_FAST; break;
-		case '3': chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i = RIG_AGC_SLOW; break;
-		default : chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i = RIG_AGC_FAST;
+	case '0': chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i = RIG_AGC_OFF; break;
+	case '2': chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i = RIG_AGC_FAST; break;
+	case '3': chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i = RIG_AGC_SLOW; break;
+	default : chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i = RIG_AGC_FAST;
 	}
 
 	if ((mdbuf[6] & 0x3c) == '8')
@@ -614,35 +626,35 @@ int drake_get_chan(RIG *rig, channel_t *chan)
 		chan->funcs |= RIG_FUNC_MN;
 
 	switch(mdbuf[7] & 0x3c){
-		case '0': chan->ant = RIG_ANT_1; break;
-		case '4': chan->ant = RIG_ANT_3; break;
-		case '8': chan->ant = RIG_ANT_2; break;
-		default : chan->ant = RIG_ANT_NONE;
+	case '0': chan->ant = RIG_ANT_1; break;
+	case '4': chan->ant = RIG_ANT_3; break;
+	case '8': chan->ant = RIG_ANT_2; break;
+	default : chan->ant = RIG_ANT_NONE;
 	}
 
 	switch(mdbuf[8] & 0x37){
-		case '0': chan->width = s_Hz(500); break;
-		case '1': chan->width = s_Hz(1800); break;
-		case '2': chan->width = s_Hz(2300); break;
-		case '3': chan->width = s_Hz(4000); break;
-		case '4': chan->width = s_Hz(6000); break;
-		default : chan->width = RIG_PASSBAND_NORMAL;
+	case '0': chan->width = s_Hz(500); break;
+	case '1': chan->width = s_Hz(1800); break;
+	case '2': chan->width = s_Hz(2300); break;
+	case '3': chan->width = s_Hz(4000); break;
+	case '4': chan->width = s_Hz(6000); break;
+	default : chan->width = RIG_PASSBAND_NORMAL;
 	}
 
 	if ((mdbuf[8] >= '0') && (mdbuf[8] <= '4')) {
 		switch(mdbuf[7] & 0x33){
-	  		case '0': chan->mode = RIG_MODE_LSB; break;
-			case '1': chan->mode = RIG_MODE_RTTY; break;
-			case '2': chan->mode = RIG_MODE_FM;
-						chan->width = s_Hz(12000); break;
-			default : chan->mode = RIG_MODE_NONE;
+		case '0': chan->mode = RIG_MODE_LSB; break;
+		case '1': chan->mode = RIG_MODE_RTTY; break;
+		case '2': chan->mode = RIG_MODE_FM;
+			chan->width = s_Hz(12000); break;
+		default : chan->mode = RIG_MODE_NONE;
 		}
 	} else {
 		switch(mdbuf[7] & 0x33){
-			case '0': chan->mode = RIG_MODE_USB; break;
-			case '1': chan->mode = RIG_MODE_CW; break;
-			case '2': chan->mode = RIG_MODE_AM; break;
-			default : chan->mode = RIG_MODE_NONE;
+		case '0': chan->mode = RIG_MODE_USB; break;
+		case '1': chan->mode = RIG_MODE_CW; break;
+		case '2': chan->mode = RIG_MODE_AM; break;
+		default : chan->mode = RIG_MODE_NONE;
 		}
 	}
 
@@ -670,8 +682,7 @@ int drake_get_chan(RIG *rig, channel_t *chan)
 		retval = drake_set_vfo(rig, RIG_VFO_VFO);
 		if (retval != RIG_OK)
 			return retval;
-	}
-	else {
+	} else {
 		retval = drake_set_mem(rig, RIG_VFO_CURR, old_chan);
 		if (retval != RIG_OK)
 			return retval;
@@ -759,28 +770,29 @@ int drake_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         char mc;
 
 	retval = drake_transaction (rig, "RM" EOM, 3, mdbuf, &mdbuf_len);
+
 	if (retval != RIG_OK)
-	  return retval;
+		return retval;
 
 	if (mdbuf_len != 8) {
-	  rig_debug(RIG_DEBUG_ERR,"drake_get_func: wrong answer %s, "
-		    "len=%d\n", mdbuf, mdbuf_len);
-	  return -RIG_ERJCTED;
+		rig_debug(RIG_DEBUG_ERR,"drake_get_func: wrong answer %s, "
+			  "len=%d\n", mdbuf, mdbuf_len);
+		return -RIG_ERJCTED;
 	}
 
 	switch(func) {
 	case RIG_FUNC_MN:
-	  mc = mdbuf[2];
-	  *status = ((mc & 0x32) =='2');
-	  break;
+		mc = mdbuf[2];
+		*status = ((mc & 0x32) =='2');
+		break;
 	case RIG_FUNC_NB:
-	  /* TODO: NB narrow */
-	  mc = mdbuf[1];
-	  *status = ((mc >= '4') && (mc <= '?'));
-	  break;
+		/* TODO: NB narrow */
+		mc = mdbuf[1];
+		*status = ((mc >= '4') && (mc <= '?'));
+		break;
 	default:
-	  rig_debug(RIG_DEBUG_ERR,"Unsupported get func %d\n",func);
-	  return -RIG_EINVAL;
+		rig_debug(RIG_DEBUG_ERR,"Unsupported get func %d\n",func);
+		return -RIG_EINVAL;
 	}
 
 	return RIG_OK;
@@ -804,8 +816,8 @@ int drake_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		break;
 	case RIG_LEVEL_AGC:
 		len = sprintf(buf,"A%c" EOM,
-				val.i==RIG_AGC_OFF?'O':
-				(val.i==RIG_AGC_FAST?'F':'S'));
+			      val.i==RIG_AGC_OFF?'O':
+			      (val.i==RIG_AGC_FAST?'F':'S'));
 		break;
 	default:
 		return -RIG_EINVAL;
@@ -827,73 +839,73 @@ int drake_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	char mc;
 
 	if ((level != RIG_LEVEL_RAWSTR)&&(level != RIG_LEVEL_STRENGTH)) {
-	  retval = drake_transaction (rig, "RM" EOM, 3, lvlbuf, &lvl_len);
-	  if (retval != RIG_OK)
-	    return retval;
+		retval = drake_transaction (rig, "RM" EOM, 3, lvlbuf, &lvl_len);
+		if (retval != RIG_OK)
+			return retval;
 
-	  if (lvl_len != 8) {
-	    rig_debug(RIG_DEBUG_ERR,"drake_get_level: wrong answer %s, "
-		      "len=%d\n", lvlbuf, lvl_len);
-	    return -RIG_ERJCTED;
-	  }
+		if (lvl_len != 8) {
+			rig_debug(RIG_DEBUG_ERR,"drake_get_level: wrong answer %s, "
+				  "len=%d\n", lvlbuf, lvl_len);
+			return -RIG_ERJCTED;
+		}
 	}
 
 	switch(level) {
 	case RIG_LEVEL_RAWSTR:
-	  retval = drake_transaction (rig, "RSS" EOM, 4, lvlbuf, &lvl_len);
-	  if (retval != RIG_OK)
-	    return retval;
+		retval = drake_transaction (rig, "RSS" EOM, 4, lvlbuf, &lvl_len);
+		if (retval != RIG_OK)
+			return retval;
 
-	  if (lvl_len != 5) {
-	    rig_debug(RIG_DEBUG_ERR,"drake_get_level: wrong answer"
-		      "len=%d\n", lvl_len);
-	    return -RIG_ERJCTED;
-	  }
+		if (lvl_len != 5) {
+			rig_debug(RIG_DEBUG_ERR,"drake_get_level: wrong answer"
+				  "len=%d\n", lvl_len);
+			return -RIG_ERJCTED;
+		}
 
-	  lvlbuf[3] = '\0';
-	  val->i =  strtol(lvlbuf+1, (char **)NULL, 16);
-	  break;
+		lvlbuf[3] = '\0';
+		val->i =  strtol(lvlbuf+1, (char **)NULL, 16);
+		break;
 	case RIG_LEVEL_STRENGTH:
-	  retval = drake_transaction (rig, "RSS" EOM, 4, lvlbuf, &lvl_len);
-	  if (retval != RIG_OK)
-	    return retval;
+		retval = drake_transaction (rig, "RSS" EOM, 4, lvlbuf, &lvl_len);
+		if (retval != RIG_OK)
+			return retval;
 
-	  if (lvl_len != 5) {
-	    rig_debug(RIG_DEBUG_ERR,"drake_get_level: wrong answer"
-		      "len=%d\n", lvl_len);
-	    return -RIG_ERJCTED;
-	  }
+		if (lvl_len != 5) {
+			rig_debug(RIG_DEBUG_ERR,"drake_get_level: wrong answer"
+				  "len=%d\n", lvl_len);
+			return -RIG_ERJCTED;
+		}
 
-	  lvlbuf[3] = '\0';
-	  ss =  strtol(lvlbuf+1, (char **)NULL, 16);
-	  val->i = (int)rig_raw2val(ss,&rig->caps->str_cal);
-	  break;
+		lvlbuf[3] = '\0';
+		ss =  strtol(lvlbuf+1, (char **)NULL, 16);
+		val->i = (int)rig_raw2val(ss,&rig->caps->str_cal);
+		break;
 	case RIG_LEVEL_PREAMP:
-	  mc = lvlbuf[2];
-	  if ((mc & 0x3c) == '8')
-	    val->i = 10;
-	  else
-	    val->i = 0;
-	  break;
+		mc = lvlbuf[2];
+		if ((mc & 0x3c) == '8')
+			val->i = 10;
+		else
+			val->i = 0;
+		break;
 	case RIG_LEVEL_ATT:
-	  mc = lvlbuf[2];
-	  if ((mc & 0x3c) =='4')
-	    val->i = 10;
-	  else
-	    val->i = 0;
-	  break;
+		mc = lvlbuf[2];
+		if ((mc & 0x3c) =='4')
+			val->i = 10;
+		else
+			val->i = 0;
+		break;
 	case RIG_LEVEL_AGC:
-	  mc = lvlbuf[1];
-	  switch(mc & 0x33){
-	  case '0': val->i = RIG_AGC_OFF; break;
-	  case '2': val->i = RIG_AGC_FAST; break;
-	  case '3': val->i = RIG_AGC_SLOW; break;
-	  default : val->i = RIG_AGC_FAST;
-	  }
-	  break;
+		mc = lvlbuf[1];
+		switch(mc & 0x33){
+		case '0': val->i = RIG_AGC_OFF; break;
+		case '2': val->i = RIG_AGC_FAST; break;
+		case '3': val->i = RIG_AGC_SLOW; break;
+		default : val->i = RIG_AGC_FAST;
+		}
+		break;
 	default:
-	  rig_debug(RIG_DEBUG_ERR,"Unsupported get_level %d\n",level);
-	  return -RIG_EINVAL;
+		rig_debug(RIG_DEBUG_ERR,"Unsupported get_level %d\n",level);
+		return -RIG_EINVAL;
 	}
 
 	return RIG_OK;
@@ -917,8 +929,9 @@ int drake_get_powerstat (RIG * rig, powerstat_t *status)
         char mdbuf[BUFSZ];
 
 	retval = drake_transaction (rig, "RM" EOM, 3, mdbuf, &mdlen);
+
 	if (retval != RIG_OK)
-	  return retval;
+		return retval;
 
 	*status = (mdlen == 8);
 
@@ -937,6 +950,7 @@ const char *drake_get_info(RIG *rig)
 	int retval, id_len;
 
 	retval = drake_transaction(rig, "ID" EOM, 3, idbuf, &id_len);
+
 	if (retval != RIG_OK)
 		return NULL;
 
@@ -979,6 +993,7 @@ DECLARE_PROBERIG_BACKEND(drake)
 	port->retry = 1;
 
 	retval = serial_open(port);
+
 	if (retval != RIG_OK)
 		return RIG_MODEL_NONE;
 
@@ -1008,8 +1023,8 @@ DECLARE_PROBERIG_BACKEND(drake)
 	 */
 	if (memcmp(idbuf, "ID" EOM, 3)) /* catch loopback serial */
 		rig_debug(RIG_DEBUG_VERBOSE,"probe_drake: found unknown device "
-				"with ID '%s', please report to Hamlib "
-				"developers.\n", idbuf);
+			  "with ID '%s', please report to Hamlib "
+			  "developers.\n", idbuf);
 
 	return RIG_MODEL_NONE;
 }
