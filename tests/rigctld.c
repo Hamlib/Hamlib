@@ -169,6 +169,7 @@ int main (int argc, char *argv[])
 
 	struct addrinfo hints, *result, *saved_result;
 	int sock_listen;
+	int sockopt;
 	int reuseaddr = 1;
 	char host[NI_MAXHOST];
 	char serv[NI_MAXSERV];
@@ -402,7 +403,7 @@ int main (int argc, char *argv[])
 		exit(1);
 	}
 
-	int sockopt = SO_SYNCHRONOUS_NONALERT;
+	sockopt = SO_SYNCHRONOUS_NONALERT;
 	setsockopt(INVALID_SOCKET, SOL_SOCKET, SO_OPENTYPE, (char *)&sockopt, sizeof(sockopt));
 #endif
 
@@ -439,14 +440,17 @@ int main (int argc, char *argv[])
 				exit (1);
 			}
 
-#if defined(__MINGW32__) && HAVE_WS2TCPIP_H
-			/* allow IPv4 mapped to IPv6 clients, MS default this to 1! */
-			sockopt = 0;
-      if (setsockopt(sock_listen, IPPROTO_IPV6, IPV6_V6ONLY,
-										 (char *)&sockopt, sizeof(sockopt)) < 0) {
-				handle_error (RIG_DEBUG_ERR, "setsockopt");
-				freeaddrinfo(saved_result);		/* No longer needed */
-				exit (1);
+#ifdef IPV6_V6ONLY
+			if (AF_INET6 == result->ai_family) {
+				/* allow IPv4 mapped to IPv6 clients Windows and BSD default
+					 this to 1 (i.e. disallowed) and we prefer it off */
+				sockopt = 0;
+				if (setsockopt(sock_listen, IPPROTO_IPV6, IPV6_V6ONLY,
+											 (char *)&sockopt, sizeof(sockopt)) < 0) {
+					handle_error (RIG_DEBUG_ERR, "setsockopt");
+					freeaddrinfo(saved_result);		/* No longer needed */
+					exit (1);
+				}
 			}
 #endif
 
@@ -588,7 +592,9 @@ void * handle_socket(void *arg)
 						host, serv);
 
 	fclose(fsockin);
+#ifndef __MINGW32__
 	fclose(fsockout);
+#endif
 
 handle_exit:
 #ifdef __MINGW32__
