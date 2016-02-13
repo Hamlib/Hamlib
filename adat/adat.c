@@ -2585,9 +2585,9 @@ int adat_transaction( RIG                *pRig,
                     rig_debug( RIG_DEBUG_TRACE,
                               "*** ADAT: %d Sending command string ... \n",
                               gFnLevel );
-
-                    if( pCmd->pacCmdStrs != NULL )
-                    {
+// TODO: Quell clang warning of conditional always evaluating to true.
+//                    if( pCmd->pacCmdStrs != NULL )
+//                    {
                         int  nJ       = 0;
 
                         if( pCmd->nNrCmdStrs > 0 )
@@ -2622,7 +2622,7 @@ int adat_transaction( RIG                *pRig,
                                 nJ++;
                             }
                         }
-                    }
+//                    }
                 }
 
                 if( nRC != RIG_OK )
