@@ -33,7 +33,7 @@
 
 #ifdef _WIN32
 #define USE_FTDI_DLL
-#elif defined(HAVE_LIBUSB) && defined(HAVE_USB_H)
+#elif defined(HAVE_LIBUSB) && defined(HAVE_LIBUSB_H)
 #define USE_LIBUSB
 #endif
 
@@ -145,7 +145,7 @@ struct elektor507_extra_priv_data {
 
 
 #include <errno.h>
-#include <usb.h>
+#include <libusb.h>
 
 
 #define USB_VID_FTDI		0x0403	/* Future Technology Devices International */
@@ -236,7 +236,7 @@ int elektor507_init(RIG *rig)
 
 	if (!extra_priv->dll) {
 		rig_debug(RIG_DEBUG_ERR, "%s: Unable to LoadLibrary %s\n",
-				__FUNCTION__, ELEKTOR507_DLL);
+				__func__, ELEKTOR507_DLL);
 		free(priv);
 		return -RIG_EIO;	/* huh! */
 	}
@@ -273,7 +273,7 @@ int elektor507_ftdi_write_data(RIG *rig, void *FTOutBuf, unsigned long BufferSiz
 	FT_Result ret;
 	int Result;
 
-	rig_debug(RIG_DEBUG_TRACE,"%s called, %d bytes\n", __FUNCTION__, BufferSize);
+	rig_debug(RIG_DEBUG_TRACE,"%s called, %d bytes\n", __func__, BufferSize);
 
 	/* Open FTDI */
 	ret = extra_priv->FT_Open(0, &extra_priv->ftHandle);
@@ -376,32 +376,36 @@ int elektor507_cleanup(RIG *rig)
 	return RIG_OK;
 }
 
+/* Rem: not reentrant */
 const char * elektor507_get_info(RIG *rig)
 {
 	static char buf[64];
-	struct usb_dev_handle *udh = rig->state.rigport.handle;
-	struct usb_device *q = usb_device(udh);
+	libusb_device_handle *udh = rig->state.rigport.handle;
+	struct libusb_device_descriptor desc;
 
-	sprintf(buf, "USB dev %04d", q->descriptor.bcdDevice);
+	/* always succeeds since libusb-1.0.16 */
+	libusb_get_device_descriptor(libusb_get_device(udh), &desc);
+
+	sprintf(buf, "USB dev %04d", desc.bcdDevice);
 
 	return buf;
 }
 
 int elektor507_libusb_setup(RIG *rig)
 {
-	struct usb_dev_handle *udh = rig->state.rigport.handle;
+	libusb_device_handle *udh = rig->state.rigport.handle;
 	int ret;
 	unsigned short index=0, usb_val;
 
-	rig_debug(RIG_DEBUG_TRACE,"%s called\n", __FUNCTION__);
+	rig_debug(RIG_DEBUG_TRACE,"%s called\n", __func__);
 
 	/* Reset the ftdi device */
 #if 1
-	ret =  usb_control_msg(udh, 0x40, 0, 0, index, NULL, 0, FTDI_USB_WRITE_TIMEOUT);
+	ret =  libusb_control_transfer(udh, 0x40, 0, 0, index, NULL, 0, FTDI_USB_WRITE_TIMEOUT);
 	if (ret != 0) {
-		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg reset failed: %s\n",
-					__FUNCTION__,
-					usb_strerror ());
+		rig_debug (RIG_DEBUG_ERR, "%s: libusb_control_transfer reset failed: %s\n",
+					__func__,
+					libusb_error_name (ret));
 		return -RIG_EIO;
 	}
 #endif
@@ -412,11 +416,11 @@ int elektor507_libusb_setup(RIG *rig)
 	usb_val = 0xff; /* low byte: bitmask */
 	usb_val |= (0x01 << 8); /* Basic bitbang_mode: 0x01 */
 
-	ret = usb_control_msg(udh, 0x40, 0x0B, usb_val, index, NULL, 0, FTDI_USB_WRITE_TIMEOUT);
+	ret = libusb_control_transfer(udh, 0x40, 0x0B, usb_val, index, NULL, 0, FTDI_USB_WRITE_TIMEOUT);
 	if (ret != 0) {
-		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg bitbangmode failed: %s\n",
-					__FUNCTION__,
-					usb_strerror ());
+		rig_debug (RIG_DEBUG_ERR, "%s: libusb_control_transfer bitbangmode failed: %s\n",
+					__func__,
+					libusb_error_name (ret));
 		return -RIG_EIO;
 	}
 
@@ -426,11 +430,11 @@ int elektor507_libusb_setup(RIG *rig)
 	 */
 	usb_val = 49230;	/* magic value for 38400 bauds */
 	index = 0;
-	ret = usb_control_msg(udh, 0x40, 3, usb_val, index, NULL, 0, FTDI_USB_WRITE_TIMEOUT);
+	ret = libusb_control_transfer(udh, 0x40, 3, usb_val, index, NULL, 0, FTDI_USB_WRITE_TIMEOUT);
 	if (ret != 0) {
-		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg baudrate failed: %s\n",
-					__FUNCTION__,
-					usb_strerror ());
+		rig_debug (RIG_DEBUG_ERR, "%s: libusb_control_transfer baudrate failed: %s\n",
+					__func__,
+					libusb_error_name (ret));
 		return -RIG_EIO;
 	}
 
@@ -439,18 +443,16 @@ int elektor507_libusb_setup(RIG *rig)
 
 int elektor507_ftdi_write_data(RIG *rig, void *FTOutBuf, unsigned long BufferSize)
 {
-	struct usb_dev_handle *udh = rig->state.rigport.handle;
-	int ret;
+	libusb_device_handle *udh = rig->state.rigport.handle;
+	int ret, actual_length;
 
-	rig_debug(RIG_DEBUG_TRACE,"%s called, %d bytes\n", __FUNCTION__, BufferSize);
+	rig_debug(RIG_DEBUG_TRACE,"%s called, %d bytes\n", __func__, BufferSize);
 
-	ret = usb_bulk_write(udh, FTDI_IN_EP, FTOutBuf, BufferSize, FTDI_USB_WRITE_TIMEOUT);
+	ret = libusb_bulk_transfer(udh, FTDI_IN_EP, FTOutBuf, BufferSize, &actual_length, FTDI_USB_WRITE_TIMEOUT);
 	if (ret < 0) {
-		/* we get EPIPE if the firmware stalls the endpoint. */
-		if (errno != EPIPE)
-			rig_debug (RIG_DEBUG_ERR,
-					"usb_bulk_write failed: %s\n",
-					usb_strerror ());
+		rig_debug (RIG_DEBUG_ERR,
+				"usb_bulk_write failed: %s\n",
+				libusb_error_name (ret));
 		return -RIG_EIO;
 	}
 
@@ -495,7 +497,7 @@ const struct rig_caps elektor507_caps = {
 .rig_model =  RIG_MODEL_ELEKTOR507,
 .model_name = "Elektor SDR-USB",
 .mfg_name =  "Elektor",
-.version =  "0.3.1",
+.version =  "0.3.2",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_STABLE,
 .rig_type =  RIG_TYPE_TUNER,
@@ -625,7 +627,7 @@ int elektor507_open(RIG *rig)
 	struct elektor507_priv_data *priv = (struct elektor507_priv_data *)rig->state.priv;
 	int ret;
 
-	rig_debug(RIG_DEBUG_TRACE,"%s called\n", __FUNCTION__);
+	rig_debug(RIG_DEBUG_TRACE,"%s called\n", __func__);
 
 	/*
 	 * Setup the FT232R.
@@ -758,7 +760,7 @@ static void find_P_Q_DIV1N(struct elektor507_priv_data *priv, freq_t freq)
 	VCO = ((double)priv->osc_freq/priv->Q)*priv->P;
 	if (VCO < 100e3 || VCO > 400e3)
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: Unstable parameters for VCO=%.1f\n",
-			__FUNCTION__, VCO);
+			__func__, VCO);
 }
 #endif	/* ORIG_ALGORITHM */
 
@@ -826,7 +828,7 @@ static void find_P_Q_DIV1N(struct elektor507_priv_data *priv, freq_t freq)
 	VCO = ((double)priv->osc_freq/priv->Q)*priv->P;
 	if (VCO < vco_min || VCO > 400e3)
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: Unstable parameters for VCO=%.1f\n",
-			__FUNCTION__, VCO);
+			__func__, VCO);
 }
 #endif	/* default alternative to ORIG_ALGORITHM */
 
@@ -902,12 +904,12 @@ int elektor507_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 	elektor507_get_freq(rig, vfo, &final_freq);
 	rig_debug(RIG_DEBUG_VERBOSE, "%s: Freq=%.0f kHz, delta=%d Hz, Div1N=%d, P=%d, Q=%d, FREQ_ALGORITHM=%d\n",
-			__FUNCTION__, freq/kHz(1), (int)(final_freq-freq), priv->Div1N, priv->P, priv->Q, FREQ_ALGORITHM);
+			__func__, freq/kHz(1), (int)(final_freq-freq), priv->Div1N, priv->P, priv->Q, FREQ_ALGORITHM);
 
 	if ((double)priv->osc_freq/priv->Q < 250)
 		rig_debug(RIG_DEBUG_WARN,
 				"%s: Unstable parameters for REF/Qtotal=%.1f\n",
-			__FUNCTION__, (double)priv->osc_freq/priv->Q);
+			__func__, (double)priv->osc_freq/priv->Q);
 
 	ret = cy_update_pll(rig, CY_I2C_RAM_ADR);
 
@@ -990,7 +992,7 @@ int elektor507_set_ant(RIG * rig, vfo_t vfo, ant_t ant)
 	struct elektor507_priv_data *priv = (struct elektor507_priv_data *)rig->state.priv;
 	int ret, Mux;
 
-	rig_debug(RIG_DEBUG_TRACE,"%s called\n", __FUNCTION__);
+	rig_debug(RIG_DEBUG_TRACE,"%s called\n", __func__);
 
 	/*
 	 * FTDI: RTS, CTS, DTR
@@ -1240,7 +1242,7 @@ int load_ftdi_code(RIG *rig, unsigned char IICadr, const unsigned char code[])
 	int ret;
 	int i, j;
 
-	rig_debug(RIG_DEBUG_TRACE,"%s called\n", __FUNCTION__);
+	rig_debug(RIG_DEBUG_TRACE,"%s called\n", __func__);
 
 	for (i = 0; i<16; i++)
 	{

@@ -235,7 +235,7 @@ int dwtdll_init(RIG *rig)
 
 	if (!priv->dll) {
 		rig_debug(RIG_DEBUG_ERR, "%s: Unable to LoadLibrary %s\n",
-				__FUNCTION__, DWTDLL);
+				__func__, DWTDLL);
 		free(priv);
 		return -RIG_EIO;	/* huh! */
 	}
@@ -456,11 +456,11 @@ static const char* dwtdll_get_info(RIG *rig)
 }
 
 
-#elif defined(HAVE_LIBUSB) && defined(HAVE_USB_H)
+#elif defined(HAVE_LIBUSB) && defined(HAVE_LIBUSB_H)
 
 
 #include <errno.h>
-#include <usb.h>
+#include <libusb.h>
 
 #include "token.h"
 
@@ -495,7 +495,7 @@ const struct rig_caps dwt_caps = {
 .rig_model =  RIG_MODEL_DWT,
 .model_name = "Digital World Traveller",
 .mfg_name =  "Coding Technologies",
-.version =  "0.1",
+.version =  "0.2",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_TUNER,
@@ -583,7 +583,7 @@ int dwt_init(RIG *rig)
 #define MSG_LEN 16
 int dwt_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-	struct usb_dev_handle *udh = rig->state.rigport.handle;
+	libusb_device_handle *udh = rig->state.rigport.handle;
 	int request, value, index;
 	unsigned char buf[MSG_LEN] = { 0x4a, 0x00, 0x03, 0x00, 0xff, 0xff, 0x32 };
 	int requesttype, r;
@@ -597,27 +597,30 @@ int dwt_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 	buf[8] = ifreq & 0xff;
 	buf[7] = (ifreq>>8) & 0xff;
-	r = usb_control_msg (udh, requesttype, request, value, index,
-			   (char *) buf, 9, 1000);
+
+	r = libusb_control_transfer (udh, requesttype, request, value, index,
+			   buf, 9, 1000);
 	if (r < 0) {
-		/* we get EPIPE if the firmware stalls the endpoint. */
-		if (errno != EPIPE)
-			rig_debug (RIG_DEBUG_ERR,
-					"usb_control_msg failed: %s\n",
-					usb_strerror ());
+		rig_debug (RIG_DEBUG_ERR,
+				"libusb_control_transfer failed: %s\n",
+				libusb_error_name (r));
 		return -RIG_EIO;
 	}
 
 	return RIG_OK;
 }
 
+/* Rem: not reentrant */
 const char * dwt_get_info(RIG *rig)
 {
 	static char buf[64];
-	struct usb_dev_handle *udh = rig->state.rigport.handle;
-	struct usb_device *q = usb_device(udh);
+	libusb_device_handle *udh = rig->state.rigport.handle;
+	struct libusb_device_descriptor desc;
 
-	sprintf(buf, "Dev %04d", q->descriptor.bcdDevice);
+	/* always succeeds since libusb-1.0.16 */
+	libusb_get_device_descriptor(libusb_get_device(udh), &desc);
+
+	sprintf(buf, "Dev %04d", desc.bcdDevice);
 
 	return buf;
 }

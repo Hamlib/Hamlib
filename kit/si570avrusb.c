@@ -41,10 +41,10 @@
 /*
  * Compile this model only if libusb is available
  */
-#if defined(HAVE_LIBUSB) && defined(HAVE_USB_H)
+#if defined(HAVE_LIBUSB) && defined(HAVE_LIBUSB_H)
 
 #include <errno.h>
-#include <usb.h>
+#include <libusb.h>
 
 #include "si570avrusb.h"
 
@@ -146,7 +146,7 @@ const struct rig_caps si570avrusb_caps = {
 .rig_model =  RIG_MODEL_SI570AVRUSB,
 .model_name = "Si570 AVR-USB",
 .mfg_name =  "SoftRock",
-.version =  "0.2",
+.version =  "0.3",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TUNER,
@@ -222,7 +222,7 @@ const struct rig_caps si570peaberry1_caps = {
 .rig_model =  RIG_MODEL_SI570PEABERRY1,
 .model_name = "Si570 Peaberry V1",
 .mfg_name =  "AE9RB",
-.version =  "0.2",
+.version =  "0.3",
 .copyright =  "GPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TUNER,
@@ -379,7 +379,7 @@ const struct rig_caps si570picusb_caps = {
 .rig_model =  RIG_MODEL_SI570PICUSB,
 .model_name = "Si570 PIC-USB",
 .mfg_name =  "KTH-SDR kit",
-.version =  "0.2",
+.version =  "0.3",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TUNER,
@@ -459,7 +459,7 @@ const struct rig_caps fasdr_caps = {
 .rig_model =  RIG_MODEL_FASDR,
 .model_name = "FA-SDR",
 .mfg_name =  "Funkamatuer",
-.version =  "0.1",
+.version =  "0.2",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_FLAG_TUNER|RIG_FLAG_TRANSMITTER,
@@ -527,6 +527,9 @@ const struct rig_caps fasdr_caps = {
 
 };
 
+// libusb control transfer request types
+#define REQUEST_TYPE_IN (LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_IN)
+#define REQUEST_TYPE_OUT (LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT)
 
 /*
  * AVR-USB model
@@ -722,7 +725,7 @@ int fasdr_init(RIG *rig)
 int fasdr_open(RIG *rig)
 {
     struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)rig->state.priv;
-    struct usb_dev_handle *udh = rig->state.rigport.handle;
+    libusb_device_handle *udh = rig->state.rigport.handle;
     int ret,i;
     double f;
     unsigned char buffer[4];
@@ -731,22 +734,24 @@ int fasdr_open(RIG *rig)
     rig_debug(RIG_DEBUG_TRACE,"%s called\n", __func__);
 
 
-    ret = usb_control_msg(udh, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
+    ret = libusb_control_transfer(udh, REQUEST_TYPE_IN,
             REQUEST_READ_VERSION, 0x0E00, 0,
-            (char *) &version, sizeof(version), rig->state.rigport.timeout);
+            (unsigned char *) &version, sizeof(version), rig->state.rigport.timeout);
 
     if (ret != 2) {
-        rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg failed: %s\n",
+        rig_debug (RIG_DEBUG_ERR, "%s: libusb_control_transfer failed: %s\n",
                     __func__,
-                    usb_strerror ());
+                    libusb_error_name (ret));
         return -RIG_EIO;
     }
 
+	// Does version needs endianess ordering ?
+
     priv->version = version; // Unsure how to get firmware version
 
-    ret=usb_control_msg(udh,
-                        USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
-                        REQUEST_READ_EEPROM,F_CAL_STATUS,0,(char *) buffer,1,
+    ret=libusb_control_transfer(udh,
+                        REQUEST_TYPE_IN,
+                        REQUEST_READ_EEPROM,F_CAL_STATUS,0, buffer,1,
                         rig->state.rigport.timeout);
     if( ret !=1)
        return -RIG_EIO;
@@ -754,9 +759,9 @@ int fasdr_open(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE,"%s: calibration byte %x", __func__,buffer[0]);
 
-//        ret = usb_control_msg(udh,
-//                USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
-//                REQUEST_READ_XTALL, 0, 0, (char *) &iFreq, sizeof(iFreq),
+//        ret = libusb_control_transfer(udh,
+//                REQUEST_TYPE_IN,
+//                REQUEST_READ_XTALL, 0, 0, (unsigned char *) &iFreq, sizeof(iFreq),
 //                rig->state.rigport.timeout);
     if(buffer[0] == 0xFF )
     {
@@ -765,9 +770,9 @@ int fasdr_open(RIG *rig)
     }
     for(i=0; i<4; i++)
     {
-        ret = usb_control_msg(udh,
-                USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
-                              REQUEST_READ_EEPROM,F_CRYST + i, 0,(char *) &buffer[i], 1,
+        ret = libusb_control_transfer(udh,
+                REQUEST_TYPE_IN,
+                              REQUEST_READ_EEPROM,F_CRYST + i, 0, &buffer[i], 1,
                 rig->state.rigport.timeout);
         if (ret != 1)
             return -RIG_EIO;
@@ -866,15 +871,17 @@ int si570xxxusb_get_conf(RIG *rig, token_t token, char *val)
 
 static int setBPF(RIG *rig, int enable)
 {
-	struct usb_dev_handle *udh = rig->state.rigport.handle;
+	libusb_device_handle *udh = rig->state.rigport.handle;
     /* allocate enough space for up to 16 filters */
 	unsigned short FilterCrossOver[16];
 	int nBytes, i;
 
+	// Does FilterCrossOver needs endianess ordering ?
+
 	// first find out how may cross over points there are for the 1st bank, use 255 for index
-	nBytes = usb_control_msg(udh, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
+	nBytes = libusb_control_transfer(udh, REQUEST_TYPE_IN,
             REQUEST_FILTERS, 0, 255,
-            (char *) FilterCrossOver, sizeof(FilterCrossOver),
+            (unsigned char *) FilterCrossOver, sizeof(FilterCrossOver),
             rig->state.rigport.timeout);
 
     if (nBytes < 0)
@@ -882,9 +889,9 @@ static int setBPF(RIG *rig, int enable)
 
 	if (nBytes > 2) {
 
-		nBytes = usb_control_msg(udh, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
+		nBytes = libusb_control_transfer(udh, REQUEST_TYPE_IN,
                 REQUEST_FILTERS, enable, (nBytes / 2) - 1,
-                (char *) FilterCrossOver, sizeof(FilterCrossOver),
+                (unsigned char *) FilterCrossOver, sizeof(FilterCrossOver),
                 rig->state.rigport.timeout);
         if (nBytes < 0)
             return -RIG_EIO;
@@ -903,7 +910,7 @@ static int setBPF(RIG *rig, int enable)
 int si570xxxusb_open(RIG *rig)
 {
 	struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)rig->state.priv;
-	struct usb_dev_handle *udh = rig->state.rigport.handle;
+	libusb_device_handle *udh = rig->state.rigport.handle;
 	int ret;
 	unsigned short version;
 
@@ -913,14 +920,14 @@ int si570xxxusb_open(RIG *rig)
 	 * Determine firmware
 	 */
 
-	ret = usb_control_msg(udh, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
+	ret = libusb_control_transfer(udh, REQUEST_TYPE_IN,
 			REQUEST_READ_VERSION, 0x0E00, 0,
-			(char *) &version, sizeof(version), rig->state.rigport.timeout);
+			(unsigned char *) &version, sizeof(version), rig->state.rigport.timeout);
 
 	if (ret != 2) {
-		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg failed: %s\n",
+		rig_debug (RIG_DEBUG_ERR, "%s: libusb_control_transfer failed: %s\n",
 					__func__,
-					usb_strerror ());
+					libusb_error_name (ret));
 		return -RIG_EIO;
 	}
 
@@ -931,9 +938,9 @@ int si570xxxusb_open(RIG *rig)
 
 		rig_debug(RIG_DEBUG_VERBOSE,"%s: detected PE0FKO-like firmware\n", __func__);
 
-		ret = usb_control_msg(udh,
-				USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
-				REQUEST_READ_XTALL, 0, 0, (char *) &iFreq, sizeof(iFreq),
+		ret = libusb_control_transfer(udh,
+				REQUEST_TYPE_IN,
+				REQUEST_READ_XTALL, 0, 0, (unsigned char *) &iFreq, sizeof(iFreq),
 				rig->state.rigport.timeout);
 
 		if (ret != 4)
@@ -955,31 +962,34 @@ int si570xxxusb_open(RIG *rig)
 }
 
 
+/* Rem: not reentrant */
 const char * si570xxxusb_get_info(RIG *rig)
 {
 	static char buf[64];
-	struct usb_dev_handle *udh = rig->state.rigport.handle;
-	struct usb_device *q = usb_device(udh);
+	libusb_device_handle *udh = rig->state.rigport.handle;
+	struct libusb_device_descriptor desc;
     int ret;
 	unsigned short version;
 
-	ret = usb_control_msg(udh, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
+	ret = libusb_control_transfer(udh, REQUEST_TYPE_IN,
 			REQUEST_READ_VERSION, 0x0E00, 0,
-			(char *) &version, sizeof(version), rig->state.rigport.timeout);
+			(unsigned char *) &version, sizeof(version), rig->state.rigport.timeout);
 
 	if (ret != 2) {
-		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg failed: %s\n",
+		rig_debug (RIG_DEBUG_ERR, "%s: libusb_control_transfer failed: %s\n",
 					__func__,
-					usb_strerror ());
+					libusb_error_name (ret));
 		return NULL;
 	}
 
-	sprintf(buf, "USB dev %04d, version: %d.%d", q->descriptor.bcdDevice,
+	/* always succeeds since libusb-1.0.16 */
+	libusb_get_device_descriptor(libusb_get_device(udh), &desc);
+
+	sprintf(buf, "USB dev %04d, version: %d.%d", desc.bcdDevice,
 			(version & 0xFF00) >> 8, version & 0xFF);
 
 	return buf;
 }
-
 
 static const int HS_DIV_MAP[] = {4,5,6,7,-1,9,-1,11};
 
@@ -1057,7 +1067,7 @@ static void setLongWord(uint32_t value, unsigned char * bytes)
 int si570xxxusb_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
 	struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)rig->state.priv;
-	struct usb_dev_handle *udh = rig->state.rigport.handle;
+	libusb_device_handle *udh = rig->state.rigport.handle;
 	int ret;
 	unsigned char buffer[6];
 	int request = REQUEST_SET_FREQ;
@@ -1093,8 +1103,8 @@ int si570xxxusb_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	buffer[0] = theSolution.N1 / 4;
 	buffer[0] = buffer[0] + (theSolution.HS_DIV << 5);
 
-	ret = usb_control_msg(udh, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_OUT,
-			request, value, index, (char*)buffer, sizeof(buffer), rig->state.rigport.timeout);
+	ret = libusb_control_transfer(udh, REQUEST_TYPE_OUT,
+			request, value, index, buffer, sizeof(buffer), rig->state.rigport.timeout);
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: Freq=%.6f MHz, Real=%.6f MHz, buf=%02x%02x%02x%02x%02x%02x\n",
 			__func__, freq/1e6, f,
@@ -1102,9 +1112,9 @@ int si570xxxusb_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 
 	if (!ret) {
-		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg failed: %s\n",
+		rig_debug (RIG_DEBUG_ERR, "%s: libusb_control_transfer failed: %s\n",
 					__func__,
-					usb_strerror ());
+					libusb_error_name (ret));
 		return -RIG_EIO;
 	}
 
@@ -1117,7 +1127,7 @@ int si570xxxusb_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 int si570xxxusb_set_freq_by_value(RIG *rig, vfo_t vfo, freq_t freq)
 {
 	struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)rig->state.priv;
-	struct usb_dev_handle *udh = rig->state.rigport.handle;
+	libusb_device_handle *udh = rig->state.rigport.handle;
 	int ret;
 
 	unsigned char buffer[4];
@@ -1134,13 +1144,13 @@ int si570xxxusb_set_freq_by_value(RIG *rig, vfo_t vfo, freq_t freq)
 			__func__, freq/1e6, f,
 			buffer[0], buffer[1], buffer[2], buffer[3]);
 
-	ret = usb_control_msg(udh, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_OUT,
-			request, value, index, (char*)buffer, sizeof(buffer), rig->state.rigport.timeout);
+	ret = libusb_control_transfer(udh, REQUEST_TYPE_OUT,
+			request, value, index, buffer, sizeof(buffer), rig->state.rigport.timeout);
 
 	if (!ret) {
-		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg failed: %s\n",
+		rig_debug (RIG_DEBUG_ERR, "%s: libusb_control_transfer failed: %s\n",
 					__func__,
-					usb_strerror ());
+					libusb_error_name (ret));
 		return -RIG_EIO;
 	}
 
@@ -1182,7 +1192,7 @@ static double calculateFrequency(RIG *rig, const unsigned char * buffer)
 int si570xxxusb_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 	struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)rig->state.priv;
-	struct usb_dev_handle *udh = rig->state.rigport.handle;
+	libusb_device_handle *udh = rig->state.rigport.handle;
 	unsigned char buffer[6];
 	int ret;
 
@@ -1190,14 +1200,14 @@ int si570xxxusb_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 			rig->caps->rig_model == RIG_MODEL_SI570PEABERRY1 || rig->caps->rig_model == RIG_MODEL_SI570PEABERRY2)
 		return si570xxxusb_get_freq_by_value(rig, vfo, freq);
 
-	ret = usb_control_msg(udh, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
+	ret = libusb_control_transfer(udh, REQUEST_TYPE_IN,
 			REQUEST_READ_REGISTERS, priv->i2c_addr, 0,
-			(char *)buffer, sizeof(buffer), rig->state.rigport.timeout);
+			buffer, sizeof(buffer), rig->state.rigport.timeout);
 
 	if (ret <= 0) {
-		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg failed: %s\n",
+		rig_debug (RIG_DEBUG_ERR, "%s: libusb_control_transfer failed: %s\n",
 					__func__,
-					usb_strerror ());
+					libusb_error_name (ret));
 		return -RIG_EIO;
 	}
 
@@ -1209,18 +1219,20 @@ int si570xxxusb_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 int si570xxxusb_get_freq_by_value(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 	struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)rig->state.priv;
-	struct usb_dev_handle *udh = rig->state.rigport.handle;
+	libusb_device_handle *udh = rig->state.rigport.handle;
 	int ret;
 	uint32_t iFreq;
 
-	ret = usb_control_msg(udh, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
+	// Does iFreq needs endianess ordering ?
+
+	ret = libusb_control_transfer(udh, REQUEST_TYPE_IN,
 			REQUEST_READ_FREQUENCY, 0, 0,
-			(char *)&iFreq, sizeof(iFreq), rig->state.rigport.timeout);
+			(unsigned char *)&iFreq, sizeof(iFreq), rig->state.rigport.timeout);
 
 	if (ret != 4) {
-		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg failed: %s\n",
+		rig_debug (RIG_DEBUG_ERR, "%s: libusb_control_transfer failed: %s\n",
 					__func__,
-					usb_strerror ());
+					libusb_error_name (ret));
 		return -RIG_EIO;
 	}
 
@@ -1232,9 +1244,9 @@ int si570xxxusb_get_freq_by_value(RIG *rig, vfo_t vfo, freq_t *freq)
 
 int si570xxxusb_set_ptt(RIG * rig, vfo_t vfo, ptt_t ptt)
 {
-	struct usb_dev_handle *udh = rig->state.rigport.handle;
+	libusb_device_handle *udh = rig->state.rigport.handle;
 	int ret;
-	char buffer[3];
+	unsigned char buffer[3];
 
 	rig_debug(RIG_DEBUG_TRACE,"%s called: %d\n", __func__, ptt);
 
@@ -1242,17 +1254,17 @@ int si570xxxusb_set_ptt(RIG * rig, vfo_t vfo, ptt_t ptt)
 	buffer[1] = 0;
 	buffer[2] = 0;
 
-	ret = usb_control_msg(udh, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
+	ret = libusb_control_transfer(udh, REQUEST_TYPE_IN,
 			REQUEST_SET_PTT, (ptt == RIG_PTT_ON) ? 1 : 0, 0,
-			(char *)buffer, sizeof(buffer), rig->state.rigport.timeout);
+			buffer, sizeof(buffer), rig->state.rigport.timeout);
 	if (ret < 0) {
-		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg failed: %s\n",
+		rig_debug (RIG_DEBUG_ERR, "%s: libusb_control_transfer failed: %s\n",
 					__func__,
-					usb_strerror ());
+					libusb_error_name (ret));
 		return -RIG_EIO;
 	}
 
 	return RIG_OK;
 }
 
-#endif	/* defined(HAVE_LIBUSB) && defined(HAVE_USB_H) */
+#endif	/* defined(HAVE_LIBUSB) && defined(HAVE_LIBUSB_H) */

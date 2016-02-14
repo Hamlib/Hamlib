@@ -42,10 +42,10 @@
 /*
  * Compile this model only if libusb is available
  */
-#if defined(HAVE_LIBUSB) && defined(HAVE_USB_H)
+#if defined(HAVE_LIBUSB) && defined(HAVE_LIBUSB_H)
 
 #include <errno.h>
-#include <usb.h>
+#include <libusb.h>
 
 #include "funcube.h"
 
@@ -63,8 +63,8 @@ static const struct confparams funcube_cfg_params[] = {
 };
 
 // functions used set / read frequency, working on FUNcube version 0 and 1
-int set_freq_v0(usb_dev_handle *udh, unsigned int f, int timeout);
-int set_freq_v1(usb_dev_handle *udh, unsigned int f, int timeout);
+int set_freq_v0(libusb_device_handle *udh, unsigned int f, int timeout);
+int set_freq_v1(libusb_device_handle *udh, unsigned int f, int timeout);
 
 /*
  * Common data struct
@@ -86,7 +86,7 @@ const struct rig_caps funcube_caps = {
 .rig_model =  RIG_MODEL_FUNCUBEDONGLE,
 .model_name = "FUNcube Dongle",
 .mfg_name =  "AMSAT-UK",
-.version =  "0.2",
+.version =  "0.3",
 .copyright =  "GPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TUNER,
@@ -148,7 +148,7 @@ const struct rig_caps funcubeplus_caps = {
 .rig_model =  RIG_MODEL_FUNCUBEDONGLEPLUS,
 .model_name = "FUNcube Dongle Pro+",
 .mfg_name =  "AMSAT-UK",
-.version =  "0.2",
+.version =  "0.3",
 .copyright =  "GPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TUNER,
@@ -271,55 +271,60 @@ int funcube_cleanup(RIG *rig)
 	return RIG_OK;
 }
 
+/* Rem: not reentrant */
 const char * funcube_get_info(RIG *rig)
 {
 	static char buf[64];
-	struct usb_dev_handle *udh = rig->state.rigport.handle;
-	struct usb_device *q = usb_device(udh);
+	libusb_device_handle *udh = rig->state.rigport.handle;
+	struct libusb_device_descriptor desc;
 
-	sprintf(buf, "USB dev %04d", q->descriptor.bcdDevice);
+	/* always succeeds since libusb-1.0.16 */
+	libusb_get_device_descriptor(libusb_get_device(udh), &desc);
+
+	sprintf(buf, "Dev %04d", desc.bcdDevice);
 
 	return buf;
 }
 
-int set_freq_v0(usb_dev_handle *udh, unsigned int f, int timeout)
+int set_freq_v0(libusb_device_handle *udh, unsigned int f, int timeout)
 {
 	int ret;
+	int actual_length;
 
-	char au8BufOut[64]; // endpoint size
-	char au8BufIn[64];  // endpoint size
+	unsigned char au8BufOut[64]; // endpoint size
+	unsigned char au8BufIn[64];  // endpoint size
 
 	// frequency is in Hz, while the dongle expects it in kHz
-	f = f / 1e3;
+	f = f / 1000;
 
 	au8BufOut[0]=REQUEST_SET_FREQ; // Command to Set Frequency on dongle
-	au8BufOut[1]=(char)f;
-	au8BufOut[2]=(char)(f>>8);
-	au8BufOut[3]=(char)(f>>16);
+	au8BufOut[1]=(unsigned char)f;
+	au8BufOut[2]=(unsigned char)(f>>8);
+	au8BufOut[3]=(unsigned char)(f>>16);
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: HID packet set to %02x%02x%02x%02x\n",
-		__func__, (unsigned)au8BufOut[0] & 0xFF, (unsigned)au8BufOut[1] & 0xFF, (unsigned)au8BufOut[2] & 0xFF, (unsigned)au8BufOut[3] & 0xFF);
+		__func__, au8BufOut[0] & 0xFF, au8BufOut[1] & 0xFF, au8BufOut[2] & 0xFF, au8BufOut[3] & 0xFF);
 
-    ret = usb_interrupt_write(udh, OUTPUT_ENDPOINT, au8BufOut, sizeof(au8BufOut), timeout);
+    ret = libusb_interrupt_transfer(udh, OUTPUT_ENDPOINT, au8BufOut, sizeof(au8BufOut), &actual_length, timeout);
 
 	if( ret < 0 )
     {
-		rig_debug (RIG_DEBUG_ERR, "%s: usb_interrupt_write failed (%d): %s\n",
-					__func__,ret, usb_strerror ());
-					return -RIG_EIO;
+		rig_debug (RIG_DEBUG_ERR, "%s: libusb_interrupt_transfer failed (%d): %s\n",
+					__func__,ret, libusb_error_name (ret));
+		return -RIG_EIO;
     }
 
-    ret = usb_interrupt_read(udh, INPUT_ENDPOINT, au8BufIn, sizeof(au8BufIn), timeout);
+    ret = libusb_interrupt_transfer(udh, INPUT_ENDPOINT, au8BufIn, sizeof(au8BufIn), &actual_length, timeout);
 
-    if( ret != sizeof(au8BufIn) )
+    if( ret < 0 || actual_length != sizeof(au8BufIn) )
     {
-	rig_debug (RIG_DEBUG_ERR, "%s: usb_interrupt_read failed (%d): %s\n",
-					__func__, ret, usb_strerror ());
-					return -RIG_EIO;
+		rig_debug (RIG_DEBUG_ERR, "%s: libusb_interrupt_transfer failed (%d): %s\n",
+					__func__, ret, libusb_error_name (ret));
+		return -RIG_EIO;
     }
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: Answer buf=%02x%02x\n",
-		__func__, (unsigned)au8BufIn[0] & 0xFF, (unsigned)au8BufIn[1] & 0xFF);
+		__func__, au8BufIn[0] & 0xFF, au8BufIn[1] & 0xFF);
 
 	if (au8BufIn[1] != FUNCUBE_SUCCESS) {
 		rig_debug (RIG_DEBUG_ERR, "%s: REQUEST_SET_FREQ not supported\n",
@@ -330,46 +335,47 @@ int set_freq_v0(usb_dev_handle *udh, unsigned int f, int timeout)
 	return RIG_OK;
 }
 
-int set_freq_v1(usb_dev_handle *udh, unsigned int f, int timeout)
+int set_freq_v1(libusb_device_handle *udh, unsigned int f, int timeout)
 {
 	int ret;
+	int actual_length;
 
-	char au8BufOut[64]; // endpoint size
-	char au8BufIn[64];  // endpoint size
+	unsigned char au8BufOut[64]; // endpoint size
+	unsigned char au8BufIn[64];  // endpoint size
 
 	au8BufOut[0]=REQUEST_SET_FREQ_HZ; // Command to Set Frequency in Hz on dongle
-	au8BufOut[1]=(char)f;
-	au8BufOut[2]=(char)(f>>8);
-	au8BufOut[3]=(char)(f>>16);
-	au8BufOut[4]=(char)(f>>24);
+	au8BufOut[1]=(unsigned char)f;
+	au8BufOut[2]=(unsigned char)(f>>8);
+	au8BufOut[3]=(unsigned char)(f>>16);
+	au8BufOut[4]=(unsigned char)(f>>24);
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: HID packet set to %02x%02x%02x%02x%02x\n",
-		__func__, (unsigned)au8BufOut[0] & 0xFF, (unsigned)au8BufOut[1] & 0xFF, (unsigned)au8BufOut[2] & 0xFF, (unsigned)au8BufOut[3] & 0xFF,
-						(unsigned)au8BufOut[4] & 0xFF);
+		__func__, au8BufOut[0] & 0xFF, au8BufOut[1] & 0xFF, au8BufOut[2] & 0xFF, au8BufOut[3] & 0xFF,
+						au8BufOut[4] & 0xFF);
 
-    ret = usb_interrupt_write(udh, OUTPUT_ENDPOINT, au8BufOut, sizeof(au8BufOut), timeout);
+    ret = libusb_interrupt_transfer(udh, OUTPUT_ENDPOINT, au8BufOut, sizeof(au8BufOut), &actual_length, timeout);
 
 	if( ret < 0 )
     {
-		rig_debug (RIG_DEBUG_ERR, "%s: usb_interrupt_write failed (%d): %s\n",
+		rig_debug (RIG_DEBUG_ERR, "%s: libusb_interrupt_transfer failed (%d): %s\n",
 					__func__,ret,
-					usb_strerror ());
-					return -RIG_EIO;
+					libusb_error_name (ret));
+		return -RIG_EIO;
     }
 
-    ret = usb_interrupt_read(udh, INPUT_ENDPOINT, au8BufIn, sizeof(au8BufIn), timeout);
+    ret = libusb_interrupt_transfer(udh, INPUT_ENDPOINT, au8BufIn, sizeof(au8BufIn), &actual_length, timeout);
 
-    if( ret != sizeof(au8BufIn) )
+    if( ret < 0 || actual_length != sizeof(au8BufIn) )
     {
-	rig_debug (RIG_DEBUG_ERR, "%s: usb_interrupt_read failed (%d): %s\n",
+		rig_debug (RIG_DEBUG_ERR, "%s: libusb_interrupt_transfer failed (%d): %s\n",
 					__func__, ret,
-					usb_strerror ());
-					return -RIG_EIO;
+					libusb_error_name (ret));
+		return -RIG_EIO;
     }
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: Answer buf=%02x%02x%02x%02x%02x%02x\n",
-		__func__, (unsigned)au8BufIn[0] & 0xFF, (unsigned)au8BufIn[1] & 0xFF, (unsigned)au8BufIn[2] & 0xFF, (unsigned)au8BufIn[3] & 0xFF,
-						(unsigned)au8BufIn[4] & 0xFF, (unsigned)au8BufIn[5] & 0xFF);
+		__func__, au8BufIn[0] & 0xFF, au8BufIn[1] & 0xFF, au8BufIn[2] & 0xFF, au8BufIn[3] & 0xFF,
+						au8BufIn[4] & 0xFF, au8BufIn[5] & 0xFF);
 
 	if (au8BufIn[1] != FUNCUBE_SUCCESS) {
 		rig_debug (RIG_DEBUG_ERR, "%s: REQUEST_SET_FREQ_HZ not supported\n",
@@ -383,7 +389,7 @@ int set_freq_v1(usb_dev_handle *udh, unsigned int f, int timeout)
 int funcube_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
 	struct funcube_priv_data *priv = (struct funcube_priv_data *)rig->state.priv;
-	struct usb_dev_handle *udh = rig->state.rigport.handle;
+	libusb_device_handle *udh = rig->state.rigport.handle;
 	int ret;
 
 	if ((ret = set_freq_v1(udh, freq, rig->state.rigport.timeout)) != RIG_OK) {
@@ -410,39 +416,40 @@ int get_freq_v0(RIG *rig, vfo_t vfo, freq_t *freq)
 
 int get_freq_v1(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-	struct usb_dev_handle *udh = rig->state.rigport.handle;
+	libusb_device_handle *udh = rig->state.rigport.handle;
 	int ret;
 	unsigned int f;
+	int actual_length;
 
-	char au8BufOut[64]; // endpoint size
-	char au8BufIn[64];  // endpoint size
+	unsigned char au8BufOut[64]; // endpoint size
+	unsigned char au8BufIn[64];  // endpoint size
 
 	au8BufOut[0]=REQUEST_GET_FREQ_HZ; // Command to Set Frequency on dongle
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: HID packet set to %02x%02x%02x%02x\n",
-		__func__, (unsigned)au8BufOut[0] & 0xFF, (unsigned)au8BufOut[1] & 0xFF, (unsigned)au8BufOut[2] & 0xFF, (unsigned)au8BufOut[3] & 0xFF);
+		__func__, au8BufOut[0] & 0xFF, au8BufOut[1] & 0xFF, au8BufOut[2] & 0xFF, au8BufOut[3] & 0xFF);
 
-    ret = usb_interrupt_write(udh, OUTPUT_ENDPOINT, au8BufOut, sizeof(au8BufOut), rig->state.rigport.timeout);
+    ret = libusb_interrupt_transfer(udh, OUTPUT_ENDPOINT, au8BufOut, sizeof(au8BufOut), &actual_length, rig->state.rigport.timeout);
 
 	if( ret < 0 )
     {
-		rig_debug (RIG_DEBUG_ERR, "%s: usb_interrupt_write failed (%d): %s\n",
+		rig_debug (RIG_DEBUG_ERR, "%s: libusb_interrupt_transfer failed (%d): %s\n",
 					__func__,ret,
-					usb_strerror ());
+					libusb_error_name (ret));
     }
 
-    ret = usb_interrupt_read(udh, INPUT_ENDPOINT, au8BufIn, sizeof(au8BufIn), rig->state.rigport.timeout);
+    ret = libusb_interrupt_transfer(udh, INPUT_ENDPOINT, au8BufIn, sizeof(au8BufIn), &actual_length, rig->state.rigport.timeout);
 
-    if( ret != sizeof(au8BufIn) )
+    if( ret < 0 || actual_length != sizeof(au8BufIn) )
     {
-	rig_debug (RIG_DEBUG_ERR, "%s: usb_interrupt_read failed (%d): %s\n",
+		rig_debug (RIG_DEBUG_ERR, "%s: libusb_interrupt_transfer failed (%d): %s\n",
 					__func__, ret,
-					usb_strerror ());
+					libusb_error_name (ret));
     }
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: Answer buf=%02x%02x%02x%02x%02x%02x\n",
-		__func__, (unsigned)au8BufIn[0] & 0xFF, (unsigned)au8BufIn[1] & 0xFF, (unsigned)au8BufIn[2] & 0xFF, (unsigned)au8BufIn[3] & 0xFF,
-									(unsigned)au8BufIn[4] & 0xFF, (unsigned)au8BufIn[5] & 0xFF);
+		__func__, au8BufIn[0] & 0xFF, au8BufIn[1] & 0xFF, au8BufIn[2] & 0xFF, au8BufIn[3] & 0xFF,
+									au8BufIn[4] & 0xFF, au8BufIn[5] & 0xFF);
 
 	if (au8BufIn[1] != FUNCUBE_SUCCESS) {
 		rig_debug (RIG_DEBUG_ERR, "%s: REQUEST_GET_FREQ_HZ not supported\n",
@@ -450,8 +457,8 @@ int get_freq_v1(RIG *rig, vfo_t vfo, freq_t *freq)
 		return -RIG_EIO;
 	}
 
-	f = ((unsigned int)au8BufIn[2] & 0xFF) | (((unsigned int)au8BufIn[3] & 0xFF) << 8) |
-				(((unsigned int)au8BufIn[4] & 0xFF) << 16) | (((unsigned int)au8BufIn[5] & 0xFF) << 24),
+	f = (au8BufIn[2] & 0xFF) | ((au8BufIn[3] & 0xFF) << 8) |
+				((au8BufIn[4] & 0xFF) << 16) | ((au8BufIn[5] & 0xFF) << 24),
 
 	*freq = f;
 
@@ -471,10 +478,11 @@ int funcube_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 int funcube_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-	struct usb_dev_handle *udh = rig->state.rigport.handle;
+	libusb_device_handle *udh = rig->state.rigport.handle;
 	int ret;
-	char au8BufOut[64]; // endpoint size
-	char au8BufIn[64];  // endpoint size
+	int actual_length;
+	unsigned char au8BufOut[64]; // endpoint size
+	unsigned char au8BufIn[64];  // endpoint size
 
 	switch (level) {
 	case RIG_LEVEL_PREAMP:
@@ -525,28 +533,28 @@ int funcube_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 	}
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: HID packet set to %02x%02x%02x%02x\n",
-		__func__, (unsigned)au8BufOut[0] & 0xFF, (unsigned)au8BufOut[1] & 0xFF, (unsigned)au8BufOut[2] & 0xFF, (unsigned)au8BufOut[3] & 0xFF);
+		__func__, au8BufOut[0] & 0xFF, au8BufOut[1] & 0xFF, au8BufOut[2] & 0xFF, au8BufOut[3] & 0xFF);
 
-    ret = usb_interrupt_write(udh, OUTPUT_ENDPOINT, au8BufOut, sizeof(au8BufOut), rig->state.rigport.timeout);
+    ret = libusb_interrupt_transfer(udh, OUTPUT_ENDPOINT, au8BufOut, sizeof(au8BufOut), &actual_length, rig->state.rigport.timeout);
 
 	if( ret < 0 )
     {
-		rig_debug (RIG_DEBUG_ERR, "%s: usb_interrupt_write failed (%d): %s\n",
+		rig_debug (RIG_DEBUG_ERR, "%s: libusb_interrupt_transfer failed (%d): %s\n",
 					__func__,ret,
-					usb_strerror ());
+					libusb_error_name (ret));
     }
 
-    ret = usb_interrupt_read(udh, INPUT_ENDPOINT, au8BufIn, sizeof(au8BufIn), rig->state.rigport.timeout);
+    ret = libusb_interrupt_transfer(udh, INPUT_ENDPOINT, au8BufIn, sizeof(au8BufIn), &actual_length, rig->state.rigport.timeout);
 
-    if( ret != sizeof(au8BufIn) )
+    if( ret < 0 || actual_length != sizeof(au8BufIn) )
     {
-	rig_debug (RIG_DEBUG_ERR, "%s: usb_interrupt_read failed (%d): %s\n",
+		rig_debug (RIG_DEBUG_ERR, "%s: libusb_interrupt_transfer failed (%d): %s\n",
 					__func__, ret,
-					usb_strerror ());
+					libusb_error_name (ret));
     }
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: Answer buf=%02x%02x\n",
-		__func__, (unsigned)au8BufIn[0] & 0xFF, (unsigned)au8BufIn[1] & 0xFF);
+		__func__, au8BufIn[0] & 0xFF, au8BufIn[1] & 0xFF);
 
 	if (au8BufIn[1] != FUNCUBE_SUCCESS) {
 		rig_debug (RIG_DEBUG_ERR, "%s: REQUEST_GET_FREQ_HZ not supported\n",
@@ -558,10 +566,11 @@ int funcube_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 }
 int funcube_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-	struct usb_dev_handle *udh = rig->state.rigport.handle;
+	libusb_device_handle *udh = rig->state.rigport.handle;
 	int ret;
-	char au8BufOut[64]; // endpoint size
-	char au8BufIn[64];  // endpoint size
+	int actual_length;
+	unsigned char au8BufOut[64]; // endpoint size
+	unsigned char au8BufIn[64];  // endpoint size
 
 	switch (level) {
 	case RIG_LEVEL_ATT:
@@ -579,28 +588,28 @@ int funcube_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	}
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: HID packet set to %02x%02x%02x%02x\n",
-		__func__, (unsigned)au8BufOut[0] & 0xFF, (unsigned)au8BufOut[1] & 0xFF, (unsigned)au8BufOut[2] & 0xFF, (unsigned)au8BufOut[3] & 0xFF);
+		__func__, au8BufOut[0] & 0xFF, au8BufOut[1] & 0xFF, au8BufOut[2] & 0xFF, au8BufOut[3] & 0xFF);
 
-    ret = usb_interrupt_write(udh, OUTPUT_ENDPOINT, au8BufOut, sizeof(au8BufOut), rig->state.rigport.timeout);
+    ret = libusb_interrupt_transfer(udh, OUTPUT_ENDPOINT, au8BufOut, sizeof(au8BufOut), &actual_length, rig->state.rigport.timeout);
 
 	if( ret < 0 )
     {
-		rig_debug (RIG_DEBUG_ERR, "%s: usb_interrupt_write failed (%d): %s\n",
+		rig_debug (RIG_DEBUG_ERR, "%s: libusb_interrupt_transfer failed (%d): %s\n",
 					__func__,ret,
-					usb_strerror ());
+					libusb_error_name (ret));
     }
 
-    ret = usb_interrupt_read(udh, INPUT_ENDPOINT, au8BufIn, sizeof(au8BufIn), rig->state.rigport.timeout);
+    ret = libusb_interrupt_transfer(udh, INPUT_ENDPOINT, au8BufIn, sizeof(au8BufIn), &actual_length, rig->state.rigport.timeout);
 
-    if( ret != sizeof(au8BufIn) )
+    if( ret < 0 || actual_length != sizeof(au8BufIn) )
     {
-	rig_debug (RIG_DEBUG_ERR, "%s: usb_interrupt_read failed (%d): %s\n",
+		rig_debug (RIG_DEBUG_ERR, "%s: libusb_interrupt_transfer failed (%d): %s\n",
 					__func__, ret,
-					usb_strerror ());
+					libusb_error_name (ret));
     }
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: Answer buf=%02x%02x%02x\n",
-		__func__, (unsigned)au8BufIn[0] & 0xFF, (unsigned)au8BufIn[1] & 0xFF, (unsigned)au8BufIn[2] & 0xFF);
+		__func__, au8BufIn[0] & 0xFF, au8BufIn[1] & 0xFF, au8BufIn[2] & 0xFF);
 
 	if (au8BufIn[1] != FUNCUBE_SUCCESS) {
 		rig_debug (RIG_DEBUG_ERR, "%s: REQUEST_GET_FREQ_HZ not supported\n",
@@ -658,4 +667,4 @@ int funcube_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 	return RIG_OK;
 }
-#endif	/* defined(HAVE_LIBUSB) && defined(HAVE_USB_H) */
+#endif	/* defined(HAVE_LIBUSB) && defined(HAVE_LIBUSB_H) */

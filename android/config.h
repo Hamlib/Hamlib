@@ -222,8 +222,8 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #define HAVE_UNISTD_H 1
 
-/* Define to 1 if you have the <usb.h> header file. */
-#define HAVE_USB_H 1
+/* Define to 1 if you have the <libusb.h> header file. */
+#define HAVE_LIBUSB_H 1
 
 /* Define to 1 if you have the `usleep' function. */
 #define HAVE_USLEEP 1
