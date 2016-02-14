@@ -423,7 +423,7 @@ int optoscan_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
   struct optostat status_block;
   unsigned char lvlbuf[MAXFRAMELEN];
-  int lvl_len;
+  int lvl_len = 0;
   int lvl_cn, lvl_sc;		/* Command Number, Subcommand */
   int icom_val;
   int cmdhead;
