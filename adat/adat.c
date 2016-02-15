@@ -1124,17 +1124,17 @@ int adat_ptt_rnr2anr(ptt_t  nRIGPTTStatus,
 
 
 	switch (nRIGPTTStatus) {
-		case ADAT_PTT_STATUS_RNR_ON:
-			*nADATPTTStatus = ADAT_PTT_STATUS_ANR_ON;
-			break;
+	case ADAT_PTT_STATUS_RNR_ON:
+		*nADATPTTStatus = ADAT_PTT_STATUS_ANR_ON;
+		break;
 
-		case ADAT_PTT_STATUS_RNR_OFF:
-			*nADATPTTStatus = ADAT_PTT_STATUS_ANR_OFF;
-			break;
+	case ADAT_PTT_STATUS_RNR_OFF:
+		*nADATPTTStatus = ADAT_PTT_STATUS_ANR_OFF;
+		break;
 
-		default:
-			nRC = -RIG_EINVAL;
-			break;
+	default:
+		nRC = -RIG_EINVAL;
+		break;
 	}
 
 	// Done
@@ -1166,17 +1166,17 @@ int adat_ptt_anr2rnr(int   nADATPTTStatus,
 		  nADATPTTStatus);
 
 	switch (nADATPTTStatus) {
-		case ADAT_PTT_STATUS_ANR_ON:
-			*nRIGPTTStatus = ADAT_PTT_STATUS_RNR_ON;
-			break;
+	case ADAT_PTT_STATUS_ANR_ON:
+		*nRIGPTTStatus = ADAT_PTT_STATUS_RNR_ON;
+		break;
 
-		case ADAT_PTT_STATUS_ANR_OFF:
-			*nRIGPTTStatus = ADAT_PTT_STATUS_RNR_OFF;
-			break;
+	case ADAT_PTT_STATUS_ANR_OFF:
+		*nRIGPTTStatus = ADAT_PTT_STATUS_RNR_OFF;
+		break;
 
-		default:
-			nRC = -RIG_EINVAL;
-			break;
+	default:
+		nRC = -RIG_EINVAL;
+		break;
 	}
 
 	// Done
@@ -2304,24 +2304,24 @@ int adat_cmd_fn_set_ptt(RIG *pRig)
 		// Switch PTT
 
 		switch (pPriv->nOpCode) {
-			case ADAT_OPCODE_PTT_SWITCH_ON:
+		case ADAT_OPCODE_PTT_SWITCH_ON:
 
-				pPriv->nADATPTTStatus = ADAT_PTT_STATUS_ANR_ON;
-				nRC = adat_ptt_anr2rnr(ADAT_PTT_STATUS_ANR_ON,
-						       &(pPriv->nRIGPTTStatus));
-				pcPTTStr = ADAT_CMD_PTT_STR_ON;
-				break;
+			pPriv->nADATPTTStatus = ADAT_PTT_STATUS_ANR_ON;
+			nRC = adat_ptt_anr2rnr(ADAT_PTT_STATUS_ANR_ON,
+					       &(pPriv->nRIGPTTStatus));
+			pcPTTStr = ADAT_CMD_PTT_STR_ON;
+			break;
 
-			case ADAT_OPCODE_PTT_SWITCH_OFF:
-				pPriv->nADATPTTStatus = ADAT_PTT_STATUS_ANR_OFF;
-				nRC = adat_ptt_anr2rnr(ADAT_PTT_STATUS_ANR_OFF,
-						       &(pPriv->nRIGPTTStatus));
-				pcPTTStr = ADAT_CMD_PTT_STR_OFF;
-				break;
+		case ADAT_OPCODE_PTT_SWITCH_OFF:
+			pPriv->nADATPTTStatus = ADAT_PTT_STATUS_ANR_OFF;
+			nRC = adat_ptt_anr2rnr(ADAT_PTT_STATUS_ANR_OFF,
+					       &(pPriv->nRIGPTTStatus));
+			pcPTTStr = ADAT_CMD_PTT_STR_OFF;
+			break;
 
-			default:
-				nRC = -RIG_EINVAL;
-				break;
+		default:
+			nRC = -RIG_EINVAL;
+			break;
 		}
 
 		if (nRC == RIG_OK) {
@@ -3156,17 +3156,17 @@ int adat_set_ptt(RIG *pRig, vfo_t vfo, ptt_t ptt)
 		adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
 
 		switch (ptt) {
-			case RIG_PTT_ON:
-				pPriv->nOpCode = ADAT_OPCODE_PTT_SWITCH_ON;
-				break;
+		case RIG_PTT_ON:
+			pPriv->nOpCode = ADAT_OPCODE_PTT_SWITCH_ON;
+			break;
 
-			case RIG_PTT_OFF:
-				pPriv->nOpCode = ADAT_OPCODE_PTT_SWITCH_OFF;
-				break;
+		case RIG_PTT_OFF:
+			pPriv->nOpCode = ADAT_OPCODE_PTT_SWITCH_OFF;
+			break;
 
-			default:
-				nRC = -RIG_EINVAL;
-				break;
+		default:
+			nRC = -RIG_EINVAL;
+			break;
 		}
 
 		if (nRC == RIG_OK) {
@@ -3320,12 +3320,12 @@ int adat_set_conf(RIG *pRig, token_t token, const char *val)
 		adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
 
 		switch (token) {
-			case TOKEN_ADAT_PRODUCT_NAME:
-				pPriv->pcProductName = strdup(val);
-				break;
+		case TOKEN_ADAT_PRODUCT_NAME:
+			pPriv->pcProductName = strdup(val);
+			break;
 
-			default:
-				nRC = -RIG_EINVAL;
+		default:
+			nRC = -RIG_EINVAL;
 		}
 	}
 
@@ -3362,12 +3362,12 @@ int adat_get_conf(RIG *pRig, token_t token, char *val)
 		adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
 
 		switch (token) {
-			case TOKEN_ADAT_PRODUCT_NAME:
-				val = pPriv->pcProductName;
-				break;
+		case TOKEN_ADAT_PRODUCT_NAME:
+			val = pPriv->pcProductName;
+			break;
 
-			default:
-				nRC = -RIG_EINVAL;
+		default:
+			nRC = -RIG_EINVAL;
 		}
 	}
 
