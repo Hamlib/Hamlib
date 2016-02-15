@@ -542,17 +542,29 @@ readability.  Align closing braces with the opening block's keyword.  In
 function definitions put the opening brace on its own line under the
 definition's parameter line.
 
-Hamlib source code is no place for an entry into the obsfucated C contest!
+A configuration file for the Artistic Style (http://astyle.sourceforge.net/)
+utility can be found in the scripts directory.  The settings it provides should
+conform reasonably close to the Linux style guide referenced above.  This file
+can be copied to $HOME/.astylerc where it will be used as the default
+configuration.  If you already have an existing .astylerc, passing
+
+	--options=/path/to/hamlib/scripts/astylerc
+
+will use this file as the configuration for formatting.  Consider using this
+utility whenever working on a given C source file in Hamlib.
+
+Hamlib source code is no place for an entry into the obfuscated C contest!
 Many of us are hobbyists and write this for fun.  Easy to read and
 understand logic is preferred over a clever solution.  If your solution must
 be written in a clever fashion, please document it well in your comments.
 
-Any header files included from the hamlib/ directory should be enclosed
-in <>:
+Any header files included from the hamlib/ directory should be enclosed in <>:
+
 #include <hamlib/rig.h>         # Per GNU GCC documentation
 
 Other included header files (backend and rig specific headers) should be
 enclosed in "":
+
 #include "yaesu.h"
 
 Contributed code should always keep the source base in a compilable state,
@@ -581,6 +593,7 @@ Hamlib should also compile with the following common compilers:
 
 Portability issues to watch:
 
+    * C99 is probably (in 2016) a reasonable target
     * little vs. big endian systems (use shifts or adhoc functions)
     * 64 bit int: avoid them in API
     * printf/scanf of 64bit int: use PRIll (cast value to int64_t) and SCNll
@@ -671,6 +684,9 @@ big, you can send it as a compressed attachment.
 
 
 8.3.1 Changelog
+
+A ChangeLog file is no longer manually maintained.  At some point it may be
+automatically generated from the Git commit log for source tarballs.
 
 Simply summarize your changes when the files are committed to Git or, if
 providing patches to the mailing list, provide a summary so the uploader can

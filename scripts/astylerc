@@ -1,0 +1,32 @@
+# astylerc--custom options for astyle
+# Intended to follow the Linux style guide as closely as possible:
+# https://www.kernel.org/doc/Documentation/CodingStyle
+
+# Linux kernel style formatting/indenting.
+style=linux
+
+# Use tabs with a width of 8 spaces.
+indent=force-tab=8
+
+# Pad empty lines around header blocks (e.g. 'if', 'for', 'while'...).
+break-blocks
+
+# Remove extra space padding around parenthesis on the inside and outside.
+unpad-paren
+
+# Insert space padding around operators.
+pad-oper
+
+# Insert space padding after paren headers only (e.g. 'if', 'for', 'while'...).
+pad-header
+
+# Attach a pointer operator (*) to name (name) and reference operator (&)
+# to type (type).
+align-pointer=name
+align-reference=type
+
+# Don't break one-line blocks.
+keep-one-line-blocks
+
+# Don't break complex statements and multiple statements residing on a single line.
+keep-one-line-statements
