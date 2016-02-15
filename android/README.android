@@ -12,6 +12,7 @@ Notes:
 ** FTDI USB to serial converter driver is not included in standard kernel. It should work on rooted device.
 ** But NET rigctl works fine
 * Backends are named libhamlib-vendor.so, I don't know how to include libraries without lib prefix into APK
+* Check the location of libusb.h and define the corresponding macro accordingly in config.h.
 
 Happy hacking
 73 Lada, OK1ZIA

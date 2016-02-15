@@ -33,7 +33,7 @@
 
 #ifdef _WIN32
 #define USE_FTDI_DLL
-#elif defined(HAVE_LIBUSB) && defined(HAVE_LIBUSB_H)
+#elif defined(HAVE_LIBUSB) && (defined(HAVE_LIBUSB_H) || defined(HAVE_LIBUSB_1_0_LIBUSB_H))
 #define USE_LIBUSB
 #endif
 
@@ -145,7 +145,12 @@ struct elektor507_extra_priv_data {
 
 
 #include <errno.h>
-#include <libusb.h>
+
+#ifdef HAVE_LIBUSB_H
+# include <libusb.h>
+#elif defined HAVE_LIBUSB_1_0_LIBUSB_H
+# include <libusb-1.0/libusb.h>
+#endif
 
 
 #define USB_VID_FTDI		0x0403	/* Future Technology Devices International */

@@ -40,7 +40,7 @@
 /*
  * Compile only if libusb is available
  */
-#if defined(HAVE_LIBUSB) && defined(HAVE_LIBUSB_H)
+#if defined(HAVE_LIBUSB) && (defined(HAVE_LIBUSB_H) || defined(HAVE_LIBUSB_1_0_LIBUSB_H))
 
 
 #include <stdlib.h>
@@ -51,7 +51,12 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <libusb.h>
+#ifdef HAVE_LIBUSB_H
+# include <libusb.h>
+#elif defined HAVE_LIBUSB_1_0_LIBUSB_H
+# include <libusb-1.0/libusb.h>
+#endif
+
 #include "usb_port.h"
 
 

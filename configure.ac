@@ -321,7 +321,7 @@ AS_IF([test -z $LIBUSB_LIBS],
 LIBUSB=""
 
 AS_IF([test x"${cf_with_libusb}" = "xyes"],
-      [AC_CHECK_HEADERS([libusb.h])
+      [AC_CHECK_HEADERS([libusb.h libusb-1.0/libusb.h])
        AC_DEFINE([HAVE_LIBUSB],
                  [1],
                  [Define if libusb-1.0 is available])
