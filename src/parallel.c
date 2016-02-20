@@ -128,6 +128,10 @@ int par_open(hamlib_port_t *port)
 	int mode;
 #endif
 
+#if defined (__WIN64__) || defined(__WIN32__)
+	HANDLE handle;
+#endif
+
 	if (!port->pathname[0])
 		return -RIG_EINVAL;
 
@@ -153,13 +157,18 @@ int par_open(hamlib_port_t *port)
 		return -RIG_EIO;
 	}
 
-#elif defined(WIN32)
-	fd = (int)CreateFile(port->pathname, GENERIC_READ | GENERIC_WRITE,
+#elif defined(__WIN64__) || defined(__WIN32__)
+	handle = CreateFile(port->pathname, GENERIC_READ | GENERIC_WRITE,
 		0, NULL, OPEN_EXISTING, 0, NULL);
-	if (fd == (int)INVALID_HANDLE_VALUE) {
+	if (handle == INVALID_HANDLE_VALUE) {
 		rig_debug(RIG_DEBUG_ERR, "Opening device \"%s\"\n", port->pathname);
-		CloseHandle((HANDLE)fd);
+		CloseHandle(handle);
 		return -RIG_EIO;
+	} else {
+		fd = _open_osfhandle((intptr_t)handle, _O_APPEND | _O_RDONLY);
+
+		if (fd == -1)
+			return -RIG_EIO;
 	}
 #else
 	return -RIG_ENIMPL;
@@ -176,8 +185,9 @@ int par_close(hamlib_port_t *port)
 {
 #ifdef HAVE_LINUX_PPDEV_H
 #elif defined(HAVE_DEV_PPBUS_PPI_H)
-#elif defined(WIN32)
-	CloseHandle((HANDLE)(port->fd));
+#elif defined(__WIN64__) || defined(__WIN32__)
+	_close(port->fd);
+
 	return RIG_OK;
 #endif
 	return close(port->fd);
@@ -198,13 +208,19 @@ int HAMLIB_API par_write_data(hamlib_port_t *port, unsigned char data)
 	int status;
 	status = ioctl(port->fd, PPISDATA, &data);
 	return status == 0 ? RIG_OK : -RIG_EIO;
-#elif defined(WIN32)
+#elif defined(__WIN64__) || defined(__WIN32__)
 	unsigned int dummy;
 
-	if (!(DeviceIoControl((HANDLE)(port->fd), NT_IOCTL_DATA, &data, sizeof(data),
-			NULL, 0, (LPDWORD)&dummy, NULL))) {
-		rig_debug(RIG_DEBUG_ERR, "%s: DeviceIoControl failed!\n", __FUNCTION__);
-		return -RIG_EIO;
+	intptr_t handle;
+
+	handle = _get_osfhandle(port->fd);
+
+	if (handle != (intptr_t)INVALID_HANDLE_VALUE) {
+		if (!(DeviceIoControl((HANDLE)handle, NT_IOCTL_DATA, &data, sizeof(data),
+				      NULL, 0, (LPDWORD)&dummy, NULL))) {
+			rig_debug(RIG_DEBUG_ERR, "%s: DeviceIoControl failed!\n", __FUNCTION__);
+			return -RIG_EIO;
+		}
 	}
 	return RIG_OK;
 #else
@@ -227,14 +243,20 @@ int HAMLIB_API par_read_data(hamlib_port_t *port, unsigned char *data)
 	int status;
 	status = ioctl(port->fd, PPIGDATA, &data);
 	return status == 0 ? RIG_OK : -RIG_EIO;
-#elif defined(WIN32)
+#elif defined(__WIN64__) || defined(__WIN32__)
 	unsigned char ret;
 	unsigned int dummy;
 
-	if (!(DeviceIoControl((HANDLE)(port->fd), NT_IOCTL_STATUS, NULL, 0, &ret,
-          		sizeof(ret), (LPDWORD)&dummy, NULL))) {
-		rig_debug(RIG_DEBUG_ERR, "%s: DeviceIoControl failed!\n", __FUNCTION__);
-		return -RIG_EIO;
+	intptr_t handle;
+
+	handle = _get_osfhandle(port->fd);
+
+	if (handle != (intptr_t)INVALID_HANDLE_VALUE) {
+		if (!(DeviceIoControl((HANDLE)handle, NT_IOCTL_STATUS, NULL, 0, &ret,
+				      sizeof(ret), (LPDWORD)&dummy, NULL))) {
+			rig_debug(RIG_DEBUG_ERR, "%s: DeviceIoControl failed!\n", __FUNCTION__);
+			return -RIG_EIO;
+		}
 	}
 
   	*data = ret ^ S1284_INVERTED;
@@ -263,7 +285,7 @@ int HAMLIB_API par_write_control(hamlib_port_t *port, unsigned char control)
 	unsigned char ctrl = control ^ CP_ACTIVE_LOW_BITS;
 	status = ioctl(port->fd, PPISCTRL, &ctrl);
 	return status == 0 ? RIG_OK : -RIG_EIO;
-#elif defined(WIN32)
+#elif defined(__WIN64__) || defined(__WIN32__)
   unsigned char ctr = control;
   unsigned char dummyc;
   unsigned int dummy;
@@ -271,6 +293,7 @@ int HAMLIB_API par_write_control(hamlib_port_t *port, unsigned char control)
 			    C1284_NAUTOFD |
 			    C1284_NINIT |
 			    C1284_NSELECTIN);
+	intptr_t handle;
 
   if (ctr & 0x20)
     {
@@ -280,11 +303,16 @@ int HAMLIB_API par_write_control(hamlib_port_t *port, unsigned char control)
   /* Deal with inversion issues. */
   ctr ^= wm & C1284_INVERTED;
   ctr = (ctr & ~wm) ^ (ctr & wm);
-  if (!(DeviceIoControl((HANDLE)(port->fd), NT_IOCTL_CONTROL, &ctr,
-          sizeof(ctr), &dummyc, sizeof(dummyc), (LPDWORD)&dummy, NULL))) {
-      rig_debug(RIG_DEBUG_ERR,"frob_control: DeviceIoControl failed!\n");
-      return -RIG_EIO;
-  }
+
+	handle = _get_osfhandle(port->fd);
+
+	if (handle != (intptr_t)INVALID_HANDLE_VALUE) {
+		if (!(DeviceIoControl((HANDLE)handle, NT_IOCTL_CONTROL, &ctr,
+				      sizeof(ctr), &dummyc, sizeof(dummyc), (LPDWORD)&dummy, NULL))) {
+			rig_debug(RIG_DEBUG_ERR,"frob_control: DeviceIoControl failed!\n");
+			return -RIG_EIO;
+		}
+	}
   return RIG_OK;
 #else
 	return -RIG_ENIMPL;
@@ -312,14 +340,20 @@ int HAMLIB_API par_read_control(hamlib_port_t *port, unsigned char *control)
 	status = ioctl(port->fd, PPIGCTRL, &ctrl);
 	*control = ctrl ^ CP_ACTIVE_LOW_BITS;
 	return status == 0 ? RIG_OK : -RIG_EIO;
-#elif defined(WIN32)
+#elif defined(__WIN64__) || defined(__WIN32__)
 	unsigned char ret;
 	unsigned int dummy;
 
-	if (!(DeviceIoControl((HANDLE)(port->fd), NT_IOCTL_CONTROL, NULL, 0, &ret,
-			sizeof(ret), (LPDWORD)&dummy, NULL))) {
-		rig_debug(RIG_DEBUG_ERR, "%s: DeviceIoControl failed!\n", __FUNCTION__);
-		return -RIG_EIO;
+	intptr_t handle;
+
+	handle = _get_osfhandle(port->fd);
+
+	if (handle != (intptr_t)INVALID_HANDLE_VALUE) {
+		if (!(DeviceIoControl((HANDLE)handle, NT_IOCTL_CONTROL, NULL, 0, &ret,
+				      sizeof(ret), (LPDWORD)&dummy, NULL))) {
+			rig_debug(RIG_DEBUG_ERR, "%s: DeviceIoControl failed!\n", __FUNCTION__);
+			return -RIG_EIO;
+		}
 	}
 
 	*control = ret ^ S1284_INVERTED;
@@ -349,14 +383,20 @@ int HAMLIB_API par_read_status(hamlib_port_t *port, unsigned char *status)
 	ret = ioctl(port->fd, PPIGSTATUS, &sta);
 	*status = sta ^ SP_ACTIVE_LOW_BITS;
 	return ret == 0 ? RIG_OK : -RIG_EIO;
-#elif defined(WIN32)
+#elif defined(__WIN64__) || defined(__WIN32__)
 	unsigned char ret;
 	unsigned int dummy;
 
-	if (!(DeviceIoControl((HANDLE)(port->fd), NT_IOCTL_STATUS, NULL, 0, &ret,
-			sizeof(ret), (LPDWORD)&dummy, NULL))) {
-		rig_debug(RIG_DEBUG_ERR, "%s: DeviceIoControl failed!\n", __FUNCTION__);
-		return -RIG_EIO;
+	intptr_t handle;
+
+	handle = _get_osfhandle(port->fd);
+
+	if (handle != (intptr_t)INVALID_HANDLE_VALUE) {
+		if (!(DeviceIoControl((HANDLE)handle, NT_IOCTL_STATUS, NULL, 0, &ret,
+				      sizeof(ret), (LPDWORD)&dummy, NULL))) {
+			rig_debug(RIG_DEBUG_ERR, "%s: DeviceIoControl failed!\n", __FUNCTION__);
+			return -RIG_EIO;
+		}
 	}
 
 	*status = ret ^ S1284_INVERTED;
@@ -381,7 +421,7 @@ int HAMLIB_API par_lock(hamlib_port_t *port)
 	return RIG_OK;
 #elif defined(HAVE_DEV_PPBUS_PPI_H)
 	return RIG_OK;
-#elif defined(WIN32)
+#elif defined(__WIN64__) || defined(__WIN32__)
 	return RIG_OK;
 #else
 	return -RIG_ENIMPL;
@@ -403,7 +443,7 @@ int HAMLIB_API par_unlock(hamlib_port_t *port)
 	return RIG_OK;
 #elif defined(HAVE_DEV_PPBUS_PPI_H)
 	return RIG_OK;
-#elif defined(WIN32)
+#elif defined(__WIN64__) || defined(__WIN32__)
 	return RIG_OK;
 #else
 	return -RIG_ENIMPL;
