@@ -2078,13 +2078,18 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq, rmode_t tx_mod
 	if (status != RIG_OK)
 		return status;
 
-  status = rig_set_freq(rig, RIG_VFO_CURR, tx_freq);
-  if (status != RIG_OK)
-    return status;
+	if (tx_freq != second_freq) {
+		status = rig_set_freq(rig, RIG_VFO_CURR, tx_freq);
+		if (status != RIG_OK)
+			return status;
+	}
 
-	status = rig->caps->set_mode(rig, RIG_VFO_CURR, tx_mode, tx_width);
-	if (status != RIG_OK)
-		return status;
+	if (tx_mode != second_mode
+			|| (tx_width != RIG_PASSBAND_NORMAL && tx_width != second_width)) {
+		status = rig->caps->set_mode(rig, RIG_VFO_CURR, tx_mode, tx_width);
+		if (status != RIG_OK)
+			return status;
+	}
 
   if (second_freq != orig_freq || second_mode != orig_mode || second_width != orig_width) {
     /* RX VFO must have been selected when we started so switch back
