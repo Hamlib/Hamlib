@@ -75,30 +75,32 @@ static libusb_device_handle *find_and_open_device(const hamlib_port_t *port)
 	int	i, r;
 
 	rig_debug(RIG_DEBUG_VERBOSE, "%s: looking for device %04x:%04x...",
-		__func__, port->parm.usb.vid, port->parm.usb.pid);
+		  __func__, port->parm.usb.vid, port->parm.usb.pid);
 
 	r = libusb_get_device_list(NULL, &devs);
+
 	if (r < 0) {
 		rig_debug(RIG_DEBUG_ERR, "%s: failed getting usb device list: %s",
-				__func__, libusb_error_name(r));
+			  __func__, libusb_error_name(r));
 		return NULL;
 	}
 
-	for (i=0; (dev=devs[i]) != NULL; i++) {
+	for (i = 0; (dev = devs[i]) != NULL; i++) {
 
 		libusb_get_device_descriptor(dev, &desc);
 
 		rig_debug(RIG_DEBUG_VERBOSE, " %04x:%04x,",
-				desc.idVendor, desc.idProduct);
+			  desc.idVendor, desc.idProduct);
 
 		if (desc.idVendor == port->parm.usb.vid &&
-				desc.idProduct == port->parm.usb.pid) {
+		    desc.idProduct == port->parm.usb.pid) {
 
 			/* we need to open the device in order to query strings */
 			r = libusb_open(dev, &udh);
+
 			if (r < 0) {
 				rig_debug(RIG_DEBUG_WARN, "%s: Warning: Cannot open USB device: %s\n",
-						__func__, libusb_error_name(r));
+					  __func__, libusb_error_name(r));
 				continue;
 			}
 
@@ -107,6 +109,7 @@ static libusb_device_handle *find_and_open_device(const hamlib_port_t *port)
 
 				string[0] = '\0';
 				r = libusb_get_string_descriptor_ascii(udh, desc.iManufacturer, (unsigned char *)string, sizeof(string));
+
 				if (r < 0) {
 					rig_debug(RIG_DEBUG_WARN, "Warning: cannot query manufacturer for USB device: %s\n", libusb_error_name(r));
 					libusb_close(udh);
@@ -126,6 +129,7 @@ static libusb_device_handle *find_and_open_device(const hamlib_port_t *port)
 
 				string[0] = '\0';
 				r = libusb_get_string_descriptor_ascii(udh, desc.iProduct, (unsigned char *)string, sizeof(string));
+
 				if (r < 0) {
 					rig_debug(RIG_DEBUG_WARN, "Warning: cannot query product for USB device: %s\n", libusb_error_name(r));
 					libusb_close(udh);
@@ -176,10 +180,11 @@ int usb_port_open(hamlib_port_t *port)
 	int r;
 
 	/* init defaut libusb-1.0 library contexte, if needed */
-	r = libusb_init (NULL);
+	r = libusb_init(NULL);
+
 	if (r < 0) {
 		rig_debug(RIG_DEBUG_ERR, "%s: libusb_init failed: %s\n",
-				__func__, libusb_error_name(r));
+			  __func__, libusb_error_name(r));
 		return -RIG_EIO;
 	}
 
@@ -188,25 +193,29 @@ int usb_port_open(hamlib_port_t *port)
 	/* Extract VID/PID/Vendor/Product name from pathname. */
 	/* Duplicate the string since we may modify it. */
 	strncpy(pathname, port->pathname, sizeof pathname);
-	pathname[FILPATHLEN-1] = '\0';
+	pathname[FILPATHLEN - 1] = '\0';
 
 	p = pathname;
 	q = strchr(p, ':');
+
 	if (q) {
 		++q;
 		port->parm.usb.vid = strtol(q, NULL, 16);
 		p = q;
 		q = strchr(p, ':');
+
 		if (q) {
 			++q;
 			port->parm.usb.pid = strtol(q, NULL, 16);
 			p = q;
 			q = strchr(p, ':');
+
 			if (q) {
 				++q;
 				port->parm.usb.vendor_name = q;
 				p = q;
 				q = strchr(p, ':');
+
 				if (q) {
 					*q++ = '\0';
 					port->parm.usb.product = q;
@@ -216,8 +225,9 @@ int usb_port_open(hamlib_port_t *port)
 	}
 
 	udh = find_and_open_device(port);
+
 	if (udh == 0) {
-		libusb_exit (NULL);
+		libusb_exit(NULL);
 		return -RIG_EIO;
 	}
 
@@ -231,43 +241,48 @@ int usb_port_open(hamlib_port_t *port)
 	if (port->parm.usb.iface >= 0) {
 
 #ifdef _WIN32
+
 		/* Is it still needed with libusb-1.0 ? */
 		if (port->parm.usb.conf >= 0 &&
-				(r=libusb_set_configuration (udh, port->parm.usb.conf)) < 0) {
+		    (r = libusb_set_configuration(udh, port->parm.usb.conf)) < 0) {
 			rig_debug(RIG_DEBUG_ERR, "%s: libusb_set_configuration: failed conf %d: %s\n",
-				__func__, port->parm.usb.conf, libusb_error_name(r));
-			libusb_close (udh);
-			libusb_exit (NULL);
+				  __func__, port->parm.usb.conf, libusb_error_name(r));
+			libusb_close(udh);
+			libusb_exit(NULL);
 			return -RIG_EIO;
 		}
+
 #endif
 
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: claiming %d\n", __func__, port->parm.usb.iface);
 
-		r = libusb_claim_interface (udh, port->parm.usb.iface);
+		r = libusb_claim_interface(udh, port->parm.usb.iface);
+
 		if (r < 0) {
 			rig_debug(RIG_DEBUG_ERR, "%s:libusb_claim_interface: failed interface %d: %s\n",
-				__func__,port->parm.usb.iface, libusb_error_name(r));
-			libusb_close (udh);
-			libusb_exit (NULL);
+				  __func__, port->parm.usb.iface, libusb_error_name(r));
+			libusb_close(udh);
+			libusb_exit(NULL);
 			return -RIG_EIO;
 		}
 
 #if 0
 		r = libusb_set_interface_alt_setting(udh, port->parm.usb.iface, port->parm.usb.alt);
+
 		if (r < 0) {
-			fprintf (stderr, "%s:usb_set_alt_interface: failed: %s\n", __func__,
+			fprintf(stderr, "%s:usb_set_alt_interface: failed: %s\n", __func__,
 				libusb_error_name(r));
-			libusb_release_interface (udh, port->parm.usb.iface);
-			libusb_close (udh);
-			libusb_exit (NULL);
+			libusb_release_interface(udh, port->parm.usb.iface);
+			libusb_close(udh);
+			libusb_exit(NULL);
 			return -RIG_EIO;
 		}
+
 #endif
 
 	}
 
-	port->handle = (void*) udh;
+	port->handle = (void *) udh;
 
 	return RIG_OK;
 }
@@ -285,7 +300,7 @@ int usb_port_close(hamlib_port_t *port)
 
 	libusb_close(udh);
 
-	libusb_exit (NULL);
+	libusb_exit(NULL);
 
 	return RIG_OK;
 }

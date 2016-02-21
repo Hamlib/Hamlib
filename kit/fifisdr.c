@@ -91,7 +91,7 @@ static int fifisdr_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int fifisdr_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 static const char *fifisdr_get_info(RIG *rig);
 static int fifisdr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
-static int fifisdr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t * width);
+static int fifisdr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 static int fifisdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 static int fifisdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 static int fifisdr_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val);
@@ -105,7 +105,8 @@ static int fifisdr_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *va
 
 /* Extra levels definitions */
 static const struct confparams fifisdr_ext_levels[] = {
-	{ TOK_LVL_FMCENTER, "fmcenter", "FM center", "Center frequency deviation of FM signal",
+	{
+		TOK_LVL_FMCENTER, "fmcenter", "FM center", "Center frequency deviation of FM signal",
 		NULL, RIG_CONF_NUMERIC, { .n = { -kHz(5), kHz(5), Hz(1) } }
 	},
 	{ RIG_CONF_END, NULL, }
@@ -169,18 +170,22 @@ const struct rig_caps fifisdr_caps = {
 	},
 
 	.rx_range_list1 = {
-		{.start = kHz(39.1), .end = MHz(175.0),
-		 .modes = RIG_MODE_AM | RIG_MODE_SSB | RIG_MODE_FM,
-		 .low_power = -1, .high_power = -1,
-		 .vfo = RIG_VFO_A, .ant = RIG_ANT_1},
+		{
+			.start = kHz(39.1), .end = MHz(175.0),
+			.modes = RIG_MODE_AM | RIG_MODE_SSB | RIG_MODE_FM,
+			.low_power = -1, .high_power = -1,
+			.vfo = RIG_VFO_A, .ant = RIG_ANT_1
+		},
 		RIG_FRNG_END,
 	},
 	.tx_range_list1 = { RIG_FRNG_END, },
 	.rx_range_list2 =  {
-		{.start = kHz(39.1), .end = MHz(175.0),
-		 .modes = RIG_MODE_AM | RIG_MODE_SSB | RIG_MODE_FM,
-		 .low_power = -1, .high_power = -1,
-		 .vfo = RIG_VFO_A, .ant = RIG_ANT_1},
+		{
+			.start = kHz(39.1), .end = MHz(175.0),
+			.modes = RIG_MODE_AM | RIG_MODE_SSB | RIG_MODE_FM,
+			.low_power = -1, .high_power = -1,
+			.vfo = RIG_VFO_A, .ant = RIG_ANT_1
+		},
 		RIG_FRNG_END,
 	},
 	.tx_range_list2 = { RIG_FRNG_END, },
@@ -239,7 +244,7 @@ const struct rig_caps fifisdr_caps = {
 
 
 /** Convert from host endianness to FiFi-SDR little endian. */
-static uint32_t fifisdr_tole32 (uint32_t x)
+static uint32_t fifisdr_tole32(uint32_t x)
 {
 	return
 		(((((x) /        1ul) % 256ul) <<  0) |
@@ -251,7 +256,7 @@ static uint32_t fifisdr_tole32 (uint32_t x)
 
 
 /** Convert FiFi-SDR little endian to host endianness. */
-static uint32_t fifisdr_fromle32 (uint32_t x)
+static uint32_t fifisdr_fromle32(uint32_t x)
 {
 	return
 		(((((x) >> 24) & 0xFF) * 16777216ul) +
@@ -263,22 +268,22 @@ static uint32_t fifisdr_fromle32 (uint32_t x)
 
 
 /** USB OUT transfer via vendor device command. */
-static int fifisdr_usb_write (RIG *rig,
-							  int request, int value, int index,
-							  unsigned char *bytes, int size)
+static int fifisdr_usb_write(RIG *rig,
+			     int request, int value, int index,
+			     unsigned char *bytes, int size)
 {
 	int ret;
 	libusb_device_handle *udh = rig->state.rigport.handle;
 
 	ret = libusb_control_transfer(udh, LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT,
-			request, value, index,
-			bytes, size, rig->state.rigport.timeout);
+				      request, value, index,
+				      bytes, size, rig->state.rigport.timeout);
 
 	if (ret != size) {
-		rig_debug (RIG_DEBUG_ERR, "%s: libusb_control_transfer (%d/%d) failed: %s\n",
-					__func__,
-				   request, value,
-					libusb_error_name (ret));
+		rig_debug(RIG_DEBUG_ERR, "%s: libusb_control_transfer (%d/%d) failed: %s\n",
+			  __func__,
+			  request, value,
+			  libusb_error_name(ret));
 		return -RIG_EIO;
 	}
 
@@ -288,22 +293,22 @@ static int fifisdr_usb_write (RIG *rig,
 
 
 /** USB IN transfer via vendor device command. */
-static int fifisdr_usb_read (RIG *rig,
-							 int request, int value, int index,
-							 unsigned char *bytes, int size)
+static int fifisdr_usb_read(RIG *rig,
+			    int request, int value, int index,
+			    unsigned char *bytes, int size)
 {
 	int ret;
 	libusb_device_handle *udh = rig->state.rigport.handle;
 
 	ret = libusb_control_transfer(udh, LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_IN,
-			request, value, index,
-			bytes, size, rig->state.rigport.timeout);
+				      request, value, index,
+				      bytes, size, rig->state.rigport.timeout);
 
 	if (ret != size) {
-		rig_debug (RIG_DEBUG_ERR, "%s: libusb_control_transfer (%d/%d) failed: %s\n",
-					__func__,
-				   request, value,
-					libusb_error_name (ret));
+		rig_debug(RIG_DEBUG_ERR, "%s: libusb_control_transfer (%d/%d) failed: %s\n",
+			  __func__,
+			  request, value,
+			  libusb_error_name(ret));
 		return -RIG_EIO;
 	}
 
@@ -312,12 +317,13 @@ static int fifisdr_usb_read (RIG *rig,
 
 
 
-int fifisdr_init (RIG *rig)
+int fifisdr_init(RIG *rig)
 {
 	hamlib_port_t *rp = &rig->state.rigport;
 	struct fifisdr_priv_instance_data *priv;
 
-	priv = (struct fifisdr_priv_instance_data*)calloc(sizeof(struct fifisdr_priv_instance_data), 1);
+	priv = (struct fifisdr_priv_instance_data *)calloc(sizeof(struct fifisdr_priv_instance_data), 1);
+
 	if (!priv) {
 		/* whoops! memory shortage! */
 		return -RIG_ENOMEM;
@@ -336,20 +342,21 @@ int fifisdr_init (RIG *rig)
 	rp->parm.usb.vendor_name = FIFISDR_VENDOR_NAME;
 	rp->parm.usb.product = FIFISDR_PRODUCT_NAME;
 
-	rig->state.priv = (void*)priv;
+	rig->state.priv = (void *)priv;
 
 	return RIG_OK;
 }
 
 
 
-int fifisdr_cleanup (RIG *rig)
+int fifisdr_cleanup(RIG *rig)
 {
 	if (!rig)
 		return -RIG_EINVAL;
 
 	if (rig->state.priv)
 		free(rig->state.priv);
+
 	rig->state.priv = NULL;
 
 	return RIG_OK;
@@ -357,19 +364,20 @@ int fifisdr_cleanup (RIG *rig)
 
 
 
-int fifisdr_open (RIG *rig)
+int fifisdr_open(RIG *rig)
 {
 	int ret;
 	uint32_t multiply;
 	struct fifisdr_priv_instance_data *priv;
 
 
-	priv = (struct fifisdr_priv_instance_data*)rig->state.priv;
+	priv = (struct fifisdr_priv_instance_data *)rig->state.priv;
 
 	/* The VCO is a multiple of the RX frequency. Typically 4 */
 	ret = fifisdr_usb_read(rig, REQUEST_FIFISDR_READ, 0,
-						   11, /* Read virtual VCO factor */
-						   (unsigned char *)&multiply, sizeof(multiply));
+			       11, /* Read virtual VCO factor */
+			       (unsigned char *)&multiply, sizeof(multiply));
+
 	if (ret == RIG_OK) {
 		priv->multiplier = fifisdr_fromle32(multiply);
 	}
@@ -379,13 +387,14 @@ int fifisdr_open (RIG *rig)
 
 
 
-const char * fifisdr_get_info (RIG *rig)
+const char *fifisdr_get_info(RIG *rig)
 {
 	static char buf[64];
 	int ret;
 	uint32_t svn_version;
 
 	ret = fifisdr_usb_read(rig, REQUEST_FIFISDR_READ, 0, 0, (unsigned char *)&svn_version, sizeof(svn_version));
+
 	if (ret != RIG_OK) {
 		return NULL;
 	}
@@ -397,7 +406,7 @@ const char * fifisdr_get_info (RIG *rig)
 
 
 
-int fifisdr_set_freq (RIG *rig, vfo_t vfo, freq_t freq)
+int fifisdr_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
 	struct fifisdr_priv_instance_data *priv = (struct fifisdr_priv_instance_data *)rig->state.priv;
 	int ret;
@@ -410,7 +419,8 @@ int fifisdr_set_freq (RIG *rig, vfo_t vfo, freq_t freq)
 	freq1121 = fifisdr_tole32(round(mhz * 2097152.0));
 
 	ret = fifisdr_usb_write(rig, REQUEST_SET_FREQ_BY_VALUE, 0, 0,
-							(unsigned char *)&freq1121, sizeof(freq1121));
+				(unsigned char *)&freq1121, sizeof(freq1121));
+
 	if (ret != RIG_OK) {
 		return -RIG_EIO;
 	}
@@ -420,7 +430,7 @@ int fifisdr_set_freq (RIG *rig, vfo_t vfo, freq_t freq)
 
 
 
-int fifisdr_get_freq (RIG *rig, vfo_t vfo, freq_t *freq)
+int fifisdr_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 	struct fifisdr_priv_instance_data *priv = (struct fifisdr_priv_instance_data *)rig->state.priv;
 	int ret;
@@ -447,25 +457,32 @@ static int fifisdr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 	/* Translate mode into FiFi-SDR language */
 	fifi_mode = 0;
+
 	switch (mode) {
-		case RIG_MODE_AM:
-			fifi_mode = 2;
-			break;
-		case RIG_MODE_LSB:
-			fifi_mode = 0;
-			break;
-		case RIG_MODE_USB:
-			fifi_mode = 1;
-			break;
-		case RIG_MODE_FM:
-			fifi_mode = 3;
-			break;
-		default:
-			return -RIG_EINVAL;
+	case RIG_MODE_AM:
+		fifi_mode = 2;
+		break;
+
+	case RIG_MODE_LSB:
+		fifi_mode = 0;
+		break;
+
+	case RIG_MODE_USB:
+		fifi_mode = 1;
+		break;
+
+	case RIG_MODE_FM:
+		fifi_mode = 3;
+		break;
+
+	default:
+		return -RIG_EINVAL;
 	}
+
 	ret = fifisdr_usb_write(rig, REQUEST_FIFISDR_WRITE, 0,
-							15,	/* Demodulator mode */
-							(unsigned char *)&fifi_mode, sizeof(fifi_mode));
+				15,	/* Demodulator mode */
+				(unsigned char *)&fifi_mode, sizeof(fifi_mode));
+
 	if (ret != RIG_OK) {
 		return -RIG_EIO;
 	}
@@ -473,8 +490,9 @@ static int fifisdr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	/* Set filter width */
 	fifi_width = fifisdr_tole32(width);
 	ret = fifisdr_usb_write(rig, REQUEST_FIFISDR_WRITE, 0,
-							16,	/* Filter width */
-							(unsigned char *)&fifi_width, sizeof(fifi_width));
+				16,	/* Filter width */
+				(unsigned char *)&fifi_width, sizeof(fifi_width));
+
 	if (ret != RIG_OK) {
 		return -RIG_EIO;
 	}
@@ -484,7 +502,7 @@ static int fifisdr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 
 
-static int fifisdr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t * width)
+static int fifisdr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
 	int ret;
 	uint8_t fifi_mode;
@@ -493,8 +511,8 @@ static int fifisdr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t * widt
 
 	/* Read current mode */
 	ret = fifisdr_usb_read(rig, REQUEST_FIFISDR_READ, 0,
-						   15,	/* Demodulator mode */
-						   (unsigned char *)&fifi_mode, sizeof(fifi_mode));
+			       15,	/* Demodulator mode */
+			       (unsigned char *)&fifi_mode, sizeof(fifi_mode));
 
 	if (ret != RIG_OK) {
 		return -RIG_EIO;
@@ -502,25 +520,30 @@ static int fifisdr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t * widt
 
 	/* Translate mode coding */
 	*mode = RIG_MODE_NONE;
+
 	switch (fifi_mode) {
-		case 0:
-			*mode = RIG_MODE_LSB;
-			break;
-		case 1:
-			*mode = RIG_MODE_USB;
-			break;
-		case 2:
-			*mode = RIG_MODE_AM;
-			break;
-		case 3:
-			*mode = RIG_MODE_FM;
-			break;
+	case 0:
+		*mode = RIG_MODE_LSB;
+		break;
+
+	case 1:
+		*mode = RIG_MODE_USB;
+		break;
+
+	case 2:
+		*mode = RIG_MODE_AM;
+		break;
+
+	case 3:
+		*mode = RIG_MODE_FM;
+		break;
 	}
 
 	/* Read current filter width */
 	ret = fifisdr_usb_read(rig, REQUEST_FIFISDR_READ, 0,
-						   16,	/* Filter width */
-						   (unsigned char *)&fifi_width, sizeof(fifi_width));
+			       16,	/* Filter width */
+			       (unsigned char *)&fifi_width, sizeof(fifi_width));
+
 	if (ret != RIG_OK) {
 		return -RIG_EIO;
 	}
@@ -532,7 +555,7 @@ static int fifisdr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t * widt
 
 
 
-static int fifisdr_set_level (RIG * rig, vfo_t vfo, setting_t level, value_t val)
+static int fifisdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
 	int ret = RIG_OK;
 	uint8_t fifi_preamp;
@@ -542,69 +565,85 @@ static int fifisdr_set_level (RIG * rig, vfo_t vfo, setting_t level, value_t val
 
 
 	switch (level) {
-		/* Preamplifier (ADC 0/+6dB switch) */
-		case RIG_LEVEL_PREAMP:
-			/* Value can be 0 (0 dB) or 1 (+6 dB) */
-			fifi_preamp = 0;
-			if (val.i == 6) {
-				fifi_preamp = 1;
-			}
-			ret = fifisdr_usb_write(rig, REQUEST_FIFISDR_WRITE, 0,
-									19,	/* Preamp */
-									(unsigned char *)&fifi_preamp, sizeof(fifi_preamp));
+	/* Preamplifier (ADC 0/+6dB switch) */
+	case RIG_LEVEL_PREAMP:
+		/* Value can be 0 (0 dB) or 1 (+6 dB) */
+		fifi_preamp = 0;
+
+		if (val.i == 6) {
+			fifi_preamp = 1;
+		}
+
+		ret = fifisdr_usb_write(rig, REQUEST_FIFISDR_WRITE, 0,
+					19,	/* Preamp */
+					(unsigned char *)&fifi_preamp, sizeof(fifi_preamp));
 		break;
 
-		/* RX volume control */
-		case RIG_LEVEL_AF:
-			/* Transform Hamlib value (float: 0...1) to an integer range (0...100) */
-			fifi_volume = (int16_t)(val.f * 100.0f);
-			if (fifi_volume < 0) {
-				fifi_volume = 0;
-			}
-			if (fifi_volume > 100) {
-				fifi_volume = 100;
-			}
-			ret = fifisdr_usb_write(rig, REQUEST_FIFISDR_WRITE, 0,
-									14,	/* Demodulator volume */
-									(unsigned char *)&fifi_volume, sizeof(fifi_volume));
+	/* RX volume control */
+	case RIG_LEVEL_AF:
+		/* Transform Hamlib value (float: 0...1) to an integer range (0...100) */
+		fifi_volume = (int16_t)(val.f * 100.0f);
+
+		if (fifi_volume < 0) {
+			fifi_volume = 0;
+		}
+
+		if (fifi_volume > 100) {
+			fifi_volume = 100;
+		}
+
+		ret = fifisdr_usb_write(rig, REQUEST_FIFISDR_WRITE, 0,
+					14,	/* Demodulator volume */
+					(unsigned char *)&fifi_volume, sizeof(fifi_volume));
 		break;
 
-		/* Squelch level */
-		case RIG_LEVEL_SQL:
-			/* Transform Hamlib value (float: 0...1) to an integer range (0...100) */
-			fifi_squelch = (uint8_t)(val.f * 100.0f);
-			if (fifi_squelch < 0) {
-				fifi_squelch = 0;
-			}
-			if (fifi_squelch > 100) {
-				fifi_squelch = 100;
-			}
-			ret = fifisdr_usb_write(rig, REQUEST_FIFISDR_WRITE, 0,
-									20,	/* Squelch control */
-									(unsigned char *)&fifi_squelch, sizeof(fifi_squelch));
+	/* Squelch level */
+	case RIG_LEVEL_SQL:
+		/* Transform Hamlib value (float: 0...1) to an integer range (0...100) */
+		fifi_squelch = (uint8_t)(val.f * 100.0f);
+
+		if (fifi_squelch < 0) {
+			fifi_squelch = 0;
+		}
+
+		if (fifi_squelch > 100) {
+			fifi_squelch = 100;
+		}
+
+		ret = fifisdr_usb_write(rig, REQUEST_FIFISDR_WRITE, 0,
+					20,	/* Squelch control */
+					(unsigned char *)&fifi_squelch, sizeof(fifi_squelch));
 		break;
 
-		/* AGC */
-		case RIG_LEVEL_AGC:
-			/* Transform Hamlib enum value to FiFi-SDR selector */
-			fifi_agc = 0;
-			switch ((enum agc_level_e)val.i) {
-				case RIG_AGC_OFF:		fifi_agc = 0;	break;
-				case RIG_AGC_SUPERFAST:	fifi_agc = 1;	break;
-				case RIG_AGC_FAST:		fifi_agc = 2;	break;
-				case RIG_AGC_SLOW:		fifi_agc = 3;	break;
-				case RIG_AGC_USER:		fifi_agc = 4;	break;
-				case RIG_AGC_MEDIUM:	fifi_agc = 5;	break;
-				case RIG_AGC_AUTO:		fifi_agc = 6;	break;
-			}
-			ret = fifisdr_usb_write(rig, REQUEST_FIFISDR_WRITE, 0,
-									21,	/* AGC template */
-									(unsigned char *)&fifi_agc, sizeof(fifi_agc));
+	/* AGC */
+	case RIG_LEVEL_AGC:
+		/* Transform Hamlib enum value to FiFi-SDR selector */
+		fifi_agc = 0;
+
+		switch ((enum agc_level_e)val.i) {
+		case RIG_AGC_OFF:		fifi_agc = 0;	break;
+
+		case RIG_AGC_SUPERFAST:	fifi_agc = 1;	break;
+
+		case RIG_AGC_FAST:		fifi_agc = 2;	break;
+
+		case RIG_AGC_SLOW:		fifi_agc = 3;	break;
+
+		case RIG_AGC_USER:		fifi_agc = 4;	break;
+
+		case RIG_AGC_MEDIUM:	fifi_agc = 5;	break;
+
+		case RIG_AGC_AUTO:		fifi_agc = 6;	break;
+		}
+
+		ret = fifisdr_usb_write(rig, REQUEST_FIFISDR_WRITE, 0,
+					21,	/* AGC template */
+					(unsigned char *)&fifi_agc, sizeof(fifi_agc));
 		break;
 
-		/* Unsupported option */
-		default:
-			ret = -RIG_ENIMPL;
+	/* Unsupported option */
+	default:
+		ret = -RIG_ENIMPL;
 	}
 
 	return ret;
@@ -623,80 +662,100 @@ static int fifisdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 
 	switch (level) {
-		/* Preamplifier (ADC 0/+6dB switch) */
-		case RIG_LEVEL_PREAMP:
-			ret = fifisdr_usb_read(rig, REQUEST_FIFISDR_READ, 0,
-								   19,	/* Preamp */
-								   (unsigned char *)&fifi_preamp, sizeof(fifi_preamp));
-			if (ret == RIG_OK) {
-				/* Value can be 0 (0 dB) or 1 (+6 dB) */
-				val->i = 0;
-				if (fifi_preamp != 0) {
-					val->i = 6;
-				}
+	/* Preamplifier (ADC 0/+6dB switch) */
+	case RIG_LEVEL_PREAMP:
+		ret = fifisdr_usb_read(rig, REQUEST_FIFISDR_READ, 0,
+				       19,	/* Preamp */
+				       (unsigned char *)&fifi_preamp, sizeof(fifi_preamp));
+
+		if (ret == RIG_OK) {
+			/* Value can be 0 (0 dB) or 1 (+6 dB) */
+			val->i = 0;
+
+			if (fifi_preamp != 0) {
+				val->i = 6;
 			}
+		}
+
 		break;
 
-		/* RX volume control */
-		case RIG_LEVEL_AF:
-			ret = fifisdr_usb_read(rig, REQUEST_FIFISDR_READ, 0,
-								   14,	/* Demodulator volume */
-								   (unsigned char *)&fifi_volume, sizeof(fifi_volume));
-			if (ret == RIG_OK) {
-				/* Value is in % (0...100) */
-				val->f = 0.0f;
-				if ((fifi_volume >=0) && (fifi_volume <= 100)) {
-					val->f = (float)fifi_volume / 100.0f;
-				}
+	/* RX volume control */
+	case RIG_LEVEL_AF:
+		ret = fifisdr_usb_read(rig, REQUEST_FIFISDR_READ, 0,
+				       14,	/* Demodulator volume */
+				       (unsigned char *)&fifi_volume, sizeof(fifi_volume));
+
+		if (ret == RIG_OK) {
+			/* Value is in % (0...100) */
+			val->f = 0.0f;
+
+			if ((fifi_volume >= 0) && (fifi_volume <= 100)) {
+				val->f = (float)fifi_volume / 100.0f;
 			}
+		}
+
 		break;
 
-		/* Squelch level */
-		case RIG_LEVEL_SQL:
-			ret = fifisdr_usb_read(rig, REQUEST_FIFISDR_READ, 0,
-								   20,	/* Squelch control */
-								   (unsigned char *)&fifi_squelch, sizeof(fifi_squelch));
-			if (ret == RIG_OK) {
-				/* Value is in % (0...100) */
-				val->f = 0.0f;
-				if (fifi_squelch <= 100) {
-					val->f = (float)fifi_squelch / 100.0f;
-				}
+	/* Squelch level */
+	case RIG_LEVEL_SQL:
+		ret = fifisdr_usb_read(rig, REQUEST_FIFISDR_READ, 0,
+				       20,	/* Squelch control */
+				       (unsigned char *)&fifi_squelch, sizeof(fifi_squelch));
+
+		if (ret == RIG_OK) {
+			/* Value is in % (0...100) */
+			val->f = 0.0f;
+
+			if (fifi_squelch <= 100) {
+				val->f = (float)fifi_squelch / 100.0f;
 			}
+		}
+
 		break;
 
-		/* AGC */
-		case RIG_LEVEL_AGC:
-			ret = fifisdr_usb_read(rig, REQUEST_FIFISDR_READ, 0,
-								   21,	/* AGC template */
-								   (unsigned char *)&fifi_agc, sizeof(fifi_agc));
-			if (ret == RIG_OK) {
-				val->i = 0;
-				switch (fifi_agc) {
-					case 0:	val->i = RIG_AGC_OFF;		break;
-					case 1:	val->i = RIG_AGC_SUPERFAST;	break;
-					case 2:	val->i = RIG_AGC_FAST;		break;
-					case 3:	val->i = RIG_AGC_SLOW;		break;
-					case 4:	val->i = RIG_AGC_USER;		break;
-					case 5:	val->i = RIG_AGC_MEDIUM;	break;
-					case 6:	val->i = RIG_AGC_AUTO;		break;
-				}
+	/* AGC */
+	case RIG_LEVEL_AGC:
+		ret = fifisdr_usb_read(rig, REQUEST_FIFISDR_READ, 0,
+				       21,	/* AGC template */
+				       (unsigned char *)&fifi_agc, sizeof(fifi_agc));
+
+		if (ret == RIG_OK) {
+			val->i = 0;
+
+			switch (fifi_agc) {
+			case 0:	val->i = RIG_AGC_OFF;		break;
+
+			case 1:	val->i = RIG_AGC_SUPERFAST;	break;
+
+			case 2:	val->i = RIG_AGC_FAST;		break;
+
+			case 3:	val->i = RIG_AGC_SLOW;		break;
+
+			case 4:	val->i = RIG_AGC_USER;		break;
+
+			case 5:	val->i = RIG_AGC_MEDIUM;	break;
+
+			case 6:	val->i = RIG_AGC_AUTO;		break;
 			}
+		}
+
 		break;
 
-		/* Signal strength */
-		case RIG_LEVEL_STRENGTH:
-			ret = fifisdr_usb_read(rig, REQUEST_FIFISDR_READ, 0,
-								   17,	/* S-Meter */
-								   (unsigned char *)&fifi_meter, sizeof(fifi_meter));
-			if (ret == RIG_OK) {
-				val->i = fifisdr_fromle32(fifi_meter);
-			}
+	/* Signal strength */
+	case RIG_LEVEL_STRENGTH:
+		ret = fifisdr_usb_read(rig, REQUEST_FIFISDR_READ, 0,
+				       17,	/* S-Meter */
+				       (unsigned char *)&fifi_meter, sizeof(fifi_meter));
+
+		if (ret == RIG_OK) {
+			val->i = fifisdr_fromle32(fifi_meter);
+		}
+
 		break;
 
-		/* Unsupported option */
-		default:
-			ret = -RIG_ENIMPL;
+	/* Unsupported option */
+	default:
+		ret = -RIG_ENIMPL;
 	}
 
 	return ret;
@@ -711,19 +770,21 @@ static int fifisdr_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *va
 
 
 	switch (token) {
-		/* FM center frequency deviation */
-		case TOK_LVL_FMCENTER:
-			ret = fifisdr_usb_read(rig, REQUEST_FIFISDR_READ, 0,
-								   18,	/* FM center frequency */
-								   (unsigned char *)&u32, sizeof(u32));
-			if (ret == RIG_OK) {
-				val->f = Hz((int32_t)fifisdr_fromle32(u32));
-			}
+	/* FM center frequency deviation */
+	case TOK_LVL_FMCENTER:
+		ret = fifisdr_usb_read(rig, REQUEST_FIFISDR_READ, 0,
+				       18,	/* FM center frequency */
+				       (unsigned char *)&u32, sizeof(u32));
+
+		if (ret == RIG_OK) {
+			val->f = Hz((int32_t)fifisdr_fromle32(u32));
+		}
+
 		break;
 
-		/* Unsupported option */
-		default:
-			ret = -RIG_ENIMPL;
+	/* Unsupported option */
+	default:
+		ret = -RIG_ENIMPL;
 	}
 
 	return ret;

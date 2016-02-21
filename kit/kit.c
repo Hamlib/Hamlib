@@ -57,7 +57,7 @@ DECLARE_INITRIG_BACKEND(kit)
 	rig_register(&funcubeplus_caps);
 #endif
 #if (defined(HAVE_LIBUSB) && (defined(HAVE_LIBUSB_H) || defined(HAVE_LIBUSB_1_0_LIBUSB_H))) || defined(_WIN32)
-    /* rigs with alternate DLL support on Win32 */
+	/* rigs with alternate DLL support on Win32 */
 	rig_register(&dwt_caps);
 	rig_register(&elektor507_caps);
 #endif
