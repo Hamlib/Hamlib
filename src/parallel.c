@@ -136,14 +136,17 @@ int par_open(hamlib_port_t *port)
 		return -RIG_EINVAL;
 
 #ifdef HAVE_LINUX_PPDEV_H
-    /* TODO: open with O_NONBLOCK ? */
+	/* TODO: open with O_NONBLOCK ? */
 	fd = open(port->pathname, O_RDWR);
+
 	if (fd < 0) {
 		rig_debug(RIG_DEBUG_ERR, "Opening device \"%s\": %s\n", port->pathname, strerror(errno));
 		return -RIG_EIO;
 	}
+
 	mode = IEEE1284_MODE_COMPAT;
-	if (ioctl (fd, PPSETMODE, &mode) != 0) {
+
+	if (ioctl(fd, PPSETMODE, &mode) != 0) {
 		rig_debug(RIG_DEBUG_ERR, "PPSETMODE \"%s\": %s\n", port->pathname, strerror(errno));
 		close(fd);
 		return -RIG_EIO;
@@ -152,6 +155,7 @@ int par_open(hamlib_port_t *port)
 #elif defined(HAVE_DEV_PPBUS_PPI_H)
 
 	fd = open(port->pathname, O_RDWR);
+
 	if (fd < 0) {
 		rig_debug(RIG_DEBUG_ERR, "Opening device \"%s\": %s\n", port->pathname, strerror(errno));
 		return -RIG_EIO;
@@ -159,7 +163,8 @@ int par_open(hamlib_port_t *port)
 
 #elif defined(__WIN64__) || defined(__WIN32__)
 	handle = CreateFile(port->pathname, GENERIC_READ | GENERIC_WRITE,
-		0, NULL, OPEN_EXISTING, 0, NULL);
+			    0, NULL, OPEN_EXISTING, 0, NULL);
+
 	if (handle == INVALID_HANDLE_VALUE) {
 		rig_debug(RIG_DEBUG_ERR, "Opening device \"%s\"\n", port->pathname);
 		CloseHandle(handle);
@@ -170,6 +175,7 @@ int par_open(hamlib_port_t *port)
 		if (fd == -1)
 			return -RIG_EIO;
 	}
+
 #else
 	return -RIG_ENIMPL;
 #endif
@@ -222,6 +228,7 @@ int HAMLIB_API par_write_data(hamlib_port_t *port, unsigned char data)
 			return -RIG_EIO;
 		}
 	}
+
 	return RIG_OK;
 #else
 	return -RIG_ENIMPL;
@@ -259,7 +266,7 @@ int HAMLIB_API par_read_data(hamlib_port_t *port, unsigned char *data)
 		}
 	}
 
-  	*data = ret ^ S1284_INVERTED;
+	*data = ret ^ S1284_INVERTED;
 	return RIG_OK;
 #else
 	return -RIG_ENIMPL;
@@ -277,8 +284,10 @@ int HAMLIB_API par_write_control(hamlib_port_t *port, unsigned char control)
 	int status;
 	unsigned char ctrl = control ^ CP_ACTIVE_LOW_BITS;
 	status = ioctl(port->fd, PPWCONTROL, &ctrl);
-    if (status < 0)
-        rig_debug(RIG_DEBUG_ERR,"ioctl(PPWCONTROL) failed: %s\n", strerror(errno));
+
+	if (status < 0)
+		rig_debug(RIG_DEBUG_ERR, "ioctl(PPWCONTROL) failed: %s\n", strerror(errno));
+
 	return status == 0 ? RIG_OK : -RIG_EIO;
 #elif defined(HAVE_DEV_PPBUS_PPI_H)
 	int status;
@@ -286,34 +295,34 @@ int HAMLIB_API par_write_control(hamlib_port_t *port, unsigned char control)
 	status = ioctl(port->fd, PPISCTRL, &ctrl);
 	return status == 0 ? RIG_OK : -RIG_EIO;
 #elif defined(__WIN64__) || defined(__WIN32__)
-  unsigned char ctr = control;
-  unsigned char dummyc;
-  unsigned int dummy;
-  const unsigned char wm = (C1284_NSTROBE |
-			    C1284_NAUTOFD |
-			    C1284_NINIT |
-			    C1284_NSELECTIN);
+	unsigned char ctr = control;
+	unsigned char dummyc;
+	unsigned int dummy;
+	const unsigned char wm = (C1284_NSTROBE |
+				  C1284_NAUTOFD |
+				  C1284_NINIT |
+				  C1284_NSELECTIN);
 	intptr_t handle;
 
-  if (ctr & 0x20)
-    {
-      rig_debug (RIG_DEBUG_WARN, "use ieee1284_data_dir to change data line direction!\n");
-    }
+	if (ctr & 0x20) {
+		rig_debug(RIG_DEBUG_WARN, "use ieee1284_data_dir to change data line direction!\n");
+	}
 
-  /* Deal with inversion issues. */
-  ctr ^= wm & C1284_INVERTED;
-  ctr = (ctr & ~wm) ^ (ctr & wm);
+	/* Deal with inversion issues. */
+	ctr ^= wm & C1284_INVERTED;
+	ctr = (ctr & ~wm) ^ (ctr & wm);
 
 	handle = _get_osfhandle(port->fd);
 
 	if (handle != (intptr_t)INVALID_HANDLE_VALUE) {
 		if (!(DeviceIoControl((HANDLE)handle, NT_IOCTL_CONTROL, &ctr,
 				      sizeof(ctr), &dummyc, sizeof(dummyc), (LPDWORD)&dummy, NULL))) {
-			rig_debug(RIG_DEBUG_ERR,"frob_control: DeviceIoControl failed!\n");
+			rig_debug(RIG_DEBUG_ERR, "frob_control: DeviceIoControl failed!\n");
 			return -RIG_EIO;
 		}
 	}
-  return RIG_OK;
+
+	return RIG_OK;
 #else
 	return -RIG_ENIMPL;
 #endif
@@ -330,8 +339,10 @@ int HAMLIB_API par_read_control(hamlib_port_t *port, unsigned char *control)
 	int status;
 	unsigned char ctrl;
 	status = ioctl(port->fd, PPRCONTROL, &ctrl);
-    if (status < 0)
-        rig_debug(RIG_DEBUG_ERR,"ioctl(PPRCONTROL) failed: %s\n", strerror(errno));
+
+	if (status < 0)
+		rig_debug(RIG_DEBUG_ERR, "ioctl(PPRCONTROL) failed: %s\n", strerror(errno));
+
 	*control = ctrl ^ CP_ACTIVE_LOW_BITS;
 	return status == 0 ? RIG_OK : -RIG_EIO;
 #elif defined(HAVE_DEV_PPBUS_PPI_H)
@@ -414,10 +425,12 @@ int HAMLIB_API par_read_status(hamlib_port_t *port, unsigned char *status)
 int HAMLIB_API par_lock(hamlib_port_t *port)
 {
 #ifdef HAVE_LINUX_PPDEV_H
+
 	if (ioctl(port->fd, PPCLAIM) < 0) {
 		rig_debug(RIG_DEBUG_ERR, "Claiming device \"%s\": %s\n", port->pathname, strerror(errno));
 		return -RIG_EIO;
 	}
+
 	return RIG_OK;
 #elif defined(HAVE_DEV_PPBUS_PPI_H)
 	return RIG_OK;
@@ -436,10 +449,12 @@ int HAMLIB_API par_lock(hamlib_port_t *port)
 int HAMLIB_API par_unlock(hamlib_port_t *port)
 {
 #ifdef HAVE_LINUX_PPDEV_H
+
 	if (ioctl(port->fd, PPRELEASE) < 0) {
 		rig_debug(RIG_DEBUG_ERR, "Releasing device \"%s\": %s\n", port->pathname, strerror(errno));
 		return -RIG_EIO;
 	}
+
 	return RIG_OK;
 #elif defined(HAVE_DEV_PPBUS_PPI_H)
 	return RIG_OK;
@@ -465,14 +480,14 @@ int HAMLIB_API par_unlock(hamlib_port_t *port)
  */
 int par_ptt_set(hamlib_port_t *p, ptt_t pttx)
 {
-	switch(p->type.ptt) {
-	case RIG_PTT_PARALLEL:
-		{
+	switch (p->type.ptt) {
+	case RIG_PTT_PARALLEL: {
 		unsigned char ctl;
 		int status;
 
-		par_lock (p);
+		par_lock(p);
 		status = par_read_control(p, &ctl);
+
 		if (status != RIG_OK)
 			return status;
 
@@ -488,14 +503,16 @@ int par_ptt_set(hamlib_port_t *p, ptt_t pttx)
 			ctl &= ~PARPORT_CONTROL_INIT;
 
 		status = par_write_control(p, ctl);
-		par_unlock (p);
+		par_unlock(p);
 		return status;
-		}
+	}
+
 	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n",
-						p->type.ptt);
+		rig_debug(RIG_DEBUG_ERR, "Unsupported PTT type %d\n",
+			  p->type.ptt);
 		return -RIG_EINVAL;
 	}
+
 	return RIG_OK;
 }
 
@@ -507,26 +524,27 @@ int par_ptt_set(hamlib_port_t *p, ptt_t pttx)
  */
 int par_ptt_get(hamlib_port_t *p, ptt_t *pttx)
 {
-	switch(p->type.ptt) {
-	case RIG_PTT_PARALLEL:
-		{
+	switch (p->type.ptt) {
+	case RIG_PTT_PARALLEL: {
 		unsigned char ctl;
 		int status;
 
-		par_lock (p);
+		par_lock(p);
 		status = par_read_control(p, &ctl);
-		par_unlock (p);
+		par_unlock(p);
 
 		*pttx = (ctl & PARPORT_CONTROL_INIT) &&
-		            !(ctl & PARPORT_CONTROL_STROBE) ?
-					RIG_PTT_ON : RIG_PTT_OFF;
+			!(ctl & PARPORT_CONTROL_STROBE) ?
+			RIG_PTT_ON : RIG_PTT_OFF;
 		return status;
-		}
+	}
+
 	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n",
-						p->type.ptt);
+		rig_debug(RIG_DEBUG_ERR, "Unsupported PTT type %d\n",
+			  p->type.ptt);
 		return -RIG_ENAVAIL;
 	}
+
 	return RIG_OK;
 }
 
@@ -538,22 +556,23 @@ int par_ptt_get(hamlib_port_t *p, ptt_t *pttx)
  */
 int par_dcd_get(hamlib_port_t *p, dcd_t *dcdx)
 {
-	switch(p->type.dcd) {
-	case RIG_DCD_PARALLEL:
-		{
+	switch (p->type.dcd) {
+	case RIG_DCD_PARALLEL: {
 		unsigned char reg;
 		int status;
 
 		status = par_read_data(p, &reg);
-		*dcdx = reg & (1<<p->parm.parallel.pin) ?
-				RIG_DCD_ON:RIG_DCD_OFF;
+		*dcdx = reg & (1 << p->parm.parallel.pin) ?
+			RIG_DCD_ON : RIG_DCD_OFF;
 		return status;
-		}
+	}
+
 	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported DCD type %d\n",
-						p->type.dcd);
+		rig_debug(RIG_DEBUG_ERR, "Unsupported DCD type %d\n",
+			  p->type.dcd);
 		return -RIG_ENAVAIL;
 	}
+
 	return RIG_OK;
 }
 
