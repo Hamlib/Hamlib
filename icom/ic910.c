@@ -307,19 +307,23 @@ const struct rig_caps ic910_caps = {
 .rx_range_list1 =   {  /* USA */
     {MHz(144),MHz(148),IC910_MODES,-1,-1,IC910_VFO_ALL},
     {MHz(430),MHz(450),IC910_MODES,-1,-1,IC910_VFO_ALL},
+    {MHz(1240),MHz(1300),IC910_MODES,-1,-1,IC910_VFO_ALL},
     RIG_FRNG_END, },
 .tx_range_list1 =  {
     {MHz(144),MHz(148),IC910_MODES,W(5),W(100),IC910_VFO_ALL},
     {MHz(430),MHz(450),IC910_MODES,W(5),W(75),IC910_VFO_ALL},
+    {MHz(1240),MHz(1300),IC910_MODES,-1,-1,IC910_VFO_ALL},
     RIG_FRNG_END, },
 
 .rx_range_list2 =   { /* Europe */
     {MHz(144),MHz(146),IC910_MODES,-1,-1,IC910_VFO_ALL},
     {MHz(430),MHz(440),IC910_MODES,-1,-1,IC910_VFO_ALL},
+    {MHz(1240),MHz(1300),IC910_MODES,-1,-1,IC910_VFO_ALL},
     RIG_FRNG_END, },
 .tx_range_list2 =  {
     {MHz(144),MHz(146),IC910_MODES,W(5),W(100),IC910_VFO_ALL},
     {MHz(430),MHz(440),IC910_MODES,W(5),W(75),IC910_VFO_ALL},
+    {MHz(1240),MHz(1300),IC910_MODES,-1,-1,IC910_VFO_ALL},
     RIG_FRNG_END, },
 
 .tuning_steps =     {
