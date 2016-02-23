@@ -579,11 +579,12 @@ int ft757_get_vfo(RIG *rig, vfo_t *vfo)
 		return retval;
 
 	if (priv->update_data[0] & 0x10)
-		return RIG_VFO_MEM;
-	else if (priv->update_data[0] & 0x08)
-		return RIG_VFO_B;
+		(*vfo) = RIG_VFO_MEM;
 	else
-		return RIG_VFO_A;
+		if (priv->update_data[0] & 0x08)
+			(*vfo) = RIG_VFO_B;
+		else
+			(*vfo) = RIG_VFO_A;
 
 	return RIG_OK;
 }
