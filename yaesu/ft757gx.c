@@ -49,24 +49,6 @@
 #include "yaesu.h"
 #include "ft757gx.h"
 
-/* HAVE_SSLEEP is defined when Windows Sleep is found
- * HAVE_SLEEP is defined when POSIX sleep is found
- * _WIN32 is defined when compiling with MinGW
- *
- * When cross-compiling from POSIX to Windows using MinGW, HAVE_SLEEP
- * will often be defined by configure although it is not supported by
- * MinGW.  So substitute the sleep definition below in such a case and
- * when compiling on Windows using MinGW where HAVE_SLEEP will be
- * undefined.
- *
- * FIXME:  Needs better handling for all versions of MinGW.
- *
- */
-#if (defined(HAVE_SSLEEP) || defined(_WIN32)) && (!defined(HAVE_SLEEP))
-#include "hl_sleep.h"
-#endif
-
-
 /* Private helper function prototypes */
 static int ft757_get_update_data(RIG *rig);
 static int mode2rig(RIG *rig, rmode_t mode, pbwidth_t width);
@@ -82,8 +64,19 @@ struct ft757_priv_data {
     unsigned int read_update_delay; /* depends on pacing value */
     unsigned char current_vfo;      /* active VFO from last cmd , can be either RIG_VFO_A or RIG_VFO_B only */
     unsigned char update_data[FT757GX_STATUS_UPDATE_DATA_LENGTH]; /* returned data */
+    double curfreq; /* for fake get_freq on 757G */
+    char fakefreq; /* 0=no fake, 1=fake get freq */
 };
 
+#define TOKEN_BACKEND(t) (t)
+#define TOK_FAKEFREQ TOKEN_BACKEND(1)
+
+const struct confparams ft757gx_cfg_params[] = {
+        { TOK_FAKEFREQ, "fakefreq", "Fake get-freq", "Fake getting freq",
+                        "0", RIG_CONF_CHECKBUTTON
+        },
+        { RIG_CONF_END, NULL, }
+};
 
 /*
  * ft757gx rig capabilities.
@@ -93,7 +86,7 @@ const struct rig_caps ft757gx_caps = {
     .rig_model =        RIG_MODEL_FT757,
     .model_name =       "FT-757GX",
     .mfg_name =         "Yaesu",
-    .version =          "0.4.1",
+    .version =          "0.5.0",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_BETA,
     .rig_type =         RIG_TYPE_MOBILE,
@@ -178,14 +171,17 @@ const struct rig_caps ft757gx_caps = {
     .rig_close =        NULL,               /* port closed */
 
     .set_freq =         ft757_set_freq,     /* set freq */
-    .get_freq =         NULL,               /* get freq */
+    .get_freq =         ft757gx_get_freq,   /* get freq */
     .set_mode =         NULL,               /* set mode */
     .get_mode =         NULL,               /* get mode */
     .set_vfo =          ft757_set_vfo,      /* set vfo */
 
-    .get_vfo =          NULL,               /* get vfo */
     .set_ptt =          NULL,               /* set ptt */
     .get_ptt =          NULL,               /* get ptt */
+
+    .cfgparams = ft757gx_cfg_params,
+    .set_conf = ft757gx_set_conf,
+    .get_conf = ft757gx_get_conf
 };
 
 /*
@@ -319,6 +315,7 @@ int ft757_init(RIG *rig)
     p = (struct ft757_priv_data * ) calloc(1, sizeof(struct ft757_priv_data));
     if (!p)         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
+    p->curfreq = 1e6;
 
     /* TODO: read pacing from preferences */
 
@@ -383,6 +380,7 @@ int ft757_open(RIG *rig)
 
 int ft757_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
+    struct ft757_priv_data *priv = (struct ft757_priv_data *)rig->state.priv;
     unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x0a};
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called. Freq=%"PRIfreq"\n", __func__, freq);
@@ -393,6 +391,7 @@ int ft757_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     /* fill in first four bytes */
     to_bcd(cmd, freq/10, BCD_LEN);
 
+    priv->curfreq = freq;
     return write_block(&rig->state.rigport, (char *)cmd, YAESU_CMD_LENGTH);
 }
 
@@ -418,6 +417,16 @@ int ft757_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     return write_block(&rig->state.rigport, (char *)cmd, YAESU_CMD_LENGTH);
 }
 
+
+int ft757gx_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
+{
+    struct ft757_priv_data *priv = (struct ft757_priv_data *)rig->state.priv;
+    if (priv->fakefreq) { // only return last freq set when fakeit is turned on
+       *freq = priv->curfreq;
+       return RIG_OK;
+    }
+    return RIG_ENAVAIL;
+}
 
 /*
  * Return Freq
@@ -646,7 +655,7 @@ int ft757_get_update_data(RIG *rig)
                   __func__, retval, FT757GX_STATUS_UPDATE_DATA_LENGTH,
 	          nbtries, maxtries);
 	/* The delay is quadratic. */
-	sleep(nbtries*nbtries);
+	usleep(nbtries*nbtries*1000000);
     }
 
     if (retval != FT757GX_STATUS_UPDATE_DATA_LENGTH) {
@@ -736,4 +745,57 @@ int rig2mode(RIG *rig, int md, rmode_t *mode, pbwidth_t *width)
         *width = rig_passband_normal(rig, *mode);
 
     return RIG_OK;
+}
+
+/*
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int ft757gx_get_conf(RIG *rig, token_t token, char *val)
+{
+        struct ft757_priv_data *priv;
+        struct rig_state *rs;
+
+
+        rig_debug(RIG_DEBUG_VERBOSE, "%s called.\n", __func__);
+
+        rs = &rig->state;
+        priv = (struct ft757_priv_data*)rs->priv;
+
+
+        switch(token) {
+        case TOK_FAKEFREQ:
+		sprintf(val,"%d",priv->fakefreq);
+                break;
+        default:
+		val = NULL;
+                return -RIG_EINVAL;
+        }
+        return RIG_OK;
+}
+/*
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int ft757gx_set_conf(RIG *rig, token_t token, const char *val)
+{
+        struct ft757_priv_data *priv;
+        struct rig_state *rs;
+
+
+        rig_debug(RIG_DEBUG_VERBOSE, "%s called. val=%s\n", __func__, val);
+
+        rs = &rig->state;
+        priv = (struct ft757_priv_data*)rs->priv;
+
+        switch(token) {
+        case TOK_FAKEFREQ:
+		priv->fakefreq = 0; // should only be 0 or 1 -- default to 0
+                if (val[0] != '0')
+                        priv->fakefreq = 1;
+		rig_debug(RIG_DEBUG_VERBOSE, "fakefreq=%d\n", __func__, priv->fakefreq);
+
+                break;
+        default:
+                return -RIG_EINVAL;
+        }
+        return RIG_OK;
 }

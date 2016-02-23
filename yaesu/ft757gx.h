@@ -64,7 +64,6 @@
 #define MODE_AM     0x04
 #define MODE_FM     0x05
 
-
 /* TODO: get better measure numbers */
 #define FT757GXII_STR_CAL { 2, { \
     {  0, -60 },    /* S0 -6dB */ \
@@ -95,8 +94,12 @@ static int ft757_init(RIG *rig);
 static int ft757_cleanup(RIG *rig);
 static int ft757_open(RIG *rig);
 
+static int ft757gx_get_conf(RIG *rig, token_t token, char *val);
+static int ft757gx_set_conf(RIG *rig, token_t token, const char *val);
+
 static int ft757_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int ft757_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+static int ft757gx_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 
 static int ft757_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width); /* select mode */
 static int ft757_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width); /* get mode */
