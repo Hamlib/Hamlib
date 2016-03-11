@@ -26,21 +26,21 @@ FILE=include/hamlib/rig.h
 
 DIE=0
 
-("$AUTORECONF" --version) < /dev/null > /dev/null 2>&1 || {
+("$AUTORECONF" --version) > /dev/null 2>&1 || {
         echo
         echo "You must have autoreconf installed to compile $PROJECT."
         echo "Download the appropriate package for your distribution,"
         DIE=1
 }
 
-("$AUTOMAKE" --version) < /dev/null > /dev/null 2>&1 || {
+("$AUTOMAKE" --version) > /dev/null 2>&1 || {
         echo
         echo "You must have automake installed to compile $PROJECT."
         echo "Download the appropriate package for your distribution,"
         DIE=1
 }
 
-("$LIBTOOLIZE" --version) < /dev/null > /dev/null 2>&1 || {
+("$LIBTOOLIZE" --version) > /dev/null 2>&1 || {
         echo
         echo "You must have libtool installed to compile $PROJECT."
         echo "Download the appropriate package for your distribution."
