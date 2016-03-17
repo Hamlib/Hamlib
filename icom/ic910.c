@@ -214,6 +214,38 @@ static int ic910_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
   return retval;
 }
 
+static int ic910_get_freq(RIG *rig, vfo_t vfo, freq_t * freq)
+{
+  int retval;
+  freq_t origfreq;
+
+  /* start off by reading the current VFO frequency */
+  if ((retval = icom_get_freq(rig, RIG_VFO_CURR, &origfreq)) != RIG_OK) return retval;
+  if (RIG_VFO_A == vfo || RIG_VFO_B == vfo) {
+      /* switch to desired VFO and read its frequency */
+      if ((retval = icom_set_vfo (rig, vfo)) != RIG_OK) return retval;
+      if ((retval = icom_get_freq(rig, vfo, freq)) != RIG_OK) return retval;
+      if (*freq != origfreq) {
+          /* swap VFOs back as original was the other one */
+          icom_set_vfo (rig, RIG_VFO_A == vfo ? RIG_VFO_B : RIG_VFO_A);
+        }
+    }
+  else if (RIG_VFO_MAIN == vfo || RIG_VFO_SUB == vfo) {
+      /* switch to the desired of MAIN and SUB and read its frequency */
+      if ((retval = icom_set_vfo (rig, vfo)) != RIG_OK) return retval;
+      if ((retval = icom_get_freq(rig, vfo, freq)) != RIG_OK) return retval;
+      if (*freq != origfreq) {
+          /* started on a different so switch back MAIN or SUB */
+          icom_set_vfo (rig, RIG_VFO_MAIN == vfo ? RIG_VFO_SUB : RIG_VFO_MAIN);
+        }
+    }
+  else if (RIG_VFO_CURR == vfo) {
+      *freq = origfreq;
+    }
+  else retval = -RIG_EVFO;
+  return retval;
+}
+
 /*
  * This function does the special bandwidth coding for IC-910
  * (1 - normal, 2 - narrow)
@@ -391,17 +423,15 @@ const struct rig_caps ic910_caps = {
   },
   .str_cal =    IC910_STR_CAL,
 
-  .priv =     (void *)& ic910_priv_caps,
+  .priv =     &ic910_priv_caps,
   .rig_init =   icom_init,
   .rig_cleanup =    icom_cleanup,
-  .rig_open =   NULL,
-  .rig_close =    NULL,
 
   .cfgparams =    icom_cfg_params,
   .set_conf =   icom_set_conf,
   .get_conf =   icom_get_conf,
 
-  .get_freq =   icom_get_freq,
+  .get_freq =   ic910_get_freq,
   .set_freq =   ic910_set_freq,
 
 #ifdef HAVE_WEIRD_IC910_MODES
@@ -412,7 +442,6 @@ const struct rig_caps ic910_caps = {
   .set_mode =   icom_set_mode,
 #endif
 
-.get_vfo =  NULL,
 .set_vfo =  icom_set_vfo,
 .get_ts =  icom_get_ts,
 .set_ts =  icom_set_ts,
