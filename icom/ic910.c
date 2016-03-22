@@ -208,6 +208,18 @@ static int ic910_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
       else if (RIG_VFO_CURR == vfo)
         {
           retval = icom_set_freq (rig, RIG_VFO_CURR, freq);
+          if (-RIG_ERJCTED == retval)
+            {
+              /* exchange MAIN & SUB */
+              if ((retval = icom_vfo_op(rig, RIG_VFO_CURR, RIG_OP_XCHG)) != RIG_OK) return retval;
+              retval = icom_set_freq (rig, RIG_VFO_CURR, freq);
+              if (-RIG_ERJCTED == retval)
+                {
+                  /* band not fitted so swap MAIN & SUB back and give up */
+                  icom_vfo_op(rig, RIG_VFO_CURR, RIG_OP_XCHG);
+                  return retval;
+                }
+            }
         }
       else retval = -RIG_EVFO;
     }
