@@ -1077,7 +1077,7 @@ static int kenwood_set_filter(RIG *rig, pbwidth_t width)
 	if (width <= Hz(250))
 		cmd = "FL010009";
 	else if(width <= Hz(500))
-		cmd = "FL009009";
+		cmd = "FL007009";
 	else if(width <= kHz(2.7))
 		cmd = "FL007007";
 	else if(width <= kHz(6))
