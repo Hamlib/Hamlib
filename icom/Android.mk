@@ -9,7 +9,7 @@ LOCAL_SRC_FILES := ic706.c icr8500.c ic735.c ic775.c ic756.c  \
 		ic736.c ic738.c ic7410.c ic746.c ic703.c ic726.c ic271.c \
 		ic765.c ic781.c ic471.c icr9000.c icr9500.c \
 		icr10.c icr20.c icr71.c icr72.c icr75.c icrx7.c \
-		id1.c id5100.c \
+		id1.c id5100.c ic2730.c \
 		ic707.c ic728.c ic751.c ic761.c \
 		ic78.c ic7800.c ic7000.c ic7100.c ic7200.c ic7600.c ic7700.c \
 		icom.c frame.c optoscan.c
