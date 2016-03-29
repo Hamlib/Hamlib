@@ -110,7 +110,7 @@ const struct rig_caps ts850_caps = {
 	.serial_handshake =  RIG_HANDSHAKE_HARDWARE,
 	.write_delay =  0,
 	.post_write_delay =  100,
-	.timeout =  480000,  // When you tune a Kenwood, the reply is delayed until you stop.
+	.timeout =  500,
 	.retry =  10,
 
 	.has_get_func =  TS850_FUNC_ALL,
