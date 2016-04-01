@@ -855,7 +855,6 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 	unsigned char ackbuf[MAXFRAMELEN];
 	int ack_len=sizeof(ackbuf), icvfo, retval;
 
-
 	if (vfo == RIG_VFO_CURR)
 		return RIG_OK;
 
@@ -1670,245 +1669,158 @@ static int get_split_vfos(const RIG *rig, vfo_t *rx_vfo, vfo_t *tx_vfo)
  * icom_set_split_freq
  * Assumes rig!=NULL, rig->state.priv!=NULL,
  * 	icom_set_vfo,icom_set_freq works for this rig
- * FIXME: status
  *
  * Assumes also that the current VFO is the rx VFO.
  */
 int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
-	int status;
+	int rc;
 	vfo_t rx_vfo, tx_vfo;
 	struct icom_priv_data *priv;
 	struct rig_state *rs;
+  unsigned char ackbuf[MAXFRAMELEN];
+  int ack_len=sizeof(ackbuf);
 
 	rs = &rig->state;
 	priv = (struct icom_priv_data*)rs->priv;
 
 	/* This method works also in memory mode(RIG_VFO_MEM) */
 	if (!priv->no_xchg && rig_has_vfo_op(rig, RIG_OP_XCHG)) {
-		status = icom_vfo_op(rig, vfo, RIG_OP_XCHG);
-		if (status != RIG_OK)
-			return status;
-
-		status = icom_set_freq(rig, RIG_VFO_CURR, tx_freq);
-		if (status != RIG_OK)
-			return status;
-
-		status = icom_vfo_op(rig, vfo, RIG_OP_XCHG);
-		if (status != RIG_OK)
-			return status;
-
-		return 0;
+		if (RIG_OK != (rc = icom_vfo_op(rig, vfo, RIG_OP_XCHG))) return rc;
+		if (RIG_OK != (rc = icom_set_freq(rig, RIG_VFO_CURR, tx_freq))) return rc;
+		if (RIG_OK != (rc = icom_vfo_op(rig, vfo, RIG_OP_XCHG))) return rc;
+		return rc;
 	}
 
-  /* strategy here is to attempt to leave the original VFO selected
-	even though Icom provides no way to tell what the current VFO is. So
-	we read current frequency and mode and compare with SUB/B, this
-	gives up a clue so long as both VFOs are not the same frequency and
-	mode (and we don't really care if they are, the price for not using
-	VFO_XCHG, which will glitch the RX and TX and, possibly clatter the
-	rig relays). */
-
-  freq_t orig_freq, second_freq;
-  rmode_t orig_mode, second_mode;
-  pbwidth_t orig_width, second_width;
-
-	status = icom_get_freq(rig, RIG_VFO_CURR, &orig_freq);
-	if (status != RIG_OK)
-		return status;
-
-  status = rig->caps->get_mode (rig, RIG_VFO_CURR, &orig_mode, &orig_width);
-	if (status != RIG_OK)
-		return status;
-
-	status = get_split_vfos(rig, &rx_vfo, &tx_vfo);
-	if (status != RIG_OK)
-		return status;
-
-	status = icom_set_vfo(rig, tx_vfo);
-	if (status != RIG_OK)
-		return status;
-
-	status = icom_get_freq(rig, RIG_VFO_CURR, &second_freq);
-	if (status != RIG_OK)
-		return status;
-
-  status = rig->caps->get_mode (rig, RIG_VFO_CURR, &second_mode, &second_width);
-	if (status != RIG_OK)
-		return status;
-
-	status = icom_set_freq(rig, RIG_VFO_CURR, tx_freq);
-	if (status != RIG_OK)
-		return status;
-
-  if (second_freq != orig_freq || second_mode != orig_mode || second_width != orig_width) {
-    /* RX VFO must have been selected when we started so switch back
-       to it */
-    status = icom_set_vfo(rig, rx_vfo);
-    rig->state.current_vfo = rx_vfo;
-  }
-
-	return status;
+	/* In the case of rigs with an A/B VFO arrangement we assume the
+		 current VFO is VFO A and the split Tx VFO is always VFO B. These
+		 assumptions allow us to deal with the lack of VFO and split
+		 queries */
+	if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
+			&& priv->split_on) {				/* broken if user changes split on rig :( */
+		/* VFO A/B style rigs swap VFO on split Tx so we need to disable
+			 split for certainty */
+		if (RIG_OK != (rc = icom_transaction (rig, C_CTL_SPLT, S_SPLT_OFF, NULL, 0, ackbuf, &ack_len))) return rc;
+		if (ack_len != 1 || ackbuf[0] != ACK) {
+			rig_debug(RIG_DEBUG_ERR,"icom_set_split_freq_mode: ack NG (%#.2x), "
+								"len=%d\n", ackbuf[0],ack_len);
+			return -RIG_ERJCTED;
+		}
+	}
+	if (RIG_OK != (rc = get_split_vfos(rig, &rx_vfo, &tx_vfo))) return rc;
+	if (RIG_OK != (rc = icom_set_vfo(rig, tx_vfo))) return rc;
+	if (RIG_OK != (rc = rig_set_freq(rig, RIG_VFO_CURR, tx_freq))) return rc;
+	if (RIG_OK != (rc = icom_set_vfo(rig, rx_vfo))) return rc;
+	if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
+			&& priv->split_on) {
+		/* Re-enable split */
+		if (RIG_OK != (rc = icom_transaction (rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0, ackbuf, &ack_len))) return rc;
+	}
+	return rc;
 }
 
 /*
  * icom_get_split_freq
  * Assumes rig!=NULL, rig->state.priv!=NULL, rx_freq!=NULL, tx_freq!=NULL
  * 	icom_set_vfo,icom_get_freq works for this rig
- * FIXME: status
  */
 int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
-	int status;
+	int rc;
 	vfo_t rx_vfo, tx_vfo;
 	struct icom_priv_data *priv;
 	struct rig_state *rs;
+  unsigned char ackbuf[MAXFRAMELEN];
+  int ack_len=sizeof(ackbuf);
 
 	rs = &rig->state;
 	priv = (struct icom_priv_data*)rs->priv;
 
 	/* This method works also in memory mode(RIG_VFO_MEM) */
 	if (!priv->no_xchg && rig_has_vfo_op(rig, RIG_OP_XCHG)) {
-		status = icom_vfo_op(rig, vfo, RIG_OP_XCHG);
-		if (status != RIG_OK)
-			return status;
-
-		status = icom_get_freq(rig, RIG_VFO_CURR, tx_freq);
-		if (status != RIG_OK)
-			return status;
-
-		status = icom_vfo_op(rig, vfo, RIG_OP_XCHG);
-		if (status != RIG_OK)
-			return status;
-
-		return 0;
+		if (RIG_OK != (rc = icom_vfo_op(rig, vfo, RIG_OP_XCHG))) return rc;
+		if (RIG_OK != (rc = icom_get_freq(rig, RIG_VFO_CURR, tx_freq))) return rc;
+		if (RIG_OK != (rc = icom_vfo_op(rig, vfo, RIG_OP_XCHG))) return rc;
+		return rc;
 	}
 
-  /* strategy here is to attempt to leave the original VFO selected
-	even though Icom provides no way to tell what the current VFO is. So
-	we read current frequency and mode and compare with SUB/B, this
-	gives up a clue so long as both VFOs are not the same frequency and
-	mode (and we don't really care if they are, the price for not using
-	VFO_XCHG, which will glitch the RX and TX and, possibly clatter the
-	rig relays). */
-
-  freq_t orig_freq;
-  rmode_t orig_mode, second_mode;
-  pbwidth_t orig_width, second_width;
-
-	status = icom_get_freq(rig, RIG_VFO_CURR, &orig_freq);
-	if (status != RIG_OK)
-		return status;
-
-  status = rig->caps->get_mode (rig, RIG_VFO_CURR, &orig_mode, &orig_width);
-	if (status != RIG_OK)
-		return status;
-
-	status = get_split_vfos(rig, &rx_vfo, &tx_vfo);
-	if (status != RIG_OK)
-		return status;
-
-	status = icom_set_vfo(rig, tx_vfo);
-	if (status != RIG_OK)
-		return status;
-
-	status = icom_get_freq(rig, RIG_VFO_CURR, tx_freq);
-	if (status != RIG_OK)
-		return status;
-
-  status = rig->caps->get_mode (rig, RIG_VFO_CURR, &second_mode, &second_width);
-	if (status != RIG_OK)
-		return status;
-
-  if (*tx_freq != orig_freq || second_mode != orig_mode || second_width != orig_width) {
-    /* RX VFO must have been selected when we started so switch back
-       to it */
-    status = icom_set_vfo(rig, rx_vfo);
-  }
-
-	return status;
+	/* In the case of rigs with an A/B VFO arrangement we assume the
+		 current VFO is VFO A and the split Tx VFO is always VFO B. These
+		 assumptions allow us to deal with the lack of VFO and split
+		 queries */
+	if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
+			&& priv->split_on) {				/* broken if user changes split on rig :( */
+		/* VFO A/B style rigs swap VFO on split Tx so we need to disable
+			 split for certainty */
+		if (RIG_OK != (rc = icom_transaction (rig, C_CTL_SPLT, S_SPLT_OFF, NULL, 0, ackbuf, &ack_len))) return rc;
+		if (ack_len != 1 || ackbuf[0] != ACK) {
+			rig_debug(RIG_DEBUG_ERR,"icom_set_split_freq_mode: ack NG (%#.2x), "
+								"len=%d\n", ackbuf[0],ack_len);
+			return -RIG_ERJCTED;
+		}
+	}
+	if (RIG_OK != (rc = get_split_vfos(rig, &rx_vfo, &tx_vfo))) return rc;
+	if (RIG_OK != (rc = icom_set_vfo(rig, tx_vfo))) return rc;
+	if (RIG_OK != (rc = icom_get_freq(rig, RIG_VFO_CURR, tx_freq))) return rc;
+	if (RIG_OK != (rc = icom_set_vfo(rig, rx_vfo))) return rc;
+	if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
+			&& priv->split_on) {
+		/* Re-enable split */
+		if (RIG_OK != (rc = icom_transaction (rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0, ackbuf, &ack_len))) return rc;
+	}
+	return rc;
 }
 
 /*
  * icom_set_split_mode
  * Assumes rig!=NULL, rig->state.priv!=NULL,
  * 	icom_set_vfo,icom_set_mode works for this rig
- * FIXME: status
  */
 int icom_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
 {
-	int status;
+	int rc;
 	vfo_t rx_vfo, tx_vfo;
 	struct icom_priv_data *priv;
 	struct rig_state *rs;
+  unsigned char ackbuf[MAXFRAMELEN];
+  int ack_len=sizeof(ackbuf);
 
 	rs = &rig->state;
 	priv = (struct icom_priv_data*)rs->priv;
 
 	/* This method works also in memory mode(RIG_VFO_MEM) */
 	if (!priv->no_xchg && rig_has_vfo_op(rig, RIG_OP_XCHG)) {
-		status = icom_vfo_op(rig, vfo, RIG_OP_XCHG);
-		if (status != RIG_OK)
-			return status;
-
-		status = rig->caps->set_mode(rig, RIG_VFO_CURR, tx_mode, tx_width);
-		if (status != RIG_OK)
-			return status;
-
-		status = icom_vfo_op(rig, vfo, RIG_OP_XCHG);
-		if (status != RIG_OK)
-			return status;
-
-		return 0;
+		if (RIG_OK != (rc = icom_vfo_op(rig, vfo, RIG_OP_XCHG))) return rc;
+		if (RIG_OK != (rc = rig->caps->set_mode(rig, RIG_VFO_CURR, tx_mode, tx_width))) return rc;
+		if (RIG_OK != (rc = icom_vfo_op(rig, vfo, RIG_OP_XCHG))) return rc;
+		return rc;
 	}
 
-  /* strategy here is to attempt to leave the original VFO selected
-	even though Icom provides no way to tell what the current VFO is. So
-	we read current frequency and mode and compare with SUB/B, this
-	gives up a clue so long as both VFOs are not the same frequency and
-	mode (and we don't really care if they are, the price for not using
-	VFO_XCHG, which will glitch the RX and TX and, possibly clatter the
-	rig relays). */
-
-  freq_t orig_freq, second_freq;
-  rmode_t orig_mode, second_mode;
-  pbwidth_t orig_width, second_width;
-
-	status = icom_get_freq(rig, RIG_VFO_CURR, &orig_freq);
-	if (status != RIG_OK)
-		return status;
-
-  status = rig->caps->get_mode (rig, RIG_VFO_CURR, &orig_mode, &orig_width);
-	if (status != RIG_OK)
-		return status;
-
-	status = get_split_vfos(rig, &rx_vfo, &tx_vfo);
-	if (status != RIG_OK)
-		return status;
-
-	status = icom_set_vfo(rig, tx_vfo);
-	if (status != RIG_OK)
-		return status;
-
-	status = icom_get_freq(rig, RIG_VFO_CURR, &second_freq);
-	if (status != RIG_OK)
-		return status;
-
-  status = rig->caps->get_mode (rig, RIG_VFO_CURR, &second_mode, &second_width);
-	if (status != RIG_OK)
-		return status;
-
-	status = rig->caps->set_mode(rig, RIG_VFO_CURR, tx_mode, tx_width);
-	if (status != RIG_OK)
-		return status;
-
-  if (second_freq != orig_freq || second_mode != orig_mode || second_width != orig_width) {
-    /* RX VFO must have been selected when we started so switch back
-       to it */
-    status = icom_set_vfo(rig, rx_vfo);
-  }
-
-	return status;
+	/* In the case of rigs with an A/B VFO arrangement we assume the
+		 current VFO is VFO A and the split Tx VFO is always VFO B. These
+		 assumptions allow us to deal with the lack of VFO and split
+		 queries */
+	if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
+			&& priv->split_on) {				/* broken if user changes split on rig :( */
+		/* VFO A/B style rigs swap VFO on split Tx so we need to disable
+			 split for certainty */
+		if (RIG_OK != (rc = icom_transaction (rig, C_CTL_SPLT, S_SPLT_OFF, NULL, 0, ackbuf, &ack_len))) return rc;
+		if (ack_len != 1 || ackbuf[0] != ACK) {
+			rig_debug(RIG_DEBUG_ERR,"icom_set_split_freq_mode: ack NG (%#.2x), "
+								"len=%d\n", ackbuf[0],ack_len);
+			return -RIG_ERJCTED;
+		}
+	}
+	if (RIG_OK != (rc = get_split_vfos(rig, &rx_vfo, &tx_vfo))) return rc;
+	if (RIG_OK != (rc = icom_set_vfo(rig, tx_vfo))) return rc;
+	if (RIG_OK != (rc = rig->caps->set_mode(rig, RIG_VFO_CURR, tx_mode, tx_width))) return rc;
+	if (RIG_OK != (rc = icom_set_vfo(rig, rx_vfo))) return rc;
+	if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
+			&& priv->split_on) {
+		/* Re-enable split */
+		if (RIG_OK != (rc = icom_transaction (rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0, ackbuf, &ack_len))) return rc;
+	}
+	return rc;
 }
 
 /*
@@ -1916,257 +1828,102 @@ int icom_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width
  * Assumes rig!=NULL, rig->state.priv!=NULL,
  *  rx_mode!=NULL, rx_width!=NULL, tx_mode!=NULL, tx_width!=NULL
  * 	icom_set_vfo,icom_get_mode works for this rig
- * FIXME: status
  */
 int icom_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width)
 {
-	int status;
+	int rc;
 	vfo_t rx_vfo, tx_vfo;
 	struct icom_priv_data *priv;
 	struct rig_state *rs;
+  unsigned char ackbuf[MAXFRAMELEN];
+  int ack_len=sizeof(ackbuf);
 
 	rs = &rig->state;
 	priv = (struct icom_priv_data*)rs->priv;
 
 	/* This method works also in memory mode(RIG_VFO_MEM) */
 	if (!priv->no_xchg && rig_has_vfo_op(rig, RIG_OP_XCHG)) {
-		status = icom_vfo_op(rig, vfo, RIG_OP_XCHG);
-		if (status != RIG_OK)
-			return status;
-
-		status = rig->caps->get_mode(rig, RIG_VFO_CURR, tx_mode, tx_width);
-		if (status != RIG_OK)
-			return status;
-
-		status = icom_vfo_op(rig, vfo, RIG_OP_XCHG);
-		if (status != RIG_OK)
-			return status;
-
-		return 0;
+		if (RIG_OK != (rc = icom_vfo_op(rig, vfo, RIG_OP_XCHG))) return rc;
+		if (RIG_OK != (rc = rig->caps->get_mode(rig, RIG_VFO_CURR, tx_mode, tx_width))) return rc;
+		if (RIG_OK != (rc = icom_vfo_op(rig, vfo, RIG_OP_XCHG))) return rc;
+		return rc;
 	}
 
-  /* strategy here is to attempt to leave the original VFO selected
-	even though Icom provides no way to tell what the current VFO is. So
-	we read current frequency and mode and compare with SUB/B, this
-	gives up a clue so long as both VFOs are not the same frequency and
-	mode (and we don't really care if they are, the price for not using
-	VFO_XCHG, which will glitch the RX and TX and, possibly clatter the
-	rig relays). */
-
-  freq_t orig_freq, second_freq;
-  rmode_t orig_mode;
-  pbwidth_t orig_width;
-
-	status = icom_get_freq(rig, RIG_VFO_CURR, &orig_freq);
-	if (status != RIG_OK)
-		return status;
-
-  status = rig->caps->get_mode (rig, RIG_VFO_CURR, &orig_mode, &orig_width);
-	if (status != RIG_OK)
-		return status;
-
-	status = get_split_vfos(rig, &rx_vfo, &tx_vfo);
-	if (status != RIG_OK)
-		return status;
-
-	status = icom_set_vfo(rig, tx_vfo);
-	if (status != RIG_OK)
-		return status;
-
-	status = icom_get_freq(rig, RIG_VFO_CURR, &second_freq);
-	if (status != RIG_OK)
-		return status;
-
-	status = rig->caps->get_mode(rig, RIG_VFO_CURR, tx_mode, tx_width);
-	if (status != RIG_OK)
-		return status;
-
-  if (second_freq != orig_freq || *tx_mode != orig_mode || *tx_width != orig_width) {
-    /* RX VFO must have been selected when we started so switch back
-       to it */
-    status = icom_set_vfo(rig, rx_vfo);
-  }
-
-	return status;
-}
-
-/* find out what the split VFO, Freq, Mode and Width are.
-
- Leaves the split VFO as current and returns a current VFO to switch
- back to. The current VFO may be NONE in which case no switch back is
- required */
-static int get_split_status (RIG * rig, vfo_t * curr_vfo,
-														 freq_t * split_freq,
-														 rmode_t * split_mode,
-														 pbwidth_t * split_width)
-{
-	/* Strategy here is to attempt to leave the original VFO selected
-	even though Icom provides no way to tell what the current VFO is. So
-	we read current frequency and mode and compare with SUB/B, this
-	gives up a clue so long as both VFOs are not the same frequency and
-	mode (and we don't really care if they are, the price for not using
-	VFO_XCHG, which will glitch the RX and TX and, possibly clatter the
-	rig relays).
-
-	There is a further complication in that A/B VFO style Icoms swap
-	VFOs during split Tx but there is no guaranteed way of querying Tx
-	status. In this case we must briefly turn off split to read the Rx
-	VFO details. Even more complex if the VFOs are set the same then
-	only by adjusting one before disabling split can we be sure that we
-	have identified which is which.
-
-	This all relies on some assumptions:- the rig can only be set or
-	reset to and from split mode via this library, when split the Tx
-	status must remain constant through this sequence. */
-
-	int status;
-	struct icom_priv_data * priv = (struct icom_priv_data *)rig->state.priv;
-	vfo_t rx_vfo, tx_vfo;
-  freq_t orig_freq;
-  rmode_t orig_mode;
-  pbwidth_t orig_width;
-	unsigned char ackbuf[MAXFRAMELEN];
-	int ack_len = sizeof(ackbuf);
-	int tx_split = 0;
-	freq_t offset = 0;
-
-	*curr_vfo = RIG_VFO_NONE;
-
-	status = get_split_vfos(rig, &rx_vfo, &tx_vfo);
-	if (status != RIG_OK) return status;
-
-	// get current frequency, mode and width
-	status = icom_get_freq(rig, RIG_VFO_CURR, &orig_freq);
-	if (status != RIG_OK) return status;
-  status = rig->caps->get_mode (rig, RIG_VFO_CURR, &orig_mode, &orig_width);
-	if (status != RIG_OK) return status;
-
-	if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)) {
-		/* A/B VFO rigs swap VFO on split Tx so we need to find out if we are in Tx */
-		if (priv->split_on) {				/* broken if user changes split on rig :( */
-			status = icom_transaction (rig, C_CTL_SPLT, S_SPLT_OFF, NULL, 0, ackbuf, &ack_len);
-			if (status != RIG_OK) return status;
-			if (ack_len != 1 || ackbuf[0] != ACK) {
-				rig_debug(RIG_DEBUG_ERR,"icom_set_split_freq_mode: ack NG (%#.2x), "
-									"len=%d\n", ackbuf[0],ack_len);
-				return -RIG_ERJCTED;
-			}
-			status = icom_get_freq(rig, RIG_VFO_CURR, split_freq);
-			if (status != RIG_OK) return status;
-			if (*split_freq == orig_freq) {
-				status = rig->caps->get_mode (rig, RIG_VFO_CURR, split_mode, split_width);
-				if (status != RIG_OK) return status;
-			}
-			if (*split_freq != orig_freq || *split_mode != orig_mode || *split_width != orig_width) {
-				/* definitely split tx as turning off split changed VFO */
-				tx_split = -1;
-				/* restore split state */
-				status = icom_transaction (rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0, ackbuf, &ack_len);
-				if (status != RIG_OK) return status;
-				if (ack_len != 1 || ackbuf[0] != ACK) {
-					rig_debug(RIG_DEBUG_ERR,"icom_set_split_freq_mode: ack NG (%#.2x), "
-										"len=%d\n", ackbuf[0],ack_len);
-					return -RIG_ERJCTED;
-				}
-			}
-			else {
-				/* may still be split Tx so change Tx F +10Hz then split on and check F */
-				status = icom_set_vfo(rig, tx_vfo);
-				if (status != RIG_OK) return status;
-				offset = Hz(10);
-				status = icom_set_freq(rig, RIG_VFO_CURR, *split_freq + offset);
-				if (status != RIG_OK) return status;
-				/* restore split state */
-				status = icom_transaction (rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0, ackbuf, &ack_len);
-				if (status != RIG_OK) return status;
-				if (ack_len != 1 || ackbuf[0] != ACK) {
-					rig_debug(RIG_DEBUG_ERR,"icom_set_split_freq_mode: ack NG (%#.2x), "
-										"len=%d\n", ackbuf[0],ack_len);
-					return -RIG_ERJCTED;
-				}
-				freq_t temp_freq;
-				status = icom_get_freq(rig, RIG_VFO_CURR, &temp_freq);
-				if (status != RIG_OK) return status;
-				if (temp_freq != *split_freq + offset) {
-					/* frequency changed so we must be in Tx */
-					tx_split = -1;
-					/* VFO B current since split Tx */
-					status = icom_set_vfo(rig, tx_vfo);
-					if (status != RIG_OK) return status;
-				}
-			}
+	/* In the case of rigs with an A/B VFO arrangement we assume the
+		 current VFO is VFO A and the split Tx VFO is always VFO B. These
+		 assumptions allow us to deal with the lack of VFO and split
+		 queries */
+	if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
+			&& priv->split_on) {				/* broken if user changes split on rig :( */
+		/* VFO A/B style rigs swap VFO on split Tx so we need to disable
+			 split for certainty */
+		if (RIG_OK != (rc = icom_transaction (rig, C_CTL_SPLT, S_SPLT_OFF, NULL, 0, ackbuf, &ack_len))) return rc;
+		if (ack_len != 1 || ackbuf[0] != ACK) {
+			rig_debug(RIG_DEBUG_ERR,"icom_set_split_freq_mode: ack NG (%#.2x), "
+								"len=%d\n", ackbuf[0],ack_len);
+			return -RIG_ERJCTED;
 		}
 	}
-
-	if (!tx_split) {
-		if (0 == offset) {
-			status = icom_set_vfo(rig, tx_vfo);
-			if (status != RIG_OK) return status;
-			status = icom_get_freq(rig, RIG_VFO_CURR, split_freq);
-			if (status != RIG_OK) return status;
-			status = rig->caps->get_mode (rig, RIG_VFO_CURR, split_mode, split_width);
-			if (status != RIG_OK) return status;
-		}
+	if (RIG_OK != (rc = get_split_vfos(rig, &rx_vfo, &tx_vfo))) return rc;
+	if (RIG_OK != (rc = icom_set_vfo(rig, tx_vfo))) return rc;
+	if (RIG_OK != (rc = rig->caps->get_mode(rig, RIG_VFO_CURR, tx_mode, tx_width))) return rc;
+	if (RIG_OK != (rc = icom_set_vfo(rig, rx_vfo))) return rc;
+	if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
+			&& priv->split_on) {
+		/* Re-enable split */
+		if (RIG_OK != (rc = icom_transaction (rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0, ackbuf, &ack_len))) return rc;
 	}
-  if (!tx_split && (*split_freq != orig_freq
-										|| *split_mode != orig_mode
-										|| *split_width != orig_width
-										|| priv->split_on)) {
-    /* Rx VFO must have been selected when we started so switch back
-       to it. We may be wrong but in that case A & B are the same so
-       it doesn't matter so long as in split Tx is always VFO B */
-		*curr_vfo = rx_vfo;
-	}
-	return RIG_OK;
+	return rc;
 }
 
 /*
  * icom_set_split_freq_mode
  * Assumes rig!=NULL, rig->state.priv!=NULL,
  * 	icom_set_vfo,icom_set_mode works for this rig
- * FIXME: status
  */
 int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq, rmode_t tx_mode, pbwidth_t tx_width)
 {
-	int status;
+	int rc;
 	struct icom_priv_data * priv = (struct icom_priv_data *)rig->state.priv;
+	unsigned char ackbuf[MAXFRAMELEN];
+	int ack_len=sizeof(ackbuf);
+	vfo_t rx_vfo, tx_vfo;
 
 	/* This method works also in memory mode(RIG_VFO_MEM) */
 	if (!priv->no_xchg && rig_has_vfo_op(rig, RIG_OP_XCHG)) {
-		status = icom_vfo_op(rig, vfo, RIG_OP_XCHG);
-		if (status != RIG_OK) return status;
-
-		status = rig_set_freq(rig, RIG_VFO_CURR, tx_freq);
-		if (status != RIG_OK) return status;
-
-		status = rig->caps->set_mode(rig, RIG_VFO_CURR, tx_mode, tx_width);
-		if (status != RIG_OK) return status;
-
-		status = icom_vfo_op(rig, vfo, RIG_OP_XCHG);
-		if (status != RIG_OK) return status;
-
-		return 0;
+		if (RIG_OK != (rc = icom_vfo_op(rig, vfo, RIG_OP_XCHG))) return rc;
+		if (RIG_OK != (rc = rig_set_freq(rig, RIG_VFO_CURR, tx_freq))) return rc;
+		if (RIG_OK != (rc = rig->caps->set_mode(rig, RIG_VFO_CURR, tx_mode, tx_width))) return rc;
+		if (RIG_OK != (rc = icom_vfo_op(rig, vfo, RIG_OP_XCHG))) return rc;
+		return rc;
 	}
 
-	vfo_t curr_vfo;
-	freq_t split_freq;
-	rmode_t split_mode;
-	pbwidth_t split_width;
-	status = get_split_status (rig, &curr_vfo, &split_freq,
-														 &split_mode, &split_width);
-	if (status != RIG_OK) return status;
-
-	status = rig_set_freq(rig, RIG_VFO_CURR, tx_freq);
-	if (status != RIG_OK) return status;
-	status = rig->caps->set_mode(rig, RIG_VFO_CURR, tx_mode, tx_width);
-	if (status != RIG_OK) return status;
-
-	if (curr_vfo != RIG_VFO_NONE)
-		{
-			status = icom_set_vfo(rig, curr_vfo);
+	/* In the case of rigs with an A/B VFO arrangement we assume the
+		 current VFO is VFO A and the split Tx VFO is always VFO B. These
+		 assumptions allow us to deal with the lack of VFO and split
+		 queries */
+	if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
+			&& priv->split_on) {				/* broken if user changes split on rig :( */
+		/* VFO A/B style rigs swap VFO on split Tx so we need to disable
+			 split for certainty */
+		if (RIG_OK != (rc = icom_transaction (rig, C_CTL_SPLT, S_SPLT_OFF, NULL, 0, ackbuf, &ack_len))) return rc;
+		if (ack_len != 1 || ackbuf[0] != ACK) {
+			rig_debug(RIG_DEBUG_ERR,"icom_set_split_freq_mode: ack NG (%#.2x), "
+								"len=%d\n", ackbuf[0],ack_len);
+			return -RIG_ERJCTED;
 		}
-
-	return status;
+	}
+	if (RIG_OK != (rc = get_split_vfos(rig, &rx_vfo, &tx_vfo))) return rc;
+	if (RIG_OK != (rc = icom_set_vfo(rig, tx_vfo))) return rc;
+	if (RIG_OK != (rc = rig_set_freq(rig, RIG_VFO_CURR, tx_freq))) return rc;
+	if (RIG_OK != (rc = rig->caps->set_mode(rig, RIG_VFO_CURR, tx_mode, tx_width))) return rc;
+	if (RIG_OK != (rc = icom_set_vfo(rig, rx_vfo))) return rc;
+	if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
+			&& priv->split_on) {
+		/* Re-enable split */
+		if (RIG_OK != (rc = icom_transaction (rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0, ackbuf, &ack_len))) return rc;
+	}
+	return rc;
 }
 
 /*
@@ -2174,82 +1931,54 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq, rmode_t tx_mod
  * Assumes rig!=NULL, rig->state.priv!=NULL,
  *  rx_mode!=NULL, rx_width!=NULL, tx_mode!=NULL, tx_width!=NULL
  * 	icom_set_vfo,icom_get_mode works for this rig
- * FIXME: status
  */
 int icom_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *tx_freq, rmode_t *tx_mode, pbwidth_t *tx_width)
 {
-	int status;
+	int rc;
 	vfo_t rx_vfo, tx_vfo;
 	struct icom_priv_data *priv;
 	struct rig_state *rs;
+	unsigned char ackbuf[MAXFRAMELEN];
+	int ack_len=sizeof(ackbuf);
 
 	rs = &rig->state;
 	priv = (struct icom_priv_data*)rs->priv;
 
 	/* This method works also in memory mode(RIG_VFO_MEM) */
 	if (!priv->no_xchg && rig_has_vfo_op(rig, RIG_OP_XCHG)) {
-		status = icom_vfo_op(rig, vfo, RIG_OP_XCHG);
-		if (status != RIG_OK)
-			return status;
-
-		status = rig_get_freq(rig, RIG_VFO_CURR, tx_freq);
-		if (status != RIG_OK)
-			return status;
-
-		status = rig->caps->get_mode(rig, RIG_VFO_CURR, tx_mode, tx_width);
-		if (status != RIG_OK)
-			return status;
-
-		status = icom_vfo_op(rig, vfo, RIG_OP_XCHG);
-		if (status != RIG_OK)
-			return status;
-
-		return 0;
+		if (RIG_OK != (rc = icom_vfo_op(rig, vfo, RIG_OP_XCHG))) return rc;
+		if (RIG_OK != (rc = rig_get_freq(rig, RIG_VFO_CURR, tx_freq))) return rc;
+		if (RIG_OK != (rc = rig->caps->get_mode(rig, RIG_VFO_CURR, tx_mode, tx_width))) return rc;
+		if (RIG_OK != (rc = icom_vfo_op(rig, vfo, RIG_OP_XCHG))) return rc;
+		return rc;
 	}
 
-  /* strategy here is to attempt to leave the original VFO selected
-	even though Icom provides no way to tell what the current VFO is. So
-	we read current frequency and mode and compare with SUB/B, this
-	gives up a clue so long as both VFOs are not the same frequency and
-	mode (and we don't really care if they are, the price for not using
-	VFO_XCHG, which will glitch the RX and TX and, possibly clatter the
-	rig relays). */
-
-  freq_t orig_freq;
-  rmode_t orig_mode;
-  pbwidth_t orig_width;
-
-	status = icom_get_freq(rig, RIG_VFO_CURR, &orig_freq);
-	if (status != RIG_OK)
-		return status;
-
-  status = rig->caps->get_mode (rig, RIG_VFO_CURR, &orig_mode, &orig_width);
-	if (status != RIG_OK)
-		return status;
-
-	status = get_split_vfos(rig, &rx_vfo, &tx_vfo);
-	if (status != RIG_OK)
-		return status;
-
-	status = icom_set_vfo(rig, tx_vfo);
-	if (status != RIG_OK)
-		return status;
-
-	status = icom_get_freq(rig, RIG_VFO_CURR, tx_freq);
-	if (status != RIG_OK)
-		return status;
-
-	status = rig->caps->get_mode(rig, RIG_VFO_CURR, tx_mode, tx_width);
-	if (status != RIG_OK)
-		return status;
-
-  if (*tx_freq != orig_freq || *tx_mode != orig_mode || *tx_width != orig_width) {
-    /* RX VFO must have been selected when we started so switch back
-       to it */
-    status = icom_set_vfo(rig, rx_vfo);
-  }
-
-	return status;
+	/* In the case of rigs with an A/B VFO arrangement we assume the
+		 current VFO is VFO A and the split Tx VFO is always VFO B. These
+		 assumptions allow us to deal with the lack of VFO and split
+		 queries */
+	if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
+			&& priv->split_on) {				/* broken if user changes split on rig :( */
+		/* VFO A/B style rigs swap VFO on split Tx so we need to disable
+			 split for certainty */
+		if (RIG_OK != (rc = icom_transaction (rig, C_CTL_SPLT, S_SPLT_OFF, NULL, 0, ackbuf, &ack_len))) return rc;
+		if (ack_len != 1 || ackbuf[0] != ACK) {
+			rig_debug(RIG_DEBUG_ERR,"icom_set_split_freq_mode: ack NG (%#.2x), "
+								"len=%d\n", ackbuf[0],ack_len);
+			return -RIG_ERJCTED;
+		}
+	}
+	if (RIG_OK != (rc = get_split_vfos(rig, &rx_vfo, &tx_vfo))) return rc;
+	if (RIG_OK != (rc = icom_set_vfo(rig, tx_vfo))) return rc;
+	if (RIG_OK != (rc = icom_get_freq(rig, RIG_VFO_CURR, tx_freq))) return rc;
+	if (RIG_OK != (rc = rig->caps->get_mode(rig, RIG_VFO_CURR, tx_mode, tx_width))) return rc;
+	if (RIG_OK != (rc = icom_set_vfo(rig, rx_vfo))) return rc;
+	if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
+			&& priv->split_on) {
+		/* Re-enable split */
+		if (RIG_OK != (rc = icom_transaction (rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0, ackbuf, &ack_len))) return rc;
+	}
+	return rc;
 }
 
 
@@ -2261,7 +1990,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
 	struct icom_priv_data * priv = (struct icom_priv_data *)rig->state.priv;
 	unsigned char ackbuf[MAXFRAMELEN];
-	int ack_len=sizeof(ackbuf), retval;
+	int ack_len=sizeof(ackbuf), rc;
 	int split_sc;
 
 	switch (split) {
@@ -2270,17 +1999,20 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 		break;
 	case RIG_SPLIT_ON:
 		split_sc = S_SPLT_ON;
+		if (!priv->split_on) {
+			/* ensure VFO A is Rx and VFO B is Tx as we assume that elsewhere */
+			if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)) {
+				if (RIG_OK != (rc = icom_set_vfo(rig, RIG_VFO_A))) return rc;
+			}
+		}
 		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported split %d", __FUNCTION__, split);
 		return -RIG_EINVAL;
 	}
 
-	retval = icom_transaction (rig, C_CTL_SPLT, split_sc, NULL, 0,
-					ackbuf, &ack_len);
-	if (retval != RIG_OK)
-		return retval;
-
+	if (RIG_OK != (rc = icom_transaction (rig, C_CTL_SPLT, split_sc, NULL, 0,
+																				ackbuf, &ack_len))) return rc;
 	if (ack_len != 1 || ackbuf[0] != ACK) {
 		rig_debug(RIG_DEBUG_ERR,"icom_set_split: ack NG (%#.2x), "
 					"len=%d\n", ackbuf[0],ack_len);
