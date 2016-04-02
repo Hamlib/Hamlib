@@ -56,7 +56,7 @@ dnl See README.release on setting these values
 # Values given to -version-info when linking.  See libtool documentation.
 # Set them here to keep c++/Makefile and src/Makefile in sync.
 ABI_VERSION=3
-ABI_REVISION=0
+ABI_REVISION=1
 ABI_AGE=1
 
 AC_DEFINE_UNQUOTED([ABI_VERSION], [$ABI_VERSION], [Frontend ABI version])
