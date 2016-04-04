@@ -220,6 +220,19 @@ const struct ts_sc_list ic7200_ts_sc_list[] = {
 	{ 0, 0 },
 };
 
+const struct ts_sc_list ic7300_ts_sc_list[] = {
+	{ 10, 0x00 }, /* Manual says "Send/read the tuning step OFF" */
+	{ 100, 0x01 },
+	{ kHz(1), 0x02 },
+	{ kHz(5), 0x03 },
+	{ kHz(9), 0x04 },
+	{ kHz(10), 0x05 },
+	{ kHz(12.5), 0x06 },
+	{ kHz(20), 0x07 },
+	{ kHz(25), 0x08 },
+	{ 0, 0 },
+};
+
 const struct ts_sc_list ic910_ts_sc_list[] = {
         { Hz(1), 0x00 },
         { Hz(10), 0x01 },
@@ -3446,6 +3459,7 @@ DECLARE_INITRIG_BACKEND(icom)
 	rig_register(&ic7000_caps);
 	rig_register(&ic7100_caps);
 	rig_register(&ic7200_caps);
+	rig_register(&ic7300_caps);
 	rig_register(&ic781_caps);
 	rig_register(&ic707_caps);
 	rig_register(&ic728_caps);

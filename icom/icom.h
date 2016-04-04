@@ -135,6 +135,7 @@ extern const struct ts_sc_list ic706_ts_sc_list[];
 extern const struct ts_sc_list ic7000_ts_sc_list[];
 extern const struct ts_sc_list ic7100_ts_sc_list[];
 extern const struct ts_sc_list ic7200_ts_sc_list[];
+extern const struct ts_sc_list ic7300_ts_sc_list[];
 extern const struct ts_sc_list ic910_ts_sc_list[];
 extern const struct ts_sc_list ic718_ts_sc_list[];
 
@@ -227,6 +228,7 @@ extern const struct rig_caps ic7800_caps;
 extern const struct rig_caps ic7000_caps;
 extern const struct rig_caps ic7100_caps;
 extern const struct rig_caps ic7200_caps;
+extern const struct rig_caps ic7300_caps;
 extern const struct rig_caps ic781_caps;
 extern const struct rig_caps ic820h_caps;
 extern const struct rig_caps ic821h_caps;
