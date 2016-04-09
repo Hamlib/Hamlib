@@ -290,30 +290,31 @@ int drake_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	if (retval != RIG_OK)
 		return retval;
 
-	if (mode != RIG_MODE_FM) {
+	if (width != RIG_PASSBAND_NOCHANGE) {
+		if (mode != RIG_MODE_FM) {
 
-		if (width == RIG_PASSBAND_NORMAL)
-			width = rig_passband_normal(rig, mode);
+			if (width == RIG_PASSBAND_NORMAL)
+				width = rig_passband_normal(rig, mode);
 
-		switch (width) {
-		case 500: width_sel = '0'; break;
+			if (width <= 500) {
+				width_sel = '0';
+			}
+			else if (width <= 1800) {
+				width_sel = '1';
+			}
+			else if (width <= 2300) {
+				width_sel = '2';
+			}
+			else if (width <= 4000) {
+				width_sel = '4';
+			}
+			else {
+				width_sel = '6';
+			}
 
-		case 1800: width_sel = '1'; break;
-
-		case 2300: width_sel = '2'; break;
-
-		case 4000: width_sel = '4'; break;
-
-		case 6000: width_sel = '6'; break;
-
-		default:
-			rig_debug(RIG_DEBUG_ERR, "drake_set_mode: "
-				  "unsupported width %d\n", width);
-			return -RIG_EINVAL;
+			mdbuf_len = sprintf((char *) mdbuf, "W%c" EOM, width_sel);
+			retval = drake_transaction(rig, (char *) mdbuf, mdbuf_len, (char *) ackbuf, &ack_len);
 		}
-
-		mdbuf_len = sprintf((char *) mdbuf, "W%c" EOM, width_sel);
-		retval = drake_transaction(rig, (char *) mdbuf, mdbuf_len, (char *) ackbuf, &ack_len);
 	}
 
 	if ((mode == RIG_MODE_AMS) || (mode == RIG_MODE_ECSSUSB) || (mode == RIG_MODE_ECSSLSB) ||

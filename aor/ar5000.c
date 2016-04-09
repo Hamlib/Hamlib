@@ -396,9 +396,9 @@ const struct rig_caps ar5000a_caps = {
 
 int format5k_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width)
 {
-    int aormode, aorwidth;
+  int aormode, aorwidth;
 
-    switch (mode) {
+  switch (mode) {
 	case RIG_MODE_AM:  aormode = AR5K_AM; break;
 	case RIG_MODE_WFM:
 	case RIG_MODE_FM:  aormode = AR5K_FM; break;
@@ -409,29 +409,34 @@ int format5k_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width)
 	case RIG_MODE_SAL: aormode = AR5K_SAL; break;
 	case RIG_MODE_SAH: aormode = AR5K_SAH; break;
 	default:
-	    rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %d\n",
-		      __FUNCTION__, mode);
-	    return -RIG_EINVAL;
-    }
+    rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %d\n",
+              __FUNCTION__, mode);
+    return -RIG_EINVAL;
+  }
 
+  if (width != RIG_PASSBAND_NOCHANGE) {
     if (width == RIG_PASSBAND_NORMAL)
-	width = rig_passband_normal(rig, mode);
+      width = rig_passband_normal(rig, mode);
 
     switch (width) {
-	case 500:	 aorwidth = '0'; break;
-	case s_kHz(3):	 aorwidth = '1'; break;
-	case s_kHz(6):	 aorwidth = '2'; break;
-	case s_kHz(15):	 aorwidth = '3'; break;
-	case s_kHz(30):	 aorwidth = '4'; break;
-	case s_kHz(110): aorwidth = '5'; break;
-	case s_kHz(220): aorwidth = '6'; break;
-	default:
-	    rig_debug(RIG_DEBUG_ERR,"%s: unsupported width %d\n",
-		      __FUNCTION__, width);
-	    return -RIG_EINVAL;
+    case 500:	 aorwidth = '0'; break;
+    case s_kHz(3):	 aorwidth = '1'; break;
+    case s_kHz(6):	 aorwidth = '2'; break;
+    case s_kHz(15):	 aorwidth = '3'; break;
+    case s_kHz(30):	 aorwidth = '4'; break;
+    case s_kHz(110): aorwidth = '5'; break;
+    case s_kHz(220): aorwidth = '6'; break;
+    default:
+      rig_debug(RIG_DEBUG_ERR,"%s: unsupported width %d\n",
+                __FUNCTION__, width);
+      return -RIG_EINVAL;
     }
 
     return sprintf(buf, "MD%c BW%c", aormode, aorwidth);
+  }
+  else {
+    return sprintf(buf, "MD%c", aormode);
+  }
 }
 
 

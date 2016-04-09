@@ -416,22 +416,25 @@ int mode2rig(RIG *rig, rmode_t mode, pbwidth_t width)
   case RIG_MODE_USB:	md = MODE_USB; break;
   case RIG_MODE_LSB:	md = MODE_LSB; break;
   case RIG_MODE_AM:
-  	if (width != RIG_PASSBAND_NORMAL ||
-		  width < rig_passband_normal(rig, mode))
+  	if (width != RIG_PASSBAND_NOCHANGE
+        && (width != RIG_PASSBAND_NORMAL ||
+            width < rig_passband_normal(rig, mode)))
 		md = MODE_AMN;
 	else
 		md = MODE_AMW;
 	break;
   case RIG_MODE_FM:
-  	if (width != RIG_PASSBAND_NORMAL ||
-		  width < rig_passband_normal(rig, mode))
+  	if (width != RIG_PASSBAND_NOCHANGE
+        && (width != RIG_PASSBAND_NORMAL ||
+            width < rig_passband_normal(rig, mode)))
 		md = MODE_FMN;
 	else
 		md = MODE_FMW;
 	break;
   case RIG_MODE_CW:
-  	if (width != RIG_PASSBAND_NORMAL ||
-		  width < rig_passband_normal(rig, mode))
+  	if (width != RIG_PASSBAND_NOCHANGE
+        && (width != RIG_PASSBAND_NORMAL ||
+            width < rig_passband_normal(rig, mode)))
 		md = MODE_CWN;
 	else
 		md = MODE_CWW;

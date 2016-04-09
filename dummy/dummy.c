@@ -338,6 +338,8 @@ static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
   curr->mode = mode;
 
+  if (RIG_PASSBAND_NOCHANGE == width) return RIG_OK;
+
   if (width == RIG_PASSBAND_NORMAL)
     curr->width = rig_passband_normal(rig, mode);
   else
@@ -626,6 +628,8 @@ static int dummy_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t 
   		rig_strvfo(vfo), rig_strrmode(tx_mode), buf);
 
   curr->tx_mode = tx_mode;
+  if (RIG_PASSBAND_NOCHANGE == tx_width) return RIG_OK;
+
   curr->tx_width = tx_width;
 
   return RIG_OK;

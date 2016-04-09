@@ -122,7 +122,7 @@ static int wj_transaction(RIG *rig, int monitor)
 		default:
 			   return -RIG_EINVAL;
 	}
-	buf[5] |= (wj_width & 0x2)<<3;
+	buf[5] |= (wj_width & 0x7)<<3;
 
 	/* Detection mode */
 	switch (priv->mode) {
@@ -137,7 +137,7 @@ static int wj_transaction(RIG *rig, int monitor)
 				__FUNCTION__, priv->mode);
 		return -RIG_EINVAL;
 	}
-	buf[5] |= wj_mode & 0x3;
+	buf[5] |= wj_mode & 0x7;
 
 	/* BFO frequency, not sure though */
 	wj_bfo = (priv->ifshift.i/10) + 0x400;	/* LSBit is 10Hz, +455kHz */
@@ -293,10 +293,12 @@ int wj_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 	priv->mode = mode;
 
-	if (width == RIG_PASSBAND_NORMAL)
-		width = rig_passband_normal(rig, mode);
+	if (width != RIG_PASSBAND_NOCHANGE) {
+		if (width == RIG_PASSBAND_NORMAL)
+			width = rig_passband_normal(rig, mode);
 
-	priv->width = width;
+		priv->width = width;
+	}
 
 	return wj_transaction (rig, 0);
 }

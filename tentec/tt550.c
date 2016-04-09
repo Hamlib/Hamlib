@@ -705,45 +705,37 @@ tt550_set_rx_mode (RIG * rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	return -RIG_EINVAL;
     }
 
-
-  if (width == RIG_PASSBAND_NORMAL)
-    width = rig_passband_normal (rig, mode);
-
-  for (ttfilter = 0; tt550_filters[ttfilter] != 0; ttfilter++)
-    {
-      if (tt550_filters[ttfilter] == width)
-	break;
-    }
-  if (tt550_filters[ttfilter] != width)
-    {
-      rig_debug (RIG_DEBUG_ERR, "tt550_set_mode: unsupported width %d\n",
-		 width);
-      return -RIG_EINVAL;
-
-    }
-
   /*
    * backup current values in case we fail to write to port
    */
   saved_mode = priv->rx_mode;
   saved_width = priv->width;
 
+  if (width != RIG_PASSBAND_NOCHANGE) {
+    if (width == RIG_PASSBAND_NORMAL)
+      width = rig_passband_normal (rig, mode);
+
+    for (ttfilter = 0; tt550_filters[ttfilter] != 0; ttfilter++)
+      {
+        if (tt550_filters[ttfilter] == width)
+          break;
+      }
+    if (tt550_filters[ttfilter] != width)
+      {
+        rig_debug (RIG_DEBUG_ERR, "tt550_set_mode: unsupported width %d\n",
+                   width);
+        return -RIG_EINVAL;
+
+      }
+    priv->width = width;
+  }
+
   priv->rx_mode = mode;
-  priv->width = width;
 
   tt550_tuning_factor_calc (rig, RECEIVE);
 
   mdbuf_len = sprintf (mdbuf, "M%c%c" EOM, ttmode, ttmode);
   retval = write_block (&rs->rigport, mdbuf, mdbuf_len);
-
-
-  mdbuf_len = sprintf (mdbuf, "W%c" EOM
-		       "N%c%c%c%c%c%c" EOM,
-		       ttfilter,
-		       priv->ctf >> 8, priv->ctf & 0xff, priv->ftf >> 8,
-		       priv->ftf & 0xff, priv->btf >> 8, priv->btf & 0xff);
-  retval = write_block (&rs->rigport, mdbuf, mdbuf_len);
-
   if (retval != RIG_OK)
     {
       priv->rx_mode = saved_mode;
@@ -751,6 +743,20 @@ tt550_set_rx_mode (RIG * rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
       return retval;
     }
 
+  if (width != RIG_PASSBAND_NOCHANGE) {
+    mdbuf_len = sprintf (mdbuf, "W%c" EOM
+                         "N%c%c%c%c%c%c" EOM,
+                         ttfilter,
+                         priv->ctf >> 8, priv->ctf & 0xff, priv->ftf >> 8,
+                         priv->ftf & 0xff, priv->btf >> 8, priv->btf & 0xff);
+    retval = write_block (&rs->rigport, mdbuf, mdbuf_len);
+    if (retval != RIG_OK)
+      {
+        priv->width = saved_width;
+        return retval;
+      }
+  }
+  
   return RIG_OK;
 }
 
@@ -797,67 +803,74 @@ tt550_set_tx_mode (RIG * rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     }
 
   /*
-   * Limit the transmitter bandwidth - it's not the same as the receiver
-   */
-  if (width < 1050)
-    width = 1050;
-  if (width > 3900)
-    width = 3900;
-
-  if (width == RIG_PASSBAND_NORMAL)
-    width = rig_passband_normal (rig, mode);
-
-  for (ttfilter = 0; tt550_tx_filters[ttfilter] != 0; ttfilter++)
-    {
-      if (tt550_tx_filters[ttfilter] == width)
-	break;
-    }
-
-  if (tt550_tx_filters[ttfilter] != width)
-    {
-      rig_debug (RIG_DEBUG_ERR,
-		 "tt550_set_mode: unsupported tx width %d,%d\n", width,
-		 ttfilter);
-      return -RIG_EINVAL;
-
-    }
-
-  /*
-   * The tx filter array contains just the allowed filter values, but the
-   * command assumes that the first allowed value is at offset 7.  We add
-   * 7 to compensate for the array difference
-   */
-
-  ttfilter += 7;
-
-  /*
    * backup current values in case we fail to write to port
    */
   saved_mode = priv->tx_mode;
   saved_width = priv->tx_width;
 
+  if (width != RIG_PASSBAND_NOCHANGE) {
+    /*
+     * Limit the transmitter bandwidth - it's not the same as the receiver
+     */
+    if (width < 1050)
+      width = 1050;
+    if (width > 3900)
+      width = 3900;
+
+    if (width == RIG_PASSBAND_NORMAL)
+      width = rig_passband_normal (rig, mode);
+
+    for (ttfilter = 0; tt550_tx_filters[ttfilter] != 0; ttfilter++)
+      {
+        if (tt550_tx_filters[ttfilter] == width)
+          break;
+      }
+
+    if (tt550_tx_filters[ttfilter] != width)
+      {
+        rig_debug (RIG_DEBUG_ERR,
+                   "tt550_set_mode: unsupported tx width %d,%d\n", width,
+                   ttfilter);
+        return -RIG_EINVAL;
+
+      }
+
+    /*
+     * The tx filter array contains just the allowed filter values, but the
+     * command assumes that the first allowed value is at offset 7.  We add
+     * 7 to compensate for the array difference
+     */
+
+    ttfilter += 7;
+    priv->tx_width = width;
+  }
+
   priv->tx_mode = mode;
-  priv->tx_width = width;
 
   tt550_tuning_factor_calc (rig, TRANSMIT);
 
   mdbuf_len = sprintf (mdbuf, "M%c%c" EOM, ttmode, ttmode);
   retval = write_block (&rs->rigport, mdbuf, mdbuf_len);
-
-
-  mdbuf_len = sprintf (mdbuf, "C%c" EOM
-		       "T%c%c%c%c%c%c" EOM,
-		       ttfilter,
-		       priv->ctf >> 8, priv->ctf & 0xff, priv->ftf >> 8,
-		       priv->ftf & 0xff, priv->btf >> 8, priv->btf & 0xff);
-  retval = write_block (&rs->rigport, mdbuf, mdbuf_len);
-
   if (retval != RIG_OK)
     {
       priv->tx_mode = saved_mode;
       priv->tx_width = saved_width;
       return retval;
     }
+
+  if (width != RIG_PASSBAND_NOCHANGE) {
+    mdbuf_len = sprintf (mdbuf, "C%c" EOM
+                         "T%c%c%c%c%c%c" EOM,
+                         ttfilter,
+                         priv->ctf >> 8, priv->ctf & 0xff, priv->ftf >> 8,
+                         priv->ftf & 0xff, priv->btf >> 8, priv->btf & 0xff);
+    retval = write_block (&rs->rigport, mdbuf, mdbuf_len);
+    if (retval != RIG_OK)
+      {
+        priv->tx_width = saved_width;
+        return retval;
+      }
+  }
 
   return RIG_OK;
 }

@@ -477,13 +477,15 @@ int ft747_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
 
   switch(mode) {
   case RIG_MODE_AM:
-    if (width < width_normal)
+    if (width != RIG_PASSBAND_NOCHANGE
+        && width < width_normal)
     	cmd_index = FT_747_NATIVE_MODE_SET_AMN;
     else
     	cmd_index = FT_747_NATIVE_MODE_SET_AMW;
     break;
   case RIG_MODE_CW:
-    if (width < width_normal)
+    if (width != RIG_PASSBAND_NOCHANGE
+        && width < width_normal)
     	cmd_index = FT_747_NATIVE_MODE_SET_CWN;
     else
     	cmd_index = FT_747_NATIVE_MODE_SET_CWW;
@@ -495,7 +497,8 @@ int ft747_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
     cmd_index = FT_747_NATIVE_MODE_SET_LSB;
     break;
   case RIG_MODE_FM:
-    if (width < width_normal)
+    if (width != RIG_PASSBAND_NOCHANGE
+        && width < width_normal)
     	cmd_index = FT_747_NATIVE_MODE_SET_FMN;
     else
     	cmd_index = FT_747_NATIVE_MODE_SET_FMW;

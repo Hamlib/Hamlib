@@ -735,8 +735,9 @@ int mode2rig(RIG *rig, rmode_t mode, pbwidth_t width)
 		break;
 
 	case RIG_MODE_CW:
-		if (width == RIG_PASSBAND_NORMAL ||
-		    width >= rig_passband_normal(rig, mode))
+		if (RIG_PASSBAND_NOCHANGE == width
+				|| width == RIG_PASSBAND_NORMAL
+				|| width >= rig_passband_normal(rig, mode))
 			md = MODE_CWW;
 		else
 			md = MODE_CWN;

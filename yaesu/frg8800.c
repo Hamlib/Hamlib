@@ -216,8 +216,9 @@ int frg8800_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     return -RIG_EINVAL;         /* sorry, wrong MODE */
   }
 
-  if (width != RIG_PASSBAND_NORMAL &&
-		  width < rig_passband_normal(rig, mode)) {
+  if (width != RIG_PASSBAND_NOCHANGE
+      && width != RIG_PASSBAND_NORMAL
+      && width < rig_passband_normal(rig, mode)) {
 	  md |= 0x08;
   }
 

@@ -265,10 +265,15 @@ int racal_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		return -RIG_EINVAL;
 	}
 
-	if (width == RIG_PASSBAND_NORMAL)
-		width = rig_passband_normal(rig, mode);
+	if (width != RIG_PASSBAND_NOCHANGE) {
+		if (width == RIG_PASSBAND_NORMAL)
+			width = rig_passband_normal(rig, mode);
 
-	sprintf(buf, "D%dI%.0f", ra_mode, (double)(width/kHz(1)));
+		sprintf(buf, "D%dI%.0f", ra_mode, (double)(width/kHz(1)));
+	}
+	else {
+		sprintf(buf, "D%d", ra_mode);
+	}
 
 	return racal_transaction (rig, buf, NULL, NULL);
 }

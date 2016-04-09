@@ -312,54 +312,58 @@ int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		return -RIG_EINVAL;
 	}
 
-	if (width < 0)
-		width = labs(width);
+	if (width != RIG_PASSBAND_NOCHANGE) {
+		if (width < 0)
+			width = labs(width);
 
-	/* Step through the filter list looking for the best match
-	 * for the passed in width.  The choice is to select the filter
-	 * that is wide enough for the width without being too narrow
-	 * if possible.
-	 */
-	if (width == RIG_PASSBAND_NORMAL)
-		width = rig_passband_normal(rig, mode);
+		/* Step through the filter list looking for the best match
+		 * for the passed in width.  The choice is to select the filter
+		 * that is wide enough for the width without being too narrow
+		 * if possible.
+		 */
+		if (width == RIG_PASSBAND_NORMAL)
+			width = rig_passband_normal(rig, mode);
 
-	if (width > flt->filt_list[0].width || ((flt->filt_list[0].width >= width)
-		&& (width > flt->filt_list[1].width))) {
-		width = flt->filt_list[0].width;
-		f = '1';
-	} else if ((flt->filt_list[1].width >= width) && (width > flt->filt_list[2].width)) {
-		width = flt->filt_list[1].width;
-		f = '2';
-	} else if ((flt->filt_list[2].width >= width) && (width > flt->filt_list[3].width)) {
-		width = flt->filt_list[2].width;
-		f = '3';
-	} else if ((flt->filt_list[3].width >= width) && (width >= freq)) {
-		width = flt->filt_list[3].width;
-		f = '4';
-	} else {
-		return -RIG_EINVAL;
+		if (width > flt->filt_list[0].width || ((flt->filt_list[0].width >= width)
+																						&& (width > flt->filt_list[1].width))) {
+			width = flt->filt_list[0].width;
+			f = '1';
+		} else if ((flt->filt_list[1].width >= width) && (width > flt->filt_list[2].width)) {
+			width = flt->filt_list[1].width;
+			f = '2';
+		} else if ((flt->filt_list[2].width >= width) && (width > flt->filt_list[3].width)) {
+			width = flt->filt_list[2].width;
+			f = '3';
+		} else if ((flt->filt_list[3].width >= width) && (width >= freq)) {
+			width = flt->filt_list[3].width;
+			f = '4';
+		} else {
+			return -RIG_EINVAL;
+		}
 	}
-
-	/* Construct the filter command and set the radio mode and width*/
-	snprintf(fcmd, 8, "FW0000%c", f);
-
+	
 	/* kenwood_set_mode() ignores width value for K2/K3/TS-570 */
 	err = kenwood_set_mode(rig, vfo, mode, width);
 	if (err != RIG_OK)
 		return err;
 
-	err = kenwood_transaction(rig, "K22", NULL, 0);
-	if (err != RIG_OK)
-		return err;
+	if (width != RIG_PASSBAND_NOCHANGE) {
+		err = kenwood_transaction(rig, "K22", NULL, 0);
+		if (err != RIG_OK)
+			return err;
 
-	/* Set the filter slot */
-	err = kenwood_transaction(rig, fcmd, NULL, 0);
-	if (err != RIG_OK)
-		return err;
+		/* Construct the filter command and set the radio mode and width*/
+		snprintf(fcmd, 8, "FW0000%c", f);
 
-	err = kenwood_transaction(rig, "K20", NULL, 0);
-	if (err != RIG_OK)
-		return err;
+		/* Set the filter slot */
+		err = kenwood_transaction(rig, fcmd, NULL, 0);
+		if (err != RIG_OK)
+			return err;
+
+		err = kenwood_transaction(rig, "K20", NULL, 0);
+		if (err != RIG_OK)
+			return err;
+	}
 
 	return RIG_OK;
 }

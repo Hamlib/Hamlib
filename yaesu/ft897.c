@@ -798,7 +798,7 @@ int ft897_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     return -RIG_EINVAL;
   }
 
-  if (width != RIG_PASSBAND_NORMAL)
+  if (width != RIG_PASSBAND_NOCHANGE && width != RIG_PASSBAND_NORMAL)
     return -RIG_EINVAL;
 
   rig_force_cache_timeout(&((struct ft897_priv_data *) rig->state.priv)->fm_status_tv);

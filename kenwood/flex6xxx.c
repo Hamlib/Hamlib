@@ -228,14 +228,17 @@ static int flex6k_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   if (err != RIG_OK)
     return err;
 
-  err = flex6k_find_width(mode, width, &idx);
-  if (err != RIG_OK)
-    return err;
-
   if ((vfo == RIG_VFO_VFO) || (vfo == RIG_VFO_CURR)) {
     vfo = rig->state.current_vfo;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: setting VFO to current\n", __func__);
   }
+
+  if (RIG_PASSBAND_NOCHANGE == width) return err;
+
+  err = flex6k_find_width(mode, width, &idx);
+  if (err != RIG_OK)
+    return err;
+
   /*
    * The Flex CAT interface does not support FW for reading filter width,
    * so use the ZZFI or ZZFJ command

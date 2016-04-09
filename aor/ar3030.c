@@ -379,9 +379,14 @@ int ar3030_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		return -RIG_EINVAL;
 	}
 
-	mdbuf_len = sprintf(mdbuf, "%dB%c" EOM,
-				width < rig_passband_normal(rig,mode) ? 1 : 0,
-	 			aormode);
+	if (width != RIG_PASSBAND_NOCHANGE) {
+		mdbuf_len = sprintf(mdbuf, "%c" EOM, aormode);
+	}
+	else {
+		mdbuf_len = sprintf(mdbuf, "%dB%c" EOM,
+												width < rig_passband_normal(rig,mode) ? 1 : 0,
+												aormode);
+	}
 	retval = ar3030_transaction (rig, mdbuf, mdbuf_len, NULL, NULL);
 
 	return retval;
