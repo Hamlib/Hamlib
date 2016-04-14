@@ -163,7 +163,7 @@ DECLARE_PROBERIG_BACKEND(yaesu)
 	/*
 	 * reply should be [Flag1,Flag2,Flag3,ID1,ID2]
 	 */
-	if (id_len != 5 || id_len != 6) {
+	if (id_len != 5 && id_len != 6) {
 		idbuf[YAESU_CMD_LENGTH] = '\0';
 		rig_debug(RIG_DEBUG_WARN,"probe_yaesu: protocol error,"
 			" expected %d, received %d: %s\n", 6, id_len, idbuf);
