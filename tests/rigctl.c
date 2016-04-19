@@ -87,7 +87,7 @@ void usage(void);
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:p:d:P:D:s:c:t:lC:LuonvhV"
+#define SHORT_OPTIONS "+m:r:p:d:P:D:s:c:t:lC:LuonvhV"
 static struct option long_options[] =
 {
 	{"model",           1, 0, 'm'},

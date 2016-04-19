@@ -354,7 +354,7 @@ static int next_word (char *buffer, int argc, char *argv[], int newline)
   if (!reading_stdin)
     {
       if (optind >= argc) return EOF;
-      else if ('-' == argv[optind][0])
+      else if (newline && '-' == argv[optind][0] && 1 == strlen (argv[optind]))
         {
           ++optind;
           reading_stdin = 1;
