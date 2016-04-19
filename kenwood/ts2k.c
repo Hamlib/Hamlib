@@ -1819,7 +1819,7 @@ rig_model_t probe_ts2k(port_t * port)
 	/*
 	 * reply should be something like 'IDxxx;'
 	 */
-	if (id_len != 5 || id_len != 6) {
+	if (id_len != 5 && id_len != 6) {
 		idbuf[7] = '\0';
 		rig_debug(RIG_DEBUG_VERBOSE,
 			  "probe_ts2k: protocol error,"

@@ -3180,7 +3180,7 @@ DECLARE_PROBERIG_BACKEND(kenwood)
   /*
    * reply should be something like 'IDxxx;'
    */
-  if (id_len != 5 || id_len != 6) {
+  if (id_len != 5 && id_len != 6) {
     idbuf[7] = '\0';
     rig_debug(RIG_DEBUG_VERBOSE, "probe_kenwood: protocol error, "
           " expected %d, received %d: %s\n",
