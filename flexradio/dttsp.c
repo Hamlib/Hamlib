@@ -662,6 +662,16 @@ int dttsp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   int ret = RIG_OK;
   int filter_l, filter_h;
 
+  /* DttSP set mode */
+
+  buf_len = sprintf (buf, "setMode %d\n", rmode2dttsp(mode) );
+  ret = send_command (rig, buf, buf_len);
+
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: %s\n",
+  		__FUNCTION__, buf);
+
+  if (ret != RIG_OK || RIG_PASSBAND_NOCHANGE == width) return ret;
+
   if (width == RIG_PASSBAND_NORMAL)
 	  width = rig_passband_normal(rig, mode);
   sprintf_freq(buf, width);
@@ -691,11 +701,6 @@ int dttsp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	default:
 		return -RIG_EINVAL;
   }
-
-  /* DttSP set mode */
-
-  buf_len = sprintf (buf, "setMode %d\n", rmode2dttsp(mode) );
-  ret = send_command (rig, buf, buf_len);
 
   buf_len = sprintf (buf, "setFilter %d %d\n", filter_l, filter_h );
   ret = send_command (rig, buf, buf_len);

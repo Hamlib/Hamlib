@@ -519,7 +519,9 @@ Set @var{Mode} to one of: @code{USB}, @code{LSB}, @code{CW},
 @code{SAH}, @code{DSB}.
 
 Set @var{Passband} frequency in Hertz, or @code{0} for the Hamlib
-backend default.
+backend default. A value of @code{-1} may be passed which leaves the
+rig passband unchanged from the current or default value for the mode
+as defined by the rig.
 
 @strong{N.B.} Passing a @kbd{?} (query) as the first argument
 instead of @var{Mode} will return a space separated list of radio
@@ -677,12 +679,16 @@ Get @var{DCS Sql} code.
 
 @item I, set_split_freq @var{Tx Frequency}
 Set @var{TX Frequency}, in Hertz for ``split'' frequency operation.
+
+See also @command{set_split_freq_mode} below.
 @ifhtml
 @*
 @end ifhtml
 
 @item i, get_split_freq
 Get @var{TX Frequency}, in Hertz for ``split'' frequency operation.
+
+See also @command{get_split_freq_mode} below.
 @ifhtml
 @*
 @end ifhtml
@@ -695,18 +701,74 @@ Set @var{TX Mode} to one of: @code{AM}, @code{FM}, @code{CW},
 @code{SAH}, @code{DSB}.
 
 The @var{TX Passband} is the exact passband frequency in Hertz, or
-@code{0} for the Hamlib backend default.
+@code{0} for the Hamlib backend default. A value of @code{-1} may be
+passed which leaves the rig passband unchanged from the current or
+default value for the mode as defined by the rig.
 
 @strong{N.B.} Passing a @kbd{?} (query) as the first argument instead
 of @var{TX Mode} will return a space separated list of radio backend
 supported TX Modes.  Use this to determine the supported TX Modes of a
 given radio backend.
 
+See also @command{set_split_freq_mode} below.
+@ifhtml
+@*
+@end ifhtml
+
 @item x, get_split_mode
 Get @var{TX Mode}, @var{TX Passband}.
 
 Returns TX mode as a string from @command{set_split_mode} above and TX
 passband in Hz.
+
+See also @command{get_split_freq_mode} below.
+@ifhtml
+@*
+@end ifhtml
+
+@item K, set_split_freq_mode @var{Tx Frequency}, @var{TX Mode}, @var{TX Passband}
+Set @var{TX Frequency}, in Hertz for ``split'' frequency operation.
+Set @var{TX Mode} to one of: @code{AM}, @code{FM}, @code{CW},
+@code{CWR}, @code{USB}, @code{LSB}, @code{RTTY}, @code{RTTYR},
+@code{WFM}, @code{AMS}, @code{PKTLSB}, @code{PKTUSB}, @code{PKTFM},
+@code{ECSSUSB}, @code{ECSSLSB}, @code{FAX}, @code{SAM}, @code{SAL},
+@code{SAH}, @code{DSB}.
+
+The @var{TX Passband} is the exact passband frequency in Hertz, or
+@code{0} for the Hamlib backend default. A value of @code{-1} may be
+passed which leaves the rig passband unchanged from the current or
+default value for the mode as defined by the rig.
+
+This is a convenience function that combines the effect of
+@command{set_split_freq} and @command{set_split_mode}. It should be
+used when both are required since it allows the back end to optimize
+the operations. For example on many Icom rigs the current VFO must be
+changed temporarily while executing these commands and that can
+disrupt receive or transmit, using this function may minimize that
+disruption.
+
+See also @command{set_split_freq} and @command{set_split_mode} above.
+@ifhtml
+@*
+@end ifhtml
+
+@item k, get_split_freq_mode
+Get @var{TX Frequency}, in Hertz for ``split'' frequency operation
+along with The @var{TX Mode} as a string from @command{set_split_mode}
+above and @var{TX Passband} in Hz.
+
+This is a convenience function that combines the effect of
+@command{get_split_freq} and @command{get_split_mode}. It should be
+used when both are required since it allows the back end to optimize
+the operations. For example on many Icom rigs the current VFO must be
+changed temporarily while executing these commands and that can
+disrupt receive or transmit, using this function may minimize that
+disruption.
+
+See also @command{get_split_freq} and @command{get_split_mode} above.
+@ifhtml
+@*
+@end ifhtml
 
 @item S, set_split_vfo @var{Split}, @var{TX VFO}
 Set @var{Split} mode, @code{0} (off) or @code{1} (on), and @var{TX VFO}
@@ -2104,12 +2166,16 @@ Get @var{DCS Sql} code.
 
 @item I, set_split_freq @var{Tx Frequency}
 Set @var{TX Frequency}, in Hertz for ``split'' frequency operation.
+
+See also @command{set_split_freq_mode} below.
 @ifhtml
 @*
 @end ifhtml
 
 @item i, get_split_freq
 Get @var{TX Frequency}, in Hertz for ``split'' frequency operation.
+
+See also @command{get_split_freq_mode} below.
 @ifhtml
 @*
 @end ifhtml
@@ -2122,18 +2188,74 @@ Set @var{TX Mode} to one of: @code{AM}, @code{FM}, @code{CW},
 @code{SAH}, @code{DSB}.
 
 The @var{TX Passband} is the exact passband frequency in Hertz, or
-@code{0} for the Hamlib backend default.
+@code{0} for the Hamlib backend default. A value of @code{-1} may be
+passed which leaves the rig passband unchanged from the current or
+default value for the mode as defined by the rig.
 
 @strong{N.B.} Passing a @kbd{?} (query) as the first argument instead
 of @var{TX Mode} will return a space separated list of radio backend
 supported TX Modes.  Use this to determine the supported TX Modes of a
 given radio backend.
 
+See also @command{set_split_freq_mode} below.
+@ifhtml
+@*
+@end ifhtml
+
 @item x, get_split_mode
 Get @var{TX Mode}, @var{TX Passband}.
 
 Returns TX mode as a string from @command{set_split_mode} above and TX
 passband in Hz.
+
+See also @command{get_split_freq_mode} below.
+@ifhtml
+@*
+@end ifhtml
+
+@item K, set_split_freq_mode @var{Tx Frequency}, @var{TX Mode}, @var{TX Passband}
+Set @var{TX Frequency}, in Hertz for ``split'' frequency operation.
+Set @var{TX Mode} to one of: @code{AM}, @code{FM}, @code{CW},
+@code{CWR}, @code{USB}, @code{LSB}, @code{RTTY}, @code{RTTYR},
+@code{WFM}, @code{AMS}, @code{PKTLSB}, @code{PKTUSB}, @code{PKTFM},
+@code{ECSSUSB}, @code{ECSSLSB}, @code{FAX}, @code{SAM}, @code{SAL},
+@code{SAH}, @code{DSB}.
+
+The @var{TX Passband} is the exact passband frequency in Hertz, or
+@code{0} for the Hamlib backend default. A value of @code{-1} may be
+passed which leaves the rig passband unchanged from the current or
+default value for the mode as defined by the rig.
+
+This is a convenience function that combines the effect of
+@command{set_split_freq} and @command{set_split_mode}. It should be
+used when both are required since it allows the back end to optimize
+the operations. For example on many Icom rigs the current VFO must be
+changed temporarily while executing these commands and that can
+disrupt receive or transmit, using this function may minimize that
+disruption.
+
+See also @command{set_split_freq} and @command{set_split_mode} above.
+@ifhtml
+@*
+@end ifhtml
+
+@item k, get_split_freq_mode
+Get @var{TX Frequency}, in Hertz for ``split'' frequency operation
+along with the @var{TX Mode} as a string from @command{set_split_mode}
+above and @var{TX Passband} in Hz.
+
+This is a convenience function that combines the effect of
+@command{get_split_freq} and @command{get_split_mode}. It should be
+used when both are required since it allows the back end to optimize
+the operations. For example on many Icom rigs the current VFO must be
+changed temporarily while executing these commands and that can
+disrupt receive or transmit, using this function may minimize that
+disruption.
+
+See also @command{get_split_freq} and @command{get_split_mode} above.
+@ifhtml
+@*
+@end ifhtml
 
 @item S, set_split_vfo @var{Split}, @var{TX VFO}
 Set @var{Split} mode, @code{0} (off) or @code{1} (on), and @var{TX VFO}

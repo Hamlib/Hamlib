@@ -2962,10 +2962,12 @@ int adat_set_mode(RIG *pRig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		pPriv->nRIGMode    = mode;
 		nRC = adat_vfo_rnr2anr(vfo, &(pPriv->nCurrentVFO));
 
-		if (width == RIG_PASSBAND_NORMAL)
-			width = rig_passband_normal(pRig, mode);
+		if (width != RIG_PASSBAND_NOCHANGE) {
+			if (width == RIG_PASSBAND_NORMAL)
+				width = rig_passband_normal(pRig, mode);
 
-		pPriv->nWidth = width;
+			pPriv->nWidth = width;
+		}
 
 		nRC = adat_transaction(pRig, &adat_cmd_list_set_mode);
 	}

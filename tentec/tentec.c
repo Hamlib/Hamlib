@@ -272,44 +272,62 @@ int tentec_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 			return -RIG_EINVAL;
 	}
 
-	if (width == RIG_PASSBAND_NORMAL)
-			width = rig_passband_normal(rig, mode);
-
-	for (ttfilter=0; tentec_filters[ttfilter] != 0; ttfilter++) {
-			if (tentec_filters[ttfilter] == width)
-					break;
-	}
-	if (tentec_filters[ttfilter] != width) {
-			rig_debug(RIG_DEBUG_ERR,
-							"tentec_set_mode: unsupported width %d\n",
-							width);
-			return -RIG_EINVAL;
-	}
-
 		/* backup current values
 		 * in case we fail to write to port
 		 */
 	saved_mode = priv->mode;
 	saved_width = priv->width;
 
+	if (width != RIG_PASSBAND_NOCHANGE) {
+		if (width == RIG_PASSBAND_NORMAL)
+			width = rig_passband_normal(rig, mode);
+
+		for (ttfilter=0; tentec_filters[ttfilter] != 0; ttfilter++) {
+			if (tentec_filters[ttfilter] == width)
+				break;
+		}
+		if (tentec_filters[ttfilter] != width) {
+			rig_debug(RIG_DEBUG_ERR,
+								"tentec_set_mode: unsupported width %d\n",
+								width);
+			return -RIG_EINVAL;
+		}
+		priv->width = width;
+	}
+	
 	priv->mode = mode;
-	priv->width = width;
 
 	tentec_tuning_factor_calc(rig);
 
-	mdbuf_len = sprintf(mdbuf,  "W%c" EOM
-								"N%c%c%c%c%c%c" EOM
-								"M%c" EOM,
-						ttfilter,
-						priv->ctf >> 8, priv->ctf & 0xff,
-						priv->ftf >> 8, priv->ftf & 0xff,
-						priv->btf >> 8, priv->btf & 0xff,
-						ttmode);
-	retval = write_block(&rs->rigport, mdbuf, mdbuf_len);
-	if (retval != RIG_OK) {
-		priv->mode = saved_mode;
-		priv->width = saved_width;
-		return retval;
+	if (width != RIG_PASSBAND_NOCHANGE) {
+		mdbuf_len = sprintf(mdbuf,  "W%c" EOM
+												"N%c%c%c%c%c%c" EOM
+												"M%c" EOM,
+												ttfilter,
+												priv->ctf >> 8, priv->ctf & 0xff,
+												priv->ftf >> 8, priv->ftf & 0xff,
+												priv->btf >> 8, priv->btf & 0xff,
+												ttmode);
+		retval = write_block(&rs->rigport, mdbuf, mdbuf_len);
+		if (retval != RIG_OK) {
+			priv->mode = saved_mode;
+			priv->width = saved_width;
+			return retval;
+		}
+	}
+	else {
+		mdbuf_len = sprintf(mdbuf,
+												"N%c%c%c%c%c%c" EOM
+												"M%c" EOM,
+												priv->ctf >> 8, priv->ctf & 0xff,
+												priv->ftf >> 8, priv->ftf & 0xff,
+												priv->btf >> 8, priv->btf & 0xff,
+												ttmode);
+		retval = write_block(&rs->rigport, mdbuf, mdbuf_len);
+		if (retval != RIG_OK) {
+			priv->mode = saved_mode;
+			return retval;
+		}
 	}
 
 	return RIG_OK;

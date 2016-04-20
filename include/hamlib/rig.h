@@ -367,6 +367,7 @@ typedef int vfo_t;
 
 
 #define RIG_PASSBAND_NORMAL s_Hz(0)
+#define RIG_PASSBAND_NOCHANGE s_Hz(-1)
 /**
  * \brief Passband width, in Hz
  * \sa rig_passband_normal, rig_passband_narrow, rig_passband_wide

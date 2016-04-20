@@ -555,9 +555,6 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     rig_debug(RIG_DEBUG_VERBOSE,"%s: generic mode = %x \n",
             __func__, mode);
 
-    if (RIG_PASSBAND_NORMAL == width)
-        width = rig_passband_normal(rig, mode);
-
     switch(mode) {
         case RIG_MODE_LSB:
             priv->cmd_str[3] = '1';
@@ -600,6 +597,7 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     if (err != RIG_OK)
         return err;
 
+    if (RIG_PASSBAND_NOCHANGE == width) return err;
     if (RIG_PASSBAND_NORMAL == width)
         width = rig_passband_normal(rig, mode);
 

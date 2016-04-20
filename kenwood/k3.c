@@ -377,34 +377,36 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	if (err != RIG_OK)
 		return err;
 
-	/* and set the requested bandwidth.  On my K3, the bandwidth is rounded
-	 * down to the nearest 50 Hz, i.e. sending BW0239; will cause the bandwidth
-	 * to be set to 2.350 kHz.  As the width must be divided by 10, 10 Hz values
-	 * between 0 and 4 round down to the nearest 100 Hz and values between 5
-	 * and 9 round down to the nearest 50 Hz.
-	 *
-	 * width string value must be padded with leading '0' to equal four
-	 * characters.
-	 */
+	if (width != RIG_PASSBAND_NOCHANGE) {
+		/* and set the requested bandwidth.  On my K3, the bandwidth is rounded
+		 * down to the nearest 50 Hz, i.e. sending BW0239; will cause the bandwidth
+		 * to be set to 2.350 kHz.  As the width must be divided by 10, 10 Hz values
+		 * between 0 and 4 round down to the nearest 100 Hz and values between 5
+		 * and 9 round down to the nearest 50 Hz.
+		 *
+		 * width string value must be padded with leading '0' to equal four
+		 * characters.
+		 */
 
-	/* passband widths vary by mode so gather lower and upper limits */
-	pbwidth_t pb_nar = rig_passband_narrow(rig, mode);
-	pbwidth_t pb_wid = rig_passband_wide(rig, mode);
+		/* passband widths vary by mode so gather lower and upper limits */
+		pbwidth_t pb_nar = rig_passband_narrow(rig, mode);
+		pbwidth_t pb_wid = rig_passband_wide(rig, mode);
 
-	if (width < 0)
-		width = labs(width);
+		if (width < 0)
+			width = labs(width);
 
-	if (width == RIG_PASSBAND_NORMAL)
-		width = rig_passband_normal(rig, mode);
-	else if (width < pb_nar)
-		width = pb_nar;
-	else if (width > pb_wid)
-		width = pb_wid;
+		if (width == RIG_PASSBAND_NORMAL)
+			width = rig_passband_normal(rig, mode);
+		else if (width < pb_nar)
+			width = pb_nar;
+		else if (width > pb_wid)
+			width = pb_wid;
 
-	sprintf(cmd_s, "BW%04ld", width / 10);
-	err = kenwood_transaction(rig, cmd_s, NULL, 0);
-	if (err != RIG_OK)
-		return err;
+		sprintf(cmd_s, "BW%04ld", width / 10);
+		err = kenwood_transaction(rig, cmd_s, NULL, 0);
+		if (err != RIG_OK)
+			return err;
+	}
 
 	/* Now set data sub-mode.  K3 needs to be in a DATA mode before setting
 	 * the sub-mode.
@@ -639,34 +641,36 @@ int k3_set_split_mode(RIG * rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
   if (err != RIG_OK)
     return err;
 
-  /* and set the requested bandwidth.  On my K3, the bandwidth is rounded
-   * down to the nearest 50 Hz, i.e. sending BW0239; will cause the bandwidth
-   * to be set to 2.350 kHz.  As the width must be divided by 10, 10 Hz values
-   * between 0 and 4 round down to the nearest 100 Hz and values between 5
-   * and 9 round down to the nearest 50 Hz.
-   *
-   * tx_width string value must be padded with leading '0' to equal four
-   * characters.
-   */
+	if (tx_width != RIG_PASSBAND_NOCHANGE) {
+		/* and set the requested bandwidth.  On my K3, the bandwidth is rounded
+		 * down to the nearest 50 Hz, i.e. sending BW0239; will cause the bandwidth
+		 * to be set to 2.350 kHz.  As the width must be divided by 10, 10 Hz values
+		 * between 0 and 4 round down to the nearest 100 Hz and values between 5
+		 * and 9 round down to the nearest 50 Hz.
+		 *
+		 * tx_width string value must be padded with leading '0' to equal four
+		 * characters.
+		 */
 
-  /* passband widths vary by mode so gather lower and upper limits */
-  pbwidth_t pb_nar = rig_passband_narrow(rig, tx_mode);
-  pbwidth_t pb_wid = rig_passband_wide(rig, tx_mode);
+		/* passband widths vary by mode so gather lower and upper limits */
+		pbwidth_t pb_nar = rig_passband_narrow(rig, tx_mode);
+		pbwidth_t pb_wid = rig_passband_wide(rig, tx_mode);
 
-  if (tx_width < 0)
-    tx_width = labs(tx_width);
+		if (tx_width < 0)
+			tx_width = labs(tx_width);
 
-  if (tx_width == RIG_PASSBAND_NORMAL)
-    tx_width = rig_passband_normal(rig, tx_mode);
-  else if (tx_width < pb_nar)
-    tx_width = pb_nar;
-  else if (tx_width > pb_wid)
-    tx_width = pb_wid;
+		if (tx_width == RIG_PASSBAND_NORMAL)
+			tx_width = rig_passband_normal(rig, tx_mode);
+		else if (tx_width < pb_nar)
+			tx_width = pb_nar;
+		else if (tx_width > pb_wid)
+			tx_width = pb_wid;
 
-  sprintf(cmd_s, "BW$%04ld", tx_width / 10);
-  err = kenwood_transaction(rig, cmd_s, NULL, 0);
-  if (err != RIG_OK)
-    return err;
+		sprintf(cmd_s, "BW$%04ld", tx_width / 10);
+		err = kenwood_transaction(rig, cmd_s, NULL, 0);
+		if (err != RIG_OK)
+			return err;
+	}
 
   /* Now set data sub-mode.  K3 needs to be in a DATA mode before setting
    * the sub-mode.

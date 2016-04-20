@@ -176,6 +176,7 @@ int skanti_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	if (retval != RIG_OK)
 		return retval;
 
+	if (RIG_PASSBAND_NOCHANGE == width) return retval;
 	/*
 	 * TODO: please sk8000 owners, check this, I'm not sure
 	 * 			which passband is default!

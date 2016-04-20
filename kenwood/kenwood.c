@@ -1437,6 +1437,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	}
     }
 
+  if (RIG_PASSBAND_NOCHANGE == width) return RIG_OK;
   if (rig->caps->rig_model == RIG_MODEL_TS450S
       || rig->caps->rig_model == RIG_MODEL_TS690S
       || rig->caps->rig_model == RIG_MODEL_TS850

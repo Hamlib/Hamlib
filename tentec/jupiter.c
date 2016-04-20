@@ -607,14 +607,15 @@ int tt538_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	if (retval != RIG_OK)
 		return retval;
 
+	if (RIG_PASSBAND_NOCHANGE == width) return retval;
+	if (RIG_PASSBAND_NORMAL == width)
+		width = rig_passband_normal (rig, mode);
 	/* Set rx filter bandwidth. */
-	if (width != RIG_PASSBAND_NORMAL) /* leave untouched if normal */
-		{
-			width = tt538_filter_number((int) width);
+	width = tt538_filter_number((int) width);
 
-			cmd_len = sprintf((char *) cmdbuf, "*W%c" EOM, (unsigned char) width);
-			return tt538_transaction (rig, (char *) cmdbuf, cmd_len, NULL, NULL);
-		}
+	cmd_len = sprintf((char *) cmdbuf, "*W%c" EOM, (unsigned char) width);
+	return tt538_transaction (rig, (char *) cmdbuf, cmd_len, NULL, NULL);
+
 	return RIG_OK;
 }
 

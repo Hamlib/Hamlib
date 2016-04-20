@@ -1608,6 +1608,7 @@ int ft990_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
       ci == FT990_NATIVE_MODE_SET_PKT_FM)
     return RIG_OK;
 
+  if (RIG_PASSBAND_NOCHANGE == width) return err;
   switch(width) {
     case 250:
       bw = FT990_BW_F250;

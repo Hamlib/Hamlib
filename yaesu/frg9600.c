@@ -168,8 +168,9 @@ int frg9600_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   case RIG_MODE_FM:	md = MODE_SET_FMN; break;
   case RIG_MODE_WFM:	md = MODE_SET_WFM; break;
   case RIG_MODE_AM:
-  	if (width != RIG_PASSBAND_NORMAL &&
-		  width < rig_passband_normal(rig, mode))
+  	if (width != RIG_PASSBAND_NOCHANGE
+        && width != RIG_PASSBAND_NORMAL
+        && width < rig_passband_normal(rig, mode))
 	  md = MODE_SET_AMN;
 	else
 	  md = MODE_SET_AMW;

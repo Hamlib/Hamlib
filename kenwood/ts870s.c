@@ -185,33 +185,35 @@ static int ts870s_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   retval = kenwood_transaction(rig, buf, NULL, 0);
   if (retval != RIG_OK) return retval;
 
-  if (RIG_PASSBAND_NORMAL != width) /* leave well alone if default passband requested */
-    {
-      if (RIG_MODE_USB == mode || RIG_MODE_LSB == mode || RIG_MODE_AM == mode)
-	{
-	  /* we assume the HPF is set to default and set the LPF to
-	     give the best approximaation of the requested width */
-	  if (RIG_MODE_AM == mode)
-	    {
-	      mode_default_hpf = 300;
-	    }
-	  else
-	    {
-	      mode_default_hpf = 100;
-	    }
-	  sprintf(buf, "IS %04d", (int)(width + mode_default_hpf));
-	  retval = kenwood_transaction(rig, buf, NULL, 0);
+	if (RIG_PASSBAND_NOCHANGE == width) {
+		if (RIG_PASSBAND_NORMAL != width) /* leave well alone if default passband requested */
+			{
+				if (RIG_MODE_USB == mode || RIG_MODE_LSB == mode || RIG_MODE_AM == mode)
+					{
+						/* we assume the HPF is set to default and set the LPF to
+							 give the best approximaation of the requested width */
+						if (RIG_MODE_AM == mode)
+							{
+								mode_default_hpf = 300;
+							}
+						else
+							{
+								mode_default_hpf = 100;
+							}
+						sprintf(buf, "IS %04d", (int)(width + mode_default_hpf));
+						retval = kenwood_transaction(rig, buf, NULL, 0);
+					}
+				else
+					{
+						/*
+						 * This rig will simply use an IF bandpass which is closest to width,
+						 * so we don't need to check the value...
+						 */
+						sprintf(buf, "FW%04d", (int)width/10);
+						retval = kenwood_transaction(rig, buf, NULL, 0);
+					}
+			}
 	}
-      else
-	{
-	  /*
-	   * This rig will simply use an IF bandpass which is closest to width,
-	   * so we don't need to check the value...
-	   */
-	  sprintf(buf, "FW%04d", (int)width/10);
-	  retval = kenwood_transaction(rig, buf, NULL, 0);
-	}
-    }
 
   return retval;
 }

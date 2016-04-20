@@ -925,8 +925,11 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  * \param mode	The mode to set to
  * \param width	The passband width to set to
  *
- * Sets the mode and associated passband of the target VFO.
- * The passband \a width must be supported by the backend of the rig.
+ * Sets the mode and associated passband of the target VFO.  The
+ * passband \a width must be supported by the backend of the rig or
+ * the special value RIG_PASSBAND_NOCHANGE which leaves the passband
+ * unchanged from the current value or default for the mode determined
+ * by the rig.
  *
  * \return RIG_OK if the operation has been sucessful, otherwise
  * a negative value if an error occured (in which case, cause is
@@ -1838,7 +1841,10 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
  * \param rig	The rig handle
  * \param vfo	The target VFO
  * \param tx_mode	The transmit split mode to set to
- * \param tx_width	The transmit split width to set to
+ * \param tx_width The transmit split width to set to or the special
+ * value RIG_PASSBAND_NOCHANGE which leaves the passband unchanged
+ * from the current value or default for the mode determined by the
+ * rig.
  *
  *  Sets the split(TX) mode.
  *
@@ -1998,7 +2004,10 @@ int HAMLIB_API rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth
  * \param vfo	The target VFO
  * \param tx_freq The transmit frequency to set to
  * \param tx_mode	The transmit split mode to set to
- * \param tx_width	The transmit split width to set to
+ * \param tx_width The transmit split width to set to or the special
+ * value RIG_PASSBAND_NOCHANGE which leaves the passband unchanged
+ * from the current value or default for the mode determined by the
+ * rig.
  *
  *  Sets the split(TX) frequency and mode.
  *

@@ -533,6 +533,7 @@ int ft100_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
   if (ret != RIG_OK)
 	  return ret;
 
+  if (RIG_PASSBAND_NOCHANGE == width) return ret;
 #if 1
   if (mode != RIG_MODE_FM && mode != RIG_MODE_WFM && width <= kHz(6))
   {

@@ -363,8 +363,9 @@ int tentec2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	if (ret_len != 2 || mdbuf[0] != 'G')
 		return -RIG_ERJCTED;
 
-	if (RIG_PASSBAND_NORMAL == width) /* with NORMAL we leave width alone */
-		return RIG_OK;
+	if (RIG_PASSBAND_NOCHANGE == width) return retval;
+	if (RIG_PASSBAND_NORMAL == width)
+		width = rig_passband_normal (rig, mode);
 
 	/*
 	 * Filter  0:  200

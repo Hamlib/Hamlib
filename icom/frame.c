@@ -338,21 +338,23 @@ int rig2icom_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 		return -RIG_EINVAL;
 	}
 
-	medium_width = rig_passband_normal(rig, mode);
-	if (width == medium_width || width == RIG_PASSBAND_NORMAL)
+	if (width != RIG_PASSBAND_NOCHANGE) {
+		medium_width = rig_passband_normal(rig, mode);
+		if (width == medium_width || width == RIG_PASSBAND_NORMAL)
 			icmode_ext = -1;	/* medium, no passband data-> rig default. Is medium always the default? */
-	else if (width < medium_width)
+		else if (width < medium_width)
 			icmode_ext = PD_NARROW_3;
-	else
+		else
 			icmode_ext = PD_WIDE_3;
 
-	if (rig->caps->rig_model == RIG_MODEL_ICR7000) {
+		if (rig->caps->rig_model == RIG_MODEL_ICR7000) {
 			if (mode == RIG_MODE_USB || mode == RIG_MODE_LSB) {
-					icmode = S_R7000_SSB;
-					icmode_ext = 0x00;
+				icmode = S_R7000_SSB;
+				icmode_ext = 0x00;
 			} else if (mode == RIG_MODE_AM && icmode_ext == -1) {
-					icmode_ext = PD_WIDE_3;	/* default to Wide */
+				icmode_ext = PD_WIDE_3;	/* default to Wide */
 			}
+		}
 	}
 
 	*md = icmode;

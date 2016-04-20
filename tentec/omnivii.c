@@ -699,12 +699,10 @@ int tt588_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		return retval;
 
 	/* Set rx filter bandwidth. */
-
-	if (width == RIG_PASSBAND_NORMAL)
-		width = tt588_filter_number(rig_passband_normal(rig, mode));
-	else
-		width = tt588_filter_number((int) width);
-
+	if (RIG_PASSBAND_NOCHANGE == width) return retval;
+	if (RIG_PASSBAND_NORMAL == width)
+		width = rig_passband_normal (rig, mode);
+	width = tt588_filter_number((int) width);
 	cmd_len = sprintf((char *) cmdbuf, "*W%c" EOM, (unsigned char) width);
 	return tt588_transaction (rig, (char *) cmdbuf, cmd_len, NULL, NULL);
 }

@@ -156,6 +156,7 @@ static int ts570_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   retval = kenwood_transaction(rig, buf, NULL, 0);
   if (retval != RIG_OK) return retval;
 
+	if (RIG_PASSBAND_NOCHANGE == width) return retval;
   switch (mode)
   {
     case RIG_MODE_CW:

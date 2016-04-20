@@ -585,7 +585,6 @@ pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode) {
 }
 
 int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width) {
-
 	int retval, rfstatus, i;
 	unsigned char ackbuf[MAXFRAMELEN];
 	unsigned char flt_ext;
@@ -593,45 +592,46 @@ int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width) {
 	int ack_len=sizeof(ackbuf), flt_idx;
   unsigned char fw_sub_cmd = RIG_MODEL_IC7200 == rig->caps->rig_model ? 0x02 : S_MEM_FILT_WDTH;
 
-    if (width == RIG_PASSBAND_NORMAL)
-        width = rig_passband_normal(rig, mode);
+	if (RIG_PASSBAND_NOCHANGE == width) return RIG_OK;
+	if (width == RIG_PASSBAND_NORMAL)
+		width = rig_passband_normal(rig, mode);
 
 	if (rig_has_get_func(rig, RIG_FUNC_RF) && (mode & (RIG_MODE_RTTY | RIG_MODE_RTTYR))) {
 		if(!rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_RF, &rfstatus) && (rfstatus)) {
-            for (i=0; i<RTTY_FIL_NB; i++) {
-                if (rtty_fil[i] == width) {
-                    rfwidth.i = i;
-                    return rig_set_ext_parm (rig, TOK_RTTY_FLTR, rfwidth);
-                }
-            }
-            /* not found */
-            return -RIG_EINVAL;
-        }
+			for (i=0; i<RTTY_FIL_NB; i++) {
+				if (rtty_fil[i] == width) {
+					rfwidth.i = i;
+					return rig_set_ext_parm (rig, TOK_RTTY_FLTR, rfwidth);
+				}
+			}
+			/* not found */
+			return -RIG_EINVAL;
+		}
 	}
 
-   	if (mode & RIG_MODE_AM)
-        flt_idx = (width/200)-1; /* TBC: Ic_7800? */
-    else if (mode & (RIG_MODE_CW | RIG_MODE_USB | RIG_MODE_LSB | RIG_MODE_RTTY | RIG_MODE_RTTYR)) {
-        if (width == 0)
-            width = 1;
-        flt_idx = width <= 500 ? ((width+49)/50)-1 : ((width+99)/100)+4;
-    } else
-        return RIG_OK;
+	if (mode & RIG_MODE_AM)
+		flt_idx = (width/200)-1; /* TBC: Ic_7800? */
+	else if (mode & (RIG_MODE_CW | RIG_MODE_USB | RIG_MODE_LSB | RIG_MODE_RTTY | RIG_MODE_RTTYR)) {
+		if (width == 0)
+			width = 1;
+		flt_idx = width <= 500 ? ((width+49)/50)-1 : ((width+99)/100)+4;
+	} else
+		return RIG_OK;
 
-    to_bcd(&flt_ext, flt_idx, 2);
+	to_bcd(&flt_ext, flt_idx, 2);
 
 	retval = icom_transaction (rig, C_CTL_MEM, fw_sub_cmd, &flt_ext, 1,
-			ackbuf, &ack_len);
+														 ackbuf, &ack_len);
 	if (retval != RIG_OK) {
 		rig_debug(RIG_DEBUG_ERR,"%s: protocol error (%#.2x), "
-                "len=%d\n", __FUNCTION__,ackbuf[0],ack_len);
-        return retval;
+							"len=%d\n", __FUNCTION__,ackbuf[0],ack_len);
+		return retval;
 	}
 	if (ack_len != 1 || ackbuf[0] != ACK) {
 		rig_debug(RIG_DEBUG_ERR,"%s: command not supported ? (%#.2x), "
-                "len=%d\n", __FUNCTION__,ackbuf[0],ack_len);
-        return retval;
-    }
+							"len=%d\n", __FUNCTION__,ackbuf[0],ack_len);
+		return retval;
+	}
 
 	return RIG_OK;
 }
@@ -1715,7 +1715,7 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 			 split for certainty */
 		if (RIG_OK != (rc = icom_transaction (rig, C_CTL_SPLT, S_SPLT_OFF, NULL, 0, ackbuf, &ack_len))) return rc;
 		if (ack_len != 1 || ackbuf[0] != ACK) {
-			rig_debug(RIG_DEBUG_ERR,"icom_set_split_freq_mode: ack NG (%#.2x), "
+			rig_debug(RIG_DEBUG_ERR,"icom_set_split_freq: ack NG (%#.2x), "
 								"len=%d\n", ackbuf[0],ack_len);
 			return -RIG_ERJCTED;
 		}
@@ -1767,7 +1767,7 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 			 split for certainty */
 		if (RIG_OK != (rc = icom_transaction (rig, C_CTL_SPLT, S_SPLT_OFF, NULL, 0, ackbuf, &ack_len))) return rc;
 		if (ack_len != 1 || ackbuf[0] != ACK) {
-			rig_debug(RIG_DEBUG_ERR,"icom_set_split_freq_mode: ack NG (%#.2x), "
+			rig_debug(RIG_DEBUG_ERR,"icom_get_split_freq: ack NG (%#.2x), "
 								"len=%d\n", ackbuf[0],ack_len);
 			return -RIG_ERJCTED;
 		}
@@ -1819,7 +1819,7 @@ int icom_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width
 			 split for certainty */
 		if (RIG_OK != (rc = icom_transaction (rig, C_CTL_SPLT, S_SPLT_OFF, NULL, 0, ackbuf, &ack_len))) return rc;
 		if (ack_len != 1 || ackbuf[0] != ACK) {
-			rig_debug(RIG_DEBUG_ERR,"icom_set_split_freq_mode: ack NG (%#.2x), "
+			rig_debug(RIG_DEBUG_ERR,"icom_set_split_mode: ack NG (%#.2x), "
 								"len=%d\n", ackbuf[0],ack_len);
 			return -RIG_ERJCTED;
 		}
@@ -1872,7 +1872,7 @@ int icom_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_wid
 			 split for certainty */
 		if (RIG_OK != (rc = icom_transaction (rig, C_CTL_SPLT, S_SPLT_OFF, NULL, 0, ackbuf, &ack_len))) return rc;
 		if (ack_len != 1 || ackbuf[0] != ACK) {
-			rig_debug(RIG_DEBUG_ERR,"icom_set_split_freq_mode: ack NG (%#.2x), "
+			rig_debug(RIG_DEBUG_ERR,"icom_get_split_mode: ack NG (%#.2x), "
 								"len=%d\n", ackbuf[0],ack_len);
 			return -RIG_ERJCTED;
 		}
@@ -1976,7 +1976,7 @@ int icom_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *tx_freq, rmode_t *tx_m
 			 split for certainty */
 		if (RIG_OK != (rc = icom_transaction (rig, C_CTL_SPLT, S_SPLT_OFF, NULL, 0, ackbuf, &ack_len))) return rc;
 		if (ack_len != 1 || ackbuf[0] != ACK) {
-			rig_debug(RIG_DEBUG_ERR,"icom_set_split_freq_mode: ack NG (%#.2x), "
+			rig_debug(RIG_DEBUG_ERR,"icom_get_split_freq_mode: ack NG (%#.2x), "
 								"len=%d\n", ackbuf[0],ack_len);
 			return -RIG_ERJCTED;
 		}

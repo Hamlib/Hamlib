@@ -487,6 +487,7 @@ static int fifisdr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		return -RIG_EIO;
 	}
 
+	if (RIG_PASSBAND_NOCHANGE == width) return ret;
 	/* Set filter width */
 	fifi_width = fifisdr_tole32(width);
 	ret = fifisdr_usb_write(rig, REQUEST_FIFISDR_WRITE, 0,

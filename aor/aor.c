@@ -299,55 +299,57 @@ int format8k_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width)
 
 	switch (mode) {
 	case RIG_MODE_AM:
-        if (rig->caps->rig_model == RIG_MODEL_AR8000)
-        {
-            aormode = AR8K_AM;
-        }
-        else
-        {
-		switch(width) {
-			case RIG_PASSBAND_NORMAL:
-			case s_kHz(9): aormode = AR8K_AM; break;
+		if (rig->caps->rig_model == RIG_MODEL_AR8000)
+			{
+				aormode = AR8K_AM;
+			}
+		else
+			{
+				switch(width) {
+				case RIG_PASSBAND_NORMAL:
+				case s_kHz(9): aormode = AR8K_AM; break;
 
-			case s_kHz(12): aormode = AR8K_WAM; break;
-			case s_kHz(3): aormode = AR8K_NAM; break;
-			default:
-				rig_debug(RIG_DEBUG_ERR,
-					"%s: unsupported passband %d %d\n",
-					__FUNCTION__,
-					mode, width);
-			return -RIG_EINVAL;
-		}
-        }
+				case s_kHz(12): aormode = AR8K_WAM; break;
+				case s_kHz(3): aormode = AR8K_NAM; break;
+				case RIG_PASSBAND_NOCHANGE: aormode = AR8K_AM; break;
+				default:
+					rig_debug(RIG_DEBUG_ERR,
+										"%s: unsupported passband %d %d\n",
+										__FUNCTION__,
+										mode, width);
+					return -RIG_EINVAL;
+				}
+			}
 		break;
 	case RIG_MODE_CW:       aormode = AR8K_CW; break;
 	case RIG_MODE_USB:      aormode = AR8K_USB; break;
 	case RIG_MODE_LSB:      aormode = AR8K_LSB; break;
 	case RIG_MODE_WFM:      aormode = AR8K_WFM; break;
 	case RIG_MODE_FM:
-        if (rig->caps->rig_model == RIG_MODEL_AR8000)
-        {
-            aormode = AR8K_NFM;
-        }
-        else
-        {
-		switch(width) {
-			case RIG_PASSBAND_NORMAL:
-			case s_kHz(12): aormode = AR8K_NFM; break;
+		if (rig->caps->rig_model == RIG_MODEL_AR8000)
+			{
+				aormode = AR8K_NFM;
+			}
+		else
+			{
+				switch(width) {
+				case RIG_PASSBAND_NORMAL:
+				case s_kHz(12): aormode = AR8K_NFM; break;
 
-			case s_kHz(9): aormode = AR8K_SFM; break;
-			default:
-				rig_debug(RIG_DEBUG_ERR,
-					"%s: unsupported passband %d %d\n",
-					__FUNCTION__,
-					mode, width);
-			return -RIG_EINVAL;
-            }
-		}
+				case s_kHz(9): aormode = AR8K_SFM; break;
+				case RIG_PASSBAND_NOCHANGE: aormode = AR8K_NFM; break;
+				default:
+					rig_debug(RIG_DEBUG_ERR,
+										"%s: unsupported passband %d %d\n",
+										__FUNCTION__,
+										mode, width);
+					return -RIG_EINVAL;
+				}
+			}
 		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %d\n",
-				__FUNCTION__, mode);
+							__FUNCTION__, mode);
 		return -RIG_EINVAL;
 	}
 
