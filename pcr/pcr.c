@@ -795,23 +795,24 @@ pcr_set_mode(RIG * rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		buf_len = sprintf((char *) buf, "K%c%010" PRIll "0%c0%c00",
 											is_sub_rcvr(rig, vfo) ? '1':'0',
 											(int64_t) rcvr->last_freq, pcrmode, pcrfilter);
+		if (buf_len < 0)
+			return -RIG_ETRUNC;
+		err = pcr_transaction(rig, (char *) buf);
+		if (err != RIG_OK)
+			return err;
+		rcvr->last_filter = pcrfilter;
 	}
 	else {
 		buf_len = sprintf((char *) buf, "K%c%010" PRIll "0%c0%c00",
 											is_sub_rcvr(rig, vfo) ? '1':'0',
 											(int64_t) rcvr->last_freq, pcrmode, rcvr->last_filter);
+		if (buf_len < 0)
+			return -RIG_ETRUNC;
+		err = pcr_transaction(rig, (char *) buf);
+		if (err != RIG_OK)
+			return err;
 	}
-	if (buf_len < 0)
-		return -RIG_ETRUNC;
-	err = pcr_transaction(rig, (char *) buf);
-	if (err != RIG_OK)
-		return err;
-
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: saving values\n",
-		  __func__);
-
 	rcvr->last_mode = pcrmode;
-	rcvr->last_filter = pcrfilter;
 
 	return RIG_OK;
 }
