@@ -40,7 +40,7 @@
 #include "frame.h"
 #include "misc.h"
 #include "bandplan.h"
-
+#include "tones.h"
 
 /* AM Data mode needs adding - this would require one more mode 'RIG_MODE_PKTAM' to rig.h */
 #define IC7300_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB)
@@ -115,7 +115,7 @@ const struct rig_caps ic7300_caps = {
 	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
 },
 .parm_gran =  {},
-.ctcss_list =  NULL,
+.ctcss_list =  full_ctcss_list,
 .dcs_list =  NULL,
 .preamp =   { 10, RIG_DBLST_END, },	/* FIXME: TBC it's a guess*/
 .attenuator =   { 20, RIG_DBLST_END, }, /* value taken from p.45 of manual*/

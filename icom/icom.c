@@ -2623,12 +2623,14 @@ int icom_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 
 	caps = rig->caps;
 
-	for (i = 0; caps->ctcss_list[i] != 0 && i<52; i++) {
-		if (caps->ctcss_list[i] == tone)
-			break;
+	if (caps->ctcss_list) {
+		for (i = 0; caps->ctcss_list[i] != 0 && i<52; i++) {
+			if (caps->ctcss_list[i] == tone)
+				break;
+		}
+		if (caps->ctcss_list[i] != tone)
+			return -RIG_EINVAL;
 	}
-	if (caps->ctcss_list[i] != tone)
-		return -RIG_EINVAL;
 
     /* Sent as frequency in tenth of Hz */
 
@@ -2676,6 +2678,8 @@ int icom_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 
 	tone_len -= 2;
 	*tone = from_bcd_be(tonebuf+2, tone_len*2);
+
+	if (!caps->ctcss_list) return RIG_OK;
 
 	/* check this tone exists. That's better than nothing. */
 	for (i = 0; caps->ctcss_list[i] != 0 && i<52; i++) {
