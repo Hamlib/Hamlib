@@ -956,6 +956,16 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 				break;
 		}
 	}
+	if (rig->caps->rig_model == RIG_MODEL_IC7300) {
+		switch (level) {
+			case RIG_LEVEL_KEYSPD:
+				if (val.i < 6) val.i = 6;
+				if (val.i > 48) val.i = 48;
+				icom_val = (val.i-6)*(255/42.0)+.99;
+			default:
+				break;
+		}
+	}
 
 	/*
 	 * Most of the time, the data field is a 3 digit BCD,
@@ -1357,6 +1367,13 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 					val->f = (float)(icom_val - 128) * 10.0;
 				break;
 			default:
+				break;
+		}
+	}
+	else if ((rig->caps->rig_model == RIG_MODEL_IC7300)&&(level==RIG_LEVEL_KEYSPD)){
+		switch (level) {
+			case RIG_LEVEL_KEYSPD:
+				val->i = val->i*(42.0/255)+6+.5;
 				break;
 		}
 	}
@@ -3176,6 +3193,35 @@ int icom_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 	if (ack_len != 1 || ackbuf[0] != ACK) {
 		rig_debug(RIG_DEBUG_ERR,"icom_scan: ack NG (%#.2x), "
 					"len=%d\n", ackbuf[0], ack_len);
+		return -RIG_ERJCTED;
+	}
+
+	return RIG_OK;
+}
+
+/*
+ * icom_send_morse
+ * Assumes rig!=NULL, msg!=NULL
+ */
+int icom_send_morse (RIG * rig, vfo_t vfo, const char *msg)
+{
+        unsigned char ackbuf[MAXFRAMELEN];
+        int ack_len=sizeof(ackbuf), retval;
+
+	int len = strlen(msg);
+	if (len > 30) len=30;
+
+	rig_debug(RIG_DEBUG_TRACE,"icom_send_morse: %s\n", msg);
+
+        retval = icom_transaction(rig, C_SND_CW, -1, (unsigned char*)msg, len,
+                                        ackbuf, &ack_len);
+
+        if (retval != RIG_OK)
+                return retval;
+
+	if (ack_len != 1 || ackbuf[0] != ACK) {
+		rig_debug(RIG_DEBUG_ERR,"icom_send_morse: ack NG (%#.2x), "
+				"len=%d\n", ackbuf[0],ack_len);
 		return -RIG_ERJCTED;
 	}
 

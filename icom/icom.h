@@ -194,6 +194,7 @@ int icom_get_powerstat(RIG *rig, powerstat_t *status);
 int icom_set_ant(RIG * rig, vfo_t vfo, ant_t ant);
 int icom_get_ant(RIG * rig, vfo_t vfo, ant_t *ant);
 int icom_decode_event(RIG *rig);
+int icom_send_morse (RIG * rig, vfo_t vfo, const char *msg);
 
 extern const struct confparams icom_cfg_params[];
 
