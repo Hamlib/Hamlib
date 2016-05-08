@@ -51,7 +51,7 @@ static const unsigned int PAGE_SIZE[] = {
  */
 int NOP( RIG *rig, unsigned char x )
 {
-  int rc = -RIG_OK;
+  int rc = RIG_OK;
 
   unsigned char op = ( ( 0x0f & x ) | op_NOP );
 
@@ -72,7 +72,7 @@ int NOP( RIG *rig, unsigned char x )
  */
 int SRH( RIG *rig, unsigned char x )
 {
-  int rc = -RIG_OK;
+  int rc = RIG_OK;
 
   unsigned char op = ( ( 0x0f & x ) | op_SRH );
 
@@ -93,7 +93,7 @@ int SRH( RIG *rig, unsigned char x )
  */
 int PGE( RIG *rig, enum PAGE_e page )
 {
-  int rc = -RIG_OK;
+  int rc = RIG_OK;
 
   unsigned char op = ( ( 0x0f & page ) | op_PGE );
 
@@ -132,7 +132,7 @@ int PGE( RIG *rig, enum PAGE_e page )
  */
 int ADR( RIG *rig, unsigned char x )
 {
-  int rc = -RIG_OK;
+  int rc = RIG_OK;
 
   unsigned char op = ( ( 0x0f & x ) | op_ADR );
 
@@ -153,7 +153,7 @@ int ADR( RIG *rig, unsigned char x )
  */
 int ADH( RIG *rig, unsigned char x )
 {
-  int rc = -RIG_OK;
+  int rc = RIG_OK;
 
   unsigned char op = ( ( 0x0f & x ) | op_ADH );
 
@@ -176,7 +176,7 @@ int ADH( RIG *rig, unsigned char x )
  */
 int WRD( RIG *rig, unsigned char out )
 {
-  int rc = -RIG_OK;
+  int rc = RIG_OK;
 
   unsigned char op = ( ( 0x0f & out ) | op_WRD );
 
@@ -198,7 +198,7 @@ int WRD( RIG *rig, unsigned char out )
  */
 int MSK( RIG *rig, unsigned char mask )
 {
-  int rc = -RIG_OK;
+  int rc = RIG_OK;
 
   unsigned char op = ( ( 0x0f & mask ) | op_MSK );
 
@@ -219,7 +219,7 @@ int MSK( RIG *rig, unsigned char mask )
  */
 int EXE( RIG *rig, enum ROUTINE_e routine )
 {
-  int rc = -RIG_OK;
+  int rc = RIG_OK;
 
   unsigned char op = ( ( 0x0f & routine ) | op_EXE );
 
@@ -265,7 +265,7 @@ int EXE( RIG *rig, enum ROUTINE_e routine )
  */
 int RDD( RIG *rig, unsigned char len )
 {
-  int rc = -RIG_OK;
+  int rc = RIG_OK;
   unsigned char inChr = 0;
   unsigned char op = ( ( 0x0f & len ) | op_RDD );
 
@@ -298,7 +298,7 @@ int RDD( RIG *rig, unsigned char len )
  */
 int LOC( RIG *rig, enum LOCK_LVL_e level )
 {
-  int rc = -RIG_OK;
+  int rc = RIG_OK;
 
   unsigned char op = ( ( 0x0f & level ) | op_LOC );
 
@@ -333,7 +333,7 @@ int LOC( RIG *rig, enum LOCK_LVL_e level )
  */
 int BUT( RIG *rig, enum BUTTON_e button )
 {
-  int rc = -RIG_OK;
+  int rc = RIG_OK;
 
   unsigned char op = ( ( 0x0f & button ) | op_BUT );
 
@@ -390,7 +390,7 @@ int execRoutine( RIG * rig, enum ROUTINE_e rtn )
 
   if ( 0 == write_block( &rig->state.rigport, (char *) &v, 1 ) )
   {
-    rc = -RIG_OK;
+    rc = RIG_OK;
 
     rig_debug( RIG_DEBUG_VERBOSE, "%s: routine %2d\n", __func__, rtn );
   }
@@ -427,7 +427,7 @@ static int setAddr( RIG * rig, enum PAGE_e page, unsigned int addr )
 	if ( 0 == write_block( &rig->state.rigport, (char *) &v, 1 ) )
         {
 	  curPage = page;
-	  rc = -RIG_OK;
+	  rc = RIG_OK;
 
 	  rig_debug( RIG_DEBUG_VERBOSE, "%s: set page %2d\n", __func__, page );
 	}
@@ -442,7 +442,7 @@ static int setAddr( RIG * rig, enum PAGE_e page, unsigned int addr )
         v = SRH( ( 0x0f0 & addr ) >> 4 );
 	if ( 0 == write_block( &rig->state.rigport, (char *) &v, 1 ) )
         {
-	  rc = -RIG_OK;
+	  rc = RIG_OK;
 	}
         else
 	{
@@ -458,7 +458,7 @@ static int setAddr( RIG * rig, enum PAGE_e page, unsigned int addr )
 	    if ( 0 == write_block( &rig->state.rigport, (char *) &v, 1 ) )
 	    {
 	      curAddr = addr;
-	      rc = -RIG_OK;
+	      rc = RIG_OK;
 
 	      rig_debug( RIG_DEBUG_VERBOSE, "%s: set addr 0x%04x\n", __func__, addr );
 	    }
@@ -470,7 +470,7 @@ static int setAddr( RIG * rig, enum PAGE_e page, unsigned int addr )
           else
 	  {
 	    curAddr = addr;
-	    rc = -RIG_OK;
+	    rc = RIG_OK;
 
 	    rig_debug( RIG_DEBUG_VERBOSE, "%s: set addr 0x%04x\n", __func__, addr );
           }
@@ -521,7 +521,7 @@ int writeByte( RIG *rig, enum PAGE_e page, unsigned int addr, unsigned char x )
     {
       if ( 0 == write_block( &rig->state.rigport, (char *) &lo, 1 ) )
       {
-	rc = -RIG_OK;
+	rc = RIG_OK;
 	curAddr++;
 
 	rig_debug( RIG_DEBUG_VERBOSE, "%s: wrote byte 0x%02x\n", __func__, x );
@@ -638,7 +638,7 @@ int writeInt( RIG *rig, enum PAGE_e page, unsigned int addr, unsigned int x )
  */
 int readByte( RIG *rig, enum PAGE_e page, unsigned int addr, unsigned char *x )
 {
-  int rc = -RIG_OK;
+  int rc = RIG_OK;
   unsigned char v = RDD( 1 ); // Read command
 
   assert( NULL != rig );
@@ -653,7 +653,7 @@ int readByte( RIG *rig, enum PAGE_e page, unsigned int addr, unsigned char *x )
       if ( 1 == read_block( &rig->state.rigport, (char *) x, 1 ) )
       {
 	curAddr++;
-        rc = -RIG_OK;
+        rc = RIG_OK;
 
 	rig_debug( RIG_DEBUG_VERBOSE, "%s: read 0x%02x\n", __func__, *x );
       }
@@ -676,7 +676,7 @@ int readByte( RIG *rig, enum PAGE_e page, unsigned int addr, unsigned char *x )
  */
 int readShort( RIG *rig, enum PAGE_e page, unsigned int addr, unsigned short *x )
 {
-  int rc = -RIG_OK;
+  int rc = RIG_OK;
   unsigned char v;
 
   assert( NULL != rig );
@@ -711,7 +711,7 @@ int readShort( RIG *rig, enum PAGE_e page, unsigned int addr, unsigned short *x 
  */
 int read3Bytes( RIG *rig, enum PAGE_e page, unsigned int addr, unsigned int *x )
 {
-  int rc = -RIG_OK;
+  int rc = RIG_OK;
   unsigned char v;
 
   assert( NULL != rig );
@@ -801,7 +801,7 @@ int readSignal( RIG * rig, unsigned char *x )
   {
     if ( 1 == read_block( &rig->state.rigport, (char *) x, 1 ) )
     {
-      rc = -RIG_OK;
+      rc = RIG_OK;
 
       rig_debug( RIG_DEBUG_VERBOSE, "%s: raw AGC %03d\n", __func__, *x );
     }
@@ -825,7 +825,7 @@ int flushBuffer( RIG * rig )
 
   if ( 0 == write_block( &rig->state.rigport, &v, 1 ) )
   {
-    rc = -RIG_OK;
+    rc = RIG_OK;
   }
 
   return( rc );
@@ -853,14 +853,14 @@ int lockRx( RIG * rig, enum LOCK_LVL_e level )
 
       if ( 0 == write_block( &rig->state.rigport, (char *) &v, 1 ) )
       {
-	rc = -RIG_OK;
+	rc = RIG_OK;
 
 	curLock = level;
       }
     }
     else
     {
-      rc = -RIG_OK;
+      rc = RIG_OK;
     }
   }
   else
@@ -962,7 +962,7 @@ unsigned char int2BCD( const unsigned int val )
  */
 int getCalLevel( RIG * rig, unsigned char rawAgc, int *dbm )
 {
-  int rc = -RIG_OK;
+  int rc = RIG_OK;
   int i;
   int raw = (int) rawAgc;
   int step = 10;

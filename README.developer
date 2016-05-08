@@ -146,7 +146,7 @@ Much documentation on Git exists.  A good starting point is:
 
 http://git-scm.com/documentation
 
-From this page are links to toturials, books (Pro Git proved useful for me),
+From this page are links to tutorials, books (Pro Git proved useful for me),
 and references (http://gitref.org/ is another good resource).
 
 Another site:
@@ -247,14 +247,13 @@ Optional, but highly recommended:
 * python devel                      # python-config
 * libxml2 devel                     # xml2-config --version
 * libgd2 devel                      # gdlib-config --version
-* libusb devel                      # libusb-config --version (not 1.0.0!)
+* libusb-1.0 devel                  # 1.0.0 or newer
 * libreadline devel                 # ver 5.2 or newer
 * texlive                           # 5.1 tested with 'make distcheck'
 * pkg-config            0.9.0       # pkg-config --version (libxml and USRP)
 
-N.B.:  The libusb package is required for building most of the 'kit' backend.
-The older version is needed, not 1.0.0 or higher.  Debian and derivatives
-package libusb 0.1.12 which is what is needed.
+N.B.:  The libusb-1.0 package is required for building most of the 'kit'
+backend.  The older version of libusb 0.1.x is no longer supported.
 
 Documentation:
 * Doxygen
@@ -393,7 +392,8 @@ So far, Hamlib has been tested successfully under the following systems:
          Create a new subdir, of the name of the protocol backend.
          NB: the directory MUST be the same as the backend name.
 
-    2.2. Add <mybackend> to the DIST_SUBDIRS variable in the topdir Makefile.am
+    2.2. Add <mybackend> to the DIST_SUBDIRS variable in the topdir
+         Makefile.am (not needed for rotators)
 
     2.3. Add the backend name to the BACKEND_LIST variable (add to
          ROT_BACKEND_LIST for a new rotor backend) in configure.ac.
@@ -541,17 +541,29 @@ readability.  Align closing braces with the opening block's keyword.  In
 function definitions put the opening brace on its own line under the
 definition's parameter line.
 
-Hamlib source code is no place for an entry into the obsfucated C contest!
+A configuration file for the Artistic Style (http://astyle.sourceforge.net/)
+utility can be found in the scripts directory.  The settings it provides should
+conform reasonably close to the Linux style guide referenced above.  This file
+can be copied to $HOME/.astylerc where it will be used as the default
+configuration.  If you already have an existing .astylerc, passing
+
+	--options=/path/to/hamlib/scripts/astylerc
+
+will use this file as the configuration for formatting.  Consider using this
+utility whenever working on a given C source file in Hamlib.
+
+Hamlib source code is no place for an entry into the obfuscated C contest!
 Many of us are hobbyists and write this for fun.  Easy to read and
 understand logic is preferred over a clever solution.  If your solution must
 be written in a clever fashion, please document it well in your comments.
 
-Any header files included from the hamlib/ directory should be enclosed
-in <>:
+Any header files included from the hamlib/ directory should be enclosed in <>:
+
 #include <hamlib/rig.h>         # Per GNU GCC documentation
 
 Other included header files (backend and rig specific headers) should be
 enclosed in "":
+
 #include "yaesu.h"
 
 Contributed code should always keep the source base in a compilable state,
@@ -576,12 +588,14 @@ Hamlib should also compile with the following common compilers:
     * gcc-4.x and newer
     * in shared and static
     * C++ compiler against rig.h, riglist.h, rotator.h
+    * clang compiler
 
 Portability issues to watch:
 
+    * C99 is probably (in 2016) a reasonable target
     * little vs. big endian systems (use shifts or adhoc functions)
     * 64 bit int: avoid them in API
-    * printf/scanf of 64bit int: use PRIll and SCNll
+    * printf/scanf of 64bit int: use PRIll (cast value to int64_t) and SCNll
     * printf/scanf of freq_t: use PRIfreq and SCNfreq
 
 Testing:
@@ -669,6 +683,9 @@ big, you can send it as a compressed attachment.
 
 
 8.3.1 Changelog
+
+A ChangeLog file is no longer manually maintained.  At some point it may be
+automatically generated from the Git commit log for source tarballs.
 
 Simply summarize your changes when the files are committed to Git or, if
 providing patches to the mailing list, provide a summary so the uploader can

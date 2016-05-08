@@ -86,12 +86,12 @@ Optional, but highly recommended for a complete build:
 * zlib devel                        # Needed by configure's test for Python
 * libxml2 devel                     # xml2-config --version
 * libgd2 devel                      # gdlib-config --version
-* libusb devel                      # libusb-config --version (not 1.0.0!)
+* libusb-1.0 devel                  # ver 1.0 or newer (not 0.1!)
 * libreadline devel                 # ver 5.2 or newer
 
 N.B  The libusb package is required for building most of the 'kit' backend.
-The older version is needed, not 1.0.0 or higher.  Debian and derivatives
-package libusb 0.1.12 which is what is needed.
+The newer version is needed, not 0.1.  Debian and derivatives
+package libusb-1.0 which is what is needed.
 
 Documentation:
 * Doxygen

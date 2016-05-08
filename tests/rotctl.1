@@ -143,6 +143,30 @@ Please note that the backend for the rotator to be controlled,
 or the rotator itself may not support some commands. In that case,
 the operation will fail with a \fBHamlib\fP error message.
 .PP
+As an alternative to the READLINE command history features a special
+command of a single dash ('-') may be used to read commands from
+standard input.  Commands must be separated by whitespace similar to
+the commands given on the command line.  Comments may be added using
+the '#' character, all text up until the end of the current line
+including the '#' character is ignored.
+.sp
+Example:
+ $ cat <<.EOF. >cmds.txt
+ > # File of commands
+ > set_pos 180.0 10.0	# rotate
+ > pause 30  # wait for action to complete
+ > get_pos   # query rotator
+ > .EOF.
+ 
+ $ rotctl -m1 - <cmds.txt
+ 
+ set_pos 180.0 10.0
+ pause 30
+ get_pos 180.000000
+ 10.000000
+ 
+ $
+.PP
 A summary of commands is included below (In the case of "set" commands the
 quoted string is replaced by the value in the description.  In the case of
 "get" commands the quoted string is the key name of the value returned.):
@@ -264,6 +288,9 @@ Both are floating point values within the range 0.00 to 360.00.
 Returns 'Long Path km'.
 .sp
 Both are floating point values.
+.TP
+.B pause 'Seconds'
+Pause for the given whole number of seconds before sending the next command.
 .SH EXAMPLES
 Start \fBrotctl\fP for RotorEZ using the first serial port on Linux:
 .sp
@@ -355,5 +382,5 @@ This is free software; see the source for copying conditions.
 There is NO warranty; not even for MERCHANTABILITY
 or FITNESS FOR A PARTICULAR PURPOSE.
 .SH SEE ALSO
-.BR hamlib (3),
-.BR rotctld (8)
+.BR rotctld (1),
+.BR hamlib (3)

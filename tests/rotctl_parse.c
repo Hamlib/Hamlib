@@ -65,6 +65,23 @@ extern int read_history ();
 #include "serial.h"
 #include "misc.h"
 
+/* HAVE_SSLEEP is defined when Windows Sleep is found
+ * HAVE_SLEEP is defined when POSIX sleep is found
+ * _WIN32 is defined when compiling with MinGW
+ *
+ * When cross-compiling from POSIX to Windows using MinGW, HAVE_SLEEP
+ * will often be defined by configure although it is not supported by
+ * MinGW.  So substitute the sleep definition below in such a case and
+ * when compiling on Windows using MinGW where HAVE_SLEEP will be
+ * undefined.
+ *
+ * FIXME:  Needs better handling for all versions of MinGW.
+ *
+ */
+#if (defined(HAVE_SSLEEP) || defined(_WIN32)) && (!defined(HAVE_SLEEP))
+#include "hl_sleep.h"
+#endif
+
 #include "rotctl_parse.h"
 
 /* Hash table implementation See:  http://uthash.sourceforge.net/ */
@@ -76,10 +93,12 @@ extern int read_history ();
 static pthread_mutex_t rot_mutex = PTHREAD_MUTEX_INITIALIZER;
 #endif
 
+#define STR1(S) #S
+#define STR(S) STR1(S)
 
 #define MAXNAMSIZ 32
 #define MAXNBOPT 100	/* max number of different options */
-
+#define MAXARGSZ 127
 
 #define ARG_IN1  0x01
 #define ARG_OUT1 0x02
@@ -126,7 +145,8 @@ struct test_table {
 
 #define CHKSCN1ARG(a) if ((a) != 1) return -RIG_EINVAL; else do {} while(0)
 
-#define declare_proto_rot(f) static int (f)(ROT *rot, FILE *fout, int interactive, \
+#define ACTION(f) rigctl_##f
+#define declare_proto_rot(f) static int (ACTION(f))(ROT *rot, FILE *fout, int interactive, \
 			const struct test_table *cmd, const char *arg1, const char *arg2, \
 			const char *arg3, const char *arg4, const char *arg5, const char *arg6)
 
@@ -151,6 +171,7 @@ declare_proto_rot(dec2d_mm);
 declare_proto_rot(coord2qrb);
 declare_proto_rot(az_sp2az_lp);
 declare_proto_rot(dist_sp2dist_lp);
+declare_proto_rot(pause);
 
 /*
  * convention: upper case cmd is set, lowercase is get
@@ -158,26 +179,27 @@ declare_proto_rot(dist_sp2dist_lp);
  * NB: 'q' 'Q' '?' are reserved by interactive mode interface
  */
 struct test_table test_list[] = {
-	{ 'P', "set_pos",   set_position,   ARG_IN, "Azimuth", "Elevation" },
-	{ 'p', "get_pos",   get_position,   ARG_OUT, "Azimuth", "Elevation" },
-	{ 'K', "park",      park,           ARG_NONE, },
-	{ 'S', "stop",      stop,           ARG_NONE, },
-	{ 'R', "reset",     reset,          ARG_IN, "Reset" },
-	{ 'M', "move",      move,           ARG_IN, "Direction", "Speed" },
-	{ 'C', "set_conf",  inter_set_conf, ARG_IN, "Token", "Value" },
-	{ '_', "get_info",  get_info,       ARG_OUT, "Info" },
-	{ 'w', "send_cmd",  send_cmd,       ARG_IN1|ARG_IN_LINE|ARG_OUT2, "Cmd", "Reply" },
-	{ '1', "dump_caps", dump_caps, },
-	{ 0x8f,"dump_state",dump_state,     ARG_OUT },
-	{ 'L', "lonlat2loc",lonlat2loc,     ARG_IN1|ARG_IN2|ARG_IN3|ARG_OUT1, "Longitude", "Latitude", "Loc Len [2-12]", "Locator" },
-	{ 'l', "loc2lonlat",loc2lonlat,     ARG_IN1|ARG_OUT1|ARG_OUT2, "Locator", "Longitude", "Latitude" },
-	{ 'D', "dms2dec",   d_m_s2dec,      ARG_IN1|ARG_IN2|ARG_IN3|ARG_IN4|ARG_OUT1, "Degrees", "Minutes", "Seconds", "S/W", "Dec Degrees" },
-	{ 'd', "dec2dms",   dec2d_m_s,      ARG_IN1|ARG_OUT1|ARG_OUT2|ARG_OUT3|ARG_OUT4, "Dec Degrees", "Degrees", "Minutes", "Seconds", "S/W" },
-	{ 'E', "dmmm2dec",  d_mm2dec,       ARG_IN1|ARG_IN2|ARG_IN3|ARG_OUT1, "Degrees", "Dec Minutes", "S/W", "Dec Deg" },
-	{ 'e', "dec2dmmm",  dec2d_mm,       ARG_IN1|ARG_OUT1|ARG_OUT2|ARG_OUT3, "Dec Deg", "Degrees", "Dec Minutes", "S/W" },
-	{ 'B', "qrb",       coord2qrb,      ARG_IN1|ARG_IN2|ARG_IN3|ARG_IN4|ARG_OUT1|ARG_OUT2, "Lon 1", "Lat 1", "Lon 2", "Lat 2", "QRB Distance", "QRB Azimuth" },
-	{ 'A', "a_sp2a_lp", az_sp2az_lp,    ARG_IN1|ARG_OUT1, "Short Path Deg", "Long Path Deg" },
-	{ 'a', "d_sp2d_lp", dist_sp2dist_lp,ARG_IN1|ARG_OUT1, "Short Path km", "Long Path km" },
+	{ 'P', "set_pos",   ACTION(set_position),   ARG_IN, "Azimuth", "Elevation" },
+	{ 'p', "get_pos",   ACTION(get_position),   ARG_OUT, "Azimuth", "Elevation" },
+	{ 'K', "park",      ACTION(park),           ARG_NONE, },
+	{ 'S', "stop",      ACTION(stop),           ARG_NONE, },
+	{ 'R', "reset",     ACTION(reset),          ARG_IN, "Reset" },
+	{ 'M', "move",      ACTION(move),           ARG_IN, "Direction", "Speed" },
+	{ 'C', "set_conf",  ACTION(inter_set_conf), ARG_IN, "Token", "Value" },
+	{ '_', "get_info",  ACTION(get_info),       ARG_OUT, "Info" },
+	{ 'w', "send_cmd",  ACTION(send_cmd),       ARG_IN1|ARG_IN_LINE|ARG_OUT2, "Cmd", "Reply" },
+	{ '1', "dump_caps", ACTION(dump_caps), },
+	{ 0x8f,"dump_state",ACTION(dump_state),     ARG_OUT },
+	{ 'L', "lonlat2loc",ACTION(lonlat2loc),     ARG_IN1|ARG_IN2|ARG_IN3|ARG_OUT1, "Longitude", "Latitude", "Loc Len [2-12]", "Locator" },
+	{ 'l', "loc2lonlat",ACTION(loc2lonlat),     ARG_IN1|ARG_OUT1|ARG_OUT2, "Locator", "Longitude", "Latitude" },
+	{ 'D', "dms2dec",   ACTION(d_m_s2dec),      ARG_IN1|ARG_IN2|ARG_IN3|ARG_IN4|ARG_OUT1, "Degrees", "Minutes", "Seconds", "S/W", "Dec Degrees" },
+	{ 'd', "dec2dms",   ACTION(dec2d_m_s),      ARG_IN1|ARG_OUT1|ARG_OUT2|ARG_OUT3|ARG_OUT4, "Dec Degrees", "Degrees", "Minutes", "Seconds", "S/W" },
+	{ 'E', "dmmm2dec",  ACTION(d_mm2dec),       ARG_IN1|ARG_IN2|ARG_IN3|ARG_OUT1, "Degrees", "Dec Minutes", "S/W", "Dec Deg" },
+	{ 'e', "dec2dmmm",  ACTION(dec2d_mm),       ARG_IN1|ARG_OUT1|ARG_OUT2|ARG_OUT3, "Dec Deg", "Degrees", "Dec Minutes", "S/W" },
+	{ 'B', "qrb",       ACTION(coord2qrb),      ARG_IN1|ARG_IN2|ARG_IN3|ARG_IN4|ARG_OUT1|ARG_OUT2, "Lon 1", "Lat 1", "Lon 2", "Lat 2", "QRB Distance", "QRB Azimuth" },
+	{ 'A', "a_sp2a_lp", ACTION(az_sp2az_lp),    ARG_IN1|ARG_OUT1, "Short Path Deg", "Long Path Deg" },
+	{ 'a', "d_sp2d_lp", ACTION(dist_sp2dist_lp),ARG_IN1|ARG_OUT1, "Short Path km", "Long Path km" },
+	{ 0x8c, "pause",    ACTION(pause),          ARG_IN, "Seconds" },
 	{ 0x00, "", NULL },
 
 };
@@ -314,6 +336,73 @@ static int scanfc(FILE *fin, const char *format, void *p)
 	} while(1);
 }
 
+/*
+ * function to get the next word from the command line or from stdin
+ * until stdin exhausted. stdin is read if the special token '-' is
+ * found on the command line.
+ *
+ * returns EOF when words exhausted
+ * returns <0 is error number
+ * returns >=0 when successful
+ */
+static int next_word (char *buffer, int argc, char *argv[], int newline)
+{
+  int ret;
+  char c;
+  static int reading_stdin;
+
+  if (!reading_stdin)
+    {
+      if (optind >= argc) return EOF;
+      else if (newline && '-' == argv[optind][0] && 1 == strlen (argv[optind]))
+        {
+          ++optind;
+          reading_stdin = 1;
+        }
+    }
+
+  if (reading_stdin)
+    {
+      do
+        {
+          do ret = scanf (" %c%" STR(MAXARGSZ) "[^ \t\n#]", &c, &buffer[1]); while (EINTR == ret);
+          if (ret > 0 && '#' == c)
+            {
+              do ret = scanf ("%*[^\n]"); while (EINTR == ret); /* consume comments */
+              ret = 0;
+            }
+        }
+      while (!ret);
+      if (EOF == ret) reading_stdin = 0;
+      else if (ret < 0)
+        {
+          rig_debug (RIG_DEBUG_ERR, "scanf: %s\n", strerror (errno));
+          reading_stdin = 0;
+        }
+      else
+        {
+          buffer[0] = c;
+          buffer[1 == ret ? 1 : MAXARGSZ] = '\0';
+          if (newline) putchar ('\n');
+          fputs (buffer, stdout);
+          putchar (' ');
+        }
+    }
+
+  if (!reading_stdin)
+    {
+			if (optind < argc)
+        {
+          strncpy (buffer, argv[optind++], MAXARGSZ);
+          buffer[MAXARGSZ] = '\0';
+          ret = 1;
+        }
+      else ret = EOF;
+    }
+
+  return ret;
+}
+
 #define fprintf_flush(f, a...) \
             ({ int __ret; \
                __ret = fprintf((f), a); \
@@ -321,8 +410,6 @@ static int scanfc(FILE *fin, const char *format, void *p)
                __ret; \
             })
 
-
-#define MAXARGSZ 127
 
 extern int interactive;
 extern int prompt;
@@ -336,6 +423,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 	unsigned char cmd;
 	struct test_table *cmd_entry;
 
+	char command[MAXARGSZ+1];
 	char arg1[MAXARGSZ + 1], *p1 = NULL;
 	char arg2[MAXARGSZ + 1], *p2 = NULL;
 	char arg3[MAXARGSZ + 1], *p3 = NULL;
@@ -420,13 +508,14 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 			}
 		} else {
 			/* parse rest of command line */
-			if (optind >= argc)
-				return 1;
-			if (argv[optind][1] == '\0')
-					cmd = argv[optind][0];
-			else
-					cmd = parse_arg(argv[optind]);
-			optind++;
+      retcode = next_word (command, argc, argv, 1);
+      if (EOF == retcode) return 1;
+      else if (retcode < 0) return retcode;
+      else if ('\0' == command[1]) {
+        cmd = command[0];
+      } else {
+        cmd = parse_arg (command);
+      }
 		}
 
 		cmd_entry = find_cmd_entry(cmd);
@@ -450,12 +539,14 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 				if (nl) *nl = '\0';	/* chomp */
 				p1 = arg1[0]==' '?arg1+1:arg1;
 			} else {
-				if (!argv[optind]) {
+        retcode = next_word (arg1, argc, argv, 0);
+        if (EOF == retcode) {
 					fprintf(stderr, "Invalid arg for command '%s'\n",
-								cmd_entry->name);
-					exit(1);
-				}
-				p1 = argv[optind++];
+                  cmd_entry->name);
+          return 1;
+        }
+        else if (retcode < 0) return retcode;
+				p1 = arg1;
 			}
 		} else 	if ((cmd_entry->flags & ARG_IN1) && cmd_entry->arg1) {
 			if (interactive) {
@@ -465,12 +556,14 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 					return -1;
 				p1 = arg1;
 			} else {
-				if (!argv[optind]) {
+        retcode = next_word (arg1, argc, argv, 0);
+        if (EOF == retcode) {
 					fprintf(stderr, "Invalid arg for command '%s'\n",
-								cmd_entry->name);
-					exit(1);
-				}
-				p1 = argv[optind++];
+                  cmd_entry->name);
+          return 1;
+        }
+        else if (retcode < 0) return retcode;
+				p1 = arg1;
 			}
 		}
 		if (p1 && p1[0]!='?' && (cmd_entry->flags & ARG_IN2) && cmd_entry->arg2) {
@@ -481,12 +574,14 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 					return -1;
 				p2 = arg2;
 			} else {
-				if (!argv[optind]) {
+        retcode = next_word (arg2, argc, argv, 0);
+        if (EOF == retcode) {
 					fprintf(stderr, "Invalid arg for command '%s'\n",
-								cmd_entry->name);
-					exit(1);
-				}
-				p2 = argv[optind++];
+                  cmd_entry->name);
+          return 1;
+        }
+        else if (retcode < 0) return retcode;
+				p2 = arg2;
 			}
 		}
 		if (p1 && p1[0]!='?' && (cmd_entry->flags & ARG_IN3) && cmd_entry->arg3) {
@@ -497,12 +592,14 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 					return -1;
 				p3 = arg3;
 			} else {
-				if (!argv[optind]) {
+        retcode = next_word (arg3, argc, argv, 0);
+        if (EOF == retcode) {
 					fprintf(stderr, "Invalid arg for command '%s'\n",
-								cmd_entry->name);
-					exit(1);
-				}
-				p3 = argv[optind++];
+                  cmd_entry->name);
+          return 1;
+        }
+        else if (retcode < 0) return retcode;
+				p3 = arg3;
 			}
 		}
 
@@ -514,12 +611,14 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 					return -1;
 				p4 = arg4;
 			} else {
-				if (!argv[optind]) {
+        retcode = next_word (arg4, argc, argv, 0);
+        if (EOF == retcode) {
 					fprintf(stderr, "Invalid arg for command '%s'\n",
-								cmd_entry->name);
-					exit(1);
-				}
-				p4 = argv[optind++];
+                  cmd_entry->name);
+          return 1;
+        }
+        else if (retcode < 0) return retcode;
+				p4 = arg4;
 			}
 		}
 	}
@@ -991,7 +1090,11 @@ void usage_rot(FILE *fout)
 		fprintf(fout, ")\n");
 	}
 
-	fprintf(fout, "\n\nPrepend long command names with '\\', e.g. '\\dump_state'\n");
+	fprintf(fout, "\n\nIn interactive mode prefix long command names with '\\', e.g. '\\dump_state'\n\n"
+          "The special command '-' is used to read further commands from standard input\n"
+          "Commands and arguments read from standard input must be white space separated,\n"
+          "comments are allowed, comments start with the # character and continue to the\n"
+          "end of the line.\n");
 }
 
 
@@ -1012,7 +1115,7 @@ int print_conf_list(const struct confparams *cfp, rig_ptr_t data)
 					cfp->u.n.min, cfp->u.n.max, cfp->u.n.step);
 		break;
 	case RIG_CONF_COMBO:
-		if (!cfp->u.c.combostr)
+		if (!cfp->u.c.combostr[0])
 			break;
 		printf("\tCombo: %s", cfp->u.c.combostr[0]);
 		for (i = 1 ; i < RIG_COMBO_MAX && cfp->u.c.combostr[i]; i++)
@@ -1524,5 +1627,14 @@ declare_proto_rot(dist_sp2dist_lp)
 		fprintf(fout, "%s: ", cmd->arg2);
 	fprintf(fout, "%lf%c", dist_lp, resp_sep);
 
+	return RIG_OK;
+}
+
+/* '0x8c'--pause processing */
+declare_proto_rot(pause)
+{
+  unsigned seconds;
+	CHKSCN1ARG(sscanf(arg1, "%u", &seconds));
+  sleep (seconds);
 	return RIG_OK;
 }

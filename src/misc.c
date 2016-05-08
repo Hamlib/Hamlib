@@ -841,5 +841,11 @@ void HAMLIB_API rig_force_cache_timeout(struct timeval *tv)
     tv->tv_usec = 0;
 }
 
+int no_restore_ai;
+
+void HAMLIB_API rig_no_restore_ai()
+{
+	no_restore_ai = -1;
+}
 
 /** @} */

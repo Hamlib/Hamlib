@@ -363,7 +363,7 @@ static int ft920_init(RIG *rig) {
     if (!rig)
         return -RIG_EINVAL;
 
-    priv = (struct ft920_priv_data *)malloc(sizeof(struct ft920_priv_data));
+    priv = (struct ft920_priv_data *) calloc(1, sizeof(struct ft920_priv_data));
     if (!priv)
         return -RIG_ENOMEM;             /* whoops! memory shortage! */
 
@@ -723,48 +723,50 @@ static int ft920_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
      * Yeah, it's ugly... -N0NB
      *
      */
-    if (width == RIG_PASSBAND_NORMAL || width == rig_passband_normal(rig, mode)) {
+    if (width != RIG_PASSBAND_NOCHANGE) {
+      if (width == RIG_PASSBAND_NORMAL || width == rig_passband_normal(rig, mode)) {
         switch(vfo) {
         case RIG_VFO_A:
         case RIG_VFO_VFO:
         case RIG_VFO_MEM:
         case RIG_VFO_MAIN:
-            cmd_index = FT920_NATIVE_VFO_A_PASSBAND_WIDE;
-            break;
+          cmd_index = FT920_NATIVE_VFO_A_PASSBAND_WIDE;
+          break;
         case RIG_VFO_B:
         case RIG_VFO_SUB:
-            cmd_index = FT920_NATIVE_VFO_B_PASSBAND_WIDE;
-            break;
+          cmd_index = FT920_NATIVE_VFO_B_PASSBAND_WIDE;
+          break;
         }
-    } else {
+      } else {
         if (width == rig_passband_narrow(rig, mode)) {
-            switch(mode) {
-            case RIG_MODE_CW:
-            case RIG_MODE_AM:
-            case RIG_MODE_FM:
-            case RIG_MODE_PKTFM:
-            case RIG_MODE_RTTY:
-                switch(vfo) {
-                case RIG_VFO_A:
-                case RIG_VFO_VFO:
-                case RIG_VFO_MEM:
-                case RIG_VFO_MAIN:
-                    cmd_index = FT920_NATIVE_VFO_A_PASSBAND_NAR;
-                    break;
-                case RIG_VFO_B:
-                case RIG_VFO_SUB:
-                    cmd_index = FT920_NATIVE_VFO_B_PASSBAND_NAR;
-                    break;
-                }
-                break;
-            default:
-                return -RIG_EINVAL;     /* Invalid mode; how can caller know? */
+          switch(mode) {
+          case RIG_MODE_CW:
+          case RIG_MODE_AM:
+          case RIG_MODE_FM:
+          case RIG_MODE_PKTFM:
+          case RIG_MODE_RTTY:
+            switch(vfo) {
+            case RIG_VFO_A:
+            case RIG_VFO_VFO:
+            case RIG_VFO_MEM:
+            case RIG_VFO_MAIN:
+              cmd_index = FT920_NATIVE_VFO_A_PASSBAND_NAR;
+              break;
+            case RIG_VFO_B:
+            case RIG_VFO_SUB:
+              cmd_index = FT920_NATIVE_VFO_B_PASSBAND_NAR;
+              break;
             }
+            break;
+          default:
+            return -RIG_EINVAL;     /* Invalid mode; how can caller know? */
+          }
         } else {
-            if (width != RIG_PASSBAND_NORMAL && width != rig_passband_normal(rig, mode)) {
-                return -RIG_EINVAL;     /* Invalid width; how can caller know? */
-            }
+          if (width != RIG_PASSBAND_NORMAL && width != rig_passband_normal(rig, mode)) {
+            return -RIG_EINVAL;     /* Invalid width; how can caller know? */
+          }
         }
+      }
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: set mode_parm = 0x%02x\n", __func__, mode_parm);

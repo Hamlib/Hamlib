@@ -90,7 +90,7 @@ const struct rig_caps ts690s_caps = {
 .write_delay =  0,
 .post_write_delay =  100,
 .timeout =  1000,
-.retry =  3,
+.retry =  10,
 
 .has_get_func =  TS690_FUNC_ALL,
 .has_set_func =  TS690_FUNC_ALL,
@@ -165,6 +165,7 @@ const struct rig_caps ts690s_caps = {
 .rig_init = kenwood_init,
 .rig_cleanup = kenwood_cleanup,
 .rig_open = kenwood_open,
+.rig_close = kenwood_close,
 .set_freq =  kenwood_set_freq,
 .get_freq =  kenwood_get_freq,
 .set_rit =  kenwood_set_rit,

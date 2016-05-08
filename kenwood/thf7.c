@@ -236,6 +236,7 @@ const struct rig_caps thf7e_caps = {
 	.rig_init	= thf7e_init,
 	.rig_cleanup	= kenwood_cleanup,
 	.rig_open	= thf7e_open,
+	.rig_close	= kenwood_close,
 
 	.set_freq	= th_set_freq,
 	.get_freq	= th_get_freq,
@@ -331,16 +332,16 @@ int thf7e_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 
 	switch(op) {
 	case RIG_OP_UP:
-		return kenwood_simple_cmd(rig, "UP");
+		return kenwood_transaction(rig, "UP", NULL, 0);
 
 	case RIG_OP_DOWN:
-		return kenwood_simple_cmd(rig, "DW");
+		return kenwood_transaction(rig, "DW", NULL, 0);
 /*	Not implemented!
 	case RIG_OP_BAND_UP:
-		return kenwood_simple_cmd(rig, "BU");
+		return kenwood_transaction(rig, "BU", NULL, 0);
 
 	case RIG_OP_BAND_DOWN:
-		return kenwood_simple_cmd(rig, "BD");
+		return kenwood_transaction(rig, "BD", NULL, 0);
 */
 	default:
 		rig_debug(RIG_DEBUG_ERR, "%s: unsupported op %#x\n",

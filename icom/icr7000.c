@@ -52,6 +52,7 @@ static int r7000_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static const struct icom_priv_caps icr7000_priv_caps = {
 	0x08,   /* default address */
 	0,      /* 731 mode */
+  0,      /* no XCHG */
 	r7100_ts_sc_list
 };
 /*
@@ -76,7 +77,7 @@ const struct rig_caps icr7000_caps = {
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
-.timeout =  200,
+.timeout =  1000,
 .retry =  3,
 
 .has_get_func =  RIG_FUNC_NONE,
@@ -161,6 +162,7 @@ const struct rig_caps icr7000_caps = {
 static const struct icom_priv_caps icr7100_priv_caps = {
 	0x34,   /* default address */
 	0,      /* 731 mode */
+  0,      /* no XCHG */
 	r7100_ts_sc_list
 };
 /*
@@ -185,7 +187,7 @@ const struct rig_caps icr7100_caps = {
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
-.timeout =  200,
+.timeout =  1000,
 .retry =  3,
 
 .has_get_func =  ICR7100_FUNCS,

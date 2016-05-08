@@ -119,13 +119,13 @@ int tentec2_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	ret_len = 3;
 	retval = tentec_transaction (rig, freqbuf, 7, freqbuf, &ret_len);
 
-	if (retval != RIG_OK || ret_len != 2)
+	if (retval != RIG_OK)
 		return -RIG_EINVAL;
 
-	if (freqbuf[0] == 'G')
-		return RIG_OK;
+	if (ret_len != 2 || freqbuf[0] != 'G')
+		return -RIG_ERJCTED;
 
-	return -RIG_ERJCTED;
+	return RIG_OK;
 }
 
 /*
@@ -157,13 +157,14 @@ int tentec2_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 // "Z\r" meaning the command was rejected
 	ret_len = 9;
 
-	retval = tentec_transaction (rig, freqbuf, strlen(freqbuf), freqbuf, &ret_len);
+	retval = tentec_transaction (rig, freqbuf, 3, freqbuf, &ret_len);
 	if (retval != RIG_OK)
 		return retval;
 
-	if (ret_len == 2 && freqbuf[1] == 'Z')
+	if (ret_len == 2 && freqbuf[0] == 'Z')
 		return -RIG_ERJCTED;
-	if (ret_len < 6)
+
+	if (ret_len != 8)
 		return -RIG_EINVAL;
 
 	*freq = (unsigned int)((freqbuf[1] & 0x0FF) << 24) +
@@ -209,10 +210,10 @@ int tentec2_set_vfo(RIG *rig, vfo_t vfo)
 	if (retval != RIG_OK)
 		return retval;
 
-	if (vfobuf[0] == 'G')
-		return RIG_OK;
+	if (ret_len != 2 || vfobuf[0] != 'G')
+		return -RIG_ERJCTED;
 
-	return -RIG_ERJCTED;
+	return RIG_OK;
 }
 
 /*
@@ -237,7 +238,7 @@ int tentec2_get_vfo(RIG *rig, vfo_t *vfo)
 	if (ret_len == 2 && vfobuf[0] == 'Z')
 		return -RIG_ERJCTED;
 
-    if (ret_len != 6)
+	if (ret_len != 6)
 		return -RIG_EPROTO;
 
 	*vfo = vfobuf[2] == 'A' ? RIG_VFO_A : RIG_VFO_B;
@@ -259,9 +260,9 @@ int tentec2_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 	char retbuf[10] = "*Ox\r";
 
 	if (split == RIG_SPLIT_ON)
-		retbuf[1] = 1;
+		retbuf[2] = 1;
 	else
-		retbuf[1] = 0;
+		retbuf[2] = 0;
 
 	ret_len = 3;
 	retval = tentec_transaction( rig, retbuf, 4, retbuf, &ret_len );
@@ -269,7 +270,7 @@ int tentec2_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 	if (retval != RIG_OK)
 		return retval;
 
-	if (ret_len == 2 && retbuf[0] == 'Z')
+	if (ret_len != 2 || retbuf[0] != 'G')
 		return -RIG_ERJCTED;
 
 	return RIG_OK;
@@ -287,7 +288,7 @@ int tentec2_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 	/*
 	 * TODO: handle tx_vfo
 	 */
-	ret_len = 5;
+	ret_len = 6;
 	retval = tentec_transaction (rig, splitbuf, 3, splitbuf, &ret_len);
 // Argo V returns
 // "On\rG\r" or
@@ -299,7 +300,7 @@ int tentec2_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 	if (ret_len == 2 && splitbuf[0] == 'Z')
 		return -RIG_ERJCTED;
 
-	if (ret_len != 4)
+	if (ret_len != 5)
 		return -RIG_EPROTO;
 
 	*split = splitbuf[1] == 0 ? RIG_SPLIT_OFF : RIG_SPLIT_ON;
@@ -315,36 +316,56 @@ int tentec2_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
  */
 int tentec2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-	char ttmode, ttmode_a, ttmode_b;
+	char ttmode;
 	int ttfilter, retval, ret_len;
-	unsigned char mdbuf[16];
+	char mdbuf[16];
 
-	switch (mode) {
-		case RIG_MODE_USB:      ttmode = TT_USB; break;
-		case RIG_MODE_LSB:      ttmode = TT_LSB; break;
-		case RIG_MODE_CW:       ttmode = TT_CW; break;
-		case RIG_MODE_AM:       ttmode = TT_AM; break;
-		case RIG_MODE_FM:       ttmode = TT_FM; break;
-		default:
-			rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %d\n",
-					__FUNCTION__, mode);
-			return -RIG_EINVAL;
+	if (vfo == RIG_VFO_CURR) {
+		if ((retval = tentec2_get_vfo(rig, &vfo)) != RIG_OK)
+			return retval;
 	}
 
-	ttmode_a = ttmode_b = ttmode;
+	switch (mode) {
+	case RIG_MODE_USB:      ttmode = TT_USB; break;
+	case RIG_MODE_LSB:      ttmode = TT_LSB; break;
+	case RIG_MODE_CW:       ttmode = TT_CW; break;
+	case RIG_MODE_AM:       ttmode = TT_AM; break;
+	case RIG_MODE_FM:       ttmode = TT_FM; break;
+	default:
+		rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %d\n",
+							__FUNCTION__, mode);
+		return -RIG_EINVAL;
+	}
 
-	strcpy((char *) mdbuf, "*M00\r" );
+	/* get the mode because we want to leave other VFO unchanged */
+	ret_len = 7;
+	retval = tentec_transaction (rig, "?M\r", 3, &mdbuf[1], &ret_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	if (ret_len != 6)
+		return -RIG_EPROTO;
+
+	mdbuf[0] = '*';
+	switch (vfo)
+		{
+		case RIG_VFO_A: mdbuf[2] = ttmode; break;
+		case RIG_VFO_B: mdbuf[3] = ttmode; break;
+		default:
+			return -RIG_EINVAL;
+		}
 	ret_len = 3;
-	mdbuf[2] = ttmode_a; mdbuf[3] = ttmode_b;
-	retval = tentec_transaction (rig, (char *) mdbuf, 5, (char *) mdbuf, &ret_len);
+	retval = tentec_transaction (rig, mdbuf, 5, mdbuf, &ret_len);
 
 	if (retval != RIG_OK)
 		return retval;
-	if (ret_len == 2 && mdbuf[1] == 'Z')
+
+	if (ret_len != 2 || mdbuf[0] != 'G')
 		return -RIG_ERJCTED;
 
-	if (width == RIG_PASSBAND_NORMAL)
-			width = rig_passband_normal(rig, mode);
+	if (RIG_PASSBAND_NOCHANGE == width) return retval;
+	if (RIG_PASSBAND_NORMAL == width)
+		width = rig_passband_normal (rig, mode);
 
 	/*
 	 * Filter  0:  200
@@ -353,19 +374,23 @@ int tentec2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	 *              ..
 	 * Filter 36: 3000
 	 */
-	if (width < 1000)
+	if (width < 200)
+		ttfilter = 0;
+	else if (width > 3000)
+		ttfilter = 36;
+	else if (width < 1000)
 		ttfilter = (width / 50) - 4;
 	else
 		ttfilter = (width / 100) + 6;
 
-	strcpy ((char *) mdbuf, "*Wn\r");
+	strcpy (mdbuf, "*Wn\r");
 	mdbuf[2] = ttfilter;
 	ret_len = 3;
-	retval = tentec_transaction (rig, (char *) mdbuf, 5, (char *) mdbuf, &ret_len);
-
+	retval = tentec_transaction (rig, mdbuf, 4, mdbuf, &ret_len);
 	if (retval != RIG_OK)
 		return retval;
-	if (ret_len == 2 && mdbuf[0] == 'Z')
+
+	if (ret_len != 2 || mdbuf[0] != 'G')
 		return -RIG_ERJCTED;
 
 	return RIG_OK;
@@ -397,7 +422,10 @@ int tentec2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	if (ret_len != 6)
 		return -RIG_EPROTO;
 
-	switch (mdbuf[1]) {
+	if (vfo != RIG_VFO_A && vfo != RIG_VFO_B)
+		return -RIG_EINVAL;
+
+	switch (mdbuf[vfo == RIG_VFO_A ? 1 : 2]) {
 		case TT_USB:	*mode = RIG_MODE_USB; break;
 		case TT_LSB:	*mode = RIG_MODE_LSB; break;
 		case TT_CW:		*mode = RIG_MODE_CW;  break;
@@ -405,7 +433,7 @@ int tentec2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 		case TT_FM:		*mode = RIG_MODE_FM;  break;
 		default:
 			rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode '%c'\n",
-					__FUNCTION__, mdbuf[1]);
+					__FUNCTION__, mdbuf[vfo == RIG_VFO_A ? 1 : 2]);
 			return -RIG_EPROTO;
 	}
 
@@ -413,6 +441,9 @@ int tentec2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	retval = tentec_transaction (rig, "?W\r", 3, mdbuf, &ret_len);
 	if (retval != RIG_OK)
 		return retval;
+
+	if (ret_len == 2 && mdbuf[0] == 'Z')
+		return -RIG_ERJCTED;
 
 	if (ret_len != 5)
 		return -RIG_EPROTO;
@@ -452,11 +483,42 @@ int tentec2_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 									retbuf, &ret_len);
 	if (retval != RIG_OK)
 		return retval;
-	if (ret_len == 2 && retbuf[0] == 'G')
-		return RIG_OK;
 
-	return -RIG_ERJCTED;
+	if (ret_len != 2 || retbuf[0] != 'G')
+		return -RIG_ERJCTED;
 
+	return RIG_OK;
+}
+
+
+/*
+ * tentec2_get_ptt
+ * Assumes rig!=NULL
+ */
+int tentec2_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
+{
+	int ret_len, retval;
+	char buf[7] = "?C\r";
+
+	ret_len = 7;
+	retval = tentec_transaction (rig, buf, 3, buf, &ret_len);
+	if (retval != RIG_OK)
+		return retval;
+
+// ArgoV sends back 6 character string
+// "Cnn\rG\r" where nn is the status word
+// or 2 character failure string
+// "Z\r"
+
+	if (ret_len == 2 && buf[0] == 'Z')
+		return -RIG_ERJCTED;
+
+	if (ret_len != 6)
+		return -RIG_EPROTO;
+
+	*ptt = buf[2] & 0x01 ? RIG_PTT_ON : RIG_PTT_OFF;
+
+	return RIG_OK;
 }
 
 
@@ -508,5 +570,3 @@ const char *tentec2_get_info(RIG *rig)
 
 	return buf;
 }
-
-

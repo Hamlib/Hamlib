@@ -1,7 +1,7 @@
 /*
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000-2003 by Frank Singleton
- *  Copyright (c) 2000-2012 by Stephane Fillod
+ *  Copyright (c) 2000-2015 by Stephane Fillod
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -95,6 +95,8 @@
 #define RIG_MODEL_FT980 RIG_MAKE_MODEL(RIG_YAESU, 31)
 #define RIG_MODEL_FTDX5000 RIG_MAKE_MODEL(RIG_YAESU, 32)
 #define RIG_MODEL_VX1700 RIG_MAKE_MODEL(RIG_YAESU, 33)
+#define RIG_MODEL_FT1200 RIG_MAKE_MODEL(RIG_YAESU, 34)
+#define RIG_MODEL_FT991 RIG_MAKE_MODEL(RIG_YAESU, 35)
 
 	/*
 	 * Kenwood
@@ -136,6 +138,10 @@
 #define RIG_MODEL_THD72A RIG_MAKE_MODEL(RIG_KENWOOD, 33)
 #define RIG_MODEL_TMD710 RIG_MAKE_MODEL(RIG_KENWOOD, 34)
 #define RIG_MODEL_TMV71 RIG_MAKE_MODEL(RIG_KENWOOD, 35)
+#define RIG_MODEL_F6K RIG_MAKE_MODEL(RIG_KENWOOD, 36) /* Flex 6000 Series */
+#define RIG_MODEL_TS590SG RIG_MAKE_MODEL(RIG_KENWOOD, 37)
+#define RIG_MODEL_XG3 RIG_MAKE_MODEL(RIG_KENWOOD, 38)
+#define RIG_MODEL_TS990S RIG_MAKE_MODEL(RIG_KENWOOD, 39)
 
 	/*
 	 * Icom
@@ -204,7 +210,10 @@
 #define RIG_MODEL_IC9100 RIG_MAKE_MODEL(RIG_ICOM, 68)
 #define RIG_MODEL_ICRX7 RIG_MAKE_MODEL(RIG_ICOM, 69)
 #define RIG_MODEL_IC7100 RIG_MAKE_MODEL(RIG_ICOM, 70)
-/* next one is 71 */
+#define RIG_MODEL_ID5100 RIG_MAKE_MODEL(RIG_ICOM, 71)
+#define RIG_MODEL_IC2730 RIG_MAKE_MODEL(RIG_ICOM, 72)
+#define RIG_MODEL_IC7300 RIG_MAKE_MODEL(RIG_ICOM, 73)
+/* next one is 74 */
 
 	/*
 	 * Optoelectronics (CI-V)
@@ -476,6 +485,7 @@
 #define RIG_MODEL_FASDR RIG_MAKE_MODEL(RIG_KIT,15) /* Funkamateur Sdr */
 #define RIG_MODEL_SI570PEABERRY1 RIG_MAKE_MODEL(RIG_KIT, 16) /* Peaberry V1 */
 #define RIG_MODEL_SI570PEABERRY2 RIG_MAKE_MODEL(RIG_KIT, 17) /* Peaberry V2 */
+#define RIG_MODEL_FUNCUBEDONGLEPLUS RIG_MAKE_MODEL(RIG_KIT, 18)	/* FunCUBE Dongle Pro+ */
 
 	/*
 	 * SW/FM/TV tuner cards supported by Video4Linux,*BSD, ..
@@ -509,6 +519,15 @@
 #define RIG_ADAT 29
 #define RIG_BACKEND_ADAT "adat"
 #define RIG_MODEL_ADT_200A RIG_MAKE_MODEL(RIG_ADAT, 1)
+
+        /*
+         * ICOM Marine
+         */
+#define RIG_ICMARINE 30
+#define RIG_BACKEND_ICMARINE "icmarine"
+#define RIG_MODEL_IC_M700PRO RIG_MAKE_MODEL(RIG_ICMARINE, 1)
+#define RIG_MODEL_IC_M802 RIG_MAKE_MODEL(RIG_ICMARINE, 2)
+#define RIG_MODEL_IC_M710 RIG_MAKE_MODEL(RIG_ICMARINE, 3)
 
 	/*
 	 * TODO:

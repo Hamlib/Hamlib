@@ -358,7 +358,7 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
 static int frontend_get_conf(RIG *rig, token_t token, char *val)
 {
 	struct rig_state *rs;
-	const char *s;
+	const char *s = "";
 
 	rs = &rig->state;
 
@@ -451,6 +451,46 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
 		break;
 	case TOK_POLL_INTERVAL:
 		sprintf(val, "%d", rs->poll_interval);
+		break;
+
+	case TOK_PTT_TYPE:
+		switch(rs->pttport.type.ptt) {
+		case RIG_PTT_RIG: s = "RIG"; break;
+		case RIG_PTT_RIG_MICDATA: s = "RIGMICDATA"; break;
+		case RIG_PTT_SERIAL_DTR: s = "DTR"; break;
+		case RIG_PTT_SERIAL_RTS: s = "RTS"; break;
+		case RIG_PTT_PARALLEL: s = "Parallel"; break;
+		case RIG_PTT_CM108: s = "CM108"; break;
+		case RIG_PTT_NONE: s = "None"; break;
+		default: return -RIG_EINVAL;
+		}
+		strcpy(val, s);
+		break;
+
+	case TOK_PTT_PATHNAME:
+		strcpy(val, rs->pttport.pathname);
+		break;
+
+	case TOK_PTT_BITNUM:
+		sprintf(val, "%d", rs->pttport.parm.cm108.ptt_bitnum);
+		break;
+
+	case TOK_DCD_TYPE:
+		switch(rs->dcdport.type.dcd) {
+		case RIG_DCD_RIG: s = "RIG"; break;
+		case RIG_DCD_SERIAL_DSR: s = "DSR"; break;
+		case RIG_DCD_SERIAL_CTS: s = "CTS"; break;
+		case RIG_DCD_SERIAL_CAR: s = "CD"; break;
+		case RIG_DCD_PARALLEL: s = "Parallel"; break;
+		case RIG_DCD_CM108: s = "CM108"; break;
+		case RIG_DCD_NONE: s = "None"; break;
+		default: return -RIG_EINVAL;
+		}
+		strcpy(val, s);
+		break;
+
+	case TOK_DCD_PATHNAME:
+		strcpy(val, rs->dcdport.pathname);
 		break;
 
 	default:

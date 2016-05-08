@@ -46,12 +46,14 @@ static int ic706_r2i_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 	err = rig2icom_mode(rig, mode, width, md, pd);
 
 	if (err != RIG_OK)
-	    return err;
+		return err;
 
+	if (width != RIG_PASSBAND_NOCHANGE) {
     if (*pd == -1)
-		*pd = PD_MEDIUM_2;
+			*pd = PD_MEDIUM_2;
     else
-		(*pd)--;
+			(*pd)--;
+	}
 
 	return RIG_OK;
 }
@@ -132,6 +134,7 @@ static int ic706_r2i_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 static const struct icom_priv_caps ic706_priv_caps = {
 		0x48,	/* default address */
 		0,		/* 731 mode */
+    0,    /* no XCHG */
 		ic706_ts_sc_list,
 		.r2i_mode = ic706_r2i_mode
 };
@@ -155,7 +158,7 @@ const struct rig_caps ic706_caps = {
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
-.timeout =  200,
+.timeout =  1000,
 .retry =  3,
 .has_get_func =  RIG_FUNC_NONE,
 .has_set_func =  RIG_FUNC_NONE,
@@ -264,6 +267,7 @@ const struct rig_caps ic706_caps = {
 static const struct icom_priv_caps ic706mkii_priv_caps = {
 		0x4e,	/* default address */
 		0,		/* 731 mode */
+    0,    /* no XCHG */
 		ic706_ts_sc_list,
 		.r2i_mode = ic706_r2i_mode
 };
@@ -287,7 +291,7 @@ const struct rig_caps ic706mkii_caps = {
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
-.timeout =  200,
+.timeout =  1000,
 .retry =  3,
 .has_get_func =  RIG_FUNC_NONE,
 .has_set_func =  RIG_FUNC_NONE,
@@ -419,6 +423,7 @@ const struct rig_caps ic706mkii_caps = {
 static const struct icom_priv_caps ic706mkiig_priv_caps = {
 		0x58,	/* default address */
 		0,		/* 731 mode */
+    0,    /* no XCHG */
 		ic706_ts_sc_list,
 		.r2i_mode = ic706_r2i_mode
 };
@@ -442,7 +447,7 @@ const struct rig_caps ic706mkiig_caps = {
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
-.timeout =  200,
+.timeout =  1000,
 .retry =  3,
 .has_get_func =  IC706IIG_FUNC_ALL,
 .has_set_func =  IC706IIG_FUNC_ALL,
@@ -569,8 +574,6 @@ const struct rig_caps ic706mkiig_caps = {
 .set_mem =  icom_set_mem,
 .vfo_op =  icom_vfo_op,
 .scan =  icom_scan,
-.set_ptt =  icom_set_ptt,
-.get_ptt =  icom_get_ptt,
 .get_dcd =  icom_get_dcd,
 .set_ts =  icom_set_ts,
 .set_rptr_shift =  icom_set_rptr_shift,

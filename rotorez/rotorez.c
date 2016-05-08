@@ -60,6 +60,8 @@ static int rotorez_rot_cleanup(ROT *rot);
 static int rotorez_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t elevation);
 static int rotorez_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *elevation);
 static int erc_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *elevation);
+static int rt21_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *elevation);
+static int rt21_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t elevation);
 
 static int rotorez_rot_reset(ROT *rot, rot_reset_t reset);
 static int rotorez_rot_stop(ROT *rot);
@@ -287,6 +289,45 @@ const struct rot_caps erc_rot_caps = {
 };
 
 
+const struct rot_caps rt21_rot_caps = {
+	.rot_model =		ROT_MODEL_RT21,
+	.model_name =		"RT-21",
+	.mfg_name =		"Green Heron",
+	.version =		"2014-09-14",
+	.copyright =		"LGPL",
+	.status =		RIG_STATUS_ALPHA,
+	.rot_type =		ROT_TYPE_OTHER,
+	.port_type =		RIG_PORT_SERIAL,
+	.serial_rate_min =	4800,
+	.serial_rate_max =	4800,
+	.serial_data_bits =	8,
+	.serial_stop_bits =	1,
+	.serial_parity =	RIG_PARITY_NONE,
+	.serial_handshake =	RIG_HANDSHAKE_NONE,
+	.write_delay =		0,
+	.post_write_delay =	500,
+	.timeout =		1500,
+	.retry =		2,
+
+	.min_az =		0,
+	.max_az =		359.9,
+	.min_el =		0,
+	.max_el =		0,
+
+	.priv =			NULL,	/* priv */
+//	.cfgparams =		rotorez_cfg_params,
+
+	.rot_init =		rotorez_rot_init,
+	.rot_cleanup =		rotorez_rot_cleanup,
+	.set_position =		rt21_rot_set_position,
+	.get_position =		rt21_rot_get_position,
+//	.stop =				rotorez_rot_stop,
+//	.set_conf =			rotorez_rot_set_conf,
+//	.get_info =			rotorez_rot_get_info,
+
+};
+
+
 /* ************************************
  *
  * API functions
@@ -368,6 +409,35 @@ static int rotorez_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t ele
 		return err;
 
 	err = rotorez_send_priv_cmd(rot, execstr);	/* Execute command */
+	if (err != RIG_OK)
+		return err;
+
+	return RIG_OK;
+}
+
+
+/*
+ * RT-21 Set position.
+ *
+ * RT-21 has a custom command to set azimuth to a precision of 1/10 of a
+ * degree--"AP1XXX.Y\r;".  XXX must be zero padded.  The '\r' causes the
+ * command to be executed immediately (no need to send "AM1;").
+ */
+
+static int rt21_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t elevation) {
+	char cmdstr[16];
+	int err;
+
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+	if (!rot)
+		return -RIG_EINVAL;
+
+	if (azimuth < 0 || azimuth > 360)
+		return -RIG_EINVAL;
+
+	sprintf(cmdstr, "AP1%05.1f\r;", azimuth);	/* Total field width of 5 chars */
+	err = rotorez_send_priv_cmd(rot, cmdstr);
 	if (err != RIG_OK)
 		return err;
 
@@ -536,6 +606,67 @@ static int erc_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *eleva
 	rig_debug(RIG_DEBUG_TRACE,
 				"%s: azimuth = %.1f deg; elevation = %.1f deg\n",
 				__func__, *azimuth, *elevation);
+
+	return RIG_OK;
+}
+
+
+/*
+ * Get position from Green Heron RT-21 series of controllers Returns
+ * current azimuth position in degrees and tenths.  Range returned from
+ * RT-21 is a float, 0.0 to 359.9 degrees Elevation is set to 0
+ */
+
+static int rt21_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *elevation) {
+	struct rot_state *rs;
+	char az[8];		/* read azimuth string */
+	azimuth_t tmp = 0;
+	int err;
+
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+	if (!rot)
+		return -RIG_EINVAL;
+
+	/* 'BI1' is an RT-21 specific command that queries for a floating
+	 * point position (to the tenth of a degree).
+	 */
+	err = rotorez_send_priv_cmd(rot, "BI1;");
+	if (err != RIG_OK)
+		return err;
+
+	rs = &rot->state;
+
+	err = read_string(&rs->rotport, az, RT21_AZ_LEN + 1, ";", strlen(";"));
+	if (err < 0)	/* read_string returns negative on error. */
+		return err;
+
+	/* RT-21 returns a five to six octet string consisting of one to
+	 * three octets containing the rotor's position in degrees, one
+	 * octet containing a decimal '.', one octet containing the rotor's
+	 * position in tenths of a degree, and one octet with the
+	 * terminating ';' with a leading space as padding--'[xx| ]x.y;'.
+	 * Seems as though at least five characters are returned and a
+	 * space is used as a leading pad character if needed.
+	 */
+	if ((isdigit(az[0])) || (isspace(az[0]))) {
+		tmp = strtof(az, NULL);
+		rig_debug(RIG_DEBUG_TRACE, "%s: \"%s\" after conversion = %.1f\n",
+			  __func__, az, tmp);
+
+		if (tmp == 360.0)
+			tmp = 0;
+		else if (tmp < 0.0 || tmp > 359.9)
+			return -RIG_EINVAL;
+
+		*azimuth = tmp;
+		*elevation = 0.0;	/* RT-21 backend does not support el at this time. */
+		rig_debug(RIG_DEBUG_TRACE,
+			  "%s: azimuth = %.1f deg; elevation = %.1f deg\n",
+			  __func__, *azimuth, *elevation);
+	} else {
+		return -RIG_EINVAL;
+	}
 
 	return RIG_OK;
 }
@@ -743,7 +874,7 @@ DECLARE_INITROT_BACKEND(rotorez)
 	rot_register(&rotorcard_rot_caps);
 	rot_register(&dcu_rot_caps);
 	rot_register(&erc_rot_caps);
+	rot_register(&rt21_rot_caps);
 
 	return RIG_OK;
 }
-

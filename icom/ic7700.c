@@ -36,19 +36,16 @@
 #include "misc.h"
 #include "bandplan.h"
 
-/*
- * TODO: PSK and PSKR
- */
-#define IC7700_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM)
-#define IC7700_1HZ_TS_MODES IC7700_ALL_RX_MODES
-#define IC7700_OTHER_TX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM)
+#define IC7700_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTFM)
 #define IC7700_AM_TX_MODES (RIG_MODE_AM)
+#define IC7700_ALL_RX_MODES IC7700_OTHER_TX_MODES | IC7700_AM_TX_MODES
+#define IC7700_1HZ_TS_MODES IC7700_ALL_RX_MODES
 
 #define IC7700_FUNCS (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_ANF|RIG_FUNC_VSC|RIG_FUNC_LOCK)
 
 #define IC7700_LEVELS (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_BALANCE|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_APF|RIG_LEVEL_VOXGAIN|RIG_LEVEL_VOXDELAY|RIG_LEVEL_SWR|RIG_LEVEL_ALC)
 
-#define IC7700_VFOS (RIG_VFO_MAIN|RIG_VFO_SUB|RIG_VFO_MEM)
+#define IC7700_VFOS (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)
 #define IC7700_PARMS (RIG_PARM_ANN|RIG_PARM_BACKLIGHT)
 
 #define IC7700_VFO_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL|RIG_OP_TUNE)
@@ -75,6 +72,7 @@
 static const struct icom_priv_caps ic7700_priv_caps = {
 		0x74,	/* default address */
 		0,		/* 731 mode */
+    0,    /* no XCHG */
 		ic756pro_ts_sc_list
 };
 
@@ -98,7 +96,7 @@ const struct rig_caps ic7700_caps = {
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
-.timeout =  200,
+.timeout =  1000,
 .retry =  3,
 .has_get_func =  IC7700_FUNCS,
 .has_set_func =  IC7700_FUNCS,
@@ -192,8 +190,8 @@ const struct rig_caps ic7700_caps = {
 
 .set_freq =  icom_set_freq,
 .get_freq =  icom_get_freq,
-.set_mode =  icom_set_mode,
-.get_mode =  icom_get_mode,
+.set_mode =  icom_set_mode_with_data,
+.get_mode =  icom_get_mode_with_data,
 .set_vfo =  icom_set_vfo,
 .set_ant =  icom_set_ant,
 .get_ant =  icom_get_ant,

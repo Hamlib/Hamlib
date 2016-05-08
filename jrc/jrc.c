@@ -175,6 +175,11 @@ static int rig2jrc_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 	  return -RIG_EINVAL;
 	}
 
+	if (RIG_PASSBAND_NOCHANGE == width) {
+		*jwidth = '1';
+		return RIG_OK;
+	}
+
 	if (width == RIG_PASSBAND_NORMAL)
 		width = rig_passband_normal(rig, mode);
 
@@ -329,10 +334,12 @@ int jrc_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	if (retval != RIG_OK)
 	  return retval;
 
-	mdbuf_len = sprintf(mdbuf, "B" "%c" EOM, awidth);
-	retval = jrc_transaction (rig, mdbuf, mdbuf_len, NULL, NULL);
-	if (retval != RIG_OK)
-	  return retval;
+	if (width != RIG_PASSBAND_NOCHANGE) {
+		mdbuf_len = sprintf(mdbuf, "B" "%c" EOM, awidth);
+		retval = jrc_transaction (rig, mdbuf, mdbuf_len, NULL, NULL);
+		if (retval != RIG_OK)
+			return retval;
+	}
 
 	return RIG_OK;
 }
@@ -1158,13 +1165,21 @@ int jrc_set_chan(RIG *rig, const channel_t *chan)
 	char	cmdbuf[BUFSZ];
 	int	retval, cmd_len;
 
+	/* read first to get current values */
+	channel_t current;
+	current.channel_num = chan->channel_num;
+	if ((retval = jrc_get_chan (rig, &current)) != RIG_OK) return retval;
+
 	sprintf(cmdbuf,"K%03d000",chan->channel_num);
 
 	if (chan->levels[rig_setting2idx(RIG_LEVEL_ATT)].i == 20)
 		cmdbuf[4] = '1';
 
-	retval = rig2jrc_mode(rig, chan->mode, chan->width,
-			&cmdbuf[6], &cmdbuf[5]);
+	rmode_t mode = chan->mode;
+	pbwidth_t width = chan->width;
+	if (RIG_MODE_NONE == mode) mode = current.mode;
+	if (RIG_PASSBAND_NOCHANGE == width) width = current.width;
+	retval = rig2jrc_mode(rig, mode, width, &cmdbuf[6], &cmdbuf[5]);
 	if (retval != RIG_OK)
 	  return retval;
 

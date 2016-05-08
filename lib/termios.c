@@ -509,7 +509,7 @@ static int ClearErrors( struct termios_list *index, COMSTAT *Stat )
 #ifdef DEBUG_ERRORS
 	if ( ErrCode )
 	{
-		printf("%i frame %i %i overrun %i %i  parity %u %i brk %i %i\n",
+		printf("%i frame %i %i overrun %li %i  parity %u %i brk %i %i\n",
 			(int) ErrCode,
 			(int) ErrCode & CE_FRAME,
 			index->sis->frame,
@@ -1385,43 +1385,50 @@ int win32_serial_read( int fd, void *vb, int size )
 	*/
 
 	if ( index->open_flags & O_NONBLOCK  )
-	{
-		/* pull mucho-cpu here? */
-		do {
+    {
+      /* pull mucho-cpu here? */
+      do
+        {
 #ifdef DEBUG_VERBOSE
-			report( "vmin=0\n" );
+          report( "vmin=0\n" );
 #endif /* DEBUG_VERBOSE */
-			ClearErrors( index, &stat);
-/*
-			usleep(1000);
-			usleep(50);
-*/
-			/* we should use -1 instead of 0 for disabled timeout */
-			now = GetTickCount();
-			if ( index->ttyset->c_cc[VTIME] &&
-				now-start >= (index->ttyset->c_cc[VTIME]*100)) {
-/*
-				sprintf( message, "now = %i start = %i time = %i total =%i\n", now, start, index->ttyset->c_cc[VTIME]*100, total);
-				report( message );
-*/
-				return total;	/* read timeout */
-			}
-		} while( stat.cbInQue < size && size > 1 );
-	}
-	else
-	{
-		/* VTIME is in units of 0.1 seconds */
+          ClearErrors( index, &stat);
+
+          if (stat.cbInQue < index->ttyset->c_cc[VMIN])
+            {
+              /*
+                usleep(50);
+              */
+              usleep(100);     /* don't hog the CPU while waiting */
+
+              /* we should use -1 instead of 0 for disabled timeout */
+              now = GetTickCount();
+              if (index->ttyset->c_cc[VTIME] &&
+                  now-start >= (index->ttyset->c_cc[VTIME]*100))
+                {
+                  /*
+                    sprintf( message, "now = %i start = %i time = %i total =%i\n", now, start, index->ttyset->c_cc[VTIME]*100, total);
+                    report( message );
+                  */
+                  return total;	/* read timeout */
+                }
+            }
+        } while (size > 1 && stat.cbInQue < index->ttyset->c_cc[VMIN]);
+    }
+  else
+    {
+        /* VTIME is in units of 0.1 seconds */
 
 #ifdef DEBUG_VERBOSE
-		report( "vmin!=0\n" );
+        report( "vmin!=0\n" );
 #endif /* DEBUG_VERBOSE */
-		/* vmin = index->ttyset->c_cc[VMIN]; */
+        /* vmin = index->ttyset->c_cc[VMIN]; */
 
 		c = clock() + index->ttyset->c_cc[VTIME] * CLOCKS_PER_SEC / 10;
 		do {
 			ClearErrors( index, &stat);
 			usleep(1000);
-		} while ( c > clock() );
+    } while (stat.cbInQue < index->ttyset->c_cc[VMIN] && c > clock());
 
 	}
 
@@ -1436,85 +1443,86 @@ int win32_serial_read( int fd, void *vb, int size )
 
 		err = ReadFile( index->hComm, dest + total, size, &nBytes, &index->rol );
 #ifdef DEBUG_VERBOSE
-	/* warning Roy Rogers! */
-		sprintf(message, " ========== ReadFile = %i %s\n",
-			( int ) nBytes, (char *) dest + total );
-		report( message );
+        /* warning Roy Rogers! */
+        sprintf(message, " ========== ReadFile = %i %s\n",
+                ( int ) nBytes, *((char *) dest + total) );
+        report( message );
 #endif /* DEBUG_VERBOSE */
-		size -= nBytes;
-		total += nBytes;
 
-		if ( !err )
-		{
-			switch ( GetLastError() )
-			{
-				case ERROR_BROKEN_PIPE:
-					report( "ERROR_BROKEN_PIPE\n ");
-					nBytes = 0;
-					break;
-				case ERROR_MORE_DATA:
-/*
-					usleep(1000);
-*/
-					report( "ERROR_MORE_DATA\n" );
-					break;
-				case ERROR_IO_PENDING:
-					while( ! GetOverlappedResult(
-							index->hComm,
-							&index->rol,
-							&nBytes,
-							TRUE ) )
-					{
-						if( GetLastError() !=
-							ERROR_IO_INCOMPLETE )
-						{
-							ClearErrors(
-								index,
-								&stat);
-							return( total );
-						}
-					}
-					size -= nBytes;
-					total += nBytes;
-					if (size > 0) {
-						now = GetTickCount();
-						sprintf(message, "size > 0: spent=%ld have=%d\n", now-start, index->ttyset->c_cc[VTIME]*100);
-						report( message );
-						/* we should use -1 for disabled
-						   timouts */
-						if ( index->ttyset->c_cc[VTIME] && now-start >= (index->ttyset->c_cc[VTIME]*100)) {
-							report( "TO " );
-							/* read timeout */
-							return total;
-						}
-					}
-					sprintf(message, "end nBytes=%ld] ", nBytes);
-					report( message );
-/*
-					usleep(1000);
-*/
-					report( "ERROR_IO_PENDING\n" );
-					break;
-				default:
-/*
-					usleep(1000);
-*/
-					YACK();
-					return -1;
-			}
-		}
-		else
-		{
-/*
-			usleep(1000);
-*/
-			ClearErrors( index, &stat);
-			return( total );
-		}
-	}
-	LEAVE( "serial_read" );
-	return total;
-}
+        if ( !err )
+          {
+            switch ( GetLastError() )
+              {
+              case ERROR_BROKEN_PIPE:
+                report( "ERROR_BROKEN_PIPE\n ");
+                nBytes = 0;
+                break;
+              case ERROR_MORE_DATA:
+                /*
+                  usleep(1000);
+                */
+                report( "ERROR_MORE_DATA\n" );
+                break;
+              case ERROR_IO_PENDING:
+                while( ! GetOverlappedResult(
+                                             index->hComm,
+                                             &index->rol,
+                                             &nBytes,
+                                             TRUE ) )
+                  {
+                    if( GetLastError() !=
+                        ERROR_IO_INCOMPLETE )
+                      {
+                        ClearErrors(
+                                    index,
+                                    &stat);
+                        return( total );
+                      }
+                  }
+                size -= nBytes;
+                total += nBytes;
+                if (size > 0) {
+                  now = GetTickCount();
+                  sprintf(message, "size > 0: spent=%ld have=%d\n", now-start, index->ttyset->c_cc[VTIME]*100);
+                  report( message );
+                  /* we should use -1 for disabled
+                     timouts */
+                  if ( index->ttyset->c_cc[VTIME] && now-start >= (index->ttyset->c_cc[VTIME]*100)) {
+                    report( "TO " );
+                    /* read timeout */
+                    return total;
+                  }
+                }
+                sprintf(message, "end nBytes=%ld] ", nBytes);
+                report( message );
+                /*
+                  usleep(1000);
+                */
+                report( "ERROR_IO_PENDING\n" );
+                break;
+              default:
+                /*
+                  usleep(1000);
+                */
+                YACK();
+                return -1;
+              }
+          }
+        else
+          {
+            size -= nBytes;
+            total += nBytes;
+
+            /*
+              usleep(1000);
+            */
+            ClearErrors( index, &stat);
+            return( total );
+          }
+      }
+    LEAVE( "serial_read" );
+    return total;
+  }
 
 #ifdef asdf
 int win32_serial_read( int fd, void *vb, int size )
@@ -1614,8 +1622,6 @@ int win32_serial_read( int fd, void *vb, int size )
 			( int ) nBytes, (char *) dest + total );
 		report( message );
 #endif /* DEBUG_VERBOSE */
-		size -= nBytes;
-		total += nBytes;
 
 		if ( !err )
 		{
@@ -1682,6 +1688,9 @@ int win32_serial_read( int fd, void *vb, int size )
 		}
 		else
 		{
+      size -= nBytes;
+      total += nBytes;
+
 /*
 			usleep(1000);
 */
@@ -3250,7 +3259,7 @@ int  win32_serial_select( int  n,  fd_set  *readfds,  fd_set  *writefds,
 		   this does happen.  loops ~twice on a 350 Mzh with
 		   usleep(1000000)
 		*/
-		usleep(10000);
+		/* usleep(10000); */
 		LEAVE( "serial_uselect" );
 		return(0);
 	}
@@ -3297,7 +3306,7 @@ int  win32_serial_select( int  n,  fd_set  *readfds,  fd_set  *writefds,
 		SetCommMask( index->hComm, index->event_flag );
 		ClearErrors( index, &Stat );
 		if ( !WaitCommEvent( index->hComm, &dwCommEvent,
-			&index->sol ) )
+			&index->rol ) )
 		{
 			/* WaitCommEvent failed probably overlapped though */
 			if ( GetLastError() != ERROR_IO_PENDING )
@@ -3311,7 +3320,7 @@ int  win32_serial_select( int  n,  fd_set  *readfds,  fd_set  *writefds,
 		    be needed
 		*/
 		ClearErrors( index, &Stat );
-		wait = WaitForSingleObject( index->sol.hEvent, 100 );
+		wait = WaitForSingleObject( index->rol.hEvent, 100 );
 		switch ( wait )
 		{
 			case WAIT_OBJECT_0:
@@ -3326,7 +3335,7 @@ int  win32_serial_select( int  n,  fd_set  *readfds,  fd_set  *writefds,
 	}
 end:
 	/*  You may want to chop this out for lower latency */
-	usleep(1000);
+	/* usleep(1000); */
 	LEAVE( "serial_select" );
 	return( 1 );
 timeout:
@@ -3353,7 +3362,7 @@ int  win32_serial_select( int  n,  fd_set  *readfds,  fd_set  *writefds,
 	ENTER( "serial_select" );
 	if ( fd <= 0 )
 	{
-		usleep(1000);
+		/* usleep(1000); */
 		return 1;
 	}
 	index = find_port( fd );
@@ -3368,7 +3377,7 @@ int  win32_serial_select( int  n,  fd_set  *readfds,  fd_set  *writefds,
 	}
 	while(!index->event_flag )
 	{
-		usleep(1000);
+		/* usleep(1000); */
 		return -1;
 	}
 

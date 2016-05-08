@@ -250,13 +250,13 @@ MS Windows
 
     ./configure --host=i686-w64-mingw32
 
-- Specifying the directory of libusb for a Windows build using MinGW as
-  libusb must be installed separately, use the following environment
+- Specifying the directory of libusb-1.0 for a Windows build using MinGW as
+  libusb-1.0 must be installed separately, use the following environment
   variables after all other options.
 
     ./configure [other options] \
-    CPPFLAGS="-I/path_to_libusb/include" \
-    LDFLAGS="-L/path_to_libusb/lib/gcc"
+    CPPFLAGS="-I/path_to_libusb-1.0/include" \
+    LDFLAGS="-L/path_to_libusb-1.0/lib/gcc"
 
 - Mingw compiler under Cygwin
 
@@ -333,12 +333,12 @@ Note, the following is still experimental.
 application may be thought to ease its distribution.  As a static library is
 built by default the following notes may assist application authors.
 
-   The 'kit' backend depends on libusb.  To link libusb statically set the
+   The 'kit' backend depends on libusb-1.0.  To link libusb-1.0 statically set the
 following environment variable on the 'configure' command line:
 
-    LIBUSB_LIBS="/usr/lib/i386-linux-gnu/libusb.a"
+    LIBUSB_LIBS="/usr/lib/i386-linux-gnu/libusb-1.0.a"
 
-do note that the absolute path to 'libusb.a' may well be quite different on
+do note that the absolute path to 'libusb-1.0.a' may well be quite different on
 other systems.
 
    By default the GNU linker (ld) will include most all symbols in a static
@@ -358,7 +358,7 @@ nor does 'rotctl' contain any rig symbols.
 
     ./configure --disable-shared --prefix="$HOME/local" --without-cxx-binding \
     --disable-winradio CFLAGS="-fdata-sections -ffunction-sections" \
-    LDFLAGS="-Wl,--gc-sections" LIBUSB_LIBS="/usr/lib/i386-linux-gnu/libusb.a"
+    LDFLAGS="-Wl,--gc-sections" LIBUSB_LIBS="/usr/lib/i386-linux-gnu/libusb-1.0.a"
 
-to make a static only Hamlib library, statically link libusb, and include only
+to make a static only Hamlib library, statically link libusb-1.0, and include only
 the needed symbols in the Hamlib utilities linking to libhamlib.a.

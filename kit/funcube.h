@@ -28,8 +28,10 @@
 
 #define VID									0x04D8
 #define PID									0xFB56
+#define PIDPLUS								0xFB31
 #define VENDOR_NAME							"Hanlincrest Ltd.         "
 #define PRODUCT_NAME						"FunCube Dongle"
+#define PRODUCT_NAMEPLUS					"FunCube Dongle Pro+"
 
 #define FUNCUBE_INTERFACE					0x02
 #define FUNCUBE_CONFIGURATION				-1  /* no setup */

@@ -26,6 +26,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "serial.h"
 #include "elecraft.h"
 #include "kenwood.h"
 
@@ -110,10 +111,38 @@ int elecraft_open(RIG *rig)
 	priv->fw_rev = k3_fw_rev;
 
 	/* Use check for "ID017;" to verify rig is reachable */
-	err = verify_kenwood_id(rig, id);
-	if (err != RIG_OK)
-		return err;
+	rig_debug(RIG_DEBUG_TRACE, "%s: rig_model=%d,%d\n", __func__,rig->caps->rig_model,RIG_MODEL_XG3);
+	if (rig->caps->rig_model == RIG_MODEL_XG3) { // XG3 doesn't have ID
+		struct rig_state *rs = &rig->state;
+		char *cmd = "V;";
+		char data[32];
 
+		strcpy(data,"EMPTY");
+		// Not going to get carried away with retries and such
+		err = write_block(&rs->rigport, cmd, strlen(cmd));
+		if (err != RIG_OK) {
+			rig_debug(RIG_DEBUG_TRACE, "%s: XG3 cannot request identification\n", __func__);
+			return err;
+		}
+		err = read_string(&rs->rigport, id, sizeof(id), ";", 1);
+		if (err < 0) {
+			rig_debug(RIG_DEBUG_TRACE, "%s: XG3 cannot get identification\n", __func__);
+			return err;
+		}
+
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: id=%s\n", __func__,id);
+#if 0
+		if (err != RIG_OK) {
+			rig_debug(RIG_DEBUG_TRACE, "%s: cannot get identification\n", __func__);
+			return err;
+		}
+#endif
+	}
+	else { // Standard Kenwood
+		err = verify_kenwood_id(rig, id);
+		if (err != RIG_OK)
+			return err;
+	}
 	switch(rig->caps->rig_model) {
 	case RIG_MODEL_K2:
 		err = elecraft_get_extension_level(rig, "K2", &priv->k2_ext_lvl);
@@ -146,11 +175,26 @@ int elecraft_open(RIG *rig)
 			return err;
 
 		break;
+	case RIG_MODEL_XG3:
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: XG3 level is %d, %s\n", __func__,
+			priv->k3_ext_lvl, elec_ext_id_str_lst[priv->k3_ext_lvl].id);
+		break;
 	default:
 		rig_debug(RIG_DEBUG_WARN, "%s: unrecognized rig model %d\n",
 			__func__, rig->caps->rig_model);
 		return -RIG_EINVAL;
 	}
+
+	if (RIG_MODEL_XG3 != rig->caps->rig_model)
+		{
+			/* get current AI state so it can be restored */
+			priv->trn_state = -1;
+			kenwood_get_trn (rig, &priv->trn_state); /* ignore errors */
+			/* Currently we cannot cope with AI mode so turn it off in
+				 case last client left it on */
+			kenwood_set_trn(rig, RIG_TRN_OFF); /* ignore status in case
+																						it's not supported */
+		}
 
 	return RIG_OK;
 }
@@ -212,7 +256,7 @@ int elecraft_get_extension_level(RIG *rig, const char *cmd, int *ext_level)
 	char buf[KENWOOD_MAX_BUF_LEN];
 	char *bufptr;
 
-	err = kenwood_safe_transaction(rig, cmd, buf, KENWOOD_MAX_BUF_LEN, 4);
+	err = kenwood_safe_transaction(rig, cmd, buf, KENWOOD_MAX_BUF_LEN, 3);
 	if (err != RIG_OK) {
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: Cannot get K2|K3 ID\n", __func__);
 		return err;
@@ -248,10 +292,9 @@ int elecraft_get_firmware_revision_level(RIG *rig, const char *cmd,
 	int err;
 	char *bufptr;
 	char buf[KENWOOD_MAX_BUF_LEN];
-	size_t size = KENWOOD_MAX_BUF_LEN;
 
 	/* Get the actual firmware revision number. */
-	err = kenwood_transaction(rig, cmd, strlen(cmd), buf, &size);
+	err = kenwood_transaction(rig, cmd, buf, sizeof (buf));
 
 	if (err != RIG_OK) {
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: Cannot get firmware revision level\n", __func__);

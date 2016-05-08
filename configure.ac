@@ -15,7 +15,7 @@ dnl however, the use of '~' should be fine as apt (others?) will treat
 dnl it as an earlier version than the actual release.  TNX KA6MAL
 dnl PACKAGE_NAME + " " + PACKAGE_VERSION must not exceed 20 chars!
 AC_INIT([Hamlib],
-        [3.0~git],
+        [3.1~git],
         [hamlib-developer@lists.sourceforge.net],
         [hamlib],
         [http://www.hamlib.org])
@@ -49,14 +49,14 @@ dnl added to AC_CONFIG_FILES near the end of this file.  See README.developer
 dnl Beware of duplication should a backend directory include both rig and
 dnl rotor definitions, e.g. "dummy".  Optional backends will not be listed
 dnl here but will be added later, e.g. "winradio".
-BACKEND_LIST="adat alinco aor drake dummy flexradio icom jrc kachina kenwood kit lowe pcr prm80 racal rft rs skanti tapr tentec tuner uniden wj yaesu"
-ROT_BACKEND_LIST="amsat ars celestron easycomm ether6 fodtrack gs232a heathkit m2 rotorez sartek spid ts7400"
+BACKEND_LIST="adat alinco aor drake dummy flexradio icom icmarine jrc kachina kenwood kit lowe pcr prm80 racal rft rs skanti tapr tentec tuner uniden wj yaesu"
+ROT_BACKEND_LIST="amsat ars celestron cnctrk easycomm ether6 fodtrack gs232a heathkit m2 rotorez sartek spid ts7400 prosistel"
 
 dnl See README.release on setting these values
 # Values given to -version-info when linking.  See libtool documentation.
 # Set them here to keep c++/Makefile and src/Makefile in sync.
 ABI_VERSION=3
-ABI_REVISION=0
+ABI_REVISION=1
 ABI_AGE=1
 
 AC_DEFINE_UNQUOTED([ABI_VERSION], [$ABI_VERSION], [Frontend ABI version])
@@ -309,23 +309,23 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]],
 
 dnl Check for libusb, treat LIBUSB_LIBS and LIBUSB_CFLAGS as precious variables
 AC_ARG_VAR([LIBUSB_CFLAGS], [C compiler flags for libusb, overriding configure defaults])
-AC_ARG_VAR([LIBUSB_LIBS], [linker flags for libusb, overriding configure check (useful for specifying static libusb.a (see INSTALL))])
+AC_ARG_VAR([LIBUSB_LIBS], [linker flags for libusb, overriding configure check (useful for specifying static libusb-1.0.a (see INSTALL))])
 
 cf_with_libusb="no"
 
 AS_IF([test -z $LIBUSB_LIBS],
-      [AC_CHECK_LIB([usb], [usb_init], [LIBUSB_LIBS="-lusb" cf_with_libusb="yes"],
-                    [AC_MSG_WARN([usb_init was not found in libusb--USB backends will be disabled])])
+      [AC_CHECK_LIB([usb-1.0], [libusb_init], [LIBUSB_LIBS="-lusb-1.0" cf_with_libusb="yes"],
+                    [AC_MSG_WARN([libusb_init was not found in libusb-1.0--USB backends will be disabled])])
       ], [cf_with_libusb="yes"])
 
 LIBUSB=""
 
 AS_IF([test x"${cf_with_libusb}" = "xyes"],
-      [AC_CHECK_HEADERS([usb.h])
+      [AC_CHECK_HEADERS([libusb.h libusb-1.0/libusb.h])
        AC_DEFINE([HAVE_LIBUSB],
                  [1],
-                 [Define if libusb is available])
-       LIBUSB="libusb"])
+                 [Define if libusb-1.0 is available])
+       LIBUSB="libusb-1.0"])
 
 # Only used in hamlib.pc.in
 AC_SUBST([LIBUSB])
@@ -415,7 +415,7 @@ dnl http://lists.gnu.org/archive/html/automake/2011-03/msg00008.html
 dnl
 dnl Check for pkg-config program, used for configuring some libraries.
        m4_define_default([PKG_PROG_PKG_CONFIG],
-                [AC_MSG_CHECKING([pkg-config]
+                [AC_MSG_CHECKING([pkg-config])
                  AC_MSG_RESULT([no])])
 
        PKG_PROG_PKG_CONFIG
@@ -619,13 +619,17 @@ AS_CASE(["$host_os"],
         ],
 dnl As g313-posix.c has a hard dependency on linux/types.h
 dnl via linradio/wrg313api.h, disable compilation on other POSIX.
-        [ *linux-gnu ], [
+dnl (Certain systems have extra characters following "-gnu" such as
+dnl the Raspberry Pi which is "linux-gnueabihf"; presume that "linux-gnu"
+dnl is a sufficient test.)
+        [ *linux-gnu* ], [
              AM_CONDITIONAL(G313_LINUX_GNU, true)
              AM_CONDITIONAL(G313_WINDOWS, false)
         ],
         [
              AM_CONDITIONAL(G313_LINUX_GNU, false)
              AM_CONDITIONAL(G313_WINDOWS, false)
+             AC_DEFINE([OTHER_POSIX], [1], [Compilation on POSIX other than Linux])
         ])
 
 dnl If libdl is present, check for its header file.
@@ -691,6 +695,7 @@ lib/Makefile
 dummy/Makefile
 yaesu/Makefile
 icom/Makefile
+icmarine/Makefile
 aor/Makefile
 kenwood/Makefile
 winradio/Makefile
@@ -732,9 +737,11 @@ amsat/Makefile
 adat/Makefile
 ts7400/Makefile
 celestron/Makefile
+cnctrk/Makefile
 ether6/Makefile
 scripts/Makefile
 android/Makefile
+prosistel/Makefile
 hamlib.pc])
 
 AC_OUTPUT

@@ -57,6 +57,7 @@
 #include "config.h"
 #endif
 
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>  	/* String function definitions */
 #include <unistd.h>  	/* UNIX standard function definitions */
@@ -83,7 +84,7 @@ static const yaesu_cmd_set_t ncmd[] = {
   { 1, { 0x00, 0x00, 0x00, 0x00, 0x00 } }, /* lock on */
   { 1, { 0x00, 0x00, 0x00, 0x00, 0x80 } }, /* lock off */
   { 1, { 0x00, 0x00, 0x00, 0x00, 0x08 } }, /* ptt on */
-  { 1, { 0x00, 0x00, 0x00, 0x01, 0x88 } }, /* ptt off */
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x88 } }, /* ptt off */
   { 0, { 0x00, 0x00, 0x00, 0x00, 0x01 } }, /* set freq */
   { 1, { 0x00, 0x00, 0x00, 0x00, 0x07 } }, /* mode set main LSB */
   { 1, { 0x01, 0x00, 0x00, 0x00, 0x07 } }, /* mode set main USB */
@@ -132,12 +133,12 @@ enum ft857_digi {
 };
 
 #define FT857_ALL_RX_MODES      (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|\
-                                 RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM)
+                                 RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM|RIG_MODE_PKTUSB)
 #define FT857_SSB_CW_RX_MODES   (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|RIG_MODE_LSB)
 #define FT857_AM_FM_RX_MODES    (RIG_MODE_AM|RIG_MODE_FM)
 
 #define FT857_OTHER_TX_MODES    (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_USB|\
-                                 RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM)
+                                 RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM|RIG_MODE_PKTUSB)
 #define FT857_AM_TX_MODES       (RIG_MODE_AM)
 
 #define FT857_VFO_ALL           (RIG_VFO_A|RIG_VFO_B)
@@ -149,7 +150,7 @@ const struct rig_caps ft857_caps = {
   .rig_model = 		RIG_MODEL_FT857,
   .model_name = 	"FT-857",
   .mfg_name = 		"Yaesu",
-  .version = 		"0.4",
+  .version = 		"0.5",
   .copyright = 		"LGPL",
   .status = 		RIG_STATUS_BETA,
   .rig_type = 		RIG_TYPE_TRANSCEIVER,
@@ -254,7 +255,6 @@ const struct rig_caps ft857_caps = {
         RIG_FLT_END,
     },
 
-  .priv = 		NULL,
   .rig_init = 		ft857_init,
   .rig_cleanup = 	ft857_cleanup,
   .rig_open = 		ft857_open,
@@ -263,46 +263,22 @@ const struct rig_caps ft857_caps = {
   .get_freq = 		ft857_get_freq,
   .set_mode = 		ft857_set_mode,
   .get_mode = 		ft857_get_mode,
-  .set_vfo = 		NULL,
-  .get_vfo = 		NULL,
   .set_ptt = 		ft857_set_ptt,
   .get_ptt = 		ft857_get_ptt,
   .get_dcd = 		ft857_get_dcd,
   .set_rptr_shift = 	ft857_set_rptr_shift,
-  .get_rptr_shift = 	NULL,
   .set_rptr_offs = 	ft857_set_rptr_offs,
-  .get_rptr_offs = 	NULL,
-  .set_split_freq = 	NULL,
-  .get_split_freq = 	NULL,
-  .set_split_mode = 	NULL,
-  .get_split_mode = 	NULL,
+  .set_split_freq_mode = 	ft857_set_split_freq_mode,
+  .get_split_freq_mode = 	ft857_get_split_freq_mode,
   .set_split_vfo = 	ft857_set_split_vfo,
   .get_split_vfo =	ft857_get_split_vfo,
   .set_rit = 		ft857_set_rit,
-  .get_rit = 		NULL,
-  .set_xit = 		NULL,
-  .get_xit = 		NULL,
-  .set_ts = 		NULL,
-  .get_ts = 		NULL,
   .set_dcs_code = 	ft857_set_dcs_code,
-  .get_dcs_code = 	NULL,
   .set_ctcss_tone = 	ft857_set_ctcss_tone,
-  .get_ctcss_tone = 	NULL,
   .set_dcs_sql = 	ft857_set_dcs_sql,
-  .get_dcs_sql = 	NULL,
   .set_ctcss_sql = 	ft857_set_ctcss_sql,
-  .get_ctcss_sql = 	NULL,
-  .set_powerstat = 	NULL,
-  .get_powerstat = 	NULL,
-  .reset = 		NULL,
-  .set_ant = 		NULL,
-  .get_ant = 		NULL,
-  .set_level = 		NULL,
   .get_level = 		ft857_get_level,
   .set_func = 		ft857_set_func,
-  .get_func = 		NULL,
-  .set_parm = 		NULL,
-  .get_parm = 		NULL,
   .vfo_op =             ft857_vfo_op,
 };
 
@@ -460,194 +436,6 @@ static int ft857_get_status(RIG *rig, int status)
 
 /* ---------------------------------------------------------------------- */
 
-int ft857_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
-{
-  struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
-  int n;
-
-  if (vfo != RIG_VFO_CURR)
-    return -RIG_ENTARGET;
-
-  if (check_cache_timeout(&p->fm_status_tv))
-    if ((n = ft857_get_status(rig, FT857_NATIVE_CAT_GET_FREQ_MODE_STATUS)) < 0)
-      return n;
-
-  *freq = from_bcd_be(p->fm_status, 8) * 10;
-
-  return -RIG_OK;
-}
-
-int ft857_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
-{
-  struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
-  int n;
-
-  if (vfo != RIG_VFO_CURR)
-    return -RIG_ENTARGET;
-
-  if (check_cache_timeout(&p->fm_status_tv))
-    if ((n = ft857_get_status(rig, FT857_NATIVE_CAT_GET_FREQ_MODE_STATUS)) < 0)
-      return n;
-
-  switch (p->fm_status[4]) {
-  case 0x00:
-    *mode = RIG_MODE_LSB;
-    break;
-  case 0x01:
-    *mode = RIG_MODE_USB;
-    break;
-  case 0x02:
-  case 0x82:
-    *mode = RIG_MODE_CW;
-    break;
-  case 0x03:
-  case 0x83:
-    *mode = RIG_MODE_CWR;
-    break;
-  case 0x04:
-    *mode = RIG_MODE_AM;
-    break;
-  case 0x06:
-    *mode = RIG_MODE_WFM;
-    break;
-  case 0x08:
-  case 0x88:
-    *mode = RIG_MODE_FM;
-    break;
-  case 0x0a:
-  case 0x8a:
-    *mode = RIG_MODE_RTTY;
-    if (p->fm_status[5] == FT857_DIGI_RTTY_U) {
-      *mode = RIG_MODE_RTTYR;
-    } else if (p->fm_status[5] == FT857_DIGI_PSK_U || p->fm_status[5] == FT857_DIGI_USER_U) {
-      *mode = RIG_MODE_PKTUSB;
-    } else if (p->fm_status[5] == FT857_DIGI_PSK_L || p->fm_status[5] == FT857_DIGI_USER_L) {
-      *mode = RIG_MODE_PKTLSB;
-    }
-    break;
-  case 0x0c:
-  case 0x8c:
-    *mode = RIG_MODE_PKTFM;
-    break;
-  default:
-    *mode = RIG_MODE_NONE;
-  }
-
-  *width = RIG_PASSBAND_NORMAL;
-
-  return RIG_OK;
-}
-
-int ft857_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
-{
-  struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
-  int n;
-
-  if (vfo != RIG_VFO_CURR)
-    return -RIG_ENTARGET;
-
-  if (check_cache_timeout(&p->tx_status_tv))
-    if ((n = ft857_get_status(rig, FT857_NATIVE_CAT_GET_TX_STATUS)) < 0)
-      return n;
-
-  *split = ((p->tx_status & 0x20) == 0) ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
-
-  return RIG_OK;
-}
-
-int ft857_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
-{
-  struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
-  int n;
-
-  if (vfo != RIG_VFO_CURR)
-    return -RIG_ENTARGET;
-
-  if (check_cache_timeout(&p->tx_status_tv))
-    if ((n = ft857_get_status(rig, FT857_NATIVE_CAT_GET_TX_STATUS)) < 0)
-      return n;
-
-  *ptt = ((p->tx_status & 0x80) == 0);
-
-  return RIG_OK;
-}
-
-static int ft857_get_pometer_level(RIG *rig, value_t *val)
-{
-  struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
-  int n;
-
-  if (check_cache_timeout(&p->tx_status_tv))
-    if ((n = ft857_get_status(rig, FT857_NATIVE_CAT_GET_TX_STATUS)) < 0)
-      return n;
-
-  /* Valid only if PTT is on */
-  if ((p->tx_status & 0x80) == 0)
-    val->f = ((p->tx_status & 0x0F) / 15.0);
-  else
-    val->f = 0.0;
-
-  return RIG_OK;
-}
-
-static int ft857_get_smeter_level(RIG *rig, value_t *val)
-{
-  struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
-  int n;
-
-  if (check_cache_timeout(&p->rx_status_tv))
-    if ((n = ft857_get_status(rig, FT857_NATIVE_CAT_GET_RX_STATUS)) < 0)
-      return n;
-
-  n = (p->rx_status & 0x0F) - 9;
-
-  val->i = n * ((n > 0) ? 10 : 6);
-
-  return RIG_OK;
-}
-
-int ft857_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
-{
-  if (vfo != RIG_VFO_CURR)
-    return -RIG_ENTARGET;
-
-  switch (level) {
-  case RIG_LEVEL_STRENGTH:
-    return ft857_get_smeter_level(rig, val);
-
-  case RIG_LEVEL_RFPOWER:
-    return ft857_get_pometer_level(rig, val);
-
-  default:
-    return -RIG_EINVAL;
-  }
-
-  return RIG_OK;
-}
-
-int ft857_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
-{
-  struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
-  int n;
-
-  if (vfo != RIG_VFO_CURR)
-    return -RIG_ENTARGET;
-
-  if (check_cache_timeout(&p->rx_status_tv))
-    if ((n = ft857_get_status(rig, FT857_NATIVE_CAT_GET_RX_STATUS)) < 0)
-      return n;
-
-  /* TODO: consider bit 6 too ??? (CTCSS/DCS code match) */
-  if (p->rx_status & 0x80)
-    *dcd = RIG_DCD_OFF;
-  else
-    *dcd = RIG_DCD_ON;
-
-  return RIG_OK;
-}
-
-/* ---------------------------------------------------------------------- */
-
 static int ft857_read_ack(RIG *rig)
 {
 #if (FT857_POST_WRITE_DELAY == 0)
@@ -707,6 +495,234 @@ static int ft857_send_icmd(RIG *rig, int index, unsigned char *data)
 
 /* ---------------------------------------------------------------------- */
 
+int ft857_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
+{
+  struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
+  int n;
+
+  if (vfo != RIG_VFO_CURR)
+    return -RIG_ENTARGET;
+
+  if (check_cache_timeout(&p->fm_status_tv))
+    if ((n = ft857_get_status(rig, FT857_NATIVE_CAT_GET_FREQ_MODE_STATUS)) < 0)
+      return n;
+
+  *freq = from_bcd_be(p->fm_status, 8) * 10;
+
+  return -RIG_OK;
+}
+
+static void get_mode(RIG *rig, struct ft857_priv_data *priv, rmode_t *mode, pbwidth_t *width) {
+  switch (priv->fm_status[4] & 0x7f) {
+  case 0x00:
+    *mode = RIG_MODE_LSB;
+    break;
+  case 0x01:
+    *mode = RIG_MODE_USB;
+    break;
+  case 0x02:
+    *mode = RIG_MODE_CW;
+    break;
+  case 0x03:
+    *mode = RIG_MODE_CWR;
+    break;
+  case 0x04:
+    *mode = RIG_MODE_AM;
+    break;
+  case 0x06:
+    *mode = RIG_MODE_WFM;
+    break;
+  case 0x08:
+    *mode = RIG_MODE_FM;
+    break;
+  case 0x0a:
+    switch (priv->fm_status[5])
+      {
+      case FT857_DIGI_RTTY_L: *mode = RIG_MODE_RTTY; break;
+      case FT857_DIGI_RTTY_U: *mode = RIG_MODE_RTTYR; break;
+      case FT857_DIGI_PSK_L: *mode = RIG_MODE_PKTLSB; break;
+      case FT857_DIGI_PSK_U: *mode = RIG_MODE_PKTUSB; break;
+      case FT857_DIGI_USER_L: *mode = RIG_MODE_PKTLSB; break;
+      case FT857_DIGI_USER_U: *mode = RIG_MODE_PKTUSB; break;
+      }
+    break;
+  case 0x0c:
+    *mode = RIG_MODE_PKTFM;
+    break;
+  default:
+    *mode = RIG_MODE_NONE;
+  }
+
+	if (priv->fm_status[4] & 0x80) /* narrow */
+		{
+			*width = rig_passband_narrow (rig, *mode);
+		}
+	else
+		{
+			*width = RIG_PASSBAND_NORMAL;
+		}
+}
+
+int ft857_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+{
+  struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
+  int n;
+
+  if (vfo != RIG_VFO_CURR)
+    return -RIG_ENTARGET;
+
+  if (check_cache_timeout(&p->fm_status_tv))
+    if ((n = ft857_get_status(rig, FT857_NATIVE_CAT_GET_FREQ_MODE_STATUS)) < 0)
+      return n;
+
+  get_mode (rig, p, mode, width);
+
+  return RIG_OK;
+}
+
+int ft857_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode, pbwidth_t *width)
+{
+  int retcode;
+
+  if (vfo != RIG_VFO_CURR && vfo != RIG_VFO_TX)
+    return -RIG_ENTARGET;
+
+  retcode = ft857_send_cmd(rig, FT857_NATIVE_CAT_SET_VFOAB);
+  if (RIG_OK != retcode) {
+    return retcode;
+  }
+
+  retcode = ft857_get_freq (rig, RIG_VFO_CURR, freq);
+  if (RIG_OK == retcode) {
+    get_mode (rig, (struct ft857_priv_data *)rig->state.priv, mode, width);
+  }
+
+  ft857_send_cmd(rig, FT857_NATIVE_CAT_SET_VFOAB); /* always try and
+                                                      return to orig VFO */
+  return retcode;
+}
+
+int ft857_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
+{
+  struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
+  int n;
+
+  if (vfo != RIG_VFO_CURR)
+    return -RIG_ENTARGET;
+
+  if (check_cache_timeout(&p->tx_status_tv))
+    if ((n = ft857_get_status(rig, FT857_NATIVE_CAT_GET_TX_STATUS)) < 0)
+      return n;
+
+  if (p->tx_status & 0x80)
+    {
+      // TX status not valid when in RX
+      unsigned char c;
+      if ((n = ft857_read_eeprom(rig, 0x008d, &c)) < 0) /* get split status */
+        return n;
+      *split = (c & 0x80) ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
+    }
+  else
+    {
+      *split = (p->tx_status & 0x20) ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
+    }
+
+  return RIG_OK;
+}
+
+int ft857_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
+{
+  struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
+  int n;
+
+  if (vfo != RIG_VFO_CURR)
+    return -RIG_ENTARGET;
+
+  if (check_cache_timeout(&p->tx_status_tv))
+    if ((n = ft857_get_status(rig, FT857_NATIVE_CAT_GET_TX_STATUS)) < 0)
+      return n;
+
+  *ptt = ((p->tx_status & 0x80) == 0);
+
+  return RIG_OK;
+}
+
+static int ft857_get_pometer_level(RIG *rig, value_t *val)
+{
+  struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
+  int n;
+
+  if (check_cache_timeout(&p->tx_status_tv))
+    if ((n = ft857_get_status(rig, FT857_NATIVE_CAT_GET_TX_STATUS)) < 0)
+      return n;
+
+  /* Valid only if PTT is on */
+  if ((p->tx_status & 0x80) == 0) {
+    // convert watts to dBm
+    val->i = 10 * log10(p->tx_status & 0x0F) + 30;
+    // now convert to db over S9
+    val->i += 73;
+  }
+  else
+    val->i = -911; // invalid value return
+
+  return RIG_OK;
+}
+
+static int ft857_get_smeter_level(RIG *rig, value_t *val)
+{
+  struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
+  int n;
+
+  if (check_cache_timeout(&p->rx_status_tv))
+    if ((n = ft857_get_status(rig, FT857_NATIVE_CAT_GET_RX_STATUS)) < 0)
+      return n;
+
+  val->i = n = (p->rx_status & 0x0F)  * 6 - 20;  // Convert S level to dB
+
+  return RIG_OK;
+}
+
+int ft857_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
+  if (vfo != RIG_VFO_CURR)
+    return -RIG_ENTARGET;
+
+  switch (level) {
+  case RIG_LEVEL_STRENGTH:
+    return ft857_get_smeter_level(rig, val);
+
+  case RIG_LEVEL_RFPOWER:
+    return ft857_get_pometer_level(rig, val);
+
+  default:
+    return -RIG_EINVAL;
+  }
+
+  return RIG_OK;
+}
+
+int ft857_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
+{
+  struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
+  int n;
+
+  if (vfo != RIG_VFO_CURR)
+    return -RIG_ENTARGET;
+
+  if (check_cache_timeout(&p->rx_status_tv))
+    if ((n = ft857_get_status(rig, FT857_NATIVE_CAT_GET_RX_STATUS)) < 0)
+      return n;
+
+  /* TODO: consider bit 6 too ??? (CTCSS/DCS code match) */
+  if (p->rx_status & 0x80)
+    *dcd = RIG_DCD_OFF;
+  else
+    *dcd = RIG_DCD_ON;
+
+  return RIG_OK;
+}
+
 int ft857_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
   unsigned char data[YAESU_CMD_LENGTH - 1];
@@ -718,6 +734,8 @@ int ft857_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
   /* fill in the frequency */
   to_bcd_be(data, (freq + 5) / 10, 8);
+
+  rig_force_cache_timeout(&((struct ft857_priv_data *) rig->state.priv)->fm_status_tv);
 
   return ft857_send_icmd(rig, FT857_NATIVE_CAT_SET_FREQ, data);
 }
@@ -745,6 +763,8 @@ int ft857_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     index = FT857_NATIVE_CAT_SET_MODE_LSB;
     break;
   case RIG_MODE_RTTY:
+  case RIG_MODE_PKTUSB:
+    /* user has to have correct DIG mode setup on rig */
     index = FT857_NATIVE_CAT_SET_MODE_DIG;
     break;
   case RIG_MODE_FM:
@@ -763,10 +783,34 @@ int ft857_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     return -RIG_EINVAL;
   }
 
-  if (width != RIG_PASSBAND_NORMAL)
+  if (width != RIG_PASSBAND_NOCHANGE && width != RIG_PASSBAND_NORMAL)
     return -RIG_EINVAL;
 
+  rig_force_cache_timeout(&((struct ft857_priv_data *) rig->state.priv)->fm_status_tv);
+
   return ft857_send_cmd(rig, index);
+}
+
+int ft857_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq, rmode_t mode, pbwidth_t width)
+{
+  int retcode;
+
+  if (vfo != RIG_VFO_CURR && vfo != RIG_VFO_TX)
+    return -RIG_ENTARGET;
+
+  retcode = ft857_send_cmd(rig, FT857_NATIVE_CAT_SET_VFOAB);
+  if (RIG_OK != retcode) {
+    return retcode;
+  }
+
+  retcode = ft857_set_freq (rig, RIG_VFO_CURR, freq);
+  if (RIG_OK == retcode) {
+    retcode = ft857_set_mode (rig, RIG_VFO_CURR, mode, width);
+  }
+
+  ft857_send_cmd(rig, FT857_NATIVE_CAT_SET_VFOAB); /* always try and
+                                                      return to orig VFO */
+  return retcode;
 }
 
 int ft857_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
@@ -790,6 +834,8 @@ int ft857_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
   }
 
   n = ft857_send_cmd(rig, index);
+
+  rig_force_cache_timeout(&((struct ft857_priv_data *) rig->state.priv)->tx_status_tv);
 
   if (n < 0 && n != -RIG_ERJCTED)
     return n;
@@ -818,6 +864,8 @@ int ft857_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
   }
 
   n = ft857_send_cmd(rig, index);
+
+  rig_force_cache_timeout(&((struct ft857_priv_data *) rig->state.priv)->tx_status_tv);
 
   if (n < 0 && n != -RIG_ERJCTED)
     return n;

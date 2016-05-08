@@ -97,6 +97,7 @@ static int icr75_get_channel(RIG *rig, channel_t *chan);
 static const struct icom_priv_caps icr75_priv_caps = {
 		0x5a,	/* default address */
 		0,		/* 731 mode */
+    0,    /* no XCHG */
 		r75_ts_sc_list
 };
 
@@ -119,7 +120,7 @@ const struct rig_caps icr75_caps = {
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  1,
-.timeout =  200,
+.timeout =  1000,
 .retry =  3,
 .has_get_func =  ICR75_FUNC_ALL,
 .has_set_func =  ICR75_FUNC_ALL,

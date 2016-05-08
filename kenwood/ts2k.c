@@ -173,7 +173,7 @@ int
 ts2k_transaction(RIG * rig, const char *cmdstr, int cmd_len,
 		 char *data, size_t * datasize)
 {
-//      return kenwood_transaction(rig, cmdstr, cmd_len, data, datasize);
+//      return kenwood_transaction(rig, cmdstr, data, datasize);
 
 	struct rig_state *rs;
 	int retval;
@@ -1819,7 +1819,7 @@ rig_model_t probe_ts2k(port_t * port)
 	/*
 	 * reply should be something like 'IDxxx;'
 	 */
-	if (id_len != 5 || id_len != 6) {
+	if (id_len != 5 && id_len != 6) {
 		idbuf[7] = '\0';
 		rig_debug(RIG_DEBUG_VERBOSE,
 			  "probe_ts2k: protocol error,"

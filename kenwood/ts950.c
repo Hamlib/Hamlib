@@ -75,7 +75,7 @@ const struct rig_caps ts950sdx_caps = {
 .write_delay =  0,
 .post_write_delay =  0,
 .timeout =  200,
-.retry =  3,
+.retry =  10,
 
 .has_get_func =  RIG_FUNC_NONE,
 .has_set_func =  RIG_FUNC_NONE,

@@ -89,6 +89,7 @@ const struct ts_sc_list ic92d_ts_sc_list[] = {
 static const struct icom_priv_caps ic92d_priv_caps = {
 		0x01,	/* default address */
 		0,		/* 731 mode */
+    0,    /* no XCHG */
 		ic92d_ts_sc_list,
 		.serial_full_duplex = 1
 };
@@ -112,7 +113,7 @@ const struct rig_caps ic92d_caps = {
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
-.timeout =  200,
+.timeout =  1000,
 .retry =  3,
 .has_get_func =  IC92D_FUNC_ALL,
 .has_set_func =  IC92D_FUNC_ALL,

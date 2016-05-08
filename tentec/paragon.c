@@ -424,9 +424,6 @@ int tt585_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     const char *mcmd, *wcmd;
     int ret;
 
-    if (width == RIG_PASSBAND_NORMAL)
-        width = rig_passband_normal(rig, mode);
-
     switch(mode) {
     case RIG_MODE_LSB: mcmd = "N"; break;
     case RIG_MODE_USB: mcmd = "O"; break;
@@ -444,6 +441,9 @@ int tt585_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     if (ret < 0)
         return ret;
 
+    if (RIG_PASSBAND_NOCHANGE == width) return ret;
+    if (RIG_PASSBAND_NORMAL == width)
+      width = rig_passband_normal (rig, mode);
     if (width <= 250)
         wcmd = "V";
     else if (width <= 500)

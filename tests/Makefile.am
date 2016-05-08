@@ -6,9 +6,9 @@
 
 DISTCLEANFILES = rigctl.log rigctl.sum testbcd.log testbcd.sum
 
-bin_PROGRAMS = rigctl rigmem rigswr rigsmtr rotctl rigctld rotctld
+bin_PROGRAMS = rigctl rigctld rigmem rigsmtr rigswr rotctl rotctld
 
-man_MANS = rigctl.1 rigmem.1 rigswr.1 rigsmtr.1 rotctl.1 rigctld.8 rotctld.8
+man_MANS = rigctl.1 rigctld.1 rigmem.1 rigsmtr.1 rigswr.1 rotctl.1 rotctld.1
 
 check_PROGRAMS = dumpmem testrig testtrn testbcd testfreq listrigs testloc rig_bench
 
@@ -68,7 +68,7 @@ TESTS = $(check_SCRIPTS)
 
 
 testrig.sh:
-	echo 'LD_LIBRARY_PATH=$(top_builddir)/dummy/.libs ./testrig 1' > testrig.sh
+	echo 'LD_LIBRARY_PATH=$(top_builddir)/src/.libs:$(top_builddir)/dummy/.libs ./testrig 1' > testrig.sh
 	chmod +x ./testrig.sh
 
 testfreq.sh:

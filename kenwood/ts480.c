@@ -47,14 +47,13 @@ static const char *
 kenwood_ts480_get_info (RIG * rig)
 {
   char firmbuf[50];
-  size_t firm_len;
   int retval;
 
-  firm_len = 50;
-  retval = kenwood_transaction (rig, "TY", 2, firmbuf, &firm_len);
+  retval = kenwood_transaction (rig, "TY", firmbuf, sizeof (firmbuf));
   if (retval != RIG_OK)
     return NULL;
-  if (firm_len != 6)
+  size_t firm_len = strlen (firmbuf);
+  if (firm_len != 5)
     {
       rig_debug (RIG_DEBUG_ERR, "kenwood_get_info: wrong answer len=%d\n", firm_len);
       return NULL;
@@ -137,7 +136,7 @@ kenwood_ts480_set_level (RIG * rig, vfo_t vfo, setting_t level, value_t val)
       return -RIG_EINVAL;
     }
 
-  return kenwood_simple_cmd(rig, levelbuf);
+  return kenwood_transaction(rig, levelbuf, NULL, 0);
 }
 
 
@@ -149,17 +148,18 @@ int
 kenwood_ts480_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 {
   char ackbuf[50];
-  size_t ack_len = 50;
+  size_t ack_len;
   int levelint;
   int retval;
 
   switch (level)
     {
     case RIG_LEVEL_RFPOWER:
-      retval = kenwood_transaction (rig, "PC", 2, ackbuf, &ack_len);
+      retval = kenwood_transaction (rig, "PC", ackbuf, sizeof (ackbuf));
       if (RIG_OK != retval)
 	return retval;
-      if (6 != ack_len)
+      ack_len = strlen (ackbuf);
+      if (5 != ack_len)
 	return -RIG_EPROTO;
       if (1 != sscanf (&ackbuf[2], "%d", &levelint))
 	return -RIG_EPROTO;
@@ -167,10 +167,11 @@ kenwood_ts480_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
       return RIG_OK;
 
     case RIG_LEVEL_AF:
-      retval = kenwood_transaction (rig, "AG0", 3, ackbuf, &ack_len);
+      retval = kenwood_transaction (rig, "AG0", ackbuf, sizeof (ackbuf));
       if (RIG_OK != retval)
 	return retval;
-      if (7 != ack_len)
+      ack_len = strlen (ackbuf);
+      if (6 != ack_len)
 	return -RIG_EPROTO;
       if (1 != sscanf (&ackbuf[3], "%d", &levelint))
 	return -RIG_EPROTO;
@@ -178,10 +179,11 @@ kenwood_ts480_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
       return RIG_OK;
 
     case RIG_LEVEL_RF:
-      retval = kenwood_transaction (rig, "RG", 2, ackbuf, &ack_len);
+      retval = kenwood_transaction (rig, "RG", ackbuf, sizeof (ackbuf));
       if (RIG_OK != retval)
 	return retval;
-      if (6 != ack_len)
+      ack_len = strlen (ackbuf);
+      if (5 != ack_len)
 	return -RIG_EPROTO;
       if (1 != sscanf (&ackbuf[2], "%d", &levelint))
 	return -RIG_EPROTO;
@@ -189,10 +191,11 @@ kenwood_ts480_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
       return RIG_OK;
 
     case RIG_LEVEL_SQL:
-      retval = kenwood_transaction (rig, "SQ0", 3, ackbuf, &ack_len);
+      retval = kenwood_transaction (rig, "SQ0", ackbuf, sizeof (ackbuf));
       if (RIG_OK != retval)
 	return retval;
-      if (7 != ack_len)
+      ack_len = strlen (ackbuf);
+      if (6 != ack_len)
 	return -RIG_EPROTO;
       if (1 != sscanf (&ackbuf[3], "%d", &levelint))
 	return -RIG_EPROTO;
@@ -200,10 +203,11 @@ kenwood_ts480_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
       return RIG_OK;
 
     case RIG_LEVEL_AGC:
-      retval = kenwood_transaction (rig, "GT", 2, ackbuf, &ack_len);
+      retval = kenwood_transaction (rig, "GT", ackbuf, sizeof (ackbuf));
       if (RIG_OK != retval)
 	return retval;
-      if (6 != ack_len)
+      ack_len = strlen (ackbuf);
+      if (5 != ack_len)
 	return -RIG_EPROTO;
       switch (ackbuf[4])
 	{
@@ -274,7 +278,7 @@ const struct rig_caps ts480_caps = {
   .write_delay = 0,
   .post_write_delay = 0,
   .timeout = 200,
-  .retry = 3,
+  .retry = 10,
   .preamp = {12, RIG_DBLST_END,},
   .attenuator = {12, RIG_DBLST_END,},
   .max_rit = kHz (9.99),

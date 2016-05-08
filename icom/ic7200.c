@@ -79,6 +79,7 @@
 static const struct icom_priv_caps IC7200_priv_caps = {
 		0x76,	/* default address */
 		0,		/* 731 mode */
+    0,    /* no XCHG */
 		ic7200_ts_sc_list
 };
 
@@ -102,7 +103,7 @@ const struct rig_caps ic7200_caps = {
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
-.timeout =  200,
+.timeout =  1000,
 .retry =  3,
 .has_get_func =  IC7200_FUNCS,
 .has_set_func =  IC7200_FUNCS,
@@ -190,8 +191,8 @@ const struct rig_caps ic7200_caps = {
 
 .set_freq =  icom_set_freq,
 .get_freq =  icom_get_freq,
-.set_mode =  icom_set_mode,
-.get_mode =  icom_get_mode,
+.set_mode =  icom_set_mode_with_data,
+.get_mode =  icom_get_mode_with_data,
 .set_vfo =  icom_set_vfo,
 .set_ant =  NULL,  /*automatically set by rig depending band */
 .get_ant =  NULL,

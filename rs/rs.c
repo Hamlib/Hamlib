@@ -138,7 +138,10 @@ int rs_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     len = sprintf(buf, BOM "DEM %s" EOM, smode);
     retval = rs_transaction(rig, buf, len, NULL, NULL);
+    if (retval < 0)
+        return retval;
 
+    if (width == RIG_PASSBAND_NOCHANGE) return retval;
     if (width == RIG_PASSBAND_NORMAL)
         width = rig_passband_normal(rig, mode);
 

@@ -395,14 +395,14 @@ const struct rig_caps ft1000mpmkv_caps = {
   },    /* region 2 TX ranges */
 
   .tuning_steps =       {
-    {RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY, Hz(10)},    /* Normal */
-    {RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY, Hz(100)},   /* Fast */
+    {RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTLSB, Hz(10)},    /* Normal */
+    {RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTLSB, Hz(100)},   /* Fast */
 
-    {RIG_MODE_AM,     Hz(100)},   /* Normal */
-    {RIG_MODE_AM,     kHz(1)},    /* Fast */
+    {RIG_MODE_AM|RIG_MODE_SAL,     Hz(100)},   /* Normal */
+    {RIG_MODE_AM|RIG_MODE_SAL,     kHz(1)},    /* Fast */
 
-    {RIG_MODE_FM,     Hz(100)},   /* Normal */
-    {RIG_MODE_FM,     kHz(1)},    /* Fast */
+    {RIG_MODE_FM|RIG_MODE_PKTFM,     Hz(100)},   /* Normal */
+    {RIG_MODE_FM|RIG_MODE_PKTFM,     kHz(1)},    /* Fast */
 
     RIG_TS_END,
 
@@ -417,12 +417,12 @@ const struct rig_caps ft1000mpmkv_caps = {
 
     /* mode/filter list, .remember =  order matters! */
   .filters =            {
-    {RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_AM,  kHz(2.4)},
-    {RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY,  kHz(2.0)},
-    {RIG_MODE_CW|RIG_MODE_RTTY,   Hz(500)},
-    {RIG_MODE_CW|RIG_MODE_RTTY,   Hz(250)},
-    {RIG_MODE_AM,   kHz(5)},	/* wide */
-    {RIG_MODE_FM,   kHz(8)},   /* FM */
+    {RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_AM|RIG_MODE_SAL|RIG_MODE_PKTLSB,  kHz(2.4)},
+    {RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_AM|RIG_MODE_SAL|RIG_MODE_PKTLSB,  kHz(2.0)},
+    {RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR,   Hz(500)},
+    {RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR,   Hz(250)},
+    {RIG_MODE_AM|RIG_MODE_SAL,   kHz(5)},	/* wide */
+    {RIG_MODE_FM|RIG_MODE_PKTFM,   kHz(8)},   /* FM */
 
     RIG_FLT_END,
   },
@@ -520,14 +520,14 @@ const struct rig_caps ft1000mpmkvfld_caps = {
   },    /* region 2 TX ranges */
 
   .tuning_steps =       {
-    {RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY, Hz(10)},    /* Normal */
-    {RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY, Hz(100)},   /* Fast */
+    {RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTLSB, Hz(10)},    /* Normal */
+    {RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTLSB, Hz(100)},   /* Fast */
 
-    {RIG_MODE_AM,     Hz(100)},   /* Normal */
-    {RIG_MODE_AM,     kHz(1)},    /* Fast */
+    {RIG_MODE_AM|RIG_MODE_SAL,     Hz(100)},   /* Normal */
+    {RIG_MODE_AM|RIG_MODE_SAL,     kHz(1)},    /* Fast */
 
-    {RIG_MODE_FM,     Hz(100)},   /* Normal */
-    {RIG_MODE_FM,     kHz(1)},    /* Fast */
+    {RIG_MODE_FM|RIG_MODE_PKTFM,     Hz(100)},   /* Normal */
+    {RIG_MODE_FM|RIG_MODE_PKTFM,     kHz(1)},    /* Fast */
 
     RIG_TS_END,
 
@@ -542,12 +542,12 @@ const struct rig_caps ft1000mpmkvfld_caps = {
 
     /* mode/filter list, .remember =  order matters! */
   .filters =            {
-    {RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_AM,  kHz(2.4)},
-    {RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY,  kHz(2.0)},
-    {RIG_MODE_CW|RIG_MODE_RTTY,   Hz(500)},
-    {RIG_MODE_CW|RIG_MODE_RTTY,   Hz(250)},
-    {RIG_MODE_AM,   kHz(5)},	/* wide */
-    {RIG_MODE_FM,   kHz(8)},   /* FM */
+    {RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_AM|RIG_MODE_SAL|RIG_MODE_PKTLSB,  kHz(2.4)},
+    {RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_AM|RIG_MODE_SAL|RIG_MODE_PKTLSB,  kHz(2.0)},
+    {RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR,   Hz(500)},
+    {RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR,   Hz(250)},
+    {RIG_MODE_AM|RIG_MODE_SAL,   kHz(5)},	/* wide */
+    {RIG_MODE_FM|RIG_MODE_PKTFM,   kHz(8)},   /* FM */
 
     RIG_FLT_END,
   },
@@ -589,7 +589,7 @@ int ft1000mp_init(RIG *rig) {
   rig_debug(RIG_DEBUG_TRACE,"ft1000mp: ft1000mp_init called \n");
 
 
-  p = (struct ft1000mp_priv_data*)malloc(sizeof(struct ft1000mp_priv_data));
+  p = (struct ft1000mp_priv_data *) calloc(1, sizeof(struct ft1000mp_priv_data));
   if (!p)                       /* whoops! memory shortage! */
     return -RIG_ENOMEM;
 
@@ -788,6 +788,9 @@ int ft1000mp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
     cmd_index = FT1000MP_NATIVE_MODE_SET_AM;
     break;
   case RIG_MODE_CW:
+    cmd_index = FT1000MP_NATIVE_MODE_SET_CWR;
+    break;
+  case RIG_MODE_CWR:
     cmd_index = FT1000MP_NATIVE_MODE_SET_CW;
     break;
   case RIG_MODE_USB:
@@ -801,6 +804,15 @@ int ft1000mp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
     break;
   case RIG_MODE_RTTY:
     cmd_index = FT1000MP_NATIVE_MODE_SET_RTTY_LSB;
+    break;
+  case RIG_MODE_RTTYR:
+    cmd_index = FT1000MP_NATIVE_MODE_SET_RTTY_USB;
+    break;
+  case RIG_MODE_PKTLSB:
+    cmd_index = FT1000MP_NATIVE_MODE_SET_DATA_LSB;
+    break;
+  case RIG_MODE_PKTFM:
+    cmd_index = FT1000MP_NATIVE_MODE_SET_DATA_FM;
     break;
   default:
     return -RIG_EINVAL;         /* sorry, wrong MODE */
@@ -833,6 +845,7 @@ int ft1000mp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
 int ft1000mp_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
   struct ft1000mp_priv_data *priv;
   unsigned char mymode;         /* ft1000mp mode */
+  unsigned char mymode_ext;	/* ft1000mp extra mode bit mode */
   int cmd_index, len, retval;
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft1000mp: ft1000mp_get_mode called\n");
@@ -857,9 +870,15 @@ int ft1000mp_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
 	  return retval;
 
   if (vfo == RIG_VFO_B)
-    mymode = priv->update_data[FT1000MP_SUMO_VFO_B_MODE];
+    {
+      mymode = priv->update_data[FT1000MP_SUMO_VFO_B_MODE];
+      mymode_ext = priv->update_data[FT1000MP_SUMO_VFO_B_IF] & IF_MODE_MASK;
+    }
   else
-    mymode = priv->update_data[FT1000MP_SUMO_VFO_A_MODE]; /* CURR_VFO is VFOA offset */
+    {
+      mymode = priv->update_data[FT1000MP_SUMO_VFO_A_MODE]; /* CURR_VFO is VFOA offset */
+      mymode_ext = priv->update_data[FT1000MP_SUMO_VFO_A_IF] & IF_MODE_MASK;
+    }
 
 
   rig_debug(RIG_DEBUG_TRACE,"ft1000mp: mymode = %x (before)\n", mymode);
@@ -873,7 +892,7 @@ int ft1000mp_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
    */
   switch(mymode) {
   case MODE_CW:
-    *mode = RIG_MODE_CW;
+    *mode = mymode_ext ? RIG_MODE_CW : RIG_MODE_CWR;
     break;
   case MODE_USB:
     *mode = RIG_MODE_USB;
@@ -882,13 +901,16 @@ int ft1000mp_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
     *mode = RIG_MODE_LSB;
     break;
   case MODE_AM:
-    *mode = RIG_MODE_AM;
+    *mode = mymode_ext ? RIG_MODE_SAL : RIG_MODE_AM;
     break;
   case MODE_FM:
     *mode = RIG_MODE_FM;
     break;
   case MODE_RTTY:
-    *mode = RIG_MODE_RTTY;
+    *mode = mymode_ext ? RIG_MODE_RTTYR : RIG_MODE_RTTY;
+    break;
+  case MODE_PKT:
+    *mode = mymode_ext ? RIG_MODE_PKTFM : RIG_MODE_PKTLSB;
     break;
 
   default:

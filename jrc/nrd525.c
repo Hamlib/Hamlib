@@ -192,6 +192,8 @@ static int nrd525_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	if (retval != RIG_OK)
 		return retval;
 
+	if (RIG_PASSBAND_NOCHANGE == width) return retval;
+
 	// TODO: width
 
 	return retval;

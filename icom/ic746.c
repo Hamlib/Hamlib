@@ -163,6 +163,7 @@ static int ic746pro_get_ext_parm(RIG *rig, token_t token, value_t *val);
 static const struct icom_priv_caps ic746_priv_caps = {
 		0x56,	/* default address */
 		0,		/* 731 mode */
+    0,    /* no XCHG */
 		ic756pro_ts_sc_list
 };
 
@@ -185,7 +186,7 @@ const struct rig_caps ic746_caps = {
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
-.timeout =  200,
+.timeout =  1000,
 .retry =  3,
 .has_get_func =  IC746_FUNC_ALL,
 .has_set_func =  IC746_FUNC_ALL,
@@ -369,6 +370,7 @@ static const struct confparams ic746pro_ext_parms[] = {
 static const struct icom_priv_caps ic746pro_priv_caps = {
 		0x66,	/* default address */
 		0,		/* 731 mode */
+    0,    /* no XCHG */
 		ic756pro_ts_sc_list
 };
 
@@ -391,7 +393,7 @@ const struct rig_caps ic746pro_caps = {
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
-.timeout =  200,
+.timeout =  1000,
 .retry =  3,
 .has_get_func =  IC746_FUNC_ALL,
 .has_set_func =  IC746_FUNC_ALL,

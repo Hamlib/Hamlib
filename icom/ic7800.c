@@ -78,6 +78,7 @@ static int ic7800_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 static const struct icom_priv_caps ic7800_priv_caps = {
 		0x6a,	/* default address */
 		0,		/* 731 mode */
+    0,    /* no XCHG */
 		ic756pro_ts_sc_list
 };
 
@@ -101,7 +102,7 @@ const struct rig_caps ic7800_caps = {
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
-.timeout =  200,
+.timeout =  1000,
 .retry =  3,
 .has_get_func =  IC7800_FUNCS,
 .has_set_func =  IC7800_FUNCS,

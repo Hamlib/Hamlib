@@ -58,6 +58,7 @@ static int omni6_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
 static const struct icom_priv_caps omnivip_priv_caps = {
 		0x04,	/* default address */
 		0,		/* 731 mode */
+    0,    /* no XCHG */
 		NULL    /* TODO */
 };
 
@@ -80,7 +81,7 @@ const struct rig_caps omnivip_caps = {
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
-.timeout =  200,
+.timeout =  1000,
 .retry =  3,
 .has_get_func =  RIG_FUNC_NONE,
 .has_set_func =  RIG_FUNC_NONE,

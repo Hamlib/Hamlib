@@ -252,11 +252,9 @@ DECLARE_INITRIG_BACKEND(winradio)
 #endif
 #endif
 
-	/* Not available on MS Windows */
-#ifndef _WIN32
-#ifndef __CYGWIN__
+	/* Available on Linux and MS Windows */
+#ifndef OTHER_POSIX
 	rig_register(&g313_caps);
-#endif
 #endif
 
 	return RIG_OK;

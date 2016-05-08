@@ -122,7 +122,7 @@ typedef enum ft1000mp_native_cmd_e ft1000mp_native_cmd_t;
 #define MODE_SET_RTTYL	0x08
 #define MODE_SET_RTTYU	0x09
 #define MODE_SET_PKTL	0x0a
-#define MODE_SET_PKTU	0x0b
+#define MODE_SET_PKTF	0x0b
 
 
 /*
@@ -181,7 +181,12 @@ typedef enum ft1000mp_native_cmd_e ft1000mp_native_cmd_t;
 #define FT1000MP_SUMO_VFO_B_CLAR                 0x15
 #define FT1000MP_SUMO_VFO_A_MODE                 0x07
 #define FT1000MP_SUMO_VFO_B_MODE                 0x17
+#define FT1000MP_SUMO_VFO_A_IF                   0x08
+#define FT1000MP_SUMO_VFO_B_IF                   0x18
 
+/* mask extra mode bit from IF Filter status byte in VFO status
+   block */
+#define IF_MODE_MASK 0x80
 
 
 /*

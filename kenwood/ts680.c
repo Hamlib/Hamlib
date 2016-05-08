@@ -66,7 +66,7 @@ static int ts680_set_vfo(RIG *rig, vfo_t vfo)
                 }
 
                 sprintf(cmdbuf, "FN%c", vfo_function); /* The 680 and 140 need this to set the VFO on the radio */
-                return kenwood_simple_cmd(rig, cmdbuf);
+                return kenwood_transaction(rig, cmdbuf, NULL, 0);
 }
 
 /*
@@ -93,7 +93,7 @@ const struct rig_caps ts680s_caps = {
 .write_delay =  0,
 .post_write_delay =  0,
 .timeout =  300,
-.retry =  3,
+.retry =  10,
 
 .has_get_func =  RIG_FUNC_LOCK,
 .has_set_func =  RIG_FUNC_LOCK,

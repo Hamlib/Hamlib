@@ -614,7 +614,7 @@ int ft980_open(RIG *rig)
 
   rig_debug(RIG_DEBUG_TRACE, "%s called\n",__FUNCTION__);
 
-  rig->state.priv = malloc(sizeof (struct ft980_priv_data));
+  rig->state.priv = calloc(1, sizeof (struct ft980_priv_data));
   if (!rig->state.priv)
       return -RIG_ENOMEM;
 
@@ -675,6 +675,8 @@ int ft980_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
   /* store bcd format in cmd (MSB) */
   to_bcd(cmd,freq/10,8);
 
+  rig_force_cache_timeout(&priv->status_tv);
+
   /* Frequency set */
   return ft980_transaction(rig, cmd, UPDATE_DATA_OFS(&priv->update_data,5), 5);
 }
@@ -726,7 +728,9 @@ int ft980_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     return -RIG_EINVAL;         /* sorry, wrong MODE */
   }
 
-  if (width != RIG_PASSBAND_NORMAL && width < rig_passband_normal(rig, mode)) {
+  if (width != RIG_PASSBAND_NOCHANGE
+      && width != RIG_PASSBAND_NORMAL
+      && width < rig_passband_normal(rig, mode)) {
     switch(md) {
        case MD_CW: md = MD_CWN; break;
        case MD_AM: md = MD_AMN; break;
@@ -734,6 +738,8 @@ int ft980_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   }
 
   cmd[3] = md;
+
+  rig_force_cache_timeout(&priv->status_tv);
 
   /* Mode set */
   return ft980_transaction(rig, cmd, UPDATE_DATA_OFS(&priv->update_data,22), 22);

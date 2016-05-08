@@ -1,6 +1,6 @@
 /*
  *  Hamlib CI-V backend - main header
- *  Copyright (c) 2000-2012 by Stephane Fillod
+ *  Copyright (c) 2000-2015 by Stephane Fillod
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -98,6 +98,7 @@ typedef struct rig_pltstate {
 struct icom_priv_caps {
 	unsigned char re_civ_addr;	/* the remote dlft equipment's CI-V address*/
 	int civ_731_mode; /* Off: freqs on 10 digits, On: freqs on 8 digits */
+	int no_xchg; /* Off: use VFO XCHG to set other VFO, On: use set VFO to set other VFO */
 	const struct ts_sc_list *ts_sc_list;
 	int settle_time; /*!< Receiver settle time, in ms */
 	int (*r2i_mode)(RIG *rig, rmode_t mode, pbwidth_t width,
@@ -116,6 +117,9 @@ struct icom_priv_caps {
 struct icom_priv_data {
 	unsigned char re_civ_addr;	/* the remote equipment's CI-V address*/
 	int civ_731_mode; /* Off: freqs on 10 digits, On: freqs on 8 digits */
+	int no_xchg; /* Off: use VFO XCHG to set other VFO, On: use set VFO to set other VFO */
+	int no_1a_03_cmd;							/* rig doesn't tell IF widths */
+	int split_on;									/* record split state */
 	pltstate_t *pltstate;	/* only on optoscan */
 };
 
@@ -131,6 +135,7 @@ extern const struct ts_sc_list ic706_ts_sc_list[];
 extern const struct ts_sc_list ic7000_ts_sc_list[];
 extern const struct ts_sc_list ic7100_ts_sc_list[];
 extern const struct ts_sc_list ic7200_ts_sc_list[];
+extern const struct ts_sc_list ic7300_ts_sc_list[];
 extern const struct ts_sc_list ic910_ts_sc_list[];
 extern const struct ts_sc_list ic718_ts_sc_list[];
 
@@ -156,6 +161,8 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
 int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq);
 int icom_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width);
 int icom_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width);
+int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq, rmode_t tx_mode, pbwidth_t tx_width);
+int icom_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *tx_freq, rmode_t *tx_mode, pbwidth_t *tx_width);
 int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
 int icom_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
 int icom_mem_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
@@ -187,6 +194,7 @@ int icom_get_powerstat(RIG *rig, powerstat_t *status);
 int icom_set_ant(RIG * rig, vfo_t vfo, ant_t ant);
 int icom_get_ant(RIG * rig, vfo_t vfo, ant_t *ant);
 int icom_decode_event(RIG *rig);
+int icom_send_morse (RIG * rig, vfo_t vfo, const char *msg);
 
 extern const struct confparams icom_cfg_params[];
 
@@ -221,6 +229,7 @@ extern const struct rig_caps ic7800_caps;
 extern const struct rig_caps ic7000_caps;
 extern const struct rig_caps ic7100_caps;
 extern const struct rig_caps ic7200_caps;
+extern const struct rig_caps ic7300_caps;
 extern const struct rig_caps ic781_caps;
 extern const struct rig_caps ic820h_caps;
 extern const struct rig_caps ic821h_caps;
@@ -252,5 +261,7 @@ extern const struct rig_caps os535_caps;
 
 extern const struct rig_caps ic92d_caps;
 extern const struct rig_caps id1_caps;
+extern const struct rig_caps id5100_caps;
+extern const struct rig_caps ic2730_caps;
 
 #endif /* _ICOM_H */

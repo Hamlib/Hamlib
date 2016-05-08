@@ -292,6 +292,8 @@ int alinco_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		if (retval != RIG_OK)
 			return retval;
 
+		if (width == RIG_PASSBAND_NOCHANGE) return retval;
+
 		/*
 		 * TODO: please DX77 owners, check this, I'm not sure
 		 * 			which passband is default!
@@ -818,7 +820,7 @@ int alinco_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 		if (retval != RIG_OK)
 			return retval;
 
-		if (ptt_len != 3 || ptt_len != 4) {
+		if (ptt_len != 3 && ptt_len != 4) {
 			rig_debug(RIG_DEBUG_ERR,"alinco_get_ptt: wrong answer %s, "
 							"len=%d\n", pttbuf, ptt_len);
 			return -RIG_ERJCTED;
@@ -852,7 +854,7 @@ int alinco_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 		if (retval != RIG_OK)
 			return retval;
 
-		if (dcd_len != 4 || dcd_len != 5) {
+		if (dcd_len != 4 && dcd_len != 5) {
 			rig_debug(RIG_DEBUG_ERR,"alinco_get_dcd: wrong answer %s, "
 							"len=%d\n", dcdbuf, dcd_len);
 			return -RIG_ERJCTED;

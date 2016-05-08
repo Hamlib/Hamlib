@@ -6,6 +6,7 @@
 *.o
 *.lo
 *.la
+*.orig
 *.swp
 Makefile
 Makefile.in

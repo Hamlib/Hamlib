@@ -220,7 +220,7 @@ int ft736_open(RIG *rig)
 
   rig_debug(RIG_DEBUG_TRACE, "%s called\n",__FUNCTION__);
 
-  priv = (struct ft736_priv_data*)malloc(sizeof(struct ft736_priv_data));
+  priv = (struct ft736_priv_data *) calloc(1, sizeof(struct ft736_priv_data));
   if (!priv)
       return -RIG_ENOMEM;
 
@@ -301,8 +301,9 @@ int ft736_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     return -RIG_EINVAL;         /* sorry, wrong MODE */
   }
 
-  if (width != RIG_PASSBAND_NORMAL &&
-		  width < rig_passband_normal(rig, mode)) {
+  if (width != RIG_PASSBAND_NOCHANGE
+      && width != RIG_PASSBAND_NORMAL
+		  && width < rig_passband_normal(rig, mode)) {
 	  md |= 0x80;
   }
 
@@ -368,8 +369,9 @@ int ft736_set_split_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     return -RIG_EINVAL;         /* sorry, wrong MODE */
   }
 
-  if (width != RIG_PASSBAND_NORMAL &&
-		  width < rig_passband_normal(rig, mode)) {
+  if (RIG_PASSBAND_NOCHANGE != width
+      && width != RIG_PASSBAND_NORMAL
+		  && width < rig_passband_normal(rig, mode)) {
 	  md |= 0x80;
   }
 

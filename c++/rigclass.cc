@@ -311,6 +311,18 @@ rmode_t Rig::getSplitMode(pbwidth_t& width, vfo_t vfo) {
 	return mode;
 }
 
+void Rig::setSplitFreqMode(freq_t tx_freq, rmode_t mode, pbwidth_t width, vfo_t vfo) {
+  CHECK_RIG (rig_set_split_freq_mode (theRig, vfo, tx_freq, mode, width));
+}
+
+freq_t Rig::getSplitFreqMode(rmode_t& mode, pbwidth_t& width, vfo_t vfo) {
+  freq_t freq;
+
+  CHECK_RIG (rig_get_split_freq_mode (theRig, vfo, &freq, &mode, &width));
+
+  return freq;
+}
+
 void Rig::setSplitVFO(split_t split, vfo_t vfo, vfo_t tx_vfo) {
 	CHECK_RIG(rig_set_split_vfo(theRig, vfo, split, tx_vfo));
 }

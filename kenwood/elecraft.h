@@ -28,15 +28,15 @@
  * a K2 or K3 may have in effect which modify certain commands.
  */
 
-#define EXT_LEVEL_NONE -1
-
 enum elec_ext_id_e {
 	K20 = 0,	/* K2 Normal mode */
 	K21,		/* K2 Normal/rtty_off */
 	K22,		/* K2 Extended mode */
 	K23,		/* K2 Extended mode/rtty_off */
 	K30,		/* K3 Normal mode */
-	K31		/* K3 Extended mode */
+	K31,		/* K3 Extended mode */
+	XG3,		/* XG3 */
+	EXT_LEVEL_NONE
 };
 
 struct elec_ext_id_str {

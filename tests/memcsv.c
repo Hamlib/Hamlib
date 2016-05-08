@@ -184,7 +184,7 @@ static int  tokenize_line( char *line, char **token_list, size_t siz, char delim
       tok = mystrtok( NULL, delim );
 //       printf("Next token: %s\n", tok );
       /* If NULL, no more tokens left */
-      if( (tok == NULL)  ) break;
+      if(tok == NULL) break;
       /* Add token to the list */
       token_list[ i++ ] = tok;
    }

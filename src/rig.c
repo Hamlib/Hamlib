@@ -118,9 +118,11 @@ const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
 #endif
 
 #if defined(WIN32) && !defined(__CYGWIN__)
-#define DEFAULT_CM108_PTT_BITNUM "fixme"
+/* FIXME: Determine correct GPIO bit number for W32 using MinGW. */
+#define DEFAULT_CM108_PTT_BITNUM 2
 #elif BSD
-#define DEFAULT_CM108_PTT_BITNUM "fixme"
+/* FIXME: Determine correct GPIO bit number for *BSD. */
+#define DEFAULT_CM108_PTT_BITNUM 2
 #else
 #define DEFAULT_CM108_PTT_BITNUM 2
 #endif
@@ -454,7 +456,7 @@ int HAMLIB_API rig_open(RIG *rig)
 {
 	const struct rig_caps *caps;
 	struct rig_state *rs;
-	int status;
+	int status = RIG_OK;
 
 	rig_debug(RIG_DEBUG_VERBOSE,"rig:rig_open called \n");
 
@@ -469,34 +471,44 @@ int HAMLIB_API rig_open(RIG *rig)
 
 	rs->rigport.fd = -1;
 
-	if (rs->rigport.type.rig == RIG_PORT_SERIAL) {
-
-		if (rs->rigport.parm.serial.rts_state != RIG_SIGNAL_UNSET &&
-				(rs->pttport.type.ptt == RIG_PTT_SERIAL_RTS ||
-				rs->rigport.parm.serial.handshake == RIG_HANDSHAKE_HARDWARE)) {
-
-			rig_debug(RIG_DEBUG_ERR, "Cannot set RTS with PTT by RTS or hardware handshare \"%s\"\n",
-						rs->rigport.pathname);
-            return -RIG_ECONF;
-		}
-		if (rs->rigport.parm.serial.dtr_state != RIG_SIGNAL_UNSET &&
-				rs->pttport.type.ptt == RIG_PTT_SERIAL_DTR) {
-			rig_debug(RIG_DEBUG_ERR, "Cannot set DTR with PTT by DTR\"%s\"\n",
-						rs->rigport.pathname);
-            return -RIG_ECONF;
-		}
+	if (rs->rigport.type.rig == RIG_PORT_SERIAL)
+    {
+      if (rs->rigport.parm.serial.rts_state != RIG_SIGNAL_UNSET &&
+          rs->rigport.parm.serial.handshake == RIG_HANDSHAKE_HARDWARE)
+        {
+          rig_debug(RIG_DEBUG_ERR, "Cannot set RTS with hardware handshake \"%s\"\n",
+                    rs->rigport.pathname);
+          return -RIG_ECONF;
+        }
+      if ('\0' == rs->pttport.pathname[0]
+          || !strcmp(rs->pttport.pathname, rs->rigport.pathname))
+        {
+          /* check for control line conflicts */
+          if (rs->rigport.parm.serial.rts_state != RIG_SIGNAL_UNSET &&
+              rs->pttport.type.ptt == RIG_PTT_SERIAL_RTS)
+            {
+              rig_debug(RIG_DEBUG_ERR, "Cannot set RTS with PTT by RTS \"%s\"\n",
+                        rs->rigport.pathname);
+              return -RIG_ECONF;
+            }
+          if (rs->rigport.parm.serial.dtr_state != RIG_SIGNAL_UNSET &&
+              rs->pttport.type.ptt == RIG_PTT_SERIAL_DTR)
+            {
+              rig_debug(RIG_DEBUG_ERR, "Cannot set DTR with PTT by DTR \"%s\"\n",
+                        rs->rigport.pathname);
+              return -RIG_ECONF;
+            }
+        }
     }
 
-    status = port_open(&rs->rigport);
-    if (status < 0)
-        return status;
-
+  status = port_open(&rs->rigport);
+  if (status < 0)
+    return status;
 
 	switch(rs->pttport.type.ptt) {
 	case RIG_PTT_NONE:
 	case RIG_PTT_RIG:
 	case RIG_PTT_RIG_MICDATA:
-	case RIG_PTT_SERIAL_CAT:
 		break;
 	case RIG_PTT_SERIAL_RTS:
 	case RIG_PTT_SERIAL_DTR:
@@ -506,23 +518,39 @@ int HAMLIB_API rig_open(RIG *rig)
 	  if (!strcmp(rs->pttport.pathname, rs->rigport.pathname))
 	    {
 	      rs->pttport.fd = rs->rigport.fd;
+
+				/* Needed on Linux because the serial port driver sets RTS/DTR
+					 on open - only need to address the PTT line as we offer
+					 config parameters to control the other (dtr_state &
+					 rts_state) */
+				if (rs->pttport.type.ptt == RIG_PTT_SERIAL_DTR)
+						status = ser_set_dtr(&rs->pttport, 0);
+				if (rs->pttport.type.ptt == RIG_PTT_SERIAL_RTS) 
+						status = ser_set_rts(&rs->pttport, 0);
 	    }
 	  else
 	    {
 	      rs->pttport.fd = ser_open(&rs->pttport);
 	      if (rs->pttport.fd < 0)
-		{
-		  rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n",
-			    rs->pttport.pathname);
-		  status = -RIG_EIO;
-		}
-	      else {
-		/* Needed on Linux because the kernel forces RTS/DTR at open */
-		if (rs->pttport.type.ptt == RIG_PTT_SERIAL_DTR)
-		  ser_set_dtr(&rs->pttport, RIG_PTT_OFF);
-		else if (rs->pttport.type.ptt == RIG_PTT_SERIAL_RTS)
-		  ser_set_rts(&rs->pttport, RIG_PTT_OFF);
-	      }
+          {
+            rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n",
+                      rs->pttport.pathname);
+            status = -RIG_EIO;
+          }
+				if (RIG_OK == status
+						&& (rs->pttport.type.ptt == RIG_PTT_SERIAL_DTR
+								|| rs->pttport.type.ptt == RIG_PTT_SERIAL_RTS))
+					{
+						/* Needed on Linux because the serial port driver sets
+							 RTS/DTR high on open - set both low since we offer no
+							 control of the non-PTT line and low is better than
+							 high */
+						status = ser_set_dtr(&rs->pttport, 0);
+						if (RIG_OK == status)
+							{
+								status = ser_set_rts(&rs->pttport, 0);
+							}
+					}
 	    }
 	  break;
 	case RIG_PTT_PARALLEL:
@@ -530,10 +558,10 @@ int HAMLIB_API rig_open(RIG *rig)
 		if (rs->pttport.fd < 0)
 		  {
 		    rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n",
-			      rs->pttport.pathname);
+                  rs->pttport.pathname);
 		    status = -RIG_EIO;
 		  }
-        else
+    else
 			par_ptt_set(&rs->pttport, RIG_PTT_OFF);
 		break;
 	case RIG_PTT_CM108:
@@ -541,7 +569,7 @@ int HAMLIB_API rig_open(RIG *rig)
 		if (rs->pttport.fd < 0)
 		  {
 		    rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n",
-			      rs->pttport.pathname);
+                  rs->pttport.pathname);
 		    status = -RIG_EIO;
 		  }
 		else
@@ -549,7 +577,7 @@ int HAMLIB_API rig_open(RIG *rig)
 		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR, "Unsupported PTT type %d\n",
-						rs->pttport.type.ptt);
+              rs->pttport.type.ptt);
 		status = -RIG_ECONF;
 	}
 
@@ -567,7 +595,7 @@ int HAMLIB_API rig_open(RIG *rig)
 		if (rs->dcdport.fd < 0)
 		  {
 		    rig_debug(RIG_DEBUG_ERR, "Cannot open DCD device \"%s\"\n",
-			      rs->dcdport.pathname);
+                  rs->dcdport.pathname);
 		    status = -RIG_EIO;
 		  }
 		break;
@@ -576,13 +604,13 @@ int HAMLIB_API rig_open(RIG *rig)
 		if (rs->dcdport.fd < 0)
 		  {
 		    rig_debug(RIG_DEBUG_ERR, "Cannot open DCD device \"%s\"\n",
-			      rs->dcdport.pathname);
+                  rs->dcdport.pathname);
 		    status = -RIG_EIO;
 		  }
 		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR, "Unsupported DCD type %d\n",
-						rs->dcdport.type.dcd);
+              rs->dcdport.type.dcd);
 		status = -RIG_ECONF;
 	}
 
@@ -610,19 +638,19 @@ int HAMLIB_API rig_open(RIG *rig)
 	/*
 	 * trigger state->current_vfo first retrieval
 	 */
-        if (rig_get_vfo(rig, &rs->current_vfo) == RIG_OK)
+  if (rig_get_vfo(rig, &rs->current_vfo) == RIG_OK)
 		rs->tx_vfo = rs->current_vfo;
 
 #if 0
-        /*
-         * Check the current tranceive state of the rig
-         */
-        if (rs->transceive == RIG_TRN_RIG) {
-            int retval, trn;
-            retval = rig_get_trn(rig, &trn);
-            if (retval == RIG_OK && trn == RIG_TRN_RIG)
-                add_trn_rig(rig);
-        }
+  /*
+   * Check the current tranceive state of the rig
+   */
+  if (rs->transceive == RIG_TRN_RIG) {
+    int retval, trn;
+    retval = rig_get_trn(rig, &trn);
+    if (retval == RIG_OK && trn == RIG_TRN_RIG)
+      add_trn_rig(rig);
+  }
 #endif
 	return RIG_OK;
 }
@@ -676,17 +704,16 @@ int HAMLIB_API rig_close(RIG *rig)
 	case RIG_PTT_NONE:
 	case RIG_PTT_RIG:
 	case RIG_PTT_RIG_MICDATA:
-	case RIG_PTT_SERIAL_CAT:
 		break;
 	case RIG_PTT_SERIAL_RTS:
-		ser_set_rts(&rs->pttport, RIG_PTT_OFF);
+		ser_set_rts(&rs->pttport, 0);
 		if (rs->pttport.fd != rs->rigport.fd)
 		  {
 		    port_close(&rs->pttport, RIG_PORT_SERIAL);
 		  }
 		break;
 	case RIG_PTT_SERIAL_DTR:
-		ser_set_dtr(&rs->pttport, RIG_PTT_OFF);
+		ser_set_dtr(&rs->pttport, 0);
 		if (rs->pttport.fd != rs->rigport.fd)
 		  {
 		    port_close(&rs->pttport, RIG_PORT_SERIAL);
@@ -790,7 +817,7 @@ int HAMLIB_API rig_cleanup(RIG *rig)
 int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
 	const struct rig_caps *caps;
-	int retcode;
+	int retcode, rc2;
 	vfo_t curr_vfo;
 
 	if (CHECK_RIG_ARG(rig))
@@ -816,7 +843,12 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 			return retcode;
 
 		retcode = caps->set_freq(rig, vfo, freq);
-		caps->set_vfo(rig, curr_vfo);
+		rc2 = caps->set_vfo(rig, curr_vfo); /* try and revert even if we
+                                           had an error above */
+    if (RIG_OK == retcode)
+      {
+        retcode = rc2;          /* return the first error code */
+      }
 	}
 	if (retcode == RIG_OK &&
 			(vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo))
@@ -845,7 +877,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 	const struct rig_caps *caps;
-	int retcode;
+	int retcode, rc2;
 	vfo_t curr_vfo;
 
 	if (CHECK_RIG_ARG(rig) || !freq)
@@ -867,7 +899,12 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		if (retcode != RIG_OK)
 			return retcode;
 		retcode = caps->get_freq(rig, vfo, freq);
-		caps->set_vfo(rig, curr_vfo);
+		rc2 = caps->set_vfo(rig, curr_vfo); /* try and revert even if we
+                                           had an error above */
+    if (RIG_OK == retcode)
+      {
+        retcode = rc2;          /* return the first error code */
+      }
 	}
 	/* VFO compensation */
 	if (rig->state.vfo_comp != 0.0)
@@ -888,8 +925,11 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  * \param mode	The mode to set to
  * \param width	The passband width to set to
  *
- * Sets the mode and associated passband of the target VFO.
- * The passband \a width must be supported by the backend of the rig.
+ * Sets the mode and associated passband of the target VFO.  The
+ * passband \a width must be supported by the backend of the rig or
+ * the special value RIG_PASSBAND_NOCHANGE which leaves the passband
+ * unchanged from the current value or default for the mode determined
+ * by the rig.
  *
  * \return RIG_OK if the operation has been sucessful, otherwise
  * a negative value if an error occured (in which case, cause is
@@ -901,7 +941,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
 	const struct rig_caps *caps;
-	int retcode;
+	int retcode, rc2;
 	vfo_t curr_vfo;
 
 	if (CHECK_RIG_ARG(rig))
@@ -925,7 +965,12 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 			return retcode;
 
 		retcode = caps->set_mode(rig, vfo, mode, width);
-		caps->set_vfo(rig, curr_vfo);
+		rc2 = caps->set_vfo(rig, curr_vfo); /* try and revert even if we
+                                           had an error above */
+    if (RIG_OK == retcode)
+      {
+        retcode = rc2;          /* return the first error code */
+      }
 	}
 
 	if (retcode == RIG_OK &&
@@ -960,7 +1005,7 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 int HAMLIB_API rig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
 	const struct rig_caps *caps;
-	int retcode;
+	int retcode, rc2;
 	vfo_t curr_vfo;
 
 	if (CHECK_RIG_ARG(rig) || !mode || !width)
@@ -984,7 +1029,12 @@ int HAMLIB_API rig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width
 			return retcode;
 
 		retcode = caps->get_mode(rig, vfo, mode, width);
-		caps->set_vfo(rig, curr_vfo);
+		rc2 = caps->set_vfo(rig, curr_vfo); /* try and revert even if we
+                                           had an error above */
+    if (RIG_OK == retcode)
+      {
+        retcode = rc2;          /* return the first error code */
+      }
 	}
 
 	if (retcode == RIG_OK &&
@@ -1202,7 +1252,7 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
 int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
 	const struct rig_caps *caps;
-	int retcode;
+	int retcode, rc2;
 	vfo_t curr_vfo;
 
 	if (CHECK_RIG_ARG(rig))
@@ -1230,7 +1280,12 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 			return retcode;
 
 		retcode = caps->set_ptt(rig, vfo, ptt);
-		caps->set_vfo(rig, curr_vfo);
+		rc2 = caps->set_vfo(rig, curr_vfo); /* try and revert even if we
+                                           had an error above */
+    if (RIG_OK == retcode)
+      {
+        retcode = rc2;          /* return the first error code */
+      }
 		return retcode;
 
 		break;
@@ -1240,12 +1295,6 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
 	case RIG_PTT_SERIAL_RTS:
 		return ser_set_rts(&rig->state.pttport, ptt!=RIG_PTT_OFF);
-
-	case RIG_PTT_SERIAL_CAT:
-		if (ptt == RIG_PTT_ON_MIC || ptt == RIG_PTT_ON_DATA)
-			ptt = RIG_PTT_ON;
-		retcode = caps->set_ptt(rig, vfo, ptt);
-		return retcode;
 
 	case RIG_PTT_PARALLEL:
 		return par_ptt_set(&rig->state.pttport, ptt);
@@ -1279,7 +1328,7 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
 	const struct rig_caps *caps;
-	int retcode, status;
+	int retcode, rc2, status;
 	vfo_t curr_vfo;
 
 	if (CHECK_RIG_ARG(rig) || !ptt)
@@ -1305,7 +1354,13 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 			return retcode;
 
 		retcode = caps->get_ptt(rig, vfo, ptt);
-		caps->set_vfo(rig, curr_vfo);
+		rc2 = caps->set_vfo(rig, curr_vfo); /* try and revert even if we
+                                           had an error above */
+    if (RIG_OK == retcode)
+      {
+        retcode = rc2;          /* return the first error code */
+      }
+
 		return retcode;
 
 		break;
@@ -1364,7 +1419,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 int HAMLIB_API rig_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
 	const struct rig_caps *caps;
-	int retcode, status;
+	int retcode, rc2, status;
 	vfo_t curr_vfo;
 
 	if (CHECK_RIG_ARG(rig) || !dcd)
@@ -1389,7 +1444,13 @@ int HAMLIB_API rig_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 			return retcode;
 
 		retcode = caps->get_dcd(rig, vfo, dcd);
-		caps->set_vfo(rig, curr_vfo);
+		rc2 = caps->set_vfo(rig, curr_vfo); /* try and revert even if we
+                                           had an error above */
+    if (RIG_OK == retcode)
+      {
+        retcode = rc2;          /* return the first error code */
+      }
+
 		return retcode;
 
 		break;
@@ -1441,7 +1502,7 @@ int HAMLIB_API rig_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 int HAMLIB_API rig_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 {
 	const struct rig_caps *caps;
-	int retcode;
+	int retcode, rc2;
 	vfo_t curr_vfo;
 
 	if (CHECK_RIG_ARG(rig))
@@ -1464,7 +1525,13 @@ int HAMLIB_API rig_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 		return retcode;
 
 	retcode = caps->set_rptr_shift(rig, vfo, rptr_shift);
-	caps->set_vfo(rig, curr_vfo);
+  rc2 = caps->set_vfo(rig, curr_vfo); /* try and revert even if we had
+                                         an error above */
+  if (RIG_OK == retcode)
+    {
+      retcode = rc2;            /* return the first error code */
+    }
+
 	return retcode;
 }
 
@@ -1485,7 +1552,7 @@ int HAMLIB_API rig_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 int HAMLIB_API rig_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 {
 	const struct rig_caps *caps;
-	int retcode;
+	int retcode, rc2;
 	vfo_t curr_vfo;
 
 	if (CHECK_RIG_ARG(rig) || !rptr_shift)
@@ -1508,7 +1575,13 @@ int HAMLIB_API rig_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 		return retcode;
 
 	retcode = caps->get_rptr_shift(rig, vfo, rptr_shift);
-	caps->set_vfo(rig, curr_vfo);
+  rc2 = caps->set_vfo(rig, curr_vfo); /* try and revert even if we had
+                                         an error above */
+  if (RIG_OK == retcode)
+    {
+      retcode = rc2;          /* return the first error code */
+    }
+
 	return retcode;
 }
 
@@ -1530,7 +1603,7 @@ int HAMLIB_API rig_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 int HAMLIB_API rig_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
 {
 	const struct rig_caps *caps;
-	int retcode;
+	int retcode, rc2;
 	vfo_t curr_vfo;
 
 	if (CHECK_RIG_ARG(rig))
@@ -1553,7 +1626,13 @@ int HAMLIB_API rig_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
 		return retcode;
 
 	retcode = caps->set_rptr_offs(rig, vfo, rptr_offs);
-	caps->set_vfo(rig, curr_vfo);
+  rc2 = caps->set_vfo(rig, curr_vfo); /* try and revert even if we had
+                                         an error above */
+  if (RIG_OK == retcode)
+    {
+      retcode = rc2;          /* return the first error code */
+    }
+
 	return retcode;
 }
 
@@ -1575,7 +1654,7 @@ int HAMLIB_API rig_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
 int HAMLIB_API rig_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
 {
 	const struct rig_caps *caps;
-	int retcode;
+	int retcode, rc2;
 	vfo_t curr_vfo;
 
 	if (CHECK_RIG_ARG(rig) || !rptr_offs)
@@ -1598,7 +1677,13 @@ int HAMLIB_API rig_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
 		return retcode;
 
 	retcode = caps->get_rptr_offs(rig, vfo, rptr_offs);
-	caps->set_vfo(rig, curr_vfo);
+  rc2 = caps->set_vfo(rig, curr_vfo); /* try and revert even if we had
+                                         an error above */
+  if (RIG_OK == retcode)
+    {
+      retcode = rc2;          /* return the first error code */
+    }
+
 	return retcode;
 }
 
@@ -1621,7 +1706,7 @@ int HAMLIB_API rig_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
 int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
 	const struct rig_caps *caps;
-	int retcode;
+	int retcode, rc2;
 	vfo_t curr_vfo, tx_vfo;
 
 	if (CHECK_RIG_ARG(rig))
@@ -1664,11 +1749,16 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 	else
 		retcode = caps->set_freq(rig, RIG_VFO_CURR, tx_freq);
 
+  /* try and revert even if we had an error above */
 	if (caps->set_vfo) {
-		caps->set_vfo(rig, curr_vfo);
+		rc2 = caps->set_vfo(rig, curr_vfo);
 	} else {
-		caps->vfo_op(rig, vfo, RIG_OP_TOGGLE);
+		rc2 = caps->vfo_op(rig, vfo, RIG_OP_TOGGLE);
 	}
+  if (RIG_OK == retcode)
+    {
+      retcode = rc2;          /* return the first error code */
+    }
 	return retcode;
 }
 
@@ -1689,7 +1779,7 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
 	const struct rig_caps *caps;
-	int retcode;
+	int retcode, rc2;
 	vfo_t curr_vfo, tx_vfo;
 
 	if (CHECK_RIG_ARG(rig) || !tx_freq)
@@ -1732,11 +1822,16 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 	else
 		retcode = caps->get_freq(rig, RIG_VFO_CURR, tx_freq);
 
+ /* try and revert even if we had an error above */
 	if (caps->set_vfo) {
-		caps->set_vfo(rig, curr_vfo);
+		rc2 = caps->set_vfo(rig, curr_vfo);
 	} else {
-		caps->vfo_op(rig, vfo, RIG_OP_TOGGLE);
+		rc2 = caps->vfo_op(rig, vfo, RIG_OP_TOGGLE);
 	}
+  if (RIG_OK == retcode)
+    {
+      retcode = rc2;            /* return the first error code */
+    }
 
 	return retcode;
 }
@@ -1746,7 +1841,10 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
  * \param rig	The rig handle
  * \param vfo	The target VFO
  * \param tx_mode	The transmit split mode to set to
- * \param tx_width	The transmit split width to set to
+ * \param tx_width The transmit split width to set to or the special
+ * value RIG_PASSBAND_NOCHANGE which leaves the passband unchanged
+ * from the current value or default for the mode determined by the
+ * rig.
  *
  *  Sets the split(TX) mode.
  *
@@ -1760,7 +1858,7 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 int HAMLIB_API rig_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
 {
 	const struct rig_caps *caps;
-	int retcode;
+	int retcode, rc2;
 	vfo_t curr_vfo, tx_vfo;
 
 	if (CHECK_RIG_ARG(rig))
@@ -1803,11 +1901,16 @@ int HAMLIB_API rig_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_
 	else
 		retcode = caps->set_mode(rig, RIG_VFO_CURR, tx_mode, tx_width);
 
+ /* try and revert even if we had an error above */
 	if (caps->set_vfo) {
-		caps->set_vfo(rig, curr_vfo);
+		rc2 = caps->set_vfo(rig, curr_vfo);
 	} else {
-		caps->vfo_op(rig, vfo, RIG_OP_TOGGLE);
+		rc2 = caps->vfo_op(rig, vfo, RIG_OP_TOGGLE);
 	}
+  if (RIG_OK == retcode)
+    {
+      retcode = rc2;            /* return the first error code */
+    }
 
 	return retcode;
 }
@@ -1834,7 +1937,7 @@ int HAMLIB_API rig_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_
 int HAMLIB_API rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width)
 {
 	const struct rig_caps *caps;
-	int retcode;
+	int retcode, rc2;
 	vfo_t curr_vfo, tx_vfo;
 
 	if (CHECK_RIG_ARG(rig) || !tx_mode || !tx_width)
@@ -1877,11 +1980,16 @@ int HAMLIB_API rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth
 	else
 		retcode = caps->get_mode(rig, RIG_VFO_CURR, tx_mode, tx_width);
 
+  /* try and revert even if we had an error above */
 	if (caps->set_vfo) {
-		caps->set_vfo(rig, curr_vfo);
+		rc2 = caps->set_vfo(rig, curr_vfo);
 	} else {
-		caps->vfo_op(rig, vfo, RIG_OP_TOGGLE);
+		rc2 = caps->vfo_op(rig, vfo, RIG_OP_TOGGLE);
 	}
+  if (RIG_OK == retcode)
+    {
+      retcode = rc2;            /* return the first error code */
+    }
 
 	if (*tx_width == RIG_PASSBAND_NORMAL && *tx_mode != RIG_MODE_NONE)
 		*tx_width = rig_passband_normal (rig, *tx_mode);
@@ -1889,6 +1997,100 @@ int HAMLIB_API rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth
 	return retcode;
 }
 
+
+/**
+ * \brief set the split frequency and mode
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param tx_freq The transmit frequency to set to
+ * \param tx_mode	The transmit split mode to set to
+ * \param tx_width The transmit split width to set to or the special
+ * value RIG_PASSBAND_NOCHANGE which leaves the passband unchanged
+ * from the current value or default for the mode determined by the
+ * rig.
+ *
+ *  Sets the split(TX) frequency and mode.
+ *
+ *  This function maybe optimized on some rig back ends, where the TX
+ *  VFO cannot be directly addressed, to reduce the number of times
+ *  the rig VFOs have to be exchanged or swapped to complete this
+ *  combined function.
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
+ * set appropriately).
+ *
+ * \sa rig_set_split_freq(), rig_set_split_mode(), rig_get_split_freq_mode()
+ */
+
+int HAMLIB_API rig_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq, rmode_t tx_mode, pbwidth_t tx_width)
+{
+	const struct rig_caps *caps;
+	int retcode;
+
+	if (CHECK_RIG_ARG(rig))
+		return -RIG_EINVAL;
+
+	caps = rig->caps;
+
+  if (caps->set_split_freq_mode) {
+    return caps->set_split_freq_mode (rig, vfo, tx_freq, tx_mode, tx_width);
+  }
+
+  retcode = rig_set_split_freq (rig, vfo, tx_freq);
+  if (RIG_OK == retcode) {
+    retcode = rig_set_split_mode (rig, vfo, tx_mode, tx_width);
+  }
+
+  return retcode;
+}
+
+/**
+ * \brief get the current split frequency and mode
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param tx_freq The location where to store the current transmit frequency
+ * \param tx_mode	The location where to store the current transmit split mode
+ * \param tx_width	The location where to store the current transmit split width
+ *
+ *  Retrieves the current split(TX) frequency, mode and passband.
+ *  If the backend is unable to determine the width, the \a tx_width
+ *  will be set to RIG_PASSBAND_NORMAL as a default.
+ *  The value stored at \a tx_mode location equals RIG_MODE_NONE
+ *  when the current mode of the VFO is not defined (e.g. blank memory).
+ *
+ *  This function maybe optimized on some rig back ends, where the TX
+ *  VFO cannot be directly addressed, to reduce the number of times
+ *  the rig VFOs have to be exchanged or swapped to complete this
+ *  combined function.
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
+ * set appropriately).
+ *
+ * \sa rig_get_split_freq(), rig_get_split_mode(), rig_set_split_freq_mode()
+ */
+int HAMLIB_API rig_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *tx_freq, rmode_t *tx_mode, pbwidth_t *tx_width)
+{
+	const struct rig_caps *caps;
+	int retcode;
+
+	if (CHECK_RIG_ARG(rig) || !tx_freq || !tx_mode || !tx_width)
+		return -RIG_EINVAL;
+
+	caps = rig->caps;
+
+  if (caps->get_split_freq_mode) {
+    return caps->get_split_freq_mode (rig, vfo, tx_freq, tx_mode, tx_width);
+  }
+
+  retcode = rig_get_split_freq (rig, vfo, tx_freq);
+  if (RIG_OK == retcode) {
+    retcode = rig_get_split_mode (rig, vfo, tx_mode, tx_width);
+  }
+
+  return retcode;
+}
 
 /**
  * \brief set the split mode
@@ -1908,7 +2110,7 @@ int HAMLIB_API rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth
 int HAMLIB_API rig_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
 	const struct rig_caps *caps;
-	int retcode;
+	int retcode, rc2;
 	vfo_t curr_vfo;
 
 	if (CHECK_RIG_ARG(rig))
@@ -1936,7 +2138,12 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vf
 		return retcode;
 
 	retcode = caps->set_split_vfo(rig, vfo, split, tx_vfo);
-	caps->set_vfo(rig, curr_vfo);
+  rc2 = caps->set_vfo(rig, curr_vfo); /* try and revert even if we had
+                                           an error above */
+  if (RIG_OK == retcode)
+    {
+      retcode = rc2;            /* return the first error code */
+    }
 
 	if (retcode == RIG_OK)
 		rig->state.tx_vfo = tx_vfo;
@@ -1962,7 +2169,7 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vf
 int HAMLIB_API rig_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
 	const struct rig_caps *caps;
-	int retcode;
+	int retcode, rc2;
 	vfo_t curr_vfo;
 
 	if (CHECK_RIG_ARG(rig) || !split || !tx_vfo)
@@ -1988,7 +2195,13 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_
 		return retcode;
 
 	retcode = caps->get_split_vfo(rig, vfo, split, tx_vfo);
-	caps->set_vfo(rig, curr_vfo);
+  rc2 = caps->set_vfo(rig, curr_vfo); /* try and revert even if we had
+                                         an error above */
+  if (RIG_OK == retcode)
+    {
+      retcode = rc2;            /* return the first error code */
+    }
+
 	return retcode;
 }
 
@@ -2010,7 +2223,7 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_
 int HAMLIB_API rig_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
 	const struct rig_caps *caps;
-	int retcode;
+	int retcode, rc2;
 	vfo_t curr_vfo;
 
 	if (CHECK_RIG_ARG(rig))
@@ -2033,7 +2246,13 @@ int HAMLIB_API rig_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 		return retcode;
 
 	retcode = caps->set_rit(rig, vfo, rit);
-	caps->set_vfo(rig, curr_vfo);
+  rc2 = caps->set_vfo(rig, curr_vfo); /* try and revert even if we had
+                                         an error above */
+  if (RIG_OK == retcode)
+    {
+      retcode = rc2;            /* return the first error code */
+    }
+
 	return retcode;
 }
 
@@ -2055,7 +2274,7 @@ int HAMLIB_API rig_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 int HAMLIB_API rig_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
 	const struct rig_caps *caps;
-	int retcode;
+	int retcode, rc2;
 	vfo_t curr_vfo;
 
 	if (CHECK_RIG_ARG(rig) || !rit)
@@ -2078,7 +2297,13 @@ int HAMLIB_API rig_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 		return retcode;
 
 	retcode = caps->get_rit(rig, vfo, rit);
-	caps->set_vfo(rig, curr_vfo);
+  rc2 = caps->set_vfo(rig, curr_vfo); /* try and revert even if we had
+                                         an error above */
+  if (RIG_OK == retcode)
+    {
+      retcode = rc2;            /* return the first error code */
+    }
+
 	return retcode;
 }
 
@@ -2100,7 +2325,7 @@ int HAMLIB_API rig_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 int HAMLIB_API rig_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 {
 	const struct rig_caps *caps;
-	int retcode;
+	int retcode, rc2;
 	vfo_t curr_vfo;
 
 	if (CHECK_RIG_ARG(rig))
@@ -2123,7 +2348,13 @@ int HAMLIB_API rig_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 		return retcode;
 
 	retcode = caps->set_xit(rig, vfo, xit);
-	caps->set_vfo(rig, curr_vfo);
+  rc2 = caps->set_vfo(rig, curr_vfo); /* try and revert even if we had
+                                         an error above */
+  if (RIG_OK == retcode)
+    {
+      retcode = rc2;            /* return the first error code */
+    }
+
 	return retcode;
 }
 
@@ -2145,7 +2376,7 @@ int HAMLIB_API rig_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 int HAMLIB_API rig_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 {
 	const struct rig_caps *caps;
-	int retcode;
+	int retcode, rc2;
 	vfo_t curr_vfo;
 
 	if (CHECK_RIG_ARG(rig) || !xit)
@@ -2168,7 +2399,13 @@ int HAMLIB_API rig_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 		return retcode;
 
 	retcode = caps->get_xit(rig, vfo, xit);
-	caps->set_vfo(rig, curr_vfo);
+  rc2 = caps->set_vfo(rig, curr_vfo); /* try and revert even if we had
+                                         an error above */
+  if (RIG_OK == retcode)
+    {
+      retcode = rc2;            /* return the first error code */
+    }
+
 	return retcode;
 }
 
@@ -2192,7 +2429,7 @@ int HAMLIB_API rig_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 int HAMLIB_API rig_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 {
 	const struct rig_caps *caps;
-	int retcode;
+	int retcode, rc2;
 	vfo_t curr_vfo;
 
 	if (CHECK_RIG_ARG(rig))
@@ -2215,7 +2452,13 @@ int HAMLIB_API rig_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 		return retcode;
 
 	retcode = caps->set_ts(rig, vfo, ts);
-	caps->set_vfo(rig, curr_vfo);
+  rc2 = caps->set_vfo(rig, curr_vfo); /* try and revert even if we had
+                                         an error above */
+  if (RIG_OK == retcode)
+    {
+      retcode = rc2;            /* return the first error code */
+    }
+
 	return retcode;
 }
 
@@ -2237,7 +2480,7 @@ int HAMLIB_API rig_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 int HAMLIB_API rig_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 {
 	const struct rig_caps *caps;
-	int retcode;
+	int retcode, rc2;
 	vfo_t curr_vfo;
 
 	if (CHECK_RIG_ARG(rig) || !ts)
@@ -2260,7 +2503,13 @@ int HAMLIB_API rig_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 		return retcode;
 
 	retcode = caps->get_ts(rig, vfo, ts);
-	caps->set_vfo(rig, curr_vfo);
+  rc2 = caps->set_vfo(rig, curr_vfo); /* try and revert even if we had
+                                         an error above */
+  if (RIG_OK == retcode)
+    {
+      retcode = rc2;            /* return the first error code */
+    }
+
 	return retcode;
 }
 
@@ -2286,7 +2535,7 @@ int HAMLIB_API rig_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 int HAMLIB_API rig_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
 {
 	const struct rig_caps *caps;
-	int retcode;
+	int retcode, rc2;
 	vfo_t curr_vfo;
 
 	if (CHECK_RIG_ARG(rig))
@@ -2309,7 +2558,13 @@ int HAMLIB_API rig_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
 		return retcode;
 
 	retcode = caps->set_ant(rig, vfo, ant);
-	caps->set_vfo(rig, curr_vfo);
+  rc2 = caps->set_vfo(rig, curr_vfo); /* try and revert even if we had
+                                         an error above */
+  if (RIG_OK == retcode)
+    {
+      retcode = rc2;            /* return the first error code */
+    }
+
 	return retcode;
 }
 
@@ -2331,7 +2586,7 @@ int HAMLIB_API rig_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
 int HAMLIB_API rig_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
 {
 	const struct rig_caps *caps;
-	int retcode;
+	int retcode, rc2;
 	vfo_t curr_vfo;
 
 	if (CHECK_RIG_ARG(rig) || !ant)
@@ -2354,7 +2609,13 @@ int HAMLIB_API rig_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
 		return retcode;
 
 	retcode = caps->get_ant(rig, vfo, ant);
-	caps->set_vfo(rig, curr_vfo);
+  rc2 = caps->set_vfo(rig, curr_vfo); /* try and revert even if we had
+                                         an error above */
+  if (RIG_OK == retcode)
+    {
+      retcode = rc2;            /* return the first error code */
+    }
+
 	return retcode;
 }
 
@@ -2649,7 +2910,7 @@ vfo_op_t HAMLIB_API rig_has_vfo_op(RIG *rig, vfo_op_t op)
 int HAMLIB_API rig_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
 	const struct rig_caps *caps;
-	int retcode;
+	int retcode, rc2;
 	vfo_t curr_vfo;
 
 	if (CHECK_RIG_ARG(rig))
@@ -2672,7 +2933,13 @@ int HAMLIB_API rig_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 		return retcode;
 
 	retcode = caps->vfo_op(rig, vfo, op);
-	caps->set_vfo(rig, curr_vfo);
+  rc2 = caps->set_vfo(rig, curr_vfo); /* try and revert even if we had
+                                         an error above */
+  if (RIG_OK == retcode)
+    {
+      retcode = rc2;            /* return the first error code */
+    }
+
 	return retcode;
 }
 
@@ -2720,7 +2987,7 @@ scan_t HAMLIB_API rig_has_scan(RIG *rig, scan_t scan)
 int HAMLIB_API rig_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 {
 	const struct rig_caps *caps;
-	int retcode;
+	int retcode, rc2;
 	vfo_t curr_vfo;
 
 	if (CHECK_RIG_ARG(rig))
@@ -2744,7 +3011,13 @@ int HAMLIB_API rig_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 		return retcode;
 
 	retcode = caps->scan(rig, vfo, scan, ch);
-	caps->set_vfo(rig, curr_vfo);
+  rc2 = caps->set_vfo(rig, curr_vfo); /* try and revert even if we had
+                                         an error above */
+  if (RIG_OK == retcode)
+    {
+      retcode = rc2;            /* return the first error code */
+    }
+
 	return retcode;
 }
 
@@ -2766,7 +3039,7 @@ int HAMLIB_API rig_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 int HAMLIB_API rig_send_dtmf(RIG *rig, vfo_t vfo, const char *digits)
 {
 	const struct rig_caps *caps;
-	int retcode;
+	int retcode, rc2;
 	vfo_t curr_vfo;
 
 	if (CHECK_RIG_ARG(rig) || !digits)
@@ -2789,7 +3062,13 @@ int HAMLIB_API rig_send_dtmf(RIG *rig, vfo_t vfo, const char *digits)
 		return retcode;
 
 	retcode = caps->send_dtmf(rig, vfo, digits);
-	caps->set_vfo(rig, curr_vfo);
+  rc2 = caps->set_vfo(rig, curr_vfo); /* try and revert even if we had
+                                         an error above */
+  if (RIG_OK == retcode)
+    {
+      retcode = rc2;            /* return the first error code */
+    }
+
 	return retcode;
 }
 
@@ -2812,7 +3091,7 @@ int HAMLIB_API rig_send_dtmf(RIG *rig, vfo_t vfo, const char *digits)
 int HAMLIB_API rig_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
 {
 	const struct rig_caps *caps;
-	int retcode;
+	int retcode, rc2;
 	vfo_t curr_vfo;
 
 	if (CHECK_RIG_ARG(rig) || !digits || !length)
@@ -2835,7 +3114,13 @@ int HAMLIB_API rig_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
 		return retcode;
 
 	retcode = caps->recv_dtmf(rig, vfo, digits, length);
-	caps->set_vfo(rig, curr_vfo);
+  rc2 = caps->set_vfo(rig, curr_vfo); /* try and revert even if we had
+                                         an error above */
+  if (RIG_OK == retcode)
+    {
+      retcode = rc2;            /* return the first error code */
+    }
+
 	return retcode;
 }
 
@@ -2857,7 +3142,7 @@ int HAMLIB_API rig_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
 int HAMLIB_API rig_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 {
 	const struct rig_caps *caps;
-	int retcode;
+	int retcode, rc2;
 	vfo_t curr_vfo;
 
 	if (CHECK_RIG_ARG(rig) || !msg)
@@ -2880,7 +3165,13 @@ int HAMLIB_API rig_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 		return retcode;
 
 	retcode = caps->send_morse(rig, vfo, msg);
-	caps->set_vfo(rig, curr_vfo);
+  rc2 = caps->set_vfo(rig, curr_vfo); /* try and revert even if we had
+                                         an error above */
+  if (RIG_OK == retcode)
+    {
+      retcode = rc2;            /* return the first error code */
+    }
+
 	return retcode;
 }
 

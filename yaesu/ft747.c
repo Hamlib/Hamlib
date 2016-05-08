@@ -299,13 +299,11 @@ const struct rig_caps ft747_caps = {
 int ft747_init(RIG *rig) {
   struct ft747_priv_data *p;
 
-  p = (struct ft747_priv_data*)malloc(sizeof(struct ft747_priv_data));
+  p = (struct ft747_priv_data* ) calloc(1, sizeof(struct ft747_priv_data));
   if (!p)			/* whoops! memory shortage! */
     return -RIG_ENOMEM;
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft747:ft747_init called \n");
-
-  memset(p, 0, sizeof(struct ft747_priv_data));
 
   rig->state.priv = (void*)p;
 
@@ -479,13 +477,15 @@ int ft747_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
 
   switch(mode) {
   case RIG_MODE_AM:
-    if (width < width_normal)
+    if (width != RIG_PASSBAND_NOCHANGE
+        && width < width_normal)
     	cmd_index = FT_747_NATIVE_MODE_SET_AMN;
     else
     	cmd_index = FT_747_NATIVE_MODE_SET_AMW;
     break;
   case RIG_MODE_CW:
-    if (width < width_normal)
+    if (width != RIG_PASSBAND_NOCHANGE
+        && width < width_normal)
     	cmd_index = FT_747_NATIVE_MODE_SET_CWN;
     else
     	cmd_index = FT_747_NATIVE_MODE_SET_CWW;
@@ -497,7 +497,8 @@ int ft747_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
     cmd_index = FT_747_NATIVE_MODE_SET_LSB;
     break;
   case RIG_MODE_FM:
-    if (width < width_normal)
+    if (width != RIG_PASSBAND_NOCHANGE
+        && width < width_normal)
     	cmd_index = FT_747_NATIVE_MODE_SET_FMN;
     else
     	cmd_index = FT_747_NATIVE_MODE_SET_FMW;

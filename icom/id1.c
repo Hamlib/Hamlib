@@ -66,6 +66,7 @@ const struct ts_sc_list id1_ts_sc_list[] = {
 static const struct icom_priv_caps id1_priv_caps = {
 		0x01,	/* default address */
 		0,		/* 731 mode */
+    0,    /* no XCHG */
 		id1_ts_sc_list
 };
 
@@ -88,7 +89,7 @@ const struct rig_caps id1_caps = {
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
-.timeout =  200,
+.timeout =  1000,
 .retry =  3,
 .has_get_func =  ID1_FUNC_ALL,
 .has_set_func =  ID1_FUNC_ALL,

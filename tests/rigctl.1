@@ -122,6 +122,11 @@ Dump capabilities for the radio defined with -m above and exit.
 Set vfo mode, requiring an extra VFO argument in front of each appropriate
 command. Otherwise, 'currVFO' is assumed when this option is not set.
 .TP
+.B \-n, --no-restore-ai
+On exit 'rigctl' restores the state of auto information (AI) on the
+controlled rig. If this is not desired, for example if you are
+using 'rigctl' to turn AI mode on or off, pass this option.
+.TP
 .B \-i, --read-history
 Read previously saved command and argument history from a file
 (default '~/.rigctl_history') for the current session.  Available when
@@ -178,6 +183,42 @@ Example: Use '\\dump_caps' to see what this radio and backend support.
 Please note that the backend for the radio to be controlled, or the radio
 itself may not support some commands. In that case, the operation will fail
 with a \fBHamlib\fP error message.
+.PP
+As an alternative to the READLINE command history features a special
+command of a single dash ('-') may be used to read commands from
+standard input.  Commands must be separated by whitespace similar to
+the commands given on the command line.  Comments may be added using
+the '#' character, all text up until the end of the current line
+including the '#' character is ignored.
+.sp
+Example:
+ $ cat <<.EOF. >cmds.txt
+ > # File of commands
+ > v f m	# query rig
+ > V VFOB F 14200000 M CW 500	# set rig
+ > v f m	# query rig
+ > .EOF.
+ 
+ $ rigctl -m1 - <cmds.txt
+ 
+ v VFOA
+ 
+ f 145000000
+ 
+ m FM
+ 15000
+ 
+ V VFOB
+ F 14200000
+ M CW 500
+ v VFOB
+ 
+ f 14200000
+ 
+ m CW
+ 500
+ 
+ $
 .PP
 Here is a summary of the supported commands (In the case of "set" commands the
 quoted string is replaced by the value in the description.  In the case of "get"
@@ -513,6 +554,9 @@ rig's protocol (see your radio's computer control documentation).
 The command terminator, set by the \fIsend-cmd-term\fP option above, will
 terminate each command string sent to the radio.  This character should not be
 a part of the input string.
+.TP
+.B pause 'Seconds'
+Pause for the given whole number of seconds before sending the next command.
 .SH EXAMPLES
 Start \fBrigctl\fP for a Yaesu FT-920 using a USB to serial adapter on Linux in
 interactive mode:
@@ -617,5 +661,5 @@ This is free software; see the source for copying conditions.
 There is NO warranty; not even for MERCHANTABILITY
 or FITNESS FOR A PARTICULAR PURPOSE.
 .SH SEE ALSO
-.BR hamlib (3),
-.BR rigctld(8)
+.BR rigctld (1),
+.BR hamlib (3)

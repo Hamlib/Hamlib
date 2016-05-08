@@ -87,6 +87,7 @@
 #define ROT_MODEL_EASYCOMM1 ROT_MAKE_MODEL(ROT_EASYCOMM, 1)
 #define ROT_MODEL_EASYCOMM2 ROT_MAKE_MODEL(ROT_EASYCOMM, 2)
 #define ROT_MODEL_TRAKBOX ROT_MAKE_MODEL(ROT_EASYCOMM, 3)
+#define ROT_MODEL_EASYCOMM3 ROT_MAKE_MODEL(ROT_EASYCOMM, 4)
 
 /*! \def ROT_MODEL_FODTRACK
  *  \brief A macro that returns the model number of the Fodtrack backend.
@@ -122,12 +123,19 @@
  *  The Rotor-EZ backend can be used with rotators that support the
  *  DCU command set by DF9GR (currently the ERC).
  */
+/*! \def ROT_MODEL_RT21
+ *  \brief A macro that returns the model number of the RT21 backend.
+ *
+ *  The Rotor-EZ backend can be used with rotators that support the
+ *  DCU command set by Green Heron (currently the RT-21).
+ */
 #define ROT_ROTOREZ 4
 #define ROT_BACKEND_ROTOREZ "rotorez"
 #define ROT_MODEL_ROTOREZ ROT_MAKE_MODEL(ROT_ROTOREZ, 1)
 #define ROT_MODEL_ROTORCARD ROT_MAKE_MODEL(ROT_ROTOREZ, 2)
 #define ROT_MODEL_DCU ROT_MAKE_MODEL(ROT_ROTOREZ, 3)
 #define ROT_MODEL_ERC ROT_MAKE_MODEL(ROT_ROTOREZ, 4)
+#define ROT_MODEL_RT21 ROT_MAKE_MODEL(ROT_ROTOREZ, 5)
 
 /*! \def ROT_MODEL_SARTEK1
  *  \brief A macro that returns the model number of the SARtek-1 backend.
@@ -270,6 +278,27 @@
 #define ROT_ETHER6 15
 #define ROT_BACKEND_ETHER6 "ether6"
 #define ROT_MODEL_ETHER6 ROT_MAKE_MODEL(ROT_ETHER6, 1)
+
+
+/*! \def ROT_MODEL_CNCTRK
+ *  \brief A macro that returns the model number of the CNCTRK backend.
+ *
+ *  The CNCTRK backend can be used with rotators that support,
+ *  the LinuxCNC running Axis GUI interface.
+ */
+#define ROT_CNCTRK 16
+#define ROT_BACKEND_CNCTRK "cnctrk"
+#define ROT_MODEL_CNCTRK ROT_MAKE_MODEL(ROT_CNCTRK, 1)
+
+
+/*! \def ROT_MODEL_PROSISTEL
+ *  \brief A macro that returns the model number of the PROSISTEL backend.
+ *
+ */
+#define ROT_PROSISTEL 17
+#define ROT_BACKEND_PROSISTEL "prosistel"
+#define ROT_MODEL_PROSISTEL ROT_MAKE_MODEL(ROT_PROSISTEL, 1)
+
 
 /*! \typedef typedef int rot_model_t
     \brief Convenience type definition for rotator model.

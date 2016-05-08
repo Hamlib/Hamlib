@@ -61,6 +61,10 @@ extern HAMLIB_EXPORT(unsigned long long) from_bcd_be(const unsigned char bcd_dat
 
 extern HAMLIB_EXPORT(int) sprintf_freq(char *str, freq_t);
 
+/* flag that determines if AI mode should be restored on exit on
+   applicable rigs - See rig_no_restore_ai() */
+extern int no_restore_ai;
+
 /* check if it's any of CR or LF */
 #define isreturn(c) ((c) == 10 || (c) == 13)
 

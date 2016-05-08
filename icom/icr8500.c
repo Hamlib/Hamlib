@@ -65,6 +65,7 @@
 static const struct icom_priv_caps icr8500_priv_caps = {
 	0x4a,   /* default address */
 	0,      /* 731 mode */
+  0,      /* no XCHG */
 	r8500_ts_sc_list
 };
 /*
@@ -89,7 +90,7 @@ const struct rig_caps icr8500_caps = {
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
-.timeout =  200,
+.timeout =  1000,
 .retry =  3,
 
 .has_get_func =  RIG_FUNC_NONE,

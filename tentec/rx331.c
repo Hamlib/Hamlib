@@ -433,15 +433,22 @@ int rx331_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 			return -RIG_EINVAL;
 	}
 
-	if (width == RIG_PASSBAND_NORMAL)
+	if (width != RIG_PASSBAND_NOCHANGE) {
+		if (width == RIG_PASSBAND_NORMAL)
 			width = rig_passband_normal(rig, mode);
 
-	/*
-	* Set DETECTION MODE and IF FILTER
-	*/
-	mdbuf_len = num_sprintf(mdbuf,  "$%iD%cI%.02f" EOM, priv->receiver_id,
-						dmode, (float)width/1e3);
-
+		/*
+		 * Set DETECTION MODE and IF FILTER
+		 */
+		mdbuf_len = num_sprintf(mdbuf,  "$%iD%cI%.02f" EOM, priv->receiver_id,
+														dmode, (float)width/1e3);
+	}
+	else {
+		/*
+		 * Set DETECTION MODE
+		 */
+		mdbuf_len = num_sprintf(mdbuf,  "$%iD%c" EOM, priv->receiver_id, dmode);
+	}
 	retval = write_block(&rs->rigport, mdbuf, mdbuf_len);
 
 	return retval;

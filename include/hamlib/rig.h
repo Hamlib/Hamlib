@@ -139,7 +139,7 @@ typedef struct rig RIG;
 #define FRQRANGESIZ 30
 #define MAXCHANDESC 30		/* describe channel eg: "WWV 5Mhz" */
 #define TSLSTSIZ 20		/* max tuning step list size, zero ended */
-#define FLTLSTSIZ 42		/* max mode/filter list size, zero ended */
+#define FLTLSTSIZ 60		/* max mode/filter list size, zero ended */
 #define MAXDBLSTSIZ 8		/* max preamp/att levels supported, zero ended */
 #define CHANLSTSIZ 16		/* max mem_list size, zero ended */
 #define MAX_CAL_LENGTH 32	/* max calibration plots in cal_table_t */
@@ -367,6 +367,7 @@ typedef int vfo_t;
 
 
 #define RIG_PASSBAND_NORMAL s_Hz(0)
+#define RIG_PASSBAND_NOCHANGE s_Hz(-1)
 /**
  * \brief Passband width, in Hz
  * \sa rig_passband_normal, rig_passband_narrow, rig_passband_wide
@@ -413,13 +414,12 @@ typedef enum {
  */
 typedef enum {
   RIG_PTT_NONE = 0,		/*!< No PTT available */
-  RIG_PTT_RIG,			/*!< Legacy PTT */
+  RIG_PTT_RIG,			/*!< Legacy PTT (CAT PTT) */
   RIG_PTT_SERIAL_DTR,		/*!< PTT control through serial DTR signal */
   RIG_PTT_SERIAL_RTS,		/*!< PTT control through serial RTS signal */
   RIG_PTT_PARALLEL,		/*!< PTT control through parallel port */
-  RIG_PTT_RIG_MICDATA,		/*!< Legacy PTT, supports RIG_PTT_ON_MIC/RIG_PTT_ON_DATA */
-  RIG_PTT_CM108,		/*!< PTT control through CM108 GPIO pin */
-  RIG_PTT_SERIAL_CAT		/*!< PTT control through serial command sequence*/
+  RIG_PTT_RIG_MICDATA,		/*!< Legacy PTT (CAT PTT), supports RIG_PTT_ON_MIC/RIG_PTT_ON_DATA */
+  RIG_PTT_CM108		/*!< PTT control through CM108 GPIO pin */
 } ptt_type_t;
 
 /**
@@ -806,6 +806,7 @@ typedef enum {
 	RIG_MODE_SAL =          (1<<17),/*!< \c SAL -- Synchronous AM lower sideband */
 	RIG_MODE_SAH =          (1<<18),/*!< \c SAH -- Synchronous AM upper (higher) sideband */
 	RIG_MODE_DSB =		(1<<19),/*!< \c DSB -- Double sideband suppressed carrier */
+	RIG_MODE_FMN =		(1<<21),/*!< \c FMN -- FM Narrow Kenwood ts990s */
 	RIG_MODE_TESTS_MAX              /*!< \c MUST ALWAYS BE LAST, Max Count for dumpcaps.c */
 } rmode_t;
 
@@ -1241,6 +1242,10 @@ struct rig_caps {
 			       pbwidth_t tx_width);
   int (*get_split_mode) (RIG * rig, vfo_t vfo, rmode_t * tx_mode,
 			       pbwidth_t * tx_width);
+  int (*set_split_freq_mode) (RIG * rig, vfo_t vfo, freq_t tx_freq,
+             rmode_t tx_mode, pbwidth_t tx_width);
+  int (*get_split_freq_mode) (RIG * rig, vfo_t vfo, freq_t * tx_freq,
+             rmode_t * tx_mode, pbwidth_t * tx_width);
 
   int (*set_split_vfo) (RIG * rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
   int (*get_split_vfo) (RIG * rig, vfo_t vfo, split_t * split, vfo_t *tx_vfo);
@@ -1335,7 +1340,7 @@ struct rig_caps {
  *
  * Of course, looks like OO painstakingly programmed in C, sigh.
  */
-typedef struct {
+typedef struct hamlib_port {
   union {
 	rig_port_t rig;		/*!< Communication port type */
 	ptt_type_t ptt;		/*!< PTT port type */
@@ -1559,6 +1564,8 @@ extern HAMLIB_EXPORT(int) rig_set_split_freq HAMLIB_PARAMS((RIG *rig, vfo_t vfo,
 extern HAMLIB_EXPORT(int) rig_get_split_freq HAMLIB_PARAMS((RIG *rig, vfo_t vfo, freq_t *tx_freq));
 extern HAMLIB_EXPORT(int) rig_set_split_mode HAMLIB_PARAMS((RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width));
 extern HAMLIB_EXPORT(int) rig_get_split_mode HAMLIB_PARAMS((RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width));
+extern HAMLIB_EXPORT(int) rig_set_split_freq_mode HAMLIB_PARAMS((RIG *rig, vfo_t vfo, freq_t tx_freq, rmode_t tx_mode, pbwidth_t tx_width));
+extern HAMLIB_EXPORT(int) rig_get_split_freq_mode HAMLIB_PARAMS((RIG *rig, vfo_t vfo, freq_t * tx_freq, rmode_t *tx_mode, pbwidth_t *tx_width));
 extern HAMLIB_EXPORT(int) rig_set_split_vfo HAMLIB_PARAMS((RIG*, vfo_t rx_vfo, split_t split, vfo_t tx_vfo));
 extern HAMLIB_EXPORT(int) rig_get_split_vfo HAMLIB_PARAMS((RIG*, vfo_t rx_vfo, split_t *split, vfo_t *tx_vfo));
 #define rig_set_split(r,v,s) rig_set_split_vfo((r),(v),(s),RIG_VFO_CURR)
@@ -1726,6 +1733,7 @@ extern HAMLIB_EXPORT(scan_t) rig_parse_scan(const char *s);
 extern HAMLIB_EXPORT(rptr_shift_t) rig_parse_rptr_shift(const char *s);
 extern HAMLIB_EXPORT(chan_type_t) rig_parse_mtype(const char *s);
 
+HAMLIB_EXPORT(void) rig_no_restore_ai();
 
 __END_DECLS
 

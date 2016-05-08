@@ -303,6 +303,8 @@
 
 /*
  * Misc contents (C_CTL_MEM) subcommands applies to newer rigs.
+ *
+ * Beware the IC-7200 which is non-standard.
  */
 #define S_MEM_CNTNT		0x00	/* Memory content 2 bigendian */
 #define S_MEM_BAND_REG		0x01	/* band stacking register */

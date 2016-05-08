@@ -16,7 +16,7 @@ TESTS = $(check_SCRIPTS)
 
 
 testcpp.sh:
-	echo 'LD_LIBRARY_PATH=$(top_builddir)/dummy/.libs ./testcpp' > testcpp.sh
+	echo 'LD_LIBRARY_PATH=$(top_builddir)/c++/.libs:$(top_builddir)/dummy/.libs ./testcpp' > testcpp.sh
 	chmod +x ./testcpp.sh
 
 CLEANFILES = testcpp.sh

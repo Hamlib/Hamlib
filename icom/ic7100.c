@@ -97,6 +97,7 @@
 static const struct icom_priv_caps ic7100_priv_caps = {
     0x88,           /* default address */
     0,              /* 731 mode */
+    0,              /* no XCHG */
     ic7100_ts_sc_list,   /* FIXME */
 };
 
@@ -108,7 +109,7 @@ const struct rig_caps ic7100_caps = {
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
-.ptt_type =  RIG_PTT_SERIAL_CAT,
+.ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_RIG,
 .port_type =  RIG_PORT_SERIAL,
 .serial_rate_min =  300,
@@ -119,7 +120,7 @@ const struct rig_caps ic7100_caps = {
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
-.timeout =  200,
+.timeout =  1000,
 .retry =  3,
 .has_get_func =  IC7100_FUNC_ALL,
 .has_set_func =  IC7100_FUNC_ALL | RIG_FUNC_RESUME,
@@ -222,8 +223,8 @@ const struct rig_caps ic7100_caps = {
 .get_freq =  icom_get_freq,
 .set_freq =  icom_set_freq,
 
-.get_mode =  icom_get_mode,
-.set_mode =  icom_set_mode,
+.get_mode =  icom_get_mode_with_data,
+.set_mode =  icom_set_mode_with_data,
 
 .get_vfo =  NULL,
 .set_vfo =  icom_set_vfo,

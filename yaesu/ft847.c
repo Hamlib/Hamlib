@@ -367,7 +367,7 @@ int ft847_init(RIG *rig) {
   if (!rig)
     return -RIG_EINVAL;
 
-  p = (struct ft847_priv_data*)malloc(sizeof(struct ft847_priv_data));
+  p = (struct ft847_priv_data *) calloc(1, sizeof(struct ft847_priv_data));
   if (!p) {
 				/* whoops! memory shortage! */
     return -RIG_ENOMEM;
@@ -663,36 +663,38 @@ int ft847_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
   /*
    * Now set width
    */
-
-  if (width == rig_passband_narrow(rig, mode)) {
-    switch(mode) {
-    case RIG_MODE_AM:
-      cmd_index = FT_847_NATIVE_CAT_SET_MODE_MAIN_AMN;
-      break;
-    case RIG_MODE_FM:
-      cmd_index = FT_847_NATIVE_CAT_SET_MODE_MAIN_FMN;
-      break;
-    case RIG_MODE_CW:
-      cmd_index = FT_847_NATIVE_CAT_SET_MODE_MAIN_CWN;
-      break;
-    case RIG_MODE_CWR:
-      cmd_index = FT_847_NATIVE_CAT_SET_MODE_MAIN_CWRN;
-      break;
-    case RIG_MODE_USB:
-    case RIG_MODE_LSB:
-      break;
-    default:
-      rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode/width: %s/%d, narrow: %d\n",
-		      __FUNCTION__, rig_strrmode(mode), width,
-		      rig_passband_narrow(rig, mode));
-      return -RIG_EINVAL;		/* sorry, wrong MODE/WIDTH combo  */
-    }
-  } else {
+  if (width != RIG_PASSBAND_NOCHANGE) {
+    if (width == rig_passband_narrow(rig, mode)) {
+      switch(mode) {
+      case RIG_MODE_AM:
+        cmd_index = FT_847_NATIVE_CAT_SET_MODE_MAIN_AMN;
+        break;
+      case RIG_MODE_FM:
+        cmd_index = FT_847_NATIVE_CAT_SET_MODE_MAIN_FMN;
+        break;
+      case RIG_MODE_CW:
+        cmd_index = FT_847_NATIVE_CAT_SET_MODE_MAIN_CWN;
+        break;
+      case RIG_MODE_CWR:
+        cmd_index = FT_847_NATIVE_CAT_SET_MODE_MAIN_CWRN;
+        break;
+      case RIG_MODE_USB:
+      case RIG_MODE_LSB:
+        break;
+      default:
+        rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode/width: %s/%d, narrow: %d\n",
+                  __FUNCTION__, rig_strrmode(mode), width,
+                  rig_passband_narrow(rig, mode));
+        return -RIG_EINVAL;		/* sorry, wrong MODE/WIDTH combo  */
+      }
+    } else {
   		if (width != RIG_PASSBAND_NORMAL &&
-						width != rig_passband_normal(rig, mode)) {
-      		return -RIG_EINVAL;		/* sorry, wrong MODE/WIDTH combo  */
-		}
-	}
+          width != rig_passband_normal(rig, mode)) {
+        return -RIG_EINVAL;		/* sorry, wrong MODE/WIDTH combo  */
+      }
+    }
+  }
+
   /*
    * Now send the command
    */

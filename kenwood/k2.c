@@ -34,7 +34,7 @@
 #include "elecraft.h"
 
 
-#define K2_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR)
+#define K2_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB)
 
 #define K2_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_LOCK)
 
@@ -46,6 +46,18 @@
 
 #define K2_ANTS (RIG_ANT_1|RIG_ANT_2)
 
+static rmode_t k2_mode_table[KENWOOD_MODE_TABLE_MAX] = {
+  [0] = RIG_MODE_NONE,
+  [1] = RIG_MODE_LSB,
+  [2] = RIG_MODE_USB,
+  [3] = RIG_MODE_CW,
+  [4] = RIG_MODE_NONE,
+  [5] = RIG_MODE_NONE,
+  [6] = RIG_MODE_PKTLSB,        /* AFSK */
+  [7] = RIG_MODE_CWR,
+  [8] = RIG_MODE_NONE,          /* TUNE mode */
+  [9] = RIG_MODE_PKTUSB         /* AFSK */
+};
 
 /* kenwood_transaction() will add this to command strings
  * sent to the rig and remove it from strings returned from
@@ -53,6 +65,7 @@
  */
 static struct kenwood_priv_caps k2_priv_caps  = {
 	.cmdtrm =  EOM_KEN,
+  .mode_table = k2_mode_table,
 };
 
 
@@ -119,8 +132,8 @@ const struct rig_caps k2_caps = {
 	.serial_handshake =	RIG_HANDSHAKE_NONE,
 	.write_delay =		0,	/* Timing between bytes */
 	.post_write_delay =	100,	/* Timing between command strings */
-	.timeout =		600,	/* FA and FB make take up to 500 ms on band change */
-	.retry =		3,
+	.timeout =		2000,	/* FA and FB make take up to 500 ms on band change */
+	.retry =		10,
 
 	.has_get_func =		K2_FUNC_ALL,
 	.has_set_func =		K2_FUNC_ALL,
@@ -187,7 +200,7 @@ const struct rig_caps k2_caps = {
 	.filters =  {
 		{RIG_MODE_SSB, kHz(2.5)},
 		{RIG_MODE_CW|RIG_MODE_CWR, Hz(500)},
-		{RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(500)},
+		{RIG_MODE_PKTLSB|RIG_MODE_PKTUSB, kHz(2.5)},
 		RIG_FLT_END,
 	},
 	.priv =  (void *)&k2_priv_caps,
@@ -195,6 +208,7 @@ const struct rig_caps k2_caps = {
 	.rig_init =		kenwood_init,
 	.rig_cleanup =		kenwood_cleanup,
 	.rig_open =		k2_open,
+	.rig_close =		kenwood_close,
 	.set_freq =		kenwood_set_freq,
 	.get_freq =		kenwood_get_freq,
 	.set_mode =		k2_set_mode,
@@ -287,8 +301,8 @@ int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	case RIG_MODE_CWR:
 		flt = &k2_fwmd_cw;
 		break;
-	case RIG_MODE_RTTY:
-	case RIG_MODE_RTTYR:
+	case RIG_MODE_PKTLSB:
+	case RIG_MODE_PKTUSB:
 		if (priv->k2_md_rtty == 0)
 			return -RIG_EINVAL;		/* RTTY module not installed */
 		else
@@ -298,54 +312,58 @@ int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		return -RIG_EINVAL;
 	}
 
-	if (width < 0)
-		width = labs(width);
+	if (width != RIG_PASSBAND_NOCHANGE) {
+		if (width < 0)
+			width = labs(width);
 
-	/* Step through the filter list looking for the best match
-	 * for the passed in width.  The choice is to select the filter
-	 * that is wide enough for the width without being too narrow
-	 * if possible.
-	 */
-	if (width == RIG_PASSBAND_NORMAL)
-		width = rig_passband_normal(rig, mode);
+		/* Step through the filter list looking for the best match
+		 * for the passed in width.  The choice is to select the filter
+		 * that is wide enough for the width without being too narrow
+		 * if possible.
+		 */
+		if (width == RIG_PASSBAND_NORMAL)
+			width = rig_passband_normal(rig, mode);
 
-	if (width > flt->filt_list[0].width || ((flt->filt_list[0].width >= width)
-		&& (width > flt->filt_list[1].width))) {
-		width = flt->filt_list[0].width;
-		f = '1';
-	} else if ((flt->filt_list[1].width >= width) && (width > flt->filt_list[2].width)) {
-		width = flt->filt_list[1].width;
-		f = '2';
-	} else if ((flt->filt_list[2].width >= width) && (width > flt->filt_list[3].width)) {
-		width = flt->filt_list[2].width;
-		f = '3';
-	} else if ((flt->filt_list[3].width >= width) && (width >= freq)) {
-		width = flt->filt_list[3].width;
-		f = '4';
-	} else {
-		return -RIG_EINVAL;
+		if (width > flt->filt_list[0].width || ((flt->filt_list[0].width >= width)
+																						&& (width > flt->filt_list[1].width))) {
+			width = flt->filt_list[0].width;
+			f = '1';
+		} else if ((flt->filt_list[1].width >= width) && (width > flt->filt_list[2].width)) {
+			width = flt->filt_list[1].width;
+			f = '2';
+		} else if ((flt->filt_list[2].width >= width) && (width > flt->filt_list[3].width)) {
+			width = flt->filt_list[2].width;
+			f = '3';
+		} else if ((flt->filt_list[3].width >= width) && (width >= freq)) {
+			width = flt->filt_list[3].width;
+			f = '4';
+		} else {
+			return -RIG_EINVAL;
+		}
 	}
-
-	/* Construct the filter command and set the radio mode and width*/
-	snprintf(fcmd, 8, "FW0000%c", f);
-
+	
 	/* kenwood_set_mode() ignores width value for K2/K3/TS-570 */
 	err = kenwood_set_mode(rig, vfo, mode, width);
 	if (err != RIG_OK)
 		return err;
 
-	err = kenwood_simple_cmd(rig, "K22");
-	if (err != RIG_OK)
-		return err;
+	if (width != RIG_PASSBAND_NOCHANGE) {
+		err = kenwood_transaction(rig, "K22", NULL, 0);
+		if (err != RIG_OK)
+			return err;
 
-	/* Set the filter slot */
-	err = kenwood_simple_cmd(rig, fcmd);
-	if (err != RIG_OK)
-		return err;
+		/* Construct the filter command and set the radio mode and width*/
+		snprintf(fcmd, 8, "FW0000%c", f);
 
-	err = kenwood_simple_cmd(rig, "K20");
-	if (err != RIG_OK)
-		return err;
+		/* Set the filter slot */
+		err = kenwood_transaction(rig, fcmd, NULL, 0);
+		if (err != RIG_OK)
+			return err;
+
+		err = kenwood_transaction(rig, "K20", NULL, 0);
+		if (err != RIG_OK)
+			return err;
+	}
 
 	return RIG_OK;
 }
@@ -374,15 +392,15 @@ int k2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	if (err != RIG_OK)
 		return err;
 
-	err = kenwood_simple_cmd(rig, "K22");
+	err = kenwood_transaction(rig, "K22", NULL, 0);
 	if (err != RIG_OK)
 		return err;
 
-	err = kenwood_safe_transaction(rig, "FW", buf, KENWOOD_MAX_BUF_LEN, 9);
+	err = kenwood_safe_transaction(rig, "FW", buf, KENWOOD_MAX_BUF_LEN, 8);
 	if (err != RIG_OK)
 		return err;
 
-	err = kenwood_simple_cmd(rig, "K20");
+	err = kenwood_transaction(rig, "K20", NULL, 0);
 	if (err != RIG_OK)
 		return err;
 
@@ -423,7 +441,7 @@ int k2_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 
 	switch(token) {
 	case TOK_TX_STAT:
-		err = kenwood_safe_transaction(rig, "TQ", buf, KENWOOD_MAX_BUF_LEN, 4);
+		err = kenwood_safe_transaction(rig, "TQ", buf, KENWOOD_MAX_BUF_LEN, 3);
 		if (err != RIG_OK)
 			return err;
 		if (cfp->type == RIG_CONF_CHECKBUTTON) {
@@ -465,19 +483,19 @@ int k2_probe_mdfw(RIG *rig, struct kenwood_priv_data *priv)
 	/* The K2 extension level has been stored by elecraft_open().  Now set rig
 	 * to K22 for detailed query of mode and filter width values...
 	 */
-	err = kenwood_simple_cmd(rig, "K22");
+	err = kenwood_transaction(rig, "K22", NULL, 0);
 	if (err != RIG_OK)
 		return err;
 
 	/* Check for mode and store it for later. */
-	err = kenwood_safe_transaction(rig, "MD", buf, KENWOOD_MAX_BUF_LEN, 4);
+	err = kenwood_safe_transaction(rig, "MD", buf, KENWOOD_MAX_BUF_LEN, 3);
 	if (err != RIG_OK)
 		return err;
 
 	strcpy(mode, buf);
 
 	/* Check for filter width and store it for later. */
-	err = kenwood_safe_transaction(rig, "FW", buf, KENWOOD_MAX_BUF_LEN, 9);
+	err = kenwood_safe_transaction(rig, "FW", buf, KENWOOD_MAX_BUF_LEN, 8);
 	if (err != RIG_OK)
 		return err;
 
@@ -489,19 +507,20 @@ int k2_probe_mdfw(RIG *rig, struct kenwood_priv_data *priv)
 	/* Now begin the process of querying the available modes and filters. */
 
 	/* First try to put the K2 into RTTY mode and check if it's available. */
-	err = kenwood_simple_cmd(rig, "MD6");
-	if (err != RIG_OK)
+	priv->k2_md_rtty = 0;		/* Assume RTTY module not installed */
+	err = kenwood_transaction(rig, "MD6", NULL, 0);
+	if (err != RIG_OK && err != -RIG_ERJCTED)
 		return err;
+	if (RIG_OK == err)
+		{
+			/* Read back mode and test to see if K2 reports RTTY. */
+			err = kenwood_safe_transaction(rig, "MD", buf, KENWOOD_MAX_BUF_LEN, 3);
+			if (err != RIG_OK)
+				return err;
 
-	/* Check for mode and test to see if K2 reports RTTY. */
-	err = kenwood_safe_transaction(rig, "MD", buf, KENWOOD_MAX_BUF_LEN, 4);
-	if (err != RIG_OK)
-		return err;
-
-	if (strcmp("MD6", buf) == 0)
-		priv->k2_md_rtty = 1;		/* set flag for RTTY mode installed */
-	else
-		priv->k2_md_rtty = 0;		/* RTTY module not installed */
+			if (!strcmp("MD6", buf))
+				priv->k2_md_rtty = 1;		/* set flag for RTTY mode enabled */
+		}
 	rig_debug(RIG_DEBUG_VERBOSE, "%s: RTTY flag is: %d\n", __func__, priv->k2_md_rtty);
 
 	i = (priv->k2_md_rtty == 1) ? 2 : 1;
@@ -551,15 +570,15 @@ int k2_mdfw_rest(RIG *rig, const char *mode, const char *fw)
 	if (strlen(mode) != 3 || strlen(fw) != 7)
 		return -RIG_EINVAL;
 
-	err = kenwood_simple_cmd(rig, mode);
+	err = kenwood_transaction(rig, mode, NULL, 0);
 	if (err != RIG_OK)
 		return err;
 
-	err = kenwood_simple_cmd(rig, fw);
+	err = kenwood_transaction(rig, fw, NULL, 0);
 	if (err != RIG_OK)
 		return err;
 
-	err = kenwood_simple_cmd(rig, "K20");
+	err = kenwood_transaction(rig, "K20", NULL, 0);
 	if (err != RIG_OK)
 		return err;
 
@@ -593,18 +612,18 @@ int k2_pop_fw_lst(RIG *rig, const char *cmd)
 		return -RIG_EINVAL;
 
 	/* Set the mode */
-	err = kenwood_simple_cmd(rig, cmd);
+	err = kenwood_transaction(rig, cmd, NULL, 0);
 	if (err != RIG_OK)
 		return err;
 
 	for (f = 1; f < 5; f++) {
 		snprintf(fcmd, 8, "FW0000%d", f);
 
-		err = kenwood_simple_cmd(rig, fcmd);
+		err = kenwood_transaction(rig, fcmd, NULL, 0);
 		if (err != RIG_OK)
 			return err;
 
-		err = kenwood_safe_transaction(rig, "FW", buf, KENWOOD_MAX_BUF_LEN, 9);
+		err = kenwood_safe_transaction(rig, "FW", buf, KENWOOD_MAX_BUF_LEN, 8);
 		if (err != RIG_OK)
 			return err;
 

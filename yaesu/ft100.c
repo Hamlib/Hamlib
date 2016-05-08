@@ -325,10 +325,8 @@ int ft100_init(RIG *rig) {
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __func__);
 
-  priv = (struct ft100_priv_data*)malloc(sizeof(struct ft100_priv_data));
+  priv = (struct ft100_priv_data *) calloc(1, sizeof(struct ft100_priv_data));
   if (!priv)  return -RIG_ENOMEM;
-
-  memset(priv, 0, sizeof(struct ft100_priv_data));
 
   rig->state.priv = (void*)priv;
 
@@ -535,6 +533,7 @@ int ft100_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
   if (ret != RIG_OK)
 	  return ret;
 
+  if (RIG_PASSBAND_NOCHANGE == width) return ret;
 #if 1
   if (mode != RIG_MODE_FM && mode != RIG_MODE_WFM && width <= kHz(6))
   {

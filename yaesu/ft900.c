@@ -284,7 +284,7 @@ static int ft900_init(RIG *rig) {
   if (!rig)
     return -RIG_EINVAL;
 
-  priv = (struct ft900_priv_data *)malloc(sizeof(struct ft900_priv_data));
+  priv = (struct ft900_priv_data *) calloc(1, sizeof(struct ft900_priv_data));
   if (!priv)                       /* whoops! memory shortage! */
     return -RIG_ENOMEM;
 
@@ -566,21 +566,23 @@ static int ft900_set_mode(RIG *rig, vfo_t vfo, rmode_t mode,
    * The FT-900 only supports narrow width in AM and CW modes
    *
    */
-  if (width == rig_passband_narrow(rig, mode)) {
-    switch(mode) {
-    case RIG_MODE_CW:
-      mode_parm = MODE_SET_CW_N;
-      break;
-    case RIG_MODE_AM:
-      mode_parm = MODE_SET_AM_N;
-      break;
-    default:
-      return -RIG_EINVAL; /* Invalid mode, how can caller know? */
-    }
-  } else {
-    if (width != RIG_PASSBAND_NORMAL &&
-        width != rig_passband_normal(rig, mode)) {
-      return -RIG_EINVAL; /* Invalid width, how can caller know? */
+  if (width != RIG_PASSBAND_NOCHANGE) {
+    if (width == rig_passband_narrow(rig, mode)) {
+      switch(mode) {
+      case RIG_MODE_CW:
+        mode_parm = MODE_SET_CW_N;
+        break;
+      case RIG_MODE_AM:
+        mode_parm = MODE_SET_AM_N;
+        break;
+      default:
+        return -RIG_EINVAL; /* Invalid mode, how can caller know? */
+      }
+    } else {
+      if (width != RIG_PASSBAND_NORMAL &&
+          width != rig_passband_normal(rig, mode)) {
+        return -RIG_EINVAL; /* Invalid width, how can caller know? */
+      }
     }
   }
 

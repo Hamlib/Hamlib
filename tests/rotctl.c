@@ -82,7 +82,7 @@ void usage();
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:s:C:t:LvhVlu"
+#define SHORT_OPTIONS "+m:r:s:C:t:LvhVlu"
 static struct option long_options[] =
 {
 	{"model",    1, 0, 'm'},
@@ -337,8 +337,8 @@ int main (int argc, char *argv[])
 			free(hist_path);
 			hist_path = (char *)NULL;
 		}
-	}
 #endif
+	}
 #endif
 	rot_close(my_rot); /* close port */
 	rot_cleanup(my_rot); /* if you care about memory */

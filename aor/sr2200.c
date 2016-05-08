@@ -370,15 +370,21 @@ int sr2200_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 	normal_width = rig_passband_normal(rig, mode);
 
-	if (width == 0)
+	if (width == RIG_PASSBAND_NORMAL)
 		width = normal_width;
 
 	switch (mode) {
-	case RIG_MODE_AM:      	aormode = width > normal_width ?
-							SR2200_WAM : SR2200_AM; break;
-	case RIG_MODE_FM:	    aormode = width < normal_width ?
-							SR2200_SFM : SR2200_FM; break;
-	case RIG_MODE_WFM:	    aormode = SR2200_WFM; break;
+	case RIG_MODE_AM:
+		aormode = width > normal_width ?
+			SR2200_WAM : SR2200_AM;
+		break;
+	case RIG_MODE_FM:
+		aormode = width >= normal_width ?
+			SR2200_FM : SR2200_SFM;
+		break;
+	case RIG_MODE_WFM:
+		aormode = SR2200_WFM;
+		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %d\n",
 					__FUNCTION__,mode);

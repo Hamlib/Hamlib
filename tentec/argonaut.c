@@ -71,7 +71,7 @@ const struct rig_caps tt516_caps = {
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
-.timeout =  400,
+.timeout =  2000,
 .retry =  3,
 
 .has_get_func =  TT516_FUNCS,
@@ -149,6 +149,7 @@ const struct rig_caps tt516_caps = {
 .set_split_vfo =  tentec2_set_split_vfo,
 .get_split_vfo =  tentec2_get_split_vfo,
 .set_ptt =  tentec2_set_ptt,
+.get_ptt =  tentec2_get_ptt,
 .reset =  tentec2_reset,
 .get_info =  tentec2_get_info,
 

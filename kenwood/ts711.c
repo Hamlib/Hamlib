@@ -44,7 +44,7 @@
 
 static struct kenwood_priv_caps  ts711_priv_caps  = {
 	.cmdtrm =  EOM_KEN,
-	.if_len =  29,
+	.if_len =  28,
 };
 
 /*
@@ -74,7 +74,7 @@ const struct rig_caps ts711_caps = {
 .write_delay =  0,
 .post_write_delay =  0,
 .timeout =  1000,
-.retry =  3,
+.retry =  10,
 
 .has_get_func =  TS711_FUNC_ALL,
 .has_set_func =  TS711_FUNC_ALL,

@@ -572,45 +572,45 @@ static int ar7030p_set_mode( RIG * rig, vfo_t vfo, rmode_t mode,
 
   rc = lockRx( rig, LOCK_1 );
   if ( RIG_OK == rc )
-  {
-    /* TODO - deal with selected VFO */
-    ar_mode = modeToNative( mode );
-
-    rc = writeByte( rig, WORKING, MODE, ar_mode );
-    if ( RIG_OK == rc )
     {
-      if ( RIG_PASSBAND_NORMAL == width )
-      {
-	width = rig_passband_normal( rig, mode );
-      }
-      else
-      {
-	/* TODO - get filter BWs at startup */
-        ar_filter = (unsigned char) 6;
-        for ( i = 1; i <= 6; i++ )
-	{
-          if ( width <= filterTab[ i ] )
-	  {
-            if ( filterTab[ i ] < filterTab[ (int) ar_filter ] )
-	    {
-	      ar_filter = (unsigned char) i;
-	    }
-	  }
+      /* TODO - deal with selected VFO */
+      ar_mode = modeToNative( mode );
 
-	  rig_debug( RIG_DEBUG_VERBOSE, "%s: width %d ar_filter %d filterTab[%d] %d\n",
-                     __func__, width, ar_filter, i, filterTab[i] );
-	}
-      }
+      rc = writeByte( rig, WORKING, MODE, ar_mode );
+      if ( RIG_OK == rc && width != RIG_PASSBAND_NOCHANGE )
+        {
+          if ( RIG_PASSBAND_NORMAL == width )
+            {
+              width = rig_passband_normal( rig, mode );
+            }
+          else
+            {
+              /* TODO - get filter BWs at startup */
+              ar_filter = (unsigned char) 6;
+              for ( i = 1; i <= 6; i++ )
+                {
+                  if ( width <= filterTab[ i ] )
+                    {
+                      if ( filterTab[ i ] < filterTab[ (int) ar_filter ] )
+                        {
+                          ar_filter = (unsigned char) i;
+                        }
+                    }
 
-      rc = writeByte( rig, WORKING, FILTER, ar_filter );
-      if ( RIG_OK == rc )
-      {
-	rc = execRoutine( rig, SET_ALL );
-      }
+                  rig_debug( RIG_DEBUG_VERBOSE, "%s: width %d ar_filter %d filterTab[%d] %d\n",
+                             __func__, width, ar_filter, i, filterTab[i] );
+                }
+            }
+
+          rc = writeByte( rig, WORKING, FILTER, ar_filter );
+          if ( RIG_OK == rc )
+            {
+              rc = execRoutine( rig, SET_ALL );
+            }
+        }
+
+      rc = lockRx( rig, LOCK_0 );
     }
-
-    rc = lockRx( rig, LOCK_0 );
-  }
 
   return( rc );
 }

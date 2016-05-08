@@ -430,20 +430,29 @@ int ser_close(hamlib_port_t *p)
 int HAMLIB_API ser_set_rts(hamlib_port_t *p, int state)
 {
 	unsigned int y = TIOCM_RTS;
+  int rc;
+
+  rig_debug(RIG_DEBUG_VERBOSE, "%s: RTS=%d\n", __func__, state);
 
 #if defined(TIOCMBIS) && defined(TIOCMBIC)
-	return IOCTL(p->fd, state ? TIOCMBIS : TIOCMBIC, &y) < 0 ?
-			-RIG_EIO : RIG_OK;
+	rc = IOCTL(p->fd, state ? TIOCMBIS : TIOCMBIC, &y);
 #else
-	if (IOCTL(p->fd, TIOCMGET, &y) < 0) {
-		return -RIG_EIO;
-	}
-	if (state)
-		y |= TIOCM_RTS;
-	else
-		y &= ~TIOCM_RTS;
-	return IOCTL(p->fd, TIOCMSET, &y) < 0 ? -RIG_EIO : RIG_OK;
+	rc = IOCTL(p->fd, TIOCMGET, &y);
+  if (rc >= 0)
+    {
+      if (state)
+        y |= TIOCM_RTS;
+      else
+        y &= ~TIOCM_RTS;
+      rc = IOCTL(p->fd, TIOCMSET, &y);
+    }
 #endif
+  if (rc < 0)
+    {
+      rig_debug(RIG_DEBUG_ERR, "%s: Cannot change RTS - %s\n", __func__, strerror(errno));
+      return -RIG_EIO;
+    }
+  return RIG_OK;
 }
 
 /**
@@ -471,20 +480,29 @@ int HAMLIB_API ser_get_rts(hamlib_port_t *p, int *state)
 int HAMLIB_API ser_set_dtr(hamlib_port_t *p, int state)
 {
 	unsigned int y = TIOCM_DTR;
+  int rc;
+
+  rig_debug(RIG_DEBUG_VERBOSE, "%s: DTR=%d\n", __func__, state);
 
 #if defined(TIOCMBIS) && defined(TIOCMBIC)
-	return IOCTL(p->fd, state ? TIOCMBIS : TIOCMBIC, &y) < 0 ?
-			-RIG_EIO : RIG_OK;
+	rc = IOCTL(p->fd, state ? TIOCMBIS : TIOCMBIC, &y);
 #else
-	if (IOCTL(p->fd, TIOCMGET, &y) < 0) {
-		return -RIG_EIO;
-	}
-	if (state)
-		y |= TIOCM_DTR;
-	else
-		y &= ~TIOCM_DTR;
-	return IOCTL(p->fd, TIOCMSET, &y) < 0 ? -RIG_EIO : RIG_OK;
+	rc = IOCTL(p->fd, TIOCMGET, &y);
+  if (rc >= 0)
+    {
+      if (state)
+        y |= TIOCM_DTR;
+      else
+        y &= ~TIOCM_DTR;
+      rc = IOCTL(p->fd, TIOCMSET, &y);
+    }
 #endif
+  if (rc < 0)
+    {
+      rig_debug(RIG_DEBUG_ERR, "%s: Cannot change DTR - %s\n", __func__, strerror(errno));
+      return -RIG_EIO;
+    }
+  return RIG_OK;
 }
 
 /**

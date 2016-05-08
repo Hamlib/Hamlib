@@ -582,7 +582,8 @@ int gr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s %s %s\n",
   		__FUNCTION__, rig_strvfo(vfo), rig_strrmode(mode), buf);
 
-  if (mode == chan->mode && width == chan->width)
+  if (mode == chan->mode
+      && (RIG_PASSBAND_NOCHANGE == width || width == chan->width))
 	  return RIG_OK;
 
 
@@ -605,7 +606,8 @@ int gr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   pthread_mutex_lock(&priv->mutex_process);
 
   /* Same mode, but different width */
-  if (mode != RIG_MODE_NONE && mode == chan->mode) {
+  if (width != RIG_PASSBAND_NOCHANGE
+      && mode != RIG_MODE_NONE && mode == chan->mode) {
 	mod->setWidth(width);
 	chan->width = width;
 	pthread_mutex_unlock(&priv->mutex_process);
@@ -626,13 +628,15 @@ int gr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
   if (mode == RIG_MODE_NONE) {
 	  /* ez */
-	chan->mode = mode;
-	chan->width = width;
+    chan->mode = mode;
+    if (width != RIG_PASSBAND_NOCHANGE) chan->width = width;
   	pthread_mutex_unlock(&priv->mutex_process);
 	return RIG_OK;
   }
 
   float rf_gain = chan->levels[rig_setting2idx(RIG_LEVEL_RF)].f;
+
+  if (RIG_PASSBAND_NOCHANGE == width) width = chan->width;
 
   switch(mode) {
   case RIG_MODE_LSB:

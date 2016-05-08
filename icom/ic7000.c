@@ -109,6 +109,7 @@
 static const struct icom_priv_caps IC7000_priv_caps = {
 		0x70,	/* default address */
 		0,		/* 731 mode */
+    0,    /* no XCHG */
 		ic7000_ts_sc_list
 };
 
@@ -132,7 +133,7 @@ const struct rig_caps ic7000_caps = {
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
-.timeout =  200,
+.timeout =  1000,
 .retry =  3,
 .has_get_func =  IC7000_FUNCS,
 .has_set_func =  IC7000_FUNCS,

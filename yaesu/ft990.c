@@ -137,7 +137,7 @@ const struct rig_caps ft990_caps = {
   .rig_model =          RIG_MODEL_FT990,
   .model_name =         "FT-990",
   .mfg_name =           "Yaesu",
-  .version =            "0.2.1",
+  .version =            "0.2.2",
   .copyright =          "LGPL",
   .status =             RIG_STATUS_ALPHA,
   .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -287,7 +287,7 @@ int ft990_init(RIG *rig) {
   if (!rig)
     return -RIG_EINVAL;
 
-  priv = (struct ft990_priv_data *)malloc(sizeof(struct ft990_priv_data));
+  priv = (struct ft990_priv_data *) calloc(1, sizeof(struct ft990_priv_data));
 
   if (!priv)
     return -RIG_ENOMEM;
@@ -942,7 +942,7 @@ int ft990_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
   err = ft990_send_static_cmd(rig, ci);
 
-  if (err != RIG_OK);
+  if (err != RIG_OK)
     return err;
   return RIG_OK;
 }
@@ -1608,6 +1608,7 @@ int ft990_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
       ci == FT990_NATIVE_MODE_SET_PKT_FM)
     return RIG_OK;
 
+  if (RIG_PASSBAND_NOCHANGE == width) return err;
   switch(width) {
     case 250:
       bw = FT990_BW_F250;

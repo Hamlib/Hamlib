@@ -133,6 +133,8 @@ public:
   freq_t getSplitFreq (vfo_t vfo = RIG_VFO_CURR);
   void setSplitMode(rmode_t, pbwidth_t width = RIG_PASSBAND_NORMAL, vfo_t vfo = RIG_VFO_CURR);
   rmode_t getSplitMode(pbwidth_t&, vfo_t vfo = RIG_VFO_CURR);
+  void setSplitFreqMode(freq_t, rmode_t, pbwidth_t width = RIG_PASSBAND_NORMAL, vfo_t vfo = RIG_VFO_CURR);
+  freq_t getSplitFreqMode(rmode_t&, pbwidth_t&, vfo_t vfo = RIG_VFO_CURR);
   void setSplitVFO(split_t split, vfo_t vfo = RIG_VFO_CURR, vfo_t tx_vfo = RIG_VFO_CURR);
   split_t getSplitVFO(vfo_t &tx_vfo, vfo_t vfo = RIG_VFO_CURR);
 

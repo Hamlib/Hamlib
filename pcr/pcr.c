@@ -757,55 +757,62 @@ pcr_set_mode(RIG * rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		return -RIG_EINVAL;
 	}
 
-	if (width == RIG_PASSBAND_NORMAL)
-		width = rig_passband_normal(rig, mode);
+	if (width != RIG_PASSBAND_NOCHANGE) {
+		if (width == RIG_PASSBAND_NORMAL)
+			width = rig_passband_normal(rig, mode);
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: will set to %d\n",
-		  __func__, width);
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: will set to %d\n",
+							__func__, width);
 
-	switch (width) {
-		/* nop, pcrfilter already set
-		 * TODO: use rig_passband_normal instead?
-		 */
-	case s_kHz(2.8):
-		pcrfilter = FLT_2_8kHz;
-		break;
-	case s_kHz(6):
-		pcrfilter = FLT_6kHz;
-		break;
-	case s_kHz(15):
-		pcrfilter = FLT_15kHz;
-		break;
-	case s_kHz(50):
-		pcrfilter = FLT_50kHz;
-		break;
-	case s_kHz(230):
-		pcrfilter = FLT_230kHz;
-		break;
-	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: unsupported width %d\n",
-			  __func__, width);
-		return -RIG_EINVAL;
+		switch (width) {
+			/* nop, pcrfilter already set
+			 * TODO: use rig_passband_normal instead?
+			 */
+		case s_kHz(2.8):
+			pcrfilter = FLT_2_8kHz;
+			break;
+		case s_kHz(6):
+			pcrfilter = FLT_6kHz;
+			break;
+		case s_kHz(15):
+			pcrfilter = FLT_15kHz;
+			break;
+		case s_kHz(50):
+			pcrfilter = FLT_50kHz;
+			break;
+		case s_kHz(230):
+			pcrfilter = FLT_230kHz;
+			break;
+		default:
+			rig_debug(RIG_DEBUG_ERR, "%s: unsupported width %d\n",
+								__func__, width);
+			return -RIG_EINVAL;
+		}
+
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: filter set to %d (%c)\n",
+							__func__, width, pcrfilter);
+
+		buf_len = sprintf((char *) buf, "K%c%010" PRIll "0%c0%c00",
+											is_sub_rcvr(rig, vfo) ? '1':'0',
+											(int64_t) rcvr->last_freq, pcrmode, pcrfilter);
+		if (buf_len < 0)
+			return -RIG_ETRUNC;
+		err = pcr_transaction(rig, (char *) buf);
+		if (err != RIG_OK)
+			return err;
+		rcvr->last_filter = pcrfilter;
 	}
-
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: filter set to %d (%c)\n",
-		  __func__, width, pcrfilter);
-
-	buf_len = sprintf((char *) buf, "K%c%010" PRIll "0%c0%c00",
-			is_sub_rcvr(rig, vfo) ? '1':'0',
-			(int64_t) rcvr->last_freq, pcrmode, pcrfilter);
-	if (buf_len < 0)
-		return -RIG_ETRUNC;
-
-	err = pcr_transaction(rig, (char *) buf);
-	if (err != RIG_OK)
-		return err;
-
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: saving values\n",
-		  __func__);
-
+	else {
+		buf_len = sprintf((char *) buf, "K%c%010" PRIll "0%c0%c00",
+											is_sub_rcvr(rig, vfo) ? '1':'0',
+											(int64_t) rcvr->last_freq, pcrmode, rcvr->last_filter);
+		if (buf_len < 0)
+			return -RIG_ETRUNC;
+		err = pcr_transaction(rig, (char *) buf);
+		if (err != RIG_OK)
+			return err;
+	}
 	rcvr->last_mode = pcrmode;
-	rcvr->last_filter = pcrfilter;
 
 	return RIG_OK;
 }

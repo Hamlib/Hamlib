@@ -113,6 +113,7 @@ static int r2i_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 static const struct icom_priv_caps ic756_priv_caps = {
 		0x50,	/* default address */
 		0,		/* 731 mode */
+    0,    /* no XCHG */
 		ic756_ts_sc_list,
 		.r2i_mode = r2i_mode
 };
@@ -136,7 +137,7 @@ const struct rig_caps ic756_caps = {
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
-.timeout =  200,
+.timeout =  1000,
 .retry =  3,
 .has_get_func =  RIG_FUNC_NONE,
 .has_set_func =  RIG_FUNC_NONE,
@@ -240,6 +241,8 @@ const struct rig_caps ic756_caps = {
 .get_split_freq =  icom_get_split_freq,
 .set_split_mode =  icom_set_split_mode,
 .get_split_mode =  icom_get_split_mode,
+.set_split_freq_mode =  icom_set_split_freq_mode,
+.get_split_freq_mode =  icom_get_split_freq_mode,
 .set_split_vfo =  icom_set_split_vfo,
 .get_split_vfo =  icom_mem_get_split_vfo,
 
@@ -254,6 +257,7 @@ const struct rig_caps ic756_caps = {
 static const struct icom_priv_caps ic756pro_priv_caps = {
 		0x5c,	/* default address */
 		0,		/* 731 mode */
+    0,    /* no XCHG */
 		ic756pro_ts_sc_list
 };
 
@@ -276,7 +280,7 @@ const struct rig_caps ic756pro_caps = {
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
-.timeout =  200,
+.timeout =  1000,
 .retry =  3,
 .has_get_func =  IC756PRO_FUNC_ALL,
 .has_set_func =  IC756PRO_FUNC_ALL,
@@ -358,8 +362,8 @@ const struct rig_caps ic756pro_caps = {
 
 .set_freq =  icom_set_freq,
 .get_freq =  icom_get_freq,
-.set_mode =  icom_set_mode_with_data,
-.get_mode =  icom_get_mode_with_data,
+.set_mode =  icom_set_mode,
+.get_mode =  icom_get_mode,
 .set_vfo =  icom_set_vfo,
 .set_ant =  icom_set_ant,
 .get_ant =  icom_get_ant,
@@ -388,6 +392,8 @@ const struct rig_caps ic756pro_caps = {
 .get_split_freq =  icom_get_split_freq,
 .set_split_mode =  icom_set_split_mode,
 .get_split_mode =  icom_get_split_mode,
+.set_split_freq_mode =  icom_set_split_freq_mode,
+.get_split_freq_mode =  icom_get_split_freq_mode,
 .set_split_vfo =  icom_set_split_vfo,
 .get_split_vfo =  icom_mem_get_split_vfo,
 
@@ -401,6 +407,7 @@ const struct rig_caps ic756pro_caps = {
 static const struct icom_priv_caps ic756pro2_priv_caps = {
 		0x64,	/* default address */
 		0,		/* 731 mode */
+    0,    /* no XCHG */
 		ic756pro_ts_sc_list
 };
 
@@ -480,7 +487,7 @@ const struct rig_caps ic756pro2_caps = {
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
-.timeout =  200,
+.timeout =  1000,
 .retry =  3,
 .has_get_func =  IC756PRO_FUNC_ALL,
 .has_set_func =  IC756PRO_FUNC_ALL,
@@ -593,6 +600,8 @@ const struct rig_caps ic756pro2_caps = {
 .get_split_freq =  icom_get_split_freq,
 .set_split_mode =  icom_set_split_mode,
 .get_split_mode =  icom_get_split_mode,
+.set_split_freq_mode =  icom_set_split_freq_mode,
+.get_split_freq_mode =  icom_get_split_freq_mode,
 .set_split_vfo =  icom_set_split_vfo,
 .get_split_vfo =  icom_mem_get_split_vfo,
 
@@ -759,6 +768,7 @@ static int ic756pro2_get_ext_parm(RIG *rig, token_t token, value_t *val)
 static const struct icom_priv_caps ic756pro3_priv_caps = {
 		0x6e,	/* default address */
 		0,		/* 731 mode */
+    0,    /* no XCHG */
 		ic756pro_ts_sc_list
 };
 
@@ -811,7 +821,7 @@ const struct rig_caps ic756pro3_caps = {
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
-.timeout =  200,
+.timeout =  1000,
 .retry =  3,
 .has_get_func =  IC756PRO_FUNC_ALL,
 .has_set_func =  IC756PRO_FUNC_ALL,
@@ -929,6 +939,8 @@ const struct rig_caps ic756pro3_caps = {
 .get_split_freq =  icom_get_split_freq,
 .set_split_mode =  icom_set_split_mode,
 .get_split_mode =  icom_get_split_mode,
+.set_split_freq_mode =  icom_set_split_freq_mode,
+.get_split_freq_mode =  icom_get_split_freq_mode,
 .set_split_vfo =  icom_set_split_vfo,
 .get_split_vfo =  icom_mem_get_split_vfo,
 
