@@ -3247,7 +3247,7 @@ int icom_decode_event(RIG *rig)
 	rs = &rig->state;
 	priv = (struct icom_priv_data*)rs->priv;
 
-	frm_len = read_icom_frame(&rs->rigport, buf);
+	frm_len = read_icom_frame(&rs->rigport, buf, sizeof(buf));
 
 	if (frm_len == -RIG_ETIMEOUT)
 	     rig_debug(RIG_DEBUG_VERBOSE, "icom: icom_decode got a timeout before the first character\n");
@@ -3368,10 +3368,10 @@ DECLARE_PROBERIG_BACKEND(icom)
 		/* read out the bytes we just sent
 	 	* TODO: check this is what we expect
 	 	*/
-		frm_len = read_icom_frame(port, buf);
+		frm_len = read_icom_frame(port, buf, sizeof(buf));
 
 		/* this is the reply */
-		frm_len = read_icom_frame(port, buf);
+		frm_len = read_icom_frame(port, buf, sizeof(buf));
 
 		/* timeout.. nobody's there */
 		if (frm_len <= 0)
@@ -3427,10 +3427,10 @@ DECLARE_PROBERIG_BACKEND(icom)
 		/* read out the bytes we just sent
 	 	* TODO: check this is what we expect
 	 	*/
-		frm_len = read_icom_frame(port, buf);
+		frm_len = read_icom_frame(port, buf, sizeof(buf));
 
 		/* this is the reply */
-		frm_len = read_icom_frame(port, buf);
+		frm_len = read_icom_frame(port, buf, sizeof(buf));
 
 		/* timeout.. nobody's there */
 		if (frm_len <= 0)

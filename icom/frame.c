@@ -98,7 +98,9 @@ int icom_one_transaction (RIG *rig, int cmd, int subcmd, const unsigned char *pa
 	struct icom_priv_data *priv;
 	const struct icom_priv_caps *priv_caps;
 	struct rig_state *rs;
-	unsigned char buf[MAXFRAMELEN];
+	// this buf needs to be large enough for 0xfe strings for power up
+	// at 115,200 this is now at least 150
+	unsigned char buf[200];
 	unsigned char sendbuf[MAXFRAMELEN];
 	int frm_len, retval;
 	int ctrl_id;
@@ -136,7 +138,7 @@ int icom_one_transaction (RIG *rig, int cmd, int subcmd, const unsigned char *pa
 		 * 			up to rs->retry times.
 		 */
 
-		retval = read_icom_frame(&rs->rigport, buf);
+		retval = read_icom_frame(&rs->rigport, buf, sizeof(buf));
 		if (retval == -RIG_ETIMEOUT || retval == 0)
 		  {
 		    /* Nothing recieved, CI-V interface is not echoing */
@@ -197,7 +199,7 @@ int icom_one_transaction (RIG *rig, int cmd, int subcmd, const unsigned char *pa
 	 * FIXME: handle pading/collisions
 	 * ACKFRMLEN is the smallest frame we can expect from the rig
 	 */
-	frm_len = read_icom_frame(&rs->rigport, buf);
+	frm_len = read_icom_frame(&rs->rigport, buf, sizeof(buf));
 	Unhold_Decode(rig);
 
 	if (frm_len < 0)
@@ -272,7 +274,7 @@ static const char icom_block_end[2] = {FI, COL};
  * TODO: strips padding/collisions
  * FIXME: check return codes/bytes read
  */
-int read_icom_frame(hamlib_port_t *p, unsigned char rxbuffer[])
+int read_icom_frame(hamlib_port_t *p, unsigned char rxbuffer[], int rxbuffer_len)
 {
 	int read = 0;
 	int retries = 10;
@@ -297,7 +299,7 @@ int read_icom_frame(hamlib_port_t *p, unsigned char rxbuffer[])
 	   /* OK, we got something. add it in and continue */
 	   read   += i;
 	   rx_ptr += i;
-	} while ((rxbuffer[read-1] != FI) && (rxbuffer[read-1] != COL));
+	} while ((read < rxbuffer_len) && (rxbuffer[read-1] != FI) && (rxbuffer[read-1] != COL));
 	return read;
 }
 
