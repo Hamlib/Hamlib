@@ -1,6 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TM-D710 description
  *  Copyright (c) 2011 by Charles Suprin
+ *  As of 4/20/16 Kenwood says the CAT protocol is "not available"
+ *  So best guess has been used along with tmd710 info from sourceforge
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -50,9 +52,17 @@ static int tmd710_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift);
 static int tmd710_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t* shift);
 static int tmd710_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offset);
 static int tmd710_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t* offset);
+static int tmd710_get_mem(RIG *rig, vfo_t vfo, int *ch);
+static int tmd710_set_mem(RIG *rig, vfo_t vfo, int ch);
+static int tmd710_set_dcs_sql(RIG * rig, vfo_t vfo, tone_t code);
+static int tmd710_get_dcs_sql(RIG * rig, vfo_t vfo, tone_t *code);
+//static int tmd710_set_channel(RIG *rig, const channel_t *chan);
+static int tmd710_get_channel(RIG *rig, channel_t *chan);
 
-#define TMD710_MODES	  (RIG_MODE_FM|RIG_MODE_AM)
-#define TMD710_MODES_TX (RIG_MODE_FM)
+
+#define TMD710_MODES	(RIG_MODE_FM|RIG_MODE_FMN|RIG_MODE_AM)
+#define TMD710_MODES_FM	(RIG_MODE_FM|RIG_MODE_FMN)
+#define TMD710_MODES_TX (RIG_MODE_FM|RIG_MODE_FMN)
 
 /* TBC */
 #define TMD710_FUNC_ALL (RIG_FUNC_TSQL|   \
@@ -96,7 +106,8 @@ static int tmd710_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t* offset);
 
 static rmode_t tmd710_mode_table[KENWOOD_MODE_TABLE_MAX] = {
     [0] = RIG_MODE_FM,
-    [1] = RIG_MODE_AM,
+    [1] = RIG_MODE_FMN,
+    [2] = RIG_MODE_AM,
 };
 
 static struct kenwood_priv_caps  tmd710_priv_caps  = {
@@ -116,9 +127,9 @@ const struct rig_caps tmd710_caps = {
 .rig_model =  RIG_MODEL_TMD710,
 .model_name = "TM-D710",
 .mfg_name =  "Kenwood",
-.version =  TH_VER,
+.version =  "0.6b",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_MOBILE|RIG_FLAG_APRS|RIG_FLAG_TNC,
 .ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_RIG,
@@ -172,9 +183,9 @@ const struct rig_caps tmd710_caps = {
  */
 .rx_range_list1 =  {
     {MHz(118),MHz(470),TMD710_MODES,-1,-1,RIG_VFO_A},
-    {MHz(136),MHz(174),RIG_MODE_FM,-1,-1,RIG_VFO_B},
-    {MHz(300),MHz(524),RIG_MODE_FM,-1,-1,RIG_VFO_B},
-    {MHz(800),MHz(1300),RIG_MODE_FM,-1,-1,RIG_VFO_B},
+    {MHz(136),MHz(174),TMD710_MODES_FM,-1,-1,RIG_VFO_B},
+    {MHz(300),MHz(524),TMD710_MODES_FM,-1,-1,RIG_VFO_B},
+    {MHz(800),MHz(1300),TMD710_MODES_FM,-1,-1,RIG_VFO_B},
 	RIG_FRNG_END,
   }, /* rx range */
 .tx_range_list1 =  {
@@ -185,9 +196,9 @@ const struct rig_caps tmd710_caps = {
 
 .rx_range_list2 =  {
     {MHz(118),MHz(470),TMD710_MODES,-1,-1,RIG_VFO_A},
-    {MHz(136),MHz(174),RIG_MODE_FM,-1,-1,RIG_VFO_B},
-    {MHz(300),MHz(524),RIG_MODE_FM,-1,-1,RIG_VFO_B},
-    {MHz(800),MHz(1300),RIG_MODE_FM,-1,-1,RIG_VFO_B},	/* TODO: cellular blocked */
+    {MHz(136),MHz(174),TMD710_MODES_FM,-1,-1,RIG_VFO_B},
+    {MHz(300),MHz(524),TMD710_MODES_FM,-1,-1,RIG_VFO_B},
+    {MHz(800),MHz(1300),TMD710_MODES_FM,-1,-1,RIG_VFO_B},	/* TODO: cellular blocked */
 	RIG_FRNG_END,
   }, /* rx range */
 .tx_range_list2 =  {
@@ -199,6 +210,7 @@ const struct rig_caps tmd710_caps = {
 .tuning_steps =  {
 	 {TMD710_MODES,kHz(5)},
 	 {TMD710_MODES,kHz(6.25)},
+	 {TMD710_MODES,kHz(8.33)},
 	 {TMD710_MODES,kHz(10)},
 	 {TMD710_MODES,kHz(12.5)},
 	 {TMD710_MODES,kHz(15)},
@@ -210,11 +222,11 @@ const struct rig_caps tmd710_caps = {
 	 RIG_TS_END,
 	},
         /* mode/filter list, remember: order matters! */
-.filters =  {
-		{RIG_MODE_FM, kHz(12)},
-		{RIG_MODE_AM, kHz(9)},	/* TBC */
-		RIG_FLT_END,
-	},
+//.filters =  {
+//		{RIG_MODE_FM, kHz(12)},
+//		{RIG_MODE_AM, kHz(9)},	/* TBC */
+//		RIG_FLT_END,
+//	},
 .priv =  (void *)&tmd710_priv_caps,
 
 .rig_init = kenwood_init,
@@ -233,12 +245,12 @@ const struct rig_caps tmd710_caps = {
 .get_ctcss_sql =  tmd710_get_ctcss_sql,
 //.set_split_vfo =  th_set_split_vfo,
 //.get_split_vfo =  th_get_split_vfo,
-//.set_dcs_sql =  th_set_dcs_sql,
-//.get_dcs_sql =  th_get_dcs_sql,
-//.set_mem =  th_set_mem,
-//.get_mem =  th_get_mem,
-//.set_channel =  th_set_channel,
-//.get_channel =  th_get_channel,
+.set_dcs_sql =  tmd710_set_dcs_sql,
+.get_dcs_sql =  tmd710_get_dcs_sql,
+.set_mem =  tmd710_set_mem,
+.get_mem =  tmd710_get_mem,
+//.set_channel =  tmd710_set_channel,
+.get_channel =  tmd710_get_channel,
 //.set_trn =  th_set_trn,
 //.get_trn =  th_get_trn,
 
@@ -262,31 +274,107 @@ const struct rig_caps tmd710_caps = {
 .decode_event =  th_decode_event,
 };
 
-/* structure for handling fo radio command */
+/* structure for handling fo/me radio command */
 typedef struct {
-  int vfo;
-  freq_t freq;
-  int step;
-  int shift;
-  int reverse;
-  int tone;
-  int ct;
-  int dsc;
-  int tone_freq;
-  int ct_freq;
-  int dsc_val;
-  int offset;
-  int mode;
+  int vfo;       // P1 or mem channel
+  freq_t freq;   // P2
+  int step;      // P3
+  int shift;     // P4
+  int reverse;   // P5
+  int tone;      // P6
+  int ct;        // P7
+  int dcs;       // P8
+  int tone_freq; // P9
+  int ct_freq;   // P10
+  int dcs_val;   // P11
+  int offset;    // P12
+  int mode;      // P13
 } tmd710_fo;
 
+/* the d710 has a single command ME that queries and sets many values */
+/* this pulls that string from the radio given a memory channel */
+/* push/pull language is uses for stuff inside 710 driver rather than get/set */
+/* uses same structure as FO command */
+/* there are two extra unknown fields ignored until kenwood confirms what they are*/
+int
+tmd710_pull_me(RIG * rig,int ch, tmd710_fo *fo_struct) {
+  char cmdbuf[8];
+  char buf[76];
+  int retval;
+
+  rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+  snprintf(cmdbuf,sizeof(cmdbuf),"ME %d",ch);
+  retval = kenwood_safe_transaction(rig, cmdbuf, buf, sizeof(buf), 64);
+  if (retval != RIG_OK)
+    return retval;
+
+  retval = num_sscanf(buf, "ME %x,%"SCNfreq",%x,%x,%x,%x,%x,%x,%d,%d,%d,%d,%d",
+		      &fo_struct->vfo, &fo_struct->freq,
+		      &fo_struct->step, &fo_struct->shift,
+		      &fo_struct->reverse, &fo_struct->tone,
+		      &fo_struct->ct, &fo_struct->dcs,
+		      &fo_struct->tone_freq, &fo_struct->ct_freq,
+		      &fo_struct->dcs_val, &fo_struct->offset,
+		      &fo_struct->mode);
+  if (retval != 13) {
+    rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, buf);
+    return -RIG_ERJCTED;
+  }
+  return RIG_OK;
+}
+
+int
+tmd710_push_me(RIG * rig,vfo_t vfo, tmd710_fo *fo_struct) {
+  char cmdbuf[50];
+  char buf[50];
+  int  retval;
+
+  rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+  // table is zero-based, tmd710 is 1-based
+  ++fo_struct->tone_freq;
+
+  // we re-use fo_struct->vfo for the channel#
+  snprintf(cmdbuf,49,"ME %031d,%010.0f,%1d,%1d,%1d,%1d,%1d,%1d,%02d,%02d,%03d,%08d,%1d",
+	   fo_struct->vfo, fo_struct->freq,
+		      fo_struct->step, fo_struct->shift,
+		      fo_struct->reverse, fo_struct->tone,
+		      fo_struct->ct, fo_struct->dcs,
+		      fo_struct->tone_freq, fo_struct->ct_freq,
+		      fo_struct->dcs_val, fo_struct->offset,
+		      fo_struct->mode);
+
+  retval = kenwood_safe_transaction(rig, cmdbuf, buf, sizeof(buf), 48);
+  if (retval != RIG_OK)
+    return retval;
+
+  retval = num_sscanf(buf, "ME %x,%"SCNfreq",%x,%x,%x,%x,%x,%x,%d,%d,%d,%d,%d",
+		      &fo_struct->vfo, &fo_struct->freq,
+		      &fo_struct->step, &fo_struct->shift,
+		      &fo_struct->reverse, &fo_struct->tone,
+		      &fo_struct->ct, &fo_struct->dcs,
+		      &fo_struct->tone_freq, &fo_struct->ct_freq,
+		      &fo_struct->dcs_val, &fo_struct->offset,
+		      &fo_struct->mode);
+  if (retval != 13) {
+    rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, buf);
+    return -RIG_ERJCTED;
+  }
+  // table is zero-based, tmd710 is 1-based
+  --fo_struct->tone_freq;
+
+  return RIG_OK;
+
+}
 
 /* the d710 has a single command FO that queries and sets many values */
 /* this pulls that string from the radio given a vfo */
 /* push/pull language is uses for stuff inside 710 driver rather than get/set */
 int 
 tmd710_pull_fo(RIG * rig,vfo_t vfo, tmd710_fo *fo_struct) {
-  char cmdbuf[50];
-  char buf[50];
+  char cmdbuf[8];
+  char buf[64];
   int vfonum = 0;
   int retval;
 
@@ -304,12 +392,8 @@ tmd710_pull_fo(RIG * rig,vfo_t vfo, tmd710_fo *fo_struct) {
     break;
 
   }
-  
-  
-  // if (vfo != RIG_VFO_CURR && vfo != rig->state.current_vfo)
-  //return kenwood_wrong_vfo(__func__, vfo);
-  snprintf(cmdbuf,49,"FO %d",vfonum);
-  
+
+  snprintf(cmdbuf,sizeof(cmdbuf),"FO %d",vfonum);
   retval = kenwood_safe_transaction(rig, cmdbuf, buf, sizeof(buf), 48);
   if (retval != RIG_OK)
     return retval;
@@ -318,16 +402,18 @@ tmd710_pull_fo(RIG * rig,vfo_t vfo, tmd710_fo *fo_struct) {
 		      &fo_struct->vfo, &fo_struct->freq, 
 		      &fo_struct->step, &fo_struct->shift, 
 		      &fo_struct->reverse, &fo_struct->tone, 
-		      &fo_struct->ct, &fo_struct->dsc, 
+		      &fo_struct->ct, &fo_struct->dcs,
 		      &fo_struct->tone_freq, &fo_struct->ct_freq,
-		      &fo_struct->dsc_val, &fo_struct->offset,
+		      &fo_struct->dcs_val, &fo_struct->offset,
 		      &fo_struct->mode);
   if (retval != 13) {
     rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, buf);
     return -RIG_ERJCTED;
   }
+  // table is zero-based, tmd710 is 1-based
+  --fo_struct->tone_freq;
+
   return RIG_OK;
-  
 }
 
 int 
@@ -338,16 +424,16 @@ tmd710_push_fo(RIG * rig,vfo_t vfo, tmd710_fo *fo_struct) {
   
   rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
   
-  //if (vfo != RIG_VFO_CURR && vfo != rig->state.current_vfo)
-  //  return kenwood_wrong_vfo(__func__, vfo);
+  // table is zero-based, tmd710 is 1-based
+  ++fo_struct->tone_freq;
 
   snprintf(cmdbuf,49,"FO %1d,%010.0f,%1d,%1d,%1d,%1d,%1d,%1d,%02d,%02d,%03d,%08d,%1d", 
 	   fo_struct->vfo, fo_struct->freq, 
 		      fo_struct->step, fo_struct->shift, 
 		      fo_struct->reverse, fo_struct->tone, 
-		      fo_struct->ct, fo_struct->dsc, 
+		      fo_struct->ct, fo_struct->dcs,
 		      fo_struct->tone_freq, fo_struct->ct_freq,
-		      fo_struct->dsc_val, fo_struct->offset,
+		      fo_struct->dcs_val, fo_struct->offset,
 		      fo_struct->mode);
   
   retval = kenwood_safe_transaction(rig, cmdbuf, buf, sizeof(buf), 48);
@@ -358,14 +444,17 @@ tmd710_push_fo(RIG * rig,vfo_t vfo, tmd710_fo *fo_struct) {
 		      &fo_struct->vfo, &fo_struct->freq, 
 		      &fo_struct->step, &fo_struct->shift, 
 		      &fo_struct->reverse, &fo_struct->tone, 
-		      &fo_struct->ct, &fo_struct->dsc, 
+		      &fo_struct->ct, &fo_struct->dcs,
 		      &fo_struct->tone_freq, &fo_struct->ct_freq,
-		      &fo_struct->dsc_val, &fo_struct->offset,
+		      &fo_struct->dcs_val, &fo_struct->offset,
 		      &fo_struct->mode);
   if (retval != 13) {
     rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, buf);
     return -RIG_ERJCTED;
   }
+  // table is zero-based, tmd710 is 1-based
+  --fo_struct->tone_freq;
+
   return RIG_OK;
   
 }
@@ -569,12 +658,12 @@ tmd710_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   
   retval = tmd710_pull_fo(rig,vfo,&fo_struct);
   if (retval == RIG_OK) {
-    if ((mode == RIG_MODE_FM) && (width ==15000)) {
+    if (mode == RIG_MODE_FM) {
       fo_struct.mode = 0;
-    } else if ((mode == RIG_MODE_FM) && (width == 6250)) {
+    } else if (mode == RIG_MODE_FMN) {
       fo_struct.mode = 1;
     }else if (mode == RIG_MODE_AM) {
-       fo_struct.mode = 1;
+       fo_struct.mode = 2;
     } else {
       rig_debug(RIG_DEBUG_ERR, "%s: Illegal value from radio '%ld'\n", __func__, mode);
       return -RIG_EINVAL;
@@ -607,8 +696,8 @@ tmd710_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
       *width = 15000;
       break;
     case 1:
-      *mode = RIG_MODE_FM;
-      *width = 6250;
+      *mode = RIG_MODE_FMN;
+      *width = 5000;
       break;
     case 2:
       *mode = RIG_MODE_AM;
@@ -953,6 +1042,207 @@ int tmd710_set_vfo (RIG *rig, vfo_t vfo)
         return retval;
 
     return RIG_OK;
+}
+
+int tmd710_get_mem(RIG *rig, vfo_t vfo, int *ch)
+{
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  if (!rig || !ch)
+    return -RIG_EINVAL;
+
+  char cmd[6];
+  char membuf[16];
+  int retval;
+  char c;
+  int n;
+
+  if (RIG_VFO_CURR == vfo || RIG_VFO_VFO == vfo)
+    {
+      if (RIG_OK != (retval = tmd710_get_vfo (rig, &vfo)))
+        {
+          return retval;
+        }
+    }
+  switch (vfo)
+    {
+    case RIG_VFO_A: c = '0'; break;
+    case RIG_VFO_B: c = '1'; break;
+    default:
+      rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);
+      return -RIG_EINVAL;
+    }
+  sprintf (cmd, "MR %c", c);
+  retval = kenwood_safe_transaction(rig, cmd, membuf, sizeof (membuf), 8);
+  if (retval != RIG_OK)
+    return retval;
+
+  n = sscanf(membuf,"MR %*d,%d",ch);
+  if (n != 1)
+    {
+      rig_debug(RIG_DEBUG_ERR, "Unable to parse '%s', expected 'MR v,ccc'\n",membuf);
+      return -RIG_EPROTO;
+    }
+
+  return RIG_OK;
+}
+
+int tmd710_set_mem(RIG *rig, vfo_t vfo, int ch)
+{
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  if (!rig)
+    return -RIG_EINVAL;
+
+  char cmd[16];
+  char membuf[16];
+  char c;
+
+  if (RIG_VFO_CURR == vfo || RIG_VFO_VFO == vfo)
+    {
+      int retval;
+      if (RIG_OK != (retval = tmd710_get_vfo (rig, &vfo)))
+        {
+          return retval;
+        }
+    }
+  switch (vfo)
+    {
+    case RIG_VFO_A: c = '0'; break;
+    case RIG_VFO_B: c = '1'; break;
+    default:
+      rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);
+      return -RIG_EINVAL;
+    }
+  sprintf (cmd, "MR %c,%03d", c, ch);
+  return kenwood_safe_transaction(rig, cmd, membuf, sizeof (membuf), 9);
+}
+
+// set memory channel from current settings
+int tmd710_set_channel(RIG *rig, const channel_t *chan)
+{
+//  char buf[65];  // Commented to quell GCC warning of unused variable.  - N0NB
+  char mode, tx_mode = 0;
+  int tone = 0;
+
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  if (!rig || !chan)
+    return -RIG_EINVAL;
+
+  struct kenwood_priv_caps *caps = kenwood_caps(rig);
+
+  mode = rmode2kenwood(chan->mode, caps->mode_table);
+    if (mode < 0 ) {
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode '%s'\n",
+                   __func__, rig_strrmode(chan->mode));
+        return -RIG_EINVAL;
+    }
+
+  if (chan->split == RIG_SPLIT_ON) {
+    tx_mode = rmode2kenwood(chan->tx_mode, caps->mode_table);
+      if (tx_mode < 0 ) {
+          rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode '%s'\n",
+                     __func__, rig_strrmode(chan->tx_mode));
+          return -RIG_EINVAL;
+      }
+
+  }
+
+  /* find tone */
+  if (chan->ctcss_tone) {
+
+    for (tone = 0; rig->caps->ctcss_list[tone] != 0; tone++) {
+      if (chan->ctcss_tone == rig->caps->ctcss_list[tone])
+        break;
+    }
+
+    if (chan->ctcss_tone != rig->caps->ctcss_list[tone])
+      tone = 0;
+  }
+
+#if 0
+  // waiting for kenwood reply on meaning of last two params
+  sprintf(buf, "ME %03d,%010"PRIll",%c,%c,%c,%c,%c,%c,%02d,%02d,%03d,%c,%8d,%c",
+          chan,
+          (int64_t)chan->freq,
+          '0' + chan->tuning_step,
+          '0' + chan->rptr_shift,
+          '0', // + chan->reverse,
+          '0' + chan->ctcss_sql, // on/off Tone
+          '0' + chan->ctcss, // on/off CT
+          '0' + chan->dcs_sql, // on/off CT
+
+          chan->ctcss_tone,
+          chan->ct_freq,
+          '0' + chan->dcs_code,
+          chan->offset,
+          '0' + chan-mode);
+
+  return kenwood_transaction(rig, buf, NULL, 0);
+#else
+  return RIG_EINVAL;
+#endif
+}
+
+// read memory channel into current settings
+int tmd710_get_channel(RIG *rig, channel_t *chan)
+{
+  int err;
+  tmd710_fo fo_struct;
+
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  if (!rig || !chan)
+    return -RIG_EINVAL;
+
+  // VFO should already be set up with all the needed info
+  // So we'll just copy from MEM to VFO
+  err = tmd710_pull_fo(rig, RIG_VFO_CURR, &fo_struct);
+  if (err != RIG_OK) return err;
+
+  return RIG_OK;
+}
+
+/*
+ *      status: ok, no vfo checks
+ */
+int tmd710_get_dcs_sql(RIG * rig, vfo_t vfo, tone_t *code)
+{
+  int retval;
+  tmd710_fo fo_struct;
+
+  if (!rig || !code)
+    return -RIG_EINVAL;
+
+  retval = tmd710_pull_fo(rig,vfo,&fo_struct);
+  if (retval != RIG_OK) return retval;
+
+  *code = common_dcs_list[fo_struct.dcs_val];
+
+  return RIG_OK;
+}
+
+/*
+ *      status: ok, no vfo checks
+ */
+int tmd710_set_dcs_sql(RIG * rig, vfo_t vfo, tone_t code)
+{
+  int retval,i;
+  tmd710_fo fo_struct;
+
+  // we only allow exact matches here
+  i=0;
+  while(code != common_dcs_list[i]) {
+    if(common_dcs_list[i] == 0)
+      return -RIG_EINVAL;
+    i++;
+  }
+
+  retval = tmd710_pull_fo(rig,vfo,&fo_struct);
+  if (retval != RIG_OK) return retval;
+  fo_struct.dcs_val = i;
+  return tmd710_push_me(rig,vfo,&fo_struct);
 }
 
 /* end of file */
