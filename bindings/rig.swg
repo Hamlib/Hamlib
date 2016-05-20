@@ -225,7 +225,9 @@ typedef channel_t * const_channel_t_p;
  */
 %extend Rig {
 
+#ifndef SWIG_CSTRING_UNIMPL
 	%cstring_bounded_output(char *returnstr, MAX_RETURNSTR);
+#endif
 
 	Rig(int rig_model) {
 		Rig *r;

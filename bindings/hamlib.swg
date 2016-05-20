@@ -52,8 +52,10 @@
 %apply double *OUTPUT { double *longitude, double *latitude };
 %apply char *OUTPUT { char *locator_res };
 
+#ifndef SWIG_CSTRING_UNIMPL
 /* longlat2locator */
 %cstring_bounded_output(char *locator_res, 13)
+#endif
 
 %immutable confparams::name;
 %immutable confparams::label;
