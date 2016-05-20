@@ -30,7 +30,7 @@
 int make_cmd_frame(char frame[], char re_id, char ctrl_id, char cmd, int subcmd, const unsigned char *data, int data_len);
 
 int icom_transaction (RIG *rig, int cmd, int subcmd, const unsigned char *payload, int payload_len, unsigned char *data, int *data_len);
-int read_icom_frame(hamlib_port_t *p, unsigned char rxbuffer[]);
+int read_icom_frame(hamlib_port_t *p, unsigned char rxbuffer[], int rxbuffer_len);
 
 int rig2icom_mode(RIG *rig, rmode_t mode, pbwidth_t width, unsigned char *md, signed char *pd);
 void icom2rig_mode(RIG *rig, unsigned char md, int pd, rmode_t *mode, pbwidth_t *width);
