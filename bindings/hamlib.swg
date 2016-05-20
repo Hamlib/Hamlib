@@ -83,6 +83,10 @@
 %include <hamlib/rotlist.h>
 %include <hamlib/rotator.h>
 
+%inline {
+typedef const char * const_char_string;
+}
+
 /*
  * The Rig "class"
  */
