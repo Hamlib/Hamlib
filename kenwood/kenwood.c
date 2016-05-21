@@ -487,6 +487,7 @@ int kenwood_init(RIG *rig)
   memset(priv, 0x00, sizeof(struct kenwood_priv_data));
   strcpy (priv->verify_cmd, RIG_MODEL_XG3 == rig->caps->rig_model ? ";" : "ID;");
   priv->split = RIG_SPLIT_OFF;
+  priv->trn_state = -1;
   rig->state.priv = priv;
 
   /* default mode_table */
@@ -611,18 +612,15 @@ int kenwood_open(RIG *rig)
     rig_debug(RIG_DEBUG_TRACE, "%s: found match %s\n",
         __func__, kenwood_id_string_list[i].id);
 
-    if (kenwood_id_string_list[i].model == rig->caps->rig_model)
-      {
-        /* get current AI state so it can be restored */
-        priv->trn_state = -1;
-        kenwood_get_trn (rig, &priv->trn_state); /* ignore errors */
-        /* Currently we cannot cope with AI mode so turn it off in
-           case last client left it on */
-        kenwood_set_trn(rig, RIG_TRN_OFF); /* ignore status in case
-                                              it's not supported */
-
-        return RIG_OK;
-      }
+    if (kenwood_id_string_list[i].model == rig->caps->rig_model) {
+      /* get current AI state so it can be restored */
+      kenwood_get_trn (rig, &priv->trn_state); /* ignore errors */
+      /* Currently we cannot cope with AI mode so turn it off in
+         case last client left it on */
+      kenwood_set_trn(rig, RIG_TRN_OFF); /* ignore status in case
+                                            it's not supported */
+      return RIG_OK;
+    }
 
     /* driver mismatch */
     rig_debug(RIG_DEBUG_ERR,
@@ -2583,6 +2581,10 @@ int kenwood_get_trn(RIG *rig, int *trn)
 
   if (!rig || !trn)
     return -RIG_EINVAL;
+
+  if (rig->caps->rig_model == RIG_MODEL_TS450S) {
+    return -RIG_ENAVAIL;
+  }
 
   char trnbuf[6];
   int retval;
