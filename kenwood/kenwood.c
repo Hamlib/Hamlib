@@ -2582,7 +2582,11 @@ int kenwood_get_trn(RIG *rig, int *trn)
   if (!rig || !trn)
     return -RIG_EINVAL;
 
-  if (rig->caps->rig_model == RIG_MODEL_TS450S) {
+  /* these rigs only have AI[0|1] set commands and no AI query */
+  if (rig->caps->rig_model == RIG_MODEL_TS450S
+      || rig->caps->rig_model == RIG_MODEL_TS690S
+      || rig->caps->rig_model == RIG_MODEL_TS850
+      || rig->caps->rig_model == RIG_MODEL_TS950SDX) {
     return -RIG_ENAVAIL;
   }
 
