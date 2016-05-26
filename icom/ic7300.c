@@ -1,6 +1,7 @@
 /*
  *  Hamlib CI-V backend - description of IC-7300 and variations
  *  Adapted by J.Watson from IC-7000 code (c) 2004 by Stephane Fillod
+ *  Adapted from IC-7200 (c) 2016 by Michael Black W9MDB
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -17,11 +18,6 @@
  *   License along with this library; if not, write to the Free Software
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
- */
-
-/*
- * 26Mar09: Corrected tuning steps and added data modes.
- * 25Mar09: Initial release
  */
 
 #ifdef HAVE_CONFIG_H
@@ -50,25 +46,30 @@
 #define IC7300_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR)
 #define IC7300_AM_TX_MODES (RIG_MODE_AM)
 
-#define IC7300_FUNCS (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_ANF|RIG_FUNC_VSC|RIG_FUNC_LOCK|RIG_FUNC_ARO)
+#define IC7300_FUNCS (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_ANF|RIG_FUNC_LOCK|RIG_FUNC_RIT|RIG_FUNC_XIT)
 
-#define IC7300_LEVELS (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_VOXGAIN|RIG_LEVEL_VOXDELAY|RIG_LEVEL_SWR|RIG_LEVEL_ALC)
+#define IC7300_LEVELS (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX|RIG_LEVEL_VOXDELAY|RIG_LEVEL_SWR|RIG_LEVEL_ALC)
+
+// Not implemented yet
+//#define IC7300_EXT_LEVELS (TOK_LEVEL_MONITOR)
 
 #define IC7300_VFOS (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)
-#define IC7300_PARMS (RIG_PARM_ANN|RIG_PARM_BACKLIGHT|RIG_PARM_APO|RIG_PARM_TIME|RIG_PARM_BEEP)
+#define IC7300_PARMS (RIG_PARM_BACKLIGHT|RIG_PARM_TIME|RIG_PARM_BEEP)
 
 #define IC7300_VFO_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL|RIG_OP_TUNE)
-#define IC7300_SCAN_OPS (RIG_SCAN_MEM|RIG_SCAN_PROG|RIG_SCAN_SLCT|RIG_SCAN_PRIO)
+#define IC7300_SCAN_OPS (RIG_SCAN_MEM|RIG_SCAN_PROG|RIG_SCAN_SLCT)
 
 #define IC7300_ANTS (RIG_ANT_1) /* ant-1 is Hf-6m */
+
 
 /*
  * FIXME: This is a guess real measures please!
  */
-#define IC7300_STR_CAL { 2, \
+#define IC7300_STR_CAL { 3, \
 	{ \
-		{   0, -60 }, \
-		{ 255, 60 } \
+		{   0, -54 }, \
+		{ 120,  0 }, \
+		{ 241,  64 } \
 	} }
 
 /*
@@ -80,22 +81,41 @@ static const struct icom_priv_caps IC7300_priv_caps = {
 		0x94,	/* default address */
 		0,		/* 731 mode */
     0,    /* no XCHG */
-		ic7300_ts_sc_list
+		ic7300_ts_sc_list,
+		.civ_version = 1	/* new version of some commands, e.g. ic7200/7300 */
 };
 
+/* Private IC7300 extra levels definitions
+ *
+ * Token definitions for .cfgparams in rig_caps
+ * See enum rig_conf_e and struct confparams in rig.h
+ */
+const struct confparams ic7300_ext_levels[] = {
+        { TOK_LEVEL_MONITOR, "MONITORGAIN", "Monitor gain", "Monitor gain",
+                NULL, RIG_CONF_NUMERIC, { .n = { 0, 1, 0 } }
+        },
+        { RIG_CONF_END, NULL, }
+};
+  
+
+int ic7300_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *ts);
+int ic7300_set_rit(RIG *rig, vfo_t vfo, shortfreq_t ts);
+int ic7300_set_xit(RIG *rig, vfo_t vfo, shortfreq_t ts);
+int ic7300_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
+int ic7300_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 
 const struct rig_caps ic7300_caps = {
 .rig_model =  RIG_MODEL_IC7300,
 .model_name = "IC-7300",
 .mfg_name =  "Icom",
-.version =  BACKEND_VER,
+.version =  BACKEND_VER ".1",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_ALPHA,
+.status =  RIG_STATUS_STABLE,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_RIG,
 .port_type =  RIG_PORT_SERIAL,
-.serial_rate_min =  300,
+.serial_rate_min =  4800,
 .serial_rate_max =  19200,
 .serial_data_bits =  8,
 .serial_stop_bits =  1,
@@ -115,10 +135,11 @@ const struct rig_caps ic7300_caps = {
 	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
 },
 .parm_gran =  {},
+.extlevels = ic7300_ext_levels,
 .ctcss_list =  full_ctcss_list,
 .dcs_list =  NULL,
-.preamp =   { 10, RIG_DBLST_END, },	/* FIXME: TBC it's a guess*/
-.attenuator =   { 20, RIG_DBLST_END, }, /* value taken from p.45 of manual*/
+.preamp =   { 1, 2, RIG_DBLST_END, },
+.attenuator =   { 1, RIG_DBLST_END, }, /* value taken from p.45 of manual*/
 .max_rit =  Hz(9999),
 .max_xit =  Hz(9999),
 .max_ifshift =  Hz(0),
@@ -130,8 +151,8 @@ const struct rig_caps ic7300_caps = {
 .chan_desc_sz =  0,
 
 .chan_list =  {
-	   {   1,  199, RIG_MTYPE_MEM  },
-	   { 200, 201, RIG_MTYPE_EDGE },    /* two by two */
+	   {   1,  99, RIG_MTYPE_MEM  },
+	   { 100, 101, RIG_MTYPE_EDGE },    /* two by two */
 	   RIG_CHAN_END,
 	},
 
@@ -152,15 +173,16 @@ const struct rig_caps ic7300_caps = {
     	RIG_FRNG_END, },
 
 .tuning_steps = {
-	 {IC7300_1HZ_TS_MODES,1},
-	 {IC7300_NOT_TS_MODES,10},
-	 {IC7300_ALL_RX_MODES,Hz(100)},
-	 {IC7300_ALL_RX_MODES,kHz(1)},
-	 {IC7300_ALL_RX_MODES,kHz(5)},
-	 {IC7300_ALL_RX_MODES,kHz(9)},
-	 {IC7300_ALL_RX_MODES,kHz(10)},
-	 RIG_TS_END,
-	},
+         {IC7300_ALL_RX_MODES,Hz(1)},
+         {IC7300_ALL_RX_MODES,kHz(1)},
+         {IC7300_ALL_RX_MODES,kHz(5)},
+         {IC7300_ALL_RX_MODES,kHz(9)},
+         {IC7300_ALL_RX_MODES,kHz(10)},
+         {IC7300_ALL_RX_MODES,kHz(12.5)},
+         {IC7300_ALL_RX_MODES,kHz(20)},
+         {IC7300_ALL_RX_MODES,kHz(25)},
+         RIG_TS_END,
+        },
 
 	/* mode/filter list, remember: order matters! But duplication may speed up search.  Put the most commonly used modes first!  Remember these are defaults, with dsp rigs you can change them to anything you want except FM and WFM which are fixed */
 .filters = 	{
@@ -198,15 +220,23 @@ const struct rig_caps ic7300_caps = {
 .set_ant =  NULL,  /*automatically set by rig depending band */
 .get_ant =  NULL,
 
-.set_rit =  icom_set_rit,
+.set_rit =  ic7300_set_rit,
+.get_rit =  ic7300_get_rit,
+// the 7300 has only one register for both RIT and Delta TX
+// you can turn one or both on -- but both end up just being in sync
+// so we'll just reuse the rit settings
+.get_xit =  ic7300_get_rit,
+.set_xit =  ic7300_set_xit,
 
 .decode_event =  icom_decode_event,
 .set_level =  icom_set_level,
 .get_level =  icom_get_level,
-.set_func =  icom_set_func,
-.get_func =  icom_get_func,
-.set_parm =  NULL,
-.get_parm =  NULL,
+.set_ext_level =  icom_set_ext_level,
+.get_ext_level =  icom_get_ext_level,
+.set_func =  ic7300_set_func,
+.get_func =  ic7300_get_func,
+.set_parm =  icom_set_parm,
+.get_parm =  icom_get_parm,
 .set_mem =  icom_set_mem,
 .vfo_op =  icom_vfo_op,
 .scan =  icom_scan,
@@ -214,7 +244,7 @@ const struct rig_caps ic7300_caps = {
 .get_ptt =  icom_get_ptt,
 .get_dcd =  icom_get_dcd,
 .set_ts =  icom_set_ts,
-.get_ts =  NULL,
+.get_ts =  icom_get_ts,
 .set_rptr_shift =  icom_set_rptr_shift,
 .get_rptr_shift =  NULL,
 .set_rptr_offs =  icom_set_rptr_offs,
@@ -229,6 +259,143 @@ const struct rig_caps ic7300_caps = {
 .get_split_mode =  icom_get_split_mode,
 .set_split_vfo =  icom_set_split_vfo,
 .get_split_vfo =  NULL,
+.set_powerstat = icom_set_powerstat,
+.power2mW = icom_power2mW,
+.mW2power = icom_mW2power,
 .send_morse = icom_send_morse
 
 };
+
+int ic7300_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *ts)
+{
+        unsigned char tsbuf[MAXFRAMELEN];
+        int ts_len, retval;
+
+        retval = icom_transaction (rig, 0x21, 0x00, NULL, 0, tsbuf, &ts_len);
+        if (retval != RIG_OK)
+                return retval;
+
+        /*
+         * tsbuf nibbles should contain 10,1,1000,100 hz digits and 00=+, 01=- bit
+         */
+	rig_debug(RIG_DEBUG_VERBOSE,"ts_len=%d\n",ts_len);
+        if (ts_len != 5) {
+                rig_debug(RIG_DEBUG_ERR,"ic7300_get_ts: wrong frame len=%d\n",
+                                        ts_len);
+                return -RIG_ERJCTED;
+        }
+
+	*ts = tsbuf[2] & 0x0f   * 1;
+	*ts += (tsbuf[2] >> 4)  * 10;
+	*ts += (tsbuf[3]& 0x0f) * 100;
+	*ts += (tsbuf[3] >> 4)  * 1000;
+	if (tsbuf[4]!=0) *ts *= -1;
+
+        return RIG_OK;
+}
+
+static int xit_flag = 0;
+
+int ic7300_set_rit(RIG *rig, vfo_t vfo, shortfreq_t ts)
+{
+	unsigned char tsbuf[8];
+	char tmpbuf[8];
+	unsigned char ackbuf[16];
+	int ack_len;
+	int retval;
+
+	rig_debug(RIG_DEBUG_VERBOSE,"ic7300_set_rit: ts=%d\n",ts);
+	tsbuf[2] = 0;
+
+	// set sign bit
+	if (ts < 0) tsbuf[2] = 1;
+	snprintf(tmpbuf,sizeof(tmpbuf),"%04d",abs(ts));
+	unsigned int b1,b2;
+	sscanf(tmpbuf,"%02x%02x",&b1,&b2);
+	tsbuf[1] = b1;
+	tsbuf[0] = b2;
+
+
+	if (ts != 0) {
+	        retval =  icom_transaction (rig, 0x21, 0x00, tsbuf, 3, ackbuf, &ack_len);
+		if (retval != RIG_OK)
+			return retval;
+	}
+	
+	if (ts == 0) { // turn off both rit/xit
+		retval = ic7300_set_func(rig,vfo,RIG_FUNC_XIT,0);
+		if (retval != RIG_OK) return retval;
+		retval = ic7300_set_func(rig,vfo,RIG_FUNC_RIT,0);
+	}
+	else {
+		if (xit_flag) retval = ic7300_set_func(rig,vfo,RIG_FUNC_XIT,1);
+		else retval = ic7300_set_func(rig,vfo,RIG_FUNC_RIT,1);
+	}
+	return retval;
+}
+
+int ic7300_set_xit(RIG *rig, vfo_t vfo, shortfreq_t ts)
+{
+	int retval;
+	xit_flag = 1;
+	retval = ic7300_set_rit(rig,vfo,ts);
+	xit_flag = 0;
+	return retval;
+}
+
+int ic7300_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
+{
+	unsigned char ackbuf[16];
+	int ack_len;
+	int retval;
+
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+	if (!rig || !status)
+		return -RIG_EINVAL;
+
+	switch (func) {
+		case RIG_FUNC_RIT:
+        		retval = icom_transaction (rig, 0x21, 0x01, NULL, 0, ackbuf, &ack_len);
+			if (retval != RIG_OK) return retval;
+			if (ack_len != 3) return RIG_BUSERROR;
+			*status = ackbuf[2];
+			break;
+
+		case RIG_FUNC_XIT:
+        		retval = icom_transaction (rig, 0x21, 0x02, NULL, 0, ackbuf, &ack_len);
+			if (ack_len != 3)  return RIG_BUSERROR;
+			
+			*status = ackbuf[2];
+			break;
+
+		default:
+			return icom_get_func(rig, vfo, func, status);
+	}
+	return retval;
+}
+
+int ic7300_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
+{
+	unsigned char ts_buf[4];
+	unsigned char ackbuf[8];
+	int ack_len;
+
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+	if (!rig)
+		return -RIG_EINVAL;
+
+	switch (func) {
+		case RIG_FUNC_RIT:
+			ts_buf[0] = status;	
+        		return  icom_transaction (rig, 0x21, 0x01, ts_buf, 1, ackbuf, &ack_len);
+
+		case RIG_FUNC_XIT:
+			ts_buf[0] = status;	
+        		return  icom_transaction (rig, 0x21, 0x02, ts_buf, 1, ackbuf, &ack_len);
+		default:
+			return icom_set_func(rig, vfo, func, status);
+	}
+	return RIG_OK;
+}

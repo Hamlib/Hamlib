@@ -294,6 +294,7 @@
  */
 #define S_PWR_OFF	0x00
 #define S_PWR_ON	0x01
+#define S_PWR_STDBY	0x02
 
 /*
  * Transmit control (C_CTL_PTT) subcommands
@@ -324,8 +325,8 @@
 #define S_MEM_SATMEM        0x01    /* Satellite memory */
 #define S_MEM_VOXGAIN       0x02    /* VOX gain level (0=0%, 255=100%) */
 #define S_MEM_VOXDELAY      0x03    /* VOX delay (0=0.0 sec, 20=2.0 sec) */
+#define S_MEM1_VOXDELAY     0x05    /* VOX delay (0=0.0 sec, 20=2.0 sec) */
 #define S_MEM_ANTIVOX       0x04    /* anti VOX setting */
-#define S_MEM_ATTLEVEL      0x05    /* Attenuation level (0=0%, 255=100%) */
 #define S_MEM_RIT           0x06    /* RIT (0=off, 1=on, 2=sub dial) */
 #define S_MEM_SATMODE       0x07    /* Satellite mode (on/off) */
 #define S_MEM_BANDSCOPE     0x08    /* Simple bandscope (on/off) */
@@ -391,6 +392,7 @@
 #define TOK_RTTY_FLTR TOKEN_BACKEND(100)
 #define TOK_SSBBASS TOKEN_BACKEND(101)
 #define TOK_SQLCTRL TOKEN_BACKEND(102)
+#define TOK_LEVEL_MONITOR TOKEN_BACKEND(103)
 
 
 #endif /* _ICOM_DEFS_H */
