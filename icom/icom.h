@@ -111,6 +111,7 @@ struct icom_priv_caps {
 						       tokens to bandwidth and
 						       mode */
 	int serial_full_duplex; /*!< Whether RXD&TXD are not tied together */
+	unsigned char civ_version; // default to 0, 1=IC7200,IC7300,etc differences
 };
 
 
@@ -121,6 +122,7 @@ struct icom_priv_data {
 	int no_1a_03_cmd;							/* rig doesn't tell IF widths */
 	int split_on;									/* record split state */
 	pltstate_t *pltstate;	/* only on optoscan */
+	unsigned char civ_version; /* 0=default, 1=new commands for IC7200,IC7300, etc */
 };
 
 extern const struct ts_sc_list r8500_ts_sc_list[];
@@ -183,6 +185,8 @@ int icom_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
 int icom_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch);
 int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+int icom_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val);
+int icom_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val);
 int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 int icom_set_parm(RIG *rig, setting_t parm, value_t val);
@@ -194,6 +198,8 @@ int icom_get_powerstat(RIG *rig, powerstat_t *status);
 int icom_set_ant(RIG * rig, vfo_t vfo, ant_t ant);
 int icom_get_ant(RIG * rig, vfo_t vfo, ant_t *ant);
 int icom_decode_event(RIG *rig);
+int icom_power2mW(RIG * rig, unsigned int *mwpower, float power, freq_t freq, rmode_t mode);
+int icom_mW2power(RIG * rig, float *power, unsigned int mwpower, freq_t freq, rmode_t mode);
 int icom_send_morse (RIG * rig, vfo_t vfo, const char *msg);
 
 extern const struct confparams icom_cfg_params[];

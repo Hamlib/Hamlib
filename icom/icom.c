@@ -221,7 +221,7 @@ const struct ts_sc_list ic7200_ts_sc_list[] = {
 };
 
 const struct ts_sc_list ic7300_ts_sc_list[] = {
-	{ 10, 0x00 }, /* Manual says "Send/read the tuning step OFF" */
+	{ 1, 0x00 }, /* Manual says "Send/read the tuning step OFF" */
 	{ 100, 0x01 },
 	{ kHz(1), 0x02 },
 	{ kHz(5), 0x03 },
@@ -378,6 +378,7 @@ int icom_init(RIG *rig)
 
 	priv_caps = (const struct icom_priv_caps *) caps->priv;
 
+
 	priv = (struct icom_priv_data*)calloc(1, sizeof(struct icom_priv_data));
 	if (!priv) {
 		/* whoops! memory shortage! */
@@ -396,6 +397,8 @@ int icom_init(RIG *rig)
 	priv->re_civ_addr = priv_caps->re_civ_addr;
 	priv->civ_731_mode = priv_caps->civ_731_mode;
 	priv->no_xchg = priv_caps->no_xchg;
+	priv->civ_version = priv_caps->civ_version;
+	rig_debug(RIG_DEBUG_TRACE,"icom_init: civ_version=%d\n", priv->civ_version);
 
 	return RIG_OK;
 }
@@ -923,6 +926,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
 	struct rig_state *rs;
+	struct icom_priv_data *priv;
 	unsigned char lvlbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
 	int ack_len=sizeof(ackbuf), lvl_len;
 	int lvl_cn, lvl_sc;		/* Command Number, Subcommand */
@@ -930,6 +934,7 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 	int i, retval;
 
 	rs = &rig->state;
+	priv = (struct icom_priv_data*)rs->priv;
 
 
 	/*
@@ -956,7 +961,7 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 				break;
 		}
 	}
-	if (rig->caps->rig_model == RIG_MODEL_IC7300) {
+	if (priv->civ_version == 1) {
 		switch (level) {
 			case RIG_LEVEL_KEYSPD:
 				if (val.i < 6) val.i = 6;
@@ -1097,9 +1102,18 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
                 lvl_sc = S_LVL_VOXGAIN;
             }
             break;
-        case RIG_LEVEL_VOXDELAY:    /* IC-910H */
-            lvl_cn = C_CTL_MEM;
-            lvl_sc = S_MEM_VOXDELAY;
+        case RIG_LEVEL_VOXDELAY:
+            if (priv->civ_version == 1) {
+                lvl_cn = C_CTL_MEM;
+                lvl_sc = 0x05; // plus 0191 and value 0-20 = 0-2 secs
+                lvl_len = 2;
+		lvlbuf[0] = 0x01;
+		lvlbuf[1] = 0x91;
+            }
+            else { /* IC-910H */
+                lvl_cn = C_CTL_MEM;
+                lvl_sc = S_MEM_VOXDELAY;
+            }
             break;
         case RIG_LEVEL_ANTIVOX:
             if (rig->caps->rig_model == RIG_MODEL_IC910) {
@@ -1135,7 +1149,7 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
  * Assumes rig!=NULL, rig->state.priv!=NULL, val!=NULL
  *
  * TODO (missing RIG_LEVEL):
- * - S_RFML: Read real RFpower-meter level
+ * - S_RiML: Read real RFpower-meter level
  * - S_CMP: Read COMP-meter level
  * - S_VD : Read Vd-meter level
  * - S_ID : Read Id-meter level
@@ -1143,6 +1157,7 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
 	struct rig_state *rs;
+	struct icom_priv_data *priv;
 	unsigned char lvlbuf[MAXFRAMELEN], lvl2buf[MAXFRAMELEN];
 	int lvl_len, lvl2_len;
 	int lvl_cn, lvl_sc;		/* Command Number, Subcommand */
@@ -1151,6 +1166,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	int retval;
 
 	rs = &rig->state;
+	priv = (struct icom_priv_data*)rs->priv;
 
 	lvl2_len = 0;
 
@@ -1275,6 +1291,13 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                 lvl_sc = S_LVL_ANTIVOX;
             }
             break;
+/* Not implemented yet
+        case TOK_LEVEL_MONITOR:
+	    lvl_cn = C_CTL_MEM;
+            lvl_sc = S_MEM_MONITOR;
+            break;
+*/
+
 	default:
 		rig_debug(RIG_DEBUG_ERR,"Unsupported get_level %d", level);
 		return -RIG_EINVAL;
@@ -1310,6 +1333,9 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	icom_val = from_bcd_be(lvlbuf+cmdhead, lvl_len*2);
 
 	switch (level) {
+	case RIG_LEVEL_STRENGTH:
+		val->i = round(rig_raw2val(icom_val, &rig->caps->str_cal));
+		break;
 	case RIG_LEVEL_RAWSTR:
 		/* raw value */
 		val->i = icom_val;
@@ -1370,7 +1396,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				break;
 		}
 	}
-	else if ((rig->caps->rig_model == RIG_MODEL_IC7300)&&(level==RIG_LEVEL_KEYSPD)){
+	else if ((priv->civ_version == 1)&&(level==RIG_LEVEL_KEYSPD)){
 		switch (level) {
 			case RIG_LEVEL_KEYSPD:
 				val->i = val->i*(42.0/255)+6+.5;
@@ -1383,6 +1409,41 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 	return RIG_OK;
 }
+
+/*
+ * icom_set_ext_level
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ *
+ */
+int icom_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
+{
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+	switch (token) {
+		case TOK_LEVEL_MONITOR:
+			rig_debug(RIG_DEBUG_VERBOSE, "TOK_LEVEL_MONITOR\n", __func__);
+			break;
+		default: return -RIG_EINVAL;
+	}
+	return RIG_OK;
+}
+
+/*
+ * icom_get_ext_level
+ * Assumes rig!=NULL, rig->state.priv!=NULL, val!=NULL
+ *
+ */
+int icom_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
+{
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+	switch (token) {
+		case TOK_LEVEL_MONITOR:
+			rig_debug(RIG_DEBUG_VERBOSE, "TOK_LEVEL_MONITOR\n", __func__);
+			break;
+		default: return -RIG_EINVAL;
+	}
+	return RIG_OK;
+}
+
 
 /*
  * Assumes rig!=NULL, rig->state.priv!=NULL
@@ -2208,9 +2269,17 @@ int icom_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
  */
 int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
+	struct icom_priv_data *priv;
+	struct rig_state *rs;
 	unsigned char fctbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
 	int fct_len, acklen, retval;
 	int fct_cn, fct_sc;		/* Command Number, Subcommand */
+
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+	rs = &rig->state;
+	priv = (struct icom_priv_data*)rs->priv;
+
 	/* r8500, the problem rig */
 	int r8500 = (rig->caps->rig_model == RIG_MODEL_ICR8500)? 1 : 0;
 
@@ -2226,10 +2295,16 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 		fct_sc = (r8500)?(status)?S_FUNC_AGCON:S_FUNC_AGCOFF:S_FUNC_AGC;
 		/* fct_sc = S_FUNC_AGC; */
 		/* note: should it be a LEVEL only, and no func? --SF */
-		if (status != 0)
+		if (priv->civ_version == 1) {
+			fct_len = 1;
+			fctbuf[0] = status;
+		}
+		else if (status != 0) {
 			fctbuf[0] = 0x03;	/* default to 0x03 in IC746 pro super-fast */
-		else
+		}
+		else {
 			fctbuf[0] = 0x02;
+		}
 		break;
 	case RIG_FUNC_NB:
 		fct_cn = C_CTL_FUNC;
@@ -2452,12 +2527,17 @@ These are very much rig specific and should probably be in rig files.  These are
  */
 int icom_set_parm(RIG *rig, setting_t parm, value_t val)
 {
+	struct rig_state *rs;
+	struct icom_priv_data *priv;
 	unsigned char prmbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
 	int ack_len=sizeof(ackbuf), prm_len;
 	int prm_cn, prm_sc;
 	int icom_val;
 	int retval;
 	int min,hr,sec;
+
+	rs = &rig->state;
+	priv = (struct icom_priv_data*)rs->priv;
 
 	switch (parm) {
 	case RIG_PARM_ANN:
@@ -2496,26 +2576,54 @@ int icom_set_parm(RIG *rig, setting_t parm, value_t val)
 		icom_val = val.f * 255;
 		prm_len = 3;
 		prmbuf[0] = S_PRM_BACKLT;
-		to_bcd_be(prmbuf+1, (long long)icom_val, (prm_len-1)*2);
+		if (priv->civ_version == 1) {
+			prm_sc = 0x05;
+			prm_len = 4;
+			prmbuf[0] = 0x00;
+			prmbuf[1] = 0x81;
+			to_bcd_be(prmbuf+2, (long long)icom_val, (prm_len-1)*2);
+		}
+		else {
+			to_bcd_be(prmbuf+1, (long long)icom_val, (prm_len-1)*2);
+		}
 		break;
 	case RIG_PARM_BEEP:
 		prm_cn = C_CTL_MEM;
-		prm_sc = S_MEM_MODE_SLCT;
-		prm_len = 2;
-		prmbuf[0] = S_PRM_BEEP;
-		prmbuf[1] = val.i;
+		if (priv->civ_version == 1) {
+			prm_sc = 0x05;
+			prm_len = 3;
+			prmbuf[0] = 0x00;
+			prmbuf[1] = 0x23;
+			prmbuf[2] = val.i;
+		}
+		else {
+			prm_sc = S_MEM_MODE_SLCT;
+			prm_len = 2;
+			prmbuf[0] = S_PRM_BEEP;
+			prmbuf[1] = val.i;
+		}
 		break;
 	case RIG_PARM_TIME:
 		prm_cn = C_CTL_MEM;
-		prm_sc = S_MEM_MODE_SLCT;
 		hr = (float)val.i/3600.0;
 		min = (float)(val.i - (hr*3600))/60.0;
 		sec = (val.i - (hr*3600) - (min*60));
-		prm_len = 4;
-		prmbuf[0] = S_PRM_TIME;
-		to_bcd_be(prmbuf+1, (long long)hr, 2);
-		to_bcd_be(prmbuf+2, (long long)min, 2);
-		to_bcd_be(prmbuf+3, (long long)sec, 2);
+		if (priv->civ_version == 1) {
+			prm_sc = 0x05;
+			prm_len = 4;
+			prmbuf[0] = 0x00;
+			prmbuf[1] = 0x95;
+			to_bcd_be(prmbuf+2, (long long)hr, 2);
+			to_bcd_be(prmbuf+3, (long long)min, 2);
+		}
+		else {
+			prm_sc = S_MEM_MODE_SLCT;
+			prm_len = 4;
+			prmbuf[0] = S_PRM_TIME;
+			to_bcd_be(prmbuf+1, (long long)hr, 2);
+			to_bcd_be(prmbuf+2, (long long)min, 2);
+			to_bcd_be(prmbuf+3, (long long)sec, 2);
+		}
 		break;
 	default:
 	  rig_debug(RIG_DEBUG_ERR,"Unsupported set_parm %d\n", parm);
@@ -2542,6 +2650,8 @@ int icom_set_parm(RIG *rig, setting_t parm, value_t val)
  */
 int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 {
+	struct rig_state *rs;
+	struct icom_priv_data *priv;
 	unsigned char prmbuf[MAXFRAMELEN], resbuf[MAXFRAMELEN];
 	int prm_len, res_len;
 	int prm_cn, prm_sc;
@@ -2549,6 +2659,9 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 	int cmdhead;
 	int retval;
 	int min,hr,sec;
+
+	rs = &rig->state;
+	priv = (struct icom_priv_data*)rs->priv;
 
 	switch (parm) {
 	case RIG_PARM_APO:
@@ -2559,21 +2672,45 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 		break;
 	case RIG_PARM_BACKLIGHT:
 		prm_cn = C_CTL_MEM;
-		prm_sc = S_MEM_MODE_SLCT;
-		prm_len = 1;
-		prmbuf[0] = S_PRM_BACKLT;
+		if (priv->civ_version == 1) {
+			prm_sc = 0x05;
+			prm_len = 2;
+			prmbuf[0] = 0x00;
+			prmbuf[1] = 0x81;
+		}
+		else {
+			prm_sc = S_MEM_MODE_SLCT;
+			prm_len = 1;
+			prmbuf[0] = S_PRM_BACKLT;
+		}
 		break;
 	case RIG_PARM_BEEP:
-		prm_cn = C_CTL_MEM;
-		prm_sc = S_MEM_MODE_SLCT;
-		prm_len = 1;
-		prmbuf[0] = S_PRM_BEEP;
+		if (priv->civ_version == 1) {
+			prm_sc = 0x05;
+			prm_len = 2;
+			prmbuf[0] = 0x00;
+			prmbuf[1] = 0x23;
+		}
+		else {
+			prm_cn = C_CTL_MEM;
+			prm_sc = S_MEM_MODE_SLCT;
+			prm_len = 1;
+			prmbuf[0] = S_PRM_BEEP;
+		}
 		break;
 	case RIG_PARM_TIME:
-		prm_cn = C_CTL_MEM;
-		prm_sc = S_MEM_MODE_SLCT;
-		prm_len = 1;
-		prmbuf[0] = S_PRM_TIME;
+		if (priv->civ_version == 1) {
+			prm_sc = 0x05;
+			prm_len = 2;
+			prmbuf[0] = 0x00;
+			prmbuf[1] = 0x95;
+		}
+		else {
+			prm_cn = C_CTL_MEM;
+			prm_sc = S_MEM_MODE_SLCT;
+			prm_len = 1;
+			prmbuf[0] = S_PRM_TIME;
+		}
 		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"Unsupported get_parm %d", parm);
@@ -2605,11 +2742,25 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 		val->i = icom_val;
 		break;
 	case RIG_PARM_TIME:
-		hr = from_bcd_be(resbuf+cmdhead, 2);
-		min = from_bcd_be(resbuf+cmdhead+1, 2);
-		sec = from_bcd_be(resbuf+cmdhead+2, 2);
+		if (priv->civ_version == 1) {
+			hr = from_bcd_be(resbuf+cmdhead, 2);
+			min = from_bcd_be(resbuf+cmdhead+1, 2);
+			sec = from_bcd_be(resbuf+cmdhead+2, 2);
+		}
+		else {
+			hr = from_bcd_be(resbuf+cmdhead+1, 2);
+			min = from_bcd_be(resbuf+cmdhead+2, 2);
+			sec = 0;
+		}
 		icom_val = (hr*3600)+(min*60)+sec;
 		val->i = icom_val;
+		break;
+	case RIG_PARM_BACKLIGHT:
+		icom_val = 0;
+		if (priv->civ_version == 1) {
+			icom_val = from_bcd_be(resbuf+cmdhead+1, (res_len-1)*2);
+			val->f = icom_val/255.0*100;
+		}
 		break;
 	default:
 		icom_val = from_bcd_be(resbuf+cmdhead, res_len*2);
@@ -2868,12 +3019,30 @@ int icom_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
  */
 int icom_set_powerstat(RIG *rig, powerstat_t status)
 {
-	unsigned char ackbuf[MAXFRAMELEN];
+	unsigned char ackbuf[200];
 	int ack_len=sizeof(ackbuf), retval;
 	int pwr_sc;
+	unsigned char fe_buf[200]; // for FE's to power up
+	int fe_len = 0;
 
-	pwr_sc = status==RIG_POWER_ON ? S_PWR_ON:S_PWR_OFF;
+	switch (status) {
+		case RIG_POWER_ON:
+			pwr_sc = RIG_POWER_ON;
+			// ic7300 manual says ~150 for 115,200
+			// we'll just send 175 to be sure for all speeds
+			for(fe_len=0;fe_len<175;++fe_len) {
+				fe_buf[fe_len]=0xfe;
+			}
+			break;
+		default:
+			pwr_sc = RIG_POWER_OFF;
+			fe_buf[0] = 0;
+	}
 
+	// we can ignore this retval
+	// sending more than enough 0xfe's to take up the rs232
+	icom_transaction(rig, 0xfe, 0xfe, fe_buf, fe_len,
+					ackbuf, &ack_len);
 	retval = icom_transaction(rig, C_SET_PWR, pwr_sc, NULL, 0,
 					ackbuf, &ack_len);
 	if (retval != RIG_OK)
@@ -3058,13 +3227,16 @@ int icom_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
  */
 int icom_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
+	struct rig_state *rs;
+	struct icom_priv_data *priv;
 	unsigned char mvbuf[MAXFRAMELEN];
 	unsigned char ackbuf[MAXFRAMELEN];
-	int mv_len, ack_len=sizeof(ackbuf), retval;
+	int mv_len=0, ack_len=sizeof(ackbuf), retval;
 	int mv_cn, mv_sc;
 	int vfo_list;
 
-	mv_len = 0;
+	rs = &rig->state;
+	priv = (struct icom_priv_data*)rs->priv;
 
 	switch(op) {
 		case RIG_OP_CPY:
@@ -3104,6 +3276,10 @@ int icom_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 			mv_sc = -1;
 			break;
 		case RIG_OP_TUNE:
+			if (priv->civ_version == 1) {
+				mvbuf[0] = 2;
+				mv_len = 1;
+			}
 			mv_cn = C_CTL_PTT;
 			mv_sc = S_ANT_TUN;
 			break;
@@ -3227,6 +3403,46 @@ int icom_send_morse (RIG * rig, vfo_t vfo, const char *msg)
 
 	return RIG_OK;
 }
+int icom_power2mW(RIG * rig, unsigned int *mwpower, float power, freq_t freq, rmode_t mode)
+{
+	int rig_id;
+
+	rig_id =  rig->caps->rig_model;
+
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+	switch (rig_id) {
+		default:
+			/* Normal 100 Watts */
+			*mwpower = power * 100000;
+			break;
+	}
+	return RIG_OK;
+}
+
+int icom_mW2power(RIG * rig, float *power, unsigned int mwpower, freq_t freq, rmode_t mode)
+{
+	int rig_id;
+
+	rig_id =  rig->caps->rig_model;
+
+	rig_debug(RIG_DEBUG_TRACE, "%s: passed mwpower = %i\n", __func__, mwpower);
+	rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %"PRIfreq" Hz\n", __func__, freq);
+	rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = %i\n", __func__, mode);
+
+	if (mwpower > 100000)
+		return -RIG_EINVAL;
+
+	switch (rig_id) {
+		default: /* Default to a 100W radio */
+			*power = ((float)mwpower / 100000);
+			break;
+	}
+
+	return RIG_OK;
+}
+
+
 
 /*
  * icom_decode is called by sa_sigio, when some asynchronous
