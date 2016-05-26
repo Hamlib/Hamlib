@@ -13,6 +13,11 @@ LIBTOOLIZE=libtoolize
 AUTORECONF=autoreconf
 AUTOMAKE=automake
 
+# Check if we compile on OSX and resolve the name conflict with
+# Apple's tool for creating Mach-O dynamic libraries.
+
+case `uname` in Darwin*) LIBTOOLIZE=glibtoolize ;; esac
+
 # variables below this line should not need modification
 SRCDIR=`dirname "$0"`
 test -z "$SRCDIR" && SRCDIR=.
