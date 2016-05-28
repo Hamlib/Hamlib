@@ -216,6 +216,10 @@ int main (int argc, char *argv[])
 					ptt_type = RIG_PTT_PARALLEL;
 				else if (!strcmp(optarg, "CM108"))
 					ptt_type = RIG_PTT_CM108;
+				else if (!strcmp(optarg, "GPIO"))
+					ptt_type = RIG_PTT_GPIO;
+				else if (!strcmp(optarg, "GPION"))
+					ptt_type = RIG_PTT_GPION;
 				else if (!strcmp(optarg, "NONE"))
 					ptt_type = RIG_PTT_NONE;
 				else
