@@ -590,6 +590,7 @@ int HAMLIB_API rig_open(RIG *rig)
 			status = -RIG_EIO;
 		} else
 			gpio_ptt_set(&rs->pttport, RIG_PTT_OFF);
+		break;
 	case RIG_PTT_GPION:
 		rs->pttport.fd = gpio_open(&rs->pttport, 0);
 		if (rs->pttport.fd < 0) {
@@ -599,6 +600,7 @@ int HAMLIB_API rig_open(RIG *rig)
 			status = -RIG_EIO;
 		} else
 			gpio_ptt_set(&rs->pttport, RIG_PTT_OFF);
+		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR, "Unsupported PTT type %d\n",
               rs->pttport.type.ptt);
