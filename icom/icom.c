@@ -2384,10 +2384,18 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             fct_cn = C_CTL_MEM;
             fct_sc = S_MEM_SATMODE;
             break;
-        case RIG_FUNC_SCOPE:    /* IC-910H */
-            fct_cn = C_CTL_MEM;
-            fct_sc = S_MEM_BANDSCOPE;
-            break;
+        case RIG_FUNC_SCOPE:
+		if (priv->civ_version == 1) { /* IC-7200/7300 */
+			fct_cn = 0x27;
+			fct_sc = 0x10;
+			fctbuf[0] = status;
+			fct_len = 1;
+		}
+		else { /* IC-910H */
+			fct_cn = C_CTL_MEM;
+			fct_sc = S_MEM_BANDSCOPE;
+		}
+		break;
 	case RIG_FUNC_RESUME:	/* IC-910H  & IC-746-Pro*/
 		fct_cn = C_CTL_SCAN;
 		fct_sc = status ? S_SCAN_RSMON : S_SCAN_RSMOFF;

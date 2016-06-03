@@ -485,15 +485,15 @@ typedef enum {
  * \sa rig_parse_scan() rig_strscan()
  */
 typedef enum {
-	RIG_SCAN_NONE =		0,  /*!< '' No Scan */
-	RIG_SCAN_STOP =		RIG_SCAN_NONE, /*!< \c STOP -- Stop scanning */
+	RIG_SCAN_NONE =		0,  /*!< '' No-op value */
 	RIG_SCAN_MEM =		(1<<0),	/*!< \c MEM -- Scan all memory channels */
 	RIG_SCAN_SLCT =		(1<<1),	/*!< \c SLCT -- Scan all selected memory channels */
 	RIG_SCAN_PRIO =		(1<<2),	/*!< \c PRIO -- Priority watch (mem or call channel) */
 	RIG_SCAN_PROG =		(1<<3),	/*!< \c PROG -- Programmed(edge) scan */
 	RIG_SCAN_DELTA =	(1<<4),	/*!< \c DELTA -- delta-f scan */
 	RIG_SCAN_VFO =		(1<<5),	/*!< \c VFO -- most basic scan */
-	RIG_SCAN_PLT =		(1<<6)  /*!< \c PLT -- Scan using pipelined tuning */
+	RIG_SCAN_PLT =		(1<<6), /*!< \c PLT -- Scan using pipelined tuning */
+	RIG_SCAN_STOP =		(1<<7)  /*!< \c STOP -- Stop scanning */
 } scan_t;
 
 /**

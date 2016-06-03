@@ -654,6 +654,7 @@ static struct {
 	{ RIG_SCAN_VFO, "VFO" },
 	{ RIG_SCAN_PLT, "PLT" },
 	{ RIG_SCAN_NONE, "" },
+	{ -1, NULL }
 };
 
 /**
