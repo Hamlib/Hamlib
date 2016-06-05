@@ -34,6 +34,7 @@
 #define _NEWCAT_H 1
 
 #include <tones.h>
+#include <token.h>
 
 /* Handy constants */
 
@@ -49,7 +50,7 @@
 typedef char ncboolean;
 
 /* shared function version */
-#define NEWCAT_VER "0.22"
+#define NEWCAT_VER "0.23"
 
 /* Hopefully large enough for future use, 128 chars plus '\0' */
 #define NEWCAT_DATA_LEN                 129
@@ -85,6 +86,7 @@ struct newcat_priv_data {
     int width_frequency; /* width of FA/FB freq response */
     int offset_rit; /* offset of rit in response */
     int trn_state;  /* AI state found at startup */
+		int fast_set_commands; /* do not check for ACK/NAK; needed for high throughput > 100 commands/s */
 };
 
 
@@ -115,6 +117,12 @@ struct newcat_priv_data {
  *
  */
 
+ /*
+  * configuration Tokens
+  *
+  */
+
+#define TOK_FAST_SET_CMD TOKEN_BACKEND(1)
 
 /*
  * newcat function definitions.
@@ -125,6 +133,9 @@ int newcat_init(RIG *rig);
 int newcat_cleanup(RIG *rig);
 int newcat_open(RIG *rig);
 int newcat_close(RIG *rig);
+
+int newcat_set_conf(RIG *, token_t, const char *val);
+int newcat_get_conf(RIG *, token_t, char *val);
 
 int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int newcat_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);

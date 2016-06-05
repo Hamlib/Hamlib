@@ -235,7 +235,6 @@ static ncboolean newcat_valid_command(RIG *rig, char *command);
 int newcat_get_cmd(RIG * rig);
 int newcat_set_cmd (RIG *rig);
 
-
 /*
  * ************************************
  *
@@ -272,6 +271,7 @@ int newcat_init(RIG *rig) {
 
     priv->rig_id = NC_RIGID_NONE;
     priv->current_mem = NC_MEM_CHANNEL_NONE;
+    priv->fast_set_commands = FALSE;
 
     return RIG_OK;
 }
@@ -353,6 +353,48 @@ int newcat_close(RIG *rig) {
       }
     return RIG_OK;
 }
+
+int newcat_set_conf(RIG *rig, token_t token, const char *val){
+    int ret = RIG_OK;
+
+    if (rig == NULL){
+      return -RIG_EARG;
+    }
+
+    struct newcat_priv_data *priv = rig->state.priv;
+    switch (token) {
+        case TOK_FAST_SET_CMD:
+            priv->fast_set_commands = (int)val;
+            break;
+
+        default:
+            ret = -RIG_EINVAL;
+    }
+
+    return ret;
+}
+
+int newcat_get_conf(RIG *rig, token_t token, char *val){
+    int ret = RIG_OK;
+
+    if (rig == NULL) {
+      return -RIG_EARG;
+    }
+
+    struct newcat_priv_data *priv = rig->state.priv;
+    switch (token) {
+    case TOK_FAST_SET_CMD:
+        val = (char*)priv->fast_set_commands;
+        break;
+    default:
+        ret = -RIG_EINVAL;
+    }
+
+    return ret;
+}
+
+
+
 
 /*
  * rig_set_freq
@@ -2684,22 +2726,6 @@ int newcat_get_ext_parm(RIG *rig, token_t token, value_t *val)
 }
 
 
-int newcat_set_conf(RIG * rig, token_t token, const char *val)
-{
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    return -RIG_ENAVAIL;
-}
-
-
-int newcat_get_conf(RIG * rig, token_t token, char *val)
-{
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    return -RIG_ENAVAIL;
-}
-
-
 int newcat_send_dtmf(RIG * rig, vfo_t vfo, const char *digits)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -4349,6 +4375,12 @@ int newcat_set_cmd (RIG *rig)
   struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
   int retry_count = 0;
   int rc = -RIG_EPROTO;
+
+  /* skip validation if high throughput is needed */
+  if (priv->fast_set_commands == 1){
+    return RIG_OK;
+  }
+
   /* pick a basic quick query command for verification */
   char const * const verify_cmd = RIG_MODEL_FT9000 == rig->caps->rig_model ? "AI;" : "ID;";
 
