@@ -222,7 +222,7 @@ int                     valid_commands_count = sizeof(valid_commands) / sizeof(y
 #define TOK_FAST_SET_CMD TOKEN_BACKEND(1)
 
 const struct confparams newcat_cfg_params[] = {
-	{ TOK_FAST_SET_CMD, "fast_set_commands", "High troughput of commands", "Enabled high throughput of >200 messages/sec by not waiting for ACK/NAK of messages", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } }
+	{ TOK_FAST_SET_CMD, "fast_commands_token", "High troughput of commands", "Enabled high throughput of >200 messages/sec by not waiting for ACK/NAK of messages", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } }
 	},
 	{ RIG_CONF_END, NULL, }
 };
