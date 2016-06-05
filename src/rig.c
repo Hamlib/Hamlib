@@ -67,6 +67,7 @@
 #include "network.h"
 #include "event.h"
 #include "cm108.h"
+#include "gpio.h"
 
 /**
  * \brief Hamlib release number
@@ -127,6 +128,7 @@ const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
 #define DEFAULT_CM108_PTT_BITNUM 2
 #endif
 
+#define DEFAULT_GPIO_PORT "0"
 
 #define CHECK_RIG_ARG(r) (!(r) || !(r)->caps || !(r)->state.comm_state)
 
@@ -330,6 +332,10 @@ RIG * HAMLIB_API rig_init(rig_model_t rig_model)
 	case RIG_PORT_CM108:
 	strncpy(rs->rigport.pathname, DEFAULT_CM108_PORT, FILPATHLEN);
 	rs->rigport.parm.cm108.ptt_bitnum = DEFAULT_CM108_PTT_BITNUM;
+	break;
+	
+	case RIG_PORT_GPIO:
+	strncpy(rs->rigport.pathname, DEFAULT_GPIO_PORT, FILPATHLEN);
 	break;
 
 	case RIG_PORT_NETWORK:
@@ -575,6 +581,26 @@ int HAMLIB_API rig_open(RIG *rig)
 		else
 			cm108_ptt_set(&rs->pttport, RIG_PTT_OFF);
 		break;
+	case RIG_PTT_GPIO:
+		rs->pttport.fd = gpio_open(&rs->pttport, 1);
+		if (rs->pttport.fd < 0) {
+			rig_debug(RIG_DEBUG_ERR, 
+			    "Cannot open PTT device \"%s\"\n",
+			    rs->pttport.pathname);
+			status = -RIG_EIO;
+		} else
+			gpio_ptt_set(&rs->pttport, RIG_PTT_OFF);
+		break;
+	case RIG_PTT_GPION:
+		rs->pttport.fd = gpio_open(&rs->pttport, 0);
+		if (rs->pttport.fd < 0) {
+			rig_debug(RIG_DEBUG_ERR, 
+			    "Cannot open PTT device \"%s\"\n",
+			    rs->pttport.pathname);
+			status = -RIG_EIO;
+		} else
+			gpio_ptt_set(&rs->pttport, RIG_PTT_OFF);
+		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR, "Unsupported PTT type %d\n",
               rs->pttport.type.ptt);
@@ -727,6 +753,10 @@ int HAMLIB_API rig_close(RIG *rig)
 	cm108_ptt_set(&rs->pttport, RIG_PTT_OFF);
 	port_close(&rs->pttport, RIG_PORT_CM108);
 		break;
+	case RIG_PTT_GPIO:
+	case RIG_PTT_GPION:
+		gpio_ptt_set(&rs->pttport, RIG_PTT_OFF);
+		port_close(&rs->pttport, RIG_PORT_GPIO);
 	default:
 		rig_debug(RIG_DEBUG_ERR, "Unsupported PTT type %d\n",
 						rs->pttport.type.ptt);
@@ -1302,6 +1332,10 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 	case RIG_PTT_CM108:
 		return cm108_ptt_set(&rig->state.pttport, ptt);
 
+	case RIG_PTT_GPIO:
+	case RIG_PTT_GPION:
+		return gpio_ptt_set(&rig->state.pttport, ptt);
+
 	case RIG_PTT_NONE:
 		return -RIG_ENAVAIL;	/* not available */
 	default:
@@ -1392,6 +1426,13 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 			return caps->get_ptt(rig, vfo, ptt);
 
 		return cm108_ptt_get(&rig->state.pttport, ptt);
+
+	case RIG_PTT_GPIO:
+	case RIG_PTT_GPION:
+		if (caps->get_ptt)
+			return caps->get_ptt(rig, vfo, ptt);
+
+		return gpio_ptt_get(&rig->state.pttport, ptt);
 
 	case RIG_PTT_NONE:
 		return -RIG_ENAVAIL;	/* not available */
