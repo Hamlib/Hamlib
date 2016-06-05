@@ -214,6 +214,19 @@ static const yaesu_newcat_commands_t valid_commands[] = {
 };
 int                     valid_commands_count = sizeof(valid_commands) / sizeof(yaesu_newcat_commands_t);
 
+ /*
+  * configuration Tokens
+  *
+  */
+
+#define TOK_FAST_SET_CMD TOKEN_BACKEND(1)
+
+const struct confparams newcat_cfg_params[] = {
+	{ TOK_FAST_SET_CMD, "fast_set_commands", "High troughput of commands", "Enabled high throughput of >200 messages/sec by not waiting for ACK/NAK of messages", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } }
+	},
+	{ RIG_CONF_END, NULL, }
+};
+
 /* NewCAT Internal Functions */
 static ncboolean newcat_is_rig(RIG * rig, rig_model_t model);
 static int newcat_get_tx_vfo(RIG * rig, vfo_t * tx_vfo);
@@ -354,37 +367,78 @@ int newcat_close(RIG *rig) {
     return RIG_OK;
 }
 
+
+/*
+ * rig_set_config
+ *
+ */
+
 int newcat_set_conf(RIG *rig, token_t token, const char *val){
-    int ret = RIG_OK;
 
     if (rig == NULL){
       return -RIG_EARG;
     }
 
-    struct newcat_priv_data *priv = rig->state.priv;
-    switch (token) {
-        case TOK_FAST_SET_CMD:
-            priv->fast_set_commands = (int)val;
-            break;
+    int ret = RIG_OK;
+    struct newcat_priv_data *priv;
 
-        default:
-            ret = -RIG_EINVAL;
+    priv = (struct newcat_priv_data*)rig->state.priv;
+
+    if (priv == NULL){
+	return -RIG_EINTERNAL;
+    }
+
+    switch (token) {
+    case TOK_FAST_SET_CMD: ;
+	char *end;
+	long value;
+	//using strtol because atoi can lead to undefined behaviour
+	value = strtol(val, &end, 10);
+	if (end == val){
+		return -RIG_EINVAL;
+	}
+	if ((value == 0) || (value == 1)){
+		priv->fast_set_commands = (int)value;
+	} 
+	else {
+		return -RIG_EINVAL;
+	}
+        break;
+
+    default:
+    	ret = -RIG_EINVAL;
     }
 
     return ret;
 }
 
-int newcat_get_conf(RIG *rig, token_t token, char *val){
-    int ret = RIG_OK;
 
-    if (rig == NULL) {
+/*
+ * rig_get_config
+ *
+ */
+
+int newcat_get_conf(RIG *rig, token_t token, char *val){
+    
+    if (rig == NULL){
       return -RIG_EARG;
     }
 
-    struct newcat_priv_data *priv = rig->state.priv;
+    int ret = RIG_OK;
+    struct newcat_priv_data *priv;
+
+    priv = (struct newcat_priv_data*)rig->state.priv;
+
+    if (priv == NULL){
+	return -RIG_EINTERNAL;
+    }
+
     switch (token) {
     case TOK_FAST_SET_CMD:
-        val = (char*)priv->fast_set_commands;
+	if (sizeof(val) < 2){
+		return -RIG_ENOMEM;
+	}
+        sprintf(val, "%d", priv->fast_set_commands);
         break;
     default:
         ret = -RIG_EINVAL;
@@ -4376,11 +4430,6 @@ int newcat_set_cmd (RIG *rig)
   int retry_count = 0;
   int rc = -RIG_EPROTO;
 
-  /* skip validation if high throughput is needed */
-  if (priv->fast_set_commands == 1){
-    return RIG_OK;
-  }
-
   /* pick a basic quick query command for verification */
   char const * const verify_cmd = RIG_MODEL_FT9000 == rig->caps->rig_model ? "AI;" : "ID;";
 
@@ -4393,6 +4442,12 @@ int newcat_set_cmd (RIG *rig)
         {
           return rc;
         }
+
+	/* skip validation if high throughput is needed */
+	if (priv->fast_set_commands == TRUE){
+		serial_flush (&state->rigport);
+		return RIG_OK;
+  	}
 
       /* send the verification command */
       rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", verify_cmd);

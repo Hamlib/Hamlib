@@ -69,6 +69,8 @@ typedef char ncboolean;
 	.ctcss_sql = 1,\
 }
 
+extern const struct confparams newcat_cfg_params[];
+
 /*
  * future - private data
  *
@@ -117,13 +119,6 @@ struct newcat_priv_data {
  *
  */
 
- /*
-  * configuration Tokens
-  *
-  */
-
-#define TOK_FAST_SET_CMD TOKEN_BACKEND(1)
-
 /*
  * newcat function definitions.
  *
@@ -134,8 +129,8 @@ int newcat_cleanup(RIG *rig);
 int newcat_open(RIG *rig);
 int newcat_close(RIG *rig);
 
-int newcat_set_conf(RIG *, token_t, const char *val);
-int newcat_get_conf(RIG *, token_t, char *val);
+int newcat_set_conf(RIG *rig, token_t token, const char *val);
+int newcat_get_conf(RIG *rig, token_t token, char *val);
 
 int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int newcat_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
