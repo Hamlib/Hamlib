@@ -99,6 +99,7 @@ static const struct icom_priv_caps ic7100_priv_caps = {
     0,              /* 731 mode */
     0,              /* no XCHG */
     ic7100_ts_sc_list,   /* FIXME */
+    .civ_version = 1
 };
 
 const struct rig_caps ic7100_caps = {
@@ -266,7 +267,7 @@ const struct rig_caps ic7100_caps = {
 .get_split_freq = icom_get_split_freq,
 .set_split_mode = icom_set_split_mode,
 .get_split_mode = icom_get_split_mode,
-
+.send_morse = icom_send_morse
 };
 
 /* end of file */

@@ -86,10 +86,11 @@
  * TODO: complete command set (esp. the $1A bunch!) and testing..
  */
 static const struct icom_priv_caps ic7600_priv_caps = {
-		0x7a,	/* default address */
-		0,		/* 731 mode */
-    0,    /* no XCHG */
-		ic756pro_ts_sc_list
+	0x7a,	/* default address */
+	0,		/* 731 mode */
+	0,    /* no XCHG */
+	ic756pro_ts_sc_list,
+	.civ_version = 1
 };
 
 
@@ -242,6 +243,6 @@ const struct rig_caps ic7600_caps = {
 .get_split_mode =  icom_get_split_mode,
 .set_split_vfo =  icom_set_split_vfo,
 .get_split_vfo =  icom_mem_get_split_vfo,
-
+.send_morse = icom_send_morse
 };
 
