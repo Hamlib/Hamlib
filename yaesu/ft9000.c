@@ -163,6 +163,9 @@ const struct rig_caps ft9000_caps = {
     .rig_open =           newcat_open,     /* port opened */
     .rig_close =          newcat_close,    /* port closed */
 
+    .cfgparams =          newcat_cfg_params,
+    .set_conf =           newcat_set_conf,
+    .get_conf =           newcat_get_conf,
     .set_freq =           newcat_set_freq,
     .get_freq =           newcat_get_freq,
     .set_mode =           newcat_set_mode,
@@ -205,4 +208,3 @@ const struct rig_caps ft9000_caps = {
     .get_channel =        newcat_get_channel,
 
 };
-
