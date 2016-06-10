@@ -399,7 +399,7 @@ int newcat_set_conf(RIG *rig, token_t token, const char *val){
 	}
 	if ((value == 0) || (value == 1)){
 		priv->fast_set_commands = (int)value;
-	} 
+	}
 	else {
 		return -RIG_EINVAL;
 	}
@@ -419,7 +419,7 @@ int newcat_set_conf(RIG *rig, token_t token, const char *val){
  */
 
 int newcat_get_conf(RIG *rig, token_t token, char *val){
-    
+
     if (rig == NULL){
       return -RIG_EARG;
     }
@@ -4445,7 +4445,6 @@ int newcat_set_cmd (RIG *rig)
 
 	/* skip validation if high throughput is needed */
 	if (priv->fast_set_commands == TRUE){
-		serial_flush (&state->rigport);
 		return RIG_OK;
   	}
 
