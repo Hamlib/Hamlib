@@ -12,7 +12,7 @@
  * "new" text CAT interface.
  *
  * Models this code aims to support are FTDX-9000*, FT-2000, FT-DX5000,
- * FT-950, FT-450.  Much testing remains.  -N0NB
+ * FT-950, FT-450 and FT-1200.  Much testing remains.  -N0NB
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -371,6 +371,7 @@ int newcat_close(RIG *rig) {
 /*
  * rig_set_config
  *
+ * Set Configuration Token for Yaesu Radios
  */
 
 int newcat_set_conf(RIG *rig, token_t token, const char *val){
@@ -416,6 +417,7 @@ int newcat_set_conf(RIG *rig, token_t token, const char *val){
 /*
  * rig_get_config
  *
+ * Get Configuration Token for Yaesu Radios
  */
 
 int newcat_get_conf(RIG *rig, token_t token, char *val){
