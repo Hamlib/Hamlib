@@ -291,19 +291,22 @@ int HAMLIB_API rig_unregister(rig_model_t rig_model)
  */
 int HAMLIB_API rig_list_foreach(int (*cfunc)(const struct rig_caps*, rig_ptr_t),rig_ptr_t data)
 {
-	struct rig_list *p;
-	int i;
+  struct rig_list *p;
+  int i;
 
-	if (!cfunc)
-		return -RIG_EINVAL;
+  if (!cfunc)
+    return -RIG_EINVAL;
 
-	for (i=0; i<RIGLSTHASHSZ; i++) {
-		for (p=rig_hash_table[i]; p; p=p->next)
-			if ((*cfunc)(p->caps,data) == 0)
-				return RIG_OK;
-	}
-
+  for (i=0; i<RIGLSTHASHSZ; i++) {
+    struct rig_list * next = NULL;
+    for (p=rig_hash_table[i]; p; p=next) {
+      next = p->next;		/* read before call in case it is unregistered */
+      if ((*cfunc)(p->caps,data) == 0)
 	return RIG_OK;
+    }
+  }
+
+  return RIG_OK;
 }
 
 static int dummy_rig_probe(const hamlib_port_t *p, rig_model_t model, rig_ptr_t data)
