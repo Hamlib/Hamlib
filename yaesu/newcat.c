@@ -4445,10 +4445,10 @@ int newcat_set_cmd (RIG *rig)
           return rc;
         }
 
-	/* skip validation if high throughput is needed */
-	if (priv->fast_set_commands == TRUE){
-		return RIG_OK;
-  	}
+      /* skip validation if high throughput is needed */
+      if (priv->fast_set_commands == TRUE){
+        return RIG_OK;
+      }
 
       /* send the verification command */
       rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", verify_cmd);
@@ -4496,17 +4496,24 @@ int newcat_set_cmd (RIG *rig)
 
             case '?':
               /* Rig busy wait please */
-              rig_debug(RIG_DEBUG_ERR, "%s: Rig busy\n", __func__, priv->cmd_str);
+              rig_debug(RIG_DEBUG_WARN, "%s: Rig busy - retrying\n", __func__, priv->cmd_str);
               /* read the verify command reply */
-              read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data),
-                          &cat_term, sizeof(cat_term));
-              rig_debug(RIG_DEBUG_TRACE, "%s: read count = %d, ret_data = %s\n",
-                        __func__, rc, priv->ret_data);
-              rc = -RIG_BUSBUSY;
-              break;            /* retry */
+              if ((rc = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data),
+                                    &cat_term, sizeof(cat_term))) > 0)
+                {
+                  rig_debug(RIG_DEBUG_TRACE, "%s: read count = %d, ret_data = %s\n",
+                            __func__, rc, priv->ret_data);
+                  rc = RIG_OK;  /* probably recovered and read verification */
+                }
+              else
+                {
+                  /* probably a timeout */
+                  rc = -RIG_BUSBUSY; /* retry */
+                }
+              break;
             }
         }
-      else
+      if (RIG_OK == rc)
         {
           /* Check that response prefix and response termination is
              correct - alternative is response is longer that the
