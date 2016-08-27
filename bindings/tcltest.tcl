@@ -36,6 +36,14 @@ puts "ITU_region:\t[$state cget -itu_region]"
 # The following works well also
 # puts ITU_region:[[my_rig cget -state] cget -itu_region]
 
+set rigcaps [my_rig cget -caps]
+#set model [$rigcaps cget -model_name]
+puts "Model:\t\t[$rigcaps cget -model_name]"
+puts "Manufacturer:\t\t[$rigcaps cget -mfg_name]"
+puts "Backend version:\t[$rigcaps cget -version]"
+puts "Backend license:\t[$rigcaps cget -copyright]"
+puts "Attenuators:\t[$rigcaps cget -attenuator]"
+
 puts "getinfo:\t[my_rig get_info]"
 
 my_rig set_level "VOX"  1
