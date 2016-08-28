@@ -66,6 +66,7 @@ def StartUp ():
     print "get_channel status:\t",my_rig.error_status
 
     print "VFO:\t\t\t",Hamlib.rig_strvfo(chan.vfo),", ",chan.freq
+    print "Attenuators:\t\t", my_rig.caps.attenuator
 
     print "\nSending Morse, '73'"
     my_rig.send_morse(Hamlib.RIG_VFO_A, "73")

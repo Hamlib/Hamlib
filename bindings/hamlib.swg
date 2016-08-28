@@ -44,6 +44,87 @@
 %include cstring.i
 #ifdef SWIGPYTHON
 %include python/file.i
+
+%typemap(out) int [ANY] {
+  int len,i;
+  len = $1_dim0;
+  $result = PyList_New(len);
+  for (i = 0; i < len; i++) {
+    PyList_SetItem($result,i,PyInt_FromLong((long)$1[i]));
+  }
+}
+
+%typemap(varout) int [ANY] {
+  int len,i;
+  len = $1_dim0;
+  $result = PyList_New(len);
+  for (i = 0; i < len; i++) {
+    PyList_SetItem($result,i,PyInt_FromLong((long)$1[i]));
+  }
+}
+
+#endif
+
+#ifdef SWIGPERL
+
+%typemap(out) int [ANY] {
+    AV * av = newAV();
+    int i = 0,len = 0;
+    len = $1_dim0;
+
+    for (i = 0; i < len ; i++) {
+        SV* perlval = newSV(0);
+        sv_setiv(perlval, (IV)$1[i]);
+        av_push(av, perlval);
+    }
+    $result = newRV_noinc((SV *)av);
+    sv_2mortal( $result );
+    argvi++;
+}
+
+%typemap(argout) int [ANY] {
+    AV * av = newAV();
+    int i = 0,len = 0;
+    len = $1_dim0;
+
+    for (i = 0; i < len ; i++) {
+        SV* perlval = newSV(0);
+        sv_setiv(perlval, (IV)$1[i]);
+        av_push(av, perlval);
+    }
+    $result = newRV_noinc((SV *)av);
+    sv_2mortal( $result );
+    argvi++;
+}
+
+#endif
+
+#ifdef SWIGTCL
+
+%typemap(out) int [ANY] {
+    int i, len, l;
+    len = $1_dim0;
+
+    Tcl_Obj * list = Tcl_NewListObj(len, NULL);
+    for(i=0; i < len; i++) {
+        Tcl_ListObjAppendElement(interp, list, Tcl_NewIntObj($1[i]));
+    }
+    Tcl_SetObjResult(interp, list);
+}
+
+%typemap(varout) int [ANY] {
+    int i, len, l;
+    len = $1_dim0;
+
+    Tcl_Obj * list = Tcl_NewListObj(len, NULL);
+    for(i=0; i < len; i++) {
+        Tcl_ListObjAppendElement(interp, list, Tcl_NewIntObj($1[i]));
+    }
+
+    $result = list;
+}
+
+
 #endif
 
 %apply double *OUTPUT { double *distance, double *azimuth };
@@ -52,8 +133,10 @@
 %apply double *OUTPUT { double *longitude, double *latitude };
 %apply char *OUTPUT { char *locator_res };
 
+#ifndef SWIG_CSTRING_UNIMPL
 /* longlat2locator */
 %cstring_bounded_output(char *locator_res, 13)
+#endif
 
 %immutable confparams::name;
 %immutable confparams::label;
@@ -80,6 +163,10 @@
 
 %include <hamlib/rotlist.h>
 %include <hamlib/rotator.h>
+
+%inline {
+typedef const char * const_char_string;
+}
 
 /*
  * The Rig "class"

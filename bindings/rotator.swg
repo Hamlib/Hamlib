@@ -29,8 +29,6 @@ typedef struct Rot {
 	int do_exception;
 } Rot;
 
-typedef const char * const_char_string;
-
 %}
 
 /*
