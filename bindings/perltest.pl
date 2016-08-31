@@ -40,6 +40,9 @@ $rig->set_mode($Hamlib::RIG_MODE_CW, $Hamlib::RIG_PASSBAND_NORMAL);
 
 print "ITU region:\t\t$rig->{state}->{itu_region}\n";
 print "Backend copyright:\t$rig->{caps}->{copyright}\n";
+print "Model:\t\t\t$rig->{caps}->{model_name}\n";
+print "Manufacturer:\t\t$rig->{caps}->{mfg_name}\n";
+print "Backend version:\t$rig->{caps}->{version}\n";
 $inf = $rig->get_info();
 
 print "get_info:\t\t$inf\n";
@@ -61,6 +64,9 @@ $rig->get_channel($chan);
 print "get_channel status:\t$rig->{error_status} = ".Hamlib::rigerror($rig->{error_status})."\n";
 
 print "VFO:\t\t\t".Hamlib::rig_strvfo($chan->{vfo}).", $chan->{freq}\n";
+
+$att = $rig->{caps}->{attenuator};
+print "Attenuators:\t\t@$att\n";
 
 print "\nSending Morse, '73'\n";
 $rig->send_morse($Hamlib::RIG_VFO_A, "73");

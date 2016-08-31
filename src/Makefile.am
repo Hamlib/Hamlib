@@ -4,7 +4,7 @@ RIGSRC = rig.c serial.c serial.h misc.c misc.h register.c register.h event.c \
 	event.h cal.c cal.h conf.c tones.c tones.h rotator.c locator.c rot_reg.c \
 	rot_conf.c rot_conf.h iofunc.c iofunc.h ext.c mem.c settings.c \
 	parallel.c parallel.h usb_port.c usb_port.h debug.c network.c network.h \
-	cm108.c cm108.h idx_builtin.h token.h par_nt.h
+	cm108.c cm108.h gpio.c gpio.h idx_builtin.h token.h par_nt.h
 
 lib_LTLIBRARIES = libhamlib.la
 libhamlib_la_SOURCES = $(RIGSRC)

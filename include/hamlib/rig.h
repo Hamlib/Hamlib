@@ -174,7 +174,9 @@ typedef enum rig_port_e {
   RIG_PORT_PARALLEL,		/*!< Parallel port */
   RIG_PORT_USB,			/*!< USB port */
   RIG_PORT_UDP_NETWORK,		/*!< UDP Network socket type */
-  RIG_PORT_CM108		/*!< CM108 GPIO */
+  RIG_PORT_CM108,		/*!< CM108 GPIO */
+  RIG_PORT_GPIO,		/*!< GPIO */
+  RIG_PORT_GPION,		/*!< GPIO inverted */
 } rig_port_t;
 
 /**
@@ -421,7 +423,9 @@ typedef enum {
   RIG_PTT_SERIAL_RTS,		/*!< PTT control through serial RTS signal */
   RIG_PTT_PARALLEL,		/*!< PTT control through parallel port */
   RIG_PTT_RIG_MICDATA,		/*!< Legacy PTT (CAT PTT), supports RIG_PTT_ON_MIC/RIG_PTT_ON_DATA */
-  RIG_PTT_CM108		/*!< PTT control through CM108 GPIO pin */
+  RIG_PTT_CM108,		/*!< PTT control through CM108 GPIO pin */
+  RIG_PTT_GPIO,			/*!< PTT control through GPIO pin */
+  RIG_PTT_GPION,		/*!< PTT control through inverted GPIO pin */
 } ptt_type_t;
 
 /**
@@ -1383,6 +1387,10 @@ typedef struct hamlib_port {
         char *vendor_name; /*!< Vendor name (opt.) */
         char *product;     /*!< Product (opt.) */
 	} usb;			/*!< USB attributes */
+	struct {
+		int on_value;
+		int value;
+	} gpio;
   } parm;			/*!< Port parameter union */
 } hamlib_port_t;
 

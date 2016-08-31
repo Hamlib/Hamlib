@@ -12,7 +12,7 @@
  * "new" text CAT interface.
  *
  * Models this code aims to support are FTDX-9000*, FT-2000, FT-DX5000,
- * FT-950, FT-450.  Much testing remains.  -N0NB
+ * FT-950, FT-450 and FT-1200.  Much testing remains.  -N0NB
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -214,6 +214,19 @@ static const yaesu_newcat_commands_t valid_commands[] = {
 };
 int                     valid_commands_count = sizeof(valid_commands) / sizeof(yaesu_newcat_commands_t);
 
+ /*
+  * configuration Tokens
+  *
+  */
+
+#define TOK_FAST_SET_CMD TOKEN_BACKEND(1)
+
+const struct confparams newcat_cfg_params[] = {
+	{ TOK_FAST_SET_CMD, "fast_commands_token", "High troughput of commands", "Enabled high throughput of >200 messages/sec by not waiting for ACK/NAK of messages", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } }
+	},
+	{ RIG_CONF_END, NULL, }
+};
+
 /* NewCAT Internal Functions */
 static ncboolean newcat_is_rig(RIG * rig, rig_model_t model);
 static int newcat_get_tx_vfo(RIG * rig, vfo_t * tx_vfo);
@@ -234,7 +247,6 @@ static ncboolean newcat_valid_command(RIG *rig, char *command);
 /* NewCAT Exposed Functions */
 int newcat_get_cmd(RIG * rig);
 int newcat_set_cmd (RIG *rig);
-
 
 /*
  * ************************************
@@ -272,6 +284,7 @@ int newcat_init(RIG *rig) {
 
     priv->rig_id = NC_RIGID_NONE;
     priv->current_mem = NC_MEM_CHANNEL_NONE;
+    priv->fast_set_commands = FALSE;
 
     return RIG_OK;
 }
@@ -353,6 +366,91 @@ int newcat_close(RIG *rig) {
       }
     return RIG_OK;
 }
+
+
+/*
+ * rig_set_config
+ *
+ * Set Configuration Token for Yaesu Radios
+ */
+
+int newcat_set_conf(RIG *rig, token_t token, const char *val){
+
+    if (rig == NULL){
+      return -RIG_EARG;
+    }
+
+    int ret = RIG_OK;
+    struct newcat_priv_data *priv;
+
+    priv = (struct newcat_priv_data*)rig->state.priv;
+
+    if (priv == NULL){
+	return -RIG_EINTERNAL;
+    }
+
+    switch (token) {
+    case TOK_FAST_SET_CMD: ;
+	char *end;
+	long value;
+	//using strtol because atoi can lead to undefined behaviour
+	value = strtol(val, &end, 10);
+	if (end == val){
+		return -RIG_EINVAL;
+	}
+	if ((value == 0) || (value == 1)){
+		priv->fast_set_commands = (int)value;
+	}
+	else {
+		return -RIG_EINVAL;
+	}
+        break;
+
+    default:
+    	ret = -RIG_EINVAL;
+    }
+
+    return ret;
+}
+
+
+/*
+ * rig_get_config
+ *
+ * Get Configuration Token for Yaesu Radios
+ */
+
+int newcat_get_conf(RIG *rig, token_t token, char *val){
+
+    if (rig == NULL){
+      return -RIG_EARG;
+    }
+
+    int ret = RIG_OK;
+    struct newcat_priv_data *priv;
+
+    priv = (struct newcat_priv_data*)rig->state.priv;
+
+    if (priv == NULL){
+	return -RIG_EINTERNAL;
+    }
+
+    switch (token) {
+    case TOK_FAST_SET_CMD:
+	if (sizeof(val) < 2){
+		return -RIG_ENOMEM;
+	}
+        sprintf(val, "%d", priv->fast_set_commands);
+        break;
+    default:
+        ret = -RIG_EINVAL;
+    }
+
+    return ret;
+}
+
+
+
 
 /*
  * rig_set_freq
@@ -2684,22 +2782,6 @@ int newcat_get_ext_parm(RIG *rig, token_t token, value_t *val)
 }
 
 
-int newcat_set_conf(RIG * rig, token_t token, const char *val)
-{
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    return -RIG_ENAVAIL;
-}
-
-
-int newcat_get_conf(RIG * rig, token_t token, char *val)
-{
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    return -RIG_ENAVAIL;
-}
-
-
 int newcat_send_dtmf(RIG * rig, vfo_t vfo, const char *digits)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -4349,6 +4431,7 @@ int newcat_set_cmd (RIG *rig)
   struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
   int retry_count = 0;
   int rc = -RIG_EPROTO;
+
   /* pick a basic quick query command for verification */
   char const * const verify_cmd = RIG_MODEL_FT9000 == rig->caps->rig_model ? "AI;" : "ID;";
 
@@ -4361,6 +4444,11 @@ int newcat_set_cmd (RIG *rig)
         {
           return rc;
         }
+
+      /* skip validation if high throughput is needed */
+      if (priv->fast_set_commands == TRUE){
+        return RIG_OK;
+      }
 
       /* send the verification command */
       rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", verify_cmd);
@@ -4408,17 +4496,24 @@ int newcat_set_cmd (RIG *rig)
 
             case '?':
               /* Rig busy wait please */
-              rig_debug(RIG_DEBUG_ERR, "%s: Rig busy\n", __func__, priv->cmd_str);
+              rig_debug(RIG_DEBUG_WARN, "%s: Rig busy - retrying\n", __func__, priv->cmd_str);
               /* read the verify command reply */
-              read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data),
-                          &cat_term, sizeof(cat_term));
-              rig_debug(RIG_DEBUG_TRACE, "%s: read count = %d, ret_data = %s\n",
-                        __func__, rc, priv->ret_data);
-              rc = -RIG_BUSBUSY;
-              break;            /* retry */
+              if ((rc = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data),
+                                    &cat_term, sizeof(cat_term))) > 0)
+                {
+                  rig_debug(RIG_DEBUG_TRACE, "%s: read count = %d, ret_data = %s\n",
+                            __func__, rc, priv->ret_data);
+                  rc = RIG_OK;  /* probably recovered and read verification */
+                }
+              else
+                {
+                  /* probably a timeout */
+                  rc = -RIG_BUSBUSY; /* retry */
+                }
+              break;
             }
         }
-      else
+      if (RIG_OK == rc)
         {
           /* Check that response prefix and response termination is
              correct - alternative is response is longer that the
