@@ -24,8 +24,6 @@
 #ifndef _RIG_H
 #define _RIG_H 1
 
-#define LICENSE GPLV2
-
 #include <stdio.h>
 #include <stdarg.h>
 
