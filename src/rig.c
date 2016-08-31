@@ -77,11 +77,18 @@
  * the hamlib_version string.  Changing the size provokes a warning from the
  * dynamic loader.
  */
+const char *hamlib_license = "GPLV2";
 const char hamlib_version[21] = "Hamlib " PACKAGE_VERSION;
+const char *hamlib_version2 = "Hamlib " PACKAGE_VERSION;
 
 /**
  * \brief Hamlib copyright notice
  */
+const char *hamlib_copyright2 =
+  "Copyright (C) 2000-2012 Stephane Fillod\n"
+  "Copyright (C) 2000-2003 Frank Singleton\n"
+  "This is free software; see the source for copying conditions.  There is NO\n"
+  "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.";
 const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
   "Copyright (C) 2000-2012 Stephane Fillod\n"
   "Copyright (C) 2000-2003 Frank Singleton\n"
@@ -3227,6 +3234,21 @@ const char* HAMLIB_API rig_get_info(RIG *rig)
 		return NULL;
 
 	return rig->caps->get_info(rig);
+}
+
+const char* HAMLIB_API rig_license()
+{
+	return hamlib_license;
+}
+
+const char* HAMLIB_API rig_version()
+{
+	return hamlib_version2;
+}
+
+const char* HAMLIB_API rig_copyright()
+{
+	return hamlib_copyright2;
 }
 
 /*! @} */

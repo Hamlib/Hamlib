@@ -24,6 +24,8 @@
 #ifndef _RIG_H
 #define _RIG_H 1
 
+#define LICENSE GPLV2
+
 #include <stdio.h>
 #include <stdarg.h>
 
@@ -74,6 +76,8 @@ __BEGIN_DECLS
 
 extern HAMLIB_EXPORT_VAR(const char) hamlib_version[];
 extern HAMLIB_EXPORT_VAR(const char) hamlib_copyright[];
+extern HAMLIB_EXPORT_VAR(const char *) hamlib_version2;
+extern HAMLIB_EXPORT_VAR(const char *) hamlib_copyright2;
 
 /**
  * \brief Hamlib error codes
@@ -1732,6 +1736,10 @@ extern HAMLIB_EXPORT(vfo_op_t) rig_parse_vfo_op(const char *s);
 extern HAMLIB_EXPORT(scan_t) rig_parse_scan(const char *s);
 extern HAMLIB_EXPORT(rptr_shift_t) rig_parse_rptr_shift(const char *s);
 extern HAMLIB_EXPORT(chan_type_t) rig_parse_mtype(const char *s);
+
+extern HAMLIB_EXPORT(const char *) rig_license HAMLIB_PARAMS(());
+extern HAMLIB_EXPORT(const char *) rig_version HAMLIB_PARAMS(());
+extern HAMLIB_EXPORT(const char *) rig_copyright HAMLIB_PARAMS(());
 
 HAMLIB_EXPORT(void) rig_no_restore_ai();
 
