@@ -418,7 +418,9 @@ int ser_open(hamlib_port_t *p)
  */
 int ser_close(hamlib_port_t *p)
 {
-	return CLOSE(p->fd);
+	int rc = CLOSE(p->fd);
+  p->fd = -1;
+  return rc;
 }
 
 /**

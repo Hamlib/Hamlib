@@ -425,9 +425,9 @@ static int dummy_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
   // as if it had keyed us
   switch (rig->state.pttport.type.ptt)
     {
-    case RIG_PTT_SERIAL_DTR: ser_get_dtr (&rig->state.pttport, &status); break;
-    case RIG_PTT_SERIAL_RTS: ser_get_rts (&rig->state.pttport, &status); break;
-    case RIG_PTT_PARALLEL: par_ptt_get (&rig->state.pttport, &par_status); break;
+    case RIG_PTT_SERIAL_DTR: if (rig->state.pttport.fd >= 0) ser_get_dtr (&rig->state.pttport, &status); break;
+    case RIG_PTT_SERIAL_RTS: if (rig->state.pttport.fd >= 0) ser_get_rts (&rig->state.pttport, &status); break;
+    case RIG_PTT_PARALLEL: if (rig->state.pttport.fd >= 0) par_ptt_get (&rig->state.pttport, &par_status); break;
     default: break;
     }
   *ptt = *ptt || status || RIG_PTT_ON == par_status;

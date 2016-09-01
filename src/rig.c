@@ -309,6 +309,9 @@ RIG * HAMLIB_API rig_init(rig_model_t rig_model)
 
 	rs = &rig->state;
 
+	rs->rigport.fd = -1;
+	rs->pttport.fd = -1;
+	rs->pttport.fd = -1;
 	rs->comm_state = 0;
 	rs->rigport.type.rig = caps->port_type; /* default from caps */
 
@@ -557,6 +560,7 @@ int HAMLIB_API rig_open(RIG *rig)
 								status = ser_set_rts(&rs->pttport, 0);
 							}
 					}
+	      ser_close(&rs->pttport);
 	    }
 	  break;
 	case RIG_PTT_PARALLEL:
@@ -1282,6 +1286,7 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
 int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
 	const struct rig_caps *caps;
+	struct rig_state * rs = &rig->state;
 	int retcode, rc2;
 	vfo_t curr_vfo;
 
@@ -1321,10 +1326,56 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 		break;
 
 	case RIG_PTT_SERIAL_DTR:
-		return ser_set_dtr(&rig->state.pttport, ptt!=RIG_PTT_OFF);
+	  if (strcmp(rs->pttport.pathname, rs->rigport.pathname)
+				&& ptt!=RIG_PTT_OFF && rs->pttport.fd < 0)
+	    {
+	      rs->pttport.fd = ser_open(&rs->pttport);
+	      if (rs->pttport.fd < 0)
+          {
+            rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n",
+                      rs->pttport.pathname);
+            return -RIG_EIO;
+          }
+				/* Needed on Linux because the serial port driver sets RTS/DTR
+					 high on open - set both low since we offer no control of
+					 the non-PTT line and low is better than high */
+				retcode = ser_set_rts(&rs->pttport, 0);
+				if (RIG_OK != retcode) return retcode;
+	    }
+		retcode = ser_set_dtr(&rig->state.pttport, ptt!=RIG_PTT_OFF);
+	  if (strcmp(rs->pttport.pathname, rs->rigport.pathname)
+				&& ptt==RIG_PTT_OFF)
+	    {
+				/* free the port */
+	      ser_close(&rs->pttport);
+	    }
+		return retcode;
 
 	case RIG_PTT_SERIAL_RTS:
-		return ser_set_rts(&rig->state.pttport, ptt!=RIG_PTT_OFF);
+	  if (strcmp(rs->pttport.pathname, rs->rigport.pathname)
+				&& ptt!=RIG_PTT_OFF && rs->pttport.fd < 0)
+	    {
+	      rs->pttport.fd = ser_open(&rs->pttport);
+	      if (rs->pttport.fd < 0)
+          {
+            rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n",
+                      rs->pttport.pathname);
+            return -RIG_EIO;
+          }
+				/* Needed on Linux because the serial port driver sets RTS/DTR
+					 high on open - set both low since we offer no control of
+					 the non-PTT line and low is better than high */
+				retcode = ser_set_dtr(&rs->pttport, 0);
+				if (RIG_OK != retcode) return retcode;
+	    }
+		retcode = ser_set_rts(&rig->state.pttport, ptt!=RIG_PTT_OFF);
+	  if (strcmp(rs->pttport.pathname, rs->rigport.pathname)
+				&& ptt==RIG_PTT_OFF)
+	    {
+				/* free the port */
+	      ser_close(&rs->pttport);
+	    }
+		return retcode;
 
 	case RIG_PTT_PARALLEL:
 		return par_ptt_set(&rig->state.pttport, ptt);
@@ -1362,7 +1413,9 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
 	const struct rig_caps *caps;
-	int retcode, rc2, status;
+	struct rig_state * rs = &rig->state;
+	int retcode = RIG_OK;
+	int rc2, status;
 	vfo_t curr_vfo;
 
 	if (CHECK_RIG_ARG(rig) || !ptt)
@@ -1403,16 +1456,34 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 		if (caps->get_ptt)
 			return caps->get_ptt(rig, vfo, ptt);
 
-		retcode = ser_get_rts(&rig->state.pttport, &status);
-		*ptt = status ? RIG_PTT_ON : RIG_PTT_OFF;
+	  if (strcmp(rs->pttport.pathname, rs->rigport.pathname)
+				&& rs->pttport.fd < 0)
+	    {
+				/* port is closed so assume PTT off */
+				*ptt = RIG_PTT_OFF;
+	    }
+		else
+			{
+				retcode = ser_get_rts(&rig->state.pttport, &status);
+				*ptt = status ? RIG_PTT_ON : RIG_PTT_OFF;
+			}
 		return retcode;
 
 	case RIG_PTT_SERIAL_DTR:
 		if (caps->get_ptt)
 			return caps->get_ptt(rig, vfo, ptt);
 
-		retcode = ser_get_dtr(&rig->state.pttport, &status);
-		*ptt = status ? RIG_PTT_ON : RIG_PTT_OFF;
+	  if (strcmp(rs->pttport.pathname, rs->rigport.pathname)
+				&& rs->pttport.fd < 0)
+	    {
+				/* port is closed so assume PTT off */
+				*ptt = RIG_PTT_OFF;
+	    }
+		else
+			{
+				retcode = ser_get_dtr(&rig->state.pttport, &status);
+				*ptt = status ? RIG_PTT_ON : RIG_PTT_OFF;
+			}
 		return retcode;
 
 	case RIG_PTT_PARALLEL:
