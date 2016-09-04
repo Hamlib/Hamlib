@@ -362,7 +362,7 @@ int xg3_set_freq(RIG * rig, vfo_t vfo, freq_t freq)
     if (!rig)
         return -RIG_EINVAL;
 
-    char cmdbuf[16];
+    char cmdbuf[20];
 
     tvfo = (vfo == RIG_VFO_CURR ||
         vfo == RIG_VFO_VFO) ? rig->state.current_vfo : vfo;
