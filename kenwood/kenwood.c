@@ -263,6 +263,7 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data, size_t datasiz
     }
   }
 
+ transaction_read:
   /* allow one extra byte for terminator we don't return */
   len = min (datasize ? datasize + 1 : strlen (priv->verify_cmd) + 13, KENWOOD_MAX_BUF_LEN);
   retval = read_string(&rs->rigport, buffer, len, cmdtrm, strlen(cmdtrm));
@@ -321,7 +322,7 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data, size_t datasiz
         {
           rig_debug(RIG_DEBUG_ERR, "%s: Retrying shortly\n", __func__);
           usleep (rig->caps->timeout * 1000);
-          goto transaction_write;
+          goto transaction_read;
         }
       retval = -RIG_ERJCTED;
       goto transaction_quit;
@@ -2604,6 +2605,7 @@ int kenwood_get_trn(RIG *rig, int *trn)
   /* these rigs only have AI[0|1] set commands and no AI query */
   if (rig->caps->rig_model == RIG_MODEL_TS450S
       || rig->caps->rig_model == RIG_MODEL_TS690S
+      || rig->caps->rig_model == RIG_MODEL_TS790
       || rig->caps->rig_model == RIG_MODEL_TS850
       || rig->caps->rig_model == RIG_MODEL_TS950SDX) {
     return -RIG_ENAVAIL;
