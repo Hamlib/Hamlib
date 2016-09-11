@@ -727,6 +727,25 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
     return -RIG_EINVAL;
   }
 
+  //if rig=ts2000 then check Satellite mode status
+  if(rig->caps->rig_model == RIG_MODEL_TS2000) {
+	  char retbuf[20];
+	  rig_debug(RIG_DEBUG_VERBOSE, "Checking Satellite mode status\n");
+	  sprintf(cmdbuf, "SA");
+
+	  retval = kenwood_transaction(rig, cmdbuf, retbuf, 20);
+	  if (retval != RIG_OK)
+	    return retval;
+
+	  rig_debug(RIG_DEBUG_VERBOSE, "Satellite mode status %s\n",retbuf);
+	  //Satellite mode ON
+	  if(retbuf[2]=='1') {
+		  //SAT mode doesn't allow FR command (cannot select VFO)
+		  //selecting VFO is useless in SAT MODE
+		  return RIG_OK;
+		  }
+	  }
+
   sprintf(cmdbuf, "FR%c", vfo_function);
 
   if (rig->caps->rig_model == RIG_MODEL_TS50
