@@ -260,9 +260,11 @@ gran_t parm_gran[RIG_SETTING_MAX];    /*!< parm granularity */
 #endif
 
   for (i=0; i<FRQRANGESIZ && !RIG_IS_FRNG_END(rs->rx_range_list[i]); i++) {
+	rs->mode_list |= rs->rx_range_list[i].modes;
 	rs->vfo_list |= rs->rx_range_list[i].vfo;
   }
   for (i=0; i<FRQRANGESIZ && !RIG_IS_FRNG_END(rs->tx_range_list[i]); i++) {
+	rs->mode_list |= rs->tx_range_list[i].modes;
 	rs->vfo_list |= rs->tx_range_list[i].vfo;
   }
 
