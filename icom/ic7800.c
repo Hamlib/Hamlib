@@ -194,8 +194,8 @@ const struct rig_caps ic7800_caps = {
 
 .set_freq =  icom_set_freq,
 .get_freq =  icom_get_freq,
-.set_mode =  icom_set_mode,
-.get_mode =  icom_get_mode,
+.set_mode =  icom_set_mode_with_data,
+.get_mode =  icom_get_mode_with_data,
 .set_vfo =  icom_set_vfo,
 .set_ant =  icom_set_ant,
 .get_ant =  icom_get_ant,
