@@ -78,7 +78,7 @@
  * the hamlib_version string.  Changing the size provokes a warning from the
  * dynamic loader.
  */
-const char *hamlib_license = "GPLV2";
+const char *hamlib_license = "LGPL";
 const char hamlib_version[21] = "Hamlib " PACKAGE_VERSION;
 const char *hamlib_version2 = "Hamlib " PACKAGE_VERSION;
 
