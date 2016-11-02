@@ -121,7 +121,7 @@ static pthread_mutex_t rig_mutex = PTHREAD_MUTEX_INITIALIZER;
 #ifdef HAVE_LIBREADLINE
 static char *input_line = (char *)NULL;
 static char *result = (char *)NULL;
-static char *parsed_input[sizeof(char) * 5];
+static char *parsed_input[sizeof(char*) * 5];
 static const int have_rl = 1;
 
 #ifdef HAVE_READLINE_HISTORY
@@ -429,6 +429,7 @@ static int scanfc(FILE *fin, const char *format, void *p)
 			if (errno == EINTR)
 				continue;
 			rig_debug(RIG_DEBUG_ERR, "fscanf: %s\n", strerror(errno));
+			rig_debug(RIG_DEBUG_ERR, "fscanf: parsing '%s' with '%s'\n", p, format);
 		}
 		return ret;
 	} while(1);
