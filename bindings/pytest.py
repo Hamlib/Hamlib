@@ -56,6 +56,12 @@ def StartUp ():
     my_rig.set_level (Hamlib.RIG_LEVEL_VOX, 5)
     print "VOX level:\t\t", my_rig.get_level_i(Hamlib.RIG_LEVEL_VOX)
 
+    af = 12.34
+    print "Setting AF to %f...." % (af)
+    my_rig.set_level ("AF", af)
+    print "status:\t\t\t%s - %s" % (my_rig.error_status, Hamlib.rigerror(my_rig.error_status))
+    print "AF level:\t\t", my_rig.get_level_f(Hamlib.RIG_LEVEL_AF)
+
     print "strength:\t\t", my_rig.get_level_i(Hamlib.RIG_LEVEL_STRENGTH)
     print "status:\t\t\t",my_rig.error_status
     print "status(str):\t\t",Hamlib.rigerror(my_rig.error_status)
