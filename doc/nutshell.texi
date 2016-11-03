@@ -27,7 +27,7 @@ capability.
 Other devices, such as antenna rotors, can be placed into the Hamlib
 control scheme. Other recent developments include network interface
 servers and a USB interface capability. Language bindings are provided
-for C, C++, Perl, Python, and TCL (more to come).
+for C, C++, Perl, Python, Lua and TCL (more to come).
 
 @menu
 * Overview::
@@ -79,10 +79,10 @@ of Hamlib's design.
 @cindex Interface, languages
 Hamlib also provides an interface library for each of several common
 @dfn{scripting} languages such as @url{http://www.perl.org, Perl, Perl},
-@url{http://www.python.org, Python, Python}, and @url{http://www.tcl.tk,
-TCL, TCL}.  These language @dfn{bindings} are generated through the use
-of @url{http://www.swig.org, SWIG, SWIG} a parser/generator for multiple
-language interfaces to a C library.  A native generated @emph{C++}
+@url{http://www.python.org, Python, Python}, @url{https://www.lua.org, Lua, Lua}
+and @url{http://www.tcl.tk, TCL, TCL}.  These language @dfn{bindings} are
+generated through the use of @url{http://www.swig.org, SWIG, SWIG} a parser/generator
+for multiple language interfaces to a C library.  A native generated @emph{C++}
 language interface is also provided.
 
 @cindex Daemon, network

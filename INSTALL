@@ -286,6 +286,7 @@ are:
   --with-python-binding   build python binding and demo [default=no]
   --with-tcl-binding      build Tcl binding and demo [default=no]
   --with-tcl=PATH         directory containing tcl configuration (tclConfig.sh)
+  --with-lua-binding      build lua binding and demo [default=no]
 
     Optional features that may require specialized hardware are:
 
@@ -301,12 +302,12 @@ Bindings notes
 you can disable this optional part by passing `--without-cxx-binding'
 to the configure script (may happen under MacOSX).
 
-    Note that the Perl, Python, and TCL bindings are disabled by default so
+    Note that the Perl, Python, Lua and TCL bindings are disabled by default so
 they will need to be specifically enabled for language binding support (this
 has no effect on rigctld/rotctld).  You may get a make error (which means it
 will quit before compilation is complete) if the
---with-[perl|python|tcl]-binding option(s) are given and the Swig package is
-not installed.
+--with-[perl|python|tcl|lua]-binding option(s) are given and the Swig package
+is not installed.
 
     Perl and Python bindings should be installed into a 'configure' runtime
 discovered location under the default prefix.
@@ -319,7 +320,10 @@ packages and since there seemed to be no common location among distributions,
 this path was chosen abitrarily.  Any patches to improve installation path
 discovery of local packages are welcome.
 
-    When running 'make uninstall' the installed files for the Python and TCL
+    Lua binding will be installed into $(libdir)/lua/$(LUA_VERSION) (default).
+For non-default settings, see notes at other bindings.
+
+    When running 'make uninstall' the installed files for the Python, Lua and TCL
 modules are removed.  The Perl files will remain due to a design decision
 of the Perl MakeMaker module.  Installed Perl binding files will need to be
 removed manually.
