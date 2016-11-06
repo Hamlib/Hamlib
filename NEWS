@@ -1,7 +1,7 @@
 Hamlib -- History of visible changes.
 
 Copyright (C) 2000-2003  Frank Singleton
-Copyright (C) 2000-2015  Stephane Fillod, and others
+Copyright (C) 2000-2016  Stephane Fillod, and others
 
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
@@ -9,6 +9,7 @@ Version 3.1
 	2016-??-??
 	* Fix kenwood_set_mode for ts590s and mode CW, RTTY or AM.
 	  Tks Tom, DL1JBE
+	* New Perseus model.
 
 Version 3.0
 	2015-09-20

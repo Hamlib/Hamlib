@@ -1,6 +1,6 @@
 /*
  *  Hamlib CI-V backend - main file
- *  Copyright (c) 2000-2015 by Stephane Fillod
+ *  Copyright (c) 2000-2016 by Stephane Fillod
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -352,6 +352,7 @@ static const struct icom_addr icom_addr_list[] = {
 	{ RIG_MODEL_IC7100, 0x88 },
 	{ RIG_MODEL_IC7200, 0x76 },
 	{ RIG_MODEL_IC7700, 0x74 },
+	{ RIG_MODEL_PERSEUS, 0xE1 },
 	{ RIG_MODEL_NONE, 0 },
 };
 
@@ -826,7 +827,10 @@ int icom_get_mode_with_data(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width
 int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
 	unsigned char modebuf[MAXFRAMELEN];
+	const struct icom_priv_caps *priv_caps;
 	int mode_len, retval;
+
+	priv_caps = (const struct icom_priv_caps *) rig->caps->priv;
 
 	retval = icom_transaction (rig, C_RD_MODE, -1, NULL, 0,
 				modebuf, &mode_len);
@@ -843,7 +847,15 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 		return -RIG_ERJCTED;
 	}
 
-	icom2rig_mode(rig, modebuf[1], mode_len==2 ? modebuf[2] : -1, mode, width);
+	if (priv_caps->i2r_mode != NULL) {	/* call priv code if defined */
+		priv_caps->i2r_mode(rig, modebuf[1],
+				mode_len==2 ? modebuf[2] : -1, mode, width);
+	}
+	else {					/* else call default */
+		icom2rig_mode(rig, modebuf[1],
+				mode_len==2 ? modebuf[2] : -1, mode, width);
+	}
+
 	/* IC910H has different meaning of command 1A, subcommand 03. So do
 	 * not ask for DSP filter settings */
 	/* Likewise, don't ask if we happen to be an Omni VI Plus */
@@ -3530,7 +3542,7 @@ int icom_decode_event(RIG *rig)
 				return -RIG_ENAVAIL;
 		break;
 	default:
-		rig_debug(RIG_DEBUG_VERBOSE,"icom_decode: tranceive cmd "
+		rig_debug(RIG_DEBUG_VERBOSE,"icom_decode: transceive cmd "
 					"unsupported %#2.2x\n",buf[4]);
 		return -RIG_ENIMPL;
 	}
@@ -3772,6 +3784,8 @@ DECLARE_INITRIG_BACKEND(icom)
 	rig_register(&id1_caps);
 	rig_register(&id5100_caps);
 	rig_register(&ic2730_caps);
+
+	rig_register(&perseus_caps);
 
 	return RIG_OK;
 }
