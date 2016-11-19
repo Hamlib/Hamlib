@@ -87,7 +87,7 @@ int elecraft_get_firmware_revision_level(RIG *rig, const char *cmd, char *fw_rev
 
 int elecraft_open(RIG *rig)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called, rig version=%s\n", __func__,rig->version);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called, rig version=%s\n", __func__, rig->caps->version);
 
 	if (!rig)
 		return -RIG_EINVAL;
