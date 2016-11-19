@@ -93,7 +93,7 @@ const struct rig_caps k3_caps = {
 	.rig_model =		RIG_MODEL_K3,
 	.model_name =		"K3/KX3",
 	.mfg_name =		"Elecraft",
-	.version =		"20130118",
+	.version =		"20161116",
 	.copyright =		"LGPL",
 	.status =		RIG_STATUS_BETA,
 	.rig_type =		RIG_TYPE_TRANSCEIVER,
@@ -625,6 +625,18 @@ int k3_set_split_mode(RIG * rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
       break;
     }
 
+#if 0
+  /* Set data sub-mode.  K3 needs to be in a DATA mode before setting
+   * the sub-mode or switching to VFOB so we do this before the MD$ command.
+   */
+  if (tx_mode == RIG_MODE_PKTLSB || tx_mode == RIG_MODE_PKTUSB
+      || tx_mode == RIG_MODE_RTTY || tx_mode == RIG_MODE_RTTYR) {
+    err = kenwood_transaction(rig, cmd_m, NULL, 0);
+    if (err != RIG_OK)
+      return err;
+  }
+#endif
+
   struct kenwood_priv_caps *caps = kenwood_caps(rig);
   char buf[6];
   char kmode;
@@ -672,15 +684,6 @@ int k3_set_split_mode(RIG * rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
 			return err;
 	}
 
-  /* Now set data sub-mode.  K3 needs to be in a DATA mode before setting
-   * the sub-mode.
-   */
-  if (tx_mode == RIG_MODE_PKTLSB || tx_mode == RIG_MODE_PKTUSB
-      || tx_mode == RIG_MODE_RTTY || tx_mode == RIG_MODE_RTTYR) {
-    err = kenwood_transaction(rig, cmd_m, NULL, 0);
-    if (err != RIG_OK)
-      return err;
-  }
 
   return RIG_OK;
 }
