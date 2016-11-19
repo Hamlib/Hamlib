@@ -1,6 +1,6 @@
 /*
  *  Hamlib CI-V backend - defines for the ICOM "CI-V" interface.
- *  Copyright (c) 2000-2010 by Stephane Fillod
+ *  Copyright (c) 2000-2016 by Stephane Fillod
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -84,7 +84,7 @@
 #define C_CTL_ANT	0x12		/* Set/get antenna, Sc */
 #define C_CTL_ANN	0x13		/* Control announce (speech synth.), Sc */
 #define C_CTL_LVL	0x14		/* Set AF/RF/squelch, Sc */
-#define C_RD_SQSM	0x15		/* Read squelch condiction/S-meter level, Sc */
+#define C_RD_SQSM	0x15		/* Read squelch condition/S-meter level, Sc */
 #define C_CTL_FUNC	0x16		/* Function settings (AGC,NB,etc.), Sc */
 #define C_SND_CW	0x17		/* Send CW message */
 #define C_SET_PWR	0x18		/* Set Power ON/OFF, Sc */
@@ -92,6 +92,7 @@
 #define C_CTL_MEM	0x1a		/* Misc memory/bank/rig control functions, Sc */
 #define C_SET_TONE	0x1b		/* Set tone frequency */
 #define C_CTL_PTT	0x1c		/* Control Transmit On/Off, Sc */
+#define C_CTL_MTEXT	0x70		/* Microtelecom Extension */
 #define C_CTL_MISC	0x7f		/* Miscellaneous control, Sc */
 
 /*
