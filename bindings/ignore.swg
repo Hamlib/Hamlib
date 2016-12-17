@@ -206,3 +206,14 @@
 %ignore rot_reset;
 %ignore rot_move;
 %ignore rot_get_info;
+
+%ignore hamlib_copyright2;
+%ignore hamlib_version2;
+
+#ifdef SWIGLUA
+%ignore Rig::set_level(setting_t,int,vfo_t);
+%ignore Rig::set_level(char const *,int,vfo_t);
+%ignore Rig::set_parm(setting_t,int);
+%ignore Rig::set_parm(char const *,int);
+#endif
+
