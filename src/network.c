@@ -218,8 +218,7 @@ int network_open(hamlib_port_t *rp, int default_port)
 	freeaddrinfo (saved_res);
 
 	if (NULL == res) {
-		rig_debug (RIG_DEBUG_ERR, "Failed to connect to %s\n"
-							 , rp->pathname ? rp->pathname : "localhost:4532");
+		rig_debug (RIG_DEBUG_ERR, "Failed to connect to %s\n" , rp->pathname);
 		return -RIG_EIO;
 	}
 
