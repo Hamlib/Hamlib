@@ -66,6 +66,8 @@ int verify_flexradio_id(RIG *rig, char *id)
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig ID is %s (Flex 6500)\n", __func__, id);
 	else if (strcmp("906", idptr) == 0)
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig ID is %s (Flex 6500R)\n", __func__, id);
+	else if (strcmp("907", idptr) == 0)
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig ID is %s (Flex 6300)\n", __func__, id);
 	else {
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig (%s) is not a Flex 6000 Series\n", __func__, id);
 		return -RIG_EPROTO;
