@@ -479,10 +479,22 @@ So far, Hamlib has been tested successfully under the following systems:
             Run `make' in topdir to rebuild all.
 
     3.8. Commit your work (once tests are satisfactory):
-         $ svn add mybackend/mymodel.c
-         $ svn commit -m "added <mymodel> to <mybackend>" Makefile.am mybackend.c mybackend.h mymodel.c
+         $ git add .
+         $ git commit -m "added <mymodel> to <mybackend>".
 
          Note:  See Note in section 2.6 above.
+         Note:  The '.' character is a Git wildcard that includes all new and
+                modified files in your working tree.
+
+                The '-m' option may be ommitted, in which case Git will start
+                your default editor for a longer commit message.  Commit
+                messages generally have the form of a short subject line, then
+                a blank line, and then as much text (broken into paragraphs as
+                needed) as needed for a good decription of the commit.
+
+                Assuming your working tree was cloned from the SF.net repository
+                or N0NB's GitHub repository, you can now issue a pull request
+                inclusion of your new model into Hamlib.
 
 
 4. Read README.betatester to test the new backend/model.
