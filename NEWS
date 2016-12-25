@@ -6,10 +6,25 @@ Copyright (C) 2000-2016  Stephane Fillod, and others
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 Version 3.1
-	2016-??-??
+	2016-12-31
 	* Fix kenwood_set_mode for ts590s and mode CW, RTTY or AM.
 	  Tks Tom, DL1JBE
-	* New Perseus model.
+	* Proper IPV6 and dual stack networking. Bill, G4WJS
+	* Add a new command line option '--no-restore-ai' ('-n') to rigctl.
+	  Bill, G4WJS
+	* Fix missing PKTUSB mode setting code for FT-817 & FT-897.  Bill, G4WJS
+	* New Prosistel rotor backend from IZ7CRX
+	* Install daemon man files to man1.  Nate, N0NB
+	* Migrate from libusb-0.1 to libusb-1.0.  Stephane, F8CFE
+	* Added support for Icom IC-2730.  robinolejnik
+	* Added support for the Icom IC-7300. Mike, W9MDB
+	* Add send_morse to icom rigs.  Mike, W9MDB
+	* added instructions how to compile on OSX. DH1TW
+	* New Perseus model.  Stephane, F8CFE
+	* Added Lua binding and demo script.  Ervin, HA2OS
+	* Added test to support Flex 6300.  Bill, KB4AAA
+	* Many bug fixes and feature enhancements to the code base.  See the
+	  Git commit log for complete details.
 
 Version 3.0
 	2015-09-20
