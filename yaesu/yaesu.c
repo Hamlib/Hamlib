@@ -53,7 +53,7 @@ struct yaesu_id {
  * send the value to <fillods@users.sourceforge.net> for inclusion. Thanks --SF
  */
 static const struct yaesu_id yaesu_id_list[] = {
-	{ RIG_MODEL_FT1000, 0x10, 0x21 }, /* or 0x10, 0x00 ? */
+	{ RIG_MODEL_FT1000D, 0x10, 0x21 }, /* or 0x10, 0x00 ? */
 	{ RIG_MODEL_FT990, 0x09, 0x90 },
 	{ RIG_MODEL_FT890, 0x08, 0x41 },
 	{ RIG_MODEL_FRG100, 0x03, 0x92 }, /* TBC, inconsistency in manual */
