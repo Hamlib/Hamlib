@@ -80,7 +80,7 @@ typedef channel_t * const_channel_t_p;
 #define METHOD1VGET(f, t1) t1 f (vfo_t vfo = RIG_VFO_CURR) \
 				{ t1 _##t1; self->error_status = rig_##f(self->rig, vfo, &_##t1); return _##t1; }
 
-
+#ifndef SWIGLUA
 #define METHODSIMPLESET(f, t1, fld, chk) void set_##f (setting_t stg, t1 fld  _VFO_DECL) \
 		{ value_t val; 	if (chk) {	\
 			self->error_status = -RIG_EINVAL;	/* invalid type */	\
@@ -89,6 +89,19 @@ typedef channel_t * const_channel_t_p;
 		val.fld = fld;	\
 		self->error_status = rig_set_##f(self->rig  _VFO_ARG , stg, val);	\
 	}
+#else
+#define METHODSIMPLESET(f, t1, fld, chk) void set_##f (setting_t stg, t1 fld  _VFO_DECL) \
+		{ value_t val; 	\
+		if (chk) {	\
+			int ival = (int)fld;	\
+			val.i = fld;	\
+		}	\
+		else {	\
+		    val.fld = fld;	\
+		}	\
+		self->error_status = rig_set_##f(self->rig  _VFO_ARG , stg, val);	\
+	}
+#endif
 
 /*
  * RIG_CONF_ extparm's type:
@@ -98,6 +111,7 @@ typedef channel_t * const_channel_t_p;
  *   CHECKBUTTON: val.i 0/1
  */
 
+#ifndef SWIGLUA
 #define METHODSUPERSET(f, t1, fld, chk) void set_##f (const char *name, t1 fld  _VFO_DECL) \
 		{ setting_t stg; value_t val; 	\
 		stg = rig_parse_##f(name);	\
@@ -133,6 +147,45 @@ typedef channel_t * const_channel_t_p;
 		val.fld = fld;	\
 		self->error_status = rig_set_##f(self->rig  _VFO_ARG , stg, val);	\
 	}
+#else
+#define METHODSUPERSET(f, t1, fld, chk) void set_##f (const char *name, t1 fld  _VFO_DECL) \
+		{ setting_t stg; value_t val; 	\
+		stg = rig_parse_##f(name);	\
+		if (!rig_has_set_##f(self->rig, stg)) {	\
+			const struct confparams *cfp;	\
+			cfp = rig_ext_lookup(self->rig, name);	\
+			if (!cfp) {	\
+				self->error_status = -RIG_EINVAL;	/* no such parameter */ \
+				return;	\
+			} \
+			switch (cfp->type) {	\
+			case RIG_CONF_NUMERIC:	\
+				val.fld = fld;	\
+				break;	\
+			case RIG_CONF_CHECKBUTTON:	\
+			case RIG_CONF_COMBO:		\
+				val.i = (int)fld;	\
+				break;	\
+			case RIG_CONF_STRING:		\
+				self->error_status = -RIG_EINVAL;	/* invalid type */	\
+				return;	\
+			default:	\
+				self->error_status = -RIG_ECONF;	\
+				return;	\
+			}	\
+			self->error_status = rig_set_ext_##f(self->rig  _VFO_ARG, cfp->token, val);	\
+			return;	\
+		}	\
+		if (chk) {	\
+		    int ival = (int)fld;	\
+		    val.i = ival;	\
+		}	\
+		else	{ \
+		    val.fld = fld;	\
+		}	\
+		self->error_status = rig_set_##f(self->rig  _VFO_ARG , stg, val);	\
+	}
+#endif
 
 #define METHODSTRSET(f) void set_##f (const char *name, const char *s  _VFO_DECL) \
 		{ value_t val; /* only ext_level/parm's can have string values */  \
@@ -224,8 +277,10 @@ typedef channel_t * const_channel_t_p;
  */
 %extend Rig {
 
+#ifndef SWIGLUA
 #ifndef SWIG_CSTRING_UNIMPL
 	%cstring_bounded_output(char *returnstr, MAX_RETURNSTR);
+#endif
 #endif
 
 	Rig(int rig_model) {

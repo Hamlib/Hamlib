@@ -15,7 +15,7 @@ dnl however, the use of '~' should be fine as apt (others?) will treat
 dnl it as an earlier version than the actual release.  TNX KA6MAL
 dnl PACKAGE_NAME + " " + PACKAGE_VERSION must not exceed 20 chars!
 AC_INIT([Hamlib],
-        [3.1~git],
+        [3.2~git],
         [hamlib-developer@lists.sourceforge.net],
         [hamlib],
         [http://www.hamlib.org])
@@ -563,6 +563,33 @@ AC_SUBST([TCL_LIB_SPEC])
 AC_SUBST([TCL_INCLUDE_SPEC])
 AC_SUBST([TCL_SHLIB_SUFFIX])
 
+dnl Check for lua availability, so we can enable HamlibLua
+# Lua bindings
+AC_MSG_CHECKING([whether to build lua binding and demo])
+AC_ARG_WITH([lua-binding],
+    [AS_HELP_STRING([--with-lua-binding],
+        [build lua binding and demo @<:@default=no@:>@])],
+    [cf_with_lua_binding=$withval],
+    [cf_with_lua_binding=no])
+AC_MSG_RESULT([$cf_with_lua_binding])
+
+dnl AX_LUA_DEVEL from macros/ax_lua_devel.m4
+AS_IF([test x"${cf_with_lua_binding}" = "xyes"],[
+
+    AX_PROG_LUA([5.2], [5.4])
+    AX_LUA_HEADERS
+    AX_LUA_LIBS
+
+    BINDING_LIST="${BINDING_LIST} lua"
+    BINDING_ALL="${BINDING_ALL} all-lua"
+    BINDING_CHECK="${BINDING_CHECK} check-lua"
+    BINDING_CLEAN="${BINDING_CLEAN} clean-lua"
+    BINDING_DISTCLEAN="${BINDING_DISTCLEAN} distclean-lua"
+    BINDING_INSTALL_EXEC="${BINDING_INSTALL_EXEC} install-lua"
+    BINDING_UNINSTALL="${BINDING_UNINSTALL} uninstall-lua"
+    BINDING_LIB_TARGETS="${BINDING_LIB_TARGETS} \$(lua_ltlib)"])
+
+AM_CONDITIONAL([ENABLE_LUA], [test x"${cf_with_lua_binding}" = "xyes"])
 
 dnl Only search for Swig if one or more bindings are enabled.
 AS_IF([test "x${BINDING_ALL}" != "x"],
@@ -761,6 +788,7 @@ echo \
     With Perl binding               ${cf_with_perl_binding}
     With Python binding             ${cf_with_python_binding}
     With TCL binding                ${build_tcl}
+    With Lua binding                ${cf_with_lua_binding}
     With rigmem XML support         ${cf_with_xml_support}
     With Readline support           ${cf_with_readline_support}
 

@@ -14,9 +14,9 @@ SWGDEP=$(top_srcdir)/include/hamlib/rig.h $(top_srcdir)/include/hamlib/riglist.h
 	$(SWGFILES)
 
 EXTRA_DIST = $(SWGFILES) \
-	Makefile.PL perltest.pl tcltest.tcl pytest.py
+	Makefile.PL perltest.pl tcltest.tcl pytest.py luatest.lua
 
-noinst_SCRIPTS = perltest.pl tcltest.tcl pytest.py hamlibvb.bas
+noinst_SCRIPTS = perltest.pl tcltest.tcl pytest.py hamlibvb.bas luatest.lua
 
 BUILT_SOURCES=
 MOSTLYCLEANFILES=
@@ -156,6 +156,43 @@ uninstall-tcl:
 
 endif
 # TCL
+
+if ENABLE_LUA
+##########################################
+# Lua binding
+
+luaexec_ltlib = Hamliblua.la
+
+MOSTLYCLEANFILES+= hamliblua_wrap.c
+BUILT_SOURCES += hamliblua_wrap.c
+
+nodist_luaexec_LUA = Hamlib.lua
+nodist_Hamliblua_la_SOURCES = hamliblua_wrap.c
+
+Hamliblua_la_CPPFLAGS = $(LUA_INCLUDE) -I$(top_srcdir)/include -I$(top_srcdir)/src
+Hamliblua_la_LDFLAGS = -no-undefined -module -avoid-version
+Hamliblua_la_LIBADD = $(top_builddir)/src/libhamlib.la
+Hamliblua_ladir = $(luaexecdir)
+Hamliblua_la_LTLIBRARIES = $(luaexec_ltlib)
+
+all-lua: $(luaexec_ltlib)
+
+check-lua: all-lua
+	LUA_CPATH="$(abs_builddir)/.libs/?.so" $(srcdir)/luatest.lua || echo "Lua test failed" 1>&2
+
+Hamlib.lua: hamliblua_wrap.c
+
+hamliblua_wrap.c: hamlib.swg $(SWGDEP)
+	$(SWIG) -lua @AM_CPPFLAGS@ -I$(top_srcdir)/bindings -o $@ \
+	    `test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
+
+install-lua:
+clean-lua:
+distclean-lua:
+uninstall-lua:
+
+endif
+# Lua
 
 
 all-local: @BINDING_ALL@

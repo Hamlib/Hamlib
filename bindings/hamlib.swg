@@ -1,5 +1,9 @@
 
+#ifndef SWIGLUA
 %module Hamlib
+#else
+%module Hamliblua
+#endif
 
 %{
 /*
@@ -32,6 +36,7 @@
 #include "misc.h"
 
 #include <limits.h>
+
 %}
 
 /*
@@ -41,7 +46,9 @@
 
 %include typemaps.i
 %include exception.i
+#ifndef SWIGLUA
 %include cstring.i
+#endif
 #ifdef SWIGPYTHON
 %include python/file.i
 
@@ -127,15 +134,61 @@
 
 #endif
 
+#ifdef SWIGLUA
+
+%typemap(out) int [ANY] {
+  int len,i;
+  len = $1_dim0;
+  lua_createtable (L, len, 0);
+  for(i=0; i<len; i++) {
+    lua_pushinteger(L, (i+1)); // Lua starts list index with 1
+    lua_pushinteger(L, (lua_Integer)$1[i]);
+    lua_rawset(L, -3);
+  }
+  SWIG_arg++;
+}
+
+%typemap(varout) int [ANY] {
+  int len,i;
+  len = $1_dim0;
+  lua_createtable (L, len, 0);
+  for(i=0; i<len; i++) {
+    lua_pushinteger(L, (i+1)); // Lua starts list index with 1
+    lua_pushinteger(L, (lua_Integer)$1[i]);
+    lua_rawset(L, -3);
+  }
+  SWIG_arg++;
+}
+
+%typemap(in,numinputs=0) char * OUTPUT (char *returnstr) {
+    char returnstr[1024];
+    $1 = returnstr;
+}
+
+%typemap(argout) char * OUTPUT {
+    lua_pushstring(L,(char *)$1); SWIG_arg++;
+}
+
+
+#endif
+
 %apply double *OUTPUT { double *distance, double *azimuth };
 %apply int *OUTPUT { int *degrees, int *minutes, double *seconds, int *sw };
 %apply int *OUTPUT { int *degrees, double *minutes, int *sw };
 %apply double *OUTPUT { double *longitude, double *latitude };
-%apply char *OUTPUT { char *locator_res };
 
+%apply char *OUTPUT { char *locator_res };
+%apply char *OUTPUT { char *hamlib_version2 };
+%apply char *OUTPUT { char *hamlib_copyright2 };
+%apply char *OUTPUT { char *returnstr };
+
+#ifndef SWIGLUA
 #ifndef SWIG_CSTRING_UNIMPL
 /* longlat2locator */
 %cstring_bounded_output(char *locator_res, 13)
+%cstring_bounded_output(char *hamlib_version2, 4)
+%cstring_bounded_output(char *hamlib_copyright2, 4)
+#endif
 #endif
 
 %immutable confparams::name;
@@ -147,6 +200,8 @@
 %immutable rig_caps::mfg_name;
 %immutable rig_caps::version;
 %immutable rig_caps::copyright;
+%immutable hamlib_version2;
+%immutable hamlib_copyright2;
 
 %immutable clone_combo_set;
 %immutable clone_combo_get;

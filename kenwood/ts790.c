@@ -180,6 +180,8 @@ const struct rig_caps ts790_caps = {
 .priv =  (void *)&ts790_priv_caps,
 
 .rig_init = kenwood_init,
+.rig_open = kenwood_open,
+.rig_close = kenwood_close,
 .rig_cleanup = kenwood_cleanup,
 .set_freq =  kenwood_set_freq,
 .get_freq =  kenwood_get_freq,
