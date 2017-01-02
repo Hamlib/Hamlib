@@ -67,8 +67,8 @@
 	} }
 
 
-static int ic7800_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
-static int ic7800_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+int ic7800_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+int ic7800_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
 /*
  * IC-7800 rig capabilities.
