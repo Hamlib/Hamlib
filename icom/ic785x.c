@@ -1,5 +1,5 @@
 /*
- *  Hamlib CI-V backend - description of IC-7851 and variations
+ *  Hamlib CI-V backend - description of IC-785x and variations
  *  Derived from ic7800.c by W9MDB -- needs testing
  *  Copyright (c) 2009-2010 by Stephane Fillod
  *
@@ -40,27 +40,27 @@
 /*
  * TODO: PSK and PSKR
  */
-#define IC7851_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM)
-#define IC7851_1HZ_TS_MODES IC7851_ALL_RX_MODES
-#define IC7851_OTHER_TX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM)
-#define IC7851_AM_TX_MODES (RIG_MODE_AM)
+#define IC785x_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM)
+#define IC785x_1HZ_TS_MODES IC785x_ALL_RX_MODES
+#define IC785x_OTHER_TX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM)
+#define IC785x_AM_TX_MODES (RIG_MODE_AM)
 
-#define IC7851_FUNCS (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_ANF|RIG_FUNC_VSC|RIG_FUNC_LOCK)
+#define IC785x_FUNCS (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_ANF|RIG_FUNC_VSC|RIG_FUNC_LOCK)
 
-#define IC7851_LEVELS (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_BALANCE|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_APF|RIG_LEVEL_VOXGAIN|RIG_LEVEL_VOXDELAY|RIG_LEVEL_SWR|RIG_LEVEL_ALC)
+#define IC785x_LEVELS (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_BALANCE|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_APF|RIG_LEVEL_VOXGAIN|RIG_LEVEL_VOXDELAY|RIG_LEVEL_SWR|RIG_LEVEL_ALC)
 
-#define IC7851_VFOS (RIG_VFO_MAIN|RIG_VFO_SUB|RIG_VFO_MEM)
-#define IC7851_PARMS (RIG_PARM_ANN|RIG_PARM_BACKLIGHT)
+#define IC785x_VFOS (RIG_VFO_MAIN|RIG_VFO_SUB|RIG_VFO_MEM)
+#define IC785x_PARMS (RIG_PARM_ANN|RIG_PARM_BACKLIGHT)
 
-#define IC7851_VFO_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL|RIG_OP_TUNE)
-#define IC7851_SCAN_OPS (RIG_SCAN_MEM|RIG_SCAN_VFO|RIG_SCAN_PROG|RIG_SCAN_DELTA|RIG_SCAN_PRIO)
+#define IC785x_VFO_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL|RIG_OP_TUNE)
+#define IC785x_SCAN_OPS (RIG_SCAN_MEM|RIG_SCAN_VFO|RIG_SCAN_PROG|RIG_SCAN_DELTA|RIG_SCAN_PRIO)
 
-#define IC7851_ANTS (RIG_ANT_1|RIG_ANT_2|RIG_ANT_3|RIG_ANT_4)
+#define IC785x_ANTS (RIG_ANT_1|RIG_ANT_2|RIG_ANT_3|RIG_ANT_4)
 
 /*
  * FIXME: real measures!
  */
-#define IC7851_STR_CAL { 3, \
+#define IC785x_STR_CAL { 3, \
 	{ \
 		{   0, -54 }, /* S0 */ \
 		{ 120,   0 }, /* S9 */ \
@@ -72,21 +72,21 @@ extern int ic7800_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 extern int ic7800_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
 /*
- * IC-7851 rig capabilities.
+ * IC-785x rig capabilities.
  *
  * TODO: complete command set (esp. the $1A bunch!) and testing..
  */
-static const struct icom_priv_caps ic7851_priv_caps = {
-		0x8e,	/* default address */
+static const struct icom_priv_caps ic785x_priv_caps = {
+		0x6a,	/* default address */
 		0,		/* 731 mode */
     0,    /* no XCHG */
 		ic756pro_ts_sc_list
 };
 
 
-const struct rig_caps ic7851_caps = {
-.rig_model =  RIG_MODEL_IC7851,
-.model_name = "IC-7851",
+const struct rig_caps ic785x_caps = {
+.rig_model =  RIG_MODEL_IC785x,
+.model_name = "IC-785x",
 .mfg_name =  "Icom",
 .version =  BACKEND_VER ".1",
 .copyright =  "LGPL",
@@ -105,12 +105,12 @@ const struct rig_caps ic7851_caps = {
 .post_write_delay =  0,
 .timeout =  1000,
 .retry =  3,
-.has_get_func =  IC7851_FUNCS,
-.has_set_func =  IC7851_FUNCS,
-.has_get_level =  IC7851_LEVELS,
-.has_set_level =  RIG_LEVEL_SET(IC7851_LEVELS),
-.has_get_parm =  IC7851_PARMS,
-.has_set_parm =  RIG_PARM_SET(IC7851_PARMS),	/* FIXME: parms */
+.has_get_func =  IC785x_FUNCS,
+.has_set_func =  IC785x_FUNCS,
+.has_get_level =  IC785x_LEVELS,
+.has_set_level =  RIG_LEVEL_SET(IC785x_LEVELS),
+.has_get_parm =  IC785x_PARMS,
+.has_set_parm =  RIG_PARM_SET(IC785x_PARMS),	/* FIXME: parms */
 .level_gran = {
 	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
 },
@@ -123,8 +123,8 @@ const struct rig_caps ic7851_caps = {
 .max_xit =  Hz(9999),
 .max_ifshift =  Hz(0),
 .targetable_vfo =  0,
-.vfo_ops =  IC7851_VFO_OPS,
-.scan_ops =  IC7851_SCAN_OPS,
+.vfo_ops =  IC785x_VFO_OPS,
+.scan_ops =  IC785x_SCAN_OPS,
 .transceive =  RIG_TRN_RIG,
 .bank_qty =   0,
 .chan_desc_sz =  0,
@@ -135,40 +135,40 @@ const struct rig_caps ic7851_caps = {
 	   RIG_CHAN_END,
 	},
 
-.rx_range_list1 =   { {kHz(30),MHz(60),IC7851_ALL_RX_MODES,-1,-1,IC7851_VFOS,IC7851_ANTS},
+.rx_range_list1 =   { {kHz(30),MHz(60),IC785x_ALL_RX_MODES,-1,-1,IC785x_VFOS,IC785x_ANTS},
 	RIG_FRNG_END, },
 .tx_range_list1 =   {
-	FRQ_RNG_HF(1,IC7851_OTHER_TX_MODES, W(5),W(200),IC7851_VFOS,IC7851_ANTS),
-	FRQ_RNG_6m(1,IC7851_OTHER_TX_MODES, W(5),W(200),IC7851_VFOS,IC7851_ANTS),
-	FRQ_RNG_HF(1,IC7851_AM_TX_MODES, W(5),W(50),IC7851_VFOS,IC7851_ANTS),   /* AM class */
-	FRQ_RNG_6m(1,IC7851_AM_TX_MODES, W(5),W(50),IC7851_VFOS,IC7851_ANTS),   /* AM class */
+	FRQ_RNG_HF(1,IC785x_OTHER_TX_MODES, W(5),W(200),IC785x_VFOS,IC785x_ANTS),
+	FRQ_RNG_6m(1,IC785x_OTHER_TX_MODES, W(5),W(200),IC785x_VFOS,IC785x_ANTS),
+	FRQ_RNG_HF(1,IC785x_AM_TX_MODES, W(5),W(50),IC785x_VFOS,IC785x_ANTS),   /* AM class */
+	FRQ_RNG_6m(1,IC785x_AM_TX_MODES, W(5),W(50),IC785x_VFOS,IC785x_ANTS),   /* AM class */
     	RIG_FRNG_END, },
 
-.rx_range_list2 =   { {kHz(30),MHz(60),IC7851_ALL_RX_MODES,-1,-1,IC7851_VFOS,IC7851_ANTS},
+.rx_range_list2 =   { {kHz(30),MHz(60),IC785x_ALL_RX_MODES,-1,-1,IC785x_VFOS,IC785x_ANTS},
 	RIG_FRNG_END, },
 .tx_range_list2 =  {
-	FRQ_RNG_HF(2,IC7851_OTHER_TX_MODES, W(5),W(200),IC7851_VFOS,IC7851_ANTS),
-	FRQ_RNG_6m(2,IC7851_OTHER_TX_MODES, W(5),W(200),IC7851_VFOS,IC7851_ANTS),
-	FRQ_RNG_HF(2,IC7851_AM_TX_MODES, W(5),W(50),IC7851_VFOS,IC7851_ANTS),   /* AM class */
-	FRQ_RNG_6m(2,IC7851_AM_TX_MODES, W(5),W(50),IC7851_VFOS,IC7851_ANTS),   /* AM class */
+	FRQ_RNG_HF(2,IC785x_OTHER_TX_MODES, W(5),W(200),IC785x_VFOS,IC785x_ANTS),
+	FRQ_RNG_6m(2,IC785x_OTHER_TX_MODES, W(5),W(200),IC785x_VFOS,IC785x_ANTS),
+	FRQ_RNG_HF(2,IC785x_AM_TX_MODES, W(5),W(50),IC785x_VFOS,IC785x_ANTS),   /* AM class */
+	FRQ_RNG_6m(2,IC785x_AM_TX_MODES, W(5),W(50),IC785x_VFOS,IC785x_ANTS),   /* AM class */
     /* USA only, TBC: end of range and modes */
-    {MHz(5.33050),MHz(5.33350),IC7851_OTHER_TX_MODES,W(2),W(100),IC7851_VFOS,IC7851_ANTS}, /* USA only */
-    {MHz(5.34650),MHz(5.34950),IC7851_OTHER_TX_MODES,W(2),W(100),IC7851_VFOS,IC7851_ANTS}, /* USA only */
-    {MHz(5.36650),MHz(5.36950),IC7851_OTHER_TX_MODES,W(2),W(100),IC7851_VFOS,IC7851_ANTS}, /* USA only */
-    {MHz(5.37150),MHz(5.37450),IC7851_OTHER_TX_MODES,W(2),W(100),IC7851_VFOS,IC7851_ANTS}, /* USA only */
-    {MHz(5.40350),MHz(5.40650),IC7851_OTHER_TX_MODES,W(2),W(100),IC7851_VFOS,IC7851_ANTS}, /* USA only */
+    {MHz(5.33050),MHz(5.33350),IC785x_OTHER_TX_MODES,W(2),W(100),IC785x_VFOS,IC785x_ANTS}, /* USA only */
+    {MHz(5.34650),MHz(5.34950),IC785x_OTHER_TX_MODES,W(2),W(100),IC785x_VFOS,IC785x_ANTS}, /* USA only */
+    {MHz(5.36650),MHz(5.36950),IC785x_OTHER_TX_MODES,W(2),W(100),IC785x_VFOS,IC785x_ANTS}, /* USA only */
+    {MHz(5.37150),MHz(5.37450),IC785x_OTHER_TX_MODES,W(2),W(100),IC785x_VFOS,IC785x_ANTS}, /* USA only */
+    {MHz(5.40350),MHz(5.40650),IC785x_OTHER_TX_MODES,W(2),W(100),IC785x_VFOS,IC785x_ANTS}, /* USA only */
     	RIG_FRNG_END, },
 
 .tuning_steps = 	{
-	 {IC7851_1HZ_TS_MODES,1},
-	 {IC7851_ALL_RX_MODES,Hz(100)},
-	 {IC7851_ALL_RX_MODES,kHz(1)},
-	 {IC7851_ALL_RX_MODES,kHz(5)},
-	 {IC7851_ALL_RX_MODES,kHz(9)},
-	 {IC7851_ALL_RX_MODES,kHz(10)},
-	 {IC7851_ALL_RX_MODES,kHz(12.5)},
-	 {IC7851_ALL_RX_MODES,kHz(20)},
-	 {IC7851_ALL_RX_MODES,kHz(25)},
+	 {IC785x_1HZ_TS_MODES,1},
+	 {IC785x_ALL_RX_MODES,Hz(100)},
+	 {IC785x_ALL_RX_MODES,kHz(1)},
+	 {IC785x_ALL_RX_MODES,kHz(5)},
+	 {IC785x_ALL_RX_MODES,kHz(9)},
+	 {IC785x_ALL_RX_MODES,kHz(10)},
+	 {IC785x_ALL_RX_MODES,kHz(12.5)},
+	 {IC785x_ALL_RX_MODES,kHz(20)},
+	 {IC785x_ALL_RX_MODES,kHz(25)},
 	 RIG_TS_END,
 	},
 	/* mode/filter list, remember: order matters! */
@@ -181,13 +181,13 @@ const struct rig_caps ic7851_caps = {
 	{RIG_MODE_FM, kHz(8)},
 	RIG_FLT_END,
 	},
-.str_cal = IC7851_STR_CAL,
+.str_cal = IC785x_STR_CAL,
 
 .cfgparams =  icom_cfg_params,
 .set_conf =  icom_set_conf,
 .get_conf =  icom_get_conf,
 
-.priv =  (void*)&ic7851_priv_caps,
+.priv =  (void*)&ic785x_priv_caps,
 .rig_init =   icom_init,
 .rig_cleanup =   icom_cleanup,
 .rig_open =  NULL,
