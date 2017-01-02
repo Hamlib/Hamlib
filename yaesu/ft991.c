@@ -446,17 +446,27 @@ int ft991_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
   struct newcat_priv_data *priv;
   int err;
+  struct rig_state *state;
 
-  // FT991 can't set VFOB mode directly so we always set VFOA
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  if (!rig)
+    return -RIG_EINVAL;
+  state = &rig->state;
+
+  // FT991 can't set VFOB mode directly so we always set VFOA and copy to VFOB
   // We will always make VFOB match VFOA mode
   newcat_set_mode(rig, RIG_VFO_A, mode, width);
 
   priv = (struct newcat_priv_data *)rig->state.priv;
 
-  // Copy A to B
+  // Copy A to B "AB" command has no return so we write directly
   snprintf(priv->cmd_str, sizeof(priv->cmd_str), "AB;");
-  if (RIG_OK != (err = newcat_get_cmd (rig)))
-    return err;
+  if (RIG_OK != (err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str))))
+  {
+      rig_debug(RIG_DEBUG_VERBOSE, "%s:%d write_block err = %d\n", __func__, __LINE__, err);
+      return err;
+  }
   return RIG_OK;
 }
 
