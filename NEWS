@@ -9,6 +9,7 @@ Version 3.2
         2017-06-30
         * New models, IC-7850/IC-7851 in IC-785x.  Mike, W9MDB
         * Fix ft991_get_mode, Mike, W9MDB
+        * New model, FT-891.  Mike, W9MDB
 
 Version 3.1
 	2016-12-31

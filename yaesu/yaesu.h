@@ -57,6 +57,7 @@ extern const struct rig_caps ft897_caps;
 extern const struct rig_caps ft847_caps;
 extern const struct rig_caps ft840_caps;
 extern const struct rig_caps ft890_caps;
+extern const struct rig_caps ft891_caps;
 extern const struct rig_caps ft900_caps;
 extern const struct rig_caps ft920_caps;
 extern const struct rig_caps ft950_caps;
