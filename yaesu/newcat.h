@@ -124,6 +124,9 @@ struct newcat_priv_data {
  *
  */
 
+int newcat_get_cmd(RIG * rig);
+int newcat_set_cmd (RIG *rig);
+
 int newcat_init(RIG *rig);
 int newcat_cleanup(RIG *rig);
 int newcat_open(RIG *rig);

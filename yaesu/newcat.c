@@ -243,10 +243,7 @@ static int newcat_get_faststep(RIG * rig, ncboolean * fast_step);
 static int newcat_get_rigid(RIG * rig);
 static int newcat_get_vfo_mode(RIG * rig, vfo_t * vfo_mode);
 static int newcat_vfomem_toggle(RIG * rig);
-static ncboolean newcat_valid_command(RIG *rig, char *command);
-/* NewCAT Exposed Functions */
-int newcat_get_cmd(RIG * rig);
-int newcat_set_cmd (RIG *rig);
+static ncboolean newcat_valid_command(RIG *rig, char const * const command);
 
 /*
  * ************************************
@@ -914,22 +911,19 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo) {
 int newcat_get_vfo(RIG *rig, vfo_t *vfo) {
     struct rig_state *state = &rig->state;
     struct newcat_priv_data *priv  = (struct newcat_priv_data *)rig->state.priv;
-    char c;
     int err;
     vfo_t vfo_mode;
-    char command[] = "VS";
+    char const * command = "VS";
 
     if (!rig || !vfo)
         return -RIG_EINVAL;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!newcat_valid_command(rig, command))
-        return -RIG_ENAVAIL;
-
     /* Build the command string */
+    if (!newcat_valid_command(rig, command))
+      return -RIG_ENAVAIL;
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s;", command);
-
     rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
 
     /* Get VFO */
@@ -939,22 +933,20 @@ int newcat_get_vfo(RIG *rig, vfo_t *vfo) {
       }
 
     /*
-     * The current VFO value is a digit ('0' or '1' ('A' or 'B' respectively))
-     * embedded at ret_data[2] in the read string.
+     * The current VFO value is a digit ('0' or '1' ('A' or 'B'
+     * respectively)) embedded at ret_data[2] in the read string.
      */
-
-    c = priv->ret_data[2];
-
-    switch (c) {
-        case '0':
-            *vfo = RIG_VFO_A;
-            break;
-        case '1':
-            *vfo = RIG_VFO_B;
-            break;
-        default:
-            return -RIG_EPROTO;         /* sorry, wrong current VFO */
-    }
+    switch (priv->ret_data[2])
+      {
+      case '0':
+        *vfo = RIG_VFO_A;
+        break;
+      case '1':
+        *vfo = RIG_VFO_B;
+        break;
+      default:
+        return -RIG_EPROTO;         /* sorry, wrong current VFO */
+      }
 
     /* Check to see if RIG is in MEM mode */
     err = newcat_get_vfo_mode(rig, &vfo_mode);
@@ -966,7 +958,6 @@ int newcat_get_vfo(RIG *rig, vfo_t *vfo) {
     rig_debug(RIG_DEBUG_TRACE, "%s: rig->state.current_vfo = 0x%02x\n", __func__, state->current_vfo);
 
     return RIG_OK;
-
 }
 
 
@@ -1193,9 +1184,17 @@ int newcat_set_split_vfo(RIG * rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     if (err < 0)
         return err;
 
-    err = newcat_get_vfo(rig, &rx_vfo);  /* sync to rig current vfo */
-    if (err != RIG_OK)
-        return err;
+    if (newcat_is_rig(rig, RIG_MODEL_FT991))
+      {
+        vfo = RIG_VFO_A;
+        tx_vfo = RIG_SPLIT_ON == split ? RIG_VFO_B : RIG_VFO_A;
+      }
+    else
+      {
+        err = newcat_get_vfo(rig, &rx_vfo);  /* sync to rig current vfo */
+        if (err != RIG_OK)
+          return err;
+      }
 
     switch (split) {
         case RIG_SPLIT_OFF:
@@ -1203,7 +1202,7 @@ int newcat_set_split_vfo(RIG * rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
             if (err != RIG_OK)
                 return err;
 
-            if (rx_vfo != vfo) {
+            if (rx_vfo != vfo && newcat_valid_command (rig, "VS")) {
                 err = newcat_set_vfo(rig, vfo);
                 if (err != RIG_OK)
                     return err;
@@ -1216,7 +1215,7 @@ int newcat_set_split_vfo(RIG * rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
             if (rx_vfo != vfo) {
                 err = newcat_set_vfo(rig, vfo);
-                if (err != RIG_OK)
+                if (err != RIG_OK && err != -RIG_ENAVAIL)
                     return err;
             }
             break;
@@ -3360,7 +3359,7 @@ const char *newcat_get_info(RIG * rig)
  * commands (for a rig).
  */
 
-ncboolean newcat_valid_command(RIG *rig, char *command) {
+ncboolean newcat_valid_command(RIG *rig, char const * const command) {
     const struct rig_caps *caps;
     ncboolean is_ft450;
     ncboolean is_ft950;
@@ -3504,10 +3503,11 @@ int newcat_set_tx_vfo(RIG * rig, vfo_t tx_vfo) {
        definitively set the TX VFO (VS; doesn't seem to help
        either) */
     if (newcat_is_rig(rig, RIG_MODEL_FT950) ||
-            newcat_is_rig(rig, RIG_MODEL_FT2000) ||
-            newcat_is_rig(rig, RIG_MODEL_FTDX5000) ||
-            newcat_is_rig(rig, RIG_MODEL_FT1200))
-        p1 = p1 + 2;            /* use non-Toggle commands */
+        newcat_is_rig(rig, RIG_MODEL_FT2000) ||
+        newcat_is_rig(rig, RIG_MODEL_FTDX5000) ||
+        newcat_is_rig(rig, RIG_MODEL_FT1200) ||
+        newcat_is_rig(rig, RIG_MODEL_FT991))
+      p1 = p1 + 2;            /* use non-Toggle commands */
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", "FT", p1, cat_term);
 
@@ -3526,14 +3526,13 @@ int newcat_get_tx_vfo(RIG * rig, vfo_t * tx_vfo) {
     int err;
     char c;
     vfo_t vfo_mode;
+    char const * command = "FT";
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!newcat_valid_command(rig, "FT"))
-        return -RIG_ENAVAIL;
-
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c", "FT", cat_term);
-
+    if (!newcat_valid_command(rig, command))
+      return -RIG_ENAVAIL;
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c", command, cat_term);
     rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
 
     /* Get TX VFO */
@@ -3542,7 +3541,7 @@ int newcat_get_tx_vfo(RIG * rig, vfo_t * tx_vfo) {
         return err;
       }
 
-    c = priv->ret_data[2];
+    c = priv->ret_data[strlen (priv->cmd_str)];
     switch (c) {
         case '0':
             *tx_vfo = RIG_VFO_A;
