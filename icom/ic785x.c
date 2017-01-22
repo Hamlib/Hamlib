@@ -77,7 +77,7 @@ extern int ic7800_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
  * TODO: complete command set (esp. the $1A bunch!) and testing..
  */
 static const struct icom_priv_caps ic785x_priv_caps = {
-		0x6a,	/* default address */
+		0x8e,	/* default address */
 		0,		/* 731 mode */
     0,    /* no XCHG */
 		ic756pro_ts_sc_list
