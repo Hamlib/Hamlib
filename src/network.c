@@ -44,6 +44,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <signal.h>
+#include <sys/ioctl.h>
 
 
 #ifdef HAVE_NETINET_IN_H
@@ -73,6 +74,8 @@
 static int wsstarted;
 #endif
 
+#define NET_BUFFER_SIZE 64
+
 static void handle_error (enum rig_debug_level_e lvl, const char *msg)
 {
 	int e;
@@ -101,6 +104,26 @@ static void handle_error (enum rig_debug_level_e lvl, const char *msg)
 	e = errno;
 	rig_debug (lvl, "%s: Network error %d: %s\n", msg, e, strerror (e));
 #endif
+}
+
+/**
+ * \brief Clears any data in the read buffer of the socket
+ *
+ * \param rp Port data structure
+ */
+void network_flush(hamlib_port_t* rp)
+{
+  int len = 0;
+  char buffer[NET_BUFFER_SIZE] = { 0 };
+  for (;;) {
+    ioctl(rp->fd, FIONREAD, &len);
+    if (len > 0) {
+      len = read(rp->fd, &buffer, len < NET_BUFFER_SIZE ? len : NET_BUFFER_SIZE);
+      rig_debug(RIG_DEBUG_WARN, "Network data cleared: %s\n", buffer);
+    } else {
+      break;
+    }
+  }
 }
 
 /**
