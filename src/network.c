@@ -44,7 +44,6 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <signal.h>
-#include <sys/ioctl.h>
 
 
 #ifdef HAVE_NETINET_IN_H
@@ -56,8 +55,9 @@
 #ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
 #endif
-#ifdef HAVE_SYS_SOCKET_H
+#if defined (HAVE_SYS_SOCKET_H) && defined (HAVE_SYS_IOCTL_H)
 #include <sys/socket.h>
+#include <sys/ioctl.h>
 #elif HAVE_WS2TCPIP_H
 #include <ws2tcpip.h>
 #	if defined(HAVE_WSPIAPI_H)
@@ -104,26 +104,6 @@ static void handle_error (enum rig_debug_level_e lvl, const char *msg)
 	e = errno;
 	rig_debug (lvl, "%s: Network error %d: %s\n", msg, e, strerror (e));
 #endif
-}
-
-/**
- * \brief Clears any data in the read buffer of the socket
- *
- * \param rp Port data structure
- */
-void network_flush(hamlib_port_t* rp)
-{
-  int len = 0;
-  char buffer[NET_BUFFER_SIZE] = { 0 };
-  for (;;) {
-    ioctl(rp->fd, FIONREAD, &len);
-    if (len > 0) {
-      len = read(rp->fd, &buffer, len < NET_BUFFER_SIZE ? len : NET_BUFFER_SIZE);
-      rig_debug(RIG_DEBUG_WARN, "Network data cleared: %s\n", buffer);
-    } else {
-      break;
-    }
-  }
 }
 
 /**
@@ -247,6 +227,35 @@ int network_open(hamlib_port_t *rp, int default_port)
 
 	rp->fd = fd;
 	return RIG_OK;
+}
+
+/**
+ * \brief Clears any data in the read buffer of the socket
+ *
+ * \param rp Port data structure
+ */
+void network_flush(hamlib_port_t* rp)
+{
+#ifdef __MINGW32__
+  ULONG len = 0;
+#else
+  uint len = 0;
+#endif
+
+  char buffer[NET_BUFFER_SIZE] = { 0 };
+  for (;;) {
+#ifdef __MINGW32__
+    ioctlsocket (rp->fd, FIONREAD, &len);
+#else
+    ioctl(rp->fd, FIONREAD, &len);
+#endif
+    if (len > 0) {
+      len = read(rp->fd, &buffer, len < NET_BUFFER_SIZE ? len : NET_BUFFER_SIZE);
+      rig_debug(RIG_DEBUG_WARN, "Network data cleared: %s\n", buffer);
+    } else {
+      break;
+    }
+  }
 }
 
 int network_close(hamlib_port_t *rp)
