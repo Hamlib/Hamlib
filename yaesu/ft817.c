@@ -117,8 +117,7 @@ static const yaesu_cmd_set_t ncmd[] = {
 };
 
 enum ft817_digi {
-  FT817_DIGI_RTTY_L = 0,
-  FT817_DIGI_RTTY_U,
+  FT817_DIGI_RTTY = 0,
   FT817_DIGI_PSK_L,
   FT817_DIGI_PSK_U,
   FT817_DIGI_USER_L,
@@ -503,8 +502,7 @@ int ft817_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
   case 0x0a:
     switch (p->fm_status[5])
       {
-      case FT817_DIGI_RTTY_L: *mode = RIG_MODE_RTTY; break;
-      case FT817_DIGI_RTTY_U: *mode = RIG_MODE_RTTYR; break;
+      case FT817_DIGI_RTTY: *mode = RIG_MODE_RTTYR; break;
       case FT817_DIGI_PSK_L: *mode = RIG_MODE_PKTLSB; break;
       case FT817_DIGI_PSK_U: *mode = RIG_MODE_PKTUSB; break;
       case FT817_DIGI_USER_L: *mode = RIG_MODE_PKTLSB; break;
