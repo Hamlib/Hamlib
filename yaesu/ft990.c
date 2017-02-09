@@ -24,6 +24,14 @@
  *
  */
 
+
+ /* THIS FILE WAS MODIFIED IN DECEMBER 2016 TO REMOVE ANY REFERENCE TO THE FT-1000/D. SEPARATE ft1000d.c and .h FILES
+ *  WERE CREATED TO HANDLE FT-1000/D COMMANDS AND PROVIDE THE FULL RANGE OF FUNCTIONS AVAILABLE ON THE FT-1000/D
+ *  TO MAXIMISE COMPATIBILITY WITH RIGCTL.
+ *  G0OAN
+ */
+
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -39,8 +47,7 @@
 #include "yaesu.h"
 #include "ft990.h"
 
-/* FT1000D */
-#define FT1000D_OP_DATA_LENGTH 16
+
 
 
 /* Private helper function prototypes */
@@ -137,7 +144,7 @@ const struct rig_caps ft990_caps = {
   .rig_model =          RIG_MODEL_FT990,
   .model_name =         "FT-990",
   .mfg_name =           "Yaesu",
-  .version =            "0.2.2",
+  .version =            "0.3.0",
   .copyright =          "LGPL",
   .status =             RIG_STATUS_ALPHA,
   .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -303,6 +310,7 @@ int ft990_init(RIG *rig) {
 
   // Set operating vfo mode to current VFO
   priv->current_vfo =  RIG_VFO_MAIN;
+
 
   rig->state.priv = (void *)priv;
 
@@ -1608,7 +1616,6 @@ int ft990_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
       ci == FT990_NATIVE_MODE_SET_PKT_FM)
     return RIG_OK;
 
-  if (RIG_PASSBAND_NOCHANGE == width) return err;
   switch(width) {
     case 250:
       bw = FT990_BW_F250;
@@ -2447,15 +2454,19 @@ int ft990_get_channel (RIG *rig, channel_t *chan)
   if(chan->split & RIG_SPLIT_ON) {
     // Get data for the transmit VFO
     p = (ft990_op_data_t *) &priv->update_data.current_rear;
-    /* FT1000D  */
-    if (RIG_MODEL_FT1000D == rig->caps->rig_model)
-      p = (ft990_op_data_t *) &priv->update_data.vfob;
-
-    chan->tx_freq = ((((p->basefreq[0] << 8) + p->basefreq[1]) << 8) +
-                     p->basefreq[2]) * 10;
-    /*
-     * Get RX operating mode
-     */
+    
+    
+    /* FT1000D 
+    * if (RIG_MODEL_FT1000D == rig->caps->rig_model)
+    *  p = (ft990_op_data_t *) &priv->update_data.vfob; 
+    *  chan->tx_freq = ((((p->basefreq[0] << 8) + p->basefreq[1]) << 8) +
+    *  p->basefreq[2]) * 10;
+    *
+    * THIS SECTION WAS REMOVED IN DECEMBER 2016. SEE SEPARATE ft1000d.c and .h FILES
+   */
+    
+    
+     /* Get RX operating mode */
     switch(p->mode) {
       case FT990_MODE_LSB:
         chan->tx_mode = RIG_MODE_LSB;
@@ -2622,8 +2633,13 @@ int ft990_get_update_data(RIG *rig, unsigned char ci, unsigned short ch) {
     case FT990_NATIVE_UPDATE_ALL_DATA:
       p = (char *) &priv->update_data;
       rl = FT990_ALL_DATA_LENGTH;
-      /* FT1000D */
-      if (RIG_MODEL_FT1000D == rig->caps->rig_model)
+      
+      
+      /* FT1000D
+     *  if (RIG_MODEL_FT1000D == rig->caps->rig_model); Removed December 2016 see separate ft1000d.c and .h files
+     */
+     
+     
         return RIG_OK;
     break;
     case FT990_NATIVE_UPDATE_MEM_CHNL:
@@ -2633,9 +2649,6 @@ int ft990_get_update_data(RIG *rig, unsigned char ci, unsigned short ch) {
     case FT990_NATIVE_UPDATE_OP_DATA:
       p = (char *) &priv->update_data.current_front;
       rl = FT990_OP_DATA_LENGTH;
-      /* FT1000D */
-      if (RIG_MODEL_FT1000D == rig->caps->rig_model)
-        rl = FT1000D_OP_DATA_LENGTH;
       break;
     case FT990_NATIVE_UPDATE_VFO_DATA:
       p = (char *) &priv->update_data.vfoa;
