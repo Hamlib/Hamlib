@@ -3362,6 +3362,7 @@ const char *newcat_get_info(RIG * rig)
 ncboolean newcat_valid_command(RIG *rig, char const * const command) {
     const struct rig_caps *caps;
     ncboolean is_ft450;
+    ncboolean is_ft891;
     ncboolean is_ft950;
     ncboolean is_ft991;
     ncboolean is_ft2000;
@@ -3393,6 +3394,7 @@ ncboolean newcat_valid_command(RIG *rig, char const * const command) {
      */
 
     is_ft450 = newcat_is_rig(rig, RIG_MODEL_FT450);
+    is_ft891 = newcat_is_rig(rig, RIG_MODEL_FT991);
     is_ft950 = newcat_is_rig(rig, RIG_MODEL_FT950);
     is_ft991 = newcat_is_rig(rig, RIG_MODEL_FT991);
     is_ft2000 = newcat_is_rig(rig, RIG_MODEL_FT2000);
@@ -3401,7 +3403,7 @@ ncboolean newcat_valid_command(RIG *rig, char const * const command) {
     is_ft1200 = newcat_is_rig(rig, RIG_MODEL_FT1200);
 
 
-    if (!is_ft450 && !is_ft950 && !is_ft991 && !is_ft2000 && !is_ft5000 && !is_ft9000 & !is_ft1200 ) {
+    if (!is_ft450 && !is_ft950 && !is_ft891 && !is_ft991 && !is_ft2000 && !is_ft5000 && !is_ft9000 & !is_ft1200 ) {
         rig_debug(RIG_DEBUG_ERR, "%s: '%s' is unknown\n",
                 __func__, caps->model_name);
         return FALSE;
