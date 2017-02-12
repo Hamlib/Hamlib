@@ -541,6 +541,22 @@ const struct rig_caps fasdr_caps = {
 #define REQUEST_TYPE_OUT (LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT)
 
 /*
+ * some little endian (these devices are LE) to host endian converters
+ */
+static unsigned char * setLongWord(uint32_t value, unsigned char *bytes)
+{
+	bytes[0] = value & 0xff;
+	bytes[1] = ((value & 0xff00) >> 8) & 0xff;
+	bytes[2] = ((value & 0xff0000) >> 16) & 0xff;
+	bytes[3] = ((value & 0xff000000) >> 24) & 0xff;
+	return bytes;
+}
+static uint32_t getLongWord(unsigned char const * bytes)
+{
+	return bytes[0] + (bytes[1] << 8) + (bytes[2] << 16) + (bytes[3] << 24);
+}
+
+/*
  * AVR-USB model
  */
 int si570avrusb_init(RIG *rig)
@@ -743,14 +759,13 @@ int fasdr_open(RIG *rig)
 	int ret, i;
 	double f;
 	unsigned char buffer[4];
-	unsigned short version;
 
 	rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
 
 	ret = libusb_control_transfer(udh, REQUEST_TYPE_IN,
 				      REQUEST_READ_VERSION, 0x0E00, 0,
-				      (unsigned char *) &version, sizeof(version), rig->state.rigport.timeout);
+				      buffer, 2, rig->state.rigport.timeout);
 
 	if (ret != 2) {
 		rig_debug(RIG_DEBUG_ERR, "%s: libusb_control_transfer failed: %s\n",
@@ -759,9 +774,7 @@ int fasdr_open(RIG *rig)
 		return -RIG_EIO;
 	}
 
-	// Does version needs endianess ordering ?
-
-	priv->version = version; // Unsure how to get firmware version
+	priv->version = buffer[0] + (buffer[1] << 8); // Unsure how to get firmware version
 
 	ret = libusb_control_transfer(udh,
 				      REQUEST_TYPE_IN,
@@ -949,7 +962,7 @@ int si570xxxusb_open(RIG *rig)
 	struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)rig->state.priv;
 	libusb_device_handle *udh = rig->state.rigport.handle;
 	int ret;
-	unsigned short version;
+	unsigned char buffer[4];
 
 	rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
@@ -959,7 +972,7 @@ int si570xxxusb_open(RIG *rig)
 
 	ret = libusb_control_transfer(udh, REQUEST_TYPE_IN,
 				      REQUEST_READ_VERSION, 0x0E00, 0,
-				      (unsigned char *) &version, sizeof(version), rig->state.rigport.timeout);
+				      buffer, 2, rig->state.rigport.timeout);
 
 	if (ret != 2) {
 		rig_debug(RIG_DEBUG_ERR, "%s: libusb_control_transfer failed: %s\n",
@@ -968,21 +981,22 @@ int si570xxxusb_open(RIG *rig)
 		return -RIG_EIO;
 	}
 
-	priv->version = version;
+	priv->version = buffer[0] + (buffer[1] << 8);
 
-	if (version  >= 0x0F00 || rig->caps->rig_model == RIG_MODEL_SI570PICUSB) {
+	if (priv->version  >= 0x0F00 || rig->caps->rig_model == RIG_MODEL_SI570PICUSB) {
 		unsigned int iFreq;
 
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: detected PE0FKO-like firmware\n", __func__);
 
 		ret = libusb_control_transfer(udh,
 					      REQUEST_TYPE_IN,
-					      REQUEST_READ_XTALL, 0, 0, (unsigned char *) &iFreq, sizeof(iFreq),
+					      REQUEST_READ_XTALL, 0, 0, buffer, sizeof(buffer),
 					      rig->state.rigport.timeout);
 
 		if (ret != 4)
 			return -RIG_EIO;
 
+		iFreq = getLongWord (buffer);
 		priv->osc_freq = (double)iFreq / (1UL << 24);
 
 		if (priv->bpf) {
@@ -1007,11 +1021,11 @@ const char *si570xxxusb_get_info(RIG *rig)
 	libusb_device_handle *udh = rig->state.rigport.handle;
 	struct libusb_device_descriptor desc;
 	int ret;
-	unsigned short version;
+	unsigned char buffer[2];
 
 	ret = libusb_control_transfer(udh, REQUEST_TYPE_IN,
 				      REQUEST_READ_VERSION, 0x0E00, 0,
-				      (unsigned char *) &version, sizeof(version), rig->state.rigport.timeout);
+				      buffer, sizeof(buffer), rig->state.rigport.timeout);
 
 	if (ret != 2) {
 		rig_debug(RIG_DEBUG_ERR, "%s: libusb_control_transfer failed: %s\n",
@@ -1023,8 +1037,7 @@ const char *si570xxxusb_get_info(RIG *rig)
 	/* always succeeds since libusb-1.0.16 */
 	libusb_get_device_descriptor(libusb_get_device(udh), &desc);
 
-	sprintf(buf, "USB dev %04d, version: %d.%d", desc.bcdDevice,
-		(version & 0xFF00) >> 8, version & 0xFF);
+	sprintf(buf, "USB dev %04d, version: %d.%d", desc.bcdDevice, buffer[1], buffer[0]);
 
 	return buf;
 }
@@ -1096,15 +1109,6 @@ static int calcDividers(RIG *rig, double f, struct solution *solution)
 		return 0;
 	}
 }
-
-static void setLongWord(uint32_t value, unsigned char *bytes)
-{
-	bytes[0] = value & 0xff;
-	bytes[1] = ((value & 0xff00) >> 8) & 0xff;
-	bytes[2] = ((value & 0xff0000) >> 16) & 0xff;
-	bytes[3] = ((value & 0xff000000) >> 24) & 0xff;
-}
-
 
 int si570xxxusb_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
@@ -1263,13 +1267,12 @@ int si570xxxusb_get_freq_by_value(RIG *rig, vfo_t vfo, freq_t *freq)
 	struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)rig->state.priv;
 	libusb_device_handle *udh = rig->state.rigport.handle;
 	int ret;
+	unsigned char buffer[4];
 	uint32_t iFreq;
-
-	// Does iFreq needs endianess ordering ?
 
 	ret = libusb_control_transfer(udh, REQUEST_TYPE_IN,
 				      REQUEST_READ_FREQUENCY, 0, 0,
-				      (unsigned char *)&iFreq, sizeof(iFreq), rig->state.rigport.timeout);
+				      buffer, sizeof(buffer), rig->state.rigport.timeout);
 
 	if (ret != 4) {
 		rig_debug(RIG_DEBUG_ERR, "%s: libusb_control_transfer failed: %s\n",
@@ -1277,7 +1280,10 @@ int si570xxxusb_get_freq_by_value(RIG *rig, vfo_t vfo, freq_t *freq)
 			  libusb_error_name(ret));
 		return -RIG_EIO;
 	}
-
+	iFreq = getLongWord (buffer);
+	rig_debug(RIG_DEBUG_VERBOSE,
+		  "%s: Freq raw: %02x%02x%02x%02x endian converted: %d\n",
+						__func__, buffer[0], buffer[1], buffer[2], buffer[3], iFreq);
 	*freq = (((double)iFreq / (1UL << 21)) / priv->multiplier) * 1e6;
 
 	return RIG_OK;
