@@ -140,6 +140,7 @@ extern const struct ts_sc_list ic7200_ts_sc_list[];
 extern const struct ts_sc_list ic7300_ts_sc_list[];
 extern const struct ts_sc_list ic910_ts_sc_list[];
 extern const struct ts_sc_list ic718_ts_sc_list[];
+extern const struct ts_sc_list x108g_ts_sc_list[];
 
 extern const pbwidth_t rtty_fil[];	/* rtty filter passband width; available on 746pro and 756pro rigs */
 
@@ -201,6 +202,8 @@ int icom_decode_event(RIG *rig);
 int icom_power2mW(RIG * rig, unsigned int *mwpower, float power, freq_t freq, rmode_t mode);
 int icom_mW2power(RIG * rig, float *power, unsigned int mwpower, freq_t freq, rmode_t mode);
 int icom_send_morse (RIG * rig, vfo_t vfo, const char *msg);
+/* Exposed routines */
+int icom_get_split_vfos(const RIG *rig, vfo_t *rx_vfo, vfo_t *tx_vfo);
 
 extern const struct confparams icom_cfg_params[];
 
@@ -272,5 +275,8 @@ extern const struct rig_caps id5100_caps;
 extern const struct rig_caps ic2730_caps;
 
 extern const struct rig_caps perseus_caps;
+
+extern const struct rig_caps x108g_caps;
+
 
 #endif /* _ICOM_H */
