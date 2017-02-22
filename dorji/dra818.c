@@ -332,19 +332,19 @@ int dra818_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 				priv->sql = 0;
 			if (priv->sql > 8)
 				priv->sql = 8;
-			break;
-		case RIG_LEVEL_Af:
+			return dra818_setgroup(rig);
+		case RIG_LEVEL_AF:
 			/* AF range: 1..8 */
 			priv->vol = val.f * 8;
 			if (priv->vol < 1)
 				priv->vol = 1;
 			if (priv->vol > 8)
 				priv->vol = 8;
-			break;
+			return dra818_setvolume(rig);
 		default:
-			return -RIG_EINVAL;
+			break;
 	}
-	return dra818_setgroup(rig);
+	return -RIG_EINVAL;
 }
 
 int dra818_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
