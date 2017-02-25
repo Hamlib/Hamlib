@@ -1,0 +1,12 @@
+LOCAL_PATH:= $(call my-dir)
+
+include $(CLEAR_VARS)
+
+LOCAL_SRC_FILES := dorji.c dra818.c
+LOCAL_MODULE := dorji
+
+LOCAL_CFLAGS := -DHAVE_CONFIG_H
+LOCAL_C_INCLUDES := android include src
+LOCAL_LDLIBS := -lhamlib -Lobj/local/armeabi
+
+include $(BUILD_STATIC_LIBRARY)
