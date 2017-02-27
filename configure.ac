@@ -271,11 +271,6 @@ AS_CASE(["$host_os"],
         AC_SUBST([AM_LDFLAGS])],
 
     [darwin* | rhapsody*], [
-        # Trick from http://fink.sourceforge.net/doc/porting/
-        # TODO: check the compiler actually does support these options
-        AM_CFLAGS="${AM_CFLAGS} -no-cpp-precomp"
-        AM_CXXFLAGS="${AM_CXXFLAGS} -no-cpp-precomp"
-
         # Tell the OS X linker to allocate enough space inside the
         # libhamlib.X.dylib shared object for install_name_tool(1) to
         # work. This is useful when including hamlib in an app bundle.

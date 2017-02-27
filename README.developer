@@ -595,7 +595,6 @@ Keep in mind Hamlib has to run under:
 
 Hamlib should also compile with the following common compilers:
 
-    * gcc-2.9x  (most likely deprecated)
     * gcc-3.0 and gcc-3.2+  (nearly deprecated?)
     * gcc-4.x and newer
     * in shared and static
