@@ -1333,9 +1333,14 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 		break;
 
 	case RIG_PTT_SERIAL_DTR:
+		/* when the PTT port is not the control port we want to free the
+			 port when PTT is reset and seize the port when PTT is set,
+			 this allows limited sharing of the PTT port between
+			 applications so long as there is no contention */
 	  if (strcmp(rs->pttport.pathname, rs->rigport.pathname)
-				&& ptt!=RIG_PTT_OFF && rs->pttport.fd < 0)
+				&& rs->pttport.fd < 0)
 	    {
+				if (RIG_PTT_OFF == ptt) return RIG_OK; /* nothing to do here */
 	      rs->pttport.fd = ser_open(&rs->pttport);
 	      if (rs->pttport.fd < 0)
           {
@@ -1359,9 +1364,14 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 		return retcode;
 
 	case RIG_PTT_SERIAL_RTS:
+		/* when the PTT port is not the control port we want to free the
+			 port when PTT is reset and seize the port when PTT is set,
+			 this allows limited sharing of the PTT port between
+			 applications so long as there is no contention */
 	  if (strcmp(rs->pttport.pathname, rs->rigport.pathname)
-				&& ptt!=RIG_PTT_OFF && rs->pttport.fd < 0)
+				&& rs->pttport.fd < 0)
 	    {
+				if (RIG_PTT_OFF == ptt) return RIG_OK; /* nothing to do here */
 	      rs->pttport.fd = ser_open(&rs->pttport);
 	      if (rs->pttport.fd < 0)
           {
