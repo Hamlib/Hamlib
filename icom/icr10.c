@@ -1,6 +1,7 @@
 /*
  *  Hamlib CI-V backend - description of IC-R10
  *  Copyright (c) 2000-2004 by Stephane Fillod
+ *  Copyright (c) 2017 Malcolm Herring
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -58,7 +59,7 @@ const struct rig_caps icr10_caps = {
 .mfg_name =  "Icom",
 .version =  BACKEND_VER,
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_RECEIVER|RIG_FLAG_HANDHELD,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_RIG,
