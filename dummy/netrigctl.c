@@ -235,6 +235,13 @@ chan_t chan_list[CHANLSTSIZ]; /*!< Channel list, zero ended */
 	return (ret < 0) ? ret : -RIG_EPROTO;
 
   rs->has_get_level = strtol(buf, NULL, 0);
+  if (rs->has_get_level & RIG_LEVEL_RAWSTR)
+    {
+      /* include STRENGTH because the remote rig may be able to
+         provide a front end emulation, if it can't then an
+         -RIG_EINVAL will be returned */
+      rs->has_get_level |= RIG_LEVEL_STRENGTH;
+    }
 
   ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
   if (ret <= 0)
