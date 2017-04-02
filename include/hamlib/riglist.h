@@ -218,7 +218,8 @@
 #define RIG_MODEL_PERSEUS RIG_MAKE_MODEL(RIG_ICOM, 74)
 #define RIG_MODEL_IC785x RIG_MAKE_MODEL(RIG_ICOM, 75)
 #define RIG_MODEL_X108G RIG_MAKE_MODEL(RIG_ICOM, 76) /* Xiegu X108 */
-/* next one is 77 */
+#define RIG_MODEL_ICR6 RIG_MAKE_MODEL(RIG_ICOM, 77)
+/* next one is 78 */
 
 	/*
 	 * Optoelectronics (CI-V)

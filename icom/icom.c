@@ -335,6 +335,7 @@ static const struct icom_addr icom_addr_list[] = {
 	{ RIG_MODEL_IC1275, 0x18 },
 	{ RIG_MODEL_ICR10, 0x52 },
 	{ RIG_MODEL_ICR20, 0x6c },
+	{ RIG_MODEL_ICR6, 0x7e },
 	{ RIG_MODEL_ICR71, 0x1a },
 	{ RIG_MODEL_ICR72, 0x32 },
 	{ RIG_MODEL_ICR75, 0x5a },
@@ -3812,14 +3813,15 @@ DECLARE_INITRIG_BACKEND(icom)
 	rig_register(&ic9100_caps);
 	rig_register(&ic970_caps);
 
-        rig_register(&icrx7_caps);
-        rig_register(&icr10_caps);
-        rig_register(&icr20_caps);
-        rig_register(&icr71_caps);
-        rig_register(&icr72_caps);
-        rig_register(&icr75_caps);
-        rig_register(&icr7000_caps);
-        rig_register(&icr7100_caps);
+	rig_register(&icrx7_caps);
+	rig_register(&icr6_caps);
+	rig_register(&icr10_caps);
+	rig_register(&icr20_caps);
+	rig_register(&icr71_caps);
+	rig_register(&icr72_caps);
+	rig_register(&icr75_caps);
+	rig_register(&icr7000_caps);
+	rig_register(&icr7100_caps);
 	rig_register(&icr8500_caps);
 	rig_register(&icr9000_caps);
 	rig_register(&icr9500_caps);

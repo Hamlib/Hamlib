@@ -1,6 +1,5 @@
 /*
- *  Hamlib CI-V backend - description of IC-R10
- *  Copyright (c) 2000-2004 by Stephane Fillod
+ *  Hamlib CI-V backend - description of IC-R6
  *  Copyright (c) 2017 Malcolm Herring
  *
  *
@@ -30,34 +29,33 @@
 #include "icom.h"
 #include "idx_builtin.h"
 
-#define ICR10_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_WFM)
+#define ICR6_MODES (RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_WFM)
 
-#define ICR10_FUNC_ALL (RIG_FUNC_NONE)
+#define ICR6_FUNC_ALL (RIG_FUNC_NONE)
 
-#define ICR10_LEVEL_ALL (RIG_LEVEL_RAWSTR)
+#define ICR6_LEVEL_ALL (RIG_LEVEL_RAWSTR)
 
-#define ICR10_VFO_ALL (RIG_VFO_A)
+#define ICR6_VFO_ALL (RIG_VFO_A)
 
-#define ICR10_VFO_OPS (RIG_OP_NONE)
-#define ICR10_SCAN_OPS (RIG_SCAN_NONE)
+#define ICR6_VFO_OPS (RIG_OP_NONE)
+#define ICR6_SCAN_OPS (RIG_SCAN_NONE)
 
-#define ICR10_STR_CAL { 2, \
-  { \
-    {  0, -60 }, /* S0 */ \
-    { 160, 60 } /* +60 */ \
-  } }
-                                                
-                                                
-static const struct icom_priv_caps icr10_priv_caps = {
-		0x52,	/* default address */
+#define ICR6_STR_CAL { 2, \
+	{ \
+		{  0, -60 }, /* S0 */ \
+		{ 255, 60 } /* +60 */ \
+	} }
+
+static const struct icom_priv_caps icr6_priv_caps = {
+		0x7e,	/* default address */
 		0,		/* 731 mode */
     0,    /* no XCHG */
 		r8500_ts_sc_list	/* wrong, but don't have set_ts anyway */
 };
 
-const struct rig_caps icr10_caps = {
-.rig_model =  RIG_MODEL_ICR10,
-.model_name = "IC-R10",
+const struct rig_caps icr6_caps = {
+.rig_model =  RIG_MODEL_ICR6,
+.model_name = "IC-R6",
 .mfg_name =  "Icom",
 .version =  BACKEND_VER,
 .copyright =  "LGPL",
@@ -76,10 +74,10 @@ const struct rig_caps icr10_caps = {
 .post_write_delay =  0,
 .timeout =  1000,
 .retry =  3,
-.has_get_func =  ICR10_FUNC_ALL,
-.has_set_func =  ICR10_FUNC_ALL,
-.has_get_level =  ICR10_LEVEL_ALL,
-.has_set_level =  RIG_LEVEL_SET(ICR10_LEVEL_ALL),
+.has_get_func =  ICR6_FUNC_ALL,
+.has_set_func =  ICR6_FUNC_ALL,
+.has_get_level =  ICR6_LEVEL_ALL,
+.has_set_level =  RIG_LEVEL_SET(ICR6_LEVEL_ALL),
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,	/* FIXME: parms */
 .level_gran = {
@@ -94,46 +92,62 @@ const struct rig_caps icr10_caps = {
 .max_xit =  Hz(0),
 .max_ifshift =  Hz(0),
 .targetable_vfo =  0,
-.vfo_ops =  ICR10_VFO_OPS,
-.scan_ops =  ICR10_SCAN_OPS,
+.vfo_ops =  ICR6_VFO_OPS,
+.scan_ops =  ICR6_SCAN_OPS,
 .transceive =  RIG_TRN_RIG,
 .bank_qty =   0,
 .chan_desc_sz =  0,
 
+	/* Only through cloning mode OPC-1382 */
 .chan_list =  {
-		   RIG_CHAN_END,
+		{    1,  999, RIG_MTYPE_MEM  },	/* TBC */
+		{ 1000, 1199, RIG_MTYPE_MEM },	/* auto-write */
+		{ 1200, 1299, RIG_MTYPE_EDGE },	/* two by two */
+		RIG_CHAN_END,
 		},
 
-.rx_range_list1 =   {
-	{kHz(500),GHz(1.3),ICR10_MODES,-1,-1,ICR10_VFO_ALL},
+.rx_range_list1 =   {	/* Other countries but France */
+	{kHz(100),GHz(1.309995),ICR6_MODES,-1,-1,ICR6_VFO_ALL},
 	RIG_FRNG_END, },
 .tx_range_list1 =   { RIG_FRNG_END, },
 
-.rx_range_list2 =   {
-	{kHz(500),MHz(823.9999),ICR10_MODES,-1,-1,ICR10_VFO_ALL},
-	{MHz(849),MHz(868.9999),ICR10_MODES,-1,-1,ICR10_VFO_ALL},
-	{MHz(894),GHz(1.3),ICR10_MODES,-1,-1,ICR10_VFO_ALL},
+.rx_range_list2 =   {	/* USA */
+	{kHz(100),MHz(821.995),ICR6_MODES,-1,-1,ICR6_VFO_ALL},
+	{MHz(851),MHz(866.995),ICR6_MODES,-1,-1,ICR6_VFO_ALL},
+	{MHz(896),GHz(1.309995),ICR6_MODES,-1,-1,ICR6_VFO_ALL},
 	RIG_FRNG_END, },
 .tx_range_list2 =   { RIG_FRNG_END, },
 
 .tuning_steps = 	{
-	 {ICR10_MODES,Hz(100)},
+	 {ICR6_MODES,Hz(5000)},
+   {ICR6_MODES,Hz(6250)},
+	 {ICR6_MODES,Hz(10000)},
+	 {ICR6_MODES,Hz(12500)},
+	 {ICR6_MODES,kHz(15)},
+	 {ICR6_MODES,kHz(20)},
+	 {ICR6_MODES,kHz(25)},
+	 {ICR6_MODES,kHz(30)},
+	 {ICR6_MODES,kHz(50)},
+	 {ICR6_MODES,kHz(100)},
+	 /* Air band only */
+	 {ICR6_MODES,Hz(8330)},
+	 /* AM broadcast band only */
+	 {ICR6_MODES,Hz(9000)},
 	 RIG_TS_END,
 	},
 	/* mode/filter list, remember: order matters! */
 .filters = 	{
-		{RIG_MODE_SSB|RIG_MODE_CW, kHz(4)},
-		{RIG_MODE_AM|RIG_MODE_FM, kHz(15)},
+		{RIG_MODE_AM|RIG_MODE_FM, kHz(12)},
 		{RIG_MODE_WFM, kHz(150)},
 		RIG_FLT_END,
 	},
-.str_cal = ICR10_STR_CAL,
+.str_cal = ICR6_STR_CAL,
 
 .cfgparams =  icom_cfg_params,
 .set_conf =  icom_set_conf,
 .get_conf =  icom_get_conf,
 
-.priv =  (void*)&icr10_priv_caps,
+.priv =  (void*)&icr6_priv_caps,
 .rig_init =   icom_init,
 .rig_cleanup =   icom_cleanup,
 .rig_open =  NULL,
