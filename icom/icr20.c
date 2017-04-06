@@ -1,6 +1,7 @@
 /*
  *  Hamlib CI-V backend - description of IC-R20
  *  Copyright (c) 2004 by Stephane Fillod
+ *  Copyright (c) 2004 by Malcolm Herring
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -40,9 +41,6 @@
 #define ICR20_VFO_OPS (RIG_OP_NONE)
 #define ICR20_SCAN_OPS (RIG_SCAN_NONE)
 
-/*
- * FIXME: S-meter measurement!
- */
 #define ICR20_STR_CAL { 2, \
 	{ \
 		{  0, -60 }, /* S0 */ \
@@ -62,7 +60,7 @@ const struct rig_caps icr20_caps = {
 .mfg_name =  "Icom",
 .version =  BACKEND_VER,
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_RECEIVER|RIG_FLAG_HANDHELD,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_RIG,

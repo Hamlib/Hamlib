@@ -249,6 +249,7 @@ extern const struct rig_caps ic970_caps;
 extern const struct rig_caps icrx7_caps;
 extern const struct rig_caps icr10_caps;
 extern const struct rig_caps icr20_caps;
+extern const struct rig_caps icr6_caps;
 extern const struct rig_caps icr71_caps;
 extern const struct rig_caps icr72_caps;
 extern const struct rig_caps icr75_caps;
