@@ -53,8 +53,9 @@ static int spid_rot_init(ROT *rot)
     if (!rot || !rot->caps)
         return -RIG_EINVAL;
 
-    if (rot->caps->rot_model == ROT_MODEL_SPID_ROT2PROG) {
-        priv = (struct spid_rot2prog_priv_data*)malloc(sizeof(struct spid_rot2prog_priv_data));
+    if (rot->caps->rot_model == ROT_MODEL_SPID_ROT2PROG ||
+	rot->caps->rot_model == ROT_MODEL_SPID_MD01_ROT2PROG) {
+            priv = (struct spid_rot2prog_priv_data*)malloc(sizeof(struct spid_rot2prog_priv_data));
         if (!priv) {
             return -RIG_ENOMEM;
         }
@@ -75,7 +76,8 @@ static int spid_rot_cleanup(ROT *rot)
     if (!rot)
         return -RIG_EINVAL;
 
-    if (rot->state.priv && rot->caps->rot_model == ROT_MODEL_SPID_ROT2PROG)
+    if (rot->state.priv && (rot->caps->rot_model == ROT_MODEL_SPID_ROT2PROG ||
+			    rot->caps->rot_model == ROT_MODEL_SPID_MD01_ROT2PROG))
         free(rot->state.priv);
     rot->state.priv = NULL;
 
@@ -88,7 +90,8 @@ static int spid_get_conf(ROT *rot, token_t token, char *val)
 
     rig_debug(RIG_DEBUG_TRACE, "%s called %d\n", __FUNCTION__, token);
 
-    if (rot->caps->rot_model != ROT_MODEL_SPID_ROT2PROG)
+    if (rot->caps->rot_model != ROT_MODEL_SPID_ROT2PROG &&
+	rot->caps->rot_model != ROT_MODEL_SPID_MD01_ROT2PROG)
 	return -RIG_EINVAL;
 
     switch(token) {
@@ -110,7 +113,8 @@ static int spid_set_conf(ROT *rot, token_t token, const char *val)
 
     rig_debug(RIG_DEBUG_TRACE, "%s called %d %s\n", __FUNCTION__, token, val);
 
-    if (rot->caps->rot_model != ROT_MODEL_SPID_ROT2PROG)
+    if (rot->caps->rot_model != ROT_MODEL_SPID_ROT2PROG &&
+	rot->caps->rot_model != ROT_MODEL_SPID_MD01_ROT2PROG)
         return -RIG_EINVAL;
 
     switch(token) {
@@ -209,6 +213,15 @@ static int spid_rot2prog_rot_set_position(ROT *rot, azimuth_t az, elevation_t el
         return retval;
     }
 
+    /* Unlike the original Rot2Prog, MD-01 and MD-02 return the position
+       after receiving the set position command. */
+    if (rot->caps->rot_model == ROT_MODEL_SPID_MD01_ROT2PROG) {
+	retry_read = 0;
+        do {
+            retval = read_block(&rs->rotport, cmdstr, 12);
+        } while ((retval < 0) && (retry_read++ < rot->state.rotport.retry));
+    }
+
     return RIG_OK;
 }
 
@@ -230,7 +243,8 @@ static int spid_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
         memset(posbuf, 0, 12);
         if (rot->caps->rot_model == ROT_MODEL_SPID_ROT1PROG)
             retval = read_block(&rs->rotport, posbuf, 5);
-        else if (rot->caps->rot_model == ROT_MODEL_SPID_ROT2PROG)
+        else if (rot->caps->rot_model == ROT_MODEL_SPID_ROT2PROG ||
+                 rot->caps->rot_model == ROT_MODEL_SPID_MD01_ROT2PROG)
             retval = read_block(&rs->rotport, posbuf, 12);
         else
             retval = -RIG_EINVAL;
@@ -241,12 +255,14 @@ static int spid_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     *az  = posbuf[1] * 100;
     *az += posbuf[2] * 10;
     *az += posbuf[3];
-    if (rot->caps->rot_model == ROT_MODEL_SPID_ROT2PROG)
+    if (rot->caps->rot_model == ROT_MODEL_SPID_ROT2PROG ||
+	rot->caps->rot_model == ROT_MODEL_SPID_MD01_ROT2PROG)
         *az += posbuf[4] / 10.0;
     *az -= 360;
 
     *el = 0.0;
-    if (rot->caps->rot_model == ROT_MODEL_SPID_ROT2PROG) {
+    if (rot->caps->rot_model == ROT_MODEL_SPID_ROT2PROG ||
+	rot->caps->rot_model == ROT_MODEL_SPID_MD01_ROT2PROG) {
         *el  = posbuf[6] * 100;
         *el += posbuf[7] * 10;
         *el += posbuf[8];
@@ -278,13 +294,59 @@ static int spid_rot_stop(ROT *rot)
         memset(posbuf, 0, 12);
         if (rot->caps->rot_model == ROT_MODEL_SPID_ROT1PROG)
             retval = read_block(&rs->rotport, posbuf, 5);
-        else if (rot->caps->rot_model == ROT_MODEL_SPID_ROT2PROG)
+        else if (rot->caps->rot_model == ROT_MODEL_SPID_ROT2PROG ||
+		 rot->caps->rot_model == ROT_MODEL_SPID_MD01_ROT2PROG)
             retval = read_block(&rs->rotport, posbuf, 12);
     } while (retval < 0 && retry_read++ < rot->state.rotport.retry);
     if (retval < 0)
         return retval;
 
     return RIG_OK;
+}
+
+static int spid_md01_rot2prog_rot_move(ROT *rot, int direction, int speed)
+{
+    struct rot_state *rs = &rot->state;
+    char dir = 0x00;
+    int retval;
+    char cmdstr[13];
+
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
+
+    switch (direction) {
+        case ROT_MOVE_UP:
+            dir = 0x04;
+            break;
+        case ROT_MOVE_DOWN:
+            dir = 0x08;
+            break;
+        case ROT_MOVE_LEFT:
+            dir = 0x01;
+            break;
+        case ROT_MOVE_RIGHT:
+            dir = 0x02;
+            break;
+    }
+
+    cmdstr[0] = 0x57;                       /* S   */
+    cmdstr[1] = dir;                        /* H1  */
+    cmdstr[2] = 0x00;                       /* H2  */
+    cmdstr[3] = 0x00;                       /* H3  */
+    cmdstr[4] = 0x00;                       /* H4  */
+    cmdstr[6] = 0x00;                       /* V1  */
+    cmdstr[7] = 0x00;                       /* V2  */
+    cmdstr[8] = 0x00;                       /* V3  */
+    cmdstr[9] = 0x00;                       /* V4  */
+    cmdstr[11] = 0x14;                      /* K   */
+    cmdstr[12] = 0x20;                      /* END */
+
+    /* The rotator must be stopped before changing directions. Since
+       we don't know which direction we're already moving in (if
+       moving at all), always send the stop command first. */
+    spid_rot_stop(rot);
+
+    retval = write_block(&rs->rotport, cmdstr, 13);
+    return retval;
 }
 
 const struct confparams spid_cfg_params[] = {
@@ -369,12 +431,50 @@ const struct rot_caps spid_rot2prog_rot_caps = {
     .stop =              spid_rot_stop,
 };
 
+const struct rot_caps spid_md01_rot2prog_rot_caps = {
+    .rot_model =         ROT_MODEL_SPID_MD01_ROT2PROG,
+    .model_name =        "MD-01/02 (ROT2 mode)",
+    .mfg_name =          "SPID",
+    .version =           "1.0",
+    .copyright =         "LGPL",
+    .status =            RIG_STATUS_STABLE,
+    .rot_type =          ROT_TYPE_AZEL,
+    .port_type =         RIG_PORT_SERIAL,
+    .serial_rate_min =   600,
+    .serial_rate_max =   460800,
+    .serial_data_bits =  8,
+    .serial_stop_bits =  1,
+    .serial_parity =     RIG_PARITY_NONE,
+    .serial_handshake =  RIG_HANDSHAKE_NONE,
+    .write_delay =       0,
+    .post_write_delay =  0,
+    .timeout =           400,
+    .retry =             3,
+
+    .min_az =            -180.0,
+    .max_az =            540.0,
+    .min_el =            -20.0,
+    .max_el =            210.0,
+
+    .cfgparams =         spid_cfg_params,
+    .get_conf =          spid_get_conf,
+    .set_conf =          spid_set_conf,
+
+    .rot_init =          spid_rot_init,
+    .rot_cleanup =       spid_rot_cleanup,
+    .get_position =      spid_rot_get_position,
+    .set_position =      spid_rot2prog_rot_set_position,
+    .move =              spid_md01_rot2prog_rot_move,
+    .stop =              spid_rot_stop,
+};
+
 DECLARE_INITROT_BACKEND(spid)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
 
     rot_register(&spid_rot1prog_rot_caps);
     rot_register(&spid_rot2prog_rot_caps);
+    rot_register(&spid_md01_rot2prog_rot_caps);
 
     return RIG_OK;
 }
