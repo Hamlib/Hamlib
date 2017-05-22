@@ -234,7 +234,7 @@ AC_SUBST([NET_LIBS])
 
 dnl Checks for library functions.
 AC_CHECK_FUNCS([cfmakeraw floor getpagesize getpagesize gettimeofday inet_ntoa \
-ioctl memchr memmove memset pow rint select setitimer setlocale sigaction \
+ioctl memchr memmove memset pow rint select setitimer setlocale sigaction signal \
 snprintf socket sqrt strchr strdup strerror strncasecmp strrchr strstr strtol])
 AC_FUNC_ALLOCA
 

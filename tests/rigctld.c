@@ -33,6 +33,7 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <errno.h>
+#include <signal.h>
 
 #include <getopt.h>
 
@@ -171,6 +172,12 @@ int main(int argc, char *argv[])
 	int reuseaddr = 1;
 	char host[NI_MAXHOST];
 	char serv[NI_MAXSERV];
+
+#ifdef HAVE_PTHREAD
+	pthread_t thread;
+	pthread_attr_t attr;
+#endif
+	struct handle_data *arg;
 
 	while (1) {
 		int c;
@@ -523,16 +530,29 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
+#ifdef SIGPIPE
+  /* Ignore SIGPIPE as we will handle it at the write()/send() calls
+		 that will consequently fail with EPIPE. All child threads will
+		 inherit this disposition which is what we want. */
+#if HAVE_SIGACTION
+	struct sigaction act;
+	memset (&act, 0, sizeof act);
+	act.sa_handler = SIG_IGN;
+	act.sa_flags = SA_RESTART;
+	if (sigaction (SIGPIPE, &act, NULL)) {
+		handle_error (RIG_DEBUG_ERR, "sigaction");
+	}
+#elif HAVE_SIGNAL
+	if (SIG_ERR == signal (SIGPIPE, SIG_IGN)))
+		handle_error (RIG_DEBUG_ERR, "signal");
+	}
+#endif
+#endif
+
 	/*
 	 * main loop accepting connections
 	 */
 	do {
-#ifdef HAVE_PTHREAD
-		pthread_t thread;
-		pthread_attr_t attr;
-#endif
-		struct handle_data *arg;
-
 		arg = malloc(sizeof(struct handle_data));
 
 		if (!arg) {
