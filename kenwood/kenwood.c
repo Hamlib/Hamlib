@@ -1658,7 +1658,11 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
   switch (level) {
   case RIG_LEVEL_RFPOWER:
-    /* XXX check level range */
+    /*
+     * Best estimate: 1.0 corresponds to 100W
+     * Anything better must be done in rig-specific files.
+     */
+    if (RIG_LEVEL_IS_FLOAT(level)) kenwood_val = val.f * 100;
     sprintf(levelbuf, "PC%03d", kenwood_val);
     break;
 
@@ -2728,9 +2732,22 @@ int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 
   while(msg_len > 0) {
     /*
-     * TODO: check with "KY" if char buffer is available.
-     *    if not, sleep.
-     *
+     * Check with "KY" if char buffer is available.
+     * if not, sleep.
+     */
+     for (;;) {
+       retval = kenwood_transaction(rig, "KY;", m2, 4);
+       if (retval != RIG_OK)
+         return retval;
+       /*
+        * If answer is "KY0;", there is space in buffer and we can proceed.
+        * If answer is "KY1;", we have to wait a while
+        * If answer is something else, return with error to prevent infinite loops
+        */
+       if (!strncmp(m2,"KY0", 3)) break;
+       if (!strncmp(m2,"KY1", 3)) usleep(500000); else return -RIG_EINVAL;
+    }
+    /*
      * Make the total message segments 28 characters
      * in length because Kenwood demands it.
      * Spaces fill in the message end.
