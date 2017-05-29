@@ -206,10 +206,17 @@
  *  The SPID backend can be used with rotators that support the SPID
  *  protocol.
  */
+/*! \def ROT_MODEL_SPID_MD01_ROT2PROG \brief A macro that returns the
+ *  model number of the MD-01/02 (ROT2PROG protocol) backend.
+ *
+ *  The SPID backend can be used with rotators that support the SPID
+ *  protocol.
+ */
 #define ROT_SPID 9
 #define ROT_BACKEND_SPID "spid"
 #define ROT_MODEL_SPID_ROT2PROG ROT_MAKE_MODEL(ROT_SPID, 1)
 #define ROT_MODEL_SPID_ROT1PROG ROT_MAKE_MODEL(ROT_SPID, 2)
+#define ROT_MODEL_SPID_MD01_ROT2PROG ROT_MAKE_MODEL(ROT_SPID, 3)
 
 /*! \def ROT_MODEL_RC2800
  *  \brief A macro that returns the model number of the RC2800 backend.

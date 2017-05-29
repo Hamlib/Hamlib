@@ -42,16 +42,16 @@
 #define ICR20_SCAN_OPS (RIG_SCAN_NONE)
 
 #define ICR20_STR_CAL { 2, \
-	{ \
-		{  0, -60 }, /* S0 */ \
-		{ 255, 60 } /* +60 */ \
-	} }
+  { \
+    {  0, -60 }, /* S0 */ \
+    { 255, 60 } /* +60 */ \
+  } }
 
 static const struct icom_priv_caps icr20_priv_caps = {
-		0x6c,	/* default address */
-		0,		/* 731 mode */
-    0,    /* no XCHG */
-		r8500_ts_sc_list	/* wrong, but don't have set_ts anyway */
+  0x6c, /* default address */
+  0,    /* 731 mode */
+  0,    /* no XCHG */
+  r8500_ts_sc_list	/* wrong, but don't have set_ts anyway */
 };
 
 const struct rig_caps icr20_caps = {
@@ -60,7 +60,7 @@ const struct rig_caps icr20_caps = {
 .mfg_name =  "Icom",
 .version =  BACKEND_VER,
 .copyright =  "LGPL",
-.status =  RIG_STATUS_ALPHA,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_RECEIVER|RIG_FLAG_HANDHELD,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_RIG,
@@ -77,12 +77,12 @@ const struct rig_caps icr20_caps = {
 .retry =  3,
 .has_get_func =  ICR20_FUNC_ALL,
 .has_set_func =  ICR20_FUNC_ALL,
-.has_get_level =  ICR20_LEVEL_ALL,
-.has_set_level =  RIG_LEVEL_SET(ICR20_LEVEL_ALL),
+.has_get_level = ICR20_LEVEL_ALL,
+.has_set_level = RIG_LEVEL_NONE,
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,	/* FIXME: parms */
 .level_gran = {
-	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
+  [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
 },
 .parm_gran =  {},
 .ctcss_list =  NULL,
@@ -101,36 +101,37 @@ const struct rig_caps icr20_caps = {
 
 	/* Only through cloning mode OPC-1382 */
 .chan_list =  {
-		{    1,  999, RIG_MTYPE_MEM  },	/* TBC */
-		{ 1000, 1199, RIG_MTYPE_MEM },	/* auto-write */
-		{ 1200, 1249, RIG_MTYPE_EDGE },	/* two by two */
-		RIG_CHAN_END,
-		},
+  {    1,  999, RIG_MTYPE_MEM  },	/* TBC */
+  { 1000, 1199, RIG_MTYPE_MEM },	/* auto-write */
+  { 1200, 1249, RIG_MTYPE_EDGE },	/* two by two */
+  RIG_CHAN_END,
+},
 
 .rx_range_list1 =   {	/* Other countries but France */
-	{kHz(150),GHz(3.304999),ICR20_MODES,-1,-1,ICR20_VFO_ALL},
-	RIG_FRNG_END, },
+  {kHz(150),GHz(3.304999),ICR20_MODES,-1,-1,ICR20_VFO_ALL},
+  RIG_FRNG_END, },
 .tx_range_list1 =   { RIG_FRNG_END, },
 
 .rx_range_list2 =   {	/* USA */
-	{kHz(150),MHz(821.999),ICR20_MODES,-1,-1,ICR20_VFO_ALL},
-	{MHz(851),MHz(866.999),ICR20_MODES,-1,-1,ICR20_VFO_ALL},
-	{MHz(896),GHz(1.304999),ICR20_MODES,-1,-1,ICR20_VFO_ALL},
-	{GHz(1.305),GHz(3.304999),ICR20_MODES,-1,-1,ICR20_VFO_ALL},
-	RIG_FRNG_END, },
+  {kHz(150),MHz(821.999),ICR20_MODES,-1,-1,ICR20_VFO_ALL},
+  {MHz(851),MHz(866.999),ICR20_MODES,-1,-1,ICR20_VFO_ALL},
+  {MHz(896),GHz(1.304999),ICR20_MODES,-1,-1,ICR20_VFO_ALL},
+  {GHz(1.305),GHz(3.304999),ICR20_MODES,-1,-1,ICR20_VFO_ALL},
+  RIG_FRNG_END,
+},
 .tx_range_list2 =   { RIG_FRNG_END, },
 
 .tuning_steps = 	{
-	 {ICR20_MODES,Hz(100)},
-	 RIG_TS_END,
-	},
+  {ICR20_MODES,Hz(100)},
+  RIG_TS_END,
+},
 	/* mode/filter list, remember: order matters! */
 .filters = 	{
-		{RIG_MODE_SSB|RIG_MODE_CW, kHz(1.8)},
-		{RIG_MODE_AM|RIG_MODE_FM, kHz(12)},
-		{RIG_MODE_WFM, kHz(150)},
-		RIG_FLT_END,
-	},
+  {RIG_MODE_SSB|RIG_MODE_CW, kHz(1.8)},
+  {RIG_MODE_AM|RIG_MODE_FM, kHz(12)},
+  {RIG_MODE_WFM, kHz(150)},
+  RIG_FLT_END,
+},
 .str_cal = ICR20_STR_CAL,
 
 .cfgparams =  icom_cfg_params,

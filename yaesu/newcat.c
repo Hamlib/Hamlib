@@ -3526,7 +3526,6 @@ int newcat_set_tx_vfo(RIG * rig, vfo_t tx_vfo) {
 int newcat_get_tx_vfo(RIG * rig, vfo_t * tx_vfo) {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int err;
-    char c;
     vfo_t vfo_mode;
     char const * command = "FT";
 
@@ -3543,8 +3542,7 @@ int newcat_get_tx_vfo(RIG * rig, vfo_t * tx_vfo) {
         return err;
       }
 
-    c = priv->ret_data[strlen (priv->cmd_str)];
-    switch (c) {
+    switch (priv->ret_data[2]) {
         case '0':
             *tx_vfo = RIG_VFO_A;
             break;
