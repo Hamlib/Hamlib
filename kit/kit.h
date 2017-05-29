@@ -41,6 +41,7 @@ extern const struct rig_caps funcubeplus_caps;
 extern const struct rig_caps fifisdr_caps;
 extern const struct rig_caps hiqsdr_caps;
 extern const struct rig_caps fasdr_caps;
+extern const struct rig_caps rshfiq_caps;
 
 extern const struct rot_caps pcrotor_caps;
 

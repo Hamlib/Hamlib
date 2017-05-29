@@ -45,6 +45,7 @@ DECLARE_INITRIG_BACKEND(kit)
 	rig_register(&dds60_caps);
 	rig_register(&miniVNA_caps);
 	rig_register(&hiqsdr_caps);
+  rig_register(&rshfiq_caps);
 
 #if (defined(HAVE_LIBUSB) && (defined(HAVE_LIBUSB_H) || defined(HAVE_LIBUSB_1_0_LIBUSB_H)))
 	rig_register(&si570avrusb_caps);

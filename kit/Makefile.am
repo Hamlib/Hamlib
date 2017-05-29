@@ -4,7 +4,7 @@ AM_CFLAGS += $(LIBUSB_CFLAGS)
 
 KITSRC = elektor304.c drt1.c dwt.c usrp.c elektor507.c dds60.c miniVNA.c \
 	si570avrusb.c si570avrusb.h funcube.c funcube.h fifisdr.c hiqsdr.c \
-	kit.c kit.h usrp_impl.h
+  kit.c kit.h usrp_impl.h rs_hfiq.c
 
 if HAVE_USRP
     # Append to the already defined AM_CXXFLAGS that exists outside the conditional.
