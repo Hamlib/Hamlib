@@ -743,18 +743,22 @@ int HAMLIB_API rig_close(RIG *rig)
 	case RIG_PTT_RIG_MICDATA:
 		break;
 	case RIG_PTT_SERIAL_RTS:
-		ser_set_rts(&rs->pttport, 0);
-		if (rs->pttport.fd != rs->rigport.fd)
-		  {
-		    port_close(&rs->pttport, RIG_PORT_SERIAL);
-		  }
+		// If port is already closed, do nothing
+		if (rs->pttport.fd > -1) {
+		    ser_set_rts(&rs->pttport, 0);
+		    if (rs->pttport.fd != rs->rigport.fd) {
+			port_close(&rs->pttport, RIG_PORT_SERIAL);
+		      }
+		}
 		break;
 	case RIG_PTT_SERIAL_DTR:
-		ser_set_dtr(&rs->pttport, 0);
-		if (rs->pttport.fd != rs->rigport.fd)
-		  {
-		    port_close(&rs->pttport, RIG_PORT_SERIAL);
-		  }
+		// If port is already closed, do nothing
+		if (rs->pttport.fd > -1) {
+		    ser_set_dtr(&rs->pttport, 0);
+		    if (rs->pttport.fd != rs->rigport.fd) {
+			port_close(&rs->pttport, RIG_PORT_SERIAL);
+		    }
+		}
 		break;
 	case RIG_PTT_PARALLEL:
         par_ptt_set(&rs->pttport, RIG_PTT_OFF);
