@@ -492,6 +492,7 @@
 #define RIG_MODEL_SI570PEABERRY1 RIG_MAKE_MODEL(RIG_KIT, 16) /* Peaberry V1 */
 #define RIG_MODEL_SI570PEABERRY2 RIG_MAKE_MODEL(RIG_KIT, 17) /* Peaberry V2 */
 #define RIG_MODEL_FUNCUBEDONGLEPLUS RIG_MAKE_MODEL(RIG_KIT, 18)	/* FunCUBE Dongle Pro+ */
+#define RIG_MODEL_RSHFIQ RIG_MAKE_MODEL(RIG_KIT, 19) /* RS-HFIQ */
 
 	/*
 	 * SW/FM/TV tuner cards supported by Video4Linux,*BSD, ..
