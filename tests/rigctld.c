@@ -651,7 +651,7 @@ void *handle_socket(void *arg)
 
 		if (ferror(fsockin) || ferror(fsockout))
 			retcode = 1;
-	} while (retcode == 0 || retcode == 2);
+	} while (retcode == 0 || retcode == 2 || retcode==-RIG_ENAVAIL);
 
 	if ((retcode = getnameinfo((struct sockaddr const *)&handle_data_arg->cli_addr,
 				   handle_data_arg->clilen, host, sizeof(host),

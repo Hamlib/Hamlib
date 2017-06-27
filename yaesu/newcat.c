@@ -60,6 +60,7 @@ typedef enum nc_rigid_e {
     NC_RIGID_NONE            = 0,
     NC_RIGID_FT450           = 241,
     NC_RIGID_FT950           = 310,
+    NC_RIGID_FT891           = 135,
     NC_RIGID_FT991           = 135,
     NC_RIGID_FT2000          = 251,
     NC_RIGID_FT2000D         = 252,
@@ -80,6 +81,7 @@ typedef struct _yaesu_newcat_commands {
     char                *command;
     ncboolean           ft450;
     ncboolean           ft950;
+    ncboolean           ft891;
     ncboolean           ft991;
     ncboolean           ft2000;
     ncboolean           ft9000;
@@ -104,113 +106,113 @@ typedef struct _yaesu_newcat_commands {
  *
  */
 static const yaesu_newcat_commands_t valid_commands[] = {
-/*   Command    FT-450  FT-950  FT-991  FT-2000 FT-9000 FT-5000 FT-1200*/
-    {"AB",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"AC",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"AG",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"AI",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"AM",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"AN",      FALSE,  TRUE,   FALSE,  TRUE,   TRUE,   TRUE,   TRUE    },
-    {"BA",      FALSE,  FALSE,  TRUE,   FALSE,  FALSE,  FALSE,  TRUE    },
-    {"BC",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"BD",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"BI",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"BP",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"BS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"BU",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"BY",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"CH",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"CN",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"CO",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"CS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"CT",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"DA",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"DN",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"DT",      FALSE,  FALSE,  TRUE,   FALSE,  FALSE,  FALSE,  TRUE    },
-    {"DP",      FALSE,  TRUE,   FALSE,  TRUE,   TRUE,   TRUE,   FALSE   },
-    {"DS",      TRUE,   FALSE,  FALSE,  TRUE,   TRUE,   TRUE,   FALSE   },
-    {"ED",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"EK",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   FALSE,  TRUE    },
-    {"EN",      FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE    },
-    {"EU",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"EX",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"FA",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"FB",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"FK",      FALSE,  TRUE,   FALSE,  TRUE,   TRUE,   FALSE,  FALSE   },
-    {"FR",      FALSE,  TRUE,   FALSE,  TRUE,   TRUE,   TRUE,   TRUE    },
-    {"FS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"FT",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"GT",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"ID",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"IF",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"IS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"KM",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"KP",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"KR",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"KS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"KY",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"LK",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"LM",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"MA",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"MC",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"MD",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"MG",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"MK",      TRUE,   TRUE,   FALSE,  TRUE,   TRUE,   TRUE,   FALSE   },
-    {"ML",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"MR",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"MS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"MW",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"MX",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"NA",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"NB",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"NL",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"NR",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"OI",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"OS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"PA",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"PB",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"PC",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"PL",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"PR",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"PS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"QI",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"QR",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"QS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"RA",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"RC",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"RD",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"RF",      FALSE,  TRUE,   FALSE,  TRUE,   TRUE,   TRUE,   TRUE    },
-    {"RG",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"RI",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"RL",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"RM",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"RO",      FALSE,  TRUE,   FALSE,  TRUE,   TRUE,   TRUE,   TRUE    },
-    {"RP",      TRUE,   FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE   },
-    {"RS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"RT",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"RU",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"SC",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"SD",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"SF",      FALSE,  TRUE,   FALSE,  TRUE,   TRUE,   TRUE,   TRUE    },
-    {"SH",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"SM",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"SQ",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"ST",      TRUE,   FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE   },
-    {"SV",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"TS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"TX",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"UL",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"UP",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"VD",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"VF",      FALSE,  TRUE,   FALSE,  TRUE,   TRUE,   TRUE,   TRUE    },
-    {"VG",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"VM",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"VR",      TRUE,   FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE   },
-    {"VS",      TRUE,   TRUE,   FALSE,  TRUE,   TRUE,   TRUE,   TRUE    },
-    {"VV",      TRUE,   FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE   },
-    {"VX",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"XT",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"ZI",      FALSE,  FALSE,  TRUE,   FALSE,  FALSE,  FALSE,  FALSE   },
+/*   Command    FT-450  FT-950  FT-891  FT-991  FT-2000 FT-9000 FT-5000 FT-1200*/
+    {"AB",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"AC",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"AG",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"AI",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"AM",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"AN",      FALSE,  TRUE,   FALSE,  FALSE,  TRUE,   TRUE,   TRUE,   TRUE    },
+    {"BA",      FALSE,  FALSE,  TRUE,   TRUE,   FALSE,  FALSE,  FALSE,  TRUE    },
+    {"BC",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"BD",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"BI",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"BP",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"BS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"BU",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"BY",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"CH",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"CN",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"CO",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"CS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"CT",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"DA",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"DN",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"DT",      FALSE,  FALSE,  TRUE,   TRUE,   FALSE,  FALSE,  FALSE,  TRUE    },
+    {"DP",      FALSE,  TRUE,   FALSE,  FALSE,  TRUE,   TRUE,   TRUE,   FALSE   },
+    {"DS",      TRUE,   FALSE,  FALSE,  FALSE,  TRUE,   TRUE,   TRUE,   FALSE   },
+    {"ED",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"EK",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   FALSE,  TRUE    },
+    {"EN",      FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE    },
+    {"EU",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"EX",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"FA",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"FB",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"FK",      FALSE,  TRUE,   FALSE,  FALSE,  TRUE,   TRUE,   FALSE,  FALSE   },
+    {"FR",      FALSE,  TRUE,   FALSE,  FALSE,  TRUE,   TRUE,   TRUE,   TRUE    },
+    {"FS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"FT",      TRUE,   TRUE,   FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"GT",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"ID",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"IF",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"IS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"KM",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"KP",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"KR",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"KS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"KY",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"LK",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"LM",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"MA",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"MC",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"MD",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"MG",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"MK",      TRUE,   TRUE,   FALSE,  FALSE,  TRUE,   TRUE,   TRUE,   FALSE   },
+    {"ML",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"MR",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"MS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"MW",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"MX",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"NA",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"NB",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"NL",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"NR",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"OI",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"OS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"PA",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"PB",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"PC",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"PL",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"PR",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"PS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"QI",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"QR",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"QS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"RA",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"RC",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"RD",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"RF",      FALSE,  TRUE,   FALSE,  FALSE,  TRUE,   TRUE,   TRUE,   TRUE    },
+    {"RG",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"RI",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"RL",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"RM",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"RO",      FALSE,  TRUE,   FALSE,  FALSE,  TRUE,   TRUE,   TRUE,   TRUE    },
+    {"RP",      TRUE,   FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE   },
+    {"RS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"RT",      TRUE,   TRUE,   FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"RU",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"SC",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"SD",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"SF",      FALSE,  TRUE,   FALSE,  FALSE,  TRUE,   TRUE,   TRUE,   TRUE    },
+    {"SH",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"SM",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"SQ",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"ST",      TRUE,   FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE   },
+    {"SV",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"TS",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"TX",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"UL",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"UP",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"VD",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"VF",      FALSE,  TRUE,   FALSE,  FALSE,  TRUE,   TRUE,   TRUE,   TRUE    },
+    {"VG",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"VM",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"VR",      TRUE,   FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE   },
+    {"VS",      TRUE,   TRUE,   FALSE,  FALSE,  TRUE,   TRUE,   TRUE,   TRUE    },
+    {"VV",      TRUE,   FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE   },
+    {"VX",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"XT",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"ZI",      FALSE,  FALSE,  TRUE,   TRUE,   FALSE,  FALSE,  FALSE,  FALSE   },
 };
 int                     valid_commands_count = sizeof(valid_commands) / sizeof(yaesu_newcat_commands_t);
 
@@ -472,8 +474,8 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
     priv = (struct newcat_priv_data *)rig->state.priv;
     caps = rig->caps;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
-//    rig_debug(RIG_DEBUG_TRACE, "%s: translated vfo = 0x%02x\n", __func__, tvfo);
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = %s\n", __func__, rig_strvfo(vfo));
+//    rig_debug(RIG_DEBUG_TRACE, "%s: translated vfo = %s\n", __func__, rig_strvfo(tvfo));
     rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %"PRIfreq" Hz\n", __func__, freq);
 
     /* additional debugging */
@@ -532,11 +534,13 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
     // followed by the NULL terminator.
     // CAT command string for setting frequency requires that 8 digits be sent
     // including leading fill zeros
+    // Call this after open to set width_frequency for later use
+    if (priv->width_frequency == 0) {
+        vfo_t vfo_mode;
+        newcat_get_vfo_mode(rig, &vfo_mode);
+    }
 
-    int width_frequency = priv->width_frequency;
-    if (width_frequency == 0) width_frequency = 8; // default to 8
-
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "F%c%0*"PRIll"%c", c, width_frequency, (int64_t)freq, cat_term);
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "F%c%0*"PRIll"%c", c, priv->width_frequency, (int64_t)freq, cat_term);
     rig_debug(RIG_DEBUG_TRACE, "%s:%d cmd_str = %s\n", __func__, __LINE__, priv->cmd_str);
     if (RIG_OK != (err = newcat_set_cmd(rig)))
       {
@@ -574,7 +578,7 @@ int newcat_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
     int err;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-    rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = %s\n", __func__, rig_strvfo(vfo));
 
     if (!newcat_valid_command(rig, "FA"))
         return -RIG_ENAVAIL;
@@ -615,7 +619,7 @@ int newcat_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
     sscanf(priv->ret_data+2, "%"SCNfreq, freq);
 
     rig_debug(RIG_DEBUG_TRACE,
-            "%s: freq = %"PRIfreq" Hz for vfo 0x%02x\n", __func__, *freq, vfo);
+            "%s: freq = %"PRIfreq" Hz for vfo %s\n", __func__, *freq, rig_strvfo(vfo));
 
     return RIG_OK;
 }
@@ -831,7 +835,7 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo) {
     priv = (struct newcat_priv_data *)rig->state.priv;
     state = &rig->state;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: called, passed vfo = 0x%02x\n", __func__, vfo);
+    rig_debug(RIG_DEBUG_TRACE, "%s: called, passed vfo = %s\n", __func__, rig_strvfo(vfo));
 
     if (!newcat_valid_command(rig, command))
         return -RIG_ENAVAIL;
@@ -893,7 +897,7 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo) {
 
     state->current_vfo = vfo;    /* if set_vfo worked, set current_vfo */
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: rig->state.current_vfo = 0x%02x\n", __func__, vfo);
+    rig_debug(RIG_DEBUG_TRACE, "%s: rig->state.current_vfo = %s\n", __func__, rig_strvfo(vfo));
 
     return RIG_OK;
 }
@@ -955,7 +959,7 @@ int newcat_get_vfo(RIG *rig, vfo_t *vfo) {
 
     state->current_vfo = *vfo;       /* set now */
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: rig->state.current_vfo = 0x%02x\n", __func__, state->current_vfo);
+    rig_debug(RIG_DEBUG_TRACE, "%s: rig->state.current_vfo = %s\n", __func__, rig_strvfo(state->current_vfo));
 
     return RIG_OK;
 }
@@ -1299,12 +1303,20 @@ int newcat_get_rit(RIG * rig, vfo_t vfo, shortfreq_t * rit)
         return err;
       }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: RIT value = %c\n", __func__, err, priv->ret_data[18]);
+    // e.g. FT450 has 27 byte IF response, FT991 has 28 byte if response (one more byte for P2 VFO A Freq)
+    // so we now check to ensure we know the length of the response
+    int offset = 0;
+    switch(strlen(priv->ret_data)) {
+        case 27: offset = 13;break;
+        case 28: offset = 14;break;
+        default: offset = 0;
+    }
+    if (offset == 0) {
+        rig_debug(RIG_DEBUG_ERR,"%s: incorrect length of IF response, expected 27 or 28, got %d",__func__,strlen(priv->ret_data));
+        return -RIG_EPROTO;
+    }
 
-    int offset_rit = priv->offset_rit;
-    if (offset_rit == 0) offset_rit = 13; // default to 13
-
-    retval = priv->ret_data + offset_rit;
+    retval = priv->ret_data + offset;
     rit_on = retval[5];
     retval[5] = '\0';
 
@@ -1362,9 +1374,20 @@ int newcat_get_xit(RIG * rig, vfo_t vfo, shortfreq_t * xit)
         return err;
       }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: XIT value = %c\n", __func__, priv->ret_data[19]);
+    // e.g. FT450 has 27 byte IF response, FT991 has 28 byte if response (one more byte for P2 VFO A Freq)
+    // so we now check to ensure we know the length of the response
+    int offset = 0;
+    switch(strlen(priv->ret_data)) {
+        case 27: offset = 13;break;
+        case 28: offset = 14;break;
+        default: offset = 0;
+    }
+    if (offset == 0) {
+        rig_debug(RIG_DEBUG_ERR,"%s: incorrect length of IF response, expected 27 or 28, got %d",__func__,strlen(priv->ret_data));
+        return -RIG_EPROTO;
+    }
 
-    retval = priv->ret_data + 13;
+    retval = priv->ret_data + offset;
     xit_on = retval[6];
     retval[5] = '\0';
 
@@ -3394,7 +3417,7 @@ ncboolean newcat_valid_command(RIG *rig, char const * const command) {
      */
 
     is_ft450 = newcat_is_rig(rig, RIG_MODEL_FT450);
-    is_ft891 = newcat_is_rig(rig, RIG_MODEL_FT991);
+    is_ft891 = newcat_is_rig(rig, RIG_MODEL_FT891);
     is_ft950 = newcat_is_rig(rig, RIG_MODEL_FT950);
     is_ft991 = newcat_is_rig(rig, RIG_MODEL_FT991);
     is_ft2000 = newcat_is_rig(rig, RIG_MODEL_FT2000);
@@ -3430,6 +3453,8 @@ ncboolean newcat_valid_command(RIG *rig, char const * const command) {
              * The command is valid.  Now make sure it is supported by the rig.
              */
             if (is_ft450 && valid_commands[search_index].ft450)
+                return TRUE;
+            else if (is_ft891 && valid_commands[search_index].ft891)
                 return TRUE;
             else if (is_ft950 && valid_commands[search_index].ft950)
                 return TRUE;
@@ -3526,6 +3551,7 @@ int newcat_set_tx_vfo(RIG * rig, vfo_t tx_vfo) {
 int newcat_get_tx_vfo(RIG * rig, vfo_t * tx_vfo) {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int err;
+    char c;
     vfo_t vfo_mode;
     char const * command = "FT";
 
@@ -3542,7 +3568,8 @@ int newcat_get_tx_vfo(RIG * rig, vfo_t * tx_vfo) {
         return err;
       }
 
-    switch (priv->ret_data[2]) {
+    c = priv->ret_data[2];
+    switch (c) {
         case '0':
             *tx_vfo = RIG_VFO_A;
             break;
@@ -3550,6 +3577,7 @@ int newcat_get_tx_vfo(RIG * rig, vfo_t * tx_vfo) {
             *tx_vfo = RIG_VFO_B;
             break;
         default:
+            rig_debug(RIG_DEBUG_ERR, "%s: Unknown tx_vfo=%c\n", __func__, c, priv->ret_data);
             return -RIG_EPROTO;
     }
 
@@ -3558,7 +3586,7 @@ int newcat_get_tx_vfo(RIG * rig, vfo_t * tx_vfo) {
     if (vfo_mode == RIG_VFO_MEM && *tx_vfo == RIG_VFO_A)
         *tx_vfo = RIG_VFO_MEM;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: tx_vfo = 0x%02x\n", __func__, *tx_vfo);
+    rig_debug(RIG_DEBUG_TRACE, "%s: tx_vfo = %s\n", __func__, rig_strvfo(*tx_vfo));
 
     return RIG_OK;
 }
@@ -3566,7 +3594,7 @@ int newcat_get_tx_vfo(RIG * rig, vfo_t * tx_vfo) {
 
 int newcat_set_vfo_from_alias(RIG * rig, vfo_t * vfo) {
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: alias vfo = 0x%02x\n", __func__, *vfo);
+    rig_debug(RIG_DEBUG_TRACE, "%s: alias vfo = %s\n", __func__, rig_strvfo(*vfo));
 
     switch (*vfo) {
         case RIG_VFO_A:
@@ -3776,7 +3804,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                 return -RIG_EINVAL;
         }   /* end switch(mode) */
     }   /* end if FT950 */
-    else if (newcat_is_rig(rig, RIG_MODEL_FT991)) {
+    else if (newcat_is_rig(rig, RIG_MODEL_FT991) || newcat_is_rig(rig, RIG_MODEL_FT891)) {
         switch (mode) {
             case RIG_MODE_PKTUSB:
             case RIG_MODE_PKTLSB:
@@ -4264,7 +4292,20 @@ int newcat_get_vfo_mode(RIG * rig, vfo_t * vfo_mode)
       }
 
     /* vfo, mem, P7 ************************** */
-    retval = priv->ret_data + 21;
+    // e.g. FT450 has 27 byte IF response, FT991 has 28 byte if response (one more byte for P2 VFO A Freq)
+    // so we now check to ensure we know the length of the response
+    int offset = 0;
+    switch(strlen(priv->ret_data)) {
+        case 27: offset = 22;priv->width_frequency=8;break;
+        case 28: offset = 23;priv->width_frequency=9;break;
+        default: offset = 0;
+    }
+    if (offset == 0) {
+        rig_debug(RIG_DEBUG_ERR,"%s: incorrect length of IF response, expected 27 or 28, got %d",__func__,strlen(priv->ret_data));
+        return -RIG_EPROTO;
+    }
+    rig_debug(RIG_DEBUG_TRACE, "%s: offset=%d, width_frequeny=%d\n", __func__,offset,priv->width_frequency);
+    retval = priv->ret_data + offset;
     switch (*retval) {
         case '0': *vfo_mode = RIG_VFO_VFO; break;
         case '1':   /* Memory */

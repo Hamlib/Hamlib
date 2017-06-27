@@ -85,10 +85,9 @@ struct newcat_priv_data {
     char                ret_data[NEWCAT_DATA_LEN];      /* returned data--max value, most are less */
     int                 current_mem;                    /* private memory channel number */
     int                 rig_id;                         /* rig id from CAT Command ID; */
-    int width_frequency; /* width of FA/FB freq response */
-    int offset_rit; /* offset of rit in response */
     int trn_state;  /* AI state found at startup */
 		int fast_set_commands; /* do not check for ACK/NAK; needed for high throughput > 100 commands/s */
+    int width_frequency; /* found at startup */
 };
 
 

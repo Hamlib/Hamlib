@@ -54,9 +54,9 @@ const struct rig_caps ft891_caps = {
     .rig_model =          RIG_MODEL_FT891,
     .model_name =         "FT-891",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".1",
+    .version =            NEWCAT_VER ".2",
     .copyright =          "LGPL",
-    .status =             RIG_STATUS_BETA,
+    .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
     .ptt_type =           RIG_PTT_RIG,
     .dcd_type =           RIG_DCD_NONE,
@@ -461,13 +461,9 @@ int ft891_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 }
 
 int ft891_init(RIG *rig) {
-  struct newcat_priv_data *priv;
   rig_debug(RIG_DEBUG_VERBOSE,"%s called, version %s\n", __func__,rig->caps->version);
   int ret = newcat_init(rig);
   if (ret != RIG_OK) return ret;
-  priv = (struct newcat_priv_data *)rig->state.priv;
-  priv->width_frequency = 9;
-  priv->offset_rit = 13;
   rig->state.current_vfo = RIG_VFO_A;
   return RIG_OK;
 }

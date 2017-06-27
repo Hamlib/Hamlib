@@ -1193,7 +1193,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 	}
 
 	fflush(fout);
-
+	if (retcode == -RIG_ENAVAIL) return retcode;  
 	return retcode != RIG_OK ? 2 : 0;
 }
 

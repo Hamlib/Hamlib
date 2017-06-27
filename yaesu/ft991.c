@@ -54,9 +54,9 @@ const struct rig_caps ft991_caps = {
     .rig_model =          RIG_MODEL_FT991,
     .model_name =         "FT-991",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".4",
+    .version =            NEWCAT_VER ".5",
     .copyright =          "LGPL",
-    .status =             RIG_STATUS_BETA,
+    .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
     .ptt_type =           RIG_PTT_RIG,
     .dcd_type =           RIG_DCD_NONE,
@@ -344,19 +344,14 @@ int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_widt
         return err;
       }
     /* Send the copy VFO A to VFO B and restore commands */
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), restore_commands);
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s", restore_commands);
     return newcat_set_cmd (rig);
 }
 
-
 int ft991_init(RIG *rig) {
-  struct newcat_priv_data *priv;
   rig_debug(RIG_DEBUG_VERBOSE,"%s called, version %s\n", __func__,rig->caps->version);
   int ret = newcat_init(rig);
   if (ret != RIG_OK) return ret;
-  priv = (struct newcat_priv_data *)rig->state.priv;
-  priv->width_frequency = 9;
-  priv->offset_rit = 13;
   rig->state.current_vfo = RIG_VFO_A;
   return RIG_OK;
 }

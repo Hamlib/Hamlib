@@ -400,6 +400,7 @@ static int netrigctl_get_vfo(RIG *rig, vfo_t *vfo)
   len = sprintf(cmd, "v\n");
 
   ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret == -RIG_ENAVAIL) return ret;
   if (ret <= 0)
 	return (ret < 0) ? ret : -RIG_EPROTO;
 

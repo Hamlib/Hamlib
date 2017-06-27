@@ -425,7 +425,7 @@ int main (int argc, char *argv[])
 		if (retcode == 2)
 			exitcode = 2;
 	}
-	while (retcode == 0 || retcode == 2);
+	while (retcode == 0 || retcode == 2 || retcode == -RIG_ENAVAIL);
 
 #ifdef HAVE_LIBREADLINE
 	if (interactive && prompt && have_rl) {
