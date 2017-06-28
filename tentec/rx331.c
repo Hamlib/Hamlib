@@ -473,7 +473,7 @@ int rx331_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     if (buf_len < 4 || buf[0] != 'D' || buf[2] != 'I')
         return -RIG_EPROTO;
 
-	switch (buf[1]) {
+    switch (buf[1]) {
         case RX331_USB: *mode = RIG_MODE_USB; break;
         case RX331_LSB: *mode = RIG_MODE_LSB; break;
         case RX331_CW1:
@@ -486,14 +486,14 @@ int rx331_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 			rig_debug(RIG_DEBUG_ERR,
 				"%s: unknown mode '%c'\n", __func__, buf[1]);
 			return -RIG_EPROTO;
-	}
+    }
 
-	if (num_sscanf(buf+3, "%lf", &f) != 1)
-		return -RIG_EPROTO;
+    if (num_sscanf(buf+3, "%lf", &f) != 1)
+        return -RIG_EPROTO;
 
-	*width = f*1e3;
+    *width = f*1e3;
 
-	return RIG_OK;
+    return RIG_OK;
 }
 
 

@@ -269,12 +269,12 @@ int thd72_get_chan_all_cb (RIG * rig, chan_cb_t chan_cb, rig_ptr_t arg)
 	 * has to provide a struct where to store data
 	 * future data for channel channel_num
 	 */
-	chan = NULL;
-	ret = chan_cb(rig, &chan, chan_next, chan_list, arg);
-	if (ret != RIG_OK)
-		return ret;
-	if (chan == NULL)
-		return -RIG_ENOMEM;
+    chan = NULL;
+    ret = chan_cb(rig, &chan, chan_next, chan_list, arg);
+    if (ret != RIG_OK)
+        return ret;
+    if (chan == NULL)
+        return -RIG_ENOMEM;
 
 
     for (i=0; i<BLOCK_COUNT; i++) {

@@ -314,9 +314,9 @@ int rx340_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     if (buf_len < 2 || buf[0] != 'F' || num_sscanf(buf+1, "%lf", &f) != 1)
         return -RIG_EPROTO;
 
-	*freq = f*1e6;
+    *freq = f*1e6;
 
-	return RIG_OK;
+    return RIG_OK;
 }
 
 /*
@@ -386,7 +386,7 @@ int rx340_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     if (buf_len < 4 || buf[0] != 'D' || buf[2] != 'I')
         return -RIG_EPROTO;
 
-	switch (buf[1]) {
+    switch (buf[1]) {
         case RX340_USB: *mode = RIG_MODE_USB; break;
         case RX340_LSB: *mode = RIG_MODE_LSB; break;
         case RX340_CW1:
@@ -400,14 +400,14 @@ int rx340_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 							"%s: unknown mode '%c'\n",
 							__func__, buf[1]);
 			return -RIG_EPROTO;
-	}
+    }
 
     if (num_sscanf(buf+3, "%lf", &f) != 1)
         return -RIG_EPROTO;
 
-	*width = f*1e3;
+    *width = f*1e3;
 
-	return RIG_OK;
+    return RIG_OK;
 }
 
 

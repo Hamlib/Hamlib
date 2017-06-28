@@ -2074,10 +2074,10 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
         case RIG_LEVEL_MICGAIN:
             if (!newcat_valid_command(rig, "MG"))
                 return -RIG_ENAVAIL;
-                if (newcat_is_rig(rig, RIG_MODEL_FT1200))
-                    fpf = newcat_scale_float(100, val.f);
-                else
-                    fpf = newcat_scale_float(255, val.f);
+            if (newcat_is_rig(rig, RIG_MODEL_FT1200))
+                fpf = newcat_scale_float(100, val.f);
+            else
+                fpf = newcat_scale_float(255, val.f);
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MG%03d%c", fpf, cat_term);
             break;
         case RIG_LEVEL_METER:

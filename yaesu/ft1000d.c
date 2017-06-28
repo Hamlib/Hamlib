@@ -3133,12 +3133,12 @@ rig_debug(RIG_DEBUG_TRACE, "%s: ci = %0x%02x\n", __func__, ci);
 
   rig_debug(RIG_DEBUG_TRACE, "%s: set bw = 0x%02x\n",__func__, bw);
 
- err = ft1000d_send_dynamic_cmd(rig, FT1000D_NATIVE_BANDWIDTH, bw, 0, 0, 0);
+  err = ft1000d_send_dynamic_cmd(rig, FT1000D_NATIVE_BANDWIDTH, bw, 0, 0, 0);
 
   if (err != RIG_OK)
     return err;
 
-    return RIG_OK;
+  return RIG_OK;
 }
 
 

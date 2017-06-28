@@ -370,16 +370,17 @@ ts570_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 	if (levelint == 0) {
 	    val->i = 0;
 	} else {
-	    for (i=0; i<levelint && i<MAXDBLSTSIZ; i++)
+	    for (i=0; i<levelint && i<MAXDBLSTSIZ; i++) {
 		if (rig->state.preamp[i] == 0) {
 		    rig_debug(RIG_DEBUG_ERR,"%s: "
 			    "unexpected att level %d\n",
 			    __func__, levelint);
 		    return -RIG_EPROTO;
 		}
-		if (i != levelint)
-		    return -RIG_EINTERNAL;
-		val->i = rig->state.preamp[i-1];
+	    }
+	    if (i != levelint)
+	        return -RIG_EINTERNAL;
+	    val->i = rig->state.preamp[i-1];
 	}
 	break;
     default:

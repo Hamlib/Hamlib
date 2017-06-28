@@ -509,11 +509,11 @@ pcr_open(RIG * rig)
 	 * initial communication is at 9600bps for PCR 100/1000
 	 * once the power is on, the serial speed can be changed with G1xx
 	 */
-    if (rig->caps->rig_model == RIG_MODEL_PCR1500 ||
+	if (rig->caps->rig_model == RIG_MODEL_PCR1500 ||
             rig->caps->rig_model == RIG_MODEL_PCR2500)
-        startup_serial_rate = 38400;
-    else
-        startup_serial_rate = 9600;
+		startup_serial_rate = 38400;
+	else
+		startup_serial_rate = 9600;
 
 	wanted_serial_rate = rs->rigport.parm.serial.rate;
 	rs->rigport.parm.serial.rate = startup_serial_rate;

@@ -77,9 +77,9 @@ static int rshfiq_open(RIG *rig)
    retval = write_block(&rig->state.rigport, versionstr, strlen(versionstr));
    if (retval != RIG_OK)
     return retval;
-    retval =read_string(&rig->state.rigport,versionstr,20,stopset,2);
-    if(retval <= 0 )
-     return retval;
+   retval =read_string(&rig->state.rigport,versionstr,20,stopset,2);
+   if(retval <= 0 )
+    return retval;
   }
  versionstr[retval]=0;
  rig_debug(RIG_DEBUG_TRACE, "%s: Rigversion = %s\n", __func__, versionstr);

@@ -1120,7 +1120,7 @@ static int ft900_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit) {
   if (err != RIG_OK)
     return err;
 
-    err = ft900_send_rit_freq(rig, FT900_NATIVE_CLARIFIER_OPS, rit);
+  err = ft900_send_rit_freq(rig, FT900_NATIVE_CLARIFIER_OPS, rit);
   if (err != RIG_OK)
     return err;
 

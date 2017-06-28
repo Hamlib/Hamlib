@@ -301,8 +301,8 @@ const char * rs_get_info(RIG *rig)
 #define ID_QUERY BOM "*IDN?" EOM
 
 	retval = rs_transaction(rig, ID_QUERY, strlen(ID_QUERY), infobuf, &info_len);
-    if (retval < 0)
-        return NULL;
+	if (retval < 0)
+		return NULL;
 
 	return infobuf;
 }

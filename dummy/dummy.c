@@ -811,7 +811,7 @@ static int dummy_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
   /* make S-Meter jiggle */
   if (level == RIG_LEVEL_STRENGTH || level == RIG_LEVEL_RAWSTR) {
 
-  	int qrm = -56;
+    int qrm = -56;
     if (curr->freq < MHz(7))
         qrm = -20;
     else if (curr->freq < MHz(21))
@@ -819,9 +819,9 @@ static int dummy_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     else if (curr->freq < MHz(50))
         qrm = -50;
 
-  	curr->levels[idx].i = qrm + time(NULL)%32 + rand()%4
-		- curr->levels[LVL_ATT].i
-		+ curr->levels[LVL_PREAMP].i;
+    curr->levels[idx].i = qrm + time(NULL)%32 + rand()%4
+        - curr->levels[LVL_ATT].i
+        + curr->levels[LVL_PREAMP].i;
   }
 
   *val = curr->levels[idx];

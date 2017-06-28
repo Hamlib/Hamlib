@@ -212,9 +212,10 @@ easycomm_rot_move_velocity(ROT *rot, int direction, int speed)
     char cmdstr[24], ackbuf[32];
     int retval;
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
-    if(speed<0 && speed>9999)
+    if(speed<0 && speed>9999) {
        rig_debug(RIG_DEBUG_ERR,"%s: Invalid speed value!(0-9999) (%d)\n", __FUNCTION__, speed);
        return -RIG_EINVAL;
+    }
 
     /* Speed for EasyComm 3 */
     switch (direction) {

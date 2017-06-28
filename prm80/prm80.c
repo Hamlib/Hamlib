@@ -115,16 +115,15 @@ static int prm80_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
     for (i=0; i<retval; i++)
         data[i] &= 0x7f;
 
-	*data_len = retval;
+    *data_len = retval;
 
-	/* chomp CR/LF from string
-	 */
+    /* chomp CR/LF from string */
     if (*data_len >= 2 && data[*data_len-1] == '\x0a')
 	    *data_len -= 2;
 
-	data[*data_len] = '\0';
+    data[*data_len] = '\0';
 
-	return RIG_OK;
+    return RIG_OK;
 }
 
 
@@ -372,7 +371,7 @@ int prm80_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     if (ret != RIG_OK)
         return ret;
 
-	switch (level) {
+    switch (level) {
 	case RIG_LEVEL_AF:
         val->f = chan.levels[LVL_AF].f;
 
@@ -386,9 +385,9 @@ int prm80_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	default:
 		rig_debug(RIG_DEBUG_ERR,"Unsupported set_level %d\n", level);
 		return -RIG_EINVAL;
-	}
+    }
 
-	return RIG_OK;
+    return RIG_OK;
 }
 
 /*

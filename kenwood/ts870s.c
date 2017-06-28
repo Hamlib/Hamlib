@@ -144,14 +144,14 @@ static int ts870s_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
       retval = kenwood_transaction (rig, "IS", buf, sizeof (buf));
       if (retval != RIG_OK)
-	return retval;
-	buf_len = strlen (buf);
+        return retval;
+      buf_len = strlen (buf);
       if (buf_len != 7 || buf[1] != 'S')
-	{
-	  rig_debug(RIG_DEBUG_ERR,"%s: unexpected IS answer, len=%d\n",
+        {
+          rig_debug(RIG_DEBUG_ERR,"%s: unexpected IS answer, len=%d\n",
 		    __func__,buf_len);
-	  return -RIG_ERJCTED;
-	}
+          return -RIG_ERJCTED;
+        }
 
       *width = atoi (&buf[3]) - *width; /* bandwidth <- LPF - HPF */
     }

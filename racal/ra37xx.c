@@ -621,12 +621,12 @@ int ra37xx_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
     if (ra_ant < 0 || ra_ant > 15)
         return -RIG_EPROTO;
 
-	*ant = ((ra_ant & (1<<0)) ? RIG_ANT_1 : 0) |
-        ((ra_ant & (1<<1)) ? RIG_ANT_2 : 0) |
-        ((ra_ant & (1<<2)) ? RIG_ANT_3 : 0) |
-        ((ra_ant & (1<<3)) ? RIG_ANT_4 : 0);
+    *ant = ((ra_ant & (1<<0)) ? RIG_ANT_1 : 0) |
+           ((ra_ant & (1<<1)) ? RIG_ANT_2 : 0) |
+           ((ra_ant & (1<<2)) ? RIG_ANT_3 : 0) |
+           ((ra_ant & (1<<3)) ? RIG_ANT_4 : 0);
 
-	return RIG_OK;
+    return RIG_OK;
 }
 
 int ra37xx_set_mem(RIG *rig, vfo_t vfo, int ch)

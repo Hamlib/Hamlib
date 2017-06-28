@@ -374,9 +374,9 @@ th_set_vfo(RIG *rig, vfo_t vfo)
 				return retval;
 	}
 
-    /* No "VMC" cmd on THD72A */
-    if (rig->caps->rig_model == RIG_MODEL_THD72A)
-        return RIG_OK;
+	/* No "VMC" cmd on THD72A */
+	if (rig->caps->rig_model == RIG_MODEL_THD72A)
+        	return RIG_OK;
 
 	/* set vfo */
 	switch (vfo) {
@@ -980,14 +980,14 @@ th_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		if (retval != RIG_OK)
 			return retval;
 
-			retval = sscanf(ackbuf, "AG %d,%x", &v, &l);
-			if (retval != 2 || l < rig->caps->level_gran[LVL_AF].min.i || l > rig->caps->level_gran[LVL_AF].max.i) {
-				rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, ackbuf);
-				return -RIG_ERJCTED;
-			}
+		retval = sscanf(ackbuf, "AG %d,%x", &v, &l);
+		if (retval != 2 || l < rig->caps->level_gran[LVL_AF].min.i || l > rig->caps->level_gran[LVL_AF].max.i) {
+			rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, ackbuf);
+			return -RIG_ERJCTED;
+		}
 
-			/* range [0.0 ... 1.0] */
-			val->f = (float)(l-rig->caps->level_gran[LVL_AF].min.i) /
+		/* range [0.0 ... 1.0] */
+		val->f = (float)(l-rig->caps->level_gran[LVL_AF].min.i) /
 		(float)(rig->caps->level_gran[LVL_AF].max.i-rig->caps->level_gran[LVL_AF].min.i);
 		break;
 

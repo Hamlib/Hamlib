@@ -188,10 +188,10 @@ int aor_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		return retval;
 
 	rfp = strstr(freqbuf, "RF");
-    if (!rfp && rig->caps->rig_model == RIG_MODEL_AR8000)
-        rfp = strstr(freqbuf, "VA");
-    if (!rfp && rig->caps->rig_model == RIG_MODEL_AR8000)
-        rfp = strstr(freqbuf, "VB");
+	if (!rfp && rig->caps->rig_model == RIG_MODEL_AR8000)
+		rfp = strstr(freqbuf, "VA");
+	if (!rfp && rig->caps->rig_model == RIG_MODEL_AR8000)
+		rfp = strstr(freqbuf, "VB");
 	if (!rfp) {
 		rig_debug(RIG_DEBUG_WARN, "NO RF in returned string in aor_get_freq: '%s'\n",
 				freqbuf);
