@@ -18,10 +18,10 @@ SUBDIRS = macros include lib \
 
 ## Static list of distributed directories.  $(BACKEND_LIST) is dynamically
 ## assigned by 'configure' so list rig backends statically.
-DIST_SUBDIRS = macros include lib src c++ bindings tests doc android scripts \
-	adat alinco aor drake dorji dummy flexradio icom icmarine jrc kachina kenwood kit \
-	lowe pcr prm80 racal rft rs skanti tapr tentec tuner uniden wj yaesu \
-	winradio \
+DIST_SUBDIRS = macros include lib src c++ bindings tests doc android scripts\
+	adat alinco aor barrett drake dorji dummy flexradio icom icmarine jrc\
+	kachina kenwood kit lowe pcr prm80 racal rft rs skanti tapr tentec\
+	tuner uniden wj yaesu winradio\
 	$(ROT_BACKEND_LIST)
 
 # Install any third party macros into our tree for distribution

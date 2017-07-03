@@ -544,6 +544,13 @@
 #define RIG_MODEL_DORJI_DRA818V RIG_MAKE_MODEL(RIG_DORJI, 1)
 #define RIG_MODEL_DORJI_DRA818U RIG_MAKE_MODEL(RIG_DORJI, 2)
 
+        /*
+         * Dorji transceiver modules
+         */
+#define RIG_BARRETT 32
+#define RIG_BACKEND_BARRETT "barrett"
+#define RIG_MODEL_BARRETT_2050 RIG_MAKE_MODEL(RIG_BARRETT, 1)
+
 	/*
 	 * TODO:
 		RIG_MODEL_KWZ30,	KNEISNER +DOERING
