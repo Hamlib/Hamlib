@@ -2,7 +2,7 @@ LOCAL_PATH:= $(call my-dir)
 
 include $(CLEAR_VARS)
 
-LOCAL_SRC_FILES := dummy.c rot_dummy.c netrigctl.c netrotctl.c
+LOCAL_SRC_FILES := dummy.c rot_dummy.c netrigctl.c netrotctl.c flrig.c
 LOCAL_MODULE := dummy
 
 LOCAL_CFLAGS := -DHAVE_CONFIG_H

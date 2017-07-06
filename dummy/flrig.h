@@ -1,6 +1,6 @@
 /*
- *  Hamlib Dummy backend - main header
- *  Copyright (c) 2001-2009 by Stephane Fillod
+ *  Hamlib FLRig backend - main header
+ *  Copyright (c) 2017 by Michael Black W9MDB
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -19,25 +19,22 @@
  *
  */
 
-#ifndef _DUMMY_H
-#define _DUMMY_H 1
+#ifndef _FLRIG_H
+#define _FLRIG_H 1
 
 #include "hamlib/rig.h"
-#include "token.h"
 
-/* backend conf */
-#define TOK_CFG_MAGICCONF  TOKEN_BACKEND(1)
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
 
+#define BACKEND_VER "0.1"
 
-/* ext_level's and ext_parm's tokens */
-#define TOK_EL_MAGICLEVEL  TOKEN_BACKEND(1)
-#define TOK_EL_MAGICFUNC   TOKEN_BACKEND(2)
-#define TOK_EL_MAGICOP     TOKEN_BACKEND(3)
-#define TOK_EP_MAGICPARM   TOKEN_BACKEND(4)
+#define EOM "\r"
+#define TRUE 1
+#define FALSE 0
+#define BUF_MAX 32768
 
-
-extern const struct rig_caps dummy_caps;
-extern const struct rig_caps netrigctl_caps;
 extern const struct rig_caps flrig_caps;
 
-#endif /* _DUMMY_H */
+#endif /* _FLRIG_H */

@@ -1,0 +1,5 @@
+As of version 0.1 this works well with rigs have a full ack/nak protocol as coded in FLRig.  So Kenwood, Icom and such.
+But Yaesu rigs for example are not stable with applications like WSJT-X since the FLRig driver does not wait or obtain status after frequency change commands for example (fire and forget).  Hamlib's Yaesu drivers always send and ID request after such commands and wait for an appropriate response but FLRig does not so can miss commands as a result.  Slow operation (manual command from rigctl) works fine.
+Rig drivers in FLRig will have to be changed to allow stable operation with fast comm programs like WJST-X.
+
+de Mike W9MDB
