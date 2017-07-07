@@ -32,6 +32,8 @@
 #include <errno.h>
 
 #include "hamlib/rig.h"
+#include "network.h"
+#include "serial.h"
 #include "iofunc.h"
 #include "misc.h"
 #include "num_stdio.h"
@@ -49,6 +51,13 @@
 static int netrigctl_transaction(RIG *rig, char *cmd, int len, char *buf)
 {
   int ret;
+
+  /* flush anything in the read buffer before command is sent */
+  if (rig->state.rigport.type.rig == RIG_PORT_NETWORK || rig->state.rigport.type.rig == RIG_PORT_UDP_NETWORK) {
+        network_flush(&rig->state.rigport);
+  } else {
+      serial_flush(&rig->state.rigport);
+  }
 
   ret = write_block(&rig->state.rigport, cmd, len);
   if (ret != RIG_OK)
@@ -1339,7 +1348,7 @@ const struct rig_caps netrigctl_caps = {
   .status =         RIG_STATUS_BETA,
   .rig_type =       RIG_TYPE_OTHER,
   .targetable_vfo = 	 0,
-  .ptt_type =       RIG_PTT_RIG,
+  .ptt_type =       RIG_PTT_RIG_MICDATA,
   .dcd_type =       RIG_DCD_RIG,
   .port_type =      RIG_PORT_NETWORK,
   .timeout = 2000,	/* enough for a network */
