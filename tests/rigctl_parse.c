@@ -1253,7 +1253,7 @@ int print_conf_list(const struct confparams *cfp, rig_ptr_t data)
 				cfp->u.n.min, cfp->u.n.max, cfp->u.n.step);
 		break;
 	case RIG_CONF_COMBO:
-		if (!cfp->u.c.combostr)
+		if (!cfp->u.c.combostr[0])
 			break;
 		printf("\tCombo: %s", cfp->u.c.combostr[0]);
 		for (i=1 ; i<RIG_COMBO_MAX && cfp->u.c.combostr[i]; i++)
@@ -1487,11 +1487,36 @@ declare_proto_rig(get_vfo)
 /* 'T' */
 declare_proto_rig(set_ptt)
 {
-	int   ptt;
+	int   scr;
+	ptt_t ptt;
 
-	/* TODO MICDATA */
-	CHKSCN1ARG(sscanf(arg1, "%d", &ptt));
-	return rig_set_ptt(rig, vfo, (ptt_t) ptt);
+	CHKSCN1ARG(sscanf(arg1, "%d", &scr));
+	ptt=scr;
+	/*
+	 * We allow RIG_PTT_ON_MIC and RIG_PTT_ON_DATA arriving from netrigctl.
+	 * However, if the rig does not have two separate CAT commands, or if
+	 * the rig is actually switched by a hardware signal (DTR etc.), then
+	 * we map this to RIG_PTT_ON.
+	 * Currently, this is not really necessary here because it is taken
+	 * case of in rig_set_ptt, but you never know ....
+	 */
+	switch (ptt) {
+	   case RIG_PTT_ON_MIC:
+	   case RIG_PTT_ON_DATA:
+		// map to a legal value
+		if (rig->state.pttport.type.ptt != RIG_PTT_RIG_MICDATA) ptt=RIG_PTT_ON;
+		break;
+	   case RIG_PTT_ON:
+	   case RIG_PTT_OFF:
+		// nothing to do
+		break;
+	    default:
+		// this case is not handled in hamlib, but we guard against
+		// illegal parameters here. The hamlib behaviour is to switch
+		// on PTT whenever ptt != RIG_PTT_OFF.
+		return -RIG_EINVAL;
+	}
+	return rig_set_ptt(rig, vfo, ptt);
 }
 
 /* 't' */
@@ -1939,6 +1964,7 @@ declare_proto_rig(set_level)
 		switch (cfp->type) {
 		case RIG_CONF_BUTTON:
 			/* arg is ignored */
+			val.i=0; // avoid passing uninitialized data
 			break;
 		case RIG_CONF_CHECKBUTTON:
 		case RIG_CONF_COMBO:
@@ -2105,6 +2131,7 @@ declare_proto_rig(set_parm)
 		switch (cfp->type) {
 		case RIG_CONF_BUTTON:
 			/* arg is ignored */
+			val.i=0; // avoid passing uninitialized data
 			break;
 		case RIG_CONF_CHECKBUTTON:
 		case RIG_CONF_COMBO:
