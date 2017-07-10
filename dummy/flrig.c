@@ -250,7 +250,7 @@ static char *xml_build(char *cmd, char *value)
 
     strcat(xml, "</methodCall>\n");
     strcat(xmlpost, "Content-length: ");
-    sprintf(tmp, "%ld\n\n", strlen(xml));
+    sprintf(tmp, "%d\n\n", (int)strlen(xml));
     strcat(xmlpost, tmp);
     strcat(xmlpost, xml);
     rig_debug(RIG_DEBUG_VERBOSE, "XML:\n%s", xmlpost);
@@ -327,8 +327,14 @@ int flrig_init(RIG *rig)
 {
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __FUNCTION__);
 
-    struct flrig_priv_data *priv = NULL;
+    struct flrig_priv_data *priv = (struct flrig_priv_data *)malloc(sizeof(struct flrig_priv_data));
+
+    if (!priv) {
+        return -RIG_ENOMEM;
+    }
+
     memset(priv, 0, sizeof(struct flrig_priv_data));
+
     /*
      * set arbitrary initial status
      */
