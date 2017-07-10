@@ -614,7 +614,7 @@ int ts570_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 	if (retval != RIG_OK)
 		return retval;
 
-        for (i = 0; i < abs(rint(rit/10)); i++)
+        for (i = 0; i < labs(lrint(rit/10)); i++)
         {
                 retval = kenwood_transaction(rig, buf, NULL, 0);
 		if (retval != RIG_OK)
@@ -654,7 +654,7 @@ int ts570_set_xit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 	if (retval != RIG_OK)
 		return retval;
 
-        for (i = 0; i < abs(rint(rit/10)); i++)
+        for (i = 0; i < labs(lrint(rit/10)); i++)
         {
                 retval = kenwood_transaction(rig, buf, NULL, 0);
 		if (retval != RIG_OK)

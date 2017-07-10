@@ -483,7 +483,7 @@ tmd710_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
   freq5=round(freq/5000)*5000;
   freq625=round(freq/6250)*6250;
-  if (abs(freq5-freq)<abs(freq625-freq)) {
+  if (fabs(freq5-freq)<fabs(freq625-freq)) {
     step=0;
     freq_sent=freq5;
   }
@@ -855,7 +855,7 @@ tmd710_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t freq)
 
   freq5=round(freq/5000)*5000;
   freq625=round(freq/6250)*6250;
-  if (abs(freq5-freq)<abs(freq625-freq)) {
+  if (abs((int)(freq5-freq))<abs((int)(freq625-freq))) {
     freq_sent=freq5;
   }
   else {

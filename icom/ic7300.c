@@ -310,7 +310,7 @@ int ic7300_set_rit(RIG *rig, vfo_t vfo, shortfreq_t ts)
 
 	// set sign bit
 	if (ts < 0) tsbuf[2] = 1;
-	snprintf(tmpbuf,sizeof(tmpbuf),"%04d",abs(ts));
+	snprintf(tmpbuf,sizeof(tmpbuf),"%04d",abs((int)ts));
 	unsigned int b1,b2;
 	sscanf(tmpbuf,"%02x%02x",&b1,&b2);
 	tsbuf[1] = b1;

@@ -446,9 +446,9 @@ int thg71_open(RIG *rig)
 		frng.low_power=-1;
 		rig->state.rx_range_list[i]=frng;
 		if(frng.start> MHz(200))
-			frng.high_power=5.5;
+			frng.high_power=mW(5500);
 		else
-			frng.high_power=6;
+			frng.high_power=mW(6000);
 		frng.low_power=mW(50);
 		rig->state.tx_range_list[i]=frng;
 	}

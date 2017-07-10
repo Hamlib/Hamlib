@@ -2732,6 +2732,7 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 	case RIG_PARM_BACKLIGHT:
 		prm_cn = C_CTL_MEM;
 		if (priv->civ_version == 1) {
+			prm_cn = 0;  // avoid passing uninitialized data
 			prm_sc = 0x05;
 			prm_len = 2;
 			prmbuf[0] = 0x00;
@@ -2745,6 +2746,7 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 		break;
 	case RIG_PARM_BEEP:
 		if (priv->civ_version == 1) {
+			prm_cn = 0;  // avoid passing uninitialized data
 			prm_sc = 0x05;
 			prm_len = 2;
 			prmbuf[0] = 0x00;
@@ -2759,6 +2761,7 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 		break;
 	case RIG_PARM_TIME:
 		if (priv->civ_version == 1) {
+			prm_cn = 0;  // avoid passing uninitialized data
 			prm_sc = 0x05;
 			prm_len = 2;
 			prmbuf[0] = 0x00;
