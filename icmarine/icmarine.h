@@ -43,8 +43,10 @@ struct icmarine_priv_data {
 
 extern const struct confparams icmarine_cfg_params[];
 
+int icmarine_transaction(RIG *rig, const char *cmd, const char *param, char *response);
 int icmarine_init(RIG *rig);
 int icmarine_cleanup(RIG *rig);
+int icmarine_open(RIG *rig);
 int icmarine_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int icmarine_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 int icmarine_set_tx_freq(RIG *rig, vfo_t vfo, freq_t freq);
