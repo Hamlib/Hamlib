@@ -14,9 +14,10 @@ SWGDEP=$(top_srcdir)/include/hamlib/rig.h $(top_srcdir)/include/hamlib/riglist.h
 	$(SWGFILES)
 
 EXTRA_DIST = $(SWGFILES) \
-	Makefile.PL perltest.pl tcltest.tcl pytest.py luatest.lua
+	Makefile.PL perltest.pl tcltest.tcl pytest.py py3test.py luatest.lua \
+	README.python
 
-noinst_SCRIPTS = perltest.pl tcltest.tcl pytest.py hamlibvb.bas luatest.lua
+noinst_SCRIPTS = perltest.pl tcltest.tcl pytest.py py3test.py hamlibvb.bas luatest.lua
 
 BUILT_SOURCES=
 MOSTLYCLEANFILES=

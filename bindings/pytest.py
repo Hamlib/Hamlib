@@ -1,82 +1,94 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
 import sys
 
-sys.path.append ('.')
-sys.path.append ('.libs')
+## Uncomment to run this script from an in-tree build (or adjust to the
+## build directory) without installing the bindings.
+#sys.path.append ('.')
+#sys.path.append ('.libs')
 
 import Hamlib
 
-def StartUp ():
-    print "Python", sys.version[:5], "test,", Hamlib.cvar.hamlib_version, "\n"
+def StartUp():
+    """Simple script to test the Hamlib.py module with Python2."""
 
-    #Hamlib.rig_set_debug (Hamlib.RIG_DEBUG_TRACE)
-    Hamlib.rig_set_debug (Hamlib.RIG_DEBUG_NONE)
+    print "%s: Python %s; %s\n" \
+          % (sys.argv[0], sys.version.split()[0], Hamlib.cvar.hamlib_version)
+
+    Hamlib.rig_set_debug(Hamlib.RIG_DEBUG_NONE)
 
     # Init RIG_MODEL_DUMMY
     my_rig = Hamlib.Rig (Hamlib.RIG_MODEL_DUMMY)
-    my_rig.set_conf ("rig_pathname","/dev/Rig")
-    my_rig.set_conf ("retry","5")
+    my_rig.set_conf("rig_pathname", "/dev/Rig")
+    my_rig.set_conf("retry", "5")
 
-    my_rig.open ()
+    my_rig.open()
 
     # 1073741944 is token value for "itu_region"
     # but using get_conf is much more convenient
     region = my_rig.get_conf(1073741944)
     rpath = my_rig.get_conf("rig_pathname")
     retry = my_rig.get_conf("retry")
-    print "status(str):\t\t",Hamlib.rigerror(my_rig.error_status)
+
+    print "status(str):\t\t", Hamlib.rigerror(my_rig.error_status)
     print "get_conf:\t\tpath = %s, retry = %s, ITU region = %s" \
-        % (rpath, retry, region)
+          % (rpath, retry, region)
 
-    my_rig.set_freq (Hamlib.RIG_VFO_B, 5700000000)
-    my_rig.set_vfo (Hamlib.RIG_VFO_B)
-    print "freq:\t\t\t",my_rig.get_freq()
-    my_rig.set_freq (Hamlib.RIG_VFO_A, 145550000)
-    #my_rig.set_vfo ("VFOA")
+    my_rig.set_freq(Hamlib.RIG_VFO_B, 5700000000)
+    my_rig.set_vfo(Hamlib.RIG_VFO_B)
 
+    print "freq:\t\t\t", my_rig.get_freq()
+
+    my_rig.set_freq(Hamlib.RIG_VFO_A, 145550000)
     (mode, width) = my_rig.get_mode()
-    print "mode:\t\t\t",Hamlib.rig_strrmode(mode),"\nbandwidth:\t\t",width
+
+    print "mode:\t\t\t", Hamlib.rig_strrmode(mode), "\nbandwidth:\t\t", width
+
     my_rig.set_mode(Hamlib.RIG_MODE_CW)
     (mode, width) = my_rig.get_mode()
-    print "mode:\t\t\t",Hamlib.rig_strrmode(mode),"\nbandwidth:\t\t",width
 
-    print "ITU_region:\t\t",my_rig.state.itu_region
-    print "Backend copyright:\t",my_rig.caps.copyright
+    print "mode:\t\t\t", Hamlib.rig_strrmode(mode), "\nbandwidth:\t\t", width
 
-    print "Model:\t\t\t",my_rig.caps.model_name
-    print "Manufacturer:\t\t",my_rig.caps.mfg_name
-    print "Backend version:\t",my_rig.caps.version
-    print "Backend license:\t",my_rig.caps.copyright
+    print "ITU_region:\t\t", my_rig.state.itu_region
+    print "Backend copyright:\t", my_rig.caps.copyright
+    print "Model:\t\t\t", my_rig.caps.model_name
+    print "Manufacturer:\t\t", my_rig.caps.mfg_name
+    print "Backend version:\t", my_rig.caps.version
+    print "Backend license:\t", my_rig.caps.copyright
     print "Rig info:\t\t", my_rig.get_info()
 
-    my_rig.set_level ("VOX",  1)
-    print "VOX level:\t\t",my_rig.get_level_i("VOX")
-    my_rig.set_level (Hamlib.RIG_LEVEL_VOX, 5)
+    my_rig.set_level("VOX",  1)
+
+    print "VOX level:\t\t", my_rig.get_level_i("VOX")
+
+    my_rig.set_level(Hamlib.RIG_LEVEL_VOX, 5)
+
     print "VOX level:\t\t", my_rig.get_level_i(Hamlib.RIG_LEVEL_VOX)
 
     af = 12.34
-    print "Setting AF to %f...." % (af)
-    my_rig.set_level ("AF", af)
-    print "status:\t\t\t%s - %s" % (my_rig.error_status, Hamlib.rigerror(my_rig.error_status))
-    print "AF level:\t\t", my_rig.get_level_f(Hamlib.RIG_LEVEL_AF)
 
+    print "Setting AF to %0.2f...." % (af)
+
+    my_rig.set_level ("AF", af)
+
+    print "status:\t\t\t%s - %s" % (my_rig.error_status,
+                                    Hamlib.rigerror(my_rig.error_status))
+
+    print "AF level:\t\t%0.2f" % my_rig.get_level_f(Hamlib.RIG_LEVEL_AF)
     print "strength:\t\t", my_rig.get_level_i(Hamlib.RIG_LEVEL_STRENGTH)
-    print "status:\t\t\t",my_rig.error_status
-    print "status(str):\t\t",Hamlib.rigerror(my_rig.error_status)
+    print "status:\t\t\t", my_rig.error_status
+    print "status(str):\t\t", Hamlib.rigerror(my_rig.error_status)
 
     chan = Hamlib.channel(Hamlib.RIG_VFO_B)
-
     my_rig.get_channel(chan)
-    print "get_channel status:\t",my_rig.error_status
 
-    print "VFO:\t\t\t",Hamlib.rig_strvfo(chan.vfo),", ",chan.freq
+    print "get_channel status:\t", my_rig.error_status
+    print "VFO:\t\t\t", Hamlib.rig_strvfo(chan.vfo), ", ", chan.freq
     print "Attenuators:\t\t", my_rig.caps.attenuator
-
     print "\nSending Morse, '73'"
-    my_rig.send_morse(Hamlib.RIG_VFO_A, "73")
 
+    my_rig.send_morse(Hamlib.RIG_VFO_A, "73")
     my_rig.close ()
 
     print "\nSome static functions:"
@@ -85,13 +97,15 @@ def StartUp ():
     err, lon2, lat2 = Hamlib.locator2longlat("DM33DX")
     err, loc1 = Hamlib.longlat2locator(lon1, lat1, 3)
     err, loc2 = Hamlib.longlat2locator(lon2, lat2, 3)
+
     print "Loc1:\t\tIN98XC -> %9.4f, %9.4f -> %s" % (lon1, lat1, loc1)
     print "Loc2:\t\tDM33DX -> %9.4f, %9.4f -> %s" % (lon2, lat2, loc2)
 
     err, dist, az = Hamlib.qrb(lon1, lat1, lon2, lat2)
     longpath = Hamlib.distance_long_path(dist)
+
     print "Distance:\t%.3f km, azimuth %.2f, long path:\t%.3f km" \
-        % (dist, az, longpath)
+          % (dist, az, longpath)
 
     # dec2dms expects values from 180 to -180
     # sw is 1 when deg is negative (west or south) as 0 cannot be signed
@@ -102,10 +116,11 @@ def StartUp ():
     lat3 = Hamlib.dms2dec(deg2, mins2, sec2, sw2)
 
     print 'Longitude:\t%4.4f, %4d° %2d\' %2d" %1s\trecoded: %9.4f' \
-        % (lon1, deg1, mins1, sec1, ('W' if sw1 else 'E'), lon3)
+          % (lon1, deg1, mins1, sec1, ('W' if sw1 else 'E'), lon3)
 
     print 'Latitude:\t%4.4f, %4d° %2d\' %2d" %1s\trecoded: %9.4f' \
-        % (lat1, deg2, mins2, sec2, ('S' if sw2 else 'N'), lat3)
+          % (lat1, deg2, mins2, sec2, ('S' if sw2 else 'N'), lat3)
+
 
 if __name__ == '__main__':
-    StartUp ()
+    StartUp()
