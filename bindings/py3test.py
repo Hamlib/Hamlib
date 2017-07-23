@@ -55,7 +55,7 @@ def StartUp():
     print("Model:\t\t\t%s" % my_rig.caps.model_name)
     print("Manufacturer:\t\t%s" % my_rig.caps.mfg_name)
     print("Backend version:\t%s" % my_rig.caps.version)
-    print("Backend license:\t%s" % my_rig.caps.copyright)
+    print("Backend status:\t\t%s" % Hamlib.rig_strstatus(my_rig.caps.status))
     print("Rig info:\t\t%s" % my_rig.get_info())
 
     my_rig.set_level("VOX",  1)
@@ -75,7 +75,7 @@ def StartUp():
     print("status:\t\t\t%s - %s" % (my_rig.error_status,
                                     Hamlib.rigerror(my_rig.error_status)))
 
-    print("AF level:\t\t%s" % my_rig.get_level_f(Hamlib.RIG_LEVEL_AF))
+    print("AF level:\t\t%0.2f" % my_rig.get_level_f(Hamlib.RIG_LEVEL_AF))
     print("strength:\t\t%s" % my_rig.get_level_i(Hamlib.RIG_LEVEL_STRENGTH))
     print("status:\t\t\t%s" % my_rig.error_status)
     print("status(str):\t\t%s" % Hamlib.rigerror(my_rig.error_status))

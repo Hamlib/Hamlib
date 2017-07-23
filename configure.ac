@@ -508,8 +508,9 @@ AC_MSG_RESULT([$cf_with_python_binding])
 
 dnl AX_PYTHON_DEVEL from macros/ax_python_devel.m4
 AS_IF([test x"${cf_with_python_binding}" = "xyes"],[
+    dnl Order matters!  AX_PYTHON_DEVEL must be first for PYTHON_VERSION to be honored.
+    AX_PYTHON_DEVEL([">='2.1'"])
     AM_PATH_PYTHON([2.1],, [:])
-    AX_PYTHON_DEVEL
 
     BINDING_LIST="${BINDING_LIST} python"
     BINDING_ALL="${BINDING_ALL} all-py"

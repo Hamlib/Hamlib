@@ -3,7 +3,7 @@
 # more information on swig at http://www.swig.org
 #
 
-AM_CPPFLAGS = @AM_CPPFLAGS@ -I$(top_srcdir)/bindings @TCL_INCLUDE_SPEC@ @PYTHON_CPPFLAGS@
+AM_CPPFLAGS = @AM_CPPFLAGS@ -I$(top_srcdir)/bindings $(PYTHON_CPPFLAGS) @TCL_INCLUDE_SPEC@
 
 AM_CFLAGS = -fno-strict-aliasing
 
@@ -88,7 +88,7 @@ nodist_pyexec_PYTHON = Hamlib.py
 nodist__Hamlib_la_SOURCES = hamlibpy_wrap.c
 
 _Hamlib_la_LDFLAGS = -no-undefined -module -avoid-version
-_Hamlib_la_LIBADD = $(top_builddir)/src/libhamlib.la
+_Hamlib_la_LIBADD = $(top_builddir)/src/libhamlib.la $(PYTHON_LIBS)
 _Hamlib_ladir = $(pyexecdir)
 _Hamlib_la_LTLIBRARIES = $(pyexec_ltlib)
 
@@ -100,8 +100,8 @@ check-py: all-py
 Hamlib.py: hamlibpy_wrap.c
 
 hamlibpy_wrap.c: hamlib.swg $(SWGDEP)
-	$(SWIG) -python @AM_CPPFLAGS@ -I$(top_srcdir)/bindings -o $@ \
-		`test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
+	$(SWIG) -python $(AM_CPPFLAGS) -I$(top_srcdir)/bindings \
+		-o $@ `test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
 
 install-py:
 clean-py:

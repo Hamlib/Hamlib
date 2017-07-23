@@ -19,7 +19,7 @@ def StartUp():
     Hamlib.rig_set_debug(Hamlib.RIG_DEBUG_NONE)
 
     # Init RIG_MODEL_DUMMY
-    my_rig = Hamlib.Rig (Hamlib.RIG_MODEL_DUMMY)
+    my_rig = Hamlib.Rig(Hamlib.RIG_MODEL_DUMMY)
     my_rig.set_conf("rig_pathname", "/dev/Rig")
     my_rig.set_conf("retry", "5")
 
@@ -55,7 +55,7 @@ def StartUp():
     print "Model:\t\t\t", my_rig.caps.model_name
     print "Manufacturer:\t\t", my_rig.caps.mfg_name
     print "Backend version:\t", my_rig.caps.version
-    print "Backend license:\t", my_rig.caps.copyright
+    print "Backend status:\t\t", Hamlib.rig_strstatus(my_rig.caps.status)
     print "Rig info:\t\t", my_rig.get_info()
 
     my_rig.set_level("VOX",  1)
@@ -70,7 +70,7 @@ def StartUp():
 
     print "Setting AF to %0.2f...." % (af)
 
-    my_rig.set_level ("AF", af)
+    my_rig.set_level("AF", af)
 
     print "status:\t\t\t%s - %s" % (my_rig.error_status,
                                     Hamlib.rigerror(my_rig.error_status))
