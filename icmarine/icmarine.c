@@ -101,6 +101,8 @@
 /* Tokens */
 #define TOK_REMOTEID TOKEN_BACKEND(1)
 
+int icmarine_transaction(RIG *rig, const char *cmd, const char *param, char *response);
+
 const struct confparams icmarine_cfg_params[] = {
 	{ TOK_REMOTEID, "remoteid", "Remote ID", "Transceiver's remote ID",
 			"1", RIG_CONF_NUMERIC, { .n = { 1, 99, 1 } }
@@ -152,6 +154,19 @@ int icmarine_cleanup(RIG *rig)
 
 	return RIG_OK;
 }
+
+int icmarine_open(RIG *rig)
+{
+  char respbuf[BUFSZ+1];
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
+  int retval = icmarine_transaction(rig, "REMOTE", "ON", respbuf); 
+  if (retval != RIG_OK) {
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: rig not responding? %s\n",__FUNCTION__, rigerror(retval));
+        
+  }
+  return RIG_OK;
+}
+
 
 int icmarine_set_conf(RIG *rig, token_t token, const char *val)
 {
@@ -260,6 +275,9 @@ int icmarine_transaction(RIG *rig, const char *cmd, const char *param, char *res
 	}
 
 	/* So this is a query */
+	retval = read_string(&rs->rigport, respbuf, BUFSZ, LF, strlen(LF));
+	if (retval < 0)
+		return retval;
 
 	/* strip *checksum and CR/LF from string */
 	respbuf[retval-5] = 0;
