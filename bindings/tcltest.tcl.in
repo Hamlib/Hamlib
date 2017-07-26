@@ -3,10 +3,10 @@
 exec tclsh "$0" "$@"
 
 # Edit the path below to reflect installed Hamlib extension
-lappend ::auto_path /usr/local/lib/tcl/Hamlib
+lappend ::auto_path @tcldir@
 
 ## Brute force loading
-#load "/usr/local/lib/tcltk/Hamlib/hamlibtcl.so" Hamlib
+#load "@tcldir@/hamlibtcl.so" Hamlib
 
 ## Preferred package loading
 package require hamlib

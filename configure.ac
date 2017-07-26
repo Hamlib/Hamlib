@@ -457,10 +457,10 @@ BINDING_LIB_TARGETS=""
 dnl Check if cxx-binding not wanted, default is to build it
 
 # C++ binding
-AC_MSG_CHECKING([whether to build C++ binding and demo])
+AC_MSG_CHECKING([whether to build C++ binding])
 AC_ARG_WITH([cxx-binding],
             [AS_HELP_STRING([--without-cxx-binding],
-                            [do not build C++ binding and demo @<:@default=yes@:>@])],
+                            [do not build C++ binding @<:@default=yes@:>@])],
             [cf_with_cxx_binding=$withval],
             [cf_with_cxx_binding=$cf_with_cxx])
 AC_MSG_RESULT([$cf_with_cxx_binding])
@@ -472,10 +472,10 @@ AS_IF([test x"${cf_with_cxx_binding}" = "xyes"],
 dnl Check if perl-binding is wanted, default is to not build it
 
 # Perl binding
-AC_MSG_CHECKING([whether to build perl binding and demo])
+AC_MSG_CHECKING([whether to build perl binding])
 AC_ARG_WITH([perl-binding],
             [AS_HELP_STRING([--with-perl-binding],
-                            [build perl binding and demo @<:@default=no@:>@])],
+                            [build perl binding @<:@default=no@:>@])],
             [cf_with_perl_binding=$withval],
             [cf_with_perl_binding=no])
 AC_MSG_RESULT([$cf_with_perl_binding])
@@ -498,10 +498,10 @@ AM_CONDITIONAL([ENABLE_PERL], [test x"${cf_with_perl_binding}" = "xyes"])
 
 dnl Check for python availability, so we can enable HamlibPy
 # Python bindings
-AC_MSG_CHECKING([whether to build python binding and demo])
+AC_MSG_CHECKING([whether to build python binding])
 AC_ARG_WITH([python-binding],
     [AS_HELP_STRING([--with-python-binding],
-        [build python binding and demo @<:@default=no@:>@])],
+        [build python binding @<:@default=no@:>@])],
     [cf_with_python_binding=$withval],
     [cf_with_python_binding=no])
 AC_MSG_RESULT([$cf_with_python_binding])
@@ -523,18 +523,23 @@ AS_IF([test x"${cf_with_python_binding}" = "xyes"],[
 
 AM_CONDITIONAL([ENABLE_PYTHON], [test x"${cf_with_python_binding}" = "xyes"])
 
+dnl Determine whether to install pytest.py or py3test.py to $(docdir)/examples
+AM_PYTHON_CHECK_VERSION([${PYTHON}], [3.0], [pyver_3="yes"], [pyver_3="no"])
+AM_CONDITIONAL([PYVER_3], [test x"${pyver_3}" = x"yes"])
+
 
 # Tcl binding
-AC_MSG_CHECKING([Whether to build Tcl bindings and demos])
+AC_MSG_CHECKING([Whether to build Tcl bindings])
 AC_ARG_WITH([tcl-binding],
     [AS_HELP_STRING([--with-tcl-binding],
-        [build Tcl binding and demo @<:@default=no@:>@])],
+        [build Tcl binding @<:@default=no@:>@])],
     [build_tcl=$withval],
     [build_tcl=no])
 AC_MSG_RESULT([$build_tcl])
 
 dnl SC_PATH_TCLCONFIG and SC_LOAD_TCLCONFIG from macros/tcl.m4
 AS_IF([test x"${build_tcl}" = "xyes"],[
+    dnl Search for and load tclConfig.sh.
     SC_PATH_TCLCONFIG
     SC_LOAD_TCLCONFIG
 
@@ -555,16 +560,19 @@ AS_IF([test x"${build_tcl}" = "xyes"],[
     BINDING_LIB_TARGETS="${BINDING_LIB_TARGETS} \$(tcl_ltlib)"])
 
 AM_CONDITIONAL([ENABLE_TCL], [test x"${build_tcl}" = "xyes"])
+dnl These variables are set once tclConfig.sh is loaded.
+AC_SUBST([TCL_VERSION])
 AC_SUBST([TCL_LIB_SPEC])
 AC_SUBST([TCL_INCLUDE_SPEC])
 AC_SUBST([TCL_SHLIB_SUFFIX])
 
+
 dnl Check for lua availability, so we can enable HamlibLua
 # Lua bindings
-AC_MSG_CHECKING([whether to build lua binding and demo])
+AC_MSG_CHECKING([whether to build lua binding])
 AC_ARG_WITH([lua-binding],
     [AS_HELP_STRING([--with-lua-binding],
-        [build lua binding and demo @<:@default=no@:>@])],
+        [build lua binding @<:@default=no@:>@])],
     [cf_with_lua_binding=$withval],
     [cf_with_lua_binding=no])
 AC_MSG_RESULT([$cf_with_lua_binding])
@@ -586,6 +594,7 @@ AS_IF([test x"${cf_with_lua_binding}" = "xyes"],[
     BINDING_LIB_TARGETS="${BINDING_LIB_TARGETS} \$(lua_ltlib)"])
 
 AM_CONDITIONAL([ENABLE_LUA], [test x"${cf_with_lua_binding}" = "xyes"])
+
 
 dnl Only search for Swig if one or more bindings are enabled.
 AS_IF([test "x${BINDING_ALL}" != "x"],
@@ -749,7 +758,6 @@ sartek/Makefile
 src/Makefile
 c++/Makefile
 bindings/Makefile
-bindings/hamlibvb.bas
 tests/Makefile
 doc/Makefile
 doc/hamlib.cfg
