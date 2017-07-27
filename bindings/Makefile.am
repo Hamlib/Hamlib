@@ -209,13 +209,14 @@ Hamliblua_la_LTLIBRARIES = $(luaexec_ltlib)
 all-lua: $(luaexec_ltlib)
 
 check-lua: all-lua
-	LUA_CPATH="$(abs_builddir)/.libs/?.so" $(srcdir)/luatest.lua || echo "Lua test failed" 1>&2
+	$(AM_V_at)LUA_CPATH="$(abs_builddir)/.libs/?.so" $(LUA) $(srcdir)/luatest.lua \
+		|| echo "Lua test failed" 1>&2
 
 Hamlib.lua: hamliblua_wrap.c
 
 hamliblua_wrap.c: hamlib.swg $(SWGDEP)
-	$(SWIG) -lua $(AM_CPPFLAGS) -I$(top_srcdir)/bindings \
-	-o $@ `test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
+	$(AM_V_GEN)$(SWIG) -lua $(AM_CPPFLAGS) -I$(top_srcdir)/bindings \
+		-o $@ `test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
 
 install-lua:
 clean-lua:
