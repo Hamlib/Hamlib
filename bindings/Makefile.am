@@ -37,12 +37,12 @@ MOSTLYCLEANFILES += hamlibperl_wrap.c Hamlib.pm Hamlib.bs Hamlib-pl.mk.old
 example_DATA += perltest.pl
 
 hamlibperl_wrap.c: hamlib.swg $(SWIGDEP)
-	$(SWIG) -perl5 -shadow $(AM_CPPFLAGS) -I$(top_srcdir)/bindings \
-	-o $@ `test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
+	$(AM_V_GEN)$(SWIG) -perl5 -shadow $(AM_CPPFLAGS) -I$(top_srcdir)/bindings \
+		-o $@ `test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
 
 Hamlib-pl.mk: $(srcdir)/Makefile.PL
-	test -f Makefile.PL || $(LN_S) $(srcdir)/Makefile.PL Makefile.PL
-	perl `test -f Makefile.PL || echo '$(srcdir)/'`Makefile.PL \
+	$(AM_V_at)test -f Makefile.PL || $(LN_S) $(srcdir)/Makefile.PL Makefile.PL
+	$(AM_V_at)perl `test -f Makefile.PL || echo '$(srcdir)/'`Makefile.PL \
 			MAKEFILE="Hamlib-pl.mk" \
 			PREFIX="$(prefix)" \
 			INC="$(AM_CPPFLAGS)"  \
@@ -50,27 +50,27 @@ Hamlib-pl.mk: $(srcdir)/Makefile.PL
 			OBJECT="hamlibperl_wrap.o" \
 			VERSION="$(PACKAGE_VERSION)" \
 			LIBS="-L$(top_builddir)/src/.libs -lhamlib"
-	sed -e 's/^LD_RUN_PATH.*/LD_RUN_PATH =/' Hamlib-pl.mk > Hamlib-pl-norpath.mk
-	mv Hamlib-pl-norpath.mk Hamlib-pl.mk
+	$(AM_V_at)sed -e 's/^LD_RUN_PATH.*/LD_RUN_PATH =/' Hamlib-pl.mk > Hamlib-pl-norpath.mk
+	$(AM_V_at)mv Hamlib-pl-norpath.mk Hamlib-pl.mk
 
 all-perl: Hamlib-pl.mk hamlibperl_wrap.c
-	$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk all
+	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk all
 
 check-perl: all-perl
-	$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk test
+	$(AM_V_at)LD_LIBRARY_PATH=$(top_builddir)/src/.libs perl $(top_srcdir)/bindings/perltest.pl
 
 clean-perl: Hamlib-pl.mk
-	$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk clean
+	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk clean
 
 ## 'distclean' target is a NOOP in Hamlib-pl.mk
 distclean-perl: ## Hamlib-pl.mk
 ##	$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk distclean
 
 distcheck-perl: Hamlib-pl.mk
-	$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk distcheck
+	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk distcheck
 
 install-perl: Hamlib-pl.mk
-	$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk install_site
+	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk install_site
 
 ## ExtUtils::MakeMaker says uninstall is deprecated and won't remove the files
 ## anyway, so we'll have to figure out another way to remove the installed files.
