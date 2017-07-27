@@ -111,14 +111,15 @@ _Hamlib_la_LTLIBRARIES = $(pyexec_ltlib)
 all-py: $(pyexec_ltlib)
 
 check-py: all-py
-	PYTHONPATH=$(builddir):$(builddir)/.libs $(PYTHON) $(srcdir)/$(pytest) \
-	|| echo "Python test failed" 1>&2
+	$(AM_V_at)PYTHONPATH=$(builddir):$(builddir)/.libs \
+		$(PYTHON) $(srcdir)/$(pytest) \
+		|| echo "Python test failed" 1>&2
 
 Hamlib.py: hamlibpy_wrap.c
 
 hamlibpy_wrap.c: hamlib.swg $(SWGDEP)
-	$(SWIG) -python $(AM_CPPFLAGS) -I$(top_srcdir)/bindings \
-	-o $@ `test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
+	$(AM_V_GEN)$(SWIG) -python $(AM_CPPFLAGS) -I$(top_srcdir)/bindings \
+		-o $@ `test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
 
 install-py:
 clean-py:
