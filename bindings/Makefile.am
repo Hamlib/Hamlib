@@ -158,22 +158,25 @@ hamlibtcl_la_LTLIBRARIES = $(tcl_ltlib)
 # Having the first occurance of 'hamlib' capitalized seemed to cause confusion
 # for the TCL interpreter loading the Hamlib module.
 pkgIndex.tcl: Makefile
-	echo 'package ifneeded hamlib $(PKG_VER) [list load [file join $$dir $(DLL)] Hamlib]' > pkgIndex.tcl
+	$(AM_V_at)echo 'package ifneeded hamlib $(PKG_VER) [list load [file join $$dir $(DLL)] Hamlib]' > pkgIndex.tcl
 
 hamlibtcl_wrap.c: hamlib.swg $(SWGDEP)
-	$(SWIG) -tcl -pkgversion $(PKG_VER) $(AM_CPPFLAGS) -I$(top_srcdir)/bindings \
-	-o $@ `test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
+	$(AM_V_GEN)$(SWIG) -tcl -pkgversion $(PKG_VER) $(AM_CPPFLAGS) \
+		-I$(top_srcdir)/bindings \
+		-o $@ `test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
 
 do_subst = sed -e 's,[@]tcldir[@],$(tcldir),g'
 
 tcltest.tcl: tcltest.tcl.in Makefile
-	$(do_subst) < $(srcdir)/tcltest.tcl.in > tcltest.tcl
+	$(AM_V_GEN)$(do_subst) < $(srcdir)/tcltest.tcl.in > tcltest.tcl
 
 all-tcl: pkgIndex.tcl $(tcl_ltlib) tcltest.tcl
 
 check-tcl: all-tcl
-	TCLLIBPATH=$(builddir)/.libs tclsh $(builddir)/tcltest.tcl \
-	|| echo "Tcl test failed" 1>&2
+	$(AM_V_at)cp $(builddir)/pkgIndex.tcl $(builddir)/.libs
+	$(AM_V_at)TCLLIBPATH=$(builddir)/.libs tclsh $(builddir)/tcltest.tcl \
+		|| echo "Tcl test failed" 1>&2
+	$(AM_V_at)rm -f $(builddir)/.libs/pkgIndex.tcl
 
 install-tcl:
 clean-tcl:
