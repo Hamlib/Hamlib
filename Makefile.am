@@ -9,6 +9,9 @@ pkgconfig_DATA = hamlib.pc
 EXTRA_DIST = PLAN TODO LICENSE hamlib.m4 hamlib.pc.in README.developer \
 	README.betatester README.win32 Android.mk
 
+doc_DATA = ChangeLog COPYING COPYING.LIB LICENSE \
+	README README.betatester README.developer
+
 SUBDIRS = macros include lib \
 	$(BACKEND_LIST) \
 	$(ROT_BACKEND_LIST) \
