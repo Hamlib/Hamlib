@@ -95,7 +95,8 @@ release:
   rc testing/release.
 
 * Build source tarball from a cleaned tree (as above):
-    ./autogen.sh
+    ./bootstrap
+    ./configure
     make dist
 
     The resulting tarball--hamlib-3.y[.z].tar.gz--should be tested as much

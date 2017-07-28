@@ -22,8 +22,9 @@ and available.  It's time that we offer a means to generate bindings for
 either version.  This document will provide the steps for doing so.
 
 NOTE:  Developers and testers building from a Git clone/checkout will need
-to bootstrap the build system by running the autogen.sh script.  Source
-releases and source daily snapshots already have this step completed.
+to bootstrap the build system by running the (appropriately named) 'bootstrap'
+script.  Source releases and source daily snapshots already have this step
+completed.
 
 NOTE:  The commands assume an out of tree build in a sibling directory to
 the main source directory.  Adjust your paths accordingly.  Adjust your

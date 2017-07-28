@@ -13,9 +13,13 @@ $ brew install automake autoconf libtool
 Build
 -----
 
-Execute autogen.sh with the desired flags
+Execute bootstrap to generate the build system files
 
-$ ./autogen.sh
+$ ./bootstrap
+
+Then configure with the desired flags
+
+$ ./configure
 
 Then compile the hamlib files
 

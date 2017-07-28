@@ -381,18 +381,26 @@ from which the build system consisting of @file{configure}, the
 various @file{Makefile.in}s throughout the directory structure, and
 the final @file{Makefile}s are generated.
 
-In the top-level directory is the @command{autogen.sh} script from
-which the build system is @dfn{bootsrapped}---the process of building
-the Hamlib build system.  At its completion @command{autogen.sh} will
-run @command{configure} and will pass any command line arguments it
-receives to @command{configure}.  Environment variables intended for
-the compiler may also be set on the @command{autogen.sh} command line.
+In the top-level directory is the @command{bootstrap} script from
+which the build system is @dfn{bootsrapped}---the process of
+generating the Hamlib build system from @file{configure.ac} and the
+various @file{Makefile.am}s.  At its completion the
+@command{configure} script will be present to configure the build
+system.
+
+Next @command{configure} is run with any needed build options
+(@command{configure --help} is useful) to enable certain features or
+provide paths for locating needed build dependencies, etc.
+Environment variables intended for the preprocessor and/or compiler
+may also be set on the @command{configure} command line.
 
 After the configuration is complete, the build may proceed with the
 @command{make} step as for the source tarballs above.  Or
 @command{configure --help} may be run, and @command{configure} run
 again with specific options in which case the @file{Makefile}s will be
-regenerated and the build will proceed.
+regenerated and the build can proceed with the new configuration.
+
+@xref{configure}.
 
 @node Other make targets
 @subsection Other @command{make} targets
@@ -472,9 +480,10 @@ manual for all the details.
 @cindex Compiling for MS Windows 32
 @cindex MS Windows 32, compiling
 
-Currently compiling is done on an Xubuntu 10.10 virtual machine using
-@url{http://www.mingw.org/, MinGW32}.  @file{README.build-win32} in
-the @file{scripts} directory has details on how this is accomplished.
+Currently compiling is done on a Debian 8 (Jessie) virtual machine
+using @url{http://www.mingw.org/, MinGW32}.  @file{README.build-win32}
+in the @file{scripts} directory has details on how this is
+accomplished.
 
 Work is ongoing to correct build issues in the
 @url{http://www.cygwin.com/, Cygwin} environment running on MS

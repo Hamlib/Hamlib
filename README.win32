@@ -18,6 +18,7 @@ List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=hamlib-develop
 Date: Sun, 20 Jun 2004 15:25:24 -0400
 
 <revised by mjf Tue, 17 Aug, 2004>
+<revised by n0nb Thu, 27 Jul 2017>
 
 Found this to be helpful for building hamlib under Cygwin/Mingw32 for
 linking with Windows apps:
@@ -28,14 +29,15 @@ Cygwin is fully updated):
 
 $ export CC="gcc -mno-cygwin"
 $ export CXX="g++ -mno-cygwin"
-$ ./autogen.sh --prefix=/usr/local \
+$ ./bootstrap
+$ ./configure --prefix=/usr/local \
 --build=i686-pc-cygwin \
 --host=i686-pc-mingw32 \
 --target=i686-pc-mingw32
 
-Note: on subsequent runs you can replace ./autogen.sh with ./configure
-unless there are modifications to any .ac, .m4, or Makefile.am file.
-In that case, "make clean", and re-run autogen as above.
+Note: on subsequent runs you will only need to run 'bootstrap' if
+there are modifications to any .ac, .m4, or Makefile.am files.
+In that case, "make clean", and re-run 'bootstrap' as above.
 
 # make
 

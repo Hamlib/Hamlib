@@ -195,7 +195,7 @@ contains results you don't want to keep, you may remove or edit it.
    The file `configure.ac' is used to create `configure' by a program
 called `autoreconf'.  You only need `configure.ac' if you want to change
 it or regenerate `configure' using a newer version of `autoconf'.  This
-project uses a custom `autogen.sh' for running autoreconf in a developer's
+project uses a custom `bootstrap' for running autoreconf in a developer's
 checkout of Hamlib from a source repository.
 
 Advanced installation options.
