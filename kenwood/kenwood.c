@@ -603,6 +603,7 @@ int kenwood_open(RIG *rig)
       || !strcmp ("ID907", id)  /* PowerSDR Flex-6300 */
       )
     {
+      priv->is_emulation = 1;   /* Emulations don't have SAT mode */
       strcpy (id, "ID019");  /* fake it */
     }
 
@@ -736,23 +737,23 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
   }
 
   //if rig=ts2000 then check Satellite mode status
-  if(rig->caps->rig_model == RIG_MODEL_TS2000) {
-	  char retbuf[20];
-	  rig_debug(RIG_DEBUG_VERBOSE, "Checking Satellite mode status\n");
-	  snprintf(cmdbuf, sizeof (cmdbuf), "SA");
+  if(rig->caps->rig_model == RIG_MODEL_TS2000 && !priv->is_emulation) {
+    char retbuf[20];
+    rig_debug(RIG_DEBUG_VERBOSE, "Checking Satellite mode status\n");
+    snprintf(cmdbuf, sizeof (cmdbuf), "SA");
 
-	  retval = kenwood_transaction(rig, cmdbuf, retbuf, 20);
-	  if (retval != RIG_OK)
-	    return retval;
+    retval = kenwood_transaction(rig, cmdbuf, retbuf, 20);
+    if (retval != RIG_OK)
+      return retval;
 
-	  rig_debug(RIG_DEBUG_VERBOSE, "Satellite mode status %s\n",retbuf);
-	  //Satellite mode ON
-	  if(retbuf[2]=='1') {
-		  //SAT mode doesn't allow FR command (cannot select VFO)
-		  //selecting VFO is useless in SAT MODE
-		  return RIG_OK;
-		  }
-	  }
+    rig_debug(RIG_DEBUG_VERBOSE, "Satellite mode status %s\n",retbuf);
+    //Satellite mode ON
+    if(retbuf[2]=='1') {
+      //SAT mode doesn't allow FR command (cannot select VFO)
+      //selecting VFO is useless in SAT MODE
+      return RIG_OK;
+      }
+    }
 
   snprintf(cmdbuf, sizeof (cmdbuf), "FR%c", vfo_function);
 
@@ -1380,6 +1381,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   if (!rig)
     return -RIG_EINVAL;
 
+  struct kenwood_priv_data *priv = rig->state.priv;
   struct kenwood_priv_caps *caps = kenwood_caps(rig);
   char buf[6];
   char kmode;
@@ -1409,6 +1411,14 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
         default: break;
         }
+    }
+
+  if (priv->is_emulation)
+    {
+      /* emulations like PowerSDR and SmartSDR normally hijack the
+         RTTY modes for SSB-DATA AFSK modes */
+      if (RIG_MODE_PKTLSB == mode) mode = RIG_MODE_RTTY;
+      if (RIG_MODE_PKTUSB == mode) mode = RIG_MODE_RTTYR;
     }
 
   kmode = rmode2kenwood(mode, caps->mode_table);
@@ -1462,16 +1472,16 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
       || RIG_MODEL_TS590SG == rig->caps->rig_model)
     {
       if (!(RIG_MODE_CW == mode
-         || RIG_MODE_CWR == mode
-         || RIG_MODE_AM == mode
-         || RIG_MODE_RTTY == mode
-	 || RIG_MODE_RTTYR == mode))
+            || RIG_MODE_CWR == mode
+            || RIG_MODE_AM == mode
+            || RIG_MODE_RTTY == mode
+            || RIG_MODE_RTTYR == mode))
         {
-	  /* supports DATA sub modes - see above */
-	  snprintf (buf, sizeof (buf), "DA%c", data_mode);
-	  err = kenwood_transaction (rig, buf, NULL, 0);
-	  if (err != RIG_OK) return err;
-	}
+          /* supports DATA sub modes - see above */
+          snprintf (buf, sizeof (buf), "DA%c", data_mode);
+          err = kenwood_transaction (rig, buf, NULL, 0);
+          if (err != RIG_OK) return err;
+        }
     }
 
   if (RIG_PASSBAND_NOCHANGE == width) return RIG_OK;
@@ -1545,6 +1555,7 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
   if (!rig || !mode || !width)
     return -RIG_EINVAL;
 
+  struct kenwood_priv_data *priv = rig->state.priv;
   struct kenwood_priv_caps *caps = kenwood_caps(rig);
   char cmd[4];
   char modebuf[10];
@@ -1593,6 +1604,13 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
       kmode = modebuf[offs] - 'A' + 10;
     }
   *mode = kenwood2rmode(kmode, caps->mode_table);
+  if (priv->is_emulation)
+    {
+      /* emulations like PowerSDR and SmartSDR normally hijack the
+         RTTY modes for SSB-DATA AFSK modes */
+      if (RIG_MODE_RTTY == *mode) *mode = RIG_MODE_PKTLSB;
+      if (RIG_MODE_RTTYR == *mode) *mode = RIG_MODE_PKTUSB;
+    }
 
   if (RIG_MODEL_TS590S == rig->caps->rig_model
       || RIG_MODEL_TS590SG == rig->caps->rig_model)
@@ -3321,43 +3339,43 @@ DECLARE_INITRIG_BACKEND(kenwood)
 
 //  rig_debug(RIG_DEBUG_VERBOSE, "kenwood: _init called\n");
 
-	rig_register(&ts950sdx_caps);
-	rig_register(&ts50s_caps);
-	rig_register(&ts140_caps);
-	rig_register(&ts450s_caps);
-	rig_register(&ts570d_caps);
-	rig_register(&ts570s_caps);
-	rig_register(&ts680s_caps);
-	rig_register(&ts690s_caps);
-	rig_register(&ts790_caps);
-	rig_register(&ts850_caps);
-	rig_register(&ts870s_caps);
-	rig_register(&ts930_caps);
-	rig_register(&ts2000_caps);
-	rig_register(&trc80_caps);
-	rig_register(&k2_caps);
-	rig_register(&k3_caps);
-	rig_register(&xg3_caps);
+  rig_register(&ts950sdx_caps);
+  rig_register(&ts50s_caps);
+  rig_register(&ts140_caps);
+  rig_register(&ts450s_caps);
+  rig_register(&ts570d_caps);
+  rig_register(&ts570s_caps);
+  rig_register(&ts680s_caps);
+  rig_register(&ts690s_caps);
+  rig_register(&ts790_caps);
+  rig_register(&ts850_caps);
+  rig_register(&ts870s_caps);
+  rig_register(&ts930_caps);
+  rig_register(&ts2000_caps);
+  rig_register(&trc80_caps);
+  rig_register(&k2_caps);
+  rig_register(&k3_caps);
+  rig_register(&xg3_caps);
 
-	rig_register(&ts440_caps);
-	rig_register(&ts940_caps);
-	rig_register(&ts711_caps);
-	rig_register(&ts811_caps);
-	rig_register(&r5000_caps);
+  rig_register(&ts440_caps);
+  rig_register(&ts940_caps);
+  rig_register(&ts711_caps);
+  rig_register(&ts811_caps);
+  rig_register(&r5000_caps);
 
-	rig_register(&tmd700_caps);
-	rig_register(&thd7a_caps);
-	rig_register(&thd72a_caps);
-	rig_register(&thf7e_caps);
-	rig_register(&thg71_caps);
-	rig_register(&tmv7_caps);
-	rig_register(&tmd710_caps);
+  rig_register(&tmd700_caps);
+  rig_register(&thd7a_caps);
+  rig_register(&thd72a_caps);
+  rig_register(&thf7e_caps);
+  rig_register(&thg71_caps);
+  rig_register(&tmv7_caps);
+  rig_register(&tmd710_caps);
 
-	rig_register(&ts590_caps);
-	rig_register(&ts990s_caps);
-	rig_register(&ts590sg_caps);
-	rig_register(&ts480_caps);
-	rig_register(&thf6a_caps);
+  rig_register(&ts590_caps);
+  rig_register(&ts990s_caps);
+  rig_register(&ts590sg_caps);
+  rig_register(&ts480_caps);
+  rig_register(&thf6a_caps);
 
   rig_register(&transfox_caps);
 
