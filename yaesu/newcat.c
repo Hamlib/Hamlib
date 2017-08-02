@@ -4276,7 +4276,6 @@ int newcat_get_vfo_mode(RIG * rig, vfo_t * vfo_mode)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int err;
-    char * retval;
     char command[] = "IF";
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -4296,17 +4295,14 @@ int newcat_get_vfo_mode(RIG * rig, vfo_t * vfo_mode)
     // so we now check to ensure we know the length of the response
     int offset = 0;
     switch(strlen(priv->ret_data)) {
-        case 27: offset = 22;priv->width_frequency=8;break;
-        case 28: offset = 23;priv->width_frequency=9;break;
-        default: offset = 0;
-    }
-    if (offset == 0) {
-        rig_debug(RIG_DEBUG_ERR,"%s: incorrect length of IF response, expected 27 or 28, got %d",__func__,strlen(priv->ret_data));
-        return -RIG_EPROTO;
+        case 27: offset = 21;priv->width_frequency=8;break;
+        case 28: offset = 22;priv->width_frequency=9;break;
+        default:
+          rig_debug(RIG_DEBUG_ERR,"%s: incorrect length of IF response, expected 27 or 28, got %d",__func__,strlen(priv->ret_data));
+          return -RIG_EPROTO;
     }
     rig_debug(RIG_DEBUG_TRACE, "%s: offset=%d, width_frequeny=%d\n", __func__,offset,priv->width_frequency);
-    retval = priv->ret_data + offset;
-    switch (*retval) {
+    switch (priv->ret_data[offset]) {
         case '0': *vfo_mode = RIG_VFO_VFO; break;
         case '1':   /* Memory */
         case '2':   /* Memory Tune */
