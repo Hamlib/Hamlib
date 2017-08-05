@@ -1,12 +1,10 @@
 # astylerc--custom options for astyle
-# Intended to follow the Linux style guide as closely as possible:
-# https://www.kernel.org/doc/Documentation/CodingStyle
 
-# Linux kernel style formatting/indenting.
-style=linux
+# K&R style formatting/indenting with some tweaks.
+style=kr
 
-# Use tabs with a width of 8 spaces.
-indent=force-tab=8
+# Indent with a width of 4 spaces.
+indent=spaces=4
 
 # Pad empty lines around header blocks (e.g. 'if', 'for', 'while'...).
 break-blocks
@@ -25,8 +23,15 @@ pad-header
 align-pointer=name
 align-reference=type
 
-# Don't break one-line blocks.
-keep-one-line-blocks
+# Add brackets to unbracketed one line conditional statements
+# (e.g. 'if', 'for', 'while'...).
+add-brackets
 
-# Don't break complex statements and multiple statements residing on a single line.
-keep-one-line-statements
+# Converts tabs into spaces in the non-indentation part of the line.
+convert-tabs
+
+# try to shorten long lines to 80 characters
+max-code-length=80
+
+# Preserve the file date and time
+preserve-date

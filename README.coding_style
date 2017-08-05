@@ -1,0 +1,190 @@
+This document superceeds any other prior documentation or commentary regarding
+the formatting of the Hamlib C and C++ source code.  This document does not
+apply to the Autotools build system, i.e. configure.ac, Makefile.am or the
+Autoconf macros in the 'macros/' directory.
+
+
+0. Background
+
+Throughout its life, a number of coding styles have found their way into the
+Hamlib source tree.  Besides lacking a readable consistency, recent compilers
+have reported logic errors likely due to inconsistent formatting.  Such errors
+can escape notice during casual scanning of a source file.
+
+
+1. Objective
+
+Adopt certain mandatory and recommended coding guidelines to aid in
+readability of the Hamlib C source code and avoid logic errors due to
+inconsistent code formatting to the extent possible.
+
+
+2. Mandatory rules
+
+* The use of tab characters, ASCII hexadecimal 0x09, shall no longer be
+  permitted for the indentation and alignment of C or C++ source or header
+  files, only spaces, ASCII hexadecimal 0x20, shall be used for indentation
+  and alignment.  The use of the '\t' escape sequence in rig_debug() output,
+  static strings, and the like is permitted.
+
+* Indentation shall be 4 spaces.  Alignment shall consist of the number of
+  spaces necessary after indentation.
+
+Discussion: Plenty has been written regarding the use of the tab character in
+source files and the proper setup of the various editors.  There is no point
+in rehashing that here, except to say that spaces are universal.  Modern
+editors are configurable to setting indents to four spaces and tab stops to
+four spaces.
+
+* Bare conditionals shall not be permitted.  All conditionals--'if', 'else',
+  'for', 'while', and 'do while' shall have their statements enclosed in
+  braces.
+
+Discussion:  Consider this conditional:
+
+             if (something);
+                do_that();
+
+No harm, eh?  Look again.  The programmer gave the 'if' conditional a null
+statement with the trailing ';' at the end of the line.  As a result,
+'do_that()' will be called whether 'something' is true or not.  Most likely
+this is not what the programmer intended!
+
+If, instead, the code is reformatted to:
+
+             if (something) {
+                ;
+                do_that();
+             }
+
+by a code formatter, the null statement becomes harmless and 'do_that()' is
+called depending on the truth of 'something'.
+
+Here proper indentation and alignment is only half the battle in finding such
+bugs, enclosing all statement blocks in braces is the other half.
+
+Patch submissions will be checked for adherence to these two rules.  While
+patches won't be rejected outright, the corrections will be applied and the
+patch set rebased before being pushed to the repositories.
+
+
+3. Recommended coding style
+
+The following bullet points follow the formatting the Artistic Style code
+formatter will apply when using the included 'scripts/astylerc' configuration
+file.  Any version from 2.03 or later should work.  It can be invoked from a
+backend directory as follows:
+
+        $ astyle --options=../scripts/astylerc moonmelter.c
+
+The old file will be copied to 'moonmelter.c.orig' as a back up.
+
+* Brace style is K&R where the opening brace of a function definition is on a
+  new line in the far left column following the function signature.  For
+  conditionals, the opening brace is at the end of the conditional one space
+  after the closing parentheses.  In all cases the closing brace is on a line
+  of its own and lines up vertically with the conditional key word.  The
+  exception (there is always at least one) is when 'else', 'else if, or
+  'while' from a 'do while' loop are cuddled after the closing brace.  See
+  'src/rig.c' for many examples.
+
+* Indents are four spaces as detailed above.  Each level of code should be one
+  indent further to the right.  An exception is where a conditional needs to
+  be split over multiple lines and an extra indentation provides more
+  readability of the statement block.  See 'src/rig.c' for many examples.
+
+* Isolate conditional blocks with a blank line before and after.  Like
+  paragraphs in prose that focus on a topic, it's important that conditionals
+  be obvious to the reader.  An exception is where another conditional follows
+  immediately on the next line.  Indentation is sufficient.  See 'src/rig.c'
+  for many examples.
+
+* No space between parentheses and the enclosed characters.  You know where to
+  look by now.  ;-)
+
+* One space on either side of operators and between function arguments.
+
+* One space between a conditional key word and its opening parentheses.
+
+* No space between a function name and its opening paretheses.
+
+* No space between a pointer operator ('*') and the pointer name.  Likewise
+  for the address operator ('&').  Exception:  In a function prototype and
+  definition, a space should be put between the '*' operator and the
+  function/macro name to indicate a pointer is returned, not that the
+  function/macro name is an assigned pointer value.
+
+* Keep code lines under 80 characters.  This will require some judgement on
+  where the break works best.  A couple of keys are, a) break conditionals
+  before a comparison operator so it appears at the front of the next line,
+  and, b) when breaking a function call, put all arguments on their own line.
+  It is sometimes necessary for strings to go beyond the 80 character point.
+  This is fine.  If needed, a C compiler will concatenate strings that are
+  split across multiple lines.
+
+* Avoid trailing comments when possible.  Comments should precede the
+  statement(s) they describe.
+
+* When a conditional is split across mutliple lines, readability of the
+  following statement can be aided by a blank line above the statement and/or
+  an extra level of indentation.
+
+
+4. Use of code formatting tools
+
+There are a number of tools that can be used to format the source code.  Some
+are standalone and others are part of an editor or IDE.
+
+4.1 astyle
+
+Use of the Artistic Style (astyle) formatter (http://astyle.sourceforge.net/)
+with the included options file ('scripts/astylerc') will provide most of the
+objectives outlined above.  Some manual formatting may be required.  For
+example, if a line is already less than 80 characters and ends with an
+operator, astyle will not move the operator to the front of the next line
+where it is preferred.
+
+4.2 GNU Indent
+
+GNU Indent lacked a few of the features of astyle for padding conditional
+blocks and enforcing spaces around operators and between comma separated
+arguments (if I'm mistaken, please provide a working example--N0NB).
+Otherwise, acceptable results should be possible.
+
+4.3 GNU Emacs
+
+GNU Emacs with the included C Mode can be configured to provide acceptable
+formatting while editing source files.  Eventually a custom Hamlib style elisp
+file will be included in the 'scripts/' directory.
+
+Useful minor modes include:
+
+modeline-char:             Displays the character and its Unicode value on the
+                           modeline.
+fill-column-indicator:     Draws a vertical line at fill column.
+
+highlight-numbers:         Applies a color face to numeric constants.
+
+highlight-parentheses:     Highlights parentheses and the nesting braces
+                           around point (cursor).
+cwarn:                     Parses the C code for harmful constructs.
+
+whitespace:                Shows whitespace--tabs, spaces, and newlines in the
+                           buffer.
+
+4.4 Other editors & IDEs
+
+Other editors and IDEs likely have various ways to apply ones preferred
+style.  The main things to configure are having the <Tab> key produce four
+spaces and that tab stops be every four positions across the screen (if
+configurable).
+
+
+5 Summary
+
+Hamlib source code is no place for an entry into the obfuscated C contest!
+Many of us are hobbyists and write this for fun.  Easy to read and understand
+logic is preferred over a clever solution.  If your solution must be written
+in a clever fashion, please document it well in your comments.
+
+73, Nate, N0NB

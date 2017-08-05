@@ -545,36 +545,10 @@ released under the GPL, so any contributed code must follow the license.
 
 8.2 Coding guidelines and style
 
-Try to keep current style of existing code. Improvements are welcome though.
-When in doubt, follow the Linux kernel coding style guide:
+For specific requirements for formatting the C source code, see
+README.coding_style.
 
-http://www.kernel.org/doc/Documentation/CodingStyle
-
-Hamlib is a code base from many contributors and a variety of styles have
-been employed.  If you work on a source file, go ahead and apply good
-judgment and clean it up per the kernel style guide.  Lining things up
-nicely is an excellent start. Next, put spaces in assignments to aid
-readability.  Align closing braces with the opening block's keyword.  In
-function definitions put the opening brace on its own line under the
-definition's parameter line.
-
-A configuration file for the Artistic Style (http://astyle.sourceforge.net/)
-utility can be found in the scripts directory.  The settings it provides should
-conform reasonably close to the Linux style guide referenced above.  This file
-can be copied to $HOME/.astylerc where it will be used as the default
-configuration.  If you already have an existing .astylerc, passing
-
-	--options=/path/to/hamlib/scripts/astylerc
-
-will use this file as the configuration for formatting.  Consider using this
-utility whenever working on a given C source file in Hamlib.
-
-Hamlib source code is no place for an entry into the obfuscated C contest!
-Many of us are hobbyists and write this for fun.  Easy to read and
-understand logic is preferred over a clever solution.  If your solution must
-be written in a clever fashion, please document it well in your comments.
-
-Any header files included from the hamlib/ directory should be enclosed in <>:
+Any header files included from the hamlib/ directory should be enclosed in '<>':
 
 #include <hamlib/rig.h>         # Per GNU GCC documentation
 
