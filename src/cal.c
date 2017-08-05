@@ -39,6 +39,7 @@
 
 /* add rig_set_cal(cal_table), rig_get_calstat(rawmin,rawmax,cal_table), */
 
+
 /**
  * \brief Convert raw S-meter data to calibated value, according to table
  * \param rawval input value
@@ -52,48 +53,55 @@
  * If a value is greater or equal to cal_table_t.table[cal_table_t.size-1].raw,
  * rig_raw2val() will return cal_table_t.table[cal_table_t.size-1].val
  */
-
 float HAMLIB_API rig_raw2val(int rawval, const cal_table_t *cal)
 {
 #ifdef WANT_CHEAP_WNO_FP
-	int interpolation;
+    int interpolation;
 #else
-	float interpolation;
+    float interpolation;
 #endif
-	int i;
+    int i;
 
-	/* ASSERT(cal != NULL) */
-	/* ASSERT(cal->size <= MAX_CAL_LENGTH) */
+    /* ASSERT(cal != NULL) */
+    /* ASSERT(cal->size <= MAX_CAL_LENGTH) */
 
-	if (cal->size == 0)
-			return rawval;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	for (i=0; i<cal->size; i++)
-		if (rawval < cal->table[i].raw)
-			break;
+    if (cal->size == 0) {
+        return rawval;
+    }
 
-	if (i==0)
-		return cal->table[0].val;
+    for (i = 0; i < cal->size; i++)
+        if (rawval < cal->table[i].raw) {
+            break;
+        }
 
-	if (i>=cal->size)
-		return cal->table[i-1].val;
+    if (i == 0) {
+        return cal->table[0].val;
+    }
 
-	if (cal->table[i].raw == cal->table[i-1].raw)	/* catch divide by 0 error */
-		return cal->table[i].val;
+    if (i >= cal->size) {
+        return cal->table[i - 1].val;
+    }
+
+    /* catch divide by 0 error */
+    if (cal->table[i].raw == cal->table[i - 1].raw) {
+        return cal->table[i].val;
+    }
 
 #ifdef WANT_CHEAP_WNO_FP
-	/* cheap, less accurate, but no fp needed */
-	interpolation = ((cal->table[i].raw - rawval) *
-			 (cal->table[i].val - cal->table[i-1].val)) /
-			  (cal->table[i].raw - cal->table[i-1].raw);
+    /* cheap, less accurate, but no fp needed */
+    interpolation = ((cal->table[i].raw - rawval)
+                     * (cal->table[i].val - cal->table[i - 1].val))
+            / (cal->table[i].raw - cal->table[i - 1].raw);
 
-	return cal->table[i].val - interpolation;
+    return cal->table[i].val - interpolation;
 #else
-	interpolation = ((cal->table[i].raw - rawval) *
-			 (float)(cal->table[i].val - cal->table[i-1].val)) /
-			  (float)(cal->table[i].raw - cal->table[i-1].raw);
+    interpolation = ((cal->table[i].raw - rawval)
+                     * (float)(cal->table[i].val - cal->table[i - 1].val))
+            / (float)(cal->table[i].raw - cal->table[i - 1].raw);
 #endif
-	return cal->table[i].val - interpolation;
+    return cal->table[i].val - interpolation;
 }
 
 /** @} */

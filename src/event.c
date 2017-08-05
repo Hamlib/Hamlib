@@ -53,7 +53,6 @@
 
 
 #include <hamlib/rig.h>
-
 #include "event.h"
 
 #if defined(WIN32) && !defined(HAVE_TERMIOS_H)
@@ -78,8 +77,10 @@ static void sa_sigalrmhandler(int signum);
 #endif
 #endif
 
+
 /* This one should be in an include file */
-extern int foreach_opened_rig(int (*cfunc)(RIG *, rig_ptr_t),rig_ptr_t data);
+extern int foreach_opened_rig(int (*cfunc)(RIG *, rig_ptr_t), rig_ptr_t data);
+
 
 /*
  * add_trn_rig
@@ -89,60 +90,79 @@ extern int foreach_opened_rig(int (*cfunc)(RIG *, rig_ptr_t),rig_ptr_t data);
 int add_trn_rig(RIG *rig)
 {
 #ifdef HAVE_SIGACTION
-	struct sigaction act;
-	int status;
+    struct sigaction act;
+    int status;
 
-		/*
-		 * FIXME: multiple open will register several time SIGIO hndlr
-		 */
-	memset(&act, 0, sizeof(act));
+    /*
+     * FIXME: multiple open will register several time SIGIO hndlr
+     */
+    memset(&act, 0, sizeof(act));
 
 #ifdef HAVE_SIGINFO_T
-	act.sa_sigaction = sa_sigioaction;
+    act.sa_sigaction = sa_sigioaction;
 #else
-	act.sa_handler = sa_sigiohandler;
+    act.sa_handler = sa_sigiohandler;
 #endif
 
-	sigemptyset(&act.sa_mask);
+    sigemptyset(&act.sa_mask);
 
 #if defined(HAVE_SIGINFO_T) && defined(SA_SIGINFO)
-	act.sa_flags = SA_SIGINFO|SA_RESTART;
+    act.sa_flags = SA_SIGINFO | SA_RESTART;
 #else
-	act.sa_flags = SA_RESTART;
+    act.sa_flags = SA_RESTART;
 #endif
 
-	status = sigaction(SIGIO, &act, &hamlib_trn_oldact);
-	if (status < 0)
-		rig_debug(RIG_DEBUG_ERR,"%s: sigaction failed: %s\n",
-						__func__, strerror(errno));
+    status = sigaction(SIGIO, &act, &hamlib_trn_oldact);
 
-	status = fcntl(rig->state.rigport.fd, F_SETOWN, getpid());
-	if (status < 0)
-		rig_debug(RIG_DEBUG_ERR,"%s: fcntl SETOWN failed: %s\n",
-						__func__, strerror(errno));
+    if (status < 0) {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: sigaction failed: %s\n",
+                  __func__,
+                  strerror(errno));
+    }
+
+    status = fcntl(rig->state.rigport.fd, F_SETOWN, getpid());
+
+    if (status < 0) {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: fcntl SETOWN failed: %s\n",
+                  __func__,
+                  strerror(errno));
+    }
 
 #if defined(HAVE_SIGINFO_T) && defined(O_ASYNC)
 #ifdef F_SETSIG
-	status = fcntl(rig->state.rigport.fd, F_SETSIG, SIGIO);
-	if (status < 0)
-		rig_debug(RIG_DEBUG_ERR,"%s: fcntl SETSIG failed: %s\n",
-						__func__, strerror(errno));
+    status = fcntl(rig->state.rigport.fd, F_SETSIG, SIGIO);
+
+    if (status < 0) {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: fcntl SETSIG failed: %s\n",
+                  __func__,
+                  strerror(errno));
+    }
+
 #endif
 
-	status = fcntl(rig->state.rigport.fd, F_SETFL, O_ASYNC);
-	if (status < 0)
-		rig_debug(RIG_DEBUG_ERR,"%s: fcntl SETASYNC failed: %s\n",
-						__func__, strerror(errno));
+    status = fcntl(rig->state.rigport.fd, F_SETFL, O_ASYNC);
+
+    if (status < 0) {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: fcntl SETASYNC failed: %s\n",
+                  __func__,
+                  strerror(errno));
+    }
+
 #else
-	return -RIG_ENIMPL;
+    return -RIG_ENIMPL;
 #endif
 
-	return RIG_OK;
+    return RIG_OK;
 
 #else
-	return -RIG_ENIMPL;
-#endif	/* !HAVE_SIGACTION */
+    return -RIG_ENIMPL;
+#endif  /* !HAVE_SIGACTION */
 }
+
 
 /*
  * remove_trn_rig
@@ -152,30 +172,40 @@ int add_trn_rig(RIG *rig)
 int remove_trn_rig(RIG *rig)
 {
 #ifdef HAVE_SIGACTION
-	int status;
+    int status;
 
     /* assert(rig->caps->transceive == RIG_TRN_RIG); */
 
 #if defined(HAVE_SIGINFO_T) && defined(O_ASYNC)
-	status = fcntl(rig->state.rigport.fd, F_SETFL, 0);
-	if (status < 0)
-		rig_debug(RIG_DEBUG_ERR,"%s: fcntl SETASYNC failed: %s\n",
-						__func__, strerror(errno));
+    status = fcntl(rig->state.rigport.fd, F_SETFL, 0);
+
+    if (status < 0) {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: fcntl SETASYNC failed: %s\n",
+                  __func__,
+                  strerror(errno));
+    }
+
 #endif
 
-	status = sigaction(SIGIO, &hamlib_trn_oldact, NULL);
-	if (status < 0)
-		rig_debug(RIG_DEBUG_ERR,"%s: sigaction failed: %s\n",
-						__func__, strerror(errno));
+    status = sigaction(SIGIO, &hamlib_trn_oldact, NULL);
 
-	return RIG_OK;
+    if (status < 0) {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: sigaction failed: %s\n",
+                  __func__,
+                  strerror(errno));
+    }
+
+    return RIG_OK;
 #else
-	return -RIG_ENIMPL;
-#endif	/* !HAVE_SIGACTION */
+    return -RIG_ENIMPL;
+#endif  /* !HAVE_SIGACTION */
 }
 
 
 #ifdef HAVE_SIGACTION
+
 
 /*
  * add_trn_poll_rig
@@ -184,35 +214,39 @@ int remove_trn_rig(RIG *rig)
 static int add_trn_poll_rig(RIG *rig)
 {
 #ifdef HAVE_SIGACTION
-	struct sigaction act;
-	int status;
+    struct sigaction act;
+    int status;
 
-		/*
-		 * FIXME: multiple open will register several time SIGALRM hndlr
-		 */
-	memset(&act, 0, sizeof(act));
+    /*
+     * FIXME: multiple open will register several time SIGALRM hndlr
+     */
+    memset(&act, 0, sizeof(act));
 
 #ifdef HAVE_SIGINFO_T
-	act.sa_sigaction = sa_sigalrmaction;
+    act.sa_sigaction = sa_sigalrmaction;
 #else
-	act.sa_handler = sa_sigalrmhandler;
+    act.sa_handler = sa_sigalrmhandler;
 #endif
-	act.sa_flags = SA_RESTART;
+    act.sa_flags = SA_RESTART;
 
-	sigemptyset(&act.sa_mask);
+    sigemptyset(&act.sa_mask);
 
-	status = sigaction(SIGALRM, &act, &hamlib_trn_poll_oldact);
-	if (status < 0)
-		rig_debug(RIG_DEBUG_ERR,"%s sigaction failed: %s\n",
-				__func__,
-				strerror(errno));
+    status = sigaction(SIGALRM, &act, &hamlib_trn_poll_oldact);
 
-	return RIG_OK;
+    if (status < 0) {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s sigaction failed: %s\n",
+                  __func__,
+                  strerror(errno));
+    }
+
+    return RIG_OK;
 
 #else
-	return -RIG_ENIMPL;
-#endif	/* !HAVE_SIGINFO */
+    return -RIG_ENIMPL;
+#endif  /* !HAVE_SIGINFO */
 }
+
 
 /*
  * remove_trn_poll_rig
@@ -221,19 +255,22 @@ static int add_trn_poll_rig(RIG *rig)
 static int remove_trn_poll_rig(RIG *rig)
 {
 #ifdef HAVE_SIGINFO
-	int status;
+    int status;
 
-	status = sigaction(SIGALRM, &hamlib_trn_poll_oldact, NULL);
-	if (status < 0)
-		rig_debug(RIG_DEBUG_ERR,"%s sigaction failed: %s\n",
-				__func__,
-				strerror(errno));
+    status = sigaction(SIGALRM, &hamlib_trn_poll_oldact, NULL);
 
-	return RIG_OK;
+    if (status < 0) {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s sigaction failed: %s\n",
+                  __func__,
+                  strerror(errno));
+    }
+
+    return RIG_OK;
 
 #else
-	return -RIG_ENIMPL;
-#endif	/* !HAVE_SIGINFO */
+    return -RIG_ENIMPL;
+#endif  /* !HAVE_SIGINFO */
 }
 
 
@@ -246,53 +283,63 @@ static int remove_trn_poll_rig(RIG *rig)
  */
 static int search_rig_and_decode(RIG *rig, rig_ptr_t data)
 {
-	fd_set rfds;
-	struct timeval tv;
-	int retval;
+    fd_set rfds;
+    struct timeval tv;
+    int retval;
 
-	/*
-	 * so far, only file oriented ports have event reporting support
-	 */
-	if (rig->state.rigport.type.rig != RIG_PORT_SERIAL ||
-			rig->state.rigport.fd == -1)
-		return -1;
+    /*
+     * so far, only file oriented ports have event reporting support
+     */
+    if (rig->state.rigport.type.rig != RIG_PORT_SERIAL
+        || rig->state.rigport.fd == -1) {
+            return -1;
+    }
 
-	/* FIXME: siginfo is not portable, however use it where available */
+    /* FIXME: siginfo is not portable, however use it where available */
 #if 0&&defined(HAVE_SIGINFO_T)
-	siginfo_t *si = (siginfo_t*)data;
+    siginfo_t *si = (siginfo_t *)data;
 
-	if (rig->state.rigport.fd != si->si_fd)
-			return -1;
+    if (rig->state.rigport.fd != si->si_fd) {
+        return -1;
+    }
+
 #else
-	FD_ZERO(&rfds);
-	FD_SET(rig->state.rigport.fd, &rfds);
-	/* Read status immediately. */
-	tv.tv_sec = 0;
-	tv.tv_usec = 0;
+    FD_ZERO(&rfds);
+    FD_SET(rig->state.rigport.fd, &rfds);
+    /* Read status immediately. */
+    tv.tv_sec = 0;
+    tv.tv_usec = 0;
 
-	/* don't use FIONREAD to detect activity
-	 * since it is less portable than select
-	 * REM: EINTR possible with 0sec timeout? retval==0?
-	 */
-	retval = select(rig->state.rigport.fd+1, &rfds, NULL, NULL, &tv);
-	if (retval < 0) {
-		rig_debug(RIG_DEBUG_ERR, "search_rig_and_decode: select: %s\n",
-								strerror(errno));
-		return -1;
-	}
+    /* don't use FIONREAD to detect activity
+     * since it is less portable than select
+     * REM: EINTR possible with 0sec timeout? retval==0?
+     */
+    retval = select(rig->state.rigport.fd + 1, &rfds, NULL, NULL, &tv);
+
+    if (retval < 0) {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: select: %s\n",
+                  __func__,
+                  strerror(errno));
+        return -1;
+    }
+
 #endif
 
-	/*
-	 * Do not disturb, the backend is currently receiving data
-	 */
-	if (rig->state.hold_decode)
-			return -1;
+    /*
+     * Do not disturb, the backend is currently receiving data
+     */
+    if (rig->state.hold_decode) {
+        return -1;
+    }
 
-	if (rig->caps->decode_event)
-		rig->caps->decode_event(rig);
+    if (rig->caps->decode_event) {
+        rig->caps->decode_event(rig);
+    }
 
-	return 1;	/* process each opened rig */
+    return 1;   /* process each opened rig */
 }
+
 
 /*
  * This is used by sa_sigio, the SIGALRM handler
@@ -302,60 +349,71 @@ static int search_rig_and_decode(RIG *rig, rig_ptr_t data)
  */
 static int search_rig_and_poll(RIG *rig, rig_ptr_t data)
 {
-	struct rig_state *rs = &rig->state;
-	int retval;
+    struct rig_state *rs = &rig->state;
+    int retval;
 
-	if (rig->state.transceive != RIG_TRN_POLL)
-		return -1;
-	/*
-	 * Do not disturb, the backend is currently receiving data
-	 */
-	if (rig->state.hold_decode)
-		return -1;
+    if (rig->state.transceive != RIG_TRN_POLL) {
+        return -1;
+    }
 
-	rig->state.hold_decode = 2;
+    /*
+     * Do not disturb, the backend is currently receiving data
+     */
+    if (rig->state.hold_decode) {
+        return -1;
+    }
 
-	if (rig->caps->get_vfo && rig->callbacks.vfo_event) {
-		vfo_t vfo = RIG_VFO_CURR;
+    rig->state.hold_decode = 2;
 
-		retval = rig->caps->get_vfo(rig, &vfo);
-		if (retval == RIG_OK) {
- 			if (vfo != rs->current_vfo) {
-				rig->callbacks.vfo_event(rig, vfo, rig->callbacks.vfo_arg);
-			}
-	 		rs->current_vfo = vfo;
-		}
-	}
-	if (rig->caps->get_freq && rig->callbacks.freq_event) {
-		freq_t freq;
+    if (rig->caps->get_vfo && rig->callbacks.vfo_event) {
+        vfo_t vfo = RIG_VFO_CURR;
 
-		retval = rig->caps->get_freq(rig, RIG_VFO_CURR, &freq);
-		if (retval == RIG_OK) {
- 			if (freq != rs->current_freq) {
-				rig->callbacks.freq_event(rig, RIG_VFO_CURR,
-						freq, rig->callbacks.freq_arg);
-			}
-	 		rs->current_freq = freq;
-		}
-	}
-	if (rig->caps->get_mode && rig->callbacks.mode_event) {
-		rmode_t rmode;
-		pbwidth_t width;
+        retval = rig->caps->get_vfo(rig, &vfo);
 
-		retval = rig->caps->get_mode(rig, RIG_VFO_CURR, &rmode, &width);
-		if (retval == RIG_OK) {
- 			if (rmode != rs->current_mode || width != rs->current_width) {
-				rig->callbacks.mode_event(rig, RIG_VFO_CURR,
-						rmode, width, rig->callbacks.mode_arg);
-			}
-	 		rs->current_mode = rmode;
-	 		rs->current_width = width;
-		}
-	}
+        if (retval == RIG_OK) {
+            if (vfo != rs->current_vfo) {
+                rig->callbacks.vfo_event(rig, vfo, rig->callbacks.vfo_arg);
+            }
 
-	rig->state.hold_decode = 0;
+            rs->current_vfo = vfo;
+        }
+    }
 
-	return 1;	/* process each opened rig */
+    if (rig->caps->get_freq && rig->callbacks.freq_event) {
+        freq_t freq;
+
+        retval = rig->caps->get_freq(rig, RIG_VFO_CURR, &freq);
+
+        if (retval == RIG_OK) {
+            if (freq != rs->current_freq) {
+                rig->callbacks.freq_event(rig, RIG_VFO_CURR,
+                                          freq, rig->callbacks.freq_arg);
+            }
+
+            rs->current_freq = freq;
+        }
+    }
+
+    if (rig->caps->get_mode && rig->callbacks.mode_event) {
+        rmode_t rmode;
+        pbwidth_t width;
+
+        retval = rig->caps->get_mode(rig, RIG_VFO_CURR, &rmode, &width);
+
+        if (retval == RIG_OK) {
+            if (rmode != rs->current_mode || width != rs->current_width) {
+                rig->callbacks.mode_event(rig, RIG_VFO_CURR,
+                                          rmode, width, rig->callbacks.mode_arg);
+            }
+
+            rs->current_mode = rmode;
+            rs->current_width = width;
+        }
+    }
+
+    rig->state.hold_decode = 0;
+
+    return 1;   /* process each opened rig */
 }
 
 
@@ -369,18 +427,18 @@ static int search_rig_and_poll(RIG *rig, rig_ptr_t data)
 #ifdef HAVE_SIGINFO_T
 static void sa_sigioaction(int signum, siginfo_t *si, rig_ptr_t data)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "sa_sigioaction: activity detected\n");
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: activity detected\n", __func__);
 
-	foreach_opened_rig(search_rig_and_decode, si);
+    foreach_opened_rig(search_rig_and_decode, si);
 }
 
 #else
 
 static void sa_sigiohandler(int signum)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "sa_sigiohandler: activity detected\n");
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: activity detected\n", __func__);
 
-	foreach_opened_rig(search_rig_and_decode, NULL);
+    foreach_opened_rig(search_rig_and_decode, NULL);
 }
 
 #endif
@@ -396,31 +454,32 @@ static void sa_sigiohandler(int signum)
 #ifdef HAVE_SIGINFO_T
 static void sa_sigalrmaction(int signum, siginfo_t *si, rig_ptr_t data)
 {
-	rig_debug(RIG_DEBUG_TRACE, "sa_sigalrmaction entered\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s entered\n", __func__);
 
-	foreach_opened_rig(search_rig_and_poll, si);
+    foreach_opened_rig(search_rig_and_poll, si);
 }
 
 #else
 
 static void sa_sigalrmhandler(int signum)
 {
-	rig_debug(RIG_DEBUG_TRACE, "sa_sigalrmhandler entered\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s entered\n", __func__);
 
-	foreach_opened_rig(search_rig_and_poll, NULL);
+    foreach_opened_rig(search_rig_and_poll, NULL);
 }
 
 #endif /* !HAVE_SIGINFO_T */
 
 #endif /* HAVE_SIGINFO */
 
-#endif	/* !DOC_HIDDEN */
+#endif  /* !DOC_HIDDEN */
+
 
 /**
  * \brief set the callback for freq events
- * \param rig	The rig handle
- * \param cb	The callback to install
- * \param arg	A Pointer to some private data to pass later on to the callback
+ * \param rig   The rig handle
+ * \param cb    The callback to install
+ * \param arg   A Pointer to some private data to pass later on to the callback
  *
  *  Install a callback for freq events, to be called when in transceive mode.
  *
@@ -430,23 +489,26 @@ static void sa_sigalrmhandler(int signum)
  *
  * \sa rig_set_trn()
  */
-
 int HAMLIB_API rig_set_freq_callback(RIG *rig, freq_cb_t cb, rig_ptr_t arg)
 {
-	if (CHECK_RIG_ARG(rig))
-		return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	rig->callbacks.freq_event = cb;
-	rig->callbacks.freq_arg = arg;
+    if (CHECK_RIG_ARG(rig)) {
+        return -RIG_EINVAL;
+    }
 
-	return RIG_OK;
+    rig->callbacks.freq_event = cb;
+    rig->callbacks.freq_arg = arg;
+
+    return RIG_OK;
 }
+
 
 /**
  * \brief set the callback for mode events
- * \param rig	The rig handle
- * \param cb	The callback to install
- * \param arg	A Pointer to some private data to pass later on to the callback
+ * \param rig   The rig handle
+ * \param cb    The callback to install
+ * \param arg   A Pointer to some private data to pass later on to the callback
  *
  *  Install a callback for mode events, to be called when in transceive mode.
  *
@@ -456,23 +518,26 @@ int HAMLIB_API rig_set_freq_callback(RIG *rig, freq_cb_t cb, rig_ptr_t arg)
  *
  * \sa rig_set_trn()
  */
-
 int HAMLIB_API rig_set_mode_callback(RIG *rig, mode_cb_t cb, rig_ptr_t arg)
 {
-	if (CHECK_RIG_ARG(rig))
-		return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	rig->callbacks.mode_event = cb;
-	rig->callbacks.mode_arg = arg;
+    if (CHECK_RIG_ARG(rig)) {
+        return -RIG_EINVAL;
+    }
 
-	return RIG_OK;
+    rig->callbacks.mode_event = cb;
+    rig->callbacks.mode_arg = arg;
+
+    return RIG_OK;
 }
+
 
 /**
  * \brief set the callback for vfo events
- * \param rig	The rig handle
- * \param cb	The callback to install
- * \param arg	A Pointer to some private data to pass later on to the callback
+ * \param rig   The rig handle
+ * \param cb    The callback to install
+ * \param arg   A Pointer to some private data to pass later on to the callback
  *
  *  Install a callback for vfo events, to be called when in transceive mode.
  *
@@ -482,23 +547,26 @@ int HAMLIB_API rig_set_mode_callback(RIG *rig, mode_cb_t cb, rig_ptr_t arg)
  *
  * \sa rig_set_trn()
  */
-
 int HAMLIB_API rig_set_vfo_callback(RIG *rig, vfo_cb_t cb, rig_ptr_t arg)
 {
-	if (CHECK_RIG_ARG(rig))
-		return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	rig->callbacks.vfo_event = cb;
-	rig->callbacks.vfo_arg = arg;
+    if (CHECK_RIG_ARG(rig)) {
+        return -RIG_EINVAL;
+    }
 
-	return RIG_OK;
+    rig->callbacks.vfo_event = cb;
+    rig->callbacks.vfo_arg = arg;
+
+    return RIG_OK;
 }
+
 
 /**
  * \brief set the callback for ptt events
- * \param rig	The rig handle
- * \param cb	The callback to install
- * \param arg	A Pointer to some private data to pass later on to the callback
+ * \param rig   The rig handle
+ * \param cb    The callback to install
+ * \param arg   A Pointer to some private data to pass later on to the callback
  *
  *  Install a callback for ptt events, to be called when in transceive mode.
  *
@@ -508,23 +576,26 @@ int HAMLIB_API rig_set_vfo_callback(RIG *rig, vfo_cb_t cb, rig_ptr_t arg)
  *
  * \sa rig_set_trn()
  */
-
 int HAMLIB_API rig_set_ptt_callback(RIG *rig, ptt_cb_t cb, rig_ptr_t arg)
 {
-	if (CHECK_RIG_ARG(rig))
-		return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	rig->callbacks.ptt_event = cb;
-	rig->callbacks.ptt_arg = arg;
+    if (CHECK_RIG_ARG(rig)) {
+        return -RIG_EINVAL;
+    }
 
-	return RIG_OK;
+    rig->callbacks.ptt_event = cb;
+    rig->callbacks.ptt_arg = arg;
+
+    return RIG_OK;
 }
+
 
 /**
  * \brief set the callback for dcd events
- * \param rig	The rig handle
- * \param cb	The callback to install
- * \param arg	A Pointer to some private data to pass later on to the callback
+ * \param rig   The rig handle
+ * \param cb    The callback to install
+ * \param arg   A Pointer to some private data to pass later on to the callback
  *
  *  Install a callback for dcd events, to be called when in transceive mode.
  *
@@ -534,23 +605,26 @@ int HAMLIB_API rig_set_ptt_callback(RIG *rig, ptt_cb_t cb, rig_ptr_t arg)
  *
  * \sa rig_set_trn()
  */
-
 int HAMLIB_API rig_set_dcd_callback(RIG *rig, dcd_cb_t cb, rig_ptr_t arg)
 {
-	if (CHECK_RIG_ARG(rig))
-		return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	rig->callbacks.dcd_event = cb;
-	rig->callbacks.dcd_arg = arg;
+    if (CHECK_RIG_ARG(rig)) {
+        return -RIG_EINVAL;
+    }
 
-	return RIG_OK;
+    rig->callbacks.dcd_event = cb;
+    rig->callbacks.dcd_arg = arg;
+
+    return RIG_OK;
 }
+
 
 /**
  * \brief set the callback for pipelined tuning module
- * \param rig	The rig handle
- * \param cb	The callback to install
- * \param arg	A Pointer to some private data to pass later on to the callback
+ * \param rig   The rig handle
+ * \param cb    The callback to install
+ * \param arg   A Pointer to some private data to pass later on to the callback
  * used to maintain state during pipelined tuning.
  *
  *  Install a callback for pipelined tuning module, to be called when the
@@ -562,22 +636,25 @@ int HAMLIB_API rig_set_dcd_callback(RIG *rig, dcd_cb_t cb, rig_ptr_t arg)
  *
  * \sa rig_set_trn()
  */
-
 int HAMLIB_API rig_set_pltune_callback(RIG *rig, pltune_cb_t cb, rig_ptr_t arg)
 {
-	if (CHECK_RIG_ARG(rig))
-		return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	rig->callbacks.pltune = cb;
-	rig->callbacks.pltune_arg = arg;
+    if (CHECK_RIG_ARG(rig)) {
+        return -RIG_EINVAL;
+    }
 
-	return RIG_OK;
+    rig->callbacks.pltune = cb;
+    rig->callbacks.pltune_arg = arg;
+
+    return RIG_OK;
 }
+
 
 /**
  * \brief control the transceive mode
- * \param rig	The rig handle
- * \param trn	The transceive status to set to
+ * \param rig   The rig handle
+ * \param trn   The transceive status to set to
  *
  *  Enable/disable the transceive handling of a rig and kick off async mode.
  *
@@ -587,111 +664,127 @@ int HAMLIB_API rig_set_pltune_callback(RIG *rig, pltune_cb_t cb, rig_ptr_t arg)
  *
  * \sa rig_get_trn()
  */
-
 int HAMLIB_API rig_set_trn(RIG *rig, int trn)
 {
-	const struct rig_caps *caps;
-	int retcode = RIG_OK;
+    const struct rig_caps *caps;
+    int retcode = RIG_OK;
 #ifdef HAVE_SETITIMER
-	struct itimerval value;
+    struct itimerval value;
 #endif
 
-	if (CHECK_RIG_ARG(rig))
-		return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	caps = rig->caps;
+    if (CHECK_RIG_ARG(rig)) {
+        return -RIG_EINVAL;
+    }
 
-	/* detect whether tranceive is active already */
-	if (trn != RIG_TRN_OFF && rig->state.transceive != RIG_TRN_OFF) {
-		if (trn == rig->state.transceive) {
-			return RIG_OK;
-		} else {
-			/* when going POLL<->RIG, transtition to OFF */
-			retcode = rig_set_trn(rig, RIG_TRN_OFF);
-			if (retcode != RIG_OK)
-				return retcode;
-		}
-	}
+    caps = rig->caps;
 
-	switch (trn) {
-	case RIG_TRN_RIG:
-		if (caps->transceive != RIG_TRN_RIG)
-			return -RIG_ENAVAIL;
+    /* detect whether tranceive is active already */
+    if (trn != RIG_TRN_OFF && rig->state.transceive != RIG_TRN_OFF) {
+        if (trn == rig->state.transceive) {
+            return RIG_OK;
+        } else {
+            /* when going POLL<->RIG, transtition to OFF */
+            retcode = rig_set_trn(rig, RIG_TRN_OFF);
 
-		retcode = add_trn_rig(rig);
-		/* some protocols (e.g. CI-V's) offer no way
-		 * to turn on/off the transceive mode */
-		if (retcode == RIG_OK && caps->set_trn) {
-			retcode = caps->set_trn(rig, RIG_TRN_RIG);
-		}
-		break;
+            if (retcode != RIG_OK) {
+                return retcode;
+            }
+        }
+    }
 
-	case RIG_TRN_POLL:
+    switch (trn) {
+    case RIG_TRN_RIG:
+        if (caps->transceive != RIG_TRN_RIG) {
+            return -RIG_ENAVAIL;
+        }
+
+        retcode = add_trn_rig(rig);
+
+        /* some protocols (e.g. CI-V's) offer no way
+         * to turn on/off the transceive mode */
+        if (retcode == RIG_OK && caps->set_trn) {
+            retcode = caps->set_trn(rig, RIG_TRN_RIG);
+        }
+
+        break;
+
+    case RIG_TRN_POLL:
 #ifdef HAVE_SETITIMER
 
-		add_trn_poll_rig(rig);
+        add_trn_poll_rig(rig);
 
-		/* install handler here */
-		value.it_value.tv_sec = 0;
-		value.it_value.tv_usec = rig->state.poll_interval*1000;
-		value.it_interval.tv_sec = 0;
-		value.it_interval.tv_usec = rig->state.poll_interval*1000;
-		retcode = setitimer(ITIMER_REAL, &value, NULL);
-		if (retcode == -1) {
-			rig_debug(RIG_DEBUG_ERR, "%s: setitimer: %s\n",
-					__func__,
-					strerror(errno));
-			remove_trn_poll_rig(rig);
-			return -RIG_EINTERNAL;
-		}
+        /* install handler here */
+        value.it_value.tv_sec = 0;
+        value.it_value.tv_usec = rig->state.poll_interval * 1000;
+        value.it_interval.tv_sec = 0;
+        value.it_interval.tv_usec = rig->state.poll_interval * 1000;
+        retcode = setitimer(ITIMER_REAL, &value, NULL);
+
+        if (retcode == -1) {
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: setitimer: %s\n",
+                      __func__,
+                      strerror(errno));
+            remove_trn_poll_rig(rig);
+            return -RIG_EINTERNAL;
+        }
+
 #else
-		return -RIG_ENAVAIL;
+        return -RIG_ENAVAIL;
 #endif
-		break;
+        break;
 
-	case RIG_TRN_OFF:
-		if (rig->state.transceive == RIG_TRN_POLL) {
+    case RIG_TRN_OFF:
+        if (rig->state.transceive == RIG_TRN_POLL) {
 #ifdef HAVE_SETITIMER
 
-			retcode = remove_trn_poll_rig(rig);
+            retcode = remove_trn_poll_rig(rig);
 
-			value.it_value.tv_sec = 0;
-			value.it_value.tv_usec = 0;
-			value.it_interval.tv_sec = 0;
-			value.it_interval.tv_usec = 0;
+            value.it_value.tv_sec = 0;
+            value.it_value.tv_usec = 0;
+            value.it_interval.tv_sec = 0;
+            value.it_interval.tv_usec = 0;
 
-			retcode = setitimer(ITIMER_REAL, &value, NULL);
-			if (retcode == -1) {
-				rig_debug(RIG_DEBUG_ERR, "%s: setitimer: %s\n",
-					__func__,
-					strerror(errno));
-				return -RIG_EINTERNAL;
-			}
+            retcode = setitimer(ITIMER_REAL, &value, NULL);
+
+            if (retcode == -1) {
+                rig_debug(RIG_DEBUG_ERR, "%s: setitimer: %s\n",
+                          __func__,
+                          strerror(errno));
+                return -RIG_EINTERNAL;
+            }
+
 #else
-			return -RIG_ENAVAIL;
+            return -RIG_ENAVAIL;
 #endif
-		} else if (rig->state.transceive == RIG_TRN_RIG) {
-			retcode = remove_trn_rig(rig);
-			if (caps->set_trn && caps->transceive == RIG_TRN_RIG) {
-				retcode = caps->set_trn(rig, RIG_TRN_OFF);
-			}
-		}
-		break;
+        } else if (rig->state.transceive == RIG_TRN_RIG) {
+            retcode = remove_trn_rig(rig);
 
-	default:
-		return -RIG_EINVAL;
-	}
+            if (caps->set_trn && caps->transceive == RIG_TRN_RIG) {
+                retcode = caps->set_trn(rig, RIG_TRN_OFF);
+            }
+        }
 
-	if (retcode == RIG_OK)
-		rig->state.transceive = trn;
+        break;
 
-	return retcode;
+    default:
+        return -RIG_EINVAL;
+    }
+
+    if (retcode == RIG_OK) {
+        rig->state.transceive = trn;
+    }
+
+    return retcode;
 }
+
 
 /**
  * \brief get the current transceive mode
- * \param rig	The rig handle
- * \param trn	The location where to store the current transceive mode
+ * \param rig   The rig handle
+ * \param trn   The location where to store the current transceive mode
  *
  *  Retrieves the current status of the transceive mode, i.e. if radio
  *  sends new status automatically when some changes happened on the radio.
@@ -704,14 +797,18 @@ int HAMLIB_API rig_set_trn(RIG *rig, int trn)
  */
 int HAMLIB_API rig_get_trn(RIG *rig, int *trn)
 {
-	if (CHECK_RIG_ARG(rig) || !trn)
-		return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	if (rig->caps->get_trn != NULL)
-		return rig->caps->get_trn(rig, trn);
+    if (CHECK_RIG_ARG(rig) || !trn) {
+        return -RIG_EINVAL;
+    }
 
-	*trn = rig->state.transceive;
-	return RIG_OK;
+    if (rig->caps->get_trn != NULL) {
+        return rig->caps->get_trn(rig, trn);
+    }
+
+    *trn = rig->state.transceive;
+    return RIG_OK;
 }
 
 /** @} */

@@ -26,7 +26,7 @@
 
 
 /*
- * Carefull!! These marcos are NOT reentrant!
+ * Carefull!! These macros are NOT reentrant!
  * ie. they may not be executed atomically,
  * thus not ensure mutual exclusion.
  * Fix it when making Hamlib reentrant!  --SF
@@ -44,20 +44,31 @@ void dump_hex(const unsigned char ptr[], size_t size);
 
 /*
  * BCD conversion routines.
- * to_bcd converts a long long int to a little endian BCD array,
- * 	and return a pointer to this array.
- * from_bcd converts a little endian BCD array to long long int
+ *
+ * to_bcd() converts a long long int to a little endian BCD array,
+ *  and return a pointer to this array.
+ *
+ * from_bcd() converts a little endian BCD array to long long int
  *  reprensentation, and return it.
+ *
  * bcd_len is the number of digits in the BCD array.
  */
-extern HAMLIB_EXPORT(unsigned char *) to_bcd(unsigned char bcd_data[], unsigned long long freq, unsigned bcd_len);
-extern HAMLIB_EXPORT(unsigned long long) from_bcd(const unsigned char bcd_data[], unsigned bcd_len);
+extern HAMLIB_EXPORT(unsigned char *) to_bcd(unsigned char bcd_data[],
+                                             unsigned long long freq,
+                                             unsigned bcd_len);
+
+extern HAMLIB_EXPORT(unsigned long long) from_bcd(const unsigned char bcd_data[],
+                                                  unsigned bcd_len);
 
 /*
- * same as to_bcd and from_bcd, but in Big Endian mode
+ * same as to_bcd() and from_bcd(), but in Big Endian mode
  */
-extern HAMLIB_EXPORT(unsigned char *) to_bcd_be(unsigned char bcd_data[], unsigned long long freq, unsigned bcd_len);
-extern HAMLIB_EXPORT(unsigned long long) from_bcd_be(const unsigned char bcd_data[], unsigned bcd_len);
+extern HAMLIB_EXPORT(unsigned char *) to_bcd_be(unsigned char bcd_data[],
+                                                unsigned long long freq,
+                                                unsigned bcd_len);
+
+extern HAMLIB_EXPORT(unsigned long long) from_bcd_be(const unsigned char bcd_data[],
+                                                     unsigned bcd_len);
 
 extern HAMLIB_EXPORT(int) sprintf_freq(char *str, freq_t);
 
@@ -77,7 +88,9 @@ extern int no_restore_ai;
 #include <sys/time.h>
 #endif
 
-extern HAMLIB_EXPORT(int) rig_check_cache_timeout(const struct timeval *tv, int timeout);
+extern HAMLIB_EXPORT(int) rig_check_cache_timeout(const struct timeval *tv,
+                                                  int timeout);
+
 extern HAMLIB_EXPORT(void) rig_force_cache_timeout(struct timeval *tv);
 
 

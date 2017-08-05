@@ -65,7 +65,7 @@
 #include <linux/hidraw.h>
 #endif
 
-#include "hamlib/rig.h"
+#include <hamlib/rig.h>
 #include "cm108.h"
 
 
@@ -74,61 +74,65 @@
  * \param port
  * \return file descriptor
  */
-
 int cm108_open(hamlib_port_t *port)
 {
-	int fd;
+    int fd;
 
-	rig_debug(RIG_DEBUG_VERBOSE,"cm108:cm108_open called \n");
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
+    if (!port->pathname[0]) {
+        return -RIG_EINVAL;
+    }
 
-	if (!port->pathname[0])
-		return -RIG_EINVAL;
+    fd = open(port->pathname, O_RDWR);
 
-	fd = open(port->pathname, O_RDWR);
-
-	if (fd < 0) {
-		rig_debug(RIG_DEBUG_ERR, "cm108:Opening device \"%s\": %s\n", port->pathname, strerror(errno));
-		return -RIG_EIO;
-	}
+    if (fd < 0) {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: opening device \"%s\": %s\n",
+                  __func__,
+                  port->pathname,
+                  strerror(errno));
+        return -RIG_EIO;
+    }
 
 #ifdef HAVE_LINUX_HIDRAW_H
-	// CM108 detection copied from Thomas Sailer's soundmodem code
+    // CM108 detection copied from Thomas Sailer's soundmodem code
 
-	rig_debug(RIG_DEBUG_VERBOSE,"cm108:Checking for cm108 (or compatible) device \n");
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "%s: checking for cm108 (or compatible) device\n",
+             __func__);
 
-	struct hidraw_devinfo hiddevinfo;
+    struct hidraw_devinfo hiddevinfo;
 
-	if (!ioctl(fd, HIDIOCGRAWINFO, &hiddevinfo)
-	&&
-	  (
-	    (hiddevinfo.vendor == 0x0d8c &&	// CM108/109/119/119A
-	     ((hiddevinfo.product >= 0x0008 &&
-	       hiddevinfo.product <= 0x000f) ||
-	      hiddevinfo.product == 0x013a)
-	    )
-	    ||
-	    (hiddevinfo.vendor == 0x0c76 &&	// SSS1621/23
-		(hiddevinfo.product == 0x1605 ||
-		hiddevinfo.product == 0x1607 ||
-		hiddevinfo.product == 0x160b)
-	    )
-	  )
-	)
-	{
-		rig_debug(RIG_DEBUG_VERBOSE,"cm108:cm108 compatible device detected \n");
-	}
-	else
-	{
-		close(fd);
-		rig_debug(RIG_DEBUG_VERBOSE,"cm108:No cm108 (or compatible) device detected \n");
-		return -RIG_EINVAL;
-	}
+    if (!ioctl(fd, HIDIOCGRAWINFO, &hiddevinfo)
+        && ((hiddevinfo.vendor == 0x0d8c
+             // CM108/109/119/119A
+             && ((hiddevinfo.product >= 0x0008
+                  && hiddevinfo.product <= 0x000f)
+                 || hiddevinfo.product == 0x013a))
+            // SSS1621/23
+            || (hiddevinfo.vendor == 0x0c76
+                && (hiddevinfo.product == 0x1605
+                    || hiddevinfo.product == 0x1607
+                    || hiddevinfo.product == 0x160b))))
+    {
+            rig_debug(RIG_DEBUG_VERBOSE,
+                      "%s: cm108 compatible device detected\n",
+                      __func__);
+    } else {
+        close(fd);
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: no cm108 (or compatible) device detected\n",
+                 __func__);
+        return -RIG_EINVAL;
+    }
+
 #endif
 
-	port->fd = fd;
-	return fd;
+    port->fd = fd;
+    return fd;
 }
+
 
 /**
  * \brief Close CM108 HID port
@@ -136,10 +140,11 @@ int cm108_open(hamlib_port_t *port)
  */
 int cm108_close(hamlib_port_t *port)
 {
-        rig_debug(RIG_DEBUG_VERBOSE,"cm108:cm108_close called \n");
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	return close(port->fd);
+    return close(port->fd);
 }
+
 
 /**
  * \brief Set or unset Push to talk bit on CM108 GPIO
@@ -149,61 +154,69 @@ int cm108_close(hamlib_port_t *port)
  */
 int cm108_ptt_set(hamlib_port_t *p, ptt_t pttx)
 {
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-        rig_debug(RIG_DEBUG_VERBOSE,"cm108:cm108_ptt_set called \n");
+    // For a CM108 USB audio device PTT is wired up to one of the GPIO
+    // pins.  Usually this is GPIO3 (bit 2 of the GPIO register) because it
+    // is on the corner of the chip package (pin 13) so it's easily accessible.
+    // Some CM108 chips are epoxy-blobbed onto the PCB, so no GPIO
+    // pins are accessible.  The SSS1623 chips have a different pinout, so
+    // we make the GPIO bit number configurable.
 
-	// For a CM108 USB audio device PTT is wired up to one of the GPIO
-	// pins.  Usually this is GPIO3 (bit 2 of the GPIO register) because it
-	// is on the corner of the chip package (pin 13) so it's easily accessible.
-	// Some CM108 chips are epoxy-blobbed onto the PCB, so no GPIO
-	// pins are accessible.  The SSS1623 chips have a different pinout, so
-	// we make the GPIO bit number configurable.
+    switch (p->type.ptt) {
+    case RIG_PTT_CM108: {
 
-	switch(p->type.ptt) {
-	case RIG_PTT_CM108:
-		{
+        // Build a packet for CM108 HID to turn GPIO bit on or off.
+        // Packet is 4 bytes, preceded by a 'report number' byte
+        // 0x00 report number
+        // Write data packet (from CM108 documentation)
+        // byte 0: 00xx xxxx     Write GPIO
+        // byte 1: xxxx dcba     GPIO3-0 output values (1=high)
+        // byte 2: xxxx dcba     GPIO3-0 data-direction register (1=output)
+        // byte 3: xxxx xxxx     SPDIF
 
-		// Build a packet for CM108 HID to turn GPIO bit on or off.
-		// Packet is 4 bytes, preceded by a 'report number' byte
-		// 0x00 report number
-		// Write data packet (from CM108 documentation)
-		// byte 0: 00xx xxxx     Write GPIO
-		// byte 1: xxxx dcba     GPIO3-0 output values (1=high)
-		// byte 2: xxxx dcba     GPIO3-0 data-direction register (1=output)
-		// byte 3: xxxx xxxx     SPDIF
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: bit number %d to state %d\n",
+                  __func__,
+                  p->parm.cm108.ptt_bitnum,
+                  (pttx == RIG_PTT_ON) ? 1 : 0);
 
-		rig_debug(RIG_DEBUG_VERBOSE,"cm108:cm108_ptt_set bit number %d to state %d\n",
-				p->parm.cm108.ptt_bitnum, (pttx == RIG_PTT_ON) ? 1 : 0);
+        char out_rep[] = {
+            0x00, // report number
+            // HID output report
+            0x00,
+            (pttx == RIG_PTT_ON) ? (1 << p->parm.cm108.ptt_bitnum) : 0, // set GPIO
+            1 << p->parm.cm108.ptt_bitnum, // Data direction register (1=output)
+            0x00
+        };
 
-		char out_rep[] = {
-			0x00, // report number
-			// HID output report
-			0x00,
-			(pttx == RIG_PTT_ON) ? (1 << p->parm.cm108.ptt_bitnum) : 0, // set GPIO
-			1 << p->parm.cm108.ptt_bitnum, // Data direction register (1=output)
-			0x00
-		};
+        ssize_t nw;
 
-		ssize_t nw;
+        if (p->fd == -1) {
+            return -RIG_EINVAL;
+        }
 
-		if (p->fd == -1)
-			return -RIG_EINVAL;
+        // Send the HID packet
+        nw = write(p->fd, out_rep, sizeof(out_rep));
 
-		// Send the HID packet
-		nw = write(p->fd, out_rep, sizeof(out_rep));
-		if (nw < 0) {
-			return -RIG_EIO;
-		}
+        if (nw < 0) {
+            return -RIG_EIO;
+        }
 
-		return RIG_OK;
-		}
-	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n",
-						p->type.ptt);
-		return -RIG_EINVAL;
-	}
-	return RIG_OK;
+        return RIG_OK;
+    }
+
+    default:
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: unsupported PTT type %d\n",
+                  __func__,
+                  p->type.ptt);
+        return -RIG_EINVAL;
+    }
+
+    return RIG_OK;
 }
+
 
 /**
  * \brief Get state of Push to Talk from CM108 GPIO
@@ -213,21 +226,24 @@ int cm108_ptt_set(hamlib_port_t *p, ptt_t pttx)
  */
 int cm108_ptt_get(hamlib_port_t *p, ptt_t *pttx)
 {
-        rig_debug(RIG_DEBUG_VERBOSE,"cm108:cm108_ptt_get called \n");
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	switch(p->type.ptt) {
-	case RIG_PTT_CM108:
-		{
-		int status;
-		return -RIG_ENIMPL;
-		return status;
-		}
-	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n",
-						p->type.ptt);
-		return -RIG_ENAVAIL;
-	}
-	return RIG_OK;
+    switch (p->type.ptt) {
+    case RIG_PTT_CM108: {
+        int status;
+        return -RIG_ENIMPL;
+        return status;
+    }
+
+    default:
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: unsupported PTT type %d\n",
+                  __func__,
+                  p->type.ptt);
+        return -RIG_ENAVAIL;
+    }
+
+    return RIG_OK;
 }
 
 /**
@@ -238,26 +254,29 @@ int cm108_ptt_get(hamlib_port_t *p, ptt_t *pttx)
  */
 int cm108_dcd_get(hamlib_port_t *p, dcd_t *dcdx)
 {
-        rig_debug(RIG_DEBUG_VERBOSE,"cm108:cm108_dcd_get called \n");
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	// On the CM108 and compatible chips the squelch line on the radio is
-	// wired to Volume Down input pin.  The state of this pin is reported
-	// in HID messages from the CM108 device, but I am not sure how
-	// to query this state on demand.
+    // On the CM108 and compatible chips the squelch line on the radio is
+    // wired to Volume Down input pin.  The state of this pin is reported
+    // in HID messages from the CM108 device, but I am not sure how
+    // to query this state on demand.
 
-	switch(p->type.dcd) {
-	case RIG_DCD_CM108:
-		{
-		int status;
-		return -RIG_ENIMPL;
-		return status;
-		}
-	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported DCD type %d\n",
-						p->type.dcd);
-		return -RIG_ENAVAIL;
-	}
-	return RIG_OK;
+    switch (p->type.dcd) {
+    case RIG_DCD_CM108: {
+        int status;
+        return -RIG_ENIMPL;
+        return status;
+    }
+
+    default:
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: unsupported DCD type %d\n",
+                  __func__,
+                  p->type.dcd);
+        return -RIG_ENAVAIL;
+    }
+
+    return RIG_OK;
 }
 
 /** @} */

@@ -18,6 +18,7 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+
 /**
  * \addtogroup rig
  * @{
@@ -48,7 +49,6 @@
 #include "token.h"
 
 
-
 /**
  * \param rig The rig handle
  * \param cfunc callback function of each extlevel
@@ -58,24 +58,36 @@
  * A zero value means a normal end of iteration, and a negative value an abnormal end,
  * which will be the return value of rig_ext_level_foreach.
  */
-int HAMLIB_API rig_ext_level_foreach(RIG *rig, int (*cfunc)(RIG *, const struct confparams *, rig_ptr_t), rig_ptr_t data)
+int HAMLIB_API rig_ext_level_foreach(RIG *rig,
+                                     int (*cfunc)(RIG *,
+                                                  const struct confparams *,
+                                                  rig_ptr_t),
+                                     rig_ptr_t data)
 {
-	const struct confparams *cfp;
-	int ret;
+    const struct confparams *cfp;
+    int ret;
 
-	if (!rig || !rig->caps || !cfunc)
-		return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	for (cfp = rig->caps->extlevels; cfp && cfp->name; cfp++) {
-		ret = (*cfunc)(rig, cfp, data);
-		if (ret == 0)
-			return RIG_OK;
-		if (ret < 0)
-			return ret;
-	}
+    if (!rig || !rig->caps || !cfunc) {
+        return -RIG_EINVAL;
+    }
 
-	return RIG_OK;
+    for (cfp = rig->caps->extlevels; cfp && cfp->name; cfp++) {
+        ret = (*cfunc)(rig, cfp, data);
+
+        if (ret == 0) {
+            return RIG_OK;
+        }
+
+        if (ret < 0) {
+            return ret;
+        }
+    }
+
+    return RIG_OK;
 }
+
 
 /**
  * \param rig The rig handle
@@ -86,24 +98,36 @@ int HAMLIB_API rig_ext_level_foreach(RIG *rig, int (*cfunc)(RIG *, const struct 
  * A zero value means a normal end of iteration, and a negative value an abnormal end,
  * which will be the return value of rig_ext_parm_foreach.
  */
-int HAMLIB_API rig_ext_parm_foreach(RIG *rig, int (*cfunc)(RIG *, const struct confparams *, rig_ptr_t), rig_ptr_t data)
+int HAMLIB_API rig_ext_parm_foreach(RIG *rig,
+                                    int (*cfunc)(RIG *,
+                                                 const struct confparams *,
+                                                 rig_ptr_t),
+                                    rig_ptr_t data)
 {
-	const struct confparams *cfp;
-	int ret;
+    const struct confparams *cfp;
+    int ret;
 
-	if (!rig || !rig->caps || !cfunc)
-		return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	for (cfp = rig->caps->extparms; cfp && cfp->name; cfp++) {
-		ret = (*cfunc)(rig, cfp, data);
-		if (ret == 0)
-			return RIG_OK;
-		if (ret < 0)
-			return ret;
-	}
+    if (!rig || !rig->caps || !cfunc) {
+        return -RIG_EINVAL;
+    }
 
-	return RIG_OK;
+    for (cfp = rig->caps->extparms; cfp && cfp->name; cfp++) {
+        ret = (*cfunc)(rig, cfp, data);
+
+        if (ret == 0) {
+            return RIG_OK;
+        }
+
+        if (ret < 0) {
+            return ret;
+        }
+    }
+
+    return RIG_OK;
 }
+
 
 /**
  * \param rig
@@ -118,19 +142,27 @@ int HAMLIB_API rig_ext_parm_foreach(RIG *rig, int (*cfunc)(RIG *, const struct c
  */
 const struct confparams * HAMLIB_API rig_ext_lookup(RIG *rig, const char *name)
 {
-	const struct confparams *cfp;
+    const struct confparams *cfp;
 
-	if (!rig || !rig->caps)
-		return NULL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	for (cfp = rig->caps->extlevels; cfp && cfp->name; cfp++)
-		if (!strcmp(cfp->name, name))
-			return cfp;
-	for (cfp = rig->caps->extparms; cfp && cfp->name; cfp++)
-		if (!strcmp(cfp->name, name))
-			return cfp;
-	return NULL;
+    if (!rig || !rig->caps) {
+        return NULL;
+    }
+
+    for (cfp = rig->caps->extlevels; cfp && cfp->name; cfp++)
+        if (!strcmp(cfp->name, name)) {
+            return cfp;
+        }
+
+    for (cfp = rig->caps->extparms; cfp && cfp->name; cfp++)
+        if (!strcmp(cfp->name, name)) {
+            return cfp;
+        }
+
+    return NULL;
 }
+
 
 /**
  * \param rig
@@ -143,19 +175,27 @@ const struct confparams * HAMLIB_API rig_ext_lookup(RIG *rig, const char *name)
  */
 const struct confparams * HAMLIB_API rig_ext_lookup_tok(RIG *rig, token_t token)
 {
-	const struct confparams *cfp;
+    const struct confparams *cfp;
 
-	if (!rig || !rig->caps)
-		return NULL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	for (cfp = rig->caps->extlevels; cfp && cfp->token; cfp++)
-		if (cfp->token == token)
-			return cfp;
-	for (cfp = rig->caps->extparms; cfp && cfp->token; cfp++)
-		if (cfp->token == token)
-			return cfp;
-	return NULL;
+    if (!rig || !rig->caps) {
+        return NULL;
+    }
+
+    for (cfp = rig->caps->extlevels; cfp && cfp->token; cfp++)
+        if (cfp->token == token) {
+            return cfp;
+        }
+
+    for (cfp = rig->caps->extparms; cfp && cfp->token; cfp++)
+        if (cfp->token == token) {
+            return cfp;
+        }
+
+    return NULL;
 }
+
 
 /**
  * \param rig
@@ -164,13 +204,17 @@ const struct confparams * HAMLIB_API rig_ext_lookup_tok(RIG *rig, token_t token)
  */
 token_t HAMLIB_API rig_ext_token_lookup(RIG *rig, const char *name)
 {
-	const struct confparams *cfp;
+    const struct confparams *cfp;
 
-	cfp = rig_ext_lookup(rig, name);
-	if (!cfp)
-		return RIG_CONF_END;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	return cfp->token;
+    cfp = rig_ext_lookup(rig, name);
+
+    if (!cfp) {
+        return RIG_CONF_END;
+    }
+
+    return cfp->token;
 }
 
 /** @} */

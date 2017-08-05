@@ -51,6 +51,7 @@
 
 #include "misc.h"
 
+
 /**
  * \brief Convert from binary to 4-bit BCD digits, little-endian
  * \param bcd_data
@@ -71,28 +72,34 @@
  *
  * \sa to_bcd_be
  */
-unsigned char * HAMLIB_API to_bcd(unsigned char bcd_data[], unsigned long long freq, unsigned bcd_len)
+unsigned char *HAMLIB_API to_bcd(unsigned char bcd_data[],
+                                 unsigned long long freq,
+                                 unsigned bcd_len)
 {
-	int i;
-	unsigned char a;
+    int i;
+    unsigned char a;
 
-	/* '450'/4-> 5,0;0,4 */
-	/* '450'/3-> 5,0;x,4 */
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	for (i=0; i < bcd_len/2; i++) {
-		a = freq%10;
-		freq /= 10;
-		a |= (freq%10)<<4;
-		freq /= 10;
-		bcd_data[i] = a;
-	}
-	if (bcd_len&1) {
-		bcd_data[i] &= 0xf0;
-		bcd_data[i] |= freq%10;	/* NB: high nibble is left uncleared */
-	}
+    /* '450'/4-> 5,0;0,4 */
+    /* '450'/3-> 5,0;x,4 */
 
-	return bcd_data;
+    for (i = 0; i < bcd_len / 2; i++) {
+        a = freq % 10;
+        freq /= 10;
+        a |= (freq % 10) << 4;
+        freq /= 10;
+        bcd_data[i] = a;
+    }
+
+    if (bcd_len & 1) {
+        bcd_data[i] &= 0xf0;
+        bcd_data[i] |= freq % 10; /* NB: high nibble is left uncleared */
+    }
+
+    return bcd_data;
 }
+
 
 /**
  * \brief Convert BCD digits, little-endian, to a long long (e.g. frequency in Hz)
@@ -111,23 +118,28 @@ unsigned char * HAMLIB_API to_bcd(unsigned char bcd_data[], unsigned long long f
  *
  * \sa from_bcd_be
  */
-unsigned long long HAMLIB_API from_bcd(const unsigned char bcd_data[], unsigned bcd_len)
+unsigned long long HAMLIB_API from_bcd(const unsigned char bcd_data[],
+                                       unsigned bcd_len)
 {
-	int i;
-	freq_t f = 0;
+    int i;
+    freq_t f = 0;
 
-	if (bcd_len&1)
-		f = bcd_data[bcd_len/2] & 0x0f;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	for (i=(bcd_len/2)-1; i >= 0; i--) {
-		f *= 10;
-		f += bcd_data[i]>>4;
-		f *= 10;
-		f += bcd_data[i] & 0x0f;
-	}
+    if (bcd_len & 1) {
+        f = bcd_data[bcd_len / 2] & 0x0f;
+    }
 
-	return f;
+    for (i = (bcd_len / 2) - 1; i >= 0; i--) {
+        f *= 10;
+        f += bcd_data[i] >> 4;
+        f *= 10;
+        f += bcd_data[i] & 0x0f;
+    }
+
+    return f;
 }
+
 
 /**
  * \brief Convert from binary to 4-bit BCD digits, big-endian
@@ -141,29 +153,36 @@ unsigned long long HAMLIB_API from_bcd(const unsigned char bcd_data[], unsigned 
  *
  * \sa to_bcd
  */
-unsigned char * HAMLIB_API to_bcd_be(unsigned char bcd_data[], unsigned long long freq, unsigned bcd_len)
+unsigned char *HAMLIB_API to_bcd_be(unsigned char bcd_data[],
+                                    unsigned long long freq,
+                                    unsigned bcd_len)
 {
-	int i;
-	unsigned char a;
+    int i;
+    unsigned char a;
 
-	/* '450'/4 -> 0,4;5,0 */
-	/* '450'/3 -> 4,5;0,x */
+    /* '450'/4 -> 0,4;5,0 */
+    /* '450'/3 -> 4,5;0,x */
 
-	if (bcd_len&1) {
-		bcd_data[bcd_len/2] &= 0x0f;
-		bcd_data[bcd_len/2] |= (freq%10)<<4;	/* NB: low nibble is left uncleared */
-		freq /= 10;
-	}
-	for (i=(bcd_len/2)-1; i >= 0; i--) {
-		a = freq%10;
-		freq /= 10;
-		a |= (freq%10)<<4;
-		freq /= 10;
-		bcd_data[i] = a;
-	}
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	return bcd_data;
+    if (bcd_len & 1) {
+        bcd_data[bcd_len / 2] &= 0x0f;
+        bcd_data[bcd_len / 2] |= (freq % 10) <<
+                                 4; /* NB: low nibble is left uncleared */
+        freq /= 10;
+    }
+
+    for (i = (bcd_len / 2) - 1; i >= 0; i--) {
+        a = freq % 10;
+        freq /= 10;
+        a |= (freq % 10) << 4;
+        freq /= 10;
+        bcd_data[i] = a;
+    }
+
+    return bcd_data;
 }
+
 
 /**
  * \brief Convert 4-bit BCD digits to binary, big-endian
@@ -176,29 +195,34 @@ unsigned char * HAMLIB_API to_bcd_be(unsigned char bcd_data[], unsigned long lon
  *
  * \sa from_bcd
  */
-unsigned long long HAMLIB_API from_bcd_be(const unsigned char bcd_data[], unsigned bcd_len)
+unsigned long long HAMLIB_API from_bcd_be(const unsigned char bcd_data[],
+                                          unsigned bcd_len)
 {
-	int i;
-	freq_t f = 0;
+    int i;
+    freq_t f = 0;
 
-	for (i=0; i < bcd_len/2; i++) {
-		f *= 10;
-		f += bcd_data[i]>>4;
-		f *= 10;
-		f += bcd_data[i] & 0x0f;
-	}
-	if (bcd_len&1) {
-		f *= 10;
-		f += bcd_data[bcd_len/2]>>4;
-	}
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	return f;
+    for (i = 0; i < bcd_len / 2; i++) {
+        f *= 10;
+        f += bcd_data[i] >> 4;
+        f *= 10;
+        f += bcd_data[i] & 0x0f;
+    }
+
+    if (bcd_len & 1) {
+        f *= 10;
+        f += bcd_data[bcd_len / 2] >> 4;
+    }
+
+    return f;
 }
 
 
 #ifndef llabs
 #define llabs(a) ((a)<0?-(a):(a))
 #endif
+
 
 /**
  * \brief Pretty print a frequency
@@ -211,25 +235,28 @@ unsigned long long HAMLIB_API from_bcd_be(const unsigned char bcd_data[], unsign
  */
 int HAMLIB_API sprintf_freq(char *str, freq_t freq)
 {
-	double f;
-	char *hz;
+    double f;
+    char *hz;
 
-	if (llabs(freq) >= GHz(1)) {
-		hz = "GHz";
-		f = (double)freq/GHz(1);
-	} else if (llabs(freq) >= MHz(1)) {
-		hz = "MHz";
-		f = (double)freq/MHz(1);
-	} else if (llabs(freq) >= kHz(1)) {
-		hz = "kHz";
-		f = (double)freq/kHz(1);
-	} else {
-		hz = "Hz";
-		f = (double)freq;
-	}
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	return sprintf (str, "%g %s", f, hz);
+    if (llabs(freq) >= GHz(1)) {
+        hz = "GHz";
+        f = (double)freq / GHz(1);
+    } else if (llabs(freq) >= MHz(1)) {
+        hz = "MHz";
+        f = (double)freq / MHz(1);
+    } else if (llabs(freq) >= kHz(1)) {
+        hz = "kHz";
+        f = (double)freq / kHz(1);
+    } else {
+        hz = "Hz";
+        f = (double)freq;
+    }
+
+    return sprintf(str, "%g %s", f, hz);
 }
+
 
 /**
  * \brief Convert enum RIG_STATUS_... to printable string
@@ -238,48 +265,56 @@ int HAMLIB_API sprintf_freq(char *str, freq_t freq)
  */
 const char * HAMLIB_API rig_strstatus(enum rig_status_e status)
 {
-	switch (status) {
-	case RIG_STATUS_ALPHA:
-		return "Alpha";
-	case RIG_STATUS_UNTESTED:
-		return "Untested";
-	case RIG_STATUS_BETA:
-		return "Beta";
-	case RIG_STATUS_STABLE:
-		return "Stable";
-	case RIG_STATUS_BUGGY:
-		return "Buggy";
-	}
-	return "";
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    switch (status) {
+    case RIG_STATUS_ALPHA:
+        return "Alpha";
+
+    case RIG_STATUS_UNTESTED:
+        return "Untested";
+
+    case RIG_STATUS_BETA:
+        return "Beta";
+
+    case RIG_STATUS_STABLE:
+        return "Stable";
+
+    case RIG_STATUS_BUGGY:
+        return "Buggy";
+    }
+
+    return "";
 }
 
 
 static struct {
-		rmode_t mode;
-		const char *str;
+    rmode_t mode;
+    const char *str;
 } mode_str[] = {
-	{ RIG_MODE_AM, "AM" },
-	{ RIG_MODE_CW, "CW" },
-	{ RIG_MODE_USB, "USB" },
-	{ RIG_MODE_LSB, "LSB" },
-	{ RIG_MODE_RTTY, "RTTY" },
-	{ RIG_MODE_FM, "FM" },
-	{ RIG_MODE_WFM, "WFM" },
-	{ RIG_MODE_CWR, "CWR" },
-	{ RIG_MODE_RTTYR, "RTTYR" },
-	{ RIG_MODE_AMS, "AMS" },
-	{ RIG_MODE_PKTLSB, "PKTLSB" },
-	{ RIG_MODE_PKTUSB, "PKTUSB" },
-	{ RIG_MODE_PKTFM, "PKTFM" },
-	{ RIG_MODE_ECSSUSB, "ECSSUSB" },
-	{ RIG_MODE_ECSSLSB, "ECSSLSB" },
-	{ RIG_MODE_FAX, "FAX" },
-	{ RIG_MODE_SAM, "SAM" },
-	{ RIG_MODE_SAL, "SAL" },
-	{ RIG_MODE_SAH, "SAH" },
-	{ RIG_MODE_DSB, "DSB"},
-	{ RIG_MODE_NONE, "" },
+    { RIG_MODE_AM, "AM" },
+    { RIG_MODE_CW, "CW" },
+    { RIG_MODE_USB, "USB" },
+    { RIG_MODE_LSB, "LSB" },
+    { RIG_MODE_RTTY, "RTTY" },
+    { RIG_MODE_FM, "FM" },
+    { RIG_MODE_WFM, "WFM" },
+    { RIG_MODE_CWR, "CWR" },
+    { RIG_MODE_RTTYR, "RTTYR" },
+    { RIG_MODE_AMS, "AMS" },
+    { RIG_MODE_PKTLSB, "PKTLSB" },
+    { RIG_MODE_PKTUSB, "PKTUSB" },
+    { RIG_MODE_PKTFM, "PKTFM" },
+    { RIG_MODE_ECSSUSB, "ECSSUSB" },
+    { RIG_MODE_ECSSLSB, "ECSSLSB" },
+    { RIG_MODE_FAX, "FAX" },
+    { RIG_MODE_SAM, "SAM" },
+    { RIG_MODE_SAL, "SAL" },
+    { RIG_MODE_SAH, "SAH" },
+    { RIG_MODE_DSB, "DSB"},
+    { RIG_MODE_NONE, "" },
 };
+
 
 /**
  * \brief Convert alpha string to enum RIG_MODE
@@ -290,13 +325,18 @@ static struct {
  */
 rmode_t HAMLIB_API rig_parse_mode(const char *s)
 {
-	int i;
+    int i;
 
-	for (i=0 ; mode_str[i].str[0] != '\0'; i++)
-			if (!strcmp(s, mode_str[i].str))
-					return mode_str[i].mode;
-	return RIG_MODE_NONE;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    for (i = 0 ; mode_str[i].str[0] != '\0'; i++)
+        if (!strcmp(s, mode_str[i].str)) {
+            return mode_str[i].mode;
+        }
+
+    return RIG_MODE_NONE;
 }
+
 
 /**
  * \brief Convert enum RIG_MODE to alpha string
@@ -307,34 +347,40 @@ rmode_t HAMLIB_API rig_parse_mode(const char *s)
  */
 const char * HAMLIB_API rig_strrmode(rmode_t mode)
 {
-	int i;
+    int i;
 
-	if (mode == RIG_MODE_NONE)
-		return "";
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	for (i=0 ; mode_str[i].str[0] != '\0'; i++)
-		if (mode == mode_str[i].mode)
-			return mode_str[i].str;
+    if (mode == RIG_MODE_NONE) {
+        return "";
+    }
 
-	return "";
+    for (i = 0 ; mode_str[i].str[0] != '\0'; i++)
+        if (mode == mode_str[i].mode) {
+            return mode_str[i].str;
+        }
+
+    return "";
 }
 
+
 static struct {
-	vfo_t vfo;
-	const char *str;
+    vfo_t vfo;
+    const char *str;
 } vfo_str[] = {
-	{ RIG_VFO_A, "VFOA" },
-	{ RIG_VFO_B, "VFOB" },
-	{ RIG_VFO_C, "VFOC" },
-	{ RIG_VFO_CURR, "currVFO" },
-	{ RIG_VFO_MEM, "MEM" },
-	{ RIG_VFO_VFO, "VFO" },
-	{ RIG_VFO_TX, "TX" },
-	{ RIG_VFO_RX, "RX" },
-	{ RIG_VFO_MAIN, "Main" },
-	{ RIG_VFO_SUB, "Sub" },
-	{ RIG_VFO_NONE, "" },
+    { RIG_VFO_A, "VFOA" },
+    { RIG_VFO_B, "VFOB" },
+    { RIG_VFO_C, "VFOC" },
+    { RIG_VFO_CURR, "currVFO" },
+    { RIG_VFO_MEM, "MEM" },
+    { RIG_VFO_VFO, "VFO" },
+    { RIG_VFO_TX, "TX" },
+    { RIG_VFO_RX, "RX" },
+    { RIG_VFO_MAIN, "Main" },
+    { RIG_VFO_SUB, "Sub" },
+    { RIG_VFO_NONE, "" },
 };
+
 
 /**
  * \brief Convert alpha string to enum RIG_VFO_...
@@ -345,13 +391,18 @@ static struct {
  */
 vfo_t HAMLIB_API rig_parse_vfo(const char *s)
 {
-	int i;
+    int i;
 
-	for (i=0 ; vfo_str[i].str[0] != '\0'; i++)
-		if (!strcmp(s, vfo_str[i].str))
-			return vfo_str[i].vfo;
-	return RIG_VFO_NONE;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    for (i = 0 ; vfo_str[i].str[0] != '\0'; i++)
+        if (!strcmp(s, vfo_str[i].str)) {
+            return vfo_str[i].vfo;
+        }
+
+    return RIG_VFO_NONE;
 }
+
 
 /**
  * \brief Convert enum RIG_VFO_... to alpha string
@@ -362,56 +413,62 @@ vfo_t HAMLIB_API rig_parse_vfo(const char *s)
  */
 const char * HAMLIB_API rig_strvfo(vfo_t vfo)
 {
-	int i;
+    int i;
 
-	if (vfo == RIG_VFO_NONE)
-		return "";
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	for (i=0 ; vfo_str[i].str[0] != '\0'; i++)
-		if (vfo == vfo_str[i].vfo)
-			return vfo_str[i].str;
+    if (vfo == RIG_VFO_NONE) {
+        return "";
+    }
 
-	return "";
+    for (i = 0 ; vfo_str[i].str[0] != '\0'; i++)
+        if (vfo == vfo_str[i].vfo) {
+            return vfo_str[i].str;
+        }
+
+    return "";
 }
 
+
 static struct {
-	setting_t func;
-	const char *str;
+    setting_t func;
+    const char *str;
 } func_str[] = {
-	{ RIG_FUNC_FAGC, "FAGC" },
-	{ RIG_FUNC_NB, "NB" },
-	{ RIG_FUNC_COMP, "COMP" },
-	{ RIG_FUNC_VOX, "VOX" },
-	{ RIG_FUNC_TONE, "TONE" },
-	{ RIG_FUNC_TSQL, "TSQL" },
-	{ RIG_FUNC_SBKIN, "SBKIN" },
-	{ RIG_FUNC_FBKIN, "FBKIN" },
-	{ RIG_FUNC_ANF, "ANF" },
-	{ RIG_FUNC_NR, "NR" },
-	{ RIG_FUNC_AIP, "AIP" },
-	{ RIG_FUNC_APF, "APF" },
-	{ RIG_FUNC_MON, "MON" },
-	{ RIG_FUNC_MN, "MN" },
-	{ RIG_FUNC_RF, "RF" },
-	{ RIG_FUNC_ARO, "ARO" },
-	{ RIG_FUNC_LOCK, "LOCK" },
-	{ RIG_FUNC_MUTE, "MUTE" },
-	{ RIG_FUNC_VSC, "VSC" },
-	{ RIG_FUNC_REV, "REV" },
-	{ RIG_FUNC_SQL, "SQL" },
-	{ RIG_FUNC_ABM, "ABM" },
-	{ RIG_FUNC_BC, "BC" },
-	{ RIG_FUNC_MBC, "MBC" },
-	{ RIG_FUNC_RIT, "RIT" },
-	{ RIG_FUNC_AFC, "AFC" },
-	{ RIG_FUNC_SATMODE, "SATMODE" },
-	{ RIG_FUNC_SCOPE, "SCOPE" },
-	{ RIG_FUNC_RESUME, "RESUME" },
-	{ RIG_FUNC_TBURST, "TBURST" },
-	{ RIG_FUNC_TUNER, "TUNER" },
-	{ RIG_FUNC_XIT, "XIT" },
-	{ RIG_FUNC_NONE, "" },
+    { RIG_FUNC_FAGC, "FAGC" },
+    { RIG_FUNC_NB, "NB" },
+    { RIG_FUNC_COMP, "COMP" },
+    { RIG_FUNC_VOX, "VOX" },
+    { RIG_FUNC_TONE, "TONE" },
+    { RIG_FUNC_TSQL, "TSQL" },
+    { RIG_FUNC_SBKIN, "SBKIN" },
+    { RIG_FUNC_FBKIN, "FBKIN" },
+    { RIG_FUNC_ANF, "ANF" },
+    { RIG_FUNC_NR, "NR" },
+    { RIG_FUNC_AIP, "AIP" },
+    { RIG_FUNC_APF, "APF" },
+    { RIG_FUNC_MON, "MON" },
+    { RIG_FUNC_MN, "MN" },
+    { RIG_FUNC_RF, "RF" },
+    { RIG_FUNC_ARO, "ARO" },
+    { RIG_FUNC_LOCK, "LOCK" },
+    { RIG_FUNC_MUTE, "MUTE" },
+    { RIG_FUNC_VSC, "VSC" },
+    { RIG_FUNC_REV, "REV" },
+    { RIG_FUNC_SQL, "SQL" },
+    { RIG_FUNC_ABM, "ABM" },
+    { RIG_FUNC_BC, "BC" },
+    { RIG_FUNC_MBC, "MBC" },
+    { RIG_FUNC_RIT, "RIT" },
+    { RIG_FUNC_AFC, "AFC" },
+    { RIG_FUNC_SATMODE, "SATMODE" },
+    { RIG_FUNC_SCOPE, "SCOPE" },
+    { RIG_FUNC_RESUME, "RESUME" },
+    { RIG_FUNC_TBURST, "TBURST" },
+    { RIG_FUNC_TUNER, "TUNER" },
+    { RIG_FUNC_XIT, "XIT" },
+    { RIG_FUNC_NONE, "" },
 };
+
 
 /**
  * \brief Convert alpha string to enum RIG_FUNC_...
@@ -422,14 +479,18 @@ static struct {
  */
 setting_t HAMLIB_API rig_parse_func(const char *s)
 {
-	int i;
+    int i;
 
-	for (i=0 ; func_str[i].str[0] != '\0'; i++)
-		if (!strcmp(s, func_str[i].str))
-			return func_str[i].func;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	return RIG_FUNC_NONE;
+    for (i = 0 ; func_str[i].str[0] != '\0'; i++)
+        if (!strcmp(s, func_str[i].str)) {
+            return func_str[i].func;
+        }
+
+    return RIG_FUNC_NONE;
 }
+
 
 /**
  * \brief Convert enum RIG_FUNC_... to alpha string
@@ -440,55 +501,61 @@ setting_t HAMLIB_API rig_parse_func(const char *s)
  */
 const char * HAMLIB_API rig_strfunc(setting_t func)
 {
-	int i;
+    int i;
 
-	if (func == RIG_FUNC_NONE)
-		return "";
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	for (i=0; func_str[i].str[0] != '\0'; i++)
-		if (func == func_str[i].func)
-			return func_str[i].str;
+    if (func == RIG_FUNC_NONE) {
+        return "";
+    }
 
-	return "";
+    for (i = 0; func_str[i].str[0] != '\0'; i++)
+        if (func == func_str[i].func) {
+            return func_str[i].str;
+        }
+
+    return "";
 }
 
+
 static struct {
-	setting_t level;
-	const char *str;
+    setting_t level;
+    const char *str;
 } level_str[] = {
-	{ RIG_LEVEL_PREAMP, "PREAMP" },
-	{ RIG_LEVEL_ATT, "ATT" },
-	{ RIG_LEVEL_VOX, "VOX" },
-	{ RIG_LEVEL_AF, "AF" },
-	{ RIG_LEVEL_RF, "RF" },
-	{ RIG_LEVEL_SQL, "SQL" },
-	{ RIG_LEVEL_IF, "IF" },
-	{ RIG_LEVEL_APF, "APF" },
-	{ RIG_LEVEL_NR, "NR" },
-	{ RIG_LEVEL_PBT_IN, "PBT_IN" },
-	{ RIG_LEVEL_PBT_OUT, "PBT_OUT" },
-	{ RIG_LEVEL_CWPITCH, "CWPITCH" },
-	{ RIG_LEVEL_RFPOWER, "RFPOWER" },
-	{ RIG_LEVEL_MICGAIN, "MICGAIN" },
-	{ RIG_LEVEL_KEYSPD, "KEYSPD" },
-	{ RIG_LEVEL_NOTCHF, "NOTCHF" },
-	{ RIG_LEVEL_COMP, "COMP" },
-	{ RIG_LEVEL_AGC, "AGC" },
-	{ RIG_LEVEL_BKINDL, "BKINDL" },
-	{ RIG_LEVEL_BALANCE, "BAL" },
-	{ RIG_LEVEL_METER, "METER" },
-	{ RIG_LEVEL_VOXGAIN, "VOXGAIN" },
-	{ RIG_LEVEL_ANTIVOX, "ANTIVOX" },
-	{ RIG_LEVEL_SLOPE_LOW, "SLOPE_LOW" },
-	{ RIG_LEVEL_SLOPE_HIGH, "SLOPE_HIGH" },
-	{ RIG_LEVEL_BKIN_DLYMS, "BKIN_DLYMS" },
-	{ RIG_LEVEL_RAWSTR, "RAWSTR" },
-	{ RIG_LEVEL_SQLSTAT, "SQLSTAT" },
-	{ RIG_LEVEL_SWR, "SWR" },
-	{ RIG_LEVEL_ALC, "ALC" },
-	{ RIG_LEVEL_STRENGTH, "STRENGTH" },
-	{ RIG_LEVEL_NONE, "" },
+    { RIG_LEVEL_PREAMP, "PREAMP" },
+    { RIG_LEVEL_ATT, "ATT" },
+    { RIG_LEVEL_VOX, "VOX" },
+    { RIG_LEVEL_AF, "AF" },
+    { RIG_LEVEL_RF, "RF" },
+    { RIG_LEVEL_SQL, "SQL" },
+    { RIG_LEVEL_IF, "IF" },
+    { RIG_LEVEL_APF, "APF" },
+    { RIG_LEVEL_NR, "NR" },
+    { RIG_LEVEL_PBT_IN, "PBT_IN" },
+    { RIG_LEVEL_PBT_OUT, "PBT_OUT" },
+    { RIG_LEVEL_CWPITCH, "CWPITCH" },
+    { RIG_LEVEL_RFPOWER, "RFPOWER" },
+    { RIG_LEVEL_MICGAIN, "MICGAIN" },
+    { RIG_LEVEL_KEYSPD, "KEYSPD" },
+    { RIG_LEVEL_NOTCHF, "NOTCHF" },
+    { RIG_LEVEL_COMP, "COMP" },
+    { RIG_LEVEL_AGC, "AGC" },
+    { RIG_LEVEL_BKINDL, "BKINDL" },
+    { RIG_LEVEL_BALANCE, "BAL" },
+    { RIG_LEVEL_METER, "METER" },
+    { RIG_LEVEL_VOXGAIN, "VOXGAIN" },
+    { RIG_LEVEL_ANTIVOX, "ANTIVOX" },
+    { RIG_LEVEL_SLOPE_LOW, "SLOPE_LOW" },
+    { RIG_LEVEL_SLOPE_HIGH, "SLOPE_HIGH" },
+    { RIG_LEVEL_BKIN_DLYMS, "BKIN_DLYMS" },
+    { RIG_LEVEL_RAWSTR, "RAWSTR" },
+    { RIG_LEVEL_SQLSTAT, "SQLSTAT" },
+    { RIG_LEVEL_SWR, "SWR" },
+    { RIG_LEVEL_ALC, "ALC" },
+    { RIG_LEVEL_STRENGTH, "STRENGTH" },
+    { RIG_LEVEL_NONE, "" },
 };
+
 
 /**
  * \brief Convert alpha string to enum RIG_LEVEL_...
@@ -499,14 +566,18 @@ static struct {
  */
 setting_t HAMLIB_API rig_parse_level(const char *s)
 {
-	int i;
+    int i;
 
-	for (i=0 ; level_str[i].str[0] != '\0'; i++)
-		if (!strcmp(s, level_str[i].str))
-			return level_str[i].level;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	return RIG_LEVEL_NONE;
+    for (i = 0 ; level_str[i].str[0] != '\0'; i++)
+        if (!strcmp(s, level_str[i].str)) {
+            return level_str[i].level;
+        }
+
+    return RIG_LEVEL_NONE;
 }
+
 
 /**
  * \brief Convert enum RIG_LEVEL_... to alpha string
@@ -517,31 +588,37 @@ setting_t HAMLIB_API rig_parse_level(const char *s)
  */
 const char * HAMLIB_API rig_strlevel(setting_t level)
 {
-	int i;
+    int i;
 
-	if (level == RIG_LEVEL_NONE)
-		return "";
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	for (i=0; level_str[i].str[0] != '\0'; i++)
-		if (level == level_str[i].level)
-			return level_str[i].str;
+    if (level == RIG_LEVEL_NONE) {
+        return "";
+    }
 
-	return "";
+    for (i = 0; level_str[i].str[0] != '\0'; i++)
+        if (level == level_str[i].level) {
+            return level_str[i].str;
+        }
+
+    return "";
 }
 
+
 static struct {
-	setting_t parm;
-	const char *str;
+    setting_t parm;
+    const char *str;
 } parm_str[] = {
-	{ RIG_PARM_ANN, "ANN" },
-	{ RIG_PARM_APO, "APO" },
-	{ RIG_PARM_BACKLIGHT, "BACKLIGHT" },
-	{ RIG_PARM_BEEP, "BEEP" },
-	{ RIG_PARM_TIME, "TIME" },
-	{ RIG_PARM_BAT, "BAT" },
-	{ RIG_PARM_KEYLIGHT, "KEYLIGHT"},
-	{ RIG_PARM_NONE, "" },
+    { RIG_PARM_ANN, "ANN" },
+    { RIG_PARM_APO, "APO" },
+    { RIG_PARM_BACKLIGHT, "BACKLIGHT" },
+    { RIG_PARM_BEEP, "BEEP" },
+    { RIG_PARM_TIME, "TIME" },
+    { RIG_PARM_BAT, "BAT" },
+    { RIG_PARM_KEYLIGHT, "KEYLIGHT"},
+    { RIG_PARM_NONE, "" },
 };
+
 
 /**
  * \brief Convert alpha string to RIG_PARM_...
@@ -552,14 +629,18 @@ static struct {
  */
 setting_t HAMLIB_API rig_parse_parm(const char *s)
 {
-	int i;
+    int i;
 
-	for (i=0 ; parm_str[i].str[0] != '\0'; i++)
-		if (!strcmp(s, parm_str[i].str))
-			return parm_str[i].parm;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	return RIG_PARM_NONE;
+    for (i = 0 ; parm_str[i].str[0] != '\0'; i++)
+        if (!strcmp(s, parm_str[i].str)) {
+            return parm_str[i].parm;
+        }
+
+    return RIG_PARM_NONE;
 }
+
 
 /**
  * \brief Convert enum RIG_PARM_... to alpha string
@@ -570,37 +651,43 @@ setting_t HAMLIB_API rig_parse_parm(const char *s)
  */
 const char * HAMLIB_API rig_strparm(setting_t parm)
 {
-	int i;
+    int i;
 
-	if (parm == RIG_PARM_NONE)
-		return "";
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	for (i=0; parm_str[i].str[0] != '\0'; i++)
-		if (parm == parm_str[i].parm)
-			return parm_str[i].str;
+    if (parm == RIG_PARM_NONE) {
+        return "";
+    }
 
-	return "";
+    for (i = 0; parm_str[i].str[0] != '\0'; i++)
+        if (parm == parm_str[i].parm) {
+            return parm_str[i].str;
+        }
+
+    return "";
 }
 
+
 static struct {
-	vfo_op_t vfo_op;
-	const char *str;
+    vfo_op_t vfo_op;
+    const char *str;
 } vfo_op_str[] = {
-	{ RIG_OP_CPY, "CPY" },
-	{ RIG_OP_XCHG, "XCHG" },
-	{ RIG_OP_FROM_VFO, "FROM_VFO" },
-	{ RIG_OP_TO_VFO, "TO_VFO" },
-	{ RIG_OP_MCL, "MCL" },
-	{ RIG_OP_UP, "UP" },
-	{ RIG_OP_DOWN, "DOWN" },
-	{ RIG_OP_BAND_UP, "BAND_UP" },
-	{ RIG_OP_BAND_DOWN, "BAND_DOWN" },
-	{ RIG_OP_LEFT, "LEFT" },
-	{ RIG_OP_RIGHT, "RIGHT" },
-	{ RIG_OP_TUNE, "TUNE" },
-	{ RIG_OP_TOGGLE, "TOGGLE" },
-	{ RIG_OP_NONE, "" },
+    { RIG_OP_CPY, "CPY" },
+    { RIG_OP_XCHG, "XCHG" },
+    { RIG_OP_FROM_VFO, "FROM_VFO" },
+    { RIG_OP_TO_VFO, "TO_VFO" },
+    { RIG_OP_MCL, "MCL" },
+    { RIG_OP_UP, "UP" },
+    { RIG_OP_DOWN, "DOWN" },
+    { RIG_OP_BAND_UP, "BAND_UP" },
+    { RIG_OP_BAND_DOWN, "BAND_DOWN" },
+    { RIG_OP_LEFT, "LEFT" },
+    { RIG_OP_RIGHT, "RIGHT" },
+    { RIG_OP_TUNE, "TUNE" },
+    { RIG_OP_TOGGLE, "TOGGLE" },
+    { RIG_OP_NONE, "" },
 };
+
 
 /**
  * \brief Convert alpha string to enum RIG_OP_...
@@ -611,14 +698,18 @@ static struct {
  */
 vfo_op_t HAMLIB_API rig_parse_vfo_op(const char *s)
 {
-	int i;
+    int i;
 
-	for (i=0 ; vfo_op_str[i].str[0] != '\0'; i++)
-		if (!strcmp(s, vfo_op_str[i].str))
-			return vfo_op_str[i].vfo_op;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	return RIG_OP_NONE;
+    for (i = 0 ; vfo_op_str[i].str[0] != '\0'; i++)
+        if (!strcmp(s, vfo_op_str[i].str)) {
+            return vfo_op_str[i].vfo_op;
+        }
+
+    return RIG_OP_NONE;
 }
+
 
 /**
  * \brief Convert enum RIG_OP_... to alpha string
@@ -629,33 +720,39 @@ vfo_op_t HAMLIB_API rig_parse_vfo_op(const char *s)
  */
 const char * HAMLIB_API rig_strvfop(vfo_op_t op)
 {
-	int i;
+    int i;
 
-	if (op == RIG_OP_NONE)
-		return "";
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	for (i=0; vfo_op_str[i].str[0] != '\0'; i++)
-		if (op == vfo_op_str[i].vfo_op)
-			return vfo_op_str[i].str;
+    if (op == RIG_OP_NONE) {
+        return "";
+    }
 
-	return "";
+    for (i = 0; vfo_op_str[i].str[0] != '\0'; i++)
+        if (op == vfo_op_str[i].vfo_op) {
+            return vfo_op_str[i].str;
+        }
+
+    return "";
 }
 
+
 static struct {
-	scan_t rscan;
-	const char *str;
+    scan_t rscan;
+    const char *str;
 } scan_str[] = {
-	{ RIG_SCAN_STOP, "STOP" },
-	{ RIG_SCAN_MEM, "MEM" },
-	{ RIG_SCAN_SLCT, "SLCT" },
-	{ RIG_SCAN_PRIO, "PRIO" },
-	{ RIG_SCAN_PROG, "PROG" },
-	{ RIG_SCAN_DELTA, "DELTA" },
-	{ RIG_SCAN_VFO, "VFO" },
-	{ RIG_SCAN_PLT, "PLT" },
-	{ RIG_SCAN_NONE, "" },
-	{ -1, NULL }
+    { RIG_SCAN_STOP, "STOP" },
+    { RIG_SCAN_MEM, "MEM" },
+    { RIG_SCAN_SLCT, "SLCT" },
+    { RIG_SCAN_PRIO, "PRIO" },
+    { RIG_SCAN_PROG, "PROG" },
+    { RIG_SCAN_DELTA, "DELTA" },
+    { RIG_SCAN_VFO, "VFO" },
+    { RIG_SCAN_PLT, "PLT" },
+    { RIG_SCAN_NONE, "" },
+    { -1, NULL }
 };
+
 
 /**
  * \brief Convert alpha string to enum RIG_SCAN_...
@@ -666,15 +763,19 @@ static struct {
  */
 scan_t HAMLIB_API rig_parse_scan(const char *s)
 {
-	int i;
+    int i;
 
-	for (i=0 ; scan_str[i].str[0] != '\0'; i++) {
-		if (strcmp(s, scan_str[i].str) == 0) {
-			return scan_str[i].rscan;
-		}
-	}
-	return RIG_SCAN_NONE;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    for (i = 0 ; scan_str[i].str[0] != '\0'; i++) {
+        if (strcmp(s, scan_str[i].str) == 0) {
+            return scan_str[i].rscan;
+        }
+    }
+
+    return RIG_SCAN_NONE;
 }
+
 
 /**
  * \brief Convert enum RIG_SCAN_... to alpha string
@@ -685,16 +786,22 @@ scan_t HAMLIB_API rig_parse_scan(const char *s)
  */
 const char * HAMLIB_API rig_strscan(scan_t rscan)
 {
-	int i;
+    int i;
 
-	if (rscan == RIG_SCAN_NONE)
-		return "";
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	for (i=0; scan_str[i].str[0] != '\0'; i++)
-		if (rscan == scan_str[i].rscan)
-			return scan_str[i].str;
-	return "";
+    if (rscan == RIG_SCAN_NONE) {
+        return "";
+    }
+
+    for (i = 0; scan_str[i].str[0] != '\0'; i++)
+        if (rscan == scan_str[i].rscan) {
+            return scan_str[i].str;
+        }
+
+    return "";
 }
+
 
 /**
  * \brief convert enum RIG_RPT_SHIFT_... to printable character
@@ -703,13 +810,22 @@ const char * HAMLIB_API rig_strscan(scan_t rscan)
  */
 const char * HAMLIB_API rig_strptrshift(rptr_shift_t shift)
 {
-	switch (shift) {
-	case RIG_RPT_SHIFT_MINUS: return "-";
-	case RIG_RPT_SHIFT_PLUS: return "+";
-	case RIG_RPT_SHIFT_NONE: return "None";
-	}
-	return NULL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    switch (shift) {
+    case RIG_RPT_SHIFT_MINUS:
+        return "-";
+
+    case RIG_RPT_SHIFT_PLUS:
+        return "+";
+
+    case RIG_RPT_SHIFT_NONE:
+        return "None";
+    }
+
+    return NULL;
 }
+
 
 /**
  * \brief Convert alpha char to enum RIG_RPT_SHIFT_...
@@ -718,27 +834,32 @@ const char * HAMLIB_API rig_strptrshift(rptr_shift_t shift)
  */
 rptr_shift_t HAMLIB_API rig_parse_rptr_shift(const char *s)
 {
-	if (strcmp(s, "+") == 0)
-		return RIG_RPT_SHIFT_PLUS;
-	else if (strcmp(s, "-") == 0)
-		return RIG_RPT_SHIFT_MINUS;
-	else
-		return RIG_RPT_SHIFT_NONE;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (strcmp(s, "+") == 0) {
+        return RIG_RPT_SHIFT_PLUS;
+    } else if (strcmp(s, "-") == 0) {
+        return RIG_RPT_SHIFT_MINUS;
+    } else {
+        return RIG_RPT_SHIFT_NONE;
+    }
 }
 
+
 static struct {
-	chan_type_t mtype;
-	const char *str;
+    chan_type_t mtype;
+    const char *str;
 } mtype_str[] = {
-	{ RIG_MTYPE_MEM, "MEM" },
-	{ RIG_MTYPE_EDGE, "EDGE" },
-	{ RIG_MTYPE_CALL, "CALL" },
-	{ RIG_MTYPE_MEMOPAD, "MEMOPAD" },
-	{ RIG_MTYPE_SAT, "SAT" },
-	{ RIG_MTYPE_BAND, "BAND" },
-	{ RIG_MTYPE_PRIO, "PRIO" },
-	{ RIG_MTYPE_NONE, "" },
+    { RIG_MTYPE_MEM, "MEM" },
+    { RIG_MTYPE_EDGE, "EDGE" },
+    { RIG_MTYPE_CALL, "CALL" },
+    { RIG_MTYPE_MEMOPAD, "MEMOPAD" },
+    { RIG_MTYPE_SAT, "SAT" },
+    { RIG_MTYPE_BAND, "BAND" },
+    { RIG_MTYPE_PRIO, "PRIO" },
+    { RIG_MTYPE_NONE, "" },
 };
+
 
 /**
  * \brief Convert alpha string to enum RIG_MTYPE_...
@@ -749,15 +870,19 @@ static struct {
  */
 chan_type_t HAMLIB_API rig_parse_mtype(const char *s)
 {
-	int i;
+    int i;
 
-	for (i=0 ; mtype_str[i].str[0] != '\0'; i++) {
-		if (strcmp(s, mtype_str[i].str) == 0) {
-			return mtype_str[i].mtype;
-		}
-	}
-	return RIG_MTYPE_NONE;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    for (i = 0 ; mtype_str[i].str[0] != '\0'; i++) {
+        if (strcmp(s, mtype_str[i].str) == 0) {
+            return mtype_str[i].mtype;
+        }
+    }
+
+    return RIG_MTYPE_NONE;
 }
+
 
 /**
  * \brief Convert enum RIG_MTYPE_... to alpha string
@@ -768,27 +893,33 @@ chan_type_t HAMLIB_API rig_parse_mtype(const char *s)
  */
 const char * HAMLIB_API rig_strmtype(chan_type_t mtype)
 {
-	int i;
+    int i;
 
-	if (mtype == RIG_MTYPE_NONE)
-		return "";
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	for (i=0; mtype_str[i].str[0] != '\0'; i++)
-		if (mtype == mtype_str[i].mtype)
-			return mtype_str[i].str;
-	return "";
+    if (mtype == RIG_MTYPE_NONE) {
+        return "";
+    }
+
+    for (i = 0; mtype_str[i].str[0] != '\0'; i++)
+        if (mtype == mtype_str[i].mtype) {
+            return mtype_str[i].str;
+        }
+
+    return "";
 }
 
 
 static long timediff(const struct timeval *tv1, const struct timeval *tv2)
 {
-	struct timeval tv;
+    struct timeval tv;
 
-	tv.tv_usec = tv1->tv_usec - tv2->tv_usec;
-	tv.tv_sec  = tv1->tv_sec  - tv2->tv_sec;
+    tv.tv_usec = tv1->tv_usec - tv2->tv_usec;
+    tv.tv_sec  = tv1->tv_sec  - tv2->tv_sec;
 
-	return ((tv.tv_sec * 1000L) + (tv.tv_usec / 1000L));
+    return ((tv.tv_sec * 1000L) + (tv.tv_usec / 1000L));
 }
+
 
 /**
  * \brief Helper for checking cache timeout
@@ -801,24 +932,34 @@ int HAMLIB_API rig_check_cache_timeout(const struct timeval *tv, int timeout)
     struct timeval curr;
     long t;
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
     if (tv->tv_sec == 0 && tv->tv_usec == 0) {
-        rig_debug(RIG_DEBUG_VERBOSE, "forced cache timeout\n");
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: forced cache timeout\n",
+                  __func__);
         return 1;
     }
 
     gettimeofday(&curr, NULL);
 
     t = timediff(&curr, tv);
+
     if (t < timeout) {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: using cache (%ld ms)\n",
-                __func__, t);
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: using cache (%ld ms)\n",
+                  __func__,
+                  t);
         return 0;
     } else {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: cache timed out (%ld ms)\n",
-                __func__, t);
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: cache timed out (%ld ms)\n",
+                  __func__,
+                  t);
         return 1;
     }
 }
+
 
 /**
  * \brief Helper for forcing cache timeout next call
@@ -838,15 +979,21 @@ int HAMLIB_API rig_check_cache_timeout(const struct timeval *tv, int timeout)
  */
 void HAMLIB_API rig_force_cache_timeout(struct timeval *tv)
 {
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
     tv->tv_sec = 0;
     tv->tv_usec = 0;
 }
 
+
 int no_restore_ai;
+
 
 void HAMLIB_API rig_no_restore_ai()
 {
-	no_restore_ai = -1;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    no_restore_ai = -1;
 }
 
 /** @} */

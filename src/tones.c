@@ -36,7 +36,7 @@
 
 #include <stdlib.h>
 
-#include "hamlib/rig.h"
+#include <hamlib/rig.h>
 #include "tones.h"
 
 #if !defined(_WIN32) && !defined(__CYGWIN__)
@@ -77,9 +77,9 @@ const tone_t full_dcs_list[] = { FULL_DCS_LIST };
 
 /**
  * \brief set CTCSS sub-tone frequency
- * \param rig	The rig handle
- * \param vfo	The target VFO
- * \param tone	The tone to set to
+ * \param rig   The rig handle
+ * \param vfo   The target VFO
+ * \param tone  The tone to set to
  *
  *  Sets the current Continuous Tone Controlled Squelch System (CTCSS)
  *  sub-audible tone frequency.
@@ -97,42 +97,54 @@ const tone_t full_dcs_list[] = { FULL_DCS_LIST };
  *
  * \sa rig_get_ctcss_tone(), rig_set_ctcss_sql()
  */
-
 int HAMLIB_API rig_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
-	const struct rig_caps *caps;
-	int retcode;
-	vfo_t curr_vfo;
+    const struct rig_caps *caps;
+    int retcode;
+    vfo_t curr_vfo;
 
-	if (CHECK_RIG_ARG(rig))
-		return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	caps = rig->caps;
+    if (CHECK_RIG_ARG(rig)) {
+        return -RIG_EINVAL;
+    }
 
-	if (caps->set_ctcss_tone == NULL)
-		return -RIG_ENAVAIL;
+    caps = rig->caps;
 
-	if ((caps->targetable_vfo&RIG_TARGETABLE_TONE) ||
-				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
-		return caps->set_ctcss_tone(rig, vfo, tone);
+    if (caps->set_ctcss_tone == NULL) {
+        return -RIG_ENAVAIL;
+    }
 
-	if (!caps->set_vfo)
-		return -RIG_ENTARGET;
-	curr_vfo = rig->state.current_vfo;
-	retcode = caps->set_vfo(rig, vfo);
-	if (retcode != RIG_OK)
-		return retcode;
+    if ((caps->targetable_vfo & RIG_TARGETABLE_TONE)
+        || vfo == RIG_VFO_CURR
+        || vfo == rig->state.current_vfo) {
 
-	retcode = caps->set_ctcss_tone(rig, vfo, tone);
-	caps->set_vfo(rig, curr_vfo);
-	return retcode;
+            return caps->set_ctcss_tone(rig, vfo, tone);
+    }
+
+    if (!caps->set_vfo) {
+        return -RIG_ENTARGET;
+    }
+
+    curr_vfo = rig->state.current_vfo;
+    retcode = caps->set_vfo(rig, vfo);
+
+    if (retcode != RIG_OK) {
+        return retcode;
+    }
+
+    retcode = caps->set_ctcss_tone(rig, vfo, tone);
+    caps->set_vfo(rig, curr_vfo);
+
+    return retcode;
 }
+
 
 /**
  * \brief get the current CTCSS sub-tone frequency
- * \param rig	The rig handle
- * \param vfo	The target VFO
- * \param tone	The location where to store the current tone
+ * \param rig   The rig handle
+ * \param vfo   The target VFO
+ * \param tone  The location where to store the current tone
  *
  *  Retrieves the current Continuous Tone Controlled Squelch System (CTCSS)
  *  sub-audible tone frequency.
@@ -149,39 +161,52 @@ int HAMLIB_API rig_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
  */
 int HAMLIB_API rig_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 {
-	const struct rig_caps *caps;
-	int retcode;
-	vfo_t curr_vfo;
+    const struct rig_caps *caps;
+    int retcode;
+    vfo_t curr_vfo;
 
-	if (CHECK_RIG_ARG(rig) || !tone)
-		return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	caps = rig->caps;
+    if (CHECK_RIG_ARG(rig) || !tone) {
+        return -RIG_EINVAL;
+    }
 
-	if (caps->get_ctcss_tone == NULL)
-		return -RIG_ENAVAIL;
+    caps = rig->caps;
 
-	if ((caps->targetable_vfo&RIG_TARGETABLE_TONE) ||
-				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
-		return caps->get_ctcss_tone(rig, vfo, tone);
+    if (caps->get_ctcss_tone == NULL) {
+        return -RIG_ENAVAIL;
+    }
 
-	if (!caps->set_vfo)
-		return -RIG_ENTARGET;
-	curr_vfo = rig->state.current_vfo;
-	retcode = caps->set_vfo(rig, vfo);
-	if (retcode != RIG_OK)
-		return retcode;
+    if ((caps->targetable_vfo & RIG_TARGETABLE_TONE)
+        || vfo == RIG_VFO_CURR
+        || vfo == rig->state.current_vfo) {
 
-	retcode = caps->get_ctcss_tone(rig, vfo, tone);
-	caps->set_vfo(rig, curr_vfo);
-	return retcode;
+            return caps->get_ctcss_tone(rig, vfo, tone);
+    }
+
+    if (!caps->set_vfo) {
+        return -RIG_ENTARGET;
+    }
+
+    curr_vfo = rig->state.current_vfo;
+    retcode = caps->set_vfo(rig, vfo);
+
+    if (retcode != RIG_OK) {
+        return retcode;
+    }
+
+    retcode = caps->get_ctcss_tone(rig, vfo, tone);
+    caps->set_vfo(rig, curr_vfo);
+
+    return retcode;
 }
+
 
 /**
  * \brief set the current encoding DCS code
- * \param rig	The rig handle
- * \param vfo	The target VFO
- * \param code	The tone to set to
+ * \param rig   The rig handle
+ * \param vfo   The target VFO
+ * \param code  The tone to set to
  *
  * Sets the current encoding Digitally-Coded Squelch code.
  *
@@ -194,39 +219,52 @@ int HAMLIB_API rig_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 
 int HAMLIB_API rig_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 {
-	const struct rig_caps *caps;
-	int retcode;
-	vfo_t curr_vfo;
+    const struct rig_caps *caps;
+    int retcode;
+    vfo_t curr_vfo;
 
-	if (CHECK_RIG_ARG(rig))
-		return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	caps = rig->caps;
+    if (CHECK_RIG_ARG(rig)) {
+        return -RIG_EINVAL;
+    }
 
-	if (caps->set_dcs_code == NULL)
-		return -RIG_ENAVAIL;
+    caps = rig->caps;
 
-	if ((caps->targetable_vfo&RIG_TARGETABLE_TONE) ||
-				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
-		return caps->set_dcs_code(rig, vfo, code);
+    if (caps->set_dcs_code == NULL) {
+        return -RIG_ENAVAIL;
+    }
 
-	if (!caps->set_vfo)
-		return -RIG_ENTARGET;
-	curr_vfo = rig->state.current_vfo;
-	retcode = caps->set_vfo(rig, vfo);
-	if (retcode != RIG_OK)
-		return retcode;
+    if ((caps->targetable_vfo & RIG_TARGETABLE_TONE)
+        || vfo == RIG_VFO_CURR
+        || vfo == rig->state.current_vfo) {
 
-	retcode = caps->set_dcs_code(rig, vfo, code);
-	caps->set_vfo(rig, curr_vfo);
-	return retcode;
+            return caps->set_dcs_code(rig, vfo, code);
+    }
+
+    if (!caps->set_vfo) {
+        return -RIG_ENTARGET;
+    }
+
+    curr_vfo = rig->state.current_vfo;
+    retcode = caps->set_vfo(rig, vfo);
+
+    if (retcode != RIG_OK) {
+        return retcode;
+    }
+
+    retcode = caps->set_dcs_code(rig, vfo, code);
+    caps->set_vfo(rig, curr_vfo);
+
+    return retcode;
 }
+
 
 /**
  * \brief get the current encoding DCS code
- * \param rig	The rig handle
- * \param vfo	The target VFO
- * \param code	The location where to store the current tone
+ * \param rig   The rig handle
+ * \param vfo   The target VFO
+ * \param code  The location where to store the current tone
  *
  * Retrieves the current encoding Digitally-Coded Squelch code.
  *
@@ -238,39 +276,52 @@ int HAMLIB_API rig_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
  */
 int HAMLIB_API rig_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
 {
-	const struct rig_caps *caps;
-	int retcode;
-	vfo_t curr_vfo;
+    const struct rig_caps *caps;
+    int retcode;
+    vfo_t curr_vfo;
 
-	if (CHECK_RIG_ARG(rig) || !code)
-		return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	caps = rig->caps;
+    if (CHECK_RIG_ARG(rig) || !code) {
+        return -RIG_EINVAL;
+    }
 
-	if (caps->get_dcs_code == NULL)
-		return -RIG_ENAVAIL;
+    caps = rig->caps;
 
-	if ((caps->targetable_vfo&RIG_TARGETABLE_TONE) ||
-				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
-		return caps->get_dcs_code(rig, vfo, code);
+    if (caps->get_dcs_code == NULL) {
+        return -RIG_ENAVAIL;
+    }
 
-	if (!caps->set_vfo)
-		return -RIG_ENTARGET;
-	curr_vfo = rig->state.current_vfo;
-	retcode = caps->set_vfo(rig, vfo);
-	if (retcode != RIG_OK)
-		return retcode;
+    if ((caps->targetable_vfo & RIG_TARGETABLE_TONE)
+        || vfo == RIG_VFO_CURR
+        || vfo == rig->state.current_vfo) {
 
-	retcode = caps->get_dcs_code(rig, vfo, code);
-	caps->set_vfo(rig, curr_vfo);
-	return retcode;
+            return caps->get_dcs_code(rig, vfo, code);
+    }
+
+    if (!caps->set_vfo) {
+        return -RIG_ENTARGET;
+    }
+
+    curr_vfo = rig->state.current_vfo;
+    retcode = caps->set_vfo(rig, vfo);
+
+    if (retcode != RIG_OK) {
+        return retcode;
+    }
+
+    retcode = caps->get_dcs_code(rig, vfo, code);
+    caps->set_vfo(rig, curr_vfo);
+
+    return retcode;
 }
+
 
 /**
  * \brief set CTCSS squelch
- * \param rig	The rig handle
- * \param vfo	The target VFO
- * \param tone	The PL tone to set the squelch to
+ * \param rig   The rig handle
+ * \param vfo   The target VFO
+ * \param tone  The PL tone to set the squelch to
  *
  *  Sets the current Continuous Tone Controlled Squelch System (CTCSS)
  *  sub-audible *squelch* tone.
@@ -288,42 +339,54 @@ int HAMLIB_API rig_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
  *
  * \sa rig_get_ctcss_sql(), rig_set_ctcss_tone()
  */
-
 int HAMLIB_API rig_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 {
-	const struct rig_caps *caps;
-	int retcode;
-	vfo_t curr_vfo;
+    const struct rig_caps *caps;
+    int retcode;
+    vfo_t curr_vfo;
 
-	if (CHECK_RIG_ARG(rig))
-		return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	caps = rig->caps;
+    if (CHECK_RIG_ARG(rig)) {
+        return -RIG_EINVAL;
+    }
 
-	if (caps->set_ctcss_sql == NULL)
-		return -RIG_ENAVAIL;
+    caps = rig->caps;
 
-	if ((caps->targetable_vfo&RIG_TARGETABLE_TONE) ||
-				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
-		return caps->set_ctcss_sql(rig, vfo, tone);
+    if (caps->set_ctcss_sql == NULL) {
+        return -RIG_ENAVAIL;
+    }
 
-	if (!caps->set_vfo)
-		return -RIG_ENTARGET;
-	curr_vfo = rig->state.current_vfo;
-	retcode = caps->set_vfo(rig, vfo);
-	if (retcode != RIG_OK)
-		return retcode;
+    if ((caps->targetable_vfo & RIG_TARGETABLE_TONE)
+        || vfo == RIG_VFO_CURR
+        || vfo == rig->state.current_vfo) {
 
-	retcode = caps->set_ctcss_sql(rig, vfo, tone);
-	caps->set_vfo(rig, curr_vfo);
-	return retcode;
+            return caps->set_ctcss_sql(rig, vfo, tone);
+    }
+
+    if (!caps->set_vfo) {
+        return -RIG_ENTARGET;
+    }
+
+    curr_vfo = rig->state.current_vfo;
+    retcode = caps->set_vfo(rig, vfo);
+
+    if (retcode != RIG_OK) {
+        return retcode;
+    }
+
+    retcode = caps->set_ctcss_sql(rig, vfo, tone);
+    caps->set_vfo(rig, curr_vfo);
+
+    return retcode;
 }
+
 
 /**
  * \brief get the current CTCSS squelch
- * \param rig	The rig handle
- * \param vfo	The target VFO
- * \param tone	The location where to store the current tone
+ * \param rig   The rig handle
+ * \param vfo   The target VFO
+ * \param tone  The location where to store the current tone
  *
  *  Retrieves the current Continuous Tone Controlled Squelch System (CTCSS)
  *  sub-audible *squelch* tone.
@@ -340,39 +403,52 @@ int HAMLIB_API rig_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
  */
 int HAMLIB_API rig_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 {
-	const struct rig_caps *caps;
-	int retcode;
-	vfo_t curr_vfo;
+    const struct rig_caps *caps;
+    int retcode;
+    vfo_t curr_vfo;
 
-	if (CHECK_RIG_ARG(rig) || !tone)
-		return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	caps = rig->caps;
+    if (CHECK_RIG_ARG(rig) || !tone) {
+        return -RIG_EINVAL;
+    }
 
-	if (caps->get_ctcss_sql == NULL)
-		return -RIG_ENAVAIL;
+    caps = rig->caps;
 
-	if ((caps->targetable_vfo&RIG_TARGETABLE_TONE) ||
-			vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
-		return caps->get_ctcss_sql(rig, vfo, tone);
+    if (caps->get_ctcss_sql == NULL) {
+        return -RIG_ENAVAIL;
+    }
 
-	if (!caps->set_vfo)
-		return -RIG_ENTARGET;
-	curr_vfo = rig->state.current_vfo;
-	retcode = caps->set_vfo(rig, vfo);
-	if (retcode != RIG_OK)
-		return retcode;
+    if ((caps->targetable_vfo & RIG_TARGETABLE_TONE)
+        || vfo == RIG_VFO_CURR
+        || vfo == rig->state.current_vfo) {
 
-	retcode = caps->get_ctcss_sql(rig, vfo, tone);
-	caps->set_vfo(rig, curr_vfo);
-	return retcode;
+            return caps->get_ctcss_sql(rig, vfo, tone);
+    }
+
+    if (!caps->set_vfo) {
+        return -RIG_ENTARGET;
+    }
+
+    curr_vfo = rig->state.current_vfo;
+    retcode = caps->set_vfo(rig, vfo);
+
+    if (retcode != RIG_OK) {
+        return retcode;
+    }
+
+    retcode = caps->get_ctcss_sql(rig, vfo, tone);
+    caps->set_vfo(rig, curr_vfo);
+
+    return retcode;
 }
+
 
 /**
  * \brief set the current DCS code
- * \param rig	The rig handle
- * \param vfo	The target VFO
- * \param code	The tone to set to
+ * \param rig   The rig handle
+ * \param vfo   The target VFO
+ * \param code  The tone to set to
  *
  * Sets the current Digitally-Coded *Squelch* code.
  *
@@ -382,42 +458,54 @@ int HAMLIB_API rig_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
  *
  * \sa rig_get_dcs_sql(), rig_set_dcs_code()
  */
-
 int HAMLIB_API rig_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
 {
-	const struct rig_caps *caps;
-	int retcode;
-	vfo_t curr_vfo;
+    const struct rig_caps *caps;
+    int retcode;
+    vfo_t curr_vfo;
 
-	if (CHECK_RIG_ARG(rig))
-		return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	caps = rig->caps;
+    if (CHECK_RIG_ARG(rig)) {
+        return -RIG_EINVAL;
+    }
 
-	if (caps->set_dcs_sql == NULL)
-		return -RIG_ENAVAIL;
+    caps = rig->caps;
 
-	if ((caps->targetable_vfo&RIG_TARGETABLE_TONE) ||
-			vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
-		return caps->set_dcs_sql(rig, vfo, code);
+    if (caps->set_dcs_sql == NULL) {
+        return -RIG_ENAVAIL;
+    }
 
-	if (!caps->set_vfo)
-		return -RIG_ENTARGET;
-	curr_vfo = rig->state.current_vfo;
-	retcode = caps->set_vfo(rig, vfo);
-	if (retcode != RIG_OK)
-		return retcode;
+    if ((caps->targetable_vfo & RIG_TARGETABLE_TONE)
+        || vfo == RIG_VFO_CURR
+        || vfo == rig->state.current_vfo) {
 
-	retcode = caps->set_dcs_sql(rig, vfo, code);
-	caps->set_vfo(rig, curr_vfo);
-	return retcode;
+            return caps->set_dcs_sql(rig, vfo, code);
+    }
+
+    if (!caps->set_vfo) {
+        return -RIG_ENTARGET;
+    }
+
+    curr_vfo = rig->state.current_vfo;
+    retcode = caps->set_vfo(rig, vfo);
+
+    if (retcode != RIG_OK) {
+        return retcode;
+    }
+
+    retcode = caps->set_dcs_sql(rig, vfo, code);
+    caps->set_vfo(rig, curr_vfo);
+
+    return retcode;
 }
+
 
 /**
  * \brief get the current DCS code
- * \param rig	The rig handle
- * \param vfo	The target VFO
- * \param code	The location where to store the current tone
+ * \param rig   The rig handle
+ * \param vfo   The target VFO
+ * \param code  The location where to store the current tone
  *
  * Retrieves the current Digitally-Coded *Squelch* code.
  *
@@ -429,32 +517,44 @@ int HAMLIB_API rig_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
  */
 int HAMLIB_API rig_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
 {
-	const struct rig_caps *caps;
-	int retcode;
-	vfo_t curr_vfo;
+    const struct rig_caps *caps;
+    int retcode;
+    vfo_t curr_vfo;
 
-	if (CHECK_RIG_ARG(rig) || !code)
-		return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	caps = rig->caps;
+    if (CHECK_RIG_ARG(rig) || !code) {
+        return -RIG_EINVAL;
+    }
 
-	if (caps->get_dcs_sql == NULL)
-		return -RIG_ENAVAIL;
+    caps = rig->caps;
 
-	if ((caps->targetable_vfo&RIG_TARGETABLE_TONE) ||
-			vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
-		return caps->get_dcs_sql(rig, vfo, code);
+    if (caps->get_dcs_sql == NULL) {
+        return -RIG_ENAVAIL;
+    }
 
-	if (!caps->set_vfo)
-		return -RIG_ENTARGET;
-	curr_vfo = rig->state.current_vfo;
-	retcode = caps->set_vfo(rig, vfo);
-	if (retcode != RIG_OK)
-		return retcode;
+    if ((caps->targetable_vfo & RIG_TARGETABLE_TONE)
+        || vfo == RIG_VFO_CURR
+        || vfo == rig->state.current_vfo) {
 
-	retcode = caps->get_dcs_sql(rig, vfo, code);
-	caps->set_vfo(rig, curr_vfo);
-	return retcode;
+            return caps->get_dcs_sql(rig, vfo, code);
+    }
+
+    if (!caps->set_vfo) {
+        return -RIG_ENTARGET;
+    }
+
+    curr_vfo = rig->state.current_vfo;
+    retcode = caps->set_vfo(rig, vfo);
+
+    if (retcode != RIG_OK) {
+        return retcode;
+    }
+
+    retcode = caps->get_dcs_sql(rig, vfo, code);
+    caps->set_vfo(rig, curr_vfo);
+
+    return retcode;
 }
 
 /*! @} */

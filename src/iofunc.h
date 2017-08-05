@@ -29,9 +29,19 @@
 extern HAMLIB_EXPORT(int) port_open(hamlib_port_t *p);
 extern HAMLIB_EXPORT(int) port_close(hamlib_port_t *p, rig_port_t port_type);
 
-extern HAMLIB_EXPORT(int) read_block(hamlib_port_t *p, char *rxbuffer, size_t count);
-extern HAMLIB_EXPORT(int) write_block(hamlib_port_t *p, const char *txbuffer, size_t count);
-extern HAMLIB_EXPORT(int) read_string(hamlib_port_t *p, char *rxbuffer, size_t rxmax, const char *stopset, int stopset_len);
+
+extern HAMLIB_EXPORT(int) read_block(hamlib_port_t *p,
+                                     char *rxbuffer,
+                                     size_t count);
+
+extern HAMLIB_EXPORT(int) write_block(hamlib_port_t *p,
+                                      const char *txbuffer,
+                                      size_t count);
+
+extern HAMLIB_EXPORT(int) read_string(hamlib_port_t *p,
+                                      char *rxbuffer,
+                                      size_t rxmax,
+                                      const char *stopset,
+                                      int stopset_len);
 
 #endif /* _IOFUNC_H */
-

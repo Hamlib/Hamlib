@@ -36,12 +36,23 @@ int cm108_ptt_set(hamlib_port_t *p, ptt_t pttx);
 int cm108_ptt_get(hamlib_port_t *p, ptt_t *pttx);
 int cm108_dcd_get(hamlib_port_t *p, dcd_t *dcdx);
 
-extern HAMLIB_EXPORT(int) cm108_write_data(hamlib_port_t *p, unsigned char data);
-extern HAMLIB_EXPORT(int) cm108_write_control(hamlib_port_t *p, unsigned char control);
-extern HAMLIB_EXPORT(int) cm108_read_data(hamlib_port_t *p, unsigned char *data);
-extern HAMLIB_EXPORT(int) cm108_read_control(hamlib_port_t *p, unsigned char *control);
-extern HAMLIB_EXPORT(int) cm108_read_status(hamlib_port_t *p, unsigned char *status);
+extern HAMLIB_EXPORT(int) cm108_write_data(hamlib_port_t *p,
+                                           unsigned char data);
+
+extern HAMLIB_EXPORT(int) cm108_write_control(hamlib_port_t *p,
+                                              unsigned char control);
+
+extern HAMLIB_EXPORT(int) cm108_read_data(hamlib_port_t *p,
+                                          unsigned char *data);
+
+extern HAMLIB_EXPORT(int) cm108_read_control(hamlib_port_t *p,
+                                             unsigned char *control);
+
+extern HAMLIB_EXPORT(int) cm108_read_status(hamlib_port_t *p,
+                                            unsigned char *status);
+
 extern HAMLIB_EXPORT(int) cm108_lock(hamlib_port_t *p);
+
 extern HAMLIB_EXPORT(int) cm108_unlock(hamlib_port_t *p);
 
 __END_DECLS

@@ -60,12 +60,12 @@
 #include <sys/ioctl.h>
 #elif HAVE_WS2TCPIP_H
 #include <ws2tcpip.h>
-#	if defined(HAVE_WSPIAPI_H)
-#		include <wspiapi.h>
-#	endif
+#   if defined(HAVE_WSPIAPI_H)
+#       include <wspiapi.h>
+#   endif
 #endif
 
-#include "hamlib/rig.h"
+#include <hamlib/rig.h>
 #include "network.h"
 #include "misc.h"
 
@@ -76,35 +76,36 @@ static int wsstarted;
 
 #define NET_BUFFER_SIZE 64
 
-static void handle_error (enum rig_debug_level_e lvl, const char *msg)
+static void handle_error(enum rig_debug_level_e lvl, const char *msg)
 {
-	int e;
+    int e;
 #ifdef __MINGW32__
-	LPVOID lpMsgBuf;
+    LPVOID lpMsgBuf;
 
-	lpMsgBuf = (LPVOID)"Unknown error";
-	e = WSAGetLastError();
-	if (FormatMessage(
-			FORMAT_MESSAGE_ALLOCATE_BUFFER |
-			FORMAT_MESSAGE_FROM_SYSTEM |
-			FORMAT_MESSAGE_IGNORE_INSERTS,
-			NULL, e,
-			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-				// Default language
-			(LPTSTR)&lpMsgBuf, 0, NULL))
-		{
-			rig_debug (lvl, "%s: Network error %d: %s\n", msg, e, lpMsgBuf);
-			LocalFree(lpMsgBuf);
-		}
-	else
-		{
-			rig_debug (lvl, "%s: Network error %d\n", msg, e);
-		}
+    lpMsgBuf = (LPVOID)"Unknown error";
+    e = WSAGetLastError();
+
+    if (FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER
+                      | FORMAT_MESSAGE_FROM_SYSTEM
+                      | FORMAT_MESSAGE_IGNORE_INSERTS,
+                      NULL, e,
+                      MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                      // Default language
+                      (LPTSTR)&lpMsgBuf,
+                      0,
+                      NULL)) {
+        rig_debug(lvl, "%s: Network error %d: %s\n", msg, e, lpMsgBuf);
+        LocalFree(lpMsgBuf);
+    } else {
+        rig_debug(lvl, "%s: Network error %d\n", msg, e);
+    }
+
 #else
-	e = errno;
-	rig_debug (lvl, "%s: Network error %d: %s\n", msg, e, strerror (e));
+    e = errno;
+    rig_debug(lvl, "%s: Network error %d: %s\n", msg, e, strerror(e));
 #endif
 }
+
 
 /**
  * \brief Open network port using rig.state data
@@ -118,157 +119,184 @@ static void handle_error (enum rig_debug_level_e lvl, const char *msg)
  */
 int network_open(hamlib_port_t *rp, int default_port)
 {
-	int fd;				/* File descriptor for the port */
-	int status;
-	struct addrinfo hints, *res, *saved_res;
-	char *hoststr = NULL, *portstr = NULL, *bracketstr1, *bracketstr2;
-	char hostname[FILPATHLEN];
-	char defaultportstr[8];
+    int fd;             /* File descriptor for the port */
+    int status;
+    struct addrinfo hints, *res, *saved_res;
+    char *hoststr = NULL, *portstr = NULL, *bracketstr1, *bracketstr2;
+    char hostname[FILPATHLEN];
+    char defaultportstr[8];
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
 #ifdef __MINGW32__
-	WSADATA wsadata;
-	if (!(wsstarted++) && WSAStartup(MAKEWORD(1,1), &wsadata) == SOCKET_ERROR) {
-		rig_debug(RIG_DEBUG_ERR, "Error creating socket\n");
-		return -RIG_EIO;
-	}
+    WSADATA wsadata;
+
+    if (!(wsstarted++) && WSAStartup(MAKEWORD(1, 1), &wsadata) == SOCKET_ERROR) {
+        rig_debug(RIG_DEBUG_ERR, "%s: error creating socket\n", __func__);
+        return -RIG_EIO;
+    }
+
 #endif
 
-	if (!rp)
-		return -RIG_EINVAL;
+    if (!rp) {
+        return -RIG_EINVAL;
+    }
 
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = PF_UNSPEC;
-	if (rp->type.rig == RIG_PORT_UDP_NETWORK)
-		hints.ai_socktype = SOCK_DGRAM;
-	else
-		hints.ai_socktype = SOCK_STREAM;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = PF_UNSPEC;
 
-	hoststr = NULL;								/* default of all local interfaces */
-	if (rp->pathname[0] == ':')
-		{
-			portstr = rp->pathname + 1;
-		}
-	else
-		{
-			if (strlen (rp->pathname))
-				{
-					strncpy(hostname, rp->pathname, FILPATHLEN-1);
-					hoststr = hostname;
-					/* look for IPv6 numeric form [<addr>] */
-					bracketstr1 = strchr(hoststr, '[');
-					bracketstr2 = strrchr(hoststr, ']');
-					if (bracketstr1 && bracketstr2 && bracketstr2 > bracketstr1)
-						{
-							hoststr = bracketstr1 + 1;
-							*bracketstr2 = '\0';
-							portstr = bracketstr2 + 1; /* possible port after ]: */
-						}
-					else
-						{
-							bracketstr2 = NULL;
-							portstr = hoststr; /* possible port after : */
-						}
-					/* search last ':' */
-					portstr = strrchr(portstr, ':');
-					if (portstr)
-						{
-							*portstr++ = '\0';
-						}
-				}
-			if (!portstr)
-				{
-					sprintf(defaultportstr, "%d", default_port);
-					portstr = defaultportstr;
-				}
-		}
+    if (rp->type.rig == RIG_PORT_UDP_NETWORK) {
+        hints.ai_socktype = SOCK_DGRAM;
+    } else {
+        hints.ai_socktype = SOCK_STREAM;
+    }
 
-	status=getaddrinfo(hoststr, portstr, &hints, &res);
-	if (status != 0) {
-		rig_debug(RIG_DEBUG_ERR, "Cannot get host \"%s\": %s\n",
-					rp->pathname, gai_strerror(errno));
-		return -RIG_ECONF;
-	}
-	saved_res = res;
+    /* default of all local interfaces */
+    hoststr = NULL;
 
-	/* we don't want a signal when connection get broken */
+    if (rp->pathname[0] == ':') {
+        portstr = rp->pathname + 1;
+    } else {
+        if (strlen(rp->pathname)) {
+            strncpy(hostname, rp->pathname, FILPATHLEN - 1);
+            hoststr = hostname;
+            /* look for IPv6 numeric form [<addr>] */
+            bracketstr1 = strchr(hoststr, '[');
+            bracketstr2 = strrchr(hoststr, ']');
+
+            if (bracketstr1 && bracketstr2 && bracketstr2 > bracketstr1) {
+                hoststr = bracketstr1 + 1;
+                *bracketstr2 = '\0';
+                portstr = bracketstr2 + 1; /* possible port after ]: */
+            } else {
+                bracketstr2 = NULL;
+                portstr = hoststr; /* possible port after : */
+            }
+
+            /* search last ':' */
+            portstr = strrchr(portstr, ':');
+
+            if (portstr) {
+                *portstr++ = '\0';
+            }
+        }
+
+        if (!portstr) {
+            sprintf(defaultportstr, "%d", default_port);
+            portstr = defaultportstr;
+        }
+    }
+
+    status = getaddrinfo(hoststr, portstr, &hints, &res);
+
+    if (status != 0) {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: cannot get host \"%s\": %s\n",
+                  __func__,
+                  rp->pathname,
+                  gai_strerror(errno));
+        return -RIG_ECONF;
+    }
+
+    saved_res = res;
+
+    /* we don't want a signal when connection get broken */
 #ifdef SIGPIPE
-	signal(SIGPIPE, SIG_IGN);
+    signal(SIGPIPE, SIG_IGN);
 #endif
 
-	do
-		{
-			fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-			if (fd < 0)
-				{
-					handle_error (RIG_DEBUG_ERR, "socket");
-					freeaddrinfo (saved_res);
-					return -RIG_EIO;
-				}
+    do {
+        fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 
-			if ((status = connect(fd, res->ai_addr, res->ai_addrlen)) == 0)
-				{
-					break;
-				}
-			handle_error (RIG_DEBUG_WARN, "connect (trying next interface)");
+        if (fd < 0) {
+            handle_error(RIG_DEBUG_ERR, "socket");
+            freeaddrinfo(saved_res);
+            return -RIG_EIO;
+        }
+
+        if ((status = connect(fd, res->ai_addr, res->ai_addrlen)) == 0) {
+            break;
+        }
+
+        handle_error(RIG_DEBUG_WARN, "connect (trying next interface)");
 
 #ifdef __MINGW32__
-			closesocket (fd);
+        closesocket(fd);
 #else
-			close (fd);
+        close(fd);
 #endif
-		} while ((res = res->ai_next) != NULL);
+    } while ((res = res->ai_next) != NULL);
 
-	freeaddrinfo (saved_res);
+    freeaddrinfo(saved_res);
 
-	if (NULL == res) {
-		rig_debug (RIG_DEBUG_ERR, "Failed to connect to %s\n" , rp->pathname);
-		return -RIG_EIO;
-	}
+    if (NULL == res) {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: failed to connect to %s\n",
+                  __func__,
+                  rp->pathname);
+        return -RIG_EIO;
+    }
 
-	rp->fd = fd;
-	return RIG_OK;
+    rp->fd = fd;
+
+    return RIG_OK;
 }
+
 
 /**
  * \brief Clears any data in the read buffer of the socket
  *
  * \param rp Port data structure
  */
-void network_flush(hamlib_port_t* rp)
+void network_flush(hamlib_port_t *rp)
 {
 #ifdef __MINGW32__
-  ULONG len = 0;
+    ULONG len = 0;
 #else
-  uint len = 0;
+    uint len = 0;
 #endif
 
-  char buffer[NET_BUFFER_SIZE] = { 0 };
-  for (;;) {
+    char buffer[NET_BUFFER_SIZE] = { 0 };
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    for (;;) {
 #ifdef __MINGW32__
-    ioctlsocket (rp->fd, FIONREAD, &len);
+        ioctlsocket(rp->fd, FIONREAD, &len);
 #else
-    ioctl(rp->fd, FIONREAD, &len);
+        ioctl(rp->fd, FIONREAD, &len);
 #endif
-    if (len > 0) {
-      len = read(rp->fd, &buffer, len < NET_BUFFER_SIZE ? len : NET_BUFFER_SIZE);
-      rig_debug(RIG_DEBUG_WARN, "Network data cleared: %s\n", buffer);
-    } else {
-      break;
+
+        if (len > 0) {
+            len = read(rp->fd, &buffer, len < NET_BUFFER_SIZE ? len : NET_BUFFER_SIZE);
+            rig_debug(RIG_DEBUG_WARN,
+                      "%s: network data cleared: %s\n",
+                      __func__,
+                      buffer);
+        } else {
+            break;
+        }
     }
-  }
 }
+
 
 int network_close(hamlib_port_t *rp)
 {
-	int ret;
+    int ret;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
 #ifdef __MINGW32__
-	ret = closesocket(rp->fd);
-	if (--wsstarted)
-		WSACleanup();
+    ret = closesocket(rp->fd);
+
+    if (--wsstarted) {
+        WSACleanup();
+    }
+
 #else
-	ret = close(rp->fd);
+    ret = close(rp->fd);
 #endif
-	return ret;
+    return ret;
 }
 
 /** @} */

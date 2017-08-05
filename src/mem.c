@@ -55,9 +55,9 @@
 
 /**
  * \brief set the current memory channel number
- * \param rig	The rig handle
- * \param vfo	The target VFO
- * \param ch	The memory channel number
+ * \param rig   The rig handle
+ * \param vfo   The target VFO
+ * \param ch    The memory channel number
  *
  *  Sets the current memory channel number.
  *  It is not mandatory for the radio to be in memory mode. Actually
@@ -69,42 +69,53 @@
  *
  * \sa rig_get_mem()
  */
-
 int HAMLIB_API rig_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
-	const struct rig_caps *caps;
-	int retcode;
-	vfo_t curr_vfo;
+    const struct rig_caps *caps;
+    int retcode;
+    vfo_t curr_vfo;
 
-	if (CHECK_RIG_ARG(rig))
-		return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	caps = rig->caps;
+    if (CHECK_RIG_ARG(rig)) {
+        return -RIG_EINVAL;
+    }
 
-	if (caps->set_mem == NULL)
-		return -RIG_ENAVAIL;
+    caps = rig->caps;
 
-	if ((caps->targetable_vfo&RIG_TARGETABLE_PURE) ||
-			vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
-		return caps->set_mem(rig, vfo, ch);
+    if (caps->set_mem == NULL) {
+        return -RIG_ENAVAIL;
+    }
 
-	if (!caps->set_vfo)
-		return -RIG_ENTARGET;
-	curr_vfo = rig->state.current_vfo;
-	retcode = caps->set_vfo(rig, vfo);
-	if (retcode != RIG_OK)
-		return retcode;
+    if ((caps->targetable_vfo & RIG_TARGETABLE_PURE)
+        || vfo == RIG_VFO_CURR
+        || vfo == rig->state.current_vfo) {
+            return caps->set_mem(rig, vfo, ch);
+    }
 
-	retcode = caps->set_mem(rig, vfo, ch);
-	caps->set_vfo(rig, curr_vfo);
-	return retcode;
+    if (!caps->set_vfo) {
+        return -RIG_ENTARGET;
+    }
+
+    curr_vfo = rig->state.current_vfo;
+    retcode = caps->set_vfo(rig, vfo);
+
+    if (retcode != RIG_OK) {
+        return retcode;
+    }
+
+    retcode = caps->set_mem(rig, vfo, ch);
+    caps->set_vfo(rig, curr_vfo);
+
+    return retcode;
 }
+
 
 /**
  * \brief get the current memory channel number
- * \param rig	The rig handle
- * \param vfo	The target VFO
- * \param ch	The location where to store the current memory channel number
+ * \param rig   The rig handle
+ * \param vfo   The target VFO
+ * \param ch    The location where to store the current memory channel number
  *
  *  Retrieves the current memory channel number.
  *  It is not mandatory for the radio to be in memory mode. Actually
@@ -118,40 +129,50 @@ int HAMLIB_API rig_set_mem(RIG *rig, vfo_t vfo, int ch)
  */
 int HAMLIB_API rig_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
-	const struct rig_caps *caps;
-	int retcode;
-	vfo_t curr_vfo;
+    const struct rig_caps *caps;
+    int retcode;
+    vfo_t curr_vfo;
 
-	if (CHECK_RIG_ARG(rig) || !ch)
-		return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	caps = rig->caps;
+    if (CHECK_RIG_ARG(rig) || !ch) {
+        return -RIG_EINVAL;
+    }
 
-	if (caps->get_mem == NULL)
-		return -RIG_ENAVAIL;
+    caps = rig->caps;
 
-	if ((caps->targetable_vfo&RIG_TARGETABLE_PURE) ||
-			vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
-		return caps->get_mem(rig, vfo, ch);
+    if (caps->get_mem == NULL) {
+        return -RIG_ENAVAIL;
+    }
 
-	if (!caps->set_vfo)
-		return -RIG_ENTARGET;
-	curr_vfo = rig->state.current_vfo;
-	retcode = caps->set_vfo(rig, vfo);
-	if (retcode != RIG_OK)
-		return retcode;
+    if ((caps->targetable_vfo & RIG_TARGETABLE_PURE)
+        || vfo == RIG_VFO_CURR
+        || vfo == rig->state.current_vfo) {
+            return caps->get_mem(rig, vfo, ch);
+    }
 
-	retcode = caps->get_mem(rig, vfo, ch);
-	caps->set_vfo(rig, curr_vfo);
-	return retcode;
+    if (!caps->set_vfo) {
+        return -RIG_ENTARGET;
+    }
+
+    curr_vfo = rig->state.current_vfo;
+    retcode = caps->set_vfo(rig, vfo);
+
+    if (retcode != RIG_OK) {
+        return retcode;
+    }
+
+    retcode = caps->get_mem(rig, vfo, ch);
+    caps->set_vfo(rig, curr_vfo);
+    return retcode;
 }
 
 
 /**
  * \brief set the current memory bank
- * \param rig	The rig handle
- * \param vfo	The target VFO
- * \param bank	The memory bank
+ * \param rig   The rig handle
+ * \param vfo   The target VFO
+ * \param bank  The memory bank
  *
  *  Sets the current memory bank number.
  *  It is not mandatory for the radio to be in memory mode. Actually
@@ -163,326 +184,415 @@ int HAMLIB_API rig_get_mem(RIG *rig, vfo_t vfo, int *ch)
  *
  * \sa rig_set_mem()
  */
-
 int HAMLIB_API rig_set_bank(RIG *rig, vfo_t vfo, int bank)
 {
-	const struct rig_caps *caps;
-	int retcode;
-	vfo_t curr_vfo;
+    const struct rig_caps *caps;
+    int retcode;
+    vfo_t curr_vfo;
 
-	if (CHECK_RIG_ARG(rig))
-		return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	caps = rig->caps;
+    if (CHECK_RIG_ARG(rig)) {
+        return -RIG_EINVAL;
+    }
 
-	if (caps->set_bank == NULL)
-		return -RIG_ENAVAIL;
+    caps = rig->caps;
 
-	if ((caps->targetable_vfo&RIG_TARGETABLE_PURE) ||
-			vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
-		return caps->set_bank(rig, vfo, bank);
+    if (caps->set_bank == NULL) {
+        return -RIG_ENAVAIL;
+    }
 
-	if (!caps->set_vfo)
-		return -RIG_ENTARGET;
-	curr_vfo = rig->state.current_vfo;
-	retcode = caps->set_vfo(rig, vfo);
-	if (retcode != RIG_OK)
-		return retcode;
+    if ((caps->targetable_vfo & RIG_TARGETABLE_PURE)
+        || vfo == RIG_VFO_CURR
+        || vfo == rig->state.current_vfo) {
+            return caps->set_bank(rig, vfo, bank);
+    }
 
-	retcode = caps->set_bank(rig, vfo, bank);
-	caps->set_vfo(rig, curr_vfo);
-	return retcode;
+    if (!caps->set_vfo) {
+        return -RIG_ENTARGET;
+    }
+
+    curr_vfo = rig->state.current_vfo;
+    retcode = caps->set_vfo(rig, vfo);
+
+    if (retcode != RIG_OK) {
+        return retcode;
+    }
+
+    retcode = caps->set_bank(rig, vfo, bank);
+    caps->set_vfo(rig, curr_vfo);
+
+    return retcode;
 }
 
 #ifndef DOC_HIDDEN
+
+
 /*
  * call on every ext_levels of a rig
  */
-static int generic_retr_extl(RIG *rig, const struct confparams *cfp, rig_ptr_t ptr)
+static int generic_retr_extl(RIG *rig,
+                             const struct confparams *cfp,
+                             rig_ptr_t ptr)
 {
-	channel_t *chan = (channel_t *)ptr;
-	struct ext_list *p;
-	unsigned el_size = 0;
+    channel_t *chan = (channel_t *)ptr;
+    struct ext_list *p;
+    unsigned el_size = 0;
 
-	if (chan->ext_levels == NULL)
-		p = chan->ext_levels = malloc(2*sizeof(struct ext_list));
-	else {
-		for (p = chan->ext_levels; !RIG_IS_EXT_END(*p); p++)
-			el_size += sizeof(struct ext_list);
-		chan->ext_levels = realloc(chan->ext_levels,
-				el_size+sizeof(struct ext_list));
-	}
+    if (chan->ext_levels == NULL) {
+        p = chan->ext_levels = malloc(2 * sizeof(struct ext_list));
+    } else {
+        for (p = chan->ext_levels; !RIG_IS_EXT_END(*p); p++) {
+            el_size += sizeof(struct ext_list);
+        }
 
-	if (!chan->ext_levels) {
-		rig_debug(RIG_DEBUG_ERR, "%s:%d memory allocation error!\n",
-				__FUNCTION__, __LINE__);
-		return -RIG_ENOMEM;
-	}
+        chan->ext_levels = realloc(chan->ext_levels,
+                                   el_size + sizeof(struct ext_list));
+    }
 
-	p->token = cfp->token;
-	rig_get_ext_level(rig, RIG_VFO_CURR, p->token, &p->val);
-	p++;
-	p->token = 0;	/* RIG_EXT_END */
+    if (!chan->ext_levels) {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: %d memory allocation error!\n",
+                  __func__,
+                  __LINE__);
+        return -RIG_ENOMEM;
+    }
 
-	return 1;	/* process them all */
+    p->token = cfp->token;
+    rig_get_ext_level(rig, RIG_VFO_CURR, p->token, &p->val);
+    p++;
+    p->token = 0;   /* RIG_EXT_END */
+
+    return 1;   /* process them all */
 }
 
+
 static const channel_cap_t mem_cap_all = {
-	.bank_num = 1,
-	.vfo = 1,
-	.ant = 1,
-	.freq = 1,
-	.mode = 1,
-	.width = 1,
-	.tx_freq = 1,
-	.tx_mode = 1,
-	.tx_width = 1,
-	.split = 1,
-	.tx_vfo = 1,
-	.rptr_shift = 1,
-	.rptr_offs = 1,
-	.tuning_step = 1,
-	.rit = 1,
-	.xit = 1,
-	.funcs = (setting_t)-1,
-	.levels = (setting_t)-1,
-	.ctcss_tone = 1,
-	.ctcss_sql = 1,
-	.dcs_code = 1,
-	.dcs_sql = 1,
-	.scan_group = 1,
-	.flags = 1,
-	.channel_desc = 1,
-	.ext_levels = 1,
+    .bank_num = 1,
+    .vfo = 1,
+    .ant = 1,
+    .freq = 1,
+    .mode = 1,
+    .width = 1,
+    .tx_freq = 1,
+    .tx_mode = 1,
+    .tx_width = 1,
+    .split = 1,
+    .tx_vfo = 1,
+    .rptr_shift = 1,
+    .rptr_offs = 1,
+    .tuning_step = 1,
+    .rit = 1,
+    .xit = 1,
+    .funcs = (setting_t) - 1,
+    .levels = (setting_t) - 1,
+    .ctcss_tone = 1,
+    .ctcss_sql = 1,
+    .dcs_code = 1,
+    .dcs_sql = 1,
+    .scan_group = 1,
+    .flags = 1,
+    .channel_desc = 1,
+    .ext_levels = 1,
 };
+
 
 static int rig_mem_caps_empty(const channel_cap_t *mem_cap)
 {
-	return !(
-		mem_cap->bank_num ||
-		mem_cap->vfo ||
-		mem_cap->ant ||
-		mem_cap->freq ||
-		mem_cap->mode ||
-		mem_cap->width ||
-		mem_cap->tx_freq ||
-		mem_cap->tx_mode ||
-		mem_cap->tx_width ||
-		mem_cap->split ||
-		mem_cap->tx_vfo ||
-		mem_cap->rptr_shift ||
-		mem_cap->rptr_offs ||
-		mem_cap->tuning_step ||
-		mem_cap->rit ||
-		mem_cap->xit ||
-		mem_cap->funcs ||
-		mem_cap->levels ||
-		mem_cap->ctcss_tone ||
-		mem_cap->ctcss_sql ||
-		mem_cap->dcs_code ||
-		mem_cap->dcs_sql ||
-		mem_cap->scan_group ||
-		mem_cap->flags ||
-		mem_cap->channel_desc ||
-		mem_cap->ext_levels
-		);
+    return !(
+               mem_cap->bank_num ||
+               mem_cap->vfo ||
+               mem_cap->ant ||
+               mem_cap->freq ||
+               mem_cap->mode ||
+               mem_cap->width ||
+               mem_cap->tx_freq ||
+               mem_cap->tx_mode ||
+               mem_cap->tx_width ||
+               mem_cap->split ||
+               mem_cap->tx_vfo ||
+               mem_cap->rptr_shift ||
+               mem_cap->rptr_offs ||
+               mem_cap->tuning_step ||
+               mem_cap->rit ||
+               mem_cap->xit ||
+               mem_cap->funcs ||
+               mem_cap->levels ||
+               mem_cap->ctcss_tone ||
+               mem_cap->ctcss_sql ||
+               mem_cap->dcs_code ||
+               mem_cap->dcs_sql ||
+               mem_cap->scan_group ||
+               mem_cap->flags ||
+               mem_cap->channel_desc ||
+               mem_cap->ext_levels
+           );
 }
+
 
 /*
  * stores current VFO state into chan by emulating rig_get_channel
  */
 static int generic_save_channel(RIG *rig, channel_t *chan)
 {
-  int i, retval;
-  int chan_num;
-  vfo_t vfo;
-  setting_t setting;
-  const channel_cap_t *mem_cap = NULL;
+    int i, retval;
+    int chan_num;
+    vfo_t vfo;
+    setting_t setting;
+    const channel_cap_t *mem_cap = NULL;
 
-  chan_num = chan->channel_num;
-  vfo = chan->vfo;
-  memset(chan, 0, sizeof(channel_t));
-  chan->channel_num = chan_num;
-  chan->vfo = vfo;
+    chan_num = chan->channel_num;
+    vfo = chan->vfo;
+    memset(chan, 0, sizeof(channel_t));
+    chan->channel_num = chan_num;
+    chan->vfo = vfo;
 
-  if (vfo == RIG_VFO_MEM)
-  {
-	const chan_t *chan_cap;
-	chan_cap = rig_lookup_mem_caps(rig, chan_num);
-	if (chan_cap) mem_cap = &chan_cap->mem_caps;
-  }
-  /* If vfo!=RIG_VFO_MEM or incomplete backend, try all properties */
-  if (mem_cap == NULL || rig_mem_caps_empty(mem_cap))
-  {
-	mem_cap = &mem_cap_all;
-  }
+    if (vfo == RIG_VFO_MEM) {
+        const chan_t *chan_cap;
+        chan_cap = rig_lookup_mem_caps(rig, chan_num);
 
-  if (mem_cap->freq) {
-	  retval = rig_get_freq(rig, RIG_VFO_CURR, &chan->freq);
-	  /* empty channel ? */
-	  if (retval == -RIG_ENAVAIL || chan->freq == RIG_FREQ_NONE)
-		  return -RIG_ENAVAIL;
-  }
+        if (chan_cap) {
+            mem_cap = &chan_cap->mem_caps;
+        }
+    }
 
-  if (mem_cap->vfo)
-  	rig_get_vfo(rig, &chan->vfo);
-  if (mem_cap->mode || mem_cap->width)
-  	rig_get_mode(rig, RIG_VFO_CURR, &chan->mode, &chan->width);
+    /* If vfo!=RIG_VFO_MEM or incomplete backend, try all properties */
+    if (mem_cap == NULL || rig_mem_caps_empty(mem_cap)) {
+        mem_cap = &mem_cap_all;
+    }
 
-  chan->split = RIG_SPLIT_OFF;
+    if (mem_cap->freq) {
+        retval = rig_get_freq(rig, RIG_VFO_CURR, &chan->freq);
 
-  if (mem_cap->split)
-  	rig_get_split_vfo(rig, RIG_VFO_CURR, &chan->split, &chan->tx_vfo);
-  if (chan->split != RIG_SPLIT_OFF) {
-  	if (mem_cap->tx_freq)
-  		rig_get_split_freq(rig, RIG_VFO_CURR, &chan->tx_freq);
-  	if (mem_cap->tx_mode || mem_cap->tx_width)
-  		rig_get_split_mode(rig, RIG_VFO_CURR, &chan->tx_mode, &chan->tx_width);
-  } else {
-  	chan->tx_freq = chan->freq;
-  	chan->tx_mode = chan->mode;
-	chan->tx_width = chan->width;
-  }
-  if (mem_cap->rptr_shift)
-  	rig_get_rptr_shift(rig, RIG_VFO_CURR, &chan->rptr_shift);
-  if (mem_cap->rptr_offs)
-  	rig_get_rptr_offs(rig, RIG_VFO_CURR, &chan->rptr_offs);
+        /* empty channel ? */
+        if (retval == -RIG_ENAVAIL || chan->freq == RIG_FREQ_NONE) {
+            return -RIG_ENAVAIL;
+        }
+    }
 
-  if (mem_cap->ant)
-  	rig_get_ant(rig, RIG_VFO_CURR, &chan->ant);
-  if (mem_cap->tuning_step)
-  	rig_get_ts(rig, RIG_VFO_CURR, &chan->tuning_step);
-  if (mem_cap->rit)
-  	rig_get_rit(rig, RIG_VFO_CURR, &chan->rit);
-  if (mem_cap->xit)
-  	rig_get_xit(rig, RIG_VFO_CURR, &chan->xit);
+    if (mem_cap->vfo) {
+        rig_get_vfo(rig, &chan->vfo);
+    }
 
-  for (i=0; i<RIG_SETTING_MAX; i++) {
-	setting = rig_idx2setting(i);
-	if ((setting & mem_cap->levels) && RIG_LEVEL_SET(setting))
-  		rig_get_level(rig, RIG_VFO_CURR, setting, &chan->levels[i]);
-  }
+    if (mem_cap->mode || mem_cap->width) {
+        rig_get_mode(rig, RIG_VFO_CURR, &chan->mode, &chan->width);
+    }
 
-  for (i=0; i<RIG_SETTING_MAX; i++) {
-  	int fstatus;
-	setting = rig_idx2setting(i);
-  	if ((setting & mem_cap->funcs) &&
-			(rig_get_func(rig, RIG_VFO_CURR, setting, &fstatus) == RIG_OK))
-		chan->funcs |= fstatus ? setting : 0;
-  }
+    chan->split = RIG_SPLIT_OFF;
 
-  if (mem_cap->ctcss_tone)
-  	rig_get_ctcss_tone(rig, RIG_VFO_CURR, &chan->ctcss_tone);
-  if (mem_cap->ctcss_sql)
-  	rig_get_ctcss_sql(rig, RIG_VFO_CURR, &chan->ctcss_sql);
-  if (mem_cap->dcs_code)
-  	rig_get_dcs_code(rig, RIG_VFO_CURR, &chan->dcs_code);
-  if (mem_cap->dcs_sql)
-  	rig_get_dcs_sql(rig, RIG_VFO_CURR, &chan->dcs_sql);
-  /*
-   * TODO: (missing calls)
-   * - channel_desc
-   * - bank_num
-   * - scan_group
-   * - flags
-   */
+    if (mem_cap->split) {
+        rig_get_split_vfo(rig, RIG_VFO_CURR, &chan->split, &chan->tx_vfo);
+    }
 
-  rig_ext_level_foreach(rig, generic_retr_extl, (rig_ptr_t)chan);
+    if (chan->split != RIG_SPLIT_OFF) {
+        if (mem_cap->tx_freq) {
+            rig_get_split_freq(rig, RIG_VFO_CURR, &chan->tx_freq);
+        }
 
-  return RIG_OK;
+        if (mem_cap->tx_mode || mem_cap->tx_width) {
+            rig_get_split_mode(rig, RIG_VFO_CURR, &chan->tx_mode, &chan->tx_width);
+        }
+    } else {
+        chan->tx_freq = chan->freq;
+        chan->tx_mode = chan->mode;
+        chan->tx_width = chan->width;
+    }
+
+    if (mem_cap->rptr_shift) {
+        rig_get_rptr_shift(rig, RIG_VFO_CURR, &chan->rptr_shift);
+    }
+
+    if (mem_cap->rptr_offs) {
+        rig_get_rptr_offs(rig, RIG_VFO_CURR, &chan->rptr_offs);
+    }
+
+    if (mem_cap->ant) {
+        rig_get_ant(rig, RIG_VFO_CURR, &chan->ant);
+    }
+
+    if (mem_cap->tuning_step) {
+        rig_get_ts(rig, RIG_VFO_CURR, &chan->tuning_step);
+    }
+
+    if (mem_cap->rit) {
+        rig_get_rit(rig, RIG_VFO_CURR, &chan->rit);
+    }
+
+    if (mem_cap->xit) {
+        rig_get_xit(rig, RIG_VFO_CURR, &chan->xit);
+    }
+
+    for (i = 0; i < RIG_SETTING_MAX; i++) {
+        setting = rig_idx2setting(i);
+
+        if ((setting & mem_cap->levels) && RIG_LEVEL_SET(setting)) {
+            rig_get_level(rig, RIG_VFO_CURR, setting, &chan->levels[i]);
+        }
+    }
+
+    for (i = 0; i < RIG_SETTING_MAX; i++) {
+        int fstatus;
+        setting = rig_idx2setting(i);
+
+        if ((setting & mem_cap->funcs)
+            && (rig_get_func(rig, RIG_VFO_CURR, setting, &fstatus) == RIG_OK)) {
+                chan->funcs |= fstatus ? setting : 0;
+        }
+    }
+
+    if (mem_cap->ctcss_tone) {
+        rig_get_ctcss_tone(rig, RIG_VFO_CURR, &chan->ctcss_tone);
+    }
+
+    if (mem_cap->ctcss_sql) {
+        rig_get_ctcss_sql(rig, RIG_VFO_CURR, &chan->ctcss_sql);
+    }
+
+    if (mem_cap->dcs_code) {
+        rig_get_dcs_code(rig, RIG_VFO_CURR, &chan->dcs_code);
+    }
+
+    if (mem_cap->dcs_sql) {
+        rig_get_dcs_sql(rig, RIG_VFO_CURR, &chan->dcs_sql);
+    }
+
+    /*
+     * TODO: (missing calls)
+     * - channel_desc
+     * - bank_num
+     * - scan_group
+     * - flags
+     */
+
+    rig_ext_level_foreach(rig, generic_retr_extl, (rig_ptr_t)chan);
+
+    return RIG_OK;
 }
+
 
 /*
  * Restores chan into current VFO state by emulating rig_set_channel
  */
 static int generic_restore_channel(RIG *rig, const channel_t *chan)
 {
-  int i;
-  struct ext_list *p;
-  setting_t setting;
-  const channel_cap_t *mem_cap = NULL;
+    int i;
+    struct ext_list *p;
+    setting_t setting;
+    const channel_cap_t *mem_cap = NULL;
 
-  if (chan->vfo == RIG_VFO_MEM)
-  {
-	const chan_t *chan_cap;
-	chan_cap = rig_lookup_mem_caps(rig, chan->channel_num);
-	if (chan_cap) mem_cap = &chan_cap->mem_caps;
-  }
-  /* If vfo!=RIG_VFO_MEM or incomplete backend, try all properties */
-  if (mem_cap == NULL || rig_mem_caps_empty(mem_cap))
-  {
-	mem_cap = &mem_cap_all;
-  }
+    if (chan->vfo == RIG_VFO_MEM) {
+        const chan_t *chan_cap;
+        chan_cap = rig_lookup_mem_caps(rig, chan->channel_num);
 
-  rig_set_vfo(rig, chan->vfo);
-  if (mem_cap->freq)
-  	rig_set_freq(rig, RIG_VFO_CURR, chan->freq);
-  if (mem_cap->mode || mem_cap->width)
-  	rig_set_mode(rig, RIG_VFO_CURR, chan->mode, chan->width);
+        if (chan_cap) {
+            mem_cap = &chan_cap->mem_caps;
+        }
+    }
 
-  rig_set_split_vfo(rig, RIG_VFO_CURR, chan->split, chan->tx_vfo);
-  if (chan->split != RIG_SPLIT_OFF) {
-  	if (mem_cap->tx_freq)
-  		rig_set_split_freq(rig, RIG_VFO_CURR, chan->tx_freq);
-  	if (mem_cap->tx_mode || mem_cap->tx_width)
-	  	rig_set_split_mode(rig, RIG_VFO_CURR, chan->tx_mode, chan->tx_width);
-  }
+    /* If vfo!=RIG_VFO_MEM or incomplete backend, try all properties */
+    if (mem_cap == NULL || rig_mem_caps_empty(mem_cap)) {
+        mem_cap = &mem_cap_all;
+    }
 
-  if (mem_cap->rptr_shift)
-  	rig_set_rptr_shift(rig, RIG_VFO_CURR, chan->rptr_shift);
-  if (mem_cap->rptr_offs)
-  	rig_set_rptr_offs(rig, RIG_VFO_CURR, chan->rptr_offs);
+    rig_set_vfo(rig, chan->vfo);
 
-  for (i=0; i<RIG_SETTING_MAX; i++) {
-	setting = rig_idx2setting(i);
-  	if (setting & mem_cap->levels)
-  		rig_set_level(rig, RIG_VFO_CURR, setting, chan->levels[i]);
-  }
+    if (mem_cap->freq) {
+        rig_set_freq(rig, RIG_VFO_CURR, chan->freq);
+    }
 
-  if (mem_cap->ant)
-  	rig_set_ant(rig, RIG_VFO_CURR, chan->ant);
-  if (mem_cap->tuning_step)
-  	rig_set_ts(rig, RIG_VFO_CURR, chan->tuning_step);
-  if (mem_cap->rit)
-  	rig_set_rit(rig, RIG_VFO_CURR, chan->rit);
-  if (mem_cap->xit)
-  	rig_set_xit(rig, RIG_VFO_CURR, chan->xit);
+    if (mem_cap->mode || mem_cap->width) {
+        rig_set_mode(rig, RIG_VFO_CURR, chan->mode, chan->width);
+    }
 
-  for (i=0; i<RIG_SETTING_MAX; i++) {
-	setting = rig_idx2setting(i);
-  	if (setting & mem_cap->funcs)
-  		rig_set_func(rig, RIG_VFO_CURR, setting,
-			chan->funcs & rig_idx2setting(i));
-  }
+    rig_set_split_vfo(rig, RIG_VFO_CURR, chan->split, chan->tx_vfo);
 
-  if (mem_cap->ctcss_tone)
-  	rig_set_ctcss_tone(rig, RIG_VFO_CURR, chan->ctcss_tone);
-  if (mem_cap->ctcss_sql)
-  	rig_set_ctcss_sql(rig, RIG_VFO_CURR, chan->ctcss_sql);
-  if (mem_cap->dcs_code)
-  	rig_set_dcs_code(rig, RIG_VFO_CURR, chan->dcs_code);
-  if (mem_cap->dcs_sql)
-  	rig_set_dcs_sql(rig, RIG_VFO_CURR, chan->dcs_sql);
+    if (chan->split != RIG_SPLIT_OFF) {
+        if (mem_cap->tx_freq) {
+            rig_set_split_freq(rig, RIG_VFO_CURR, chan->tx_freq);
+        }
 
-  /*
-   * TODO: (missing calls)
-   * - channel_desc
-   * - bank_num
-   * - scan_group
-   * - flags
-   */
+        if (mem_cap->tx_mode || mem_cap->tx_width) {
+            rig_set_split_mode(rig, RIG_VFO_CURR, chan->tx_mode, chan->tx_width);
+        }
+    }
 
-  for (p = chan->ext_levels; p && !RIG_IS_EXT_END(*p); p++)
-	  rig_set_ext_level(rig, RIG_VFO_CURR, p->token, p->val);
+    if (mem_cap->rptr_shift) {
+        rig_set_rptr_shift(rig, RIG_VFO_CURR, chan->rptr_shift);
+    }
 
-  return RIG_OK;
+    if (mem_cap->rptr_offs) {
+        rig_set_rptr_offs(rig, RIG_VFO_CURR, chan->rptr_offs);
+    }
+
+    for (i = 0; i < RIG_SETTING_MAX; i++) {
+        setting = rig_idx2setting(i);
+
+        if (setting & mem_cap->levels) {
+            rig_set_level(rig, RIG_VFO_CURR, setting, chan->levels[i]);
+        }
+    }
+
+    if (mem_cap->ant) {
+        rig_set_ant(rig, RIG_VFO_CURR, chan->ant);
+    }
+
+    if (mem_cap->tuning_step) {
+        rig_set_ts(rig, RIG_VFO_CURR, chan->tuning_step);
+    }
+
+    if (mem_cap->rit) {
+        rig_set_rit(rig, RIG_VFO_CURR, chan->rit);
+    }
+
+    if (mem_cap->xit) {
+        rig_set_xit(rig, RIG_VFO_CURR, chan->xit);
+    }
+
+    for (i = 0; i < RIG_SETTING_MAX; i++) {
+        setting = rig_idx2setting(i);
+
+        if (setting & mem_cap->funcs)
+            rig_set_func(rig, RIG_VFO_CURR, setting,
+                         chan->funcs & rig_idx2setting(i));
+    }
+
+    if (mem_cap->ctcss_tone) {
+        rig_set_ctcss_tone(rig, RIG_VFO_CURR, chan->ctcss_tone);
+    }
+
+    if (mem_cap->ctcss_sql) {
+        rig_set_ctcss_sql(rig, RIG_VFO_CURR, chan->ctcss_sql);
+    }
+
+    if (mem_cap->dcs_code) {
+        rig_set_dcs_code(rig, RIG_VFO_CURR, chan->dcs_code);
+    }
+
+    if (mem_cap->dcs_sql) {
+        rig_set_dcs_sql(rig, RIG_VFO_CURR, chan->dcs_sql);
+    }
+
+    /*
+     * TODO: (missing calls)
+     * - channel_desc
+     * - bank_num
+     * - scan_group
+     * - flags
+     */
+
+    for (p = chan->ext_levels; p && !RIG_IS_EXT_END(*p); p++) {
+        rig_set_ext_level(rig, RIG_VFO_CURR, p->token, p->val);
+    }
+
+    return RIG_OK;
 }
-#endif	/* !DOC_HIDDEN */
+#endif  /* !DOC_HIDDEN */
+
 
 /**
  * \brief set channel data
- * \param rig	The rig handle
- * \param chan	The location of data to set for this channel
+ * \param rig   The rig handle
+ * \param chan  The location of data to set for this channel
  *
  *  Sets the data associated with a channel. This channel can either
  *  be the state of a VFO specified by \a chan->vfo, or a memory channel
@@ -499,97 +609,112 @@ static int generic_restore_channel(RIG *rig, const channel_t *chan)
  *
  * \sa rig_get_channel()
  */
-
 int HAMLIB_API rig_set_channel(RIG *rig, const channel_t *chan)
 {
-	struct rig_caps *rc;
-	int curr_chan_num, get_mem_status = RIG_OK;
-	vfo_t curr_vfo;
-	vfo_t vfo; /* requested vfo */
-	int retcode;
-	int can_emulate_by_vfo_mem, can_emulate_by_vfo_op;
+    struct rig_caps *rc;
+    int curr_chan_num, get_mem_status = RIG_OK;
+    vfo_t curr_vfo;
+    vfo_t vfo; /* requested vfo */
+    int retcode;
+    int can_emulate_by_vfo_mem, can_emulate_by_vfo_op;
 #ifdef PARANOID_CHANNEL_HANDLING
-	channel_t curr_chan;
+    channel_t curr_chan;
 #endif
 
-	if (CHECK_RIG_ARG(rig) || !chan)
-		return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	/*
-	 * TODO: check validity of chan->channel_num
-	 */
+    if (CHECK_RIG_ARG(rig) || !chan) {
+        return -RIG_EINVAL;
+    }
 
-	rc = rig->caps;
+    /*
+     * TODO: check validity of chan->channel_num
+     */
 
-	if (rc->set_channel)
-		return rc->set_channel(rig, chan);
+    rc = rig->caps;
 
-	/*
-	 * if not available, emulate it
-	 * Optional: get_vfo, set_vfo,
-	 */
+    if (rc->set_channel) {
+        return rc->set_channel(rig, chan);
+    }
 
-	vfo = chan->vfo;
+    /*
+     * if not available, emulate it
+     * Optional: get_vfo, set_vfo,
+     */
 
-	if (vfo == RIG_VFO_CURR)
-		return generic_restore_channel(rig, chan);
+    vfo = chan->vfo;
 
-	/* any emulation requires set_mem() */
-	if (vfo == RIG_VFO_MEM && !rc->set_mem)
-		return -RIG_ENAVAIL;
+    if (vfo == RIG_VFO_CURR) {
+        return generic_restore_channel(rig, chan);
+    }
 
-	can_emulate_by_vfo_mem = rc->set_vfo &&
-		((rig->state.vfo_list & RIG_VFO_MEM) == RIG_VFO_MEM);
+    /* any emulation requires set_mem() */
+    if (vfo == RIG_VFO_MEM && !rc->set_mem) {
+        return -RIG_ENAVAIL;
+    }
 
-	can_emulate_by_vfo_op = rc->vfo_op &&
-		rig_has_vfo_op(rig, RIG_OP_FROM_VFO);
+    can_emulate_by_vfo_mem = rc->set_vfo &&
+                             ((rig->state.vfo_list & RIG_VFO_MEM) == RIG_VFO_MEM);
 
-	if (!can_emulate_by_vfo_mem && !can_emulate_by_vfo_op)
-		return -RIG_ENTARGET;
+    can_emulate_by_vfo_op = rc->vfo_op &&
+                            rig_has_vfo_op(rig, RIG_OP_FROM_VFO);
 
-	curr_vfo = rig->state.current_vfo;
-	/* may be needed if the restore_channel has some side effects */
+    if (!can_emulate_by_vfo_mem && !can_emulate_by_vfo_op) {
+        return -RIG_ENTARGET;
+    }
+
+    curr_vfo = rig->state.current_vfo;
+    /* may be needed if the restore_channel has some side effects */
 #ifdef PARANOID_CHANNEL_HANDLING
-	generic_save_channel(rig, &curr_chan);
+    generic_save_channel(rig, &curr_chan);
 #endif
 
-	if (vfo == RIG_VFO_MEM)
-		get_mem_status = rig_get_mem(rig, RIG_VFO_CURR, &curr_chan_num);
+    if (vfo == RIG_VFO_MEM) {
+        get_mem_status = rig_get_mem(rig, RIG_VFO_CURR, &curr_chan_num);
+    }
 
-	if (can_emulate_by_vfo_mem && curr_vfo != vfo) {
-		retcode = rig_set_vfo(rig, vfo);
-		if (retcode != RIG_OK)
-			return retcode;
-	}
+    if (can_emulate_by_vfo_mem && curr_vfo != vfo) {
+        retcode = rig_set_vfo(rig, vfo);
 
-	if (vfo == RIG_VFO_MEM)
-		rig_set_mem(rig, RIG_VFO_CURR, chan->channel_num);
+        if (retcode != RIG_OK) {
+            return retcode;
+        }
+    }
 
-	retcode = generic_restore_channel(rig, chan);
+    if (vfo == RIG_VFO_MEM) {
+        rig_set_mem(rig, RIG_VFO_CURR, chan->channel_num);
+    }
 
-	if (!can_emulate_by_vfo_mem && can_emulate_by_vfo_op) {
-		retcode = rig_vfo_op(rig, RIG_VFO_CURR, RIG_OP_FROM_VFO);
-		if (retcode != RIG_OK)
-			return retcode;
-	}
+    retcode = generic_restore_channel(rig, chan);
 
-	/* restore current memory number */
-	if (vfo == RIG_VFO_MEM && get_mem_status == RIG_OK)
-		rig_set_mem(rig, RIG_VFO_CURR, curr_chan_num);
+    if (!can_emulate_by_vfo_mem && can_emulate_by_vfo_op) {
+        retcode = rig_vfo_op(rig, RIG_VFO_CURR, RIG_OP_FROM_VFO);
 
-	if (can_emulate_by_vfo_mem)
-		rig_set_vfo(rig, curr_vfo);
+        if (retcode != RIG_OK) {
+            return retcode;
+        }
+    }
+
+    /* restore current memory number */
+    if (vfo == RIG_VFO_MEM && get_mem_status == RIG_OK) {
+        rig_set_mem(rig, RIG_VFO_CURR, curr_chan_num);
+    }
+
+    if (can_emulate_by_vfo_mem) {
+        rig_set_vfo(rig, curr_vfo);
+    }
 
 #ifdef PARANOID_CHANNEL_HANDLING
-	generic_restore_channel(rig, &curr_chan);
+    generic_restore_channel(rig, &curr_chan);
 #endif
-	return retcode;
+    return retcode;
 }
+
 
 /**
  * \brief get channel data
- * \param rig	The rig handle
- * \param chan	The location where to store the channel data
+ * \param rig   The rig handle
+ * \param chan  The location where to store the channel data
  *
  *  Retrieves the data associated with a channel. This channel can either
  *  be the state of a VFO specified by \a chan->vfo, or a memory channel
@@ -605,7 +730,7 @@ int HAMLIB_API rig_set_channel(RIG *rig, const channel_t *chan)
   chan->channel_num = 10;
   err = rig_get_channel(rig, &chan);
   if (err != RIG_OK)
-  	error("get_channel failed: %s", rigerror(err));
+    error("get_channel failed: %s", rigerror(err));
 
 \endcode
  *
@@ -625,193 +750,223 @@ int HAMLIB_API rig_set_channel(RIG *rig, const channel_t *chan)
  */
 int HAMLIB_API rig_get_channel(RIG *rig, channel_t *chan)
 {
-	struct rig_caps *rc;
-	int curr_chan_num, get_mem_status = RIG_OK;
-	vfo_t curr_vfo;
-	vfo_t vfo;	/* requested vfo */
-	int retcode;
-	int can_emulate_by_vfo_mem, can_emulate_by_vfo_op;
+    struct rig_caps *rc;
+    int curr_chan_num, get_mem_status = RIG_OK;
+    vfo_t curr_vfo;
+    vfo_t vfo;  /* requested vfo */
+    int retcode;
+    int can_emulate_by_vfo_mem, can_emulate_by_vfo_op;
 #ifdef PARANOID_CHANNEL_HANDLING
-	channel_t curr_chan;
+    channel_t curr_chan;
 #endif
 
-	if (CHECK_RIG_ARG(rig) || !chan)
-		return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	/*
-	 * TODO: check validity of chan->channel_num
-	 */
+    if (CHECK_RIG_ARG(rig) || !chan) {
+        return -RIG_EINVAL;
+    }
 
-	rc = rig->caps;
+    /*
+     * TODO: check validity of chan->channel_num
+     */
 
-	if (rc->get_channel)
-		return rc->get_channel(rig, chan);
+    rc = rig->caps;
 
-	/*
-	 * if not available, emulate it
-	 * Optional: get_vfo, set_vfo
-	 * TODO: check return codes
-	 */
-	vfo = chan->vfo;
-	if (vfo == RIG_VFO_CURR)
-		return generic_save_channel(rig, chan);
+    if (rc->get_channel) {
+        return rc->get_channel(rig, chan);
+    }
 
-	/* any emulation requires set_mem() */
-	if (vfo == RIG_VFO_MEM && !rc->set_mem)
-		return -RIG_ENAVAIL;
+    /*
+     * if not available, emulate it
+     * Optional: get_vfo, set_vfo
+     * TODO: check return codes
+     */
+    vfo = chan->vfo;
 
-	can_emulate_by_vfo_mem = rc->set_vfo &&
-		((rig->state.vfo_list & RIG_VFO_MEM) == RIG_VFO_MEM);
+    if (vfo == RIG_VFO_CURR) {
+        return generic_save_channel(rig, chan);
+    }
 
-	can_emulate_by_vfo_op = rc->vfo_op &&
-		rig_has_vfo_op(rig, RIG_OP_TO_VFO);
+    /* any emulation requires set_mem() */
+    if (vfo == RIG_VFO_MEM && !rc->set_mem) {
+        return -RIG_ENAVAIL;
+    }
 
-	if (!can_emulate_by_vfo_mem && !can_emulate_by_vfo_op)
-		return -RIG_ENTARGET;
+    can_emulate_by_vfo_mem = rc->set_vfo &&
+                             ((rig->state.vfo_list & RIG_VFO_MEM) == RIG_VFO_MEM);
 
-	curr_vfo = rig->state.current_vfo;
-	/* may be needed if the restore_channel has some side effects */
+    can_emulate_by_vfo_op = rc->vfo_op &&
+                            rig_has_vfo_op(rig, RIG_OP_TO_VFO);
+
+    if (!can_emulate_by_vfo_mem && !can_emulate_by_vfo_op) {
+        return -RIG_ENTARGET;
+    }
+
+    curr_vfo = rig->state.current_vfo;
+    /* may be needed if the restore_channel has some side effects */
 #ifdef PARANOID_CHANNEL_HANDLING
-	generic_save_channel(rig, &curr_chan);
+    generic_save_channel(rig, &curr_chan);
 #endif
 
-	if (vfo == RIG_VFO_MEM)
-		get_mem_status = rig_get_mem(rig, RIG_VFO_CURR, &curr_chan_num);
+    if (vfo == RIG_VFO_MEM) {
+        get_mem_status = rig_get_mem(rig, RIG_VFO_CURR, &curr_chan_num);
+    }
 
-	if (can_emulate_by_vfo_mem && curr_vfo != vfo) {
-		retcode = rig_set_vfo(rig, vfo);
-		if (retcode != RIG_OK)
-			return retcode;
-	}
+    if (can_emulate_by_vfo_mem && curr_vfo != vfo) {
+        retcode = rig_set_vfo(rig, vfo);
 
-	if (vfo == RIG_VFO_MEM)
-		rig_set_mem(rig, RIG_VFO_CURR, chan->channel_num);
+        if (retcode != RIG_OK) {
+            return retcode;
+        }
+    }
 
-	if (!can_emulate_by_vfo_mem && can_emulate_by_vfo_op) {
-		retcode = rig_vfo_op(rig, RIG_VFO_CURR, RIG_OP_TO_VFO);
-		if (retcode != RIG_OK)
-			return retcode;
-	}
+    if (vfo == RIG_VFO_MEM) {
+        rig_set_mem(rig, RIG_VFO_CURR, chan->channel_num);
+    }
 
-	retcode = generic_save_channel(rig, chan);
+    if (!can_emulate_by_vfo_mem && can_emulate_by_vfo_op) {
+        retcode = rig_vfo_op(rig, RIG_VFO_CURR, RIG_OP_TO_VFO);
 
-	/* restore current memory number */
-	if (vfo == RIG_VFO_MEM && get_mem_status == RIG_OK)
-		rig_set_mem(rig, RIG_VFO_CURR, curr_chan_num);
+        if (retcode != RIG_OK) {
+            return retcode;
+        }
+    }
 
-	if (can_emulate_by_vfo_mem)
-		rig_set_vfo(rig, curr_vfo);
+    retcode = generic_save_channel(rig, chan);
+
+    /* restore current memory number */
+    if (vfo == RIG_VFO_MEM && get_mem_status == RIG_OK) {
+        rig_set_mem(rig, RIG_VFO_CURR, curr_chan_num);
+    }
+
+    if (can_emulate_by_vfo_mem) {
+        rig_set_vfo(rig, curr_vfo);
+    }
 
 #ifdef PARANOID_CHANNEL_HANDLING
-	generic_restore_channel(rig, &curr_chan);
+    generic_restore_channel(rig, &curr_chan);
 #endif
-	return retcode;
+    return retcode;
 }
 
 
 #ifndef DOC_HIDDEN
-int get_chan_all_cb_generic (RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
+int get_chan_all_cb_generic(RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
 {
-	int i,j,retval;
-	chan_t *chan_list = rig->state.chan_list;
-	channel_t *chan;
+    int i, j, retval;
+    chan_t *chan_list = rig->state.chan_list;
+    channel_t *chan;
 
- 	for (i=0; !RIG_IS_CHAN_END(chan_list[i]) && i < CHANLSTSIZ; i++) {
+    for (i = 0; !RIG_IS_CHAN_END(chan_list[i]) && i < CHANLSTSIZ; i++) {
 
-		/*
-		 * setting chan to NULL means the application
-		 * has to provide a struct where to store data
-		 * future data for channel channel_num
-		 */
-		chan = NULL;
-		retval = chan_cb(rig, &chan, chan_list[i].start, chan_list, arg);
-		if (retval != RIG_OK)
-			return retval;
-		if (chan == NULL)
-			return -RIG_ENOMEM;
+        /*
+         * setting chan to NULL means the application
+         * has to provide a struct where to store data
+         * future data for channel channel_num
+         */
+        chan = NULL;
+        retval = chan_cb(rig, &chan, chan_list[i].start, chan_list, arg);
 
-		for (j = chan_list[i].start; j <= chan_list[i].end; j++) {
-			int chan_next;
+        if (retval != RIG_OK) {
+            return retval;
+        }
 
-			chan->vfo = RIG_VFO_MEM;
-			chan->channel_num = j;
+        if (chan == NULL) {
+            return -RIG_ENOMEM;
+        }
 
-			/*
-			 * TODO: if doesn't have rc->get_channel, special generic
-			 */
-			retval = rig_get_channel(rig, chan);
+        for (j = chan_list[i].start; j <= chan_list[i].end; j++) {
+            int chan_next;
 
-			if (retval == -RIG_ENAVAIL) {
-				/*
-				 * empty channel
-				 *
-				 * Should it continue or call chan_cb with special arg?
-				 */
-				continue;
-			}
+            chan->vfo = RIG_VFO_MEM;
+            chan->channel_num = j;
 
-			if (retval != RIG_OK)
-				return retval;
+            /*
+             * TODO: if doesn't have rc->get_channel, special generic
+             */
+            retval = rig_get_channel(rig, chan);
 
-			chan_next = j < chan_list[i].end ? j+1 : j;
+            if (retval == -RIG_ENAVAIL) {
+                /*
+                 * empty channel
+                 *
+                 * Should it continue or call chan_cb with special arg?
+                 */
+                continue;
+            }
 
-			chan_cb(rig, &chan, chan_next, chan_list, arg);
-		}
-	}
+            if (retval != RIG_OK) {
+                return retval;
+            }
 
-	return RIG_OK;
+            chan_next = j < chan_list[i].end ? j + 1 : j;
+
+            chan_cb(rig, &chan, chan_next, chan_list, arg);
+        }
+    }
+
+    return RIG_OK;
 }
 
-int set_chan_all_cb_generic (RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
+
+int set_chan_all_cb_generic(RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
 {
-	int i,j,retval;
-	chan_t *chan_list = rig->state.chan_list;
-	channel_t *chan;
+    int i, j, retval;
+    chan_t *chan_list = rig->state.chan_list;
+    channel_t *chan;
 
- 	for (i=0; !RIG_IS_CHAN_END(chan_list[i]) && i < CHANLSTSIZ; i++) {
+    for (i = 0; !RIG_IS_CHAN_END(chan_list[i]) && i < CHANLSTSIZ; i++) {
 
-		for (j = chan_list[i].start; j <= chan_list[i].end; j++) {
+        for (j = chan_list[i].start; j <= chan_list[i].end; j++) {
 
-			chan_cb(rig, &chan, j, chan_list, arg);
-			chan->vfo = RIG_VFO_MEM;
+            chan_cb(rig, &chan, j, chan_list, arg);
+            chan->vfo = RIG_VFO_MEM;
 
-			retval = rig_set_channel(rig, chan);
+            retval = rig_set_channel(rig, chan);
 
-			if (retval != RIG_OK)
-				return retval;
-		}
-	}
+            if (retval != RIG_OK) {
+                return retval;
+            }
+        }
+    }
 
-	return RIG_OK;
+    return RIG_OK;
 }
+
 
 struct map_all_s {
-	channel_t *chans;
-	const struct confparams *cfgps;
-	value_t *vals;
+    channel_t *chans;
+    const struct confparams *cfgps;
+    value_t *vals;
 };
+
 
 /*
  * chan_cb_t to be used for non cb get/set_all
  */
-static int map_chan (RIG *rig, channel_t **chan, int channel_num, const chan_t *chan_list, rig_ptr_t arg)
+static int map_chan(RIG *rig,
+                    channel_t **chan,
+                    int channel_num,
+                    const chan_t *chan_list,
+                    rig_ptr_t arg)
 {
-	struct map_all_s *map_arg = (struct map_all_s*)arg;
+    struct map_all_s *map_arg = (struct map_all_s *)arg;
 
-	/* TODO: check channel_num within start-end of chan_list */
+    /* TODO: check channel_num within start-end of chan_list */
 
-	*chan = &map_arg->chans[channel_num];
+    *chan = &map_arg->chans[channel_num];
 
-	return RIG_OK;
+    return RIG_OK;
 }
 
-#endif	/* DOC_HIDDEN */
+#endif  /* DOC_HIDDEN */
+
 
 /**
  * \brief set all channel data, by callback
- * \param rig	The rig handle
- * \param chan_cb	Pointer to a callback function to provide channel data
- * \param arg	Arbitrary argument passed back to \a chan_cb
+ * \param rig       The rig handle
+ * \param chan_cb   Pointer to a callback function to provide channel data
+ * \param arg       Arbitrary argument passed back to \a chan_cb
  *
  *  Write the data associated with a all the memory channels.
  *  This is the preferred method to support clonable rigs.
@@ -822,31 +977,35 @@ static int map_chan (RIG *rig, channel_t **chan, int channel_num, const chan_t *
  *
  * \sa rig_set_chan_all(), rig_get_chan_all_cb()
  */
-int HAMLIB_API rig_set_chan_all_cb (RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
+int HAMLIB_API rig_set_chan_all_cb(RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
 {
-	struct rig_caps *rc;
-	int retval;
+    struct rig_caps *rc;
+    int retval;
 
-	if (CHECK_RIG_ARG(rig) || !chan_cb)
-		return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	rc = rig->caps;
+    if (CHECK_RIG_ARG(rig) || !chan_cb) {
+        return -RIG_EINVAL;
+    }
 
-	if (rc->set_chan_all_cb)
-		return rc->set_chan_all_cb(rig, chan_cb, arg);
+    rc = rig->caps;
 
+    if (rc->set_chan_all_cb) {
+        return rc->set_chan_all_cb(rig, chan_cb, arg);
+    }
 
-	/* if not available, emulate it */
-	retval = set_chan_all_cb_generic (rig, chan_cb, arg);
+    /* if not available, emulate it */
+    retval = set_chan_all_cb_generic(rig, chan_cb, arg);
 
-	return retval;
+    return retval;
 }
+
 
 /**
  * \brief get all channel data, by callback
- * \param rig	The rig handle
- * \param chan_cb	Pointer to a callback function to retrieve channel data
- * \param arg	Arbitrary argument passed back to \a chan_cb
+ * \param rig       The rig handle
+ * \param chan_cb   Pointer to a callback function to retrieve channel data
+ * \param arg       Arbitrary argument passed back to \a chan_cb
  *
  *  Retrieves the data associated with a all the memory channels.
  *  This is the preferred method to support clonable rigs.
@@ -862,31 +1021,35 @@ int HAMLIB_API rig_set_chan_all_cb (RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
  *
  * \sa rig_get_chan_all(), rig_set_chan_all_cb()
  */
-int HAMLIB_API rig_get_chan_all_cb (RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
+int HAMLIB_API rig_get_chan_all_cb(RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
 {
-	struct rig_caps *rc;
-	int retval;
+    struct rig_caps *rc;
+    int retval;
 
-	if (CHECK_RIG_ARG(rig) || !chan_cb)
-		return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	rc = rig->caps;
+    if (CHECK_RIG_ARG(rig) || !chan_cb) {
+        return -RIG_EINVAL;
+    }
 
-	if (rc->get_chan_all_cb)
-		return rc->get_chan_all_cb(rig, chan_cb, arg);
+    rc = rig->caps;
+
+    if (rc->get_chan_all_cb) {
+        return rc->get_chan_all_cb(rig, chan_cb, arg);
+    }
 
 
-	/* if not available, emulate it */
-	retval = get_chan_all_cb_generic (rig, chan_cb, arg);
+    /* if not available, emulate it */
+    retval = get_chan_all_cb_generic(rig, chan_cb, arg);
 
-	return retval;
+    return retval;
 }
 
 
 /**
  * \brief set all channel data
- * \param rig	The rig handle
- * \param chans	The location of data to set for all channels
+ * \param rig   The rig handle
+ * \param chans The location of data to set for all channels
  *
  * Write the data associated with all the memory channels.
  *
@@ -896,33 +1059,37 @@ int HAMLIB_API rig_get_chan_all_cb (RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
  *
  * \sa rig_set_chan_all_cb(), rig_get_chan_all()
  */
-int HAMLIB_API rig_set_chan_all (RIG *rig, const channel_t chans[])
+int HAMLIB_API rig_set_chan_all(RIG *rig, const channel_t chans[])
 {
-	struct rig_caps *rc;
-	struct map_all_s map_arg;
-	int retval;
+    struct rig_caps *rc;
+    struct map_all_s map_arg;
+    int retval;
 
-	if (CHECK_RIG_ARG(rig) || !chans)
-		return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	rc = rig->caps;
-	map_arg.chans = (channel_t *) chans;
+    if (CHECK_RIG_ARG(rig) || !chans) {
+        return -RIG_EINVAL;
+    }
 
-	if (rc->set_chan_all_cb)
-		return rc->set_chan_all_cb(rig, map_chan, (rig_ptr_t)&map_arg);
+    rc = rig->caps;
+    map_arg.chans = (channel_t *) chans;
+
+    if (rc->set_chan_all_cb) {
+        return rc->set_chan_all_cb(rig, map_chan, (rig_ptr_t)&map_arg);
+    }
 
 
-	/* if not available, emulate it */
-	retval = set_chan_all_cb_generic (rig, map_chan, (rig_ptr_t)&map_arg);
+    /* if not available, emulate it */
+    retval = set_chan_all_cb_generic(rig, map_chan, (rig_ptr_t)&map_arg);
 
-	return retval;
+    return retval;
 }
 
 
 /**
  * \brief get all channel data
- * \param rig	The rig handle
- * \param chans	The location where to store all the channel data
+ * \param rig   The rig handle
+ * \param chans The location where to store all the channel data
  *
  * Retrieves the data associated with all the memory channels.
  *
@@ -932,76 +1099,90 @@ int HAMLIB_API rig_set_chan_all (RIG *rig, const channel_t chans[])
  *
  * \sa rig_get_chan_all_cb(), rig_set_chan_all()
  */
-int HAMLIB_API rig_get_chan_all (RIG *rig, channel_t chans[])
+int HAMLIB_API rig_get_chan_all(RIG *rig, channel_t chans[])
 {
-	struct rig_caps *rc;
-	struct map_all_s map_arg;
-	int retval;
+    struct rig_caps *rc;
+    struct map_all_s map_arg;
+    int retval;
 
-	if (CHECK_RIG_ARG(rig) || !chans)
-		return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	rc = rig->caps;
-	map_arg.chans = chans;
+    if (CHECK_RIG_ARG(rig) || !chans) {
+        return -RIG_EINVAL;
+    }
 
-	if (rc->get_chan_all_cb)
-		return rc->get_chan_all_cb(rig, map_chan, (rig_ptr_t)&map_arg);
+    rc = rig->caps;
+    map_arg.chans = chans;
 
-	/*
-	 * if not available, emulate it
-	 *
-	 * TODO: save_current_state, restore_current_state
-	 */
-	retval = get_chan_all_cb_generic (rig, map_chan, (rig_ptr_t)&map_arg);
+    if (rc->get_chan_all_cb) {
+        return rc->get_chan_all_cb(rig, map_chan, (rig_ptr_t)&map_arg);
+    }
 
-	return retval;
+    /*
+     * if not available, emulate it
+     *
+     * TODO: save_current_state, restore_current_state
+     */
+    retval = get_chan_all_cb_generic(rig, map_chan, (rig_ptr_t)&map_arg);
+
+    return retval;
 }
 
-int HAMLIB_API rig_copy_channel(RIG *rig, channel_t *dest, const channel_t *src)
+
+int HAMLIB_API rig_copy_channel(RIG *rig,
+                                channel_t *dest,
+                                const channel_t *src)
 {
-	struct ext_list *saved_ext_levels;
-	int i;
+    struct ext_list *saved_ext_levels;
+    int i;
 
-	/* TODO: ext_levels[] of different sizes */
-	for (i=0; !RIG_IS_EXT_END(src->ext_levels[i]) &&
-			!RIG_IS_EXT_END(dest->ext_levels[i]); i++) {
-		dest->ext_levels[i] = src->ext_levels[i];
-	}
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	saved_ext_levels = dest->ext_levels;
-	memcpy(dest, src, sizeof(channel_t));
-	dest->ext_levels = saved_ext_levels;
+    /* TODO: ext_levels[] of different sizes */
+    for (i = 0; !RIG_IS_EXT_END(src->ext_levels[i])
+         && !RIG_IS_EXT_END(dest->ext_levels[i]); i++) {
+            dest->ext_levels[i] = src->ext_levels[i];
+    }
 
-	return RIG_OK;
+    saved_ext_levels = dest->ext_levels;
+    memcpy(dest, src, sizeof(channel_t));
+    dest->ext_levels = saved_ext_levels;
+
+    return RIG_OK;
 }
 
 #ifndef DOC_HIDDEN
-static int map_parm (RIG *rig, const struct confparams *cfgps, value_t *value,
-		rig_ptr_t arg)
+
+
+static int map_parm(RIG *rig, const struct confparams *cfgps, value_t *value,
+                    rig_ptr_t arg)
 {
-	return -RIG_ENIMPL;
+    return -RIG_ENIMPL;
 }
 
-int get_parm_all_cb_generic (RIG *rig, confval_cb_t parm_cb, rig_ptr_t cfgps,
-			rig_ptr_t vals)
+
+int get_parm_all_cb_generic(RIG *rig, confval_cb_t parm_cb, rig_ptr_t cfgps,
+                            rig_ptr_t vals)
 {
-	return -RIG_ENIMPL;
+    return -RIG_ENIMPL;
 }
 
-int set_parm_all_cb_generic (RIG *rig, confval_cb_t parm_cb, rig_ptr_t cfgps,
-			rig_ptr_t vals)
+
+int set_parm_all_cb_generic(RIG *rig, confval_cb_t parm_cb, rig_ptr_t cfgps,
+                            rig_ptr_t vals)
 {
-	return -RIG_ENIMPL;
+    return -RIG_ENIMPL;
 }
 
-#endif	/* DOC_HIDDEN */
+#endif  /* DOC_HIDDEN */
+
 
 /**
  * \brief set all channel and non-channel data by call-back
- * \param rig	The rig handle
- * \param chan_cb	The callback for channel data
- * \param parm_cb	The callback for non-channel(aka parm) data
- * \param arg	Cookie passed to \a chan_cb and \a parm_cb
+ * \param rig       The rig handle
+ * \param chan_cb   The callback for channel data
+ * \param parm_cb   The callback for non-channel(aka parm) data
+ * \param arg       Cookie passed to \a chan_cb and \a parm_cb
  *
  * Writes the data associated with all the memory channels,
  * and rigs memory parameters, by callback.
@@ -1014,42 +1195,55 @@ int set_parm_all_cb_generic (RIG *rig, confval_cb_t parm_cb, rig_ptr_t cfgps,
  * \sa rig_get_mem_all_cb(), rig_set_mem_all()
  * \todo finish coding and testing of mem_all functions
  */
-int HAMLIB_API rig_set_mem_all_cb (RIG *rig, chan_cb_t chan_cb, confval_cb_t parm_cb, rig_ptr_t arg)
+int HAMLIB_API rig_set_mem_all_cb(RIG *rig,
+                                  chan_cb_t chan_cb,
+                                  confval_cb_t parm_cb,
+                                  rig_ptr_t arg)
 {
-	struct rig_caps *rc;
-	int retval;
+    struct rig_caps *rc;
+    int retval;
 
-	if (CHECK_RIG_ARG(rig) || !chan_cb)
-		return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	rc = rig->caps;
+    if (CHECK_RIG_ARG(rig) || !chan_cb) {
+        return -RIG_EINVAL;
+    }
 
-	if (rc->set_mem_all_cb)
-		return rc->set_mem_all_cb(rig, chan_cb, parm_cb, arg);
+    rc = rig->caps;
+
+    if (rc->set_mem_all_cb) {
+        return rc->set_mem_all_cb(rig, chan_cb, parm_cb, arg);
+    }
 
 
-	/* if not available, emulate it */
-	retval = rig_set_chan_all_cb (rig, chan_cb, arg);
-	if (retval != RIG_OK)
-		return retval;
+    /* if not available, emulate it */
+    retval = rig_set_chan_all_cb(rig, chan_cb, arg);
+
+    if (retval != RIG_OK) {
+        return retval;
+    }
 
 #if 0
-	retval = rig_set_parm_all_cb (rig, parm_cb, arg);
-	if (retval != RIG_OK)
-		return retval;
+    retval = rig_set_parm_all_cb(rig, parm_cb, arg);
+
+    if (retval != RIG_OK) {
+        return retval;
+    }
+
 #else
-	return -RIG_ENIMPL;
+    return -RIG_ENIMPL;
 #endif
 
-	return retval;
+    return retval;
 }
+
 
 /**
  * \brief get all channel and non-channel data by call-back
- * \param rig	The rig handle
- * \param chan_cb	The callback for channel data
- * \param parm_cb	The callback for non-channel(aka parm) data
- * \param arg	Cookie passed to \a chan_cb and \a parm_cb
+ * \param rig       The rig handle
+ * \param chan_cb   The callback for channel data
+ * \param parm_cb   The callback for non-channel(aka parm) data
+ * \param arg       Cookie passed to \a chan_cb and \a parm_cb
  *
  * Retrieves the data associated with all the memory channels,
  * and rigs memory parameters, by callback.
@@ -1064,42 +1258,54 @@ int HAMLIB_API rig_set_mem_all_cb (RIG *rig, chan_cb_t chan_cb, confval_cb_t par
  * \todo get all parm's
  * \todo finish coding and testing of mem_all functions
  */
-int HAMLIB_API rig_get_mem_all_cb (RIG *rig, chan_cb_t chan_cb, confval_cb_t parm_cb, rig_ptr_t arg)
+int HAMLIB_API rig_get_mem_all_cb(RIG *rig,
+                                  chan_cb_t chan_cb,
+                                  confval_cb_t parm_cb,
+                                  rig_ptr_t arg)
 {
-	struct rig_caps *rc;
-	int retval;
+    struct rig_caps *rc;
+    int retval;
 
-	if (CHECK_RIG_ARG(rig) || !chan_cb)
-		return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	rc = rig->caps;
+    if (CHECK_RIG_ARG(rig) || !chan_cb) {
+        return -RIG_EINVAL;
+    }
 
-	if (rc->get_mem_all_cb)
-		return rc->get_mem_all_cb(rig, chan_cb, parm_cb, arg);
+    rc = rig->caps;
 
+    if (rc->get_mem_all_cb) {
+        return rc->get_mem_all_cb(rig, chan_cb, parm_cb, arg);
+    }
 
-	/* if not available, emulate it */
-	retval = rig_get_chan_all_cb (rig, chan_cb, arg);
-	if (retval != RIG_OK)
-		return retval;
+    /* if not available, emulate it */
+    retval = rig_get_chan_all_cb(rig, chan_cb, arg);
+
+    if (retval != RIG_OK) {
+        return retval;
+    }
 
 #if 0
-	retval = rig_get_parm_cb (rig, parm_cb, arg);
-	if (retval != RIG_OK)
-		return retval;
+    retval = rig_get_parm_cb(rig, parm_cb, arg);
+
+    if (retval != RIG_OK) {
+        return retval;
+    }
+
 #else
-	return -RIG_ENIMPL;
+    return -RIG_ENIMPL;
 #endif
 
-	return retval;
+    return retval;
 }
+
 
 /**
  * \brief set all channel and non-channel data
- * \param rig	The rig handle
- * \param chans	Channel data
- * \param cfgps	??
- * \param vals	??
+ * \param rig   The rig handle
+ * \param chans Channel data
+ * \param cfgps ??
+ * \param vals  ??
  *
  * Writes the data associated with all the memory channels,
  * and rigs memory parameters.
@@ -1113,46 +1319,58 @@ int HAMLIB_API rig_get_mem_all_cb (RIG *rig, chan_cb_t chan_cb, confval_cb_t par
  * \todo set all parm's
  * \todo finish coding and testing of mem_all functions
  */
-int HAMLIB_API rig_set_mem_all (RIG *rig, const channel_t chans[], const struct confparams cfgps[], const value_t vals[])
+int HAMLIB_API rig_set_mem_all(RIG *rig,
+                               const channel_t chans[],
+                               const struct confparams cfgps[],
+                               const value_t vals[])
 {
-	struct rig_caps *rc;
-	int retval;
-	struct map_all_s mem_all_arg;
+    struct rig_caps *rc;
+    int retval;
+    struct map_all_s mem_all_arg;
 
-	if (CHECK_RIG_ARG(rig) || !chans || !cfgps || !vals)
-		return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	rc = rig->caps;
-	mem_all_arg.chans = (channel_t *) chans;
-	mem_all_arg.cfgps = cfgps;
-	mem_all_arg.vals = (value_t *) vals;
+    if (CHECK_RIG_ARG(rig) || !chans || !cfgps || !vals) {
+        return -RIG_EINVAL;
+    }
 
-	if (rc->set_mem_all_cb)
-		return rc->set_mem_all_cb(rig, map_chan, map_parm,
-				(rig_ptr_t)&mem_all_arg);
+    rc = rig->caps;
+    mem_all_arg.chans = (channel_t *) chans;
+    mem_all_arg.cfgps = cfgps;
+    mem_all_arg.vals = (value_t *) vals;
 
-	/* if not available, emulate it */
-	retval = rig_set_chan_all (rig, chans);
-	if (retval != RIG_OK)
-		return retval;
+    if (rc->set_mem_all_cb)
+        return rc->set_mem_all_cb(rig, map_chan, map_parm,
+                                  (rig_ptr_t)&mem_all_arg);
+
+    /* if not available, emulate it */
+    retval = rig_set_chan_all(rig, chans);
+
+    if (retval != RIG_OK) {
+        return retval;
+    }
 
 #if 0
-	retval = rig_set_parm_all (rig, parms);
-	if (retval != RIG_OK)
-		return retval;
+    retval = rig_set_parm_all(rig, parms);
+
+    if (retval != RIG_OK) {
+        return retval;
+    }
+
 #else
-	return -RIG_ENIMPL;
+    return -RIG_ENIMPL;
 #endif
 
-	return retval;
+    return retval;
 }
+
 
 /**
  * \brief get all channel and non-channel data
- * \param rig	The rig handle
- * \param chans	Array of channels where to store the data
- * \param cfgps	Array of config parameters to retrieve
- * \param vals	Array of values where to store the data
+ * \param rig   The rig handle
+ * \param chans Array of channels where to store the data
+ * \param cfgps Array of config parameters to retrieve
+ * \param vals  Array of values where to store the data
  *
  * Retrieves the data associated with all the memory channels,
  * and rigs memory parameters.
@@ -1165,43 +1383,53 @@ int HAMLIB_API rig_set_mem_all (RIG *rig, const channel_t chans[], const struct 
  * \sa rig_get_mem_all(), rig_set_mem_all_cb()
  * \todo finish coding and testing of mem_all functions
  */
-int HAMLIB_API rig_get_mem_all (RIG *rig, channel_t chans[], const struct confparams cfgps[], value_t vals[])
+int HAMLIB_API rig_get_mem_all(RIG *rig,
+                               channel_t chans[],
+                               const struct confparams cfgps[],
+                               value_t vals[])
 {
-	struct rig_caps *rc;
-	int retval;
-	struct map_all_s mem_all_arg;
+    struct rig_caps *rc;
+    int retval;
+    struct map_all_s mem_all_arg;
 
-	if (CHECK_RIG_ARG(rig) || !chans || !cfgps || !vals)
-		return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	rc = rig->caps;
-	mem_all_arg.chans = chans;
-	mem_all_arg.cfgps = cfgps;
-	mem_all_arg.vals = vals;
+    if (CHECK_RIG_ARG(rig) || !chans || !cfgps || !vals) {
+        return -RIG_EINVAL;
+    }
 
-	if (rc->get_mem_all_cb)
-		return rc->get_mem_all_cb(rig, map_chan, map_parm,
-				(rig_ptr_t)&mem_all_arg);
+    rc = rig->caps;
+    mem_all_arg.chans = chans;
+    mem_all_arg.cfgps = cfgps;
+    mem_all_arg.vals = vals;
 
-	/*
-	 * if not available, emulate it
-	 *
-	 * TODO: save_current_state, restore_current_state
-	 */
-	retval = rig_get_chan_all (rig, chans);
-	if (retval != RIG_OK)
-		return retval;
+    if (rc->get_mem_all_cb)
+        return rc->get_mem_all_cb(rig, map_chan, map_parm,
+                                  (rig_ptr_t)&mem_all_arg);
 
-	retval = get_parm_all_cb_generic (rig, map_parm, (rig_ptr_t)cfgps,
-			(rig_ptr_t)vals);
+    /*
+     * if not available, emulate it
+     *
+     * TODO: save_current_state, restore_current_state
+     */
+    retval = rig_get_chan_all(rig, chans);
 
-	return retval;
+    if (retval != RIG_OK) {
+        return retval;
+    }
+
+    retval = get_parm_all_cb_generic(rig, map_parm,
+                                     (rig_ptr_t)cfgps,
+                                     (rig_ptr_t)vals);
+
+    return retval;
 }
+
 
 /**
  * \brief lookup the memory type and capabilities
- * \param rig	The rig handle
- * \param ch	The memory channel number
+ * \param rig   The rig handle
+ * \param ch    The memory channel number
  *
  *  Lookup the memory type and capabilities associated with a channel number.
  *  If \a ch equals RIG_MEM_CAPS_ALL, then a union of all the mem_caps sets
@@ -1211,54 +1439,59 @@ int HAMLIB_API rig_get_mem_all (RIG *rig, channel_t chans[], const struct confpa
  * otherwise a NULL pointer, most probably because of incorrect channel number
  * or buggy backend.
  */
-
-const chan_t * HAMLIB_API rig_lookup_mem_caps(RIG *rig, int ch)
+const chan_t *HAMLIB_API rig_lookup_mem_caps(RIG *rig, int ch)
 {
-	chan_t *chan_list;
-	static chan_t chan_list_all;
-	int i, j;
+    chan_t *chan_list;
+    static chan_t chan_list_all;
+    int i, j;
 
-	if (CHECK_RIG_ARG(rig))
-		return NULL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	if (ch == RIG_MEM_CAPS_ALL)
-	{
-		memset (&chan_list_all, 0, sizeof(chan_list_all));
-		chan_list = rig->state.chan_list;
-		chan_list_all.start = chan_list[0].start;
-		chan_list_all.type = RIG_MTYPE_NONE;	/* meaningless */
-		for (i=0; i<CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++) {
+    if (CHECK_RIG_ARG(rig)) {
+        return NULL;
+    }
 
-			unsigned char *p1, *p2;
-			p1=(unsigned char*)&chan_list_all.mem_caps;
-			p2=(unsigned char*)&chan_list[i].mem_caps;
-			/* It's kind of hackish, we just want to do update set with:
-			 * 	chan_list_all.mem_caps |= chan_list[i].mem_caps
-			 */
-			for (j=0; j<sizeof(channel_cap_t); j++) {
-				p1[j] |= p2[j];
-			}
+    if (ch == RIG_MEM_CAPS_ALL) {
+        memset(&chan_list_all, 0, sizeof(chan_list_all));
+        chan_list = rig->state.chan_list;
+        chan_list_all.start = chan_list[0].start;
+        chan_list_all.type = RIG_MTYPE_NONE;    /* meaningless */
 
-			/* til the end, most probably meaningless */
-			chan_list_all.end = chan_list[i].end;
-		}
+        for (i = 0; i < CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++) {
 
-		return &chan_list_all;
-	}
+            unsigned char *p1, *p2;
+            p1 = (unsigned char *)&chan_list_all.mem_caps;
+            p2 = (unsigned char *)&chan_list[i].mem_caps;
 
-	chan_list = rig->state.chan_list;
-	for (i=0; i<CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++) {
-		if (ch >= chan_list[i].start && ch <= chan_list[i].end) {
-			return &chan_list[i];
-		}
-	}
+            /* It's kind of hackish, we just want to do update set with:
+             *  chan_list_all.mem_caps |= chan_list[i].mem_caps
+             */
+            for (j = 0; j < sizeof(channel_cap_t); j++) {
+                p1[j] |= p2[j];
+            }
 
-	return NULL;
+            /* til the end, most probably meaningless */
+            chan_list_all.end = chan_list[i].end;
+        }
+
+        return &chan_list_all;
+    }
+
+    chan_list = rig->state.chan_list;
+
+    for (i = 0; i < CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++) {
+        if (ch >= chan_list[i].start && ch <= chan_list[i].end) {
+            return &chan_list[i];
+        }
+    }
+
+    return NULL;
 }
+
 
 /**
  * \brief get memory channel count
- * \param rig	The rig handle
+ * \param rig   The rig handle
  *
  *  Get the total memory channel count, computed from the rig caps
  *
@@ -1266,20 +1499,23 @@ const chan_t * HAMLIB_API rig_lookup_mem_caps(RIG *rig, int ch)
  */
 int HAMLIB_API rig_mem_count(RIG *rig)
 {
-	const chan_t *chan_list;
-	int i, count;
+    const chan_t *chan_list;
+    int i, count;
 
-	if (CHECK_RIG_ARG(rig))
-		return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	chan_list = rig->state.chan_list;
-	count = 0;
+    if (CHECK_RIG_ARG(rig)) {
+        return -RIG_EINVAL;
+    }
 
-	for (i=0; i<CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++) {
-		count += chan_list[i].end - chan_list[i].start + 1;
-	}
+    chan_list = rig->state.chan_list;
+    count = 0;
 
-	return count;
+    for (i = 0; i < CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++) {
+        count += chan_list[i].end - chan_list[i].start + 1;
+    }
+
+    return count;
 }
 
 /*! @} */

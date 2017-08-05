@@ -44,7 +44,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "hamlib/rig.h"
+#include <hamlib/rig.h>
 #include "iofunc.h"
 #include "misc.h"
 
@@ -61,83 +61,111 @@
  */
 int HAMLIB_API port_open(hamlib_port_t *p)
 {
-	int status;
-	int want_state_delay = 0;
+    int status;
+    int want_state_delay = 0;
 
-	p->fd = -1;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	switch(p->type.rig) {
-	case RIG_PORT_SERIAL:
-		status = serial_open(p);
-		if (status < 0)
-			return status;
-		if (p->parm.serial.rts_state != RIG_SIGNAL_UNSET &&
-				p->parm.serial.handshake != RIG_HANDSHAKE_HARDWARE) {
-			status = ser_set_rts(p,
-					p->parm.serial.rts_state == RIG_SIGNAL_ON);
-			want_state_delay = 1;
-		}
-		if (status != 0)
-			return status;
-		if (p->parm.serial.dtr_state != RIG_SIGNAL_UNSET) {
-			status = ser_set_dtr(p,
-					p->parm.serial.dtr_state == RIG_SIGNAL_ON);
-			want_state_delay = 1;
-		}
-		if (status != 0)
-			return status;
-		/*
-		 * Wait whatever electrolytics in the circuit come up to voltage.
-		 * Is 100ms enough? Too much?
-		 */
-		if (want_state_delay)
-			usleep(100*1000);
+    p->fd = -1;
 
-		break;
+    switch (p->type.rig) {
+    case RIG_PORT_SERIAL:
+        status = serial_open(p);
 
-	case RIG_PORT_PARALLEL:
-		status = par_open(p);
-		if (status < 0)
-			return status;
-		break;
+        if (status < 0) {
+            return status;
+        }
 
-        case RIG_PORT_CM108:
-                status = cm108_open(p);
-                if (status < 0)
-                        return status;
-                break;
+        if (p->parm.serial.rts_state != RIG_SIGNAL_UNSET
+            && p->parm.serial.handshake != RIG_HANDSHAKE_HARDWARE) {
+                status = ser_set_rts(p,
+                                     p->parm.serial.rts_state == RIG_SIGNAL_ON);
+                want_state_delay = 1;
+        }
 
-	case RIG_PORT_DEVICE:
-		status = open(p->pathname, O_RDWR, 0);
-		if (status < 0)
-			return -RIG_EIO;
-		p->fd = status;
-		break;
+        if (status != 0) {
+            return status;
+        }
 
-	case RIG_PORT_USB:
-		status = usb_port_open(p);
-		if (status < 0)
-			return status;
-		break;
+        if (p->parm.serial.dtr_state != RIG_SIGNAL_UNSET) {
+            status = ser_set_dtr(p,
+                                 p->parm.serial.dtr_state == RIG_SIGNAL_ON);
+            want_state_delay = 1;
+        }
 
-	case RIG_PORT_NONE:
-	case RIG_PORT_RPC:
-		break;	/* ez :) */
+        if (status != 0) {
+            return status;
+        }
 
-	case RIG_PORT_NETWORK:
-	case RIG_PORT_UDP_NETWORK:
+        /*
+         * Wait whatever electrolytics in the circuit come up to voltage.
+         * Is 100ms enough? Too much?
+         */
+        if (want_state_delay) {
+            usleep(100 * 1000);
+        }
+
+        break;
+
+    case RIG_PORT_PARALLEL:
+        status = par_open(p);
+
+        if (status < 0) {
+            return status;
+        }
+
+        break;
+
+    case RIG_PORT_CM108:
+        status = cm108_open(p);
+
+        if (status < 0) {
+            return status;
+        }
+
+        break;
+
+    case RIG_PORT_DEVICE:
+        status = open(p->pathname, O_RDWR, 0);
+
+        if (status < 0) {
+            return -RIG_EIO;
+        }
+
+        p->fd = status;
+        break;
+
+    case RIG_PORT_USB:
+        status = usb_port_open(p);
+
+        if (status < 0) {
+            return status;
+        }
+
+        break;
+
+    case RIG_PORT_NONE:
+    case RIG_PORT_RPC:
+        break;  /* ez :) */
+
+    case RIG_PORT_NETWORK:
+    case RIG_PORT_UDP_NETWORK:
         /* FIXME: hardcoded network port */
-		status = network_open(p, 4532);
-		if (status < 0)
-			return status;
-		break;
+        status = network_open(p, 4532);
 
-	default:
-		return -RIG_EINVAL;
-	}
+        if (status < 0) {
+            return status;
+        }
 
-	return RIG_OK;
+        break;
+
+    default:
+        return -RIG_EINVAL;
+    }
+
+    return RIG_OK;
 }
+
 
 /**
  * \brief Close a hamlib_port
@@ -151,93 +179,119 @@ int HAMLIB_API port_close(hamlib_port_t *p, rig_port_t port_type)
 {
     int ret = RIG_OK;
 
-	if (p->fd != -1) {
-		switch (port_type) {
-		case RIG_PORT_SERIAL:
-			ret = ser_close(p);
-			break;
-		case RIG_PORT_PARALLEL:
-			ret = par_close(p);
-			break;
-		case RIG_PORT_CM108:
-			ret = cm108_close(p);
-			break;
-		case RIG_PORT_USB:
-			ret = usb_port_close(p);
-			break;
-		case RIG_PORT_NETWORK:
-		case RIG_PORT_UDP_NETWORK:
-			ret = network_close(p);
-			break;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-		default:
-		    rig_debug(RIG_DEBUG_ERR, "%s(): Unknown port type %d\n",
-			      __func__, port_type);
-            /* fall through */
-		case RIG_PORT_DEVICE:
-			ret = close(p->fd);
-		}
-		p->fd = -1;
-	}
+    if (p->fd != -1) {
+        switch (port_type) {
+        case RIG_PORT_SERIAL:
+            ret = ser_close(p);
+            break;
 
-	return ret;
+        case RIG_PORT_PARALLEL:
+            ret = par_close(p);
+            break;
+
+        case RIG_PORT_CM108:
+            ret = cm108_close(p);
+            break;
+
+        case RIG_PORT_USB:
+            ret = usb_port_close(p);
+            break;
+
+        case RIG_PORT_NETWORK:
+        case RIG_PORT_UDP_NETWORK:
+            ret = network_close(p);
+            break;
+
+        default:
+            rig_debug(RIG_DEBUG_ERR, "%s(): Unknown port type %d\n",
+                      __func__, port_type);
+
+        /* fall through */
+        case RIG_PORT_DEVICE:
+            ret = close(p->fd);
+        }
+
+        p->fd = -1;
+    }
+
+    return ret;
 }
+
 
 #if defined(WIN32) && !defined(HAVE_TERMIOS_H)
 #include "win32termios.h"
+
 
 /* On MinGW32/MSVC/.. the appropriate accessor must be used
  * depending on the port type, sigh.
  */
 static ssize_t port_read(hamlib_port_t *p, void *buf, size_t count)
 {
-  int i;
-  ssize_t ret;
+    int i;
+    ssize_t ret;
 
-  if (p->type.rig == RIG_PORT_SERIAL) {
-	ret = win32_serial_read(p->fd, buf, count);
-    if (p->parm.serial.data_bits == 7) {
-        unsigned char *pbuf = buf;
-        /* clear MSB */
-        for (i=0; i<ret; i++) {
-            pbuf[i] &= ~0x80;
+    if (p->type.rig == RIG_PORT_SERIAL) {
+        ret = win32_serial_read(p->fd, buf, count);
+
+        if (p->parm.serial.data_bits == 7) {
+            unsigned char *pbuf = buf;
+
+            /* clear MSB */
+            for (i = 0; i < ret; i++) {
+                pbuf[i] &= ~0x80;
+            }
         }
+
+        return ret;
+    } else if (p->type.rig == RIG_PORT_NETWORK
+               || p->type.rig == RIG_PORT_UDP_NETWORK) {
+            return recv(p->fd, buf, count, 0);
+    } else {
+        return read(p->fd, buf, count);
     }
-    return ret;
-  } else if (p->type.rig == RIG_PORT_NETWORK || p->type.rig == RIG_PORT_UDP_NETWORK)
-	return recv(p->fd, buf, count, 0);
-  else
-	return read(p->fd, buf, count);
 }
 
 static ssize_t port_write(hamlib_port_t *p, const void *buf, size_t count)
 {
-  if (p->type.rig == RIG_PORT_SERIAL)
-	return win32_serial_write(p->fd, buf, count);
-  else if (p->type.rig == RIG_PORT_NETWORK || p->type.rig == RIG_PORT_UDP_NETWORK)
-	return send(p->fd, buf, count, 0);
-  else
-	return write(p->fd, buf, count);
+    if (p->type.rig == RIG_PORT_SERIAL) {
+        return win32_serial_write(p->fd, buf, count);
+    } else if (p->type.rig == RIG_PORT_NETWORK
+               || p->type.rig == RIG_PORT_UDP_NETWORK) {
+            return send(p->fd, buf, count, 0);
+    } else {
+        return write(p->fd, buf, count);
+    }
 }
 
-static int port_select(hamlib_port_t *p, int n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout)
+
+static int port_select(hamlib_port_t *p, int n, fd_set *readfds,
+                       fd_set *writefds, fd_set *exceptfds,
+                       struct timeval *timeout)
 {
 #if 1
-  /* select does not work very well with writefds/exceptfds
-   * So let's pretend there's none of them
-   */
-  if (exceptfds)
- 	FD_ZERO(exceptfds);
-  if (writefds)
- 	FD_ZERO(writefds);
-  writefds = NULL;
-  exceptfds = NULL;
+
+    /* select does not work very well with writefds/exceptfds
+     * So let's pretend there's none of them
+     */
+    if (exceptfds) {
+        FD_ZERO(exceptfds);
+    }
+
+    if (writefds) {
+        FD_ZERO(writefds);
+    }
+
+    writefds = NULL;
+    exceptfds = NULL;
 #endif
 
-  if (p->type.rig == RIG_PORT_SERIAL)
-	return win32_serial_select(n, readfds, writefds, exceptfds, timeout);
-  else
-	return select(n, readfds, writefds, exceptfds, timeout);
+    if (p->type.rig == RIG_PORT_SERIAL) {
+        return win32_serial_select(n, readfds, writefds, exceptfds, timeout);
+    } else {
+        return select(n, readfds, writefds, exceptfds, timeout);
+    }
 }
 
 
@@ -247,21 +301,23 @@ static int port_select(hamlib_port_t *p, int n, fd_set *readfds, fd_set *writefd
 
 static ssize_t port_read(hamlib_port_t *p, void *buf, size_t count)
 {
-  int i;
-  ssize_t ret;
+    int i;
+    ssize_t ret;
 
-  if (p->type.rig == RIG_PORT_SERIAL && p->parm.serial.data_bits == 7) {
-    unsigned char *pbuf = buf;
+    if (p->type.rig == RIG_PORT_SERIAL && p->parm.serial.data_bits == 7) {
+        unsigned char *pbuf = buf;
 
-	ret = read(p->fd, buf, count);
-    /* clear MSB */
-    for (i=0; i<ret; i++) {
-        pbuf[i] &= ~0x80;
+        ret = read(p->fd, buf, count);
+
+        /* clear MSB */
+        for (i = 0; i < ret; i++) {
+            pbuf[i] &= ~0x80;
+        }
+
+        return ret;
+    } else {
+        return read(p->fd, buf, count);
     }
-    return ret;
-  } else {
-      return read(p->fd, buf, count);
-  }
 }
 
 #define port_write(p,b,c) write((p)->fd,(b),(c))
@@ -300,67 +356,77 @@ static ssize_t port_read(hamlib_port_t *p, void *buf, size_t count)
 
 int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
 {
-  int i, ret;
+    int i, ret;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
 #ifdef WANT_NON_ACTIVE_POST_WRITE_DELAY
-  if (p->post_write_date.tv_sec != 0) {
-		  signed int date_delay;	/* in us */
-		  struct timeval tv;
 
-		  /* FIXME in Y2038 ... */
-		  gettimeofday(&tv, NULL);
-		  date_delay = p->post_write_delay*1000 -
-				  		((tv.tv_sec - p->post_write_date.tv_sec)*1000000 +
-				  		 (tv.tv_usec - p->post_write_date.tv_usec));
-		  if (date_delay > 0) {
-				/*
-				 * optional delay after last write
-				 */
-				usleep(date_delay);
-		  }
-		  p->post_write_date.tv_sec = 0;
-  }
+    if (p->post_write_date.tv_sec != 0) {
+        signed int date_delay;    /* in us */
+        struct timeval tv;
+
+        /* FIXME in Y2038 ... */
+        gettimeofday(&tv, NULL);
+        date_delay = p->post_write_delay * 1000 -
+                     ((tv.tv_sec - p->post_write_date.tv_sec) * 1000000 +
+                      (tv.tv_usec - p->post_write_date.tv_usec));
+
+        if (date_delay > 0) {
+            /*
+             * optional delay after last write
+             */
+            usleep(date_delay);
+        }
+
+        p->post_write_date.tv_sec = 0;
+    }
+
 #endif
 
-  if (p->write_delay > 0) {
-  	for (i=0; i < count; i++) {
-		ret = port_write(p, txbuffer+i, 1);
-		if (ret != 1) {
-			rig_debug(RIG_DEBUG_ERR,"%s():%d failed %d - %s\n",
-				__func__, __LINE__, ret, strerror(errno));
-			return -RIG_EIO;
-    	}
-    	usleep(p->write_delay*1000);
-  	}
-  } else {
-	ret = port_write(p, txbuffer, count);
-	if (ret != count) {
-		rig_debug(RIG_DEBUG_ERR,"%s():%d failed %d - %s\n",
-			__func__, __LINE__, ret, strerror(errno));
-		return -RIG_EIO;
-    	}
-  }
+    if (p->write_delay > 0) {
+        for (i = 0; i < count; i++) {
+            ret = port_write(p, txbuffer + i, 1);
 
-  if (p->post_write_delay > 0) {
+            if (ret != 1) {
+                rig_debug(RIG_DEBUG_ERR, "%s():%d failed %d - %s\n",
+                          __func__, __LINE__, ret, strerror(errno));
+                return -RIG_EIO;
+            }
+
+            usleep(p->write_delay * 1000);
+        }
+    } else {
+        ret = port_write(p, txbuffer, count);
+
+        if (ret != count) {
+            rig_debug(RIG_DEBUG_ERR, "%s():%d failed %d - %s\n",
+                      __func__, __LINE__, ret, strerror(errno));
+            return -RIG_EIO;
+        }
+    }
+
+    if (p->post_write_delay > 0) {
 #ifdef WANT_NON_ACTIVE_POST_WRITE_DELAY
 #define POST_WRITE_DELAY_TRSHLD 10
 
-	if (p->post_write_delay > POST_WRITE_DELAY_TRSHLD) {
-		struct timeval tv;
-		gettimeofday(&tv, NULL);
-		p->post_write_date.tv_sec = tv.tv_sec;
-		p->post_write_date.tv_usec = tv.tv_usec;
-	}
-	else
+        if (p->post_write_delay > POST_WRITE_DELAY_TRSHLD) {
+            struct timeval tv;
+            gettimeofday(&tv, NULL);
+            p->post_write_date.tv_sec = tv.tv_sec;
+            p->post_write_date.tv_usec = tv.tv_usec;
+        } else
 #endif
-    usleep(p->post_write_delay*1000); /* optional delay after last write */
-				   /* otherwise some yaesu rigs get confused */
-				   /* with sequential fast writes*/
-  }
-  rig_debug(RIG_DEBUG_TRACE,"%s(): TX %d bytes\n", __func__, count);
-  dump_hex((unsigned char *) txbuffer,count);
+            usleep(p->post_write_delay * 1000); /* optional delay after last write */
 
-  return RIG_OK;
+        /* otherwise some yaesu rigs get confused */
+        /* with sequential fast writes*/
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s(): TX %d bytes\n", __func__, count);
+    dump_hex((unsigned char *) txbuffer, count);
+
+    return RIG_OK;
 }
 
 
@@ -384,73 +450,90 @@ int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
 
 int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
 {
-  fd_set rfds, efds;
-  struct timeval tv, tv_timeout, start_time, end_time, elapsed_time;
-  int rd_count, total_count = 0;
-  int retval;
+    fd_set rfds, efds;
+    struct timeval tv, tv_timeout, start_time, end_time, elapsed_time;
+    int rd_count, total_count = 0;
+    int retval;
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  /*
-   * Wait up to timeout ms.
-   */
-  tv_timeout.tv_sec = p->timeout/1000;
-  tv_timeout.tv_usec = (p->timeout%1000)*1000;
+    /*
+     * Wait up to timeout ms.
+     */
+    tv_timeout.tv_sec = p->timeout / 1000;
+    tv_timeout.tv_usec = (p->timeout % 1000) * 1000;
 
-  /* Store the time of the read loop start */
-  gettimeofday(&start_time, NULL);
+    /* Store the time of the read loop start */
+    gettimeofday(&start_time, NULL);
 
-  while (count > 0) {
-	tv = tv_timeout;	/* select may have updated it */
+    while (count > 0) {
+        tv = tv_timeout;    /* select may have updated it */
 
-	FD_ZERO(&rfds);
-	FD_SET(p->fd, &rfds);
-	efds = rfds;
+        FD_ZERO(&rfds);
+        FD_SET(p->fd, &rfds);
+        efds = rfds;
 
-	retval = port_select(p, p->fd+1, &rfds, NULL, &efds, &tv);
-	if (retval == 0) {
-		/* Record timeout time and caculate elapsed time */
-		gettimeofday(&end_time, NULL);
-		timersub(&end_time, &start_time, &elapsed_time);
+        retval = port_select(p, p->fd + 1, &rfds, NULL, &efds, &tv);
 
-		dump_hex((unsigned char *) rxbuffer, total_count);
-		rig_debug(RIG_DEBUG_WARN, "%s(): Timed out %d.%d seconds after %d chars\n",
-			  __func__, elapsed_time.tv_sec, elapsed_time.tv_usec, total_count);
+        if (retval == 0) {
+            /* Record timeout time and caculate elapsed time */
+            gettimeofday(&end_time, NULL);
+            timersub(&end_time, &start_time, &elapsed_time);
 
-		return -RIG_ETIMEOUT;
-	}
-	if (retval < 0) {
-		dump_hex((unsigned char *) rxbuffer, total_count);
-		rig_debug(RIG_DEBUG_ERR,"%s(): select() error after %d chars: %s\n",
-			  __func__, total_count, strerror(errno));
+            dump_hex((unsigned char *) rxbuffer, total_count);
+            rig_debug(RIG_DEBUG_WARN,
+                      "%s(): Timed out %d.%d seconds after %d chars\n",
+                      __func__,
+                      elapsed_time.tv_sec,
+                      elapsed_time.tv_usec,
+                      total_count);
 
-		return -RIG_EIO;
-	}
-	if (FD_ISSET(p->fd, &efds)) {
-		rig_debug(RIG_DEBUG_ERR, "%s(): fd error after %d chars\n",
-			  __func__, total_count);
+            return -RIG_ETIMEOUT;
+        }
 
-		return -RIG_EIO;
-	}
+        if (retval < 0) {
+            dump_hex((unsigned char *) rxbuffer, total_count);
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s(): select() error after %d chars: %s\n",
+                      __func__,
+                      total_count,
+                      strerror(errno));
 
-	/*
-	 * grab bytes from the rig
-	 * The file descriptor must have been set up non blocking.
-	 */
-	rd_count = port_read(p, rxbuffer+total_count, count);
-	if (rd_count < 0) {
-		rig_debug(RIG_DEBUG_ERR, "%s(): read() failed - %s\n",
-			  __func__, strerror(errno));
+            return -RIG_EIO;
+        }
 
-		return -RIG_EIO;
-	}
-	total_count += rd_count;
-	count -= rd_count;
-  }
+        if (FD_ISSET(p->fd, &efds)) {
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s(): fd error after %d chars\n",
+                      __func__,
+                      total_count);
 
-  rig_debug(RIG_DEBUG_TRACE,"%s(): RX %d bytes\n", __func__, total_count);
-  dump_hex((unsigned char *) rxbuffer, total_count);
+            return -RIG_EIO;
+        }
 
-  return total_count;			/* return bytes count read */
+        /*
+         * grab bytes from the rig
+         * The file descriptor must have been set up non blocking.
+         */
+        rd_count = port_read(p, rxbuffer + total_count, count);
+
+        if (rd_count < 0) {
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s(): read() failed - %s\n",
+                      __func__,
+                      strerror(errno));
+
+            return -RIG_EIO;
+        }
+
+        total_count += rd_count;
+        count -= rd_count;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s(): RX %d bytes\n", __func__, total_count);
+    dump_hex((unsigned char *) rxbuffer, total_count);
+
+    return total_count;           /* return bytes count read */
 }
 
 
@@ -479,89 +562,119 @@ int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
  *
  * Assumes rxbuffer!=NULL
  */
-int HAMLIB_API read_string(hamlib_port_t *p, char *rxbuffer, size_t rxmax, const char *stopset,
-				int stopset_len)
+int HAMLIB_API read_string(hamlib_port_t *p, char *rxbuffer, size_t rxmax,
+                           const char *stopset,
+                           int stopset_len)
 {
-  fd_set rfds, efds;
-  struct timeval tv, tv_timeout, start_time, end_time, elapsed_time;
-  int rd_count, total_count = 0;
-  int retval;
+    fd_set rfds, efds;
+    struct timeval tv, tv_timeout, start_time, end_time, elapsed_time;
+    int rd_count, total_count = 0;
+    int retval;
 
-	if (!p || !rxbuffer) return -RIG_EINVAL;
-	if (rxmax < 1) return 0;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  /*
-   * Wait up to timeout ms.
-   */
-  tv_timeout.tv_sec = p->timeout/1000;
-  tv_timeout.tv_usec = (p->timeout%1000)*1000;
-
-  /* Store the time of the read loop start */
-  gettimeofday(&start_time, NULL);
-
-  while (total_count < rxmax-1) {
-	tv = tv_timeout;	/* select may have updated it */
-
-	FD_ZERO(&rfds);
-	FD_SET(p->fd, &rfds);
-	efds = rfds;
-
-	retval = port_select(p, p->fd+1, &rfds, NULL, &efds, &tv);
-	if (retval == 0) {
-    if (0 == total_count) {
-      /* Record timeout time and caculate elapsed time */
-      gettimeofday(&end_time, NULL);
-      timersub(&end_time, &start_time, &elapsed_time);
-
-      dump_hex((unsigned char *) rxbuffer, total_count);
-      rig_debug(RIG_DEBUG_WARN, "%s(): Timed out %d.%d seconds after %d chars\n",
-                __func__, elapsed_time.tv_sec, elapsed_time.tv_usec, total_count);
-
-      return -RIG_ETIMEOUT;
+    if (!p || !rxbuffer) {
+        return -RIG_EINVAL;
     }
-    break;                      /* return what we have read */
-  }
 
-	if (retval < 0) {
-		dump_hex((unsigned char *) rxbuffer, total_count);
-		rig_debug(RIG_DEBUG_ERR, "%s(): select() error after %d chars: %s\n",
-			  __func__, total_count, strerror(errno));
+    if (rxmax < 1) {
+        return 0;
+    }
 
-		return -RIG_EIO;
-	}
-	if (FD_ISSET(p->fd, &efds)) {
-		rig_debug(RIG_DEBUG_ERR, "%s(): fd error after %d chars\n",
-			  __func__, total_count);
+    /*
+     * Wait up to timeout ms.
+     */
+    tv_timeout.tv_sec = p->timeout / 1000;
+    tv_timeout.tv_usec = (p->timeout % 1000) * 1000;
 
-		return -RIG_EIO;
-	}
+    /* Store the time of the read loop start */
+    gettimeofday(&start_time, NULL);
 
-	/*
-       	 * read 1 character from the rig, (check if in stop set)
-	 * The file descriptor must have been set up non blocking.
-	 */
+    while (total_count < rxmax - 1) {
+        tv = tv_timeout;    /* select may have updated it */
+
+        FD_ZERO(&rfds);
+        FD_SET(p->fd, &rfds);
+        efds = rfds;
+
+        retval = port_select(p, p->fd + 1, &rfds, NULL, &efds, &tv);
+
+        if (retval == 0) {
+            if (0 == total_count) {
+                /* Record timeout time and caculate elapsed time */
+                gettimeofday(&end_time, NULL);
+                timersub(&end_time, &start_time, &elapsed_time);
+
+                dump_hex((unsigned char *) rxbuffer, total_count);
+                rig_debug(RIG_DEBUG_WARN,
+                          "%s(): Timed out %d.%d seconds after %d chars\n",
+                          __func__,
+                          elapsed_time.tv_sec,
+                          elapsed_time.tv_usec,
+                          total_count);
+
+                return -RIG_ETIMEOUT;
+            }
+
+            break;                      /* return what we have read */
+        }
+
+        if (retval < 0) {
+            dump_hex((unsigned char *) rxbuffer, total_count);
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s(): select() error after %d chars: %s\n",
+                      __func__,
+                      total_count,
+                      strerror(errno));
+
+            return -RIG_EIO;
+        }
+
+        if (FD_ISSET(p->fd, &efds)) {
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s(): fd error after %d chars\n",
+                      __func__,
+                      total_count);
+
+            return -RIG_EIO;
+        }
+
+        /*
+             * read 1 character from the rig, (check if in stop set)
+         * The file descriptor must have been set up non blocking.
+         */
         rd_count = port_read(p, &rxbuffer[total_count], 1);
-	if (rd_count < 0) {
-		dump_hex((unsigned char *) rxbuffer, total_count);
-		rig_debug(RIG_DEBUG_ERR, "%s(): read() failed - %s\n",
-			  __func__, strerror(errno));
 
-		return -RIG_EIO;
-	}
+        if (rd_count < 0) {
+            dump_hex((unsigned char *) rxbuffer, total_count);
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s(): read() failed - %s\n",
+                      __func__,
+                      strerror(errno));
+
+            return -RIG_EIO;
+        }
+
         ++total_count;
-	if (stopset && memchr(stopset, rxbuffer[total_count-1], stopset_len))
-		break;
-  }
-  /*
-   * Doesn't hurt anyway. But be aware, some binary protocols may have
-   * null chars within th received buffer.
-   */
-  rxbuffer[total_count] = '\000';
 
-  rig_debug(RIG_DEBUG_TRACE,"%s(): RX %d characters\n", __func__, total_count);
-  dump_hex((unsigned char *) rxbuffer, total_count);
+        if (stopset && memchr(stopset, rxbuffer[total_count - 1], stopset_len)) {
+            break;
+        }
+    }
 
-  return total_count;			/* return bytes count read */
+    /*
+     * Doesn't hurt anyway. But be aware, some binary protocols may have
+     * null chars within th received buffer.
+     */
+    rxbuffer[total_count] = '\000';
+
+    rig_debug(RIG_DEBUG_TRACE,
+              "%s(): RX %d characters\n",
+              __func__,
+              total_count);
+    dump_hex((unsigned char *) rxbuffer, total_count);
+
+    return total_count;           /* return bytes count read */
 }
 
 /** @} */
