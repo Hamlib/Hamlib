@@ -26,39 +26,40 @@
 
 
 
-class BACKEND_IMPEXP Rotator {
+class BACKEND_IMPEXP Rotator
+{
 private:
-  ROT* theRot;  // Global ref. to the rot
+    ROT *theRot;  // Global ref. to the rot
 
 protected:
 public:
-  Rotator(rot_model_t rot_model);
+    Rotator(rot_model_t rot_model);
 
-  virtual ~Rotator();
+    virtual ~Rotator();
 
-  const struct rot_caps *caps;
+    const struct rot_caps *caps;
 
-  // This method open the communication port to the rot
-  void open(void);
+    // This method opens the communication port to the rot
+    void open(void);
 
-  // This method close the communication port to the rot
-  void close(void);
+    // This method closes the communication port to the rot
+    void close(void);
 
-  void setConf(token_t token, const char *val);
-  void setConf(const char *name, const char *val);
-  void getConf(token_t token, char *val);
-  void getConf(const char *name, char *val);
-  token_t tokenLookup(const char *name);
+    void setConf(token_t token, const char *val);
+    void setConf(const char *name, const char *val);
+    void getConf(token_t token, char *val);
+    void getConf(const char *name, char *val);
+    token_t tokenLookup(const char *name);
 
-  void setPosition(azimuth_t az, elevation_t el);
-  void getPosition(azimuth_t& az, elevation_t& el);
-  void stop();
-  void park();
-  void reset (rot_reset_t reset);
+    void setPosition(azimuth_t az, elevation_t el);
+    void getPosition(azimuth_t& az, elevation_t& el);
+    void stop();
+    void park();
+    void reset(rot_reset_t reset);
 
-  void move(int direction, int speed);
+    void move(int direction, int speed);
 };
 
 
 
-#endif	// _ROTCLASS_H
+#endif  // _ROTCLASS_H

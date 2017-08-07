@@ -33,13 +33,13 @@
  *
  * As a reminder:
  *  struct freq_range_list {
- *  	freq_t start;
- *  	freq_t end;
- *  	rmode_t modes;
- *  	int low_power;
- *  	int high_power;
- *	vfo_t vfo;
- *	ant_t ant;
+ *      freq_t start;
+ *      freq_t end;
+ *      rmode_t modes;
+ *      int low_power;
+ *      int high_power;
+ *  vfo_t vfo;
+ *  ant_t ant;
  *  };
  */
 
@@ -50,49 +50,49 @@
 
 /* MF: 300 kHz - 3 MHz */
 #define FRQ_RNG_160m_REGION1(md,lp,hp,v,a) \
-			{ kHz(1810), MHz(2), (md), (lp), (hp), (v), (a) }
+            { kHz(1810), MHz(2), (md), (lp), (hp), (v), (a) }
 
 /* HF: 3 MHz - 30 MHz */
 #define FRQ_RNG_80m_REGION1(md,lp,hp,v,a) \
-			{ kHz(3500),kHz(3800), (md), (lp), (hp), (v), (a) }
+            { kHz(3500),kHz(3800), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_40m_REGION1(md,lp,hp,v,a) \
-			{ MHz(7),kHz(7100), (md), (lp), (hp), (v), (a) }
+            { MHz(7),kHz(7100), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_30m_REGION1(md,lp,hp,v,a) \
-			{ kHz(10100),kHz(10150), (md), (lp), (hp), (v), (a) }
+            { kHz(10100),kHz(10150), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_20m_REGION1(md,lp,hp,v,a) \
-			{ MHz(14),kHz(14350), (md), (lp), (hp), (v), (a) }
+            { MHz(14),kHz(14350), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_17m_REGION1(md,lp,hp,v,a) \
-			{ kHz(18068),kHz(18168), (md), (lp), (hp), (v), (a) }
+            { kHz(18068),kHz(18168), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_15m_REGION1(md,lp,hp,v,a) \
-			{ MHz(21),kHz(21450), (md), (lp), (hp), (v), (a) }
+            { MHz(21),kHz(21450), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_12m_REGION1(md,lp,hp,v,a) \
-			{ kHz(24890),kHz(24990), (md), (lp), (hp), (v), (a) }
+            { kHz(24890),kHz(24990), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_10m_REGION1(md,lp,hp,v,a) \
-			{ MHz(28),kHz(29700), (md), (lp), (hp), (v), (a) }
+            { MHz(28),kHz(29700), (md), (lp), (hp), (v), (a) }
 
 /* VHF: 30 MHz - 300 MHz */
 #define FRQ_RNG_6m_REGION1(md,lp,hp,v,a) \
-			{ kHz(50200),kHz(51200), (md), (lp), (hp), (v), (a) }
+            { kHz(50200),kHz(51200), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_2m_REGION1(md,lp,hp,v,a) \
-			{ MHz(144),MHz(146), (md), (lp), (hp), (v), (a) }
+            { MHz(144),MHz(146), (md), (lp), (hp), (v), (a) }
 
 /* UHF: 300 MHz - 3 GHz */
 #define FRQ_RNG_70cm_REGION1(md,lp,hp,v,a) \
-			{ MHz(430),MHz(440), (md), (lp), (hp), (v), (a) }
+            { MHz(430),MHz(440), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_23cm_REGION1(md,lp,hp,v,a) \
-			{ MHz(1240),MHz(1300), (md), (lp), (hp), (v), (a) }
+            { MHz(1240),MHz(1300), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_13cm_REGION1(md,lp,hp,v,a) \
-			{ MHz(2300),MHz(2450), (md), (lp), (hp), (v), (a) }
+            { MHz(2300),MHz(2450), (md), (lp), (hp), (v), (a) }
 
 
 /*
@@ -101,49 +101,49 @@
 
 /* MF: 300 kHz - 3 MHz */
 #define FRQ_RNG_160m_REGION2(md,lp,hp,v,a) \
-			{ kHz(1800),MHz(2), (md), (lp), (hp), (v), (a) }
+            { kHz(1800),MHz(2), (md), (lp), (hp), (v), (a) }
 
 /* HF: 3 MHz - 30 MHz */
 #define FRQ_RNG_80m_REGION2(md,lp,hp,v,a) \
-			{ kHz(3500),MHz(4), (md), (lp), (hp), (v), (a) }
+            { kHz(3500),MHz(4), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_40m_REGION2(md,lp,hp,v,a) \
-			{ MHz(7),kHz(7300), (md), (lp), (hp), (v), (a) }
+            { MHz(7),kHz(7300), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_30m_REGION2(md,lp,hp,v,a) \
-			{ kHz(10100),kHz(10150), (md), (lp), (hp), (v), (a) }
+            { kHz(10100),kHz(10150), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_20m_REGION2(md,lp,hp,v,a) \
-			{ MHz(14),kHz(14350), (md), (lp), (hp), (v), (a) }
+            { MHz(14),kHz(14350), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_17m_REGION2(md,lp,hp,v,a) \
-			{ kHz(18068),kHz(18168), (md), (lp), (hp), (v), (a) }
+            { kHz(18068),kHz(18168), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_15m_REGION2(md,lp,hp,v,a) \
-			{ MHz(21),kHz(21450), (md), (lp), (hp), (v), (a) }
+            { MHz(21),kHz(21450), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_12m_REGION2(md,lp,hp,v,a) \
-			{ kHz(24890),kHz(24990), (md), (lp), (hp), (v), (a) }
+            { kHz(24890),kHz(24990), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_10m_REGION2(md,lp,hp,v,a) \
-			{ MHz(28),kHz(29700), (md), (lp), (hp), (v), (a) }
+            { MHz(28),kHz(29700), (md), (lp), (hp), (v), (a) }
 
 /* VHF: 30 MHz - 300 MHz */
 #define FRQ_RNG_6m_REGION2(md,lp,hp,v,a) \
-			{ MHz(50),MHz(54), (md), (lp), (hp), (v), (a) }
+            { MHz(50),MHz(54), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_2m_REGION2(md,lp,hp,v,a) \
-			{ MHz(144),MHz(148), (md), (lp), (hp), (v), (a) }
+            { MHz(144),MHz(148), (md), (lp), (hp), (v), (a) }
 
 /* UHF: 300 MHz - 3 GHz */
 #define FRQ_RNG_70cm_REGION2(md,lp,hp,v,a) \
-			{ MHz(430),MHz(440), (md), (lp), (hp), (v), (a) }
+            { MHz(430),MHz(440), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_23cm_REGION2(md,lp,hp,v,a) \
-			{ MHz(1240),MHz(1300), (md), (lp), (hp), (v), (a) }
+            { MHz(1240),MHz(1300), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_13cm_REGION2(md,lp,hp,v,a) \
-			{ MHz(2320),MHz(2450), (md), (lp), (hp), (v), (a) }
+            { MHz(2320),MHz(2450), (md), (lp), (hp), (v), (a) }
 
 /*
  * ITU Region 3: South Pacific and Southern Asia
@@ -151,49 +151,49 @@
 
 /* MF: 300 kHz - 3 MHz */
 #define FRQ_RNG_160m_REGION3(md,lp,hp,v,a) \
-			{ kHz(1810),MHz(2), (md), (lp), (hp), (v), (a) }
+            { kHz(1810),MHz(2), (md), (lp), (hp), (v), (a) }
 
 /* HF: 3 MHz - 30 MHz */
 #define FRQ_RNG_80m_REGION3(md,lp,hp,v,a) \
-			{ kHz(3500),kHz(3900), (md), (lp), (hp), (v), (a) }
+            { kHz(3500),kHz(3900), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_40m_REGION3(md,lp,hp,v,a) \
-			{ MHz(7),kHz(7100), (md), (lp), (hp), (v), (a) }
+            { MHz(7),kHz(7100), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_30m_REGION3(md,lp,hp,v,a) \
-			{ kHz(10100),kHz(10150), (md), (lp), (hp), (v), (a) }
+            { kHz(10100),kHz(10150), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_20m_REGION3(md,lp,hp,v,a) \
-			{ MHz(14),kHz(14350), (md), (lp), (hp), (v), (a) }
+            { MHz(14),kHz(14350), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_17m_REGION3(md,lp,hp,v,a) \
-			{ kHz(18068),kHz(18168), (md), (lp), (hp), (v), (a) }
+            { kHz(18068),kHz(18168), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_15m_REGION3(md,lp,hp,v,a) \
-			{ MHz(21),kHz(21450), (md), (lp), (hp), (v), (a) }
+            { MHz(21),kHz(21450), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_12m_REGION3(md,lp,hp,v,a) \
-			{ kHz(24890),kHz(24990), (md), (lp), (hp), (v), (a) }
+            { kHz(24890),kHz(24990), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_10m_REGION3(md,lp,hp,v,a) \
-			{ MHz(28),kHz(29700), (md), (lp), (hp), (v), (a) }
+            { MHz(28),kHz(29700), (md), (lp), (hp), (v), (a) }
 
 /* VHF: 30 MHz - 300 MHz */
 #define FRQ_RNG_6m_REGION3(md,lp,hp,v,a) \
-			{ MHz(50),MHz(54), (md), (lp), (hp), (v), (a) }
+            { MHz(50),MHz(54), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_2m_REGION3(md,lp,hp,v,a) \
-			{ MHz(144),MHz(148), (md), (lp), (hp), (v), (a) }
+            { MHz(144),MHz(148), (md), (lp), (hp), (v), (a) }
 
 /* UHF: 300 MHz - 3 GHz */
 #define FRQ_RNG_70cm_REGION3(md,lp,hp,v,a) \
-			{ MHz(430),MHz(440), (md), (lp), (hp), (v), (a) }
+            { MHz(430),MHz(440), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_23cm_REGION3(md,lp,hp,v,a) \
-			{ MHz(1240),MHz(1300), (md), (lp), (hp), (v), (a) }
+            { MHz(1240),MHz(1300), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_13cm_REGION3(md,lp,hp,v,a) \
-			{ MHz(2320),MHz(2450), (md), (lp), (hp), (v), (a) }
+            { MHz(2320),MHz(2450), (md), (lp), (hp), (v), (a) }
 
 
 /*
@@ -201,28 +201,28 @@
  * Let's define FRQ_RNG_HF for REGION1, FRQ_RNG_HF_REGION2,
  * and FRQ_RNG_HF_REGION3 all at once!
  * NB: FRQ_RNG_HF defines non-AM/AM freq_range for all HF bands,
- * 		plus 160m which is not an HF band strictly speaking.
+ *      plus 160m which is not an HF band strictly speaking.
  */
 
 #define FRQ_RNG_HF(r,m,lp,hp,v,a) \
-	FRQ_RNG_160m_REGION##r((m), (lp), (hp), (v), (a)), \
-	FRQ_RNG_80m_REGION##r((m), (lp), (hp), (v), (a)), \
-	FRQ_RNG_40m_REGION##r((m), (lp), (hp), (v), (a)), \
-	FRQ_RNG_30m_REGION##r((m), (lp), (hp), (v), (a)), \
-	FRQ_RNG_20m_REGION##r((m), (lp), (hp), (v), (a)), \
-	FRQ_RNG_17m_REGION##r((m), (lp), (hp), (v), (a)), \
-	FRQ_RNG_15m_REGION##r((m), (lp), (hp), (v), (a)), \
-	FRQ_RNG_12m_REGION##r((m), (lp), (hp), (v), (a)), \
-	FRQ_RNG_10m_REGION##r((m), (lp), (hp), (v), (a))  \
-
+    FRQ_RNG_160m_REGION##r((m), (lp), (hp), (v), (a)), \
+    FRQ_RNG_80m_REGION##r((m), (lp), (hp), (v), (a)), \
+    FRQ_RNG_40m_REGION##r((m), (lp), (hp), (v), (a)), \
+    FRQ_RNG_30m_REGION##r((m), (lp), (hp), (v), (a)), \
+    FRQ_RNG_20m_REGION##r((m), (lp), (hp), (v), (a)), \
+    FRQ_RNG_17m_REGION##r((m), (lp), (hp), (v), (a)), \
+    FRQ_RNG_15m_REGION##r((m), (lp), (hp), (v), (a)), \
+    FRQ_RNG_12m_REGION##r((m), (lp), (hp), (v), (a)), \
+    FRQ_RNG_10m_REGION##r((m), (lp), (hp), (v), (a))  \
+ 
 #define FRQ_RNG_6m(r,m,lp,hp,v,a) \
-	FRQ_RNG_6m_REGION##r((m), (lp), (hp), (v), (a)) \
-
+    FRQ_RNG_6m_REGION##r((m), (lp), (hp), (v), (a)) \
+ 
 #define FRQ_RNG_2m(r,m,lp,hp,v,a) \
-	FRQ_RNG_2m_REGION##r((m), (lp), (hp), (v), (a)) \
-
+    FRQ_RNG_2m_REGION##r((m), (lp), (hp), (v), (a)) \
+ 
 #define FRQ_RNG_70cm(r,m,lp,hp,v,a) \
-	FRQ_RNG_70cm_REGION##r((m), (lp), (hp), (v), (a)) \
+    FRQ_RNG_70cm_REGION##r((m), (lp), (hp), (v), (a)) \
+ 
 
-
-#endif	/* _BANDPLAN_H */
+#endif  /* _BANDPLAN_H */

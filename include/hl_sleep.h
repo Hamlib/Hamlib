@@ -30,7 +30,11 @@ extern "C" {
 #endif
 
 /* TODO: what about SleepEx? */
-static inline unsigned int sleep(unsigned int nb_sec) { Sleep(nb_sec*1000); return 0; }
+static inline unsigned int sleep(unsigned int nb_sec)
+{
+    Sleep(nb_sec * 1000);
+    return 0;
+}
 
 #ifdef  __cplusplus
 }
