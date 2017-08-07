@@ -1472,7 +1472,8 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     const struct rig_caps *caps;
     struct rig_state *rs = &rig->state;
-    int retcode, rc2;
+    int retcode = RIG_OK;
+    int rc2;
     vfo_t curr_vfo;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -1498,44 +1499,37 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         if ((caps->targetable_vfo & RIG_TARGETABLE_PURE)
             || vfo == RIG_VFO_CURR
             || vfo == rig->state.current_vfo) {
-                return caps->set_ptt(rig, vfo, ptt);
+
+            retcode = caps->set_ptt(rig, vfo, ptt);
+        } else {
+            if (!caps->set_vfo) {
+                return -RIG_ENTARGET;
+            }
+
+            curr_vfo = rig->state.current_vfo;
+            retcode = caps->set_vfo(rig, vfo);
+
+            if (retcode == RIG_OK) {
+                retcode = caps->set_ptt(rig, vfo, ptt);
+                /* try and revert even if we had an error above */
+                rc2 = caps->set_vfo(rig, curr_vfo);
+
+                /* return the first error code */
+                if (RIG_OK == retcode) {
+                    retcode = rc2;
+                }
+            }
         }
-
-        if (!caps->set_vfo) {
-            return -RIG_ENTARGET;
-        }
-
-        curr_vfo = rig->state.current_vfo;
-        retcode = caps->set_vfo(rig, vfo);
-
-        if (retcode != RIG_OK) {
-            return retcode;
-        }
-
-        retcode = caps->set_ptt(rig, vfo, ptt);
-        /* try and revert even if we had an error above */
-        rc2 = caps->set_vfo(rig, curr_vfo);
-
-        /* return the first error code */
-        if (RIG_OK == retcode) {
-            retcode = rc2;
-        }
-
-        return retcode;
-
         break;
 
     case RIG_PTT_SERIAL_DTR:
-
         /* when the PTT port is not the control port we want to free the
            port when PTT is reset and seize the port when PTT is set,
            this allows limited sharing of the PTT port between
            applications so long as there is no contention */
         if (strcmp(rs->pttport.pathname, rs->rigport.pathname)
-                && rs->pttport.fd < 0) {
-            if (RIG_PTT_OFF == ptt) {
-                return RIG_OK;    /* nothing to do here */
-            }
+            && rs->pttport.fd < 0
+            && RIG_PTT_OFF != ptt) {
 
             rs->pttport.fd = ser_open(&rs->pttport);
 
@@ -1548,7 +1542,7 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
             }
 
             /* Needed on Linux because the serial port driver sets RTS/DTR
-               high on open - set both low since we offer no control of
+               high on open - set both since we offer no control of
                the non-PTT line and low is better than high */
             retcode = ser_set_rts(&rs->pttport, 0);
 
@@ -1561,72 +1555,73 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
         if (strcmp(rs->pttport.pathname, rs->rigport.pathname)
             && ptt == RIG_PTT_OFF) {
-                /* free the port */
-                ser_close(&rs->pttport);
+
+            /* free the port */
+            ser_close(&rs->pttport);
         }
 
-        return retcode;
+        break;
 
     case RIG_PTT_SERIAL_RTS:
-
         /* when the PTT port is not the control port we want to free the
            port when PTT is reset and seize the port when PTT is set,
            this allows limited sharing of the PTT port between
            applications so long as there is no contention */
         if (strcmp(rs->pttport.pathname, rs->rigport.pathname)
-            && rs->pttport.fd < 0) {
-                if (RIG_PTT_OFF == ptt) {
-                        return RIG_OK;    /* nothing to do here */
-                }
+            && rs->pttport.fd < 0
+            && RIG_PTT_OFF != ptt) {
 
-                rs->pttport.fd = ser_open(&rs->pttport);
+            rs->pttport.fd = ser_open(&rs->pttport);
 
-                if (rs->pttport.fd < 0) {
-                        rig_debug(RIG_DEBUG_ERR,
-                                  "%s: cannot open PTT device \"%s\"\n",
-                                  __func__,
-                                  rs->pttport.pathname);
-                        return -RIG_EIO;
-                }
+            if (rs->pttport.fd < 0) {
+                rig_debug(RIG_DEBUG_ERR,
+                          "%s: cannot open PTT device \"%s\"\n",
+                          __func__,
+                          rs->pttport.pathname);
+                return -RIG_EIO;
+            }
 
-                /* Needed on Linux because the serial port driver sets RTS/DTR
-                   high on open - set both low since we offer no control of
-                   the non-PTT line and low is better than high */
-                retcode = ser_set_dtr(&rs->pttport, 0);
+            /* Needed on Linux because the serial port driver sets RTS/DTR
+               high on open - set both since we offer no control of the
+               non-PTT line and low is better than high */
+            retcode = ser_set_dtr(&rs->pttport, 0);
 
-                if (RIG_OK != retcode) {
-                        return retcode;
-                }
+            if (RIG_OK != retcode) {
+                return retcode;
+            }
         }
-
         retcode = ser_set_rts(&rig->state.pttport, ptt != RIG_PTT_OFF);
 
         if (strcmp(rs->pttport.pathname, rs->rigport.pathname)
             && ptt == RIG_PTT_OFF) {
-                /* free the port */
-                ser_close(&rs->pttport);
-        }
 
-        return retcode;
+            /* free the port */
+            ser_close(&rs->pttport);
+        }
+        break;
 
     case RIG_PTT_PARALLEL:
-        return par_ptt_set(&rig->state.pttport, ptt);
+        retcode = par_ptt_set(&rig->state.pttport, ptt);
+        break;
 
     case RIG_PTT_CM108:
-        return cm108_ptt_set(&rig->state.pttport, ptt);
+        retcode = cm108_ptt_set(&rig->state.pttport, ptt);
+        break;
 
     case RIG_PTT_GPIO:
     case RIG_PTT_GPION:
-        return gpio_ptt_set(&rig->state.pttport, ptt);
-
-    case RIG_PTT_NONE:
-        return -RIG_ENAVAIL;    /* not available */
+        retcode = gpio_ptt_set(&rig->state.pttport, ptt);
+        break;
 
     default:
         return -RIG_EINVAL;
     }
 
-    return RIG_OK;
+    if (RIG_OK == retcode) {
+        rs->transmit = ptt != RIG_PTT_OFF;
+    }
+
+    return retcode;
 }
 
 
@@ -1663,14 +1658,16 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     switch (rig->state.pttport.type.ptt) {
     case RIG_PTT_RIG:
     case RIG_PTT_RIG_MICDATA:
-        if (caps->get_ptt == NULL) {
-            return -RIG_ENIMPL;
+        if (!caps->get_ptt) {
+            *ptt = rs->transmit ? RIG_PTT_ON : RIG_PTT_OFF;
+            return RIG_OK;
         }
 
         if ((caps->targetable_vfo & RIG_TARGETABLE_PURE)
             || vfo == RIG_VFO_CURR
             || vfo == rig->state.current_vfo) {
-                return caps->get_ptt(rig, vfo, ptt);
+
+            return caps->get_ptt(rig, vfo, ptt);
         }
 
         if (!caps->set_vfo) {
@@ -1689,13 +1686,11 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         rc2 = caps->set_vfo(rig, curr_vfo);
 
         if (RIG_OK == retcode) {
-                /* return the first error code */
-                retcode = rc2;
+            /* return the first error code */
+            retcode = rc2;
         }
 
         return retcode;
-
-        break;
 
     case RIG_PTT_SERIAL_RTS:
         if (caps->get_ptt) {
@@ -1704,8 +1699,9 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
         if (strcmp(rs->pttport.pathname, rs->rigport.pathname)
             && rs->pttport.fd < 0) {
-                /* port is closed so assume PTT off */
-                *ptt = RIG_PTT_OFF;
+
+            /* port is closed so assume PTT off */
+            *ptt = RIG_PTT_OFF;
         } else {
             retcode = ser_get_rts(&rig->state.pttport, &status);
             *ptt = status ? RIG_PTT_ON : RIG_PTT_OFF;
@@ -1720,8 +1716,9 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
         if (strcmp(rs->pttport.pathname, rs->rigport.pathname)
             && rs->pttport.fd < 0) {
-                /* port is closed so assume PTT off */
-                *ptt = RIG_PTT_OFF;
+
+            /* port is closed so assume PTT off */
+            *ptt = RIG_PTT_OFF;
         } else {
             retcode = ser_get_dtr(&rig->state.pttport, &status);
             *ptt = status ? RIG_PTT_ON : RIG_PTT_OFF;

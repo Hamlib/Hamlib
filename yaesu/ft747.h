@@ -190,7 +190,6 @@ static int ft747_set_vfo(RIG *rig, vfo_t vfo); /* select vfo */
 static int ft747_get_vfo(RIG *rig, vfo_t *vfo); /* get vfo */
 
 static int ft747_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
-static int ft747_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 
 static int ft747_set_split(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
 static int ft747_get_split(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);

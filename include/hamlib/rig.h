@@ -1591,7 +1591,9 @@ struct rig_state {
     pbwidth_t current_width;    /*!< Passband width currently set */
     vfo_t tx_vfo;               /*!< Tx VFO currently set */
     int mode_list;              /*!< Complete list of modes for this rig */
-
+    int transmit;               /*!< rig should be transmitting i.e. hard
+                                     wired PTT asserted - used by rigs that
+                                     don't do CAT while in Tx */
 };
 
 

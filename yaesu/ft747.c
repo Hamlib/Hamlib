@@ -284,7 +284,6 @@ const struct rig_caps ft747_caps = {
   .set_split_vfo = ft747_set_split,	/* set split */
   .get_split_vfo = ft747_get_split,	/* get split */
   .set_ptt =    ft747_set_ptt,		/* set ptt */
-  .get_ptt =    ft747_get_ptt,		/* get ptt */
   .set_mem =    ft747_set_mem,		/* set mem */
   .get_mem =    ft747_get_mem,		/* get mem */
 };
@@ -695,38 +694,6 @@ int ft747_set_ptt(RIG *rig,vfo_t vfo, ptt_t ptt) {
   return ft747_send_priv_cmd(rig,cmd_index);
 }
 
-int ft747_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt) {
-  struct ft747_priv_data *p;
-  unsigned char status;		/* ft747 mode */
-  int ret;
-
-  p = (struct ft747_priv_data*)rig->state.priv;
-
-  ret = ft747_get_update_data(rig);	/* get whole shebang from rig */
-  if (ret < 0)
-	  return ret;
-
-  status = p->update_data[FT747_SUMO_DISPLAYED_STATUS];
-  status = status & SF_RXTX; /* check RXTX bit*/
-
-  rig_debug(RIG_DEBUG_VERBOSE,"ft747: ptt status = %x \n", status);
-
-  /*
-   * translate mode from ft747 to generic.
-   */
-
-  if (status) {
-    rig_debug(RIG_DEBUG_VERBOSE,"ft747: PTT = ON \n");
-    (*ptt) = RIG_PTT_ON;
-    return RIG_OK;
-  } else {
-    rig_debug(RIG_DEBUG_VERBOSE,"ft747: PTT = OFF \n");
-    (*ptt) = RIG_PTT_OFF;
-    return RIG_OK;
-  }
-
-}
-
 int ft747_set_mem(RIG *rig, vfo_t vfo, int ch) {
   struct ft747_priv_data *p;
 
@@ -788,27 +755,29 @@ static int ft747_get_update_data(RIG *rig) {
   if (!rig_check_cache_timeout(&p->status_tv, FT747_CACHE_TIMEOUT))
       return RIG_OK;
 
-  serial_flush(rigport);
+  if (!rig->state.transmit) {   /* rig doesn't respond in Tx mode */
+    serial_flush(rigport);
 
-  /* send UPDATE comand to fetch data*/
+    /* send UPDATE comand to fetch data*/
 
-  ret = ft747_send_priv_cmd(rig,FT_747_NATIVE_UPDATE);
-  if (ret < 0)
-	  return ret;
+    ret = ft747_send_priv_cmd(rig,FT_747_NATIVE_UPDATE);
+    if (ret < 0)
+      return ret;
 
-  ret = read_block(rigport, (char *) p->update_data,
-				  FT747_STATUS_UPDATE_DATA_LENGTH);
-  if (ret < 0)
-	  return ret;
+    ret = read_block(rigport, (char *) p->update_data,
+                     FT747_STATUS_UPDATE_DATA_LENGTH);
+    if (ret < 0)
+      return ret;
+
+    port_timeout = rigport->timeout;
+    rigport->timeout = 100; /* ms */
+    /* read sometimes-missing last byte (345th), but don't fail */
+    read_block(rigport, &last_byte, 1);
+    rigport->timeout = port_timeout;
+  }
 
   /* update cache date */
   gettimeofday(&p->status_tv, NULL);
-
-  port_timeout = rigport->timeout;
-  rigport->timeout = 100; /* ms */
-  /* read sometimes-missing last byte (345th), but don't fail */
-  read_block(rigport, &last_byte, 1);
-  rigport->timeout = port_timeout;
 
   return RIG_OK;
 }

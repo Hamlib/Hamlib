@@ -845,12 +845,19 @@ int ft847_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt) {
   struct ft847_priv_data *p = (struct ft847_priv_data *) rig->state.priv;
   int n;
 
-
   n = ft847_get_status(rig, FT_847_NATIVE_CAT_GET_TX_STATUS);
   if (n < 0)
     return n;
 
   *ptt = (p->tx_status & 0x80) ? RIG_PTT_OFF : RIG_PTT_ON;
+
+  /* The CAT query above lies when PTT is asserted via the PTT pin on
+     the rear PACKET socket, it always returns Rx status. Given that
+     CAT PTT does not take audio from DATA IN on the rear PACKET
+     socket DTR or RTS PTT on the rear PACKET PTT pin is likely. So we
+     override if we know PTT was asserted via rig_set_ptt for any type
+     of PTT */
+  if (RIG_PTT_OFF == *ptt && rig->state.transmit) *ptt = RIG_PTT_ON;
 
   return RIG_OK;
 }
