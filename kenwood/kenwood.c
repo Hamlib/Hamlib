@@ -1894,7 +1894,14 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     break;
 
   case RIG_LEVEL_RFPOWER:
-    return get_kenwood_level(rig, "PC", &val->f);
+    /*
+     * an answer "PC100" means 100 Watt
+     * which is val=1.0 on most rigs, but
+     * get_kenwood_level maps 0...255 onto 0.0 ... 1.0
+     */
+    ret = get_kenwood_level(rig, "PC", &val->f);
+    val->f = val->f * (255.0/100.0);
+    return ret;
 
   case RIG_LEVEL_AF:
     return get_kenwood_level(rig, "AG", &val->f);

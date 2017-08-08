@@ -109,7 +109,7 @@ const struct rig_caps barrett_caps = {
         },
         RIG_FRNG_END,
     },
-    .rx_range_list1 = {RIG_FRNG_END,},
+    .rx_range_list2 = {RIG_FRNG_END,},
     .tx_range_list1 = {RIG_FRNG_END,},
     .tx_range_list2 = {RIG_FRNG_END,},
     .tuning_steps =  { {BARRETT_MODES, 1}, {BARRETT_MODES, RIG_TS_ANY}, RIG_TS_END, },
