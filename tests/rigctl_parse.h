@@ -32,8 +32,8 @@
  * external prototype
  */
 
-int dumpcaps (RIG *, FILE *);
-int dumpconf (RIG *, FILE *);
+int dumpcaps(RIG *, FILE *);
+int dumpconf(RIG *, FILE *);
 
 /*
  * Prototypes
@@ -41,10 +41,10 @@ int dumpconf (RIG *, FILE *);
 void usage_rig(FILE *);
 void version();
 void list_models();
-int dump_chan(FILE *, RIG*, channel_t*);
+int dump_chan(FILE *, RIG *, channel_t *);
 int print_conf_list(const struct confparams *cfp, rig_ptr_t data);
 int set_conf(RIG *my_rig, char *conf_parms);
 
 int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc);
 
-#endif	/* RIGCTL_PARSE_H */
+#endif  /* RIGCTL_PARSE_H */

@@ -23,7 +23,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#  include "config.h"
 #endif
 
 #include <stdio.h>
@@ -40,22 +40,22 @@
 #include "sprintflst.h"
 
 #define MAXNAMSIZ 32
-#define MAXNBOPT 100	/* max number of different options */
+#define MAXNBOPT 100    /* max number of different options */
 
 
 /*
  * external prototype
  */
 
-extern int xml_save (RIG *rig, const char *outfilename);
-extern int xml_load (RIG *rig, const char *infilename);
-extern int xml_parm_save (RIG *rig, const char *outfilename);
-extern int xml_parm_load (RIG *rig, const char *infilename);
+extern int xml_save(RIG *rig, const char *outfilename);
+extern int xml_load(RIG *rig, const char *infilename);
+extern int xml_parm_save(RIG *rig, const char *outfilename);
+extern int xml_parm_load(RIG *rig, const char *infilename);
 
-extern int csv_save (RIG *rig, const char *outfilename);
-extern int csv_load (RIG *rig, const char *infilename);
-extern int csv_parm_save (RIG *rig, const char *outfilename);
-extern int csv_parm_load (RIG *rig, const char *infilename);
+extern int csv_save(RIG *rig, const char *outfilename);
+extern int csv_load(RIG *rig, const char *infilename);
+extern int csv_parm_save(RIG *rig, const char *outfilename);
+extern int csv_parm_load(RIG *rig, const char *infilename);
 
 /*
  * Prototypes
@@ -64,328 +64,378 @@ void usage();
 void version();
 int set_conf(RIG *rig, char *conf_parms);
 
-int clear_chans (RIG *rig, const char *infilename);
+int clear_chans(RIG *rig, const char *infilename);
 
 /*
  * Reminder: when adding long options,
- * 		keep up to date SHORT_OPTIONS, usage()'s output and man page. thanks.
+ *      keep up to date SHORT_OPTIONS, usage()'s output and man page. thanks.
  * NB: do NOT use -W since it's reserved by POSIX.
  */
 #define SHORT_OPTIONS "m:r:s:c:C:p:axvhV"
-static struct option long_options[] =
-{
-	{"model",    1, 0, 'm'},
-	{"rig-file", 1, 0, 'r'},
-	{"serial-speed", 1, 0, 's'},
-	{"civaddr",  1, 0, 'c'},
-	{"set-conf", 1, 0, 'C'},
-	{"set-separator", 1, 0, 'p'},
-	{"all",  0, 0, 'a'},
+static struct option long_options[] = {
+    {"model",    1, 0, 'm'},
+    {"rig-file", 1, 0, 'r'},
+    {"serial-speed", 1, 0, 's'},
+    {"civaddr",  1, 0, 'c'},
+    {"set-conf", 1, 0, 'C'},
+    {"set-separator", 1, 0, 'p'},
+    {"all",  0, 0, 'a'},
 #ifdef HAVE_XML2
-	{"xml",  0, 0, 'x'},
+    {"xml",  0, 0, 'x'},
 #endif
-	{"verbose",  0, 0, 'v'},
-	{"help",     0, 0, 'h'},
-	{"version",  0, 0, 'V'},
-	{0, 0, 0, 0}
+    {"verbose",  0, 0, 'v'},
+    {"help",     0, 0, 'h'},
+    {"version",  0, 0, 'V'},
+    {0, 0, 0, 0}
 };
 
 #define MAXCONFLEN 128
 
 int all;
 
-int main (int argc, char *argv[])
+int main(int argc, char *argv[])
 {
-	RIG *rig;		/* handle to rig (nstance) */
-	rig_model_t my_model = RIG_MODEL_DUMMY;
+    RIG *rig;       /* handle to rig (nstance) */
+    rig_model_t my_model = RIG_MODEL_DUMMY;
 
-	int retcode;		/* generic return code from functions */
+    int retcode;        /* generic return code from functions */
 
-	int verbose = 0, xml = 0;
-	const char *rig_file=NULL;
-	int serial_rate = 0;
-	char *civaddr = NULL;	/* NULL means no need to set conf */
-	char conf_parms[MAXCONFLEN] = "";
-	extern char csv_sep;
+    int verbose = 0, xml = 0;
+    const char *rig_file = NULL;
+    int serial_rate = 0;
+    char *civaddr = NULL;   /* NULL means no need to set conf */
+    char conf_parms[MAXCONFLEN] = "";
+    extern char csv_sep;
 
-	while(1) {
-		int c;
-		int option_index = 0;
+    while (1) {
+        int c;
+        int option_index = 0;
 
-		c = getopt_long (argc, argv, SHORT_OPTIONS,
-			long_options, &option_index);
-		if (c == -1)
-			break;
+        c = getopt_long(argc, argv, SHORT_OPTIONS, long_options, &option_index);
 
-		switch(c) {
-			case 'h':
-					usage();
-					exit(0);
-			case 'V':
-					version();
-					exit(0);
-			case 'm':
-					if (!optarg) {
-						usage();	/* wrong arg count */
-						exit(1);
-					}
-					my_model = atoi(optarg);
-					break;
-			case 'r':
-					if (!optarg) {
-						usage();	/* wrong arg count */
-						exit(1);
-					}
-					rig_file = optarg;
-					break;
-			case 'c':
-					if (!optarg) {
-						usage();	/* wrong arg count */
-						exit(1);
-					}
-					civaddr = optarg;
-					break;
-			case 's':
-					if (!optarg) {
-						usage();	/* wrong arg count */
-						exit(1);
-					}
-					serial_rate = atoi(optarg);
-					break;
-			case 'C':
-					if (!optarg) {
-						usage();	/* wrong arg count */
-						exit(1);
-					}
-					if (*conf_parms != '\0')
-						strcat(conf_parms, ",");
-					strncat(conf_parms, optarg, MAXCONFLEN-strlen(conf_parms));
-					break;
-			case 'p':
-					if (!optarg) {
-						usage();	/* wrong arg count */
-						exit(1);
-					}
-					csv_sep = optarg[0];
-					break;
-			case 'a':
-					all++;
-					break;
+        if (c == -1) {
+            break;
+        }
+
+        switch (c) {
+        case 'h':
+            usage();
+            exit(0);
+
+        case 'V':
+            version();
+            exit(0);
+
+        case 'm':
+            if (!optarg) {
+                usage();    /* wrong arg count */
+                exit(1);
+            }
+
+            my_model = atoi(optarg);
+            break;
+
+        case 'r':
+            if (!optarg) {
+                usage();    /* wrong arg count */
+                exit(1);
+            }
+
+            rig_file = optarg;
+            break;
+
+        case 'c':
+            if (!optarg) {
+                usage();    /* wrong arg count */
+                exit(1);
+            }
+
+            civaddr = optarg;
+            break;
+
+        case 's':
+            if (!optarg) {
+                usage();    /* wrong arg count */
+                exit(1);
+            }
+
+            serial_rate = atoi(optarg);
+            break;
+
+        case 'C':
+            if (!optarg) {
+                usage();    /* wrong arg count */
+                exit(1);
+            }
+
+            if (*conf_parms != '\0') {
+                strcat(conf_parms, ",");
+            }
+
+            strncat(conf_parms, optarg, MAXCONFLEN - strlen(conf_parms));
+            break;
+
+        case 'p':
+            if (!optarg) {
+                usage();    /* wrong arg count */
+                exit(1);
+            }
+
+            csv_sep = optarg[0];
+            break;
+
+        case 'a':
+            all++;
+            break;
 #ifdef HAVE_XML2
-			case 'x':
-					xml++;
-					break;
+
+        case 'x':
+            xml++;
+            break;
 #endif
-			case 'v':
-					verbose++;
-					break;
-			default:
-					usage();	/* unknown option? */
-					exit(1);
-		}
-	}
 
-	rig_set_debug(verbose<2 ? RIG_DEBUG_WARN: verbose);
+        case 'v':
+            verbose++;
+            break;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "rigmem, %s\n", hamlib_version);
-	rig_debug(RIG_DEBUG_VERBOSE, "Report bugs to "
-					"<hamlib-developer@lists.sourceforge.net>\n\n");
+        default:
+            usage();    /* unknown option? */
+            exit(1);
+        }
+    }
 
-	if (optind+1 >= argc) {
-		usage();
-		exit(1);
-	}
+    rig_set_debug(verbose < 2 ? RIG_DEBUG_WARN : verbose);
 
-  	rig = rig_init(my_model);
+    rig_debug(RIG_DEBUG_VERBOSE, "rigmem, %s\n", hamlib_version);
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "Report bugs to "
+              "<hamlib-developer@lists.sourceforge.net>\n\n");
 
-	if (!rig) {
-		fprintf(stderr, "Unknown rig num %d, or initialization error.\n",
-						my_model);
-		fprintf(stderr, "Please check with --list option.\n");
-		exit(2);
-	}
+    if (optind + 1 >= argc) {
+        usage();
+        exit(1);
+    }
 
-	retcode = set_conf(rig, conf_parms);
-	if (retcode != RIG_OK) {
-		fprintf(stderr, "Config parameter error: %s\n", rigerror(retcode));
-		exit(2);
-	}
+    rig = rig_init(my_model);
+
+    if (!rig) {
+        fprintf(stderr,
+                "Unknown rig num %d, or initialization error.\n",
+                my_model);
+
+        fprintf(stderr, "Please check with --list option.\n");
+        exit(2);
+    }
+
+    retcode = set_conf(rig, conf_parms);
+
+    if (retcode != RIG_OK) {
+        fprintf(stderr, "Config parameter error: %s\n", rigerror(retcode));
+        exit(2);
+    }
 
     /* check channel support */
-    if (rig->caps->set_channel == NULL && rig->caps->get_channel == NULL &&
-            rig->caps->set_chan_all_cb == NULL && rig->caps->get_chan_all_cb == NULL &&
-            (rig->caps->set_mem == NULL || rig->caps->set_vfo == NULL)) {
-		fprintf(stderr, "Error: rig num %d has no memory support implemented/available.\n",
-						my_model);
-		exit(3);
+    if (rig->caps->set_channel == NULL
+        && rig->caps->get_channel == NULL
+        && rig->caps->set_chan_all_cb == NULL
+        && rig->caps->get_chan_all_cb == NULL
+        && (rig->caps->set_mem == NULL || rig->caps->set_vfo == NULL)) {
+
+        fprintf(stderr,
+                "Error: rig num %d has no memory support implemented/available.\n",
+                my_model);
+        exit(3);
     }
 
     /* check channel description */
     if (rig->caps->chan_list[0].type == 0) {
-		fprintf(stderr, "Error: rig num %d has no channel list.\n",
-						my_model);
-		exit(3);
+        fprintf(stderr, "Error: rig num %d has no channel list.\n",
+                my_model);
+        exit(3);
     }
 
-	if (rig_file)
-		strncpy(rig->state.rigport.pathname, rig_file, FILPATHLEN - 1);
+    if (rig_file) {
+        strncpy(rig->state.rigport.pathname, rig_file, FILPATHLEN - 1);
+    }
 
-	/* FIXME: bound checking and port type == serial */
-	if (serial_rate != 0)
-		rig->state.rigport.parm.serial.rate = serial_rate;
-	if (civaddr)
-        	rig_set_conf(rig, rig_token_lookup(rig, "civaddr"), civaddr);
+    /* FIXME: bound checking and port type == serial */
+    if (serial_rate != 0) {
+        rig->state.rigport.parm.serial.rate = serial_rate;
+    }
 
-	retcode = rig_open(rig);
-	if (retcode != RIG_OK) {
-	 	fprintf(stderr,"rig_open: error = %s \n", rigerror(retcode));
-		exit(2);
-	}
+    if (civaddr) {
+        rig_set_conf(rig, rig_token_lookup(rig, "civaddr"), civaddr);
+    }
 
-	if (verbose > 0)
-			printf("Opened rig model %d, '%s'\n", rig->caps->rig_model,
-							rig->caps->model_name);
-	rig_debug(RIG_DEBUG_VERBOSE, "Backend version: %s, Status: %s\n",
-					rig->caps->version, rig_strstatus(rig->caps->status));
+    retcode = rig_open(rig);
 
-	/* on some rigs, this accelerates the backup/restore */
-	rig_set_vfo(rig, RIG_VFO_MEM);
+    if (retcode != RIG_OK) {
+        fprintf(stderr, "rig_open: error = %s \n", rigerror(retcode));
+        exit(2);
+    }
 
-	if (!strcmp(argv[optind], "save")) {
-		if (xml)
-			retcode = xml_save(rig, argv[optind+1]);
-		else
-			retcode = csv_save(rig, argv[optind+1]);
-	} else
-	if (!strcmp(argv[optind], "load")) {
-		if (xml)
-			retcode = xml_load(rig, argv[optind+1]);
-		else
-			retcode = csv_load(rig, argv[optind+1]);
-	} else
-	if (!strcmp(argv[optind], "save_parm")) {
-		if (xml)
-			retcode = xml_parm_save(rig, argv[optind+1]);
-		else
-			retcode = csv_parm_save(rig, argv[optind+1]);
-	} else
-	if (!strcmp(argv[optind], "load_parm")) {
-		if (xml)
-			retcode = xml_parm_load(rig, argv[optind+1]);
-		else
-			retcode = csv_parm_load(rig, argv[optind+1]);
-	} else
-	if (!strcmp(argv[optind], "clear")) {
-		retcode = clear_chans(rig, argv[optind+1]);
-	} else {
-		usage();
-		exit(1);
-	}
+    if (verbose > 0) {
+        printf("Opened rig model %d, '%s'\n",
+               rig->caps->rig_model,
+               rig->caps->model_name);
+    }
 
-	rig_close(rig); /* close port */
-	rig_cleanup(rig); /* if you care about memory */
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "Backend version: %s, Status: %s\n",
+              rig->caps->version,
+              rig_strstatus(rig->caps->status));
 
-	if (retcode != 0) {
-		fprintf(stderr, "Hamlib error: %s\n", rigerror(retcode));
-		exit(2);
-	}
+    /* on some rigs, this accelerates the backup/restore */
+    rig_set_vfo(rig, RIG_VFO_MEM);
 
-	return 0;
+    if (!strcmp(argv[optind], "save")) {
+        if (xml) {
+            retcode = xml_save(rig, argv[optind + 1]);
+        } else {
+            retcode = csv_save(rig, argv[optind + 1]);
+        }
+    } else if (!strcmp(argv[optind], "load")) {
+        if (xml) {
+            retcode = xml_load(rig, argv[optind + 1]);
+        } else {
+            retcode = csv_load(rig, argv[optind + 1]);
+        }
+    } else if (!strcmp(argv[optind], "save_parm")) {
+        if (xml) {
+            retcode = xml_parm_save(rig, argv[optind + 1]);
+        } else {
+            retcode = csv_parm_save(rig, argv[optind + 1]);
+        }
+    } else if (!strcmp(argv[optind], "load_parm")) {
+        if (xml) {
+            retcode = xml_parm_load(rig, argv[optind + 1]);
+        } else {
+            retcode = csv_parm_load(rig, argv[optind + 1]);
+        }
+    } else if (!strcmp(argv[optind], "clear")) {
+        retcode = clear_chans(rig, argv[optind + 1]);
+    } else {
+        usage();
+        exit(1);
+    }
+
+    rig_close(rig);     /* close port */
+    rig_cleanup(rig);   /* if you care about memory */
+
+    if (retcode != 0) {
+        fprintf(stderr, "Hamlib error: %s\n", rigerror(retcode));
+        exit(2);
+    }
+
+    return 0;
 }
-
 
 
 void version()
 {
-		printf("rigmem, %s\n\n", hamlib_version);
-		printf("%s\n", hamlib_copyright);
+    printf("rigmem, %s\n\n", hamlib_version);
+    printf("%s\n", hamlib_copyright);
 }
+
 
 void usage()
 {
-		printf("Usage: rigmem [OPTION]... COMMAND...FILE\n"
-		   "Backup/restore COMMANDs to a connected radio transceiver or receiver.\n\n");
+    printf("Usage: rigmem [OPTION]... COMMAND...FILE\n"
+           "Backup/restore COMMANDs to a connected radio transceiver or receiver.\n\n");
 
 
-		printf(
-	"  -m, --model=ID             select radio model number. See model list\n"
-	"  -r, --rig-file=DEVICE      set device of the radio to operate on\n"
-	"  -s, --serial-speed=BAUD    set serial speed of the serial port\n"
-	"  -c, --civaddr=ID           set CI-V address, decimal (for Icom rigs only)\n"
-	"  -C, --set-conf=PARM=VAL    set config parameters\n"
-	"  -p, --set-separator=SEP    set character separator instead of the CSV comma\n"
-	"  -a, --all                  bypass mem_caps, apply to all fields of channel_t\n"
+    printf(
+        "  -m, --model=ID             select radio model number. See model list\n"
+        "  -r, --rig-file=DEVICE      set device of the radio to operate on\n"
+        "  -s, --serial-speed=BAUD    set serial speed of the serial port\n"
+        "  -c, --civaddr=ID           set CI-V address, decimal (for Icom rigs only)\n"
+        "  -C, --set-conf=PARM=VAL    set config parameters\n"
+        "  -p, --set-separator=SEP    set character separator instead of the CSV comma\n"
+        "  -a, --all                  bypass mem_caps, apply to all fields of channel_t\n"
 #ifdef HAVE_XML2
-	"  -x, --xml                  use XML format instead of CSV\n"
+        "  -x, --xml                  use XML format instead of CSV\n"
 #endif
-	"  -v, --verbose              set verbose mode, cumulative\n"
-	"  -h, --help                 display this help and exit\n"
-	"  -V, --version              output version information and exit\n\n"
-			);
+        "  -v, --verbose              set verbose mode, cumulative\n"
+        "  -h, --help                 display this help and exit\n"
+        "  -V, --version              output version information and exit\n\n"
+    );
 
-		printf(
-	"COMMANDs:\n"
-	"  load\n"
-	"  save\n"
-	"  load_parm\n"
-	"  save_parm\n"
-	"  clear\n\n"
-		      );
+    printf(
+        "COMMANDs:\n"
+        "  load\n"
+        "  save\n"
+        "  load_parm\n"
+        "  save_parm\n"
+        "  clear\n\n"
+    );
 
-	printf("\nReport bugs to <hamlib-developer@lists.sourceforge.net>.\n");
+    printf("\nReport bugs to <hamlib-developer@lists.sourceforge.net>.\n");
 
 }
 
+
 int set_conf(RIG *rig, char *conf_parms)
 {
-	char *p, *q, *n;
-	int ret;
+    char *p, *q, *n;
+    int ret;
 
-	p = conf_parms;
-	while (p && *p != '\0') {
-			/* FIXME: left hand value of = cannot be null */
-		q = strchr(p, '=');
-		if ( !q )
-			return RIG_EINVAL;
-		*q++ = '\0';
-		n = strchr(q, ',');
-		if (n) *n++ = '\0';
+    p = conf_parms;
 
-		ret = rig_set_conf(rig, rig_token_lookup(rig, p), q);
-		if (ret != RIG_OK)
-				return ret;
-		p = n;
-	}
-	return RIG_OK;
+    while (p && *p != '\0') {
+        /* FIXME: left hand value of = cannot be null */
+        q = strchr(p, '=');
+
+        if (!q) {
+            return RIG_EINVAL;
+        }
+
+        *q++ = '\0';
+        n = strchr(q, ',');
+
+        if (n) {
+            *n++ = '\0';
+        }
+
+        ret = rig_set_conf(rig, rig_token_lookup(rig, p), q);
+
+        if (ret != RIG_OK) {
+            return ret;
+        }
+
+        p = n;
+    }
+
+    return RIG_OK;
 }
 
 
 /*
  * Pretty nasty, clears everything you have in rig memory
  */
-int clear_chans (RIG *rig, const char *infilename)
+int clear_chans(RIG *rig, const char *infilename)
 {
-	int i,j,ret;
-	channel_t chan;
+    int i, j, ret;
+    channel_t chan;
 
-	memset(&chan, 0, sizeof(chan));
-	chan.freq = RIG_FREQ_NONE;
-	chan.tx_freq = RIG_FREQ_NONE;
-	chan.mode = RIG_MODE_NONE;
-	chan.tx_mode = RIG_MODE_NONE;
-	chan.vfo = RIG_VFO_MEM;
+    memset(&chan, 0, sizeof(chan));
+    chan.freq = RIG_FREQ_NONE;
+    chan.tx_freq = RIG_FREQ_NONE;
+    chan.mode = RIG_MODE_NONE;
+    chan.tx_mode = RIG_MODE_NONE;
+    chan.vfo = RIG_VFO_MEM;
 
-	for (i=0; rig->state.chan_list[i].type && i < CHANLSTSIZ; i++) {
-		for (j = rig->state.chan_list[i].start;
-				j <= rig->state.chan_list[i].end; j++) {
-			chan.channel_num = j;
-			ret = rig_set_channel(rig, &chan);
-			if (ret != RIG_OK) {
-				return ret;
-			}
-		}
-	}
+    for (i = 0; rig->state.chan_list[i].type && i < CHANLSTSIZ; i++) {
+        for (j = rig->state.chan_list[i].start;
+                j <= rig->state.chan_list[i].end; j++) {
 
-	return 0;
+            chan.channel_num = j;
+            ret = rig_set_channel(rig, &chan);
+
+            if (ret != RIG_OK) {
+                return ret;
+            }
+        }
+    }
+
+    return 0;
 }
-

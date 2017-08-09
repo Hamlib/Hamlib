@@ -14,95 +14,106 @@
 
 #define SERIAL_PORT "/dev/ttyS0"
 
-int main (int argc, char *argv[])
+
+int main(int argc, char *argv[])
 {
-	RIG *my_rig;		/* handle to rig (nstance) */
-	int retcode;		/* generic return code from functions */
-	rig_model_t myrig_model;
-	unsigned i;
-	struct timeval tv1, tv2;
-	float elapsed;
+    RIG *my_rig;        /* handle to rig (nstance) */
+    int retcode;        /* generic return code from functions */
+    rig_model_t myrig_model;
+    unsigned i;
+    struct timeval tv1, tv2;
+    float elapsed;
 
-	rig_set_debug(RIG_DEBUG_ERR);
+    rig_set_debug(RIG_DEBUG_ERR);
 
- 	/*
-	 * allocate memory, setup & open port
-	 */
+    /*
+     * allocate memory, setup & open port
+     */
 
-	if (argc < 2) {
-		hamlib_port_t myport;
-		/* may be overriden by backend probe */
-		myport.type.rig = RIG_PORT_SERIAL;
-		myport.parm.serial.rate = 9600;
-		myport.parm.serial.data_bits = 8;
-		myport.parm.serial.stop_bits = 1;
-		myport.parm.serial.parity = RIG_PARITY_NONE;
-		myport.parm.serial.handshake = RIG_HANDSHAKE_NONE;
-		strncpy(myport.pathname, SERIAL_PORT, FILPATHLEN - 1);
+    if (argc < 2) {
+        hamlib_port_t myport;
+        /* may be overriden by backend probe */
+        myport.type.rig = RIG_PORT_SERIAL;
+        myport.parm.serial.rate = 9600;
+        myport.parm.serial.data_bits = 8;
+        myport.parm.serial.stop_bits = 1;
+        myport.parm.serial.parity = RIG_PARITY_NONE;
+        myport.parm.serial.handshake = RIG_HANDSHAKE_NONE;
+        strncpy(myport.pathname, SERIAL_PORT, FILPATHLEN - 1);
 
-		rig_load_all_backends();
-		myrig_model = rig_probe(&myport);
-	} else {
-		myrig_model = atoi(argv[1]);
-	}
+        rig_load_all_backends();
+        myrig_model = rig_probe(&myport);
+    } else {
+        myrig_model = atoi(argv[1]);
+    }
 
-	my_rig = rig_init(myrig_model);
+    my_rig = rig_init(myrig_model);
 
-	if (!my_rig) {
-		fprintf(stderr,"Unknown rig num: %d\n", myrig_model);
-		fprintf(stderr,"Please check riglist.h\n");
-		exit(1); /* whoops! something went wrong (mem alloc?) */
-	}
+    if (!my_rig) {
+        fprintf(stderr, "Unknown rig num: %d\n", myrig_model);
+        fprintf(stderr, "Please check riglist.h\n");
+        exit(1);    /* whoops! something went wrong (mem alloc?) */
+    }
 
-	printf("Opened rig model %d, '%s'\n", my_rig->caps->rig_model,
-							my_rig->caps->model_name);
-	printf("Backend version: %s, Status: %s\n",
-				my_rig->caps->version, rig_strstatus(my_rig->caps->status));
-	printf("Serial speed: %d bauds\n", my_rig->state.rigport.parm.serial.rate);
+    printf("Opened rig model %d, '%s'\n",
+           my_rig->caps->rig_model,
+           my_rig->caps->model_name);
 
-	strncpy(my_rig->state.rigport.pathname,SERIAL_PORT,FILPATHLEN - 1);
+    printf("Backend version: %s, Status: %s\n",
+           my_rig->caps->version,
+           rig_strstatus(my_rig->caps->status));
 
-	retcode = rig_open(my_rig);
-	if (retcode != RIG_OK) {
-		printf("rig_open: error = %s\n", rigerror(retcode));
-		exit(2);
-	}
+    printf("Serial speed: %d bauds\n", my_rig->state.rigport.parm.serial.rate);
 
-	printf("Port %s opened ok\n", SERIAL_PORT);
-	printf("Perform %d loops...\n", LOOP_COUNT);
+    strncpy(my_rig->state.rigport.pathname, SERIAL_PORT, FILPATHLEN - 1);
 
-	/*
-	 * we're not using getrusage here because we want effective time
-	 */
-	gettimeofday(&tv1, NULL);
-	for (i=0; i<LOOP_COUNT; i++) {
-		freq_t freq;
-		rmode_t rmode;
-		pbwidth_t width;
+    retcode = rig_open(my_rig);
 
-		retcode = rig_get_freq(my_rig, RIG_VFO_CURR, &freq);
-		if (retcode != RIG_OK ) {
-		  printf("rig_get_freq: error =  %s \n", rigerror(retcode));
-		  exit(1);
-		}
-		retcode = rig_get_mode(my_rig, RIG_VFO_CURR, &rmode, &width);
-		if (retcode != RIG_OK ) {
-		  printf("rig_get_mode: error =  %s \n", rigerror(retcode));
-		  exit(1);
-		}
-	}
-	gettimeofday(&tv2, NULL);
+    if (retcode != RIG_OK) {
+        printf("rig_open: error = %s\n", rigerror(retcode));
+        exit(2);
+    }
 
-	elapsed = tv2.tv_sec - tv1.tv_sec + (tv2.tv_usec - tv1.tv_usec)/1000000.0;
-	printf("Elapsed: %.3fs, Avg: %f loops/s, %f s/loop\n",
-			elapsed, LOOP_COUNT/elapsed, elapsed/LOOP_COUNT
-	      );
+    printf("Port %s opened ok\n", SERIAL_PORT);
+    printf("Perform %d loops...\n", LOOP_COUNT);
 
-	rig_close(my_rig); /* close port */
-	rig_cleanup(my_rig); /* if you care about memory */
+    /*
+     * we're not using getrusage here because we want effective time
+     */
+    gettimeofday(&tv1, NULL);
 
-	printf("port %s closed ok \n",SERIAL_PORT);
+    for (i = 0; i < LOOP_COUNT; i++) {
+        freq_t freq;
+        rmode_t rmode;
+        pbwidth_t width;
 
-	return 0;
+        retcode = rig_get_freq(my_rig, RIG_VFO_CURR, &freq);
+
+        if (retcode != RIG_OK) {
+            printf("rig_get_freq: error =  %s \n", rigerror(retcode));
+            exit(1);
+        }
+
+        retcode = rig_get_mode(my_rig, RIG_VFO_CURR, &rmode, &width);
+
+        if (retcode != RIG_OK) {
+            printf("rig_get_mode: error =  %s \n", rigerror(retcode));
+            exit(1);
+        }
+    }
+
+    gettimeofday(&tv2, NULL);
+
+    elapsed = tv2.tv_sec - tv1.tv_sec + (tv2.tv_usec - tv1.tv_usec) / 1000000.0;
+    printf("Elapsed: %.3fs, Avg: %f loops/s, %f s/loop\n",
+           elapsed,
+           LOOP_COUNT / elapsed,
+           elapsed / LOOP_COUNT);
+
+    rig_close(my_rig);      /* close port */
+    rig_cleanup(my_rig);    /* if you care about memory */
+
+    printf("port %s closed ok \n", SERIAL_PORT);
+
+    return 0;
 }
-

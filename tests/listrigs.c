@@ -30,59 +30,73 @@
 int print_caps_sum(const struct rig_caps *caps, void *data)
 {
 
-	printf("%d\t%-10s\t%-12s\t%s\t",caps->rig_model,caps->mfg_name,
-					caps->model_name, caps->version);
+    printf("%d\t%-10s\t%-12s\t%s\t",
+           caps->rig_model,
+           caps->mfg_name,
+           caps->model_name,
+           caps->version);
 
-	printf("%-10s\t", rig_strstatus(caps->status));
-	switch (caps->rig_type & RIG_TYPE_MASK) {
-	case RIG_TYPE_TRANSCEIVER:
-			printf("Transceiver\n");
-			break;
-	case RIG_TYPE_HANDHELD:
-			printf("Handheld\n");
-			break;
-	case RIG_TYPE_MOBILE:
-			printf("Mobile\n");
-			break;
-	case RIG_TYPE_RECEIVER:
-			printf("Receiver\n");
-			break;
-	case RIG_TYPE_PCRECEIVER:
-			printf("PC Receiver\n");
-			break;
-	case RIG_TYPE_SCANNER:
-			printf("Scanner\n");
-			break;
-	case RIG_TYPE_TRUNKSCANNER:
-			printf("Trunking scanner\n");
-			break;
-	case RIG_TYPE_COMPUTER:
-			printf("Computer\n");
-			break;
-	case RIG_TYPE_OTHER:
-			printf("Other\n");
-			break;
-	default:
-			printf("Unknown\n");
-	}
-	return -1;	/* !=0, we want them all ! */
+    printf("%-10s\t", rig_strstatus(caps->status));
+
+    switch (caps->rig_type & RIG_TYPE_MASK) {
+    case RIG_TYPE_TRANSCEIVER:
+        printf("Transceiver\n");
+        break;
+
+    case RIG_TYPE_HANDHELD:
+        printf("Handheld\n");
+        break;
+
+    case RIG_TYPE_MOBILE:
+        printf("Mobile\n");
+        break;
+
+    case RIG_TYPE_RECEIVER:
+        printf("Receiver\n");
+        break;
+
+    case RIG_TYPE_PCRECEIVER:
+        printf("PC Receiver\n");
+        break;
+
+    case RIG_TYPE_SCANNER:
+        printf("Scanner\n");
+        break;
+
+    case RIG_TYPE_TRUNKSCANNER:
+        printf("Trunking scanner\n");
+        break;
+
+    case RIG_TYPE_COMPUTER:
+        printf("Computer\n");
+        break;
+
+    case RIG_TYPE_OTHER:
+        printf("Other\n");
+        break;
+
+    default:
+        printf("Unknown\n");
+    }
+
+    return -1;  /* !=0, we want them all ! */
 }
 
 
-int main (int argc, char *argv[])
+int main(int argc, char *argv[])
 {
-	int status;
+    int status;
 
-	rig_load_all_backends();
+    rig_load_all_backends();
 
-	printf("Rig#\tMfg       \tModel       \tVers.\tStatus    \tType\n");
-	status = rig_list_foreach(print_caps_sum,NULL);
-	if (status != RIG_OK ) {
-		printf("rig_list_foreach: error = %s \n", rigerror(status));
-		exit(3);
-	}
+    printf("Rig#\tMfg       \tModel       \tVers.\tStatus    \tType\n");
 
-	return 0;
+    status = rig_list_foreach(print_caps_sum, NULL);
+
+    if (status != RIG_OK) {
+        printf("rig_list_foreach: error = %s \n", rigerror(status));
+        exit(3);
+    }
+
+    return 0;
 }
-
-

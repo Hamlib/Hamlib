@@ -25,7 +25,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#  include "config.h"
 #endif
 
 #include <stdio.h>
@@ -42,7 +42,7 @@
 #  elif defined(HAVE_READLINE_H)    /* !defined(HAVE_READLINE_READLINE_H) */
 #    include <readline.h>
 #  else                             /* !defined(HAVE_READLINE_H) */
-extern char *readline ();
+extern char *readline();
 #  endif                            /* HAVE_READLINE_H */
 #else
 /* no readline */
@@ -56,9 +56,9 @@ extern char *readline ();
 #  elif defined(HAVE_HISTORY_H)
 #    include <history.h>
 #  else                             /* !defined(HAVE_HISTORY_H) */
-extern void add_history ();
-extern int write_history ();
-extern int read_history ();
+extern void add_history();
+extern int write_history();
+extern int read_history();
 #  endif                            /* defined(HAVE_READLINE_HISTORY_H) */
 #else
 /* no history */
@@ -83,24 +83,23 @@ void usage();
  * TODO: add an option to read from a file
  */
 #define SHORT_OPTIONS "+m:r:s:C:t:LvhVlu"
-static struct option long_options[] =
-{
-	{"model",    1, 0, 'm'},
-	{"rot-file", 1, 0, 'r'},
-	{"serial-speed", 1, 0, 's'},
-	{"send-cmd-term", 1, 0, 't'},
-	{"list",     0, 0, 'l'},
-	{"set-conf", 1, 0, 'C'},
-	{"show-conf",0, 0, 'L'},
-	{"dump-caps",0, 0, 'u'},
+static struct option long_options[] = {
+    {"model",           1, 0, 'm'},
+    {"rot-file",        1, 0, 'r'},
+    {"serial-speed",    1, 0, 's'},
+    {"send-cmd-term",   1, 0, 't'},
+    {"list",            0, 0, 'l'},
+    {"set-conf",        1, 0, 'C'},
+    {"show-conf",       0, 0, 'L'},
+    {"dump-caps",       0, 0, 'u'},
 #ifdef HAVE_READLINE_HISTORY
-	{"read-history", 0, 0, 'i'},
-	{"save-history", 0, 0, 'I'},
+    {"read-history",    0, 0, 'i'},
+    {"save-history",    0, 0, 'I'},
 #endif
-	{"verbose",  0, 0, 'v'},
-	{"help",     0, 0, 'h'},
-	{"version",  0, 0, 'V'},
-	{0, 0, 0, 0}
+    {"verbose",         0, 0, 'v'},
+    {"help",            0, 0, 'h'},
+    {"version",         0, 0, 'V'},
+    {0, 0, 0, 0}
 };
 
 #define MAXCONFLEN 128
@@ -116,261 +115,322 @@ static const int have_rl = 0;
 int interactive = 1;    /* if no cmd on command line, switch to interactive */
 int prompt = 1;         /* Print prompt in rotctl */
 
-char send_cmd_term = '\r';     /* send_cmd termination char */
+char send_cmd_term = '\r';      /* send_cmd termination char */
 
-int main (int argc, char *argv[])
+
+int main(int argc, char *argv[])
 {
-	ROT *my_rot;		/* handle to rot (instance) */
-	rot_model_t my_model = ROT_MODEL_DUMMY;
+    ROT *my_rot;        /* handle to rot (instance) */
+    rot_model_t my_model = ROT_MODEL_DUMMY;
 
-	int retcode;		/* generic return code from functions */
-	int exitcode;
+    int retcode;        /* generic return code from functions */
+    int exitcode;
 
-	int verbose = 0;
-	int show_conf = 0;
-	int dump_caps_opt = 0;
+    int verbose = 0;
+    int show_conf = 0;
+    int dump_caps_opt = 0;
 #ifdef HAVE_READLINE_HISTORY
-	int rd_hist = 0;
-	int sv_hist = 0;
-	const char *hist_dir = NULL;
-	const char hist_file[] = "/.rotctl_history";
-	char *hist_path = NULL;
-	struct stat hist_dir_stat;
+    int rd_hist = 0;
+    int sv_hist = 0;
+    const char *hist_dir = NULL;
+    const char hist_file[] = "/.rotctl_history";
+    char *hist_path = NULL;
+    struct stat hist_dir_stat;
 #endif
-	const char *rot_file=NULL;
-	int serial_rate = 0;
-	char conf_parms[MAXCONFLEN] = "";
+    const char *rot_file = NULL;
+    int serial_rate = 0;
+    char conf_parms[MAXCONFLEN] = "";
 
-	while(1) {
-		int c;
-		int option_index = 0;
+    while (1) {
+        int c;
+        int option_index = 0;
 
-		c = getopt_long (argc, argv, SHORT_OPTIONS HST_SHRT_OPTS,
-			long_options, &option_index);
-		if (c == -1)
-			break;
+        c = getopt_long(argc,
+                        argv,
+                        SHORT_OPTIONS HST_SHRT_OPTS,
+                        long_options,
+                        &option_index);
 
-		switch(c) {
-			case 'h':
-				usage();
-				exit(0);
-			case 'V':
-				version();
-				exit(0);
-			case 'm':
-				if (!optarg) {
-					usage();	/* wrong arg count */
-					exit(1);
-				}
-				my_model = atoi(optarg);
-				break;
-			case 'r':
-				if (!optarg) {
-					usage();	/* wrong arg count */
-					exit(1);
-				}
-				rot_file = optarg;
-				break;
-			case 's':
-				if (!optarg) {
-					usage();	/* wrong arg count */
-					exit(1);
-				}
-				serial_rate = atoi(optarg);
-				break;
-			case 'C':
-				if (!optarg) {
-					usage();	/* wrong arg count */
-					exit(1);
-				}
-				if (*conf_parms != '\0')
-					strcat(conf_parms, ",");
-				strncat(conf_parms, optarg, MAXCONFLEN-strlen(conf_parms));
-				break;
-			case 't':
-				if (!optarg) {
-					usage();        /* wrong arg count */
-					exit(1);
-				}
-				if (strlen(optarg) > 1)
-					send_cmd_term = strtol(optarg, NULL, 0);
-				else
-					send_cmd_term = optarg[0];
-				break;
+        if (c == -1) {
+            break;
+        }
+
+        switch (c) {
+        case 'h':
+            usage();
+            exit(0);
+
+        case 'V':
+            version();
+            exit(0);
+
+        case 'm':
+            if (!optarg) {
+                usage();    /* wrong arg count */
+                exit(1);
+            }
+
+            my_model = atoi(optarg);
+            break;
+
+        case 'r':
+            if (!optarg) {
+                usage();    /* wrong arg count */
+                exit(1);
+            }
+
+            rot_file = optarg;
+            break;
+
+        case 's':
+            if (!optarg) {
+                usage();    /* wrong arg count */
+                exit(1);
+            }
+
+            serial_rate = atoi(optarg);
+            break;
+
+        case 'C':
+            if (!optarg) {
+                usage();    /* wrong arg count */
+                exit(1);
+            }
+
+            if (*conf_parms != '\0') {
+                strcat(conf_parms, ",");
+            }
+
+            strncat(conf_parms, optarg, MAXCONFLEN - strlen(conf_parms));
+            break;
+
+        case 't':
+            if (!optarg) {
+                usage();        /* wrong arg count */
+                exit(1);
+            }
+
+            if (strlen(optarg) > 1) {
+                send_cmd_term = strtol(optarg, NULL, 0);
+            } else {
+                send_cmd_term = optarg[0];
+            }
+
+            break;
 #ifdef HAVE_READLINE_HISTORY
-			case 'i':
-				rd_hist++;
-				break;
-			case 'I':
-				sv_hist++;
-				break;
+
+        case 'i':
+            rd_hist++;
+            break;
+
+        case 'I':
+            sv_hist++;
+            break;
 #endif
-			case 'v':
-				verbose++;
-				break;
-			case 'L':
-				show_conf++;
-				break;
-			case 'l':
-				rig_set_debug(0);
-				list_models();
-				exit(0);
-			case 'u':
-				dump_caps_opt++;
-				break;
-			default:
-				usage();	/* unknown option? */
-				exit(1);
-		}
-	}
 
-	rig_set_debug(verbose);
+        case 'v':
+            verbose++;
+            break;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "rotctl, %s\n", hamlib_version);
-	rig_debug(RIG_DEBUG_VERBOSE, "Report bugs to "
-			"<hamlib-developer@lists.sourceforge.net>\n\n");
+        case 'L':
+            show_conf++;
+            break;
 
-	/*
-	 * at least one command on command line,
-	 * disable interactive mode
-	 */
-	if (optind < argc)
-		interactive = 0;
+        case 'l':
+            rig_set_debug(0);
+            list_models();
+            exit(0);
 
-  	my_rot = rot_init(my_model);
+        case 'u':
+            dump_caps_opt++;
+            break;
 
-	if (!my_rot) {
-		fprintf(stderr, "Unknown rot num %d, or initialization error.\n",
-						my_model);
-		fprintf(stderr, "Please check with --list option.\n");
-		exit(2);
-	}
+        default:
+            usage();    /* unknown option? */
+            exit(1);
+        }
+    }
 
-	retcode = set_conf(my_rot, conf_parms);
-	if (retcode != RIG_OK) {
-		fprintf(stderr, "Config parameter error: %s\n", rigerror(retcode));
-		exit(2);
-	}
+    rig_set_debug(verbose);
 
-	if (rot_file)
-		strncpy(my_rot->state.rotport.pathname, rot_file, FILPATHLEN - 1);
-
-	/* FIXME: bound checking and port type == serial */
-	if (serial_rate != 0)
-		my_rot->state.rotport.parm.serial.rate = serial_rate;
-
-	/*
-	 * print out conf parameters
-	 */
-	if (show_conf) {
-		rot_token_foreach(my_rot, print_conf_list, (rig_ptr_t)my_rot);
-	}
+    rig_debug(RIG_DEBUG_VERBOSE, "rotctl, %s\n", hamlib_version);
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "Report bugs to <hamlib-developer@lists.sourceforge.net>\n\n");
 
     /*
-     * print out capabilities, and exists immediately
-     * We may be interested only in caps, and rig_open may fail.
+     * at least one command on command line,
+     * disable interactive mode
+     */
+    if (optind < argc) {
+        interactive = 0;
+    }
+
+    my_rot = rot_init(my_model);
+
+    if (!my_rot) {
+        fprintf(stderr,
+                "Unknown rot num %d, or initialization error.\n",
+                my_model);
+
+        fprintf(stderr, "Please check with --list option.\n");
+        exit(2);
+    }
+
+    retcode = set_conf(my_rot, conf_parms);
+
+    if (retcode != RIG_OK) {
+        fprintf(stderr, "Config parameter error: %s\n", rigerror(retcode));
+        exit(2);
+    }
+
+    if (rot_file) {
+        strncpy(my_rot->state.rotport.pathname, rot_file, FILPATHLEN - 1);
+    }
+
+    /* FIXME: bound checking and port type == serial */
+    if (serial_rate != 0) {
+        my_rot->state.rotport.parm.serial.rate = serial_rate;
+    }
+
+    /*
+     * print out conf parameters
+     */
+    if (show_conf) {
+        rot_token_foreach(my_rot, print_conf_list, (rig_ptr_t)my_rot);
+    }
+
+    /*
+     * Print out capabilities, and exits immediately as we may be interested
+     * only in caps, and rig_open may fail.
      */
     if (dump_caps_opt) {
         dumpcaps_rot(my_rot, stdout);
-        rot_cleanup(my_rot); /* if you care about memory */
+        rot_cleanup(my_rot);    /* if you care about memory */
         exit(0);
     }
 
-	retcode = rot_open(my_rot);
-	if (retcode != RIG_OK) {
-	  	fprintf(stderr,"rot_open: error = %s \n", rigerror(retcode));
-		exit(2);
-	}
+    retcode = rot_open(my_rot);
 
-	if (verbose > 0)
-		printf("Opened rot model %d, '%s'\n", my_rot->caps->rot_model,
-						my_rot->caps->model_name);
+    if (retcode != RIG_OK) {
+        fprintf(stderr, "rot_open: error = %s \n", rigerror(retcode));
+        exit(2);
+    }
 
-	rig_debug(RIG_DEBUG_VERBOSE, "Backend version: %s, Status: %s\n",
-			my_rot->caps->version, rig_strstatus(my_rot->caps->status));
+    if (verbose > 0) {
+        printf("Opened rot model %d, '%s'\n",
+               my_rot->caps->rot_model,
+               my_rot->caps->model_name);
+    }
 
-	exitcode = 0;
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "Backend version: %s, Status: %s\n",
+              my_rot->caps->version,
+              rig_strstatus(my_rot->caps->status));
 
-#ifdef HAVE_LIBREADLINE
-	if (interactive && prompt && have_rl) {
-		rl_readline_name = "rotctl";
-#ifdef HAVE_READLINE_HISTORY
-		using_history();	/* Initialize Readline History */
-
-		if (rd_hist || sv_hist) {
-			if (!(hist_dir = getenv("ROTCTL_HIST_DIR")))
-				hist_dir = getenv("HOME");
-
-			if (((stat(hist_dir, &hist_dir_stat) == -1) && (errno == ENOENT))
-				|| !(S_ISDIR(hist_dir_stat.st_mode))) {
-				fprintf(stderr, "Warning: %s is not a directory!\n", hist_dir);
-			}
-
-			hist_path = (char *)calloc((sizeof(char) * (strlen(hist_dir) + strlen(hist_file) + 1)), sizeof(char));
-
-			strncpy(hist_path, hist_dir, strlen(hist_dir));
-			strncat(hist_path, hist_file, strlen(hist_file));
-		}
-
-		if (rd_hist && hist_path)
-			if (read_history(hist_path) == ENOENT)
-				fprintf(stderr, "Warning: Could not read history from %s\n", hist_path);
-#endif
-	}
-#endif	/* HAVE_LIBREADLINE */
-
-	do {
-		retcode = rotctl_parse(my_rot, stdin, stdout, argv, argc);
-		if (retcode == 2)
-			exitcode = 2;
-	}
-	while (retcode == 0 || retcode == 2);
+    exitcode = 0;
 
 #ifdef HAVE_LIBREADLINE
-	if (interactive && prompt && have_rl) {
+
+    if (interactive && prompt && have_rl) {
+        rl_readline_name = "rotctl";
 #ifdef HAVE_READLINE_HISTORY
-		if (sv_hist && hist_path)
-			if (write_history(hist_path) == ENOENT)
-				fprintf(stderr, "\nWarning: Could not write history to %s\n", hist_path);
+        using_history();    /* Initialize Readline History */
 
-		if ((rd_hist || sv_hist) && hist_path) {
-			free(hist_path);
-			hist_path = (char *)NULL;
-		}
-#endif
-	}
-#endif
-	rot_close(my_rot); /* close port */
-	rot_cleanup(my_rot); /* if you care about memory */
+        if (rd_hist || sv_hist) {
+            if (!(hist_dir = getenv("ROTCTL_HIST_DIR"))) {
+                hist_dir = getenv("HOME");
+            }
 
-	return exitcode;
+            if (((stat(hist_dir, &hist_dir_stat) == -1) && (errno == ENOENT))
+                || !(S_ISDIR(hist_dir_stat.st_mode))) {
+
+                fprintf(stderr, "Warning: %s is not a directory!\n", hist_dir);
+            }
+
+            hist_path = (char *)calloc((sizeof(char)
+                                        * (strlen(hist_dir)
+                                           + strlen(hist_file) + 1)),
+                                       sizeof(char));
+
+            strncpy(hist_path, hist_dir, strlen(hist_dir));
+            strncat(hist_path, hist_file, strlen(hist_file));
+        }
+
+        if (rd_hist && hist_path) {
+            if (read_history(hist_path) == ENOENT) {
+                fprintf(stderr,
+                        "Warning: Could not read history from %s\n",
+                        hist_path);
+            }
+        }
+
+#endif
+    }
+
+#endif  /* HAVE_LIBREADLINE */
+
+    do {
+        retcode = rotctl_parse(my_rot, stdin, stdout, argv, argc);
+
+        if (retcode == 2) {
+            exitcode = 2;
+        }
+    } while (retcode == 0 || retcode == 2);
+
+#ifdef HAVE_LIBREADLINE
+
+    if (interactive && prompt && have_rl) {
+#ifdef HAVE_READLINE_HISTORY
+
+        if (sv_hist && hist_path) {
+            if (write_history(hist_path) == ENOENT) {
+                fprintf(stderr,
+                        "\nWarning: Could not write history to %s\n",
+                        hist_path);
+            }
+        }
+
+        if ((rd_hist || sv_hist) && hist_path) {
+            free(hist_path);
+            hist_path = (char *)NULL;
+        }
+
+#endif
+    }
+
+#endif
+    rot_close(my_rot); /* close port */
+    rot_cleanup(my_rot); /* if you care about memory */
+
+    return exitcode;
 }
+
 
 void usage()
 {
-	printf("Usage: rotctl [OPTION]... [COMMAND]...\n"
-		"Send COMMANDs to a connected antenna rotator.\n\n");
+    printf("Usage: rotctl [OPTION]... [COMMAND]...\n"
+           "Send COMMANDs to a connected antenna rotator.\n\n");
 
 
-	printf(
-		"  -m, --model=ID             select rotator model number. See model list\n"
-		"  -r, --rot-file=DEVICE      set device of the rotator to operate on\n"
-		"  -s, --serial-speed=BAUD    set serial speed of the serial port\n"
-		"  -t, --send-cmd-term=CHAR   set send_cmd command termination char\n"
-		"  -C, --set-conf=PARM=VAL    set config parameters\n"
-		"  -L, --show-conf            list all config parameters\n"
-		"  -l, --list                 list all model numbers and exit\n"
-		"  -u, --dump-caps            dump capabilities and exit\n"
+    printf(
+        "  -m, --model=ID             select rotator model number. See model list\n"
+        "  -r, --rot-file=DEVICE      set device of the rotator to operate on\n"
+        "  -s, --serial-speed=BAUD    set serial speed of the serial port\n"
+        "  -t, --send-cmd-term=CHAR   set send_cmd command termination char\n"
+        "  -C, --set-conf=PARM=VAL    set config parameters\n"
+        "  -L, --show-conf            list all config parameters\n"
+        "  -l, --list                 list all model numbers and exit\n"
+        "  -u, --dump-caps            dump capabilities and exit\n"
 #ifdef HAVE_READLINE_HISTORY
-		"  -i, --read-history         read prior interactive session history\n"
-		"  -I, --save-history         save current interactive session history\n"
+        "  -i, --read-history         read prior interactive session history\n"
+        "  -I, --save-history         save current interactive session history\n"
 #endif
-		"  -v, --verbose              set verbose mode, cumulative\n"
-		"  -h, --help                 display this help and exit\n"
-		"  -V, --version              output version information and exit\n\n"
-		);
+        "  -v, --verbose              set verbose mode, cumulative\n"
+        "  -h, --help                 display this help and exit\n"
+        "  -V, --version              output version information and exit\n\n"
+    );
 
-	usage_rot(stdout);
+    usage_rot(stdout);
 
-	printf("\nReport bugs to <hamlib-developer@lists.sourceforge.net>.\n");
+    printf("\nReport bugs to <hamlib-developer@lists.sourceforge.net>.\n");
 }

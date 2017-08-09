@@ -32,7 +32,7 @@
  * external prototype
  */
 
-int dumpcaps_rot (ROT *, FILE *);
+int dumpcaps_rot(ROT *, FILE *);
 
 
 /*
@@ -46,4 +46,4 @@ int set_conf(ROT *my_rot, char *conf_parms);
 
 int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc);
 
-#endif	/* ROTCTL_PARSE_H */
+#endif  /* ROTCTL_PARSE_H */
