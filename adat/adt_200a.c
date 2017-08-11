@@ -23,7 +23,7 @@
 
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#  include "config.h"
 #endif
 
 // ---------------------------------------------------------------------------
@@ -53,8 +53,7 @@
 //    ADT-200A HAMLIB CAPS / DESCRIPTION
 // ---------------------------------------------------------------------------
 
-const struct rig_caps adt_200a_caps =
-{
+const struct rig_caps adt_200a_caps = {
     .rig_model          =  RIG_MODEL_ADT_200A,
     .model_name         =  "ADT-200A",
     .mfg_name           =  "ADAT www.adat.ch",
@@ -134,35 +133,35 @@ const struct rig_caps adt_200a_caps =
 
     .filters =
     {
-        { RIG_MODE_CW|RIG_MODE_CWR, Hz(50) },
-        { RIG_MODE_CW|RIG_MODE_CWR, Hz(75) },
-        { RIG_MODE_CW|RIG_MODE_CWR, Hz(100) },
-        { RIG_MODE_CW|RIG_MODE_CWR, Hz(150) },
-        { RIG_MODE_CW|RIG_MODE_CWR, Hz(200) },
-        { RIG_MODE_CW|RIG_MODE_CWR, Hz(300) },
-        { RIG_MODE_CW|RIG_MODE_CWR, Hz(750) },
-        { RIG_MODE_CW|RIG_MODE_CWR, Hz(1000) },
-        { RIG_MODE_CW|RIG_MODE_CWR, Hz(1200) },
-        { RIG_MODE_LSB|RIG_MODE_USB, Hz(300) },
-        { RIG_MODE_LSB|RIG_MODE_USB, Hz(500) },
-        { RIG_MODE_LSB|RIG_MODE_USB, Hz(750) },
-        { RIG_MODE_LSB|RIG_MODE_USB, Hz(1000) },
-        { RIG_MODE_LSB|RIG_MODE_USB, Hz(1200) },
-        { RIG_MODE_LSB|RIG_MODE_USB, Hz(1500) },
-        { RIG_MODE_LSB|RIG_MODE_USB, Hz(1800) },
-        { RIG_MODE_LSB|RIG_MODE_USB, Hz(2000) },
-        { RIG_MODE_LSB|RIG_MODE_USB, Hz(2200) },
-        { RIG_MODE_LSB|RIG_MODE_USB, Hz(2400) },
-        { RIG_MODE_LSB|RIG_MODE_USB, Hz(2700) },
-        { RIG_MODE_LSB|RIG_MODE_USB, Hz(3500) },
-        { RIG_MODE_AM|RIG_MODE_SAL|RIG_MODE_SAH, Hz(3000) },
-        { RIG_MODE_AM|RIG_MODE_SAL|RIG_MODE_SAH, Hz(3500) },
-        { RIG_MODE_AM|RIG_MODE_SAL|RIG_MODE_SAH, Hz(4000) },
-        { RIG_MODE_AM|RIG_MODE_SAL|RIG_MODE_SAH, Hz(4500) },
-        { RIG_MODE_AM|RIG_MODE_SAL|RIG_MODE_SAH, Hz(5000) },
-        { RIG_MODE_AM|RIG_MODE_SAL|RIG_MODE_SAH, Hz(6000) },
-        { RIG_MODE_AM|RIG_MODE_SAL|RIG_MODE_SAH, Hz(7000) },
-        { RIG_MODE_AM|RIG_MODE_SAL|RIG_MODE_SAH, Hz(8000) },
+        { RIG_MODE_CW | RIG_MODE_CWR, Hz(50) },
+        { RIG_MODE_CW | RIG_MODE_CWR, Hz(75) },
+        { RIG_MODE_CW | RIG_MODE_CWR, Hz(100) },
+        { RIG_MODE_CW | RIG_MODE_CWR, Hz(150) },
+        { RIG_MODE_CW | RIG_MODE_CWR, Hz(200) },
+        { RIG_MODE_CW | RIG_MODE_CWR, Hz(300) },
+        { RIG_MODE_CW | RIG_MODE_CWR, Hz(750) },
+        { RIG_MODE_CW | RIG_MODE_CWR, Hz(1000) },
+        { RIG_MODE_CW | RIG_MODE_CWR, Hz(1200) },
+        { RIG_MODE_LSB | RIG_MODE_USB, Hz(300) },
+        { RIG_MODE_LSB | RIG_MODE_USB, Hz(500) },
+        { RIG_MODE_LSB | RIG_MODE_USB, Hz(750) },
+        { RIG_MODE_LSB | RIG_MODE_USB, Hz(1000) },
+        { RIG_MODE_LSB | RIG_MODE_USB, Hz(1200) },
+        { RIG_MODE_LSB | RIG_MODE_USB, Hz(1500) },
+        { RIG_MODE_LSB | RIG_MODE_USB, Hz(1800) },
+        { RIG_MODE_LSB | RIG_MODE_USB, Hz(2000) },
+        { RIG_MODE_LSB | RIG_MODE_USB, Hz(2200) },
+        { RIG_MODE_LSB | RIG_MODE_USB, Hz(2400) },
+        { RIG_MODE_LSB | RIG_MODE_USB, Hz(2700) },
+        { RIG_MODE_LSB | RIG_MODE_USB, Hz(3500) },
+        { RIG_MODE_AM | RIG_MODE_SAL | RIG_MODE_SAH, Hz(3000) },
+        { RIG_MODE_AM | RIG_MODE_SAL | RIG_MODE_SAH, Hz(3500) },
+        { RIG_MODE_AM | RIG_MODE_SAL | RIG_MODE_SAH, Hz(4000) },
+        { RIG_MODE_AM | RIG_MODE_SAL | RIG_MODE_SAH, Hz(4500) },
+        { RIG_MODE_AM | RIG_MODE_SAL | RIG_MODE_SAH, Hz(5000) },
+        { RIG_MODE_AM | RIG_MODE_SAL | RIG_MODE_SAH, Hz(6000) },
+        { RIG_MODE_AM | RIG_MODE_SAL | RIG_MODE_SAH, Hz(7000) },
+        { RIG_MODE_AM | RIG_MODE_SAL | RIG_MODE_SAH, Hz(8000) },
         { RIG_MODE_FM, Hz(6000) },
         { RIG_MODE_FM, Hz(7000) },
         { RIG_MODE_FM, Hz(8000) },

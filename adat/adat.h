@@ -34,7 +34,7 @@
 //    HAMLIB INCLUDES
 // ---------------------------------------------------------------------------
 
-#include "hamlib/rig.h"
+#include <hamlib/rig.h>
 
 // ---------------------------------------------------------------------------
 //    GLOBAL DEFINITIONS
@@ -329,8 +329,7 @@
 //    ADAT PRIVATE DATA
 // ---------------------------------------------------------------------------
 
-typedef struct _adat_priv_data
-{
+typedef struct _adat_priv_data {
     int           nOpCode;
 
     char         *pcProductName; // Future use (USB direct I/O)
@@ -351,15 +350,15 @@ typedef struct _adat_priv_data
     int           nCurrentVFO;
     vfo_t         nRIGVFONr;
 
-	freq_t        nFreq;
+    freq_t        nFreq;
     char          acRXFreq[ ADAT_BUFSZ ];
     char          acTXFreq[ ADAT_BUFSZ ];
 
-	rmode_t       nRIGMode;
+    rmode_t       nRIGMode;
     char          acADATMode[ ADAT_MODE_LENGTH + 1 ];
     int           nADATMode;
 
-	pbwidth_t     nWidth;
+    pbwidth_t     nWidth;
 
     int           nADATPTTStatus;
     ptt_t         nRIGPTTStatus;
@@ -368,10 +367,10 @@ typedef struct _adat_priv_data
     value_t       mNB1;
     value_t       mNB2;
 
-	value_t       mAGC;
-	value_t       mRFGain;
-	value_t       mIFShift;
-	value_t       mRawStr;
+    value_t       mAGC;
+    value_t       mRFGain;
+    value_t       mIFShift;
+    value_t       mRawStr;
 
     // ADAT Command-related Values
 
@@ -389,7 +388,7 @@ typedef struct _adat_priv_data
 // ---------------------------------------------------------------------------
 
 typedef unsigned long long adat_cmd_id_t; // Bit mask for commands. Each command
-// is represented by 1 bit.
+                                          // is represented by 1 bit.
 
 // adat_cmd_def : ADAT COMMAND DEFINITION.
 // Basic idea: Each command can be made of several strings to be sent
@@ -398,38 +397,34 @@ typedef unsigned long long adat_cmd_id_t; // Bit mask for commands. Each command
 // executed by adat_transaction(). The last value as returned by the
 // commands will be set as overall command result.
 
-typedef enum
-{
+typedef enum {
     ADAT_CMD_KIND_WITH_RESULT    = 0,  // After sending a command to the ADAT,
-    // a result has to be read.
+                                       // a result has to be read.
     ADAT_CMD_KIND_WITHOUT_RESULT = 1
 
 } adat_cmd_kind_t;
 
-typedef struct _adat_cmd_def_t
-{
+typedef struct _adat_cmd_def_t {
     adat_cmd_id_t    nCmdId;        // Bit indicating this cmd
     adat_cmd_kind_t  nCmdKind;      // Defines if result expected
 
-    int              (*pfCmdFn)( RIG *pRig ); // Fn to be called to execute this cmd
+    int (*pfCmdFn)(RIG *pRig);      // Fn to be called to execute this cmd
 
     int              nNrCmdStrs;    // Oh my, C as a language ... I'd love to
-    // switch to Common Lisp ... What a hack here ...
+                                    // switch to Common Lisp ... What a hack here ...
     char            *pacCmdStrs[];  // Commands to be executed if no CmdFn given
 
 } adat_cmd_def_t,
 * adat_cmd_def_ptr;
 
-typedef struct _adat_cmd_table_t
-{
+typedef struct _adat_cmd_table_t {
     int              nNrCmds;
     adat_cmd_def_ptr adat_cmds[];
 
 } adat_cmd_table_t,
 * adat_cmd_table_ptr;
 
-typedef struct _adat_cmd_list_t
-{
+typedef struct _adat_cmd_list_t {
     int              nNrCmds;
     adat_cmd_def_ptr adat_cmds[];
 
@@ -440,8 +435,7 @@ typedef struct _adat_cmd_list_t
 //    OTHER ADAT DATA TYPES
 // ---------------------------------------------------------------------------
 
-typedef enum
-{
+typedef enum {
     ADAT_FREQ_PARSE_MODE_WITH_VFO     = 0,
     ADAT_FREQ_PARSE_MODE_WITHOUT_VFO  = 1
 
@@ -449,8 +443,7 @@ typedef enum
 
 // ADAT MODE DEFINITION
 
-typedef struct _adat_mode_def
-{
+typedef struct _adat_mode_def {
     char     *pcADATModeStr;
     rmode_t   nRIGMode;
     int       nADATMode;
@@ -458,8 +451,7 @@ typedef struct _adat_mode_def
 } adat_mode_def_t,
 * adat_mode_def_ptr;
 
-typedef struct _adat_mode_list
-{
+typedef struct _adat_mode_list {
     int nNrModes;
 
     adat_mode_def_t adat_modes[ ADAT_NR_MODES ];
@@ -469,8 +461,7 @@ typedef struct _adat_mode_list
 
 // ADAT VFO DEFINITION
 
-typedef struct _adat_vfo_def
-{
+typedef struct _adat_vfo_def {
     char     *pcADATVFOStr;
     vfo_t     nRIGVFONr;
     int       nADATVFONr;
@@ -478,8 +469,7 @@ typedef struct _adat_vfo_def
 } adat_vfo_def_t,
 * adat_vfo_def_ptr;
 
-typedef struct _adat_vfo_list
-{
+typedef struct _adat_vfo_list {
     int nNrVFOs;
 
     adat_vfo_def_t adat_vfos[ ADAT_NR_VFOS ];
@@ -493,102 +483,102 @@ typedef struct _adat_vfo_list
 
 // Helper functions
 
-size_t trimwhitespace( char *, size_t, const char * );
-int adat_print_cmd( adat_cmd_def_ptr );
+size_t trimwhitespace(char *, size_t, const char *);
+int adat_print_cmd(adat_cmd_def_ptr);
 
-int adat_parse_freq( char *, adat_freq_parse_mode_t, int *, freq_t * );
+int adat_parse_freq(char *, adat_freq_parse_mode_t, int *, freq_t *);
 
-int adat_parse_mode( char *, rmode_t *, char * );
-int adat_mode_rnr2anr( rmode_t, int * );
-int adat_mode_anr2rnr( int, rmode_t * );
+int adat_parse_mode(char *, rmode_t *, char *);
+int adat_mode_rnr2anr(rmode_t, int *);
+int adat_mode_anr2rnr(int, rmode_t *);
 
-int adat_parse_vfo( char *, vfo_t *, int * );
-int adat_vfo_rnr2anr( vfo_t, int * );
-int adat_vfo_anr2rnr( int, vfo_t * );
+int adat_parse_vfo(char *, vfo_t *, int *);
+int adat_vfo_rnr2anr(vfo_t, int *);
+int adat_vfo_anr2rnr(int, vfo_t *);
 
-int adat_parse_ptt( char *, int * );
-int adat_ptt_rnr2anr( ptt_t, int * );
-int adat_ptt_anr2rnr( int, ptt_t * );
+int adat_parse_ptt(char *, int *);
+int adat_ptt_rnr2anr(ptt_t, int *);
+int adat_ptt_anr2rnr(int, ptt_t *);
 
-int adat_send( RIG *, char * );
-int adat_receive( RIG *, char * );
+int adat_send(RIG *, char *);
+int adat_receive(RIG *, char *);
 
-int adat_priv_set_cmd( RIG *, char *, int );
-int adat_priv_set_result( RIG *, char * );
-int adat_priv_clear_result( RIG * );
+int adat_priv_set_cmd(RIG *, char *, int);
+int adat_priv_set_result(RIG *, char *);
+int adat_priv_clear_result(RIG *);
 
-int adat_get_single_cmd_result( RIG * );
+int adat_get_single_cmd_result(RIG *);
 
-int adat_cmd_recover_from_error( RIG *, int );
+int adat_cmd_recover_from_error(RIG *, int);
 
-int adat_transaction( RIG *, adat_cmd_list_ptr );
+int adat_transaction(RIG *, adat_cmd_list_ptr);
 
-adat_priv_data_ptr adat_new_priv_data( RIG * );
-void adat_del_priv_data( adat_priv_data_t ** );
+adat_priv_data_ptr adat_new_priv_data(RIG *);
+void adat_del_priv_data(adat_priv_data_t **);
 
 // Command implementation
 
-int adat_cmd_fn_get_serial_nr( RIG * );
-int adat_cmd_fn_get_fw_version( RIG * );
-int adat_cmd_fn_get_hw_version( RIG * );
-int adat_cmd_fn_get_gui_fw_version( RIG * );
-int adat_cmd_fn_get_id_code( RIG * );
-int adat_cmd_fn_get_options( RIG * );
+int adat_cmd_fn_get_serial_nr(RIG *);
+int adat_cmd_fn_get_fw_version(RIG *);
+int adat_cmd_fn_get_hw_version(RIG *);
+int adat_cmd_fn_get_gui_fw_version(RIG *);
+int adat_cmd_fn_get_id_code(RIG *);
+int adat_cmd_fn_get_options(RIG *);
 
-int adat_cmd_fn_set_callsign( RIG * );
-int adat_cmd_fn_get_callsign( RIG * );
+int adat_cmd_fn_set_callsign(RIG *);
+int adat_cmd_fn_get_callsign(RIG *);
 
-int adat_cmd_fn_set_freq( RIG * );
-int adat_cmd_fn_get_freq( RIG * );
+int adat_cmd_fn_set_freq(RIG *);
+int adat_cmd_fn_get_freq(RIG *);
 
-int adat_cmd_fn_get_mode( RIG * );
-int adat_cmd_fn_set_mode( RIG * );
+int adat_cmd_fn_get_mode(RIG *);
+int adat_cmd_fn_set_mode(RIG *);
 
-int adat_cmd_fn_get_vfo( RIG * );
-int adat_cmd_fn_set_vfo( RIG * );
+int adat_cmd_fn_get_vfo(RIG *);
+int adat_cmd_fn_set_vfo(RIG *);
 
-int adat_cmd_fn_get_ptt( RIG * );
-int adat_cmd_fn_set_ptt( RIG * );
+int adat_cmd_fn_get_ptt(RIG *);
+int adat_cmd_fn_set_ptt(RIG *);
 
 // ---------------------------------------------------------------------------
 //    ADAT FUNCTION DECLARATIONS
 // ---------------------------------------------------------------------------
 
-int adat_init( RIG * );
-int adat_cleanup( RIG * );
-int adat_reset( RIG *, reset_t );
-int adat_open( RIG * );
-int adat_close( RIG * );
+int adat_init(RIG *);
+int adat_cleanup(RIG *);
+int adat_reset(RIG *, reset_t);
+int adat_open(RIG *);
+int adat_close(RIG *);
 
-int adat_set_conf( RIG *, token_t, const char *val );
-int adat_get_conf( RIG *, token_t, char *val );
+int adat_set_conf(RIG *, token_t, const char *val);
+int adat_get_conf(RIG *, token_t, char *val);
 
-int adat_set_freq( RIG *, vfo_t, freq_t );
-int adat_get_freq( RIG *, vfo_t, freq_t * );
+int adat_set_freq(RIG *, vfo_t, freq_t);
+int adat_get_freq(RIG *, vfo_t, freq_t *);
 
-int adat_set_vfo( RIG *, vfo_t );
-int adat_get_vfo( RIG *, vfo_t * );
+int adat_set_vfo(RIG *, vfo_t);
+int adat_get_vfo(RIG *, vfo_t *);
 
-int adat_set_ptt( RIG *, vfo_t, ptt_t );
-int adat_get_ptt( RIG *, vfo_t, ptt_t * );
+int adat_set_ptt(RIG *, vfo_t, ptt_t);
+int adat_get_ptt(RIG *, vfo_t, ptt_t *);
 
-int adat_set_mode( RIG *, vfo_t, rmode_t, pbwidth_t );
-int adat_get_mode( RIG *, vfo_t, rmode_t *, pbwidth_t * );
+int adat_set_mode(RIG *, vfo_t, rmode_t, pbwidth_t);
+int adat_get_mode(RIG *, vfo_t, rmode_t *, pbwidth_t *);
 
-int adat_set_func( RIG *, vfo_t, setting_t func, int );
-int adat_get_func( RIG *, vfo_t, setting_t func, int * );
+int adat_set_func(RIG *, vfo_t, setting_t func, int);
+int adat_get_func(RIG *, vfo_t, setting_t func, int *);
 
-int adat_set_level( RIG *, vfo_t, setting_t level, value_t );
-int adat_get_level( RIG *, vfo_t, setting_t level, value_t * );
+int adat_set_level(RIG *, vfo_t, setting_t level, value_t);
+int adat_get_level(RIG *, vfo_t, setting_t level, value_t *);
 
-int adat_handle_event( RIG * );
+int adat_handle_event(RIG *);
 
-const char * adat_get_info( RIG * );
+const char *adat_get_info(RIG *);
 
-int adat_mW2power( RIG *, float *, unsigned int, freq_t, rmode_t );
-int adat_power2mW( RIG *, unsigned int *, float, freq_t, rmode_t );
+int adat_mW2power(RIG *, float *, unsigned int, freq_t, rmode_t);
+int adat_power2mW(RIG *, unsigned int *, float, freq_t, rmode_t);
 
-int adat_get_powerstat( RIG *, powerstat_t * );
+int adat_get_powerstat(RIG *, powerstat_t *);
 
 extern const struct rig_caps adt_200a_caps;
 

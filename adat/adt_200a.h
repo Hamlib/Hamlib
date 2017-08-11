@@ -35,20 +35,20 @@
 //    ADT-200A USB DEFINITIONS
 // ---------------------------------------------------------------------------
 
-#define ADT_200A_VENDOR_ID	                    0x0403
+#define ADT_200A_VENDOR_ID                      0x0403
 #define ADT_200A_PRODUCT_ID                     0x6001
 
-#define ADT_200A_VENDOR_NAME	                "FTDI"
-#define ADT_200A_PRODUCT_NAME				    "TRX3C Serial C945D5B"
+#define ADT_200A_VENDOR_NAME                    "FTDI"
+#define ADT_200A_PRODUCT_NAME                   "TRX3C Serial C945D5B"
 
 #define ADT_200A_USB_INTERFACE_NR               0x00
 #define ADT_200A_USB_CONFIGURATION_VALUE        0x01
 #define ADT_200A_ALTERNATE_SETTIMG              0x00
 
-#define ADT_200A_USB_INPUT_ENDPOINT		 	    0x81
+#define ADT_200A_USB_INPUT_ENDPOINT             0x81
 #define ADT_200A_USB_INPUT_MAX_PACKET_SIZE      64
 
-#define ADT_200A_USB_OUTPUT_ENDPOINT	 	    b0x02
+#define ADT_200A_USB_OUTPUT_ENDPOINT            b0x02
 #define ADT_200A_USB_OUTPUT_MAX_PACKET_SIZE     64
 
 // ---------------------------------------------------------------------------
