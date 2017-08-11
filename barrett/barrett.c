@@ -19,7 +19,7 @@
  *
  */
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#  include "config.h"
 #endif
 
 #include <stdio.h>
@@ -29,11 +29,11 @@
 #include <math.h>
 
 #include <hamlib/rig.h>
-#include <serial.h>
-#include <misc.h>
-#include <cal.h>
-#include <token.h>
-#include <register.h>
+#include "serial.h"
+#include "misc.h"
+#include "cal.h"
+#include "token.h"
+#include "register.h"
 
 #include "barrett.h"
 
@@ -53,43 +53,51 @@ static int barrett_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 static int barrett_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 static int barrett_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 static int barrett_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
-static int barrett_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+static int barrett_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
+                            pbwidth_t *width);
+
 static int barrett_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
-static int barrett_set_split_vfo(RIG *rig, vfo_t rxvfo, split_t split, vfo_t txvfo);
-static int barrett_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *txvfo);
-static int barrett_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-static const char *barrett_get_info(RIG *rig);
+static int barrett_set_split_vfo(RIG *rig, vfo_t rxvfo, split_t split,
+                                 vfo_t txvfo);
+
+static int barrett_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
+                                 vfo_t *txvfo);
+
+static int barrett_get_level(RIG *rig, vfo_t vfo, setting_t level,
+                             value_t *val);
+
+static const char * barrett_get_info(RIG *rig);
 
 
 const struct rig_caps barrett_caps = {
-    .rig_model = RIG_MODEL_BARRETT_2050,
-    .model_name = "2050",
-    .mfg_name = "Barrett",
-    .version = BACKEND_VER,
-    .copyright = "LGPL",
-    .status = RIG_STATUS_BETA,
-    .rig_type = RIG_TYPE_TRANSCEIVER,
-    .targetable_vfo = RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
-    .ptt_type = RIG_PTT_RIG,
-    .dcd_type = RIG_DCD_NONE,
-    .port_type = RIG_PORT_SERIAL,
-    .serial_rate_min = 9600,
-    .serial_rate_max = 9600,
+    .rig_model =        RIG_MODEL_BARRETT_2050,
+    .model_name =       "2050",
+    .mfg_name =         "Barrett",
+    .version =          BACKEND_VER,
+    .copyright =        "LGPL",
+    .status =           RIG_STATUS_BETA,
+    .rig_type =         RIG_TYPE_TRANSCEIVER,
+    .targetable_vfo =   RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
+    .ptt_type =         RIG_PTT_RIG,
+    .dcd_type =         RIG_DCD_NONE,
+    .port_type =        RIG_PORT_SERIAL,
+    .serial_rate_min =  9600,
+    .serial_rate_max =  9600,
     .serial_data_bits = 8,
     .serial_stop_bits = 1,
-    .serial_parity = RIG_PARITY_NONE,
+    .serial_parity =    RIG_PARITY_NONE,
     .serial_handshake = RIG_HANDSHAKE_XONXOFF,
-    .write_delay = 0,
+    .write_delay =      0,
     .post_write_delay = 50,
-    .timeout = 1000,
-    .retry = 3,
+    .timeout =          1000,
+    .retry =            3,
 
-    .has_get_func = RIG_FUNC_NONE,
-    .has_set_func = RIG_FUNC_NONE,
-    .has_get_level = BARRETT_LEVELS,
-    .has_set_level = RIG_LEVEL_NONE,
-    .has_get_parm = RIG_PARM_NONE,
-    .has_set_parm = RIG_PARM_NONE,
+    .has_get_func =     RIG_FUNC_NONE,
+    .has_set_func =     RIG_FUNC_NONE,
+    .has_get_level =    BARRETT_LEVELS,
+    .has_set_level =    RIG_LEVEL_NONE,
+    .has_get_parm =     RIG_PARM_NONE,
+    .has_set_parm =     RIG_PARM_NONE,
 //  .level_gran =          { [LVL_CWPITCH] = { .step = { .i = 10 } } },
 //  .ctcss_list =          common_ctcss_list,
 //  .dcs_list =            full_dcs_list,
@@ -102,7 +110,7 @@ const struct rig_caps barrett_caps = {
 //                 },
 // .scan_ops =    DUMMY_SCAN,
 // .vfo_ops =     DUMMY_VFO_OP,
-    .transceive = RIG_TRN_RIG,
+    .transceive =       RIG_TRN_RIG,
     .rx_range_list1 = {{
             .start = kHz(1600), .end = MHz(30), .modes = BARRETT_MODES,
             .low_power = -1, .high_power = -1, BARRETT_VFOS, RIG_ANT_1
@@ -126,7 +134,7 @@ const struct rig_caps barrett_caps = {
 //  .extparms =     dummy_ext_parms,
 //  .cfgparams =    dummy_cfg_params,
 
-    .rig_init = barrett_init,
+    .rig_init =     barrett_init,
     .rig_cleanup =  barrett_cleanup,
 
 //  .set_conf =     dummy_set_conf,
@@ -140,7 +148,7 @@ const struct rig_caps barrett_caps = {
 //  .set_powerstat =  dummy_set_powerstat,
 //  .get_powerstat =  dummy_get_powerstat,
 //  .set_level =     dummy_set_level,
-    .get_level =     barrett_get_level,
+    .get_level =    barrett_get_level,
 //  .set_func =      dummy_set_func,
 //  .get_func =      dummy_get_func,
 //  .set_parm =      dummy_set_parm,
@@ -150,9 +158,9 @@ const struct rig_caps barrett_caps = {
 //  .set_ext_parm =  dummy_set_ext_parm,
 //  .get_ext_parm =  dummy_get_ext_parm,
 
-    .get_info =      barrett_get_info,
-    .set_ptt = barrett_set_ptt,
-    .get_ptt = barrett_get_ptt,
+    .get_info =     barrett_get_info,
+    .set_ptt =      barrett_set_ptt,
+    .get_ptt =      barrett_get_ptt,
 //  .get_dcd =    dummy_get_dcd,
 //  .set_rptr_shift =     dummy_set_rptr_shift,
 //  .get_rptr_shift =     dummy_get_rptr_shift,
@@ -166,12 +174,12 @@ const struct rig_caps barrett_caps = {
 //  .get_ctcss_sql =      dummy_get_ctcss_sql,
 //  .set_dcs_sql =        dummy_set_dcs_sql,
 //  .get_dcs_sql =        dummy_get_dcs_sql,
-    .set_split_freq = barrett_set_split_freq,
+    .set_split_freq =   barrett_set_split_freq,
 //  .get_split_freq =     dummy_get_split_freq,
 //  .set_split_mode =     dummy_set_split_mode,
 //  .get_split_mode =     dummy_get_split_mode,
-    .set_split_vfo =      barrett_set_split_vfo,
-    .get_split_vfo =      barrett_get_split_vfo,
+    .set_split_vfo =    barrett_set_split_vfo,
+    .get_split_vfo =    barrett_get_split_vfo,
 //  .set_rit =    dummy_set_rit,
 //  .get_rit =    dummy_get_rit,
 //  .set_xit =    dummy_set_xit,
@@ -228,8 +236,10 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
 
     if (expected == 0) {
         // response format is 0x11,data...,0x0d,0x0a,0x13
-        retval = read_string(&rs->rigport, priv->ret_data, sizeof(priv->ret_data), "\x11", 1);
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: resultlen=%d\n", __FUNCTION__, strlen(priv->ret_data));
+        retval = read_string(&rs->rigport, priv->ret_data, sizeof(priv->ret_data),
+                             "\x11", 1);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: resultlen=%d\n", __FUNCTION__,
+                  strlen(priv->ret_data));
 
         if (retval < 0) {
             return retval;
@@ -252,14 +262,18 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
         rig_debug(RIG_DEBUG_ERR, "%s: removing xoff char\n", __FUNCTION__);
         p[strlen(p) - 1] = 0;
     } else {
-        rig_debug(RIG_DEBUG_ERR, "%s: expected XOFF=0x13 as first and XON=0x11 as last byte, got %02x/%02x\n", __FUNCTION__, xon, xoff);
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: expected XOFF=0x13 as first and XON=0x11 as last byte, got %02x/%02x\n",
+                  __FUNCTION__, xon, xoff);
     }
 
     rig_debug(RIG_DEBUG_ERR, "%s: removing xon char\n", __FUNCTION__);
     // Remove the XON char if there
     p = memchr(priv->ret_data, 0x11, strlen(priv->ret_data));
 
-    if (p) { *p = 0; }
+    if (p) {
+        *p = 0;
+    }
 
 
 
@@ -267,25 +281,31 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
 
     if (result != NULL) {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: setting result\n", __FUNCTION__);
+
         if (priv->ret_data[0] == 0x13) { // we'll return from the 1st good char
             *result = &(priv->ret_data[1]);
-        }
-        else { // some commands like IAL don't give XOFF but XON is there -- is this a bug?
+        } else { // some commands like IAL don't give XOFF but XON is there -- is this a bug?
             *result = &(priv->ret_data[0]);
         }
+
         // See how many CR's we have
         int n = 0;
 
         for (p = *result; *p; ++p) {
-            if (*p == 0x0d) { ++n; }
+            if (*p == 0x0d) {
+                ++n;
+            }
         }
 
         // if only 1 CR then we'll truncate string
         // Several commands can return multiline strings and we'll leave them alone
-        if (n == 1) { strtok(*result, "\r"); }
+        if (n == 1) {
+            strtok(*result, "\r");
+        }
 
         dump_hex((const unsigned char *)*result, strlen(*result));
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: returning result=%s\n", __FUNCTION__, *result);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: returning result=%s\n", __FUNCTION__,
+                  *result);
     } else {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: no result requested=%s\n", __FUNCTION__);
     }
@@ -293,10 +313,12 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
     return RIG_OK;
 }
 
+
 int barrett_init(RIG *rig)
 {
     struct barrett_priv_data *priv;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s version %s\n", __FUNCTION__, rig->caps->version);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s version %s\n", __FUNCTION__,
+              rig->caps->version);
 
     if (!rig || !rig->caps) {
         return -RIG_EINVAL;
@@ -312,6 +334,7 @@ int barrett_init(RIG *rig)
 
     return RIG_OK;
 }
+
 
 /*
  * barrett_cleanup
@@ -371,6 +394,7 @@ int barrett_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     return RIG_OK;
 }
 
+
 /*
  * barrett_set_freq
  * assumes rig!=NULL, rig->state.priv!=NULL
@@ -381,7 +405,8 @@ int barrett_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     int retval;
     struct barrett_priv_data *priv = rig->state.priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s freq=%.0f\n", __FUNCTION__, rig_strvfo(vfo), freq);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s freq=%.0f\n", __FUNCTION__,
+              rig_strvfo(vfo), freq);
 
     // If we are not explicity asking for VFO_B then we'll set the receive side also
     if (vfo != RIG_VFO_B) {
@@ -401,7 +426,9 @@ int barrett_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         }
     }
 
-    if (priv->split == 0 || vfo == RIG_VFO_B) { // if we aren't in split mode we have to set the TX VFO too
+    if (priv->split == 0
+        || vfo == RIG_VFO_B) { // if we aren't in split mode we have to set the TX VFO too
+
         sprintf((char *) cmd_buf, "PT%08.0f", freq);
         char *response = NULL;
         retval = barrett_transaction(rig, cmd_buf, 0, &response);
@@ -454,6 +481,7 @@ int barrett_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     return RIG_OK;
 }
 
+
 /*
  * barrett_get_ptt
  * Assumes rig!=NULL
@@ -484,6 +512,7 @@ int barrett_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     return RIG_OK;
 }
 
+
 /*
  * barrett_set_mode
  * Assumes rig!=NULL
@@ -496,7 +525,8 @@ int barrett_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     //struct tt588_priv_data *priv = (struct tt588_priv_data *) rig->state.priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s mode=%d width=%d\n", __FUNCTION__, rig_strvfo(vfo), mode, width);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s mode=%d width=%d\n", __FUNCTION__,
+              rig_strvfo(vfo), mode, width);
 
     switch (mode) {
     case RIG_MODE_USB:
@@ -534,6 +564,7 @@ int barrett_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     return RIG_OK;
 }
+
 
 /*
  * barrett_get_mode
@@ -575,14 +606,18 @@ int barrett_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: Unknown mode='%c%c'\n", __FUNCTION__,  result[0], result[1]);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unknown mode='%c%c'\n", __FUNCTION__,  result[0],
+                  result[1]);
         return -RIG_EPROTO;
     }
 
     *width = 3000; // we'll default this to 3000 for now
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s mode=%s width=%d\n", __FUNCTION__, rig_strvfo(vfo), rig_strrmode(*mode), *width);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s mode=%s width=%d\n", __FUNCTION__,
+              rig_strvfo(vfo), rig_strrmode(*mode), *width);
+
     return RIG_OK;
 }
+
 
 #if 0
 int barrett_get_vfo(RIG *rig, vfo_t *vfo)
@@ -590,14 +625,17 @@ int barrett_get_vfo(RIG *rig, vfo_t *vfo)
     *vfo = RIG_VFO_A;
 
     if (check_vfo(*vfo) == FALSE) {
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __FUNCTION__, rig_strvfo(*vfo));
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __FUNCTION__,
+                  rig_strvfo(*vfo));
         return -RIG_EINVAL;
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __FUNCTION__, rig_strvfo(*vfo));
+
     return RIG_OK;
 }
 #endif
+
 
 /*
  * barrett_set_split_freq
@@ -607,7 +645,8 @@ int barrett_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     // The 2050 only has one RX and one TX VFO -- it's not treated as VFOA/VFOB
     char cmd_buf[MAXCMDLEN];
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s freq=%g\n", __FUNCTION__, rig_strvfo(vfo), tx_freq);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s freq=%g\n", __FUNCTION__,
+              rig_strvfo(vfo), tx_freq);
 
     sprintf((char *) cmd_buf, "PT%08.0f" EOM, tx_freq);
 
@@ -620,16 +659,20 @@ int barrett_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     return RIG_OK;
 }
 
+
 int barrett_set_split_vfo(RIG *rig, vfo_t rxvfo, split_t split, vfo_t txvfo)
 {
     struct barrett_priv_data *priv;
 
     priv = rig->state.priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called rxvfo=%s, txvfo=%s, split=%d\n", __FUNCTION__, rig_strvfo(rxvfo), rig_strvfo(txvfo), split);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called rxvfo=%s, txvfo=%s, split=%d\n",
+              __FUNCTION__, rig_strvfo(rxvfo), rig_strvfo(txvfo), split);
     priv->split = split;
+
     return RIG_OK;
 }
+
 
 int barrett_get_split_vfo(RIG *rig, vfo_t rxvfo, split_t *split, vfo_t *txvfo)
 {
@@ -639,9 +682,12 @@ int barrett_get_split_vfo(RIG *rig, vfo_t rxvfo, split_t *split, vfo_t *txvfo)
 
     *split = priv->split;
     *txvfo = RIG_VFO_B; // constant
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called rxvfo=%s, txvfo=%s, split=%d\n", __FUNCTION__, rig_strvfo(rxvfo), rig_strvfo(*txvfo), *split);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called rxvfo=%s, txvfo=%s, split=%d\n",
+              __FUNCTION__, rig_strvfo(rxvfo), rig_strvfo(*txvfo), *split);
+
     return RIG_OK;
 }
+
 
 /*
  * barrett_get_level
@@ -656,19 +702,22 @@ int barrett_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         retval = barrett_transaction(rig, "IAL", 0, &response);
 
         if (retval < 0) {
-            rig_debug(RIG_DEBUG_ERR, "%s: invalid response=%s\n", __FUNCTION__, level);
+            rig_debug(RIG_DEBUG_ERR, "%s: invalid response=%s\n", __FUNCTION__,
+                      level);
             return retval;
         }
 
         int strength;
         int n = sscanf(response, "%2d", &strength);
-        if (n==1) {
+
+        if (n == 1) {
             val->i = strength;
-        }
-        else {
-            rig_debug(RIG_DEBUG_ERR, "%s: unable to parse STRENGHT from %s\n", __FUNCTION__, response);
+        } else {
+            rig_debug(RIG_DEBUG_ERR, "%s: unable to parse STRENGHT from %s\n",
+                      __FUNCTION__, response);
             return -RIG_EPROTO;
         }
+
         break;
 
     default:
@@ -676,15 +725,17 @@ int barrett_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return -RIG_EINVAL;
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s level=%d val=%d\n", __FUNCTION__, rig_strvfo(vfo), level, *val);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s level=%d val=%d\n", __FUNCTION__,
+              rig_strvfo(vfo), level, *val);
 
     return RIG_OK;
 }
 
+
 /*
  * barrett_get_info
  */
-const char *barrett_get_info(RIG *rig)
+const char * barrett_get_info(RIG *rig)
 {
     char *response = NULL;
 
@@ -693,7 +744,8 @@ const char *barrett_get_info(RIG *rig)
     int retval = barrett_transaction(rig, "IVF", 0, &response);
 
     if (retval == RIG_OK) {
-        rig_debug(RIG_DEBUG_ERR, "%s: result=%s\n", __FUNCTION__, response, strlen(response));
+        rig_debug(RIG_DEBUG_ERR, "%s: result=%s\n", __FUNCTION__, response,
+                  strlen(response));
     } else {
         rig_debug(RIG_DEBUG_VERBOSE, "Software Version %s\n", response);
     }
