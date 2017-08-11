@@ -301,7 +301,9 @@ int thd72_get_chan_all_cb (RIG * rig, chan_cb_t chan_cb, rig_ptr_t arg)
                 break;
 
             /* non-empty channel ? */
-            if (block_chan[0] != 0xff) {
+            // if (block_chan[0] != 0xff) {
+	    // since block_chan is *signed* char, this maps to -1
+            if (block_chan[0] != -1) {
 
                 memcpy(chan->channel_desc, block_chan, 8);
                 /* TODO: chop off trailing chars */

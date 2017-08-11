@@ -57,12 +57,15 @@
  * Location" command.
  */
 
+#if 0
+// deactivated temporarily because uniden_id_string_list is nowhere used
 static const struct { rig_model_t model; const char *id; }
 uniden_id_string_list[] = {
 	{ RIG_MODEL_BCD396T,  "BCD396T" },
-	{ RIG_MODEL_BCD996T,  "BCD99tT" },
+	{ RIG_MODEL_BCD996T,  "BCD996T" },
 	{ RIG_MODEL_NONE, NULL },	/* end marker */
 };
+#endif
 
 /* EOM is not consistant with this BCD996T!
  * Some commands  return newline while others carriage return.

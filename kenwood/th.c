@@ -1941,7 +1941,7 @@ int th_set_channel(RIG *rig, const channel_t *chan)
 		retval = sprintf(membuf, "%s,%011"PRIll",%X,%d,%d,%d,%d,%d,%02d,%02d,%03d,%09"PRIll",%d%s",
 			req, (int64_t)chan->freq, step, shift, rev, tone,
 			ctcss, dcs, tonefq, ctcssfq, dcscode,
-			(int64_t)abs(chan->rptr_offs), mode, lockoutstr
+			(int64_t)labs((long)(chan->rptr_offs)), mode, lockoutstr
 			);
 	} else {
 
@@ -1949,7 +1949,7 @@ int th_set_channel(RIG *rig, const channel_t *chan)
 		retval = sprintf(membuf, "%s,%011"PRIll",%X,%d,%d,%d,%d,,%02d,,%02d,%09"PRIll"%s",
 			req, (int64_t)chan->freq, step, shift, rev, tone,
 			ctcss, tonefq, ctcssfq,
-			(int64_t)abs(chan->rptr_offs), lockoutstr
+			(int64_t)labs((long)(chan->rptr_offs)), lockoutstr
 			);
 	}
 
