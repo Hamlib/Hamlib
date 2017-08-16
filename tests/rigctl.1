@@ -52,7 +52,8 @@ for NET rigctl (rigctld).
 Use \fIdevice\fP as the file name of the port the radio is connected.
 Often a serial port, but could be a USB to serial adapter.  Typically
 /dev/ttyS0, /dev/ttyS1, /dev/ttyUSB0, etc. on Linux or COM1, COM2, etc.
-on Win32.
+on Win32.  The special string 'uh\-rig' may be given to enable micro-ham
+device support.
 .TP
 .B \-p, --ptt-file=device
 Use \fIdevice\fP as the file name of the Push-To-Talk device using a
@@ -198,26 +199,26 @@ Example:
  > V VFOB F 14200000 M CW 500	# set rig
  > v f m	# query rig
  > .EOF.
- 
+
  $ rigctl -m1 - <cmds.txt
- 
+
  v VFOA
- 
+
  f 145000000
- 
+
  m FM
  15000
- 
+
  V VFOB
  F 14200000
  M CW 500
  v VFOB
- 
+
  f 14200000
- 
+
  m CW
  500
- 
+
  $
 .PP
 Here is a summary of the supported commands (In the case of "set" commands the

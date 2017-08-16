@@ -52,7 +52,8 @@ for NET rotctl (rotctld).
 Use \fIdevice\fP as the file name of the port the rotator is connected.
 Often a serial port, but could be a USB to serial adapter or USB port device.
 Typically /dev/ttyS0, /dev/ttyS1, /dev/ttyUSB0, etc. on Linux or COM1, COM2,
-etc. on Win32.
+etc. on Win32.  The special string 'uh\-rig' may be given to enable micro-ham
+device support.
 .TP
 .B \-s, --serial-speed=baud
 Set serial speed to \fIbaud\fP rate. Uses maximum serial speed from rotator
@@ -157,14 +158,14 @@ Example:
  > pause 30  # wait for action to complete
  > get_pos   # query rotator
  > .EOF.
- 
+
  $ rotctl -m1 - <cmds.txt
- 
+
  set_pos 180.0 10.0
  pause 30
  get_pos 180.000000
  10.000000
- 
+
  $
 .PP
 A summary of commands is included below (In the case of "set" commands the

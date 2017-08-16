@@ -223,6 +223,12 @@ int HAMLIB_API port_close(hamlib_port_t *p, rig_port_t port_type)
 #if defined(WIN32) && !defined(HAVE_TERMIOS_H)
 #include "win32termios.h"
 
+/*
+ * We need uh_radio_fd to determine wether to use win32_serial_read() etc.
+ * or (simply) read().
+ */
+#include "microham.h"
+
 
 /* On MinGW32/MSVC/.. the appropriate accessor must be used
  * depending on the port type, sigh.
@@ -231,6 +237,16 @@ static ssize_t port_read(hamlib_port_t *p, void *buf, size_t count)
 {
     int i;
     ssize_t ret;
+
+    /*
+     * Since WIN32 does its special serial read, we have
+     * to catch the microHam case to do just "read".
+     * Note that we always have RIG_PORT_SERIAL in the
+     * microHam case.
+     */
+    if (p->fd == uh_radio_fd) {
+        return read(p->fd, buf, count);
+    }
 
     if (p->type.rig == RIG_PORT_SERIAL) {
         ret = win32_serial_read(p->fd, buf, count);
@@ -255,6 +271,16 @@ static ssize_t port_read(hamlib_port_t *p, void *buf, size_t count)
 
 static ssize_t port_write(hamlib_port_t *p, const void *buf, size_t count)
 {
+    /*
+     * Since WIN32 does its special serial write, we have
+     * to catch the microHam case to do just "write".
+     * Note that we always have RIG_PORT_SERIAL in the
+     * microHam case.
+     */
+    if (p->fd == uh_radio_fd) {
+        return write(p->fd, buf, count);
+    }
+
     if (p->type.rig == RIG_PORT_SERIAL) {
         return win32_serial_write(p->fd, buf, count);
     } else if (p->type.rig == RIG_PORT_NETWORK
@@ -286,6 +312,16 @@ static int port_select(hamlib_port_t *p, int n, fd_set *readfds,
     writefds = NULL;
     exceptfds = NULL;
 #endif
+
+    /*
+     * Since WIN32 does its special serial select, we have
+     * to catch the microHam case to do just "select".
+     * Note that we always have RIG_PORT_SERIAL in the
+     * microHam case.
+     */
+    if (p->fd == uh_radio_fd) {
+        return select(n, readfds, writefds, exceptfds, timeout);
+    }
 
     if (p->type.rig == RIG_PORT_SERIAL) {
         return win32_serial_select(n, readfds, writefds, exceptfds, timeout);

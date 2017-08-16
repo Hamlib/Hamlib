@@ -249,7 +249,9 @@ model 2 for NET rigctl (@command{rigctld}).
 Use @var{device} as the file name of the port the radio is connected.
 Often a serial port, but could be a USB to serial adapter.  Typically
 @file{/dev/ttyS0} , @file{/dev/ttyS1} , @file{/dev/ttyUSB0} , etc.@:
-on Linux or @file{COM1} , @file{COM2} , etc.@: on MS Windows.
+on Linux or @file{COM1} , @file{COM2} , etc.@: on MS Windows.  The
+special string @kbd{uh-rig} may be given to enable micro-ham device
+support.
 @ifhtml
 @*
 @end ifhtml
@@ -1308,11 +1310,13 @@ Select rotator model number. See model list (use @kbd{rotctl -l}).
 rotor model 2 for NET rotctl (@command{rotctld}).
 
 @item -r
-@itemx --rig-file=@var{device}
+@itemx --rot-file=@var{device}
 Use @var{device} as the file name of the port the rotor is connected.
 Often a serial port, but could be a USB to serial adapter.  Typically
 @file{/dev/ttyS0} , @file{/dev/ttyS1} , @file{/dev/ttyUSB0} , etc.@:
-on Linux or @file{COM1} , @file{COM2} , etc.@: on MS Windows.
+on Linux or @file{COM1} , @file{COM2} , etc.@: on MS Windows.  The
+special string @kbd{uh-rig} may be given to enable micro-ham device
+support.
 @ifhtml
 @*
 @end ifhtml
@@ -1776,7 +1780,9 @@ Select radio model number. See model list (use @kbd{rigctld -l}).
 Use @var{device} as the file name of the port the radio is connected.
 Often a serial port, but could be a USB to serial adapter.  Typically
 @file{/dev/ttyS0} , @file{/dev/ttyS1} , @file{/dev/ttyUSB0} , etc.@:
-on Linux or @file{COM1} , @file{COM2} , etc.@: on MS Windows.
+on Linux or @file{COM1} , @file{COM2} , etc.@: on MS Windows.  The
+special string @kbd{uh-rig} may be given to enable micro-ham device
+support.
 @ifhtml
 @*
 @end ifhtml
@@ -2861,11 +2867,13 @@ Select rotator model number. See model list (use @kbd{rotctl -l}).
 rotor model 2 for NET rotctl (@command{rotctld}).
 
 @item -r
-@itemx --rig-file=@var{device}
+@itemx --rot-file=@var{device}
 Use @var{device} as the file name of the port the rotor is connected.
 Often a serial port, but could be a USB to serial adapter.  Typically
 @file{/dev/ttyS0} , @file{/dev/ttyS1} , @file{/dev/ttyUSB0} , etc.@:
-on Linux or @file{COM1} , @file{COM2} , etc.@: on MS Windows.
+on Linux or @file{COM1} , @file{COM2} , etc.@: on MS Windows.  The
+special string @kbd{uh-rig} may be given to enable micro-ham device
+support.
 @ifhtml
 @*
 @end ifhtml

@@ -12,6 +12,7 @@ Version 3.2
         * New model, FT-891.  Mike, W9MDB
         * Build instructions and test script for Python3
         * Rename autogen.sh to bootsrap and don't call configure
+        * micro-ham support. Christoph, DL1YCF
 
 Version 3.1
 	2016-12-31

@@ -82,6 +82,7 @@
 #include <sys/ioccom.h>
 #endif
 
+#include "microham.h"
 
 /**
  * \brief Open serial port using rig.state data
@@ -100,6 +101,48 @@ int HAMLIB_API serial_open(hamlib_port_t *rp)
         return -RIG_EINVAL;
     }
 
+    if (!strncmp(rp->pathname,"uh-rig",6)) {
+        /*
+         * If the pathname is EXACTLY "uh-rig", try to use a microHam device
+         * rather than a conventional serial port.
+         * The microHam devices ALWAYS use "no parity", and can either use no handshake
+         * or hardware handshake. Return with error if something else is requested.
+         */
+        if (rp->parm.serial.parity != RIG_PARITY_NONE) {
+            return -RIG_EIO;
+        }
+        if ((rp->parm.serial.handshake != RIG_HANDSHAKE_HARDWARE) &&
+          (rp->parm.serial.handshake != RIG_HANDSHAKE_NONE)) {
+            return -RIG_EIO;
+        }
+        /*
+         * Note that serial setup is also don in uh_open_radio.
+         * So we need to dig into serial_setup().
+         */
+        fd=uh_open_radio( rp->parm.serial.rate,                                   // baud
+                          rp->parm.serial.data_bits,                              // databits
+                          rp->parm.serial.stop_bits,                              // stopbits
+                          (rp->parm.serial.handshake == RIG_HANDSHAKE_HARDWARE)); // rtscts
+        if (fd == -1) {
+            return -RIG_EIO;
+        }
+        rp->fd=fd;
+        /*
+         * Remember the fd in a global variable. We can do read(), write() and select()
+         * on fd but whenever it is tried to do an ioctl(), we have to catch it
+         * (e.g. setting DTR or tcflush on this fd does not work)
+         * While this may look dirty, it is certainly easier and more efficient than
+         * to check whether fd corresponds to a serial line or a socket everywhere.
+         *
+         * CAVEAT: for WIN32, it might be necessary to use win_serial_read() instead
+         *         of read() for serial lines in iofunc.c. Therefore, we have to
+         *         export uh_radio_fd to iofunc.c because in the case of sockets,
+         *         read() must be used also in the WIN32 case.
+         *         This is why uh_radio_fd is declared globally in microham.h.
+         */
+        uh_radio_fd=fd;
+        return RIG_OK;
+    }
     /*
      * Open in Non-blocking mode. Watch for EAGAIN errors!
      */
@@ -449,8 +492,19 @@ int HAMLIB_API serial_flush(hamlib_port_t *p)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
+    if (p->fd == uh_ptt_fd || p->fd == uh_radio_fd) {
+        char buf[32];
+        /*
+         * Catch microHam case:
+         * if fd corresponds to a microHam device drain the line
+         * (which is a socket) by reading until it is empty.
+         */
+        while (read(p->fd, buf, 32) > 0) {
+            /* do nothing */
+        }
+        return RIG_OK;
+    }
     tcflush(p->fd, TCIFLUSH);
-
     return RIG_OK;
 }
 
@@ -462,9 +516,37 @@ int HAMLIB_API serial_flush(hamlib_port_t *p)
  */
 int ser_open(hamlib_port_t *p)
 {
+    int ret;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return (p->fd = OPEN(p->pathname, O_RDWR | O_NOCTTY | O_NDELAY));
+    if (!strncmp(p->pathname,"uh-rig",6)) {
+        /*
+         * This should not happen: ser_open is only used for
+         * DTR-only serial ports (ptt_pathname != rig_pathname).
+         */
+        ret=-1;
+    } else {
+        if (!strncmp(p->pathname,"uh-ptt",6)) {
+            /*
+             * Use microHam device for doing PTT. Although a valid file
+             * descriptor is returned, it is not used for anything
+             * but must be remembered in a global variable:
+             * If it is tried later to set/unset DTR on this fd, we know
+             * that we cannot use ioctl and must rather call our
+             * PTT set/unset service routine.
+             */
+             ret=uh_open_ptt();
+             uh_ptt_fd=ret;
+        } else {
+            /*
+             * pathname is not uh_rig or uh_ptt: simply open()
+             */
+            ret=OPEN(p->pathname, O_RDWR | O_NOCTTY | O_NDELAY);
+        }
+    }
+    p->fd=ret;
+    return ret;
 }
 
 
@@ -475,9 +557,30 @@ int ser_open(hamlib_port_t *p)
  */
 int ser_close(hamlib_port_t *p)
 {
+    int rc;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    int rc = CLOSE(p->fd);
+    /*
+     * For microHam devices, do not close the
+     * socket via close but call a service routine
+     * (which might decide to keep the socket open).
+     * However, unset p->fd and uh_ptt_fd/uh_radio_fd.
+     */
+    if (p->fd == uh_ptt_fd) {
+        uh_close_ptt();
+        uh_ptt_fd=-1;
+        p->fd = -1;
+        return 0;
+    }
+    if (p->fd == uh_radio_fd) {
+        uh_close_radio();
+        uh_radio_fd=-1;
+        p->fd = -1;
+        return 0;
+    }
+
+    rc = CLOSE(p->fd);
     p->fd = -1;
     return rc;
 }
@@ -497,6 +600,11 @@ int HAMLIB_API ser_set_rts(hamlib_port_t *p, int state)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: RTS=%d\n", __func__, state);
+
+    // ignore this for microHam ports
+    if (p->fd == uh_ptt_fd || p->fd == uh_radio_fd) {
+        return RIG_OK;
+    }
 
 #if defined(TIOCMBIS) && defined(TIOCMBIC)
     rc = IOCTL(p->fd, state ? TIOCMBIS : TIOCMBIC, &y);
@@ -539,6 +647,11 @@ int HAMLIB_API ser_get_rts(hamlib_port_t *p, int *state)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
+    // cannot do this for microHam ports
+    if (p->fd == uh_ptt_fd || p->fd == uh_radio_fd) {
+        return -RIG_ENIMPL;
+    }
+
     retcode = IOCTL(p->fd, TIOCMGET, &y);
     *state = (y & TIOCM_RTS) == TIOCM_RTS;
 
@@ -560,6 +673,16 @@ int HAMLIB_API ser_set_dtr(hamlib_port_t *p, int state)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: DTR=%d\n", __func__, state);
+
+    // silently ignore on microHam RADIO channel,
+    // but (un)set ptt on microHam PTT channel.
+    if (p->fd == uh_radio_fd) {
+        return RIG_OK;
+    }
+    if (p->fd == uh_ptt_fd) {
+        uh_set_ptt(state);
+        return RIG_OK;
+    }
 
 #if defined(TIOCMBIS) && defined(TIOCMBIC)
     rc = IOCTL(p->fd, state ? TIOCMBIS : TIOCMBIC, &y);
@@ -602,6 +725,15 @@ int HAMLIB_API ser_get_dtr(hamlib_port_t *p, int *state)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
+    // cannot do this for the RADIO port, return PTT state for the PTT port
+    if (p->fd == uh_ptt_fd) {
+        *state=uh_get_ptt();
+        return RIG_OK;
+    }
+    if (p->fd == uh_radio_fd) {
+        return  -RIG_ENIMPL;
+    }
+
     retcode = IOCTL(p->fd, TIOCMGET, &y);
     *state = (y & TIOCM_DTR) == TIOCM_DTR;
 
@@ -618,6 +750,11 @@ int HAMLIB_API ser_get_dtr(hamlib_port_t *p, int *state)
 int HAMLIB_API ser_set_brk(hamlib_port_t *p, int state)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    // ignore this for microHam ports
+    if (p->fd == uh_ptt_fd || p->fd == uh_radio_fd) {
+        return RIG_OK;
+    }
 
 #if defined(TIOCSBRK) && defined(TIOCCBRK)
     return IOCTL(p->fd, state ? TIOCSBRK : TIOCCBRK, 0) < 0 ?
@@ -640,6 +777,11 @@ int HAMLIB_API ser_get_car(hamlib_port_t *p, int *state)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
+    // cannot do this for microHam ports
+    if (p->fd == uh_ptt_fd || p->fd == uh_radio_fd) {
+        return  -RIG_ENIMPL;
+    }
+
     retcode = IOCTL(p->fd, TIOCMGET, &y);
     *state = (y & TIOCM_CAR) == TIOCM_CAR;
 
@@ -658,6 +800,11 @@ int HAMLIB_API ser_get_cts(hamlib_port_t *p, int *state)
     unsigned int y;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    // cannot do this for microHam ports
+    if (p->fd == uh_ptt_fd || p->fd == uh_radio_fd) {
+        return -RIG_ENIMPL;
+    }
 
     retcode = IOCTL(p->fd, TIOCMGET, &y);
     *state = (y & TIOCM_CTS) == TIOCM_CTS;
@@ -678,6 +825,10 @@ int HAMLIB_API ser_get_dsr(hamlib_port_t *p, int *state)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
+    // cannot do this for microHam ports
+    if (p->fd == uh_ptt_fd || p->fd == uh_radio_fd) {
+        return -RIG_ENIMPL;
+    }
     retcode = IOCTL(p->fd, TIOCMGET, &y);
     *state = (y & TIOCM_DSR) == TIOCM_DSR;
 
