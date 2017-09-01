@@ -1,7 +1,7 @@
 prefix=@prefix@
-exec_prefix=${prefix}
-libdir=${exec_prefix}/lib
-includedir=${prefix}/include
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
 
 Name: @PACKAGE_NAME@
 Description: Library to control radio and rotator equipment.
