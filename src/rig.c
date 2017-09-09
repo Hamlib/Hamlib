@@ -691,7 +691,12 @@ int HAMLIB_API rig_open(RIG *rig)
                 strcpy(rs->dcdport.pathname, rs->rigport.pathname);
         }
 
-        rs->dcdport.fd = ser_open(&rs->dcdport);
+        if (strcmp(rs->dcdport.pathname, rs->rigport.pathname) == 0) {
+             rs->dcdport.fd = rs->rigport.fd;
+        }
+        else {
+            rs->dcdport.fd = ser_open(&rs->dcdport);
+        }
 
         if (rs->dcdport.fd < 0) {
             rig_debug(RIG_DEBUG_ERR,
@@ -878,7 +883,9 @@ int HAMLIB_API rig_close(RIG *rig)
     case RIG_DCD_SERIAL_DSR:
     case RIG_DCD_SERIAL_CTS:
     case RIG_DCD_SERIAL_CAR:
-        port_close(&rs->dcdport, RIG_PORT_SERIAL);
+        if (rs->dcdport.fd != rs->rigport.fd) {
+            port_close(&rs->dcdport, RIG_PORT_SERIAL);
+        }
         break;
 
     case RIG_DCD_PARALLEL:
