@@ -119,7 +119,8 @@ AC_CHECK_HEADERS([errno.h fcntl.h getopt.h limits.h locale.h malloc.h \
 netdb.h sgtty.h stddef.h termio.h termios.h values.h \
 arpa/inet.h dev/ppbus/ppbconf.hdev/ppbus/ppi.h \
 linux/hidraw.h linux/ioctl.h linux/parport.h linux/ppdev.h  netinet/in.h \
-sys/ioccom.h sys/ioctl.h sys/param.h sys/socket.h sys/stat.h sys/time.h])
+sys/ioccom.h sys/ioctl.h sys/param.h sys/socket.h sys/stat.h sys/time.h \
+sys/select.h glob.h ])
 
 dnl set host_os variable
 AC_CANONICAL_HOST
@@ -235,7 +236,8 @@ AC_SUBST([NET_LIBS])
 dnl Checks for library functions.
 AC_CHECK_FUNCS([cfmakeraw floor getpagesize getpagesize gettimeofday inet_ntoa \
 ioctl memchr memmove memset pow rint select setitimer setlocale sigaction signal \
-snprintf socket sqrt strchr strdup strerror strncasecmp strrchr strstr strtol])
+snprintf socket sqrt strchr strdup strerror strncasecmp strrchr strstr strtol \
+glob socketpair ])
 AC_FUNC_ALLOCA
 
 dnl AC_LIBOBJ replacement functions directory

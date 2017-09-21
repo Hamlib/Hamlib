@@ -223,12 +223,7 @@ int HAMLIB_API port_close(hamlib_port_t *p, rig_port_t port_type)
 #if defined(WIN32) && !defined(HAVE_TERMIOS_H)
 #include "win32termios.h"
 
-/*
- * We need uh_radio_fd to determine wether to use win32_serial_read() etc.
- * or (simply) read().
- */
-#include "microham.h"
-
+extern int is_uh_radio_fd(int fd);
 
 /* On MinGW32/MSVC/.. the appropriate accessor must be used
  * depending on the port type, sigh.
@@ -244,7 +239,7 @@ static ssize_t port_read(hamlib_port_t *p, void *buf, size_t count)
      * Note that we always have RIG_PORT_SERIAL in the
      * microHam case.
      */
-    if (p->fd == uh_radio_fd) {
+    if (is_uh_radio_fd(p->fd)) {
         return read(p->fd, buf, count);
     }
 
@@ -277,7 +272,7 @@ static ssize_t port_write(hamlib_port_t *p, const void *buf, size_t count)
      * Note that we always have RIG_PORT_SERIAL in the
      * microHam case.
      */
-    if (p->fd == uh_radio_fd) {
+    if (is_uh_radio_fd(p->fd)) {
         return write(p->fd, buf, count);
     }
 
@@ -319,7 +314,7 @@ static int port_select(hamlib_port_t *p, int n, fd_set *readfds,
      * Note that we always have RIG_PORT_SERIAL in the
      * microHam case.
      */
-    if (p->fd == uh_radio_fd) {
+    if (is_uh_radio_fd(p->fd)) {
         return select(n, readfds, writefds, exceptfds, timeout);
     }
 

@@ -84,6 +84,24 @@
 
 #include "microham.h"
 
+static int uh_ptt_fd   = -1;
+static int uh_radio_fd = -1;
+
+int is_uh_radio_fd(int fd) {
+    /*
+     * This function simply returns TRUE if the argument
+     * matches uh_radio_fd and is >= 0
+     *
+     * This function is only used in the WIN32 case and implements
+     * access "from outside" to uh_radio_fd.
+     */
+     if (uh_radio_fd >= 0 && uh_radio_fd == fd) {
+         return 1;
+     } else {
+         return 0;
+     }
+}
+
 /**
  * \brief Open serial port using rig.state data
  * \param rp port data structure (must spec port id eg /dev/ttyS1)

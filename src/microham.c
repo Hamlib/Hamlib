@@ -1,7 +1,9 @@
 //
 // This file contains the support for microHam devices
-// if this system does not have pthreads, there is no microHam support, but it compiles
-// on WIN32, this file compiles but no microHam device will be found and openend
+//
+// On WIN32, this behaves as if no microHam device is connected
+// to the computer since (at least my version of MinGW) does not
+// support socketpair().
 //
 
 #ifdef HAVE_CONFIG_H
@@ -12,20 +14,26 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/stat.h>
-#include <glob.h>
 #include <fcntl.h>
-#include <sys/select.h>
 #include <time.h>
-#include <sys/errno.h>
 #include <limits.h>
+
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
+#endif
+
+#ifdef HAVE_SYS_SELECT_H
+#include <sys/select.h>
+#endif
+
+#ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
+#endif
 
-
-//#define FRAME(s, ...) printf(s, ##__VA_ARGS__)
-//#define DEBUG(s, ...) printf(s, ##__VA_ARGS__)
-//#define TRACE(s, ...) printf(s, ##__VA_ARGS__)
-//#define ERROR(s, ...) printf(s, ##__VA_ARGS__)
+//#define FRAME(s, ...)   printf(s, ##__VA_ARGS__)
+//#define DEBUG(s, ...)   printf(s, ##__VA_ARGS__)
+//#define TRACE(s, ...)   printf(s, ##__VA_ARGS__)
+//#define MYERROR(s, ...) printf(s, ##__VA_ARGS__)
 
 #ifndef FRAME
 #define FRAME(s, ...)
@@ -36,8 +44,8 @@
 #ifndef TRACE
 #define TRACE(s, ...)
 #endif
-#ifndef ERROR
-#define ERROR(s, ...)
+#ifndef MYERROR
+#define MYERROR(s, ...)
 #endif
 
 #ifndef PATH_MAX
@@ -133,23 +141,25 @@ static void close_microham()
     close_all_files();
 }
 
-#if defined(WIN32)
+#if defined(WIN32) || !defined(HAVE_GLOB_H)
 /*
  * On Windows, this is not really needed since we have uhrouter.exe
  * creating virtual COM ports
  *
- * I do now know how to "find" a microham device under Windows,
- * and serial I/O may also be Windows-specific.
+ * I do now know how to "find" a microham device under Windows.
  * 
  * Therefore, a dummy version of finddevices() is included such that it compiles
  * well on WIN32. Since the dummy version does not find anything, no reading thread
  * and no sockets are created.
  *
+ *
+ * For those who want to implement the WIN32 case here properly:
+ *
  * What finddevices() must do:
  * Scan all USB-serial ports with an FTDI chip, and look
  * for its serial number, take the first port you can find where the serial
  * number begins with MK, M2, CK, DK, D2, 2R, 2P or UR. Then, open the serial
- * line and put a valid fd into uh_device_fd.
+ * line with correct serial speed etc. and put a valid fd into uh_device_fd.
  */
 static void finddevices()
 {
@@ -176,15 +186,12 @@ static void finddevices()
  * to microHam. Note we could use libusb directly, but this
  * probably requires root privileges.
  *
- * Below is support for MacOS and LINUX, but I do not know
- * how to "find" a microHam device under Windows. Perhaps
- * someone knows, but for Windows there is uhrouter.exe that
- * creates virtual COM-ports such that microHam support is
- * not really needed.
- *
- * Note: StationMaster used a different protocol, and
+ * Note: StationMaster uses a different protocol, and
  *       the protocol of StationMaster DeLuxe is not
  *       even disclosed.
+ *
+ * We are using the glob() function to obtain a list
+ * of candidates.
  */
 
 #define NUMUHTYPES 8
@@ -220,6 +227,8 @@ static struct uhtypes {
 // This is the case for MacOS and LINUX (for LINUX: use udev)
 //
 #include <termios.h>
+#include <sys/stat.h>
+#include <glob.h>
 static void finddevices()
 {
     struct stat st;
@@ -243,7 +252,7 @@ static void finddevices()
                     // found a character special device with correct name
                     if (strlen(gbuf.gl_pathv[j]) >= PATH_MAX) {
                         // I do not know if this can happen, but if it happens, we just skip the device.
-                        ERROR("Name too long: %s\n",gbuf.gl_pathv[j]);
+                        MYERROR("Name too long: %s\n",gbuf.gl_pathv[j]);
                         continue;
                     }
                     DEBUG("%s is a character special file\n", gbuf.gl_pathv[j]);
@@ -252,13 +261,13 @@ static void finddevices()
 
 	            fd = open(uh_device_path, O_RDWR | O_NONBLOCK | O_NOCTTY);
 	            if (fd < 0) {
-	                ERROR("Cannot open serial port %s\n",uh_device_path);
+	                MYERROR("Cannot open serial port %s\n",uh_device_path);
 		        perror("Open:");
 	                continue;
 	            }
 	            tcflush(fd, TCIFLUSH);
 	            if (tcgetattr( fd, &TTY)) {
-	                ERROR("Cannot get comm params\n");
+	                MYERROR("Cannot get comm params\n");
 		        close(fd);
 	                continue;
 	            }
@@ -292,7 +301,7 @@ static void finddevices()
 	            TTY.c_cc[VTIME]=255;
 
 	            if (tcsetattr(fd, TCSANOW, &TTY)) {
-	                ERROR("Can't set device communication parameters");
+	                MYERROR("Can't set device communication parameters");
 		        close (fd);
 	                continue;
 	            }
@@ -348,7 +357,7 @@ static void parseFrame(unsigned char *frame)
         }
         DEBUG("%10d:FromRadio: %02x\n", TIME, byte);
         if (write(uh_radio_pair[0], &byte, 1) != 1) {
-            ERROR("Write Radio Socket\n");
+            MYERROR("Write Radio Socket\n");
         }
     }
 
@@ -362,11 +371,11 @@ static void parseFrame(unsigned char *frame)
         }
      
         switch (frameseq) {
-            case 0:
+            case 0:  // Flag byte
                 DEBUG("%10d:RCV: Flags=%02x\n", TIME, byte);
                 // No reason to pass the flags to clients
                 break;
-            case 1:
+            case 1:  // part of control string
                 if ((frame[0] & 0x08) == 0 && !incontrol) {
                     // start or end of a control sequence
                     numcontrolbytes=1;
@@ -382,18 +391,20 @@ static void parseFrame(unsigned char *frame)
                     DEBUG(".\n");
                     incontrol=0;
 		    // printing control messages is only used for debugging.
+		    // Note that we can get a lot of unsolicited control messages
+		    // here (squelch, voltage change, etc.)
                     break;
                 }
                 // in the middle of a control string
                 controlstring[numcontrolbytes++]=byte;
                 break;
-            case 2:
+            case 2: // message from WinKey chip
                 DEBUG("%10d:RCV: WinKey=%02x\n", TIME, byte);
                 if (write(uh_wkey_pair[0], &byte, 1) != 1) {
-                    ERROR("Write Winkey socket\n");
+                    MYERROR("Write Winkey socket\n");
                 }
                 break;
-            case 3:
+            case 3: // Key pressed on PS2 keyboard connected to microHam device
                 DEBUG("%10d:RCV: PS2=%02x\n", TIME,byte);
                 break;
         }
@@ -401,7 +412,7 @@ static void parseFrame(unsigned char *frame)
 }
 
 //
-// Send radio bytes to keyer
+// Send radio bytes to microHam device
 //
 static void writeRadio(unsigned char *bytes, int len)
 {
@@ -425,7 +436,7 @@ static void writeRadio(unsigned char *bytes, int len)
             seq[0] |= 0x04;
         }
         if ((ret=write(uh_device_fd, seq, 4)) < 4) {
-            ERROR("WriteRadio failed with %d\n", ret);
+            MYERROR("WriteRadio failed with %d\n", ret);
             if (ret < 0) {
                 perror("WriteRadioError:");
             }
@@ -435,7 +446,7 @@ static void writeRadio(unsigned char *bytes, int len)
 }
 
 //
-// send statusbyte to keyer
+// send statusbyte to microHam device
 //
 static void writeFlags()
 {
@@ -452,7 +463,7 @@ static void writeFlags()
     seq[2]=0x80;
     seq[3]=0x80 | statusbyte;
     if ((ret=write (uh_device_fd, seq, 4)) < 4) {
-       ERROR("WriteFlags failed with %d\n", ret);
+       MYERROR("WriteFlags failed with %d\n", ret);
        if (ret < 0) {
            perror("WriteFlagsError:");
        }
@@ -460,7 +471,7 @@ static void writeFlags()
     freelock();
 }
 //
-// Send bytes to the WinKeyer
+// Send bytes to the WinKeyer within microHam device
 //
 static void writeWkey(unsigned char *bytes, int len)
 {
@@ -492,7 +503,7 @@ static void writeWkey(unsigned char *bytes, int len)
             seq[ 8] |= 0x01;
         }
         if ((ret=write(uh_device_fd, seq, 12)) < 12) {
-            ERROR("WriteWINKEY failed with %d\n", ret);
+            MYERROR("WriteWINKEY failed with %d\n", ret);
             if (ret < 0) {
                 perror("WriteWinkeyError:");
             }
@@ -501,7 +512,7 @@ static void writeWkey(unsigned char *bytes, int len)
     freelock();
 }
 //
-// Write a string to the control channel
+// Write a control string to the microHam device
 //
 static void writeControl(unsigned char *data, int len)
 {
@@ -535,7 +546,7 @@ static void writeControl(unsigned char *data, int len)
             seq[4] |= 0x01;
         }
         if ((ret=write (uh_device_fd, seq, 8)) < 8) {
-            ERROR("WriteControl failed, ret=%d\n", ret);
+            MYERROR("WriteControl failed, ret=%d\n", ret);
             if (ret < 0) {
                 perror("WriteControlError:");
             }
@@ -544,7 +555,10 @@ static void writeControl(unsigned char *data, int len)
     freelock();
 }
 //
-// send a heartbeat and record time.
+// send a heartbeat and record time
+// The "last heartbeat" time is recorded in a global variable
+// such that the service thread can decice whether a new
+// heartbeat is due.
 //
 static void heartbeat()
 {
@@ -562,6 +576,7 @@ static void heartbeat()
 //
 static void* read_device(void *p)
 {
+#if defined(HAVE_SELECT)
     unsigned char frame[4];
     int framepos=0;
     int ret;
@@ -632,11 +647,11 @@ static void* read_device(void *p)
 	    // compose frame, if it is complete, all parseFrame
             while(read(uh_device_fd, buf, 1) > 0) {
                 if (!(buf[0] & 0x80) && framepos != 0) {
-                    ERROR("FrameSyncStartError\n");
+                    MYERROR("FrameSyncStartError\n");
                     framepos=0;
                 }
                 if ((buf[0] & 0x80) && framepos == 0) {
-                    ERROR("FrameSyncStartError\n");
+                    MYERROR("FrameSyncStartError\n");
                     framepos=0;
                     continue;
                 }
@@ -666,6 +681,8 @@ static void* read_device(void *p)
             }
 	}
     }
+#endif
+    return NULL;
 }
 
 /*
@@ -676,10 +693,15 @@ static void* read_device(void *p)
  * Nevertheless, the program should compile well even we we do not
  * have pthreads, in this case start_thread is a dummy since uh_is_initialized
  * is never set.
+ *
+ * If we do not have socketpair(), the same thing applies.
+ *
+ * If we do not have select(), then the read thread cannot work so we
+ * do not spawn it.
  */
 static void start_thread()
 {
-#ifdef HAVE_PTHREAD
+#if defined(HAVE_PTHREAD) && defined(HAVE_SOCKETPAIR) && defined(HAVE_SELECT)
     /*
      * Find a microHam device and open serial port to it.
      * If successful, create sockets for doing I/O from within hamlib
@@ -694,7 +716,7 @@ static void start_thread()
     }
     finddevices();
     if (uh_device_fd  < 0) {
-        ERROR("Could not open any microHam device.\n");
+        MYERROR("Could not open any microHam device.\n");
         return;
     }
     // Create socket pairs
@@ -793,7 +815,7 @@ static void start_thread()
     pthread_attr_init(&attr);
     ret=pthread_create(&readthread, &attr, read_device, NULL);
     if (ret != 0) {
-	ERROR("Could not start read_device thread\n");
+	MYERROR("Could not start read_device thread\n");
 	close_all_files();
 	uh_is_initialized=0;
 	return;
@@ -920,7 +942,7 @@ int uh_open_radio(int baud, int databits, int stopbits, int rtscts)
 void uh_set_ptt(int ptt)
 {
     if (!uh_ptt_in_use) {
-	ERROR("%10d:SetPTT but not open\n", TIME);
+	MYERROR("%10d:SetPTT but not open\n", TIME);
 	return;
     }
     DEBUG("%10d:SET PTT = %d\n", TIME, ptt);
@@ -934,6 +956,8 @@ void uh_set_ptt(int ptt)
 
 int uh_get_ptt()
 {
+    // Possibly we can do better, but we just reflect
+    // what we have done via uh_set_ptt.
     if (statusbyte & 0x04) {
         return 1;
     } else {
