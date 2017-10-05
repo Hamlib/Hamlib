@@ -36,9 +36,11 @@ in rehashing that here, except to say that spaces are universal.  Modern
 editors are configurable to setting indents to four spaces and tab stops to
 four spaces.
 
-* Bare conditionals shall not be permitted.  All conditionals--'if', 'else',
-  'for', 'while', and 'do while' shall have their statements enclosed in
-  braces.
+* Bare conditionals shall be avoided.  All conditionals--'if', 'else', 'for',
+  'while', and 'do while' shall have their statements enclosed in braces.
+
+  NOTE: Exceptions will be allowed in certain rare circumstances.  See
+  Recommended coding style bullet points below.
 
 Discussion:  Consider this conditional:
 
@@ -46,19 +48,20 @@ Discussion:  Consider this conditional:
                 do_that();
 
 No harm, eh?  Look again.  The programmer gave the 'if' conditional a null
-statement with the trailing ';' at the end of the line.  As a result,
-'do_that()' will be called whether 'something' is true or not.  Most likely
-this is not what the programmer intended!
+statement with the trailing ';' at the end of the line and also indented the
+'do_that();' statement.  As a result, 'do_that()' will be called whether
+'something' is true or not.  Is that what the programmer intended?
 
-If, instead, the code is reformatted to:
+If, instead, the code is formatted to:
 
-             if (something) {
+             if (something)
+             {
                 ;
                 do_that();
              }
 
-by a code formatter, the null statement becomes harmless and 'do_that()' is
-called depending on the truth of 'something'.
+the null statement becomes harmless and 'do_that()' is called depending on the
+truth of 'something'.
 
 Here proper indentation and alignment is only half the battle in finding such
 bugs, enclosing all statement blocks in braces is the other half.
@@ -75,32 +78,33 @@ formatter will apply when using the included 'scripts/astylerc' configuration
 file.  Any version from 2.03 or later should work.  It can be invoked from a
 backend directory as follows:
 
-        $ astyle --options=../scripts/astylerc moonmelter.c
+    $ astyle --options=../scripts/astylerc moonmelter.c
 
 The old file will be copied to 'moonmelter.c.orig' as a back up.
 
-* Brace style is K&R where the opening brace of a function definition is on a
-  new line in the far left column following the function signature.  For
-  conditionals, the opening brace is at the end of the conditional one space
-  after the closing parentheses.  In all cases the closing brace is on a line
-  of its own and lines up vertically with the conditional key word.  The
-  exception (there is always at least one) is when 'else', 'else if, or
-  'while' from a 'do while' loop are cuddled after the closing brace.  See
-  'src/rig.c' for many examples.
+* Brace style is Allman where the opening brace of a function definition is on
+  a new line in the far left column following the function signature.
+
+  For conditionals, the opening brace is also on a new line after the
+  conditional test and aligned in the same column as the first letter of the
+  keyword.
+
+  In all cases the closing brace is on a line of its own and lines up
+  vertically with the opening brace.
+
+  The 'else', 'else if', or 'while' from a 'do while' loop keywords are not
+  cuddled after the closing brace but placed on a new line after the closing
+  brace of the previous block.
 
 * Indents are four spaces as detailed above.  Each level of code should be one
-  indent further to the right.  An exception is where a conditional needs to
-  be split over multiple lines and an extra indentation provides more
-  readability of the statement block.  See 'src/rig.c' for many examples.
+  indent further to the right.
 
 * Isolate conditional blocks with a blank line before and after.  Like
   paragraphs in prose that focus on a topic, it's important that conditionals
   be obvious to the reader.  An exception is where another conditional follows
-  immediately on the next line.  Indentation is sufficient.  See 'src/rig.c'
-  for many examples.
+  immediately on the next line.  Indentation is sufficient.
 
-* No space between parentheses and the enclosed characters.  You know where to
-  look by now.  ;-)
+* No space between parentheses and the enclosed characters.
 
 * One space on either side of operators and between function arguments.
 
@@ -116,18 +120,28 @@ The old file will be copied to 'moonmelter.c.orig' as a back up.
 
 * Keep code lines under 80 characters.  This will require some judgement on
   where the break works best.  A couple of keys are, a) break conditionals
-  before a comparison operator so it appears at the front of the next line,
-  and, b) when breaking a function call, put all arguments on their own line.
-  It is sometimes necessary for strings to go beyond the 80 character point.
-  This is fine.  If needed, a C compiler will concatenate strings that are
-  split across multiple lines.
+  before a comparison operator so it appears at the beginning of the next
+  line, and, b) when breaking a function call, put all arguments on their own
+  line.  It is sometimes necessary for strings to go beyond the 80 character
+  point.  This is fine.  If needed, a C compiler will concatenate strings that
+  are split across multiple lines.
 
 * Avoid trailing comments when possible.  Comments should precede the
   statement(s) they describe.
 
-* When a conditional is split across mutliple lines, readability of the
-  following statement can be aided by a blank line above the statement and/or
-  an extra level of indentation.
+* One line conditionals should enclose the statement in braces, as in:
+
+      if (whatsit == 5) { return whatsit; }
+
+  or:
+
+      do { x++; } while (x < 10)
+
+  When choosing not to use braces on a simple one line conditional, please
+  comment your intention:
+
+      /* NOP unless x is true. */
+      while (!x);
 
 
 4. Use of code formatting tools
@@ -141,7 +155,7 @@ Use of the Artistic Style (astyle) formatter (http://astyle.sourceforge.net/)
 with the included options file ('scripts/astylerc') will provide most of the
 objectives outlined above.  Some manual formatting may be required.  For
 example, if a line is already less than 80 characters and ends with an
-operator, astyle will not move the operator to the front of the next line
+operator, astyle will not move the operator to the beginning of the next line
 where it is preferred.
 
 4.2 GNU Indent

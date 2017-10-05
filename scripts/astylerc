@@ -1,7 +1,7 @@
 # astylerc--custom options for astyle
 
 # K&R style formatting/indenting with some tweaks.
-style=kr
+style=allman
 
 # Indent with a width of 4 spaces.
 indent=spaces=4
@@ -26,6 +26,12 @@ align-reference=type
 # Add brackets to unbracketed one line conditional statements
 # (e.g. 'if', 'for', 'while'...).
 add-brackets
+
+# Don't break one-line blocks.
+keep-one-line-blocks
+
+# Don't break complex statements and multiple statements residing on a single line.
+keep-one-line-statements
 
 # Converts tabs into spaces in the non-indentation part of the line.
 convert-tabs
