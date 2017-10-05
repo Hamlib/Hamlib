@@ -37,7 +37,8 @@
     2035, 2065, 2107, 2181, 2257, 2291, 2336, 2418, 2503, 2541, \
     0,
 
-static const tone_t static_full_ctcss_list[] = {
+static const tone_t static_full_ctcss_list[] =
+{
     FULL_CTCSS_LIST
 };
 
@@ -57,7 +58,8 @@ static const tone_t static_full_ctcss_list[] = {
     2035, 2065, 2107, 2181, 2257, 2291, 2336, 2418, 2503, 2541, \
     0,
 
-static const tone_t static_common_ctcss_list[] = {
+static const tone_t static_common_ctcss_list[] =
+{
     COMMON_CTCSS_LIST
 };
 
@@ -77,7 +79,8 @@ static const tone_t static_common_ctcss_list[] = {
     662, 664, 703, 712, 723, 731, 732, 734, 743, 754, \
     0,
 
-static const tone_t static_common_dcs_list[] = {
+static const tone_t static_common_dcs_list[] =
+{
     COMMON_DCS_LIST
 };
 
@@ -97,7 +100,8 @@ static const tone_t static_common_dcs_list[] = {
     662, 664, 703, 712, 723, 731, 732, 734, 743, 754, \
     0,
 
-static const tone_t static_full_dcs_list[] = {
+static const tone_t static_full_dcs_list[] =
+{
     FULL_DCS_LIST
 };
 

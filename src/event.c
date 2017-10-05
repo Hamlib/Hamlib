@@ -32,7 +32,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#  include "config.h"
 #endif
 
 #include <stdlib.h>
@@ -40,13 +40,17 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/types.h>
+
 #ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
+#  include <sys/time.h>
 #endif
+
 #include <sys/stat.h>
+
 #ifdef HAVE_SYS_IOCTL_H
-#include <sys/ioctl.h>
+#  include <sys/ioctl.h>
 #endif
+
 #include <fcntl.h>
 #include <signal.h>
 #include <errno.h>
@@ -56,8 +60,8 @@
 #include "event.h"
 
 #if defined(WIN32) && !defined(HAVE_TERMIOS_H)
-#include "win32termios.h"
-#define select win32_serial_select
+#  include "win32termios.h"
+#  define select win32_serial_select
 #endif
 
 #ifndef DOC_HIDDEN
@@ -114,7 +118,8 @@ int add_trn_rig(RIG *rig)
 
     status = sigaction(SIGIO, &act, &hamlib_trn_oldact);
 
-    if (status < 0) {
+    if (status < 0)
+    {
         rig_debug(RIG_DEBUG_ERR,
                   "%s: sigaction failed: %s\n",
                   __func__,
@@ -123,7 +128,8 @@ int add_trn_rig(RIG *rig)
 
     status = fcntl(rig->state.rigport.fd, F_SETOWN, getpid());
 
-    if (status < 0) {
+    if (status < 0)
+    {
         rig_debug(RIG_DEBUG_ERR,
                   "%s: fcntl SETOWN failed: %s\n",
                   __func__,
@@ -134,7 +140,8 @@ int add_trn_rig(RIG *rig)
 #ifdef F_SETSIG
     status = fcntl(rig->state.rigport.fd, F_SETSIG, SIGIO);
 
-    if (status < 0) {
+    if (status < 0)
+    {
         rig_debug(RIG_DEBUG_ERR,
                   "%s: fcntl SETSIG failed: %s\n",
                   __func__,
@@ -145,7 +152,8 @@ int add_trn_rig(RIG *rig)
 
     status = fcntl(rig->state.rigport.fd, F_SETFL, O_ASYNC);
 
-    if (status < 0) {
+    if (status < 0)
+    {
         rig_debug(RIG_DEBUG_ERR,
                   "%s: fcntl SETASYNC failed: %s\n",
                   __func__,
@@ -179,7 +187,8 @@ int remove_trn_rig(RIG *rig)
 #if defined(HAVE_SIGINFO_T) && defined(O_ASYNC)
     status = fcntl(rig->state.rigport.fd, F_SETFL, 0);
 
-    if (status < 0) {
+    if (status < 0)
+    {
         rig_debug(RIG_DEBUG_ERR,
                   "%s: fcntl SETASYNC failed: %s\n",
                   __func__,
@@ -190,7 +199,8 @@ int remove_trn_rig(RIG *rig)
 
     status = sigaction(SIGIO, &hamlib_trn_oldact, NULL);
 
-    if (status < 0) {
+    if (status < 0)
+    {
         rig_debug(RIG_DEBUG_ERR,
                   "%s: sigaction failed: %s\n",
                   __func__,
@@ -233,7 +243,8 @@ static int add_trn_poll_rig(RIG *rig)
 
     status = sigaction(SIGALRM, &act, &hamlib_trn_poll_oldact);
 
-    if (status < 0) {
+    if (status < 0)
+    {
         rig_debug(RIG_DEBUG_ERR,
                   "%s sigaction failed: %s\n",
                   __func__,
@@ -259,7 +270,8 @@ static int remove_trn_poll_rig(RIG *rig)
 
     status = sigaction(SIGALRM, &hamlib_trn_poll_oldact, NULL);
 
-    if (status < 0) {
+    if (status < 0)
+    {
         rig_debug(RIG_DEBUG_ERR,
                   "%s sigaction failed: %s\n",
                   __func__,
@@ -291,15 +303,17 @@ static int search_rig_and_decode(RIG *rig, rig_ptr_t data)
      * so far, only file oriented ports have event reporting support
      */
     if (rig->state.rigport.type.rig != RIG_PORT_SERIAL
-        || rig->state.rigport.fd == -1) {
-            return -1;
+            || rig->state.rigport.fd == -1)
+    {
+        return -1;
     }
 
     /* FIXME: siginfo is not portable, however use it where available */
 #if 0&&defined(HAVE_SIGINFO_T)
     siginfo_t *si = (siginfo_t *)data;
 
-    if (rig->state.rigport.fd != si->si_fd) {
+    if (rig->state.rigport.fd != si->si_fd)
+    {
         return -1;
     }
 
@@ -316,7 +330,8 @@ static int search_rig_and_decode(RIG *rig, rig_ptr_t data)
      */
     retval = select(rig->state.rigport.fd + 1, &rfds, NULL, NULL, &tv);
 
-    if (retval < 0) {
+    if (retval < 0)
+    {
         rig_debug(RIG_DEBUG_ERR,
                   "%s: select: %s\n",
                   __func__,
@@ -329,11 +344,13 @@ static int search_rig_and_decode(RIG *rig, rig_ptr_t data)
     /*
      * Do not disturb, the backend is currently receiving data
      */
-    if (rig->state.hold_decode) {
+    if (rig->state.hold_decode)
+    {
         return -1;
     }
 
-    if (rig->caps->decode_event) {
+    if (rig->caps->decode_event)
+    {
         rig->caps->decode_event(rig);
     }
 
@@ -352,26 +369,31 @@ static int search_rig_and_poll(RIG *rig, rig_ptr_t data)
     struct rig_state *rs = &rig->state;
     int retval;
 
-    if (rig->state.transceive != RIG_TRN_POLL) {
+    if (rig->state.transceive != RIG_TRN_POLL)
+    {
         return -1;
     }
 
     /*
      * Do not disturb, the backend is currently receiving data
      */
-    if (rig->state.hold_decode) {
+    if (rig->state.hold_decode)
+    {
         return -1;
     }
 
     rig->state.hold_decode = 2;
 
-    if (rig->caps->get_vfo && rig->callbacks.vfo_event) {
+    if (rig->caps->get_vfo && rig->callbacks.vfo_event)
+    {
         vfo_t vfo = RIG_VFO_CURR;
 
         retval = rig->caps->get_vfo(rig, &vfo);
 
-        if (retval == RIG_OK) {
-            if (vfo != rs->current_vfo) {
+        if (retval == RIG_OK)
+        {
+            if (vfo != rs->current_vfo)
+            {
                 rig->callbacks.vfo_event(rig, vfo, rig->callbacks.vfo_arg);
             }
 
@@ -379,31 +401,42 @@ static int search_rig_and_poll(RIG *rig, rig_ptr_t data)
         }
     }
 
-    if (rig->caps->get_freq && rig->callbacks.freq_event) {
+    if (rig->caps->get_freq && rig->callbacks.freq_event)
+    {
         freq_t freq;
 
         retval = rig->caps->get_freq(rig, RIG_VFO_CURR, &freq);
 
-        if (retval == RIG_OK) {
-            if (freq != rs->current_freq) {
-                rig->callbacks.freq_event(rig, RIG_VFO_CURR,
-                                          freq, rig->callbacks.freq_arg);
+        if (retval == RIG_OK)
+        {
+            if (freq != rs->current_freq)
+            {
+                rig->callbacks.freq_event(rig,
+                                          RIG_VFO_CURR,
+                                          freq,
+                                          rig->callbacks.freq_arg);
             }
 
             rs->current_freq = freq;
         }
     }
 
-    if (rig->caps->get_mode && rig->callbacks.mode_event) {
+    if (rig->caps->get_mode && rig->callbacks.mode_event)
+    {
         rmode_t rmode;
         pbwidth_t width;
 
         retval = rig->caps->get_mode(rig, RIG_VFO_CURR, &rmode, &width);
 
-        if (retval == RIG_OK) {
-            if (rmode != rs->current_mode || width != rs->current_width) {
-                rig->callbacks.mode_event(rig, RIG_VFO_CURR,
-                                          rmode, width, rig->callbacks.mode_arg);
+        if (retval == RIG_OK)
+        {
+            if (rmode != rs->current_mode || width != rs->current_width)
+            {
+                rig->callbacks.mode_event(rig,
+                                          RIG_VFO_CURR,
+                                          rmode,
+                                          width,
+                                          rig->callbacks.mode_arg);
             }
 
             rs->current_mode = rmode;
@@ -493,7 +526,8 @@ int HAMLIB_API rig_set_freq_callback(RIG *rig, freq_cb_t cb, rig_ptr_t arg)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_RIG_ARG(rig)) {
+    if (CHECK_RIG_ARG(rig))
+    {
         return -RIG_EINVAL;
     }
 
@@ -522,7 +556,8 @@ int HAMLIB_API rig_set_mode_callback(RIG *rig, mode_cb_t cb, rig_ptr_t arg)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_RIG_ARG(rig)) {
+    if (CHECK_RIG_ARG(rig))
+    {
         return -RIG_EINVAL;
     }
 
@@ -551,7 +586,8 @@ int HAMLIB_API rig_set_vfo_callback(RIG *rig, vfo_cb_t cb, rig_ptr_t arg)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_RIG_ARG(rig)) {
+    if (CHECK_RIG_ARG(rig))
+    {
         return -RIG_EINVAL;
     }
 
@@ -580,7 +616,8 @@ int HAMLIB_API rig_set_ptt_callback(RIG *rig, ptt_cb_t cb, rig_ptr_t arg)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_RIG_ARG(rig)) {
+    if (CHECK_RIG_ARG(rig))
+    {
         return -RIG_EINVAL;
     }
 
@@ -609,7 +646,8 @@ int HAMLIB_API rig_set_dcd_callback(RIG *rig, dcd_cb_t cb, rig_ptr_t arg)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_RIG_ARG(rig)) {
+    if (CHECK_RIG_ARG(rig))
+    {
         return -RIG_EINVAL;
     }
 
@@ -640,7 +678,8 @@ int HAMLIB_API rig_set_pltune_callback(RIG *rig, pltune_cb_t cb, rig_ptr_t arg)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_RIG_ARG(rig)) {
+    if (CHECK_RIG_ARG(rig))
+    {
         return -RIG_EINVAL;
     }
 
@@ -674,29 +713,37 @@ int HAMLIB_API rig_set_trn(RIG *rig, int trn)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_RIG_ARG(rig)) {
+    if (CHECK_RIG_ARG(rig))
+    {
         return -RIG_EINVAL;
     }
 
     caps = rig->caps;
 
     /* detect whether tranceive is active already */
-    if (trn != RIG_TRN_OFF && rig->state.transceive != RIG_TRN_OFF) {
-        if (trn == rig->state.transceive) {
+    if (trn != RIG_TRN_OFF && rig->state.transceive != RIG_TRN_OFF)
+    {
+        if (trn == rig->state.transceive)
+        {
             return RIG_OK;
-        } else {
+        }
+        else
+        {
             /* when going POLL<->RIG, transtition to OFF */
             retcode = rig_set_trn(rig, RIG_TRN_OFF);
 
-            if (retcode != RIG_OK) {
+            if (retcode != RIG_OK)
+            {
                 return retcode;
             }
         }
     }
 
-    switch (trn) {
+    switch (trn)
+    {
     case RIG_TRN_RIG:
-        if (caps->transceive != RIG_TRN_RIG) {
+        if (caps->transceive != RIG_TRN_RIG)
+        {
             return -RIG_ENAVAIL;
         }
 
@@ -704,7 +751,8 @@ int HAMLIB_API rig_set_trn(RIG *rig, int trn)
 
         /* some protocols (e.g. CI-V's) offer no way
          * to turn on/off the transceive mode */
-        if (retcode == RIG_OK && caps->set_trn) {
+        if (retcode == RIG_OK && caps->set_trn)
+        {
             retcode = caps->set_trn(rig, RIG_TRN_RIG);
         }
 
@@ -722,7 +770,8 @@ int HAMLIB_API rig_set_trn(RIG *rig, int trn)
         value.it_interval.tv_usec = rig->state.poll_interval * 1000;
         retcode = setitimer(ITIMER_REAL, &value, NULL);
 
-        if (retcode == -1) {
+        if (retcode == -1)
+        {
             rig_debug(RIG_DEBUG_ERR,
                       "%s: setitimer: %s\n",
                       __func__,
@@ -737,7 +786,8 @@ int HAMLIB_API rig_set_trn(RIG *rig, int trn)
         break;
 
     case RIG_TRN_OFF:
-        if (rig->state.transceive == RIG_TRN_POLL) {
+        if (rig->state.transceive == RIG_TRN_POLL)
+        {
 #ifdef HAVE_SETITIMER
 
             retcode = remove_trn_poll_rig(rig);
@@ -749,7 +799,8 @@ int HAMLIB_API rig_set_trn(RIG *rig, int trn)
 
             retcode = setitimer(ITIMER_REAL, &value, NULL);
 
-            if (retcode == -1) {
+            if (retcode == -1)
+            {
                 rig_debug(RIG_DEBUG_ERR, "%s: setitimer: %s\n",
                           __func__,
                           strerror(errno));
@@ -759,10 +810,13 @@ int HAMLIB_API rig_set_trn(RIG *rig, int trn)
 #else
             return -RIG_ENAVAIL;
 #endif
-        } else if (rig->state.transceive == RIG_TRN_RIG) {
+        }
+        else if (rig->state.transceive == RIG_TRN_RIG)
+        {
             retcode = remove_trn_rig(rig);
 
-            if (caps->set_trn && caps->transceive == RIG_TRN_RIG) {
+            if (caps->set_trn && caps->transceive == RIG_TRN_RIG)
+            {
                 retcode = caps->set_trn(rig, RIG_TRN_OFF);
             }
         }
@@ -773,7 +827,8 @@ int HAMLIB_API rig_set_trn(RIG *rig, int trn)
         return -RIG_EINVAL;
     }
 
-    if (retcode == RIG_OK) {
+    if (retcode == RIG_OK)
+    {
         rig->state.transceive = trn;
     }
 
@@ -799,11 +854,13 @@ int HAMLIB_API rig_get_trn(RIG *rig, int *trn)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_RIG_ARG(rig) || !trn) {
+    if (CHECK_RIG_ARG(rig) || !trn)
+    {
         return -RIG_EINVAL;
     }
 
-    if (rig->caps->get_trn != NULL) {
+    if (rig->caps->get_trn != NULL)
+    {
         return rig->caps->get_trn(rig, trn);
     }
 

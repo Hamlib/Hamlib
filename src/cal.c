@@ -31,7 +31,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#  include "config.h"
 #endif
 
 #include <hamlib/rig.h>
@@ -67,25 +67,32 @@ float HAMLIB_API rig_raw2val(int rawval, const cal_table_t *cal)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (cal->size == 0) {
+    if (cal->size == 0)
+    {
         return rawval;
     }
 
     for (i = 0; i < cal->size; i++)
-        if (rawval < cal->table[i].raw) {
+    {
+        if (rawval < cal->table[i].raw)
+        {
             break;
         }
+    }
 
-    if (i == 0) {
+    if (i == 0)
+    {
         return cal->table[0].val;
     }
 
-    if (i >= cal->size) {
+    if (i >= cal->size)
+    {
         return cal->table[i - 1].val;
     }
 
     /* catch divide by 0 error */
-    if (cal->table[i].raw == cal->table[i - 1].raw) {
+    if (cal->table[i].raw == cal->table[i - 1].raw)
+    {
         return cal->table[i].val;
     }
 
@@ -93,13 +100,13 @@ float HAMLIB_API rig_raw2val(int rawval, const cal_table_t *cal)
     /* cheap, less accurate, but no fp needed */
     interpolation = ((cal->table[i].raw - rawval)
                      * (cal->table[i].val - cal->table[i - 1].val))
-            / (cal->table[i].raw - cal->table[i - 1].raw);
+                    / (cal->table[i].raw - cal->table[i - 1].raw);
 
     return cal->table[i].val - interpolation;
 #else
     interpolation = ((cal->table[i].raw - rawval)
                      * (float)(cal->table[i].val - cal->table[i - 1].val))
-            / (float)(cal->table[i].raw - cal->table[i - 1].raw);
+                    / (float)(cal->table[i].raw - cal->table[i - 1].raw);
 #endif
     return cal->table[i].val - interpolation;
 }

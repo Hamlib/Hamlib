@@ -28,7 +28,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#  include "config.h"
 #endif
 
 #include <errno.h>
@@ -83,21 +83,24 @@ DEFINE_INITROT_BACKEND(cnctrk);
 DEFINE_INITROT_BACKEND(prosistel);
 
 
-/*! \def ROT_BACKEND_LIST
+/**
+ *  \def ROT_BACKEND_LIST
  *  \brief Static list of rotator models.
  *
  *  This is a NULL terminated list of available rotator backends. Each entry
  *  in the list consists of two fields: The branch number, which is an integer,
  *  and the branch name, which is a character string.
- *  An external library, loaded dynamically, could add its own functions pointers
- *  in this array.
+ *  An external library, loaded dynamically, could add its own functions
+ *  pointers in this array.
  */
-static struct {
+static struct
+{
     int be_num;
     const char *be_name;
     int (*be_init)(void *);
     rot_model_t (*be_probe)(hamlib_port_t *);
-} rot_backend_list[ROT_BACKEND_MAX] = {
+} rot_backend_list[ROT_BACKEND_MAX] =
+{
     { ROT_DUMMY, ROT_BACKEND_DUMMY, ROT_FUNCNAMA(dummy) },
     { ROT_EASYCOMM, ROT_BACKEND_EASYCOMM, ROT_FUNCNAMA(easycomm) },
     { ROT_FODTRACK, ROT_BACKEND_FODTRACK, ROT_FUNCNAMA(fodtrack) },
@@ -131,7 +134,8 @@ static struct {
  * This struct to keep track of known rot models.
  * It is chained, and used in a hash table, see below.
  */
-struct rot_list {
+struct rot_list
+{
     const struct rot_caps *caps;
     struct rot_list *next;
 };
@@ -159,7 +163,8 @@ int HAMLIB_API rot_register(const struct rot_caps *caps)
     int hval;
     struct rot_list *p;
 
-    if (!caps) {
+    if (!caps)
+    {
         return -RIG_EINVAL;
     }
 
@@ -167,7 +172,8 @@ int HAMLIB_API rot_register(const struct rot_caps *caps)
 
 #ifndef DONT_WANT_DUP_CHECK
 
-    if (rot_get_caps(caps->rot_model) != NULL) {
+    if (rot_get_caps(caps->rot_model) != NULL)
+    {
         return -RIG_EINVAL;
     }
 
@@ -175,7 +181,8 @@ int HAMLIB_API rot_register(const struct rot_caps *caps)
 
     p = (struct rot_list *)malloc(sizeof(struct rot_list));
 
-    if (!p) {
+    if (!p)
+    {
         return -RIG_ENOMEM;
     }
 
@@ -193,12 +200,14 @@ int HAMLIB_API rot_register(const struct rot_caps *caps)
  * Get rot capabilities.
  * i.e. rot_hash_table lookup
  */
-const struct rot_caps * HAMLIB_API rot_get_caps(rot_model_t rot_model)
+const struct rot_caps *HAMLIB_API rot_get_caps(rot_model_t rot_model)
 {
     struct rot_list *p;
 
-    for (p = rot_hash_table[HASH_FUNC(rot_model)]; p; p = p->next) {
-        if (p->caps->rot_model == rot_model) {
+    for (p = rot_hash_table[HASH_FUNC(rot_model)]; p; p = p->next)
+    {
+        if (p->caps->rot_model == rot_model)
+        {
             return p->caps;
         }
     }
@@ -216,9 +225,11 @@ static int rot_lookup_backend(rot_model_t rot_model)
 {
     int i;
 
-    for (i = 0; i < ROT_BACKEND_MAX && rot_backend_list[i].be_name; i++) {
+    for (i = 0; i < ROT_BACKEND_MAX && rot_backend_list[i].be_name; i++)
+    {
         if (ROT_BACKEND_NUM(rot_model) ==
-                rot_backend_list[i].be_num) {
+                rot_backend_list[i].be_num)
+        {
             return i;
         }
     }
@@ -242,7 +253,8 @@ int HAMLIB_API rot_check_backend(rot_model_t rot_model)
     /* already loaded ? */
     caps = rot_get_caps(rot_model);
 
-    if (caps) {
+    if (caps)
+    {
         return RIG_OK;
     }
 
@@ -251,11 +263,13 @@ int HAMLIB_API rot_check_backend(rot_model_t rot_model)
     /*
      * Never heard about this backend family!
      */
-    if (be_idx == -1) {
+    if (be_idx == -1)
+    {
         rot_debug(RIG_DEBUG_VERBOSE,
                   "%s: unsupported backend %d for model %d\n",
                   __func__,
-                  ROT_BACKEND_NUM(rot_model), rot_model);
+                  ROT_BACKEND_NUM(rot_model),
+                  rot_model);
 
         return -RIG_ENAVAIL;
     }
@@ -274,11 +288,16 @@ int HAMLIB_API rot_unregister(rot_model_t rot_model)
     hval = HASH_FUNC(rot_model);
     q = NULL;
 
-    for (p = rot_hash_table[hval]; p; p = p->next) {
-        if (p->caps->rot_model == rot_model) {
-            if (q == NULL) {
+    for (p = rot_hash_table[hval]; p; p = p->next)
+    {
+        if (p->caps->rot_model == rot_model)
+        {
+            if (q == NULL)
+            {
                 rot_hash_table[hval] = p->next;
-            } else {
+            }
+            else
+            {
                 q->next = p->next;
             }
 
@@ -297,19 +316,23 @@ int HAMLIB_API rot_unregister(rot_model_t rot_model)
  * rot_list_foreach
  * executes cfunc on all the elements stored in the rot hash list
  */
-int HAMLIB_API rot_list_foreach(int (*cfunc)(const struct rot_caps *, rig_ptr_t),
+int HAMLIB_API rot_list_foreach(int (*cfunc)(const struct rot_caps *,
+                                             rig_ptr_t),
                                 rig_ptr_t data)
 {
     struct rot_list *p;
     int i;
 
-    if (!cfunc) {
+    if (!cfunc)
+    {
         return -RIG_EINVAL;
     }
 
-    for (i = 0; i < ROTLSTHASHSZ; i++) {
+    for (i = 0; i < ROTLSTHASHSZ; i++)
+    {
         for (p = rot_hash_table[i]; p; p = p->next)
-            if ((*cfunc)(p->caps, data) == 0) {
+            if ((*cfunc)(p->caps, data) == 0)
+            {
                 return RIG_OK;
             }
     }
@@ -327,11 +350,14 @@ rot_model_t HAMLIB_API rot_probe_all(hamlib_port_t *p)
     int i;
     rot_model_t rot_model;
 
-    for (i = 0; i < ROT_BACKEND_MAX && rot_backend_list[i].be_name; i++) {
-        if (rot_backend_list[i].be_probe) {
+    for (i = 0; i < ROT_BACKEND_MAX && rot_backend_list[i].be_name; i++)
+    {
+        if (rot_backend_list[i].be_probe)
+        {
             rot_model = (*rot_backend_list[i].be_probe)(p);
 
-            if (rot_model != ROT_MODEL_NONE) {
+            if (rot_model != ROT_MODEL_NONE)
+            {
                 return rot_model;
             }
         }
@@ -345,7 +371,8 @@ int rot_load_all_backends()
 {
     int i;
 
-    for (i = 0; i < ROT_BACKEND_MAX && rot_backend_list[i].be_name; i++) {
+    for (i = 0; i < ROT_BACKEND_MAX && rot_backend_list[i].be_name; i++)
+    {
         rot_load_backend(rot_backend_list[i].be_name);
     }
 
@@ -363,11 +390,14 @@ int HAMLIB_API rot_load_backend(const char *be_name)
     int (*be_init)(rig_ptr_t);
     int i;
 
-    for (i = 0; i < ROT_BACKEND_MAX && rot_backend_list[i].be_name; i++) {
-        if (!strcmp(be_name, rot_backend_list[i].be_name)) {
+    for (i = 0; i < ROT_BACKEND_MAX && rot_backend_list[i].be_name; i++)
+    {
+        if (!strcmp(be_name, rot_backend_list[i].be_name))
+        {
             be_init = rot_backend_list[i].be_init;
 
-            if (be_init == NULL) {
+            if (be_init == NULL)
+            {
                 printf("Null\n");
                 return -EINVAL;
             }

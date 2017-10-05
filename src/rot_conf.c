@@ -30,7 +30,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#  include "config.h"
 #endif
 
 #include <stdlib.h>
@@ -48,7 +48,8 @@
 /*
  * Configuration options available in the rot->state struct.
  */
-static const struct confparams rotfrontend_cfg_params[] = {
+static const struct confparams rotfrontend_cfg_params[] =
+{
     {
         TOK_PATHNAME, "rot_pathname", "Rig path name",
         "Path name to the device file of the rotator",
@@ -98,7 +99,8 @@ static const struct confparams rotfrontend_cfg_params[] = {
 };
 
 
-static const struct confparams rotfrontend_serial_cfg_params[] = {
+static const struct confparams rotfrontend_serial_cfg_params[] =
+{
     {
         TOK_SERIAL_SPEED, "serial_speed", "Serial speed",
         "Serial port baud rate",
@@ -147,13 +149,15 @@ int frontrot_set_conf(ROT *rot, token_t token, const char *val)
 
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    switch (token) {
+    switch (token)
+    {
     case TOK_PATHNAME:
         strncpy(rs->rotport.pathname, val, FILPATHLEN - 1);
         break;
 
     case TOK_WRITE_DELAY:
-        if (1 != sscanf(val, "%d", &val_i)) {
+        if (1 != sscanf(val, "%d", &val_i))
+        {
             return -RIG_EINVAL;
         }
 
@@ -161,7 +165,8 @@ int frontrot_set_conf(ROT *rot, token_t token, const char *val)
         break;
 
     case TOK_POST_WRITE_DELAY:
-        if (1 != sscanf(val, "%d", &val_i)) {
+        if (1 != sscanf(val, "%d", &val_i))
+        {
             return -RIG_EINVAL;
         }
 
@@ -169,7 +174,8 @@ int frontrot_set_conf(ROT *rot, token_t token, const char *val)
         break;
 
     case TOK_TIMEOUT:
-        if (1 != sscanf(val, "%d", &val_i)) {
+        if (1 != sscanf(val, "%d", &val_i))
+        {
             return -RIG_EINVAL;
         }
 
@@ -177,7 +183,8 @@ int frontrot_set_conf(ROT *rot, token_t token, const char *val)
         break;
 
     case TOK_RETRY:
-        if (1 != sscanf(val, "%d", &val_i)) {
+        if (1 != sscanf(val, "%d", &val_i))
+        {
             return -RIG_EINVAL;
         }
 
@@ -185,11 +192,13 @@ int frontrot_set_conf(ROT *rot, token_t token, const char *val)
         break;
 
     case TOK_SERIAL_SPEED:
-        if (rs->rotport.type.rig != RIG_PORT_SERIAL) {
+        if (rs->rotport.type.rig != RIG_PORT_SERIAL)
+        {
             return -RIG_EINVAL;
         }
 
-        if (1 != sscanf(val, "%d", &val_i)) {
+        if (1 != sscanf(val, "%d", &val_i))
+        {
             return -RIG_EINVAL;
         }
 
@@ -197,11 +206,13 @@ int frontrot_set_conf(ROT *rot, token_t token, const char *val)
         break;
 
     case TOK_DATA_BITS:
-        if (rs->rotport.type.rig != RIG_PORT_SERIAL) {
+        if (rs->rotport.type.rig != RIG_PORT_SERIAL)
+        {
             return -RIG_EINVAL;
         }
 
-        if (1 != sscanf(val, "%d", &val_i)) {
+        if (1 != sscanf(val, "%d", &val_i))
+        {
             return -RIG_EINVAL;
         }
 
@@ -209,11 +220,13 @@ int frontrot_set_conf(ROT *rot, token_t token, const char *val)
         break;
 
     case TOK_STOP_BITS:
-        if (rs->rotport.type.rig != RIG_PORT_SERIAL) {
+        if (rs->rotport.type.rig != RIG_PORT_SERIAL)
+        {
             return -RIG_EINVAL;
         }
 
-        if (1 != sscanf(val, "%d", &val_i)) {
+        if (1 != sscanf(val, "%d", &val_i))
+        {
             return -RIG_EINVAL;
         }
 
@@ -221,38 +234,58 @@ int frontrot_set_conf(ROT *rot, token_t token, const char *val)
         break;
 
     case TOK_PARITY:
-        if (rs->rotport.type.rig != RIG_PORT_SERIAL) {
+        if (rs->rotport.type.rig != RIG_PORT_SERIAL)
+        {
             return -RIG_EINVAL;
         }
 
-        if (!strcmp(val, "None")) {
+        if (!strcmp(val, "None"))
+        {
             rs->rotport.parm.serial.parity = RIG_PARITY_NONE;
-        } else if (!strcmp(val, "Odd")) {
+        }
+        else if (!strcmp(val, "Odd"))
+        {
             rs->rotport.parm.serial.parity = RIG_PARITY_ODD;
-        } else if (!strcmp(val, "Even")) {
+        }
+        else if (!strcmp(val, "Even"))
+        {
             rs->rotport.parm.serial.parity = RIG_PARITY_EVEN;
-        } else if (!strcmp(val, "Mark")) {
+        }
+        else if (!strcmp(val, "Mark"))
+        {
             rs->rotport.parm.serial.parity = RIG_PARITY_MARK;
-        } else if (!strcmp(val, "Space")) {
+        }
+        else if (!strcmp(val, "Space"))
+        {
             rs->rotport.parm.serial.parity = RIG_PARITY_SPACE;
-        } else {
+        }
+        else
+        {
             return -RIG_EINVAL;
         }
 
         break;
 
     case TOK_HANDSHAKE:
-        if (rs->rotport.type.rig != RIG_PORT_SERIAL) {
+        if (rs->rotport.type.rig != RIG_PORT_SERIAL)
+        {
             return -RIG_EINVAL;
         }
 
-        if (!strcmp(val, "None")) {
+        if (!strcmp(val, "None"))
+        {
             rs->rotport.parm.serial.handshake = RIG_HANDSHAKE_NONE;
-        } else if (!strcmp(val, "XONXOFF")) {
+        }
+        else if (!strcmp(val, "XONXOFF"))
+        {
             rs->rotport.parm.serial.handshake = RIG_HANDSHAKE_XONXOFF;
-        } else if (!strcmp(val, "Hardware")) {
+        }
+        else if (!strcmp(val, "Hardware"))
+        {
             rs->rotport.parm.serial.handshake = RIG_HANDSHAKE_HARDWARE;
-        } else {
+        }
+        else
+        {
             return -RIG_EINVAL;
         }
 
@@ -298,7 +331,8 @@ int frontrot_get_conf(ROT *rot, token_t token, char *val)
 
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    switch (token) {
+    switch (token)
+    {
     case TOK_PATHNAME:
         strcpy(val, rs->rotport.pathname);
         break;
@@ -320,7 +354,8 @@ int frontrot_get_conf(ROT *rot, token_t token, char *val)
         break;
 
     case TOK_SERIAL_SPEED:
-        if (rs->rotport.type.rig != RIG_PORT_SERIAL) {
+        if (rs->rotport.type.rig != RIG_PORT_SERIAL)
+        {
             return -RIG_EINVAL;
         }
 
@@ -328,7 +363,8 @@ int frontrot_get_conf(ROT *rot, token_t token, char *val)
         break;
 
     case TOK_DATA_BITS:
-        if (rs->rotport.type.rig != RIG_PORT_SERIAL) {
+        if (rs->rotport.type.rig != RIG_PORT_SERIAL)
+        {
             return -RIG_EINVAL;
         }
 
@@ -336,7 +372,8 @@ int frontrot_get_conf(ROT *rot, token_t token, char *val)
         break;
 
     case TOK_STOP_BITS:
-        if (rs->rotport.type.rig != RIG_PORT_SERIAL) {
+        if (rs->rotport.type.rig != RIG_PORT_SERIAL)
+        {
             return -RIG_EINVAL;
         }
 
@@ -344,11 +381,13 @@ int frontrot_get_conf(ROT *rot, token_t token, char *val)
         break;
 
     case TOK_PARITY:
-        if (rs->rotport.type.rig != RIG_PORT_SERIAL) {
+        if (rs->rotport.type.rig != RIG_PORT_SERIAL)
+        {
             return -RIG_EINVAL;
         }
 
-        switch (rs->rotport.parm.serial.parity) {
+        switch (rs->rotport.parm.serial.parity)
+        {
         case RIG_PARITY_NONE:
             s = "None";
             break;
@@ -377,11 +416,13 @@ int frontrot_get_conf(ROT *rot, token_t token, char *val)
         break;
 
     case TOK_HANDSHAKE:
-        if (rs->rotport.type.rig != RIG_PORT_SERIAL) {
+        if (rs->rotport.type.rig != RIG_PORT_SERIAL)
+        {
             return -RIG_EINVAL;
         }
 
-        switch (rs->rotport.parm.serial.handshake) {
+        switch (rs->rotport.parm.serial.handshake)
+        {
         case RIG_HANDSHAKE_NONE:
             s = "None";
             break;
@@ -434,33 +475,42 @@ int frontrot_get_conf(ROT *rot, token_t token, char *val)
  * start first with backend conf table, then finish with frontend table
  */
 int HAMLIB_API rot_token_foreach(ROT *rot,
-                                 int (*cfunc)(const struct confparams *, rig_ptr_t),
+                                 int (*cfunc)(const struct confparams *,
+                                              rig_ptr_t),
                                  rig_ptr_t data)
 {
     const struct confparams *cfp;
 
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rot || !rot->caps || !cfunc) {
+    if (!rot || !rot->caps || !cfunc)
+    {
         return -RIG_EINVAL;
     }
 
-    for (cfp = rotfrontend_cfg_params; cfp->name; cfp++) {
-        if ((*cfunc)(cfp, data) == 0) {
+    for (cfp = rotfrontend_cfg_params; cfp->name; cfp++)
+    {
+        if ((*cfunc)(cfp, data) == 0)
+        {
             return RIG_OK;
         }
     }
 
-    if (rot->caps->port_type == RIG_PORT_SERIAL) {
-        for (cfp = rotfrontend_serial_cfg_params; cfp->name; cfp++) {
-            if ((*cfunc)(cfp, data) == 0) {
+    if (rot->caps->port_type == RIG_PORT_SERIAL)
+    {
+        for (cfp = rotfrontend_serial_cfg_params; cfp->name; cfp++)
+        {
+            if ((*cfunc)(cfp, data) == 0)
+            {
                 return RIG_OK;
             }
         }
     }
 
-    for (cfp = rot->caps->cfgparams; cfp && cfp->name; cfp++) {
-        if ((*cfunc)(cfp, data) == 0) {
+    for (cfp = rot->caps->cfgparams; cfp && cfp->name; cfp++)
+    {
+        if ((*cfunc)(cfp, data) == 0)
+        {
             return RIG_OK;
         }
     }
@@ -486,28 +536,36 @@ const struct confparams * HAMLIB_API rot_confparam_lookup(ROT *rot,
 
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rot || !rot->caps) {
+    if (!rot || !rot->caps)
+    {
         return NULL;
     }
 
     /* 0 returned for invalid format */
     token = strtol(name, NULL, 0);
 
-    for (cfp = rot->caps->cfgparams; cfp && cfp->name; cfp++) {
-        if (!strcmp(cfp->name, name) || token == cfp->token) {
+    for (cfp = rot->caps->cfgparams; cfp && cfp->name; cfp++)
+    {
+        if (!strcmp(cfp->name, name) || token == cfp->token)
+        {
             return cfp;
         }
     }
 
-    for (cfp = rotfrontend_cfg_params; cfp->name; cfp++) {
-        if (!strcmp(cfp->name, name) || token == cfp->token) {
+    for (cfp = rotfrontend_cfg_params; cfp->name; cfp++)
+    {
+        if (!strcmp(cfp->name, name) || token == cfp->token)
+        {
             return cfp;
         }
     }
 
-    if (rot->caps->port_type == RIG_PORT_SERIAL) {
-        for (cfp = rotfrontend_serial_cfg_params; cfp->name; cfp++) {
-            if (!strcmp(cfp->name, name) || token == cfp->token) {
+    if (rot->caps->port_type == RIG_PORT_SERIAL)
+    {
+        for (cfp = rotfrontend_serial_cfg_params; cfp->name; cfp++)
+        {
+            if (!strcmp(cfp->name, name) || token == cfp->token)
+            {
                 return cfp;
             }
         }
@@ -531,7 +589,8 @@ token_t HAMLIB_API rot_token_lookup(ROT *rot, const char *name)
 
     cfp = rot_confparam_lookup(rot, name);
 
-    if (!cfp) {
+    if (!cfp)
+    {
         return RIG_CONF_END;
     }
 
@@ -557,28 +616,33 @@ int HAMLIB_API rot_set_conf(ROT *rot, token_t token, const char *val)
 {
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rot || !rot->caps) {
+    if (!rot || !rot->caps)
+    {
         return -RIG_EINVAL;
     }
 
-    if (rig_need_debug(RIG_DEBUG_VERBOSE)) {
+    if (rig_need_debug(RIG_DEBUG_VERBOSE))
+    {
         const struct confparams *cfp;
         char tokenstr[12];
         sprintf(tokenstr, "%ld", token);
         cfp = rot_confparam_lookup(rot, tokenstr);
 
-        if (!cfp) {
+        if (!cfp)
+        {
             return -RIG_EINVAL;
         }
 
         rot_debug(RIG_DEBUG_VERBOSE, "%s: %s='%s'\n", __func__, cfp->name, val);
     }
 
-    if (IS_TOKEN_FRONTEND(token)) {
+    if (IS_TOKEN_FRONTEND(token))
+    {
         return frontrot_set_conf(rot, token, val);
     }
 
-    if (rot->caps->set_conf == NULL) {
+    if (rot->caps->set_conf == NULL)
+    {
         return -RIG_ENAVAIL;
     }
 
@@ -604,15 +668,18 @@ int HAMLIB_API rot_get_conf(ROT *rot, token_t token, char *val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rot || !rot->caps || !val) {
+    if (!rot || !rot->caps || !val)
+    {
         return -RIG_EINVAL;
     }
 
-    if (IS_TOKEN_FRONTEND(token)) {
+    if (IS_TOKEN_FRONTEND(token))
+    {
         return frontrot_get_conf(rot, token, val);
     }
 
-    if (rot->caps->get_conf == NULL) {
+    if (rot->caps->get_conf == NULL)
+    {
         return -RIG_ENAVAIL;
     }
 

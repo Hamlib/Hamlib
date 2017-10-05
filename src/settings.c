@@ -34,7 +34,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#  include "config.h"
 #endif
 
 #include <stdlib.h>
@@ -51,7 +51,7 @@
 
 #ifndef DOC_HIDDEN
 
-#define CHECK_RIG_ARG(r) (!(r) || !(r)->caps || !(r)->state.comm_state)
+#  define CHECK_RIG_ARG(r) (!(r) || !(r)->caps || !(r)->state.comm_state)
 
 #endif /* !DOC_HIDDEN */
 
@@ -81,30 +81,35 @@ int HAMLIB_API rig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_RIG_ARG(rig)) {
+    if (CHECK_RIG_ARG(rig))
+    {
         return -RIG_EINVAL;
     }
 
     caps = rig->caps;
 
-    if (caps->set_level == NULL || !rig_has_set_level(rig, level)) {
+    if (caps->set_level == NULL || !rig_has_set_level(rig, level))
+    {
         return -RIG_ENAVAIL;
     }
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_PURE)
         || vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo) {
-            return caps->set_level(rig, vfo, level, val);
+        || vfo == rig->state.current_vfo)
+    {
+        return caps->set_level(rig, vfo, level, val);
     }
 
-    if (!caps->set_vfo) {
+    if (!caps->set_vfo)
+    {
         return -RIG_ENTARGET;
     }
 
     curr_vfo = rig->state.current_vfo;
     retcode = caps->set_vfo(rig, vfo);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         return retcode;
     }
 
@@ -146,13 +151,15 @@ int HAMLIB_API rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_RIG_ARG(rig) || !val) {
+    if (CHECK_RIG_ARG(rig) || !val)
+    {
         return -RIG_EINVAL;
     }
 
     caps = rig->caps;
 
-    if (caps->get_level == NULL || !rig_has_get_level(rig, level)) {
+    if (caps->get_level == NULL || !rig_has_get_level(rig, level))
+    {
         return -RIG_ENAVAIL;
     }
 
@@ -162,36 +169,41 @@ int HAMLIB_API rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     if (level == RIG_LEVEL_STRENGTH
         && (caps->has_get_level & RIG_LEVEL_STRENGTH) == 0
         && rig_has_get_level(rig, RIG_LEVEL_RAWSTR)
-        && rig->state.str_cal.size) {
+        && rig->state.str_cal.size)
+    {
 
-            value_t rawstr;
+        value_t rawstr;
 
-            retcode = rig_get_level(rig, vfo, RIG_LEVEL_RAWSTR, &rawstr);
+        retcode = rig_get_level(rig, vfo, RIG_LEVEL_RAWSTR, &rawstr);
 
-            if (retcode != RIG_OK) {
-                return retcode;
-            }
+        if (retcode != RIG_OK)
+        {
+            return retcode;
+        }
 
-            val->i = (int)rig_raw2val(rawstr.i, &rig->state.str_cal);
-            return RIG_OK;
+        val->i = (int)rig_raw2val(rawstr.i, &rig->state.str_cal);
+        return RIG_OK;
     }
 
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_PURE)
         || vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo) {
+        || vfo == rig->state.current_vfo)
+    {
 
-            return caps->get_level(rig, vfo, level, val);
+        return caps->get_level(rig, vfo, level, val);
     }
 
-    if (!caps->set_vfo) {
+    if (!caps->set_vfo)
+    {
         return -RIG_ENTARGET;
     }
 
     curr_vfo = rig->state.current_vfo;
     retcode = caps->set_vfo(rig, vfo);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         return retcode;
     }
 
@@ -221,11 +233,13 @@ int HAMLIB_API rig_set_parm(RIG *rig, setting_t parm, value_t val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_RIG_ARG(rig)) {
+    if (CHECK_RIG_ARG(rig))
+    {
         return -RIG_EINVAL;
     }
 
-    if (rig->caps->set_parm == NULL || !rig_has_set_parm(rig, parm)) {
+    if (rig->caps->set_parm == NULL || !rig_has_set_parm(rig, parm))
+    {
         return -RIG_ENAVAIL;
     }
 
@@ -253,11 +267,13 @@ int HAMLIB_API rig_get_parm(RIG *rig, setting_t parm, value_t *val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_RIG_ARG(rig) || !val) {
+    if (CHECK_RIG_ARG(rig) || !val)
+    {
         return -RIG_EINVAL;
     }
 
-    if (rig->caps->get_parm == NULL || !rig_has_get_parm(rig, parm)) {
+    if (rig->caps->get_parm == NULL || !rig_has_get_parm(rig, parm))
+    {
         return -RIG_ENAVAIL;
     }
 
@@ -285,7 +301,8 @@ setting_t HAMLIB_API rig_has_get_level(RIG *rig, setting_t level)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !rig->caps) {
+    if (!rig || !rig->caps)
+    {
         return 0;
     }
 
@@ -313,7 +330,8 @@ setting_t HAMLIB_API rig_has_set_level(RIG *rig, setting_t level)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !rig->caps) {
+    if (!rig || !rig->caps)
+    {
         return 0;
     }
 
@@ -341,7 +359,8 @@ setting_t HAMLIB_API rig_has_get_parm(RIG *rig, setting_t parm)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !rig->caps) {
+    if (!rig || !rig->caps)
+    {
         return 0;
     }
 
@@ -369,7 +388,8 @@ setting_t HAMLIB_API rig_has_set_parm(RIG *rig, setting_t parm)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !rig->caps) {
+    if (!rig || !rig->caps)
+    {
         return 0;
     }
 
@@ -397,7 +417,8 @@ setting_t HAMLIB_API rig_has_get_func(RIG *rig, setting_t func)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !rig->caps) {
+    if (!rig || !rig->caps)
+    {
         return 0;
     }
 
@@ -425,7 +446,8 @@ setting_t HAMLIB_API rig_has_set_func(RIG *rig, setting_t func)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !rig->caps) {
+    if (!rig || !rig->caps)
+    {
         return 0;
     }
 
@@ -459,36 +481,42 @@ int HAMLIB_API rig_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_RIG_ARG(rig)) {
+    if (CHECK_RIG_ARG(rig))
+    {
         return -RIG_EINVAL;
     }
 
     caps = rig->caps;
 
-    if (caps->set_func == NULL || !rig_has_set_func(rig, func)) {
+    if (caps->set_func == NULL || !rig_has_set_func(rig, func))
+    {
         return -RIG_ENAVAIL;
     }
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_FUNC)
         || vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo) {
+        || vfo == rig->state.current_vfo)
+    {
 
-            return caps->set_func(rig, vfo, func, status);
+        return caps->set_func(rig, vfo, func, status);
     }
 
-    if (!caps->set_vfo) {
+    if (!caps->set_vfo)
+    {
         return -RIG_ENTARGET;
     }
 
     curr_vfo = rig->state.current_vfo;
     retcode = caps->set_vfo(rig, vfo);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         return retcode;
     }
 
     retcode = caps->set_func(rig, vfo, func, status);
     caps->set_vfo(rig, curr_vfo);
+
     return retcode;
 }
 
@@ -520,31 +548,36 @@ int HAMLIB_API rig_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_RIG_ARG(rig) || !func) {
+    if (CHECK_RIG_ARG(rig) || !func)
+    {
         return -RIG_EINVAL;
     }
 
     caps = rig->caps;
 
-    if (caps->get_func == NULL || !rig_has_get_func(rig, func)) {
+    if (caps->get_func == NULL || !rig_has_get_func(rig, func))
+    {
         return -RIG_ENAVAIL;
     }
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_FUNC)
         || vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo) {
+        || vfo == rig->state.current_vfo)
+    {
 
-            return caps->get_func(rig, vfo, func, status);
+        return caps->get_func(rig, vfo, func, status);
     }
 
-    if (!caps->set_vfo) {
+    if (!caps->set_vfo)
+    {
         return -RIG_ENTARGET;
     }
 
     curr_vfo = rig->state.current_vfo;
     retcode = caps->set_vfo(rig, vfo);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         return retcode;
     }
 
@@ -570,7 +603,9 @@ int HAMLIB_API rig_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
  *
  * \sa rig_get_ext_level()
  */
-int HAMLIB_API rig_set_ext_level(RIG *rig, vfo_t vfo, token_t token,
+int HAMLIB_API rig_set_ext_level(RIG *rig,
+                                 vfo_t vfo,
+                                 token_t token,
                                  value_t val)
 {
     const struct rig_caps *caps;
@@ -579,31 +614,36 @@ int HAMLIB_API rig_set_ext_level(RIG *rig, vfo_t vfo, token_t token,
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_RIG_ARG(rig)) {
+    if (CHECK_RIG_ARG(rig))
+    {
         return -RIG_EINVAL;
     }
 
     caps = rig->caps;
 
-    if (caps->set_ext_level == NULL) {
+    if (caps->set_ext_level == NULL)
+    {
         return -RIG_ENAVAIL;
     }
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_PURE)
         || vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo) {
+        || vfo == rig->state.current_vfo)
+    {
 
-            return caps->set_ext_level(rig, vfo, token, val);
+        return caps->set_ext_level(rig, vfo, token, val);
     }
 
-    if (!caps->set_vfo) {
+    if (!caps->set_vfo)
+    {
         return -RIG_ENTARGET;
     }
 
     curr_vfo = rig->state.current_vfo;
     retcode = caps->set_vfo(rig, vfo);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         return retcode;
     }
 
@@ -629,7 +669,9 @@ int HAMLIB_API rig_set_ext_level(RIG *rig, vfo_t vfo, token_t token,
  *
  * \sa rig_set_ext_level()
  */
-int HAMLIB_API rig_get_ext_level(RIG *rig, vfo_t vfo, token_t token,
+int HAMLIB_API rig_get_ext_level(RIG *rig,
+                                 vfo_t vfo,
+                                 token_t token,
                                  value_t *val)
 {
     const struct rig_caps *caps;
@@ -638,31 +680,36 @@ int HAMLIB_API rig_get_ext_level(RIG *rig, vfo_t vfo, token_t token,
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_RIG_ARG(rig) || !val) {
+    if (CHECK_RIG_ARG(rig) || !val)
+    {
         return -RIG_EINVAL;
     }
 
     caps = rig->caps;
 
-    if (caps->get_ext_level == NULL) {
+    if (caps->get_ext_level == NULL)
+    {
         return -RIG_ENAVAIL;
     }
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_PURE)
         || vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo) {
+        || vfo == rig->state.current_vfo)
+    {
 
-            return caps->get_ext_level(rig, vfo, token, val);
+        return caps->get_ext_level(rig, vfo, token, val);
     }
 
-    if (!caps->set_vfo) {
+    if (!caps->set_vfo)
+    {
         return -RIG_ENTARGET;
     }
 
     curr_vfo = rig->state.current_vfo;
     retcode = caps->set_vfo(rig, vfo);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         return retcode;
     }
 
@@ -691,11 +738,13 @@ int HAMLIB_API rig_set_ext_parm(RIG *rig, token_t token, value_t val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_RIG_ARG(rig)) {
+    if (CHECK_RIG_ARG(rig))
+    {
         return -RIG_EINVAL;
     }
 
-    if (rig->caps->set_ext_parm == NULL) {
+    if (rig->caps->set_ext_parm == NULL)
+    {
         return -RIG_ENAVAIL;
     }
 
@@ -721,11 +770,13 @@ int HAMLIB_API rig_get_ext_parm(RIG *rig, token_t token, value_t *val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_RIG_ARG(rig) || !val) {
+    if (CHECK_RIG_ARG(rig) || !val)
+    {
         return -RIG_EINVAL;
     }
 
-    if (rig->caps->get_ext_parm == NULL) {
+    if (rig->caps->get_ext_parm == NULL)
+    {
         return -RIG_ENAVAIL;
     }
 
@@ -748,8 +799,10 @@ int HAMLIB_API rig_setting2idx(setting_t s)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    for (i = 0; i < RIG_SETTING_MAX; i++) {
-        if (s & rig_idx2setting(i)) {
+    for (i = 0; i < RIG_SETTING_MAX; i++)
+    {
+        if (s & rig_idx2setting(i))
+        {
             return i;
         }
     }

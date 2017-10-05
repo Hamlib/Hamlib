@@ -54,7 +54,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#  include "config.h"
 #endif
 
 #include <stdio.h>
@@ -144,23 +144,29 @@ double HAMLIB_API dms2dec(int degrees, int minutes, double seconds, int sw)
 
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (degrees < 0) {
+    if (degrees < 0)
+    {
         degrees = abs(degrees);
     }
 
-    if (minutes < 0) {
+    if (minutes < 0)
+    {
         minutes = abs(minutes);
     }
 
-    if (seconds < 0) {
+    if (seconds < 0)
+    {
         seconds = fabs(seconds);
     }
 
     st = (double)degrees + (double)minutes / 60. + seconds / 3600.;
 
-    if (sw == 1) {
+    if (sw == 1)
+    {
         return -st;
-    } else {
+    }
+    else
+    {
         return st;
     }
 }
@@ -193,19 +199,24 @@ double HAMLIB_API dmmm2dec(int degrees, double minutes, int sw)
 
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (degrees < 0) {
+    if (degrees < 0)
+    {
         degrees = abs(degrees);
     }
 
-    if (minutes < 0) {
+    if (minutes < 0)
+    {
         minutes = fabs(minutes);
     }
 
     st = (double)degrees + minutes / 60.;
 
-    if (sw == 1) {
+    if (sw == 1)
+    {
         return -st;
-    } else {
+    }
+    else
+    {
         return st;
     }
 }
@@ -238,7 +249,10 @@ double HAMLIB_API dmmm2dec(int degrees, double minutes, int sw)
  *
  * \sa dms2dec()
  */
-int HAMLIB_API dec2dms(double dec, int *degrees, int *minutes, double *seconds,
+int HAMLIB_API dec2dms(double dec,
+                       int *degrees,
+                       int *minutes,
+                       double *seconds,
                        int *sw)
 {
     int deg, min;
@@ -247,7 +261,8 @@ int HAMLIB_API dec2dms(double dec, int *degrees, int *minutes, double *seconds,
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     /* bail if NULL pointers passed */
-    if (!degrees || !minutes || !seconds || !sw) {
+    if (!degrees || !minutes || !seconds || !sw)
+    {
         return -RIG_EINVAL;
     }
 
@@ -258,9 +273,12 @@ int HAMLIB_API dec2dms(double dec, int *degrees, int *minutes, double *seconds,
      * passed 361 st will be set to 1, etc.  If passed
      * a value > -180 || < 180, value will be unchanged.
      */
-    if (dec >= 0.0) {
+    if (dec >= 0.0)
+    {
         st = fmod(dec + 180, 360) - 180;
-    } else {
+    }
+    else
+    {
         st = fmod(dec - 180, 360) + 180;
     }
 
@@ -268,9 +286,12 @@ int HAMLIB_API dec2dms(double dec, int *degrees, int *minutes, double *seconds,
      * to be negative as well except for 180 which we want
      * to be positive.
      */
-    if (st < 0.0 && st != -180) {
+    if (st < 0.0 && st != -180)
+    {
         *sw = 1;
-    } else {
+    }
+    else
+    {
         *sw = 0;
     }
 
@@ -329,13 +350,15 @@ int HAMLIB_API dec2dmmm(double dec, int *degrees, double *minutes, int *sw)
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     /* bail if NULL pointers passed */
-    if (!degrees || !minutes || !sw) {
+    if (!degrees || !minutes || !sw)
+    {
         return -RIG_EINVAL;
     }
 
     r = dec2dms(dec, degrees, &min, &sec, sw);
 
-    if (r != RIG_OK) {
+    if (r != RIG_OK)
+    {
         return r;
     }
 
@@ -370,9 +393,9 @@ int HAMLIB_API dec2dmmm(double dec, int *degrees, double *minutes, int *sw)
  *
  * \sa longlat2locator()
  */
-
 /* begin dph */
-int HAMLIB_API locator2longlat(double *longitude, double *latitude,
+int HAMLIB_API locator2longlat(double *longitude,
+                               double *latitude,
                                const char *locator)
 {
     int x_or_y, paircount;
@@ -383,33 +406,40 @@ int HAMLIB_API locator2longlat(double *longitude, double *latitude,
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     /* bail if NULL pointers passed */
-    if (!longitude || !latitude) {
+    if (!longitude || !latitude)
+    {
         return -RIG_EINVAL;
     }
 
     paircount = strlen(locator) / 2;
 
     /* verify paircount is within limits */
-    if (paircount > MAX_LOCATOR_PAIRS) {
+    if (paircount > MAX_LOCATOR_PAIRS)
+    {
         paircount = MAX_LOCATOR_PAIRS;
-    } else if (paircount < MIN_LOCATOR_PAIRS) {
+    }
+    else if (paircount < MIN_LOCATOR_PAIRS)
+    {
         return -RIG_EINVAL;
     }
 
     /* For x(=longitude) and y(=latitude) */
-    for (x_or_y = 0;  x_or_y < 2;  ++x_or_y) {
+    for (x_or_y = 0;  x_or_y < 2;  ++x_or_y)
+    {
         ordinate = -90.0;
         divisions = 1;
 
-        for (pair = 0;  pair < paircount;  ++pair) {
+        for (pair = 0;  pair < paircount;  ++pair)
+        {
             locvalue = locator[pair * 2 + x_or_y];
 
             /* Value of digit or letter */
             locvalue -= (loc_char_range[pair] == 10) ? '0' :
-                        (isupper(locvalue)) ? 'A' : 'a';
+                (isupper(locvalue)) ? 'A' : 'a';
 
             /* Check range for non-letter/digit or out of range */
-            if ((locvalue < 0) || (locvalue >= loc_char_range[pair])) {
+            if ((locvalue < 0) || (locvalue >= loc_char_range[pair]))
+            {
                 return -RIG_EINVAL;
             }
 
@@ -452,9 +482,10 @@ int HAMLIB_API locator2longlat(double *longitude, double *latitude,
  *
  * \sa locator2longlat()
  */
-
 /* begin dph */
-int HAMLIB_API longlat2locator(double longitude, double latitude, char *locator,
+int HAMLIB_API longlat2locator(double longitude,
+                               double latitude,
+                               char *locator,
                                int pair_count)
 {
     int x_or_y, pair, locvalue, divisions;
@@ -462,22 +493,26 @@ int HAMLIB_API longlat2locator(double longitude, double latitude, char *locator,
 
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!locator) {
+    if (!locator)
+    {
         return -RIG_EINVAL;
     }
 
-    if (pair_count < MIN_LOCATOR_PAIRS || pair_count > MAX_LOCATOR_PAIRS) {
+    if (pair_count < MIN_LOCATOR_PAIRS || pair_count > MAX_LOCATOR_PAIRS)
+    {
         return -RIG_EINVAL;
     }
 
-    for (x_or_y = 0;  x_or_y < 2;  ++x_or_y) {
+    for (x_or_y = 0;  x_or_y < 2;  ++x_or_y)
+    {
         ordinate = (x_or_y == 0) ? longitude / 2.0 : latitude;
         divisions = 1;
 
         /* The 1e-6 here guards against floating point rounding errors */
         ordinate = fmod(ordinate + 270.000001, 180.0);
 
-        for (pair = 0;  pair < pair_count;  ++pair) {
+        for (pair = 0;  pair < pair_count;  ++pair)
+        {
             divisions *= loc_char_range[pair];
             square_size = 180.0 / divisions;
 
@@ -520,57 +555,72 @@ int HAMLIB_API longlat2locator(double longitude, double latitude, char *locator,
  *
  * \sa distance_long_path(), azimuth_long_path()
  */
-int HAMLIB_API qrb(double lon1, double lat1, double lon2, double lat2,
-                   double *distance, double *azimuth)
+int HAMLIB_API qrb(double lon1,
+                   double lat1,
+                   double lon2,
+                   double lat2,
+                   double *distance,
+                   double *azimuth)
 {
     double delta_long, tmp, arc, az;
 
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     /* bail if NULL pointers passed */
-    if (!distance || !azimuth) {
+    if (!distance || !azimuth)
+    {
         return -RIG_EINVAL;
     }
 
-    if ((lat1 > 90.0 || lat1 < -90.0) || (lat2 > 90.0 || lat2 < -90.0)) {
+    if ((lat1 > 90.0 || lat1 < -90.0) || (lat2 > 90.0 || lat2 < -90.0))
+    {
         return -RIG_EINVAL;
     }
 
-    if ((lon1 > 180.0 || lon1 < -180.0) || (lon2 > 180.0 || lon2 < -180.0)) {
+    if ((lon1 > 180.0 || lon1 < -180.0) || (lon2 > 180.0 || lon2 < -180.0))
+    {
         return -RIG_EINVAL;
     }
 
     /* Prevent ACOS() Domain Error */
-    if (lat1 == 90.0) {
+    if (lat1 == 90.0)
+    {
         lat1 = 89.999999999;
-    } else if (lat1 == -90.0) {
+    }
+    else if (lat1 == -90.0)
+    {
         lat1 = -89.999999999;
     }
 
-    if (lat2 == 90.0) {
+    if (lat2 == 90.0)
+    {
         lat2 = 89.999999999;
-    } else if (lat2 == -90.0) {
+    }
+    else if (lat2 == -90.0)
+    {
         lat2 = -89.999999999;
     }
 
     /* Convert variables to Radians */
-    lat1    /= RADIAN;
-    lon1    /= RADIAN;
-    lat2    /= RADIAN;
-    lon2    /= RADIAN;
+    lat1 /= RADIAN;
+    lon1 /= RADIAN;
+    lat2 /= RADIAN;
+    lon2 /= RADIAN;
 
     delta_long = lon2 - lon1;
 
     tmp = sin(lat1) * sin(lat2) + cos(lat1) * cos(lat2) * cos(delta_long);
 
-    if (tmp > .999999999999999) {
+    if (tmp > .999999999999999)
+    {
         /* Station points coincide, use an Omni! */
         *distance = 0.0;
         *azimuth = 0.0;
         return RIG_OK;
     }
 
-    if (tmp < -.999999) {
+    if (tmp < -.999999)
+    {
         /*
          * points are antipodal, it's straight down.
          * Station is equal distance in all Azimuths.
@@ -598,9 +648,12 @@ int HAMLIB_API qrb(double lon1, double lat1, double lon2, double lat2,
 
     az = fmod(360.0 + az, 360.0);
 
-    if (az < 0.0) {
+    if (az < 0.0)
+    {
         az += 360.0;
-    } else if (az >= 360.0) {
+    }
+    else if (az >= 360.0)
+    {
         az -= 360.0;
     }
 
@@ -645,15 +698,24 @@ double HAMLIB_API azimuth_long_path(double azimuth)
 {
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (azimuth == 0.0 || azimuth == 360.0) {
+    if (azimuth == 0.0 || azimuth == 360.0)
+    {
         return 180.0;
-    } else if (azimuth > 0.0 && azimuth < 180.0) {
+    }
+    else if (azimuth > 0.0 && azimuth < 180.0)
+    {
         return 180.0 + azimuth;
-    } else if (azimuth == 180.0) {
+    }
+    else if (azimuth == 180.0)
+    {
         return 0.0;
-    } else if (azimuth > 180.0 && azimuth < 360.0) {
+    }
+    else if (azimuth > 180.0 && azimuth < 360.0)
+    {
         return (180.0 - azimuth) * -1.0;
-    } else {
+    }
+    else
+    {
         return -RIG_EINVAL;
     }
 }

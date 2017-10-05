@@ -30,7 +30,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#  include "config.h"
 #endif
 
 #include <stdlib.h>
@@ -44,7 +44,7 @@
 #include <unistd.h>
 
 #ifdef ANDROID
-#include <android/log.h>
+#  include <android/log.h>
 #endif
 
 #include <hamlib/rig.h>
@@ -74,14 +74,17 @@ void dump_hex(const unsigned char ptr[], size_t size)
     unsigned char c;
     int i;
 
-    if (!rig_need_debug(RIG_DEBUG_TRACE)) {
+    if (!rig_need_debug(RIG_DEBUG_TRACE))
+    {
         return;
     }
 
     line[sizeof(line) - 1] = '\0';
 
-    for (i = 0; i < size; ++i) {
-        if (i % DUMP_HEX_WIDTH == 0) {
+    for (i = 0; i < size; ++i)
+    {
+        if (i % DUMP_HEX_WIDTH == 0)
+        {
             /* new line */
             sprintf(line + 0, "%04x", i);
             memset(line + 4, ' ', sizeof(line) - 4 - 1);
@@ -98,7 +101,8 @@ void dump_hex(const unsigned char ptr[], size_t size)
                 && c < 0x7f) ? c : '.';
 
         /* actually print the line */
-        if (i + 1 == size || (i && i % DUMP_HEX_WIDTH == DUMP_HEX_WIDTH - 1)) {
+        if (i + 1 == size || (i && i % DUMP_HEX_WIDTH == DUMP_HEX_WIDTH - 1))
+        {
             rig_debug(RIG_DEBUG_TRACE, "%s\n", line);
         }
     }
@@ -135,17 +139,22 @@ void HAMLIB_API rig_debug(enum rig_debug_level_e debug_level,
 {
     va_list ap;
 
-    if (!rig_need_debug(debug_level)) {
+    if (!rig_need_debug(debug_level))
+    {
         return;
     }
 
 
     va_start(ap, fmt);
 
-    if (rig_vprintf_cb) {
+    if (rig_vprintf_cb)
+    {
         rig_vprintf_cb(debug_level, rig_vprintf_arg, fmt, ap);
-    } else {
-        if (!rig_debug_stream) {
+    }
+    else
+    {
+        if (!rig_debug_stream)
+        {
             rig_debug_stream = stderr;
         }
 
@@ -158,7 +167,8 @@ void HAMLIB_API rig_debug(enum rig_debug_level_e debug_level,
     int a;
     va_start(ap, fmt);
 
-    switch (debug_level) {
+    switch (debug_level)
+    {
 //        case RIG_DEBUG_NONE:
     case RIG_DEBUG_BUG:
         a = ANDROID_LOG_FATAL;

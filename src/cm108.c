@@ -30,7 +30,7 @@
  * \file cm108.c
  */
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#  include "config.h"
 #endif
 
 #include <stdlib.h>
@@ -42,27 +42,30 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
+
 #ifdef HAVE_SYS_IOCTL_H
-#include <sys/ioctl.h>
+#  include <sys/ioctl.h>
 #endif
 
 #ifdef HAVE_SYS_PARAM_H
-#include <sys/param.h>
+#  include <sys/param.h>
 #endif
 
 #ifdef HAVE_WINDOWS_H
-#include <windows.h>
-#include "par_nt.h"
+#  include <windows.h>
+#  include "par_nt.h"
 #endif
+
 #ifdef HAVE_WINIOCTL_H
-#include <winioctl.h>
+#  include <winioctl.h>
 #endif
+
 #ifdef HAVE_WINBASE_H
-#include <winbase.h>
+#  include <winbase.h>
 #endif
 
 #ifdef HAVE_LINUX_HIDRAW_H
-#include <linux/hidraw.h>
+#  include <linux/hidraw.h>
 #endif
 
 #include <hamlib/rig.h>
@@ -80,13 +83,15 @@ int cm108_open(hamlib_port_t *port)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!port->pathname[0]) {
+    if (!port->pathname[0])
+    {
         return -RIG_EINVAL;
     }
 
     fd = open(port->pathname, O_RDWR);
 
-    if (fd < 0) {
+    if (fd < 0)
+    {
         rig_debug(RIG_DEBUG_ERR,
                   "%s: opening device \"%s\": %s\n",
                   __func__,
@@ -100,7 +105,7 @@ int cm108_open(hamlib_port_t *port)
 
     rig_debug(RIG_DEBUG_VERBOSE,
               "%s: checking for cm108 (or compatible) device\n",
-             __func__);
+              __func__);
 
     struct hidraw_devinfo hiddevinfo;
 
@@ -116,14 +121,16 @@ int cm108_open(hamlib_port_t *port)
                     || hiddevinfo.product == 0x1607
                     || hiddevinfo.product == 0x160b))))
     {
-            rig_debug(RIG_DEBUG_VERBOSE,
-                      "%s: cm108 compatible device detected\n",
-                      __func__);
-    } else {
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: cm108 compatible device detected\n",
+                  __func__);
+    }
+    else
+    {
         close(fd);
         rig_debug(RIG_DEBUG_VERBOSE,
                   "%s: no cm108 (or compatible) device detected\n",
-                 __func__);
+                  __func__);
         return -RIG_EINVAL;
     }
 
@@ -163,8 +170,10 @@ int cm108_ptt_set(hamlib_port_t *p, ptt_t pttx)
     // pins are accessible.  The SSS1623 chips have a different pinout, so
     // we make the GPIO bit number configurable.
 
-    switch (p->type.ptt) {
-    case RIG_PTT_CM108: {
+    switch (p->type.ptt)
+    {
+    case RIG_PTT_CM108:
+    {
 
         // Build a packet for CM108 HID to turn GPIO bit on or off.
         // Packet is 4 bytes, preceded by a 'report number' byte
@@ -181,7 +190,8 @@ int cm108_ptt_set(hamlib_port_t *p, ptt_t pttx)
                   p->parm.cm108.ptt_bitnum,
                   (pttx == RIG_PTT_ON) ? 1 : 0);
 
-        char out_rep[] = {
+        char out_rep[] =
+        {
             0x00, // report number
             // HID output report
             0x00,
@@ -192,14 +202,16 @@ int cm108_ptt_set(hamlib_port_t *p, ptt_t pttx)
 
         ssize_t nw;
 
-        if (p->fd == -1) {
+        if (p->fd == -1)
+        {
             return -RIG_EINVAL;
         }
 
         // Send the HID packet
         nw = write(p->fd, out_rep, sizeof(out_rep));
 
-        if (nw < 0) {
+        if (nw < 0)
+        {
             return -RIG_EIO;
         }
 
@@ -228,8 +240,10 @@ int cm108_ptt_get(hamlib_port_t *p, ptt_t *pttx)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    switch (p->type.ptt) {
-    case RIG_PTT_CM108: {
+    switch (p->type.ptt)
+    {
+    case RIG_PTT_CM108:
+    {
         int status;
         return -RIG_ENIMPL;
         return status;
@@ -261,8 +275,10 @@ int cm108_dcd_get(hamlib_port_t *p, dcd_t *dcdx)
     // in HID messages from the CM108 device, but I am not sure how
     // to query this state on demand.
 
-    switch (p->type.dcd) {
-    case RIG_DCD_CM108: {
+    switch (p->type.dcd)
+    {
+    case RIG_DCD_CM108:
+    {
         int status;
         return -RIG_ENIMPL;
         return status;

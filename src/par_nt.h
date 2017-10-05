@@ -28,7 +28,8 @@
  */
 
 /* The status pin functions operate in terms of these bits: */
-enum ieee1284_status_bits {
+enum ieee1284_status_bits
+{
     S1284_NFAULT = 0x08,
     S1284_SELECT = 0x10,
     S1284_PERROR = 0x20,
@@ -39,7 +40,8 @@ enum ieee1284_status_bits {
 };
 
 /* The control pin functions operate in terms of these bits: */
-enum ieee1284_control_bits {
+enum ieee1284_control_bits
+{
     C1284_NSTROBE   = 0x01,
     C1284_NAUTOFD   = 0x02,
     C1284_NINIT     = 0x04,

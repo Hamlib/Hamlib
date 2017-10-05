@@ -31,7 +31,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#  include "config.h"
 #endif
 
 #include <stdlib.h>
@@ -68,32 +68,38 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 
     p->fd = -1;
 
-    switch (p->type.rig) {
+    switch (p->type.rig)
+    {
     case RIG_PORT_SERIAL:
         status = serial_open(p);
 
-        if (status < 0) {
+        if (status < 0)
+        {
             return status;
         }
 
         if (p->parm.serial.rts_state != RIG_SIGNAL_UNSET
-            && p->parm.serial.handshake != RIG_HANDSHAKE_HARDWARE) {
-                status = ser_set_rts(p,
-                                     p->parm.serial.rts_state == RIG_SIGNAL_ON);
-                want_state_delay = 1;
+                && p->parm.serial.handshake != RIG_HANDSHAKE_HARDWARE)
+        {
+            status = ser_set_rts(p,
+                                 p->parm.serial.rts_state == RIG_SIGNAL_ON);
+            want_state_delay = 1;
         }
 
-        if (status != 0) {
+        if (status != 0)
+        {
             return status;
         }
 
-        if (p->parm.serial.dtr_state != RIG_SIGNAL_UNSET) {
+        if (p->parm.serial.dtr_state != RIG_SIGNAL_UNSET)
+        {
             status = ser_set_dtr(p,
                                  p->parm.serial.dtr_state == RIG_SIGNAL_ON);
             want_state_delay = 1;
         }
 
-        if (status != 0) {
+        if (status != 0)
+        {
             return status;
         }
 
@@ -101,7 +107,8 @@ int HAMLIB_API port_open(hamlib_port_t *p)
          * Wait whatever electrolytics in the circuit come up to voltage.
          * Is 100ms enough? Too much?
          */
-        if (want_state_delay) {
+        if (want_state_delay)
+        {
             usleep(100 * 1000);
         }
 
@@ -110,7 +117,8 @@ int HAMLIB_API port_open(hamlib_port_t *p)
     case RIG_PORT_PARALLEL:
         status = par_open(p);
 
-        if (status < 0) {
+        if (status < 0)
+        {
             return status;
         }
 
@@ -119,7 +127,8 @@ int HAMLIB_API port_open(hamlib_port_t *p)
     case RIG_PORT_CM108:
         status = cm108_open(p);
 
-        if (status < 0) {
+        if (status < 0)
+        {
             return status;
         }
 
@@ -128,7 +137,8 @@ int HAMLIB_API port_open(hamlib_port_t *p)
     case RIG_PORT_DEVICE:
         status = open(p->pathname, O_RDWR, 0);
 
-        if (status < 0) {
+        if (status < 0)
+        {
             return -RIG_EIO;
         }
 
@@ -138,7 +148,8 @@ int HAMLIB_API port_open(hamlib_port_t *p)
     case RIG_PORT_USB:
         status = usb_port_open(p);
 
-        if (status < 0) {
+        if (status < 0)
+        {
             return status;
         }
 
@@ -153,7 +164,8 @@ int HAMLIB_API port_open(hamlib_port_t *p)
         /* FIXME: hardcoded network port */
         status = network_open(p, 4532);
 
-        if (status < 0) {
+        if (status < 0)
+        {
             return status;
         }
 
@@ -181,8 +193,10 @@ int HAMLIB_API port_close(hamlib_port_t *p, rig_port_t port_type)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (p->fd != -1) {
-        switch (port_type) {
+    if (p->fd != -1)
+    {
+        switch (port_type)
+        {
         case RIG_PORT_SERIAL:
             ret = ser_close(p);
             break;
@@ -221,7 +235,7 @@ int HAMLIB_API port_close(hamlib_port_t *p, rig_port_t port_type)
 
 
 #if defined(WIN32) && !defined(HAVE_TERMIOS_H)
-#include "win32termios.h"
+#  include "win32termios.h"
 
 extern int is_uh_radio_fd(int fd);
 
@@ -239,27 +253,35 @@ static ssize_t port_read(hamlib_port_t *p, void *buf, size_t count)
      * Note that we always have RIG_PORT_SERIAL in the
      * microHam case.
      */
-    if (is_uh_radio_fd(p->fd)) {
+    if (is_uh_radio_fd(p->fd))
+    {
         return read(p->fd, buf, count);
     }
 
-    if (p->type.rig == RIG_PORT_SERIAL) {
+    if (p->type.rig == RIG_PORT_SERIAL)
+    {
         ret = win32_serial_read(p->fd, buf, count);
 
-        if (p->parm.serial.data_bits == 7) {
+        if (p->parm.serial.data_bits == 7)
+        {
             unsigned char *pbuf = buf;
 
             /* clear MSB */
-            for (i = 0; i < ret; i++) {
+            for (i = 0; i < ret; i++)
+            {
                 pbuf[i] &= ~0x80;
             }
         }
 
         return ret;
-    } else if (p->type.rig == RIG_PORT_NETWORK
-               || p->type.rig == RIG_PORT_UDP_NETWORK) {
-            return recv(p->fd, buf, count, 0);
-    } else {
+    }
+    else if (p->type.rig == RIG_PORT_NETWORK
+             || p->type.rig == RIG_PORT_UDP_NETWORK)
+    {
+        return recv(p->fd, buf, count, 0);
+    }
+    else
+    {
         return read(p->fd, buf, count);
     }
 }
@@ -272,23 +294,32 @@ static ssize_t port_write(hamlib_port_t *p, const void *buf, size_t count)
      * Note that we always have RIG_PORT_SERIAL in the
      * microHam case.
      */
-    if (is_uh_radio_fd(p->fd)) {
+    if (is_uh_radio_fd(p->fd))
+    {
         return write(p->fd, buf, count);
     }
 
-    if (p->type.rig == RIG_PORT_SERIAL) {
+    if (p->type.rig == RIG_PORT_SERIAL)
+    {
         return win32_serial_write(p->fd, buf, count);
-    } else if (p->type.rig == RIG_PORT_NETWORK
-               || p->type.rig == RIG_PORT_UDP_NETWORK) {
-            return send(p->fd, buf, count, 0);
-    } else {
+    }
+    else if (p->type.rig == RIG_PORT_NETWORK
+             || p->type.rig == RIG_PORT_UDP_NETWORK)
+    {
+        return send(p->fd, buf, count, 0);
+    }
+    else
+    {
         return write(p->fd, buf, count);
     }
 }
 
 
-static int port_select(hamlib_port_t *p, int n, fd_set *readfds,
-                       fd_set *writefds, fd_set *exceptfds,
+static int port_select(hamlib_port_t *p,
+                       int n,
+                       fd_set *readfds,
+                       fd_set *writefds,
+                       fd_set *exceptfds,
                        struct timeval *timeout)
 {
 #if 1
@@ -296,11 +327,13 @@ static int port_select(hamlib_port_t *p, int n, fd_set *readfds,
     /* select does not work very well with writefds/exceptfds
      * So let's pretend there's none of them
      */
-    if (exceptfds) {
+    if (exceptfds)
+    {
         FD_ZERO(exceptfds);
     }
 
-    if (writefds) {
+    if (writefds)
+    {
         FD_ZERO(writefds);
     }
 
@@ -314,13 +347,17 @@ static int port_select(hamlib_port_t *p, int n, fd_set *readfds,
      * Note that we always have RIG_PORT_SERIAL in the
      * microHam case.
      */
-    if (is_uh_radio_fd(p->fd)) {
+    if (is_uh_radio_fd(p->fd))
+    {
         return select(n, readfds, writefds, exceptfds, timeout);
     }
 
-    if (p->type.rig == RIG_PORT_SERIAL) {
+    if (p->type.rig == RIG_PORT_SERIAL)
+    {
         return win32_serial_select(n, readfds, writefds, exceptfds, timeout);
-    } else {
+    }
+    else
+    {
         return select(n, readfds, writefds, exceptfds, timeout);
     }
 }
@@ -335,18 +372,22 @@ static ssize_t port_read(hamlib_port_t *p, void *buf, size_t count)
     int i;
     ssize_t ret;
 
-    if (p->type.rig == RIG_PORT_SERIAL && p->parm.serial.data_bits == 7) {
+    if (p->type.rig == RIG_PORT_SERIAL && p->parm.serial.data_bits == 7)
+    {
         unsigned char *pbuf = buf;
 
         ret = read(p->fd, buf, count);
 
         /* clear MSB */
-        for (i = 0; i < ret; i++) {
+        for (i = 0; i < ret; i++)
+        {
             pbuf[i] &= ~0x80;
         }
 
         return ret;
-    } else {
+    }
+    else
+    {
         return read(p->fd, buf, count);
     }
 }
@@ -393,7 +434,8 @@ int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
 
 #ifdef WANT_NON_ACTIVE_POST_WRITE_DELAY
 
-    if (p->post_write_date.tv_sec != 0) {
+    if (p->post_write_date.tv_sec != 0)
+    {
         signed int date_delay;    /* in us */
         struct timeval tv;
 
@@ -403,7 +445,8 @@ int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
                      ((tv.tv_sec - p->post_write_date.tv_sec) * 1000000 +
                       (tv.tv_usec - p->post_write_date.tv_usec));
 
-        if (date_delay > 0) {
+        if (date_delay > 0)
+        {
             /*
              * optional delay after last write
              */
@@ -415,38 +458,57 @@ int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
 
 #endif
 
-    if (p->write_delay > 0) {
-        for (i = 0; i < count; i++) {
+    if (p->write_delay > 0)
+    {
+        for (i = 0; i < count; i++)
+        {
             ret = port_write(p, txbuffer + i, 1);
 
-            if (ret != 1) {
-                rig_debug(RIG_DEBUG_ERR, "%s():%d failed %d - %s\n",
-                          __func__, __LINE__, ret, strerror(errno));
+            if (ret != 1)
+            {
+                rig_debug(RIG_DEBUG_ERR,
+                          "%s():%d failed %d - %s\n",
+                          __func__,
+                          __LINE__,
+                          ret,
+                          strerror(errno));
+
                 return -RIG_EIO;
             }
 
             usleep(p->write_delay * 1000);
         }
-    } else {
+    }
+    else
+    {
         ret = port_write(p, txbuffer, count);
 
-        if (ret != count) {
-            rig_debug(RIG_DEBUG_ERR, "%s():%d failed %d - %s\n",
-                      __func__, __LINE__, ret, strerror(errno));
+        if (ret != count)
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s():%d failed %d - %s\n",
+                      __func__,
+                      __LINE__,
+                      ret,
+                      strerror(errno));
+
             return -RIG_EIO;
         }
     }
 
-    if (p->post_write_delay > 0) {
+    if (p->post_write_delay > 0)
+    {
 #ifdef WANT_NON_ACTIVE_POST_WRITE_DELAY
 #define POST_WRITE_DELAY_TRSHLD 10
 
-        if (p->post_write_delay > POST_WRITE_DELAY_TRSHLD) {
+        if (p->post_write_delay > POST_WRITE_DELAY_TRSHLD)
+        {
             struct timeval tv;
             gettimeofday(&tv, NULL);
             p->post_write_date.tv_sec = tv.tv_sec;
             p->post_write_date.tv_usec = tv.tv_usec;
-        } else
+        }
+        else
 #endif
             usleep(p->post_write_delay * 1000); /* optional delay after last write */
 
@@ -497,7 +559,8 @@ int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
     /* Store the time of the read loop start */
     gettimeofday(&start_time, NULL);
 
-    while (count > 0) {
+    while (count > 0)
+    {
         tv = tv_timeout;    /* select may have updated it */
 
         FD_ZERO(&rfds);
@@ -506,7 +569,8 @@ int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
 
         retval = port_select(p, p->fd + 1, &rfds, NULL, &efds, &tv);
 
-        if (retval == 0) {
+        if (retval == 0)
+        {
             /* Record timeout time and caculate elapsed time */
             gettimeofday(&end_time, NULL);
             timersub(&end_time, &start_time, &elapsed_time);
@@ -522,7 +586,8 @@ int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
             return -RIG_ETIMEOUT;
         }
 
-        if (retval < 0) {
+        if (retval < 0)
+        {
             dump_hex((unsigned char *) rxbuffer, total_count);
             rig_debug(RIG_DEBUG_ERR,
                       "%s(): select() error after %d chars: %s\n",
@@ -533,7 +598,8 @@ int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
             return -RIG_EIO;
         }
 
-        if (FD_ISSET(p->fd, &efds)) {
+        if (FD_ISSET(p->fd, &efds))
+        {
             rig_debug(RIG_DEBUG_ERR,
                       "%s(): fd error after %d chars\n",
                       __func__,
@@ -548,7 +614,8 @@ int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
          */
         rd_count = port_read(p, rxbuffer + total_count, count);
 
-        if (rd_count < 0) {
+        if (rd_count < 0)
+        {
             rig_debug(RIG_DEBUG_ERR,
                       "%s(): read() failed - %s\n",
                       __func__,
@@ -593,7 +660,9 @@ int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
  *
  * Assumes rxbuffer!=NULL
  */
-int HAMLIB_API read_string(hamlib_port_t *p, char *rxbuffer, size_t rxmax,
+int HAMLIB_API read_string(hamlib_port_t *p,
+                           char *rxbuffer,
+                           size_t rxmax,
                            const char *stopset,
                            int stopset_len)
 {
@@ -604,11 +673,13 @@ int HAMLIB_API read_string(hamlib_port_t *p, char *rxbuffer, size_t rxmax,
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!p || !rxbuffer) {
+    if (!p || !rxbuffer)
+    {
         return -RIG_EINVAL;
     }
 
-    if (rxmax < 1) {
+    if (rxmax < 1)
+    {
         return 0;
     }
 
@@ -621,7 +692,8 @@ int HAMLIB_API read_string(hamlib_port_t *p, char *rxbuffer, size_t rxmax,
     /* Store the time of the read loop start */
     gettimeofday(&start_time, NULL);
 
-    while (total_count < rxmax - 1) {
+    while (total_count < rxmax - 1)
+    {
         tv = tv_timeout;    /* select may have updated it */
 
         FD_ZERO(&rfds);
@@ -630,8 +702,10 @@ int HAMLIB_API read_string(hamlib_port_t *p, char *rxbuffer, size_t rxmax,
 
         retval = port_select(p, p->fd + 1, &rfds, NULL, &efds, &tv);
 
-        if (retval == 0) {
-            if (0 == total_count) {
+        if (retval == 0)
+        {
+            if (0 == total_count)
+            {
                 /* Record timeout time and caculate elapsed time */
                 gettimeofday(&end_time, NULL);
                 timersub(&end_time, &start_time, &elapsed_time);
@@ -650,7 +724,8 @@ int HAMLIB_API read_string(hamlib_port_t *p, char *rxbuffer, size_t rxmax,
             break;                      /* return what we have read */
         }
 
-        if (retval < 0) {
+        if (retval < 0)
+        {
             dump_hex((unsigned char *) rxbuffer, total_count);
             rig_debug(RIG_DEBUG_ERR,
                       "%s(): select() error after %d chars: %s\n",
@@ -661,7 +736,8 @@ int HAMLIB_API read_string(hamlib_port_t *p, char *rxbuffer, size_t rxmax,
             return -RIG_EIO;
         }
 
-        if (FD_ISSET(p->fd, &efds)) {
+        if (FD_ISSET(p->fd, &efds))
+        {
             rig_debug(RIG_DEBUG_ERR,
                       "%s(): fd error after %d chars\n",
                       __func__,
@@ -676,7 +752,8 @@ int HAMLIB_API read_string(hamlib_port_t *p, char *rxbuffer, size_t rxmax,
          */
         rd_count = port_read(p, &rxbuffer[total_count], 1);
 
-        if (rd_count < 0) {
+        if (rd_count < 0)
+        {
             dump_hex((unsigned char *) rxbuffer, total_count);
             rig_debug(RIG_DEBUG_ERR,
                       "%s(): read() failed - %s\n",
@@ -688,7 +765,8 @@ int HAMLIB_API read_string(hamlib_port_t *p, char *rxbuffer, size_t rxmax,
 
         ++total_count;
 
-        if (stopset && memchr(stopset, rxbuffer[total_count - 1], stopset_len)) {
+        if (stopset && memchr(stopset, rxbuffer[total_count - 1], stopset_len))
+        {
             break;
         }
     }
@@ -703,6 +781,7 @@ int HAMLIB_API read_string(hamlib_port_t *p, char *rxbuffer, size_t rxmax,
               "%s(): RX %d characters\n",
               __func__,
               total_count);
+
     dump_hex((unsigned char *) rxbuffer, total_count);
 
     return total_count;           /* return bytes count read */

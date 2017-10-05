@@ -35,14 +35,15 @@
  */
 
 
-/*! \page rot Rotator interface
+/**
+ * \page rot Rotator interface
  *
  * Rotator can be any kind of azimuth or azimuth and elevation controlled
  * antenna system.
  */
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#  include "config.h"
 #endif
 
 #include <stdlib.h>
@@ -52,7 +53,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-
 
 #include <hamlib/rotator.h>
 #include "serial.h"
@@ -66,21 +66,21 @@
 #ifndef DOC_HIDDEN
 
 #if defined(WIN32) && !defined(__CYGWIN__)
-#define DEFAULT_SERIAL_PORT "\\\\.\\COM1"
+#  define DEFAULT_SERIAL_PORT "\\\\.\\COM1"
 #elif BSD
-#define DEFAULT_SERIAL_PORT "/dev/cuaa0"
+#  define DEFAULT_SERIAL_PORT "/dev/cuaa0"
 #elif MACOSX
-#define DEFAULT_SERIAL_PORT "/dev/cu.usbserial"
+#  define DEFAULT_SERIAL_PORT "/dev/cu.usbserial"
 #else
-#define DEFAULT_SERIAL_PORT "/dev/ttyS0"
+#  define DEFAULT_SERIAL_PORT "/dev/ttyS0"
 #endif
 
 #if defined(WIN32)
-#define DEFAULT_PARALLEL_PORT "\\\\.\\$VDMLPT1"
+#  define DEFAULT_PARALLEL_PORT "\\\\.\\$VDMLPT1"
 #elif defined(HAVE_DEV_PPBUS_PPI_H)
-#define DEFAULT_PARALLEL_PORT "/dev/ppi0"
+#  define DEFAULT_PARALLEL_PORT "/dev/ppi0"
 #else
-#define DEFAULT_PARALLEL_PORT "/dev/parport0"
+#  define DEFAULT_PARALLEL_PORT "/dev/parport0"
 #endif
 
 #define CHECK_ROT_ARG(r) (!(r) || !(r)->caps || !(r)->state.comm_state)
@@ -89,7 +89,8 @@
 /*
  * Data structure to track the opened rot (by rot_open)
  */
-struct opened_rot_l {
+struct opened_rot_l
+{
     ROT *rot;
     struct opened_rot_l *next;
 };
@@ -105,7 +106,8 @@ static int add_opened_rot(ROT *rot)
     struct opened_rot_l *p;
     p = (struct opened_rot_l *)malloc(sizeof(struct opened_rot_l));
 
-    if (!p) {
+    if (!p)
+    {
         return -RIG_ENOMEM;
     }
 
@@ -121,11 +123,16 @@ static int remove_opened_rot(ROT *rot)
     struct opened_rot_l *p, *q;
     q = NULL;
 
-    for (p = opened_rot_list; p; p = p->next) {
-        if (p->rot == rot) {
-            if (q == NULL) {
+    for (p = opened_rot_list; p; p = p->next)
+    {
+        if (p->rot == rot)
+        {
+            if (q == NULL)
+            {
                 opened_rot_list = opened_rot_list->next;
-            } else {
+            }
+            else
+            {
                 q->next = p->next;
             }
 
@@ -146,15 +153,13 @@ static int remove_opened_rot(ROT *rot)
  * \param cfunc The function to be executed on each rot
  * \param data  Data pointer to be passed to cfunc()
  *
- *  Calls cfunc() function for each opened rot.
- *  The contents of the opened rot table
- *  is processed in random order according to a function
- *  pointed to by \a cfunc, whic is called with two arguments,
- *  the first pointing to the #ROT handle, the second
- *  to a data pointer \a data.
- *  If \a data is not needed, then it can be set to NULL.
- *  The processing of the opened rot table is stopped
- *  when cfunc() returns 0.
+ *  Calls cfunc() function for each opened rot.  The contents of the opened
+ *  rot table is processed in random order according to a function pointed to
+ *  by \a cfunc, whic is called with two arguments, the first pointing to the
+ *  #ROT handle, the second to a data pointer \a data.
+ *
+ *  If \a data is not needed, then it can be set to NULL.  The processing of
+ *  the opened rot table is stopped when cfunc() returns 0.
  * \internal
  *
  * \return always RIG_OK.
@@ -165,8 +170,10 @@ int foreach_opened_rot(int (*cfunc)(ROT *, rig_ptr_t), rig_ptr_t data)
 
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    for (p = opened_rot_list; p; p = p->next) {
-        if ((*cfunc)(p->rot, data) == 0) {
+    for (p = opened_rot_list; p; p = p->next)
+    {
+        if ((*cfunc)(p->rot, data) == 0)
+        {
             return RIG_OK;
         }
     }
@@ -187,7 +194,7 @@ int foreach_opened_rot(int (*cfunc)(ROT *, rig_ptr_t), rig_ptr_t data)
  *
  * \sa rot_cleanup(), rot_open()
  */
-ROT *HAMLIB_API rot_init(rot_model_t rot_model)
+ROT * HAMLIB_API rot_init(rot_model_t rot_model)
 {
     ROT *rot;
     const struct rot_caps *caps;
@@ -200,7 +207,8 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
 
     caps = rot_get_caps(rot_model);
 
-    if (!caps) {
+    if (!caps)
+    {
         return NULL;
     }
 
@@ -210,7 +218,8 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
      */
     rot = calloc(1, sizeof(ROT));
 
-    if (rot == NULL) {
+    if (rot == NULL)
+    {
         /*
          * FIXME: how can the caller know it's a memory shortage,
          *        and not "rot not found" ?
@@ -236,7 +245,8 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
     rs->rotport.timeout = caps->timeout;
     rs->rotport.retry = caps->retry;
 
-    switch (caps->port_type) {
+    switch (caps->port_type)
+    {
     case RIG_PORT_SERIAL:
         strncpy(rs->rotport.pathname, DEFAULT_SERIAL_PORT, FILPATHLEN - 1);
         rs->rotport.parm.serial.rate = caps->serial_rate_max;   /* fastest ! */
@@ -271,10 +281,12 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
      * This must be done only once defaults are setup,
      * so the backend init can override rot_state.
      */
-    if (caps->rot_init != NULL) {
+    if (caps->rot_init != NULL)
+    {
         retcode = caps->rot_init(rot);
 
-        if (retcode != RIG_OK) {
+        if (retcode != RIG_OK)
+        {
             rot_debug(RIG_DEBUG_VERBOSE,
                       "%s: backend_init failed!\n",
                       __func__);
@@ -312,24 +324,28 @@ int HAMLIB_API rot_open(ROT *rot)
 
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rot || !rot->caps) {
+    if (!rot || !rot->caps)
+    {
         return -RIG_EINVAL;
     }
 
     caps = rot->caps;
     rs = &rot->state;
 
-    if (rs->comm_state) {
+    if (rs->comm_state)
+    {
         return -RIG_EINVAL;
     }
 
     rs->rotport.fd = -1;
 
-    switch (rs->rotport.type.rig) {
+    switch (rs->rotport.type.rig)
+    {
     case RIG_PORT_SERIAL:
         status = serial_open(&rs->rotport);
 
-        if (status != 0) {
+        if (status != 0)
+        {
             return status;
         }
 
@@ -338,7 +354,8 @@ int HAMLIB_API rot_open(ROT *rot)
     case RIG_PORT_PARALLEL:
         status = par_open(&rs->rotport);
 
-        if (status < 0) {
+        if (status < 0)
+        {
             return status;
         }
 
@@ -347,7 +364,8 @@ int HAMLIB_API rot_open(ROT *rot)
     case RIG_PORT_DEVICE:
         status = open(rs->rotport.pathname, O_RDWR, 0);
 
-        if (status < 0) {
+        if (status < 0)
+        {
             return -RIG_EIO;
         }
 
@@ -357,7 +375,8 @@ int HAMLIB_API rot_open(ROT *rot)
     case RIG_PORT_USB:
         status = usb_port_open(&rs->rotport);
 
-        if (status < 0) {
+        if (status < 0)
+        {
             return status;
         }
 
@@ -372,7 +391,8 @@ int HAMLIB_API rot_open(ROT *rot)
         /* FIXME: default port */
         status = network_open(&rs->rotport, 4533);
 
-        if (status < 0) {
+        if (status < 0)
+        {
             return status;
         }
 
@@ -391,10 +411,12 @@ int HAMLIB_API rot_open(ROT *rot)
      * Maybe the backend has something to initialize
      * In case of failure, just close down and report error code.
      */
-    if (caps->rot_open != NULL) {
+    if (caps->rot_open != NULL)
+    {
         status = caps->rot_open(rot);
 
-        if (status != RIG_OK) {
+        if (status != RIG_OK)
+        {
             return status;
         }
     }
@@ -423,14 +445,16 @@ int HAMLIB_API rot_close(ROT *rot)
 
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rot || !rot->caps) {
+    if (!rot || !rot->caps)
+    {
         return -RIG_EINVAL;
     }
 
     caps = rot->caps;
     rs = &rot->state;
 
-    if (!rs->comm_state) {
+    if (!rs->comm_state)
+    {
         return -RIG_EINVAL;
     }
 
@@ -438,13 +462,16 @@ int HAMLIB_API rot_close(ROT *rot)
      * Let the backend say 73s to the rot.
      * and ignore the return code.
      */
-    if (caps->rot_close) {
+    if (caps->rot_close)
+    {
         caps->rot_close(rot);
     }
 
 
-    if (rs->rotport.fd != -1) {
-        switch (rs->rotport.type.rig) {
+    if (rs->rotport.fd != -1)
+    {
+        switch (rs->rotport.type.rig)
+        {
         case RIG_PORT_SERIAL:
             ser_close(&rs->rotport);
             break;
@@ -494,21 +521,24 @@ int HAMLIB_API rot_cleanup(ROT *rot)
 {
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rot || !rot->caps) {
+    if (!rot || !rot->caps)
+    {
         return -RIG_EINVAL;
     }
 
     /*
      * check if they forgot to close the rot
      */
-    if (rot->state.comm_state) {
+    if (rot->state.comm_state)
+    {
         rot_close(rot);
     }
 
     /*
      * basically free up the priv struct
      */
-    if (rot->caps->rot_cleanup) {
+    if (rot->caps->rot_cleanup)
+    {
         rot->caps->rot_cleanup(rot);
     }
 
@@ -532,7 +562,8 @@ int HAMLIB_API rot_cleanup(ROT *rot)
  *
  * \sa rot_get_position()
  */
-int HAMLIB_API rot_set_position(ROT *rot, azimuth_t azimuth,
+int HAMLIB_API rot_set_position(ROT *rot,
+                                azimuth_t azimuth,
                                 elevation_t elevation)
 {
     const struct rot_caps *caps;
@@ -540,7 +571,8 @@ int HAMLIB_API rot_set_position(ROT *rot, azimuth_t azimuth,
 
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_ROT_ARG(rot)) {
+    if (CHECK_ROT_ARG(rot))
+    {
         return -RIG_EINVAL;
     }
 
@@ -550,11 +582,13 @@ int HAMLIB_API rot_set_position(ROT *rot, azimuth_t azimuth,
     if (azimuth < rs->min_az
         || azimuth > rs->max_az
         || elevation < rs->min_el
-        || elevation > rs->max_el) {
-            return -RIG_EINVAL;
+        || elevation > rs->max_el)
+    {
+        return -RIG_EINVAL;
     }
 
-    if (caps->set_position == NULL) {
+    if (caps->set_position == NULL)
+    {
         return -RIG_ENAVAIL;
     }
 
@@ -576,20 +610,23 @@ int HAMLIB_API rot_set_position(ROT *rot, azimuth_t azimuth,
  *
  * \sa rot_set_position()
  */
-int HAMLIB_API rot_get_position(ROT *rot, azimuth_t *azimuth,
+int HAMLIB_API rot_get_position(ROT *rot,
+                                azimuth_t *azimuth,
                                 elevation_t *elevation)
 {
     const struct rot_caps *caps;
 
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_ROT_ARG(rot) || !azimuth || !elevation) {
+    if (CHECK_ROT_ARG(rot) || !azimuth || !elevation)
+    {
         return -RIG_EINVAL;
     }
 
     caps = rot->caps;
 
-    if (caps->get_position == NULL) {
+    if (caps->get_position == NULL)
+    {
         return -RIG_ENAVAIL;
     }
 
@@ -614,13 +651,15 @@ int HAMLIB_API rot_park(ROT *rot)
 
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_ROT_ARG(rot)) {
+    if (CHECK_ROT_ARG(rot))
+    {
         return -RIG_EINVAL;
     }
 
     caps = rot->caps;
 
-    if (caps->park == NULL) {
+    if (caps->park == NULL)
+    {
         return -RIG_ENAVAIL;
     }
 
@@ -645,13 +684,15 @@ int HAMLIB_API rot_stop(ROT *rot)
 
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_ROT_ARG(rot)) {
+    if (CHECK_ROT_ARG(rot))
+    {
         return -RIG_EINVAL;
     }
 
     caps = rot->caps;
 
-    if (caps->stop == NULL) {
+    if (caps->stop == NULL)
+    {
         return -RIG_ENAVAIL;
     }
 
@@ -677,13 +718,15 @@ int HAMLIB_API rot_reset(ROT *rot, rot_reset_t reset)
 
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_ROT_ARG(rot)) {
+    if (CHECK_ROT_ARG(rot))
+    {
         return -RIG_EINVAL;
     }
 
     caps = rot->caps;
 
-    if (caps->reset == NULL) {
+    if (caps->reset == NULL)
+    {
         return -RIG_ENAVAIL;
     }
 
@@ -706,13 +749,15 @@ int HAMLIB_API rot_move(ROT *rot, int direction, int speed)
 
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_ROT_ARG(rot)) {
+    if (CHECK_ROT_ARG(rot))
+    {
         return -RIG_EINVAL;
     }
 
     caps = rot->caps;
 
-    if (caps->move == NULL) {
+    if (caps->move == NULL)
+    {
         return -RIG_ENAVAIL;
     }
 
@@ -731,15 +776,17 @@ int HAMLIB_API rot_move(ROT *rot, int direction, int speed)
  * if the operation has been sucessful, otherwise NULL if an error occured
  * or get_info not part of capabilities.
  */
-const char *HAMLIB_API rot_get_info(ROT *rot)
+const char * HAMLIB_API rot_get_info(ROT *rot)
 {
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_ROT_ARG(rot)) {
+    if (CHECK_ROT_ARG(rot))
+    {
         return NULL;
     }
 
-    if (rot->caps->get_info == NULL) {
+    if (rot->caps->get_info == NULL)
+    {
         return NULL;
     }
 

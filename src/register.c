@@ -27,7 +27,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#  include "config.h"
 #endif
 
 #include <errno.h>
@@ -42,7 +42,7 @@
 #include <hamlib/rig.h>
 
 #ifndef PATH_MAX
-# define PATH_MAX       1024
+#  define PATH_MAX       1024
 #endif
 
 #define RIG_BACKEND_MAX 32
@@ -93,19 +93,22 @@ DEFINE_INITRIG_BACKEND(winradio);
 #endif
 
 
-/*! \def rig_backend_list
+/**
+ *  \def rig_backend_list
  *  \brief Static list of rig models.
  *
- *  This is a NULL terminated list of available rig backends. Each entry
- *  in the list consists of two fields: The branch number, which is an integer,
+ *  This is a NULL terminated list of available rig backends. Each entry in
+ *  the list consists of two fields: The branch number, which is an integer,
  *  and the branch name, which is a character string.
  */
-static struct {
+static struct
+{
     int be_num;
     const char *be_name;
     int (* be_init_all)(void *handle);
     rig_model_t (* be_probe_all)(hamlib_port_t *, rig_probe_func_t, rig_ptr_t);
-} rig_backend_list[RIG_BACKEND_MAX] = {
+} rig_backend_list[RIG_BACKEND_MAX] =
+{
     { RIG_DUMMY, RIG_BACKEND_DUMMY, RIG_FUNCNAMA(dummy) },
     { RIG_YAESU, RIG_BACKEND_YAESU, RIG_FUNCNAM(yaesu) },
     { RIG_KENWOOD, RIG_BACKEND_KENWOOD, RIG_FUNCNAM(kenwood) },
@@ -144,7 +147,8 @@ static struct {
  * This struct to keep track of known rig models.
  * It is chained, and used in a hash table, see below.
  */
-struct rig_list {
+struct rig_list
+{
     const struct rig_caps *caps;
     struct rig_list *next;
 };
@@ -174,7 +178,8 @@ int HAMLIB_API rig_register(const struct rig_caps *caps)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!caps) {
+    if (!caps)
+    {
         return -RIG_EINVAL;
     }
 
@@ -185,7 +190,8 @@ int HAMLIB_API rig_register(const struct rig_caps *caps)
 
 #ifndef DONT_WANT_DUP_CHECK
 
-    if (rig_get_caps(caps->rig_model) != NULL) {
+    if (rig_get_caps(caps->rig_model) != NULL)
+    {
         return -RIG_EINVAL;
     }
 
@@ -193,7 +199,8 @@ int HAMLIB_API rig_register(const struct rig_caps *caps)
 
     p = (struct rig_list *)malloc(sizeof(struct rig_list));
 
-    if (!p) {
+    if (!p)
+    {
         return -RIG_ENOMEM;
     }
 
@@ -211,12 +218,14 @@ int HAMLIB_API rig_register(const struct rig_caps *caps)
  * ie. rig_hash_table lookup
  */
 
-const struct rig_caps *HAMLIB_API rig_get_caps(rig_model_t rig_model)
+const struct rig_caps * HAMLIB_API rig_get_caps(rig_model_t rig_model)
 {
     struct rig_list *p;
 
-    for (p = rig_hash_table[HASH_FUNC(rig_model)]; p; p = p->next) {
-        if (p->caps->rig_model == rig_model) {
+    for (p = rig_hash_table[HASH_FUNC(rig_model)]; p; p = p->next)
+    {
+        if (p->caps->rig_model == rig_model)
+        {
             return p->caps;
         }
     }
@@ -233,9 +242,11 @@ static int rig_lookup_backend(rig_model_t rig_model)
 {
     int i;
 
-    for (i = 0; i < RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++) {
+    for (i = 0; i < RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++)
+    {
         if (RIG_BACKEND_NUM(rig_model) ==
-                rig_backend_list[i].be_num) {
+                rig_backend_list[i].be_num)
+        {
             return i;
         }
     }
@@ -258,7 +269,8 @@ int HAMLIB_API rig_check_backend(rig_model_t rig_model)
     /* already loaded ? */
     caps = rig_get_caps(rig_model);
 
-    if (caps) {
+    if (caps)
+    {
         return RIG_OK;
     }
 
@@ -267,10 +279,12 @@ int HAMLIB_API rig_check_backend(rig_model_t rig_model)
     /*
      * Never heard about this backend family!
      */
-    if (be_idx == -1) {
-        rig_debug(RIG_DEBUG_VERBOSE, "rig_check_backend: unsupported "
-                  "backend %d for model %d\n",
-                  RIG_BACKEND_NUM(rig_model), rig_model);
+    if (be_idx == -1)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "rig_check_backend: unsupported backend %d for model %d\n",
+                  RIG_BACKEND_NUM(rig_model),
+                  rig_model);
         return -RIG_ENAVAIL;
     }
 
@@ -289,11 +303,16 @@ int HAMLIB_API rig_unregister(rig_model_t rig_model)
     hval = HASH_FUNC(rig_model);
     q = NULL;
 
-    for (p = rig_hash_table[hval]; p; p = p->next) {
-        if (p->caps->rig_model == rig_model) {
-            if (q == NULL) {
+    for (p = rig_hash_table[hval]; p; p = p->next)
+    {
+        if (p->caps->rig_model == rig_model)
+        {
+            if (q == NULL)
+            {
                 rig_hash_table[hval] = p->next;
-            } else {
+            }
+            else
+            {
                 q->next = p->next;
             }
 
@@ -312,22 +331,27 @@ int HAMLIB_API rig_unregister(rig_model_t rig_model)
  * executes cfunc on all the elements stored in the rig hash list
  */
 int HAMLIB_API rig_list_foreach(int (*cfunc)(const struct rig_caps *,
-                                rig_ptr_t), rig_ptr_t data)
+                                             rig_ptr_t),
+                                rig_ptr_t data)
 {
     struct rig_list *p;
     int i;
 
-    if (!cfunc) {
+    if (!cfunc)
+    {
         return -RIG_EINVAL;
     }
 
-    for (i = 0; i < RIGLSTHASHSZ; i++) {
+    for (i = 0; i < RIGLSTHASHSZ; i++)
+    {
         struct rig_list *next = NULL;
 
-        for (p = rig_hash_table[i]; p; p = next) {
+        for (p = rig_hash_table[i]; p; p = next)
+        {
             next = p->next;       /* read before call in case it is unregistered */
 
-            if ((*cfunc)(p->caps, data) == 0) {
+            if ((*cfunc)(p->caps, data) == 0)
+            {
                 return RIG_OK;
             }
         }
@@ -336,12 +360,16 @@ int HAMLIB_API rig_list_foreach(int (*cfunc)(const struct rig_caps *,
     return RIG_OK;
 }
 
-static int dummy_rig_probe(const hamlib_port_t *p, rig_model_t model,
+
+static int dummy_rig_probe(const hamlib_port_t *p,
+                           rig_model_t model,
                            rig_ptr_t data)
 {
     rig_debug(RIG_DEBUG_TRACE, "Found rig, model %d\n", model);
+
     return RIG_OK;
 }
+
 
 /*
  * rig_probe_first
@@ -352,13 +380,16 @@ rig_model_t rig_probe_first(hamlib_port_t *p)
     int i;
     rig_model_t model;
 
-    for (i = 0; i < RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++) {
-        if (rig_backend_list[i].be_probe_all) {
+    for (i = 0; i < RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++)
+    {
+        if (rig_backend_list[i].be_probe_all)
+        {
             model = (*rig_backend_list[i].be_probe_all)(p, dummy_rig_probe,
                     (rig_ptr_t)NULL);
 
             /* stop at first one found */
-            if (model != RIG_MODEL_NONE) {
+            if (model != RIG_MODEL_NONE)
+            {
                 return model;
             }
         }
@@ -367,17 +398,21 @@ rig_model_t rig_probe_first(hamlib_port_t *p)
     return RIG_MODEL_NONE;
 }
 
+
 /*
  * rig_probe_all_backends
  * called straight by rig_probe_all
  */
-int rig_probe_all_backends(hamlib_port_t *p, rig_probe_func_t cfunc,
+int rig_probe_all_backends(hamlib_port_t *p,
+                           rig_probe_func_t cfunc,
                            rig_ptr_t data)
 {
     int i;
 
-    for (i = 0; i < RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++) {
-        if (rig_backend_list[i].be_probe_all) {
+    for (i = 0; i < RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++)
+    {
+        if (rig_backend_list[i].be_probe_all)
+        {
             (*rig_backend_list[i].be_probe_all)(p, cfunc, data);
         }
     }
@@ -390,7 +425,8 @@ int rig_load_all_backends()
 {
     int i;
 
-    for (i = 0; i < RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++) {
+    for (i = 0; i < RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++)
+    {
         rig_load_backend(rig_backend_list[i].be_name);
     }
 
@@ -400,6 +436,7 @@ int rig_load_all_backends()
 
 typedef int (*backend_init_t)(rig_ptr_t);
 
+
 /*
  * rig_load_backend
  */
@@ -408,13 +445,18 @@ int HAMLIB_API rig_load_backend(const char *be_name)
     int i;
     backend_init_t be_init;
 
-    for (i = 0; i < RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++) {
-        if (!strcmp(be_name, rig_backend_list[i].be_name)) {
+    for (i = 0; i < RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++)
+    {
+        if (!strcmp(be_name, rig_backend_list[i].be_name))
+        {
             be_init = rig_backend_list[i].be_init_all ;
 
-            if (be_init) {
+            if (be_init)
+            {
                 return (*be_init)(NULL);
-            } else {
+            }
+            else
+            {
                 return -RIG_EINVAL;
             }
         }

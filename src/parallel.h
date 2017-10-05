@@ -27,36 +27,43 @@
 #include "iofunc.h"
 
 #ifdef HAVE_LINUX_PARPORT_H
-#include <linux/parport.h>
+#  include <linux/parport.h>
 #endif
 
 #ifndef PARPORT_CONTROL_STROBE
-#define PARPORT_CONTROL_STROBE    0x1
+#  define PARPORT_CONTROL_STROBE    0x1
 #endif
+
 #ifndef PARPORT_CONTROL_AUTOFD
-#define PARPORT_CONTROL_AUTOFD    0x2
+#  define PARPORT_CONTROL_AUTOFD    0x2
 #endif
+
 #ifndef PARPORT_CONTROL_INIT
-#define PARPORT_CONTROL_INIT      0x4
+#  define PARPORT_CONTROL_INIT      0x4
 #endif
+
 #ifndef PARPORT_CONTROL_SELECT
-#define PARPORT_CONTROL_SELECT    0x8
+#  define PARPORT_CONTROL_SELECT    0x8
 #endif
 
 #ifndef PARPORT_STATUS_ERROR
-#define PARPORT_STATUS_ERROR      0x8
+#  define PARPORT_STATUS_ERROR      0x8
 #endif
+
 #ifndef PARPORT_STATUS_SELECT
-#define PARPORT_STATUS_SELECT     0x10
+#  define PARPORT_STATUS_SELECT     0x10
 #endif
+
 #ifndef PARPORT_STATUS_PAPEROUT
-#define PARPORT_STATUS_PAPEROUT   0x20
+#  define PARPORT_STATUS_PAPEROUT   0x20
 #endif
+
 #ifndef PARPORT_STATUS_ACK
-#define PARPORT_STATUS_ACK        0x40
+#  define PARPORT_STATUS_ACK        0x40
 #endif
+
 #ifndef PARPORT_STATUS_BUSY
-#define PARPORT_STATUS_BUSY       0x80
+#  define PARPORT_STATUS_BUSY       0x80
 #endif
 
 __BEGIN_DECLS

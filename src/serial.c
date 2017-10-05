@@ -33,7 +33,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#  include "config.h"
 #endif
 
 #include <stdlib.h>
@@ -45,33 +45,34 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
+
 #ifdef HAVE_SYS_IOCTL_H
-#include <sys/ioctl.h>
+#  include <sys/ioctl.h>
 #endif
 
 #ifdef HAVE_SYS_PARAM_H
-#include <sys/param.h>
+#  include <sys/param.h>
 #endif
 
 #ifdef HAVE_TERMIOS_H
-#include <termios.h> /* POSIX terminal control definitions */
+#  include <termios.h> /* POSIX terminal control definitions */
 #else
-#ifdef HAVE_TERMIO_H
-#include <termio.h>
-#else   /* sgtty */
-#ifdef HAVE_SGTTY_H
-#include <sgtty.h>
-#endif
-#endif
+#  ifdef HAVE_TERMIO_H
+#    include <termio.h>
+#  else   /* sgtty */
+#    ifdef HAVE_SGTTY_H
+#      include <sgtty.h>
+#    endif
+#  endif
 #endif
 
 #if defined(WIN32) && !defined(HAVE_TERMIOS_H)
-#include "win32termios.h"
-#define HAVE_TERMIOS_H  1   /* we have replacement */
+#  include "win32termios.h"
+#  define HAVE_TERMIOS_H  1   /* we have replacement */
 #else
-#define OPEN open
-#define CLOSE close
-#define IOCTL ioctl
+#  define OPEN open
+#  define CLOSE close
+#  define IOCTL ioctl
 #endif
 
 #include <hamlib/rig.h>
@@ -79,7 +80,7 @@
 #include "misc.h"
 
 #ifdef HAVE_SYS_IOCCOM_H
-#include <sys/ioccom.h>
+#  include <sys/ioccom.h>
 #endif
 
 #include "microham.h"
@@ -87,20 +88,26 @@
 static int uh_ptt_fd   = -1;
 static int uh_radio_fd = -1;
 
-int is_uh_radio_fd(int fd) {
-    /*
-     * This function simply returns TRUE if the argument
-     * matches uh_radio_fd and is >= 0
-     *
-     * This function is only used in the WIN32 case and implements
-     * access "from outside" to uh_radio_fd.
-     */
-     if (uh_radio_fd >= 0 && uh_radio_fd == fd) {
+
+/*
+ * This function simply returns TRUE if the argument matches uh_radio_fd and
+ * is >= 0
+ *
+ * This function is only used in the WIN32 case and implements access "from
+ * outside" to uh_radio_fd.
+ */
+int is_uh_radio_fd(int fd)
+{
+     if (uh_radio_fd >= 0 && uh_radio_fd == fd)
+     {
          return 1;
-     } else {
+     }
+     else
+     {
          return 0;
      }
 }
+
 
 /**
  * \brief Open serial port using rig.state data
@@ -115,7 +122,8 @@ int HAMLIB_API serial_open(hamlib_port_t *rp)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rp) {
+    if (!rp)
+    {
         return -RIG_EINVAL;
     }
 
@@ -166,7 +174,8 @@ int HAMLIB_API serial_open(hamlib_port_t *rp)
      */
     fd = OPEN(rp->pathname, O_RDWR | O_NOCTTY | O_NDELAY);
 
-    if (fd == -1) {
+    if (fd == -1)
+    {
         /* Could not open the port. */
         rig_debug(RIG_DEBUG_ERR,
                   "%s: Unable to open %s - %s\n",
@@ -180,7 +189,8 @@ int HAMLIB_API serial_open(hamlib_port_t *rp)
 
     err = serial_setup(rp);
 
-    if (err != RIG_OK) {
+    if (err != RIG_OK)
+    {
         CLOSE(fd);
         return err;
     }
@@ -206,12 +216,13 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
 #elif defined(HAVE_SGTTY_H)
     struct sgttyb sg;
 #else
-#error "No term control supported!"
+#  error "No term control supported!"
 #endif
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rp) {
+    if (!rp)
+    {
         return -RIG_EINVAL;
     }
 
@@ -236,7 +247,8 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
     /*
      * Set the baud rates to requested values
      */
-    switch (rp->parm.serial.rate) {
+    switch (rp->parm.serial.rate)
+    {
     case 150:
         speed = B150;       /* yikes... */
         break;
@@ -309,7 +321,8 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
      * Set data to requested values.
      *
      */
-    switch (rp->parm.serial.data_bits) {
+    switch (rp->parm.serial.data_bits)
+    {
     case 7:
         options.c_cflag &= ~CSIZE;
         options.c_cflag |= CS7;
@@ -335,7 +348,8 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
      * Set stop bits to requested values.
      *
      */
-    switch (rp->parm.serial.stop_bits) {
+    switch (rp->parm.serial.stop_bits)
+    {
     case 1:
         options.c_cflag &= ~CSTOPB;
         break;
@@ -359,7 +373,8 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
      * Set parity to requested values.
      *
      */
-    switch (rp->parm.serial.parity) {
+    switch (rp->parm.serial.parity)
+    {
     case RIG_PARITY_NONE:
         options.c_cflag &= ~PARENB;
         break;
@@ -403,7 +418,8 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
      * Set flow control to requested mode
      *
      */
-    switch (rp->parm.serial.handshake) {
+    switch (rp->parm.serial.handshake)
+    {
     case RIG_HANDSHAKE_NONE:
         options.c_cflag &= ~CRTSCTS;
         options.c_iflag &= ~IXON;
@@ -461,7 +477,8 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
      */
 #if defined(HAVE_TERMIOS_H)
 
-    if (tcsetattr(fd, TCSANOW, &options) == -1) {
+    if (tcsetattr(fd, TCSANOW, &options) == -1)
+    {
         rig_debug(RIG_DEBUG_ERR,
                   "%s: tcsetattr failed: %s\n",
                   __func__,
@@ -473,7 +490,8 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
 
 #elif defined(HAVE_TERMIO_H)
 
-    if (IOCTL(fd, TCSETA, &options) == -1) {
+    if (IOCTL(fd, TCSETA, &options) == -1)
+    {
         rig_debug(RIG_DEBUG_ERR,
                   "%s: ioctl(TCSETA) failed: %s\n",
                   __func__,
@@ -484,8 +502,10 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
     }
 
 #else
+
     /* sgtty */
-    if (IOCTL(fd, TIOCSETP, &sg) == -1) {
+    if (IOCTL(fd, TIOCSETP, &sg) == -1)
+    {
         rig_debug(RIG_DEBUG_ERR,
                   "%s: ioctl(TIOCSETP) failed: %s\n",
                   __func__,
@@ -629,10 +649,14 @@ int HAMLIB_API ser_set_rts(hamlib_port_t *p, int state)
 #else
     rc = IOCTL(p->fd, TIOCMGET, &y);
 
-    if (rc >= 0) {
-        if (state) {
+    if (rc >= 0)
+    {
+        if (state)
+        {
             y |= TIOCM_RTS;
-        } else {
+        }
+        else
+        {
             y &= ~TIOCM_RTS;
         }
 
@@ -641,7 +665,8 @@ int HAMLIB_API ser_set_rts(hamlib_port_t *p, int state)
 
 #endif
 
-    if (rc < 0) {
+    if (rc < 0)
+    {
         rig_debug(RIG_DEBUG_ERR,
                   "%s: Cannot change RTS - %s\n",
                   __func__,
@@ -707,10 +732,14 @@ int HAMLIB_API ser_set_dtr(hamlib_port_t *p, int state)
 #else
     rc = IOCTL(p->fd, TIOCMGET, &y);
 
-    if (rc >= 0) {
-        if (state) {
+    if (rc >= 0)
+    {
+        if (state)
+        {
             y |= TIOCM_DTR;
-        } else {
+        }
+        else
+        {
             y &= ~TIOCM_DTR;
         }
 
@@ -719,7 +748,8 @@ int HAMLIB_API ser_set_dtr(hamlib_port_t *p, int state)
 
 #endif
 
-    if (rc < 0) {
+    if (rc < 0)
+    {
         rig_debug(RIG_DEBUG_ERR,
                   "%s: Cannot change DTR - %s\n",
                   __func__,

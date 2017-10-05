@@ -32,7 +32,7 @@
 /* #define WINVER 0x0501 */
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#  include "config.h"
 #endif
 
 #include <stdlib.h>
@@ -45,24 +45,26 @@
 #include <sys/types.h>
 #include <signal.h>
 
-
 #ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
+#  include <netinet/in.h>
 #endif
+
 #if HAVE_NETDB_H
-#include <netdb.h>
+#  include <netdb.h>
 #endif
+
 #ifdef HAVE_ARPA_INET_H
-#include <arpa/inet.h>
+#  include <arpa/inet.h>
 #endif
+
 #if defined (HAVE_SYS_SOCKET_H) && defined (HAVE_SYS_IOCTL_H)
-#include <sys/socket.h>
-#include <sys/ioctl.h>
+#  include <sys/socket.h>
+#  include <sys/ioctl.h>
 #elif HAVE_WS2TCPIP_H
-#include <ws2tcpip.h>
-#   if defined(HAVE_WSPIAPI_H)
-#       include <wspiapi.h>
-#   endif
+#  include <ws2tcpip.h>
+#  if defined(HAVE_WSPIAPI_H)
+#    include <wspiapi.h>
+#  endif
 #endif
 
 #include <hamlib/rig.h>
@@ -88,15 +90,19 @@ static void handle_error(enum rig_debug_level_e lvl, const char *msg)
     if (FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER
                       | FORMAT_MESSAGE_FROM_SYSTEM
                       | FORMAT_MESSAGE_IGNORE_INSERTS,
-                      NULL, e,
+                      NULL,
+                      e,
                       MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
                       // Default language
                       (LPTSTR)&lpMsgBuf,
                       0,
-                      NULL)) {
+                      NULL))
+    {
         rig_debug(lvl, "%s: Network error %d: %s\n", msg, e, lpMsgBuf);
         LocalFree(lpMsgBuf);
-    } else {
+    }
+    else
+    {
         rig_debug(lvl, "%s: Network error %d\n", msg, e);
     }
 
@@ -131,44 +137,56 @@ int network_open(hamlib_port_t *rp, int default_port)
 #ifdef __MINGW32__
     WSADATA wsadata;
 
-    if (!(wsstarted++) && WSAStartup(MAKEWORD(1, 1), &wsadata) == SOCKET_ERROR) {
+    if (!(wsstarted++) && WSAStartup(MAKEWORD(1, 1), &wsadata) == SOCKET_ERROR)
+    {
         rig_debug(RIG_DEBUG_ERR, "%s: error creating socket\n", __func__);
         return -RIG_EIO;
     }
 
 #endif
 
-    if (!rp) {
+    if (!rp)
+    {
         return -RIG_EINVAL;
     }
 
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = PF_UNSPEC;
 
-    if (rp->type.rig == RIG_PORT_UDP_NETWORK) {
+    if (rp->type.rig == RIG_PORT_UDP_NETWORK)
+    {
         hints.ai_socktype = SOCK_DGRAM;
-    } else {
+    }
+    else
+    {
         hints.ai_socktype = SOCK_STREAM;
     }
 
     /* default of all local interfaces */
     hoststr = NULL;
 
-    if (rp->pathname[0] == ':') {
+    if (rp->pathname[0] == ':')
+    {
         portstr = rp->pathname + 1;
-    } else {
-        if (strlen(rp->pathname)) {
+    }
+    else
+    {
+        if (strlen(rp->pathname))
+        {
             strncpy(hostname, rp->pathname, FILPATHLEN - 1);
             hoststr = hostname;
             /* look for IPv6 numeric form [<addr>] */
             bracketstr1 = strchr(hoststr, '[');
             bracketstr2 = strrchr(hoststr, ']');
 
-            if (bracketstr1 && bracketstr2 && bracketstr2 > bracketstr1) {
+            if (bracketstr1 && bracketstr2 && bracketstr2 > bracketstr1)
+            {
                 hoststr = bracketstr1 + 1;
                 *bracketstr2 = '\0';
                 portstr = bracketstr2 + 1; /* possible port after ]: */
-            } else {
+            }
+            else
+            {
                 bracketstr2 = NULL;
                 portstr = hoststr; /* possible port after : */
             }
@@ -176,12 +194,14 @@ int network_open(hamlib_port_t *rp, int default_port)
             /* search last ':' */
             portstr = strrchr(portstr, ':');
 
-            if (portstr) {
+            if (portstr)
+            {
                 *portstr++ = '\0';
             }
         }
 
-        if (!portstr) {
+        if (!portstr)
+        {
             sprintf(defaultportstr, "%d", default_port);
             portstr = defaultportstr;
         }
@@ -189,7 +209,8 @@ int network_open(hamlib_port_t *rp, int default_port)
 
     status = getaddrinfo(hoststr, portstr, &hints, &res);
 
-    if (status != 0) {
+    if (status != 0)
+    {
         rig_debug(RIG_DEBUG_ERR,
                   "%s: cannot get host \"%s\": %s\n",
                   __func__,
@@ -205,16 +226,19 @@ int network_open(hamlib_port_t *rp, int default_port)
     signal(SIGPIPE, SIG_IGN);
 #endif
 
-    do {
+    do
+    {
         fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 
-        if (fd < 0) {
+        if (fd < 0)
+        {
             handle_error(RIG_DEBUG_ERR, "socket");
             freeaddrinfo(saved_res);
             return -RIG_EIO;
         }
 
-        if ((status = connect(fd, res->ai_addr, res->ai_addrlen)) == 0) {
+        if ((status = connect(fd, res->ai_addr, res->ai_addrlen)) == 0)
+        {
             break;
         }
 
@@ -225,11 +249,13 @@ int network_open(hamlib_port_t *rp, int default_port)
 #else
         close(fd);
 #endif
-    } while ((res = res->ai_next) != NULL);
+    }
+    while ((res = res->ai_next) != NULL);
 
     freeaddrinfo(saved_res);
 
-    if (NULL == res) {
+    if (NULL == res)
+    {
         rig_debug(RIG_DEBUG_ERR,
                   "%s: failed to connect to %s\n",
                   __func__,
@@ -260,20 +286,24 @@ void network_flush(hamlib_port_t *rp)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    for (;;) {
+    for (;;)
+    {
 #ifdef __MINGW32__
         ioctlsocket(rp->fd, FIONREAD, &len);
 #else
         ioctl(rp->fd, FIONREAD, &len);
 #endif
 
-        if (len > 0) {
+        if (len > 0)
+        {
             len = read(rp->fd, &buffer, len < NET_BUFFER_SIZE ? len : NET_BUFFER_SIZE);
             rig_debug(RIG_DEBUG_WARN,
                       "%s: network data cleared: %s\n",
                       __func__,
                       buffer);
-        } else {
+        }
+        else
+        {
             break;
         }
     }
@@ -289,7 +319,8 @@ int network_close(hamlib_port_t *rp)
 #ifdef __MINGW32__
     ret = closesocket(rp->fd);
 
-    if (--wsstarted) {
+    if (--wsstarted)
+    {
         WSACleanup();
     }
 

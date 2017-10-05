@@ -40,7 +40,8 @@ int gpio_open(hamlib_port_t *port, int on_value)
     snprintf(pathname, FILPATHLEN, "/sys/class/gpio/export");
     fexp = fopen(pathname, "w");
 
-    if (!fexp) {
+    if (!fexp)
+    {
         rig_debug(RIG_DEBUG_ERR,
                   "Export GPIO%s (using %s): %s\n",
                   port->pathname,
@@ -58,7 +59,8 @@ int gpio_open(hamlib_port_t *port, int on_value)
              port->pathname);
     fdir = fopen(pathname, "w");
 
-    if (!fdir) {
+    if (!fdir)
+    {
         rig_debug(RIG_DEBUG_ERR,
                   "GPIO%s direction (using %s): %s\n",
                   port->pathname,
@@ -76,7 +78,8 @@ int gpio_open(hamlib_port_t *port, int on_value)
              port->pathname);
     fd = open(pathname, O_WRONLY);
 
-    if (fd < 0) {
+    if (fd < 0)
+    {
         rig_debug(RIG_DEBUG_ERR,
                   "GPIO%s opening value file %s: %s\n",
                   port->pathname,
@@ -102,13 +105,17 @@ int gpio_ptt_set(hamlib_port_t *port, ptt_t pttx)
     port->parm.gpio.value = pttx != RIG_PTT_OFF;
 
     if ((port->parm.gpio.value && port->parm.gpio.on_value)
-        || (!port->parm.gpio.value && !port->parm.gpio.on_value)) {
-            val = "1\n";
-    } else {
+            || (!port->parm.gpio.value && !port->parm.gpio.on_value))
+    {
+        val = "1\n";
+    }
+    else
+    {
         val = "0\n";
     }
 
-    if (write(port->fd, val, strlen(val)) <= 0) {
+    if (write(port->fd, val, strlen(val)) <= 0)
+    {
         return -RIG_EIO;
     }
 
@@ -118,9 +125,12 @@ int gpio_ptt_set(hamlib_port_t *port, ptt_t pttx)
 
 int gpio_ptt_get(hamlib_port_t *port, ptt_t *pttx)
 {
-    if (port->parm.gpio.value) {
+    if (port->parm.gpio.value)
+    {
         return RIG_PTT_ON;
-    } else {
+    }
+    else
+    {
         return RIG_PTT_OFF;
     }
 }

@@ -29,7 +29,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#  include "config.h"
 #endif
 
 #include <stdlib.h>
@@ -39,12 +39,15 @@
 #include <unistd.h>  /* UNIX standard function definitions */
 #include <fcntl.h>   /* File control definitions */
 #include <errno.h>   /* Error number definitions */
+
 #ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
+#  include <sys/types.h>
 #endif
+
 #ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
+#  include <sys/time.h>
 #endif
+
 #include <unistd.h>
 
 #include <hamlib/rig.h>
@@ -70,11 +73,11 @@
  *
  * Returns a pointer to (unsigned char *)bcd_data.
  *
- * \sa to_bcd_be
+ * \sa to_bcd_be()
  */
-unsigned char *HAMLIB_API to_bcd(unsigned char bcd_data[],
-                                 unsigned long long freq,
-                                 unsigned bcd_len)
+unsigned char * HAMLIB_API to_bcd(unsigned char bcd_data[],
+                                  unsigned long long freq,
+                                  unsigned bcd_len)
 {
     int i;
     unsigned char a;
@@ -84,7 +87,8 @@ unsigned char *HAMLIB_API to_bcd(unsigned char bcd_data[],
     /* '450'/4-> 5,0;0,4 */
     /* '450'/3-> 5,0;x,4 */
 
-    for (i = 0; i < bcd_len / 2; i++) {
+    for (i = 0; i < bcd_len / 2; i++)
+    {
         a = freq % 10;
         freq /= 10;
         a |= (freq % 10) << 4;
@@ -92,7 +96,8 @@ unsigned char *HAMLIB_API to_bcd(unsigned char bcd_data[],
         bcd_data[i] = a;
     }
 
-    if (bcd_len & 1) {
+    if (bcd_len & 1)
+    {
         bcd_data[i] &= 0xf0;
         bcd_data[i] |= freq % 10; /* NB: high nibble is left uncleared */
     }
@@ -116,7 +121,7 @@ unsigned char *HAMLIB_API to_bcd(unsigned char bcd_data[],
  *
  * Returns frequency in Hz an unsigned long long integer.
  *
- * \sa from_bcd_be
+ * \sa from_bcd_be()
  */
 unsigned long long HAMLIB_API from_bcd(const unsigned char bcd_data[],
                                        unsigned bcd_len)
@@ -126,11 +131,13 @@ unsigned long long HAMLIB_API from_bcd(const unsigned char bcd_data[],
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (bcd_len & 1) {
+    if (bcd_len & 1)
+    {
         f = bcd_data[bcd_len / 2] & 0x0f;
     }
 
-    for (i = (bcd_len / 2) - 1; i >= 0; i--) {
+    for (i = (bcd_len / 2) - 1; i >= 0; i--)
+    {
         f *= 10;
         f += bcd_data[i] >> 4;
         f *= 10;
@@ -151,11 +158,11 @@ unsigned long long HAMLIB_API from_bcd(const unsigned char bcd_data[],
  * Same as to_bcd, but in big-endian order
  * (e.g. byte order 12 34 56 78 90 for 1234567890 Hz)
  *
- * \sa to_bcd
+ * \sa to_bcd()
  */
-unsigned char *HAMLIB_API to_bcd_be(unsigned char bcd_data[],
-                                    unsigned long long freq,
-                                    unsigned bcd_len)
+unsigned char * HAMLIB_API to_bcd_be(unsigned char bcd_data[],
+                                     unsigned long long freq,
+                                     unsigned bcd_len)
 {
     int i;
     unsigned char a;
@@ -165,14 +172,16 @@ unsigned char *HAMLIB_API to_bcd_be(unsigned char bcd_data[],
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (bcd_len & 1) {
+    if (bcd_len & 1)
+    {
         bcd_data[bcd_len / 2] &= 0x0f;
         bcd_data[bcd_len / 2] |= (freq % 10) <<
                                  4; /* NB: low nibble is left uncleared */
         freq /= 10;
     }
 
-    for (i = (bcd_len / 2) - 1; i >= 0; i--) {
+    for (i = (bcd_len / 2) - 1; i >= 0; i--)
+    {
         a = freq % 10;
         freq /= 10;
         a |= (freq % 10) << 4;
@@ -193,7 +202,7 @@ unsigned char *HAMLIB_API to_bcd_be(unsigned char bcd_data[],
  * Same as from_bcd, but in big-endian order
  * (e.g. byte order 12 34 56 78 90 for 1234567890 Hz)
  *
- * \sa from_bcd
+ * \sa from_bcd()
  */
 unsigned long long HAMLIB_API from_bcd_be(const unsigned char bcd_data[],
                                           unsigned bcd_len)
@@ -203,14 +212,16 @@ unsigned long long HAMLIB_API from_bcd_be(const unsigned char bcd_data[],
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    for (i = 0; i < bcd_len / 2; i++) {
+    for (i = 0; i < bcd_len / 2; i++)
+    {
         f *= 10;
         f += bcd_data[i] >> 4;
         f *= 10;
         f += bcd_data[i] & 0x0f;
     }
 
-    if (bcd_len & 1) {
+    if (bcd_len & 1)
+    {
         f *= 10;
         f += bcd_data[bcd_len / 2] >> 4;
     }
@@ -240,16 +251,23 @@ int HAMLIB_API sprintf_freq(char *str, freq_t freq)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (llabs(freq) >= GHz(1)) {
+    if (llabs(freq) >= GHz(1))
+    {
         hz = "GHz";
         f = (double)freq / GHz(1);
-    } else if (llabs(freq) >= MHz(1)) {
+    }
+    else if (llabs(freq) >= MHz(1))
+    {
         hz = "MHz";
         f = (double)freq / MHz(1);
-    } else if (llabs(freq) >= kHz(1)) {
+    }
+    else if (llabs(freq) >= kHz(1))
+    {
         hz = "kHz";
         f = (double)freq / kHz(1);
-    } else {
+    }
+    else
+    {
         hz = "Hz";
         f = (double)freq;
     }
@@ -267,7 +285,8 @@ const char * HAMLIB_API rig_strstatus(enum rig_status_e status)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    switch (status) {
+    switch (status)
+    {
     case RIG_STATUS_ALPHA:
         return "Alpha";
 
@@ -288,10 +307,12 @@ const char * HAMLIB_API rig_strstatus(enum rig_status_e status)
 }
 
 
-static struct {
+static struct
+{
     rmode_t mode;
     const char *str;
-} mode_str[] = {
+} mode_str[] =
+{
     { RIG_MODE_AM, "AM" },
     { RIG_MODE_CW, "CW" },
     { RIG_MODE_USB, "USB" },
@@ -330,9 +351,12 @@ rmode_t HAMLIB_API rig_parse_mode(const char *s)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     for (i = 0 ; mode_str[i].str[0] != '\0'; i++)
-        if (!strcmp(s, mode_str[i].str)) {
+    {
+        if (!strcmp(s, mode_str[i].str))
+        {
             return mode_str[i].mode;
         }
+    }
 
     return RIG_MODE_NONE;
 }
@@ -351,23 +375,29 @@ const char * HAMLIB_API rig_strrmode(rmode_t mode)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (mode == RIG_MODE_NONE) {
+    if (mode == RIG_MODE_NONE)
+    {
         return "";
     }
 
     for (i = 0 ; mode_str[i].str[0] != '\0'; i++)
-        if (mode == mode_str[i].mode) {
+    {
+        if (mode == mode_str[i].mode)
+        {
             return mode_str[i].str;
         }
+    }
 
     return "";
 }
 
 
-static struct {
+static struct
+{
     vfo_t vfo;
     const char *str;
-} vfo_str[] = {
+} vfo_str[] =
+{
     { RIG_VFO_A, "VFOA" },
     { RIG_VFO_B, "VFOB" },
     { RIG_VFO_C, "VFOC" },
@@ -396,9 +426,12 @@ vfo_t HAMLIB_API rig_parse_vfo(const char *s)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     for (i = 0 ; vfo_str[i].str[0] != '\0'; i++)
-        if (!strcmp(s, vfo_str[i].str)) {
+    {
+        if (!strcmp(s, vfo_str[i].str))
+        {
             return vfo_str[i].vfo;
         }
+    }
 
     return RIG_VFO_NONE;
 }
@@ -417,23 +450,29 @@ const char * HAMLIB_API rig_strvfo(vfo_t vfo)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (vfo == RIG_VFO_NONE) {
+    if (vfo == RIG_VFO_NONE)
+    {
         return "";
     }
 
     for (i = 0 ; vfo_str[i].str[0] != '\0'; i++)
-        if (vfo == vfo_str[i].vfo) {
+    {
+        if (vfo == vfo_str[i].vfo)
+        {
             return vfo_str[i].str;
         }
+    }
 
     return "";
 }
 
 
-static struct {
+static struct
+{
     setting_t func;
     const char *str;
-} func_str[] = {
+} func_str[] =
+{
     { RIG_FUNC_FAGC, "FAGC" },
     { RIG_FUNC_NB, "NB" },
     { RIG_FUNC_COMP, "COMP" },
@@ -475,7 +514,7 @@ static struct {
  * \param s input alpha string
  * \return RIG_FUNC_...
  *
- * \sa rig_func_e
+ * \sa rig_func_e()
  */
 setting_t HAMLIB_API rig_parse_func(const char *s)
 {
@@ -484,9 +523,12 @@ setting_t HAMLIB_API rig_parse_func(const char *s)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     for (i = 0 ; func_str[i].str[0] != '\0'; i++)
-        if (!strcmp(s, func_str[i].str)) {
+    {
+        if (!strcmp(s, func_str[i].str))
+        {
             return func_str[i].func;
         }
+    }
 
     return RIG_FUNC_NONE;
 }
@@ -497,7 +539,7 @@ setting_t HAMLIB_API rig_parse_func(const char *s)
  * \param func RIG_FUNC_...
  * \return alpha string
  *
- * \sa rig_func_e
+ * \sa rig_func_e()
  */
 const char * HAMLIB_API rig_strfunc(setting_t func)
 {
@@ -505,23 +547,29 @@ const char * HAMLIB_API rig_strfunc(setting_t func)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (func == RIG_FUNC_NONE) {
+    if (func == RIG_FUNC_NONE)
+    {
         return "";
     }
 
     for (i = 0; func_str[i].str[0] != '\0'; i++)
-        if (func == func_str[i].func) {
+    {
+        if (func == func_str[i].func)
+        {
             return func_str[i].str;
         }
+    }
 
     return "";
 }
 
 
-static struct {
+static struct
+{
     setting_t level;
     const char *str;
-} level_str[] = {
+} level_str[] =
+{
     { RIG_LEVEL_PREAMP, "PREAMP" },
     { RIG_LEVEL_ATT, "ATT" },
     { RIG_LEVEL_VOX, "VOX" },
@@ -562,7 +610,7 @@ static struct {
  * \param s input alpha string
  * \return RIG_LEVEL_...
  *
- * \sa rig_level_e
+ * \sa rig_level_e()
  */
 setting_t HAMLIB_API rig_parse_level(const char *s)
 {
@@ -571,9 +619,12 @@ setting_t HAMLIB_API rig_parse_level(const char *s)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     for (i = 0 ; level_str[i].str[0] != '\0'; i++)
-        if (!strcmp(s, level_str[i].str)) {
+    {
+        if (!strcmp(s, level_str[i].str))
+        {
             return level_str[i].level;
         }
+    }
 
     return RIG_LEVEL_NONE;
 }
@@ -584,7 +635,7 @@ setting_t HAMLIB_API rig_parse_level(const char *s)
  * \param level RIG_LEVEL_...
  * \return alpha string
  *
- * \sa rig_level_e
+ * \sa rig_level_e()
  */
 const char * HAMLIB_API rig_strlevel(setting_t level)
 {
@@ -592,23 +643,29 @@ const char * HAMLIB_API rig_strlevel(setting_t level)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (level == RIG_LEVEL_NONE) {
+    if (level == RIG_LEVEL_NONE)
+    {
         return "";
     }
 
     for (i = 0; level_str[i].str[0] != '\0'; i++)
-        if (level == level_str[i].level) {
+    {
+        if (level == level_str[i].level)
+        {
             return level_str[i].str;
         }
+    }
 
     return "";
 }
 
 
-static struct {
+static struct
+{
     setting_t parm;
     const char *str;
-} parm_str[] = {
+} parm_str[] =
+{
     { RIG_PARM_ANN, "ANN" },
     { RIG_PARM_APO, "APO" },
     { RIG_PARM_BACKLIGHT, "BACKLIGHT" },
@@ -625,7 +682,7 @@ static struct {
  * \param s input alpha string
  * \return RIG_PARM_...
  *
- * \sa rig_parm_e
+ * \sa rig_parm_e()
  */
 setting_t HAMLIB_API rig_parse_parm(const char *s)
 {
@@ -634,9 +691,12 @@ setting_t HAMLIB_API rig_parse_parm(const char *s)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     for (i = 0 ; parm_str[i].str[0] != '\0'; i++)
-        if (!strcmp(s, parm_str[i].str)) {
+    {
+        if (!strcmp(s, parm_str[i].str))
+        {
             return parm_str[i].parm;
         }
+    }
 
     return RIG_PARM_NONE;
 }
@@ -647,7 +707,7 @@ setting_t HAMLIB_API rig_parse_parm(const char *s)
  * \param parm RIG_PARM_...
  * \return alpha string
  *
- * \sa rig_parm_e
+ * \sa rig_parm_e()
  */
 const char * HAMLIB_API rig_strparm(setting_t parm)
 {
@@ -655,23 +715,29 @@ const char * HAMLIB_API rig_strparm(setting_t parm)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (parm == RIG_PARM_NONE) {
+    if (parm == RIG_PARM_NONE)
+    {
         return "";
     }
 
     for (i = 0; parm_str[i].str[0] != '\0'; i++)
-        if (parm == parm_str[i].parm) {
+    {
+        if (parm == parm_str[i].parm)
+        {
             return parm_str[i].str;
         }
+    }
 
     return "";
 }
 
 
-static struct {
+static struct
+{
     vfo_op_t vfo_op;
     const char *str;
-} vfo_op_str[] = {
+} vfo_op_str[] =
+{
     { RIG_OP_CPY, "CPY" },
     { RIG_OP_XCHG, "XCHG" },
     { RIG_OP_FROM_VFO, "FROM_VFO" },
@@ -694,7 +760,7 @@ static struct {
  * \param s alpha string
  * \return RIG_OP_...
  *
- * \sa vfo_op_t
+ * \sa vfo_op_t()
  */
 vfo_op_t HAMLIB_API rig_parse_vfo_op(const char *s)
 {
@@ -703,9 +769,12 @@ vfo_op_t HAMLIB_API rig_parse_vfo_op(const char *s)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     for (i = 0 ; vfo_op_str[i].str[0] != '\0'; i++)
-        if (!strcmp(s, vfo_op_str[i].str)) {
+    {
+        if (!strcmp(s, vfo_op_str[i].str))
+        {
             return vfo_op_str[i].vfo_op;
         }
+    }
 
     return RIG_OP_NONE;
 }
@@ -716,7 +785,7 @@ vfo_op_t HAMLIB_API rig_parse_vfo_op(const char *s)
  * \param op RIG_OP_...
  * \return alpha string
  *
- * \sa vfo_op_t
+ * \sa vfo_op_t()
  */
 const char * HAMLIB_API rig_strvfop(vfo_op_t op)
 {
@@ -724,23 +793,28 @@ const char * HAMLIB_API rig_strvfop(vfo_op_t op)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (op == RIG_OP_NONE) {
+    if (op == RIG_OP_NONE)
+    {
         return "";
     }
 
     for (i = 0; vfo_op_str[i].str[0] != '\0'; i++)
-        if (op == vfo_op_str[i].vfo_op) {
+    {        if (op == vfo_op_str[i].vfo_op)
+        {
             return vfo_op_str[i].str;
         }
+    }
 
     return "";
 }
 
 
-static struct {
+static struct
+{
     scan_t rscan;
     const char *str;
-} scan_str[] = {
+} scan_str[] =
+{
     { RIG_SCAN_STOP, "STOP" },
     { RIG_SCAN_MEM, "MEM" },
     { RIG_SCAN_SLCT, "SLCT" },
@@ -759,7 +833,7 @@ static struct {
  * \param s alpha string
  * \return RIG_SCAN_...
  *
- * \sa scan_t
+ * \sa scan_t()
  */
 scan_t HAMLIB_API rig_parse_scan(const char *s)
 {
@@ -767,8 +841,10 @@ scan_t HAMLIB_API rig_parse_scan(const char *s)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    for (i = 0 ; scan_str[i].str[0] != '\0'; i++) {
-        if (strcmp(s, scan_str[i].str) == 0) {
+    for (i = 0 ; scan_str[i].str[0] != '\0'; i++)
+    {
+        if (strcmp(s, scan_str[i].str) == 0)
+        {
             return scan_str[i].rscan;
         }
     }
@@ -782,7 +858,7 @@ scan_t HAMLIB_API rig_parse_scan(const char *s)
  * \param rscan RIG_SCAN_...
  * \return alpha string
  *
- * \sa scan_t
+ * \sa scan_t()
  */
 const char * HAMLIB_API rig_strscan(scan_t rscan)
 {
@@ -790,14 +866,17 @@ const char * HAMLIB_API rig_strscan(scan_t rscan)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (rscan == RIG_SCAN_NONE) {
+    if (rscan == RIG_SCAN_NONE)
+    {
         return "";
     }
 
     for (i = 0; scan_str[i].str[0] != '\0'; i++)
-        if (rscan == scan_str[i].rscan) {
+    {        if (rscan == scan_str[i].rscan)
+        {
             return scan_str[i].str;
         }
+    }
 
     return "";
 }
@@ -808,11 +887,12 @@ const char * HAMLIB_API rig_strscan(scan_t rscan)
  * \param shift RIG_RPT_SHIFT_??
  * \return alpha character
  */
-const char * HAMLIB_API rig_strptrshift(rptr_shift_t shift)
+const char *HAMLIB_API rig_strptrshift(rptr_shift_t shift)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    switch (shift) {
+    switch (shift)
+    {
     case RIG_RPT_SHIFT_MINUS:
         return "-";
 
@@ -836,20 +916,27 @@ rptr_shift_t HAMLIB_API rig_parse_rptr_shift(const char *s)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (strcmp(s, "+") == 0) {
+    if (strcmp(s, "+") == 0)
+    {
         return RIG_RPT_SHIFT_PLUS;
-    } else if (strcmp(s, "-") == 0) {
+    }
+    else if (strcmp(s, "-") == 0)
+    {
         return RIG_RPT_SHIFT_MINUS;
-    } else {
+    }
+    else
+    {
         return RIG_RPT_SHIFT_NONE;
     }
 }
 
 
-static struct {
+static struct
+{
     chan_type_t mtype;
     const char *str;
-} mtype_str[] = {
+} mtype_str[] =
+{
     { RIG_MTYPE_MEM, "MEM" },
     { RIG_MTYPE_EDGE, "EDGE" },
     { RIG_MTYPE_CALL, "CALL" },
@@ -866,7 +953,7 @@ static struct {
  * \param s alpha string
  * \return RIG_MTYPE_...
  *
- * \sa chan_type_t
+ * \sa chan_type_t()
  */
 chan_type_t HAMLIB_API rig_parse_mtype(const char *s)
 {
@@ -874,8 +961,10 @@ chan_type_t HAMLIB_API rig_parse_mtype(const char *s)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    for (i = 0 ; mtype_str[i].str[0] != '\0'; i++) {
-        if (strcmp(s, mtype_str[i].str) == 0) {
+    for (i = 0 ; mtype_str[i].str[0] != '\0'; i++)
+    {
+        if (strcmp(s, mtype_str[i].str) == 0)
+        {
             return mtype_str[i].mtype;
         }
     }
@@ -889,7 +978,7 @@ chan_type_t HAMLIB_API rig_parse_mtype(const char *s)
  * \param mtype RIG_MTYPE_...
  * \return alpha string
  *
- * \sa chan_type_t
+ * \sa chan_type_t()
  */
 const char * HAMLIB_API rig_strmtype(chan_type_t mtype)
 {
@@ -897,14 +986,18 @@ const char * HAMLIB_API rig_strmtype(chan_type_t mtype)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (mtype == RIG_MTYPE_NONE) {
+    if (mtype == RIG_MTYPE_NONE)
+    {
         return "";
     }
 
     for (i = 0; mtype_str[i].str[0] != '\0'; i++)
-        if (mtype == mtype_str[i].mtype) {
+    {
+        if (mtype == mtype_str[i].mtype)
+        {
             return mtype_str[i].str;
         }
+    }
 
     return "";
 }
@@ -934,7 +1027,8 @@ int HAMLIB_API rig_check_cache_timeout(const struct timeval *tv, int timeout)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (tv->tv_sec == 0 && tv->tv_usec == 0) {
+    if (tv->tv_sec == 0 && tv->tv_usec == 0)
+    {
         rig_debug(RIG_DEBUG_VERBOSE,
                   "%s: forced cache timeout\n",
                   __func__);
@@ -945,13 +1039,16 @@ int HAMLIB_API rig_check_cache_timeout(const struct timeval *tv, int timeout)
 
     t = timediff(&curr, tv);
 
-    if (t < timeout) {
+    if (t < timeout)
+    {
         rig_debug(RIG_DEBUG_VERBOSE,
                   "%s: using cache (%ld ms)\n",
                   __func__,
                   t);
         return 0;
-    } else {
+    }
+    else
+    {
         rig_debug(RIG_DEBUG_VERBOSE,
                   "%s: cache timed out (%ld ms)\n",
                   __func__,

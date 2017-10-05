@@ -31,7 +31,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+# include "config.h"
 #endif
 
 #include <stdlib.h>
@@ -105,31 +105,36 @@ int HAMLIB_API rig_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_RIG_ARG(rig)) {
+    if (CHECK_RIG_ARG(rig))
+    {
         return -RIG_EINVAL;
     }
 
     caps = rig->caps;
 
-    if (caps->set_ctcss_tone == NULL) {
+    if (caps->set_ctcss_tone == NULL)
+    {
         return -RIG_ENAVAIL;
     }
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_TONE)
         || vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo) {
+        || vfo == rig->state.current_vfo)
+    {
 
-            return caps->set_ctcss_tone(rig, vfo, tone);
+        return caps->set_ctcss_tone(rig, vfo, tone);
     }
 
-    if (!caps->set_vfo) {
+    if (!caps->set_vfo)
+    {
         return -RIG_ENTARGET;
     }
 
     curr_vfo = rig->state.current_vfo;
     retcode = caps->set_vfo(rig, vfo);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         return retcode;
     }
 
@@ -167,31 +172,36 @@ int HAMLIB_API rig_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_RIG_ARG(rig) || !tone) {
+    if (CHECK_RIG_ARG(rig) || !tone)
+    {
         return -RIG_EINVAL;
     }
 
     caps = rig->caps;
 
-    if (caps->get_ctcss_tone == NULL) {
+    if (caps->get_ctcss_tone == NULL)
+    {
         return -RIG_ENAVAIL;
     }
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_TONE)
         || vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo) {
+        || vfo == rig->state.current_vfo)
+    {
 
-            return caps->get_ctcss_tone(rig, vfo, tone);
+        return caps->get_ctcss_tone(rig, vfo, tone);
     }
 
-    if (!caps->set_vfo) {
+    if (!caps->set_vfo)
+    {
         return -RIG_ENTARGET;
     }
 
     curr_vfo = rig->state.current_vfo;
     retcode = caps->set_vfo(rig, vfo);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         return retcode;
     }
 
@@ -225,31 +235,36 @@ int HAMLIB_API rig_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_RIG_ARG(rig)) {
+    if (CHECK_RIG_ARG(rig))
+    {
         return -RIG_EINVAL;
     }
 
     caps = rig->caps;
 
-    if (caps->set_dcs_code == NULL) {
+    if (caps->set_dcs_code == NULL)
+    {
         return -RIG_ENAVAIL;
     }
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_TONE)
         || vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo) {
+        || vfo == rig->state.current_vfo)
+    {
 
-            return caps->set_dcs_code(rig, vfo, code);
+        return caps->set_dcs_code(rig, vfo, code);
     }
 
-    if (!caps->set_vfo) {
+    if (!caps->set_vfo)
+    {
         return -RIG_ENTARGET;
     }
 
     curr_vfo = rig->state.current_vfo;
     retcode = caps->set_vfo(rig, vfo);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         return retcode;
     }
 
@@ -282,31 +297,36 @@ int HAMLIB_API rig_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_RIG_ARG(rig) || !code) {
+    if (CHECK_RIG_ARG(rig) || !code)
+    {
         return -RIG_EINVAL;
     }
 
     caps = rig->caps;
 
-    if (caps->get_dcs_code == NULL) {
+    if (caps->get_dcs_code == NULL)
+    {
         return -RIG_ENAVAIL;
     }
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_TONE)
         || vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo) {
+        || vfo == rig->state.current_vfo)
+    {
 
-            return caps->get_dcs_code(rig, vfo, code);
+        return caps->get_dcs_code(rig, vfo, code);
     }
 
-    if (!caps->set_vfo) {
+    if (!caps->set_vfo)
+    {
         return -RIG_ENTARGET;
     }
 
     curr_vfo = rig->state.current_vfo;
     retcode = caps->set_vfo(rig, vfo);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         return retcode;
     }
 
@@ -347,31 +367,36 @@ int HAMLIB_API rig_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_RIG_ARG(rig)) {
+    if (CHECK_RIG_ARG(rig))
+    {
         return -RIG_EINVAL;
     }
 
     caps = rig->caps;
 
-    if (caps->set_ctcss_sql == NULL) {
+    if (caps->set_ctcss_sql == NULL)
+    {
         return -RIG_ENAVAIL;
     }
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_TONE)
         || vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo) {
+        || vfo == rig->state.current_vfo)
+    {
 
-            return caps->set_ctcss_sql(rig, vfo, tone);
+        return caps->set_ctcss_sql(rig, vfo, tone);
     }
 
-    if (!caps->set_vfo) {
+    if (!caps->set_vfo)
+    {
         return -RIG_ENTARGET;
     }
 
     curr_vfo = rig->state.current_vfo;
     retcode = caps->set_vfo(rig, vfo);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         return retcode;
     }
 
@@ -409,31 +434,36 @@ int HAMLIB_API rig_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_RIG_ARG(rig) || !tone) {
+    if (CHECK_RIG_ARG(rig) || !tone)
+    {
         return -RIG_EINVAL;
     }
 
     caps = rig->caps;
 
-    if (caps->get_ctcss_sql == NULL) {
+    if (caps->get_ctcss_sql == NULL)
+    {
         return -RIG_ENAVAIL;
     }
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_TONE)
         || vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo) {
+        || vfo == rig->state.current_vfo)
+    {
 
-            return caps->get_ctcss_sql(rig, vfo, tone);
+        return caps->get_ctcss_sql(rig, vfo, tone);
     }
 
-    if (!caps->set_vfo) {
+    if (!caps->set_vfo)
+    {
         return -RIG_ENTARGET;
     }
 
     curr_vfo = rig->state.current_vfo;
     retcode = caps->set_vfo(rig, vfo);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         return retcode;
     }
 
@@ -466,31 +496,36 @@ int HAMLIB_API rig_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_RIG_ARG(rig)) {
+    if (CHECK_RIG_ARG(rig))
+    {
         return -RIG_EINVAL;
     }
 
     caps = rig->caps;
 
-    if (caps->set_dcs_sql == NULL) {
+    if (caps->set_dcs_sql == NULL)
+    {
         return -RIG_ENAVAIL;
     }
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_TONE)
         || vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo) {
+        || vfo == rig->state.current_vfo)
+    {
 
-            return caps->set_dcs_sql(rig, vfo, code);
+        return caps->set_dcs_sql(rig, vfo, code);
     }
 
-    if (!caps->set_vfo) {
+    if (!caps->set_vfo)
+    {
         return -RIG_ENTARGET;
     }
 
     curr_vfo = rig->state.current_vfo;
     retcode = caps->set_vfo(rig, vfo);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         return retcode;
     }
 
@@ -523,31 +558,36 @@ int HAMLIB_API rig_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_RIG_ARG(rig) || !code) {
+    if (CHECK_RIG_ARG(rig) || !code)
+    {
         return -RIG_EINVAL;
     }
 
     caps = rig->caps;
 
-    if (caps->get_dcs_sql == NULL) {
+    if (caps->get_dcs_sql == NULL)
+    {
         return -RIG_ENAVAIL;
     }
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_TONE)
         || vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo) {
+        || vfo == rig->state.current_vfo)
+    {
 
-            return caps->get_dcs_sql(rig, vfo, code);
+        return caps->get_dcs_sql(rig, vfo, code);
     }
 
-    if (!caps->set_vfo) {
+    if (!caps->set_vfo)
+    {
         return -RIG_ENTARGET;
     }
 
     curr_vfo = rig->state.current_vfo;
     retcode = caps->set_vfo(rig, vfo);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         return retcode;
     }
 

@@ -31,7 +31,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#  include "config.h"
 #endif
 
 #include <stdlib.h>
@@ -47,7 +47,8 @@
 /*
  * Configuration options available in the rig->state struct.
  */
-static const struct confparams frontend_cfg_params[] = {
+static const struct confparams frontend_cfg_params[] =
+{
     {
         TOK_PATHNAME, "rig_pathname", "Rig path name",
         "Path name to the device file of the rig",
@@ -117,7 +118,8 @@ static const struct confparams frontend_cfg_params[] = {
 };
 
 
-static const struct confparams frontend_serial_cfg_params[] = {
+static const struct confparams frontend_serial_cfg_params[] =
+{
     {
         TOK_SERIAL_SPEED, "serial_speed", "Serial speed",
         "Serial port baud rate",
@@ -172,13 +174,15 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
     caps = rig->caps;
     rs = &rig->state;
 
-    switch (token) {
+    switch (token)
+    {
     case TOK_PATHNAME:
         strncpy(rs->rigport.pathname, val, FILPATHLEN - 1);
         break;
 
     case TOK_WRITE_DELAY:
-        if (1 != sscanf(val, "%d", &val_i)) {
+        if (1 != sscanf(val, "%d", &val_i))
+        {
             return -RIG_EINVAL;//value format error
         }
 
@@ -186,7 +190,8 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         break;
 
     case TOK_POST_WRITE_DELAY:
-        if (1 != sscanf(val, "%d", &val_i)) {
+        if (1 != sscanf(val, "%d", &val_i))
+        {
             return -RIG_EINVAL;//value format error
         }
 
@@ -194,7 +199,8 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         break;
 
     case TOK_TIMEOUT:
-        if (1 != sscanf(val, "%d", &val_i)) {
+        if (1 != sscanf(val, "%d", &val_i))
+        {
             return -RIG_EINVAL;//value format error
         }
 
@@ -202,7 +208,8 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         break;
 
     case TOK_RETRY:
-        if (1 != sscanf(val, "%d", &val_i)) {
+        if (1 != sscanf(val, "%d", &val_i))
+        {
             return -RIG_EINVAL;//value format error
         }
 
@@ -210,11 +217,13 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         break;
 
     case TOK_SERIAL_SPEED:
-        if (rs->rigport.type.rig != RIG_PORT_SERIAL) {
+        if (rs->rigport.type.rig != RIG_PORT_SERIAL)
+        {
             return -RIG_EINVAL;
         }
 
-        if (1 != sscanf(val, "%d", &val_i)) {
+        if (1 != sscanf(val, "%d", &val_i))
+        {
             return -RIG_EINVAL;//value format error
         }
 
@@ -222,11 +231,13 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         break;
 
     case TOK_DATA_BITS:
-        if (rs->rigport.type.rig != RIG_PORT_SERIAL) {
+        if (rs->rigport.type.rig != RIG_PORT_SERIAL)
+        {
             return -RIG_EINVAL;
         }
 
-        if (1 != sscanf(val, "%d", &val_i)) {
+        if (1 != sscanf(val, "%d", &val_i))
+        {
             return -RIG_EINVAL;//value format error
         }
 
@@ -234,11 +245,13 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         break;
 
     case TOK_STOP_BITS:
-        if (rs->rigport.type.rig != RIG_PORT_SERIAL) {
+        if (rs->rigport.type.rig != RIG_PORT_SERIAL)
+        {
             return -RIG_EINVAL;
         }
 
-        if (1 != sscanf(val, "%d", &val_i)) {
+        if (1 != sscanf(val, "%d", &val_i))
+        {
             return -RIG_EINVAL;//value format error
         }
 
@@ -246,83 +259,121 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         break;
 
     case TOK_PARITY:
-        if (rs->rigport.type.rig != RIG_PORT_SERIAL) {
+        if (rs->rigport.type.rig != RIG_PORT_SERIAL)
+        {
             return -RIG_EINVAL;
         }
 
-        if (!strcmp(val, "None")) {
+        if (!strcmp(val, "None"))
+        {
             rs->rigport.parm.serial.parity = RIG_PARITY_NONE;
-        } else if (!strcmp(val, "Odd")) {
+        }
+        else if (!strcmp(val, "Odd"))
+        {
             rs->rigport.parm.serial.parity = RIG_PARITY_ODD;
-        } else if (!strcmp(val, "Even")) {
+        }
+        else if (!strcmp(val, "Even"))
+        {
             rs->rigport.parm.serial.parity = RIG_PARITY_EVEN;
-        } else if (!strcmp(val, "Mark")) {
+        }
+        else if (!strcmp(val, "Mark"))
+        {
             rs->rigport.parm.serial.parity = RIG_PARITY_MARK;
-        } else if (!strcmp(val, "Space")) {
+        }
+        else if (!strcmp(val, "Space"))
+        {
             rs->rigport.parm.serial.parity = RIG_PARITY_SPACE;
-        } else {
+        }
+        else
+        {
             return -RIG_EINVAL;
         }
 
         break;
 
     case TOK_HANDSHAKE:
-        if (rs->rigport.type.rig != RIG_PORT_SERIAL) {
+        if (rs->rigport.type.rig != RIG_PORT_SERIAL)
+        {
             return -RIG_EINVAL;
         }
 
-        if (!strcmp(val, "None")) {
+        if (!strcmp(val, "None"))
+        {
             rs->rigport.parm.serial.handshake = RIG_HANDSHAKE_NONE;
-        } else if (!strcmp(val, "XONXOFF")) {
+        }
+        else if (!strcmp(val, "XONXOFF"))
+        {
             rs->rigport.parm.serial.handshake = RIG_HANDSHAKE_XONXOFF;
-        } else if (!strcmp(val, "Hardware")) {
+        }
+        else if (!strcmp(val, "Hardware"))
+        {
             rs->rigport.parm.serial.handshake = RIG_HANDSHAKE_HARDWARE;
-        } else {
+        }
+        else
+        {
             return -RIG_EINVAL;
         }
 
         break;
 
     case TOK_RTS_STATE:
-        if (rs->rigport.type.rig != RIG_PORT_SERIAL) {
+        if (rs->rigport.type.rig != RIG_PORT_SERIAL)
+        {
             return -RIG_EINVAL;
         }
 
-        if (!strcmp(val, "Unset")) {
+        if (!strcmp(val, "Unset"))
+        {
             rs->rigport.parm.serial.rts_state = RIG_SIGNAL_UNSET;
-        } else if (!strcmp(val, "ON")) {
+        }
+        else if (!strcmp(val, "ON"))
+        {
             rs->rigport.parm.serial.rts_state = RIG_SIGNAL_ON;
-        } else if (!strcmp(val, "OFF")) {
+        }
+        else if (!strcmp(val, "OFF"))
+        {
             rs->rigport.parm.serial.rts_state = RIG_SIGNAL_OFF;
-        } else {
+        }
+        else
+        {
             return -RIG_EINVAL;
         }
 
         break;
 
     case TOK_DTR_STATE:
-        if (rs->rigport.type.rig != RIG_PORT_SERIAL) {
+        if (rs->rigport.type.rig != RIG_PORT_SERIAL)
+        {
             return -RIG_EINVAL;
         }
 
-        if (!strcmp(val, "Unset")) {
+        if (!strcmp(val, "Unset"))
+        {
             rs->rigport.parm.serial.dtr_state = RIG_SIGNAL_UNSET;
-        } else if (!strcmp(val, "ON")) {
+        }
+        else if (!strcmp(val, "ON"))
+        {
             rs->rigport.parm.serial.dtr_state = RIG_SIGNAL_ON;
-        } else if (!strcmp(val, "OFF")) {
+        }
+        else if (!strcmp(val, "OFF"))
+        {
             rs->rigport.parm.serial.dtr_state = RIG_SIGNAL_OFF;
-        } else {
+        }
+        else
+        {
             return -RIG_EINVAL;
         }
 
         break;
 
     case TOK_ITU_REGION:
-        if (1 != sscanf(val, "%d", &val_i)) {
+        if (1 != sscanf(val, "%d", &val_i))
+        {
             return -RIG_EINVAL;//value format error
         }
 
-        switch (val_i) {
+        switch (val_i)
+        {
         case RIG_ITU_REGION1:
             rs->itu_region = val_i;
             memcpy(rs->tx_range_list, caps->tx_range_list1,
@@ -347,21 +398,36 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         break;
 
     case TOK_PTT_TYPE:
-        if (!strcmp(val, "RIG")) {
+        if (!strcmp(val, "RIG"))
+        {
             rs->pttport.type.ptt = RIG_PTT_RIG;
-        } else if (!strcmp(val, "RIGMICDATA")) {
+        }
+        else if (!strcmp(val, "RIGMICDATA"))
+        {
             rs->pttport.type.ptt = RIG_PTT_RIG_MICDATA;
-        } else if (!strcmp(val, "DTR")) {
+        }
+        else if (!strcmp(val, "DTR"))
+        {
             rs->pttport.type.ptt = RIG_PTT_SERIAL_DTR;
-        } else if (!strcmp(val, "RTS")) {
+        }
+        else if (!strcmp(val, "RTS"))
+        {
             rs->pttport.type.ptt = RIG_PTT_SERIAL_RTS;
-        } else if (!strcmp(val, "Parallel")) {
+        }
+        else if (!strcmp(val, "Parallel"))
+        {
             rs->pttport.type.ptt = RIG_PTT_PARALLEL;
-        } else if (!strcmp(val, "CM108")) {
+        }
+        else if (!strcmp(val, "CM108"))
+        {
             rs->pttport.type.ptt = RIG_PTT_CM108;
-        } else if (!strcmp(val, "None")) {
+        }
+        else if (!strcmp(val, "None"))
+        {
             rs->pttport.type.ptt = RIG_PTT_NONE;
-        } else {
+        }
+        else
+        {
             return -RIG_EINVAL;
         }
 
@@ -372,7 +438,8 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         break;
 
     case TOK_PTT_BITNUM:
-        if (1 != sscanf(val, "%d", &val_i)) {
+        if (1 != sscanf(val, "%d", &val_i))
+        {
             return -RIG_EINVAL;//value format error
         }
 
@@ -380,21 +447,36 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         break;
 
     case TOK_DCD_TYPE:
-        if (!strcmp(val, "RIG")) {
+        if (!strcmp(val, "RIG"))
+        {
             rs->dcdport.type.dcd = RIG_DCD_RIG;
-        } else if (!strcmp(val, "DSR")) {
+        }
+        else if (!strcmp(val, "DSR"))
+        {
             rs->dcdport.type.dcd = RIG_DCD_SERIAL_DSR;
-        } else if (!strcmp(val, "CTS")) {
+        }
+        else if (!strcmp(val, "CTS"))
+        {
             rs->dcdport.type.dcd = RIG_DCD_SERIAL_CTS;
-        } else if (!strcmp(val, "CD")) {
+        }
+        else if (!strcmp(val, "CD"))
+        {
             rs->dcdport.type.dcd = RIG_DCD_SERIAL_CAR;
-        } else if (!strcmp(val, "Parallel")) {
+        }
+        else if (!strcmp(val, "Parallel"))
+        {
             rs->dcdport.type.dcd = RIG_DCD_PARALLEL;
-        } else if (!strcmp(val, "CM108")) {
+        }
+        else if (!strcmp(val, "CM108"))
+        {
             rs->dcdport.type.dcd = RIG_DCD_CM108;
-        } else if (!strcmp(val, "None")) {
+        }
+        else if (!strcmp(val, "None"))
+        {
             rs->dcdport.type.dcd = RIG_DCD_NONE;
-        } else {
+        }
+        else
+        {
             return -RIG_EINVAL;
         }
 
@@ -433,7 +515,8 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
 
     rs = &rig->state;
 
-    switch (token) {
+    switch (token)
+    {
     case TOK_PATHNAME:
         strcpy(val, rs->rigport.pathname);
         break;
@@ -460,7 +543,8 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
         break;
 
     case TOK_SERIAL_SPEED:
-        if (rs->rigport.type.rig != RIG_PORT_SERIAL) {
+        if (rs->rigport.type.rig != RIG_PORT_SERIAL)
+        {
             return -RIG_EINVAL;
         }
 
@@ -468,7 +552,8 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
         break;
 
     case TOK_DATA_BITS:
-        if (rs->rigport.type.rig != RIG_PORT_SERIAL) {
+        if (rs->rigport.type.rig != RIG_PORT_SERIAL)
+        {
             return -RIG_EINVAL;
         }
 
@@ -476,7 +561,8 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
         break;
 
     case TOK_STOP_BITS:
-        if (rs->rigport.type.rig != RIG_PORT_SERIAL) {
+        if (rs->rigport.type.rig != RIG_PORT_SERIAL)
+        {
             return -RIG_EINVAL;
         }
 
@@ -484,11 +570,13 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
         break;
 
     case TOK_PARITY:
-        if (rs->rigport.type.rig != RIG_PORT_SERIAL) {
+        if (rs->rigport.type.rig != RIG_PORT_SERIAL)
+        {
             return -RIG_EINVAL;
         }
 
-        switch (rs->rigport.parm.serial.parity) {
+        switch (rs->rigport.parm.serial.parity)
+        {
         case RIG_PARITY_NONE:
             s = "None";
             break;
@@ -517,11 +605,13 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
         break;
 
     case TOK_HANDSHAKE:
-        if (rs->rigport.type.rig != RIG_PORT_SERIAL) {
+        if (rs->rigport.type.rig != RIG_PORT_SERIAL)
+        {
             return -RIG_EINVAL;
         }
 
-        switch (rs->rigport.parm.serial.handshake) {
+        switch (rs->rigport.parm.serial.handshake)
+        {
         case RIG_HANDSHAKE_NONE:
             s = "None";
             break;
@@ -542,11 +632,13 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
         break;
 
     case TOK_RTS_STATE:
-        if (rs->rigport.type.rig != RIG_PORT_SERIAL) {
+        if (rs->rigport.type.rig != RIG_PORT_SERIAL)
+        {
             return -RIG_EINVAL;
         }
 
-        switch (rs->rigport.parm.serial.rts_state) {
+        switch (rs->rigport.parm.serial.rts_state)
+        {
         case RIG_SIGNAL_UNSET:
             s = "Unset";
             break;
@@ -567,11 +659,13 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
         break;
 
     case TOK_DTR_STATE:
-        if (rs->rigport.type.rig != RIG_PORT_SERIAL) {
+        if (rs->rigport.type.rig != RIG_PORT_SERIAL)
+        {
             return -RIG_EINVAL;
         }
 
-        switch (rs->rigport.parm.serial.dtr_state) {
+        switch (rs->rigport.parm.serial.dtr_state)
+        {
         case RIG_SIGNAL_UNSET:
             s = "Unset";
             break;
@@ -600,7 +694,8 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
         break;
 
     case TOK_PTT_TYPE:
-        switch (rs->pttport.type.ptt) {
+        switch (rs->pttport.type.ptt)
+        {
         case RIG_PTT_RIG:
             s = "RIG";
             break;
@@ -645,7 +740,8 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
         break;
 
     case TOK_DCD_TYPE:
-        switch (rs->dcdport.type.dcd) {
+        switch (rs->dcdport.type.dcd)
+        {
         case RIG_DCD_RIG:
             s = "RIG";
             break;
@@ -697,9 +793,9 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
  * \brief call a function against each configuration token of a rig
  * \param rig   The rig handle
  * \param cfunc The function to perform on each token
- * \param data  Any data to be passed to cfunc
+ * \param data  Any data to be passed to cfunc()
  *
- * Executes \a cfunc on all the elements stored in the conf table.
+ * Executes \a cfunc() on all the elements stored in the conf table.
  * rig_token_foreach starts first with backend conf table, then finish
  * with frontend table.
  *
@@ -708,33 +804,45 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
  * set appropriately).
  */
 int HAMLIB_API rig_token_foreach(RIG *rig,
-                                 int (*cfunc)(const struct confparams *, rig_ptr_t),
+                                 int (*cfunc)(const struct confparams *,
+                                              rig_ptr_t),
                                  rig_ptr_t data)
 {
     const struct confparams *cfp;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !rig->caps || !cfunc) {
+    if (!rig || !rig->caps || !cfunc)
+    {
         return -RIG_EINVAL;
     }
 
     for (cfp = frontend_cfg_params; cfp->name; cfp++)
-        if ((*cfunc)(cfp, data) == 0) {
+    {
+        if ((*cfunc)(cfp, data) == 0)
+        {
             return RIG_OK;
         }
+    }
 
-    if (rig->caps->port_type == RIG_PORT_SERIAL) {
+    if (rig->caps->port_type == RIG_PORT_SERIAL)
+    {
         for (cfp = frontend_serial_cfg_params; cfp->name; cfp++)
-            if ((*cfunc)(cfp, data) == 0) {
+        {
+            if ((*cfunc)(cfp, data) == 0)
+            {
                 return RIG_OK;
             }
+        }
     }
 
     for (cfp = rig->caps->cfgparams; cfp && cfp->name; cfp++)
-        if ((*cfunc)(cfp, data) == 0) {
+    {
+        if ((*cfunc)(cfp, data) == 0)
+        {
             return RIG_OK;
         }
+    }
 
     return RIG_OK;
 }
@@ -749,15 +857,16 @@ int HAMLIB_API rig_token_foreach(RIG *rig,
  *
  * \return a pointer to the confparams struct if found, otherwise NULL.
  */
-const struct confparams *HAMLIB_API rig_confparam_lookup(RIG *rig,
-                                                         const char *name)
+const struct confparams * HAMLIB_API rig_confparam_lookup(RIG *rig,
+                                                          const char *name)
 {
     const struct confparams *cfp;
     token_t token;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !rig->caps) {
+    if (!rig || !rig->caps)
+    {
         return NULL;
     }
 
@@ -765,20 +874,30 @@ const struct confparams *HAMLIB_API rig_confparam_lookup(RIG *rig,
     token = strtol(name, NULL, 0);
 
     for (cfp = rig->caps->cfgparams; cfp && cfp->name; cfp++)
-        if (!strcmp(cfp->name, name) || token == cfp->token) {
+    {
+        if (!strcmp(cfp->name, name) || token == cfp->token)
+        {
             return cfp;
         }
+    }
 
     for (cfp = frontend_cfg_params; cfp->name; cfp++)
-        if (!strcmp(cfp->name, name) || token == cfp->token) {
+    {
+        if (!strcmp(cfp->name, name) || token == cfp->token)
+        {
             return cfp;
         }
+    }
 
-    if (rig->caps->port_type == RIG_PORT_SERIAL) {
+    if (rig->caps->port_type == RIG_PORT_SERIAL)
+    {
         for (cfp = frontend_serial_cfg_params; cfp->name; cfp++)
-            if (!strcmp(cfp->name, name) || token == cfp->token) {
+        {
+            if (!strcmp(cfp->name, name) || token == cfp->token)
+            {
                 return cfp;
             }
+        }
     }
 
     return NULL;
@@ -802,7 +921,8 @@ token_t HAMLIB_API rig_token_lookup(RIG *rig, const char *name)
 
     cfp = rig_confparam_lookup(rig, name);
 
-    if (!cfp) {
+    if (!cfp)
+    {
         return RIG_CONF_END;
     }
 
@@ -828,28 +948,33 @@ int HAMLIB_API rig_set_conf(RIG *rig, token_t token, const char *val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !rig->caps) {
+    if (!rig || !rig->caps)
+    {
         return -RIG_EINVAL;
     }
 
-    if (rig_need_debug(RIG_DEBUG_VERBOSE)) {
+    if (rig_need_debug(RIG_DEBUG_VERBOSE))
+    {
         const struct confparams *cfp;
         char tokenstr[12];
         sprintf(tokenstr, "%ld", token);
         cfp = rig_confparam_lookup(rig, tokenstr);
 
-        if (!cfp) {
+        if (!cfp)
+        {
             return -RIG_EINVAL;
         }
 
         rig_debug(RIG_DEBUG_VERBOSE, "%s: %s='%s'\n", __func__, cfp->name, val);
     }
 
-    if (IS_TOKEN_FRONTEND(token)) {
+    if (IS_TOKEN_FRONTEND(token))
+    {
         return frontend_set_conf(rig, token, val);
     }
 
-    if (rig->caps->set_conf == NULL) {
+    if (rig->caps->set_conf == NULL)
+    {
         return -RIG_ENAVAIL;
     }
 
@@ -876,15 +1001,18 @@ int HAMLIB_API rig_get_conf(RIG *rig, token_t token, char *val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !rig->caps || !val) {
+    if (!rig || !rig->caps || !val)
+    {
         return -RIG_EINVAL;
     }
 
-    if (IS_TOKEN_FRONTEND(token)) {
+    if (IS_TOKEN_FRONTEND(token))
+    {
         return frontend_get_conf(rig, token, val);
     }
 
-    if (rig->caps->get_conf == NULL) {
+    if (rig->caps->get_conf == NULL)
+    {
         return -RIG_ENAVAIL;
     }
 

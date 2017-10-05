@@ -57,7 +57,8 @@ extern HAMLIB_EXPORT(unsigned char *) to_bcd(unsigned char bcd_data[],
                                              unsigned long long freq,
                                              unsigned bcd_len);
 
-extern HAMLIB_EXPORT(unsigned long long) from_bcd(const unsigned char bcd_data[],
+extern HAMLIB_EXPORT(unsigned long long) from_bcd(const unsigned char
+                                                  bcd_data[],
                                                   unsigned bcd_len);
 
 /*
@@ -67,7 +68,8 @@ extern HAMLIB_EXPORT(unsigned char *) to_bcd_be(unsigned char bcd_data[],
                                                 unsigned long long freq,
                                                 unsigned bcd_len);
 
-extern HAMLIB_EXPORT(unsigned long long) from_bcd_be(const unsigned char bcd_data[],
+extern HAMLIB_EXPORT(unsigned long long) from_bcd_be(const unsigned char
+                                                     bcd_data[],
                                                      unsigned bcd_len);
 
 extern HAMLIB_EXPORT(int) sprintf_freq(char *str, freq_t);
@@ -82,10 +84,11 @@ extern int no_restore_ai;
 
 /* needs config.h included beforehand in .c file */
 #ifdef HAVE_INTTYPES_H
-#include <inttypes.h>
+#  include <inttypes.h>
 #endif
+
 #ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
+#  include <sys/time.h>
 #endif
 
 extern HAMLIB_EXPORT(int) rig_check_cache_timeout(const struct timeval *tv,
@@ -96,24 +99,24 @@ extern HAMLIB_EXPORT(void) rig_force_cache_timeout(struct timeval *tv);
 
 #ifdef PRId64
 /** \brief printf(3) format to be used for long long (64bits) type */
-#define PRIll PRId64
+#  define PRIll PRId64
 #else
-#ifdef FBSD4
-#define PRIll "qd"
-#else
-#define PRIll "lld"
-#endif
+#  ifdef FBSD4
+#    define PRIll "qd"
+#  else
+#    define PRIll "lld"
+#  endif
 #endif
 
 #ifdef SCNd64
 /** \brief scanf(3) format to be used for long long (64bits) type */
-#define SCNll SCNd64
+#  define SCNll SCNd64
 #else
-#ifdef FBSD4
-#define SCNll "qd"
-#else
-#define SCNll "lld"
-#endif
+#  ifdef FBSD4
+#    define SCNll "qd"
+#  else
+#    define SCNll "lld"
+#  endif
 #endif
 
 
