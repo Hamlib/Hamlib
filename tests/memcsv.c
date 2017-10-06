@@ -86,11 +86,13 @@ int csv_save(RIG *rig, const char *outfilename)
 
     f = fopen(outfilename, "w");
 
-    if (!f) {
+    if (!f)
+    {
         return -1;
     }
 
-    if (rig->caps->clone_combo_get) {
+    if (rig->caps->clone_combo_get)
+    {
         printf("About to save data, enter cloning mode: %s\n",
                rig->caps->clone_combo_get);
     }
@@ -123,12 +125,14 @@ int csv_load(RIG *rig, const char *infilename)
 
     f = fopen(infilename, "r");
 
-    if (!f) {
+    if (!f)
+    {
         return -1;
     }
 
     /* First read the first line, containing the key */
-    if (fgets(keys, sizeof(keys), f) != NULL) {
+    if (fgets(keys, sizeof(keys), f) != NULL)
+    {
 
         /* fgets stores '\n' in a buffer, get rid of it */
         keys[ strlen(keys) - 1 ] = '\0';
@@ -138,25 +142,30 @@ int csv_load(RIG *rig, const char *infilename)
         if (!tokenize_line(keys,
                            key_list,
                            sizeof(key_list) / sizeof(char *),
-                           ',')) {
+                           ','))
+        {
             fprintf(stderr,
                     "Invalid (possibly too long or empty) key line, cannot continue.\n");
             fclose(f);
             return -1;
         }
-    } else {
+    }
+    else
+    {
         /* File exists, but is empty */
         fclose(f);
         return -1;
     }
 
     /* Next, read the file line by line */
-    while (fgets(line, sizeof line, f) != NULL) {
+    while (fgets(line, sizeof line, f) != NULL)
+    {
         /* Tokenize the line */
         if (!tokenize_line(line,
                            value_list,
                            sizeof(value_list) / sizeof(char *),
-                           ',')) {
+                           ','))
+        {
 
             fprintf(stderr, "Invalid (possibly too long or empty) line ignored\n");
             continue;
@@ -168,7 +177,8 @@ int csv_load(RIG *rig, const char *infilename)
         /* Write a rig memory */
         status = rig_set_channel(rig, &chan);
 
-        if (status != RIG_OK) {
+        if (status != RIG_OK)
+        {
             fprintf(stderr, "rig_get_channel: error = %s \n", rigerror(status));
             fclose(f);
             return status;
@@ -193,18 +203,20 @@ int csv_load(RIG *rig, const char *infilename)
     \return number of tokens on success, 0 if \param token_list is too small to contain all the tokens,
             or if line was empty.
 */
-static int  tokenize_line(char *line, char **token_list, size_t siz, char delim)
+static int tokenize_line(char *line, char **token_list, size_t siz, char delim)
 {
     size_t i;
     char *tok;
 
     /* Erase the table */
-    for (i = 0; i < siz; i++) {
+    for (i = 0; i < siz; i++)
+    {
         token_list[i] = NULL;
     }
 
     /* Empty line passed? */
-    if (line == NULL) {
+    if (line == NULL)
+    {
         return 0;
     }
 
@@ -213,18 +225,21 @@ static int  tokenize_line(char *line, char **token_list, size_t siz, char delim)
     tok = mystrtok(line, delim);
 
     /* Line contains no delim */
-    if (tok == NULL) {
+    if (tok == NULL)
+    {
         return 0;
     }
 
     token_list[ i++ ] = tok;
 
     /* Find the remaining tokens */
-    while (i < siz) {
+    while (i < siz)
+    {
         tok = mystrtok(NULL, delim);
 
         /* If NULL, no more tokens left */
-        if (tok == NULL) {
+        if (tok == NULL)
+        {
             break;
         }
 
@@ -233,9 +248,12 @@ static int  tokenize_line(char *line, char **token_list, size_t siz, char delim)
     }
 
     /* Any tokens left? */
-    if (i == siz) {
+    if (i == siz)
+    {
         return 0;
-    } else {
+    }
+    else
+    {
         return i;
     }
 }
@@ -254,25 +272,33 @@ static char * mystrtok(char *s, char delim)
     static size_t pos = 0, length = 0;
     static char *str = 0;
 
-    if (s != NULL) {
+    if (s != NULL)
+    {
         str = s;
         pos = 0;
         length = strlen(str);
-    } else {
+    }
+    else
+    {
     }
 
-    if (str[ pos + 1 ] == '\0') {
+    if (str[ pos + 1 ] == '\0')
+    {
         return NULL;
     }
 
     size_t i, ent_pos = pos;
 
-    for (i = pos; i < length;) {
-        if (str[i] == delim) {
+    for (i = pos; i < length;)
+    {
+        if (str[i] == delim)
+        {
             str[i] = '\0';
             pos = i + 1;
             return str + ent_pos;
-        } else {
+        }
+        else
+        {
             i++;
         }
     }
@@ -297,7 +323,8 @@ static int print_parm_val(RIG *rig, const struct confparams *cfp, rig_ptr_t ptr)
     FILE *f = (FILE *)ptr;
     rig_get_ext_parm(rig, cfp->token, &val);
 
-    switch (cfp->type) {
+    switch (cfp->type)
+    {
     case RIG_CONF_CHECKBUTTON:
     case RIG_CONF_COMBO:
         fprintf(f, "%d%c", val.i, csv_sep);
@@ -327,14 +354,17 @@ int csv_parm_save(RIG *rig, const char *outfilename)
 
     f = fopen(outfilename, "w");
 
-    if (!f) {
+    if (!f)
+    {
         return -1;
     }
 
-    for (i = 0; i < RIG_SETTING_MAX; i++) {
+    for (i = 0; i < RIG_SETTING_MAX; i++)
+    {
         const char *ms = rig_strparm(get_parm & rig_idx2setting(i));
 
-        if (!ms || !ms[0]) {
+        if (!ms || !ms[0])
+        {
             continue;
         }
 
@@ -344,26 +374,32 @@ int csv_parm_save(RIG *rig, const char *outfilename)
     rig_ext_parm_foreach(rig, print_parm_name, f);
     fprintf(f, "\n");
 
-    for (i = 0; i < RIG_SETTING_MAX; i++) {
+    for (i = 0; i < RIG_SETTING_MAX; i++)
+    {
         const char *ms;
         value_t val;
 
         parm = get_parm & rig_idx2setting(i);
         ms = rig_strparm(parm);
 
-        if (!ms || !ms[0]) {
+        if (!ms || !ms[0])
+        {
             continue;
         }
 
         ret = rig_get_parm(rig, parm, &val);
 
-        if (ret != RIG_OK) {
+        if (ret != RIG_OK)
+        {
             return ret;
         }
 
-        if (RIG_PARM_IS_FLOAT(parm)) {
+        if (RIG_PARM_IS_FLOAT(parm))
+        {
             fprintf(f, "%f%c", val.f, csv_sep);
-        } else {
+        }
+        else
+        {
             fprintf(f, "%d%c", val.i, csv_sep);
         }
     }
@@ -391,99 +427,123 @@ void dump_csv_name(const channel_cap_t *mem_caps, FILE *f)
 {
     fprintf(f, "num%c", csv_sep);
 
-    if (mem_caps->bank_num) {
+    if (mem_caps->bank_num)
+    {
         fprintf(f, "bank_num%c", csv_sep);
     }
 
-    if (mem_caps->channel_desc) {
+    if (mem_caps->channel_desc)
+    {
         fprintf(f, "channel_desc%c", csv_sep);
     }
 
-    if (mem_caps->vfo) {
+    if (mem_caps->vfo)
+    {
         fprintf(f, "vfo%c", csv_sep);
     }
 
-    if (mem_caps->ant) {
+    if (mem_caps->ant)
+    {
         fprintf(f, "ant%c", csv_sep);
     }
 
-    if (mem_caps->freq) {
+    if (mem_caps->freq)
+    {
         fprintf(f, "freq%c", csv_sep);
     }
 
-    if (mem_caps->mode) {
+    if (mem_caps->mode)
+    {
         fprintf(f, "mode%c", csv_sep);
     }
 
-    if (mem_caps->width) {
+    if (mem_caps->width)
+    {
         fprintf(f, "width%c", csv_sep);
     }
 
-    if (mem_caps->tx_freq) {
+    if (mem_caps->tx_freq)
+    {
         fprintf(f, "tx_freq%c", csv_sep);
     }
 
-    if (mem_caps->tx_mode) {
+    if (mem_caps->tx_mode)
+    {
         fprintf(f, "tx_mode%c", csv_sep);
     }
 
-    if (mem_caps->tx_width) {
+    if (mem_caps->tx_width)
+    {
         fprintf(f, "tx_width%c", csv_sep);
     }
 
-    if (mem_caps->split) {
+    if (mem_caps->split)
+    {
         fprintf(f, "split%c", csv_sep);
     }
 
-    if (mem_caps->tx_vfo) {
+    if (mem_caps->tx_vfo)
+    {
         fprintf(f, "tx_vfo%c", csv_sep);
     }
 
-    if (mem_caps->rptr_shift) {
+    if (mem_caps->rptr_shift)
+    {
         fprintf(f, "rptr_shift%c", csv_sep);
     }
 
-    if (mem_caps->rptr_offs) {
+    if (mem_caps->rptr_offs)
+    {
         fprintf(f, "rptr_offs%c", csv_sep);
     }
 
-    if (mem_caps->tuning_step) {
+    if (mem_caps->tuning_step)
+    {
         fprintf(f, "tuning_step%c", csv_sep);
     }
 
-    if (mem_caps->rit) {
+    if (mem_caps->rit)
+    {
         fprintf(f, "rit%c", csv_sep);
     }
 
-    if (mem_caps->xit) {
+    if (mem_caps->xit)
+    {
         fprintf(f, "xit%c", csv_sep);
     }
 
-    if (mem_caps->funcs) {
+    if (mem_caps->funcs)
+    {
         fprintf(f, "funcs%c", csv_sep);
     }
 
-    if (mem_caps->ctcss_tone) {
+    if (mem_caps->ctcss_tone)
+    {
         fprintf(f, "ctcss_tone%c", csv_sep);
     }
 
-    if (mem_caps->ctcss_sql) {
+    if (mem_caps->ctcss_sql)
+    {
         fprintf(f, "ctcss_sql%c", csv_sep);
     }
 
-    if (mem_caps->dcs_code) {
+    if (mem_caps->dcs_code)
+    {
         fprintf(f, "dcs_code%c", csv_sep);
     }
 
-    if (mem_caps->dcs_sql) {
+    if (mem_caps->dcs_sql)
+    {
         fprintf(f, "dcs_sql%c", csv_sep);
     }
 
-    if (mem_caps->scan_group) {
+    if (mem_caps->scan_group)
+    {
         fprintf(f, "scan_group%c", csv_sep);
     }
 
-    if (mem_caps->flags) {
+    if (mem_caps->flags)
+    {
         fprintf(f, "flags%c", csv_sep);
     }
 
@@ -503,12 +563,14 @@ int dump_csv_chan(RIG *rig,
     static int first_time = 1;
     const channel_cap_t *mem_caps = &chan_list->mem_caps;
 
-    if (first_time) {
+    if (first_time)
+    {
         dump_csv_name(mem_caps, f);
         first_time = 0;
     }
 
-    if (*chan_pp == NULL) {
+    if (*chan_pp == NULL)
+    {
         /*
          * Hamlib frontend demand application an allocated
          * channel_t pointer for next round.
@@ -520,99 +582,123 @@ int dump_csv_chan(RIG *rig,
 
     fprintf(f, "%d%c", chan.channel_num, csv_sep);
 
-    if (mem_caps->bank_num) {
+    if (mem_caps->bank_num)
+    {
         fprintf(f, "%d%c", chan.bank_num, csv_sep);
     }
 
-    if (mem_caps->channel_desc) {
+    if (mem_caps->channel_desc)
+    {
         fprintf(f, "%s%c", chan.channel_desc, csv_sep);
     }
 
-    if (mem_caps->vfo) {
+    if (mem_caps->vfo)
+    {
         fprintf(f, "%s%c", rig_strvfo(chan.vfo), csv_sep);
     }
 
-    if (mem_caps->ant) {
+    if (mem_caps->ant)
+    {
         fprintf(f, "%d%c", chan.ant, csv_sep);
     }
 
-    if (mem_caps->freq) {
+    if (mem_caps->freq)
+    {
         fprintf(f, "%.0"PRIfreq"%c", chan.freq, csv_sep);
     }
 
-    if (mem_caps->mode) {
+    if (mem_caps->mode)
+    {
         fprintf(f, "%s%c", rig_strrmode(chan.mode), csv_sep);
     }
 
-    if (mem_caps->width) {
+    if (mem_caps->width)
+    {
         fprintf(f, "%d%c", (int)chan.width, csv_sep);
     }
 
-    if (mem_caps->tx_freq) {
+    if (mem_caps->tx_freq)
+    {
         fprintf(f, "%.0"PRIfreq"%c", chan.tx_freq, csv_sep);
     }
 
-    if (mem_caps->tx_mode) {
+    if (mem_caps->tx_mode)
+    {
         fprintf(f, "%s%c", rig_strrmode(chan.tx_mode), csv_sep);
     }
 
-    if (mem_caps->tx_width) {
+    if (mem_caps->tx_width)
+    {
         fprintf(f, "%d%c", (int)chan.tx_width, csv_sep);
     }
 
-    if (mem_caps->split) {
+    if (mem_caps->split)
+    {
         fprintf(f, "%s%c", chan.split == RIG_SPLIT_ON ? "on" : "off", csv_sep);
     }
 
-    if (mem_caps->tx_vfo) {
+    if (mem_caps->tx_vfo)
+    {
         fprintf(f, "%s%c", rig_strvfo(chan.tx_vfo), csv_sep);
     }
 
-    if (mem_caps->rptr_shift) {
+    if (mem_caps->rptr_shift)
+    {
         fprintf(f, "%s%c", rig_strptrshift(chan.rptr_shift), csv_sep);
     }
 
-    if (mem_caps->rptr_offs) {
+    if (mem_caps->rptr_offs)
+    {
         fprintf(f, "%d%c", (int)chan.rptr_offs, csv_sep);
     }
 
-    if (mem_caps->tuning_step) {
+    if (mem_caps->tuning_step)
+    {
         fprintf(f, "%d%c", (int)chan.tuning_step, csv_sep);
     }
 
-    if (mem_caps->rit) {
+    if (mem_caps->rit)
+    {
         fprintf(f, "%d%c", (int)chan.rit, csv_sep);
     }
 
-    if (mem_caps->xit) {
+    if (mem_caps->xit)
+    {
         fprintf(f, "%d%c", (int)chan.xit, csv_sep);
     }
 
-    if (mem_caps->funcs) {
+    if (mem_caps->funcs)
+    {
         fprintf(f, "%lx%c", chan.funcs, csv_sep);
     }
 
-    if (mem_caps->ctcss_tone) {
+    if (mem_caps->ctcss_tone)
+    {
         fprintf(f, "%d%c", chan.ctcss_tone, csv_sep);
     }
 
-    if (mem_caps->ctcss_sql) {
+    if (mem_caps->ctcss_sql)
+    {
         fprintf(f, "%d%c", chan.ctcss_sql, csv_sep);
     }
 
-    if (mem_caps->dcs_code) {
+    if (mem_caps->dcs_code)
+    {
         fprintf(f, "%d%c", chan.dcs_code, csv_sep);
     }
 
-    if (mem_caps->dcs_sql) {
+    if (mem_caps->dcs_sql)
+    {
         fprintf(f, "%d%c", chan.dcs_sql, csv_sep);
     }
 
-    if (mem_caps->scan_group) {
+    if (mem_caps->scan_group)
+    {
         fprintf(f, "%d%c", chan.scan_group, csv_sep);
     }
 
-    if (mem_caps->flags) {
+    if (mem_caps->flags)
+    {
         fprintf(f, "%x%c", chan.flags, csv_sep);
     }
 
@@ -622,7 +708,6 @@ int dump_csv_chan(RIG *rig,
      * keep the same *chan_pp for next round, thanks
      * to chan being static
      */
-
 
     return RIG_OK;
 }
@@ -650,7 +735,8 @@ int set_channel_data(RIG *rig,
 
     i = find_on_list(line_key_list, "num");
 
-    if (i < 0) {
+    if (i < 0)
+    {
         fprintf(stderr, "No channel number\n");
         return -1;
     }
@@ -659,99 +745,125 @@ int set_channel_data(RIG *rig,
 
     /* find chanel caps of appropriate memory group? */
     for (j = 0; j < CHANLSTSIZ; j++)
-        if (rig->state.chan_list[j].start <= n && rig->state.chan_list[j].end >= n) {
+    {
+        if (rig->state.chan_list[j].start <= n && rig->state.chan_list[j].end >= n)
+        {
             break;
         }
+    }
 
     printf("Requested channel number %d, list number %d\n", n, j);
 
     const channel_cap_t *mem_caps = &rig->state.chan_list[j].mem_caps;
 
-    if (mem_caps->bank_num) {
+    if (mem_caps->bank_num)
+    {
         i = find_on_list(line_key_list,  "bank_num");
 
-        if (i >= 0) {
+        if (i >= 0)
+        {
             chan->bank_num = atoi(line_data_list[ i ]);
         }
     }
 
-    if (mem_caps->channel_desc) {
+    if (mem_caps->channel_desc)
+    {
         i = find_on_list(line_key_list,  "channel_desc");
 
-        if (i >= 0) {
+        if (i >= 0)
+        {
             strncpy(chan->channel_desc, line_data_list[ i ], rig->caps->chan_desc_sz - 1);
             chan->channel_desc[ rig->caps->chan_desc_sz ] = '\0';
         }
     }
 
-    if (mem_caps->ant) {
+    if (mem_caps->ant)
+    {
         i = find_on_list(line_key_list,  "ant");
 
-        if (i >= 0) {
+        if (i >= 0)
+        {
             chan->ant = atoi(line_data_list[ i ]);
         }
     }
 
-    if (mem_caps->freq) {
+    if (mem_caps->freq)
+    {
         i = find_on_list(line_key_list,  "freq");
 
-        if (i >= 0) {
+        if (i >= 0)
+        {
             chan->freq = atoi(line_data_list[ i ]);
         }
     }
 
-    if (mem_caps->mode) {
+    if (mem_caps->mode)
+    {
         i = find_on_list(line_key_list,  "mode");
 
-        if (i >= 0) {
+        if (i >= 0)
+        {
             chan->mode = rig_parse_mode(line_data_list[ i ]);
         }
     }
 
-    if (mem_caps->width) {
+    if (mem_caps->width)
+    {
         i = find_on_list(line_key_list,  "width");
 
-        if (i >= 0) {
+        if (i >= 0)
+        {
             chan->width = atoi(line_data_list[ i ]);
         }
     }
 
-    if (mem_caps->tx_freq) {
+    if (mem_caps->tx_freq)
+    {
         i = find_on_list(line_key_list,  "tx_freq");
 
-        if (i >= 0) {
+        if (i >= 0)
+        {
             sscanf(line_data_list[i], "%"SCNfreq, &chan->tx_freq);
         }
     }
 
-    if (mem_caps->tx_mode) {
+    if (mem_caps->tx_mode)
+    {
         i = find_on_list(line_key_list,  "tx_mode");
 
-        if (i >= 0) {
+        if (i >= 0)
+        {
             chan->tx_mode = rig_parse_mode(line_data_list[ i ]);
         }
     }
 
-    if (mem_caps->tx_width) {
+    if (mem_caps->tx_width)
+    {
         i = find_on_list(line_key_list,  "tx_width");
 
-        if (i >= 0) {
+        if (i >= 0)
+        {
             chan->tx_width = atoi(line_data_list[ i ]);
         }
     }
 
-    if (mem_caps->split) {
+    if (mem_caps->split)
+    {
         chan->split = RIG_SPLIT_OFF;
         i = find_on_list(line_key_list,  "split");
 
-        if (i >= 0) {
-            if (strcmp(line_data_list[i], "on") == 0) {
+        if (i >= 0)
+        {
+            if (strcmp(line_data_list[i], "on") == 0)
+            {
                 chan->split = RIG_SPLIT_ON;
 
-                if (mem_caps->tx_vfo) {
+                if (mem_caps->tx_vfo)
+                {
                     i = find_on_list(line_key_list, "tx_vfo");
 
-                    if (i >= 0) {
+                    if (i >= 0)
+                    {
                         sscanf(line_data_list[i], "%x", &chan->tx_vfo);
                     }
                 }
@@ -759,11 +871,14 @@ int set_channel_data(RIG *rig,
         }
     }
 
-    if (mem_caps->rptr_shift) {
+    if (mem_caps->rptr_shift)
+    {
         i = find_on_list(line_key_list,  "rptr_shift");
 
-        if (i >= 0) {
-            switch (line_data_list[i][0]) {
+        if (i >= 0)
+        {
+            switch (line_data_list[i][0])
+            {
             case '=':
                 chan->rptr_shift = RIG_RPT_SHIFT_NONE;
                 break;
@@ -777,92 +892,114 @@ int set_channel_data(RIG *rig,
                 break;
             }
 
-            if (mem_caps->rptr_offs && chan->rptr_shift != RIG_RPT_SHIFT_NONE) {
+            if (mem_caps->rptr_offs && chan->rptr_shift != RIG_RPT_SHIFT_NONE)
+            {
                 i = find_on_list(line_key_list, "rptr_offs");
 
-                if (i >= 0) {
+                if (i >= 0)
+                {
                     chan->rptr_offs = atoi(line_data_list[ i ]);
                 }
             }
         }
     }
 
-    if (mem_caps->tuning_step) {
+    if (mem_caps->tuning_step)
+    {
         i = find_on_list(line_key_list,  "tuning_step");
 
-        if (i >= 0) {
+        if (i >= 0)
+        {
             chan->tuning_step = atoi(line_data_list[ i ]);
         }
     }
 
-    if (mem_caps->rit) {
+    if (mem_caps->rit)
+    {
         i = find_on_list(line_key_list,  "rit");
 
-        if (i >= 0) {
+        if (i >= 0)
+        {
             chan->rit = atoi(line_data_list[ i ]);
         }
     }
 
-    if (mem_caps->xit) {
+    if (mem_caps->xit)
+    {
         i = find_on_list(line_key_list,  "xit");
 
-        if (i >= 0) {
+        if (i >= 0)
+        {
             chan->xit = atoi(line_data_list[ i ]);
         }
     }
 
-    if (mem_caps->funcs) {
+    if (mem_caps->funcs)
+    {
         i = find_on_list(line_key_list,  "funcs");
 
-        if (i >= 0) {
+        if (i >= 0)
+        {
             sscanf(line_data_list[i], "%lx", &chan->funcs);
         }
     }
 
-    if (mem_caps->ctcss_tone) {
+    if (mem_caps->ctcss_tone)
+    {
         i = find_on_list(line_key_list,  "ctcss_tone");
 
-        if (i >= 0) {
+        if (i >= 0)
+        {
             chan->ctcss_tone = atoi(line_data_list[ i ]);
         }
     }
 
-    if (mem_caps->ctcss_sql) {
+    if (mem_caps->ctcss_sql)
+    {
         i = find_on_list(line_key_list,  "ctcss_sql");
 
-        if (i >= 0) {
+        if (i >= 0)
+        {
             chan->ctcss_sql = atoi(line_data_list[ i ]);
         }
     }
 
-    if (mem_caps->dcs_code) {
+    if (mem_caps->dcs_code)
+    {
         i = find_on_list(line_key_list,  "dcs_code");
 
-        if (i >= 0) {
+        if (i >= 0)
+        {
             chan->dcs_code = atoi(line_data_list[ i ]);
         }
     }
 
-    if (mem_caps->dcs_sql) {
+    if (mem_caps->dcs_sql)
+    {
         i = find_on_list(line_key_list,  "dcs_sql");
 
-        if (i >= 0) {
+        if (i >= 0)
+        {
             chan->dcs_sql = atoi(line_data_list[ i ]);
         }
     }
 
-    if (mem_caps->scan_group) {
+    if (mem_caps->scan_group)
+    {
         i = find_on_list(line_key_list,  "scan_group");
 
-        if (i >= 0) {
+        if (i >= 0)
+        {
             chan->scan_group = atoi(line_data_list[ i ]);
         }
     }
 
-    if (mem_caps->flags) {
+    if (mem_caps->flags)
+    {
         i = find_on_list(line_key_list,  "flags");
 
-        if (i >= 0) {
+        if (i >= 0)
+        {
             sscanf(line_data_list[i], "%x", &chan->flags);
         }
     }
@@ -881,21 +1018,29 @@ int find_on_list(char **list, char *what)
 {
     int i = 0;
 
-    if (!what) {
+    if (!what)
+    {
         return -1;
     }
 
-    while (list[i] != NULL) {
-        if (strcmp(list[i], what) == 0) {
+    while (list[i] != NULL)
+    {
+        if (strcmp(list[i], what) == 0)
+        {
             return i;
-        } else {
+        }
+        else
+        {
             i++;
         }
     }
 
-    if (!list[i]) {
+    if (!list[i])
+    {
         return -1;
-    } else {
+    }
+    else
+    {
         return i;
     }
 }

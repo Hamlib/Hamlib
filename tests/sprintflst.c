@@ -47,44 +47,52 @@ int sprintf_vfo(char *str, vfo_t vfo)
 
     *str = '\0';
 
-    if (vfo == RIG_VFO_NONE) {
+    if (vfo == RIG_VFO_NONE)
+    {
         return 0;
     }
 
     sv = rig_strvfo(vfo & RIG_VFO_CURR);
 
-    if (sv && sv[0]) {
+    if (sv && sv[0])
+    {
         len += sprintf(str + len, "%s ", sv);
     }
 
     sv = rig_strvfo(vfo & RIG_VFO_MEM);
 
-    if (sv && sv[0]) {
+    if (sv && sv[0])
+    {
         len += sprintf(str + len, "%s ", sv);
     }
 
     sv = rig_strvfo(vfo & RIG_VFO_VFO);
 
-    if (sv && sv[0]) {
+    if (sv && sv[0])
+    {
         len += sprintf(str + len, "%s ", sv);
     }
 
     sv = rig_strvfo(vfo & RIG_VFO_MAIN);
 
-    if (sv && sv[0]) {
+    if (sv && sv[0])
+    {
         len += sprintf(str + len, "%s ", sv);
     }
 
     sv = rig_strvfo(vfo & RIG_VFO_SUB);
 
-    if (sv && sv[0]) {
+    if (sv && sv[0])
+    {
         len += sprintf(str + len, "%s ", sv);
     }
 
-    for (i = 0; i < 16; i++) {
+    for (i = 0; i < 16; i++)
+    {
         sv = rig_strvfo(vfo & RIG_VFO_N(i));
 
-        if (sv && sv[0]) {
+        if (sv && sv[0])
+        {
             len += sprintf(str + len, "%s ", sv);
         }
     }
@@ -99,14 +107,17 @@ int sprintf_mode(char *str, rmode_t mode)
 
     *str = '\0';
 
-    if (mode == RIG_MODE_NONE) {
+    if (mode == RIG_MODE_NONE)
+    {
         return 0;
     }
 
-    for (i = 0; i < 30; i++) {
+    for (i = 0; i < 30; i++)
+    {
         const char *ms = rig_strrmode(mode & (1UL << i));
 
-        if (!ms || !ms[0]) {
+        if (!ms || !ms[0])
+        {
             continue;    /* unknown, FIXME! */
         }
 
@@ -125,14 +136,17 @@ int sprintf_func(char *str, setting_t func)
 
     *str = '\0';
 
-    if (func == RIG_FUNC_NONE) {
+    if (func == RIG_FUNC_NONE)
+    {
         return 0;
     }
 
-    for (i = 0; i < RIG_SETTING_MAX; i++) {
+    for (i = 0; i < RIG_SETTING_MAX; i++)
+    {
         const char *ms = rig_strfunc(func & rig_idx2setting(i));
 
-        if (!ms || !ms[0]) {
+        if (!ms || !ms[0])
+        {
             continue;    /* unknown, FIXME! */
         }
 
@@ -151,14 +165,17 @@ int sprintf_level(char *str, setting_t level)
 
     *str = '\0';
 
-    if (level == RIG_LEVEL_NONE) {
+    if (level == RIG_LEVEL_NONE)
+    {
         return 0;
     }
 
-    for (i = 0; i < RIG_SETTING_MAX; i++) {
+    for (i = 0; i < RIG_SETTING_MAX; i++)
+    {
         const char *ms = rig_strlevel(level & rig_idx2setting(i));
 
-        if (!ms || !ms[0]) {
+        if (!ms || !ms[0])
+        {
             continue;    /* unknown, FIXME! */
         }
 
@@ -177,16 +194,20 @@ int sprintf_level_ext(char *str, const struct confparams *extlevels)
 
     *str = '\0';
 
-    if (!extlevels) {
+    if (!extlevels)
+    {
         return 0;
     }
 
-    for (; extlevels->token != RIG_CONF_END; extlevels++) {
-        if (!extlevels->name) {
+    for (; extlevels->token != RIG_CONF_END; extlevels++)
+    {
+        if (!extlevels->name)
+        {
             continue;    /* no name */
         }
 
-        switch (extlevels->type) {
+        switch (extlevels->type)
+        {
         case RIG_CONF_CHECKBUTTON:
         case RIG_CONF_COMBO:
         case RIG_CONF_NUMERIC:
@@ -212,35 +233,43 @@ int sprintf_level_gran(char *str, setting_t level, const gran_t gran[])
 
     *str = '\0';
 
-    if (level == RIG_LEVEL_NONE) {
+    if (level == RIG_LEVEL_NONE)
+    {
         return 0;
     }
 
-    for (i = 0; i < RIG_SETTING_MAX; i++) {
+    for (i = 0; i < RIG_SETTING_MAX; i++)
+    {
         const char *ms;
 
-        if (!(level & rig_idx2setting(i))) {
+        if (!(level & rig_idx2setting(i)))
+        {
             continue;
         }
 
         ms = rig_strlevel(level & rig_idx2setting(i));
 
-        if (!ms || !ms[0]) {
-            if (level != DUMMY_ALL && level != RIG_LEVEL_SET(DUMMY_ALL)) {
+        if (!ms || !ms[0])
+        {
+            if (level != DUMMY_ALL && level != RIG_LEVEL_SET(DUMMY_ALL))
+            {
                 rig_debug(RIG_DEBUG_BUG, "unknown level idx %d\n", i);
             }
 
             continue;
         }
 
-        if (RIG_LEVEL_IS_FLOAT(rig_idx2setting(i))) {
+        if (RIG_LEVEL_IS_FLOAT(rig_idx2setting(i)))
+        {
             len += sprintf(str + len,
                            "%s(%g..%g/%g) ",
                            ms,
                            gran[i].min.f,
                            gran[i].max.f,
                            gran[i].step.f);
-        } else {
+        }
+        else
+        {
             len += sprintf(str + len,
                            "%s(%d..%d/%d) ",
                            ms,
@@ -260,14 +289,17 @@ int sprintf_parm(char *str, setting_t parm)
 
     *str = '\0';
 
-    if (parm == RIG_PARM_NONE) {
+    if (parm == RIG_PARM_NONE)
+    {
         return 0;
     }
 
-    for (i = 0; i < RIG_SETTING_MAX; i++) {
+    for (i = 0; i < RIG_SETTING_MAX; i++)
+    {
         const char *ms = rig_strparm(parm & rig_idx2setting(i));
 
-        if (!ms || !ms[0]) {
+        if (!ms || !ms[0])
+        {
             continue;    /* unknown, FIXME! */
         }
 
@@ -286,35 +318,43 @@ int sprintf_parm_gran(char *str, setting_t parm, const gran_t gran[])
 
     *str = '\0';
 
-    if (parm == RIG_PARM_NONE) {
+    if (parm == RIG_PARM_NONE)
+    {
         return 0;
     }
 
-    for (i = 0; i < RIG_SETTING_MAX; i++) {
+    for (i = 0; i < RIG_SETTING_MAX; i++)
+    {
         const char *ms;
 
-        if (!(parm & rig_idx2setting(i))) {
+        if (!(parm & rig_idx2setting(i)))
+        {
             continue;
         }
 
         ms = rig_strparm(parm & rig_idx2setting(i));
 
-        if (!ms || !ms[0]) {
-            if (parm != DUMMY_ALL && parm != RIG_PARM_SET(DUMMY_ALL)) {
+        if (!ms || !ms[0])
+        {
+            if (parm != DUMMY_ALL && parm != RIG_PARM_SET(DUMMY_ALL))
+            {
                 rig_debug(RIG_DEBUG_BUG, "unknown parm idx %d\n", i);
             }
 
             continue;
         }
 
-        if (RIG_PARM_IS_FLOAT(rig_idx2setting(i))) {
+        if (RIG_PARM_IS_FLOAT(rig_idx2setting(i)))
+        {
             len += sprintf(str + len,
                            "%s(%g..%g/%g) ",
                            ms,
                            gran[i].min.f,
                            gran[i].max.f,
                            gran[i].step.f);
-        } else {
+        }
+        else
+        {
             len += sprintf(str + len,
                            "%s(%d..%d/%d) ",
                            ms,
@@ -334,14 +374,17 @@ int sprintf_vfop(char *str, vfo_op_t op)
 
     *str = '\0';
 
-    if (op == RIG_OP_NONE) {
+    if (op == RIG_OP_NONE)
+    {
         return 0;
     }
 
-    for (i = 0; i < 30; i++) {
+    for (i = 0; i < 30; i++)
+    {
         const char *ms = rig_strvfop(op & (1UL << i));
 
-        if (!ms || !ms[0]) {
+        if (!ms || !ms[0])
+        {
             continue;    /* unknown, FIXME! */
         }
 
@@ -360,14 +403,17 @@ int sprintf_scan(char *str, scan_t rscan)
 
     *str = '\0';
 
-    if (rscan == RIG_SCAN_NONE) {
+    if (rscan == RIG_SCAN_NONE)
+    {
         return 0;
     }
 
-    for (i = 0; i < 30; i++) {
+    for (i = 0; i < 30; i++)
+    {
         const char *ms = rig_strscan(rscan & (1UL << i));
 
-        if (!ms || !ms[0]) {
+        if (!ms || !ms[0])
+        {
             continue;    /* unknown, FIXME! */
         }
 

@@ -50,12 +50,13 @@ int main(int argc, char *argv[])
     int retcode;        /* generic return code from functions */
     int i, count = 0;
 
-    if (argc != 2) {
+    if (argc != 2)
+    {
         fprintf(stderr, "%s <rig_num>\n", argv[0]);
         exit(1);
     }
 
-    printf("testrig:hello, I am your main() !\n");
+    printf("testrig: Hello, I am your main() !\n");
 
     /*
      * allocate memory, setup & open port
@@ -63,7 +64,8 @@ int main(int argc, char *argv[])
 
     my_rig = rig_init(atoi(argv[1]));
 
-    if (!my_rig) {
+    if (!my_rig)
+    {
         fprintf(stderr, "Unknown rig num: %d\n", atoi(argv[1]));
         fprintf(stderr, "Please check riglist.h\n");
         exit(1);    /* whoops! something went wrong (mem alloc?) */
@@ -71,7 +73,8 @@ int main(int argc, char *argv[])
 
     strncpy(my_rig->state.rigport.pathname, SERIAL_PORT, FILPATHLEN - 1);
 
-    if (rig_open(my_rig)) {
+    if (rig_open(my_rig))
+    {
         exit(2);
     }
 
@@ -85,7 +88,8 @@ int main(int argc, char *argv[])
 
     retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 439700000);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         printf("rig_set_freq: error = %s \n", rigerror(retcode));
     }
 
@@ -93,12 +97,14 @@ int main(int argc, char *argv[])
 
     retcode = rig_set_trn(my_rig, RIG_TRN_RIG);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         printf("rig_set_trn: error = %s \n", rigerror(retcode));
     }
 
 
-    for (i = 0; i < 12; i++) {
+    for (i = 0; i < 12; i++)
+    {
         printf("Loop count: %d\n", i);
         sleep(10);  /* or anything smarter */
     }

@@ -24,7 +24,8 @@ int main(int argc, char *argv[])
     double distance, az, mmm, sec;
     int  deg, min, retcode, loc_len, nesw = 0;
 
-    if (argc < 2) {
+    if (argc < 2)
+    {
         fprintf(stderr,
                 "Usage: %s <locator1> <precision> [<locator2>]\n",
                 argv[0]);
@@ -40,7 +41,8 @@ int main(int argc, char *argv[])
     /* hamlib function to convert maidenhead to decimal degrees */
     retcode = locator2longlat(&lon1, &lat1, loc1);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         fprintf(stderr, "locator2longlat() failed with malformed input.\n");
         exit(2);
     }
@@ -48,14 +50,18 @@ int main(int argc, char *argv[])
     /* hamlib function to convert decimal degrees to deg, min, sec */
     retcode = dec2dms(lon1, &deg, &min, &sec, &nesw);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         fprintf(stderr, "dec2dms() failed, invalid paramter address.\n");
         exit(2);
     }
 
-    if (nesw == 1) {
+    if (nesw == 1)
+    {
         sign = '-';
-    } else {
+    }
+    else
+    {
         sign = '\0';
     }
 
@@ -68,14 +74,18 @@ int main(int argc, char *argv[])
     /* hamlib function to convert decimal degrees to deg decimal minutes */
     retcode = dec2dmmm(lon1, &deg, &mmm, &nesw);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         fprintf(stderr, "dec2dmmm() failed, invalid paramter address.\n");
         exit(2);
     }
 
-    if (nesw == 1) {
+    if (nesw == 1)
+    {
         sign = '-';
-    } else {
+    }
+    else
+    {
         sign = '\0';
     }
 
@@ -88,14 +98,18 @@ int main(int argc, char *argv[])
     /* hamlib function to convert decimal degrees to deg, min, sec */
     retcode = dec2dms(lat1, &deg, &min, &sec, &nesw);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         fprintf(stderr, "dec2dms() failed, invalid paramter address.\n");
         exit(2);
     }
 
-    if (nesw == 1) {
+    if (nesw == 1)
+    {
         sign = '-';
-    } else {
+    }
+    else
+    {
         sign = '\0';
     }
 
@@ -108,14 +122,18 @@ int main(int argc, char *argv[])
     /* hamlib function to convert decimal degrees to deg decimal minutes */
     retcode = dec2dmmm(lat1, &deg, &mmm, &nesw);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         fprintf(stderr, "dec2dmmm() failed, invalid paramter address.\n");
         exit(2);
     }
 
-    if (nesw == 1) {
+    if (nesw == 1)
+    {
         sign = '-';
-    } else {
+    }
+    else
+    {
         sign = '\0';
     }
 
@@ -128,14 +146,16 @@ int main(int argc, char *argv[])
     /* hamlib function to convert decimal degrees to maidenhead */
     retcode = longlat2locator(lon1, lat1, recodedloc, loc_len);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         fprintf(stderr, "longlat2locator() failed, precision out of range.\n");
         exit(2);
     }
 
     printf("  Recoded:\t%s\n", recodedloc);
 
-    if (loc2 == NULL) {
+    if (loc2 == NULL)
+    {
         exit(0);
     }
 
@@ -144,7 +164,8 @@ int main(int argc, char *argv[])
 
     retcode = locator2longlat(&lon2, &lat2, loc2);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         fprintf(stderr, "locator2longlat() failed with malformed input.\n");
         exit(2);
     }
@@ -152,14 +173,18 @@ int main(int argc, char *argv[])
     /* hamlib function to convert decimal degrees to deg, min, sec */
     retcode = dec2dms(lon2, &deg, &min, &sec, &nesw);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         fprintf(stderr, "dec2dms() failed, invalid paramter address.\n");
         exit(2);
     }
 
-    if (nesw == 1) {
+    if (nesw == 1)
+    {
         sign = '-';
-    } else {
+    }
+    else
+    {
         sign = '\0';
     }
 
@@ -172,14 +197,18 @@ int main(int argc, char *argv[])
     /* hamlib function to convert decimal degrees to deg decimal minutes */
     retcode = dec2dmmm(lon2, &deg, &mmm, &nesw);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         fprintf(stderr, "dec2dmmm() failed, invalid paramter address.\n");
         exit(2);
     }
 
-    if (nesw == 1) {
+    if (nesw == 1)
+    {
         sign = '-';
-    } else {
+    }
+    else
+    {
         sign = '\0';
     }
 
@@ -192,14 +221,18 @@ int main(int argc, char *argv[])
     /* hamlib function to convert decimal degrees to deg, min, sec */
     retcode = dec2dms(lat2, &deg, &min, &sec, &nesw);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         fprintf(stderr, "dec2dms() failed, invalid paramter address.\n");
         exit(2);
     }
 
-    if (nesw == 1) {
+    if (nesw == 1)
+    {
         sign = '-';
-    } else {
+    }
+    else
+    {
         sign = '\0';
     }
 
@@ -212,14 +245,18 @@ int main(int argc, char *argv[])
     /* hamlib function to convert decimal degrees to deg decimal minutes */
     retcode = dec2dmmm(lat2, &deg, &mmm, &nesw);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         fprintf(stderr, "dec2dmmm() failed, invalid paramter address.\n");
         exit(2);
     }
 
-    if (nesw == 1) {
+    if (nesw == 1)
+    {
         sign = '-';
-    } else {
+    }
+    else
+    {
         sign = '\0';
     }
 
@@ -232,7 +269,8 @@ int main(int argc, char *argv[])
     /* hamlib function to convert decimal degrees to maidenhead */
     retcode = longlat2locator(lon2, lat2, recodedloc, loc_len);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         fprintf(stderr, "longlat2locator() failed, precision out of range.\n");
         exit(2);
     }
@@ -241,7 +279,8 @@ int main(int argc, char *argv[])
 
     retcode = qrb(lon1, lat1, lon2, lat2, &distance, &az);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         fprintf(stderr, "QRB error: %d\n", retcode);
         exit(2);
     }
@@ -249,9 +288,12 @@ int main(int argc, char *argv[])
     dec2dms(az, &deg, &min, &sec, &nesw);
     printf("\nDistance: %.6fkm\n", distance);
 
-    if (nesw == 1) {
+    if (nesw == 1)
+    {
         sign = '-';
-    } else {
+    }
+    else
+    {
         sign = '\0';
     }
 

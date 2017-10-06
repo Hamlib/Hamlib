@@ -48,7 +48,8 @@ int print_caps_sum(const struct rig_caps *caps, void *data)
            caps->version,
            rig_strstatus(caps->status));
 
-    switch (caps->rig_type & RIG_TYPE_MASK) {
+    switch (caps->rig_type & RIG_TYPE_MASK)
+    {
     case RIG_TYPE_TRANSCEIVER:
         printf("Transceiver");
         break;
@@ -116,7 +117,8 @@ int print_caps_parameters(const struct rig_caps *caps, void *data)
            caps->rig_model,
            caps->model_name);
 
-    switch (caps->ptt_type) {
+    switch (caps->ptt_type)
+    {
     case RIG_PTT_RIG:
         printf("rig");
         break;
@@ -140,7 +142,8 @@ int print_caps_parameters(const struct rig_caps *caps, void *data)
 
     printf("</TD><TD>");
 
-    switch (caps->dcd_type) {
+    switch (caps->dcd_type)
+    {
     case RIG_DCD_RIG:
         printf("rig");
         break;
@@ -164,7 +167,8 @@ int print_caps_parameters(const struct rig_caps *caps, void *data)
 
     printf("</TD><TD>");
 
-    switch (caps->port_type) {
+    switch (caps->port_type)
+    {
     case RIG_PORT_SERIAL:
         printf("serial");
         break;
@@ -194,9 +198,9 @@ int print_caps_parameters(const struct rig_caps *caps, void *data)
            caps->serial_rate_max,
            caps->serial_data_bits,
            caps->serial_parity == RIG_PARITY_NONE ? 'N' :
-               caps->serial_parity == RIG_PARITY_ODD ? 'O' :
-               caps->serial_parity == RIG_PARITY_EVEN ? 'E' :
-               caps->serial_parity == RIG_PARITY_MARK ? 'M' : 'S',
+           caps->serial_parity == RIG_PARITY_ODD ? 'O' :
+           caps->serial_parity == RIG_PARITY_EVEN ? 'E' :
+           caps->serial_parity == RIG_PARITY_MARK ? 'M' : 'S',
            caps->serial_stop_bits,
            caps->serial_handshake == RIG_HANDSHAKE_NONE ? "none" :
            (caps->serial_handshake == RIG_HANDSHAKE_XONXOFF ? "XONXOFF" : "CTS/RTS"));
@@ -271,7 +275,8 @@ int print_caps_parm(const struct rig_caps *caps, void *data)
     setting_t parm;
     int i;
 
-    if (!data) {
+    if (!data)
+    {
         return 0;
     }
 
@@ -285,8 +290,10 @@ int print_caps_parm(const struct rig_caps *caps, void *data)
     /*
      * bitmap_parm: only those who have a label
      */
-    for (i = 0; i < RIG_SETTING_MAX; i++) {
-        if (rig_idx2setting(i) & bitmap_parm) {
+    for (i = 0; i < RIG_SETTING_MAX; i++)
+    {
+        if (rig_idx2setting(i) & bitmap_parm)
+        {
             print_yn(parm & rig_idx2setting(i));
         }
     }
@@ -305,7 +312,8 @@ int print_caps_level(const struct rig_caps *caps, void *data)
     setting_t level;
     int i;
 
-    if (!data) {
+    if (!data)
+    {
         return 0;
     }
 
@@ -319,8 +327,10 @@ int print_caps_level(const struct rig_caps *caps, void *data)
     /*
      * bitmap_level: only those who have a label
      */
-    for (i = 0; i < 32; i++) {
-        if (rig_idx2setting(i) & bitmap_level) {
+    for (i = 0; i < 32; i++)
+    {
+        if (rig_idx2setting(i) & bitmap_level)
+        {
             print_yn(level & rig_idx2setting(i));
         }
     }
@@ -339,7 +349,8 @@ int print_caps_func(const struct rig_caps *caps, void *data)
     setting_t func;
     int i;
 
-    if (!data) {
+    if (!data)
+    {
         return 0;
     }
 
@@ -353,8 +364,10 @@ int print_caps_func(const struct rig_caps *caps, void *data)
     /*
      * bitmap_func: only those who have a label
      */
-    for (i = 0; i < RIG_SETTING_MAX; i++) {
-        if (rig_idx2setting(i) & bitmap_func) {
+    for (i = 0; i < RIG_SETTING_MAX; i++)
+    {
+        if (rig_idx2setting(i) & bitmap_func)
+        {
             print_yn(func & rig_idx2setting(i));
         }
     }
@@ -409,10 +422,12 @@ static void draw_range(const freq_range_t range_list[],
 {
     int i;
 
-    for (i = 0; i < FRQRANGESIZ; i++) {
+    for (i = 0; i < FRQRANGESIZ; i++)
+    {
         float start_pix, end_pix;
 
-        if (range_list[i].start == 0 && range_list[i].end == 0) {
+        if (range_list[i].start == 0 && range_list[i].end == 0)
+        {
             break;
         }
 
@@ -422,11 +437,13 @@ static void draw_range(const freq_range_t range_list[],
         /*
          * HF
          */
-        if (range_list[i].start < MHz(30)) {
+        if (range_list[i].start < MHz(30))
+        {
             start_pix = start_pix / MHz(30) * RANGE_WIDTH;
             end_pix = end_pix / MHz(30) * RANGE_WIDTH;
 
-            if (end_pix >= RANGE_WIDTH) {
+            if (end_pix >= RANGE_WIDTH)
+            {
                 end_pix = RANGE_WIDTH - 1;
             }
 
@@ -447,17 +464,20 @@ static void draw_range(const freq_range_t range_list[],
         end_pix = range_list[i].end;
 
         if ((range_list[i].start > MHz(30) && range_list[i].start < MHz(300))
-                || (range_list[i].start < MHz(30)
-                    && range_list[i].end > MHz(30))) {
+            || (range_list[i].start < MHz(30)
+                && range_list[i].end > MHz(30)))
+        {
 
             start_pix = (start_pix - MHz(30)) / MHz(300) * RANGE_WIDTH;
             end_pix = (end_pix - MHz(30)) / MHz(300) * RANGE_WIDTH;
 
-            if (start_pix < 0) {
+            if (start_pix < 0)
+            {
                 start_pix = 0;
             }
 
-            if (end_pix >= RANGE_WIDTH) {
+            if (end_pix >= RANGE_WIDTH)
+            {
                 end_pix = RANGE_WIDTH - 1;
             }
 
@@ -478,17 +498,20 @@ static void draw_range(const freq_range_t range_list[],
         end_pix = range_list[i].end;
 
         if ((range_list[i].start > MHz(300) && range_list[i].start < GHz(3))
-                || (range_list[i].start < MHz(300)
-                    && range_list[i].end > MHz(300))) {
+            || (range_list[i].start < MHz(300)
+                && range_list[i].end > MHz(300)))
+        {
 
             start_pix = (start_pix - MHz(300)) / GHz(3) * RANGE_WIDTH;
             end_pix = (end_pix - MHz(300)) / GHz(3) * RANGE_WIDTH;
 
-            if (start_pix < 0) {
+            if (start_pix < 0)
+            {
                 start_pix = 0;
             }
 
-            if (end_pix >= RANGE_WIDTH) {
+            if (end_pix >= RANGE_WIDTH)
+            {
                 end_pix = RANGE_WIDTH - 1;
             }
 
@@ -673,11 +696,13 @@ int main(int argc, char *argv[])
     prntbuf[0] = '\0';
     pbuf = prntbuf;
 
-    for (i = 0; i < RIG_SETTING_MAX; i++) {
+    for (i = 0; i < RIG_SETTING_MAX; i++)
+    {
         setting_t func = rig_idx2setting(i);
         const char *s = rig_strfunc(func);
 
-        if (!s) {
+        if (!s)
+        {
             continue;
         }
 
@@ -707,11 +732,13 @@ int main(int argc, char *argv[])
     prntbuf[0] = '\0';
     pbuf = prntbuf;
 
-    for (i = 0; i < RIG_SETTING_MAX; i++) {
+    for (i = 0; i < RIG_SETTING_MAX; i++)
+    {
         setting_t level = rig_idx2setting(i);
         const char *s = rig_strlevel(level);
 
-        if (!s) {
+        if (!s)
+        {
             continue;
         }
 
@@ -741,11 +768,13 @@ int main(int argc, char *argv[])
     prntbuf[0] = '\0';
     pbuf = prntbuf;
 
-    for (i = 0; i < RIG_SETTING_MAX; i++) {
+    for (i = 0; i < RIG_SETTING_MAX; i++)
+    {
         setting_t parm = rig_idx2setting(i);
         const char *s = rig_strparm(parm);
 
-        if (!s) {
+        if (!s)
+        {
             continue;
         }
 

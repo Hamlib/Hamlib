@@ -57,7 +57,8 @@ int main(int argc, char *argv[])
      * allocate memory, setup & open port
      */
 
-    if (argc < 2) {
+    if (argc < 2)
+    {
         hamlib_port_t myport;
         /* may be overriden by backend probe */
         myport.type.rig = RIG_PORT_SERIAL;
@@ -70,13 +71,16 @@ int main(int argc, char *argv[])
 
         rig_load_all_backends();
         myrig_model = rig_probe(&myport);
-    } else {
+    }
+    else
+    {
         myrig_model = atoi(argv[1]);
     }
 
     my_rig = rig_init(myrig_model);
 
-    if (!my_rig) {
+    if (!my_rig)
+    {
         fprintf(stderr, "Unknown rig num: %d\n", myrig_model);
         fprintf(stderr, "Please check riglist.h\n");
         exit(1); /* whoops! something went wrong (mem alloc?) */
@@ -86,7 +90,8 @@ int main(int argc, char *argv[])
 
     retcode = rig_open(my_rig);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         printf("rig_open: error = %s\n", rigerror(retcode));
         exit(2);
     }
@@ -107,7 +112,8 @@ int main(int argc, char *argv[])
     retcode = rig_set_vfo(my_rig, RIG_VFO_B);
 
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         printf("rig_set_vfo: error = %s \n", rigerror(retcode));
     }
 
@@ -126,7 +132,8 @@ int main(int argc, char *argv[])
     retcode = rig_set_mode(my_rig, RIG_VFO_CURR, RIG_MODE_FM,
                            rig_passband_narrow(my_rig, RIG_MODE_FM));
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         printf("rig_set_freq: error = %s \n", rigerror(retcode));
     }
 
@@ -150,7 +157,8 @@ int main(int argc, char *argv[])
                            RIG_MODE_USB,
                            rig_passband_normal(my_rig, RIG_MODE_USB));
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         printf("rig_set_freq: error = %s \n", rigerror(retcode));
     }
 
@@ -171,7 +179,8 @@ int main(int argc, char *argv[])
                            RIG_MODE_LSB,
                            RIG_PASSBAND_NORMAL);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         printf("rig_set_freq: error = %s \n", rigerror(retcode));
     }
 
@@ -179,7 +188,9 @@ int main(int argc, char *argv[])
     rig_get_mode(my_rig, RIG_VFO_CURR, &rmode, &width);
 
     printf(" Freq: %.6f MHz, Mode: %s, Passband: %.3f kHz\n\n",
-           freq / 1000000, rig_strrmode(rmode), width / 1000.0);
+           freq / 1000000,
+           rig_strrmode(rmode),
+           width / 1000.0);
     sleep(1);
 
     /* 80m AM Narrow */
@@ -192,7 +203,8 @@ int main(int argc, char *argv[])
                            RIG_MODE_AM,
                            rig_passband_narrow(my_rig, RIG_MODE_AM));
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         printf("rig_set_freq: error = %s \n", rigerror(retcode));
     }
 
@@ -201,7 +213,8 @@ int main(int argc, char *argv[])
 
     printf(" Freq: %.6f MHz, Mode: %s, Passband: %.3f kHz\n\n",
            freq / 1000000,
-           rig_strrmode(rmode), width / 1000.0);
+           rig_strrmode(rmode),
+           width / 1000.0);
 
     sleep(1);
 
@@ -215,7 +228,8 @@ int main(int argc, char *argv[])
                            RIG_MODE_CW,
                            RIG_PASSBAND_NORMAL);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         printf("rig_set_freq: error = %s \n", rigerror(retcode));
     }
 
@@ -224,7 +238,8 @@ int main(int argc, char *argv[])
 
     printf(" Freq: %.3f kHz, Mode: %s, Passband: %li Hz\n\n",
            freq / 1000,
-           rig_strrmode(rmode), width);
+           rig_strrmode(rmode),
+           width);
 
     sleep(1);
 
@@ -237,7 +252,8 @@ int main(int argc, char *argv[])
                            RIG_MODE_CW,
                            rig_passband_narrow(my_rig, RIG_MODE_CW));
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         printf("rig_set_freq: error = %s \n", rigerror(retcode));
     }
 
@@ -246,7 +262,8 @@ int main(int argc, char *argv[])
 
     printf(" Freq: %.3f kHz, Mode: %s, Passband: %li Hz\n\n",
            freq / 1000,
-           rig_strrmode(rmode), width);
+           rig_strrmode(rmode),
+           width);
 
     sleep(1);
 
@@ -260,7 +277,8 @@ int main(int argc, char *argv[])
                            RIG_MODE_AM,
                            RIG_PASSBAND_NORMAL);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         printf("rig_set_freq: error = %s \n", rigerror(retcode));
     }
 
@@ -269,7 +287,8 @@ int main(int argc, char *argv[])
 
     printf(" Freq: %.3f kHz, Mode: %s, Passband: %.3f kHz\n\n",
            freq / 1000,
-           rig_strrmode(rmode), width / 1000.0);
+           rig_strrmode(rmode),
+           width / 1000.0);
 
     sleep(1);
 
@@ -280,7 +299,8 @@ int main(int argc, char *argv[])
     retcode = rig_set_vfo(my_rig, RIG_VFO_A);
     retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 14250375); /* cq de vk3fcs */
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         printf("rig_set_freq: error = %s \n", rigerror(retcode));
     }
 
@@ -296,7 +316,8 @@ int main(int argc, char *argv[])
     printf("Setting  20m on VFO A with one function...\n");
     retcode = rig_set_freq(my_rig, RIG_VFO_A, 14295125); /* cq de vk3fcs */
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         printf("rig_set_freq: error = %s \n", rigerror(retcode));
     }
 
@@ -321,7 +342,8 @@ int main(int argc, char *argv[])
                            RIG_MODE_LSB,
                            RIG_PASSBAND_NORMAL);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         printf("rig_set_mode: error = %s \n", rigerror(retcode));
     }
 
@@ -330,7 +352,8 @@ int main(int argc, char *argv[])
     printf("Setting rig PTT ON.\n");
     retcode = rig_set_ptt(my_rig, RIG_VFO_A, RIG_PTT_ON);  /* stand back ! */
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         printf("rig_set_ptt: error = %s \n", rigerror(retcode));
     }
 
@@ -339,7 +362,8 @@ int main(int argc, char *argv[])
     printf("Setting rig PTT OFF.\n");
     retcode = rig_set_ptt(my_rig, RIG_VFO_A, RIG_PTT_OFF);  /* phew ! */
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         printf("rig_set_ptt: error = %s \n", rigerror(retcode));
     }
 
@@ -353,52 +377,68 @@ int main(int argc, char *argv[])
     printf("\nGet various raw rig values:\n");
     retcode = rig_get_vfo(my_rig, &vfo); /* try to get vfo info */
 
-    if (retcode == RIG_OK) {
+    if (retcode == RIG_OK)
+    {
         printf("rig_get_vfo: vfo = %i \n", vfo);
-    } else {
+    }
+    else
+    {
         printf("rig_get_vfo: error =  %s \n", rigerror(retcode));
     }
 
     retcode = rig_get_freq(my_rig, RIG_VFO_CURR, &freq);
 
-    if (retcode == RIG_OK) {
+    if (retcode == RIG_OK)
+    {
         printf("rig_get_freq: freq = %"PRIfreq"\n", freq);
-    } else {
+    }
+    else
+    {
         printf("rig_get_freq: error =  %s \n", rigerror(retcode));
     }
 
     retcode = rig_get_mode(my_rig, RIG_VFO_CURR, &rmode, &width);
 
-    if (retcode == RIG_OK) {
+    if (retcode == RIG_OK)
+    {
         printf("rig_get_mode: mode = %i \n", rmode);
-    } else {
+    }
+    else
+    {
         printf("rig_get_mode: error =  %s \n", rigerror(retcode));
     }
 
     retcode = rig_get_strength(my_rig, RIG_VFO_CURR, &strength);
 
-    if (retcode == RIG_OK) {
+    if (retcode == RIG_OK)
+    {
         printf("rig_get_strength: strength = %i \n", strength);
-    } else {
+    }
+    else
+    {
         printf("rig_get_strength: error =  %s \n", rigerror(retcode));
     }
 
-    if (rig_has_set_func(my_rig, RIG_FUNC_RIT)) {
+    if (rig_has_set_func(my_rig, RIG_FUNC_RIT))
+    {
         retcode = rig_set_func(my_rig, RIG_VFO_CURR, RIG_FUNC_RIT, 1);
         printf("rig_set_func: Setting RIT ON\n");
     }
 
-    if (rig_has_get_func(my_rig, RIG_FUNC_RIT)) {
+    if (rig_has_get_func(my_rig, RIG_FUNC_RIT))
+    {
         retcode = rig_get_func(my_rig, RIG_VFO_CURR, RIG_FUNC_RIT, &rit);
         printf("rig_get_func: RIT: %d\n", rit);
     }
 
-    if (rig_has_set_func(my_rig, RIG_FUNC_XIT)) {
+    if (rig_has_set_func(my_rig, RIG_FUNC_XIT))
+    {
         retcode = rig_set_func(my_rig, RIG_VFO_CURR, RIG_FUNC_XIT, 1);
         printf("rig_set_func: Setting XIT ON\n");
     }
 
-    if (rig_has_get_func(my_rig, RIG_FUNC_XIT)) {
+    if (rig_has_get_func(my_rig, RIG_FUNC_XIT))
+    {
         retcode = rig_get_func(my_rig, RIG_VFO_CURR, RIG_FUNC_XIT, &xit);
         printf("rig_get_func: XIT: %d\n", xit);
     }

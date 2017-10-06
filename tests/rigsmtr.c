@@ -53,7 +53,8 @@ static int set_conf_rot(ROT *rot, char *conf_parms);
  * NB: do NOT use -W since it's reserved by POSIX.
  */
 #define SHORT_OPTIONS "m:r:s:c:C:M:R:S:N:vhV"
-static struct option long_options[] = {
+static struct option long_options[] =
+{
     {"model",               1, 0, 'm'},
     {"rig-file",            1, 0, 'r'},
     {"serial-speed",        1, 0, 's'},
@@ -94,17 +95,20 @@ int main(int argc, char *argv[])
     elevation_t elevation;
     unsigned step = 1000000;    /* 1e6 us */
 
-    while (1) {
+    while (1)
+    {
         int c;
         int option_index = 0;
 
         c = getopt_long(argc, argv, SHORT_OPTIONS, long_options, &option_index);
 
-        if (c == -1) {
+        if (c == -1)
+        {
             break;
         }
 
-        switch (c) {
+        switch (c)
+        {
         case 'h':
             usage();
             exit(0);
@@ -114,7 +118,8 @@ int main(int argc, char *argv[])
             exit(0);
 
         case 'm':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
@@ -123,7 +128,8 @@ int main(int argc, char *argv[])
             break;
 
         case 'r':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
@@ -132,7 +138,8 @@ int main(int argc, char *argv[])
             break;
 
         case 'c':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
@@ -141,7 +148,8 @@ int main(int argc, char *argv[])
             break;
 
         case 's':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
@@ -150,12 +158,14 @@ int main(int argc, char *argv[])
             break;
 
         case 'C':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
 
-            if (*rig_conf_parms != '\0') {
+            if (*rig_conf_parms != '\0')
+            {
                 strcat(rig_conf_parms, ",");
             }
 
@@ -163,7 +173,8 @@ int main(int argc, char *argv[])
             break;
 
         case 'M':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
@@ -172,7 +183,8 @@ int main(int argc, char *argv[])
             break;
 
         case 'R':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
@@ -181,7 +193,8 @@ int main(int argc, char *argv[])
             break;
 
         case 'S':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
@@ -190,12 +203,14 @@ int main(int argc, char *argv[])
             break;
 
         case 'N':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
 
-            if (*rot_conf_parms != '\0') {
+            if (*rot_conf_parms != '\0')
+            {
                 strcat(rot_conf_parms, ",");
             }
 
@@ -223,7 +238,8 @@ int main(int argc, char *argv[])
      */
     rig = rig_init(rig_model);
 
-    if (!rig) {
+    if (!rig)
+    {
         fprintf(stderr,
                 "Unknown rig num %d, or initialization error.\n",
                 rig_model);
@@ -234,26 +250,31 @@ int main(int argc, char *argv[])
 
     retcode = set_conf_rig(rig, rig_conf_parms);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         fprintf(stderr, "Config parameter error: %s\n", rigerror(retcode));
         exit(2);
     }
 
-    if (rig_file) {
+    if (rig_file)
+    {
         strncpy(rig->state.rigport.pathname, rig_file, FILPATHLEN - 1);
     }
 
     /* FIXME: bound checking and port type == serial */
-    if (serial_rate != 0) {
+    if (serial_rate != 0)
+    {
         rig->state.rigport.parm.serial.rate = serial_rate;
     }
 
-    if (civaddr) {
+    if (civaddr)
+    {
         rig_set_conf(rig, rig_token_lookup(rig, "civaddr"), civaddr);
     }
 
 
-    if (!rig_has_get_level(rig, RIG_LEVEL_STRENGTH)) {
+    if (!rig_has_get_level(rig, RIG_LEVEL_STRENGTH))
+    {
         fprintf(stderr,
                 "rig backend for %s could not get S-Meter"
                 "or has unsufficient capability\nSorry\n",
@@ -263,12 +284,14 @@ int main(int argc, char *argv[])
 
     retcode = rig_open(rig);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         fprintf(stderr, "rig_open: error = %s \n", rigerror(retcode));
         exit(2);
     }
 
-    if (verbose > 0) {
+    if (verbose > 0)
+    {
         printf("Opened rig model %d, '%s'\n",
                rig->caps->rig_model,
                rig->caps->model_name);
@@ -279,7 +302,8 @@ int main(int argc, char *argv[])
      */
     rot = rot_init(rot_model);
 
-    if (!rot) {
+    if (!rot)
+    {
         fprintf(stderr,
                 "Unknown rot num %d, or initialization error.\n",
                 rot_model);
@@ -290,23 +314,27 @@ int main(int argc, char *argv[])
 
     retcode = set_conf_rot(rot, rot_conf_parms);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         fprintf(stderr, "Config parameter error: %s\n", rigerror(retcode));
         exit(2);
     }
 
-    if (rot_file) {
+    if (rot_file)
+    {
         strncpy(rot->state.rotport.pathname, rot_file, FILPATHLEN - 1);
     }
 
     /* FIXME: bound checking and port type == serial */
-    if (rot_serial_rate != 0) {
+    if (rot_serial_rate != 0)
+    {
         rot->state.rotport.parm.serial.rate = rot_serial_rate;
     }
 
     retcode = rot_open(rot);
 
-    if (retcode != RIG_OK && rot_model != ROT_MODEL_DUMMY) {
+    if (retcode != RIG_OK && rot_model != ROT_MODEL_DUMMY)
+    {
         fprintf(stderr, "rot_open: error = %s \n", rigerror(retcode));
         exit(2);
     }
@@ -317,14 +345,16 @@ int main(int argc, char *argv[])
     /* if (rot_model == ROT_MODEL_DUMMY) */
     /*  with_rot = 1; */
 
-    if (verbose > 0) {
+    if (verbose > 0)
+    {
         printf("Opened rotator model %d, '%s'\n",
                rot->caps->rot_model,
                rot->caps->model_name);
     }
 
     /*******************************/
-    if (optind < argc) {
+    if (optind < argc)
+    {
         step = atof(argv[optind]) * 1e6;
     }
 
@@ -333,7 +363,8 @@ int main(int argc, char *argv[])
     fprintf(stderr, "Wait for rotator to move...\n");
     rot_get_position(rot, &azimuth, &elevation);
 
-    while (fabs(azimuth - rot->state.min_az) > 1.) {
+    while (fabs(azimuth - rot->state.min_az) > 1.)
+    {
         rot_get_position(rot, &azimuth, &elevation);
         usleep(step);
     }
@@ -344,7 +375,8 @@ int main(int argc, char *argv[])
     /* TODO: check CW or CCW */
     /* disable AGC? */
 
-    while (fabs(rot->state.max_az - azimuth) > 1.) {
+    while (fabs(rot->state.max_az - azimuth) > 1.)
+    {
         value_t strength;
 
         rig_get_level(rig, RIG_VFO_CURR, RIG_LEVEL_STRENGTH, &strength);
@@ -375,18 +407,18 @@ void usage()
            "Input S-Meter vs Azimuth.\n\n");
 
     printf(
-        "  -m, --model=ID             select radio model number. See model list\n"
-        "  -r, --rig-file=DEVICE      set device of the radio to operate on\n"
-        "  -s, --serial-speed=BAUD    set serial speed of the serial port\n"
-        "  -c, --civaddr=ID           set CI-V address, decimal (for Icom rigs only)\n"
-        "  -C, --set-conf=PARM=VAL    set config parameters\n"
-        "  -M, --rot-model=ID             select rotator model number. See model list\n"
-        "  -R, --rot-file=DEVICE      set device of the rotator to operate on\n"
-        "  -S, --rot-serial-speed=BAUD    set serial speed of the serial port\n"
-        "  -N, --rot-set-conf=PARM=VAL    set rotator config parameters\n"
-        "  -v, --verbose              set verbose mode, cumulative\n"
-        "  -h, --help                 display this help and exit\n"
-        "  -V, --version              output version information and exit\n\n"
+        "  -m, --model=ID                select radio model number. See model list\n"
+        "  -r, --rig-file=DEVICE         set device of the radio to operate on\n"
+        "  -s, --serial-speed=BAUD       set serial speed of the serial port\n"
+        "  -c, --civaddr=ID              set CI-V address, decimal (for Icom rigs only)\n"
+        "  -C, --set-conf=PARM=VAL       set config parameters\n"
+        "  -M, --rot-model=ID            select rotator model number. See model list\n"
+        "  -R, --rot-file=DEVICE         set device of the rotator to operate on\n"
+        "  -S, --rot-serial-speed=BAUD   set serial speed of the serial port\n"
+        "  -N, --rot-set-conf=PARM=VAL   set rotator config parameters\n"
+        "  -v, --verbose                 set verbose mode, cumulative\n"
+        "  -h, --help                    display this help and exit\n"
+        "  -V, --version                 output version information and exit\n\n"
     );
 
     printf("\nReport bugs to <hamlib-developer@lists.sourceforge.net>.\n");
@@ -401,24 +433,28 @@ int set_conf_rig(RIG *rig, char *conf_parms)
 
     p = conf_parms;
 
-    while (p && *p != '\0') {
+    while (p && *p != '\0')
+    {
         /* FIXME: left hand value of = cannot be null */
         q = strchr(p, '=');
 
-        if (!q) {
+        if (!q)
+        {
             return RIG_EINVAL;
         }
 
         *q++ = '\0';
         n = strchr(q, ',');
 
-        if (n) {
+        if (n)
+        {
             *n++ = '\0';
         }
 
         ret = rig_set_conf(rig, rig_token_lookup(rig, p), q);
 
-        if (ret != RIG_OK) {
+        if (ret != RIG_OK)
+        {
             return ret;
         }
 
@@ -436,23 +472,27 @@ int set_conf_rot(ROT *rot, char *conf_parms)
 
     p = conf_parms;
 
-    while (p && *p != '\0') {
+    while (p && *p != '\0')
+    {
         /* FIXME: left hand value of = cannot be null */
         q = strchr(p, '=');
 
-        if (q) {
+        if (q)
+        {
             *q++ = '\0';
         }
 
         n = strchr(q, ',');
 
-        if (n) {
+        if (n)
+        {
             *n++ = '\0';
         }
 
         ret = rot_set_conf(rot, rot_token_lookup(rot, p), q);
 
-        if (ret != RIG_OK) {
+        if (ret != RIG_OK)
+        {
             return ret;
         }
 

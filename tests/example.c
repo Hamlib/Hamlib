@@ -61,7 +61,8 @@ int main()
     /* Current mode */
     status = rig_get_mode(my_rig, RIG_VFO_CURR, &mode, &width);
 
-    switch (mode) {
+    switch (mode)
+    {
     case RIG_MODE_USB:
         mm = "USB";
         break;

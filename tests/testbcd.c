@@ -22,17 +22,20 @@ int main(int argc, char *argv[])
     int digits = 10;
     int i;
 
-    if (argc != 2 && argc != 3) {
+    if (argc != 2 && argc != 3)
+    {
         fprintf(stderr, "Usage: %s <freq> [digits]\n", argv[0]);
         exit(1);
     }
 
     f = (freq_t)atoll(argv[1]);
 
-    if (argc > 2) {
+    if (argc > 2)
+    {
         digits = atoi(argv[2]);
 
-        if (digits > MAXDIGITS) {
+        if (digits > MAXDIGITS)
+        {
             exit(1);
         }
     }
@@ -42,7 +45,8 @@ int main(int argc, char *argv[])
     to_bcd(b, f, digits);
     printf("BCD: %2.2x", b[0]);
 
-    for (i = 1; i < (digits + 1) / 2; i++) {
+    for (i = 1; i < (digits + 1) / 2; i++)
+    {
         printf(",%2.2x", b[i]);
     }
 
@@ -53,7 +57,8 @@ int main(int argc, char *argv[])
     to_bcd_be(b, f, digits);
     printf("BCD: %2.2x", b[0]);
 
-    for (i = 1; i < (digits + 1) / 2; i++) {
+    for (i = 1; i < (digits + 1) / 2; i++)
+    {
         printf(",%2.2x", b[i]);
     }
 

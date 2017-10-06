@@ -51,7 +51,8 @@ int dumpcaps(RIG *rig, FILE *fout)
     int backend_warnings = 0;
     static char prntbuf[1024];  /* a malloc would be better.. */
 
-    if (!rig || !rig->caps) {
+    if (!rig || !rig->caps)
+    {
         return -RIG_EINVAL;
     }
 
@@ -65,7 +66,8 @@ int dumpcaps(RIG *rig, FILE *fout)
     fprintf(fout, "Backend status:\t%s\n", rig_strstatus(caps->status));
     fprintf(fout, "Rig type:\t");
 
-    switch (caps->rig_type & RIG_TYPE_MASK) {
+    switch (caps->rig_type & RIG_TYPE_MASK)
+    {
     case RIG_TYPE_TRANSCEIVER:
         fprintf(fout, "Transceiver\n");
         break;
@@ -113,7 +115,8 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     fprintf(fout, "PTT type:\t");
 
-    switch (caps->ptt_type) {
+    switch (caps->ptt_type)
+    {
     case RIG_PTT_RIG:
         fprintf(fout, "Rig capable\n");
         break;
@@ -145,7 +148,8 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     fprintf(fout, "DCD type:\t");
 
-    switch (caps->dcd_type) {
+    switch (caps->dcd_type)
+    {
     case RIG_DCD_RIG:
         fprintf(fout, "Rig capable\n");
         break;
@@ -177,7 +181,8 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     fprintf(fout, "Port type:\t");
 
-    switch (caps->port_type) {
+    switch (caps->port_type)
+    {
     case RIG_PORT_SERIAL:
         fprintf(fout, "RS-232\n");
         fprintf(fout,
@@ -186,9 +191,9 @@ int dumpcaps(RIG *rig, FILE *fout)
                 caps->serial_rate_max,
                 caps->serial_data_bits,
                 caps->serial_parity == RIG_PARITY_NONE ? 'N' :
-                    caps->serial_parity == RIG_PARITY_ODD ? 'O' :
-                    caps->serial_parity == RIG_PARITY_EVEN ? 'E' :
-                    caps->serial_parity == RIG_PARITY_MARK ? 'M' : 'S',
+                caps->serial_parity == RIG_PARITY_ODD ? 'O' :
+                caps->serial_parity == RIG_PARITY_EVEN ? 'E' :
+                caps->serial_parity == RIG_PARITY_MARK ? 'M' : 'S',
                 caps->serial_stop_bits,
                 caps->serial_handshake == RIG_HANDSHAKE_NONE ? "" :
                 (caps->serial_handshake == RIG_HANDSHAKE_XONXOFF ? "XONXOFF" : "CTS/RTS")
@@ -257,22 +262,26 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     fprintf(fout, "Preamp:");
 
-    for (i = 0; i < MAXDBLSTSIZ && caps->preamp[i] != 0; i++) {
+    for (i = 0; i < MAXDBLSTSIZ && caps->preamp[i] != 0; i++)
+    {
         fprintf(fout, " %ddB", caps->preamp[i]);
     }
 
-    if (i == 0) {
+    if (i == 0)
+    {
         fprintf(fout, " None");
     }
 
     fprintf(fout, "\n");
     fprintf(fout, "Attenuator:");
 
-    for (i = 0; i < MAXDBLSTSIZ && caps->attenuator[i] != 0; i++) {
+    for (i = 0; i < MAXDBLSTSIZ && caps->attenuator[i] != 0; i++)
+    {
         fprintf(fout, " %ddB", caps->attenuator[i]);
     }
 
-    if (i == 0) {
+    if (i == 0)
+    {
         fprintf(fout, " None");
     }
 
@@ -280,15 +289,19 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     fprintf(fout, "CTCSS:");
 
-    for (i = 0; caps->ctcss_list && i < 60 && caps->ctcss_list[i] != 0; i++) {
+    for (i = 0; caps->ctcss_list && i < 60 && caps->ctcss_list[i] != 0; i++)
+    {
         fprintf(fout,
                 " %d.%1d",
                 caps->ctcss_list[i] / 10, caps->ctcss_list[i] % 10);
     }
 
-    if (i == 0) {
+    if (i == 0)
+    {
         fprintf(fout, " None");
-    } else {
+    }
+    else
+    {
         fprintf(fout, " Hz, %d tones", i);
     }
 
@@ -296,13 +309,17 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     fprintf(fout, "DCS:");
 
-    for (i = 0; caps->dcs_list && i < 128 && caps->dcs_list[i] != 0; i++) {
+    for (i = 0; caps->dcs_list && i < 128 && caps->dcs_list[i] != 0; i++)
+    {
         fprintf(fout, " %d", caps->dcs_list[i]);
     }
 
-    if (i == 0) {
+    if (i == 0)
+    {
         fprintf(fout, " None");
-    } else {
+    }
+    else
+    {
         fprintf(fout, ", %d codes", i);
     }
 
@@ -317,24 +334,27 @@ int dumpcaps(RIG *rig, FILE *fout)
     sprintf_level_gran(prntbuf, caps->has_get_level, caps->level_gran);
     fprintf(fout, "Get level: %s\n", prntbuf);
 
-    if ((caps->has_get_level & RIG_LEVEL_SQLSTAT)) {
+    if ((caps->has_get_level & RIG_LEVEL_SQLSTAT))
+    {
         fprintf(fout, "Warning--backend uses deprecated SQLSTAT level!\n");
         backend_warnings++;
     }
 
     if ((caps->has_get_level & RIG_LEVEL_RAWSTR)
         && caps->str_cal.size == 0
-        && !(caps->has_get_level & RIG_LEVEL_STRENGTH)) {
+        && !(caps->has_get_level & RIG_LEVEL_STRENGTH))
+    {
 
-            fprintf(fout,
-                    "Warning--backend has get RAWSTR, but not calibration data\n");
-            backend_warnings++;
+        fprintf(fout,
+                "Warning--backend has get RAWSTR, but not calibration data\n");
+        backend_warnings++;
     }
 
     sprintf_level_gran(prntbuf, caps->has_set_level, caps->level_gran);
     fprintf(fout, "Set level: %s\n", prntbuf);
 
-    if (caps->has_set_level & RIG_LEVEL_READONLY_LIST) {
+    if (caps->has_set_level & RIG_LEVEL_READONLY_LIST)
+    {
         fprintf(fout, "Warning--backend can set readonly levels!\n");
         backend_warnings++;
     }
@@ -349,7 +369,8 @@ int dumpcaps(RIG *rig, FILE *fout)
     sprintf_parm_gran(prntbuf, caps->has_set_parm, caps->parm_gran);
     fprintf(fout, "Set parameters: %s\n", prntbuf);
 
-    if (caps->has_set_parm & RIG_PARM_READONLY_LIST) {
+    if (caps->has_set_parm & RIG_PARM_READONLY_LIST)
+    {
         fprintf(fout, "Warning--backend can set readonly parms!\n");
         backend_warnings++;
     }
@@ -359,18 +380,24 @@ int dumpcaps(RIG *rig, FILE *fout)
     fprintf(fout, "\n");
 
 
-    if (rig->state.mode_list != 0) {
+    if (rig->state.mode_list != 0)
+    {
         sprintf_mode(prntbuf, rig->state.mode_list);
-    } else {
+    }
+    else
+    {
         strcpy(prntbuf, "None. This backend might be bogus!\n");
         backend_warnings++;
     }
 
     fprintf(fout, "Mode list: %s\n", prntbuf);
 
-    if (rig->state.vfo_list != 0) {
+    if (rig->state.vfo_list != 0)
+    {
         sprintf_vfo(prntbuf, rig->state.vfo_list);
-    } else {
+    }
+    else
+    {
         strcpy(prntbuf, "None. This backend might be bogus!\n");
         backend_warnings++;
     }
@@ -388,7 +415,8 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     fprintf(fout, "Memories:");
 
-    for (i = 0; i < CHANLSTSIZ && caps->chan_list[i].type; i++) {
+    for (i = 0; i < CHANLSTSIZ && caps->chan_list[i].type; i++)
+    {
         fprintf(fout,
                 "\n\t%d..%d:   \t%s",
                 caps->chan_list[i].start,
@@ -398,7 +426,8 @@ int dumpcaps(RIG *rig, FILE *fout)
         dump_chan_caps(&caps->chan_list[i].mem_caps, fout);
     }
 
-    if (i == 0) {
+    if (i == 0)
+    {
         fprintf(fout, " None");
     }
 
@@ -411,7 +440,8 @@ int dumpcaps(RIG *rig, FILE *fout)
             status ? "Bad" : "OK",
             status);
 
-    if (status) {
+    if (status)
+    {
         backend_warnings++;
     }
 
@@ -421,7 +451,8 @@ int dumpcaps(RIG *rig, FILE *fout)
             status ? "Bad" : "OK",
             status);
 
-    if (status) {
+    if (status)
+    {
         backend_warnings++;
     }
 
@@ -431,7 +462,8 @@ int dumpcaps(RIG *rig, FILE *fout)
             status ? "Bad" : "OK",
             status);
 
-    if (status) {
+    if (status)
+    {
         backend_warnings++;
     }
 
@@ -441,16 +473,21 @@ int dumpcaps(RIG *rig, FILE *fout)
             status ? "Bad" : "OK",
             status);
 
-    if (status) {
+    if (status)
+    {
         backend_warnings++;
     }
 
     fprintf(fout, "Tuning steps:");
 
-    for (i = 0; i < TSLSTSIZ && !RIG_IS_TS_END(caps->tuning_steps[i]); i++) {
-        if (caps->tuning_steps[i].ts == RIG_TS_ANY) {
+    for (i = 0; i < TSLSTSIZ && !RIG_IS_TS_END(caps->tuning_steps[i]); i++)
+    {
+        if (caps->tuning_steps[i].ts == RIG_TS_ANY)
+        {
             strcpy(freqbuf, "ANY");    /* strcpy!  Looks safe for now */
-        } else {
+        }
+        else
+        {
             sprintf_freq(freqbuf, caps->tuning_steps[i].ts);
         }
 
@@ -458,7 +495,8 @@ int dumpcaps(RIG *rig, FILE *fout)
         fprintf(fout, "\n\t%s:   \t%s", freqbuf, prntbuf);
     }
 
-    if (i == 0) {
+    if (i == 0)
+    {
         fprintf(fout, " None! This backend might be bogus!");
         backend_warnings++;
     }
@@ -467,16 +505,21 @@ int dumpcaps(RIG *rig, FILE *fout)
     status = ts_sanity_check(caps->tuning_steps);
     fprintf(fout, "Tuning steps status:\t%s (%d)\n", status ? "Bad" : "OK", status);
 
-    if (status) {
+    if (status)
+    {
         backend_warnings++;
     }
 
     fprintf(fout, "Filters:");
 
-    for (i = 0; i < FLTLSTSIZ && !RIG_IS_FLT_END(caps->filters[i]); i++) {
-        if (caps->filters[i].width == RIG_FLT_ANY) {
+    for (i = 0; i < FLTLSTSIZ && !RIG_IS_FLT_END(caps->filters[i]); i++)
+    {
+        if (caps->filters[i].width == RIG_FLT_ANY)
+        {
             strcpy(freqbuf, "ANY");
-        } else {
+        }
+        else
+        {
             sprintf_freq(freqbuf, caps->filters[i].width);
         }
 
@@ -484,7 +527,8 @@ int dumpcaps(RIG *rig, FILE *fout)
         fprintf(fout, "\n\t%s:   \t%s", freqbuf, prntbuf);
     }
 
-    if (i == 0) {
+    if (i == 0)
+    {
         fprintf(fout, " None. This backend might be bogus!");
         backend_warnings++;
     }
@@ -493,10 +537,12 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     fprintf(fout, "Bandwidths:");
 
-    for (i = 1; i < RIG_MODE_TESTS_MAX; i <<= 1) {
+    for (i = 1; i < RIG_MODE_TESTS_MAX; i <<= 1)
+    {
         pbwidth_t pbnorm = rig_passband_normal(rig, i);
 
-        if (pbnorm == 0) {
+        if (pbnorm == 0)
+        {
             continue;
         }
 
@@ -690,35 +736,46 @@ int range_sanity_check(const struct freq_range_list range_list[], int rx)
 {
     int i;
 
-    for (i = 0; i < FRQRANGESIZ; i++) {
-        if (range_list[i].start == 0 && range_list[i].end == 0) {
+    for (i = 0; i < FRQRANGESIZ; i++)
+    {
+        if (range_list[i].start == 0 && range_list[i].end == 0)
+        {
             break;
         }
 
-        if (range_list[i].start > range_list[i].end) {
+        if (range_list[i].start > range_list[i].end)
+        {
             return -1;
         }
 
-        if (range_list[i].modes == 0) {
+        if (range_list[i].modes == 0)
+        {
             return -2;
         }
 
-        if (rx) {
-            if (range_list[i].low_power > 0 && range_list[i].high_power > 0) {
+        if (rx)
+        {
+            if (range_list[i].low_power > 0 && range_list[i].high_power > 0)
+            {
                 return -3;
             }
-        } else {
-            if (!(range_list[i].low_power > 0 && range_list[i].high_power > 0)) {
+        }
+        else
+        {
+            if (!(range_list[i].low_power > 0 && range_list[i].high_power > 0))
+            {
                 return -3;
             }
 
-            if (range_list[i].low_power > range_list[i].high_power) {
+            if (range_list[i].low_power > range_list[i].high_power)
+            {
                 return -3;
             }
         }
     }
 
-    if (i == FRQRANGESIZ) {
+    if (i == FRQRANGESIZ)
+    {
         return -4;
     }
 
@@ -742,19 +799,23 @@ int ts_sanity_check(const struct tuning_step_list tuning_step[])
     last_ts = 0;
     last_modes = RIG_MODE_NONE;
 
-    for (i = 0; i < TSLSTSIZ; i++) {
-        if (RIG_IS_TS_END(tuning_step[i])) {
+    for (i = 0; i < TSLSTSIZ; i++)
+    {
+        if (RIG_IS_TS_END(tuning_step[i]))
+        {
             break;
         }
 
         if (tuning_step[i].ts != RIG_TS_ANY
             && tuning_step[i].ts < last_ts
-            && last_modes == tuning_step[i].modes) {
+            && last_modes == tuning_step[i].modes)
+        {
 
-                return -1;
+            return -1;
         }
 
-        if (tuning_step[i].modes == 0) {
+        if (tuning_step[i].modes == 0)
+        {
             return -2;
         }
 
@@ -762,7 +823,8 @@ int ts_sanity_check(const struct tuning_step_list tuning_step[])
         last_modes = tuning_step[i].modes;
     }
 
-    if (i == TSLSTSIZ) {
+    if (i == TSLSTSIZ)
+    {
         return -4;
     }
 
@@ -772,99 +834,123 @@ int ts_sanity_check(const struct tuning_step_list tuning_step[])
 
 static void dump_chan_caps(const channel_cap_t *chan, FILE *fout)
 {
-    if (chan->bank_num) {
+    if (chan->bank_num)
+    {
         fprintf(fout, "BANK ");
     }
 
-    if (chan->ant) {
+    if (chan->ant)
+    {
         fprintf(fout, "ANT ");
     }
 
-    if (chan->freq) {
+    if (chan->freq)
+    {
         fprintf(fout, "FREQ ");
     }
 
-    if (chan->mode) {
+    if (chan->mode)
+    {
         fprintf(fout, "MODE ");
     }
 
-    if (chan->width) {
+    if (chan->width)
+    {
         fprintf(fout, "WIDTH ");
     }
 
-    if (chan->tx_freq) {
+    if (chan->tx_freq)
+    {
         fprintf(fout, "TXFREQ ");
     }
 
-    if (chan->tx_mode) {
+    if (chan->tx_mode)
+    {
         fprintf(fout, "TXMODE ");
     }
 
-    if (chan->tx_width) {
+    if (chan->tx_width)
+    {
         fprintf(fout, "TXWIDTH ");
     }
 
-    if (chan->split) {
+    if (chan->split)
+    {
         fprintf(fout, "SPLIT ");
     }
 
-    if (chan->rptr_shift) {
+    if (chan->rptr_shift)
+    {
         fprintf(fout, "RPTRSHIFT ");
     }
 
-    if (chan->rptr_offs) {
+    if (chan->rptr_offs)
+    {
         fprintf(fout, "RPTROFS ");
     }
 
-    if (chan->tuning_step) {
+    if (chan->tuning_step)
+    {
         fprintf(fout, "TS ");
     }
 
-    if (chan->rit) {
+    if (chan->rit)
+    {
         fprintf(fout, "RIT ");
     }
 
-    if (chan->xit) {
+    if (chan->xit)
+    {
         fprintf(fout, "XIT ");
     }
 
-    if (chan->funcs) {
+    if (chan->funcs)
+    {
         fprintf(fout, "FUNC ");    /* TODO: iterate over the list */
     }
 
-    if (chan->levels) {
+    if (chan->levels)
+    {
         fprintf(fout, "LEVEL ");    /* TODO: iterate over the list */
     }
 
-    if (chan->ctcss_tone) {
+    if (chan->ctcss_tone)
+    {
         fprintf(fout, "TONE ");
     }
 
-    if (chan->ctcss_sql) {
+    if (chan->ctcss_sql)
+    {
         fprintf(fout, "CTCSS ");
     }
 
-    if (chan->dcs_code) {
+    if (chan->dcs_code)
+    {
         fprintf(fout, "DCSCODE ");
     }
 
-    if (chan->dcs_sql) {
+    if (chan->dcs_sql)
+    {
         fprintf(fout, "DCSSQL ");
     }
 
-    if (chan->scan_group) {
+    if (chan->scan_group)
+    {
         fprintf(fout, "SCANGRP ");
     }
 
-    if (chan->flags) {
+    if (chan->flags)
+    {
         fprintf(fout, "FLAG ");    /* TODO: iterate over the RIG_CHFLAG's */
     }
 
-    if (chan->channel_desc) {
+    if (chan->channel_desc)
+    {
         fprintf(fout, "NAME ");
     }
 
-    if (chan->ext_levels) {
+    if (chan->ext_levels)
+    {
         fprintf(fout, "EXTLVL ");
     }
 }

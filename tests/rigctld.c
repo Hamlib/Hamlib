@@ -81,7 +81,8 @@
  * TODO: add an option to read from a file
  */
 #define SHORT_OPTIONS "m:r:p:d:P:D:s:c:T:t:C:lLuovhV"
-static struct option long_options[] = {
+static struct option long_options[] =
+{
     {"model",           1, 0, 'm'},
     {"rig-file",        1, 0, 'r'},
     {"ptt-file",        1, 0, 'p'},
@@ -104,7 +105,8 @@ static struct option long_options[] = {
 };
 
 
-struct handle_data {
+struct handle_data
+{
     RIG *rig;
     int sock;
     struct sockaddr_storage cli_addr;
@@ -112,7 +114,7 @@ struct handle_data {
 };
 
 
-void * handle_socket(void *arg);
+void *handle_socket(void *arg);
 void usage(void);
 
 
@@ -143,11 +145,14 @@ static void handle_error(enum rig_debug_level_e lvl, const char *msg)
                       NULL, e,
                       MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
                       // Default language
-                      (LPTSTR)&lpMsgBuf, 0, NULL)) {
+                      (LPTSTR)&lpMsgBuf, 0, NULL))
+    {
 
         rig_debug(lvl, "%s: Network error %d: %s\n", msg, e, lpMsgBuf);
         LocalFree(lpMsgBuf);
-    } else {
+    }
+    else
+    {
         rig_debug(lvl, "%s: Network error %d\n", msg, e);
     }
 
@@ -188,7 +193,8 @@ int main(int argc, char *argv[])
 #endif
     struct handle_data *arg;
 
-    while (1) {
+    while (1)
+    {
         int c;
         int option_index = 0;
 
@@ -198,11 +204,13 @@ int main(int argc, char *argv[])
                         long_options,
                         &option_index);
 
-        if (c == -1) {
+        if (c == -1)
+        {
             break;
         }
 
-        switch (c) {
+        switch (c)
+        {
         case 'h':
             usage();
             exit(0);
@@ -212,7 +220,8 @@ int main(int argc, char *argv[])
             exit(0);
 
         case 'm':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
@@ -221,7 +230,8 @@ int main(int argc, char *argv[])
             break;
 
         case 'r':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
@@ -230,7 +240,8 @@ int main(int argc, char *argv[])
             break;
 
         case 'p':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
@@ -239,7 +250,8 @@ int main(int argc, char *argv[])
             break;
 
         case 'd':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
@@ -248,55 +260,84 @@ int main(int argc, char *argv[])
             break;
 
         case 'P':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
 
-            if (!strcmp(optarg, "RIG")) {
+            if (!strcmp(optarg, "RIG"))
+            {
                 ptt_type = RIG_PTT_RIG;
-            } else if (!strcmp(optarg, "DTR")) {
+            }
+            else if (!strcmp(optarg, "DTR"))
+            {
                 ptt_type = RIG_PTT_SERIAL_DTR;
-            } else if (!strcmp(optarg, "RTS")) {
+            }
+            else if (!strcmp(optarg, "RTS"))
+            {
                 ptt_type = RIG_PTT_SERIAL_RTS;
-            } else if (!strcmp(optarg, "PARALLEL")) {
+            }
+            else if (!strcmp(optarg, "PARALLEL"))
+            {
                 ptt_type = RIG_PTT_PARALLEL;
-            } else if (!strcmp(optarg, "CM108")) {
+            }
+            else if (!strcmp(optarg, "CM108"))
+            {
                 ptt_type = RIG_PTT_CM108;
-            } else if (!strcmp(optarg, "NONE")) {
+            }
+            else if (!strcmp(optarg, "NONE"))
+            {
                 ptt_type = RIG_PTT_NONE;
-            } else {
+            }
+            else
+            {
                 ptt_type = atoi(optarg);
             }
 
             break;
 
         case 'D':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
 
-            if (!strcmp(optarg, "RIG")) {
+            if (!strcmp(optarg, "RIG"))
+            {
                 dcd_type = RIG_DCD_RIG;
-            } else if (!strcmp(optarg, "DSR")) {
+            }
+            else if (!strcmp(optarg, "DSR"))
+            {
                 dcd_type = RIG_DCD_SERIAL_DSR;
-            } else if (!strcmp(optarg, "CTS")) {
+            }
+            else if (!strcmp(optarg, "CTS"))
+            {
                 dcd_type = RIG_DCD_SERIAL_CTS;
-            } else if (!strcmp(optarg, "CD")) {
+            }
+            else if (!strcmp(optarg, "CD"))
+            {
                 dcd_type = RIG_DCD_SERIAL_CAR;
-            } else if (!strcmp(optarg, "PARALLEL")) {
+            }
+            else if (!strcmp(optarg, "PARALLEL"))
+            {
                 dcd_type = RIG_DCD_PARALLEL;
-            } else if (!strcmp(optarg, "NONE")) {
+            }
+            else if (!strcmp(optarg, "NONE"))
+            {
                 dcd_type = RIG_DCD_NONE;
-            } else {
+            }
+            else
+            {
                 dcd_type = atoi(optarg);
             }
 
             break;
 
         case 'c':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
@@ -305,7 +346,8 @@ int main(int argc, char *argv[])
             break;
 
         case 's':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
@@ -314,12 +356,14 @@ int main(int argc, char *argv[])
             break;
 
         case 'C':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
 
-            if (*conf_parms != '\0') {
+            if (*conf_parms != '\0')
+            {
                 strcat(conf_parms, ",");
             }
 
@@ -327,7 +371,8 @@ int main(int argc, char *argv[])
             break;
 
         case 't':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
@@ -336,7 +381,8 @@ int main(int argc, char *argv[])
             break;
 
         case 'T':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
@@ -378,7 +424,8 @@ int main(int argc, char *argv[])
 
     my_rig = rig_init(my_model);
 
-    if (!my_rig) {
+    if (!my_rig)
+    {
         fprintf(stderr,
                 "Unknown rig num %d, or initialization error.\n",
                 my_model);
@@ -389,47 +436,56 @@ int main(int argc, char *argv[])
 
     retcode = set_conf(my_rig, conf_parms);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         fprintf(stderr, "Config parameter error: %s\n", rigerror(retcode));
         exit(2);
     }
 
-    if (rig_file) {
+    if (rig_file)
+    {
         strncpy(my_rig->state.rigport.pathname, rig_file, FILPATHLEN - 1);
     }
 
     /*
      * ex: RIG_PTT_PARALLEL and /dev/parport0
      */
-    if (ptt_type != RIG_PTT_NONE) {
+    if (ptt_type != RIG_PTT_NONE)
+    {
         my_rig->state.pttport.type.ptt = ptt_type;
     }
 
-    if (dcd_type != RIG_DCD_NONE) {
+    if (dcd_type != RIG_DCD_NONE)
+    {
         my_rig->state.dcdport.type.dcd = dcd_type;
     }
 
-    if (ptt_file) {
+    if (ptt_file)
+    {
         strncpy(my_rig->state.pttport.pathname, ptt_file, FILPATHLEN - 1);
     }
 
-    if (dcd_file) {
+    if (dcd_file)
+    {
         strncpy(my_rig->state.dcdport.pathname, dcd_file, FILPATHLEN - 1);
     }
 
     /* FIXME: bound checking and port type == serial */
-    if (serial_rate != 0) {
+    if (serial_rate != 0)
+    {
         my_rig->state.rigport.parm.serial.rate = serial_rate;
     }
 
-    if (civaddr) {
+    if (civaddr)
+    {
         rig_set_conf(my_rig, rig_token_lookup(my_rig, "civaddr"), civaddr);
     }
 
     /*
      * print out conf parameters
      */
-    if (show_conf) {
+    if (show_conf)
+    {
         rig_token_foreach(my_rig, print_conf_list, (rig_ptr_t)my_rig);
     }
 
@@ -437,7 +493,8 @@ int main(int argc, char *argv[])
      * print out conf parameters, and exits immediately
      * We may be interested only in only caps, and rig_open may fail.
      */
-    if (dump_caps_opt) {
+    if (dump_caps_opt)
+    {
         dumpcaps(my_rig, stdout);
         rig_cleanup(my_rig); /* if you care about memory */
         exit(0);
@@ -445,12 +502,14 @@ int main(int argc, char *argv[])
 
     retcode = rig_open(my_rig);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         fprintf(stderr, "rig_open: error = %s \n", rigerror(retcode));
         exit(2);
     }
 
-    if (verbose > 0) {
+    if (verbose > 0)
+    {
         printf("Opened rig model %d, '%s'\n",
                my_rig->caps->rig_model,
                my_rig->caps->model_name);
@@ -472,7 +531,8 @@ int main(int argc, char *argv[])
 
     WSADATA wsadata;
 
-    if (WSAStartup(MAKEWORD(1, 1), &wsadata) == SOCKET_ERROR) {
+    if (WSAStartup(MAKEWORD(1, 1), &wsadata) == SOCKET_ERROR)
+    {
         fprintf(stderr, "WSAStartup socket error\n");
         exit(1);
     }
@@ -493,19 +553,22 @@ int main(int argc, char *argv[])
 
     retcode = getaddrinfo(src_addr, portno, &hints, &result);
 
-    if (retcode != 0) {
+    if (retcode != 0)
+    {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(retcode));
         exit(2);
     }
 
     saved_result = result;
 
-    do {
+    do
+    {
         sock_listen = socket(result->ai_family,
                              result->ai_socktype,
                              result->ai_protocol);
 
-        if (sock_listen < 0) {
+        if (sock_listen < 0)
+        {
             handle_error(RIG_DEBUG_ERR, "socket");
             freeaddrinfo(saved_result);     /* No longer needed */
             exit(2);
@@ -516,7 +579,8 @@ int main(int argc, char *argv[])
                        SO_REUSEADDR,
                        (char *)&reuseaddr,
                        sizeof(reuseaddr))
-            < 0) {
+            < 0)
+        {
 
             handle_error(RIG_DEBUG_ERR, "setsockopt");
             freeaddrinfo(saved_result);     /* No longer needed */
@@ -525,7 +589,8 @@ int main(int argc, char *argv[])
 
 #ifdef IPV6_V6ONLY
 
-        if (AF_INET6 == result->ai_family) {
+        if (AF_INET6 == result->ai_family)
+        {
             /* allow IPv4 mapped to IPv6 clients Windows and BSD default
                this to 1 (i.e. disallowed) and we prefer it off */
             sockopt = 0;
@@ -535,7 +600,8 @@ int main(int argc, char *argv[])
                            IPV6_V6ONLY,
                            (char *)&sockopt,
                            sizeof(sockopt))
-                < 0) {
+                < 0)
+            {
 
                 handle_error(RIG_DEBUG_ERR, "setsockopt");
                 freeaddrinfo(saved_result);     /* No longer needed */
@@ -545,7 +611,8 @@ int main(int argc, char *argv[])
 
 #endif
 
-        if (0 == bind(sock_listen, result->ai_addr, result->ai_addrlen)) {
+        if (0 == bind(sock_listen, result->ai_addr, result->ai_addrlen))
+        {
             break;
         }
 
@@ -555,16 +622,19 @@ int main(int argc, char *argv[])
 #else
         close(sock_listen);
 #endif
-    } while ((result = result->ai_next) != NULL);
+    }
+    while ((result = result->ai_next) != NULL);
 
     freeaddrinfo(saved_result);     /* No longer needed */
 
-    if (NULL == result) {
+    if (NULL == result)
+    {
         rig_debug(RIG_DEBUG_ERR, "bind error - no available interface\n");
         exit(1);
     }
 
-    if (listen(sock_listen, 4) < 0) {
+    if (listen(sock_listen, 4) < 0)
+    {
         handle_error(RIG_DEBUG_ERR, "listening");
         exit(1);
     }
@@ -579,25 +649,30 @@ int main(int argc, char *argv[])
     act.sa_handler = SIG_IGN;
     act.sa_flags = SA_RESTART;
 
-    if (sigaction(SIGPIPE, &act, NULL)) {
+    if (sigaction(SIGPIPE, &act, NULL))
+    {
         handle_error(RIG_DEBUG_ERR, "sigaction");
     }
 
 #elif HAVE_SIGNAL
 
-    if (SIG_ERR == signal(SIGPIPE, SIG_IGN)) {
+    if (SIG_ERR == signal(SIGPIPE, SIG_IGN))
+    {
         handle_error(RIG_DEBUG_ERR, "signal");
     }
+
 #endif
 #endif
 
     /*
      * main loop accepting connections
      */
-    do {
+    do
+    {
         arg = malloc(sizeof(struct handle_data));
 
-        if (!arg) {
+        if (!arg)
+        {
             rig_debug(RIG_DEBUG_ERR, "malloc: %s\n", strerror(errno));
             exit(1);
         }
@@ -608,7 +683,8 @@ int main(int argc, char *argv[])
                            (struct sockaddr *)&arg->cli_addr,
                            &arg->clilen);
 
-        if (arg->sock < 0) {
+        if (arg->sock < 0)
+        {
             handle_error(RIG_DEBUG_ERR, "accept");
             break;
         }
@@ -620,12 +696,18 @@ int main(int argc, char *argv[])
                                    serv,
                                    sizeof(serv),
                                    NI_NOFQDN))
-            < 0) {
+            < 0)
+        {
 
-            rig_debug(RIG_DEBUG_WARN, "Peer lookup error: %s", gai_strerror(retcode));
+            rig_debug(RIG_DEBUG_WARN,
+                      "Peer lookup error: %s",
+                      gai_strerror(retcode));
         }
 
-        rig_debug(RIG_DEBUG_VERBOSE, "Connection opened from %s:%s\n", host, serv);
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "Connection opened from %s:%s\n",
+                  host,
+                  serv);
 
 #ifdef HAVE_PTHREAD
         pthread_attr_init(&attr);
@@ -633,7 +715,8 @@ int main(int argc, char *argv[])
 
         retcode = pthread_create(&thread, &attr, handle_socket, arg);
 
-        if (retcode != 0) {
+        if (retcode != 0)
+        {
             rig_debug(RIG_DEBUG_ERR, "pthread_create: %s\n", strerror(retcode));
             break;
         }
@@ -641,7 +724,8 @@ int main(int argc, char *argv[])
 #else
         handle_socket(arg);
 #endif
-    } while (retcode == 0);
+    }
+    while (retcode == 0);
 
     rig_close(my_rig); /* close port */
     rig_cleanup(my_rig); /* if you care about memory */
@@ -669,7 +753,8 @@ void * handle_socket(void *arg)
 #ifdef __MINGW32__
     int sock_osfhandle = _open_osfhandle(handle_data_arg->sock, _O_RDONLY);
 
-    if (sock_osfhandle == -1) {
+    if (sock_osfhandle == -1)
+    {
         rig_debug(RIG_DEBUG_ERR, "_open_osfhandle error: %s\n", strerror(errno));
         goto handle_exit;
     }
@@ -679,7 +764,8 @@ void * handle_socket(void *arg)
     fsockin = fdopen(handle_data_arg->sock, "rb");
 #endif
 
-    if (!fsockin) {
+    if (!fsockin)
+    {
         rig_debug(RIG_DEBUG_ERR, "fdopen in: %s\n", strerror(errno));
         goto handle_exit;
     }
@@ -690,20 +776,24 @@ void * handle_socket(void *arg)
     fsockout = fdopen(handle_data_arg->sock, "wb");
 #endif
 
-    if (!fsockout) {
+    if (!fsockout)
+    {
         rig_debug(RIG_DEBUG_ERR, "fdopen out: %s\n", strerror(errno));
         fclose(fsockin);
 
         goto handle_exit;
     }
 
-    do {
+    do
+    {
         retcode = rigctl_parse(handle_data_arg->rig, fsockin, fsockout, NULL, 0);
 
-        if (ferror(fsockin) || ferror(fsockout)) {
+        if (ferror(fsockin) || ferror(fsockout))
+        {
             retcode = 1;
         }
-    } while (retcode == 0 || retcode == 2 || retcode == -RIG_ENAVAIL);
+    }
+    while (retcode == 0 || retcode == 2 || retcode == -RIG_ENAVAIL);
 
     if ((retcode = getnameinfo((struct sockaddr const *)&handle_data_arg->cli_addr,
                                handle_data_arg->clilen,
@@ -712,13 +802,16 @@ void * handle_socket(void *arg)
                                serv,
                                sizeof(serv),
                                NI_NOFQDN))
-        < 0) {
+        < 0)
+    {
 
         rig_debug(RIG_DEBUG_WARN, "Peer lookup error: %s", gai_strerror(retcode));
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "Connection closed from %s:%s\n",
-              host, serv);
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "Connection closed from %s:%s\n",
+              host,
+              serv);
 
     fclose(fsockin);
 #ifndef __MINGW32__
@@ -747,24 +840,24 @@ void usage(void)
 
 
     printf(
-        "  -m, --model=ID             select radio model number. See model list\n"
-        "  -r, --rig-file=DEVICE      set device of the radio to operate on\n"
-        "  -p, --ptt-file=DEVICE      set device of the PTT device to operate on\n"
-        "  -d, --dcd-file=DEVICE      set device of the DCD device to operate on\n"
-        "  -P, --ptt-type=TYPE        set type of the PTT device to operate on\n"
-        "  -D, --dcd-type=TYPE        set type of the DCD device to operate on\n"
-        "  -s, --serial-speed=BAUD    set serial speed of the serial port\n"
-        "  -c, --civaddr=ID           set CI-V address, decimal (for Icom rigs only)\n"
-        "  -t, --port=NUM             set TCP listening port, default %s\n"
-        "  -T, --listen-addr=IPADDR   set listening IP address, default ANY\n"
-        "  -C, --set-conf=PARM=VAL    set config parameters\n"
-        "  -L, --show-conf            list all config parameters\n"
-        "  -l, --list                 list all model numbers and exit\n"
-        "  -u, --dump-caps            dump capabilities and exit\n"
-        "  -o, --vfo                  do not default to VFO_CURR, require extra vfo arg\n"
-        "  -v, --verbose              set verbose mode, cumulative (-v to -vvvvv)\n"
-        "  -h, --help                 display this help and exit\n"
-        "  -V, --version              output version information and exit\n\n",
+        "  -m, --model=ID                select radio model number. See model list\n"
+        "  -r, --rig-file=DEVICE         set device of the radio to operate on\n"
+        "  -p, --ptt-file=DEVICE         set device of the PTT device to operate on\n"
+        "  -d, --dcd-file=DEVICE         set device of the DCD device to operate on\n"
+        "  -P, --ptt-type=TYPE           set type of the PTT device to operate on\n"
+        "  -D, --dcd-type=TYPE           set type of the DCD device to operate on\n"
+        "  -s, --serial-speed=BAUD       set serial speed of the serial port\n"
+        "  -c, --civaddr=ID              set CI-V address, decimal (for Icom rigs only)\n"
+        "  -t, --port=NUM                set TCP listening port, default %s\n"
+        "  -T, --listen-addr=IPADDR      set listening IP address, default ANY\n"
+        "  -C, --set-conf=PARM=VAL       set config parameters\n"
+        "  -L, --show-conf               list all config parameters\n"
+        "  -l, --list                    list all model numbers and exit\n"
+        "  -u, --dump-caps               dump capabilities and exit\n"
+        "  -o, --vfo                     do not default to VFO_CURR, require extra vfo arg\n"
+        "  -v, --verbose                 set verbose mode, cumulative (-v to -vvvvv)\n"
+        "  -h, --help                    display this help and exit\n"
+        "  -V, --version                output version information and exit\n\n",
         portno);
 
     usage_rig(stdout);

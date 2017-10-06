@@ -30,7 +30,8 @@ int main(int argc, char *argv[])
      * allocate memory, setup & open port
      */
 
-    if (argc < 2) {
+    if (argc < 2)
+    {
         hamlib_port_t myport;
         /* may be overriden by backend probe */
         myport.type.rig = RIG_PORT_SERIAL;
@@ -43,13 +44,16 @@ int main(int argc, char *argv[])
 
         rig_load_all_backends();
         myrig_model = rig_probe(&myport);
-    } else {
+    }
+    else
+    {
         myrig_model = atoi(argv[1]);
     }
 
     my_rig = rig_init(myrig_model);
 
-    if (!my_rig) {
+    if (!my_rig)
+    {
         fprintf(stderr, "Unknown rig num: %d\n", myrig_model);
         fprintf(stderr, "Please check riglist.h\n");
         exit(1);    /* whoops! something went wrong (mem alloc?) */
@@ -69,7 +73,8 @@ int main(int argc, char *argv[])
 
     retcode = rig_open(my_rig);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         printf("rig_open: error = %s\n", rigerror(retcode));
         exit(2);
     }
@@ -82,21 +87,24 @@ int main(int argc, char *argv[])
      */
     gettimeofday(&tv1, NULL);
 
-    for (i = 0; i < LOOP_COUNT; i++) {
+    for (i = 0; i < LOOP_COUNT; i++)
+    {
         freq_t freq;
         rmode_t rmode;
         pbwidth_t width;
 
         retcode = rig_get_freq(my_rig, RIG_VFO_CURR, &freq);
 
-        if (retcode != RIG_OK) {
+        if (retcode != RIG_OK)
+        {
             printf("rig_get_freq: error =  %s \n", rigerror(retcode));
             exit(1);
         }
 
         retcode = rig_get_mode(my_rig, RIG_VFO_CURR, &rmode, &width);
 
-        if (retcode != RIG_OK) {
+        if (retcode != RIG_OK)
+        {
             printf("rig_get_mode: error =  %s \n", rigerror(retcode));
             exit(1);
         }

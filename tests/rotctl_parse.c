@@ -79,7 +79,7 @@ extern int read_history();
  *
  */
 #if (defined(HAVE_SSLEEP) || defined(_WIN32)) && (!defined(HAVE_SLEEP))
-#include "hl_sleep.h"
+#  include "hl_sleep.h"
 #endif
 
 #include "rotctl_parse.h"
@@ -88,7 +88,7 @@ extern int read_history();
 #include "uthash.h"
 
 #ifdef HAVE_PTHREAD
-#include <pthread.h>
+#  include <pthread.h>
 
 static pthread_mutex_t rot_mutex = PTHREAD_MUTEX_INITIALIZER;
 #endif
@@ -129,7 +129,8 @@ static char *rp_hist_buf = (char *)NULL;
 static const int have_rl = 0;
 #endif
 
-struct test_table {
+struct test_table
+{
     unsigned char cmd;
     const char *name;
     int (*rot_routine)(ROT *,
@@ -193,7 +194,8 @@ declare_proto_rot(pause);
  *
  * NB: 'q' 'Q' '?' are reserved by interactive mode interface
  */
-struct test_table test_list[] = {
+struct test_table test_list[] =
+{
     { 'P', "set_pos",       ACTION(set_position),       ARG_IN, "Azimuth", "Elevation" },
     { 'p', "get_pos",       ACTION(get_position),       ARG_OUT, "Azimuth", "Elevation" },
     { 'K', "park",          ACTION(park),               ARG_NONE, },
@@ -225,11 +227,13 @@ struct test_table *find_cmd_entry(int cmd)
     int i;
 
     for (i = 0; i < MAXNBOPT && test_list[i].cmd != 0x00; i++)
-        if (test_list[i].cmd == cmd) {
+        if (test_list[i].cmd == cmd)
+        {
             break;
         }
 
-    if (i >= MAXNBOPT || test_list[i].cmd == 0x00) {
+    if (i >= MAXNBOPT || test_list[i].cmd == 0x00)
+    {
         return NULL;
     }
 
@@ -242,7 +246,8 @@ struct test_table *find_cmd_entry(int cmd)
  * Structure and hash funtions patterned after/copied from example.c
  * distributed with the uthash package. See:  http://uthash.sourceforge.net/
  */
-struct mod_lst {
+struct mod_lst
+{
     int id;                 /* caps->rot_model This is the hash key */
     char mfg_name[32];      /* caps->mfg_name */
     char model_name[32];    /* caps->model_name */
@@ -294,7 +299,8 @@ void hash_delete_all()
 {
     struct mod_lst *current_model, *tmp;
 
-    HASH_ITER(hh, models, current_model, tmp) {
+    HASH_ITER(hh, models, current_model, tmp)
+    {
         /* delete it (models advances to next) */
         HASH_DEL(models, current_model);
         free(current_model);            /* free it */
@@ -311,19 +317,22 @@ static void rp_getline(const char *s)
     int i;
 
     /* free allocated memory and set pointers to NULL */
-    if (input_line) {
+    if (input_line)
+    {
         free(input_line);
         input_line = (char *)NULL;
     }
 
-    if (result) {
+    if (result)
+    {
         result = (char *)NULL;
     }
 
     /* cmd, arg1, arg2, arg3, arg4, arg5, arg6
      * arg5 and arg 6 are currently unused.
      */
-    for (i = 0; i < 7; i++) {
+    for (i = 0; i < 7; i++)
+    {
         parsed_input[i] = NULL;
     }
 
@@ -342,8 +351,10 @@ char parse_arg(const char *arg)
 {
     int i;
 
-    for (i = 0; i < MAXNBOPT && test_list[i].cmd != 0; i++) {
-        if (!strncmp(arg, test_list[i].name, MAXNAMSIZ)) {
+    for (i = 0; i < MAXNBOPT && test_list[i].cmd != 0; i++)
+    {
+        if (!strncmp(arg, test_list[i].name, MAXNAMSIZ))
+        {
             return test_list[i].cmd;
         }
     }
@@ -359,11 +370,14 @@ static int scanfc(FILE *fin, const char *format, void *p)
 {
     int ret;
 
-    do {
+    do
+    {
         ret = fscanf(fin, format, p);
 
-        if (ret < 0) {
-            if (errno == EINTR) {
+        if (ret < 0)
+        {
+            if (errno == EINTR)
+            {
                 continue;
             }
 
@@ -372,7 +386,8 @@ static int scanfc(FILE *fin, const char *format, void *p)
         }
 
         return ret;
-    } while (1);
+    }
+    while (1);
 }
 
 
@@ -391,43 +406,61 @@ static int next_word(char *buffer, int argc, char *argv[], int newline)
     char c;
     static int reading_stdin;
 
-    if (!reading_stdin) {
-        if (optind >= argc) {
+    if (!reading_stdin)
+    {
+        if (optind >= argc)
+        {
             return EOF;
-        } else if (newline
-                   && '-' == argv[optind][0]
-                   && 1 == strlen(argv[optind])) {
+        }
+        else if (newline
+                 && '-' == argv[optind][0]
+                 && 1 == strlen(argv[optind]))
+        {
 
             ++optind;
             reading_stdin = 1;
         }
     }
 
-    if (reading_stdin) {
-        do {
-            do {
+    if (reading_stdin)
+    {
+        do
+        {
+            do
+            {
                 ret = scanf(" %c%" STR(MAXARGSZ) "[^ \t\n#]", &c, &buffer[1]);
-            } while (EINTR == ret);
+            }
+            while (EINTR == ret);
 
-            if (ret > 0 && '#' == c) {
-                do {
+            if (ret > 0 && '#' == c)
+            {
+                do
+                {
                     ret = scanf("%*[^\n]");
-                } while (EINTR == ret); /* consume comments */
+                }
+                while (EINTR == ret);   /* consume comments */
 
                 ret = 0;
             }
-        } while (!ret);
+        }
+        while (!ret);
 
-        if (EOF == ret) {
+        if (EOF == ret)
+        {
             reading_stdin = 0;
-        } else if (ret < 0) {
+        }
+        else if (ret < 0)
+        {
             rig_debug(RIG_DEBUG_ERR, "scanf: %s\n", strerror(errno));
             reading_stdin = 0;
-        } else {
+        }
+        else
+        {
             buffer[0] = c;
             buffer[1 == ret ? 1 : MAXARGSZ] = '\0';
 
-            if (newline) {
+            if (newline)
+            {
                 putchar('\n');
             }
 
@@ -436,12 +469,16 @@ static int next_word(char *buffer, int argc, char *argv[], int newline)
         }
     }
 
-    if (!reading_stdin) {
-        if (optind < argc) {
+    if (!reading_stdin)
+    {
+        if (optind < argc)
+        {
             strncpy(buffer, argv[optind++], MAXARGSZ);
             buffer[MAXARGSZ] = '\0';
             ret = 1;
-        } else {
+        }
+        else
+        {
             ret = EOF;
         }
     }
@@ -481,27 +518,36 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
     static int last_was_ret = 1;
 
     /* cmd, internal, rotctld */
-    if (!(interactive && prompt && have_rl)) {
-        if (interactive) {
-            if (prompt) {
+    if (!(interactive && prompt && have_rl))
+    {
+        if (interactive)
+        {
+            if (prompt)
+            {
                 fprintf_flush(fout, "\nRotator command: ");
             }
 
-            do {
-                if (scanfc(fin, "%c", &cmd) < 1) {
+            do
+            {
+                if (scanfc(fin, "%c", &cmd) < 1)
+                {
                     return -1;
                 }
 
                 /* Extended response protocol requested with leading '+' on command
                  * string--rotctld only!
                  */
-                if (cmd == '+' && !prompt) {
+                if (cmd == '+' && !prompt)
+                {
                     ext_resp = 1;
 
-                    if (scanfc(fin, "%c", &cmd) < 1) {
+                    if (scanfc(fin, "%c", &cmd) < 1)
+                    {
                         return -1;
                     }
-                } else if (cmd == '+' && prompt) {
+                }
+                else if (cmd == '+' && prompt)
+                {
                     return 0;
                 }
 
@@ -509,34 +555,42 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
                     && cmd != '_'
                     && cmd != '#'
                     && ispunct(cmd)
-                    && !prompt) {
+                    && !prompt)
+                {
 
                     ext_resp = 1;
                     resp_sep = cmd;
 
-                    if (scanfc(fin, "%c", &cmd) < 1) {
+                    if (scanfc(fin, "%c", &cmd) < 1)
+                    {
                         return -1;
                     }
-                } else if (cmd != '\\'
-                           && cmd != '?'
-                           && cmd != '_'
-                           && cmd != '#'
-                           && ispunct(cmd)
-                           && prompt) {
+                }
+                else if (cmd != '\\'
+                         && cmd != '?'
+                         && cmd != '_'
+                         && cmd != '#'
+                         && ispunct(cmd)
+                         && prompt)
+                {
                     return 0;
                 }
 
                 /* command by name */
-                if (cmd == '\\') {
+                if (cmd == '\\')
+                {
                     unsigned char cmd_name[MAXNAMSIZ], *pcmd = cmd_name;
                     int c_len = MAXNAMSIZ;
 
-                    if (scanfc(fin, "%c", pcmd) < 1) {
+                    if (scanfc(fin, "%c", pcmd) < 1)
+                    {
                         return -1;
                     }
 
-                    while (c_len-- && (isalnum(*pcmd) || *pcmd == '_')) {
-                        if (scanfc(fin, "%c", ++pcmd) < 1) {
+                    while (c_len-- && (isalnum(*pcmd) || *pcmd == '_'))
+                    {
+                        if (scanfc(fin, "%c", ++pcmd) < 1)
+                        {
                             return -1;
                         }
                     }
@@ -546,9 +600,12 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
                     break;
                 }
 
-                if (cmd == 0x0a || cmd == 0x0d) {
-                    if (last_was_ret) {
-                        if (prompt) {
+                if (cmd == 0x0a || cmd == 0x0d)
+                {
+                    if (last_was_ret)
+                    {
+                        if (prompt)
+                        {
                             fprintf_flush(fout, "? for help, q to quit.\n");
                         }
 
@@ -557,14 +614,18 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 
                     last_was_ret = 1;
                 }
-            } while (cmd == 0x0a || cmd == 0x0d);
+            }
+            while (cmd == 0x0a || cmd == 0x0d);
 
             last_was_ret = 0;
 
             /* comment line */
-            if (cmd == '#') {
-                while (cmd != '\n' && cmd != '\r') {
-                    if (scanfc(fin, "%c", &cmd) < 1) {
+            if (cmd == '#')
+            {
+                while (cmd != '\n' && cmd != '\r')
+                {
+                    if (scanfc(fin, "%c", &cmd) < 1)
+                    {
                         return -1;
                     }
                 }
@@ -572,99 +633,133 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
                 return 0;
             }
 
-            if (cmd == 'Q' || cmd == 'q') {
+            if (cmd == 'Q' || cmd == 'q')
+            {
                 return 1;
             }
 
-            if (cmd == '?') {
+            if (cmd == '?')
+            {
                 usage_rot(fout);
                 fflush(fout);
                 return 0;
             }
-        } else {
+        }
+        else
+        {
             /* parse rest of command line */
             retcode = next_word(command, argc, argv, 1);
 
-            if (EOF == retcode) {
+            if (EOF == retcode)
+            {
                 return 1;
-            } else if (retcode < 0) {
+            }
+            else if (retcode < 0)
+            {
                 return retcode;
-            } else if ('\0' == command[1]) {
+            }
+            else if ('\0' == command[1])
+            {
                 cmd = command[0];
-            } else {
+            }
+            else
+            {
                 cmd = parse_arg(command);
             }
         }
 
         cmd_entry = find_cmd_entry(cmd);
 
-        if (!cmd_entry) {
+        if (!cmd_entry)
+        {
             fprintf_flush(stderr, "Command '%c' not found!\n", cmd);
             return 0;
         }
 
         if ((cmd_entry->flags & ARG_IN_LINE)
             && (cmd_entry->flags & ARG_IN1)
-            && cmd_entry->arg1) {
+            && cmd_entry->arg1)
+        {
 
-            if (interactive) {
+            if (interactive)
+            {
                 char *nl;
 
-                if (prompt) {
+                if (prompt)
+                {
                     fprintf_flush(fout, "%s: ", cmd_entry->arg1);
                 }
 
-                if (fgets(arg1, MAXARGSZ, fin) == NULL) {
+                if (fgets(arg1, MAXARGSZ, fin) == NULL)
+                {
                     return -1;
                 }
 
-                if (arg1[0] == 0xa) {
-                    if (fgets(arg1, MAXARGSZ, fin) == NULL) {
+                if (arg1[0] == 0xa)
+                {
+                    if (fgets(arg1, MAXARGSZ, fin) == NULL)
+                    {
                         return -1;
                     }
                 }
 
                 nl = strchr(arg1, 0xa);
 
-                if (nl) {
+                if (nl)
+                {
                     *nl = '\0';    /* chomp */
                 }
 
                 p1 = arg1[0] == ' ' ? arg1 + 1 : arg1;
-            } else {
+            }
+            else
+            {
                 retcode = next_word(arg1, argc, argv, 0);
 
-                if (EOF == retcode) {
+                if (EOF == retcode)
+                {
                     fprintf(stderr,
                             "Invalid arg for command '%s'\n",
                             cmd_entry->name);
                     return 1;
-                } else if (retcode < 0) {
+                }
+                else if (retcode < 0)
+                {
                     return retcode;
                 }
 
                 p1 = arg1;
             }
-        } else  if ((cmd_entry->flags & ARG_IN1) && cmd_entry->arg1) {
-            if (interactive) {
-                if (prompt) {
+        }
+        else  if ((cmd_entry->flags & ARG_IN1) && cmd_entry->arg1)
+        {
+            if (interactive)
+            {
+                if (prompt)
+                {
                     fprintf_flush(fout, "%s: ", cmd_entry->arg1);
                 }
 
-                if (scanfc(fin, "%s", arg1) < 1) {
+                if (scanfc(fin, "%s", arg1) < 1)
+                {
                     return -1;
                 }
 
                 p1 = arg1;
-            } else {
+            }
+            else
+            {
                 retcode = next_word(arg1, argc, argv, 0);
 
-                if (EOF == retcode) {
+                if (EOF == retcode)
+                {
                     fprintf(stderr,
                             "Invalid arg for command '%s'\n",
                             cmd_entry->name);
                     return 1;
-                } else if (retcode < 0) {
+                }
+                else if (retcode < 0)
+                {
                     return retcode;
                 }
 
@@ -675,27 +770,36 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
         if (p1
             && p1[0] != '?'
             && (cmd_entry->flags & ARG_IN2)
-            && cmd_entry->arg2) {
+            && cmd_entry->arg2)
+        {
 
-            if (interactive) {
-                if (prompt) {
+            if (interactive)
+            {
+                if (prompt)
+                {
                     fprintf_flush(fout, "%s: ", cmd_entry->arg2);
                 }
 
-                if (scanfc(fin, "%s", arg2) < 1) {
+                if (scanfc(fin, "%s", arg2) < 1)
+                {
                     return -1;
                 }
 
                 p2 = arg2;
-            } else {
+            }
+            else
+            {
                 retcode = next_word(arg2, argc, argv, 0);
 
-                if (EOF == retcode) {
+                if (EOF == retcode)
+                {
                     fprintf(stderr,
                             "Invalid arg for command '%s'\n",
                             cmd_entry->name);
                     return 1;
-                } else if (retcode < 0) {
+                }
+                else if (retcode < 0)
+                {
                     return retcode;
                 }
 
@@ -706,27 +810,36 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
         if (p1
             && p1[0] != '?'
             && (cmd_entry->flags & ARG_IN3)
-            && cmd_entry->arg3) {
+            && cmd_entry->arg3)
+        {
 
-            if (interactive) {
-                if (prompt) {
+            if (interactive)
+            {
+                if (prompt)
+                {
                     fprintf_flush(fout, "%s: ", cmd_entry->arg3);
                 }
 
-                if (scanfc(fin, "%s", arg3) < 1) {
+                if (scanfc(fin, "%s", arg3) < 1)
+                {
                     return -1;
                 }
 
                 p3 = arg3;
-            } else {
+            }
+            else
+            {
                 retcode = next_word(arg3, argc, argv, 0);
 
-                if (EOF == retcode) {
+                if (EOF == retcode)
+                {
                     fprintf(stderr,
                             "Invalid arg for command '%s'\n",
                             cmd_entry->name);
                     return 1;
-                } else if (retcode < 0) {
+                }
+                else if (retcode < 0)
+                {
                     return retcode;
                 }
 
@@ -737,27 +850,36 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
         if (p1
             && p1[0] != '?'
             && (cmd_entry->flags & ARG_IN4)
-            && cmd_entry->arg4) {
+            && cmd_entry->arg4)
+        {
 
-            if (interactive) {
-                if (prompt) {
+            if (interactive)
+            {
+                if (prompt)
+                {
                     fprintf_flush(fout, "%s: ", cmd_entry->arg4);
                 }
 
-                if (scanfc(fin, "%s", arg4) < 1) {
+                if (scanfc(fin, "%s", arg4) < 1)
+                {
                     return -1;
                 }
 
                 p4 = arg4;
-            } else {
+            }
+            else
+            {
                 retcode = next_word(arg4, argc, argv, 0);
 
-                if (EOF == retcode) {
+                if (EOF == retcode)
+                {
                     fprintf(stderr,
                             "Invalid arg for command '%s'\n",
                             cmd_entry->name);
                     return 1;
-                } else if (retcode < 0) {
+                }
+                else if (retcode < 0)
+                {
                     return retcode;
                 }
 
@@ -768,7 +890,8 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 
 #ifdef HAVE_LIBREADLINE
 
-    if (interactive && prompt && have_rl) {
+    if (interactive && prompt && have_rl)
+    {
         int j, x;
 
 #ifdef HAVE_READLINE_HISTORY
@@ -784,30 +907,35 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
         rp_getline("\nRotator command: ");
 
         /* EOF (Ctl-D) received on empty input line, bail out gracefully. */
-        if (!input_line) {
+        if (!input_line)
+        {
             fprintf_flush(fout, "\n");
             return 1;
         }
 
         /* Q or q to quit */
-        if (!(strncasecmp(input_line, "q", 1))) {
+        if (!(strncasecmp(input_line, "q", 1)))
+        {
             return 1;
         }
 
         /* '?' for help */
-        if (!(strncmp(input_line, "?", 1))) {
+        if (!(strncmp(input_line, "?", 1)))
+        {
             usage_rot(fout);
             fflush(fout);
             return 0;
         }
 
         /* '#' for comment */
-        if (!(strncmp(input_line, "#", 1))) {
+        if (!(strncmp(input_line, "#", 1)))
+        {
             return 0;
         }
 
         /* Blank line entered */
-        if (!(strcmp(input_line, ""))) {
+        if (!(strcmp(input_line, "")))
+        {
             fprintf(fout, "? for help, q to quit.\n");
             fflush(fout);
             return 0;
@@ -825,9 +953,12 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
         /* parsed_input stores pointers into input_line where the token strings
          * start.
          */
-        if (result) {
+        if (result)
+        {
             parsed_input[0] = result;
-        } else {
+        }
+        else
+        {
             /* Oops!  Invoke GDB!! */
             fprintf_flush(fout, "\n");
             return 1;
@@ -839,33 +970,38 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
          */
 
         /* Single character command */
-        if ((strlen(parsed_input[0]) == 1) && (*parsed_input[0] != '\\')) {
+        if ((strlen(parsed_input[0]) == 1) && (*parsed_input[0] != '\\'))
+        {
             cmd = *parsed_input[0];
 
 #ifdef HAVE_READLINE_HISTORY
 
             /* Store what is typed, not validated, for history. */
-            if (rp_hist_buf) {
+            if (rp_hist_buf)
+            {
                 strncpy(rp_hist_buf, parsed_input[0], 1);
             }
 
 #endif
         }
         /* Test the command token, parsed_input[0] */
-        else if ((*parsed_input[0] == '\\') && (strlen(parsed_input[0]) > 1)) {
+        else if ((*parsed_input[0] == '\\') && (strlen(parsed_input[0]) > 1))
+        {
             char cmd_name[MAXNAMSIZ];
 
             /* if there is no terminating '\0' character in the source string,
              * srncpy() doesn't add one even if the supplied length is less
              * than the destination array.  Truncate the source string here.
              */
-            if (strlen(parsed_input[0] + 1) >= MAXNAMSIZ) {
+            if (strlen(parsed_input[0] + 1) >= MAXNAMSIZ)
+            {
                 *(parsed_input[0] + MAXNAMSIZ) = '\0';
             }
 
 #ifdef HAVE_READLINE_HISTORY
 
-            if (rp_hist_buf) {
+            if (rp_hist_buf)
+            {
                 strncpy(rp_hist_buf, parsed_input[0], MAXNAMSIZ);
             }
 
@@ -880,8 +1016,10 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
             /* Sanity check as valid multiple character commands consist of
              * alpha-numeric characters and the underscore ('_') character.
              */
-            for (j = 0; cmd_name[j] != '\0'; j++) {
-                if (!(isalnum((int)cmd_name[j]) || cmd_name[j] == '_')) {
+            for (j = 0; cmd_name[j] != '\0'; j++)
+            {
+                if (!(isalnum((int)cmd_name[j]) || cmd_name[j] == '_'))
+                {
                     fprintf(stderr,
                             "Valid multiple character command names contain alpha-numeric characters plus '_'\n");
                     return 0;
@@ -891,21 +1029,27 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
             cmd = parse_arg(cmd_name);
         }
         /* Single '\' entered, prompt again */
-        else if ((*parsed_input[0] == '\\') && (strlen(parsed_input[0]) == 1)) {
+        else if ((*parsed_input[0] == '\\') && (strlen(parsed_input[0]) == 1))
+        {
             return 0;
         }
         /* Multiple characters but no leading '\' */
-        else {
+        else
+        {
             fprintf(stderr, "Precede multiple character command names with '\\'\n");
             return 0;
         }
 
         cmd_entry = find_cmd_entry(cmd);
 
-        if (!cmd_entry) {
-            if (cmd == '\0') {
+        if (!cmd_entry)
+        {
+            if (cmd == '\0')
+            {
                 fprintf(stderr, "Command '%s' not found!\n", parsed_input[0]);
-            } else {
+            }
+            else
+            {
                 fprintf(stderr, "Command '%c' not found!\n", cmd);
             }
 
@@ -915,17 +1059,21 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
         /* \send_cmd */
         if ((cmd_entry->flags & ARG_IN_LINE)
             && (cmd_entry->flags & ARG_IN1)
-            && cmd_entry->arg1) {
+            && cmd_entry->arg1)
+        {
 
             /* Check for a non-existent delimiter so as to not break up
              * remaining line into separate tokens (spaces OK).
              */
             result = strtok(NULL, "\0");
 
-            if (result) {
+            if (result)
+            {
                 x = 1;
                 parsed_input[x] = result;
-            } else {
+            }
+            else
+            {
                 x = 0;
                 char pmptstr[(strlen(cmd_entry->arg1) + 3)];
 
@@ -935,28 +1083,34 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
                 rp_getline(pmptstr);
 
                 /* Blank line entered */
-                if (!(strcmp(input_line, ""))) {
+                if (!(strcmp(input_line, "")))
+                {
                     fprintf(fout, "? for help, q to quit.\n");
                     fflush(fout);
                     return 0;
                 }
 
-                if (input_line) {
+                if (input_line)
+                {
                     parsed_input[x] = input_line;
-                } else {
+                }
+                else
+                {
                     fprintf_flush(fout, "\n");
                     return 1;
                 }
             }
 
             /* The arg1 array size is MAXARGSZ + 1 so truncate it to fit if larger. */
-            if (strlen(parsed_input[x]) > MAXARGSZ) {
+            if (strlen(parsed_input[x]) > MAXARGSZ)
+            {
                 parsed_input[x][MAXARGSZ] = '\0';
             }
 
 #ifdef HAVE_READLINE_HISTORY
 
-            if (rp_hist_buf) {
+            if (rp_hist_buf)
+            {
                 strncat(rp_hist_buf, " ", 1);
                 strncat(rp_hist_buf, parsed_input[x], MAXARGSZ);
             }
@@ -967,13 +1121,17 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
         }
 
         /* Normal argument parsing. */
-        else if ((cmd_entry->flags & ARG_IN1) && cmd_entry->arg1) {
+        else if ((cmd_entry->flags & ARG_IN1) && cmd_entry->arg1)
+        {
             result = strtok(NULL, " ");
 
-            if (result) {
+            if (result)
+            {
                 x = 1;
                 parsed_input[x] = result;
-            } else {
+            }
+            else
+            {
                 x = 0;
                 char pmptstr[(strlen(cmd_entry->arg1) + 3)];
 
@@ -982,7 +1140,8 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 
                 rp_getline(pmptstr);
 
-                if (!(strcmp(input_line, ""))) {
+                if (!(strcmp(input_line, "")))
+                {
                     fprintf(fout, "? for help, q to quit.\n");
                     fflush(fout);
                     return 0;
@@ -990,21 +1149,26 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 
                 result = strtok(input_line, " ");
 
-                if (result) {
+                if (result)
+                {
                     parsed_input[x] = result;
-                } else {
+                }
+                else
+                {
                     fprintf_flush(fout, "\n");
                     return 1;
                 }
             }
 
-            if (strlen(parsed_input[x]) > MAXARGSZ) {
+            if (strlen(parsed_input[x]) > MAXARGSZ)
+            {
                 parsed_input[x][MAXARGSZ] = '\0';
             }
 
 #ifdef HAVE_READLINE_HISTORY
 
-            if (rp_hist_buf) {
+            if (rp_hist_buf)
+            {
                 strncat(rp_hist_buf, " ", 1);
                 strncat(rp_hist_buf, parsed_input[x], MAXARGSZ);
             }
@@ -1017,14 +1181,18 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
         if (p1
             && p1[0] != '?'
             && (cmd_entry->flags & ARG_IN2)
-            && cmd_entry->arg2) {
+            && cmd_entry->arg2)
+        {
 
             result = strtok(NULL, " ");
 
-            if (result) {
+            if (result)
+            {
                 x = 2;
                 parsed_input[x] = result;
-            } else {
+            }
+            else
+            {
                 x = 0;
                 char pmptstr[(strlen(cmd_entry->arg2) + 3)];
 
@@ -1033,7 +1201,8 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 
                 rp_getline(pmptstr);
 
-                if (!(strcmp(input_line, ""))) {
+                if (!(strcmp(input_line, "")))
+                {
                     fprintf(fout, "? for help, q to quit.\n");
                     fflush(fout);
                     return 0;
@@ -1041,21 +1210,26 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 
                 result = strtok(input_line, " ");
 
-                if (result) {
+                if (result)
+                {
                     parsed_input[x] = result;
-                } else {
+                }
+                else
+                {
                     fprintf_flush(fout, "\n");
                     return 1;
                 }
             }
 
-            if (strlen(parsed_input[x]) > MAXARGSZ) {
+            if (strlen(parsed_input[x]) > MAXARGSZ)
+            {
                 parsed_input[x][MAXARGSZ] = '\0';
             }
 
 #ifdef HAVE_READLINE_HISTORY
 
-            if (rp_hist_buf) {
+            if (rp_hist_buf)
+            {
                 strncat(rp_hist_buf, " ", 1);
                 strncat(rp_hist_buf, parsed_input[x], MAXARGSZ);
             }
@@ -1068,14 +1242,18 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
         if (p1
             && p1[0] != '?'
             && (cmd_entry->flags & ARG_IN3)
-            && cmd_entry->arg3) {
+            && cmd_entry->arg3)
+        {
 
             result = strtok(NULL, " ");
 
-            if (result) {
+            if (result)
+            {
                 x = 3;
                 parsed_input[x] = result;
-            } else {
+            }
+            else
+            {
                 x = 0;
                 char pmptstr[(strlen(cmd_entry->arg3) + 3)];
 
@@ -1084,7 +1262,8 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 
                 rp_getline(pmptstr);
 
-                if (!(strcmp(input_line, ""))) {
+                if (!(strcmp(input_line, "")))
+                {
                     fprintf(fout, "? for help, q to quit.\n");
                     fflush(fout);
                     return 0;
@@ -1092,21 +1271,26 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 
                 result = strtok(input_line, " ");
 
-                if (result) {
+                if (result)
+                {
                     parsed_input[x] = result;
-                } else {
+                }
+                else
+                {
                     fprintf_flush(fout, "\n");
                     return 1;
                 }
             }
 
-            if (strlen(parsed_input[x]) > MAXARGSZ) {
+            if (strlen(parsed_input[x]) > MAXARGSZ)
+            {
                 parsed_input[x][MAXARGSZ] = '\0';
             }
 
 #ifdef HAVE_READLINE_HISTORY
 
-            if (rp_hist_buf) {
+            if (rp_hist_buf)
+            {
                 strncat(rp_hist_buf, " ", 1);
                 strncat(rp_hist_buf, parsed_input[x], MAXARGSZ);
             }
@@ -1119,14 +1303,18 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
         if (p1
             && p1[0] != '?'
             && (cmd_entry->flags & ARG_IN4)
-            && cmd_entry->arg4) {
+            && cmd_entry->arg4)
+        {
 
             result = strtok(NULL, " ");
 
-            if (result) {
+            if (result)
+            {
                 x = 4;
                 parsed_input[x] = result;
-            } else {
+            }
+            else
+            {
                 x = 0;
                 char pmptstr[(strlen(cmd_entry->arg4) + 3)];
 
@@ -1135,7 +1323,8 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 
                 rp_getline(pmptstr);
 
-                if (!(strcmp(input_line, ""))) {
+                if (!(strcmp(input_line, "")))
+                {
                     fprintf(fout, "? for help, q to quit.\n");
                     fflush(fout);
                     return 0;
@@ -1143,21 +1332,26 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 
                 result = strtok(input_line, " ");
 
-                if (result) {
+                if (result)
+                {
                     parsed_input[x] = result;
-                } else {
+                }
+                else
+                {
                     fprintf_flush(fout, "\n");
                     return 1;
                 }
             }
 
-            if (strlen(parsed_input[x]) > MAXARGSZ) {
+            if (strlen(parsed_input[x]) > MAXARGSZ)
+            {
                 parsed_input[x][MAXARGSZ] = '\0';
             }
 
 #ifdef HAVE_READLINE_HISTORY
 
-            if (rp_hist_buf) {
+            if (rp_hist_buf)
+            {
                 strncat(rp_hist_buf, " ", 1);
                 strncat(rp_hist_buf, parsed_input[x], MAXARGSZ);
             }
@@ -1169,7 +1363,8 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 
 #ifdef HAVE_READLINE_HISTORY
 
-        if (rp_hist_buf) {
+        if (rp_hist_buf)
+        {
             add_history(rp_hist_buf);
             free(rp_hist_buf);
             rp_hist_buf = (char *)NULL;
@@ -1190,6 +1385,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 #endif
 
     if (!prompt)
+    {
         rig_debug(RIG_DEBUG_TRACE,
                   "rotctl(d): %c '%s' '%s' '%s' '%s'\n",
                   cmd,
@@ -1197,12 +1393,14 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
                   p2 ? p2 : "",
                   p3 ? p3 : "",
                   p4 ? p4 : "");
+    }
 
     /*
      * Extended Response protocol: output received command name and arguments
      * response.
      */
-    if (interactive && ext_resp && !prompt) {
+    if (interactive && ext_resp && !prompt)
+    {
         char a1[MAXARGSZ + 1];
         char a2[MAXARGSZ + 1];
         char a3[MAXARGSZ + 1];
@@ -1231,25 +1429,34 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
     pthread_mutex_unlock(&rot_mutex);
 #endif
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         /* only for rotctld */
-        if (interactive && !prompt) {
+        if (interactive && !prompt)
+        {
             fprintf(fout, NETROTCTL_RET "%d\n", retcode);
             ext_resp = 0;
             resp_sep = '\n';
-        } else {
+        }
+        else
+        {
             fprintf(fout, "%s: error = %s\n", cmd_entry->name, rigerror(retcode));
         }
-    } else {
+    }
+    else
+    {
         /* only for rotctld */
-        if (interactive && !prompt) {
+        if (interactive && !prompt)
+        {
             /* netrotctl RIG_OK */
-            if (!(cmd_entry->flags & ARG_OUT) && !ext_resp) {
+            if (!(cmd_entry->flags & ARG_OUT) && !ext_resp)
+            {
                 fprintf(fout, NETROTCTL_RET "0\n");
             }
 
             /* Extended Response protocol */
-            else if (ext_resp && cmd != 0xf0) {
+            else if (ext_resp && cmd != 0xf0)
+            {
                 fprintf(fout, NETROTCTL_RET "0\n");
                 ext_resp = 0;
                 resp_sep = '\n';
@@ -1277,25 +1484,32 @@ void usage_rot(FILE *fout)
 
     fprintf(fout, "Commands (some may not be available for this rotator):\n");
 
-    for (i = 0; test_list[i].cmd != 0; i++) {
-        fprintf(fout, "%c: %-12s(", isprint(test_list[i].cmd) ?
-                test_list[i].cmd : '?', test_list[i].name);
+    for (i = 0; test_list[i].cmd != 0; i++)
+    {
+        fprintf(fout,
+                "%c: %-12s(",
+                isprint(test_list[i].cmd) ? test_list[i].cmd : '?',
+                test_list[i].name);
 
         nbspaces = 16;
 
-        if (test_list[i].arg1 && (test_list[i].flags & ARG_IN1)) {
+        if (test_list[i].arg1 && (test_list[i].flags & ARG_IN1))
+        {
             nbspaces -= fprintf(fout, "%s", test_list[i].arg1);
         }
 
-        if (test_list[i].arg2 && (test_list[i].flags & ARG_IN2)) {
+        if (test_list[i].arg2 && (test_list[i].flags & ARG_IN2))
+        {
             nbspaces -= fprintf(fout, ", %s", test_list[i].arg2);
         }
 
-        if (test_list[i].arg3 && (test_list[i].flags & ARG_IN3)) {
+        if (test_list[i].arg3 && (test_list[i].flags & ARG_IN3))
+        {
             nbspaces -= fprintf(fout, ", %s", test_list[i].arg3);
         }
 
-        if (test_list[i].arg4 && (test_list[i].flags & ARG_IN4)) {
+        if (test_list[i].arg4 && (test_list[i].flags & ARG_IN4))
+        {
             nbspaces -= fprintf(fout, ", %s", test_list[i].arg4);
         }
 
@@ -1324,7 +1538,8 @@ int print_conf_list(const struct confparams *cfp, rig_ptr_t data)
            cfp->dflt,
            buf);
 
-    switch (cfp->type) {
+    switch (cfp->type)
+    {
     case RIG_CONF_NUMERIC:
         printf("\tRange: %.1f..%.1f, step %.1f\n",
                cfp->u.n.min,
@@ -1333,13 +1548,15 @@ int print_conf_list(const struct confparams *cfp, rig_ptr_t data)
         break;
 
     case RIG_CONF_COMBO:
-        if (!cfp->u.c.combostr[0]) {
+        if (!cfp->u.c.combostr[0])
+        {
             break;
         }
 
         printf("\tCombo: %s", cfp->u.c.combostr[0]);
 
-        for (i = 1 ; i < RIG_COMBO_MAX && cfp->u.c.combostr[i]; i++) {
+        for (i = 1 ; i < RIG_COMBO_MAX && cfp->u.c.combostr[i]; i++)
+        {
             printf(", %s", cfp->u.c.combostr[i]);
         }
 
@@ -1369,7 +1586,8 @@ void print_model_list()
 {
     struct mod_lst *s;
 
-    for (s = models; s != NULL; s = (struct mod_lst *)(s->hh.next)) {
+    for (s = models; s != NULL; s = (struct mod_lst *)(s->hh.next))
+    {
         printf("%6d  %-23s%-24s%-16s%s\n",
                s->id,
                s->mfg_name,
@@ -1389,7 +1607,8 @@ void list_models()
     printf(" Rig #  Mfg                    Model                   Version         Status\n");
     status = rot_list_foreach(hash_model_list, NULL);
 
-    if (status != RIG_OK) {
+    if (status != RIG_OK)
+    {
         printf("rot_list_foreach: error = %s \n", rigerror(status));
         exit(2);
     }
@@ -1407,24 +1626,28 @@ int set_conf(ROT *my_rot, char *conf_parms)
 
     p = conf_parms;
 
-    while (p && *p != '\0') {
+    while (p && *p != '\0')
+    {
         /* FIXME: left hand value of = cannot be null */
         q = strchr(p, '=');
 
-        if (!q) {
+        if (!q)
+        {
             return RIG_EINVAL;
         }
 
         *q++ = '\0';
         n = strchr(q, ',');
 
-        if (n) {
+        if (n)
+        {
             *n++ = '\0';
         }
 
         ret = rot_set_conf(my_rot, rot_token_lookup(my_rot, p), q);
 
-        if (ret != RIG_OK) {
+        if (ret != RIG_OK)
+        {
             return ret;
         }
 
@@ -1461,17 +1684,20 @@ declare_proto_rot(get_position)
 
     status = rot_get_position(rot, &az, &el);
 
-    if (status != RIG_OK) {
+    if (status != RIG_OK)
+    {
         return status;
     }
 
-    if ((interactive && prompt) || (interactive && !prompt && ext_resp)) {
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
         fprintf(fout, "%s: ", cmd->arg1);
     }
 
     fprintf(fout, "%f%c", az, resp_sep);
 
-    if ((interactive && prompt) || (interactive && !prompt && ext_resp)) {
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
         fprintf(fout, "%s: ", cmd->arg2);
     }
 
@@ -1512,7 +1738,8 @@ declare_proto_rot(get_info)
 
     s = rot_get_info(rot);
 
-    if ((interactive && prompt) || (interactive && !prompt && ext_resp)) {
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
         fprintf(fout, "%s: ", cmd->arg1);
     }
 
@@ -1528,15 +1755,24 @@ declare_proto_rot(move)
     int direction;
     int speed;
 
-    if (!strcmp(arg1, "LEFT") || !strcmp(arg1, "CCW")) {
+    if (!strcmp(arg1, "LEFT") || !strcmp(arg1, "CCW"))
+    {
         direction = ROT_MOVE_LEFT;
-    } else if (!strcmp(arg1, "RIGHT") || !strcmp(arg1, "CW")) {
+    }
+    else if (!strcmp(arg1, "RIGHT") || !strcmp(arg1, "CW"))
+    {
         direction = ROT_MOVE_RIGHT;
-    } else if (!strcmp(arg1, "UP")) {
+    }
+    else if (!strcmp(arg1, "UP"))
+    {
         direction = ROT_MOVE_UP;
-    } else if (!strcmp(arg1, "DOWN")) {
+    }
+    else if (!strcmp(arg1, "DOWN"))
+    {
         direction = ROT_MOVE_DOWN;
-    } else {
+    }
+    else
+    {
         CHKSCN1ARG(sscanf(arg1, "%d", &direction));
     }
 
@@ -1552,7 +1788,8 @@ declare_proto_rot(inter_set_conf)
 
     CHKSCN1ARG(sscanf(arg1, "%ld", &token));
 
-    if (!arg2 || arg2[0] == '\0') {
+    if (!arg2 || arg2[0] == '\0')
+    {
         return -RIG_EINVAL;
     }
 
@@ -1581,37 +1818,43 @@ declare_proto_rot(dump_state)
      */
 #define ROTCTLD_PROT_VER 0
 
-    if ((interactive && prompt) || (interactive && !prompt && ext_resp)) {
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
         fprintf(fout, "rotctld Protocol Ver: ");
     }
 
     fprintf(fout, "%d%c", ROTCTLD_PROT_VER, resp_sep);
 
-    if ((interactive && prompt) || (interactive && !prompt && ext_resp)) {
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
         fprintf(fout, "Rotor Model: ");
     }
 
     fprintf(fout, "%d%c", rot->caps->rot_model, resp_sep);
 
-    if ((interactive && prompt) || (interactive && !prompt && ext_resp)) {
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
         fprintf(fout, "Minimum Azimuth: ");
     }
 
     fprintf(fout, "%lf%c", rs->min_az, resp_sep);
 
-    if ((interactive && prompt) || (interactive && !prompt && ext_resp)) {
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
         fprintf(fout, "Maximum Azimuth: ");
     }
 
     fprintf(fout, "%lf%c", rs->max_az, resp_sep);
 
-    if ((interactive && prompt) || (interactive && !prompt && ext_resp)) {
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
         fprintf(fout, "Minimum Elevation: ");
     }
 
     fprintf(fout, "%lf%c", rs->min_el, resp_sep);
 
-    if ((interactive && prompt) || (interactive && !prompt && ext_resp)) {
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
         fprintf(fout, "Maximum Elevation: ");
     }
 
@@ -1644,11 +1887,13 @@ declare_proto_rot(send_cmd)
      */
     backend_num = ROT_BACKEND_NUM(rot->caps->rot_model);
 
-    if (send_cmd_term == -1 || backend_num == -1) {
+    if (send_cmd_term == -1 || backend_num == -1)
+    {
         const char *p = arg1, *pp = NULL;
         int i;
 
-        for (i = 0; i < BUFSZ - 1 && p != pp; i++) {
+        for (i = 0; i < BUFSZ - 1 && p != pp; i++)
+        {
             pp = p + 1;
             bufcmd[i] = strtol(p + 1, (char **) &p, 0);
         }
@@ -1658,7 +1903,9 @@ declare_proto_rot(send_cmd)
 
         /* no End Of Message chars */
         eom_buf[0] = '\0';
-    } else {
+    }
+    else
+    {
         /* text protocol */
         strncpy(bufcmd, arg1, BUFSZ);
         bufcmd[BUFSZ - 2] = '\0';
@@ -1666,7 +1913,8 @@ declare_proto_rot(send_cmd)
         cmd_len = strlen(bufcmd);
 
         /* Automatic termination char */
-        if (send_cmd_term != 0) {
+        if (send_cmd_term != 0)
+        {
             bufcmd[cmd_len++] = send_cmd_term;
         }
 
@@ -1679,36 +1927,45 @@ declare_proto_rot(send_cmd)
 
     retval = write_block(&rs->rotport, bufcmd, cmd_len);
 
-    if (retval != RIG_OK) {
+    if (retval != RIG_OK)
+    {
         return retval;
     }
 
-    if (interactive && prompt) {
+    if (interactive && prompt)
+    {
         fprintf(fout, "%s: ", cmd->arg2);
     }
 
-    do {
+    do
+    {
         /*
          * assumes CR or LF is end of line char
          * for all ascii protocols
          */
         retval = read_string(&rs->rotport, buf, BUFSZ, eom_buf, strlen(eom_buf));
 
-        if (retval < 0) {
+        if (retval < 0)
+        {
             break;
         }
 
-        if (retval < BUFSZ) {
+        if (retval < BUFSZ)
+        {
             buf[retval] = '\0';
-        } else {
+        }
+        else
+        {
             buf[BUFSZ - 1] = '\0';
         }
 
         fprintf(fout, "%s\n", buf);
 
-    } while (retval > 0);
+    }
+    while (retval > 0);
 
-    if (retval > 0 || retval == -RIG_ETIMEOUT) {
+    if (retval > 0 || retval == -RIG_ETIMEOUT)
+    {
         retval = RIG_OK;
     }
 
@@ -1731,11 +1988,13 @@ declare_proto_rot(lonlat2loc)
 
     err = longlat2locator(lon, lat, (char *)&loc, pair);
 
-    if (err != RIG_OK) {
+    if (err != RIG_OK)
+    {
         return err;
     }
 
-    if ((interactive && prompt) || (interactive && !prompt && ext_resp)) {
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
         fprintf(fout, "%s: ", cmd->arg4);
     }
 
@@ -1756,17 +2015,20 @@ declare_proto_rot(loc2lonlat)
 
     status = locator2longlat(&lon, &lat, (const char *)loc);
 
-    if (status != RIG_OK) {
+    if (status != RIG_OK)
+    {
         return status;
     }
 
-    if ((interactive && prompt) || (interactive && !prompt && ext_resp)) {
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
         fprintf(fout, "%s: ", cmd->arg2);
     }
 
     fprintf(fout, "%f%c", lon, resp_sep);
 
-    if ((interactive && prompt) || (interactive && !prompt && ext_resp)) {
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
         fprintf(fout, "%s: ", cmd->arg3);
     }
 
@@ -1789,7 +2051,8 @@ declare_proto_rot(d_m_s2dec)
 
     dec_deg = dms2dec(deg, min, sec, sw);
 
-    if ((interactive && prompt) || (interactive && !prompt && ext_resp)) {
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
         fprintf(fout, "%s: ", cmd->arg5);
     }
 
@@ -1809,29 +2072,34 @@ declare_proto_rot(dec2d_m_s)
 
     err = dec2dms(dec_deg, &deg, &min, &sec, &sw);
 
-    if (err != RIG_OK) {
+    if (err != RIG_OK)
+    {
         return err;
     }
 
-    if ((interactive && prompt) || (interactive && !prompt && ext_resp)) {
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
         fprintf(fout, "%s: ", cmd->arg2);
     }
 
     fprintf(fout, "%d%c", deg, resp_sep);
 
-    if ((interactive && prompt) || (interactive && !prompt && ext_resp)) {
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
         fprintf(fout, "%s: ", cmd->arg3);
     }
 
     fprintf(fout, "%d%c", min, resp_sep);
 
-    if ((interactive && prompt) || (interactive && !prompt && ext_resp)) {
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
         fprintf(fout, "%s: ", cmd->arg4);
     }
 
     fprintf(fout, "%lf%c", sec, resp_sep);
 
-    if ((interactive && prompt) || (interactive && !prompt && ext_resp)) {
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
         fprintf(fout, "%s: ", cmd->arg5);
     }
 
@@ -1853,7 +2121,8 @@ declare_proto_rot(d_mm2dec)
 
     dec_deg = dmmm2dec(deg, min, sw);
 
-    if ((interactive && prompt) || (interactive && !prompt && ext_resp)) {
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
         fprintf(fout, "%s: ", cmd->arg4);
     }
 
@@ -1873,23 +2142,27 @@ declare_proto_rot(dec2d_mm)
 
     err = dec2dmmm(dec_deg, &deg, &min, &sw);
 
-    if (err != RIG_OK) {
+    if (err != RIG_OK)
+    {
         return err;
     }
 
-    if ((interactive && prompt) || (interactive && !prompt && ext_resp)) {
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
         fprintf(fout, "%s: ", cmd->arg2);
     }
 
     fprintf(fout, "%d%c", deg, resp_sep);
 
-    if ((interactive && prompt) || (interactive && !prompt && ext_resp)) {
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
         fprintf(fout, "%s: ", cmd->arg3);
     }
 
     fprintf(fout, "%lf%c", min, resp_sep);
 
-    if ((interactive && prompt) || (interactive && !prompt && ext_resp)) {
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
         fprintf(fout, "%s: ", cmd->arg4);
     }
 
@@ -1912,17 +2185,20 @@ declare_proto_rot(coord2qrb)
 
     err = qrb(lon1, lat1, lon2, lat2, &dist, &az);
 
-    if (err != RIG_OK) {
+    if (err != RIG_OK)
+    {
         return err;
     }
 
-    if ((interactive && prompt) || (interactive && !prompt && ext_resp)) {
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
         fprintf(fout, "%s: ", cmd->arg5);
     }
 
     fprintf(fout, "%lf%c", dist, resp_sep);
 
-    if ((interactive && prompt) || (interactive && !prompt && ext_resp)) {
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
         fprintf(fout, "%s: ", cmd->arg6);
     }
 
@@ -1941,11 +2217,13 @@ declare_proto_rot(az_sp2az_lp)
 
     az_lp = azimuth_long_path(az_sp);
 
-    if (az_lp < 0) {
+    if (az_lp < 0)
+    {
         return -RIG_EINVAL;
     }
 
-    if ((interactive && prompt) || (interactive && !prompt && ext_resp)) {
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
         fprintf(fout, "%s: ", cmd->arg2);
     }
 
@@ -1964,7 +2242,8 @@ declare_proto_rot(dist_sp2dist_lp)
 
     dist_lp = distance_long_path(dist_sp);
 
-    if ((interactive && prompt) || (interactive && !prompt && ext_resp)) {
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
         fprintf(fout, "%s: ", cmd->arg2);
     }
 

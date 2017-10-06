@@ -44,14 +44,16 @@ int main(int argc, char *argv[])
     RIG *my_rig;
     int status, i, j;
 
-    if (argc != 2) {
+    if (argc != 2)
+    {
         fprintf(stderr, "%s <rig_num>\n", argv[0]);
         exit(1);
     }
 
     my_rig = rig_init(atoi(argv[1]));
 
-    if (!my_rig) {
+    if (!my_rig)
+    {
         fprintf(stderr, "Unknown rig num: %d\n", atoi(argv[1]));
         fprintf(stderr, "Please check riglist.h\n");
         exit(1); /* whoops! something went wrong (mem alloc?) */
@@ -59,14 +61,16 @@ int main(int argc, char *argv[])
 
     strncpy(my_rig->state.rigport.pathname, SERIAL_PORT, FILPATHLEN - 1);
 
-    if (rig_open(my_rig)) {
+    if (rig_open(my_rig))
+    {
         exit(2);
     }
 
     status = rig_set_vfo(my_rig, RIG_VFO_B);
 
 
-    if (status != RIG_OK) {
+    if (status != RIG_OK)
+    {
         printf("rig_set_vfo: error = %s \n", rigerror(status));
     }
 
@@ -82,9 +86,11 @@ int main(int argc, char *argv[])
      *  }
      */
 
-    for (i = 0; my_rig->state.chan_list[i].type && i < CHANLSTSIZ; i++) {
+    for (i = 0; my_rig->state.chan_list[i].type && i < CHANLSTSIZ; i++)
+    {
         for (j = my_rig->state.chan_list[i].start;
-                j <= my_rig->state.chan_list[i].end; j++) {
+             j <= my_rig->state.chan_list[i].end; j++)
+        {
             dump_chan(my_rig, j);
         }
     }
@@ -108,33 +114,40 @@ static char * decode_modes(rmode_t modes)
 
     buf[0] = '\0';
 
-    if (modes & RIG_MODE_AM) {
+    if (modes & RIG_MODE_AM)
+    {
         strcat(buf, "AM ");
     }
 
-    if (modes & RIG_MODE_CW) {
+    if (modes & RIG_MODE_CW)
+    {
         strcat(buf, "CW ");
     }
 
-    if (modes & RIG_MODE_USB) {
+    if (modes & RIG_MODE_USB)
+    {
         strcat(buf, "USB ");
     }
 
-    if (modes & RIG_MODE_LSB) {
+    if (modes & RIG_MODE_LSB)
+    {
         strcat(buf, "LSB ");
     }
 
-    if (modes & RIG_MODE_RTTY) {
+    if (modes & RIG_MODE_RTTY)
+    {
         strcat(buf, "RTTY ");
     }
 
-    if (modes & RIG_MODE_FM) {
+    if (modes & RIG_MODE_FM)
+    {
         strcat(buf, "FM ");
     }
 
 #ifdef RIG_MODE_WFM
 
-    if (modes & RIG_MODE_WFM) {
+    if (modes & RIG_MODE_WFM)
+    {
         strcat(buf, "WFM ");
     }
 
@@ -154,7 +167,8 @@ int dump_chan(RIG *rig, int chan_num)
     chan.channel_num = chan_num;
     status = rig_get_channel(rig, &chan);
 
-    if (status != RIG_OK) {
+    if (status != RIG_OK)
+    {
         printf("rig_get_channel: error = %s \n", rigerror(status));
         return status;
     }
@@ -199,150 +213,187 @@ int dump_chan(RIG *rig, int chan_num)
 
     printf("Functions: ");
 
-    if (chan.funcs != 0) {
-        if (chan.funcs & RIG_FUNC_FAGC) {
+    if (chan.funcs != 0)
+    {
+        if (chan.funcs & RIG_FUNC_FAGC)
+        {
             printf("FAGC ");
         }
 
-        if (chan.funcs & RIG_FUNC_NB) {
+        if (chan.funcs & RIG_FUNC_NB)
+        {
             printf("NB ");
         }
 
-        if (chan.funcs & RIG_FUNC_COMP) {
+        if (chan.funcs & RIG_FUNC_COMP)
+        {
             printf("COMP ");
         }
 
-        if (chan.funcs & RIG_FUNC_VOX) {
+        if (chan.funcs & RIG_FUNC_VOX)
+        {
             printf("VOX ");
         }
 
-        if (chan.funcs & RIG_FUNC_TONE) {
+        if (chan.funcs & RIG_FUNC_TONE)
+        {
             printf("TONE ");
         }
 
-        if (chan.funcs & RIG_FUNC_TSQL) {
+        if (chan.funcs & RIG_FUNC_TSQL)
+        {
             printf("TSQL ");
         }
 
-        if (chan.funcs & RIG_FUNC_SBKIN) {
+        if (chan.funcs & RIG_FUNC_SBKIN)
+        {
             printf("SBKIN ");
         }
 
-        if (chan.funcs & RIG_FUNC_FBKIN) {
+        if (chan.funcs & RIG_FUNC_FBKIN)
+        {
             printf("FBKIN ");
         }
 
-        if (chan.funcs & RIG_FUNC_ANF) {
+        if (chan.funcs & RIG_FUNC_ANF)
+        {
             printf("ANF ");
         }
 
-        if (chan.funcs & RIG_FUNC_NR) {
+        if (chan.funcs & RIG_FUNC_NR)
+        {
             printf("NR ");
         }
 
-        if (chan.funcs & RIG_FUNC_AIP) {
+        if (chan.funcs & RIG_FUNC_AIP)
+        {
             printf("AIP ");
         }
 
-        if (chan.funcs & RIG_FUNC_APF) {
+        if (chan.funcs & RIG_FUNC_APF)
+        {
             printf("APF ");
         }
 
-        if (chan.funcs & RIG_FUNC_MON) {
+        if (chan.funcs & RIG_FUNC_MON)
+        {
             printf("MON ");
         }
 
-        if (chan.funcs & RIG_FUNC_MN) {
+        if (chan.funcs & RIG_FUNC_MN)
+        {
             printf("MN ");
         }
 
-        if (chan.funcs & RIG_FUNC_RF) {
+        if (chan.funcs & RIG_FUNC_RF)
+        {
             printf("RF ");
         }
 
         printf("\n");
-    } else {
+    }
+    else
+    {
         printf("none\n");
     }
 
-    if (rig_has_set_level(rig, RIG_LEVEL_PREAMP)) {
+    if (rig_has_set_level(rig, RIG_LEVEL_PREAMP))
+    {
         printf("PREAMP: %ddB\n", chan.levels[rig_setting2idx(RIG_LEVEL_PREAMP)].i);
     }
 
-    if (rig_has_set_level(rig, RIG_LEVEL_ATT)) {
+    if (rig_has_set_level(rig, RIG_LEVEL_ATT))
+    {
         printf("ATT: %ddB\n", chan.levels[rig_setting2idx(RIG_LEVEL_ATT)].i);
     }
 
-    if (rig_has_set_level(rig, RIG_LEVEL_AF)) {
+    if (rig_has_set_level(rig, RIG_LEVEL_AF))
+    {
         printf("AF: %g%%\n", 100 * chan.levels[rig_setting2idx(RIG_LEVEL_AF)].f);
     }
 
-    if (rig_has_set_level(rig, RIG_LEVEL_RF)) {
+    if (rig_has_set_level(rig, RIG_LEVEL_RF))
+    {
         printf("RF: %g%%\n", 100 * chan.levels[rig_setting2idx(RIG_LEVEL_RF)].f);
     }
 
-    if (rig_has_set_level(rig, RIG_LEVEL_SQL)) {
+    if (rig_has_set_level(rig, RIG_LEVEL_SQL))
+    {
         printf("SQL: %g%%\n", 100 * chan.levels[rig_setting2idx(RIG_LEVEL_SQL)].f);
     }
 
-    if (rig_has_set_level(rig, RIG_LEVEL_IF)) {
+    if (rig_has_set_level(rig, RIG_LEVEL_IF))
+    {
         printf("IF: %dHz\n", chan.levels[rig_setting2idx(RIG_LEVEL_IF)].i);
     }
 
-    if (rig_has_set_level(rig, RIG_LEVEL_APF)) {
+    if (rig_has_set_level(rig, RIG_LEVEL_APF))
+    {
         printf("APF: %g%%\n", 100 * chan.levels[rig_setting2idx(RIG_LEVEL_APF)].f);
     }
 
-    if (rig_has_set_level(rig, RIG_LEVEL_NR)) {
+    if (rig_has_set_level(rig, RIG_LEVEL_NR))
+    {
         printf("NR: %g%%\n", 100 * chan.levels[rig_setting2idx(RIG_LEVEL_NR)].f);
     }
 
-    if (rig_has_set_level(rig, RIG_LEVEL_PBT_IN)) {
+    if (rig_has_set_level(rig, RIG_LEVEL_PBT_IN))
+    {
         printf("PBT_IN: %g%%\n",
                100 * chan.levels[rig_setting2idx(RIG_LEVEL_PBT_IN)].f);
     }
 
-    if (rig_has_set_level(rig, RIG_LEVEL_PBT_OUT)) {
+    if (rig_has_set_level(rig, RIG_LEVEL_PBT_OUT))
+    {
         printf("PBT_OUT: %g%%\n",
                100 * chan.levels[rig_setting2idx(RIG_LEVEL_PBT_OUT)].f);
     }
 
-    if (rig_has_set_level(rig, RIG_LEVEL_CWPITCH)) {
+    if (rig_has_set_level(rig, RIG_LEVEL_CWPITCH))
+    {
         printf("CWPITCH: %dHz\n", chan.levels[rig_setting2idx(RIG_LEVEL_CWPITCH)].i);
     }
 
-    if (rig_has_set_level(rig, RIG_LEVEL_RFPOWER)) {
+    if (rig_has_set_level(rig, RIG_LEVEL_RFPOWER))
+    {
         printf("RFPOWER: %g%%\n",
                100 * chan.levels[rig_setting2idx(RIG_LEVEL_RFPOWER)].f);
     }
 
-    if (rig_has_set_level(rig, RIG_LEVEL_MICGAIN)) {
+    if (rig_has_set_level(rig, RIG_LEVEL_MICGAIN))
+    {
         printf("MICGAIN: %g%%\n",
                100 * chan.levels[rig_setting2idx(RIG_LEVEL_MICGAIN)].f);
     }
 
-    if (rig_has_set_level(rig, RIG_LEVEL_COMP)) {
+    if (rig_has_set_level(rig, RIG_LEVEL_COMP))
+    {
         printf("COMP: %g%%\n", 100 * chan.levels[rig_setting2idx(RIG_LEVEL_COMP)].f);
     }
 
-    if (rig_has_set_level(rig, RIG_LEVEL_BALANCE)) {
+    if (rig_has_set_level(rig, RIG_LEVEL_BALANCE))
+    {
         printf("BALANCE: %g%%\n",
                100 * chan.levels[rig_setting2idx(RIG_LEVEL_BALANCE)].f);
     }
 
-    if (rig_has_set_level(rig, RIG_LEVEL_KEYSPD)) {
+    if (rig_has_set_level(rig, RIG_LEVEL_KEYSPD))
+    {
         printf("KEYSPD: %d\n", chan.levels[rig_setting2idx(RIG_LEVEL_KEYSPD)].i);
     }
 
-    if (rig_has_set_level(rig, RIG_LEVEL_NOTCHF)) {
+    if (rig_has_set_level(rig, RIG_LEVEL_NOTCHF))
+    {
         printf("NOTCHF: %d\n", chan.levels[rig_setting2idx(RIG_LEVEL_NOTCHF)].i);
     }
 
-    if (rig_has_set_level(rig, RIG_LEVEL_AGC)) {
+    if (rig_has_set_level(rig, RIG_LEVEL_AGC))
+    {
         printf("AGC: %d\n", chan.levels[rig_setting2idx(RIG_LEVEL_AGC)].i);
     }
 
-    if (rig_has_set_level(rig, RIG_LEVEL_BKINDL)) {
+    if (rig_has_set_level(rig, RIG_LEVEL_BKINDL))
+    {
         printf("BKINDL: %d\n", chan.levels[rig_setting2idx(RIG_LEVEL_BKINDL)].i);
     }
 

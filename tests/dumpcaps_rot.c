@@ -42,7 +42,8 @@ int dumpcaps_rot(ROT *rot, FILE *fout)
     const struct rot_caps *caps;
     int backend_warnings = 0;
 
-    if (!rot || !rot->caps) {
+    if (!rot || !rot->caps)
+    {
         return -RIG_EINVAL;
     }
 
@@ -56,7 +57,8 @@ int dumpcaps_rot(ROT *rot, FILE *fout)
     fprintf(fout, "Backend status:\t\t%s\n", rig_strstatus(caps->status));
     fprintf(fout, "Rot type:\t\t");
 
-    switch (caps->rot_type & ROT_TYPE_MASK) {
+    switch (caps->rot_type & ROT_TYPE_MASK)
+    {
     case ROT_TYPE_OTHER:
         fprintf(fout, "Other\n");
         break;
@@ -80,7 +82,8 @@ int dumpcaps_rot(ROT *rot, FILE *fout)
 
     fprintf(fout, "Port type:\t\t");
 
-    switch (caps->port_type) {
+    switch (caps->port_type)
+    {
     case RIG_PORT_SERIAL:
         fprintf(fout, "RS-232\n");
         fprintf(fout,
@@ -88,10 +91,10 @@ int dumpcaps_rot(ROT *rot, FILE *fout)
                 caps->serial_rate_min,
                 caps->serial_rate_max,
                 caps->serial_data_bits,
-                    caps->serial_parity == RIG_PARITY_NONE ? 'N' :
-                    caps->serial_parity == RIG_PARITY_ODD ? 'O' :
-                    caps->serial_parity == RIG_PARITY_EVEN ? 'E' :
-                    caps->serial_parity == RIG_PARITY_MARK ? 'M' : 'S',
+                caps->serial_parity == RIG_PARITY_NONE ? 'N' :
+                caps->serial_parity == RIG_PARITY_ODD ? 'O' :
+                caps->serial_parity == RIG_PARITY_EVEN ? 'E' :
+                caps->serial_parity == RIG_PARITY_MARK ? 'M' : 'S',
                 caps->serial_stop_bits,
                 caps->serial_handshake == RIG_HANDSHAKE_NONE ? "" :
                 (caps->serial_handshake == RIG_HANDSHAKE_XONXOFF ? " XONXOFF" : " CTS/RTS")

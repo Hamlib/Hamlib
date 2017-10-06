@@ -38,7 +38,8 @@ int print_caps_sum(const struct rig_caps *caps, void *data)
 
     printf("%-10s\t", rig_strstatus(caps->status));
 
-    switch (caps->rig_type & RIG_TYPE_MASK) {
+    switch (caps->rig_type & RIG_TYPE_MASK)
+    {
     case RIG_TYPE_TRANSCEIVER:
         printf("Transceiver\n");
         break;
@@ -93,7 +94,8 @@ int main(int argc, char *argv[])
 
     status = rig_list_foreach(print_caps_sum, NULL);
 
-    if (status != RIG_OK) {
+    if (status != RIG_OK)
+    {
         printf("rig_list_foreach: error = %s \n", rigerror(status));
         exit(3);
     }

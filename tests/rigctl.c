@@ -88,7 +88,8 @@ void usage(void);
  * TODO: add an option to read from a file
  */
 #define SHORT_OPTIONS "+m:r:p:d:P:D:s:c:t:lC:LuonvhV"
-static struct option long_options[] = {
+static struct option long_options[] =
+{
     {"model",           1, 0, 'm'},
     {"rig-file",        1, 0, 'r'},
     {"ptt-file",        1, 0, 'p'},
@@ -156,7 +157,8 @@ int main(int argc, char *argv[])
     char *civaddr = NULL;   /* NULL means no need to set conf */
     char conf_parms[MAXCONFLEN] = "";
 
-    while (1) {
+    while (1)
+    {
         int c;
         int option_index = 0;
 
@@ -166,11 +168,13 @@ int main(int argc, char *argv[])
                         long_options,
                         &option_index);
 
-        if (c == -1) {
+        if (c == -1)
+        {
             break;
         }
 
-        switch (c) {
+        switch (c)
+        {
         case 'h':
             usage();
             exit(0);
@@ -180,7 +184,8 @@ int main(int argc, char *argv[])
             exit(0);
 
         case 'm':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
@@ -189,7 +194,8 @@ int main(int argc, char *argv[])
             break;
 
         case 'r':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
@@ -198,7 +204,8 @@ int main(int argc, char *argv[])
             break;
 
         case 'p':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
@@ -207,7 +214,8 @@ int main(int argc, char *argv[])
             break;
 
         case 'd':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
@@ -216,61 +224,96 @@ int main(int argc, char *argv[])
             break;
 
         case 'P':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
 
-            if (!strcmp(optarg, "RIG")) {
+            if (!strcmp(optarg, "RIG"))
+            {
                 ptt_type = RIG_PTT_RIG;
-            } else if (!strcmp(optarg, "DTR")) {
+            }
+            else if (!strcmp(optarg, "DTR"))
+            {
                 ptt_type = RIG_PTT_SERIAL_DTR;
-            } else if (!strcmp(optarg, "RTS")) {
+            }
+            else if (!strcmp(optarg, "RTS"))
+            {
                 ptt_type = RIG_PTT_SERIAL_RTS;
-            } else if (!strcmp(optarg, "PARALLEL")) {
+            }
+            else if (!strcmp(optarg, "PARALLEL"))
+            {
                 ptt_type = RIG_PTT_PARALLEL;
-            } else if (!strcmp(optarg, "CM108")) {
+            }
+            else if (!strcmp(optarg, "CM108"))
+            {
                 ptt_type = RIG_PTT_CM108;
-            } else if (!strcmp(optarg, "GPIO")) {
+            }
+            else if (!strcmp(optarg, "GPIO"))
+            {
                 ptt_type = RIG_PTT_GPIO;
-            } else if (!strcmp(optarg, "GPION")) {
+            }
+            else if (!strcmp(optarg, "GPION"))
+            {
                 ptt_type = RIG_PTT_GPION;
-            } else if (!strcmp(optarg, "NONE")) {
+            }
+            else if (!strcmp(optarg, "NONE"))
+            {
                 ptt_type = RIG_PTT_NONE;
-            } else {
+            }
+            else
+            {
                 ptt_type = atoi(optarg);
             }
 
             break;
 
         case 'D':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
 
-            if (!strcmp(optarg, "RIG")) {
+            if (!strcmp(optarg, "RIG"))
+            {
                 dcd_type = RIG_DCD_RIG;
-            } else if (!strcmp(optarg, "DSR")) {
+            }
+            else if (!strcmp(optarg, "DSR"))
+            {
                 dcd_type = RIG_DCD_SERIAL_DSR;
-            } else if (!strcmp(optarg, "CTS")) {
+            }
+            else if (!strcmp(optarg, "CTS"))
+            {
                 dcd_type = RIG_DCD_SERIAL_CTS;
-            } else if (!strcmp(optarg, "CD")) {
+            }
+            else if (!strcmp(optarg, "CD"))
+            {
                 dcd_type = RIG_DCD_SERIAL_CAR;
-            } else if (!strcmp(optarg, "PARALLEL")) {
+            }
+            else if (!strcmp(optarg, "PARALLEL"))
+            {
                 dcd_type = RIG_DCD_PARALLEL;
-            } else if (!strcmp(optarg, "CM108")) {
+            }
+            else if (!strcmp(optarg, "CM108"))
+            {
                 dcd_type = RIG_DCD_CM108;
-            } else if (!strcmp(optarg, "NONE")) {
+            }
+            else if (!strcmp(optarg, "NONE"))
+            {
                 dcd_type = RIG_DCD_NONE;
-            } else {
+            }
+            else
+            {
                 dcd_type = atoi(optarg);
             }
 
             break;
 
         case 'c':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
@@ -279,21 +322,26 @@ int main(int argc, char *argv[])
             break;
 
         case 't':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
 
-            if (strlen(optarg) > 1) {
+            if (strlen(optarg) > 1)
+            {
                 send_cmd_term = strtol(optarg, NULL, 0);
-            } else {
+            }
+            else
+            {
                 send_cmd_term = optarg[0];
             }
 
             break;
 
         case 's':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
@@ -302,12 +350,14 @@ int main(int argc, char *argv[])
             break;
 
         case 'C':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
 
-            if (*conf_parms != '\0') {
+            if (*conf_parms != '\0')
+            {
                 strcat(conf_parms, ",");
             }
 
@@ -365,13 +415,15 @@ int main(int argc, char *argv[])
      * at least one command on command line,
      * disable interactive mode
      */
-    if (optind < argc) {
+    if (optind < argc)
+    {
         interactive = 0;
     }
 
     my_rig = rig_init(my_model);
 
-    if (!my_rig) {
+    if (!my_rig)
+    {
         fprintf(stderr,
                 "Unknown rig num %d, or initialization error.\n",
                 my_model);
@@ -381,47 +433,56 @@ int main(int argc, char *argv[])
 
     retcode = set_conf(my_rig, conf_parms);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         fprintf(stderr, "Config parameter error: %s\n", rigerror(retcode));
         exit(2);
     }
 
-    if (rig_file) {
+    if (rig_file)
+    {
         strncpy(my_rig->state.rigport.pathname, rig_file, FILPATHLEN - 1);
     }
 
     /*
      * ex: RIG_PTT_PARALLEL and /dev/parport0
      */
-    if (ptt_type != RIG_PTT_NONE) {
+    if (ptt_type != RIG_PTT_NONE)
+    {
         my_rig->state.pttport.type.ptt = ptt_type;
     }
 
-    if (dcd_type != RIG_DCD_NONE) {
+    if (dcd_type != RIG_DCD_NONE)
+    {
         my_rig->state.dcdport.type.dcd = dcd_type;
     }
 
-    if (ptt_file) {
+    if (ptt_file)
+    {
         strncpy(my_rig->state.pttport.pathname, ptt_file, FILPATHLEN - 1);
     }
 
-    if (dcd_file) {
+    if (dcd_file)
+    {
         strncpy(my_rig->state.dcdport.pathname, dcd_file, FILPATHLEN - 1);
     }
 
     /* FIXME: bound checking and port type == serial */
-    if (serial_rate != 0) {
+    if (serial_rate != 0)
+    {
         my_rig->state.rigport.parm.serial.rate = serial_rate;
     }
 
-    if (civaddr) {
+    if (civaddr)
+    {
         rig_set_conf(my_rig, rig_token_lookup(my_rig, "civaddr"), civaddr);
     }
 
     /*
      * print out conf parameters
      */
-    if (show_conf) {
+    if (show_conf)
+    {
         dumpconf(my_rig, stdout);
     }
 
@@ -429,7 +490,8 @@ int main(int argc, char *argv[])
      * print out capabilities, and exit immediately
      * We may be interested only in only caps, and rig_open may fail.
      */
-    if (dump_caps_opt) {
+    if (dump_caps_opt)
+    {
         dumpcaps(my_rig, stdout);
         rig_cleanup(my_rig);    /* if you care about memory */
         exit(0);
@@ -437,12 +499,14 @@ int main(int argc, char *argv[])
 
     retcode = rig_open(my_rig);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         fprintf(stderr, "rig_open: error = %s \n", rigerror(retcode));
         exit(2);
     }
 
-    if (verbose > 0) {
+    if (verbose > 0)
+    {
         printf("Opened rig model %d, '%s'\n",
                my_rig->caps->rig_model,
                my_rig->caps->model_name);
@@ -457,19 +521,23 @@ int main(int argc, char *argv[])
 
 #ifdef HAVE_LIBREADLINE
 
-    if (interactive && prompt && have_rl) {
+    if (interactive && prompt && have_rl)
+    {
         rl_readline_name = "rigctl";
 
 #ifdef HAVE_READLINE_HISTORY
         using_history();    /* Initialize Readline History */
 
-        if (rd_hist || sv_hist) {
-            if (!(hist_dir = getenv("RIGCTL_HIST_DIR"))) {
+        if (rd_hist || sv_hist)
+        {
+            if (!(hist_dir = getenv("RIGCTL_HIST_DIR")))
+            {
                 hist_dir = getenv("HOME");
             }
 
             if (((stat(hist_dir, &hist_dir_stat) == -1) && (errno == ENOENT))
-                || !(S_ISDIR(hist_dir_stat.st_mode))) {
+                || !(S_ISDIR(hist_dir_stat.st_mode)))
+            {
                 fprintf(stderr, "Warning: %s is not a directory!\n", hist_dir);
             }
 
@@ -482,8 +550,10 @@ int main(int argc, char *argv[])
             strncat(hist_path, hist_file, strlen(hist_file));
         }
 
-        if (rd_hist && hist_path) {
-            if (read_history(hist_path) == ENOENT) {
+        if (rd_hist && hist_path)
+        {
+            if (read_history(hist_path) == ENOENT)
+            {
                 fprintf(stderr,
                         "Warning: Could not read history from %s\n",
                         hist_path);
@@ -495,28 +565,35 @@ int main(int argc, char *argv[])
 
 #endif  /* HAVE_LIBREADLINE */
 
-    do {
+    do
+    {
         retcode = rigctl_parse(my_rig, stdin, stdout, argv, argc);
 
-        if (retcode == 2) {
+        if (retcode == 2)
+        {
             exitcode = 2;
         }
-    } while (retcode == 0 || retcode == 2 || retcode == -RIG_ENAVAIL);
+    }
+    while (retcode == 0 || retcode == 2 || retcode == -RIG_ENAVAIL);
 
 #ifdef HAVE_LIBREADLINE
 
-    if (interactive && prompt && have_rl) {
+    if (interactive && prompt && have_rl)
+    {
 #ifdef HAVE_READLINE_HISTORY
 
-        if (sv_hist && hist_path) {
-            if (write_history(hist_path) == ENOENT) {
+        if (sv_hist && hist_path)
+        {
+            if (write_history(hist_path) == ENOENT)
+            {
                 fprintf(stderr,
                         "\nWarning: Could not write history to %s\n",
                         hist_path);
             }
         }
 
-        if ((rd_hist || sv_hist) && hist_path) {
+        if ((rd_hist || sv_hist) && hist_path)
+        {
             free(hist_path);
             hist_path = (char *)NULL;
         }
@@ -539,28 +616,28 @@ void usage(void)
 
 
     printf(
-        "  -m, --model=ID             select radio model number. See model list\n"
-        "  -r, --rig-file=DEVICE      set device of the radio to operate on\n"
-        "  -p, --ptt-file=DEVICE      set device of the PTT device to operate on\n"
-        "  -d, --dcd-file=DEVICE      set device of the DCD device to operate on\n"
-        "  -P, --ptt-type=TYPE        set type of the PTT device to operate on\n"
-        "  -D, --dcd-type=TYPE        set type of the DCD device to operate on\n"
-        "  -s, --serial-speed=BAUD    set serial speed of the serial port\n"
-        "  -c, --civaddr=ID           set CI-V address, decimal (for Icom rigs only)\n"
-        "  -t, --send-cmd-term=CHAR   set send_cmd command termination char\n"
-        "  -C, --set-conf=PARM=VAL    set config parameters\n"
-        "  -L, --show-conf            list all config parameters\n"
-        "  -l, --list                 list all model numbers and exit\n"
-        "  -u, --dump-caps            dump capabilities and exit\n"
-        "  -o, --vfo                  do not default to VFO_CURR, require extra vfo arg\n"
-        "  -n, --no-restore-ai        do not restore auto information mode on rig\n"
+        "  -m, --model=ID                select radio model number. See model list\n"
+        "  -r, --rig-file=DEVICE         set device of the radio to operate on\n"
+        "  -p, --ptt-file=DEVICE         set device of the PTT device to operate on\n"
+        "  -d, --dcd-file=DEVICE         set device of the DCD device to operate on\n"
+        "  -P, --ptt-type=TYPE           set type of the PTT device to operate on\n"
+        "  -D, --dcd-type=TYPE           set type of the DCD device to operate on\n"
+        "  -s, --serial-speed=BAUD       set serial speed of the serial port\n"
+        "  -c, --civaddr=ID              set CI-V address, decimal (for Icom rigs only)\n"
+        "  -t, --send-cmd-term=CHAR      set send_cmd command termination char\n"
+        "  -C, --set-conf=PARM=VAL       set config parameters\n"
+        "  -L, --show-conf               list all config parameters\n"
+        "  -l, --list                    list all model numbers and exit\n"
+        "  -u, --dump-caps               dump capabilities and exit\n"
+        "  -o, --vfo                     do not default to VFO_CURR, require extra vfo arg\n"
+        "  -n, --no-restore-ai           do not restore auto information mode on rig\n"
 #ifdef HAVE_READLINE_HISTORY
-        "  -i, --read-history         read prior interactive session history\n"
-        "  -I, --save-history         save current interactive session history\n"
+        "  -i, --read-history            read prior interactive session history\n"
+        "  -I, --save-history            save current interactive session history\n"
 #endif
-        "  -v, --verbose              set verbose mode, cumulative (-v to -vvvvv)\n"
-        "  -h, --help                 display this help and exit\n"
-        "  -V, --version              output version information and exit\n\n"
+        "  -v, --verbose                 set verbose mode, cumulative (-v to -vvvvv)\n"
+        "  -h, --help                    display this help and exit\n"
+        "  -V, --version                 output version information and exit\n\n"
     );
 
     usage_rig(stdout);

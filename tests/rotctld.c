@@ -66,7 +66,8 @@
 
 #include "rotctl_parse.h"
 
-struct handle_data {
+struct handle_data
+{
     ROT *rot;
     int sock;
     struct sockaddr_storage cli_addr;
@@ -84,7 +85,8 @@ void usage();
  * TODO: add an option to read from a file
  */
 #define SHORT_OPTIONS "m:r:s:C:t:T:LuvhVl"
-static struct option long_options[] = {
+static struct option long_options[] =
+{
     {"model",           1, 0, 'm'},
     {"rot-file",        1, 0, 'r'},
     {"serial-speed",    1, 0, 's'},
@@ -129,11 +131,14 @@ static void handle_error(enum rig_debug_level_e lvl, const char *msg)
                       MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
                       (LPTSTR)&lpMsgBuf,
                       0,
-                      NULL)) {
+                      NULL))
+    {
 
         rig_debug(lvl, "%s: Network error %d: %s\n", msg, e, lpMsgBuf);
         LocalFree(lpMsgBuf);
-    } else {
+    }
+    else
+    {
         rig_debug(lvl, "%s: Network error %d\n", msg, e);
     }
 
@@ -171,17 +176,20 @@ int main(int argc, char *argv[])
 #endif
     struct handle_data *arg;
 
-    while (1) {
+    while (1)
+    {
         int c;
         int option_index = 0;
 
         c = getopt_long(argc, argv, SHORT_OPTIONS, long_options, &option_index);
 
-        if (c == -1) {
+        if (c == -1)
+        {
             break;
         }
 
-        switch (c) {
+        switch (c)
+        {
         case 'h':
             usage();
             exit(0);
@@ -191,7 +199,8 @@ int main(int argc, char *argv[])
             exit(0);
 
         case 'm':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
@@ -200,7 +209,8 @@ int main(int argc, char *argv[])
             break;
 
         case 'r':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
@@ -209,7 +219,8 @@ int main(int argc, char *argv[])
             break;
 
         case 's':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
@@ -218,12 +229,14 @@ int main(int argc, char *argv[])
             break;
 
         case 'C':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
 
-            if (*conf_parms != '\0') {
+            if (*conf_parms != '\0')
+            {
                 strcat(conf_parms, ",");
             }
 
@@ -231,7 +244,8 @@ int main(int argc, char *argv[])
             break;
 
         case 't':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
@@ -240,7 +254,8 @@ int main(int argc, char *argv[])
             break;
 
         case 'T':
-            if (!optarg) {
+            if (!optarg)
+            {
                 usage();    /* wrong arg count */
                 exit(1);
             }
@@ -278,7 +293,8 @@ int main(int argc, char *argv[])
 
     my_rot = rot_init(my_model);
 
-    if (!my_rot) {
+    if (!my_rot)
+    {
         fprintf(stderr,
                 "Unknown rot num %d, or initialization error.\n",
                 my_model);
@@ -289,24 +305,28 @@ int main(int argc, char *argv[])
 
     retcode = set_conf(my_rot, conf_parms);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         fprintf(stderr, "Config parameter error: %s\n", rigerror(retcode));
         exit(2);
     }
 
-    if (rot_file) {
+    if (rot_file)
+    {
         strncpy(my_rot->state.rotport.pathname, rot_file, FILPATHLEN - 1);
     }
 
     /* FIXME: bound checking and port type == serial */
-    if (serial_rate != 0) {
+    if (serial_rate != 0)
+    {
         my_rot->state.rotport.parm.serial.rate = serial_rate;
     }
 
     /*
      * print out conf parameters
      */
-    if (show_conf) {
+    if (show_conf)
+    {
         rot_token_foreach(my_rot, print_conf_list, (rig_ptr_t)my_rot);
     }
 
@@ -314,7 +334,8 @@ int main(int argc, char *argv[])
      * Print out conf parameters, and exits immediately as we may be
      * interested only in only caps, and rig_open may fail.
      */
-    if (dump_caps_opt) {
+    if (dump_caps_opt)
+    {
         dumpcaps_rot(my_rot, stdout);
         rot_cleanup(my_rot);    /* if you care about memory */
         exit(0);
@@ -322,12 +343,14 @@ int main(int argc, char *argv[])
 
     retcode = rot_open(my_rot);
 
-    if (retcode != RIG_OK) {
+    if (retcode != RIG_OK)
+    {
         fprintf(stderr, "rot_open: error = %s \n", rigerror(retcode));
         exit(2);
     }
 
-    if (verbose > 0) {
+    if (verbose > 0)
+    {
         printf("Opened rot model %d, '%s'\n",
                my_rot->caps->rot_model,
                my_rot->caps->model_name);
@@ -339,19 +362,20 @@ int main(int argc, char *argv[])
               rig_strstatus(my_rot->caps->status));
 
 #ifdef __MINGW32__
-# ifndef SO_OPENTYPE
-#  define SO_OPENTYPE     0x7008
-# endif
-# ifndef SO_SYNCHRONOUS_NONALERT
-#  define SO_SYNCHRONOUS_NONALERT 0x20
-# endif
-# ifndef INVALID_SOCKET
-#  define INVALID_SOCKET -1
-# endif
+#  ifndef SO_OPENTYPE
+#    define SO_OPENTYPE     0x7008
+#  endif
+#  ifndef SO_SYNCHRONOUS_NONALERT
+#    define SO_SYNCHRONOUS_NONALERT 0x20
+#  endif
+#  ifndef INVALID_SOCKET
+#    define INVALID_SOCKET -1
+#  endif
 
     WSADATA wsadata;
 
-    if (WSAStartup(MAKEWORD(1, 1), &wsadata) == SOCKET_ERROR) {
+    if (WSAStartup(MAKEWORD(1, 1), &wsadata) == SOCKET_ERROR)
+    {
         fprintf(stderr, "WSAStartup socket error\n");
         exit(1);
     }
@@ -375,26 +399,30 @@ int main(int argc, char *argv[])
 
     retcode = getaddrinfo(src_addr, portno, &hints, &result);
 
-    if (retcode != 0) {
+    if (retcode != 0)
+    {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(retcode));
         exit(2);
     }
 
     saved_result = result;
 
-    do {
+    do
+    {
         sock_listen = socket(result->ai_family,
                              result->ai_socktype,
                              result->ai_protocol);
 
-        if (sock_listen < 0)  {
+        if (sock_listen < 0)
+        {
             handle_error(RIG_DEBUG_ERR, "socket");
             freeaddrinfo(result);   /* No longer needed */
             exit(1);
         }
 
         if (setsockopt(sock_listen, SOL_SOCKET, SO_REUSEADDR,
-                       (char *)&reuseaddr, sizeof(reuseaddr)) < 0) {
+                       (char *)&reuseaddr, sizeof(reuseaddr)) < 0)
+        {
 
             handle_error(RIG_DEBUG_ERR, "setsockopt");
             freeaddrinfo(result);   /* No longer needed */
@@ -403,7 +431,8 @@ int main(int argc, char *argv[])
 
 #ifdef IPV6_V6ONLY
 
-        if (AF_INET6 == result->ai_family) {
+        if (AF_INET6 == result->ai_family)
+        {
             /* allow IPv4 mapped to IPv6 clients, MS & BSD default this
                to 1 i.e. disallowed */
             sockopt = 0;
@@ -413,7 +442,8 @@ int main(int argc, char *argv[])
                            IPV6_V6ONLY,
                            (char *)&sockopt,
                            sizeof(sockopt))
-                < 0) {
+                < 0)
+            {
 
                 handle_error(RIG_DEBUG_ERR, "setsockopt");
                 freeaddrinfo(saved_result);     /* No longer needed */
@@ -423,7 +453,8 @@ int main(int argc, char *argv[])
 
 #endif
 
-        if (0 == bind(sock_listen, result->ai_addr, result->ai_addrlen)) {
+        if (0 == bind(sock_listen, result->ai_addr, result->ai_addrlen))
+        {
             break;
         }
 
@@ -433,16 +464,19 @@ int main(int argc, char *argv[])
 #else
         close(sock_listen);
 #endif
-    } while ((result = result->ai_next) != NULL);
+    }
+    while ((result = result->ai_next) != NULL);
 
     freeaddrinfo(saved_result);     /* No longer needed */
 
-    if (NULL == result) {
+    if (NULL == result)
+    {
         rig_debug(RIG_DEBUG_ERR, "bind error - no available interface\n");
         exit(1);
     }
 
-    if (listen(sock_listen, 4) < 0) {
+    if (listen(sock_listen, 4) < 0)
+    {
         handle_error(RIG_DEBUG_ERR, "listening");
         exit(1);
     }
@@ -457,25 +491,30 @@ int main(int argc, char *argv[])
     act.sa_handler = SIG_IGN;
     act.sa_flags = SA_RESTART;
 
-    if (sigaction(SIGPIPE, &act, NULL)) {
+    if (sigaction(SIGPIPE, &act, NULL))
+    {
         handle_error(RIG_DEBUG_ERR, "sigaction");
     }
 
 #elif HAVE_SIGNAL
 
-    if (SIG_ERR == signal(SIGPIPE, SIG_IGN)) {
+    if (SIG_ERR == signal(SIGPIPE, SIG_IGN))
+    {
         handle_error(RIG_DEBUG_ERR, "signal");
     }
+
 #endif
 #endif
 
     /*
      * main loop accepting connections
      */
-    do {
+    do
+    {
         arg = malloc(sizeof(struct handle_data));
 
-        if (!arg) {
+        if (!arg)
+        {
             rig_debug(RIG_DEBUG_ERR, "malloc: %s\n", strerror(errno));
             exit(1);
         }
@@ -486,7 +525,8 @@ int main(int argc, char *argv[])
                            (struct sockaddr *) &arg->cli_addr,
                            &arg->clilen);
 
-        if (arg->sock < 0) {
+        if (arg->sock < 0)
+        {
             handle_error(RIG_DEBUG_ERR, "accept");
             break;
         }
@@ -498,7 +538,8 @@ int main(int argc, char *argv[])
                                    serv,
                                    sizeof(serv),
                                    NI_NOFQDN))
-            < 0) {
+            < 0)
+        {
 
             rig_debug(RIG_DEBUG_WARN,
                       "Peer lookup error: %s",
@@ -516,7 +557,8 @@ int main(int argc, char *argv[])
 
         retcode = pthread_create(&thread, &attr, handle_socket, arg);
 
-        if (retcode != 0) {
+        if (retcode != 0)
+        {
             rig_debug(RIG_DEBUG_ERR, "pthread_create: %s\n", strerror(retcode));
             break;
         }
@@ -524,7 +566,8 @@ int main(int argc, char *argv[])
 #else
         handle_socket(arg);
 #endif
-    } while (retcode == 0);
+    }
+    while (retcode == 0);
 
     rot_close(my_rot); /* close port */
     rot_cleanup(my_rot); /* if you care about memory */
@@ -552,7 +595,8 @@ void * handle_socket(void *arg)
 #ifdef __MINGW32__
     int sock_osfhandle = _open_osfhandle(handle_data_arg->sock, _O_RDONLY);
 
-    if (sock_osfhandle == -1) {
+    if (sock_osfhandle == -1)
+    {
         rig_debug(RIG_DEBUG_ERR, "_open_osfhandle error: %s\n", strerror(errno));
         goto handle_exit;
     }
@@ -562,7 +606,8 @@ void * handle_socket(void *arg)
     fsockin = fdopen(handle_data_arg->sock, "rb");
 #endif
 
-    if (!fsockin) {
+    if (!fsockin)
+    {
         rig_debug(RIG_DEBUG_ERR, "fdopen in: %s\n", strerror(errno));
         goto handle_exit;
     }
@@ -573,19 +618,23 @@ void * handle_socket(void *arg)
     fsockout = fdopen(handle_data_arg->sock, "wb");
 #endif
 
-    if (!fsockout) {
+    if (!fsockout)
+    {
         rig_debug(RIG_DEBUG_ERR, "fdopen out: %s\n", strerror(errno));
         fclose(fsockin);
         goto handle_exit;
     }
 
-    do {
+    do
+    {
         retcode = rotctl_parse(handle_data_arg->rot, fsockin, fsockout, NULL, 0);
 
-        if (ferror(fsockin) || ferror(fsockout)) {
+        if (ferror(fsockin) || ferror(fsockout))
+        {
             retcode = 1;
         }
-    } while (retcode == 0 || retcode == 2);
+    }
+    while (retcode == 0 || retcode == 2);
 
     if ((retcode = getnameinfo((struct sockaddr const *)&handle_data_arg->cli_addr,
                                handle_data_arg->clilen,
@@ -594,7 +643,8 @@ void * handle_socket(void *arg)
                                serv,
                                sizeof(serv),
                                NI_NOFQDN))
-        < 0) {
+        < 0)
+    {
 
         rig_debug(RIG_DEBUG_WARN,
                   "Peer lookup error: %s",
@@ -632,18 +682,18 @@ void usage()
            "Daemon serving COMMANDs to a connected antenna rotator.\n\n");
 
     printf(
-        "  -m, --model=ID             select rotator model number. See model list\n"
-        "  -r, --rot-file=DEVICE      set device of the rotator to operate on\n"
-        "  -s, --serial-speed=BAUD    set serial speed of the serial port\n"
-        "  -t, --port=NUM             set TCP listening port, default %s\n"
-        "  -T, --listen-addr=IPADDR   set listening IP address, default ANY\n"
-        "  -C, --set-conf=PARM=VAL    set config parameters\n"
-        "  -L, --show-conf            list all config parameters\n"
-        "  -l, --list                 list all model numbers and exit\n"
-        "  -u, --dump-caps            dump capabilities and exit\n"
-        "  -v, --verbose              set verbose mode, cumulative\n"
-        "  -h, --help                 display this help and exit\n"
-        "  -V, --version              output version information and exit\n\n",
+        "  -m, --model=ID                select rotator model number. See model list\n"
+        "  -r, --rot-file=DEVICE         set device of the rotator to operate on\n"
+        "  -s, --serial-speed=BAUD       set serial speed of the serial port\n"
+        "  -t, --port=NUM                set TCP listening port, default %s\n"
+        "  -T, --listen-addr=IPADDR      set listening IP address, default ANY\n"
+        "  -C, --set-conf=PARM=VAL       set config parameters\n"
+        "  -L, --show-conf               list all config parameters\n"
+        "  -l, --list                    list all model numbers and exit\n"
+        "  -u, --dump-caps               dump capabilities and exit\n"
+        "  -v, --verbose                 set verbose mode, cumulative\n"
+        "  -h, --help                    display this help and exit\n"
+        "  -V, --version                 output version information and exit\n\n",
         portno);
 
     usage_rot(stdout);
