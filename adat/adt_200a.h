@@ -55,46 +55,46 @@
 //    ADT-200A CAPS DEFINITIONS
 // ---------------------------------------------------------------------------
 
-#define ADT_200A_GET_LEVEL \
-  ( \
-    RIG_LEVEL_PREAMP | \
-    RIG_LEVEL_ATT | \
-    RIG_LEVEL_AF | \
-    RIG_LEVEL_NR | \
-    RIG_LEVEL_CWPITCH | \
-    RIG_LEVEL_RFPOWER | \
-    RIG_LEVEL_MICGAIN | \
-    RIG_LEVEL_KEYSPD | \
-    RIG_LEVEL_METER | \
-    RIG_LEVEL_BKIN_DLYMS | \
-    RIG_LEVEL_RAWSTR | \
-    RIG_LEVEL_SWR | \
-    RIG_LEVEL_ALC )
+#define ADT_200A_GET_LEVEL                      \
+    (                                           \
+        RIG_LEVEL_PREAMP |                      \
+        RIG_LEVEL_ATT |                         \
+        RIG_LEVEL_AF |                          \
+        RIG_LEVEL_NR |                          \
+        RIG_LEVEL_CWPITCH |                     \
+        RIG_LEVEL_RFPOWER |                     \
+        RIG_LEVEL_MICGAIN |                     \
+        RIG_LEVEL_KEYSPD |                      \
+        RIG_LEVEL_METER |                       \
+        RIG_LEVEL_BKIN_DLYMS |                  \
+        RIG_LEVEL_RAWSTR |                      \
+        RIG_LEVEL_SWR |                         \
+        RIG_LEVEL_ALC )
 
-#define ADT_200A_SET_LEVEL \
-  ( \
-    RIG_LEVEL_PREAMP | \
-    RIG_LEVEL_ATT | \
-    RIG_LEVEL_AF | \
-    RIG_LEVEL_NR | \
-    RIG_LEVEL_CWPITCH | \
-    RIG_LEVEL_RFPOWER | \
-    RIG_LEVEL_MICGAIN | \
-    RIG_LEVEL_KEYSPD | \
-    RIG_LEVEL_METER | \
-    RIG_LEVEL_BKIN_DLYMS | \
-    RIG_LEVEL_ALC )
+#define ADT_200A_SET_LEVEL                      \
+    (                                           \
+        RIG_LEVEL_PREAMP |                      \
+        RIG_LEVEL_ATT |                         \
+        RIG_LEVEL_AF |                          \
+        RIG_LEVEL_NR |                          \
+        RIG_LEVEL_CWPITCH |                     \
+        RIG_LEVEL_RFPOWER |                     \
+        RIG_LEVEL_MICGAIN |                     \
+        RIG_LEVEL_KEYSPD |                      \
+        RIG_LEVEL_METER |                       \
+        RIG_LEVEL_BKIN_DLYMS |                  \
+        RIG_LEVEL_ALC )
 
-#define ADT_200A_MODES \
-  ( \
-    RIG_MODE_AM | \
-    RIG_MODE_CW | \
-    RIG_MODE_USB | \
-    RIG_MODE_LSB | \
-    RIG_MODE_FM | \
-    RIG_MODE_CWR | \
-    RIG_MODE_SAL | \
-    RIG_MODE_SAH )
+#define ADT_200A_MODES                          \
+    (                                           \
+        RIG_MODE_AM |                           \
+        RIG_MODE_CW |                           \
+        RIG_MODE_USB |                          \
+        RIG_MODE_LSB |                          \
+        RIG_MODE_FM |                           \
+        RIG_MODE_CWR |                          \
+        RIG_MODE_SAL |                          \
+        RIG_MODE_SAH )
 
 // ADT-200A VFO #defines
 

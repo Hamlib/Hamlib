@@ -53,7 +53,8 @@
 //    ADT-200A HAMLIB CAPS / DESCRIPTION
 // ---------------------------------------------------------------------------
 
-const struct rig_caps adt_200a_caps = {
+const struct rig_caps adt_200a_caps =
+{
     .rig_model          =  RIG_MODEL_ADT_200A,
     .model_name         =  "ADT-200A",
     .mfg_name           =  "ADAT www.adat.ch",

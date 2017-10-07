@@ -329,7 +329,8 @@
 //    ADAT PRIVATE DATA
 // ---------------------------------------------------------------------------
 
-typedef struct _adat_priv_data {
+typedef struct _adat_priv_data
+{
     int           nOpCode;
 
     char         *pcProductName; // Future use (USB direct I/O)
@@ -397,14 +398,16 @@ typedef unsigned long long adat_cmd_id_t; // Bit mask for commands. Each command
 // executed by adat_transaction(). The last value as returned by the
 // commands will be set as overall command result.
 
-typedef enum {
+typedef enum
+{
     ADAT_CMD_KIND_WITH_RESULT    = 0,  // After sending a command to the ADAT,
                                        // a result has to be read.
     ADAT_CMD_KIND_WITHOUT_RESULT = 1
 
 } adat_cmd_kind_t;
 
-typedef struct _adat_cmd_def_t {
+typedef struct _adat_cmd_def_t
+{
     adat_cmd_id_t    nCmdId;        // Bit indicating this cmd
     adat_cmd_kind_t  nCmdKind;      // Defines if result expected
 
@@ -417,14 +420,16 @@ typedef struct _adat_cmd_def_t {
 } adat_cmd_def_t,
 * adat_cmd_def_ptr;
 
-typedef struct _adat_cmd_table_t {
+typedef struct _adat_cmd_table_t
+{
     int              nNrCmds;
     adat_cmd_def_ptr adat_cmds[];
 
 } adat_cmd_table_t,
 * adat_cmd_table_ptr;
 
-typedef struct _adat_cmd_list_t {
+typedef struct _adat_cmd_list_t
+{
     int              nNrCmds;
     adat_cmd_def_ptr adat_cmds[];
 
@@ -435,7 +440,8 @@ typedef struct _adat_cmd_list_t {
 //    OTHER ADAT DATA TYPES
 // ---------------------------------------------------------------------------
 
-typedef enum {
+typedef enum
+{
     ADAT_FREQ_PARSE_MODE_WITH_VFO     = 0,
     ADAT_FREQ_PARSE_MODE_WITHOUT_VFO  = 1
 
@@ -443,7 +449,8 @@ typedef enum {
 
 // ADAT MODE DEFINITION
 
-typedef struct _adat_mode_def {
+typedef struct _adat_mode_def
+{
     char     *pcADATModeStr;
     rmode_t   nRIGMode;
     int       nADATMode;
@@ -451,7 +458,8 @@ typedef struct _adat_mode_def {
 } adat_mode_def_t,
 * adat_mode_def_ptr;
 
-typedef struct _adat_mode_list {
+typedef struct _adat_mode_list
+{
     int nNrModes;
 
     adat_mode_def_t adat_modes[ ADAT_NR_MODES ];
@@ -461,7 +469,8 @@ typedef struct _adat_mode_list {
 
 // ADAT VFO DEFINITION
 
-typedef struct _adat_vfo_def {
+typedef struct _adat_vfo_def
+{
     char     *pcADATVFOStr;
     vfo_t     nRIGVFONr;
     int       nADATVFONr;
@@ -469,7 +478,8 @@ typedef struct _adat_vfo_def {
 } adat_vfo_def_t,
 * adat_vfo_def_ptr;
 
-typedef struct _adat_vfo_list {
+typedef struct _adat_vfo_list
+{
     int nNrVFOs;
 
     adat_vfo_def_t adat_vfos[ ADAT_NR_VFOS ];
