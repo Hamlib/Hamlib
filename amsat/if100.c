@@ -20,17 +20,18 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#  include "config.h"
 #endif
 
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
+
 #ifdef HAVE_SYS_IOCTL_H
-#include <sys/ioctl.h>
+#  include <sys/ioctl.h>
 #endif
 
-#include "hamlib/rotator.h"
+#include <hamlib/rotator.h>
 #include "parallel.h"
 #include "misc.h"
 #include "register.h"
@@ -48,8 +49,8 @@ if100_set_position(ROT *rot, azimuth_t az, elevation_t el)
 
     rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
 
-    az_scale = 255./(rot->state.max_az - rot->state.min_az);
-    el_scale = 255./180;
+    az_scale = 255. / (rot->state.max_az - rot->state.min_az);
+    el_scale = 255. / 180;
 
     az_i = (int)round((az - rot->state.min_az) * az_scale);
     el_i = (int)round(el * el_scale);
@@ -61,27 +62,37 @@ if100_set_position(ROT *rot, azimuth_t az, elevation_t el)
 #define CLK   0x02
 #define TRACK 0x08
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: shifting dataout 0x%04x to parallel port\n", __func__, dataout);
+    rig_debug(RIG_DEBUG_TRACE,
+              "%s: shifting dataout 0x%04x to parallel port\n",
+              __func__, dataout);
 
-    retval = par_lock (port);
+    retval = par_lock(port);
+
     if (retval != RIG_OK)
+    {
         return retval;
+    }
 
-    for (i = 0; i < 16; i++) {
-        if (dataout & 0x8000) {
-            par_write_data(port, TRACK|DAT0);
-            par_write_data(port, TRACK|DAT0|CLK);
-            par_write_data(port, TRACK|DAT0);
-        } else {
+    for (i = 0; i < 16; i++)
+    {
+        if (dataout & 0x8000)
+        {
+            par_write_data(port, TRACK | DAT0);
+            par_write_data(port, TRACK | DAT0 | CLK);
+            par_write_data(port, TRACK | DAT0);
+        }
+        else
+        {
             par_write_data(port, TRACK);
-            par_write_data(port, TRACK|CLK);
+            par_write_data(port, TRACK | CLK);
             par_write_data(port, TRACK);
         }
+
         dataout = (dataout << 1) & 0xffff;
     }
 
     par_write_data(port, TRACK);
-    par_unlock (port);
+    par_unlock(port);
 
     return RIG_OK;
 }
@@ -89,26 +100,27 @@ if100_set_position(ROT *rot, azimuth_t az, elevation_t el)
 
 /** IF-100 implements essentially only the set position function.
  */
-const struct rot_caps if100_rot_caps = {
-  .rot_model =      ROT_MODEL_IF100,
-  .model_name =     "IF-100",
-  .mfg_name =       "AMSAT",
-  .version =        "0.1",
-  .copyright = 	    "LGPL",
-  .status =         RIG_STATUS_UNTESTED,
-  .rot_type =       ROT_TYPE_OTHER,
-  .port_type =      RIG_PORT_PARALLEL,
-  .write_delay =  0,
-  .post_write_delay =  0,
-  .timeout =  200,
-  .retry =  3,
+const struct rot_caps if100_rot_caps =
+{
+    .rot_model =        ROT_MODEL_IF100,
+    .model_name =       "IF-100",
+    .mfg_name =         "AMSAT",
+    .version =          "0.1",
+    .copyright =        "LGPL",
+    .status =           RIG_STATUS_UNTESTED,
+    .rot_type =         ROT_TYPE_OTHER,
+    .port_type =        RIG_PORT_PARALLEL,
+    .write_delay =      0,
+    .post_write_delay = 0,
+    .timeout =          200,
+    .retry =            3,
 
-  .min_az = 	0,
-  .max_az =  	360,
-  .min_el = 	0,
-  .max_el =  	180,
+    .min_az =           0,
+    .max_az =           360,
+    .min_el =           0,
+    .max_el =           180,
 
-  .set_position =  if100_set_position,
+    .set_position =     if100_set_position,
 };
 
 
@@ -116,10 +128,9 @@ const struct rot_caps if100_rot_caps = {
 
 DECLARE_INITROT_BACKEND(amsat)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	rot_register(&if100_rot_caps);
+    rot_register(&if100_rot_caps);
 
-	return RIG_OK;
+    return RIG_OK;
 }
-
