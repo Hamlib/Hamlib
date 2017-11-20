@@ -305,24 +305,32 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]],
 
 
 dnl Check for libusb, treat LIBUSB_LIBS and LIBUSB_CFLAGS as precious variables
+AC_MSG_CHECKING([whether to build USB dependent backends])
+AC_ARG_WITH([libusb],
+    [AS_HELP_STRING([--without-libusb],
+        [disable USB dependent backends @<:@default=yes@:>@])],
+        [cf_with_libusb=no],
+        [cf_with_libusb=yes]
+    )
+
+AC_MSG_RESULT([$cf_with_libusb])
+
+LIBUSB=""
 AC_ARG_VAR([LIBUSB_CFLAGS], [C compiler flags for libusb, overriding configure defaults])
 AC_ARG_VAR([LIBUSB_LIBS], [linker flags for libusb, overriding configure check (useful for specifying static libusb-1.0.a (see INSTALL))])
 
-cf_with_libusb="no"
-
-AS_IF([test -z $LIBUSB_LIBS],
-      [AC_CHECK_LIB([usb-1.0], [libusb_init], [LIBUSB_LIBS="-lusb-1.0" cf_with_libusb="yes"],
-                    [AC_MSG_WARN([libusb_init was not found in libusb-1.0--USB backends will be disabled])])
-      ], [cf_with_libusb="yes"])
-
-LIBUSB=""
-
 AS_IF([test x"${cf_with_libusb}" = "xyes"],
-      [AC_CHECK_HEADERS([libusb.h libusb-1.0/libusb.h])
-       AC_DEFINE([HAVE_LIBUSB],
-                 [1],
-                 [Define if libusb-1.0 is available])
-       LIBUSB="libusb-1.0"])
+    [AS_IF([test -z $LIBUSB_LIBS],
+        [AC_CHECK_LIB([usb-1.0], [libusb_init], [LIBUSB_LIBS="-lusb-1.0"],
+            [AC_MSG_WARN([libusb_init was not found in libusb-1.0--USB backends will be disabled])])
+        ], [cf_with_libusb="yes"])
+
+    AS_IF([test x"${cf_with_libusb}" = "xyes"],
+        [AC_CHECK_HEADERS([libusb.h libusb-1.0/libusb.h])
+         AC_DEFINE([HAVE_LIBUSB],
+                   [1],
+                   [Define if libusb-1.0 is available])
+        LIBUSB="libusb-1.0"])])
 
 # Only used in hamlib.pc.in
 AC_SUBST([LIBUSB])
