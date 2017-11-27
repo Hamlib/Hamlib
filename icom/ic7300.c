@@ -65,7 +65,7 @@
 /*
  * FIXME: This is a guess real measures please!
  */
-#define IC7300_STR_CAL { 3, \
+#define IC7300_STR_CAL { 4, \
 	{ \
 		{   0, -54 }, \
 		{  10, -24 }, \
