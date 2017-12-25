@@ -601,6 +601,8 @@ int kenwood_open(RIG *rig)
       || !strcmp ("ID905", id)  /* PowerSDR Flex-6500 */
       || !strcmp ("ID906", id)  /* PowerSDR Flex-6700R */
       || !strcmp ("ID907", id)  /* PowerSDR Flex-6300 */
+      || !strcmp ("ID908", id)  /* PowerSDR Flex-6400 */
+      || !strcmp ("ID909", id)  /* PowerSDR Flex-6600 */
       )
     {
       priv->is_emulation = 1;   /* Emulations don't have SAT mode */
