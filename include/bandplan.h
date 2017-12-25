@@ -56,6 +56,9 @@
 #define FRQ_RNG_80m_REGION1(md,lp,hp,v,a) \
             { kHz(3500),kHz(3800), (md), (lp), (hp), (v), (a) }
 
+#define FRQ_RNG_60m_REGION1(md,lp,hp,v,a) \
+            { MHz(5351.5),kHz(5366.5), (md), (lp), (hp), (v), (a) }
+
 #define FRQ_RNG_40m_REGION1(md,lp,hp,v,a) \
             { MHz(7),kHz(7100), (md), (lp), (hp), (v), (a) }
 
@@ -80,6 +83,9 @@
 /* VHF: 30 MHz - 300 MHz */
 #define FRQ_RNG_6m_REGION1(md,lp,hp,v,a) \
             { kHz(50200),kHz(51200), (md), (lp), (hp), (v), (a) }
+
+#define FRQ_RNG_4m_REGION1(md,lp,hp,v,a) \
+            { MHz(70),MHz(70.5), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_2m_REGION1(md,lp,hp,v,a) \
             { MHz(144),MHz(146), (md), (lp), (hp), (v), (a) }
@@ -106,6 +112,9 @@
 /* HF: 3 MHz - 30 MHz */
 #define FRQ_RNG_80m_REGION2(md,lp,hp,v,a) \
             { kHz(3500),MHz(4), (md), (lp), (hp), (v), (a) }
+
+#define FRQ_RNG_60m_REGION2(md,lp,hp,v,a) \
+            { MHz(5351.5),kHz(5366.5), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_40m_REGION2(md,lp,hp,v,a) \
             { MHz(7),kHz(7300), (md), (lp), (hp), (v), (a) }
@@ -156,6 +165,9 @@
 /* HF: 3 MHz - 30 MHz */
 #define FRQ_RNG_80m_REGION3(md,lp,hp,v,a) \
             { kHz(3500),kHz(3900), (md), (lp), (hp), (v), (a) }
+
+#define FRQ_RNG_60m_REGION3(md,lp,hp,v,a) \
+            { MHz(5351.5),kHz(5366.5), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_40m_REGION3(md,lp,hp,v,a) \
             { MHz(7),kHz(7100), (md), (lp), (hp), (v), (a) }
@@ -214,10 +226,16 @@
     FRQ_RNG_15m_REGION##r((m), (lp), (hp), (v), (a)), \
     FRQ_RNG_12m_REGION##r((m), (lp), (hp), (v), (a)), \
     FRQ_RNG_10m_REGION##r((m), (lp), (hp), (v), (a))  \
- 
+
+#define FRQ_RNG_60m(r,m,lp,hp,v,a) \
+    FRQ_RNG_60m_REGION##r((m), (lp), (hp), (v), (a)) \
+
 #define FRQ_RNG_6m(r,m,lp,hp,v,a) \
     FRQ_RNG_6m_REGION##r((m), (lp), (hp), (v), (a)) \
  
+#define FRQ_RNG_4m(r,m,lp,hp,v,a) \
+    FRQ_RNG_4m_REGION##r((m), (lp), (hp), (v), (a)) \
+
 #define FRQ_RNG_2m(r,m,lp,hp,v,a) \
     FRQ_RNG_2m_REGION##r((m), (lp), (hp), (v), (a)) \
  
