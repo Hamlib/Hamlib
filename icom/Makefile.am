@@ -8,7 +8,7 @@ ICOMSRC = ic706.c icr8500.c ic735.c ic775.c ic756.c  \
 	id1.c id5100.c perseus.c ic2730.c \
 	ic707.c ic728.c ic751.c ic761.c \
 	ic78.c ic7800.c ic785x.c \
-	ic7000.c ic7100.c ic7200.c ic7300.c ic7600.c ic7700.c \
+	ic7000.c ic7100.c ic7200.c ic7300.c ic7600.c ic7610.c ic7700.c \
 	icom.c icom.h icom_defs.h frame.c frame.h optoscan.c optoscan.h x108g.c
 
 noinst_LTLIBRARIES = libhamlib-icom.la
