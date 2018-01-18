@@ -27,7 +27,6 @@
 
 #include <hamlib/rig.h>
 #include "kenwood.h"
-#include "ic10.h"
 
 
 #define TS711_ALL_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM)
@@ -42,23 +41,60 @@
 #define TS711_VFO_OP (RIG_OP_UP|RIG_OP_DOWN)
 #define TS711_SCAN_OP (RIG_SCAN_VFO)
 
+/*
+ * There are some platform differences:
+ *
+ * + Tone on/off isn't applicable to "kenwood" versions of the E rigs
+ * + Tone frequency is only A/B rigs
+ * + Offset is only TS-811A, TS-811B, TS-811E, TS-711A, TS-711E.
+ *
+ * So maybe this should have a separate set of backends for each
+ * rig variation because of the frequency range differences, capability
+ * differences, etc, etc.
+ */
+
 static struct kenwood_priv_caps  ts711_priv_caps  = {
 	.cmdtrm =  EOM_KEN,
-	.if_len =  28,
 };
 
 /*
+ * vfo defines
+*/
+#define VFO_A	'0'
+#define VFO_B	'1'
+#define VFO_MEM	'2'
+
+
+/* Note: The 140/680/711/811 need this to set the VFO on the radio */
+static int
+ts711_set_vfo(RIG *rig, vfo_t vfo)
+{
+	char cmdbuf[16];
+	char vfo_function;
+
+	switch (vfo) {
+	case RIG_VFO_VFO:
+	case RIG_VFO_A: vfo_function = VFO_A; break;
+	case RIG_VFO_B: vfo_function = VFO_B; break;
+	case RIG_VFO_MEM: vfo_function = VFO_MEM; break;
+	case RIG_VFO_CURR: return RIG_OK;
+	default:
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %d\n",
+		    __func__, vfo);
+		return -RIG_EINVAL;
+	}
+	sprintf(cmdbuf, "FN%c", vfo_function);
+	return kenwood_transaction(rig, cmdbuf, NULL, 0);
+}
+
+/*
  * ts711 rig capabilities.
- *
- * specs: http://www.qsl.net/sm7vhs/radio/kenwood/ts711/specs.htm
- *
- * TODO: protocol to be check with manual!
  */
 const struct rig_caps ts711_caps = {
 .rig_model =  RIG_MODEL_TS711,
 .model_name = "TS-711",
 .mfg_name =  "Kenwood",
-.version =  BACKEND_VER "." IC10_VER,
+.version =  BACKEND_VER ".1",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -98,9 +134,10 @@ const struct rig_caps ts711_caps = {
 .chan_desc_sz =  0,
 
 	/* FIXME: split memories, call channel, etc. */
-.chan_list =  { {  1, 59, RIG_MTYPE_MEM, {IC10_CHANNEL_CAPS} },
-			 RIG_CHAN_END,
-		   },
+.chan_list =  {
+		{  1, 59, RIG_MTYPE_MEM },
+		RIG_CHAN_END,
+	},
 
 .rx_range_list1 =  {
 	{MHz(144),MHz(146),TS711_ALL_MODES,-1,-1,TS711_VFO},
@@ -147,33 +184,20 @@ const struct rig_caps ts711_caps = {
 .rig_init = kenwood_init,
 .rig_cleanup = kenwood_cleanup,
 .set_freq =  kenwood_set_freq,
-.get_freq =  ic10_get_freq,
+.get_freq =  kenwood_get_freq,
 .set_rit =  kenwood_set_rit,
 .get_rit =  kenwood_get_rit,
-.set_xit =  kenwood_set_xit,
-.get_xit =  kenwood_get_xit,
 .set_mode =  kenwood_set_mode,
-.get_mode =  ic10_get_mode,
-.set_vfo =  ic10_set_vfo,
-.get_vfo =  ic10_get_vfo,
-.set_split_vfo =  ic10_set_split_vfo,
-.get_split_vfo =  ic10_get_split_vfo,
+.get_mode = kenwood_get_mode_if,
+.set_vfo = ts711_set_vfo,
+.get_vfo =  kenwood_get_vfo_if,
 .set_ptt =  kenwood_set_ptt,
-.get_ptt =  ic10_get_ptt,
-.set_func =  kenwood_set_func,
+.set_func = kenwood_set_func,
 .get_func =  kenwood_get_func,
 .vfo_op =  kenwood_vfo_op,
 .set_mem =  kenwood_set_mem,
-.get_mem =  ic10_get_mem,
-.set_trn =  kenwood_set_trn,
-.scan =  kenwood_scan,
-.set_ctcss_tone =  kenwood_set_ctcss_tone,
-.get_ctcss_tone =  kenwood_get_ctcss_tone,
-.set_level =  kenwood_set_level,
-.get_level =  kenwood_get_level,
-.set_channel = ic10_set_channel,
-.get_channel = ic10_get_channel,
-.decode_event = ic10_decode_event,
+.get_mem = kenwood_get_mem_if,
+.reset =  kenwood_reset,
 
 };
 
