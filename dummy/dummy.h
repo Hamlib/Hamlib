@@ -26,7 +26,8 @@
 #include "token.h"
 
 /* backend conf */
-#define TOK_CFG_MAGICCONF  TOKEN_BACKEND(1)
+#define TOK_CFG_MAGICCONF    TOKEN_BACKEND(1)
+#define TOK_CFG_STATIC_DATA  TOKEN_BACKEND(2)
 
 
 /* ext_level's and ext_parm's tokens */
