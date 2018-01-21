@@ -61,7 +61,8 @@ struct dummy_priv_data {
 
 		struct ext_list *ext_parms;
 
-        char *magic_conf;
+		char *magic_conf;
+		int static_data;
 };
 
 /* levels pertain to each VFO */
@@ -90,6 +91,9 @@ static const struct confparams dummy_ext_parms[] = {
 static const struct confparams dummy_cfg_params[] = {
 	{ TOK_CFG_MAGICCONF, "mcfg", "Magic conf", "Magic parameter, as an example",
 		"DX", RIG_CONF_STRING, { }
+	},
+	{ TOK_CFG_STATIC_DATA, "static_data", "Static data", "Output only static data, no randomization of S-meter values",
+		"0", RIG_CONF_CHECKBUTTON, { }
 	},
 	{ RIG_CONF_END, NULL, }
 };
@@ -275,6 +279,9 @@ static int dummy_set_conf(RIG *rig, token_t token, const char *val)
                 free(priv->magic_conf);
                 priv->magic_conf = strdup(val);
             }
+			break;
+		case TOK_CFG_STATIC_DATA:
+			priv->static_data = atoi(val) ? 1 : 0;
 			break;
 		default:
 			return -RIG_EINVAL;
@@ -808,20 +815,23 @@ static int dummy_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
   if (idx >= RIG_SETTING_MAX)
       return -RIG_EINVAL;
 
-  /* make S-Meter jiggle */
   if (level == RIG_LEVEL_STRENGTH || level == RIG_LEVEL_RAWSTR) {
+    if (priv->static_data) {
+      curr->levels[idx].i = -12;
+    } else {
+      /* make S-Meter jiggle */
+      int qrm = -56;
+      if (curr->freq < MHz(7))
+          qrm = -20;
+      else if (curr->freq < MHz(21))
+          qrm = -30;
+      else if (curr->freq < MHz(50))
+          qrm = -50;
 
-    int qrm = -56;
-    if (curr->freq < MHz(7))
-        qrm = -20;
-    else if (curr->freq < MHz(21))
-        qrm = -30;
-    else if (curr->freq < MHz(50))
-        qrm = -50;
-
-    curr->levels[idx].i = qrm + time(NULL)%32 + rand()%4
-        - curr->levels[LVL_ATT].i
-        + curr->levels[LVL_PREAMP].i;
+      curr->levels[idx].i = qrm + time(NULL)%32 + rand()%4
+          - curr->levels[LVL_ATT].i
+          + curr->levels[LVL_PREAMP].i;
+    }
   }
 
   *val = curr->levels[idx];
