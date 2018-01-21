@@ -2631,18 +2631,18 @@ int icom_set_parm(RIG *rig, setting_t parm, value_t val)
 		break;
 	case RIG_PARM_BACKLIGHT:
 		prm_cn = C_CTL_MEM;
-		prm_sc = S_MEM_MODE_SLCT;
 		icom_val = val.f * 255;
-		prm_len = 3;
-		prmbuf[0] = S_PRM_BACKLT;
 		if (priv->civ_version == 1) {
 			prm_sc = 0x05;
 			prm_len = 4;
 			prmbuf[0] = 0x00;
 			prmbuf[1] = 0x81;
-			to_bcd_be(prmbuf+2, (long long)icom_val, (prm_len-1)*2);
+			to_bcd_be(prmbuf+2, (long long)icom_val, (prm_len-2)*2);
 		}
 		else {
+			prm_sc = S_MEM_MODE_SLCT;
+			prm_len = 3;
+			prmbuf[0] = S_PRM_BACKLT;
 			to_bcd_be(prmbuf+1, (long long)icom_val, (prm_len-1)*2);
 		}
 		break;
@@ -2731,15 +2731,15 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 		prmbuf[0] = S_PRM_SLPTM;
 		break;
 	case RIG_PARM_BACKLIGHT:
-		prm_cn = C_CTL_MEM;
 		if (priv->civ_version == 1) {
-			prm_cn = 0;  // avoid passing uninitialized data
+			prm_cn = C_CTL_MEM;
 			prm_sc = 0x05;
 			prm_len = 2;
 			prmbuf[0] = 0x00;
 			prmbuf[1] = 0x81;
 		}
 		else {
+			prm_cn = C_CTL_MEM;
 			prm_sc = S_MEM_MODE_SLCT;
 			prm_len = 1;
 			prmbuf[0] = S_PRM_BACKLT;
@@ -2747,7 +2747,7 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 		break;
 	case RIG_PARM_BEEP:
 		if (priv->civ_version == 1) {
-			prm_cn = 0;  // avoid passing uninitialized data
+			prm_cn = C_CTL_MEM;
 			prm_sc = 0x05;
 			prm_len = 2;
 			prmbuf[0] = 0x00;
@@ -2762,7 +2762,7 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 		break;
 	case RIG_PARM_TIME:
 		if (priv->civ_version == 1) {
-			prm_cn = 0;  // avoid passing uninitialized data
+			prm_cn = C_CTL_MEM;
 			prm_sc = 0x05;
 			prm_len = 2;
 			prmbuf[0] = 0x00;
@@ -2806,14 +2806,14 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 		break;
 	case RIG_PARM_TIME:
 		if (priv->civ_version == 1) {
-			hr = from_bcd_be(resbuf+cmdhead, 2);
-			min = from_bcd_be(resbuf+cmdhead+1, 2);
-			sec = from_bcd_be(resbuf+cmdhead+2, 2);
-		}
-		else {
 			hr = from_bcd_be(resbuf+cmdhead+1, 2);
 			min = from_bcd_be(resbuf+cmdhead+2, 2);
 			sec = 0;
+		}
+		else {
+			hr = from_bcd_be(resbuf+cmdhead, 2);
+			min = from_bcd_be(resbuf+cmdhead+1, 2);
+			sec = from_bcd_be(resbuf+cmdhead+2, 2);
 		}
 		icom_val = (hr*3600)+(min*60)+sec;
 		val->i = icom_val;
@@ -2822,8 +2822,18 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 		icom_val = 0;
 		if (priv->civ_version == 1) {
 			icom_val = from_bcd_be(resbuf+cmdhead+1, (res_len-1)*2);
-			val->f = icom_val/255.0*100;
+		} else {
+			icom_val = from_bcd_be(resbuf+cmdhead, res_len*2);
 		}
+		val->f = (float)icom_val/255.0;
+		break;
+	case RIG_PARM_BEEP:
+		if (priv->civ_version == 1) {
+			icom_val = from_bcd_be(resbuf+cmdhead+1, (res_len-1)*2);
+		} else {
+			icom_val = from_bcd_be(resbuf+cmdhead, res_len*2);
+		}
+		val->i = icom_val;
 		break;
 	default:
 		icom_val = from_bcd_be(resbuf+cmdhead, res_len*2);

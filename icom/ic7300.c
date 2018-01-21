@@ -75,6 +75,11 @@
 		{ 241,  64 } \
 	} }
 
+#define IC7300_AGC_OFF 0x00
+#define IC7300_AGC_FAST 0x01
+#define IC7300_AGC_MID 0x02
+#define IC7300_AGC_SLOW 0x03
+
 /*
  * IC-7300 rig capabilities.
  *
@@ -106,6 +111,8 @@ int ic7300_set_rit(RIG *rig, vfo_t vfo, shortfreq_t ts);
 int ic7300_set_xit(RIG *rig, vfo_t vfo, shortfreq_t ts);
 int ic7300_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 int ic7300_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
+int ic7300_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+int ic7300_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
 const struct rig_caps ic7300_caps = {
 .rig_model =  RIG_MODEL_IC7300,
@@ -241,8 +248,8 @@ const struct rig_caps ic7300_caps = {
 .set_xit =  ic7300_set_xit,
 
 .decode_event =  icom_decode_event,
-.set_level =  icom_set_level,
-.get_level =  icom_get_level,
+.set_level =  ic7300_set_level,
+.get_level =  ic7300_get_level,
 .set_ext_level =  icom_set_ext_level,
 .get_ext_level =  icom_get_ext_level,
 .set_func =  ic7300_set_func,
@@ -409,5 +416,126 @@ int ic7300_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 		default:
 			return icom_set_func(rig, vfo, func, status);
 	}
+}
+
+int ic7300_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+{
+	unsigned char lvlbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
+	int ack_len=sizeof(ackbuf), lvl_len;
+	int lvl_cn, lvl_sc;		/* Command Number, Subcommand */
+	int retval;
+
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+	switch (level) {
+		case RIG_LEVEL_AGC:
+			lvl_cn = C_CTL_FUNC;
+			lvl_sc = S_FUNC_AGC;
+			lvl_len = 1;
+
+			unsigned char agc_value;
+			switch (val.i) {
+				case RIG_AGC_OFF:
+					agc_value = IC7300_AGC_OFF;
+					break;
+				case RIG_AGC_SLOW:
+					agc_value = IC7300_AGC_SLOW;
+					break;
+				case RIG_AGC_MEDIUM:
+					agc_value = IC7300_AGC_MID;
+					break;
+				case RIG_AGC_FAST:
+					agc_value = IC7300_AGC_FAST;
+					break;
+				default:
+					rig_debug(RIG_DEBUG_ERR,"Unsupported LEVEL_AGC %d", val.i);
+					return -RIG_EINVAL;
+			}
+
+			lvlbuf[0] = agc_value;
+			break;
+		default:
+			return icom_set_level(rig, vfo, level, val);
+	}
+
+	retval = icom_transaction (rig, lvl_cn, lvl_sc, lvlbuf, lvl_len,
+			ackbuf, &ack_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	if (ack_len != 1 || ackbuf[0] != ACK) {
+		rig_debug(RIG_DEBUG_ERR,"icom_set_level: ack NG (%#.2x), "
+				"len=%d\n", ackbuf[0], ack_len);
+		return -RIG_ERJCTED;
+	}
+
+	return RIG_OK;
+}
+
+int ic7300_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
+	unsigned char lvlbuf[MAXFRAMELEN], lvl2buf[MAXFRAMELEN];
+	int lvl_len, lvl2_len;
+	int lvl_cn, lvl_sc;		/* Command Number, Subcommand */
+	int icom_val;
+	int cmdhead;
+	int retval;
+
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+	lvl2_len = 0;
+
+	switch (level) {
+		case RIG_LEVEL_AGC:
+			lvl_cn = C_CTL_FUNC;
+			lvl_sc = S_FUNC_AGC;
+			break;
+		default:
+			return icom_get_level(rig, vfo, level, val);
+	}
+
+	retval = icom_transaction (rig, lvl_cn, lvl_sc, lvl2buf, lvl2_len,
+			lvlbuf, &lvl_len);
+	if (retval != RIG_OK)
+		return retval;
+
+  cmdhead = 2;
+	lvl_len -= cmdhead;
+
+	if (lvlbuf[0] != ACK && lvlbuf[0] != lvl_cn) {
+		rig_debug(RIG_DEBUG_ERR,"%s: ack NG (%#.2x), len=%d\n", __func__, lvlbuf[0], lvl_len);
+		return -RIG_ERJCTED;
+	}
+
+	/*
+	 * The result is a 3 digit BCD, but in *big endian* order: 0000..0255
+	 * (from_bcd is little endian)
+	 */
+	icom_val = from_bcd_be(lvlbuf + cmdhead, lvl_len * 2);
+
+	switch (level) {
+		case RIG_LEVEL_AGC:
+			switch (icom_val) {
+				case IC7300_AGC_OFF:
+					val->i = RIG_AGC_OFF;
+					break;
+				case IC7300_AGC_SLOW:
+					val->i = RIG_AGC_SLOW;
+					break;
+				case IC7300_AGC_MID:
+					val->i = RIG_AGC_MEDIUM;
+					break;
+				case IC7300_AGC_FAST:
+					val->i = RIG_AGC_FAST;
+					break;
+				default:
+					rig_debug(RIG_DEBUG_ERR,"Unexpected AGC 0x%02x", icom_val);
+					return -RIG_EPROTO;
+			}
+			break;
+	}
+
+	rig_debug(RIG_DEBUG_TRACE ,"%s: %d %d %d %f\n", __func__, lvl_len, icom_val, val->i, val->f);
+
 	return RIG_OK;
 }
