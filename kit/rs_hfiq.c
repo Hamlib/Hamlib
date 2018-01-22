@@ -66,7 +66,7 @@ static int rshfiq_open(RIG *rig)
   }
  serial_flush(&rig->state.rigport);
 
- sprintf(versionstr,"*w\r");
+ snprintf(versionstr,sizeof(versionstr),"*w\r");
  rig_debug(RIG_DEBUG_TRACE, "%s: cmdstr = %s\n", __func__, versionstr);
  retval = write_block(&rig->state.rigport, versionstr, strlen(versionstr));
  if (retval != RIG_OK)
@@ -93,17 +93,17 @@ static int rshfiq_open(RIG *rig)
 
 static int rshfiq_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-  char fstr[8];
+  char fstr[9];
   char cmdstr[15];
   int retval;
 
-  sprintf(fstr,"%lu", (unsigned long int)(freq));
+  snprintf(fstr,sizeof(fstr), "%lu", (unsigned long int)(freq));
   rig_debug(RIG_DEBUG_TRACE,"%s called: %s %s\n", __FUNCTION__,
  			rig_strvfo(vfo), fstr);
 
   serial_flush(&rig->state.rigport);
 
-  sprintf(cmdstr,"*f%lu\r",(unsigned long int)(freq));
+  snprintf(cmdstr, sizeof(cmdstr), "*f%lu\r",(unsigned long int)(freq));
 
   retval = write_block(&rig->state.rigport, cmdstr, strlen(cmdstr));
   if (retval != RIG_OK)
@@ -120,7 +120,7 @@ static int rshfiq_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  int retval;
  serial_flush(&rig->state.rigport);
 
- sprintf(cmdstr,"*f?\r");
+ snprintf(cmdstr, sizeof(cmdstr),"*f?\r");
 
  rig_debug(RIG_DEBUG_TRACE, "%s: cmdstr = %s\n", __func__, cmdstr);
 
@@ -132,6 +132,8 @@ static int rshfiq_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
   return retval;
  cmdstr[retval]=0;
  *freq = atoi(cmdstr);
+ if( *freq == 0 )  // fldigi interprets zero frequency as error
+ 	*freq=1;   // so return 1 ( freq= 1Hz )
  return RIG_OK;
 }
 
@@ -159,7 +161,7 @@ const struct rig_caps rshfiq_caps = {
   .mfg_name =       "HobbyPCB",
   .version =        "0.1",
   .copyright =    	"LGPL",
-  .status =         RIG_STATUS_ALPHA,
+  .status =         RIG_STATUS_BETA,
   .rig_type =       RIG_TYPE_TRANSCEIVER,
   .ptt_type =       RIG_PTT_RIG,
   .port_type =      RIG_PORT_SERIAL,
