@@ -100,6 +100,7 @@
         .levels = RIG_LEVEL_SET(IC7000_LEVELS), \
 }
 
+int ic7000_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
 
 /*
  * IC-7000 rig capabilities.
@@ -258,7 +259,7 @@ const struct rig_caps ic7000_caps = {
 .get_parm =  NULL,
 .set_mem =  icom_set_mem,
 .set_bank =  icom_set_bank,
-.vfo_op =  icom_vfo_op,
+.vfo_op =  ic7000_vfo_op,
 .scan =  icom_scan,
 .set_ptt =  icom_set_ptt,
 .get_ptt =  icom_get_ptt,
@@ -284,3 +285,35 @@ const struct rig_caps ic7000_caps = {
 
 };
 
+int ic7000_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
+{
+	unsigned char mvbuf[MAXFRAMELEN];
+	unsigned char ackbuf[MAXFRAMELEN];
+	int mv_len=0, ack_len=sizeof(ackbuf), retval;
+	int mv_cn, mv_sc;
+
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+	switch(op) {
+		case RIG_OP_TUNE:
+			mv_cn = C_CTL_PTT;
+			mv_sc = S_ANT_TUN;
+			mvbuf[0] = 2;
+			mv_len = 1;
+			break;
+		default:
+			return icom_vfo_op(rig, vfo, op);
+	}
+
+	retval = icom_transaction (rig, mv_cn, mv_sc, mvbuf, mv_len, ackbuf, &ack_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	if (ack_len != 1 || ackbuf[0] != ACK) {
+		if (op != RIG_OP_XCHG)
+			rig_debug(RIG_DEBUG_ERR,"icom_vfo_op: ack NG (%#.2x), len=%d\n", ackbuf[0], ack_len);
+		return -RIG_ERJCTED;
+	}
+
+	return RIG_OK;
+}
