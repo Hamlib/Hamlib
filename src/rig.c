@@ -1183,7 +1183,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     /* VFO compensation */
     if (rig->state.vfo_comp != 0.0)
     {
-        *freq += (freq_t)(rig->state.vfo_comp * (*freq));
+        *freq = (freq_t)(*freq/(1.0+(double)rig->state.vfo_comp));
     }
 
     if (retcode == RIG_OK
