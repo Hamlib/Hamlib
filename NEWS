@@ -1,18 +1,26 @@
 Hamlib -- History of visible changes.
 
 Copyright (C) 2000-2003  Frank Singleton
-Copyright (C) 2000-2016  Stephane Fillod, and others
+Copyright (C) 2000-2018  Stephane Fillod, and others
 
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 Version 3.2
-        2017-08-31
+        2018-03-15
         * New models, IC-7850/IC-7851 in IC-785x.  Mike, W9MDB
         * Fix ft991_get_mode, Mike, W9MDB
         * New model, FT-891.  Mike, W9MDB
+        * New Barrett 2050 backend, Mike, W9MDB
+        * New Flrig backend, Mike, W9MDB
+        * New model, IC-M710, Mike, W9MDB
         * Build instructions and test script for Python3
         * Rename autogen.sh to bootsrap and don't call configure
         * micro-ham support. Christoph, DL1YCF
+        * New rotator, SPID MD-01/02 in ROT2 mode, Norvald Ryeng, LA6YKA
+        * New model, Flex 6400/6600, Mike, W9MDB
+        * New model, IC-7610, Mike, W9MDB
+        * Add support for CM108B PTT, Max Lock
+        * Many other bug fixes and enhancements
 
 Version 3.1
 	2016-12-31
