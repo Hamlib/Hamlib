@@ -36,6 +36,7 @@
 #include "num_stdio.h"
 
 #include "rs.h"
+#include "gp2000.h"
 
 
 #define BUFSZ 64
@@ -328,6 +329,7 @@ DECLARE_INITRIG_BACKEND(rs)
 
 	rig_register(&esmc_caps);
 	rig_register(&eb200_caps);
+	rig_register(&xk2100_caps);
 
 	return RIG_OK;
 }
