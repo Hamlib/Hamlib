@@ -177,7 +177,7 @@ const struct rig_caps ft817_caps = {
 	.write_delay =         FT817_WRITE_DELAY,
 	.post_write_delay =    FT817_POST_WRITE_DELAY,
 	.timeout =             FT817_TIMEOUT,
-	.retry =               0,
+	.retry =               3,
 	.has_get_func =        RIG_FUNC_NONE,
 	.has_set_func =        RIG_FUNC_LOCK | RIG_FUNC_TONE | RIG_FUNC_TSQL,
 	.has_get_level =       RIG_LEVEL_STRENGTH | RIG_LEVEL_RAWSTR | RIG_LEVEL_RFPOWER,
@@ -402,6 +402,7 @@ static int ft817_get_status(RIG *rig, int status)
 	unsigned char *data;
 	int len;
 	int n;
+	int retries = rig->state.rigport.retry;
 
 	switch (status) {
 	case FT817_NATIVE_CAT_GET_FREQ_MODE_STATUS:
@@ -424,13 +425,16 @@ static int ft817_get_status(RIG *rig, int status)
 		return -RIG_EINTERNAL;
 	}
 
-	serial_flush(&rig->state.rigport);
+	do
+		{
+			serial_flush(&rig->state.rigport);
+			write_block(&rig->state.rigport, (char *) p->pcs[status].nseq, YAESU_CMD_LENGTH);
+			n = read_block(&rig->state.rigport, (char *) data, len);
+		}
+	while (retries-- && n < 0);
 
-	write_block(&rig->state.rigport, (char *) p->pcs[status].nseq, YAESU_CMD_LENGTH);
-
-	if ((n = read_block(&rig->state.rigport, (char *) data, len)) < 0)
+	if (n < 0)
 		return n;
-
 	if (n != len)
 		return -RIG_EIO;
 
@@ -1153,4 +1157,3 @@ int ft817_mW2power       (RIG *rig, float *power, unsigned int mwpower,
 
 
 /* ---------------------------------------------------------------------- */
-
