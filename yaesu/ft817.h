@@ -50,7 +50,7 @@
 /*
  * Read timeout.
  */
-#define FT817_TIMEOUT			200
+#define FT817_TIMEOUT			1000
 
 /*
  * The time the TX, RX and FREQ/MODE status are cached (in millisec).
@@ -161,10 +161,3 @@ static int ft817_mW2power       (RIG *rig, float *power, unsigned int mwpower,
                                  freq_t freq, rmode_t mode);
 
 #endif /* _FT817_H */
-
-
-
-
-
-
-
