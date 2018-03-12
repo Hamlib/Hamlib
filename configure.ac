@@ -153,6 +153,7 @@ dnl Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_SIZE_T
 AC_HEADER_TIME
 AC_CHECK_TYPES([siginfo_t],[],[],[[#include <signal.h>]])
+AC_CHECK_TYPES([sig_atomic_t],[],[],[[#include <signal.h>]])
 
 
 dnl Checks for libraries.

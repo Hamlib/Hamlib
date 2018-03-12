@@ -45,6 +45,7 @@ int dump_chan(FILE *, RIG *, channel_t *);
 int print_conf_list(const struct confparams *cfp, rig_ptr_t data);
 int set_conf(RIG *my_rig, char *conf_parms);
 
-int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc);
+typedef void (*sync_cb_t)(int);
+int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc, sync_cb_t sync_cb);
 
 #endif  /* RIGCTL_PARSE_H */
