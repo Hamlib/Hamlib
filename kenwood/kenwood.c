@@ -2786,18 +2786,28 @@ int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
        if (!strncmp(m2,"KY0", 3)) break;
        if (!strncmp(m2,"KY1", 3)) usleep(500000); else return -RIG_EINVAL;
     }
-    /*
-     * Make the total message segments 28 characters
-     * in length because Kenwood demands it.
-     * Spaces fill in the message end.
-     */
     buff_len = msg_len > 24 ? 24 : msg_len;
 
     strncpy(m2, p, 24);
     m2[24] = '\0';
 
-    /* the command must consist of 28 bytes */
-    snprintf(morsebuf, sizeof (morsebuf), "KY %-24s", m2);
+    /*
+     * Make the total message segments 28 characters
+     * in length because some Kenwoods demand it.
+     * 0x20 fills in the message end.
+     * Some rigs don't need the fill
+     */
+    switch(rig->caps->rig_model) {
+    case RIG_MODEL_K3: // probably a lot more rigs need to go here
+      snprintf(morsebuf, sizeof (morsebuf), "KY %s", m2);
+      break;
+    default:
+      /* the command must consist of 28 bytes 0x20 padded */
+      snprintf(morsebuf, sizeof (morsebuf), "KY %-24s", m2);
+      for(int i=strlen(morsebuf)-1;i>0 && morsebuf[i]==' ';--i) {
+        morsebuf[i]=0x20;
+      }
+    }
     retval = kenwood_transaction(rig, morsebuf, NULL, 0);
     if (retval != RIG_OK)
       return retval;
