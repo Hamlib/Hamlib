@@ -2784,7 +2784,7 @@ int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
         * If answer is something else, return with error to prevent infinite loops
         */
        if (!strncmp(m2,"KY0", 3)) break;
-       if (!strncmp(m2,"KY1", 3)) usleep(500000); else return -RIG_EINVAL;
+       if (!strncmp(m2,"KY1", 3)) usleep(50000); else return -RIG_EINVAL;
     }
     /*
      * Make the total message segments 28 characters
@@ -2796,8 +2796,17 @@ int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
     strncpy(m2, p, 24);
     m2[24] = '\0';
 
-    /* the command must consist of 28 bytes */
-    snprintf(morsebuf, sizeof (morsebuf), "KY %-24s", m2);
+    if (rig->caps->rig_model == RIG_MODEL_K3) {
+      /* no padding needed */
+      snprintf(morsebuf, sizeof (morsebuf), "KY %s", m2);
+    }
+    else {
+      /* the command must consist of 28 bytes 0x20 padded */
+      snprintf(morsebuf, sizeof (morsebuf), "KY %-24s", m2);
+      for(int i=strlen(morsebuf)-1;i>0 && morsebuf[i]==' ';--i) {
+        morsebuf[i]=0x20;
+      }
+    }
     retval = kenwood_transaction(rig, morsebuf, NULL, 0);
     if (retval != RIG_OK)
       return retval;
