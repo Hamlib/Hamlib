@@ -843,7 +843,12 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
                     *nl = '\0';    /* chomp */
                 }
 
-                p1 = arg1[0] == ' ' ? arg1 + 1 : arg1;
+                if (cmd=='b') {
+                    p1 = arg1; /* CW must accept a space argument */
+                }
+                else { /* skip a space arg if first arg...but why? */
+                    p1 = arg1[0] == ' ' ? arg1 + 1 : arg1;
+                }
             }
             else
             {
