@@ -319,6 +319,7 @@ static struct
     { RIG_MODE_LSB, "LSB" },
     { RIG_MODE_RTTY, "RTTY" },
     { RIG_MODE_FM, "FM" },
+    { RIG_MODE_FMN, "FMN" },
     { RIG_MODE_WFM, "WFM" },
     { RIG_MODE_CWR, "CWR" },
     { RIG_MODE_RTTYR, "RTTYR" },
