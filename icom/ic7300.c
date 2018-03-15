@@ -118,7 +118,7 @@ const struct rig_caps ic7300_caps = {
 .rig_model =  RIG_MODEL_IC7300,
 .model_name = "IC-7300",
 .mfg_name =  "Icom",
-.version =  BACKEND_VER ".2",
+.version =  BACKEND_VER ".3",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_STABLE,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -236,7 +236,7 @@ const struct rig_caps ic7300_caps = {
 .get_mode =  icom_get_mode_with_data,
 //.get_vfo =  icom_get_vfo,
 .set_vfo =  icom_set_vfo,
-.set_ant =  NULL,  /*automatically set by rig depending band */
+.set_ant =  NULL,
 .get_ant =  NULL,
 
 .set_rit =  ic7300_set_rit,
@@ -264,10 +264,10 @@ const struct rig_caps ic7300_caps = {
 .get_dcd =  icom_get_dcd,
 .set_ts =  icom_set_ts,
 .get_ts =  icom_get_ts,
-.set_rptr_shift =  icom_set_rptr_shift,
+.set_rptr_shift =  NULL,
 .get_rptr_shift =  NULL,
-.set_rptr_offs =  icom_set_rptr_offs,
-.get_rptr_offs =  icom_get_rptr_offs,
+.set_rptr_offs =  NULL,
+.get_rptr_offs =  NULL,
 .set_ctcss_tone =  icom_set_ctcss_tone,
 .get_ctcss_tone =  icom_get_ctcss_tone,
 .set_ctcss_sql =  icom_set_ctcss_sql,
@@ -277,7 +277,7 @@ const struct rig_caps ic7300_caps = {
 .set_split_mode =  icom_set_split_mode,
 .get_split_mode =  icom_get_split_mode,
 .set_split_vfo =  icom_set_split_vfo,
-.get_split_vfo =  NULL,
+.get_split_vfo =  icom_get_split_vfo,
 .set_powerstat = icom_set_powerstat,
 .power2mW = icom_power2mW,
 .mW2power = icom_mW2power,
@@ -287,79 +287,68 @@ const struct rig_caps ic7300_caps = {
 
 int ic7300_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 {
-        unsigned char tsbuf[MAXFRAMELEN];
-        int ts_len, retval;
+	unsigned char tsbuf[MAXFRAMELEN];
+	int ts_len, retval;
 
-        retval = icom_transaction (rig, 0x21, 0x00, NULL, 0, tsbuf, &ts_len);
-        if (retval != RIG_OK)
-                return retval;
+	retval = icom_transaction (rig, 0x21, 0x00, NULL, 0, tsbuf, &ts_len);
+	if (retval != RIG_OK) {
+		return retval;
+	}
 
-        /*
-         * tsbuf nibbles should contain 10,1,1000,100 hz digits and 00=+, 01=- bit
-         */
-	rig_debug(RIG_DEBUG_VERBOSE,"ts_len=%d\n",ts_len);
-        if (ts_len != 5) {
-                rig_debug(RIG_DEBUG_ERR,"ic7300_get_ts: wrong frame len=%d\n",
-                                        ts_len);
-                return -RIG_ERJCTED;
-        }
+	/*
+	 * tsbuf nibbles should contain 10,1,1000,100 hz digits and 00=+, 01=- bit
+	 */
+	rig_debug(RIG_DEBUG_VERBOSE, "ts_len=%d\n", ts_len);
+	if (ts_len != 5) {
+		rig_debug(RIG_DEBUG_ERR, "%s: wrong frame len=%d\n", __func__, ts_len);
+		return -RIG_ERJCTED;
+	}
 
-	*ts = tsbuf[2] & 0x0f   * 1;
-	*ts += (tsbuf[2] >> 4)  * 10;
-	*ts += (tsbuf[3]& 0x0f) * 100;
-	*ts += (tsbuf[3] >> 4)  * 1000;
-	if (tsbuf[4]!=0) *ts *= -1;
+	*ts = (shortfreq_t) from_bcd(tsbuf + 2, 4);
+	if (tsbuf[4] != 0) {
+		*ts *= -1;
+	}
 
-        return RIG_OK;
+	return RIG_OK;
 }
 
-static int xit_flag = 0;
-
-int ic7300_set_rit(RIG *rig, vfo_t vfo, shortfreq_t ts)
-{
+static int ic7300_set_it(RIG *rig, vfo_t vfo, shortfreq_t ts, int set_xit) {
 	unsigned char tsbuf[8];
-	char tmpbuf[8];
 	unsigned char ackbuf[16];
 	int ack_len;
 	int retval;
 
-	rig_debug(RIG_DEBUG_VERBOSE,"ic7300_set_rit: ts=%d\n",ts);
-	tsbuf[2] = 0;
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: ts=%d\n", __func__, ts);
 
+	to_bcd(tsbuf, abs((int) ts), 4);
 	// set sign bit
-	if (ts < 0) tsbuf[2] = 1;
-	snprintf(tmpbuf,sizeof(tmpbuf),"%04d",abs((int)ts));
-	unsigned int b1,b2;
-	sscanf(tmpbuf,"%02x%02x",&b1,&b2);
-	tsbuf[1] = b1;
-	tsbuf[0] = b2;
+	tsbuf[2] = (ts < 0) ? 1 : 0;
 
-
-	if (ts != 0) {
-	        retval =  icom_transaction (rig, 0x21, 0x00, tsbuf, 3, ackbuf, &ack_len);
-		if (retval != RIG_OK)
-			return retval;
+	retval = icom_transaction(rig, 0x21, 0x00, tsbuf, 3, ackbuf, &ack_len);
+	if (retval != RIG_OK) {
+		return retval;
 	}
-	
+
 	if (ts == 0) { // turn off both rit/xit
-		retval = ic7300_set_func(rig,vfo,RIG_FUNC_XIT,0);
-		if (retval != RIG_OK) return retval;
-		retval = ic7300_set_func(rig,vfo,RIG_FUNC_RIT,0);
-	}
-	else {
-		if (xit_flag) retval = ic7300_set_func(rig,vfo,RIG_FUNC_XIT,1);
-		else retval = ic7300_set_func(rig,vfo,RIG_FUNC_RIT,1);
+		retval = ic7300_set_func(rig, vfo, RIG_FUNC_XIT, 0);
+		if (retval != RIG_OK) {
+			return retval;
+		}
+		retval = ic7300_set_func(rig, vfo, RIG_FUNC_RIT, 0);
+	} else {
+		retval = ic7300_set_func(rig, vfo, set_xit ? RIG_FUNC_XIT : RIG_FUNC_RIT, 1);
 	}
 	return retval;
 }
 
+int ic7300_set_rit(RIG *rig, vfo_t vfo, shortfreq_t ts)
+{
+	return ic7300_set_it(rig, vfo, ts, 0);
+}
+
 int ic7300_set_xit(RIG *rig, vfo_t vfo, shortfreq_t ts)
 {
-	int retval;
-	xit_flag = 1;
-	retval = ic7300_set_rit(rig,vfo,ts);
-	xit_flag = 0;
-	return retval;
+	return ic7300_set_it(rig, vfo, ts, 1);
 }
 
 int ic7300_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
@@ -375,16 +364,19 @@ int ic7300_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
 	switch (func) {
 		case RIG_FUNC_RIT:
-        		retval = icom_transaction (rig, 0x21, 0x01, NULL, 0, ackbuf, &ack_len);
+			retval = icom_transaction(rig, 0x21, 0x01, NULL, 0, ackbuf, &ack_len);
 			if (retval != RIG_OK) return retval;
-			if (ack_len != 3) return RIG_BUSERROR;
+			if (ack_len != 3) {
+				return RIG_BUSERROR;
+			}
 			*status = ackbuf[2];
 			break;
 
 		case RIG_FUNC_XIT:
-        		retval = icom_transaction (rig, 0x21, 0x02, NULL, 0, ackbuf, &ack_len);
-			if (ack_len != 3)  return RIG_BUSERROR;
-			
+			retval = icom_transaction(rig, 0x21, 0x02, NULL, 0, ackbuf, &ack_len);
+			if (ack_len != 3) {
+				return RIG_BUSERROR;
+			}
 			*status = ackbuf[2];
 			break;
 
@@ -464,8 +456,7 @@ int ic7300_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		return retval;
 
 	if (ack_len != 1 || ackbuf[0] != ACK) {
-		rig_debug(RIG_DEBUG_ERR,"icom_set_level: ack NG (%#.2x), "
-				"len=%d\n", ackbuf[0], ack_len);
+		rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0], ack_len);
 		return -RIG_ERJCTED;
 	}
 
