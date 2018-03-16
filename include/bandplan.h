@@ -57,7 +57,7 @@
             { kHz(3500),kHz(3800), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_60m_REGION1(md,lp,hp,v,a) \
-            { MHz(5351.5),kHz(5366.5), (md), (lp), (hp), (v), (a) }
+            { kHz(5351.5),kHz(5366.5), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_40m_REGION1(md,lp,hp,v,a) \
             { MHz(7),kHz(7100), (md), (lp), (hp), (v), (a) }
@@ -82,7 +82,7 @@
 
 /* VHF: 30 MHz - 300 MHz */
 #define FRQ_RNG_6m_REGION1(md,lp,hp,v,a) \
-            { kHz(50200),kHz(51200), (md), (lp), (hp), (v), (a) }
+            { MHz(50),MHz(54), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_4m_REGION1(md,lp,hp,v,a) \
             { MHz(70),MHz(70.5), (md), (lp), (hp), (v), (a) }
@@ -114,7 +114,7 @@
             { kHz(3500),MHz(4), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_60m_REGION2(md,lp,hp,v,a) \
-            { MHz(5351.5),kHz(5366.5), (md), (lp), (hp), (v), (a) }
+            { kHz(5351.5),kHz(5366.5), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_40m_REGION2(md,lp,hp,v,a) \
             { MHz(7),kHz(7300), (md), (lp), (hp), (v), (a) }
@@ -167,7 +167,7 @@
             { kHz(3500),kHz(3900), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_60m_REGION3(md,lp,hp,v,a) \
-            { MHz(5351.5),kHz(5366.5), (md), (lp), (hp), (v), (a) }
+            { kHz(5351.5),kHz(5366.5), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_40m_REGION3(md,lp,hp,v,a) \
             { MHz(7),kHz(7100), (md), (lp), (hp), (v), (a) }
