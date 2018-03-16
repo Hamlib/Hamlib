@@ -2763,7 +2763,7 @@ int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
     return -RIG_EINVAL;
 
   char morsebuf[30], m2[30];
-  int msg_len, buff_len, retval;
+  int msg_len, buff_len, retval, i;
   const char *p;
 
   p = msg;
@@ -2804,7 +2804,7 @@ int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
     default:
       /* the command must consist of 28 bytes 0x20 padded */
       snprintf(morsebuf, sizeof (morsebuf), "KY %-24s", m2);
-      for(int i=strlen(morsebuf)-1;i>0 && morsebuf[i]==' ';--i) {
+      for(i = strlen(morsebuf) - 1;i > 0 && morsebuf[i] == ' '; --i) {
         morsebuf[i]=0x20;
       }
     }
