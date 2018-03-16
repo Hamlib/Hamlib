@@ -567,7 +567,7 @@ int main(int argc, char *argv[])
 
     do
     {
-        retcode = rigctl_parse(my_rig, stdin, stdout, argv, argc);
+      retcode = rigctl_parse(my_rig, stdin, stdout, argv, argc, NULL);
 
         if (retcode == 2)
         {

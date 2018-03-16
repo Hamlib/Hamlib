@@ -90,12 +90,6 @@ extern int read_history();
 /* Hash table implementation See:  http://uthash.sourceforge.net/ */
 #include "uthash.h"
 
-#ifdef HAVE_PTHREAD
-#  include <pthread.h>
-
-static pthread_mutex_t rig_mutex = PTHREAD_MUTEX_INITIALIZER;
-#endif
-
 #define STR1(S) #S
 #define STR(S) STR1(S)
 
@@ -601,7 +595,7 @@ int ext_resp = 0;
 unsigned char resp_sep = '\n';      /* Default response separator */
 
 
-int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
+int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc, sync_cb_t sync_cb)
 {
     int retcode;        /* generic return code from functions */
     unsigned char cmd;
@@ -1517,14 +1511,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 
 #endif  /* HAVE_LIBREADLINE */
 
-
-    /*
-     * mutex locking needed because rigctld is multithreaded
-     * and hamlib is not MT-safe
-     */
-#ifdef HAVE_PTHREAD
-    pthread_mutex_lock(&rig_mutex);
-#endif
+    if (sync_cb) sync_cb (1);   /* lock if necessary */
 
     if (!prompt)
     {
@@ -1577,10 +1564,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
                                         p2 ? p2 : "",
                                         p3 ? p3 : "");
 
-#ifdef HAVE_PTHREAD
-    pthread_mutex_unlock(&rig_mutex);
-#endif
-
+    if (sync_cb) sync_cb (0);   /* unlock if necessary */
 
     if (retcode != RIG_OK)
     {

@@ -27,6 +27,11 @@
 #  include "config.h"
 #endif
 
+#ifdef WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -118,6 +123,19 @@ void *handle_socket(void *arg);
 void usage(void);
 
 
+#ifdef HAVE_PTHREAD
+static unsigned client_count;
+#endif
+
+static RIG * my_rig;            /* handle to rig (instance) */
+static int verbose;
+
+#ifdef HAVE_SIG_ATOMIC_T
+static sig_atomic_t volatile ctrl_c;
+#else
+static int volatile ctrl_c;
+#endif
+
 int interactive = 1;    /* no cmd because of daemon */
 int prompt = 0;         /* Daemon mode for rigparse return string */
 int vfo_mode = 0;       /* vfo_mode=0 means target VFO is current VFO */
@@ -129,6 +147,51 @@ const char *src_addr = NULL; /* INADDR_ANY */
 
 #define MAXCONFLEN 128
 
+static void sync_callback (int lock)
+{
+#ifdef HAVE_PTHREAD
+  static pthread_mutex_t client_lock = PTHREAD_MUTEX_INITIALIZER;
+  if (lock) {
+    pthread_mutex_lock (&client_lock);
+    rig_debug (RIG_DEBUG_VERBOSE, "client lock engaged\n");
+  }
+  else {
+    rig_debug (RIG_DEBUG_VERBOSE, "client lock disengaged\n");
+    pthread_mutex_unlock (&client_lock);
+  }
+#endif
+}
+
+#ifdef WIN32
+static BOOL WINAPI CtrlHandler (DWORD fdwCtrlType)
+{
+  rig_debug (RIG_DEBUG_VERBOSE, "CtrlHandler called\n");
+  switch (fdwCtrlType)
+    {
+    case CTRL_C_EVENT:
+    case CTRL_CLOSE_EVENT:
+      ctrl_c = 1;
+      return TRUE;
+
+    default:
+      return FALSE;
+    }
+}
+#else
+static void signal_handler (int sig)
+{
+  switch (sig)
+    {
+    case SIGINT:
+      ctrl_c = 1;
+      break;
+
+    default:
+      /* do nothing */
+      break;
+    }
+}
+#endif
 
 static void handle_error(enum rig_debug_level_e lvl, const char *msg)
 {
@@ -165,12 +228,10 @@ static void handle_error(enum rig_debug_level_e lvl, const char *msg)
 
 int main(int argc, char *argv[])
 {
-    RIG *my_rig;        /* handle to rig (instance) */
     rig_model_t my_model = RIG_MODEL_DUMMY;
 
     int retcode;        /* generic return code from functions */
 
-    int verbose = 0;
     int show_conf = 0;
     int dump_caps_opt = 0;
     const char *rig_file = NULL, *ptt_file = NULL, *dcd_file = NULL;
@@ -500,6 +561,7 @@ int main(int argc, char *argv[])
         exit(0);
     }
 
+    /* open and close rig connection to check early for issues */
     retcode = rig_open(my_rig);
 
     if (retcode != RIG_OK)
@@ -517,6 +579,14 @@ int main(int argc, char *argv[])
 
     rig_debug(RIG_DEBUG_VERBOSE, "Backend version: %s, Status: %s\n",
               my_rig->caps->version, rig_strstatus(my_rig->caps->status));
+
+    rig_close(my_rig);          /* we will reopen for clients */
+    if (verbose > 0)
+    {
+        printf("Closed rig model %d, '%s - will reopen for clients'\n",
+               my_rig->caps->rig_model,
+               my_rig->caps->model_name);
+    }
 
 #ifdef __MINGW32__
 #  ifndef SO_OPENTYPE
@@ -639,28 +709,47 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
+#if HAVE_SIGACTION
+    struct sigaction act;
+
 #ifdef SIGPIPE
     /* Ignore SIGPIPE as we will handle it at the write()/send() calls
        that will consequently fail with EPIPE. All child threads will
        inherit this disposition which is what we want. */
-#if HAVE_SIGACTION
-    struct sigaction act;
     memset(&act, 0, sizeof act);
     act.sa_handler = SIG_IGN;
     act.sa_flags = SA_RESTART;
-
     if (sigaction(SIGPIPE, &act, NULL))
     {
-        handle_error(RIG_DEBUG_ERR, "sigaction");
+        handle_error(RIG_DEBUG_ERR, "sigaction SIGPIPE");
     }
+#endif
 
-#elif HAVE_SIGNAL
-
-    if (SIG_ERR == signal(SIGPIPE, SIG_IGN))
+#ifdef SIGINT
+    memset(&act, 0, sizeof act);
+    act.sa_handler = signal_handler;
+    if (sigaction(SIGINT, &act, NULL))
     {
-        handle_error(RIG_DEBUG_ERR, "signal");
+        handle_error(RIG_DEBUG_ERR, "sigaction SIGINT");
     }
-
+#endif
+#elif defined (WIN32)
+    if (!SetConsoleCtrlHandler (CtrlHandler, TRUE))
+      {
+        handle_error(RIG_DEBUG_ERR, "SetConsoleCtrlHandler");
+      }
+#elif HAVE_SIGNAL
+#ifdef SIGPIPE
+    if (SIG_ERR == signal(SIGPIPE, SIG_IGN))
+      {
+        handle_error(RIG_DEBUG_ERR, "signal SIGPIPE");
+      }
+#endif
+#ifdef SIGINT
+    if (SIG_ERR == signal(SIGINT, signal_handler))
+      {
+        handle_error(RIG_DEBUG_ERR, "signal SIGINT");
+      }
 #endif
 #endif
 
@@ -677,57 +766,84 @@ int main(int argc, char *argv[])
             exit(1);
         }
 
-        arg->rig = my_rig;
-        arg->clilen = sizeof(arg->cli_addr);
-        arg->sock = accept(sock_listen,
-                           (struct sockaddr *)&arg->cli_addr,
-                           &arg->clilen);
-
-        if (arg->sock < 0)
-        {
-            handle_error(RIG_DEBUG_ERR, "accept");
+        /* use select to allow for periodic checks for CTRL+C */
+        fd_set set;
+        struct timeval timeout;
+        FD_ZERO (&set);
+        FD_SET (sock_listen, &set);
+        timeout.tv_sec = 5;
+        timeout.tv_usec = 0;
+        retcode = select (sock_listen + 1, &set, NULL, NULL, &timeout);
+        if (-1 == retcode) {
+          rig_debug (RIG_DEBUG_ERR, "select\n");
+        }
+        else if (!retcode) {
+          if (ctrl_c) {
             break;
+          }
         }
+        else {
+          arg->rig = my_rig;
+          arg->clilen = sizeof(arg->cli_addr);
+          arg->sock = accept(sock_listen,
+                             (struct sockaddr *)&arg->cli_addr,
+                             &arg->clilen);
 
-        if ((retcode = getnameinfo((struct sockaddr const *)&arg->cli_addr,
-                                   arg->clilen,
-                                   host,
-                                   sizeof(host),
-                                   serv,
-                                   sizeof(serv),
-                                   NI_NOFQDN))
-            < 0)
-        {
+          if (arg->sock < 0)
+            {
+              handle_error(RIG_DEBUG_ERR, "accept");
+              break;
+            }
 
-            rig_debug(RIG_DEBUG_WARN,
-                      "Peer lookup error: %s",
-                      gai_strerror(retcode));
-        }
+          if ((retcode = getnameinfo((struct sockaddr const *)&arg->cli_addr,
+                                     arg->clilen,
+                                     host,
+                                     sizeof(host),
+                                     serv,
+                                     sizeof(serv),
+                                     NI_NOFQDN))
+              < 0)
+            {
+              rig_debug(RIG_DEBUG_WARN,
+                        "Peer lookup error: %s",
+                        gai_strerror(retcode));
+            }
 
-        rig_debug(RIG_DEBUG_VERBOSE,
-                  "Connection opened from %s:%s\n",
-                  host,
-                  serv);
+          rig_debug(RIG_DEBUG_VERBOSE,
+                    "Connection opened from %s:%s\n",
+                    host,
+                    serv);
 
 #ifdef HAVE_PTHREAD
-        pthread_attr_init(&attr);
-        pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+          pthread_attr_init(&attr);
+          pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
-        retcode = pthread_create(&thread, &attr, handle_socket, arg);
+          retcode = pthread_create(&thread, &attr, handle_socket, arg);
 
-        if (retcode != 0)
-        {
-            rig_debug(RIG_DEBUG_ERR, "pthread_create: %s\n", strerror(retcode));
-            break;
-        }
+          if (retcode != 0)
+            {
+              rig_debug(RIG_DEBUG_ERR, "pthread_create: %s\n", strerror(retcode));
+              break;
+            }
 
 #else
-        handle_socket(arg);
+          handle_socket(arg);
 #endif
+        }
     }
-    while (retcode == 0);
+    while (retcode == 0 && !ctrl_c);
 
+#ifdef HAVE_PTHREAD
+    /* allow threads to finish current action */
+    sync_callback (1);
+    if (client_count) {
+      rig_debug (RIG_DEBUG_WARN, "%d outstanding client(s)\n", client_count);
+    }
+    rig_close (my_rig);
+    sync_callback (0);
+#else
     rig_close(my_rig); /* close port */
+#endif
     rig_cleanup(my_rig); /* if you care about memory */
 
 #ifdef __MINGW32__
@@ -746,7 +862,7 @@ void * handle_socket(void *arg)
     struct handle_data *handle_data_arg = (struct handle_data *)arg;
     FILE *fsockin;
     FILE *fsockout;
-    int retcode;
+    int retcode = RIG_OK;
     char host[NI_MAXHOST];
     char serv[NI_MAXSERV];
 
@@ -784,16 +900,60 @@ void * handle_socket(void *arg)
         goto handle_exit;
     }
 
+#ifdef HAVE_PTHREAD
+    sync_callback (1);
+    if (!client_count++) {
+      retcode = rig_open (my_rig);
+      if (RIG_OK == retcode && verbose > 0)
+        {
+          printf("Opened rig model %d, '%s'\n",
+                 my_rig->caps->rig_model,
+                 my_rig->caps->model_name);
+        }
+    }
+    sync_callback (0);
+#else
+    retcode = rig_open (my_rig);
+    if (RIG_OK == retcode && verbose > 0)
+    {
+        printf("Opened rig model %d, '%s'\n",
+               my_rig->caps->rig_model,
+               my_rig->caps->model_name);
+    }
+#endif
+
     do
     {
-        retcode = rigctl_parse(handle_data_arg->rig, fsockin, fsockout, NULL, 0);
-
-        if (ferror(fsockin) || ferror(fsockout))
+      retcode = rigctl_parse(handle_data_arg->rig, fsockin, fsockout, NULL, 0, sync_callback);
+      if (ferror(fsockin) || ferror(fsockout))
         {
-            retcode = 1;
+          retcode = 1;
         }
     }
     while (retcode == 0 || retcode == 2 || retcode == -RIG_ENAVAIL);
+
+#ifdef HAVE_PTHREAD
+    sync_callback (1);
+    /* Release rig if there are no clients */
+    if (!--client_count) {
+      rig_close (my_rig);
+      if (verbose > 0)
+        {
+          printf("Closed rig model %d, '%s - no clients, will reopen for new clients'\n",
+                 my_rig->caps->rig_model,
+                 my_rig->caps->model_name);
+        }
+    }
+    sync_callback (0);
+#else
+    rig_close (my_rig);
+    if (verbose > 0)
+    {
+        printf("Closed rig model %d, '%s - will reopen for new clients'\n",
+               my_rig->caps->rig_model,
+               my_rig->caps->model_name);
+    }
+#endif
 
     if ((retcode = getnameinfo((struct sockaddr const *)&handle_data_arg->cli_addr,
                                handle_data_arg->clilen,
