@@ -33,7 +33,7 @@
 #define EOM_TH '\r'
 
 #define KENWOOD_MODE_TABLE_MAX  24
-#define KENWOOD_MAX_BUF_LEN   50 /* max answer len, arbitrary */
+#define KENWOOD_MAX_BUF_LEN   128 /* max answer len, arbitrary */
 
 
 /* Tokens for Parameters common to multiple rigs.
