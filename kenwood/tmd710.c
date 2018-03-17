@@ -48,7 +48,6 @@
 #include "tones.h"
 #include "num_stdio.h"
 #include "misc.h"
-#include "../include/hamlib/rig.h"
 
 static int tmd710_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 static int tmd710_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
