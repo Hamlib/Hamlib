@@ -929,6 +929,10 @@ void * handle_socket(void *arg)
         {
           retcode = 1;
         }
+      if (retcode == 1) 
+        {
+          retcode = rig_open(my_rig);
+        }
     }
     while (retcode == 0 || retcode == 2 || retcode == -RIG_ENAVAIL);
 
