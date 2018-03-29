@@ -91,7 +91,7 @@ static const struct confparams frontend_cfg_params[] =
     {
         TOK_PTT_TYPE, "ptt_type", "PTT type",
         "Push-To-Talk interface type override",
-        "RIG", RIG_CONF_COMBO, { .c = {{ "RIG", "DTR", "RTS", "Parallel", "CM108", "None", NULL }} }
+        "RIG", RIG_CONF_COMBO, { .c = {{ "RIG", "DTR", "RTS", "Parallel", "CM108", "GPIO", "GPION", "None", NULL }} }
     },
     {
         TOK_PTT_PATHNAME, "ptt_pathname", "PTT path name",
@@ -106,7 +106,7 @@ static const struct confparams frontend_cfg_params[] =
     {
         TOK_DCD_TYPE, "dcd_type", "DCD type",
         "Data Carrier Detect (or squelch) interface type override",
-        "RIG", RIG_CONF_COMBO, { .c = {{ "RIG", "DSR", "CTS", "CD", "Parallel", "CM108", "None", NULL }} }
+        "RIG", RIG_CONF_COMBO, { .c = {{ "RIG", "DSR", "CTS", "CD", "Parallel", "CM108", "GPIO", "GPION", "None", NULL }} }
     },
     {
         TOK_DCD_PATHNAME, "dcd_pathname", "DCD path name",
@@ -422,6 +422,14 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         {
             rs->pttport.type.ptt = RIG_PTT_CM108;
         }
+        else if (!strcmp(val, "GPIO"))
+        {
+            rs->pttport.type.ptt = RIG_PTT_GPIO;
+        }
+        else if (!strcmp(val, "GPION"))
+        {
+            rs->pttport.type.ptt = RIG_PTT_GPION;
+        }
         else if (!strcmp(val, "None"))
         {
             rs->pttport.type.ptt = RIG_PTT_NONE;
@@ -470,6 +478,14 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         else if (!strcmp(val, "CM108"))
         {
             rs->dcdport.type.dcd = RIG_DCD_CM108;
+        }
+        else if (!strcmp(val, "GPIO"))
+        {
+            rs->dcdport.type.dcd = RIG_DCD_GPIO;
+        }
+        else if (!strcmp(val, "GPION"))
+        {
+            rs->dcdport.type.dcd = RIG_DCD_GPION;
         }
         else if (!strcmp(val, "None"))
         {
@@ -720,6 +736,14 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
             s = "CM108";
             break;
 
+        case RIG_PTT_GPIO:
+            s = "GPIO";
+            break;
+
+        case RIG_PTT_GPION:
+            s = "GPION";
+            break;
+
         case RIG_PTT_NONE:
             s = "None";
             break;
@@ -764,6 +788,14 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
 
         case RIG_DCD_CM108:
             s = "CM108";
+            break;
+
+        case RIG_DCD_GPIO:
+            s = "GPIO";
+            break;
+
+        case RIG_DCD_GPION:
+            s = "GPION";
             break;
 
         case RIG_DCD_NONE:

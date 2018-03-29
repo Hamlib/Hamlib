@@ -28,10 +28,11 @@
 __BEGIN_DECLS
 
 /* Hamlib internal use, see rig.c */
-int gpio_open(hamlib_port_t *p, int on_value);
+int gpio_open(hamlib_port_t *p, int output, int on_value);
 int gpio_close(hamlib_port_t *p);
 int gpio_ptt_set(hamlib_port_t *p, ptt_t pttx);
 int gpio_ptt_get(hamlib_port_t *p, ptt_t *pttx);
+int gpio_dcd_get(hamlib_port_t *p, dcd_t *dcdx);
 
 __END_DECLS
 

@@ -300,6 +300,14 @@ int main(int argc, char *argv[])
             {
                 dcd_type = RIG_DCD_CM108;
             }
+            else if (!strcmp(optarg, "GPIO"))
+            {
+                dcd_type = RIG_DCD_GPIO;
+            }
+            else if (!strcmp(optarg, "GPION"))
+            {
+                dcd_type = RIG_DCD_GPION;
+            }
             else if (!strcmp(optarg, "NONE"))
             {
                 dcd_type = RIG_DCD_NONE;

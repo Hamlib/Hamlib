@@ -29,7 +29,7 @@
 #include "gpio.h"
 
 
-int gpio_open(hamlib_port_t *port, int on_value)
+int gpio_open(hamlib_port_t *port, int output, int on_value)
 {
     char pathname[FILPATHLEN];
     FILE *fexp, *fdir;
@@ -69,7 +69,13 @@ int gpio_open(hamlib_port_t *port, int on_value)
         return -RIG_EIO;
     }
 
-    fprintf(fdir, "out\n");
+    if (output)
+    {
+        fprintf(fdir, "out\n");
+    } else
+    {
+        fprintf(fdir, "in\n");
+    }
     fclose(fdir);
 
     snprintf(pathname,
@@ -134,3 +140,26 @@ int gpio_ptt_get(hamlib_port_t *port, ptt_t *pttx)
         return RIG_PTT_OFF;
     }
 }
+
+int gpio_dcd_get(hamlib_port_t *port, dcd_t *dcdx)
+{
+    char val;
+    int port_value;
+    
+    lseek(port->fd, 0, SEEK_SET);
+    if (read(port->fd, &val, sizeof(val)) <= 0)
+    {
+        return -RIG_EIO;
+    }
+    
+    port_value = val - '0';
+    
+    if (port_value == port->parm.gpio.on_value)
+    {
+        return RIG_DCD_ON;
+    } else
+    {
+        return RIG_DCD_OFF;
+    }
+}
+
