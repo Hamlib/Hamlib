@@ -129,7 +129,8 @@ enum rig_debug_level_e {
     RIG_DEBUG_ERR,      /*!< error case (e.g. protocol, memory allocation) */
     RIG_DEBUG_WARN,     /*!< warning */
     RIG_DEBUG_VERBOSE,  /*!< verbose */
-    RIG_DEBUG_TRACE     /*!< tracing */
+    RIG_DEBUG_TRACE,    /*!< tracing */
+    RIG_DEBUG_TIME      /*!< with time */
 };
 
 
