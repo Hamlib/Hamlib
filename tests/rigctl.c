@@ -87,7 +87,7 @@ void usage(void);
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "+m:r:p:d:P:D:s:c:t:lC:LuonvhV"
+#define SHORT_OPTIONS "+m:r:p:d:P:D:s:c:t:lC:LuonvhVZ"
 static struct option long_options[] =
 {
     {"model",           1, 0, 'm'},
@@ -105,6 +105,7 @@ static struct option long_options[] =
     {"dump-caps",       0, 0, 'u'},
     {"vfo",             0, 0, 'o'},
     {"no-restore-ai",   0, 0, 'n'},
+    {"debug-time-stamps",0, 0, 'Z'},
 #ifdef HAVE_READLINE_HISTORY
     {"read-history",    0, 0, 'i'},
     {"save-history",    0, 0, 'I'},
@@ -398,6 +399,10 @@ int main(int argc, char *argv[])
         case 'u':
             dump_caps_opt++;
             break;
+
+        case 'Z':
+	    rig_set_debug_time_stamp(1);
+	    break;
 
         default:
             usage();    /* unknown option? */

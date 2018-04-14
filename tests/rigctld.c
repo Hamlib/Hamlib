@@ -85,7 +85,7 @@
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:p:d:P:D:s:c:T:t:C:lLuovhV"
+#define SHORT_OPTIONS "m:r:p:d:P:D:s:c:T:t:C:lLuovhVZ"
 static struct option long_options[] =
 {
     {"model",           1, 0, 'm'},
@@ -106,6 +106,7 @@ static struct option long_options[] =
     {"verbose",         0, 0, 'v'},
     {"help",            0, 0, 'h'},
     {"version",         0, 0, 'V'},
+    {"debug-time-stamps",0, 0, 'Z'},
     {0, 0, 0, 0}
 };
 

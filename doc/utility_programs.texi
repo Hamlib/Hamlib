@@ -411,6 +411,10 @@ will use the verbose facility to print critical values useful for
 testing and will often ask for this output in response to a request
 for help.
 
+@item -Z
+@itemx --debug-time-stamps
+Enable time stamps on debug output.
+
 @item -h
 @itemx --help
 Show summary of these options and exit.
@@ -421,6 +425,7 @@ Show summary of these options and exit.
 @item -V
 @itemx --version
 Show version of @command{rigctl} and exit.
+
 @end table
 
 @quotation Note
@@ -1913,6 +1918,10 @@ will use the verbose facility to print critical values useful for
 testing and will often ask for this output in response to a request
 for help.
 
+@item -Z
+@itemx --debug_time_stamps
+Enable time stamps on debug output.
+
 @item -h
 @itemx --help
 Show summary of these options and exit.
@@ -1923,6 +1932,7 @@ Show summary of these options and exit.
 @item -V
 @itemx --version
 Show version of @command{rigctl} and exit.
+
 @end table
 
 @quotation Note
