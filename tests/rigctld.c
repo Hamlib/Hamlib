@@ -85,7 +85,7 @@
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:p:d:P:D:s:c:T:t:C:lLuovhV"
+#define SHORT_OPTIONS "m:r:p:d:P:D:s:c:T:t:C:lLuovhVZ"
 static struct option long_options[] =
 {
     {"model",           1, 0, 'm'},
@@ -106,6 +106,7 @@ static struct option long_options[] =
     {"verbose",         0, 0, 'v'},
     {"help",            0, 0, 'h'},
     {"version",         0, 0, 'V'},
+    {"debug-time-stamps",0, 0, 'Z'},
     {0, 0, 0, 0}
 };
 
@@ -929,7 +930,7 @@ void * handle_socket(void *arg)
         {
           retcode = 1;
         }
-      if (retcode == 1) 
+      if (retcode == 1)
         {
           retcode = rig_open(my_rig);
         }
@@ -1020,8 +1021,9 @@ void usage(void)
         "  -u, --dump-caps               dump capabilities and exit\n"
         "  -o, --vfo                     do not default to VFO_CURR, require extra vfo arg\n"
         "  -v, --verbose                 set verbose mode, cumulative (-v to -vvvvv)\n"
+        "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
         "  -h, --help                    display this help and exit\n"
-        "  -V, --version                output version information and exit\n\n",
+        "  -V, --version                 output version information and exit\n\n",
         portno);
 
     usage_rig(stdout);

@@ -2180,6 +2180,9 @@ rig_setting2idx HAMLIB_PARAMS((setting_t s));
 extern HAMLIB_EXPORT(void)
 rig_set_debug HAMLIB_PARAMS((enum rig_debug_level_e debug_level));
 
+extern HAMLIB_EXPORT(void)
+rig_set_debug_time_stamp HAMLIB_PARAMS((int flag));
+
 #define rig_set_debug_level(level) rig_set_debug(level)
 
 extern HAMLIB_EXPORT(int)
