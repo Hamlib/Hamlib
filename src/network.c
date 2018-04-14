@@ -241,8 +241,9 @@ int network_open(hamlib_port_t *rp, int default_port)
         {
             break;
         }
-
-        handle_error(RIG_DEBUG_WARN, "connect (trying next interface)");
+        char msg[150];
+        snprintf(msg,sizeof(msg),"connect to %s failed, (trying next interface)",rp->pathname);
+        handle_error(RIG_DEBUG_WARN, msg);
 
 #ifdef __MINGW32__
         closesocket(fd);
