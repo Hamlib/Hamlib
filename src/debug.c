@@ -42,7 +42,6 @@
 #include <errno.h>  /* Error number definitions */
 #include <sys/types.h>
 #include <unistd.h>
-#include <time.h>
 
 #ifdef ANDROID
 #  include <android/log.h>
@@ -130,21 +129,6 @@ int HAMLIB_API rig_need_debug(enum rig_debug_level_e debug_level)
 }
 
 
-char *date_strget(char *buf,int buflen)
-{
-	time_t mytime;
-	struct tm *mytm;
-        struct timeval tv;
-	mytime=time(NULL);
-	mytm = gmtime(&mytime);
-        gettimeofday(&tv,NULL);
-	strftime(buf,buflen,"%Y-%m-%d:%H:%M:%S.",mytm);
-	char tmp[16];
-	sprintf(tmp,"%06ld",tv.tv_usec);
-	strcat(buf,tmp);
-	return buf;
-}
-
 /**
  * \param debug_level
  * \param fmt
@@ -173,10 +157,7 @@ void HAMLIB_API rig_debug(enum rig_debug_level_e debug_level,
         {
             rig_debug_stream = stderr;
         }
-        if (rig_debug_level >= RIG_DEBUG_TIME) {
-            char buf[256];
-            fprintf(rig_debug_stream,"%s: ",date_strget(buf,sizeof(buf)));
-        }
+
         vfprintf(rig_debug_stream, fmt, ap);
         fflush(rig_debug_stream);
     }
@@ -208,10 +189,6 @@ void HAMLIB_API rig_debug(enum rig_debug_level_e debug_level,
     case RIG_DEBUG_TRACE:
         a = ANDROID_LOG_VERBOSE;
         break;
-
-    case RIG_DEBUG_TIME:
-        a = ANDROID_LOG_VERBOSE;
-	break;
 
     default:
         a = ANDROID_LOG_DEBUG;
