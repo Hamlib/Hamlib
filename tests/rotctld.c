@@ -96,6 +96,7 @@ static struct option long_options[] =
     {"set-conf",        1, 0, 'C'},
     {"show-conf",       0, 0, 'L'},
     {"dump-caps",       0, 0, 'u'},
+    {"debug-time-stamps",0, 0, 'Z'},
     {"verbose",         0, 0, 'v'},
     {"help",            0, 0, 'h'},
     {"version",         0, 0, 'V'},
@@ -277,6 +278,10 @@ int main(int argc, char *argv[])
 
         case 'u':
             dump_caps_opt++;
+            break;
+
+        case 'Z':
+            rig_set_debug_time_stamp(1);
             break;
 
         default:
