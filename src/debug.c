@@ -219,10 +219,6 @@ void HAMLIB_API rig_debug(enum rig_debug_level_e debug_level,
         a = ANDROID_LOG_VERBOSE;
         break;
 
-    case RIG_DEBUG_TIME:
-        a = ANDROID_LOG_VERBOSE;
-	break;
-
     default:
         a = ANDROID_LOG_DEBUG;
         break;
