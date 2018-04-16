@@ -1563,7 +1563,7 @@ int th_get_channel(RIG *rig, channel_t *chan)
 	char membuf[64],ackbuf[ACKBUF_LEN];
 	int retval;
 	freq_t freq,offset;
-	char req[16],scf[128];
+	char req[32],scf[128];
 	int step, shift, rev, tone, ctcss, tonefq, ctcssfq, dcs, dcscode, mode, lockout;
 	const char *mr_extra;
 	int channel_num;
@@ -1606,20 +1606,20 @@ int th_get_channel(RIG *rig, channel_t *chan)
 
 	case RIG_MTYPE_EDGE:
 		if (chan_caps[1].type == RIG_MTYPE_EDGE) {
-			sprintf(req, "MR %s0,L%01d",mr_extra,channel_num);
+			snprintf(req, sizeof(req), "MR %s0,L%01d",mr_extra,channel_num);
 			sprintf(chan->channel_desc, "L%01d",channel_num);
 		} else {
-   			sprintf(req, "MR %s0,U%01d",mr_extra,channel_num);
+   			snprintf(req, sizeof(req), "MR %s0,U%01d",mr_extra,channel_num);
 			sprintf(chan->channel_desc, "U%01d",channel_num);
 		}
 		break;
 
 	case RIG_MTYPE_PRIO:
 		if (chan_caps->start == chan_caps->end) {
-   			sprintf(req, "MR %s0,PR",mr_extra);
+   			snprintf(req, sizeof(req), "MR %s0,PR",mr_extra);
 			sprintf(chan->channel_desc, "Pr");
 		} else {
-   			sprintf(req, "MR %s0,PR%01d",mr_extra,channel_num+1);
+   			snprintf(req, sizeof(req), "MR %s0,PR%01d",mr_extra,channel_num+1);
 			sprintf(chan->channel_desc, "Pr%01d",channel_num+1);
 		}
 		break;
@@ -1792,7 +1792,7 @@ static int find_tone_index(const tone_t *tone_list, tone_t tone)
 /* --------------------------------------------------------------------- */
 int th_set_channel(RIG *rig, const channel_t *chan)
 {
-	char membuf[ACKBUF_LEN];
+	char membuf[150];
 	int retval;
 	char req[64];
 	char lockoutstr[8];
@@ -1938,7 +1938,7 @@ int th_set_channel(RIG *rig, const channel_t *chan)
 		}
 
 		/* Step can be hexa */
-		retval = sprintf(membuf, "%s,%011"PRIll",%X,%d,%d,%d,%d,%d,%02d,%02d,%03d,%09"PRIll",%d%s",
+		retval = snprintf(membuf, sizeof(membuf), "%s,%011"PRIll",%X,%d,%d,%d,%d,%d,%02d,%02d,%03d,%09"PRIll",%d%s",
 			req, (int64_t)chan->freq, step, shift, rev, tone,
 			ctcss, dcs, tonefq, ctcssfq, dcscode,
 			(int64_t)labs((long)(chan->rptr_offs)), mode, lockoutstr

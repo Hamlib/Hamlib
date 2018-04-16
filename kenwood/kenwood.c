@@ -2762,7 +2762,7 @@ int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
   if (!rig || !msg)
     return -RIG_EINVAL;
 
-  char morsebuf[30], m2[30];
+  char morsebuf[40], m2[30];
   int msg_len, buff_len, retval, i;
   const char *p;
 
@@ -3069,7 +3069,7 @@ int kenwood_set_channel(RIG *rig, const channel_t *chan)
   if (!rig || !chan)
     return -RIG_EINVAL;
 
-  char buf[26];
+  char buf[128];
   char mode, tx_mode = 0;
   int err;
   int tone = 0;

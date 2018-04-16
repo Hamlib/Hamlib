@@ -533,7 +533,7 @@ int ts2000_set_channel(RIG *rig, const channel_t *chan)
 	if (!rig || !chan)
 		return -RIG_EINVAL;
 
-	char buf[55];
+	char buf[128];
 	char mode, tx_mode = 0;
 	int err;
 	int tone = 0;
@@ -625,7 +625,7 @@ int ts2000_set_channel(RIG *rig, const channel_t *chan)
     }
 
     /* P-number       2-3    4 5 6 7   8   9  101112  13 141516  */
-	sprintf(buf, "MW0%03d%011u%c%c%c%02d%02d%03d%c%c%09d0%c%c%s;", 
+	snprintf(buf, sizeof(buf), "MW0%03d%011u%c%c%c%02d%02d%03d%c%c%09d0%c%c%s;", 
 		chan->channel_num,
 		(unsigned) chan->freq,		/*  4 - frequency */
 		'0' + mode,					/*  5 - mode */
