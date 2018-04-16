@@ -327,7 +327,7 @@ int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_widt
       {
         return err;
       }
-    strncat (restore_commands, priv->ret_data, NEWCAT_DATA_LEN - 1 - strlen (restore_commands));
+    strncat (restore_commands, priv->ret_data-1, NEWCAT_DATA_LEN - 1 - strlen (restore_commands));
 
     /* append VFO B frequency restore command */
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "FB;");
@@ -336,7 +336,7 @@ int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_widt
       {
         return err;
       }
-    strncat (restore_commands, priv->ret_data, NEWCAT_DATA_LEN - 1 - strlen (restore_commands));
+    strncat (restore_commands, priv->ret_data-1, NEWCAT_DATA_LEN - 1 - strlen (restore_commands));
 
     /* Change mode on VFOA */
     if (RIG_OK != (err = newcat_set_mode (rig, RIG_VFO_A, tx_mode, RIG_PASSBAND_NOCHANGE)))
