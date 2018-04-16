@@ -435,8 +435,8 @@ int get_freq_v1(RIG *rig, vfo_t vfo, freq_t *freq)
 	unsigned int f;
 	int actual_length;
 
-	unsigned char au8BufOut[64]; // endpoint size
-	unsigned char au8BufIn[64];  // endpoint size
+	unsigned char au8BufOut[64] = "\0\0\0\0"; // endpoint size
+	unsigned char au8BufIn[64] = "\0\0\0\0";  // endpoint size
 
 	au8BufOut[0] = REQUEST_GET_FREQ_HZ; // Command to Set Frequency on dongle
 
@@ -493,8 +493,8 @@ int funcube_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 	libusb_device_handle *udh = rig->state.rigport.handle;
 	int ret;
 	int actual_length;
-	unsigned char au8BufOut[64]; // endpoint size
-	unsigned char au8BufIn[64];  // endpoint size
+	unsigned char au8BufOut[64] = "\0\0\0\0"; // endpoint size
+	unsigned char au8BufIn[64] = "\0\0\0\0";  // endpoint size
 
 	switch (level) {
 	case RIG_LEVEL_PREAMP:
@@ -589,8 +589,8 @@ int funcube_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	libusb_device_handle *udh = rig->state.rigport.handle;
 	int ret;
 	int actual_length;
-	unsigned char au8BufOut[64]; // endpoint size
-	unsigned char au8BufIn[64];  // endpoint size
+	unsigned char au8BufOut[64] = "\0\0\0\0"; // endpoint size
+	unsigned char au8BufIn[64] = "\0\0\0\0";  // endpoint size
 
 	switch (level) {
 	case RIG_LEVEL_ATT:
