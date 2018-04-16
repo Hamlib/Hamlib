@@ -546,13 +546,10 @@ int main(int argc, char *argv[])
                 fprintf(stderr, "Warning: %s is not a directory!\n", hist_dir);
             }
 
-            hist_path = (char *)calloc((sizeof(char)
-                                        * (strlen(hist_dir)
-                                           + strlen(hist_file) + 1)),
-                                       sizeof(char));
+	    int hist_path_size = sizeof(char)*(strlen(hist_dir)+strlen(hist_file) + 1);
+            hist_path = (char *)calloc(hist_path_size, sizeof(char));
 
-            strncpy(hist_path, hist_dir, strlen(hist_dir));
-            strncat(hist_path, hist_file, strlen(hist_file));
+	    snprintf(hist_path, hist_path_size, "%s%s", hist_dir, hist_file);
         }
 
         if (rd_hist && hist_path)
