@@ -255,6 +255,7 @@ AC_LIBOBJ([dummy])
 ## libtool  Initialisation. ##
 ## ------------------------ ##
 
+AR_FLAGS="cr"
 LT_PREREQ([2.2.6b])
 
 dnl N.B. LT_INIT([win32-dll]) does not work for older libtool

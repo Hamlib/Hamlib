@@ -353,7 +353,7 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 	int err;
 	char cmd_m[4];
-	char cmd_s[16];
+	char cmd_s[64];
 
 	switch (mode) {
 	case RIG_MODE_PKTLSB:
@@ -402,7 +402,7 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		else if (width > pb_wid)
 			width = pb_wid;
 
-		sprintf(cmd_s, "BW%04ld", width / 10);
+		snprintf(cmd_s, sizeof(cmd_s), "BW%04ld", width / 10);
 		err = kenwood_transaction(rig, cmd_s, NULL, 0);
 		if (err != RIG_OK)
 			return err;
@@ -605,7 +605,7 @@ int k3_set_split_mode(RIG * rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
 
   int err;
   char cmd_m[4];
-  char cmd_s[16];
+  char cmd_s[32];
 
   switch (tx_mode)
     {
@@ -638,7 +638,7 @@ int k3_set_split_mode(RIG * rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
 #endif
 
   struct kenwood_priv_caps *caps = kenwood_caps(rig);
-  char buf[6];
+  char buf[32];
   char kmode;
 
   kmode = rmode2kenwood(tx_mode, caps->mode_table);
@@ -678,7 +678,7 @@ int k3_set_split_mode(RIG * rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
 		else if (tx_width > pb_wid)
 			tx_width = pb_wid;
 
-		sprintf(cmd_s, "BW$%04ld", tx_width / 10);
+		snprintf(cmd_s, sizeof(cmd_s), "BW$%04ld", tx_width / 10);
 		err = kenwood_transaction(rig, cmd_s, NULL, 0);
 		if (err != RIG_OK)
 			return err;

@@ -1007,11 +1007,9 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 
 #endif
             /* The starting position of the source string is the first
-             * character past the initial '\'.  Using MAXNAMSIZ for the
-             * length leaves enough space for the '\0' string terminator in the
-             * cmd_name array.
+             * character past the initial '\'.  
              */
-            strncpy(cmd_name, parsed_input[0] + 1, MAXNAMSIZ);
+            snprintf(cmd_name, sizeof(cmd_name), parsed_input[0] + 1);
 
             /* Sanity check as valid multiple character commands consist of
              * alpha-numeric characters and the underscore ('_') character.
@@ -1111,7 +1109,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 
             if (rp_hist_buf)
             {
-                strncat(rp_hist_buf, " ", 1);
+                strncat(rp_hist_buf, " ", 2);
                 strncat(rp_hist_buf, parsed_input[x], MAXARGSZ);
             }
 
@@ -1169,7 +1167,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 
             if (rp_hist_buf)
             {
-                strncat(rp_hist_buf, " ", 1);
+                strncat(rp_hist_buf, " ", 2);
                 strncat(rp_hist_buf, parsed_input[x], MAXARGSZ);
             }
 
@@ -1230,7 +1228,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 
             if (rp_hist_buf)
             {
-                strncat(rp_hist_buf, " ", 1);
+                strncat(rp_hist_buf, " ", 2);
                 strncat(rp_hist_buf, parsed_input[x], MAXARGSZ);
             }
 
@@ -1291,7 +1289,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 
             if (rp_hist_buf)
             {
-                strncat(rp_hist_buf, " ", 1);
+                strncat(rp_hist_buf, " ", 2);
                 strncat(rp_hist_buf, parsed_input[x], MAXARGSZ);
             }
 
@@ -1352,7 +1350,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 
             if (rp_hist_buf)
             {
-                strncat(rp_hist_buf, " ", 1);
+                strncat(rp_hist_buf, " ", 2);
                 strncat(rp_hist_buf, parsed_input[x], MAXARGSZ);
             }
 
