@@ -147,7 +147,7 @@ typedef struct rig RIG;
 
 #define RIGNAMSIZ 30
 #define RIGVERSIZ 8
-#define FILPATHLEN 100
+#define FILPATHLEN 512
 #define FRQRANGESIZ 30
 #define MAXCHANDESC 30      /* describe channel eg: "WWV 5Mhz" */
 #define TSLSTSIZ 20         /* max tuning step list size, zero ended */
