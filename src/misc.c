@@ -334,6 +334,7 @@ static struct
     { RIG_MODE_SAL, "SAL" },
     { RIG_MODE_SAH, "SAH" },
     { RIG_MODE_DSB, "DSB"},
+    { RIG_MODE_DR, "D-Star"},
     { RIG_MODE_NONE, "" },
 };
 
