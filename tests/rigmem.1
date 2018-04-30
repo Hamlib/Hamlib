@@ -1,152 +1,290 @@
 .\"                                      Hey, EMACS: -*- nroff -*-
-.\" First parameter, NAME, should be all caps
-.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
-.\" other parameters are allowed: see man(7), man(1)
-.TH RIGMEM "1" "August 21, 2011" "Hamlib" "Radio Memory Operations"
-.\" Please adjust this date whenever revising the manpage.
 .\"
-.\" Some roff macros, for reference:
-.\" .nh        disable hyphenation
-.\" .hy        enable hyphenation
-.\" .ad l      left justify
-.\" .ad b      justify to both left and right margins
-.\" .nf        disable filling
-.\" .fi        enable filling
-.\" .br        insert line break
-.\" .sp <n>    insert n+1 empty lines
-.\" for manpage-specific macros, see man(7)
+.\" For layout and available macros, see man(7), man-pages(7), groff_man(7)
+.\" Please adjust the date whenever revising the manpage.
+.\"
+.\" Note: Please keep this page in sync with the source, rigmem.c
+.\"
+.TH RIGMEM "1" "2018-04-29" "Hamlib" "Hamlib Utilities"
+.
+.
 .SH NAME
+.
 rigmem \- backup and restore memory of radio transceivers and receivers
+.
+.
 .SH SYNOPSIS
-.B rigmem
-[\fIOPTION\fR]... [\fICOMMAND\fR]...
+.
+.
+.SY rigmem
+.OP \-ahvVx
+.OP \-m id
+.OP \-r device
+.OP \-s baud
+.OP \-c id
+.OP \-C parm=val
+.OP \-p sep
+command
+.RI [ file ]
+.YS
+.
+.
 .SH DESCRIPTION
+.
 Backup and restore memory of radio transceivers and receivers.
-\fBrigmem\fP accepts \fIcommands\fP from the command line only.
+.B rigmem
+accepts
+.IR command s
+from the command line only.
+.
 .PP
-.\" TeX users may be more comfortable with the \fB<whatever>\fP and
-.\" \fI<whatever>\fP escape sequences to invoke bold face and italics, 
-.\" respectively.
-Keep in mind that \fBHamlib\fP is BETA level software. 
-While a lot of backend libraries lack complete rig support, the basic functions
-are usually well supported.  The API may change without publicized notice, 
-while an advancement of the minor version (e.g. 1.1.x to 1.2.x) indicates such
-a change.
+Keep in mind that Hamlib is BETA level software.  While a lot of backend
+libraries lack complete rig support, the basic functions are usually well
+supported.
+.
 .PP
-Please report bugs and provide feedback at the e-mail address given in the 
-REPORTING BUGS section.  Patches and code enhancements are also welcome.
+Please report bugs and provide feedback at the e-mail address given in the
+.B BUGS
+section below.  Patches and code enhancements sent to the same address are
+welcome.
+.
+.
 .SH OPTIONS
-This program follows the usual GNU command line syntax, with long
-options starting with two dashes (`-').
-
+.
+This program follows the usual GNU command line syntax.  Short options that
+take an argument may have the value follow immediately or be separated by a
+space.  Long options starting with two dashes (\(oq\-\(cq) require an
+\(oq=\(cq between the option and any argument.
+.
+.PP
 Here is a summary of the supported options:
+.
 .TP
-.B \-m, --model=id
-Select radio model number. See model list (use 'rigctl -l').
+.BR \-m ", " \-\-model = \fIid\fP
+Select radio model number.
+.IP
+See model list (use \(lqrigctl \-l\(rq).
+.
 .TP
-.B \-r, --rig-file=device
-Use \fIdevice\fP as the file name of the port the radio is connected.
-Often a serial port, but could be a USB to serial adapter.  Typically 
-/dev/ttyS0, /dev/ttyS1, /dev/ttyUSB0, etc.
+.BR \-r ", " \-\-rig\-file = \fIdevice\fP
+Use
+.I device
+as the file name of the port connected to the radio.
+.IP
+Often a serial port, but could be a USB to serial adapter.  Typically
+.IR /dev/ttyS0 ", " /dev/ttyS1 ", " /dev/ttyUSB0 ,
+etc. on Linux,
+.IR COM1 ", " COM2 ,
+etc. on MS Windows.  The BSD flavors and Mac OS/X have their own designations.
+See your system's documentation.
+.
 .TP
-.B \-s, --serial-speed=baud
-Set serial speed to \fIbaud\fP rate. Uses maximum serial speed from rig
-backend capabilities as the default.
+.BR \-s ", " \-\-serial\-speed = \fIbaud\fP
+Set radio serial speed to
+.I baud
+rate.
+.IP
+Uses maximum serial speed from rig backend capabilities as the default.
+.
 .TP
-.B \-c, --civaddr=id
-Use \fIid\fP as the CI-V address to communicate with the rig. Only useful for 
-Icom rigs. 
-.br
-NB: the \fIid\fP is in decimal notation, unless prefixed by 
-\fI0x\fP, in which case it is hexadecimal.
+.BR \-c ", " \-\-civaddr = \fIid\fP
+Use
+.I id
+as the CI-V address to communicate with the rig.
+.IP
+Only useful for Icom and some Ten-Tec rigs.
+.IP
+.BR Note :
+The
+.I id
+is in decimal notation, unless prefixed by
+.IR 0x ,
+in which case it is hexadecimal.
+.
 .TP
-.B \-C, --set-conf=parm=val[,parm=val]*
-Set config parameter.  e.g. stop_bits=2
-.br
-Use -L option of \fBrigctl\fP for a list.
+.BR \-C ", " \-\-set\-conf = \fIparm=val\fP [ \fI,parm=val\fP ]
+Set radio configuration parameter(s),  e.g.
+.IR stop_bits=2 .
+.IP
+Use the
+.B -L
+option of
+.B rigctl
+for a list of configuration parameters for a given model number.
+.
 .TP
-.B \-x, --xml
+.BR \-p ", " \-\-set\-separator = \fIsep\fP
+Set character as column separator instead of the CSV comma.
+.IP
+Some common alternatives are the vertical bar (pipe), \(oq|\(cq, semicolon,
+\(oq;\(cq, and colon, \(oq:\(cq.
+.
+.TP
+.BR \-a ", " \-\-all
+Bypass mem_caps, apply to all fields of channel_t.
+.
+.TP
+.BR \-x ", " \-\-xml
 Use XML format instead of CSV, if libxml2 is available.
+.
 .TP
-.B \-v, --verbose
-Set verbose mode, cumulative (see DIAGNOSTICS below).
+.BR \-v ", " \-\-verbose
+Set verbose mode, cumulative (see
+.B DIAGNOSTICS
+below).
+.
 .TP
-.B \-h, --help
+.BR \-h ", " \-\-help
 Show a summary of these options and exit.
+.
 .TP
-.B \-V, --version
-Show version of \fBrigmem\fP and exit.
+.BR \-V ", " \-\-version
+Show version of
+.B rigmem
+and exit.
+.
 .PP
-\fBNOTE!\fP Some options may not be implemented by a given backend and will
-return an error.  This is most likely to occur with the \fI\-\-set-conf\fP 
+.BR Note :
+Some options may not be implemented by a given backend and will return an
+error.  This is most likely to occur with the
+.B \-\-set\-conf
 option.
+.
+.
 .SH COMMANDS
-Backup and restore are supported for basic CSV file and XML format where 
+.
+Backup and restore are supported for basic CSV file and XML format where
 available.
+.
 .PP
-Please note that the backend for the radio to be controlled, 
-or the radio itself may not support some commands. In that case, 
-the operation will fail with a \fBHamlib\fP error message.
+Please note that the backend for the radio to be controlled, or the radio
+itself may not support some commands. In that case, the operation will fail
+with a
+.B Hamlib
+error message.
+.
 .PP
 Here is a summary of the supported commands:
+.
 .TP
-.B save
-Save all the content of memory in a CSV (or XML) file given as an argument to 
+.BI save " file"
+Save all the content of memory in a CSV (or XML) file given as an argument to
 the command.
+.
 .TP
-.B load
-Load the content into all the memory from a CSV (or XML) file given as 
-an argument to the command.
-.TP
-.B save_parm
-Save all the parameters of the radio in a CSV (or XML) file given as an 
+.BI load " file"
+Load the content into all the memory from a CSV (or XML) file given as an
 argument to the command.
+.
 .TP
-.B load_parm
-Load the parameters of the radio from a CSV (or XML) file given as an
+.BI save_parm " file"
+Save all the parameters of the radio in a CSV (or XML) file given as an
 argument to the command.
+.
+.TP
+.BI load_parm " file"
+Load the parameters of the radio from a CSV (or XML) file given as an argument
+to the command.
+.
 .TP
 .B clear
-This is a very \fBDANGEROUS\fP command, as it will completely clear out 
-everything you have programmed in the memory of your radio. \fBALL DATA WILL 
-BE LOST\fP. Use at your own risk!
+This is a very
+.B DANGEROUS
+command, as it will completely clear out everything you have programmed in the
+memory of your radio.
+.BR "ALL DATA WILL BE LOST" .
+Use at your own risk!
+.
+.
 .SH DIAGNOSTICS
-The \fB-v\fP, \fB--version\fP option allows different levels of diagnostics
-to be output to \fBstderr\fP and correspond to -v for BUG, -vv for ERR, 
--vvv for WARN, -vvvv for VERBOSE, or -vvvvv for TRACE.  
-
+.
+The
+.BR \-v ,
+.B \-\-verbose
+option allows different levels of diagnostics to be output to
+.B stderr
+and correspond to \-v for
+.BR BUG ,
+\-vv for
+.BR ERR ,
+\-vvv for
+.BR WARN ,
+\-vvvv for
+.BR VERBOSE ,
+or \-vvvvv for
+.BR TRACE .
+.
+.PP
 A given verbose level is useful for providing needed debugging information to
 the email address below.  For example, TRACE output shows all of the values
 sent to and received from the radio which is very useful for radio backend
 library development and may be requested by the developers.
+.
+.
 .SH EXIT STATUS
-\fBrigmem\fP exits with:
-.br
-0 if all operations completed normally;
-.br
-1 if there was an invalid command line option or argument;
-.br
-2 if an error was returned by \fBHamlib\fP.
-.br
-3 the \fBHamlib\fP backend has no memory support implemented and/or
-  the rig has no memory access available.
+.
+.B rigmem
+exits with:
+.
+.TP
+.B 0
+if all operations completed normally;
+.
+.TP
+.B 1
+if there was an invalid command line option or argument;
+.
+.TP
+.B 2
+if an error was returned by
+.BR Hamlib .
+.
+.TP
+.B 3
+the
+.B Hamlib
+backend has no memory support implemented and/or the rig has no memory access
+available.
+.
+.
 .SH BUGS
-This empty section...
-.SH REPORTING BUGS
-Report bugs to <hamlib-developer@lists.sourceforge.net>.
+.
+Report bugs to:
+.IP
+.nf
+.MT hamlib\-developer@lists.sourceforge.net
+Hamlib Developer mailing list
+.ME
+.fi
+.
+.
+.SH COPYING
+.
+This file is part of Hamlib, a project to develop a library that simplifies
+radio and rotator control functions for developers of software primarily of
+interest to radio amateurs and those interested in radio communications.
+.
+.PP
+Copyright \(co 2003-2011 Stephane Fillod
 .br
-We are already aware of the bug in the previous section :-)
-.SH AUTHOR
-Written by Stephane Fillod and the Hamlib Group
-.br
-<http://www.hamlib.org>.
-.SH COPYRIGHT
-Copyright \(co 2000-2009 Stephane Fillod and the Hamlib Group.
-.br
-This is free software; see the source for copying conditions.
-There is NO warranty; not even for MERCHANTABILITY
-or FITNESS FOR A PARTICULAR PURPOSE.
+Copyright \(co 2007,2018 Nate Bargmann
+.
+.PP
+This is free software; see the file COPYING for copying conditions.  There is
+NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+.
+.
 .SH SEE ALSO
+.
 .BR rigctl (1),
-.BR hamlib (3)
-
+.BR hamlib (7)
+.
+.
+.SH COLOPHON
+.
+Links to the Hamlib Wiki, Git repository, release archives, and daily snapshot
+archives:
+.IP
+.UR http://www.hamlib.org
+hamlib.org
+.UE .

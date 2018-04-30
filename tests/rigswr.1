@@ -1,168 +1,336 @@
 .\"                                      Hey, EMACS: -*- nroff -*-
-.\" First parameter, NAME, should be all caps
-.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
-.\" other parameters are allowed: see man(7), man(1)
-.TH RIGSWR "1" "February 24, 2007" "Hamlib" "Radio SWR Measurement Tool"
-.\" Please adjust this date whenever revising the manpage.
 .\"
-.\" Some roff macros, for reference:
-.\" .nh        disable hyphenation
-.\" .hy        enable hyphenation
-.\" .ad l      left justify
-.\" .ad b      justify to both left and right margins
-.\" .nf        disable filling
-.\" .fi        enable filling
-.\" .br        insert line break
-.\" .sp <n>    insert n+1 empty lines
-.\" for manpage-specific macros, see man(7)
+.\" For layout and available macros, see man(7), man-pages(7), groff_man(7)
+.\" Please adjust the date whenever revising the manpage.
+.\"
+.\" Note: Please keep this page in sync with the source, rigswr.c
+.\"
+.TH RIGSWR "1" "2018-04-29" "Hamlib" "Hamlib Utilities"
+.
+.
 .SH NAME
-rigswr \- measure VSWR vs frequency using \fBHamlib\fP.
+.
+rigswr \- measure VSWR vs frequency.
+.
+.
 .SH SYNOPSIS
-.B rigswr
-[\fIOPTION\fR]... start_freq stop_freq [freq_step]
+.
+.SY rigswr
+.OP \-hvV
+.OP \-m id
+.OP \-r device
+.OP \-s baud
+.OP \-c id
+.OP \-C parm=val
+.OP \-p device
+.OP \-P type
+start_freq
+stop_freq
+.RI [ freq_step ]
+.SY
+.
+.
 .SH DESCRIPTION
-\fBrigswr\fP uses \fBHamlib\fP to control a rig to measure VSWR vs frequency: 
-.br
-It scans frequencies from \fIstart_freq\fP to \fIstop_freq\fP with a step of
-\fIfreq_step\fP. For each frequency, it transmits at 25% of total POWER during
-0.5 second in CW mode and reads VSWR.
-
-Frequency and the corresponding VSWR are then printed on \fBstdout\fP.
-
-To work correctly, \fBrigswr\fP needs a rig that can measure VSWR and a 
-\fBHamlib\fP backend that supports reading VSWR from the rig.
+.
+.B rigswr
+uses
+.B Hamlib
+to control a radio to measure VSWR (Voltage Standing Wave Ratio) over a
+frequency range.
+.
 .PP
-.\" TeX users may be more comfortable with the \fB<whatever>\fP and
-.\" \fI<whatever>\fP escape sequences to invode bold face and italics, 
-.\" respectively.
-Keep in mind that \fBHamlib\fP is BETA level software. 
-While a lot of backend libraries lack complete rig support, the basic functions
-are usually well supported.  The API may change without publicized notice, 
-while an advancement of the minor version (e.g. 1.1.x to 1.2.x) indicates such
-a change.
+It scans frequencies from
+.I start_freq
+to
+.I stop_freq
+with an optional increment of
+.I freq_step
+(default step is 100 kHz).  All values must be entered as an integer in Hertz
+(cycles per second).
+.
 .PP
-Please report bugs and provide feedback at the e-mail address given in the 
-REPORTING BUGS section.  Patches and code enhancements are also welcome.
+.BR Note :
+.B rigswr
+assumes that
+.I start_freq
+is less than or equal to
+.IR stop_freq .
+If it is greater,
+.B rigswr
+will exit without doing anything.
+.
+.PP
+For each frequency, it transmits at 25% of total POWER during 0.5 second in CW
+mode and reads VSWR.
+.
+.PP
+Frequency and the corresponding VSWR are then printed on
+.BR stdout .
+.
+.PP
+To work correctly,
+.B rigswr
+needs a radio that can measure VSWR and a
+.B Hamlib
+backend that supports reading VSWR from the radio.
+.PP
+Keep in mind that Hamlib is BETA level software.  While a lot of backend
+libraries lack complete rig support, the basic functions are usually well
+supported.
+.
+.PP
+Please report bugs and provide feedback at the e-mail address given in the
+.B BUGS
+section below.  Patches and code enhancements sent to the same address are
+welcome.
+.
+.
 .SH OPTIONS
-This program follows the usual GNU command line syntax, with long
-options starting with two dashes (`-').
-
+.
+This program follows the usual GNU command line syntax.  Short options that
+take an argument may have the value follow immediately or be separated by a
+space.  Long options starting with two dashes (\(oq\-\(cq) require an
+\(oq=\(cq between the option and any argument.
+.
+.PP
 Here is a summary of the supported options:
+.
 .TP
-.B \-m, --model=id
-Select radio model number. See model list (use 'rigctl -l').
+.BR \-m ", " \-\-model = \fIid\fP
+Select radio model number.
+.IP
+See model list (use \(lqrigctl \-l\(rq).
+.
 .TP
-.B \-r, --rig-file=device
-Use \fIdevice\fP as the file name of the port the radio is connected.
-Often a serial port, but could be a USB to serial adapter.  Typically 
-/dev/ttyS0, /dev/ttyS1, /dev/ttyUSB0, etc.
+.BR \-r ", " \-\-rig\-file = \fIdevice\fP
+Use
+.I device
+as the file name of the port connected to the radio.
+.IP
+Often a serial port, but could be a USB to serial adapter.  Typically
+.IR /dev/ttyS0 ", " /dev/ttyS1 ", " /dev/ttyUSB0 ,
+etc. on Linux,
+.IR COM1 ", " COM2 ,
+etc. on MS Windows.  The BSD flavors and Mac OS/X have their own designations.
+See your system's documentation.
+.
 .TP
-.B \-s, --serial-speed=baud
-Set serial speed to \fIbaud\fP rate. Uses maximum serial speed from rig
-backend capabilities as the default.
+.BR \-s ", " \-\-serial\-speed = \fIbaud\fP
+Set radio serial speed to
+.I baud
+rate.
+.IP
+Uses maximum serial speed from rig backend capabilities as the default.
 .TP
-.B \-c, --civaddr=id
-Use \fIid\fP as the CI-V address to communicate with the rig. Only useful for 
-Icom rigs.
-.br
-NB: the \fIid\fP is in decimal notation, unless prefixed by 
-\fI0x\fP, in which case it is hexadecimal.
+.BR \-c ", " \-\-civaddr = \fIid\fP
+Use
+.I id
+as the CI-V address to communicate with the rig.
+.IP
+Only useful for Icom and some Ten-Tec rigs.
+.IP
+.BR Note :
+The
+.I id
+is in decimal notation, unless prefixed by
+.IR 0x ,
+in which case it is hexadecimal.
+.
 .TP
-.B \-p, --ptt-file=device
-Use \fIdevice\fP as the file name of the Push-To-Talk device using a
-device file as described above.
-.br
-This is only needed if the radio doesn't have legacy PTT control.
+.BR \-C ", " \-\-set\-conf = \fIparm=val\fP [ \fI,parm=val\fP ]
+Set radio configuration parameter(s),  e.g.
+.IR stop_bits=2 .
+.IP
+Use the
+.B -L
+option of
+.B rigctl
+for a list of configuration parameters for a given model number.
+.
 .TP
-.B \-p, --ptt-type=type
-Use \fItype\fP of Push-To-Talk device.
-Supported types are RIG, DTR, RTS, PARALLEL, NONE.
-.br
-This is only needed if the radio doesn't have legacy PTT control.
+.BR \-p ", " \-\-ptt\-file = \fIdevice\fP
+Use
+.I device
+as the file name of the Push-To-Talk port using a device file as with the
+.B \-r
+option above.
+.IP
+This is only needed if the radio doesn't have CAT PTT control and requires a
+separate device port to key the transmitter.
+.
 .TP
-.B \-C, --set-conf=parm=val[,parm=val]*
-Set config parameter.  e.g. stop_bits=2
-.br
-Use -L option of \fBrigctl\fP for a list.
+.BR \-P ", " \-\-ptt\-type = \fItype\fP
+Use
+.I type
+of Push-To-Talk device.
+.IP
+Supported types are RIG (CAT), DTR, RTS, PARALLEL, NONE.
+.
 .TP
-.B \-v, --verbose
-Set verbose mode, cumulative (see DIAGNOSTICS below).
+.BR \-v ", " \-\-verbose
+Set verbose mode, cumulative (see
+.B DIAGNOSTICS
+below).
+.
 .TP
-.B \-h, --help
-Show summary of these options and exit.
+.BR \-h ", " \-\-help
+Show a summary of these options and exit.
+.
 .TP
-.B \-V, --version
-Show version of \fBrigswr\fP and exit.
+.BR \-V ", " \-\-version
+Show version of
+.B rigswr
+and exit.
+.
 .PP
-\fBNOTE!\fP Some options may not be implemented by a given backend and will
-return an error.  This is most likely to occur with the \fI\-\-set-conf\fP 
+.BR Note :
+Some options may not be implemented by a given backend and will return an
+error.  This is most likely to occur with the
+.B \-\-set\-conf
 option.
-.SH EXAMPLE
-rigswr -m 209 -r /dev/ttyS1 14000000 14290000 50000 > cswr
+.
+.
+.SH DIAGNOSTICS
+.
+The
+.BR \-v ,
+.B \-\-verbose
+option allows different levels of diagnostics to be output to
+.B stderr
+and correspond to \-v for
+.BR BUG ,
+\-vv for
+.BR ERR ,
+\-vvv for
+.BR WARN ,
+\-vvvv for
+.BR VERBOSE ,
+or \-vvvvv for
+.BR TRACE .
+.
 .PP
-Scans frequencies between 14.000 MHz and 14.200 MHz with 50 kHz step on a 
-TS-850 and records VSWR measurements in file cswr.
+A given verbose level is useful for providing needed debugging information to
+the email address below.  For example, TRACE output shows all of the values
+sent to and received from the radio which is very useful for radio backend
+library development and may be requested by the developers.
+.
+.
+.SH EXIT STATUS
+.
+.B rigswr
+exits with:
+.
+.TP
+.B 0
+if all operations completed normally;
+.
+.TP
+.B 1
+if there was an invalid command line option or argument;
+.
+.TP
+.B 2
+if an error was returned by
+.BR Hamlib ;
+.
+.TP
+.B 3
+if the rig doesn't have the required capabilities.
+.
+.
+.SH EXAMPLE
+.
+Scans frequencies between 14.000 MHz and 14.200 MHz with 50 kHz step on a
+TS-850 and records VSWR measurements in file
+.IR cswr .
+.
+.sp
+.RS 0.5i
+.EX
+rigswr -m 209 -r /dev/ttyS1 14000000 14200000 50000 > cswr
+.EE
+.RE
+.
 .PP
 After completion, cswr file contains the following lines:
+.
+.sp
+.RS 0.5i
+.EX
+14000000 1.50
 .br
-  14000000 1.50
+14050000 1.31
 .br
-  14050000 1.31
+14100000 1.22
 .br
-  14100000 1.22
+14150000 1.07
 .br
-  14150000 1.07
-.br
-  14200000 1.07
-.TP
-Result could then be plotted with \fBgnuplot\fP:
-.br
+14200000 1.07
+.EE
+.RE
+.
+.PP
+The result can be plotted with
+.BR gnuplot (1):
+.
+.sp
+.RS 0.5i
+.EX
 gnuplot
 .br
 set data style linespoints
 .br
 set grid
 .br
-plot "cswr"
-.SH DIAGNOSTICS
-The \fB-v\fP, \fB--version\fP option allows different levels of diagnostics
-to be output to \fBstderr\fP and correspond to -v for BUG, -vv for ERR, 
--vvv for WARN, -vvvv for VERBOSE, or -vvvvv for TRACE.  
-
-A given verbose level is useful for providing needed debugging information to
-the email address below.  For example, TRACE output shows all of the values
-sent to and received from the radio which is very useful for radio backend
-library development and may be requested by the developers.
-.SH EXIT STATUS
-\fBrigswr\fP exits with:
-.br
-0 if all operations completed normally;
-.br
-1 if there was an invalid command line option or argument;
-.br
-2 if an error was returned by \fBHamlib\fP;
-.br
-3 if the rig doesn't have the required capabilities.
+.RI plot " cswr"
+.EE
+.RE
+.
+.
 .SH BUGS
+.
 Depending on keyer/QSK setup, transmissions in CW mode may not be modulated
-thus possibly giving a wrong result. Please report this situation if it happens.
-.SH REPORTING BUGS
-Report bugs to <hamlib-developer@lists.sourceforge.net>.
+thus possibly giving a wrong result. Please report this situation if it
+happens.
+.
+.PP
+Report bugs to:
+.IP
+.nf
+.MT hamlib\-developer@lists.sourceforge.net
+Hamlib Developer mailing list
+.ME
+.
+.
+.SH COPYING
+.
+This file is part of Hamlib, a project to develop a library that simplifies
+radio and rotator control functions for developers of software primarily of
+interest to radio amateurs and those interested in radio communications.
+.
+.PP
+Copyright \(co 2004 Thierry Leconte
 .br
-We are already aware of the bug in the previous section :-)
-.SH AUTHORS
-Written by Thierry Leconte, Stephane Fillod, and the Hamlib Group
+Copyright \(co 2004-2011 Stephane Fillod
 .br
-<http://www.hamlib.org>.
-.SH COPYRIGHT
-Copyright \(co 2004-2009 Thierry Leconte, Stephane Fillod, and the Hamlib
-Group.
-.br
-This is free software; see the source for copying conditions.
-There is NO warranty; not even for MERCHANTABILITY
-or FITNESS FOR A PARTICULAR PURPOSE.
+Copyright \(co 2007,2018 Nate Bargmann
+.PP
+This is free software; see the file COPYING for copying conditions.  There is
+NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+.
+.
 .SH SEE ALSO
-.BR rigctl (1),
+.
 .BR gnuplot (1),
-.BR hamlib (3)
-
+.BR rigctl (1),
+.BR hamlib (7)
+.
+.
+.SH COLOPHON
+.
+Links to the Hamlib Wiki, Git repository, release archives, and daily snapshot
+archives:
+.IP
+.UR http://www.hamlib.org
+hamlib.org
+.UE .
