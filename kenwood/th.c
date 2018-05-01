@@ -159,7 +159,7 @@ th_decode_event (RIG *rig)
 	return RIG_OK;
 }
 
-static int
+int
 kenwood_wrong_vfo(const char *func, vfo_t vfo)
 {
 	rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO: %d\n", func, vfo);
@@ -369,13 +369,16 @@ th_set_vfo(RIG *rig, vfo_t vfo)
 			return kenwood_wrong_vfo(__func__, vfo);
 		}
 
-		retval = kenwood_simple_transaction(rig, cmd, 5);
+		if (rig->caps->rig_model == RIG_MODEL_THD74)
+			retval = kenwood_simple_transaction(rig, cmd, 4);
+		else
+			retval = kenwood_simple_transaction(rig, cmd, 5);
 		if (retval != RIG_OK)
 				return retval;
 	}
 
-	/* No "VMC" cmd on THD72A */
-	if (rig->caps->rig_model == RIG_MODEL_THD72A)
+	/* No "VMC" cmd on THD72A/THD74 */
+	if (rig->caps->rig_model == RIG_MODEL_THD72A || rig->caps->rig_model == RIG_MODEL_THD74)
         	return RIG_OK;
 
 	/* set vfo */
@@ -449,8 +452,8 @@ th_get_vfo_char(RIG *rig, vfo_t *vfo, char *vfoch)
 
 	}
 
-    /* No "VMC" on THD72A */
-    if (rig->caps->rig_model == RIG_MODEL_THD72A) {
+    /* No "VMC" on THD72A/THD74 */
+    if (rig->caps->rig_model == RIG_MODEL_THD72A || rig->caps->rig_model == RIG_MODEL_THD74) {
         *vfoch = '0'; /* FIXME: fake */
 
         return RIG_OK;

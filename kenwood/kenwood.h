@@ -180,6 +180,7 @@ extern const struct rig_caps trc80_caps;
 
 extern const struct rig_caps thd7a_caps;
 extern const struct rig_caps thd72a_caps;
+extern const struct rig_caps thd74_caps;
 extern const struct rig_caps tmd700_caps;
 extern const struct rig_caps thf7a_caps;
 extern const struct rig_caps thf7e_caps;

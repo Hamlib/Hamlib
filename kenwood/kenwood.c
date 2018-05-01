@@ -114,6 +114,7 @@ static const struct kenwood_id_string kenwood_id_string_list[] = {
   { RIG_MODEL_TMD700, "TM-D700" },
   { RIG_MODEL_TMD710, "TM-D710" },
   { RIG_MODEL_THD72A, "TH-D72" },
+  { RIG_MODEL_THD74, "TH-D74" },
   { RIG_MODEL_TMV7, "TM-V7" },
   { RIG_MODEL_TMV71,  "TM-V71" },
   { RIG_MODEL_THF6A,  "TH-F6" },
@@ -493,7 +494,19 @@ int kenwood_init(RIG *rig)
     return -RIG_ENOMEM;
 
   memset(priv, 0x00, sizeof(struct kenwood_priv_data));
-  strcpy (priv->verify_cmd, RIG_MODEL_XG3 == rig->caps->rig_model ? ";" : "ID;");
+
+  switch (rig->caps->rig_model) {
+	  case RIG_MODEL_XG3:
+  		strcpy (priv->verify_cmd, ";");
+		break;
+	  case RIG_MODEL_THD74:
+  		strcpy (priv->verify_cmd, "ID");
+		break;
+	  default:
+  		strcpy (priv->verify_cmd, "ID;");
+		break;
+  }
+
   priv->split = RIG_SPLIT_OFF;
   priv->trn_state = -1;
   rig->state.priv = priv;
@@ -2632,14 +2645,17 @@ int kenwood_set_trn(RIG *rig, int trn)
   if (!rig)
     return -RIG_EINVAL;
 
-  if (RIG_MODEL_TS990S == rig->caps->rig_model)
-    {
-      return kenwood_transaction(rig, (trn == RIG_TRN_RIG) ? "AI2" : "AI0", NULL, 0);
-    }
-  else
-    {
-      return kenwood_transaction(rig, (trn == RIG_TRN_RIG) ? "AI1" : "AI0", NULL, 0);
-    }
+  switch (rig->caps->rig_model) {
+  	case RIG_MODEL_TS990S:
+      		return kenwood_transaction(rig, (trn == RIG_TRN_RIG) ? "AI2" : "AI0", NULL, 0);
+		break;
+	case RIG_MODEL_THD74:
+		  return kenwood_transaction(rig, (trn == RIG_TRN_RIG) ? "AI 1" : "AI 0", NULL, 4);
+		  break;
+	default:
+		  return kenwood_transaction(rig, (trn == RIG_TRN_RIG) ? "AI1" : "AI0", NULL, 0);
+		  break;
+	  }
 }
 
 /*
@@ -2664,7 +2680,10 @@ int kenwood_get_trn(RIG *rig, int *trn)
   char trnbuf[6];
   int retval;
 
-  retval = kenwood_safe_transaction(rig, "AI", trnbuf, 6, 3);
+  if (rig->caps->rig_model == RIG_MODEL_THD74)
+  	retval = kenwood_safe_transaction(rig, "AI", trnbuf, 6, 4);
+  else
+	retval = kenwood_safe_transaction(rig, "AI", trnbuf, 6, 3);
   if (retval != RIG_OK)
     return retval;
 
@@ -3385,6 +3404,7 @@ DECLARE_INITRIG_BACKEND(kenwood)
   rig_register(&tmd700_caps);
   rig_register(&thd7a_caps);
   rig_register(&thd72a_caps);
+  rig_register(&thd74_caps);
   rig_register(&thf7e_caps);
   rig_register(&thg71_caps);
   rig_register(&tmv7_caps);
