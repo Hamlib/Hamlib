@@ -1,0 +1,336 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\"
+.\" For layout and available macros, see man(7), man-pages(7), groff_man(7)
+.\" Please adjust the date whenever revising the manpage.
+.\"
+.\" Note: Please keep this page in sync with the source, rigswr.c
+.\"
+.TH RIGSWR "1" "2018-04-29" "Hamlib" "Hamlib Utilities"
+.
+.
+.SH NAME
+.
+rigswr \- measure VSWR vs frequency.
+.
+.
+.SH SYNOPSIS
+.
+.SY rigswr
+.OP \-hvV
+.OP \-m id
+.OP \-r device
+.OP \-s baud
+.OP \-c id
+.OP \-C parm=val
+.OP \-p device
+.OP \-P type
+start_freq
+stop_freq
+.RI [ freq_step ]
+.SY
+.
+.
+.SH DESCRIPTION
+.
+.B rigswr
+uses
+.B Hamlib
+to control a radio to measure VSWR (Voltage Standing Wave Ratio) over a
+frequency range.
+.
+.PP
+It scans frequencies from
+.I start_freq
+to
+.I stop_freq
+with an optional increment of
+.I freq_step
+(default step is 100 kHz).  All values must be entered as an integer in Hertz
+(cycles per second).
+.
+.PP
+.BR Note :
+.B rigswr
+assumes that
+.I start_freq
+is less than or equal to
+.IR stop_freq .
+If it is greater,
+.B rigswr
+will exit without doing anything.
+.
+.PP
+For each frequency, it transmits at 25% of total POWER during 0.5 second in CW
+mode and reads VSWR.
+.
+.PP
+Frequency and the corresponding VSWR are then printed on
+.BR stdout .
+.
+.PP
+To work correctly,
+.B rigswr
+needs a radio that can measure VSWR and a
+.B Hamlib
+backend that supports reading VSWR from the radio.
+.PP
+Keep in mind that Hamlib is BETA level software.  While a lot of backend
+libraries lack complete rig support, the basic functions are usually well
+supported.
+.
+.PP
+Please report bugs and provide feedback at the e-mail address given in the
+.B BUGS
+section below.  Patches and code enhancements sent to the same address are
+welcome.
+.
+.
+.SH OPTIONS
+.
+This program follows the usual GNU command line syntax.  Short options that
+take an argument may have the value follow immediately or be separated by a
+space.  Long options starting with two dashes (\(oq\-\(cq) require an
+\(oq=\(cq between the option and any argument.
+.
+.PP
+Here is a summary of the supported options:
+.
+.TP
+.BR \-m ", " \-\-model = \fIid\fP
+Select radio model number.
+.IP
+See model list (use \(lqrigctl \-l\(rq).
+.
+.TP
+.BR \-r ", " \-\-rig\-file = \fIdevice\fP
+Use
+.I device
+as the file name of the port connected to the radio.
+.IP
+Often a serial port, but could be a USB to serial adapter.  Typically
+.IR /dev/ttyS0 ", " /dev/ttyS1 ", " /dev/ttyUSB0 ,
+etc. on Linux,
+.IR COM1 ", " COM2 ,
+etc. on MS Windows.  The BSD flavors and Mac OS/X have their own designations.
+See your system's documentation.
+.
+.TP
+.BR \-s ", " \-\-serial\-speed = \fIbaud\fP
+Set radio serial speed to
+.I baud
+rate.
+.IP
+Uses maximum serial speed from rig backend capabilities as the default.
+.TP
+.BR \-c ", " \-\-civaddr = \fIid\fP
+Use
+.I id
+as the CI-V address to communicate with the rig.
+.IP
+Only useful for Icom and some Ten-Tec rigs.
+.IP
+.BR Note :
+The
+.I id
+is in decimal notation, unless prefixed by
+.IR 0x ,
+in which case it is hexadecimal.
+.
+.TP
+.BR \-C ", " \-\-set\-conf = \fIparm=val\fP [ \fI,parm=val\fP ]
+Set radio configuration parameter(s),  e.g.
+.IR stop_bits=2 .
+.IP
+Use the
+.B -L
+option of
+.B rigctl
+for a list of configuration parameters for a given model number.
+.
+.TP
+.BR \-p ", " \-\-ptt\-file = \fIdevice\fP
+Use
+.I device
+as the file name of the Push-To-Talk port using a device file as with the
+.B \-r
+option above.
+.IP
+This is only needed if the radio doesn't have CAT PTT control and requires a
+separate device port to key the transmitter.
+.
+.TP
+.BR \-P ", " \-\-ptt\-type = \fItype\fP
+Use
+.I type
+of Push-To-Talk device.
+.IP
+Supported types are RIG (CAT), DTR, RTS, PARALLEL, NONE.
+.
+.TP
+.BR \-v ", " \-\-verbose
+Set verbose mode, cumulative (see
+.B DIAGNOSTICS
+below).
+.
+.TP
+.BR \-h ", " \-\-help
+Show a summary of these options and exit.
+.
+.TP
+.BR \-V ", " \-\-version
+Show version of
+.B rigswr
+and exit.
+.
+.PP
+.BR Note :
+Some options may not be implemented by a given backend and will return an
+error.  This is most likely to occur with the
+.B \-\-set\-conf
+option.
+.
+.
+.SH DIAGNOSTICS
+.
+The
+.BR \-v ,
+.B \-\-verbose
+option allows different levels of diagnostics to be output to
+.B stderr
+and correspond to \-v for
+.BR BUG ,
+\-vv for
+.BR ERR ,
+\-vvv for
+.BR WARN ,
+\-vvvv for
+.BR VERBOSE ,
+or \-vvvvv for
+.BR TRACE .
+.
+.PP
+A given verbose level is useful for providing needed debugging information to
+the email address below.  For example, TRACE output shows all of the values
+sent to and received from the radio which is very useful for radio backend
+library development and may be requested by the developers.
+.
+.
+.SH EXIT STATUS
+.
+.B rigswr
+exits with:
+.
+.TP
+.B 0
+if all operations completed normally;
+.
+.TP
+.B 1
+if there was an invalid command line option or argument;
+.
+.TP
+.B 2
+if an error was returned by
+.BR Hamlib ;
+.
+.TP
+.B 3
+if the rig doesn't have the required capabilities.
+.
+.
+.SH EXAMPLE
+.
+Scans frequencies between 14.000 MHz and 14.200 MHz with 50 kHz step on a
+TS-850 and records VSWR measurements in file
+.IR cswr .
+.
+.sp
+.RS 0.5i
+.EX
+rigswr -m 209 -r /dev/ttyS1 14000000 14200000 50000 > cswr
+.EE
+.RE
+.
+.PP
+After completion, cswr file contains the following lines:
+.
+.sp
+.RS 0.5i
+.EX
+14000000 1.50
+.br
+14050000 1.31
+.br
+14100000 1.22
+.br
+14150000 1.07
+.br
+14200000 1.07
+.EE
+.RE
+.
+.PP
+The result can be plotted with
+.BR gnuplot (1):
+.
+.sp
+.RS 0.5i
+.EX
+gnuplot
+.br
+set data style linespoints
+.br
+set grid
+.br
+.RI plot " cswr"
+.EE
+.RE
+.
+.
+.SH BUGS
+.
+Depending on keyer/QSK setup, transmissions in CW mode may not be modulated
+thus possibly giving a wrong result. Please report this situation if it
+happens.
+.
+.PP
+Report bugs to:
+.IP
+.nf
+.MT hamlib\-developer@lists.sourceforge.net
+Hamlib Developer mailing list
+.ME
+.
+.
+.SH COPYING
+.
+This file is part of Hamlib, a project to develop a library that simplifies
+radio and rotator control functions for developers of software primarily of
+interest to radio amateurs and those interested in radio communications.
+.
+.PP
+Copyright \(co 2004 Thierry Leconte
+.br
+Copyright \(co 2004-2011 Stephane Fillod
+.br
+Copyright \(co 2007,2018 Nate Bargmann
+.PP
+This is free software; see the file COPYING for copying conditions.  There is
+NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+.
+.
+.SH SEE ALSO
+.
+.BR gnuplot (1),
+.BR rigctl (1),
+.BR hamlib (7)
+.
+.
+.SH COLOPHON
+.
+Links to the Hamlib Wiki, Git repository, release archives, and daily snapshot
+archives:
+.IP
+.UR http://www.hamlib.org
+hamlib.org
+.UE .

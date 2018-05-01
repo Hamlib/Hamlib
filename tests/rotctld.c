@@ -84,7 +84,7 @@ void usage();
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:s:C:t:T:LuvhVl"
+#define SHORT_OPTIONS "m:r:s:C:t:T:LuvhVlZ"
 static struct option long_options[] =
 {
     {"model",           1, 0, 'm'},
@@ -96,6 +96,7 @@ static struct option long_options[] =
     {"set-conf",        1, 0, 'C'},
     {"show-conf",       0, 0, 'L'},
     {"dump-caps",       0, 0, 'u'},
+    {"debug-time-stamps",0, 0, 'Z'},
     {"verbose",         0, 0, 'v'},
     {"help",            0, 0, 'h'},
     {"version",         0, 0, 'V'},
@@ -277,6 +278,10 @@ int main(int argc, char *argv[])
 
         case 'u':
             dump_caps_opt++;
+            break;
+
+        case 'Z':
+            rig_set_debug_time_stamp(1);
             break;
 
         default:
@@ -692,6 +697,7 @@ void usage()
         "  -l, --list                    list all model numbers and exit\n"
         "  -u, --dump-caps               dump capabilities and exit\n"
         "  -v, --verbose                 set verbose mode, cumulative\n"
+        "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
         "  -h, --help                    display this help and exit\n"
         "  -V, --version                 output version information and exit\n\n",
         portno);

@@ -54,7 +54,7 @@ type
 const
     RIGNAMSIZ = 30;
     RIGVERSIZ = 8;
-    FILPATHLEN = 100;
+    FILPATHLEN = 512;
     FRQRANGESIZ = 30;
     MAXCHANDESC = 30;		{* describe channel eg: "WWV 5Mhz" *}
     TSLSTSIZ = 20;			{* max tuning step list size, zero ended *}

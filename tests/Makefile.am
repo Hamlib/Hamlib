@@ -8,8 +8,6 @@ DISTCLEANFILES = rigctl.log rigctl.sum testbcd.log testbcd.sum
 
 bin_PROGRAMS = rigctl rigctld rigmem rigsmtr rigswr rotctl rotctld
 
-man_MANS = rigctl.1 rigctld.1 rigmem.1 rigsmtr.1 rigswr.1 rotctl.1 rotctld.1
-
 check_PROGRAMS = dumpmem testrig testtrn testbcd testfreq listrigs testloc rig_bench
 
 RIGCOMMONSRC = rigctl_parse.c rigctl_parse.h dumpcaps.c sprintflst.c sprintflst.h uthash.h
@@ -59,7 +57,7 @@ rigmatrix.html: rigmatrix_head.html rigmatrix listrigs
 endif
 
 
-EXTRA_DIST = rigmatrix_head.html rig_split_lst.awk $(man_MANS) testctld.pl testrotctld.pl
+EXTRA_DIST = rigmatrix_head.html rig_split_lst.awk testctld.pl testrotctld.pl
 
 # Support 'make check' target for simple tests
 check_SCRIPTS = testrig.sh testfreq.sh testbcd.sh testloc.sh
