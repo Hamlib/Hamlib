@@ -65,7 +65,7 @@
 static rmode_t td74_mode_table[KENWOOD_MODE_TABLE_MAX] =
 {
     [0] = RIG_MODE_FM,
-    [1] = RIG_MODE_DR,
+    [1] = RIG_MODE_DV,
     [2] = RIG_MODE_AM,
     [3] = RIG_MODE_LSB,
     [4] = RIG_MODE_USB,
@@ -642,7 +642,8 @@ int thd74_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
         case RIG_MODE_AM: kmode = '1'; break;
 
-        //  case RIG_MODE_AM: kmode = '2'; break;   // FIXME
+        case RIG_MODE_DV: kmode = '2'; break;
+
         case RIG_MODE_LSB: kmode = '3'; break;
 
         case RIG_MODE_USB: kmode = '4'; break;
