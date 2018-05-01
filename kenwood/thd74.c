@@ -208,7 +208,7 @@ const struct rig_caps thd74_caps =
     .get_mode = thd74_get_mode,
 //.set_split_vfo = kenwood_set_split_vfo,
 //.get_split_vfo = kenwood_get_split_vfo_if,
-    .get_ptt = kenwood_get_ptt,
+//.get_ptt = kenwood_get_ptt,
     .set_ptt = thd74_set_ptt,
     .get_dcd = th_get_dcd,
 
