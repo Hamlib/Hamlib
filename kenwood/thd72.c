@@ -147,7 +147,7 @@ static int thd72_set_vfo(RIG *rig, vfo_t vfo)
 static int thd72_get_vfo(RIG *rig, vfo_t *vfo)
 {
     int retval;
-    char buf[10], vfoc;
+    char c, buf[10];
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
@@ -156,12 +156,12 @@ static int thd72_get_vfo(RIG *rig, vfo_t *vfo)
 	return retval;
     size_t length = strlen (buf);
     if (length == 4) {
-	vfoc = buf[3];
+	c = buf[3];
     } else {
 	rig_debug(RIG_DEBUG_ERR, "%s: Unexpected answer length '%c'\n", __func__, length);
 	return -RIG_EPROTO;
     }
-    switch (vfoc) {
+    switch (c) {
 	case '0': *vfo = RIG_VFO_A; break;
 	case '1': *vfo = RIG_VFO_B; break;
 	default:
@@ -187,12 +187,12 @@ static int thd72_vfoc(RIG *rig, vfo_t vfo, char *vfoc)
 static int thd72_get_freq_info(RIG *rig, vfo_t vfo, char *buf)
 {
     int retval, length;
-    char vfoc, cmd[8];
+    char c, cmd[8];
 
-    retval = thd72_vfoc(rig, vfo, &vfoc);
+    retval = thd72_vfoc(rig, vfo, &c);
     if (retval != RIG_OK)
 	return retval;
-    sprintf(cmd, "FO %c", vfoc);
+    sprintf(cmd, "FO %c", c);
     retval = kenwood_transaction(rig, cmd, buf, 53);
     length = strlen(buf);
     rig_debug(RIG_DEBUG_TRACE, "%s: length=%d\n", __func__, length);
@@ -387,14 +387,41 @@ static int thd72_get_menu_info(RIG *rig, char *buf)
     return RIG_OK;
 }
 
-static int thd72_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+static int thd72_get_menu_item(RIG* rig, int item, char hi, char *val)
 {
     int retval;
-    char vfoc, lvlc, cmd[10], buf[48];
+    char c, buf[48];
+
+    retval = thd72_get_menu_info(rig, buf);
+    if (retval != RIG_OK)
+	return retval;
+    c = buf[3 + 2*item];	/* "MU 0,1,2 ... */
+    if (c < '0' || c > hi)
+	return -RIG_EPROTO;
+    *val = c;
+    return RIG_OK;
+}
+
+static int thd72_set_menu_item(RIG* rig, int item, int val)
+{
+    int retval;
+    char buf[48];
+
+    retval = thd72_get_menu_info(rig, buf);
+    if (retval != RIG_OK)
+	return retval;
+    buf[3 + 2*item] = '0' + val;
+    return kenwood_simple_transaction(rig, buf, 40);
+}
+
+static int thd72_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+{
+    int retval, lvl;
+    char c, lvlc, cmd[10];
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-    retval = thd72_vfoc(rig, vfo, &vfoc);
+    retval = thd72_vfoc(rig, vfo, &c);
     if (retval != RIG_OK)
 	return retval;
     switch (level) {
@@ -402,29 +429,23 @@ static int thd72_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 	    if (val.f <= 0.01) lvlc = '2';
 	    else if (val.f <= 0.10) lvlc = '1';
 	    else lvlc = '0';
-	    sprintf(cmd, "PC %c,%c", vfoc, lvlc);
+	    sprintf(cmd, "PC %c,%c", c, lvlc);
 	    return kenwood_simple_transaction(rig, cmd, 6);
 	case RIG_LEVEL_VOXGAIN:
-	    retval = thd72_get_menu_info(rig, buf);
-	    if (retval != RIG_OK)
-		return retval;
-	    buf[19] = '0' + (int)(val.f*10.0 - 0.5);
-	    return kenwood_simple_transaction(rig, buf, 40);
+	    return thd72_set_menu_item(rig, 8, (int)(val.f*10.0 - 0.5));
 	case RIG_LEVEL_VOXDELAY:
-	    retval = thd72_get_menu_info(rig, buf);
-	    if (retval != RIG_OK)
-		return retval;
-	    return kenwood_simple_transaction(rig, buf, 40);
+	    if (val.i > 20000) lvl = 6;
+	    else if (val.i > 10000) lvl = val.i/10000 + 3;
+	    else lvl = val.i/2500;
+	    return thd72_set_menu_item(rig, 9, lvl);
 	case RIG_LEVEL_SQL:
 	    lvlc = '0' + (int)(val.f*5);
-	    sprintf(cmd, "PC %c,%c", vfoc, lvlc;
+	    sprintf(cmd, "PC %c,%c", c, lvlc);
 	    return kenwood_simple_transaction(rig, cmd, 6);
 	case RIG_LEVEL_BALANCE:
-	    retval = thd72_get_menu_info(rig, buf);
-	    if (retval != RIG_OK)
-		return retval;
 	    /* FIXME - is balance 0.0 .. 1.0 or -1.0 .. 1.0? */
-	    return kenwood_simple_transaction(rig, buf, 40);
+	    lvl = (int)(val.f*4.0);
+	    return thd72_set_menu_item(rig, 13, lvl);
 	default:
 	    rig_debug(RIG_DEBUG_ERR, "%s: Unsupported Level %d\n", __func__, level);
 	    return -RIG_EINVAL;
@@ -435,16 +456,16 @@ static int thd72_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 static int thd72_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     int retval, v, l;
-    char vfoc, cmd[10], buf[48];
+    char c, cmd[10], buf[48];
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-    retval = thd72_vfoc(rig, vfo, &vfoc);
+    retval = thd72_vfoc(rig, vfo, &c);
     if (retval != RIG_OK)
 	return retval;
     switch (level) {
 	case RIG_LEVEL_RFPOWER:
-	    sprintf(cmd, "PC %c", vfoc);
+	    sprintf(cmd, "PC %c", c);
 	    retval = kenwood_transaction(rig, cmd, buf, sizeof (buf));
 	    if (retval != RIG_OK)
 		return retval;
@@ -460,33 +481,21 @@ static int thd72_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	    }
 	    break;
 	case RIG_LEVEL_VOXGAIN:
-	    retval = thd72_get_menu_info(rig, buf);
+	    retval = thd72_get_menu_item(rig, 8, '9', &c);
 	    if (retval != RIG_OK)
 		return retval;
 	    /* FIXME - if VOX is off, what do we return */
-	    vfoc = buf[19];
-	    if (vfoc >= '0' && vfoc <= '9')
-		val->f = (vfoc - '0') / 9.0;
-	    else {
-		rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, buf);
-		return -RIG_ERJCTED;
-	    }
+	    val->f = (c - '0') / 9.0;
 	    break;
 	case RIG_LEVEL_VOXDELAY:
-	    retval = thd72_get_menu_info(rig, buf);
+	    retval = thd72_get_menu_item(rig, 9, '7', &c);
 	    if (retval != RIG_OK)
 		return retval;
 	    /* FIXME - if VOX is off, what do we return */
-	    vfoc = buf[21];
-	    if (vfoc >= '0' && vfoc <= '7')
-		val->i = thd72voxdelay[vfoc-'0'];
-	    else {
-		rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, buf);
-		return -RIG_ERJCTED;
-	    }
+	    val->i = thd72voxdelay[c-'0'];
 	    break;
 	case RIG_LEVEL_SQL:
-	    sprintf(cmd, "SQ %c", vfoc);
+	    sprintf(cmd, "SQ %c", c);
 	    retval = kenwood_transaction(rig, cmd, buf, sizeof (buf));
 	    if (retval != RIG_OK)
 		return retval;
@@ -498,17 +507,11 @@ static int thd72_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	    val->f = thd72sqlevel[l];
 	    break;
 	case RIG_LEVEL_BALANCE:
-	    retval = thd72_get_menu_info(rig, buf);
+	    retval = thd72_get_menu_item(rig, 13, '4', &c);
 	    if (retval != RIG_OK)
 		return retval;
-	    vfoc = buf[29];
 	    /* FIXME - is balance 0.0 .. 1.0 or -1.0 .. 1.0? */
-	    if (vfoc >= '0' && vfoc <= '4')
-		val->f = (float)('2'-vfoc)/('2'-'0');
-	    else {
-		rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, buf);
-		return -RIG_ERJCTED;
-	    }
+		val->f = (float)(c-'4')/4.0;
 	    break;
 	default:
 	    rig_debug(RIG_DEBUG_ERR, "%s: Unsupported Level %d\n", __func__, level);
@@ -520,21 +523,16 @@ static int thd72_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 static int thd72_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
     int retval;
-    char vfoc, buf[48];
+    char c;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     switch (func) {
 	case RIG_FUNC_AIP:
-	    retval = thd72_vfoc(rig, vfo, &vfoc);
+	    retval = thd72_vfoc(rig, vfo, &c);
 	    if (retval != RIG_OK)
 		return retval;
-	    retval = thd72_get_menu_info(rig, buf);
-	    if (retval != RIG_OK)
-		return retval;
-	    if (vfoc == '0') buf[13] = status + '0';	/* VHF AIP */
-	    else 	     buf[15] = status + '0';;	/* UHF AIP */
-	    return kenwood_simple_transaction(rig, buf, 40);
+	    return thd72_set_menu_item(rig, c == '0'?5:6, status);
 	default:
 	    return -RIG_EINVAL;
     }
@@ -544,21 +542,19 @@ static int thd72_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 static int thd72_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
     int retval;
-    char vfoc, buf[48];
+    char c;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     switch (func) {
 	case RIG_FUNC_AIP:
-	    retval = thd72_vfoc(rig, vfo, &vfoc);
+	    retval = thd72_vfoc(rig, vfo, &c);
 	    if (retval != RIG_OK)
 		return retval;
-	    retval = thd72_get_menu_info(rig, buf);
+	    retval = thd72_get_menu_item(rig, c == '0'?5:6, '1', &c);
 	    if (retval != RIG_OK)
 		return retval;
-	    if (vfoc == '0') vfoc = buf[13];	/* VHF AIP */
-	    else 	     vfoc = buf[15];	/* UHF AIP */
-	    *status = vfoc - '0';
+	    *status = c - '0';
 	    break;
 	default:
 	    return -RIG_EINVAL;
@@ -568,22 +564,17 @@ static int thd72_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
 static int thd72_set_parm(RIG *rig, setting_t parm, value_t val)
 {
-    int retval, hh, mm, ss;
-    char vfoc, buf[48];
+    int lvl;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     switch (parm) {
 	case RIG_PARM_APO:
-	    retval = thd72_get_menu_info(rig, buf);
-	    if (retval != RIG_OK)
-		return retval;
-	    if (val.i == 0) vfoc = '0';
-	    else if (val.i <= 15) vfoc = '1';
-	    else if (val.i <= 30) vfoc = '2';
-	    else vfoc = '3';
-	    buf[9] = vfoc;
-	    return kenwood_simple_transaction(rig, buf, 40);
+	    if (val.i == 0) lvl = 0;
+	    else if (val.i <= 15) lvl = 1;
+	    else if (val.i <= 30) lvl = 2;
+	    else lvl = 3;
+	    return thd72_set_menu_item(rig, 3, lvl);
 	case RIG_PARM_TIME:
 	default:
 	    return -RIG_EINVAL;
@@ -594,22 +585,16 @@ static int thd72_set_parm(RIG *rig, setting_t parm, value_t val)
 static int thd72_get_parm(RIG *rig, setting_t parm, value_t *val)
 {
     int retval, hh, mm, ss;
-    char vfoc, buf[48];
+    char c, buf[48];
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     switch (parm) {
 	case RIG_PARM_APO:
-	    retval = thd72_get_menu_info(rig, buf);
+	    retval = thd72_get_menu_item(rig, 3, '3', &c);
 	    if (retval != RIG_OK)
 		return retval;
-	    vfoc = buf[9];
-	    if (vfoc >= '0' && vfoc <= '3')
-		val->i = thd72apo[vfoc-'0'];
-	    else {
-		rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, buf);
-		return -RIG_ERJCTED;
-	    }
+	    val->i = thd72apo[c-'0'];
 	    break;
 	case RIG_PARM_TIME:
 	    retval = kenwood_transaction(rig, "RT", buf, sizeof (buf));
