@@ -35,8 +35,8 @@
 #include "misc.h"
 
 
-#define THD72_MODES	(RIG_MODE_FM|RIG_MODE_AM)
-#define THD72_MODES_TX	(RIG_MODE_FM)
+#define THD72_MODES	(RIG_MODE_FM|RIG_MODE_FMN|RIG_MODE_AM)
+#define THD72_MODES_TX	(RIG_MODE_FM|RIG_MODE_FMN)
 
 #define THD72_FUNC_ALL (RIG_FUNC_TSQL|   \
                        RIG_FUNC_AIP|    \
@@ -48,18 +48,21 @@
                        RIG_FUNC_ARO)
 
 #define THD72_LEVEL_ALL (RIG_LEVEL_RFPOWER|\
+			RIG_LEVEL_SQL|\
+			RIG_LEVEL_BALANCE|\
 			RIG_LEVEL_VOXGAIN|\
                         RIG_LEVEL_VOXDELAY)
 
-#define THD72_PARMS	(RIG_PARM_BACKLIGHT)
+#define THD72_PARMS	(RIG_PARM_APO|\
+			RIG_PARM_TIME)
 
 #define THD72_VFO_OP (RIG_OP_NONE)
 
 #define THD72_VFO (RIG_VFO_A|RIG_VFO_B)
 
 static rmode_t thd72_mode_table[3] = {
-    [0] = RIG_MODE_WFM,
-    [1] = RIG_MODE_FM,
+    [0] = RIG_MODE_FM,	/* normal, but narrow compared to broadcast */
+    [1] = RIG_MODE_FMN,	/* what kenwood calls narrow */
     [2] = RIG_MODE_AM,
 };
 
@@ -84,7 +87,23 @@ static int thd72voxdelay[7] = {
     [6] = 30000
 };
 
-static struct kenwood_priv_caps  thd72_priv_caps  = {
+static float thd72sqlevel[6] = {
+    [0] = 0.0,		/* open */
+    [1] = 0.2,
+    [2] = 0.4,
+    [3] = 0.6,
+    [4] = 0.8,
+    [5] = 1.0
+};
+
+static int thd72apo[4] = {
+    [0] = 0,
+    [1] = 15,
+    [2] = 30,
+    [3] = 60
+};
+
+static struct kenwood_priv_caps thd72_priv_caps = {
     .cmdtrm =  EOM_TH,   /* Command termination character */
     .mode_table = thd72_mode_table,
 };
@@ -188,11 +207,11 @@ static int thd72_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     retval = thd72_get_freq_info(rig, vfo, buf);
-    if (retval == RIG_OK) {
-	sprintf(fbuf, "%010ld", (int64_t)freq);
-	memcpy(buf+5, fbuf, 10);
-        retval = kenwood_simple_transaction(rig, buf, 52);
-    }
+    if (retval != RIG_OK)
+	return retval;
+    sprintf(fbuf, "%010ld", (int64_t)freq);
+    memcpy(buf+5, fbuf, 10);
+    retval = kenwood_simple_transaction(rig, buf, 52);
     return retval;
 }
 
@@ -204,9 +223,10 @@ static int thd72_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     retval = thd72_get_freq_info(rig, vfo, buf);
-    if (retval == RIG_OK)
-	sscanf(buf+5, "%"SCNfreq, freq);
-    return retval;
+    if (retval != RIG_OK)
+	return retval;
+    sscanf(buf+5, "%"SCNfreq, freq);
+    return RIG_OK;
 }
 
 static int thd72_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
@@ -217,17 +237,17 @@ static int thd72_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     retval = thd72_get_freq_info(rig, vfo, buf);
-    if (retval == RIG_OK) {
-	switch (mode) {
-	    case RIG_MODE_WFM: modec = '0'; break;
-	    case RIG_MODE_FM:  modec = '1'; break;
-	    case RIG_MODE_AM:  modec = '2'; break;
-	    default:
-		return -RIG_EINVAL;
-	}
-	buf[51] = modec;
-	retval = kenwood_simple_transaction(rig, buf, 52);
+    if (retval != RIG_OK)
+	return retval;
+    switch (mode) {
+	case RIG_MODE_FM:  modec = '0'; break;
+	case RIG_MODE_FMN: modec = '1'; break;
+	case RIG_MODE_AM:  modec = '2'; break;
+	default:
+	    return -RIG_EINVAL;
     }
+    buf[51] = modec;
+    retval = kenwood_simple_transaction(rig, buf, 52);
     return retval;
 }
 
@@ -239,16 +259,16 @@ static int thd72_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     retval = thd72_get_freq_info(rig, vfo, buf);
-    if (retval == RIG_OK) {
-	modec = buf[51];
-	if (modec >= '0' && modec <= '2') {
-	    *mode = thd72_mode_table[modec - '0'];
-	    *width = thd72_width_table[modec - '0'];
-	}
-	else
-	    return -RIG_EINVAL;
+    if (retval != RIG_OK)
+	return retval;
+    modec = buf[51];
+    if (modec >= '0' && modec <= '2') {
+	*mode = thd72_mode_table[modec - '0'];
+	*width = thd72_width_table[modec - '0'];
     }
-    return retval;
+    else
+	return -RIG_EINVAL;
+    return RIG_OK;
 }
 
 static int thd72_set_rptr_shft(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
@@ -259,17 +279,17 @@ static int thd72_set_rptr_shft(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     retval = thd72_get_freq_info(rig, vfo, buf);
-    if (retval == RIG_OK) {
-	switch (rptr_shift) {
-	    case RIG_RPT_SHIFT_NONE:  shftc = '0'; break;
-	    case RIG_RPT_SHIFT_PLUS:  shftc = '1'; break;
-	    case RIG_RPT_SHIFT_MINUS: shftc = '1'; break;
-	    default:
-		return  -RIG_EINVAL;
-	}
-	buf[18] = shftc;
-	retval = kenwood_simple_transaction(rig, buf, 52);
+    if (retval != RIG_OK)
+	return retval;
+    switch (rptr_shift) {
+	case RIG_RPT_SHIFT_NONE:  shftc = '0'; break;
+	case RIG_RPT_SHIFT_PLUS:  shftc = '1'; break;
+	case RIG_RPT_SHIFT_MINUS: shftc = '1'; break;
+	default:
+	    return  -RIG_EINVAL;
     }
+    buf[18] = shftc;
+    retval = kenwood_simple_transaction(rig, buf, 52);
     return retval;
 }
 
@@ -281,14 +301,13 @@ static int thd72_get_rptr_shft(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     retval = thd72_get_freq_info(rig, vfo, buf);
-    if (retval == RIG_OK) {
-	shftc = buf[18];
-	if (shftc >= '0' && shftc <= '2') {
-	    *rptr_shift = thd72_rshf_table[shftc - '0'];
-	}
-	else
-	    return -RIG_EINVAL;
-    }
+    if (retval != RIG_OK)
+	return retval;
+    shftc = buf[18];
+    if (shftc >= '0' && shftc <= '2')
+	*rptr_shift = thd72_rshf_table[shftc - '0'];
+    else
+	return -RIG_EINVAL;
     return retval;
 }
 
@@ -301,11 +320,11 @@ static int thd72_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     retval = thd72_get_freq_info(rig, vfo, buf);
-    if (retval == RIG_OK) {
-	sprintf(boff, "%08ld", offs);
-	memcpy(buf+42, boff, 8);
-	retval = kenwood_simple_transaction(rig, buf, 52);
-    }
+    if (retval != RIG_OK)
+	return retval;
+    sprintf(boff, "%08ld", offs);
+    memcpy(buf+42, boff, 8);
+    retval = kenwood_simple_transaction(rig, buf, 52);
     return retval;
 }
 
@@ -317,9 +336,10 @@ static int thd72_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *offs)
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     retval = thd72_get_freq_info(rig, vfo, buf);
-    if (retval == RIG_OK)
-	sscanf(buf+42, "%ld", offs);
-    return retval;
+    if (retval != RIG_OK)
+	return retval;
+    sscanf(buf+42, "%ld", offs);
+    return RIG_OK;
 }
 
 static int thd72_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
@@ -339,18 +359,18 @@ static int thd72_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     retval = thd72_get_freq_info(rig, vfo, buf);
-    if (retval == RIG_OK) {
-	if (buf[22] == '0')	/* no tone */
-	    *tone = 0;
-	else {
-	    sscanf(buf+30, "%d", &tinx);
-	    if (tinx >= 0 && tinx <= 41)
-		*tone = kenwood42_ctcss_list[tinx];
-	    else
-		return -RIG_EINVAL;
-	}
+    if (retval != RIG_OK)
+	return retval;
+    if (buf[22] == '0')	/* no tone */
+	*tone = 0;
+    else {
+	sscanf(buf+30, "%d", &tinx);
+	if (tinx >= 0 && tinx <= 41)
+	    *tone = kenwood42_ctcss_list[tinx];
+	else
+	    return -RIG_EINVAL;
     }
-    return retval;
+    return RIG_OK;
 }
 
 static int thd72_get_menu_info(RIG *rig, char *buf)
@@ -394,7 +414,17 @@ static int thd72_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 	    retval = thd72_get_menu_info(rig, buf);
 	    if (retval != RIG_OK)
 		return retval;
-	    break;
+	    return kenwood_simple_transaction(rig, buf, 40);
+	case RIG_LEVEL_SQL:
+	    lvlc = '0' + (int)(val.f*5);
+	    sprintf(cmd, "PC %c,%c", vfoc, lvlc;
+	    return kenwood_simple_transaction(rig, cmd, 6);
+	case RIG_LEVEL_BALANCE:
+	    retval = thd72_get_menu_info(rig, buf);
+	    if (retval != RIG_OK)
+		return retval;
+	    /* FIXME - is balance 0.0 .. 1.0 or -1.0 .. 1.0? */
+	    return kenwood_simple_transaction(rig, buf, 40);
 	default:
 	    rig_debug(RIG_DEBUG_ERR, "%s: Unsupported Level %d\n", __func__, level);
 	    return -RIG_EINVAL;
@@ -455,6 +485,31 @@ static int thd72_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		return -RIG_ERJCTED;
 	    }
 	    break;
+	case RIG_LEVEL_SQL:
+	    sprintf(cmd, "SQ %c", vfoc);
+	    retval = kenwood_transaction(rig, cmd, buf, sizeof (buf));
+	    if (retval != RIG_OK)
+		return retval;
+	    retval = sscanf(buf, "SQ %d,%d", &v, &l);
+	    if (retval != 2 || l < 0 || l > 6) {
+		rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, buf);
+		return -RIG_ERJCTED;
+	    }
+	    val->f = thd72sqlevel[l];
+	    break;
+	case RIG_LEVEL_BALANCE:
+	    retval = thd72_get_menu_info(rig, buf);
+	    if (retval != RIG_OK)
+		return retval;
+	    vfoc = buf[29];
+	    /* FIXME - is balance 0.0 .. 1.0 or -1.0 .. 1.0? */
+	    if (vfoc >= '0' && vfoc <= '4')
+		val->f = (float)('2'-vfoc)/('2'-'0');
+	    else {
+		rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, buf);
+		return -RIG_ERJCTED;
+	    }
+	    break;
 	default:
 	    rig_debug(RIG_DEBUG_ERR, "%s: Unsupported Level %d\n", __func__, level);
 	    return -RIG_EINVAL;
@@ -464,13 +519,34 @@ static int thd72_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 static int thd72_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
+    int retval;
+    char vfoc, buf[48];
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+    switch (func) {
+	case RIG_FUNC_AIP:
+	    retval = thd72_vfoc(rig, vfo, &vfoc);
+	    if (retval != RIG_OK)
+		return retval;
+	    retval = thd72_get_menu_info(rig, buf);
+	    if (retval != RIG_OK)
+		return retval;
+	    if (vfoc == '0') buf[13] = status + '0';	/* VHF AIP */
+	    else 	     buf[15] = status + '0';;	/* UHF AIP */
+	    return kenwood_simple_transaction(rig, buf, 40);
+	default:
 	    return -RIG_EINVAL;
+    }
+    return RIG_OK;
 }
 
 static int thd72_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
     int retval;
     char vfoc, buf[48];
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     switch (func) {
 	case RIG_FUNC_AIP:
@@ -483,6 +559,64 @@ static int thd72_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 	    if (vfoc == '0') vfoc = buf[13];	/* VHF AIP */
 	    else 	     vfoc = buf[15];	/* UHF AIP */
 	    *status = vfoc - '0';
+	    break;
+	default:
+	    return -RIG_EINVAL;
+    }
+    return RIG_OK;
+}
+
+static int thd72_set_parm(RIG *rig, setting_t parm, value_t val)
+{
+    int retval, hh, mm, ss;
+    char vfoc, buf[48];
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+    switch (parm) {
+	case RIG_PARM_APO:
+	    retval = thd72_get_menu_info(rig, buf);
+	    if (retval != RIG_OK)
+		return retval;
+	    if (val.i == 0) vfoc = '0';
+	    else if (val.i <= 15) vfoc = '1';
+	    else if (val.i <= 30) vfoc = '2';
+	    else vfoc = '3';
+	    buf[9] = vfoc;
+	    return kenwood_simple_transaction(rig, buf, 40);
+	case RIG_PARM_TIME:
+	default:
+	    return -RIG_EINVAL;
+    }
+    return RIG_OK;
+}
+
+static int thd72_get_parm(RIG *rig, setting_t parm, value_t *val)
+{
+    int retval, hh, mm, ss;
+    char vfoc, buf[48];
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+    switch (parm) {
+	case RIG_PARM_APO:
+	    retval = thd72_get_menu_info(rig, buf);
+	    if (retval != RIG_OK)
+		return retval;
+	    vfoc = buf[9];
+	    if (vfoc >= '0' && vfoc <= '3')
+		val->i = thd72apo[vfoc-'0'];
+	    else {
+		rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, buf);
+		return -RIG_ERJCTED;
+	    }
+	    break;
+	case RIG_PARM_TIME:
+	    retval = kenwood_transaction(rig, "RT", buf, sizeof (buf));
+	    if (retval != RIG_OK)
+		return retval;
+	    sscanf(buf+11, "%2d%2d%2d", &hh, &mm, &ss);
+	    val->i = ss + 60*(mm + 60*hh);
 	    break;
 	default:
 	    return -RIG_EINVAL;
@@ -726,6 +860,7 @@ const struct rig_caps thd72a_caps = {
         /* mode/filter list, remember: order matters! */
 .filters =  {
 		{RIG_MODE_FM, kHz(14)},
+		{RIG_MODE_FMN, kHz(7)},
 		{RIG_MODE_AM, kHz(9)},
 		RIG_FLT_END,
 	},
@@ -753,6 +888,8 @@ const struct rig_caps thd72a_caps = {
 .get_level = thd72_get_level,
 .set_func = thd72_set_func,
 .get_func = thd72_get_func,
+.set_parm = thd72_set_parm,
+.get_parm = thd72_get_parm,
 .get_chan_all_cb = thd72_get_chan_all_cb,
 
 .get_info =  th_get_info,
