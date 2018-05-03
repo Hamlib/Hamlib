@@ -1,0 +1,155 @@
+Guidelines for updating and authoring new man pages.
+
+
+Overview
+========
+
+The man pages are written in the roff formatting language.  See roff(7) ("man
+roff") for an overview.  roff is implemented on modern Unix like systems by
+groff (GNU roff) which is a suite of programs and macro definition files that
+make up the roff system.
+
+Documentation written in roff can be transformed into a number of formats for
+final publication.  For the Hamlib project, the output formats are the classic
+man(1) format to a terminal screen, HTML, and PDF.  While groff includes a
+number of macro pacakges suitable for a variety of document styles, Hamlib
+source files are written using the man(7) macro package.  The layout of Hamlib
+man pages generally follow the format specified in man-pages(7).  The macros
+used in the man pages format is specified in groff_man(7).
+
+The use of mdoc from the BSD projects has been considered and may be used in
+the future if the need arises.  Conversely, the classic man macros are
+reasonably well understood, fairly simple, easy to use, can be processed by a
+wide range of tools, and fits the Hamlib philosophy of being as approachable
+as possible.  To be fair, mdoc is very comprehensive and would allow many more
+formatting choices to be available for the various output formats.  At some
+point mdoc may well be the better choice.
+
+The latest versions of the manual pages referenced above may be found at:
+
+        http://man7.org/linux/man-pages/dir_section_7.html
+
+For information on mdoc, see:
+
+        http://mandoc.bsd.lv/
+
+
+Recommended Practices
+=====================
+
+Sections
+--------
+
+The man pages are sorted into various sections depending on the part of the
+system they document.  For Hamlib, the man pages fall into one of three
+categories.  The placement is as follows:
+
+        Section         Hamlib subject domain
+        1               Executables, rigctl, rotctl, etc.
+        3               Hamlib library constants and functions.
+        7               General Hamlib information.
+
+Macros and escapes
+------------------
+
+The use of man macros to mark up the roff source files is strongly encouraged.
+In some cases, the use of lower level troff font escapes, such as "\fBxxx\fP",
+is required, but should be used sparingly.  Such escapes are hard to read and
+not all editors can highlight the escape correctly.
+
+The default font for HTML and PDF is Roman (often Times Roman on the local
+system) and rarely needs to be specified directly with the ".R" macro.  Text
+may be bolded using the ".B" macro or italicized using the ".I" macro.  A set
+of combination macros exist that combine alternating sequences of styled text
+such as ".BR" for alternating Bold and Roman text.
+
+In the OPTIONS and COMMANDS sections of the utility pages there are complex
+constructs of the form of:
+
+        .BR M ", " set_mode " \(aq" \fIMode\fP "\(aq \(aq" \fIPassband\fP \(aq
+
+The result is that the command strings will be in Bold, the punctuation will
+be in Roman, and the names of the variables will be in Italics using the low
+level troff font escapes.  Quoted strings are required to ensure spacing
+between items as the ".BR" macro uses (and other combination macros) spaces to
+separate its arguments.  As you can see, the font escapes are hard to read as
+they must be run up tight against the text.
+
+Special symbols such as copyright or trademark glyphs and styled quotation
+marks do require roff escapes inlined with the text.  Several such escapes
+can be found in the Hamlib roff source files:
+
+        Escape          Description
+        \(aq            ASCII single quote
+        \(oq            Styled opening single quote
+        \(cq            Styled closing single quote
+        \(lq            Styled opening double quote
+        \(rq            Styled closing double quote
+        \(co            Copyright symbol
+
+Besides the macros documented in man(7), the following troff macros are used
+in the Hamlib man pages:
+
+        Macro           Description
+        .br             Line break (analogous to '\n' in C)
+        .sp             Line break plus an additional blank line
+        .nf             Do not justify following text (encloses the .MT block)
+        .fi             Resume justification
+
+Structure
+---------
+
+In addition to the standard man page sections of NAME, SYNPOPSIS, etc., the
+Hamlib utility (section 1) man pages add the sections COMMANDS, READLINE,
+PROTOCOL, DIAGNOSTICS, COPYRIGHT, and COLOPHON depending on the individual
+utility.
+
+
+Layout Tips
+===========
+
+Keep in mind that roff documents are most often processed in a single pass,
+i.e.  the document processor reads the file from top to bottom and formats the
+text per the macros and escapes found along the way.  Anything that is not a
+macro or an escape gets rendered into the output file and that includes blank
+lines.  As a result, best practice is to not include blank lines in the
+running text.  Instead use the ".PP" or ".IP" macros to indicate a paragraph
+or an indented paragraph break.  To provide vertical spac between elements of
+the source document, a single '.' on a line will be discarded by the document
+processor.  This provides a way to visually separate paragraphs and headings.
+
+Note:  While the man macro package recognizes ".LP" and ".P" as synonyms for
+".PP", some tools may only recognize ".PP".  One such tool is the older
+'man2html' converter.
+
+Blank lines may be included as part of an example block placed between the
+".EX" and ".EE" macros.  Lines between these macros are rendered in HTML and
+PDF as blocks of constant width text and should be verbatim input or output
+from the shell, programs, or blocks of source code.
+
+Examples should be indented from the blocks of text.  The ".RS 0.5i" macro is
+used for indentation of normal text blocks while ".RS 1.0i" is used for
+indented text blocks, such as a block indented using the ".TP" macro.  For
+each case the indented block must be followed by the ".RE" macro to return the
+next block of text to the normal indentation level.
+
+Normal section headings use the ".SH" macro which provides for vertical space
+between the previous text and the heading and also begins the next block of
+running text.  All text blocks must follow a heading.  Headings are normally
+composed of one word in all capital letters.
+
+Sub-headings use the ".SS" macro which provides vertical space above the
+previous block of text and indents the sub-heading to about half the distance
+from the left margin and the block of text that follows.  Only one level of
+sub-headings is provided.
+
+
+Getting Help
+============
+
+If something is unclear on how to format a new or updated man page, simply
+post your question to the mailing list:
+
+        hamlib-developer@lists.sourceforge.net
+
+73!
