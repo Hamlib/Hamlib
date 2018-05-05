@@ -433,44 +433,44 @@ int tmv7_get_channel(RIG *rig, channel_t *chan)
     char membuf[64],ackbuf[ACKBUF_LEN];
     int retval;
     freq_t freq;
-    char req[16],scf[128];
+    char req[32],scf[128];
     int step, shift, rev, tone, ctcss, tonefq, ctcssfq;
 
     if(chan->channel_num<100)
-    	sprintf(req,"MR 0,0,%03d",chan->channel_num);
+    	snprintf(req, sizeof(req), "MR 0,0,%03d",chan->channel_num);
     else
     if(chan->channel_num<200)
-    	sprintf(req,"MR 1,0,%03d",chan->channel_num-100);
+    	snprintf(req, sizeof(req), "MR 1,0,%03d",chan->channel_num-100);
     else
     if(chan->channel_num<204) {
-    	sprintf(req,"MR 0,0,L%01d",chan->channel_num-200);
+    	snprintf(req, sizeof(req), "MR 0,0,L%01d",chan->channel_num-200);
         sprintf(chan->channel_desc,"L%01d/V",chan->channel_num-200);
     } else
     if(chan->channel_num<211) {
-    	sprintf(req,"MR 1,0,L%01d",chan->channel_num-203);
+    	snprintf(req, sizeof(req), "MR 1,0,L%01d",chan->channel_num-203);
         sprintf(chan->channel_desc,"L%01d/U",chan->channel_num-203);
     } else
     if(chan->channel_num<214) {
-   	sprintf(req,"MR 0,0,U%01d",chan->channel_num-210);
+   	snprintf(req, sizeof(req), "MR 0,0,U%01d",chan->channel_num-210);
         sprintf(chan->channel_desc,"U%01d/V",chan->channel_num-210);
     } else
     if(chan->channel_num<220) {
-   	sprintf(req,"MR 1,0,U%01d",chan->channel_num-213);
+   	snprintf(req, sizeof(req), "MR 1,0,U%01d",chan->channel_num-213);
         sprintf(chan->channel_desc,"U%01d/U",chan->channel_num-213);
     } else
     if(chan->channel_num<223) {
         if(chan->channel_num==221) {
-    		 sprintf(req,"CR 0,0");
+    		 snprintf(req, sizeof(req), "CR 0,0");
 		 sprintf(chan->channel_desc,"Call V");
 	}
         if(chan->channel_num==222) {
-    		 sprintf(req,"CR 1,0");
+    		 snprintf(req, sizeof(req), "CR 1,0");
 		 sprintf(chan->channel_desc,"Call U");
 	}
     } else
 	return -RIG_EINVAL;
 
-    sprintf(membuf,"%s",req);
+    snprintf(membuf, sizeof(membuf), "%s",req);
     retval = kenwood_transaction(rig, membuf, ackbuf, sizeof (ackbuf));
         if (retval != RIG_OK)
         	return retval;

@@ -1,6 +1,9 @@
 EXTRA_DIST = hamlib.cfg index.doxygen hamlib.css footer.html \
 	Hamlib_design.eps Hamlib_design.png
 
+dist_man_MANS = man1/rigctl.1 man1/rigctld.1 man1/rigmem.1 man1/rigsmtr.1 \
+	man1/rigswr.1 man1/rotctl.1 man1/rotctld.1
+
 htmldir = $(docdir)/html
 dist_html_DATA = Hamlib_design.png hamlib.html
 

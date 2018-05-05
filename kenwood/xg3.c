@@ -406,7 +406,7 @@ int xg3_get_freq(RIG * rig, vfo_t vfo, freq_t * freq)
 
     char freqbuf[50];
     int freqsize = sizeof(freqbuf);
-    char cmdbuf[4];
+    char cmdbuf[16];
     int retval;
     vfo_t tvfo;
 
@@ -612,7 +612,7 @@ int xg3_set_parm(RIG *rig, setting_t parm, value_t val)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     int ival;
-    char cmdbuf[6];
+    char cmdbuf[16];
     int retval=-RIG_EINVAL;
 
     switch (parm) 

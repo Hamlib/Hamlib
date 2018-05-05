@@ -521,9 +521,16 @@ int tt588_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	unsigned char cmdbuf[16], respbuf[32];
 	char ttmode;
 
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __FUNCTION__, rig_strvfo(vfo));
+
+	struct tt588_priv_data *priv = (struct tt588_priv_data *) rig->state.priv;
+
 	if(check_vfo(vfo)==FALSE) {
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __FUNCTION__, rig_strvfo(vfo));
 		return -RIG_EINVAL;
+	}
+	if (vfo == RIG_VFO_CURR) {
+		vfo = priv->vfo_curr;
 	}
 	// Query mode
 	cmd_len = sprintf((char *) cmdbuf, "?M" EOM);

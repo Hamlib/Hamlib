@@ -82,7 +82,7 @@ void usage();
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "+m:r:s:C:t:LvhVlu"
+#define SHORT_OPTIONS "+m:r:s:C:t:LvhVluZ"
 static struct option long_options[] =
 {
     {"model",           1, 0, 'm'},
@@ -93,6 +93,7 @@ static struct option long_options[] =
     {"set-conf",        1, 0, 'C'},
     {"show-conf",       0, 0, 'L'},
     {"dump-caps",       0, 0, 'u'},
+    {"debug-time-stamps",0,0, 'Z'},
 #ifdef HAVE_READLINE_HISTORY
     {"read-history",    0, 0, 'i'},
     {"save-history",    0, 0, 'I'},
@@ -258,6 +259,10 @@ int main(int argc, char *argv[])
             dump_caps_opt++;
             break;
 
+        case 'Z':
+            rig_set_debug_time_stamp(1);
+            break;
+
         default:
             usage();    /* unknown option? */
             exit(1);
@@ -373,13 +378,11 @@ int main(int argc, char *argv[])
                 fprintf(stderr, "Warning: %s is not a directory!\n", hist_dir);
             }
 
-            hist_path = (char *)calloc((sizeof(char)
-                                        * (strlen(hist_dir)
-                                           + strlen(hist_file) + 1)),
-                                       sizeof(char));
+            int hist_path_size = sizeof(char)*(strlen(hist_dir)+strlen(hist_file) + 1);
+	    hist_path = (char *)calloc(hist_path_size, sizeof(char));
 
-            strncpy(hist_path, hist_dir, strlen(hist_dir));
-            strncat(hist_path, hist_file, strlen(hist_file));
+	    snprintf(hist_path, hist_path_size, "%s%s", hist_dir, hist_file);
+
         }
 
         if (rd_hist && hist_path)
@@ -460,6 +463,7 @@ void usage()
         "  -I, --save-history            save current interactive session history\n"
 #endif
         "  -v, --verbose                 set verbose mode, cumulative\n"
+        "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
         "  -h, --help                    display this help and exit\n"
         "  -V, --version                 output version information and exit\n\n"
     );

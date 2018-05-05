@@ -61,6 +61,10 @@ static int funcube_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int funcube_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 static int funcube_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 static int funcube_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+
+static int funcubepro_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+static int funcubepro_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+
 static const char *funcube_get_info(RIG *rig);
 
 static const struct confparams funcube_cfg_params[] = {
@@ -153,7 +157,7 @@ const struct rig_caps funcubeplus_caps = {
 	.rig_model =		RIG_MODEL_FUNCUBEDONGLEPLUS,
 	.model_name =		"FUNcube Dongle Pro+",
 	.mfg_name =		"AMSAT-UK",
-	.version =		"0.3",
+	.version =		"0.4",
 	.copyright =		"LGPL",
 	.status =		RIG_STATUS_BETA,
 	.rig_type =		RIG_TYPE_TUNER,
@@ -167,16 +171,23 @@ const struct rig_caps funcubeplus_caps = {
 
 	.has_get_func =		RIG_FUNC_NONE,
 	.has_set_func =		RIG_FUNC_NONE,
-	.has_get_level =	RIG_LEVEL_ATT | RIG_LEVEL_STRENGTH | RIG_LEVEL_PREAMP,
-	.has_set_level =	RIG_LEVEL_ATT | RIG_LEVEL_PREAMP,
+	.has_get_level =	RIG_LEVEL_ATT | RIG_LEVEL_PREAMP | RIG_LEVEL_RF, // RIG_LEVEL_ATT: Mixer gain on/off
+										 // RIG_LEVEL_PREAMP: LNA gain on/off
+										 // RIG_LEVEL_RF 0..1 : IF gain 0 .. 59 dB
+							
+                                                                                 
+	.has_set_level =	RIG_LEVEL_ATT | RIG_LEVEL_PREAMP | RIG_LEVEL_RF, // RIG_LEVEL_ATT: Mixer gain on/off
+										 // RIG_LEVEL_PREAMP: LNA gain on/off
+										 // RIG_LEVEL_RF 0..1 : IF gain 0 .. 59 dB
+										 // so values have to be mapped				
 	.has_get_parm =		RIG_PARM_NONE,
 	.has_set_parm =		RIG_PARM_NONE,
 	.level_gran =		{},
 	.parm_gran =		{},
 	.ctcss_list =		NULL,
 	.dcs_list =		NULL,
-	.preamp =		{ 5, 10, 15, 20, 25, 30, RIG_DBLST_END, },
-	.attenuator =		{ 2, 5, RIG_DBLST_END, },
+	//.preamp =		{ 5, 10, 15, 20, 25, 30, RIG_DBLST_END, },
+	//.attenuator =		{ 0, 1, 2, RIG_DBLST_END, },
 	.max_rit =		Hz(0),
 	.max_xit =		Hz(0),
 	.max_ifshift =		Hz(0),
@@ -205,8 +216,8 @@ const struct rig_caps funcubeplus_caps = {
 	.rig_cleanup =		funcube_cleanup,
 	.set_freq =		funcube_set_freq,
 	.get_freq =		funcube_get_freq,
-	.get_level =		funcube_get_level,
-	.set_level =		funcube_set_level,
+	.get_level =		funcubepro_get_level,
+	.set_level =		funcubepro_set_level,
 	.get_info =		funcube_get_info,
 };
 
@@ -424,8 +435,8 @@ int get_freq_v1(RIG *rig, vfo_t vfo, freq_t *freq)
 	unsigned int f;
 	int actual_length;
 
-	unsigned char au8BufOut[64]; // endpoint size
-	unsigned char au8BufIn[64];  // endpoint size
+	unsigned char au8BufOut[64] = "\0\0\0\0"; // endpoint size
+	unsigned char au8BufIn[64] = "\0\0\0\0";  // endpoint size
 
 	au8BufOut[0] = REQUEST_GET_FREQ_HZ; // Command to Set Frequency on dongle
 
@@ -482,8 +493,8 @@ int funcube_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 	libusb_device_handle *udh = rig->state.rigport.handle;
 	int ret;
 	int actual_length;
-	unsigned char au8BufOut[64]; // endpoint size
-	unsigned char au8BufIn[64];  // endpoint size
+	unsigned char au8BufOut[64] = "\0\0\0\0"; // endpoint size
+	unsigned char au8BufIn[64] = "\0\0\0\0";  // endpoint size
 
 	switch (level) {
 	case RIG_LEVEL_PREAMP:
@@ -566,7 +577,7 @@ int funcube_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		  __func__, au8BufIn[0] & 0xFF, au8BufIn[1] & 0xFF);
 
 	if (au8BufIn[1] != FUNCUBE_SUCCESS) {
-		rig_debug(RIG_DEBUG_ERR, "%s: REQUEST_GET_FREQ_HZ not supported\n",
+		rig_debug(RIG_DEBUG_ERR, "%s: REQUEST_SET_LEVEL not supported\n",
 			  __func__);
 		return -RIG_EIO;
 	}
@@ -578,8 +589,8 @@ int funcube_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	libusb_device_handle *udh = rig->state.rigport.handle;
 	int ret;
 	int actual_length;
-	unsigned char au8BufOut[64]; // endpoint size
-	unsigned char au8BufIn[64];  // endpoint size
+	unsigned char au8BufOut[64] = "\0\0\0\0"; // endpoint size
+	unsigned char au8BufIn[64] = "\0\0\0\0";  // endpoint size
 
 	switch (level) {
 	case RIG_LEVEL_ATT:
@@ -619,7 +630,7 @@ int funcube_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		  __func__, au8BufIn[0] & 0xFF, au8BufIn[1] & 0xFF, au8BufIn[2] & 0xFF);
 
 	if (au8BufIn[1] != FUNCUBE_SUCCESS) {
-		rig_debug(RIG_DEBUG_ERR, "%s: REQUEST_GET_FREQ_HZ not supported\n",
+		rig_debug(RIG_DEBUG_ERR, "%s: REQUEST_GET_LEVEL_x not supported\n",
 			  __func__);
 		return -RIG_EIO;
 	}
@@ -684,4 +695,133 @@ int funcube_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 	return RIG_OK;
 }
+int funcubepro_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+{
+	libusb_device_handle *udh = rig->state.rigport.handle;
+	int ret;
+	int actual_length;
+	unsigned char au8BufOut[64]; // endpoint size
+	unsigned char au8BufIn[64];  // endpoint size
+
+	switch (level) {
+	case RIG_LEVEL_PREAMP:
+		au8BufOut[0] = REQUEST_SET_LNA_GAIN; // Command to set LNA gain
+		au8BufOut[1] = val.i & 0x1;
+		break;
+
+	case RIG_LEVEL_ATT:
+		au8BufOut[0] = REQUEST_SET_MIXER_GAIN; // Command to Mixer gain
+		au8BufOut[1] = val.i & 0x1;
+		break;
+        case RIG_LEVEL_RF:
+		au8BufOut[0] = REQUEST_SET_IF_GAIN; // Command to set IF gain
+		au8BufOut[1] = (int) (val.f *100) ;
+		if( au8BufOut[1] > 59 )
+			au8BufOut[1]= 59;
+		break;
+		
+
+	default:
+		rig_debug(RIG_DEBUG_ERR, "%s: Unsupported level %d\n", __func__, level);
+		return -RIG_EINVAL;
+	}
+
+	rig_debug(RIG_DEBUG_TRACE, "%s: HID packet set to %02x%02x%02x%02x\n",
+		  __func__, au8BufOut[0] & 0xFF, au8BufOut[1] & 0xFF, au8BufOut[2] & 0xFF, au8BufOut[3] & 0xFF);
+
+	ret = libusb_interrupt_transfer(udh, OUTPUT_ENDPOINT, au8BufOut, sizeof(au8BufOut), &actual_length, rig->state.rigport.timeout);
+
+	if (ret < 0) {
+		rig_debug(RIG_DEBUG_ERR, "%s: libusb_interrupt_transfer failed (%d): %s\n",
+			  __func__, ret,
+			  libusb_error_name(ret));
+	}
+
+	ret = libusb_interrupt_transfer(udh, INPUT_ENDPOINT, au8BufIn, sizeof(au8BufIn), &actual_length, rig->state.rigport.timeout);
+
+	if (ret < 0 || actual_length != sizeof(au8BufIn)) {
+		rig_debug(RIG_DEBUG_ERR, "%s: libusb_interrupt_transfer failed (%d): %s\n",
+			  __func__, ret,
+			  libusb_error_name(ret));
+	}
+
+	rig_debug(RIG_DEBUG_TRACE, "%s: Answer buf=%02x%02x\n",
+		  __func__, au8BufIn[0] & 0xFF, au8BufIn[1] & 0xFF);
+
+	if (au8BufIn[1] != FUNCUBE_SUCCESS) {
+		rig_debug(RIG_DEBUG_ERR, "%s: REQUEST_GET_FREQ_HZ not supported\n",
+			  __func__);
+		return -RIG_EIO;
+	}
+
+	return RIG_OK;
+}
+int funcubepro_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
+	libusb_device_handle *udh = rig->state.rigport.handle;
+	int ret;
+	int actual_length;
+	unsigned char au8BufOut[64]; // endpoint size
+	unsigned char au8BufIn[64];  // endpoint size
+
+	switch (level) {
+	case RIG_LEVEL_ATT:
+		au8BufOut[0] = REQUEST_GET_MIXER_GAIN; // Command to Mixer gain enabled
+		break;
+	case RIG_LEVEL_PREAMP:
+		au8BufOut[0] = REQUEST_GET_LNA_GAIN;   // Command to get LNA gain enabled
+		break;
+	case RIG_LEVEL_RF:
+		au8BufOut[0] = REQUEST_GET_IF_GAIN;
+		break; 		
+	default:
+		rig_debug(RIG_DEBUG_ERR, "%s: Unsupported level %d\n", __func__, level);
+		return -RIG_EINVAL;
+	}
+
+	rig_debug(RIG_DEBUG_TRACE, "%s: HID packet set to %02x%02x%02x%02x\n",
+		  __func__, au8BufOut[0] & 0xFF, au8BufOut[1] & 0xFF, au8BufOut[2] & 0xFF, au8BufOut[3] & 0xFF);
+
+	ret = libusb_interrupt_transfer(udh, OUTPUT_ENDPOINT, au8BufOut, sizeof(au8BufOut), &actual_length, rig->state.rigport.timeout);
+
+	if (ret < 0) {
+		rig_debug(RIG_DEBUG_ERR, "%s: libusb_interrupt_transfer failed (%d): %s\n",
+			  __func__, ret,
+			  libusb_error_name(ret));
+	}
+
+	ret = libusb_interrupt_transfer(udh, INPUT_ENDPOINT, au8BufIn, sizeof(au8BufIn), &actual_length, rig->state.rigport.timeout);
+
+	if (ret < 0 || actual_length != sizeof(au8BufIn)) {
+		rig_debug(RIG_DEBUG_ERR, "%s: libusb_interrupt_transfer failed (%d): %s\n",
+			  __func__, ret,
+			  libusb_error_name(ret));
+	}
+
+	rig_debug(RIG_DEBUG_TRACE, "%s: Answer buf=%02x%02x%02x\n",
+		  __func__, au8BufIn[0] & 0xFF, au8BufIn[1] & 0xFF, au8BufIn[2] & 0xFF);
+
+	if (au8BufIn[1] != FUNCUBE_SUCCESS) {
+		rig_debug(RIG_DEBUG_ERR, "%s: REQUEST_LEVEL_x failed\n",
+			  __func__);
+		return -RIG_EIO;
+	}
+	switch (level) {
+	case RIG_LEVEL_PREAMP:
+	case RIG_LEVEL_ATT:
+        	val->i = au8BufIn[2] &0x01;    
+		break;
+
+	case RIG_LEVEL_RF:
+		val->f = ((float)au8BufIn[2] ) /100.;
+		break;
+
+	default:
+		rig_debug(RIG_DEBUG_ERR, "%s: Unsupported level %d\n", __func__, level);
+		return -RIG_EINVAL;
+	}
+
+	return RIG_OK;
+}
+
 #endif	/* defined(HAVE_LIBUSB) && defined(HAVE_LIBUSB_H) */

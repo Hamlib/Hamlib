@@ -173,7 +173,7 @@ int network_open(hamlib_port_t *rp, int default_port)
     {
         if (strlen(rp->pathname))
         {
-            strncpy(hostname, rp->pathname, FILPATHLEN - 1);
+            snprintf(hostname, sizeof(hostname), "%s", rp->pathname);
             hoststr = hostname;
             /* look for IPv6 numeric form [<addr>] */
             bracketstr1 = strchr(hoststr, '[');
@@ -241,8 +241,9 @@ int network_open(hamlib_port_t *rp, int default_port)
         {
             break;
         }
-
-        handle_error(RIG_DEBUG_WARN, "connect (trying next interface)");
+        char msg[150];
+        snprintf(msg,sizeof(msg),"connect to %s failed, (trying next interface)",rp->pathname);
+        handle_error(RIG_DEBUG_WARN, msg);
 
 #ifdef __MINGW32__
         closesocket(fd);

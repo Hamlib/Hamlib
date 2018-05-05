@@ -31,7 +31,7 @@
 
 int gpio_open(hamlib_port_t *port, int output, int on_value)
 {
-    char pathname[FILPATHLEN];
+    char pathname[FILPATHLEN*2];
     FILE *fexp, *fdir;
     int fd;
 
@@ -54,7 +54,7 @@ int gpio_open(hamlib_port_t *port, int output, int on_value)
     fclose(fexp);
 
     snprintf(pathname,
-             FILPATHLEN,
+             sizeof(pathname),
              "/sys/class/gpio/gpio%s/direction",
              port->pathname);
     fdir = fopen(pathname, "w");
@@ -79,7 +79,7 @@ int gpio_open(hamlib_port_t *port, int output, int on_value)
     fclose(fdir);
 
     snprintf(pathname,
-             FILPATHLEN,
+             sizeof(pathname),
              "/sys/class/gpio/gpio%s/value",
              port->pathname);
     fd = open(pathname, O_WRONLY);

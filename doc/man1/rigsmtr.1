@@ -1,0 +1,359 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\"
+.\" For layout and available macros, see man(7), man-pages(7), groff_man(7)
+.\" Please adjust the date whenever revising the manpage.
+.\"
+.\" Note: Please keep this page in sync with the source, rigsmtr.c
+.\"
+.TH RIGSMTR "1" "2018-04-29" "Hamlib" "Hamlib Utilities"
+.
+.
+.SH NAME
+.
+rigsmtr \- measure S-Meter vs azimuth using Hamlib
+.
+.
+.SH SYNOPSIS
+.
+.SY rigsmtr
+.OP \-hvV
+.OP \-m id
+.OP \-r device
+.OP \-s baud
+.OP \-c id
+.OP \-C parm=val
+.OP \-M id
+.OP \-R device
+.OP \-S baud
+.OP \-N parm=val
+.RI [ time_step ]
+.YS
+.
+.
+.SH DESCRIPTION
+.
+.B rigsmtr
+uses
+.B Hamlib
+to control a rig to measure S-Meter value versus antenna azimuth.
+.
+.PP
+It rotates the antenna from minimum azimuth to maximum azimuth.
+Every second, or
+.I time_step
+if specified in seconds, it retrieves the signal strength. Azimuth in degrees
+and the corresponding S-Meter level in dB relative to S9 are then printed on
+.BR stdout .
+.
+.PP
+To work correctly, rigsmtr needs a rig that could measure S-Meter and a Hamlib
+backend that is able to retrieve it, connected to a Hamlib supported rotator.
+.
+.PP
+Keep in mind that Hamlib is BETA level software.  While a lot of backend
+libraries lack complete rig support, the basic functions are usually well
+supported.
+.
+.PP
+Please report bugs and provide feedback at the e-mail address given in the
+.B BUGS
+section below.  Patches and code enhancements sent to the same address are
+welcome.
+.
+.
+.SH OPTIONS
+.
+This program follows the usual GNU command line syntax.  Short options that
+take an argument may have the value follow immediately or be separated by a
+space.  Long options starting with two dashes (\(oq\-\(cq) require an
+\(oq=\(cq between the option and any argument.
+.
+.PP
+Here is a summary of the supported options.
+.
+.TP
+.BR \-m ", " \-\-model = \fIid\fP
+Select radio model number.
+.IP
+See model list (use \(lqrigctl \-l\(rq).
+.
+.TP
+.BR \-r ", " \-\-rig\-file = \fIdevice\fP
+Use
+.I device
+as the file name of the port connected to the radio.
+.IP
+Often a serial port, but could be a USB to serial adapter.  Typically
+.IR /dev/ttyS0 ", " /dev/ttyS1 ", " /dev/ttyUSB0 ,
+etc. on Linux,
+.IR COM1 ", " COM2 ,
+etc. on MS Windows.  The BSD flavors and Mac OS/X have their own designations.
+See your system's documentation.
+.
+.TP
+.BR \-s ", " \-\-serial\-speed = \fIbaud\fP
+Set radio serial speed to
+.I baud
+rate.
+.IP
+Uses maximum serial speed from rig backend capabilities as the default.
+.
+.TP
+.BR \-c ", " \-\-civaddr = \fIid\fP
+Use
+.I id
+as the CI-V address to communicate with the rig.
+.IP
+Only useful for Icom and some Ten-Tec rigs.
+.IP
+.BR Note :
+The
+.I id
+is in decimal notation, unless prefixed by
+.IR 0x ,
+in which case it is hexadecimal.
+.
+.TP
+.BR \-C ", " \-\-set\-conf = \fIparm=val\fP [ \fI,parm=val\fP ]
+Set radio configuration parameter(s),  e.g.
+.IR stop_bits=2 .
+.IP
+Use the
+.B -L
+option of
+.B rigctl
+for a list of configuration parameters for a given model number.
+.
+.TP
+.BR \-M ", " \-\-rot\-model = \fIid\fP
+Select rotator model number.
+.IP
+See model list (use \(lqrotctl \-l\(rq).
+.
+.TP
+.BR \-R ", " \-\-rot\-file = \fIdevice\fP
+Use
+.I device
+as the file name of the port connected to the rotator.
+.IP
+Often a serial port, but could be a USB to serial adapter.  Typically
+.IR /dev/ttyS0 ", " /dev/ttyS1 ", " /dev/ttyUSB0 ,
+etc. on Linux,
+.IR COM1 ", " COM2 ,
+etc. on MS Windows.  The BSD flavors and Mac OS/X have their own
+designations.  See your system's documentation.
+.
+.TP
+.BR \-S ", " \-\-rot\-serial\-speed = \fIbaud\fP
+Set rotator serial speed to
+.I baud
+rate.
+.IP
+Uses maximum serial speed from rotator backend capabilities as the default.
+.
+.TP
+.BR \-N ", " \-\-rot\-set\-conf = \fIparm=val\fP [ \fI,parm=val\fP ]
+Set rotator configuration parameter(s),  e.g.
+.IR stop_bits=2 .
+.IP
+Use the
+.B -L
+option of
+.B rotctl
+for a list of configuration parameters for a given model number.
+.
+.TP
+.BR \-v ", " \-\-verbose
+Set verbose mode, cumulative (see
+.B DIAGNOSTICS
+below).
+.
+.TP
+.BR \-h ", " \-\-help
+Show a summary of these options and exit.
+.
+.TP
+.BR \-V ", " \-\-version
+Show version of
+.B rigsmtr
+and exit.
+.
+.PP
+.BR Note :
+Some options may not be implemented by a given backend and will return an
+error.  This is most likely to occur with the
+.BR \-\-set\-conf " and " \-\-rot\-set\-conf
+options.
+.
+.
+.SH DIAGNOSTICS
+.
+The
+.BR \-v ,
+.B \-\-verbose
+option allows different levels of diagnostics to be output to
+.B stderr
+and correspond to \-v for
+.BR BUG ,
+\-vv for
+.BR ERR ,
+\-vvv for
+.BR WARN ,
+\-vvvv for
+.BR VERBOSE ,
+or \-vvvvv for
+.BR TRACE .
+.
+.PP
+A given verbose level is useful for providing needed debugging information to
+the email address below.  For example, TRACE output shows all of the values
+sent to and received from the radio which is very useful for radio backend
+library development and may be requested by the developers.
+.
+.
+.SH EXIT STATUS
+.
+.B rigsmtr
+exits with:
+.
+.TP
+.B 0
+if all operations completed normally;
+.
+.TP
+.B 1
+if there was an invalid command line option or argument;
+.
+.TP
+.B 2
+if an error was returned by
+.BR Hamlib ;
+.
+.TP
+.B 3
+if the rig doesn't have the required capabilities.
+.
+.
+.SH EXAMPLE
+.
+Collect S-Meter readings on a TS\-850 while an EasycommII rotator makes a full
+360\(de rotation and record measurements in the file
+.IR csmtr :
+.
+.sp
+.RS 0.5i
+.EX
+rigsmtr \-m 209 \-r /dev/ttyS1 \-M 202 > csmtr
+.EE
+.RE
+.
+.PP
+After completion the file
+.I csmtr
+contains lines such as:
+.
+.sp
+.RS 0.5i
+.EX
+0 \-47
+.br
+30 \-40
+.br
+60 \-22
+.br
+90 \-3
+.br
+120 10
+.br
+150 1
+.br
+180 \-11
+.br
+210 \-24
+.br
+240 \-35
+.br
+270 \-42
+.br
+300 \-48
+.br
+330 \-51
+.br
+360 \-49
+.EE
+.RE
+.
+.PP
+The results can be plotted with
+.BR gnuplot (1):
+.
+.sp
+.RS 0.5i
+.EX
+gnuplot
+.br
+set angles degrees
+.br
+set polar
+.br
+set grid polar 15.
+.br
+unset border
+.br
+unset param
+.br
+set style data line
+.br
+set rrange [-60:60]
+.br
+set xrange [-60:60]
+.br
+set yrange [-60:60]
+.br
+.RI plot " csmtr"
+.EE
+.RE
+.
+.
+.SH BUGS
+.
+Report bugs to:
+.IP
+.nf
+.MT hamlib\-developer@lists.sourceforge.net
+Hamlib Developer mailing list
+.ME
+.fi
+.
+.
+.SH COPYING
+.
+This file is part of Hamlib, a project to develop a library that simplifies
+radio and rotator control functions for developers of software primarily of
+interest to radio amateurs and those interested in radio communications.
+.
+.PP
+Copyright \(co 2007-2009 Stephane Fillod
+.br
+Copyright \(co 2018 Nate Bargmann
+.PP
+This is free software; see the file COPYING for copying conditions.  There is
+NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+.
+.
+.SH SEE ALSO
+.
+.BR gnuplot (1),
+.BR rigctl (1),
+.BR rotctl (1),
+.BR hamlib (7)
+.
+.
+.SH COLOPHON
+.
+Links to the Hamlib Wiki, Git repository, release archives, and daily snapshot
+archives:
+.IP
+.UR http://www.hamlib.org
+hamlib.org
+.UE .

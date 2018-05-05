@@ -1,0 +1,979 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\"
+.\" For layout and available macros, see man(7), man-pages(7), groff_man(7)
+.\" Please adjust the date whenever revising the manpage.
+.\"
+.\" Note: Please keep this page in sync with the source, rotctld.c
+.\"
+.TH ROTCTLD "1" "2018-04-29" "Hamlib" "Hamlib Utilities"
+.
+.
+.SH NAME
+.
+.
+rotctld \- TCP rotator control daemon
+.
+.SH SYNOPSIS
+.
+.SY rotctld
+.OP \-hlLuV
+.OP \-m id
+.OP \-r device
+.OP \-s baud
+.OP \-T IPADDR
+.OP \-t number
+.OP \-C parm=val
+.RB [ \-v [ \-Z ]]
+.YS
+.
+.
+.SH DESCRIPTION
+.
+The
+.B rotctld
+program is a rotator control daemon that handles client requests via TCP
+sockets.  This allows multiple user programs to share one rotator (this needs
+more development).  Multiple rotators can be controlled on different TCP ports
+by use of multiple
+.B rotctld
+processes.  The syntax of the commands are the same as
+.BR rotctl (1).
+It is hoped that
+.B rotctld
+will be especially useful for client authors using languages such as Perl,
+Python, PHP, and others.
+.
+.PP
+.B rotctld
+communicates to a client through a TCP socket using text commands shared with
+.BR rotctl .
+The protocol is simple, commands are sent to
+.B rotctld
+on one line and
+.B rotctld
+responds to \(lqget\(rq commands with the requested values, one per line, when
+successful, otherwise, it responds with one line \(lqRPRT x\(rq, where
+\(oqx\(cq is a negative number indicating the error code.  Commands that do
+not return values respond with the line \(lqRPRT x\(rq, where \(oqx\(cq is
+\(oq0\(cq when successful, otherwise is a regative number indicating the error
+code.  Each line is terminated with a newline \(oq\\n\(cq character.  This
+protocol is primarily for use by the
+.B NET rotctl
+(rotator model 2) backend.
+.
+.PP
+A separate
+.B Extended Response Protocol
+extends the above behavior by echoing the received command string as a header,
+any returned values as a key: value pair, and the \(lqRPRT x\(rq string as the
+end of response marker which includes the
+.B Hamlib
+success or failure value.  See the
+.B PROTOCOL
+section for details.  Consider using this protocol for clients that will
+interact with
+.B rotctld
+directly through a TCP socket.
+.
+.PP
+Keep in mind that Hamlib is BETA level software.  While a lot of backend
+libraries lack complete rotator support, the basic functions are usually well
+supported.
+.
+.PP
+Please report bugs and provide feedback at the e-mail address given in the
+.B BUGS
+section below.  Patches and code enhancements sent to the same address are
+welcome.
+.
+.
+.SH OPTIONS
+.
+This program follows the usual GNU command line syntax.  Short options that
+take an argument may have the value follow immediately or be separated by a
+space.  Long options starting with two dashes (\(oq\-\(cq) require an
+\(oq=\(cq between the option and any argument.
+.
+.PP
+Here is a summary of the supported options:
+.
+.TP
+.BR \-m ", " \-\-model = \fIid\fP
+Select rotator model number.
+.IP
+See model list (use \(lqrotctld -l\(rq).
+.IP
+.BR Note :
+.B rotctl
+(or third party software using the C API) will use rotator model 2 for
+.B NET rotctl
+(this model number is not used for rotctld even though it shows in the model
+list).
+.
+.TP
+.BR \-r ", " \-\-rot\-file = \fIdevice\fP
+Use
+.I device
+as the file name of the port connected to the rotator.
+.IP
+Often a serial port, but could be a USB to serial adapter.  Typically
+.IR /dev/ttyS0 ", " /dev/ttyS1 ", " /dev/ttyUSB0 ,
+etc. on Linux,
+.IR COM1 ", " COM2 ,
+etc. on MS Windows.  The BSD flavors and Mac OS/X have their own designations.
+See your system's documentation.
+.
+.TP
+.BR \-s ", " \-\-serial\-speed = \fIbaud\fP
+Set serial speed to
+.I baud
+rate.
+.IP
+Uses maximum serial speed from rotator backend capabilities as the default.
+.
+.TP
+.BR \-T ", " \-\-listen\-addr = \fIIPADDR\fP
+Use
+.I IPADDR
+as the listening IP address.
+.IP
+The default is ANY.
+.
+.TP
+.BR \-t ", " \-\-port = \fInumber\fP
+Use
+.I number
+as the TCP listening port.
+.IP
+The default is 4533.
+.IP
+.BR Note :
+As
+.BR rigctld \(aqs
+default port is 4532, it is advisable to use odd numbered ports for
+.BR rotctld ,
+e.g. 4533, 4535, 4537, etc.
+.
+.TP
+.BR \-L ", " \-\-show\-conf
+List all configuration parameters for the rotator defined with
+.B \-m
+above.
+.
+.TP
+.BR \-C ", " \-\-set\-conf = \fIparm=val\fP [ \fI,parm=val\fP ]
+Set rotator configuration parameter(s),  e.g.
+.IR stop_bits=2 .
+.IP
+Use the
+.B -L
+option above for a list of configuration parameters for a given model number.
+.
+.TP
+.BR \-u ", " \-\-dump\-caps
+Dump capabilities for the rotator defined with
+.B -m
+above and exit.
+.
+.TP
+.BR \-l ", " \-\-list
+List all rotator model numbers defined in
+.B Hamlib
+and exit.
+.IP
+The list is sorted by model number.
+.IP
+.BR Note :
+In Linux the list can be scrolled back using
+.BR Shift-PageUp / Shift-PageDown ,
+or using the scrollbars of a virtual terminal in X or the cmd window in
+Windows.  The output can be piped to
+.BR more (1)
+or
+.BR less (1),
+e.g. \(lqrotctl -l | more\(rq.
+.
+.TP
+.BR \-v ", " \-\-verbose
+Set verbose mode, cumulative (see
+.B DIAGNOSTICS
+below).
+.
+.TP
+.BR \-Z ", " \-\-debug\-time\-stamps
+Enable time stamps for the debug messages.
+.IP
+Use only in combination with the
+.B -v
+option as it generates no output on its own.
+.
+.TP
+.BR \-h ", " \-\-help
+Show a summary of these options and exit.
+.
+.TP
+.BR \-V ", " \-\-version
+Show version of
+.B rotctld
+and exit.
+.
+.PP
+.BR Note :
+Some options may not be implemented by a given backend and will return an
+error.  This is most likely to occur with the
+.B \-\-set\-conf
+and
+.B \-\-show\-conf
+options.
+.
+.PP
+Be aware that the backend for the rotator to be controlled, or the rotator
+itself may not support some commands. In that case, the operation will fail
+with a
+.B Hamlib
+error code.
+.
+.
+.SH COMMANDS
+.
+Commands can be sent over the TCP socket either as a single char, or as a long
+command name plus the value(s) space separated on one \(oq\\n\(cq terminated
+line. See
+.BR PROTOCOL .
+.
+.PP
+Since most of the
+.B Hamlib
+operations have a
+.BR set " and a " get
+method, an upper case letter will be used for
+.B set
+methods whereas the corresponding lower case letter refers to the
+.B get
+method.  Each operation also has a long name; prepend a backslash, \(oq\\\(cq,
+to send a long command name.
+.
+.PP
+Example (Perl): \(lqprint $socket "\\\\dump_caps\\n";\(rq to see what the
+rotator's backend can do
+.RB ( Note :
+In Perl and many other languages a \(oq\\\(cq will need to be escaped with a
+preceding \(oq\\\(cq so that even though two backslash characters appear in
+the code, only one will be passed to
+.BR rotctld .
+This is a possible bug, beware!).
+.
+.PP
+.BR Note :
+The backend for the rotator to be controlled, or the rotator itself may not
+support some commands. In that case, the operation will fail with a
+.B Hamlib
+error message.
+.
+.PP
+Here is a summary of the supported commands (In the case of
+.B set
+commands the quoted italicized string is replaced by the value in the
+description.  In the case of
+.B get
+commands the quoted italicized string is the key name of the value returned.):
+.
+.TP
+.BR P ", " set_pos " \(aq" \fIAzimuth\fP "\(aq \(aq" \fIElevation\fP \(aq
+Set position.
+.IP
+.RI \(aq Azimuth \(aq
+and
+.RI \(aq Elevation \(aq
+are floating point values.
+.IP
+For example:
+.
+.sp
+.RS 1.0i
+.EX
+P 163.0 41.0
+.EE
+.RE
+.IP
+.BR Note :
+If the rotator does not support setting elevation (most do not) supply
+\(lq0.0\(rq for
+.RI \(aq Elevation \(aq.
+.
+.TP
+.BR p ", " get_pos
+Get position.
+.IP
+.RI \(aq Azimuth \(aq
+and
+.RI \(aq Elevation \(aq
+are returned as double precision floating point values.
+.
+.TP
+.BR M ", " move " \(aq" \fIDirection\fP "\(aq \(aq" \fISpeed\fP \(aq
+Move the rotator in a specific direction at the given rate.
+.IP
+.RI \(aq Direction \(aq
+is an integer defined as \(oq2\(cq = Up, \(oq4\(cq = Down, \(oq8\(cq = Left,
+and \(oq16\(cq = Right.
+.IP
+.RI \(aq Speed \(aq
+is an integer between 1 and 100.
+.IP
+.BR Note :
+Not all backends that implement the move command use the Speed value.  At this
+time only the gs232a utilizes the Speed parameter.
+.
+.TP
+.BR S ", " stop
+Stop the rotator.
+.
+.TP
+.BR K ", " park
+Park the rotator.
+.
+.TP
+.BR C ", " set_conf " \(aq" \fIToken\fR "\(aq \(aq" \fIValue\fP \(aq
+Set a configuration parameter.
+.IP
+.RI \(aq Token \(aq
+is a string; see the
+.B \-C
+option and the
+.B \-L
+output.
+.IP
+.RI \(aq Value \(aq
+is a string of up to 20 characters.
+.\" FIXME:  Need to describe the reset parameters available.
+.
+.TP
+.BR R ", " reset " \(aq" \fIReset\fP \(aq
+Reset the rotator.
+.IP
+.RI \(aq Reset \(aq
+accepts an integer value of \(oq1\(cq for \(lqReset All\(rq.
+.TP
+.BR _ ", " get_info
+Get misc information about the rotator.
+.IP
+Returns
+.RI \(aq Info \(aq
+\(lqModel Name\(rq.
+.
+.TP
+.BR w ", " send_cmd " \(aq" \fICmd\fP \(aq
+Send a raw command string to the rotator.
+.IP
+ASCII CR is appended automatically at the end of the command for text
+protocols.  For binary protocols, enter hexadecimal values as
+\(lq\\0xAA\\0xBB\(rq.
+.
+.
+.SS Locator Commands
+.
+These commands offer conversions of Degrees Minutes Seconds to other formats,
+.B Maidenhead
+square locator conversions and distance and azimuth conversions.
+.TP
+.BR L ", " lonlat2loc " \(aq" \fILongitude\fP "\(aq \(aq" \fILatitude\fP "\(aq \(aq" "\fILoc Len\fP" \(aq
+Returns the
+.B Maidenhead
+.RI \(aq Locator \(aq
+for the given
+.RI \(aq Longitude "\(aq and \(aq" Latitude \(aq.
+.IP
+.RI \(aq Longitude "\(aq and \(aq" Latitude \(aq
+are floating point values.
+.IP
+.RI \(aq "Loc Len" \(aq
+is the precision of the returned square and should be an even numbered integer
+value between 2 and 12.
+.IP
+For example:
+.
+.sp
+.RS 1.0i
+.EX
+L -170.0 -85.0 12
+.EE
+.RE
+.IP
+returns:
+.
+.sp
+.RS 1.0i
+.EX
+Locator: AA55AA00AA00
+.EE
+.RE
+.
+.TP
+.BR l ", " loc2lonlat " \(aq" \fILocator\fP \(aq
+Returns
+.RI \(aq Longitude "\(aq and \(aq" Latitude \(aq
+in decimal degrees at the approximate center of the requested
+.B Maidenhead
+grid square.
+.IP
+.RI \(aq Locator \(aq
+can be from 2 to 12 characters in length.
+.IP
+West longitude is expressed as a negative value.
+.IP
+South latitude is
+expressed as a negative value.
+.IP
+For example:
+.
+.sp
+.RS 1.0i
+.EX
+l AA55AA00AA00
+.EE
+.RE
+.IP
+returns:
+.
+.sp
+.RS 1.0i
+.EX
+Longitude: -169.999983 Latitude: -84.999991
+.EE
+.RE
+.IP
+.BR Note :
+Despite the use of double precision variables internally, some rounding error
+occurs.
+.
+.TP
+.BR D ", " dms2dec " \(aq" \fIDegrees\fP "\(aq \(aq" \fIMinutes\fP "\(aq \(aq" \fISeconds\fP "\(aq \(aq" \fIS/W\fP \(aq
+Returns
+.RI \(aq "Dec Degrees" \(aq,
+a signed floating point value.
+.IP
+.RI \(aq Degrees "\(aq and \(aq" Minutes \(aq
+are integer values.
+.IP
+.RI \(aq Seconds \(aq
+is a floating point value.
+.IP
+.RI \(aq S/W \(aq
+is a flag with \(oq1\(cq indicating South latitude or West longitude and
+\(oq0\(cq North or East (the flag is needed as computers don't recognize a
+signed zero even though only the
+.RI \(aq Degrees \(aq
+value is typically signed in DMS notation).
+.
+.TP
+.BR d ", " dec2dms " \(aq" "\fIDec Degrees\fP" \(aq
+Returns
+.RI \(aq Degrees "\(aq \(aq" Minutes "\(aq \(aq" Seconds "\(aq \(aq" S/W \(aq.
+.IP
+Values are as in
+.B dms2dec
+above.
+.
+.TP
+.BR E ", " dmmm2dec " \(aq" \fIDegrees\fP "\(aq \(aq" "\fIDec Minutes\fP" "\(aq \(aq" \fIS/W\fP \(aq
+Returns
+.RI \(aq "Dec Degrees" \(aq,
+a signed floating point value.
+.IP
+.RI \(aq Degrees \(aq
+is an integer value.
+.IP
+.RI \(aq "Dec Minutes" \(aq
+is a floating point value.
+.IP
+.RI \(aq S/W \(aq
+is a flag as in
+.B dms2dec
+above.
+.
+.TP
+.BR e ", " dec2dmmm " \(aq" "\fIDec Deg\fP" \(aq
+Returns
+.RI \(aq Degrees "\(aq \(aq" Minutes "\(aq \(aq" S/W \(aq.
+.IP
+Values are as in
+.B dmmm2dec
+above.
+.
+.TP
+.BR B ", " qrb " \(aq" "\fILon 1\fP" "\(aq \(aq" "\fILat 1\fP" "\(aq \(aq" "\fILon 2\fP" "\(aq \(aq" "\fILat 2\fP" \(aq
+Returns
+.RI \(aq Distance "\(aq and \(aq" Azimuth \(aq.
+.IP
+.RI \(aq Distance \(aq
+is in km.
+.IP
+.RI \(aq Azimuth \(aq
+is in degrees.
+.IP
+Supplied
+.IR Lon / Lat
+values are signed floating point numbers.
+.
+.TP
+.BR A ", " a_sp2a_lp " \(aq" "\fIShort Path Deg\fP" \(aq
+Returns
+.RI \(aq "Long Path Deg" \(aq.
+.IP
+Both the supplied argument and returned value are floating point values within
+the range of 0.00 to 360.00.
+.IP
+.BR Note :
+Supplying a negative value will return an error message.
+.
+.TP
+.BR a ", " d_sp2d_lp " \(aq" "\fIShort Path km\fP" \(aq
+Returns
+.RI \(aq "Long Path km" \(aq.
+.IP
+Both the supplied argument and returned value are floating point values.
+.
+.TP
+.BR pause " \(aq" \fISeconds\fP \(aq
+Pause for the given whole (integer) number of
+.RI \(aq Seconds \(aq
+before sending the next command to the rotator.
+.
+.
+.SH PROTOCOL
+.
+There are two protocols in use by
+.BR rotctld ,
+the
+.B Default Protocol
+and the
+.BR "Extended Response Protocol" .
+.
+.PP
+The
+.B Default Protocol
+is intended primarily for the communication between
+.B Hamlib
+library functions and
+.B rotctld
+(\(lqNET rotctl\(rq, available using rotator model \(oq2\(cq).
+.
+.PP
+The
+.B Extended Response Protocol
+is intended to be used with scripts or other programs interacting directly
+with
+.B rotctld
+as consistent feedback is provided.
+.
+.
+.SS Default Protocol
+.
+The
+.B Default Protocol
+is intentionally simple.  Commands are entered on a single line with any
+needed values.  In practice, reliable results are obtained by terminating each
+command string with a newline character, \(oq\\n\(cq.
+.
+.PP
+Example set position (Perl code):
+.
+.sp
+.RS 0.5i
+.EX
+print $socket "P 135 10\\n";
+.EE
+.RE
+.
+.PP
+or:
+.
+.sp
+.RS 0.5i
+.EE
+print $socket "\\\\set_pos 135 10\\n";   # escape leading \(oq\\\(cq
+.EE
+.RE
+.
+.PP
+A one line response will be sent as a reply to
+.B set
+commands, \(lqRPRT \fIx\fP\\n\(rq where
+.I x
+is the Hamlib error code with \(oq0\(cq indicating success of the command.
+.
+.PP
+Responses from
+.B rotctld
+.B get
+commands are text values and match the same tokens used in the
+.B set
+commands. Each value is returned on its own line.  On error the string \(lqRPRT
+\fIx\fP\\n\(rq is returned where
+.I x
+is the Hamlib error code.
+.
+.PP
+Example get position (Perl code):
+.
+.sp
+.RS 0.5i
+.EX
+print $socket "p\\n";
+.br
+"135"
+.br
+"10"
+.EE
+.RE
+.
+.PP
+Most
+.B get
+functions return one to three values. A notable exception is the
+.B dump_caps
+command which returns many lines of
+\fBkey\fR:\fIvalue\fR
+pairs.
+.
+.PP
+This protocol is primarily used by the \(lqNET rotctl\(rq (rotctl model 2)
+backend which allows applications already written for Hamlib's C API to take
+advantage of
+.B rotctld
+without the need of rewriting application code.  An application's user can
+select rotator model 2 (\(lqNET rotctl\(rq) and then set
+.B rot_pathname
+to \(lqlocalhost:4533\(rq or other network
+.IR host : port
+(set by the
+.BR \-T / \-t
+options, respectively, above).
+.
+.
+.SS Extended Response Protocol
+.
+The Extended Response protocol adds several rules to the strings returned by
+.B rotctld
+and adds a rule for the command syntax.
+.
+.PP
+1. The command received by
+.B rotctld
+is echoed with its long command name followed by the value(s) (if any)
+received from the client terminated by the specified response separator as the
+first record of the response.
+.
+.PP
+2. The last record of each block is the string \(lqRPRT \fIx\fP\\n\(rq where
+.I x
+is the numeric return value of the Hamlib backend function that was called by
+the command.
+.
+.PP
+3. Any records consisting of data values returned by the rotator backend are
+prepended by a string immediately followed by a colon then a space and then
+the value terminated by the response separator, e.g. \(lqAzimuth:
+90.000000\\n\(rq when the command was prepended by \(oq+\(cq.
+.
+.PP
+4. All commands received will be acknowledged by
+.B rotctld
+with records from rules 1 and 2.  Records from rule 3 are only returned when
+data values must be returned to the client.
+.
+.PP
+An example response to a
+.B P
+command sent from the shell prompt (note the prepended \(oq+\(cq):
+.
+.sp
+.RS 0.5i
+.EX
+$ echo "+P 90 45" | nc -w 1 localhost 4533
+.br
+set_pos: 90 45
+.br
+RPRT 0
+.EE
+.RE
+.
+.PP
+In this case the long command name and values are returned on the first line
+and the second line contains the end of block marker and the numeric rotor
+backend return value indicating success.
+.
+.PP
+An example response to a
+.B get_pos
+query:
+.
+.sp
+.RS 0.5i
+.EX
+$ echo "+\\get_pos" | nc -w 1 localhost 4533
+.br
+get_pos:
+.br
+Azimuth: 90.000000
+.br
+Elevation: 45.000000
+.br
+RPRT 0
+.EE
+.RE
+.IP
+.BR Note :
+The \(oq\\\(cq is still required for the long command name even with the ERP
+character.
+.
+.PP
+In this case, as no value is passed to
+.BR rotctld ,
+the first line consists only of the long command name.  The final line shows
+that the command was processed successfully by the rotor backend.
+.
+.PP
+Invoking the Extended Response Protocol requires prepending a command with a
+punctuation character.  As shown in the examples above, prepending a \(oq+\(cq
+character to the command results in the responses being separated by a newline
+character (\(oq\\n\(cq).  Any other punctuation character recognized by the C
+.BR ispunct ()
+function except \(oq\\\(cq, \(oq?\(cq, or \(oq_\(cq will cause that character
+to become the response separator and the entire response will be on one line.
+.
+.PP
+Separator character summary:
+.
+.TP
+.RB \(oq + \(cq
+Each record of the response is appended with a newline (\(oq\\n\(cq).
+.
+.TP
+.RB \(oq ; "\(cq, \(oq" | "\(cq, or, \(oq" , \(cq
+Each record of the response is appended by the given character resulting in
+entire response on one line.
+.IP
+These are common record separators for text representations of spreadsheet
+data, etc.
+.
+.TP
+.RB \(oq ? \(cq
+Reserved for help in
+.BR rotctl .
+.
+.TP
+.RB \(oq _ \(cq
+Reserved for
+.B get_info
+short command
+.
+.TP
+.RB \(oq # \(cq
+Reserved for comments when reading a command file script.
+.IP
+.BR Note :
+Other punctuation characters have not been tested!  Use at your own risk.
+.
+.PP
+For example, invoking a
+.B get_pos
+query with a leading \(oq;\(cq returns:
+.
+.sp
+.RS 0.5i
+.EX
+get_pos:;Azimuth: 90.000000;Elevation: 45.000000;RPRT 0
+.EE
+.RE
+.
+.PP
+Or, using the pipe character \(oq|\(cq returns:
+.
+.sp
+.RS 0.5i
+.EX
+get_pos:|Azimuth: 90.000000|Elevation: 45.000000|RPRT 0
+.EE
+.RE
+.
+.PP
+And a
+.B set_pos
+command prepended with a \(oq|\(cq returns:
+.
+.sp
+.RS 0.5i
+.EX
+set_pos: 135 22.5|RPRT 0
+.EE
+.RE
+.
+.PP
+Such a format will allow reading a response as a single event using a preferred
+response separator.  Other punctuation characters have not been tested!
+.
+.PP
+All commands with the exception of
+.B set_conf
+have been tested with the Extended Response protocol and the included
+.B testrotctld.pl
+Perl script.
+.
+.
+.SH DIAGNOSTICS
+.
+The
+.BR \-v ,
+.B \-\-verbose
+option allows different levels of diagnostics
+to be output to
+.B stderr
+and correspond to \-v for
+.BR BUG ,
+\-vv for
+.BR ERR ,
+\-vvv for
+.BR WARN ,
+\-vvvv for
+.BR VERBOSE ,
+or \-vvvvv for
+.BR TRACE .
+.
+.PP
+A given verbose level is useful for providing needed debugging information to
+the email address below.  For example, TRACE output shows all of the values
+sent to and received from the radio which is very useful for radio backend
+library development and may be requested by the developers.
+.
+.
+.SH EXAMPLE
+.
+Start
+.B rotctld
+for a Hy-Gain Ham IV rotor with the Idiom Press RotorEZ board installed using
+a USB-to-serial adapter and backgrounding:
+.
+.sp
+.RS 0.5i
+.EX
+$ rotctld \-m 401 \-r /dev/ttyUSB1 &
+.EE
+.RE
+.
+.PP
+Start
+.B rotctld
+for RotorEZ using COM2 on Win32:
+.
+.sp
+.RS 0.5i
+.EX
+.RE
+$ rotctl \-m 401 \-r COM2
+.EE
+.
+.PP
+Connect to the already running
+.BR rotctld ,
+and set position to 135.0 degrees azimuth and 30.0 degrees elevation with a 1
+second read timeout from the shell prompt:
+.
+.sp
+.RS 0.5i
+.EX
+$ echo "\\set_pos 135.0 30.0" | nc \-w 1 localhost 4533
+.EE
+.RE
+.
+.PP
+Connect to a running
+.B rotctld
+with
+.B rotctl
+on the local host:
+.sp
+.RS 0.5i
+.EX
+$ rotctl \-m 2
+.EE
+.RE
+.
+.
+.SH SECURITY
+.
+No authentication whatsoever; DO NOT leave this TCP port open wide to the
+Internet.  Please ask if stronger security is needed or consider using a
+Secure Shell
+.RB ( ssh (1))
+tunnel.
+.
+.PP
+As
+.B rotctld
+does not need any greater permissions than
+.BR rotctl ,
+it is advisable to not start
+.B rotctld
+as \(lqroot\(rq or another system user account in order to limit any
+vulnerability.
+.
+.
+.SH BUGS
+.
+The daemon is not detaching and backgrounding itself.
+.
+.PP
+No method to exit the daemon so the
+.BR kill (1)
+command must be used to terminate it.
+.
+.PP
+Multiple clients using the daemon may experience contention with the connected
+rotator.
+.
+.PP
+Report bugs to:
+.IP
+.nf
+.MT hamlib\-developer@lists.sourceforge.net
+Hamlib Developer mailing list
+.ME
+.fi
+.
+.
+.SH COPYING
+.
+This file is part of Hamlib, a project to develop a library that simplifies
+radio and rotator control functions for developers of software primarily of
+interest to radio amateurs and those interested in radio communications.
+.
+.PP
+Copyright \(co 2000-2009 Stephane Fillod
+.br
+Copyright \(co 2000-2018 the Hamlib Group (various contributors)
+.br
+Copyright \(co 2011-2018 Nate Bargmann
+.
+.PP
+This is free software; see the file COPYING for copying conditions.  There is
+NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+.
+.
+.SH SEE ALSO
+.
+.BR kill (1),
+.BR rotctl (1),
+.BR ssh (1),
+.BR hamlib (7)
+.
+.
+.SH COLOPHON
+.
+Links to the Hamlib Wiki, Git repository, release archives, and daily snapshot
+archives:
+.IP
+.UR http://www.hamlib.org
+hamlib.org
+.UE .

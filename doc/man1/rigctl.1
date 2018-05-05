@@ -1,0 +1,1311 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\"
+.\" For layout and available macros, see man(7), man-pages(7), groff_man(7)
+.\" Please adjust the date whenever revising the manpage.
+.\"
+.\" Note: Please keep this page in sync with the source, rigctl.c
+.\"
+.TH RIGCTL "1" "2018-04-29" "Hamlib" "Hamlib Utilities"
+.
+.
+.SH NAME
+.
+rigctl \- control radio transceivers and receivers
+.
+.SH SYNOPSIS
+.
+.
+.SY rigctl
+.OP \-hiIlLnouV
+.OP \-m id
+.OP \-r device
+.OP \-p device
+.OP \-d device
+.OP \-P type
+.OP \-D type
+.OP \-s baud
+.OP \-c id
+.OP \-t char
+.OP \-C parm=val
+.RB [ \-v [ \-Z ]]
+.RB [ command | \- ]
+.YS
+.
+.SH DESCRIPTION
+Control radio transceivers and receivers.
+.B rigctl
+accepts
+.B commands
+from the command line as well as in interactive mode if none are provided on
+the command line.
+.
+.PP
+Keep in mind that Hamlib is BETA level software.  While a lot of backend
+libraries lack complete rig support, the basic functions are usually well
+supported.
+.
+.PP
+Please report bugs and provide feedback at the e-mail address given in the
+.B BUGS
+section below.  Patches and code enhancements sent to the same address are
+welcome.
+.
+.
+.SH OPTIONS
+.
+This program follows the usual GNU command line syntax.  Short options that
+take an argument may have the value follow immediately or be separated by a
+space.  Long options starting with two dashes (\(oq\-\(cq) require an
+\(oq=\(cq between the option and any argument.
+.
+.PP
+Here is a summary of the supported options:
+.
+.TP
+.BR \-m ", " \-\-model = \fIid\fP
+Select radio model number.
+.IP
+See model list (use \(lqrigctl -l\(rq).
+.IP
+.BR Note :
+.B rigctl
+(or third party software using the C API) will use radio model 2 for
+.B NET rigctl
+(communicating with
+.BR rigctld ).
+.
+.TP
+.BR \-r ", " \-\-rig\-file = \fIdevice\fP
+Use
+.I device
+as the file name of the port connected to the radio.
+.IP
+Often a serial port, but could be a USB to serial adapter.  Typically
+.IR /dev/ttyS0 ", " /dev/ttyS1 ", " /dev/ttyUSB0 ,
+etc. on Linux,
+.IR COM1 ", " COM2 ,
+etc. on MS Windows.  The BSD flavors and Mac OS/X have their own designations.
+See your system's documentation.
+.IP
+The special string \(lquh\-rig\(rq may be given to enable micro-ham device
+support.
+.
+.TP
+.BR \-p ", " \-\-ptt\-file = \fIdevice\fP
+Use
+.I device
+as the file name of the Push-To-Talk device using a device file as described
+above.
+.
+.TP
+.BR \-d ", " \-\-dcd\-file = \fIdevice\fP
+Use
+.I device
+as the file name of the Data Carrier Detect device using a device file as
+described above.
+.
+.TP
+.BR \-P ", " \-\-ptt\-type = \fItype\fP
+Use
+.I type
+of Push-To-Talk device.
+.IP
+Supported types are \(oqRIG\(cq (CAT command), \(oqDTR\(cq, \(oqRTS\(cq,
+\(oqPARALLEL\(cq, \(oqNONE\(cq, overriding PTT type defined in the rig's
+backend.
+.IP
+Some side effects of this command are that when type is set to DTR, read
+PTT state comes from the
+.B Hamlib
+frontend, not read from the radio.  When set to NONE, PTT state cannot be read
+or set even if rig backend supports reading/setting PTT status from the rig.
+.
+.TP
+.BR \-D ", " \-\-dcd\-type = \fItype\fP
+Use
+.I type
+of Data Carrier Detect device.
+.IP
+Supported types are \(oqRIG\(cq (CAT command), \(oqDSR\(cq, \(oqCTS\(cq,
+\(oqCD\(cq, \(oqPARALLEL\(cq, \(oqNONE\(cq.
+.
+.TP
+.BR \-s ", " \-\-serial\-speed = \fIbaud\fP
+Set serial speed to
+.I baud
+rate.
+.IP
+Uses maximum serial speed from radio backend capabilities (set by
+.B -m
+above) as the default.
+.
+.TP
+.BR \-c ", " \-\-civaddr = \fIid\fP
+Use
+.I id
+as the CI-V address to communicate with the rig.
+.IP
+Only useful for Icom and some Ten-Tec rigs.
+.IP
+.BR Note :
+The
+.I id
+is in decimal notation, unless prefixed by
+.IR 0x ,
+in which case it is hexadecimal.
+.
+.TP
+.BR \-t ", " \-\-send\-cmd\-term = \fIchar\fP
+Change the termination
+.I char
+for text protocol when using the
+.B send_cmd
+command.
+.IP
+The default value is ASCII CR (\(oq0x0D\(cq).  ASCII non-printing characters
+can be given as the ASCII number in hexadecimal format prepended with
+\(lq0x\(rq.  You may pass an empty string for no termination char.  The string
+\(lq\-1\(rq tells
+.B rigctl
+to switch to binary protocol.  See the
+.B send_cmd
+command for further explanation.
+.IP
+For example, to specify a command terminator for Kenwood style text commands
+pass \(lq-t ';'\(rq to rigctl.  See
+.B EXAMPLE
+below.
+.
+.TP
+.BR \-L ", " \-\-show\-conf
+List all config parameters for the radio defined with
+.B \-m
+above.
+.
+.TP
+.BR \-C ", " \-\-set\-conf = \fIparm=val\fP [ \fI,parm=val\fP ]
+Set radio configuration parameter(s), e.g.
+.IR stop_bits=2 .
+.IP
+Use the
+.B -L
+option above for a list of configuration parameters for a given model number.
+.
+.TP
+.BR \-u ", " \-\-dump\-caps
+Dump capabilities for the radio defined with
+.B -m
+above and exit.
+.
+.TP
+.BR \-l ", " \-\-list
+List all model numbers defined in
+.B Hamlib
+and exit.
+.IP
+The list is sorted by model number.
+.IP
+.BR Note :
+In Linux the list can be scrolled back using
+.BR Shift-PageUp / Shift-PageDown ,
+or using the scrollbars of a virtual terminal in X or the cmd window in
+Windows.  The output can be piped to
+.BR more (1)
+or
+.BR less (1),
+e.g. \(lqrigctl -l | more\(rq.
+.
+.TP
+.BR \-o ", " \-\-vfo
+Enable vfo mode.
+.IP
+An extra VFO argument will be required in front of each appropriate command
+(except
+.BR set_vfo ).
+Otherwise, \(oqcurrVFO\(cq is used when this option is not set and an extra
+VFO argument is not used.
+.
+.TP
+.BR \-n ", " \-\-no\-restore\-ai
+On exit
+.B rigctl
+restores the state of auto information (AI) on the controlled rig.
+.IP
+If this is not desired, for example if you are using
+.B rigctl
+to turn AI mode on or off, pass this option.
+.
+.TP
+.B \-i ", " \-\-read\-history
+Read previously saved command and argument history from a file (default
+.IR $HOME/.rigctl_history )
+for the current session.
+.IP
+Available when
+.B rigctl
+is built with Readline support (see READLINE below).
+.IP
+.BR Note :
+To read a history file stored in another directory, set the
+.B RIGCTL_HIST_DIR
+environment variable, e.g. \(lqRIGCTL_HIST_DIR=~/tmp rigctl -i\(rq.  When
+RIGCTL_HIST_DIR is not set, the value of
+.B HOME
+is used.
+.
+.TP
+.BR \-I ", " \-\-save\-history
+Write current session (and previous session(s), if
+.B -i
+option is given) command and argument history to a file (default
+.IR $HOME/.rigctl_history )
+at the end of the current session.
+.IP
+Complete commands with arguments are saved as a single line to be recalled and
+used or edited.  Available when
+.B rigctl
+is built with Readline support (see
+.B READLINE
+below).
+.IP
+.BR Note :
+To write a history file in another directory, set the
+.B RIGCTL_HIST_DIR
+environment variable, e.g. \(lqRIGCTL_HIST_DIR=~/tmp rigctl -I\)Rq.  When
+RIGCTL_HIST_DIR is not set, the value of
+.B HOME
+is used.
+.
+.TP
+.BR \-v ", " \-\-verbose
+Set verbose mode, cumulative (see
+.B DIAGNOSTICS
+below).
+.
+.TP
+.BR \-Z ", " \-\-debug\-time\-stamps
+Enable time stamps for the debug messages.
+.IP
+Use only in combination with the
+.B -v
+option as it generates no output on its own.
+.
+.TP
+.BR \-h ", " \-\-help
+Show a summary of these options and exit.
+.
+.TP
+.BR \-V ", " \-\-version
+Show version of
+.B rigctl
+and exit.
+.
+.TP
+.B \-
+Stop option processing and read commands from standard input.
+.IP
+See
+.B Standard Input
+below.
+.
+.PP
+.BR Note :
+Some options may not be implemented by a given backend and will return an
+error.  This is most likely to occur with the
+.B \-\-set\-conf
+and
+.B \-\-show\-conf
+options.
+.
+.PP
+Please note that the backend for the radio to be controlled, or the radio
+itself may not support some commands.  In that case, the operation will fail
+with a
+.B Hamlib
+error code.
+.
+.
+.SH COMMANDS
+.
+Commands can be entered either as a single char, or as a long command name.
+The commands are not prefixed with a dash as the options are.  They may be
+typed in when in interactive mode or provided as argument(s) in command line
+interface mode.  In interactive mode commands and their arguments may be
+entered on a single line:
+.
+.sp
+.RS 0.5i
+.EX
+M LSB 2400
+.EE
+.RE
+.
+.PP
+Since most of the
+.B Hamlib
+operations have a
+.BR set " and a " get
+method, an upper case letter will often be used for a
+.B set
+method whereas the corresponding lower case letter refers to the
+.B get
+method.  Each operation also has a long name; in interactive mode, prepend a
+backslash, \(oq\\\(cq, to enter a long command name.
+.
+.PP
+Example: Use \(lq\\dump_caps\(rq to see what this radio and backend support.
+.
+.PP
+.BR Note :
+The backend for the radio to be controlled, or the radio itself may not
+support some commands. In that case, the operation will fail with a
+.B Hamlib
+error message.
+.
+.
+.SS Standard Input
+.
+As an alternative to the
+.B READLINE
+interactive command entry or a single command for each run,
+.B rigctl
+features a special option where a single dash (\(oq\-\(cq) may be used to read
+commands from standard input
+.RB ( stdin ).
+Commands must be separated by whitespace similar to the commands given on the
+command line.  Comments may be added using the \(oq#\(cq character, all text
+up until the end of the current line including the \(oq#\(cq character is
+ignored.
+.
+.PP
+A simple example:
+.
+.sp
+.RS 0.5i
+.EX
+$ cat <<.EOF. >cmds.txt
+> # File of commands
+> v f m	# query rig
+> V VFOB F 14200000 M CW 500	# set rig
+> v f m	# query rig
+> .EOF.
+
+$ rigctl -m1 - <cmds.txt
+
+v VFOA
+
+f 145000000
+
+m FM
+15000
+
+V VFOB
+F 14200000
+M CW 500
+v VFOB
+
+f 14200000
+
+m CW
+500
+
+$
+.EE
+.RE
+.
+.
+.SS Radio Commands
+.
+A summary of commands is included below (In the case of
+.B set
+commands the quoted italicized string is replaced by the value in the
+description.  In the case of
+.B get
+commands the quoted italicized string is the key name of the value returned.):
+.
+.TP
+.BR Q | q ", exit rigctl"
+Exit rigctl in interactive mode.
+.IP
+When rigctl is controlling the rig directly, will close the rig backend and
+port.  When rigctl is connected to rigctld (radio model 2), the TCP/IP
+connection to rigctld is closed and rigctld remains running, available for
+another TCP/IP network connection.
+.
+.TP
+.BR F ", " set_freq " \(aq" \fIFrequency\fP \(aq
+Set
+.RI \(aq Frequency \(aq,
+in Hz.
+.IP
+Frequency may be a floating point or integer value.
+.
+.TP
+.BR f ", " get_freq
+Get
+.RI \(aq Frequency \(aq,
+in Hz.
+.IP
+Returns an integer value.
+.
+.TP
+.BR M ", " set_mode " \(aq" \fIMode\fP "\(aq \(aq" \fIPassband\fP \(aq
+Set
+.RI \(aq Mode \(aq
+and
+.RI \(aq Passband \(aq.
+.IP
+Mode is a token: \(oqUSB\(cq, \(oqLSB\(cq, \(oqCW\(cq, \(oqCWR\(cq,
+\(oqRTTY\(cq, \(oqRTTYR\(cq, \(oqAM\(cq, \(oqFM\(cq, \(oqWFM\(cq, \(oqAMS\(cq,
+\(oqPKTLSB\(cq, \(oqPKTUSB\(cq, \(oqPKTFM\(cq, \(oqECSSUSB\(cq,
+\(oqECSSLSB\(cq, \(oqFA\(cq, \(oqSAM\(cq, \(oqSAL\(cq, \(oqSAH\(cq,
+\(oqDSB\(cq.
+.IP
+Passband is in Hz as an integer, or \(oq0\(cq for the radio backend default.
+.IP
+.BR Note :
+Passing a \(oq?\(cq (query) as the first argument instead of a Mode token will
+return a space separated list of radio backend supported Modes.  Use this to
+determine the supported Modes of a given radio backend.
+.
+.TP
+.BR m ", " get_mode
+Get
+.RI \(aq Mode \(aq
+and
+.RI \(aq Passband \(aq.
+.IP
+Returns Mode as a token and Passband in Hz as in
+.B set_mode
+above.
+.
+.TP
+.BR V ", " set_vfo " \(aq" \fIVFO\fP \(aq
+Set
+.RI \(aq VFO \(aq.
+.IP
+VFO is a token: \(oqVFOA\(cq, \(oqVFOB\(cq, \(oqVFOC\(cq, \(oqcurrVFO\(cq,
+\(oqVFO\(cq, \(oqMEM\(cq, \(oqMain\(cq, \(oqSub\(cq, \(oqTX\(cq, \(oqRX\(cq.
+.IP
+In VFO mode (see
+.B \-\-vfo
+option above) only a single VFO parameter is required:
+.
+.sp
+.RS 1.0i
+.EX
+$ rigctl -m 229 -r /dev/rig -o
+
+Rig command: V
+VFO: VFOB
+
+Rig command:
+.EE
+.RE
+.
+.TP
+.BR v ", " get_vfo
+Get current
+.RI \(aq VFO \(aq.
+.IP
+Returns VFO as a token as in
+.B set_vfo
+above.
+.
+.TP
+.BR J ", " set_rit " \(aq" \fIRIT\fP \(aq
+Set
+.RI \(aq RIT \(aq.
+.IP
+RIT is in Hz and can be + or -.  A value of \(oq0\(cq resets RIT (Receiver
+Incremental Tuning) to match the VFO frequency.
+.IP
+.BR Note :
+RIT needs to be explicitly activated or deactivated with the
+.B set_func
+command.  This allows setting the RIT offset independently of its activation
+and allows RIT to remain active while setting the offset to \(oq0\(cq.
+.
+.TP
+.BR j ", " get_rit
+Get
+.RI \(aq RIT \(aq
+in Hz.
+.IP
+Returned value is an integer.
+.
+.TP
+.BR Z ", " set_xit " \(aq" \fIXIT\fP \(aq
+Set
+.RI \(aq XIT \(aq.
+.IP
+XIT is in Hz and can be + or -.  A value of \(oq0\(cq resets XIT (Transmitter
+Incremental Tuning) to match the VFO frequency.
+.IP
+.BR Note :
+XIT needs to be explicitly activated or deactivated with the
+.B set_func
+command.  This allows setting the XIT offset independently of its activation
+and allows XIT to remain active while setting the offset to \(oq0\(cq.
+.
+.TP
+.BR z ", " get_xit
+Get
+.RI \(aq XIT \(aq
+in Hz.
+.IP
+Returned value is an integer.
+.
+.TP
+.BR T ", " set_ptt " \(aq" \fIPTT\fP \(aq
+Set
+.RI \(aq PTT \(aq.
+.IP
+PTT is a value: \(oq0\(cq (RX), \(oq1\(cq (TX), \(oq2\(cq (TX mic), or
+\(oq3\(cq (TX data).
+.
+.TP
+.BR t ", " get_ptt
+Get
+.RI \(aq PTT \(aq
+status.
+.IP
+Returns PTT as a value in
+.B set_ptt
+above.
+.
+.TP
+.BR S ", " set_split_vfo " \(aq" \fISplit\fP "\(aq \(aq" "\fITX VFO\fP" \(aq
+Set
+.RI \(aq Split \(aq
+mode.
+.IP
+Split is either \(oq0\(cq = Normal or \(oq1\(cq = Split.
+.IP
+Set
+.RI \(aq "TX VFO" \(aq.
+.IP
+TX VFO is a token: \(oqVFOA\(cq, \(oqVFOB\(cq, \(oqVFOC\(cq, \(oqcurrVFO\(cq,
+\(oqVFO\(cq, \(oqMEM\(cq, \(oqMain\(cq, \(oqSub\(cq, \(oqTX\(cq, \(oqRX\(cq.
+.
+.TP
+.BR s ", " get_split_vfo
+Get
+.RI \(aq Split \(aq
+mode.
+.IP
+Split is either \(oq0\(cq = Normal or \(oq1\(cq = Split.
+.IP
+Get
+.RI \(aq "TX VFO" \(aq.
+.IP
+TX VFO is a token as in
+.B set_split_vfo
+above.
+.
+.TP
+.BR I ", " set_split_freq " \(aq" "\fITx Frequency\fP" \(aq
+Set
+.RI \(aq "TX Frequency" \(aq,
+in Hz.
+.IP
+Frequency may be a floating point or integer value.
+.
+.TP
+.BR i ", " get_split_freq
+Get
+.RI \(aq "TX Frequency" \(aq,
+in Hz.
+.IP
+Returns an integer value.
+.
+.TP
+.BR X ", " set_split_mode " \(aq" "\fITX Mode\fP" "\(aq \(aq" "\fITX Passband\fP" \(aq
+Set
+.RI \(aq "TX Mode" \(aq
+and
+.RI \(aq "TX Passband" \(aq.
+.IP
+TX Mode is a token: \(oqUSB\(cq, \(oqLSB\(cq, \(oqCW\(cq, \(oqCWR\(cq,
+\(oqRTTY\(cq, \(oqRTTYR\(cq, \(oqAM\(cq, \(oqFM\(cq, \(oqWFM\(cq, \(oqAMS\(cq,
+\(oqPKTLSB\(cq, \(oqPKTUSB\(cq, \(oqPKTFM\(cq, \(oqECSSUSB\(cq,
+\(oqECSSLSB\(cq, \(oqFA\(cq, \(oqSAM\(cq, \(oqSAL\(cq, \(oqSAH\(cq,
+\(oqDSB\(cq.
+.IP
+TX Passband is in Hz as an integer, or \(oq0\(cq for the radio backend
+default.
+.IP
+.BR Note :
+Passing a \(oq?\(cq (query) as the first argument instead of a TX Mode token
+will return a space separated list of radio backend supported TX Modes.  Use
+this to determine the supported TX Modes of a given radio backend.
+.
+.TP
+.BR x ", " get_split_mode
+Get
+.RI \(aq "TX Mode" \(aq
+and
+.RI \(aq "TX Passband" \(aq.
+.IP
+Returns TX Mode as a token and TX Passband in Hz as in
+.B set_split_mode
+above.
+.
+.TP
+.BR Y ", " set_ant " \(aq" \fIAntenna\fP \(aq
+Set
+.RI \(aq Antenna \(aq
+number (\(oq0\(cq, \(oq1\(cq, \(oq2\(cq, ...).
+.
+.TP
+.BR y ", " get_ant
+Get
+.RI \(aq Antenna \(aq
+number (\(oq0\(cq, \(oq1\(cq, \(oq2\(cq, ...).
+.
+.TP
+.BR b ", " send_morse " \(aq" \fIMorse\fP \(aq
+Send
+.RI \(aq Morse \(aq
+symbols.
+.
+.TP
+.BR 0x8b ", " get_dcd
+Get
+.RI \(aq DCD \(aq
+(squelch) status: \(oq0\(cq (Closed) or \(oq1\(cq (Open).
+.
+.TP
+.BR R ", " set_rptr_shift " \(aq" "\fIRptr Shift\fP" \(aq
+Set
+.RI \(aq "Rptr Shift" \(aq.
+.IP
+Rptr Shift is one of: \(oq+\(cq, \(oq-\(cq, or something else for
+\(oqNone\(cq.
+.
+.TP
+.BR r ", " get_rptr_shift
+Get
+.RI \(aq "Rptr Shift" \(aq.
+.IP
+Returns \(oq+\(cq, \(oq-\(cq, or \(oqNone\(cq.
+.
+.TP
+.BR O ", " set_rptr_offs " \(aq" "\fIRptr Offset\fP" \(aq
+Set
+.RI \(aq "Rptr Offset" \(aq,
+in Hz.
+.
+.TP
+.BR o ", " get_rptr_offs
+Get
+.RI \(aq "Rptr Offset" \(aq,
+in Hz.
+.
+.TP
+.BR C ", " set_ctcss_tone " \(aq" "\fICTCSS Tone\fP" \(aq
+Set
+.RI \(aq "CTCSS Tone" \(aq,
+in tenths of Hz.
+.
+.TP
+.BR c ", " get_ctcss_tone
+Get
+.RI \(aq "CTCSS Tone" \(aq,
+in tenths of Hz.
+.
+.TP
+.BR D ", " set_dcs_code " \(aq" "\fIDCS Code\fP" \(aq
+Set
+.RI \(aq "DCS Code" \(aq.
+.
+.TP
+.BR d ", " get_dcs_code
+Get
+.RI \(aq "DCS Code" \(aq.
+.
+.TP
+.BR 0x90 ", " set_ctcss_sql " \(aq" "\fICTCSS Sql\fP" \(aq
+Set
+.RI \(aq "CTCSS Sql" \(aq
+tone, in tenths of Hz.
+.
+.TP
+.BR 0x91 ", " get_ctcss_sql
+Get
+.RI \(aq "CTCSS Sql" \(aq
+tone, in tenths of Hz.
+.
+.TP
+.BR 0x92 ", " set_dcs_sql " \(aq" "\fIDCS Sql\fP" \(aq
+Set
+.RI \(aq "DCS Sql" \(aq
+code.
+.
+.TP
+.BR 0x93 ", " get_dcs_sql
+Get
+.RI \(aq "DCS Sql" \(aq
+ code.
+.
+.TP
+.BR N ", " set_ts " \(aq" "\fITuning Step\fP" \(aq
+Set
+.RI \(aq "Tuning Step" \(aq,
+in Hz.
+.
+.TP
+.BR n ", " get_ts
+Get
+.RI \(aq "Tuning Step" \(aq,
+in Hz.
+.
+.TP
+.BR U ", " set_func " \(aq" \fIFunc\fP "\(aq \(aq" "\fIFunc Status\fP" \(aq
+Set
+.RI \(aq Func \(aq
+and
+.RI \(aq "Func Status" \(aq.
+.IP
+Func is a token: \(oqFAGC\(cq, \(oqNB\(cq, \(oqCOMP\(cq, \(oqVOX\(cq,
+\(oqTONE\(cq, \(oqTSQL\(cq, \(oqSBKIN\(cq, \(oqFBKIN\(cq, \(oqANF\(cq,
+\(oqNR\(cq, \(oqAIP\(cq, \(oqAPF\(cq, \(oqMON\(cq, \(oqMN\(cq, \(oqRF\(cq,
+\(oqARO\(cq, \(oqLOCK\(cq, \(oqMUTE\(cq, \(oqVSC\(cq, \(oqREV\(cq,
+\(oqSQL\(cq, \(oqABM\(cq, \(oqBC\(cq, \(oqMBC\(cq, \(oqRIT\(cq, \(oqAFC\(cq,
+\(oqSATMODE\(cq, \(oqSCOPE\(cq, \(oqRESUME\(cq, \(oqTBURST\(cq, \(oqTUNER\(cq,
+\(oqXIT\(cq.
+.IP
+Func Status is a non null value for \(lqactivate\(rq or \(lqde-activate\(rq
+otherwise, much as TRUE/FALSE definitions in the C language (true is non-zero
+and false is zero, \(oq0\(cq).
+.IP
+.BR Note :
+Passing a \(oq?\(cq (query) as the first argument instead of a Func token will
+return a space separated list of radio backend supported set function tokens.
+Use this to determine the supported functions of a given radio backend.
+.
+.TP
+.BR u ", " get_func " \(aq" \fIFunc\fP \(aq
+Get
+.RI \(aq "Func Status" \(aq.
+.IP
+Returns Func Status as a non null value for the Func token given as in
+.B set_func
+above.
+.IP
+.BR Note :
+Passing a \(oq?\(cq (query) as the first argument instead of a Func token will
+return a space separated list of radio backend supported get function tokens.
+Use this to determine the supported functions of a given radio backend.
+.
+.TP
+.BR L ", " set_level " \(aq" \fILevel\fP "\(aq \(aq" "\fILevel Value\fP" \(aq
+Set
+.RI \(aq Level \(aq
+and
+.RI \(aq "Level Value" \(aq.
+.IP
+Level is a token: \(oqPREAMP\(cq, \(oqATT\(cq, \(oqVOX\(cq, \(oqAF\(cq,
+\(oqRF\(cq, \(oqSQL\(cq, \(oqIF\(cq, \(oqAPF\(cq, \(oqNR\(cq, \(oqPBT_IN\(cq,
+\(oqPBT_OUT\(cq, \(oqCWPITCH\(cq, \(oqRFPOWER\(cq, \(oqMICGAIN\(cq,
+\(oqKEYSPD\(cq, \(oqNOTCHF\(cq, \(oqCOMP\(cq, \(oqAGC\(cq, \(oqBKINDL\(cq,
+\(oqBAL\(cq, \(oqMETER\(cq, \(oqVOXGAIN\(cq, \(oqANTIVOX\(cq,
+\(oqSLOPE_LOW\(cq, \(oqSLOPE_HIGH\(cq, \(oqRAWSTR\(cq, \(oqSWR\(cq,
+\(oqALC\(cq, \(oqSTRENGTH\(cq.
+.IP
+The Level Value can be a float or an integer value.  For the AGC token the
+value is one of \(oq0\(cq = OFF, \(oq1\(cq = SUPERFAST, \(oq2\(cq = FAST,
+\(oq3\(cq = SLOW, \(oq4\(cq = USER, \(oq5\(cq = MEDIUM, \(oq6\(cq = AUTO.
+.IP
+.BR Note :
+Passing a \(oq?\(cq (query) as the first argument instead of a Level token
+will return a space separated list of radio backend supported set level
+tokens.  Use this to determine the supported levels of a given radio backend.
+.
+.TP
+.BR l ", " get_level " \(aq" \fILevel\fP \(aq
+Get
+.RI \(aq "Level Value" \(aq.
+.IP
+Returns Level Value as a float or integer for the Level token given as in
+.B set_level
+above.
+.IP
+.BR Note :
+Passing a \(oq?\(cq (query) as the first argument instead of a Level token
+will return a space separated list of radio backend supported get level
+tokens.  Use this to determine the supported levels of a given radio backend.
+.
+.TP
+.BR P ", " set_parm " \(aq" \fIParm\fP "\(aq \(aq" "\fIParm Value\fP" \(aq
+Set
+.RI \(aq Parm \(aq
+and
+.RI \(aq "Parm Value" \(aq.
+.IP
+Parm is a token: \(oqANN\(cq, \(oqAPO\(cq, \(oqBACKLIGHT\(cq, \(oqBEEP\(cq,
+\(oqTIME\(cq, \(oqBAT\(cq, \(oqKEYLIGHT\(cq.
+.IP
+.BR Note :
+Passing a \(oq?\(cq (query) as the first argument instead of a Parm token will
+return a space separated list of radio backend supported set parameter tokens.
+Use this to determine the supported parameters of a given radio backend.
+.
+.TP
+.BR p ", " get_parm " \(aq" \fIParm\fP \(aq
+Get
+.RI \(aq "Parm Value" \(aq.
+.IP
+Returns Parm Value as a float or integer for the Parm token given as in
+.B set_parm
+above.
+.IP
+.BR Note :
+Passing a \(oq?\(cq (query) as the first argument instead of a Parm token will
+return a space separated list of radio backend supported get parameter tokens.
+Use this to determine the supported parameters of a given radio backend.
+.
+.TP
+.BR B ", " set_bank " \(aq" \fIBank\fP \(aq
+Set
+.RI \(aq Bank \(aq.
+.IP
+Sets the current memory bank number.
+.
+.TP
+.BR E ", " set_mem " \(aq" \fIMemory#\fP \(aq
+Set
+.RI \(aq Memory# \(aq
+channel number.
+.
+.TP
+.BR e ", " get_mem
+Get
+.RI \(aq Memory# \(aq
+channel number.
+.
+.TP
+.BR G ", " vfo_op " \(aq" "\fIMem/VFO Op\fP" \(aq
+Perform a
+.RI \(aq "Mem/VFO Op" \(aq.
+.IP
+Mem/VFO Operation is a token: \(oqCPY\(cq, \(oqXCHG\(cq, \(oqFROM_VFO\(cq,
+\(oqTO_VFO\(cq, \(oqMCL\(cq, \(oqUP\(cq, \(oqDOWN\(cq, \(oqBAND_UP\(cq,
+\(oqBAND_DOWN\(cq, \(oqLEFT\(cq, \(oqRIGHT\(cq, \(oqTUNE\(cq, \(oqTOGGLE\(cq.
+.IP
+.BR Note :
+Passing a \(oq?\(cq (query) as the first argument instead of a Mem/VFO Op
+token will return a space separated list of radio backend supported Set
+Mem/VFO Op tokens.  Use this to determine the supported Mem/VFO Ops of a given
+radio backend.
+.
+.TP
+.BR g ", " scan " \(aq" "\fIScan Fct\fP" "\(aq \(aq" "\fIScan Channel\fP" \(aq
+Perform a
+.RI \(aq "Scan Fct" \(aq
+on a
+.RI \(aq "Scan Channel" \(aq.
+.IP
+Scan Function is a token: \(oqSTOP\(cq, \(oqMEM\(cq, \(oqSLCT\(cq,
+\(oqPRIO\(cq, \(oqPROG\(cq, \(oqDELTA\(cq, \(oqVFO\(cq, \(oqPLT\(cq.
+.IP
+.\" FIXME: What is a scan channel value?
+Scan Channel is an integer (maybe?).
+.IP
+.BR Note :
+Passing a \(oq?\(cq (query) as the first argument instead of a Scan Fct token
+will return a space separated list of radio backend supported Scan Function
+tokens.  Use this to determine the supported Scan Functions of a given radio
+backend.
+.
+.TP
+.BR H ", " set_channel " \(aq" \fIChannel\fP \(aq
+Set memory
+.RI \(aq Channel \(aq
+data.
+.IP
+Not implemented yet.
+.
+.TP
+.BR h ", " get_channel
+Get memory
+.RI \(aq Channel \(aq
+data.
+.IP
+Not implemented yet.
+.
+.TP
+.BR A ", " set_trn " \(aq" \fITransceive\fP \(aq
+Set
+.RI \(aq Transceive \(aq
+mode.
+.IP
+Transcieve is a token: \(oqOFF\(cq, \(oqRIG\(cq, \(oqPOLL\(cq.
+.IP
+Transceive is a mechanism for radios to report events without a specific call
+for information.
+.IP
+.BR Note :
+Passing a \(oq?\(cq (query) as the first argument instead of a Transceive
+token will return a space separated list of radio backend supported Transceive
+mode tokens.  Use this to determine the supported Transceive modes of a given
+radio backend.
+.
+.TP
+.BR a ", " get_trn
+Get
+.RI \(aq Transceive \(aq
+mode.
+.IP
+Transceive mode (reporting event) as in
+.B set_trn
+above.
+.
+.TP
+.BR * ", " reset " \(aq" \fIReset\fP \(aq
+Perform rig
+.RI \(aq Reset \(aq.
+.IP
+Reset is a value: \(oq0\(cq = None, \(oq1\(cq = Software reset, \(oq2\(cq =
+VFO reset, \(oq4\(cq = Memory Clear reset, \(oq8\(cq = Master reset.
+.IP
+Since these values are defined as a bitmask in
+.IR include/hamlib/rig.h ,
+it should be possible to AND these values together to do multiple resets at
+once, if the backend supports it or supports a reset action via rig control at
+all.
+.
+.TP
+.BR 0x87 ", " set_powerstat " \(aq" "\fIPower Status\fP" \(aq
+Set
+.RI \(aq "Power Status" \(aq.
+.IP
+Power Status is a value: \(oq0\(cq = Power Off, \(oq1\(cq = Power On,
+\(oq2\(cq = Power Standby.
+.
+.TP
+.BR 0x88 ", " get_powerstat
+Get
+.RI \(aq "Power Status" \(aq
+as in
+.B set_powerstat
+above.
+.
+.TP
+.BR 0x89 ", " send_dtmf " \(aq" \fIDigits\fP \(aq
+Set DTMF
+.RI \(aq Digits \(aq.
+.
+.TP
+.BR 0x8a ", " recv_dtmf
+Get DTMF
+.RI \(aq Digits \(aq.
+.
+.TP
+.BR _ ", " get_info
+Get misc information about the rig (no VFO in 'VFO mode' or value is passed).
+.
+.TP
+.BR 1 ", " dump_caps
+Not a real rig remote command, it just dumps capabilities, i.e. what the
+backend knows about this model, and what it can do.
+.IP
+TODO: Ensure this is in a consistent format so it can be read into a hash,
+dictionary, etc.  Bug reports requested.
+.IP
+.BR Note :
+This command will produce many lines of output so be very careful if using a
+fixed length array!  For example, running this command against the Dummy
+backend results in over 5kB of text output.
+.IP
+VFO parameter not used in 'VFO mode'.
+.
+.TP
+.BR 2 ", " power2mW " \(aq" "\fIPower [0.0..1.0]\fP" "\(aq \(aq" \fIFrequency\fP "\(aq \(aq" \fIMode\fP \(aq
+Returns
+.RI \(aq "Power mW" \(aq.
+.IP
+Converts a Power value in a range of
+.IR 0.0 ... 1.0
+to the real transmit power in milli-Watts (integer).
+.IP
+.RI \(aq Frequency \(aq
+and
+.RI \(aq Mode \(aq
+also need to be provided as output power may vary according to these values.
+.IP
+VFO parameter is not used in VFO mode.
+.
+.TP
+.BR 4 ", " mW2power " \(aq" "\fIPower mW\fP" "\(aq \(aq" \fIFrequency\fP "\(aq \(aq" \fIMode\fP \(aq
+Returns
+.RI \(aq "Power [0.0..1.0]" \(aq.
+.IP
+Converts the real transmit power in milli-Watts (integer) to a Power value in
+a range of
+.IR "0.0 ... 1.0" .
+.IP
+.RI \(aq Frequency \(aq
+and
+.RI \(aq Mode \(aq
+also need to be provided as output power may vary according to these values.
+.IP
+VFO parameter is not used in VFO mode.
+.
+.TP
+.BR w ", " send_cmd " \(aq" \fICmd\fP \(aq
+Send a raw command string to the radio.
+.IP
+This is useful for testing and troubleshooting radio commands and responses when
+developing a backend.
+.IP
+For binary protocols enter values as \\0xAA\\0xBB.  Expect a
+.RI \(aq Reply \(aq
+from the radio which will likely be a binary block or an ASCII string
+depending on the radio's protocol (see your radio's computer control
+documentation).
+.IP
+The command terminator, set by the
+.B send-cmd-term
+option above, will terminate each command string sent to the radio.  This
+character should not be a part of the input string.
+.
+.TP
+.BR pause " \(aq" \fISeconds\fP \(aq
+Pause for the given whole (integer) number of
+.RI \(aq Seconds \(aq
+before sending the next command to the radio.
+.
+.
+.SH READLINE
+.
+If
+.B Readline
+library development files are found at configure time,
+.B rigctl
+will be conditonally built with Readline support for command and argument entry.
+Readline command key bindings are at their defaults as described in the
+.UR https://tiswww.cwru.edu/php/chet/readline/rluserman.html
+Readline manual
+.UE .
+.B rigctl
+sets the name \(lqrigctl\(rq which can be used in Conditional Init Constructs
+in the Readline Init File
+.RI ( $HOME/.inputrc
+by default) for custom keybindings unique to
+.BR rigctl .
+.
+.PP
+Command history is available with Readline support as described in the
+.UR https://tiswww.case.edu/php/chet/readline/history.html#SEC1
+Readline History manual
+.UE .
+Command and argument strings are stored as single lines even when arguments
+are prompted for input individually.  Commands and arguments are not validated
+and are stored as typed with values separated by a single space.
+.
+.PP
+Normally session history is not saved, however, use of either of the
+.BR \-i / \-\-read\-history
+or
+.BR \-I / \-\-save\-history
+options when starting
+.B rigctl
+will cause any previously saved history to be read in and/or the
+current and any previous session history (assuming the
+.BR -i " and " -I
+options are given together) will be written out when
+.B rigctl
+is closed.  Each option is mutually exclusive, i.e. either may be given
+separately or in combination.  This is useful to save a set of commands and
+then read them later but not write the modified history for a consistent set
+of test commands in interactive mode, for example.
+.
+.PP
+History is stored in
+.I $HOME/.rigctl_history
+by default although the destination directory may be changed by setting the
+.B RIGCTL_HIST_DIR
+environment variable.  When RIGCTL_HIST_DIR is unset, the value of the
+.B HOME
+environment variable is used instead.  Only the destination directory may be
+changed at this time.
+.
+.PP
+If Readline support is not found at configure time the original internal
+command handler is used.  Readline is not used for
+.B rigctl
+commands entered on the command line regardless if Readline support is built
+in or not.
+.
+.PP
+.BR Note :
+Readline support is not included in the MS Windows 32 or 64 bit binary builds
+supplied by the Hamlib Project.  Running
+.B rigctl
+on the MS Windows platform in the \(oqcmd\(cq shell does give session command
+line history, however, it is not saved to disk between sessions.
+.
+.
+.SH DIAGNOSTICS
+.
+The
+.BR \-v ,
+.B \-\-verbose
+option allows different levels of diagnostics
+to be output to
+.B stderr
+and correspond to \-v for
+.BR BUG ,
+\-vv for
+.BR ERR ,
+\-vvv for
+.BR WARN ,
+\-vvvv for
+.BR VERBOSE ,
+or \-vvvvv for
+.BR TRACE .
+.
+.PP
+A given verbose level is useful for providing needed debugging information to
+the email address below.  For example, TRACE output shows all of the values
+sent to and received from the radio which is very useful for radio backend
+library development and may be requested by the developers.
+.
+.
+.SH EXIT STATUS
+.B rigctl
+exits with:
+.
+.TP
+.B 0
+if all operations completed normally;
+.
+.TP
+.B 1
+if there was an invalid command line option or argument;
+.
+.TP
+.B 2
+if an error was returned by
+.BR Hamlib .
+.
+.
+.SH EXAMPLE
+.
+Start
+.B rigctl
+for a Yaesu FT-920 using a USB to serial adapter on Linux in interactive mode:
+.
+.sp
+.RS 0.5i
+.EX
+$ rigctl -m 114 -r /dev/ttyUSB1
+.EE
+.RE
+.
+.PP
+Start
+.B rigctl
+for a Yaesu FT-920 using COM1 on MS Windows while generating TRACE output to
+.IR stderr :
+.
+.sp
+.RS 0.5i
+.EX
+> rigctl -m 114 -r COM1 -vvvvv
+.EE
+.RE
+.
+.PP
+Start
+.B rigctl
+for a Yaesu FT-920 using a USB to serial adapter while setting baud rate and
+stop bits:
+.
+.sp
+.RS 0.5i
+.EX
+$ rigctl -m 114 -r /dev/ttyUSB1 -s 4800 -C stop_bits=2
+.EE
+.RE
+.
+.PP
+Start
+.B rigctl
+for an Elecraft K3 using a USB to serial adapter while specifying a command
+terminator for the
+.B w
+command:
+.
+.sp
+.RS 0.5i
+.EX
+$ rigctl -m 229 -r /dev/ttyUSB0 -t';'
+.EE
+.RE
+.
+.PP
+Connect to a running
+.B rigctld
+with radio model 2 (\(lqNET rigctl\(rq) on the local host and specifying the
+TCP port, setting frequency and mode:
+.
+.sp
+.RS 0.5i
+.EX
+$ rigctl -m 2 -r localhost:4532 F 7253500 M LSB 0
+.EE
+.RE
+.
+.
+.SH BUGS
+.
+.B set_chan
+has no entry method as of yet, hence left unimplemented.
+.PP
+This almost empty section...
+.PP
+Report bugs to:
+.IP
+.nf
+.MT hamlib\-developer@lists.sourceforge.net
+Hamlib Developer mailing list
+.ME
+.fi
+.
+.
+.SH COPYING
+.
+This file is part of Hamlib, a project to develop a library that simplifies
+radio and rotator control functions for developers of software primarily of
+interest to radio amateurs and those interested in radio communications.
+.
+.PP
+Copyright \(co 2000-2011 Stephane Fillod
+.br
+Copyright \(co 2000-2018 the Hamlib Group (various contributors)
+.br
+Copyright \(co 2010-2018 Nate Bargmann
+.
+.PP
+This is free software; see the file COPYING for copying conditions.  There is
+NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+.
+.
+.SH SEE ALSO
+.
+.BR less (1),
+.BR more (1),
+.BR rigctld (1),
+.BR hamlib (7)
+.
+.
+.SH COLOPHON
+.
+Links to the Hamlib Wiki, Git repository, release archives, and daily snapshot
+archives:
+.IP
+.UR http://www.hamlib.org
+hamlib.org
+.UE .

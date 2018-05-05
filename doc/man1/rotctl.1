@@ -1,0 +1,810 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\"
+.\" For layout and available macros, see man(7), man-pages(7), groff_man(7)
+.\" Please adjust the date whenever revising the manpage.
+.\"
+.\" Note: Please keep this page in sync with the source, rotctl.c
+.\"
+.TH ROTCTL "1" "2018-04-29" "Hamlib" "Hamlib Utilities"
+.
+.
+.SH NAME
+.
+rotctl \- control antenna rotators
+.
+.
+.SH SYNOPSIS
+.
+.SY rotctl
+.OP \-hiIlLuV
+.OP \-m id
+.OP \-r device
+.OP \-s baud
+.OP \-t char
+.OP \-C parm=val
+.RB [ \-v [ \-Z ]]
+.RB [ command | \- ]
+.YS
+.
+.
+.SH DESCRIPTION
+.
+Control antenna rotators.
+.
+.PP
+.B rotctl
+accepts
+.I commands
+from the command line as well as in interactive mode if none are provided on
+the command line.
+.
+.PP
+Keep in mind that Hamlib is BETA level software.  While a lot of backend
+libraries lack complete rotator support, the basic functions are usually well
+supported.
+.
+.PP
+Please report bugs and provide feedback at the e-mail address given in the
+.B BUGS
+section below.  Patches and code enhancements sent to the same address are
+welcome.
+.
+.
+.SH OPTIONS
+.
+This program follows the usual GNU command line syntax.  Short options that
+take an argument may have the value follow immediately or be separated by a
+space.  Long options starting with two dashes (\(oq\-\(cq) require an
+\(oq=\(cq between the option and any argument.
+.
+.PP
+Here is a summary of the supported options:
+.
+.TP
+.BR \-m ", " \-\-model = \fIid\fP
+Select rotator model number.
+.IP
+See model list (use \(lqrotctl -l\(rq).
+.IP
+.BR Note :
+.B rotctl
+(or third party software using the C API) will use rotator model 2 for
+.B NET rotctl
+(communicating with
+.BR rotctld ).
+.
+.TP
+.BR \-r ", " \-\-rot\-file = \fIdevice\fP
+Use
+.I device
+as the file name of the port connected to the rotator.
+.IP
+Often a serial port, but could be a USB to serial adapter.  Typically
+.IR /dev/ttyS0 ", " /dev/ttyS1 ", " /dev/ttyUSB0 ,
+etc. on Linux,
+.IR COM1 ", " COM2 ,
+etc. on MS Windows.  The BSD flavors and Mac OS/X have their own designations.
+See your system's documentation.
+.
+.TP
+.BR \-s ", " \-\-serial\-speed = \fIbaud\fP
+Set serial speed to
+.I baud
+rate.
+.IP
+Uses maximum serial speed from rotator backend capabilities as the default.
+.
+.TP
+.BR \-t ", " \-\-send\-cmd\-term = \fIchar\fP
+Change the termination
+.I char
+for text protocol when using the
+.B send_cmd
+command.
+.IP
+The default value is ASCII CR (\(oq0x0D\(cq).  ASCII non-printing characters
+can be given as the ASCII number in hexadecimal format prepended with
+\(lq0x\(rq.  You may pass an empty string for no termination char.  The string
+\(lq\-1\(rq tells
+.B rotctl
+to switch to binary protocol.  See the
+.B send_cmd
+command for further explanation.
+.IP
+.BR Note :
+The semicolon (\(oq;\(cq) is a common terminator for rotators that accept
+ASCII character strings.
+.
+.TP
+.BR \-L ", " \-\-show\-conf
+List all configuration parameters for the rotator defined with
+.B \-m
+above.
+.
+.TP
+.BR \-C ", " \-\-set\-conf = \fIparm=val\fP [ \fI,parm=val\fP ]
+Set rotator configuration parameter(s),  e.g.
+.IR stop_bits=2 .
+.IP
+Use the
+.B -L
+option above for a list of configuration parameters for a given model number.
+.
+.TP
+.BR \-u ", " \-\-dump\-caps
+Dump capabilities for the rotator defined with
+.B -m
+above and exit.
+.
+.TP
+.BR \-l ", " \-\-list
+List all rotator model numbers defined in
+.B Hamlib
+and exit.
+.IP
+The list is sorted by model number.
+.IP
+.BR Note :
+In Linux the list can be scrolled back using
+.BR Shift-PageUp / Shift-PageDown ,
+or using the scrollbars of a virtual terminal in X or the cmd window in
+Windows.  The output can be piped to
+.BR more (1)
+or
+.BR less (1),
+e.g. \(lqrotctl -l | more\(rq.
+.
+.TP
+.BR \-i ", " \-\-read\-history
+Read previously saved command and argument history from a file (default
+.IR $HOME/.rotctl_history )
+for the current session.
+.IP
+Available when
+.B rotctl
+is built with Readline support (see
+.B READLINE
+below).
+.IP
+.BR Note :
+To read a history file stored in another directory, set the
+.B ROTCTL_HIST_DIR
+environment variable, e.g. \(lqROTCTL_HIST_DIR=$HOME/tmp rotctl -i\(rq.  When
+ROTCTL_HIST_DIR is not set, the value of
+.B HOME
+is used.
+.
+.TP
+.BR \-I ", " \-\-save\-history
+Write current session (and any previous session(s), if
+.B -i
+option is also given) command and argument history to a file (default
+.IR $HOME/.rotctl_history )
+at the end of the current session.
+.IP
+Complete commands with arguments are saved as a single line to be recalled and
+used or edited.  Available when
+.B rotctl
+is built with Readline support (see
+.B READLINE
+below).
+.IP
+.BR Note :
+To write a history file in another directory, set the
+.B ROTCTL_HIST_DIR
+environment variable, e.g. \(lqROTCTL_HIST_DIR=$HOME/tmp rotctl -I\(rq.  When
+ROTCTL_HIST_DIR is not set, the value of
+.B HOME
+is used.
+.
+.TP
+.BR \-v ", " \-\-verbose
+Set verbose mode, cumulative (see
+.B DIAGNOSTICS
+below).
+.
+.TP
+.BR \-Z ", " \-\-debug\-time\-stamps
+Enable time stamps for the debug messages.
+.IP
+Use only in combination with the
+.B -v
+option as it generates no output on its own.
+.
+.TP
+.BR \-h ", " \-\-help
+Show a summary of these options and exit.
+.
+.TP
+.BR \-V ", " \-\-version
+Show version of
+.B rotctl
+and exit.
+.
+.TP
+.B \-
+Stop option processing and read commands from standard input.
+.IP
+See
+.B Standard Input
+below.
+.
+.PP
+.BR Note :
+Some options may not be implemented by a given backend and will return an
+error.  This is most likely to occur with the
+.B \-\-set\-conf
+and
+.B \-\-show\-conf
+options.
+.
+.PP
+Be aware that the backend for the rotator to be controlled, or the rotator
+itself may not support some commands.  In that case, the operation will fail
+with a
+.B Hamlib
+error code.
+.
+.
+.SH COMMANDS
+.
+Commands can be entered either as a single char, or as a long command name.
+The commands are not prefixed with a dash as the options are.  They may be
+typed in when in interactive mode or provided as argument(s) in command line
+interface mode.  In interactive mode commands and their arguments may be
+entered on a single line:
+.
+.sp
+.RS 0.5i
+.EX
+P 123 45
+.EE
+.RE
+.
+.PP
+Since most of the
+.B Hamlib
+operations have a
+.BR set " and a " get
+method, an upper case letter will often be used for a
+.B set
+method whereas the corresponding lower case letter refers to the
+.B get
+method.  Each operation also has a long name; in interactive mode, prepend a
+backslash, \(oq\\\(cq, to enter a long command name.
+.
+.PP
+Example: Use \(lq\\get_info\(rq in interactive mode to see the rotator's
+information.
+.
+.PP
+.BR Note :
+The backend for the rotator to be controlled, or the rotator itself may not
+support some commands. In that case, the operation will fail with a
+.B Hamlib
+error message.
+.
+.
+.SS Standard Input
+.
+As an alternative to the
+.B READLINE
+interactive command entry or a single command for each run,
+.B rotctl
+features a special option where a single dash (\(oq\-\(cq) may be used to read
+commands from standard input
+.RB ( stdin ).
+Commands must be separated by whitespace similar to the commands given on the
+command line.  Comments may be added using the \(oq#\(cq character, all text
+up until the end of the current line including the \(oq#\(cq character is
+ignored.
+.
+.PP
+A simple example:
+.
+.sp
+.RS 0.5i
+.EX
+$ cat <<.EOF. >cmds.txt
+> # File of commands
+> set_pos 180.0 10.0	# rotate
+> pause 30  # wait for action to complete
+> get_pos   # query rotator
+> .EOF.
+
+$ rotctl -m 1 - <cmds.txt
+
+set_pos 180.0 10.0
+pause 30
+get_pos 180.000000
+10.000000
+
+$
+.EE
+.RE
+.
+.
+.SS Rotator Commands
+.
+A summary of commands is included below (In the case of
+.B set
+commands the quoted italicized string is replaced by the value in the
+description.  In the case of
+.B get
+commands the quoted italicized string is the key name of the value returned.):
+.
+.TP
+.BR Q | q ", exit rotctl"
+Exit rotctl in interactive mode.
+.IP
+When rotctl is controlling the rotator directly, will close the rotator
+backend and port.  When rotctl is connected to rotctld (rotator model 2), the
+TCP/IP connection to rotctld is closed and rotctld remains running, available
+for another TCP/IP network connection.
+.
+.TP
+.BR P ", " set_pos " \(aq" \fIAzimuth\fP "\(aq \(aq" \fIElevation\fP \(aq
+Set position.
+.IP
+.RI \(aq Azimuth \(aq
+and
+.RI \(aq Elevation \(aq
+are floating point values.
+.IP
+For example:
+.
+.sp
+.RS 1.0i
+.EX
+P 163.0 41.0
+.EE
+.RE
+.IP
+.BR Note :
+If the rotator does not support setting elevation (most do not) supply
+\(lq0.0\(rq for
+.RI \(aq Elevation \(aq.
+.
+.TP
+.BR p ", " get_pos
+Get position.
+.IP
+.RI \(aq Azimuth \(aq
+and
+.RI \(aq Elevation \(aq
+are returned as double precision floating point values.
+.
+.TP
+.BR M ", " move " \(aq" \fIDirection\fP "\(aq \(aq" \fISpeed\fP \(aq
+Move the rotator in a specific direction at the given rate.
+.IP
+.RI \(aq Direction \(aq
+is an integer defined as \(oq2\(cq = Up, \(oq4\(cq = Down, \(oq8\(cq = Left,
+and \(oq16\(cq = Right.
+.IP
+.RI \(aq Speed \(aq
+is an integer between 1 and 100.
+.IP
+.BR Note :
+Not all backends that implement the move command use the Speed value.  At this
+time only the gs232a utilizes the Speed parameter.
+.
+.TP
+.BR S ", " stop
+Stop the rotator.
+.
+.TP
+.BR K ", " park
+Park the rotator.
+.
+.TP
+.BR C ", " set_conf " \(aq" \fIToken\fR "\(aq \(aq" \fIValue\fP \(aq
+Set a configuration parameter.
+.IP
+.RI \(aq Token \(aq
+is a string; see the
+.B \-C
+option and the
+.B \-L
+output.
+.IP
+.RI \(aq Value \(aq
+is a string of up to 20 characters.
+.\" FIXME:  Need to describe the reset parameters available.
+.
+.TP
+.BR R ", " reset " \(aq" \fIReset\fP \(aq
+Reset the rotator.
+.IP
+.RI \(aq Reset \(aq
+accepts an integer value of \(oq1\(cq for \(lqReset All\(rq.
+.
+.TP
+.BR _ ", " get_info
+Get miscellaneous information about the rotator.
+.IP
+Returns
+.RI \(aq Info \(aq
+\(lqModel Name\(rq at present.
+.
+.TP
+.BR w ", " send_cmd " \(aq" \fICmd\fP \(aq
+Send a raw command string to the rotator.
+.IP
+ASCII CR (or
+.B \-\-send\-cmd\-term
+value, see
+.B \-t
+option) is appended automatically at the end of the command for text
+protocols.  For binary protocols, enter hexadecimal values as
+\(lq\\0xAA\\0xBB\(rq.
+.
+.
+.SS Locator Commands
+.
+These commands offer conversions of Degrees Minutes Seconds to other formats,
+.B Maidenhead
+square locator conversions and distance and azimuth conversions.
+.
+.TP
+.BR L ", " lonlat2loc " \(aq" \fILongitude\fP "\(aq \(aq" \fILatitude\fP "\(aq \(aq" "\fILoc Len\fP" \(aq
+Returns the
+.B Maidenhead
+.RI \(aq Locator \(aq
+for the given
+.RI \(aq Longitude "\(aq and \(aq" Latitude \(aq.
+.IP
+Floating point values are supplied.  The precision of the returned square is
+controlled by
+.RI \(aq "Loc Len" \(aq
+which should be an even numbered integer value between 2 and 12.
+.IP
+For example:
+.
+.sp
+.RS 1.0i
+.EX
+L -170.0 -85.0 12
+.EE
+.RE
+.IP
+returns:
+.
+.sp
+.RS 1.0i
+.EX
+Locator: AA55AA00AA00
+.EE
+.RE
+.
+.TP
+.BR l ", " loc2lonlat " \(aq" \fILocator\fP \(aq
+Returns
+.RI \(aq Longitude "\(aq and \(aq" Latitude \(aq
+in decimal degrees at the approximate center of the requested
+.B Maidenhead
+grid square.
+.IP
+.RI \(aq Locator \(aq
+can be from 2 to 12 characters in length.
+.IP
+West longitude is expressed as a negative value.
+.IP
+South latitude is
+expressed as a negative value.
+.IP
+For example:
+.
+.sp
+.RS 1.0i
+.EX
+l AA55AA00AA00
+.EE
+.RE
+.IP
+returns:
+.
+.sp
+.RS 1.0i
+.EX
+Longitude: -169.999983 Latitude: -84.999991
+.EE
+.RE
+.IP
+.BR Note :
+Despite the use of double precision variables internally, some rounding error
+occurs.
+.
+.TP
+.BR D ", " dms2dec " \(aq" \fIDegrees\fP "\(aq \(aq" \fIMinutes\fP "\(aq \(aq" \fISeconds\fP "\(aq \(aq" \fIS/W\fP \(aq
+Returns
+.RI \(aq "Dec Degrees" \(aq,
+a signed floating point value.
+.IP
+.RI \(aq Degrees "\(aq and \(aq" Minutes \(aq
+are integer values.
+.IP
+.RI \(aq Seconds \(aq
+is a floating point value.
+.IP
+.RI \(aq S/W \(aq
+is a flag with \(oq1\(cq indicating South latitude or West longitude and
+\(oq0\(cq North or East (the flag is needed as computers don't recognize a
+signed zero even though only the
+.RI \(aq Degrees \(aq
+value is typically signed in DMS notation).
+.
+.TP
+.BR d ", " dec2dms " \(aq" "\fIDec Degrees\fP" \(aq
+Returns
+.RI \(aq Degrees "\(aq \(aq" Minutes "\(aq \(aq" Seconds "\(aq \(aq" S/W \(aq.
+.IP
+Values are as in
+.B dms2dec
+above.
+.
+.TP
+.BR E ", " dmmm2dec " \(aq" \fIDegrees\fP "\(aq \(aq" "\fIDec Minutes\fP" "\(aq \(aq" \fIS/W\fP \(aq
+Returns
+.RI \(aq "Dec Degrees" \(aq,
+a signed floating point value.
+.IP
+.RI \(aq Degrees \(aq
+is an integer value.
+.IP
+.RI \(aq "Dec Minutes" \(aq
+is a floating point value.
+.IP
+.RI \(aq S/W \(aq
+is a flag as in
+.B dms2dec
+above.
+.
+.TP
+.BR e ", " dec2dmmm " \(aq" "\fIDec Deg\fP" \(aq
+Returns
+.RI \(aq Degrees "\(aq \(aq" Minutes "\(aq \(aq" S/W \(aq.
+.IP
+Values are as in
+.B dmmm2dec
+above.
+.
+.TP
+.BR B ", " qrb " \(aq" "\fILon 1\fP" "\(aq \(aq" "\fILat 1\fP" "\(aq \(aq" "\fILon 2\fP" "\(aq \(aq" "\fILat 2\fP" \(aq
+Returns
+.RI \(aq Distance "\(aq and \(aq" Azimuth \(aq.
+.IP
+.RI \(aq Distance \(aq
+is in km.
+.IP
+.RI \(aq Azimuth \(aq
+is in degrees.
+.IP
+Supplied
+.IR Lon / Lat
+values are signed floating point numbers.
+.
+.TP
+.BR A ", " a_sp2a_lp " \(aq" "\fIShort Path Deg\fP" \(aq
+Returns
+.RI \(aq "Long Path Deg" \(aq.
+.IP
+Both the supplied argument and returned value are floating point values within
+the range of 0.00 to 360.00.
+.IP
+.BR Note :
+Supplying a negative value will return an error message.
+.
+.TP
+.BR a ", " d_sp2d_lp " \(aq" "\fIShort Path km\fP" \(aq
+Returns
+.RI \(aq "Long Path km" \(aq.
+.IP
+Both the supplied argument and returned value are floating point values.
+.
+.TP
+.BR pause " \(aq" \fISeconds\fP \(aq
+Pause for the given whole (integer) number of
+.RI \(aq Seconds \(aq
+before sending the next command to the rotator.
+.
+.
+.SH READLINE
+.
+If
+.B Readline
+library development files are found at configure time,
+.B rotctl
+will be conditonally built with Readline support for command and argument entry.
+Readline command key bindings are at their defaults as described in the
+.UR https://tiswww.cwru.edu/php/chet/readline/rluserman.html
+Readline manual
+.UE .
+.B rotctl
+sets the name \(lqrotctl\(rq which can be used in Conditional Init Constructs
+in the Readline Init File
+.RI ( $HOME/.inputrc
+by default) for custom keybindings unique to
+.BR rotctl .
+.
+.PP
+Command history is available with Readline support as described in the
+.UR https://tiswww.case.edu/php/chet/readline/history.html#SEC1
+Readline History manual
+.UE .
+Command and argument strings are stored as single lines even when arguments
+are prompted for input individually.  Commands and arguments are not validated
+and are stored as typed with values separated by a single space.
+.
+.PP
+Normally session history is not saved, however, use of either of the
+.BR \-i / \-\-read\-history
+or
+.BR \-I / \-\-save\-history
+options when starting
+.B rotctl
+will cause any previously saved history to be read in and/or the
+current and any previous session history (assuming the
+.BR -i " and " -I
+options are given together) will be written out when
+.B rotctl
+is closed.  Each option is mutually exclusive, i.e. either may be given
+separately or in combination.  This is useful to save a set of commands and
+then read them later but not write the modified history for a consistent set
+of test commands in interactive mode, for example.
+.
+.PP
+History is stored in
+.I $HOME/.rotctl_history
+by default although the destination directory may be changed by setting the
+.B ROTCTL_HIST_DIR
+environment variable.  When ROTCTL_HIST_DIR is unset, the value of the
+.B HOME
+environment variable is used instead.  Only the destination directory may be
+changed at this time.
+.
+.PP
+If Readline support is not found at configure time the original internal
+command handler is used.  Readline is not used for
+.B rotctl
+commands entered on the command line regardless if Readline support is built
+in or not.
+.
+.PP
+.BR Note :
+Readline support is not included in the MS Windows 32 or 64 bit binary builds
+supplied by the Hamlib Project.  Running
+.B rotctl
+on the MS Windows platform in the \(oqcmd\(cq shell does give session command
+line history, however, it is not saved to disk between sessions.
+.
+.
+.SH DIAGNOSTICS
+.
+The
+.BR \-v ,
+.B \-\-verbose
+option allows different levels of diagnostics
+to be output to
+.B stderr
+and correspond to \-v for
+.BR BUG ,
+\-vv for
+.BR ERR ,
+\-vvv for
+.BR WARN ,
+\-vvvv for
+.BR VERBOSE ,
+or \-vvvvv for
+.BR TRACE .
+.
+.PP
+A given verbose level is useful for providing needed debugging information to
+the email address below.  For example, TRACE output shows all of the values
+sent to and received from the radio which is very useful for radio backend
+library development and may be requested by the developers.
+.
+.
+.SH EXIT STATUS
+.
+.B rotctl
+exits with:
+.
+.TP
+.B 0
+if all operations completed normally;
+.
+.TP
+.B 1
+if there was an invalid command line option or argument;
+.
+.TP
+.B 2
+if an error was returned by
+.BR Hamlib .
+.
+.
+.SH EXAMPLE
+.
+Start
+.B rotctl
+for RotorEZ using the first serial port on Linux:
+.
+.sp
+.RS 0.5i
+.EX
+$ rotctl -m 401 -r /dev/ttyS0
+.EE
+.RE
+.
+.PP
+Start
+.B rotctl
+for RotorEZ using COM2 on MS Windows:
+.
+.sp
+.RS 0.5i
+.EX
+$ rotctl -m 401 -r COM2
+.EE
+.RE
+.
+.PP
+Connect to a running
+.B rotctld
+with rotator model 2 (\(lqNET rotctl\(rq) on the local host and specifying the
+TCP port, and querying the position:
+.
+.sp
+.RS 0.5i
+.EX
+$ rotctl -m 2 -r localhost:4533 \\get_pos
+.EE
+.RE
+.
+.
+.SH BUGS
+.
+Report bugs to:
+.IP
+.nf
+.MT hamlib\-developer@lists.sourceforge.net
+Hamlib Developer mailing list
+.ME
+.fi
+.
+.
+.SH COPYING
+.
+This file is part of Hamlib, a project to develop a library that simplifies
+radio and rotator control functions for developers of software primarily of
+interest to radio amateurs and those interested in radio communications.
+.
+.PP
+Copyright \(co 2001-2011 Stephane Fillod
+.br
+Copyright \(co 2002-2017 the Hamlib Group (various contributors)
+.br
+Copyright \(co 2003-2018 Nate Bargmann
+.
+.PP
+This is free software; see the file COPYING for copying conditions.  There is
+NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+.
+.
+.SH SEE ALSO
+.
+.BR less (1),
+.BR more (1),
+.BR rotctld (1),
+.BR hamlib (7)
+.
+.
+.SH COLOPHON
+.
+Links to the Hamlib Wiki, Git repository, release archives, and daily snapshot
+archives:
+.IP
+.UR http://www.hamlib.org
+hamlib.org
+.UE .
