@@ -494,19 +494,7 @@ int kenwood_init(RIG *rig)
     return -RIG_ENOMEM;
 
   memset(priv, 0x00, sizeof(struct kenwood_priv_data));
-
-  switch (rig->caps->rig_model) {
-	  case RIG_MODEL_XG3:
-  		strcpy (priv->verify_cmd, ";");
-		break;
-	  case RIG_MODEL_THD74:
-  		strcpy (priv->verify_cmd, "ID");
-		break;
-	  default:
-  		strcpy (priv->verify_cmd, "ID;");
-		break;
-  }
-
+  strcpy (priv->verify_cmd, RIG_MODEL_XG3 == rig->caps->rig_model ? ";" : "ID;");
   priv->split = RIG_SPLIT_OFF;
   priv->trn_state = -1;
   rig->state.priv = priv;

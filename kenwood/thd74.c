@@ -83,14 +83,15 @@ static struct kenwood_priv_caps  thd74_priv_caps  =
 };
 
 //static int thd74_open(RIG *rig);
-static int thd74_get_chan_all_cb(RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg);
+int thd74_get_chan_all_cb(RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg);
 
-static int thd74_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
-static int thd74_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
-static int thd74_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
-static int thd74_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
-static char thd74_get_vfo_letter(RIG *rig, vfo_t vfo);
-static int thd74_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+int thd74_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+int thd74_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+int thd74_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+int thd74_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+char thd74_get_vfo_letter(RIG *rig, vfo_t vfo);
+int thd74_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+int thd74_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
 
 /*
  * th-d72a rig capabilities.
@@ -200,10 +201,6 @@ const struct rig_caps thd74_caps =
     .get_freq = thd74_get_freq,
     .set_trn = kenwood_set_trn,
     .get_trn = kenwood_get_trn,
-//.set_rit = kenwood_set_rit,
-//.get_rit = kenwood_get_rit,
-//.set_xit = kenwood_set_xit,
-//.get_xit = kenwood_get_xit,
     .set_mode = thd74_set_mode,
     .get_mode = thd74_get_mode,
 //.set_split_vfo = kenwood_set_split_vfo,
@@ -212,6 +209,9 @@ const struct rig_caps thd74_caps =
     .set_ptt = thd74_set_ptt,
     .get_dcd = th_get_dcd,
 
+    .set_powerstat =  kenwood_set_powerstat,
+    .get_powerstat =  kenwood_get_powerstat,
+    .vfo_op =  thd74_vfo_op,
 };
 
 
@@ -219,7 +219,7 @@ const struct rig_caps thd74_caps =
 #define BLOCK_SZ 256
 #define BLOCK_COUNT 256
 
-static char thd74_get_vfo_letter(RIG *rig, vfo_t vfo)
+char thd74_get_vfo_letter(RIG *rig, vfo_t vfo)
 {
     unsigned char vfo_letter;
     vfo_t tvfo;
@@ -678,9 +678,33 @@ int thd74_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     return RIG_OK;
 }
 
-static int thd74_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
+int thd74_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     char buf[6];
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
     return kenwood_transaction(rig, (ptt == RIG_PTT_ON) ? "TX" : "RX", buf, 5);
+}
+
+/*
+ * thd74_vfo_op
+ */
+int thd74_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
+{
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  if (!rig)
+    return -RIG_EINVAL;
+
+  switch(op) {
+  case RIG_OP_UP:
+    return kenwood_transaction(rig, "UP", NULL, 0);
+
+  case RIG_OP_DOWN:
+    return kenwood_transaction(rig, "DW", NULL, 0);
+
+  default:
+    rig_debug(RIG_DEBUG_ERR, "%s: unsupported op %#x\n",
+          __func__, op);
+    return -RIG_EINVAL;
+  }
 }
