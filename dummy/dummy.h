@@ -40,5 +40,6 @@
 extern const struct rig_caps dummy_caps;
 extern const struct rig_caps netrigctl_caps;
 extern const struct rig_caps flrig_caps;
+extern const struct rig_caps trxmanager_caps;
 
 #endif /* _DUMMY_H */
