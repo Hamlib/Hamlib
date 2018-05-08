@@ -472,6 +472,10 @@ int main(int argc, char *argv[])
             dump_caps_opt++;
             break;
 
+        case 'Z':
+            rig_set_debug_time_stamp(1);
+            break;
+
         default:
             usage();    /* unknown option? */
             exit(1);

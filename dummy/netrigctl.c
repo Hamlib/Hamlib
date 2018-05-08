@@ -998,7 +998,7 @@ static int netrigctl_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val
   else
 	sprintf(lstr, "%d", val.i);
 
-  len = sprintf(cmd, "L %s %s\n", rig_strlevel(level), lstr);
+  len = snprintf(cmd, sizeof(cmd), "L %s %s\n", rig_strlevel(level), lstr);
 
   ret = netrigctl_transaction(rig, cmd, len, buf);
   if (ret > 0)
@@ -1083,7 +1083,7 @@ static int netrigctl_set_parm(RIG *rig, setting_t parm, value_t val)
 	sprintf(pstr, "%f", val.f);
   else
 	sprintf(pstr, "%d", val.i);
-  len = sprintf(cmd, "P %s %s\n", rig_strparm(parm), pstr);
+  len = snprintf(cmd, sizeof(cmd), "P %s %s\n", rig_strparm(parm), pstr);
 
   ret = netrigctl_transaction(rig, cmd, len, buf);
   if (ret > 0)

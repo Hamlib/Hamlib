@@ -173,7 +173,7 @@ int network_open(hamlib_port_t *rp, int default_port)
     {
         if (strlen(rp->pathname))
         {
-            strncpy(hostname, rp->pathname, FILPATHLEN - 1);
+            snprintf(hostname, sizeof(hostname), "%s", rp->pathname);
             hoststr = hostname;
             /* look for IPv6 numeric form [<addr>] */
             bracketstr1 = strchr(hoststr, '[');

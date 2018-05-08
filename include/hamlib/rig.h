@@ -147,7 +147,7 @@ typedef struct rig RIG;
 
 #define RIGNAMSIZ 30
 #define RIGVERSIZ 8
-#define FILPATHLEN 100
+#define FILPATHLEN 512
 #define FRQRANGESIZ 30
 #define MAXCHANDESC 30      /* describe channel eg: "WWV 5Mhz" */
 #define TSLSTSIZ 20         /* max tuning step list size, zero ended */
@@ -865,6 +865,7 @@ typedef enum {
     RIG_MODE_SAH =      (1 << 18),  /*!< \c SAH -- Synchronous AM upper (higher) sideband */
     RIG_MODE_DSB =      (1 << 19),  /*!< \c DSB -- Double sideband suppressed carrier */
     RIG_MODE_FMN =      (1 << 21),  /*!< \c FMN -- FM Narrow Kenwood ts990s */
+    RIG_MODE_PKTAM =    (1 << 22),  /*!< \c PKTAM -- Packet/Digital AM mode e.g. IC7300 */
     RIG_MODE_TESTS_MAX              /*!< \c MUST ALWAYS BE LAST, Max Count for dumpcaps.c */
 } rmode_t;
 

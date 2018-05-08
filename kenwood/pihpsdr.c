@@ -501,7 +501,7 @@ int pihspdr_set_channel(RIG *rig, const channel_t *chan)
 	if (!rig || !chan)
 		return -RIG_EINVAL;
 
-	char buf[55];
+	char buf[128];
 	char mode, tx_mode = 0;
 	int err;
 	int tone = 0;
@@ -616,7 +616,7 @@ int pihspdr_set_channel(RIG *rig, const channel_t *chan)
 		return err;
 
     if( chan->split == RIG_SPLIT_ON ){
-	  sprintf(buf, "MW1%03d%011u%c%c%c%02d%02d%03d%c%c%09d0%c%c%s;\n",
+	  snprintf(buf, sizeof(buf), "MW1%03d%011u%c%c%c%02d%02d%03d%c%c%09d0%c%c%s;\n",
 		chan->channel_num,
 		(unsigned) chan->tx_freq, 		/*  4 - frequency */
 		'0' + tx_mode,     				/*  5 - mode */

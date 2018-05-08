@@ -377,7 +377,7 @@ int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	switch (rig->caps->rig_model) {
 	    case RIG_MODEL_AR5000:
 	    case RIG_MODEL_AR5000A:
-		strncpy(mdbuf2, mdbuf, 3);      /* Extract first 'MD' part */
+		snprintf(mdbuf2, sizeof(mdbuf2), "%.3s", mdbuf);      /* Extract first 'MD' part */
 		mdbuf2_len = strlen(mdbuf2);
 		strcpy(mdbuf2+mdbuf2_len, EOM); /* Add delimiter */
 		mdbuf2_len = strlen(mdbuf2);
@@ -1157,7 +1157,7 @@ const char *aor_get_info(RIG *rig)
 	static char infobuf[BUFSZ];
 	int id_len, frm_len, retval;
 	char idbuf[BUFSZ];
-	char frmbuf[BUFSZ];
+	char frmbuf[8];
 
 	retval = aor_transaction (rig, "\001" EOM, 2, idbuf, &id_len);
 	if (retval != RIG_OK)
@@ -1170,7 +1170,7 @@ const char *aor_get_info(RIG *rig)
 		return NULL;
 
 	frmbuf[frm_len] = '\0';
-	sprintf(infobuf, "Remote ID %c%c, Firmware version %s",
+	snprintf(infobuf, sizeof(infobuf), "Remote ID %c%c, Firmware version %s",
 			idbuf[0], idbuf[1], frmbuf);
 
 	return infobuf;

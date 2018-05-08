@@ -489,7 +489,7 @@ int dttsp_open(RIG *rig)
   p = getenv ( "SDR_METERPATH" );
   if (!p) {
     meterpath = priv->meter_port.pathname;
-	strncpy(meterpath, rig->state.rigport.pathname, FILPATHLEN - 1);
+    snprintf(meterpath, FILPATHLEN, "%s", rig->state.rigport.pathname);
     if (rig->state.rigport.type.rig == RIG_PORT_UDP_NETWORK) {
         p = strrchr(meterpath, ':');
         if (p)

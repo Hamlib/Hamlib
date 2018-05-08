@@ -44,8 +44,15 @@
 #define REQUEST_SET_FREQ					0x64
 #define REQUEST_SET_FREQ_HZ					0x65
 #define REQUEST_GET_FREQ_HZ					0x66
-#define REQUEST_SET_LNA_GAIN				0x6E
-#define REQUEST_GET_LNA_GAIN				0x96
+
+#define REQUEST_SET_LNA_GAIN 					0x6E
+#define REQUEST_SET_MIXER_GAIN					0x72 // Taken from qthid code
+#define REQUEST_SET_IF_GAIN				        0x75
+
+#define REQUEST_GET_LNA_GAIN					0x96
+#define REQUEST_GET_MIXER_GAIN					0x9A // Taken from qthid code
+#define REQUEST_GET_IF_GAIN					0x9D // Taken from qthid code
+
 #define REQUEST_GET_RSSI					0x68
 
 #define FUNCUBE_SUCCESS						0x01
