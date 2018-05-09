@@ -50,7 +50,7 @@
 #define TRXMANAGER_MODES (RIG_MODE_AM | RIG_MODE_CW | RIG_MODE_CWR |\
                      RIG_MODE_RTTY | RIG_MODE_RTTYR |\
                      RIG_MODE_PKTLSB | RIG_MODE_PKTUSB |\
-                     RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_WFM | RIG_MODE_FMN )
+                     RIG_MODE_USB | RIG_MODE_LSB | RIG_MODE_FM)
 
 #define streq(s1,s2) (strcmp(s1,s2)==0)
 
@@ -98,7 +98,7 @@ struct rig_caps trxmanager_caps = {
     .port_type = RIG_PORT_NETWORK,
     .write_delay = 0,
     .post_write_delay = 0,
-    .timeout = 1000,
+    .timeout = 10000, // long timeout to allow for antenna tuning and such
     .retry = 3,
 
     .has_get_func = RIG_FUNC_NONE,
@@ -260,6 +260,7 @@ static int trxmanager_open(RIG *rig) {
     struct rig_state *rs = &rig->state;
     struct trxmanager_priv_data *priv = (struct trxmanager_priv_data *) rig->state.priv;
 
+    rs->rigport.timeout = 10000; // long timeout for antenna switching/tuning
     retval = read_transaction(rig, response, sizeof(response));
     if (retval != RIG_OK) {
         rig_debug(RIG_DEBUG_ERR,"%s read_transaction failed\n", __FUNCTION__);
@@ -376,8 +377,8 @@ static int trxmanager_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     *freq = 0;
     int n = sscanf(&response[2],"%lg",freq);
     if (n != 1) {
+        rig_debug(RIG_DEBUG_ERR, "%s: can't parse freq from %s", __FUNCTION__,response);
     }
-    rig_debug(RIG_DEBUG_ERR, "%s: can't parse freq from %s", __FUNCTION__,response);
     if (*freq == 0) {
         rig_debug(RIG_DEBUG_ERR, "%s: freq==0??\n", __FUNCTION__);
         return -RIG_EPROTO;
@@ -553,14 +554,23 @@ static int trxmanager_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t widt
     case RIG_MODE_FM:
         ttmode=4;
         break;
-    case RIG_MODE_PKTUSB:
+    case RIG_MODE_AM:
         ttmode=5;
         break;
-    case RIG_MODE_CWR:
+    case RIG_MODE_RTTY:
         ttmode=6;
         break;
-    case RIG_MODE_PKTLSB:
+    case RIG_MODE_CWR:
         ttmode=7;
+        break;
+    case RIG_MODE_RTTYR:
+        ttmode=9;
+        break;
+    case RIG_MODE_PKTLSB:
+        ttmode=9;
+        break;
+    case RIG_MODE_PKTUSB:
+        ttmode=9;
         break;
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n",__FUNCTION__,rig_strrmode(mode));
@@ -642,20 +652,23 @@ static int trxmanager_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *wi
     case '2':
         *mode=RIG_MODE_USB;
         break;
-    case '4':
+    case '3':
         *mode=RIG_MODE_CW;
         break;
+    case '4':
+        *mode=RIG_MODE_FM;
+        break;
     case '5':
-        *mode=RIG_MODE_PKTUSB;
+        *mode=RIG_MODE_AM;
         break;
     case '6':
-        *mode=RIG_MODE_CWR;
+        *mode=RIG_MODE_RTTY;
         break;
     case '7':
-        *mode=RIG_MODE_PKTLSB;
+        *mode=RIG_MODE_CWR;
         break;
     case '9':
-        *mode=RIG_MODE_PKTUSB;
+        *mode=RIG_MODE_RTTYR;
         break;
     case 'A':
         *mode=RIG_MODE_PKTLSB;
