@@ -38,22 +38,18 @@
 #define THD72_MODES	(RIG_MODE_FM|RIG_MODE_FMN|RIG_MODE_AM)
 #define THD72_MODES_TX	(RIG_MODE_FM|RIG_MODE_FMN)
 
-#define THD72_FUNC_ALL (RIG_FUNC_TSQL|   \
-                       RIG_FUNC_AIP|    \
-                       RIG_FUNC_MON|    \
-                       RIG_FUNC_SQL|    \
-                       RIG_FUNC_TONE|   \
-                       RIG_FUNC_REV|    \
-                       RIG_FUNC_LOCK|   \
+#define THD72_FUNC_ALL (RIG_FUNC_TSQL| \
+                       RIG_FUNC_AIP| \
+                       RIG_FUNC_TONE| \
                        RIG_FUNC_ARO)
 
-#define THD72_LEVEL_ALL (RIG_LEVEL_RFPOWER|\
-			RIG_LEVEL_SQL|\
-			RIG_LEVEL_BALANCE|\
-			RIG_LEVEL_VOXGAIN|\
+#define THD72_LEVEL_ALL (RIG_LEVEL_RFPOWER| \
+			RIG_LEVEL_SQL| \
+			RIG_LEVEL_BALANCE| \
+			RIG_LEVEL_VOXGAIN| \
                         RIG_LEVEL_VOXDELAY)
 
-#define THD72_PARMS	(RIG_PARM_APO|\
+#define THD72_PARMS	(RIG_PARM_APO| \
 			RIG_PARM_TIME)
 
 #define THD72_VFO_OP (RIG_OP_NONE)
@@ -117,7 +113,7 @@ static int thd72apo[4] = {
     [3] = 60
 };
 
-static tone_t thd72dcs_codes[104] = {
+static tone_t thd72dcs_list[105] = {
      23,  25,  26,  31,  32,  36,  43,  47,
      51,  53,  54,  65,  71,  72,  73,  74,
     114, 115, 116, 122, 125, 131, 132, 134,
@@ -130,7 +126,8 @@ static tone_t thd72dcs_codes[104] = {
     452, 454, 455, 462, 464, 465, 466, 503,
     506, 516, 523, 526, 532, 546, 565, 606,
     612, 624, 627, 631, 632, 654, 662, 664,
-    703, 712, 723, 731, 732, 734, 743, 754
+    703, 712, 723, 731, 732, 734, 743, 754,
+    0
 };
 
 static struct kenwood_priv_caps thd72_priv_caps = {
@@ -340,10 +337,11 @@ static int thd72_get_rptr_shft(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-    retval = thd72_get_freq_item(rig, vfo, 18, 2, &rsinx);
+    retval = thd72_get_freq_item(rig, vfo, 18, 3, &rsinx);
     if (retval != RIG_OK)
 	return retval;
-    *rptr_shift = thd72_rshf_table[rsinx];
+    /* rsinx == 3 indicates split mode? */
+    *rptr_shift = (rsinx == 3)? RIG_RPT_SHIFT_NONE: thd72_rshf_table[rsinx];
     return RIG_OK;
 }
 
@@ -463,7 +461,7 @@ static int thd72_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
     cinx = 0;		/* default */
     if (code != 0) {
 	for (cinx = 0; cinx < 104; cinx++) {
-	    if (code == thd72dcs_codes[cinx])
+	    if (code == thd72dcs_list[cinx])
 		break;
 	}
 	if (cinx >= 104)
@@ -492,7 +490,54 @@ static int thd72_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
 	*code = 0;
     else {
 	sscanf(buf+36, "%d", &cinx);
-	*code = thd72dcs_codes[cinx];
+	*code = thd72dcs_list[cinx];
+    }
+    return RIG_OK;
+}
+
+static int thd72_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
+{
+    int retval, tinx;
+    char buf[64], tmp[4];
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+    tinx = 0;		/* default */
+    if (tone != 0) {
+	for (tinx = 0; tinx < 42; tinx++) {
+	    if (tone == kenwood42_ctcss_list[tinx])
+		break;
+	}
+	if (tinx >= 42)
+	    return -RIG_EINVAL;
+    }
+    retval = thd72_get_freq_info(rig, vfo, buf);
+    if (retval != RIG_OK)
+	return retval;
+    buf[24] = (tone == 0) ? '0' : '1';
+    sprintf(tmp, "%02d", tinx);
+    memcpy(buf+33, tmp, 2);
+    return kenwood_simple_transaction(rig, buf, 52);
+}
+
+static int thd72_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
+{
+    int retval, tinx;
+    char buf[64];
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+    retval = thd72_get_freq_info(rig, vfo, buf);
+    if (retval != RIG_OK)
+	return retval;
+    if (buf[24] == '0')	/* no tsql */
+	*tone = 0;
+    else {
+	sscanf(buf+33, "%d", &tinx);
+	if (tinx >= 0 && tinx <= 41)
+	    *tone = kenwood42_ctcss_list[tinx];
+	else
+	    return -RIG_EINVAL;
     }
     return RIG_OK;
 }
@@ -664,6 +709,12 @@ static int thd72_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 	    if (retval != RIG_OK)
 		return retval;
 	    return thd72_set_menu_item(rig, c == '0'?5:6, status);
+	case RIG_FUNC_ARO:
+	    return thd72_set_menu_item(rig, 18, status);
+	case RIG_FUNC_TONE:
+	    return thd72_set_freq_item(rig, vfo, 22, status);
+	case RIG_FUNC_TSQL:
+	    return thd72_set_freq_item(rig, vfo, 24, status);
 	default:
 	    return -RIG_EINVAL;
     }
@@ -672,7 +723,7 @@ static int thd72_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
 static int thd72_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
-    int retval, l;
+    int retval, f;
     char c;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
@@ -682,14 +733,23 @@ static int thd72_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 	    retval = thd72_vfoc(rig, vfo, &c);
 	    if (retval != RIG_OK)
 		return retval;
-	    retval = thd72_get_menu_item(rig, c == '0'?5:6, '1', &l);
-	    if (retval != RIG_OK)
-		return retval;
-	    *status = l;
+	    retval = thd72_get_menu_item(rig, c == '0'?5:6, 1, &f);
+	    break;
+	case RIG_FUNC_ARO:
+	    retval = thd72_get_menu_item(rig, 18, 1, &f);
+	    break;
+	case RIG_FUNC_TONE:
+	    retval = thd72_get_freq_item(rig, vfo, 22, 1, &f);
+	    break;
+	case RIG_FUNC_TSQL:
+	    retval = thd72_get_freq_item(rig, vfo, 24, 1, &f);
 	    break;
 	default:
-	    return -RIG_EINVAL;
+	    retval = -RIG_EINVAL;
     }
+    if (retval != RIG_OK)
+	return retval;
+    *status = f;
     return RIG_OK;
 }
 
@@ -852,9 +912,11 @@ static int thd72_get_channel(RIG *rig, channel_t *chan)
     return RIG_OK;
 }
 
+#ifdef false	/* not working */
 #define CMD_SZ 5
 #define BLOCK_SZ 256
 #define BLOCK_COUNT 256
+#define CHAN_PER_BLOCK 4
 
 static int thd72_get_block (RIG *rig, int block_num, char *block)
 {
@@ -872,7 +934,7 @@ static int thd72_get_block (RIG *rig, int block_num, char *block)
 
     /* read response first */
     ret = read_block(rp, resp, CMD_SZ);
-    if (ret != RIG_OK)
+    if (ret != CMD_SZ)
         return ret;
 
     if (resp[0] != 'W' || memcmp(cmd+1, resp+1, CMD_SZ-1))
@@ -907,23 +969,21 @@ int thd72_get_chan_all_cb (RIG * rig, chan_cb_t chan_cb, rig_ptr_t arg)
     char block[BLOCK_SZ];
     char resp[CMD_SZ];
 
-    ret = kenwood_transaction(rig, "0M PROGRAM", NULL, 0);
+    ret = kenwood_transaction(rig, "0M PROGRAM", resp, CMD_SZ);
     if (ret != RIG_OK)
         return ret;
+    if (strlen(resp) != 2 || memcmp(resp, "0M", 2))
+	return -RIG_EPROTO;
 
     rp->parm.serial.rate = 57600;
-
     serial_setup(rp);
 
-    /* let the pcr settle and flush any remaining data*/
-    usleep(100*1000);
-    serial_flush(rp);
 
-    /* setRTS or Hardware flow control? */
-    ret = ser_set_rts(rp, 1);
+    usleep(100*1000);	/* let the pcr settle */
+    serial_flush(rp);	/* flush any remaining data */
+    ret = ser_set_rts(rp, 1);	/* setRTS or Hardware flow control? */
     if (ret != RIG_OK)
         return ret;
-
 	/*
 	 * setting chan to NULL means the application
 	 * has to provide a struct where to store data
@@ -936,7 +996,6 @@ int thd72_get_chan_all_cb (RIG * rig, chan_cb_t chan_cb, rig_ptr_t arg)
     if (chan == NULL)
         return -RIG_ENOMEM;
 
-
     for (i=0; i<BLOCK_COUNT; i++) {
 
         ret = thd72_get_block (rig, i, block);
@@ -946,12 +1005,8 @@ int thd72_get_chan_all_cb (RIG * rig, chan_cb_t chan_cb, rig_ptr_t arg)
         /*
          * Most probably, there's 64 bytes per channel (256*256 / 1000+)
          */
-#define CHAN_PER_BLOCK 4
-
-		for (j=0; j<CHAN_PER_BLOCK; j++) {
-
+	for (j=0; j<CHAN_PER_BLOCK; j++) {
             char *block_chan = block + j*(BLOCK_SZ/CHAN_PER_BLOCK);
-
             memset(chan, 0, sizeof(channel_t));
 			chan->vfo = RIG_VFO_MEM;
 			chan->channel_num = i*CHAN_PER_BLOCK + j;
@@ -1002,7 +1057,7 @@ int thd72_get_chan_all_cb (RIG * rig, chan_cb_t chan_cb, rig_ptr_t arg)
 
     return RIG_OK;
 }
-
+#endif	/* none working stuff */
 /*
  * th-d72a rig capabilities.
  */
@@ -1025,9 +1080,8 @@ const struct rig_caps thd72a_caps = {
 .serial_handshake =  RIG_HANDSHAKE_XONXOFF,
 .write_delay =  0,
 .post_write_delay =  0,
-.timeout =  250,
+.timeout =  500,
 .retry =  3,
-
 .has_get_func =  THD72_FUNC_ALL,
 .has_set_func =  THD72_FUNC_ALL,
 .has_get_level =  THD72_LEVEL_ALL,
@@ -1040,8 +1094,8 @@ const struct rig_caps thd72a_caps = {
         [LVL_RFPOWER] = { .min = { .i = 2 }, .max = { .i = 0 } },
 },
 .parm_gran =  {},
-.ctcss_list =  kenwood38_ctcss_list,
-.dcs_list =  NULL,
+.ctcss_list =  kenwood42_ctcss_list,
+.dcs_list =  thd72dcs_list,
 .preamp =   { RIG_DBLST_END, },
 .attenuator =   { RIG_DBLST_END, },
 .max_rit =  Hz(0),
@@ -1052,48 +1106,42 @@ const struct rig_caps thd72a_caps = {
 .transceive =  RIG_TRN_RIG,
 .bank_qty =   0,
 .chan_desc_sz =  6, /* TBC */
-
 .chan_list =  {
-                {  0,  999, RIG_MTYPE_MEM , {TH_CHANNEL_CAPS}},  /* TBC MEM */
-                RIG_CHAN_END,
-                   },
-
+    {  0,  999, RIG_MTYPE_MEM , {TH_CHANNEL_CAPS}},  /* TBC MEM */
+    RIG_CHAN_END,
+  },
 .rx_range_list1 =  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
 .tx_range_list1 =  { RIG_FRNG_END, },
 .rx_range_list2 =  {
     {MHz(118),MHz(174),THD72_MODES,-1,-1,THD72_VFO},
     {MHz(320),MHz(524),THD72_MODES,-1,-1,THD72_VFO},
-	RIG_FRNG_END,
-  }, /* rx range */
+    RIG_FRNG_END,
+  },
 .tx_range_list2 =  {
     {MHz(144),MHz(148),THD72_MODES_TX,W(0.05),W(5),THD72_VFO},
     {MHz(430),MHz(440),THD72_MODES_TX,W(0.05),W(5),THD72_VFO},
-	RIG_FRNG_END,
-  }, /* tx range */
-
+    RIG_FRNG_END,
+  },
 .tuning_steps =  {
-	 {THD72_MODES,kHz(5)},
-	 {THD72_MODES,kHz(6.25)},
-     /* kHz(8.33)  ?? */
-	 {THD72_MODES,kHz(10)},
-	 {THD72_MODES,kHz(12.5)},
-	 {THD72_MODES,kHz(15)},
-	 {THD72_MODES,kHz(20)},
-	 {THD72_MODES,kHz(25)},
-	 {THD72_MODES,kHz(30)},
-	 {THD72_MODES,kHz(50)},
-	 {THD72_MODES,kHz(100)},
-	 RIG_TS_END,
-	},
-        /* mode/filter list, remember: order matters! */
-.filters =  {
-		{RIG_MODE_FM, kHz(14)},
-		{RIG_MODE_FMN, kHz(7)},
-		{RIG_MODE_AM, kHz(9)},
-		RIG_FLT_END,
-	},
+    {THD72_MODES,kHz(5)},
+    {THD72_MODES,kHz(6.25)},
+    {THD72_MODES,kHz(8.33)},
+    {THD72_MODES,kHz(10)},
+    {THD72_MODES,kHz(12.5)},
+    {THD72_MODES,kHz(15)},
+    {THD72_MODES,kHz(20)},
+    {THD72_MODES,kHz(25)},
+    {THD72_MODES,kHz(30)},
+    {THD72_MODES,kHz(50)},
+    RIG_TS_END,
+  },
+        .filters =  {	/* mode/filter list, remember: order matters! */
+    {RIG_MODE_FM, kHz(14)},
+    {RIG_MODE_FMN, kHz(7)},
+    {RIG_MODE_AM, kHz(9)},
+    RIG_FLT_END,
+  },
 .priv =  (void *)&thd72_priv_caps,
-
 .rig_init = kenwood_init,
 .rig_cleanup = kenwood_cleanup,
 .rig_open = thd72_open,
@@ -1113,8 +1161,8 @@ const struct rig_caps thd72a_caps = {
 .get_ctcss_tone =  thd72_get_ctcss_tone,
 .set_dcs_code = thd72_set_dcs_code,
 .get_dcs_code = thd72_get_dcs_code,
-//.set_tone_sql =  th_set_tone_sql,
-//.get_tone_sql =  th_get_tone_sql,
+.set_ctcss_sql = thd72_set_ctcss_sql,
+.get_ctcss_sql = thd72_get_ctcss_sql,
 .set_level = thd72_set_level,
 .get_level = thd72_get_level,
 .set_func = thd72_set_func,
@@ -1125,9 +1173,6 @@ const struct rig_caps thd72a_caps = {
 .get_mem  = thd72_get_mem,
 .set_channel = thd72_set_channel,
 .get_channel = thd72_get_channel,
-
-.get_chan_all_cb = thd72_get_chan_all_cb,
-
+//.get_chan_all_cb = thd72_get_chan_all_cb,	this doesn't work yet
 .get_info =  th_get_info,
-
 };
