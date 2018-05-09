@@ -1427,6 +1427,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
     pthread_mutex_unlock(&rot_mutex);
 #endif
 
+    if (retcode == RIG_EIO) return retcode;
     if (retcode != RIG_OK)
     {
         /* only for rotctld */
