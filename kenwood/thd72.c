@@ -265,7 +265,7 @@ static int thd72_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     retval = thd72_get_freq_info(rig, vfo, buf);
     if (retval != RIG_OK)
 	return retval;
-    sprintf(fbuf, "%010ld", (int64_t)freq);
+    sprintf(fbuf, "%010"PRIll, (int64_t)freq);
     memcpy(buf+5, fbuf, 10);
     retval = kenwood_simple_transaction(rig, buf, 52);
     return retval;
