@@ -1,5 +1,7 @@
-As of version 0.1 this works well with rigs have a full ack/nak protocol as coded in FLRig.  So Kenwood, Icom and such.
-But Yaesu rigs for example are not stable with applications like WSJT-X since the FLRig driver does not wait or obtain status after frequency change commands for example (fire and forget).  Hamlib's Yaesu drivers always send and ID request after such commands and wait for an appropriate response but FLRig does not so can miss commands as a result.  Slow operation (manual command from rigctl) works fine.
-Rig drivers in FLRig will have to be changed to allow stable operation with fast comm programs like WJST-X.
-
+As of version 1.0 20180508 this works very well with flrig-1.3.40.50 and WSJT-X split mode.
+Log4OM can be run conconcurrently connecting to "rigctld -M 4".
+Note that for that Log4OM instance only clients that use extended protocol can connect to the client (since Log4OM uses extended protocol).  If you want to use a client that does not have extended protocol you must run another rigctld on a separate TCP port.
+The same thing holds for any vfo mode clients.  
+So you could end up with 4 rigctld's.  One for each combination of extended/vfo mode.
+Flrig can now handle numerous clients connecting at once thanks to a lot of work done by Dave W1HKJ
 de Mike W9MDB

@@ -28,12 +28,11 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "0.1"
+#define BACKEND_VER "1.0"
 
 #define EOM "\r"
 #define TRUE 1
 #define FALSE 0
-#define BUF_MAX 32768
 
 extern const struct rig_caps flrig_caps;
 
