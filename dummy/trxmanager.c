@@ -54,6 +54,29 @@
 
 #define streq(s1,s2) (strcmp(s1,s2)==0)
 
+#define FLRIG_MODE_LSB     '1'
+#define FLRIG_MODE_USB     '2'
+#define FLRIG_MODE_CW      '3'
+#define FLRIG_MODE_FM      '4'
+#define FLRIG_MODE_AM      '5'
+#define FLRIG_MODE_RTTY    '6'
+#define FLRIG_MODE_CWR     '7'
+#define FLRIG_MODE_RTTYR   '9'
+#define FLRIG_MODE_PKTLSB  'C'
+#define FLRIG_MODE_PKTUSB  'D'
+#define FLRIG_MODE_PKTFM   'E'
+#define FLRIG_MODE_PKTAM   'F'
+// Hamlib doesn't support D2/D3 modes in hamlib yet
+// So we define them here but they aren't implmented
+#define FLRIG_MODE_PKTLSB2 'G'
+#define FLRIG_MODE_PKTUSB2 'H'
+#define FLRIG_MODE_PKTFM2  'I'
+#define FLRIG_MODE_PKTAM2  'J'
+#define FLRIG_MODE_PKTLSB3 'K'
+#define FLRIG_MODE_PKTUSB3 'L'
+#define FLRIG_MODE_PKTFM3  'M'
+#define FLRIG_MODE_PKTAM3  'N'
+
 static int trxmanager_init(RIG *rig);
 static int trxmanager_open(RIG *rig);
 static int trxmanager_close(RIG *rig);
@@ -152,7 +175,7 @@ struct rig_caps trxmanager_caps = {
 };
 
 /*
- * vfo_curr
+ * check_vfo 
  * No assumptions
  */
 static int check_vfo(vfo_t vfo)
@@ -175,6 +198,7 @@ static int check_vfo(vfo_t vfo)
     return TRUE;
 }
 
+#if 0 // looks like we don't need this but it's here just in case
 /*
  * vfo_curr
  * Assumes rig!=NULL
@@ -193,6 +217,7 @@ static int vfo_curr(RIG *rig, vfo_t vfo)
     retval = (vfo == vfocurr);
     return retval;
 }
+#endif
 
 /*
  * read_transaction
@@ -265,7 +290,6 @@ static int trxmanager_open(RIG *rig) {
     if (retval != RIG_OK) {
         rig_debug(RIG_DEBUG_ERR,"%s read_transaction failed\n", __FUNCTION__);
     }
-    rig_debug(RIG_DEBUG_VERBOSE,"%s connected to %s\n", __FUNCTION__, response);
     if (strlen(response)==0) {
         rig_debug(RIG_DEBUG_ERR,"%s response len==0\n", __FUNCTION__);
         return -RIG_EPROTO;
@@ -274,6 +298,7 @@ static int trxmanager_open(RIG *rig) {
     // Should have rig info now
     strtok(response,";\r\n");
     strncpy(priv->info,&response[2],sizeof(priv->info));
+    rig_debug(RIG_DEBUG_VERBOSE,"%s connected to %s\n", __FUNCTION__, priv->info);
 
     // Turn off active messages
     char *cmd = "AI0;";
@@ -540,37 +565,43 @@ static int trxmanager_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t widt
         return -RIG_EINVAL;
     }
 
-    int ttmode=0;
+    char ttmode=FLRIG_MODE_USB;
     switch(mode) {
     case RIG_MODE_LSB:
-        ttmode=1;
+        ttmode=RIG_MODE_LSB;
         break;
     case RIG_MODE_USB:
-        ttmode=2;
+        ttmode=RIG_MODE_USB;
         break;
     case RIG_MODE_CW:
-        ttmode=3;
+        ttmode=FLRIG_MODE_CW;
         break;
     case RIG_MODE_FM:
-        ttmode=4;
+        ttmode=FLRIG_MODE_FM;
         break;
     case RIG_MODE_AM:
-        ttmode=5;
+        ttmode=FLRIG_MODE_AM;
         break;
     case RIG_MODE_RTTY:
-        ttmode=6;
+        ttmode=FLRIG_MODE_RTTY;
         break;
     case RIG_MODE_CWR:
-        ttmode=7;
+        ttmode=FLRIG_MODE_CWR;
         break;
     case RIG_MODE_RTTYR:
-        ttmode=9;
+        ttmode=FLRIG_MODE_RTTYR;
         break;
     case RIG_MODE_PKTLSB:
-        ttmode=9;
+        ttmode=FLRIG_MODE_PKTLSB;
         break;
     case RIG_MODE_PKTUSB:
-        ttmode=9;
+        ttmode=FLRIG_MODE_PKTUSB;
+        break;
+    case RIG_MODE_PKTFM:
+        ttmode=FLRIG_MODE_PKTFM;
+        break;
+    case RIG_MODE_PKTAM:
+        ttmode=FLRIG_MODE_PKTAM;
         break;
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n",__FUNCTION__,rig_strrmode(mode));
@@ -580,7 +611,7 @@ static int trxmanager_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t widt
 
     char cmd[MAXCMDLEN];
     char response[MAXCMDLEN]="";
-    snprintf(cmd,sizeof(cmd), "MD%d;", ttmode);
+    snprintf(cmd,sizeof(cmd), "MD%c;", ttmode);
     retval = write_block(&rs->rigport, cmd, strlen(cmd));
     if (retval < 0) {
         return retval;
@@ -646,39 +677,39 @@ static int trxmanager_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *wi
         return -RIG_EPROTO;
     }
     switch(tmode) {
-    case '1':
+    case FLRIG_MODE_LSB:
         *mode=RIG_MODE_LSB;
         break;
-    case '2':
+    case FLRIG_MODE_USB:
         *mode=RIG_MODE_USB;
         break;
-    case '3':
+    case FLRIG_MODE_CW:
         *mode=RIG_MODE_CW;
         break;
-    case '4':
+    case FLRIG_MODE_FM:
         *mode=RIG_MODE_FM;
         break;
-    case '5':
+    case FLRIG_MODE_AM:
         *mode=RIG_MODE_AM;
         break;
-    case '6':
+    case FLRIG_MODE_RTTY:
         *mode=RIG_MODE_RTTY;
         break;
-    case '7':
+    case FLRIG_MODE_CWR:
         *mode=RIG_MODE_CWR;
         break;
-    case '9':
+    case FLRIG_MODE_RTTYR:
         *mode=RIG_MODE_RTTYR;
         break;
-    case 'A':
+    case FLRIG_MODE_PKTLSB:
         *mode=RIG_MODE_PKTLSB;
         break;
-    case 'B':
+    case FLRIG_MODE_PKTUSB:
         *mode=RIG_MODE_PKTUSB;
         break;
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unknown mode='%c'\n", __FUNCTION__, tmode);
-        return -RIG_EINVAL;
+        return -RIG_ENIMPL;
     }
     rig_debug(RIG_DEBUG_VERBOSE, "%s: mode='%s'\n", __FUNCTION__, rig_strrmode(*mode));
 
@@ -854,11 +885,20 @@ static int trxmanager_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx
         tx_vfo = RIG_VFO_B;
     }
 
+#if 0
     /* for flrig we have to be on VFOA when we set split for VFOB Tx */
     /* we can keep the rig on VFOA since we can set freq by VFO now */
     if (!vfo_curr(rig, RIG_VFO_A)) {
         trxmanager_set_vfo(rig, RIG_VFO_A);
     }
+#endif
+    split_t tsplit;
+    vfo_t ttx_vfo;
+    retval = trxmanager_get_split_vfo(rig, vfo, &tsplit, &ttx_vfo);
+    if (retval < 0) {
+        return retval;
+    }
+    if (tsplit == split) return RIG_OK; // don't need to change it
     char cmd[MAXCMDLEN];
     char response[MAXCMDLEN]="";
     snprintf(cmd,sizeof(cmd),"SP%c;", split ? '1' : '0');
