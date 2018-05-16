@@ -865,8 +865,7 @@ typedef enum {
     RIG_MODE_SAH =      (1 << 18),  /*!< \c SAH -- Synchronous AM upper (higher) sideband */
     RIG_MODE_DSB =      (1 << 19),  /*!< \c DSB -- Double sideband suppressed carrier */
     RIG_MODE_FMN =      (1 << 21),  /*!< \c FMN -- FM Narrow Kenwood ts990s */
-    RIG_MODE_DV =       (1 << 22),  /*!< \c DR -- D-Star Voice */
-    RIG_MODE_DR =       (1 << 23),  /*!< \c DR -- D-Star Repeater */
+    RIG_MODE_PKTAM =    (1 << 22),  /*!< \c PKTAM -- Packet/Digital AM mode e.g. IC7300 */
     RIG_MODE_TESTS_MAX              /*!< \c MUST ALWAYS BE LAST, Max Count for dumpcaps.c */
 } rmode_t;
 

@@ -1629,6 +1629,7 @@ DECLARE_INITRIG_BACKEND(dummy)
 	rig_register(&dummy_caps);
 	rig_register(&netrigctl_caps);
 	rig_register(&flrig_caps);
+	rig_register(&trxmanager_caps);
 
 	return RIG_OK;
 }

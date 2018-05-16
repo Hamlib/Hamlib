@@ -41,7 +41,7 @@ sockets.  This allows multiple user programs to share one radio (this needs
 more development).  Multiple radios can be controlled on different TCP ports
 by use of multiple
 .B rigctld
-processes.  The syntax of the commands are the same as
+processes.  Note that multiple processes/ports are also necessary if some clients use extended responses and/or vfo mode.  So up to 4 processes/ports may be needed for each combination of extended response/vfo mode.  The syntax of the commands are the same as
 .BR rigctl (1).
 It is hoped that
 .B rigctld
