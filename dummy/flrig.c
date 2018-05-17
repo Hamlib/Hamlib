@@ -219,25 +219,6 @@ static int check_vfo(vfo_t vfo)
     return TRUE;
 }
 
-/*
- * vfo_curr
- * Assumes rig!=NULL
- */
-static int vfo_curr(RIG *rig, vfo_t vfo)
-{
-    int retval = 0;
-    vfo_t vfocurr;
-    struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
-
-    // get the current VFO from flrig in case user changed it
-    if ((retval = flrig_get_vfo(rig, &vfocurr)) != RIG_OK) {
-        return retval;
-    }
-    priv->curr_vfo = vfocurr;
-    retval = (vfo == vfocurr);
-    return retval;
-}
-
 /* Rather than use some huge XML library we only need a few things
  * So we'll hand craft them
  * xml_build takes a value and return an xml string for FLRig
@@ -886,12 +867,7 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                   __FUNCTION__, rig_strvfo(vfo));
         return -RIG_EINVAL;
     }
-    //
-    // Don't touch mode or width if PTT=true
-    ptt_t ptt;
-    retval = flrig_get_ptt(rig,RIG_VFO_A,&ptt);
-    if (ptt) {
-	    priv->ptt = 1;
+    if (priv->ptt) {
 	    rig_debug(RIG_DEBUG_ERR,"%s call not made as PTT=1\n",__FUNCTION__);
 	    return RIG_OK;  // just return OK and ignore this
     }
@@ -988,12 +964,7 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     }
     rig_debug(RIG_DEBUG_TRACE, "%s: using vfo=%s\n", __FUNCTION__,
               rig_strvfo(vfo));
-    //
-    // Don't touch mode or width if PTT=true
-    ptt_t ptt;
-    retval = flrig_get_ptt(rig,RIG_VFO_A,&ptt);
-    if (ptt) {
-	    priv->ptt = 1;
+    if (priv->ptt) {
 	    if (vfo == RIG_VFO_A) *mode = priv->curr_modeA;
 	    else *mode = priv->curr_modeB;
 	    rig_debug(RIG_DEBUG_ERR,"%s call not made as PTT=1\n",__FUNCTION__);
@@ -1100,10 +1071,6 @@ static int flrig_set_vfo(RIG *rig, vfo_t vfo)
         vfo = priv->curr_vfo;
     }
 
-    // Force PTT off
-    // Why were we turning off PTT here?
-    // flrig_set_ptt(rig,RIG_VFO_A,0);
-
     char value[MAXCMDLEN];
     char xml[MAXXMLLEN];
     sprintf(value, "<params><param><value>%s</value></param></params>",
@@ -1114,7 +1081,6 @@ static int flrig_set_vfo(RIG *rig, vfo_t vfo)
     if (retval < 0) {
         return retval;
     }
-    //usleep(50*1000); // temporary sleep until flrig is fixed
     priv->curr_vfo = vfo;
     rs->tx_vfo = RIG_VFO_B; // always VFOB
     read_transaction(rig, xml, sizeof(xml));
@@ -1193,6 +1159,11 @@ static int flrig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
                   __FUNCTION__, rig_strvfo(vfo));
         return -RIG_EINVAL;
     }
+    // we always split on VFOB so if no change just return
+    freq_t qtx_freq;
+    retval = flrig_get_freq(rig, RIG_VFO_B, &qtx_freq);
+    if (retval != RIG_OK) return retval;
+    if (tx_freq == qtx_freq) return RIG_OK;
 
     char xml[MAXXMLLEN];
     char value[MAXCMDLEN];
@@ -1218,7 +1189,11 @@ static int flrig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __FUNCTION__,
               rig_strvfo(vfo));
+
+    struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
+
     int retval = flrig_get_freq(rig, RIG_VFO_B, tx_freq);
+    priv->curr_freqB = *tx_freq;
     return retval;
 }
 
@@ -1238,21 +1213,15 @@ static int flrig_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     if (tx_vfo == RIG_VFO_SUB || tx_vfo == RIG_VFO_TX) {
         tx_vfo = RIG_VFO_B;
     }
-
-
-    // Don't touch split if PTT=true
-    ptt_t ptt;
-    retval = flrig_get_ptt(rig,RIG_VFO_A,&ptt);
-    if (ptt) {
+    vfo_t qtx_vfo;
+    split_t qsplit;
+    retval = flrig_get_split_vfo(rig, RIG_VFO_A, &qsplit, &qtx_vfo);
+    if (retval != RIG_OK) return retval;
+    if (split == qsplit) return RIG_OK;
+    if (priv->ptt) {
 	    priv->ptt = 1;
 	    rig_debug(RIG_DEBUG_ERR,"%s call not made as PTT=1\n",__FUNCTION__);
 	    return RIG_OK;  // just return OK and ignore this
-    }
-
-    /* for flrig we have to be on VFOA when we set split for VFOB Tx */
-    /* we can keep the rig on VFOA since we can set freq by VFO now */
-    if (!vfo_curr(rig, RIG_VFO_A)) {
-        flrig_set_vfo(rig, RIG_VFO_A);
     }
 
     char xml[MAXXMLLEN];
@@ -1316,25 +1285,22 @@ static int flrig_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq, rmode_t m
     if (vfo != RIG_VFO_CURR && vfo != RIG_VFO_TX)
         return -RIG_ENTARGET;
 
-
-    // Don't touch split if PTT=true
-    ptt_t ptt;
-    retval = flrig_get_ptt(rig,RIG_VFO_A,&ptt);
-    if (ptt) {
-	    priv->ptt = 1;
+    if (priv->ptt) {
 	    rig_debug(RIG_DEBUG_ERR,"%s call not made as PTT=1\n",__FUNCTION__);
 	    return RIG_OK;  // just return OK and ignore this
     }
 
-    // assume split is on B
-    // swap to VFOB to prevent lots of vfo swapping while seting up VFOB
-    flrig_set_vfo(rig,RIG_VFO_B);
     retval = flrig_set_freq (rig, RIG_VFO_B, freq);
     if (retval != RIG_OK) {
         rig_debug(RIG_DEBUG_ERR, "%s flrig_set_freq failed\n", __FUNCTION__);
         return retval;
     }
     // Make VFOB mode match VFOA mode, keep VFOB width
+    rmode_t qmode;
+    pbwidth_t qwidth;
+    retval = flrig_get_mode(rig,RIG_VFO_B,&qmode,&qwidth);
+    if (retval != RIG_OK) return retval;
+    if (qmode == priv->curr_modeA) return RIG_OK;
     retval = flrig_set_mode(rig,RIG_VFO_B,priv->curr_modeA,width);
     if (retval != RIG_OK) {
         rig_debug(RIG_DEBUG_ERR, "%s flrig_set_mode failed\n", __FUNCTION__);
