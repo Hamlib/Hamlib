@@ -49,8 +49,9 @@
 
 #define TRXMANAGER_MODES (RIG_MODE_AM | RIG_MODE_CW | RIG_MODE_CWR |\
                      RIG_MODE_RTTY | RIG_MODE_RTTYR |\
-                     RIG_MODE_PKTLSB | RIG_MODE_PKTUSB |\
-                     RIG_MODE_USB | RIG_MODE_LSB | RIG_MODE_FM)
+                     RIG_MODE_PKTLSB | RIG_MODE_PKTUSB | RIG_MODE_PKTLSB2 | RIG_MODE_PKTUSB2 | RIG_MODE_PKTLSB3 | RIG_MODE_PKTUSB3 |\
+                     RIG_MODE_USB | RIG_MODE_LSB |\
+		     RIG_MODE_FM|RIG_MODE_FM2|RIG_MODE_FM3)
 
 #define streq(s1,s2) (strcmp(s1,s2)==0)
 
@@ -268,6 +269,7 @@ static int trxmanager_init(RIG *rig)
 
     strncpy(rig->state.rigport.pathname, DEFAULTPATH,
             sizeof(rig->state.rigport.pathname));
+    //rig->state.mode_list = modes;
 
     return RIG_OK;
 }

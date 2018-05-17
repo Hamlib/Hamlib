@@ -537,9 +537,10 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     fprintf(fout, "Bandwidths:");
 
-    for (i = 1; i < RIG_MODE_TESTS_MAX; i <<= 1)
+    for (rmode_t l = 1; l < RIG_MODE_TESTS_MAX; l <<= 1)
     {
-        pbwidth_t pbnorm = rig_passband_normal(rig, i);
+	if (strlen(rig_strrmode(i)) == 0) continue;
+        pbwidth_t pbnorm = rig_passband_normal(rig, l);
 
         if (pbnorm == 0)
         {

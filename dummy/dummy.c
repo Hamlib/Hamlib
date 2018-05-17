@@ -1456,7 +1456,11 @@ static int dummy_mW2power(RIG * rig, float *power, unsigned int mwpower,
 
 #define DUMMY_MODES (RIG_MODE_AM | RIG_MODE_CW | RIG_MODE_RTTY | \
                      RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_WFM | \
-                     RIG_MODE_CWR | RIG_MODE_RTTYR)
+                     RIG_MODE_CWR | RIG_MODE_RTTYR| \
+		     RIG_MODE_PKTUSB | RIG_MODE_PKTUSB2 | RIG_MODE_PKTUSB3 |\
+		     RIG_MODE_PKTLSB | RIG_MODE_PKTLSB2 | RIG_MODE_PKTLSB3 |\
+		     RIG_MODE_AM | RIG_MODE_AM2 | RIG_MODE_AM3 |\
+		     RIG_MODE_FM | RIG_MODE_FM2 | RIG_MODE_FM3)
 
 #define DUMMY_MEM_CAP {    \
 	.bank_num = 1,	\

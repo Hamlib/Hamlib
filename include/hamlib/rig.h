@@ -312,6 +312,30 @@ typedef double freq_t;
 #define SCNfreq "lf"
 #define FREQFMT SCNfreq
 
+/**
+ * \brief scanf(3) format to be used for freq_t type
+ */
+// Turn on 64 bit mode types
+#define RMODE64
+#ifdef RMODE64
+	#ifdef __LP64__
+		#pragma message "64 bit modes requested, 64 bit compilation"
+		#define SCNmode "lx"
+	#else
+		#ifdef __MINGW32__
+			#pragma message "64 bit modes requested, MINGW32 compilation"
+			#define SCNmode "I64x"
+		#else
+			#pragma message "64 bit modes requested, 32 bit compilation"
+			#define SCNmode "llx"
+		#endif
+	#endif
+#else
+	#pragma message "34 bit modes requested, 32/64 bit compilation"
+	#define SCNmode "x"
+#endif
+#define MODEFMT SCNmode
+
 
 /**
  * \brief Short frequency type
@@ -866,9 +890,24 @@ typedef enum {
     RIG_MODE_DSB =      (1 << 19),  /*!< \c DSB -- Double sideband suppressed carrier */
     RIG_MODE_FMN =      (1 << 21),  /*!< \c FMN -- FM Narrow Kenwood ts990s */
     RIG_MODE_PKTAM =    (1 << 22),  /*!< \c PKTAM -- Packet/Digital AM mode e.g. IC7300 */
-    RIG_MODE_TESTS_MAX              /*!< \c MUST ALWAYS BE LAST, Max Count for dumpcaps.c */
+    RIG_MODE_MAX =      (1 << 23),  /* this can never be bigger than 31 or 63 */
+#ifdef RMODE64
+    /* Force rmode_t to be 64 bit */
+    RIG_MODE_DR =       (1ULL << 52),
+    RIG_MODE_DV =       (1ULL << 53),
+    RIG_MODE_PKTLSB2 =  (1ULL << 54),
+    RIG_MODE_PKTUSB2 =  (1ULL << 55),
+    RIG_MODE_FM2 =      (1ULL << 56),
+    RIG_MODE_AM2 =      (1ULL << 57),
+    RIG_MODE_PKTLSB3 =  (1ULL << 58),
+    RIG_MODE_PKTUSB3 =  (1ULL << 59),
+    RIG_MODE_FM3 =      (1ULL << 60),
+    RIG_MODE_AM3 =      (1ULL << 61),
+    RIG_MODE_TESTS_MAX =(1ULL << 63)
+#else
+    RIG_MODE_TESTS_MAX =(1 << 24)   /*!< \c MUST ALWAYS BE LAST, Max Count for dumpcaps.c */
+#endif
 } rmode_t;
-
 
 /**
  * \brief macro for backends, not to be used by rig_set_mode et al.
@@ -1591,7 +1630,7 @@ struct rig_state {
     rmode_t current_mode;       /*!< Mode currently set */
     pbwidth_t current_width;    /*!< Passband width currently set */
     vfo_t tx_vfo;               /*!< Tx VFO currently set */
-    int mode_list;              /*!< Complete list of modes for this rig */
+    rmode_t mode_list;              /*!< Complete list of modes for this rig */
     int transmit;               /*!< rig should be transmitting i.e. hard
                                      wired PTT asserted - used by rigs that
                                      don't do CAT while in Tx */

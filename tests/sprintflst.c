@@ -112,9 +112,10 @@ int sprintf_mode(char *str, rmode_t mode)
         return 0;
     }
 
-    for (i = 0; i < 30; i++)
+    for (i = 0; i < 63; i++)
     {
-        const char *ms = rig_strrmode(mode & (1UL << i));
+	rmode_t qmode = (rmode_t)1 << i;
+        const char *ms = rig_strrmode(mode & qmode);
 
         if (!ms || !ms[0])
         {
