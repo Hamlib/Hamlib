@@ -159,7 +159,7 @@ th_decode_event (RIG *rig)
 	return RIG_OK;
 }
 
-int
+static int
 kenwood_wrong_vfo(const char *func, vfo_t vfo)
 {
 	rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO: %d\n", func, vfo);
@@ -369,10 +369,7 @@ th_set_vfo(RIG *rig, vfo_t vfo)
 			return kenwood_wrong_vfo(__func__, vfo);
 		}
 
-		if (rig->caps->rig_model == RIG_MODEL_THD74)
-			retval = kenwood_simple_transaction(rig, cmd, 4);
-		else
-			retval = kenwood_simple_transaction(rig, cmd, 5);
+		retval = kenwood_simple_transaction(rig, cmd, 5);
 		if (retval != RIG_OK)
 				return retval;
 	}
