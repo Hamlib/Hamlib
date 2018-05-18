@@ -27,7 +27,7 @@
 #include <string.h>
 #include "token.h"
 
-#define BACKEND_VER "0.9"
+#define BACKEND_VER "1.0"
 
 #define EOM_KEN ';'
 #define EOM_TH '\r'
@@ -80,6 +80,7 @@ struct kenwood_priv_data {
     char verify_cmd[4];   /* command used to verify set commands */
     int is_emulation;     /* flag for TS-2000 emulations */
     void * data;          /* model specific data */
+    rmode_t curr_mode;     /* used for is_emulation to avoid get_mode on VFOB */
 };
 
 
