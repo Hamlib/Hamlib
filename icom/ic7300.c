@@ -46,7 +46,7 @@
 #define IC7300_OTHER_TX_MODES (RIG_MODE_FM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR)
 #define IC7300_AM_TX_MODES (RIG_MODE_AM|RIG_MODE_PKTAM)
 
-#define IC7300_FUNCS (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_ANF|RIG_FUNC_LOCK|RIG_FUNC_RIT|RIG_FUNC_XIT|RIG_FUNC_SCOPE)
+#define IC7300_FUNCS (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_ANF|RIG_FUNC_LOCK|RIG_FUNC_RIT|RIG_FUNC_XIT|RIG_FUNC_SCOPE|RIG_FUNC_TUNER)
 
 #define IC7300_LEVELS (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX|RIG_LEVEL_VOXDELAY|RIG_LEVEL_SWR|RIG_LEVEL_ALC)
 
@@ -379,7 +379,17 @@ int ic7300_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 			}
 			*status = ackbuf[2];
 			break;
-
+			
+		case RIG_FUNC_TUNER:
+            retval = icom_transaction (rig, 0x1C, 0x01, NULL, 0, ackbuf, &ack_len);
+            if (ack_len == 3) 
+            {
+                *status = ackbuf[2]; // 0x01 = enabled, 0x00 = disabled, 0x02 = tuning in progress
+            } else {
+                return RIG_BUSERROR;
+            }
+            break;
+            
 		default:
 			return icom_get_func(rig, vfo, func, status);
 	}
@@ -405,6 +415,16 @@ int ic7300_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 		case RIG_FUNC_XIT:
 			ts_buf[0] = status;	
         		return  icom_transaction (rig, 0x21, 0x02, ts_buf, 1, ackbuf, &ack_len);
+        
+        case RIG_FUNC_TUNER:
+            if(status==0 || status==1 || status==2)
+            { // 0=off, 1 = on, 2 = begin tuning
+                ts_buf[0] = status;
+                return  icom_transaction (rig, 0x1C, 0x01, ts_buf, 1, ackbuf, &ack_len);
+            } else {
+                return -1; // perhaps some other reply would be more informative
+            }
+		
 		default:
 			return icom_set_func(rig, vfo, func, status);
 	}
