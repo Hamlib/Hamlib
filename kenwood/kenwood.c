@@ -1835,26 +1835,43 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     return -RIG_EINVAL;
 
   char lvlbuf[KENWOOD_MAX_BUF_LEN];
+  char *cmd;
   int retval;
   int lvl;
-  int i, ret, agclevel;
+  int i, ret, agclevel, len;
 
   switch (level) {
   case RIG_LEVEL_RAWSTR:
-    retval = kenwood_safe_transaction(rig, "SM", lvlbuf, 10, 6);
+    if (RIG_MODEL_TS590S == rig->caps->rig_model || RIG_MODEL_TS590SG == rig->caps->rig_model) {
+      cmd = "SM0";
+      len= 3;
+    }
+    else {
+      cmd = "SM";
+      len = 2;
+    }
+    retval = kenwood_safe_transaction(rig, cmd, lvlbuf, 10, len+4);
     if (retval != RIG_OK)
       return retval;
 
     /* XXX atoi ? */
-    sscanf(lvlbuf+2, "%d", &val->i);  /* rawstr */
+    sscanf(lvlbuf+len, "%d", &val->i);  /* rawstr */
     break;
 
   case RIG_LEVEL_STRENGTH:
-    retval = kenwood_safe_transaction(rig, "SM", lvlbuf, 10, 6);
+    if (RIG_MODEL_TS590S == rig->caps->rig_model || RIG_MODEL_TS590SG == rig->caps->rig_model) {
+      cmd = "SM0";
+      len = 3;
+    }
+    else {
+      cmd = "SM";
+      len = 2;
+    }
+    retval = kenwood_safe_transaction(rig, "SM", lvlbuf, 10, len+4);
     if (retval != RIG_OK)
       return retval;
 
-    sscanf(lvlbuf+2, "%d", &val->i);  /* rawstr */
+    sscanf(lvlbuf+len, "%d", &val->i);  /* rawstr */
 
     if (rig->caps->str_cal.size)
       val->i = (int) rig_raw2val(val->i, &rig->caps->str_cal);

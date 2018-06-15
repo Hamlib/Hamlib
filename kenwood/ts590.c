@@ -60,6 +60,23 @@ const char* ts590_get_info(RIG *rig);
         .flags=RIG_CHFLAG_SKIP \
         }
 
+#define TS590_STR_CAL {13, {\
+                       {0x00, -54},\
+                       {0x04, -48},\
+                       {0x08, -42},\
+                       {0x0C, -36},\
+                       {0x10, -30},\
+                       {0x14, -24},\
+                       {0x18, -18},\
+                       {0x1C, -12},\
+                       {0x20,  -6},\
+                       {0x24,   0},\
+                       {0x28,  20},\
+                       {0x2C,  40},\
+                       {0x30,  60}}\
+                       }
+
+
 static struct kenwood_priv_caps ts590_priv_caps = {
   .cmdtrm = EOM_KEN,
 };
@@ -187,6 +204,7 @@ const struct rig_caps ts590_caps = {
                 {RIG_MODE_FM, kHz(12)},
                 RIG_FLT_END,
         },
+  .str_cal = TS590_STR_CAL,
   .priv = (void *) &ts590_priv_caps,
   .rig_init = kenwood_init,
   .rig_cleanup = kenwood_cleanup,
@@ -354,6 +372,7 @@ const struct rig_caps ts590sg_caps = {
                 {RIG_MODE_FM, kHz(12)},
                 RIG_FLT_END,
         },
+  .str_cal = TS590_STR_CAL,
   .priv = (void *) &ts590_priv_caps,
   .rig_init = kenwood_init,
   .rig_cleanup = kenwood_cleanup,
