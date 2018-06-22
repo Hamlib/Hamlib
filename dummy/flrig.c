@@ -96,6 +96,8 @@ struct flrig_priv_data {
     freq_t curr_freqB;
     pbwidth_t curr_widthA;
     pbwidth_t curr_widthB;
+    int has_get_modeA; /* True if this function is available */
+    int has_get_bwA; /* True if this function is available */
 };
 
 const struct rig_caps flrig_caps = {
@@ -104,9 +106,9 @@ const struct rig_caps flrig_caps = {
     .mfg_name = "FLRig",
     .version = BACKEND_VER,
     .copyright = "LGPL",
-    .status = RIG_STATUS_BETA,
+    .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
-    .targetable_vfo =  RIG_TARGETABLE_FREQ,
+    .targetable_vfo =  RIG_TARGETABLE_FREQ|RIG_TARGETABLE_MODE,
     .ptt_type = RIG_PTT_RIG,
     .port_type = RIG_PORT_NETWORK,
     .write_delay = 0,
@@ -318,6 +320,10 @@ static char *xml_parse(char *xml, char *value, int value_len)
     if (value != NULL) {
         xml_parse2(next, value, value_len);
     }
+    if (strstr(value,"faultString")) {
+        rig_debug(RIG_DEBUG_ERR, "%s error:\n%s\n", __FUNCTION__, value);
+        value[0]=0; /* truncate to give empty response */
+    }
     return value;
 }
 
@@ -333,7 +339,7 @@ static int read_transaction(RIG *rig, char *xml, int xml_len)
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __FUNCTION__);
 
     struct rig_state *rs = &rig->state;
-    rs->rigport.timeout = 4000; // 3 second read string timeout
+    rs->rigport.timeout = 1000; // 2 second read string timeout
 
     int retry=5;
     char *delims="\n";
@@ -341,7 +347,7 @@ static int read_transaction(RIG *rig, char *xml, int xml_len)
     do {
         char tmp_buf[MAXXMLLEN];        // plenty big for expected flrig responses
         int len = read_string(&rs->rigport, tmp_buf, sizeof(tmp_buf), delims, strlen(delims));
-	rig_debug(RIG_DEBUG_WARN,"%s: string='%s'",__FUNCTION__,tmp_buf);
+        rig_debug(RIG_DEBUG_WARN,"%s: string='%s'",__FUNCTION__,tmp_buf);
         if (len > 0) retry = 3;
         if (len <= 0) {
             rig_debug(RIG_DEBUG_ERR,"%s: read_string error=%d\n",__FUNCTION__,len);
@@ -354,8 +360,8 @@ static int read_transaction(RIG *rig, char *xml, int xml_len)
     }
     if (strstr(xml,terminator)) {
         rig_debug(RIG_DEBUG_VERBOSE,"%s: got %s\n",__FUNCTION__,terminator);
-	// Testing slowing down 3 of commands per second
-	usleep(2*1000);
+        // Slow down just a bit -- not sure this is needed anymore but not a big deal here
+        usleep(2*1000);
         retval = RIG_OK;
     }
     else {
@@ -376,11 +382,11 @@ static int write_transaction(RIG *rig, char *xml, int xml_len)
     char xmltmp[MAXXMLLEN];
 
     struct rig_state *rs = &rig->state;
-    
+
     // This shouldn't ever happen...but just in case
     // We need to avoid and empty write as rigctld replies with blank line
     if (xml_len == 0) {
-	    rig_debug(RIG_DEBUG_ERR,"%s: len==0??\n",__FUNCTION__);
+        rig_debug(RIG_DEBUG_ERR,"%s: len==0??\n",__FUNCTION__);
     }
 
     while(try-- >= 0 && retval != RIG_OK) {
@@ -507,6 +513,31 @@ static int flrig_open(RIG *rig) {
     xml_parse(xml, value, sizeof(value));
     strncpy(priv->info,value,sizeof(priv->info));
     rig_debug(RIG_DEBUG_VERBOSE,"Transceiver=%s\n", value);
+
+    /* see if get_modeA is available */
+    pxml = xml_build("rig.get_modeA", NULL, xml, sizeof(xml));
+    retval = write_transaction(rig, pxml, strlen(pxml));
+    read_transaction(rig, xml, sizeof(xml));
+    xml_parse(xml, value, sizeof(value));
+    if (strlen(value)>0) { /* must have it since we got an answer */
+        priv->has_get_modeA = 1;
+        rig_debug(RIG_DEBUG_VERBOSE,"%s: getmodeA is available=%s\n", __FUNCTION__, value);
+    }
+    else {
+        rig_debug(RIG_DEBUG_VERBOSE,"%s: getmodeA is not available\n",__FUNCTION__);
+    }
+    /* see if get_bwA is available */
+    pxml = xml_build("rig.get_bwA", NULL, xml, sizeof(xml));
+    retval = write_transaction(rig, pxml, strlen(pxml));
+    read_transaction(rig, xml, sizeof(xml));
+    xml_parse(xml, value, sizeof(value));
+    if (strlen(value)>0) { /* must have it since we got an answer */
+        priv->has_get_bwA = 1;
+        rig_debug(RIG_DEBUG_VERBOSE,"%s: get_bwA is available=%s\n", __FUNCTION__, value);
+    }
+    else {
+        rig_debug(RIG_DEBUG_VERBOSE,"%s: get_bwA is not available\n",__FUNCTION__);
+    }
 
     pxml = xml_build("rig.get_AB", value, xml, sizeof(xml));
     retval = write_transaction(rig, pxml, strlen(pxml));
@@ -638,7 +669,7 @@ static int flrig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
 
     if (vfo == RIG_VFO_CURR) {
-	vfo = priv->curr_vfo;
+        vfo = priv->curr_vfo;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: get_freq2 vfo=%s\n",
                   __FUNCTION__, rig_strvfo(vfo));
     }
@@ -704,7 +735,7 @@ static int flrig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     }
 
     if (vfo == RIG_VFO_CURR) {
-	vfo = priv->curr_vfo;
+        vfo = priv->curr_vfo;
     }
     else if (vfo == RIG_VFO_TX && priv->split) {
         vfo = RIG_VFO_B; // if split always TX on VFOB
@@ -837,7 +868,7 @@ static int flrig_set_split_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t wid
     // save some VFO swapping .. may replace with VFO specific calls that won't cause VFO change
     if (vfo==RIG_VFO_A && mode==priv->curr_modeA) return RIG_OK;
     if (vfo==RIG_VFO_B && mode==priv->curr_modeB) return RIG_OK;
-    retval = flrig_set_mode(rig,RIG_VFO_B,mode,width);
+    retval = flrig_set_mode(rig,vfo,mode,width);
     rig_debug(RIG_DEBUG_TRACE, "%s: set mode=%s\n",__FUNCTION__,rig_strrmode(mode));
     return retval;
 }
@@ -859,7 +890,7 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     if (priv->ptt) return RIG_OK;
 
     if (vfo == RIG_VFO_CURR) {
-	vfo = priv->curr_vfo;
+        vfo = priv->curr_vfo;
     }
 
     if (check_vfo(vfo) == FALSE) {
@@ -868,15 +899,15 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         return -RIG_EINVAL;
     }
     if (priv->ptt) {
-	    rig_debug(RIG_DEBUG_ERR,"%s call not made as PTT=1\n",__FUNCTION__);
-	    return RIG_OK;  // just return OK and ignore this
+        rig_debug(RIG_DEBUG_ERR,"%s call not made as PTT=1\n",__FUNCTION__);
+        return RIG_OK;  // just return OK and ignore this
     }
 
     // Switch to VFOB if appropriate since we can't set mode directly
     // MDB
     int vfoSwitched = 0;
     rig_debug(RIG_DEBUG_WARN,"%s: curr_vfo = %s\n",__FUNCTION__,rig_strvfo(priv->curr_vfo));
-    if (vfo == RIG_VFO_B && priv->curr_vfo != RIG_VFO_B) {
+    if (!priv->has_get_bwA && vfo == RIG_VFO_B && priv->curr_vfo != RIG_VFO_B) {
         vfoSwitched = 1;
         rig_debug(RIG_DEBUG_WARN,"%s: switch to VFOB = %d\n",__FUNCTION__,vfoSwitched);
     }
@@ -895,7 +926,17 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     char cmd_buf[MAXCMDLEN];
     sprintf(cmd_buf, "<params><param><value>%s</value></param></params>", ttmode);
     char xml[MAXXMLLEN];
-    char *pxml = xml_build("rig.set_mode", cmd_buf, xml, sizeof(xml));
+    char *pxml=NULL;
+    if (!priv->has_get_modeA) {
+        pxml = xml_build("rig.set_mode", cmd_buf, xml, sizeof(xml));
+    }
+    else {
+        char *cmd="rig.set_modeA";
+        if (vfo==RIG_VFO_B) {
+            cmd="rig.set_modeB";
+        }
+        pxml = xml_build(cmd, cmd_buf, xml, sizeof(xml));
+    }
 
     retval = write_transaction(rig, pxml, strlen(pxml));
     if (retval < 0) {
@@ -906,15 +947,25 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     read_transaction(rig, xml, sizeof(xml));
     rig_debug(RIG_DEBUG_VERBOSE, "%s: response=%s\n", __FUNCTION__,xml);
 
-    // Need to update the available bandwidths for this mode
-    if (width > 0) {
+    // Determine if we need to update the bandwidth
+    int needBW=0;
+    if (vfo == RIG_VFO_A) needBW = priv->curr_widthA != width;
+    else if (vfo == RIG_VFO_B) needBW = priv->curr_widthB != width;
+    else rig_debug(RIG_DEBUG_ERR,"%s: needBW unknown vfo=%s\n",__FUNCTION__,rig_strvfo(vfo));
+    // Need to update the bandwidth
+    if (width > 0 && needBW) {
         sprintf(cmd_buf, "<params><param><value><i4>%ld</i4></value></param></params>", width);
+        // if we're not on VFOB but asking for VFOB still have to switch VFOS
+        if (!vfoSwitched && vfo==RIG_VFO_B) flrig_set_vfo(rig,RIG_VFO_B);
+        if (!vfoSwitched && vfo==RIG_VFO_A) flrig_set_vfo(rig,RIG_VFO_A);
         pxml = xml_build("rig.set_bandwidth", cmd_buf, xml, sizeof(xml));
         retval = write_transaction(rig, pxml, strlen(pxml));
         if (retval < 0) {
             return retval;
         }
         read_transaction(rig, xml, sizeof(xml));
+        if (!vfoSwitched && vfo==RIG_VFO_B) flrig_set_vfo(rig,RIG_VFO_A);
+        if (!vfoSwitched && vfo==RIG_VFO_A) flrig_set_vfo(rig,RIG_VFO_B);
     }
 
     // Return to VFOA if needed
@@ -960,24 +1011,26 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     vfo_t curr_vfo = priv->curr_vfo;
     if (vfo == RIG_VFO_CURR) {
-	vfo = priv->curr_vfo;
+        vfo = priv->curr_vfo;
     }
     rig_debug(RIG_DEBUG_TRACE, "%s: using vfo=%s\n", __FUNCTION__,
               rig_strvfo(vfo));
     if (priv->ptt) {
-	    if (vfo == RIG_VFO_A) *mode = priv->curr_modeA;
-	    else *mode = priv->curr_modeB;
-	    rig_debug(RIG_DEBUG_ERR,"%s call not made as PTT=1\n",__FUNCTION__);
-	    return RIG_OK;  // just return OK and ignore this
+        if (vfo == RIG_VFO_A) *mode = priv->curr_modeA;
+        else *mode = priv->curr_modeB;
+        rig_debug(RIG_DEBUG_ERR,"%s call not made as PTT=1\n",__FUNCTION__);
+        return RIG_OK;  // just return OK and ignore this
     }
 
     // Switch to VFOB if appropriate
     int vfoSwitched=0;
-    if (vfo == RIG_VFO_B && curr_vfo != RIG_VFO_B) {
+    rig_debug(RIG_DEBUG_ERR,"%s has_get_modeA=%d\n",__FUNCTION__,priv->has_get_modeA);
+    if (priv->has_get_modeA == 0 && vfo == RIG_VFO_B && curr_vfo != RIG_VFO_B) {
         vfoSwitched = 1;
     }
 
     if (vfoSwitched) {
+        rig_debug(RIG_DEBUG_VERBOSE,"%s switch to VFOB=%d\n",__FUNCTION__,priv->has_get_modeA);
         retval = flrig_set_vfo(rig, RIG_VFO_B);
         if (retval < 0) {
             return retval;
@@ -985,7 +1038,16 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     }
 
     char xml[MAXXMLLEN];
-    char *pxml = xml_build("rig.get_mode", NULL, xml, sizeof(xml));
+    char *cmdp="rig.get_mode"; /* default to old way */
+    if (priv->has_get_modeA) { /* change to new way if we can */
+        /* calling this way reduces VFO swapping */
+        /* we get the cached value in flrig */
+        /* vfo B may not be getting polled though in FLRig */
+        /* so we may not be 100% accurate if op is twiddling knobs */
+        cmdp = "rig.get_modeA";
+        if (vfo==RIG_VFO_B) cmdp = "rig.get_modeB";
+    }
+    char *pxml = xml_build(cmdp, NULL, xml, sizeof(xml));
     retval = write_transaction(rig, pxml, strlen(pxml));
     if (retval < 0) {
         return retval;
@@ -1008,8 +1070,17 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     }
 
 
-    // Get the bandwidth
-    pxml = xml_build("rig.get_bw", NULL, xml, sizeof(xml));
+    /* Get the bandwidth */
+    cmdp="rig.get_bw"; /* default to old way */
+    if (priv->has_get_bwA) { /* change to new way if we can */
+        /* calling this way reduces VFO swapping */
+        /* we get the cached value in flrig */
+        /* vfo B may not be getting polled though in FLRig */
+        /* so we may not be 100% accurate if op is twiddling knobs */
+        cmdp = "rig.get_bwA";
+        if (vfo==RIG_VFO_B) cmdp = "rig.get_bwB";
+    }
+    pxml = xml_build(cmdp, NULL, xml, sizeof(xml));
     retval = write_transaction(rig, pxml, strlen(pxml));
     if (retval < 0) {
         return retval;
@@ -1219,9 +1290,9 @@ static int flrig_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     if (retval != RIG_OK) return retval;
     if (split == qsplit) return RIG_OK;
     if (priv->ptt) {
-	    priv->ptt = 1;
-	    rig_debug(RIG_DEBUG_ERR,"%s call not made as PTT=1\n",__FUNCTION__);
-	    return RIG_OK;  // just return OK and ignore this
+        priv->ptt = 1;
+        rig_debug(RIG_DEBUG_ERR,"%s call not made as PTT=1\n",__FUNCTION__);
+        return RIG_OK;  // just return OK and ignore this
     }
 
     char xml[MAXXMLLEN];
@@ -1233,7 +1304,7 @@ static int flrig_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         return retval;
     }
     priv->split = split;
-    
+
     read_transaction(rig, xml, sizeof(xml)); // get response but don't care
 
     return RIG_OK;
@@ -1286,8 +1357,8 @@ static int flrig_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq, rmode_t m
         return -RIG_ENTARGET;
 
     if (priv->ptt) {
-	    rig_debug(RIG_DEBUG_ERR,"%s call not made as PTT=1\n",__FUNCTION__);
-	    return RIG_OK;  // just return OK and ignore this
+        rig_debug(RIG_DEBUG_ERR,"%s call not made as PTT=1\n",__FUNCTION__);
+        return RIG_OK;  // just return OK and ignore this
     }
 
     retval = flrig_set_freq (rig, RIG_VFO_B, freq);
