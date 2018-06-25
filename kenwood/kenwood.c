@@ -1867,7 +1867,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
       cmd = "SM";
       len = 2;
     }
-    retval = kenwood_safe_transaction(rig, "SM", lvlbuf, 10, len+4);
+    retval = kenwood_safe_transaction(rig, cmd, lvlbuf, 10, len+4);
     if (retval != RIG_OK)
       return retval;
 
