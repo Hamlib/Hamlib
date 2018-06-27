@@ -1427,7 +1427,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         }
     }
 
-  if (priv->is_emulation)
+  if (priv->is_emulation || rig->caps->rig_model == RIG_MODEL_HPSDR)
     {
       /* emulations like PowerSDR and SmartSDR normally hijack the
          RTTY modes for SSB-DATA AFSK modes */
@@ -1624,7 +1624,7 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
       kmode = modebuf[offs] - 'A' + 10;
     }
   *mode = kenwood2rmode(kmode, caps->mode_table);
-  if (priv->is_emulation)
+  if (priv->is_emulation || rig->caps->rig_model == RIG_MODEL_HPSDR)
     {
       /* emulations like PowerSDR and SmartSDR normally hijack the
          RTTY modes for SSB-DATA AFSK modes */

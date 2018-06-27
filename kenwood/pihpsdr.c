@@ -656,7 +656,8 @@ int pihpsdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
   switch (level) {
   case RIG_LEVEL_RFPOWER:
-    /* XXX check level range */
+    /* level is float between 0.0 and 1.0, maps to 0 ... 100 */
+    kenwood_val = val.f * 100;
     sprintf(levelbuf, "PC%03d", kenwood_val);
     break;
 
