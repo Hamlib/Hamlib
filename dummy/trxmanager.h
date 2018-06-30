@@ -1,6 +1,8 @@
 /*
- *  Hamlib Dummy backend - main header
- *  Copyright (c) 2001-2009 by Stephane Fillod
+ *  Hamlib TRXManager backend - main header
+ *  Copyright (c) 2017 by Michael Black W9MDB
+ *  Copyright (c) 2018 by Michael Black W9MDB
+ *  Derived from flrig.h
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -19,27 +21,21 @@
  *
  */
 
-#ifndef _DUMMY_H
-#define _DUMMY_H 1
+#ifndef _TRXMANAGER_H
+#define _TRXMANAGER_H 1
 
 #include "hamlib/rig.h"
-#include "token.h"
 
-/* backend conf */
-#define TOK_CFG_MAGICCONF    TOKEN_BACKEND(1)
-#define TOK_CFG_STATIC_DATA  TOKEN_BACKEND(2)
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
 
+#define BACKEND_VER "1.2"
 
-/* ext_level's and ext_parm's tokens */
-#define TOK_EL_MAGICLEVEL  TOKEN_BACKEND(1)
-#define TOK_EL_MAGICFUNC   TOKEN_BACKEND(2)
-#define TOK_EL_MAGICOP     TOKEN_BACKEND(3)
-#define TOK_EP_MAGICPARM   TOKEN_BACKEND(4)
+#define EOM "\r"
+#define TRUE 1
+#define FALSE 0
 
+extern struct rig_caps trxmanager_caps;
 
-extern const struct rig_caps dummy_caps;
-extern const struct rig_caps netrigctl_caps;
-extern const struct rig_caps flrig_caps;
-extern const struct rig_caps trxmanager_caps;
-
-#endif /* _DUMMY_H */
+#endif /* _TRXMANAGER_H */

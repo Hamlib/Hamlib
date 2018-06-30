@@ -218,6 +218,9 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data, size_t datasiz
   rs = &rig->state;
   rs->hold_decode = 1;
 
+  /* Emulators don't need any post_write_delay */
+  if (priv->is_emulation) rs->rigport.post_write_delay = 0;
+
   cmdtrm[0] = caps->cmdtrm;
   cmdtrm[1] = '\0';
 
@@ -496,6 +499,7 @@ int kenwood_init(RIG *rig)
   strcpy (priv->verify_cmd, RIG_MODEL_XG3 == rig->caps->rig_model ? ";" : "ID;");
   priv->split = RIG_SPLIT_OFF;
   priv->trn_state = -1;
+  priv->curr_mode = 0;
   rig->state.priv = priv;
 
   /* default mode_table */
@@ -713,6 +717,14 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
     return -RIG_EINVAL;
 
   struct kenwood_priv_data *priv = rig->state.priv;
+
+  /* Emulations do not need to set VFO since VFOB is a copy of VFOA
+   * except for frequency.  And we can change freq without changing VFOS
+   * This prevents a 1.8 second delay in PowerSDR when switching VFOs
+   * We'll do this once if curr_mode has not been set yet
+   */
+  if (priv->is_emulation && priv->curr_mode > 0) return RIG_OK;
+
   char cmdbuf[6];
   int retval;
   char vfo_function;
@@ -1564,6 +1576,12 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
   int offs;
   int retval;
 
+  /* for emulation do not read mode from VFOB as it is copy of VFOA */
+  /* we avoid the VFO swapping most of the time this way */
+  /* only need to get it if it has to be initialized */
+  if (priv->curr_mode > 0 && priv->is_emulation && vfo == RIG_VFO_B) {
+	  return priv->curr_mode;
+  }
   if (RIG_MODEL_TS990S == rig->caps->rig_model)
     {
       char c;
@@ -1817,26 +1835,43 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     return -RIG_EINVAL;
 
   char lvlbuf[KENWOOD_MAX_BUF_LEN];
+  char *cmd;
   int retval;
   int lvl;
-  int i, ret, agclevel;
+  int i, ret, agclevel, len;
 
   switch (level) {
   case RIG_LEVEL_RAWSTR:
-    retval = kenwood_safe_transaction(rig, "SM", lvlbuf, 10, 6);
+    if (RIG_MODEL_TS590S == rig->caps->rig_model || RIG_MODEL_TS590SG == rig->caps->rig_model) {
+      cmd = "SM0";
+      len= 3;
+    }
+    else {
+      cmd = "SM";
+      len = 2;
+    }
+    retval = kenwood_safe_transaction(rig, cmd, lvlbuf, 10, len+4);
     if (retval != RIG_OK)
       return retval;
 
     /* XXX atoi ? */
-    sscanf(lvlbuf+2, "%d", &val->i);  /* rawstr */
+    sscanf(lvlbuf+len, "%d", &val->i);  /* rawstr */
     break;
 
   case RIG_LEVEL_STRENGTH:
-    retval = kenwood_safe_transaction(rig, "SM", lvlbuf, 10, 6);
+    if (RIG_MODEL_TS590S == rig->caps->rig_model || RIG_MODEL_TS590SG == rig->caps->rig_model) {
+      cmd = "SM0";
+      len = 3;
+    }
+    else {
+      cmd = "SM";
+      len = 2;
+    }
+    retval = kenwood_safe_transaction(rig, cmd, lvlbuf, 10, len+4);
     if (retval != RIG_OK)
       return retval;
 
-    sscanf(lvlbuf+2, "%d", &val->i);  /* rawstr */
+    sscanf(lvlbuf+len, "%d", &val->i);  /* rawstr */
 
     if (rig->caps->str_cal.size)
       val->i = (int) rig_raw2val(val->i, &rig->caps->str_cal);
@@ -3345,6 +3380,7 @@ DECLARE_PROBERIG_BACKEND(kenwood)
         "with ID %03d, please report to Hamlib "
         "developers.\n", k_id);
 
+  rig_debug(RIG_DEBUG_TRACE, "%s: post_write_delay=%d\n", __func__, port->post_write_delay);
   return RIG_MODEL_NONE;
 }
 
