@@ -33,6 +33,7 @@ build-aux/
 doc/hamlib.cfg
 doc/hamlib.info
 doc/stamp-vti
+doc/hamlib.html
 doc/version.texi
 hamlib-*.tar.gz
 include/config.h
