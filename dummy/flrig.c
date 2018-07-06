@@ -1156,6 +1156,19 @@ static int flrig_set_vfo(RIG *rig, vfo_t vfo)
     rs->tx_vfo = RIG_VFO_B; // always VFOB
     read_transaction(rig, xml, sizeof(xml));
 
+    /* for some rigs FLRig turns off split when VFOA is selected */
+    /* so if we are in split and asked for A we have to turn split back on */
+    if (priv->split && vfo==RIG_VFO_A) {
+        char xml[MAXXMLLEN];
+        char value[MAXCMDLEN];
+        sprintf(value, "<params><param><value><i4>%d</i4></value></param></params>", priv->split);
+        char *pxml = xml_build("rig.set_split", value, xml, sizeof(xml));
+        retval = write_transaction(rig, pxml, strlen(pxml));
+        if (retval < 0) {
+            return retval;
+        }
+        read_transaction(rig, xml, sizeof(xml)); // get response but don't care
+    }
     return RIG_OK;
 }
 
