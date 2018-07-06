@@ -351,6 +351,18 @@
 
 
 /**
+ *  \def ROT_MODEL_MEADE
+ *  \brief A macro that returns the model number of the MEADE backend.
+ *
+ *  The MEADE backen can be used with Meade telescope rotators like
+ *  DS-2000
+ */
+#define ROT_MEADE 18
+#define ROT_BACKEND_MEADE "meade"
+#define ROT_MODEL_MEADE ROT_MAKE_MODEL(ROT_MEADE, 1)
+
+
+/**
  *  \typedef typedef int rot_model_t
  *  \brief Convenience type definition for rotator model.
 */

@@ -23,6 +23,7 @@ include $(TOP_PATH)/kenwood/Android.mk
 include $(TOP_PATH)/kit/Android.mk
 include $(TOP_PATH)/lowe/Android.mk
 include $(TOP_PATH)/m2/Android.mk
+include $(TOP_PATH)/meade/Android.mk
 include $(TOP_PATH)/pcr/Android.mk
 include $(TOP_PATH)/prm80/Android.mk
 include $(TOP_PATH)/racal/Android.mk
