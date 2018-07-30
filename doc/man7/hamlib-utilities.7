@@ -1,0 +1,835 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\"
+.\" For layout and available macros, see man(7), man-pages(7), groff_man(7)
+.\" Please adjust the date whenever revising the manpage.
+.\"
+.\" Please keep this file in sync with doc/utility-programs.texi
+.\"
+.TH HAMLIB-UTILITIES "7" "2018-05-27" "Hamlib" "Hamlib Information Manual"
+.
+.
+.SH NAME
+.
+hamlib-utilties \- radio and rotator control utilities of Hamlib
+.
+.
+.SH DESCRIPTION
+.
+Included with the Hamlib distribution are several utility programs.
+.
+Besides providing a way for developers to test new code and bug fixes, the
+programs also offer a reference implementation for interfacing to the Hamlib
+library functions both through the
+.B C
+.SM API
+(Application Programming Interface) and offering a network accessible
+.SM API.
+.
+.PP
+This page summarizes the two test programs,
+.BR rigctl (1)
+for testing radio back ends and
+.BR rotctl (1)
+for testing rotator back ends and the two network daemons,
+.BR rigctld (1)
+and
+.BR rotcltd (1)
+for radio and rotator access via network sockets.
+.
+Also included are three demonstation utilities,
+.BR rigmem (1),
+.BR rigsmtr (1),
+and
+.BR rigswr (1)
+which provide functional examples of how Hamlib may be used to accomplish
+various tasks.
+.
+.
+.SH rigctl
+.
+.BR rigctl (1)
+is the most frequently used Hamlib utility.
+.
+As the other
+.I ctl
+utilities share many of the same characteristics, much of the introductory
+information presented in this section is applicable to the other utility
+programs.
+.
+.
+.SS Introduction to rigctl
+.
+Most likely the first of the Hamlib utility programs that is used is
+.BR rigctl (1).
+.
+rigctl is a character based interactive program and a command line program
+able to set or query a radio's value with a single command.
+.
+rigctl is invoked from a shell command prompt with various options and
+additional commands.
+.
+.PP
+In its most simple use as a
+.I "command line"
+program, rigctl is used to set frequency and mode by typing commands after any
+rigctl options:
+.
+.sp
+.RS 0.5i
+.EX
+rigctl F 14205000
+.br
+rigctl M USB 2400
+.EE
+.RE
+.
+.PP
+and then query those values:
+.
+.sp
+.RS 0.5i
+.EX
+rigctl f
+.br
+rigctl m
+.EE
+.RE
+.
+.PP
+Entering
+.I "interactive mode"
+is a simple matter of not placing any commands after any rigctl options:
+.
+.sp
+.RS 0.5i
+.EX
+rigctl
+.EE
+.RE
+.
+.PP
+Entering interactive mode allows successive commands to be entered without
+exiting rigctl.
+.
+Recent additions to rigctl allow command editing and history recall through
+use of the
+.UR https://tiswww.case.edu/php/chet/readline/rltop.html
+Readline
+.UE
+library.
+.
+.PP
+Interactive mode is indicated by the spartan prompt:
+.
+.sp
+.RS 0.5i
+.EX
+Rig command:
+.EE
+.RE
+.
+.PP
+Commands are given at the prompt and follow the general rule that upper case
+letters set a value and lower case letters query a value:
+.
+.sp
+.RS 0.5i
+.EX
+Rig command: M
+.br
+Mode: USB
+.br
+Passband: 2500
+.sp
+Rig command: m
+.br
+Mode: USB
+.br
+Passband: 2500
+.sp
+Rig command:
+.EE
+.RE
+.
+.PP
+An additional prompt is printed when more information is required by the
+command.
+.
+For \f(CWM\fP above, rigctl prompted for the \f(CWMode\fP and \f(CWPassband\fP
+values.
+.
+For \f(CWm\fP above, rigctl returned the \f(CWMode\fP and \f(CWPassband\fP
+values without further prompts.
+.
+The command prompt is returned after each command invocation.
+.
+.PP
+The above examples invoked rigctl without specifying a radio model.
+.
+This is a feature where the Hamlib internal radio model 1
+.I dummy
+is used instead.
+.
+The dummy radio provides a way to test Hamlib functions without the need for
+actual radio hardware.
+.
+However, to develop the Hamlib backend capability for a given radio, having
+the actual radio connected to the computer is necessary for debugging.
+.
+.PP
+For example, to quickly set frequency on an Elecraft K3:
+.
+.sp
+.RS 0.5i
+.EX
+rigctl -m 229 -r /dev/rig F 3900000
+.EE
+.RE
+.
+.PP
+and to query the frequency and then mode:
+.
+.sp
+.RS 0.5i
+.EX
+rigctl -m 229 -r /dev/rig f
+.br
+3900000
+.sp
+rigctl -m 229 -r /dev/rig m
+.br
+LSB
+.br
+2000
+.EE
+.RE
+.
+.PP
+.BR Note :
+the returned values do not have the prompt strings associated with interactive
+mode as shown above.
+.
+.PP
+The
+.B \-m
+option takes a numeric value that corresponds to a given radio back end model.
+.
+The
+.B \-r
+option takes the path to the port device on
+.SM POSIX
+and the device name on Microsoft Windows.
+.
+.PP
+.BR Note :
+A complete list of supported radio models may be seen by use of the
+.B -l
+option:
+.
+.sp
+.RS 0.5i
+.EX
+rigctl -l
+.br
+ Rig #  Mfg              Model         Version    Status
+.br
+     1  Hamlib           Dummy         0.5        Beta
+.br
+     2  Hamlib           NET rigctl    0.3        Beta
+.br
+   101  Yaesu            FT-847        0.5        Beta
+.br
+   103  Yaesu            FT-1000D      0.0.6      Alpha
+.br
+\&.
+.br
+\&.
+.br
+\&.
+.br
+  2702  Rohde&Schwarz    EB200         0.1        Untested
+.br
+  2801  Philips/Simoco   PRM8060       0.1        Alpha
+.br
+  2901  ADAT www.adat.ch ADT-200A      1.36       Beta
+.EE
+.RE
+.
+.PP
+The list is long so use \f(CWShift\-PageUp\fP/\f(CWShift\-PageDown\fP on
+Linux, \f(CWScrollLock\fP then \f(CWPageUp\fP/\f(CWPageDown\fP on Free BSD, or
+use the scrollbar to the virtual terminal window
+.RB ( cmd
+window on Microsoft Windows) or the output can be piped to
+.BR more (1)
+or
+.BR less (1),
+e.g. \(lq\f(CWrigctl -l | more\fP\(rq to scroll back up the list.
+.
+The list is sorted numerically by model number since Hamlib 1.2.15.1.
+.
+Model numbers of a manufacturer/protocol family are grouped together.
+.
+.
+.SS rigctl reference
+.
+The complete reference for rigctl can be found in the
+.BR rigctl (1)
+manual page.
+.
+.
+.SH rotctl
+.
+Identical in function to
+.BR rigctl (1),
+.BR rotctl (1)
+provides a means for testing Hamlib functions useful for rotator control and
+QTH (Maidenhead gridsquare system, see
+.UR https://en.wikipedia.org/wiki/Maidenhead_Locator_System
+Maidenhead Locator System
+.UE )
+locator computations.
+.
+As rotators have a much narrower scope than radios, there are fewer command
+line options and commands for rotctl.
+.
+.
+.SS Introduction to rotctl
+.
+.BR rotctl (1)
+is a character based interactive program and a command line program able to
+set or query a rotator's value with a single command.
+.
+rotctl is invoked from a shell command prompt with various options and
+additional commands.
+.
+.PP
+In its most simple use as a
+.I "command line"
+program, rotctl is used to set azimuth position and (optionally) elevation by
+typing commands after any rotctl options:
+.
+.sp
+.RS 0.5i
+.EX
+rotctl P 145.0 23.0
+.br
+rotctl M 8 25
+.EE
+.RE
+.
+.PP
+and then query those values:
+.
+.sp
+.RS 0.5i
+.EX
+rotctl p
+.EE
+.RE
+.
+.PP
+Entering
+.I "interactive mode"
+is a simple matter of not placing any commands after any rotctl options:
+.
+.sp
+.RS 0.5i
+.EX
+rotctl
+.EE
+.RE
+.
+.PP
+Entering interactive mode allows successive commands to be entered without
+exiting rotctl.
+.
+Interactive mode allows for command editing and history recall through the use
+of the
+.UR https://tiswww.case.edu/php/chet/readline/rltop.html
+Readline
+.UE
+library.
+.
+.PP
+Interactive mode is indicated by the spartan prompt:
+.
+.sp
+.RS 0.5i
+.EX
+Rotator command:
+.EE
+.RE
+.
+.PP
+Commands are given at the prompt:
+.
+.sp
+.RS 0.5i
+.EX
+Rotator command: M
+.br
+Direction: 16
+.br
+Speed: 60
+.sp
+Rotator command: p
+.br
+Azimuth: 11.352000
+.br
+Elevation: 0.000000
+.sp
+Rotator command: p
+.br
+Azimuth: 27.594000
+.br
+Elevation: 0.000000
+.sp
+Rotator command:
+.EE
+.RE
+.
+.PP
+An additional prompt is printed when more information is required by the
+command.
+.
+For \f(CWM\fP above, rotctl prompted for the \f(CWDirection\fP and
+\f(CWSpeed\fP values.
+.
+For \f(CWp\fP above, rotctl returned the \f(CWAzimuth\fP and \f(CWElevation\fP
+values without further prompts.
+.
+The command prompt is returned after each command invocation.
+.
+.PP
+The above examples invoked rotctl without specifying a rotator model.
+.
+This is a feature where the Hamlib internal rotator model 1
+.I dummy
+is used instead.
+.
+The dummy rotator provides a way to test Hamlib functions without the need for
+actual rotator hardware.
+.
+However, to develop back end capability for a given rotator, having the actual
+controller connected to the computer is necessary for debugging.
+.
+.PP
+For example, to quickly set position for RotorEZ:
+.
+.sp
+.RS 0.5i
+.EX
+rotctl -m 401 -r /dev/rotor P 100.0 0.0
+.EE
+.RE
+.
+.PP
+and to query the position:
+.
+.sp
+.RS 0.5i
+.EX
+rotctl -m 401 -r /dev/rotor p
+.br
+100.000000
+.br
+0.000000
+.EE
+.RE
+.
+.PP
+The returned values do not have the prompt strings associated with interactive
+mode as shown above.
+.
+.PP
+The
+.B -m
+option takes a numeric value that corresponds to a given rotator back end model.
+.
+The
+.B -r
+option takes the path to the port device on
+.SM POSIX
+or the device name on Microsoft Windows.
+.
+.PP
+.BR Note :
+A complete list of supported rotator models may be seen by use of the
+.B -l
+option:
+.
+.sp
+.RS 0.5i
+.EX
+rotctl -l
+.br
+ Rot #  Mfg              Model         Version    Status
+.br
+     1  Hamlib           Dummy         0.5        Beta
+.br
+     2  Hamlib           NET rotctl    0.3        Beta
+.br
+   201  Hamlib           EasycommI     0.3        Beta
+.br
+   202  Hamlib           EasycommII    0.3        Beta
+.br
+\&.
+.br
+\&.
+.br
+\&.
+.br
+  1201  AMSAT            IF-100        0.1        Untested
+.br
+  1301  LA7LKA           ts7400        0.1        Beta
+.br
+  1401  Celestron        NexStar       0.1        Untested
+.EE
+.RE
+.
+.PP
+The list is long so use \f(CWShift\-PageUp\fP/\f(CWShift\-PageDown\fP on
+Linux, \f(CWScrollLock\fP then \f(CWPageUp\fP/\f(CWPageDown\fP on Free BSD, or
+use the scrollbar to the virtual terminal window
+.RB ( cmd
+window on Microsoft Windows) or the output can be piped to
+.BR more (1)
+or
+.BR less (1),
+e.g. \(lq\f(CWrotctl -l | more\fP\(rq to scroll back up the list.
+.
+The list is sorted numerically by model number since Hamlib 1.2.15.1.
+.
+Model numbers of a manufacturer/protocol family are grouped together.
+.
+.
+.SS rotctl reference
+.
+The complete reference for rotctl can be found in the
+.BR rotctl (1)
+manual page.
+.
+.
+.SH rigctld
+.
+The
+.BR rigctld (1)
+program is a network server that accepts the familiar commands of
+.BR rigctl (1)
+and provides the response data over a
+.SM TCP/IP
+network socket to an application.
+.
+In this manner an application can access a rigctld instance from nearly
+anywhere (caveat, no security is currently provided by rigctld).
+.
+Applications using rigctld do not link directly to Hamlib nor use its C API.
+.
+.
+.SS Introduction to rigctld
+.
+.BR rigctld (1)
+communicates to a client through a
+.SM TCP
+network socket using text commands shared with
+.BR rigctl (1).
+.
+The protocol is simple; commands are sent to rigctld on one line and rigctld
+responds to
+.B get
+commands with the requested values, one per line, when successful, otherwise,
+it responds with one line
+.B RPRT
+.IR x ,
+where
+.I x
+is a negative number indicating the Hamlib error code.
+.
+Commands that do not return values respond with the line
+.B RPRT
+.IR x ,
+where
+.I x
+is zero when successful, otherwise a negative number indicating the Hamlib
+error code.
+.
+Each line is terminated with a newline,
+.IR \en ,
+character.
+.
+This protocol is primarily for use by the
+.B NET rigctl
+(radio model 2) backend.
+.
+.PP
+A separate Extended Response protocol extends the above behavior by echoing
+the received command string as a header, any returned values as a key: value
+pair, and the
+.B RPRT
+.I x
+string as the end of response marker which includes the Hamlib success or
+failure value.
+.
+Consider using this protocol for clients that will interact with
+rigctld directly through a TCP network socket.
+.
+.PP
+Multiple radios can be controlled on different TCP ports by use of multiple
+rigctld processes each listening on a unique TCP port.
+.
+It is hoped that rigctld will be especially useful for client authors using
+languages such as
+.UR http://www.perl.org/
+Perl
+.UE ,
+.UR http://www.python.org/
+Python
+.UE ,
+.UR http://php.net/
+PHP
+.UE ,
+.UR http://www.ruby-lang.org/en/
+Ruby
+.UE ,
+.UR http://www.tcl.tk/
+TCL
+.UE ,
+and others.
+.
+.
+.SS rigctld reference
+.
+The complete reference for rigctld can be found in the
+.BR rigctld (1)
+manual page.
+.
+.
+.SH rotctld
+.
+The
+.BR rotctld (1)
+program is a network server that accepts the familiar commands of
+.BR rotctl (1)
+and provides the response data over a \f(CWTCP/IP\fP network socket to an
+application.
+.
+In this manner an application can access a rotctld instance from nearly
+anywhere (caveat, no security is currently provided by rotctld).
+.
+Applications using rotctld do not link directly to Hamlib nor use its C API.
+.
+.
+.SS Introduction to rotctld
+.
+.BR rotctld (1)
+communicates to a client through a
+.SM TCP
+network socket using text commands shared with
+.BR rotctl (1).
+.
+The protocol is simple, commands are sent to rotctld on one line and
+rotctld responds to
+.B get
+commands with the requested values, one per line, when successful, otherwise,
+it responds with one line
+.B RPRT
+.IR x ,
+where
+.I x
+is a negative number indicating the Hamlib error code.
+.
+Commands that do not return values respond with the line
+.B RPRT
+.IR x ,
+where
+.I x
+is zero when successful, otherwise a negative number indicating
+the Hamlib error code.
+.
+Each line is terminated with a newline,
+.I \en
+character.
+.
+This protocol is primarily for use by the
+.B NET rotctl
+(rotator model 2) backend.
+.
+.PP
+A separate Extended Response protocol extends the above behavior by echoing
+the received command string as a header, any returned values as a key: value
+pair, and the
+.B RPRT
+.I x
+string as the end of response marker which includes the Hamlib success or
+failure value.
+.
+Consider using this protocol for clients that will interact with
+rotctld directly through a TCP network socket.
+.
+.PP
+Multiple rotators can be controlled on different TCP ports by use of multiple
+rotctld processes each listening on a unique TCP port.
+.
+It is hoped that rotctld will be especially useful for client authors using
+languages such as
+.UR http://www.perl.org/
+Perl
+.UE ,
+.UR http://www.python.org/
+Python
+.UE ,
+.UR http://php.net/
+PHP
+.UE ,
+.UR http://www.ruby-lang.org/en/
+Ruby
+.UE ,
+.UR http://www.tcl.tk/
+TCL
+.UE ,
+and others.
+.
+.
+.SS rotctld reference
+.
+The complete reference for rotctld can be found in the
+.BR rotctld (1)
+manual page.
+.
+.
+.SH rigmem
+.
+.B rigmem
+may be used to backup and restore memory of radio transceivers and receivers.
+.
+.
+.SS Introduction to rigmem
+.
+Backup and restore memory of radio transceivers and receivers.
+.B rigmem
+accepts
+.IR command s
+from the command line only.
+.
+.
+.SS rigmem reference
+.
+The complete reference for rigmem can be found in the
+.BR rigmem (1)
+manual page.
+.
+.
+.SH rigsmtr
+.
+.B rigsmtr
+uses
+.B Hamlib
+to control a radio to measure S-Meter value versus antenna azimuth.
+.
+.
+.SS Introduction to rigsmtr
+.
+rigsmtr rotates the antenna from minimum azimuth to maximum azimuth.
+Every second, or
+.I time_step
+if specified in seconds, it retrieves the signal strength. Azimuth in degrees
+and the corresponding S-Meter level in dB relative to S9 are then printed on
+.BR stdout .
+.
+.PP
+To work correctly, rigsmtr needs a radio that could measure S-Meter and a Hamlib
+backend that is able to retrieve it, connected to a Hamlib supported rotator.
+.
+.
+.SS rigsmtr reference
+.
+The complete reference for rigsmtr can be found in the
+.BR rigsmtr (1)
+manual page.
+.
+.
+.SH rigswr
+.
+.B rigswr
+may be used to measure VSWR vs frequency.
+.
+.
+.SS Introduction to rigswr
+.
+rigswr uses Hamlib to control a radio to measure VSWR (Voltage Standing
+Wave Ratio) over a frequency range.
+
+It scans frequencies from
+.I start_freq
+to
+.I stop_freq
+with an optional increment of
+.I freq_step
+(default step is 100 kHz).
+.
+All values must be entered as an integer in Hertz (cycles per second).
+
+.BR Note :
+rigswr assumes that
+.I start_freq is less than or equal to
+.IR stop_freq .
+.
+If it is greater, rigswr will exit without doing anything.
+.
+.PP
+For each frequency, rigswr transmits at 25% of total POWER during 0.5 second
+in CW mode and reads VSWR.
+.
+.PP
+Frequency and the corresponding VSWR are then printed on stdout.
+.
+.PP
+To work correctly, rigswr needs a radio that can measure VSWR and a
+Hamlib backend that supports reading VSWR from the radio.
+.
+.
+.SS rigswr reference
+.
+The complete reference for rigswr can be found in the
+.BR rigswr (1)
+manual page.
+.
+.
+.SH COPYING
+.
+This file is part of Hamlib, a project to develop a library that simplifies
+radio and rotator control functions for developers of software primarily of
+interest to radio amateurs and those interested in radio communications.
+.
+.PP
+Copyright \(co 2001-2018 Hamlib Group (various contributors)
+.
+.PP
+This is free software; see the file COPYING for copying conditions.  There is
+NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+.
+.
+.SH SEE ALSO
+.
+.BR less (1),
+.BR more (1),
+.BR rigctl (1),
+.BR rigctld (1),
+.BR rotctl (1),
+.BR rotctld (1),
+.BR rigmem (1),
+.BR rigsmtr (1),
+.BR rigswr (1),
+.BR hamlib (7),
+.BR hamlib-primer (7)
+.
+.
+.SH COLOPHON
+.
+Links to the Hamlib Wiki, Git repository, release archives, and daily snapshot
+archives:
+.IP
+.UR http://www.hamlib.org
+hamlib.org
+.UE .

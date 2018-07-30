@@ -1,0 +1,838 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\"
+.\" For layout and available macros, see man(7), man-pages(7), groff_man(7)
+.\" Please adjust the date whenever revising the manpage.
+.\"
+.\" Please keep this file in sync with doc/getting_started.texi
+.\"
+.TH HAMLIB-PRIMER "7" "2018-05-27" "Hamlib" "Hamlib Information Manual"
+.
+.
+.SH NAME
+.
+hamlib-primer \- compiling and using the radio and rotator control library
+.
+.
+.SH DESCRIPTION
+.
+There are several ways to obtain a working installation of Hamlib.
+.
+The following sections discuss installing from a package manager, building
+from source, and installing Hamlib project supplied binaries on Microsoft
+Windows\*R.
+.
+.
+.SS Installing binary packages on Linux and BSD
+.
+The easiest way to install a released version of Hamlib on a Linux based
+distribution or a BSD variant is through the provided
+.IR "package manager" .
+.
+While package managers vary according to the distribution (it's easy to lump
+BSD variants in this group too) their end goal is to provide ready to use
+software packages.
+.
+Since such a wide variety of package managers exist, it is best to recommend
+that the documentation for your chosen distribution be your guide.
+.
+.
+.SS A variety of Hamlib sources
+.
+Distribution packages are most often official Hamlib releases and in some
+cases could be quite old and lacking support for newer radios or rotators.
+.
+In some cases support is improved in existing radio or rotator back ends and
+bugs are fixed in newer releases.
+.
+Often times to get the improved support/bug fixes, building from source will
+be required.
+.
+Relax, it's not hard.  :-)
+.
+.PP
+Source code is available as official releases, testing snapshots, daily
+development snapshots, and the bleeding edge of development directly from the
+.UR https://github.com/Hamlib/Hamlib
+Git repository
+.UE .
+.
+As a rule, even the bleeding edge tarballs should configure and compile
+without error even though certain implementation work may be in progress and
+may be incomplete or have errors.
+.
+.
+.SS Getting released source
+.
+.
+Official Hamlib source releases, commonly called
+.I tarballs
+can be
+found on the
+.UR http://sourceforge.net/projects/hamlib/files/hamlib/
+SourceForge.net Hamlib files
+.UE
+Web page.
+.
+As a convenience, release archives are also mirrored at the
+.UR https://github.com/Hamlib/Hamlib/releases
+GitHub Hamlib releases
+.UE
+page.
+.
+The most recent release is listed first.
+.
+.
+.SS Getting source snapshots
+.
+Testing release candidates (RCs) are posted during the period (often a few
+weeks) before a planned release.
+.
+Beginning with the 3.2 release, RCs are hosted by the
+.UR https://github.com/Hamlib/Hamlib/releases
+GitHub release archive
+.UE .
+.
+RCs are identifed by having a
+.I ~rc
+suffix.
+.
+.PP
+Daily snapshots of the development repository are available via the World Wide
+Web from
+.UR http://n0nb.users.sourceforge.net/
+Hamlib Git daily snapshots
+.UE .
+.
+These are not official releases but are provided for testing new features and
+bug fixes.
+.
+.PP
+The daily development snapshot is made and posted each day by around 1030 UTC.
+.
+Daily snapshots
+.I should
+compile but sometimes a bug creeps in that prevents compilation.
+.
+If that should happen, please report it to the
+.MT hamlib-developer@@lists.sourceforge.net
+hamlib-developer mailing list
+.ME .
+.
+.
+.SS Git repository
+.
+The source repository can be
+.I cloned
+which copies the repository to your computer including its entire history,
+branches, and release tag information.
+.
+In other words, once the
+.BR git "(1) " clone
+command is finished a complete copy of the Hamlib development will be on your
+computer.
+.
+You can do quite a lot with this as nothing is hidden from view since the
+entire history of Hamlib is right there all the way from the very first commit
+to the present.
+.
+None of the meta-data is hidden away on some central server.
+.
+.PP
+To clone the repository use the following command:
+.
+.sp
+.RS 0.5i
+.EX
+git clone https://git.code.sf.net/p/hamlib/code hamlib
+.EE
+.RE
+.
+.PP
+or:
+.sp
+.RS 0.5i
+.EX
+git clone https://github.com/Hamlib/Hamlib.git
+.EE
+.RE
+.
+.PP
+.
+Odds are that you will want to run the above command in a sub directory of
+your home directory.
+.
+The
+.I hamlib
+directory will be created by Git and the
+.I master
+branch will be checked out for you as the
+.IR "working copy" .
+.
+The master branch is one of several branches used in Hamlib development.
+.
+It is the main branch of new features and bug fixes.
+.
+The working copy will be the latest revision of every file at the time of the
+clone.
+.
+Later updates from the developers will require using another Git command to
+update your local repository.
+.
+.
+.SS Building from source
+.
+Building from source will be required for various reasons.
+.
+Perhaps only an older release is provided by your distribution, or you would like
+to test recent changes to Hamlib\(emeither a specific back end or API
+changes\(emand offer a report to the developers, or you would like to take part in
+development and offer your contribution to the project, or you would just like to
+learn how to build a relatively comprehensive package from source.
+.
+Any is a good reason to build from the source code archive.
+.
+.PP
+Before going further, this manual assumes familiarity with working from the
+command prompt in a Linux/BSD/Unix like system's
+.I shell
+environment, either in a
+.I virtual console
+(a text only screen with no graphics) or in a
+.I terminal
+in a desktop environment
+.RB ( xterm ,
+.BR rxvt ,
+.BR konsole ,
+.BR gnome\-terminal ,
+.BR xfce4\-terminal ,
+.BR terminal ,
+etc.).
+.
+If this is new to you, take some time and read up on using the shell.
+.
+A good tutorial can be found at
+.UR http://linuxcommand.org/
+LinuxCommand.org
+.UE
+which also offers an in-depth book that can be purchased or downloaded for no
+cost (the Hamlib project is not associated with nor has any interest in the
+sale of this book, it just looks like a very good effort on the part of its
+author).
+.
+.PP
+Let's get started.
+.
+.
+.SS Compiling source tarballs
+.
+Before proceeding, it is essential to read the information in the files,
+.IR README ,
+.IR INSTALL ,
+and
+.I README.betatester
+supplied in the Hamlib
+.I top-level
+directory which will be named
+something like
+.I hamlib-3.3~git
+where the latter part is the release version.
+.
+In this case the
+.I 3.3~git
+indicates this is a development snapshot of the Git master branch.
+.
+These files provide detailed information for compiling Hamlib and will vary
+some from release to release.
+.
+.PP
+Compiling from a source tarball whether it is an official release or a testing
+or daily development snapshot follows the same set of commands, known as the
+.I three step
+which are each run from the top-level directory:
+.
+.sp
+.RS 0.5i
+.EX
+\&./configure
+make
+sudo make install
+.EE
+.RE
+.
+.SS configure
+.
+The
+.IB ./ configure
+command examines your system and checks it for any packages that are required
+or good to have options for compiling Hamlib.
+.
+The leading
+.I ./
+tells the shell to only run the
+.B configure
+command found in the current directory.
+.
+It is always possible that a
+.B configure
+command could be lurking elsewhere and we don't want to run that!
+.
+.PP
+Run:
+.
+.sp
+.RS 0.5i
+.EX
+\&./configure
+.EE
+.RE
+.
+.PP
+from the top-level directory.
+.
+.IP
+.BR Note :
+Some distributions are configured so commands can only be run from directories
+listed in the
+.B PATH
+environment variable.
+.
+The
+.I ./
+is necessary or the
+.B configure
+command will not be run as the
+.I current directory
+(defined as
+.IR . )
+is not in the
+.BR PATH .
+.
+This is considered a default security feature so that only programs provided
+by the distribution are run.
+.
+.B PATH
+can be modified for your own session, but that is a topic for the
+LinuxCommand.org reference above.
+.
+.PP
+Of course, things are usually complicated a bit by options and Hamlib is no
+exception.
+.
+The good news is that the defaults, i.e., no options, work well in most
+situations.
+.
+Options are needed to enable the compilation of certain portions of Hamlib
+such as the language bindings.
+.
+Optional features usually require that more development tools are installed.
+.
+The
+.I INSTALL
+and
+.I README.betatester
+files in the Hamlib top-level directory will have details on the options
+available for that release.
+.
+.PP
+A useful option is
+.B \-\-prefix
+which tells
+.B configure
+where in the file system hierarchy Hamlib should be installed.
+.
+If it is not given, Hamlib will be installed in the
+.I /usr/local
+file system hierarchy.
+.
+Perhaps you want to install to your home directory instead:
+.
+.sp
+.RS 0.5i
+.EX
+\&./configure \-\-prefix=$HOME/local
+.EE
+.RE
+.
+.IP
+.BR Note :
+For practice you may wish to start out using the
+.BR \-\-prefix = \fI$HOME/local\fP
+option to install the Hamlib files into your home directory and avoid
+overwriting any version of Hamlib installed into the system directories.
+.
+The code examples in the remainder of this manual will assume Hamlib has been
+installed to
+.IR $HOME/local .
+.
+.PP
+All of the files will be installed in the
+.I local
+directory of your home directory.
+.
+.I local
+will be created if it does not exist during installation as will several other
+directories in it.
+.
+Installing in your home directory means that
+.IR root ,
+or superuser (administrator) privileges are not required when running
+.BR "make install" .
+.
+On the other hand, some extra work will need to be done so other programs can
+use the library.
+.
+.\" (TODO: describe library hackery in an appendix).
+.
+.PP
+Another useful option is
+.B \-\-help
+which will give a few screens full of options for
+.BR configure .
+.
+If in a desktop environment the scroll bar can be used to scroll back up
+through the output.
+.
+In either a terminal or a virtual console Linux supports the Shift\-PageUp key
+combination to scroll back up.
+.
+Conversely, Shift\-PageDown can be used to scroll down toward the end of the
+output and the shell prompt (Shift\-UpArrow/Shift\-DownArrow may also work to
+scroll one line at a time).
+.
+.PP
+After a fair amount of time, depending on your computer, and a lot of screen
+output,
+.B configure
+will finish its job.
+.
+So long as the few lines previous to the shell prompt don't say \(lqerror\(rq
+or some such failure message Hamlib is ready to be compiled.
+.
+If there is an error and all of the required packages listed in
+.I README.betatester
+have been installed, please ask for help on the
+.MT hamlib\-developer@@lists.sourceforge.net
+hamlib-developer mailing list
+.ME .
+.
+.
+.SS make
+.
+The
+.BR make (1)
+command is responsible for running the
+.I compiler
+which reads the source files and from the instructions it finds in them writes
+.I object
+files which are the binary instructions the CPU of a computer can execute.
+.
+.B make
+then calls the
+.I linker
+which puts the object files together in the correct order to create the Hamlib
+library files and its executable programs.
+.
+.PP
+Run:
+.
+.sp
+.RS 0.5i
+.EX
+make
+.EE
+.RE
+.
+.PP
+from the top-level directory.
+.
+.PP
+Any error that causes
+.B make
+to stop early is cause for a question to the
+.MT hamlib\-developer@@lists.sourceforge.net
+hamlib-developer mailing list
+.ME .
+.
+.PP
+In general
+.B make
+will take longer than
+.B configure
+to complete its run.
+.
+As it is a system command, and therefore found in the
+.BR PATH ,
+prefixing
+.B make
+with
+.I ./
+will cause a \(lqcommand not found\(rq error from the shell.
+.
+.
+.SS make install
+.
+Assuming that you have not set the installation prefix to your home directory,
+root (administrator) privileges will be required to install Hamlib to the
+system directories.
+.
+Two popular methods exist for gaining root privileges,
+.BR su (1)
+and
+.BR sudo (8).
+.
+.B sudo
+is probably the most popular these days, particularly when using the
+.UR http://www.ubuntu.com
+Ubuntu
+.UE
+family of distributions.
+.
+.PP
+Run:
+.
+.sp
+.RS 0.5i
+.EX
+sudo make install
+.EE
+.RE
+.
+.PP
+as root from the top-level directory.
+.
+.PP
+Running
+.B make install
+will call the installer to put all of the newly compiled files and other files
+(such as this document) in predetermined places set by the
+.B \-\-prefix
+option to
+.B configure
+in the directory hierarchy (yes, this is by design and
+.B make
+is not just flinging files any old place!).
+.
+.PP
+A lot of screen output will be generated.
+.
+Any errors will probably be rather early in the process and will likely be
+related to your
+.I username
+not having write permissions in the system directory structure.
+.
+.
+.SS ldconfig
+.
+Once the installation is complete one more step is required if Hamlib has
+never been installed from a local build before.
+.
+The
+.B ldconfig
+command tells the system library loader where to find the newly installed
+Hamlib libraries.
+.
+It too will need to be run with root privileges:
+.
+.PP
+Run:
+.
+.sp
+.RS 0.5i
+.EX
+sudo ldconfig
+.EE
+.RE
+.
+.PP
+as root from any directory.
+.
+.PP
+.BR Note :
+Subsequent installations of Hamlib will not need to have
+.B ldconfig
+run after each installation if a newer version of Hamlib was not installed,
+i.e. when recompiling the same version during development.
+.
+.PP
+On some distributions a bit of configuration will be needed before
+.B ldconfig
+will add locally compiled software to its database.
+.
+Please consult your distribution's documentation.
+.
+.
+.SS Bootstrapping from a \(aqgit clone\(aq
+.
+Choosing to build from from a
+.B git clone
+requires a few more development tools (notice a theme here?) as detailed in
+.IR README.developer .
+.
+The most critical will be the GNU Autotools
+.RB ( autoconf ,
+.BR automake ,
+.BR libtool ,
+and more) from which the build system consisting of
+.BR configure ,
+the various
+.IR Makefile.in s
+throughout the directory structure, and the final
+.IR Makefile s
+are generated.
+.
+.PP
+In the top-level directory is the
+.B bootstrap
+script from which the build system is
+.IR bootsrapped\(emthe
+process of generating the Hamlib build system from
+.I configure.ac
+and the various
+.IR Makefile.am s.
+.
+At its completion the
+.B configure
+script will be present to configure the build system.
+.
+.PP
+Next
+.B configure
+is run with any needed build options
+.RB ( "configure \-\-help"
+is useful) to enable certain features or provide paths for locating needed
+build dependencies, etc.
+.
+Environment variables intended for the preprocessor and/or compiler may also
+be set on the
+.B configure
+command line.
+.
+.PP
+After the configuration is complete, the build may proceed with the
+.B make
+step as for the source tarballs above.
+.
+Or
+.B configure \-\-help
+may be run, and
+.B configure
+run again with specific options in which case the
+.IR Makefile s
+will be regenerated and the build can proceed with the new configuration.
+.
+.
+.SS Other make targets
+.
+Besides
+.BR "make install" ,
+other
+.I targets
+exist when running
+.BR make .
+.
+Running
+.B make clean
+from the top-level directory removes all of the generated object and
+executable files generated by running
+.B make
+freeing up considerable disk space.
+.
+.PP
+.BR Note :
+During development of individual source files, it is not necessary to
+run
+.B make clean
+each time before
+.BR make .
+.
+Simply run
+.B make
+and only the modified file(s) and any objects that depend on them will be
+recompiled.
+.
+This speeds up development time considerably.
+.
+.PP
+To remove even the generated
+.IR Makefile s,
+run
+.B make distclean
+from the top-level directory.
+.
+After this target is run,
+.B configure
+will need to be run again to regenerate the
+.IR Makefile s.
+.
+This command may not be as useful as the
+.IR Makefile s
+do not take up much space, however it can be useful for rebuilding the
+.IR Makefile s
+when modifying a
+.I Makefile.am
+or
+.I confgure.ac
+during build system development.
+.
+.
+.SS Parallel build trees
+.
+One feature of the GNU build system used by Hamlib is that the object files
+can be kept in a directory structure separate from the source files.
+.
+While this has no effect on the
+.B make
+targets described above, it does help the developer find files in the source
+tree!
+.
+One such way of using parallel builds is described in
+.IR README.developer .
+.
+.PP
+Parallel builds can be very useful as one build directory can be configured
+for a release and another build directory can be configured for debugging with
+different options passed to
+.B configure
+from each directory.
+.
+The generated
+.IR Makefile s
+are unique to each build directory and will not interfere with each other.
+.
+.
+.SS Adding debugging symbols
+.
+When additional debugging symbols are needed with, for example, the GNU
+Debugger,
+.BR gdb ,
+the needed compiler and linker options are passed as environment variables.
+.
+.PP
+Run:
+.sp
+.RS 0.5i
+.EX
+\&../hamlib/configure CFLAGS="-ggdb3 -O0" CXXFLAGS="-ggdb3 -O0"
+.EE
+.RE
+.
+.PP
+from a sibling build directory intended for a debugging build.
+.
+.PP
+The
+.B \-ggdb3
+option tells the C compiler, in this case the GNU C Compiler,
+.BR gcc ,
+to add special symbols useful for GDB, the GNU debugger.
+.
+The
+.B -O0
+option tells
+.B gcc
+to turn off all optimizations which will make it easier to follow some
+variables that might otherwise be optimized away.
+.
+.B CFLAGS
+and
+.B CXXFLAGS
+may be set independently for each compiler.
+.
+.PP
+.BR Note :
+There are a number compiler options available for controlling debugging
+symbols and setting optimization levels.
+.
+Please consult the compiler's manual for all the details.
+.
+.
+.SS Compiling for Microsoft Windows
+.
+Currently compiling is done on a Debian 8 (Jessie) virtual machine using
+.UR http://www.mingw.org
+MinGW
+.UE .
+.I README.build-win32
+in the
+.I scripts
+directory has details on how this is accomplished.
+.
+.
+.SS Pre-compiled binaries for Microsoft Windows
+.
+Pre-compiled binaries for Microsoft Windows 32 and 64 bit architectures
+(Windows NT and newer) are available for both official releases and daily
+development snapshots.
+.
+Official releases are available through the
+.UR http://sourceforge.net/projects/hamlib/files/hamlib/
+SourceForge.net file download service
+.UE .
+.
+As an alternative, official releases are also available though the
+.UR https://github.com/Hamlib/Hamlib/releases
+Hamlib archive at GitHub
+.UE .
+.
+Daily development snapshots are available from the
+.UR http://n0nb.users.sourceforge.net/
+daily snapshots page
+.UE .
+.
+.PP
+Beginning with the Hamlib 1.2.15.3 release a self-extracting installer is
+available.
+.
+Among its features are selecting which portions of Hamlib are installed.
+.
+The
+.B PATH
+environment variable will need to be set manually per the included
+.I README.w32-bin
+or
+.I README.w64-bin
+file.
+.
+.PP
+Daily development snapshots feature both a .ZIP archive and the self
+extracting installer.
+.
+.PP
+Bug reports and questions about these archives should be sent to the
+.MT hamlib-developer@@lists.sourceforge.net
+hamlib-developer mailing list
+.ME .
+.
+.
+.SH COPYING
+.
+This file is part of Hamlib, a project to develop a library that simplifies
+radio and rotator control functions for developers of software primarily of
+interest to radio amateurs and those interested in radio communications.
+.
+.PP
+Copyright \(co 2001-2018 Hamlib Group (various contributors)
+.
+.PP
+This is free software; see the file COPYING for copying conditions.  There is
+NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+.
+.
+.SH SEE ALSO
+.
+.BR git (1),
+.BR hamlib (7),
+.BR ldconfig (8),
+.BR make (1),
+.BR su (1),
+.BR sudo (8)
+.
+.
+.SH COLOPHON
+.
+Links to the Hamlib Wiki, Git repository, release archives, and daily snapshot
+archives:
+.IP
+.UR http://www.hamlib.org
+hamlib.org
+.UE .
