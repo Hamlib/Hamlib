@@ -1,13 +1,16 @@
 Included with the Hamlib distribution are several utility programs.
 Besides providing a way for developers to test new code and bug fixes,
 the programs also offer a reference implementation for interfacing to
-the Hamlib library functions both through the C API and offering a
-network accessible API.
+the Hamlib library functions both through the C API (Application
+Programming Interface) and offering a network accessible API.
 
 This chapter focuses on the two test programs, @command{rigctl} for
-testing radio back ends and @command{rotctl} for testing rotor back
+testing radio back ends and @command{rotctl} for testing rotator back
 ends and the two network daemons, @command{rigctld} and
-@command{rotcltd} for radio and rotor access via network sockets.
+@command{rotcltd} for radio and rotator access via network sockets.
+Also included are three demonstation utilities, @command{rigmem},
+@command{rigsmtr}, and @command{rigswr} which provide functional
+examples of how Hamlib may be used to accomplish various tasks.
 
 
 @menu
@@ -15,6 +18,9 @@ ends and the two network daemons, @command{rigctld} and
 * rotctl::
 * rigctld::
 * rotctld::
+* rigmem::
+* rigsmtr::
+* rigswr::
 @end menu
 
 @node rigctl
@@ -22,16 +28,13 @@ ends and the two network daemons, @command{rigctld} and
 @cindex rigctl
 
 @command{rigctl} is the most frequently used Hamlib utility.  As the
-other utilities share many of the same characteristics, much of the
-introductory information presented in this section is applicable to
-the other utility programs.
+other ctl utilities share many of the same characteristics, much of
+the introductory information presented in this section is applicable
+to the other utility programs.
 
 @menu
 * Introduction to rigctl::
-* rigctl invocation::
-* rigctl command line options::
-* rigctl commands::
-* rigctl readline support::
+* rigctl reference::
 @end menu
 
 @node Introduction to rigctl
@@ -73,7 +76,7 @@ commands after any @command{rigctl} options:
 Entering @dfn{interactive mode} allows successive commands to be
 entered without exiting @command{rigctl}.  Recent additions to
 @command{rigctl} allow command editing and history recall through use
-of the @url{ http://cnswww.cns.cwru.edu/php/chet/readline/rltop.html,
+of the @url{https://tiswww.case.edu/php/chet/readline/rltop.html,
 Readline} library.
 
 Interactive mode is indicated by the spartan prompt:
@@ -135,7 +138,8 @@ interactive mode as shown above.
 
 The @option{-m} option takes a numeric value that corresponds to a
 given radio back end model.  The @option{-r} option takes the path to
-the port device on @acronym{POSIX} and the device name on MS Windows.
+the port device on @acronym{POSIX} and the device name on Microsoft
+Windows.
 
 @quotation Note
 A complete list of supported radio models may be seen by use of the
@@ -160,979 +164,38 @@ A complete list of supported radio models may be seen by use of the
 The list is long so use @kbd{@key{SHIFT}-PageUp}/
 @kbd{@key{SHIFT}-PageDown} on Linux, @kbd{@key{ScrollLock}} then
 @kbd{@key{PageUp}}/@kbd{@key{PageDown}} on Free BSD, or use the
-scrollbar to the virtual terminal window (@command{cmd} window on MS
-Windows) or the output can be piped to '@command{more}' or
+scrollbar to the virtual terminal window (@command{cmd} window on
+Microsoft Windows) or the output can be piped to '@command{more}' or
 '@command{less}', e.g.@: '@kbd{rigctl -l | more}' to scroll back up
 the list.  The list is sorted numerically by model number since Hamlib
-1.2.15.1.  Model numbers of a manufacturer/ protocol family are
+1.2.15.1.  Model numbers of a manufacturer/protocol family are
 grouped together.
 @end quotation
 
-@node rigctl invocation
-@subsection @command{rigctl} invocation
-@cindex @command{rigctl} invocation
-@cindex invocation, @command{rigctl}
+@node rigctl reference
+@subsection @command{rigctl} reference
+@cindex @command{rigctl} reference
+@cindex reference, @command{rigctl}
 
-Here are some additional examples for invoking @command{rigctl} for
-various situations.
+The complete reference for @command{rigctl} can be found in the
+@kbd{rigctl}(1) Unix manual page.
 
-@noindent
-Start @command{rigctl} for a Yaesu FT-920 using a @acronym{USB} to serial
-adapter on Linux in interactive mode:
-
-@example
-rigctl -m 114 -r /dev/ttyUSB1
-@end example
-
-@noindent
-Start @command{rigctl} for a Yaesu FT-920 using @file{COM1} on MS
-Windows while generating TRACE output to @file{stderr}:
-
-@example
-rigctl -m 114 -r COM1 -vvvvv
-@end example
-
-@noindent
-Start @command{rigctl} for a Yaesu FT-920 using a @acronym{USB} to
-serial adapter on Linux while setting baud rate and stop bits:
-
-@example
-rigctl -m 114 -r /dev/ttyUSB1 -s 4800 -C stop_bits=2
-@end example
-
-@noindent
-Start @command{rigctl} for an Elecraft K3 using a @acronym{USB} to
-serial adapter on Linux while specifying a command terminator for the
-@command{w} command:
-
-@example
-rigctl -m 229 -r /dev/ttyUSB0 -t';'
-@end example
-
-@noindent
-Connect to a running @command{rigctld} with radio model 2 (@code{NET
-rigctl}) on the local host and specifying the @acronym{TCP} port,
-setting frequency and mode:
-
-@example
-rigctl -m 2 -r localhost:4532 F 7253500 M LSB 0
-@end example
-
-@strong{N.B.} On MS Windows @kbd{localhost} may need to be replaced
-with the actual loopback @acronym{IP} address--@kbd{127.0.0.1}--or the
-address passed to @command{rigctld} with the @option{-T} option.
-
-@node rigctl command line options
-@subsection @command{rigctl} command line options
-@cindex @command{rigctl} command line options
-@cindex Command line options, @command{rigctl}
-
-The @command{rigctl} command line options (not to be confused with
-@command{rigctl} commands) control the action of various features.
-Options consist of both ``short options''--a single hyphen '@kbd{-}'
-followed by a single letter and ``long options''--two hyphens
-'@kbd{--}' followed by several letters often comprising one or more
-words separated by a hyphen.
-
-@command{rigctl} accepts the following options:
-
-@table @option
-@item -m
-@itemx --model=@var{id}
-Select radio model number. See model list (use @kbd{rigctl -l}).
-
-@strong{N.B.} @command{rigctl} (or third party software) will use rig
-model 2 for NET rigctl (@command{rigctld}).
-
-@item -r
-@itemx --rig-file=@var{device}
-Use @var{device} as the file name of the port the radio is connected.
-Often a serial port, but could be a USB to serial adapter.  Typically
-@file{/dev/ttyS0} , @file{/dev/ttyS1} , @file{/dev/ttyUSB0} , etc.@:
-on Linux or @file{COM1} , @file{COM2} , etc.@: on MS Windows.  The
-special string @kbd{uh-rig} may be given to enable micro-ham device
-support.
-@ifhtml
-@*
-@end ifhtml
-
-@item -p
-@itemx --ptt-file=@var{device}
-Use @var{device} as the file name of the Push-To-Talk device using a
-device file as described above.
-@ifhtml
-@*
-@end ifhtml
-
-@item -d
-@itemx --dcd-file=@var{device}
-Use @var{device} as the file name of the Data Carrier Detect device
-using a device file as described above.
-@ifhtml
-@*
-@end ifhtml
-
-@item -P
-@itemx --ptt-type=@var{type}
-Use @var{type} of Push-To-Talk device.  Supported types are
-@code{RIG}, @code{DTR}, @code{RTS}, @code{PARALLEL}, @code{NONE},
-overriding @acronym{PTT} type defined in the rig's backend.
-
-Some side effects of this command are that when type is set to
-@code{DTR}, read @acronym{PTT} state comes from Hamlib frontend, not
-read from the radio.  When set to @code{NONE}, @acronym{PTT} state
-cannot be read or set even if rig backend supports reading/setting
-@acronym{PTT} status from the rig.
-
-@item -D
-@itemx --dcd-type=@var{type}
-Use @var{type} of Data Carrier Detect device.  Supported types are
-@code{RIG} (@acronym{CAT} command), @code{DSR}, @code{CTS}, @code{CD},
-@code{PARALLEL}, @code{NONE}.
-@ifhtml
-@*
-@end ifhtml
-
-@item -s
-@itemx --serial-speed=@var{baud}
-Set serial speed to @var{baud} rate. Uses @strong{maximum} serial
-speed from rig backend capabilities (set by @option{-m} above) as the
-default.
-@ifhtml
-@*
-@end ifhtml
-
-@item -c
-@itemx --civaddr=@var{id}
-Use @var{id} as the @acronym{CI-V} address to communicate with the
-rig. Only useful for Icom radios and those using the Icom protocol.
-
-@strong{N.B.} The @var{id} is in decimal notation, unless prefixed by
-@code{0x}, in which case it is a hexadecimal value.
-
-@item -t
-@itemx --send-cmd-term=@var{char}
-Change the termination @var{char} for text protocol when using the
-@code{send_cmd} command.  The default value is @code{<CR>}
-(@code{0x0d}). Non @acronym{ASCII} printable characters can be
-specified as an @acronym{ASCII} number, in hexadecimal format,
-prepended with @code{0x}. You may pass an empty string for no
-termination char. The string '@code{-1}' tells @command{rigctl} to
-switch to binary protocol. See the @code{send_cmd} command for further
-explanation.
-@ifhtml
-@*
-@end ifhtml
-
-@item -L
-@itemx --show-conf
-List all config parameters for the radio defined with @option{-m}
-above.
-@ifhtml
-@*
-@end ifhtml
-
-@item -C
-@itemx --set-conf=@var{parm}=@var{val}[,@var{parm}=@var{val},@dots{}]
-Set config parameter. e.g.@: @code{stop_bits=2}
-
-Use @option{-L} option for a list.
-
-@item -l
-@itemx --list
-List all model numbers defined in Hamlib and exit.  As of 1.2.15.1 the
-list is sorted by model number.
-
-@strong{N.B.} In Linux the list can be scrolled back using
-@kbd{@key{SHIFT}-PageUp}/ @kbd{@key{SHIFT}-PageDown}, or using the
-scrollbars of a virtual terminal in X or the @command{cmd} window in
-MS Windows.  The output can be piped to '@command{more}' or
-'@command{less}', e.g.@: '@kbd{rigctl -l | more}'.
-
-@item -u
-@itemx --dump-caps
-Dump capabilities for the radio defined with @option{-m} above and
-exit.
-@ifhtml
-@*
-@end ifhtml
-
-@item -o
-@itemx --vfo
-Set vfo mode, requiring an extra @acronym{VFO} argument in front of
-each appropriate command (except @command{set_vfo}!). Otherwise,
-@code{currVFO} is assumed when this option is not set and an extra VFO
-argument is not used.  See @command{chk_vfo} below.
-@ifhtml
-@*
-@end ifhtml
-
-@item -n
-@itemx --no-restore-ai
-On exit @command{rigctl} restores the state of auto information (AI)
-on the controlled rig. If this is not desired, for example if you are
-using @command{rigctl} to turn AI mode on or off, pass this option.
-
-@item -i
-@itemx --read-history
-Read previously saved command and argument history from a file
-(default '@file{$HOME/.rigctl_history}') for the current session.
-Available when @command{rigctl} is built with Readline support.
-
-@strong{N.B.} To read a history file stored in another directory, set
-the @env{RIGCTL_HIST_DIR} environment variable, e.g.@:
-'@kbd{RIGCTL_HIST_DIR=$HOME/tmp rigctl -i}'.  When
-@env{RIGCTL_HIST_DIR} is not set, the value of @env{HOME} is used.
-
-@item -I
-@itemx --save-history
-Write current session (and previously saved session(s) if @option{-i}
-option is also given) command and argument history to a file (default
-'@file{$HOME/.rigctl_history}') at the end of the current session.
-Complete commands with arguments are saved as a single line to be
-recalled and used or edited.  Available when @command{rigctl} is built
-with Readline support.
-
-To write a history file in another directory, set the
-@env{RIGCTL_HIST_DIR} environment variable, e.g.@:
-'@kbd{RIGCTL_HIST_DIR=$HOME/tmp rigctl -I}'.  When
-@env{RIGCTL_HIST_DIR} is not set, the value of @env{HOME} is used.
-
-@item -v
-@itemx --verbose
-Set verbose mode level, cumulative i.e.@: @option{-vvvvv} sets maximum
-debugging output to @file{stderr}.
-
-Five different levels of diagnostics can be output to @file{stderr}
-and correspond to @option{-v} for @code{BUG}, @option{-vv} for
-@code{ERR}, @option{-vvv} for @code{WARN}, @option{-vvvv} for
-@code{VERBOSE}, or @option{-vvvvv} for @code{TRACE}.  Back end authors
-will use the verbose facility to print critical values useful for
-testing and will often ask for this output in response to a request
-for help.
-
-@item -Z
-@itemx --debug-time-stamps
-Enable time stamps on debug output.
-
-@item -h
-@itemx --help
-Show summary of these options and exit.
-@ifhtml
-@*
-@end ifhtml
-
-@item -V
-@itemx --version
-Show version of @command{rigctl} and exit.
-
-@end table
-
-@quotation Note
-Some options may not be implemented by a given backend and will return
-an error.  This is most likely to occur with the @option{--set-conf}
-and @option{--show-conf} options.
-@end quotation
-
-@node rigctl commands
-@subsection @command{rigctl} commands
-@cindex @command{rigctl} commands
-@cindex commands, @command{rigctl}
-
-Commands can be entered either as a single char, or as a long command
-name.  Basically, the commands do not take a dash in front of them on
-the command line, as the options do. They may be typed in when in
-interactive mode or provided as argument(s) in command line interface
-mode.  In interactive mode commands and their arguments may be entered
-on a single line:
-
-@example
-Rig command: M LSB 2400
-@end example
-
-@noindent
-or singly and @command{rigctl} will prompt for any needed values.
-
-Since most of the Hamlib operations have a ``set'' and a ``get''
-method, in general an upper case letter will be used for set methods
-whereas the corresponding lower case letter refers to the get method.
-Each operation also has a long name; prepend a backslash @kbd{\} to
-enter a long command name.
-
-@quotation
-Example: Use @kbd{\dump_caps} to see what this radio can do.
-@end quotation
-
-@noindent
-Be aware that the backend for the radio to be controlled, or the radio
-itself may not support some commands. In that case, the operation will
-fail with a Hamlib error message.
-
-Here is a summary of the supported commands:
-
-@itemize
-@item
-Command short name is followed by the long name which is followed by
-any variable names.
-
-@item
-Some short commands are noted as hexadecimal digits due to the
-limitation of upper and lower case letters available.  Use the
-associated long command name instead.
-
-@item
-While a comma is used to separate variable names in this document,
-they are not part of the command syntax used by @command{rigctl}.  Use
-a space to separate values.
-
-@item
-In the case of ``set'' commands the variable @var{name} is replaced by
-the value in the description.
-
-@item
-In the case of ``get'' commands the variable @var{name} is the key
-name of the value returned.
-
-@end itemize
-
-@table @command
-@item q
-Exit @command{rigctl} in interactive mode (@kbd{q} is not case
-sensitive).
-
-When @command{rigctl} is controlling the rig directly, will close the
-rig back end and port.  When @command{rigctl} is connected to
-@command{rigctld} (rig model 2), the @acronym{TCP/IP} connection to
-@command{rigctld} is closed and @command{rigctld} remains running,
-available for another @acronym{TCP/IP} network connection.
-
-@item F, set_freq @var{Frequency}
-Set @var{Frequency}, in Hertz.
-@ifhtml
-@*
-@end ifhtml
-
-@item f, get_freq
-Get @var{Frequency}, in Hertz.
-@ifhtml
-@*
-@end ifhtml
-
-@item M, set_mode @var{Mode}, @var{Passband}
-Set @var{Mode} to one of: @code{USB}, @code{LSB}, @code{CW},
-@code{CWR}, @code{RTTY}, @code{RTTYR}, @code{AM}, @code{FM},
-@code{WFM}, @code{AMS}, @code{PKTLSB}, @code{PKTUSB}, @code{PKTFM},
-@code{ECSSUSB}, @code{ECSSLSB}, @code{FAX}, @code{SAM}, @code{SAL},
-@code{SAH}, @code{DSB}.
-
-Set @var{Passband} frequency in Hertz, or @code{0} for the Hamlib
-backend default. A value of @code{-1} may be passed which leaves the
-rig passband unchanged from the current or default value for the mode
-as defined by the rig.
-
-@strong{N.B.} Passing a @kbd{?} (query) as the first argument
-instead of @var{Mode} will return a space separated list of radio
-backend supported Modes.  Use this to determine the supported Modes of
-a given radio backend.
-
-@item m, get_mode
-Get @var{Mode}, @var{Passband}.
-
-Returns Mode as a string from @command{set_mode} above and Passband
-frequency in Hertz.
-
-@item V, set_vfo @var{VFO}
-Set @var{VFO} to one of: @code{VFOA}, @code{VFOB}, @code{VFOC},
-@code{currVFO}, @code{VFO}, @code{MEM}, @code{Main}, @code{Sub},
-@code{TX}, @code{RX}.
-
-In @acronym{VFO} mode only a single @acronym{VFO} parameter is
-required.
-
-@item v, get_vfo
-Get current @var{VFO}.
-
-Returns @acronym{VFO} as a string from @command{set_vfo} above.
-
-@item J, set_rit @var{RIT}
-Set @var{RIT}, in Hertz, can be a positive or negative value.
-
-A value of @code{0} resets @acronym{RIT} and @emph{should} turn
-@acronym{RIT} off.  If not, file a bug report against the Hamlib
-backend.
-
-@strong{N.B.} This functionality is under transition and in the future
-will need to be activated with the @command{set_func} command.
-
-@item j, get_rit
-Get @var{RIT}, in Hertz.
-@ifhtml
-@*
-@end ifhtml
-
-@item Z, set_xit @var{XIT}
-Set @var{XIT}, in Hertz, can be a positive or negative value.
-
-A value of @code{0} resets @acronym{XIT} and @emph{should} turn
-@acronym{XIT} off.  If not, file a bug report against the Hamlib
-backend.
-
-@strong{N.B.} This functionality is under transition and in the future
-will need to be activated with the @command{set_func} command.
-
-@item z, get_xit
-Get @var{XIT}, in Hertz.
-@ifhtml
-@*
-@end ifhtml
-
-@item T, set_ptt @var{PTT}
-Set @var{PTT} to one of: @code{0} (RX), @code{1} (TX), @code{2} (TX
-mic), @code{3} (TX data).
-@ifhtml
-@*
-@end ifhtml
-
-@item t, get_ptt
-Get @var{PTT} status.
-@ifhtml
-@*
-@end ifhtml
-
-@item 0x8b, get_dcd
-Get @var{DCD} (squelch) status, @code{0} (Closed) or @code{1} (Open)
-@ifhtml
-@*
-@end ifhtml
-
-@item R, set_rptr_shift @var{Rptr Shift}
-Set @var{Rptr Shift}: @code{+}, @code{-} or something else for none.
-@ifhtml
-@*
-@end ifhtml
-
-@item r, get_rptr_shift
-Get @var{Rptr Shift}.  Returns @code{+}, @code{-} or @code{None}.
-@ifhtml
-@*
-@end ifhtml
-
-@item O, set_rptr_offs @var{Rptr Offset}
-Set @var{Rptr Offset}, in Hertz.
-@ifhtml
-@*
-@end ifhtml
-
-@item o, get_rptr_offs
-Get @var{Rptr Offset}, in Hertz.
-@ifhtml
-@*
-@end ifhtml
-
-@item C, set_ctcss_tone @var{CTCSS Tone}
-Set @var{CTCSS Tone}, in tenths of Hertz.
-
-@acronym{CTCSS},
-@url{http://en.wikipedia.org/wiki/Continuous_Tone-Coded_Squelch_System,
-@dfn{Continuous Tone Coded Squelch System}}, is a method used to
-reduce the annoyance of listening to other users on a shared two-way
-communications radio channel by imposing a tone on the transmitted
-signal.  Also known as @dfn{subaudible tone} and @acronym{PL},
-@dfn{Private Line}.
-
-@item c, get_ctcss_tone
-Get @var{CTCSS Tone}, in tenths of Hertz.
-@ifhtml
-@*
-@end ifhtml
-
-@item D, set_dcs_code @var{DCS Code}
-Set @var{DCS Code}.
-
-@acronym{DCS},
-@url{http://en.wikipedia.org/wiki/Digital-Coded_Squelch#DCS,
-@dfn{Digital-Coded Squelch}} is a digital version of @acronym{CTCSS}
-which imposes a digital code on the transmitted signal.
-
-@item d, get_dcs_code
-Get @var{DCS Code}.
-@ifhtml
-@*
-@end ifhtml
-
-@item 0x90, set_ctcss_sql @var{CTCSS Sql}
-Set @var{CTCSS Sql} tone, in tenths of Hertz.
-@ifhtml
-@*
-@end ifhtml
-
-@item 0x91, get_ctcss_sql
-Get @var{CTCSS Sql} tone, in tenths of Hertz.
-@ifhtml
-@*
-@end ifhtml
-
-@item 0x92, set_dcs_sql @var{DCS Sql}
-Set @var{DCS Sql} code.
-@ifhtml
-@*
-@end ifhtml
-
-@item 0x93, get_dcs_sql
-Get @var{DCS Sql} code.
-@ifhtml
-@*
-@end ifhtml
-
-@item I, set_split_freq @var{Tx Frequency}
-Set @var{TX Frequency}, in Hertz for ``split'' frequency operation.
-
-See also @command{set_split_freq_mode} below.
-@ifhtml
-@*
-@end ifhtml
-
-@item i, get_split_freq
-Get @var{TX Frequency}, in Hertz for ``split'' frequency operation.
-
-See also @command{get_split_freq_mode} below.
-@ifhtml
-@*
-@end ifhtml
-
-@item X, set_split_mode @var{TX Mode}, @var{TX Passband}
-Set @var{TX Mode} to one of: @code{AM}, @code{FM}, @code{CW},
-@code{CWR}, @code{USB}, @code{LSB}, @code{RTTY}, @code{RTTYR},
-@code{WFM}, @code{AMS}, @code{PKTLSB}, @code{PKTUSB}, @code{PKTFM},
-@code{ECSSUSB}, @code{ECSSLSB}, @code{FAX}, @code{SAM}, @code{SAL},
-@code{SAH}, @code{DSB}.
-
-The @var{TX Passband} is the exact passband frequency in Hertz, or
-@code{0} for the Hamlib backend default. A value of @code{-1} may be
-passed which leaves the rig passband unchanged from the current or
-default value for the mode as defined by the rig.
-
-@strong{N.B.} Passing a @kbd{?} (query) as the first argument instead
-of @var{TX Mode} will return a space separated list of radio backend
-supported TX Modes.  Use this to determine the supported TX Modes of a
-given radio backend.
-
-See also @command{set_split_freq_mode} below.
-@ifhtml
-@*
-@end ifhtml
-
-@item x, get_split_mode
-Get @var{TX Mode}, @var{TX Passband}.
-
-Returns TX mode as a string from @command{set_split_mode} above and TX
-passband in Hz.
-
-See also @command{get_split_freq_mode} below.
-@ifhtml
-@*
-@end ifhtml
-
-@item K, set_split_freq_mode @var{Tx Frequency}, @var{TX Mode}, @var{TX Passband}
-Set @var{TX Frequency}, in Hertz for ``split'' frequency operation.
-Set @var{TX Mode} to one of: @code{AM}, @code{FM}, @code{CW},
-@code{CWR}, @code{USB}, @code{LSB}, @code{RTTY}, @code{RTTYR},
-@code{WFM}, @code{AMS}, @code{PKTLSB}, @code{PKTUSB}, @code{PKTFM},
-@code{ECSSUSB}, @code{ECSSLSB}, @code{FAX}, @code{SAM}, @code{SAL},
-@code{SAH}, @code{DSB}.
-
-The @var{TX Passband} is the exact passband frequency in Hertz, or
-@code{0} for the Hamlib backend default. A value of @code{-1} may be
-passed which leaves the rig passband unchanged from the current or
-default value for the mode as defined by the rig.
-
-This is a convenience function that combines the effect of
-@command{set_split_freq} and @command{set_split_mode}. It should be
-used when both are required since it allows the back end to optimize
-the operations. For example on many Icom rigs the current VFO must be
-changed temporarily while executing these commands and that can
-disrupt receive or transmit, using this function may minimize that
-disruption.
-
-See also @command{set_split_freq} and @command{set_split_mode} above.
-@ifhtml
-@*
-@end ifhtml
-
-@item k, get_split_freq_mode
-Get @var{TX Frequency}, in Hertz for ``split'' frequency operation
-along with The @var{TX Mode} as a string from @command{set_split_mode}
-above and @var{TX Passband} in Hz.
-
-This is a convenience function that combines the effect of
-@command{get_split_freq} and @command{get_split_mode}. It should be
-used when both are required since it allows the back end to optimize
-the operations. For example on many Icom rigs the current VFO must be
-changed temporarily while executing these commands and that can
-disrupt receive or transmit, using this function may minimize that
-disruption.
-
-See also @command{get_split_freq} and @command{get_split_mode} above.
-@ifhtml
-@*
-@end ifhtml
-
-@item S, set_split_vfo @var{Split}, @var{TX VFO}
-Set @var{Split} mode, @code{0} (off) or @code{1} (on), and @var{TX VFO}
-from @command{set_vfo} above.
-@ifhtml
-@*
-@end ifhtml
-
-@item s, get_split_vfo
-Get @var{Split} mode, @code{0} (off) or @code{1} (on), and @var{TX VFO}.
-@ifhtml
-@*
-@end ifhtml
-
-@item N, set_ts @var{Tuning Step}
-Set @var{Tuning Step}, in Hertz.
-@ifhtml
-@*
-@end ifhtml
-
-@item n, get_ts
-Get @var{Tuning Step}, in Hertz.
-@ifhtml
-@*
-@end ifhtml
-
-@item U, set_func @var{Func}, @var{Func Status}
-Set @var{Func}, @var{Func Status}.
-
-@var{Func} is one of: @code{FAGC}, @code{NB}, @code{COMP}, @code{VOX},
-@code{TONE}, @code{TSQL}, @code{SBKIN}, @code{FBKIN}, @code{ANF},
-@code{NR}, @code{AIP}, @code{APF}, @code{MON}, @code{MN}, @code{RF},
-@code{ARO}, @code{LOCK}, @code{MUTE}, @code{VSC}, @code{REV},
-@code{SQL}, @code{ABM}, @code{BC}, @code{MBC}, @code{RIT}, @code{AFC},
-@code{SATMODE}, @code{SCOPE}, @code{RESUME}, @code{TBURST},
-@code{TUNER}, @code{XIT}.
-
-Func Status argument is @code{1} for ``activate'', @code{0} for
-``de-activate'', much as TRUE/FALSE definitions in the C/C++ languages
-(true is non-zero and false is zero).
-
-@strong{N.B.}  Passing a @kbd{?} (query) as the first argument instead
-of @var{Func} will return a space separated list of radio backend
-supported ``set'' functions.  Use this to determine the supported
-functions of a given radio backend.
-
-@item u, get_func @var{Func}
-Get @var{Func Status}.
-
-Returns @var{Func Status} as a non null value for the @var{Func} passed.
-@var{Func} is a token from the list in @command{set_func} above.
-
-@strong{N.B.} Passing a @kbd{?} (query) as the first argument instead
-of @var{Func} will return a space separated list of radio backend
-supported ``get'' functions.  Use this to determine the supported
-functions of a given radio backend.
-
-@item L, set_level @var{Level}, @var{Level Value}
-Set @var{Level}, @var{Level Value}.
-
-@var{Level} is one of: @code{PREAMP}, @code{ATT}, @code{VOX}, @code{AF},
-@code{RF}, @code{SQL}, @code{IF}, @code{APF}, @code{NR}, @code{PBT_IN},
-@code{PBT_OUT}, @code{CWPITCH}, @code{RFPOWER}, @code{MICGAIN},
-@code{KEYSPD}, @code{NOTCHF}, @code{COMP}, @code{AGC}(@code{0}:OFF,
-@code{1}:SUPERFAST, @code{2}:FAST, @code{3}:SLOW, @code{4}:USER,
-@code{5}:MEDIUM, @code{6}:AUTO), @code{BKINDL}, @code{BAL},
-@code{METER}, @code{VOXGAIN}, @code{ANTIVOX}, @code{SLOPE_LOW},
-@code{SLOPE_HIGH}, @code{RAWSTR}, @code{SWR}, @code{ALC},
-@code{STRENGTH}.
-
-The @var{Level Value} can be a float or an integer.
-
-@strong{N.B.} Passing a @kbd{?} (query) as the first argument instead of
-@var{Level} will return a space separated list of radio backend
-supported ``set'' levels.  Use this to determine the supported levels of a
-given radio backend.
-
-@item l, get_level @var{Level}
-Get @var{Level Value}.
-
-Returns @var{Level Value} as a float or integer for the @var{Level}
-passed.  @var{Level} is a token from the list in @command{set_level}
-above.
-
-@strong{N.B.} Passing a @kbd{?} (query) as the first argument instead of
-@var{Level} will return a space separated list of radio backend
-supported ``get'' levels.  Use this to determine the supported levels of a
-given radio backend.
-
-@item P, set_parm @var{Parm}, @var{Parm Value}
-Set @var{Parm}, @var{Parm Value}
-
-@var{Parm} is one of: @code{ANN}, @code{APO}, @code{BACKLIGHT},
-@code{BEEP}, @code{TIME}, @code{BAT}, @code{KEYLIGHT}.
-
-@strong{N.B.}  Passing a @kbd{?} (query) as the first argument instead
-of @var{Parm} will return a space separated list of radio backend
-supported ``set'' parameters.  Use this to determine the supported
-parameters of a given radio backend.
-
-@item p, get_parm @var{Parm}
-Get @var{Parm Value}.
-
-Returns @var{Parm Value} as a float or integer for the @var{Parm}
-passed.  @var{Parm} is a token from the list in @command{set_parm}
-above.
-
-@strong{N.B.}  Passing a @kbd{?} (query) as the first argument instead
-of @var{Parm} will return a space separated list of radio backend
-supported ``get'' parameters.  Use this to determine the supported
-parameters of a given radio backend.
-
-@item B, set_bank @var{Bank}
-Set @var{Bank}.  Sets the current memory bank number.
-@ifhtml
-@*
-@end ifhtml
-
-@item E, set_mem @var{Memory#}
-Set @var{Memory#} channel number.
-@ifhtml
-@*
-@end ifhtml
-
-@item e, get_mem
-Get @var{Memory#} channel number.
-@ifhtml
-@*
-@end ifhtml
-
-@item G, vfo_op @var{Mem/VFO Op}
-Perform @var{Mem/VFO Op}.
-
-@var{Mem/VFO Op}eration is one of: @code{CPY}, @code{XCHG},
-@code{FROM_VFO}, @code{TO_VFO}, @code{MCL}, @code{UP}, @code{DOWN},
-@code{BAND_UP}, @code{BAND_DOWN}, @code{LEFT}, @code{RIGHT},
-@code{TUNE}, @code{TOGGLE}.
-
-@strong{N.B.} Passing a @kbd{?} (query) as the first argument instead of
-@var{Mem/VFO Op} will return a space separated list of radio backend
-supported ``set'' Mem/VFO Ops.  Use this to determine the supported Mem/VFO
-Ops of a given radio backend.
-
-@item g, scan @var{Scan Fct}, @var{Scan Channel}
-Perform @var{Scan Fct} @var{Scan Channel}.
-
-Scan function/channel is one of: @code{STOP}, @code{MEM}, @code{SLCT},
-@code{PRIO}, @code{PROG}, @code{DELTA}, @code{VFO}, @code{PLT}.
-
-@strong{N.B.} Passing a @kbd{?} (query) as the first argument instead of
-@var{Scan Fct} will return a space separated list of radio backend
-supported Scan Functions.  Use this to determine the supported Scan
-Functions of a given radio backend.
-
-@item H, set_channel @var{Channel}
-Set memory @var{Channel} data. Not implemented yet.
-@ifhtml
-@*
-@end ifhtml
-
-@item h, get_channel
-Get memory @var{Channel} data. Not implemented yet.
-@ifhtml
-@*
-@end ifhtml
-
-@item A, set_trn @var{Transceive}
-Set @var{Transceive} mode (reporting event): @code{OFF}, @code{RIG},
-@code{POLL}.
-
-@strong{N.B.} Passing a @kbd{?} (query) as the first argument instead of
-@var{Transceive} will return a space separated list of radio backend
-supported Scan Transceive modes.  Use this to determine the supported
-Transceive modes of a given radio backend.
-
-@item a, get_trn
-Get @var{Transceive} mode (reporting event) as in @command{set_trn}
-above.
-@ifhtml
-@*
-@end ifhtml
-
-@item Y, set_ant @var{Antenna}
-Set @var{Antenna} number (@code{0}, @code{1}, @code{2}, @dots{}).
-@ifhtml
-@*
-@end ifhtml
-
-@item y, get_ant
-Get @var{Antenna} number (@code{0}, @code{1}, @code{2}, @dots{}).
-@ifhtml
-@*
-@end ifhtml
-
-@item *, reset @var{Reset}
-Perform rig @var{Reset}.
-
-@code{0} = None, @code{1} = Software reset, @code{2} = @acronym{VFO}
-reset, @code{4} = Memory Clear reset, @code{8} = Master reset.  Since
-these values are defined as a bitmask in @file{rig.h}, it should be
-possible to @code{AND} these values together to do multiple resets at
-once, if the backend supports it or supports a reset action via rig
-control at all.
-
-@item b, send_morse @var{Morse}
-Send @var{Morse} symbols.
-@ifhtml
-@*
-@end ifhtml
-
-@item 0x87, set_powerstat @var{Power Status}
-Set power On/Off/Standby @var{Power Status}.
-
-@code{0} = Power Off, @code{1} = Power On, @code{2} = Power Standby.
-Defined as a bitmask in @file{rig.h}.
-
-@item 0x88, get_powerstat
-Get power On/Off/Standby @var{Power Status} as in
-@command{set_powerstat} above.
-@ifhtml
-@*
-@end ifhtml
-
-@item 0x89, send_dtmf @var{Digits}
-Set DTMF @var{Digits}.
-@ifhtml
-@*
-@end ifhtml
-
-@item 0x8a, recv_dtmf
-Get DTMF @var{Digits}.
-@ifhtml
-@*
-@end ifhtml
-
-@item _, get_info
-Get misc information about the rig
-
-@acronym{VFO} parameter not used in '@acronym{VFO} mode'.
-
-@item 1, dump_caps
-Not a real rig remote command, it just dumps capabilities, i.e. what
-the backend knows about this model, and what it can do.
-
-TODO: Ensure this is in a consistent format so it can be read into a
-hash, dictionary, etc.  Bug reports requested.
-
-@strong{N.B.} This command will produce many lines of output so be
-very careful if using a fixed length array!  For example, running this
-command against the Dummy backend results in over 5kB of text output.
-
-@acronym{VFO} parameter not used in '@acronym{VFO} mode'.
-
-@item 2, power2mW @var{Power 0.0..1.0}, @var{Frequency}, @var{Mode}
-Returns @var{Power mW}
-
-Converts a @var{Power} value in a range of @code{0.0..1.0} to
-the real transmit power in milli-Watts (integer).  The @var{Frequency}
-and @var{Mode} also need to be provided as output power may vary
-according to these values.
-
-@acronym{VFO} parameter not used in '@acronym{VFO} mode'.
-
-@item 4, mW2power @var{Power mW}, @var{Frequency}, @var{Mode}
-Returns @var{Power 0.0..1.0}
-
-Converts the real transmit power in milli-Watts (integer) to a
-@var{Power} value in a range of @code{[0.0..1.0]}.  The
-@var{Frequency} and @var{Mode} also need to be provided as output
-power may vary according to these values.
-
-@acronym{VFO} parameter not used in '@acronym{VFO} mode'.
-
-@item w, send_cmd @var{Cmd}
-Send raw command string to rig.  This is useful for testing and
-troubleshooting rig commands and responses when developing a backend.
-
-For binary protocols enter values as @code{\0xAA\0xBB}.  Expect a
-@var{Reply} from the rig which will likely be a binary block or an
-@acronym{ASCII} string depending on the rig's protocol (see your
-radio's computer control documentation).
-
-The command terminator, set by the @option{--send-cmd-term} option
-above, will terminate each command string sent to the radio.  This
-character should not be a part of the input string.
-@end table
-
-@node rigctl readline support
-@subsection @command{rigctl} Readline support
-@cindex @command{rigctl} Readline support
-@cindex Readline support, @command{rigctl}
-
-If Readline library development files are found at configure time,
-@command{rigctl} will be conditonally built with Readline support for
-command and argument entry.  Readline command key bindings are at
-their defaults as described in the
-@url{http://cnswww.cns.cwru.edu/php/chet/readline/rluserman.html,
-Readline manual} although @command{rigctl} sets the name @code{rigctl}
-which can be used in @code{Conditional Init Constructs} in the
-Readline Init File (@file{$HOME/.inputrc} by default) for custom
-keybindings unique to @command{rigctl}.
-
-Command history is available with Readline support as described in the
-@url{http://cnswww.cns.cwru.edu/php/chet/readline/history.html#SEC1,
-Readline History manual}.  Command and argument strings are stored as
-single lines even when arguments are prompted for input individually.
-Commands and arguments are not validated and are stored as typed with
-values separated by a single space.
-
-Normally session history is not saved, however, use of either of the
-@option{-i}/@option{--read-history} or
-@option{-I}/@option{--save-history} options when starting
-@command{rigctl} will cause any previously saved history to be read in
-and/or the current and any previous session history (assuming the
-@option{-i} and @option{-I} options are given together) will be
-written out when @command{rigctl} is closed.  Each option is mutually
-exclusive, i.e. either may be given separately or in combination.
-This is useful to save a set of commands and then read them later but
-not write the modified history for a consistent set of test commands
-in interactive mode, for example.
-
-History is stored in @file{$HOME/.rigctl_history} by default although
-the destination directory may be changed by setting the
-@env{RIGCTL_HIST_DIR} environment variable.  When
-@env{RIGCTL_HIST_DIR} is unset, the value of the @env{HOME}
-environment variable is used instead.  Only the destination directory
-may be changed at this time.
-
-If Readline support is not found at configure time the original
-internal command handler is used.  Readline is not used for
-@command{rigctl} commands entered on the command line regardless if
-Readline support is built in or not.
-
-@quotation Note
-Readline support is not included in the MS Windows 32 binary builds
-supplied by the Hamlib Project.  Running @command{rigctl} on the MS
-Windows 32 platform in the @command{cmd} shell does give session
-command line history, however, it is not saved to disk between
-sessions.
-@end quotation
 
 @node rotctl
 @section @command{rotctl}
 @cindex rotctl
 
 Identical in function to @command{rigctl}, @command{rotctl} provides a
-means for testing Hamlib functions useful for rotor control and
-@acronym{QRA} locator computations.  As rotors have a much narrower
-scope than radios, there are fewer command line options and commands
-for @command{rotctl}.
+means for testing Hamlib functions useful for rotator control and
+@acronym{QTH} (Maidenhead gridsquare system, see
+@url{https://en.wikipedia.org/wiki/Maidenhead_Locator_System,
+Maidenhead Locator System}) locator computations.  As rotators have a
+much narrower scope than radios, there are fewer command line options
+and commands for @command{rotctl}.
 
 @menu
 * Introduction to rotctl::
-* rotctl invocation::
-* rotctl command line options::
-* rotctl commands::
-* rotctl readline support::
+* rotctl reference::
 @end menu
 
 @node Introduction to rotctl
@@ -1141,7 +204,7 @@ for @command{rotctl}.
 @cindex @command{rotctl}, introduction to
 
 @command{rotctl} is a character based interactive program and a
-command line program able to set or query a rotor's value with a
+command line program able to set or query a rotator's value with a
 single command.  @command{rotctl} is invoked from a shell command
 prompt with various options and additional commands.
 
@@ -1170,10 +233,10 @@ commands after any @command{rotctl} options:
 
 @noindent
 Entering interactive mode allows successive commands to be entered
-without exiting @command{rotctl}.  Recent additions to
-@command{rotctl} allow command editing and history recall through use
-of the @url{ http://cnswww.cns.cwru.edu/php/chet/readline/rltop.html,
-Readline} library.
+without exiting @command{rotctl}.  Interactive mode allows for command
+editing and history recall through the use of the @url{
+https://tiswww.case.edu/php/chet/readline/rltop.html, Readline}
+library.
 
 Interactive mode is indicated by the spartan prompt:
 
@@ -1202,16 +265,18 @@ Rotator command:
 
 An additional prompt is printed when more information is required by
 the command.  For @kbd{M} above, @command{rotctl} prompted for the
-``Direction'' and ``Speed'' values.  For @kbd{p} above, @command{rotctl}
-returned the ``Azimuth'' and ``Elevation'' values without further prompts.
-The command prompt is returned after each command invocation.
+``Direction'' and ``Speed'' values.  For @kbd{p} above,
+@command{rotctl} returned the ``Azimuth'' and ``Elevation'' values
+without further prompts.  The command prompt is returned after each
+command invocation.
 
-The above examples invoked @command{rotctl} without specifying a rotor
-model.  This is a feature where the Hamlib internal rotor dummy is
-used instead.  The dummy rotor provides a way to test Hamlib functions
-with out the need for actual rotor hardware.  However, to develop back
-end capability for a given rotor, having the actual radio connected to
-the computer is necessary for debugging.
+The above examples invoked @command{rotctl} without specifying a
+rotator model.  This is a feature where the Hamlib internal rotator
+dummy is used instead.  The dummy rotator provides a way to test
+Hamlib functions with out the need for actual rotator hardware.
+However, to develop back end capability for a given rotator, having
+the actual controller connected to the computer is necessary for
+debugging.
 
 For example, to quickly set position for RotorEZ:
 
@@ -1234,8 +299,8 @@ The returned values do not have the prompt strings associated with
 interactive mode as shown above.
 
 The @option{-m} option takes a numeric value that corresponds to a
-given rotor back end model.  The @option{-r} option takes the path to
-the port device on @acronym{POSIX} and the device name on MS Windows.
+given rotator back end model.  The @option{-r} option takes the path to
+the port device on @acronym{POSIX} or the device name on MS Windows.
 
 @quotation Note
 A complete list of supported radio models may be seen by use of the
@@ -1243,7 +308,7 @@ A complete list of supported radio models may be seen by use of the
 
 @example
 @kbd{rotctl -l}
- Rig #  Mfg              Model         Version    Status
+ Rot #  Mfg              Model         Version    Status
      1  Hamlib           Dummy         0.5        Beta
      2  Hamlib           NET rotctl    0.3        Beta
    201  Hamlib           EasycommI     0.3        Beta
@@ -1264,396 +329,19 @@ scrollbar to the virtual terminal window (@command{cmd} window on MS
 Windows) or the output can be piped to '@command{more}' or
 '@command{less}', e.g.@: '@kbd{rotctl -l | more}' to scroll back up
 the list.  The list is sorted numerically by model number since Hamlib
-1.2.15.1.  Model numbers of a manufacturer/ protocol family are
-grouped together.
+1.2.15.1.  Model numbers of a manufacturer/protocol family are grouped
+together.
 @end quotation
 
 
-@node rotctl invocation
-@subsection @command{rotctl} invocation
-@cindex @command{rotctl} invocation
-@cindex invocation, @command{rotctl}
+@node rotctl reference
+@subsection @command{rotctl} reference
+@cindex @command{rotctl} reference
+@cindex reference, @command{rotctl}
 
-Here are some additional examples for invoking @command{rotctl} for
-various situations.
+The complete reference for @command{rotctl} can be found in the
+@kbd{rotctl}(1) Unix manual page.
 
-Start @command{rotctl} for RotorEZ using the first serial port on
-Linux:
-
-@example
-rotctl -m 401 -r /dev/ttyS0
-@end example
-
-@noindent
-Start @command{rotctl} for RotorEZ using @code{COM2} on MS Windows:
-
-@example
-rotctl -m 401 -r COM2
-@end example
-
-@noindent
-Connect to a running @command{rotctld} with rotor model 2 (@code{NET rotctl}) on the
-local host and specifying the @acronym{TCP} port, and querying the position:
-
-@example
-rotctl -m 2 -r localhost:4533 \get_pos
-@end example
-
-@node rotctl command line options
-@subsection @command{rotctl} command line options
-@cindex @command{rotctl} command line options
-@cindex Command line options, @command{rotctl}
-
-@command{rotctl} accepts the following options:
-
-@table @option
-@item -m
-@itemx --model=@var{id}
-Select rotator model number. See model list (use @kbd{rotctl -l}).
-
-@strong{N.B.} @command{rotctl} (or third party software) will use
-rotor model 2 for NET rotctl (@command{rotctld}).
-
-@item -r
-@itemx --rot-file=@var{device}
-Use @var{device} as the file name of the port the rotor is connected.
-Often a serial port, but could be a USB to serial adapter.  Typically
-@file{/dev/ttyS0} , @file{/dev/ttyS1} , @file{/dev/ttyUSB0} , etc.@:
-on Linux or @file{COM1} , @file{COM2} , etc.@: on MS Windows.  The
-special string @kbd{uh-rig} may be given to enable micro-ham device
-support.
-@ifhtml
-@*
-@end ifhtml
-
-@item -s
-@itemx --serial-speed=@var{baud}
-Set serial speed to @var{baud} rate. Uses @strong{maximum} serial
-speed from rotor backend capabilities as the default.
-@ifhtml
-@*
-@end ifhtml
-
-@item -t
-@itemx --send-cmd-term=@var{char}
-Change the termination @var{char} for text protocol when using the
-@code{send_cmd} command.  The default value is @code{<CR>}
-(@code{0x0d}). Non @acronym{ASCII} printable characters can be
-specified as an @acronym{ASCII} number, in hexadecimal format,
-prepended with @code{0x}. You may pass an empty string for no
-termination char. The string '@code{-1}' tells @command{rotctl} to
-switch to binary protocol. See the @code{send_cmd} command for further
-explanation.
-@ifhtml
-@*
-@end ifhtml
-
-@item -L
-@itemx --show-conf
-List all config parameters for the rotor defined with @option{-m}
-above.
-@ifhtml
-@*
-@end ifhtml
-
-@item -C
-@itemx --set-conf=@var{parm}=@var{val}[,@var{parm}=@var{val},@dots{}]
-Set config parameter. e.g.@: @code{stop_bits=2}
-
-Use @option{-L} option for a list.
-
-@item -l
-@itemx --list
-List all model numbers defined in Hamlib and exit.  As of 1.2.15.1 the
-list is sorted by model number.
-
-@strong{N.B.} In Linux the list can be scrolled back using
-@kbd{@key{SHIFT}-PageUp}/ @kbd{@key{SHIFT}-PageDown}, or using the
-scrollbars of a virtual terminal in X or the @command{cmd} window in
-MS Windows.  The output can be piped to '@command{more}' or
-'@command{less}', e.g.@: '@kbd{rotctl -l | more}'.
-
-@item -u
-@itemx --dump-caps
-Dump capabilities for the rotor defined with @option{-m} above and
-exit.
-@ifhtml
-@*
-@end ifhtml
-
-@item -i
-@itemx --read-history
-Read previously saved command and argument history from a file
-(default '@file{$HOME/.rotctl_history}') for the current session.
-Available when @command{rotctl} is built with Readline support.
-
-@strong{N.B.} To read a history file stored in another directory, set
-the @env{ROTCTL_HIST_DIR} environment variable, e.g.@:
-'@kbd{ROTCTL_HIST_DIR=$HOME/tmp rotctl -i}'.  When @env{ROTCTL_HIST_DIR}
-is not set, the value of @env{HOME} is used.
-
-@item -I
-@itemx --save-history
-Write current session (and previously saved session(s) if @option{-i}
-option is also given) command and argument history to a file (default
-'@file{$HOME/.rotctl_history}') at the end of the current session.
-Complete commands with arguments are saved as a single line to be
-recalled and used or edited.  Available when @command{rotctl} is built
-with Readline support.
-
-To write a history file in another directory, set the
-@env{ROTCTL_HIST_DIR} environment variable, e.g.@:
-'@kbd{ROTCTL_HIST_DIR=$HOME/tmp rotctl -I}'.  When @env{ROTCTL_HIST_DIR}
-is not set, the value of @env{HOME} is used.
-
-@item -v
-@itemx --verbose
-Set verbose mode level, cumulative i.e.@: @option{-vvvvv} sets maximum
-debugging output to @file{stderr}.
-
-Five different levels of diagnostics can be output to @file{stderr}
-and correspond to @option{-v} for @code{BUG}, @option{-vv} for
-@code{ERR}, @option{-vvv} for @code{WARN}, @option{-vvvv} for
-@code{VERBOSE}, or @option{-vvvvv} for @code{TRACE}.  Back end authors
-will use the verbose facility to print critical values useful for
-testing and will often ask for this output in response to a request
-for help.
-
-@item -Z
-@itemx --debug-time-stamps
-Enable time stamps on debug output.
-
-@item -h
-@itemx --help
-Show summary of these options and exit.
-@ifhtml
-@*
-@end ifhtml
-
-@item -V
-@itemx --version
-Show version of @command{rotctl} and exit.
-@end table
-
-@quotation Note
-Some options may not be implemented by a given backend and will return
-an error.  This is most likely to occur with the @option{--set-conf}
-and @option{--show-conf} options.
-@end quotation
-
-@node rotctl commands
-@subsection @command{rotctl} commands
-@cindex @command{rotctl} commands
-@cindex commands, @command{rotctl}
-
-@xref{rigctl commands}, for command syntax.
-
-@strong{Rotor commands}
-
-Here is a summary of the supported commands:
-
-@table @command
-@item q
-Exit @command{rotctl} in interactive mode (@kbd{q} is not case
-sensitive).
-
-When @command{rotctl} is controlling the rotor directly, will close
-the rotor back end and port.  When @command{rotctl} is connected to
-@command{rotctld} (rotor model 2), the @acronym{TCP/IP} connection to
-@command{rotctld} is closed and @command{rotctld} remains running,
-available for another @acronym{TCP/IP} network connection.
-
-@item P, set_pos @var{Azimuth}, @var{Elevation}
-Set position: @var{Azimuth} and @var{Elevation} as double precision
-floating point values.
-@ifhtml
-@*
-@end ifhtml
-
-@item p, get_pos
-Get position: @var{Azimuth} and @var{Elevation} as double precision
-floating point values.
-@ifhtml
-@*
-@end ifhtml
-
-@item M, move @var{Direction}, @var{Speed}
-Move the rotator in a specific direction at the given rate.
-
-Values are integers where @var{Direction} is defined as @code{2} = Up,
-@code{4} = Down, @code{8} = Left, and @code{16} = Right.  @var{Speed}
-is an integer between @code{1} and @code{100}.
-
-@strong{N.B.} Not all backends that implement the move command use the
-Speed value.  At this time only the gs232a utilizes the Speed
-parameter.
-
-@item S, stop
-Stop the rotator.
-@ifhtml
-@*
-@end ifhtml
-
-@item K, park
-Park the antenna.
-@ifhtml
-@*
-@end ifhtml
-
-@item C, set_conf @var{Token}, @var{Value}
-Set a configuration parameter.  It is safe to give @var{Token} a value
-of @code{0} (zero).  @var{Value} may be a string up to 20 characters.
-
-See @option{-L} output.
-
-@item R, reset @var{Reset}
-Reset the rotator.
-
-Integer value of @code{1} for Reset All.
-
-@item _, get_info
-Get misc information on the rotator.
-
-At the moment returns @var{Model Name}.
-
-@item w, send_cmd @var{Cmd}
-Send raw command string to the rotator.
-
-@code{<CR>} (or @option{send-cmd-term}, see @option{-t} option) is
-appended automatically at the end of the command for text protocols.
-For binary protocols, enter values as @code{\0xAA\0xBB}.
-@end table
-
-@strong{Locator Commands}
-
-These commands offer conversions of Degrees Minutes Seconds to other
-formats, Maidenhead square locator conversions and distance and
-azimuth conversions.
-
-@table @command
-@item L, lonlat2loc @var{Longitude}, @var{Latitude}, @var{Loc Len 2..12}
-Returns the Maidenhead locator for the given @var{Longitude} and
-@var{Latitude}.
-
-Both are floating point values.  The precision of the returned square
-is controlled by @var{Loc Len} which should be an even numbered
-integer value between @code{2} and @code{12}.
-
-For example, @kbd{L -170.000000 -85.000000 12} returns @samp{Locator:
-AA55AA00AA00}.
-
-@item l, loc2lonlat @var{Locator}
-Returns @var{Longitude} and @var{Latitude} in decimal degrees at the
-approximate center of the requested grid square (despite the use of
-double precision variables internally, some rounding error occurs).
-West longitude is expressed as a negative value.  South latitude is
-expressed as a negative value.  Locator can be from 2 to 12 characters
-in length.
-
-For example, @kbd{l AA55AA00AA00} returns @samp{Longitude: -169.999983
-Latitude: -84.999991}.
-
-@item D, dms2dec @var{Degrees}, @var{Minutes}, @var{Seconds}, @var{S/W}
-Returns @var{Dec Degrees}, a signed floating point value.
-
-@var{Degrees} and @var{Minutes} are integer values and @var{Seconds}
-is a floating point value.  @var{S/W} is a flag with @code{1}
-indicating South latitude or West longitude and @code{0} North or East
-(the flag is needed as computers don't recognize a signed zero even
-though only the @var{Degrees} value only is typically signed in
-@acronym{DMS} notation).
-
-@item d, dec2dms @var{Dec Degrees}
-Returns @var{Degrees}, @var{Minutes}, @var{Seconds}, @var{S/W}.
-
-Values are as in @command{dms2dec} above.
-
-@item E, dmmm2dec @var{Degrees}, @var{Dec Minutes}, @var{S/W}
-Returns @var{Dec Degrees}, a signed floating point value.
-
-@var{Degrees} is an integer value and @var{Minutes} is a floating
-point value.  @var{S/W} is a flag with @code{1} indicating South
-latitude or West longitude and @code{0} North or East (the flag is
-needed as computers don't recognize a signed zero even though only the
-@var{Degrees} value only is typically signed in @acronym{DMS}
-notation).
-
-@item e, dec2dmmm @var{Dec Deg}
-Returns @var{Degrees}, @var{Minutes}, @var{S/W}.
-
-Values are as in @command{dmmm2dec} above.
-
-@item B, qrb @var{Lon 1}, @var{Lat 1}, @var{Lon 2}, @var{Lat 2}
-Returns @var{Distance} and @var{Azimuth} where @var{Distance} is in km
-and @var{Azimuth} is in degrees.
-
-All @var{Lon}/@var{Lat} values are signed floating point numbers.
-
-@item A, a_sp2a_lp @var{Short Path Deg}
-Returns @var{Long Path Deg} or @code{-RIG_EINVAL} upon input error.
-
-Both are floating point values within the range @code{0.00} to
-@var{360.00}.
-
-@item a, d_sp2d_lp @var{Short Path km}
-Returns @var{Long Path km}.
-
-Both are floating point values.
-@end table
-
-@node rotctl readline support
-@subsection @command{rotctl} Readline support
-@cindex @command{rotctl} Readline support
-@cindex Readline support, @command{rotctl}
-
-If Readline library development files are found at configure time,
-@command{rotctl} will be conditonally built with Readline support for
-command and argument entry.  Readline command key bindings are at
-their defaults as described in the
-@url{http://cnswww.cns.cwru.edu/php/chet/readline/rluserman.html,
-Readline manual} although @command{rotctl} sets the name @code{rotctl}
-which can be used in @code{Conditional Init Constructs} in the
-Readline Init File (@file{$HOME/.inputrc} by default) for custom
-keybindings unique to @command{rotctl}.
-
-Command history is available with Readline support as described in the
-@url{http://cnswww.cns.cwru.edu/php/chet/readline/history.html#SEC1,
-Readline History manual}.  Command and argument strings are stored as
-single lines even when arguments are prompted for input individually.
-Commands and arguments are not validated and are stored as typed with
-values separated by a single space.
-
-Normally session history is not saved, however, use of either of the
-@option{-i}/@option{--read-history} or
-@option{-I}/@option{--save-history} options when starting
-@command{rotctl} will cause any previously saved history to be read in
-and/or the current and any previous session history (assuming the
-@option{-i} and @option{-I} options are given together) will be
-written out when @command{rotctl} is closed.  Each option is mutually
-exclusive, i.e. either may be given separately or in combination.
-This is useful to save a set of commands and then read them later but
-not write the modified history for a consistent set of test commands
-in interactive mode, for example.
-
-History is stored in @file{$HOME/.rotctl_history} by default although the
-destination directory may be changed by setting the
-@env{ROTCTL_HIST_DIR} environment variable.  When
-@env{ROTCTL_HIST_DIR} is unset, the value of the @env{HOME} environment
-variable is used instead.  Only the destination directory may be
-changed at this time.
-
-If Readline support is not found at configure time the original
-internal command handler is used.  Readline is not used for
-@command{rotctl} commands entered on the command line regardless if
-Readline support is built in or not.
-
-@quotation Note
-Readline support is not included in the MS Windows 32 binary builds
-supplied by the Hamlib Project.  Running @command{rotctl} on the MS
-Windows 32 platform in the @command{cmd} shell does give session
-command line history, however, it is not saved to disk between
-sessions.
-@end quotation
 
 @node rigctld
 @section @command{rigctld}
@@ -1662,32 +350,20 @@ sessions.
 The @command{rigctld} program is a network server that accepts the
 familiar commands of @command{rigctl} and provides the response data
 over a @acronym{TCP/IP} network socket to an application.  In this
-manner an application can access a @command{rigctl} instance from
+manner an application can access a @command{rigctld} instance from
 nearly anywhere (caveat, no security is currently provided by
-@command{rigctl}).  Applications using @command{rigctl} do not link to
-Hamlib nor use its C API.
+@command{rigctld}).  Applications using @command{rigctld} do not link
+directly to Hamlib nor use its C API.
 
 @menu
 * Introduction to rigctld::
-* rigctld invocation::
-* rigctld command line options::
-* rigctld commands::
-* rigctld protocol::
+* rigctld reference::
 @end menu
 
 @node Introduction to rigctld
 @subsection Introduction to @command{rigctld}
 @cindex Introduction to @command{rigctld}
 @cindex @command{rigctld}, introduction to
-
-Multiple radios can be controlled on different @acronym{TCP} ports by
-use of multiple @command{rigctld} processes.  The syntax of the
-commands are the same as @command{rigctl}. It is hoped that
-@command{rigctld} will be especially useful for client authors using
-languages such as @url{http://www.perl.org/, Perl},
-@url{http://www.python.org/, Python}, @url{http://php.net/, PHP},
-@url{http://www.ruby-lang.org/en/, Ruby}, @url{http://www.tcl.tk/,
-TCL}, and others.
 
 @command{rigctld} communicates to a client through a @acronym{TCP}
 network socket using text commands shared with @command{rigctl}. The
@@ -1697,10 +373,9 @@ values, one per line, when successful, otherwise, it responds with one
 line @samp{RPRT x}, where @samp{x} is a negative number indicating the
 Hamlib error code.  Commands that do not return values respond with
 the line @samp{RPRT x}, where @samp{x} is zero when successful,
-otherwise a regative number indicating the Hamlib error code.  Each
+otherwise a negative number indicating the Hamlib error code.  Each
 line is terminated with a newline @code{\n} character.  This protocol
-is primarily for use by the @code{NET rigctl} (rig model 2) backend.
-@xref{rigctld Default protocol}.
+is primarily for use by the @code{NET rigctl} (radio model 2) backend.
 
 A separate Extended Response protocol extends the above behavior by
 echoing the received command string as a header, any returned values
@@ -1708,1064 +383,23 @@ as a key: value pair, and the @samp{RPRT x} string as the end of
 response marker which includes the Hamlib success or failure value.
 Consider using this protocol for clients that will interact with
 @command{rigctld} directly through a @acronym{TCP} network socket.
-@xref{rigctld Extended Response protocol}.
 
-@node rigctld invocation
-@subsection @command{rigctld} invocation
-@cindex @command{rigctld} invocation
-@cindex invocation, @command{rigctld}
-
-The command line invocation for @command{rigctld} is similar to
-@command{rigctl} except that in POSIX environments a trailing @kbd{&}
-is appended to the command string to ``background'' the
-@command{rigctld} process so the shell can be used to run other
-commands while @command{rigctld} continues to run.
-
-Here are some examples for invoking @command{rigctld}.
-
-Start @command{rigctld} for a Yaesu FT-920 using a USB-to-serial
-adapter and backgrounding:
-
-@example
-rigctld -m 114 -r /dev/ttyUSB1 &
-@end example
-
-Start @command{rigctld} for a Yaesu FT-920 using a USB to serial
-adapter while setting baud rate and stop bits, and backgrounding:
-
-@example
-rigctld -m 114 -r /dev/ttyUSB1 -s 4800 -C stop_bits=2 &
-@end example
-
-Start @command{rigctld} for an Elecraft K3 using @code{COM2} on MS
-Windows:
-
-@example
-rigctld -m 229 -r COM2 -T 127.0.0.1 -t 4532
-@end example
-
-@quotation Note
-On MS Windows the use of the @option{-T} and @option{-t} options appear
-to be necessary to set the @acronym{IP} address and @acronym{TCP} port
-or else the network socket cannot be found.  On @acronym{POSIX} systems
-the @command{rigctld} default values will be used.
-@end quotation
-
-Connect to the already running @command{rigctld}, and set current
-frequency to 14.266 MHz with a 1 second read timeout using the default
-protocol from the shell prompt:
-
-@example
-echo "\set_freq 14266000" | nc -w 1 localhost 4532
-@end example
-
-Connect to a running @command{rigctld} with @command{rigctl} on the
-local host:
-
-@example
-rigctl -m2
-@end example
-
-@node rigctld command line options
-@subsection @command{rigctld} command line options
-@cindex @command{rigctld} command line options
-@cindex Command line options, @command{rigctld}
-
-Many of the @command{rigctld} command line options are shared
-with @command{rigctl} with a few additions.
-
-@command{rigctld} accepts the following options:
-
-@table @option
-@item -m
-@itemx --model=@var{id}
-Select radio model number. See model list (use @kbd{rigctld -l}).
-@ifhtml
-@*
-@end ifhtml
-
-@item -r
-@itemx --rig-file=@var{device}
-Use @var{device} as the file name of the port the radio is connected.
-Often a serial port, but could be a USB to serial adapter.  Typically
-@file{/dev/ttyS0} , @file{/dev/ttyS1} , @file{/dev/ttyUSB0} , etc.@:
-on Linux or @file{COM1} , @file{COM2} , etc.@: on MS Windows.  The
-special string @kbd{uh-rig} may be given to enable micro-ham device
-support.
-@ifhtml
-@*
-@end ifhtml
-
-@item -p
-@itemx --ptt-file=@var{device}
-Use @var{device} as the file name of the Push-To-Talk device using a
-device file as described above.
-@ifhtml
-@*
-@end ifhtml
-
-@item -d
-@itemx --dcd-file=@var{device}
-Use @var{device} as the file name of the Data Carrier Detect device
-using a device file as described above.
-@ifhtml
-@*
-@end ifhtml
-
-@item -P
-@itemx --ptt-type=@var{type}
-Use @var{type} of Push-To-Talk device.  Supported types are
-@code{RIG}, @code{DTR}, @code{RTS}, @code{PARALLEL}, @code{NONE},
-overriding @acronym{PTT} type defined in the rig's backend.
-
-Some side effects of this command are that when type is set to
-@code{DTR}, read @acronym{PTT} state comes from Hamlib frontend, not
-read from the radio.  When set to @code{NONE}, @acronym{PTT} state
-cannot be read or set even if rig backend supports reading/setting
-@acronym{PTT} status from the rig.
-
-@item -D
-@itemx --dcd-type=@var{type}
-Use @var{type} of Data Carrier Detect device.  Supported types are
-@code{RIG} (@acronym{CAT} command), @code{DSR}, @code{CTS}, @code{CD},
-@code{PARALLEL}, @code{NONE}.
-@ifhtml
-@*
-@end ifhtml
-
-@item -s
-@itemx --serial-speed=@var{baud}
-Set serial speed to @var{baud} rate. Uses @strong{maximum} serial
-speed from rig backend capabilities (set by @option{-m} above) as the
-default.
-@ifhtml
-@*
-@end ifhtml
-
-@item -c
-@itemx --civaddr=@var{id}
-Use @var{id} as the @acronym{CI-V} address to communicate with the
-rig. Only useful for Icom radios and those using the Icom protocol.
-
-@strong{N.B.} The @var{id} is in decimal notation, unless prefixed by
-@code{0x}, in which case it is a hexadecimal value.
-
-@item -T
-@itemx --listen-addr=@var{IPADDR}
-Use @var{IPADDR} as the listening @acronym{IP} address. The default is ANY.
-
-@strong{N.B.} On MS Windows setting a specific @acronym{IP} address is
-likely necessary.
-
-@item -t
-@itemx --port=@var{number}
-Use @var{number} as the @acronym{TCP} listening port. The default is
-@code{4532}.
-
-@strong{N.B.} As @command{rotctld}'s default port is @code{4533}, it
-is advisable to use even numbered ports for @command{rigctld}, e.g.
-@code{4532}, @code{4534}, @code{4536}, etc.
-
-@item -L
-@itemx --show-conf
-List all config parameters for the radio defined with @option{-m}
-above.
-@ifhtml
-@*
-@end ifhtml
-
-@item -C
-@itemx --set-conf=@var{parm}=@var{val}[,@var{parm}=@var{val},@dots{}]
-Set config parameter. e.g.@: @code{stop_bits=2}
-
-Use @option{-L} option for a list.
-
-@item -l
-@itemx --list
-List all model numbers defined in Hamlib and exit.  As of 1.2.15.1 the
-list is sorted by model number.
-
-@strong{N.B.} In Linux the list can be scrolled back using
-@kbd{@key{SHIFT}-PageUp}/ @kbd{@key{SHIFT}-PageDown}, or using the
-scrollbars of a virtual terminal in X or the @command{cmd} window in
-MS Windows.  The output can be piped to '@command{more}' or
-'@command{less}', e.g.@: '@kbd{rigctl -l | more}'.
-
-@item -u
-@itemx --dump-caps
-Dump capabilities for the radio defined with @option{-m} above and
-exit.
-@ifhtml
-@*
-@end ifhtml
-
-@item -o
-@itemx --vfo
-Set vfo mode, requiring an extra @acronym{VFO} argument in front of
-each appropriate command (except @command{set_vfo}!). Otherwise,
-@code{currVFO} is assumed when this option is not set and an extra VFO
-argument is not used.  See @command{chk_vfo} below.
-@ifhtml
-@*
-@end ifhtml
-
-@item -v
-@itemx --verbose
-Set verbose mode level, cumulative i.e.@: @option{-vvvvv} sets maximum
-debugging output to @file{stderr}.
-
-Five different levels of diagnostics can be output to @file{stderr}
-and correspond to @option{-v} for @code{BUG}, @option{-vv} for
-@code{ERR}, @option{-vvv} for @code{WARN}, @option{-vvvv} for
-@code{VERBOSE}, or @option{-vvvvv} for @code{TRACE}.  Back end authors
-will use the verbose facility to print critical values useful for
-testing and will often ask for this output in response to a request
-for help.
-
-@item -Z
-@itemx --debug_time_stamps
-Enable time stamps on debug output.
-
-@item -h
-@itemx --help
-Show summary of these options and exit.
-@ifhtml
-@*
-@end ifhtml
-
-@item -V
-@itemx --version
-Show version of @command{rigctl} and exit.
-
-@end table
-
-@quotation Note
-Some options may not be implemented by a given backend and will return
-an error.  This is most likely to occur with the @option{--set-conf}
-and @option{--show-conf} options.
-@end quotation
-
-@node rigctld commands
-@subsection @command{rigctld} commands
-@cindex @command{rigctld} commands
-@cindex commands, @command{rigctld}
-
-Commands can be sent over the @acronym{TCP} socket either as a single
-char, or as a long command name plus the value(s) space separated on
-one @code{\n} terminated line.  @xref{rigctld protocol}.
-
-Since most of the Hamlib operations have a ``set'' and a ``get''
-method, in general an upper case letter will be used for set methods
-whereas the corresponding lower case letter refers to the get method.
-Each operation also has a long name; in interactive mode, prepend a
-backslash @kbd{\} to enter a long command name.
-
-Example (Perl):
-
-@example
-print $socket "\\dump_caps\n";
-@end example
-
-@noindent
-to see what the radio's backend can do.
-
-@quotation N.B.
-In Perl and many other languages a @kbd{\} will need to
-be escaped with a preceding @kbd{\} so that even though two backslash
-characters appear in the code, only one will be passed to
-@command{rigctld}.  This is a possible bug, so beware!
-@end quotation
-
-Be aware that the backend for the radio to be controlled, or the radio
-itself may not support some commands. In that case, the operation will
-fail with a Hamlib error message.
-
-Here is a summary of the supported commands:
-
-@itemize
-@item
-Command short name is followed by the long name which is followed by
-any variable names.
-
-@item
-Some short commands are noted as hexadecimal digits due to the
-limitation of upper and lower case letters available.  Use the
-associated long command name instead.
-
-@item
-While a comma is used to separate variable names in this document,
-they are not part of the command syntax used by @command{rigctl}.  Use
-a space to separate values.
-
-@item
-In the case of ``set'' commands the variable @var{name} is replaced by
-the value in the description.
-
-@item
-In the case of ``get'' commands the variable @var{name} is the key
-name of the value returned.
-
-@end itemize
-
-@table @command
-@item F, set_freq @var{Frequency}
-Set @var{Frequency}, in Hertz.
-@ifhtml
-@*
-@end ifhtml
-
-@item f, get_freq
-Get @var{Frequency}, in Hertz.
-@ifhtml
-@*
-@end ifhtml
-
-@item M, set_mode @var{Mode}, @var{Passband}
-Set @var{Mode} to one of: @code{USB}, @code{LSB}, @code{CW},
-@code{CWR}, @code{RTTY}, @code{RTTYR}, @code{AM}, @code{FM},
-@code{WFM}, @code{AMS}, @code{PKTLSB}, @code{PKTUSB}, @code{PKTFM},
-@code{ECSSUSB}, @code{ECSSLSB}, @code{FAX}, @code{SAM}, @code{SAL},
-@code{SAH}, @code{DSB}.
-
-Set @var{Passband} frequency in Hertz, or @code{0} for the Hamlib
-backend default.
-
-@strong{N.B.} Passing a @kbd{?} (query) as the first argument
-instead of @var{Mode} will return a space separated list of radio
-backend supported Modes.  Use this to determine the supported Modes of
-a given radio backend.
-
-@item m, get_mode
-Get @var{Mode}, @var{Passband}.
-
-Returns Mode as a string from @command{set_mode} above and Passband
-frequency in Hertz.
-
-@item V, set_vfo @var{VFO}
-Set @var{VFO} to one of: @code{VFOA}, @code{VFOB}, @code{VFOC},
-@code{currVFO}, @code{VFO}, @code{MEM}, @code{Main}, @code{Sub},
-@code{TX}, @code{RX}.
-
-In @acronym{VFO} mode only a single @acronym{VFO} parameter is
-required.
-
-@item v, get_vfo
-Get current @var{VFO}.
-
-Returns @acronym{VFO} as a string from @command{set_vfo} above.
-
-@item J, set_rit @var{RIT}
-Set @var{RIT}, in Hertz, can be a positive or negative value.
-
-A value of @code{0} resets @acronym{RIT} and @emph{should} turn
-@acronym{RIT} off.  If not, file a bug report against the Hamlib
-backend.
-
-@strong{N.B.} This functionality is under transition and in the future
-will need to be activated with the @command{set_func} command.
-
-@item j, get_rit
-Get @var{RIT}, in Hertz.
-@ifhtml
-@*
-@end ifhtml
-
-@item Z, set_xit @var{XIT}
-Set @var{XIT}, in Hertz, can be a positive or negative value.
-
-A value of @code{0} resets @acronym{XIT} and @emph{should} turn
-@acronym{XIT} off.  If not, file a bug report against the Hamlib
-backend.
-
-@strong{N.B.} This functionality is under transition and in the future
-will need to be activated with the @command{set_func} command.
-
-@item z, get_xit
-Get @var{XIT}, in Hertz.
-@ifhtml
-@*
-@end ifhtml
-
-@item T, set_ptt @var{PTT}
-Set @var{PTT} to one of: @code{0} (RX), @code{1} (TX), @code{2} (TX
-mic), @code{3} (TX data).
-@ifhtml
-@*
-@end ifhtml
-
-@item t, get_ptt
-Get @var{PTT} status.
-@ifhtml
-@*
-@end ifhtml
-
-@item 0x8b, get_dcd
-Get @var{DCD} (squelch) status, @code{0} (Closed) or @code{1} (Open)
-@ifhtml
-@*
-@end ifhtml
-
-@item R, set_rptr_shift @var{Rptr Shift}
-Set @var{Rptr Shift}: @code{+}, @code{-} or something else for none.
-@ifhtml
-@*
-@end ifhtml
-
-@item r, get_rptr_shift
-Get @var{Rptr Shift}.  Returns @code{+}, @code{-} or @code{None}.
-@ifhtml
-@*
-@end ifhtml
-
-@item O, set_rptr_offs @var{Rptr Offset}
-Set @var{Rptr Offset}, in Hertz.
-@ifhtml
-@*
-@end ifhtml
-
-@item o, get_rptr_offs
-Get @var{Rptr Offset}, in Hertz.
-@ifhtml
-@*
-@end ifhtml
-
-@item C, set_ctcss_tone @var{CTCSS Tone}
-Set @var{CTCSS Tone}, in tenths of Hertz.
-
-@acronym{CTCSS},
-@url{http://en.wikipedia.org/wiki/Continuous_Tone-Coded_Squelch_System,
-Continuous Tone Coded Squelch System}, is a method used to reduce the
-annoyance of listening to other users on a shared two-way
-communications radio channel by imposing a tone on the transmitted
-signal.  Also known as @dfn{subaudible tone} and @acronym{PL},
-@dfn{Private Line}.
-
-@item c, get_ctcss_tone
-Get @var{CTCSS Tone}, in tenths of Hertz.
-@ifhtml
-@*
-@end ifhtml
-
-@item D, set_dcs_code @var{DCS Code}
-Set @var{DCS Code}.
-
-@acronym{DCS},
-@url{http://en.wikipedia.org/wiki/Digital-Coded_Squelch#DCS,
-Digital-Coded Squelch} is a digital version of @acronym{CTCSS} which
-imposes a digital code on the transmitted signal.
-
-@item d, get_dcs_code
-Get @var{DCS Code}.
-@ifhtml
-@*
-@end ifhtml
-
-@item 0x90, set_ctcss_sql @var{CTCSS Sql}
-Set @var{CTCSS Sql} tone, in tenths of Hertz.
-@ifhtml
-@*
-@end ifhtml
-
-@item 0x91, get_ctcss_sql
-Get @var{CTCSS Sql} tone, in tenths of Hertz.
-@ifhtml
-@*
-@end ifhtml
-
-@item 0x92, set_dcs_sql @var{DCS Sql}
-Set @var{DCS Sql} code.
-@ifhtml
-@*
-@end ifhtml
-
-@item 0x93, get_dcs_sql
-Get @var{DCS Sql} code.
-@ifhtml
-@*
-@end ifhtml
-
-@item I, set_split_freq @var{Tx Frequency}
-Set @var{TX Frequency}, in Hertz for ``split'' frequency operation.
-
-See also @command{set_split_freq_mode} below.
-@ifhtml
-@*
-@end ifhtml
-
-@item i, get_split_freq
-Get @var{TX Frequency}, in Hertz for ``split'' frequency operation.
-
-See also @command{get_split_freq_mode} below.
-@ifhtml
-@*
-@end ifhtml
-
-@item X, set_split_mode @var{TX Mode}, @var{TX Passband}
-Set @var{TX Mode} to one of: @code{AM}, @code{FM}, @code{CW},
-@code{CWR}, @code{USB}, @code{LSB}, @code{RTTY}, @code{RTTYR},
-@code{WFM}, @code{AMS}, @code{PKTLSB}, @code{PKTUSB}, @code{PKTFM},
-@code{ECSSUSB}, @code{ECSSLSB}, @code{FAX}, @code{SAM}, @code{SAL},
-@code{SAH}, @code{DSB}.
-
-The @var{TX Passband} is the exact passband frequency in Hertz, or
-@code{0} for the Hamlib backend default. A value of @code{-1} may be
-passed which leaves the rig passband unchanged from the current or
-default value for the mode as defined by the rig.
-
-@strong{N.B.} Passing a @kbd{?} (query) as the first argument instead
-of @var{TX Mode} will return a space separated list of radio backend
-supported TX Modes.  Use this to determine the supported TX Modes of a
-given radio backend.
-
-See also @command{set_split_freq_mode} below.
-@ifhtml
-@*
-@end ifhtml
-
-@item x, get_split_mode
-Get @var{TX Mode}, @var{TX Passband}.
-
-Returns TX mode as a string from @command{set_split_mode} above and TX
-passband in Hz.
-
-See also @command{get_split_freq_mode} below.
-@ifhtml
-@*
-@end ifhtml
-
-@item K, set_split_freq_mode @var{Tx Frequency}, @var{TX Mode}, @var{TX Passband}
-Set @var{TX Frequency}, in Hertz for ``split'' frequency operation.
-Set @var{TX Mode} to one of: @code{AM}, @code{FM}, @code{CW},
-@code{CWR}, @code{USB}, @code{LSB}, @code{RTTY}, @code{RTTYR},
-@code{WFM}, @code{AMS}, @code{PKTLSB}, @code{PKTUSB}, @code{PKTFM},
-@code{ECSSUSB}, @code{ECSSLSB}, @code{FAX}, @code{SAM}, @code{SAL},
-@code{SAH}, @code{DSB}.
-
-The @var{TX Passband} is the exact passband frequency in Hertz, or
-@code{0} for the Hamlib backend default. A value of @code{-1} may be
-passed which leaves the rig passband unchanged from the current or
-default value for the mode as defined by the rig.
-
-This is a convenience function that combines the effect of
-@command{set_split_freq} and @command{set_split_mode}. It should be
-used when both are required since it allows the back end to optimize
-the operations. For example on many Icom rigs the current VFO must be
-changed temporarily while executing these commands and that can
-disrupt receive or transmit, using this function may minimize that
-disruption.
-
-See also @command{set_split_freq} and @command{set_split_mode} above.
-@ifhtml
-@*
-@end ifhtml
-
-@item k, get_split_freq_mode
-Get @var{TX Frequency}, in Hertz for ``split'' frequency operation
-along with the @var{TX Mode} as a string from @command{set_split_mode}
-above and @var{TX Passband} in Hz.
-
-This is a convenience function that combines the effect of
-@command{get_split_freq} and @command{get_split_mode}. It should be
-used when both are required since it allows the back end to optimize
-the operations. For example on many Icom rigs the current VFO must be
-changed temporarily while executing these commands and that can
-disrupt receive or transmit, using this function may minimize that
-disruption.
-
-See also @command{get_split_freq} and @command{get_split_mode} above.
-@ifhtml
-@*
-@end ifhtml
-
-@item S, set_split_vfo @var{Split}, @var{TX VFO}
-Set @var{Split} mode, @code{0} (off) or @code{1} (on), and @var{TX VFO}
-from @command{set_vfo} above.
-@ifhtml
-@*
-@end ifhtml
-
-@item s, get_split_vfo
-Get @var{Split} mode, @code{0} (off) or @code{1} (on), and @var{TX VFO}.
-@ifhtml
-@*
-@end ifhtml
-
-@item N, set_ts @var{Tuning Step}
-Set @var{Tuning Step}, in Hertz.
-@ifhtml
-@*
-@end ifhtml
-
-@item n, get_ts
-Get @var{Tuning Step}, in Hertz.
-@ifhtml
-@*
-@end ifhtml
-
-@item U, set_func @var{Func}, @var{Func Status}
-Set @var{Func}, @var{Func Status}.
-
-@var{Func} is one of: @code{FAGC}, @code{NB}, @code{COMP}, @code{VOX},
-@code{TONE}, @code{TSQL}, @code{SBKIN}, @code{FBKIN}, @code{ANF},
-@code{NR}, @code{AIP}, @code{APF}, @code{MON}, @code{MN}, @code{RF},
-@code{ARO}, @code{LOCK}, @code{MUTE}, @code{VSC}, @code{REV},
-@code{SQL}, @code{ABM}, @code{BC}, @code{MBC}, @code{RIT}, @code{AFC},
-@code{SATMODE}, @code{SCOPE}, @code{RESUME}, @code{TBURST},
-@code{TUNER}, @code{XIT}.
-
-Func Status argument is @code{1} for ``activate'', @code{0} for
-``de-activate'', much as TRUE/FALSE definitions in the C/C++ languages
-(true is non-zero and false is zero).
-
-@strong{N.B.}  Passing a @kbd{?} (query) as the first argument instead
-of @var{Func} will return a space separated list of radio backend
-supported ``set'' functions.  Use this to determine the supported
-functions of a given radio backend.
-
-@item u, get_func @var{Func}
-Get @var{Func Status}.
-
-Returns @var{Func Status} as a non null value for the @var{Func} passed.
-@var{Func} is a token from the list in @command{set_func} above.
-
-@strong{N.B.} Passing a @kbd{?} (query) as the first argument instead
-of @var{Func} will return a space separated list of radio backend
-supported ``get'' functions.  Use this to determine the supported
-functions of a given radio backend.
-
-@item L, set_level @var{Level}, @var{Level Value}
-Set @var{Level}, @var{Level Value}.
-
-@var{Level} is one of: @code{PREAMP}, @code{ATT}, @code{VOX}, @code{AF},
-@code{RF}, @code{SQL}, @code{IF}, @code{APF}, @code{NR}, @code{PBT_IN},
-@code{PBT_OUT}, @code{CWPITCH}, @code{RFPOWER}, @code{MICGAIN},
-@code{KEYSPD}, @code{NOTCHF}, @code{COMP}, @code{AGC}(@code{0}:OFF,
-@code{1}:SUPERFAST, @code{2}:FAST, @code{3}:SLOW, @code{4}:USER,
-@code{5}:MEDIUM, @code{6}:AUTO), @code{BKINDL}, @code{BAL},
-@code{METER}, @code{VOXGAIN}, @code{ANTIVOX}, @code{SLOPE_LOW},
-@code{SLOPE_HIGH}, @code{RAWSTR}, @code{SWR}, @code{ALC},
-@code{STRENGTH}.
-
-The @var{Level Value} can be a float or an integer.
-
-@strong{N.B.} Passing a @kbd{?} (query) as the first argument instead of
-@var{Level} will return a space separated list of radio backend
-supported ``set'' levels.  Use this to determine the supported levels of a
-given radio backend.
-
-@item l, get_level @var{Level}
-Get @var{Level Value}.
-
-Returns @var{Level Value} as a float or integer for the @var{Level}
-passed.  @var{Level} is a token from the list in @command{set_level}
-above.
-
-@strong{N.B.} Passing a @kbd{?} (query) as the first argument instead of
-@var{Level} will return a space separated list of radio backend
-supported ``get'' levels.  Use this to determine the supported levels of a
-given radio backend.
-
-@item P, set_parm @var{Parm}, @var{Parm Value}
-Set @var{Parm}, @var{Parm Value}
-
-@var{Parm} is one of: @code{ANN}, @code{APO}, @code{BACKLIGHT},
-@code{BEEP}, @code{TIME}, @code{BAT}, @code{KEYLIGHT}.
-
-@strong{N.B.}  Passing a @kbd{?} (query) as the first argument instead
-of @var{Parm} will return a space separated list of radio backend
-supported ``set'' parameters.  Use this to determine the supported
-parameters of a given radio backend.
-
-@item p, get_parm @var{Parm}
-Get @var{Parm Value}.
-
-Returns @var{Parm Value} as a float or integer for the @var{Parm}
-passed.  @var{Parm} is a token from the list in @command{set_parm}
-above.
-
-@strong{N.B.}  Passing a @kbd{?} (query) as the first argument instead
-of @var{Parm} will return a space separated list of radio backend
-supported ``get'' parameters.  Use this to determine the supported
-parameters of a given radio backend.
-
-@item B, set_bank @var{Bank}
-Set @var{Bank}.  Sets the current memory bank number.
-@ifhtml
-@*
-@end ifhtml
-
-@item E, set_mem @var{Memory#}
-Set @var{Memory#} channel number.
-@ifhtml
-@*
-@end ifhtml
-
-@item e, get_mem
-Get @var{Memory#} channel number.
-@ifhtml
-@*
-@end ifhtml
-
-@item G, vfo_op @var{Mem/VFO Op}
-Perform @var{Mem/VFO Op}.
-
-@var{Mem/VFO Op}eration is one of: @code{CPY}, @code{XCHG},
-@code{FROM_VFO}, @code{TO_VFO}, @code{MCL}, @code{UP}, @code{DOWN},
-@code{BAND_UP}, @code{BAND_DOWN}, @code{LEFT}, @code{RIGHT},
-@code{TUNE}, @code{TOGGLE}.
-
-@strong{N.B.} Passing a @kbd{?} (query) as the first argument instead of
-@var{Mem/VFO Op} will return a space separated list of radio backend
-supported ``set'' Mem/VFO Ops.  Use this to determine the supported Mem/VFO
-Ops of a given radio backend.
-
-@item g, scan @var{Scan Fct}, @var{Scan Channel}
-Perform @var{Scan Fct} @var{Scan Channel}.
-
-Scan function/channel is one of: @code{STOP}, @code{MEM}, @code{SLCT},
-@code{PRIO}, @code{PROG}, @code{DELTA}, @code{VFO}, @code{PLT}.
-
-@strong{N.B.} Passing a @kbd{?} (query) as the first argument instead of
-@var{Scan Fct} will return a space separated list of radio backend
-supported Scan Functions.  Use this to determine the supported Scan
-Functions of a given radio backend.
-
-@item H, set_channel @var{Channel}
-Set memory @var{Channel} data. Not implemented yet.
-@ifhtml
-@*
-@end ifhtml
-
-@item h, get_channel
-Get memory @var{Channel} data. Not implemented yet.
-@ifhtml
-@*
-@end ifhtml
-
-@item A, set_trn @var{Transceive}
-Set @var{Transceive} mode (reporting event): @code{OFF}, @code{RIG},
-@code{POLL}.
-
-@strong{N.B.} Passing a @kbd{?} (query) as the first argument instead of
-@var{Transceive} will return a space separated list of radio backend
-supported Scan Transceive modes.  Use this to determine the supported
-Transceive modes of a given radio backend.
-
-@item a, get_trn
-Get @var{Transceive} mode (reporting event) as in @command{set_trn}
-above.
-@ifhtml
-@*
-@end ifhtml
-
-@item Y, set_ant @var{Antenna}
-Set @var{Antenna} number (@code{0}, @code{1}, @code{2}, @dots{}).
-@ifhtml
-@*
-@end ifhtml
-
-@item y, get_ant
-Get @var{Antenna} number (@code{0}, @code{1}, @code{2}, @dots{}).
-@ifhtml
-@*
-@end ifhtml
-
-@item *, reset @var{Reset}
-Perform rig @var{Reset}.
-
-@code{0} = None, @code{1} = Software reset, @code{2} = @acronym{VFO}
-reset, @code{4} = Memory Clear reset, @code{8} = Master reset.  Since
-these values are defined as a bitmask in @file{rig.h}, it should be
-possible to @code{AND} these values together to do multiple resets at
-once, if the backend supports it or supports a reset action via rig
-control at all.
-
-@item b, send_morse @var{Morse}
-Send @var{Morse} symbols.
-@ifhtml
-@*
-@end ifhtml
-
-@item 0x87, set_powerstat @var{Power Status}
-Set power On/Off/Standby @var{Power Status}.
-
-@code{0} = Power Off, @code{1} = Power On, @code{2} = Power Standby.
-Defined as a bitmask in @file{rig.h}.
-
-@item 0x88, get_powerstat
-Get power On/Off/Standby @var{Power Status} as in
-@command{set_powerstat} above.
-@ifhtml
-@*
-@end ifhtml
-
-@item 0x89, send_dtmf @var{Digits}
-Set DTMF @var{Digits}.
-@ifhtml
-@*
-@end ifhtml
-
-@item 0x8a, recv_dtmf
-Get DTMF @var{Digits}.
-@ifhtml
-@*
-@end ifhtml
-
-@item _, get_info
-Get misc information about the rig
-
-@acronym{VFO} parameter not used in '@acronym{VFO} mode'.
-
-@item 1, dump_caps
-Not a real rig remote command, it just dumps capabilities, i.e. what
-the backend knows about this model, and what it can do.
-
-TODO: Ensure this is in a consistent format so it can be read into a
-hash, dictionary, etc.  Bug reports requested.
-
-@strong{N.B.} This command will produce many lines of output so be
-very careful if using a fixed length array!  For example, running this
-command against the Dummy backend results in over 5kB of text output.
-
-@acronym{VFO} parameter not used in '@acronym{VFO} mode'.
-
-@item 2, power2mW @var{Power 0.0..1.0}, @var{Frequency}, @var{Mode}
-Returns @var{Power mW}
-
-Converts a @var{Power} value in a range of @code{0.0..1.0} to
-the real transmit power in milli-Watts (integer).  The @var{Frequency}
-and @var{Mode} also need to be provided as output power may vary
-according to these values.
-
-@acronym{VFO} parameter not used in '@acronym{VFO} mode'.
-
-@item 4, mW2power @var{Power mW}, @var{Frequency}, @var{Mode}
-Returns @var{Power 0.0..1.0}
-
-Converts the real transmit power in milli-Watts (integer) to a
-@var{Power} value in a range of @code{[0.0..1.0]}.  The
-@var{Frequency} and @var{Mode} also need to be provided as output
-power may vary according to these values.
-
-@acronym{VFO} parameter not used in '@acronym{VFO} mode'.
-
-@item w, send_cmd @var{Cmd}
-Send raw command string to rig.  This is useful for testing and
-troubleshooting rig commands and responses when developing a backend.
-
-For binary protocols enter values as @code{\0xAA\0xBB}.  Expect a
-@var{Reply} from the rig which will likely be a binary block or an
-@acronym{ASCII} string depending on the rig's protocol (see your
-radio's computer control documentation).
-
-The command terminator, set by the @option{--send-cmd-term} option
-above, will terminate each command string sent to the radio.  This
-character should not be a part of the input string.
-
-@item chk_vfo
-Returns @code{CHKVFO 1} (single line only) if rigctld was invoked with
-the @option{-o} or @option{--vfo} option, @code{CHKVFO 0} if not.
-
-@end table
-
-@node rigctld protocol
-@subsection @command{rigctld} protocol
-@cindex @command{rigctld} protocol
-@cindex protocol, @command{rigctld}
-
-Two protocols exist for communicating with @command{rigctld}.  The
-``Default'' protocol is primarily used internally by Hamlib so an
-application that is not written to use @command{rigctld} directly via
-@acronym{TCP} network sockets can still access @command{rigctld}.  The
-other ``Extended Response Protocol'' is intended for the more general
-use case where a variety of response formats may be needed.
-
-
-@menu
-* rigctld Default protocol::
-* rigctld Extended Response protocol::
-@end menu
-
-@node rigctld Default protocol
-@subsubsection @command{rigctld} Default protocol
-@cindex @command{rigctld} Default protocol
-@cindex Default protocol, @command{rigctld}
-
-The @command{rigctld} protocol is intentionally simple. Commands are
-entered on a single line with any needed values.  In Perl, for exampl,
-reliable results are obtained by terminating each command string with
-a newline character, @samp{\n}.
-
-@noindent
-Example @code{set} (Perl code):
-
-@example
-print $socket "F 14250000\n";
-print $socket "\\set_mode LSB 2400\n";   # escape leading '\'
-@end example
-
-@noindent
-A one line response will be sent as a reply to @code{set} commands,
-@samp{RPRT x\n} where @samp{x} is the Hamlib error code with @samp{0}
-indicating success of the command.
-
-@noindent
-Responses from @command{rigctld} get commands are text values and
-match the same tokens used in the @code{set} commands. Each value
-is returned on its own line.  On error the string @samp{RPRT x\n} is
-returned where @samp{x} is the Hamlib error code.
-
-@noindent
-Example @code{get} (Perl code):
-
-@example
-print $socket "f\n";
-"14250000\n"
-@end example
-
-@noindent
-Most @code{get} functions return one to three values. A notable
-exception is the @command{dump_caps} command which returns many lines
-of @samp{key:value} pairs.
-
-This protocol is primarily used by the @code{NET rigctl}
-(@command{rigctl} model 2) backend which allows applications already
-written for Hamlib's C @acronym{API} to take advantage of
-@command{rigctld} without the need of rewriting application code.  An
-application's user can select rig model 2 (@code{NET rigctl}) and then
-set @option{rig_pathname} to @kbd{localhost:4532} or other network
-host:port (set by the @option{-t} option above).
-
-@node rigctld Extended Response protocol
-@subsubsection @command{rigctld} Extended Response Protocol
-@cindex @command{rigctld} Extended Response Protocol
-@cindex Extended Response Protocol, @command{rigctld}
-
-An EXPERIMENTAL Extended Response protocol has been introduced into
-@command{rigctld} as of February 16, 2010.  This protocol adds several
-rules to the strings returned by @command{rigctld} and adds a rule for
-the command syntax.
-
-@enumerate
-@item
-The command received by @command{rigctld} is echoed with its long
-command name followed by the value(s) (if any) received from the
-client terminated by the specified response separator as the record
-line of the response.
-
-@item
-The last line of each block is the string @samp{RPRT x\n} where
-@samp{x} is the numeric return value of the Hamlib backend function
-that was called by the command.
-
-@item
-Any records consisting of data values returned by the rig backend are
-prepended by a string immediately followed by a colon then a space and
-then the value terminated by the response
-separator. e.g. @samp{Frequency: 14250000\n} when the command was
-prepended by @code{+}.
-
-@item
-All commands received will be acknowledged by @command{rigctld} with
-lines from rules 1 and 2.  Lines from rule 3 are only returned when
-data values must be returned to the client.
-
-@end enumerate
-
-An example response to a @command{+\set_mode} command sent from the
-shell prompt (note the prepended @code{+}):
-
-@example
-echo "+M USB 2400" | nc -w 1 localhost 4532
-set_mode: USB 2400
-RPRT 0
-@end example
-
-In this case the long command name and values are returned on the
-first line and the second line contains the end of block marker and
-the numeric rig backend return value indicating success.
-
-An example response to a @command{\get_mode} query:
-
-@example
-echo "+\get_mode" | nc -w 1 localhost 4532
-get_mode:
-Mode: USB
-Passband: 2400
-RPRT 0
-@end example
-
-In this case, as no value is passed to @command{rigctld}, the first
-line consists only of the long command name.  The final line shows
-that the command was processed successfully by the rig backend.
-
-Invoking the Extended Response protocol requires prepending a command
-with a punctuation character.  As shown in the examples above,
-prepending a '@code{+} character to the command results in the
-responses being separated by a newline character (@samp{\n}).  Any
-other punctuation character recognized by the C @code{ispunct()}
-function except @code{\}, @code{?}, or @code{_} will cause that
-character to become the response separator and the entire response
-will be on one line.
-
-Separator character summary:
-
-@table @code
-@item +
-Each record of the response is appended with a newline (@samp{\n}).
-@ifhtml
-@*
-@end ifhtml
-
-@item ;, |, or ,
-Each record of the response is appended by the given character
-resulting in entire response on one line.
-
-Common record separators for text representations of spreadsheet data,
-etc.
-
-@item ?
-Reserved for 'help' in @command{rigctl} short command.
-@ifhtml
-@*
-@end ifhtml
-
-@item _
-Reserved for @command{\get_info} in @command{rigctl} short command.
-@ifhtml
-@*
-@end ifhtml
-
-@item #
-Reserved for comments when reading a command file script.
-
-@end table
-
-Other punctuation characters have not been tested!  Use at your own
-risk.
-
-For example, invoking a @command{;\get_mode} query with a leading
-@code{;} returns:
-
-@example
-get_mode:;Mode: USB;Passband: 2400;RPRT 0
-@end example
-
-Or, using the vertical bar (pipe) character @code{|} returns:
-
-@example
-get_mode:|Mode: USB|Passband: 2400|RPRT 0
-@end example
-
-And a @command{\set_mode} command prepended with a @code{|} returns:
-
-@example
-set_mode: USB 2400|RPRT 0
-@end example
-
-Such a format will allow reading a response as a single event using a
-preferred response separator.  Other punctuation characters have not
-been tested!
+Multiple radios can be controlled on different @acronym{TCP} ports by
+use of multiple @command{rigctld} processes each listening on a unique
+@acronym{TCP} port. It is hoped that @command{rigctld} will be
+especially useful for client authors using languages such as
+@url{http://www.perl.org/, Perl}, @url{http://www.python.org/,
+Python}, @url{http://php.net/, PHP},
+@url{http://www.ruby-lang.org/en/, Ruby}, @url{http://www.tcl.tk/,
+TCL}, and others.
+
+@node rigctld reference
+@subsection @command{rigctld} reference
+@cindex @command{rigctld} reference
+@cindex reference, @command{rigctld}
+
+The complete reference for @command{rigctld} can be found in the
+@kbd{rigctld}(1) Unix manual page.
 
 
 @node rotctld
@@ -2775,17 +409,14 @@ been tested!
 The @command{rotctld} program is a network server that accepts the
 familiar commands of @command{rotctl} and provides the response data
 over a @acronym{TCP/IP} network socket to an application.  In this
-manner an application can access a @command{rotctl} instance from
+manner an application can access a @command{rotctld} instance from
 nearly anywhere (caveat, no security is currently provided by
-@command{rotctl}).  Applications using @command{rotctl} do not link to
-Hamlib nor use its C API.
+@command{rotctld}).  Applications using @command{rotctld} do not link
+directly to Hamlib nor use its C API.
 
 @menu
 * Introduction to rotctld::
-* rotctld invocation::
-* rotctld command line options::
-* rotctld commands::
-* rotctld protocol::
+* rotctld reference::
 @end menu
 
 @node Introduction to rotctld
@@ -2794,17 +425,16 @@ Hamlib nor use its C API.
 @cindex @command{rotctld}, introduction to
 
 @command{rotctld} communicates to a client through a @acronym{TCP}
-socket using text commands shared with @command{rotctl}. The protocol
-is simple, commands are sent to @command{rotctld} on one line and
-@command{rotctld} responds to ``get'' commands with the requested
+network socket using text commands shared with @command{rotctl}. The
+protocol is simple, commands are sent to @command{rotctld} on one line
+and @command{rotctld} responds to ``get'' commands with the requested
 values, one per line, when successful, otherwise, it responds with one
 line @samp{RPRT x}, where @samp{x} is a negative number indicating the
-error code.  Commands that do not return values respond with the line
-@samp{RPRT x}, where @samp{x} is zero when successful, otherwise is a
-regative number indicating the error code.  Each line is terminated
-with a newline @code{\n} character.  This protocol is primarily for
-use by the @code{NET rotctl} (rot model 2) backend.  @xref{rotctld
-Default protocol}.
+Hamlib error code.  Commands that do not return values respond with
+the line @samp{RPRT x}, where @samp{x} is zero when successful,
+otherwise a negative number indicating the Hamlib error code.  Each
+line is terminated with a newline @code{\n} character.  This protocol
+is primarily for use by the @code{NET rotctl} (rot model 2) backend.
 
 A separate Extended Response protocol extends the above behavior by
 echoing the received command string as a header, any returned values
@@ -2812,577 +442,130 @@ as a key: value pair, and the @samp{RPRT x} string as the end of
 response marker which includes the Hamlib success or failure value.
 Consider using this protocol for clients that will interact with
 @command{rotctld} directly through a @acronym{TCP} network socket.
-@xref{rotctld Extended Response protocol}.
 
-@node rotctld invocation
-@subsection @command{rotctld} invocation
-@cindex @command{rotctld} invocation
-@cindex invocation, @command{rotctld}
-
-The command line invocation for @command{rotctld} is similar to
-@command{rotctl} except that in POSIX environments a trailing @kbd{&}
-is appended to the command string to ``background'' the
-@command{rotctld} process so the shell can be used to run other
-commands while @command{rotctld} continues to run.
-
-Here are some examples for invoking @command{rotctld}.
-
-Start @command{rotctld} for a Ham IV rotor with the RotorEZ installed
-using a USB-to-serial adapter and backgrounding:
-
-@example
-rotctld -m 401 -r /dev/ttyUSB1 &
-@end example
-
-Start @command{rotctld} for RotorEZ using @code{COM2} on MS Windows:
-
-@example
-rotctl -m 401 -r COM2 -T 127.0.0.1 -t 4533
-@end example
-
-@quotation Note
-On MS Windows the use of the @option{-T} and @option{-t} options appear
-to be necessary to set the @acronym{IP} address and @acronym{TCP} port
-or else the network socket cannot be found.  On @acronym{POSIX} systems
-the @command{rotctld} default values will be used.
-@end quotation
-
-Connect to the already running rotctld, and set position to 135.0
-degrees azimuth and 30.0 degrees elevation with a 1 second read
-timeout from the shell prompt:
-
-@example
-echo "\set_pos 135.0 30.0" | nc -w 1 localhost 4533
-@end example
-
-Connect to a running @command{rotctld} with @command{rotctl} on the
-local host:
-
-@example
-rotctl -m2
-@end example
-
-@node rotctld command line options
-@subsection @command{rotctld} command line options
-@cindex @command{rotctld} command line options
-@cindex Command line options, @command{rotctld}
-
-Many of the @command{rotctld} command line options are shared
-with @command{rotctl} with a few additions.
-
-@command{rotctld} accepts the following options:
-
-@table @option
-@item -m
-@itemx --model=@var{id}
-Select rotator model number. See model list (use @kbd{rotctl -l}).
-
-@strong{N.B.} @command{rotctl} (or third party software) will use
-rotor model 2 for NET rotctl (@command{rotctld}).
-
-@item -r
-@itemx --rot-file=@var{device}
-Use @var{device} as the file name of the port the rotor is connected.
-Often a serial port, but could be a USB to serial adapter.  Typically
-@file{/dev/ttyS0} , @file{/dev/ttyS1} , @file{/dev/ttyUSB0} , etc.@:
-on Linux or @file{COM1} , @file{COM2} , etc.@: on MS Windows.  The
-special string @kbd{uh-rig} may be given to enable micro-ham device
-support.
-@ifhtml
-@*
-@end ifhtml
-
-@item -s
-@itemx --serial-speed=@var{baud}
-Set serial speed to @var{baud} rate. Uses @strong{maximum} serial
-speed from rotor backend capabilities as the default.
-@ifhtml
-@*
-@end ifhtml
-
-@item -T
-@itemx --listen-addr=@var{IPADDR}
-Use @var{IPADDR} as the listening @acronym{IP} address. The default is ANY.
-
-@strong{N.B.} On MS Windows setting a specific @acronym{IP} address is
-likely necessary.
-
-@item -t
-@itemx --port=@var{number}
-Use @var{number} as the @acronym{TCP} listening port. The default is
-@code{4533}.
-
-@strong{N.B.} As @command{rigctld}'s default port is @code{4532}, it
-is advisable to use odd numbered ports for @command{rotctld}, e.g.
-@code{4533}, @code{4535}, @code{4537}, etc.
-
-@item -L
-@itemx --show-conf
-List all config parameters for the rotor defined with @option{-m}
-above.
-@ifhtml
-@*
-@end ifhtml
-
-@item -C
-@itemx --set-conf=@var{parm}=@var{val}[,@var{parm}=@var{val},@dots{}]
-Set config parameter. e.g.@: @code{stop_bits=2}
-
-Use @option{-L} option for a list.
-
-@item -l
-@itemx --list
-List all model numbers defined in Hamlib and exit.  As of 1.2.15.1 the
-list is sorted by model number.
-
-@strong{N.B.} In Linux the list can be scrolled back using
-@kbd{@key{SHIFT}-PageUp}/ @kbd{@key{SHIFT}-PageDown}, or using the
-scrollbars of a virtual terminal in X or the @command{cmd} window in
-MS Windows.  The output can be piped to '@command{more}' or
-'@command{less}', e.g.@: '@kbd{rotctl -l | more}'.
-
-@item -u
-@itemx --dump-caps
-Dump capabilities for the rotor defined with @option{-m} above and
-exit.
-@ifhtml
-@*
-@end ifhtml
-
-@item -v
-@itemx --verbose
-Set verbose mode level, cumulative i.e.@: @option{-vvvvv} sets maximum
-debugging output to @file{stderr}.
-
-Five different levels of diagnostics can be output to @file{stderr}
-and correspond to @option{-v} for @code{BUG}, @option{-vv} for
-@code{ERR}, @option{-vvv} for @code{WARN}, @option{-vvvv} for
-@code{VERBOSE}, or @option{-vvvvv} for @code{TRACE}.  Back end authors
-will use the verbose facility to print critical values useful for
-testing and will often ask for this output in response to a request
-for help.
-
-@item -Z
-@itemx --debug-time-stamps
-Enable time stamps on debug output.
-
-@item -h
-@itemx --help
-Show summary of these options and exit.
-@ifhtml
-@*
-@end ifhtml
-
-@item -V
-@itemx --version
-Show version of @command{rotctl} and exit.
-@end table
-
-@quotation Note
-Some options may not be implemented by a given backend and will return
-an error.  This is most likely to occur with the @option{--set-conf}
-and @option{--show-conf} options.
-@end quotation
-
-@node rotctld commands
-@subsection @command{rotctld} commands
-@cindex @command{rotctld} commands
-@cindex commands, @command{rotctld}
-
-Commands can be sent over the @acronym{TCP} socket either as a single
-char, or as a long command name plus the value(s) space separated on
-one @code{\n} terminated line.  @xref{rotctld protocol}.
-
-Since most of the Hamlib operations have a ``set'' and a ``get''
-method, in general an upper case letter will be used for set methods
-whereas the corresponding lower case letter refers to the get method.
-Each operation also has a long name; in interactive mode, prepend a
-backslash @kbd{\} to enter a long command name.
-
-Example (Perl):
-
-@example
-print $socket "\\dump_caps\n";
-@end example
-
-@noindent
-to see what the rotor's backend can do.
-
-@quotation N.B.
-In Perl and many other languages a @kbd{\} will need to
-be escaped with a preceding @kbd{\} so that even though two backslash
-characters appear in the code, only one will be passed to
-@command{rotctld}.  This is a possible bug, so beware!
-@end quotation
-
-Be aware that the backend for the rotor to be controlled, or the rotor
-itself may not support some commands. In that case, the operation will
-fail with a Hamlib error message.
-
-@strong{Rotor commands}
-
-Here is a summary of the supported commands:
-
-@table @command
-@itemize
-@item
-Command short name is followed by the long name which is followed by
-any variable names.
-
-@item
-While a comma is used to separate variable names in this document,
-they are not part of the command syntax used by @command{rotctl}.  Use
-a space to separate values.
-
-@item
-In the case of ``set'' commands the variable @var{name} is replaced by
-the value in the description.
-
-@item
-In the case of ``get'' commands the variable @var{name} is the key
-name of the value returned.
-
-@end itemize
-
-@item P, set_pos @var{Azimuth}, @var{Elevation}
-Set position: @var{Azimuth} and @var{Elevation} as double precision
-floating point values.
-@ifhtml
-@*
-@end ifhtml
-
-@item p, get_pos
-Get position: @var{Azimuth} and @var{Elevation} as double precision
-floating point values.
-@ifhtml
-@*
-@end ifhtml
-
-@item M, move @var{Direction}, @var{Speed}
-Move the rotator in a specific direction at the given rate.
-
-Values are integers where @var{Direction} is defined as @code{2} = Up,
-@code{4} = Down, @code{8} = Left, and @code{16} = Right.  @var{Speed}
-is an integer between @code{1} and @code{100}.
-
-@strong{N.B.} Not all backends that implement the move command use the
-Speed value.  At this time only the gs232a utilizes the Speed
-parameter.
-
-@item S, stop
-Stop the rotator.
-@ifhtml
-@*
-@end ifhtml
-
-@item K, park
-Park the antenna.
-@ifhtml
-@*
-@end ifhtml
-
-@item C, set_conf @var{Token}, @var{Value}
-Set a configuration parameter.  It is safe to give @var{Token} a value
-of @code{0} (zero).  @var{Value} may be a string up to 20 characters.
-
-See @option{-L} output.
-
-@item R, reset @var{Reset}
-Reset the rotator.
-
-Integer value of @code{1} for Reset All.
-
-@item _, get_info
-Get misc information on the rotator.
-
-At the moment returns @var{Model Name}.
-
-@item w, send_cmd @var{Cmd}
-Send raw command string to the rotator.
-
-@code{<CR>} (or @option{send-cmd-term}, see @option{-t} option) is
-appended automatically at the end of the command for text protocols.
-For binary protocols, enter values as @code{\0xAA\0xBB}.
-@end table
-
-@strong{Locator Commands}
-
-These commands offer conversions of Degrees Minutes Seconds to other
-formats, Maidenhead square locator conversions and distance and
-azimuth conversions.
-
-@table @command
-@item L, lonlat2loc @var{Longitude}, @var{Latitude}, @var{Loc Len 2..12}
-Returns the Maidenhead locator for the given @var{Longitude} and
-@var{Latitude}.
-
-Both are floating point values.  The precision of the returned square
-is controlled by @var{Loc Len} which should be an even numbered
-integer value between @code{2} and @code{12}.
-
-For example, @kbd{+L -170.000000 -85.000000 12\n} returns
-@samp{Locator: AA55AA00AA00\n}.
-
-@item l, loc2lonlat @var{Locator}
-Returns @var{Longitude} and @var{Latitude} in decimal degrees at the
-approximate center of the requested grid square (despite the use of
-double precision variables internally, some rounding error occurs).
-West longitude is expressed as a negative value.  South latitude is
-expressed as a negative value.  Locator can be from 2 to 12 characters
-in length.
-
-For example, @kbd{+l AA55AA00AA00} returns @samp{Longitude:
--169.999983\nLatitude: -84.999991\n}.
-
-@item D, dms2dec @var{Degrees}, @var{Minutes}, @var{Seconds}, @var{S/W}
-Returns @var{Dec Degrees}, a signed floating point value.
-
-@var{Degrees} and @var{Minutes} are integer values and @var{Seconds}
-is a floating point value.  @var{S/W} is a flag with @code{1}
-indicating South latitude or West longitude and @code{0} North or East
-(the flag is needed as computers don't recognize a signed zero even
-though only the @var{Degrees} value only is typically signed in
-@acronym{DMS} notation).
-
-@item d, dec2dms @var{Dec Degrees}
-Returns @var{Degrees}, @var{Minutes}, @var{Seconds}, @var{S/W}.
-
-Values are as in @command{dms2dec} above.
-
-@item E, dmmm2dec @var{Degrees}, @var{Dec Minutes}, @var{S/W}
-Returns @var{Dec Degrees}, a signed floating point value.
-
-@var{Degrees} is an integer value and @var{Minutes} is a floating
-point value.  @var{S/W} is a flag with @code{1} indicating South
-latitude or West longitude and @code{0} North or East (the flag is
-needed as computers don't recognize a signed zero even though only the
-@var{Degrees} value only is typically signed in @acronym{DMS}
-notation).
-
-@item e, dec2dmmm @var{Dec Deg}
-Returns @var{Degrees}, @var{Minutes}, @var{S/W}.
-
-Values are as in @command{dmmm2dec} above.
-
-@item B, qrb @var{Lon 1}, @var{Lat 1}, @var{Lon 2}, @var{Lat 2}
-Returns @var{Distance} and @var{Azimuth} where @var{Distance} is in km
-and @var{Azimuth} is in degrees.
-
-All @var{Lon}/@var{Lat} values are signed floating point numbers.
-
-@item A, a_sp2a_lp @var{Short Path Deg}
-Returns @var{Long Path Deg} or @code{-RIG_EINVAL} upon input error.
-
-Both are floating point values within the range @code{0.00} to
-@var{360.00}.
-
-@item a, d_sp2d_lp @var{Short Path km}
-Returns @var{Long Path km}.
-
-Both are floating point values.
-@end table
-
-
-@node rotctld protocol
-@subsection @command{rotctld} protocol
-@cindex @command{rotctld} protocol
-@cindex protocol, @command{rotctld}
-
-Two protocols exist for communicating with @command{rotctld}.  The
-``Default'' protocol is primarily used internally by Hamlib so an
-application that is not written to use @command{rotctld} directly via
-@acronym{TCP} network sockets can still access @command{rotctld}.  The
-other ``Extended Response Protocol'' is intended for the more general
-use case where a variety of response formats may be needed.
-
+Multiple rotators can be controlled on different @acronym{TCP} ports by
+use of multiple @command{rotctld} processes each listening on a unique
+@acronym{TCP} port. It is hoped that @command{rotctld} will be
+especially useful for client authors using languages such as
+@url{http://www.perl.org/, Perl}, @url{http://www.python.org/,
+Python}, @url{http://php.net/, PHP},
+@url{http://www.ruby-lang.org/en/, Ruby}, @url{http://www.tcl.tk/,
+TCL}, and others.
+
+@node rotctld reference
+@subsection @command{rotctld} reference
+@cindex @command{rotctld} reference
+@cindex reference, @command{rotctld}
+
+The complete reference for @command{rotctld} can be found in the
+@kbd{rotctld}(1) Unix manual page.
+
+
+@node rigmem
+@section @command{rigmem}
+@cindex rigmem
+
+@command{rigmem} may be used to backup and restore memory of radio
+transceivers and receivers.
 
 @menu
-* rotctld Default protocol::
-* rotctld Extended Response protocol::
+* Introduction to rigmem::
+* rigmem reference::
 @end menu
 
-@node rotctld Default protocol
-@subsubsection @command{rotctld} Default protocol
-@cindex @command{rotctld} Default protocol
-@cindex Default protocol, @command{rotctld}
+@node Introduction to rigmem
+@subsection Introduction to @command{rigmem}
+@cindex Introduction to @command{rigmem}
+@cindex @command{rigmem}, introduction to
 
-The @command{rotctld} protocol is intentionally simple. Commands are
-entered on a single line with any needed values.  In Perl, for exampl,
-reliable results are obtained by terminating each command string with
-a newline character, @samp{\n}.
+Backup and restore memory of radio transceivers and receivers.
+@command{rigmem} accepts @samp{command}s from the command line only.
 
-@noindent
-Example @code{set} (Perl code):
+@node rigmem reference
+@subsection @command{rigmem} reference
+@cindex @command{rigmem} reference
+@cindex reference, @command{rigmem}
 
-@example
-print $socket "P 135 10\n";
-print $socket "\\set_pos 135 10\n";   # escape leading '\'
-@end example
+The complete reference for @command{rigmem} can be found in the
+@kbd{rigmem}(1) Unix manual page.
 
-@noindent
-A one line response will be sent as a reply to @code{set} commands,
-@samp{RPRT x\n} where @samp{x} is the Hamlib error code with @samp{0}
-indicating success of the command.
+@node rigsmtr
+@section @command{rigsmtr}
+@cindex rigsmtr
 
-@noindent
-Responses from @command{rotctld} get commands are text values and
-match the same tokens used in the @code{set} commands. Each value
-is returned on its own line.  On error the string @samp{RPRT x\n} is
-returned where @samp{x} is the Hamlib error code.
+@command{rigsmtr} uses Hamlib to control a radio to measure S-Meter
+value versus antenna azimuth.
 
-@noindent
-Example @code{get} (Perl code):
+@menu
+* Introduction to rigsmtr::
+* rigsmtr reference::
+@end menu
 
-@example
-print $socket "p\n";
-"135"
-"10"
-@end example
+@node Introduction to rigsmtr
+@subsection Introduction to @command{rigsmtr}
+@cindex Introduction to @command{rigsmtr}
+@cindex @command{rigsmtr}, introduction to
 
-@noindent
-Most @code{get} functions return one to four values. A notable
-exception is the @command{dump_caps} command which returns many lines
-of @samp{key:value} pairs.
+@command{rigsmtr} rotates the antenna from minimum azimuth to maximum
+azimuth.  Every second, or time_step if specified in seconds, it
+retrieves the signal strength.  Azimuth in degrees and the
+corresponding S-Meter level in dB relative to S9 are then printed on
+stdout.
 
-This protocol is primarily used by the @code{NET rotctl}
-(@command{rotctl} model 2) backend which allows applications already
-written for Hamlib's C @acronym{API} to take advantage of
-@command{rotctld} without the need of rewriting application code.  An
-application's user can select rotor model 2 (@code{NET rotctl}) and then
-set @option{rig_pathname} to @kbd{localhost:4533} or other network
-host:port (set by the @option{-t} option above).
+To work correctly, @command{rigsmtr} needs a radio that could measure
+S-Meter and a Hamlib backend that is able to retrieve it, connected to
+a Hamlib supported rotator.
 
-@node rotctld Extended Response protocol
-@subsubsection @command{rotctld} Extended Response Protocol
-@cindex @command{rotctld} Extended Response Protocol
-@cindex Extended Response Protocol, @command{rotctld}
+@node rigsmtr reference
+@subsection @command{rigsmtr} reference
+@cindex @command{rigsmtr} reference
+@cindex reference, @command{rigsmtr}
 
-An EXPERIMENTAL Extended Response protocol has been introduced into
-@command{rotctld} as of February 10, 2010.  This protocol adds several
-rules to the strings returned by @command{rotctld} and adds a rule for
-the command syntax.
+The complete reference for @command{rigsmtr} can be found in the
+@kbd{rigsmtr}(1) Unix manual page.
 
-@enumerate
-@item
-The command received by @command{rotctld} is echoed with its long
-command name followed by the value(s) (if any) received from the
-client terminated by the specified response separator as the record
-line of the response.
+@node rigswr
+@section @command{rigswr}
+@cindex rigswr
 
-@item
-The last line of each block is the string @samp{RPRT x\n} where
-@samp{x} is the numeric return value of the Hamlib backend function
-that was called by the command.
+@command{rigswr} may be used to measure VSWR vs frequency.
 
-@item
-Any records consisting of data values returned by the rotor backend are
-prepended by a string immediately followed by a colon then a space and
-then the value terminated by the response
-separator. e.g. @samp{Azimuth: 90.000000\n} when the command was
-prepended by @code{+}.
+@menu
+* Introduction to rigswr::
+* rigswr reference::
+@end menu
 
-@item
-All commands received will be acknowledged by @command{rotctld} with
-lines from rules 1 and 2.  Lines from rule 3 are only returned when
-data values must be returned to the client.
+@node Introduction to rigswr
+@subsection Introduction to @command{rigswr}
+@cindex Introduction to @command{rigswr}
+@cindex @command{rigswr}, introduction to
 
-@end enumerate
+@command{rigswr} uses Hamlib to control a radio to measure
+@acronym{VSWR} (Voltage Standing Wave Ratio) over a frequency range.
+It scans frequencies from @var{start_freq} to @var{stop_freq} with an
+optional increment of @var{freq_step} (default step is 100 kHz).  All
+values must be entered as an integer in Hertz (cycles per second).
 
-An example response to a @command{+P} command sent from the
-shell prompt (note the prepended @code{+}):
+@quotation Note
+@command{rigswr} assumes that @var{start_freq} is less than or equal
+to @var{stop_freq}.  If it is greater, @command{rigswr} will exit
+without doing anything.
+@end quotation
 
-@example
-echo "+P 90 45" | nc -w 1 localhost 4533
-set_pos: 90 45
-RPRT 0
-@end example
+For each frequency, @command{rigswr} transmits at 25% of total POWER
+during 0.5 second in CW mode and reads @acronym{VSWR}.
 
-In this case the long command name and values are returned on the
-first line and the second line contains the end of block marker and
-the numeric rotor backend return value indicating success.
+Frequency and the corresponding @acronym{VSWR} are then printed on
+@file{stdout}.
 
-An example response to a @command{+\get_pos} query:
+To work correctly, @command{rigswr} needs a radio that can measure
+@acronym{VSWR} and a Hamlib backend that supports reading
+@acronym{VSWR} from the radio.
 
-@example
-echo "+\get_pos" | nc -w 1 localhost 4533
-get_pos:
-Azimuth: 90.000000
-Elevation: 45.000000
-RPRT 0
-@end example
+@node rigswr reference
+@subsection @command{rigswr} reference
+@cindex @command{rigswr} reference
+@cindex reference, @command{rigswr}
 
-In this case, as no value is passed to @command{rotctld}, the first
-line consists only of the long command name.  The final line shows
-that the command was processed successfully by the rig backend.
-
-Invoking the Extended Response protocol requires prepending a command
-with a punctuation character.  As shown in the examples above,
-prepending a '@code{+} character to the command results in the
-responses being separated by a newline character (@samp{\n}).  Any
-other punctuation character recognized by the C @code{ispunct()}
-function except @code{\}, @code{?}, or @code{_} will cause that
-character to become the response separator and the entire response
-will be on one line.
-
-Separator character summary:
-
-@table @code
-@item +
-Each record of the response is appended with a newline (@samp{\n}).
-@ifhtml
-@*
-@end ifhtml
-
-@item ;, |, or ,
-Each record of the response is appended by the given character
-resulting in entire response on one line.
-
-Common record separators for text representations of spreadsheet data,
-etc.
-
-@item ?
-Reserved for 'help' in @command{rotctl} short command.
-@ifhtml
-@*
-@end ifhtml
-
-@item _
-Reserved for @command{\get_info} in @command{rotctl} short command.
-@ifhtml
-@*
-@end ifhtml
-
-@item #
-Reserved for comments when reading a command file script.
-
-@end table
-
-Other punctuation characters have not been tested!  Use at your own
-risk.
-
-For example, invoking a @command{;\get_pos} query with a leading
-@code{;} returns:
-
-@example
-get_pos:;Azimuth: 90.000000;Elevation: 45.000000;RPRT 0
-@end example
-
-Or, using the vertical bar (pipe) character @code{|} returns:
-
-@example
-get_pos:|Azimuth: 90.000000|Elevation: 45.000000|RPRT 0
-@end example
-
-And a @command{\set_pos} command prepended with a @code{|} returns:
-
-@example
-set_pos: 135 22.5|RPRT 0
-@end example
-
-Such a format will allow reading a response as a single event using a
-preferred response separator.  Other punctuation characters have not
-been tested!
-
-All commands with the exception of @command{\set_conf} have been
-tested with the Extended Response protocol and the included
-@file{testrotctld.pl} script.
+The complete reference for @command{rigswr} can be found in the
+@kbd{rigswr}(1) Unix manual page.
