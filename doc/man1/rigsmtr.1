@@ -35,7 +35,7 @@ rigsmtr \- measure S-Meter vs azimuth using Hamlib
 .B rigsmtr
 uses
 .B Hamlib
-to control a rig to measure S-Meter value versus antenna azimuth.
+to control a radio to measure S-Meter value versus antenna azimuth.
 .
 .PP
 It rotates the antenna from minimum azimuth to maximum azimuth.
@@ -46,12 +46,13 @@ and the corresponding S-Meter level in dB relative to S9 are then printed on
 .BR stdout .
 .
 .PP
-To work correctly, rigsmtr needs a rig that could measure S-Meter and a Hamlib
-backend that is able to retrieve it, connected to a Hamlib supported rotator.
+To work correctly, rigsmtr needs a radio that could measure S-Meter and a
+Hamlib backend that is able to retrieve it, connected to a Hamlib supported
+rotator.
 .
 .PP
 Keep in mind that Hamlib is BETA level software.  While a lot of backend
-libraries lack complete rig support, the basic functions are usually well
+libraries lack complete radio support, the basic functions are usually well
 supported.
 .
 .PP
@@ -96,15 +97,15 @@ Set radio serial speed to
 .I baud
 rate.
 .IP
-Uses maximum serial speed from rig backend capabilities as the default.
+Uses maximum serial speed from radio backend capabilities as the default.
 .
 .TP
 .BR \-c ", " \-\-civaddr = \fIid\fP
 Use
 .I id
-as the CI-V address to communicate with the rig.
+as the CI-V address to communicate with the radio.
 .IP
-Only useful for Icom and some Ten-Tec rigs.
+Only useful for Icom and some Ten-Tec radios.
 .IP
 .BR Note :
 The
@@ -231,7 +232,7 @@ if an error was returned by
 .
 .TP
 .B 3
-if the rig doesn't have the required capabilities.
+if the radio doesn't have the required capabilities.
 .
 .
 .SH EXAMPLE
