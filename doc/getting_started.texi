@@ -1,13 +1,13 @@
-There are several ways to obtain a working installation of Hamlib.  In
-the following sections discuss installing from a package manager,
-building from source, and installing Hamlib project supplied binaries on
-Microsoft Windows@registeredsymbol{}.
+There are several ways to obtain a working installation of Hamlib.
+The following sections discuss installing from a package manager,
+building from source, and installing Hamlib project supplied binaries
+on Microsoft Windows@registeredsymbol{}.
 
 @menu
 * Unix binary packages::
 * Source options::
 * Building from source::
-* MS Windows 32 binaries::
+* Microsft Windows binaries::
 @end menu
 
 @node Unix binary packages
@@ -31,17 +31,17 @@ the documentation for your chosen distribution be your guide.
 
 Distribution packages are most often official Hamlib releases and in
 some cases could be quite old and lacking support for newer radios or
-rotors.  In some cases support is improved in existing radio or rotor
-back ends and bugs are fixed in newer releases.  Often times to get
-the improved support/bug fixes, building from source will be required.
-Relax, it's not hard.  :-)
+rotators.  In some cases support is improved in existing radio or
+rotator back ends and bugs are fixed in newer releases.  Often times
+to get the improved support/bug fixes, building from source will be
+required.  Relax, it's not hard.  :-)
 
 Source code is available as official releases, testing snapshots,
 daily development snapshots, and the bleeding edge of development
-directly from the @url{http://git-scm.com/, Git} repository.  As a
-rule, even the bleeding edge tarballs should configure and compile
-without error even though certain implementation work may be in
-progress and may be incomplete or have errors.
+directly from the @url{https://github.com/Hamlib/Hamlib, Git
+repository}.  As a rule, even the bleeding edge tarballs should
+configure and compile without error even though certain implementation
+work may be in progress and may be incomplete or have errors.
 
 @menu
 * Source releases::
@@ -56,9 +56,12 @@ progress and may be incomplete or have errors.
 @cindex Source, obtaining releases
 
 Official Hamlib source releases, commonly called @dfn{tarballs} can be
-found on the @url{http://sourceforge.net/projects/hamlib/files/hamlib/,
-SourceForge.net Hamlib files} Web page.  The most recent release is
-listed first.
+found on the
+@url{http://sourceforge.net/projects/hamlib/files/hamlib/,
+SourceForge.net Hamlib files} Web page.  As a convenience, release
+archives are also mirrored at the
+@url{https://github.com/Hamlib/Hamlib/releases, GitHub Hamlib
+releases} page.  The most recent release is listed first.
 
 @node Source snapshots
 @subsection Getting source snapshots
@@ -66,20 +69,25 @@ listed first.
 @cindex Source, getting snapshots
 @cindex Source, obtaining snapshots
 @cindex Source, daily snapshots
+@cindex Source, release candidates
+@cindex Source, RC
 
-Testing release candidates and daily snapshots of the development
-repository are available via the World Wide Web from
-@url{http://n0nb.users.sourceforge.net/, Hamlib Git daily snapshots}.
-These are not official releases but are provided for testing new
-features and bug fixes.
+Testing release candidates (RCs) are posted during the period (often a
+few weeks) before a planned release.  Beginning with the 3.2 release,
+RCs are hosted by the @url{https://github.com/Hamlib/Hamlib/releases,
+GitHub release archive}.  RCs are identifed by having a @i{~rc}
+suffix.
 
-Testing release snapshots are only posted for a few weeks before a
-planned release.  The daily development snapshot is made and posted
-each day by around 1030 UTC.  Daily snapshots @i{should} compile but
-sometimes a bug creeps in that prevents compilation.  If that should
-happen, please report it to the
-@email{hamlib-developer@@lists.sourceforge.net, hamlib-developer
-mailing list}.
+Daily snapshots of the development repository are available via the
+World Wide Web from @url{http://n0nb.users.sourceforge.net/, Hamlib
+Git daily snapshots}.  These are not official releases but are
+provided for testing new features and bug fixes.
+
+The daily development snapshot is made and posted each day by around
+1030 UTC.  Daily snapshots @i{should} compile but sometimes a bug
+creeps in that prevents compilation.  If that should happen, please
+report it to the @email{hamlib-developer@@lists.sourceforge.net,
+hamlib-developer mailing list}.
 
 @node Git clone
 @subsection Git repository
@@ -102,6 +110,12 @@ To clone the repository use the following command:
 git clone git://git.code.sf.net/p/hamlib/code hamlib
 @end example
 
+or:
+
+@example
+git clone https://github.com/Hamlib/Hamlib.git
+@end example
+
 Odds are that you will want to run the above command in a sub
 directory of your home directory.  The @file{hamlib} directory will be
 created by Git and the @dfn{master} branch will be checked out for you
@@ -120,13 +134,13 @@ repository.
 @cindex Source, building from
 
 Building from source will be required for various reasons.  Perhaps
-only an older release is provided by your distribution, or you'd like
-to test recent changes to Hamlib---either a specific back end or API
-changes---and offer a report to the developers, or you'd like to take
-part in development and offer your contribution to the project, or
-you'd just like to learn how to build a relatively comprehensive
+only an older release is provided by your distribution, or you would
+like to test recent changes to Hamlib---either a specific back end or
+API changes---and offer a report to the developers, or you'd like to
+take part in development and offer your contribution to the project,
+or you'd just like to learn how to build a relatively comprehensive
 package from source.  Any is a good reason to build from the source
-code.
+code archive.
 
 Before going further, this manual assumes familiarity with working
 from the command prompt in a Linux/BSD/Unix like system's @dfn{shell}
@@ -150,7 +164,7 @@ Let's get started.
 * Other make targets::
 * Parallel build trees::
 * Adding debugging symbols::
-* Compiling MS Windows 32::
+* Compiling Microsoft Windows::
 @end menu
 
 @node Compiling source tarballs
@@ -161,16 +175,16 @@ Let's get started.
 Before proceeding, it is essential to read the information in the
 files, @file{README}, @file{INSTALL}, and @file{README.betatester}
 supplied in the Hamlib @dfn{top-level} directory which will be named
-something like @file{hamlib-3.0~git} where the latter part is
-the release version.  In this case the @samp{3.0~git} indicates this is
-a development snapshot of the Git master branch.  These files
-provide detailed information for compiling Hamlib and will vary some
-from release to release.
+something like @file{hamlib-3.3~git} where the latter part is the
+release version.  In this case the @samp{3.3~git} indicates this is a
+development snapshot of the Git master branch.  These files provide
+detailed information for compiling Hamlib and will vary some from
+release to release.
 
-Compiling from a source tarball whether it is an official release or
-a testing or daily development snapshot follows the same set of commands,
-known as the @dfn{three step} which are each run from the top-level
-directory:
+Compiling from a source tarball whether it is an official release or a
+testing or daily development snapshot follows the same set of
+commands, known as the @dfn{three step} which are each run from the
+top-level directory:
 
 @example
 ./configure
@@ -192,7 +206,7 @@ sudo make install
 The @command{./configure} command examines your system and checks it
 for any packages that are required or good to have options for
 compiling Hamlib.  The leading @file{./} tells the shell to only run
-the @command{configure} command found in the current directory.  It's
+the @command{configure} command found in the current directory.  It is
 always possible that a @command{configure} command could be lurking
 elsewhere and we don't want to run that!
 
@@ -216,9 +230,9 @@ LinuxCommand.org reference above.
 @end quotation
 
 Of course, things are usually complicated a bit by options and Hamlib
-is no exception.  The good news is that the defaults, i.e. no options,
-work well in most situations.  Options are needed to enable the
-compilation of certain portions of Hamlib such as the language
+is no exception.  The good news is that the defaults, i.e., no
+options, work well in most situations.  Options are needed to enable
+the compilation of certain portions of Hamlib such as the language
 bindings.  Optional features usually require that more development
 tools are installed.  The @file{INSTALL}, and @file{README.betatester}
 files in the Hamlib top-level directory will have details on the
@@ -249,16 +263,20 @@ exist during installation as will several other directories in it.
 Installing in your home directory means that @dfn{root}, or superuser
 (administrator) privileges are not required when running @command{make
 install}.  On the other hand, some extra work will need to be done so
-other programs can use the library.  (TODO: describe this in an
-appendix).
+other programs can use the library.
+
+@ignore
+(TODO: describe library hackery in an appendix).
+@end ignore
 
 Another useful option is @samp{--help} which will give a few screens
 full of options for @command{configure}.  If in a desktop environment
 the scroll bar can be used to scroll back up through the output.  In
 either a terminal or a virtual console Linux supports the
-@key{Shift-PageUp} key combination to scroll back up.  As luck would
-have it, @key{Shift-PageDown} can be used to scroll down toward the
-end of the output and the shell prompt.
+@key{Shift-PageUp} key combination to scroll back up.  Converesely
+@key{Shift-PageDown} can be used to scroll down toward the end of the
+output and the shell prompt (Shift-UpArrow/Shift-DownArrow may also
+work to scroll one line at a time).
 
 After a fair amount of time, depending on your computer, and a lot of
 screen output, @command{configure} will finish its job.  So long as
@@ -349,19 +367,9 @@ as root from any directory.
 
 @quotation Note
 Subsequent installations of Hamlib will not need to have
-@command{ldconfig} run after each installation so long as no new
-backend libraries nor a newer major version of Hamlib were installed.
-
-A developer adding a new backend (see @file{README.developer}) will
-need to run @command{ldconfig} for the new back end library to be
-found by the library loader (this refers a new back end, i.e. a
-sibling to the existing Icom, Kenwood, Yaesu, etc.@: back ends, not a
-new model in an existing back end).
-
-Likewise, any time a new back end appears in a source tarball,
-@command{ldconfig} will need to be run for the library loader to find
-it.  There is no harm running @command{ldconfig} after each run of
-@command{make install}.
+@command{ldconfig} run after each installation if a newer major
+version of Hamlib was not installed, i.e. when recompiling the same
+version during development.
 @end quotation
 
 On some distributions a bit of configuration will be needed before
@@ -425,7 +433,10 @@ To remove even the generated @file{Makefile}s, run @command{make
 distclean} from the top-level directory.  After this target is run,
 @command{configure} will need to be run again to regenerate the
 @file{Makefile}s.  This command may not be as useful as the
-@file{Makefile}s do not take up much space.
+@file{Makefile}s do not take up much space, however it can be useful
+for rebuilding the @file{Makefile}s when modifying a
+@file{Makefile.am} or @file{confgure.ac} during build system
+development.
 
 @node Parallel build trees
 @subsection Parallel build trees
@@ -458,16 +469,14 @@ Run:
 @command{../hamlib/configure CFLAGS="-ggdb3 -O0" CXXFLAGS="-ggdb3 -O0"}
 @end example
 
-from a build directory intended for a debugging build.
+from a sibling build directory intended for a debugging build.
 
 The @samp{-ggdb3} option tells the C compiler, this case the GNU C
-Compiler, @command{gcc}, to add special symbols useful for
-@command{gdb}.  The @samp{-O0} option tells @command{gcc} to turn off
+Compiler, @command{gcc}, to add special symbols useful for GDB, the
+GNU debugger.  The @samp{-O0} option tells @command{gcc} to turn off
 all optimizations which will make it easier to follow some variables
 that might otherwise be optimized away.  @samp{CFLAGS} and
-@samp{CXXFLAGS} may be set independently for each compiler (sadly, a
-bug in the build system source file in Hamlib 1.2.15.3 and earlier did
-not preserve @samp{CXXFLAGS}).
+@samp{CXXFLAGS} may be set independently for each compiler.
 
 @quotation Note
 There are a number compiler options available for controlling debugging
@@ -475,13 +484,13 @@ symbols and setting optimization levels.  Please consult the compiler's
 manual for all the details.
 @end quotation
 
-@node Compiling MS Windows 32
-@subsection Compiling for MS Windows 32 bit architectures
-@cindex Compiling for MS Windows 32
-@cindex MS Windows 32, compiling
+@node Compiling Microsoft Windows
+@subsection Compiling for Microsoft Windows
+@cindex Compiling for Microsoft Windows
+@cindex Microsoft Windows, compiling
 
 Currently compiling is done on a Debian 8 (Jessie) virtual machine
-using @url{http://www.mingw.org/, MinGW32}.  @file{README.build-win32}
+using @url{http://www.mingw.org/, MinGW}.  @file{README.build-win32}
 in the @file{scripts} directory has details on how this is
 accomplished.
 
@@ -489,23 +498,28 @@ Work is ongoing to correct build issues in the
 @url{http://www.cygwin.com/, Cygwin} environment running on MS
 Windows.
 
-@node MS Windows 32 binaries
-@section Pre-compiled binaries for MS Windows 32 bit architectures
-@cindex Pre-compiled binaries for MS Windows 32
-@cindex MS Windows 32, compiled binaries
-@cindex MS Windows 32, pre-compiled binaries
+@node Microsft Windows binaries
+@section Pre-compiled binaries for Microsoft Windows
+@cindex Pre-compiled binaries for Microsoft Windows
+@cindex Microsoft Windows, compiled binaries
+@cindex Microsoft Windows, pre-compiled binaries
 
-Pre-compiled binaries for MS Windows 32 bit architectures (Windows NT
-and newer) are available for both official releases and daily
-development snapshots.  Official releases are available through the
+Pre-compiled binaries for Microsoft Windows 32 and 64 bit
+architectures (Windows NT and newer) are available for both official
+releases and daily development snapshots.  Official releases are
+available through the
 @url{http://sourceforge.net/projects/hamlib/files/hamlib/,
-SourceForge.net file download service}.  Daily development snapshots
-are available from @url{http://n0nb.users.sourceforge.net/}.
+SourceForge.net file download service}.  As an alternative, official
+releases are also available though the
+@url{https://github.com/Hamlib/Hamlib/releases, Hamlib archive at
+GitHub}.  Daily development snapshots are available from
+@url{http://n0nb.users.sourceforge.net/}.
 
 Beginning with the Hamlib 1.2.15.3 release a self-extracting installer
 is available.  Among its features are selecting which portions of
 Hamlib are installed.  The @env{PATH} environment variable will need
-to be set manually per the included @file{README.win32-bin} file.
+to be set manually per the included @file{README.w32-bin} or
+@file{README.w64-bin} file.
 
 Daily development snapshots feature both a .ZIP archive and the self
 extracting installer.

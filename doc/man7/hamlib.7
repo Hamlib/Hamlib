@@ -1,0 +1,345 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\"
+.\" For layout and available macros, see man(7), man-pages(7), groff_man(7)
+.\" Please adjust the date whenever revising the manpage.
+.\"
+.\" Please keep this file in sync with doc/nutshell.texi
+.\"
+.TH HAMLIB "7" "2018-05-21" "Hamlib" "Hamlib Information Manual"
+.
+.
+.SH NAME
+.
+hamlib \- radio and rotator control library
+.
+.
+.SH DESCRIPTION
+.
+The
+.BR "Ham Radio Control Libraries" ,
+.B Hamlib
+for short, is a development effort to provide a consistent interface for
+programmers wanting to incorporate radio and rotator control in their
+programs.
+.
+.PP
+Hamlib is not a complete user application, rather, it is a software layer
+intended to make controlling various radios and other amateur radio station
+(shack) hardware much easier.
+.
+Hamlib will allow authors of software such as logging programs, digital
+communications programs, or those wanting to develop the ultimate radio
+control software to concentrate on the user interface and the basic function
+of the program rather than radio control.
+.
+Hamlib consists of several parts, the programming library, utility programs,
+and library interfaces to other programming languages.
+.
+.PP
+Most recent amateur radio transceivers allow external control of their
+functions through a serial interface.
+.
+Unfortunately, control commands are not always consistent across a
+manufacturer's product line and each manufacturer's product line differs
+greatly from its competitors.
+.
+.PP
+Hamlib attempts to solve this problem by presenting a
+.I virtual radio
+to the programmer by providing an interface to actions such as setting a given
+Variable Frequency Oscillator's (VFO) frequency, setting the operating mode,
+querying the radio of its current status and settings, and giving the
+application a list of a given radio's capabilities.
+.
+Unfortunately, what can be accomplished by Hamlib is limited by the radios
+themselves and some offer very limited capability.
+.
+.PP
+Other devices, such as antenna rotators, can be placed into the Hamlib control
+scheme.
+.
+Other recent developments include network interface servers and a USB
+interface capability.
+.
+Language bindings are provided for
+.BR C ", " C++ ", " Perl ", " Python ", " Lua " and " TCL
+(more to come).
+.
+.
+.SS Overview
+.
+Hamlib is a
+.I front end
+library providing a
+.B C
+language Application Programming Interface (API) to programmers wishing to
+integrate radio or rotator control in their applications.
+.
+Hamlib presents a
+.I virtual radio
+or
+.I virtual rotator
+that is a consistent interface to an application despite wide differences in
+radio and rotator interfaces and capabilities.
+.
+.PP
+The front end library uses a number of
+.I back end
+libraries to translate from the front end to the various individual radio and
+rotator models.
+.
+A back end library handles conversion of the front end variables to the format
+needed by the radio or rotator device it controls.
+.
+The back end libraries are generally grouped by manufacturer and in some cases
+by a common control protocol.
+.
+.PP
+Hamlib also provides an interface library for each of several common
+.I scripting
+languages such as
+.UR http://www.perl.org
+.B Perl
+.UE ,
+.UR http://www.python.org
+.B Python
+.UE ,
+.UR https://www.lua.org
+.B Lua
+.UE ,
+and
+.UR http://www.tcl.tk
+.B TCL
+.UE .
+.
+These language
+.I bindings
+are
+generated through the use of
+.UR http://www.swig.org
+.B SWIG
+.UE ,
+a parser/generator for multiple language interfaces to a
+.B C
+library.
+.
+A natively generated
+.B C++
+language interface is also provided.
+.
+.PP
+Besides the C and supplemental APIs, Hamlib also provides a pair of network
+daemons that provide a text command based API for controlling an attached
+radio or rotator through a
+.BR TCP / IP
+network connection.
+.
+The daemons then handle the interface to the Hamlib C API.
+.
+.PP
+More than one type of device, radio or rotator, may be controlled at a
+time, however, there is generally a limit of one device per serial port
+or other port.
+.
+.
+.SS Hamlib project information
+.
+The Hamlib Project was founded by Frank Singleton, VK3FCS/KM5WS in July 2000.
+.
+Shortly after Stephane Fillod, F8CFE, joined Frank on the Hamlib project and
+the API and implementation development led to a reasonable level of maturity
+in a few years.
+.
+A major milestone was reached when Hamlib 1.2.0 was released in March 2004.
+.
+The API and Application Binary Interface (ABI) interfaces have remained stable
+since that time up to the latest release of 3.2 in early 2018.
+.
+.PP
+Development continues through the major version number
+.RI 3. x
+series and beyond.
+.
+While some API tweaks are planned, ABI compatibility with the prior
+.RI 1.2. x
+releases remains a priority.
+.
+Other goals include streamlining the build system (done), improving the SWIG
+generated language bindings (done), improving the overall documentation (this
+man page with more in progress), and other updates as warranted.
+.
+.PP
+The Project is hosted by
+.UR https://sourceforge.net
+SourceForge.net
+.UE
+at the
+.UR https://sourceforge.net/projects/hamlib/
+Hamlib project page
+.UE .
+.
+As
+.UR https://github.com
+GitHub
+.UE
+has become a very popular project hosting site, Hamlib also has a dedicated
+.UR https://github.com/Hamlib/Hamlib
+GitHub project page
+.UE .
+.
+GitHub also hosts the
+.UR http://www.hamlib.org
+hamlib.org
+.UE
+Web site and the
+.UR https://github.com/Hamlib/Hamlib/wiki
+Hamlib Wiki
+.UE .
+.
+.PP
+Development discussion and most user support take place on the
+.UR https://sourceforge.net/p/hamlib/mailman/
+hamlib-developer mailing list
+.UE .
+While there are
+.UR https://sourceforge.net/p/hamlib/discussion/
+SourceForge.net discussion forums
+.UE ,
+they are rarely used and not as closely read by the developers as the mailing
+list.
+.
+.PP
+For
+.IR "source code management" ,
+the project uses
+.UR http://git-scm.com/
+.B Git
+.UE ,
+a fast, distributed content tracker.
+.
+Among its features is that every developer has the complete Hamlib
+development history available locally.
+.
+For more information on using Git, see
+.BR hamlib\-git (7).
+.
+.IP
+.BR Note :
+while a canonical Git repository is hosted at SourceForge, its availability is
+not essential to continued development although development work flows would
+change temporarily.
+.
+Several developers find the GitHub Web interface easier to use and lately
+development has centered around GitHub rather than SourceForge.
+.
+.
+.SS Applications using Hamlib
+.
+A number of application developers have taken advantage of Hamlib's
+capabilities to implement radio and/or rotator control.
+.
+While not exhaustive, a list is maintained at the Hamlib Wiki,
+.UR https://github.com/Hamlib/Hamlib/wiki/Applications-and-Screen-Shots
+Applications/Screenshots
+.UE .
+Developers are encouraged to request their applications be added to the
+gallery by way of the hamlib-developer mailing list.
+.
+.
+.SS Using Hamlib with your program
+.
+As with other Free Software projects, Hamlib relies heavily on copyleft
+licensing to encourage development contributions and provide an open
+atmosphere for development.
+.
+Hamlib's source code is released under two
+licenses, the
+.B Lesser General Public License
+(LGPL) for the library portion, and the
+.B General Public License
+(GPL) for the utility programs.
+.
+.PP
+The LGPL allows the library to be used (linked) by programs regardless of
+their individual license.
+.
+However, any contributions to the library source remain under copyleft which
+means that the library source code may not be used in violation of the terms
+of the LGPL.
+.
+.PP
+The utility program source files are released under the GPL.
+.
+Any direct use of these sources must be in a form that complies with the terms
+of the GPL.
+.
+Concepts learned by studying these sources for the purpose of understanding
+the Hamlib API is not covered nor prohibited by the GPL, however, directly
+copying GPL sources into any work that is incompatible with the terms of the
+GPL is prohibited.
+.
+.
+.SS Radios with a clone capability
+.
+Hamlib's focus is on controlling radios that employ a port and command
+protocol for setting frequency, mode, VFO, PTT, etc.
+.
+Most VHF/UHF transceivers do not employ such control capability but do provide
+for cloning the memory contents from radio to another of the same model.
+.
+A related project,
+.UR http://chirp.danplanet.com
+CHIRP
+.UE ,
+aims to support radios with such a clone capability.
+.
+Please contact the CHIRP project for support of such radios.
+.
+.
+.SS Pronouncing Hamlib
+.
+English speakers seem to have two alternate pronunciations for our project:
+.
+.nf
+.IP \(bu 4
+Hamlib (Ham \- lib, long \(oqi\(cq, as in library.)  IPA style: /\(aqham læb/
+.
+.IP \(bu 4
+Hamlib (Ham \- lib, short \(oqi\(cq, as in liberty.)  IPA style: /\(aqham lɪb/
+.fi
+.
+.PP
+Then again, we have people who say Linux \(lqL-eye-nux\(rq and those who say
+\(lqL-in-nux\(rq...
+.
+.PP
+If you're French, the above does not apply! :-)
+.
+.
+.SH COPYING
+.
+This file is part of Hamlib, a project to develop a library that simplifies
+radio and rotator control functions for developers of software primarily of
+interest to radio amateurs and those interested in radio communications.
+.
+.PP
+Copyright \(co 2001-2018 Hamlib Group (various contributors)
+.
+.PP
+This is free software; see the file COPYING for copying conditions.  There is
+NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+.
+.
+.SH SEE ALSO
+.
+.BR hamlib-primer (7)
+.
+.
+.SH COLOPHON
+.
+Links to the Hamlib Wiki, Git repository, release archives, and daily snapshot
+archives:
+.IP
+.UR http://www.hamlib.org
+hamlib.org
+.UE .

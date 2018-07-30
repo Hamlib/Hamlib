@@ -39,7 +39,7 @@ from the command line only.
 .
 .PP
 Keep in mind that Hamlib is BETA level software.  While a lot of backend
-libraries lack complete rig support, the basic functions are usually well
+libraries lack complete radio support, the basic functions are usually well
 supported.
 .
 .PP
@@ -84,15 +84,15 @@ Set radio serial speed to
 .I baud
 rate.
 .IP
-Uses maximum serial speed from rig backend capabilities as the default.
+Uses maximum serial speed from radio backend capabilities as the default.
 .
 .TP
 .BR \-c ", " \-\-civaddr = \fIid\fP
 Use
 .I id
-as the CI-V address to communicate with the rig.
+as the CI-V address to communicate with the radio.
 .IP
-Only useful for Icom and some Ten-Tec rigs.
+Only useful for Icom and some Ten-Tec radios.
 .IP
 .BR Note :
 The
@@ -243,7 +243,7 @@ if an error was returned by
 .B 3
 the
 .B Hamlib
-backend has no memory support implemented and/or the rig has no memory access
+backend has no memory support implemented and/or the radio has no memory access
 available.
 .
 .
