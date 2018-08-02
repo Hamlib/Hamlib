@@ -70,9 +70,9 @@ This software is copyrighted. The library license is LGPL, and the *.EXE
 files licenses are GPL.  Hamlib comes WITHOUT ANY WARRANTY. See the
 LICENSE.txt, COPYING.txt, and COPYING.LIB.txt files.
 
-A draft user manual in HTML format is included in the doc directory.  As it
-covers the four main Hamlib utilities the respective PDF files are no longer
-included separately.
+A draft user manual in HTML format is included in the doc directory.  Supporting
+documentation in the form of Unix manual pages have also been included after
+being converted to HTML.
 
 
 Installation and Configuration
@@ -205,7 +205,7 @@ for f in AUTHORS ChangeLog COPYING COPYING.LIB LICENSE README README.betatester 
     cp -a ${f} ${ZIP_DIR}/${f}.txt ; todos ${ZIP_DIR}/${f}.txt ; done
 
 # Generate HTML documents from nroff formatted man files
-for f in doc/man1/*.1; do \
+for f in doc/man1/*.1 doc/man7/*.7; do \
     /usr/bin/groff -mandoc -Thtml >${f}.html ${f}
     cp -a ${f}.html ${ZIP_DIR}/doc/. ; done
 
