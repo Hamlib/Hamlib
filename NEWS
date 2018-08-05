@@ -1,4 +1,4 @@
-Hamlib -- History of visible changes.
+=Hamlib -- History of visible changes.
 
 Copyright (C) 2000-2003  Frank Singleton
 Copyright (C) 2000-2018  Stephane Fillod, and others
@@ -6,7 +6,28 @@ Copyright (C) 2000-2018  Stephane Fillod, and others
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 Version 3.3
-        2018-??-??
+        2018-08-12
+        * New models, R&S xk2100, TRXMAnager, Meade LX200
+        * HTML manual is now generated at 'make dist' so users don't
+          need GNU Info tools installed.  TNX Greg, N1DAM for the suggestion.
+        * Handle longer udev generated file names up to 512 characters
+        * Add debug time stamps with new '-Z' option and '--debug-time-stamps'
+          options to rigctl, rotctl, rigctld, and rotctld utilities.
+        * rigctld/rotctld continue working after serial or TCP device
+          disappears.
+        * Updates and fixes to FT-817, K3, IC-7300, AOR 3030, TM-D710,
+          OMNI VII, TH-D72, Flrig, TS-590, piHPSDR, TS-2000, and netrigctl.
+        * Update utility manual pages (section 1) and remove their reference
+          material from the Info manual so it only needs to be update in one
+          file.
+        * Add new general project manual pages (section 7) and edit the Info
+          manual to match.  These should not change much so keeping them in
+          sync should not be too much of a burden.  The Info manual may be
+          removed at some point in the future.
+        * Last planned release of the present API/ABI.  Future releases will
+          require recompilation and relinking by client programs using the C
+          library interface (programs that only use the network daemons should
+          be unaffected).
 
 Version 3.2
         2018-03-15
