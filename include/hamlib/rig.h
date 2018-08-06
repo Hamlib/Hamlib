@@ -431,7 +431,9 @@ typedef enum {
     RIG_DCD_SERIAL_CTS, /*!< DCD status from serial CTS signal */
     RIG_DCD_SERIAL_CAR, /*!< DCD status from serial CD signal */
     RIG_DCD_PARALLEL,   /*!< DCD status from parallel port pin */
-    RIG_DCD_CM108       /*!< DCD status from CM108 vol dn pin */
+    RIG_DCD_CM108,      /*!< DCD status from CM108 vol dn pin */
+    RIG_DCD_GPIO,       /*!< DCD status from GPIO pin */
+    RIG_DCD_GPION,      /*!< DCD status from inverted GPIO pin */
 } dcd_type_t;
 
 
@@ -571,7 +573,7 @@ enum rig_conf_e {
 };
 
 
-#define RIG_COMBO_MAX   8
+#define RIG_COMBO_MAX   16
 
 /**
  * \brief Configuration parameter structure.

@@ -55,9 +55,9 @@ ROT_BACKEND_LIST="amsat ars celestron cnctrk easycomm ether6 fodtrack gs232a hea
 dnl See README.release on setting these values
 # Values given to -version-info when linking.  See libtool documentation.
 # Set them here to keep c++/Makefile and src/Makefile in sync.
-ABI_VERSION=3
-ABI_REVISION=3
-ABI_AGE=1
+ABI_VERSION=4
+ABI_REVISION=0
+ABI_AGE=0
 
 AC_DEFINE_UNQUOTED([ABI_VERSION], [$ABI_VERSION], [Frontend ABI version])
 AC_DEFINE_UNQUOTED([ABI_REVISION], [$ABI_REVISION], [Frontend ABI revision])

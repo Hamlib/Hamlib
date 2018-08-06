@@ -688,7 +688,7 @@ int HAMLIB_API rig_open(RIG *rig)
         break;
 
     case RIG_PTT_GPIO:
-        rs->pttport.fd = gpio_open(&rs->pttport, 1);
+        rs->pttport.fd = gpio_open(&rs->pttport, 1, 1);
 
         if (rs->pttport.fd < 0)
         {
@@ -706,7 +706,7 @@ int HAMLIB_API rig_open(RIG *rig)
         break;
 
     case RIG_PTT_GPION:
-        rs->pttport.fd = gpio_open(&rs->pttport, 0);
+        rs->pttport.fd = gpio_open(&rs->pttport, 1, 0);
 
         if (rs->pttport.fd < 0)
         {
@@ -768,6 +768,34 @@ int HAMLIB_API rig_open(RIG *rig)
 
     case RIG_DCD_PARALLEL:
         rs->dcdport.fd = par_open(&rs->dcdport);
+
+        if (rs->dcdport.fd < 0)
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: cannot open DCD device \"%s\"\n",
+                      __func__,
+                      rs->dcdport.pathname);
+            status = -RIG_EIO;
+        }
+
+        break;
+
+    case RIG_DCD_GPIO:
+        rs->dcdport.fd = gpio_open(&rs->dcdport, 0, 1);
+
+        if (rs->dcdport.fd < 0)
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: cannot open DCD device \"%s\"\n",
+                      __func__,
+                      rs->dcdport.pathname);
+            status = -RIG_EIO;
+        }
+
+        break;
+
+    case RIG_DCD_GPION:
+        rs->dcdport.fd = gpio_open(&rs->dcdport, 0, 0);
 
         if (rs->dcdport.fd < 0)
         {
@@ -968,6 +996,10 @@ int HAMLIB_API rig_close(RIG *rig)
     case RIG_DCD_PARALLEL:
         port_close(&rs->dcdport, RIG_PORT_PARALLEL);
         break;
+
+    case RIG_DCD_GPIO:
+    case RIG_DCD_GPION:
+        port_close(&rs->dcdport, RIG_PORT_GPIO);
 
     default:
         rig_debug(RIG_DEBUG_ERR,
@@ -2035,6 +2067,10 @@ int HAMLIB_API rig_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 
     case RIG_DCD_PARALLEL:
         return par_dcd_get(&rig->state.dcdport, dcd);
+
+    case RIG_DCD_GPIO:
+    case RIG_DCD_GPION:
+        return gpio_dcd_get(&rig->state.dcdport, dcd);
 
     case RIG_DCD_NONE:
         return -RIG_ENAVAIL;    /* not available */
