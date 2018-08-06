@@ -15,7 +15,7 @@ dnl however, the use of '~' should be fine as apt (others?) will treat
 dnl it as an earlier version than the actual release.  TNX KA6MAL
 dnl PACKAGE_NAME + " " + PACKAGE_VERSION must not exceed 20 chars!
 AC_INIT([Hamlib],
-        [3.3~git],
+        [4.0~git],
         [hamlib-developer@lists.sourceforge.net],
         [hamlib],
         [http://www.hamlib.org])
