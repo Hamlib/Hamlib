@@ -341,6 +341,8 @@ int newcat_open(RIG *rig) {
        last client left it on */
     newcat_set_trn(rig, RIG_TRN_OFF); /* ignore status in case it's
                                          not supported */
+    /* Initialize rig_id in case any subsequent commands need it */
+    (void)newcat_get_rigid(rig);
     return RIG_OK;
 }
 
