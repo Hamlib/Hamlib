@@ -1726,7 +1726,8 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     break;
 
   case RIG_LEVEL_SQL:
-    snprintf(levelbuf, sizeof (levelbuf), "SQ%03d", kenwood_val);
+    /* Default to RX#0 */
+    snprintf(levelbuf, sizeof (levelbuf), "SQ0%03d", kenwood_val);
     break;
 
   case RIG_LEVEL_AGC:
