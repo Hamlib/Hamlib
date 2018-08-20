@@ -1,8 +1,9 @@
 /*
- *  Hamlib Kenwood backend - main file
+ *  Hamlib ELAD backend - main file
  *  Copyright (c) 2000-2011 by Stephane Fillod
  *  Copyright (C) 2009,2010 Alessandro Zummo <a.zummo@towertech.it>
  *  Copyright (C) 2009,2010,2011,2012,2013 by Nate Bargmann, n0nb@n0nb.us
+ *  Copyright (C) 2018 by Giovanni Franza, info@hb9eik.ch
  *
  *
  *   This library is free software; you can redistribute it and/or
