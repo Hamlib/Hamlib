@@ -1,6 +1,7 @@
 /*
  *  Hamlib ELAD backend - FDM_DUO description
  *  Copyright (c) 2000-2004 by Stephane Fillod and Juergen Rinas
+ *  Copyright (c) 2018 by Giovanni Franza HB9EIK
  *
  *
  *   This library is free software; you can redistribute it and/or
