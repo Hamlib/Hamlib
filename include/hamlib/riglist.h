@@ -589,6 +589,13 @@
 #define RIG_BACKEND_BARRETT "barrett"
 #define RIG_MODEL_BARRETT_2050 RIG_MAKE_MODEL(RIG_BARRETT, 1)
 
+/*
+ * Elad
+ */
+#define RIG_ELAD 33
+#define RIG_BACKEND_ELAD "elad"
+#define RIG_MODEL_ELAD_FDM_DUO RIG_MAKE_MODEL(RIG_ELAD, 1)
+
 
 /*
  * TODO:
