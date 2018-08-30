@@ -55,7 +55,7 @@ static int ft100_send_priv_cmd(RIG *rig, unsigned char ci);
 
 /* kc2ivl - what works on a ft100    as of 02/27/2002        */
 /*          ptt on/off                                       */
-/*          set mode AM,CW,USB,LSB,FM use RTTY for DIG mode  */
+/*          set mode AM,CW,USB,LSB,FM use PKTUSB for DIG mode*/
 /*          set split on/off                                 */
 /*          set repeater +, - splx                           */
 /*          set frequency of current vfo                     */
@@ -140,11 +140,11 @@ static const tone_t ft100_dcs_list[] = {
 	662, 664, 703, 712, 723, 731, 732, 734, 743, 754, \
 	0,
 };
-#define FT100_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM)
+#define FT100_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_PKTUSB|RIG_MODE_FM)
 #define FT100_SSB_CW_RX_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|RIG_MODE_LSB)
 #define FT100_AM_FM_RX_MODES (RIG_MODE_AM|RIG_MODE_FM)
 
-#define FT100_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM)
+#define FT100_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_PKTUSB|RIG_MODE_FM)
 #define FT100_AM_TX_MODES (RIG_MODE_AM)
 #define FT100_GET_RIG_LEVELS (RIG_LEVEL_RAWSTR|RIG_LEVEL_RFPOWER|\
 		RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_MICGAIN|RIG_LEVEL_SQL)
@@ -259,9 +259,9 @@ const struct rig_caps ft100_caps = {
   },
 
   .filters =  {
-    {RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY, kHz(2.4)},
-    {RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY, Hz(300)},
-    {RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY, Hz(500)},
+    {RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_PKTUSB, kHz(2.4)},
+    {RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_PKTUSB, Hz(300)},
+    {RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_PKTUSB, Hz(500)},
     {RIG_MODE_AM|RIG_MODE_FM, kHz(6)},
     {RIG_MODE_WFM, kHz(230)},
     RIG_FLT_END,
@@ -519,7 +519,7 @@ int ft100_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
   case RIG_MODE_FM:
     cmd_index = FT100_NATIVE_CAT_SET_MODE_FM;
     break;
-  case RIG_MODE_RTTY:
+  case RIG_MODE_PKTUSB:
     cmd_index = FT100_NATIVE_CAT_SET_MODE_DIG;
     break;
   case RIG_MODE_WFM:
@@ -608,7 +608,7 @@ int ft100_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
       *mode = RIG_MODE_AM;
       break;
     case 0x05:
-      *mode = RIG_MODE_RTTY;
+      *mode = RIG_MODE_PKTUSB;
       break;
     case 0x06:
       *mode = RIG_MODE_FM;
