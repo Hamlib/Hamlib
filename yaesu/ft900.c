@@ -1,4 +1,4 @@
-/*
+ /*
  * hamlib - (C) Frank Singleton 2000 (javabear at users.sourceforge.net)
  *
  * ft900.c - (C) Frank Singleton 2000 (javabear at users.sourceforge.net)
@@ -37,6 +37,7 @@
 #include "bandplan.h"
 #include "serial.h"
 #include "misc.h"
+#include "cal.h"
 #include "yaesu.h"
 #include "ft900.h"
 
@@ -138,7 +139,8 @@ struct ft900_priv_data {
   unsigned char p_cmd[YAESU_CMD_LENGTH];    /* private copy of 1 constructed CAT cmd */
   yaesu_cmd_set_t pcs[FT900_NATIVE_SIZE];   /* private cmd set */
   unsigned char update_data[FT900_ALL_DATA_LENGTH]; /* returned data--max value, some are less */
-  unsigned char current_mem;                   /* private memory channel number */
+  unsigned char current_mem;                /* private memory channel number */
+  int ptt;                                  /* ptt status needed for meter reading */
 };
 
 /*
@@ -151,9 +153,9 @@ const struct rig_caps ft900_caps = {
   .rig_model =          RIG_MODEL_FT900,
   .model_name =         "FT-900",
   .mfg_name =           "Yaesu",
-  .version =            "0.1",
+  .version =            "0.2",
   .copyright =          "LGPL",
-  .status =             RIG_STATUS_UNTESTED,
+  .status =             RIG_STATUS_STABLE,
   .rig_type =           RIG_TYPE_TRANSCEIVER,
   .ptt_type =           RIG_PTT_RIG,
   .dcd_type =           RIG_DCD_NONE,
@@ -903,9 +905,11 @@ static int ft900_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt) {
   switch (ptt) {
   case RIG_PTT_OFF:
     cmd_index = FT900_NATIVE_PTT_OFF;
+    priv->ptt = 0;
     break;
   case RIG_PTT_ON:
     cmd_index = FT900_NATIVE_PTT_ON;
+    priv->ptt = 1;
     break;
   default:
     return -RIG_EINVAL;         /* wrong PTT state! */
@@ -961,6 +965,7 @@ static int ft900_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt) {
   default:                      /* Oops! */
     return -RIG_EINVAL;         /* Invalid PTT bit?! */
   }
+  priv->ptt = *ptt;
 
   return RIG_OK;
 }
@@ -1297,13 +1302,11 @@ static int ft900_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val) {
      * is life when mapping non-linear S-meters to a linear scale.
      *
      */
-    if (*p > 160) {
-      val->i = 60;
-    } else  if (*p <= 72) {
-      val->i = ((72 - *p) / 1.3333) * -1;
-    } else {
-      val->i = ((*p - 72) / 1.4667);
+    cal_table_t cal=FT900_STR_CAL_SMETER;
+    if (priv->ptt) {
+      cal = (cal_table_t)FT900_STR_CAL_POWER;
     }
+    val->i = (int)rig_raw2val(*p,&cal);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: calculated level = %i\n", __func__, val->i);
 
