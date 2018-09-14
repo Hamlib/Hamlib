@@ -8,6 +8,8 @@ Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 Version 4.0
         2019-??-??
         * API/ABI changes, advance ABI to 4 0 0.
+        * Add GPIO and GPION options for DCD.  Jeroen Vreeken
+        * New backend: ELAD FDM DUO.  Giovanni, HB9EIK.
 
 Version 3.3
         2018-08-12
