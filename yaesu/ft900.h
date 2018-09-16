@@ -71,7 +71,7 @@
 
 #define FT900_PACING_INTERVAL                5
 #define FT900_PACING_DEFAULT_VALUE           0
-#define FT900_WRITE_DELAY                    50
+#define FT900_WRITE_DELAY                    5
 
 
 /* Delay sequential fast writes */
@@ -315,6 +315,25 @@ typedef enum ft900_native_cmd_e ft900_native_cmd_t;
 #define P3  1
 #define P4  0
 
+/*
+ * Two calibration sets for the smeter/power readings 
+ */
+
+#define FT900_STR_CAL_SMETER { 3, \
+        { \
+                {   0, -54 }, /* S0    */ \
+                {0x44,   0 }, /* S9    */ \
+                {0x9d,  60 }, /* +60dB */ \
+        } }
+
+#define FT900_STR_CAL_POWER { 5, \
+        { \
+                {   0,   0 }, /*  0W  */ \
+                {0x44,  10 }, /* 10W  */ \
+                {0x69,  25 }, /* 25W  */ \
+                {0x92,  50 }, /* 50W  */ \
+                {0xCE, 100 }, /* 100W */ \
+        } }
 
 /*
  * API local implementation
