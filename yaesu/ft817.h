@@ -50,7 +50,7 @@
 /*
  * Read timeout.
  */
-#define FT817_TIMEOUT			1000
+#define FT817_TIMEOUT			3000
 
 /*
  * The time the TX, RX and FREQ/MODE status are cached (in millisec).
