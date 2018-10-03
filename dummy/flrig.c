@@ -168,33 +168,31 @@ const struct rig_caps flrig_caps = {
 
 // Structure for mapping flrig dynmamic modes to hamlib modes
 // flrig displays modes as the rig displays them
-// hamlib displays modes in generic form
-#define MAXMODELEN 8
 struct s_modeMap {
     int mode_hamlib;
-    char mode_flrig[MAXMODELEN];
+    char *mode_flrig;
 };
 
 // FLRig will provide us the modes for the selected rig
 // We will then put them in this struct
 static struct s_modeMap modeMap[]= {
-    {RIG_MODE_USB,""},
-    {RIG_MODE_LSB,""},
-    {RIG_MODE_PKTUSB,""},
-    {RIG_MODE_PKTLSB,""},
-    {RIG_MODE_PKTUSB,""},
-    {RIG_MODE_PKTLSB,""},
-    {RIG_MODE_AM,""},
-    {RIG_MODE_FM,""},
-    {RIG_MODE_FMN,""},
-    {RIG_MODE_WFM,""},
-    {RIG_MODE_CW,""},
-    {RIG_MODE_CW,""},
-    {RIG_MODE_CWR,""},
-    {RIG_MODE_CWR,""},
-    {RIG_MODE_RTTY,""},
-    {RIG_MODE_RTTYR,""},
-    {0,""}
+    {RIG_MODE_USB,NULL},
+    {RIG_MODE_LSB,NULL},
+    {RIG_MODE_PKTUSB,NULL},
+    {RIG_MODE_PKTLSB,NULL},
+    {RIG_MODE_PKTUSB,NULL},
+    {RIG_MODE_PKTLSB,NULL},
+    {RIG_MODE_AM,NULL},
+    {RIG_MODE_FM,NULL},
+    {RIG_MODE_FMN,NULL},
+    {RIG_MODE_WFM,NULL},
+    {RIG_MODE_CW,NULL},
+    {RIG_MODE_CW,NULL},
+    {RIG_MODE_CWR,NULL},
+    {RIG_MODE_CWR,NULL},
+    {RIG_MODE_RTTY,NULL},
+    {RIG_MODE_RTTYR,NULL},
+    {0,NULL}
 };
 
 /*
@@ -463,9 +461,11 @@ static char * modeMapGetFLRig(unsigned int modeHamlib)
 static unsigned int modeMapGetHamlib(const char *modeFLRig)
 {
     int i;
+    char modeFLRigCheck[64];
+    snprintf(modeFLRigCheck,sizeof(modeFLRigCheck),"|%.32s|",modeFLRig);
     rig_debug(RIG_DEBUG_VERBOSE,"%s: get hamlib mode from %s\n",__FUNCTION__,modeFLRig);
     for(i=0; modeMap[i].mode_hamlib!=0; ++i) {
-        if (streq(modeMap[i].mode_flrig,modeFLRig)) {
+        if (strstr(modeMap[i].mode_flrig,modeFLRigCheck)) {
             rig_debug(RIG_DEBUG_VERBOSE,"%s: got hamlib mode %s\n",__FUNCTION__,rig_strrmode(modeMap[i].mode_hamlib));
             return modeMap[i].mode_hamlib;
         }
@@ -482,10 +482,26 @@ static unsigned int modeMapGetHamlib(const char *modeFLRig)
 static void modeMapAdd(unsigned int *modes,int mode_hamlib,char *mode_flrig)
 {
     int i;
+    rig_debug(RIG_DEBUG_VERBOSE,"%s:mode_flrig=%s\n",__FUNCTION__,mode_flrig);
+    int len1 = strlen(mode_flrig)+3; /* bytes needed for allocating */
     for(i=0; modeMap[i].mode_hamlib!=0; ++i) {
         if (modeMap[i].mode_hamlib==mode_hamlib) {
             *modes |= modeMap[i].mode_hamlib;
-            strncpy(modeMap[i].mode_flrig,mode_flrig,sizeof(modeMap[i].mode_flrig));
+	    /* we will pipe delimit all the entries for easier matching */
+	    /* all entries will have pipe symbol on both sides */
+	    if (modeMap[i].mode_flrig == NULL) {
+	        modeMap[i].mode_flrig = calloc(1,len1);
+		if (modeMap[i].mode_flrig == NULL) {
+                    rig_debug(RIG_DEBUG_ERR,"%s: error allocating memory for modeMap\n",__FUNCTION__);
+		    return;
+		}
+	    }
+            int len2 = strlen(modeMap[i].mode_flrig); /* current len w/o null */
+	    modeMap[i].mode_flrig = realloc(modeMap[i].mode_flrig,strlen(modeMap[i].mode_flrig)+len1);
+	    if (strlen(modeMap[i].mode_flrig)==0) modeMap[i].mode_flrig[0]='|';
+            strncat(modeMap[i].mode_flrig,mode_flrig,len1+len2);
+            strncat(modeMap[i].mode_flrig,"|",len1+len2);
+            rig_debug(RIG_DEBUG_VERBOSE,"%s: Adding mode=%s at %d, index=%d, result=%s\n",__FUNCTION__,mode_flrig, mode_hamlib, i, modeMap[i].mode_flrig);
             return;
         }
     }
@@ -617,6 +633,7 @@ static int flrig_open(RIG *rig) {
         else if (streq(p,"RTTY-L"))   modeMapAdd(&modes,RIG_MODE_RTTYR,p);
         else if (streq(p,"RTTY(U)"))  modeMapAdd(&modes,RIG_MODE_RTTY,p);
         else if (streq(p,"RTTY(R"))   modeMapAdd(&modes,RIG_MODE_RTTYR,p);
+        else if (streq(p,"DIG"))      modeMapAdd(&modes,RIG_MODE_PKTUSB,p);
         else rig_debug(RIG_DEBUG_ERR,"%s: Unknown mode for this rig='%s'\n",__FUNCTION__,p);
     }
     rig->state.mode_list = modes;
