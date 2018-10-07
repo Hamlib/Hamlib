@@ -692,6 +692,8 @@ int HAMLIB_API read_string(hamlib_port_t *p,
     /* Store the time of the read loop start */
     gettimeofday(&start_time, NULL);
 
+    rxbuffer[0] = 0; /* ensure string is terminated */
+
     while (total_count < rxmax - 1)
     {
         tv = tv_timeout;    /* select may have updated it */
