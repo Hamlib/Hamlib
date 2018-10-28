@@ -885,6 +885,10 @@ int ft817_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 			ptt_response = -1;
 		}
 
+		if (ptt_response != ptt) {
+			usleep(100000l); // Before next try wait for 0.1 seconds. Helps with slower rigs cloning FT817 protocol (e.g. MCHF)
+		}
+
 	} while (ptt_response != ptt && retries-- > 0);
 
 	if (retries >=0) {
