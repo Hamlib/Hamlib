@@ -241,7 +241,7 @@ int network_open(hamlib_port_t *rp, int default_port)
         {
             break;
         }
-        char msg[150];
+        char msg[1024];
         snprintf(msg,sizeof(msg),"connect to %s failed, (trying next interface)",rp->pathname);
         handle_error(RIG_DEBUG_WARN, msg);
 

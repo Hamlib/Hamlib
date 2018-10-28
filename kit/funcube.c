@@ -174,12 +174,12 @@ const struct rig_caps funcubeplus_caps = {
 	.has_get_level =	RIG_LEVEL_ATT | RIG_LEVEL_PREAMP | RIG_LEVEL_RF, // RIG_LEVEL_ATT: Mixer gain on/off
 										 // RIG_LEVEL_PREAMP: LNA gain on/off
 										 // RIG_LEVEL_RF 0..1 : IF gain 0 .. 59 dB
-							
-                                                                                 
+
+
 	.has_set_level =	RIG_LEVEL_ATT | RIG_LEVEL_PREAMP | RIG_LEVEL_RF, // RIG_LEVEL_ATT: Mixer gain on/off
 										 // RIG_LEVEL_PREAMP: LNA gain on/off
 										 // RIG_LEVEL_RF 0..1 : IF gain 0 .. 59 dB
-										 // so values have to be mapped				
+										 // so values have to be mapped
 	.has_get_parm =		RIG_PARM_NONE,
 	.has_set_parm =		RIG_PARM_NONE,
 	.level_gran =		{},
@@ -700,8 +700,8 @@ int funcubepro_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 	libusb_device_handle *udh = rig->state.rigport.handle;
 	int ret;
 	int actual_length;
-	unsigned char au8BufOut[64]; // endpoint size
-	unsigned char au8BufIn[64];  // endpoint size
+	unsigned char au8BufOut[64] = { 0 }; // endpoint size
+	unsigned char au8BufIn[64] = { 0 };  // endpoint size
 
 	switch (level) {
 	case RIG_LEVEL_PREAMP:
@@ -719,7 +719,7 @@ int funcubepro_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		if( au8BufOut[1] > 59 )
 			au8BufOut[1]= 59;
 		break;
-		
+
 
 	default:
 		rig_debug(RIG_DEBUG_ERR, "%s: Unsupported level %d\n", __func__, level);
@@ -761,8 +761,8 @@ int funcubepro_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	libusb_device_handle *udh = rig->state.rigport.handle;
 	int ret;
 	int actual_length;
-	unsigned char au8BufOut[64]; // endpoint size
-	unsigned char au8BufIn[64];  // endpoint size
+	unsigned char au8BufOut[64] = { 0 }; // endpoint size
+	unsigned char au8BufIn[64] = { 0 };  // endpoint size
 
 	switch (level) {
 	case RIG_LEVEL_ATT:
@@ -773,7 +773,7 @@ int funcubepro_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		break;
 	case RIG_LEVEL_RF:
 		au8BufOut[0] = REQUEST_GET_IF_GAIN;
-		break; 		
+		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR, "%s: Unsupported level %d\n", __func__, level);
 		return -RIG_EINVAL;
@@ -809,7 +809,7 @@ int funcubepro_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	switch (level) {
 	case RIG_LEVEL_PREAMP:
 	case RIG_LEVEL_ATT:
-        	val->i = au8BufIn[2] &0x01;    
+		val->i = au8BufIn[2] &0x01;
 		break;
 
 	case RIG_LEVEL_RF:

@@ -109,8 +109,6 @@ static struct option long_options[] =
 /* variable for readline support */
 #ifdef HAVE_LIBREADLINE
 static const int have_rl = 1;
-#else                               /* no readline */
-static const int have_rl = 0;
 #endif
 
 
@@ -131,6 +129,7 @@ int main(int argc, char *argv[])
     int verbose = 0;
     int show_conf = 0;
     int dump_caps_opt = 0;
+
 #ifdef HAVE_READLINE_HISTORY
     int rd_hist = 0;
     int sv_hist = 0;
@@ -138,7 +137,8 @@ int main(int argc, char *argv[])
     const char hist_file[] = "/.rotctl_history";
     char *hist_path = NULL;
     struct stat hist_dir_stat;
-#endif
+#endif  /* HAVE_READLINE_HISTORY */
+
     const char *rot_file = NULL;
     int serial_rate = 0;
     char conf_parms[MAXCONFLEN] = "";
@@ -240,7 +240,7 @@ int main(int argc, char *argv[])
         case 'I':
             sv_hist++;
             break;
-#endif
+#endif  /* HAVE_READLINE_HISTORY */
 
         case 'v':
             verbose++;
@@ -395,7 +395,7 @@ int main(int argc, char *argv[])
             }
         }
 
-#endif
+#endif  /* HAVE_READLINE_HISTORY */
     }
 
 #endif  /* HAVE_LIBREADLINE */
@@ -433,11 +433,11 @@ int main(int argc, char *argv[])
             hist_path = (char *)NULL;
         }
 
-#endif
+#endif  /* HAVE_READLINE_HISTORY */
     }
 
-#endif
-    rot_close(my_rot); /* close port */
+#endif  /* HAVE_LIBREADLINE */
+    rot_close(my_rot);   /* close port */
     rot_cleanup(my_rot); /* if you care about memory */
 
     return exitcode;

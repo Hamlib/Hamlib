@@ -657,14 +657,14 @@ static int thd72_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	    }
 	    break;
 	case RIG_LEVEL_VOXGAIN:
-	    retval = thd72_get_menu_item(rig, 8, '9', &l);
+	    retval = thd72_get_menu_item(rig, 8, 9, &l);
 	    if (retval != RIG_OK)
 		return retval;
 	    /* FIXME - if VOX is off, what do we return */
 	    val->f = l / 9.0;
 	    break;
 	case RIG_LEVEL_VOXDELAY:
-	    retval = thd72_get_menu_item(rig, 9, '7', &l);
+	    retval = thd72_get_menu_item(rig, 9, 7, &l);
 	    if (retval != RIG_OK)
 		return retval;
 	    /* FIXME - if VOX is off, what do we return */
@@ -683,7 +683,7 @@ static int thd72_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	    val->f = thd72sqlevel[l];
 	    break;
 	case RIG_LEVEL_BALANCE:
-	    retval = thd72_get_menu_item(rig, 13, '4', &l);
+	    retval = thd72_get_menu_item(rig, 13, 4, &l);
 	    if (retval != RIG_OK)
 		return retval;
 	    /* FIXME - is balance 0.0 .. 1.0 or -1.0 .. 1.0? */
@@ -782,7 +782,7 @@ static int thd72_get_parm(RIG *rig, setting_t parm, value_t *val)
 
     switch (parm) {
 	case RIG_PARM_APO:
-	    retval = thd72_get_menu_item(rig, 3, '3', &l);
+	    retval = thd72_get_menu_item(rig, 3, 3, &l);
 	    if (retval != RIG_OK)
 		return retval;
 	    val->i = thd72apo[l];

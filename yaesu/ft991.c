@@ -289,7 +289,7 @@ int ft991_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_wi
  * ------------------------------------------------------------------
  * Returns RIG_OK on success or an error code on failure
  *
- * Comments: Passs band is not set here nor does it make sense as the
+ * Comments: Pass band is not set here nor does it make sense as the
  *              FT991 cannot receive on VFO B. The FT991 cannot set
  *              VFO B mode directly so we'll just set A and swap A
  *              into B but we must preserve the VFO A mode and VFO B
@@ -333,7 +333,7 @@ int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_widt
       {
         return err;
       }
-    strncat (restore_commands, priv->ret_data, NEWCAT_DATA_LEN-1);
+    strncpy(restore_commands, priv->ret_data, NEWCAT_DATA_LEN);
 
     /* Change mode on VFOA */
     if (RIG_OK != (err = newcat_set_mode (rig, RIG_VFO_A, tx_mode, RIG_PASSBAND_NOCHANGE)))
