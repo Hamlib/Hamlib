@@ -78,8 +78,10 @@
   #define PATH_MAX 256
 #endif
 
+#if !(defined(WIN32) || !defined(HAVE_GLOB_H))
 static char
 uh_device_path[PATH_MAX];  // use PATH_MAX since udev names can be VERY long!
+#endif
 static int uh_device_fd = -1;
 static int uh_is_initialized = 0;
 
@@ -106,14 +108,18 @@ static pthread_t readthread;
 #define freelock()
 #endif
 
+#if defined(HAVE_SELECT)
 //
 // time of last heartbeat. Updated by heartbeat()
 //
 static time_t lastbeat = 0;
+#endif
+
+#if defined(HAVE_PTHREAD) && defined(HAVE_SOCKETPAIR) && defined(HAVE_SELECT)
 static time_t starttime;
 
 #define TIME ((int) (time(NULL) - starttime))
-
+#endif
 
 //
 // close all sockets and mark them free
@@ -205,9 +211,12 @@ static void close_microham()
  * number begins with MK, M2, CK, DK, D2, 2R, 2P or UR. Then, open the serial
  * line with correct serial speed etc. and put a valid fd into uh_device_fd.
  */
-static void finddevices()
-{
-}
+/* Commenting out the following dummy function to quell the warning from
+ * MinGW's GCC of a defined but not used function.
+ */
+/* static void finddevices() */
+/* { */
+/* } */
 
 #else
 
@@ -381,6 +390,7 @@ static void finddevices()
 
 #endif
 
+#if defined(HAVE_SELECT)
 //
 // parse a frame received from the keyer
 // This is called from the "device reading" thread
@@ -500,8 +510,10 @@ static void parseFrame(unsigned char *frame)
         }
     }
 }
+#endif  /* HAVE_SELECT */
 
 
+#if defined(HAVE_SELECT)
 //
 // Send radio bytes to microHam device
 //
@@ -548,6 +560,7 @@ static void writeRadio(unsigned char *bytes, int len)
 
     freelock();
 }
+#endif  /* HAVE_SELECT */
 
 
 //
@@ -585,6 +598,7 @@ static void writeFlags()
 }
 
 
+#if defined(HAVE_SELECT)
 //
 // Send bytes to the WinKeyer within microHam device
 //
@@ -639,6 +653,7 @@ static void writeWkey(unsigned char *bytes, int len)
 
     freelock();
 }
+#endif  /* HAVE_SELECT */
 
 
 //
@@ -701,6 +716,7 @@ static void writeControl(unsigned char *data, int len)
 }
 
 
+#if defined(HAVE_PTHREAD) && defined(HAVE_SOCKETPAIR) && defined(HAVE_SELECT)
 //
 // send a heartbeat and record time
 // The "last heartbeat" time is recorded in a global variable
@@ -716,8 +732,10 @@ static void heartbeat()
     writeControl(seq, 2);
     lastbeat = time(NULL);
 }
+#endif /* defined(HAVE_PTHREAD) && defined(HAVE_SOCKETPAIR) && defined(HAVE_SELECT) */
 
 
+#if defined(HAVE_SELECT)
 //
 // This thread reads from the microHam device and puts data on the sockets
 // it also issues periodic heartbeat messages
@@ -725,7 +743,6 @@ static void heartbeat()
 //
 static void *read_device(void *p)
 {
-#if defined(HAVE_SELECT)
     unsigned char frame[4];
     int framepos = 0;
     int ret;
@@ -862,9 +879,9 @@ static void *read_device(void *p)
         }
     }
 
-#endif
-    return NULL;
+//    return NULL;
 }
+#endif
 
 
 /*
