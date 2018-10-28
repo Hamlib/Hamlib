@@ -69,6 +69,7 @@ extern const struct rig_caps ft1000mpmkv_caps;
 extern const struct rig_caps ft1000mpmkvfld_caps;
 extern const struct rig_caps ft1000d_caps;
 extern const struct rig_caps ft2000_caps;
+extern const struct rig_caps ftdx3000_caps;
 extern const struct rig_caps ftdx5000_caps;
 extern const struct rig_caps ft9000_caps;
 extern const struct rig_caps frg100_caps;
