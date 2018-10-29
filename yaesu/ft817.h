@@ -53,6 +53,13 @@
 #define FT817_TIMEOUT			3000
 
 /*
+ * Return from TX to RX may have a delay. If status is not changed
+ * on the first attempt, wait this amount of milliseconds before
+ * each next next attempts.
+ */
+#define FT817_RETRY_DELAY		100
+
+/*
  * The time the TX, RX and FREQ/MODE status are cached (in millisec).
  * This optimises the common case of doing eg. rig_get_freq() and
  * rig_get_mode() in a row.
