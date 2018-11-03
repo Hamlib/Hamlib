@@ -210,8 +210,8 @@ const struct rig_caps ftdx5000_caps = {
 
 /*
  * ft3000 rig capabilities.
- * Seems to be largely compatible with the ft5000
- * So this is just a copy of the 5000 caps
+ * Largely compatible with the ft5000
+ * Found one exception where ft3000 does not have TARGETABLE_MODE
  * Also this struct is READONLY!
  *
  */
@@ -255,7 +255,7 @@ const struct rig_caps ftdx3000_caps = {
     .max_xit =            Hz(9999),
     .max_ifshift =        Hz(1000),
     .vfo_ops =            FTDX5000_VFO_OPS,
-    .targetable_vfo =     RIG_TARGETABLE_FREQ|RIG_TARGETABLE_MODE,
+    .targetable_vfo =     RIG_TARGETABLE_FREQ,
     .transceive =         RIG_TRN_OFF,        /* May enable later as the 5000 has an Auto Info command */
     .bank_qty =           0,
     .chan_desc_sz =       0,
