@@ -735,7 +735,7 @@ static int optoscan_wait_timer(RIG *rig, pltstate_t *state)
 
 	gettimeofday(&(state->timer_current), NULL);
 
-	usec_diff = abs((state->timer_current.tv_usec) -
+	usec_diff = (int)labs((state->timer_current.tv_usec) -
 			(state->timer_start.tv_usec));
 
 	if (usec_diff < settle_usec) {
@@ -744,4 +744,3 @@ static int optoscan_wait_timer(RIG *rig, pltstate_t *state)
 
 	return RIG_OK;
 }
-
