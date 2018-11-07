@@ -406,6 +406,7 @@ RIG * HAMLIB_API rig_init(rig_model_t rig_model)
     rs->poll_interval = 500;
     /* should it be a parameter to rig_init ? --SF */
     rs->itu_region = RIG_ITU_REGION2;
+    rs->lo_freq = 0;
 
     switch (rs->itu_region)
     {
@@ -1092,6 +1093,11 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     }
 
     caps = rig->caps;
+    if (rig->state.lo_freq != 0.0)
+    {
+	freq -= rig->state.lo_freq;
+    }
+	    
 
     if (rig->state.vfo_comp != 0.0)
     {
@@ -1223,7 +1229,10 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     {
         rig->state.current_freq = *freq;
     }
-
+    if (rig->state.lo_freq != 0.0)
+    {
+	*freq += rig->state.lo_freq;
+    }
     return retcode;
 }
 

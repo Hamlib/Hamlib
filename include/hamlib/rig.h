@@ -1597,6 +1597,8 @@ struct rig_state {
     int transmit;               /*!< rig should be transmitting i.e. hard
                                      wired PTT asserted - used by rigs that
                                      don't do CAT while in Tx */
+    freq_t lo_freq;             /*!< Local oscillator frequency of any
+				     transverter */
 };
 
 

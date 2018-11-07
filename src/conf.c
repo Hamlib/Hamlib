@@ -113,6 +113,11 @@ static const struct confparams frontend_cfg_params[] =
         "Path name to the device file of the Data Carrier Detect (or squelch)",
         "/dev/rig", RIG_CONF_STRING,
     },
+    {
+	TOK_LO_FREQ, "lo_freq", "LO Frequency",
+	"Frequency to add to the VFO frequency for use with a transverter",
+	"0", RIG_CONF_NUMERIC, { .n = {0.0, 1e9, .1}}
+    },
 
     { RIG_CONF_END, NULL, }
 };
@@ -510,6 +515,9 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
     case TOK_POLL_INTERVAL:
         rs->poll_interval = atof(val);
         break;
+    case TOK_LO_FREQ:
+	rs->lo_freq = atof(val);
+	break;
 
 
     default:
