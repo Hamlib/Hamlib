@@ -51,6 +51,8 @@
 
 static int tmd710_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 static int tmd710_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+static int tmd710_get_split_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+static int tmd710_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int tmd710_set_vfo (RIG *rig, vfo_t vfo);
 static int tmd710_get_vfo(RIG *rig, vfo_t *vfo);
 static int tmd710_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts);
@@ -981,7 +983,7 @@ int tmd710_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 int tmd710_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 	 
 	 rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
-	 return tmd710_set_freq(*rig, vfo^1, freq);
+	 return tmd710_set_freq(rig, vfo^1, freq);
 }
 
 /*
@@ -991,7 +993,7 @@ int tmd710_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 int tmd710_get_split_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 	 
 	 rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
-	 return tmd710_get_freq(*rig, vfo^1, *freq);
+	 return tmd710_get_freq(rig, vfo^1, freq);
 }
 
 static int tmd710_find_ctcss_index(RIG *rig, tone_t tone, int *ctcss_index) {
