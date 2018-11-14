@@ -28,7 +28,7 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "0.1"
+#define BACKEND_VER "0.2"
 
 #define EOM "\x0d"
 #define TRUE 1

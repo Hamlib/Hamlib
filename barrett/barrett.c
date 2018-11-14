@@ -410,7 +410,7 @@ int barrett_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     // If we are not explicity asking for VFO_B then we'll set the receive side also
     if (vfo != RIG_VFO_B) {
-        sprintf((char *) cmd_buf, "PR%08.0f", freq);
+        sprintf((char *) cmd_buf, "TR%08.0f", freq);
         char *response = NULL;
         retval = barrett_transaction(rig, cmd_buf, 0, &response);
 
@@ -429,7 +429,7 @@ int barrett_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     if (priv->split == 0
         || vfo == RIG_VFO_B) { // if we aren't in split mode we have to set the TX VFO too
 
-        sprintf((char *) cmd_buf, "PT%08.0f", freq);
+        sprintf((char *) cmd_buf, "TT%08.0f", freq);
         char *response = NULL;
         retval = barrett_transaction(rig, cmd_buf, 0, &response);
 
@@ -648,7 +648,7 @@ int barrett_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s freq=%g\n", __FUNCTION__,
               rig_strvfo(vfo), tx_freq);
 
-    sprintf((char *) cmd_buf, "PT%08.0f" EOM, tx_freq);
+    sprintf((char *) cmd_buf, "TT%08.0f" EOM, tx_freq);
 
     int retval = barrett_transaction(rig, cmd_buf, 0, NULL);
 
