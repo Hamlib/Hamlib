@@ -344,6 +344,8 @@ const struct rig_caps tmd710_caps = {
     .rig_cleanup = kenwood_cleanup,
     .set_freq =  tmd710_set_freq,
     .get_freq =  tmd710_get_freq,
+    .set_split_freq =  tmd710_set_split_freq,
+    .get_split_freq =  tmd710_get_split_freq,
     .set_mode =  tmd710_set_mode,
     .get_mode =  tmd710_get_mode,
     .set_vfo =  tmd710_set_vfo,
@@ -970,6 +972,26 @@ int tmd710_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
   }
 
   return retval;
+}
+
+/*
+ * tmd710_get_split_freq
+ * Assumes rig!=NULL, freq!=NULL
+ */
+int tmd710_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq) {
+	 
+	 rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+	 return tmd710_set_freq(*rig, vfo^1, freq);
+}
+
+/*
+ * tmd710_get_split_freq
+ * Assumes rig!=NULL, freq!=NULL
+ */
+int tmd710_get_split_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
+	 
+	 rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+	 return tmd710_get_freq(*rig, vfo^1, *freq);
 }
 
 static int tmd710_find_ctcss_index(RIG *rig, tone_t tone, int *ctcss_index) {
