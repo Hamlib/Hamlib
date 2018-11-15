@@ -50,6 +50,8 @@
 #include "misc.h"
 
 static int tmd710_open(RIG *rig);
+static int tmd710_do_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+static int tmd710_do_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int tmd710_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 static int tmd710_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int tmd710_get_split_freq(RIG *rig, vfo_t vfo, freq_t *freq);
@@ -85,7 +87,6 @@ static int tmd710_get_parm(RIG *rig, setting_t parm, value_t *val);
 static int tmd710_set_parm(RIG *rig, setting_t parm, value_t val);
 static int tmd710_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val);
 static int tmd710_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val);
-
 
 #define TMD710_MODES     (RIG_MODE_FM|RIG_MODE_FMN|RIG_MODE_AM)
 #define TMD710_MODES_FM  (RIG_MODE_FM|RIG_MODE_FMN)
@@ -941,8 +942,9 @@ int tmd710_push_mu(RIG *rig, tmd710_mu *mu_struct)
 /*
  * tmd710_set_freq
  * Assumes rig!=NULL
+ * Common function for getting the main and split frequency.
  */
-int tmd710_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
+int tmd710_do_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
   int retval;
   tmd710_fo fo_struct;
@@ -975,10 +977,11 @@ int tmd710_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 }
 
 /*
- * tmd710_get_freq
+ * tmd710_do_get_freq
  * Assumes rig!=NULL, freq!=NULL
+ * Common function for getting the main and split frequency.
  */
-int tmd710_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
+int tmd710_do_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
   tmd710_fo fo_struct;
   int retval;
@@ -995,15 +998,36 @@ int tmd710_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 }
 
 /*
- * tmd710_get_split_freq
+ * tmd710_set_freq
  * Assumes rig!=NULL, freq!=NULL
  */
 int tmd710_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 	
-	//vfo = vfo == RIG_VFO_A ? RIG_VFO_B : RIG_VFO_A;
-	return tmd710_set_freq(rig, vfo, freq);
+	return tmd710_set_freq(rig, RIG_VFO_A, freq);
+}
+
+/*
+ * tmd710_get_freq
+ * Assumes rig!=NULL, freq!=NULL
+ */
+int tmd710_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
+	 
+	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+	return tmd710_get_freq(rig, RIG_VFO_A, freq);
+}
+
+/*
+ * tmd710_set_split_freq
+ * Assumes rig!=NULL, freq!=NULL
+ */
+int tmd710_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq) {
+
+	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+	
+	return tmd710_set_freq(rig, RIG_VFO_B, freq);
 }
 
 /*
@@ -1014,8 +1038,7 @@ int tmd710_get_split_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 	 
 	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-	//vfo = vfo == RIG_VFO_A ? RIG_VFO_B : RIG_VFO_A;
-	return tmd710_get_freq(rig, vfo, freq);
+	return tmd710_get_freq(rig, RIG_VFO_B, freq);
 }
 
 static int tmd710_find_ctcss_index(RIG *rig, tone_t tone, int *ctcss_index) {
