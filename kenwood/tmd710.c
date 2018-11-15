@@ -513,7 +513,7 @@ static int tmd710_get_vfo_num(RIG *rig, int *vfonum, vfo_t *vfo) {
     *vfonum = ctrlnum;
   }
 
-  rig_debug(RIG_DEBUG_ERR, "VFO assignments: VFO_A: %d\nVFO_B: %d\n", RIG_VFO_A, RIG_VFO_B);
+  rig_debug(RIG_DEBUG_ERR, "VFO assignments: VFO_A: %d\tVFO_B: %d\n", RIG_VFO_A, RIG_VFO_B);
 
   return RIG_OK;
 }
@@ -703,12 +703,15 @@ int tmd710_pull_fo(RIG *rig, vfo_t vfo, tmd710_fo *fo_struct)
   int vfonum;
   int retval;
 
+  rig_debug(RIG_DEBUG_ERR, "VFO assignments at %s.a: VFO_A: %d\tVFO_B: %d\n", __func__, RIG_VFO_A, RIG_VFO_B);
   rig_debug(RIG_DEBUG_TRACE, "%s: called with VFO %08X\n", __func__, vfo);
 
   retval = tmd710_resolve_vfo(rig, vfo, NULL, &vfonum);
   if (retval != RIG_OK) {
     return retval;
   }
+
+  rig_debug(RIG_DEBUG_ERR, "VFO assignments at %s.b: VFO_A: %d\tVFO_B: %d\n", __func__, RIG_VFO_A, RIG_VFO_B);
 
   snprintf(cmdbuf, sizeof(cmdbuf), "FO %1d", vfonum);
   retval = kenwood_safe_transaction(rig, cmdbuf, buf, sizeof(buf), 48);
