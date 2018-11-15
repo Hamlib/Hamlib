@@ -49,6 +49,7 @@
 #include "num_stdio.h"
 #include "misc.h"
 
+static int tmd710_open(RIG *rig);
 static int tmd710_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 static int tmd710_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int tmd710_get_split_freq(RIG *rig, vfo_t vfo, freq_t *freq);
@@ -343,7 +344,8 @@ const struct rig_caps tmd710_caps = {
     .priv =  (void *) &tmd710_priv_caps,
 
     .rig_init = kenwood_init,
-    .rig_cleanup = kenwood_cleanup,
+    .rig_open = tmd700_open,
+	.rig_cleanup = kenwood_cleanup,
     .set_freq =  tmd710_set_freq,
     .get_freq =  tmd710_get_freq,
     .set_split_freq =  tmd710_set_split_freq,
@@ -475,6 +477,17 @@ typedef struct {
   int auto_pm_store; // P41 0/1
   int display_partition_bar; // P42 0/1
 } tmd710_mu;
+
+static int tmd710_open(RIG *rig) {
+	
+	int retval;
+
+	retval = tmd710_set_vfo( rig, RIG_VFO_B );
+
+	if (retval != RIG_OK) {
+    return retval;
+  }
+}
 
 static int tmd710_get_vfo_num(RIG *rig, int *vfonum, vfo_t *vfo) {
   char buf[10];
