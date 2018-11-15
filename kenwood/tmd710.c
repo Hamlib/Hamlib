@@ -953,7 +953,8 @@ int tmd710_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
   fo_struct.step = freq_sent >= MHz(470) ? 4 : step;
   fo_struct.freq = freq_sent >= MHz(470) ? (round(freq_sent / 10000) * 10000) : freq_sent;
 
-  return tmd710_push_fo(rig, vfo, &fo_struct);
+  //return tmd710_push_fo(rig, vfo, &fo_struct);
+  return tmd710_push_fo(rig, RIG_VFO_A, &fo_struct);
 }
 
 /*
