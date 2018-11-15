@@ -344,7 +344,7 @@ const struct rig_caps tmd710_caps = {
     .priv =  (void *) &tmd710_priv_caps,
 
     .rig_init = kenwood_init,
-    .rig_open = tmd700_open,
+    .rig_open = tmd710_open,
 	.rig_cleanup = kenwood_cleanup,
     .set_freq =  tmd710_set_freq,
     .get_freq =  tmd710_get_freq,
@@ -525,8 +525,6 @@ static int tmd710_get_vfo_num(RIG *rig, int *vfonum, vfo_t *vfo) {
   if (vfonum != NULL) {
     *vfonum = ctrlnum;
   }
-
-  rig_debug(RIG_DEBUG_ERR, "VFO assignments: VFO_A: %d\tVFO_B: %d\n", RIG_VFO_A, RIG_VFO_B);
 
   return RIG_OK;
 }
@@ -716,15 +714,12 @@ int tmd710_pull_fo(RIG *rig, vfo_t vfo, tmd710_fo *fo_struct)
   int vfonum;
   int retval;
 
-  rig_debug(RIG_DEBUG_ERR, "VFO assignments at %s.a: VFO_A: %d\tVFO_B: %d\n", __func__, RIG_VFO_A, RIG_VFO_B);
   rig_debug(RIG_DEBUG_TRACE, "%s: called with VFO %08X\n", __func__, vfo);
 
   retval = tmd710_resolve_vfo(rig, vfo, NULL, &vfonum);
   if (retval != RIG_OK) {
     return retval;
   }
-
-  rig_debug(RIG_DEBUG_ERR, "VFO assignments at %s.b: VFO_A: %d\tVFO_B: %d\n", __func__, RIG_VFO_A, RIG_VFO_B);
 
   snprintf(cmdbuf, sizeof(cmdbuf), "FO %1d", vfonum);
   retval = kenwood_safe_transaction(rig, cmdbuf, buf, sizeof(buf), 48);
@@ -972,7 +967,7 @@ int tmd710_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
   fo_struct.freq = freq_sent >= MHz(470) ? (round(freq_sent / 10000) * 10000) : freq_sent;
 
   //return tmd710_push_fo(rig, vfo, &fo_struct);
-  return tmd710_push_fo(rig, RIG_VFO_A, &fo_struct);
+  return tmd710_push_fo(rig, vfo, &fo_struct);
 }
 
 /*
@@ -986,7 +981,7 @@ int tmd710_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
   rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-  retval = tmd710_pull_fo(rig, RIG_VFO_A, &fo_struct);
+  retval = tmd710_pull_fo(rig, vfo, &fo_struct);
 
   if (retval == RIG_OK) {
     *freq = fo_struct.freq;
@@ -1000,9 +995,11 @@ int tmd710_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  * Assumes rig!=NULL, freq!=NULL
  */
 int tmd710_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq) {
-	 
+
 	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
-	 return tmd710_set_freq(rig, RIG_VFO_B, freq);
+	
+	vfo = vfo == RIG_VFO_A ? RIG_VFO_B : RIG_VFO_A;
+	return tmd710_set_freq(rig, RIG_VFO_B, freq);
 }
 
 /*
@@ -1012,7 +1009,9 @@ int tmd710_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 int tmd710_get_split_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 	 
 	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
-	return tmd710_get_freq(rig, RIG_VFO_B, freq);
+
+	vfo = vfo == RIG_VFO_A ? RIG_VFO_B : RIG_VFO_A;
+	return tmd710_get_freq(rig, vfo, freq);
 }
 
 static int tmd710_find_ctcss_index(RIG *rig, tone_t tone, int *ctcss_index) {
