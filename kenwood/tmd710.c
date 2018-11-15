@@ -482,11 +482,15 @@ static int tmd710_open(RIG *rig) {
 	
 	int retval;
 
+	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
 	retval = tmd710_set_vfo( rig, RIG_VFO_B );
 
 	if (retval != RIG_OK) {
-    return retval;
-  }
+    	return retval;
+  	}
+
+	return 0;
 }
 
 static int tmd710_get_vfo_num(RIG *rig, int *vfonum, vfo_t *vfo) {
@@ -998,8 +1002,8 @@ int tmd710_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 	
-	vfo = vfo == RIG_VFO_A ? RIG_VFO_B : RIG_VFO_A;
-	return tmd710_set_freq(rig, RIG_VFO_B, freq);
+	//vfo = vfo == RIG_VFO_A ? RIG_VFO_B : RIG_VFO_A;
+	return tmd710_set_freq(rig, vfo, freq);
 }
 
 /*
@@ -1010,7 +1014,7 @@ int tmd710_get_split_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 	 
 	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-	vfo = vfo == RIG_VFO_A ? RIG_VFO_B : RIG_VFO_A;
+	//vfo = vfo == RIG_VFO_A ? RIG_VFO_B : RIG_VFO_A;
 	return tmd710_get_freq(rig, vfo, freq);
 }
 
