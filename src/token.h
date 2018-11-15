@@ -96,6 +96,8 @@
 #define TOK_VFO_COMP    TOKEN_FRONTEND(110)
 /** \brief rig: polling interval (units?) */
 #define TOK_POLL_INTERVAL   TOKEN_FRONTEND(111)
+/** \brief rig: lo frequency of any transverters */
+#define TOK_LO_FREQ         TOKEN_FRONTEND(112)
 /** \brief rig: International Telecommunications Union region no. */
 #define TOK_ITU_REGION  TOKEN_FRONTEND(120)
 /*

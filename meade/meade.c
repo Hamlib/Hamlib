@@ -223,7 +223,7 @@ static int meade_set_position(ROT *rot, azimuth_t az, elevation_t el)
      if not, don't accept new target*/
   meade_transaction(rot, ":D#", return_str, &return_str_size, 1);
   if(return_str_size > 0 && return_str[0] == 0x7F) {
-    if(abs(az - priv->target_az) > 5 || abs(el - priv->target_el) > 5)
+    if(fabsf(az - priv->target_az) > 5 || fabsf(el - priv->target_el) > 5)
       meade_transaction(rot, ":Q#", NULL, 0, 0);
     else
       return RIG_OK;
