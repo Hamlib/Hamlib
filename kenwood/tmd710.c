@@ -513,7 +513,7 @@ static int tmd710_get_vfo_num(RIG *rig, int *vfonum, vfo_t *vfo) {
     *vfonum = ctrlnum;
   }
 
-  rig_debug(RIG_DEBUG_ERR, "VFO assignments: VFO_A: %s\nVFO_B: %s\n", RIG_VFO_A, RIG_VFO_B);
+  rig_debug(RIG_DEBUG_ERR, "VFO assignments: VFO_A: %d\nVFO_B: %d\n", RIG_VFO_A, RIG_VFO_B);
 
   return RIG_OK;
 }
