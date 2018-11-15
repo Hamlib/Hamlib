@@ -1001,7 +1001,7 @@ int tmd710_do_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  * tmd710_set_freq
  * Assumes rig!=NULL, freq!=NULL
  */
-int tmd710_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq) {
+int tmd710_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 	
