@@ -1033,7 +1033,7 @@ int tmd710_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 	
-	vfo = rig->state.tx_vfo == RIG_VFO_B ? RIG_VFO_A : RIG_VFO_B;
+	vfo = rig->state.tx_vfo == RIG_VFO_A ? RIG_VFO_A : RIG_VFO_B;
 
 	return tmd710_do_set_freq(rig, vfo, freq);
 }
@@ -1046,7 +1046,7 @@ int tmd710_get_split_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 	 
 	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-	vfo = rig->state.tx_vfo == RIG_VFO_B ? RIG_VFO_A : RIG_VFO_B;
+	vfo = rig->state.tx_vfo == RIG_VFO_A ? RIG_VFO_A : RIG_VFO_B;
 	
 	return tmd710_do_get_freq(rig, vfo, freq);
 }
