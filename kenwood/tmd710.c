@@ -1005,7 +1005,7 @@ int tmd710_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 	
 	rig_debug(RIG_DEBUG_TRACE, "rig->state.tx_vfo: %d\n", rig->state.tx_vfo);
 
-	rig_debug(RIG_DEBUG_TRACE, "tx_vfo: %n(%d)\n", rig_strvfo(rig->state.tx_vfo), rig->state.tx_vfo);
+	rig_debug(RIG_DEBUG_TRACE, "tx_vfo: %s(%d)\n", rig_strvfo(rig->state.tx_vfo), rig->state.tx_vfo);
 
   	vfo = rig->state.tx_vfo == RIG_VFO_A ? RIG_VFO_B : RIG_VFO_A;
 
