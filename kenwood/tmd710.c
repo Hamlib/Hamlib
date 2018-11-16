@@ -90,11 +90,6 @@ static int tmd710_set_parm(RIG *rig, setting_t parm, value_t val);
 static int tmd710_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val);
 static int tmd710_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val);
 
-static struct tmd710_vfo_assignment = {
-	vfo_t vfoTx,
-	vfo_t vfoRx
-};
-
 #define TMD710_MODES     (RIG_MODE_FM|RIG_MODE_FMN|RIG_MODE_AM)
 #define TMD710_MODES_FM  (RIG_MODE_FM|RIG_MODE_FMN)
 #define TMD710_MODES_TX  (RIG_MODE_FM|RIG_MODE_FMN)
@@ -230,11 +225,6 @@ static rmode_t tmd710_mode_table[KENWOOD_MODE_TABLE_MAX] = {
     [0] = RIG_MODE_FM,
     [1] = RIG_MODE_FMN,
     [2] = RIG_MODE_AM,
-};
-
-static struct tmd710_vfo_assignment tmd710_split_vfos = {
-	.vfoTx = RIG_VFO_A,
-	.vfoRx = RIG_VFO_B,
 };
 
 static struct kenwood_priv_caps  tmd710_priv_caps  = {
