@@ -486,7 +486,7 @@ static int tmd710_open(RIG *rig) {
 	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
 	rig->state.tx_vfo = RIG_VFO_A;
-	rig_debug(RIG_DEBUG_TRACE, "rig->state.tx_vfo: %d\n", __func__, rig->state.tx_vfo);
+	rig_debug(RIG_DEBUG_TRACE, "rig->state.tx_vfo: %d\n", __func__, *rig->state.tx_vfo);
 
 
 	return 0;
