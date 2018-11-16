@@ -1001,11 +1001,7 @@ int tmd710_do_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  */
 int tmd710_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 
-	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
-	
-	rig_debug(RIG_DEBUG_TRACE, "rig->state.tx_vfo: %d\n", rig->state.tx_vfo);
-
-	rig_debug(RIG_DEBUG_TRACE, "tx_vfo: %s(%d)\n", rig_strvfo(rig->state.tx_vfo), rig->state.tx_vfo);
+	rig_debug(RIG_DEBUG_TRACE, "%s: called for vfo: %s(%d)\n", __func__, rig_strvfo(vfo), vfo);
 
   	vfo = rig->state.tx_vfo == RIG_VFO_A ? RIG_VFO_B : RIG_VFO_A;
 
@@ -1623,6 +1619,7 @@ int tmd710_set_vfo(RIG *rig, vfo_t vfo)
 *	This radio has two VFOs, and either one can be the TX/RX.  As such, this function does two things:
 *	- Sets PTT control on the specified VFO.
 *	- Sets the TX_VFO and RX_VFO for use in Set_Freq and Set_Split_Freq
+*	- The value of split is ignored, as the radio is always in "split" mode.
 *
 */
 int tmd710_set_split_vfo (RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
@@ -1632,12 +1629,7 @@ int tmd710_set_split_vfo (RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called vfo: %s\ttxvfo: %s\n", __func__, rig_strvfo(vfo), rig_strvfo(txvfo));
 	
-	rig_debug(RIG_DEBUG_TRACE, "%s: called (as number) vfo: %d\ttxvfo: %d\n", __func__, vfo, txvfo);
-	
-    
 	rig->state.tx_vfo = txvfo;
-
-	rig_debug(RIG_DEBUG_TRACE, "rig->state.tx_vfo: %d\n", rig->state.tx_vfo);
 
 	int txVfoIndex = txvfo == RIG_VFO_A ? 0 : 1;
 
