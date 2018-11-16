@@ -1622,11 +1622,17 @@ int tmd710_set_split_vfo (RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
     char vfobuf[16];
     int retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: called %s\n", __func__, rig_strvfo(vfo));
+    rig_debug(RIG_DEBUG_TRACE, "%s: called vfo: %s\ttxvfo: %s\n", __func__, rig_strvfo(vfo), rig_strvfo(txvfo));
+	
+	rig_debug(RIG_DEBUG_TRACE, "%s: called (as number) vfo: %d\ttxvfo: %d\n", __func__, vfo, txvfo);
+	
+    
+	rig->state.tx_vfo = txvfo;
 
-    rig->state.tx_vfo = txvfo;
+	int vfoa = txvfo == RIG_VFO_A ? 1 : 0;
+	int vfob = 1-vfob;
 
-	sprintf(vfobuf, "BC 1,%d", txvfo);
+	sprintf(vfobuf, "BC %d,%d", vfoa, vfob );
     retval = kenwood_transaction(rig, vfobuf, NULL, 0);
 	if (retval != RIG_OK)
         return retval;
@@ -1644,7 +1650,7 @@ int tmd710_get_split_vfo (RIG *rig, vfo_t vfo, split_t *split, vfo_t *txvfo)
 
 	/* Get VFO band */
 
-	retval = kenwood_safe_transaction(rig, "BC", buf, 10, 4);
+	retval = kenwood_safe_transaction(rig, "BC", buf, 10, 6);
 	if (retval != RIG_OK)
 		return retval;
 
