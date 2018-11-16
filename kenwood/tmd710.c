@@ -59,7 +59,7 @@ static int tmd710_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int tmd710_set_vfo (RIG *rig, vfo_t vfo);
 static int tmd710_get_vfo(RIG *rig, vfo_t *vfo);
 static int tmd710_set_split_vfo (RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo);
-static int tmd710_get_split_vfo (RIG *rig, vfo_t vfo, split_t *split, vfo_t *txvfo)
+static int tmd710_get_split_vfo (RIG *rig, vfo_t vfo, split_t *split, vfo_t *txvfo);
 static int tmd710_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts);
 static int tmd710_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts);
 static int tmd710_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone);
