@@ -1629,10 +1629,9 @@ int tmd710_set_split_vfo (RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
     
 	rig->state.tx_vfo = txvfo;
 
-	int vfoa = txvfo == RIG_VFO_A ? 1 : 0;
-	int vfob = 1-vfoa;
+	int txVfoIndex = txvfo == RIG_VFO_A ? 0 : 1;
 
-	sprintf(vfobuf, "BC %d,%d", vfoa, vfob );
+	sprintf(vfobuf, "BC %d,%d", txVfoIndex, txVfoIndex );
     retval = kenwood_transaction(rig, vfobuf, NULL, 0);
 	if (retval != RIG_OK)
         return retval;
