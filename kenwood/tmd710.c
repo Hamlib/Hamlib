@@ -980,7 +980,7 @@ int tmd710_do_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
   tmd710_fo fo_struct;
   int retval;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+  rig_debug(RIG_DEBUG_TRACE, "%s: called for vfo: %n(%d)\n", __func__, rig_strvfo(vfo), vfo);
 
   retval = tmd710_pull_fo(rig, vfo, &fo_struct);
 
@@ -999,7 +999,9 @@ int tmd710_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 	
-	vfo = rig->state.tx_vfo == RIG_VFO_A ? RIG_VFO_B : RIG_VFO_A;
+	rig_debug(RIG_DEBUG_TRACE, "tx_vfo: %n(%d)\n", __func__, rig_strvfo(rig->state.tx_vfo), rig->state.tx_vfo);
+
+  	vfo = rig->state.tx_vfo == RIG_VFO_A ? RIG_VFO_B : RIG_VFO_A;
 
 	return tmd710_do_set_freq(rig, vfo, freq);
 }
