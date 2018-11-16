@@ -984,7 +984,7 @@ int tmd710_do_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
   tmd710_fo fo_struct;
   int retval;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: called for vfo: %n(%d)\n", __func__, rig_strvfo(vfo), vfo);
+  rig_debug(RIG_DEBUG_TRACE, "%s: called for vfo: %s(%d)\n", __func__, rig_strvfo(vfo), vfo);
 
   retval = tmd710_pull_fo(rig, vfo, &fo_struct);
 
