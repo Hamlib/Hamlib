@@ -483,8 +483,6 @@ typedef struct {
 
 static int tmd710_open(RIG *rig) {
 	
-	int retval;
-
 	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
 	return 0;
@@ -1001,7 +999,7 @@ int tmd710_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 	
-	vfo_t vfo = rig->state.tx_vfo == RIG_VFO_A ? RIG_VFO_B : RIG_VFO_A;
+	vfo = rig->state.tx_vfo == RIG_VFO_A ? RIG_VFO_B : RIG_VFO_A;
 
 	return tmd710_do_set_freq(rig, vfo, freq);
 }
@@ -1014,7 +1012,7 @@ int tmd710_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 	 
 	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-	vfo_t vfo = rig->state.tx_vfo == RIG_VFO_A ? RIG_VFO_B : RIG_VFO_A;
+	vfo = rig->state.tx_vfo == RIG_VFO_A ? RIG_VFO_B : RIG_VFO_A;
 
 	return tmd710_do_get_freq(rig, vfo, freq);
 }
@@ -1027,9 +1025,9 @@ int tmd710_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 	
-	vfo_t vfo = rig->state.tx_vfo == RIG_VFO_B ? RIG_VFO_A : RIG_VFO_B;
+	vfo = rig->state.tx_vfo == RIG_VFO_B ? RIG_VFO_A : RIG_VFO_B;
 
-	return tmd710_do_set_freq(rig, RIG_VFO_B, freq);
+	return tmd710_do_set_freq(rig, vfo, freq);
 }
 
 /*
@@ -1040,9 +1038,9 @@ int tmd710_get_split_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 	 
 	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-	vfo_t vfo = rig->state.tx_vfo == RIG_VFO_B ? RIG_VFO_A : RIG_VFO_B;
+	vfo = rig->state.tx_vfo == RIG_VFO_B ? RIG_VFO_A : RIG_VFO_B;
 	
-	return tmd710_do_get_freq(rig, RIG_VFO_B, freq);
+	return tmd710_do_get_freq(rig, vfo, freq);
 }
 
 static int tmd710_find_ctcss_index(RIG *rig, tone_t tone, int *ctcss_index) {
@@ -1622,7 +1620,6 @@ int tmd710_set_vfo(RIG *rig, vfo_t vfo)
 int tmd710_set_split_vfo (RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 {
     char vfobuf[16];
-    int vfonum, txvfonum;
     int retval;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called %s\n", __func__, rig_strvfo(vfo));
@@ -1659,7 +1656,7 @@ int tmd710_get_split_vfo (RIG *rig, vfo_t vfo, split_t *split, vfo_t *txvfo)
 			return -RIG_EPROTO;
 	}
 
-    rig->state.tx_vfo = txvfo;
+    rig->state.tx_vfo = *txvfo;
 
 	return RIG_OK;
 }
