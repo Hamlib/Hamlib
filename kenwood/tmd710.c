@@ -485,6 +485,10 @@ static int tmd710_open(RIG *rig) {
 	
 	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
+	rig->state.tx_vfo = RIG_VFO_A;
+	rig_debug(RIG_DEBUG_TRACE, "rig->state.tx_vfo: %d\n", __func__, rig->state.tx_vfo)
+
+
 	return 0;
 }
 
@@ -999,6 +1003,8 @@ int tmd710_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 	
+	rig_debug(RIG_DEBUG_TRACE, "rig->state.tx_vfo: %d\n", __func__, rig->state.tx_vfo)
+
 	rig_debug(RIG_DEBUG_TRACE, "tx_vfo: %n(%d)\n", __func__, rig_strvfo(rig->state.tx_vfo), rig->state.tx_vfo);
 
   	vfo = rig->state.tx_vfo == RIG_VFO_A ? RIG_VFO_B : RIG_VFO_A;
@@ -1630,6 +1636,8 @@ int tmd710_set_split_vfo (RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 	
     
 	rig->state.tx_vfo = txvfo;
+
+	rig_debug(RIG_DEBUG_TRACE, "rig->state.tx_vfo: %d\n", __func__, rig->state.tx_vfo)
 
 	int txVfoIndex = txvfo == RIG_VFO_A ? 0 : 1;
 
