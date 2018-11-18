@@ -77,7 +77,7 @@
 
 #define FT1000D_PACING_INTERVAL           5
 #define FT1000D_PACING_DEFAULT_VALUE      0
-#define FT1000D_WRITE_DELAY               175
+#define FT1000D_WRITE_DELAY               0
 
 
 /* Delay sequential fast writes */
