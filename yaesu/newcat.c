@@ -59,6 +59,7 @@ static const char cat_term = ';';             /* Yaesu command terminator */
 typedef enum nc_rigid_e {
     NC_RIGID_NONE            = 0,
     NC_RIGID_FT450           = 241,
+    NC_RIGID_FT450D          = 244,
     NC_RIGID_FT950           = 310,
     NC_RIGID_FT891           = 135,
     NC_RIGID_FT991           = 135,
@@ -340,6 +341,8 @@ int newcat_open(RIG *rig) {
        last client left it on */
     newcat_set_trn(rig, RIG_TRN_OFF); /* ignore status in case it's
                                          not supported */
+    /* Initialize rig_id in case any subsequent commands need it */
+    (void)newcat_get_rigid(rig);
     return RIG_OK;
 }
 
@@ -2018,8 +2021,10 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
         case RIG_LEVEL_RFPOWER:
             if (!newcat_valid_command(rig, "PC"))
                 return -RIG_ENAVAIL;
-            scale = (newcat_is_rig(rig, RIG_MODEL_FT950)) ? 100 : 255;
-            scale = (newcat_is_rig(rig, RIG_MODEL_FT1200)) ? 100 : scale;
+            scale = (newcat_is_rig(rig, RIG_MODEL_FT450)) &&
+		(newcat_get_rigid(rig) == NC_RIGID_FT450D) ? 100. : 255.;
+            scale = newcat_is_rig(rig, RIG_MODEL_FT950) ? 100. : scale ;
+            scale = newcat_is_rig(rig, RIG_MODEL_FT1200) ? 100. : scale ;
             fpf = newcat_scale_float(scale, val.f);
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PC%03d%c", fpf, cat_term);
             break;
@@ -2449,6 +2454,12 @@ int newcat_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 
     switch (level) {
         case RIG_LEVEL_RFPOWER:
+            scale = (newcat_is_rig(rig, RIG_MODEL_FT450)) &&
+		(newcat_get_rigid(rig) == NC_RIGID_FT450D) ? 100. : 255.;
+            scale = newcat_is_rig(rig, RIG_MODEL_FT950) ? 100. : scale ;
+            scale = newcat_is_rig(rig, RIG_MODEL_FT1200) ? 100. : scale ;
+            val->f = (float)atoi(retlvl)/scale;
+            break;
         case RIG_LEVEL_VOXGAIN:
         case RIG_LEVEL_COMP:
         case RIG_LEVEL_ANTIVOX:

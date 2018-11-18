@@ -12,7 +12,7 @@ updated @value{UPDATED}), which is a development effort to provide a
 consistent programming interface for programmers wanting to incorporate
 radio and rotor control into their programs.
 
-Copyright @copyright{} 2013 Nate Bargmann
+Copyright @copyright{} 2013,2018 Nate Bargmann
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document under

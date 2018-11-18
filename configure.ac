@@ -15,7 +15,7 @@ dnl however, the use of '~' should be fine as apt (others?) will treat
 dnl it as an earlier version than the actual release.  TNX KA6MAL
 dnl PACKAGE_NAME + " " + PACKAGE_VERSION must not exceed 20 chars!
 AC_INIT([Hamlib],
-        [3.3~git],
+        [4.0~git],
         [hamlib-developer@lists.sourceforge.net],
         [hamlib],
         [http://www.hamlib.org])
@@ -49,15 +49,15 @@ dnl added to AC_CONFIG_FILES near the end of this file.  See README.developer
 dnl Beware of duplication should a backend directory include both rig and
 dnl rotor definitions, e.g. "dummy".  Optional backends will not be listed
 dnl here but will be added later, e.g. "winradio".
-BACKEND_LIST="adat alinco aor barrett dorji drake dummy flexradio icom icmarine jrc kachina kenwood kit lowe pcr prm80 racal rft rs skanti tapr tentec tuner uniden wj yaesu"
-ROT_BACKEND_LIST="amsat ars celestron cnctrk easycomm ether6 fodtrack gs232a heathkit m2 rotorez sartek spid ts7400 prosistel"
+BACKEND_LIST="adat alinco aor barrett dorji drake dummy elad flexradio icom icmarine jrc kachina kenwood kit lowe pcr prm80 racal rft rs skanti tapr tentec tuner uniden wj yaesu"
+ROT_BACKEND_LIST="amsat ars celestron cnctrk easycomm ether6 fodtrack gs232a heathkit m2 meade rotorez sartek spid ts7400 prosistel"
 
 dnl See README.release on setting these values
 # Values given to -version-info when linking.  See libtool documentation.
 # Set them here to keep c++/Makefile and src/Makefile in sync.
-ABI_VERSION=3
-ABI_REVISION=3
-ABI_AGE=1
+ABI_VERSION=4
+ABI_REVISION=0
+ABI_AGE=0
 
 AC_DEFINE_UNQUOTED([ABI_VERSION], [$ABI_VERSION], [Frontend ABI version])
 AC_DEFINE_UNQUOTED([ABI_REVISION], [$ABI_REVISION], [Frontend ABI revision])
@@ -787,7 +787,9 @@ android/Makefile
 prosistel/Makefile
 dorji/Makefile
 barrett/Makefile
-hamlib.pc])
+meade/Makefile
+hamlib.pc
+elad/Makefile])
 
 AC_OUTPUT
 

@@ -121,8 +121,6 @@ static struct option long_options[] =
 /* variable for readline support */
 #ifdef HAVE_LIBREADLINE
 static const int have_rl = 1;
-#else                               /* no readline */
-static const int have_rl = 0;
 #endif
 
 
@@ -143,6 +141,7 @@ int main(int argc, char *argv[])
     int verbose = 0;
     int show_conf = 0;
     int dump_caps_opt = 0;
+
 #ifdef HAVE_READLINE_HISTORY
     int rd_hist = 0;
     int sv_hist = 0;
@@ -150,7 +149,8 @@ int main(int argc, char *argv[])
     const char hist_file[] = "/.rigctl_history";
     char *hist_path = NULL;
     struct stat hist_dir_stat;
-#endif
+#endif  /* HAVE_READLINE_HISTORY */
+
     const char *rig_file = NULL, *ptt_file = NULL, *dcd_file = NULL;
     ptt_type_t ptt_type = RIG_PTT_NONE;
     dcd_type_t dcd_type = RIG_DCD_NONE;
@@ -301,6 +301,14 @@ int main(int argc, char *argv[])
             {
                 dcd_type = RIG_DCD_CM108;
             }
+            else if (!strcmp(optarg, "GPIO"))
+            {
+                dcd_type = RIG_DCD_GPIO;
+            }
+            else if (!strcmp(optarg, "GPION"))
+            {
+                dcd_type = RIG_DCD_GPION;
+            }
             else if (!strcmp(optarg, "NONE"))
             {
                 dcd_type = RIG_DCD_NONE;
@@ -381,7 +389,7 @@ int main(int argc, char *argv[])
         case 'I':
             sv_hist++;
             break;
-#endif
+#endif  /* HAVE_READLINE_HISTORY */
 
         case 'v':
             verbose++;
@@ -562,7 +570,7 @@ int main(int argc, char *argv[])
             }
         }
 
-#endif
+#endif  /* HAVE_READLINE_HISTORY */
     }
 
 #endif  /* HAVE_LIBREADLINE */
@@ -600,11 +608,11 @@ int main(int argc, char *argv[])
             hist_path = (char *)NULL;
         }
 
-#endif
+#endif  /* HAVE_READLINE_HISTORY */
     }
 
-#endif
-    rig_close(my_rig); /* close port */
+#endif  /* HAVE_LIBREADLINE */
+    rig_close(my_rig);   /* close port */
     rig_cleanup(my_rig); /* if you care about memory */
 
     return exitcode;

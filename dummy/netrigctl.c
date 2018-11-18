@@ -68,11 +68,11 @@ static int netrigctl_transaction(RIG *rig, char *cmd, int len, char *buf)
   ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
   if (ret < 0)
 	return ret;
-
-  if (memcmp(buf, NETRIGCTL_RET, strlen(NETRIGCTL_RET))==0)
+  if (strncmp(buf, NETRIGCTL_RET, strlen(NETRIGCTL_RET))==0) {
 	return atoi(buf+strlen(NETRIGCTL_RET));
+  }
 
-  return RIG_OK;
+  return ret;
 }
 
 

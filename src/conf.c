@@ -91,7 +91,7 @@ static const struct confparams frontend_cfg_params[] =
     {
         TOK_PTT_TYPE, "ptt_type", "PTT type",
         "Push-To-Talk interface type override",
-        "RIG", RIG_CONF_COMBO, { .c = {{ "RIG", "DTR", "RTS", "Parallel", "CM108", "None", NULL }} }
+        "RIG", RIG_CONF_COMBO, { .c = {{ "RIG", "DTR", "RTS", "Parallel", "CM108", "GPIO", "GPION", "None", NULL }} }
     },
     {
         TOK_PTT_PATHNAME, "ptt_pathname", "PTT path name",
@@ -106,12 +106,17 @@ static const struct confparams frontend_cfg_params[] =
     {
         TOK_DCD_TYPE, "dcd_type", "DCD type",
         "Data Carrier Detect (or squelch) interface type override",
-        "RIG", RIG_CONF_COMBO, { .c = {{ "RIG", "DSR", "CTS", "CD", "Parallel", "CM108", "None", NULL }} }
+        "RIG", RIG_CONF_COMBO, { .c = {{ "RIG", "DSR", "CTS", "CD", "Parallel", "CM108", "GPIO", "GPION", "None", NULL }} }
     },
     {
         TOK_DCD_PATHNAME, "dcd_pathname", "DCD path name",
         "Path name to the device file of the Data Carrier Detect (or squelch)",
         "/dev/rig", RIG_CONF_STRING,
+    },
+    {
+	TOK_LO_FREQ, "lo_freq", "LO Frequency",
+	"Frequency to add to the VFO frequency for use with a transverter",
+	"0", RIG_CONF_NUMERIC, { .n = {0.0, 1e9, .1}}
     },
 
     { RIG_CONF_END, NULL, }
@@ -422,6 +427,14 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         {
             rs->pttport.type.ptt = RIG_PTT_CM108;
         }
+        else if (!strcmp(val, "GPIO"))
+        {
+            rs->pttport.type.ptt = RIG_PTT_GPIO;
+        }
+        else if (!strcmp(val, "GPION"))
+        {
+            rs->pttport.type.ptt = RIG_PTT_GPION;
+        }
         else if (!strcmp(val, "None"))
         {
             rs->pttport.type.ptt = RIG_PTT_NONE;
@@ -471,6 +484,14 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         {
             rs->dcdport.type.dcd = RIG_DCD_CM108;
         }
+        else if (!strcmp(val, "GPIO"))
+        {
+            rs->dcdport.type.dcd = RIG_DCD_GPIO;
+        }
+        else if (!strcmp(val, "GPION"))
+        {
+            rs->dcdport.type.dcd = RIG_DCD_GPION;
+        }
         else if (!strcmp(val, "None"))
         {
             rs->dcdport.type.dcd = RIG_DCD_NONE;
@@ -494,6 +515,9 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
     case TOK_POLL_INTERVAL:
         rs->poll_interval = atof(val);
         break;
+    case TOK_LO_FREQ:
+	rs->lo_freq = atof(val);
+	break;
 
 
     default:
@@ -720,6 +744,14 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
             s = "CM108";
             break;
 
+        case RIG_PTT_GPIO:
+            s = "GPIO";
+            break;
+
+        case RIG_PTT_GPION:
+            s = "GPION";
+            break;
+
         case RIG_PTT_NONE:
             s = "None";
             break;
@@ -764,6 +796,14 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
 
         case RIG_DCD_CM108:
             s = "CM108";
+            break;
+
+        case RIG_DCD_GPIO:
+            s = "GPIO";
+            break;
+
+        case RIG_DCD_GPION:
+            s = "GPION";
             break;
 
         case RIG_DCD_NONE:

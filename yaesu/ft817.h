@@ -50,7 +50,14 @@
 /*
  * Read timeout.
  */
-#define FT817_TIMEOUT			1000
+#define FT817_TIMEOUT			3000
+
+/*
+ * Return from TX to RX may have a delay. If status is not changed
+ * on the first attempt, wait this amount of milliseconds before
+ * each next next attempts.
+ */
+#define FT817_RETRY_DELAY		100
 
 /*
  * The time the TX, RX and FREQ/MODE status are cached (in millisec).

@@ -177,7 +177,7 @@ const struct rig_caps ft817_caps = {
 	.write_delay =         FT817_WRITE_DELAY,
 	.post_write_delay =    FT817_POST_WRITE_DELAY,
 	.timeout =             FT817_TIMEOUT,
-	.retry =               3,
+	.retry =               5,
 	.has_get_func =        RIG_FUNC_NONE,
 	.has_set_func =        RIG_FUNC_LOCK | RIG_FUNC_TONE | RIG_FUNC_TSQL,
 	.has_get_level =       RIG_LEVEL_STRENGTH | RIG_LEVEL_RAWSTR | RIG_LEVEL_RFPOWER,
@@ -456,17 +456,27 @@ int ft817_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 	struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
 	int n;
+	freq_t f1 = 0, f2 = 0;
+	int retries = rig->state.rigport.retry + 1; // +1 because, because 2 steps are needed even in best scenario
 
 	if (vfo != RIG_VFO_CURR)
 		return -RIG_ENTARGET;
 
-	if (check_cache_timeout(&p->fm_status_tv))
-		if ((n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_FREQ_MODE_STATUS)) < 0)
-			return n;
+	while ((f1 == 0 || f1 != f2) && retries-- > 0) {
+		if (check_cache_timeout(&p->fm_status_tv))
+			if ((n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_FREQ_MODE_STATUS)) < 0)
+				return n;
+		f1 = f2;
+		f2 = from_bcd_be(p->fm_status, 8);
+	}
 
-	*freq = from_bcd_be(p->fm_status, 8) * 10;
+	if (retries >= 0) {
+		*freq = f1 * 10;
+		return RIG_OK;
+	} else {
+		return -RIG_EIO;
+	}
 
-	return RIG_OK;
 }
 
 int ft817_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
@@ -842,6 +852,8 @@ int ft817_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 int ft817_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
 	int index, n;
+	ptt_t ptt_response = -1;
+	int retries = rig->state.rigport.retry;
 
 	if (vfo != RIG_VFO_CURR)
 		return -RIG_ENTARGET;
@@ -859,15 +871,32 @@ int ft817_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 		return -RIG_EINVAL;
 	}
 
-	n = ft817_send_cmd(rig, index);
 
-	rig_force_cache_timeout(
-	    &((struct ft817_priv_data *)rig->state.priv)->tx_status_tv);
+	do {
+		n = ft817_send_cmd(rig, index);
 
-	if (n < 0 && n != -RIG_ERJCTED)
-		return n;
+		rig_force_cache_timeout(
+		    &((struct ft817_priv_data *)rig->state.priv)->tx_status_tv);
 
-	return RIG_OK;
+		if (n < 0 && n != -RIG_ERJCTED)
+			return n;
+
+		if (ft817_get_ptt(rig, vfo, &ptt_response) != RIG_OK) {
+			ptt_response = -1;
+		}
+
+		if (ptt_response != ptt) {
+			usleep(1000l * FT817_RETRY_DELAY); // Wait before next try. Helps with slower rigs cloning FT817 protocol (e.g. MCHF)
+		}
+
+	} while (ptt_response != ptt && retries-- > 0);
+
+	if (retries >=0) {
+		return RIG_OK;
+	} else {
+		return -RIG_EIO;
+	}
+
 }
 
 int ft817_set_func (RIG *rig, vfo_t vfo, setting_t func, int status)
