@@ -334,16 +334,6 @@ static struct
     { RIG_MODE_SAL, "SAL" },
     { RIG_MODE_SAH, "SAH" },
     { RIG_MODE_DSB, "DSB"},
-    { RIG_MODE_PKTLSB2, "PKTLSB2" },
-    { RIG_MODE_PKTLSB3, "PKTLSB3" },
-    { RIG_MODE_PKTUSB2, "PKTUSB2" },
-    { RIG_MODE_PKTUSB3, "PKTUSB3" },
-    { RIG_MODE_AM2, "PKTAM2" },
-    { RIG_MODE_AM3, "PKTAM3" },
-    { RIG_MODE_FM2, "PKTFM2" },
-    { RIG_MODE_FM3, "PKTFM3" },
-    { RIG_MODE_DV, "DV"},
-    { RIG_MODE_DR, "DR"},
     { RIG_MODE_NONE, "" },
 };
 
@@ -391,7 +381,7 @@ const char * HAMLIB_API rig_strrmode(rmode_t mode)
         return "";
     }
 
-    for (i = 0 ; mode_str[i].str[0]!='\0' ; i++)
+    for (i = 0 ; mode_str[i].str[0] != '\0'; i++)
     {
         if (mode == mode_str[i].mode)
         {

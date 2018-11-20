@@ -3788,7 +3788,7 @@ declare_proto_rig(dump_state)
     for (i = 0; i < FRQRANGESIZ && !RIG_IS_FRNG_END(rs->rx_range_list[i]); i++)
     {
         fprintf(fout,
-                "%"FREQFMT" %"FREQFMT" 0x%"MODEFMT" %d %d 0x%x 0x%x\n",
+                "%"FREQFMT" %"FREQFMT" 0x%x %d %d 0x%x 0x%x\n",
                 rs->rx_range_list[i].start,
                 rs->rx_range_list[i].end,
                 rs->rx_range_list[i].modes,
@@ -3803,7 +3803,7 @@ declare_proto_rig(dump_state)
     for (i = 0; i < FRQRANGESIZ && !RIG_IS_FRNG_END(rs->tx_range_list[i]); i++)
     {
         fprintf(fout,
-                "%"FREQFMT" %"FREQFMT" 0x%"MODEFMT" %d %d 0x%x 0x%x\n",
+                "%"FREQFMT" %"FREQFMT" 0x%x %d %d 0x%x 0x%x\n",
                 rs->tx_range_list[i].start,
                 rs->tx_range_list[i].end,
                 rs->tx_range_list[i].modes,
@@ -3818,7 +3818,7 @@ declare_proto_rig(dump_state)
     for (i = 0; i < TSLSTSIZ && !RIG_IS_TS_END(rs->tuning_steps[i]); i++)
     {
         fprintf(fout,
-                "0x%"MODEFMT" %ld\n",
+                "0x%x %ld\n",
                 rs->tuning_steps[i].modes,
                 rs->tuning_steps[i].ts);
     }
@@ -3828,7 +3828,7 @@ declare_proto_rig(dump_state)
     for (i = 0; i < FLTLSTSIZ && !RIG_IS_FLT_END(rs->filters[i]); i++)
     {
         fprintf(fout,
-                "0x%"MODEFMT" %ld\n",
+                "0x%x %ld\n",
                 rs->filters[i].modes,
                 rs->filters[i].width);
     }

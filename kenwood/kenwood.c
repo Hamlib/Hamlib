@@ -2711,7 +2711,10 @@ int kenwood_get_trn(RIG *rig, int *trn)
   if (retval != RIG_OK)
     return retval;
 
-  *trn = trnbuf[2] != '0' ? RIG_TRN_RIG : RIG_TRN_OFF;
+  if (rig->caps->rig_model == RIG_MODEL_THD74)
+    *trn = trnbuf[3] != '0' ? RIG_TRN_RIG : RIG_TRN_OFF;
+  else
+    *trn = trnbuf[2] != '0' ? RIG_TRN_RIG : RIG_TRN_OFF;
 
   return RIG_OK;
 }

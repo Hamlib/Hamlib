@@ -113,7 +113,7 @@ static int netrigctl_open(RIG *rig)
 	if (ret <= 0)
 		return (ret < 0) ? ret : -RIG_EPROTO;
 
-	ret = num_sscanf(buf, "%"SCNfreq"%"SCNfreq"""%"SCNmode"%d%d%x%x",
+	ret = num_sscanf(buf, "%"SCNfreq"%"SCNfreq"%x%d%d%x%x",
 		&rs->rx_range_list[i].start,
 		&rs->rx_range_list[i].end,
 		&rs->rx_range_list[i].modes,
@@ -132,7 +132,7 @@ static int netrigctl_open(RIG *rig)
 	if (ret <= 0)
 		return (ret < 0) ? ret : -RIG_EPROTO;
 
-	ret = num_sscanf(buf, "%"SCNfreq"%"SCNfreq"""%"SCNmode"%d%d%x%x",
+	ret = num_sscanf(buf, "%"SCNfreq"%"SCNfreq"%x%d%d%x%x",
 		&rs->tx_range_list[i].start,
 		&rs->tx_range_list[i].end,
 		&rs->tx_range_list[i].modes,
@@ -151,7 +151,7 @@ static int netrigctl_open(RIG *rig)
   	if (ret <= 0)
 		return (ret < 0) ? ret : -RIG_EPROTO;
 
-	ret = sscanf(buf, "%"SCNmode"%ld",
+	ret = sscanf(buf, "%x%ld",
                                 &rs->tuning_steps[i].modes,
                                 &rs->tuning_steps[i].ts);
 	if (ret != 2)
@@ -165,7 +165,7 @@ static int netrigctl_open(RIG *rig)
   	if (ret <= 0)
 		return (ret < 0) ? ret : -RIG_EPROTO;
 
-	ret = sscanf(buf, "%"SCNmode"%ld",
+	ret = sscanf(buf, "%x%ld",
                                 &rs->filters[i].modes,
                                 &rs->filters[i].width);
 	if (ret != 2)

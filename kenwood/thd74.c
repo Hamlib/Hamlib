@@ -35,8 +35,8 @@
 #include "misc.h"
 
 
-#define THD74_MODES (RIG_MODE_FM|RIG_MODE_DV|RIG_MODE_AM|RIG_MODE_LSB|RIG_MODE_USB|RIG_MODE_CW|RIG_MODE_FMN|RIG_MODE_DR|RIG_MODE_WFM|RIG_MODE_CWR)
-#define THD74_MODES_TX  (RIG_MODE_FM|RIG_MODE_DV|RIG_MODE_DR)
+#define THD74_MODES (RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_LSB|RIG_MODE_USB|RIG_MODE_CW|RIG_MODE_FMN|RIG_MODE_WFM|RIG_MODE_CWR)
+#define THD74_MODES_TX  (RIG_MODE_FM)
 
 #define THD74_FUNC_ALL (RIG_FUNC_TSQL|   \
                        RIG_FUNC_TONE)
@@ -56,13 +56,13 @@
 static rmode_t thd74_mode_table[10] =
 {
     [0] = RIG_MODE_FM,  /* normal, but narrow compared to broadcast */
-    [1] = RIG_MODE_DV,
+//    [1] = RIG_MODE_DV,
     [2] = RIG_MODE_AM,
     [3] = RIG_MODE_LSB,
     [4] = RIG_MODE_USB,
     [5] = RIG_MODE_CW,
     [6] = RIG_MODE_FMN,  /* what kenwood calls narrow */
-    [7] = RIG_MODE_DR,
+//    [7] = RIG_MODE_DR,
     [8] = RIG_MODE_WFM,
     [9] = RIG_MODE_CWR,
 };
@@ -251,6 +251,7 @@ static int thd74_get_freq_info(RIG *rig, vfo_t vfo, char *buf)
     int retval;
     char c, cmd[8];
 
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
     retval = thd74_vfoc(rig, vfo, &c);
 
     if (retval != RIG_OK)
@@ -300,6 +301,8 @@ static int thd74_set_freq_item(RIG *rig, vfo_t vfo, int item, int val)
     int retval;
     char buf[128];
 
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
     retval = thd74_get_freq_info(rig, vfo, buf);
 
     if (retval != RIG_OK)
@@ -314,7 +317,7 @@ static int thd74_set_freq_item(RIG *rig, vfo_t vfo, int item, int val)
 static int thd74_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     int retval;
-    char buf[64], fbuf[11];
+    char buf[128], fbuf[11];
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
@@ -382,7 +385,7 @@ int thd74_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
         case RIG_MODE_AM: kmode = '1'; break;
 
-        case RIG_MODE_DV: kmode = '2'; break;
+//        case RIG_MODE_DV: kmode = '2'; break;
 
         case RIG_MODE_LSB: kmode = '3'; break;
 
@@ -392,7 +395,7 @@ int thd74_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
         case RIG_MODE_FMN: kmode = '6'; break;
 
-        case RIG_MODE_DR: kmode = '7'; break;
+//      case RIG_MODE_DR: kmode = '7'; break;
 
         case RIG_MODE_WFM: kmode = '8'; break;
 
@@ -424,10 +427,6 @@ static int thd74_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     char modec, buf[128];
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
-    rig_debug(RIG_DEBUG_TRACE, "%s: %ld\n", __func__, RIG_MODE_AM);
-    rig_debug(RIG_DEBUG_TRACE, "%s: %ld\n", __func__, RIG_MODE_FMN);
-    rig_debug(RIG_DEBUG_TRACE, "%s: %ld\n", __func__, RIG_MODE_DR);
-    rig_debug(RIG_DEBUG_TRACE, "%s: %ld\n", __func__, RIG_MODE_TESTS_MAX);
 
     retval = thd74_get_freq_info(rig, vfo, buf);
 
@@ -773,6 +772,23 @@ static int thd74_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
     }
 
     return RIG_OK;
+}
+
+int thd74_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
+{
+  const char *ptt_cmd;
+
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  if (!rig)
+    return -RIG_EINVAL;
+
+  switch (ptt) {
+    case RIG_PTT_ON:  ptt_cmd = "TX"; break;
+    case RIG_PTT_OFF: ptt_cmd = "RX"; break;
+    default: return -RIG_EINVAL;
+  }
+  return kenwood_transaction(rig, ptt_cmd, NULL, 0);
 }
 
 static int thd74_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
@@ -1514,6 +1530,7 @@ const struct rig_caps thd74_caps =
     .get_mode = thd74_get_mode,
     .set_vfo =  thd74_set_vfo,
     .get_vfo =  thd74_get_vfo,
+    .set_ptt = thd74_set_ptt,
     .set_rptr_shift = thd74_set_rptr_shft,
     .get_rptr_shift = thd74_get_rptr_shft,
     .set_rptr_offs = thd74_set_rptr_offs,
