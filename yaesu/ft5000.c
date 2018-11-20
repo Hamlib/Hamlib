@@ -50,9 +50,9 @@ const struct rig_caps ftdx5000_caps = {
     .rig_model =          RIG_MODEL_FTDX5000,
     .model_name =         "FT-DX5000",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".1",
+    .version =            NEWCAT_VER,
     .copyright =          "LGPL",
-    .status =             RIG_STATUS_STABLE,
+    .status =             RIG_STATUS_ALPHA,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
     .ptt_type =           RIG_PTT_RIG,
     .dcd_type =           RIG_DCD_NONE,
@@ -210,9 +210,10 @@ const struct rig_caps ftdx5000_caps = {
 
 /*
  * ft3000 rig capabilities.
- * Largely compatible with the ft5000
- * Found one exception where ft3000 does not have TARGETABLE_MODE
+ * Seems to be largely compatible with the ft5000
+ * So this is just a copy of the 5000 caps
  * Also this struct is READONLY!
+ * It really needs to be reviewed for accuracy but it works for WSJT-X
  *
  */
 
@@ -222,7 +223,7 @@ const struct rig_caps ftdx3000_caps = {
     .mfg_name =           "Yaesu",
     .version =            NEWCAT_VER ".1",
     .copyright =          "LGPL",
-    .status =             RIG_STATUS_STABLE,
+    .status =             RIG_STATUS_BETA,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
     .ptt_type =           RIG_PTT_RIG,
     .dcd_type =           RIG_DCD_NONE,
@@ -255,7 +256,7 @@ const struct rig_caps ftdx3000_caps = {
     .max_xit =            Hz(9999),
     .max_ifshift =        Hz(1000),
     .vfo_ops =            FTDX5000_VFO_OPS,
-    .targetable_vfo =     RIG_TARGETABLE_FREQ,
+    .targetable_vfo =     RIG_TARGETABLE_FREQ, /* one of the few diffs from the 5000 */
     .transceive =         RIG_TRN_OFF,        /* May enable later as the 5000 has an Auto Info command */
     .bank_qty =           0,
     .chan_desc_sz =       0,
