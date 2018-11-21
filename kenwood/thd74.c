@@ -1066,7 +1066,7 @@ static int thd74_set_mem(RIG *rig, vfo_t vfo, int ch)
     }
 
     sprintf(cmd, "MR %c,%03d", c, ch);
-    return kenwood_simple_transaction(rig, cmd, 10);
+    return kenwood_simple_transaction(rig, cmd, 8);
 }
 
 static int thd74_get_mem(RIG *rig, vfo_t vfo, int *ch)
