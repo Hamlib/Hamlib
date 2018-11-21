@@ -776,19 +776,29 @@ static int thd74_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 
 int thd74_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
-  const char *ptt_cmd;
+    const char *ptt_cmd;
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  if (!rig)
-    return -RIG_EINVAL;
+    if (!rig)
+    {
+        return -RIG_EINVAL;
+    }
 
-  switch (ptt) {
-    case RIG_PTT_ON:  ptt_cmd = "TX"; break;
-    case RIG_PTT_OFF: ptt_cmd = "RX"; break;
+    switch (ptt)
+    {
+    case RIG_PTT_ON:
+        ptt_cmd = "TX";
+        return kenwood_simple_transaction(rig, ptt_cmd, 4);
+        break;
+
+    case RIG_PTT_OFF:
+        ptt_cmd = "RX";
+        return kenwood_simple_transaction(rig, ptt_cmd, 2);
+        break;
+
     default: return -RIG_EINVAL;
-  }
-  return kenwood_transaction(rig, ptt_cmd, NULL, 0);
+    }
 }
 
 static int thd74_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
