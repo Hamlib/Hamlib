@@ -1101,7 +1101,7 @@ static int thd74_get_mem(RIG *rig, vfo_t vfo, int *ch)
         return retval;
     }
 
-    sscanf(buf + 5, "%d", ch);
+    sscanf(buf + 3, "%d", ch);
     return RIG_OK;
 }
 
