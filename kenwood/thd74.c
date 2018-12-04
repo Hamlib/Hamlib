@@ -316,10 +316,16 @@ static int thd74_set_freq_item(RIG *rig, vfo_t vfo, int item, int val)
 
 static int thd74_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
+    struct kenwood_priv_data *priv = rig->state.priv;
     int retval;
     char buf[128], fbuf[11];
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+    if (priv->split == RIG_SPLIT_ON)
+    {
+        vfo = RIG_VFO_B;
+    }
 
     retval = thd74_get_freq_info(rig, vfo, buf);
 
@@ -336,10 +342,16 @@ static int thd74_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 static int thd74_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
+    struct kenwood_priv_data *priv = rig->state.priv;
     int retval;
     char buf[128];
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+    if (priv->split == RIG_SPLIT_ON)
+    {
+        vfo = RIG_VFO_B;
+    }
 
     retval = thd74_get_freq_info(rig, vfo, buf);
 
@@ -1242,6 +1254,88 @@ static int thd74_get_channel(RIG *rig, channel_t *chan)
     return RIG_OK;
 }
 
+int thd74_set_split_vfo (RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
+{
+    struct kenwood_priv_data *priv = rig->state.priv;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+    if (txvfo != RIG_VFO_A)
+        return -RIG_EINVAL;
+
+    priv->split = split;
+
+    return RIG_OK;
+}
+
+int thd74_get_split_vfo (RIG *rig, vfo_t vfo, split_t *split, vfo_t *txvfo)
+{
+    struct kenwood_priv_data *priv = rig->state.priv;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+    if (priv->split == RIG_SPLIT_ON)
+        *txvfo = RIG_VFO_A;
+    else
+        return -RIG_EPROTO;
+
+    return RIG_OK;
+}
+
+/*
+if priv->split is RIG_SPLIT_ON set *tx_freq to freq of VFOA and return RIG_OK
+otherwise return -RIG_EPROTO
+*/
+int thd74_get_split_freq (RIG *rig, vfo_t vfo, freq_t *tx_freq)
+{
+    struct kenwood_priv_data *priv = rig->state.priv;
+    int retval;
+    char buf[128];
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+    if (priv->split == RIG_SPLIT_ON)
+        vfo = RIG_VFO_A;
+    else 
+        return -RIG_EINVAL;
+
+    retval = thd74_get_freq_info(rig, vfo, buf);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    sscanf(buf + 5, "%"SCNfreq, tx_freq);
+    return RIG_OK;
+}
+
+/*
+if priv->split is RIG_SPLIT_ON set freq of VFOA to txfreq and return RIG_OK
+otherwise return -RIG_EPROTO
+*/
+int thd74_set_split_freq (RIG *rig, vfo_t vfo, freq_t tx_freq)
+{
+    struct kenwood_priv_data *priv = rig->state.priv;
+    int retval;
+    char fbuf[11],buf[128];
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+    if (priv->split == RIG_SPLIT_ON) {
+        retval = thd74_get_freq_info(rig, RIG_VFO_A, buf);
+
+        if (retval != RIG_OK)
+            return retval;
+
+
+        sprintf(fbuf, "%010"PRIll, (int64_t)tx_freq);
+        memcpy(buf + 5, fbuf, 10);
+        return  kenwood_simple_transaction(rig, buf, 72);
+    }
+    return -RIG_EPROTO;
+}
+
 #ifdef false    /* not working */
 #define CMD_SZ 5
 #define BLOCK_SZ 256
@@ -1562,6 +1656,10 @@ const struct rig_caps thd74_caps =
     .get_mem  = thd74_get_mem,
     .set_channel = thd74_set_channel,
     .get_channel = thd74_get_channel,
+    .set_split_vfo = thd74_set_split_vfo,
+    .get_split_vfo = thd74_get_split_vfo,
+    .set_split_freq = thd74_set_split_freq,
+    .get_split_freq = thd74_get_split_freq,
 //.get_chan_all_cb = thd74_get_chan_all_cb, this doesn't work yet
 
     .get_info =  th_get_info,
