@@ -1281,14 +1281,21 @@ static const char *netrigctl_get_info(RIG *rig)
 static int netrigctl_send_dtmf(RIG *rig, vfo_t vfo, const char *digits)
 {
   int ret, len;
-  char cmd[CMD_MAX];
+  char *cmdp, cmd[] = "\\send_dtmf ";
   char buf[BUF_MAX];
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  len = sprintf(cmd, "\\send_dtmf %s\n", digits);
+  // allocate memory for size of (cmd + digits + \n + \0)
+  cmdp = malloc(strlen(cmd) + strlen(digits) + 2);
+  if (cmdp == NULL) {
+    return -RIG_ENOMEM;
+  }
 
-  ret = netrigctl_transaction(rig, cmd, len, buf);
+  len = sprintf(cmdp, "%s%s\n", cmd, digits);
+
+  ret = netrigctl_transaction(rig, cmdp, len, buf);
+  free(cmdp);
   if (ret > 0)
 	return -RIG_EPROTO;
   else
@@ -1321,14 +1328,21 @@ static int netrigctl_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
 static int netrigctl_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 {
   int ret, len;
-  char cmd[CMD_MAX];
+  char *cmdp, cmd[] = "\\send_morse ";
   char buf[BUF_MAX];
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  len = sprintf(cmd, "\\send_morse %s\n", msg);
+  // allocate memory for size of (cmd + msg + \n + \0)
+  cmdp = malloc(strlen(cmd) + strlen(msg) + 2);
+  if (cmdp == NULL) {
+    return -RIG_ENOMEM;
+  }
 
-  ret = netrigctl_transaction(rig, cmd, len, buf);
+  len = sprintf(cmdp, "%s%s\n", cmd, msg);
+
+  ret = netrigctl_transaction(rig, cmdp, len, buf);
+  free(cmdp);
   if (ret > 0)
 	return -RIG_EPROTO;
   else
