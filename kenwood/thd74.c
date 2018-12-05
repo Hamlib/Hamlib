@@ -340,7 +340,6 @@ static int thd74_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     if (priv->split == RIG_SPLIT_ON)
     {
         vfo = RIG_VFO_B;
-        freq = thd74_round_fm_freq(freq);
     }
 
     retval = thd74_get_freq_info(rig, vfo, buf);
@@ -350,6 +349,7 @@ static int thd74_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         return retval;
     }
 
+    freq = thd74_round_fm_freq(freq);
     sprintf(fbuf, "%010"PRIll, (int64_t)freq);
     memcpy(buf + 5, fbuf, 10);
     retval = kenwood_simple_transaction(rig, buf, 72);
