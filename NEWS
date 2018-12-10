@@ -10,6 +10,7 @@ Version 4.0
         * API/ABI changes, advance ABI to 4 0 0.
         * Add GPIO and GPION options for DCD.  Jeroen Vreeken
         * New backend: ELAD FDM DUO.  Giovanni, HB9EIK.
+	* New rotator backend: iOptron. Bob, KD8CGH
 
 Version 3.3
         2018-08-12

@@ -1,0 +1,10 @@
+This is a small backend for iOptron alt-az mounts. It implements get position, goto position, stop and get info. It has been tested from the command line and with Gpredict with an iEQ45 Pro in alt-az mode. It should work for other iOptron alt-az mounts such as the AZ Mount Pro, Cube-II, CubePro and iEQ30 Pro in alt-az mode as iOptron claims that they all use the same command language.
+
+A warning on iOptron command language. iOptron is in the process of moving from V2 to V3 of the command lamguage and presently (December 2018) uses a mix of the two. This back end should work with mounts with current firmware, but new firmware may change commands and break it.
+
+Minor annoyance - the mount will automatically start siderial tracking after a slew. Adding a stop tracking command at the end of the goto set did not solve the problem.
+
+Bigger annoyance - Be careful with the GEM mounts (iEQ30, iEQ45) in alt-az mode. The dec/el motor cord easily catches on the ra/az clutch knobs when slewing in az. I attached a small standoff to keep the cord out of the way.
+
+Reccomendation - since the hand controller remains plugged, in I suggest that you use it for calibration, manual slews and setting and going to the zero position.
+

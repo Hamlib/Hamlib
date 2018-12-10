@@ -361,6 +361,18 @@
 #define ROT_BACKEND_MEADE "meade"
 #define ROT_MODEL_MEADE ROT_MAKE_MODEL(ROT_MEADE, 1)
 
+/**
+ *  \def ROT_MODEL_IOPTRON
+ *  \brief A macro that returns the model number of the IOPTRON backend.
+ *
+ *  The IOPTRON backen can be used with IOPTRON telescope mounts
+ */
+#define ROT_IOPTRON 19
+#define ROT_BACKEND_IOPTRON "ioptron"
+#define ROT_MODEL_IOPTRON ROT_MAKE_MODEL(ROT_IOPTRON, 1)
+
+
+
 
 /**
  *  \typedef typedef int rot_model_t
