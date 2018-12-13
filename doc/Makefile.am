@@ -19,3 +19,6 @@ AM_MAKEINFOHTMLFLAGS = --no-headers --no-split
 
 doc: hamlib.cfg $(SRCDOCLST)
 	doxygen hamlib.cfg
+
+# Don't attempt to generate DVI file with 'make distcheck'
+dvi:
