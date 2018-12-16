@@ -11,6 +11,7 @@ Version 4.0
         * Add GPIO and GPION options for DCD.  Jeroen Vreeken
         * New backend: ELAD FDM DUO.  Giovanni, HB9EIK.
 	* New rotator backend: iOptron. Bob, KD8CGH
+	* New model: Icom IC-R8600.  Ekki, DF4OR
 
 Version 3.3
         2018-08-12

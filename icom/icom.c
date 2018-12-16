@@ -249,6 +249,27 @@ const struct ts_sc_list ic910_ts_sc_list[] = {
         { 0, 0 },
 };
 
+const struct ts_sc_list r8600_ts_sc_list[] = {
+	{ 10, 0x00 },
+	{ 100, 0x01 },
+	{ kHz(1), 0x02 },
+	{ kHz(2.5), 0x03 },
+	{ 3125, 0x04 },
+	{ kHz(5), 0x05 },
+	{ 6250, 0x06 },
+	{ 8330, 0x07 },
+	{ kHz(9), 0x08 },
+	{ kHz(10), 0x09 },
+	{ kHz(12.5), 0x10 },
+	{ kHz(20), 0x11 },
+	{ kHz(25), 0x12 },
+	{ kHz(100), 0x13 },
+	{ 0, 0x14 },	/* programmable tuning step not supported */
+	{ 0, 0 },
+};
+
+
+
 /* rtty filter list for some DSP rigs ie PRO */
 #define RTTY_FIL_NB 5
 const pbwidth_t rtty_fil[] = {
@@ -357,6 +378,7 @@ static const struct icom_addr icom_addr_list[] = {
 	{ RIG_MODEL_IC7700, 0x74 },
 	{ RIG_MODEL_PERSEUS, 0xE1 },
 	{ RIG_MODEL_X108G, 0x70 }, 
+	{ RIG_MODEL_ICR8600, 0x96 },
 	{ RIG_MODEL_NONE, 0 },
 };
 
@@ -2425,15 +2447,15 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 		fct_cn = C_CTL_FUNC;
 		fct_sc = S_FUNC_DIAL_LK;
 		break;
-        case RIG_FUNC_AFC:      /* IC-910H */
-            fct_cn = C_CTL_FUNC;
-            fct_sc = S_FUNC_AFC;
-            break;
-        case RIG_FUNC_SATMODE:  /* IC-910H */
-            fct_cn = C_CTL_MEM;
-            fct_sc = S_MEM_SATMODE;
-            break;
-        case RIG_FUNC_SCOPE:
+    case RIG_FUNC_AFC:      /* IC-910H */
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_AFC;
+        break;
+    case RIG_FUNC_SATMODE:  /* IC-910H */
+        fct_cn = C_CTL_MEM;
+        fct_sc = S_MEM_SATMODE;
+        break;
+    case RIG_FUNC_SCOPE:
 		if (priv->civ_version == 1) { /* IC-7200/7300 */
 			fct_cn = 0x27;
 			fct_sc = 0x10;
@@ -2449,6 +2471,10 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 		fct_cn = C_CTL_SCAN;
 		fct_sc = status ? S_SCAN_RSMON : S_SCAN_RSMOFF;
 		fct_len = 0;
+		break;
+	case RIG_FUNC_AIP: /* IC-R8600 IP+ function, misusing AIP since RIG_FUNC_ word is full (32 bit) */
+		fct_cn = C_CTL_MEM; /* 1a */
+		fct_sc = S_FUNC_IPPLUS;
 		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"Unsupported set_func %d", func);
@@ -2532,29 +2558,33 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 		fct_sc = S_FUNC_MN;
 		break;
 	case RIG_FUNC_RF:
-            fct_cn = C_CTL_FUNC;
-            fct_sc = S_FUNC_RF;
-            break;
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_RF;
+        break;
 	case RIG_FUNC_VSC:
-            fct_cn = C_CTL_FUNC;
-            fct_sc = S_FUNC_VSC;
-            break;
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_VSC;
+        break;
 	case RIG_FUNC_LOCK:
 		fct_cn = C_CTL_FUNC;
 		fct_sc = S_FUNC_DIAL_LK;
 		break;
-         case RIG_FUNC_AFC:      /* IC-910H */
-            fct_cn = C_CTL_FUNC;
-            fct_sc = S_FUNC_AFC;
-            break;
-        case RIG_FUNC_SATMODE:  /* IC-910H */
-            fct_cn = C_CTL_MEM;
-            fct_sc = S_MEM_SATMODE;
-            break;
-        case RIG_FUNC_SCOPE:    /* IC-910H */
-            fct_cn = C_CTL_MEM;
-            fct_sc = S_MEM_BANDSCOPE;
-            break;
+     case RIG_FUNC_AFC:      /* IC-910H */
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_AFC;
+        break;
+    case RIG_FUNC_SATMODE:  /* IC-910H */
+        fct_cn = C_CTL_MEM;
+        fct_sc = S_MEM_SATMODE;
+        break;
+    case RIG_FUNC_SCOPE:    /* IC-910H */
+        fct_cn = C_CTL_MEM;
+        fct_sc = S_MEM_BANDSCOPE;
+        break;
+	case RIG_FUNC_AIP: /* IC-R8600 IP+ function, misusing AIP since RIG_FUNC_ word is full (32 bit) */
+		fct_cn = C_CTL_MEM; /* 1a */
+		fct_sc = S_FUNC_IPPLUS;
+		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"Unsupported get_func %d", func);
 		return -RIG_EINVAL;
@@ -2582,6 +2612,7 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
  * icom_set_parm
  * Assumes rig!=NULL
 These are very much rig specific and should probably be in rig files.  These are for ICR75C only.
+Yes. Even more after the IC-R8600 waas added
  */
 int icom_set_parm(RIG *rig, setting_t parm, value_t val)
 {
@@ -2600,7 +2631,8 @@ int icom_set_parm(RIG *rig, setting_t parm, value_t val)
 
 	switch (parm) {
 	case RIG_PARM_ANN:
-		if ((val.i == RIG_ANN_FREQ) || (val.i == RIG_ANN_RXMODE)) {
+		/* previously only for R75, which used RIG_ANN_? codes as subcommand as well. This does not work for IC-R8600 anymore */
+		if ((val.i == RIG_ANN_FREQ) || (val.i == RIG_ANN_RXMODE) || ((val.i == RIG_ANN_NONE) && (rig->caps->rig_model == RIG_MODEL_ICR8600))   ) {
 			prm_cn = C_CTL_ANN;
 			prm_sc = val.i;
 			prm_len = 0;
@@ -2635,8 +2667,14 @@ int icom_set_parm(RIG *rig, setting_t parm, value_t val)
 		if (priv->civ_version == 1) {
 			prm_sc = 0x05;
 			prm_len = 4;
-			prmbuf[0] = 0x00;
-			prmbuf[1] = 0x81;
+			if (rig->caps->rig_model == RIG_MODEL_ICR8600) {
+				prmbuf[0] = 0x01;
+				prmbuf[1] = 0x15;
+			}
+			else {
+				prmbuf[0] = 0x00;
+				prmbuf[1] = 0x81;
+			};
 			to_bcd_be(prmbuf+2, (long long)icom_val, (prm_len-2)*2);
 		}
 		else {
@@ -2644,6 +2682,27 @@ int icom_set_parm(RIG *rig, setting_t parm, value_t val)
 			prm_len = 3;
 			prmbuf[0] = S_PRM_BACKLT;
 			to_bcd_be(prmbuf+1, (long long)icom_val, (prm_len-1)*2);
+		}
+		break;
+	case RIG_PARM_KEYLIGHT:
+		prm_cn = C_CTL_MEM;
+		icom_val = val.f * 255;
+		if (priv->civ_version == 1) {
+			prm_sc = 0x05;
+			prm_len = 4;
+			if (rig->caps->rig_model == RIG_MODEL_ICR8600) {
+				prmbuf[0] = 0x01;
+				prmbuf[1] = 0x16;
+			}
+			else {
+				/* replace with sub-subcommand codes for your rig */
+				return -RIG_EINVAL;
+			};
+			to_bcd_be(prmbuf+2, (long long)icom_val, (prm_len-2)*2);
+		}
+		else {
+			/* only supported on newer rigs */
+			return -RIG_EINVAL;
 		}
 		break;
 	case RIG_PARM_BEEP:
@@ -2735,14 +2794,39 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 			prm_cn = C_CTL_MEM;
 			prm_sc = 0x05;
 			prm_len = 2;
-			prmbuf[0] = 0x00;
-			prmbuf[1] = 0x81;
+			if (rig->caps->rig_model == RIG_MODEL_ICR8600) {
+				prmbuf[0] = 0x01;
+				prmbuf[1] = 0x15;
+			}
+			else {
+				prmbuf[0] = 0x00;
+				prmbuf[1] = 0x81;
+			}
 		}
 		else {
 			prm_cn = C_CTL_MEM;
 			prm_sc = S_MEM_MODE_SLCT;
 			prm_len = 1;
 			prmbuf[0] = S_PRM_BACKLT;
+		}
+		break;
+	case RIG_PARM_KEYLIGHT:
+		if (priv->civ_version == 1) {
+			prm_cn = C_CTL_MEM;
+			prm_sc = 0x05;
+			prm_len = 2;
+			if (rig->caps->rig_model == RIG_MODEL_ICR8600) {
+				prmbuf[0] = 0x01;
+				prmbuf[1] = 0x16;
+			}
+			else {
+				/* replace with sub-subcommand codes for your rig */
+				return -RIG_EINVAL;
+			}
+		}
+		else {
+			/* only supported on newer rigs */
+			return -RIG_EINVAL;
 		}
 		break;
 	case RIG_PARM_BEEP:
@@ -2824,6 +2908,15 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 			icom_val = from_bcd_be(resbuf+cmdhead+1, (res_len-1)*2);
 		} else {
 			icom_val = from_bcd_be(resbuf+cmdhead, res_len*2);
+		}
+		val->f = (float)icom_val/255.0;
+		break;
+	case RIG_PARM_KEYLIGHT:
+		icom_val = 0;
+		if (priv->civ_version == 1) {
+			icom_val = from_bcd_be(resbuf+cmdhead+1, (res_len-1)*2);
+		} else {
+			return -RIG_EINVAL;
 		}
 		val->f = (float)icom_val/255.0;
 		break;
@@ -3260,7 +3353,7 @@ int icom_set_ant(RIG * rig, vfo_t vfo, ant_t ant)
     }
 
 	antarg = 0;
-	ant_len = (rig->caps->rig_model == RIG_MODEL_ICR75) ? 0 : 1;
+	ant_len = ((rig->caps->rig_model == RIG_MODEL_ICR75) || (rig->caps->rig_model == RIG_MODEL_ICR8600))? 0 : 1;
 	retval = icom_transaction (rig, C_CTL_ANT, i_ant,
 			&antarg, ant_len, ackbuf, &ack_len);
 	if (retval != RIG_OK)
@@ -3838,6 +3931,7 @@ DECLARE_INITRIG_BACKEND(icom)
 	rig_register(&icr7000_caps);
 	rig_register(&icr7100_caps);
 	rig_register(&icr8500_caps);
+	rig_register(&icr8600_caps);
 	rig_register(&icr9000_caps);
 	rig_register(&icr9500_caps);
 
