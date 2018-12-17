@@ -745,7 +745,7 @@ enum rig_parm_e {
     RIG_PARM_KEYLIGHT =     (1 << 7)    /*!< \c KEYLIGHT -- Button backlight, on/off */
 };
 
-#define RIG_PARM_FLOAT_LIST (RIG_PARM_BACKLIGHT|RIG_PARM_BAT)
+#define RIG_PARM_FLOAT_LIST (RIG_PARM_BACKLIGHT|RIG_PARM_BAT|RIG_PARM_KEYLIGHT)
 #define RIG_PARM_READONLY_LIST (RIG_PARM_BAT)
 
 #define RIG_PARM_IS_FLOAT(l) ((l)&RIG_PARM_FLOAT_LIST)
@@ -843,6 +843,7 @@ typedef unsigned long setting_t;
  * \c STRING used in rigctl
  *
  * \sa rig_parse_mode(), rig_strrmode()
+ * TODO: Add new 8600 modes to rig2icom_mode() and icom2rig_mode() in frame.c
  */
 typedef enum {
     RIG_MODE_NONE =     0,          /*!< '' -- None */
@@ -868,6 +869,12 @@ typedef enum {
     RIG_MODE_DSB =      (1 << 19),  /*!< \c DSB -- Double sideband suppressed carrier */
     RIG_MODE_FMN =      (1 << 21),  /*!< \c FMN -- FM Narrow Kenwood ts990s */
     RIG_MODE_PKTAM =    (1 << 22),  /*!< \c PKTAM -- Packet/Digital AM mode e.g. IC7300 */
+    RIG_MODE_P25 =      (1 << 23),  /*!< \c P25 -- APCO/P25 VHF,UHF digital mode IC-R8600 */
+    RIG_MODE_DSTAR =    (1 << 24),  /*!< \c D-Star -- VHF,UHF digital mode IC-R8600 */
+    RIG_MODE_DPMR =     (1 << 25),  /*!< \c dPMR -- digital PMR, VHF,UHF digital mode IC-R8600 */
+    RIG_MODE_NXDNVN =   (1 << 26),  /*!< \c NXDN-VN -- VHF,UHF digital mode IC-R8600 */
+    RIG_MODE_NXDN_N =   (1 << 27),  /*!< \c NXDN-N -- VHF,UHF digital mode IC-R8600 */
+    RIG_MODE_DCR =      (1 << 28),  /*!< \c DCR -- VHF,UHF digital mode IC-R8600 */
     RIG_MODE_TESTS_MAX              /*!< \c MUST ALWAYS BE LAST, Max Count for dumpcaps.c */
 } rmode_t;
 
@@ -983,7 +990,10 @@ struct filter_list {
  * \brief DATA port mode flag
  */
 #define RIG_CHFLAG_DATA     (1<<1)
-
+/**
+ * \brief programmed skip (PSKIP) memory channel during scan (lock out), channel_t.flags
+ */
+#define RIG_CHFLAG_PSKIP    (1<<2)
 
 /**
  * \brief Extension attribute definition

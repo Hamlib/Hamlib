@@ -1,6 +1,7 @@
 # .gitignore for Hamlib
 # .gitignore
 .deps/
+.dirstamp
 .libs/
 *~
 *.o

@@ -305,7 +305,7 @@ static char *xml_parse(char *xml, char *value, int value_len)
     if (strstr(xml, " 200 OK") == NULL) {
         return NULL;
     }
-    rig_debug(RIG_DEBUG_VERBOSE, "%s XML:\n%s\n", __FUNCTION__, xml);
+    rig_debug(RIG_DEBUG_TRACE, "%s XML:\n%s\n", __FUNCTION__, xml);
 
     // find the xml skipping the other stuff above it
     char *pxml = strstr(xml, "<?xml");
@@ -345,7 +345,7 @@ static int read_transaction(RIG *rig, char *xml, int xml_len)
     do {
         char tmp_buf[MAXXMLLEN];        // plenty big for expected flrig responses
         int len = read_string(&rs->rigport, tmp_buf, sizeof(tmp_buf), delims, strlen(delims));
-        rig_debug(RIG_DEBUG_WARN,"%s: string='%s'",__FUNCTION__,tmp_buf);
+        rig_debug(RIG_DEBUG_VERBOSE,"%s: string='%s'",__FUNCTION__,tmp_buf);
         if (len > 0) retry = 3;
         if (len <= 0) {
             rig_debug(RIG_DEBUG_ERR,"%s: read_string error=%d\n",__FUNCTION__,len);
@@ -465,7 +465,7 @@ static unsigned int modeMapGetHamlib(const char *modeFLRig)
     snprintf(modeFLRigCheck,sizeof(modeFLRigCheck),"|%.32s|",modeFLRig);
     rig_debug(RIG_DEBUG_VERBOSE,"%s: get hamlib mode from %s\n",__FUNCTION__,modeFLRig);
     for(i=0; modeMap[i].mode_hamlib!=0; ++i) {
-        if (strstr(modeMap[i].mode_flrig,modeFLRigCheck)) {
+        if (modeMap[i].mode_flrig && strstr(modeMap[i].mode_flrig,modeFLRigCheck)) {
             rig_debug(RIG_DEBUG_VERBOSE,"%s: got hamlib mode %s\n",__FUNCTION__,rig_strrmode(modeMap[i].mode_hamlib));
             return modeMap[i].mode_hamlib;
         }
@@ -482,7 +482,7 @@ static unsigned int modeMapGetHamlib(const char *modeFLRig)
 static void modeMapAdd(unsigned int *modes,int mode_hamlib,char *mode_flrig)
 {
     int i;
-    rig_debug(RIG_DEBUG_VERBOSE,"%s:mode_flrig=%s\n",__FUNCTION__,mode_flrig);
+    rig_debug(RIG_DEBUG_TRACE,"%s:mode_flrig=%s\n",__FUNCTION__,mode_flrig);
     int len1 = strlen(mode_flrig)+3; /* bytes needed for allocating */
     for(i=0; modeMap[i].mode_hamlib!=0; ++i) {
         if (modeMap[i].mode_hamlib==mode_hamlib) {
@@ -516,7 +516,7 @@ static int flrig_open(RIG *rig) {
     char xml[MAXXMLLEN];
     char value[MAXXMLLEN];
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s version %s\n", __FUNCTION__, BACKEND_VER);
+    rig_debug(RIG_DEBUG_TRACE, "%s version %s\n", __FUNCTION__, BACKEND_VER);
 
     struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
 
@@ -923,14 +923,14 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     // Switch to VFOB if appropriate since we can't set mode directly
     // MDB
     int vfoSwitched = 0;
-    rig_debug(RIG_DEBUG_WARN,"%s: curr_vfo = %s\n",__FUNCTION__,rig_strvfo(priv->curr_vfo));
+    rig_debug(RIG_DEBUG_VERBOSE,"%s: curr_vfo = %s\n",__FUNCTION__,rig_strvfo(priv->curr_vfo));
     if (!priv->has_get_bwA && vfo == RIG_VFO_B && priv->curr_vfo != RIG_VFO_B) {
         vfoSwitched = 1;
-        rig_debug(RIG_DEBUG_WARN,"%s: switch to VFOB = %d\n",__FUNCTION__,vfoSwitched);
+        rig_debug(RIG_DEBUG_VERBOSE,"%s: switch to VFOB = %d\n",__FUNCTION__,vfoSwitched);
     }
 
     if (vfoSwitched) { // swap to B and we'll swap back later
-        rig_debug(RIG_DEBUG_WARN,"%s: switching to VFOB = %d\n",__FUNCTION__,vfoSwitched);
+        rig_debug(RIG_DEBUG_VERBOSE,"%s: switching to VFOB = %d\n",__FUNCTION__,vfoSwitched);
         retval = flrig_set_vfo(rig, RIG_VFO_B);
         if (retval < 0) {
             return retval;
@@ -986,9 +986,9 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     }
 
     // Return to VFOA if needed
-    rig_debug(RIG_DEBUG_WARN,"%s: switch to VFOA? = %d\n",__FUNCTION__,vfoSwitched);
+    rig_debug(RIG_DEBUG_VERBOSE,"%s: switch to VFOA? = %d\n",__FUNCTION__,vfoSwitched);
     if (vfoSwitched) {
-        rig_debug(RIG_DEBUG_WARN,"%s: switching to VFOA\n",__FUNCTION__);
+        rig_debug(RIG_DEBUG_VERBOSE,"%s: switching to VFOA\n",__FUNCTION__);
         retval = flrig_set_vfo(rig, RIG_VFO_A);
         if (retval < 0) {
             return retval;
@@ -1439,7 +1439,7 @@ static int flrig_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t 
 static const char *flrig_get_info(RIG *rig)
 {
     struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
 
     return priv->info;
 }

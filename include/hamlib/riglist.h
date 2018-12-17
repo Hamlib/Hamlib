@@ -231,7 +231,8 @@
 #define RIG_MODEL_X108G RIG_MAKE_MODEL(RIG_ICOM, 76)    /* Xiegu X108 */
 #define RIG_MODEL_ICR6 RIG_MAKE_MODEL(RIG_ICOM, 77)
 #define RIG_MODEL_IC7610 RIG_MAKE_MODEL(RIG_ICOM, 78)
-/* next one is 79 */
+#define RIG_MODEL_ICR8600 RIG_MAKE_MODEL(RIG_ICOM, 79)
+/* next one is 80 */
 
 
 /*

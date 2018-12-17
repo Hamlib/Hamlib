@@ -126,6 +126,7 @@ struct icom_priv_data {
 };
 
 extern const struct ts_sc_list r8500_ts_sc_list[];
+extern const struct ts_sc_list r8600_ts_sc_list[];
 extern const struct ts_sc_list ic737_ts_sc_list[];
 extern const struct ts_sc_list r75_ts_sc_list[];
 extern const struct ts_sc_list r7100_ts_sc_list[];
@@ -280,5 +281,6 @@ extern const struct rig_caps perseus_caps;
 
 extern const struct rig_caps x108g_caps;
 
+extern const struct rig_caps icr8600_caps;
 
 #endif /* _ICOM_H */

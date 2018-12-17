@@ -145,7 +145,7 @@
 /*
  * Set MEM (C_SET_MEM) sub commands
  */
-#define S_BANK	0xa0		/* Select memory bank */
+#define S_BANK	0xa0		/* Select memory bank (aka 'memory group' with IC-R8600) */
 
 /*
  * Scan control (C_CTL_SCAN) subcommands
@@ -331,6 +331,17 @@
 #define S_MEM_RIT           0x06    /* RIT (0=off, 1=on, 2=sub dial) */
 #define S_MEM_SATMODE       0x07    /* Satellite mode (on/off) */
 #define S_MEM_BANDSCOPE     0x08    /* Simple bandscope (on/off) */
+
+/* IC-R8600 and others */
+#define S_MEM_SKIP_SLCT_OFF 0x00
+#define S_MEM_SKIP_SLCT_ON  0x10
+#define S_MEM_PSKIP_SLCT_ON 0x20
+#define S_MEM_DUP_OFF       0x00
+#define S_MEM_DUP_MINUS     0x01
+#define S_MEM_DUP_PLUS      0x02
+#define S_MEM_TSTEP_OFF     0x00
+#define S_MEM_TSTEP_ON      0x01
+#define S_FUNC_IPPLUS       0x07 /* IP+ subcommand 0x1a 0x07 */
 
 
 /*
