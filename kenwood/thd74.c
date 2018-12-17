@@ -25,6 +25,7 @@
 
 #include <stdlib.h>
 #include <unistd.h>
+#include <math.h>
 
 #include "hamlib/rig.h"
 #include "kenwood.h"
@@ -86,6 +87,14 @@ static rptr_shift_t thd74_rshf_table[3] =
     [0] = RIG_RPT_SHIFT_NONE,
     [1] = RIG_RPT_SHIFT_PLUS,
     [2] = RIG_RPT_SHIFT_MINUS,
+};
+
+static int thd74tuningstep_fine[4] =
+{
+    [0] = 20,
+    [1] = 100,
+    [2] = 500,
+    [3] = 1000,
 };
 
 static int thd74tuningstep[11] =
@@ -160,6 +169,8 @@ int thd74_open(RIG *rig)
 
     return ret;
 }
+
+
 
 static int thd74_set_vfo(RIG *rig, vfo_t vfo)
 {
@@ -314,12 +325,86 @@ static int thd74_set_freq_item(RIG *rig, vfo_t vfo, int item, int val)
     return kenwood_simple_transaction(rig, buf, 72);
 }
 
+static int thd74_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
+{
+    int retval, tsinx, fine, fine_ts;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+    retval = thd74_get_freq_item(rig, vfo, 16, 9, &tsinx);
+
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: fail1\n", __func__);
+        return retval;
+    }
+
+    retval = thd74_get_freq_item(rig, vfo, 33, 1, &fine);
+
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: fail1\n", __func__);
+        return retval;
+    }
+
+    retval = thd74_get_freq_item(rig, vfo, 35, 3, &fine_ts);
+
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: fail1\n", __func__);
+        return retval;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: tsinx is %d\n", __func__, tsinx);
+    rig_debug(RIG_DEBUG_TRACE, "%s: fine is %d\n", __func__, fine);
+    rig_debug(RIG_DEBUG_TRACE, "%s: fine_ts is %d\n", __func__, fine_ts);
+
+    if (fine > 0)
+    {
+        *ts = thd74tuningstep_fine[fine_ts];
+    }
+    else
+    {
+        *ts = thd74tuningstep[tsinx];
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: stepsize is %d\n", __func__, *ts);
+    return RIG_OK;
+}
+
+// needs rig and vfo to get correct stepsize
+static int thd74_round_freq(RIG *rig, vfo_t vfo, freq_t freq)
+{
+    int64_t f;
+    long double r;
+    shortfreq_t ts;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+    thd74_get_ts(rig, vfo, &ts);
+
+    f = (int64_t)freq;
+    r = round((double)f / (double)ts);
+    r = ts * r;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: rounded %10d to %10d because stepsize:%d\n",
+              __func__, f, (int64_t)r, ts);
+
+    return (freq_t)r;
+}
+
 static int thd74_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
+    struct kenwood_priv_data *priv = rig->state.priv;
     int retval;
     char buf[128], fbuf[11];
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+    if (priv->split == RIG_SPLIT_ON)
+    {
+        vfo = RIG_VFO_B;
+    }
 
     retval = thd74_get_freq_info(rig, vfo, buf);
 
@@ -328,6 +413,7 @@ static int thd74_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         return retval;
     }
 
+    freq = thd74_round_freq(rig, vfo, freq);
     sprintf(fbuf, "%010"PRIll, (int64_t)freq);
     memcpy(buf + 5, fbuf, 10);
     retval = kenwood_simple_transaction(rig, buf, 72);
@@ -336,10 +422,16 @@ static int thd74_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 static int thd74_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
+    struct kenwood_priv_data *priv = rig->state.priv;
     int retval;
     char buf[128];
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+    if (priv->split == RIG_SPLIT_ON)
+    {
+        vfo = RIG_VFO_B;
+    }
 
     retval = thd74_get_freq_info(rig, vfo, buf);
 
@@ -544,23 +636,6 @@ static int thd74_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
     }
 
     return -RIG_EINVAL;
-}
-
-static int thd74_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
-{
-    int retval, tsinx;
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
-
-    retval = thd74_get_freq_item(rig, vfo, 16, 9, &tsinx);
-
-    if (retval != RIG_OK)
-    {
-        return retval;
-    }
-
-    *ts = thd74tuningstep[tsinx];
-    return RIG_OK;
 }
 
 static int thd74_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
@@ -1242,6 +1317,102 @@ static int thd74_get_channel(RIG *rig, channel_t *chan)
     return RIG_OK;
 }
 
+int thd74_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
+{
+    struct kenwood_priv_data *priv = rig->state.priv;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+    if (txvfo != RIG_VFO_A)
+    {
+        return -RIG_EINVAL;
+    }
+
+    priv->split = split;
+
+    return RIG_OK;
+}
+
+int thd74_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *txvfo)
+{
+    struct kenwood_priv_data *priv = rig->state.priv;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+    if (priv->split == RIG_SPLIT_ON)
+    {
+        *txvfo = RIG_VFO_A;
+    }
+    else
+    {
+        return -RIG_EPROTO;
+    }
+
+    return RIG_OK;
+}
+
+/*
+if priv->split is RIG_SPLIT_ON set *tx_freq to freq of VFOA and return RIG_OK
+otherwise return -RIG_EPROTO
+*/
+int thd74_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
+{
+    struct kenwood_priv_data *priv = rig->state.priv;
+    int retval;
+    char buf[128];
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+    if (priv->split == RIG_SPLIT_ON)
+    {
+        vfo = RIG_VFO_A;
+    }
+    else
+    {
+        return -RIG_EINVAL;
+    }
+
+    retval = thd74_get_freq_info(rig, vfo, buf);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    sscanf(buf + 5, "%"SCNfreq, tx_freq);
+    return RIG_OK;
+}
+
+/*
+if priv->split is RIG_SPLIT_ON set freq of VFOA to txfreq and return RIG_OK
+otherwise return -RIG_EPROTO
+*/
+int thd74_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
+{
+    struct kenwood_priv_data *priv = rig->state.priv;
+    int retval;
+    char fbuf[11], buf[128];
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+    if (priv->split == RIG_SPLIT_ON)
+    {
+        retval = thd74_get_freq_info(rig, RIG_VFO_A, buf);
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        tx_freq = thd74_round_freq(rig, RIG_VFO_A, tx_freq);
+        sprintf(fbuf, "%010"PRIll, (int64_t)tx_freq);
+        memcpy(buf + 5, fbuf, 10);
+        return  kenwood_simple_transaction(rig, buf, 72);
+    }
+
+    return -RIG_EPROTO;
+}
+
 #ifdef false    /* not working */
 #define CMD_SZ 5
 #define BLOCK_SZ 256
@@ -1562,6 +1733,10 @@ const struct rig_caps thd74_caps =
     .get_mem  = thd74_get_mem,
     .set_channel = thd74_set_channel,
     .get_channel = thd74_get_channel,
+    .set_split_vfo = thd74_set_split_vfo,
+    .get_split_vfo = thd74_get_split_vfo,
+    .set_split_freq = thd74_set_split_freq,
+    .get_split_freq = thd74_get_split_freq,
 //.get_chan_all_cb = thd74_get_chan_all_cb, this doesn't work yet
 
     .get_info =  th_get_info,
