@@ -89,6 +89,14 @@ static rptr_shift_t thd74_rshf_table[3] =
     [2] = RIG_RPT_SHIFT_MINUS,
 };
 
+static int thd74tuningstep_fine[4] =
+{
+    [0] = 20,
+    [1] = 100,
+    [2] = 500,
+    [3] = 1000,
+};
+
 static int thd74tuningstep[11] =
 {
     [0] = 5000,
@@ -162,19 +170,7 @@ int thd74_open(RIG *rig)
     return ret;
 }
 
-static int thd74_round_fm_freq(freq_t freq)
-{
-    int64_t f;
-    long double r;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
-
-    f = (int64_t)freq;
-    r = round(f / 5000.0);
-    r = 5000 * r;
-
-    return (freq_t)r;
-}
 
 static int thd74_set_vfo(RIG *rig, vfo_t vfo)
 {
@@ -329,6 +325,74 @@ static int thd74_set_freq_item(RIG *rig, vfo_t vfo, int item, int val)
     return kenwood_simple_transaction(rig, buf, 72);
 }
 
+static int thd74_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
+{
+    int retval, tsinx, fine, fine_ts;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+    retval = thd74_get_freq_item(rig, vfo, 16, 9, &tsinx);
+
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: fail1\n", __func__);
+        return retval;
+    }
+
+    retval = thd74_get_freq_item(rig, vfo, 33, 1, &fine);
+
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: fail1\n", __func__);
+        return retval;
+    }
+
+    retval = thd74_get_freq_item(rig, vfo, 35, 3, &fine_ts);
+
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: fail1\n", __func__);
+        return retval;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: tsinx is %d\n", __func__, tsinx);
+    rig_debug(RIG_DEBUG_TRACE, "%s: fine is %d\n", __func__, fine);
+    rig_debug(RIG_DEBUG_TRACE, "%s: fine_ts is %d\n", __func__, fine_ts);
+
+    if (fine > 0)
+    {
+        *ts = thd74tuningstep_fine[fine_ts];
+    }
+    else
+    {
+        *ts = thd74tuningstep[tsinx];
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: stepsize is %d\n", __func__, *ts);
+    return RIG_OK;
+}
+
+// needs rig and vfo to get correct stepsize
+static int thd74_round_freq(RIG *rig, vfo_t vfo, freq_t freq)
+{
+    int64_t f;
+    long double r;
+    shortfreq_t ts;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+    thd74_get_ts(rig, vfo, &ts);
+
+    f = (int64_t)freq;
+    r = round((double)f / (double)ts);
+    r = ts * r;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: rounded %10d to %10d because stepsize:%d\n",
+              __func__, f, (int64_t)r, ts);
+
+    return (freq_t)r;
+}
+
 static int thd74_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     struct kenwood_priv_data *priv = rig->state.priv;
@@ -349,7 +413,7 @@ static int thd74_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         return retval;
     }
 
-    freq = thd74_round_fm_freq(freq);
+    freq = thd74_round_freq(rig, vfo, freq);
     sprintf(fbuf, "%010"PRIll, (int64_t)freq);
     memcpy(buf + 5, fbuf, 10);
     retval = kenwood_simple_transaction(rig, buf, 72);
@@ -572,23 +636,6 @@ static int thd74_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
     }
 
     return -RIG_EINVAL;
-}
-
-static int thd74_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
-{
-    int retval, tsinx;
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
-
-    retval = thd74_get_freq_item(rig, vfo, 16, 9, &tsinx);
-
-    if (retval != RIG_OK)
-    {
-        return retval;
-    }
-
-    *ts = thd74tuningstep[tsinx];
-    return RIG_OK;
 }
 
 static int thd74_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
@@ -1357,7 +1404,7 @@ int thd74_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
             return retval;
         }
 
-        tx_freq = thd74_round_fm_freq(tx_freq);
+        tx_freq = thd74_round_freq(rig, RIG_VFO_A, tx_freq);
         sprintf(fbuf, "%010"PRIll, (int64_t)tx_freq);
         memcpy(buf + 5, fbuf, 10);
         return  kenwood_simple_transaction(rig, buf, 72);
