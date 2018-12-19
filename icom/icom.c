@@ -3353,7 +3353,7 @@ int icom_set_ant(RIG * rig, vfo_t vfo, ant_t ant)
     }
 
 	antarg = 0;
-	ant_len = ((rig->caps->rig_model == RIG_MODEL_ICR75) || (rig->caps->rig_model == RIG_MODEL_ICR8600))? 0 : 1;
+	ant_len = ((rig->caps->rig_model == RIG_MODEL_ICR75) || (rig->caps->rig_model == RIG_MODEL_ICR8600) || (rig->caps->rig_model == RIG_MODEL_ICR6))? 0 : 1;
 	retval = icom_transaction (rig, C_CTL_ANT, i_ant,
 			&antarg, ant_len, ackbuf, &ack_len);
 	if (retval != RIG_OK)

@@ -31,9 +31,9 @@
 
 #define ICR6_MODES (RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_WFM)
 
-#define ICR6_FUNC_ALL (RIG_FUNC_NONE)
+#define ICR6_FUNC_ALL (RIG_FUNC_TSQL|RIG_FUNC_VSC)
 
-#define ICR6_LEVEL_ALL (RIG_LEVEL_RAWSTR)
+#define ICR6_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AF|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH)
 
 #define ICR6_VFO_ALL (RIG_VFO_A)
 
@@ -155,14 +155,18 @@ const struct rig_caps icr6_caps = {
 
 .set_freq =  icom_set_freq,
 .get_freq =  icom_get_freq,
-.set_mode =  icom_set_mode,	/* TODO: do not pass bandwidth data */
+.set_mode =  icom_set_mode,
 .get_mode =  icom_get_mode,
-/* .set_vfo =  icom_set_vfo, */
-
+.set_ant =  icom_set_ant,
+.get_ant =  icom_get_ant,
 .decode_event =  icom_decode_event,
+.set_level =  icom_set_level,
 .get_level =  icom_get_level,
+.set_func =  icom_set_func,
+.get_func =  icom_get_func,
 .get_dcd =  icom_get_dcd,
-
+.set_ctcss_sql =  icom_set_ctcss_sql,
+.get_ctcss_sql =  icom_get_ctcss_sql,
+.set_dcs_code =  icom_set_dcs_code,
+.get_dcs_code =  icom_get_dcs_code,
 };
-
-
