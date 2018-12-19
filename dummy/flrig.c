@@ -916,7 +916,7 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         return -RIG_EINVAL;
     }
     if (priv->ptt) {
-        rig_debug(RIG_DEBUG_ERR,"%s call not made as PTT=1\n",__FUNCTION__);
+        rig_debug(RIG_DEBUG_WARN,"%s call not made as PTT=1\n",__FUNCTION__);
         return RIG_OK;  // just return OK and ignore this
     }
 
@@ -1035,13 +1035,12 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     if (priv->ptt) {
         if (vfo == RIG_VFO_A) *mode = priv->curr_modeA;
         else *mode = priv->curr_modeB;
-        rig_debug(RIG_DEBUG_ERR,"%s call not made as PTT=1\n",__FUNCTION__);
+        rig_debug(RIG_DEBUG_WARN,"%s call not made as PTT=1\n",__FUNCTION__);
         return RIG_OK;  // just return OK and ignore this
     }
 
     // Switch to VFOB if appropriate
     int vfoSwitched=0;
-    rig_debug(RIG_DEBUG_ERR,"%s has_get_modeA=%d\n",__FUNCTION__,priv->has_get_modeA);
     if (priv->has_get_modeA == 0 && vfo == RIG_VFO_B && curr_vfo != RIG_VFO_B) {
         vfoSwitched = 1;
     }
@@ -1320,8 +1319,7 @@ static int flrig_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     if (retval != RIG_OK) return retval;
     if (split == qsplit) return RIG_OK;
     if (priv->ptt) {
-        priv->ptt = 1;
-        rig_debug(RIG_DEBUG_ERR,"%s call not made as PTT=1\n",__FUNCTION__);
+        rig_debug(RIG_DEBUG_WARN,"%s call not made as PTT=1\n",__FUNCTION__);
         return RIG_OK;  // just return OK and ignore this
     }
 
@@ -1387,7 +1385,7 @@ static int flrig_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq, rmode_t m
         return -RIG_ENTARGET;
 
     if (priv->ptt) {
-        rig_debug(RIG_DEBUG_ERR,"%s call not made as PTT=1\n",__FUNCTION__);
+        rig_debug(RIG_DEBUG_WARN,"%s call not made as PTT=1\n",__FUNCTION__);
         return RIG_OK;  // just return OK and ignore this
     }
 
