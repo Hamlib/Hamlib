@@ -678,7 +678,9 @@ static int ft857_get_smeter_level(RIG *rig, value_t *val)
     if ((n = ft857_get_status(rig, FT857_NATIVE_CAT_GET_RX_STATUS)) < 0)
       return n;
 
-  val->i = n = (p->rx_status & 0x0F)  * 6 - 20;  // Convert S level to dB
+  n = (p->rx_status & 0x0F);  // S level returned
+  if (n >= 9) val->i = (n-9)*10;
+  else val->i = n*6-54;
 
   return RIG_OK;
 }
