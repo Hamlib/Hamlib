@@ -42,6 +42,8 @@ static const tone_t static_full_ctcss_list[] =
     FULL_CTCSS_LIST
 };
 
+#define FULL_CTCSS_LIST_COUNT 52
+
 
 /*
  * 50 CTCSS sub-audible tones, from 67.0Hz to 254.1Hz
@@ -62,6 +64,8 @@ static const tone_t static_common_ctcss_list[] =
 {
     COMMON_CTCSS_LIST
 };
+
+#define COMMON_CTCSS_LIST_COUNT 50
 
 
 /*
@@ -84,6 +88,7 @@ static const tone_t static_common_dcs_list[] =
     COMMON_DCS_LIST
 };
 
+#define COMMON_DCS_LIST_COUNT 104
 
 /*
  * 106 DCS codes
@@ -105,6 +110,7 @@ static const tone_t static_full_dcs_list[] =
     FULL_DCS_LIST
 };
 
+#define FULL_DCS_LIST_COUNT 106
 
 /*
  * These arrays cannot be shared on Win32 systems,

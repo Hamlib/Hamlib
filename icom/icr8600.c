@@ -265,6 +265,8 @@ const struct rig_caps icr8600_caps = {
 .get_powerstat = icom_get_powerstat,
 .set_ctcss_sql =  icom_set_ctcss_sql,
 .get_ctcss_sql =  icom_get_ctcss_sql,
+.set_dcs_sql = icom_set_dcs_code,
+.get_dcs_sql = icom_get_dcs_code,
 .set_channel = icr8600_set_channel,
 .get_channel = icr8600_get_channel,
 
