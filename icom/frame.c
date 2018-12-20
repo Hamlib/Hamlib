@@ -397,6 +397,12 @@ void icom2rig_mode(RIG *rig, unsigned char md, int pd, rmode_t *mode, pbwidth_t 
 	case S_RTTYR:	*mode = RIG_MODE_RTTYR; break;
 	case S_PSK:	*mode = RIG_MODE_PKTUSB; break;	/* IC-7800 */
 	case S_PSKR:	*mode = RIG_MODE_PKTLSB; break;
+	case S_P25:	*mode = RIG_MODE_P25; break;
+	case S_DSTAR:	*mode = RIG_MODE_DSTAR; break;
+	case S_DPMR:	*mode = RIG_MODE_DPMR; break;
+	case S_NXDNVN:	*mode = RIG_MODE_NXDNVN; break;
+	case S_NXDN_N:	*mode = RIG_MODE_NXDN_N; break;
+	case S_DCR:	*mode = RIG_MODE_DCR; break;
 	case 0xff:	*mode = RIG_MODE_NONE; break;	/* blank mem channel */
 
 	default:
