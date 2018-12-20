@@ -2959,7 +2959,7 @@ int icom_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 	caps = rig->caps;
 
 	if (caps->ctcss_list) {
-		for (i = 0; caps->ctcss_list[i] != 0 && i<52; i++) {
+		for (i = 0; caps->ctcss_list[i] != 0 && i<FULL_CTCSS_LIST_COUNT; i++) {
 			if (caps->ctcss_list[i] == tone)
 				break;
 		}
@@ -3018,7 +3018,7 @@ int icom_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 	if (!caps->ctcss_list) return RIG_OK;
 
 	/* check this tone exists. That's better than nothing. */
-	for (i = 0; caps->ctcss_list[i] != 0 && i<52; i++) {
+	for (i = 0; caps->ctcss_list[i] != 0 && i<FULL_CTCSS_LIST_COUNT; i++) {
 		if (caps->ctcss_list[i] == *tone)
 			return RIG_OK;
 	}
@@ -3042,7 +3042,7 @@ int icom_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 	caps = rig->caps;
 
-	for (i = 0; caps->ctcss_list[i] != 0 && i<52; i++) {
+	for (i = 0; caps->ctcss_list[i] != 0 && i<FULL_CTCSS_LIST_COUNT; i++) {
 		if (caps->ctcss_list[i] == tone)
 			break;
 	}
@@ -3097,7 +3097,7 @@ int icom_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 	*tone = from_bcd_be(tonebuf+2, tone_len*2);
 
 	/* check this tone exists. That's better than nothing. */
-	for (i = 0; caps->ctcss_list[i] != 0 && i<52; i++) {
+	for (i = 0; caps->ctcss_list[i] != 0 && i<FULL_CTCSS_LIST_COUNT; i++) {
 		if (caps->ctcss_list[i] == *tone)
 			return RIG_OK;
 	}
@@ -3121,13 +3121,14 @@ int icom_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 	caps = rig->caps;
 
-	for (i = 0; caps->dcs_list[i] != 0 && i<104; i++) {
+	for (i = 0; caps->dcs_list[i] != 0 && i<COMMON_DCS_LIST_COUNT; i++) {
 		if (caps->dcs_list[i] == code)
 			break;
 	}
 	if (caps->dcs_list[i] != code)
 		return -RIG_EINVAL;
 
+	/* DCS Polarity ignored, by setting code_len to 3 it's forced to 0 (= Tx:norm, Rx:norm). */
 	code_len = 3;
 	to_bcd_be(codebuf, code, code_len*2);
 
@@ -3171,11 +3172,15 @@ int icom_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
 		return -RIG_ERJCTED;
 	}
 
-	code_len -= 2;
-	*code = from_bcd_be(codebuf+2, code_len*2);
+	/* buf is cn,sc, polarity, code_lo, code_hi, so code bytes start at 3, len is 2
+	   polarity is not decoded yet, hard to do without breaking ABI
+	*/
+
+	code_len -= 3;
+	*code = from_bcd_be(codebuf+3, code_len*2);
 
 	/* check this code exists. That's better than nothing. */
-	for (i = 0; caps->dcs_list[i] != 0 && i<104; i++) {
+	for (i = 0; caps->dcs_list[i] != 0 && i<COMMON_DCS_LIST_COUNT; i++) {
 		if (caps->dcs_list[i] == *code)
 			return RIG_OK;
 	}
