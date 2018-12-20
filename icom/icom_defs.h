@@ -115,6 +115,14 @@
 #define S_AMS	0x11		/* Set to AMS */
 #define S_PSK	0x12		/* 7800 PSK USB */
 #define S_PSKR	0x13		/* 7800 PSK LSB */
+#define S_SAML	0x14		/* Set to AMS-L */
+#define S_SAMU	0x15		/* Set to AMS-U */
+#define S_P25	0x16		/* Set to P25 */
+#define S_DSTAR	0x17		/* Set to D-STAR */
+#define S_DPMR	0x18		/* Set to dPMR */
+#define S_NXDNVN 0x19		/* Set to NXDN_VN */
+#define S_NXDN_N 0x20		/* Set to NXDN-N */
+#define S_DCR	0x21		/* Set to DCR */
 
 #define S_R7000_SSB	0x05	/* Set to SSB on R-7000 */
 

@@ -1,0 +1,173 @@
+/*
+ *  Hamlib CI-V backend - description of IC-R30
+ *  Copyright (c) 2018 Malcolm Herring
+ *
+ *
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
+ *
+ *   This library is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Lesser General Public
+ *   License along with this library; if not, write to the Free Software
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#include <stdlib.h>
+
+#include "hamlib/rig.h"
+#include "icom.h"
+#include "idx_builtin.h"
+
+#define ICR30_MODES (RIG_MODE_LSB|RIG_MODE_USB|RIG_MODE_AM|RIG_MODE_AMN|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_FM|RIG_MODE_WFM|RIG_MODE_CWR|\
+	RIG_MODE_RTTYR|RIG_MODE_SAM|RIG_MODE_SAL|RIG_MODE_SAH|RIG_MODE_P25|RIG_MODE_DSTAR|RIG_MODE_DPMR|RIG_MODE_NXDNVN|RIG_MODE_NXDN_N|RIG_MODE_DCR)
+
+#define ICR30_FUNC_ALL (RIG_FUNC_TSQL|RIG_FUNC_VSC)
+
+#define ICR30_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AF|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH)
+
+#define ICR30_VFO_ALL (RIG_VFO_A)
+
+#define ICR30_VFO_OPS (RIG_OP_NONE)
+#define ICR30_SCAN_OPS (RIG_SCAN_NONE)
+
+#define ICR30_STR_CAL { 2, \
+	{ \
+		{  0, -60 }, /* S0 */ \
+		{ 255, 60 } /* +60 */ \
+	} }
+
+static const struct icom_priv_caps icr30_priv_caps = {
+		0x9c,	/* default address */
+		0,		/* 731 mode */
+    0,    /* no XCHG */
+		r8500_ts_sc_list	/* wrong, but don't have set_ts anyway */
+};
+
+const struct rig_caps icr30_caps = {
+.rig_model =  RIG_MODEL_ICR30,
+.model_name = "IC-R30",
+.mfg_name =  "Icom",
+.version =  BACKEND_VER,
+.copyright =  "LGPL",
+.status =  RIG_STATUS_ALPHA,
+.rig_type =  RIG_TYPE_RECEIVER|RIG_FLAG_HANDHELD,
+.ptt_type =  RIG_PTT_NONE,
+.dcd_type =  RIG_DCD_RIG,
+.port_type =  RIG_PORT_SERIAL,
+.serial_rate_min =  300,
+.serial_rate_max =  19200,
+.serial_data_bits =  8,
+.serial_stop_bits =  1,
+.serial_parity =  RIG_PARITY_NONE,
+.serial_handshake =  RIG_HANDSHAKE_NONE,
+.write_delay =  0,
+.post_write_delay =  0,
+.timeout =  1000,
+.retry =  3,
+.has_get_func =  ICR30_FUNC_ALL,
+.has_set_func =  ICR30_FUNC_ALL,
+.has_get_level =  ICR30_LEVEL_ALL,
+.has_set_level =  RIG_LEVEL_SET(ICR30_LEVEL_ALL),
+.has_get_parm =  RIG_PARM_NONE,
+.has_set_parm =  RIG_PARM_NONE,	/* FIXME: parms */
+.level_gran = {
+	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
+},
+.parm_gran =  {},
+.ctcss_list =  NULL,
+.dcs_list =  NULL,
+.preamp =   { RIG_DBLST_END, },
+.attenuator =   { RIG_DBLST_END, },
+.max_rit =  Hz(0),
+.max_xit =  Hz(0),
+.max_ifshift =  Hz(0),
+.targetable_vfo =  0,
+.vfo_ops =  ICR30_VFO_OPS,
+.scan_ops =  ICR30_SCAN_OPS,
+.transceive =  RIG_TRN_RIG,
+.bank_qty =   0,
+.chan_desc_sz =  0,
+
+	/* Only through cloning mode OPC-1382 */
+.chan_list =  {
+		{    1,  999, RIG_MTYPE_MEM  },	/* TBC */
+		{ 1000, 1199, RIG_MTYPE_MEM },	/* auto-write */
+		{ 1200, 1299, RIG_MTYPE_EDGE },	/* two by two */
+		RIG_CHAN_END,
+		},
+
+.rx_range_list1 =   {	/* Other countries but France */
+	{kHz(100),GHz(1.309995),ICR30_MODES,-1,-1,ICR30_VFO_ALL},
+	RIG_FRNG_END, },
+.tx_range_list1 =   { RIG_FRNG_END, },
+
+.rx_range_list2 =   {	/* USA */
+	{kHz(100),MHz(821.995),ICR30_MODES,-1,-1,ICR30_VFO_ALL},
+	{MHz(851),MHz(866.995),ICR30_MODES,-1,-1,ICR30_VFO_ALL},
+	{MHz(896),GHz(1.309995),ICR30_MODES,-1,-1,ICR30_VFO_ALL},
+	RIG_FRNG_END, },
+.tx_range_list2 =   { RIG_FRNG_END, },
+
+.tuning_steps = 	{
+	 {ICR30_MODES,Hz(5000)},
+	 {ICR30_MODES,Hz(6250)},
+	 {ICR30_MODES,Hz(10000)},
+	 {ICR30_MODES,Hz(12500)},
+	 {ICR30_MODES,kHz(15)},
+	 {ICR30_MODES,kHz(20)},
+	 {ICR30_MODES,kHz(25)},
+	 {ICR30_MODES,kHz(30)},
+	 {ICR30_MODES,kHz(50)},
+	 {ICR30_MODES,kHz(100)},
+	 /* Air band only */
+	 {ICR30_MODES,Hz(8330)},
+	 /* AM broadcast band only */
+	 {ICR30_MODES,Hz(9000)},
+	 RIG_TS_END,
+	},
+	/* mode/filter list, remember: order matters! */
+.filters = 	{
+		{RIG_MODE_AM|RIG_MODE_FM, kHz(12)},
+		{RIG_MODE_WFM, kHz(150)},
+		RIG_FLT_END,
+	},
+.str_cal = ICR30_STR_CAL,
+
+.cfgparams =  icom_cfg_params,
+.set_conf =  icom_set_conf,
+.get_conf =  icom_get_conf,
+
+.priv =  (void*)&icr30_priv_caps,
+.rig_init =   icom_init,
+.rig_cleanup =   icom_cleanup,
+.rig_open =  NULL,
+.rig_close =  NULL,
+
+.set_freq =  icom_set_freq,
+.get_freq =  icom_get_freq,
+.set_mode =  icom_set_mode,
+.get_mode =  icom_get_mode,
+.set_ant =  icom_set_ant,
+.get_ant =  icom_get_ant,
+.decode_event =  icom_decode_event,
+.set_level =  icom_set_level,
+.get_level =  icom_get_level,
+.set_func =  icom_set_func,
+.get_func =  icom_get_func,
+.get_dcd =  icom_get_dcd,
+.set_ctcss_sql =  icom_set_ctcss_sql,
+.get_ctcss_sql =  icom_get_ctcss_sql,
+.set_dcs_code =  icom_set_dcs_code,
+.get_dcs_code =  icom_get_dcs_code,
+};
