@@ -326,6 +326,7 @@ int rig2icom_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 
 	switch (mode) {
 	case RIG_MODE_AM:	icmode = S_AM; break;
+	case RIG_MODE_AMN:	icmode = S_AMN; break;
 	case RIG_MODE_AMS:	icmode = S_AMS; break;
 	case RIG_MODE_CW:	icmode = S_CW; break;
 	case RIG_MODE_CWR:	icmode = S_CWR; break;
@@ -335,6 +336,12 @@ int rig2icom_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 	case RIG_MODE_RTTYR:	icmode = S_RTTYR; break;
 	case RIG_MODE_FM:	icmode = S_FM; break;
 	case RIG_MODE_WFM:	icmode = S_WFM; break;
+	case RIG_MODE_P25:	icmode = S_P25; break;
+	case RIG_MODE_DSTAR:	icmode = S_DSTAR; break;
+	case RIG_MODE_DPMR:	icmode = S_DPMR; break;
+	case RIG_MODE_NXDNVN:	icmode = S_NXDNVN; break;
+	case RIG_MODE_NXDN_N:	icmode = S_NXDN_N; break;
+	case RIG_MODE_DCR:	icmode = S_DCR; break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"icom: Unsupported Hamlib mode %d\n",mode);
 		return -RIG_EINVAL;

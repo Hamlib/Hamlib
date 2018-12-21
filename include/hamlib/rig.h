@@ -908,7 +908,7 @@ typedef unsigned long long rmode_t;
 #define    RIG_MODE_NXDNVN    (1ULL << 26)  /*!< \c NXDN-VN -- VHF,UHF digital mode IC-R8600 */
 #define    RIG_MODE_NXDN_N    (1ULL << 27)  /*!< \c NXDN-N -- VHF,UHF digital mode IC-R8600 */
 #define    RIG_MODE_DCR       (1ULL << 28)  /*!< \c DCR -- VHF,UHF digital mode IC-R8600 */
-#define    RIG_MODE_BIT29     (1ULL << 29)  /* reserved for future expansion */
+#define    RIG_MODE_AMN       (1ULL << 29)  /*!< \c AM-N -- Narrow band AM mode IC-R30 */
 #define    RIG_MODE_BIT30     (1ULL << 30)  /* reserved for future expansion */
 #define    RIG_MODE_BIT31     (1ULL << 31)  /* reserved for future expansion */
 #define    RIG_MODE_BIT32     (1ULL << 32)  /* reserved for future expansion */
@@ -942,8 +942,7 @@ typedef unsigned long long rmode_t;
 #define    RIG_MODE_BIT60     (1ULL << 60)  /* reserved for future expansion */
 #define    RIG_MODE_BIT61     (1ULL << 61)  /* reserved for future expansion */
 #define    RIG_MODE_BIT62     (1ULL << 62)  /* reserved for future expansion */
-#define    RIG_MODE_TESTS_MAX  (1ULL << 63)   /*!< \c last bit available for 64-bit enum MUST ALWAYS BE LAST, Max Count for dumpcaps.c */
-
+#define    RIG_MODE_TESTS_MAX (1ULL << 63)  /*!< \c last bit available for 64-bit enum MUST ALWAYS BE LAST, Max Count for dumpcaps.c */
 
 /**
  * \brief macro for backends, not to be used by rig_set_mode et al.

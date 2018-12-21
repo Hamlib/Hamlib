@@ -334,6 +334,13 @@ static struct
     { RIG_MODE_SAL, "SAL" },
     { RIG_MODE_SAH, "SAH" },
     { RIG_MODE_DSB, "DSB"},
+    { RIG_MODE_AMN, "AM-N"},
+    { RIG_MODE_P25, "P25"},
+    { RIG_MODE_DSTAR, "D-STAR"},
+    { RIG_MODE_DPMR, "dPMR"},
+    { RIG_MODE_NXDNVN, "NXDN-VN"},
+    { RIG_MODE_NXDN_N, "NXDN-N"},
+    { RIG_MODE_DCR, "DCR"},
     { RIG_MODE_NONE, "" },
 };
 

@@ -379,6 +379,7 @@ static const struct icom_addr icom_addr_list[] = {
 	{ RIG_MODEL_PERSEUS, 0xE1 },
 	{ RIG_MODEL_X108G, 0x70 }, 
 	{ RIG_MODEL_ICR8600, 0x96 },
+	{ RIG_MODEL_ICR30, 0x9c },
 	{ RIG_MODEL_NONE, 0 },
 };
 
@@ -742,7 +743,7 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	unsigned char icmode;
 	signed char icmode_ext;
 	int ack_len=sizeof(ackbuf), retval, err;
-	
+
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 	rs = &rig->state;
 	priv = (struct icom_priv_data*)rs->priv;
@@ -3930,6 +3931,7 @@ DECLARE_INITRIG_BACKEND(icom)
 	rig_register(&icr6_caps);
 	rig_register(&icr10_caps);
 	rig_register(&icr20_caps);
+	rig_register(&icr30_caps);
 	rig_register(&icr71_caps);
 	rig_register(&icr72_caps);
 	rig_register(&icr75_caps);
