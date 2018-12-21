@@ -681,41 +681,41 @@ typedef union {
  */
 enum rig_level_e {
     RIG_LEVEL_NONE =        0,              /*!< '' -- No Level */
-    RIG_LEVEL_PREAMP =      (1 << 0),       /*!< \c PREAMP -- Preamp, arg int (dB) */
-    RIG_LEVEL_ATT =         (1 << 1),       /*!< \c ATT -- Attenuator, arg int (dB) */
-    RIG_LEVEL_VOX =         (1 << 2),       /*!< \c VOX -- VOX delay, arg int (tenth of seconds) */
-    RIG_LEVEL_AF =          (1 << 3),       /*!< \c AF -- Volume, arg float [0.0 ... 1.0] */
-    RIG_LEVEL_RF =          (1 << 4),       /*!< \c RF -- RF gain (not TX power), arg float [0.0 ... 1.0] */
-    RIG_LEVEL_SQL =         (1 << 5),       /*!< \c SQL -- Squelch, arg float [0.0 ... 1.0] */
-    RIG_LEVEL_IF =          (1 << 6),       /*!< \c IF -- IF, arg int (Hz) */
-    RIG_LEVEL_APF =         (1 << 7),       /*!< \c APF -- Audio Peak Filter, arg float [0.0 ... 1.0] */
-    RIG_LEVEL_NR =          (1 << 8),       /*!< \c NR -- Noise Reduction, arg float [0.0 ... 1.0] */
-    RIG_LEVEL_PBT_IN =      (1 << 9),       /*!< \c PBT_IN -- Twin PBT (inside), arg float [0.0 ... 1.0] */
-    RIG_LEVEL_PBT_OUT =     (1 << 10),      /*!< \c PBT_OUT -- Twin PBT (outside), arg float [0.0 ... 1.0] */
-    RIG_LEVEL_CWPITCH =     (1 << 11),      /*!< \c CWPITCH -- CW pitch, arg int (Hz) */
-    RIG_LEVEL_RFPOWER =     (1 << 12),      /*!< \c RFPOWER -- RF Power, arg float [0.0 ... 1.0] */
-    RIG_LEVEL_MICGAIN =     (1 << 13),      /*!< \c MICGAIN -- MIC Gain, arg float [0.0 ... 1.0] */
-    RIG_LEVEL_KEYSPD =      (1 << 14),      /*!< \c KEYSPD -- Key Speed, arg int (WPM) */
-    RIG_LEVEL_NOTCHF =      (1 << 15),      /*!< \c NOTCHF -- Notch Freq., arg int (Hz) */
-    RIG_LEVEL_COMP =        (1 << 16),      /*!< \c COMP -- Compressor, arg float [0.0 ... 1.0] */
-    RIG_LEVEL_AGC =         (1 << 17),      /*!< \c AGC -- AGC, arg int (see enum agc_level_e) */
-    RIG_LEVEL_BKINDL =      (1 << 18),      /*!< \c BKINDL -- BKin Delay, arg int (tenth of dots) */
-    RIG_LEVEL_BALANCE =     (1 << 19),      /*!< \c BAL -- Balance (Dual Watch), arg float [0.0 ... 1.0] */
-    RIG_LEVEL_METER =       (1 << 20),      /*!< \c METER -- Display meter, arg int (see enum meter_level_e) */
-    RIG_LEVEL_VOXGAIN =     (1 << 21),      /*!< \c VOXGAIN -- VOX gain level, arg float [0.0 ... 1.0] */
+    RIG_LEVEL_PREAMP =      (1ULL << 0),       /*!< \c PREAMP -- Preamp, arg int (dB) */
+    RIG_LEVEL_ATT =         (1ULL << 1),       /*!< \c ATT -- Attenuator, arg int (dB) */
+    RIG_LEVEL_VOX =         (1ULL << 2),       /*!< \c VOX -- VOX delay, arg int (tenth of seconds) */
+    RIG_LEVEL_AF =          (1ULL << 3),       /*!< \c AF -- Volume, arg float [0.0 ... 1.0] */
+    RIG_LEVEL_RF =          (1ULL << 4),       /*!< \c RF -- RF gain (not TX power), arg float [0.0 ... 1.0] */
+    RIG_LEVEL_SQL =         (1ULL << 5),       /*!< \c SQL -- Squelch, arg float [0.0 ... 1.0] */
+    RIG_LEVEL_IF =          (1ULL << 6),       /*!< \c IF -- IF, arg int (Hz) */
+    RIG_LEVEL_APF =         (1ULL << 7),       /*!< \c APF -- Audio Peak Filter, arg float [0.0 ... 1.0] */
+    RIG_LEVEL_NR =          (1ULL << 8),       /*!< \c NR -- Noise Reduction, arg float [0.0 ... 1.0] */
+    RIG_LEVEL_PBT_IN =      (1ULL << 9),       /*!< \c PBT_IN -- Twin PBT (inside), arg float [0.0 ... 1.0] */
+    RIG_LEVEL_PBT_OUT =     (1ULL << 10),      /*!< \c PBT_OUT -- Twin PBT (outside), arg float [0.0 ... 1.0] */
+    RIG_LEVEL_CWPITCH =     (1ULL << 11),      /*!< \c CWPITCH -- CW pitch, arg int (Hz) */
+    RIG_LEVEL_RFPOWER =     (1ULL << 12),      /*!< \c RFPOWER -- RF Power, arg float [0.0 ... 1.0] */
+    RIG_LEVEL_MICGAIN =     (1ULL << 13),      /*!< \c MICGAIN -- MIC Gain, arg float [0.0 ... 1.0] */
+    RIG_LEVEL_KEYSPD =      (1ULL << 14),      /*!< \c KEYSPD -- Key Speed, arg int (WPM) */
+    RIG_LEVEL_NOTCHF =      (1ULL << 15),      /*!< \c NOTCHF -- Notch Freq., arg int (Hz) */
+    RIG_LEVEL_COMP =        (1ULL << 16),      /*!< \c COMP -- Compressor, arg float [0.0 ... 1.0] */
+    RIG_LEVEL_AGC =         (1ULL << 17),      /*!< \c AGC -- AGC, arg int (see enum agc_level_e) */
+    RIG_LEVEL_BKINDL =      (1ULL << 18),      /*!< \c BKINDL -- BKin Delay, arg int (tenth of dots) */
+    RIG_LEVEL_BALANCE =     (1ULL << 19),      /*!< \c BAL -- Balance (Dual Watch), arg float [0.0 ... 1.0] */
+    RIG_LEVEL_METER =       (1ULL << 20),      /*!< \c METER -- Display meter, arg int (see enum meter_level_e) */
+    RIG_LEVEL_VOXGAIN =     (1ULL << 21),      /*!< \c VOXGAIN -- VOX gain level, arg float [0.0 ... 1.0] */
     RIG_LEVEL_VOXDELAY =    RIG_LEVEL_VOX,  /*!< Synonym of RIG_LEVEL_VOX */
-    RIG_LEVEL_ANTIVOX =     (1 << 22),      /*!< \c ANTIVOX -- anti-VOX level, arg float [0.0 ... 1.0] */
-    RIG_LEVEL_SLOPE_LOW =   (1 << 23),      /*!< \c SLOPE_LOW -- Slope tune, low frequency cut, */
-    RIG_LEVEL_SLOPE_HIGH =  (1 << 24),      /*!< \c SLOPE_HIGH -- Slope tune, high frequency cut, */
-    RIG_LEVEL_BKIN_DLYMS =  (1 << 25),      /*!< \c BKIN_DLYMS -- BKin Delay, arg int Milliseconds */
+    RIG_LEVEL_ANTIVOX =     (1ULL << 22),      /*!< \c ANTIVOX -- anti-VOX level, arg float [0.0 ... 1.0] */
+    RIG_LEVEL_SLOPE_LOW =   (1ULL << 23),      /*!< \c SLOPE_LOW -- Slope tune, low frequency cut, */
+    RIG_LEVEL_SLOPE_HIGH =  (1ULL << 24),      /*!< \c SLOPE_HIGH -- Slope tune, high frequency cut, */
+    RIG_LEVEL_BKIN_DLYMS =  (1ULL << 25),      /*!< \c BKIN_DLYMS -- BKin Delay, arg int Milliseconds */
 
     /*!< These are not settable */
-    RIG_LEVEL_RAWSTR =      (1 << 26),      /*!< \c RAWSTR -- Raw (A/D) value for signal strength, specific to each rig, arg int */
-    RIG_LEVEL_SQLSTAT =     (1 << 27),      /*!< \c SQLSTAT -- SQL status, arg int (open=1/closed=0). Deprecated, use get_dcd instead */
-    RIG_LEVEL_SWR =         (1 << 28),      /*!< \c SWR -- SWR, arg float [0.0 ... infinite] */
-    RIG_LEVEL_ALC =         (1 << 29),      /*!< \c ALC -- ALC, arg float */
-    RIG_LEVEL_STRENGTH =    (1 << 30)       /*!< \c STRENGTH -- Effective (calibrated) signal strength relative to S9, arg int (dB) */
-    /* RIG_LEVEL_BWC =         (1<<31) */        /*!< Bandwidth Control, arg int (Hz) */
+    RIG_LEVEL_RAWSTR =      (1ULL << 26),      /*!< \c RAWSTR -- Raw (A/D) value for signal strength, specific to each rig, arg int */
+    RIG_LEVEL_SQLSTAT =     (1ULL << 27),      /*!< \c SQLSTAT -- SQL status, arg int (open=1/closed=0). Deprecated, use get_dcd instead */
+    RIG_LEVEL_SWR =         (1ULL << 28),      /*!< \c SWR -- SWR, arg float [0.0 ... infinite] */
+    RIG_LEVEL_ALC =         (1ULL << 29),      /*!< \c ALC -- ALC, arg float */
+    RIG_LEVEL_STRENGTH =    (1ULL << 30)       /*!< \c STRENGTH -- Effective (calibrated) signal strength relative to S9, arg int (dB) */
+    /* RIG_LEVEL_BWC =         (1ULL<<31) */        /*!< Bandwidth Control, arg int (Hz) */
 };
 
 #define RIG_LEVEL_FLOAT_LIST (RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_APF|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_COMP|RIG_LEVEL_BALANCE|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX)
@@ -790,38 +790,38 @@ typedef unsigned long setting_t;
  * initialize the func_str.func members.  TNX KA6MAL, AC6SL.  - N0NB
  */
 #define RIG_FUNC_NONE       0           /*!< '' -- No Function */
-#define RIG_FUNC_FAGC       (1UL<<0)    /*!< \c FAGC -- Fast AGC */
-#define RIG_FUNC_NB         (1UL<<1)    /*!< \c NB -- Noise Blanker */
-#define RIG_FUNC_COMP       (1UL<<2)    /*!< \c COMP -- Speech Compression */
-#define RIG_FUNC_VOX        (1UL<<3)    /*!< \c VOX -- Voice Operated Relay */
-#define RIG_FUNC_TONE       (1UL<<4)    /*!< \c TONE -- CTCSS Tone */
-#define RIG_FUNC_TSQL       (1UL<<5)    /*!< \c TSQL -- CTCSS Activate/De-activate */
-#define RIG_FUNC_SBKIN      (1UL<<6)    /*!< \c SBKIN -- Semi Break-in (CW mode) */
-#define RIG_FUNC_FBKIN      (1UL<<7)    /*!< \c FBKIN -- Full Break-in (CW mode) */
-#define RIG_FUNC_ANF        (1UL<<8)    /*!< \c ANF -- Automatic Notch Filter (DSP) */
-#define RIG_FUNC_NR         (1UL<<9)    /*!< \c NR -- Noise Reduction (DSP) */
-#define RIG_FUNC_AIP        (1UL<<10)   /*!< \c AIP -- RF pre-amp (AIP on Kenwood, IPO on Yaesu, etc.) */
-#define RIG_FUNC_APF        (1UL<<11)   /*!< \c APF -- Auto Passband/Audio Peak Filter */
-#define RIG_FUNC_MON        (1UL<<12)   /*!< \c MON -- Monitor transmitted signal */
-#define RIG_FUNC_MN         (1UL<<13)   /*!< \c MN -- Manual Notch */
-#define RIG_FUNC_RF         (1UL<<14)   /*!< \c RF -- RTTY Filter */
-#define RIG_FUNC_ARO        (1UL<<15)   /*!< \c ARO -- Auto Repeater Offset */
-#define RIG_FUNC_LOCK       (1UL<<16)   /*!< \c LOCK -- Lock */
-#define RIG_FUNC_MUTE       (1UL<<17)   /*!< \c MUTE -- Mute */
-#define RIG_FUNC_VSC        (1UL<<18)   /*!< \c VSC -- Voice Scan Control */
-#define RIG_FUNC_REV        (1UL<<19)   /*!< \c REV -- Reverse transmit and receive frequencies */
-#define RIG_FUNC_SQL        (1UL<<20)   /*!< \c SQL -- Turn Squelch Monitor on/off */
-#define RIG_FUNC_ABM        (1UL<<21)   /*!< \c ABM -- Auto Band Mode */
-#define RIG_FUNC_BC         (1UL<<22)   /*!< \c BC -- Beat Canceller */
-#define RIG_FUNC_MBC        (1UL<<23)   /*!< \c MBC -- Manual Beat Canceller */
-#define RIG_FUNC_RIT        (1UL<<24)   /*!< \c RIT -- Receiver Incremental Tuning */
-#define RIG_FUNC_AFC        (1UL<<25)   /*!< \c AFC -- Auto Frequency Control ON/OFF */
-#define RIG_FUNC_SATMODE    (1UL<<26)   /*!< \c SATMODE -- Satellite mode ON/OFF */
-#define RIG_FUNC_SCOPE      (1UL<<27)   /*!< \c SCOPE -- Simple bandscope ON/OFF */
-#define RIG_FUNC_RESUME     (1UL<<28)   /*!< \c RESUME -- Scan auto-resume */
-#define RIG_FUNC_TBURST     (1UL<<29)   /*!< \c TBURST -- 1750 Hz tone burst */
-#define RIG_FUNC_TUNER      (1UL<<30)   /*!< \c TUNER -- Enable automatic tuner */
-#define RIG_FUNC_XIT        (1UL<<31)   /*!< \c XIT -- Transmitter Incremental Tuning */
+#define RIG_FUNC_FAGC       (1ULL<<0)    /*!< \c FAGC -- Fast AGC */
+#define RIG_FUNC_NB         (1ULL<<1)    /*!< \c NB -- Noise Blanker */
+#define RIG_FUNC_COMP       (1ULL<<2)    /*!< \c COMP -- Speech Compression */
+#define RIG_FUNC_VOX        (1ULL<<3)    /*!< \c VOX -- Voice Operated Relay */
+#define RIG_FUNC_TONE       (1ULL<<4)    /*!< \c TONE -- CTCSS Tone */
+#define RIG_FUNC_TSQL       (1ULL<<5)    /*!< \c TSQL -- CTCSS Activate/De-activate */
+#define RIG_FUNC_SBKIN      (1ULL<<6)    /*!< \c SBKIN -- Semi Break-in (CW mode) */
+#define RIG_FUNC_FBKIN      (1ULL<<7)    /*!< \c FBKIN -- Full Break-in (CW mode) */
+#define RIG_FUNC_ANF        (1ULL<<8)    /*!< \c ANF -- Automatic Notch Filter (DSP) */
+#define RIG_FUNC_NR         (1ULL<<9)    /*!< \c NR -- Noise Reduction (DSP) */
+#define RIG_FUNC_AIP        (1ULL<<10)   /*!< \c AIP -- RF pre-amp (AIP on Kenwood, IPO on Yaesu, etc.) */
+#define RIG_FUNC_APF        (1ULL<<11)   /*!< \c APF -- Auto Passband/Audio Peak Filter */
+#define RIG_FUNC_MON        (1ULL<<12)   /*!< \c MON -- Monitor transmitted signal */
+#define RIG_FUNC_MN         (1ULL<<13)   /*!< \c MN -- Manual Notch */
+#define RIG_FUNC_RF         (1ULL<<14)   /*!< \c RF -- RTTY Filter */
+#define RIG_FUNC_ARO        (1ULL<<15)   /*!< \c ARO -- Auto Repeater Offset */
+#define RIG_FUNC_LOCK       (1ULL<<16)   /*!< \c LOCK -- Lock */
+#define RIG_FUNC_MUTE       (1ULL<<17)   /*!< \c MUTE -- Mute */
+#define RIG_FUNC_VSC        (1ULL<<18)   /*!< \c VSC -- Voice Scan Control */
+#define RIG_FUNC_REV        (1ULL<<19)   /*!< \c REV -- Reverse transmit and receive frequencies */
+#define RIG_FUNC_SQL        (1ULL<<20)   /*!< \c SQL -- Turn Squelch Monitor on/off */
+#define RIG_FUNC_ABM        (1ULL<<21)   /*!< \c ABM -- Auto Band Mode */
+#define RIG_FUNC_BC         (1ULL<<22)   /*!< \c BC -- Beat Canceller */
+#define RIG_FUNC_MBC        (1ULL<<23)   /*!< \c MBC -- Manual Beat Canceller */
+#define RIG_FUNC_RIT        (1ULL<<24)   /*!< \c RIT -- Receiver Incremental Tuning */
+#define RIG_FUNC_AFC        (1ULL<<25)   /*!< \c AFC -- Auto Frequency Control ON/OFF */
+#define RIG_FUNC_SATMODE    (1ULL<<26)   /*!< \c SATMODE -- Satellite mode ON/OFF */
+#define RIG_FUNC_SCOPE      (1ULL<<27)   /*!< \c SCOPE -- Simple bandscope ON/OFF */
+#define RIG_FUNC_RESUME     (1ULL<<28)   /*!< \c RESUME -- Scan auto-resume */
+#define RIG_FUNC_TBURST     (1ULL<<29)   /*!< \c TBURST -- 1750 Hz tone burst */
+#define RIG_FUNC_TUNER      (1ULL<<30)   /*!< \c TUNER -- Enable automatic tuner */
+#define RIG_FUNC_XIT        (1ULL<<31)   /*!< \c XIT -- Transmitter Incremental Tuning */
 
 
 /**
@@ -847,35 +847,35 @@ typedef unsigned long setting_t;
  */
 typedef enum {
     RIG_MODE_NONE =     0,          /*!< '' -- None */
-    RIG_MODE_AM =       (1 << 0),   /*!< \c AM -- Amplitude Modulation */
-    RIG_MODE_CW =       (1 << 1),   /*!< \c CW -- CW "normal" sideband */
-    RIG_MODE_USB =      (1 << 2),   /*!< \c USB -- Upper Side Band */
-    RIG_MODE_LSB =      (1 << 3),   /*!< \c LSB -- Lower Side Band */
-    RIG_MODE_RTTY =     (1 << 4),   /*!< \c RTTY -- Radio Teletype */
-    RIG_MODE_FM =       (1 << 5),   /*!< \c FM -- "narrow" band FM */
-    RIG_MODE_WFM =      (1 << 6),   /*!< \c WFM -- broadcast wide FM */
-    RIG_MODE_CWR =      (1 << 7),   /*!< \c CWR -- CW "reverse" sideband */
-    RIG_MODE_RTTYR =    (1 << 8),   /*!< \c RTTYR -- RTTY "reverse" sideband */
-    RIG_MODE_AMS =      (1 << 9),   /*!< \c AMS -- Amplitude Modulation Synchronous */
-    RIG_MODE_PKTLSB =   (1 << 10),  /*!< \c PKTLSB -- Packet/Digital LSB mode (dedicated port) */
-    RIG_MODE_PKTUSB =   (1 << 11),  /*!< \c PKTUSB -- Packet/Digital USB mode (dedicated port) */
-    RIG_MODE_PKTFM =    (1 << 12),  /*!< \c PKTFM -- Packet/Digital FM mode (dedicated port) */
-    RIG_MODE_ECSSUSB =  (1 << 13),  /*!< \c ECSSUSB -- Exalted Carrier Single Sideband USB */
-    RIG_MODE_ECSSLSB =  (1 << 14),  /*!< \c ECSSLSB -- Exalted Carrier Single Sideband LSB */
-    RIG_MODE_FAX =      (1 << 15),  /*!< \c FAX -- Facsimile Mode */
-    RIG_MODE_SAM =      (1 << 16),  /*!< \c SAM -- Synchronous AM double sideband */
-    RIG_MODE_SAL =      (1 << 17),  /*!< \c SAL -- Synchronous AM lower sideband */
-    RIG_MODE_SAH =      (1 << 18),  /*!< \c SAH -- Synchronous AM upper (higher) sideband */
-    RIG_MODE_DSB =      (1 << 19),  /*!< \c DSB -- Double sideband suppressed carrier */
-    RIG_MODE_FMN =      (1 << 21),  /*!< \c FMN -- FM Narrow Kenwood ts990s */
-    RIG_MODE_PKTAM =    (1 << 22),  /*!< \c PKTAM -- Packet/Digital AM mode e.g. IC7300 */
-    RIG_MODE_P25 =      (1 << 23),  /*!< \c P25 -- APCO/P25 VHF,UHF digital mode IC-R8600 */
-    RIG_MODE_DSTAR =    (1 << 24),  /*!< \c D-Star -- VHF,UHF digital mode IC-R8600 */
-    RIG_MODE_DPMR =     (1 << 25),  /*!< \c dPMR -- digital PMR, VHF,UHF digital mode IC-R8600 */
-    RIG_MODE_NXDNVN =   (1 << 26),  /*!< \c NXDN-VN -- VHF,UHF digital mode IC-R8600 */
-    RIG_MODE_NXDN_N =   (1 << 27),  /*!< \c NXDN-N -- VHF,UHF digital mode IC-R8600 */
-    RIG_MODE_DCR =      (1 << 28),  /*!< \c DCR -- VHF,UHF digital mode IC-R8600 */
-    RIG_MODE_AMN =      (1 << 29),  /*!< \c AM-N -- Narrow band AM mode IC-R30 */
+    RIG_MODE_AM =       (1ULL << 0),   /*!< \c AM -- Amplitude Modulation */
+    RIG_MODE_CW =       (1ULL << 1),   /*!< \c CW -- CW "normal" sideband */
+    RIG_MODE_USB =      (1ULL << 2),   /*!< \c USB -- Upper Side Band */
+    RIG_MODE_LSB =      (1ULL << 3),   /*!< \c LSB -- Lower Side Band */
+    RIG_MODE_RTTY =     (1ULL << 4),   /*!< \c RTTY -- Radio Teletype */
+    RIG_MODE_FM =       (1ULL << 5),   /*!< \c FM -- "narrow" band FM */
+    RIG_MODE_WFM =      (1ULL << 6),   /*!< \c WFM -- broadcast wide FM */
+    RIG_MODE_CWR =      (1ULL << 7),   /*!< \c CWR -- CW "reverse" sideband */
+    RIG_MODE_RTTYR =    (1ULL << 8),   /*!< \c RTTYR -- RTTY "reverse" sideband */
+    RIG_MODE_AMS =      (1ULL << 9),   /*!< \c AMS -- Amplitude Modulation Synchronous */
+    RIG_MODE_PKTLSB =   (1ULL << 10),  /*!< \c PKTLSB -- Packet/Digital LSB mode (dedicated port) */
+    RIG_MODE_PKTUSB =   (1ULL << 11),  /*!< \c PKTUSB -- Packet/Digital USB mode (dedicated port) */
+    RIG_MODE_PKTFM =    (1ULL << 12),  /*!< \c PKTFM -- Packet/Digital FM mode (dedicated port) */
+    RIG_MODE_ECSSUSB =  (1ULL << 13),  /*!< \c ECSSUSB -- Exalted Carrier Single Sideband USB */
+    RIG_MODE_ECSSLSB =  (1ULL << 14),  /*!< \c ECSSLSB -- Exalted Carrier Single Sideband LSB */
+    RIG_MODE_FAX =      (1ULL << 15),  /*!< \c FAX -- Facsimile Mode */
+    RIG_MODE_SAM =      (1ULL << 16),  /*!< \c SAM -- Synchronous AM double sideband */
+    RIG_MODE_SAL =      (1ULL << 17),  /*!< \c SAL -- Synchronous AM lower sideband */
+    RIG_MODE_SAH =      (1ULL << 18),  /*!< \c SAH -- Synchronous AM upper (higher) sideband */
+    RIG_MODE_DSB =      (1ULL << 19),  /*!< \c DSB -- Double sideband suppressed carrier */
+    RIG_MODE_FMN =      (1ULL << 21),  /*!< \c FMN -- FM Narrow Kenwood ts990s */
+    RIG_MODE_PKTAM =    (1ULL << 22),  /*!< \c PKTAM -- Packet/Digital AM mode e.g. IC7300 */
+    RIG_MODE_P25 =      (1ULL << 23),  /*!< \c P25 -- APCO/P25 VHF,UHF digital mode IC-R8600 */
+    RIG_MODE_DSTAR =    (1ULL << 24),  /*!< \c D-Star -- VHF,UHF digital mode IC-R8600 */
+    RIG_MODE_DPMR =     (1ULL << 25),  /*!< \c dPMR -- digital PMR, VHF,UHF digital mode IC-R8600 */
+    RIG_MODE_NXDNVN =   (1ULL << 26),  /*!< \c NXDN-VN -- VHF,UHF digital mode IC-R8600 */
+    RIG_MODE_NXDN_N =   (1ULL << 27),  /*!< \c NXDN-N -- VHF,UHF digital mode IC-R8600 */
+    RIG_MODE_DCR =      (1ULL << 28),  /*!< \c DCR -- VHF,UHF digital mode IC-R8600 */
+    RIG_MODE_AMN =      (1ULL << 29),  /*!< \c AM-N -- Narrow band AM mode IC-R30 */
     RIG_MODE_TESTS_MAX              /*!< \c MUST ALWAYS BE LAST, Max Count for dumpcaps.c */
 } rmode_t;
 
