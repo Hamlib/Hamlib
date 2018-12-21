@@ -875,7 +875,8 @@ typedef enum {
     RIG_MODE_NXDNVN =   (1 << 26),  /*!< \c NXDN-VN -- VHF,UHF digital mode IC-R8600 */
     RIG_MODE_NXDN_N =   (1 << 27),  /*!< \c NXDN-N -- VHF,UHF digital mode IC-R8600 */
     RIG_MODE_DCR =      (1 << 28),  /*!< \c DCR -- VHF,UHF digital mode IC-R8600 */
-    RIG_MODE_AMN =      (1 << 29),  /*!< \c AM-N -- Narrow band AM mode IC-R30 */
+    RIG_MODE_AM_N =     (1 << 29),  /*!< \c AM-N -- Narrow band AM mode IC-R30 */
+    RIG_MODE_FM_N =     (1 << 30),  /*!< \c FM-N -- Narrow band FM mode IC-R30 */
     RIG_MODE_TESTS_MAX              /*!< \c MUST ALWAYS BE LAST, Max Count for dumpcaps.c */
 } rmode_t;
 

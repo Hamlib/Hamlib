@@ -28,13 +28,15 @@
 #include "hamlib/rig.h"
 #include "icom.h"
 #include "idx_builtin.h"
+#include "icom_defs.h"
+#include "frame.h"
 
-#define ICR30_MODES (RIG_MODE_LSB|RIG_MODE_USB|RIG_MODE_AM|RIG_MODE_AMN|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_FM|RIG_MODE_WFM|RIG_MODE_CWR|\
+#define ICR30_MODES (RIG_MODE_LSB|RIG_MODE_USB|RIG_MODE_AM|RIG_MODE_AM_N|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_FM|RIG_MODE_FM_N|RIG_MODE_WFM|\
 	RIG_MODE_RTTYR|RIG_MODE_SAM|RIG_MODE_SAL|RIG_MODE_SAH|RIG_MODE_P25|RIG_MODE_DSTAR|RIG_MODE_DPMR|RIG_MODE_NXDNVN|RIG_MODE_NXDN_N|RIG_MODE_DCR)
 
 #define ICR30_FUNC_ALL (RIG_FUNC_TSQL|RIG_FUNC_VSC)
 
-#define ICR30_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AF|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH)
+#define ICR30_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH)
 
 #define ICR30_VFO_ALL (RIG_VFO_A)
 
@@ -47,11 +49,42 @@
 		{ 255, 60 } /* +60 */ \
 	} }
 
+/*
+ * This function does the special bandwidth coding for IC-R30
+ * (1 - normal, 2 - narrow)
+ */
+
+static int icr30_r2i_mode(RIG *rig, rmode_t mode, pbwidth_t width,
+        unsigned char *md, signed char *pd)
+{
+  int err;
+
+  err = rig2icom_mode(rig, mode, width, md, pd);
+
+  if (*pd == PD_NARROW_3)
+    *pd = PD_NARROW_2;
+
+  return err;
+}
+
+/*
+ * This function handles the -N modes for IC-R30
+ */
+
+int icr30_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
+	if (mode & (RIG_MODE_AM_N | RIG_MODE_FM_N)) {
+		return icom_set_mode(rig, vfo, mode, (pbwidth_t)1);
+	} else {
+		return icom_set_mode(rig, vfo, mode, width);
+	}
+}
+
 static const struct icom_priv_caps icr30_priv_caps = {
-	0x9c,	/* default address */
-	0,		/* 731 mode */
-	0,    /* no XCHG */
-	r8500_ts_sc_list	/* wrong, but don't have set_ts anyway */
+  0x9c,	/* default address */
+  0,		/* 731 mode */
+  0,    /* no XCHG */
+  r8500_ts_sc_list,	/* wrong, but don't have set_ts anyway */
+  .r2i_mode = icr30_r2i_mode
 };
 
 const struct rig_caps icr30_caps = {
@@ -137,7 +170,9 @@ const struct rig_caps icr30_caps = {
 	},
 	/* mode/filter list, remember: order matters! */
 .filters = 	{
-		{RIG_MODE_AM|RIG_MODE_FM, kHz(12)},
+		{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|RIG_MODE_LSB, kHz(1.8)},
+		{RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_AM_N|RIG_MODE_FM_N, kHz(12)},
+		{RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_AM_N|RIG_MODE_FM_N, kHz(6)},
 		{RIG_MODE_WFM, kHz(150)},
 		RIG_FLT_END,
 	},
@@ -155,10 +190,12 @@ const struct rig_caps icr30_caps = {
 
 .set_freq =  icom_set_freq,
 .get_freq =  icom_get_freq,
-.set_mode =  icom_set_mode,
+.set_mode =  icr30_set_mode,
 .get_mode =  icom_get_mode,
 .set_ant =  icom_set_ant,
 .get_ant =  icom_get_ant,
+.set_bank = icom_set_bank,
+.set_mem = icom_set_mem,
 .decode_event =  icom_decode_event,
 .set_level =  icom_set_level,
 .get_level =  icom_get_level,

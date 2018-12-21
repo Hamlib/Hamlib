@@ -897,8 +897,10 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	/* IC910H has different meaning of command 1A, subcommand 03. So do
 	 * not ask for DSP filter settings */
 	/* Likewise, don't ask if we happen to be an Omni VI Plus */
+	/* Likewise, don't ask if we happen to be an IC-R30 */
 	if ( (rig->caps->rig_model == RIG_MODEL_IC910) ||
-	    (rig->caps->rig_model == RIG_MODEL_OMNIVIP) )
+	    (rig->caps->rig_model == RIG_MODEL_OMNIVIP) ||
+	    (rig->caps->rig_model == RIG_MODEL_ICR30) )
 		    return RIG_OK;
 
 	/* Most rigs return 1-wide, 2-normal,3-narrow
