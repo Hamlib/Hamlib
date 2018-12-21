@@ -822,6 +822,7 @@ typedef unsigned long setting_t;
 #define RIG_FUNC_TBURST     (1ULL<<29)   /*!< \c TBURST -- 1750 Hz tone burst */
 #define RIG_FUNC_TUNER      (1ULL<<30)   /*!< \c TUNER -- Enable automatic tuner */
 #define RIG_FUNC_XIT        (1ULL<<31)   /*!< \c XIT -- Transmitter Incremental Tuning */
+#define RIG_FUNC_DSQL       (1ULL<<32)   /*!< \c DSQL -- DTCS Squelch */
 
 
 /**
