@@ -669,7 +669,7 @@ int dump_csv_chan(RIG *rig,
 
     if (mem_caps->funcs)
     {
-        fprintf(f, "%lx%c", chan.funcs, csv_sep);
+        fprintf(f, "%llx%c", chan.funcs, csv_sep);
     }
 
     if (mem_caps->ctcss_tone)
@@ -940,7 +940,7 @@ int set_channel_data(RIG *rig,
 
         if (i >= 0)
         {
-            sscanf(line_data_list[i], "%lx", &chan->funcs);
+            sscanf(line_data_list[i], "%llx", &chan->funcs);
         }
     }
 
