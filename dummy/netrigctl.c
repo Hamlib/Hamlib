@@ -113,10 +113,10 @@ static int netrigctl_open(RIG *rig)
 	if (ret <= 0)
 		return (ret < 0) ? ret : -RIG_EPROTO;
 
-	ret = num_sscanf(buf, "%"SCNfreq"%"SCNfreq"%llx%d%d%x%x",
+	ret = num_sscanf(buf, "%"SCNfreq"%"SCNfreq"%"SCNXll"%d%d%x%x",
 		&rs->rx_range_list[i].start,
 		&rs->rx_range_list[i].end,
-		&rs->rx_range_list[i].modes,
+		(uint64_t*)&rs->rx_range_list[i].modes,
 		&rs->rx_range_list[i].low_power,
 		&rs->rx_range_list[i].high_power,
 		&rs->rx_range_list[i].vfo,
@@ -132,10 +132,10 @@ static int netrigctl_open(RIG *rig)
 	if (ret <= 0)
 		return (ret < 0) ? ret : -RIG_EPROTO;
 
-	ret = num_sscanf(buf, "%"SCNfreq"%"SCNfreq"%llx%d%d%x%x",
+	ret = num_sscanf(buf, "%"SCNfreq"%"SCNfreq"%"SCNXll"%d%d%x%x",
 		&rs->tx_range_list[i].start,
 		&rs->tx_range_list[i].end,
-		&rs->tx_range_list[i].modes,
+		(uint64_t*)&rs->tx_range_list[i].modes,
 		&rs->tx_range_list[i].low_power,
 		&rs->tx_range_list[i].high_power,
 		&rs->tx_range_list[i].vfo,
@@ -151,8 +151,8 @@ static int netrigctl_open(RIG *rig)
   	if (ret <= 0)
 		return (ret < 0) ? ret : -RIG_EPROTO;
 
-	ret = sscanf(buf, "%llx%ld",
-                                &rs->tuning_steps[i].modes,
+	ret = sscanf(buf, "%"SCNXll"%ld",
+                                (uint64_t*)&rs->tuning_steps[i].modes,
                                 &rs->tuning_steps[i].ts);
 	if (ret != 2)
 		return -RIG_EPROTO;
@@ -165,8 +165,8 @@ static int netrigctl_open(RIG *rig)
   	if (ret <= 0)
 		return (ret < 0) ? ret : -RIG_EPROTO;
 
-	ret = sscanf(buf, "%llx%ld",
-                                &rs->filters[i].modes,
+	ret = sscanf(buf, "%"SCNXll"%ld",
+                                (uint64_t*)&rs->filters[i].modes,
                                 &rs->filters[i].width);
 	if (ret != 2)
 		return -RIG_EPROTO;
