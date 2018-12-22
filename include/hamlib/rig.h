@@ -909,8 +909,8 @@ typedef unsigned long long rmode_t;
 #define    RIG_MODE_NXDN_N    (1ULL << 27)  /*!< \c NXDN-N -- VHF,UHF digital mode IC-R8600 */
 #define    RIG_MODE_DCR       (1ULL << 28)  /*!< \c DCR -- VHF,UHF digital mode IC-R8600 */
 #define    RIG_MODE_AMN       (1ULL << 29)  /*!< \c AM-N -- Narrow band AM mode IC-R30 */
-#define    RIG_MODE_BIT30     (1ULL << 30)  /* reserved for future expansion */
-#define    RIG_MODE_BIT31     (1ULL << 31)  /* reserved for future expansion */
+#define    RIG_MODE_PSK       (1ULL << 30)  /* PSK - Kenwood PSK and others */
+#define    RIG_MODE_PSKR      (1ULL << 31)  /* PSKR - Kenwood PSKR and others */
 #define    RIG_MODE_BIT32     (1ULL << 32)  /* reserved for future expansion */
 #define    RIG_MODE_BIT33     (1ULL << 33)  /* reserved for future expansion */
 #define    RIG_MODE_BIT34     (1ULL << 34)  /* reserved for future expansion */

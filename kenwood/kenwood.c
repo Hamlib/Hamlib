@@ -86,6 +86,7 @@ static const struct kenwood_id kenwood_id_list[] = {
   { RIG_MODEL_TS590S, 21 },
   { RIG_MODEL_TS990S, 22 },
   { RIG_MODEL_TS590SG, 23 },
+  { RIG_MODEL_TS890S, 24 },
   { RIG_MODEL_NONE, UNKNOWN_ID }, /* end marker */
 };
 
@@ -132,7 +133,13 @@ rmode_t kenwood_mode_table[KENWOOD_MODE_TABLE_MAX] = {
   [6] = RIG_MODE_RTTY,
   [7] = RIG_MODE_CWR,
   [8] = RIG_MODE_NONE,  /* TUNE mode */
-  [9] = RIG_MODE_RTTYR
+  [9] = RIG_MODE_RTTYR,
+  [10] = RIG_MODE_PSK,
+  [11] = RIG_MODE_PSKR,
+  [12] = RIG_MODE_PKTLSB,
+  [13] = RIG_MODE_PKTUSB,
+  [14] = RIG_MODE_PKTFM,
+  [15] = RIG_MODE_PKTAM
 };
 
 /*
@@ -3437,6 +3444,7 @@ DECLARE_INITRIG_BACKEND(kenwood)
 
   rig_register(&f6k_caps);
   rig_register(&pihpsdr_caps);
+  rig_register(&ts890s_caps);
 
   return RIG_OK;
 }
