@@ -26,6 +26,7 @@
 
 #include <stdio.h>
 #include <stdarg.h>
+#include <inttypes.h>
 
 /* Rig list is in a separate file so as not to mess up w/ this one */
 #include <hamlib/riglist.h>
@@ -760,7 +761,7 @@ enum rig_parm_e {
  * This can be a func, a level or a parm.
  * Each bit designates one of them.
  */
-typedef unsigned long long setting_t;
+typedef uint64_t setting_t;
 
 /**
  * \brief Tranceive mode
@@ -877,8 +878,9 @@ typedef unsigned long long setting_t;
  * \sa rig_parse_mode(), rig_strrmode()
  * TODO: Add new 8600 modes to rig2icom_mode() and icom2rig_mode() in frame.c
  */
-#define ULL (unsigned long long)
-typedef unsigned long long rmode_t;
+#define ULL (uint64_t)
+typedef uint64_t rmode_t;
+
 #define    RIG_MODE_NONE      0             /*!< '' -- None */
 #define    RIG_MODE_AM        (1ULL << 0)   /*!< \c AM -- Amplitude Modulation */
 #define    RIG_MODE_CW        (1ULL << 1)   /*!< \c CW -- CW "normal" sideband */
