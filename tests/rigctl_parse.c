@@ -3858,12 +3858,12 @@ declare_proto_rig(dump_state)
 
     fprintf(fout, "\n");
 
-    fprintf(fout, "0x%lx\n", rs->has_get_func);
-    fprintf(fout, "0x%lx\n", rs->has_set_func);
-    fprintf(fout, "0x%lx\n", rs->has_get_level);
-    fprintf(fout, "0x%lx\n", rs->has_set_level);
-    fprintf(fout, "0x%lx\n", rs->has_get_parm);
-    fprintf(fout, "0x%lx\n", rs->has_set_parm);
+    fprintf(fout, "0x%llx\n", rs->has_get_func);
+    fprintf(fout, "0x%llx\n", rs->has_set_func);
+    fprintf(fout, "0x%llx\n", rs->has_get_level);
+    fprintf(fout, "0x%llx\n", rs->has_set_level);
+    fprintf(fout, "0x%llx\n", rs->has_get_parm);
+    fprintf(fout, "0x%llx\n", rs->has_set_parm);
 
 #if 0
     gran_t level_gran[RIG_SETTING_MAX];   /*!< level granularity */
