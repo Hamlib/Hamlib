@@ -823,7 +823,7 @@ typedef uint64_t setting_t;
 #define RIG_FUNC_TBURST     (1ULL<<29)   /*!< \c TBURST -- 1750 Hz tone burst */
 #define RIG_FUNC_TUNER      (1ULL<<30)   /*!< \c TUNER -- Enable automatic tuner */
 #define RIG_FUNC_XIT        (1ULL<<31)   /*!< \c XIT -- Transmitter Incremental Tuning */
-#define RIG_FUNC_BIT32      (1ULL<<32)   /* available for future RIG_FUNC items */
+#define RIG_FUNC_NB2        (1ULL<<32)    /*!< \c NB2 -- 2nd Noise Blanker */
 #define RIG_FUNC_BIT33      (1ULL<<33)   /* available for future RIG_FUNC items */
 #define RIG_FUNC_BIT34      (1ULL<<34)   /* available for future RIG_FUNC items */
 #define RIG_FUNC_BIT35      (1ULL<<35)   /* available for future RIG_FUNC items */
@@ -2253,7 +2253,7 @@ rigerror HAMLIB_PARAMS((int errnum));
 extern HAMLIB_EXPORT(int)
 rig_setting2idx HAMLIB_PARAMS((setting_t s));
 
-#define rig_idx2setting(i) (1UL<<(i))
+#define rig_idx2setting(i) (1ULL<<(i))
 
 /*
  * Even if these functions are prefixed with "rig_", they are not rig specific
