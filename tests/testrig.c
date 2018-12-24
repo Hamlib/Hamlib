@@ -9,6 +9,8 @@
 
 #include <hamlib/rig.h>
 
+#include "misc.h"
+
 #ifdef HAVE_CONFIG_H
 #  include "config.h"
 #endif
@@ -401,7 +403,7 @@ int main(int argc, char *argv[])
 
     if (retcode == RIG_OK)
     {
-        printf("rig_get_mode: mode = %i \n", rmode);
+        printf("rig_get_mode: mode = %"PRIll"\n", rmode);
     }
     else
     {

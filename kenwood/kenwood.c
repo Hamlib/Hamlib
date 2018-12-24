@@ -86,6 +86,7 @@ static const struct kenwood_id kenwood_id_list[] = {
   { RIG_MODEL_TS590S, 21 },
   { RIG_MODEL_TS990S, 22 },
   { RIG_MODEL_TS590SG, 23 },
+  { RIG_MODEL_TS890S, 24 },
   { RIG_MODEL_NONE, UNKNOWN_ID }, /* end marker */
 };
 
@@ -132,7 +133,13 @@ rmode_t kenwood_mode_table[KENWOOD_MODE_TABLE_MAX] = {
   [6] = RIG_MODE_RTTY,
   [7] = RIG_MODE_CWR,
   [8] = RIG_MODE_NONE,  /* TUNE mode */
-  [9] = RIG_MODE_RTTYR
+  [9] = RIG_MODE_RTTYR,
+  [10] = RIG_MODE_PSK,
+  [11] = RIG_MODE_PSKR,
+  [12] = RIG_MODE_PKTLSB,
+  [13] = RIG_MODE_PKTUSB,
+  [14] = RIG_MODE_PKTFM,
+  [15] = RIG_MODE_PKTAM
 };
 
 /*
@@ -1442,6 +1449,16 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     return -RIG_EINVAL;
   }
 
+  char c;
+  if (kmode <= 9)
+    {
+      c = '0' + kmode;
+    }
+  else
+    {
+      c = 'A' + kmode - 10;
+    }
+
   if (RIG_MODEL_TS990S == rig->caps->rig_model)
     {
       /* The TS990s has targetable read mode but can only set the mode
@@ -1450,18 +1467,9 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
          setting caps.targetable_vfo to not include
          RIG_TARGETABLE_MODE since the toggle is not required for
          reading the mode. */
-      char c;
       vfo_t curr_vfo;
       err = kenwood_get_vfo_main_sub (rig, &curr_vfo);
       if (err != RIG_OK) return err;
-      if (kmode <= 9)
-        {
-          c = '0' + kmode;
-        }
-      else
-        {
-          c = 'A' + kmode - 10;
-        }
       if (vfo != RIG_VFO_CURR && vfo != curr_vfo)
         {
           err = kenwood_set_vfo_main_sub (rig, vfo);
@@ -1477,7 +1485,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     }
   else
     {
-      snprintf(buf, sizeof (buf), "MD%c", '0' + kmode);
+      snprintf(buf, sizeof (buf), "MD%c", c);
       err = kenwood_transaction(rig, buf, NULL, 0);
     }
   if (err != RIG_OK) return err;
@@ -2019,11 +2027,28 @@ int kenwood_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
   if (!rig)
     return -RIG_EINVAL;
 
-  char buf[6]; /* longest cmd is GTxxx */
+  char buf[10]; /* longest cmd is GTxxx */
 
   switch (func) {
   case RIG_FUNC_NB:
-    snprintf(buf, sizeof (buf), "NB%c", (status == 0) ? '0' : '1');
+  case RIG_FUNC_NB2:
+    /* newer Kenwoods have a second noise blanker */
+    if (RIG_MODEL_TS890S == rig->caps->rig_model) {
+      switch(func) {
+        case RIG_FUNC_NB:
+          snprintf(buf, sizeof (buf), "NB1%c", (status == 0) ? '0' : '1');
+          break;
+        case RIG_FUNC_NB2:
+          snprintf(buf, sizeof (buf), "NB2%c", (status == 0) ? '0' : '1');
+          break;
+	default:
+          rig_debug(RIG_DEBUG_ERR, "%s: expected 0,1, or 2 and got %d\n", __func__, status);
+	  return -RIG_EINVAL;
+      }
+    }
+    else {
+      snprintf(buf, sizeof (buf), "NB%c", (status == 0) ? '0' : '1');
+    }
     return kenwood_transaction(rig, buf, NULL, 0);
 
   case RIG_FUNC_ABM:
@@ -2133,6 +2158,9 @@ int kenwood_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
   case RIG_FUNC_NB:
     return get_kenwood_func(rig, "NB", status);
+
+  case RIG_FUNC_NB2:
+    return get_kenwood_func(rig, "NB2", status);
 
   case RIG_FUNC_ABM:
     return get_kenwood_func(rig, "AM", status);
@@ -3437,6 +3465,7 @@ DECLARE_INITRIG_BACKEND(kenwood)
 
   rig_register(&f6k_caps);
   rig_register(&pihpsdr_caps);
+  rig_register(&ts890s_caps);
 
   return RIG_OK;
 }

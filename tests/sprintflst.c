@@ -103,7 +103,7 @@ int sprintf_vfo(char *str, vfo_t vfo)
 
 int sprintf_mode(char *str, rmode_t mode)
 {
-    int i, len = 0;
+    uint64_t i, len = 0;
 
     *str = '\0';
 
@@ -112,9 +112,9 @@ int sprintf_mode(char *str, rmode_t mode)
         return 0;
     }
 
-    for (i = 0; i < 30; i++)
+    for (i = 0; i < 63; i++)
     {
-        const char *ms = rig_strrmode(mode & (1UL << i));
+        const char *ms = rig_strrmode(mode & (1ULL << i));
 
         if (!ms || !ms[0])
         {
@@ -132,7 +132,7 @@ int sprintf_mode(char *str, rmode_t mode)
 
 int sprintf_func(char *str, setting_t func)
 {
-    int i, len = 0;
+    uint64_t i, len = 0;
 
     *str = '\0';
 
