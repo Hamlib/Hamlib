@@ -516,6 +516,8 @@ static struct
     { RIG_FUNC_TBURST, "TBURST" },
     { RIG_FUNC_TUNER, "TUNER" },
     { RIG_FUNC_XIT, "XIT" },
+    { RIG_FUNC_DSQL, "DSQL" },
+    { RIG_FUNC_AFLT, "AFLT" },
     { RIG_FUNC_NONE, "" },
 };
 

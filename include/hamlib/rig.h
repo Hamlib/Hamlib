@@ -823,9 +823,9 @@ typedef uint64_t setting_t;
 #define RIG_FUNC_TBURST     (1ULL<<29)   /*!< \c TBURST -- 1750 Hz tone burst */
 #define RIG_FUNC_TUNER      (1ULL<<30)   /*!< \c TUNER -- Enable automatic tuner */
 #define RIG_FUNC_XIT        (1ULL<<31)   /*!< \c XIT -- Transmitter Incremental Tuning */
-#define RIG_FUNC_NB2        (1ULL<<32)    /*!< \c NB2 -- 2nd Noise Blanker */
-#define RIG_FUNC_BIT33      (1ULL<<33)   /* available for future RIG_FUNC items */
-#define RIG_FUNC_BIT34      (1ULL<<34)   /* available for future RIG_FUNC items */
+#define RIG_FUNC_NB2        (1ULL<<32)   /*!< \c NB2 -- 2nd Noise Blanker */
+#define RIG_FUNC_DSQL       (1ULL<<33)   /* DSQL -- DCS Squelch setting */
+#define RIG_FUNC_AFLT       (1ULL<<34)   /* AFLT -- AF Filter setting */
 #define RIG_FUNC_BIT35      (1ULL<<35)   /* available for future RIG_FUNC items */
 #define RIG_FUNC_BIT36      (1ULL<<36)   /* available for future RIG_FUNC items */
 #define RIG_FUNC_BIT37      (1ULL<<37)   /* available for future RIG_FUNC items */

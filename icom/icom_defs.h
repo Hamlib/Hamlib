@@ -294,7 +294,7 @@
 #define S_FUNC_MN	0x48		/* Manual notch setting */
 #define S_FUNC_RF	0x49		/* RTTY Filter setting */
 #define S_FUNC_AFC  	0x4A        /* Auto Frequency Control (AFC) setting */
-#define S_FUNC_DTCS	0x4B		/*DTCS tone code squelch setting*/
+#define S_FUNC_DSQL	0x4B		/*DTCS tone code squelch setting*/
 #define S_FUNC_VSC	0x4C		/* voice squelch control useful for scanning*/
 #define S_FUNC_MANAGC	0x4D		/* manual AGC */
 #define S_FUNC_DIGISEL	0x4E		/* DIGI-SEL */
@@ -354,6 +354,8 @@
 #define S_MEM_TSTEP_ON      0x01
 #define S_FUNC_IPPLUS       0x07 /* IP+ subcommand 0x1a 0x07 */
 
+/* IC-R6 */
+#define S_MEM_AFLT 0x00		/* AF LPF Off/On */
 
 /*
  * Tone control (C_SET_TONE) subcommands

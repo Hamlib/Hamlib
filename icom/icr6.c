@@ -31,7 +31,7 @@
 
 #define ICR6_MODES (RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_WFM)
 
-#define ICR6_FUNC_ALL (RIG_FUNC_TSQL|RIG_FUNC_VSC)
+#define ICR6_FUNC_ALL (RIG_FUNC_TSQL|RIG_FUNC_VSC|RIG_FUNC_DSQL|RIG_FUNC_AFLT)
 
 #define ICR6_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AF|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH)
 
@@ -59,7 +59,7 @@ const struct rig_caps icr6_caps = {
 .mfg_name =  "Icom",
 .version =  BACKEND_VER,
 .copyright =  "LGPL",
-.status =  RIG_STATUS_ALPHA,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_RECEIVER|RIG_FLAG_HANDHELD,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_RIG,
@@ -79,12 +79,12 @@ const struct rig_caps icr6_caps = {
 .has_get_level =  ICR6_LEVEL_ALL,
 .has_set_level =  RIG_LEVEL_SET(ICR6_LEVEL_ALL),
 .has_get_parm =  RIG_PARM_NONE,
-.has_set_parm =  RIG_PARM_NONE,	/* FIXME: parms */
+.has_set_parm =  RIG_PARM_NONE,
 .level_gran = {
 	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
 },
 .parm_gran =  {},
-.ctcss_list =  static_common_ctcss_list,
+.ctcss_list =  common_ctcss_list,
 .dcs_list =  common_dcs_list,
 .preamp =   { RIG_DBLST_END, },
 .attenuator =   { RIG_DBLST_END, },
@@ -98,13 +98,7 @@ const struct rig_caps icr6_caps = {
 .bank_qty =   0,
 .chan_desc_sz =  0,
 
-	/* Only through cloning mode OPC-1382 */
-.chan_list =  {
-		{    1,  999, RIG_MTYPE_MEM  },	/* TBC */
-		{ 1000, 1199, RIG_MTYPE_MEM },	/* auto-write */
-		{ 1200, 1299, RIG_MTYPE_EDGE },	/* two by two */
-		RIG_CHAN_END,
-		},
+.chan_list =  {RIG_CHAN_END,},
 
 .rx_range_list1 =   {	/* Other countries but France */
 	{kHz(100),GHz(1.309995),ICR6_MODES,-1,-1,ICR6_VFO_ALL},
@@ -119,22 +113,25 @@ const struct rig_caps icr6_caps = {
 .tx_range_list2 =   { RIG_FRNG_END, },
 
 .tuning_steps = 	{
-	 {ICR6_MODES,Hz(5000)},
-   {ICR6_MODES,Hz(6250)},
-	 {ICR6_MODES,Hz(10000)},
-	 {ICR6_MODES,Hz(12500)},
-	 {ICR6_MODES,kHz(15)},
-	 {ICR6_MODES,kHz(20)},
-	 {ICR6_MODES,kHz(25)},
-	 {ICR6_MODES,kHz(30)},
-	 {ICR6_MODES,kHz(50)},
-	 {ICR6_MODES,kHz(100)},
+	{ICR6_MODES,Hz(5000)},
+	{ICR6_MODES,Hz(6250)},
+	{ICR6_MODES,Hz(10000)},
+	{ICR6_MODES,Hz(12500)},
+	{ICR6_MODES,kHz(15)},
+	{ICR6_MODES,kHz(20)},
+	{ICR6_MODES,kHz(25)},
+	{ICR6_MODES,kHz(30)},
+	{ICR6_MODES,kHz(50)},
+	{ICR6_MODES,kHz(100)},
+	{ICR6_MODES,kHz(125)},
+	{ICR6_MODES,kHz(200)},
 	 /* Air band only */
-	 {ICR6_MODES,Hz(8330)},
+	{ICR6_MODES,Hz(8330)},
 	 /* AM broadcast band only */
-	 {ICR6_MODES,Hz(9000)},
-	 RIG_TS_END,
+	{ICR6_MODES,Hz(9000)},
+	RIG_TS_END,
 	},
+
 	/* mode/filter list, remember: order matters! */
 .filters = 	{
 		{RIG_MODE_AM|RIG_MODE_FM, kHz(12)},
