@@ -326,7 +326,7 @@ int rig2icom_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 
 	switch (mode) {
 	case RIG_MODE_AM:	icmode = S_AM; break;
-	case RIG_MODE_AM_N:	icmode = S_AM_N; break;
+	case RIG_MODE_AMN:	icmode = S_AMN; break;
 	case RIG_MODE_AMS:	icmode = S_AMS; break;
 	case RIG_MODE_CW:	icmode = S_CW; break;
 	case RIG_MODE_CWR:	icmode = S_CWR; break;
@@ -335,7 +335,7 @@ int rig2icom_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 	case RIG_MODE_RTTY:	icmode = S_RTTY; break;
 	case RIG_MODE_RTTYR:	icmode = S_RTTYR; break;
 	case RIG_MODE_FM:	icmode = S_FM; break;
-	case RIG_MODE_FM_N:	icmode = S_FM_N; break;
+	case RIG_MODE_FMN:	icmode = S_FMN; break;
 	case RIG_MODE_WFM:	icmode = S_WFM; break;
 	case RIG_MODE_P25:	icmode = S_P25; break;
 	case RIG_MODE_DSTAR:	icmode = S_DSTAR; break;
@@ -381,7 +381,7 @@ void icom2rig_mode(RIG *rig, unsigned char md, int pd, rmode_t *mode, pbwidth_t 
 
 	switch (md) {
 	case S_AM:	if (rig->caps->rig_model == RIG_MODEL_ICR30 && pd == 0x02) {
-                                *mode = RIG_MODE_AM_N;
+                                *mode = RIG_MODE_AMN;
 			} else {
 				*mode = RIG_MODE_AM;
 			}  break;
@@ -394,7 +394,7 @@ void icom2rig_mode(RIG *rig, unsigned char md, int pd, rmode_t *mode, pbwidth_t 
 				*width = rig_passband_normal(rig, RIG_MODE_USB);
 				return;
 			} else if (rig->caps->rig_model == RIG_MODEL_ICR30 && pd == 0x02) {
-                                *mode = RIG_MODE_FM_N;
+                                *mode = RIG_MODE_FMN;
                         } else {
 				*mode = RIG_MODE_FM;
 			} break;
@@ -405,6 +405,12 @@ void icom2rig_mode(RIG *rig, unsigned char md, int pd, rmode_t *mode, pbwidth_t 
 	case S_RTTYR:	*mode = RIG_MODE_RTTYR; break;
 	case S_PSK:	*mode = RIG_MODE_PKTUSB; break;	/* IC-7800 */
 	case S_PSKR:	*mode = RIG_MODE_PKTLSB; break;
+	case S_DSTAR:	*mode = RIG_MODE_DSTAR; break;
+	case S_P25:	*mode = RIG_MODE_P25; break;
+	case S_DPMR:	*mode = RIG_MODE_DPMR; break;
+	case S_NXDNVN:	*mode = RIG_MODE_NXDNVN; break;
+	case S_NXDN_N:	*mode = RIG_MODE_NXDN_N; break;
+	case S_DCR:	*mode = RIG_MODE_DCR; break;
 	case 0xff:	*mode = RIG_MODE_NONE; break;	/* blank mem channel */
 
 	default:

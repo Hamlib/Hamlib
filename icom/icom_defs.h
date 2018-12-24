@@ -106,11 +106,11 @@
 #define S_LSB	0x00		/* Set to LSB */
 #define S_USB	0x01		/* Set to USB */
 #define S_AM	0x02		/* Set to AM */
-#define S_AM_N	0x02		/* Set to AM-N */
+#define S_AMN	0x02		/* Set to AM-N */
 #define S_CW	0x03		/* Set to CW */
 #define S_RTTY	0x04		/* Set to RTTY */
 #define S_FM	0x05		/* Set to FM */
-#define S_FM_N	0x05		/* Set to FM-N */
+#define S_FMN	0x05		/* Set to FM-N */
 #define S_WFM	0x06		/* Set to Wide FM */
 #define S_CWR	0x07		/* Set to CW Reverse */
 #define S_RTTYR	0x08		/* Set to RTTY Reverse */

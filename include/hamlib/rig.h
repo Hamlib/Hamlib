@@ -878,43 +878,6 @@ typedef uint64_t setting_t;
  * \sa rig_parse_mode(), rig_strrmode()
  * TODO: Add new 8600 modes to rig2icom_mode() and icom2rig_mode() in frame.c
  */
-<<<<<<< HEAD
-typedef enum {
-    RIG_MODE_NONE =     0,          /*!< '' -- None */
-    RIG_MODE_AM =       (1 << 0),   /*!< \c AM -- Amplitude Modulation */
-    RIG_MODE_CW =       (1 << 1),   /*!< \c CW -- CW "normal" sideband */
-    RIG_MODE_USB =      (1 << 2),   /*!< \c USB -- Upper Side Band */
-    RIG_MODE_LSB =      (1 << 3),   /*!< \c LSB -- Lower Side Band */
-    RIG_MODE_RTTY =     (1 << 4),   /*!< \c RTTY -- Radio Teletype */
-    RIG_MODE_FM =       (1 << 5),   /*!< \c FM -- "narrow" band FM */
-    RIG_MODE_WFM =      (1 << 6),   /*!< \c WFM -- broadcast wide FM */
-    RIG_MODE_CWR =      (1 << 7),   /*!< \c CWR -- CW "reverse" sideband */
-    RIG_MODE_RTTYR =    (1 << 8),   /*!< \c RTTYR -- RTTY "reverse" sideband */
-    RIG_MODE_AMS =      (1 << 9),   /*!< \c AMS -- Amplitude Modulation Synchronous */
-    RIG_MODE_PKTLSB =   (1 << 10),  /*!< \c PKTLSB -- Packet/Digital LSB mode (dedicated port) */
-    RIG_MODE_PKTUSB =   (1 << 11),  /*!< \c PKTUSB -- Packet/Digital USB mode (dedicated port) */
-    RIG_MODE_PKTFM =    (1 << 12),  /*!< \c PKTFM -- Packet/Digital FM mode (dedicated port) */
-    RIG_MODE_ECSSUSB =  (1 << 13),  /*!< \c ECSSUSB -- Exalted Carrier Single Sideband USB */
-    RIG_MODE_ECSSLSB =  (1 << 14),  /*!< \c ECSSLSB -- Exalted Carrier Single Sideband LSB */
-    RIG_MODE_FAX =      (1 << 15),  /*!< \c FAX -- Facsimile Mode */
-    RIG_MODE_SAM =      (1 << 16),  /*!< \c SAM -- Synchronous AM double sideband */
-    RIG_MODE_SAL =      (1 << 17),  /*!< \c SAL -- Synchronous AM lower sideband */
-    RIG_MODE_SAH =      (1 << 18),  /*!< \c SAH -- Synchronous AM upper (higher) sideband */
-    RIG_MODE_DSB =      (1 << 19),  /*!< \c DSB -- Double sideband suppressed carrier */
-    RIG_MODE_FMN =      (1 << 21),  /*!< \c FMN -- FM Narrow Kenwood ts990s */
-    RIG_MODE_PKTAM =    (1 << 22),  /*!< \c PKTAM -- Packet/Digital AM mode e.g. IC7300 */
-    RIG_MODE_P25 =      (1 << 23),  /*!< \c P25 -- APCO/P25 VHF,UHF digital mode IC-R8600 */
-    RIG_MODE_DSTAR =    (1 << 24),  /*!< \c D-Star -- VHF,UHF digital mode IC-R8600 */
-    RIG_MODE_DPMR =     (1 << 25),  /*!< \c dPMR -- digital PMR, VHF,UHF digital mode IC-R8600 */
-    RIG_MODE_NXDNVN =   (1 << 26),  /*!< \c NXDN-VN -- VHF,UHF digital mode IC-R8600 */
-    RIG_MODE_NXDN_N =   (1 << 27),  /*!< \c NXDN-N -- VHF,UHF digital mode IC-R8600 */
-    RIG_MODE_DCR =      (1 << 28),  /*!< \c DCR -- VHF,UHF digital mode IC-R8600 */
-    RIG_MODE_AM_N =     (1 << 29),  /*!< \c AM-N -- Narrow band AM mode IC-R30 */
-    RIG_MODE_FM_N =     (1 << 30),  /*!< \c FM-N -- Narrow band FM mode IC-R30 */
-    RIG_MODE_TESTS_MAX              /*!< \c MUST ALWAYS BE LAST, Max Count for dumpcaps.c */
-} rmode_t;
-
-=======
 #define ULL (uint64_t)
 typedef uint64_t rmode_t;
 
@@ -982,7 +945,6 @@ typedef uint64_t rmode_t;
 #define    RIG_MODE_BIT61     (1ULL << 61)  /* reserved for future expansion */
 #define    RIG_MODE_BIT62     (1ULL << 62)  /* reserved for future expansion */
 #define    RIG_MODE_TESTS_MAX (1ULL << 63)  /*!< \c last bit available for 64-bit enum MUST ALWAYS BE LAST, Max Count for dumpcaps.c */
->>>>>>> master
 
 /**
  * \brief macro for backends, not to be used by rig_set_mode et al.

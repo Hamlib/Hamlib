@@ -31,7 +31,7 @@
 #include "icom_defs.h"
 #include "frame.h"
 
-#define ICR30_MODES (RIG_MODE_LSB|RIG_MODE_USB|RIG_MODE_AM|RIG_MODE_AM_N|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_FM|RIG_MODE_FM_N|RIG_MODE_WFM|\
+#define ICR30_MODES (RIG_MODE_LSB|RIG_MODE_USB|RIG_MODE_AM|RIG_MODE_AMN|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_FM|RIG_MODE_FMN|RIG_MODE_WFM|\
 	RIG_MODE_RTTYR|RIG_MODE_SAM|RIG_MODE_SAL|RIG_MODE_SAH|RIG_MODE_P25|RIG_MODE_DSTAR|RIG_MODE_DPMR|RIG_MODE_NXDNVN|RIG_MODE_NXDN_N|RIG_MODE_DCR)
 
 #define ICR30_FUNC_ALL (RIG_FUNC_TSQL|RIG_FUNC_VSC)
@@ -40,7 +40,7 @@
 
 #define ICR30_VFO_ALL (RIG_VFO_A)
 
-#define ICR30_VFO_OPS (RIG_OP_NONE)
+#define ICR30_VFO_OPS (RIG_VFO_MAIN|RIG_VFO_SUB)
 #define ICR30_SCAN_OPS (RIG_SCAN_NONE)
 
 #define ICR30_STR_CAL { 2, \
@@ -72,7 +72,7 @@ static int icr30_r2i_mode(RIG *rig, rmode_t mode, pbwidth_t width,
  */
 
 int icr30_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
-	if (mode & (RIG_MODE_AM_N | RIG_MODE_FM_N)) {
+	if (mode & (RIG_MODE_AMN | RIG_MODE_FMN)) {
 		return icom_set_mode(rig, vfo, mode, (pbwidth_t)1);
 	} else {
 		return icom_set_mode(rig, vfo, mode, width);
@@ -118,8 +118,8 @@ const struct rig_caps icr30_caps = {
 	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
 },
 .parm_gran =  {},
-.ctcss_list =  NULL,
-.dcs_list =  NULL,
+.ctcss_list =  common_ctcss_list,
+.dcs_list =  common_dcs_list,
 .preamp =   { RIG_DBLST_END, },
 .attenuator =   { RIG_DBLST_END, },
 .max_rit =  Hz(0),
@@ -171,8 +171,8 @@ const struct rig_caps icr30_caps = {
 	/* mode/filter list, remember: order matters! */
 .filters = 	{
 		{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|RIG_MODE_LSB, kHz(1.8)},
-		{RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_AM_N|RIG_MODE_FM_N, kHz(12)},
-		{RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_AM_N|RIG_MODE_FM_N, kHz(6)},
+		{RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_AMN|RIG_MODE_FMN, kHz(12)},
+		{RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_AMN|RIG_MODE_FMN, kHz(6)},
 		{RIG_MODE_WFM, kHz(150)},
 		RIG_FLT_END,
 	},
@@ -192,6 +192,8 @@ const struct rig_caps icr30_caps = {
 .get_freq =  icom_get_freq,
 .set_mode =  icr30_set_mode,
 .get_mode =  icom_get_mode,
+.vfo_op =  icom_vfo_op,
+.set_vfo =  icom_set_vfo,
 .set_ant =  icom_set_ant,
 .get_ant =  icom_get_ant,
 .set_bank = icom_set_bank,
