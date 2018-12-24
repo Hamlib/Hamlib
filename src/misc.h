@@ -100,22 +100,28 @@ extern HAMLIB_EXPORT(void) rig_force_cache_timeout(struct timeval *tv);
 #ifdef PRId64
 /** \brief printf(3) format to be used for long long (64bits) type */
 #  define PRIll PRId64
+#  define PRXll PRIx64
 #else
 #  ifdef FBSD4
 #    define PRIll "qd"
+#    define PRXll "qx"
 #  else
 #    define PRIll "lld"
+#    define PRXll "lld"
 #  endif
 #endif
 
 #ifdef SCNd64
 /** \brief scanf(3) format to be used for long long (64bits) type */
 #  define SCNll SCNd64
+#  define SCNXll SCNx64
 #else
 #  ifdef FBSD4
 #    define SCNll "qd"
+#    define SCNXll "qx"
 #  else
 #    define SCNll "lld"
+#    define SCNXll "llx"
 #  endif
 #endif
 
