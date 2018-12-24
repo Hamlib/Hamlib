@@ -1743,6 +1743,10 @@ int icom_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
  */
 int icom_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
 {
+	const struct icom_priv_caps *priv_caps;
+	priv_caps = (const struct icom_priv_caps*)rig->caps->priv;
+	int offs_len = (priv_caps->offs_len) ? priv_caps->offs_len : OFFS_LEN;
+
 	unsigned char offsbuf[MAXFRAMELEN],ackbuf[MAXFRAMELEN];
 	int ack_len=sizeof(ackbuf), retval;
 
@@ -1750,9 +1754,9 @@ int icom_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
 	/*
 	 * Icoms are using a 100Hz unit (at least on 706MKIIg) -- SF
 	 */
-	to_bcd(offsbuf, rptr_offs/100, OFFS_LEN*2);
+	to_bcd(offsbuf, rptr_offs/100, offs_len*2);
 
-	retval = icom_transaction (rig, C_SET_OFFS, -1, offsbuf, OFFS_LEN,
+	retval = icom_transaction (rig, C_SET_OFFS, -1, offsbuf, offs_len,
 					ackbuf, &ack_len);
 	if (retval != RIG_OK)
 		return retval;
@@ -1773,29 +1777,33 @@ int icom_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
  */
 int icom_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
 {
+	const struct icom_priv_caps *priv_caps;
+	priv_caps = (const struct icom_priv_caps*)rig->caps->priv;
+	int offs_len = (priv_caps->offs_len) ? priv_caps->offs_len : OFFS_LEN;
+
 	unsigned char offsbuf[MAXFRAMELEN];
-	int offs_len, retval;
+	int buf_len, retval;
 
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 	retval = icom_transaction (rig, C_RD_OFFS, -1, NULL, 0,
-				offsbuf, &offs_len);
+				offsbuf, &buf_len);
 	if (retval != RIG_OK)
 		return retval;
 
 	/*
 	 * offsbuf should contain Cn
 	 */
-	offs_len--;
-	if (offs_len != OFFS_LEN) {
+	buf_len--;
+	if (buf_len != offs_len) {
 		rig_debug(RIG_DEBUG_ERR,"icom_get_rptr_offs: "
-					"wrong frame len=%d\n", offs_len);
+					"wrong frame len=%d\n", buf_len);
 		return -RIG_ERJCTED;
 	}
 
 	/*
 	 * Icoms are using a 100Hz unit (at least on 706MKIIg) -- SF
 	 */
-	*rptr_offs = from_bcd(offsbuf+1, offs_len*2)*100;
+	*rptr_offs = from_bcd(offsbuf+1, buf_len*2)*100;
 
 	return RIG_OK;
 }
@@ -3361,7 +3369,8 @@ int icom_set_ant(RIG * rig, vfo_t vfo, ant_t ant)
     }
 
 	antarg = 0;
-	ant_len = ((rig->caps->rig_model == RIG_MODEL_ICR75) || (rig->caps->rig_model == RIG_MODEL_ICR8600) || (rig->caps->rig_model == RIG_MODEL_ICR6))? 0 : 1;
+	ant_len = ((rig->caps->rig_model == RIG_MODEL_ICR75) || (rig->caps->rig_model == RIG_MODEL_ICR8600) ||
+		 (rig->caps->rig_model == RIG_MODEL_ICR6) || (rig->caps->rig_model == RIG_MODEL_ICR30))? 0 : 1;
 	retval = icom_transaction (rig, C_CTL_ANT, i_ant,
 			&antarg, ant_len, ackbuf, &ack_len);
 	if (retval != RIG_OK)

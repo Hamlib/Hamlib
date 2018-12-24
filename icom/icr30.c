@@ -84,7 +84,8 @@ static const struct icom_priv_caps icr30_priv_caps = {
   0,		/* 731 mode */
   0,    /* no XCHG */
   r8500_ts_sc_list,	/* wrong, but don't have set_ts anyway */
-  .r2i_mode = icr30_r2i_mode
+  .r2i_mode = icr30_r2i_mode,
+  .offs_len = 4
 };
 
 const struct rig_caps icr30_caps = {
@@ -121,7 +122,7 @@ const struct rig_caps icr30_caps = {
 .ctcss_list =  common_ctcss_list,
 .dcs_list =  common_dcs_list,
 .preamp =   { RIG_DBLST_END, },
-.attenuator =   { RIG_DBLST_END, },
+.attenuator = { 15, 30, 35, RIG_DBLST_END, },
 .max_rit =  Hz(0),
 .max_xit =  Hz(0),
 .max_ifshift =  Hz(0),
@@ -152,8 +153,14 @@ const struct rig_caps icr30_caps = {
 .tx_range_list2 =   { RIG_FRNG_END, },
 
 .tuning_steps = 	{
+	 {ICR30_MODES,Hz(10)},
+	 {ICR30_MODES,Hz(100)},
+	 {ICR30_MODES,Hz(1000)},
+	 {ICR30_MODES,Hz(3125)},
 	 {ICR30_MODES,Hz(5000)},
 	 {ICR30_MODES,Hz(6250)},
+	 {ICR30_MODES,Hz(8330)},
+	 {ICR30_MODES,Hz(9000)},
 	 {ICR30_MODES,Hz(10000)},
 	 {ICR30_MODES,Hz(12500)},
 	 {ICR30_MODES,kHz(15)},
@@ -162,10 +169,8 @@ const struct rig_caps icr30_caps = {
 	 {ICR30_MODES,kHz(30)},
 	 {ICR30_MODES,kHz(50)},
 	 {ICR30_MODES,kHz(100)},
-	 /* Air band only */
-	 {ICR30_MODES,Hz(8330)},
-	 /* AM broadcast band only */
-	 {ICR30_MODES,Hz(9000)},
+	 {ICR30_MODES,kHz(125)},
+	 {ICR30_MODES,kHz(200)},
 	 RIG_TS_END,
 	},
 	/* mode/filter list, remember: order matters! */
@@ -194,6 +199,12 @@ const struct rig_caps icr30_caps = {
 .get_mode =  icom_get_mode,
 .vfo_op =  icom_vfo_op,
 .set_vfo =  icom_set_vfo,
+.set_rptr_offs = icom_set_rptr_offs,
+.get_rptr_offs = icom_get_rptr_offs,
+.set_rptr_shift = icom_set_rptr_shift,
+.get_rptr_shift = icom_get_rptr_shift,
+.set_ts =  icom_set_ts,
+.get_ts =  icom_get_ts,
 .set_ant =  icom_set_ant,
 .get_ant =  icom_get_ant,
 .set_bank = icom_set_bank,

@@ -262,6 +262,7 @@
  */
 #define S_SQL	0x01		/* Read squelch condition */
 #define S_SML	0x02		/* Read S-meter level */
+#define S_CSQL	0x05		/* Read combined squelch conditions */
 #define S_RFML	0x11		/* Read RF-meter level */
 #define S_SWR	0x12		/* Read SWR-meter level */
 #define S_ALC	0x13		/* Read ALC-meter level */
