@@ -3788,7 +3788,7 @@ declare_proto_rig(dump_state)
     for (i = 0; i < FRQRANGESIZ && !RIG_IS_FRNG_END(rs->rx_range_list[i]); i++)
     {
         fprintf(fout,
-                "%"FREQFMT" %"FREQFMT" 0x%x %d %d 0x%x 0x%x\n",
+                "%"FREQFMT" %"FREQFMT" 0x%"PRXll" %d %d 0x%x 0x%x\n",
                 rs->rx_range_list[i].start,
                 rs->rx_range_list[i].end,
                 rs->rx_range_list[i].modes,
@@ -3803,7 +3803,7 @@ declare_proto_rig(dump_state)
     for (i = 0; i < FRQRANGESIZ && !RIG_IS_FRNG_END(rs->tx_range_list[i]); i++)
     {
         fprintf(fout,
-                "%"FREQFMT" %"FREQFMT" 0x%x %d %d 0x%x 0x%x\n",
+                "%"FREQFMT" %"FREQFMT" 0x%"PRXll" %d %d 0x%x 0x%x\n",
                 rs->tx_range_list[i].start,
                 rs->tx_range_list[i].end,
                 rs->tx_range_list[i].modes,
@@ -3818,7 +3818,7 @@ declare_proto_rig(dump_state)
     for (i = 0; i < TSLSTSIZ && !RIG_IS_TS_END(rs->tuning_steps[i]); i++)
     {
         fprintf(fout,
-                "0x%x %ld\n",
+                "0x%"PRXll" %ld\n",
                 rs->tuning_steps[i].modes,
                 rs->tuning_steps[i].ts);
     }
@@ -3828,7 +3828,7 @@ declare_proto_rig(dump_state)
     for (i = 0; i < FLTLSTSIZ && !RIG_IS_FLT_END(rs->filters[i]); i++)
     {
         fprintf(fout,
-                "0x%x %ld\n",
+                "0x%"PRXll" %ld\n",
                 rs->filters[i].modes,
                 rs->filters[i].width);
     }
@@ -3858,12 +3858,12 @@ declare_proto_rig(dump_state)
 
     fprintf(fout, "\n");
 
-    fprintf(fout, "0x%lx\n", rs->has_get_func);
-    fprintf(fout, "0x%lx\n", rs->has_set_func);
-    fprintf(fout, "0x%lx\n", rs->has_get_level);
-    fprintf(fout, "0x%lx\n", rs->has_set_level);
-    fprintf(fout, "0x%lx\n", rs->has_get_parm);
-    fprintf(fout, "0x%lx\n", rs->has_set_parm);
+    fprintf(fout, "0x%"PRXll"\n", rs->has_get_func);
+    fprintf(fout, "0x%"PRXll"\n", rs->has_set_func);
+    fprintf(fout, "0x%"PRXll"\n", rs->has_get_level);
+    fprintf(fout, "0x%"PRXll"\n", rs->has_set_level);
+    fprintf(fout, "0x%"PRXll"\n", rs->has_get_parm);
+    fprintf(fout, "0x%"PRXll"\n", rs->has_set_parm);
 
 #if 0
     gran_t level_gran[RIG_SETTING_MAX];   /*!< level granularity */

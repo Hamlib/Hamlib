@@ -319,8 +319,11 @@ static struct
     { RIG_MODE_LSB, "LSB" },
     { RIG_MODE_RTTY, "RTTY" },
     { RIG_MODE_FM, "FM" },
+<<<<<<< HEAD
     { RIG_MODE_FMN, "FMN" },
     { RIG_MODE_FM_N, "FM-N" },
+=======
+>>>>>>> master
     { RIG_MODE_WFM, "WFM" },
     { RIG_MODE_CWR, "CWR" },
     { RIG_MODE_RTTYR, "RTTYR" },
@@ -335,13 +338,21 @@ static struct
     { RIG_MODE_SAL, "SAL" },
     { RIG_MODE_SAH, "SAH" },
     { RIG_MODE_DSB, "DSB"},
+<<<<<<< HEAD
     { RIG_MODE_AM_N, "AM-N"},
+=======
+    { RIG_MODE_FMN, "FMN" },
+    { RIG_MODE_PKTAM, "PKTAM"},
+>>>>>>> master
     { RIG_MODE_P25, "P25"},
     { RIG_MODE_DSTAR, "D-STAR"},
-    { RIG_MODE_DPMR, "dPMR"},
+    { RIG_MODE_DPMR, "DPMR"},
     { RIG_MODE_NXDNVN, "NXDN-VN"},
     { RIG_MODE_NXDN_N, "NXDN-N"},
     { RIG_MODE_DCR, "DCR"},
+    { RIG_MODE_AMN, "AMN"},
+    { RIG_MODE_PSK, "PSK"},
+    { RIG_MODE_PSKR, "PSKR"},
     { RIG_MODE_NONE, "" },
 };
 
@@ -382,7 +393,7 @@ const char * HAMLIB_API rig_strrmode(rmode_t mode)
 {
     int i;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called mode=0x%"PRXll"\n", __func__, mode);
 
     if (mode == RIG_MODE_NONE)
     {
