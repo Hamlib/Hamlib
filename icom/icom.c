@@ -2491,6 +2491,10 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 		fct_cn = C_CTL_MEM;
 		fct_sc = S_MEM_AFLT;
 		break;
+	case RIG_FUNC_ANL:
+		fct_cn = C_CTL_MEM;
+		fct_sc = S_MEM_ANL;
+		break;
 	case RIG_FUNC_AIP: /* IC-R8600 IP+ function, misusing AIP since RIG_FUNC_ word is full (32 bit) */
 		fct_cn = C_CTL_MEM; /* 1a */
 		fct_sc = S_FUNC_IPPLUS;
@@ -2611,6 +2615,10 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 	case RIG_FUNC_AFLT:
 		fct_cn = C_CTL_MEM;
 		fct_sc = S_MEM_AFLT;
+		break;
+	case RIG_FUNC_ANL:
+		fct_cn = C_CTL_MEM;
+		fct_sc = S_MEM_ANL;
 		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"Unsupported get_func %d", func);
