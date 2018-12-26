@@ -106,6 +106,7 @@
 #define S_LSB	0x00		/* Set to LSB */
 #define S_USB	0x01		/* Set to USB */
 #define S_AM	0x02		/* Set to AM */
+#define S_AMN	0x02		/* Set to AM-N */
 #define S_CW	0x03		/* Set to CW */
 #define S_RTTY	0x04		/* Set to RTTY */
 #define S_FM	0x05		/* Set to FM */
@@ -115,6 +116,14 @@
 #define S_AMS	0x11		/* Set to AMS */
 #define S_PSK	0x12		/* 7800 PSK USB */
 #define S_PSKR	0x13		/* 7800 PSK LSB */
+#define S_SAML	0x14		/* Set to AMS-L */
+#define S_SAMU	0x15		/* Set to AMS-U */
+#define S_P25	0x16		/* Set to P25 */
+#define S_DSTAR	0x17		/* Set to D-STAR */
+#define S_DPMR	0x18		/* Set to dPMR */
+#define S_NXDNVN 0x19		/* Set to NXDN_VN */
+#define S_NXDN_N 0x20		/* Set to NXDN-N */
+#define S_DCR	0x21		/* Set to DCR */
 
 #define S_R7000_SSB	0x05	/* Set to SSB on R-7000 */
 
@@ -283,7 +292,7 @@
 #define S_FUNC_MN	0x48		/* Manual notch setting */
 #define S_FUNC_RF	0x49		/* RTTY Filter setting */
 #define S_FUNC_AFC  	0x4A        /* Auto Frequency Control (AFC) setting */
-#define S_FUNC_DTCS	0x4B		/*DTCS tone code squelch setting*/
+#define S_FUNC_DSQL	0x4B		/*DTCS tone code squelch setting*/
 #define S_FUNC_VSC	0x4C		/* voice squelch control useful for scanning*/
 #define S_FUNC_MANAGC	0x4D		/* manual AGC */
 #define S_FUNC_DIGISEL	0x4E		/* DIGI-SEL */
@@ -343,6 +352,8 @@
 #define S_MEM_TSTEP_ON      0x01
 #define S_FUNC_IPPLUS       0x07 /* IP+ subcommand 0x1a 0x07 */
 
+/* IC-R6 */
+#define S_MEM_AFLT 0x00		/* AF LPF Off/On */
 
 /*
  * Tone control (C_SET_TONE) subcommands

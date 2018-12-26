@@ -501,19 +501,28 @@ int g313_get_conf(RIG *rig, token_t token, char *val)
 static void g313_audio_callback(short* buffer, int count, void* arg)
 {
     struct g313_priv_data *priv = (struct g313_priv_data*)arg;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-result"
     write(priv->audio_buf.fd, buffer, count*sizeof(short));
+#pragma GCC diagnostic pop
 }
 
 static void g313_if_callback(short* buffer, int count, void* arg)
 {
     struct g313_priv_data *priv = (struct g313_priv_data*)arg;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-result"
     write(priv->if_buf.fd, buffer, count*sizeof(short));
+#pragma GCC diagnostic pop
 }
 
 static void  g313_spectrum_callback(float* buffer, int count, void* arg)
 {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-result"
     struct g313_priv_data *priv = (struct g313_priv_data*)arg;
     write(priv->spectrum_buf.fd, buffer, count*sizeof(float));
+#pragma GCC diagnostic pop
 }
 
 const struct rig_caps g313_caps =

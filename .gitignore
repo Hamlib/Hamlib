@@ -53,3 +53,5 @@ tests/rigsmtr
 tests/rigswr
 tests/rotctl
 tests/rotctld
+
+build/

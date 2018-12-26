@@ -379,6 +379,7 @@ static const struct icom_addr icom_addr_list[] = {
 	{ RIG_MODEL_PERSEUS, 0xE1 },
 	{ RIG_MODEL_X108G, 0x70 }, 
 	{ RIG_MODEL_ICR8600, 0x96 },
+	{ RIG_MODEL_ICR30, 0x9c },
 	{ RIG_MODEL_NONE, 0 },
 };
 
@@ -742,7 +743,7 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	unsigned char icmode;
 	signed char icmode_ext;
 	int ack_len=sizeof(ackbuf), retval, err;
-	
+
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 	rs = &rig->state;
 	priv = (struct icom_priv_data*)rs->priv;
@@ -2472,6 +2473,14 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 		fct_sc = status ? S_SCAN_RSMON : S_SCAN_RSMOFF;
 		fct_len = 0;
 		break;
+	case RIG_FUNC_DSQL:
+		fct_cn = C_CTL_FUNC;
+		fct_sc = S_FUNC_DSQL;
+		break;
+	case RIG_FUNC_AFLT:
+		fct_cn = C_CTL_MEM;
+		fct_sc = S_MEM_AFLT;
+		break;
 	case RIG_FUNC_AIP: /* IC-R8600 IP+ function, misusing AIP since RIG_FUNC_ word is full (32 bit) */
 		fct_cn = C_CTL_MEM; /* 1a */
 		fct_sc = S_FUNC_IPPLUS;
@@ -2584,6 +2593,14 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 	case RIG_FUNC_AIP: /* IC-R8600 IP+ function, misusing AIP since RIG_FUNC_ word is full (32 bit) */
 		fct_cn = C_CTL_MEM; /* 1a */
 		fct_sc = S_FUNC_IPPLUS;
+		break;
+	case RIG_FUNC_DSQL:
+		fct_cn = C_CTL_FUNC;
+		fct_sc = S_FUNC_DSQL;
+		break;
+	case RIG_FUNC_AFLT:
+		fct_cn = C_CTL_MEM;
+		fct_sc = S_MEM_AFLT;
 		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"Unsupported get_func %d", func);
@@ -2959,7 +2976,7 @@ int icom_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 	caps = rig->caps;
 
 	if (caps->ctcss_list) {
-		for (i = 0; caps->ctcss_list[i] != 0 && i<52; i++) {
+		for (i = 0; caps->ctcss_list[i] != 0 && i<FULL_CTCSS_LIST_COUNT; i++) {
 			if (caps->ctcss_list[i] == tone)
 				break;
 		}
@@ -3018,7 +3035,7 @@ int icom_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 	if (!caps->ctcss_list) return RIG_OK;
 
 	/* check this tone exists. That's better than nothing. */
-	for (i = 0; caps->ctcss_list[i] != 0 && i<52; i++) {
+	for (i = 0; caps->ctcss_list[i] != 0 && i<FULL_CTCSS_LIST_COUNT; i++) {
 		if (caps->ctcss_list[i] == *tone)
 			return RIG_OK;
 	}
@@ -3042,7 +3059,7 @@ int icom_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 	caps = rig->caps;
 
-	for (i = 0; caps->ctcss_list[i] != 0 && i<52; i++) {
+	for (i = 0; caps->ctcss_list[i] != 0 && i<FULL_CTCSS_LIST_COUNT; i++) {
 		if (caps->ctcss_list[i] == tone)
 			break;
 	}
@@ -3097,7 +3114,7 @@ int icom_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 	*tone = from_bcd_be(tonebuf+2, tone_len*2);
 
 	/* check this tone exists. That's better than nothing. */
-	for (i = 0; caps->ctcss_list[i] != 0 && i<52; i++) {
+	for (i = 0; caps->ctcss_list[i] != 0 && i<FULL_CTCSS_LIST_COUNT; i++) {
 		if (caps->ctcss_list[i] == *tone)
 			return RIG_OK;
 	}
@@ -3121,13 +3138,14 @@ int icom_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 	caps = rig->caps;
 
-	for (i = 0; caps->dcs_list[i] != 0 && i<104; i++) {
+	for (i = 0; caps->dcs_list[i] != 0 && i<COMMON_DCS_LIST_COUNT; i++) {
 		if (caps->dcs_list[i] == code)
 			break;
 	}
 	if (caps->dcs_list[i] != code)
 		return -RIG_EINVAL;
 
+	/* DCS Polarity ignored, by setting code_len to 3 it's forced to 0 (= Tx:norm, Rx:norm). */
 	code_len = 3;
 	to_bcd_be(codebuf, code, code_len*2);
 
@@ -3171,11 +3189,15 @@ int icom_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
 		return -RIG_ERJCTED;
 	}
 
-	code_len -= 2;
-	*code = from_bcd_be(codebuf+2, code_len*2);
+	/* buf is cn,sc, polarity, code_lo, code_hi, so code bytes start at 3, len is 2
+	   polarity is not decoded yet, hard to do without breaking ABI
+	*/
+
+	code_len -= 3;
+	*code = from_bcd_be(codebuf+3, code_len*2);
 
 	/* check this code exists. That's better than nothing. */
-	for (i = 0; caps->dcs_list[i] != 0 && i<104; i++) {
+	for (i = 0; caps->dcs_list[i] != 0 && i<COMMON_DCS_LIST_COUNT; i++) {
 		if (caps->dcs_list[i] == *code)
 			return RIG_OK;
 	}
@@ -3353,7 +3375,7 @@ int icom_set_ant(RIG * rig, vfo_t vfo, ant_t ant)
     }
 
 	antarg = 0;
-	ant_len = ((rig->caps->rig_model == RIG_MODEL_ICR75) || (rig->caps->rig_model == RIG_MODEL_ICR8600))? 0 : 1;
+	ant_len = ((rig->caps->rig_model == RIG_MODEL_ICR75) || (rig->caps->rig_model == RIG_MODEL_ICR8600) || (rig->caps->rig_model == RIG_MODEL_ICR6))? 0 : 1;
 	retval = icom_transaction (rig, C_CTL_ANT, i_ant,
 			&antarg, ant_len, ackbuf, &ack_len);
 	if (retval != RIG_OK)
@@ -3925,6 +3947,7 @@ DECLARE_INITRIG_BACKEND(icom)
 	rig_register(&icr6_caps);
 	rig_register(&icr10_caps);
 	rig_register(&icr20_caps);
+	rig_register(&icr30_caps);
 	rig_register(&icr71_caps);
 	rig_register(&icr72_caps);
 	rig_register(&icr75_caps);

@@ -1,6 +1,6 @@
 /*
- *  Hamlib CI-V backend - description of IC-R6
- *  Copyright (c) 2017 Malcolm Herring
+ *  Hamlib CI-V backend - description of IC-R30
+ *  Copyright (c) 2018 Malcolm Herring
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -29,37 +29,38 @@
 #include "icom.h"
 #include "idx_builtin.h"
 
-#define ICR6_MODES (RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_WFM)
+#define ICR30_MODES (RIG_MODE_LSB|RIG_MODE_USB|RIG_MODE_AM|RIG_MODE_AMN|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_FM|RIG_MODE_WFM|RIG_MODE_CWR|\
+	RIG_MODE_RTTYR|RIG_MODE_SAM|RIG_MODE_SAL|RIG_MODE_SAH|RIG_MODE_P25|RIG_MODE_DSTAR|RIG_MODE_DPMR|RIG_MODE_NXDNVN|RIG_MODE_NXDN_N|RIG_MODE_DCR)
 
-#define ICR6_FUNC_ALL (RIG_FUNC_TSQL|RIG_FUNC_VSC|RIG_FUNC_DSQL|RIG_FUNC_AFLT)
+#define ICR30_FUNC_ALL (RIG_FUNC_TSQL|RIG_FUNC_VSC)
 
-#define ICR6_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AF|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH)
+#define ICR30_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AF|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH)
 
-#define ICR6_VFO_ALL (RIG_VFO_A)
+#define ICR30_VFO_ALL (RIG_VFO_A)
 
-#define ICR6_VFO_OPS (RIG_OP_NONE)
-#define ICR6_SCAN_OPS (RIG_SCAN_NONE)
+#define ICR30_VFO_OPS (RIG_OP_NONE)
+#define ICR30_SCAN_OPS (RIG_SCAN_NONE)
 
-#define ICR6_STR_CAL { 2, \
+#define ICR30_STR_CAL { 2, \
 	{ \
 		{  0, -60 }, /* S0 */ \
 		{ 255, 60 } /* +60 */ \
 	} }
 
-static const struct icom_priv_caps icr6_priv_caps = {
-		0x7e,	/* default address */
-		0,		/* 731 mode */
-    0,    /* no XCHG */
-		r8500_ts_sc_list	/* wrong, but don't have set_ts anyway */
+static const struct icom_priv_caps icr30_priv_caps = {
+	0x9c,	/* default address */
+	0,		/* 731 mode */
+	0,    /* no XCHG */
+	r8500_ts_sc_list	/* wrong, but don't have set_ts anyway */
 };
 
-const struct rig_caps icr6_caps = {
-.rig_model =  RIG_MODEL_ICR6,
-.model_name = "IC-R6",
+const struct rig_caps icr30_caps = {
+.rig_model =  RIG_MODEL_ICR30,
+.model_name = "IC-R30",
 .mfg_name =  "Icom",
 .version =  BACKEND_VER,
 .copyright =  "LGPL",
-.status =  RIG_STATUS_BETA,
+.status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_RECEIVER|RIG_FLAG_HANDHELD,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_RIG,
@@ -74,77 +75,79 @@ const struct rig_caps icr6_caps = {
 .post_write_delay =  0,
 .timeout =  1000,
 .retry =  3,
-.has_get_func =  ICR6_FUNC_ALL,
-.has_set_func =  ICR6_FUNC_ALL,
-.has_get_level =  ICR6_LEVEL_ALL,
-.has_set_level =  RIG_LEVEL_SET(ICR6_LEVEL_ALL),
+.has_get_func =  ICR30_FUNC_ALL,
+.has_set_func =  ICR30_FUNC_ALL,
+.has_get_level =  ICR30_LEVEL_ALL,
+.has_set_level =  RIG_LEVEL_SET(ICR30_LEVEL_ALL),
 .has_get_parm =  RIG_PARM_NONE,
-.has_set_parm =  RIG_PARM_NONE,
+.has_set_parm =  RIG_PARM_NONE,	/* FIXME: parms */
 .level_gran = {
 	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
 },
 .parm_gran =  {},
-.ctcss_list =  common_ctcss_list,
-.dcs_list =  common_dcs_list,
+.ctcss_list =  NULL,
+.dcs_list =  NULL,
 .preamp =   { RIG_DBLST_END, },
 .attenuator =   { RIG_DBLST_END, },
 .max_rit =  Hz(0),
 .max_xit =  Hz(0),
 .max_ifshift =  Hz(0),
 .targetable_vfo =  0,
-.vfo_ops =  ICR6_VFO_OPS,
-.scan_ops =  ICR6_SCAN_OPS,
+.vfo_ops =  ICR30_VFO_OPS,
+.scan_ops =  ICR30_SCAN_OPS,
 .transceive =  RIG_TRN_RIG,
 .bank_qty =   0,
 .chan_desc_sz =  0,
 
-.chan_list =  {RIG_CHAN_END,},
+.chan_list =  {
+	{    1,  999, RIG_MTYPE_MEM  },	/* TBC */
+	{ 1000, 1199, RIG_MTYPE_MEM },	/* auto-write */
+	{ 1200, 1299, RIG_MTYPE_EDGE },	/* two by two */
+	RIG_CHAN_END,
+	},
 
 .rx_range_list1 =   {	/* Other countries but France */
-	{kHz(100),GHz(1.309995),ICR6_MODES,-1,-1,ICR6_VFO_ALL},
+	{kHz(100),GHz(3.3049999),ICR30_MODES,-1,-1,ICR30_VFO_ALL},
 	RIG_FRNG_END, },
 .tx_range_list1 =   { RIG_FRNG_END, },
 
 .rx_range_list2 =   {	/* USA */
-	{kHz(100),MHz(821.995),ICR6_MODES,-1,-1,ICR6_VFO_ALL},
-	{MHz(851),MHz(866.995),ICR6_MODES,-1,-1,ICR6_VFO_ALL},
-	{MHz(896),GHz(1.309995),ICR6_MODES,-1,-1,ICR6_VFO_ALL},
+	{kHz(100),MHz(821.995),ICR30_MODES,-1,-1,ICR30_VFO_ALL},
+	{MHz(851),MHz(866.995),ICR30_MODES,-1,-1,ICR30_VFO_ALL},
+	{MHz(896),GHz(3.3049999),ICR30_MODES,-1,-1,ICR30_VFO_ALL},
 	RIG_FRNG_END, },
 .tx_range_list2 =   { RIG_FRNG_END, },
 
 .tuning_steps = 	{
-	{ICR6_MODES,Hz(5000)},
-	{ICR6_MODES,Hz(6250)},
-	{ICR6_MODES,Hz(10000)},
-	{ICR6_MODES,Hz(12500)},
-	{ICR6_MODES,kHz(15)},
-	{ICR6_MODES,kHz(20)},
-	{ICR6_MODES,kHz(25)},
-	{ICR6_MODES,kHz(30)},
-	{ICR6_MODES,kHz(50)},
-	{ICR6_MODES,kHz(100)},
-	{ICR6_MODES,kHz(125)},
-	{ICR6_MODES,kHz(200)},
+	 {ICR30_MODES,Hz(5000)},
+	 {ICR30_MODES,Hz(6250)},
+	 {ICR30_MODES,Hz(10000)},
+	 {ICR30_MODES,Hz(12500)},
+	 {ICR30_MODES,kHz(15)},
+	 {ICR30_MODES,kHz(20)},
+	 {ICR30_MODES,kHz(25)},
+	 {ICR30_MODES,kHz(30)},
+	 {ICR30_MODES,kHz(50)},
+	 {ICR30_MODES,kHz(100)},
 	 /* Air band only */
-	{ICR6_MODES,Hz(8330)},
+	 {ICR30_MODES,Hz(8330)},
 	 /* AM broadcast band only */
-	{ICR6_MODES,Hz(9000)},
-	RIG_TS_END,
+	 {ICR30_MODES,Hz(9000)},
+	 RIG_TS_END,
 	},
-
 	/* mode/filter list, remember: order matters! */
 .filters = 	{
 		{RIG_MODE_AM|RIG_MODE_FM, kHz(12)},
 		{RIG_MODE_WFM, kHz(150)},
 		RIG_FLT_END,
 	},
-.str_cal = ICR6_STR_CAL,
+.str_cal = ICR30_STR_CAL,
 
 .cfgparams =  icom_cfg_params,
 .set_conf =  icom_set_conf,
 .get_conf =  icom_get_conf,
 
-.priv =  (void*)&icr6_priv_caps,
+.priv =  (void*)&icr30_priv_caps,
 .rig_init =   icom_init,
 .rig_cleanup =   icom_cleanup,
 .rig_open =  NULL,
