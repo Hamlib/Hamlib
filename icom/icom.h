@@ -112,6 +112,7 @@ struct icom_priv_caps {
 						       mode */
 	int serial_full_duplex; /*!< Whether RXD&TXD are not tied together */
 	unsigned char civ_version; // default to 0, 1=IC7200,IC7300,etc differences
+	int offs_len; /* Number of bytes in offset frequency field. 0 defaults to 3 */
 };
 
 

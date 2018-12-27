@@ -92,6 +92,7 @@
 #define C_CTL_MEM	0x1a		/* Misc memory/bank/rig control functions, Sc */
 #define C_SET_TONE	0x1b		/* Set tone frequency */
 #define C_CTL_PTT	0x1c		/* Control Transmit On/Off, Sc */
+#define C_CTL_DIG	0x20		/* Digital modes settings & status */
 #define C_CTL_MTEXT	0x70		/* Microtelecom Extension */
 #define C_CTL_MISC	0x7f		/* Miscellaneous control, Sc */
 
@@ -110,6 +111,7 @@
 #define S_CW	0x03		/* Set to CW */
 #define S_RTTY	0x04		/* Set to RTTY */
 #define S_FM	0x05		/* Set to FM */
+#define S_FMN	0x05		/* Set to FM-N */
 #define S_WFM	0x06		/* Set to Wide FM */
 #define S_CWR	0x07		/* Set to CW Reverse */
 #define S_RTTYR	0x08		/* Set to RTTY Reverse */
@@ -170,11 +172,21 @@
 #define S_SCAN_SLCTN	0x23		/* Selected number memory scan */
 #define S_SCAN_SLCTM	0x24		/* Selected mode memory scan */
 #define S_SCAN_PRIO	0x42		/* Priority / window scan */
-#define S_SCAN_NSLCT	0xB0        /* Set as non select channel */
-#define S_SCAN_SLCT	0xB1        /* Set as select channel */
+#define S_SCAN_FDFOF	0xA0    	/* Fix dF OFF */
+#define S_SCAN_FDF5I	0xA1    	/* Fix range +/-5kHz */
+#define S_SCAN_FDF1X	0xA2    	/* Fix range +/-10kHz */
+#define S_SCAN_FDF2X	0xA3    	/* Fix range +/-20kHz */
+#define S_SCAN_FDF5X	0xA4    	/* Fix range +/-50kHz */
+#define S_SCAN_FDF1C	0xA5    	/* Fix range +/-100kHz */
+#define S_SCAN_FDF5C	0xA6    	/* Fix range +/-500kHz */
+#define S_SCAN_FDF1M	0xA7    	/* Fix range +/-1MHz */
+#define S_SCAN_FDFON	0xAA    	/* Fix dF ON */
+#define S_SCAN_NSLCT	0xB0    	/* Set as non select channel */
+#define S_SCAN_SLCT	0xB1		/* Set as select channel */
 #define S_SCAN_SL_NUM	0xB2		/* select programed mem scan 7800 only */
-#define S_SCAN_RSMOFF   0xD0        /* Set scan resume OFF */
-#define S_SCAN_RSMON    0xD3        /* Set scan resume ON */
+#define S_SCAN_RSMOFF   0xD0		/* Set scan resume OFF */
+#define S_SCAN_RSMONP   0xD1		/* Set scan resume ON + pause time */
+#define S_SCAN_RSMON    0xD3		/* Set scan resume ON */
 
 
 /*
@@ -225,7 +237,7 @@
  */
 #define S_ANN_ALL	0x00		/* Announce all */
 #define S_ANN_FREQ	0x01		/* Announce freq */
-#define S_ANN_MODE  0x02        /* Announce operating mode */
+#define S_ANN_MODE	0x02		/* Announce operating mode */
 
 /*
  * Function settings (C_CTL_LVL) subcommands
@@ -243,24 +255,35 @@
 #define S_LVL_MICGAIN		0x0b		/* MIC gain setting */
 #define S_LVL_KEYSPD		0x0c		/* Key Speed setting */
 #define S_LVL_NOTCHF		0x0d		/* Notch freq. setting */
-#define S_LVL_COMP			0x0e		/* Compressor level setting */
+#define S_LVL_COMP		0x0e		/* Compressor level setting */
 #define S_LVL_BKINDL		0x0f		/* BKin delay setting */
 #define S_LVL_BALANCE		0x10		/* Balance setting (Dual watch) */
-#define S_LVL_AGC			0x11		/* AGC (7800) */
-#define S_LVL_NB			0x12		/* NB setting */
-#define S_LVL_DIGI			0x13		/* DIGI-SEL (7800) */
-#define S_LVL_DRIVE			0x14		/* DRIVE gain setting */
-#define S_LVL_MON			0x15		/* Monitor gain setting */
+#define S_LVL_AGC		0x11		/* AGC (7800) */
+#define S_LVL_NB		0x12		/* NB setting */
+#define S_LVL_DIGI		0x13		/* DIGI-SEL (7800) */
+#define S_LVL_DRIVE		0x14		/* DRIVE gain setting */
+#define S_LVL_MON		0x15		/* Monitor gain setting */
 #define S_LVL_VOXGAIN		0x16		/* VOX gain setting */
 #define S_LVL_ANTIVOX		0x17		/* Anti VOX gain setting */
 #define S_LVL_CONTRAST		0x18		/* CONTRAST level setting */
 #define S_LVL_BRIGHT		0x19		/* BRIGHT level setting */
+#define S_LVL_BASS		0x1B		/* Bass level setting */
+#define S_LVL_TREBLE		0x1C		/* Treble level setting */
+#define S_LVL_SCNSPD		0x1D		/* Scan speed */
+#define S_LVL_SCNDEL		0x1E		/* Scan delay */
+#define S_LVL_PRIINT		0x1F		/* PRIO interval */
+#define S_LVL_RESTIM		0x20		/* Resume time */
 
 /*
  * Read squelch condition/S-meter level/other meter levels (C_RD_SQSM) subcommands
  */
 #define S_SQL	0x01		/* Read squelch condition */
 #define S_SML	0x02		/* Read S-meter level */
+#define S_SMF	0x03		/* Read S-meter level in AAAABBCC format */
+#define S_CML	0x04		/* Read centre -meter level */
+#define S_CSQL	0x05		/* Read combined squelch conditions */
+#define S_SAMS	0x06		/* Read S-AM Sync indicator */
+#define S_OVF	0x07		/* Read OVF indicator status */
 #define S_RFML	0x11		/* Read RF-meter level */
 #define S_SWR	0x12		/* Read SWR-meter level */
 #define S_ALC	0x13		/* Read ALC-meter level */
@@ -291,13 +314,29 @@
 #define S_FUNC_BKIN	0x47		/* BK-IN setting */
 #define S_FUNC_MN	0x48		/* Manual notch setting */
 #define S_FUNC_RF	0x49		/* RTTY Filter setting */
-#define S_FUNC_AFC  	0x4A        /* Auto Frequency Control (AFC) setting */
-#define S_FUNC_DSQL	0x4B		/*DTCS tone code squelch setting*/
+#define S_FUNC_AFC  	0x4A        	/* Auto Frequency Control (AFC) setting */
+#define S_FUNC_DSQL	0x4B		/* DTCS tone code squelch setting*/
 #define S_FUNC_VSC	0x4C		/* voice squelch control useful for scanning*/
 #define S_FUNC_MANAGC	0x4D		/* manual AGC */
 #define S_FUNC_DIGISEL	0x4E		/* DIGI-SEL */
 #define S_FUNC_TW_PK	0x4F		/* RTTY Twin Peak filter 0= off 1 = on */
 #define S_FUNC_DIAL_LK	0x50		/* Dial lock */
+#define S_FUNC_P25SQL	0x52		/* P25 DSQL */
+#define S_FUNC_ANTRX	0x53		/* ANT-RX */
+#define S_FUNC_IF1F	0x55		/* 1st IF filter */
+#define S_FUNC_DSPF	0x56		/* DSP filter */
+#define S_FUNC_MANN	0x57		/* Manual notch width */
+#define S_FUNC_SSBT	0x58		/* SSB Tx bandwidth */
+#define S_FUNC_SUBB	0x59		/* Sub band */
+#define S_FUNC_SATM	0x5A		/* Satellite mode */
+#define S_FUNC_DSSQL	0x5B		/* D-STAR squelch */
+#define S_FUNC_DPSQL	0x5F		/* dPMR DSQL */
+#define S_FUNC_NXSQL	0x60		/* NXDN DSQL */
+#define S_FUNC_DCSQL	0x61		/* DCR DSQL */
+#define S_FUNC_DPSCM	0x62		/* dPMR scrambler */
+#define S_FUNC_NXENC	0x63		/* NXDN encryption */
+#define S_FUNC_DCENC	0x64		/* DCR encryption */
+#define S_FUNC_IPP	0x65		/* IP+ setting */
 
 /*
  * Set Power On/Off (C_SET_PWR) subcommands
@@ -355,17 +394,47 @@
 /* IC-R6 */
 #define S_MEM_AFLT 0x00		/* AF LPF Off/On */
 
+/* IC-R30 */
+#define S_MEM_ANL 0x00		/* ANL Off/On */
+
 /*
  * Tone control (C_SET_TONE) subcommands
  */
 #define S_TONE_RPTR	0x00		/* Tone frequency setting for repeater receive */
 #define S_TONE_SQL	0x01		/* Tone frequency setting for squelch */
 #define S_TONE_DTCS	0x02		/* DTCS code and polarity for squelch */
+#define S_TONE_P25NAC	0x03		/* P25 NAC */
+#define S_TONE_DSCSQL	0x07		/* D-STAR CSQL */
+#define S_TONE_DPCOM	0x08		/* dPMR COM ID */
+#define S_TONE_DPCC	0x09		/* dPMR CC */
+#define S_TONE_NXRAN	0x0A		/* NXDN RAN */
+#define S_TONE_DCUC	0x0B		/* DCR UC */
+#define S_TONE_DPSCK	0x0C		/* dPMR scrambler key */
+#define S_TONE_NXENK	0x0D		/* NXDN encryption key */
+#define S_TONE_DCENK	0x0E		/* DCR encryption key */
 
 /*
  * Transceiver ID (C_RD_TRXID) subcommands
  */
 #define S_RD_TRXID 0x00
+
+/*
+ * Digital modes settings & status subcommands
+ */
+#define S_DIG_DSCALS	 0x00		/* D-STAR Call sign */
+#define S_DIG_DSMESS	 0x01		/* D-STAR Message */
+#define S_DIG_DSRSTS	 0x02		/* D-STAR Rx status */
+#define S_DIG_DSGPSD	 0x03		/* D-STAR GPS data */
+#define S_DIG_DSGPSM	 0x04		/* D-STAR GPS message */
+#define S_DIG_DSCSQL	 0x05		/* D-STAR CSQL */
+#define S_DIG_P25ID	 0x06		/* P25 ID */
+#define S_DIG_P25STS	 0x07		/* P25 Rx status */
+#define S_DIG_DPRXID	 0x08		/* dPMR Rx ID */
+#define S_DIG_DPRSTS	 0x09		/* dPMR Rx status */
+#define S_DIG_NXRXID	 0x0A		/* NXDN Rx ID */
+#define S_DIG_NXRSTS	 0x0B		/* NXDN Rx status */
+#define S_DIG_DCRXID	 0x0C		/* DCR Rx ID */
+#define S_DIG_DCRSTS	 0x0D		/* DCR Rx status */
 
 /*
  * C_CTL_MISC	OptoScan extension

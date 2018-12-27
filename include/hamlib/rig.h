@@ -826,7 +826,7 @@ typedef uint64_t setting_t;
 #define RIG_FUNC_NB2        (1ULL<<32)   /*!< \c NB2 -- 2nd Noise Blanker */
 #define RIG_FUNC_DSQL       (1ULL<<33)   /* DSQL -- DCS Squelch setting */
 #define RIG_FUNC_AFLT       (1ULL<<34)   /* AFLT -- AF Filter setting */
-#define RIG_FUNC_BIT35      (1ULL<<35)   /* available for future RIG_FUNC items */
+#define RIG_FUNC_ANL        (1ULL<<35)   /* ANL -- Noise limiter setting */
 #define RIG_FUNC_BIT36      (1ULL<<36)   /* available for future RIG_FUNC items */
 #define RIG_FUNC_BIT37      (1ULL<<37)   /* available for future RIG_FUNC items */
 #define RIG_FUNC_BIT38      (1ULL<<38)   /* available for future RIG_FUNC items */
