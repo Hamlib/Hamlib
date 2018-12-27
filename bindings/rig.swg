@@ -419,8 +419,8 @@ typedef channel_t * const_channel_t_p;
 	/* get functions */
 
 	METHOD1VGET(get_freq, freq_t)
-	extern void get_mode(unsigned int *OUTPUT, int *OUTPUT, vfo_t vfo = RIG_VFO_CURR);
-	extern void get_split_mode(unsigned int *OUTPUT, int *OUTPUT, vfo_t vfo = RIG_VFO_CURR);
+	extern void get_mode(rmode_t * OUTPUT, pbwidth_t * OUTPUT, vfo_t vfo = RIG_VFO_CURR);
+	extern void get_split_mode(rmode_t * OUTPUT, pbwidth_t * OUTPUT, vfo_t vfo = RIG_VFO_CURR);
 	METHOD1GET(get_vfo, vfo_t)
 	METHOD1VGET(get_ptt, ptt_t)
 	METHOD1VGET(get_rptr_shift, rptr_shift_t)
@@ -547,22 +547,14 @@ typedef channel_t * const_channel_t_p;
  * these ones returns 2 values, here is a perl example:
  * 	($mode, $width) = $rig->get_mode();
  */
-void Rig_get_mode(Rig *self, unsigned *mode, int *width, vfo_t vfo)
+void Rig_get_mode(Rig *self, rmode_t *mode, pbwidth_t *width, vfo_t vfo)
 {
-	rmode_t mode1 = *mode;
-	pbwidth_t width1 = *width;
-	self->error_status = rig_get_mode(self->rig, vfo, &mode1, &width1);
-	*mode = mode1;
-	*width = width1;
+	self->error_status = rig_get_mode(self->rig, vfo, mode, width);
 }
 
-void Rig_get_split_mode(Rig *self, unsigned *mode, int *width, vfo_t vfo)
+void Rig_get_split_mode(Rig *self, rmode_t *mode, pbwidth_t *width, vfo_t vfo)
 {
-	rmode_t mode1 = *mode;
-	pbwidth_t width1 = *width;
-	self->error_status = rig_get_split_mode(self->rig, vfo, &mode1, &width1);
-	*mode = mode1;
-	*width = width1;
+	self->error_status = rig_get_split_mode(self->rig, vfo, mode, width);
 }
 
 struct channel *Rig_get_chan_all(Rig *self)
