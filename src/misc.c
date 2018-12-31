@@ -522,6 +522,14 @@ static struct
     { RIG_FUNC_NONE, "" },
 };
 
+/**
+ * utility function to convert index to bit value
+ *
+ */
+uint64_t rig_idx2setting(int i)
+{
+   return 1ULL << i;
+}
 
 /**
  * \brief Convert alpha string to enum RIG_FUNC_...
