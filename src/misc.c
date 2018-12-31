@@ -486,6 +486,7 @@ static struct
 {
     { RIG_FUNC_FAGC, "FAGC" },
     { RIG_FUNC_NB, "NB" },
+    { RIG_FUNC_NB2, "NB2" },
     { RIG_FUNC_COMP, "COMP" },
     { RIG_FUNC_VOX, "VOX" },
     { RIG_FUNC_TONE, "TONE" },
@@ -507,6 +508,7 @@ static struct
     { RIG_FUNC_SQL, "SQL" },
     { RIG_FUNC_ABM, "ABM" },
     { RIG_FUNC_BC, "BC" },
+    { RIG_FUNC_BC, "BC2" },
     { RIG_FUNC_MBC, "MBC" },
     { RIG_FUNC_RIT, "RIT" },
     { RIG_FUNC_AFC, "AFC" },
@@ -520,6 +522,12 @@ static struct
     { RIG_FUNC_AFLT, "AFLT" },
     { RIG_FUNC_NONE, "" },
 };
+
+
+uint64_t rig_idx2setting(int i)
+{
+  return 1ULL << i;
+}
 
 
 /**

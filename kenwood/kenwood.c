@@ -2056,7 +2056,12 @@ int kenwood_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     return kenwood_transaction(rig, buf, NULL, 0);
 
   case RIG_FUNC_COMP:
-    snprintf(buf, sizeof (buf), "PR%c", (status == 0) ? '0' : '1');
+    if (RIG_MODEL_TS890S == rig->caps->rig_model) {
+      snprintf(buf, sizeof (buf), "PR0%c", (status == 0) ? '0' : '1');
+    }
+    else {
+      snprintf(buf, sizeof (buf), "PR%c", (status == 0) ? '0' : '1');
+    }
     return kenwood_transaction(rig, buf, NULL, 0);
 
   case RIG_FUNC_TONE:
@@ -2076,11 +2081,22 @@ int kenwood_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     return kenwood_transaction(rig, buf, NULL, 0);
 
   case RIG_FUNC_NR:
-    snprintf(buf, sizeof (buf), "NR%c", (status == 0) ? '0' : '1');
+    if (RIG_MODEL_TS890S == rig->caps->rig_model) {
+      char c = '1';
+      if (status == 2) c = '2';
+      snprintf(buf, sizeof (buf), "NR%c", (status == 0) ? '0' : c);
+    }
+    else {
+      snprintf(buf, sizeof (buf), "NR%c", (status == 0) ? '0' : '1');
+    }
     return kenwood_transaction(rig, buf, NULL, 0);
 
   case RIG_FUNC_BC:
     snprintf(buf, sizeof (buf), "BC%c", (status == 0) ? '0' : '1');
+    return kenwood_transaction(rig, buf, NULL, 0);
+
+  case RIG_FUNC_BC2:
+    snprintf(buf, sizeof (buf), "BC%c", (status == 0) ? '0' : '2');
     return kenwood_transaction(rig, buf, NULL, 0);
 
   case RIG_FUNC_ANF:
@@ -2112,8 +2128,9 @@ int kenwood_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 }
 
 /*
- * works for any 'format 1' command
- * answer is always 4 bytes: two byte command id, status and terminator
+ * works for any 'format 1' command or newer command like the TS890 has
+ * as long as the return is a number 0-9
+ * answer is always 4 bytes or 5 bytes: two or three byte command id, status and terminator
  */
 int get_kenwood_func(RIG *rig, const char *cmd, int *status)
 {
@@ -2125,11 +2142,14 @@ int get_kenwood_func(RIG *rig, const char *cmd, int *status)
   int retval;
   char buf[10];
 
-  retval = kenwood_safe_transaction(rig, cmd, buf, 10, 3);
+  int offset=2;
+  if (strlen(cmd)==3) offset=3; // some commands are 3 letters 
+
+  retval = kenwood_safe_transaction(rig, cmd, buf, sizeof(buf), offset+1);
   if (retval != RIG_OK)
     return retval;
 
-  *status = buf[2] == '0' ? 0 : 1;
+  *status = buf[offset] - '0'; // just return whatever the rig returns
 
   return RIG_OK;
 };
@@ -2139,6 +2159,7 @@ int get_kenwood_func(RIG *rig, const char *cmd, int *status)
  */
 int kenwood_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
+  char *cmd;
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   if (!rig || !status)
@@ -2157,7 +2178,11 @@ int kenwood_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     return RIG_OK;
 
   case RIG_FUNC_NB:
-    return get_kenwood_func(rig, "NB", status);
+    cmd = "NB";
+    if (RIG_MODEL_TS890S == rig->caps->rig_model) {
+      cmd = "NB1";
+    }
+    return get_kenwood_func(rig, cmd, status);
 
   case RIG_FUNC_NB2:
     return get_kenwood_func(rig, "NB2", status);
@@ -2183,6 +2208,13 @@ int kenwood_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
   /* FIXME on TS2000 */
   case RIG_FUNC_BC:
     return get_kenwood_func(rig, "BC", status);
+
+  case RIG_FUNC_BC2: // TS-890 turn on Beat Cancel 2
+    retval = get_kenwood_func(rig, "BC", status);
+    if (retval == RIG_OK) {
+      *status = *status == '0' ? '0': '1'; 
+    }
+    return retval;
 
   case RIG_FUNC_ANF:
     return get_kenwood_func(rig, "NT", status);

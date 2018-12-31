@@ -753,7 +753,7 @@ enum rig_parm_e {
 #define RIG_PARM_SET(l) ((l)&~RIG_PARM_READONLY_LIST)
 
 
-#define RIG_SETTING_MAX 32
+#define RIG_SETTING_MAX 64
 
 /**
  * \brief Setting
@@ -790,7 +790,7 @@ typedef uint64_t setting_t;
  * have been used instead as a 'const unsigned long' which cannot be used to
  * initialize the func_str.func members.  TNX KA6MAL, AC6SL.  - N0NB
  */
-#define RIG_FUNC_NONE       0           /*!< '' -- No Function */
+#define RIG_FUNC_NONE       0            /*!< '' -- No Function */
 #define RIG_FUNC_FAGC       (1ULL<<0)    /*!< \c FAGC -- Fast AGC */
 #define RIG_FUNC_NB         (1ULL<<1)    /*!< \c NB -- Noise Blanker */
 #define RIG_FUNC_COMP       (1ULL<<2)    /*!< \c COMP -- Speech Compression */
@@ -2252,8 +2252,6 @@ rigerror HAMLIB_PARAMS((int errnum));
 
 extern HAMLIB_EXPORT(int)
 rig_setting2idx HAMLIB_PARAMS((setting_t s));
-
-#define rig_idx2setting(i) (1ULL<<(i))
 
 /*
  * Even if these functions are prefixed with "rig_", they are not rig specific
