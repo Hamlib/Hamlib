@@ -2267,8 +2267,7 @@ rigerror HAMLIB_PARAMS((int errnum));
 extern HAMLIB_EXPORT(int)
 rig_setting2idx HAMLIB_PARAMS((setting_t s));
 
-#define rig_idx2setting(i) (1ULL<<(i))
-
+extern setting_t rig_idx2setting(int i);
 /*
  * Even if these functions are prefixed with "rig_", they are not rig specific
  * Maybe "hamlib_" would have been better. Let me know. --SF
