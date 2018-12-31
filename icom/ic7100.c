@@ -1,6 +1,7 @@
 /*
  *  Hamlib CI-V backend - description of IC-9100 (HF/VHF/UHF All-Mode Tranceiver)
  *  Copyright (c) 2000-2011 by Stephane Fillod
+ *  Copyright (c) 2018 by Malcolm Herring
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -34,7 +35,7 @@
 
 
 #define IC7100_MODES (RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR|\
-        RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR)
+        RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_DSTAR)
 
 #define IC7100_OTHER_TX_MODES ((IC7100_MODES) & ~RIG_MODE_AM)
 
@@ -191,16 +192,18 @@ const struct rig_caps ic7100_caps = {
 .tuning_steps =     {
     {RIG_MODE_SSB|RIG_MODE_CW,1},
     {RIG_MODE_SSB|RIG_MODE_CW,10},
-    {RIG_MODE_SSB|RIG_MODE_CW,50},
     {RIG_MODE_SSB|RIG_MODE_CW,100},
-    {RIG_MODE_FM,kHz(0.1)},
+    {RIG_MODE_FM,kHz(1)},
     {RIG_MODE_FM,kHz(5)},
     {RIG_MODE_FM,kHz(6.25)},
+    {RIG_MODE_FM,kHz(9)},
     {RIG_MODE_FM,kHz(10)},
     {RIG_MODE_FM,kHz(12.5)},
     {RIG_MODE_FM,kHz(20)},
     {RIG_MODE_FM,kHz(25)},
+    {RIG_MODE_FM,kHz(50)},
     {RIG_MODE_FM,kHz(100)},
+    {RIG_MODE_FM,kHz(1000)},
     RIG_TS_END, },
     /* mode/filter list, remember: order matters! */
 .filters =     {

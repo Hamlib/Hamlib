@@ -427,6 +427,7 @@ int icom_init(RIG *rig)
 	priv->civ_731_mode = priv_caps->civ_731_mode;
 	priv->no_xchg = priv_caps->no_xchg;
 	priv->civ_version = priv_caps->civ_version;
+	priv->serial_full_duplex = priv_caps->serial_full_duplex;
 	rig_debug(RIG_DEBUG_TRACE,"icom_init: civ_version=%d\n", priv->civ_version);
 
 	return RIG_OK;
@@ -447,6 +448,38 @@ int icom_cleanup(RIG *rig)
 	rig->state.priv = NULL;
 
 	return RIG_OK;
+}
+
+
+/*
+ * ICOM rig open routine
+ * Detect full_duplex state of serial port
+ */
+int icom_rig_open(RIG *rig)
+{
+    unsigned char ackbuf[MAXFRAMELEN];
+    int ack_len=sizeof(ackbuf), retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    struct rig_state *rs = &rig->state;
+    struct icom_priv_data *priv = (struct icom_priv_data*)rs->priv;
+    int duplex = priv->serial_full_duplex;
+
+    priv->serial_full_duplex = 0;
+    retval = icom_transaction (rig, C_RD_TRXID, 0x00, NULL, 0, ackbuf, &ack_len);
+    if (retval == RIG_OK) {
+        rig_debug(RIG_DEBUG_VERBOSE, "CI-V half duplex detected\n");
+        return RIG_OK;
+    }
+    priv->serial_full_duplex = 1;
+    retval = icom_transaction (rig, C_RD_TRXID, 0x00, NULL, 0, ackbuf, &ack_len);
+    if (retval == RIG_OK) {
+        rig_debug(RIG_DEBUG_VERBOSE, "CI-V full duplex detected\n");
+        return RIG_OK;
+    }
+    priv->serial_full_duplex = duplex;
+	return retval;
 }
 
 

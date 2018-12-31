@@ -124,6 +124,7 @@ struct icom_priv_data {
 	int split_on;									/* record split state */
 	pltstate_t *pltstate;	/* only on optoscan */
 	unsigned char civ_version; /* 0=default, 1=new commands for IC7200,IC7300, etc */
+	int serial_full_duplex; /*!< Whether RXD&TXD are not tied together */
 };
 
 extern const struct ts_sc_list r8500_ts_sc_list[];
@@ -149,6 +150,7 @@ extern const pbwidth_t rtty_fil[];	/* rtty filter passband width; available on 7
 pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode);
 
 int icom_init(RIG *rig);
+int icom_rig_open(RIG *rig);
 int icom_cleanup(RIG *rig);
 int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);

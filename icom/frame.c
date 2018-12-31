@@ -96,7 +96,6 @@ int make_cmd_frame(char frame[], char re_id, char ctrl_id, char cmd, int subcmd,
 int icom_one_transaction (RIG *rig, int cmd, int subcmd, const unsigned char *payload, int payload_len, unsigned char *data, int *data_len)
 {
 	struct icom_priv_data *priv;
-	const struct icom_priv_caps *priv_caps;
 	struct rig_state *rs;
 	// this buf needs to be large enough for 0xfe strings for power up
 	// at 115,200 this is now at least 150
@@ -107,9 +106,8 @@ int icom_one_transaction (RIG *rig, int cmd, int subcmd, const unsigned char *pa
 
 	rs = &rig->state;
 	priv = (struct icom_priv_data*)rs->priv;
-	priv_caps = (struct icom_priv_caps*)rig->caps->priv;
 
-	ctrl_id = priv_caps->serial_full_duplex == 0 ? CTRLID : 0x80;
+	ctrl_id = priv->serial_full_duplex == 0 ? CTRLID : 0x80;
 
 	frm_len = make_cmd_frame((char *) sendbuf, priv->re_civ_addr, ctrl_id, cmd,
 				subcmd, payload, payload_len);
@@ -127,7 +125,7 @@ int icom_one_transaction (RIG *rig, int cmd, int subcmd, const unsigned char *pa
 			return retval;
 	}
 
-	if (priv_caps->serial_full_duplex == 0) {
+	if (priv->serial_full_duplex == 0) {
 
 		/*
 		 * read what we just sent, because TX and RX are looped,

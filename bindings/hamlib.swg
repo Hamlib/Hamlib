@@ -45,6 +45,7 @@
 %include "ignore.swg"
 
 %include typemaps.i
+%include stdint.i
 %include exception.i
 #ifndef SWIGLUA
 %include cstring.i
