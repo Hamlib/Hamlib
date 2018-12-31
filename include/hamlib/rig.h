@@ -76,6 +76,15 @@
 
 #include <hamlib/rig_dll.h>
 
+#ifndef SWIGLUA
+#define CONSTANT_64BIT_FLAG(BIT) (1ull << (BIT))
+#else
+/* SWIG's Lua generator doesn't grok ull due to Lua using a
+   double-precision floating point type internally for number
+   representations (max 53 bits of precision) so makes a string
+   constant from a constant number literal using ull */
+#define CONSTANT_64BIT_FLAG(BIT) (1 << (BIT))
+#endif
 
 __BEGIN_DECLS
 
@@ -790,72 +799,75 @@ typedef uint64_t setting_t;
  * have been used instead as a 'const unsigned long' which cannot be used to
  * initialize the func_str.func members.  TNX KA6MAL, AC6SL.  - N0NB
  */
-#define RIG_FUNC_NONE       0           /*!< '' -- No Function */
-#define RIG_FUNC_FAGC       (1ULL<<0)    /*!< \c FAGC -- Fast AGC */
-#define RIG_FUNC_NB         (1ULL<<1)    /*!< \c NB -- Noise Blanker */
-#define RIG_FUNC_COMP       (1ULL<<2)    /*!< \c COMP -- Speech Compression */
-#define RIG_FUNC_VOX        (1ULL<<3)    /*!< \c VOX -- Voice Operated Relay */
-#define RIG_FUNC_TONE       (1ULL<<4)    /*!< \c TONE -- CTCSS Tone */
-#define RIG_FUNC_TSQL       (1ULL<<5)    /*!< \c TSQL -- CTCSS Activate/De-activate */
-#define RIG_FUNC_SBKIN      (1ULL<<6)    /*!< \c SBKIN -- Semi Break-in (CW mode) */
-#define RIG_FUNC_FBKIN      (1ULL<<7)    /*!< \c FBKIN -- Full Break-in (CW mode) */
-#define RIG_FUNC_ANF        (1ULL<<8)    /*!< \c ANF -- Automatic Notch Filter (DSP) */
-#define RIG_FUNC_NR         (1ULL<<9)    /*!< \c NR -- Noise Reduction (DSP) */
-#define RIG_FUNC_AIP        (1ULL<<10)   /*!< \c AIP -- RF pre-amp (AIP on Kenwood, IPO on Yaesu, etc.) */
-#define RIG_FUNC_APF        (1ULL<<11)   /*!< \c APF -- Auto Passband/Audio Peak Filter */
-#define RIG_FUNC_MON        (1ULL<<12)   /*!< \c MON -- Monitor transmitted signal */
-#define RIG_FUNC_MN         (1ULL<<13)   /*!< \c MN -- Manual Notch */
-#define RIG_FUNC_RF         (1ULL<<14)   /*!< \c RF -- RTTY Filter */
-#define RIG_FUNC_ARO        (1ULL<<15)   /*!< \c ARO -- Auto Repeater Offset */
-#define RIG_FUNC_LOCK       (1ULL<<16)   /*!< \c LOCK -- Lock */
-#define RIG_FUNC_MUTE       (1ULL<<17)   /*!< \c MUTE -- Mute */
-#define RIG_FUNC_VSC        (1ULL<<18)   /*!< \c VSC -- Voice Scan Control */
-#define RIG_FUNC_REV        (1ULL<<19)   /*!< \c REV -- Reverse transmit and receive frequencies */
-#define RIG_FUNC_SQL        (1ULL<<20)   /*!< \c SQL -- Turn Squelch Monitor on/off */
-#define RIG_FUNC_ABM        (1ULL<<21)   /*!< \c ABM -- Auto Band Mode */
-#define RIG_FUNC_BC         (1ULL<<22)   /*!< \c BC -- Beat Canceller */
-#define RIG_FUNC_MBC        (1ULL<<23)   /*!< \c MBC -- Manual Beat Canceller */
-#define RIG_FUNC_RIT        (1ULL<<24)   /*!< \c RIT -- Receiver Incremental Tuning */
-#define RIG_FUNC_AFC        (1ULL<<25)   /*!< \c AFC -- Auto Frequency Control ON/OFF */
-#define RIG_FUNC_SATMODE    (1ULL<<26)   /*!< \c SATMODE -- Satellite mode ON/OFF */
-#define RIG_FUNC_SCOPE      (1ULL<<27)   /*!< \c SCOPE -- Simple bandscope ON/OFF */
-#define RIG_FUNC_RESUME     (1ULL<<28)   /*!< \c RESUME -- Scan auto-resume */
-#define RIG_FUNC_TBURST     (1ULL<<29)   /*!< \c TBURST -- 1750 Hz tone burst */
-#define RIG_FUNC_TUNER      (1ULL<<30)   /*!< \c TUNER -- Enable automatic tuner */
-#define RIG_FUNC_XIT        (1ULL<<31)   /*!< \c XIT -- Transmitter Incremental Tuning */
-#define RIG_FUNC_NB2        (1ULL<<32)   /*!< \c NB2 -- 2nd Noise Blanker */
-#define RIG_FUNC_DSQL       (1ULL<<33)   /* DSQL -- DCS Squelch setting */
-#define RIG_FUNC_AFLT       (1ULL<<34)   /* AFLT -- AF Filter setting */
-#define RIG_FUNC_ANL        (1ULL<<35)   /* ANL -- Noise limiter setting */
-#define RIG_FUNC_BIT36      (1ULL<<36)   /* available for future RIG_FUNC items */
-#define RIG_FUNC_BIT37      (1ULL<<37)   /* available for future RIG_FUNC items */
-#define RIG_FUNC_BIT38      (1ULL<<38)   /* available for future RIG_FUNC items */
-#define RIG_FUNC_BIT39      (1ULL<<39)   /* available for future RIG_FUNC items */
-#define RIG_FUNC_BIT40      (1ULL<<40)   /* available for future RIG_FUNC items */
-#define RIG_FUNC_BIT41      (1ULL<<41)   /* available for future RIG_FUNC items */
-#define RIG_FUNC_BIT42      (1ULL<<42)   /* available for future RIG_FUNC items */
-#define RIG_FUNC_BIT43      (1ULL<<43)   /* available for future RIG_FUNC items */
-#define RIG_FUNC_BIT44      (1ULL<<44)   /* available for future RIG_FUNC items */
-#define RIG_FUNC_BIT45      (1ULL<<45)   /* available for future RIG_FUNC items */
-#define RIG_FUNC_BIT46      (1ULL<<46)   /* available for future RIG_FUNC items */
-#define RIG_FUNC_BIT47      (1ULL<<47)   /* available for future RIG_FUNC items */
-#define RIG_FUNC_BIT48      (1ULL<<48)   /* available for future RIG_FUNC items */
-#define RIG_FUNC_BIT49      (1ULL<<49)   /* available for future RIG_FUNC items */
-#define RIG_FUNC_BIT50      (1ULL<<50)   /* available for future RIG_FUNC items */
-#define RIG_FUNC_BIT51      (1ULL<<51)   /* available for future RIG_FUNC items */
-#define RIG_FUNC_BIT52      (1ULL<<52)   /* available for future RIG_FUNC items */
-#define RIG_FUNC_BIT53      (1ULL<<53)   /* available for future RIG_FUNC items */
-#define RIG_FUNC_BIT54      (1ULL<<54)   /* available for future RIG_FUNC items */
-#define RIG_FUNC_BIT55      (1ULL<<55)   /* available for future RIG_FUNC items */
-#define RIG_FUNC_BIT56      (1ULL<<56)   /* available for future RIG_FUNC items */
-#define RIG_FUNC_BIT57      (1ULL<<57)   /* available for future RIG_FUNC items */
-#define RIG_FUNC_BIT58      (1ULL<<58)   /* available for future RIG_FUNC items */
-#define RIG_FUNC_BIT59      (1ULL<<59)   /* available for future RIG_FUNC items */
-#define RIG_FUNC_BIT60      (1ULL<<60)   /* available for future RIG_FUNC items */
-#define RIG_FUNC_BIT61      (1ULL<<61)   /* available for future RIG_FUNC items */
-#define RIG_FUNC_BIT62      (1ULL<<62)   /* available for future RIG_FUNC items */
-#define RIG_FUNC_BIT63      (1ULL<<63)   /* available for future RIG_FUNC items */
+#define RIG_FUNC_NONE       0                          /*!< '' -- No Function */
+#define RIG_FUNC_FAGC       CONSTANT_64BIT_FLAG (0)    /*!< \c FAGC -- Fast AGC */
+#define RIG_FUNC_NB         CONSTANT_64BIT_FLAG (1)    /*!< \c NB -- Noise Blanker */
+#define RIG_FUNC_COMP       CONSTANT_64BIT_FLAG (2)    /*!< \c COMP -- Speech Compression */
+#define RIG_FUNC_VOX        CONSTANT_64BIT_FLAG (3)    /*!< \c VOX -- Voice Operated Relay */
+#define RIG_FUNC_TONE       CONSTANT_64BIT_FLAG (4)    /*!< \c TONE -- CTCSS Tone */
+#define RIG_FUNC_TSQL       CONSTANT_64BIT_FLAG (5)    /*!< \c TSQL -- CTCSS Activate/De-activate */
+#define RIG_FUNC_SBKIN      CONSTANT_64BIT_FLAG (6)    /*!< \c SBKIN -- Semi Break-in (CW mode) */
+#define RIG_FUNC_FBKIN      CONSTANT_64BIT_FLAG (7)    /*!< \c FBKIN -- Full Break-in (CW mode) */
+#define RIG_FUNC_ANF        CONSTANT_64BIT_FLAG (8)    /*!< \c ANF -- Automatic Notch Filter (DSP) */
+#define RIG_FUNC_NR         CONSTANT_64BIT_FLAG (9)    /*!< \c NR -- Noise Reduction (DSP) */
+#define RIG_FUNC_AIP        CONSTANT_64BIT_FLAG (10)   /*!< \c AIP -- RF pre-amp (AIP on Kenwood, IPO on Yaesu, etc.) */
+#define RIG_FUNC_APF        CONSTANT_64BIT_FLAG (11)   /*!< \c APF -- Auto Passband/Audio Peak Filter */
+#define RIG_FUNC_MON        CONSTANT_64BIT_FLAG (12)   /*!< \c MON -- Monitor transmitted signal */
+#define RIG_FUNC_MN         CONSTANT_64BIT_FLAG (13)   /*!< \c MN -- Manual Notch */
+#define RIG_FUNC_RF         CONSTANT_64BIT_FLAG (14)   /*!< \c RF -- RTTY Filter */
+#define RIG_FUNC_ARO        CONSTANT_64BIT_FLAG (15)   /*!< \c ARO -- Auto Repeater Offset */
+#define RIG_FUNC_LOCK       CONSTANT_64BIT_FLAG (16)   /*!< \c LOCK -- Lock */
+#define RIG_FUNC_MUTE       CONSTANT_64BIT_FLAG (17)   /*!< \c MUTE -- Mute */
+#define RIG_FUNC_VSC        CONSTANT_64BIT_FLAG (18)   /*!< \c VSC -- Voice Scan Control */
+#define RIG_FUNC_REV        CONSTANT_64BIT_FLAG (19)   /*!< \c REV -- Reverse transmit and receive frequencies */
+#define RIG_FUNC_SQL        CONSTANT_64BIT_FLAG (20)   /*!< \c SQL -- Turn Squelch Monitor on/off */
+#define RIG_FUNC_ABM        CONSTANT_64BIT_FLAG (21)   /*!< \c ABM -- Auto Band Mode */
+#define RIG_FUNC_BC         CONSTANT_64BIT_FLAG (22)   /*!< \c BC -- Beat Canceller */
+#define RIG_FUNC_MBC        CONSTANT_64BIT_FLAG (23)   /*!< \c MBC -- Manual Beat Canceller */
+#define RIG_FUNC_RIT        CONSTANT_64BIT_FLAG (24)   /*!< \c RIT -- Receiver Incremental Tuning */
+#define RIG_FUNC_AFC        CONSTANT_64BIT_FLAG (25)   /*!< \c AFC -- Auto Frequency Control ON/OFF */
+#define RIG_FUNC_SATMODE    CONSTANT_64BIT_FLAG (26)   /*!< \c SATMODE -- Satellite mode ON/OFF */
+#define RIG_FUNC_SCOPE      CONSTANT_64BIT_FLAG (27)   /*!< \c SCOPE -- Simple bandscope ON/OFF */
+#define RIG_FUNC_RESUME     CONSTANT_64BIT_FLAG (28)   /*!< \c RESUME -- Scan auto-resume */
+#define RIG_FUNC_TBURST     CONSTANT_64BIT_FLAG (29)   /*!< \c TBURST -- 1750 Hz tone burst */
+#define RIG_FUNC_TUNER      CONSTANT_64BIT_FLAG (30)   /*!< \c TUNER -- Enable automatic tuner */
+#define RIG_FUNC_XIT        CONSTANT_64BIT_FLAG (31)   /*!< \c XIT -- Transmitter Incremental Tuning */
+#ifndef SWIGLUA
+/* Hide the top 32 bits from the Lua binding as they can't be represented */
+#define RIG_FUNC_NB2        CONSTANT_64BIT_FLAG (32)   /*!< \c NB2 -- 2nd Noise Blanker */
+#define RIG_FUNC_DSQL       CONSTANT_64BIT_FLAG (33)   /*!< \c DSQL -- DCS Squelch setting */
+#define RIG_FUNC_AFLT       CONSTANT_64BIT_FLAG (34)   /*!< \c AFLT -- AF Filter setting */
+#define RIG_FUNC_ANL        CONSTANT_64BIT_FLAG (35)   /*!< \c ANL -- Noise limiter setting */
+#define RIG_FUNC_BIT36      CONSTANT_64BIT_FLAG (36)   /* available for future RIG_FUNC items */
+#define RIG_FUNC_BIT37      CONSTANT_64BIT_FLAG (37)   /* available for future RIG_FUNC items */
+#define RIG_FUNC_BIT38      CONSTANT_64BIT_FLAG (38)   /* available for future RIG_FUNC items */
+#define RIG_FUNC_BIT39      CONSTANT_64BIT_FLAG (39)   /* available for future RIG_FUNC items */
+#define RIG_FUNC_BIT40      CONSTANT_64BIT_FLAG (40)   /* available for future RIG_FUNC items */
+#define RIG_FUNC_BIT41      CONSTANT_64BIT_FLAG (41)   /* available for future RIG_FUNC items */
+#define RIG_FUNC_BIT42      CONSTANT_64BIT_FLAG (42)   /* available for future RIG_FUNC items */
+#define RIG_FUNC_BIT43      CONSTANT_64BIT_FLAG (43)   /* available for future RIG_FUNC items */
+#define RIG_FUNC_BIT44      CONSTANT_64BIT_FLAG (44)   /* available for future RIG_FUNC items */
+#define RIG_FUNC_BIT45      CONSTANT_64BIT_FLAG (45)   /* available for future RIG_FUNC items */
+#define RIG_FUNC_BIT46      CONSTANT_64BIT_FLAG (46)   /* available for future RIG_FUNC items */
+#define RIG_FUNC_BIT47      CONSTANT_64BIT_FLAG (47)   /* available for future RIG_FUNC items */
+#define RIG_FUNC_BIT48      CONSTANT_64BIT_FLAG (48)   /* available for future RIG_FUNC items */
+#define RIG_FUNC_BIT49      CONSTANT_64BIT_FLAG (49)   /* available for future RIG_FUNC items */
+#define RIG_FUNC_BIT50      CONSTANT_64BIT_FLAG (50)   /* available for future RIG_FUNC items */
+#define RIG_FUNC_BIT51      CONSTANT_64BIT_FLAG (51)   /* available for future RIG_FUNC items */
+#define RIG_FUNC_BIT52      CONSTANT_64BIT_FLAG (52)   /* available for future RIG_FUNC items */
+#define RIG_FUNC_BIT53      CONSTANT_64BIT_FLAG (53)   /* available for future RIG_FUNC items */
+#define RIG_FUNC_BIT54      CONSTANT_64BIT_FLAG (54)   /* available for future RIG_FUNC items */
+#define RIG_FUNC_BIT55      CONSTANT_64BIT_FLAG (55)   /* available for future RIG_FUNC items */
+#define RIG_FUNC_BIT56      CONSTANT_64BIT_FLAG (56)   /* available for future RIG_FUNC items */
+#define RIG_FUNC_BIT57      CONSTANT_64BIT_FLAG (57)   /* available for future RIG_FUNC items */
+#define RIG_FUNC_BIT58      CONSTANT_64BIT_FLAG (58)   /* available for future RIG_FUNC items */
+#define RIG_FUNC_BIT59      CONSTANT_64BIT_FLAG (59)   /* available for future RIG_FUNC items */
+#define RIG_FUNC_BIT60      CONSTANT_64BIT_FLAG (60)   /* available for future RIG_FUNC items */
+#define RIG_FUNC_BIT61      CONSTANT_64BIT_FLAG (61)   /* available for future RIG_FUNC items */
+#define RIG_FUNC_BIT62      CONSTANT_64BIT_FLAG (62)   /* available for future RIG_FUNC items */
+#define RIG_FUNC_BIT63      CONSTANT_64BIT_FLAG (63)   /* available for future RIG_FUNC items */
 /* 63 is this highest bit number that can be used */
+#endif
 
 /**
  * \brief power unit macros
@@ -878,73 +890,75 @@ typedef uint64_t setting_t;
  * \sa rig_parse_mode(), rig_strrmode()
  * TODO: Add new 8600 modes to rig2icom_mode() and icom2rig_mode() in frame.c
  */
-#define ULL (uint64_t)
 typedef uint64_t rmode_t;
 
-#define    RIG_MODE_NONE      0             /*!< '' -- None */
-#define    RIG_MODE_AM        (1ULL << 0)   /*!< \c AM -- Amplitude Modulation */
-#define    RIG_MODE_CW        (1ULL << 1)   /*!< \c CW -- CW "normal" sideband */
-#define    RIG_MODE_USB       (1ULL << 2)   /*!< \c USB -- Upper Side Band */
-#define    RIG_MODE_LSB       (1ULL << 3)   /*!< \c LSB -- Lower Side Band */
-#define    RIG_MODE_RTTY      (1ULL << 4)   /*!< \c RTTY -- Radio Teletype */
-#define    RIG_MODE_FM        (1ULL << 5)   /*!< \c FM -- "narrow" band FM */
-#define    RIG_MODE_WFM       (1ULL << 6)   /*!< \c WFM -- broadcast wide FM */
-#define    RIG_MODE_CWR       (1ULL << 7)   /*!< \c CWR -- CW "reverse" sideband */
-#define    RIG_MODE_RTTYR     (1ULL << 8)   /*!< \c RTTYR -- RTTY "reverse" sideband */
-#define    RIG_MODE_AMS       (1ULL << 9)   /*!< \c AMS -- Amplitude Modulation Synchronous */
-#define    RIG_MODE_PKTLSB    (1ULL << 10)  /*!< \c PKTLSB -- Packet/Digital LSB mode (dedicated port) */
-#define    RIG_MODE_PKTUSB    (1ULL << 11)  /*!< \c PKTUSB -- Packet/Digital USB mode (dedicated port) */
-#define    RIG_MODE_PKTFM     (1ULL << 12)  /*!< \c PKTFM -- Packet/Digital FM mode (dedicated port) */
-#define    RIG_MODE_ECSSUSB   (1ULL << 13)  /*!< \c ECSSUSB -- Exalted Carrier Single Sideband USB */
-#define    RIG_MODE_ECSSLSB   (1ULL << 14)  /*!< \c ECSSLSB -- Exalted Carrier Single Sideband LSB */
-#define    RIG_MODE_FAX       (1ULL << 15)  /*!< \c FAX -- Facsimile Mode */
-#define    RIG_MODE_SAM       (1ULL << 16)  /*!< \c SAM -- Synchronous AM double sideband */
-#define    RIG_MODE_SAL       (1ULL << 17)  /*!< \c SAL -- Synchronous AM lower sideband */
-#define    RIG_MODE_SAH       (1ULL << 18)  /*!< \c SAH -- Synchronous AM upper (higher) sideband */
-#define    RIG_MODE_DSB       (1ULL << 19)  /*!< \c DSB -- Double sideband suppressed carrier */
-#define    RIG_MODE_FMN       (1ULL << 21)  /*!< \c FMN -- FM Narrow Kenwood ts990s */
-#define    RIG_MODE_PKTAM     (1ULL << 22)  /*!< \c PKTAM -- Packet/Digital AM mode e.g. IC7300 */
-#define    RIG_MODE_P25       (1ULL << 23)  /*!< \c P25 -- APCO/P25 VHF,UHF digital mode IC-R8600 */
-#define    RIG_MODE_DSTAR     (1ULL << 24)  /*!< \c D-Star -- VHF,UHF digital mode IC-R8600 */
-#define    RIG_MODE_DPMR      (1ULL << 25)  /*!< \c dPMR -- digital PMR, VHF,UHF digital mode IC-R8600 */
-#define    RIG_MODE_NXDNVN    (1ULL << 26)  /*!< \c NXDN-VN -- VHF,UHF digital mode IC-R8600 */
-#define    RIG_MODE_NXDN_N    (1ULL << 27)  /*!< \c NXDN-N -- VHF,UHF digital mode IC-R8600 */
-#define    RIG_MODE_DCR       (1ULL << 28)  /*!< \c DCR -- VHF,UHF digital mode IC-R8600 */
-#define    RIG_MODE_AMN       (1ULL << 29)  /*!< \c AM-N -- Narrow band AM mode IC-R30 */
-#define    RIG_MODE_PSK       (1ULL << 30)  /* PSK - Kenwood PSK and others */
-#define    RIG_MODE_PSKR      (1ULL << 31)  /* PSKR - Kenwood PSKR and others */
-#define    RIG_MODE_BIT32     (1ULL << 32)  /* reserved for future expansion */
-#define    RIG_MODE_BIT33     (1ULL << 33)  /* reserved for future expansion */
-#define    RIG_MODE_BIT34     (1ULL << 34)  /* reserved for future expansion */
-#define    RIG_MODE_BIT35     (1ULL << 35)  /* reserved for future expansion */
-#define    RIG_MODE_BIT36     (1ULL << 36)  /* reserved for future expansion */
-#define    RIG_MODE_BIT37     (1ULL << 37)  /* reserved for future expansion */
-#define    RIG_MODE_BIT38     (1ULL << 38)  /* reserved for future expansion */
-#define    RIG_MODE_BIT39     (1ULL << 39)  /* reserved for future expansion */
-#define    RIG_MODE_BIT40     (1ULL << 40)  /* reserved for future expansion */
-#define    RIG_MODE_BIT41     (1ULL << 41)  /* reserved for future expansion */
-#define    RIG_MODE_BIT42     (1ULL << 42)  /* reserved for future expansion */
-#define    RIG_MODE_BIT43     (1ULL << 43)  /* reserved for future expansion */
-#define    RIG_MODE_BIT44     (1ULL << 44)  /* reserved for future expansion */
-#define    RIG_MODE_BIT45     (1ULL << 45)  /* reserved for future expansion */
-#define    RIG_MODE_BIT46     (1ULL << 46)  /* reserved for future expansion */
-#define    RIG_MODE_BIT47     (1ULL << 47)  /* reserved for future expansion */
-#define    RIG_MODE_BIT48     (1ULL << 48)  /* reserved for future expansion */
-#define    RIG_MODE_BIT49     (1ULL << 49)  /* reserved for future expansion */
-#define    RIG_MODE_BIT50     (1ULL << 50)  /* reserved for future expansion */
-#define    RIG_MODE_BIT51     (1ULL << 51)  /* reserved for future expansion */
-#define    RIG_MODE_BIT52     (1ULL << 52)  /* reserved for future expansion */
-#define    RIG_MODE_BIT53     (1ULL << 53)  /* reserved for future expansion */
-#define    RIG_MODE_BIT54     (1ULL << 54)  /* reserved for future expansion */
-#define    RIG_MODE_BIT55     (1ULL << 55)  /* reserved for future expansion */
-#define    RIG_MODE_BIT56     (1ULL << 56)  /* reserved for future expansion */
-#define    RIG_MODE_BIT57     (1ULL << 57)  /* reserved for future expansion */
-#define    RIG_MODE_BIT58     (1ULL << 58)  /* reserved for future expansion */
-#define    RIG_MODE_BIT59     (1ULL << 59)  /* reserved for future expansion */
-#define    RIG_MODE_BIT60     (1ULL << 60)  /* reserved for future expansion */
-#define    RIG_MODE_BIT61     (1ULL << 61)  /* reserved for future expansion */
-#define    RIG_MODE_BIT62     (1ULL << 62)  /* reserved for future expansion */
-#define    RIG_MODE_TESTS_MAX (1ULL << 63)  /*!< \c last bit available for 64-bit enum MUST ALWAYS BE LAST, Max Count for dumpcaps.c */
+#define    RIG_MODE_NONE      0                         /*!< '' -- None */
+#define    RIG_MODE_AM        CONSTANT_64BIT_FLAG (0)   /*!< \c AM -- Amplitude Modulation */
+#define    RIG_MODE_CW        CONSTANT_64BIT_FLAG (1)   /*!< \c CW -- CW "normal" sideband */
+#define    RIG_MODE_USB       CONSTANT_64BIT_FLAG (2)   /*!< \c USB -- Upper Side Band */
+#define    RIG_MODE_LSB       CONSTANT_64BIT_FLAG (3)   /*!< \c LSB -- Lower Side Band */
+#define    RIG_MODE_RTTY      CONSTANT_64BIT_FLAG (4)   /*!< \c RTTY -- Radio Teletype */
+#define    RIG_MODE_FM        CONSTANT_64BIT_FLAG (5)   /*!< \c FM -- "narrow" band FM */
+#define    RIG_MODE_WFM       CONSTANT_64BIT_FLAG (6)   /*!< \c WFM -- broadcast wide FM */
+#define    RIG_MODE_CWR       CONSTANT_64BIT_FLAG (7)   /*!< \c CWR -- CW "reverse" sideband */
+#define    RIG_MODE_RTTYR     CONSTANT_64BIT_FLAG (8)   /*!< \c RTTYR -- RTTY "reverse" sideband */
+#define    RIG_MODE_AMS       CONSTANT_64BIT_FLAG (9)   /*!< \c AMS -- Amplitude Modulation Synchronous */
+#define    RIG_MODE_PKTLSB    CONSTANT_64BIT_FLAG (10)  /*!< \c PKTLSB -- Packet/Digital LSB mode (dedicated port) */
+#define    RIG_MODE_PKTUSB    CONSTANT_64BIT_FLAG (11)  /*!< \c PKTUSB -- Packet/Digital USB mode (dedicated port) */
+#define    RIG_MODE_PKTFM     CONSTANT_64BIT_FLAG (12)  /*!< \c PKTFM -- Packet/Digital FM mode (dedicated port) */
+#define    RIG_MODE_ECSSUSB   CONSTANT_64BIT_FLAG (13)  /*!< \c ECSSUSB -- Exalted Carrier Single Sideband USB */
+#define    RIG_MODE_ECSSLSB   CONSTANT_64BIT_FLAG (14)  /*!< \c ECSSLSB -- Exalted Carrier Single Sideband LSB */
+#define    RIG_MODE_FAX       CONSTANT_64BIT_FLAG (15)  /*!< \c FAX -- Facsimile Mode */
+#define    RIG_MODE_SAM       CONSTANT_64BIT_FLAG (16)  /*!< \c SAM -- Synchronous AM double sideband */
+#define    RIG_MODE_SAL       CONSTANT_64BIT_FLAG (17)  /*!< \c SAL -- Synchronous AM lower sideband */
+#define    RIG_MODE_SAH       CONSTANT_64BIT_FLAG (18)  /*!< \c SAH -- Synchronous AM upper (higher) sideband */
+#define    RIG_MODE_DSB       CONSTANT_64BIT_FLAG (19)  /*!< \c DSB -- Double sideband suppressed carrier */
+#define    RIG_MODE_FMN       CONSTANT_64BIT_FLAG (21)  /*!< \c FMN -- FM Narrow Kenwood ts990s */
+#define    RIG_MODE_PKTAM     CONSTANT_64BIT_FLAG (22)  /*!< \c PKTAM -- Packet/Digital AM mode e.g. IC7300 */
+#define    RIG_MODE_P25       CONSTANT_64BIT_FLAG (23)  /*!< \c P25 -- APCO/P25 VHF,UHF digital mode IC-R8600 */
+#define    RIG_MODE_DSTAR     CONSTANT_64BIT_FLAG (24)  /*!< \c D-Star -- VHF,UHF digital mode IC-R8600 */
+#define    RIG_MODE_DPMR      CONSTANT_64BIT_FLAG (25)  /*!< \c dPMR -- digital PMR, VHF,UHF digital mode IC-R8600 */
+#define    RIG_MODE_NXDNVN    CONSTANT_64BIT_FLAG (26)  /*!< \c NXDN-VN -- VHF,UHF digital mode IC-R8600 */
+#define    RIG_MODE_NXDN_N    CONSTANT_64BIT_FLAG (27)  /*!< \c NXDN-N -- VHF,UHF digital mode IC-R8600 */
+#define    RIG_MODE_DCR       CONSTANT_64BIT_FLAG (28)  /*!< \c DCR -- VHF,UHF digital mode IC-R8600 */
+#define    RIG_MODE_AMN       CONSTANT_64BIT_FLAG (29)  /*!< \c AM-N -- Narrow band AM mode IC-R30 */
+#define    RIG_MODE_PSK       CONSTANT_64BIT_FLAG (30)  /*!< \c PSK - Kenwood PSK and others */
+#define    RIG_MODE_PSKR      CONSTANT_64BIT_FLAG (31)  /*!< \c PSKR - Kenwood PSKR and others */
+#ifndef SWIGLUA
+/* hide the top 32 bits from the Lua binding as they will not work */
+#define    RIG_MODE_BIT32     CONSTANT_64BIT_FLAG (32)  /* reserved for future expansion */
+#define    RIG_MODE_BIT33     CONSTANT_64BIT_FLAG (33)  /* reserved for future expansion */
+#define    RIG_MODE_BIT34     CONSTANT_64BIT_FLAG (34)  /* reserved for future expansion */
+#define    RIG_MODE_BIT35     CONSTANT_64BIT_FLAG (35)  /* reserved for future expansion */
+#define    RIG_MODE_BIT36     CONSTANT_64BIT_FLAG (36)  /* reserved for future expansion */
+#define    RIG_MODE_BIT37     CONSTANT_64BIT_FLAG (37)  /* reserved for future expansion */
+#define    RIG_MODE_BIT38     CONSTANT_64BIT_FLAG (38)  /* reserved for future expansion */
+#define    RIG_MODE_BIT39     CONSTANT_64BIT_FLAG (39)  /* reserved for future expansion */
+#define    RIG_MODE_BIT40     CONSTANT_64BIT_FLAG (40)  /* reserved for future expansion */
+#define    RIG_MODE_BIT41     CONSTANT_64BIT_FLAG (41)  /* reserved for future expansion */
+#define    RIG_MODE_BIT42     CONSTANT_64BIT_FLAG (42)  /* reserved for future expansion */
+#define    RIG_MODE_BIT43     CONSTANT_64BIT_FLAG (43)  /* reserved for future expansion */
+#define    RIG_MODE_BIT44     CONSTANT_64BIT_FLAG (44)  /* reserved for future expansion */
+#define    RIG_MODE_BIT45     CONSTANT_64BIT_FLAG (45)  /* reserved for future expansion */
+#define    RIG_MODE_BIT46     CONSTANT_64BIT_FLAG (46)  /* reserved for future expansion */
+#define    RIG_MODE_BIT47     CONSTANT_64BIT_FLAG (47)  /* reserved for future expansion */
+#define    RIG_MODE_BIT48     CONSTANT_64BIT_FLAG (48)  /* reserved for future expansion */
+#define    RIG_MODE_BIT49     CONSTANT_64BIT_FLAG (49)  /* reserved for future expansion */
+#define    RIG_MODE_BIT50     CONSTANT_64BIT_FLAG (50)  /* reserved for future expansion */
+#define    RIG_MODE_BIT51     CONSTANT_64BIT_FLAG (51)  /* reserved for future expansion */
+#define    RIG_MODE_BIT52     CONSTANT_64BIT_FLAG (52)  /* reserved for future expansion */
+#define    RIG_MODE_BIT53     CONSTANT_64BIT_FLAG (53)  /* reserved for future expansion */
+#define    RIG_MODE_BIT54     CONSTANT_64BIT_FLAG (54)  /* reserved for future expansion */
+#define    RIG_MODE_BIT55     CONSTANT_64BIT_FLAG (55)  /* reserved for future expansion */
+#define    RIG_MODE_BIT56     CONSTANT_64BIT_FLAG (56)  /* reserved for future expansion */
+#define    RIG_MODE_BIT57     CONSTANT_64BIT_FLAG (57)  /* reserved for future expansion */
+#define    RIG_MODE_BIT58     CONSTANT_64BIT_FLAG (58)  /* reserved for future expansion */
+#define    RIG_MODE_BIT59     CONSTANT_64BIT_FLAG (59)  /* reserved for future expansion */
+#define    RIG_MODE_BIT60     CONSTANT_64BIT_FLAG (60)  /* reserved for future expansion */
+#define    RIG_MODE_BIT61     CONSTANT_64BIT_FLAG (61)  /* reserved for future expansion */
+#define    RIG_MODE_BIT62     CONSTANT_64BIT_FLAG (62)  /* reserved for future expansion */
+#define    RIG_MODE_TESTS_MAX CONSTANT_64BIT_FLAG (63)  /*!< \c last bit available for 64-bit enum MUST ALWAYS BE LAST, Max Count for dumpcaps.c */
+#endif
 
 /**
  * \brief macro for backends, not to be used by rig_set_mode et al.
