@@ -762,7 +762,7 @@ enum rig_parm_e {
 #define RIG_PARM_SET(l) ((l)&~RIG_PARM_READONLY_LIST)
 
 
-#define RIG_SETTING_MAX 32
+#define RIG_SETTING_MAX 64
 
 /**
  * \brief Setting
@@ -838,7 +838,7 @@ typedef uint64_t setting_t;
 #define RIG_FUNC_DSQL       CONSTANT_64BIT_FLAG (33)   /*!< \c DSQL -- DCS Squelch setting */
 #define RIG_FUNC_AFLT       CONSTANT_64BIT_FLAG (34)   /*!< \c AFLT -- AF Filter setting */
 #define RIG_FUNC_ANL        CONSTANT_64BIT_FLAG (35)   /*!< \c ANL -- Noise limiter setting */
-#define RIG_FUNC_BIT36      CONSTANT_64BIT_FLAG (36)   /* available for future RIG_FUNC items */
+#define RIG_FUNC_BC2        CONSTANT_64BIT_FLAG (36)   /*!< \c BC2 -- 2nd Beat Cancel */
 #define RIG_FUNC_BIT37      CONSTANT_64BIT_FLAG (37)   /* available for future RIG_FUNC items */
 #define RIG_FUNC_BIT38      CONSTANT_64BIT_FLAG (38)   /* available for future RIG_FUNC items */
 #define RIG_FUNC_BIT39      CONSTANT_64BIT_FLAG (39)   /* available for future RIG_FUNC items */
@@ -2267,8 +2267,7 @@ rigerror HAMLIB_PARAMS((int errnum));
 extern HAMLIB_EXPORT(int)
 rig_setting2idx HAMLIB_PARAMS((setting_t s));
 
-#define rig_idx2setting(i) (1ULL<<(i))
-
+extern setting_t rig_idx2setting(int i);
 /*
  * Even if these functions are prefixed with "rig_", they are not rig specific
  * Maybe "hamlib_" would have been better. Let me know. --SF

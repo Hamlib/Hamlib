@@ -96,6 +96,7 @@ extern HAMLIB_EXPORT(int) rig_check_cache_timeout(const struct timeval *tv,
 
 extern HAMLIB_EXPORT(void) rig_force_cache_timeout(struct timeval *tv);
 
+extern HAMLIB_EXPORT(setting_t) rig_idx2setting(int i);
 
 #ifdef PRId64
 /** \brief printf(3) format to be used for long long (64bits) type */

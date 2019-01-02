@@ -516,12 +516,22 @@ static struct
     { RIG_FUNC_TBURST, "TBURST" },
     { RIG_FUNC_TUNER, "TUNER" },
     { RIG_FUNC_XIT, "XIT" },
+    { RIG_FUNC_NB2, "NB2" },
     { RIG_FUNC_DSQL, "DSQL" },
     { RIG_FUNC_AFLT, "AFLT" },
     { RIG_FUNC_ANL, "ANL" },
+    { RIG_FUNC_BC2, "BC2" },
     { RIG_FUNC_NONE, "" },
 };
 
+/**
+ * utility function to convert index to bit value
+ *
+ */
+uint64_t rig_idx2setting(int i)
+{
+   return 1ULL << i;
+}
 
 /**
  * \brief Convert alpha string to enum RIG_FUNC_...
