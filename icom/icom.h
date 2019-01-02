@@ -113,6 +113,7 @@ struct icom_priv_caps {
 	int serial_full_duplex; /*!< Whether RXD&TXD are not tied together */
 	unsigned char civ_version; // default to 0, 1=IC7200,IC7300,etc differences
 	int offs_len; /* Number of bytes in offset frequency field. 0 defaults to 3 */
+	int serial_USB_echo_check; /* Flag to test USB echo state */
 };
 
 
@@ -124,7 +125,7 @@ struct icom_priv_data {
 	int split_on;									/* record split state */
 	pltstate_t *pltstate;	/* only on optoscan */
 	unsigned char civ_version; /* 0=default, 1=new commands for IC7200,IC7300, etc */
-	int serial_full_duplex; /*!< Whether RXD&TXD are not tied together */
+	int serial_USB_echo_off; /* USB is not set to echo */
 };
 
 extern const struct ts_sc_list r8500_ts_sc_list[];
