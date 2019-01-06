@@ -735,7 +735,7 @@ const struct rig_caps ts890s_caps =
         {RIG_MODE_CW, Hz(200)},
         {RIG_MODE_RTTY, Hz(500)},
         {RIG_MODE_AM, kHz(9)},
-        {RIG_MODE_FM, kHz(14)},
+        {RIG_MODE_FM, kHz(15)},
         RIG_FLT_END,
     },
     .priv = (void *)& ts890s_priv_caps,
