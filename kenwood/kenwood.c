@@ -2210,14 +2210,14 @@ int kenwood_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
   case RIG_FUNC_BC: // Most will return BC1 or BC0, if BC2 then BC1 is off
     retval = get_kenwood_func(rig, "BC", status);
     if (retval == RIG_OK) {
-      *status = *status == '1' ? '1': '0'; 
+      *status = *status == '1' ? 1: 0; 
     }
     return retval;
 
   case RIG_FUNC_BC2: // TS-890 check Beat Cancel 2 we return boolean true/false
     retval = get_kenwood_func(rig, "BC", status);
     if (retval == RIG_OK) {
-      *status = *status == '2' ? '1': '0'; 
+      *status = *status == '2' ? 1: 0; 
     }
     return retval;
 
