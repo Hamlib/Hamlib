@@ -451,6 +451,42 @@ int icom_cleanup(RIG *rig)
 
 
 /*
+ * ICOM rig open routine
+ * Detect echo state of USB serial port
+ */
+int icom_rig_open(RIG *rig)
+{
+    unsigned char ackbuf[MAXFRAMELEN];
+    int ack_len=sizeof(ackbuf);
+    int retval = RIG_OK;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    struct rig_state *rs = &rig->state;
+    struct icom_priv_data *priv = (struct icom_priv_data*)rs->priv;
+	struct icom_priv_caps *priv_caps = (struct icom_priv_caps *) rig->caps->priv;
+
+    if (priv_caps->serial_USB_echo_check) {
+
+        priv->serial_USB_echo_off = 0;
+        retval = icom_transaction (rig, C_RD_TRXID, 0x00, NULL, 0, ackbuf, &ack_len);
+        if (retval == RIG_OK) {
+            rig_debug(RIG_DEBUG_VERBOSE, "USB echo on detected\n");
+        return RIG_OK;
+        }
+        priv->serial_USB_echo_off = 1;
+        retval = icom_transaction (rig, C_RD_TRXID, 0x00, NULL, 0, ackbuf, &ack_len);
+        if (retval == RIG_OK) {
+            rig_debug(RIG_DEBUG_VERBOSE, "USB echo off detected\n");
+            return RIG_OK;
+        }
+    }
+    priv->serial_USB_echo_off = 0;
+	return retval;
+}
+
+
+/*
  * icom_set_freq
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
