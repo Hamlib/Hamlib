@@ -6,7 +6,7 @@
 
 DISTCLEANFILES = rigctl.log rigctl.sum testbcd.log testbcd.sum
 
-bin_PROGRAMS = rigctl rigctld rigmem rigsmtr rigswr rotctl rotctld
+bin_PROGRAMS = rigctl rigctld rigmem rigsmtr rigswr rotctl rotctld rigctlcom
 
 check_PROGRAMS = dumpmem testrig testtrn testbcd testfreq listrigs testloc rig_bench
 
@@ -15,6 +15,7 @@ ROTCOMMONSRC = rotctl_parse.c rotctl_parse.h dumpcaps_rot.c uthash.h
 
 rigctl_SOURCES = rigctl.c $(RIGCOMMONSRC)
 rigctld_SOURCES = rigctld.c $(RIGCOMMONSRC)
+rigctlcom_SOURCES = rigctlcom.c $(RIGCOMMONSRC)
 rotctl_SOURCES = rotctl.c $(ROTCOMMONSRC)
 rotctld_SOURCES = rotctld.c $(ROTCOMMONSRC)
 rigswr_SOURCES = rigswr.c
@@ -28,12 +29,14 @@ LDADD = $(top_builddir)/src/libhamlib.la $(top_builddir)/lib/libmisc.la
 rigmem_CFLAGS = $(AM_CFLAGS) $(LIBXML2_CFLAGS)
 rigctld_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 rotctld_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+rigctlcom_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 
 rigctl_LDADD = $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rigctld_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rotctl_LDADD = $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rotctld_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rigmem_LDADD = $(LIBXML2_LIBS) $(LDADD)
+rigctlcom_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 
 # Linker options
 rigctl_LDFLAGS = $(WINEXELDFLAGS)
@@ -43,6 +46,7 @@ rigmem_LDFLAGS = $(WINEXELDFLAGS)
 rotctl_LDFLAGS = $(WINEXELDFLAGS)
 rigctld_LDFLAGS = $(WINEXELDFLAGS)
 rotctld_LDFLAGS = $(WINEXELDFLAGS)
+rigctlcom_LDFLAGS = $(WINEXELDFLAGS)
 
 
 if HTML_MATRIX
