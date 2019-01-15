@@ -2729,6 +2729,11 @@ int newcat_get_func(RIG * rig, vfo_t vfo, setting_t func, int *status)
                 return -RIG_ENAVAIL;
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VX%c", cat_term);
             break;
+        case RIG_FUNC_TUNER:
+            if (!newcat_valid_command(rig, "AC"))
+                return -RIG_ENAVAIL;
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "AC%c", cat_term);
+            break;
         default:
             return -RIG_EINVAL;
     }
@@ -2765,6 +2770,9 @@ int newcat_get_func(RIG * rig, vfo_t vfo, setting_t func, int *status)
             break;
         case RIG_FUNC_TSQL:
             *status = (retfunc[0] == '1') ? 1 : 0;
+            break;
+        case RIG_FUNC_TUNER:
+            *status = (retfunc[2] == '1') ? 1 : 0;
             break;
         default:
             return -RIG_EINVAL;
