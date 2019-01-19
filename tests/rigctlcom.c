@@ -81,7 +81,7 @@
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:R:p:d:P:D:s:S:c:T:t:C:lLuovhVZ"
+#define SHORT_OPTIONS "m:r:R:p:d:P:D:s:S:c:C:lLuovhVZ"
 static struct option long_options[] =
 {
     {"model",           1, 0, 'm'},
@@ -94,8 +94,6 @@ static struct option long_options[] =
     {"serial-speed",    1, 0, 's'},
     {"serial-speed2",   1, 0, 'S'},
     {"civaddr",         1, 0, 'c'},
-    {"listen-addr",     1, 0, 'T'},
-    {"port",            1, 0, 't'},
     {"set-conf",        1, 0, 'C'},
     {"list",            0, 0, 'l'},
     {"show-conf",       0, 0, 'L'},
@@ -429,26 +427,6 @@ printf("nope\n");
             }
 
             strncat(conf_parms, optarg, MAXCONFLEN - strlen(conf_parms));
-            break;
-
-        case 't':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
-            portno = optarg;
-            break;
-
-        case 'T':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
-            src_addr = optarg;
             break;
 
         case 'o':

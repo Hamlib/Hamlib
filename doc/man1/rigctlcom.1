@@ -27,10 +27,8 @@ rigctlcom \- COM port passthru as TS-2000 emulator to your rig
 .OP \-s baud
 .OP \-S baud2
 .OP \-c id
-.OP \-t char
 .OP \-C parm=val
 .RB [ \-v [ \-Z ]]
-.RB [ command | \- ]
 .YS
 .
 .SH DESCRIPTION
@@ -163,28 +161,6 @@ is in decimal notation, unless prefixed by
 in which case it is hexadecimal.
 .
 .TP
-.BR \-t ", " \-\-send\-cmd\-term = \fIchar\fP
-Change the termination
-.I char
-for text protocol when using the
-.B send_cmd
-command.
-.IP
-The default value is ASCII CR (\(oq0x0D\(cq).  ASCII non-printing characters
-can be given as the ASCII number in hexadecimal format prepended with
-\(lq0x\(rq.  You may pass an empty string for no termination char.  The string
-\(lq\-1\(rq tells
-.B rigctl
-to switch to binary protocol.  See the
-.B send_cmd
-command for further explanation.
-.IP
-For example, to specify a command terminator for Kenwood style text commands
-pass \(lq-t ';'\(rq to rigctl.  See
-.B EXAMPLE
-below.
-.
-.TP
 .BR \-L ", " \-\-show\-conf
 List all config parameters for the radio defined with
 .B \-m
@@ -224,16 +200,6 @@ or
 e.g. \(lqrigctl -l | more\(rq.
 .
 .TP
-.BR \-o ", " \-\-vfo
-Enable vfo mode.
-.IP
-An extra VFO argument will be required in front of each appropriate command
-(except
-.BR set_vfo ).
-Otherwise, \(oqcurrVFO\(cq is used when this option is not set and an extra
-VFO argument is not used.
-.
-.TP
 .BR \-n ", " \-\-no\-restore\-ai
 On exit
 .B rigctl
@@ -242,29 +208,6 @@ restores the state of auto information (AI) on the controlled rig.
 If this is not desired, for example if you are using
 .B rigctl
 to turn AI mode on or off, pass this option.
-.
-.TP
-.BR \-I ", " \-\-save\-history
-Write current session (and previous session(s), if
-.B -i
-option is given) command and argument history to a file (default
-.IR $HOME/.rigctl_history )
-at the end of the current session.
-.IP
-Complete commands with arguments are saved as a single line to be recalled and
-used or edited.  Available when
-.B rigctl
-is built with Readline support (see
-.B READLINE
-below).
-.IP
-.BR Note :
-To write a history file in another directory, set the
-.B RIGCTL_HIST_DIR
-environment variable, e.g. \(lqRIGCTL_HIST_DIR=~/tmp rigctl -I\)Rq.  When
-RIGCTL_HIST_DIR is not set, the value of
-.B HOME
-is used.
 .
 .TP
 .BR \-v ", " \-\-verbose
