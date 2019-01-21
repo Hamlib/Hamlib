@@ -115,7 +115,7 @@ struct handle_data
 };
 
 
-void usage(const char *name);
+void usage();
 static int handle_ts2000(void *arg);
 
 static RIG *my_rig;             /* handle to rig */
@@ -225,7 +225,7 @@ int main(int argc, char *argv[])
     char *civaddr = NULL;       /* NULL means no need to set conf */
     char conf_parms[MAXCONFLEN] = "";
 
-    printf("%s Version 1.0\n", argv[0]);
+    printf("rigctlcom Version 1.0\n");
 
     while (1)
     {
@@ -246,7 +246,7 @@ int main(int argc, char *argv[])
         switch (c)
         {
         case 'h':
-            usage(argv[0]);
+            usage();
             exit(0);
 
         case 'V':
@@ -256,7 +256,7 @@ int main(int argc, char *argv[])
         case 'm':
             if (!optarg)
             {
-                usage(argv[0]);        /* wrong arg count */
+                usage();        /* wrong arg count */
                 exit(1);
             }
 
@@ -266,7 +266,7 @@ int main(int argc, char *argv[])
         case 'r':
             if (!optarg)
             {
-                usage(argv[0]);        /* wrong arg count */
+                usage();        /* wrong arg count */
                 exit(1);
             }
 
@@ -276,7 +276,7 @@ int main(int argc, char *argv[])
         case 'R':
             if (!optarg)
             {
-                usage(argv[0]);        /* wrong arg count */
+                usage();        /* wrong arg count */
                 exit(1);
             }
 
@@ -287,7 +287,7 @@ int main(int argc, char *argv[])
         case 'p':
             if (!optarg)
             {
-                usage(argv[0]);        /* wrong arg count */
+                usage();        /* wrong arg count */
                 exit(1);
             }
 
@@ -297,7 +297,7 @@ int main(int argc, char *argv[])
         case 'd':
             if (!optarg)
             {
-                usage(argv[0]);        /* wrong arg count */
+                usage();        /* wrong arg count */
                 exit(1);
             }
 
@@ -307,7 +307,7 @@ int main(int argc, char *argv[])
         case 'P':
             if (!optarg)
             {
-                usage(argv[0]);        /* wrong arg count */
+                usage();        /* wrong arg count */
                 exit(1);
             }
 
@@ -345,7 +345,7 @@ int main(int argc, char *argv[])
         case 'D':
             if (!optarg)
             {
-                usage(argv[0]);        /* wrong arg count */
+                usage();        /* wrong arg count */
                 exit(1);
             }
 
@@ -383,7 +383,7 @@ int main(int argc, char *argv[])
         case 'c':
             if (!optarg)
             {
-                usage(argv[0]);        /* wrong arg count */
+                usage();        /* wrong arg count */
                 exit(1);
             }
 
@@ -393,7 +393,7 @@ int main(int argc, char *argv[])
         case 's':
             if (!optarg)
             {
-                usage(argv[0]);        /* wrong arg count */
+                usage();        /* wrong arg count */
                 exit(1);
             }
 
@@ -406,7 +406,7 @@ int main(int argc, char *argv[])
             if (!optarg)
             {
                 printf("nope\n");
-                usage(argv[0]);        /* wrong arg count */
+                usage();        /* wrong arg count */
                 exit(1);
             }
 
@@ -417,7 +417,7 @@ int main(int argc, char *argv[])
         case 'C':
             if (!optarg)
             {
-                usage(argv[0]);        /* wrong arg count */
+                usage();        /* wrong arg count */
                 exit(1);
             }
 
@@ -451,17 +451,21 @@ int main(int argc, char *argv[])
             break;
 
         default:
-            usage(argv[0]);            /* unknown option? */
+            usage();            /* unknown option? */
             exit(1);
         }
     }
 
     rig_set_debug(verbose);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s, %s\n", argv[0], hamlib_version);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s, %s\n", "rigctlcom", hamlib_version);
     rig_debug(RIG_DEBUG_VERBOSE,
               "Report bugs to <hamlib-developer@lists.sourceforge.net>\n\n");
 
+    if (argc == 1) {
+        usage();
+        exit(2);
+    }
     my_rig = rig_init(my_model);
 
     if (!my_rig)
@@ -488,7 +492,10 @@ int main(int argc, char *argv[])
         exit(2);
     }
 
-    strncpy(my_rig->state.rigport.pathname, rig_file, FILPATHLEN - 1);
+    if (rig_file)
+    {
+        strncpy(my_rig->state.rigport.pathname, rig_file, FILPATHLEN - 1);
+    }
 
     if (!rig_file2)
     {
@@ -931,11 +938,12 @@ static int handle_ts2000(void *arg)
 }
 
 
-void usage(const char *name)
+void usage()
 {
-    printf("Usage: %s [OPTIONS]...\n\n"
-           "A TS-2000 emulator for programs that don't support Hamlib to be able\n"
-           "to use a connected radio transceiver or receiver or FLRig via Hamlib.\n\n",
+    char *name="rigctlcom";
+    printf("Usage: %s -m rignumber -r comport -s baud -R comport [OPTIONS]...\n\n"
+           "A TS-2000 emulator for rig sharing with programs that don't support Hamlib to be able\n"
+           "to use a connected radio transceiver or receiver with FLRig or rigctld via Hamlib.\n\n",
            name);
 
     printf("Example: Using FLRig with virtual COM5/COM6 and other program:\n");
@@ -952,7 +960,7 @@ void usage(const char *name)
         "  -P, --ptt-type=TYPE           set type of the PTT device to operate on\n"
         "  -D, --dcd-type=TYPE           set type of the DCD device to operate on\n"
         "  -s, --serial-speed=BAUD       set serial speed of the serial port\n"
-        "  -S, --serial-speed2=BAUD      set serial speed of the virtual com port\n"
+        "  -S, --serial-speed2=BAUD      set serial speed of the virtual com port [default=115200]\n"
         "  -c, --civaddr=ID              set CI-V address, decimal (for Icom rigs only)\n"
         "  -C, --set-conf=PARM=VAL       set config parameters\n"
         "  -L, --show-conf               list all config parameters\n"
