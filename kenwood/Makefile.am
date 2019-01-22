@@ -6,7 +6,7 @@ TSSRC = ts850.c ts870s.c ts570.c ts450s.c ts950.c ts50s.c \
 
 IC10SRC = ts440.c ts940.c ts711.c ts811.c r5000.c
 
-THSRC = thd7.c thf7.c thg71.c tmd700.c tmv7.c thf6a.c thd72.c tmd710.c
+THSRC = thd7.c thf7.c thg71.c tmd700.c tmv7.c thf6a.c thd72.c tmd710.c thd74.c
 
 KENWOODSRC = kenwood.c kenwood.h th.c th.h ic10.c ic10.h elecraft.c elecraft.h \
 	transfox.c flex.c flex.h

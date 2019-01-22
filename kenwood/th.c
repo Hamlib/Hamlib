@@ -374,8 +374,8 @@ th_set_vfo(RIG *rig, vfo_t vfo)
 				return retval;
 	}
 
-	/* No "VMC" cmd on THD72A */
-	if (rig->caps->rig_model == RIG_MODEL_THD72A)
+	/* No "VMC" cmd on THD72A/THD74 */
+	if (rig->caps->rig_model == RIG_MODEL_THD72A || rig->caps->rig_model == RIG_MODEL_THD74)
         	return RIG_OK;
 
 	/* set vfo */
@@ -449,8 +449,8 @@ th_get_vfo_char(RIG *rig, vfo_t *vfo, char *vfoch)
 
 	}
 
-    /* No "VMC" on THD72A */
-    if (rig->caps->rig_model == RIG_MODEL_THD72A) {
+    /* No "VMC" on THD72A/THD74 */
+    if (rig->caps->rig_model == RIG_MODEL_THD72A || rig->caps->rig_model == RIG_MODEL_THD74) {
         *vfoch = '0'; /* FIXME: fake */
 
         return RIG_OK;
