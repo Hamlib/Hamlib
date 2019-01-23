@@ -397,7 +397,7 @@ static int thd74_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     struct kenwood_priv_data *priv = rig->state.priv;
     int retval;
-    char buf[128], fbuf[11];
+    char buf[128], fbuf[12];
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
@@ -879,7 +879,7 @@ int thd74_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 static int thd74_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     int retval, lvl;
-    char c, lvlc, cmd[10];
+    char c, lvlc, cmd[11];
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
     rig_debug(RIG_DEBUG_TRACE, "%s: level: %ld\n", __func__, level);
@@ -1391,7 +1391,7 @@ int thd74_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
     struct kenwood_priv_data *priv = rig->state.priv;
     int retval;
-    char fbuf[11], buf[128];
+    char fbuf[12], buf[128];
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
