@@ -212,7 +212,7 @@ for f in doc/man1/*.1 doc/man7/*.7; do \
 cd ${BUILD_DIR}/$1
 
 # Copy build files into specific locations for Zip file
-cp -a ${INST_DIR}/bin/{rigctld.exe,rigctl.exe,rigmem.exe,rigsmtr.exe,rigswr.exe,rotctld.exe,rotctl.exe} ${ZIP_DIR}/bin/.
+cp -a ${INST_DIR}/bin/{rigctld.exe,rigctl.exe,rigmem.exe,rigsmtr.exe,rigswr.exe,rotctld.exe,rotctl.exe,rigctlcom.exe} ${ZIP_DIR}/bin/.
 cp -a ${INST_DIR}/bin/libhamlib-?.dll ${ZIP_DIR}/bin/.
 cp -a ${INST_DIR}/lib/libhamlib.dll.a ${ZIP_DIR}/lib/gcc/.
 
