@@ -1,6 +1,7 @@
 /*
  *  Hamlib CI-V backend - description of IC-R8600
  *  Copyright (c) 2000-2004 by Stephane Fillod
+ *  Copyright (c) 2018 by Ekki Plicht
  *  Copyright (c) 2019 by Malcolm Herring
  *
  *
