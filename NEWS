@@ -13,6 +13,7 @@ Version 4.0
 	* New rotator backend: iOptron. Bob, KD8CGH
 	* New model: Icom IC-R8600.  Ekki, DF4OR
 	* New utility: rigctlcom.  Mike, W9MDB
+	* New model: FT847UNI for unidirectional early serial numbers.  Mike, W9MDB
 
 Version 3.3
         2018-08-12
