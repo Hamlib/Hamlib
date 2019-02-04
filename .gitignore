@@ -47,6 +47,7 @@ macros/ltversion.m4
 macros/lt~obsolete.m4
 macros/pkg.m4
 tests/rigctl
+tests/rigctlcom
 tests/rigctld
 tests/rigmem
 tests/rigsmtr
