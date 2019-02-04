@@ -139,7 +139,7 @@ const struct rig_caps ts990s_caps = {
 .serial_parity =  RIG_PARITY_NONE,
 .serial_handshake =  RIG_HANDSHAKE_HARDWARE,
 .write_delay =  0,
-.post_write_delay =  50,	/* ms */
+.post_write_delay =  0,	/* ms */
 .timeout =  200,
 .retry =  10,
 
