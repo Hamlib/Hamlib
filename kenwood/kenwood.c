@@ -439,6 +439,8 @@ int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
   int err;
   int retry = 0;
 
+  memset(buf,buf_size,0);
+
   if (expected == 0)
     buf_size = 0;
 
