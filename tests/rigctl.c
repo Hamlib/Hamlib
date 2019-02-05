@@ -79,7 +79,7 @@ extern int read_history();
 
 
 void usage(void);
-
+extern int netrigctl_get_vfo_mode(RIG *rig);
 
 /*
  * Reminder: when adding long options,
@@ -127,6 +127,7 @@ static const int have_rl = 1;
 int interactive = 1;    /* if no cmd on command line, switch to interactive */
 int prompt = 1;         /* Print prompt in rigctl */
 int vfo_mode = 0;       /* vfo_mode = 0 means target VFO is 'currVFO' */
+int rigctld_vfo_mode;
 
 char send_cmd_term = '\r';  /* send_cmd termination char */
 
@@ -523,6 +524,26 @@ int main(int argc, char *argv[])
         printf("Opened rig model %d, '%s'\n",
                my_rig->caps->rig_model,
                my_rig->caps->model_name);
+    }
+
+    if (my_rig->caps->rig_model == RIG_MODEL_NETRIGCTL) {
+      /* We automatically detect if we need to be in vfo mode or not */
+      rigctld_vfo_mode = netrigctl_get_vfo_mode(my_rig);
+      if (rigctld_vfo_mode && !vfo_mode) {
+          fprintf(stderr, "Looks like rigctld is using vfo mode so we're switching to vfo mode\n");
+          vfo_mode = rigctld_vfo_mode;
+      }
+      else if (!rigctld_vfo_mode && vfo_mode) {
+          fprintf(stderr, "Looks like rigctld is not using vfo mode so we're switching vfo mode off\n");
+          vfo_mode = rigctld_vfo_mode;
+      }
+      else if (vfo_mode && my_rig->caps->rig_model != RIG_MODEL_NETRIGCTL) {
+          fprintf(stderr, "vfo mode doesn't make sense for any rig other than rig#2\n");
+          fprintf(stderr, "But we'll let you run this way if you want\n");
+      }
+      else if (!vfo_mode && my_rig->caps->rig_model == RIG_MODEL_NETRIGCTL) {
+          fprintf(stderr, "Recommend using --vfo switch for rigctl with rigctld\n");
+      }
     }
 
     rig_debug(RIG_DEBUG_VERBOSE,

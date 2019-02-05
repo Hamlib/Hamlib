@@ -482,6 +482,10 @@ int main(int argc, char *argv[])
         }
     }
 
+    if (!vfo_mode) {
+        printf("Recommend using --vfo switch for rigctld\n");
+        printf("rigctl and netrigctl will automatically detect vfo mode\n");
+    }
     rig_set_debug(verbose);
 
     rig_debug(RIG_DEBUG_VERBOSE, "rigctld, %s\n", hamlib_version);
