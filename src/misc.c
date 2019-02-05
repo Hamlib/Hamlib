@@ -459,7 +459,7 @@ const char * HAMLIB_API rig_strvfo(vfo_t vfo)
 {
     int i;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     if (vfo == RIG_VFO_NONE)
     {
