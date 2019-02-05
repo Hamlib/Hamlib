@@ -384,7 +384,7 @@ const char * HAMLIB_API rig_strrmode(rmode_t mode)
 {
     int i;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called mode=0x%"PRXll"\n", __func__, mode);
+    rig_debug(RIG_DEBUG_TRACE, "%s called mode=0x%"PRXll"\n", __func__, mode);
 
     if (mode == RIG_MODE_NONE)
     {

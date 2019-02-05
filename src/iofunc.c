@@ -671,7 +671,7 @@ int HAMLIB_API read_string(hamlib_port_t *p,
     int rd_count, total_count = 0;
     int retval;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     if (!p || !rxbuffer)
     {
@@ -754,7 +754,8 @@ int HAMLIB_API read_string(hamlib_port_t *p,
          */
         rd_count = port_read(p, &rxbuffer[total_count], 1);
 
-        if (rd_count < 0)
+        /* if we get 0 bytes or an error something is wrong */
+        if (rd_count <= 0)
         {
             dump_hex((unsigned char *) rxbuffer, total_count);
             rig_debug(RIG_DEBUG_ERR,
