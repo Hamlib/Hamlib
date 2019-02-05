@@ -277,6 +277,7 @@ int network_open(hamlib_port_t *rp, int default_port)
  */
 void network_flush(hamlib_port_t *rp)
 {
+    int ret;
 #ifdef __MINGW32__
     ULONG len = 0;
 #else
@@ -289,12 +290,16 @@ void network_flush(hamlib_port_t *rp)
 
     for (;;)
     {
+        len = 0;
 #ifdef __MINGW32__
-        ioctlsocket(rp->fd, FIONREAD, &len);
+        ret = ioctlsocket(rp->fd, FIONREAD, &len);
 #else
-        ioctl(rp->fd, FIONREAD, &len);
+        ret = ioctl(rp->fd, FIONREAD, &len);
 #endif
-
+        if (ret != 0) {
+          rig_debug(RIG_DEBUG_ERR,"%s: ioctl err '%s'\n",__FUNCTION__,strerror(errno));
+          break;
+        }
         if (len > 0)
         {
             len = read(rp->fd, &buffer, len < NET_BUFFER_SIZE ? len : NET_BUFFER_SIZE);
