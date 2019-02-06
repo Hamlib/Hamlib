@@ -138,7 +138,7 @@ const struct rig_caps ts2000_caps = {
 .serial_parity =  RIG_PARITY_NONE,
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
-.post_write_delay =  50,	/* ms */
+.post_write_delay =  0,	/* ms */
 .timeout =  200,
 .retry =  10,
 
