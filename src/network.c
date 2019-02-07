@@ -242,8 +242,10 @@ int network_open(hamlib_port_t *rp, int default_port)
         {
             break;
         }
+
         char msg[1024];
-        snprintf(msg,sizeof(msg),"connect to %s failed, (trying next interface)",rp->pathname);
+        snprintf(msg, sizeof(msg), "connect to %s failed, (trying next interface)",
+                 rp->pathname);
         handle_error(RIG_DEBUG_WARN, msg);
 
 #ifdef __MINGW32__
@@ -297,10 +299,13 @@ void network_flush(hamlib_port_t *rp)
 #else
         ret = ioctl(rp->fd, FIONREAD, &len);
 #endif
-        if (ret != 0) {
-          rig_debug(RIG_DEBUG_ERR,"%s: ioctl err '%s'\n",__FUNCTION__,strerror(errno));
-          break;
+
+        if (ret != 0)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: ioctl err '%s'\n", __FUNCTION__, strerror(errno));
+            break;
         }
+
         if (len > 0)
         {
             int len_read = 0;
@@ -308,11 +313,15 @@ void network_flush(hamlib_port_t *rp)
                       "%s: network data clear d: ret=%d, len=%ld/0x%lx, '%s'\n",
                       __func__,
                       ret, len, len, buffer);
-            len_read = recv(rp->fd, buffer, len < NET_BUFFER_SIZE ? len : NET_BUFFER_SIZE, 0);
-            if (len_read < 0) { // -1 indicates error occurred
-                rig_debug(RIG_DEBUG_ERR,"%s: read error '%s'\n", __func__, strerror(errno));
+            len_read = recv(rp->fd, buffer, len < NET_BUFFER_SIZE ? len : NET_BUFFER_SIZE,
+                            0);
+
+            if (len_read < 0)   // -1 indicates error occurred
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: read error '%s'\n", __func__, strerror(errno));
                 break;
             }
+
             rig_debug(RIG_DEBUG_WARN,
                       "%s: network data cleared: ret=%d, len_read=%d/0x%x, '%s'\n",
                       __func__,
@@ -320,7 +329,7 @@ void network_flush(hamlib_port_t *rp)
         }
         else
         {
-            rig_debug(RIG_DEBUG_WARN,"%s: len <= 0, len=%ld/0x%lx\n", __func__, len, len);
+            rig_debug(RIG_DEBUG_WARN, "%s: len <= 0, len=%ld/0x%lx\n", __func__, len, len);
             break;
         }
     }
