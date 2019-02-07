@@ -133,6 +133,7 @@ int network_open(hamlib_port_t *rp, int default_port)
     char defaultportstr[8];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s version 1.0\n", __func__);
 
 #ifdef __MINGW32__
     WSADATA wsadata;
@@ -302,14 +303,24 @@ void network_flush(hamlib_port_t *rp)
         }
         if (len > 0)
         {
-            len = read(rp->fd, &buffer, len < NET_BUFFER_SIZE ? len : NET_BUFFER_SIZE);
+            int len_read = 0;
             rig_debug(RIG_DEBUG_WARN,
-                      "%s: network data cleared: %s\n",
+                      "%s: network data clear d: ret=%d, len=%ld/0x%lx, '%s'\n",
                       __func__,
-                      buffer);
+                      ret, len, len, buffer);
+            len_read = recv(rp->fd, buffer, len < NET_BUFFER_SIZE ? len : NET_BUFFER_SIZE, 0);
+            if (len_read < 0) { // -1 indicates error occurred
+                rig_debug(RIG_DEBUG_ERR,"%s: read error '%s'\n", __func__, strerror(errno));
+                break;
+            }
+            rig_debug(RIG_DEBUG_WARN,
+                      "%s: network data cleared: ret=%d, len_read=%d/0x%x, '%s'\n",
+                      __func__,
+                      ret, len_read, len_read, buffer);
         }
         else
         {
+            rig_debug(RIG_DEBUG_WARN,"%s: len <= 0, len=%ld/0x%lx\n", __func__, len, len);
             break;
         }
     }
