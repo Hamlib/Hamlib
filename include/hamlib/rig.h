@@ -1799,6 +1799,9 @@ rig_get_vfo HAMLIB_PARAMS((RIG *rig,
                            vfo_t *vfo));
 
 extern HAMLIB_EXPORT(int)
+netrigctl_get_vfo_mode HAMLIB_PARAMS((RIG *rig));
+
+extern HAMLIB_EXPORT(int)
 rig_set_ptt HAMLIB_PARAMS((RIG *rig,
                            vfo_t vfo,
                            ptt_t ptt));
