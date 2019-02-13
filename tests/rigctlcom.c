@@ -462,10 +462,12 @@ int main(int argc, char *argv[])
     rig_debug(RIG_DEBUG_VERBOSE,
               "Report bugs to <hamlib-developer@lists.sourceforge.net>\n\n");
 
-    if (argc == 1) {
+    if (argc == 1)
+    {
         usage();
         exit(2);
     }
+
     my_rig = rig_init(my_model);
 
     if (!my_rig)
@@ -811,9 +813,11 @@ static int handle_ts2000(void *arg)
         freq_t freq = 0;
         int retval = rig_get_freq(my_rig, RIG_VFO_A, &freq);
 
-        if (retval != RIG_OK) { 
-            rig_debug(RIG_DEBUG_ERR,"%s: get freqA failed: %s\n",__func__, rigerror(retval));
-            return retval; 
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: get freqA failed: %s\n", __func__,
+                      rigerror(retval));
+            return retval;
         }
 
         char response[32];
@@ -826,9 +830,11 @@ static int handle_ts2000(void *arg)
         freq_t freq = 0;
         int retval = rig_get_freq(my_rig, RIG_VFO_B, &freq);
 
-        if (retval != RIG_OK) { 
-            rig_debug(RIG_DEBUG_ERR,"%s: get freqB failed: %s\n",__func__, rigerror(retval));
-            return retval; 
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: get freqB failed: %s\n", __func__,
+                      rigerror(retval));
+            return retval;
         }
 
         char response[32];
@@ -877,15 +883,20 @@ static int handle_ts2000(void *arg)
     {
         vfo_t vfo;
         int retval = rig_get_vfo(my_rig, &vfo);
-        if (retval != RIG_OK) {
-            rig_debug(RIG_DEBUG_ERR,"%s: get vfo failed: %s\n",__func__, rigerror(retval));
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: get vfo failed: %s\n", __func__,
+                      rigerror(retval));
             return retval;
         }
 
         int nvfo = 0;
-        if (vfo == RIG_VFO_A)  nvfo=0;
-        else if (vfo == RIG_VFO_B) nvfo=1;
-        else {
+
+        if (vfo == RIG_VFO_A) { nvfo = 0; }
+        else if (vfo == RIG_VFO_B) { nvfo = 1; }
+        else
+        {
             retval = -RIG_EPROTO;
             return retval;
         }
@@ -893,23 +904,28 @@ static int handle_ts2000(void *arg)
         char response[32];
         snprintf(response, sizeof(response), "FR%c;", nvfo + '0');
         return write_block2((void *)__func__, &my_com, response, strlen(response));
-        
+
         return retval;
     }
     else if (strcmp(arg, "FT;") == 0)
     {
-        vfo_t vfo, vfo_curr=RIG_VFO_A;
+        vfo_t vfo, vfo_curr = RIG_VFO_A;
         split_t split;
         int retval = rig_get_split_vfo(my_rig, vfo_curr, &split, &vfo);
-        if (retval != RIG_OK) {
-            rig_debug(RIG_DEBUG_ERR,"%s: get split vfo failed: %s\n",__func__, rigerror(retval));
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: get split vfo failed: %s\n", __func__,
+                      rigerror(retval));
             return retval;
         }
 
         int nvfo = 0;
-        if (vfo == RIG_VFO_A)  nvfo=0;
-        else if (vfo == RIG_VFO_B) nvfo=1;
-        else {
+
+        if (vfo == RIG_VFO_A) { nvfo = 0; }
+        else if (vfo == RIG_VFO_B) { nvfo = 1; }
+        else
+        {
             retval = -RIG_EPROTO;
             return retval;
         }
@@ -917,17 +933,21 @@ static int handle_ts2000(void *arg)
         char response[32];
         snprintf(response, sizeof(response), "FT%c;", nvfo + '0');
         return write_block2((void *)__func__, &my_com, response, strlen(response));
-        
+
         return retval;
     }
     else if (strcmp(arg, "TN;") == 0)
     {
         tone_t val;
         int retval = rig_get_ctcss_tone(my_rig, RIG_VFO_CURR, &val);
-        if (retval != RIG_OK) {
-            rig_debug(RIG_DEBUG_ERR,"%s: get_func XIT failed: %s\n",__func__, rigerror(retval));
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: get_func XIT failed: %s\n", __func__,
+                      rigerror(retval));
             return retval;
         }
+
         char response[32];
         snprintf(response, sizeof(response), "TN%02d;", val);
         return write_block2((void *)__func__, &my_com, response, strlen(response));
@@ -935,31 +955,47 @@ static int handle_ts2000(void *arg)
     else if (strncmp(arg, "TN", 2) == 0)
     {
         int ival = 0;
-        sscanf(arg,"TN%d",&ival);
+        sscanf(arg, "TN%d", &ival);
         tone_t val = ival;
         int retval = rig_set_ctcss_tone(my_rig, RIG_VFO_CURR, val);
-        if (retval != RIG_OK) 
-            rig_debug(RIG_DEBUG_ERR,"%s: set_ctcss_tone failed: %s\n",__func__, rigerror(retval));
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: set_ctcss_tone failed: %s\n", __func__,
+                      rigerror(retval));
+        }
+
         return retval;
     }
     else if (strcmp(arg, "PA;") == 0)
     {
         int valA;
         int retval = rig_get_func(my_rig, RIG_VFO_A, RIG_FUNC_AIP, &valA);
-        if (retval != RIG_OK) {
-            rig_debug(RIG_DEBUG_ERR,"%s: get_func preamp A failed: %s\n",__func__, rigerror(retval));
-            if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL) {
-               char *response = "?;";
-               return write_block2((void *)__func__, &my_com, response, strlen(response));
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: get_func preamp A failed: %s\n", __func__,
+                      rigerror(retval));
+
+            if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
+            {
+                char *response = "?;";
+                return write_block2((void *)__func__, &my_com, response, strlen(response));
             }
+
             return retval;
         }
+
         int valB;
         retval = rig_get_func(my_rig, RIG_VFO_B, RIG_FUNC_AIP, &valB);
-        if (retval != RIG_OK) {
-            rig_debug(RIG_DEBUG_ERR,"%s: get_func preamp B failed: %s\n",__func__, rigerror(retval));
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: get_func preamp B failed: %s\n", __func__,
+                      rigerror(retval));
             return retval;
         }
+
         char response[32];
         snprintf(response, sizeof(response), "PA%c%c;", valA + '0', valB + '0');
         return write_block2((void *)__func__, &my_com, response, strlen(response));
@@ -968,34 +1004,52 @@ static int handle_ts2000(void *arg)
     {
         int valA = 0;
         int valB = 0;
-        int n = sscanf(arg,"PA%1d%1d",&valA, &valB);
-        if (n != 2) {
-            rig_debug(RIG_DEBUG_ERR,"%s: error parsing preamp cmd '%s'\n",__func__, arg);
+        int n = sscanf(arg, "PA%1d%1d", &valA, &valB);
+
+        if (n != 2)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: error parsing preamp cmd '%s'\n", __func__, arg);
         }
+
         int retval = rig_set_func(my_rig, RIG_VFO_A, RIG_FUNC_AIP, valA);
-        if (retval != RIG_OK) {
-            rig_debug(RIG_DEBUG_ERR,"%s: set_func preamp failed: %s\n",__func__, rigerror(retval));
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: set_func preamp failed: %s\n", __func__,
+                      rigerror(retval));
             return retval;
         }
+
         retval = rig_set_func(my_rig, RIG_VFO_B, RIG_FUNC_AIP, valB);
-        if (retval != RIG_OK) {
-            rig_debug(RIG_DEBUG_ERR,"%s: set_func preamp failed: %s\n",__func__, rigerror(retval));
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: set_func preamp failed: %s\n", __func__,
+                      rigerror(retval));
             return retval;
         }
+
         return retval;
     }
     else if (strcmp(arg, "XT;") == 0)
     {
         int val;
         int retval = rig_get_func(my_rig, RIG_VFO_CURR, RIG_FUNC_XIT, &val);
-        if (retval != RIG_OK) {
-            rig_debug(RIG_DEBUG_ERR,"%s: get_func XIT failed: %s\n",__func__, rigerror(retval));
-            if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL) {
-               char *response = "?;";
-               return write_block2((void *)__func__, &my_com, response, strlen(response));
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: get_func XIT failed: %s\n", __func__,
+                      rigerror(retval));
+
+            if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
+            {
+                char *response = "?;";
+                return write_block2((void *)__func__, &my_com, response, strlen(response));
             }
+
             return retval;
         }
+
         char response[32];
         snprintf(response, sizeof(response), "XT%c;", val + '0');
         return write_block2((void *)__func__, &my_com, response, strlen(response));
@@ -1003,29 +1057,41 @@ static int handle_ts2000(void *arg)
     else if (strncmp(arg, "XT", 2) == 0)
     {
         int val = 0;
-        sscanf(arg,"XT%d",&val);
+        sscanf(arg, "XT%d", &val);
         int retval = rig_set_func(my_rig, RIG_VFO_CURR, RIG_FUNC_XIT, val);
-        if (retval != RIG_OK) {
-            rig_debug(RIG_DEBUG_ERR,"%s: set_func XIT failed: %s\n",__func__, rigerror(retval));
-            if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL) {
-               char *response = "?;";
-               return write_block2((void *)__func__, &my_com, response, strlen(response));
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: set_func XIT failed: %s\n", __func__,
+                      rigerror(retval));
+
+            if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
+            {
+                char *response = "?;";
+                return write_block2((void *)__func__, &my_com, response, strlen(response));
             }
         }
+
         return retval;
     }
     else if (strcmp(arg, "NR;") == 0)
     {
         int val;
         int retval = rig_get_func(my_rig, RIG_VFO_CURR, RIG_FUNC_NR, &val);
-        if (retval != RIG_OK) {
-            rig_debug(RIG_DEBUG_ERR,"%s: get NR failed: %s\n",__func__, rigerror(retval));
-            if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL) {
-               char *response = "?;";
-               return write_block2((void *)__func__, &my_com, response, strlen(response));
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: get NR failed: %s\n", __func__, rigerror(retval));
+
+            if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
+            {
+                char *response = "?;";
+                return write_block2((void *)__func__, &my_com, response, strlen(response));
             }
+
             return retval;
         }
+
         char response[32];
         snprintf(response, sizeof(response), "NR%c;", val + '0');
         return write_block2((void *)__func__, &my_com, response, strlen(response));
@@ -1033,29 +1099,41 @@ static int handle_ts2000(void *arg)
     else if (strncmp(arg, "NR", 2) == 0)
     {
         int val = 0;
-        sscanf(arg,"NR%d",&val);
+        sscanf(arg, "NR%d", &val);
         int retval = rig_set_func(my_rig, RIG_VFO_CURR, RIG_FUNC_NR, val);
-        if (retval != RIG_OK) {
-            rig_debug(RIG_DEBUG_ERR,"%s: set NR failed: %s\n",__func__, rigerror(retval));
-            if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL) {
-               char *response = "?;";
-               return write_block2((void *)__func__, &my_com, response, strlen(response));
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: set NR failed: %s\n", __func__, rigerror(retval));
+
+            if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
+            {
+                char *response = "?;";
+                return write_block2((void *)__func__, &my_com, response, strlen(response));
             }
         }
+
         return retval;
     }
     else if (strcmp(arg, "NB;") == 0)
     {
         int val;
         int retval = rig_get_func(my_rig, RIG_VFO_CURR, RIG_FUNC_NB, &val);
-        if (retval != RIG_OK) {
-            rig_debug(RIG_DEBUG_ERR,"%s: get func NB failed: %s\n",__func__, rigerror(retval));
-            if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL) {
-               char *response = "?;";
-               return write_block2((void *)__func__, &my_com, response, strlen(response));
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: get func NB failed: %s\n", __func__,
+                      rigerror(retval));
+
+            if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
+            {
+                char *response = "?;";
+                return write_block2((void *)__func__, &my_com, response, strlen(response));
             }
+
             return retval;
         }
+
         char response[32];
         snprintf(response, sizeof(response), "NB%c;", val + '0');
         return write_block2((void *)__func__, &my_com, response, strlen(response));
@@ -1063,192 +1141,271 @@ static int handle_ts2000(void *arg)
     else if (strncmp(arg, "NB", 2) == 0)
     {
         int val = 0;
-        sscanf(arg,"NB%d",&val);
+        sscanf(arg, "NB%d", &val);
         int retval = rig_set_func(my_rig, RIG_VFO_CURR, RIG_FUNC_NB, val);
-        if (retval != RIG_OK) {
-            rig_debug(RIG_DEBUG_ERR,"%s: set_ant failed: %s\n",__func__, rigerror(retval));
-            if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL) {
-               char *response = "?;";
-               return write_block2((void *)__func__, &my_com, response, strlen(response));
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: set_ant failed: %s\n", __func__,
+                      rigerror(retval));
+
+            if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
+            {
+                char *response = "?;";
+                return write_block2((void *)__func__, &my_com, response, strlen(response));
             }
         }
+
         return retval;
     }
     else if (strcmp(arg, "AG;") == 0)
     {
         value_t val;
         int retval = rig_get_level(my_rig, RIG_VFO_CURR, RIG_LEVEL_AF, &val);
-        if (retval != RIG_OK) {
-            rig_debug(RIG_DEBUG_ERR,"%s: get_level AF failed: %s\n",__func__, rigerror(retval));
-            if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL) {
-               char *response = "?;";
-               return write_block2((void *)__func__, &my_com, response, strlen(response));
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: get_level AF failed: %s\n", __func__,
+                      rigerror(retval));
+
+            if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
+            {
+                char *response = "?;";
+                return write_block2((void *)__func__, &my_com, response, strlen(response));
             }
+
             return retval;
         }
+
         char response[32];
-        int level = val.f*255;
-        snprintf(response, sizeof(response), "AG0%03d;", level );
+        int level = val.f * 255;
+        snprintf(response, sizeof(response), "AG0%03d;", level);
         return write_block2((void *)__func__, &my_com, response, strlen(response));
     }
     else if (strncmp(arg, "AG", 2) == 0)
     {
-        int level=0;
+        int level = 0;
         int n = sscanf(arg, "AG%d", &level);
-        if (n != 1) {
-            rig_debug(RIG_DEBUG_ERR,"%s: af level cmd parse failed: %s\n",__func__, arg);
+
+        if (n != 1)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: af level cmd parse failed: %s\n", __func__, arg);
             return -RIG_EPROTO;
         }
+
         value_t val;
-        val.f = level/255.0;
+        val.f = level / 255.0;
         int retval = rig_set_level(my_rig, RIG_VFO_CURR, RIG_LEVEL_AF, val);
-        if (retval != RIG_OK) 
-            rig_debug(RIG_DEBUG_ERR,"%s: set_level AF failed: %s\n",__func__, rigerror(retval));
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: set_level AF failed: %s\n", __func__,
+                      rigerror(retval));
+        }
+
         return retval;
     }
     else if (strcmp(arg, "PR;") == 0)
     {
         value_t val;
         int retval = rig_get_level(my_rig, RIG_VFO_CURR, RIG_LEVEL_COMP, &val);
-        if (retval != RIG_OK) {
-            rig_debug(RIG_DEBUG_ERR,"%s: get_level speech processor failed: %s\n",__func__, rigerror(retval));
-            if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL) {
-               char *response = "?;";
-               return write_block2((void *)__func__, &my_com, response, strlen(response));
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: get_level speech processor failed: %s\n",
+                      __func__, rigerror(retval));
+
+            if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
+            {
+                char *response = "?;";
+                return write_block2((void *)__func__, &my_com, response, strlen(response));
             }
+
             return retval;
         }
+
         char response[32];
-        int speechLevel = val.f*255;
-        snprintf(response, sizeof(response), "PR%03d;", speechLevel );
+        int speechLevel = val.f * 255;
+        snprintf(response, sizeof(response), "PR%03d;", speechLevel);
         return write_block2((void *)__func__, &my_com, response, strlen(response));
     }
     else if (strncmp(arg, "PR", 2) == 0)
     {
-        int speechLevel=0;
+        int speechLevel = 0;
         int n = sscanf(arg, "PR%d", &speechLevel);
-        if (n != 1) {
-            rig_debug(RIG_DEBUG_ERR,"%s: speech level cmd parse failed: %s\n",__func__, arg);
+
+        if (n != 1)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: speech level cmd parse failed: %s\n", __func__,
+                      arg);
             return -RIG_EPROTO;
         }
+
         value_t val;
-        val.f = speechLevel/255.0;
+        val.f = speechLevel / 255.0;
         int retval = rig_set_level(my_rig, RIG_VFO_CURR, RIG_LEVEL_COMP, val);
-        if (retval != RIG_OK) 
-            rig_debug(RIG_DEBUG_ERR,"%s: set_level AGC failed: %s\n",__func__, rigerror(retval));
-        if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL) {
-           char *response = "?;";
-           return write_block2((void *)__func__, &my_com, response, strlen(response));
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: set_level AGC failed: %s\n", __func__,
+                      rigerror(retval));
         }
+
+        if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
+        {
+            char *response = "?;";
+            return write_block2((void *)__func__, &my_com, response, strlen(response));
+        }
+
         return retval;
     }
     else if (strcmp(arg, "GT;") == 0)
     {
         value_t val;
         int retval = rig_get_level(my_rig, RIG_VFO_CURR, RIG_LEVEL_AGC, &val);
-        if (retval != RIG_OK) {
-            rig_debug(RIG_DEBUG_ERR,"%s: get_level AGC failed: %s\n",__func__, rigerror(retval));
-            if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL) {
-               char *response = "?;";
-               return write_block2((void *)__func__, &my_com, response, strlen(response));
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: get_level AGC failed: %s\n", __func__,
+                      rigerror(retval));
+
+            if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
+            {
+                char *response = "?;";
+                return write_block2((void *)__func__, &my_com, response, strlen(response));
             }
+
             return retval;
         }
+
         char response[32];
-        int agcLevel = val.f*255;
-        snprintf(response, sizeof(response), "GT%03d;", agcLevel );
+        int agcLevel = val.f * 255;
+        snprintf(response, sizeof(response), "GT%03d;", agcLevel);
         return write_block2((void *)__func__, &my_com, response, strlen(response));
     }
     else if (strncmp(arg, "GT", 2) == 0)
     {
-        int agcLevel=0;
+        int agcLevel = 0;
         int n = sscanf(arg, "GT%d", &agcLevel);
-        if (n != 1) {
-            rig_debug(RIG_DEBUG_ERR,"%s: AGC cmd parse failed: %s\n",__func__, arg);
+
+        if (n != 1)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: AGC cmd parse failed: %s\n", __func__, arg);
             return -RIG_EPROTO;
         }
+
         value_t val;
-        val.f = agcLevel/255.0;
+        val.f = agcLevel / 255.0;
         int retval = rig_set_level(my_rig, RIG_VFO_CURR, RIG_LEVEL_AGC, val);
-        if (retval != RIG_OK) 
-            rig_debug(RIG_DEBUG_ERR,"%s: set_level AGC failed: %s\n",__func__, rigerror(retval));
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: set_level AGC failed: %s\n", __func__,
+                      rigerror(retval));
+        }
+
         return retval;
     }
     else if (strcmp(arg, "SQ;") == 0)
     {
         value_t val;
         int retval = rig_get_level(my_rig, RIG_VFO_CURR, RIG_LEVEL_SQL, &val);
-        if (retval != RIG_OK) {
-            rig_debug(RIG_DEBUG_ERR,"%s: get_level squelch failed: %s\n",__func__, rigerror(retval));
-            if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL) {
-               char *response = "?;";
-               return write_block2((void *)__func__, &my_com, response, strlen(response));
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: get_level squelch failed: %s\n", __func__,
+                      rigerror(retval));
+
+            if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
+            {
+                char *response = "?;";
+                return write_block2((void *)__func__, &my_com, response, strlen(response));
             }
+
             return retval;
         }
+
         char response[32];
-        int sqlev = val.f*255;
-        snprintf(response, sizeof(response), "SQ%03d;", sqlev );
+        int sqlev = val.f * 255;
+        snprintf(response, sizeof(response), "SQ%03d;", sqlev);
         return write_block2((void *)__func__, &my_com, response, strlen(response));
     }
     else if (strncmp(arg, "SQ", 2) == 0)
     {
-        int sqlev=0;
+        int sqlev = 0;
         int n = sscanf(arg, "SQ%d", &sqlev);
-        if (n != 1) {
-            rig_debug(RIG_DEBUG_ERR,"%s: squelch cmd parse failed: %s\n",__func__, arg);
+
+        if (n != 1)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: squelch cmd parse failed: %s\n", __func__, arg);
             return -RIG_EPROTO;
         }
+
         value_t val;
-        val.f = sqlev/255.0;
+        val.f = sqlev / 255.0;
         int retval = rig_set_level(my_rig, RIG_VFO_CURR, RIG_LEVEL_SQL, val);
-        if (retval != RIG_OK) {
-            rig_debug(RIG_DEBUG_ERR,"%s: set_level squelch failed: %s\n",__func__, rigerror(retval));
-            if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL) {
-               char *response = "?;";
-               return write_block2((void *)__func__, &my_com, response, strlen(response));
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: set_level squelch failed: %s\n", __func__,
+                      rigerror(retval));
+
+            if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
+            {
+                char *response = "?;";
+                return write_block2((void *)__func__, &my_com, response, strlen(response));
             }
         }
+
         return retval;
     }
     else if (strcmp(arg, "DC;") == 0)
     {
-        vfo_t vfo, vfo_curr=RIG_VFO_A;
+        vfo_t vfo, vfo_curr = RIG_VFO_A;
         split_t split;
         int retval = rig_get_split_vfo(my_rig, vfo_curr, &split, &vfo);
-        if (retval != RIG_OK) {
-            rig_debug(RIG_DEBUG_ERR,"%s: get split vfo failed: %s\n",__func__, rigerror(retval));
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: get split vfo failed: %s\n", __func__,
+                      rigerror(retval));
             return retval;
         }
 
         char response[32];
         snprintf(response, sizeof(response), "DC%c;", split + '0');
         return write_block2((void *)__func__, &my_com, response, strlen(response));
-        
+
         return retval;
     }
     else if (strncmp(arg, "DC", 2) == 0)
     {
-        vfo_t vfo_curr=RIG_VFO_A;
+        vfo_t vfo_curr = RIG_VFO_A;
         split_t split;
         int isplit;
         // Expecting DCnn -- but we dont' care about the control param
-        int n = sscanf(arg,"DC%d",&isplit);
-        if (n != 1) {
-            rig_debug(RIG_DEBUG_ERR,"%s: error parsing '%s'\n",__func__,arg);
+        int n = sscanf(arg, "DC%d", &isplit);
+
+        if (n != 1)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: error parsing '%s'\n", __func__, arg);
             return -RIG_EPROTO;
         }
+
         split = isplit;
         int retval = rig_set_split_vfo(my_rig, vfo_curr, split, RIG_VFO_SUB);
-        if (retval != RIG_OK) {
-            rig_debug(RIG_DEBUG_ERR,"%s: rig set split vfo failed '%s'\n",__func__,rigerror(retval));
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: rig set split vfo failed '%s'\n", __func__,
+                      rigerror(retval));
             return retval;
         }
 
         char response[32];
         snprintf(response, sizeof(response), "DC%c;", split + '0');
         return write_block2((void *)__func__, &my_com, response, strlen(response));
-        
+
         return retval;
     }
     else if (strcmp(arg, "FT0;") == 0)
@@ -1324,32 +1481,32 @@ static int handle_ts2000(void *arg)
         return write_block2((void *)__func__, &my_com, response, strlen(response));
     }
     else if (strncmp(arg, "SB", 2) == 0
-      || strncmp(arg,"AC",2)==0
-      || strncmp(arg,"AM",2)==0
-      || strncmp(arg,"AN",2)==0
-      || strncmp(arg,"BC",2)==0
-      || strncmp(arg,"CA",2)==0
-      || strncmp(arg,"CT",2)==0
-      || strncmp(arg,"DQ",2)==0
-      || strncmp(arg,"FS",2)==0
-      || strncmp(arg,"LT",2)==0
-      || strncmp(arg,"NL",2)==0
-      || strncmp(arg,"NT",2)==0
-      || strncmp(arg,"LK",2)==0
-      || strncmp(arg,"MF",2)==0
-      || strncmp(arg,"MG",2)==0
-      || strncmp(arg,"PC",2)==0
-      || strncmp(arg,"RA",2)==0
-      || strncmp(arg,"RG",2)==0
-      || strncmp(arg,"RL",2)==0
-      || strncmp(arg,"SC",2)==0
-      || strncmp(arg,"SL",2)==0
-      || strncmp(arg,"SH",2)==0
-      || strncmp(arg,"TN",2)==0
-      || strncmp(arg,"TO",2)==0
-      || strncmp(arg,"TS",2)==0
-      || strncmp(arg,"VX",2)==0
-      )
+             || strncmp(arg, "AC", 2) == 0
+             || strncmp(arg, "AM", 2) == 0
+             || strncmp(arg, "AN", 2) == 0
+             || strncmp(arg, "BC", 2) == 0
+             || strncmp(arg, "CA", 2) == 0
+             || strncmp(arg, "CT", 2) == 0
+             || strncmp(arg, "DQ", 2) == 0
+             || strncmp(arg, "FS", 2) == 0
+             || strncmp(arg, "LT", 2) == 0
+             || strncmp(arg, "NL", 2) == 0
+             || strncmp(arg, "NT", 2) == 0
+             || strncmp(arg, "LK", 2) == 0
+             || strncmp(arg, "MF", 2) == 0
+             || strncmp(arg, "MG", 2) == 0
+             || strncmp(arg, "PC", 2) == 0
+             || strncmp(arg, "RA", 2) == 0
+             || strncmp(arg, "RG", 2) == 0
+             || strncmp(arg, "RL", 2) == 0
+             || strncmp(arg, "SC", 2) == 0
+             || strncmp(arg, "SL", 2) == 0
+             || strncmp(arg, "SH", 2) == 0
+             || strncmp(arg, "TN", 2) == 0
+             || strncmp(arg, "TO", 2) == 0
+             || strncmp(arg, "TS", 2) == 0
+             || strncmp(arg, "VX", 2) == 0
+            )
     {
         char response[32];
 
@@ -1372,7 +1529,7 @@ static int handle_ts2000(void *arg)
 
 void usage()
 {
-    char *name="rigctlcom";
+    char *name = "rigctlcom";
     printf("Usage: %s -m rignumber -r comport -s baud -R comport [OPTIONS]...\n\n"
            "A TS-2000 emulator for rig sharing with programs that don't support Hamlib to be able\n"
            "to use a connected radio transceiver or receiver with FLRig or rigctld via Hamlib.\n\n",
