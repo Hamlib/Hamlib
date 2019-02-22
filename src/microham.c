@@ -248,7 +248,7 @@ static void close_microham()
  * of candidates.
  */
 
-#define NUMUHTYPES 8
+#define NUMUHTYPES 9
 static struct uhtypes
 {
     const char *name;
