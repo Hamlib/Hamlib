@@ -163,9 +163,13 @@ static int netrigctl_open(RIG *rig)
   
   len = sprintf(cmd, "\\chk_vfo\n");
   ret = netrigctl_transaction(rig, cmd, len, buf);
-  if (ret <= 0)
-	return (ret < 0) ? ret : -RIG_EPROTO;
-  if (buf[0]) sscanf(buf, "CHKVFO %d", &priv->rigctld_vfo_mode);
+  if (ret == RIG_OK) {
+     if (buf[0]) sscanf(buf, "CHKVFO %d", &priv->rigctld_vfo_mode);
+  }
+  else {
+     rig_debug(RIG_DEBUG_WARN, "%s: chk_vfo error: %s\n",__FUNCTION__, rigerror(ret));
+  }
+     
   rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo_mode=%d\n",__FUNCTION__, priv->rigctld_vfo_mode);
 
   len = sprintf(cmd, "\\dump_state\n");
