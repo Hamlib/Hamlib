@@ -401,8 +401,9 @@ int ft747_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 
   memcpy(&p->p_cmd,&ft747_ncmd[FT_747_NATIVE_FREQ_SET].nseq,YAESU_CMD_LENGTH);
 
-  /* store bcd format in p_cmd (LSB), round to nearest 25th Hz */
-  to_bcd(p->p_cmd, (freq+12)/10, 8);
+  /* store bcd format in p_cmd (LSB), round to nearest 10 Hz even
+     though the rig will internally then round to 25 Hz steps */
+  to_bcd(p->p_cmd, (freq + 5)/10, 8);
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft747: requested freq after conversion = %"PRIll" Hz \n", from_bcd(p->p_cmd,8)* 10 );
 

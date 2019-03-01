@@ -248,7 +248,7 @@ static void close_microham()
  * of candidates.
  */
 
-#define NUMUHTYPES 8
+#define NUMUHTYPES 9
 static struct uhtypes
 {
     const char *name;
@@ -259,6 +259,7 @@ static struct uhtypes
 #ifdef __APPLE__
     { "microKeyer",      "/dev/tty.usbserial-MK*"},
     { "microKeyer-II",   "/dev/tty.usbserial-M2*"},
+    { "microKeyer-III",  "/dev/tty.usbserial-M3*"},
     { "CW Keyer",        "/dev/tty.usbserial-CK*"},
     { "digiKeyer",       "/dev/tty.usbserial-DK*"},
     { "digiKeyer-II",    "/dev/tty.usbserial-D2*"},
@@ -268,6 +269,7 @@ static struct uhtypes
 #else
     { "microKeyer",      "/dev/serial/by-id/*microHAM*_MK*"},
     { "microKeyer-II",   "/dev/serial/by-id/*microHAM*_M2*"},
+    { "microKeyer-III",  "/dev/serial/by-id/*microHAM*_M3*"},
     { "CW Keyer",        "/dev/serial/by-id/*microHAM*_CK*"},
     { "digiKeyer",       "/dev/serial/by-id/*microHAM*_DK*"},
     { "digiKeyer-II",    "/dev/serial/by-id/*microHAM*_D2*"},
