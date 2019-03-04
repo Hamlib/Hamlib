@@ -212,6 +212,8 @@ M: Terry Embry, KJ4EED
 [yaesu: VR-5000]
 M: Jacob Heder
 
+[yaesu: FT-600]
+C: Kārlis Millers
 
 [CM108 GPIO PTT]
 M: Andrew Errington, ZL3AME
@@ -359,3 +361,4 @@ Terry Dawson, VK2KTJ, <terry (at) users.sourceforge.net>
 Alexander Sack <pisymbol (at) gmail.com>
 Nirgal Vourgère <contact_hamlib (at) nirgal.com>
 Andrew Errington <a.errington (at) lancaster.ac.uk>
+Kārlis Millers YL3CAAK <karlis.millers at @ gmail.com>

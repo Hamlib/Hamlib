@@ -79,6 +79,7 @@ DECLARE_INITRIG_BACKEND(yaesu)
   rig_register(&ft747_caps);
   rig_register(&ft757gx_caps);
   rig_register(&ft757gx2_caps);
+  rig_register(&ft600_caps);
   rig_register(&ft767gx_caps);
   rig_register(&ft817_caps);
   rig_register(&ft847_caps);
@@ -196,4 +197,3 @@ DECLARE_PROBERIG_BACKEND(yaesu)
 
 	return RIG_MODEL_NONE;
 }
-
