@@ -107,8 +107,7 @@ static const yaesu_cmd_set_t ncmd[] = {
 #define FT600_VFO_ALL (RIG_VFO_A)
 #define FT600_ANT (RIG_ANT_1)
 
-#define FT600_DUMMY_S_METER_VALUE 0;
-
+#define FT600_DUMMY_S_METER_VALUE 0; //FOR TESTS
 /* S-meter calibration, ascending order of RAW values */
 #define FT600_STR_CAL { 16, \
 	        { \
@@ -129,8 +128,6 @@ static const yaesu_cmd_set_t ncmd[] = {
             { 222,  50 }, \
             { 246,  60 } /* S9+60dB */  \
 }}
-
-
 
 const struct rig_caps ft600_caps = {
   .rig_model = 		RIG_MODEL_FT600,

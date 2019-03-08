@@ -29,7 +29,7 @@
 #define FT600_STATUS_UPDATE_DATA_LENGTH      19
 #define FT600_METER_INFO_LENGTH              5
 
-#define FT600_WRITE_DELAY                    10
+#define FT600_WRITE_DELAY                    5
 #define FT600_POST_WRITE_DELAY               200
 #define FT600_DEFAULT_READ_TIMEOUT           2000
 
