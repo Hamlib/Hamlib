@@ -98,7 +98,7 @@ static const yaesu_cmd_set_t ncmd[] = {
   { 1, { 0x00, 0x00, 0x00, 0x01, 0xfa } }  /* read flags block */
 };
 
-
+#define FT600_GET_RIG_LEVELS (RIG_LEVEL_RAWSTR)
 #define FT600_ALL_RX_MODES (RIG_MODE_LSB|RIG_MODE_USB|RIG_MODE_PKTUSB|RIG_MODE_CW|RIG_MODE_AM)
 #define FT600_SSB_CW_RX_MODES (RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB)
 #define FT600_OTHER_TX_MODES (RIG_MODE_LSB|RIG_MODE_USB|RIG_MODE_PKTUSB|RIG_MODE_CW)
@@ -107,19 +107,30 @@ static const yaesu_cmd_set_t ncmd[] = {
 #define FT600_VFO_ALL (RIG_VFO_A)
 #define FT600_ANT (RIG_ANT_1)
 
+#define FT600_DUMMY_S_METER_VALUE 0;
+
 /* S-meter calibration, ascending order of RAW values */
-#define FT600_STR_CAL { 9, \
+#define FT600_STR_CAL { 16, \
 	        { \
-			{  90,  60 }, /* +60 */ \
-			{ 105,  40 }, /* +40 */ \
-			{ 115,  20 }, /* +20 */ \
-			{ 120,   0 }, /*  S9 */ \
-			{ 130,  -6 }, /*  S8 */ \
-			{ 140, -12 }, /*  S7 */ \
-			{ 160, -18 }, /*  S6 */ \
-			{ 180, -24 }, /*  S5 */ \
-			{ 200, -54 }  /*  S0 */ \
-	        } }
+            {   0, -54 }, /* S0 */ \
+            {  11, -48 }, \
+            {  21, -42 }, \
+            {  34, -36 }, \
+            {  50, -30 }, \
+            {  59, -24 }, \
+            {  75, -18 }, \
+            {  93, -12 }, \
+            { 103,  -6 }, \
+            { 124,   0 }, /* S9 */ \
+            { 145,  10 }, \
+            { 160,  20 }, \
+            { 183,  30 }, \
+            { 204,  40 }, \
+            { 222,  50 }, \
+            { 246,  60 } /* S9+60dB */  \
+}}
+
+
 
 const struct rig_caps ft600_caps = {
   .rig_model = 		RIG_MODEL_FT600,
@@ -144,7 +155,7 @@ const struct rig_caps ft600_caps = {
   .retry = 		0,
   .has_get_func = 	RIG_FUNC_NONE,
   .has_set_func = 	RIG_FUNC_NONE,
-  .has_get_level = 	RIG_LEVEL_NONE,
+  .has_get_level = 	FT600_GET_RIG_LEVELS,
   .has_set_level = 	RIG_LEVEL_NONE,
   .has_get_parm = 	RIG_PARM_NONE,
   .has_set_parm = 	RIG_PARM_NONE,	/* FIXME: parms */
@@ -188,10 +199,10 @@ const struct rig_caps ft600_caps = {
   .set_mode = 		ft600_set_mode,
   .get_mode = 		ft600_get_mode,
   .set_vfo = 		NULL,
-  .get_vfo = 		NULL,
+  .get_vfo = 		ft600_get_vfo,
   .set_ptt = 	        ft600_set_ptt,
   .get_ptt = 	        NULL,
-  .get_level = 		NULL,
+  .get_level = 	ft600_get_level,
   .set_level = 		NULL,
   .get_dcd = 		NULL,
   .set_rptr_shift = 	NULL,
@@ -285,29 +296,6 @@ static int ft600_send_priv_cmd(RIG *rig, unsigned char cmd_index) {
   return write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
 }
 
-static int ft600_read_flags(RIG *rig)
-{
-   struct ft600_priv_data *priv = (struct ft600_priv_data*)rig->state.priv;
-   int ret;
-
-   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __func__);
-
-   serial_flush( &rig->state.rigport );
-
-   ret = ft600_send_priv_cmd(rig, FT600_NATIVE_CAT_READ_FLAGS);
-   if (ret != RIG_OK)
-	return ret;
-
-   ret = read_block( &rig->state.rigport,
-		   (char*)&priv->flags,
-		   sizeof(FT600_FLAG_INFO));
-   rig_debug(RIG_DEBUG_VERBOSE,"%s: read flags=%i \n", __func__, ret);
-   if (ret < 0)
-	return ret;
-
-   return RIG_OK;
-}
-
 static int ft600_read_status(RIG *rig)
 {
    struct ft600_priv_data *priv;
@@ -320,18 +308,55 @@ static int ft600_read_status(RIG *rig)
    serial_flush( &rig->state.rigport );
 
    ret = ft600_send_priv_cmd(rig, FT600_NATIVE_CAT_READ_STATUS);
-   if (ret != RIG_OK)
-	return ret;
+   if (ret != RIG_OK) {
+     return ret;
+   }
 
-   ret = read_block( &rig->state.rigport,
-		   (char*)&priv->status,
-		   FT600_STATUS_UPDATE_DATA_LENGTH);
+
+   ret = read_block(
+     &rig->state.rigport,
+     (char*)&priv->status
+     ,FT600_STATUS_UPDATE_DATA_LENGTH
+   );
+
    rig_debug(RIG_DEBUG_VERBOSE,"%s: read status=%i \n", __func__, ret);
 
    if (ret < 0) {
      return ret;
    }
 
+   return RIG_OK;
+}
+
+int ft600_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val) {
+
+  struct ft600_priv_data *priv;
+  int ret;
+
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __func__);
+
+  priv = (struct ft600_priv_data*)rig->state.priv;
+
+  ret = ft600_send_priv_cmd(rig,FT600_NATIVE_CAT_READ_METERS);
+
+  if (ret != RIG_OK) {
+     return ret;
+   }
+
+   rig_debug(RIG_DEBUG_VERBOSE,"%s: read tx status=%i \n", __func__, ret);
+
+   ret = read_block( &rig->state.rigport,
+       (char*)&priv->s_meter,
+       5);
+
+     if (ret < 0) {
+       return ret;
+     }
+
+   rig_debug(RIG_DEBUG_VERBOSE, "S_METER: %hhx ", priv->s_meter);
+
+    //val->i = FT600_DUMMY_S_METER_VALUE; //DUMMY
+   val->i = priv->s_meter;
 
    return RIG_OK;
 }
@@ -519,6 +544,20 @@ int ft600_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
 		return ret;
   }
 #endif
+
+  return RIG_OK;
+}
+
+int ft600_get_vfo(RIG *rig, vfo_t *vfo) {
+
+
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __func__);
+
+  if( !vfo ) {
+    return -RIG_EINVAL;
+  }
+
+  *vfo = RIG_VFO_A;
 
   return RIG_OK;
 }

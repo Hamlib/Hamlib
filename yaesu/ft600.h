@@ -73,8 +73,7 @@ enum ft600_native_cmd_e {
   FT600_NATIVE_CAT_PWR_OFF,
   FT600_NATIVE_CAT_READ_STATUS,
   FT600_NATIVE_CAT_READ_METERS,
-  FT600_NATIVE_CAT_READ_FLAGS,
-  FT600_NATIVE_SIZE		/* end marker */
+  FT600_NATIVE_CAT_READ_FLAGS
 };
 
 
@@ -107,29 +106,16 @@ typedef struct
 
 typedef struct
 {
-   unsigned char mic_switch_1;
-   unsigned char tx_fwd_power;
-   unsigned char tx_rev_power;
-   unsigned char s_meter;
-   unsigned char mic_level;
-   unsigned char squelch_level;
-   unsigned char mic_switch_2;
-   unsigned char final_temp;
-   unsigned char alc_level;
-}
- FT600_METER_INFO;
-
-typedef struct
-{
    unsigned char byte[8];
 }
 FT600_FLAG_INFO;
 
 
 struct ft600_priv_data {
-  /* TODO: make use of cached data */
   FT600_STATUS_INFO status;
   FT600_FLAG_INFO flags;
+  unsigned char s_meter;
+
 };
 
 
