@@ -500,7 +500,7 @@
 
 
 /*
- * VEB Funkwerk K�penick RFT
+ * VEB Funkwerk Köpenick RFT
  */
 #define RIG_RFT 24
 #define RIG_BACKEND_RFT "rft"
