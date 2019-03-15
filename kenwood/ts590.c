@@ -33,6 +33,7 @@
 
 /* Function declarations  */
 const char* ts590_get_info(RIG *rig);
+int ts590_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t * val);
 
 #define TS590_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTFM|RIG_MODE_PKTUSB|RIG_MODE_PKTLSB)
 #define TS590_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
@@ -232,7 +233,7 @@ const struct rig_caps ts590_caps = {
   .has_set_level = RIG_LEVEL_SET(TS590_LEVEL_ALL),
   .has_get_level = TS590_LEVEL_ALL,
   .set_level = kenwood_set_level,
-  .get_level = kenwood_get_level,
+  .get_level = ts590_get_level,
   .has_get_func = TS590_FUNC_ALL,
   .has_set_func = TS590_FUNC_ALL,
   .set_func = kenwood_set_func,
@@ -447,5 +448,18 @@ const char* ts590_get_info(RIG *rig)
     case 'K': return "Firmware: USA version";
     case 'E': return "Firmware: European version";
     default: return "Firmware: unknown";
+  }
+}
+
+/*
+ * ts590_get_level
+ * only difference from standard Kenwood is AF level which has an argument
+ */
+int ts590_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t * val)
+{
+  switch(level) {
+  case RIG_LEVEL_AF:
+    return get_kenwood_level(rig, "AG0", &val->f);
+  default: return rig_get_level(rig,vfo,level,val);
   }
 }
