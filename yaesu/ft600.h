@@ -87,7 +87,7 @@ typedef enum ft600_native_cmd_e ft600_native_cmd_t;
 typedef struct
 {
    unsigned char band_no;
-   unsigned char freq[4];
+   unsigned char freq[16];
    unsigned char mode;
    unsigned char ctcss;
    unsigned char dcs;
@@ -130,11 +130,9 @@ static int ft600_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 static int ft600_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 static int ft600_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 
-static int ft600_set_vfo(RIG *rig, vfo_t vfo);
 static int ft600_get_vfo(RIG *rig, vfo_t *vfo);
 
 static int ft600_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
-static int ft600_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 static int ft600_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
 #endif /* _FT600_H */
