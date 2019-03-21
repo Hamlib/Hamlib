@@ -88,9 +88,9 @@ const struct rig_caps ic785x_caps = {
 .rig_model =  RIG_MODEL_IC785x,
 .model_name = "IC-785x",
 .mfg_name =  "Icom",
-.version =  BACKEND_VER ".1",
+.version =  BACKEND_VER ".2",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_ALPHA,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_RIG,
@@ -232,5 +232,7 @@ const struct rig_caps ic785x_caps = {
 .get_split_mode =  icom_get_split_mode,
 .set_split_vfo =  icom_set_split_vfo,
 .get_split_vfo =  icom_mem_get_split_vfo,
+.set_powerstat =  icom_set_powerstat,
+.get_powerstat =  icom_get_powerstat,
 
 };
