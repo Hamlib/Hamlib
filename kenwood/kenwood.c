@@ -2796,7 +2796,18 @@ int kenwood_set_powerstat(RIG *rig, powerstat_t status)
   if (!rig)
     return -RIG_EINVAL;
 
-  return kenwood_transaction(rig, (status == RIG_POWER_ON) ? "PS1" : "PS0", NULL, 0);
+  int retval = kenwood_transaction(rig, (status == RIG_POWER_ON) ? "PS1" : "PS0", NULL, 0);
+
+  if (retval == RIG_OK && status==RIG_POWER_ON) { // wait for wakeup only
+    for(int i=0;i<15;++i) { // up to 15 seconds
+       sleep(1);  
+       powerstat_t status;
+       retval = kenwood_get_powerstat(rig, &status);
+       if (retval == RIG_OK) return retval;
+       rig_debug(RIG_DEBUG_TRACE,"Wait %d of 15 for powerstatus\n",i+1);
+    }
+  }
+  return retval;
 }
 
 /*
