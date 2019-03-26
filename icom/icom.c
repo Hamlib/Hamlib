@@ -3294,10 +3294,26 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
 					ackbuf, &ack_len);
 	retval = icom_transaction(rig, C_SET_PWR, pwr_sc, NULL, 0,
 					ackbuf, &ack_len);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s #2 called retval=%d\n", __func__,retval);
+  int i=0;
+  if (status==RIG_POWER_ON) { // wait for wakeup only
+    for(i=0;i<15;++i) { // up to 15 seconds
+       sleep(1);
+       powerstat_t status;
+       retval = rig_get_powerstat(rig, &status);
+       if (retval == RIG_OK) return retval;
+       rig_debug(RIG_DEBUG_TRACE,"%s: Wait %d of 15 for get_powerstat\n",__func__,i+1);
+    }
+  }
+  if (i==15) {
+       rig_debug(RIG_DEBUG_TRACE,"%s: Wait for get_powerstat\n",__func__,i+1);
+       retval = -RIG_ETIMEOUT;
+  }
+
 	if (retval != RIG_OK)
 		return retval;
 
-	if (ack_len != 1 || ackbuf[0] != ACK) {
+	if (status==RIG_POWER_OFF && (ack_len != 1 || ackbuf[0] != ACK)) {
 		rig_debug(RIG_DEBUG_ERR,"icom_set_powerstat: ack NG (%#.2x), "
 					"len=%d\n", ackbuf[0],ack_len);
 		return -RIG_ERJCTED;
