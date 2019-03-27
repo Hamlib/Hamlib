@@ -2802,14 +2802,14 @@ int kenwood_set_powerstat(RIG *rig, powerstat_t status)
   if (status==RIG_POWER_ON) { // wait for wakeup only
     for(i=0;i<15;++i) { // up to 15 seconds
        sleep(1);  
-       powerstat_t status;
-       retval = kenwood_get_powerstat(rig, &status);
+       freq_t freq;
+       retval = rig_get_freq(rig, RIG_VFO_A, &freq);
        if (retval == RIG_OK) return retval;
-       rig_debug(RIG_DEBUG_TRACE,"%s: Wait %d of 15 for get_powerstat\n",__func__,i+1);
+       rig_debug(RIG_DEBUG_TRACE,"%s: Wait %d of 15 for power up\n",__func__,i+1);
     }
   }
   if (i==15) {
-       rig_debug(RIG_DEBUG_TRACE,"%s: Wait for get_powerstat\n",__func__,i+1);
+       rig_debug(RIG_DEBUG_TRACE,"%s: timeout waiting for powerup\n",__func__,i+1);
        retval = -RIG_ETIMEOUT;
   }
   return retval; 

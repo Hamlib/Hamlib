@@ -3299,8 +3299,9 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
   if (status==RIG_POWER_ON) { // wait for wakeup only
     for(i=0;i<15;++i) { // up to 15 seconds
        sleep(1);
-       powerstat_t status;
-       retval = rig_get_powerstat(rig, &status);
+       freq_t freq = 0;
+       // Use get_freq as all rigs should repond to this
+       retval = rig_get_freq(rig, RIG_VFO_A, &freq);
        if (retval == RIG_OK) return retval;
        rig_debug(RIG_DEBUG_TRACE,"%s: Wait %d of 15 for get_powerstat\n",__func__,i+1);
     }
