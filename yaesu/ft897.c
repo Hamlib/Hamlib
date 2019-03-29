@@ -847,6 +847,7 @@ int ft897_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 
   switch (op) {
   case RIG_OP_TOGGLE:
+    rig_force_cache_timeout(&((struct ft897_priv_data *) rig->state.priv)->tx_status_tv);
     index = FT897_NATIVE_CAT_SET_VFOAB;
     break;
   default:

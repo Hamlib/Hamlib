@@ -1114,6 +1114,7 @@ int ft817_vfo_op         (RIG *rig, vfo_t vfo, vfo_op_t op)
 	switch (op) {
 
 	case RIG_OP_TOGGLE:
+	  rig_force_cache_timeout(&((struct ft817_priv_data *)rig->state.priv)->fm_status_tv);
 		return ft817_send_cmd(rig, FT817_NATIVE_CAT_SET_VFOAB);
 
 	default:
