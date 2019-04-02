@@ -194,6 +194,7 @@ int HAMLIB_API serial_open(hamlib_port_t *rp)
         CLOSE(fd);
         return err;
     }
+    serial_flush(rp); // ensure nothing is there when we open
 
     return RIG_OK;
 }
