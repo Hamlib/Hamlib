@@ -3273,7 +3273,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
 	unsigned char fe_buf[200]; // for FE's to power up
 	int fe_len = 0;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called status=\n", __func__,status);
 	switch (status) {
 		case RIG_POWER_ON:
 			pwr_sc = RIG_POWER_ON;
@@ -3289,25 +3289,26 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
 	}
 
 	// we can ignore this retval
-	// sending more than enough 0xfe's to take up the rs232
+	// sending more than enough 0xfe's to wake up the rs232
 	icom_transaction(rig, 0xfe, 0xfe, fe_buf, fe_len,
 					ackbuf, &ack_len);
 	retval = icom_transaction(rig, C_SET_PWR, pwr_sc, NULL, 0,
 					ackbuf, &ack_len);
 	rig_debug(RIG_DEBUG_VERBOSE, "%s #2 called retval=%d\n", __func__,retval);
   int i=0;
+  int retry = 3/rig->state.rigport.retry;
   if (status==RIG_POWER_ON) { // wait for wakeup only
-    for(i=0;i<15;++i) { // up to 15 seconds
+    for(i=0;i<retry;++i) { // up to 10 attempts
        sleep(1);
        freq_t freq = 0;
        // Use get_freq as all rigs should repond to this
        retval = rig_get_freq(rig, RIG_VFO_A, &freq);
        if (retval == RIG_OK) return retval;
-       rig_debug(RIG_DEBUG_TRACE,"%s: Wait %d of 15 for get_powerstat\n",__func__,i+1);
+       rig_debug(RIG_DEBUG_TRACE,"%s: Wait %d of %d for get_powerstat\n",__func__,i+1,retry);
     }
   }
-  if (i==15) {
-       rig_debug(RIG_DEBUG_TRACE,"%s: Wait for get_powerstat\n",__func__,i+1);
+  if (i==retry) {
+       rig_debug(RIG_DEBUG_TRACE,"%s: Wait failed for get_powerstat\n",__func__,i+1);
        retval = -RIG_ETIMEOUT;
   }
 
