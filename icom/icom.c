@@ -4015,6 +4015,7 @@ DECLARE_INITRIG_BACKEND(icom)
 	rig_register(&ic910_caps);
 	rig_register(&ic9100_caps);
 	rig_register(&ic970_caps);
+	rig_register(&ic9700_caps);
 
 	rig_register(&icrx7_caps);
 	rig_register(&icr6_caps);
