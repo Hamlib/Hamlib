@@ -93,6 +93,14 @@ static const struct icom_priv_caps IC7300_priv_caps = {
 		.civ_version = 1	/* new version of some commands, e.g. ic7200/7300 */
 };
 
+static const struct icom_priv_caps IC9700_priv_caps = {
+		0xA2,	/* default address */
+		0,		/* 731 mode */
+    0,    /* no XCHG */
+		ic7300_ts_sc_list,
+		.civ_version = 1	/* new version of some commands, e.g. ic7200/7300 */
+};
+
 /* Private IC7300 extra levels definitions
  *
  * Token definitions for .cfgparams in rig_caps
@@ -400,7 +408,7 @@ const struct rig_caps ic9700_caps = {
 .set_conf =  icom_set_conf,
 .get_conf =  icom_get_conf,
 
-.priv =  (void*)&IC7300_priv_caps,
+.priv =  (void*)&IC9700_priv_caps,
 .rig_init =   icom_init,
 .rig_cleanup =   icom_cleanup,
 .rig_open =  NULL,
