@@ -80,6 +80,8 @@
 #define IC7300_AGC_MID 0x02
 #define IC7300_AGC_SLOW 0x03
 
+#define IC9700_ALL_TX_MODES (RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_DSTAR|RIG_MODE_DD)
+#define IC9700_ALL_RX_MODES (RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_DSTAR|RIG_MODE_DD)
 /*
  * IC-7300 rig capabilities.
  *
@@ -347,40 +349,32 @@ const struct rig_caps ic9700_caps = {
 
 .rx_range_list1 =   { {kHz(30),MHz(74.8),IC7300_ALL_RX_MODES,-1,-1,IC7300_VFOS}, RIG_FRNG_END, },
 .tx_range_list1 =   {
-	FRQ_RNG_HF(1,IC7300_OTHER_TX_MODES, W(2),W(100),IC7300_VFOS,RIG_ANT_1),
-	FRQ_RNG_60m(1,IC7300_OTHER_TX_MODES, W(2),W(100),IC7300_VFOS,RIG_ANT_1),
-	FRQ_RNG_6m(1,IC7300_OTHER_TX_MODES, W(2),W(100),IC7300_VFOS,RIG_ANT_1),
-	FRQ_RNG_4m(1,IC7300_OTHER_TX_MODES, W(2),W(100),IC7300_VFOS,RIG_ANT_1),
-	FRQ_RNG_HF(1,IC7300_AM_TX_MODES, W(1),W(40),IC7300_VFOS,RIG_ANT_1),   /* AM class */
-	FRQ_RNG_60m(1,IC7300_AM_TX_MODES, W(1),W(40),IC7300_VFOS,RIG_ANT_1),  /* AM class */
-	FRQ_RNG_6m(1,IC7300_AM_TX_MODES, W(1),W(40),IC7300_VFOS,RIG_ANT_1),   /* AM class */
-	FRQ_RNG_4m(1,IC7300_AM_TX_MODES, W(1),W(40),IC7300_VFOS,RIG_ANT_1),   /* AM class */
-	FRQ_RNG_2m(1,IC7300_OTHER_TX_MODES, W(2),W(100),IC7300_VFOS,RIG_ANT_2),
-	FRQ_RNG_70cm(1,IC7300_OTHER_TX_MODES, W(2),W(75),IC7300_VFOS,RIG_ANT_2),
-	FRQ_RNG_23cm(1,IC7300_OTHER_TX_MODES, W(2),W(23),IC7300_VFOS,RIG_ANT_3),
+	FRQ_RNG_2m(1,IC9700_ALL_TX_MODES, W(2),W(100),IC7300_VFOS,RIG_ANT_2),
+	FRQ_RNG_70cm(1,IC9700_ALL_TX_MODES, W(2),W(75),IC7300_VFOS,RIG_ANT_2),
+	FRQ_RNG_23cm(1,IC9700_ALL_TX_MODES, W(2),W(23),IC7300_VFOS,RIG_ANT_3),
    	RIG_FRNG_END, },
 
 .rx_range_list2 =   { {kHz(30),MHz(74.8),IC7300_ALL_RX_MODES,-1,-1,IC7300_VFOS}, RIG_FRNG_END, },
 .tx_range_list2 =  {
-	FRQ_RNG_HF(2,IC7300_OTHER_TX_MODES, W(2),W(100),IC7300_VFOS,RIG_ANT_1),
-	FRQ_RNG_60m(2,IC7300_OTHER_TX_MODES, W(2),W(100),IC7300_VFOS,RIG_ANT_1),
-	FRQ_RNG_6m(2,IC7300_OTHER_TX_MODES, W(2),W(100),IC7300_VFOS,RIG_ANT_1),
-	FRQ_RNG_HF(2,IC7300_AM_TX_MODES, W(1),W(40),IC7300_VFOS,RIG_ANT_1),   /* AM class */
-	FRQ_RNG_60m(2,IC7300_AM_TX_MODES, W(1),W(40),IC7300_VFOS,RIG_ANT_1),  /* AM class */
-	FRQ_RNG_6m(2,IC7300_AM_TX_MODES, W(1),W(40),IC7300_VFOS,RIG_ANT_1),   /* AM class */
-	FRQ_RNG_70cm(1,IC7300_OTHER_TX_MODES, W(2),W(75),IC7300_VFOS,RIG_ANT_2),
-	FRQ_RNG_23cm(1,IC7300_OTHER_TX_MODES, W(2),W(23),IC7300_VFOS,RIG_ANT_3),
+	FRQ_RNG_2m(1,IC9700_ALL_TX_MODES, W(2),W(100),IC7300_VFOS,RIG_ANT_2),
+	FRQ_RNG_70cm(1,IC9700_ALL_TX_MODES, W(2),W(75),IC7300_VFOS,RIG_ANT_2),
+	FRQ_RNG_23cm(1,IC9700_ALL_TX_MODES, W(2),W(23),IC7300_VFOS,RIG_ANT_3),
     	RIG_FRNG_END, },
 
 .tuning_steps = {
-         {IC7300_ALL_RX_MODES,Hz(1)},
-         {IC7300_ALL_RX_MODES,kHz(1)},
-         {IC7300_ALL_RX_MODES,kHz(5)},
-         {IC7300_ALL_RX_MODES,kHz(9)},
-         {IC7300_ALL_RX_MODES,kHz(10)},
-         {IC7300_ALL_RX_MODES,kHz(12.5)},
-         {IC7300_ALL_RX_MODES,kHz(20)},
-         {IC7300_ALL_RX_MODES,kHz(25)},
+         {IC9700_ALL_RX_MODES,Hz(1)},
+         {IC9700_ALL_RX_MODES,Hz(10)},
+         {IC9700_ALL_RX_MODES,Hz(100)},
+         {IC9700_ALL_RX_MODES,Hz(500)},
+         {IC9700_ALL_RX_MODES,kHz(1)},
+         {IC9700_ALL_RX_MODES,kHz(5)},
+         {IC9700_ALL_RX_MODES,kHz(6.25)},
+         {IC9700_ALL_RX_MODES,kHz(10)},
+         {IC9700_ALL_RX_MODES,kHz(12.5)},
+         {IC9700_ALL_RX_MODES,kHz(20)},
+         {IC9700_ALL_RX_MODES,kHz(25)},
+         {IC9700_ALL_RX_MODES,kHz(50)},
+         {IC9700_ALL_RX_MODES,kHz(100)},
          RIG_TS_END,
         },
 
@@ -418,7 +412,7 @@ const struct rig_caps ic9700_caps = {
 .get_freq =  icom_get_freq,
 .set_mode =  icom_set_mode_with_data,
 .get_mode =  icom_get_mode_with_data,
-//.get_vfo =  icom_get_vfo,
+.get_vfo =  icom_get_vfo,
 .set_vfo =  icom_set_vfo,
 .set_ant =  NULL,
 .get_ant =  NULL,
@@ -463,6 +457,8 @@ const struct rig_caps ic9700_caps = {
 .set_split_vfo =  icom_set_split_vfo,
 .get_split_vfo =  icom_get_split_vfo,
 .set_powerstat = icom_set_powerstat,
+.get_vfo = icom_get_vfo,
+.set_vfo = icom_set_vfo,
 .power2mW = icom_power2mW,
 .mW2power = icom_mW2power,
 .send_morse = icom_send_morse

@@ -951,7 +951,33 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 }
 
 /*
- * icom_set_vfo
+ * icom_get_vfo
+ * The IC-9700 has introduced the ability to see MAIN/SUB selection
+ * Maybe we'll see this in future ICOMs or firmware upgrades
+ * Command 0x07 0XD2
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int icom_get_vfo(RIG *rig, vfo_t *vfo)
+{
+	unsigned char ackbuf[MAXFRAMELEN];
+	int ack_len=sizeof(ackbuf), retval;
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+	retval = icom_transaction (rig, C_SET_VFO, S_SUB_SEL, NULL, 0,
+					ackbuf, &ack_len);
+	if (retval != RIG_OK)
+			return retval;
+
+  if (ack_len != 3) {
+		rig_debug(RIG_DEBUG_ERR,"%s wrong frame len=%d\n", ack_len);
+		return -RIG_ERJCTED;
+  }
+	*vfo = ackbuf[2] == 0 ? RIG_VFO_MAIN : RIG_VFO_SUB;
+  return RIG_OK;
+}
+
+/*
+ * icom_get_vfo
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
 int icom_set_vfo(RIG *rig, vfo_t vfo)

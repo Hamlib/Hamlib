@@ -126,6 +126,7 @@
 #define S_NXDNVN 0x19		/* Set to NXDN_VN */
 #define S_NXDN_N 0x20		/* Set to NXDN-N */
 #define S_DCR	0x21		/* Set to DCR */
+#define S_DD	0x22		/* Set to DD  1200Mhz only? */
 
 #define S_R7000_SSB	0x05	/* Set to SSB on R-7000 */
 
@@ -151,6 +152,7 @@
 #define S_DUAL_ON	0xc1		/* Dual watch on */
 #define S_MAIN	0xd0		/* Select MAIN band */
 #define S_SUB	0xd1		/* Select SUB band */
+#define S_SUB_SEL	0xd2		/* Read/Set Main/Sub selection */
 #define S_FRONTWIN	0xe0		/* Select front window */
 
 /*
