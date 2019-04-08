@@ -592,7 +592,12 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		return RIG_OK;
 	}
 
-	if (freq_len != 4 && freq_len != 5) {
+  if (priv->civ_version >= 2 && freq_len != 6) {
+		rig_debug(RIG_DEBUG_ERR,"icom_get_freq: wrong frame len2=%d\n",
+					freq_len);
+		return -RIG_ERJCTED;
+  }
+  else if (freq_len != 4 && freq_len != 5) {
 		rig_debug(RIG_DEBUG_ERR,"icom_get_freq: wrong frame len=%d\n",
 					freq_len);
 		return -RIG_ERJCTED;
