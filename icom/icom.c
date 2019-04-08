@@ -351,6 +351,7 @@ static const struct icom_addr icom_addr_list[] = {
 	{ RIG_MODEL_IC821H, 0x4c },
 	{ RIG_MODEL_IC910, 0x60 },
 	{ RIG_MODEL_IC9100, 0x7c },
+	{ RIG_MODEL_IC9700, 0xa2 },
 	{ RIG_MODEL_IC970, 0x2e },
 	{ RIG_MODEL_IC1271, 0x24 },
 	{ RIG_MODEL_IC1275, 0x18 },
@@ -386,7 +387,7 @@ static const struct icom_addr icom_addr_list[] = {
 /*
  * This is a generic icom_init function.
  * You might want to define yours, so you can customize it for your rig
- *
+ * 
  * Basically, it sets up *priv
  * REM: serial port is already open (rig->state.rigport.fd)
  */
@@ -464,7 +465,7 @@ int icom_rig_open(RIG *rig)
 
     struct rig_state *rs = &rig->state;
     struct icom_priv_data *priv = (struct icom_priv_data*)rs->priv;
-	struct icom_priv_caps *priv_caps = (struct icom_priv_caps *) rig->caps->priv;
+  	struct icom_priv_caps *priv_caps = (struct icom_priv_caps *) rig->caps->priv;
 
     if (priv_caps->serial_USB_echo_check) {
 
@@ -482,6 +483,30 @@ int icom_rig_open(RIG *rig)
         }
     }
     priv->serial_USB_echo_off = 0;
+
+  if (priv->civ_version >= 2) {
+    // IC9700 introduced the ability to termine Main/Sub selection
+    // That means we can now do get/set VFOA/VFOB
+    // But we have to force Main=VFOA and Sub=VFOB
+    // We only force this on opening
+    // Maybe there should be an option to bypass this?
+  	retval = icom_transaction (rig, C_SET_VFO, S_MAIN, NULL, 0, ackbuf, &ack_len);
+  	if (retval != RIG_OK)
+  			return retval;
+  
+  	retval = icom_transaction (rig, C_SET_VFO, S_VFOA, NULL, 0, ackbuf, &ack_len);
+  	if (retval != RIG_OK)
+  			return retval;
+  
+  	retval = icom_transaction (rig, C_SET_VFO, S_SUB, NULL, 0, ackbuf, &ack_len);
+  	if (retval != RIG_OK)
+  			return retval;
+  
+  	retval = icom_transaction (rig, C_SET_VFO, S_VFOB, NULL, 0, ackbuf, &ack_len);
+  	if (retval != RIG_OK)
+  			return retval;
+  }
+
 	return retval;
 }
 
@@ -508,8 +533,13 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	 */
 	to_bcd(freqbuf, freq, freq_len*2);
 
-	retval = icom_transaction (rig, C_SET_FREQ, -1, freqbuf, freq_len,
-			ackbuf, &ack_len);
+  int cmd = C_RD_FREQ;
+  int subcmd = -1;
+  if (priv->civ_version >= 2) {
+    cmd = C_SEND_SEL_FREQ;
+    subcmd = vfo==RIG_VFO_A?0:1;
+  }
+  retval = icom_transaction (rig, cmd, subcmd, freqbuf, freq_len, ackbuf, &ack_len);
 	if (retval != RIG_OK)
 		return retval;
 
@@ -524,7 +554,7 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 /*
  * icom_get_freq
- * Assumes rig!=NULL, rig->state.priv!=NULL, freq!=NULL
+ * Assumes rig!=NULL, rig->state.priv!=NULL, freq!=NULL, Main=VFOA, Sub=VFOB
  * Note: old rig may return less than 4/5 bytes for get_freq
  */
 int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
@@ -538,8 +568,13 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 	rs = &rig->state;
 	priv = (struct icom_priv_data*)rs->priv;
 
-	retval = icom_transaction (rig, C_RD_FREQ, -1, NULL, 0,
-				freqbuf, &freq_len);
+  int cmd = C_RD_FREQ;
+  int subcmd = -1;
+  if (priv->civ_version >= 2) {
+    cmd = C_SEND_SEL_FREQ;
+    subcmd = vfo==RIG_VFO_A?0:1;
+  }
+	retval = icom_transaction (rig, cmd, subcmd, NULL, 0, freqbuf, &freq_len);
 	if (retval != RIG_OK)
 		return retval;
 
@@ -955,6 +990,8 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  * The IC-9700 has introduced the ability to see MAIN/SUB selection
  * Maybe we'll see this in future ICOMs or firmware upgrades
  * Command 0x07 0XD2
+ * We will, by default, force Main=VFOA and Sub=VFOB, and may want
+ * an option to not force that behavior
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
 int icom_get_vfo(RIG *rig, vfo_t *vfo)
@@ -972,7 +1009,7 @@ int icom_get_vfo(RIG *rig, vfo_t *vfo)
 		rig_debug(RIG_DEBUG_ERR,"%s wrong frame len=%d\n", ack_len);
 		return -RIG_ERJCTED;
   }
-	*vfo = ackbuf[2] == 0 ? RIG_VFO_MAIN : RIG_VFO_SUB;
+	*vfo = ackbuf[2] == 0 ? RIG_VFO_A : RIG_VFO_B;
   return RIG_OK;
 }
 
@@ -988,6 +1025,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 	if (vfo == RIG_VFO_CURR)
 		return RIG_OK;
+
 
 	switch(vfo) {
 	case RIG_VFO_A: icvfo = S_VFOA; break;
@@ -1076,7 +1114,7 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 				break;
 		}
 	}
-	if (priv->civ_version == 1) {
+	if (priv->civ_version >= 1) {
 		switch (level) {
 			case RIG_LEVEL_KEYSPD:
 				if (val.i < 6) val.i = 6;
@@ -1218,7 +1256,7 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             }
             break;
         case RIG_LEVEL_VOXDELAY:
-            if (priv->civ_version == 1) {
+            if (priv->civ_version >= 1) {
                 lvl_cn = C_CTL_MEM;
                 lvl_sc = 0x05; // plus 0191 and value 0-20 = 0-2 secs
                 lvl_len = 2;
@@ -1512,7 +1550,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				break;
 		}
 	}
-	else if ((priv->civ_version == 1)&&(level==RIG_LEVEL_KEYSPD)){
+	else if ((priv->civ_version >= 1)&&(level==RIG_LEVEL_KEYSPD)){
 		switch (level) {
 			case RIG_LEVEL_KEYSPD:
 				val->i = val->i*(42.0/255)+6+.5;
@@ -2439,7 +2477,7 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 		fct_sc = (r8500)?(status)?S_FUNC_AGCON:S_FUNC_AGCOFF:S_FUNC_AGC;
 		/* fct_sc = S_FUNC_AGC; */
 		/* note: should it be a LEVEL only, and no func? --SF */
-		if (priv->civ_version == 1) {
+		if (priv->civ_version >= 1) {
 			fct_len = 1;
 			fctbuf[0] = status;
 		}
@@ -2529,7 +2567,7 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         fct_sc = S_MEM_SATMODE;
         break;
     case RIG_FUNC_SCOPE:
-		if (priv->civ_version == 1) { /* IC-7200/7300 */
+		if (priv->civ_version >= 1) { /* IC-7200/7300 */
 			fct_cn = 0x27;
 			fct_sc = 0x10;
 			fctbuf[0] = status;
@@ -2761,7 +2799,7 @@ int icom_set_parm(RIG *rig, setting_t parm, value_t val)
 	case RIG_PARM_BACKLIGHT:
 		prm_cn = C_CTL_MEM;
 		icom_val = val.f * 255;
-		if (priv->civ_version == 1) {
+		if (priv->civ_version >= 1) {
 			prm_sc = 0x05;
 			prm_len = 4;
 			if (rig->caps->rig_model == RIG_MODEL_ICR8600) {
@@ -2784,7 +2822,7 @@ int icom_set_parm(RIG *rig, setting_t parm, value_t val)
 	case RIG_PARM_KEYLIGHT:
 		prm_cn = C_CTL_MEM;
 		icom_val = val.f * 255;
-		if (priv->civ_version == 1) {
+		if (priv->civ_version >= 1) {
 			prm_sc = 0x05;
 			prm_len = 4;
 			if (rig->caps->rig_model == RIG_MODEL_ICR8600) {
@@ -2804,7 +2842,7 @@ int icom_set_parm(RIG *rig, setting_t parm, value_t val)
 		break;
 	case RIG_PARM_BEEP:
 		prm_cn = C_CTL_MEM;
-		if (priv->civ_version == 1) {
+		if (priv->civ_version >= 1) {
 			prm_sc = 0x05;
 			prm_len = 3;
 			prmbuf[0] = 0x00;
@@ -2823,7 +2861,7 @@ int icom_set_parm(RIG *rig, setting_t parm, value_t val)
 		hr = (float)val.i/3600.0;
 		min = (float)(val.i - (hr*3600))/60.0;
 		sec = (val.i - (hr*3600) - (min*60));
-		if (priv->civ_version == 1) {
+		if (priv->civ_version >= 1) {
 			prm_sc = 0x05;
 			prm_len = 4;
 			prmbuf[0] = 0x00;
@@ -2887,7 +2925,7 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 		prmbuf[0] = S_PRM_SLPTM;
 		break;
 	case RIG_PARM_BACKLIGHT:
-		if (priv->civ_version == 1) {
+		if (priv->civ_version >= 1) {
 			prm_cn = C_CTL_MEM;
 			prm_sc = 0x05;
 			prm_len = 2;
@@ -2908,7 +2946,7 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 		}
 		break;
 	case RIG_PARM_KEYLIGHT:
-		if (priv->civ_version == 1) {
+		if (priv->civ_version >= 1) {
 			prm_cn = C_CTL_MEM;
 			prm_sc = 0x05;
 			prm_len = 2;
@@ -2927,7 +2965,7 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 		}
 		break;
 	case RIG_PARM_BEEP:
-		if (priv->civ_version == 1) {
+		if (priv->civ_version >= 1) {
 			prm_cn = C_CTL_MEM;
 			prm_sc = 0x05;
 			prm_len = 2;
@@ -2942,7 +2980,7 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 		}
 		break;
 	case RIG_PARM_TIME:
-		if (priv->civ_version == 1) {
+		if (priv->civ_version >= 1) {
 			prm_cn = C_CTL_MEM;
 			prm_sc = 0x05;
 			prm_len = 2;
@@ -2986,7 +3024,7 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 		val->i = icom_val;
 		break;
 	case RIG_PARM_TIME:
-		if (priv->civ_version == 1) {
+		if (priv->civ_version >= 1) {
 			hr = from_bcd_be(resbuf+cmdhead+1, 2);
 			min = from_bcd_be(resbuf+cmdhead+2, 2);
 			sec = 0;
@@ -3001,7 +3039,7 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 		break;
 	case RIG_PARM_BACKLIGHT:
 		icom_val = 0;
-		if (priv->civ_version == 1) {
+		if (priv->civ_version >= 1) {
 			icom_val = from_bcd_be(resbuf+cmdhead+1, (res_len-1)*2);
 		} else {
 			icom_val = from_bcd_be(resbuf+cmdhead, res_len*2);
@@ -3010,7 +3048,7 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 		break;
 	case RIG_PARM_KEYLIGHT:
 		icom_val = 0;
-		if (priv->civ_version == 1) {
+		if (priv->civ_version >= 1) {
 			icom_val = from_bcd_be(resbuf+cmdhead+1, (res_len-1)*2);
 		} else {
 			return -RIG_EINVAL;
@@ -3018,7 +3056,7 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 		val->f = (float)icom_val/255.0;
 		break;
 	case RIG_PARM_BEEP:
-		if (priv->civ_version == 1) {
+		if (priv->civ_version >= 1) {
 			icom_val = from_bcd_be(resbuf+cmdhead+1, (res_len-1)*2);
 		} else {
 			icom_val = from_bcd_be(resbuf+cmdhead, res_len*2);
@@ -3576,7 +3614,7 @@ int icom_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 			mv_sc = -1;
 			break;
 		case RIG_OP_TUNE:
-			if (priv->civ_version == 1) {
+			if (priv->civ_version >= 1) {
 				mvbuf[0] = 2;
 				mv_len = 1;
 			}

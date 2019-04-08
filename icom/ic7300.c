@@ -80,8 +80,13 @@
 #define IC7300_AGC_MID 0x02
 #define IC7300_AGC_SLOW 0x03
 
+/*
+ * IC9700 items that differ from IC7300
+ */
+#define IC9700_VFO_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL)
 #define IC9700_ALL_TX_MODES (RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_DSTAR|RIG_MODE_DD)
 #define IC9700_ALL_RX_MODES (RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_DSTAR|RIG_MODE_DD)
+
 /*
  * IC-7300 rig capabilities.
  *
@@ -100,7 +105,7 @@ static const struct icom_priv_caps IC9700_priv_caps = {
 		0,		/* 731 mode */
     0,    /* no XCHG */
 		ic7300_ts_sc_list,
-		.civ_version = 1	/* new version of some commands, e.g. ic7200/7300 */
+		.civ_version = 2	/* new version of some commands, e.g. ic9700 */
 };
 
 /* Private IC7300 extra levels definitions
@@ -334,8 +339,8 @@ const struct rig_caps ic9700_caps = {
 .max_rit =  Hz(9999),
 .max_xit =  Hz(9999),
 .max_ifshift =  Hz(0),
-.targetable_vfo =  0,
-.vfo_ops =  IC7300_VFO_OPS,
+.targetable_vfo =  RIG_TARGETABLE_FREQ,
+.vfo_ops =  IC9700_VFO_OPS,
 .scan_ops =  IC7300_SCAN_OPS,
 .transceive =  RIG_TRN_RIG,
 .bank_qty =   1,

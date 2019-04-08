@@ -93,6 +93,7 @@
 #define C_SET_TONE	0x1b		/* Set tone frequency */
 #define C_CTL_PTT	0x1c		/* Control Transmit On/Off, Sc */
 #define C_CTL_DIG	0x20		/* Digital modes settings & status */
+#define C_SEND_SEL_FREQ 0x25 /* Send/Recv sel/unsel VFO frequency */
 #define C_CTL_MTEXT	0x70		/* Microtelecom Extension */
 #define C_CTL_MISC	0x7f		/* Miscellaneous control, Sc */
 
