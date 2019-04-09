@@ -485,24 +485,29 @@ int icom_rig_open(RIG *rig)
     priv->serial_USB_echo_off = 0;
 
   if (priv->civ_version >= 2) {
-    // IC9700 introduced the ability to termine Main/Sub selection
+    // IC9700 introduced the ability to determine Main/Sub selection
+    // It has two independed TX/RX each with VFOA/B
     // That means we can now do get/set VFOA/VFOB
     // But we have to force Main=VFOA and Sub=VFOB
     // We only force this on opening
     // Maybe there should be an option to bypass this?
-  	retval = icom_transaction (rig, C_SET_VFO, S_MAIN, NULL, 0, ackbuf, &ack_len);
+    rig_debug(RIG_DEBUG_TRACE,"%s: set_vfo=MAIN\n",__func__);
+    retval = icom_set_vfo(rig, RIG_VFO_MAIN);
   	if (retval != RIG_OK)
   			return retval;
   
-  	retval = icom_transaction (rig, C_SET_VFO, S_VFOA, NULL, 0, ackbuf, &ack_len);
+    rig_debug(RIG_DEBUG_TRACE,"%s: set_vfo=MAIN=VFOA\n",__func__);
+    retval = icom_set_vfo(rig, RIG_VFO_A);
   	if (retval != RIG_OK)
   			return retval;
   
-  	retval = icom_transaction (rig, C_SET_VFO, S_SUB, NULL, 0, ackbuf, &ack_len);
+    rig_debug(RIG_DEBUG_TRACE,"%s: set_vfo=SUB\n",__func__);
+    retval = icom_set_vfo(rig, RIG_VFO_SUB);
   	if (retval != RIG_OK)
   			return retval;
   
-  	retval = icom_transaction (rig, C_SET_VFO, S_VFOB, NULL, 0, ackbuf, &ack_len);
+    rig_debug(RIG_DEBUG_TRACE,"%s: set_vfo=SUB=VFOB\n",__func__);
+    retval = icom_set_vfo(rig, RIG_VFO_B);
   	if (retval != RIG_OK)
   			return retval;
   }
@@ -537,7 +542,7 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
   int subcmd = -1;
   if (priv->civ_version >= 2) {
     cmd = C_SEND_SEL_FREQ;
-    subcmd = vfo==RIG_VFO_A?0:1;
+    subcmd = ((vfo==RIG_VFO_A)||(vfo==RIG_VFO_MAIN))?0:1;
   }
   retval = icom_transaction (rig, cmd, subcmd, freqbuf, freq_len, ackbuf, &ack_len);
 	if (retval != RIG_OK)
@@ -572,7 +577,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
   int subcmd = -1;
   if (priv->civ_version >= 2) {
     cmd = C_SEND_SEL_FREQ;
-    subcmd = vfo==RIG_VFO_A?0:1;
+    subcmd = ((vfo==RIG_VFO_A)||(vfo==RIG_VFO_MAIN))?0:1;
   }
 	retval = icom_transaction (rig, cmd, subcmd, NULL, 0, freqbuf, &freq_len);
 	if (retval != RIG_OK)
@@ -582,6 +587,10 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 	 * freqbuf should contain Cn,Data area
 	 */
 	freq_len--;
+  if (priv->civ_version >= 2) {
+    memmove(freqbuf,freqbuf+1,freq_len); 
+    freq_len--;
+  }
 
 	/*
 	 * is it a blank mem channel ?
@@ -592,12 +601,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		return RIG_OK;
 	}
 
-  if (priv->civ_version >= 2 && freq_len != 6) {
-		rig_debug(RIG_DEBUG_ERR,"icom_get_freq: wrong frame len2=%d\n",
-					freq_len);
-		return -RIG_ERJCTED;
-  }
-  else if (freq_len != 4 && freq_len != 5) {
+  if (freq_len != 4 && freq_len != 5) {
 		rig_debug(RIG_DEBUG_ERR,"icom_get_freq: wrong frame len=%d\n",
 					freq_len);
 		return -RIG_ERJCTED;
