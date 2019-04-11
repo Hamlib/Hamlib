@@ -570,7 +570,6 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 	priv = (struct icom_priv_data*)rs->priv;
 
   // Newer Icoms can read main/sub frequency
-  // It appears 
   int cmd = C_RD_FREQ;
   int subcmd = -1;
   unsigned char data;
@@ -603,6 +602,10 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 	 * freqbuf should contain Cn,Data area
 	 */
 	freq_len--;
+  if (priv->civ_version >= 2) {
+    memmove(freqbuf,freqbuf+1,freq_len); 
+    freq_len--;
+  }
 
 	/*
 	 * is it a blank mem channel ?
