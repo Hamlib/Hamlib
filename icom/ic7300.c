@@ -105,7 +105,7 @@ static const struct icom_priv_caps IC9700_priv_caps = {
 		0,		/* 731 mode */
     0,    /* no XCHG */
 		ic7300_ts_sc_list,
-		.civ_version = 2	/* new version of some commands, e.g. ic9700 */
+		.civ_version = 1	/* new version of some commands, e.g. ic7200/7300 */
 };
 
 /* Private IC7300 extra levels definitions
@@ -304,7 +304,7 @@ const struct rig_caps ic9700_caps = {
 .rig_model =  RIG_MODEL_IC9700,
 .model_name = "IC-9700",
 .mfg_name =  "Icom",
-.version =  BACKEND_VER ".1a",
+.version =  BACKEND_VER ".1c",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -417,7 +417,7 @@ const struct rig_caps ic9700_caps = {
 .get_freq =  icom_get_freq,
 .set_mode =  icom_set_mode_with_data,
 .get_mode =  icom_get_mode_with_data,
-.get_vfo =  icom_get_vfo,
+//.get_vfo =  icom_get_vfo,
 .set_vfo =  icom_set_vfo,
 .set_ant =  NULL,
 .get_ant =  NULL,
@@ -462,7 +462,7 @@ const struct rig_caps ic9700_caps = {
 .set_split_vfo =  icom_set_split_vfo,
 .get_split_vfo =  icom_get_split_vfo,
 .set_powerstat = icom_set_powerstat,
-.get_vfo = icom_get_vfo,
+//.get_vfo = icom_get_vfo,
 .set_vfo = icom_set_vfo,
 .power2mW = icom_power2mW,
 .mW2power = icom_mW2power,

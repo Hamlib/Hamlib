@@ -483,31 +483,7 @@ int icom_rig_open(RIG *rig)
         }
     }
     priv->serial_USB_echo_off = 0;
-
-  if (priv->civ_version >= 2) {
-    // IC9700 introduced the ability to termine Main/Sub selection
-    // That means we can now do get/set VFOA/VFOB
-    // But we have to force Main=VFOA and Sub=VFOB
-    // We only force this on opening
-    // Maybe there should be an option to bypass this?
-  	retval = icom_transaction (rig, C_SET_VFO, S_MAIN, NULL, 0, ackbuf, &ack_len);
-  	if (retval != RIG_OK)
-  			return retval;
-  
-  	retval = icom_transaction (rig, C_SET_VFO, S_VFOA, NULL, 0, ackbuf, &ack_len);
-  	if (retval != RIG_OK)
-  			return retval;
-  
-  	retval = icom_transaction (rig, C_SET_VFO, S_SUB, NULL, 0, ackbuf, &ack_len);
-  	if (retval != RIG_OK)
-  			return retval;
-  
-  	retval = icom_transaction (rig, C_SET_VFO, S_VFOB, NULL, 0, ackbuf, &ack_len);
-  	if (retval != RIG_OK)
-  			return retval;
-  }
-
-	return retval;
+    return retval;
 }
 
 
@@ -522,10 +498,39 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	unsigned char freqbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
 	int freq_len, ack_len=sizeof(ackbuf), retval;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called %s=%"PRIll"\n", __func__, rig_strvfo(vfo),(int64_t)freq);
 	rs = &rig->state;
 	priv = (struct icom_priv_data*)rs->priv;
 
+  // IC-9700 cannot set freq MAIN to same band as SUB
+  // So we query both and ensure they won't match
+  // If a potential collision we just swap VFOs
+  // This covers setting VFOA, VFOB, Main or Sub
+#if 0
+  if (rig->caps->rig_model == RIG_MODEL_IC9700) {
+    // the 0x07 0xd2 is not working as of IC-9700 firmwave 1.05
+    // When it does work this can be unblocked
+    freq_t freqMain,freqSub;
+    retval = rig_get_freq(rig, RIG_VFO_MAIN, &freqMain);
+  	if (retval != RIG_OK)
+  		return retval;
+    retval = rig_get_freq(rig, RIG_VFO_SUB, &freqSub);
+  	if (retval != RIG_OK)
+  		return retval;
+    // Make our 2M = 1, 70cm = 4, and 23cm=12
+    freqMain = freqMain/1e8;
+    freqSub = freqMain/1e8;
+    freq_t freq2 = freq/1e8;
+    // Check if changing bands on Main and it matches Sub band
+    int mainCollides = freq2 != freqMain && freq2 == freqSub;
+    if (mainCollides) {
+      // we'll just swap Main/Sub
+      retval = icom_vfo_op(rig, vfo, RIG_OP_XCHG);
+  	  if (retval != RIG_OK)
+  	  	return retval;
+    }
+  }
+#endif
 
 	freq_len = priv->civ_731_mode ? 4:5;
 	/*
@@ -533,12 +538,8 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	 */
 	to_bcd(freqbuf, freq, freq_len*2);
 
-  int cmd = C_RD_FREQ;
+  int cmd = C_SET_FREQ;
   int subcmd = -1;
-  if (priv->civ_version >= 2) {
-    cmd = C_SEND_SEL_FREQ;
-    subcmd = vfo==RIG_VFO_A?0:1;
-  }
   retval = icom_transaction (rig, cmd, subcmd, freqbuf, freq_len, ackbuf, &ack_len);
 	if (retval != RIG_OK)
 		return retval;
@@ -564,20 +565,40 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 	unsigned char freqbuf[MAXFRAMELEN];
 	int freq_len, retval;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called for %s\n", __func__,rig_strvfo(vfo));
 	rs = &rig->state;
 	priv = (struct icom_priv_data*)rs->priv;
 
+  // Newer Icoms can read main/sub frequency
+  // It appears 
   int cmd = C_RD_FREQ;
   int subcmd = -1;
-  if (priv->civ_version >= 2) {
-    cmd = C_SEND_SEL_FREQ;
-    subcmd = vfo==RIG_VFO_A?0:1;
+  unsigned char data;
+  int datalen = 0;
+  switch(vfo) {
+    case RIG_VFO_MAIN: 
+      cmd = C_SET_VFO;
+      subcmd = S_SUB_SEL;
+      data = 0 ;
+      datalen = 1;
+      break;
+    case RIG_VFO_SUB: 
+      cmd = C_SET_VFO;
+      subcmd = S_SUB_SEL;
+      data = 1;
+      datalen = 1;
+      break;
   }
-	retval = icom_transaction (rig, cmd, subcmd, NULL, 0, freqbuf, &freq_len);
+	retval = icom_transaction (rig, cmd, subcmd, datalen==0?NULL:&data, datalen, freqbuf, &freq_len);
 	if (retval != RIG_OK)
 		return retval;
 
+  // The command to read Main/Sub freq is 1 byte longer
+  // So a simple solution here is to just move left 1 byte
+  if (cmd == C_SEND_SEL_FREQ) {
+    memmove(freqbuf,freqbuf+1,freq_len-1);
+    freq_len--; // have to take off one more byte from the response
+  }
 	/*
 	 * freqbuf should contain Cn,Data area
 	 */
@@ -592,12 +613,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		return RIG_OK;
 	}
 
-  if (priv->civ_version >= 2 && freq_len != 6) {
-		rig_debug(RIG_DEBUG_ERR,"icom_get_freq: wrong frame len2=%d\n",
-					freq_len);
-		return -RIG_ERJCTED;
-  }
-  else if (freq_len != 4 && freq_len != 5) {
+  if (freq_len != 4 && freq_len != 5) {
 		rig_debug(RIG_DEBUG_ERR,"icom_get_freq: wrong frame len=%d\n",
 					freq_len);
 		return -RIG_ERJCTED;
@@ -994,7 +1010,7 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  * icom_get_vfo
  * The IC-9700 has introduced the ability to see MAIN/SUB selection
  * Maybe we'll see this in future ICOMs or firmware upgrades
- * Command 0x07 0XD2
+ * Command 0x07 0XD2 -- but as of version 1.05 it doesn't work
  * We will, by default, force Main=VFOA and Sub=VFOB, and may want
  * an option to not force that behavior
  * Assumes rig!=NULL, rig->state.priv!=NULL
@@ -1119,7 +1135,7 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 				break;
 		}
 	}
-	if (priv->civ_version >= 1) {
+	if (priv->civ_version == 1) {
 		switch (level) {
 			case RIG_LEVEL_KEYSPD:
 				if (val.i < 6) val.i = 6;
@@ -1261,7 +1277,7 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             }
             break;
         case RIG_LEVEL_VOXDELAY:
-            if (priv->civ_version >= 1) {
+            if (priv->civ_version == 1) {
                 lvl_cn = C_CTL_MEM;
                 lvl_sc = 0x05; // plus 0191 and value 0-20 = 0-2 secs
                 lvl_len = 2;
@@ -1555,7 +1571,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				break;
 		}
 	}
-	else if ((priv->civ_version >= 1)&&(level==RIG_LEVEL_KEYSPD)){
+	else if ((priv->civ_version == 1)&&(level==RIG_LEVEL_KEYSPD)){
 		switch (level) {
 			case RIG_LEVEL_KEYSPD:
 				val->i = val->i*(42.0/255)+6+.5;
@@ -2482,7 +2498,7 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 		fct_sc = (r8500)?(status)?S_FUNC_AGCON:S_FUNC_AGCOFF:S_FUNC_AGC;
 		/* fct_sc = S_FUNC_AGC; */
 		/* note: should it be a LEVEL only, and no func? --SF */
-		if (priv->civ_version >= 1) {
+		if (priv->civ_version == 1) {
 			fct_len = 1;
 			fctbuf[0] = status;
 		}
@@ -2572,7 +2588,7 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         fct_sc = S_MEM_SATMODE;
         break;
     case RIG_FUNC_SCOPE:
-		if (priv->civ_version >= 1) { /* IC-7200/7300 */
+		if (priv->civ_version == 1) { /* IC-7200/7300 */
 			fct_cn = 0x27;
 			fct_sc = 0x10;
 			fctbuf[0] = status;
@@ -2804,7 +2820,7 @@ int icom_set_parm(RIG *rig, setting_t parm, value_t val)
 	case RIG_PARM_BACKLIGHT:
 		prm_cn = C_CTL_MEM;
 		icom_val = val.f * 255;
-		if (priv->civ_version >= 1) {
+		if (priv->civ_version == 1) {
 			prm_sc = 0x05;
 			prm_len = 4;
 			if (rig->caps->rig_model == RIG_MODEL_ICR8600) {
@@ -2827,7 +2843,7 @@ int icom_set_parm(RIG *rig, setting_t parm, value_t val)
 	case RIG_PARM_KEYLIGHT:
 		prm_cn = C_CTL_MEM;
 		icom_val = val.f * 255;
-		if (priv->civ_version >= 1) {
+		if (priv->civ_version == 1) {
 			prm_sc = 0x05;
 			prm_len = 4;
 			if (rig->caps->rig_model == RIG_MODEL_ICR8600) {
@@ -2847,7 +2863,7 @@ int icom_set_parm(RIG *rig, setting_t parm, value_t val)
 		break;
 	case RIG_PARM_BEEP:
 		prm_cn = C_CTL_MEM;
-		if (priv->civ_version >= 1) {
+		if (priv->civ_version == 1) {
 			prm_sc = 0x05;
 			prm_len = 3;
 			prmbuf[0] = 0x00;
@@ -2866,7 +2882,7 @@ int icom_set_parm(RIG *rig, setting_t parm, value_t val)
 		hr = (float)val.i/3600.0;
 		min = (float)(val.i - (hr*3600))/60.0;
 		sec = (val.i - (hr*3600) - (min*60));
-		if (priv->civ_version >= 1) {
+		if (priv->civ_version == 1) {
 			prm_sc = 0x05;
 			prm_len = 4;
 			prmbuf[0] = 0x00;
@@ -2930,7 +2946,7 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 		prmbuf[0] = S_PRM_SLPTM;
 		break;
 	case RIG_PARM_BACKLIGHT:
-		if (priv->civ_version >= 1) {
+		if (priv->civ_version == 1) {
 			prm_cn = C_CTL_MEM;
 			prm_sc = 0x05;
 			prm_len = 2;
@@ -2951,7 +2967,7 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 		}
 		break;
 	case RIG_PARM_KEYLIGHT:
-		if (priv->civ_version >= 1) {
+		if (priv->civ_version == 1) {
 			prm_cn = C_CTL_MEM;
 			prm_sc = 0x05;
 			prm_len = 2;
@@ -2970,7 +2986,7 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 		}
 		break;
 	case RIG_PARM_BEEP:
-		if (priv->civ_version >= 1) {
+		if (priv->civ_version == 1) {
 			prm_cn = C_CTL_MEM;
 			prm_sc = 0x05;
 			prm_len = 2;
@@ -2985,7 +3001,7 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 		}
 		break;
 	case RIG_PARM_TIME:
-		if (priv->civ_version >= 1) {
+		if (priv->civ_version == 1) {
 			prm_cn = C_CTL_MEM;
 			prm_sc = 0x05;
 			prm_len = 2;
@@ -3029,7 +3045,7 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 		val->i = icom_val;
 		break;
 	case RIG_PARM_TIME:
-		if (priv->civ_version >= 1) {
+		if (priv->civ_version == 1) {
 			hr = from_bcd_be(resbuf+cmdhead+1, 2);
 			min = from_bcd_be(resbuf+cmdhead+2, 2);
 			sec = 0;
@@ -3044,7 +3060,7 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 		break;
 	case RIG_PARM_BACKLIGHT:
 		icom_val = 0;
-		if (priv->civ_version >= 1) {
+		if (priv->civ_version == 1) {
 			icom_val = from_bcd_be(resbuf+cmdhead+1, (res_len-1)*2);
 		} else {
 			icom_val = from_bcd_be(resbuf+cmdhead, res_len*2);
@@ -3053,7 +3069,7 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 		break;
 	case RIG_PARM_KEYLIGHT:
 		icom_val = 0;
-		if (priv->civ_version >= 1) {
+		if (priv->civ_version == 1) {
 			icom_val = from_bcd_be(resbuf+cmdhead+1, (res_len-1)*2);
 		} else {
 			return -RIG_EINVAL;
@@ -3061,7 +3077,7 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 		val->f = (float)icom_val/255.0;
 		break;
 	case RIG_PARM_BEEP:
-		if (priv->civ_version >= 1) {
+		if (priv->civ_version == 1) {
 			icom_val = from_bcd_be(resbuf+cmdhead+1, (res_len-1)*2);
 		} else {
 			icom_val = from_bcd_be(resbuf+cmdhead, res_len*2);
@@ -3619,7 +3635,7 @@ int icom_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 			mv_sc = -1;
 			break;
 		case RIG_OP_TUNE:
-			if (priv->civ_version >= 1) {
+			if (priv->civ_version == 1) {
 				mvbuf[0] = 2;
 				mv_len = 1;
 			}
