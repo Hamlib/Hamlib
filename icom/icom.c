@@ -351,6 +351,7 @@ static const struct icom_addr icom_addr_list[] = {
 	{ RIG_MODEL_IC821H, 0x4c },
 	{ RIG_MODEL_IC910, 0x60 },
 	{ RIG_MODEL_IC9100, 0x7c },
+	{ RIG_MODEL_IC9700, 0xa2 },
 	{ RIG_MODEL_IC970, 0x2e },
 	{ RIG_MODEL_IC1271, 0x24 },
 	{ RIG_MODEL_IC1275, 0x18 },
@@ -386,7 +387,7 @@ static const struct icom_addr icom_addr_list[] = {
 /*
  * This is a generic icom_init function.
  * You might want to define yours, so you can customize it for your rig
- *
+ * 
  * Basically, it sets up *priv
  * REM: serial port is already open (rig->state.rigport.fd)
  */
@@ -464,7 +465,7 @@ int icom_rig_open(RIG *rig)
 
     struct rig_state *rs = &rig->state;
     struct icom_priv_data *priv = (struct icom_priv_data*)rs->priv;
-	struct icom_priv_caps *priv_caps = (struct icom_priv_caps *) rig->caps->priv;
+  	struct icom_priv_caps *priv_caps = (struct icom_priv_caps *) rig->caps->priv;
 
     if (priv_caps->serial_USB_echo_check) {
 
@@ -482,7 +483,7 @@ int icom_rig_open(RIG *rig)
         }
     }
     priv->serial_USB_echo_off = 0;
-	return retval;
+    return retval;
 }
 
 
@@ -497,10 +498,39 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	unsigned char freqbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
 	int freq_len, ack_len=sizeof(ackbuf), retval;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called %s=%"PRIll"\n", __func__, rig_strvfo(vfo),(int64_t)freq);
 	rs = &rig->state;
 	priv = (struct icom_priv_data*)rs->priv;
 
+  // IC-9700 cannot set freq MAIN to same band as SUB
+  // So we query both and ensure they won't match
+  // If a potential collision we just swap VFOs
+  // This covers setting VFOA, VFOB, Main or Sub
+#if 0
+  if (rig->caps->rig_model == RIG_MODEL_IC9700) {
+    // the 0x07 0xd2 is not working as of IC-9700 firmwave 1.05
+    // When it does work this can be unblocked
+    freq_t freqMain,freqSub;
+    retval = rig_get_freq(rig, RIG_VFO_MAIN, &freqMain);
+  	if (retval != RIG_OK)
+  		return retval;
+    retval = rig_get_freq(rig, RIG_VFO_SUB, &freqSub);
+  	if (retval != RIG_OK)
+  		return retval;
+    // Make our 2M = 1, 70cm = 4, and 23cm=12
+    freqMain = freqMain/1e8;
+    freqSub = freqMain/1e8;
+    freq_t freq2 = freq/1e8;
+    // Check if changing bands on Main and it matches Sub band
+    int mainCollides = freq2 != freqMain && freq2 == freqSub;
+    if (mainCollides) {
+      // we'll just swap Main/Sub
+      retval = icom_vfo_op(rig, vfo, RIG_OP_XCHG);
+  	  if (retval != RIG_OK)
+  	  	return retval;
+    }
+  }
+#endif
 
 	freq_len = priv->civ_731_mode ? 4:5;
 	/*
@@ -508,8 +538,9 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	 */
 	to_bcd(freqbuf, freq, freq_len*2);
 
-	retval = icom_transaction (rig, C_SET_FREQ, -1, freqbuf, freq_len,
-			ackbuf, &ack_len);
+  int cmd = C_SET_FREQ;
+  int subcmd = -1;
+  retval = icom_transaction (rig, cmd, subcmd, freqbuf, freq_len, ackbuf, &ack_len);
 	if (retval != RIG_OK)
 		return retval;
 
@@ -524,7 +555,7 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 /*
  * icom_get_freq
- * Assumes rig!=NULL, rig->state.priv!=NULL, freq!=NULL
+ * Assumes rig!=NULL, rig->state.priv!=NULL, freq!=NULL, Main=VFOA, Sub=VFOB
  * Note: old rig may return less than 4/5 bytes for get_freq
  */
 int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
@@ -534,19 +565,47 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 	unsigned char freqbuf[MAXFRAMELEN];
 	int freq_len, retval;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called for %s\n", __func__,rig_strvfo(vfo));
 	rs = &rig->state;
 	priv = (struct icom_priv_data*)rs->priv;
 
-	retval = icom_transaction (rig, C_RD_FREQ, -1, NULL, 0,
-				freqbuf, &freq_len);
+  // Newer Icoms can read main/sub frequency
+  int cmd = C_RD_FREQ;
+  int subcmd = -1;
+  unsigned char data;
+  int datalen = 0;
+  switch(vfo) {
+    case RIG_VFO_MAIN: 
+      cmd = C_SET_VFO;
+      subcmd = S_SUB_SEL;
+      data = 0 ;
+      datalen = 1;
+      break;
+    case RIG_VFO_SUB: 
+      cmd = C_SET_VFO;
+      subcmd = S_SUB_SEL;
+      data = 1;
+      datalen = 1;
+      break;
+  }
+	retval = icom_transaction (rig, cmd, subcmd, datalen==0?NULL:&data, datalen, freqbuf, &freq_len);
 	if (retval != RIG_OK)
 		return retval;
 
+  // The command to read Main/Sub freq is 1 byte longer
+  // So a simple solution here is to just move left 1 byte
+  if (cmd == C_SEND_SEL_FREQ) {
+    memmove(freqbuf,freqbuf+1,freq_len-1);
+    freq_len--; // have to take off one more byte from the response
+  }
 	/*
 	 * freqbuf should contain Cn,Data area
 	 */
 	freq_len--;
+  if (priv->civ_version >= 2) {
+    memmove(freqbuf,freqbuf+1,freq_len); 
+    freq_len--;
+  }
 
 	/*
 	 * is it a blank mem channel ?
@@ -557,7 +616,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		return RIG_OK;
 	}
 
-	if (freq_len != 4 && freq_len != 5) {
+  if (freq_len != 4 && freq_len != 5) {
 		rig_debug(RIG_DEBUG_ERR,"icom_get_freq: wrong frame len=%d\n",
 					freq_len);
 		return -RIG_ERJCTED;
@@ -951,7 +1010,35 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 }
 
 /*
- * icom_set_vfo
+ * icom_get_vfo
+ * The IC-9700 has introduced the ability to see MAIN/SUB selection
+ * Maybe we'll see this in future ICOMs or firmware upgrades
+ * Command 0x07 0XD2 -- but as of version 1.05 it doesn't work
+ * We will, by default, force Main=VFOA and Sub=VFOB, and may want
+ * an option to not force that behavior
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int icom_get_vfo(RIG *rig, vfo_t *vfo)
+{
+	unsigned char ackbuf[MAXFRAMELEN];
+	int ack_len=sizeof(ackbuf), retval;
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+	retval = icom_transaction (rig, C_SET_VFO, S_SUB_SEL, NULL, 0,
+					ackbuf, &ack_len);
+	if (retval != RIG_OK)
+			return retval;
+
+  if (ack_len != 3) {
+		rig_debug(RIG_DEBUG_ERR,"%s wrong frame len=%d\n", ack_len);
+		return -RIG_ERJCTED;
+  }
+	*vfo = ackbuf[2] == 0 ? RIG_VFO_A : RIG_VFO_B;
+  return RIG_OK;
+}
+
+/*
+ * icom_get_vfo
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
 int icom_set_vfo(RIG *rig, vfo_t vfo)
@@ -962,6 +1049,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 	if (vfo == RIG_VFO_CURR)
 		return RIG_OK;
+
 
 	switch(vfo) {
 	case RIG_VFO_A: icvfo = S_VFOA; break;
@@ -3273,7 +3361,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
 	unsigned char fe_buf[200]; // for FE's to power up
 	int fe_len = 0;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called status=\n", __func__,status);
 	switch (status) {
 		case RIG_POWER_ON:
 			pwr_sc = RIG_POWER_ON;
@@ -3289,15 +3377,33 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
 	}
 
 	// we can ignore this retval
-	// sending more than enough 0xfe's to take up the rs232
+	// sending more than enough 0xfe's to wake up the rs232
 	icom_transaction(rig, 0xfe, 0xfe, fe_buf, fe_len,
 					ackbuf, &ack_len);
 	retval = icom_transaction(rig, C_SET_PWR, pwr_sc, NULL, 0,
 					ackbuf, &ack_len);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s #2 called retval=%d\n", __func__,retval);
+  int i=0;
+  int retry = 3/rig->state.rigport.retry;
+  if (status==RIG_POWER_ON) { // wait for wakeup only
+    for(i=0;i<retry;++i) { // up to 10 attempts
+       sleep(1);
+       freq_t freq = 0;
+       // Use get_freq as all rigs should repond to this
+       retval = rig_get_freq(rig, RIG_VFO_A, &freq);
+       if (retval == RIG_OK) return retval;
+       rig_debug(RIG_DEBUG_TRACE,"%s: Wait %d of %d for get_powerstat\n",__func__,i+1,retry);
+    }
+  }
+  if (i==retry) {
+       rig_debug(RIG_DEBUG_TRACE,"%s: Wait failed for get_powerstat\n",__func__,i+1);
+       retval = -RIG_ETIMEOUT;
+  }
+
 	if (retval != RIG_OK)
 		return retval;
 
-	if (ack_len != 1 || ackbuf[0] != ACK) {
+	if (status==RIG_POWER_OFF && (ack_len != 1 || ackbuf[0] != ACK)) {
 		rig_debug(RIG_DEBUG_ERR,"icom_set_powerstat: ack NG (%#.2x), "
 					"len=%d\n", ackbuf[0],ack_len);
 		return -RIG_ERJCTED;
@@ -3997,6 +4103,7 @@ DECLARE_INITRIG_BACKEND(icom)
 	rig_register(&ic910_caps);
 	rig_register(&ic9100_caps);
 	rig_register(&ic970_caps);
+	rig_register(&ic9700_caps);
 
 	rig_register(&icrx7_caps);
 	rig_register(&icr6_caps);

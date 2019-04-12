@@ -2791,12 +2791,29 @@ int kenwood_get_trn(RIG *rig, int *trn)
  */
 int kenwood_set_powerstat(RIG *rig, powerstat_t status)
 {
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called status=%d\n", __func__, status);
 
   if (!rig)
     return -RIG_EINVAL;
 
-  return kenwood_transaction(rig, (status == RIG_POWER_ON) ? "PS1" : "PS0", NULL, 0);
+  int retval = kenwood_transaction(rig, (status == RIG_POWER_ON) ? "PS1" : "PS0", NULL, 0);
+
+  int i=0;
+  int retry=3/rig->state.rigport.retry;
+  if (status==RIG_POWER_ON) { // wait for wakeup only
+    for(i=0;i<retry;++i) { // up to 10 seconds
+       sleep(1);  
+       freq_t freq;
+       retval = rig_get_freq(rig, RIG_VFO_A, &freq);
+       if (retval == RIG_OK) return retval;
+       rig_debug(RIG_DEBUG_TRACE,"%s: Wait %d of %d for power up\n",__func__,i+1,retry);
+    }
+  }
+  if (i==retry) {
+       rig_debug(RIG_DEBUG_TRACE,"%s: timeout waiting for powerup\n",__func__,i+1);
+       retval = -RIG_ETIMEOUT;
+  }
+  return retval; 
 }
 
 /*

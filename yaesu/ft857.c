@@ -150,9 +150,9 @@ const struct rig_caps ft857_caps = {
   .rig_model = 		RIG_MODEL_FT857,
   .model_name = 	"FT-857",
   .mfg_name = 		"Yaesu",
-  .version = 		"0.5",
+  .version = 		"0.6",
   .copyright = 		"LGPL",
-  .status = 		RIG_STATUS_BETA,
+  .status = 		RIG_STATUS_STABLE,
   .rig_type = 		RIG_TYPE_TRANSCEIVER,
   .ptt_type = 		RIG_PTT_RIG,
   .dcd_type = 		RIG_DCD_RIG,
@@ -259,6 +259,8 @@ const struct rig_caps ft857_caps = {
   .rig_cleanup = 	ft857_cleanup,
   .rig_open = 		ft857_open,
   .rig_close = 		ft857_close,
+  .get_vfo = 		  ft857_get_vfo,
+  .set_vfo = 		  ft857_set_vfo,
   .set_freq = 		ft857_set_freq,
   .get_freq = 		ft857_get_freq,
   .set_mode = 		ft857_set_mode,
@@ -494,6 +496,32 @@ static int ft857_send_icmd(RIG *rig, int index, unsigned char *data)
 }
 
 /* ---------------------------------------------------------------------- */
+
+int ft857_get_vfo(RIG *rig, vfo_t *vfo)
+{
+  unsigned char c;
+  int n;
+  *vfo = RIG_VFO_B;
+  if ((n = ft857_read_eeprom(rig, 0x0068, &c)) < 0) { /* get vfo status */
+    return -RIG_EPROTO;
+  }
+  if ((c&0x1)==0) *vfo = RIG_VFO_A;
+  return RIG_OK;
+}
+
+int ft857_set_vfo(RIG *rig, vfo_t vfo)
+{
+  vfo_t curvfo;
+  int retval =  ft857_get_vfo(rig,&curvfo);
+  if (retval != RIG_OK) {
+    rig_debug(RIG_DEBUG_ERR,"%s: error get_vfo '%s'\n",__func__,rigerror(retval));
+    return retval; 
+  }
+  if (curvfo == vfo) {
+    return RIG_OK;
+  }
+  return ft857_send_cmd(rig, FT857_NATIVE_CAT_SET_VFOAB);
+}
 
 int ft857_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
