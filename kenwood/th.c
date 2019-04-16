@@ -162,7 +162,7 @@ th_decode_event (RIG *rig)
 static int
 kenwood_wrong_vfo(const char *func, vfo_t vfo)
 {
-	rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO: %d\n", func, vfo);
+	rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO: %s\n", func, rig_strvfo(vfo));
 	return -RIG_ENTARGET;
 }
 
@@ -177,7 +177,7 @@ th_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	int step;
 	freq_t freq5,freq625,freq_sent;
 
-	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+	rig_debug(RIG_DEBUG_TRACE, "%s: called %s\n", __func__, rig_strvfo(vfo));
 
 	if (vfo != RIG_VFO_CURR && vfo != rig->state.current_vfo)
 		return kenwood_wrong_vfo(__func__, vfo);
