@@ -159,13 +159,16 @@ static int thd72_set_vfo(RIG *rig, vfo_t vfo)
 	case RIG_VFO_VFO:
 	case RIG_VFO_MAIN:
 	    cmd = "BC 0";
+      rig->state.current_vfo = RIG_VFO_A;
 	    break;
 
 	case RIG_VFO_B:
+	case RIG_VFO_SUB:
+      rig->state.current_vfo = RIG_VFO_B;
 	    cmd = "BC 1";
 	    break;
 	default:
-	    rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO: %d\n", __func__, vfo);
+	    rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO: %s\n", __func__, rig_strvfo(vfo));
 	    return -RIG_ENTARGET;
     }
     return kenwood_simple_transaction(rig, cmd, 4);
@@ -192,7 +195,7 @@ static int thd72_get_vfo(RIG *rig, vfo_t *vfo)
 	case '0': *vfo = RIG_VFO_A; break;
 	case '1': *vfo = RIG_VFO_B; break;
 	default:
-	    rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO: %d\n", __func__, vfo);
+	    rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO: %c\n", __func__, c);
 	    return -RIG_EVFO;
     }
     return RIG_OK;
@@ -200,12 +203,15 @@ static int thd72_get_vfo(RIG *rig, vfo_t *vfo)
 
 static int thd72_vfoc(RIG *rig, vfo_t vfo, char *vfoc)
 {
+    rig_debug(RIG_DEBUG_TRACE, "%s: called VFO=%s\n", __func__, rig_strvfo(vfo));
     vfo = (vfo == RIG_VFO_CURR) ? rig->state.current_vfo : vfo;
     switch (vfo) {
-	case RIG_VFO_A: *vfoc = '0'; break;
-	case RIG_VFO_B: *vfoc = '1'; break;
+	case RIG_VFO_A: 
+  case RIG_VFO_MAIN: *vfoc = '0'; break;
+	case RIG_VFO_B: 
+  case RIG_VFO_SUB: *vfoc = '1'; break;
 	default:
-	    rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO: %d\n", __func__, vfo);
+	    rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO: %s\n", __func__, rig_strvfo(vfo));
 	    return -RIG_ENTARGET;
     }
     return RIG_OK;
@@ -216,9 +222,10 @@ static int thd72_get_freq_info(RIG *rig, vfo_t vfo, char *buf)
     int retval;
     char c, cmd[8];
 
+    rig_debug(RIG_DEBUG_TRACE, "%s: called VFO=%s\n", __func__, rig_strvfo(vfo));
     retval = thd72_vfoc(rig, vfo, &c);
     if (retval != RIG_OK)
-	return retval;
+        return retval;
     sprintf(cmd, "FO %c", c);
     retval = kenwood_transaction(rig, cmd, buf, 53);
     return RIG_OK;
@@ -232,10 +239,10 @@ static int thd72_get_freq_item(RIG *rig, vfo_t vfo, int item, int hi, int *val)
 
     retval = thd72_get_freq_info(rig, vfo, buf);
     if (retval != RIG_OK)
-	return retval;
+        return retval;
     c = buf[item];
     if (c < '0' || c > '9')
-	return -RIG_EPROTO;
+        return -RIG_EPROTO;
     lval = c - '0';
     if (lval > hi)
 	return -RIG_EPROTO;
@@ -595,7 +602,7 @@ static int thd72_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     int retval, lvl;
     char c, lvlc, cmd[10];
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: called VFO=%s, level=%s, val=%g\n", __func__, rig_strvfo(vfo), rig_strlevel(level), val.f);
 
     retval = thd72_vfoc(rig, vfo, &c);
     if (retval != RIG_OK)
@@ -809,7 +816,7 @@ static int thd72_set_mem(RIG *rig, vfo_t vfo, int ch)
 
     retval = thd72_vfoc(rig, vfo, &c);
     if (retval != RIG_OK)
-	return retval;
+return retval;
     sprintf(cmd, "MR %c,%03d", c, ch);
     return kenwood_simple_transaction(rig, cmd, 10);
 }
@@ -1065,9 +1072,9 @@ const struct rig_caps thd72a_caps = {
 .rig_model =  RIG_MODEL_THD72A,
 .model_name = "TH-D72A",
 .mfg_name =  "Kenwood",
-.version =  TH_VER ".1",
+.version =  TH_VER ".2",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_ALPHA,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_HANDHELD|RIG_FLAG_APRS|RIG_FLAG_TNC|RIG_FLAG_DXCLUSTER,
 .ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_RIG,
