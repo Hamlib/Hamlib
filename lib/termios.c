@@ -3347,7 +3347,7 @@ fail:
 	report( message );
 	errno = EBADFD;
 	LEAVE( "serial_select" );
-	return( 1 );
+	return( -1 );
 }
 #ifdef asdf
 int  win32_serial_select( int  n,  fd_set  *readfds,  fd_set  *writefds,

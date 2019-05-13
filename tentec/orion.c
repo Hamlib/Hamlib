@@ -127,6 +127,7 @@ static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 	/* Allow transaction re-tries according to capabilities. */
 	for (itry=0; itry < rig->caps->retry; itry++) {
         rs = &rig->state;
+				serial_flush(&rs->rigport); /* discard pending i/p */
         retval = write_block(&rs->rigport, cmd, cmd_len);
         if (retval != RIG_OK)
                 return retval;
