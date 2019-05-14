@@ -241,6 +241,9 @@
  
 #define FRQ_RNG_70cm(r,m,lp,hp,v,a) \
     FRQ_RNG_70cm_REGION##r((m), (lp), (hp), (v), (a)) \
+
+#define FRQ_RNG_23cm(r,m,lp,hp,v,a) \
+    FRQ_RNG_23cm_REGION##r((m), (lp), (hp), (v), (a)) \
  
 
 #endif  /* _BANDPLAN_H */

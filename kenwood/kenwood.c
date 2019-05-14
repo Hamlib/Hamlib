@@ -756,7 +756,7 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
     return RIG_OK;
 
   default:
-    rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);
+    rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
     return -RIG_EINVAL;
   }
 
@@ -831,7 +831,7 @@ int kenwood_set_vfo_main_sub(RIG *rig, vfo_t vfo)
     return RIG_OK;
 
   default:
-    rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);
+    rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
     return -RIG_EINVAL;
   }
 
@@ -896,7 +896,7 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
     case RIG_VFO_B: vfo_function = '1'; break;
     case RIG_VFO_MEM: vfo_function = '2'; break;
     default:
-      rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);
+      rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
       return -RIG_EINVAL;
     }
     /* set RX VFO */
@@ -922,7 +922,7 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
   case RIG_VFO_B: vfo_function = '1'; break;
   case RIG_VFO_MEM: vfo_function = '2'; break;
   default:
-    rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, txvfo);
+    rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(txvfo));
     return -RIG_EINVAL;
   }
   if (RIG_MODEL_K2 == rig->caps->rig_model
@@ -1144,7 +1144,7 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     vfo_letter = 'C';
     break;
   default:
-    rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);
+    rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
     return -RIG_EINVAL;
   }
   snprintf(freqbuf, sizeof (freqbuf), "F%c%011"PRIll, vfo_letter, (int64_t)freq);
@@ -1255,7 +1255,7 @@ int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     vfo_letter = 'C';
     break;
   default:
-    rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);
+    rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
     return -RIG_EINVAL;
   }
 
@@ -1609,7 +1609,7 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         case RIG_VFO_MAIN: c = '0'; break;
         case RIG_VFO_SUB: c = '1'; break;
         default:
-          rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);
+          rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
           return -RIG_EINVAL;
         }
       snprintf(cmd, sizeof (cmd), "OM%c", c);
@@ -2312,7 +2312,7 @@ int kenwood_set_ctcss_tone_tn(RIG *rig, vfo_t vfo, tone_t tone)
         case RIG_VFO_MAIN: c = '0'; break;
         case RIG_VFO_SUB: c = '1'; break;
         default:
-          rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);
+          rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
           return -RIG_EINVAL;
         }
       snprintf(buf, sizeof (buf), "TN%c%02d", c, i + 1);
@@ -2362,7 +2362,7 @@ int kenwood_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
         case RIG_VFO_MAIN: c = '0'; break;
         case RIG_VFO_SUB: c = '1'; break;
         default:
-          rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);
+          rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
           return -RIG_EINVAL;
         }
       snprintf(cmd, sizeof (cmd), "TN%c", c);
@@ -2436,7 +2436,7 @@ int kenwood_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
         case RIG_VFO_MAIN: c = '0'; break;
         case RIG_VFO_SUB: c = '1'; break;
         default:
-          rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);
+          rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
           return -RIG_EINVAL;
         }
       snprintf(buf, sizeof (buf), "CN%c%02d", c, i + 1);
@@ -2480,7 +2480,7 @@ int kenwood_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
         case RIG_VFO_MAIN: c = '0'; break;
         case RIG_VFO_SUB: c = '1'; break;
         default:
-          rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);
+          rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
           return -RIG_EINVAL;
         }
       snprintf(cmd, sizeof (cmd), "CN%c", c);
@@ -2557,7 +2557,7 @@ int kenwood_set_ant(RIG * rig, vfo_t vfo, ant_t ant)
         case RIG_VFO_MAIN: c = '0'; break;
         case RIG_VFO_SUB: c = '1'; break;
         default:
-          rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);
+          rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
           return -RIG_EINVAL;
         }
       snprintf (cmd, sizeof (cmd), "AN0%c%c99", c, a);
@@ -2791,12 +2791,29 @@ int kenwood_get_trn(RIG *rig, int *trn)
  */
 int kenwood_set_powerstat(RIG *rig, powerstat_t status)
 {
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called status=%d\n", __func__, status);
 
   if (!rig)
     return -RIG_EINVAL;
 
-  return kenwood_transaction(rig, (status == RIG_POWER_ON) ? "PS1" : "PS0", NULL, 0);
+  int retval = kenwood_transaction(rig, (status == RIG_POWER_ON) ? "PS1" : "PS0", NULL, 0);
+
+  int i=0;
+  int retry=3/rig->state.rigport.retry;
+  if (status==RIG_POWER_ON) { // wait for wakeup only
+    for(i=0;i<retry;++i) { // up to 10 seconds
+       sleep(1);  
+       freq_t freq;
+       retval = rig_get_freq(rig, RIG_VFO_A, &freq);
+       if (retval == RIG_OK) return retval;
+       rig_debug(RIG_DEBUG_TRACE,"%s: Wait %d of %d for power up\n",__func__,i+1,retry);
+    }
+  }
+  if (i==retry) {
+       rig_debug(RIG_DEBUG_TRACE,"%s: timeout waiting for powerup\n",__func__,i+1);
+       retval = -RIG_ETIMEOUT;
+  }
+  return retval; 
 }
 
 /*
@@ -2991,7 +3008,7 @@ int kenwood_set_mem(RIG *rig, vfo_t vfo, int ch)
         case RIG_VFO_MAIN: c = '0'; break;
         case RIG_VFO_SUB: c = '1'; break;
         default:
-          rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);
+          rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
           return -RIG_EINVAL;
         }
       snprintf (buf, sizeof (buf), "MN%c%03d", c, ch);
@@ -3039,7 +3056,7 @@ int kenwood_get_mem(RIG *rig, vfo_t vfo, int *ch)
         case RIG_VFO_MAIN: c = '0'; break;
         case RIG_VFO_SUB: c = '1'; break;
         default:
-          rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);
+          rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
           return -RIG_EINVAL;
         }
       snprintf (cmd, sizeof (cmd), "MN%c", c);

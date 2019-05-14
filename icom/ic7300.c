@@ -81,12 +81,27 @@
 #define IC7300_AGC_SLOW 0x03
 
 /*
+ * IC9700 items that differ from IC7300
+ */
+#define IC9700_VFO_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL)
+#define IC9700_ALL_TX_MODES (RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_DSTAR|RIG_MODE_DD)
+#define IC9700_ALL_RX_MODES (RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_DSTAR|RIG_MODE_DD)
+
+/*
  * IC-7300 rig capabilities.
  *
  * TODO: complete command set (esp. the $1A bunch!) and testing..
  */
 static const struct icom_priv_caps IC7300_priv_caps = {
 		0x94,	/* default address */
+		0,		/* 731 mode */
+    0,    /* no XCHG */
+		ic7300_ts_sc_list,
+		.civ_version = 1	/* new version of some commands, e.g. ic7200/7300 */
+};
+
+static const struct icom_priv_caps IC9700_priv_caps = {
+		0xA2,	/* default address */
 		0,		/* 731 mode */
     0,    /* no XCHG */
 		ic7300_ts_sc_list,
@@ -279,6 +294,176 @@ const struct rig_caps ic7300_caps = {
 .set_split_vfo =  icom_set_split_vfo,
 .get_split_vfo =  icom_get_split_vfo,
 .set_powerstat = icom_set_powerstat,
+.power2mW = icom_power2mW,
+.mW2power = icom_mW2power,
+.send_morse = icom_send_morse
+
+};
+
+const struct rig_caps ic9700_caps = {
+.rig_model =  RIG_MODEL_IC9700,
+.model_name = "IC-9700",
+.mfg_name =  "Icom",
+.version =  BACKEND_VER ".1c",
+.copyright =  "LGPL",
+.status =  RIG_STATUS_ALPHA,
+.rig_type =  RIG_TYPE_TRANSCEIVER,
+.ptt_type =  RIG_PTT_RIG,
+.dcd_type =  RIG_DCD_RIG,
+.port_type =  RIG_PORT_SERIAL,
+.serial_rate_min =  4800,
+.serial_rate_max =  38400,
+.serial_data_bits =  8,
+.serial_stop_bits =  1,
+.serial_parity =  RIG_PARITY_NONE,
+.serial_handshake =  RIG_HANDSHAKE_NONE,
+.write_delay =  0,
+.post_write_delay =  0,
+.timeout =  1000,
+.retry =  3,
+.has_get_func =  IC7300_FUNCS,
+.has_set_func =  IC7300_FUNCS,
+.has_get_level =  IC7300_LEVELS,
+.has_set_level =  RIG_LEVEL_SET(IC7300_LEVELS),
+.has_get_parm =  IC7300_PARMS,
+.has_set_parm =  RIG_PARM_SET(IC7300_PARMS),
+.level_gran = {
+	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
+},
+.parm_gran =  {},
+.extlevels = ic7300_ext_levels,
+.ctcss_list =  full_ctcss_list,
+.dcs_list =  NULL,
+.preamp =   { 1, 2, RIG_DBLST_END, },
+.attenuator =   { 1, RIG_DBLST_END, }, /* value taken from p.45 of manual*/
+.max_rit =  Hz(9999),
+.max_xit =  Hz(9999),
+.max_ifshift =  Hz(0),
+.targetable_vfo =  RIG_TARGETABLE_FREQ,
+.vfo_ops =  IC9700_VFO_OPS,
+.scan_ops =  IC7300_SCAN_OPS,
+.transceive =  RIG_TRN_RIG,
+.bank_qty =   1,
+.chan_desc_sz =  0,
+
+.chan_list =  {
+	   {   1,  99, RIG_MTYPE_MEM  },
+	   { 100, 101, RIG_MTYPE_EDGE },    /* two by two */
+	   RIG_CHAN_END,
+	},
+
+.rx_range_list1 =   { {kHz(30),MHz(74.8),IC7300_ALL_RX_MODES,-1,-1,IC7300_VFOS}, RIG_FRNG_END, },
+.tx_range_list1 =   {
+	FRQ_RNG_2m(1,IC9700_ALL_TX_MODES, W(2),W(100),IC7300_VFOS,RIG_ANT_2),
+	FRQ_RNG_70cm(1,IC9700_ALL_TX_MODES, W(2),W(75),IC7300_VFOS,RIG_ANT_2),
+	FRQ_RNG_23cm(1,IC9700_ALL_TX_MODES, W(2),W(23),IC7300_VFOS,RIG_ANT_3),
+   	RIG_FRNG_END, },
+
+.rx_range_list2 =   { {kHz(30),MHz(74.8),IC7300_ALL_RX_MODES,-1,-1,IC7300_VFOS}, RIG_FRNG_END, },
+.tx_range_list2 =  {
+	FRQ_RNG_2m(1,IC9700_ALL_TX_MODES, W(2),W(100),IC7300_VFOS,RIG_ANT_2),
+	FRQ_RNG_70cm(1,IC9700_ALL_TX_MODES, W(2),W(75),IC7300_VFOS,RIG_ANT_2),
+	FRQ_RNG_23cm(1,IC9700_ALL_TX_MODES, W(2),W(23),IC7300_VFOS,RIG_ANT_3),
+    	RIG_FRNG_END, },
+
+.tuning_steps = {
+         {IC9700_ALL_RX_MODES,Hz(1)},
+         {IC9700_ALL_RX_MODES,Hz(10)},
+         {IC9700_ALL_RX_MODES,Hz(100)},
+         {IC9700_ALL_RX_MODES,Hz(500)},
+         {IC9700_ALL_RX_MODES,kHz(1)},
+         {IC9700_ALL_RX_MODES,kHz(5)},
+         {IC9700_ALL_RX_MODES,kHz(6.25)},
+         {IC9700_ALL_RX_MODES,kHz(10)},
+         {IC9700_ALL_RX_MODES,kHz(12.5)},
+         {IC9700_ALL_RX_MODES,kHz(20)},
+         {IC9700_ALL_RX_MODES,kHz(25)},
+         {IC9700_ALL_RX_MODES,kHz(50)},
+         {IC9700_ALL_RX_MODES,kHz(100)},
+         RIG_TS_END,
+        },
+
+	/* mode/filter list, remember: order matters! But duplication may speed up search.  Put the most commonly used modes first!  Remember these are defaults, with dsp rigs you can change them to anything you want except FM and WFM which are fixed */
+.filters = 	{
+		{RIG_MODE_SSB, kHz(2.4)},
+		{RIG_MODE_SSB, kHz(1.8)},
+		{RIG_MODE_SSB, kHz(3)},
+		{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(500)},
+		{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(250)},
+		{RIG_MODE_CW|RIG_MODE_CWR, kHz(1.2)},
+		{RIG_MODE_RTTY|RIG_MODE_RTTYR, kHz(2.4)},
+		{RIG_MODE_AM|RIG_MODE_PKTAM, kHz(6)},
+		{RIG_MODE_AM|RIG_MODE_PKTAM, kHz(3)},
+		{RIG_MODE_AM|RIG_MODE_PKTAM, kHz(9)},
+		{RIG_MODE_FM|RIG_MODE_PKTFM, kHz(15)},
+		{RIG_MODE_FM|RIG_MODE_PKTFM, kHz(10)},
+		{RIG_MODE_FM|RIG_MODE_PKTFM, kHz(7)},
+		RIG_FLT_END,
+	},
+
+.str_cal = IC7300_STR_CAL,
+
+.cfgparams =  icom_cfg_params,
+.set_conf =  icom_set_conf,
+.get_conf =  icom_get_conf,
+
+.priv =  (void*)&IC9700_priv_caps,
+.rig_init =   icom_init,
+.rig_cleanup =   icom_cleanup,
+.rig_open =  NULL,
+.rig_close =  NULL,
+
+.set_freq =  icom_set_freq,
+.get_freq =  icom_get_freq,
+.set_mode =  icom_set_mode_with_data,
+.get_mode =  icom_get_mode_with_data,
+//.get_vfo =  icom_get_vfo,
+.set_vfo =  icom_set_vfo,
+.set_ant =  NULL,
+.get_ant =  NULL,
+
+.set_rit =  ic7300_set_rit,
+.get_rit =  ic7300_get_rit,
+// the 7300 has only one register for both RIT and Delta TX
+// you can turn one or both on -- but both end up just being in sync
+// so we'll just reuse the rit settings
+.get_xit =  ic7300_get_rit,
+.set_xit =  ic7300_set_xit,
+
+.decode_event =  icom_decode_event,
+.set_level =  ic7300_set_level,
+.get_level =  ic7300_get_level,
+.set_ext_level =  icom_set_ext_level,
+.get_ext_level =  icom_get_ext_level,
+.set_func =  ic7300_set_func,
+.get_func =  ic7300_get_func,
+.set_parm =  icom_set_parm,
+.get_parm =  icom_get_parm,
+.set_mem =  icom_set_mem,
+.vfo_op =  icom_vfo_op,
+.scan =  icom_scan,
+.set_ptt =  icom_set_ptt,
+.get_ptt =  icom_get_ptt,
+.get_dcd =  icom_get_dcd,
+.set_ts =  icom_set_ts,
+.get_ts =  icom_get_ts,
+.set_rptr_shift =  NULL,
+.get_rptr_shift =  NULL,
+.set_rptr_offs =  NULL,
+.get_rptr_offs =  NULL,
+.set_ctcss_tone =  icom_set_ctcss_tone,
+.get_ctcss_tone =  icom_get_ctcss_tone,
+.set_ctcss_sql =  icom_set_ctcss_sql,
+.get_ctcss_sql =  icom_get_ctcss_sql,
+.set_split_freq =  icom_set_split_freq,
+.get_split_freq =  icom_get_split_freq,
+.set_split_mode =  icom_set_split_mode,
+.get_split_mode =  icom_get_split_mode,
+.set_split_vfo =  icom_set_split_vfo,
+.get_split_vfo =  icom_get_split_vfo,
+.set_powerstat = icom_set_powerstat,
+//.get_vfo = icom_get_vfo,
+.set_vfo = icom_set_vfo,
 .power2mW = icom_power2mW,
 .mW2power = icom_mW2power,
 .send_morse = icom_send_morse

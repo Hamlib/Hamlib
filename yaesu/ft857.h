@@ -139,6 +139,8 @@ static int ft857_init(RIG *rig);
 static int ft857_open(RIG *rig);
 static int ft857_cleanup(RIG *rig);
 static int ft857_close(RIG *rig);
+static int ft857_set_vfo(RIG *rig, vfo_t vfo);
+static int ft857_get_vfo(RIG *rig, vfo_t *vfo);
 static int ft857_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int ft857_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 static int ft857_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);

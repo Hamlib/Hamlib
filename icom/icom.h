@@ -30,7 +30,7 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "0.8"
+#define BACKEND_VER "0.9"
 
 /*
  * defines used by comp_cal_str in rig.c
@@ -160,6 +160,7 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int icom_get_mode_with_data(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+int icom_get_vfo(RIG *rig, vfo_t *vfo);
 int icom_set_vfo(RIG *rig, vfo_t vfo);
 int icom_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift);
 int icom_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift);
@@ -252,6 +253,7 @@ extern const struct rig_caps ic821h_caps;
 extern const struct rig_caps ic910_caps;
 extern const struct rig_caps ic9100_caps;
 extern const struct rig_caps ic970_caps;
+extern const struct rig_caps ic9700_caps;
 extern const struct rig_caps icrx7_caps;
 extern const struct rig_caps icr10_caps;
 extern const struct rig_caps icr20_caps;
