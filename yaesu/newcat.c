@@ -496,6 +496,12 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
         return err;
 
     /* vfo should now be modified to a valid VFO constant. */
+    /* DX3000/DX5000 can only do VFO_MEM on 60M */
+    /* So we will not change freq in that case */
+    int special_60m = 0;
+    special_60m = newcat_is_rig(rig, RIG_MODEL_FTDX3000);
+    /* duplicate the following line to add more rigs */
+    special_60m |= newcat_is_rig(rig, RIG_MODEL_FTDX5000);
     switch (vfo) {
         case RIG_VFO_A:
             c = 'A';
@@ -504,6 +510,9 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
             c = 'B';
             break;
         case RIG_VFO_MEM:
+            if (special_60m && (freq >=5300000 && freq <=5410000)) {
+              return RIG_OK; /* make it look like we changed */
+            }
             c = 'A';
             break;
         default:
