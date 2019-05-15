@@ -511,6 +511,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
             break;
         case RIG_VFO_MEM:
             if (special_60m && (freq >=5300000 && freq <=5410000)) {
+              rig_debug(RIG_DEBUG_TRACE, "%s: 60M VFO_MEM exception, no freq change done\n", __func__);
               return RIG_OK; /* make it look like we changed */
             }
             c = 'A';
