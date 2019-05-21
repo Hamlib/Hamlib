@@ -681,9 +681,11 @@ int par_ptt_get(hamlib_port_t *p, ptt_t *pttx)
         status = par_read_control(p, &ctl);
         par_unlock(p);
 
-        *pttx = (ctl & PARPORT_CONTROL_INIT) &&
+        if (status == RIG_OK) {
+            *pttx = (ctl & PARPORT_CONTROL_INIT) &&
                 !(ctl & PARPORT_CONTROL_STROBE) ?
                 RIG_PTT_ON : RIG_PTT_OFF;
+        }
         return status;
     }
 
@@ -717,8 +719,10 @@ int par_dcd_get(hamlib_port_t *p, dcd_t *dcdx)
         int status;
 
         status = par_read_data(p, &reg);
-        *dcdx = reg & (1 << p->parm.parallel.pin) ?
+        if (status == RIG_OK) {
+            *dcdx = reg & (1 << p->parm.parallel.pin) ?
                 RIG_DCD_ON : RIG_DCD_OFF;
+        }
         return status;
     }
 
