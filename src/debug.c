@@ -150,7 +150,7 @@ char *date_strget(char *buf,int buflen)
         gettimeofday(&tv,NULL);
 	strftime(buf,buflen,"%Y-%m-%d:%H:%M:%S.",mytm);
 	char tmp[16];
-	sprintf(tmp,"%06ld",tv.tv_usec);
+	sprintf(tmp,"%06ld",(long)tv.tv_usec);
 	strcat(buf,tmp);
 	return buf;
 }
