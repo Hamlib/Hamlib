@@ -68,46 +68,46 @@ static rig_ptr_t rig_vprintf_arg;
  */
 void dump_hex(const unsigned char ptr[], size_t size)
 {
-    /* example
-     * 0000  4b 30 30 31 34 35 30 30 30 30 30 30 30 35 30 32  K001450000000502
-     * 0010  30 30 0d 0a                                      00..
-     */
-    char line[4 + 4 + 3 * DUMP_HEX_WIDTH + 4 + DUMP_HEX_WIDTH + 1];
-    unsigned char c;
-    int i;
+  /* example
+   * 0000  4b 30 30 31 34 35 30 30 30 30 30 30 30 35 30 32  K001450000000502
+   * 0010  30 30 0d 0a                                      00..
+   */
+  char line[4 + 4 + 3 * DUMP_HEX_WIDTH + 4 + DUMP_HEX_WIDTH + 1];
+  unsigned char c;
+  int i;
 
-    if (!rig_need_debug(RIG_DEBUG_TRACE))
+  if (!rig_need_debug(RIG_DEBUG_TRACE))
+  {
+    return;
+  }
+
+  line[sizeof(line) - 1] = '\0';
+
+  for (i = 0; i < size; ++i)
+  {
+    if (i % DUMP_HEX_WIDTH == 0)
     {
-        return;
+      /* new line */
+      sprintf(line + 0, "%04x", i);
+      memset(line + 4, ' ', sizeof(line) - 4 - 1);
     }
 
-    line[sizeof(line) - 1] = '\0';
+    c = ptr[i];
 
-    for (i = 0; i < size; ++i)
+    /* hex print */
+    sprintf(line + 8 + 3 * (i % DUMP_HEX_WIDTH), "%02x", c);
+    line[8 + 3 * (i % DUMP_HEX_WIDTH) + 2] = ' '; /* no \0 */
+
+    /* ascii print */
+    line[8 + 3 * DUMP_HEX_WIDTH + 4 + (i % DUMP_HEX_WIDTH)] = (c >= ' '
+        && c < 0x7f) ? c : '.';
+
+    /* actually print the line */
+    if (i + 1 == size || (i && i % DUMP_HEX_WIDTH == DUMP_HEX_WIDTH - 1))
     {
-        if (i % DUMP_HEX_WIDTH == 0)
-        {
-            /* new line */
-            sprintf(line + 0, "%04x", i);
-            memset(line + 4, ' ', sizeof(line) - 4 - 1);
-        }
-
-        c = ptr[i];
-
-        /* hex print */
-        sprintf(line + 8 + 3 * (i % DUMP_HEX_WIDTH), "%02x", c);
-        line[8 + 3 * (i % DUMP_HEX_WIDTH) + 2] = ' '; /* no \0 */
-
-        /* ascii print */
-        line[8 + 3 * DUMP_HEX_WIDTH + 4 + (i % DUMP_HEX_WIDTH)] = (c >= ' '
-                && c < 0x7f) ? c : '.';
-
-        /* actually print the line */
-        if (i + 1 == size || (i && i % DUMP_HEX_WIDTH == DUMP_HEX_WIDTH - 1))
-        {
-            rig_debug(RIG_DEBUG_TRACE, "%s\n", line);
-        }
+      rig_debug(RIG_DEBUG_TRACE, "%s\n", line);
     }
+  }
 }
 
 
@@ -117,7 +117,7 @@ void dump_hex(const unsigned char ptr[], size_t size)
  */
 void HAMLIB_API rig_set_debug(enum rig_debug_level_e debug_level)
 {
-    rig_debug_level = debug_level;
+  rig_debug_level = debug_level;
 }
 
 
@@ -127,7 +127,7 @@ void HAMLIB_API rig_set_debug(enum rig_debug_level_e debug_level)
  */
 int HAMLIB_API rig_need_debug(enum rig_debug_level_e debug_level)
 {
-    return (debug_level <= rig_debug_level);
+  return (debug_level <= rig_debug_level);
 }
 
 /**
@@ -136,23 +136,23 @@ int HAMLIB_API rig_need_debug(enum rig_debug_level_e debug_level)
  */
 void HAMLIB_API rig_set_debug_time_stamp(int flag)
 {
-    rig_debug_time_stamp = flag;
+  rig_debug_time_stamp = flag;
 }
 
 
-char *date_strget(char *buf,int buflen)
+char *date_strget(char *buf, int buflen)
 {
-	time_t mytime;
-	struct tm *mytm;
-        struct timeval tv;
-	mytime=time(NULL);
-	mytm = gmtime(&mytime);
-        gettimeofday(&tv,NULL);
-	strftime(buf,buflen,"%Y-%m-%d:%H:%M:%S.",mytm);
-	char tmp[16];
-	sprintf(tmp,"%06ld",(long)tv.tv_usec);
-	strcat(buf,tmp);
-	return buf;
+  time_t mytime;
+  struct tm *mytm;
+  struct timeval tv;
+  mytime = time(NULL);
+  mytm = gmtime(&mytime);
+  gettimeofday(&tv, NULL);
+  strftime(buf, buflen, "%Y-%m-%d:%H:%M:%S.", mytm);
+  char tmp[16];
+  sprintf(tmp, "%06ld", (long)tv.tv_usec);
+  strcat(buf, tmp);
+  return buf;
 }
 
 /**
@@ -163,70 +163,73 @@ char *date_strget(char *buf,int buflen)
 void HAMLIB_API rig_debug(enum rig_debug_level_e debug_level,
                           const char *fmt, ...)
 {
-    va_list ap;
+  va_list ap;
 
-    if (!rig_need_debug(debug_level))
+  if (!rig_need_debug(debug_level))
+  {
+    return;
+  }
+
+
+  va_start(ap, fmt);
+
+  if (rig_vprintf_cb)
+  {
+    rig_vprintf_cb(debug_level, rig_vprintf_arg, fmt, ap);
+  }
+  else
+  {
+    if (!rig_debug_stream)
     {
-        return;
+      rig_debug_stream = stderr;
     }
 
-
-    va_start(ap, fmt);
-
-    if (rig_vprintf_cb)
+    if (rig_debug_time_stamp)
     {
-        rig_vprintf_cb(debug_level, rig_vprintf_arg, fmt, ap);
-    }
-    else
-    {
-        if (!rig_debug_stream)
-        {
-            rig_debug_stream = stderr;
-        }
-        if (rig_debug_time_stamp) {
-            char buf[256];
-            fprintf(rig_debug_stream,"%s: ",date_strget(buf,sizeof(buf)));
-        }
-        vfprintf(rig_debug_stream, fmt, ap);
-        fflush(rig_debug_stream);
+      char buf[256];
+      fprintf(rig_debug_stream, "%s: ", date_strget(buf, sizeof(buf)));
     }
 
-    va_end(ap);
+    vfprintf(rig_debug_stream, fmt, ap);
+    fflush(rig_debug_stream);
+  }
+
+  va_end(ap);
 #ifdef ANDROID
-    int a;
-    va_start(ap, fmt);
+  int a;
+  va_start(ap, fmt);
 
-    switch (debug_level)
-    {
+  switch (debug_level)
+  {
 //        case RIG_DEBUG_NONE:
-    case RIG_DEBUG_BUG:
-        a = ANDROID_LOG_FATAL;
-        break;
+  case RIG_DEBUG_BUG:
+    a = ANDROID_LOG_FATAL;
+    break;
 
-    case RIG_DEBUG_ERR:
-        a = ANDROID_LOG_ERROR;
-        break;
+  case RIG_DEBUG_ERR:
+    a = ANDROID_LOG_ERROR;
+    break;
 
-    case RIG_DEBUG_WARN:
-        a = ANDROID_LOG_WARN;
-        break;
+  case RIG_DEBUG_WARN:
+    a = ANDROID_LOG_WARN;
+    break;
 
-    case RIG_DEBUG_VERBOSE:
-        a = ANDROID_LOG_VERBOSE;
-        break;
+  case RIG_DEBUG_VERBOSE:
+    a = ANDROID_LOG_VERBOSE;
+    break;
 
-    case RIG_DEBUG_TRACE:
-        a = ANDROID_LOG_VERBOSE;
-        break;
+  case RIG_DEBUG_TRACE:
+    a = ANDROID_LOG_VERBOSE;
+    break;
 
-    default:
-        a = ANDROID_LOG_DEBUG;
-        break;
-    }
+  default:
+    a = ANDROID_LOG_DEBUG;
+    break;
+  }
 
-    __android_log_vprint(a, PACKAGE_NAME, fmt, ap);
+  __android_log_vprint(a, PACKAGE_NAME, fmt, ap);
 
-    va_end(ap);
+  va_end(ap);
 #endif
 }
 
@@ -268,12 +271,12 @@ rig_message_cb(enum rig_debug_level_e debug_level,
  */
 vprintf_cb_t HAMLIB_API rig_set_debug_callback(vprintf_cb_t cb, rig_ptr_t arg)
 {
-    vprintf_cb_t prev_cb = rig_vprintf_cb;
+  vprintf_cb_t prev_cb = rig_vprintf_cb;
 
-    rig_vprintf_cb = cb;
-    rig_vprintf_arg = arg;
+  rig_vprintf_cb = cb;
+  rig_vprintf_arg = arg;
 
-    return prev_cb;
+  return prev_cb;
 }
 
 
@@ -281,13 +284,13 @@ vprintf_cb_t HAMLIB_API rig_set_debug_callback(vprintf_cb_t cb, rig_ptr_t arg)
  * \brief change stderr to some different output
  * \param stream The stream to set output to
  */
-FILE * HAMLIB_API rig_set_debug_file(FILE *stream)
+FILE *HAMLIB_API rig_set_debug_file(FILE *stream)
 {
-    FILE *prev_stream = rig_debug_stream;
+  FILE *prev_stream = rig_debug_stream;
 
-    rig_debug_stream = stream;
+  rig_debug_stream = stream;
 
-    return prev_stream;
+  return prev_stream;
 }
 
 /** @} */
