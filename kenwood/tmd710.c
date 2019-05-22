@@ -1543,7 +1543,7 @@ int tmd710_get_mem(RIG *rig, vfo_t vfo, int *ch)
   char cmd[16];
   char membuf[16];
   int retval;
-  int vfonum;
+  int vfonum = TMD710_BAND_A;
   int n;
 
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -1552,7 +1552,10 @@ int tmd710_get_mem(RIG *rig, vfo_t vfo, int *ch)
     return -RIG_EINVAL;
   }
 
-  if (RIG_VFO_CURR == vfo || RIG_VFO_VFO == vfo) {
+  if (RIG_VFO_B == vfo) {
+    vfonum = TMD710_BAND_B;
+  }
+  else if (RIG_VFO_CURR == vfo || RIG_VFO_VFO == vfo) {
     retval = tmd710_get_vfo_num(rig, &vfonum, NULL);
     if (retval != RIG_OK) {
       return retval;
