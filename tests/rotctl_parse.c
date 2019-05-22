@@ -1399,10 +1399,10 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
      */
     if (interactive && ext_resp && !prompt)
     {
-        char a1[MAXARGSZ + 1];
-        char a2[MAXARGSZ + 1];
-        char a3[MAXARGSZ + 1];
-        char a4[MAXARGSZ + 1];
+        char a1[MAXARGSZ + 2];
+        char a2[MAXARGSZ + 2];
+        char a3[MAXARGSZ + 2];
+        char a4[MAXARGSZ + 2];
 
         p1 == NULL ? a1[0] = '\0' : snprintf(a1, sizeof(a1), " %s", p1);
         p2 == NULL ? a2[0] = '\0' : snprintf(a2, sizeof(a2), " %s", p2);
