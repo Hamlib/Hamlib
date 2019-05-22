@@ -1532,10 +1532,10 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc, syn
      */
     if (interactive && ext_resp && !prompt && cmd != 0xf0)
     {
-        char a1[MAXARGSZ + 1];
-        char a2[MAXARGSZ + 1];
-        char a3[MAXARGSZ + 1];
-        char vfo_str[MAXARGSZ + 1];
+        char a1[MAXARGSZ + 2];
+        char a2[MAXARGSZ + 2];
+        char a3[MAXARGSZ + 2];
+        char vfo_str[MAXARGSZ + 2];
 
         vfo_mode == 0 ? vfo_str[0] = '\0' : snprintf(vfo_str,
                                                      sizeof(vfo_str),
