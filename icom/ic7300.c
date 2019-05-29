@@ -105,7 +105,8 @@ static const struct icom_priv_caps IC9700_priv_caps = {
 		0,		/* 731 mode */
     0,    /* no XCHG */
 		ic7300_ts_sc_list,
-		.civ_version = 1	/* new version of some commands, e.g. ic7200/7300 */
+		.civ_version = 1,	/* new version of some commands, e.g. ic7200/7300 */
+    .serial_USB_echo_check = 1  /* USB CI-V may not echo */
 };
 
 /* Private IC7300 extra levels definitions
@@ -304,9 +305,9 @@ const struct rig_caps ic9700_caps = {
 .rig_model =  RIG_MODEL_IC9700,
 .model_name = "IC-9700",
 .mfg_name =  "Icom",
-.version =  BACKEND_VER ".1c",
+.version =  BACKEND_VER ".2",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_ALPHA,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_RIG,
