@@ -137,7 +137,9 @@ gs232_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
     unsigned u_az, u_el;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __FUNCTION__, az, el);
-
+    if (az < 0.0){
+    az = az + 360.0;
+    }
     u_az = (unsigned)rint(az);
     u_el = (unsigned)rint(el);
 
@@ -203,7 +205,7 @@ const struct rot_caps gs232_rot_caps = {
   .rot_model =      ROT_MODEL_GS232,
   .model_name =     "GS-232",
   .mfg_name =       "Yaesu/Kenpro",
-  .version =        "0.1",
+  .version =        "0.2",
   .copyright = 	    "LGPL",
   .status =         RIG_STATUS_BETA,
   .rot_type =       ROT_TYPE_AZEL,
@@ -219,7 +221,7 @@ const struct rot_caps gs232_rot_caps = {
   .timeout =  400,
   .retry =  3,
 
-  .min_az = 	0.0,
+  .min_az = 	-180.0,
   .max_az =  	450.0,	/* vary according to rotator type */
   .min_el = 	0.0,
   .max_el =  	180.0,
@@ -257,7 +259,7 @@ const struct rot_caps f1tetracker_rot_caps = {
   .timeout =  400,
   .retry =  0,
 
-  .min_az = 	0.0,
+  .min_az = 	-180.0,
   .max_az =  	360.0,	/* vary according to rotator type */
   .min_el = 	0.0,
   .max_el =  	180.0,
