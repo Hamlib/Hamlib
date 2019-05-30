@@ -50,10 +50,10 @@
  * Cn controller commands
  *
 
- 	Most radios have 2 or 3 recieve passbands available.  Where only 2 are available they
+ 	Most radios have 2 or 3 receive passbands available.  Where only 2 are available they
 	are selected by 01 for wide and 02 for narrow  Actual bandwidth is determined by the filters
 	installed.  With the newer DSP rigs there are 3 presets 01 = wide 02 = middle and 03 = narrow.
-	Acutally you can set change any of these presets to any thing you want.
+	Actually, you can set change any of these presets to any thing you want.
 
  * Notes:
  * The following only applies to IC-706.
@@ -63,8 +63,8 @@
  * 2. Memory channel number 1A=0100/1b=0101, 2A=0102/2b=0103,
  * 	  3A=0104/3b=0105, C1=0106, C2=0107
  */
-#define C_SND_FREQ	0x00		/* Send frequency data  trancieve mode does not ack*/
-#define C_SND_MODE	0x01		/* Send mode data, Sc  for trancieve mode does not ack */
+#define C_SND_FREQ	0x00		/* Send frequency data  transceive mode does not ack*/
+#define C_SND_MODE	0x01		/* Send mode data, Sc  for transceive mode does not ack */
 #define C_RD_BAND	0x02		/* Read band edge frequencies */
 #define C_RD_FREQ	0x03		/* Read display frequency */
 #define C_RD_MODE	0x04		/* Read display mode */
@@ -487,7 +487,5 @@
 #define TOK_RTTY_FLTR TOKEN_BACKEND(100)
 #define TOK_SSBBASS TOKEN_BACKEND(101)
 #define TOK_SQLCTRL TOKEN_BACKEND(102)
-#define TOK_LEVEL_MONITOR TOKEN_BACKEND(103)
-
 
 #endif /* _ICOM_DEFS_H */

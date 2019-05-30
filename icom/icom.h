@@ -194,6 +194,10 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 int icom_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val);
 int icom_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val);
+int icom_set_level_raw(RIG *rig, setting_t level, int cmd, int subcmd,
+    int len, unsigned char *buf, int val_bytes, value_t val);
+int icom_get_level_raw(RIG *rig, setting_t level, int cmd, int subcmd,
+    int len, unsigned char *buf, value_t *val);
 int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 int icom_set_parm(RIG *rig, setting_t parm, value_t val);

@@ -1,6 +1,6 @@
 /*
- *  Hamlib CI-V backend - description of IC-910 (VHF/UHF All-Mode
- *  Tranceiver) Contributed by Francois Retief <fgretief@sun.ac.za>
+ *  Hamlib CI-V backend - description of IC-910 (VHF/UHF All-Mode Transceiver)
+ *  Contributed by Francois Retief <fgretief@sun.ac.za>
  *  Copyright (c) 2000-2010 by Stephane Fillod
  *
  *
@@ -27,6 +27,7 @@
 #include <stdlib.h>
 
 #include <hamlib/rig.h>
+#include "misc.h"
 #include "icom.h"
 #include "icom_defs.h"
 #include "frame.h"
@@ -332,6 +333,30 @@ static const struct icom_priv_caps ic910_priv_caps = {
   .r2i_mode = ic910_r2i_mode
 };
 
+int ic910_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+{
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  switch (level) {
+    case RIG_LEVEL_VOXDELAY:
+      return icom_set_level_raw(rig, level, C_CTL_MEM, S_MEM_VOXDELAY, 0, NULL, 1, val);
+    default:
+      return icom_set_level(rig, vfo, level, val);
+  }
+}
+
+int ic910_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  switch (level) {
+    case RIG_LEVEL_VOXDELAY:
+      return icom_get_level_raw(rig, level, C_CTL_MEM, S_MEM_VOXDELAY, 0, NULL, val);
+    default:
+      return icom_get_level(rig, vfo, level, val);
+  }
+}
+
 const struct rig_caps ic910_caps = {
   .rig_model =    RIG_MODEL_IC910,
   .model_name =   "IC-910",
@@ -361,6 +386,7 @@ const struct rig_caps ic910_caps = {
   .has_set_parm =   RIG_PARM_NONE,
   .level_gran = {
     [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
+    [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
   },
   .parm_gran =    {},
   .ctcss_list =   NULL,
@@ -459,8 +485,8 @@ const struct rig_caps ic910_caps = {
 .set_ts =  icom_set_ts,
 .get_func =  icom_get_func,
 .set_func =  icom_set_func,
-.get_level =  icom_get_level,
-.set_level =  icom_set_level,
+.get_level =  ic910_get_level,
+.set_level =  ic910_set_level,
 
 .set_mem =  icom_set_mem,
 .vfo_op =  icom_vfo_op,
@@ -475,5 +501,3 @@ const struct rig_caps ic910_caps = {
 .set_split_freq_mode =  icom_set_split_freq_mode,
 .get_split_freq_mode =  icom_get_split_freq_mode,
 };
-
-/* end of file */

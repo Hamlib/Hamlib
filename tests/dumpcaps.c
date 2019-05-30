@@ -34,13 +34,14 @@
 #include "rigctl_parse.h"
 
 static int print_ext(RIG *rig, const struct confparams *cfp, rig_ptr_t ptr);
+void range_print(FILE *fout, const struct freq_range_list range_list[], int rx);
 int range_sanity_check(const struct freq_range_list range_list[], int rx);
 int ts_sanity_check(const struct tuning_step_list tuning_step[]);
 static void dump_chan_caps(const channel_cap_t *chan, FILE *fout);
 
 
 /*
- * the rig may be in rig_init state, but not openned
+ * the rig may be in rig_init state, but not opened
  */
 int dumpcaps(RIG *rig, FILE *fout)
 {
@@ -359,9 +360,8 @@ int dumpcaps(RIG *rig, FILE *fout)
         backend_warnings++;
     }
 
-    fprintf(fout, "Extra levels:");
+    fprintf(fout, "Extra levels:\n");
     rig_ext_level_foreach(rig, print_ext, fout);
-    fprintf(fout, "\n");
 
     sprintf_parm_gran(prntbuf, caps->has_get_parm, caps->parm_gran);
     fprintf(fout, "Get parameters: %s\n", prntbuf);
@@ -375,9 +375,8 @@ int dumpcaps(RIG *rig, FILE *fout)
         backend_warnings++;
     }
 
-    fprintf(fout, "Extra parameters:");
+    fprintf(fout, "Extra parameters:\n");
     rig_ext_parm_foreach(rig, print_ext, fout);
-    fprintf(fout, "\n");
 
 
     if (rig->state.mode_list != 0)
@@ -433,7 +432,18 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     fprintf(fout, "\n");
 
-    /* TODO: print rx/tx ranges here */
+    fprintf(fout, "TX ranges, region 1:\n");
+    range_print(fout, caps->tx_range_list1, 0);
+
+    fprintf(fout, "RX ranges, region 1:\n");
+    range_print(fout, caps->rx_range_list1, 1);
+
+    fprintf(fout, "TX ranges, region 2:\n");
+    range_print(fout, caps->tx_range_list2, 0);
+
+    fprintf(fout, "RX ranges, region 2:\n");
+    range_print(fout, caps->rx_range_list2, 1);
+
     status = range_sanity_check(caps->tx_range_list1, 0);
     fprintf(fout,
             "TX ranges status, region 1:\t%s (%d)\n",
@@ -711,14 +721,67 @@ int dumpcaps(RIG *rig, FILE *fout)
     return backend_warnings;
 }
 
-
 static int print_ext(RIG *rig, const struct confparams *cfp, rig_ptr_t ptr)
 {
-    fprintf((FILE *)ptr, " %s", cfp->name);
+    fprintf((FILE *)ptr, "\t%s\n", cfp->name);
+    fprintf((FILE *)ptr, "\t\tType: %s\n", get_rig_conf_type(cfp->type));
+    fprintf((FILE *)ptr, "\t\tDefault: %s\n", cfp->dflt != NULL ? cfp->dflt : "");
+    fprintf((FILE *)ptr, "\t\tLabel: %s\n", cfp->label != NULL ? cfp->label : "");
+    fprintf((FILE *)ptr, "\t\tTooltip: %s\n", cfp->tooltip != NULL ? cfp->tooltip : "");
+
+    switch (cfp->type) {
+      case RIG_CONF_NUMERIC:
+        fprintf((FILE *)ptr, "\t\tRange: %g..%g/%g\n", cfp->u.n.min, cfp->u.n.max, cfp->u.n.step);
+        break;
+      case RIG_CONF_COMBO:
+        fprintf((FILE *)ptr, "\t\tValues:");
+        if (cfp->u.c.combostr != NULL) {
+          for (int i = 0; i < RIG_COMBO_MAX && cfp->u.c.combostr[i] != NULL; i++) {
+            fprintf((FILE *)ptr, " %d=\"%s\"", i, cfp->u.c.combostr[i]);
+          }
+        }
+        fprintf((FILE *)ptr, "\n");
+        break;
+      default:
+        break;
+    }
 
     return 1;       /* process them all */
 }
 
+void range_print(FILE *fout, const struct freq_range_list range_list[], int rx)
+{
+  int i;
+  char prntbuf[1024];  /* a malloc would be better.. */
+
+  for (i = 0; i < FRQRANGESIZ; i++) {
+    if (range_list[i].start == 0 && range_list[i].end == 0) {
+      break;
+    }
+
+    fprintf(fout, "\t%.0f Hz - %.0f Hz\n", range_list[i].start, range_list[i].end);
+
+    fprintf(fout, "\t\tVFO list: ");
+    sprintf_vfo(prntbuf, range_list[i].vfo);
+    fprintf(fout, prntbuf);
+    fprintf(fout, "\n");
+
+    fprintf(fout, "\t\tMode list: ");
+    sprintf_mode(prntbuf, range_list[i].modes);
+    fprintf(fout, prntbuf);
+    fprintf(fout, "\n");
+
+    fprintf(fout, "\t\tAntenna list: ");
+    sprintf_ant(prntbuf, range_list[i].ant);
+    fprintf(fout, prntbuf);
+    fprintf(fout, "\n");
+
+    if (!rx) {
+      fprintf(fout, "\t\tLow power: %.0f W, High power: %.0f W\n",
+          range_list[i].low_power / 1000.0f, range_list[i].high_power / 1000.0f);
+    }
+  }
+}
 
 /*
  * check for:

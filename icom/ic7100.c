@@ -82,15 +82,77 @@
                             RIG_LEVEL_AGC| \
                             RIG_LEVEL_PBT_IN| \
                             RIG_LEVEL_PBT_OUT| \
-                            RIG_LEVEL_NOTCHF| \
+                            RIG_LEVEL_NOTCHF_RAW| \
                             RIG_LEVEL_ATT| \
-                            RIG_LEVEL_PREAMP)
+                            RIG_LEVEL_PREAMP| \
+                            RIG_LEVEL_RAWSTR| \
+                            RIG_LEVEL_STRENGTH| \
+                            RIG_LEVEL_SWR| \
+                            RIG_LEVEL_ALC| \
+                            RIG_LEVEL_RFPOWER_METER| \
+                            RIG_LEVEL_COMP_METER| \
+                            RIG_LEVEL_VD_METER| \
+                            RIG_LEVEL_ID_METER| \
+                            RIG_LEVEL_MONITOR_GAIN)
 
 #define IC7100_PARM_ALL (RIG_PARM_ANN|RIG_PARM_BACKLIGHT)
 
-#define IC7100_STR_CAL UNKNOWN_IC_STR_CAL	/* FIXME */
+// IC-7100 S-meter calibration data based on manual
+#define IC7100_STR_CAL { 14, \
+	{ \
+		{   0, -54 }, \
+		{ 120,  0 }, \
+		{ 241,  60 } \
+	} }
+
+#define IC7100_SWR_CAL { 5, \
+	{ \
+		 { 0, 1.0f }, \
+		 { 48, 1.5f }, \
+		 { 80, 2.0f }, \
+		 { 120, 3.0f }, \
+		 { 240, 6.0f } \
+	} }
+
+#define IC7100_ALC_CAL { 2, \
+	{ \
+		 { 0, 0.0f }, \
+		 { 120, 1.0f } \
+	} }
+
+#define IC7100_RFPOWER_METER_CAL { 3, \
+	{ \
+		 { 0, 0.0f }, \
+		 { 143, 0.5f }, \
+		 { 213, 1.0f } \
+	} }
+
+#define IC7100_COMP_METER_CAL { 3, \
+	{ \
+		 { 0, 0.0f }, \
+		 { 130, 15.0f }, \
+		 { 241, 30.0f } \
+	} }
+
+#define IC7100_VD_METER_CAL { 3, \
+	{ \
+		 { 0, 0.0f }, \
+		 { 13, 10.0f }, \
+		 { 241, 16.0f } \
+	} }
+
+#define IC7100_ID_METER_CAL { 4, \
+	{ \
+		 { 0, 0.0f }, \
+		 { 97, 10.0f }, \
+		 { 146, 15.0f }, \
+		 { 241, 25.0f } \
+	} }
 
 #define IC7100_HF_ANTS (RIG_ANT_1|RIG_ANT_2)
+
+int ic7100_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+int ic7100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
 /*
  */
@@ -125,12 +187,13 @@ const struct rig_caps ic7100_caps = {
 .retry =  3,
 .has_get_func =  IC7100_FUNC_ALL,
 .has_set_func =  IC7100_FUNC_ALL | RIG_FUNC_RESUME,
-.has_get_level =  IC7100_LEVEL_ALL | RIG_LEVEL_RAWSTR| RIG_LEVEL_SWR,
-.has_set_level =  IC7100_LEVEL_ALL,
+.has_get_level =  IC7100_LEVEL_ALL,
+.has_set_level =  RIG_LEVEL_SET(IC7100_LEVEL_ALL),
 .has_get_parm =  IC7100_PARM_ALL,
 .has_set_parm =  IC7100_PARM_ALL,
 .level_gran = {
 	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
+	[LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
 },
 .parm_gran =  {},
 .ctcss_list =  common_ctcss_list,
@@ -210,6 +273,12 @@ const struct rig_caps ic7100_caps = {
     {RIG_MODE_FM|RIG_MODE_AM, kHz(6)},          /* builtin */
      RIG_FLT_END, },
 .str_cal = IC7100_STR_CAL,
+.swr_cal = IC7100_SWR_CAL,
+.alc_cal = IC7100_ALC_CAL,
+.rfpower_meter_cal = IC7100_RFPOWER_METER_CAL,
+.comp_meter_cal = IC7100_COMP_METER_CAL,
+.vd_meter_cal = IC7100_VD_METER_CAL,
+.id_meter_cal = IC7100_ID_METER_CAL,
 
 .priv =  (void*)&ic7100_priv_caps,
 .rig_init =   icom_init,
@@ -235,8 +304,8 @@ const struct rig_caps ic7100_caps = {
 .set_ts =  icom_set_ts,
 .get_func =  icom_get_func,
 .set_func =  icom_set_func,
-.get_level =  icom_get_level,
-.set_level =  icom_set_level,
+.get_level =  ic7100_get_level,
+.set_level =  ic7100_set_level,
 
 .set_ptt =  icom_set_ptt,
 .get_ptt =  icom_get_ptt,
@@ -271,4 +340,34 @@ const struct rig_caps ic7100_caps = {
 .send_morse = icom_send_morse
 };
 
-/* end of file */
+int ic7100_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+{
+  unsigned char cmdbuf[MAXFRAMELEN];
+
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  switch (level) {
+    case RIG_LEVEL_VOXDELAY:
+      cmdbuf[0] = 0x01;
+      cmdbuf[1] = 0x65;
+      return icom_set_level_raw(rig, level, C_CTL_MEM, 0x05, 2, cmdbuf, 1, val);
+    default:
+      return icom_set_level(rig, vfo, level, val);
+  }
+}
+
+int ic7100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
+  unsigned char cmdbuf[MAXFRAMELEN];
+
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  switch (level) {
+    case RIG_LEVEL_VOXDELAY:
+      cmdbuf[0] = 0x01;
+      cmdbuf[1] = 0x65;
+      return icom_get_level_raw(rig, level, C_CTL_MEM, 0x05, 2, cmdbuf, val);
+    default:
+      return icom_get_level(rig, vfo, level, val);
+  }
+}

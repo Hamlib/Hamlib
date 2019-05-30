@@ -48,7 +48,7 @@
 
 #define IC756PRO_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_RF|RIG_FUNC_ANF)
 
-#define IC756PRO_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_BALANCE|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF|RIG_LEVEL_RAWSTR|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_COMP|RIG_LEVEL_BALANCE)
+#define IC756PRO_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_BALANCE|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF_RAW|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_COMP|RIG_LEVEL_BALANCE)
 
 /* Note that RIG_LEVEL_VOXGAIN and RIG_LEVEL_ANTIVOX are incorrectly handled in icom.c for
  * this model.
@@ -80,6 +80,9 @@
 		 { 228, 52 }, \
 		 { 247 ,60 } \
 	} }
+
+int ic756pro2_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+int ic756pro2_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
 /*
  *  This function deals with the older type radios with only 2 filter widths
@@ -251,7 +254,7 @@ const struct rig_caps ic756_caps = {
 
 /*
  * ic756pro rig capabilities.
- * TODO: check every paramters,
+ * TODO: check every parameter,
  * 		add antenna capabilities
  */
 static const struct icom_priv_caps ic756pro_priv_caps = {
@@ -401,7 +404,7 @@ const struct rig_caps ic756pro_caps = {
 
 /*
  * ic756proII rig capabilities.
- * TODO: check every paramters,
+ * TODO: check every parameter,
  * 		add antenna capabilities
  */
 static const struct icom_priv_caps ic756pro2_priv_caps = {
@@ -467,6 +470,7 @@ static int ic756pro2_get_ext_parm(RIG *rig, token_t token, value_t *val);
 #define IC756PROII_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM)
 #define IC756PROII_AM_TX_MODES (RIG_MODE_AM)
 
+#define IC756PROII_LEVEL_ALL (IC756PRO_LEVEL_ALL|RIG_LEVEL_VOXDELAY)
 
 const struct rig_caps ic756pro2_caps = {
 .rig_model =  RIG_MODEL_IC756PROII,
@@ -491,12 +495,13 @@ const struct rig_caps ic756pro2_caps = {
 .retry =  3,
 .has_get_func =  IC756PRO_FUNC_ALL,
 .has_set_func =  IC756PRO_FUNC_ALL,
-.has_get_level =  IC756PRO_LEVEL_ALL,
-.has_set_level =  RIG_LEVEL_SET(IC756PRO_LEVEL_ALL),
+.has_get_level =  IC756PROII_LEVEL_ALL,
+.has_set_level =  RIG_LEVEL_SET(IC756PROII_LEVEL_ALL),
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,	/* FIXME: parms */
 .level_gran = {
 	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
+	[LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
 },
 .parm_gran =  {},
 .extparms =  ic756pro2_ext_parms,
@@ -577,8 +582,8 @@ const struct rig_caps ic756pro2_caps = {
 .get_ant =  icom_get_ant,
 
 .decode_event =  icom_decode_event,
-.set_level =  icom_set_level,
-.get_level =  icom_get_level,
+.set_level =  ic756pro2_set_level,
+.get_level =  ic756pro2_get_level,
 .set_func =  icom_set_func,
 .get_func =  icom_get_func,
 .set_mem =  icom_set_mem,
@@ -762,7 +767,7 @@ static int ic756pro2_get_ext_parm(RIG *rig, token_t token, value_t *val)
 /*
  * ic756proIII rig capabilities.
  *
- * TODO: check every paramters,
+ * TODO: check every parameter,
  * 		add antenna capabilities
  */
 static const struct icom_priv_caps ic756pro3_priv_caps = {
@@ -778,7 +783,8 @@ static const struct icom_priv_caps ic756pro3_priv_caps = {
 #define IC756PROIII_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM)
 #define IC756PROIII_AM_TX_MODES (RIG_MODE_AM)
 
-#define IC756PROIII_PARMS (RIG_PARM_ANN|RIG_PARM_BACKLIGHT|RIG_PARM_APO|RIG_PARM_TIME|RIG_PARM_BEEP)
+#define IC756PROIII_LEVEL_ALL (IC756PROII_LEVEL_ALL|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_COMP_METER|RIG_LEVEL_MONITOR_GAIN)
+#define IC756PROIII_PARMS (RIG_PARM_ANN|RIG_PARM_BACKLIGHT|RIG_PARM_APO|RIG_PARM_TIME)
 
 
 /*
@@ -801,6 +807,35 @@ static const struct icom_priv_caps ic756pro3_priv_caps = {
         .funcs = IC756PRO_FUNC_ALL, \
         .levels = RIG_LEVEL_SET(IC756PRO_LEVEL_ALL), \
 }
+
+#define IC756PROIII_SWR_CAL { 5, \
+	{ \
+		 { 0, 1.0f }, \
+		 { 48, 1.5f }, \
+		 { 80, 2.0f }, \
+		 { 120, 3.0f }, \
+		 { 240, 6.0f } \
+	} }
+
+#define IC756PROIII_ALC_CAL { 2, \
+	{ \
+		 { 0, 0.0f }, \
+		 { 120, 1.0f } \
+	} }
+
+#define IC756PROIII_RFPOWER_METER_CAL { 3, \
+	{ \
+		 { 0, 0.0f }, \
+		 { 143, 0.5f }, \
+		 { 213, 1.0f } \
+	} }
+
+#define IC756PROIII_COMP_METER_CAL { 3, \
+	{ \
+		 { 0, 0.0f }, \
+		 { 130, 15.0f }, \
+		 { 241, 30.0f } \
+	} }
 
 const struct rig_caps ic756pro3_caps = {
 .rig_model =  RIG_MODEL_IC756PROIII,
@@ -825,12 +860,13 @@ const struct rig_caps ic756pro3_caps = {
 .retry =  3,
 .has_get_func =  IC756PRO_FUNC_ALL,
 .has_set_func =  IC756PRO_FUNC_ALL,
-.has_get_level =  IC756PRO_LEVEL_ALL,
-.has_set_level =  RIG_LEVEL_SET(IC756PRO_LEVEL_ALL),
+.has_get_level =  IC756PROIII_LEVEL_ALL,
+.has_set_level =  RIG_LEVEL_SET(IC756PROIII_LEVEL_ALL),
 .has_get_parm =  IC756PROIII_PARMS,
 .has_set_parm =  RIG_PARM_SET(IC756PROIII_PARMS),
 .level_gran = {
 	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
+	[LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
 },
 .parm_gran =  {},
 .extparms =  ic756pro2_ext_parms,
@@ -898,6 +934,10 @@ const struct rig_caps ic756pro3_caps = {
 	RIG_FLT_END,
 	},
 .str_cal = IC756PRO_STR_CAL,
+.swr_cal = IC756PROIII_SWR_CAL,
+.alc_cal = IC756PROIII_ALC_CAL,
+.rfpower_meter_cal = IC756PROIII_RFPOWER_METER_CAL,
+.comp_meter_cal = IC756PROIII_COMP_METER_CAL,
 
 .cfgparams =  icom_cfg_params,
 .set_conf =  icom_set_conf,
@@ -920,8 +960,8 @@ const struct rig_caps ic756pro3_caps = {
 .decode_event =  icom_decode_event,
 .set_parm =  icom_set_parm,
 .get_parm =  icom_get_parm,
-.set_level =  icom_set_level,
-.get_level =  icom_get_level,
+.set_level =  ic756pro2_set_level,
+.get_level =  ic756pro2_get_level,
 .set_func =  icom_set_func,
 .get_func =  icom_get_func,
 .set_mem =  icom_set_mem,
@@ -948,4 +988,32 @@ const struct rig_caps ic756pro3_caps = {
 .get_ext_parm =  ic756pro2_get_ext_parm,
 };
 
+int ic756pro2_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+{
+  unsigned char cmdbuf[MAXFRAMELEN];
 
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  switch (level) {
+    case RIG_LEVEL_VOXDELAY:
+      cmdbuf[0] = 0x60;
+      return icom_set_level_raw(rig, level, C_CTL_MEM, 0x05, 1, cmdbuf, 1, val);
+    default:
+      return icom_set_level(rig, vfo, level, val);
+  }
+}
+
+int ic756pro2_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
+  unsigned char cmdbuf[MAXFRAMELEN];
+
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  switch (level) {
+    case RIG_LEVEL_VOXDELAY:
+      cmdbuf[0] = 0x60;
+      return icom_get_level_raw(rig, level, C_CTL_MEM, 0x05, 1, cmdbuf, val);
+    default:
+      return icom_get_level(rig, vfo, level, val);
+  }
+}

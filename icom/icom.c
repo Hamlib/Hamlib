@@ -39,6 +39,62 @@
 #include "icom_defs.h"
 #include "frame.h"
 
+const cal_table_float_t icom_default_swr_cal = {
+	5,
+	 {
+		 { 0, 1.0f },
+		 { 48, 1.5f },
+		 { 80, 2.0f },
+		 { 120, 3.0f },
+		 { 240, 6.0f }
+	 }
+};
+
+const cal_table_float_t icom_default_alc_cal = {
+	2,
+	{
+		{ 0, 0.0f },
+		{ 120, 1.0f }
+	}
+};
+
+const cal_table_float_t icom_default_rfpower_meter_cal = {
+	3,
+	{
+		{ 0, 0.0f },
+		{ 143, 0.5f },
+		{ 213, 1.0f }
+	}
+};
+
+const cal_table_float_t icom_default_comp_meter_cal = {
+	3,
+	{
+		{ 0, 0.0f },
+		{ 130, 15.0f },
+		{ 241, 30.0f }
+	}
+};
+
+const cal_table_float_t icom_default_vd_meter_cal = {
+	3,
+	{
+		{ 0, 0.0f },
+		{ 13, 10.0f },
+		{ 241, 16.0f }
+	}
+};
+
+const cal_table_float_t icom_default_id_meter_cal = {
+	4,
+	{
+		{ 0, 0.0f },
+		{ 97, 10.0f },
+		{ 146, 15.0f },
+		{ 241, 25.0f }
+	}
+};
+
 const struct ts_sc_list r8500_ts_sc_list[] = {
 	{ 10, 0x00 },
 	{ 50, 0x01 },
@@ -1149,6 +1205,19 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		}
 	}
 
+	switch (level) {
+	  case RIG_LEVEL_CWPITCH:
+	    if (val.i < 300) {
+	      icom_val = 300;
+	    } else if (val.i >= 900) {
+	      icom_val = 900;
+	    }
+	    icom_val = (icom_val - 300) * (255.0f / 600.0f);
+	    break;
+	  default:
+	    break;
+	}
+
 	/*
 	 * Most of the time, the data field is a 3 digit BCD,
 	 * but in *big endian* order: 0000..0255
@@ -1239,7 +1308,7 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		lvl_cn = C_CTL_LVL;
 		lvl_sc = S_LVL_KEYSPD;
 		break;
-	case RIG_LEVEL_NOTCHF:
+	case RIG_LEVEL_NOTCHF_RAW:
 		lvl_cn = C_CTL_LVL;
 		lvl_sc = S_LVL_NOTCHF;
 		break;
@@ -1279,19 +1348,6 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
                 lvl_sc = S_LVL_VOXGAIN;
             }
             break;
-        case RIG_LEVEL_VOXDELAY:
-            if (priv->civ_version == 1) {
-                lvl_cn = C_CTL_MEM;
-                lvl_sc = 0x05; // plus 0191 and value 0-20 = 0-2 secs
-                lvl_len = 2;
-		lvlbuf[0] = 0x01;
-		lvlbuf[1] = 0x91;
-            }
-            else { /* IC-910H */
-                lvl_cn = C_CTL_MEM;
-                lvl_sc = S_MEM_VOXDELAY;
-            }
-            break;
         case RIG_LEVEL_ANTIVOX:
             if (rig->caps->rig_model == RIG_MODEL_IC910) {
                 /* IC-910H */
@@ -1302,19 +1358,21 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
                 lvl_sc = S_LVL_ANTIVOX;
             }
             break;
+	case RIG_LEVEL_MONITOR_GAIN:
+		lvl_cn = C_CTL_LVL;
+		lvl_sc = S_LVL_MON;
+		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"Unsupported set_level %d", level);
 		return -RIG_EINVAL;
 	}
 
-	retval = icom_transaction (rig, lvl_cn, lvl_sc, lvlbuf, lvl_len,
-					ackbuf, &ack_len);
+	retval = icom_transaction (rig, lvl_cn, lvl_sc, lvlbuf, lvl_len, ackbuf, &ack_len);
 	if (retval != RIG_OK)
 		return retval;
 
 	if (ack_len != 1 || ackbuf[0] != ACK) {
-		rig_debug(RIG_DEBUG_ERR,"icom_set_level: ack NG (%#.2x), "
-					"len=%d\n", ackbuf[0], ack_len);
+		rig_debug(RIG_DEBUG_ERR,"icom_set_level: ack NG (%#.2x), len=%d\n", ackbuf[0], ack_len);
 		return -RIG_ERJCTED;
 	}
 
@@ -1325,11 +1383,6 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
  * icom_get_level
  * Assumes rig!=NULL, rig->state.priv!=NULL, val!=NULL
  *
- * TODO (missing RIG_LEVEL):
- * - S_RiML: Read real RFpower-meter level
- * - S_CMP: Read COMP-meter level
- * - S_VD : Read Vd-meter level
- * - S_ID : Read Id-meter level
  */
 int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
@@ -1361,6 +1414,22 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	case RIG_LEVEL_SWR:
 		lvl_cn = C_RD_SQSM;
 		lvl_sc = S_SWR;
+		break;
+	case RIG_LEVEL_RFPOWER_METER:
+		lvl_cn = C_RD_SQSM;
+		lvl_sc = S_RFML;
+		break;
+	case RIG_LEVEL_COMP_METER:
+		lvl_cn = C_RD_SQSM;
+		lvl_sc = S_CMP;
+		break;
+	case RIG_LEVEL_VD_METER:
+		lvl_cn = C_RD_SQSM;
+		lvl_sc = S_VD;
+		break;
+	case RIG_LEVEL_ID_METER:
+		lvl_cn = C_RD_SQSM;
+		lvl_sc = S_ID;
 		break;
 	case RIG_LEVEL_PREAMP:
 		lvl_cn = C_CTL_FUNC;
@@ -1425,7 +1494,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		lvl_cn = C_CTL_LVL;
 		lvl_sc = S_LVL_KEYSPD;
 		break;
-	case RIG_LEVEL_NOTCHF:
+	case RIG_LEVEL_NOTCHF_RAW:
 		lvl_cn = C_CTL_LVL;
 		lvl_sc = S_LVL_NOTCHF;
 		break;
@@ -1455,10 +1524,6 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                 lvl_sc = S_LVL_VOXGAIN;
             }
             break;
-        case RIG_LEVEL_VOXDELAY:    /* IC-910H */
-            lvl_cn = C_CTL_MEM;
-            lvl_sc = S_MEM_VOXDELAY;
-            break;
         case RIG_LEVEL_ANTIVOX:
             if (rig->caps->rig_model == RIG_MODEL_IC910) {
                 /* IC-910H */
@@ -1469,21 +1534,17 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                 lvl_sc = S_LVL_ANTIVOX;
             }
             break;
-/* Not implemented yet
-        case TOK_LEVEL_MONITOR:
-	    lvl_cn = C_CTL_MEM;
-            lvl_sc = S_MEM_MONITOR;
-            break;
-*/
-
+	case RIG_LEVEL_MONITOR_GAIN:
+		lvl_cn = C_CTL_LVL;
+		lvl_sc = S_LVL_MON;
+		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"Unsupported get_level %d", level);
 		return -RIG_EINVAL;
 	}
 
 	/* use lvl2buf and lvl2_len for 'set mode' subcommand */
-	retval = icom_transaction (rig, lvl_cn, lvl_sc, lvl2buf, lvl2_len,
-					lvlbuf, &lvl_len);
+	retval = icom_transaction (rig, lvl_cn, lvl_sc, lvl2buf, lvl2_len, lvlbuf, &lvl_len);
 	if (retval != RIG_OK)
 		return retval;
 
@@ -1499,8 +1560,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	}
 
 	if (lvlbuf[0] != ACK && lvlbuf[0] != lvl_cn) {
-		rig_debug(RIG_DEBUG_ERR,"icom_get_level: ack NG (%#.2x), "
-					"len=%d\n", lvlbuf[0],lvl_len);
+		rig_debug(RIG_DEBUG_ERR,"icom_get_level: ack NG (%#.2x), len=%d\n", lvlbuf[0],lvl_len);
 		return -RIG_ERJCTED;
 	}
 
@@ -1529,14 +1589,51 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                 return -RIG_EPROTO;
         }
 		break;
-	case RIG_LEVEL_ALC:
-        /* 120 max on IC-7600 */
-		val->f = (float)icom_val/120;
-		break;
-	case RIG_LEVEL_SWR:
-        /* {0->1, 48->1.5, 80->2} on IC-7600 */
-		val->f = 1. + (float)icom_val/80;
-		break;
+    case RIG_LEVEL_ALC:
+      if (rig->caps->alc_cal.size == 0) {
+        val->f = rig_raw2val_float(icom_val, &icom_default_alc_cal);
+      } else {
+        val->f = rig_raw2val_float(icom_val, &rig->caps->alc_cal);
+      }
+      break;
+    case RIG_LEVEL_SWR:
+      if (rig->caps->swr_cal.size == 0) {
+        val->f = rig_raw2val_float(icom_val, &icom_default_swr_cal);
+      } else {
+        val->f = rig_raw2val_float(icom_val, &rig->caps->swr_cal);
+      }
+      break;
+    case RIG_LEVEL_RFPOWER_METER:
+      if (rig->caps->rfpower_meter_cal.size == 0) {
+        val->f = rig_raw2val_float(icom_val, &icom_default_rfpower_meter_cal);
+      } else {
+        val->f = rig_raw2val_float(icom_val, &rig->caps->rfpower_meter_cal);
+      }
+      break;
+    case RIG_LEVEL_COMP_METER:
+      if (rig->caps->comp_meter_cal.size == 0) {
+        val->f = rig_raw2val_float(icom_val, &icom_default_comp_meter_cal);
+      } else {
+        val->f = rig_raw2val_float(icom_val, &rig->caps->comp_meter_cal);
+      }
+      break;
+    case RIG_LEVEL_VD_METER:
+      if (rig->caps->vd_meter_cal.size == 0) {
+        val->f = rig_raw2val_float(icom_val, &icom_default_vd_meter_cal);
+      } else {
+        val->f = rig_raw2val_float(icom_val, &rig->caps->vd_meter_cal);
+      }
+      break;
+    case RIG_LEVEL_ID_METER:
+      if (rig->caps->id_meter_cal.size == 0) {
+        val->f = rig_raw2val_float(icom_val, &icom_default_id_meter_cal);
+      } else {
+        val->f = rig_raw2val_float(icom_val, &rig->caps->id_meter_cal);
+      }
+      break;
+    case RIG_LEVEL_CWPITCH:
+      val->i = 300 + (icom_val * 600.0f / 255.0f);
+      break;
 	case RIG_LEVEL_PREAMP:
 		if (icom_val == 0) {
 			val->i = 0;
@@ -1597,9 +1694,6 @@ int icom_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 	switch (token) {
-		case TOK_LEVEL_MONITOR:
-			rig_debug(RIG_DEBUG_VERBOSE, "TOK_LEVEL_MONITOR\n", __func__);
-			break;
 		default: return -RIG_EINVAL;
 	}
 	return RIG_OK;
@@ -1614,12 +1708,86 @@ int icom_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 	switch (token) {
-		case TOK_LEVEL_MONITOR:
-			rig_debug(RIG_DEBUG_VERBOSE, "TOK_LEVEL_MONITOR\n", __func__);
-			break;
 		default: return -RIG_EINVAL;
 	}
 	return RIG_OK;
+}
+
+
+int icom_set_level_raw(RIG *rig, setting_t level, int cmd, int subcmd, int len, unsigned char *buf, int val_bytes, value_t val)
+{
+  unsigned char lvlbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
+  int ack_len = sizeof(ackbuf);
+  int lvl_len = len;
+  int icom_val;
+  int retval;
+
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  if (RIG_LEVEL_IS_FLOAT(level)) {
+    icom_val = val.f * 255;
+  } else {
+    icom_val = val.i;
+  }
+
+  if (len > 0) {
+    if (buf == NULL) {
+      return -RIG_EINTERNAL;
+    }
+
+    memcpy(lvlbuf, buf, len);
+  }
+
+  to_bcd_be(lvlbuf + len, (long long) icom_val, val_bytes * 2);
+  lvl_len += val_bytes;
+
+  retval = icom_transaction(rig, cmd, subcmd, lvlbuf, lvl_len, ackbuf, &ack_len);
+  if (retval != RIG_OK) {
+    return retval;
+  }
+
+  if (ack_len != 1 || ackbuf[0] != ACK) {
+    rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0], ack_len);
+    return -RIG_ERJCTED;
+  }
+
+  return RIG_OK;
+}
+
+int icom_get_level_raw(RIG *rig, setting_t level, int cmd, int subcmd, int len, unsigned char *buf, value_t *val)
+{
+  unsigned char lvlbuf[MAXFRAMELEN];
+  int lvl_len;
+  int icom_val;
+  int cmdhead = len;
+  int retval;
+
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  retval = icom_transaction(rig, cmd, subcmd, buf, len, lvlbuf, &lvl_len);
+  if (retval != RIG_OK) {
+    return retval;
+  }
+
+  cmdhead += (subcmd == -1) ? 1 : 2;
+  lvl_len -= cmdhead;
+
+  if (lvlbuf[0] != ACK && lvlbuf[0] != cmd) {
+    rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, lvlbuf[0], lvl_len);
+    return -RIG_ERJCTED;
+  }
+
+  icom_val = from_bcd_be(lvlbuf + cmdhead, lvl_len * 2);
+
+  if (RIG_LEVEL_IS_FLOAT(level)) {
+    val->f = (float) icom_val / 255;
+  } else {
+    val->i = icom_val;
+  }
+
+  rig_debug(RIG_DEBUG_TRACE, "%s: %d %d %d %f\n", __func__, lvl_len, icom_val, val->i, val->f);
+
+  return RIG_OK;
 }
 
 
@@ -1848,7 +2016,7 @@ int icom_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 		*rptr_shift = RIG_RPT_SHIFT_NONE;	/* Simplex mode */
 		break;
 	case S_DUP_M:
-		*rptr_shift = RIG_RPT_SHIFT_MINUS;		/* Duples - mode */
+		*rptr_shift = RIG_RPT_SHIFT_MINUS;		/* Duplex - mode */
 		break;
 	case S_DUP_P:
 		*rptr_shift = RIG_RPT_SHIFT_PLUS;		/* Duplex + mode */

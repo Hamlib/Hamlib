@@ -82,9 +82,10 @@
                             RIG_LEVEL_AGC| \
                             RIG_LEVEL_PBT_IN| \
                             RIG_LEVEL_PBT_OUT| \
-                            RIG_LEVEL_NOTCHF| \
+                            RIG_LEVEL_NOTCHF_RAW| \
                             RIG_LEVEL_ATT| \
-                            RIG_LEVEL_PREAMP)
+                            RIG_LEVEL_PREAMP| \
+                            RIG_LEVEL_MONITOR_GAIN)
 
 #define IC9100_PARM_ALL (RIG_PARM_ANN|RIG_PARM_BACKLIGHT)
 
@@ -130,6 +131,7 @@ const struct rig_caps ic9100_caps = {
 .has_set_parm =  IC9100_PARM_ALL,
 .level_gran = {
 	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
+	[LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
 },
 .parm_gran =  {},
 .ctcss_list =  common_ctcss_list,
@@ -270,4 +272,34 @@ const struct rig_caps ic9100_caps = {
 
 };
 
-/* end of file */
+int ic9100_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+{
+  unsigned char cmdbuf[MAXFRAMELEN];
+
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  switch (level) {
+    case RIG_LEVEL_VOXDELAY:
+      cmdbuf[0] = 0x01;
+      cmdbuf[1] = 0x27;
+      return icom_set_level_raw(rig, level, C_CTL_MEM, 0x05, 2, cmdbuf, 1, val);
+    default:
+      return icom_set_level(rig, vfo, level, val);
+  }
+}
+
+int ic9100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
+  unsigned char cmdbuf[MAXFRAMELEN];
+
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  switch (level) {
+    case RIG_LEVEL_VOXDELAY:
+      cmdbuf[0] = 0x01;
+      cmdbuf[1] = 0x27;
+      return icom_get_level_raw(rig, level, C_CTL_MEM, 0x05, 2, cmdbuf, val);
+    default:
+      return icom_get_level(rig, vfo, level, val);
+  }
+}
