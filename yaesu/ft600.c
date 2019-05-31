@@ -133,9 +133,9 @@ const struct rig_caps ft600_caps = {
   .rig_model = 		RIG_MODEL_FT600,
   .model_name = 	"FT-600",
   .mfg_name = 		"Yaesu",
-  .version = 		"0.1",
+  .version = 		"0.2",
   .copyright = 		"LGPL",
-  .status = 		RIG_STATUS_ALPHA,
+  .status = 		RIG_STATUS_BETA,
   .rig_type = 		RIG_TYPE_TRANSCEIVER,
   .ptt_type = 		RIG_PTT_RIG,
   .dcd_type = 		RIG_DCD_NONE,
@@ -383,10 +383,7 @@ int ft600_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 
    struct ft600_priv_data *priv = (struct ft600_priv_data*)rig->state.priv;
    freq_t f;
-   char *ptr;
-   char freq_str[10];
    int ret;
-
    rig_debug(RIG_DEBUG_VERBOSE,"ft600: get_freq \n");
 
    if( !freq )  return -RIG_EINVAL;
@@ -396,13 +393,11 @@ int ft600_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
       	return ret;
    }
 
-  sprintf(freq_str, "%hhx%hhx%hhx",
-  priv->status.freq[1],
-  priv->status.freq[2],
-  priv->status.freq[3]);
+  f = ((((priv->status.freq[1] <<8) + priv->status.freq[2])<<8) + priv->status.freq[3]) * 10;
 
-  f=strtol(freq_str,&ptr,16);
-  *freq = f * 10;
+  rig_debug(RIG_DEBUG_TRACE, "%s: freq = %"PRIfreq" Hz\n", __func__, f);
+
+  *freq = f;
 
   return RIG_OK;
 }
