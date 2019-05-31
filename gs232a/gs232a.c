@@ -235,6 +235,76 @@ gs232a_rot_move(ROT *rot, int direction, int speed)
 
 /* ************************************************************************* */
 /*
+ * Generic GS23 rotator capabilities.
+ */
+
+const struct rot_caps gs23_rot_caps = {
+  .rot_model =      ROT_MODEL_GS23,
+  .model_name =     "GS-23",
+  .mfg_name =       "Yaesu/Kenpro",
+  .version =        "0.1",
+  .copyright = 	    "LGPL",
+  .status =         RIG_STATUS_ALPHA,
+  .rot_type =       ROT_TYPE_AZEL,
+  .port_type =      RIG_PORT_SERIAL,
+  .serial_rate_min =   150,
+  .serial_rate_max =   9600,
+  .serial_data_bits =  8,
+  .serial_stop_bits =  1,
+  .serial_parity =     RIG_PARITY_NONE,
+  .serial_handshake =  RIG_HANDSHAKE_NONE,
+  .write_delay =  0,
+  .post_write_delay =  0,
+  .timeout =  400,
+  .retry =  3,
+
+  .min_az = 	-180.0,
+  .max_az =  	450.0,	/* vary according to rotator type */
+  .min_el = 	0.0,
+  .max_el =  	180.0,
+
+  .get_position =  gs232a_rot_get_position,
+  .set_position =  gs232a_rot_set_position,
+  .stop = 	   gs232a_rot_stop,
+};
+
+/* ************************************************************************* */
+/*
+ * Generic GS232 rotator capabilities.
+ */
+
+const struct rot_caps gs232_rot_caps = {
+  .rot_model =      ROT_MODEL_GS232,
+  .model_name =     "GS-232",
+  .mfg_name =       "Yaesu/Kenpro",
+  .version =        "0.1",
+  .copyright = 	    "LGPL",
+  .status =         RIG_STATUS_ALPHA,
+  .rot_type =       ROT_TYPE_AZEL,
+  .port_type =      RIG_PORT_SERIAL,
+  .serial_rate_min =   150,
+  .serial_rate_max =   9600,
+  .serial_data_bits =  8,
+  .serial_stop_bits =  1,
+  .serial_parity =     RIG_PARITY_NONE,
+  .serial_handshake =  RIG_HANDSHAKE_NONE,
+  .write_delay =  0,
+  .post_write_delay =  0,
+  .timeout =  400,
+  .retry =  3,
+
+  .min_az = 	-180.0,
+  .max_az =  	450.0,	/* vary according to rotator type */
+  .min_el = 	0.0,
+  .max_el =  	180.0,
+
+  .get_position =  gs232a_rot_get_position,
+  .set_position =  gs232a_rot_set_position,
+  .stop = 	   gs232a_rot_stop,
+};
+
+/* ************************************************************************* */
+/*
  * Generic GS232A rotator capabilities.
  */
 
@@ -242,7 +312,7 @@ const struct rot_caps gs232a_rot_caps = {
   .rot_model =      ROT_MODEL_GS232A,
   .model_name =     "GS-232A",
   .mfg_name =       "Yaesu",
-  .version =        "0.4",
+  .version =        "0.5",
   .copyright = 	    "LGPL",
   .status =         RIG_STATUS_BETA,
   .rot_type =       ROT_TYPE_OTHER,
@@ -265,23 +335,31 @@ const struct rot_caps gs232a_rot_caps = {
 
   .get_position =  gs232a_rot_get_position,
   .set_position =  gs232a_rot_set_position,
-  .stop = 	       gs232a_rot_stop,
+  .stop = 	   gs232a_rot_stop,
   .move =          gs232a_rot_move,
 };
 
 
 /* ************************************************************************* */
 
+
+
+
+
 DECLARE_INITROT_BACKEND(gs232a)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
 
     rot_register(&gs232a_rot_caps);
+    rot_register(&gs232_generic_rot_caps);
     rot_register(&gs232b_rot_caps);
-    rot_register(&gs232_rot_caps);
     rot_register(&f1tetracker_rot_caps);
-
-	return RIG_OK;
+    rot_register(&gs23_rot_caps);
+    rot_register(&gs232_rot_caps);
+    rot_register(&amsat_lvb_rot_caps);
+    rot_register(&st2_rot_caps);
+    
+    return RIG_OK;
 }
 
 /* ************************************************************************* */
