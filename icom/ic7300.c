@@ -411,7 +411,7 @@ const struct rig_caps ic9700_caps = {
 .priv =  (void*)&IC9700_priv_caps,
 .rig_init =   icom_init,
 .rig_cleanup =   icom_cleanup,
-.rig_open =  NULL,
+.rig_open =  icom_rig_open,
 .rig_close =  NULL,
 
 .set_freq =  icom_set_freq,
