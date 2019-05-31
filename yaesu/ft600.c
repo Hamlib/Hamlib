@@ -2,7 +2,8 @@
  * hamlib - (C) Frank Singleton 2000-2003
  *          (C) Stephane Fillod 2000-2010
  *
- * ft600.c - (C) Kārlis Millers YL3CAAK 2019
+ * ft600.c -(C) Kārlis Millers YL3ALK 2019
+ *
  * This shared library provides an API for communicating
  * via serial interface to an FT-600 using the "CAT" interface.
  * The starting point for this code was Chris Karpinsky's ft100 implementation.
