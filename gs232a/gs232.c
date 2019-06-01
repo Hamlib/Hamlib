@@ -198,14 +198,14 @@ gs232_rot_stop(ROT *rot)
 
 /* ************************************************************************* */
 /*
- * Generic GS232 (not A, not B) rotator capabilities.
+ * Generic GS232 Protocol (including those not correctly implmented) rotator capabilities.
  */
 
-const struct rot_caps gs232_rot_caps = {
-  .rot_model =      ROT_MODEL_GS232,
-  .model_name =     "GS-232",
-  .mfg_name =       "Yaesu/Kenpro",
-  .version =        "0.2",
+const struct rot_caps gs232_generic_rot_caps = {
+  .rot_model =      ROT_MODEL_GS232_GENERIC,
+  .model_name =     "GS-232 Generic",
+  .mfg_name =       "Various",
+  .version =        "0.3",
   .copyright = 	    "LGPL",
   .status =         RIG_STATUS_BETA,
   .rot_type =       ROT_TYPE_AZEL,
@@ -231,6 +231,76 @@ const struct rot_caps gs232_rot_caps = {
   .stop = 	       gs232_rot_stop,
 };
 
+/* ************************************************************************* */
+/*
+ * Generic AMSAT LVB Tracker rotator capabilities.
+ */
+
+const struct rot_caps amsat_lvb_rot_caps = {
+  .rot_model =      ROT_MODEL_LVB,
+  .model_name =     "LVB Tracker",
+  .mfg_name =       "AMSAT",
+  .version =        "0.1",
+  .copyright = 	    "LGPL",
+  .status =         RIG_STATUS_ALPHA,
+  .rot_type =       ROT_TYPE_AZEL,
+  .port_type =      RIG_PORT_SERIAL,
+  .serial_rate_min =   150,
+  .serial_rate_max =   9600,
+  .serial_data_bits =  8,
+  .serial_stop_bits =  1,
+  .serial_parity =     RIG_PARITY_NONE,
+  .serial_handshake =  RIG_HANDSHAKE_NONE,
+  .write_delay =  0,
+  .post_write_delay =  0,
+  .timeout =  400,
+  .retry =  3,
+
+  .min_az = 	-180.0,
+  .max_az =  	450.0,	/* vary according to rotator type */
+  .min_el = 	0.0,
+  .max_el =  	180.0,
+
+  .get_position =  gs232_rot_get_position,
+  .set_position =  gs232_rot_set_position,
+  .stop = 	       gs232_rot_stop,
+};
+
+
+/* ************************************************************************* */
+/*
+ * Generic FoxDelta ST2 rotator capabilities.
+ */
+
+const struct rot_caps st2_rot_caps = {
+  .rot_model =      ROT_MODEL_ST2,
+  .model_name =     "GS232/ST2",
+  .mfg_name =       "FoxDelta",
+  .version =        "0.1",
+  .copyright = 	    "LGPL",
+  .status =         RIG_STATUS_ALPHA,
+  .rot_type =       ROT_TYPE_AZEL,
+  .port_type =      RIG_PORT_SERIAL,
+  .serial_rate_min =   150,
+  .serial_rate_max =   9600,
+  .serial_data_bits =  8,
+  .serial_stop_bits =  1,
+  .serial_parity =     RIG_PARITY_NONE,
+  .serial_handshake =  RIG_HANDSHAKE_NONE,
+  .write_delay =  0,
+  .post_write_delay =  0,
+  .timeout =  400,
+  .retry =  3,
+
+  .min_az = 	-180.0,
+  .max_az =  	450.0,	/* vary according to rotator type */
+  .min_el = 	0.0,
+  .max_el =  	180.0,
+
+  .get_position =  gs232_rot_get_position,
+  .set_position =  gs232_rot_set_position,
+  .stop = 	       gs232_rot_stop,
+};
 
 /* ************************************************************************* */
 /*
