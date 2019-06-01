@@ -128,6 +128,18 @@ static const struct icom_priv_caps ic7700_priv_caps = {
     },
 };
 
+const struct confparams ic7700_ext_levels[] = {
+        { TOK_DRIVE_GAIN, "drive_gain", "Drive gain", "Drive gain",
+                NULL, RIG_CONF_NUMERIC, { .n = { 0, 255, 1 } },
+        },
+        { TOK_DIGI_SEL_FUNC, "digi_sel", "DIGI-SEL enable", "DIGI-SEL enable",
+                NULL, RIG_CONF_CHECKBUTTON, { },
+        },
+        { TOK_DIGI_SEL_LEVEL, "digi_sel_level", "DIGI-SEL level", "DIGI-SEL level",
+                NULL, RIG_CONF_NUMERIC, { .n = { 0, 255, 1 } },
+        },
+        { RIG_CONF_END, NULL, }
+};
 
 const struct rig_caps ic7700_caps = {
 .rig_model =  RIG_MODEL_IC7700,
@@ -161,6 +173,7 @@ const struct rig_caps ic7700_caps = {
 	[LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
 },
 .parm_gran =  {},
+.extlevels = ic7700_ext_levels,
 .ctcss_list =  common_ctcss_list,
 .dcs_list =  NULL,
 .preamp =   { 10, 20, RIG_DBLST_END, },	/* FIXME: TBC */
@@ -268,6 +281,8 @@ const struct rig_caps ic7700_caps = {
 .decode_event =  icom_decode_event,
 .set_level =  ic7700_set_level,
 .get_level =  ic7700_get_level,
+.set_ext_level =  icom_set_ext_level,
+.get_ext_level =  icom_get_ext_level,
 .set_func =  icom_set_func,
 .get_func =  icom_get_func,
 .set_parm =  icom_set_parm,

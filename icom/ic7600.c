@@ -143,6 +143,12 @@ static const struct icom_priv_caps ic7600_priv_caps = {
     },
 };
 
+const struct confparams ic7600_ext_levels[] = {
+        { TOK_DRIVE_GAIN, "drive_gain", "Drive gain", "Drive gain",
+                NULL, RIG_CONF_NUMERIC, { .n = { 0, 255, 1 } },
+        },
+        { RIG_CONF_END, NULL, }
+};
 
 const struct rig_caps ic7600_caps = {
 .rig_model =  RIG_MODEL_IC7600,
@@ -176,6 +182,7 @@ const struct rig_caps ic7600_caps = {
 	[LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
 },
 .parm_gran =  {},
+.extlevels = ic7600_ext_levels,
 .ctcss_list =  common_ctcss_list,
 .dcs_list =  NULL,
 .preamp =   { 10, 20, RIG_DBLST_END, },	/* FIXME: TBC */
@@ -283,6 +290,8 @@ const struct rig_caps ic7600_caps = {
 .decode_event =  icom_decode_event,
 .set_level =  ic7600_set_level,
 .get_level =  ic7600_get_level,
+.set_ext_level =  icom_set_ext_level,
+.get_ext_level =  icom_get_ext_level,
 .set_func =  icom_set_func,
 .get_func =  icom_get_func,
 .set_parm =  icom_set_parm,

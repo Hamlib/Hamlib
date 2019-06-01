@@ -1841,108 +1841,163 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 /*
  * icom_set_ext_level
  * Assumes rig!=NULL, rig->state.priv!=NULL
- *
  */
 int icom_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-	switch (token) {
-		default: return -RIG_EINVAL;
-	}
-	return RIG_OK;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    switch (token) {
+        case TOK_DRIVE_GAIN:
+            return icom_set_raw(rig, C_CTL_LVL, S_LVL_DRIVE, 0, NULL, 2, (int) val.f);
+        case TOK_DIGI_SEL_FUNC:
+            return icom_set_raw(rig, C_CTL_FUNC, S_FUNC_DIGISEL, 0, NULL, 1, val.i ? 1 : 0);
+        case TOK_DIGI_SEL_LEVEL:
+            return icom_set_raw(rig, C_CTL_LVL, S_LVL_DIGI, 0, NULL, 2, (int) val.f);
+        default:
+            return -RIG_EINVAL;
+    }
 }
 
 /*
  * icom_get_ext_level
  * Assumes rig!=NULL, rig->state.priv!=NULL, val!=NULL
- *
  */
 int icom_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-	switch (token) {
-		default: return -RIG_EINVAL;
-	}
-	return RIG_OK;
+    int icom_val;
+    int retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    switch (token) {
+        case TOK_DRIVE_GAIN:
+            retval = icom_get_raw(rig, C_CTL_LVL, S_LVL_DRIVE, 0, NULL, &icom_val);
+            if (retval != RIG_OK) {
+                return retval;
+            }
+
+            val->f = (float) icom_val;
+            break;
+        case TOK_DIGI_SEL_FUNC:
+            retval = icom_get_raw(rig, C_CTL_FUNC, S_FUNC_DIGISEL, 0, NULL, &icom_val);
+            if (retval != RIG_OK) {
+                return retval;
+            }
+
+            val->i = icom_val ? 1 : 0;
+            break;
+        case TOK_DIGI_SEL_LEVEL:
+            retval = icom_get_raw(rig, C_CTL_LVL, S_LVL_DIGI, 0, NULL, &icom_val);
+            if (retval != RIG_OK) {
+                return retval;
+            }
+
+            val->f = (float) icom_val;
+            break;
+        default:
+            return -RIG_EINVAL;
+    }
+
+    return RIG_OK;
 }
 
+int icom_set_raw(RIG *rig, int cmd, int subcmd, int len, unsigned char *buf, int val_bytes, int val)
+{
+    unsigned char lvlbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
+    int ack_len = sizeof(ackbuf);
+    int lvl_len = len;
+    int retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (len > 0) {
+        if (buf == NULL) {
+            return -RIG_EINTERNAL;
+        }
+
+        memcpy(lvlbuf, buf, len);
+    }
+
+    to_bcd_be(lvlbuf + len, (long long) val, val_bytes * 2);
+    lvl_len += val_bytes;
+
+    retval = icom_transaction(rig, cmd, subcmd, lvlbuf, lvl_len, ackbuf, &ack_len);
+    if (retval != RIG_OK) {
+        return retval;
+    }
+
+    if (ack_len != 1 || ackbuf[0] != ACK) {
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0], ack_len);
+        return -RIG_ERJCTED;
+    }
+
+    return RIG_OK;
+}
+
+int icom_get_raw(RIG *rig, int cmd, int subcmd, int len, unsigned char *buf, int *val)
+{
+    unsigned char lvlbuf[MAXFRAMELEN];
+    int lvl_len;
+    int cmdhead = len;
+    int retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    retval = icom_transaction(rig, cmd, subcmd, buf, len, lvlbuf, &lvl_len);
+    if (retval != RIG_OK) {
+        return retval;
+    }
+
+    cmdhead += (subcmd == -1) ? 1 : 2;
+    lvl_len -= cmdhead;
+
+    if (lvlbuf[0] != ACK && lvlbuf[0] != cmd) {
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, lvlbuf[0], lvl_len);
+        return -RIG_ERJCTED;
+    }
+
+    *val = from_bcd_be(lvlbuf + cmdhead, lvl_len * 2);
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: %d %d\n", __func__, lvl_len, *val);
+
+    return RIG_OK;
+}
 
 int icom_set_level_raw(RIG *rig, setting_t level, int cmd, int subcmd, int len, unsigned char *buf, int val_bytes, value_t val)
 {
-  unsigned char lvlbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
-  int ack_len = sizeof(ackbuf);
-  int lvl_len = len;
-  int icom_val;
-  int retval;
+    int icom_val;
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  if (RIG_LEVEL_IS_FLOAT(level)) {
-    icom_val = val.f * 255;
-  } else {
-    icom_val = val.i;
-  }
-
-  if (len > 0) {
-    if (buf == NULL) {
-      return -RIG_EINTERNAL;
+    if (RIG_LEVEL_IS_FLOAT(level)) {
+        icom_val = val.f * 255;
+    } else {
+        icom_val = val.i;
     }
 
-    memcpy(lvlbuf, buf, len);
-  }
-
-  to_bcd_be(lvlbuf + len, (long long) icom_val, val_bytes * 2);
-  lvl_len += val_bytes;
-
-  retval = icom_transaction(rig, cmd, subcmd, lvlbuf, lvl_len, ackbuf, &ack_len);
-  if (retval != RIG_OK) {
-    return retval;
-  }
-
-  if (ack_len != 1 || ackbuf[0] != ACK) {
-    rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0], ack_len);
-    return -RIG_ERJCTED;
-  }
-
-  return RIG_OK;
+    return icom_set_raw(rig, cmd, subcmd, len, buf, val_bytes, icom_val);
 }
 
 int icom_get_level_raw(RIG *rig, setting_t level, int cmd, int subcmd, int len, unsigned char *buf, value_t *val)
 {
-  unsigned char lvlbuf[MAXFRAMELEN];
-  int lvl_len;
-  int icom_val;
-  int cmdhead = len;
-  int retval;
+    int icom_val;
+    int retval;
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  retval = icom_transaction(rig, cmd, subcmd, buf, len, lvlbuf, &lvl_len);
-  if (retval != RIG_OK) {
-    return retval;
-  }
+    retval = icom_get_raw(rig, cmd, subcmd, len, buf, &icom_val);
+    if (retval != RIG_OK) {
+        return retval;
+    }
 
-  cmdhead += (subcmd == -1) ? 1 : 2;
-  lvl_len -= cmdhead;
+    if (RIG_LEVEL_IS_FLOAT(level)) {
+        val->f = (float) icom_val / 255;
+    } else {
+        val->i = icom_val;
+    }
 
-  if (lvlbuf[0] != ACK && lvlbuf[0] != cmd) {
-    rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, lvlbuf[0], lvl_len);
-    return -RIG_ERJCTED;
-  }
-
-  icom_val = from_bcd_be(lvlbuf + cmdhead, lvl_len * 2);
-
-  if (RIG_LEVEL_IS_FLOAT(level)) {
-    val->f = (float) icom_val / 255;
-  } else {
-    val->i = icom_val;
-  }
-
-  rig_debug(RIG_DEBUG_TRACE, "%s: %d %d %d %f\n", __func__, lvl_len, icom_val, val->i, val->f);
-
-  return RIG_OK;
+    return RIG_OK;
 }
-
 
 /*
  * Assumes rig!=NULL, rig->state.priv!=NULL
