@@ -125,7 +125,9 @@ gs232a_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
     unsigned u_az, u_el;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __FUNCTION__, az, el);
-
+    if (az < 0.0) {
+    az = az + 360.0;
+    }
     u_az = (unsigned)rint(az);
     u_el = (unsigned)rint(el);
 
@@ -240,7 +242,7 @@ const struct rot_caps gs232a_rot_caps = {
   .rot_model =      ROT_MODEL_GS232A,
   .model_name =     "GS-232A",
   .mfg_name =       "Yaesu",
-  .version =        "0.3",
+  .version =        "0.4",
   .copyright = 	    "LGPL",
   .status =         RIG_STATUS_BETA,
   .rot_type =       ROT_TYPE_OTHER,
@@ -256,7 +258,7 @@ const struct rot_caps gs232a_rot_caps = {
   .timeout =  400,
   .retry =  3,
 
-  .min_az = 	0.0,
+  .min_az = 	-180.0,
   .max_az =  	450.0,	/* vary according to rotator type */
   .min_el = 	0.0,
   .max_el =  	180.0, /* requires G-5400B, G-5600B, G-5500, or G-500/G-550 */
