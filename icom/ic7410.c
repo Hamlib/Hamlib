@@ -41,7 +41,7 @@
 #define IC7410_ALL_RX_MODES IC7410_OTHER_TX_MODES | IC7410_AM_TX_MODES
 #define IC7410_1HZ_TS_MODES IC7410_ALL_RX_MODES
 
-#define IC7410_FUNCS (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_ANF|RIG_FUNC_VSC|RIG_FUNC_LOCK)
+#define IC7410_FUNCS (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_ANF|RIG_FUNC_VSC|RIG_FUNC_LOCK|RIG_FUNC_TUNER)
 
 #define IC7410_LEVELS (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_BALANCE|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF_RAW|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_VOXGAIN|RIG_LEVEL_VOXDELAY|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER)
 
@@ -90,14 +90,20 @@ int ic7410_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
 /*
  * IC-7410 rig capabilities.
- *
- * TODO: complete command set (esp. the $1A bunch!) and testing..
  */
 static const struct icom_priv_caps ic7410_priv_caps = {
-		0x80,	/* default address */
-		0,		/* 731 mode */
-    0,    /* no XCHG */
-		ic756pro_ts_sc_list
+    0x80,    /* default address */
+    0,       /* 731 mode */
+    0,       /* no XCHG */
+    ic756pro_ts_sc_list,
+    .agc_levels_present = 1,
+    .agc_levels = {
+            { .level = RIG_AGC_OFF, .icom_level = 0 },
+            { .level = RIG_AGC_SLOW, .icom_level = 1 },
+            { .level = RIG_AGC_MEDIUM, .icom_level = 2 },
+            { .level = RIG_AGC_FAST, .icom_level = 3 },
+            { .level = -1, .icom_level = 0 },
+    },
 };
 
 

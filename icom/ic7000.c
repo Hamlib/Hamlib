@@ -46,7 +46,7 @@
 
 #define IC7000_FUNCS (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_ANF|RIG_FUNC_VSC|RIG_FUNC_LOCK|RIG_FUNC_ARO)
 
-#define IC7000_LEVELS (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF_RAW|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_VOXGAIN|RIG_LEVEL_VOXDELAY|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_COMP_METER|RIG_LEVEL_MONITOR_GAIN)
+#define IC7000_LEVELS (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF_RAW|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX|RIG_LEVEL_VOXDELAY|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_COMP_METER|RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB)
 
 #define IC7000_VFOS (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)
 #define IC7000_PARMS (RIG_PARM_ANN|RIG_PARM_BACKLIGHT|RIG_PARM_APO|RIG_PARM_TIME|RIG_PARM_BEEP)
@@ -129,22 +129,25 @@
         .levels = RIG_LEVEL_SET(IC7000_LEVELS), \
 }
 
-int ic7000_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
 int ic7000_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int ic7000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
 /*
  * IC-7000 rig capabilities.
- *
- * TODO: complete command set (esp. the $1A bunch!) and testing..
  */
 static const struct icom_priv_caps IC7000_priv_caps = {
-		0x70,	/* default address */
-		0,		/* 731 mode */
-    0,    /* no XCHG */
-		ic7000_ts_sc_list
+    0x70,    /* default address */
+    0,       /* 731 mode */
+    0,       /* no XCHG */
+    ic7000_ts_sc_list,
+    .agc_levels_present = 1,
+    .agc_levels = {
+            { .level = RIG_AGC_FAST, .icom_level = 1 },
+            { .level = RIG_AGC_MEDIUM, .icom_level = 2 },
+            { .level = RIG_AGC_SLOW, .icom_level = 3 },
+            { .level = -1, .icom_level = 0 },
+    },
 };
-
 
 const struct rig_caps ic7000_caps = {
 .rig_model =  RIG_MODEL_IC7000,
@@ -293,7 +296,7 @@ const struct rig_caps ic7000_caps = {
 .get_parm =  NULL,
 .set_mem =  icom_set_mem,
 .set_bank =  icom_set_bank,
-.vfo_op =  ic7000_vfo_op,
+.vfo_op =  icom_vfo_op,
 .scan =  icom_scan,
 .set_ptt =  icom_set_ptt,
 .get_ptt =  icom_get_ptt,
@@ -318,39 +321,6 @@ const struct rig_caps ic7000_caps = {
 .get_split_vfo =  NULL,
 
 };
-
-int ic7000_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
-{
-	unsigned char mvbuf[MAXFRAMELEN];
-	unsigned char ackbuf[MAXFRAMELEN];
-	int mv_len=0, ack_len=sizeof(ackbuf), retval;
-	int mv_cn, mv_sc;
-
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-	switch(op) {
-		case RIG_OP_TUNE:
-			mv_cn = C_CTL_PTT;
-			mv_sc = S_ANT_TUN;
-			mvbuf[0] = 2;
-			mv_len = 1;
-			break;
-		default:
-			return icom_vfo_op(rig, vfo, op);
-	}
-
-	retval = icom_transaction (rig, mv_cn, mv_sc, mvbuf, mv_len, ackbuf, &ack_len);
-	if (retval != RIG_OK)
-		return retval;
-
-	if (ack_len != 1 || ackbuf[0] != ACK) {
-		if (op != RIG_OP_XCHG)
-			rig_debug(RIG_DEBUG_ERR,"icom_vfo_op: ack NG (%#.2x), len=%d\n", ackbuf[0], ack_len);
-		return -RIG_ERJCTED;
-	}
-
-	return RIG_OK;
-}
 
 int ic7000_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {

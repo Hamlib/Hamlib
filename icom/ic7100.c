@@ -34,9 +34,10 @@
 
 
 #define IC7100_MODES (RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR|\
-        RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR)
+        RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR|\
+        RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTAM|RIG_MODE_PKTFM)
 
-#define IC7100_OTHER_TX_MODES ((IC7100_MODES) & ~RIG_MODE_AM)
+#define IC7100_OTHER_TX_MODES ((IC7100_MODES) & ~(RIG_MODE_AM|RIG_MODE_PKTAM))
 
 #define IC7100_VFO_ALL (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MAIN|RIG_VFO_SUB|RIG_VFO_MEM)
 
@@ -63,7 +64,8 @@
                             RIG_FUNC_VSC| \
                             RIG_FUNC_MN| \
                             RIG_FUNC_LOCK| \
-                            RIG_FUNC_SCOPE)
+                            RIG_FUNC_SCOPE| \
+                            RIG_FUNC_TUNER)
 
 #define IC7100_LEVEL_ALL    (RIG_LEVEL_AF| \
                             RIG_LEVEL_RF| \
@@ -93,7 +95,8 @@
                             RIG_LEVEL_COMP_METER| \
                             RIG_LEVEL_VD_METER| \
                             RIG_LEVEL_ID_METER| \
-                            RIG_LEVEL_MONITOR_GAIN)
+                            RIG_LEVEL_MONITOR_GAIN| \
+                            RIG_LEVEL_NB)
 
 #define IC7100_PARM_ALL (RIG_PARM_ANN|RIG_PARM_BACKLIGHT)
 
@@ -155,13 +158,21 @@ int ic7100_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int ic7100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
 /*
+ * IC-7100 rig capabilities.
  */
 static const struct icom_priv_caps ic7100_priv_caps = {
     0x88,           /* default address */
     0,              /* 731 mode */
     0,              /* no XCHG */
     ic7100_ts_sc_list,   /* FIXME */
-    .civ_version = 1
+    .civ_version = 1,
+    .agc_levels_present = 1,
+    .agc_levels = {
+            { .level = RIG_AGC_FAST, .icom_level = 1 },
+            { .level = RIG_AGC_MEDIUM, .icom_level = 2 },
+            { .level = RIG_AGC_SLOW, .icom_level = 3 },
+            { .level = -1, .icom_level = 0 },
+    },
 };
 
 const struct rig_caps ic7100_caps = {
@@ -267,10 +278,19 @@ const struct rig_caps ic7100_caps = {
     RIG_TS_END, },
     /* mode/filter list, remember: order matters! */
 .filters =     {
-    {RIG_MODE_CW | RIG_MODE_SSB | RIG_MODE_RTTY, kHz(2.4)},     /* builtin */
-    {RIG_MODE_CW | RIG_MODE_RTTY, Hz(500)},
-    {RIG_MODE_FM, kHz(15)},         /* builtin */
-    {RIG_MODE_FM|RIG_MODE_AM, kHz(6)},          /* builtin */
+    {RIG_MODE_SSB|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB, kHz(2.4)},
+    {RIG_MODE_SSB|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB, kHz(1.8)},
+    {RIG_MODE_SSB|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB, kHz(3)},
+    {RIG_MODE_FM|RIG_MODE_PKTFM, kHz(10)},
+    {RIG_MODE_FM|RIG_MODE_PKTFM, kHz(15)},
+    {RIG_MODE_FM|RIG_MODE_PKTFM, kHz(7)},
+    {RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(500)},
+    {RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(250)},
+    {RIG_MODE_CW|RIG_MODE_CWR, kHz(1.2)},
+    {RIG_MODE_RTTY|RIG_MODE_RTTYR, kHz(2.4)},
+    {RIG_MODE_AM|RIG_MODE_PKTAM, kHz(6)},
+    {RIG_MODE_AM|RIG_MODE_PKTAM, kHz(3)},
+    {RIG_MODE_AM|RIG_MODE_PKTAM, kHz(9)},
      RIG_FLT_END, },
 .str_cal = IC7100_STR_CAL,
 .swr_cal = IC7100_SWR_CAL,
@@ -332,11 +352,13 @@ const struct rig_caps ic7100_caps = {
 .get_dcd =  icom_get_dcd,
 .decode_event =  icom_decode_event,
 .set_split_vfo = icom_set_split_vfo,
+.get_split_vfo =  icom_get_split_vfo,
 .set_split_freq = icom_set_split_freq,
 .get_split_freq = icom_get_split_freq,
 .set_split_mode = icom_set_split_mode,
 .get_split_mode = icom_get_split_mode,
 .set_powerstat = icom_set_powerstat,
+.get_powerstat = icom_get_powerstat,
 .send_morse = icom_send_morse
 };
 

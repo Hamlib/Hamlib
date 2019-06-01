@@ -93,6 +93,7 @@
 #define C_SET_TONE	0x1b		/* Set tone frequency */
 #define C_CTL_PTT	0x1c		/* Control Transmit On/Off, Sc */
 #define C_CTL_DIG	0x20		/* Digital modes settings & status */
+#define C_CTL_RIT	0x21		/* RIT/XIT control */
 #define C_SEND_SEL_FREQ 0x25 /* Send/Recv sel/unsel VFO frequency */
 #define C_CTL_MTEXT	0x70		/* Microtelecom Extension */
 #define C_CTL_MISC	0x7f		/* Miscellaneous control, Sc */
@@ -151,6 +152,7 @@
 #define S_SUBTOMAIN	0xb1		/* MAIN = SUB */
 #define S_DUAL_OFF	0xc0		/* Dual watch off */
 #define S_DUAL_ON	0xc1		/* Dual watch on */
+#define S_DUAL	0xc2		/* Dual watch (0 = off, 1 = on) */
 #define S_MAIN	0xd0		/* Select MAIN band */
 #define S_SUB	0xd1		/* Select SUB band */
 #define S_SUB_SEL	0xd2		/* Read/Set Main/Sub selection */
@@ -353,6 +355,13 @@
  */
 #define S_PTT		0x00
 #define S_ANT_TUN	0x01	/* Auto tuner 0=OFF, 1 = ON, 2=Start Tuning */
+
+/*
+ * RIT/XIT control (C_CTL_RIT) subcommands
+ */
+#define S_RIT_FREQ	0x00
+#define S_RIT	0x01	/* RIT 0 = OFF, 1 = ON */
+#define S_XIT	0x02	/* XIT (delta TX) 0 = OFF, 1 = ON */
 
 /*
  * Misc contents (C_CTL_MEM) subcommands applies to newer rigs.

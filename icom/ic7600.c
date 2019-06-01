@@ -36,14 +36,14 @@
 #include "misc.h"
 #include "bandplan.h"
 
-#define IC7600_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM|RIG_MODE_PSK|RIG_MODE_PSKR)
+#define IC7600_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM|RIG_MODE_PSK|RIG_MODE_PSKR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTAM|RIG_MODE_PKTFM)
 #define IC7600_1HZ_TS_MODES IC7600_ALL_RX_MODES
-#define IC7600_OTHER_TX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM|RIG_MODE_PSK|RIG_MODE_PSKR)
-#define IC7600_AM_TX_MODES (RIG_MODE_AM)
+#define IC7600_OTHER_TX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM|RIG_MODE_PSK|RIG_MODE_PSKR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTFM)
+#define IC7600_AM_TX_MODES (RIG_MODE_AM|RIG_MODE_PKTAM)
 
-#define IC7600_FUNCS (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_ANF|RIG_FUNC_VSC|RIG_FUNC_LOCK)
+#define IC7600_FUNCS (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_ANF|RIG_FUNC_LOCK|RIG_FUNC_RIT|RIG_FUNC_XIT|RIG_FUNC_TUNER|RIG_FUNC_APF|RIG_FUNC_DUAL_WATCH)
 
-#define IC7600_LEVELS (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_BALANCE|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF_RAW|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_VOXGAIN|RIG_LEVEL_VOXDELAY|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_COMP_METER|RIG_LEVEL_VD_METER|RIG_LEVEL_ID_METER|RIG_LEVEL_MONITOR_GAIN)
+#define IC7600_LEVELS (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_BALANCE|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF_RAW|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX|RIG_LEVEL_VOXDELAY|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_COMP_METER|RIG_LEVEL_VD_METER|RIG_LEVEL_ID_METER|RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB)
 
 #define IC7600_VFOS (RIG_VFO_MAIN|RIG_VFO_SUB|RIG_VFO_MEM)
 #define IC7600_PARMS (RIG_PARM_ANN|RIG_PARM_BACKLIGHT)
@@ -129,11 +129,18 @@ int ic7600_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
  * TODO: complete command set (esp. the $1A bunch!) and testing..
  */
 static const struct icom_priv_caps ic7600_priv_caps = {
-	0x7a,	/* default address */
-	0,		/* 731 mode */
-	0,    /* no XCHG */
-	ic756pro_ts_sc_list,
-	.civ_version = 1
+    0x7a,    /* default address */
+    0,       /* 731 mode */
+    0,       /* no XCHG */
+    ic756pro_ts_sc_list,
+    .civ_version = 1,
+    .agc_levels_present = 1,
+    .agc_levels = {
+            { .level = RIG_AGC_FAST, .icom_level = 1 },
+            { .level = RIG_AGC_MEDIUM, .icom_level = 2 },
+            { .level = RIG_AGC_SLOW, .icom_level = 3 },
+            { .level = -1, .icom_level = 0 },
+    },
 };
 
 
@@ -225,17 +232,23 @@ const struct rig_caps ic7600_caps = {
 	 {IC7600_ALL_RX_MODES,kHz(25)},
 	 RIG_TS_END,
 	},
-	/* mode/filter list, remember: order matters! */
+/* mode/filter list, remember: order matters! But duplication may speed up search.  Put the most commonly used modes first!  Remember these are defaults, with dsp rigs you can change them to anything you want except FM and WFM which are fixed */
 .filters = 	{
-	{RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR, kHz(2.4)},
-	{RIG_MODE_CW|RIG_MODE_CWR, Hz(500)},
-	{RIG_MODE_CW|RIG_MODE_CWR, Hz(350)},
-	{RIG_MODE_AM, kHz(6)},
-	{RIG_MODE_AM, kHz(2.4)},
-	{RIG_MODE_FM, kHz(12)},
-	{RIG_MODE_FM, kHz(8)}, /* TBC */
-	RIG_FLT_END,
-	},
+    {RIG_MODE_SSB|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB, kHz(2.4)},
+    {RIG_MODE_SSB|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB, kHz(1.8)},
+    {RIG_MODE_SSB|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB, kHz(3)},
+    {RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PSK|RIG_MODE_PSKR, Hz(500)},
+    {RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PSK|RIG_MODE_PSKR, Hz(250)},
+    {RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_PSK|RIG_MODE_PSKR, kHz(1.2)},
+    {RIG_MODE_RTTY|RIG_MODE_RTTYR, kHz(2.4)},
+    {RIG_MODE_AM|RIG_MODE_PKTAM, kHz(6)},
+    {RIG_MODE_AM|RIG_MODE_PKTAM, kHz(3)},
+    {RIG_MODE_AM|RIG_MODE_PKTAM, kHz(9)},
+    {RIG_MODE_FM|RIG_MODE_PKTFM, kHz(10)},
+    {RIG_MODE_FM|RIG_MODE_PKTFM, kHz(7)},
+    {RIG_MODE_FM|RIG_MODE_PKTFM, kHz(15)},
+    RIG_FLT_END,
+},
 .str_cal = IC7600_STR_CAL,
 .swr_cal = IC7600_SWR_CAL,
 .alc_cal = IC7600_ALC_CAL,
@@ -262,7 +275,10 @@ const struct rig_caps ic7600_caps = {
 .set_ant =  icom_set_ant,
 .get_ant =  icom_get_ant,
 
-.set_rit =  icom_set_rit,
+.set_rit =  icom_set_rit_new,
+.get_rit =  icom_get_rit_new,
+.get_xit =  icom_get_rit_new,
+.set_xit =  icom_set_xit_new,
 
 .decode_event =  icom_decode_event,
 .set_level =  ic7600_set_level,
@@ -279,10 +295,6 @@ const struct rig_caps ic7600_caps = {
 .get_dcd =  icom_get_dcd,
 .set_ts =  icom_set_ts,
 .get_ts =  icom_get_ts,
-.set_rptr_shift =  icom_set_rptr_shift,
-.get_rptr_shift =  icom_get_rptr_shift,
-.set_rptr_offs =  icom_set_rptr_offs,
-.get_rptr_offs =  icom_get_rptr_offs,
 .set_ctcss_tone =  icom_set_ctcss_tone,
 .get_ctcss_tone =  icom_get_ctcss_tone,
 .set_ctcss_sql =  icom_set_ctcss_sql,
@@ -292,7 +304,9 @@ const struct rig_caps ic7600_caps = {
 .set_split_mode =  icom_set_split_mode,
 .get_split_mode =  icom_get_split_mode,
 .set_split_vfo =  icom_set_split_vfo,
-.get_split_vfo =  icom_mem_get_split_vfo,
+.get_split_vfo =  icom_get_split_vfo,
+.set_powerstat = icom_set_powerstat,
+.get_powerstat = icom_get_powerstat,
 .send_morse = icom_send_morse
 };
 

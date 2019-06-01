@@ -95,6 +95,11 @@ typedef struct rig_pltstate {
   int usleep_time; /* dependent on radio module & serial data rate */
 } pltstate_t;
 
+struct icom_agc_level {
+    enum agc_level_e level; /* Hamlib AGC level from agc_level_e enum, the last entry should have level -1 */
+    unsigned char icom_level; /* Icom AGC level for C_CTL_FUNC (0x16), S_FUNC_AGC (0x12) command */
+};
+
 struct icom_priv_caps {
 	unsigned char re_civ_addr;	/* the remote dlft equipment's CI-V address*/
 	int civ_731_mode; /* Off: freqs on 10 digits, On: freqs on 8 digits */
@@ -114,6 +119,8 @@ struct icom_priv_caps {
 	unsigned char civ_version; // default to 0, 1=IC7200,IC7300,etc differences
 	int offs_len; /* Number of bytes in offset frequency field. 0 defaults to 3 */
 	int serial_USB_echo_check; /* Flag to test USB echo state */
+	int agc_levels_present; /* Flag to indicate that agc_levels array is populated */
+	struct icom_agc_level agc_levels[RIG_AGC_LAST + 1]; /* Icom rig-specific AGC levels, the last entry should have level -1 */
 };
 
 
@@ -156,6 +163,9 @@ int icom_cleanup(RIG *rig);
 int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 int icom_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
+int icom_get_rit_new(RIG *rig, vfo_t vfo, shortfreq_t *ts);
+int icom_set_rit_new(RIG *rig, vfo_t vfo, shortfreq_t ts);
+int icom_set_xit_new(RIG *rig, vfo_t vfo, shortfreq_t ts);
 int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int icom_get_mode_with_data(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);

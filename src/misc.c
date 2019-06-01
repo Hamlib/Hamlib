@@ -633,6 +633,7 @@ static struct
     { RIG_LEVEL_ID_METER, "ID_METER" },
     { RIG_LEVEL_NOTCHF_RAW, "NOTCHF_RAW" },
     { RIG_LEVEL_MONITOR_GAIN, "MONITOR_GAIN" },
+    { RIG_LEVEL_NB, "NB" },
     { RIG_LEVEL_NONE, "" },
 };
 
