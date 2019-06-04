@@ -46,7 +46,7 @@
 #define IC756_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_FM)
 #define IC756_AM_TX_MODES (RIG_MODE_AM)
 
-#define IC756PRO_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_RF|RIG_FUNC_ANF)
+#define IC756PRO_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_RF|RIG_FUNC_ANF)
 #define IC756PRO_FUNC_SET (IC756PRO_FUNC_ALL|RIG_FUNC_DUAL_WATCH)
 
 #define IC756PRO_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_BALANCE|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF_RAW|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_COMP)
@@ -85,6 +85,8 @@
 int ic756_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 int ic756pro2_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int ic756pro2_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+int ic756pro2_set_parm(RIG *rig, setting_t parm, value_t val);
+int ic756pro2_get_parm(RIG *rig, setting_t parm, value_t *val);
 
 /*
  *  This function deals with the older type radios with only 2 filter widths
@@ -256,7 +258,7 @@ const struct rig_caps ic756_caps = {
 .set_split_freq_mode =  icom_set_split_freq_mode,
 .get_split_freq_mode =  icom_get_split_freq_mode,
 .set_split_vfo =  icom_set_split_vfo,
-.get_split_vfo =  icom_mem_get_split_vfo,
+.get_split_vfo =  NULL,
 
 };
 
@@ -414,7 +416,7 @@ const struct rig_caps ic756pro_caps = {
 .set_split_freq_mode =  icom_set_split_freq_mode,
 .get_split_freq_mode =  icom_get_split_freq_mode,
 .set_split_vfo =  icom_set_split_vfo,
-.get_split_vfo =  icom_mem_get_split_vfo,
+.get_split_vfo =  NULL,
 
 };
 
@@ -494,6 +496,8 @@ static int ic756pro2_get_ext_parm(RIG *rig, token_t token, value_t *val);
 #define IC756PROII_AM_TX_MODES (RIG_MODE_AM)
 
 #define IC756PROII_LEVEL_ALL (IC756PRO_LEVEL_ALL|RIG_LEVEL_VOXDELAY)
+
+#define IC756PROII_PARMS (RIG_PARM_ANN|RIG_PARM_BEEP|RIG_PARM_BACKLIGHT|RIG_PARM_TIME)
 
 const struct rig_caps ic756pro2_caps = {
 .rig_model =  RIG_MODEL_IC756PROII,
@@ -605,6 +609,8 @@ const struct rig_caps ic756pro2_caps = {
 .get_ant =  icom_get_ant,
 
 .decode_event =  icom_decode_event,
+.set_parm =  ic756pro2_set_parm,
+.get_parm =  ic756pro2_get_parm,
 .set_level =  ic756pro2_set_level,
 .get_level =  ic756pro2_get_level,
 .set_func =  ic756_set_func,
@@ -631,7 +637,7 @@ const struct rig_caps ic756pro2_caps = {
 .set_split_freq_mode =  icom_set_split_freq_mode,
 .get_split_freq_mode =  icom_get_split_freq_mode,
 .set_split_vfo =  icom_set_split_vfo,
-.get_split_vfo =  icom_mem_get_split_vfo,
+.get_split_vfo =  NULL,
 
 .set_ext_parm =  ic756pro2_set_ext_parm,
 .get_ext_parm =  ic756pro2_get_ext_parm,
@@ -813,8 +819,6 @@ static const struct icom_priv_caps ic756pro3_priv_caps = {
 #define IC756PROIII_AM_TX_MODES (RIG_MODE_AM)
 
 #define IC756PROIII_LEVEL_ALL (IC756PROII_LEVEL_ALL|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_COMP_METER|RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_ANTIVOX|RIG_LEVEL_NB)
-#define IC756PROIII_PARMS (RIG_PARM_ANN|RIG_PARM_BACKLIGHT|RIG_PARM_APO|RIG_PARM_TIME)
-
 
 /*
  * TODO: check whether all func and levels are stored in memory
@@ -891,8 +895,8 @@ const struct rig_caps ic756pro3_caps = {
 .has_set_func =  IC756PRO_FUNC_SET|RIG_FUNC_TUNER,
 .has_get_level =  IC756PROIII_LEVEL_ALL,
 .has_set_level =  RIG_LEVEL_SET(IC756PROIII_LEVEL_ALL),
-.has_get_parm =  IC756PROIII_PARMS,
-.has_set_parm =  RIG_PARM_SET(IC756PROIII_PARMS),
+.has_get_parm =  IC756PROII_PARMS,
+.has_set_parm =  RIG_PARM_SET(IC756PROII_PARMS),
 .level_gran = {
 	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
 	[LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
@@ -987,8 +991,8 @@ const struct rig_caps ic756pro3_caps = {
 .get_ant =  icom_get_ant,
 
 .decode_event =  icom_decode_event,
-.set_parm =  icom_set_parm,
-.get_parm =  icom_get_parm,
+.set_parm =  ic756pro2_set_parm,
+.get_parm =  ic756pro2_get_parm,
 .set_level =  ic756pro2_set_level,
 .get_level =  ic756pro2_get_level,
 .set_func =  ic756_set_func,
@@ -1011,7 +1015,7 @@ const struct rig_caps ic756pro3_caps = {
 .set_split_freq_mode =  icom_set_split_freq_mode,
 .get_split_freq_mode =  icom_get_split_freq_mode,
 .set_split_vfo =  icom_set_split_vfo,
-.get_split_vfo =  icom_mem_get_split_vfo,
+.get_split_vfo =  NULL,
 
 .set_ext_parm =  ic756pro2_set_ext_parm,
 .get_ext_parm =  ic756pro2_get_ext_parm,
@@ -1073,4 +1077,59 @@ int ic756pro2_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     default:
       return icom_get_level(rig, vfo, level, val);
   }
+}
+
+int ic756pro2_set_parm(RIG *rig, setting_t parm, value_t val)
+{
+    unsigned char parmbuf[MAXFRAMELEN];
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    switch (parm) {
+        case RIG_PARM_BEEP:
+            parmbuf[0] = 0x20;
+            return icom_set_custom_parm(rig, 1, parmbuf, 1, val.i ? 1 : 0);
+        case RIG_PARM_BACKLIGHT:
+            parmbuf[0] = 0x09;
+            return icom_set_custom_parm(rig, 1, parmbuf, 2, (int) (val.f * 255.0f));
+        case RIG_PARM_TIME:
+            parmbuf[0] = 0x16;
+            return icom_set_custom_parm_time(rig, 1, parmbuf, val.i);
+        default:
+            return icom_set_parm(rig, parm, val);
+    }
+}
+
+int ic756pro2_get_parm(RIG *rig, setting_t parm, value_t *val)
+{
+    unsigned char parmbuf[MAXFRAMELEN];
+    int retval;
+    int icom_val;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    switch (parm) {
+        case RIG_PARM_BEEP:
+            parmbuf[0] = 0x20;
+            retval = icom_get_custom_parm(rig, 1, parmbuf, &icom_val);
+            if (retval != RIG_OK) {
+                return retval;
+            }
+            val->i = icom_val ? 1 : 0;
+            break;
+        case RIG_PARM_BACKLIGHT:
+            parmbuf[0] = 0x09;
+            retval = icom_get_custom_parm(rig, 1, parmbuf, &icom_val);
+            if (retval != RIG_OK) {
+                return retval;
+            }
+            val->f = (float) icom_val / 255.0f;
+            break;
+        case RIG_PARM_TIME:
+            parmbuf[0] = 0x16;
+            return icom_get_custom_parm_time(rig, 1, parmbuf, &val->i);
+        default:
+            return icom_get_parm(rig, parm, val);
+    }
+
+    return RIG_OK;
 }

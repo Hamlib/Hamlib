@@ -291,8 +291,7 @@ static int ic910_r2i_mode(RIG *rig, rmode_t mode, pbwidth_t width,
                             RIG_OP_MCL| \
                             RIG_OP_XCHG)
 
-#define IC910_FUNC_ALL     (RIG_FUNC_FAGC| \
-                            RIG_FUNC_NB| \
+#define IC910_FUNC_ALL     (RIG_FUNC_NB| \
                             RIG_FUNC_NR| \
                             RIG_FUNC_ANF| \
                             RIG_FUNC_TONE| \
@@ -322,9 +321,6 @@ static int ic910_r2i_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 
 #define IC910_STR_CAL UNKNOWN_IC_STR_CAL  /* FIXME */
 
-
-/*
- */
 static const struct icom_priv_caps ic910_priv_caps = {
   0x60,           /* default address */
   0,              /* 731 mode */
@@ -332,6 +328,30 @@ static const struct icom_priv_caps ic910_priv_caps = {
   ic910_ts_sc_list,
   .r2i_mode = ic910_r2i_mode
 };
+
+int ic910_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
+{
+    switch (func) {
+        case RIG_FUNC_SCOPE:
+            return icom_set_raw(rig, C_CTL_MEM, S_MEM_BANDSCOPE, 0, NULL, 1, status ? 1 : 0);
+        case RIG_FUNC_SATMODE:
+            return icom_set_raw(rig, C_CTL_MEM, S_MEM_SATMODE, 0, NULL, 1, status ? 1 : 0);
+        default:
+            return icom_set_func(rig, vfo, func, status);
+    }
+}
+
+int ic910_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
+{
+    switch (func) {
+        case RIG_FUNC_SCOPE:
+            return icom_get_raw(rig, C_CTL_MEM, S_MEM_BANDSCOPE, 0, NULL, status);
+        case RIG_FUNC_SATMODE:
+            return icom_get_raw(rig, C_CTL_MEM, S_MEM_SATMODE, 0, NULL, status);
+        default:
+            return icom_get_func(rig, vfo, func, status);
+    }
+}
 
 int ic910_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
@@ -483,8 +503,8 @@ const struct rig_caps ic910_caps = {
 .set_vfo =  icom_set_vfo,
 .get_ts =  icom_get_ts,
 .set_ts =  icom_set_ts,
-.get_func =  icom_get_func,
-.set_func =  icom_set_func,
+.get_func =  ic910_get_func,
+.set_func =  ic910_set_func,
 .get_level =  ic910_get_level,
 .set_level =  ic910_set_level,
 

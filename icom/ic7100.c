@@ -50,8 +50,7 @@
                             RIG_OP_XCHG| \
                             RIG_OP_TUNE)
 
-#define IC7100_FUNC_ALL     (RIG_FUNC_FAGC| \
-                            RIG_FUNC_NB| \
+#define IC7100_FUNC_ALL     (RIG_FUNC_NB| \
                             RIG_FUNC_NR| \
                             RIG_FUNC_ANF| \
                             RIG_FUNC_TONE| \
@@ -165,7 +164,6 @@ static const struct icom_priv_caps ic7100_priv_caps = {
     0,              /* 731 mode */
     0,              /* no XCHG */
     ic7100_ts_sc_list,   /* FIXME */
-    .civ_version = 1,
     .agc_levels_present = 1,
     .agc_levels = {
             { .level = RIG_AGC_FAST, .icom_level = 1 },

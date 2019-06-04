@@ -116,7 +116,6 @@ struct icom_priv_caps {
 						       tokens to bandwidth and
 						       mode */
 	int serial_full_duplex; /*!< Whether RXD&TXD are not tied together */
-	unsigned char civ_version; // default to 0, 1=IC7200,IC7300,etc differences
 	int offs_len; /* Number of bytes in offset frequency field. 0 defaults to 3 */
 	int serial_USB_echo_check; /* Flag to test USB echo state */
 	int agc_levels_present; /* Flag to indicate that agc_levels array is populated */
@@ -131,7 +130,6 @@ struct icom_priv_data {
 	int no_1a_03_cmd;							/* rig doesn't tell IF widths */
 	int split_on;									/* record split state */
 	pltstate_t *pltstate;	/* only on optoscan */
-	unsigned char civ_version; /* 0=default, 1=new commands for IC7200,IC7300, etc */
 	int serial_USB_echo_off; /* USB is not set to echo */
 };
 
@@ -204,12 +202,6 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 int icom_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val);
 int icom_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val);
-int icom_set_raw(RIG *rig, int cmd, int subcmd, int len, unsigned char *buf, int val_bytes, int val);
-int icom_get_raw(RIG *rig, int cmd, int subcmd, int len, unsigned char *buf, int *val);
-int icom_set_level_raw(RIG *rig, setting_t level, int cmd, int subcmd,
-    int len, unsigned char *buf, int val_bytes, value_t val);
-int icom_get_level_raw(RIG *rig, setting_t level, int cmd, int subcmd,
-    int len, unsigned char *buf, value_t *val);
 int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 int icom_set_parm(RIG *rig, setting_t parm, value_t val);
@@ -226,6 +218,17 @@ int icom_mW2power(RIG * rig, float *power, unsigned int mwpower, freq_t freq, rm
 int icom_send_morse (RIG * rig, vfo_t vfo, const char *msg);
 /* Exposed routines */
 int icom_get_split_vfos(const RIG *rig, vfo_t *rx_vfo, vfo_t *tx_vfo);
+int icom_set_raw(RIG *rig, int cmd, int subcmd, int subcmdbuflen, unsigned char *subcmdbuf, int val_bytes, int val);
+int icom_get_raw_buf(RIG *rig, int cmd, int subcmd, int subcmdbuflen, unsigned char *subcmdbuf, int *reslen, unsigned char *res);
+int icom_get_raw(RIG *rig, int cmd, int subcmd, int subcmdbuflen, unsigned char *subcmdbuf, int *val);
+int icom_set_level_raw(RIG *rig, setting_t level, int cmd, int subcmd,
+        int subcmdbuflen, unsigned char *subcmdbuf, int val_bytes, value_t val);
+int icom_get_level_raw(RIG *rig, setting_t level, int cmd, int subcmd,
+        int subcmdbuflen, unsigned char *subcmdbuf, value_t *val);
+int icom_set_custom_parm(RIG *rig, int parmbuflen, unsigned char *parmbuf, int val_bytes, int value);
+int icom_get_custom_parm(RIG *rig, int parmbuflen, unsigned char *parmbuf, int *value);
+int icom_set_custom_parm_time(RIG *rig, int parmbuflen, unsigned char *parmbuf, int seconds);
+int icom_get_custom_parm_time(RIG *rig, int parmbuflen, unsigned char *parmbuf, int *seconds);
 
 extern const struct confparams icom_cfg_params[];
 

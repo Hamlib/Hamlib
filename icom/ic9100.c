@@ -49,8 +49,7 @@
                             RIG_OP_XCHG| \
                             RIG_OP_TUNE)
 
-#define IC9100_FUNC_ALL     (RIG_FUNC_FAGC| \
-                            RIG_FUNC_NB| \
+#define IC9100_FUNC_ALL     (RIG_FUNC_NB| \
                             RIG_FUNC_NR| \
                             RIG_FUNC_ANF| \
                             RIG_FUNC_TONE| \
