@@ -30,6 +30,7 @@ __BEGIN_DECLS
 
 extern int sprintf_mode(char *str, rmode_t);
 extern int sprintf_vfo(char *str, vfo_t);
+extern int sprintf_ant(char *str, ant_t);
 extern int sprintf_func(char *str, setting_t);
 extern int sprintf_level(char *str, setting_t);
 extern int sprintf_level_ext(char *str, const struct confparams *);
@@ -38,6 +39,7 @@ extern int sprintf_parm(char *str, setting_t);
 extern int sprintf_parm_gran(char *str, setting_t, const gran_t gran[]);
 extern int sprintf_vfop(char *str, vfo_op_t);
 extern int sprintf_scan(char *str, scan_t);
+extern char *get_rig_conf_type(enum rig_conf_e type);
 
 __END_DECLS
 

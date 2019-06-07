@@ -93,6 +93,8 @@
 
 static int icr75_set_channel(RIG *rig, const channel_t *chan);
 static int icr75_get_channel(RIG *rig, channel_t *chan);
+int icr75_set_parm(RIG *rig, setting_t parm, value_t val);
+int icr75_get_parm(RIG *rig, setting_t parm, value_t *val);
 
 static const struct icom_priv_caps icr75_priv_caps = {
 		0x5a,	/* default address */
@@ -221,8 +223,8 @@ const struct rig_caps icr75_caps = {
 .get_func =  icom_get_func,
 .set_level =  icom_set_level,
 .get_level =  icom_get_level,
-.set_parm =  icom_set_parm,
-.get_parm =  icom_get_parm,
+.set_parm =  icr75_set_parm,
+.get_parm =  icr75_get_parm,
 .get_dcd =  icom_get_dcd,
 .set_mem =  icom_set_mem,
 .vfo_op =  icom_vfo_op,
@@ -392,3 +394,159 @@ int icr75_get_channel(RIG *rig, channel_t *chan)
 		return RIG_OK;
 }
 
+int icr75_set_parm(RIG *rig, setting_t parm, value_t val)
+{
+    unsigned char prmbuf[MAXFRAMELEN];
+    int min, hr, sec;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    switch (parm) {
+        case RIG_PARM_ANN: {
+            int ann_mode = -1;
+            int ann_lang = -1;
+
+            switch (val.i) {
+                case RIG_ANN_OFF:
+                    ann_mode = S_ANN_ALL;
+                    break;
+                case RIG_ANN_FREQ:
+                    ann_mode = S_ANN_FREQ;
+                    break;
+                case RIG_ANN_RXMODE:
+                    ann_mode = S_ANN_MODE;
+                    break;
+                case RIG_ANN_ENG:
+                case RIG_ANN_JAP:
+                    ann_lang = (val.i == RIG_ANN_ENG) ? 0 : 1;
+                    break;
+                default:
+                    rig_debug(RIG_DEBUG_ERR, "Unsupported RIG_PARM_ANN %d\n", val.i);
+                    return -RIG_EINVAL;
+            }
+
+            if (ann_mode >= 0) {
+                return icom_set_raw(rig, C_CTL_ANN, ann_mode, 0, NULL, 0, 0);
+            } else if (ann_lang >= 0) {
+                prmbuf[0] = S_PRM_LANG;
+                prmbuf[1] = ann_lang;
+                return icom_set_raw(rig, C_CTL_MEM, S_MEM_MODE_SLCT, 2, prmbuf, 0, 0);
+            }
+
+            rig_debug(RIG_DEBUG_ERR, "Unsupported RIG_PARM_ANN %d\n", val.i);
+            return -RIG_EINVAL;
+        }
+        case RIG_PARM_APO:
+            prmbuf[0] = S_PRM_SLPTM;
+            hr = (int) ((float) val.i / 60.0f);
+            min = val.i - (hr * 60);
+            to_bcd_be(prmbuf + 1, (long long) hr, 2);
+            to_bcd_be(prmbuf + 2, (long long) min, 2);
+            return icom_set_raw(rig, C_CTL_MEM, S_MEM_MODE_SLCT, 3, prmbuf, 0, 0);
+        case RIG_PARM_BACKLIGHT:
+            prmbuf[0] = S_PRM_BACKLT;
+            to_bcd_be(prmbuf + 1, (long long) (val.f * 255.0f), 2 * 2);
+            return icom_set_raw(rig, C_CTL_MEM, S_MEM_MODE_SLCT, 3, prmbuf, 0, 0);
+        case RIG_PARM_BEEP:
+            prmbuf[0] = S_PRM_BEEP;
+            prmbuf[1] = val.i ? 1 : 0;
+            return icom_set_raw(rig, C_CTL_MEM, S_MEM_MODE_SLCT, 2, prmbuf, 0, 0);
+        case RIG_PARM_TIME:
+            hr = (int) ((float) val.i / 3600.0);
+            min = (int) ((float) (val.i - (hr * 3600)) / 60.0);
+            sec = (val.i - (hr * 3600) - (min * 60));
+
+            prmbuf[0] = S_PRM_TIME;
+            to_bcd_be(prmbuf + 1, (long long) hr, 2);
+            to_bcd_be(prmbuf + 2, (long long) min, 2);
+            to_bcd_be(prmbuf + 3, (long long) sec, 2);
+            return icom_set_raw(rig, C_CTL_MEM, S_MEM_MODE_SLCT, 4, prmbuf, 0, 0);
+        default:
+            rig_debug(RIG_DEBUG_ERR,"Unsupported set_parm %d\n", parm);
+            return -RIG_EINVAL;
+    }
+}
+
+int icr75_get_parm(RIG *rig, setting_t parm, value_t *val)
+{
+    unsigned char prmbuf[MAXFRAMELEN], resbuf[MAXFRAMELEN];
+    int prm_len, res_len;
+    int prm_cn, prm_sc;
+    int icom_val = 0;
+    int cmdhead;
+    int retval;
+    int min, hr, sec;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    switch (parm) {
+        case RIG_PARM_APO:
+            prm_cn = C_CTL_MEM;
+            prm_sc = S_MEM_MODE_SLCT;
+            prm_len = 1;
+            prmbuf[0] = S_PRM_SLPTM;
+            break;
+        case RIG_PARM_BACKLIGHT:
+            prm_cn = C_CTL_MEM;
+            prm_sc = S_MEM_MODE_SLCT;
+            prm_len = 1;
+            prmbuf[0] = S_PRM_BACKLT;
+            break;
+        case RIG_PARM_BEEP:
+            prm_cn = C_CTL_MEM;
+            prm_sc = S_MEM_MODE_SLCT;
+            prm_len = 1;
+            prmbuf[0] = S_PRM_BEEP;
+            break;
+        case RIG_PARM_TIME:
+            prm_cn = C_CTL_MEM;
+            prm_sc = S_MEM_MODE_SLCT;
+            prm_len = 1;
+            prmbuf[0] = S_PRM_TIME;
+            break;
+        default:
+            rig_debug(RIG_DEBUG_ERR,"Unsupported get_parm %d", parm);
+            return -RIG_EINVAL;
+    }
+
+    retval = icom_transaction(rig, prm_cn, prm_sc, prmbuf, prm_len, resbuf, &res_len);
+    if (retval != RIG_OK) {
+        return retval;
+    }
+
+    cmdhead = 3;
+    res_len -= cmdhead;
+
+    if (resbuf[0] != ACK && resbuf[0] != prm_cn) {
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __FUNCTION__, resbuf[0], res_len);
+        return -RIG_ERJCTED;
+    }
+
+    switch (parm) {
+        case RIG_PARM_APO:
+            hr = from_bcd_be(resbuf + cmdhead, 2);
+            min = from_bcd_be(resbuf + cmdhead + 1, 2);
+            icom_val = (hr * 60) + min;
+            val->i = icom_val;
+            break;
+        case RIG_PARM_TIME:
+            hr = from_bcd_be(resbuf + cmdhead, 2);
+            min = from_bcd_be(resbuf + cmdhead + 1, 2);
+            sec = from_bcd_be(resbuf + cmdhead + 2, 2);
+            icom_val = (hr * 3600) + (min * 60) + sec;
+            val->i = icom_val;
+            break;
+        case RIG_PARM_BACKLIGHT:
+            icom_val = from_bcd_be(resbuf + cmdhead, res_len * 2);
+            val->f = (float) icom_val / 255.0;
+            break;
+        case RIG_PARM_BEEP:
+            icom_val = from_bcd_be(resbuf + cmdhead, res_len * 2);
+            val->i = icom_val;
+            break;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: %d %d %d %f\n", __FUNCTION__, res_len, icom_val, val->i, val->f);
+
+    return RIG_OK;
+}

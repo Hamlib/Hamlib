@@ -34,9 +34,10 @@
 
 
 #define IC7100_MODES (RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR|\
-        RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR)
+        RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR|\
+        RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTAM|RIG_MODE_PKTFM)
 
-#define IC7100_OTHER_TX_MODES ((IC7100_MODES) & ~RIG_MODE_AM)
+#define IC7100_OTHER_TX_MODES ((IC7100_MODES) & ~(RIG_MODE_AM|RIG_MODE_PKTAM))
 
 #define IC7100_VFO_ALL (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MAIN|RIG_VFO_SUB|RIG_VFO_MEM)
 
@@ -49,8 +50,7 @@
                             RIG_OP_XCHG| \
                             RIG_OP_TUNE)
 
-#define IC7100_FUNC_ALL     (RIG_FUNC_FAGC| \
-                            RIG_FUNC_NB| \
+#define IC7100_FUNC_ALL     (RIG_FUNC_NB| \
                             RIG_FUNC_NR| \
                             RIG_FUNC_ANF| \
                             RIG_FUNC_TONE| \
@@ -63,7 +63,8 @@
                             RIG_FUNC_VSC| \
                             RIG_FUNC_MN| \
                             RIG_FUNC_LOCK| \
-                            RIG_FUNC_SCOPE)
+                            RIG_FUNC_SCOPE| \
+                            RIG_FUNC_TUNER)
 
 #define IC7100_LEVEL_ALL    (RIG_LEVEL_AF| \
                             RIG_LEVEL_RF| \
@@ -82,24 +83,94 @@
                             RIG_LEVEL_AGC| \
                             RIG_LEVEL_PBT_IN| \
                             RIG_LEVEL_PBT_OUT| \
-                            RIG_LEVEL_NOTCHF| \
+                            RIG_LEVEL_NOTCHF_RAW| \
                             RIG_LEVEL_ATT| \
-                            RIG_LEVEL_PREAMP)
+                            RIG_LEVEL_PREAMP| \
+                            RIG_LEVEL_RAWSTR| \
+                            RIG_LEVEL_STRENGTH| \
+                            RIG_LEVEL_SWR| \
+                            RIG_LEVEL_ALC| \
+                            RIG_LEVEL_RFPOWER_METER| \
+                            RIG_LEVEL_COMP_METER| \
+                            RIG_LEVEL_VD_METER| \
+                            RIG_LEVEL_ID_METER| \
+                            RIG_LEVEL_MONITOR_GAIN| \
+                            RIG_LEVEL_NB)
 
 #define IC7100_PARM_ALL (RIG_PARM_ANN|RIG_PARM_BACKLIGHT)
 
-#define IC7100_STR_CAL UNKNOWN_IC_STR_CAL	/* FIXME */
+// IC-7100 S-meter calibration data based on manual
+#define IC7100_STR_CAL { 14, \
+	{ \
+		{   0, -54 }, \
+		{ 120,  0 }, \
+		{ 241,  60 } \
+	} }
+
+#define IC7100_SWR_CAL { 5, \
+	{ \
+		 { 0, 1.0f }, \
+		 { 48, 1.5f }, \
+		 { 80, 2.0f }, \
+		 { 120, 3.0f }, \
+		 { 240, 6.0f } \
+	} }
+
+#define IC7100_ALC_CAL { 2, \
+	{ \
+		 { 0, 0.0f }, \
+		 { 120, 1.0f } \
+	} }
+
+#define IC7100_RFPOWER_METER_CAL { 3, \
+	{ \
+		 { 0, 0.0f }, \
+		 { 143, 0.5f }, \
+		 { 213, 1.0f } \
+	} }
+
+#define IC7100_COMP_METER_CAL { 3, \
+	{ \
+		 { 0, 0.0f }, \
+		 { 130, 15.0f }, \
+		 { 241, 30.0f } \
+	} }
+
+#define IC7100_VD_METER_CAL { 3, \
+	{ \
+		 { 0, 0.0f }, \
+		 { 13, 10.0f }, \
+		 { 241, 16.0f } \
+	} }
+
+#define IC7100_ID_METER_CAL { 4, \
+	{ \
+		 { 0, 0.0f }, \
+		 { 97, 10.0f }, \
+		 { 146, 15.0f }, \
+		 { 241, 25.0f } \
+	} }
 
 #define IC7100_HF_ANTS (RIG_ANT_1|RIG_ANT_2)
 
+int ic7100_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+int ic7100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+
 /*
+ * IC-7100 rig capabilities.
  */
 static const struct icom_priv_caps ic7100_priv_caps = {
     0x88,           /* default address */
     0,              /* 731 mode */
     0,              /* no XCHG */
     ic7100_ts_sc_list,   /* FIXME */
-    .civ_version = 1
+    .agc_levels_present = 1,
+    .agc_levels = {
+            { .level = RIG_AGC_FAST, .icom_level = 1 },
+            { .level = RIG_AGC_MEDIUM, .icom_level = 2 },
+            { .level = RIG_AGC_SLOW, .icom_level = 3 },
+            { .level = -1, .icom_level = 0 },
+    },
 };
 
 const struct rig_caps ic7100_caps = {
@@ -125,12 +196,13 @@ const struct rig_caps ic7100_caps = {
 .retry =  3,
 .has_get_func =  IC7100_FUNC_ALL,
 .has_set_func =  IC7100_FUNC_ALL | RIG_FUNC_RESUME,
-.has_get_level =  IC7100_LEVEL_ALL | RIG_LEVEL_RAWSTR| RIG_LEVEL_SWR,
-.has_set_level =  IC7100_LEVEL_ALL,
+.has_get_level =  IC7100_LEVEL_ALL,
+.has_set_level =  RIG_LEVEL_SET(IC7100_LEVEL_ALL),
 .has_get_parm =  IC7100_PARM_ALL,
 .has_set_parm =  IC7100_PARM_ALL,
 .level_gran = {
 	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
+	[LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
 },
 .parm_gran =  {},
 .ctcss_list =  common_ctcss_list,
@@ -204,12 +276,27 @@ const struct rig_caps ic7100_caps = {
     RIG_TS_END, },
     /* mode/filter list, remember: order matters! */
 .filters =     {
-    {RIG_MODE_CW | RIG_MODE_SSB | RIG_MODE_RTTY, kHz(2.4)},     /* builtin */
-    {RIG_MODE_CW | RIG_MODE_RTTY, Hz(500)},
-    {RIG_MODE_FM, kHz(15)},         /* builtin */
-    {RIG_MODE_FM|RIG_MODE_AM, kHz(6)},          /* builtin */
+    {RIG_MODE_SSB|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB, kHz(2.4)},
+    {RIG_MODE_SSB|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB, kHz(1.8)},
+    {RIG_MODE_SSB|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB, kHz(3)},
+    {RIG_MODE_FM|RIG_MODE_PKTFM, kHz(10)},
+    {RIG_MODE_FM|RIG_MODE_PKTFM, kHz(15)},
+    {RIG_MODE_FM|RIG_MODE_PKTFM, kHz(7)},
+    {RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(500)},
+    {RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(250)},
+    {RIG_MODE_CW|RIG_MODE_CWR, kHz(1.2)},
+    {RIG_MODE_RTTY|RIG_MODE_RTTYR, kHz(2.4)},
+    {RIG_MODE_AM|RIG_MODE_PKTAM, kHz(6)},
+    {RIG_MODE_AM|RIG_MODE_PKTAM, kHz(3)},
+    {RIG_MODE_AM|RIG_MODE_PKTAM, kHz(9)},
      RIG_FLT_END, },
 .str_cal = IC7100_STR_CAL,
+.swr_cal = IC7100_SWR_CAL,
+.alc_cal = IC7100_ALC_CAL,
+.rfpower_meter_cal = IC7100_RFPOWER_METER_CAL,
+.comp_meter_cal = IC7100_COMP_METER_CAL,
+.vd_meter_cal = IC7100_VD_METER_CAL,
+.id_meter_cal = IC7100_ID_METER_CAL,
 
 .priv =  (void*)&ic7100_priv_caps,
 .rig_init =   icom_init,
@@ -235,8 +322,8 @@ const struct rig_caps ic7100_caps = {
 .set_ts =  icom_set_ts,
 .get_func =  icom_get_func,
 .set_func =  icom_set_func,
-.get_level =  icom_get_level,
-.set_level =  icom_set_level,
+.get_level =  ic7100_get_level,
+.set_level =  ic7100_set_level,
 
 .set_ptt =  icom_set_ptt,
 .get_ptt =  icom_get_ptt,
@@ -263,12 +350,44 @@ const struct rig_caps ic7100_caps = {
 .get_dcd =  icom_get_dcd,
 .decode_event =  icom_decode_event,
 .set_split_vfo = icom_set_split_vfo,
+.get_split_vfo =  icom_get_split_vfo,
 .set_split_freq = icom_set_split_freq,
 .get_split_freq = icom_get_split_freq,
 .set_split_mode = icom_set_split_mode,
 .get_split_mode = icom_get_split_mode,
 .set_powerstat = icom_set_powerstat,
+.get_powerstat = icom_get_powerstat,
 .send_morse = icom_send_morse
 };
 
-/* end of file */
+int ic7100_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+{
+  unsigned char cmdbuf[MAXFRAMELEN];
+
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  switch (level) {
+    case RIG_LEVEL_VOXDELAY:
+      cmdbuf[0] = 0x01;
+      cmdbuf[1] = 0x65;
+      return icom_set_level_raw(rig, level, C_CTL_MEM, 0x05, 2, cmdbuf, 1, val);
+    default:
+      return icom_set_level(rig, vfo, level, val);
+  }
+}
+
+int ic7100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
+  unsigned char cmdbuf[MAXFRAMELEN];
+
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  switch (level) {
+    case RIG_LEVEL_VOXDELAY:
+      cmdbuf[0] = 0x01;
+      cmdbuf[1] = 0x65;
+      return icom_get_level_raw(rig, level, C_CTL_MEM, 0x05, 2, cmdbuf, val);
+    default:
+      return icom_get_level(rig, vfo, level, val);
+  }
+}

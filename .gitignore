@@ -9,6 +9,7 @@
 *.la
 *.orig
 *.swp
+$depbase.Tpo
 Makefile
 Makefile.in
 aclocal.m4
