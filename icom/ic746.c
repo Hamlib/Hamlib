@@ -58,9 +58,9 @@
 #define IC746_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_FM)
 #define IC746_AM_TX_MODES (RIG_MODE_AM)
 
-#define IC746_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_RF|RIG_FUNC_ANF|RIG_FUNC_APF|RIG_FUNC_VSC|RIG_FUNC_RESUME|RIG_FUNC_ARO)
+#define IC746_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_RF|RIG_FUNC_ANF|RIG_FUNC_APF|RIG_FUNC_RESUME|RIG_FUNC_ARO)
 
-#define IC746_LEVEL_ALL (RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR)
+#define IC746_LEVEL_ALL (RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF_RAW|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_APF)
 
 #define IC746_GET_PARM (RIG_PARM_BACKLIGHT|RIG_PARM_BEEP)
 #define IC746_SET_PARM (RIG_PARM_BACKLIGHT|RIG_PARM_BEEP|RIG_PARM_ANN)
@@ -68,7 +68,7 @@
 #define IC746_VFO_ALL (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)
 #define IC746_ANTS (RIG_ANT_1|RIG_ANT_2)
 
-#define IC746_VFO_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL|RIG_OP_TUNE)
+#define IC746_VFO_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL)
 
 #define IC746_SCAN_OPS (RIG_SCAN_VFO|RIG_SCAN_MEM|RIG_SCAN_SLCT|RIG_SCAN_PROG|RIG_SCAN_DELTA)
 
@@ -158,13 +158,20 @@ static int ic746pro_get_ext_parm(RIG *rig, token_t token, value_t *val);
 
 
 /*
- * ic746 rig capabilities.
+ * IC-746 rig capabilities.
  */
 static const struct icom_priv_caps ic746_priv_caps = {
-		0x56,	/* default address */
-		0,		/* 731 mode */
-    0,    /* no XCHG */
-		ic756pro_ts_sc_list
+    0x56,    /* default address */
+    0,       /* 731 mode */
+    0,       /* no XCHG */
+    ic756pro_ts_sc_list,
+    .agc_levels_present = 1,
+    .agc_levels = {
+            { .level = RIG_AGC_OFF, .icom_level = 0 },
+            { .level = RIG_AGC_FAST, .icom_level = 1 },
+            { .level = RIG_AGC_SLOW, .icom_level = 2 },
+            { .level = -1, .icom_level = 0 },
+    },
 };
 
 const struct rig_caps ic746_caps = {
@@ -365,13 +372,21 @@ static const struct confparams ic746pro_ext_parms[] = {
 
 
 /*
- * ic746pro rig capabilities.
+ * IC-746pro rig capabilities.
  */
 static const struct icom_priv_caps ic746pro_priv_caps = {
-		0x66,	/* default address */
-		0,		/* 731 mode */
-    0,    /* no XCHG */
-		ic756pro_ts_sc_list
+    0x66,    /* default address */
+    0,       /* 731 mode */
+    0,       /* no XCHG */
+    ic756pro_ts_sc_list,
+    .agc_levels_present = 1,
+    .agc_levels = {
+            { .level = RIG_AGC_OFF, .icom_level = 0 },
+            { .level = RIG_AGC_SLOW, .icom_level = 1 },
+            { .level = RIG_AGC_MEDIUM, .icom_level = 2 },
+            { .level = RIG_AGC_FAST, .icom_level = 3 },
+            { .level = -1, .icom_level = 0 },
+    },
 };
 
 const struct rig_caps ic746pro_caps = {
@@ -395,8 +410,8 @@ const struct rig_caps ic746pro_caps = {
 .post_write_delay =  0,
 .timeout =  1000,
 .retry =  3,
-.has_get_func =  IC746_FUNC_ALL,
-.has_set_func =  IC746_FUNC_ALL,
+.has_get_func =  IC746_FUNC_ALL|RIG_FUNC_TUNER|RIG_FUNC_VSC,
+.has_set_func =  IC746_FUNC_ALL|RIG_FUNC_TUNER|RIG_FUNC_VSC,
 .has_get_level =  IC746_LEVEL_ALL,
 .has_set_level =  RIG_LEVEL_SET(IC746_LEVEL_ALL),
 .has_get_parm =  IC746_GET_PARM,
@@ -414,7 +429,7 @@ const struct rig_caps ic746pro_caps = {
 .max_xit =  Hz(0),
 .max_ifshift =  Hz(0),
 .targetable_vfo =  0,
-.vfo_ops =  IC746_VFO_OPS,
+.vfo_ops =  IC746_VFO_OPS|RIG_OP_TUNE,
 .scan_ops =  IC746_SCAN_OPS,
 .transceive =  RIG_TRN_RIG,
 .bank_qty =   0,

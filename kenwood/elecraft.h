@@ -59,9 +59,14 @@ enum k3_data_submodes_e {
  *
  * See Private Elecraft extra levels definitions in elecraft.c
  */
-#define TOK_IF_FREQ TOKEN_BACKEND(101)	/* K3 FI command */
-#define TOK_TX_STAT TOKEN_BACKEND(102)	/* K3 TQ command */
-#define TOK_RIT_CLR TOKEN_BACKEND(103)	/* K3 RC command */
+#define TOK_IF_FREQ    TOKEN_BACKEND(101)	/* K3 FI command - IF center frequency (K3/K3S only) */
+#define TOK_TX_STAT    TOKEN_BACKEND(102)	/* K3 TQ command - transmit query (K3/K3S/KX3/KX2) */
+#define TOK_RIT_CLR    TOKEN_BACKEND(103)	/* K3 RC command - RIT/XIT clear (K3/K3S/KX3/KX2) */
+#define TOK_ESSB       TOKEN_BACKEND(104)	/* K3 ES command - ESSB mode (K3/K3S/KX3/KX2) */
+#define TOK_RX_ANT     TOKEN_BACKEND(105)	/* K3 AR command - RX antenna on/off (K3/K3S only) */
+#define TOK_LINK_VFOS  TOKEN_BACKEND(106)	/* K3 LN command - link VFOs on/off (K3/K3S only) */
+#define TOK_TX_METER   TOKEN_BACKEND(107)	/* K3 TM command - Transmit meter mode, SWR/ALC (K3/K3S only) */
+#define TOK_IF_NB      TOKEN_BACKEND(108)	/* K3 NL command - IF noise blanker level (K3/K3S only) */
 
 /* Token structure assigned to .cfgparams in rig_caps */
 extern const struct confparams elecraft_ext_levels[];

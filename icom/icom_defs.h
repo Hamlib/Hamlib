@@ -50,10 +50,10 @@
  * Cn controller commands
  *
 
- 	Most radios have 2 or 3 recieve passbands available.  Where only 2 are available they
+ 	Most radios have 2 or 3 receive passbands available.  Where only 2 are available they
 	are selected by 01 for wide and 02 for narrow  Actual bandwidth is determined by the filters
 	installed.  With the newer DSP rigs there are 3 presets 01 = wide 02 = middle and 03 = narrow.
-	Acutally you can set change any of these presets to any thing you want.
+	Actually, you can set change any of these presets to any thing you want.
 
  * Notes:
  * The following only applies to IC-706.
@@ -63,8 +63,8 @@
  * 2. Memory channel number 1A=0100/1b=0101, 2A=0102/2b=0103,
  * 	  3A=0104/3b=0105, C1=0106, C2=0107
  */
-#define C_SND_FREQ	0x00		/* Send frequency data  trancieve mode does not ack*/
-#define C_SND_MODE	0x01		/* Send mode data, Sc  for trancieve mode does not ack */
+#define C_SND_FREQ	0x00		/* Send frequency data  transceive mode does not ack*/
+#define C_SND_MODE	0x01		/* Send mode data, Sc  for transceive mode does not ack */
 #define C_RD_BAND	0x02		/* Read band edge frequencies */
 #define C_RD_FREQ	0x03		/* Read display frequency */
 #define C_RD_MODE	0x04		/* Read display mode */
@@ -93,6 +93,7 @@
 #define C_SET_TONE	0x1b		/* Set tone frequency */
 #define C_CTL_PTT	0x1c		/* Control Transmit On/Off, Sc */
 #define C_CTL_DIG	0x20		/* Digital modes settings & status */
+#define C_CTL_RIT	0x21		/* RIT/XIT control */
 #define C_SEND_SEL_FREQ 0x25 /* Send/Recv sel/unsel VFO frequency */
 #define C_CTL_MTEXT	0x70		/* Microtelecom Extension */
 #define C_CTL_MISC	0x7f		/* Miscellaneous control, Sc */
@@ -151,6 +152,7 @@
 #define S_SUBTOMAIN	0xb1		/* MAIN = SUB */
 #define S_DUAL_OFF	0xc0		/* Dual watch off */
 #define S_DUAL_ON	0xc1		/* Dual watch on */
+#define S_DUAL	0xc2		/* Dual watch (0 = off, 1 = on) */
 #define S_MAIN	0xd0		/* Select MAIN band */
 #define S_SUB	0xd1		/* Select SUB band */
 #define S_SUB_SEL	0xd2		/* Read/Set Main/Sub selection */
@@ -355,6 +357,13 @@
 #define S_ANT_TUN	0x01	/* Auto tuner 0=OFF, 1 = ON, 2=Start Tuning */
 
 /*
+ * RIT/XIT control (C_CTL_RIT) subcommands
+ */
+#define S_RIT_FREQ	0x00
+#define S_RIT	0x01	/* RIT 0 = OFF, 1 = ON */
+#define S_XIT	0x02	/* XIT (delta TX) 0 = OFF, 1 = ON */
+
+/*
  * Misc contents (C_CTL_MEM) subcommands applies to newer rigs.
  *
  * Beware the IC-7200 which is non-standard.
@@ -487,7 +496,8 @@
 #define TOK_RTTY_FLTR TOKEN_BACKEND(100)
 #define TOK_SSBBASS TOKEN_BACKEND(101)
 #define TOK_SQLCTRL TOKEN_BACKEND(102)
-#define TOK_LEVEL_MONITOR TOKEN_BACKEND(103)
-
+#define TOK_DRIVE_GAIN TOKEN_BACKEND(103)
+#define TOK_DIGI_SEL_FUNC TOKEN_BACKEND(104)
+#define TOK_DIGI_SEL_LEVEL TOKEN_BACKEND(105)
 
 #endif /* _ICOM_DEFS_H */

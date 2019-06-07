@@ -521,6 +521,8 @@ static struct
     { RIG_FUNC_AFLT, "AFLT" },
     { RIG_FUNC_ANL, "ANL" },
     { RIG_FUNC_BC2, "BC2" },
+    { RIG_FUNC_DUAL_WATCH, "DUAL_WATCH"},
+    { RIG_FUNC_DIVERSITY, "DIVERSITY"},
     { RIG_FUNC_NONE, "" },
 };
 
@@ -625,6 +627,13 @@ static struct
     { RIG_LEVEL_SWR, "SWR" },
     { RIG_LEVEL_ALC, "ALC" },
     { RIG_LEVEL_STRENGTH, "STRENGTH" },
+    { RIG_LEVEL_RFPOWER_METER, "RFPOWER_METER" },
+    { RIG_LEVEL_COMP_METER, "COMP_METER" },
+    { RIG_LEVEL_VD_METER, "VD_METER" },
+    { RIG_LEVEL_ID_METER, "ID_METER" },
+    { RIG_LEVEL_NOTCHF_RAW, "NOTCHF_RAW" },
+    { RIG_LEVEL_MONITOR_GAIN, "MONITOR_GAIN" },
+    { RIG_LEVEL_NB, "NB" },
     { RIG_LEVEL_NONE, "" },
 };
 
