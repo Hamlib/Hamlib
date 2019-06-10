@@ -203,7 +203,9 @@ const struct rig_caps ic746_caps = {
 .has_set_parm =  RIG_PARM_ANN,
 .level_gran = {
 	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
-	},
+	[LVL_KEYSPD] = { .min = { .i = 6 }, .max = { .i = 48 }, .step = { .i = 1 } },
+	[LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 900 }, .step = { .i = 1 } },
+},
 .parm_gran =  {},
 .ctcss_list =  common_ctcss_list,
 .dcs_list =  NULL,
