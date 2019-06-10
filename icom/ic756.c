@@ -311,7 +311,9 @@ const struct rig_caps ic756pro_caps = {
 .has_set_parm =  RIG_PARM_NONE,	/* FIXME: parms */
 .level_gran = {
 	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
-	},
+	[LVL_KEYSPD] = { .min = { .i = 6 }, .max = { .i = 48 }, .step = { .i = 1 } },
+	[LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 900 }, .step = { .i = 1 } },
+},
 .parm_gran =  {},
 .ctcss_list =  common_ctcss_list,
 .dcs_list =  NULL,
@@ -529,6 +531,8 @@ const struct rig_caps ic756pro2_caps = {
 .level_gran = {
 	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
 	[LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
+	[LVL_KEYSPD] = { .min = { .i = 6 }, .max = { .i = 48 }, .step = { .i = 1 } },
+	[LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 900 }, .step = { .i = 1 } },
 },
 .parm_gran =  {},
 .extparms =  ic756pro2_ext_parms,
@@ -900,6 +904,8 @@ const struct rig_caps ic756pro3_caps = {
 .level_gran = {
 	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
 	[LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
+	[LVL_KEYSPD] = { .min = { .i = 6 }, .max = { .i = 48 }, .step = { .i = 1 } },
+	[LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 900 }, .step = { .i = 1 } },
 },
 .parm_gran =  {},
 .extparms =  ic756pro2_ext_parms,

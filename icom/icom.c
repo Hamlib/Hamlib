@@ -1275,22 +1275,26 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		}
 	}
 
-	switch (level) {
-		case RIG_LEVEL_KEYSPD:
-			if (val.i < 6) val.i = 6;
-			if (val.i > 48) val.i = 48;
-			icom_val = (val.i-6)*(255/42.0)+.99;
-	  case RIG_LEVEL_CWPITCH:
-	    if (val.i < 300) {
-	      icom_val = 300;
-	    } else if (val.i >= 900) {
-	      icom_val = 900;
-	    }
-	    icom_val = (icom_val - 300) * (255.0f / 600.0f);
-	    break;
-	  default:
-	    break;
-	}
+    switch (level) {
+        case RIG_LEVEL_KEYSPD:
+            if (val.i < 6) {
+                icom_val = 6;
+            } else if (val.i > 48) {
+                icom_val = 48;
+            }
+            icom_val = (int) lroundf(((float) icom_val - 6.0f) * (255.0f / 42.0f));
+            break;
+        case RIG_LEVEL_CWPITCH:
+            if (val.i < 300) {
+                icom_val = 300;
+            } else if (val.i >= 900) {
+                icom_val = 900;
+            }
+            icom_val = (int) lroundf(((float) icom_val - 300) * (255.0f / 600.0f));
+            break;
+        default:
+            break;
+    }
 
 	/*
 	 * Most of the time, the data field is a 3 digit BCD,
@@ -1764,10 +1768,10 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
       }
       break;
     case RIG_LEVEL_CWPITCH:
-      val->i = 300 + (icom_val * 600.0f / 255.0f);
-      break;
+        val->i = (int) lroundf(300.0f + ((float) icom_val * 600.0f / 255.0f));
+        break;
     case RIG_LEVEL_KEYSPD:
-        val->i = icom_val * (42.0 / 255) + 6 + .5;
+        val->i = (int) lroundf((float) icom_val * (42.0f / 255.0f) + 6.0f);
         break;
 	case RIG_LEVEL_PREAMP:
 		if (icom_val == 0) {
