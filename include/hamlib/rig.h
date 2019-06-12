@@ -69,9 +69,11 @@
     || defined(__cplusplus)
 #  define HAMLIB_PARAMS(protos) protos
 #  define rig_ptr_t     void *
+#  define amp_ptr_t     void *
 #else
 #  define HAMLIB_PARAMS(protos) ()
 #  define rig_ptr_t     char *
+#  define amp_ptr_t     char *
 #endif
 
 #include <hamlib/rig_dll.h>
@@ -482,7 +484,9 @@ typedef enum {
 typedef enum {
     RIG_POWER_OFF =     0,          /*!< Power off */
     RIG_POWER_ON =      (1 << 0),   /*!< Power on */
-    RIG_POWER_STANDBY = (1 << 1)    /*!< Standby */
+    RIG_POWER_STANDBY = (1 << 1),   /*!< Standby */
+    RIG_POWER_OPERATE = (1 << 2),   /*!< Operate (from Standby) */
+    RIG_POWER_UNKNOWN = (1 << 3)    /*!< Unknown power status */
 } powerstat_t;
 
 
@@ -728,6 +732,7 @@ enum rig_level_e {
     /* RIG_LEVEL_BWC =         (1<<31) */        /*!< Bandwidth Control, arg int (Hz) */
 };
 
+
 #define RIG_LEVEL_FLOAT_LIST (RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_APF|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_COMP|RIG_LEVEL_BALANCE|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX)
 
 #define RIG_LEVEL_READONLY_LIST (RIG_LEVEL_SQLSTAT|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_STRENGTH|RIG_LEVEL_RAWSTR)
@@ -761,9 +766,6 @@ enum rig_parm_e {
 #define RIG_PARM_IS_FLOAT(l) ((l)&RIG_PARM_FLOAT_LIST)
 #define RIG_PARM_SET(l) ((l)&~RIG_PARM_READONLY_LIST)
 
-
-#define RIG_SETTING_MAX 64
-
 /**
  * \brief Setting
  *
@@ -771,6 +773,9 @@ enum rig_parm_e {
  * Each bit designates one of them.
  */
 typedef uint64_t setting_t;
+
+
+#define RIG_SETTING_MAX 64
 
 /**
  * \brief Tranceive mode
@@ -2343,6 +2348,7 @@ extern HAMLIB_EXPORT(rmode_t) rig_parse_mode(const char *s);
 extern HAMLIB_EXPORT(vfo_t) rig_parse_vfo(const char *s);
 extern HAMLIB_EXPORT(setting_t) rig_parse_func(const char *s);
 extern HAMLIB_EXPORT(setting_t) rig_parse_level(const char *s);
+extern HAMLIB_EXPORT(setting_t) amp_parse_level(const char *s);
 extern HAMLIB_EXPORT(setting_t) rig_parse_parm(const char *s);
 extern HAMLIB_EXPORT(vfo_op_t) rig_parse_vfo_op(const char *s);
 extern HAMLIB_EXPORT(scan_t) rig_parse_scan(const char *s);

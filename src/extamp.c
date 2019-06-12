@@ -1,6 +1,8 @@
 /*
- *  Hamlib Interface - extrq parameter interface
+ *  Hamlib Interface - extra parameter interface for amplifiers
  *  Copyright (c) 2000-2008 by Stephane Fillod
+ *  Derived from ext.c
+ *  Copyright (c) 2019 by Michael Black W9MDB
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -20,7 +22,7 @@
  */
 
 /**
- * \addtogroup rig
+ * \addtogroup amp
  * @{
  */
 
@@ -29,9 +31,9 @@
  * \brief Extension request parameter interface
  *
  * An open-ended set of extension parameters and levels are available for each
- * rig, as provided in the rigcaps extparms and extlevels lists.  These
- * provide a way to work with rig-specific functions that don't fit into the
- * basic "virtual rig" of Hamlib.  See icom/ic746.c for an example.
+ * amp, as provided in the ampcaps extparms and extlevels lists.  These
+ * provide a way to work with amp-specific functions that don't fit into the
+ * basic "virtual amp" of Hamlib.  See amplifiers/kpa.c for an example.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -44,13 +46,13 @@
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
 
-#include <hamlib/rig.h>
+#include <hamlib/amplifier.h>
 
 #include "token.h"
 
 
 /**
- * \param rig The rig handle
+ * \param amp The amp handle
  * \param cfunc callback function of each extlevel
  * \param data cookie to be passed to \a cfunc callback
  * \brief Executes cfunc on all the elements stored in the extlevels table
@@ -58,27 +60,27 @@
  * The callback \a cfunc is called until it returns a value which is not
  * strictly positive.  A zero value means a normal end of iteration, and a
  * negative value an abnormal end, which will be the return value of
- * rig_ext_level_foreach.
+ * amp_ext_level_foreach.
  */
-int HAMLIB_API rig_ext_level_foreach(RIG *rig,
-                                     int (*cfunc)(RIG *,
+int HAMLIB_API amp_ext_level_foreach(AMP *amp,
+                                     int (*cfunc)(AMP *,
                                                   const struct confparams *,
-                                                  rig_ptr_t),
-                                     rig_ptr_t data)
+                                                  amp_ptr_t),
+                                     amp_ptr_t data)
 {
     const struct confparams *cfp;
     int ret;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !rig->caps || !cfunc)
+    if (!amp || !amp->caps || !cfunc)
     {
         return -RIG_EINVAL;
     }
 
-    for (cfp = rig->caps->extlevels; cfp && cfp->name; cfp++)
+    for (cfp = amp->caps->extlevels; cfp && cfp->name; cfp++)
     {
-        ret = (*cfunc)(rig, cfp, data);
+        ret = (*cfunc)(amp, cfp, data);
 
         if (ret == 0)
         {
@@ -96,7 +98,7 @@ int HAMLIB_API rig_ext_level_foreach(RIG *rig,
 
 
 /**
- * \param rig The rig handle
+ * \param amp The amp handle
  * \param cfunc callback function of each extparm
  * \param data cookie to be passed to \a cfunc callback
  * \brief Executes cfunc on all the elements stored in the extparms table
@@ -104,27 +106,27 @@ int HAMLIB_API rig_ext_level_foreach(RIG *rig,
  * The callback \a cfunc is called until it returns a value which is not
  * strictly positive.  A zero value means a normal end of iteration, and a
  * negative value an abnormal end, which will be the return value of
- * rig_ext_parm_foreach.
+ * amp_ext_parm_foreach.
  */
-int HAMLIB_API rig_ext_parm_foreach(RIG *rig,
-                                    int (*cfunc)(RIG *,
+int HAMLIB_API amp_ext_parm_foreach(AMP *amp,
+                                    int (*cfunc)(AMP *,
                                                  const struct confparams *,
-                                                 rig_ptr_t),
-                                    rig_ptr_t data)
+                                                 amp_ptr_t),
+                                    amp_ptr_t data)
 {
     const struct confparams *cfp;
     int ret;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !rig->caps || !cfunc)
+    if (!amp || !amp->caps || !cfunc)
     {
         return -RIG_EINVAL;
     }
 
-    for (cfp = rig->caps->extparms; cfp && cfp->name; cfp++)
+    for (cfp = amp->caps->extparms; cfp && cfp->name; cfp++)
     {
-        ret = (*cfunc)(rig, cfp, data);
+        ret = (*cfunc)(amp, cfp, data);
 
         if (ret == 0)
         {
@@ -142,7 +144,7 @@ int HAMLIB_API rig_ext_parm_foreach(RIG *rig,
 
 
 /**
- * \param rig
+ * \param amp
  * \param name
  * \brief lookup ext token by its name, return pointer to confparams struct.
  *
@@ -152,18 +154,18 @@ int HAMLIB_API rig_ext_parm_foreach(RIG *rig,
  *
  * TODO: should use Lex to speed it up, strcmp hurts!
  */
-const struct confparams *HAMLIB_API rig_ext_lookup(RIG *rig, const char *name)
+const struct confparams *HAMLIB_API amp_ext_lookup(AMP *amp, const char *name)
 {
     const struct confparams *cfp;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !rig->caps)
+    if (!amp || !amp->caps)
     {
         return NULL;
     }
 
-    for (cfp = rig->caps->extlevels; cfp && cfp->name; cfp++)
+    for (cfp = amp->caps->extlevels; cfp && cfp->name; cfp++)
     {
         if (!strcmp(cfp->name, name))
         {
@@ -171,7 +173,7 @@ const struct confparams *HAMLIB_API rig_ext_lookup(RIG *rig, const char *name)
         }
     }
 
-    for (cfp = rig->caps->extparms; cfp && cfp->name; cfp++)
+    for (cfp = amp->caps->extparms; cfp && cfp->name; cfp++)
     {
         if (!strcmp(cfp->name, name))
         {
@@ -182,8 +184,9 @@ const struct confparams *HAMLIB_API rig_ext_lookup(RIG *rig, const char *name)
     return NULL;
 }
 
+
 /**
- * \param rig
+ * \param amp
  * \param token
  * \brief lookup ext token, return pointer to confparams struct.
  *
@@ -191,18 +194,18 @@ const struct confparams *HAMLIB_API rig_ext_lookup(RIG *rig, const char *name)
  *
  * Returns NULL if nothing found
  */
-const struct confparams * HAMLIB_API rig_ext_lookup_tok(RIG *rig, token_t token)
+const struct confparams * HAMLIB_API amp_ext_lookup_tok(AMP *amp, token_t token)
 {
     const struct confparams *cfp;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !rig->caps)
+    if (!amp || !amp->caps)
     {
         return NULL;
     }
 
-    for (cfp = rig->caps->extlevels; cfp && cfp->token; cfp++)
+    for (cfp = amp->caps->extlevels; cfp && cfp->token; cfp++)
     {
         if (cfp->token == token)
         {
@@ -210,7 +213,7 @@ const struct confparams * HAMLIB_API rig_ext_lookup_tok(RIG *rig, token_t token)
         }
     }
 
-    for (cfp = rig->caps->extparms; cfp && cfp->token; cfp++)
+    for (cfp = amp->caps->extparms; cfp && cfp->token; cfp++)
     {
         if (cfp->token == token)
         {
@@ -223,17 +226,17 @@ const struct confparams * HAMLIB_API rig_ext_lookup_tok(RIG *rig, token_t token)
 
 
 /**
- * \param rig
+ * \param amp
  * \param name
  * \brief Simple lookup returning token id assicated with name
  */
-token_t HAMLIB_API rig_ext_token_lookup(RIG *rig, const char *name)
+token_t HAMLIB_API amp_ext_token_lookup(AMP *amp, const char *name)
 {
     const struct confparams *cfp;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    cfp = rig_ext_lookup(rig, name);
+    cfp = amp_ext_lookup(amp, name);
 
     if (!cfp)
     {
