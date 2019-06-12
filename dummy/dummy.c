@@ -76,6 +76,9 @@ static const struct confparams dummy_ext_levels[] = {
 	{ TOK_EL_MAGICOP, "MGO", "Magic Op", "Magic Op, as an example",
 		NULL, RIG_CONF_BUTTON
        	},
+	{ TOK_EL_MAGICCOMBO, "MGC", "Magic combo", "Magic combo, as an example",
+		"VALUE1", RIG_CONF_COMBO, { .c = { .combostr = { "VALUE1", "VALUE2", "NONE", NULL } } }
+	},
 	{ RIG_CONF_END, NULL, }
 };
 
@@ -92,7 +95,7 @@ static const struct confparams dummy_cfg_params[] = {
 	{ TOK_CFG_MAGICCONF, "mcfg", "Magic conf", "Magic parameter, as an example",
 		"DX", RIG_CONF_STRING, { }
 	},
-	{ TOK_CFG_STATIC_DATA, "static_data", "Static data", "Output only static data, no randomization of S-meter values",
+	{ TOK_CFG_STATIC_DATA, "static_data", "Static data", "Output only static data, no randomization of meter values",
 		"0", RIG_CONF_CHECKBUTTON, { }
 	},
 	{ RIG_CONF_END, NULL, }
@@ -815,23 +818,54 @@ static int dummy_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
   if (idx >= RIG_SETTING_MAX)
       return -RIG_EINVAL;
 
-  if (level == RIG_LEVEL_STRENGTH || level == RIG_LEVEL_RAWSTR) {
-    if (priv->static_data) {
-      curr->levels[idx].i = -12;
-    } else {
-      /* make S-Meter jiggle */
-      int qrm = -56;
-      if (curr->freq < MHz(7))
+  switch (level) {
+    case RIG_LEVEL_STRENGTH:
+    case RIG_LEVEL_RAWSTR:
+      if (priv->static_data) {
+        curr->levels[idx].i = -12;
+      } else {
+        /* make S-Meter jiggle */
+        int qrm = -56;
+        if (curr->freq < MHz(7))
           qrm = -20;
-      else if (curr->freq < MHz(21))
+        else if (curr->freq < MHz(21))
           qrm = -30;
-      else if (curr->freq < MHz(50))
+        else if (curr->freq < MHz(50))
           qrm = -50;
 
-      curr->levels[idx].i = qrm + time(NULL)%32 + rand()%4
-          - curr->levels[LVL_ATT].i
-          + curr->levels[LVL_PREAMP].i;
-    }
+        curr->levels[idx].i = qrm + time(NULL)%32 + rand()%4
+                              - curr->levels[LVL_ATT].i
+                              + curr->levels[LVL_PREAMP].i;
+      }
+      break;
+    case RIG_LEVEL_RFPOWER_METER:
+      if (priv->static_data) {
+        curr->levels[idx].f = 0.5f;
+      } else {
+        curr->levels[idx].f = (float) (time(NULL) % 32) / 64.0f + (float) (rand() % 4) / 8.0f;
+      }
+      break;
+    case RIG_LEVEL_COMP_METER:
+      if (priv->static_data) {
+        curr->levels[idx].f = 3.5f;
+      } else {
+        curr->levels[idx].f = 0.5f + (float) (time(NULL) % 32) / 16.0f + (float) (rand() % 200) / 20.0f;
+      }
+      break;
+    case RIG_LEVEL_VD_METER:
+      if (priv->static_data) {
+        curr->levels[idx].f = 13.82f;
+      } else {
+        curr->levels[idx].f = 13.82f + (float) (time(NULL) % 10) / 50.0f - (float) (rand() % 10) / 40.0f;
+      }
+      break;
+    case RIG_LEVEL_ID_METER:
+      if (priv->static_data) {
+        curr->levels[idx].f = 0.85f;
+      } else {
+        curr->levels[idx].f = 2.0f + (float) (time(NULL) % 320) / 16.0f - (float) (rand() % 40) / 20.0f;
+      }
+      break;
   }
 
   *val = curr->levels[idx];
@@ -857,6 +891,7 @@ static int dummy_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
     case TOK_EL_MAGICLEVEL:
     case TOK_EL_MAGICFUNC:
     case TOK_EL_MAGICOP:
+    case TOK_EL_MAGICCOMBO:
 	    break;
 
     default:
@@ -910,6 +945,7 @@ static int dummy_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
     case TOK_EL_MAGICLEVEL:
     case TOK_EL_MAGICFUNC:
     case TOK_EL_MAGICOP:
+    case TOK_EL_MAGICCOMBO:
 	    break;
 
     default:
@@ -1445,9 +1481,9 @@ static int dummy_mW2power(RIG * rig, float *power, unsigned int mwpower,
  * The following macros set bitmasks for the various funcs, levels, parms,
  * etc.  This dummy backend claims support for almost all of them.
  */
-#define DUMMY_FUNC  ((setting_t)-1UL) /* All possible functions */
-#define DUMMY_LEVEL (((setting_t)-1UL)&~(1UL<<27)) /* All levels except SQLSTAT */
-#define DUMMY_PARM  ((setting_t)-1UL) /* All possible parms */
+#define DUMMY_FUNC  ((setting_t)-1ULL) /* All possible functions */
+#define DUMMY_LEVEL (((setting_t)-1ULL)&~(1ULL<<27)) /* All levels except SQLSTAT */
+#define DUMMY_PARM  ((setting_t)-1ULL) /* All possible parms */
 
 #define DUMMY_VFO_OP  0x7ffffffUL /* All possible VFO OPs */
 #define DUMMY_SCAN    0x7ffffffUL /* All possible scan OPs */
@@ -1521,21 +1557,34 @@ const struct rig_caps dummy_caps = {
   .rx_range_list1 =  { {.start=kHz(150),.end=MHz(1500),.modes=DUMMY_MODES,
                         .low_power=-1,.high_power=-1,DUMMY_VFOS, RIG_ANT_1|RIG_ANT_2},
                         RIG_FRNG_END, },
-  .tx_range_list1 =  { RIG_FRNG_END, },
+  .tx_range_list1 =  { {.start=kHz(150),.end=MHz(1500),.modes=DUMMY_MODES,
+                           .low_power=W(5),.high_power=W(100),DUMMY_VFOS, RIG_ANT_1|RIG_ANT_2},
+                       RIG_FRNG_END, },
   .rx_range_list2 =  { {.start=kHz(150),.end=MHz(1500),.modes=DUMMY_MODES,
                         .low_power=-1,.high_power=-1,DUMMY_VFOS, RIG_ANT_1|RIG_ANT_2},
                         RIG_FRNG_END, },
   .tx_range_list2 =  { RIG_FRNG_END, },
   .tuning_steps =  { {DUMMY_MODES,1}, {DUMMY_MODES,RIG_TS_ANY}, RIG_TS_END, },
   .filters =  {
-	{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY, kHz(2.4)},
-	{RIG_MODE_CW, Hz(500)},
-	{RIG_MODE_AM, kHz(8)},
-	{RIG_MODE_AM, kHz(2.4)},
-	{RIG_MODE_FM, kHz(15)},
-	{RIG_MODE_FM, kHz(8)},
-	{RIG_MODE_WFM, kHz(230)},
-	RIG_FLT_END,
+    {RIG_MODE_SSB, kHz(2.4)},
+    {RIG_MODE_SSB, kHz(1.8)},
+    {RIG_MODE_SSB, kHz(3.0)},
+    {RIG_MODE_SSB, RIG_FLT_ANY},
+    {RIG_MODE_CW, Hz(500)},
+    {RIG_MODE_CW, kHz(2.4)},
+    {RIG_MODE_CW, Hz(50)},
+    {RIG_MODE_CW, RIG_FLT_ANY},
+    {RIG_MODE_RTTY, Hz(300)},
+    {RIG_MODE_RTTY, kHz(2.4)},
+    {RIG_MODE_RTTY, Hz(50)},
+    {RIG_MODE_RTTY, RIG_FLT_ANY},
+    {RIG_MODE_AM, kHz(8)},
+    {RIG_MODE_AM, kHz(2.4)},
+    {RIG_MODE_AM, kHz(10)},
+    {RIG_MODE_FM, kHz(15)},
+    {RIG_MODE_FM, kHz(8)},
+    {RIG_MODE_WFM, kHz(230)},
+    RIG_FLT_END,
   },
   .max_rit = 9990,
   .max_xit = 9990,

@@ -177,10 +177,10 @@
  *  protocol.
  */
 /**
- *  \def ROT_MODEL_GS232
+ *  \def ROT_MODEL_GS232_GENERIC
  *  \brief A macro that returns the model number of the GS-232 backend.
  *
- *  The GS-232 backend can be used with rotators that support the GS-232
+ *  The GS-232 backend can be used with rotators that support the generic (even if not coded correctly) GS-232 
  *  protocol.
  */
 /**
@@ -197,13 +197,38 @@
  *  The F1TETRACKER backend can be used with rotators that support the
  *  F1TETRACKER protocol.
  */
+ /**
+ *  \def ROT_MODEL_GS23
+ *  \brief A macro that returns the model number of the GS23 backend.
+ *
+ *  The GS23 backend can be used with rotators that support the
+ *  GS23 protocol.
+ */
+ /**
+ *  \def ROT_MODEL_AMSAT_LVB
+ *  \brief A macro that returns the model number of the AMSAT_LVB TRACKER backend.
+ *
+ *  The AMSAT LVB TRACKER backend can be used with rotators that support the
+ *  AMSAT LVB TRACKER GS232 based protocol.
+ */
+ /**
+ *  \def ROT_MODEL_ST2
+ *  \brief A macro that returns the model number of the Fox Delta ST2 backend.
+ *
+ *  The Fox Delta ST2 backend can be used with rotators that support the
+ *  Fox Delta ST2 GS232 based protocol.
+ */
+  
 #define ROT_GS232A 6
 #define ROT_BACKEND_GS232A "gs232a"
 #define ROT_MODEL_GS232A ROT_MAKE_MODEL(ROT_GS232A, 1)
-#define ROT_MODEL_GS232 ROT_MAKE_MODEL(ROT_GS232A, 2) /* Not A or B */
+#define ROT_MODEL_GS232_GENERIC ROT_MAKE_MODEL(ROT_GS232A, 2) /* GENERIC */
 #define ROT_MODEL_GS232B ROT_MAKE_MODEL(ROT_GS232A, 3)
 #define ROT_MODEL_F1TETRACKER ROT_MAKE_MODEL(ROT_GS232A, 4)
-
+#define ROT_MODEL_GS23 ROT_MAKE_MODEL(ROT_GS232A, 5)
+#define ROT_MODEL_GS232 ROT_MAKE_MODEL(ROT_GS232A, 6) /* Not A or B */
+#define ROT_MODEL_LVB ROT_MAKE_MODEL(ROT_GS232A, 7)
+#define ROT_MODEL_ST2 ROT_MAKE_MODEL(ROT_GS232A, 8)
 
 /**
  *  \def ROT_MODEL_PCROTOR

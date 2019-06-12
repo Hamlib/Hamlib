@@ -28,14 +28,14 @@
 #include "hamlib/rig.h"
 #include "idx_builtin.h"
 #include "icom.h"
-
+#include "icom_defs.h"
 
 #define ICR8500_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_FM|RIG_MODE_WFM)
 #define ICR8500_1MHZ_TS_MODES (RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_WFM)
 
 #define ICR8500_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_TSQL|RIG_FUNC_APF)
 
-#define ICR8500_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_APF|RIG_LEVEL_SQL|RIG_LEVEL_IF|RIG_LEVEL_RAWSTR)
+#define ICR8500_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_APF|RIG_LEVEL_SQL|RIG_LEVEL_IF|RIG_LEVEL_RAWSTR)
 
 #define ICR8500_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL)
 
@@ -61,6 +61,7 @@
 		{ 238,  60 }, \
 	} }
 
+int icr8500_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 
 static const struct icom_priv_caps icr8500_priv_caps = {
 	0x4a,   /* default address */
@@ -68,8 +69,9 @@ static const struct icom_priv_caps icr8500_priv_caps = {
   0,      /* no XCHG */
 	r8500_ts_sc_list
 };
+
 /*
- * ICR8500 rigs capabilities.
+ * IC-R8500 rig capabilities.
  */
 const struct rig_caps icr8500_caps = {
 .rig_model =  RIG_MODEL_ICR8500,
@@ -187,7 +189,7 @@ const struct rig_caps icr8500_caps = {
 .decode_event =  icom_decode_event,
 .set_level =  icom_set_level,
 .get_level =  icom_get_level,
-.set_func =  icom_set_func,
+.set_func =  icr8500_set_func,
 .set_mem =  icom_set_mem,
 .vfo_op =  icom_vfo_op,
 .scan =  icom_scan,
@@ -196,7 +198,16 @@ const struct rig_caps icr8500_caps = {
 .get_dcd =  icom_get_dcd,
 };
 
-
-/*
- * Function definitions below
- */
+int icr8500_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
+{
+    switch (func) {
+        case RIG_FUNC_NB:
+            return icom_set_raw(rig, C_CTL_FUNC, status ? S_FUNC_NBON : S_FUNC_NBOFF, 0, NULL, 0, 0);
+        case RIG_FUNC_FAGC:
+            return icom_set_raw(rig, C_CTL_FUNC, status ? S_FUNC_AGCON : S_FUNC_AGCOFF, 0, NULL, 0, 0);
+        case RIG_FUNC_APF:
+            return icom_set_raw(rig, C_CTL_FUNC, status ? S_FUNC_APFON : S_FUNC_APFOFF, 0, NULL, 0, 0);
+        default:
+            return icom_set_func(rig, vfo, func, status);
+    }
+}

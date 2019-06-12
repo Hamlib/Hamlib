@@ -41,10 +41,10 @@
 
 
 /**
- * \brief Convert raw S-meter data to calibated value, according to table
+ * \brief Convert raw data to a calibrated integer value, according to table
  * \param rawval input value
  * \param cal calibration table
- * \return calibrated value
+ * \return calibrated integer value
 
  * cal_table_t is a data type suited to hold linear calibration
  * cal_table_t.size tell the number of plot cal_table_t.table contains
@@ -109,6 +109,65 @@ float HAMLIB_API rig_raw2val(int rawval, const cal_table_t *cal)
                     / (float)(cal->table[i].raw - cal->table[i - 1].raw);
 #endif
     return cal->table[i].val - interpolation;
+}
+
+/**
+ * \brief Convert raw data to a calibrated floating-point value, according to table
+ * \param rawval input value
+ * \param cal calibration table
+ * \return calibrated floating-point value
+
+ * cal_table_float_t is a data type suited to hold linear calibration
+ * cal_table_float_t.size tell the number of plot cal_table_t.table contains
+ * If a value is below or equal to cal_table_float_t.table[0].raw,
+ * rig_raw2val_float() will return cal_table_float_t.table[0].val
+ * If a value is greater or equal to cal_table_float_t.table[cal_table_float_t.size-1].raw,
+ * rig_raw2val_float() will return cal_table_float_t.table[cal_table_float_t.size-1].val
+ */
+float HAMLIB_API rig_raw2val_float(int rawval, const cal_table_float_t *cal)
+{
+  float interpolation;
+  int i;
+
+  /* ASSERT(cal != NULL) */
+  /* ASSERT(cal->size <= MAX_CAL_LENGTH) */
+
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  if (cal->size == 0)
+  {
+    return rawval;
+  }
+
+  for (i = 0; i < cal->size; i++)
+  {
+    if (rawval < cal->table[i].raw)
+    {
+      break;
+    }
+  }
+
+  if (i == 0)
+  {
+    return cal->table[0].val;
+  }
+
+  if (i >= cal->size)
+  {
+    return cal->table[i - 1].val;
+  }
+
+  /* catch divide by 0 error */
+  if (cal->table[i].raw == cal->table[i - 1].raw)
+  {
+    return cal->table[i].val;
+  }
+
+  interpolation = ((cal->table[i].raw - rawval)
+                   * (float)(cal->table[i].val - cal->table[i - 1].val))
+                  / (float)(cal->table[i].raw - cal->table[i - 1].raw);
+
+  return cal->table[i].val - interpolation;
 }
 
 /** @} */

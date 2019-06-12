@@ -25,5 +25,6 @@
 #include <hamlib/rig.h>
 
 extern HAMLIB_EXPORT(float) rig_raw2val(int rawval, const cal_table_t *cal);
+extern HAMLIB_EXPORT(float) rig_raw2val_float(int rawval, const cal_table_float_t *cal);
 
 #endif /* _CAL_H */

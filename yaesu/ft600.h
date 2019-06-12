@@ -2,9 +2,10 @@
  * hamlib - (C) Frank Singleton 2000-2003 (vk3fcs@ix.netcom.com)
  *          (C) Stephane Fillod 2000-2009
  *
- * ft600.h - (C) Kārlis Millers YL3CAAK 2019
+ * ft600.h -(C) Kārlis Millers YL3ALK 2019
+ *
  * This shared library provides an API for communicating
- * via serial interface to an FT-100 using the "CAT" interface.
+ * via serial interface to an FT-600 using the "CAT" interface.
  * The starting point for this code was Chris Karpinsky's ft100 implementation.
  *
  *   This library is free software; you can redistribute it and/or
@@ -12,7 +13,7 @@
  *   License as published by the Free Software Foundation; either
  *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This l	ibrary is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  *   Lesser General Public License for more details.

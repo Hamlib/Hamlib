@@ -2929,6 +2929,9 @@ int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
      */
     switch(rig->caps->rig_model) {
     case RIG_MODEL_K3: // probably a lot more rigs need to go here
+    case RIG_MODEL_K3S:
+    case RIG_MODEL_KX2:
+    case RIG_MODEL_KX3:
       snprintf(morsebuf, sizeof (morsebuf), "KY %s", m2);
       break;
     default:
@@ -3505,6 +3508,9 @@ DECLARE_INITRIG_BACKEND(kenwood)
   rig_register(&trc80_caps);
   rig_register(&k2_caps);
   rig_register(&k3_caps);
+  rig_register(&k3s_caps);
+  rig_register(&kx2_caps);
+  rig_register(&kx3_caps);
   rig_register(&xg3_caps);
 
   rig_register(&ts440_caps);

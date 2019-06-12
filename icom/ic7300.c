@@ -38,7 +38,6 @@
 #include "bandplan.h"
 #include "tones.h"
 
-/* AM Data mode needs adding - this would require one more mode 'RIG_MODE_PKTAM' to rig.h */
 #define IC7300_ALL_RX_MODES (RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTFM|RIG_MODE_PKTAM)
 #define IC7300_1HZ_TS_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTFM|RIG_MODE_PKTAM)
 #define IC7300_NOT_TS_MODES (IC7300_ALL_RX_MODES &~IC7300_1HZ_TS_MODES)
@@ -46,15 +45,12 @@
 #define IC7300_OTHER_TX_MODES (RIG_MODE_FM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR)
 #define IC7300_AM_TX_MODES (RIG_MODE_AM|RIG_MODE_PKTAM)
 
-#define IC7300_FUNCS (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_ANF|RIG_FUNC_LOCK|RIG_FUNC_RIT|RIG_FUNC_XIT|RIG_FUNC_SCOPE|RIG_FUNC_TUNER)
+#define IC7300_FUNCS (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_ANF|RIG_FUNC_LOCK|RIG_FUNC_RIT|RIG_FUNC_XIT|RIG_FUNC_SCOPE|RIG_FUNC_TUNER)
 
-#define IC7300_LEVELS (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX|RIG_LEVEL_VOXDELAY|RIG_LEVEL_SWR|RIG_LEVEL_ALC)
-
-// Not implemented yet
-//#define IC7300_EXT_LEVELS (TOK_LEVEL_MONITOR)
+#define IC7300_LEVELS (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF_RAW|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX|RIG_LEVEL_VOXDELAY|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_COMP_METER|RIG_LEVEL_VD_METER|RIG_LEVEL_ID_METER|RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB)
 
 #define IC7300_VFOS (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)
-#define IC7300_PARMS (RIG_PARM_BACKLIGHT|RIG_PARM_TIME|RIG_PARM_BEEP)
+#define IC7300_PARMS (RIG_PARM_ANN|RIG_PARM_BACKLIGHT|RIG_PARM_TIME|RIG_PARM_BEEP)
 
 #define IC7300_VFO_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL|RIG_OP_TUNE)
 #define IC7300_SCAN_OPS (RIG_SCAN_STOP|RIG_SCAN_MEM|RIG_SCAN_PROG|RIG_SCAN_SLCT)
@@ -75,60 +71,152 @@
 		{ 241,  64 } \
 	} }
 
-#define IC7300_AGC_OFF 0x00
-#define IC7300_AGC_FAST 0x01
-#define IC7300_AGC_MID 0x02
-#define IC7300_AGC_SLOW 0x03
+#define IC7300_SWR_CAL { 5, \
+	{ \
+		 { 0, 1.0f }, \
+		 { 48, 1.5f }, \
+		 { 80, 2.0f }, \
+		 { 120, 3.0f }, \
+		 { 240, 6.0f } \
+	} }
+
+#define IC7300_ALC_CAL { 2, \
+	{ \
+		 { 0, 0.0f }, \
+		 { 120, 1.0f } \
+	} }
+
+#define IC7300_RFPOWER_METER_CAL { 3, \
+	{ \
+		 { 0, 0.0f }, \
+		 { 143, 0.5f }, \
+		 { 213, 1.0f } \
+	} }
+
+#define IC7300_COMP_METER_CAL { 3, \
+	{ \
+		 { 0, 0.0f }, \
+		 { 130, 15.0f }, \
+		 { 241, 30.0f } \
+	} }
+
+#define IC7300_VD_METER_CAL { 3, \
+	{ \
+		 { 0, 0.0f }, \
+		 { 13, 10.0f }, \
+		 { 241, 16.0f } \
+	} }
+
+#define IC7300_ID_METER_CAL { 4, \
+	{ \
+		 { 0, 0.0f }, \
+		 { 97, 10.0f }, \
+		 { 146, 15.0f }, \
+		 { 241, 25.0f } \
+	} }
+
 
 /*
  * IC9700 items that differ from IC7300
  */
+#define IC9700_FUNCS (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_ANF|RIG_FUNC_LOCK|RIG_FUNC_RIT|RIG_FUNC_SCOPE)
+
 #define IC9700_VFO_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL)
 #define IC9700_ALL_TX_MODES (RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_DSTAR|RIG_MODE_DD)
 #define IC9700_ALL_RX_MODES (RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_DSTAR|RIG_MODE_DD)
 
+#define IC9700_STR_CAL { 7, \
+	{ \
+		{   0, -54 }, \
+		{  10, -48 }, \
+		{  30, -36 }, \
+		{  60, -24 }, \
+		{  90, -12 }, \
+		{ 120,  0 }, \
+		{ 241,  64 } \
+	} }
+
+#define IC9700_SWR_CAL { 5, \
+	{ \
+		 { 0, 1.0f }, \
+		 { 48, 1.5f }, \
+		 { 80, 2.0f }, \
+		 { 120, 3.0f }, \
+		 { 240, 6.0f } \
+	} }
+
+#define IC9700_ALC_CAL { 2, \
+	{ \
+		 { 0, 0.0f }, \
+		 { 120, 1.0f } \
+	} }
+
+#define IC9700_RFPOWER_METER_CAL { 3, \
+	{ \
+		 { 0, 0.0f }, \
+		 { 143, 0.5f }, \
+		 { 213, 1.0f } \
+	} }
+
+#define IC9700_COMP_METER_CAL { 3, \
+	{ \
+		 { 0, 0.0f }, \
+		 { 130, 15.0f }, \
+		 { 210, 25.5f } \
+	} }
+
+#define IC9700_VD_METER_CAL { 3, \
+	{ \
+		 { 0, 0.0f }, \
+		 { 13, 10.0f }, \
+		 { 241, 16.0f } \
+	} }
+
+#define IC9700_ID_METER_CAL { 3, \
+	{ \
+		 { 0, 0.0f }, \
+		 { 121, 10.0f }, \
+		 { 241, 20.0f } \
+	} }
+
 /*
  * IC-7300 rig capabilities.
- *
- * TODO: complete command set (esp. the $1A bunch!) and testing..
  */
 static const struct icom_priv_caps IC7300_priv_caps = {
-		0x94,	/* default address */
-		0,		/* 731 mode */
-    0,    /* no XCHG */
-		ic7300_ts_sc_list,
-		.civ_version = 1	/* new version of some commands, e.g. ic7200/7300 */
+    0x94,   /* default address */
+    0,      /* 731 mode */
+    0,      /* no XCHG */
+    ic7300_ts_sc_list,
+    .agc_levels_present = 1,
+    .agc_levels = {
+        { .level = RIG_AGC_FAST, .icom_level = 1 },
+        { .level = RIG_AGC_MEDIUM, .icom_level = 2 },
+        { .level = RIG_AGC_SLOW, .icom_level = 3 },
+        { .level = -1, .icom_level = 0 },
+    },
 };
 
 static const struct icom_priv_caps IC9700_priv_caps = {
-		0xA2,	/* default address */
-		0,		/* 731 mode */
-    0,    /* no XCHG */
-		ic7300_ts_sc_list,
-		.civ_version = 1,	/* new version of some commands, e.g. ic7200/7300 */
-    .serial_USB_echo_check = 1  /* USB CI-V may not echo */
+    0xA2,   /* default address */
+    0,      /* 731 mode */
+    0,      /* no XCHG */
+    ic7300_ts_sc_list,
+    .serial_USB_echo_check = 1,  /* USB CI-V may not echo */
+    .agc_levels_present = 1,
+    .agc_levels = {
+            { .level = RIG_AGC_FAST, .icom_level = 1 },
+            { .level = RIG_AGC_MEDIUM, .icom_level = 2 },
+            { .level = RIG_AGC_SLOW, .icom_level = 3 },
+            { .level = -1, .icom_level = 0 },
+    },
 };
 
-/* Private IC7300 extra levels definitions
- *
- * Token definitions for .cfgparams in rig_caps
- * See enum rig_conf_e and struct confparams in rig.h
- */
-const struct confparams ic7300_ext_levels[] = {
-        { TOK_LEVEL_MONITOR, "MONITORGAIN", "Monitor gain", "Monitor gain",
-                NULL, RIG_CONF_NUMERIC, { .n = { 0, 1, 0 } }
-        },
-        { RIG_CONF_END, NULL, }
-};
-  
-
-int ic7300_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *ts);
-int ic7300_set_rit(RIG *rig, vfo_t vfo, shortfreq_t ts);
-int ic7300_set_xit(RIG *rig, vfo_t vfo, shortfreq_t ts);
-int ic7300_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
-int ic7300_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 int ic7300_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int ic7300_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+int ic9700_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+int ic9700_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+int ic7300_set_parm(RIG *rig, setting_t parm, value_t val);
+int ic7300_get_parm(RIG *rig, setting_t parm, value_t *val);
 
 const struct rig_caps ic7300_caps = {
 .rig_model =  RIG_MODEL_IC7300,
@@ -158,14 +246,17 @@ const struct rig_caps ic7300_caps = {
 .has_get_parm =  IC7300_PARMS,
 .has_set_parm =  RIG_PARM_SET(IC7300_PARMS),
 .level_gran = {
-	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
+        [LVL_RAWSTR] = {.min = {.i = 0}, .max = {.i = 255}},
+        [LVL_VOXDELAY] = {.min = {.i = 0}, .max = {.i = 20}, .step = {.i = 1}},
+        [LVL_KEYSPD] = {.min = {.i = 6}, .max = {.i = 48}, .step = {.i = 1}},
+        [LVL_CWPITCH] = {.min = {.i = 300}, .max = {.i = 900}, .step = {.i = 1}},
 },
 .parm_gran =  {},
-.extlevels = ic7300_ext_levels,
+.extlevels = NULL,
 .ctcss_list =  full_ctcss_list,
 .dcs_list =  NULL,
 .preamp =   { 1, 2, RIG_DBLST_END, },
-.attenuator =   { 1, RIG_DBLST_END, }, /* value taken from p.45 of manual*/
+.attenuator =   { 20, RIG_DBLST_END, },
 .max_rit =  Hz(9999),
 .max_xit =  Hz(9999),
 .max_ifshift =  Hz(0),
@@ -218,9 +309,9 @@ const struct rig_caps ic7300_caps = {
 
 	/* mode/filter list, remember: order matters! But duplication may speed up search.  Put the most commonly used modes first!  Remember these are defaults, with dsp rigs you can change them to anything you want except FM and WFM which are fixed */
 .filters = 	{
-		{RIG_MODE_SSB, kHz(2.4)},
-		{RIG_MODE_SSB, kHz(1.8)},
-		{RIG_MODE_SSB, kHz(3)},
+		{RIG_MODE_SSB|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB, kHz(2.4)},
+		{RIG_MODE_SSB|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB, kHz(1.8)},
+		{RIG_MODE_SSB|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB, kHz(3)},
 		{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(500)},
 		{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(250)},
 		{RIG_MODE_CW|RIG_MODE_CWR, kHz(1.2)},
@@ -228,13 +319,19 @@ const struct rig_caps ic7300_caps = {
 		{RIG_MODE_AM|RIG_MODE_PKTAM, kHz(6)},
 		{RIG_MODE_AM|RIG_MODE_PKTAM, kHz(3)},
 		{RIG_MODE_AM|RIG_MODE_PKTAM, kHz(9)},
-		{RIG_MODE_FM|RIG_MODE_PKTFM, kHz(15)},
 		{RIG_MODE_FM|RIG_MODE_PKTFM, kHz(10)},
 		{RIG_MODE_FM|RIG_MODE_PKTFM, kHz(7)},
+		{RIG_MODE_FM|RIG_MODE_PKTFM, kHz(15)},
 		RIG_FLT_END,
 	},
 
 .str_cal = IC7300_STR_CAL,
+.swr_cal = IC7300_SWR_CAL,
+.alc_cal = IC7300_ALC_CAL,
+.rfpower_meter_cal = IC7300_RFPOWER_METER_CAL,
+.comp_meter_cal = IC7300_COMP_METER_CAL,
+.vd_meter_cal = IC7300_VD_METER_CAL,
+.id_meter_cal = IC7300_ID_METER_CAL,
 
 .cfgparams =  icom_cfg_params,
 .set_conf =  icom_set_conf,
@@ -255,23 +352,20 @@ const struct rig_caps ic7300_caps = {
 .set_ant =  NULL,
 .get_ant =  NULL,
 
-.set_rit =  ic7300_set_rit,
-.get_rit =  ic7300_get_rit,
-// the 7300 has only one register for both RIT and Delta TX
-// you can turn one or both on -- but both end up just being in sync
-// so we'll just reuse the rit settings
-.get_xit =  ic7300_get_rit,
-.set_xit =  ic7300_set_xit,
+.set_rit =  icom_set_rit_new,
+.get_rit =  icom_get_rit_new,
+.get_xit =  icom_get_rit_new,
+.set_xit =  icom_set_xit_new,
 
 .decode_event =  icom_decode_event,
 .set_level =  ic7300_set_level,
 .get_level =  ic7300_get_level,
 .set_ext_level =  icom_set_ext_level,
 .get_ext_level =  icom_get_ext_level,
-.set_func =  ic7300_set_func,
-.get_func =  ic7300_get_func,
-.set_parm =  icom_set_parm,
-.get_parm =  icom_get_parm,
+.set_func =  icom_set_func,
+.get_func =  icom_get_func,
+.set_parm =  ic7300_set_parm,
+.get_parm =  ic7300_get_parm,
 .set_mem =  icom_set_mem,
 .vfo_op =  icom_vfo_op,
 .scan =  icom_scan,
@@ -295,6 +389,7 @@ const struct rig_caps ic7300_caps = {
 .set_split_vfo =  icom_set_split_vfo,
 .get_split_vfo =  icom_get_split_vfo,
 .set_powerstat = icom_set_powerstat,
+.get_powerstat = icom_get_powerstat,
 .power2mW = icom_power2mW,
 .mW2power = icom_mW2power,
 .send_morse = icom_send_morse
@@ -322,21 +417,24 @@ const struct rig_caps ic9700_caps = {
 .post_write_delay =  0,
 .timeout =  1000,
 .retry =  3,
-.has_get_func =  IC7300_FUNCS,
-.has_set_func =  IC7300_FUNCS,
+.has_get_func =  IC9700_FUNCS,
+.has_set_func =  IC9700_FUNCS,
 .has_get_level =  IC7300_LEVELS,
 .has_set_level =  RIG_LEVEL_SET(IC7300_LEVELS),
 .has_get_parm =  IC7300_PARMS,
 .has_set_parm =  RIG_PARM_SET(IC7300_PARMS),
 .level_gran = {
 	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
+	[LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
+	[LVL_KEYSPD] = {.min = {.i = 6}, .max = {.i = 48}, .step = {.i = 1}},
+	[LVL_CWPITCH] = {.min = {.i = 300}, .max = {.i = 900}, .step = {.i = 1}},
 },
 .parm_gran =  {},
-.extlevels = ic7300_ext_levels,
+.extlevels = NULL,
 .ctcss_list =  full_ctcss_list,
 .dcs_list =  NULL,
-.preamp =   { 1, 2, RIG_DBLST_END, },
-.attenuator =   { 1, RIG_DBLST_END, }, /* value taken from p.45 of manual*/
+.preamp =   { 1, 2, 3, RIG_DBLST_END, },
+.attenuator =   { 10, RIG_DBLST_END, },
 .max_rit =  Hz(9999),
 .max_xit =  Hz(9999),
 .max_ifshift =  Hz(0),
@@ -397,12 +495,18 @@ const struct rig_caps ic9700_caps = {
 		{RIG_MODE_AM|RIG_MODE_PKTAM, kHz(3)},
 		{RIG_MODE_AM|RIG_MODE_PKTAM, kHz(9)},
 		{RIG_MODE_FM|RIG_MODE_PKTFM, kHz(15)},
+        {RIG_MODE_FM|RIG_MODE_PKTFM, kHz(7)},
 		{RIG_MODE_FM|RIG_MODE_PKTFM, kHz(10)},
-		{RIG_MODE_FM|RIG_MODE_PKTFM, kHz(7)},
 		RIG_FLT_END,
 	},
 
-.str_cal = IC7300_STR_CAL,
+.str_cal = IC9700_STR_CAL,
+.swr_cal = IC9700_SWR_CAL,
+.alc_cal = IC9700_ALC_CAL,
+.rfpower_meter_cal = IC9700_RFPOWER_METER_CAL,
+.comp_meter_cal = IC9700_COMP_METER_CAL,
+.vd_meter_cal = IC9700_VD_METER_CAL,
+.id_meter_cal = IC9700_ID_METER_CAL,
 
 .cfgparams =  icom_cfg_params,
 .set_conf =  icom_set_conf,
@@ -423,21 +527,16 @@ const struct rig_caps ic9700_caps = {
 .set_ant =  NULL,
 .get_ant =  NULL,
 
-.set_rit =  ic7300_set_rit,
-.get_rit =  ic7300_get_rit,
-// the 7300 has only one register for both RIT and Delta TX
-// you can turn one or both on -- but both end up just being in sync
-// so we'll just reuse the rit settings
-.get_xit =  ic7300_get_rit,
-.set_xit =  ic7300_set_xit,
+.set_rit =  icom_set_rit_new,
+.get_rit =  icom_get_rit_new,
 
 .decode_event =  icom_decode_event,
-.set_level =  ic7300_set_level,
-.get_level =  ic7300_get_level,
+.set_level =  ic9700_set_level,
+.get_level =  ic9700_get_level,
 .set_ext_level =  icom_set_ext_level,
 .get_ext_level =  icom_get_ext_level,
-.set_func =  ic7300_set_func,
-.get_func =  ic7300_get_func,
+.set_func =  icom_set_func,
+.get_func =  icom_get_func,
 .set_parm =  icom_set_parm,
 .get_parm =  icom_get_parm,
 .set_mem =  icom_set_mem,
@@ -463,274 +562,134 @@ const struct rig_caps ic9700_caps = {
 .set_split_vfo =  icom_set_split_vfo,
 .get_split_vfo =  icom_get_split_vfo,
 .set_powerstat = icom_set_powerstat,
+.get_powerstat = icom_get_powerstat,
 .power2mW = icom_power2mW,
 .mW2power = icom_mW2power,
 .send_morse = icom_send_morse
 
 };
 
-int ic7300_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *ts)
-{
-	unsigned char tsbuf[MAXFRAMELEN];
-	int ts_len, retval;
-
-	retval = icom_transaction (rig, 0x21, 0x00, NULL, 0, tsbuf, &ts_len);
-	if (retval != RIG_OK) {
-		return retval;
-	}
-
-	/*
-	 * tsbuf nibbles should contain 10,1,1000,100 hz digits and 00=+, 01=- bit
-	 */
-	rig_debug(RIG_DEBUG_VERBOSE, "ts_len=%d\n", ts_len);
-	if (ts_len != 5) {
-		rig_debug(RIG_DEBUG_ERR, "%s: wrong frame len=%d\n", __func__, ts_len);
-		return -RIG_ERJCTED;
-	}
-
-	*ts = (shortfreq_t) from_bcd(tsbuf + 2, 4);
-	if (tsbuf[4] != 0) {
-		*ts *= -1;
-	}
-
-	return RIG_OK;
-}
-
-static int ic7300_set_it(RIG *rig, vfo_t vfo, shortfreq_t ts, int set_xit) {
-	unsigned char tsbuf[8];
-	unsigned char ackbuf[16];
-	int ack_len;
-	int retval;
-
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: ts=%d\n", __func__, ts);
-
-	to_bcd(tsbuf, abs((int) ts), 4);
-	// set sign bit
-	tsbuf[2] = (ts < 0) ? 1 : 0;
-
-	retval = icom_transaction(rig, 0x21, 0x00, tsbuf, 3, ackbuf, &ack_len);
-	if (retval != RIG_OK) {
-		return retval;
-	}
-
-	if (ts == 0) { // turn off both rit/xit
-		retval = ic7300_set_func(rig, vfo, RIG_FUNC_XIT, 0);
-		if (retval != RIG_OK) {
-			return retval;
-		}
-		retval = ic7300_set_func(rig, vfo, RIG_FUNC_RIT, 0);
-	} else {
-		retval = ic7300_set_func(rig, vfo, set_xit ? RIG_FUNC_XIT : RIG_FUNC_RIT, 1);
-	}
-	return retval;
-}
-
-int ic7300_set_rit(RIG *rig, vfo_t vfo, shortfreq_t ts)
-{
-	return ic7300_set_it(rig, vfo, ts, 0);
-}
-
-int ic7300_set_xit(RIG *rig, vfo_t vfo, shortfreq_t ts)
-{
-	return ic7300_set_it(rig, vfo, ts, 1);
-}
-
-int ic7300_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
-{
-	unsigned char ackbuf[16];
-	int ack_len;
-	int retval;
-
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-	if (!rig || !status)
-		return -RIG_EINVAL;
-
-	switch (func) {
-		case RIG_FUNC_RIT:
-			retval = icom_transaction(rig, 0x21, 0x01, NULL, 0, ackbuf, &ack_len);
-			if (retval != RIG_OK) return retval;
-			if (ack_len != 3) {
-				return RIG_BUSERROR;
-			}
-			*status = ackbuf[2];
-			break;
-
-		case RIG_FUNC_XIT:
-			retval = icom_transaction(rig, 0x21, 0x02, NULL, 0, ackbuf, &ack_len);
-			if (ack_len != 3) {
-				return RIG_BUSERROR;
-			}
-			*status = ackbuf[2];
-			break;
-			
-		case RIG_FUNC_TUNER:
-            retval = icom_transaction (rig, 0x1C, 0x01, NULL, 0, ackbuf, &ack_len);
-            if (ack_len == 3) 
-            {
-                *status = ackbuf[2]; // 0x01 = enabled, 0x00 = disabled, 0x02 = tuning in progress
-            } else {
-                return RIG_BUSERROR;
-            }
-            break;
-            
-		default:
-			return icom_get_func(rig, vfo, func, status);
-	}
-	return retval;
-}
-
-int ic7300_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
-{
-	unsigned char ts_buf[4];
-	unsigned char ackbuf[8];
-	int ack_len;
-
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-	if (!rig)
-		return -RIG_EINVAL;
-
-	switch (func) {
-		case RIG_FUNC_RIT:
-			ts_buf[0] = status;	
-        		return  icom_transaction (rig, 0x21, 0x01, ts_buf, 1, ackbuf, &ack_len);
-
-		case RIG_FUNC_XIT:
-			ts_buf[0] = status;	
-        		return  icom_transaction (rig, 0x21, 0x02, ts_buf, 1, ackbuf, &ack_len);
-        
-        case RIG_FUNC_TUNER:
-            if(status==0 || status==1 || status==2)
-            { // 0=off, 1 = on, 2 = begin tuning
-                ts_buf[0] = status;
-                return  icom_transaction (rig, 0x1C, 0x01, ts_buf, 1, ackbuf, &ack_len);
-            } else {
-                return -1; // perhaps some other reply would be more informative
-            }
-		
-		default:
-			return icom_set_func(rig, vfo, func, status);
-	}
-}
-
 int ic7300_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-	unsigned char lvlbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
-	int ack_len=sizeof(ackbuf), lvl_len;
-	int lvl_cn, lvl_sc;		/* Command Number, Subcommand */
-	int retval;
+    unsigned char cmdbuf[MAXFRAMELEN];
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	switch (level) {
-		case RIG_LEVEL_AGC:
-			lvl_cn = C_CTL_FUNC;
-			lvl_sc = S_FUNC_AGC;
-			lvl_len = 1;
-
-			unsigned char agc_value;
-			switch (val.i) {
-				case RIG_AGC_OFF:
-					agc_value = IC7300_AGC_OFF;
-					break;
-				case RIG_AGC_SLOW:
-					agc_value = IC7300_AGC_SLOW;
-					break;
-				case RIG_AGC_MEDIUM:
-					agc_value = IC7300_AGC_MID;
-					break;
-				case RIG_AGC_FAST:
-					agc_value = IC7300_AGC_FAST;
-					break;
-				default:
-					rig_debug(RIG_DEBUG_ERR,"Unsupported LEVEL_AGC %d", val.i);
-					return -RIG_EINVAL;
-			}
-
-			lvlbuf[0] = agc_value;
-			break;
-		default:
-			return icom_set_level(rig, vfo, level, val);
-	}
-
-	retval = icom_transaction (rig, lvl_cn, lvl_sc, lvlbuf, lvl_len,
-			ackbuf, &ack_len);
-	if (retval != RIG_OK)
-		return retval;
-
-	if (ack_len != 1 || ackbuf[0] != ACK) {
-		rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0], ack_len);
-		return -RIG_ERJCTED;
-	}
-
-	return RIG_OK;
+    switch (level) {
+        case RIG_LEVEL_VOXDELAY:
+            cmdbuf[0] = 0x01;
+            cmdbuf[1] = 0x91;
+            return icom_set_level_raw(rig, level, C_CTL_MEM, S_MEM_PARM, 2, cmdbuf, 1, val);
+        default:
+            return icom_set_level(rig, vfo, level, val);
+    }
 }
 
 int ic7300_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-	unsigned char lvlbuf[MAXFRAMELEN], lvl2buf[MAXFRAMELEN];
-	int lvl_len, lvl2_len;
-	int lvl_cn, lvl_sc;		/* Command Number, Subcommand */
-	int icom_val;
-	int cmdhead;
-	int retval;
+    unsigned char cmdbuf[MAXFRAMELEN];
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	lvl2_len = 0;
+    switch (level) {
+        case RIG_LEVEL_VOXDELAY:
+            cmdbuf[0] = 0x01;
+            cmdbuf[1] = 0x91;
+            return icom_get_level_raw(rig, level, C_CTL_MEM, S_MEM_PARM, 2, cmdbuf, val);
+        default:
+            return icom_get_level(rig, vfo, level, val);
+    }
+}
 
-	switch (level) {
-		case RIG_LEVEL_AGC:
-			lvl_cn = C_CTL_FUNC;
-			lvl_sc = S_FUNC_AGC;
-			break;
-		default:
-			return icom_get_level(rig, vfo, level, val);
-	}
+int ic9700_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+{
+    unsigned char cmdbuf[MAXFRAMELEN];
 
-	retval = icom_transaction (rig, lvl_cn, lvl_sc, lvl2buf, lvl2_len,
-			lvlbuf, &lvl_len);
-	if (retval != RIG_OK)
-		return retval;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  cmdhead = 2;
-	lvl_len -= cmdhead;
+    switch (level) {
+        case RIG_LEVEL_VOXDELAY:
+            cmdbuf[0] = 0x03;
+            cmdbuf[1] = 0x30;
+            return icom_set_level_raw(rig, level, C_CTL_MEM, S_MEM_PARM, 2, cmdbuf, 1, val);
+        default:
+            return ic7300_set_level(rig, vfo, level, val);
+    }
+}
 
-	if (lvlbuf[0] != ACK && lvlbuf[0] != lvl_cn) {
-		rig_debug(RIG_DEBUG_ERR,"%s: ack NG (%#.2x), len=%d\n", __func__, lvlbuf[0], lvl_len);
-		return -RIG_ERJCTED;
-	}
+int ic9700_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
+    unsigned char cmdbuf[MAXFRAMELEN];
 
-	/*
-	 * The result is a 3 digit BCD, but in *big endian* order: 0000..0255
-	 * (from_bcd is little endian)
-	 */
-	icom_val = from_bcd_be(lvlbuf + cmdhead, lvl_len * 2);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	switch (level) {
-		case RIG_LEVEL_AGC:
-			switch (icom_val) {
-				case IC7300_AGC_OFF:
-					val->i = RIG_AGC_OFF;
-					break;
-				case IC7300_AGC_SLOW:
-					val->i = RIG_AGC_SLOW;
-					break;
-				case IC7300_AGC_MID:
-					val->i = RIG_AGC_MEDIUM;
-					break;
-				case IC7300_AGC_FAST:
-					val->i = RIG_AGC_FAST;
-					break;
-				default:
-					rig_debug(RIG_DEBUG_ERR,"Unexpected AGC 0x%02x", icom_val);
-					return -RIG_EPROTO;
-			}
-			break;
-	}
+    switch (level) {
+        case RIG_LEVEL_VOXDELAY:
+            cmdbuf[0] = 0x03;
+            cmdbuf[1] = 0x30;
+            return icom_get_level_raw(rig, level, C_CTL_MEM, S_MEM_PARM, 2, cmdbuf, val);
+        default:
+            return ic7300_get_level(rig, vfo, level, val);
+    }
+}
 
-	rig_debug(RIG_DEBUG_TRACE ,"%s: %d %d %d %f\n", __func__, lvl_len, icom_val, val->i, val->f);
+int ic7300_set_parm(RIG *rig, setting_t parm, value_t val)
+{
+    unsigned char parmbuf[MAXFRAMELEN];
 
-	return RIG_OK;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    switch (parm) {
+        case RIG_PARM_BEEP:
+            parmbuf[0] = 0x00;
+            parmbuf[1] = 0x23;
+            return icom_set_custom_parm(rig, 2, parmbuf, 1, val.i ? 1 : 0);
+        case RIG_PARM_BACKLIGHT:
+            parmbuf[0] = 0x00;
+            parmbuf[1] = 0x81;
+            return icom_set_custom_parm(rig, 2, parmbuf, 2, (int) (val.f * 255.0f));
+        case RIG_PARM_TIME:
+            parmbuf[0] = 0x00;
+            parmbuf[1] = 0x95;
+            return icom_set_custom_parm_time(rig, 2, parmbuf, val.i);
+        default:
+            return icom_set_parm(rig, parm, val);
+    }
+}
+
+int ic7300_get_parm(RIG *rig, setting_t parm, value_t *val)
+{
+    unsigned char parmbuf[MAXFRAMELEN];
+    int retval;
+    int icom_val;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    switch (parm) {
+        case RIG_PARM_BEEP:
+            parmbuf[0] = 0x00;
+            parmbuf[1] = 0x23;
+            retval = icom_get_custom_parm(rig, 2, parmbuf, &icom_val);
+            if (retval != RIG_OK) {
+                return retval;
+            }
+            val->i = icom_val ? 1 : 0;
+            break;
+        case RIG_PARM_BACKLIGHT:
+            parmbuf[0] = 0x00;
+            parmbuf[1] = 0x81;
+            retval = icom_get_custom_parm(rig, 2, parmbuf, &icom_val);
+            if (retval != RIG_OK) {
+                return retval;
+            }
+            val->f = (float) icom_val / 255.0f;
+            break;
+        case RIG_PARM_TIME:
+            parmbuf[0] = 0x00;
+            parmbuf[1] = 0x95;
+            return icom_get_custom_parm_time(rig, 2, parmbuf, &val->i);
+        default:
+            return icom_get_parm(rig, parm, val);
+    }
+
+    return RIG_OK;
 }
