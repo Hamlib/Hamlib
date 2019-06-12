@@ -3295,6 +3295,7 @@ int  win32_serial_select( int  n,  fd_set  *readfds,  fd_set  *writefds,
 				goto fail;
 			}
 		}
+    goto timeout;
 	}
 #endif
 	while ( wait == WAIT_TIMEOUT && index->sol.hEvent )
