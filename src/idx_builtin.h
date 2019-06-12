@@ -104,6 +104,14 @@
 #define LVL_STRENGTH    setting2idx_builtin(RIG_LEVEL_STRENGTH)
 /*#define LVL_BWC       setting2idx_builtin(RIG_LEVEL_BWC)*/
 
+#define LVL_RFPOWER_METER    setting2idx_builtin(RIG_LEVEL_RFPOWER_METER)
+#define LVL_COMP_METER       setting2idx_builtin(RIG_LEVEL_COMP_METER)
+#define LVL_VD_METER         setting2idx_builtin(RIG_LEVEL_VD_METER)
+#define LVL_ID_METER         setting2idx_builtin(RIG_LEVEL_ID_METER)
+
+#define LVL_NOTCHF_RAW       setting2idx_builtin(RIG_LEVEL_NOTCHF_RAW)
+#define LVL_MONITOR_GAIN     setting2idx_builtin(RIG_LEVEL_MONITOR_GAIN)
+
 #define PARM_ANN    setting2idx_builtin(RIG_PARM_ANN)
 #define PARM_APO    setting2idx_builtin(RIG_PARM_APO)
 #define PARM_BACKLIGHT  setting2idx_builtin(RIG_PARM_BACKLIGHT)

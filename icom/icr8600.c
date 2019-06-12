@@ -41,7 +41,7 @@
     RIG_MODE_SAH|RIG_MODE_P25|RIG_MODE_DSTAR|RIG_MODE_DPMR|RIG_MODE_NXDNVN|\
     RIG_MODE_NXDN_N|RIG_MODE_DCR)
 
-#define ICR8600_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_ANF|RIG_FUNC_MN|RIG_FUNC_AFC|\
+#define ICR8600_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_ANF|RIG_FUNC_MN|RIG_FUNC_AFC|\
     RIG_FUNC_NR|RIG_FUNC_AIP|RIG_FUNC_LOCK|RIG_FUNC_VSC|RIG_FUNC_RESUME|RIG_FUNC_TSQL|\
     RIG_FUNC_DSQL)
 
@@ -79,12 +79,14 @@
     .flags = 1,	\
 }
 
+int icr8600_set_parm(RIG *rig, setting_t parm, value_t val);
+int icr8600_get_parm(RIG *rig, setting_t parm, value_t *val);
+
 static const struct icom_priv_caps icr8600_priv_caps = {
     0x96,                       /* default address */
     0,                          /* 731 mode */
     0,                          /* no XCHG */
     r8600_ts_sc_list,           /* list of tuning steps */
-    .civ_version = 1,           /* modifies behaviour in various icom.c functions */
     .offs_len = 4,              /* Repeater offset is 4 bytes */
     .serial_USB_echo_check = 1  /* USB CI-V may not echo */
 };
@@ -216,8 +218,8 @@ const struct rig_caps icr8600_caps = {
     .get_func = icom_get_func,
     .set_level = icom_set_level,
     .get_level = icom_get_level,
-    .set_parm = icom_set_parm,
-    .get_parm = icom_get_parm,
+    .set_parm = icr8600_set_parm,
+    .get_parm = icr8600_get_parm,
     .get_dcd = icom_get_dcd,
     .set_mem = icom_set_mem,
     .vfo_op = icom_vfo_op,
@@ -230,3 +232,77 @@ const struct rig_caps icr8600_caps = {
     .get_dcs_code = icom_get_dcs_code,
 
 };
+
+int icr8600_set_parm(RIG *rig, setting_t parm, value_t val)
+{
+    unsigned char parmbuf[MAXFRAMELEN];
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    switch (parm) {
+        case RIG_PARM_BEEP:
+            parmbuf[0] = 0x00;
+            parmbuf[1] = 0x38;
+            return icom_set_custom_parm(rig, 2, parmbuf, 1, val.i ? 1 : 0);
+        case RIG_PARM_BACKLIGHT:
+            parmbuf[0] = 0x01;
+            parmbuf[1] = 0x15;
+            return icom_set_custom_parm(rig, 2, parmbuf, 2, (int) (val.f * 255.0f));
+        case RIG_PARM_KEYLIGHT:
+            parmbuf[0] = 0x01;
+            parmbuf[1] = 0x16;
+            return icom_set_custom_parm(rig, 2, parmbuf, 2, val.f != 0 ? 255 : 0);
+        case RIG_PARM_TIME:
+            parmbuf[0] = 0x01;
+            parmbuf[1] = 0x32;
+            return icom_set_custom_parm_time(rig, 2, parmbuf, val.i);
+        default:
+            return icom_set_parm(rig, parm, val);
+    }
+}
+
+int icr8600_get_parm(RIG *rig, setting_t parm, value_t *val)
+{
+    unsigned char parmbuf[MAXFRAMELEN];
+    int retval;
+    int icom_val;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    switch (parm) {
+        case RIG_PARM_BEEP:
+            parmbuf[0] = 0x00;
+            parmbuf[1] = 0x38;
+            retval = icom_get_custom_parm(rig, 2, parmbuf, &icom_val);
+            if (retval != RIG_OK) {
+                return retval;
+            }
+            val->i = icom_val ? 1 : 0;
+            break;
+        case RIG_PARM_BACKLIGHT:
+            parmbuf[0] = 0x01;
+            parmbuf[1] = 0x15;
+            retval = icom_get_custom_parm(rig, 2, parmbuf, &icom_val);
+            if (retval != RIG_OK) {
+                return retval;
+            }
+            val->f = (float) icom_val / 255.0f;
+            break;
+        case RIG_PARM_KEYLIGHT:
+            parmbuf[0] = 0x01;
+            parmbuf[1] = 0x16;
+            retval = icom_get_custom_parm(rig, 2, parmbuf, &icom_val);
+            if (retval != RIG_OK) {
+                return retval;
+            }
+            val->f = icom_val != 0;
+            break;
+        case RIG_PARM_TIME:
+            parmbuf[0] = 0x01;
+            parmbuf[1] = 0x32;
+            return icom_get_custom_parm_time(rig, 2, parmbuf, &val->i);
+        default:
+            return icom_get_parm(rig, parm, val);
+    }
+
+    return RIG_OK;
+}

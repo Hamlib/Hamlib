@@ -641,6 +641,8 @@ typedef int ant_t;
 #define RIG_ANT_4       RIG_ANT_N(3)
 #define RIG_ANT_5       RIG_ANT_N(4)
 
+#define RIG_ANT_MAX 32
+
 
 /**
  * \brief AGC delay settings
@@ -656,6 +658,7 @@ enum agc_level_e {
     RIG_AGC_AUTO
 };
 
+#define RIG_AGC_LAST RIG_AGC_AUTO
 
 /**
  * \brief Level display meters
@@ -728,14 +731,19 @@ enum rig_level_e {
     RIG_LEVEL_SQLSTAT =     (1 << 27),      /*!< \c SQLSTAT -- SQL status, arg int (open=1/closed=0). Deprecated, use get_dcd instead */
     RIG_LEVEL_SWR =         (1 << 28),      /*!< \c SWR -- SWR, arg float [0.0 ... infinite] */
     RIG_LEVEL_ALC =         (1 << 29),      /*!< \c ALC -- ALC, arg float */
-    RIG_LEVEL_STRENGTH =    (1 << 30)       /*!< \c STRENGTH -- Effective (calibrated) signal strength relative to S9, arg int (dB) */
+    RIG_LEVEL_STRENGTH =    (1 << 30),      /*!< \c STRENGTH -- Effective (calibrated) signal strength relative to S9, arg int (dB) */
     /* RIG_LEVEL_BWC =         (1<<31) */        /*!< Bandwidth Control, arg int (Hz) */
+    RIG_LEVEL_RFPOWER_METER = CONSTANT_64BIT_FLAG(32),      /*!< \c RFPOWER_METER -- RF power output meter, arg float [0.0 ... 1.0] (percentage of maximum power) */
+    RIG_LEVEL_COMP_METER =    CONSTANT_64BIT_FLAG(33),      /*!< \c COMP_METER -- Audio output level compression meter, arg float (dB) */
+    RIG_LEVEL_VD_METER =      CONSTANT_64BIT_FLAG(34),      /*!< \c VD_METER -- Input voltage level meter, arg float (V, volts) */
+    RIG_LEVEL_ID_METER =      CONSTANT_64BIT_FLAG(35),      /*!< \c ID_METER -- Current draw meter, arg float (A, amperes) */
+
+    RIG_LEVEL_NOTCHF_RAW =    CONSTANT_64BIT_FLAG(36),      /*!< \c NOTCHF_RAW -- Notch Freq., arg float [0.0 ... 1.0] */
+    RIG_LEVEL_MONITOR_GAIN =  CONSTANT_64BIT_FLAG(37),      /*!< \c MONITOR_GAIN -- Monitor gain (level for monitoring of transmitted audio), arg float [0.0 ... 1.0] */
+    RIG_LEVEL_NB =            CONSTANT_64BIT_FLAG(38),      /*!< \c NB -- Noise Blanker level, arg float [0.0 ... 1.0] */
 };
 
-
-#define RIG_LEVEL_FLOAT_LIST (RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_APF|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_COMP|RIG_LEVEL_BALANCE|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX)
-
-#define RIG_LEVEL_READONLY_LIST (RIG_LEVEL_SQLSTAT|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_STRENGTH|RIG_LEVEL_RAWSTR)
+#define RIG_LEVEL_READONLY_LIST (RIG_LEVEL_SQLSTAT|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_STRENGTH|RIG_LEVEL_RAWSTR|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_COMP_METER|RIG_LEVEL_VD_METER|RIG_LEVEL_ID_METER)
 
 #define RIG_LEVEL_IS_FLOAT(l) ((l)&RIG_LEVEL_FLOAT_LIST)
 #define RIG_LEVEL_SET(l) ((l)&~RIG_LEVEL_READONLY_LIST)
@@ -844,8 +852,8 @@ typedef uint64_t setting_t;
 #define RIG_FUNC_AFLT       CONSTANT_64BIT_FLAG (34)   /*!< \c AFLT -- AF Filter setting */
 #define RIG_FUNC_ANL        CONSTANT_64BIT_FLAG (35)   /*!< \c ANL -- Noise limiter setting */
 #define RIG_FUNC_BC2        CONSTANT_64BIT_FLAG (36)   /*!< \c BC2 -- 2nd Beat Cancel */
-#define RIG_FUNC_BIT37      CONSTANT_64BIT_FLAG (37)   /* available for future RIG_FUNC items */
-#define RIG_FUNC_BIT38      CONSTANT_64BIT_FLAG (38)   /* available for future RIG_FUNC items */
+#define RIG_FUNC_DUAL_WATCH CONSTANT_64BIT_FLAG (37)   /*!< \c DUAL_WATCH -- Dual Watch / Sub Receiver */
+#define RIG_FUNC_DIVERSITY  CONSTANT_64BIT_FLAG (38)   /*!< \c DIVERSITY -- Diversity receive */
 #define RIG_FUNC_BIT39      CONSTANT_64BIT_FLAG (39)   /* available for future RIG_FUNC items */
 #define RIG_FUNC_BIT40      CONSTANT_64BIT_FLAG (40)   /* available for future RIG_FUNC items */
 #define RIG_FUNC_BIT41      CONSTANT_64BIT_FLAG (41)   /* available for future RIG_FUNC items */
@@ -1289,6 +1297,33 @@ typedef struct cal_table cal_table_t;
 #define EMPTY_STR_CAL { 0, { { 0, 0 }, } }
 
 
+/**
+ * \brief Calibration table struct for float values
+ */
+struct cal_table_float {
+  int size;                   /*!< number of plots in the table */
+  struct {
+    int raw;                  /*!< raw (A/D) value */
+    float val;                /*!< associated value */
+  } table[MAX_CAL_LENGTH];    /*!< table of plots */
+};
+
+/**
+ * \brief calibration table type for float values
+ *
+ * cal_table_float_t is a data type suited to hold linear calibration.
+ * cal_table_float_t.size tells the number of plots cal_table_float_t.table contains.
+ *
+ * If a value is below or equal to cal_table_float_t.table[0].raw,
+ * rig_raw2val_float() will return cal_table_float_t.table[0].val.
+ *
+ * If a value is greater or equal to cal_table_float_t.table[cal_table_float_t.size-1].raw,
+ * rig_raw2val_float() will return cal_table_float_t.table[cal_table_float_t.size-1].val.
+ */
+typedef struct cal_table_float cal_table_float_t;
+
+#define EMPTY_FLOAT_CAL { 0, { { 0, 0f }, } }
+
 typedef int (* chan_cb_t)(RIG *, channel_t **, int, const chan_t *, rig_ptr_t);
 typedef int (* confval_cb_t)(RIG *,
                              const struct confparams *,
@@ -1382,7 +1417,13 @@ struct rig_caps {
     struct tuning_step_list tuning_steps[TSLSTSIZ];     /*!< Tuning step list */
     struct filter_list filters[FLTLSTSIZ];              /*!< mode/filter table, at -6dB */
 
-    cal_table_t str_cal;        /*!< S-meter calibration table */
+    cal_table_t str_cal;                    /*!< S-meter calibration table */
+    cal_table_float_t swr_cal;              /*!< SWR meter calibration table */
+    cal_table_float_t alc_cal;              /*!< ALC meter calibration table */
+    cal_table_float_t rfpower_meter_cal;    /*!< RF power meter calibration table */
+    cal_table_float_t comp_meter_cal;       /*!< COMP meter calibration table */
+    cal_table_float_t vd_meter_cal;         /*!< Voltage meter calibration table */
+    cal_table_float_t id_meter_cal;         /*!< Current draw meter calibration table */
 
     const struct confparams *cfgparams; /*!< Configuration parametres. */
     const rig_ptr_t priv;               /*!< Private data. */

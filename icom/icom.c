@@ -39,6 +39,62 @@
 #include "icom_defs.h"
 #include "frame.h"
 
+const cal_table_float_t icom_default_swr_cal = {
+	5,
+	 {
+		 { 0, 1.0f },
+		 { 48, 1.5f },
+		 { 80, 2.0f },
+		 { 120, 3.0f },
+		 { 240, 6.0f }
+	 }
+};
+
+const cal_table_float_t icom_default_alc_cal = {
+	2,
+	{
+		{ 0, 0.0f },
+		{ 120, 1.0f }
+	}
+};
+
+const cal_table_float_t icom_default_rfpower_meter_cal = {
+	3,
+	{
+		{ 0, 0.0f },
+		{ 143, 0.5f },
+		{ 213, 1.0f }
+	}
+};
+
+const cal_table_float_t icom_default_comp_meter_cal = {
+	3,
+	{
+		{ 0, 0.0f },
+		{ 130, 15.0f },
+		{ 241, 30.0f }
+	}
+};
+
+const cal_table_float_t icom_default_vd_meter_cal = {
+	3,
+	{
+		{ 0, 0.0f },
+		{ 13, 10.0f },
+		{ 241, 16.0f }
+	}
+};
+
+const cal_table_float_t icom_default_id_meter_cal = {
+	4,
+	{
+		{ 0, 0.0f },
+		{ 97, 10.0f },
+		{ 146, 15.0f },
+		{ 241, 25.0f }
+	}
+};
+
 const struct ts_sc_list r8500_ts_sc_list[] = {
 	{ 10, 0x00 },
 	{ 50, 0x01 },
@@ -427,8 +483,7 @@ int icom_init(RIG *rig)
 	priv->re_civ_addr = priv_caps->re_civ_addr;
 	priv->civ_731_mode = priv_caps->civ_731_mode;
 	priv->no_xchg = priv_caps->no_xchg;
-	priv->civ_version = priv_caps->civ_version;
-	rig_debug(RIG_DEBUG_TRACE,"icom_init: civ_version=%d\n", priv->civ_version);
+	rig_debug(RIG_DEBUG_TRACE,"icom_init\n");
 
 	return RIG_OK;
 }
@@ -578,7 +633,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     case RIG_VFO_MAIN: 
       cmd = C_SET_VFO;
       subcmd = S_SUB_SEL;
-      data = 0 ;
+      data = 0;
       datalen = 1;
       break;
     case RIG_VFO_SUB: 
@@ -592,20 +647,10 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 	if (retval != RIG_OK)
 		return retval;
 
-  // The command to read Main/Sub freq is 1 byte longer
-  // So a simple solution here is to just move left 1 byte
-  if (cmd == C_SEND_SEL_FREQ) {
-    memmove(freqbuf,freqbuf+1,freq_len-1);
-    freq_len--; // have to take off one more byte from the response
-  }
 	/*
 	 * freqbuf should contain Cn,Data area
 	 */
 	freq_len--;
-  if (priv->civ_version >= 2) {
-    memmove(freqbuf,freqbuf+1,freq_len); 
-    freq_len--;
-  }
 
 	/*
 	 * is it a blank mem channel ?
@@ -663,6 +708,73 @@ int icom_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 	return RIG_OK;
 }
 
+int icom_get_rit_new(RIG *rig, vfo_t vfo, shortfreq_t *ts)
+{
+    unsigned char tsbuf[MAXFRAMELEN];
+    int ts_len, retval;
+
+    retval = icom_transaction(rig, C_CTL_RIT, S_RIT_FREQ, NULL, 0, tsbuf, &ts_len);
+    if (retval != RIG_OK) {
+        return retval;
+    }
+
+    /*
+     * tsbuf nibbles should contain 10,1,1000,100 hz digits and 00=+, 01=- bit
+     */
+    rig_debug(RIG_DEBUG_VERBOSE, "ts_len=%d\n", ts_len);
+    if (ts_len != 5) {
+        rig_debug(RIG_DEBUG_ERR, "%s: wrong frame len=%d\n", __func__, ts_len);
+        return -RIG_ERJCTED;
+    }
+
+    *ts = (shortfreq_t) from_bcd(tsbuf + 2, 4);
+    if (tsbuf[4] != 0) {
+        *ts *= -1;
+    }
+
+    return RIG_OK;
+}
+
+// The Icom rigs have only one register for both RIT and Delta TX
+// you can turn one or both on -- but both end up just being in sync.
+static int icom_set_it_new(RIG *rig, vfo_t vfo, shortfreq_t ts, int set_xit) {
+    unsigned char tsbuf[8];
+    unsigned char ackbuf[16];
+    int ack_len;
+    int retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: ts=%d\n", __func__, ts);
+
+    to_bcd(tsbuf, abs((int) ts), 4);
+    // set sign bit
+    tsbuf[2] = (ts < 0) ? 1 : 0;
+
+    retval = icom_transaction(rig, C_CTL_RIT, S_RIT_FREQ, tsbuf, 3, ackbuf, &ack_len);
+    if (retval != RIG_OK) {
+        return retval;
+    }
+
+    if (ts == 0) { // Turn off both RIT/XIT
+        retval = icom_set_func(rig, vfo, RIG_FUNC_XIT, 0);
+        if (retval != RIG_OK) {
+            return retval;
+        }
+        retval = icom_set_func(rig, vfo, RIG_FUNC_RIT, 0);
+    } else {
+        retval = icom_set_func(rig, vfo, set_xit ? RIG_FUNC_XIT : RIG_FUNC_RIT, 1);
+    }
+    return retval;
+}
+
+int icom_set_rit_new(RIG *rig, vfo_t vfo, shortfreq_t ts)
+{
+    return icom_set_it_new(rig, vfo, ts, 0);
+}
+
+int icom_set_xit_new(RIG *rig, vfo_t vfo, shortfreq_t ts)
+{
+    return icom_set_it_new(rig, vfo, ts, 1);
+}
 
 /* icom_get_dsp_flt
 	returns the dsp filter width in hz or 0 if the command is not implemented or error.
@@ -774,55 +886,63 @@ int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width) {
  */
 int icom_set_mode_with_data (RIG * rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-  int retval;
-  unsigned char datamode;
-  unsigned char ackbuf[MAXFRAMELEN];
-  int ack_len=sizeof(ackbuf);
-  rmode_t icom_mode;
-  unsigned char dm_sub_cmd = RIG_MODEL_IC7200 == rig->caps->rig_model ? 0x04 : S_MEM_DATA_MODE;
+    int retval;
+    unsigned char datamode;
+    unsigned char ackbuf[MAXFRAMELEN];
+    int ack_len = sizeof(ackbuf);
+    rmode_t icom_mode;
+    unsigned char dm_sub_cmd = RIG_MODEL_IC7200 == rig->caps->rig_model ? 0x04 : S_MEM_DATA_MODE;
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-  switch (mode)
-    {
-    case RIG_MODE_PKTUSB: icom_mode = RIG_MODE_USB; break;
-    case RIG_MODE_PKTLSB: icom_mode = RIG_MODE_LSB; break;
-    case RIG_MODE_PKTFM: icom_mode = RIG_MODE_FM; break;
-    default: icom_mode = mode; break;
-    };
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  retval = icom_set_mode (rig, vfo, icom_mode, width);
+    switch (mode) {
+    case RIG_MODE_PKTUSB:
+        icom_mode = RIG_MODE_USB;
+        break;
+    case RIG_MODE_PKTLSB:
+        icom_mode = RIG_MODE_LSB;
+        break;
+    case RIG_MODE_PKTFM:
+        icom_mode = RIG_MODE_FM;
+        break;
+    case RIG_MODE_PKTAM:
+        icom_mode = RIG_MODE_AM;
+        break;
+    default:
+        icom_mode = mode;
+        break;
+    }
 
-  if (RIG_OK == retval)
-    {
-      if (RIG_MODE_PKTUSB == mode || RIG_MODE_PKTLSB == mode || RIG_MODE_PKTFM == mode)
-        {
-          datamode = 0x01;      /* some rigs (e.g. IC-7700 & IC-7800)
-                                   have D1/2/3 but we cannot know
-                                   which to set so just set D1 */
+    retval = icom_set_mode(rig, vfo, icom_mode, width);
+
+    if (RIG_OK == retval) {
+        switch (mode) {
+        case RIG_MODE_PKTUSB:
+        case RIG_MODE_PKTLSB:
+        case RIG_MODE_PKTFM:
+        case RIG_MODE_PKTAM:
+            /* some rigs (e.g. IC-7700 & IC-7800)
+               have D1/2/3 but we cannot know
+               which to set so just set D1 */
+            datamode = 0x01;
+            break;
+        default:
+            datamode = 0x00;
+            break;
         }
-      else
-        {
-          datamode = 0x00;
-        }
 
-      retval = icom_transaction (rig, C_CTL_MEM, dm_sub_cmd, &datamode, 1,
-                                 ackbuf, &ack_len);
-      if (retval != RIG_OK)
-        {
-          rig_debug(RIG_DEBUG_ERR,"%s: protocol error (%#.2x), "
-                    "len=%d\n", __FUNCTION__,ackbuf[0],ack_len);
-        }
-      else
-        {
-          if (ack_len != 1 || ackbuf[0] != ACK)
-            {
-              rig_debug(RIG_DEBUG_ERR,"%s: command not supported ? (%#.2x), "
-                        "len=%d\n", __FUNCTION__,ackbuf[0],ack_len);
+        retval = icom_transaction(rig, C_CTL_MEM, dm_sub_cmd, &datamode, 1, ackbuf, &ack_len);
+
+        if (retval != RIG_OK) {
+            rig_debug(RIG_DEBUG_ERR, "%s: protocol error (%#.2x), len=%d\n", __FUNCTION__, ackbuf[0], ack_len);
+        } else {
+            if (ack_len != 1 || ackbuf[0] != ACK) {
+                rig_debug(RIG_DEBUG_ERR, "%s: command not supported ? (%#.2x), len=%d\n", __FUNCTION__, ackbuf[0], ack_len);
             }
         }
     }
 
-  return retval;
+    return retval;
 }
 
 /*
@@ -896,56 +1016,71 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
  */
 int icom_get_mode_with_data(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-  unsigned char databuf[MAXFRAMELEN];
-  int data_len, retval;
-  unsigned char dm_sub_cmd = RIG_MODEL_IC7200 == rig->caps->rig_model ? 0x04 : S_MEM_DATA_MODE;
+    unsigned char databuf[MAXFRAMELEN];
+    int data_len, retval;
+    unsigned char dm_sub_cmd = RIG_MODEL_IC7200 == rig->caps->rig_model ? 0x04 : S_MEM_DATA_MODE;
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-  retval = icom_get_mode (rig, vfo, mode, width);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    retval = icom_get_mode(rig, vfo, mode, width);
 
-  if (RIG_OK == retval && (RIG_MODE_USB == *mode || RIG_MODE_LSB == *mode || RIG_MODE_FM == *mode))
-    {
+    if (retval != RIG_OK) {
+        return retval;
+    }
+
+    switch (*mode) {
+    case RIG_MODE_USB:
+    case RIG_MODE_LSB:
+    case RIG_MODE_AM:
+    case RIG_MODE_FM:
       /*
        * fetch data mode on/off
        */
-      retval = icom_transaction (rig, C_CTL_MEM, dm_sub_cmd, 0, 0,
-                                 databuf, &data_len);
-      if (retval != RIG_OK)
-        {
-          rig_debug(RIG_DEBUG_ERR,"%s: protocol error (%#.2x), "
-                    "len=%d\n", __FUNCTION__, databuf[0], data_len);
+      retval = icom_transaction(rig, C_CTL_MEM, dm_sub_cmd, 0, 0, databuf, &data_len);
+      if (retval != RIG_OK) {
+          rig_debug(RIG_DEBUG_ERR, "%s: protocol error (%#.2x), len=%d\n", __FUNCTION__, databuf[0], data_len);
           return -RIG_ERJCTED;
-        }
+      }
 
       /*
        * databuf should contain Cn,Sc,D0[,D1]
        */
       data_len -= 2;
-      if (1 > data_len || data_len > 2)	/* manual says 1 byte answer
-                                           but at least IC756 ProIII
-                                           sends 2 - second byte
-                                           appears to be same as
-                                           second byte from 04 command
-                                           which is filter preset
-                                           number, whatever it is we
-                                           ignore it */
-        {
-          rig_debug(RIG_DEBUG_ERR,"%s: wrong frame len=%d\n",
-                    __FUNCTION__, data_len);
+      if (1 > data_len || data_len > 2) {
+          /* manual says 1 byte answer
+             but at least IC756 ProIII
+             sends 2 - second byte
+             appears to be same as
+             second byte from 04 command
+             which is filter preset
+             number, whatever it is we
+             ignore it */
+          rig_debug(RIG_DEBUG_ERR, "%s: wrong frame len=%d\n", __FUNCTION__, data_len);
           return -RIG_ERJCTED;
-        }
-      if (databuf[2])	/* 0x01/0x02/0x03 -> data mode, 0x00 -> not data mode */
-        {
-          switch (*mode)
-            {
-            case RIG_MODE_USB: *mode = RIG_MODE_PKTUSB; break;
-            case RIG_MODE_LSB: *mode = RIG_MODE_PKTLSB; break;
-            case RIG_MODE_FM: *mode = RIG_MODE_PKTFM; break;
-            default: break;
-            }
-        }
+      }
+
+      if (databuf[2]) {    /* 0x01/0x02/0x03 -> data mode, 0x00 -> not data mode */
+          switch (*mode) {
+          case RIG_MODE_USB:
+              *mode = RIG_MODE_PKTUSB;
+              break;
+          case RIG_MODE_LSB:
+              *mode = RIG_MODE_PKTLSB;
+              break;
+          case RIG_MODE_AM:
+              *mode = RIG_MODE_PKTAM;
+              break;
+          case RIG_MODE_FM:
+              *mode = RIG_MODE_PKTFM;
+              break;
+          default:
+              break;
+          }
+      }
+      default:
+          break;
     }
-  return retval;
+
+    return retval;
 }
 
 /*
@@ -1103,7 +1238,6 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
 	struct rig_state *rs;
-	struct icom_priv_data *priv;
 	unsigned char lvlbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
 	int ack_len=sizeof(ackbuf), lvl_len;
 	int lvl_cn, lvl_sc;		/* Command Number, Subcommand */
@@ -1112,7 +1246,9 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 	rs = &rig->state;
-	priv = (struct icom_priv_data*)rs->priv;
+
+    const struct icom_priv_caps *priv_caps =
+            (const struct icom_priv_caps*) rig->caps->priv;
 
 	/*
 	 * So far, levels of float type are in [0.0..1.0] range
@@ -1138,16 +1274,27 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 				break;
 		}
 	}
-	if (priv->civ_version == 1) {
-		switch (level) {
-			case RIG_LEVEL_KEYSPD:
-				if (val.i < 6) val.i = 6;
-				if (val.i > 48) val.i = 48;
-				icom_val = (val.i-6)*(255/42.0)+.99;
-			default:
-				break;
-		}
-	}
+
+    switch (level) {
+        case RIG_LEVEL_KEYSPD:
+            if (val.i < 6) {
+                icom_val = 6;
+            } else if (val.i > 48) {
+                icom_val = 48;
+            }
+            icom_val = (int) lroundf(((float) icom_val - 6.0f) * (255.0f / 42.0f));
+            break;
+        case RIG_LEVEL_CWPITCH:
+            if (val.i < 300) {
+                icom_val = 300;
+            } else if (val.i >= 900) {
+                icom_val = 900;
+            }
+            icom_val = (int) lroundf(((float) icom_val - 300) * (255.0f / 600.0f));
+            break;
+        default:
+            break;
+    }
 
 	/*
 	 * Most of the time, the data field is a 3 digit BCD,
@@ -1207,6 +1354,10 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		lvl_cn = C_CTL_LVL;
 		lvl_sc = S_LVL_NR;
 		break;
+	case RIG_LEVEL_NB:
+		lvl_cn = C_CTL_LVL;
+		lvl_sc = S_LVL_NB;
+		break;
 	case RIG_LEVEL_PBT_IN:
 		lvl_cn = C_CTL_LVL;
 		lvl_sc = S_LVL_PBTIN;
@@ -1239,7 +1390,7 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		lvl_cn = C_CTL_LVL;
 		lvl_sc = S_LVL_KEYSPD;
 		break;
-	case RIG_LEVEL_NOTCHF:
+	case RIG_LEVEL_NOTCHF_RAW:
 		lvl_cn = C_CTL_LVL;
 		lvl_sc = S_LVL_NOTCHF;
 		break;
@@ -1247,20 +1398,45 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		lvl_cn = C_CTL_LVL;
 		lvl_sc = S_LVL_COMP;
 		break;
-	case RIG_LEVEL_AGC:
-		lvl_cn = C_CTL_FUNC;
-		lvl_sc = S_FUNC_AGC;
-		lvl_len = 1;
-        switch (val.i) {
-            case RIG_AGC_SLOW:   lvlbuf[0] = D_AGC_SLOW; break;
-            case RIG_AGC_MEDIUM: lvlbuf[0] = D_AGC_MID; break;
-            case RIG_AGC_FAST:   lvlbuf[0] = D_AGC_FAST; break;
-            case RIG_AGC_SUPERFAST: lvlbuf[0] = D_AGC_SUPERFAST; break;
-            default:
-                rig_debug(RIG_DEBUG_ERR,"Unsupported LEVEL_AGC %d", val.i);
+    case RIG_LEVEL_AGC:
+        lvl_cn = C_CTL_FUNC;
+        lvl_sc = S_FUNC_AGC;
+        lvl_len = 1;
+
+        if (priv_caps->agc_levels_present) {
+            int found = 0;
+
+            for (i = 0; i <= RIG_AGC_LAST && priv_caps->agc_levels[i].level >= 0; i++) {
+                if (priv_caps->agc_levels[i].level == val.i) {
+                    lvlbuf[0] = priv_caps->agc_levels[i].icom_level;
+                    found = 1;
+                    break;
+                }
+            }
+            if (!found) {
                 return -RIG_EINVAL;
+            }
+        } else {
+            // Legacy mapping that does not apply to all rigs
+            switch (val.i) {
+            case RIG_AGC_SLOW:
+                lvlbuf[0] = D_AGC_SLOW;
+                break;
+            case RIG_AGC_MEDIUM:
+                lvlbuf[0] = D_AGC_MID;
+                break;
+            case RIG_AGC_FAST:
+                lvlbuf[0] = D_AGC_FAST;
+                break;
+            case RIG_AGC_SUPERFAST:
+                lvlbuf[0] = D_AGC_SUPERFAST;
+                break;
+            default:
+                rig_debug(RIG_DEBUG_ERR, "Unsupported LEVEL_AGC %d", val.i);
+                return -RIG_EINVAL;
+            }
         }
-		break;
+        break;
 	case RIG_LEVEL_BKINDL:
 		lvl_cn = C_CTL_LVL;
 		lvl_sc = S_LVL_BKINDL;
@@ -1279,19 +1455,6 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
                 lvl_sc = S_LVL_VOXGAIN;
             }
             break;
-        case RIG_LEVEL_VOXDELAY:
-            if (priv->civ_version == 1) {
-                lvl_cn = C_CTL_MEM;
-                lvl_sc = 0x05; // plus 0191 and value 0-20 = 0-2 secs
-                lvl_len = 2;
-		lvlbuf[0] = 0x01;
-		lvlbuf[1] = 0x91;
-            }
-            else { /* IC-910H */
-                lvl_cn = C_CTL_MEM;
-                lvl_sc = S_MEM_VOXDELAY;
-            }
-            break;
         case RIG_LEVEL_ANTIVOX:
             if (rig->caps->rig_model == RIG_MODEL_IC910) {
                 /* IC-910H */
@@ -1302,19 +1465,21 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
                 lvl_sc = S_LVL_ANTIVOX;
             }
             break;
+	case RIG_LEVEL_MONITOR_GAIN:
+		lvl_cn = C_CTL_LVL;
+		lvl_sc = S_LVL_MON;
+		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"Unsupported set_level %d", level);
 		return -RIG_EINVAL;
 	}
 
-	retval = icom_transaction (rig, lvl_cn, lvl_sc, lvlbuf, lvl_len,
-					ackbuf, &ack_len);
+	retval = icom_transaction (rig, lvl_cn, lvl_sc, lvlbuf, lvl_len, ackbuf, &ack_len);
 	if (retval != RIG_OK)
 		return retval;
 
 	if (ack_len != 1 || ackbuf[0] != ACK) {
-		rig_debug(RIG_DEBUG_ERR,"icom_set_level: ack NG (%#.2x), "
-					"len=%d\n", ackbuf[0], ack_len);
+		rig_debug(RIG_DEBUG_ERR,"icom_set_level: ack NG (%#.2x), len=%d\n", ackbuf[0], ack_len);
 		return -RIG_ERJCTED;
 	}
 
@@ -1325,16 +1490,10 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
  * icom_get_level
  * Assumes rig!=NULL, rig->state.priv!=NULL, val!=NULL
  *
- * TODO (missing RIG_LEVEL):
- * - S_RiML: Read real RFpower-meter level
- * - S_CMP: Read COMP-meter level
- * - S_VD : Read Vd-meter level
- * - S_ID : Read Id-meter level
  */
 int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
 	struct rig_state *rs;
-	struct icom_priv_data *priv;
 	unsigned char lvlbuf[MAXFRAMELEN], lvl2buf[MAXFRAMELEN];
 	int lvl_len, lvl2_len;
 	int lvl_cn, lvl_sc;		/* Command Number, Subcommand */
@@ -1344,7 +1503,9 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 	rs = &rig->state;
-	priv = (struct icom_priv_data*)rs->priv;
+
+    const struct icom_priv_caps *priv_caps =
+            (const struct icom_priv_caps*) rig->caps->priv;
 
 	lvl2_len = 0;
 
@@ -1361,6 +1522,22 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	case RIG_LEVEL_SWR:
 		lvl_cn = C_RD_SQSM;
 		lvl_sc = S_SWR;
+		break;
+	case RIG_LEVEL_RFPOWER_METER:
+		lvl_cn = C_RD_SQSM;
+		lvl_sc = S_RFML;
+		break;
+	case RIG_LEVEL_COMP_METER:
+		lvl_cn = C_RD_SQSM;
+		lvl_sc = S_CMP;
+		break;
+	case RIG_LEVEL_VD_METER:
+		lvl_cn = C_RD_SQSM;
+		lvl_sc = S_VD;
+		break;
+	case RIG_LEVEL_ID_METER:
+		lvl_cn = C_RD_SQSM;
+		lvl_sc = S_ID;
 		break;
 	case RIG_LEVEL_PREAMP:
 		lvl_cn = C_CTL_FUNC;
@@ -1394,6 +1571,10 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		lvl_cn = C_CTL_LVL;
 		lvl_sc = S_LVL_NR;
 		break;
+	case RIG_LEVEL_NB:
+		lvl_cn = C_CTL_LVL;
+		lvl_sc = S_LVL_NB;
+		break;
 	case RIG_LEVEL_PBT_IN:
 		lvl_cn = C_CTL_LVL;
 		lvl_sc = S_LVL_PBTIN;
@@ -1425,7 +1606,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		lvl_cn = C_CTL_LVL;
 		lvl_sc = S_LVL_KEYSPD;
 		break;
-	case RIG_LEVEL_NOTCHF:
+	case RIG_LEVEL_NOTCHF_RAW:
 		lvl_cn = C_CTL_LVL;
 		lvl_sc = S_LVL_NOTCHF;
 		break;
@@ -1455,10 +1636,6 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                 lvl_sc = S_LVL_VOXGAIN;
             }
             break;
-        case RIG_LEVEL_VOXDELAY:    /* IC-910H */
-            lvl_cn = C_CTL_MEM;
-            lvl_sc = S_MEM_VOXDELAY;
-            break;
         case RIG_LEVEL_ANTIVOX:
             if (rig->caps->rig_model == RIG_MODEL_IC910) {
                 /* IC-910H */
@@ -1469,21 +1646,17 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                 lvl_sc = S_LVL_ANTIVOX;
             }
             break;
-/* Not implemented yet
-        case TOK_LEVEL_MONITOR:
-	    lvl_cn = C_CTL_MEM;
-            lvl_sc = S_MEM_MONITOR;
-            break;
-*/
-
+	case RIG_LEVEL_MONITOR_GAIN:
+		lvl_cn = C_CTL_LVL;
+		lvl_sc = S_LVL_MON;
+		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"Unsupported get_level %d", level);
 		return -RIG_EINVAL;
 	}
 
 	/* use lvl2buf and lvl2_len for 'set mode' subcommand */
-	retval = icom_transaction (rig, lvl_cn, lvl_sc, lvl2buf, lvl2_len,
-					lvlbuf, &lvl_len);
+	retval = icom_transaction (rig, lvl_cn, lvl_sc, lvl2buf, lvl2_len, lvlbuf, &lvl_len);
 	if (retval != RIG_OK)
 		return retval;
 
@@ -1499,8 +1672,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	}
 
 	if (lvlbuf[0] != ACK && lvlbuf[0] != lvl_cn) {
-		rig_debug(RIG_DEBUG_ERR,"icom_get_level: ack NG (%#.2x), "
-					"len=%d\n", lvlbuf[0],lvl_len);
+		rig_debug(RIG_DEBUG_ERR,"icom_get_level: ack NG (%#.2x), len=%d\n", lvlbuf[0],lvl_len);
 		return -RIG_ERJCTED;
 	}
 
@@ -1518,25 +1690,89 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		/* raw value */
 		val->i = icom_val;
 		break;
-	case RIG_LEVEL_AGC:
-        switch (icom_val) {
-            case D_AGC_SLOW: val->i = RIG_AGC_SLOW; break;
-            case D_AGC_MID:  val->i = RIG_AGC_MEDIUM; break;
-            case D_AGC_FAST: val->i = RIG_AGC_FAST; break;
-            case D_AGC_SUPERFAST: val->i = RIG_AGC_SUPERFAST; break;
-            default:
-                rig_debug(RIG_DEBUG_ERR,"Unexpected AGC 0x%02x", icom_val);
+    case RIG_LEVEL_AGC:
+        if (priv_caps->agc_levels_present) {
+            int found = 0;
+
+            for (int i = 0; i <= RIG_AGC_LAST && priv_caps->agc_levels[i].level >= 0; i++) {
+                if (priv_caps->agc_levels[i].icom_level == icom_val) {
+                    val->i = priv_caps->agc_levels[i].level;
+                    found = 1;
+                    break;
+                }
+            }
+            if (!found) {
+                rig_debug(RIG_DEBUG_ERR, "Unexpected AGC 0x%02x", icom_val);
                 return -RIG_EPROTO;
+            }
+        } else {
+            switch (icom_val) {
+            case D_AGC_SLOW:
+                val->i = RIG_AGC_SLOW;
+                break;
+            case D_AGC_MID:
+                val->i = RIG_AGC_MEDIUM;
+                break;
+            case D_AGC_FAST:
+                val->i = RIG_AGC_FAST;
+                break;
+            case D_AGC_SUPERFAST:
+                val->i = RIG_AGC_SUPERFAST;
+                break;
+            default:
+                rig_debug(RIG_DEBUG_ERR, "Unexpected AGC 0x%02x", icom_val);
+                return -RIG_EPROTO;
+            }
         }
-		break;
-	case RIG_LEVEL_ALC:
-        /* 120 max on IC-7600 */
-		val->f = (float)icom_val/120;
-		break;
-	case RIG_LEVEL_SWR:
-        /* {0->1, 48->1.5, 80->2} on IC-7600 */
-		val->f = 1. + (float)icom_val/80;
-		break;
+        break;
+    case RIG_LEVEL_ALC:
+      if (rig->caps->alc_cal.size == 0) {
+        val->f = rig_raw2val_float(icom_val, &icom_default_alc_cal);
+      } else {
+        val->f = rig_raw2val_float(icom_val, &rig->caps->alc_cal);
+      }
+      break;
+    case RIG_LEVEL_SWR:
+      if (rig->caps->swr_cal.size == 0) {
+        val->f = rig_raw2val_float(icom_val, &icom_default_swr_cal);
+      } else {
+        val->f = rig_raw2val_float(icom_val, &rig->caps->swr_cal);
+      }
+      break;
+    case RIG_LEVEL_RFPOWER_METER:
+      if (rig->caps->rfpower_meter_cal.size == 0) {
+        val->f = rig_raw2val_float(icom_val, &icom_default_rfpower_meter_cal);
+      } else {
+        val->f = rig_raw2val_float(icom_val, &rig->caps->rfpower_meter_cal);
+      }
+      break;
+    case RIG_LEVEL_COMP_METER:
+      if (rig->caps->comp_meter_cal.size == 0) {
+        val->f = rig_raw2val_float(icom_val, &icom_default_comp_meter_cal);
+      } else {
+        val->f = rig_raw2val_float(icom_val, &rig->caps->comp_meter_cal);
+      }
+      break;
+    case RIG_LEVEL_VD_METER:
+      if (rig->caps->vd_meter_cal.size == 0) {
+        val->f = rig_raw2val_float(icom_val, &icom_default_vd_meter_cal);
+      } else {
+        val->f = rig_raw2val_float(icom_val, &rig->caps->vd_meter_cal);
+      }
+      break;
+    case RIG_LEVEL_ID_METER:
+      if (rig->caps->id_meter_cal.size == 0) {
+        val->f = rig_raw2val_float(icom_val, &icom_default_id_meter_cal);
+      } else {
+        val->f = rig_raw2val_float(icom_val, &rig->caps->id_meter_cal);
+      }
+      break;
+    case RIG_LEVEL_CWPITCH:
+        val->i = (int) lroundf(300.0f + ((float) icom_val * 600.0f / 255.0f));
+        break;
+    case RIG_LEVEL_KEYSPD:
+        val->i = (int) lroundf((float) icom_val * (42.0f / 255.0f) + 6.0f);
+        break;
 	case RIG_LEVEL_PREAMP:
 		if (icom_val == 0) {
 			val->i = 0;
@@ -1574,13 +1810,6 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				break;
 		}
 	}
-	else if ((priv->civ_version == 1)&&(level==RIG_LEVEL_KEYSPD)){
-		switch (level) {
-			case RIG_LEVEL_KEYSPD:
-				val->i = val->i*(42.0/255)+6+.5;
-				break;
-		}
-	}
 
 	rig_debug(RIG_DEBUG_TRACE,"icom_get_level: %d %d %d %f\n", lvl_len,
 					icom_val, val->i, val->f);
@@ -1591,37 +1820,65 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 /*
  * icom_set_ext_level
  * Assumes rig!=NULL, rig->state.priv!=NULL
- *
  */
 int icom_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-	switch (token) {
-		case TOK_LEVEL_MONITOR:
-			rig_debug(RIG_DEBUG_VERBOSE, "TOK_LEVEL_MONITOR\n", __func__);
-			break;
-		default: return -RIG_EINVAL;
-	}
-	return RIG_OK;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    switch (token) {
+        case TOK_DRIVE_GAIN:
+            return icom_set_raw(rig, C_CTL_LVL, S_LVL_DRIVE, 0, NULL, 2, (int) val.f);
+        case TOK_DIGI_SEL_FUNC:
+            return icom_set_raw(rig, C_CTL_FUNC, S_FUNC_DIGISEL, 0, NULL, 1, val.i ? 1 : 0);
+        case TOK_DIGI_SEL_LEVEL:
+            return icom_set_raw(rig, C_CTL_LVL, S_LVL_DIGI, 0, NULL, 2, (int) val.f);
+        default:
+            return -RIG_EINVAL;
+    }
 }
 
 /*
  * icom_get_ext_level
  * Assumes rig!=NULL, rig->state.priv!=NULL, val!=NULL
- *
  */
 int icom_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-	switch (token) {
-		case TOK_LEVEL_MONITOR:
-			rig_debug(RIG_DEBUG_VERBOSE, "TOK_LEVEL_MONITOR\n", __func__);
-			break;
-		default: return -RIG_EINVAL;
-	}
-	return RIG_OK;
-}
+    int icom_val;
+    int retval;
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    switch (token) {
+        case TOK_DRIVE_GAIN:
+            retval = icom_get_raw(rig, C_CTL_LVL, S_LVL_DRIVE, 0, NULL, &icom_val);
+            if (retval != RIG_OK) {
+                return retval;
+            }
+
+            val->f = (float) icom_val;
+            break;
+        case TOK_DIGI_SEL_FUNC:
+            retval = icom_get_raw(rig, C_CTL_FUNC, S_FUNC_DIGISEL, 0, NULL, &icom_val);
+            if (retval != RIG_OK) {
+                return retval;
+            }
+
+            val->i = icom_val ? 1 : 0;
+            break;
+        case TOK_DIGI_SEL_LEVEL:
+            retval = icom_get_raw(rig, C_CTL_LVL, S_LVL_DIGI, 0, NULL, &icom_val);
+            if (retval != RIG_OK) {
+                return retval;
+            }
+
+            val->f = (float) icom_val;
+            break;
+        default:
+            return -RIG_EINVAL;
+    }
+
+    return RIG_OK;
+}
 
 /*
  * Assumes rig!=NULL, rig->state.priv!=NULL
@@ -1848,7 +2105,7 @@ int icom_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 		*rptr_shift = RIG_RPT_SHIFT_NONE;	/* Simplex mode */
 		break;
 	case S_DUP_M:
-		*rptr_shift = RIG_RPT_SHIFT_MINUS;		/* Duples - mode */
+		*rptr_shift = RIG_RPT_SHIFT_MINUS;		/* Duplex - mode */
 		break;
 	case S_DUP_P:
 		*rptr_shift = RIG_RPT_SHIFT_PLUS;		/* Duplex + mode */
@@ -2475,171 +2732,148 @@ int icom_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
  */
 int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
-	struct icom_priv_data *priv;
-	struct rig_state *rs;
-	unsigned char fctbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
-	int fct_len, acklen, retval;
-	int fct_cn, fct_sc;		/* Command Number, Subcommand */
+    unsigned char fctbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
+    int fct_len, acklen, retval;
+    int fct_cn, fct_sc;        /* Command Number, Subcommand */
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	rs = &rig->state;
-	priv = (struct icom_priv_data*)rs->priv;
+    fctbuf[0] = status ? 0x01 : 0x00;
+    fct_len = 1;
 
-	/* r8500, the problem rig */
-	int r8500 = (rig->caps->rig_model == RIG_MODEL_ICR8500)? 1 : 0;
-
-	/*
-	 * except for IC-R8500
-	 */
-	fctbuf[0] = status? 0x01:0x00;
-	fct_len = r8500 ? 0 : 1;
-
-	switch (func) {
-	case RIG_FUNC_FAGC:
-		fct_cn = C_CTL_FUNC;
-		fct_sc = (r8500)?(status)?S_FUNC_AGCON:S_FUNC_AGCOFF:S_FUNC_AGC;
-		/* fct_sc = S_FUNC_AGC; */
-		/* note: should it be a LEVEL only, and no func? --SF */
-		if (priv->civ_version == 1) {
-			fct_len = 1;
-			fctbuf[0] = status;
-		}
-		else if (status != 0) {
-			fctbuf[0] = 0x03;	/* default to 0x03 in IC746 pro super-fast */
-		}
-		else {
-			fctbuf[0] = 0x02;
-		}
-		break;
-	case RIG_FUNC_NB:
-		fct_cn = C_CTL_FUNC;
-		fct_sc = (r8500)?(status)?S_FUNC_NBON:S_FUNC_NBOFF:S_FUNC_NB;
-		/* fct_sc = S_FUNC_NB; */
-		break;
-	case RIG_FUNC_COMP:
-		fct_cn = C_CTL_FUNC;
-		fct_sc = S_FUNC_COMP;
-		break;
-	case RIG_FUNC_VOX:
-		fct_cn = C_CTL_FUNC;
-		fct_sc = S_FUNC_VOX;
-		break;
-	case RIG_FUNC_TONE:		/* repeater tone */
-		fct_cn = C_CTL_FUNC;
-		fct_sc = S_FUNC_TONE;
-		break;
-	case RIG_FUNC_TSQL:
-		fct_cn = C_CTL_FUNC;
-		fct_sc = S_FUNC_TSQL;
-		break;
-	case RIG_FUNC_SBKIN:
-		fct_cn = C_CTL_FUNC;
-		fct_sc = S_FUNC_BKIN;
-		if (status != 0)
-			fctbuf[0] = 0x01;
-		else
-			fctbuf[0] = 0x00;
-		break;
-	case RIG_FUNC_FBKIN:
-		fct_cn = C_CTL_FUNC;
-		fct_sc = S_FUNC_BKIN;
-		if (status != 0)
-			fctbuf[0] = 0x02;
-		else
-			fctbuf[0] = 0x00;
-		break;
-	case RIG_FUNC_ANF:
-		fct_cn = C_CTL_FUNC;
-		fct_sc = S_FUNC_ANF;
-		break;
-	case RIG_FUNC_NR:
-		fct_cn = C_CTL_FUNC;
-		fct_sc = S_FUNC_NR;
-		break;
-	case RIG_FUNC_APF:
-		fct_cn = C_CTL_FUNC;
-		fct_sc = (r8500)?(status)?S_FUNC_APFON:S_FUNC_APFOFF:S_FUNC_APF;
-		/* fct_sc = S_FUNC_APF; */
-		break;
-	case RIG_FUNC_MON:
-		fct_cn = C_CTL_FUNC;
-		fct_sc = S_FUNC_MON;
-		break;
-	case RIG_FUNC_MN:
-		fct_cn = C_CTL_FUNC;
-		fct_sc = S_FUNC_MN;
-		break;
-	case RIG_FUNC_RF:
-		fct_cn = C_CTL_FUNC;
-		fct_sc = S_FUNC_RF;
-		break;
-	case RIG_FUNC_VSC:
-		fct_cn = C_CTL_FUNC;
-		fct_sc = S_FUNC_VSC;
-		break;
-	case RIG_FUNC_LOCK:
-		fct_cn = C_CTL_FUNC;
-		fct_sc = S_FUNC_DIAL_LK;
-		break;
+    switch (func) {
+    case RIG_FUNC_NB:
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_NB;
+        break;
+    case RIG_FUNC_COMP:
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_COMP;
+        break;
+    case RIG_FUNC_VOX:
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_VOX;
+        break;
+    case RIG_FUNC_TONE:        /* repeater tone */
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_TONE;
+        break;
+    case RIG_FUNC_TSQL:
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_TSQL;
+        break;
+    case RIG_FUNC_SBKIN:
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_BKIN;
+        if (status != 0)
+            fctbuf[0] = 0x01;
+        else
+            fctbuf[0] = 0x00;
+        break;
+    case RIG_FUNC_FBKIN:
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_BKIN;
+        if (status != 0)
+            fctbuf[0] = 0x02;
+        else
+            fctbuf[0] = 0x00;
+        break;
+    case RIG_FUNC_ANF:
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_ANF;
+        break;
+    case RIG_FUNC_NR:
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_NR;
+        break;
+    case RIG_FUNC_APF:
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_APF;
+        break;
+    case RIG_FUNC_MON:
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_MON;
+        break;
+    case RIG_FUNC_MN:
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_MN;
+        break;
+    case RIG_FUNC_RF:
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_RF;
+        break;
+    case RIG_FUNC_VSC:
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_VSC;
+        break;
+    case RIG_FUNC_LOCK:
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_DIAL_LK;
+        break;
     case RIG_FUNC_AFC:      /* IC-910H */
         fct_cn = C_CTL_FUNC;
         fct_sc = S_FUNC_AFC;
         break;
-    case RIG_FUNC_SATMODE:  /* IC-910H */
-        fct_cn = C_CTL_MEM;
-        fct_sc = S_MEM_SATMODE;
-        break;
     case RIG_FUNC_SCOPE:
-		if (priv->civ_version == 1) { /* IC-7200/7300 */
-			fct_cn = 0x27;
-			fct_sc = 0x10;
-			fctbuf[0] = status;
-			fct_len = 1;
-		}
-		else { /* IC-910H */
-			fct_cn = C_CTL_MEM;
-			fct_sc = S_MEM_BANDSCOPE;
-		}
-		break;
-	case RIG_FUNC_RESUME:	/* IC-910H  & IC-746-Pro*/
-		fct_cn = C_CTL_SCAN;
-		fct_sc = status ? S_SCAN_RSMON : S_SCAN_RSMOFF;
-		fct_len = 0;
-		break;
-	case RIG_FUNC_DSQL:
-		fct_cn = C_CTL_FUNC;
-		fct_sc = S_FUNC_DSQL;
-		break;
-	case RIG_FUNC_AFLT:
-		fct_cn = C_CTL_MEM;
-		fct_sc = S_MEM_AFLT;
-		break;
-	case RIG_FUNC_ANL:
-		fct_cn = C_CTL_MEM;
-		fct_sc = S_MEM_ANL;
-		break;
-	case RIG_FUNC_AIP: /* IC-R8600 IP+ function, misusing AIP since RIG_FUNC_ word is full (32 bit) */
-		fct_cn = C_CTL_MEM; /* 1a */
-		fct_sc = S_FUNC_IPPLUS;
-		break;
-	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported set_func %d", func);
-		return -RIG_EINVAL;
-	}
+        // The command 0x27 0x10 is supported by many newer Icom rigs
+        fct_cn = 0x27;
+        fct_sc = 0x10;
+        fctbuf[0] = status;
+        fct_len = 1;
+        break;
+    case RIG_FUNC_RESUME:    /* IC-910H  & IC-746-Pro*/
+        fct_cn = C_CTL_SCAN;
+        fct_sc = status ? S_SCAN_RSMON : S_SCAN_RSMOFF;
+        fct_len = 0;
+        break;
+    case RIG_FUNC_DSQL:
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_DSQL;
+        break;
+    case RIG_FUNC_AFLT:
+        fct_cn = C_CTL_MEM;
+        fct_sc = S_MEM_AFLT;
+        break;
+    case RIG_FUNC_ANL:
+        fct_cn = C_CTL_MEM;
+        fct_sc = S_MEM_ANL;
+        break;
+    case RIG_FUNC_AIP: /* IC-R8600 IP+ function, misusing AIP since RIG_FUNC_ word is full (32 bit) */
+        fct_cn = C_CTL_MEM;
+        fct_sc = S_FUNC_IPPLUS;
+        break;
+    case RIG_FUNC_RIT:
+        fct_cn = C_CTL_RIT;
+        fct_sc = S_RIT;
+        break;
+    case RIG_FUNC_XIT:
+        fct_cn = C_CTL_RIT;
+        fct_sc = S_XIT;
+        break;
+    case RIG_FUNC_TUNER:
+        fct_cn = C_CTL_PTT;
+        fct_sc = S_ANT_TUN;
+        break;
+    case RIG_FUNC_DUAL_WATCH:
+        fct_cn = C_SET_VFO;
+        fct_sc = S_DUAL;
+        break;
+    default:
+        rig_debug(RIG_DEBUG_ERR, "Unsupported set_func %d", func);
+        return -RIG_EINVAL;
+    }
 
-	retval = icom_transaction(rig, fct_cn, fct_sc, fctbuf, fct_len,
-					ackbuf, &acklen);
-	if (retval != RIG_OK)
-		return retval;
+    retval = icom_transaction(rig, fct_cn, fct_sc, fctbuf, fct_len, ackbuf, &acklen);
+    if (retval != RIG_OK) {
+        return retval;
+    }
 
-	if (acklen != 1) {
-		rig_debug(RIG_DEBUG_ERR,"icom_set_func: wrong frame len=%d\n",
-					acklen);
-		return -RIG_EPROTO;
-	}
+    if (acklen != 1) {
+        rig_debug(RIG_DEBUG_ERR, "icom_set_func: wrong frame len=%d\n", acklen);
+        return -RIG_EPROTO;
+    }
 
-	return RIG_OK;
+    return RIG_OK;
 }
 
 /*
@@ -2649,456 +2883,197 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
  */
 int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
-	unsigned char ackbuf[MAXFRAMELEN];
-	int ack_len=sizeof(ackbuf), retval;
-	int fct_cn, fct_sc;		/* Command Number, Subcommand */
+    unsigned char ackbuf[MAXFRAMELEN];
+    int ack_len = sizeof(ackbuf), retval;
+    int fct_cn, fct_sc;        /* Command Number, Subcommand */
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-	switch (func) {
-	case RIG_FUNC_FAGC:
-		fct_cn = C_CTL_FUNC;
-		fct_sc = S_FUNC_AGC;	/* default to 0x01=slow 0x03=super-fast */
-		break;
-	case RIG_FUNC_NB:
-		fct_cn = C_CTL_FUNC;
-		fct_sc = S_FUNC_NB;
-		break;
-	case RIG_FUNC_COMP:
-		fct_cn = C_CTL_FUNC;
-		fct_sc = S_FUNC_COMP;
-		break;
-	case RIG_FUNC_VOX:
-		fct_cn = C_CTL_FUNC;
-		fct_sc = S_FUNC_VOX;
-		break;
-	case RIG_FUNC_TONE:		/* repeater tone */
-		fct_cn = C_CTL_FUNC;
-		fct_sc = S_FUNC_TONE;
-		break;
-	case RIG_FUNC_TSQL:
-		fct_cn = C_CTL_FUNC;
-		fct_sc = S_FUNC_TSQL;
-		break;
-	case RIG_FUNC_SBKIN:		/* returns 1 for semi and 2 for full adjusted below */
-	case RIG_FUNC_FBKIN:
-		fct_cn = C_CTL_FUNC;
-		fct_sc = S_FUNC_BKIN;
-		break;
-	case RIG_FUNC_ANF:
-		fct_cn = C_CTL_FUNC;
-		fct_sc = S_FUNC_ANF;
-		break;
-	case RIG_FUNC_NR:
-		fct_cn = C_CTL_FUNC;
-		fct_sc = S_FUNC_NR;
-		break;
-	case RIG_FUNC_APF:
-		fct_cn = C_CTL_FUNC;
-		fct_sc = S_FUNC_APF;
-		break;
-	case RIG_FUNC_MON:
-		fct_cn = C_CTL_FUNC;
-		fct_sc = S_FUNC_MON;
-		break;
-	case RIG_FUNC_MN:
-		fct_cn = C_CTL_FUNC;
-		fct_sc = S_FUNC_MN;
-		break;
-	case RIG_FUNC_RF:
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    switch (func) {
+    case RIG_FUNC_NB:
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_NB;
+        break;
+    case RIG_FUNC_COMP:
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_COMP;
+        break;
+    case RIG_FUNC_VOX:
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_VOX;
+        break;
+    case RIG_FUNC_TONE:        /* repeater tone */
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_TONE;
+        break;
+    case RIG_FUNC_TSQL:
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_TSQL;
+        break;
+    case RIG_FUNC_SBKIN:        /* returns 1 for semi and 2 for full adjusted below */
+    case RIG_FUNC_FBKIN:
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_BKIN;
+        break;
+    case RIG_FUNC_ANF:
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_ANF;
+        break;
+    case RIG_FUNC_NR:
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_NR;
+        break;
+    case RIG_FUNC_APF:
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_APF;
+        break;
+    case RIG_FUNC_MON:
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_MON;
+        break;
+    case RIG_FUNC_MN:
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_MN;
+        break;
+    case RIG_FUNC_RF:
         fct_cn = C_CTL_FUNC;
         fct_sc = S_FUNC_RF;
         break;
-	case RIG_FUNC_VSC:
+    case RIG_FUNC_VSC:
         fct_cn = C_CTL_FUNC;
         fct_sc = S_FUNC_VSC;
         break;
-	case RIG_FUNC_LOCK:
-		fct_cn = C_CTL_FUNC;
-		fct_sc = S_FUNC_DIAL_LK;
-		break;
-     case RIG_FUNC_AFC:      /* IC-910H */
+    case RIG_FUNC_LOCK:
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_DIAL_LK;
+        break;
+    case RIG_FUNC_AFC:      /* IC-910H */
         fct_cn = C_CTL_FUNC;
         fct_sc = S_FUNC_AFC;
         break;
-    case RIG_FUNC_SATMODE:  /* IC-910H */
-        fct_cn = C_CTL_MEM;
-        fct_sc = S_MEM_SATMODE;
+    case RIG_FUNC_SCOPE:
+        // The command 0x27 0x10 is supported by many newer Icom rigs
+        fct_cn = 0x27;
+        fct_sc = 0x10;
         break;
-    case RIG_FUNC_SCOPE:    /* IC-910H */
-        fct_cn = C_CTL_MEM;
-        fct_sc = S_MEM_BANDSCOPE;
+    case RIG_FUNC_AIP: /* IC-R8600 IP+ function, misusing AIP since RIG_FUNC_ word is full (32 bit) */
+        fct_cn = C_CTL_MEM; /* 1a */
+        fct_sc = S_FUNC_IPPLUS;
         break;
-	case RIG_FUNC_AIP: /* IC-R8600 IP+ function, misusing AIP since RIG_FUNC_ word is full (32 bit) */
-		fct_cn = C_CTL_MEM; /* 1a */
-		fct_sc = S_FUNC_IPPLUS;
-		break;
-	case RIG_FUNC_DSQL:
-		fct_cn = C_CTL_FUNC;
-		fct_sc = S_FUNC_DSQL;
-		break;
-	case RIG_FUNC_AFLT:
-		fct_cn = C_CTL_MEM;
-		fct_sc = S_MEM_AFLT;
-		break;
-	case RIG_FUNC_ANL:
-		fct_cn = C_CTL_MEM;
-		fct_sc = S_MEM_ANL;
-		break;
-	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported get_func %d", func);
-		return -RIG_EINVAL;
-	}
+    case RIG_FUNC_DSQL:
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_DSQL;
+        break;
+    case RIG_FUNC_AFLT:
+        fct_cn = C_CTL_MEM;
+        fct_sc = S_MEM_AFLT;
+        break;
+    case RIG_FUNC_ANL:
+        fct_cn = C_CTL_MEM;
+        fct_sc = S_MEM_ANL;
+        break;
+    case RIG_FUNC_RIT:
+        fct_cn = C_CTL_RIT;
+        fct_sc = S_RIT;
+        break;
+    case RIG_FUNC_XIT:
+        fct_cn = C_CTL_RIT;
+        fct_sc = S_XIT;
+        break;
+    case RIG_FUNC_TUNER:
+        fct_cn = C_CTL_PTT;
+        fct_sc = S_ANT_TUN;
+        break;
+    case RIG_FUNC_DUAL_WATCH:
+        fct_cn = C_SET_VFO;
+        fct_sc = S_DUAL;
+        break;
+    default:
+        rig_debug(RIG_DEBUG_ERR, "Unsupported get_func %d", func);
+        return -RIG_EINVAL;
+    }
 
-	retval = icom_transaction (rig, fct_cn, fct_sc, NULL, 0,
-					ackbuf, &ack_len);
-	if (retval != RIG_OK)
-		return retval;
+    retval = icom_transaction(rig, fct_cn, fct_sc, NULL, 0, ackbuf, &ack_len);
+    if (retval != RIG_OK) {
+        return retval;
+    }
 
-	if (ack_len != 3) {
-		rig_debug(RIG_DEBUG_ERR,"icom_get_func: wrong frame len=%d\n",
-					ack_len);
-		return -RIG_EPROTO;
-	}
-	if (func != RIG_FUNC_FBKIN)
-		*status = ackbuf[2];
-	else
-		*status = ackbuf[2] == 2 ? 1 : 0;
+    if (ack_len != 3) {
+        rig_debug(RIG_DEBUG_ERR, "icom_get_func: wrong frame len=%d\n", ack_len);
+        return -RIG_EPROTO;
+    }
+    if (func != RIG_FUNC_FBKIN) {
+        *status = ackbuf[2];
+    } else {
+        *status = ackbuf[2] == 2 ? 1 : 0;
+    }
 
-	return RIG_OK;
+    return RIG_OK;
 }
 
 /*
  * icom_set_parm
  * Assumes rig!=NULL
-These are very much rig specific and should probably be in rig files.  These are for ICR75C only.
-Yes. Even more after the IC-R8600 waas added
+ *
+ * NOTE: Most of the parm commands are rig-specific.
+ *
+ * See the IC-7300 backend how to implement them for newer rigs that have 0x1A 0x05-based commands where
+ * icom_set_custom_parm()/icom_get_custom_parm() can be used.
+ *
+ * For older rigs, see the IC-R75 backend where icom_set_raw()/icom_get_raw() are used.
  */
 int icom_set_parm(RIG *rig, setting_t parm, value_t val)
 {
-	struct rig_state *rs;
-	struct icom_priv_data *priv;
-	unsigned char prmbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
-	int ack_len=sizeof(ackbuf), prm_len;
-	int prm_cn, prm_sc;
-	int icom_val;
-	int retval;
-	int min,hr,sec;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-	rs = &rig->state;
-	priv = (struct icom_priv_data*)rs->priv;
+    switch (parm) {
+        case RIG_PARM_ANN: {
+            int ann_mode;
 
-	switch (parm) {
-	case RIG_PARM_ANN:
-		/* previously only for R75, which used RIG_ANN_? codes as subcommand as well. This does not work for IC-R8600 anymore */
-		if ((val.i == RIG_ANN_FREQ) || (val.i == RIG_ANN_RXMODE) || ((val.i == RIG_ANN_NONE) && (rig->caps->rig_model == RIG_MODEL_ICR8600))   ) {
-			prm_cn = C_CTL_ANN;
-			prm_sc = val.i;
-			prm_len = 0;
-		}
-		else {
-			if ((val.i == RIG_ANN_ENG)||(val.i == RIG_ANN_JAP)) {
-				prm_cn = C_CTL_MEM;
-				prm_sc = S_MEM_MODE_SLCT;
-				prm_len = 2;
-				prmbuf[0] = S_PRM_LANG;
-				prmbuf[1] = (val.i == RIG_ANN_ENG ? 0 : 1);
-			}
-			else {
-				rig_debug(RIG_DEBUG_ERR,"Unsupported set_parm_ann %d\n", val.i);
-				return -RIG_EINVAL;
-			}
-		}
-		break;
-	case RIG_PARM_APO:
-		prm_cn = C_CTL_MEM;
-		prm_sc = S_MEM_MODE_SLCT;
-		hr = (float)val.i/60.0;
-		min = val.i - (hr*60);
-		prm_len = 3;
-		prmbuf[0] = S_PRM_SLPTM;
-		to_bcd_be(prmbuf+1, (long long)hr, 2);
-		to_bcd_be(prmbuf+2, (long long)min, 2);
-		break;
-	case RIG_PARM_BACKLIGHT:
-		prm_cn = C_CTL_MEM;
-		icom_val = val.f * 255;
-		if (priv->civ_version == 1) {
-			prm_sc = 0x05;
-			prm_len = 4;
-			if (rig->caps->rig_model == RIG_MODEL_ICR8600) {
-				prmbuf[0] = 0x01;
-				prmbuf[1] = 0x15;
-			}
-			else {
-				prmbuf[0] = 0x00;
-				prmbuf[1] = 0x81;
-			};
-			to_bcd_be(prmbuf+2, (long long)icom_val, (prm_len-2)*2);
-		}
-		else {
-			prm_sc = S_MEM_MODE_SLCT;
-			prm_len = 3;
-			prmbuf[0] = S_PRM_BACKLT;
-			to_bcd_be(prmbuf+1, (long long)icom_val, (prm_len-1)*2);
-		}
-		break;
-	case RIG_PARM_KEYLIGHT:
-		prm_cn = C_CTL_MEM;
-		icom_val = val.f * 255;
-		if (priv->civ_version == 1) {
-			prm_sc = 0x05;
-			prm_len = 4;
-			if (rig->caps->rig_model == RIG_MODEL_ICR8600) {
-				prmbuf[0] = 0x01;
-				prmbuf[1] = 0x16;
-			}
-			else {
-				/* replace with sub-subcommand codes for your rig */
-				return -RIG_EINVAL;
-			};
-			to_bcd_be(prmbuf+2, (long long)icom_val, (prm_len-2)*2);
-		}
-		else {
-			/* only supported on newer rigs */
-			return -RIG_EINVAL;
-		}
-		break;
-	case RIG_PARM_BEEP:
-		prm_cn = C_CTL_MEM;
-		if (priv->civ_version == 1) {
-			prm_sc = 0x05;
-			prm_len = 3;
-			prmbuf[0] = 0x00;
-			prmbuf[1] = 0x23;
-			prmbuf[2] = val.i;
-		}
-		else {
-			prm_sc = S_MEM_MODE_SLCT;
-			prm_len = 2;
-			prmbuf[0] = S_PRM_BEEP;
-			prmbuf[1] = val.i;
-		}
-		break;
-	case RIG_PARM_TIME:
-		prm_cn = C_CTL_MEM;
-		hr = (float)val.i/3600.0;
-		min = (float)(val.i - (hr*3600))/60.0;
-		sec = (val.i - (hr*3600) - (min*60));
-		if (priv->civ_version == 1) {
-			prm_sc = 0x05;
-			prm_len = 4;
-			prmbuf[0] = 0x00;
-			prmbuf[1] = 0x95;
-			to_bcd_be(prmbuf+2, (long long)hr, 2);
-			to_bcd_be(prmbuf+3, (long long)min, 2);
-		}
-		else {
-			prm_sc = S_MEM_MODE_SLCT;
-			prm_len = 4;
-			prmbuf[0] = S_PRM_TIME;
-			to_bcd_be(prmbuf+1, (long long)hr, 2);
-			to_bcd_be(prmbuf+2, (long long)min, 2);
-			to_bcd_be(prmbuf+3, (long long)sec, 2);
-		}
-		break;
-	default:
-	  rig_debug(RIG_DEBUG_ERR,"Unsupported set_parm %d\n", parm);
-	  return -RIG_EINVAL;
-	}
+            switch (val.i) {
+                case RIG_ANN_OFF:
+                    ann_mode = S_ANN_ALL;
+                    break;
+                case RIG_ANN_FREQ:
+                    ann_mode = S_ANN_FREQ;
+                    break;
+                case RIG_ANN_RXMODE:
+                    ann_mode = S_ANN_MODE;
+                    break;
+                default:
+                    rig_debug(RIG_DEBUG_ERR, "Unsupported RIG_PARM_ANN %d\n", val.i);
+                    return -RIG_EINVAL;
+            }
 
-	retval = icom_transaction(rig, prm_cn, prm_sc, prmbuf, prm_len,
-					ackbuf, &ack_len);
-	if (retval != RIG_OK)
-			return retval;
-
-	if (ack_len != 1) {
-		rig_debug(RIG_DEBUG_ERR,"icom_set_parm: wrong frame len=%d\n",
-					ack_len);
-		return -RIG_EPROTO;
-	}
-
-	return RIG_OK;
+            return icom_set_raw(rig, C_CTL_ANN, ann_mode, 0, NULL, 0, 0);
+        }
+        default:
+            rig_debug(RIG_DEBUG_ERR, "Unsupported set_parm %d\n", parm);
+            return -RIG_EINVAL;
+    }
 }
 
 /*
  * icom_get_parm
  * Assumes rig!=NULL
+ *
+ * NOTE: Most of the parm commands are rig-specific.
+ *
+ * See the IC-7300 backend how to implement them for newer rigs that have 0x1A 0x05-based commands where
+ * icom_set_custom_parm()/icom_get_custom_parm() can be used.
+ *
+ * For older rigs, see the IC-R75 backend where icom_set_raw()/icom_get_raw() are used.
  */
 int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 {
-	struct rig_state *rs;
-	struct icom_priv_data *priv;
-	unsigned char prmbuf[MAXFRAMELEN], resbuf[MAXFRAMELEN];
-	int prm_len, res_len;
-	int prm_cn, prm_sc;
-	int icom_val;
-	int cmdhead;
-	int retval;
-	int min,hr,sec;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-	rs = &rig->state;
-	priv = (struct icom_priv_data*)rs->priv;
+    switch (parm) {
+        default:
+            rig_debug(RIG_DEBUG_ERR, "Unsupported get_parm %d", parm);
+            return -RIG_EINVAL;
+    }
 
-	switch (parm) {
-	case RIG_PARM_APO:
-		prm_cn = C_CTL_MEM;
-		prm_sc = S_MEM_MODE_SLCT;
-		prm_len = 1;
-		prmbuf[0] = S_PRM_SLPTM;
-		break;
-	case RIG_PARM_BACKLIGHT:
-		if (priv->civ_version == 1) {
-			prm_cn = C_CTL_MEM;
-			prm_sc = 0x05;
-			prm_len = 2;
-			if (rig->caps->rig_model == RIG_MODEL_ICR8600) {
-				prmbuf[0] = 0x01;
-				prmbuf[1] = 0x15;
-			}
-			else {
-				prmbuf[0] = 0x00;
-				prmbuf[1] = 0x81;
-			}
-		}
-		else {
-			prm_cn = C_CTL_MEM;
-			prm_sc = S_MEM_MODE_SLCT;
-			prm_len = 1;
-			prmbuf[0] = S_PRM_BACKLT;
-		}
-		break;
-	case RIG_PARM_KEYLIGHT:
-		if (priv->civ_version == 1) {
-			prm_cn = C_CTL_MEM;
-			prm_sc = 0x05;
-			prm_len = 2;
-			if (rig->caps->rig_model == RIG_MODEL_ICR8600) {
-				prmbuf[0] = 0x01;
-				prmbuf[1] = 0x16;
-			}
-			else {
-				/* replace with sub-subcommand codes for your rig */
-				return -RIG_EINVAL;
-			}
-		}
-		else {
-			/* only supported on newer rigs */
-			return -RIG_EINVAL;
-		}
-		break;
-	case RIG_PARM_BEEP:
-		if (priv->civ_version == 1) {
-			prm_cn = C_CTL_MEM;
-			prm_sc = 0x05;
-			prm_len = 2;
-			prmbuf[0] = 0x00;
-			prmbuf[1] = 0x23;
-		}
-		else {
-			prm_cn = C_CTL_MEM;
-			prm_sc = S_MEM_MODE_SLCT;
-			prm_len = 1;
-			prmbuf[0] = S_PRM_BEEP;
-		}
-		break;
-	case RIG_PARM_TIME:
-		if (priv->civ_version == 1) {
-			prm_cn = C_CTL_MEM;
-			prm_sc = 0x05;
-			prm_len = 2;
-			prmbuf[0] = 0x00;
-			prmbuf[1] = 0x95;
-		}
-		else {
-			prm_cn = C_CTL_MEM;
-			prm_sc = S_MEM_MODE_SLCT;
-			prm_len = 1;
-			prmbuf[0] = S_PRM_TIME;
-		}
-		break;
-	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported get_parm %d", parm);
-		return -RIG_EINVAL;
-	}
-
-	retval = icom_transaction (rig, prm_cn, prm_sc, prmbuf, prm_len,
-					resbuf, &res_len);
-	if (retval != RIG_OK)
-		return retval;
-
-	/*
-	 * strbuf should contain Cn,Sc,[pn],Data area
-	 */
-	cmdhead = (prm_sc == -1) ? 1:3;
-	res_len -= cmdhead;
-
-	if (resbuf[0] != ACK && resbuf[0] != prm_cn) {
-		rig_debug(RIG_DEBUG_ERR,"%s: ack NG (%#.2x), "
-				"len=%d\n", __FUNCTION__,resbuf[0],res_len);
-		return -RIG_ERJCTED;
-	}
-
-	switch (parm) {
-	case RIG_PARM_APO:
-		hr = from_bcd_be(resbuf+cmdhead, 2);
-		min = from_bcd_be(resbuf+cmdhead+1, 2);
-		icom_val = (hr*60)+min;
-		val->i = icom_val;
-		break;
-	case RIG_PARM_TIME:
-		if (priv->civ_version == 1) {
-			hr = from_bcd_be(resbuf+cmdhead+1, 2);
-			min = from_bcd_be(resbuf+cmdhead+2, 2);
-			sec = 0;
-		}
-		else {
-			hr = from_bcd_be(resbuf+cmdhead, 2);
-			min = from_bcd_be(resbuf+cmdhead+1, 2);
-			sec = from_bcd_be(resbuf+cmdhead+2, 2);
-		}
-		icom_val = (hr*3600)+(min*60)+sec;
-		val->i = icom_val;
-		break;
-	case RIG_PARM_BACKLIGHT:
-		icom_val = 0;
-		if (priv->civ_version == 1) {
-			icom_val = from_bcd_be(resbuf+cmdhead+1, (res_len-1)*2);
-		} else {
-			icom_val = from_bcd_be(resbuf+cmdhead, res_len*2);
-		}
-		val->f = (float)icom_val/255.0;
-		break;
-	case RIG_PARM_KEYLIGHT:
-		icom_val = 0;
-		if (priv->civ_version == 1) {
-			icom_val = from_bcd_be(resbuf+cmdhead+1, (res_len-1)*2);
-		} else {
-			return -RIG_EINVAL;
-		}
-		val->f = (float)icom_val/255.0;
-		break;
-	case RIG_PARM_BEEP:
-		if (priv->civ_version == 1) {
-			icom_val = from_bcd_be(resbuf+cmdhead+1, (res_len-1)*2);
-		} else {
-			icom_val = from_bcd_be(resbuf+cmdhead, res_len*2);
-		}
-		val->i = icom_val;
-		break;
-	default:
-		icom_val = from_bcd_be(resbuf+cmdhead, res_len*2);
-		if (RIG_PARM_IS_FLOAT(parm))
-			val->f = (float)icom_val/255;
-		else
-			val->i = icom_val;
-	}
-
-	rig_debug(RIG_DEBUG_TRACE,"%s: %d %d %d %f\n",
-			__FUNCTION__, res_len, icom_val, val->i, val->f);
-
-	return RIG_OK;
+    return RIG_OK;
 }
 
 /*
@@ -3364,7 +3339,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called status=\n", __func__,status);
 	switch (status) {
 		case RIG_POWER_ON:
-			pwr_sc = RIG_POWER_ON;
+			pwr_sc = S_PWR_ON;
 			// ic7300 manual says ~150 for 115,200
 			// we'll just send 175 to be sure for all speeds
 			for(fe_len=0;fe_len<175;++fe_len) {
@@ -3372,17 +3347,17 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
 			}
 			break;
 		default:
-			pwr_sc = RIG_POWER_OFF;
+			pwr_sc = S_PWR_OFF;
 			fe_buf[0] = 0;
 	}
 
 	// we can ignore this retval
 	// sending more than enough 0xfe's to wake up the rs232
-	icom_transaction(rig, 0xfe, 0xfe, fe_buf, fe_len,
-					ackbuf, &ack_len);
-	retval = icom_transaction(rig, C_SET_PWR, pwr_sc, NULL, 0,
-					ackbuf, &ack_len);
+	icom_transaction(rig, 0xfe, 0xfe, fe_buf, fe_len, ackbuf, &ack_len);
+
+	retval = icom_transaction(rig, C_SET_PWR, pwr_sc, NULL, 0, ackbuf, &ack_len);
 	rig_debug(RIG_DEBUG_VERBOSE, "%s #2 called retval=%d\n", __func__,retval);
+
   int i=0;
   int retry = 3/rig->state.rigport.retry;
   if (status==RIG_POWER_ON) { // wait for wakeup only
@@ -3588,8 +3563,6 @@ int icom_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
  */
 int icom_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
-	struct rig_state *rs;
-	struct icom_priv_data *priv;
 	unsigned char mvbuf[MAXFRAMELEN];
 	unsigned char ackbuf[MAXFRAMELEN];
 	int mv_len=0, ack_len=sizeof(ackbuf), retval;
@@ -3597,8 +3570,6 @@ int icom_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 	int vfo_list;
 
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-	rs = &rig->state;
-	priv = (struct icom_priv_data*)rs->priv;
 
 	switch(op) {
 		case RIG_OP_CPY:
@@ -3615,16 +3586,6 @@ int icom_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 			mv_cn = C_SET_VFO;
 			mv_sc = S_XCHNG;
 			break;
-#if 0
-		case RIG_OP_DUAL_OFF:
-			mv_cn = C_SET_VFO;
-			mv_sc = S_DUAL_OFF;
-			break;
-		case RIG_OP_DUAL_ON:
-			mv_cn = C_SET_VFO;
-			mv_sc = S_DUAL_ON;
-			break;
-#endif
 		case RIG_OP_FROM_VFO:
 			mv_cn = C_WR_MEM;
 			mv_sc = -1;
@@ -3638,27 +3599,25 @@ int icom_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 			mv_sc = -1;
 			break;
 		case RIG_OP_TUNE:
-			if (priv->civ_version == 1) {
-				mvbuf[0] = 2;
-				mv_len = 1;
-			}
 			mv_cn = C_CTL_PTT;
 			mv_sc = S_ANT_TUN;
+			mvbuf[0] = 2;
+			mv_len = 1;
 			break;
 		default:
 			rig_debug(RIG_DEBUG_ERR,"Unsupported mem/vfo op %#x", op);
 			return -RIG_EINVAL;
 	}
 
-	retval = icom_transaction (rig, mv_cn, mv_sc, mvbuf, mv_len,
-					ackbuf, &ack_len);
-	if (retval != RIG_OK)
+	retval = icom_transaction (rig, mv_cn, mv_sc, mvbuf, mv_len, ackbuf, &ack_len);
+	if (retval != RIG_OK) {
 		return retval;
+	}
 
 	if (ack_len != 1 || ackbuf[0] != ACK) {
-		if (op != RIG_OP_XCHG)
-			rig_debug(RIG_DEBUG_ERR,"icom_vfo_op: ack NG (%#.2x), "
-					"len=%d\n", ackbuf[0], ack_len);
+		if (op != RIG_OP_XCHG) {
+			rig_debug(RIG_DEBUG_ERR, "icom_vfo_op: ack NG (%#.2x), len=%d\n", ackbuf[0], ack_len);
+		}
 		return -RIG_ERJCTED;
 	}
 
@@ -3893,6 +3852,175 @@ int icom_decode_event(RIG *rig)
 	}
 
 	return RIG_OK;
+}
+
+int icom_set_raw(RIG *rig, int cmd, int subcmd, int subcmdbuflen, unsigned char *subcmdbuf, int val_bytes, int val)
+{
+    unsigned char cmdbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
+    int acklen = sizeof(ackbuf);
+    int cmdbuflen = subcmdbuflen;
+    int retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (subcmdbuflen > 0) {
+        if (subcmdbuf == NULL) {
+            return -RIG_EINTERNAL;
+        }
+
+        memcpy(cmdbuf, subcmdbuf, subcmdbuflen);
+    }
+
+    if (val_bytes > 0) {
+        to_bcd_be(cmdbuf + subcmdbuflen, (long long) val, val_bytes * 2);
+        cmdbuflen += val_bytes;
+    }
+
+    retval = icom_transaction(rig, cmd, subcmd, cmdbuf, cmdbuflen, ackbuf, &acklen);
+    if (retval != RIG_OK) {
+        return retval;
+    }
+
+    if (acklen != 1 || ackbuf[0] != ACK) {
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0], acklen);
+        return -RIG_ERJCTED;
+    }
+
+    return RIG_OK;
+}
+
+int icom_get_raw_buf(RIG *rig, int cmd, int subcmd, int subcmdbuflen, unsigned char *subcmdbuf, int *reslen, unsigned char *res)
+{
+    unsigned char ackbuf[MAXFRAMELEN];
+    int acklen = sizeof(ackbuf);
+    int cmdhead = subcmdbuflen;
+    int retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    retval = icom_transaction(rig, cmd, subcmd, subcmdbuf, subcmdbuflen, ackbuf, &acklen);
+    if (retval != RIG_OK) {
+        return retval;
+    }
+
+    cmdhead += (subcmd == -1) ? 1 : 2;
+    acklen -= cmdhead;
+
+    if (ackbuf[0] != ACK && ackbuf[0] != cmd) {
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0], acklen);
+        return -RIG_ERJCTED;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: %d\n", __func__, acklen);
+
+    if (*reslen < acklen || res == NULL) {
+        return -RIG_EINTERNAL;
+    }
+
+    memcpy(res, ackbuf + cmdhead, acklen);
+    *reslen = acklen;
+
+    return RIG_OK;
+}
+
+int icom_get_raw(RIG *rig, int cmd, int subcmd, int subcmdbuflen, unsigned char *subcmdbuf, int *val)
+{
+    unsigned char resbuf[MAXFRAMELEN];
+    int reslen = sizeof(resbuf);
+    int retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    retval = icom_get_raw_buf(rig, cmd, subcmd, subcmdbuflen, subcmdbuf, &reslen, resbuf);
+    if (retval != RIG_OK) {
+        return retval;
+    }
+
+    *val = from_bcd_be(resbuf, reslen * 2);
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: %d %d\n", __func__, reslen, *val);
+
+    return RIG_OK;
+}
+
+int icom_set_level_raw(RIG *rig, setting_t level, int cmd, int subcmd, int subcmdbuflen, unsigned char *subcmdbuf, int val_bytes, value_t val)
+{
+    int icom_val;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (RIG_LEVEL_IS_FLOAT(level)) {
+        icom_val = (int) (val.f * 255.0f);
+    } else {
+        icom_val = val.i;
+    }
+
+    return icom_set_raw(rig, cmd, subcmd, subcmdbuflen, subcmdbuf, val_bytes, icom_val);
+}
+
+int icom_get_level_raw(RIG *rig, setting_t level, int cmd, int subcmd, int subcmdbuflen, unsigned char *subcmdbuf, value_t *val)
+{
+    int icom_val;
+    int retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    retval = icom_get_raw(rig, cmd, subcmd, subcmdbuflen, subcmdbuf, &icom_val);
+    if (retval != RIG_OK) {
+        return retval;
+    }
+
+    if (RIG_LEVEL_IS_FLOAT(level)) {
+        val->f = (float) icom_val / 255.0f;
+    } else {
+        val->i = icom_val;
+    }
+
+    return RIG_OK;
+}
+
+int icom_set_custom_parm(RIG *rig, int parmbuflen, unsigned char *parmbuf, int val_bytes, int value)
+{
+    return icom_set_raw(rig, C_CTL_MEM, S_MEM_PARM, parmbuflen, parmbuf, val_bytes, value);
+}
+
+int icom_get_custom_parm(RIG *rig, int parmbuflen, unsigned char *parmbuf, int *value)
+{
+    return icom_get_raw(rig, C_CTL_MEM, S_MEM_PARM, parmbuflen, parmbuf, value);
+}
+
+int icom_set_custom_parm_time(RIG *rig, int parmbuflen, unsigned char *parmbuf, int seconds)
+{
+    unsigned char cmdbuf[MAXFRAMELEN];
+    int hour = (int) ((float) seconds / 3600.0);
+    int min = (int) ((float) (seconds - (hour * 3600)) / 60.0);
+
+    if (parmbuflen > 0) {
+        memcpy(cmdbuf, parmbuf, parmbuflen);
+    }
+
+    to_bcd_be(cmdbuf + parmbuflen, (long long) hour, 2);
+    to_bcd_be(cmdbuf + parmbuflen + 1, (long long) min, 2);
+
+    return icom_set_raw(rig, C_CTL_MEM, S_MEM_PARM, parmbuflen + 2, cmdbuf, 0, 0);
+}
+
+int icom_get_custom_parm_time(RIG *rig, int parmbuflen, unsigned char *parmbuf, int *seconds)
+{
+    unsigned char resbuf[MAXFRAMELEN];
+    int reslen = sizeof(resbuf);
+    int retval;
+
+    retval = icom_get_raw_buf(rig, C_CTL_MEM, S_MEM_PARM, parmbuflen, parmbuf, &reslen, resbuf);
+    if (retval != RIG_OK) {
+        return retval;
+    }
+
+    int hour = from_bcd_be(resbuf, 2);
+    int min = from_bcd_be(resbuf + 1, 2);
+    *seconds = (hour * 3600) + (min * 60);
+
+    return RIG_OK;
 }
 
 /*

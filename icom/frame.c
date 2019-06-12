@@ -334,6 +334,8 @@ int rig2icom_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 	case RIG_MODE_LSB:	icmode = S_LSB; break;
 	case RIG_MODE_RTTY:	icmode = S_RTTY; break;
 	case RIG_MODE_RTTYR:	icmode = S_RTTYR; break;
+	case RIG_MODE_PSK:	icmode = S_PSK; break;
+	case RIG_MODE_PSKR:	icmode = S_PSKR; break;
 	case RIG_MODE_FM:	icmode = S_FM; break;
   case RIG_MODE_FMN:  icmode = S_FMN; break;
 	case RIG_MODE_WFM:	icmode = S_WFM; break;
@@ -404,8 +406,8 @@ void icom2rig_mode(RIG *rig, unsigned char md, int pd, rmode_t *mode, pbwidth_t 
 	case S_LSB:	    *mode = RIG_MODE_LSB; break;
 	case S_RTTY:	*mode = RIG_MODE_RTTY; break;
 	case S_RTTYR:	*mode = RIG_MODE_RTTYR; break;
-	case S_PSK:     *mode = RIG_MODE_PKTUSB; break;	/* IC-7800 */
-	case S_PSKR:	*mode = RIG_MODE_PKTLSB; break;
+	case S_PSK:     *mode = RIG_MODE_PSK; break;
+	case S_PSKR:	*mode = RIG_MODE_PSKR; break;
     case S_DSTAR:   *mode = RIG_MODE_DSTAR; break;
     case S_P25:     *mode = RIG_MODE_P25; break;
     case S_DPMR:    *mode = RIG_MODE_DPMR; break;

@@ -88,6 +88,19 @@
 static int uh_ptt_fd   = -1;
 static int uh_radio_fd = -1;
 
+typedef struct term_options_backup {
+    int fd;
+#if defined(HAVE_TERMIOS_H)
+    struct termios options;
+#elif defined(HAVE_TERMIO_H)
+    struct termio options;
+#elif defined(HAVE_SGTTY_H)
+    struct sgttyb sg;
+#endif
+    struct term_options_backup *next;
+} term_options_backup_t;
+static term_options_backup_t *term_options_backup_head = NULL;
+
 
 /*
  * This function simply returns TRUE if the argument matches uh_radio_fd and
@@ -211,14 +224,15 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
     /* There's a lib replacement for termios under Mingw */
 #if defined(HAVE_TERMIOS_H)
     speed_t speed;            /* serial comm speed */
-    struct termios options;
+    struct termios options, orig_options;
 #elif defined(HAVE_TERMIO_H)
-    struct termio options;
+    struct termio options, orig_options;
 #elif defined(HAVE_SGTTY_H)
-    struct sgttyb sg;
+    struct sgttyb sg, orig_sg;
 #else
 #  error "No term control supported!"
 #endif
+    term_options_backup_t *term_backup = NULL;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -234,10 +248,13 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
      */
 #if defined(HAVE_TERMIOS_H)
     tcgetattr(fd, &options);
+    memcpy(&orig_options, &options, sizeof(orig_options));
 #elif defined(HAVE_TERMIO_H)
     IOCTL(fd, TCGETA, &options);
+    memcpy(&orig_options, &options, sizeof(orig_options));
 #else   /* sgtty */
     IOCTL(fd, TIOCGETP, &sg);
+    memcpy(&orig_sg, &sg, sizeof(orig_sg));
 #endif
 
 #ifdef HAVE_CFMAKERAW
@@ -518,6 +535,19 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
 
 #endif
 
+    // Store a copy of the original options for this FD, to be restored on close.
+    term_backup = malloc(sizeof(term_options_backup_t));
+    term_backup-> fd = fd;
+#if defined(HAVE_TERMIOS_H) || defined(HAVE_TERMIO_H)
+    memcpy(&term_backup->options, &orig_options, sizeof(orig_options));
+#elif defined(HAVE_SGTTY_H)
+    memcpy(&term_backup->sg, &orig_sg, sizeof(orig_sg));
+#endif
+
+    // insert at head of list
+    term_backup->next = term_options_backup_head;
+    term_options_backup_head = term_backup;
+
     return RIG_OK;
 }
 
@@ -597,6 +627,7 @@ int ser_open(hamlib_port_t *p)
 int ser_close(hamlib_port_t *p)
 {
     int rc;
+    term_options_backup_t *term_backup, *term_backup_prev;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -617,6 +648,63 @@ int ser_close(hamlib_port_t *p)
         uh_radio_fd=-1;
         p->fd = -1;
         return 0;
+    }
+
+    // Find backup termios options to restore before closing
+    term_backup = term_options_backup_head;
+    term_backup_prev = term_options_backup_head;
+    while(term_backup) {
+        if(term_backup->fd == p->fd) {
+            // Found matching. Remove from list
+            if(term_backup == term_options_backup_head) {
+                term_options_backup_head = term_backup->next;
+            } else {
+                term_backup_prev->next = term_backup->next;
+            }
+            break;
+        }
+        term_backup_prev = term_backup;
+        term_backup = term_backup->next;
+    }
+
+    // Restore backup termios
+    if(term_backup) {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: restoring options\n", __func__);
+#if defined(HAVE_TERMIOS_H)
+
+        if (tcsetattr(p->fd, TCSANOW, &term_backup->options) == -1)
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                     "%s: tcsetattr restore failed: %s\n",
+                     __func__,
+                     strerror(errno));
+        }
+
+#elif defined(HAVE_TERMIO_H)
+
+        if (IOCTL(p->fd, TCSETA, &term_backup->options) == -1)
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                     "%s: ioctl(TCSETA) restore failed: %s\n",
+                     __func__,
+                     strerror(errno));
+        }
+
+#else
+
+        /* sgtty */
+        if (IOCTL(p->fd, TIOCSETP, &term_backup->sg) == -1)
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                     "%s: ioctl(TIOCSETP) restore failed: %s\n",
+                     __func__,
+                     strerror(errno));
+        }
+#endif
+
+        free(term_backup);
+    } else {
+        rig_debug(RIG_DEBUG_WARN, "%s: no options for fd to restore\n", __func__);
     }
 
     rc = CLOSE(p->fd);
