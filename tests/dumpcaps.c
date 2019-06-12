@@ -763,17 +763,17 @@ void range_print(FILE *fout, const struct freq_range_list range_list[], int rx)
 
     fprintf(fout, "\t\tVFO list: ");
     sprintf_vfo(prntbuf, range_list[i].vfo);
-    fprintf(fout, prntbuf);
+    fprintf(fout, "%s", prntbuf);
     fprintf(fout, "\n");
 
     fprintf(fout, "\t\tMode list: ");
     sprintf_mode(prntbuf, range_list[i].modes);
-    fprintf(fout, prntbuf);
+    fprintf(fout, "%s", prntbuf);
     fprintf(fout, "\n");
 
     fprintf(fout, "\t\tAntenna list: ");
     sprintf_ant(prntbuf, range_list[i].ant);
-    fprintf(fout, prntbuf);
+    fprintf(fout, "%s", prntbuf);
     fprintf(fout, "\n");
 
     if (!rx) {
