@@ -51,6 +51,8 @@ dnl rotor definitions, e.g. "dummy".  Optional backends will not be listed
 dnl here but will be added later, e.g. "winradio".
 BACKEND_LIST="adat alinco aor barrett dorji drake dummy elad flexradio icom icmarine jrc kachina kenwood kit lowe pcr prm80 racal rft rs skanti tapr tentec tuner uniden wj yaesu"
 ROT_BACKEND_LIST="amsat ars celestron cnctrk easycomm ether6 fodtrack gs232a heathkit m2 meade rotorez sartek spid ts7400 prosistel ioptron"
+# Amplifiers are all in the amplifiers directory
+AMP_BACKEND_LIST="amplifiers/elecraft"
 
 dnl See README.release on setting these values
 # Values given to -version-info when linking.  See libtool documentation.
@@ -721,6 +723,21 @@ done
 AC_SUBST([ROT_BACKEND_LIST])
 AC_SUBST([ROT_BACKENDEPS])
 
+## ---------------------------------- ##
+## Prepare amplifier backend dependencies ##
+## ---------------------------------- ##
+
+# otherwise parallel 'make -jn' will fail
+
+for be in ${AMP_BACKEND_LIST} ; do
+        AMPDIR=`echo $be | awk -F "/" '{print $2}'`
+        AMP_BACKENDEPS="${AMP_BACKENDEPS} \$(top_builddir)/amplifiers/${AMPDIR}/libhamlib-${AMPDIR}.la"
+done
+
+AC_SUBST([AMP_BACKEND_LIST])
+AC_SUBST([AMP_BACKENDEPS])
+
+
 
 ## ------------ ##
 ## Final output ##
@@ -790,6 +807,7 @@ dorji/Makefile
 barrett/Makefile
 meade/Makefile
 ioptron/Makefile
+amplifiers/elecraft/Makefile
 hamlib.pc
 ])
 
