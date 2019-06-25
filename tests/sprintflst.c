@@ -33,6 +33,7 @@
 #include <unistd.h>
 
 #include <hamlib/rig.h>
+#include <hamlib/amplifier.h>
 
 #include "sprintflst.h"
 #include "misc.h"
@@ -193,6 +194,34 @@ int sprintf_level(char *str, setting_t level)
     for (i = 0; i < RIG_SETTING_MAX; i++)
     {
         const char *ms = rig_strlevel(level & rig_idx2setting(i));
+
+        if (!ms || !ms[0])
+        {
+            continue;    /* unknown, FIXME! */
+        }
+
+        strcat(str, ms);
+        strcat(str, " ");
+        len += strlen(ms) + 1;
+    }
+
+    return len;
+}
+
+int sprintf_level_amp(char *str, setting_t level)
+{
+    int i, len = 0;
+
+    *str = '\0';
+
+    if (level == AMP_LEVEL_NONE)
+    {
+        return 0;
+    }
+
+    for (i = 0; i < RIG_SETTING_MAX; i++)
+    {
+        const char *ms = amp_strlevel(level & rig_idx2setting(i));
 
         if (!ms || !ms[0])
         {

@@ -1,0 +1,34 @@
+  CC       kpa.lo
+kpa.c: In function ‘kpa_get_freq’:
+kpa.c:150:12: warning: returning ‘const char *’ from a function with return type ‘int’ makes integer from pointer without a cast [-Wint-conversion]
+     return (const char *) - RIG_EINVAL;
+            ^
+kpa.c:153:3: error: ‘rs’ undeclared (first use in this function)
+   rs = &amp->state;
+   ^~
+kpa.c:153:3: note: each undeclared identifier is reported only once for each function it appears in
+kpa.c:156:45: warning: passing argument 3 of ‘kpa_transaction’ makes integer from pointer without a cast [-Wint-conversion]
+   int retval = kpa_transaction(amp, "^FR;", reponsebuf, sizeof(reponsebuf));
+                                             ^~~~~~~~~~
+kpa.c:68:52: note: expected ‘int’ but argument is of type ‘char *’
+ int kpa_transaction(AMP *amp, const char *cmd, int cmd_len, char *response,
+                                                ~~~~^~~~~~~
+kpa.c:156:57: warning: passing argument 4 of ‘kpa_transaction’ makes pointer from integer without a cast [-Wint-conversion]
+   int retval = kpa_transaction(amp, "^FR;", reponsebuf, sizeof(reponsebuf));
+                                                         ^~~~~~~~~~~~~~~~~~
+kpa.c:68:67: note: expected ‘char *’ but argument is of type ‘long unsigned int’
+ int kpa_transaction(AMP *amp, const char *cmd, int cmd_len, char *response,
+                                                             ~~~~~~^~~~~~~~
+kpa.c:156:16: error: too few arguments to function ‘kpa_transaction’
+   int retval = kpa_transaction(amp, "^FR;", reponsebuf, sizeof(reponsebuf));
+                ^~~~~~~~~~~~~~~
+kpa.c:68:5: note: declared here
+ int kpa_transaction(AMP *amp, const char *cmd, int cmd_len, char *response,
+     ^~~~~~~~~~~~~~~
+kpa.c:160:12: error: ‘err’ undeclared (first use in this function)
+     return err;
+            ^~~
+kpa.c:167:1: warning: control reaches end of non-void function [-Wreturn-type]
+ }
+ ^
+make: *** [Makefile:479: kpa.lo] Error 1

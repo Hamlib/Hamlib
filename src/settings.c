@@ -46,6 +46,7 @@
 #include <fcntl.h>
 
 #include <hamlib/rig.h>
+#include <hamlib/amplifier.h>
 #include "cal.h"
 
 
@@ -307,6 +308,35 @@ setting_t HAMLIB_API rig_has_get_level(RIG *rig, setting_t level)
     }
 
     return (rig->state.has_get_level & level);
+}
+
+
+/**
+ * \brief check retrieval ability of level settings
+ * \param amp   The amp handle
+ * \param level The level settings
+ *
+ *  Checks if an amp is capable of *getting* a level setting.
+ *  Since the \a level is an OR'ed bitwise argument, more than
+ *  one level can be checked at the same time.
+ *
+ *  EXAMPLE: if (amp_has_get_level(my_amp, AMP_LVL_SWR)) disp_SWR();
+ *
+ * \return a bit map of supported level settings that can be retrieved,
+ * otherwise 0 if none supported.
+ *
+ * \sa amp_has_set_level(), amp_get_level()
+ */
+setting_t HAMLIB_API amp_has_get_level(AMP *amp, setting_t level)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!amp || !amp->caps)
+    {
+        return 0;
+    }
+
+    return (amp->state.has_get_level & level);
 }
 
 

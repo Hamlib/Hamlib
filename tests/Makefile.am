@@ -6,18 +6,21 @@
 
 DISTCLEANFILES = rigctl.log rigctl.sum testbcd.log testbcd.sum
 
-bin_PROGRAMS = rigctl rigctld rigmem rigsmtr rigswr rotctl rotctld rigctlcom
+bin_PROGRAMS = rigctl rigctld rigmem rigsmtr rigswr rotctl rotctld rigctlcom ampctl ampctld
 
 check_PROGRAMS = dumpmem testrig testtrn testbcd testfreq listrigs testloc rig_bench
 
 RIGCOMMONSRC = rigctl_parse.c rigctl_parse.h dumpcaps.c sprintflst.c sprintflst.h uthash.h
 ROTCOMMONSRC = rotctl_parse.c rotctl_parse.h dumpcaps_rot.c uthash.h
+AMPCOMMONSRC = ampctl_parse.c ampctl_parse.h dumpcaps_amp.c sprintflst.c sprintflst.h uthash.h
 
 rigctl_SOURCES = rigctl.c $(RIGCOMMONSRC)
 rigctld_SOURCES = rigctld.c $(RIGCOMMONSRC)
 rigctlcom_SOURCES = rigctlcom.c $(RIGCOMMONSRC)
 rotctl_SOURCES = rotctl.c $(ROTCOMMONSRC)
 rotctld_SOURCES = rotctld.c $(ROTCOMMONSRC)
+ampctl_SOURCES = ampctl.c $(AMPCOMMONSRC)
+ampctld_SOURCES = ampctld.c $(AMPCOMMONSRC)
 rigswr_SOURCES = rigswr.c
 rigsmtr_SOURCES = rigsmtr.c
 rigmem_SOURCES = rigmem.c memsave.c memload.c memcsv.c sprintflst.c sprintflst.h
@@ -29,12 +32,15 @@ LDADD = $(top_builddir)/src/libhamlib.la $(top_builddir)/lib/libmisc.la
 rigmem_CFLAGS = $(AM_CFLAGS) $(LIBXML2_CFLAGS)
 rigctld_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 rotctld_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+ampctld_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 rigctlcom_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 
 rigctl_LDADD = $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rigctld_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rotctl_LDADD = $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rotctld_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
+ampctl_LDADD = $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
+ampctld_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rigmem_LDADD = $(LIBXML2_LIBS) $(LDADD)
 rigctlcom_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 
@@ -44,8 +50,10 @@ rigswr_LDFLAGS = $(WINEXELDFLAGS)
 rigsmtr_LDFLAGS = $(WINEXELDFLAGS)
 rigmem_LDFLAGS = $(WINEXELDFLAGS)
 rotctl_LDFLAGS = $(WINEXELDFLAGS)
+ampctl_LDFLAGS = $(WINEXELDFLAGS)
 rigctld_LDFLAGS = $(WINEXELDFLAGS)
 rotctld_LDFLAGS = $(WINEXELDFLAGS)
+ampctld_LDFLAGS = $(WINEXELDFLAGS)
 rigctlcom_LDFLAGS = $(WINEXELDFLAGS)
 
 

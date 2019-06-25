@@ -25,6 +25,7 @@
 
 #include <stdlib.h>
 #include <unistd.h>
+#include <math.h>
 
 #include "hamlib/rig.h"
 #include "kenwood.h"
@@ -34,6 +35,9 @@
 #include "serial.h"
 #include "misc.h"
 
+
+// Some commands are very slow to process so we put a DELAY in those places
+#define DELAY usleep(300*1000)
 
 #define THD72_MODES (RIG_MODE_FM|RIG_MODE_FMN|RIG_MODE_AM)
 #define THD72_MODES_TX  (RIG_MODE_FM|RIG_MODE_FMN)
@@ -77,18 +81,19 @@ static rptr_shift_t thd72_rshf_table[3] =
   [2] = RIG_RPT_SHIFT_MINUS,
 };
 
-static int thd72tuningstep[10] =
+static int thd72tuningstep[11] =
 {
   [0] = 5000,
   [1] = 6250,
-  [2] = 8330,
+  [2] = 0, // not used in thd72
   [3] = 10000,
   [4] = 12500,
   [5] = 15000,
   [6] = 20000,
   [7] = 25000,
   [8] = 30000,
-  [9] = 50000,  /* or 100 kHz? */
+  [9] = 50000,
+  [10] = 100000
 };
 
 static int thd72voxdelay[7] =
@@ -152,7 +157,9 @@ int thd72_open(RIG *rig)
   struct kenwood_priv_data *priv = rig->state.priv;
   strcpy(priv->verify_cmd, "ID\r");
 
-  ret = kenwood_transaction(rig, "", NULL, 0);
+  //ret = kenwood_transaction(rig, "", NULL, 0);
+  //DELAY;
+  ret = rig_set_vfo(rig, RIG_VFO_A);
 
   return ret;
 }
@@ -187,6 +194,30 @@ static int thd72_set_vfo(RIG *rig, vfo_t vfo)
   return kenwood_simple_transaction(rig, cmd, 4);
 }
 
+static int thd72_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
+{
+  char vfobuf[16];
+  struct kenwood_priv_data *priv = rig->state.priv;
+  rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+  char vfonum = '0';
+
+  if (vfo == RIG_VFO_B || priv->split)
+  {
+    vfonum = '1';
+  }
+
+  sprintf(vfobuf, "BC %c", vfonum);
+  int retval = kenwood_transaction(rig, vfobuf, NULL, 0);
+
+  if (retval != RIG_OK)
+  {
+    return retval;
+  }
+
+  return kenwood_transaction(rig, (ptt == RIG_PTT_ON) ? "TX" : "RX", NULL, 0);
+}
+
 static int thd72_get_vfo(RIG *rig, vfo_t *vfo)
 {
   int retval;
@@ -209,7 +240,7 @@ static int thd72_get_vfo(RIG *rig, vfo_t *vfo)
   }
   else
   {
-    rig_debug(RIG_DEBUG_ERR, "%s: Unexpected answer length '%c'\n", __func__,
+    rig_debug(RIG_DEBUG_ERR, "%s: Unexpected answer length '%d'\n", __func__,
               length);
     return -RIG_EPROTO;
   }
@@ -227,6 +258,88 @@ static int thd72_get_vfo(RIG *rig, vfo_t *vfo)
 
   return RIG_OK;
 }
+
+static int thd72_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
+{
+  struct kenwood_priv_data *priv = rig->state.priv;
+  char vfobuf[16];
+  int retval;
+
+  rig_debug(RIG_DEBUG_TRACE, "%s: called %s\n", __func__, rig_strvfo(vfo));
+
+  if (txvfo != RIG_VFO_B) // Only split with RIG_VFO_B as tx
+  {
+    return -RIG_EINVAL;
+  }
+
+  /* Set VFO mode */
+  sprintf(vfobuf, "VMC 0,0");
+  retval = kenwood_transaction(rig, vfobuf, NULL, 0);
+
+  if (retval != RIG_OK)
+  {
+    return retval;
+  }
+
+  sprintf(vfobuf, "VMC 1,0");
+  retval = kenwood_transaction(rig, vfobuf, NULL, 0);
+
+  if (retval != RIG_OK)
+  {
+    return retval;
+  }
+
+  sprintf(vfobuf, "BC 1"); // leave VFOB as selected VFO
+  retval = kenwood_transaction(rig, vfobuf, NULL, 0);
+
+  if (retval != RIG_OK)
+  {
+    return retval;
+  }
+
+  /* Remember whether split is on, for thd72_set_vfo */
+  priv->split = split;
+
+  return RIG_OK;
+}
+
+static int thd72_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
+                               vfo_t *txvfo)
+{
+  struct kenwood_priv_data *priv = rig->state.priv;
+  char buf[10];
+  int retval;
+
+  rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+  /* Get VFO band */
+
+  retval = kenwood_safe_transaction(rig, "BC", buf, 10, 4);
+
+  if (retval != RIG_OK)
+  {
+    return retval;
+  }
+
+  switch (buf[5])
+  {
+  case '0': *txvfo = RIG_VFO_A; break;
+
+  case '1': *txvfo = RIG_VFO_B; break;
+
+  default:
+    rig_debug(RIG_DEBUG_ERR, "%s: Unexpected txVFO value '%c'\n", __func__, buf[5]);
+    return -RIG_EPROTO;
+  }
+
+  *split = (buf[3] == buf[5]) ? RIG_SPLIT_OFF : RIG_SPLIT_ON;
+
+  /* Remember whether split is on, for th_set_vfo */
+  priv->split = *split;
+
+  return RIG_OK;
+}
+
 
 static int thd72_vfoc(RIG *rig, vfo_t vfo, char *vfoc)
 {
@@ -320,7 +433,9 @@ static int thd72_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
   int retval;
   char buf[64], fbuf[11];
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+  rig_debug(RIG_DEBUG_TRACE, "%s: called, vfo=%s, freq="PRIfreq"\n", __func__,
+            rig_strvfo(vfo), freq);
+
 
   retval = thd72_get_freq_info(rig, vfo, buf);
 
@@ -329,6 +444,14 @@ static int thd72_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     return retval;
   }
 
+  int tsindex = buf[16] - '0';
+
+  if (buf[16] >= 'A') { tsindex = buf[16] - 'A' + 10; }
+
+  shortfreq_t ts = thd72tuningstep[tsindex];
+  rig_debug(RIG_DEBUG_VERBOSE, "%s: tsindex=%d, stepsize=%d\n", __func__, tsindex,
+            ts);
+  freq = roundl(freq / ts) * ts;
   sprintf(fbuf, "%010"PRIll, (int64_t)freq);
   memcpy(buf + 5, fbuf, 10);
   retval = kenwood_simple_transaction(rig, buf, 52);
@@ -349,6 +472,10 @@ static int thd72_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     return retval;
   }
 
+  int tsindex = buf[16] - '0';
+  shortfreq_t ts = thd72tuningstep[tsindex];
+  rig_debug(RIG_DEBUG_VERBOSE, "%s: tsindex=%d, stepsize=%d\n", __func__, tsindex,
+            ts);
   sscanf(buf + 5, "%"SCNfreq, freq);
   return RIG_OK;
 }
@@ -1479,7 +1606,7 @@ const struct rig_caps thd72a_caps =
   .rig_model =  RIG_MODEL_THD72A,
   .model_name = "TH-D72A",
   .mfg_name =  "Kenwood",
-  .version =  TH_VER ".2",
+  .version =  TH_VER ".3",
   .copyright =  "LGPL",
   .status =  RIG_STATUS_BETA,
   .rig_type =  RIG_TYPE_HANDHELD | RIG_FLAG_APRS | RIG_FLAG_TNC | RIG_FLAG_DXCLUSTER,
@@ -1494,7 +1621,7 @@ const struct rig_caps thd72a_caps =
   .serial_handshake =  RIG_HANDSHAKE_XONXOFF,
   .write_delay =  0,
   .post_write_delay =  0,
-  .timeout =  500,
+  .timeout =  300,
   .retry =  3,
   .has_get_func =  THD72_FUNC_ALL,
   .has_set_func =  THD72_FUNC_ALL,
@@ -1565,6 +1692,9 @@ const struct rig_caps thd72a_caps =
   .get_mode = thd72_get_mode,
   .set_vfo =  thd72_set_vfo,
   .get_vfo =  thd72_get_vfo,
+  .set_ptt = thd72_set_ptt,
+  .set_split_vfo = thd72_set_split_vfo,
+  .get_split_vfo = thd72_get_split_vfo,
   .set_rptr_shift = thd72_set_rptr_shft,
   .get_rptr_shift = thd72_get_rptr_shft,
   .set_rptr_offs = thd72_set_rptr_offs,
