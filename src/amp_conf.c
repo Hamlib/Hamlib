@@ -74,27 +74,6 @@ static const struct confparams ampfrontend_cfg_params[] =
     "0", RIG_CONF_NUMERIC, { .n = { 0, 10, 1 } }
   },
 
-  {
-    TOK_MIN_AZ, "min_az", "Minimum azimuth",
-    "Minimum amplifier azimuth in degrees",
-    "-180", RIG_CONF_NUMERIC, { .n = { -360, 360, .001 } }
-  },
-  {
-    TOK_MAX_AZ, "max_az", "Maximum azimuth",
-    "Maximum amplifier azimuth in degrees",
-    "180", RIG_CONF_NUMERIC, { .n = { -360, 360, .001 } }
-  },
-  {
-    TOK_MIN_EL, "min_el", "Minimum elevation",
-    "Minimum amplifier elevation in degrees",
-    "0", RIG_CONF_NUMERIC, { .n = { -90, 180, .001 } }
-  },
-  {
-    TOK_MAX_EL, "max_el", "Maximum elevation",
-    "Maximum amplifier elevation in degrees",
-    "90", RIG_CONF_NUMERIC, { .n = { -90, 180, .001 } }
-  },
-
   { RIG_CONF_END, NULL, }
 };
 
@@ -444,25 +423,6 @@ int frontamp_get_conf(AMP *amp, token_t token, char *val)
 
     strcpy(val, s);
     break;
-
-#if 0
-
-  case TOK_MIN_AZ:
-    sprintf(val, "%f", rs->min_az);
-    break;
-
-  case TOK_MAX_AZ:
-    sprintf(val, "%f", rs->max_az);
-    break;
-
-  case TOK_MIN_EL:
-    sprintf(val, "%f", rs->min_el);
-    break;
-
-  case TOK_MAX_EL:
-    sprintf(val, "%f", rs->max_el);
-    break;
-#endif
 
   default:
     return -RIG_EINVAL;

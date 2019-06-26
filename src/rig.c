@@ -1962,10 +1962,10 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         return par_ptt_get(&rig->state.pttport, ptt);
 
     case RIG_PTT_CM108:
-        //if (caps->get_ptt)
-        //{
-        //    return caps->get_ptt(rig, vfo, ptt);
-        //}
+        if (caps->get_ptt)
+        {
+            return caps->get_ptt(rig, vfo, ptt);
+        }
 
         return cm108_ptt_get(&rig->state.pttport, ptt);
 
