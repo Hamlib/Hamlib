@@ -1692,9 +1692,10 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		break;
     case RIG_LEVEL_AGC:
         if (priv_caps->agc_levels_present) {
-            int found = 0;
+					int found = 0;
+					int i;
 
-            for (int i = 0; i <= RIG_AGC_LAST && priv_caps->agc_levels[i].level >= 0; i++) {
+            for (i = 0; i <= RIG_AGC_LAST && priv_caps->agc_levels[i].level >= 0; i++) {
                 if (priv_caps->agc_levels[i].icom_level == icom_val) {
                     val->i = priv_caps->agc_levels[i].level;
                     found = 1;
