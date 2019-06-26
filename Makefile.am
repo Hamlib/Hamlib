@@ -26,7 +26,6 @@ DIST_SUBDIRS = macros include lib src c++ bindings tests doc android scripts\
 	adat alinco aor barrett drake dorji dummy elad flexradio icom icmarine jrc\
 	kachina kenwood kit lowe pcr prm80 racal rft rs skanti tapr tentec\
 	tuner uniden wj yaesu winradio\
-  amplifiers/elecraft
 	$(ROT_BACKEND_LIST) $(AMP_BACKEND_LIST)
 
 # Install any third party macros into our tree for distribution
