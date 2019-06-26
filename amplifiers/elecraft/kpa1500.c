@@ -164,7 +164,7 @@ static int kpa1500_cleanup(AMP *amp)
  *
  */
 
-#if 0
+#if 0 // not implemented yet
 /*
  * Send command string to amplifier
  */

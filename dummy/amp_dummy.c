@@ -283,7 +283,7 @@ static int dummy_amp_get_powerstat(AMP *amp, powerstat_t *status)
   return RIG_OK;
 }
 
-#if 0
+#if 0 // not implemented yet
 static int dummy_amp_get_ext_level(AMP *amp, token_t token, value_t *val)
 {
   struct dummy_amp_priv_data *priv = (struct dummy_amp_priv_data *)
