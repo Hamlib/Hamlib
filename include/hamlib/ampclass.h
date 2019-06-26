@@ -1,5 +1,5 @@
 /*
- *  Hamlib C++ bindings - rotator API header
+ *  Hamlib C++ bindings - amplifier API header
  *  Copyright (c) 2002 by Stephane Fillod
  *
  *
@@ -19,30 +19,30 @@
  *
  */
 
-#ifndef _ROTCLASS_H
-#define _ROTCLASS_H 1
+#ifndef _AMPCLASS_H
+#define _AMPCLASS_H 1
 
-#include <hamlib/rotator.h>
+#include <hamlib/amplifier.h>
 
 
 
-class BACKEND_IMPEXP Rotator
+class BACKEND_IMPEXP Amplifier
 {
 private:
-    ROT *theRot;  // Global ref. to the rot
+    AMP *theAmp;  // Global ref. to the amp
 
 protected:
 public:
-    Rotator(rot_model_t rot_model);
+    Amplifier(amp_model_t amp_model);
 
-    virtual ~Rotator();
+    virtual ~Amplifier();
 
-    const struct rot_caps *caps;
+    const struct amp_caps *caps;
 
-    // This method opens the communication port to the rot
+    // This method opens the communication port to the amp
     void open(void);
 
-    // This method closes the communication port to the rot
+    // This method closes the communication port to the amp
     void close(void);
 
     void setConf(token_t token, const char *val);
@@ -51,15 +51,12 @@ public:
     void getConf(const char *name, char *val);
     token_t tokenLookup(const char *name);
 
-    void setPosition(azimuth_t az, elevation_t el);
-    void getPosition(azimuth_t& az, elevation_t& el);
-    void stop();
-    void park();
-    void reset(rot_reset_t reset);
+    void setFreq(freq_t freq);
+    freq_t getFreq(freq_t freq);
 
-    void move(int direction, int speed);
+    void reset(amp_reset_t reset);
 };
 
 
 
-#endif  // _ROTCLASS_H
+#endif  // _AMPCLASS_H
