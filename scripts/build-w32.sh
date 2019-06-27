@@ -44,7 +44,7 @@ else
 	exit ${EX_NOINPUT}
 fi
 
-RELEASE=`/usr/bin/awk 'BEGIN{FS="["; RS="]"} /\[3\./ {print $2;exit}' ./configure.ac`
+RELEASE=`/usr/bin/awk 'BEGIN{FS="["; RS="]"} /\[4\./ {print $2;exit}' ./configure.ac`
 HL_FILENAME=hamlib-w32-${RELEASE}
 INST_DIR=`pwd`/mingw32-inst
 ZIP_DIR=`pwd`/${HL_FILENAME}
@@ -212,7 +212,7 @@ for f in doc/man1/*.1 doc/man7/*.7; do \
 cd ${BUILD_DIR}/$1
 
 # Copy build files into specific locations for Zip file
-cp -a ${INST_DIR}/bin/{rigctld.exe,rigctl.exe,rigmem.exe,rigsmtr.exe,rigswr.exe,rotctld.exe,rotctl.exe,rigctlcom.exe} ${ZIP_DIR}/bin/.
+cp -a ${INST_DIR}/bin/{rigctld.exe,rigctl.exe,rigmem.exe,rigsmtr.exe,rigswr.exe,rotctld.exe,rotctl.exe,rigctlcom.exe,ampctl.exe,ampctld.exe} ${ZIP_DIR}/bin/.
 cp -a ${INST_DIR}/bin/libhamlib-?.dll ${ZIP_DIR}/bin/.
 cp -a ${INST_DIR}/lib/libhamlib.dll.a ${ZIP_DIR}/lib/gcc/.
 
@@ -223,8 +223,8 @@ ${HOST_ARCH_STRIP} ${ZIP_DIR}/bin/*.exe ${ZIP_DIR}/bin/*hamlib-*.dll
 cp -a /usr/i686-w64-mingw32/lib/libwinpthread-1.dll ${ZIP_DIR}/bin/.
 cp -a ${LIBUSB_1_0_BIN_PATH}/MinGW32/dll/libusb-1.0.dll ${ZIP_DIR}/bin/libusb-1.0.dll
 
-# Required for MinGW with GCC 4.9
-cp -a /usr/lib/gcc/i686-w64-mingw32/4.9-posix/libgcc_s_sjlj-1.dll ${ZIP_DIR}/bin/libgcc_s_sjlj-1.dll
+# Required for MinGW with GCC 6.3
+cp -a /usr/lib/gcc/i686-w64-mingw32/6.3-posix/libgcc_s_sjlj-1.dll ${ZIP_DIR}/bin/libgcc_s_sjlj-1.dll
 
 ## Need VC++ free toolkit installed (default Wine directory installation shown)
 ( cd ${ZIP_DIR}/lib/msvc/ && wine ~/.wine/drive_c/Program\ Files/Microsoft\ Visual\ C++\ Toolkit\ 2003/bin/link.exe /lib /machine:i386 /def:libhamlib-2.def )
