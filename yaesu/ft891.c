@@ -408,6 +408,7 @@ int ft891_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_widt
 {
     struct newcat_priv_data *priv;
     struct rig_state *state;
+    freq_t b_freq;
     int err;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -422,6 +423,11 @@ int ft891_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_widt
 
     priv = (struct newcat_priv_data *)rig->state.priv;
 
+    // Remember VFOB frequency
+    if (RIG_OK != (err = newcat_get_freq(rig,RIG_VFO_B,&b_freq))) {
+        return err;
+    }
+
     // Change mode on VFOA and make VFOB match VFOA
     if (RIG_OK != (err = newcat_set_mode(rig,RIG_VFO_A,tx_mode,tx_width))) {
         return err;
@@ -433,6 +439,11 @@ int ft891_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_widt
         rig_debug(RIG_DEBUG_VERBOSE, "%s:%d write_block err = %d\n", __func__, __LINE__, err);
         return err;
       }
+
+    // Restore VFOB frequency
+    if (RIG_OK != (err = newcat_set_freq(rig,RIG_VFO_B,b_freq))) {
+        return err;
+    }
 
 #if 0
     if (RIG_OK != (err = newcat_get_cmd (rig)))
