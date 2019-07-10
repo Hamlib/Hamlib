@@ -279,16 +279,16 @@ int ft891_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
     switch(split) {
         case RIG_SPLIT_ON:
-            ci = '3';
+            ci = '1';
             break;
         case RIG_SPLIT_OFF:
-            ci = '2';
+            ci = '0';
             break;
         default:
             return -RIG_EINVAL;
     }
 
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "FT%c;", ci);
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "ST%c;", ci);
     if ( RIG_OK != (err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str))))  {
       rig_debug(RIG_DEBUG_ERR, "%s: write_block err = %d\n", __func__, err);
       return err;
@@ -327,12 +327,12 @@ int ft891_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 
     priv = (struct newcat_priv_data *)rig->state.priv;
 
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "FT;");
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "ST;");
     if (RIG_OK != (err = newcat_get_cmd (rig)))
         return err;
 
     // Get split mode status
-    *split = priv->ret_data[2]=='1'; // 1=VFOB TX so is in split mode
+    *split = priv->ret_data[2]!='0'; // 1=split, 2=split + 5khz
     rig_debug(RIG_DEBUG_TRACE, "%s: get split = 0x%02x\n", __func__, *split);
 
     *tx_vfo = RIG_VFO_A;
