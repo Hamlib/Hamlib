@@ -2035,6 +2035,7 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
                 return -RIG_ENAVAIL;
             scale = (newcat_is_rig(rig, RIG_MODEL_FT450)) &&
 		(newcat_get_rigid(rig) == NC_RIGID_FT450D) ? 100. : 255.;
+            scale = newcat_is_rig(rig, RIG_MODEL_FT891) ? 100. : scale ;
             scale = newcat_is_rig(rig, RIG_MODEL_FT950) ? 100. : scale ;
             scale = newcat_is_rig(rig, RIG_MODEL_FT1200) ? 100. : scale ;
             fpf = newcat_scale_float(scale, val.f);
@@ -2468,6 +2469,7 @@ int newcat_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val)
         case RIG_LEVEL_RFPOWER:
             scale = (newcat_is_rig(rig, RIG_MODEL_FT450)) &&
 		(newcat_get_rigid(rig) == NC_RIGID_FT450D) ? 100. : 255.;
+            scale = newcat_is_rig(rig, RIG_MODEL_FT891) ? 100. : scale ;
             scale = newcat_is_rig(rig, RIG_MODEL_FT950) ? 100. : scale ;
             scale = newcat_is_rig(rig, RIG_MODEL_FT1200) ? 100. : scale ;
             val->f = (float)atoi(retlvl)/scale;
