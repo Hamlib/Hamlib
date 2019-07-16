@@ -943,8 +943,10 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     // Set the mode
     char *ttmode = strdup(modeMapGetFLRig(mode));
-    if (ttmode[0]=='|') ttmode = &ttmode[1]; // remove first pipe symbol
-    char *p=strchr(ttmode,'|');
+    rig_debug(RIG_DEBUG_TRACE,"%s: got ttmode = %s\n",__FUNCTION__,ttmode==NULL?"NULL":ttmode);
+    char *pttmode = ttmode;
+    if (ttmode[0]=='|') pttmode = &ttmode[1]; // remove first pipe symbol
+    char *p=strchr(pttmode,'|');
     if (p) *p=0; // remove any other pipe
 
     char cmd_buf[MAXCMDLEN];
@@ -963,11 +965,13 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         pxml = xml_build(cmd, cmd_buf, xml, sizeof(xml));
     }
 
+    rig_debug(RIG_DEBUG_TRACE,"%s: write_transaction\n",__FUNCTION__);
     retval = write_transaction(rig, pxml, strlen(pxml));
     if (retval < 0) {
         return retval;
     }
 
+    rig_debug(RIG_DEBUG_TRACE,"%s: read_transaction\n",__FUNCTION__);
     // Get the response
     read_transaction(rig, xml, sizeof(xml));
     rig_debug(RIG_DEBUG_TRACE, "%s: response=%s\n", __FUNCTION__,xml);
