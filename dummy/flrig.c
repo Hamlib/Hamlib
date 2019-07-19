@@ -950,7 +950,7 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     if (p) *p=0; // remove any other pipe
 
     char cmd_buf[MAXCMDLEN];
-    sprintf(cmd_buf, "<params><param><value>%s</value></param></params>", ttmode);
+    sprintf(cmd_buf, "<params><param><value>%s</value></param></params>", pttmode);
     free(ttmode);
     char xml[MAXXMLLEN];
     char *pxml=NULL;
