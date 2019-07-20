@@ -154,9 +154,9 @@ const struct rig_caps ft1000d_caps = {
   .rig_model =          RIG_MODEL_FT1000D,
   .model_name =         "FT-1000D",
   .mfg_name =           "Yaesu",
-  .version =            "0.1.0",
+  .version =            "0.1.2",
   .copyright =          "LGPL",
-  .status =             RIG_STATUS_ALPHA,
+  .status =             RIG_STATUS_BETA,
   .rig_type =           RIG_TYPE_TRANSCEIVER,
   .ptt_type =           RIG_PTT_RIG,
   .dcd_type =           RIG_DCD_NONE,
@@ -169,8 +169,8 @@ const struct rig_caps ft1000d_caps = {
   .serial_handshake =   RIG_HANDSHAKE_NONE,
   .write_delay =        FT1000D_WRITE_DELAY,
   .post_write_delay =   FT1000D_POST_WRITE_DELAY,
-  .timeout =            2000,
-  .retry =              0,
+  .timeout =            500,
+  .retry =              2,
   .has_get_func =       RIG_FUNC_LOCK | RIG_FUNC_TUNER | RIG_FUNC_MON,
   .has_set_func =       RIG_FUNC_LOCK | RIG_FUNC_TUNER,
   .has_get_level =      RIG_LEVEL_STRENGTH | RIG_LEVEL_SWR | RIG_LEVEL_ALC | \
@@ -378,6 +378,7 @@ int  ft1000d_open(RIG *rig) {
   if (err != RIG_OK)
     return err;
 
+  
   // Get current rig settings and status
   err = ft1000d_get_update_data(rig, FT1000D_NATIVE_UPDATE_OP_DATA, 0);
 
@@ -2658,6 +2659,8 @@ int ft1000d_get_update_data(RIG *rig, unsigned char ci, unsigned short ch) {
   priv = (struct ft1000d_priv_data *)rig->state.priv;
   rig_s = &rig->state;
 
+  int retry = rig_s->rigport.retry;
+  do {
   if (ci == FT1000D_NATIVE_UPDATE_MEM_CHNL_DATA)
     // P4 = 0x01 to 0x5a for channel 1 - 90
     err = ft1000d_send_dynamic_cmd(rig, ci, 4, 0, 0, ch);
@@ -2704,6 +2707,7 @@ int ft1000d_get_update_data(RIG *rig, unsigned char ci, unsigned short ch) {
 
   n = read_block(&rig_s->rigport, p, rl);
 
+  } while(n < 0 && retry>=0);
   if (n < 0)
     return n;                   /* die returning read_block error */
 
@@ -2752,6 +2756,7 @@ int ft1000d_send_static_cmd(RIG *rig, unsigned char ci) {
   if (err != RIG_OK)
     return err;
 
+  usleep(rig_s->rigport.write_delay*1000);
   return RIG_OK;
 }
 
@@ -2807,6 +2812,7 @@ int ft1000d_send_dynamic_cmd(RIG *rig, unsigned char ci,
   if (err != RIG_OK)
     return err;
 
+  usleep(rig_s->rigport.write_delay*1000);
   return RIG_OK;
 }
 
@@ -2862,6 +2868,7 @@ int ft1000d_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq) {
   if (err != RIG_OK)
     return err;
 
+  usleep(rig_s->rigport.write_delay*1000);
   return RIG_OK;
 }
 
@@ -2919,6 +2926,7 @@ int ft1000d_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit) {
   if(err != RIG_OK)
     return err;
 
+  usleep(rig_s->rigport.write_delay*1000);
   return RIG_OK;
 }
 
