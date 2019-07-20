@@ -388,6 +388,10 @@ static int write_transaction(RIG *rig, char *xml, int xml_len)
         rig_debug(RIG_DEBUG_ERR,"%s: len==0??\n",__FUNCTION__);
     }
 
+    // appears we can lose sync if we don't clear things out
+    // shouldn't be anything for us now anyways
+    network_flush(&rig->state.rigport);
+
     while(try-- >= 0 && retval != RIG_OK) {
             retval = write_block(&rs->rigport, xml, strlen(xml));
             if (retval  < 0) {
