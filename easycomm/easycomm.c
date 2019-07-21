@@ -314,8 +314,8 @@ static int easycomm_rot_get_conf(ROT *rot, token_t token, char *val) {
 
    
     rig_debug(RIG_DEBUG_TRACE, "%s got response: %s\n", __FUNCTION__, ackbuf);
-     /* Return given string at correct position*/
-		val = &ackbuf[2]; /* CCxxxxxx */
+    /* Return given string at correct position*/
+    memcpy(val, ackbuf + 2, sizeof(ackbuf) - 2); /* CCxxxxxx */
     return RIG_OK;
 }
 
