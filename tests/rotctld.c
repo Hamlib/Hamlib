@@ -103,13 +103,13 @@ static struct option long_options[] =
     {0, 0, 0, 0}
 };
 
-int interactive = 1;    /* no cmd because of daemon */
-int prompt = 0 ;        /* Daemon mode for rigparse return string */
+thread_local int interactive = 1;    /* no cmd because of daemon */
+thread_local int prompt = 0 ;        /* Daemon mode for rigparse return string */
 
-const char *portno = "4533";
-const char *src_addr = NULL;    /* INADDR_ANY */
+thread_local const char *portno = "4533";
+thread_local const char *src_addr = NULL;    /* INADDR_ANY */
 
-char send_cmd_term = '\r';      /* send_cmd termination char */
+thread_local char send_cmd_term = '\r';      /* send_cmd termination char */
 
 #define MAXCONFLEN 128
 

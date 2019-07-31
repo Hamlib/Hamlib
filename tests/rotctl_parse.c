@@ -495,11 +495,11 @@ static int next_word(char *buffer, int argc, char *argv[], int newline)
     })
 
 
-extern int interactive;
-extern int prompt;
-extern char send_cmd_term;
-int ext_resp = 0;
-unsigned char resp_sep = '\n';      /* Default response separator */
+extern thread_local int interactive;
+extern thread_local int prompt;
+extern thread_local char send_cmd_term;
+thread_local int ext_resp = 0;
+thread_local unsigned char resp_sep = '\n';      /* Default response separator */
 
 
 int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
