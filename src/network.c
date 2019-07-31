@@ -327,11 +327,6 @@ void network_flush(hamlib_port_t *rp)
                       __func__,
                       ret, len_read, len_read, buffer);
         }
-        else
-        {
-            rig_debug(RIG_DEBUG_WARN, "%s: len <= 0, len=%ld/0x%lx\n", __func__, len, len);
-            break;
-        }
     }
 }
 
