@@ -157,8 +157,6 @@ int kx3_get_bar_graph_level(RIG *rig, float *level);
  * Part of info comes from http://www.elecraft.com/K2_Manual_Download_Page.htm#K3
  * look for K3 Programmer's Reference PDF
  *
- * Wayne Burdick, N6KR, advises that the forthcoming KX3 (prototype shown at
- * Dayton Hamvention 2011) will have an identical command set to the K3.
  */
 const struct rig_caps k3_caps = {
 	.rig_model =		RIG_MODEL_K3,
