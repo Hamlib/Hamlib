@@ -736,10 +736,8 @@ static int print_ext(RIG *rig, const struct confparams *cfp, rig_ptr_t ptr)
         break;
       case RIG_CONF_COMBO:
         fprintf((FILE *)ptr, "\t\tValues:");
-        if (cfp->u.c.combostr != NULL) {
-          for (i = 0; i < RIG_COMBO_MAX && cfp->u.c.combostr[i] != NULL; i++) {
-            fprintf((FILE *)ptr, " %d=\"%s\"", i, cfp->u.c.combostr[i]);
-          }
+        for (i = 0; i < RIG_COMBO_MAX && cfp->u.c.combostr[i] != NULL; i++) {
+          fprintf((FILE *)ptr, " %d=\"%s\"", i, cfp->u.c.combostr[i]);
         }
         fprintf((FILE *)ptr, "\n");
         break;
