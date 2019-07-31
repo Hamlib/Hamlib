@@ -112,10 +112,10 @@ static const int have_rl = 1;
 #endif
 
 
-int interactive = 1;    /* if no cmd on command line, switch to interactive */
-int prompt = 1;         /* Print prompt in rotctl */
+thread_local int interactive = 1;    /* if no cmd on command line, switch to interactive */
+thread_local int prompt = 1;         /* Print prompt in rotctl */
 
-char send_cmd_term = '\r';      /* send_cmd termination char */
+thread_local char send_cmd_term = '\r';      /* send_cmd termination char */
 
 
 int main(int argc, char *argv[])

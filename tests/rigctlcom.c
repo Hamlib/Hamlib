@@ -128,11 +128,11 @@ static sig_atomic_t volatile ctrl_c;
 static int volatile ctrl_c;
 #endif
 
-int interactive = 1;            /* no cmd because of daemon */
-int prompt = 0;                 /* Daemon mode for rigparse return string */
-int vfo_mode = 0;               /* vfo_mode=0 means target VFO is current VFO */
+thread_local int interactive = 1;            /* no cmd because of daemon */
+thread_local int prompt = 0;                 /* Daemon mode for rigparse return string */
+thread_local int vfo_mode = 0;               /* vfo_mode=0 means target VFO is current VFO */
 
-char send_cmd_term = '\r';      /* send_cmd termination char */
+thread_local char send_cmd_term = '\r';      /* send_cmd termination char */
 
 #define MAXCONFLEN 128
 

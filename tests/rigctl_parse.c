@@ -587,17 +587,12 @@ static int next_word(char *buffer, int argc, char *argv[], int newline)
     })
 
 
-extern int interactive;
-extern int prompt;
-extern int vfo_mode;
-extern char send_cmd_term;
-int ext_resp = 0;
-unsigned char resp_sep = '\n';      /* Default response separator */
-/* Note that vfo_mode and ext_resp are not thread safe
- * So to run either a vfo_mode or ext_resp mode rigctld it needs to be
- * on a separate rigctld instance on a different port.  One port per vfo_mode/ext_resp combination for a maximum of 4 instances/ports to cover all 4 combos
- * Significant rewrite to fix this for 1 instance
- */
+extern thread_local int interactive;
+extern thread_local int prompt;
+extern thread_local int vfo_mode;
+extern thread_local char send_cmd_term;
+thread_local int ext_resp = 0;
+thread_local unsigned char resp_sep = '\n';      /* Default response separator */
 
 int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc, sync_cb_t sync_cb)
 {
