@@ -127,7 +127,6 @@ static const int have_rl = 1;
 int interactive = 1;    /* if no cmd on command line, switch to interactive */
 int prompt = 1;         /* Print prompt in rigctl */
 int vfo_mode = 0;       /* vfo_mode = 0 means target VFO is 'currVFO' */
-int rigctld_vfo_mode;
 
 char send_cmd_term = '\r';  /* send_cmd termination char */
 
@@ -528,7 +527,7 @@ int main(int argc, char *argv[])
 
     if (my_rig->caps->rig_model == RIG_MODEL_NETRIGCTL) {
       /* We automatically detect if we need to be in vfo mode or not */
-      rigctld_vfo_mode = netrigctl_get_vfo_mode(my_rig);
+      int rigctld_vfo_mode = netrigctl_get_vfo_mode(my_rig);
       if (rigctld_vfo_mode && !vfo_mode) {
           fprintf(stderr, "Looks like rigctld is using vfo mode so we're switching to vfo mode\n");
           vfo_mode = rigctld_vfo_mode;
