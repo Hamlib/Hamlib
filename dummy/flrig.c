@@ -473,7 +473,7 @@ static rmode_t modeMapGetHamlib (const char *modeFLRig)
             return modeMap[i].mode_hamlib;
         }
     }
-    rig_debug(RIG_DEBUG_ERR,"%s: Unknown mode requested: %s\n",__FUNCTION__,modeFLRig);
+    rig_debug(RIG_DEBUG_TRACE,"%s: Unknown mode requested: %s\n",__FUNCTION__,modeFLRig);
     return -RIG_EINVAL;
 }
 
