@@ -47,6 +47,8 @@ macros/ltsugar.m4
 macros/ltversion.m4
 macros/lt~obsolete.m4
 macros/pkg.m4
+tests/ampctl
+tests/ampctld
 tests/rigctl
 tests/rigctlcom
 tests/rigctld
