@@ -72,7 +72,10 @@
        defined __xlC__
 #  define thread_local __thread
 # else
+#  warn "Please see if you can find a thread_local definition for this compiler"
+#  warn "You can comment out the error after this line but rigctld will not be thread safe for vfo_mode and ext_resp and will require up to 4 rigctld's for the 4 possible combinations of vfo_mode and ext_resp"
 #  error "Cannot define thread_local"
+#  define thread_local
 # endif
 #endif
 
