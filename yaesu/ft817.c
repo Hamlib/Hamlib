@@ -161,9 +161,9 @@ const struct rig_caps ft817_caps = {
 	.rig_model =           RIG_MODEL_FT817,
 	.model_name =          "FT-817",
 	.mfg_name =            "Yaesu",
-	.version =             "0.5.1",
+	.version =             "0.6.0",
 	.copyright =           "LGPL",
-	.status =              RIG_STATUS_BETA,
+	.status =              RIG_STATUS_STABLE,
 	.rig_type =            RIG_TYPE_TRANSCEIVER,
 	.ptt_type =            RIG_PTT_RIG,
 	.dcd_type =            RIG_DCD_RIG,
@@ -1115,7 +1115,9 @@ int ft817_vfo_op         (RIG *rig, vfo_t vfo, vfo_op_t op)
 
 	case RIG_OP_TOGGLE:
 	  rig_force_cache_timeout(&((struct ft817_priv_data *)rig->state.priv)->fm_status_tv);
-		return ft817_send_cmd(rig, FT817_NATIVE_CAT_SET_VFOAB);
+    int n = ft817_send_cmd(rig, FT817_NATIVE_CAT_SET_VFOAB);
+    usleep(100*1000); // rig needs a little time to do this
+		return n;
 
 	default:
 		return -RIG_EINVAL;
