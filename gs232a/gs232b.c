@@ -65,6 +65,7 @@ gs232b_transaction (ROT *rot, const char *cmdstr,
     struct rot_state *rs;
     int retval;
     int retry_read = 0;
+    int noreply = 0;
     char replybuf[BUFSZ];
 
     rs = &rot->state;
@@ -77,6 +78,10 @@ transaction_write:
         retval = write_block(&rs->rotport, cmdstr, strlen(cmdstr));
         if (retval != RIG_OK)
             goto transaction_quit;
+        if (!data) {
+            write_block(&rs->rotport,EOM,strlen(EOM));
+            noreply = 1; // we will check for connectivity though
+        }
     }
 
     /* Always read the reply to know whether the cmd went OK */
@@ -106,6 +111,14 @@ transaction_write:
 #endif
 
 
+    if (noreply) { // we don't expect a reply...just a prompt return
+      if (strncmp(data,"?>",2) != 0) {
+	        rig_debug(RIG_DEBUG_VERBOSE, "%s: Expected '?>' but got '%s' from cmd '%s'\n",
+			        __FUNCTION__, data, cmdstr);
+	         return -RIG_EPROTO;
+      } 
+      return RIG_OK;
+    }
     if (data[0] == '?') {
 	    /* Invalid command */
 	    rig_debug(RIG_DEBUG_VERBOSE, "%s: Error for '%s': '%s'\n",
