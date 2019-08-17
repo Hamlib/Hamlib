@@ -670,7 +670,8 @@ static int flrig_cleanup(RIG *rig) {
     free(rig->state.priv);
     rig->state.priv = NULL;
 
-    for(int i=0; modeMap[i].mode_hamlib!=0; ++i) {
+    int i;
+    for(i=0; modeMap[i].mode_hamlib!=0; ++i) {
         if (modeMap[i].mode_flrig) free(modeMap[i].mode_flrig);
     }
 
