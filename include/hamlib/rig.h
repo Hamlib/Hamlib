@@ -103,10 +103,14 @@
 #ifndef SWIGLUA
 #define CONSTANT_64BIT_FLAG(BIT) (1ull << (BIT))
 #else
-/* SWIG's Lua generator doesn't grok ull due to Lua using a
+/* SWIG's older Lua generator doesn't grok ull due to Lua using a
    double-precision floating point type internally for number
    representations (max 53 bits of precision) so makes a string
    constant from a constant number literal using ull */
+/* #define CONSTANT_64BIT_FLAG(BIT) (1 << (BIT)) */
+/* But this appears to have been fixed so we'll use the correct one now 
+   If you have the older version of SWIG comment out this line and use
+   the one above */
 #define CONSTANT_64BIT_FLAG(BIT) (1ull << (BIT))
 #endif
 
