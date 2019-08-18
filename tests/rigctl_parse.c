@@ -3784,8 +3784,8 @@ declare_proto_rig(dump_state)
     {
         fprintf(fout,
                 "%"FREQFMT" %"FREQFMT" 0x%"PRXll" %d %d 0x%x 0x%x\n",
-                rs->rx_range_list[i].start,
-                rs->rx_range_list[i].end,
+                rs->rx_range_list[i].startf,
+                rs->rx_range_list[i].endf,
                 rs->rx_range_list[i].modes,
                 rs->rx_range_list[i].low_power,
                 rs->rx_range_list[i].high_power,
@@ -3799,8 +3799,8 @@ declare_proto_rig(dump_state)
     {
         fprintf(fout,
                 "%"FREQFMT" %"FREQFMT" 0x%"PRXll" %d %d 0x%x 0x%x\n",
-                rs->tx_range_list[i].start,
-                rs->tx_range_list[i].end,
+                rs->tx_range_list[i].startf,
+                rs->tx_range_list[i].endf,
                 rs->tx_range_list[i].modes,
                 rs->tx_range_list[i].low_power,
                 rs->tx_range_list[i].high_power,

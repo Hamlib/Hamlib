@@ -478,8 +478,8 @@ static int ar7030p_set_freq( RIG * rig, vfo_t vfo, freq_t freq )
   {
     caps = rig->caps;
 
-    if ( ( caps->rx_range_list1[ 0 ].end   > freq ) &&
-	 ( caps->rx_range_list1[ 0 ].start < freq ) )
+    if ( ( caps->rx_range_list1[ 0 ].endf   > freq ) &&
+	 ( caps->rx_range_list1[ 0 ].startf < freq ) )
     {
       switch( vfo )
       {

@@ -145,7 +145,7 @@ const struct rig_caps sdr1k_rig_caps = {
   .attenuator =     { RIG_DBLST_END, },
   .preamp = 	 { 14, RIG_DBLST_END, },
 
-  .rx_range_list1 =  { {.start=Hz(1),.end=MHz(65),.modes=SDR1K_MODES,
+  .rx_range_list1 =  { {.startf=Hz(1),.endf=MHz(65),.modes=SDR1K_MODES,
 		    .low_power=-1,.high_power=-1,SDR1K_VFO},
 		    RIG_FRNG_END, },
   .tx_range_list1 =  {
@@ -154,7 +154,7 @@ const struct rig_caps sdr1k_rig_caps = {
 		FRQ_RNG_6m(1,SDR1K_MODES, W(1),W(1),SDR1K_VFO,SDR1K_ANTS),
 		RIG_FRNG_END, },
 
-  .rx_range_list2 =  { {.start=Hz(1),.end=MHz(65),.modes=SDR1K_MODES,
+  .rx_range_list2 =  { {.startf=Hz(1),.endf=MHz(65),.modes=SDR1K_MODES,
 		    .low_power=-1,.high_power=-1,SDR1K_VFO},
 		    RIG_FRNG_END, },
   .tx_range_list2 =  {

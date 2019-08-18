@@ -484,11 +484,11 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
     rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %"PRIfreq" Hz\n", __func__, freq);
 
     /* additional debugging */
-    rig_debug(RIG_DEBUG_TRACE, "%s: R2 minimum freq = %"PRIfreq" Hz\n", __func__, caps->rx_range_list2[0].start);
-    rig_debug(RIG_DEBUG_TRACE, "%s: R2 maximum freq = %"PRIfreq" Hz\n", __func__, caps->rx_range_list2[0].end);
+    rig_debug(RIG_DEBUG_TRACE, "%s: R2 minimum freq = %"PRIfreq" Hz\n", __func__, caps->rx_range_list2[0].startf);
+    rig_debug(RIG_DEBUG_TRACE, "%s: R2 maximum freq = %"PRIfreq" Hz\n", __func__, caps->rx_range_list2[0].endf);
 
-    if (freq < caps->rx_range_list1[0].start || freq > caps->rx_range_list1[0].end ||
-            freq < caps->rx_range_list2[0].start || freq > caps->rx_range_list2[0].end)
+    if (freq < caps->rx_range_list1[0].startf || freq > caps->rx_range_list1[0].endf ||
+            freq < caps->rx_range_list2[0].startf || freq > caps->rx_range_list2[0].endf)
         return -RIG_EINVAL;
 
     err = newcat_set_vfo_from_alias(rig, &vfo);
@@ -2891,8 +2891,8 @@ int newcat_set_mem(RIG * rig, vfo_t vfo, int ch)
     chan_list = rig->caps->chan_list;
 
     for (i=0; i<CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++) {
-        if (ch >= chan_list[i].start &&
-                ch <= chan_list[i].end) {
+        if (ch >= chan_list[i].startc &&
+                ch <= chan_list[i].endc) {
             mem_caps = &chan_list[i].mem_caps;
             break;
         }
@@ -3137,8 +3137,8 @@ int newcat_set_channel(RIG * rig, const channel_t * chan)
     chan_list = rig->caps->chan_list;
 
     for (i=0; i<CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++) {
-        if (chan->channel_num >= chan_list[i].start &&
-                chan->channel_num <= chan_list[i].end &&
+        if (chan->channel_num >= chan_list[i].startc &&
+                chan->channel_num <= chan_list[i].endc &&
                 // writable memory types... NOT 60-METERS or READ-ONLY channels
                 (chan_list[i].type == RIG_MTYPE_MEM ||
                  chan_list[i].type == RIG_MTYPE_EDGE) ) {
@@ -3267,8 +3267,8 @@ int newcat_get_channel(RIG * rig, channel_t * chan)
     chan_list = rig->caps->chan_list;
 
     for (i=0; i<CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++) {
-        if (chan->channel_num >= chan_list[i].start &&
-                chan->channel_num <= chan_list[i].end) {
+        if (chan->channel_num >= chan_list[i].startc &&
+                chan->channel_num <= chan_list[i].endc) {
             mem_caps = &chan_list[i].mem_caps;
             break;
         }

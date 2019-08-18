@@ -418,8 +418,8 @@ int dumpcaps(RIG *rig, FILE *fout)
     {
         fprintf(fout,
                 "\n\t%d..%d:   \t%s",
-                caps->chan_list[i].start,
-                caps->chan_list[i].end,
+                caps->chan_list[i].startc,
+                caps->chan_list[i].endc,
                 rig_strmtype(caps->chan_list[i].type));
         fprintf(fout, "\n\t  Mem caps: ");
         dump_chan_caps(&caps->chan_list[i].mem_caps, fout);
@@ -754,11 +754,11 @@ void range_print(FILE *fout, const struct freq_range_list range_list[], int rx)
   char prntbuf[1024];  /* a malloc would be better.. */
 
   for (i = 0; i < FRQRANGESIZ; i++) {
-    if (range_list[i].start == 0 && range_list[i].end == 0) {
+    if (range_list[i].startf == 0 && range_list[i].endf == 0) {
       break;
     }
 
-    fprintf(fout, "\t%.0f Hz - %.0f Hz\n", range_list[i].start, range_list[i].end);
+    fprintf(fout, "\t%.0f Hz - %.0f Hz\n", range_list[i].startf, range_list[i].endf);
 
     fprintf(fout, "\t\tVFO list: ");
     sprintf_vfo(prntbuf, range_list[i].vfo);
@@ -800,12 +800,12 @@ int range_sanity_check(const struct freq_range_list range_list[], int rx)
 
     for (i = 0; i < FRQRANGESIZ; i++)
     {
-        if (range_list[i].start == 0 && range_list[i].end == 0)
+        if (range_list[i].startf == 0 && range_list[i].endf == 0)
         {
             break;
         }
 
-        if (range_list[i].start > range_list[i].end)
+        if (range_list[i].startf > range_list[i].endf)
         {
             return -1;
         }

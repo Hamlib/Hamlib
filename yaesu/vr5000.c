@@ -489,14 +489,14 @@ void correct_frequency(RIG *rig, vfo_t vfo, freq_t curr_freq, freq_t *freq)
   }
 
   /* Check for frequencies out on true rx range */
-  if ((freq_t)correct_freq < rig->caps->rx_range_list1->start) {
-    correct_freq = (unsigned long long)rig->caps->rx_range_list1->start;
+  if ((freq_t)correct_freq < rig->caps->rx_range_list1->startf) {
+    correct_freq = (unsigned long long)rig->caps->rx_range_list1->startf;
     if (correct_freq%ts != 0) {
         correct_freq += (ts-(correct_freq%ts));
     }
   }
-  else if ((freq_t)correct_freq > rig->caps->rx_range_list1->end) {
-    correct_freq = (unsigned long long)rig->caps->rx_range_list1->end;
+  else if ((freq_t)correct_freq > rig->caps->rx_range_list1->endf) {
+    correct_freq = (unsigned long long)rig->caps->rx_range_list1->endf;
     if (correct_freq%ts != 0) {
         correct_freq -= (correct_freq%ts);
     }

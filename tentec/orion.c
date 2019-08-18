@@ -334,11 +334,11 @@ int tt565_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	in_range = FALSE;
 	for (i=0; i<FRQRANGESIZ; i++) {
 		this_range = rig->state.rx_range_list[i];
-		if (this_range.start == 0 && this_range.end == 0) {
+		if (this_range.startf == 0 && this_range.endf == 0) {
 			break;		/* have come to early end of range list */
 		}
 		/* We don't care about mode setting, but vfo must match. */
-		if (freq >= this_range.start && freq <= this_range.end &&
+		if (freq >= this_range.startf && freq <= this_range.endf &&
 				( this_range.vfo == rig->state.current_vfo )) {
 			in_range = TRUE;
 			break;

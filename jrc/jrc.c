@@ -1115,7 +1115,7 @@ int jrc_set_mem(RIG *rig, vfo_t vfo, int ch)
 	char membuf[BUFSZ];
 	int cmd_len, mem_len;
 
-	if (ch < 0 || ch > rig->caps->chan_list[0].end)
+	if (ch < 0 || ch > rig->caps->chan_list[0].endc)
 	  return -RIG_EINVAL;
 
 	cmd_len = sprintf(cmdbuf, "C%03u" EOM, ch);

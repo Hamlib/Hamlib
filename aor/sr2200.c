@@ -323,15 +323,15 @@ int sr2200_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 	ret_freq_len = BUFSZ;
 
-	if (freq < sr2200_caps.rx_range_list1[0].start) {
+	if (freq < sr2200_caps.rx_range_list1[0].startf) {
 		rig_debug(RIG_DEBUG_WARN, "Error in %s: frequency is lower than minimum supported value (%.0f Hz)\n",
-				__FUNCTION__, sr2200_caps.rx_range_list1[0].start);
+				__FUNCTION__, sr2200_caps.rx_range_list1[0].startf);
 		return -RIG_EPROTO;
 	}
 
-		if (freq > sr2200_caps.rx_range_list1[0].end) {
+		if (freq > sr2200_caps.rx_range_list1[0].endf) {
 		rig_debug(RIG_DEBUG_WARN, "Error in %s: frequency is higher than maximum supported value (%.0f Hz)\n",
-				__FUNCTION__, sr2200_caps.rx_range_list1[0].end);
+				__FUNCTION__, sr2200_caps.rx_range_list1[0].endf);
 		return -RIG_EPROTO;
 	}
 

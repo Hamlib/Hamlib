@@ -176,8 +176,8 @@ int v4l_open(RIG *rig)
 			break;
 
 	 	fact = (vt.flags & VIDEO_TUNER_LOW) == 0 ? 16 : 16000;
-	 	rs->rx_range_list[i].start = vt.rangelow/fact;
-	 	rs->rx_range_list[i].end = vt.rangehigh/fact;
+	 	rs->rx_range_list[i].startf = vt.rangelow/fact;
+	 	rs->rx_range_list[i].endf = vt.rangehigh/fact;
  		rs->rx_range_list[i].modes = vt.rangehigh/fact < MHz(30) ? RIG_MODE_AM : RIG_MODE_WFM;
 		/* hack! hack! store the resolution in low_power! */
 		rs->rx_range_list[i].low_power = rint(fact);

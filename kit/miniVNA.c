@@ -77,9 +77,9 @@ const struct rig_caps miniVNA_caps = {
   .timeout =  1000,
   .retry =  3,
 
-  .rx_range_list1 =  { {.start=kHz(100),.end=MHz(180),.modes=RIG_MODE_NONE, .low_power=-1,.high_power=-1,RIG_VFO_A},
+  .rx_range_list1 =  { {.startf=kHz(100),.endf=MHz(180),.modes=RIG_MODE_NONE, .low_power=-1,.high_power=-1,RIG_VFO_A},
 		    RIG_FRNG_END, },
-  .tx_range_list1 =   { {.start=kHz(100),.end=MHz(180),.modes=RIG_MODE_NONE, .low_power=-1,.high_power=-1,RIG_VFO_A},
+  .tx_range_list1 =   { {.startf=kHz(100),.endf=MHz(180),.modes=RIG_MODE_NONE, .low_power=-1,.high_power=-1,RIG_VFO_A},
 		    RIG_FRNG_END, },
   .tuning_steps =  { {RIG_MODE_NONE,1}, RIG_TS_END, },
 

@@ -112,7 +112,7 @@ const struct rig_caps barrett_caps = {
 // .vfo_ops =     DUMMY_VFO_OP,
     .transceive =       RIG_TRN_RIG,
     .rx_range_list1 = {{
-            .start = kHz(1600), .end = MHz(30), .modes = BARRETT_MODES,
+            .startf = kHz(1600), .endf = MHz(30), .modes = BARRETT_MODES,
             .low_power = -1, .high_power = -1, BARRETT_VFOS, RIG_ANT_1
         },
         RIG_FRNG_END,

@@ -681,7 +681,7 @@ rmode_t Rig::RngRxModes (freq_t freq)
 		if (RIG_IS_FRNG_END(*rng)) {
 			return (rmode_t)modes;
 		}
-		if (freq >= rng->start && freq <= rng->end)
+		if (freq >= rng->startf && freq <= rng->endf)
 			modes |= (unsigned)rng->modes;
 	}
 
@@ -699,7 +699,7 @@ rmode_t Rig::RngTxModes (freq_t freq)
 		if (RIG_IS_FRNG_END(*rng)) {
 			return (rmode_t)modes;
 		}
-		if (freq >= rng->start && freq <= rng->end)
+		if (freq >= rng->startf && freq <= rng->endf)
 			modes |= (unsigned)rng->modes;
 	}
 

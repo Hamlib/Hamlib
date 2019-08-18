@@ -746,7 +746,7 @@ int set_channel_data(RIG *rig,
     /* find chanel caps of appropriate memory group? */
     for (j = 0; j < CHANLSTSIZ; j++)
     {
-        if (rig->state.chan_list[j].start <= n && rig->state.chan_list[j].end >= n)
+        if (rig->state.chan_list[j].startc <= n && rig->state.chan_list[j].endc >= n)
         {
             break;
         }
