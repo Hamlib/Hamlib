@@ -129,16 +129,16 @@ const struct rig_caps hiqsdr_caps = {
   .attenuator =     { 2, 4, 6, 10, 20, 30, 44, RIG_DBLST_END }, // -2dB steps in fact
   .preamp = 	 { 10, RIG_DBLST_END, },    // TODO
 
-  .rx_range_list1 =  { {.start=kHz(100),.end=MHz(66),.modes=HIQSDR_MODES,
+  .rx_range_list1 =  { {.startf=kHz(100),.endf=MHz(66),.modes=HIQSDR_MODES,
 		    .low_power=-1,.high_power=-1,HIQSDR_VFO,HIQSDR_ANT},
 		    RIG_FRNG_END, },
-  .tx_range_list1 =  { {.start=kHz(100),.end=MHz(66),.modes=HIQSDR_MODES,
+  .tx_range_list1 =  { {.startf=kHz(100),.endf=MHz(66),.modes=HIQSDR_MODES,
 		    .low_power=mW(1),.high_power=mW(50),HIQSDR_VFO,HIQSDR_ANT},
 		    RIG_FRNG_END, },
-  .rx_range_list2 =  { {.start=kHz(100),.end=MHz(66),.modes=HIQSDR_MODES,
+  .rx_range_list2 =  { {.startf=kHz(100),.endf=MHz(66),.modes=HIQSDR_MODES,
 		    .low_power=-1,.high_power=-1,HIQSDR_VFO,HIQSDR_ANT},
 		    RIG_FRNG_END, },
-  .tx_range_list2 =  { {.start=kHz(100),.end=MHz(66),.modes=HIQSDR_MODES,
+  .tx_range_list2 =  { {.startf=kHz(100),.endf=MHz(66),.modes=HIQSDR_MODES,
 		    .low_power=mW(1),.high_power=mW(50),HIQSDR_VFO,HIQSDR_ANT},
 		    RIG_FRNG_END, },
   .tuning_steps =  { {HIQSDR_MODES,1}, RIG_TS_END, },

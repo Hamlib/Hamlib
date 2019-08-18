@@ -1970,7 +1970,7 @@ int th_get_channel(RIG *rig, channel_t *chan)
     mr_extra = "0, ";
   }
 
-  channel_num -= chan_caps->start;
+  channel_num -= chan_caps->startc;
 
   switch (chan_caps->type)
   {
@@ -2002,7 +2002,7 @@ int th_get_channel(RIG *rig, channel_t *chan)
     break;
 
   case RIG_MTYPE_PRIO:
-    if (chan_caps->start == chan_caps->end)
+    if (chan_caps->startc == chan_caps->endc)
     {
       snprintf(req, sizeof(req), "MR %s0,PR", mr_extra);
       sprintf(chan->channel_desc, "Pr");
@@ -2018,8 +2018,8 @@ int th_get_channel(RIG *rig, channel_t *chan)
   case RIG_MTYPE_CALL:
     sprintf(req, "CR 0,%01d", channel_num);
 
-    if (chan->channel_num == chan_caps->start) { sprintf(chan->channel_desc, "Call V"); }
-    else if (chan->channel_num == chan_caps->end) { sprintf(chan->channel_desc, "Call U"); }
+    if (chan->channel_num == chan_caps->startc) { sprintf(chan->channel_desc, "Call V"); }
+    else if (chan->channel_num == chan_caps->endc) { sprintf(chan->channel_desc, "Call U"); }
     else { sprintf(chan->channel_desc, "Call"); }
 
     break;
@@ -2164,7 +2164,7 @@ int th_get_channel(RIG *rig, channel_t *chan)
   chan->tx_freq = RIG_FREQ_NONE;
 
   if (shift == RIG_RPT_SHIFT_NONE &&
-      ((chan_caps->type == RIG_MTYPE_MEM && chan_caps->start == 0) ||
+      ((chan_caps->type == RIG_MTYPE_MEM && chan_caps->startc == 0) ||
        chan_caps->type == RIG_MTYPE_CALL))
   {
     /* split ? */
@@ -2335,7 +2335,7 @@ int th_set_channel(RIG *rig, const channel_t *chan)
       return -RIG_ECONF;
     }
 
-    channel_num -= chan_caps->start;
+    channel_num -= chan_caps->startc;
   }
   else
   {
@@ -2385,7 +2385,7 @@ int th_set_channel(RIG *rig, const channel_t *chan)
     break;
 
   case RIG_MTYPE_PRIO:
-    if (chan_caps->start == chan_caps->end)
+    if (chan_caps->startc == chan_caps->endc)
     {
       sprintf(req, "MW %s0,PR", mr_extra);
     }
@@ -2468,7 +2468,7 @@ int th_set_channel(RIG *rig, const channel_t *chan)
 
   /* split ? */
   if (chan->tx_freq != RIG_FREQ_NONE &&
-      ((chan_caps->type == RIG_MTYPE_MEM && chan_caps->start == 0) ||
+      ((chan_caps->type == RIG_MTYPE_MEM && chan_caps->startc == 0) ||
        chan_caps->type == RIG_MTYPE_CALL))
   {
 

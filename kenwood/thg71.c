@@ -433,11 +433,11 @@ int thg71_open(RIG *rig)
 	    	stru=strtok(NULL,",");
 		if(strl==NULL && stru==NULL)
 			break;
-		frng.start=MHz(atoi(strl));
-		frng.end=MHz(atoi(stru));
+		frng.startf=MHz(atoi(strl));
+		frng.endf=MHz(atoi(stru));
 		frng.vfo=RIG_VFO_A;
 		frng.ant=0;
-		if(frng.end<=MHz(135))
+		if(frng.endf<=MHz(135))
 			frng.modes=RIG_MODE_AM;
 		else
 			frng.modes=RIG_MODE_FM;
@@ -445,7 +445,7 @@ int thg71_open(RIG *rig)
 		frng.high_power=-1;
 		frng.low_power=-1;
 		rig->state.rx_range_list[i]=frng;
-		if(frng.start> MHz(200))
+		if(frng.startf> MHz(200))
 			frng.high_power=mW(5500);
 		else
 			frng.high_power=mW(6000);

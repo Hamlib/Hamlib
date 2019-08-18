@@ -171,7 +171,7 @@ const struct rig_caps fifisdr_caps = {
 
 	.rx_range_list1 = {
 		{
-			.start = kHz(39.1), .end = MHz(175.0),
+			.startf = kHz(39.1), .endf = MHz(175.0),
 			.modes = RIG_MODE_AM | RIG_MODE_SSB | RIG_MODE_FM,
 			.low_power = -1, .high_power = -1,
 			.vfo = RIG_VFO_A, .ant = RIG_ANT_1
@@ -181,7 +181,7 @@ const struct rig_caps fifisdr_caps = {
 	.tx_range_list1 = { RIG_FRNG_END, },
 	.rx_range_list2 =  {
 		{
-			.start = kHz(39.1), .end = MHz(175.0),
+			.startf = kHz(39.1), .endf = MHz(175.0),
 			.modes = RIG_MODE_AM | RIG_MODE_SSB | RIG_MODE_FM,
 			.low_power = -1, .high_power = -1,
 			.vfo = RIG_VFO_A, .ant = RIG_ANT_1

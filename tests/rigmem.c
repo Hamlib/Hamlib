@@ -475,8 +475,8 @@ int clear_chans(RIG *rig, const char *infilename)
 
     for (i = 0; rig->state.chan_list[i].type && i < CHANLSTSIZ; i++)
     {
-        for (j = rig->state.chan_list[i].start;
-                j <= rig->state.chan_list[i].end; j++)
+        for (j = rig->state.chan_list[i].startc;
+                j <= rig->state.chan_list[i].endc; j++)
         {
 
             chan.channel_num = j;

@@ -128,7 +128,7 @@ const struct rig_caps ft757gx_caps = {
 	.tx_range_list1 =	{ RIG_FRNG_END, },
 
 	.rx_range_list2 = { {
-			.start = kHz(500), .end = 29999990,
+			.startf = kHz(500), .endf = 29999990,
 			.modes = FT757GX_ALL_RX_MODES, .low_power = -1, .high_power = -1
 		},
 		RIG_FRNG_END,
@@ -136,21 +136,21 @@ const struct rig_caps ft757gx_caps = {
 
 	.tx_range_list2 =   { {kHz(1500), 1999900, FT757GX_ALL_TX_MODES, .low_power = 5000, .high_power = 100000},
 
-		{.start = kHz(3500), 3999900, FT757GX_ALL_TX_MODES, 5000, 100000},
+		{.startf = kHz(3500), 3999900, FT757GX_ALL_TX_MODES, 5000, 100000},
 
-		{.start = kHz(7000), 7499900, FT757GX_ALL_TX_MODES, 5000, 100000},
+		{.startf = kHz(7000), 7499900, FT757GX_ALL_TX_MODES, 5000, 100000},
 
-		{.start = MHz(10), 10499900, FT757GX_ALL_TX_MODES, 5000, 100000},
+		{.startf = MHz(10), 10499900, FT757GX_ALL_TX_MODES, 5000, 100000},
 
-		{.start = MHz(14), 14499900, FT757GX_ALL_TX_MODES, 5000, 100000},
+		{.startf = MHz(14), 14499900, FT757GX_ALL_TX_MODES, 5000, 100000},
 
-		{.start = MHz(18), 18499900, FT757GX_ALL_TX_MODES, 5000, 100000},
+		{.startf = MHz(18), 18499900, FT757GX_ALL_TX_MODES, 5000, 100000},
 
-		{.start = MHz(21), 21499900, FT757GX_ALL_TX_MODES, 5000, 100000},
+		{.startf = MHz(21), 21499900, FT757GX_ALL_TX_MODES, 5000, 100000},
 
-		{.start = kHz(24500), 24999900, FT757GX_ALL_TX_MODES, 5000, 100000},
+		{.startf = kHz(24500), 24999900, FT757GX_ALL_TX_MODES, 5000, 100000},
 
-		{.start = MHz(28), 29999900, FT757GX_ALL_TX_MODES, 5000, 100000},
+		{.startf = MHz(28), 29999900, FT757GX_ALL_TX_MODES, 5000, 100000},
 
 		RIG_FRNG_END,
 	},
@@ -244,8 +244,8 @@ const struct rig_caps ft757gx2_caps = {
 	.tx_range_list1 =	{ RIG_FRNG_END, },
 
 	.rx_range_list2 = { {
-			.start =	kHz(150),
-			.end =		29999990,
+			.startf =	kHz(150),
+			.endf =		29999990,
 			.modes =	FT757GX_ALL_RX_MODES,
 			.low_power =	-1,
 			.high_power =	-1
@@ -256,21 +256,21 @@ const struct rig_caps ft757gx2_caps = {
 	/* FIXME: 10m is "less" and AM is 25W carrier */
 	.tx_range_list2 = { {kHz(1500), 1999900, FT757GX_ALL_TX_MODES, .low_power = 5000, .high_power = 100000},
 
-		{.start = kHz(3500), 3999900, FT757GX_ALL_TX_MODES, 5000, 100000},
+		{.startf = kHz(3500), 3999900, FT757GX_ALL_TX_MODES, 5000, 100000},
 
-		{.start = kHz(7000), 7499900, FT757GX_ALL_TX_MODES, 5000, 100000},
+		{.startf = kHz(7000), 7499900, FT757GX_ALL_TX_MODES, 5000, 100000},
 
-		{.start = MHz(10), 10499900, FT757GX_ALL_TX_MODES, 5000, 100000},
+		{.startf = MHz(10), 10499900, FT757GX_ALL_TX_MODES, 5000, 100000},
 
-		{.start = MHz(14), 14499900, FT757GX_ALL_TX_MODES, 5000, 100000},
+		{.startf = MHz(14), 14499900, FT757GX_ALL_TX_MODES, 5000, 100000},
 
-		{.start = MHz(18), 18499900, FT757GX_ALL_TX_MODES, 5000, 100000},
+		{.startf = MHz(18), 18499900, FT757GX_ALL_TX_MODES, 5000, 100000},
 
-		{.start = MHz(21), 21499900, FT757GX_ALL_TX_MODES, 5000, 100000},
+		{.startf = MHz(21), 21499900, FT757GX_ALL_TX_MODES, 5000, 100000},
 
-		{.start = kHz(24500), 24999900, FT757GX_ALL_TX_MODES, 5000, 100000},
+		{.startf = kHz(24500), 24999900, FT757GX_ALL_TX_MODES, 5000, 100000},
 
-		{.start = MHz(28), 29999900, FT757GX_ALL_TX_MODES, 5000, 100000},
+		{.startf = MHz(28), 29999900, FT757GX_ALL_TX_MODES, 5000, 100000},
 
 		RIG_FRNG_END,
 	},

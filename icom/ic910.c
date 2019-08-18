@@ -73,18 +73,18 @@ static int compareFrequencies(RIG *rig, freq_t freq1, freq_t freq2)
   int freq1band = 0, freq2band = 0;
   freq_range_t noband = RIG_FRNG_END;
 
-  while (rig->caps->rx_range_list1[freq1band].start != noband.start) {
-    if (freq1 >= rig->caps->rx_range_list1[freq1band].start &&
-        freq1 <= rig->caps->rx_range_list1[freq1band].end)
+  while (rig->caps->rx_range_list1[freq1band].startf != noband.startf) {
+    if (freq1 >= rig->caps->rx_range_list1[freq1band].startf &&
+        freq1 <= rig->caps->rx_range_list1[freq1band].endf)
       break;
 
     ++freq1band;
     //fprintf(stderr, "%i\n", freq1band);
   }
 
-  while (rig->caps->rx_range_list1[freq2band].start != noband.start) {
-    if (freq2 >= rig->caps->rx_range_list1[freq2band].start &&
-        freq2 <= rig->caps->rx_range_list1[freq2band].end)
+  while (rig->caps->rx_range_list1[freq2band].startf != noband.startf) {
+    if (freq2 >= rig->caps->rx_range_list1[freq2band].startf &&
+        freq2 <= rig->caps->rx_range_list1[freq2band].endf)
       break;
 
     ++freq2band;

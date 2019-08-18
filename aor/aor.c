@@ -1023,8 +1023,8 @@ int aor_get_channel(RIG *rig, channel_t *chan)
 		 * find mem_caps in caps, we'll need it later
 		 */
 		for (i=0; i<CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++) {
-			if (channel_num >= chan_list[i].start &&
-					channel_num <= chan_list[i].end) {
+			if (channel_num >= chan_list[i].startc &&
+					channel_num <= chan_list[i].endc) {
 				mem_caps = &chan_list[i].mem_caps;
 				break;
 			}
@@ -1083,10 +1083,10 @@ int aor_get_chan_all_cb (RIG * rig, chan_cb_t chan_cb, rig_ptr_t arg)
 	char aorcmd[BUFSZ];
 	int cmd_len, chan_len;
 	char chanbuf[BUFSZ];
-	int chan_next = chan_list[0].start;
+	int chan_next = chan_list[0].startc;
 
 
-	chan_count = chan_list[0].end - chan_list[0].start + 1;
+	chan_count = chan_list[0].endc - chan_list[0].startc + 1;
 
 	/*
 	 * setting chan to NULL means the application
@@ -1123,7 +1123,7 @@ int aor_get_chan_all_cb (RIG * rig, chan_cb_t chan_cb, rig_ptr_t arg)
 				return retval;
 
 			/* notify the end? */
-			chan_next = chan_next < chan_list[i].end ? chan_next+1 : chan_next;
+			chan_next = chan_next < chan_list[i].endc ? chan_next+1 : chan_next;
 
 			/*
 			 * provide application with channel data,

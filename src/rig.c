@@ -4373,12 +4373,12 @@ const freq_range_t * HAMLIB_API rig_get_range(const freq_range_t range_list[],
 
     for (i = 0; i < FRQRANGESIZ; i++)
     {
-        if (range_list[i].start == 0 && range_list[i].end == 0)
+        if (range_list[i].startf == 0 && range_list[i].endf == 0)
         {
             return NULL;
         }
 
-        if (freq >= range_list[i].start && freq <= range_list[i].end &&
+        if (freq >= range_list[i].startf && freq <= range_list[i].endf &&
                 (range_list[i].modes & mode))
         {
             return &range_list[i];

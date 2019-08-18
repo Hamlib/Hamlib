@@ -186,11 +186,11 @@ const struct rig_caps dttsp_rig_caps = {
   .attenuator =     { RIG_DBLST_END, },
   .preamp = 	 { RIG_DBLST_END, },
   /* In fact, RX and TX ranges are dependant on the tuner */
-  .rx_range_list1 =  { {.start=kHz(150),.end=MHz(1500),.modes=DTTSP_MODES,
+  .rx_range_list1 =  { {.startf=kHz(150),.endf=MHz(1500),.modes=DTTSP_MODES,
 		    .low_power=-1,.high_power=-1,DTTSP_VFO},
 		    RIG_FRNG_END, },
   .tx_range_list1 =  { RIG_FRNG_END, }, /* TODO */
-  .rx_range_list2 =  { {.start=kHz(150),.end=MHz(1500),.modes=DTTSP_MODES,
+  .rx_range_list2 =  { {.startf=kHz(150),.endf=MHz(1500),.modes=DTTSP_MODES,
 		    .low_power=-1,.high_power=-1,DTTSP_VFO},
 		    RIG_FRNG_END, },
   .tx_range_list2 =  { RIG_FRNG_END, }, /* TODO */
@@ -263,11 +263,11 @@ const struct rig_caps dttsp_udp_rig_caps = {
   .attenuator =     { RIG_DBLST_END, },
   .preamp = 	 { RIG_DBLST_END, },
   /* In fact, RX and TX ranges are dependant on the tuner */
-  .rx_range_list1 =  { {.start=kHz(150),.end=MHz(1500),.modes=DTTSP_MODES,
+  .rx_range_list1 =  { {.startf=kHz(150),.endf=MHz(1500),.modes=DTTSP_MODES,
 		    .low_power=-1,.high_power=-1,DTTSP_VFO},
 		    RIG_FRNG_END, },
   .tx_range_list1 =  { RIG_FRNG_END, }, /* TODO */
-  .rx_range_list2 =  { {.start=kHz(150),.end=MHz(1500),.modes=DTTSP_MODES,
+  .rx_range_list2 =  { {.startf=kHz(150),.endf=MHz(1500),.modes=DTTSP_MODES,
 		    .low_power=-1,.high_power=-1,DTTSP_VFO},
 		    RIG_FRNG_END, },
   .tx_range_list2 =  { RIG_FRNG_END, }, /* TODO */

@@ -963,7 +963,7 @@ int get_chan_all_cb_generic(RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
          * future data for channel channel_num
          */
         chan = NULL;
-        retval = chan_cb(rig, &chan, chan_list[i].start, chan_list, arg);
+        retval = chan_cb(rig, &chan, chan_list[i].startc, chan_list, arg);
 
         if (retval != RIG_OK)
         {
@@ -975,7 +975,7 @@ int get_chan_all_cb_generic(RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
             return -RIG_ENOMEM;
         }
 
-        for (j = chan_list[i].start; j <= chan_list[i].end; j++)
+        for (j = chan_list[i].startc; j <= chan_list[i].endc; j++)
         {
             int chan_next;
 
@@ -1002,7 +1002,7 @@ int get_chan_all_cb_generic(RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
                 return retval;
             }
 
-            chan_next = j < chan_list[i].end ? j + 1 : j;
+            chan_next = j < chan_list[i].endc ? j + 1 : j;
 
             chan_cb(rig, &chan, chan_next, chan_list, arg);
         }
@@ -1021,7 +1021,7 @@ int set_chan_all_cb_generic(RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
     for (i = 0; !RIG_IS_CHAN_END(chan_list[i]) && i < CHANLSTSIZ; i++)
     {
 
-        for (j = chan_list[i].start; j <= chan_list[i].end; j++)
+        for (j = chan_list[i].startc; j <= chan_list[i].endc; j++)
         {
 
             chan_cb(rig, &chan, j, chan_list, arg);
@@ -1585,7 +1585,7 @@ const chan_t *HAMLIB_API rig_lookup_mem_caps(RIG *rig, int ch)
     {
         memset(&chan_list_all, 0, sizeof(chan_list_all));
         chan_list = rig->state.chan_list;
-        chan_list_all.start = chan_list[0].start;
+        chan_list_all.startc = chan_list[0].startc;
         chan_list_all.type = RIG_MTYPE_NONE;    /* meaningless */
 
         for (i = 0; i < CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++)
@@ -1604,7 +1604,7 @@ const chan_t *HAMLIB_API rig_lookup_mem_caps(RIG *rig, int ch)
             }
 
             /* til the end, most probably meaningless */
-            chan_list_all.end = chan_list[i].end;
+            chan_list_all.endc = chan_list[i].endc;
         }
 
         return &chan_list_all;
@@ -1614,7 +1614,7 @@ const chan_t *HAMLIB_API rig_lookup_mem_caps(RIG *rig, int ch)
 
     for (i = 0; i < CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++)
     {
-        if (ch >= chan_list[i].start && ch <= chan_list[i].end)
+        if (ch >= chan_list[i].startc && ch <= chan_list[i].endc)
         {
             return &chan_list[i];
         }
@@ -1649,7 +1649,7 @@ int HAMLIB_API rig_mem_count(RIG *rig)
 
     for (i = 0; i < CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++)
     {
-        count += chan_list[i].end - chan_list[i].start + 1;
+        count += chan_list[i].endc - chan_list[i].startc + 1;
     }
 
     return count;
