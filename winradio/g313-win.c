@@ -177,14 +177,14 @@ const struct rig_caps g313_caps = {
     .max_ifshift = 	 kHz(2),
     .attenuator =     { 20, RIG_DBLST_END, },	/* TBC */
     .rx_range_list1 =  { {
-            .start = kHz(9),.end = MHz(30),.modes = G313_MODES,
+            .startf = kHz(9),.endf = MHz(30),.modes = G313_MODES,
             .low_power = -1,.high_power = -1,.vfo = RIG_VFO_A
         },
         RIG_FRNG_END,
     },
     .tx_range_list1 =  { RIG_FRNG_END, },
     .rx_range_list2 =  { {
-            .start = kHz(9),.end = MHz(30),.modes = G313_MODES,
+            .startf = kHz(9),.endf = MHz(30),.modes = G313_MODES,
             .low_power = -1,.high_power = -1,.vfo = RIG_VFO_A
         },
         RIG_FRNG_END,

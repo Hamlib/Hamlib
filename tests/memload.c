@@ -147,8 +147,8 @@ int set_chan(RIG *rig, channel_t *chan, xmlNodePtr node)
     /* find channel caps */
     for (i = 0; i < CHANLSTSIZ ; i++)
     {
-        if (rig->state.chan_list[i].start <= n
-            && rig->state.chan_list[i].end >= n)
+        if (rig->state.chan_list[i].startc <= n
+            && rig->state.chan_list[i].endc >= n)
         {
 
             break;

@@ -4105,6 +4105,11 @@ declare_proto_rig(send_cmd)
 /* '0xf0'--test if rigctld called with -o|--vfo option */
 declare_proto_rig(chk_vfo)
 {
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
+        fprintf(fout, "%s: ", cmd->arg1);    /* i.e. "Frequency" */
+    }
+
     fprintf(fout, "CHKVFO %d\n", vfo_mode);
 
     return RIG_OK;

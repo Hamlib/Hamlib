@@ -426,18 +426,18 @@ static void draw_range(const freq_range_t range_list[],
     {
         float start_pix, end_pix;
 
-        if (range_list[i].start == 0 && range_list[i].end == 0)
+        if (range_list[i].startf == 0 && range_list[i].endf == 0)
         {
             break;
         }
 
-        start_pix = range_list[i].start;
-        end_pix = range_list[i].end;
+        start_pix = range_list[i].startf;
+        end_pix = range_list[i].endf;
 
         /*
          * HF
          */
-        if (range_list[i].start < MHz(30))
+        if (range_list[i].startf < MHz(30))
         {
             start_pix = start_pix / MHz(30) * RANGE_WIDTH;
             end_pix = end_pix / MHz(30) * RANGE_WIDTH;
@@ -460,12 +460,12 @@ static void draw_range(const freq_range_t range_list[],
         /*
          * VHF
          */
-        start_pix = range_list[i].start;
-        end_pix = range_list[i].end;
+        start_pix = range_list[i].startf;
+        end_pix = range_list[i].endf;
 
-        if ((range_list[i].start > MHz(30) && range_list[i].start < MHz(300))
-            || (range_list[i].start < MHz(30)
-                && range_list[i].end > MHz(30)))
+        if ((range_list[i].startf > MHz(30) && range_list[i].startf < MHz(300))
+            || (range_list[i].startf < MHz(30)
+                && range_list[i].endf > MHz(30)))
         {
 
             start_pix = (start_pix - MHz(30)) / MHz(300) * RANGE_WIDTH;
@@ -494,12 +494,12 @@ static void draw_range(const freq_range_t range_list[],
         /*
          * UHF
          */
-        start_pix = range_list[i].start;
-        end_pix = range_list[i].end;
+        start_pix = range_list[i].startf;
+        end_pix = range_list[i].endf;
 
-        if ((range_list[i].start > MHz(300) && range_list[i].start < GHz(3))
-            || (range_list[i].start < MHz(300)
-                && range_list[i].end > MHz(300)))
+        if ((range_list[i].startf > MHz(300) && range_list[i].startf < GHz(3))
+            || (range_list[i].startf < MHz(300)
+                && range_list[i].endf > MHz(300)))
         {
 
             start_pix = (start_pix - MHz(300)) / GHz(3) * RANGE_WIDTH;
