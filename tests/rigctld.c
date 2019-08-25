@@ -117,6 +117,7 @@ struct handle_data
     int sock;
     struct sockaddr_storage cli_addr;
     socklen_t clilen;
+    int vfo_mode;
 };
 
 
@@ -136,12 +137,6 @@ static sig_atomic_t volatile ctrl_c;
 #else
 static int volatile ctrl_c;
 #endif
-
-thread_local int interactive = 1;    /* no cmd because of daemon */
-thread_local int prompt = 0;         /* Daemon mode for rigparse return string */
-thread_local int vfo_mode = 0;       /* vfo_mode=0 means target VFO is current VFO */
-
-thread_local char send_cmd_term = '\r';  /* send_cmd termination char */
 
 const char *portno = "4532";
 const char *src_addr = NULL; /* INADDR_ANY */
@@ -254,6 +249,7 @@ int main(int argc, char *argv[])
     pthread_attr_t attr;
 #endif
     struct handle_data *arg;
+    int vfo_mode = 0; /* vfo_mode=0 means target VFO is current VFO */
 
     while (1)
     {
@@ -794,6 +790,7 @@ int main(int argc, char *argv[])
         else {
           arg->rig = my_rig;
           arg->clilen = sizeof(arg->cli_addr);
+          arg->vfo_mode = vfo_mode;
           arg->sock = accept(sock_listen,
                              (struct sockaddr *)&arg->cli_addr,
                              &arg->clilen);
@@ -874,6 +871,9 @@ void * handle_socket(void *arg)
     int retcode = RIG_OK;
     char host[NI_MAXHOST];
     char serv[NI_MAXSERV];
+    char send_cmd_term = '\r';  /* send_cmd termination char */
+    int ext_resp = 0;
+    char resp_sep = '\n';
 
 #ifdef __MINGW32__
     int sock_osfhandle = _open_osfhandle(handle_data_arg->sock, _O_RDONLY);
@@ -933,7 +933,8 @@ void * handle_socket(void *arg)
 
     do
     {
-      retcode = rigctl_parse(handle_data_arg->rig, fsockin, fsockout, NULL, 0, sync_callback);
+      retcode = rigctl_parse(handle_data_arg->rig, fsockin, fsockout, NULL, 0, sync_callback,
+                             1, 0, handle_data_arg->vfo_mode, send_cmd_term, &ext_resp, &resp_sep);
       if (ferror(fsockin) || ferror(fsockout))
         {
           retcode = 1;

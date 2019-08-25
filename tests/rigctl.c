@@ -71,15 +71,14 @@ extern int read_history();
 #include "iofunc.h"
 #include "serial.h"
 #include "sprintflst.h"
-
+#include "dummy/dummy.h"
 #include "rigctl_parse.h"
 
 #define MAXNAMSIZ 32
 #define MAXNBOPT 100    /* max number of different options */
 
 
-void usage(void);
-extern int netrigctl_get_vfo_mode(RIG *rig);
+static void usage(void);
 
 /*
  * Reminder: when adding long options,
@@ -114,6 +113,7 @@ static struct option long_options[] =
     {"help",            0, 0, 'h'},
     {"version",         0, 0, 'V'},
     {0, 0, 0, 0}
+
 };
 
 #define MAXCONFLEN 128
@@ -123,12 +123,6 @@ static struct option long_options[] =
 static const int have_rl = 1;
 #endif
 
-
-thread_local int interactive = 1;    /* if no cmd on command line, switch to interactive */
-thread_local int prompt = 1;         /* Print prompt in rigctl */
-thread_local int vfo_mode = 0;       /* vfo_mode = 0 means target VFO is 'currVFO' */
-
-thread_local char send_cmd_term = '\r';  /* send_cmd termination char */
 
 int main(int argc, char *argv[])
 {
@@ -157,6 +151,12 @@ int main(int argc, char *argv[])
     int serial_rate = 0;
     char *civaddr = NULL;   /* NULL means no need to set conf */
     char conf_parms[MAXCONFLEN] = "";
+    int interactive = 1;    /* if no cmd on command line, switch to interactive */
+    int prompt = 1;         /* Print prompt in rigctl */
+    int vfo_mode = 0;       /* vfo_mode = 0 means target VFO is 'currVFO' */
+    char send_cmd_term = '\r';  /* send_cmd termination char */
+    int ext_resp = 0;
+    char resp_sep = '\n';
 
     while (1)
     {
@@ -597,7 +597,9 @@ int main(int argc, char *argv[])
 
     do
     {
-      retcode = rigctl_parse(my_rig, stdin, stdout, argv, argc, NULL);
+      retcode = rigctl_parse(my_rig, stdin, stdout, argv, argc, NULL,
+                             interactive, prompt, vfo_mode, send_cmd_term,
+                             &ext_resp, &resp_sep);
 
         if (retcode == 2)
         {

@@ -25,6 +25,7 @@ rigswr_SOURCES = rigswr.c
 rigsmtr_SOURCES = rigsmtr.c
 rigmem_SOURCES = rigmem.c memsave.c memload.c memcsv.c sprintflst.c sprintflst.h
 
+rigctl_CPPFLAGS = -I$(top_srcdir) $(AM_CPPFLAGS)
 
 # all the programs need this
 LDADD = $(top_builddir)/src/libhamlib.la $(top_builddir)/lib/libmisc.la
