@@ -135,6 +135,11 @@ struct test_table
                        FILE *,
                        FILE *,
                        int,
+                       int,
+                       int,
+                       char,
+                       int,
+                       char,
                        const struct test_table *,
                        vfo_t,
                        const char *,
@@ -155,6 +160,11 @@ struct test_table
                                                     FILE *fout,         \
                                                     FILE *fin,          \
                                                     int interactive,    \
+                                                    int prompt,         \
+                                                    int vfo_mode,       \
+                                                    char send_cmd_term, \
+                                                    int ext_resp,       \
+                                                    char resp_sep,      \
                                                     const struct test_table *cmd, \
                                                     vfo_t vfo,          \
                                                     const char *arg1,   \
@@ -587,14 +597,9 @@ static int next_word(char *buffer, int argc, char *argv[], int newline)
     })
 
 
-extern thread_local int interactive;
-extern thread_local int prompt;
-extern thread_local int vfo_mode;
-extern thread_local char send_cmd_term;
-thread_local int ext_resp = 0;
-thread_local unsigned char resp_sep = '\n';      /* Default response separator */
-
-int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc, sync_cb_t sync_cb)
+int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc, sync_cb_t sync_cb,
+                 int interactive, int prompt, int vfo_mode, char send_cmd_term,
+                 int * ext_resp_ptr, char * resp_sep_ptr)
 {
     int retcode;        /* generic return code from functions */
     unsigned char cmd;
@@ -629,7 +634,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc, syn
                  */
                 if (cmd == '+' && !prompt)
                 {
-                    ext_resp = 1;
+                    *ext_resp_ptr = 1;
 
                     if (scanfc(fin, "%c", &cmd) < 1)
                     {
@@ -648,8 +653,8 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc, syn
                     && !prompt)
                 {
 
-                    ext_resp = 1;
-                    resp_sep = cmd;
+                    *ext_resp_ptr = 1;
+                    *resp_sep_ptr = cmd;
 
                     if (scanfc(fin, "%c", &cmd) < 1)
                     {
@@ -1525,7 +1530,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc, syn
      * Extended Response protocol: output received command name and arguments
      * response.  Don't send command header on '\chk_vfo' command.
      */
-    if (interactive && ext_resp && !prompt && cmd != 0xf0)
+    if (interactive && *ext_resp_ptr && !prompt && cmd != 0xf0)
     {
         char a1[MAXARGSZ + 2];
         char a2[MAXARGSZ + 2];
@@ -1548,13 +1553,18 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc, syn
                 a1,
                 a2,
                 a3,
-                resp_sep);
+                *resp_sep_ptr);
     }
 
     retcode = (*cmd_entry->rig_routine)(my_rig,
                                         fout,
                                         fin,
                                         interactive,
+                                        prompt,
+                                        vfo_mode,
+                                        send_cmd_term,
+                                        *ext_resp_ptr,
+                                        *resp_sep_ptr,
                                         cmd_entry,
                                         vfo,
                                         p1,
@@ -1570,8 +1580,8 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc, syn
         if (interactive && !prompt)
         {
             fprintf(fout, NETRIGCTL_RET "%d\n", retcode);
-            ext_resp = 0;
-            resp_sep = '\n';
+            *ext_resp_ptr = 0;
+            *resp_sep_ptr = '\n';
         }
         else
         {
@@ -1588,17 +1598,17 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc, syn
         {
             /* netrigctl RIG_OK */
             if (!(cmd_entry->flags & ARG_OUT)
-                && !ext_resp && cmd != 0xf0)
+                && !*ext_resp_ptr && cmd != 0xf0)
             {
                 fprintf(fout, NETRIGCTL_RET "0\n");
             }
 
             /* Extended Response protocol */
-            else if (ext_resp && cmd != 0xf0)
+            else if (*ext_resp_ptr && cmd != 0xf0)
             {
                 fprintf(fout, NETRIGCTL_RET "0\n");
-                ext_resp = 0;
-                resp_sep = '\n';
+                *ext_resp_ptr = 0;
+                *resp_sep_ptr = '\n';
             }
         }
     }

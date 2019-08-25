@@ -71,9 +71,7 @@
 #include "iofunc.h"
 #include "serial.h"
 #include "sprintflst.h"
-
 #include "rigctl_parse.h"
-
 
 /*
  * Reminder: when adding long options,
@@ -105,16 +103,6 @@ static struct option long_options[] =
     {0, 0, 0, 0}
 };
 
-
-struct handle_data
-{
-    RIG *rig;
-    int sock;
-    struct sockaddr_storage cli_addr;
-    socklen_t clilen;
-};
-
-
 void usage();
 static int handle_ts2000(void *arg);
 
@@ -127,12 +115,6 @@ static sig_atomic_t volatile ctrl_c;
 #else
 static int volatile ctrl_c;
 #endif
-
-thread_local int interactive = 1;            /* no cmd because of daemon */
-thread_local int prompt = 0;                 /* Daemon mode for rigparse return string */
-thread_local int vfo_mode = 0;               /* vfo_mode=0 means target VFO is current VFO */
-
-thread_local char send_cmd_term = '\r';      /* send_cmd termination char */
 
 #define MAXCONFLEN 128
 

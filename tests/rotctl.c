@@ -111,13 +111,6 @@ static struct option long_options[] =
 static const int have_rl = 1;
 #endif
 
-
-thread_local int interactive = 1;    /* if no cmd on command line, switch to interactive */
-thread_local int prompt = 1;         /* Print prompt in rotctl */
-
-thread_local char send_cmd_term = '\r';      /* send_cmd termination char */
-
-
 int main(int argc, char *argv[])
 {
     ROT *my_rot;        /* handle to rot (instance) */
@@ -142,6 +135,11 @@ int main(int argc, char *argv[])
     const char *rot_file = NULL;
     int serial_rate = 0;
     char conf_parms[MAXCONFLEN] = "";
+    int interactive = 1; /* if no cmd on command line, switch to interactive */
+    int prompt = 1;      /* Print prompt in rotctl */
+    char send_cmd_term = '\r';  /* send_cmd termination char */
+    int ext_resp = 0;
+    char resp_sep = '\n';
 
     while (1)
     {
@@ -402,7 +400,9 @@ int main(int argc, char *argv[])
 
     do
     {
-        retcode = rotctl_parse(my_rot, stdin, stdout, argv, argc);
+        retcode = rotctl_parse(my_rot, stdin, stdout, argv, argc,
+                               interactive, prompt, send_cmd_term,
+                               &ext_resp, &resp_sep);
 
         if (retcode == 2)
         {

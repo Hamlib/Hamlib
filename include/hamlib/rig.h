@@ -57,28 +57,6 @@
 #  define __END_DECLS        /* empty */
 #endif
 
-#ifndef thread_local
-# if __STDC_VERSION__ >= 201112 && !defined __STDC_NO_THREADS__
-#  define thread_local _Thread_local
-# elif defined _WIN32 && ( \
-       defined _MSC_VER || \
-       defined __ICL || \
-       defined __DMC__ || \
-       defined __BORLANDC__ )
-#  define thread_local __declspec(thread) 
-/* note that ICC (linux) and Clang are covered by __GNUC__ */
-# elif defined __GNUC__ || \
-       defined __SUNPRO_C || \
-       defined __xlC__
-#  define thread_local __thread
-# else
-#  pragma warning "Please see if you can find a thread_local definition for this compiler"
-#  pragma warning "You can comment out the error after this line but rigctld will not be thread safe for vfo_mode and ext_resp and will require up to 4 rigctld's for the 4 possible combinations of vfo_mode and ext_resp"
-#  pragma error "Cannot define thread_local"
-#  define thread_local
-# endif
-#endif
-
 /* HAMLIB_PARAMS is a macro used to wrap function prototypes, so that compilers
  * that don't understand ANSI C prototypes still work, and ANSI C
  * compilers can issue warnings about type mismatches. */
