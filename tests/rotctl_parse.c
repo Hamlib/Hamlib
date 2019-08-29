@@ -504,12 +504,13 @@ static int next_word(char *buffer, int argc, char *argv[], int newline)
 
 
 int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
-                 int interactive, int prompt, char send_cmd_term,
-                 int * ext_resp_ptr, char * resp_sep_ptr)
+                 int interactive, int prompt, char send_cmd_term)
 {
     int retcode;            /* generic return code from functions */
     unsigned char cmd;
     struct test_table *cmd_entry;
+    int ext_resp = 0;
+    char resp_sep = '\n';
 
     char command[MAXARGSZ + 1];
     char arg1[MAXARGSZ + 1], *p1 = NULL;
@@ -542,7 +543,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
                  */
                 if (cmd == '+' && !prompt)
                 {
-                    *ext_resp_ptr = 1;
+                    ext_resp = 1;
 
                     if (scanfc(fin, "%c", &cmd) < 1)
                     {
@@ -561,8 +562,8 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
                     && !prompt)
                 {
 
-                    *ext_resp_ptr = 1;
-                    *resp_sep_ptr = cmd;
+                    ext_resp = 1;
+                    resp_sep = cmd;
 
                     if (scanfc(fin, "%c", &cmd) < 1)
                     {
@@ -1400,7 +1401,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
      * Extended Response protocol: output received command name and arguments
      * response.
      */
-    if (interactive && *ext_resp_ptr && !prompt)
+    if (interactive && ext_resp && !prompt)
     {
         char a1[MAXARGSZ + 2];
         char a2[MAXARGSZ + 2];
@@ -1412,7 +1413,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
         p3 == NULL ? a3[0] = '\0' : snprintf(a3, sizeof(a3), " %s", p3);
         p4 == NULL ? a4[0] = '\0' : snprintf(a4, sizeof(a4), " %s", p4);
 
-        fprintf(fout, "%s:%s%s%s%s%c", cmd_entry->name, a1, a2, a3, a4, *resp_sep_ptr);
+        fprintf(fout, "%s:%s%s%s%s%c", cmd_entry->name, a1, a2, a3, a4, resp_sep);
     }
 
     retcode = (*cmd_entry->rot_routine)(my_rot,
@@ -1420,8 +1421,8 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
                                         interactive,
                                         prompt,
                                         send_cmd_term,
-                                        *ext_resp_ptr,
-                                        *resp_sep_ptr,
+                                        ext_resp,
+                                        resp_sep,
                                         cmd_entry,
                                         p1,
                                         p2 ? p2 : "",
@@ -1441,8 +1442,8 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
         if (interactive && !prompt)
         {
             fprintf(fout, NETROTCTL_RET "%d\n", retcode);
-            *ext_resp_ptr = 0;
-            *resp_sep_ptr = '\n';
+            ext_resp = 0;
+            resp_sep = '\n';
         }
         else
         {
@@ -1455,17 +1456,17 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
         if (interactive && !prompt)
         {
             /* netrotctl RIG_OK */
-            if (!(cmd_entry->flags & ARG_OUT) && !*ext_resp_ptr)
+            if (!(cmd_entry->flags & ARG_OUT) && !ext_resp)
             {
                 fprintf(fout, NETROTCTL_RET "0\n");
             }
 
             /* Extended Response protocol */
-            else if (*ext_resp_ptr && cmd != 0xf0)
+            else if (ext_resp && cmd != 0xf0)
             {
                 fprintf(fout, NETROTCTL_RET "0\n");
-                *ext_resp_ptr = 0;
-                *resp_sep_ptr = '\n';
+                ext_resp = 0;
+                resp_sep = '\n';
             }
         }
     }

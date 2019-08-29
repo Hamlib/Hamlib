@@ -138,8 +138,6 @@ int main(int argc, char *argv[])
     int interactive = 1; /* if no cmd on command line, switch to interactive */
     int prompt = 1;      /* Print prompt in rotctl */
     char send_cmd_term = '\r';  /* send_cmd termination char */
-    int ext_resp = 0;
-    char resp_sep = '\n';
 
     while (1)
     {
@@ -401,8 +399,7 @@ int main(int argc, char *argv[])
     do
     {
         retcode = rotctl_parse(my_rot, stdin, stdout, argv, argc,
-                               interactive, prompt, send_cmd_term,
-                               &ext_resp, &resp_sep);
+                               interactive, prompt, send_cmd_term);
 
         if (retcode == 2)
         {
