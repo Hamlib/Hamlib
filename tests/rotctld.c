@@ -591,8 +591,6 @@ void * handle_socket(void *arg)
     int retcode;
     char host[NI_MAXHOST];
     char serv[NI_MAXSERV];
-    int ext_resp = 0;
-    char resp_sep = '\n';
 
 #ifdef __MINGW32__
     int sock_osfhandle = _open_osfhandle(handle_data_arg->sock, _O_RDONLY);
@@ -629,8 +627,7 @@ void * handle_socket(void *arg)
 
     do
     {
-      retcode = rotctl_parse(handle_data_arg->rot, fsockin, fsockout, NULL, 0, 1,
-                             0, '\r', &ext_resp, &resp_sep);
+      retcode = rotctl_parse(handle_data_arg->rot, fsockin, fsockout, NULL, 0, 1, 0, '\r');
 
         if (ferror(fsockin) || ferror(fsockout))
         {
