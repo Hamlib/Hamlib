@@ -191,7 +191,7 @@ static int netrigctl_open(RIG *rig)
     {
         if (buf[0]) { sscanf(buf, "CHKVFO %d", &priv->rigctld_vfo_mode); }
     }
-    else
+    else if (ret < 0)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: chk_vfo error: %s\n", __FUNCTION__,
                   rigerror(ret));
