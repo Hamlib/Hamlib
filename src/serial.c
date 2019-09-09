@@ -568,11 +568,14 @@ int HAMLIB_API serial_flush(hamlib_port_t *p)
          * if fd corresponds to a microHam device drain the line
          * (which is a socket) by reading until it is empty.
          */
-        while (read(p->fd, buf, 32) > 0) {
+        int n;
+        while ((n=read(p->fd, buf, 32)) > 0) {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: flushed %d bytes\n", __func__, n);
             /* do nothing */
         }
         return RIG_OK;
     }
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: tcflush\n", __func__);
     tcflush(p->fd, TCIFLUSH);
     return RIG_OK;
 }
