@@ -131,12 +131,11 @@ easycomm_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 static int
 easycomm_rot_stop(ROT *rot)
 {
-    char ackbuf[32];
     int retval;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
 
-    retval = easycomm_transaction(rot, "SA SE \n", ackbuf, sizeof(ackbuf));
+    retval = easycomm_transaction(rot, "SA SE \n", NULL, 0);
 	if (retval != RIG_OK)
 		return retval;
 
@@ -148,11 +147,10 @@ easycomm_rot_stop(ROT *rot)
 static int
 easycomm_rot_reset(ROT *rot, rot_reset_t rst)
 {
-    char ackbuf[32];
     int retval;
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
 
-    retval = easycomm_transaction(rot, "RESET\n", ackbuf, sizeof(ackbuf));
+    retval = easycomm_transaction(rot, "RESET\n", NULL, 0);
     if (retval != RIG_OK)   /* Custom command (not in Easycomm) */
 		return retval;
 
@@ -162,11 +160,10 @@ easycomm_rot_reset(ROT *rot, rot_reset_t rst)
 static int
 easycomm_rot_park(ROT *rot)
 {
-    char ackbuf[32];
     int retval;
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
 
-    retval = easycomm_transaction(rot, "PARK\n", ackbuf, sizeof(ackbuf));
+    retval = easycomm_transaction(rot, "PARK\n", NULL, 0);
     if (retval != RIG_OK)   /* Custom command (not in Easycomm) */
 		return retval;
 
@@ -176,7 +173,7 @@ easycomm_rot_park(ROT *rot)
 static int
 easycomm_rot_move(ROT *rot, int direction, int speed)
 {
-    char cmdstr[24], ackbuf[32];
+    char cmdstr[24];
     int retval;
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
 
@@ -199,7 +196,7 @@ easycomm_rot_move(ROT *rot, int direction, int speed)
         return -RIG_EINVAL;
     }
 
-    retval = easycomm_transaction(rot, cmdstr, ackbuf, sizeof(ackbuf));
+    retval = easycomm_transaction(rot, cmdstr, NULL, 0);
     if (retval != RIG_OK)
         return retval;
 
@@ -209,7 +206,7 @@ easycomm_rot_move(ROT *rot, int direction, int speed)
 static int
 easycomm_rot_move_velocity(ROT *rot, int direction, int speed)
 {
-    char cmdstr[24], ackbuf[32];
+    char cmdstr[24];
     int retval;
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
     if(speed<0 || speed>9999) {
@@ -236,7 +233,7 @@ easycomm_rot_move_velocity(ROT *rot, int direction, int speed)
         return -RIG_EINVAL;
     }
 
-    retval = easycomm_transaction(rot, cmdstr, ackbuf, sizeof(ackbuf));
+    retval = easycomm_transaction(rot, cmdstr, NULL, 0);
     if (retval != RIG_OK)
         return retval;
 
@@ -327,7 +324,7 @@ static int easycomm_rot_get_conf(ROT *rot, token_t token, char *val) {
  */
 
 static int easycomm_rot_set_conf(ROT *rot, token_t token, const char *val) {
-	char cmdstr[16], ackbuf[32];
+	char cmdstr[16];
 	int retval;
 
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -345,7 +342,7 @@ static int easycomm_rot_set_conf(ROT *rot, token_t token, const char *val) {
 	}
 	rig_debug(RIG_DEBUG_TRACE, "%s: cmdstr = %s, *val = %c\n", __func__, cmdstr, *val);
 
-	retval = easycomm_transaction(rot, cmdstr, ackbuf, sizeof(ackbuf));
+	retval = easycomm_transaction(rot, cmdstr, NULL, 0);
 	
 	if (retval != RIG_OK) {
 	  rig_debug(RIG_DEBUG_TRACE, "%s got error: %d\n", __FUNCTION__, retval);
