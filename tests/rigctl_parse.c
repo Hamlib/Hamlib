@@ -318,7 +318,7 @@ static struct test_table test_list[] =
     { '1',  "dump_caps",        ACTION(dump_caps),      ARG_NOVFO },
     { '3',  "dump_conf",        ACTION(dump_conf),      ARG_NOVFO },
     { 0x8f, "dump_state",       ACTION(dump_state),     ARG_OUT | ARG_NOVFO },
-    { 0xf0, "chk_vfo",          ACTION(chk_vfo),        ARG_NOVFO },   /* rigctld only--check for VFO mode */
+    { 0xf0, "chk_vfo",          ACTION(chk_vfo),        ARG_NOVFO, "ChkVFO" },   /* rigctld only--check for VFO mode */
     { 0xf1, "halt",             ACTION(halt),           ARG_NOVFO },   /* rigctld only--halt the daemon */
     { 0x8c, "pause",            ACTION(pause),          ARG_IN, "Seconds" },
     { 0x00, "", NULL },
@@ -4120,7 +4120,7 @@ declare_proto_rig(chk_vfo)
         fprintf(fout, "%s: ", cmd->arg1);    /* i.e. "Frequency" */
     }
 
-    fprintf(fout, "CHKVFO %d\n", vfo_mode);
+    fprintf(fout, "%d\n", vfo_mode);
 
     return RIG_OK;
 }
