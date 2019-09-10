@@ -93,7 +93,12 @@ easycomm_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
     int retval;
 	rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __FUNCTION__, az, el);
 
-    sprintf(cmdstr, "AZ%.1f EL%.1f UP000 XXX DN000 XXX\n", az, el);
+    if (rot->caps->rot_model == ROT_MODEL_EASYCOMM1) {
+        sprintf(cmdstr, "AZ%.1f EL%.1f UP000 XXX DN000 XXX\n", az, el);
+    }
+    else { // for easycomm 2 & 3 and upwards
+        sprintf(cmdstr, "AZ%.1f EL%.1f\n", az, el);
+    }
     retval = easycomm_transaction(rot, cmdstr, NULL, 0);
 	if (retval != RIG_OK) {
 		return retval;
