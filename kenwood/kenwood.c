@@ -2674,6 +2674,15 @@ int kenwood_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     case RIG_PTT_OFF: ptt_cmd = "RX"; break;
     default: return -RIG_EINVAL;
   }
+  if (ptt == RIG_PTT_OFF && RIG_MODEL_TS480 == rig->caps->rig_model) {
+    /* if not in PTT TS-480 will return RX0; */
+    char ackbuf[8];
+    ptt_t ptttmp;
+    int err = kenwood_get_ptt(rig, vfo, &ptttmp);
+    if (err != RIG_OK)
+      return err;
+    if (!ptt) return kenwood_transaction(rig, ptt_cmd, ackbuf, sizeof(ackbuf));
+  }
   return kenwood_transaction(rig, ptt_cmd, NULL, 0);
 }
 
