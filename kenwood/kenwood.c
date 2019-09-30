@@ -2681,7 +2681,7 @@ int kenwood_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     int err = kenwood_get_ptt(rig, vfo, &ptttmp);
     if (err != RIG_OK)
       return err;
-    if (!ptt) return kenwood_transaction(rig, ptt_cmd, ackbuf, sizeof(ackbuf));
+    if (ptt) return kenwood_transaction(rig, ptt_cmd, ackbuf, sizeof(ackbuf));
   }
   return kenwood_transaction(rig, ptt_cmd, NULL, 0);
 }
