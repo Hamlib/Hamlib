@@ -766,10 +766,21 @@ int newcat_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     switch (c) {
         case '1':
-            *mode = RIG_MODE_LSB;
+            /* Why is the FT891 backwards with LSB/USB?? Oh well... */
+            if (newcat_is_rig(rig, RIG_MODEL_FT891)) {
+                *mode = RIG_MODE_LSB;
+            }
+            else { /* every other Yaesu */ 
+                *mode = RIG_MODE_USB;
+            }
             break;
         case '2':
-            *mode = RIG_MODE_USB;
+            if (newcat_is_rig(rig, RIG_MODEL_FT891)) {
+                *mode = RIG_MODE_USB;
+            }
+            else { /* every other Yaesu */
+                *mode = RIG_MODE_LSB;
+            }
             break;
         case '3':
             *mode = RIG_MODE_CW;
