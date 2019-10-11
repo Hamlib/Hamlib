@@ -10,13 +10,13 @@ import sys
 
 import Hamlib
 
-def StartUp():
+def StartUp(verbose):
     """Simple script to test the Hamlib.py module with Python2."""
 
     print "%s: Python %s; %s\n" \
           % (sys.argv[0], sys.version.split()[0], Hamlib.cvar.hamlib_version)
 
-    Hamlib.rig_set_debug(Hamlib.RIG_DEBUG_NONE)
+    Hamlib.rig_set_debug([Hamlib.RIG_DEBUG_NONE, Hamlib.RIG_DEBUG_VERBOSE][verbose])
 
     # Init RIG_MODEL_DUMMY
     my_rig = Hamlib.Rig(Hamlib.RIG_MODEL_DUMMY)
@@ -123,4 +123,4 @@ def StartUp():
 
 
 if __name__ == '__main__':
-    StartUp()
+    StartUp([0,1]["-v" in sys.argv])
