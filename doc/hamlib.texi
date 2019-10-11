@@ -33,10 +33,9 @@ License''.
 @titlepage
 @title Ham Radio Control Libraries
 @subtitle for version @value{VERSION}, @value{UPDATED}
-@author Nate Bargmann, N0NB (@email{n0nb@@n0nb.us})
-@page
 @vskip 0pt plus 1filll
 @insertcopying
+@author Nate Bargmann, N0NB (@email{n0nb@@n0nb.us})
 @end titlepage
 
 @contents
@@ -47,7 +46,6 @@ License''.
 
 This manual is for Ham Radio Control Libraries (Hamlib) (version @value{VERSION},
 @value{UPDATED}).
-@end ifnottex
 
 @menu
 * Copying and Redistribution::
@@ -121,6 +119,7 @@ the Hamlib authors and the Hamlib Project.  While it is not a
 requirement of the licenses, it is courteous to offer modifications back
 to the Hamlib authors for possible incorporation into their official
 release(s).
+@end ifnottex
 
 
 @c ------------ Chapter ------------
