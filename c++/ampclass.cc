@@ -33,7 +33,7 @@
 #include "config.h"
 #endif
 
-#include <hamlib/ampator.h>
+//#include <hamlib/ampator.h>
 #include <hamlib/ampclass.h>
 #include <hamlib/rigclass.h>
 
@@ -55,34 +55,34 @@ Amplifier::Amplifier(amp_model_t amp_model)
 Amplifier::~Amplifier()
 {
 	theAmp->state.obj = NULL;
-	CHECK_ROT( amp_cleanup(theAmp) );
+	CHECK_AMP( amp_cleanup(theAmp) );
 	caps = NULL;
 }
 
 void Amplifier::open(void) {
-	CHECK_ROT( amp_open(theAmp) );
+	CHECK_AMP( amp_open(theAmp) );
 }
 
 void Amplifier::close(void) {
-	CHECK_ROT( amp_close(theAmp) );
+	CHECK_AMP( amp_close(theAmp) );
 }
 
 void Amplifier::setConf(token_t token, const char *val)
 {
-	CHECK_ROT( amp_set_conf(theAmp, token, val) );
+	CHECK_AMP( amp_set_conf(theAmp, token, val) );
 }
 void Amplifier::setConf(const char *name, const char *val)
 {
-	CHECK_ROT( amp_set_conf(theAmp, tokenLookup(name), val) );
+	CHECK_AMP( amp_set_conf(theAmp, tokenLookup(name), val) );
 }
 
 void Amplifier::getConf(token_t token, char *val)
 {
-	CHECK_ROT( amp_get_conf(theAmp, token, val) );
+	CHECK_AMP( amp_get_conf(theAmp, token, val) );
 }
 void Amplifier::getConf(const char *name, char *val)
 {
-	CHECK_ROT( amp_get_conf(theAmp, tokenLookup(name), val) );
+	CHECK_AMP( amp_get_conf(theAmp, tokenLookup(name), val) );
 }
 
 token_t Amplifier::tokenLookup(const char *name)
@@ -92,18 +92,18 @@ token_t Amplifier::tokenLookup(const char *name)
 
 void Amplifier::reset (amp_reset_t reset)
 {
-	CHECK_ROT( amp_reset(theAmp, reset) );
+	CHECK_AMP( amp_reset(theAmp, reset) );
 }
 
-void Amplifier::setFreq(freq_t freq, vfo_t vfo) {
-  CHECK_RIG( amp_set_freq(theAmp, vfo, freq) );
+void Amplifier::setFreq(freq_t freq) {
+  CHECK_AMP( amp_set_freq(theAmp, freq) );
 }
 
-freq_t Amplifier::getFreq(vfo_t vfo)
+freq_t Amplifier::getFreq()
 {
   freq_t freq;
 
-  CHECK_RIG( amp_get_freq(theAmp, vfo, &freq) );
+  CHECK_AMP( amp_get_freq(theAmp, &freq) );
 
   return freq;
 }

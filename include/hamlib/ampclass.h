@@ -52,7 +52,7 @@ public:
     token_t tokenLookup(const char *name);
 
     void setFreq(freq_t freq);
-    freq_t getFreq(freq_t freq);
+    freq_t getFreq();
 
     void reset(amp_reset_t reset);
 };
