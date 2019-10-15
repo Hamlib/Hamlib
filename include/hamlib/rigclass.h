@@ -237,7 +237,7 @@ extern "C" {
 }
 
 #include <iostream>
-#if !(defined(__GNUG__)||defined(__SUNPRO_CC))
+#if !(defined(__GNUG__)||defined(__SUNPRO_CC)||defined(_WIN32))
 extern "C" void exit(int);
 #endif
 
@@ -289,7 +289,7 @@ inline void THROW(const RigException *e)
 #else
 
     if (e) {
-        std::cerr << e->message << endl;
+        std::cerr << e->message << std::endl;
     }
 
     exit(0);
