@@ -700,7 +700,7 @@ typedef union {
  *
  * \sa rig_parse_level(), rig_strlevel()
  */
-enum rig_level_e : {
+enum rig_level_e {
     RIG_LEVEL_NONE =        0,              /*!< '' -- No Level */
     RIG_LEVEL_PREAMP =      (1 << 0),       /*!< \c PREAMP -- Preamp, arg int (dB) */
     RIG_LEVEL_ATT =         (1 << 1),       /*!< \c ATT -- Attenuator, arg int (dB) */
