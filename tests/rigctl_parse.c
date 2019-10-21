@@ -4098,7 +4098,7 @@ declare_proto_rig(send_cmd)
             buf[BUFSZ - 1] = '\0';
         }
 
-        fprintf(fout, "%s\n", buf);
+        fprintf(fout, "%*s\n", retval, buf);
 
     }
     while (retval > 0);
