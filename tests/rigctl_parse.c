@@ -4098,7 +4098,9 @@ declare_proto_rig(send_cmd)
             buf[BUFSZ - 1] = '\0';
         }
 
-        fprintf(fout, "%*s\n", retval, buf);
+        // we use fwrite in case of any nulls in binary return
+        fwrite(buf, 1, retval, fout);
+        fwrite("\n", 1, 1, fout);
 
     }
     while (retval > 0);
