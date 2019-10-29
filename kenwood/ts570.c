@@ -464,6 +464,16 @@ int ts570_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 		case RIG_VFO_A: vfo_function = '0'; break;
 		case RIG_VFO_B: vfo_function = '1'; break;
 		case RIG_VFO_MEM: vfo_function = '2'; break;
+    case RIG_VFO_TX:
+      if (vfo == RIG_VFO_A) vfo_function = '0';
+      else if (vfo == RIG_VFO_B) vfo_function = '1';
+      else if (vfo == RIG_VFO_MEM) vfo_function = '2';
+      else {
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported vfo/txvfo combination vfo=%s, txvfo=%s\n", __func__, rig_strvfo(vfo), rig_strvfo(txvfo));
+        return -RIG_EINVAL;
+      }
+      break;
+
 		default:
 			rig_debug(RIG_DEBUG_ERR,"ts570_set_split_vfo: unsupported VFO %d\n", txvfo);
 			return -RIG_EINVAL;
