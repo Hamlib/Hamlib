@@ -48,6 +48,8 @@ struct dummy_priv_data {
 		vfo_t curr_vfo;
 		vfo_t last_vfo;	/* VFO A or VFO B, when in MEM mode */
 
+    split_t split;
+    vfo_t tx_vfo;
 		ptt_t ptt;
 		powerstat_t powerstat;
 		int bank;
@@ -116,6 +118,7 @@ static void init_chan(RIG *rig, vfo_t vfo, channel_t *chan)
   chan->tx_mode = chan->mode;
   chan->tx_width = chan->width;
   chan->split = RIG_SPLIT_OFF;
+  chan->tx_vfo = vfo;
 
   chan->rptr_shift = RIG_RPT_SHIFT_NONE;
   chan->rptr_offs = 0;
@@ -328,7 +331,7 @@ static int dummy_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
   struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
   channel_t *curr = priv->curr;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n", __FUNCTION__, rig_strvfo(vfo));
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n", __FUNCTION__, rig_strvfo(vfo),vfo);
 
   *freq = curr->freq;
 
@@ -385,6 +388,7 @@ static int dummy_set_vfo(RIG *rig, vfo_t vfo)
   switch (vfo) {
   case RIG_VFO_VFO:	/* FIXME */
 
+  case RIG_VFO_RX:
   case RIG_VFO_A: priv->curr = &priv->vfo_a; break;
   case RIG_VFO_B: priv->curr = &priv->vfo_b; break;
   case RIG_VFO_MEM:
@@ -392,6 +396,12 @@ static int dummy_set_vfo(RIG *rig, vfo_t vfo)
 						  priv->curr = &priv->mem[curr->channel_num];
 						  break;
 				  }
+  case RIG_VFO_TX:
+          if (priv->tx_vfo == RIG_VFO_A) priv->curr = &priv->vfo_a;
+          else if (priv->tx_vfo == RIG_VFO_B) priv->curr = &priv->vfo_b;
+          else if (priv->tx_vfo == RIG_VFO_MEM) priv->curr = &priv->mem[curr->channel_num];
+          else priv->curr = &priv->vfo_a;
+          break;
   default:
   	rig_debug(RIG_DEBUG_VERBOSE,"%s unknown vfo: %s\n", __FUNCTION__, rig_strvfo(vfo));
   }
@@ -663,8 +673,10 @@ static int dummy_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
   struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
   channel_t *curr = priv->curr;
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called split=%d, vfo=%s, tx_vfo=%s\n", __FUNCTION__, split, rig_strvfo(vfo), rig_strvfo(tx_vfo));
   curr->split = split;
+  priv->tx_vfo = tx_vfo;
+  if (priv->curr_vfo == RIG_VFO_TX) dummy_set_vfo(rig,RIG_VFO_TX);
 
   return RIG_OK;
 }
