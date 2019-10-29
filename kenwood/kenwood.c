@@ -493,7 +493,7 @@ char rmode2kenwood(rmode_t mode, const rmode_t mode_table[])
 
 int kenwood_init(RIG *rig)
 {
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called, version %s\n", __func__, BACKEND_VER);
 
   if (!rig)
     return -RIG_EINVAL;
@@ -511,7 +511,7 @@ int kenwood_init(RIG *rig)
   priv->trn_state = -1;
   priv->curr_mode = 0;
   rig->state.priv = priv;
-
+  
   /* default mode_table */
   if (caps->mode_table == NULL)
     caps->mode_table = kenwood_mode_table;
@@ -644,6 +644,15 @@ int kenwood_open(RIG *rig)
          case last client left it on */
       kenwood_set_trn(rig, RIG_TRN_OFF); /* ignore status in case
                                             it's not supported */
+      // call get_split to fill in current split and tx_vfo status
+      split_t split;
+      vfo_t tx_vfo;
+      int retval = kenwood_get_split_vfo_if(rig, RIG_VFO_A, &split, &tx_vfo);
+      if (retval != RIG_OK) {
+        rig_debug(RIG_DEBUG_ERR, "%s: %s\n", __func__, rigerror(retval));
+      }
+      priv->tx_vfo = tx_vfo;
+      rig_debug(RIG_DEBUG_VERBOSE, "%s: priv->tx_vfo=%s\n", __func__, rig_strvfo(priv->tx_vfo));
       return RIG_OK;
     }
 
@@ -925,6 +934,7 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
     rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(txvfo));
     return -RIG_EINVAL;
   }
+  priv->tx_vfo = txvfo;
   if (RIG_MODEL_K2 == rig->caps->rig_model
       || RIG_MODEL_K3 == rig->caps->rig_model) {
     /* do not attempt redundant split change commands on Elecraft as
@@ -969,6 +979,8 @@ int kenwood_set_split(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 
   /* Remember whether split is on, for kenwood_set_vfo */
   priv->split = split;
+  priv->tx_vfo = txvfo;
+  rig_debug(RIG_DEBUG_VERBOSE, "%s: priv->tx_vfo=%s\n", __func__, rig_strvfo(priv->tx_vfo));
 
   return RIG_OK;
 }
@@ -997,11 +1009,13 @@ int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split, vfo_t *txvfo
             {
               *split = RIG_SPLIT_ON;
               *txvfo = RIG_VFO_SUB;
+              priv->tx_vfo = *txvfo;
             }
           else
             {
               *split = RIG_SPLIT_OFF;
               *txvfo = RIG_VFO_MAIN;
+              priv->tx_vfo = *txvfo;
             }
         }
       return retval;
@@ -1037,15 +1051,15 @@ int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split, vfo_t *txvfo
   switch (priv->info[30])
     {
     case '0':
-      *txvfo = (*split && !transmitting) ? RIG_VFO_B : RIG_VFO_A;
+      *txvfo = priv->tx_vfo = (*split && !transmitting) ? RIG_VFO_B : RIG_VFO_A;
     break;
 
     case '1':
-      *txvfo = (*split && !transmitting) ? RIG_VFO_A : RIG_VFO_B;
+      *txvfo = priv->tx_vfo = (*split && !transmitting) ? RIG_VFO_A : RIG_VFO_B;
     break;
 
     case '2':
-      *txvfo = RIG_VFO_MEM; /* SPLIT MEM operation doesn't involve VFO A or VFO B */
+      *txvfo = priv->tx_vfo = RIG_VFO_MEM; /* SPLIT MEM operation doesn't involve VFO A or VFO B */
       break;
 
     default:
@@ -1053,7 +1067,8 @@ int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split, vfo_t *txvfo
           __func__, priv->info[30]);
       return -RIG_EPROTO;
     }
-
+  priv->tx_vfo = *txvfo;
+  rig_debug(RIG_DEBUG_VERBOSE, "%s: priv->tx_vfo=%s\n", __func__, rig_strvfo(priv->tx_vfo));
   return RIG_OK;
 }
 
@@ -1088,15 +1103,16 @@ int kenwood_get_vfo_if(RIG *rig, vfo_t *vfo)
   switch (priv->info[30])
     {
     case '0':
-      *vfo = split_and_transmitting ? RIG_VFO_B : RIG_VFO_A;
+      *vfo = priv->tx_vfo = split_and_transmitting ? RIG_VFO_B : RIG_VFO_A;
     break;
 
     case '1':
       *vfo = split_and_transmitting ? RIG_VFO_A : RIG_VFO_B;
+      priv->tx_vfo = RIG_VFO_B;
     break;
 
     case '2':
-      *vfo = RIG_VFO_MEM;
+      *vfo = priv->tx_vfo = RIG_VFO_MEM;
       break;
 
     default:
@@ -1104,6 +1120,7 @@ int kenwood_get_vfo_if(RIG *rig, vfo_t *vfo)
           __func__, priv->info[30]);
       return -RIG_EPROTO;
     }
+  rig_debug(RIG_DEBUG_VERBOSE, "%s: priv->tx_vfo=%s\n", __func__, rig_strvfo(priv->tx_vfo));
   return RIG_OK;
 }
 
@@ -1122,6 +1139,8 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
   unsigned char vfo_letter = '\0';
   vfo_t tvfo;
   int err;
+
+  struct kenwood_priv_data *priv = rig->state.priv;
 
   tvfo = (vfo==RIG_VFO_CURR || vfo==RIG_VFO_VFO) ? rig->state.current_vfo : vfo;
 
@@ -1143,6 +1162,14 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
   case RIG_VFO_C:
     vfo_letter = 'C';
     break;
+  case RIG_VFO_TX:
+    if (priv->tx_vfo == RIG_VFO_A) vfo_letter = 'A';
+    else if (priv->tx_vfo == RIG_VFO_B) vfo_letter = 'B';
+    else {
+      rig_debug(RIG_DEBUG_ERR, "%s: unsupported tx_vfo, tx_vfo=%s\n", __func__, rig_strvfo(priv->tx_vfo));
+    }
+
+    break;
   default:
     rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
     return -RIG_EINVAL;
@@ -1151,7 +1178,6 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
   err = kenwood_transaction(rig, freqbuf, NULL, 0);
 
-  struct kenwood_priv_data * priv = rig->state.priv;
   if (RIG_OK == err && RIG_MODEL_TS590S == rig->caps->rig_model && priv->fw_rev_uint <= 107 && ('A' == vfo_letter || 'B' == vfo_letter))
     {
       /* TS590s f/w rev 1.07 or earlier has a defect that means
@@ -1236,11 +1262,13 @@ int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     if (RIG_OK != retval) return retval;
   }
 
+  struct kenwood_priv_data *priv = rig->state.priv;
+
   /* memory frequency cannot be read with an Fx command, use IF */
   if (tvfo == RIG_VFO_MEM) {
 
     return kenwood_get_freq_if(rig, vfo, freq);
-  }
+  } 
 
   switch (tvfo) {
   case RIG_VFO_A:
@@ -1253,6 +1281,10 @@ int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     break;
   case RIG_VFO_C:
     vfo_letter = 'C';
+    break;
+  case RIG_VFO_TX:
+    if (priv->split) vfo_letter = 'B'; // always assume B is the TX VFO
+    else vfo_letter = 'A';
     break;
   default:
     rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));

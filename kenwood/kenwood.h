@@ -27,7 +27,7 @@
 #include <string.h>
 #include "token.h"
 
-#define BACKEND_VER "1.2"
+#define BACKEND_VER "1.3"
 
 #define EOM_KEN ';'
 #define EOM_TH '\r'
@@ -71,6 +71,7 @@ struct kenwood_priv_caps {
 struct kenwood_priv_data {
     char info[KENWOOD_MAX_BUF_LEN];
     split_t split;    /* current split state */
+    vfo_t tx_vfo;     /* split tx vfo */
     int k2_ext_lvl;   /* Initial K2 extension level */
     int k3_ext_lvl;   /* Initial K3 extension level */
     int k2_md_rtty;   /* K2 RTTY mode available flag, 1 = RTTY, 0 = N/A */
