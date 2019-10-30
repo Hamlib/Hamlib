@@ -629,6 +629,22 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
   int subcmd = -1;
   unsigned char data;
   int datalen = 0;
+
+  // Pick the appropriate VFO when VFO_TX is requested
+  if (vfo == RIG_VFO_TX) {
+    if (priv->split_on) {
+      vfo = rig->state.vfo_list & RIG_VFO_B ? RIG_VFO_B : RIG_VFO_SUB;
+    }
+    else {
+      vfo = rig->state.vfo_list & RIG_VFO_B ? RIG_VFO_A : RIG_VFO_MAIN;
+    }
+  }
+  // Pick the appropriate VFO when VFO_RX is requested
+  if (vfo == RIG_VFO_RX) {
+    vfo = rig->state.vfo_list & RIG_VFO_B ? RIG_VFO_A : RIG_VFO_MAIN;
+  }
+  rig_debug(RIG_DEBUG_VERBOSE,"icom_get_freq: using vfo=%s\n",rig_strvfo(vfo));
+  
   switch(vfo) {
     case RIG_VFO_MAIN: 
       cmd = C_SET_VFO;
@@ -642,6 +658,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
       data = 1;
       datalen = 1;
       break;
+    break;
   }
 	retval = icom_transaction (rig, cmd, subcmd, datalen==0?NULL:&data, datalen, freqbuf, &freq_len);
 	if (retval != RIG_OK)
@@ -1185,12 +1202,15 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 	if (vfo == RIG_VFO_CURR)
 		return RIG_OK;
 
+  struct rig_state *rs = &rig->state;
+  struct icom_priv_data *priv = (struct icom_priv_data*)rs->priv;
 
 	switch(vfo) {
 	case RIG_VFO_A: icvfo = S_VFOA; break;
 	case RIG_VFO_B: icvfo = S_VFOB; break;
 	case RIG_VFO_MAIN: icvfo = S_MAIN; break;
 	case RIG_VFO_SUB:  icvfo = S_SUB; break;
+  case RIG_VFO_TX: icvfo = priv->split_on ? S_VFOB : S_VFOA; break;
 	case RIG_VFO_VFO:
 		retval = icom_transaction (rig, C_SET_VFO, -1, NULL, 0,
 						ackbuf, &ack_len);
@@ -1213,6 +1233,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 			return -RIG_ERJCTED;
 		}
 		return RIG_OK;
+    
 	default:
 		rig_debug(RIG_DEBUG_ERR,"icom: Unsupported VFO %d\n", vfo);
 		return -RIG_EINVAL;
