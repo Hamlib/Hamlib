@@ -62,13 +62,15 @@ extern const struct confparams kenwood_cfg_params[];
 #define MD_CWR  '7'
 #define MD_FSKR '9'
 
-struct kenwood_priv_caps {
+struct kenwood_priv_caps
+{
     char cmdtrm;    /* Command termination chars (ken=';' or th='\r') */
     int if_len;     /* length of IF; answer excluding ';' terminator */
     rmode_t *mode_table;
 };
 
-struct kenwood_priv_data {
+struct kenwood_priv_data
+{
     char info[KENWOOD_MAX_BUF_LEN];
     split_t split;    /* current split state */
     vfo_t tx_vfo;     /* split tx vfo */
@@ -80,7 +82,7 @@ struct kenwood_priv_data {
     unsigned fw_rev_uint; /* firmware revison as a number 1.07 -> 107 */
     char verify_cmd[4];   /* command used to verify set commands */
     int is_emulation;     /* flag for TS-2000 emulations */
-    void * data;          /* model specific data */
+    void *data;           /* model specific data */
     rmode_t curr_mode;     /* used for is_emulation to avoid get_mode on VFOB */
 };
 
@@ -95,7 +97,7 @@ extern const tone_t kenwood42_ctcss_list[];
 
 int kenwood_transaction(RIG *rig, const char *cmd, char *data, size_t data_len);
 int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
-        size_t buf_size, size_t expected);
+                             size_t buf_size, size_t expected);
 
 rmode_t kenwood2rmode(unsigned char mode, const rmode_t mode_table[]);
 char rmode2kenwood(rmode_t mode, const rmode_t mode_table[]);
@@ -109,17 +111,18 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo);
 int kenwood_set_vfo_main_sub(RIG *rig, vfo_t vfo);
 int kenwood_get_vfo_if(RIG *rig, vfo_t *vfo);
 int kenwood_get_vfo_main_sub(RIG *rig, vfo_t *vfo);
-int kenwood_set_split(RIG *rig, vfo_t vfo , split_t split, vfo_t txvfo);
-int kenwood_set_split_vfo(RIG *rig, vfo_t vfo , split_t split, vfo_t txvfo);
-int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split, vfo_t *txvfo);
+int kenwood_set_split(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo);
+int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo);
+int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split,
+                             vfo_t *txvfo);
 
 int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 int kenwood_get_freq_if(RIG *rig, vfo_t vfo, freq_t *freq);
-int kenwood_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit);
-int kenwood_get_rit(RIG *rig, vfo_t vfo, shortfreq_t * rit);
-int kenwood_set_xit(RIG * rig, vfo_t vfo, shortfreq_t rit);
-int kenwood_get_xit(RIG *rig, vfo_t vfo, shortfreq_t * rit);
+int kenwood_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
+int kenwood_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
+int kenwood_set_xit(RIG *rig, vfo_t vfo, shortfreq_t rit);
+int kenwood_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
 int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 int kenwood_get_mode_if(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
@@ -138,9 +141,9 @@ int kenwood_set_powerstat(RIG *rig, powerstat_t status);
 int kenwood_get_powerstat(RIG *rig, powerstat_t *status);
 int kenwood_reset(RIG *rig, reset_t reset);
 int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg);
-int kenwood_set_ant (RIG * rig, vfo_t vfo, ant_t ant);
-int kenwood_set_ant_no_ack(RIG * rig, vfo_t vfo, ant_t ant);
-int kenwood_get_ant (RIG * rig, vfo_t vfo, ant_t * ant);
+int kenwood_set_ant(RIG *rig, vfo_t vfo, ant_t ant);
+int kenwood_set_ant_no_ack(RIG *rig, vfo_t vfo, ant_t ant);
+int kenwood_get_ant(RIG *rig, vfo_t vfo, ant_t *ant);
 int kenwood_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 int kenwood_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 int kenwood_set_ptt_safe(RIG *rig, vfo_t vfo, ptt_t ptt);
@@ -152,7 +155,7 @@ int kenwood_get_mem_if(RIG *rig, vfo_t vfo, int *ch);
 int kenwood_get_channel(RIG *rig, channel_t *chan);
 int kenwood_set_channel(RIG *rig, const channel_t *chan);
 int kenwood_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch);
-const char * kenwood_get_info(RIG *rig);
+const char *kenwood_get_info(RIG *rig);
 int kenwood_get_id(RIG *rig, char *buf);
 
 int kenwood_set_trn(RIG *rig, int trn);
@@ -211,10 +214,12 @@ extern const struct rig_caps pihpsdr_caps;
 extern const struct rig_caps ts890s_caps;
 
 /* use when not interested in the answer, but want to check its len */
-static int inline kenwood_simple_transaction(RIG *rig, const char *cmd, size_t expected)
+static int inline kenwood_simple_transaction(RIG *rig, const char *cmd,
+        size_t expected)
 {
-  struct kenwood_priv_data *priv = rig->state.priv;
-  return kenwood_safe_transaction(rig, cmd, priv->info, KENWOOD_MAX_BUF_LEN, expected);
+    struct kenwood_priv_data *priv = rig->state.priv;
+    return kenwood_safe_transaction(rig, cmd, priv->info, KENWOOD_MAX_BUF_LEN,
+                                    expected);
 }
 
 #endif /* _KENWOOD_H */
