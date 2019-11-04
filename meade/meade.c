@@ -255,18 +255,21 @@ static int meade_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   meade_transaction(rot, ":GZ#:GA#", return_str, &return_str_size, 14);
-  if(return_str_size > 13 && return_str[return_str_size-1] == '#') {  /* '#' == EOS */
-    az_degree = strtol(return_str, NULL, 10);
-    az_minutes = strtol(return_str + 4, NULL, 10);
-    el_degree = strtol(return_str + 8, NULL, 10);
-    el_minutes = strtol(return_str + 11, NULL, 10);
-    *az = dmmm2dec(az_degree, az_minutes, 0);
-    *el = dmmm2dec(el_degree, el_minutes, 0);
-    return RIG_OK;
+  // answer expecting one of two formats depending on precision setting
+  // DDD*MM'SS#:sDD*MM'SS#
+  // DDD*MM#T:sDD*MM#
+  rig_debug(RIG_DEBUG_VERBOSE, "%s: parsing \"%s\" as high precision\n", __func__, return_str);
+  int n = sscanf(return_str,"%d*%d'%*d#:%d*%d",&az_degree,&az_minutes,&el_degree,&el_minutes);
+  if (n != 4) {
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: parsing as low precision\n", __func__);
+    n = sscanf(return_str,"%d*%d#%*c#:%d*%d",&az_degree,&az_minutes,&el_degree,&el_minutes);
+    if (n != 4) {
+      return RIG_EPROTO;
+    }
   }
-  else {
-    return RIG_EINVAL;
-  }
+  *az = dmmm2dec(az_degree, az_minutes, 0);
+  *el = dmmm2dec(el_degree, el_minutes, 0);
+  return RIG_OK;
 }
 
 /*
@@ -358,7 +361,7 @@ const struct rot_caps meade_caps = {
   .rot_model =        ROT_MODEL_MEADE,
   .model_name =       "LX200",
   .mfg_name =         "Meade",
-  .version =          "0.1",
+  .version =          "0.2",
   .copyright =        "LGPL",
   .status =           RIG_STATUS_ALPHA,
   .rot_type =         ROT_TYPE_AZEL,
