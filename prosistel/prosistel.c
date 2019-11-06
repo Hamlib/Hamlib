@@ -173,37 +173,41 @@ static int prosistel_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
 	char cmdstr[64];
 	char data[20];
-	char posstr[3];
-	int posval;
+	float posval;
 	int retval;
 
 	num_sprintf(cmdstr, STX"A?"CR);
-	retval = prosistel_transaction(rot, cmdstr, data, 20);
-	 if(retval!=RIG_OK) {
-		 return retval;
-		 }
-
-	posstr[0]=data[5];
-	posstr[1]=data[6];
-	posstr[2]=data[7];
-	posval=atoi(posstr);
-	rig_debug(RIG_DEBUG_VERBOSE, "%s got position %s converted to %d\n", __func__,posstr,posval);
+	retval = prosistel_transaction(rot, cmdstr, data, sizeof(data));
+	if(retval!=RIG_OK) {
+	 return retval;
+	}
+  // Example response  of 100 azimuth
+  // 02 41 2c 3f 2c 31 30 30 30 2c 52 0d   .A,?,1000,R.
+  int n = sscanf(data,"%*cA,?,%f,%*c.",&posval);
+  if (n != 1) {
+	  rig_debug(RIG_DEBUG_ERR, "%s failed to parse azimuth '%s'\n", __func__,data);
+    return RIG_EPROTO;
+  }
+  posval /= 10.0;
+	rig_debug(RIG_DEBUG_VERBOSE, "%s got position from '%s' converted to %d\n", __func__,data,posval);
 	*az = (azimuth_t) posval;
 
 
 	/*
-	 * Elevation section: have no hardware to test
-	memset(cmdstr,0,64);
-	num_sprintf(cmdstr, STX"E?"CR);
-	retval = prosistel_transaction(rot, cmdstr, data, 20);
-
-	posstr[0]=data[5];
-	posstr[1]=data[6];
-	posstr[2]=data[7];
-	posval=atoi(posstr);
-	rig_debug(RIG_DEBUG_VERBOSE, "%s got position %s converted to %d\n", __func__,posstr,posval);
-	*el = (azimuth_t) posval;
+	 * Elevation section
 	*/
+	num_sprintf(cmdstr, STX"B?"CR);
+	retval = prosistel_transaction(rot, cmdstr, data, sizeof(data));
+  // Example response  of 90 elevation
+  // 02 42 2c 3f 2c 30 39 30 30 2c 52 0d   .B,?,0900,R.
+  n = sscanf(data,"%*cB,?,%f,%*c.",&posval);
+  if (n != 1) {
+	  rig_debug(RIG_DEBUG_ERR, "%s failed to parse elevation '%s'\n", __func__,data);
+    return RIG_EPROTO;
+  }
+  posval /= 10.0;
+	rig_debug(RIG_DEBUG_VERBOSE, "%s got position from '%s' converted to %d\n", __func__,data,posval);
+	*el = (elevation_t) posval/10.0;
 
   return retval;
 }
@@ -220,9 +224,9 @@ const struct rot_caps prosistel_rot_caps = {
   .rot_model =      ROT_MODEL_PROSISTEL,
   .model_name =     "Prosistel D",
   .mfg_name =       "Prosistel",
-  .version =        "0.3",
+  .version =        "0.4",
   .copyright = 	    "LGPL",
-  .status =         RIG_STATUS_BETA,
+  .status =         RIG_STATUS_STABLE,
   .rot_type =       ROT_TYPE_AZIMUTH,
   .port_type =      RIG_PORT_SERIAL,
   .serial_rate_min  = 9600,
