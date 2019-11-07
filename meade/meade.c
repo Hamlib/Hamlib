@@ -254,15 +254,18 @@ static int meade_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  meade_transaction(rot, ":GZ#:GA#", return_str, &return_str_size, 14);
+  meade_transaction(rot, ":GZ#:GA#", return_str, &return_str_size, BUFSIZE);
   // answer expecting one of two formats depending on precision setting
-  // DDD*MM'SS#:sDD*MM'SS#
-  // DDD*MM#T:sDD*MM#
+  // The Meade manual is not clear on this format
+  // The period separator is coming back as 0xdf so we won't assume which char it is
+  // DDD.MM:SS#sDD.MM:SS#
+  // DDD.MM#sDD.MM#
+  // Tested and working with the Meade LX200 and Autostar 497
   rig_debug(RIG_DEBUG_VERBOSE, "%s: parsing \"%s\" as high precision\n", __func__, return_str);
-  int n = sscanf(return_str,"%d*%d'%*d#:%d*%d",&az_degree,&az_minutes,&el_degree,&el_minutes);
+  int n = sscanf(return_str,"%d%*c%d:%*d#%d%*c%d:%*d#",&az_degree,&az_minutes,&el_degree,&el_minutes);
   if (n != 4) {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: parsing as low precision\n", __func__);
-    n = sscanf(return_str,"%d*%d#%*c#:%d*%d",&az_degree,&az_minutes,&el_degree,&el_minutes);
+    n = sscanf(return_str,"%d%*c%d#%d%*c%d",&az_degree,&az_minutes,&el_degree,&el_minutes);
     if (n != 4) {
       return RIG_EPROTO;
     }
