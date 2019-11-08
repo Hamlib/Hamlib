@@ -166,10 +166,10 @@ static int prosistel_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
     char cmdstr[64];
     int retval;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called: %.2f %.2f\n", __func__,
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called: %.1f %.1f\n", __func__,
               az, el);
 
-    num_sprintf(cmdstr, STX"AG%03.0f"CR, az);
+    num_sprintf(cmdstr, STX"AG%04.0f"CR, az*10);
     retval = prosistel_transaction(rot, cmdstr, NULL, 0);
 
     if (retval != RIG_OK)
@@ -178,15 +178,14 @@ static int prosistel_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
     }
 
     /*
-     * Elevation section: have no hardware to test
-    memset(cmdstr,0,64);
-    num_sprintf(cmdstr, STX"EG%03.0f"CR, el);
+     * Elevation section
+    */
+    num_sprintf(cmdstr, STX"EG%04.0f"CR, el*10);
     retval = prosistel_transaction(rot, cmdstr, NULL, 0);
     if(retval!=RIG_OK) {
       return retval;
       }
 
-     */
     return retval;
 }
 
@@ -233,6 +232,7 @@ static int prosistel_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     // Example response  of 90 elevation
     // 02 42 2c 3f 2c 30 39 30 30 2c 52 0d   .B,?,0900,R.
     n = sscanf(data, "%*cB,?,%f,%*c.", &posval);
+    posval /= 10.0;
 
     if (n != 1)
     {
@@ -240,10 +240,9 @@ static int prosistel_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
         return RIG_EPROTO;
     }
 
-    posval /= 10.0;
     rig_debug(RIG_DEBUG_VERBOSE, "%s got position from '%s' converted to %d\n",
               __func__, data, posval);
-    *el = (elevation_t) posval / 10.0;
+    *el = (elevation_t) posval;
 
     return retval;
 }
@@ -261,7 +260,7 @@ const struct rot_caps prosistel_rot_caps =
     .rot_model =      ROT_MODEL_PROSISTEL,
     .model_name =     "Prosistel D",
     .mfg_name =       "Prosistel",
-    .version =        "0.4",
+    .version =        "0.5",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_AZIMUTH,
