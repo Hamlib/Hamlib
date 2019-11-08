@@ -219,7 +219,7 @@ static int prosistel_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     }
 
     posval /= 10.0;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s got position from '%s' converted to %d\n",
+    rig_debug(RIG_DEBUG_VERBOSE, "%s got position from '%s' converted to %f\n",
               __func__, data, posval);
     *az = (azimuth_t) posval;
 
@@ -240,7 +240,7 @@ static int prosistel_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
         return RIG_EPROTO;
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s got position from '%s' converted to %d\n",
+    rig_debug(RIG_DEBUG_VERBOSE, "%s got position from '%s' converted to %f\n",
               __func__, data, posval);
     *el = (elevation_t) posval;
 
