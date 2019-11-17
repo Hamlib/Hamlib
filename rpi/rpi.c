@@ -1,0 +1,93 @@
+/*
+ i  Hamlib Raspberry Pi backend - main file
+ *  Copyright (c) 2019 by HA5KFU ham radio club
+ *
+ *
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
+ *
+ *   This library is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Lesser General Public
+ *   License along with this library; if not, write to the Free Software
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ */
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#include <hamlib/rig.h>
+
+#include <wiringPi.h>
+#define PIN_PTT 0
+#define PIN_DCD 2
+
+#include "rpi.h"
+
+int rpi_init(RIG* rig){
+    if(wiringPiSetup() == -1)
+        return -RIG_ECONF;
+    return RIG_OK;
+}
+
+int rpi_cleanup(RIG* rig){
+    return RIG_OK;
+}
+
+int rpi_open(RIG* rig){
+    pinMode(PIN_PTT, OUTPUT);
+    pinMode(PIN_DCD, OUTPUT);
+    return RIG_OK;
+}
+
+int rpi_close(RIG* rig){
+    return RIG_OK;
+}
+
+int rpi_set_ptt(RIG* rig, vfo_f vfo, ptt_t ptt){
+    digitalWrite(PIN_PTT, ptt);
+    return RIG_OK;
+}
+
+int rpi_get_ptt(RIG* rig, vfo_f vfo, ptt_t *ptt){
+    if(ptt)
+        *ptt = digitalRead(PIN_PTT);
+    return RIG_OK;
+}
+
+int rpi_get_dcd(RIG* rig, vfo_f vfo, dcd_t *dcd){
+    if(dcd)
+        *dcd = digitalRead(PIN_DCD);
+    return RIG_OK;
+}
+
+extern const struct rig_caps rpi_caps = {
+    .rig_model = RIG_MODEL_RPI_WIRINGPI,
+    .model_name = "WiringPI",
+    .mfg_name = "Raspberry PI",
+    .version = "0.1",
+    .copyright = "LGPL",
+    .status = RIG_STATUS_ALPHA,
+    .rig_type = RIG_TYPE_TRANSCEIVER,
+    .ptt_type = RIG_PTT_GPIO,
+    .dcd_type = RIG_DCD_GPIO,
+    .port_type = RIG_PORT_NONE,
+    .ctcss_list = common_ctcss_list,
+    .dcs_list = full_dcs_list,
+    .chan_list = {},
+    .transceive = RIG_TRN_OFF,
+    .rig_init = rpi_init,
+    .rig_cleanup = rpi_cleanup,
+    .rig_open = rpi_open,
+    .rig_close = rpi_close,
+
+    .rig_set_ptt = rpi_set_ptt,
+    .rig_get_ptt = rpi_get_ptt,
+    .rig_get_dcd = rpi_get_dcd,
+};

@@ -93,6 +93,9 @@ DEFINE_INITRIG_BACKEND(elad);
 DEFINE_INITRIG_BACKEND(winradio);
 #endif
 
+#ifdef HAVE_WIRINGPI
+DEFINE_INITRIG_BACKEND(rpi);
+#endif
 
 /**
  *  \def rig_backend_list
@@ -135,6 +138,9 @@ static struct
     { RIG_RFT, RIG_BACKEND_RFT, RIG_FUNCNAMA(rft) },
     { RIG_KIT, RIG_BACKEND_KIT, RIG_FUNCNAMA(kit) },
     { RIG_TUNER, RIG_BACKEND_TUNER, RIG_FUNCNAMA(tuner) },
+    #ifdef HAVE_WIRINGPI
+    { RIG_RPI, RIG_BACKEND_RPI, RIG_FUNCNAM(rpi) },
+    #endif /* HAVE_WIRINGPI */
     { RIG_RS, RIG_BACKEND_RS, RIG_FUNCNAMA(rs) },
     { RIG_PRM80, RIG_BACKEND_PRM80, RIG_FUNCNAMA(prm80) },
     { RIG_ADAT, RIG_BACKEND_ADAT, RIG_FUNCNAM(adat) },

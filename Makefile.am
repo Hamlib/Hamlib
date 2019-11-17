@@ -24,7 +24,7 @@ SUBDIRS = macros include lib \
 ## assigned by 'configure' so list rig backends statically.
 DIST_SUBDIRS = macros include lib src c++ bindings tests doc android scripts\
 	adat alinco aor barrett drake dorji dummy elad flexradio icom icmarine jrc\
-	kachina kenwood kit lowe pcr prm80 racal rft rs skanti tapr tentec\
+	kachina kenwood kit lowe pcr prm80 racal rft rpi rs skanti tapr tentec\
 	tuner uniden wj yaesu winradio\
 	$(ROT_BACKEND_LIST) $(AMP_BACKEND_LIST)
 

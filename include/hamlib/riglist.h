@@ -616,6 +616,12 @@
     etc.
 */
 
+/*
+ * Raspberry PI GPIO
+ */
+#define RIG_RPI 34
+#define RIG_BACKEND_RPI "rpi"
+#define RIG_MODEL_RPI_WIRINGPI RIG_MAKE_MODEL(RIG_RPI, 1)
 
 /*! \typedef typedef int rig_model_t
     \brief Convenience type definition for rig model.

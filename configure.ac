@@ -49,7 +49,7 @@ dnl added to AC_CONFIG_FILES near the end of this file.  See README.developer
 dnl Beware of duplication should a backend directory include both rig and
 dnl rotor definitions, e.g. "dummy".  Optional backends will not be listed
 dnl here but will be added later, e.g. "winradio".
-BACKEND_LIST="adat alinco aor barrett dorji drake dummy elad flexradio icom icmarine jrc kachina kenwood kit lowe pcr prm80 racal rft rs skanti tapr tentec tuner uniden wj yaesu"
+BACKEND_LIST="adat alinco aor barrett dorji drake dummy elad flexradio icom icmarine jrc kachina kenwood kit lowe pcr prm80 racal rft rpi rs skanti tapr tentec tuner uniden wj yaesu"
 ROT_BACKEND_LIST="amsat ars celestron cnctrk easycomm ether6 fodtrack gs232a heathkit m2 meade rotorez sartek spid ts7400 prosistel ioptron"
 # Amplifiers are all in the amplifiers directory
 AMP_BACKEND_LIST="amplifiers/elecraft"
@@ -770,6 +770,7 @@ jrc/Makefile
 drake/Makefile
 lowe/Makefile
 rft/Makefile
+rpi/Makefile
 rs/Makefile
 kit/Makefile
 tapr/Makefile
