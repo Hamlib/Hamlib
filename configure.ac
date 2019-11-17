@@ -695,6 +695,32 @@ AS_IF([test x"${cf_with_usrp}" = "xyes"],[
 
 AM_CONDITIONAL([HAVE_USRP], [test x"${cf_with_usrp}" = "xyes"])
 
+dnl check for wiringPi (for RPi backend)
+AC_ARG_WITH([wiringpi],
+    [AS_HELP_STRING([--without-wiringpi],
+        [disable (RPi-specific) wiringPi dependent backends @<:@default=yes@:>@])],
+        [cf_with_wiringpi=no],
+        [cf_with_wiringpi=yes]
+    )
+
+AS_IF([test x"${cf_with_wiringpi}" = "xyes"],[
+    AC_CHECK_HEADERS([wiringPi.h],[
+        AC_CHECK_LIB([wiringPi], [wiringPiSetup], [
+            WIRINGPI_LIBS="-lwiringPi"
+            AC_DEFINE([HAVE_WIRINGPI],[1],[Define if wiringPi is available])
+        ], [
+            AC_MSG_WARN([found defunct wiringPi])
+            cf_with_wiringpi="no"
+        ])
+    ], [
+        cf_with_wiringpi="no"
+    ])
+], [
+    cf_with_wiringpi="no"
+])
+AM_CONDITIONAL(RPI_WIRINGPI, [test x"${cf_with_wiringpi}" = "xyes"])
+AC_MSG_CHECKING([for wiringPi])
+AC_MSG_RESULT([$cf_with_wiringpi])
 
 ## -------------------------------- ##
 ## Prepare rig backend dependencies ##
