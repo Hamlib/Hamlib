@@ -60,12 +60,11 @@
  */
 static int
 gs232b_transaction(ROT *rot, const char *cmdstr,
-                   char *data, size_t data_len)
+                   char *data, size_t data_len, int no_reply)
 {
   struct rot_state *rs;
   int retval;
   int retry_read = 0;
-  int noreply = 0;
   char replybuf[BUFSZ];
 
   rs = &rot->state;
@@ -86,9 +85,10 @@ transaction_write:
     if (!data)
     {
       write_block(&rs->rotport, EOM, strlen(EOM));
-      noreply = 1;    // we will check for connectivity though
     }
   }
+
+  if (no_reply) return RIG_OK; // nothing expected so return
 
   /* Always read the reply to know whether the cmd went OK */
   if (!data)
@@ -101,9 +101,9 @@ transaction_write:
     data_len = BUFSZ;
   }
 
+
   memset(data, 0, data_len);
-  retval =
-    read_string(&rs->rotport, data, data_len, REPLY_EOM, strlen(REPLY_EOM));
+  retval = read_string(&rs->rotport, data, data_len, REPLY_EOM, strlen(REPLY_EOM));
 
   if (retval < 0)
   {
@@ -135,19 +135,15 @@ transaction_write:
 
 #endif
 
-
-  if (noreply)
+  // If asked for we will check for connection
+  // we don't expect a reply...just a prompt return
+  // Seems some GS232B's only echo the CR
+  if (data == replybuf && (strncmp(data, "?>", 2) != 0) && data[0] != 0x0d)
   {
-    // we don't expect a reply...just a prompt return
-    if (strncmp(data, "?>", 2) != 0)
-    {
-      rig_debug(RIG_DEBUG_VERBOSE,
-                "%s: Expected '?>' but got '%s' from cmd '%s'\n",
-                __FUNCTION__, data, cmdstr);
-      return -RIG_EPROTO;
-    }
-
-    return RIG_OK;
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "%s: Expected '?>' but got '%s' from cmd '%s'\n",
+              __FUNCTION__, data, cmdstr);
+    return -RIG_EPROTO;
   }
 
   if (data[0] == '?')
@@ -168,6 +164,7 @@ transaction_quit:
 static int
 gs232b_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
+  char buf[32];
   char cmdstr[64];
   int retval;
   unsigned u_az, u_el;
@@ -183,7 +180,7 @@ gs232b_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
   u_el = (unsigned) rint(el);
 
   sprintf(cmdstr, "W%03u %03u" EOM, u_az, u_el);
-  retval = gs232b_transaction(rot, cmdstr, NULL, 0);
+  retval = gs232b_transaction(rot, cmdstr, buf, sizeof(buf), 0);
 
   if (retval != RIG_OK)
   {
@@ -201,7 +198,7 @@ gs232b_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
   rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
 
-  retval = gs232b_transaction(rot, "C2" EOM, posbuf, sizeof(posbuf));
+  retval = gs232b_transaction(rot, "C2" EOM, posbuf, sizeof(posbuf), 0);
 
   if (retval != RIG_OK || strlen(posbuf) < 10)
   {
@@ -232,12 +229,13 @@ gs232b_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 static int
 gs232b_rot_stop(ROT *rot)
 {
+  char buf[32];
   int retval;
 
   rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
 
   /* All Stop */
-  retval = gs232b_transaction(rot, "S" EOM, NULL, 0);
+  retval = gs232b_transaction(rot, "S" EOM, buf, sizeof(buf), 0);
 
   if (retval != RIG_OK)
   {
@@ -262,7 +260,7 @@ gs232b_rot_move(ROT *rot, int direction, int speed)
 
   /* between 1 (slowest) and 4 (fastest) */
   sprintf(cmdstr, "X%u" EOM, x_speed);
-  retval = gs232b_transaction(rot, cmdstr, NULL, 0);
+  retval = gs232b_transaction(rot, cmdstr, NULL, 0, 1);
 
   if (retval != RIG_OK)
   {
@@ -293,7 +291,7 @@ gs232b_rot_move(ROT *rot, int direction, int speed)
     return -RIG_EINVAL;
   }
 
-  retval = gs232b_transaction(rot, cmdstr, NULL, 0);
+  retval = gs232b_transaction(rot, cmdstr, NULL, 0, 1);
 
   if (retval != RIG_OK)
   {
@@ -313,9 +311,9 @@ const struct rot_caps gs232b_rot_caps =
   .rot_model = ROT_MODEL_GS232B,
   .model_name = "GS-232B",
   .mfg_name = "Yaesu",
-  .version = "0.4",
+  .version = "0.5",
   .copyright = "LGPL",
-  .status = RIG_STATUS_BETA,
+  .status = RIG_STATUS_STABLE,
   .rot_type = ROT_TYPE_OTHER,
   .port_type = RIG_PORT_SERIAL,
   .serial_rate_min = 1200,

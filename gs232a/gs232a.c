@@ -59,7 +59,7 @@
  */
 static int
 gs232a_transaction (ROT *rot, const char *cmdstr,
-				char *data, size_t data_len)
+				char *data, size_t data_len, int no_reply)
 {
     struct rot_state *rs;
     int retval;
@@ -84,12 +84,14 @@ transaction_write:
     if (!data_len)
         data_len = BUFSZ;
 
-    memset(data,0,data_len);
-    retval = read_string(&rs->rotport, data, data_len, REPLY_EOM, strlen(REPLY_EOM));
-    if (retval < 0) {
-        if (retry_read++ < rot->state.rotport.retry)
-            goto transaction_write;
-        goto transaction_quit;
+    if (!no_reply) {
+        memset(data,0,data_len);
+        retval = read_string(&rs->rotport, data, data_len, REPLY_EOM, strlen(REPLY_EOM));
+        if (retval < 0) {
+            if (retry_read++ < rot->state.rotport.retry)
+                goto transaction_write;
+            goto transaction_quit;
+        }
     }
 
 #if 0
@@ -132,7 +134,7 @@ gs232a_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
     u_el = (unsigned)rint(el);
 
     sprintf(cmdstr, "W%03u %03u" EOM, u_az, u_el);
-    retval = gs232a_transaction(rot, cmdstr, NULL, 0);
+    retval = gs232a_transaction(rot, cmdstr, NULL, 0, 0);
 
     if (retval != RIG_OK) {
         return retval;
@@ -149,7 +151,7 @@ gs232a_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
 
-    retval = gs232a_transaction(rot, "C2" EOM, posbuf, sizeof(posbuf));
+    retval = gs232a_transaction(rot, "C2" EOM, posbuf, sizeof(posbuf), 0);
     if (retval != RIG_OK || strlen(posbuf) < 10) {
         return retval < 0 ? retval : -RIG_EPROTO;
     }
@@ -181,7 +183,7 @@ gs232a_rot_stop(ROT *rot)
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
 
     /* All Stop */
-    retval = gs232a_transaction(rot, "S" EOM, NULL, 0);
+    retval = gs232a_transaction(rot, "S" EOM, NULL, 0, 0);
     if (retval != RIG_OK)
         return retval;
 
@@ -203,7 +205,7 @@ gs232a_rot_move(ROT *rot, int direction, int speed)
 
     /* between 1 (slowest) and 4 (fastest) */
     sprintf(cmdstr, "X%u" EOM, x_speed);
-    retval = gs232a_transaction(rot, cmdstr, NULL, 0);
+    retval = gs232a_transaction(rot, cmdstr, NULL, 0, 1);
     if (retval != RIG_OK)
         return retval;
 
@@ -226,7 +228,7 @@ gs232a_rot_move(ROT *rot, int direction, int speed)
         return -RIG_EINVAL;
     }
 
-    retval = gs232a_transaction(rot, cmdstr, NULL, 0);
+    retval = gs232a_transaction(rot, cmdstr, NULL, 0, 1);
     if (retval != RIG_OK)
         return retval;
 
@@ -242,7 +244,7 @@ const struct rot_caps gs23_rot_caps = {
   .rot_model =      ROT_MODEL_GS23,
   .model_name =     "GS-23",
   .mfg_name =       "Yaesu/Kenpro",
-  .version =        "0.1",
+  .version =        "0.2",
   .copyright = 	    "LGPL",
   .status =         RIG_STATUS_ALPHA,
   .rot_type =       ROT_TYPE_AZEL,
@@ -279,7 +281,7 @@ const struct rot_caps gs232_rot_caps = {
   .mfg_name =       "Yaesu/Kenpro",
   .version =        "0.1",
   .copyright = 	    "LGPL",
-  .status =         RIG_STATUS_ALPHA,
+  .status =         RIG_STATUS_BETA,
   .rot_type =       ROT_TYPE_AZEL,
   .port_type =      RIG_PORT_SERIAL,
   .serial_rate_min =   150,
