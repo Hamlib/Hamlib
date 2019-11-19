@@ -385,7 +385,8 @@ const char * HAMLIB_API rig_strrmode(rmode_t mode)
 {
     int i;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called mode=0x%"PRXll"\n", __func__, mode);
+    // only enable it needed for debugging -- too verbose otherwise
+    //rig_debug(RIG_DEBUG_TRACE, "%s called mode=0x%"PRXll"\n", __func__, mode);
 
     if (mode == RIG_MODE_NONE)
     {
@@ -572,7 +573,8 @@ const char * HAMLIB_API rig_strfunc(setting_t func)
 {
     int i;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    // too verbose to keep on unless debugging this in particular
+    //rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (func == RIG_FUNC_NONE)
     {
