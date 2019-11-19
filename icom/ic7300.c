@@ -119,8 +119,8 @@
 /*
  * IC9700 items that differ from IC7300
  */
-#define IC9700_VFOS (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM|RIG_VFO_MAIN|RIG_VFO_SUB)
-#define IC9700_FUNCS (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_ANF|RIG_FUNC_LOCK|RIG_FUNC_RIT|RIG_FUNC_SCOPE)
+#define IC9700_VFOS (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MAIN|RIG_VFO_SUB|RIG_VFO_MEM)
+#define IC9700_FUNCS (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_ANF|RIG_FUNC_LOCK|RIG_FUNC_RIT|RIG_FUNC_SCOPE|RIG_FUNC_SATMODE|RIG_FUNC_AFC)
 
 #define IC9700_VFO_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL)
 #define IC9700_ALL_TX_MODES (RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_DSTAR|RIG_MODE_DD)
@@ -186,7 +186,7 @@
 static const struct icom_priv_caps IC7300_priv_caps = {
     0x94,   /* default address */
     0,      /* 731 mode */
-    0,      /* no XCHG */
+    1,      /* no XCHG to avoid display flickering */
     ic7300_ts_sc_list,
     .agc_levels_present = 1,
     .agc_levels = {
@@ -200,7 +200,7 @@ static const struct icom_priv_caps IC7300_priv_caps = {
 static const struct icom_priv_caps IC9700_priv_caps = {
     0xA2,   /* default address */
     0,      /* 731 mode */
-    0,      /* no XCHG */
+    1,      /* no XCHG to avoid display flickering */
     ic7300_ts_sc_list,
     .serial_USB_echo_check = 1,  /* USB CI-V may not echo */
     .agc_levels_present = 1,
@@ -223,7 +223,7 @@ const struct rig_caps ic7300_caps = {
 .rig_model =  RIG_MODEL_IC7300,
 .model_name = "IC-7300",
 .mfg_name =  "Icom",
-.version =  BACKEND_VER ".3",
+.version =  BACKEND_VER ".4",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_STABLE,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -274,26 +274,26 @@ const struct rig_caps ic7300_caps = {
 	   RIG_CHAN_END,
 	},
 
-.rx_range_list1 =   { {kHz(30),MHz(74.8),IC7300_ALL_RX_MODES,-1,-1,IC7300_VFOS}, RIG_FRNG_END, },
+.rx_range_list1 =   { {kHz(30),MHz(74.8),IC7300_ALL_RX_MODES,-1,-1,IC9700_VFOS}, RIG_FRNG_END, },
 .tx_range_list1 =   {
-	FRQ_RNG_HF(1,IC7300_OTHER_TX_MODES, W(2),W(100),IC7300_VFOS,RIG_ANT_1),
-	FRQ_RNG_60m(1,IC7300_OTHER_TX_MODES, W(2),W(100),IC7300_VFOS,RIG_ANT_1),
-	FRQ_RNG_6m(1,IC7300_OTHER_TX_MODES, W(2),W(100),IC7300_VFOS,RIG_ANT_1),
-	FRQ_RNG_4m(1,IC7300_OTHER_TX_MODES, W(2),W(100),IC7300_VFOS,RIG_ANT_1),
-	FRQ_RNG_HF(1,IC7300_AM_TX_MODES, W(1),W(40),IC7300_VFOS,RIG_ANT_1),   /* AM class */
-	FRQ_RNG_60m(1,IC7300_AM_TX_MODES, W(1),W(40),IC7300_VFOS,RIG_ANT_1),  /* AM class */
-	FRQ_RNG_6m(1,IC7300_AM_TX_MODES, W(1),W(40),IC7300_VFOS,RIG_ANT_1),   /* AM class */
-	FRQ_RNG_4m(1,IC7300_AM_TX_MODES, W(1),W(40),IC7300_VFOS,RIG_ANT_1),   /* AM class */
+	FRQ_RNG_HF(1,IC7300_OTHER_TX_MODES, W(2),W(100),IC9700_VFOS,RIG_ANT_1),
+	FRQ_RNG_60m(1,IC7300_OTHER_TX_MODES, W(2),W(100),IC9700_VFOS,RIG_ANT_1),
+	FRQ_RNG_6m(1,IC7300_OTHER_TX_MODES, W(2),W(100),IC9700_VFOS,RIG_ANT_1),
+	FRQ_RNG_4m(1,IC7300_OTHER_TX_MODES, W(2),W(100),IC9700_VFOS,RIG_ANT_1),
+	FRQ_RNG_HF(1,IC7300_AM_TX_MODES, W(1),W(40),IC9700_VFOS,RIG_ANT_1),   /* AM class */
+	FRQ_RNG_60m(1,IC7300_AM_TX_MODES, W(1),W(40),IC9700_VFOS,RIG_ANT_1),  /* AM class */
+	FRQ_RNG_6m(1,IC7300_AM_TX_MODES, W(1),W(40),IC9700_VFOS,RIG_ANT_1),   /* AM class */
+	FRQ_RNG_4m(1,IC7300_AM_TX_MODES, W(1),W(40),IC9700_VFOS,RIG_ANT_1),   /* AM class */
    	RIG_FRNG_END, },
 
-.rx_range_list2 =   { {kHz(30),MHz(74.8),IC7300_ALL_RX_MODES,-1,-1,IC7300_VFOS}, RIG_FRNG_END, },
+.rx_range_list2 =   { {kHz(30),MHz(74.8),IC7300_ALL_RX_MODES,-1,-1,IC9700_VFOS}, RIG_FRNG_END, },
 .tx_range_list2 =  {
-	FRQ_RNG_HF(2,IC7300_OTHER_TX_MODES, W(2),W(100),IC7300_VFOS,RIG_ANT_1),
-	FRQ_RNG_60m(2,IC7300_OTHER_TX_MODES, W(2),W(100),IC7300_VFOS,RIG_ANT_1),
-	FRQ_RNG_6m(2,IC7300_OTHER_TX_MODES, W(2),W(100),IC7300_VFOS,RIG_ANT_1),
-	FRQ_RNG_HF(2,IC7300_AM_TX_MODES, W(1),W(40),IC7300_VFOS,RIG_ANT_1),   /* AM class */
-	FRQ_RNG_60m(2,IC7300_AM_TX_MODES, W(1),W(40),IC7300_VFOS,RIG_ANT_1),  /* AM class */
-	FRQ_RNG_6m(2,IC7300_AM_TX_MODES, W(1),W(40),IC7300_VFOS,RIG_ANT_1),   /* AM class */
+	FRQ_RNG_HF(2,IC7300_OTHER_TX_MODES, W(2),W(100),IC9700_VFOS,RIG_ANT_1),
+	FRQ_RNG_60m(2,IC7300_OTHER_TX_MODES, W(2),W(100),IC9700_VFOS,RIG_ANT_1),
+	FRQ_RNG_6m(2,IC7300_OTHER_TX_MODES, W(2),W(100),IC9700_VFOS,RIG_ANT_1),
+	FRQ_RNG_HF(2,IC7300_AM_TX_MODES, W(1),W(40),IC9700_VFOS,RIG_ANT_1),   /* AM class */
+	FRQ_RNG_60m(2,IC7300_AM_TX_MODES, W(1),W(40),IC9700_VFOS,RIG_ANT_1),  /* AM class */
+	FRQ_RNG_6m(2,IC7300_AM_TX_MODES, W(1),W(40),IC9700_VFOS,RIG_ANT_1),   /* AM class */
     	RIG_FRNG_END, },
 
 .tuning_steps = {
@@ -375,10 +375,10 @@ const struct rig_caps ic7300_caps = {
 .get_dcd =  icom_get_dcd,
 .set_ts =  icom_set_ts,
 .get_ts =  icom_get_ts,
-.set_rptr_shift =  NULL,
-.get_rptr_shift =  NULL,
-.set_rptr_offs =  NULL,
-.get_rptr_offs =  NULL,
+.set_rptr_shift =  icom_set_rptr_shift,
+.get_rptr_shift =  icom_get_rptr_shift,
+.set_rptr_offs =  icom_set_rptr_offs,
+.get_rptr_offs =  icom_get_rptr_offs,
 .set_ctcss_tone =  icom_set_ctcss_tone,
 .get_ctcss_tone =  icom_get_ctcss_tone,
 .set_ctcss_sql =  icom_set_ctcss_sql,
@@ -403,7 +403,7 @@ const struct rig_caps ic9700_caps = {
 .mfg_name =  "Icom",
 .version =  BACKEND_VER ".2",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_BETA,
+.status =  RIG_STATUS_STABLE,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_RIG,
@@ -548,10 +548,10 @@ const struct rig_caps ic9700_caps = {
 .get_dcd =  icom_get_dcd,
 .set_ts =  icom_set_ts,
 .get_ts =  icom_get_ts,
-.set_rptr_shift =  NULL,
-.get_rptr_shift =  NULL,
-.set_rptr_offs =  NULL,
-.get_rptr_offs =  NULL,
+.set_rptr_shift =  icom_set_rptr_shift,
+.get_rptr_shift =  icom_get_rptr_shift,
+.set_rptr_offs =  icom_set_rptr_offs,
+.get_rptr_offs =  icom_get_rptr_offs,
 .set_ctcss_tone =  icom_set_ctcss_tone,
 .get_ctcss_tone =  icom_get_ctcss_tone,
 .set_ctcss_sql =  icom_set_ctcss_sql,
