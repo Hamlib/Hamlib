@@ -97,7 +97,7 @@
 static const struct icom_priv_caps ic9100_priv_caps = {
     0x7c,           /* default address */
     0,              /* 731 mode */
-    0,              /* no XCHG */
+    1,              /* no XCHG to avoid display flicker */
     ic910_ts_sc_list,   /* FIXME */
 };
 
@@ -105,9 +105,9 @@ const struct rig_caps ic9100_caps = {
 .rig_model =  RIG_MODEL_IC9100,
 .model_name = "IC-9100",
 .mfg_name =  "Icom",
-.version =  BACKEND_VER,
+.version =  BACKEND_VER".2",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_STABLE,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_RIG,
