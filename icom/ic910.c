@@ -324,7 +324,7 @@ static int ic910_r2i_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 static const struct icom_priv_caps ic910_priv_caps = {
   0x60,           /* default address */
   0,              /* 731 mode */
-  0,              /* no XCHG */
+  1,              /* no XCHG to avoid display flicker */
   ic910_ts_sc_list,
   .r2i_mode = ic910_r2i_mode
 };
@@ -335,7 +335,7 @@ int ic910_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         case RIG_FUNC_SCOPE:
             return icom_set_raw(rig, C_CTL_MEM, S_MEM_BANDSCOPE, 0, NULL, 1, status ? 1 : 0);
         case RIG_FUNC_SATMODE:
-            return icom_set_raw(rig, C_CTL_MEM, S_MEM_SATMODE, 0, NULL, 1, status ? 1 : 0);
+            return icom_set_raw(rig, C_CTL_MEM, S_MEM_SATMODE910, 0, NULL, 1, status ? 1 : 0);
         default:
             return icom_set_func(rig, vfo, func, status);
     }
@@ -347,7 +347,7 @@ int ic910_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         case RIG_FUNC_SCOPE:
             return icom_get_raw(rig, C_CTL_MEM, S_MEM_BANDSCOPE, 0, NULL, status);
         case RIG_FUNC_SATMODE:
-            return icom_get_raw(rig, C_CTL_MEM, S_MEM_SATMODE, 0, NULL, status);
+            return icom_get_raw(rig, C_CTL_MEM, S_MEM_SATMODE910, 0, NULL, status);
         default:
             return icom_get_func(rig, vfo, func, status);
     }
@@ -381,11 +381,11 @@ const struct rig_caps ic910_caps = {
   .rig_model =    RIG_MODEL_IC910,
   .model_name =   "IC-910",
   .mfg_name =   "Icom",
-  .version =    BACKEND_VER ".1",
+  .version =    BACKEND_VER ".2",
   .copyright =    "LGPL",
-  .status =   RIG_STATUS_BETA,
+  .status =   RIG_STATUS_STABLE,
   .rig_type =   RIG_TYPE_TRANSCEIVER,
-  .ptt_type =   RIG_PTT_NONE,
+  .ptt_type =   RIG_PTT_RIG,
   .dcd_type =   RIG_DCD_RIG,
   .port_type =    RIG_PORT_SERIAL,
   .serial_rate_min =  300,
@@ -409,7 +409,8 @@ const struct rig_caps ic910_caps = {
     [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
   },
   .parm_gran =    {},
-  .ctcss_list =   NULL,
+  .ctcss_list =  common_ctcss_list,
+
   .dcs_list =   NULL,
   .preamp =   { 20, RIG_DBLST_END, },
   .attenuator =   { 20, RIG_DBLST_END, },
@@ -500,6 +501,8 @@ const struct rig_caps ic910_caps = {
   .set_mode =   icom_set_mode,
 #endif
 
+.set_ptt = icom_set_ptt,
+.get_ptt = icom_get_ptt,
 .set_vfo =  icom_set_vfo,
 .get_ts =  icom_get_ts,
 .set_ts =  icom_set_ts,
@@ -520,4 +523,12 @@ const struct rig_caps ic910_caps = {
 .get_split_mode = icom_get_split_mode,
 .set_split_freq_mode =  icom_set_split_freq_mode,
 .get_split_freq_mode =  icom_get_split_freq_mode,
+.set_ctcss_tone =  icom_set_ctcss_tone,
+.get_ctcss_tone =  icom_get_ctcss_tone,
+.set_ctcss_sql =  icom_set_ctcss_sql,
+.get_ctcss_sql =  icom_get_ctcss_sql,
+.set_rptr_shift =  icom_set_rptr_shift,
+.set_rptr_offs =  icom_set_rptr_offs,
+.get_rptr_offs =  icom_get_rptr_offs,
+
 };
