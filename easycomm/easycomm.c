@@ -70,7 +70,6 @@ easycomm_transaction (ROT *rot, const char *cmdstr, char *data, size_t data_len)
   if (data == NULL || data_len <= 0)
     return RIG_OK;  /* don't want a reply */
 
-  memset(data,0,data_len);
   retval = read_string(&rs->rotport, data, data_len, "\n", 1);
   if (retval < 0) {
     rig_debug(RIG_DEBUG_TRACE, "%s read_string failed with status %d\n", __FUNCTION__, retval);
