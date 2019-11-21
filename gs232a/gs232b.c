@@ -101,7 +101,6 @@ transaction_write:
     data_len = BUFSZ;
   }
 
-  memset(data, 0, data_len);
   retval =
     read_string(&rs->rotport, data, data_len, REPLY_EOM, strlen(REPLY_EOM));
 
