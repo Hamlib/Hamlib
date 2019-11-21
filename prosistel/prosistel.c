@@ -105,9 +105,6 @@ transaction_write:
         data_len = BUFSZ;
     }
 
-
-
-    memset(data, 0, data_len);
     //remember check for STXA,G,R or STXA,?,XXX,R 10 bytes
     retval = read_string(&rs->rotport, data, 20, CR, strlen(CR));
 
