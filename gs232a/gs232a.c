@@ -84,7 +84,6 @@ transaction_write:
     if (!data_len)
         data_len = BUFSZ;
 
-    memset(data,0,data_len);
     retval = read_string(&rs->rotport, data, data_len, REPLY_EOM, strlen(REPLY_EOM));
     if (retval < 0) {
         if (retry_read++ < rot->state.rotport.retry)
