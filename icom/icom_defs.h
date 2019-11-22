@@ -389,8 +389,11 @@
 #define S_MEM1_VOXDELAY     0x05    /* VOX delay (0=0.0 sec, 20=2.0 sec) */
 #define S_MEM_ANTIVOX       0x04    /* anti VOX setting */
 #define S_MEM_RIT           0x06    /* RIT (0=off, 1=on, 2=sub dial) */
-#define S_MEM_SATMODE       0x07    /* Satellite mode (on/off) */
+#define S_MEM_SATMODE910    0x07    /* Satellite mode (on/off) */
 #define S_MEM_BANDSCOPE     0x08    /* Simple bandscope (on/off) */
+
+/* For IC9700 and IC9100 and likely future Icoms */
+#define S_MEM_SATMODE       0x5a    /* Satellite mode (on/off) */
 
 /* IC-R8600 and others */
 #define S_MEM_SKIP_SLCT_OFF 0x00
