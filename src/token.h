@@ -112,6 +112,8 @@
 #define TOK_MIN_EL  TOKEN_FRONTEND(112)
 /** \brief rot: Maximum Elevation */
 #define TOK_MAX_EL  TOKEN_FRONTEND(113)
+/** \brief rot: South is zero degrees */
+#define TOK_SOUTH_ZERO  TOKEN_FRONTEND(114)
 
 
 #endif /* _TOKEN_H */
