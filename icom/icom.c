@@ -722,24 +722,6 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     rig_debug(RIG_DEBUG_VERBOSE, "icom_get_freq: using vfo=%s\n", rig_strvfo(vfo));
 
-    switch (vfo)
-    {
-    case RIG_VFO_MAIN:
-        cmd = C_SET_VFO;
-        subcmd = S_SUB_SEL;
-        data = 0;
-        datalen = 1;
-        break;
-
-    case RIG_VFO_SUB:
-        cmd = C_SET_VFO;
-        subcmd = S_SUB_SEL;
-        data = 1;
-        datalen = 1;
-        break;
-        break;
-    }
-
     retval = icom_transaction(rig, cmd, subcmd, datalen == 0 ? NULL : &data,
                               datalen, freqbuf, &freq_len);
 
