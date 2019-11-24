@@ -569,7 +569,7 @@ int HAMLIB_API rot_set_position(ROT *rot,
     const struct rot_caps *caps;
     const struct rot_state *rs;
 
-    rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rot_debug(RIG_DEBUG_VERBOSE, "%s called az=%.02f el=%.02f\n", __func__, azimuth, elevation);
 
     if (CHECK_ROT_ARG(rot))
     {
@@ -579,11 +579,19 @@ int HAMLIB_API rot_set_position(ROT *rot,
     caps = rot->caps;
     rs = &rot->state;
 
+    rot_debug(RIG_DEBUG_VERBOSE, "%s: south_zero=%d \n", __func__, rs->south_zero);
+
+    if (rs->south_zero) {
+        azimuth += azimuth >=180 ? -180: 180;
+        rot_debug(RIG_DEBUG_TRACE,"%s: south adj to az=%.2f\n", __func__, azimuth);
+    }
+
     if (azimuth < rs->min_az
         || azimuth > rs->max_az
         || elevation < rs->min_el
         || elevation > rs->max_el)
     {
+        rot_debug(RIG_DEBUG_TRACE,"%s: range problem az=%.02f(min=%.02f,max=%.02f), el=%02f(min=%.02f,max=%02f)\n", __func__, azimuth,rs->min_az,rs->max_az,elevation,rs->min_el,rs->max_el);
         return -RIG_EINVAL;
     }
 
@@ -615,6 +623,7 @@ int HAMLIB_API rot_get_position(ROT *rot,
                                 elevation_t *elevation)
 {
     const struct rot_caps *caps;
+    const struct rot_state *rs;
 
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -624,13 +633,23 @@ int HAMLIB_API rot_get_position(ROT *rot,
     }
 
     caps = rot->caps;
+    rs = &rot->state;
 
     if (caps->get_position == NULL)
     {
         return -RIG_ENAVAIL;
     }
 
-    return caps->get_position(rot, azimuth, elevation);
+    int retval = caps->get_position(rot, azimuth, elevation);
+    if (retval != RIG_OK) return retval;
+
+    rot_debug(RIG_DEBUG_VERBOSE,"%s: got az=%.2f, el=%.2f\n", __func__, *azimuth, *elevation);
+
+    if (rs->south_zero) {
+        *azimuth += *azimuth >=180 ? -180: 180;
+        rot_debug(RIG_DEBUG_VERBOSE,"%s: south adj to az=%.2f\n", __func__, azimuth);
+    }
+    return RIG_OK;
 }
 
 
