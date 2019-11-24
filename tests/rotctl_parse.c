@@ -1631,6 +1631,7 @@ int set_conf(ROT *my_rot, char *conf_parms)
     char *p, *q, *n;
     int ret;
 
+    rot_debug(RIG_DEBUG_TRACE,"%s: called\n", __func__);
     p = conf_parms;
 
     while (p && *p != '\0')
@@ -1651,6 +1652,7 @@ int set_conf(ROT *my_rot, char *conf_parms)
             *n++ = '\0';
         }
 
+        rig_debug(RIG_DEBUG_TRACE,"%s: token=%s, val=%s\n",__func__, p,q);
         ret = rot_set_conf(my_rot, rot_token_lookup(my_rot, p), q);
 
         if (ret != RIG_OK)
@@ -1701,14 +1703,14 @@ declare_proto_rot(get_position)
         fprintf(fout, "%s: ", cmd->arg1);
     }
 
-    fprintf(fout, "%f%c", az, resp_sep);
+    fprintf(fout, "%.2f%c", az, resp_sep);
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
         fprintf(fout, "%s: ", cmd->arg2);
     }
 
-    fprintf(fout, "%f%c", el, resp_sep);
+    fprintf(fout, "%.2f%c", el, resp_sep);
 
     return status;
 }
@@ -1791,18 +1793,18 @@ declare_proto_rot(move)
 /* 'C' */
 declare_proto_rot(inter_set_conf)
 {
-    token_t token;
-
-    CHKSCN1ARG(sscanf(arg1, "%ld", &token));
+    rot_debug(RIG_DEBUG_TRACE,"%s: called\n", __func__);
 
     if (!arg2 || arg2[0] == '\0')
     {
+        rot_debug(RIG_DEBUG_ERR,"%s: arg1=='%s', arg2=='%s'\n", __func__, arg1, arg2);
+
         return -RIG_EINVAL;
     }
-
-    return rot_set_conf(rot, token, arg2);
+    char buf[256];
+    sprintf(buf,"%s=%s",arg1,arg2);
+    return set_conf(rot, buf);
 }
-
 
 /* '1' */
 declare_proto_rot(dump_caps)
@@ -1866,6 +1868,12 @@ declare_proto_rot(dump_state)
     }
 
     fprintf(fout, "%lf%c", rs->max_el, resp_sep);
+
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
+        fprintf(fout, "South Zero: ");
+    }
+    fprintf(fout, "%d%c", rs->south_zero, resp_sep);
 
     return RIG_OK;
 }
