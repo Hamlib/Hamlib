@@ -39,14 +39,15 @@
 
 #include "meade.h"
 
-struct meade_priv_data
-{
-    azimuth_t az;
-    elevation_t el;
 
-    struct timeval tv;    /* time last az/el update */
-    azimuth_t target_az;
-    elevation_t target_el;
+struct meade_priv_data {
+  azimuth_t az;
+  elevation_t el;
+
+  struct timeval tv;	/* time last az/el update */
+  azimuth_t target_az;
+  elevation_t target_el;
+  char product_name[32];
 };
 
 /**
@@ -97,54 +98,50 @@ struct meade_priv_data
  *   RIG_EIO  -  if an I/O error occurred while sending/receiving data.
  *   RIG_ETIMEOUT  -  if timeout expires without any characters received.
  */
-static int meade_transaction(ROT *rot, const char *cmdstr,
-                             char *data, size_t *data_len, size_t expected_return_length)
+static int meade_transaction (ROT *rot, const char *cmdstr,
+                                    char *data, size_t *data_len, size_t expected_return_length)
 {
-    struct rot_state *rs;
-    int return_value;
-    int retry_read = 0;
+  struct rot_state *rs;
+  int return_value;
+  int retry_read = 0;
 
-    rs = &rot->state;
+  rs = &rot->state;
 
-    while (1)
-    {
-        serial_flush(&rs->rotport);
+  while(1) {
+transaction:
+    serial_flush(&rs->rotport);
 
-        if (cmdstr)
-        {
-            return_value = write_block(&rs->rotport, cmdstr, strlen(cmdstr));
-
-            if (return_value != RIG_OK)
-            {
-                return return_value;
-            }
-        }
-
-        /* Not all commands will send a return value, so use data = NULL if no
-           return value is expected, Strings end with '#' */
-        if (data != NULL)
-        {
-            memset(data, 0, BUFSIZE);
-            *data_len = read_string(&rs->rotport, data, expected_return_length + 1, "\n",
-                                    strlen("\n"));
-
-            if (*data_len < 0)
-            {
-                if (retry_read++ >= rot->state.rotport.retry)
-                {
-                    return RIG_ETIMEOUT;
-                }
-            }
-            else
-            {
-                return RIG_OK;
-            }
-        }
-        else
-        {
-            return RIG_OK;
-        }
+    if (cmdstr) {
+      return_value = write_block(&rs->rotport, cmdstr, strlen(cmdstr));
+      if (return_value != RIG_OK) {
+        *data_len = 0;
+        return return_value;
+      }
     }
+
+    /* Not all commands will send a return value, so use data = NULL if no
+       return value is expected, Strings end with '#' */
+    if (data != NULL) {
+      return_value = read_string(&rs->rotport, data, expected_return_length + 1, "\r\n", strlen("\r\n"));
+      if (return_value > 0) {
+        *data_len = return_value; 
+        return RIG_OK;
+      }
+      else {
+        if (retry_read++ >= rot->state.rotport.retry) {
+          rig_debug(RIG_DEBUG_ERR,"%s: read_string error %s\n",__func__, rigerror(return_value));
+          *data_len = 0;
+          return -RIG_ETIMEOUT;
+        }
+        else {
+          goto transaction;
+        }
+      }
+    }
+    else {
+      return RIG_OK;
+    }
+  }
 }
 
 /*
@@ -152,26 +149,23 @@ static int meade_transaction(ROT *rot, const char *cmdstr,
  */
 static int meade_init(ROT *rot)
 {
-    struct meade_priv_data *priv;
+  struct meade_priv_data *priv;
 
-    priv = (struct meade_priv_data *)
-           malloc(sizeof(struct meade_priv_data));
+  priv = (struct meade_priv_data*)
+    calloc(1,sizeof(struct meade_priv_data));
 
-    if (!priv)
-    {
-        return -RIG_ENOMEM;
-    }
+  if (!priv)
+    return -RIG_ENOMEM;
+  rot->state.priv = (void*)priv;
 
-    rot->state.priv = (void *)priv;
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called version %s\n", __func__, rot->caps->version);
+  rot->state.rotport.type.rig = RIG_PORT_SERIAL;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-    rot->state.rotport.type.rig = RIG_PORT_SERIAL;
+  priv->az = priv->el = 0;
 
-    priv->az = priv->el = 0;
+  priv->target_az = priv->target_el = 0;
 
-    priv->target_az = priv->target_el = 0;
-
-    return RIG_OK;
+  return RIG_OK;
 }
 
 /*
@@ -179,16 +173,14 @@ static int meade_init(ROT *rot)
  */
 static int meade_cleanup(ROT *rot)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (rot->state.priv)
-    {
-        free(rot->state.priv);
-    }
+  if (rot->state.priv)
+    free(rot->state.priv);
 
-    rot->state.priv = NULL;
+  rot->state.priv = NULL;
 
-    return RIG_OK;
+  return RIG_OK;
 }
 
 /*
@@ -196,11 +188,26 @@ static int meade_cleanup(ROT *rot)
  */
 static int meade_open(ROT *rot)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+  char return_str[BUFSIZE];
+  size_t return_str_size = 0;
+  struct meade_priv_data *priv = (struct meade_priv_data *)rot->state.priv;
+  int retval;
 
-    /* Set Telescope to Land alignment mode to deactivate sloping */
-    /* Allow 0-90 Degree Elevation */
-    return meade_transaction(rot, ":AL#:So00#:Sh90#", NULL, 0, 0);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  // Get our product name for any custom things we need to do
+  // The LX200 does not have :GVP# so no response will default to LX200
+  retval = meade_transaction(rot, ":GVP#", return_str, &return_str_size, sizeof(return_str));
+  if (retval != RIG_OK) rig_debug(RIG_DEBUG_ERR,"%s: meade_transaction %s\n",__func__,rigerror(retval));
+  if (return_str_size > 0) strtok(return_str,"#");
+  strcpy(priv->product_name, return_str_size > 0? return_str : "LX200 Assumed");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s product_name=%s\n", __func__, priv->product_name);
+
+  /* Set Telescope to Land alignment mode to deactivate sloping */
+  /* Allow 0-90 Degree Elevation */
+  retval = meade_transaction(rot, ":AL#:So00#:Sh90#" , NULL, 0, 0);
+  if (retval != RIG_OK) rig_debug(RIG_DEBUG_ERR,"%s: meade_transaction %s\n",__func__,rigerror(retval));
+  return RIG_OK;
 }
 
 /*
@@ -208,9 +215,9 @@ static int meade_open(ROT *rot)
  */
 static int meade_close(ROT *rot)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-    /* Stop all Movement */
-    return meade_transaction(rot, ":Q#", NULL, 0, 0);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+  /* Stop all Movement */
+  return meade_transaction(rot, ":Q#" , NULL, 0, 0);
 }
 
 /*
@@ -221,54 +228,52 @@ static int meade_close(ROT *rot)
  */
 static int meade_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
-    struct meade_priv_data *priv = (struct meade_priv_data *)rot->state.priv;
-    char cmd_str[BUFSIZE];
-    char return_str[BUFSIZE];
-    size_t return_str_size;
-    float az_degrees, az_minutes, el_degrees, el_minutes;
+  struct meade_priv_data *priv = (struct meade_priv_data *)rot->state.priv;
+  char cmd_str[BUFSIZE];
+  char return_str[BUFSIZE];
+  size_t return_str_size;
+  float az_degrees, az_minutes, el_degrees, el_minutes;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called: %.2f %.2f\n", __func__,
-              az, el);
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %.2f %.2f\n", __func__,
+    az, el);
 
-    az_degrees = floor(az);
-    az_minutes = (az - az_degrees) * 60;
-    el_degrees = floor(el);
-    el_minutes = (el - el_degrees) * 60;
+  az_degrees = floor(az);
+  az_minutes = (az - az_degrees) * 60;
+  el_degrees = floor(el);
+  el_minutes = (el - el_degrees) * 60;
+  // LX200 won't do 180 degrees exactly...so we fudge everybody
+  if (strstr(priv->product_name,"LX200") && az_degrees == 180 && az_minutes == 0) {
+    az_degrees = 179;
+    az_minutes = 59;
+  }
 
-    /* Check if there is an active movement, if yes, stop it if
-       new target is more than 5 Degrees away from old target
-       if not, don't accept new target*/
-    meade_transaction(rot, ":D#", return_str, &return_str_size, 1);
+  /* Check if there is an active movement and stop it */
+  /* Undesirable behavior if stopped can happen */
+  /* So we just ignore commands while moving */
+  /* Should we return RIG_OK or an error though? */
+  meade_transaction(rot, ":D#", return_str, &return_str_size, sizeof(return_str));
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: size=%d, str[0]=0x%02x\n",__func__, return_str_size, return_str[0]);
+  // LX200 return 0xff bytes and Autostart returns 0x7f 
+  if(return_str_size > 0 && ((return_str[0] & 0x7f) == 0x7f)) {
+      rig_debug(RIG_DEBUG_WARN,"%s: rotor is moving...ignoring move\n",__func__);
+      return RIG_OK; // we don't give an error -- just ignore it
+  }
 
-    if (return_str_size > 0 && return_str[0] == 0x7F)
-    {
-        if (fabsf(az - priv->target_az) > 5 || fabsf(el - priv->target_el) > 5)
-        {
-            meade_transaction(rot, ":Q#", NULL, 0, 0);
-        }
-        else
-        {
-            return RIG_OK;
-        }
-    }
+  priv->target_az = az;
+  priv->target_el = el;
 
-    priv->target_az = az;
-    priv->target_el = el;
+  num_sprintf(cmd_str, ":Sz %03.0f*%02.0f#:Sa+%02.0f*%02.0f#:MA#",
+              az_degrees, az_minutes, el_degrees, el_minutes);
 
-    num_sprintf(cmd_str, ":Sz %03.0f*%02.0f#:Sa+%02.0f*%02.0f#:MA#",
-                az_degrees, az_minutes, el_degrees, el_minutes);
-
-    meade_transaction(rot, cmd_str, return_str, &return_str_size, 3);
-
-    /* '1' == Azimuth accepted '1' == Elevation accepted '0' == No error */
-    if (return_str_size > 0 && strstr(return_str, "110") != NULL)
-    {
-        return RIG_OK;
-    }
-    else
-    {
-        return RIG_EINVAL;
-    }
+  meade_transaction(rot, cmd_str, return_str, &return_str_size, 3);
+  /* '1' == Azimuth accepted '1' == Elevation accepted '0' == No error */
+  if(return_str_size > 0 && strstr(return_str , "110") != NULL) {
+    return RIG_OK;
+  }
+  else {
+    rig_debug(RIG_DEBUG_VERBOSE,"%s: expected 110, got %s\n", __func__,return_str);
+    return RIG_EINVAL;
+  }
 }
 
 /*
@@ -276,39 +281,31 @@ static int meade_set_position(ROT *rot, azimuth_t az, elevation_t el)
  */
 static int meade_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
-    char return_str[BUFSIZE];
-    size_t return_str_size;
-    int az_degree, az_minutes, el_degree, el_minutes;
+  char return_str[BUFSIZE];
+  char eom;
+  size_t return_str_size;
+  int az_degrees, az_minutes, az_seconds, el_degrees, el_minutes, el_seconds;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    meade_transaction(rot, ":GZ#:GA#", return_str, &return_str_size, BUFSIZE);
-    // answer expecting one of two formats depending on precision setting
-    // The Meade manual is not clear on this format
-    // The period separator is coming back as 0xdf so we won't assume which char it is
-    // DDD.MM:SS#sDD.MM:SS#
-    // DDD.MM#sDD.MM#
-    // Tested and working with the Meade LX200 and Autostar 497
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: parsing \"%s\" as high precision\n", __func__,
-              return_str);
-    int n = sscanf(return_str, "%d%*c%d:%*d#%d%*c%d:%*d#", &az_degree, &az_minutes,
-                   &el_degree, &el_minutes);
-
-    if (n != 4)
-    {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: parsing as low precision\n", __func__);
-        n = sscanf(return_str, "%d%*c%d#%d%*c%d", &az_degree, &az_minutes, &el_degree,
-                   &el_minutes);
-
-        if (n != 4)
-        {
-            return RIG_EPROTO;
-        }
+  meade_transaction(rot, ":GZ#:GA#", return_str, &return_str_size, BUFSIZE);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s: returned '%s'\n", __func__, return_str);
+  // GZ returns DDD*MM# or DDD*MM'SS#
+  // GA returns sDD*MM# or sDD*MM'SS#
+  int n = sscanf(return_str,"%d%*c%d:%d#%d%*c%d:%d%c",&az_degrees,&az_minutes,&az_seconds,&el_degrees,&el_minutes,&el_seconds,&eom);
+  if (n != 7 || eom!='#') {
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: not 6 args in '%s'\nTrying low precision\n", __func__, return_str);
+    az_seconds = el_seconds = 0;
+    n = sscanf(return_str,"%d%*c%d#%d%*c%d%c",&az_degrees,&az_minutes,&el_degrees,&el_minutes,&eom);
+    if (n != 5 || eom!='#') {
+      rig_debug(RIG_DEBUG_ERR, "%s: not 4 args in '%s', parsing failed\n", __func__, return_str);
+     return -RIG_EPROTO;
     }
-
-    *az = dmmm2dec(az_degree, az_minutes, 0);
-    *el = dmmm2dec(el_degree, el_minutes, 0);
-    return RIG_OK;
+  }
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: az=%03d:%02d:%02d, el=%03d:%02d:%02d\n",__func__,az_degrees, az_minutes, az_seconds, el_degrees, el_minutes, el_seconds);
+  *az = dmmm2dec(az_degrees, az_minutes, az_seconds);
+  *el = dmmm2dec(el_degrees, el_minutes, el_seconds);
+  return RIG_OK;
 }
 
 /*
@@ -316,19 +313,19 @@ static int meade_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
  */
 static int meade_stop(ROT *rot)
 {
-    struct meade_priv_data *priv = (struct meade_priv_data *)rot->state.priv;
-    azimuth_t az;
-    elevation_t el;
+  struct meade_priv_data *priv = (struct meade_priv_data *)rot->state.priv;
+  azimuth_t az;
+  elevation_t el;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    meade_transaction(rot, ":Q#", NULL, 0, 0);
-    meade_get_position(rot, &az, &el);
+  meade_transaction(rot, ":Q#", NULL, 0, 0);
+  meade_get_position(rot, &az, &el);
 
-    priv->target_az = priv->az = az;
-    priv->target_el = priv->el = el;
+  priv->target_az = priv->az = az;
+  priv->target_el = priv->el = el;
 
-    return RIG_OK;
+  return RIG_OK;
 }
 
 /*
@@ -336,12 +333,12 @@ static int meade_stop(ROT *rot)
  */
 static int meade_park(ROT *rot)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    /* Assume home is 0,0 */
-    meade_set_position(rot, 0, 0);
+  /* Assume home is 0,0 */
+  meade_set_position(rot, 0, 0);
 
-    return RIG_OK;
+  return RIG_OK;
 }
 
 /*
@@ -349,10 +346,10 @@ static int meade_park(ROT *rot)
  */
 static int meade_reset(ROT *rot, rot_reset_t reset)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-    meade_park(rot);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+  meade_park(rot);
 
-    return RIG_OK;
+  return RIG_OK;
 }
 
 /*
@@ -360,93 +357,97 @@ static int meade_reset(ROT *rot, rot_reset_t reset)
  */
 static int meade_move(ROT *rot, int direction, int speed)
 {
-    struct meade_priv_data *priv = (struct meade_priv_data *)rot->state.priv;
+  struct meade_priv_data *priv = (struct meade_priv_data *)rot->state.priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-    rig_debug(RIG_DEBUG_TRACE, "%s: Direction = %d, Speed = %d\n", __func__,
-              direction, speed);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+  rig_debug(RIG_DEBUG_TRACE, "%s: Direction = %d, Speed = %d\n", __func__, direction, speed);
 
-    switch (direction)
-    {
-    case ROT_MOVE_UP:
-        return meade_set_position(rot, priv->target_az, 90);
+  switch(direction) {
+  case ROT_MOVE_UP:
+    return meade_set_position(rot, priv->target_az, 90);
 
-    case ROT_MOVE_DOWN:
-        return meade_set_position(rot, priv->target_az, 0);
+  case ROT_MOVE_DOWN:
+    return meade_set_position(rot, priv->target_az, 0);
 
-    case ROT_MOVE_CCW:
-        return meade_set_position(rot, -180, priv->target_el);
+  case ROT_MOVE_CCW:
+    return meade_set_position(rot, -180, priv->target_el);
 
-    case ROT_MOVE_CW:
-        return meade_set_position(rot, 180, priv->target_el);
+  case ROT_MOVE_CW:
+    return meade_set_position(rot, 180, priv->target_el);
 
-    default:
-        return -RIG_EINVAL;
-    }
+  default:
+    return -RIG_EINVAL;
+  }
 
-    return RIG_OK;
+  return RIG_OK;
 }
 
 static const char *meade_get_info(ROT *rot)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+  struct meade_priv_data *priv = (struct meade_priv_data *)rot->state.priv;
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return "Meade telescope rotator with LX200 protocol.";
+  static char buf[256]; // this is not thread-safe but not important either
+  sprintf(buf,"Meade telescope rotator with LX200 protocol.\nModel: %s", priv->product_name);
+  return buf;
 }
 
 /*
  * Meade telescope rotator capabilities.
  */
 
-const struct rot_caps meade_caps =
-{
-    .rot_model =        ROT_MODEL_MEADE,
-    .model_name =       "LX200",
-    .mfg_name =         "Meade",
-    .version =          "0.2",
-    .copyright =        "LGPL",
-    .status =           RIG_STATUS_ALPHA,
-    .rot_type =         ROT_TYPE_AZEL,
+const struct rot_caps meade_caps = {
+  .rot_model =        ROT_MODEL_MEADE,
+  .model_name =       "LX200/Autostar",
+  .mfg_name =         "Meade",
+  .version =          "0.2",
+  .copyright =        "LGPL",
+  .status =           RIG_STATUS_STABLE,
+  .rot_type =         ROT_TYPE_AZEL,
 
-    .port_type =        RIG_PORT_SERIAL,
-    .serial_rate_min =  9600,
-    .serial_rate_max =  9600,
-    .serial_data_bits = 8,
-    .serial_stop_bits = 1,
-    .serial_parity =    RIG_PARITY_NONE,
-    .serial_handshake = RIG_HANDSHAKE_NONE,
-    .write_delay =      0,
-    .post_write_delay = 200,
-    .timeout =          400,
-    .retry =            5,
+  .port_type =        RIG_PORT_SERIAL,
+  .serial_rate_min =  9600,
+  .serial_rate_max =  9600,
+  .serial_data_bits = 8,
+  .serial_stop_bits = 1,
+  .serial_parity =    RIG_PARITY_NONE,
+  .serial_handshake = RIG_HANDSHAKE_NONE,
+  .write_delay =      0,
+  .post_write_delay = 200,
+  .timeout =          400,
+  .retry =            2,
 
-    .min_az =      0.,
-    .max_az =    360.,
-    .min_el =      0.,
-    .max_el =     90.,
+  .min_az =      0.,
+  .max_az =    360.,
+  .min_el =      0.,
+  .max_el =     90.,
 
-    .priv =      NULL,  /* priv */
 
-    .rot_init =         meade_init,
-    .rot_cleanup =      meade_cleanup,
-    .rot_open =         meade_open,
-    .rot_close =        meade_close,
+  .priv =      NULL,  /* priv */
 
-    .set_position =     meade_set_position,
-    .get_position =     meade_get_position,
-    .park =             meade_park,
-    .stop =             meade_stop,
-    .reset =            meade_reset,
-    .move =             meade_move,
+  .rot_init =         meade_init,
+  .rot_cleanup =      meade_cleanup,
+  .rot_open =         meade_open,
+  .rot_close =        meade_close,
 
-    .get_info =         meade_get_info,
+  .set_position =     meade_set_position,
+  .get_position =     meade_get_position,
+  .park =             meade_park,
+  .stop =             meade_stop,
+  .reset =            meade_reset,
+  .move =             meade_move,
+
+  .get_info =         meade_get_info,
+
+  .get_conf =         rot_get_conf,
+  .set_conf =         rot_set_conf,
 };
 
 DECLARE_INITROT_BACKEND(meade)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "meade: _init called\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "meade: _init called\n");
 
-    rot_register(&meade_caps);
+  rot_register(&meade_caps);
 
-    return RIG_OK;
+  return RIG_OK;
 }
