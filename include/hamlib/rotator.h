@@ -238,6 +238,7 @@ struct rot_caps {
     int post_write_delay;                       /*!< Post-write delay. */
     int timeout;                                /*!< Timeout. */
     int retry;                                  /*!< Number of retry if command fails. */
+ 
 
     /*
      * Movement range, az is relative to North
@@ -306,6 +307,7 @@ struct rot_state {
     azimuth_t max_az;       /*!< Upper limit for azimuth (overridable). */
     elevation_t min_el;     /*!< Lower limit for elevation (overridable). */
     elevation_t max_el;     /*!< Upper limit for elevation (overridable). */
+    int south_zero;         /*!< South is zero degrees */
 
     /*
      * non overridable fields, internal use
