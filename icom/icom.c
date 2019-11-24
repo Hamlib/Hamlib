@@ -3607,6 +3607,19 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         fct_sc = S_DUAL;
         break;
 
+    case RIG_FUNC_SATMODE:
+        if (rig->caps->rig_model == RIG_MODEL_IC910) {
+          // Is the 910 the only one that uses this command?
+          fct_cn = C_CTL_MEM;
+          fct_sc = S_MEM_SATMODE910;
+        }
+        else {
+          fct_cn = C_CTL_FUNC;
+          fct_sc = S_MEM_SATMODE;
+        }
+        break;
+
+
     default:
         rig_debug(RIG_DEBUG_ERR, "Unsupported set_func %d", func);
         return -RIG_EINVAL;
