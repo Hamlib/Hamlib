@@ -62,243 +62,245 @@ static int
 gs232b_transaction(ROT *rot, const char *cmdstr,
                    char *data, size_t data_len, int no_reply)
 {
-  struct rot_state *rs;
-  int retval;
-  int retry_read = 0;
-  char replybuf[BUFSZ];
+    struct rot_state *rs;
+    int retval;
+    int retry_read = 0;
+    char replybuf[BUFSZ];
 
-  rs = &rot->state;
+    rs = &rot->state;
 
 transaction_write:
 
-  serial_flush(&rs->rotport);
+    serial_flush(&rs->rotport);
 
-  if (cmdstr)
-  {
-    retval = write_block(&rs->rotport, cmdstr, strlen(cmdstr));
-
-    if (retval != RIG_OK)
+    if (cmdstr)
     {
-      goto transaction_quit;
+        retval = write_block(&rs->rotport, cmdstr, strlen(cmdstr));
+
+        if (retval != RIG_OK)
+        {
+            goto transaction_quit;
+        }
+
+        if (!data)
+        {
+            write_block(&rs->rotport, EOM, strlen(EOM));
+        }
     }
 
+    if (no_reply) { return RIG_OK; } // nothing expected so return
+
+    /* Always read the reply to know whether the cmd went OK */
     if (!data)
     {
-      write_block(&rs->rotport, EOM, strlen(EOM));
+        data = replybuf;
     }
-  }
 
-  if (no_reply) return RIG_OK; // nothing expected so return
-
-  /* Always read the reply to know whether the cmd went OK */
-  if (!data)
-  {
-    data = replybuf;
-  }
-
-  if (!data_len)
-  {
-    data_len = BUFSZ;
-  }
-
-
-  memset(data, 0, data_len);
-  retval = read_string(&rs->rotport, data, data_len, REPLY_EOM, strlen(REPLY_EOM));
-
-  if (retval < 0)
-  {
-    if (retry_read++ < rot->state.rotport.retry)
+    if (!data_len)
     {
-      goto transaction_write;
+        data_len = BUFSZ;
     }
 
-    goto transaction_quit;
-  }
+
+    memset(data, 0, data_len);
+    retval = read_string(&rs->rotport, data, data_len, REPLY_EOM,
+                         strlen(REPLY_EOM));
+
+    if (retval < 0)
+    {
+        if (retry_read++ < rot->state.rotport.retry)
+        {
+            goto transaction_write;
+        }
+
+        goto transaction_quit;
+    }
 
 #if 0
-  /* Check that command termination is correct */
+    /* Check that command termination is correct */
 
-  if (strchr(REPLY_EOM, data[strlen(data) - 1]) == NULL)
-  {
-    rig_debug(RIG_DEBUG_ERR,
-              "%s: Command is not correctly terminated '%s'\n",
-              __FUNCTION__, data);
-
-    if (retry_read++ < rig->state.rotport.retry)
+    if (strchr(REPLY_EOM, data[strlen(data) - 1]) == NULL)
     {
-      goto transaction_write;
-    }
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: Command is not correctly terminated '%s'\n",
+                  __FUNCTION__, data);
 
-    retval = -RIG_EPROTO;
-    goto transaction_quit;
-  }
+        if (retry_read++ < rig->state.rotport.retry)
+        {
+            goto transaction_write;
+        }
+
+        retval = -RIG_EPROTO;
+        goto transaction_quit;
+    }
 
 #endif
 
-  // If asked for we will check for connection
-  // we don't expect a reply...just a prompt return
-  // Seems some GS232B's only echo the CR
-  if (data == replybuf && (strncmp(data, "?>", 2) != 0) && data[0] != 0x0d)
-  {
-    rig_debug(RIG_DEBUG_VERBOSE,
-              "%s: Expected '?>' but got '%s' from cmd '%s'\n",
-              __FUNCTION__, data, cmdstr);
-    return -RIG_EPROTO;
-  }
+    // If asked for we will check for connection
+    // we don't expect a reply...just a prompt return
+    // Seems some GS232B's only echo the CR
+    if (data == replybuf && (strncmp(data, "?>", 2) != 0) && data[0] != 0x0d)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: Expected '?>' but got '%s' from cmd '%s'\n",
+                  __FUNCTION__, data, cmdstr);
+        return -RIG_EPROTO;
+    }
 
-  if (data[0] == '?')
-  {
-    /* Invalid command */
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: Error for '%s': '%s'\n",
-              __FUNCTION__, cmdstr, data);
-    retval = -RIG_EPROTO;
-    goto transaction_quit;
-  }
+    if (data[0] == '?')
+    {
+        /* Invalid command */
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Error for '%s': '%s'\n",
+                  __FUNCTION__, cmdstr, data);
+        retval = -RIG_EPROTO;
+        goto transaction_quit;
+    }
 
-  retval = RIG_OK;
+    retval = RIG_OK;
 transaction_quit:
-  return retval;
+    return retval;
 }
 
 
 static int
 gs232b_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
-  char buf[32];
-  char cmdstr[64];
-  int retval;
-  unsigned u_az, u_el;
+    char buf[32];
+    char cmdstr[64];
+    int retval;
+    unsigned u_az, u_el;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s called: az=%.02f el=%.02f\n", __FUNCTION__, az, el);
+    rig_debug(RIG_DEBUG_TRACE, "%s called: az=%.02f el=%.02f\n", __FUNCTION__, az,
+              el);
 
-  if (az < 0.0)
-  {
-    az = az + 360.0;
-  }
+    if (az < 0.0)
+    {
+        az = az + 360.0;
+    }
 
-  u_az = (unsigned) rint(az);
-  u_el = (unsigned) rint(el);
+    u_az = (unsigned) rint(az);
+    u_el = (unsigned) rint(el);
 
-  sprintf(cmdstr, "W%03u %03u" EOM, u_az, u_el);
-  retval = gs232b_transaction(rot, cmdstr, buf, sizeof(buf), 0);
+    sprintf(cmdstr, "W%03u %03u" EOM, u_az, u_el);
+    retval = gs232b_transaction(rot, cmdstr, buf, sizeof(buf), 0);
 
-  if (retval != RIG_OK)
-  {
-    return retval;
-  }
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
 
-  return RIG_OK;
+    return RIG_OK;
 }
 
 static int
 gs232b_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
-  char posbuf[32];
-  int retval, int_az, int_el;
+    char posbuf[32];
+    int retval, int_az, int_el;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
 
-  retval = gs232b_transaction(rot, "C2" EOM, posbuf, sizeof(posbuf), 0);
+    retval = gs232b_transaction(rot, "C2" EOM, posbuf, sizeof(posbuf), 0);
 
-  if (retval != RIG_OK || strlen(posbuf) < 10)
-  {
-    return retval < 0 ? retval : -RIG_EPROTO;
-  }
+    if (retval != RIG_OK || strlen(posbuf) < 10)
+    {
+        return retval < 0 ? retval : -RIG_EPROTO;
+    }
 
-  /* parse "AZ=aaa   EL=eee" */
+    /* parse "AZ=aaa   EL=eee" */
 
-  /* With the format string containing a space character as one of the
-   * directives, any amount of space is matched, including none in the input.
-   */
-  if (sscanf(posbuf, "AZ=%d EL=%d", &int_az, &int_el) != 2)
-  {
-    rig_debug(RIG_DEBUG_ERR, "%s: wrong reply '%s'\n", __FUNCTION__,
-              posbuf);
-    return -RIG_EPROTO;
-  }
+    /* With the format string containing a space character as one of the
+     * directives, any amount of space is matched, including none in the input.
+     */
+    if (sscanf(posbuf, "AZ=%d EL=%d", &int_az, &int_el) != 2)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: wrong reply '%s'\n", __FUNCTION__,
+                  posbuf);
+        return -RIG_EPROTO;
+    }
 
-  *az = (azimuth_t) int_az;
-  *el = (elevation_t) int_el;
+    *az = (azimuth_t) int_az;
+    *el = (elevation_t) int_el;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: (az, el) = (%.0f, %.0f)\n",
-            __FUNCTION__, *az, *el);
+    rig_debug(RIG_DEBUG_TRACE, "%s: (az, el) = (%.0f, %.0f)\n",
+              __FUNCTION__, *az, *el);
 
-  return RIG_OK;
+    return RIG_OK;
 }
 
 static int
 gs232b_rot_stop(ROT *rot)
 {
-  char buf[32];
-  int retval;
+    char buf[32];
+    int retval;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
 
-  /* All Stop */
-  retval = gs232b_transaction(rot, "S" EOM, buf, sizeof(buf), 0);
+    /* All Stop */
+    retval = gs232b_transaction(rot, "S" EOM, buf, sizeof(buf), 0);
 
-  if (retval != RIG_OK)
-  {
-    return retval;
-  }
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
 
-  return RIG_OK;
+    return RIG_OK;
 }
 
 
 static int
 gs232b_rot_move(ROT *rot, int direction, int speed)
 {
-  char cmdstr[24];
-  int retval;
-  unsigned x_speed;
+    char cmdstr[24];
+    int retval;
+    unsigned x_speed;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s called %d %d\n", __FUNCTION__,
-            direction, speed);
+    rig_debug(RIG_DEBUG_TRACE, "%s called %d %d\n", __FUNCTION__,
+              direction, speed);
 
-  x_speed = (3 * speed) / 100 + 1;
+    x_speed = (3 * speed) / 100 + 1;
 
-  /* between 1 (slowest) and 4 (fastest) */
-  sprintf(cmdstr, "X%u" EOM, x_speed);
-  retval = gs232b_transaction(rot, cmdstr, NULL, 0, 1);
+    /* between 1 (slowest) and 4 (fastest) */
+    sprintf(cmdstr, "X%u" EOM, x_speed);
+    retval = gs232b_transaction(rot, cmdstr, NULL, 0, 1);
 
-  if (retval != RIG_OK)
-  {
-    return retval;
-  }
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
 
-  switch (direction)
-  {
-  case ROT_MOVE_UP:   /* Elevation increase */
-    sprintf(cmdstr, "U" EOM);
-    break;
+    switch (direction)
+    {
+    case ROT_MOVE_UP:   /* Elevation increase */
+        sprintf(cmdstr, "U" EOM);
+        break;
 
-  case ROT_MOVE_DOWN: /* Elevation decrease */
-    sprintf(cmdstr, "D" EOM);
-    break;
+    case ROT_MOVE_DOWN: /* Elevation decrease */
+        sprintf(cmdstr, "D" EOM);
+        break;
 
-  case ROT_MOVE_LEFT: /* Azimuth decrease */
-    sprintf(cmdstr, "L" EOM);
-    break;
+    case ROT_MOVE_LEFT: /* Azimuth decrease */
+        sprintf(cmdstr, "L" EOM);
+        break;
 
-  case ROT_MOVE_RIGHT:  /* Azimuth increase */
-    sprintf(cmdstr, "R" EOM);
-    break;
+    case ROT_MOVE_RIGHT:  /* Azimuth increase */
+        sprintf(cmdstr, "R" EOM);
+        break;
 
-  default:
-    rig_debug(RIG_DEBUG_ERR, "%s: Invalid direction value! (%d)\n",
-              __FUNCTION__, direction);
-    return -RIG_EINVAL;
-  }
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: Invalid direction value! (%d)\n",
+                  __FUNCTION__, direction);
+        return -RIG_EINVAL;
+    }
 
-  retval = gs232b_transaction(rot, cmdstr, NULL, 0, 1);
+    retval = gs232b_transaction(rot, cmdstr, NULL, 0, 1);
 
-  if (retval != RIG_OK)
-  {
-    return retval;
-  }
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
 
-  return RIG_OK;
+    return RIG_OK;
 }
 
 /* ************************************************************************* */
@@ -308,34 +310,34 @@ gs232b_rot_move(ROT *rot, int direction, int speed)
 
 const struct rot_caps gs232b_rot_caps =
 {
-  .rot_model = ROT_MODEL_GS232B,
-  .model_name = "GS-232B",
-  .mfg_name = "Yaesu",
-  .version = "0.5",
-  .copyright = "LGPL",
-  .status = RIG_STATUS_STABLE,
-  .rot_type = ROT_TYPE_OTHER,
-  .port_type = RIG_PORT_SERIAL,
-  .serial_rate_min = 1200,
-  .serial_rate_max = 9600,
-  .serial_data_bits = 8,
-  .serial_stop_bits = 1,
-  .serial_parity = RIG_PARITY_NONE,
-  .serial_handshake = RIG_HANDSHAKE_NONE,
-  .write_delay = 0,
-  .post_write_delay = 0,
-  .timeout = 400,
-  .retry = 3,
+    .rot_model = ROT_MODEL_GS232B,
+    .model_name = "GS-232B",
+    .mfg_name = "Yaesu",
+    .version = "0.5",
+    .copyright = "LGPL",
+    .status = RIG_STATUS_STABLE,
+    .rot_type = ROT_TYPE_OTHER,
+    .port_type = RIG_PORT_SERIAL,
+    .serial_rate_min = 1200,
+    .serial_rate_max = 9600,
+    .serial_data_bits = 8,
+    .serial_stop_bits = 1,
+    .serial_parity = RIG_PARITY_NONE,
+    .serial_handshake = RIG_HANDSHAKE_NONE,
+    .write_delay = 0,
+    .post_write_delay = 0,
+    .timeout = 400,
+    .retry = 3,
 
-  .min_az = -180.0,
-  .max_az = 450.0,    /* vary according to rotator type */
-  .min_el = 0.0,
-  .max_el = 180.0,    /* requires G-5400B, G-5600B, G-5500, or G-500/G-550 */
+    .min_az = -180.0,
+    .max_az = 450.0,    /* vary according to rotator type */
+    .min_el = 0.0,
+    .max_el = 180.0,    /* requires G-5400B, G-5600B, G-5500, or G-500/G-550 */
 
-  .get_position = gs232b_rot_get_position,
-  .set_position = gs232b_rot_set_position,
-  .stop = gs232b_rot_stop,
-  .move = gs232b_rot_move,
+    .get_position = gs232b_rot_get_position,
+    .set_position = gs232b_rot_set_position,
+    .stop = gs232b_rot_stop,
+    .move = gs232b_rot_move,
 };
 
 /* end of file */
