@@ -549,7 +549,7 @@ static rmode_t modeMapGetHamlib(const char *modeFLRig)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: Unknown mode requested: %s\n", __FUNCTION__,
               modeFLRig);
-    return -RIG_EINVAL;
+    return RIG_MODE_NONE;
 }
 
 
@@ -563,8 +563,8 @@ static void modeMapAdd(rmode_t *modes, rmode_t mode_hamlib, char *mode_flrig)
     rig_debug(RIG_DEBUG_TRACE, "%s:mode_flrig=%s\n", __FUNCTION__, mode_flrig);
 
     // if we already have it just return
-    if (modeMapGetHamlib(mode_flrig) != -RIG_EINVAL) { return; }
-
+    // We get ERROR if the mode is not known so non-ERROR is OK
+    if (modeMapGetHamlib(mode_flrig) != RIG_MODE_NONE) { return; }
     int len1 = strlen(mode_flrig) + 3; /* bytes needed for allocating */
 
     for (i = 0; modeMap[i].mode_hamlib != 0; ++i)
@@ -595,8 +595,8 @@ static void modeMapAdd(rmode_t *modes, rmode_t mode_hamlib, char *mode_flrig)
 
             strncat(modeMap[i].mode_flrig, mode_flrig, len1 + len2);
             strncat(modeMap[i].mode_flrig, "|", len1 + len2);
-            rig_debug(RIG_DEBUG_TRACE, "%s: Adding mode=%s at %d, index=%d, result=%s\n",
-                      __FUNCTION__, mode_flrig, mode_hamlib, i, modeMap[i].mode_flrig);
+            rig_debug(RIG_DEBUG_TRACE,"%s: Adding mode=%s, index=%d, result=%s\n",
+                      __FUNCTION__, mode_flrig, i, modeMap[i].mode_flrig);
             return;
         }
     }
@@ -753,7 +753,7 @@ static int flrig_open(RIG *rig)
         else if (streq(p, "RTTY(U)")) { modeMapAdd(&modes, RIG_MODE_RTTY, p); }
         else if (streq(p, "RTTY(R")) { modeMapAdd(&modes, RIG_MODE_RTTYR, p); }
         else if (streq(p, "DIG")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
-        else { rig_debug(RIG_DEBUG_ERR, "%s: Unknown mode for this rig='%s'\n", __FUNCTION__, p); }
+        else { rig_debug(RIG_DEBUG_ERR, "%s: Unknown mode (new?) for this rig='%s'\n", __FUNCTION__, p); }
     }
 
     rig->state.mode_list = modes;
