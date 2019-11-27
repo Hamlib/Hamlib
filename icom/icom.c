@@ -39,6 +39,15 @@
 #include "icom_defs.h"
 #include "frame.h"
 
+// Newer Icoms like the 9700 and 910 have VFOA/B on both Main & Sub
+// Compared to older rigs which have one or the other
+// So we need to distinguish between them
+#define VFO_HAS_A_B ((rig->state.vfo_list & (RIG_VFO_A|RIG_VFO_B)) == (RIG_VFO_A|RIG_VFO_B))
+#define VFO_HAS_MAIN_SUB ((rig->state.vfo_list & (RIG_VFO_MAIN|RIG_VFO_SUB)) == (RIG_VFO_MAIN|RIG_VFO_SUB))
+#define VFO_HAS_MAIN_SUB_ONLY (!VFO_HAS_A_B & VFO_HAS_MAIN_SUB)
+#define VFO_HAS_MAIN_SUB_A_B_ONLY (VFO_HAS_A_B & VFO_HAS_MAIN_SUB)
+#define VFO_HAS_A_B_ONLY (VFO_HAS_A_B & !VFO_HAS_MAIN_SUB)
+
 const cal_table_float_t icom_default_swr_cal =
 {
     5,
@@ -2721,20 +2730,28 @@ int icom_get_split_vfos(const RIG *rig, vfo_t *rx_vfo, vfo_t *tx_vfo)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B))
+    if (VFO_HAS_A_B_ONLY)
     {
         *rx_vfo = RIG_VFO_A;
         *tx_vfo = RIG_VFO_B;        /* rig doesn't enforce this but
                                                                      convention is needed here */
     }
-    else if ((rig->state.vfo_list & (RIG_VFO_MAIN | RIG_VFO_SUB)) ==
-             (RIG_VFO_MAIN | RIG_VFO_SUB))
+    else if (VFO_HAS_MAIN_SUB_ONLY) 
     {
+        *rx_vfo = RIG_VFO_MAIN;
+        *tx_vfo = RIG_VFO_SUB;
+    }
+    else if (VFO_HAS_MAIN_SUB_A_B_ONLY) 
+    {
+        // TBD -- newer rigs we need to find active VFO
+        // priv->curvfo if VFOA then A/B response else priv->curvfo=Main Main/Sub response
+        // For now we return Main/Sub
         *rx_vfo = RIG_VFO_MAIN;
         *tx_vfo = RIG_VFO_SUB;
     }
     else
     {
+        rig_debug(RIG_DEBUG_ERR, "%s invalid vfo setup?\n", __func__);
         return -RIG_ENAVAIL;
     }
 
@@ -2777,8 +2794,7 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
          current VFO is VFO A and the split Tx VFO is always VFO B. These
          assumptions allow us to deal with the lack of VFO and split
          queries */
-    if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
-            && priv->split_on)                  /* broken if user changes split on rig :( */
+    if (VFO_HAS_A_B_ONLY && priv->split_on) /* broken if user changes split on rig :( */
     {
         /* VFO A/B style rigs swap VFO on split Tx so we need to disable
              split for certainty */
@@ -2801,8 +2817,7 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
     if (RIG_OK != (rc = icom_set_vfo(rig, rx_vfo))) { return rc; }
 
-    if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
-            && priv->split_on)
+    if (VFO_HAS_A_B_ONLY && priv->split_on)
     {
         /* Re-enable split */
         if (RIG_OK != (rc = icom_transaction(rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0,
@@ -2846,8 +2861,7 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
          current VFO is VFO A and the split Tx VFO is always VFO B. These
          assumptions allow us to deal with the lack of VFO and split
          queries */
-    if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
-            && priv->split_on)                  /* broken if user changes split on rig :( */
+    if (VFO_HAS_A_B_ONLY && priv->split_on) /* broken if user changes split on rig :( */
     {
         /* VFO A/B style rigs swap VFO on split Tx so we need to disable
              split for certainty */
@@ -2870,8 +2884,7 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 
     if (RIG_OK != (rc = icom_set_vfo(rig, rx_vfo))) { return rc; }
 
-    if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
-            && priv->split_on)
+    if (VFO_HAS_A_B_ONLY && priv->split_on)
     {
         /* Re-enable split */
         if (RIG_OK != (rc = icom_transaction(rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0,
@@ -2917,8 +2930,7 @@ int icom_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
          current VFO is VFO A and the split Tx VFO is always VFO B. These
          assumptions allow us to deal with the lack of VFO and split
          queries */
-    if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
-            && priv->split_on)                  /* broken if user changes split on rig :( */
+    if (VFO_HAS_A_B_ONLY && priv->split_on) /* broken if user changes split on rig :( */
     {
         /* VFO A/B style rigs swap VFO on split Tx so we need to disable
              split for certainty */
@@ -2942,8 +2954,7 @@ int icom_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
 
     if (RIG_OK != (rc = icom_set_vfo(rig, rx_vfo))) { return rc; }
 
-    if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
-            && priv->split_on)
+    if (VFO_HAS_A_B_ONLY && priv->split_on)
     {
         /* Re-enable split */
         if (RIG_OK != (rc = icom_transaction(rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0,
@@ -2990,8 +3001,7 @@ int icom_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
          current VFO is VFO A and the split Tx VFO is always VFO B. These
          assumptions allow us to deal with the lack of VFO and split
          queries */
-    if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
-            && priv->split_on)                  /* broken if user changes split on rig :( */
+    if (VFO_HAS_A_B_ONLY && priv->split_on) /* broken if user changes split on rig :( */
     {
         /* VFO A/B style rigs swap VFO on split Tx so we need to disable
              split for certainty */
@@ -3015,8 +3025,7 @@ int icom_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
 
     if (RIG_OK != (rc = icom_set_vfo(rig, rx_vfo))) { return rc; }
 
-    if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
-            && priv->split_on)
+    if (VFO_HAS_A_B_ONLY && priv->split_on)
     {
         /* Re-enable split */
         if (RIG_OK != (rc = icom_transaction(rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0,
@@ -3061,8 +3070,7 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
          current VFO is VFO A and the split Tx VFO is always VFO B. These
          assumptions allow us to deal with the lack of VFO and split
          queries */
-    if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
-            && priv->split_on)                  /* broken if user changes split on rig :( */
+    if (VFO_HAS_A_B_ONLY && priv->split_on) /* broken if user changes split on rig :( */
     {
         /* VFO A/B style rigs swap VFO on split Tx so we need to disable
              split for certainty */
@@ -3088,8 +3096,7 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
 
     if (RIG_OK != (rc = icom_set_vfo(rig, rx_vfo))) { return rc; }
 
-    if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
-            && priv->split_on)
+    if (VFO_HAS_A_B_ONLY && priv->split_on)
     {
         /* Re-enable split */
         if (RIG_OK != (rc = icom_transaction(rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0,
@@ -3138,8 +3145,7 @@ int icom_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *tx_freq,
          current VFO is VFO A and the split Tx VFO is always VFO B. These
          assumptions allow us to deal with the lack of VFO and split
          queries */
-    if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
-            && priv->split_on)                  /* broken if user changes split on rig :( */
+    if (VFO_HAS_A_B_ONLY && priv->split_on) /* broken if user changes split on rig :( */
     {
         /* VFO A/B style rigs swap VFO on split Tx so we need to disable
              split for certainty */
@@ -3165,8 +3171,7 @@ int icom_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *tx_freq,
 
     if (RIG_OK != (rc = icom_set_vfo(rig, rx_vfo))) { return rc; }
 
-    if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
-            && priv->split_on)
+    if (VFO_HAS_A_B_ONLY && priv->split_on)
     {
         /* Re-enable split */
         if (RIG_OK != (rc = icom_transaction(rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0,
@@ -3202,7 +3207,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         if (!priv->split_on)
         {
             /* ensure VFO A is Rx and VFO B is Tx as we assume that elsewhere */
-            if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B))
+            if (VFO_HAS_A_B_ONLY)
             {
                 if (RIG_OK != (rc = icom_set_vfo(rig, RIG_VFO_A))) { return rc; }
             }
