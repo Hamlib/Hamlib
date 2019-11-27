@@ -261,19 +261,20 @@ static char *xml_parse2(char *xml, char *value, int valueLen)
     char* delims = "<>\r\n ";
     char *xmltmp = strdup(xml);
     //rig_debug(RIG_DEBUG_TRACE, "%s: xml='%s'\n", __FUNCTION__,xml);
-    char *p = strtok(xmltmp,delims);
+    char *pr = xml;
+    char *p = strtok_r(xmltmp,delims,&pr);
     value[0]=0;
     while(p) {
         if (streq(p,"value")) {
-            p=strtok(NULL,delims);
+            p=strtok_r(NULL,delims,&pr);
             if (streq(p,"array")) continue;
             if (streq(p,"/value")) continue; // empty value
             if (streq(p,"i4") || streq(p,"double")) {
-                p = strtok(NULL,delims);
+                p = strtok_r(NULL,delims,&pr);
             }
             else if (streq(p,"array")) {
-                p = strtok(NULL,delims);
-                p = strtok(NULL,delims);
+                p = strtok_r(NULL,delims,&pr);
+                p = strtok_r(NULL,delims,&pr);
             }
             if (strlen(value)+strlen(p)+1 < valueLen) {
                 if (value[0]!=0) strcat(value,"|");
@@ -284,7 +285,7 @@ static char *xml_parse2(char *xml, char *value, int valueLen)
             }
         }
         else {
-            p=strtok(NULL,delims);
+            p=strtok_r(NULL,delims,&pr);
         }
     }
     rig_debug(RIG_DEBUG_TRACE, "%s: value returned='%s'\n", __FUNCTION__,value);
@@ -588,7 +589,8 @@ static int flrig_open(RIG *rig) {
     rig_debug(RIG_DEBUG_TRACE, "%s: modes=%s\n",__FUNCTION__, value);
     rmode_t modes = 0;
     char *p;
-    for(p=strtok(value,"|"); p!=NULL; p=strtok(NULL,"|")) {
+    char *pr = value;
+    for(p=strtok_r(value,"|",&pr); p!=NULL; p=strtok_r(NULL,"|",&pr)) {
         if (streq(p,"USB"))           modeMapAdd(&modes,RIG_MODE_USB,p);
         else if (streq(p,"LSB"))      modeMapAdd(&modes,RIG_MODE_LSB,p);
         else if (streq(p,"USB-D"))    modeMapAdd(&modes,RIG_MODE_PKTUSB,p);
