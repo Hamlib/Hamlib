@@ -3205,13 +3205,17 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     switch (split)
     {
     case RIG_SPLIT_OFF:
+        // if either VFOA or B is the vfo we set to VFOA when split is turned off
+        if (vfo == RIG_VFO_A || vfo == RIG_VFO_B) rig_set_vfo(rig,RIG_VFO_A);
+        // otherwise if Main or Sub we set Main as the current vfo
+        else if (vfo == RIG_VFO_MAIN || vfo == RIG_VFO_SUB) rig_set_vfo(rig,RIG_VFO_Main);
         split_sc = S_SPLT_OFF;
         break;
 
     case RIG_SPLIT_ON:
         split_sc = S_SPLT_ON;
 
-        if (!priv->split_on)
+        if (!priv->split_on) // only need to do this if split is not on already
         {
             /* ensure VFO A is Rx and VFO B is Tx as we assume that elsewhere */
             if (VFO_HAS_A_B_ONLY)
