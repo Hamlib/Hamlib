@@ -366,18 +366,53 @@ typedef signed long shortfreq_t;
 typedef int vfo_t;
 
 /** \brief '' -- used in caps */
+
+#define RIG_VFO_N(n)        (1<<(n))
+
 #define RIG_VFO_NONE        0
 
-#define RIG_VFO_TX_FLAG     (1<<30)
+/** \brief \c VFOA -- VFO A */
+#define RIG_VFO_A           RIG_VFO_N(0)
 
-/** \brief \c currVFO -- current "tunable channel"/VFO */
-#define RIG_VFO_CURR        (1<<29)
+/** \brief \c VFOB -- VFO B */
+#define RIG_VFO_B           RIG_VFO_N(1)
 
-/** \brief \c MEM -- means Memory mode, to be used with set_vfo */
-#define RIG_VFO_MEM         (1<<28)
+/** \brief \c VFOC -- VFO C */
+#define RIG_VFO_C           RIG_VFO_N(2)
+
+// Any addition VFOS need to go from 3-20
+// To maintain backward compatibility these values cannot change
+
+/** \brief \c SubA -- alias for SUB_A */
+#define RIG_VFO_SUB_A       RIG_VFO_N(21)
+
+/** \brief \c SubB -- alias for SUB_B */
+#define RIG_VFO_SUB_B       RIG_VFO_N(22)
+
+/** \brief \c MainA -- alias for MAIN_A */
+#define RIG_VFO_MAIN_A      RIG_VFO_N(23)
+
+/** \brief \c MainB -- alias for MAIN_B */
+#define RIG_VFO_MAIN_B      RIG_VFO_N(24)
+
+/** \brief \c Sub -- alias for SUB */
+#define RIG_VFO_SUB         RIG_VFO_N(25)
+
+/** \brief \c Main -- alias for MAIN */
+#define RIG_VFO_MAIN        RIG_VFO_N(26)
 
 /** \brief \c VFO -- means (last or any)VFO mode, with set_vfo */
-#define RIG_VFO_VFO         (1<<27)
+#define RIG_VFO_VFO         RIG_VFO_N(27)
+
+/** \brief \c MEM -- means Memory mode, to be used with set_vfo */
+#define RIG_VFO_MEM         RIG_VFO_N(28)
+
+/** \brief \c currVFO -- current "tunable channel"/VFO */
+#define RIG_VFO_CURR        RIG_VFO_N(29)
+
+#define RIG_VFO_TX_FLAG     RIG_VFO_N(30)
+
+// Misc VFO Macros
 
 #define RIG_VFO_TX_VFO(v)   ((v)|RIG_VFO_TX_FLAG)
 
@@ -386,21 +421,6 @@ typedef int vfo_t;
 
 /** \brief \c RX -- alias for split rx or downlink */
 #define RIG_VFO_RX          RIG_VFO_CURR
-
-/** \brief \c Main -- alias for MAIN */
-#define RIG_VFO_MAIN        (1<<26)
-
-/** \brief \c Sub -- alias for SUB */
-#define RIG_VFO_SUB         (1<<25)
-
-#define RIG_VFO_N(n)        (1<<(n))
-
-/** \brief \c VFOA -- VFO A */
-#define RIG_VFO_A           RIG_VFO_N(0)
-/** \brief \c VFOB -- VFO B */
-#define RIG_VFO_B           RIG_VFO_N(1)
-/** \brief \c VFOC -- VFO C */
-#define RIG_VFO_C           RIG_VFO_N(2)
 
 
 /*
