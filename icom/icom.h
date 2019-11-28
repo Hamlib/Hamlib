@@ -139,6 +139,11 @@ struct icom_priv_data
     int split_on;                                   /* record split state */
     pltstate_t *pltstate;   /* only on optoscan */
     int serial_USB_echo_off; /* USB is not set to echo */
+    /* we track vfos internallhy for use with different functions like split */
+    /* this allows queries using CURR_VFO and Main/Sub to behave */
+    vfo_t curr_vfo; 
+    vfo_t rx_vfo; 
+    vfo_t tx_vfo; 
 };
 
 extern const struct ts_sc_list r8500_ts_sc_list[];
