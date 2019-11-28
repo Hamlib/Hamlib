@@ -48,6 +48,8 @@
 #define VFO_HAS_MAIN_SUB_A_B_ONLY (VFO_HAS_A_B & VFO_HAS_MAIN_SUB)
 #define VFO_HAS_A_B_ONLY (VFO_HAS_A_B & !VFO_HAS_MAIN_SUB)
 
+static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo);
+
 const cal_table_float_t icom_default_swr_cal =
 {
     5,
@@ -528,6 +530,9 @@ int icom_init(RIG *rig)
     priv->re_civ_addr = priv_caps->re_civ_addr;
     priv->civ_731_mode = priv_caps->civ_731_mode;
     priv->no_xchg = priv_caps->no_xchg;
+    priv->tx_vfo = RIG_VFO_NONE;
+    priv->rx_vfo = RIG_VFO_NONE;
+    priv->curr_vfo = RIG_VFO_NONE;
     rig_debug(RIG_DEBUG_TRACE, "icom_init\n");
 
     return RIG_OK;
@@ -661,6 +666,8 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     }
 
 #endif
+    retval = set_vfo_curr(rig,vfo,priv->curr_vfo);
+    if (retval != RIG_OK) return retval;
 
     freq_len = priv->civ_731_mode ? 4 : 5;
     /*
@@ -5043,6 +5050,38 @@ int icom_get_custom_parm_time(RIG *rig, int parmbuflen, unsigned char *parmbuf,
     int hour = from_bcd_be(resbuf, 2);
     int min = from_bcd_be(resbuf + 1, 2);
     *seconds = (hour * 3600) + (min * 60);
+
+    return RIG_OK;
+}
+
+// Sets rig vfo && priv->curr_vfo to default VFOA, or current vfo, or the vfo requested
+static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
+{
+    struct icom_priv_data *priv = (struct icom_priv_data *)rig->state.priv;
+    int retval;
+
+    rig_debug(RIG_DEBUG_TRACE,"%s: vfo=%s, curr_vfo=%s\n",__func__,rig_strvfo(vfo),rig_strvfo(curr_vfo));
+
+    // first time we will set default to VFOA
+    // So if you ask for frequency or such without setting VFO first you'll get VFOA
+    if (priv->curr_vfo == RIG_VFO_NONE && vfo == RIG_VFO_CURR) {
+        rig_debug(RIG_DEBUG_TRACE,"%s: setting default as VFOA\n");
+        retval = rig_set_vfo(rig, RIG_VFO_A); // we'll default to VFOA in this case
+        if (retval != RIG_OK) return retval;
+        priv->curr_vfo = RIG_VFO_A;
+    }
+    // asking for vfo_curr so give it to them
+    else if (priv->curr_vfo != RIG_VFO_NONE && vfo == RIG_VFO_CURR) {
+        rig_debug(RIG_DEBUG_TRACE,"%s: using curr_vfo=%s\n",rig_strvfo(priv->curr_vfo));
+        vfo = priv->curr_vfo;
+    }
+    // only need to set vfo if it's changed
+    else if (priv->curr_vfo != vfo) {
+        rig_debug(RIG_DEBUG_TRACE,"%s: setting new vfo=%s\n",rig_strvfo(vfo));
+        retval = rig_set_vfo(rig, vfo);
+        priv->curr_vfo = vfo;
+        if (retval != RIG_OK) return retval;
+    }
 
     return RIG_OK;
 }
