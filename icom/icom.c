@@ -720,6 +720,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     // Pick the appropriate VFO when VFO_TX is requested
     if (vfo == RIG_VFO_TX)
     {
+        rig_debug(RIG_DEBUG_TRACE,"%s: VFO_TX requested, vfo=%s\n",rig_strvfo(vfo));
         if (priv->split_on)
         {
             vfo = rig->state.vfo_list & RIG_VFO_B ? RIG_VFO_B : RIG_VFO_SUB;
@@ -730,9 +731,11 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         }
     }
 
+    retval = set_vfo_curr(rig,vfo,priv->curr_vfo);
     // Pick the appropriate VFO when VFO_RX is requested
     if (vfo == RIG_VFO_RX)
     {
+        rig_debug(RIG_DEBUG_TRACE,"%s: VFO_RX requested, vfo=%s\n",rig_strvfo(vfo));
         vfo = rig->state.vfo_list & RIG_VFO_B ? RIG_VFO_A : RIG_VFO_MAIN;
     }
 
@@ -1428,6 +1431,15 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 
     struct icom_priv_data *priv = (struct icom_priv_data *)rs->priv;
 
+    if ((vfo == RIG_VFO_A || vfo == RIG_VFO_B) && !VFO_HAS_A_B) {
+        rig_debug(RIG_DEBUG_ERR,"%s: Rig does not have VFO A/B?\n",__func__);
+        return -RIG_EINVAL;
+    }
+    if ((vfo == RIG_VFO_MAIN || vfo == RIG_VFO_MAIN) && !VFO_HAS_MAIN_SUB) {
+        rig_debug(RIG_DEBUG_ERR,"%s: Rig does not have VFO Main/Sub?\n",__func__);
+        return -RIG_EINVAL;
+    }
+
     switch (vfo)
     {
     case RIG_VFO_A: icvfo = S_VFOA; break;
@@ -1495,7 +1507,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
                   "len=%d\n", ackbuf[0], ack_len);
         return -RIG_ERJCTED;
     }
-
+    priv->curr_vfo = vfo;
     return RIG_OK;
 }
 
@@ -5069,19 +5081,19 @@ static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
     // first time we will set default to VFOA
     // So if you ask for frequency or such without setting VFO first you'll get VFOA
     if (priv->curr_vfo == RIG_VFO_NONE && vfo == RIG_VFO_CURR) {
-        rig_debug(RIG_DEBUG_TRACE,"%s: setting default as VFOA\n");
+        rig_debug(RIG_DEBUG_TRACE,"%s: setting default as VFOA\n",__func__);
         retval = rig_set_vfo(rig, RIG_VFO_A); // we'll default to VFOA in this case
         if (retval != RIG_OK) return retval;
         priv->curr_vfo = RIG_VFO_A;
     }
     // asking for vfo_curr so give it to them
     else if (priv->curr_vfo != RIG_VFO_NONE && vfo == RIG_VFO_CURR) {
-        rig_debug(RIG_DEBUG_TRACE,"%s: using curr_vfo=%s\n",rig_strvfo(priv->curr_vfo));
+        rig_debug(RIG_DEBUG_TRACE,"%s: using curr_vfo=%s\n",__func__,rig_strvfo(priv->curr_vfo));
         vfo = priv->curr_vfo;
     }
     // only need to set vfo if it's changed
     else if (priv->curr_vfo != vfo) {
-        rig_debug(RIG_DEBUG_TRACE,"%s: setting new vfo=%s\n",rig_strvfo(vfo));
+        rig_debug(RIG_DEBUG_TRACE,"%s: setting new vfo=%s\n",__func__,rig_strvfo(vfo));
         retval = rig_set_vfo(rig, vfo);
         priv->curr_vfo = vfo;
         if (retval != RIG_OK) return retval;
