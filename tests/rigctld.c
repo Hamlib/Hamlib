@@ -165,7 +165,7 @@ static void sync_callback(int lock)
 #ifdef WIN32
 static BOOL WINAPI CtrlHandler(DWORD fdwCtrlType)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "CtrlHandler called\n");
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
     switch (fdwCtrlType)
     {
