@@ -1442,7 +1442,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
         return -RIG_EINVAL;
     }
 
-    if ((vfo == RIG_VFO_MAIN || vfo == RIG_VFO_MAIN) && !VFO_HAS_MAIN_SUB)
+    if ((vfo == RIG_VFO_MAIN || vfo == RIG_VFO_SUB) && !VFO_HAS_MAIN_SUB)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: Rig does not have VFO Main/Sub?\n", __func__);
         return -RIG_EINVAL;
@@ -5099,12 +5099,18 @@ static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s, curr_vfo=%s\n", __func__,
               rig_strvfo(vfo), rig_strvfo(curr_vfo));
 
-    // first time we will set default to VFOA
+    // first time we will set default to VFOA or Main as 
     // So if you ask for frequency or such without setting VFO first you'll get VFOA
     if (priv->curr_vfo == RIG_VFO_NONE && vfo == RIG_VFO_CURR)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: setting default as VFOA\n", __func__);
-        retval = rig_set_vfo(rig, RIG_VFO_A); // we'll default to VFOA in this case
+        if (VFO_HAS_MAIN_SUB_ONLY)
+        {
+            retval = rig_set_vfo(rig, RIG_VFO_MAIN); // we'll default to Main in this case
+        }
+        else {
+            retval = rig_set_vfo(rig, RIG_VFO_A); // we'll default to VFOA for all others
+        }
 
         if (retval != RIG_OK) { return retval; }
 
