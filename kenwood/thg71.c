@@ -215,7 +215,7 @@ int thg71_decode_event (RIG *rig)
             return -RIG_ERJCTED;
         }
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: Buffer (freq %"PRIfreq" Hz, mode %d)\n", __func__, freq);
+        rig_debug(RIG_DEBUG_TRACE, "%s: Buffer (freq %"PRIfreq" Hz)\n", __func__, freq);
 
         /* Callback execution */
         if (rig->callbacks.vfo_event) {
@@ -381,7 +381,7 @@ int thg71_get_vfo (RIG *rig, vfo_t *vfo)
 		*vfo=RIG_VFO_MEM;
 		break;
         default:
-            rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __func__, vfo);
+            rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %s\n", __func__, rig_strvfo(*vfo));
             return -RIG_EVFO;
 	}
 	return RIG_OK;

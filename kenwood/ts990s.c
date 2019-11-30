@@ -623,7 +623,7 @@ int ts990s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		break;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported get_level %d", level);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported get_level %s", __func__, rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 

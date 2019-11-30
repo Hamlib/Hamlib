@@ -339,7 +339,7 @@ int uniden_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		break;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported set_level %d", level);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported set_level %s", __func__, rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 
@@ -369,7 +369,7 @@ int uniden_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		if (lvl_len < 4) {
 			rig_debug(RIG_DEBUG_ERR,"%s: wrong answer len=%d\n",
-					__FUNCTION__, lvl_len);
+					__func__, (int)lvl_len);
 			return -RIG_ERJCTED;
 		}
 
@@ -384,7 +384,7 @@ int uniden_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		if (lvl_len < 3) {
 			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer len=%d\n",
-					__FUNCTION__, lvl_len);
+					__func__, (int)lvl_len);
 			return -RIG_ERJCTED;
 		}
 
@@ -392,7 +392,7 @@ int uniden_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		break;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported get_level %d", level);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported get_level %s", __func__, rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 
@@ -695,7 +695,7 @@ DECLARE_PROBERIG_BACKEND(uniden)
  */
 DECLARE_INITRIG_BACKEND(uniden)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "uniden: _init called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
 	rig_register(&bc895_caps);
 	rig_register(&bc898_caps);

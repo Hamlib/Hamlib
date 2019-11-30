@@ -626,10 +626,10 @@ int tt588_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	case 36: *width = 250; break;
 	case 37: *width = 200; break;
 	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: unexpected bandwidth '%c'\n", __FUNCTION__, respbuf[1]);
+		rig_debug(RIG_DEBUG_ERR, "%s: unexpected bandwidth '%c'\n", __func__, respbuf[1]);
 		return -RIG_EPROTO;
 	}
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s mode=%d width=%d\n", __FUNCTION__, rig_strvfo(vfo),*mode,*width);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s mode=%s width=%d\n", __func__, rig_strvfo(vfo),rig_strrmode(*mode),(int)*width);
 
 	return RIG_OK;
 }
@@ -657,7 +657,7 @@ int tt588_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 	struct tt588_priv_data *priv = (struct tt588_priv_data *) rig->state.priv;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s mode=%d width=%d\n", __FUNCTION__, rig_strvfo(vfo),mode,width);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s mode=%s width=%d\n", __FUNCTION__, rig_strvfo(vfo),rig_strrmode(mode),(int)width);
 	if(check_vfo(vfo)==FALSE) {
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __FUNCTION__, rig_strvfo(vfo));
 		return -RIG_EINVAL;
@@ -682,7 +682,7 @@ int tt588_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	case RIG_MODE_AM:	ttmode = TT588_AM; break;
 	case RIG_MODE_FM:	ttmode = TT588_FM; break;
 	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %d\n", __FUNCTION__, mode);
+		rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n", __func__, rig_strrmode(mode));
 		return -RIG_EINVAL;
 	}
 
@@ -909,10 +909,10 @@ int tt588_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 #endif
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported level %d\n", __FUNCTION__, level);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported level %s\n", __func__, rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s level=%d val=%d\n", __FUNCTION__, rig_strvfo(vfo),level,*val);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s level=%s\n", __func__, rig_strvfo(vfo), rig_strlevel(level));
 
 	return RIG_OK;
 }
@@ -926,7 +926,7 @@ int tt588_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 	int retval, cmd_len,ii;
 	unsigned char cmdbuf[16], agcmode;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s level=%d val=%d\n", __FUNCTION__, rig_strvfo(vfo),level,val);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s level=%s\n", __FUNCTION__, rig_strvfo(vfo),rig_strlevel(level));
 	if(check_vfo(vfo)==FALSE) {
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __FUNCTION__, rig_strvfo(vfo));
 		return -RIG_EINVAL;
@@ -993,7 +993,7 @@ int tt588_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		break;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported level %d\n", __FUNCTION__, level);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported level %s\n", __func__, rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 
@@ -1163,7 +1163,7 @@ int tt588_get_xit(RIG * rig, vfo_t vfo, shortfreq_t *xit)
 	if (respbuf[0] != 'L' || respbuf[4] != 0x0d)
 		return -RIG_EPROTO;
 	*xit = (respbuf[2]*(short)256) | respbuf[3];
-	rig_debug(RIG_DEBUG_VERBOSE,"%s: rit=%d\n", __FUNCTION__,*xit);
+	rig_debug(RIG_DEBUG_VERBOSE,"%s: rit=%d\n", __func__,(int)*xit);
 
 	return RIG_OK;
 }
@@ -1178,7 +1178,7 @@ static int set_rit_xit(RIG * rig, vfo_t vfo, shortfreq_t rit, int which)
 	int retval, cmd_len;
 	char cmdbuf[16];
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: rit=%d\n", __FUNCTION__, rit);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: rit=%d\n", __FUNCTION__, (int)rit);
 	if(check_vfo(vfo)==FALSE) {
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __FUNCTION__, rig_strvfo(vfo));
 		return -RIG_EINVAL;

@@ -347,7 +347,7 @@ int rig2icom_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 	case RIG_MODE_DCR:	icmode = S_DCR; break;
 	case RIG_MODE_DD:	icmode = S_DD; break;
 	default:
-		rig_debug(RIG_DEBUG_ERR,"icom: Unsupported Hamlib mode %d\n",mode);
+		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported Hamlib mode %s\n",__FUNCTION__,rig_strrmode(mode));
 		return -RIG_EINVAL;
 	}
 

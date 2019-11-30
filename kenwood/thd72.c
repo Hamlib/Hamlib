@@ -240,8 +240,8 @@ static int thd72_get_vfo(RIG *rig, vfo_t *vfo)
   }
   else
   {
-    rig_debug(RIG_DEBUG_ERR, "%s: Unexpected answer length '%d'\n", __func__,
-              length);
+    rig_debug(RIG_DEBUG_ERR, "%s: Unexpected answer length %d\n", __func__,
+              (int)length);
     return -RIG_EPROTO;
   }
 
@@ -433,7 +433,7 @@ static int thd72_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
   int retval;
   char buf[64], fbuf[11];
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: called, vfo=%s, freq="PRIfreq"\n", __func__,
+  rig_debug(RIG_DEBUG_TRACE, "%s: called, vfo=%s, freq=%f\n", __func__,
             rig_strvfo(vfo), freq);
 
 
@@ -450,7 +450,7 @@ static int thd72_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
   shortfreq_t ts = thd72tuningstep[tsindex];
   rig_debug(RIG_DEBUG_VERBOSE, "%s: tsindex=%d, stepsize=%d\n", __func__, tsindex,
-            ts);
+            (int)ts);
   freq = roundl(freq / ts) * ts;
   sprintf(fbuf, "%010"PRIll, (int64_t)freq);
   memcpy(buf + 5, fbuf, 10);
@@ -475,7 +475,7 @@ static int thd72_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
   int tsindex = buf[16] - '0';
   shortfreq_t ts = thd72tuningstep[tsindex];
   rig_debug(RIG_DEBUG_VERBOSE, "%s: tsindex=%d, stepsize=%d\n", __func__, tsindex,
-            ts);
+            (int)ts);
   sscanf(buf + 5, "%"SCNfreq, freq);
   return RIG_OK;
 }
@@ -960,7 +960,7 @@ static int thd72_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     return thd72_set_menu_item(rig, 13, lvl);
 
   default:
-    rig_debug(RIG_DEBUG_ERR, "%s: Unsupported Level %d\n", __func__, level);
+    rig_debug(RIG_DEBUG_ERR, "%s: Unsupported Level %s\n", __func__, rig_strlevel(level));
     return -RIG_EINVAL;
   }
 
@@ -1068,7 +1068,7 @@ static int thd72_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     break;
 
   default:
-    rig_debug(RIG_DEBUG_ERR, "%s: Unsupported Level %d\n", __func__, level);
+    rig_debug(RIG_DEBUG_ERR, "%s: Unsupported Level %s\n", __func__, rig_strlevel(level));
     return -RIG_EINVAL;
   }
 

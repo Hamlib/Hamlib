@@ -282,7 +282,7 @@ const struct rot_caps dummy_rot_caps = {
 
 DECLARE_INITROT_BACKEND(dummy)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "dummy: _init called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n",__func__);
 
 	rot_register(&dummy_rot_caps);
 	rot_register(&netrotctl_caps);

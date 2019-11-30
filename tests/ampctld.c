@@ -293,7 +293,7 @@ int main(int argc, char *argv[])
   rig_set_debug(verbose);
 
   rig_debug(RIG_DEBUG_VERBOSE, "ampctld, %s\n", hamlib_version);
-  rig_debug(RIG_DEBUG_VERBOSE,
+  rig_debug(RIG_DEBUG_VERBOSE, "%s",
             "Report bugs to <hamlib-developer@lists.sourceforge.net>\n\n");
 
   my_amp = amp_init(my_model);
@@ -483,7 +483,7 @@ int main(int argc, char *argv[])
 
   if (NULL == result)
   {
-    rig_debug(RIG_DEBUG_ERR, "bind error - no available interface\n");
+    rig_debug(RIG_DEBUG_ERR, "%s: bind error - no available interface\n", __func__);
     exit(1);
   }
 

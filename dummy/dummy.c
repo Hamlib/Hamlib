@@ -381,11 +381,8 @@ static int dummy_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __FUNCTION__, rig_strvfo(vfo),
-              vfo);
-
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __FUNCTION__, rig_strvfo(vfo));
     *freq = curr->freq;
-
     return RIG_OK;
 }
 
@@ -1714,7 +1711,7 @@ static int dummy_power2mW(RIG *rig, unsigned int *mwpower, float power,
 {
     rig_debug(RIG_DEBUG_TRACE, "%s: passed power = %f\n", __func__, power);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %"PRIfreq" Hz\n", __func__, freq);
-    rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = %i\n", __func__, mode);
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = %s\n", __func__, rig_strrmode(mode));
 
     /* Pretend this is a 100W radio */
     *mwpower = (power * 100000);
@@ -1728,7 +1725,7 @@ static int dummy_mW2power(RIG *rig, float *power, unsigned int mwpower,
 {
     rig_debug(RIG_DEBUG_TRACE, "%s: passed mwpower = %i\n", __func__, mwpower);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %"PRIfreq" Hz\n", __func__, freq);
-    rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = %i\n", __func__, mode);
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = %s\n", __func__, rig_strrmode(mode));
 
     /* Pretend this is a 100W radio */
     if (mwpower > 100000)
@@ -1952,7 +1949,7 @@ const struct rig_caps dummy_caps =
 
 DECLARE_INITRIG_BACKEND(dummy)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "dummy: _init called\n");
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n",__func__);
 
     rig_register(&dummy_caps);
     rig_register(&netrigctl_caps);

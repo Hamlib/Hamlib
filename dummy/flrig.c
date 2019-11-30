@@ -238,7 +238,7 @@ static char *xml_build(char *cmd, char *value, char *xmlbuf, int xmllen)
     // We want at least a 4K buf to play with
     if (xmllen < 4096)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: xmllen < 4096\n");
+        rig_debug(RIG_DEBUG_ERR, "%s: xmllen < 4096\n",__FUNCTION__);
         return NULL;
     }
 
@@ -757,7 +757,7 @@ static int flrig_open(RIG *rig)
     }
 
     rig->state.mode_list = modes;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: hamlib modes=0x%08x\n", __FUNCTION__, modes);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: hamlib modes=%s\n", __FUNCTION__, rig_strrmode(modes));
 
     return RIG_OK;
 }
@@ -862,8 +862,8 @@ static int flrig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if (*freq == 0)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: freq==0??\nvalue=%s\nxml=%s\n", __FUNCTION__,
-                  value, xml);
+        rig_debug(RIG_DEBUG_ERR, "%s: freq==0??\nvalue=%s\n", __FUNCTION__,
+                  value);
         return -(102 + RIG_EPROTO);
     }
     else
@@ -1034,7 +1034,7 @@ static int flrig_set_split_mode(RIG *rig, vfo_t vfo, rmode_t mode,
 {
     int retval;
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s mode=%s width=%d\n",
-              __FUNCTION__, rig_strvfo(vfo), rig_strrmode(mode), width);
+              __FUNCTION__, rig_strvfo(vfo), rig_strrmode(mode), (int)width);
 
     struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
 
@@ -1076,14 +1076,14 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     int retval;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s mode=%s width=%d\n",
-              __FUNCTION__, rig_strvfo(vfo), rig_strrmode(mode), width);
+              __FUNCTION__, rig_strvfo(vfo), rig_strrmode(mode), (int)width);
 
     struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
 
     // if ptt is on do not set mode
     if (priv->ptt)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: returning because priv->ptt=%d\n", priv->ptt);
+        rig_debug(RIG_DEBUG_TRACE, "%s: returning because priv->ptt=%d\n", __func__,(int)priv->ptt);
         return RIG_OK;
     }
 
@@ -1185,13 +1185,13 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
         needBW = priv->curr_widthA != width;
         rig_debug(RIG_DEBUG_TRACE, "%s: bw change on VFOA, curr width=%d  needBW=%d\n",
-                  __FUNCTION__, width, needBW);
+                  __FUNCTION__, (int)width, needBW);
     }
     else if (vfo == RIG_VFO_B)
     {
         needBW = priv->curr_widthB != width;
         rig_debug(RIG_DEBUG_TRACE, "%s: bw change on VFOB, curr width=%d  needBW=%d\n",
-                  __FUNCTION__, width, needBW);
+                  __FUNCTION__, (int)width, needBW);
     }
     else
     {
@@ -1250,8 +1250,8 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     rig_debug(RIG_DEBUG_TRACE,
               "%s: return modeA=%s, widthA=%d\n,modeB=%s, widthB=%d\n", __FUNCTION__,
-              rig_strrmode(priv->curr_modeA), priv->curr_widthA,
-              rig_strrmode(priv->curr_modeB), priv->curr_widthB);
+              rig_strrmode(priv->curr_modeA), (int)priv->curr_widthA,
+              rig_strrmode(priv->curr_modeB), (int)priv->curr_widthB);
     return RIG_OK;
 }
 
@@ -1444,7 +1444,7 @@ static int flrig_set_vfo(RIG *rig, vfo_t vfo)
 
     if (vfo == RIG_VFO_TX)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: RIG_VFO_TX used\n");
+        rig_debug(RIG_DEBUG_TRACE, "%s: RIG_VFO_TX used\n",__FUNCTION__);
         vfo = RIG_VFO_B; // always TX on VFOB
     }
 

@@ -863,8 +863,8 @@ int ft1000d_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
   if (!rig)
     return -RIG_EINVAL;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
-  rig_debug(RIG_DEBUG_TRACE, "%s: passed offs = 0x%02x\n", __func__, offs);
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = %s\n", __func__, rig_strvfo(vfo));
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed offs = %d\n", __func__, (int)offs);
 
   // Check for valid offset
   if (offs < 0 || offs > 199999)
@@ -1084,8 +1084,8 @@ int ft1000d_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
   if (!rig)
     return -RIG_EINVAL;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
-  rig_debug(RIG_DEBUG_TRACE, "%s: passed rit = %i\n", __func__, rit);
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = %s\n", __func__, rig_strvfo(vfo));
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed rit = %d\n", __func__, (int)rit);
 
   // Check for valid clarifier offset frequency
   if (rit < -9999 || rit > 9999)
@@ -1254,8 +1254,8 @@ int ft1000d_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
   if (!rig)
     return -RIG_EINVAL;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
-  rig_debug(RIG_DEBUG_TRACE, "%s: passed rit = %i\n", __func__, xit);
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = %s\n", __func__, rig_strvfo(vfo));
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed rit = %d\n", __func__, (int)xit);
 
   if (xit < -9999 || xit > 9999)
     return -RIG_EINVAL;
@@ -1414,9 +1414,9 @@ int ft1000d_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
   if (!rig)
     return -RIG_EINVAL;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
-  rig_debug(RIG_DEBUG_TRACE, "%s: passed func = %i\n", __func__, func);
-  rig_debug(RIG_DEBUG_TRACE, "%s: passed status = %i\n", __func__, status);
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = %s\n", __func__, rig_strvfo(vfo));
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed func = %s\n", __func__, rig_strfunc(func));
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed status = %d\n", __func__, status);
 
   switch(func) {
     case RIG_FUNC_LOCK:
@@ -1470,7 +1470,7 @@ int ft1000d_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
   if (!rig)
     return -RIG_EINVAL;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: passed func = %i\n", __func__, func);
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed func = %s\n", __func__, rig_strfunc(func));
 
   priv = (struct ft1000d_priv_data *)rig->state.priv;
 
@@ -1520,7 +1520,7 @@ int ft1000d_set_parm(RIG *rig, setting_t parm, value_t val)
   if (!rig)
     return -RIG_EINVAL;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: passed parm = %i\n", __func__, parm);
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed parm = %s\n", __func__, rig_strparm(parm));
   rig_debug(RIG_DEBUG_TRACE, "%s: passed val = %f\n", __func__, val.f);
 
   switch(parm) {
@@ -1577,9 +1577,9 @@ int ft1000d_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   if (!rig)
     return -RIG_EINVAL;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
-  rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = 0x%02x\n", __func__, mode);
-  rig_debug(RIG_DEBUG_TRACE, "%s: passed width = %li Hz\n", __func__, width);
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = %s\n", __func__, rig_strvfo(vfo));
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = %s\n", __func__, rig_strrmode(mode));
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed width = %d Hz\n", __func__, (int)width);
 
   priv = (struct ft1000d_priv_data *)rig->state.priv;
 
@@ -1791,7 +1791,7 @@ int ft1000d_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
       return -RIG_EINVAL;
   }
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: get mode = 0x%02x\n", __func__, *mode);
+  rig_debug(RIG_DEBUG_TRACE, "%s: get mode = %s\n", __func__, rig_strrmode(*mode));
 
   // The FT1000D firmware appears to have a bug since the
   // AM bandwidth for 2400Hz and 6000Hz are interchanged.
@@ -1925,7 +1925,6 @@ int ft1000d_get_vfo(RIG *rig, vfo_t *vfo) {
 
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
   *vfo = RIG_VFO_CURR;
-  rig_debug(RIG_DEBUG_VERBOSE, "%s Priv VFO\n", __func__, *vfo);
 
   if (!rig)
     return -RIG_EINVAL;
@@ -2044,7 +2043,7 @@ int ft1000d_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *value)
     case RIG_LEVEL_RFPOWER:
     case RIG_LEVEL_SWR:
       value->f = (float) mdata[0]/255;
-      rig_debug(RIG_DEBUG_TRACE, "%s: meter level %d\n", __func__, value->f);
+      rig_debug(RIG_DEBUG_TRACE, "%s: meter level %f\n", __func__, value->f);
       break;
     default:
       return -RIG_EINVAL;
@@ -2088,8 +2087,8 @@ int ft1000d_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
   if (!rig)
     return -RIG_EINVAL;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo 0x%02x\n", __func__, vfo);
-  rig_debug(RIG_DEBUG_TRACE, "%s: passed op %li\n", __func__, op);
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo %s\n", __func__, rig_strvfo(vfo));
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed op %sn", __func__, rig_strvfop(op));
 
   priv = (struct ft1000d_priv_data *) rig->state.priv;
 
@@ -2419,7 +2418,7 @@ int ft1000d_get_channel (RIG *rig, channel_t *chan)
       return -RIG_EINVAL;
   }
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: mode = 0x%02x\n", __func__, p->mode);
+  rig_debug(RIG_DEBUG_TRACE, "%s: mode = %s\n", __func__, rig_strrmode(p->mode));
   rig_debug(RIG_DEBUG_TRACE, "%s: filter = 0x%02x\n", __func__, p->filter);
 
   /*
@@ -2536,7 +2535,7 @@ int ft1000d_get_channel (RIG *rig, channel_t *chan)
         return -RIG_EINVAL;
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: set tx mode = 0x%02x\n", __func__, chan->mode);
+    rig_debug(RIG_DEBUG_TRACE, "%s: set tx mode = %s\n", __func__, rig_strrmode(chan->mode));
     rig_debug(RIG_DEBUG_TRACE, "%s: tx filter = 0x%02x\n", __func__, p->filter);
 
     /*
@@ -2736,7 +2735,7 @@ int ft1000d_send_static_cmd(RIG *rig, unsigned char ci) {
   int err;
 
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-  rig_debug(RIG_DEBUG_TRACE, "%s: ci = %0x%02x\n", __func__, ci);
+  rig_debug(RIG_DEBUG_TRACE, "%s: ci = 0x%02x\n", __func__, ci);
 
   if (!rig)
     return -RIG_EINVAL;
@@ -2860,7 +2859,7 @@ int ft1000d_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq) {
 
   rig_debug(RIG_DEBUG_TRACE,
             "%s: requested freq after conversion = %"PRIll" Hz\n",
-             __func__, from_bcd(priv->p_cmd, FT1000D_BCD_DIAL) * 10);
+             __func__, (int64_t)from_bcd(priv->p_cmd, FT1000D_BCD_DIAL) * 10);
 
   err = write_block(&rig_s->rigport, (char *) &priv->p_cmd,
                     YAESU_CMD_LENGTH);
@@ -3066,9 +3065,9 @@ int ft1000d_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_wi
   if (!rig)
       return -RIG_EINVAL;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
-  rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = 0x%02x\n", __func__, tx_mode);
-  rig_debug(RIG_DEBUG_TRACE, "%s: passed width = %li Hz\n", __func__, tx_width);
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = %s\n", __func__, rig_strvfo(vfo));
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = %s\n", __func__, rig_strrmode(tx_mode));
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed width = %d Hz\n", __func__, (int)tx_width);
 
 //  priv = (struct ft1000d_priv_data *)rig->state.priv;
 
@@ -3110,7 +3109,7 @@ switch(tx_mode) {
      return -RIG_EINVAL;
   }
 
-rig_debug(RIG_DEBUG_TRACE, "%s: ci = %0x%02x\n", __func__, ci);
+rig_debug(RIG_DEBUG_TRACE, "%s: ci = 0x%02x\n", __func__, ci);
   err = ft1000d_send_static_cmd(rig, ci);
 
   if (err != RIG_OK)

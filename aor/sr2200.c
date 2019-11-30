@@ -386,8 +386,8 @@ int sr2200_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		aormode = SR2200_WFM;
 		break;
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %d\n",
-					__FUNCTION__,mode);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %s\n",
+					__FUNCTION__,rig_strrmode(mode));
 		return -RIG_EINVAL;
 	}
 
@@ -573,7 +573,7 @@ int sr2200_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		break;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported aor_set_level %d\n", level);
+		rig_debug(RIG_DEBUG_ERR,"Unsupported aor_set_level %s\n", rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 
@@ -609,7 +609,7 @@ int sr2200_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		lvl_len = sprintf(lvlbuf, "AM" EOM);
 		break;
 	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported %s %d\n", __FUNCTION__, level);
+		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported level %s\n", __FUNCTION__, rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 
@@ -682,7 +682,7 @@ int sr2200_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		break;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported %s %d\n", __FUNCTION__, level);
+		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported level %s\n", __FUNCTION__, rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 

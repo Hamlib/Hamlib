@@ -550,7 +550,7 @@ int funcube_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		break;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: Unsupported level %d\n", __func__, level);
+		rig_debug(RIG_DEBUG_ERR, "%s: unsupported level %s\n", __func__, rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 
@@ -603,7 +603,7 @@ int funcube_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		break;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: Unsupported level %d\n", __func__, level);
+		rig_debug(RIG_DEBUG_ERR, "%s: unsupported level %s\n", __func__, rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 
@@ -689,7 +689,7 @@ int funcube_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		break;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: Unsupported level %d\n", __func__, level);
+		rig_debug(RIG_DEBUG_ERR, "%s: unsupported level %s\n", __func__, rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 
@@ -722,7 +722,7 @@ int funcubepro_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
 
 	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: Unsupported level %d\n", __func__, level);
+		rig_debug(RIG_DEBUG_ERR, "%s: unsupported level %s\n", __func__, rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 
@@ -775,7 +775,7 @@ int funcubepro_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		au8BufOut[0] = REQUEST_GET_IF_GAIN;
 		break;
 	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: Unsupported level %d\n", __func__, level);
+		rig_debug(RIG_DEBUG_ERR, "%s: unsupported level %s\n", __func__, rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 
@@ -817,7 +817,7 @@ int funcubepro_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		break;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: Unsupported level %d\n", __func__, level);
+		rig_debug(RIG_DEBUG_ERR, "%s: unsupported level %s\n", __func__, rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 

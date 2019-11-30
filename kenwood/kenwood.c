@@ -540,9 +540,8 @@ int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
         if (length != expected) /* worth retrying as some rigs
                                    occasionally send short results */
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: wrong answer; len for cmd %s: "
-                      "expected = %d, got %d\n",
-                      __func__, cmd, expected, length);
+            rig_debug(RIG_DEBUG_ERR, "%s: wrong answer; len for cmd %s: expected = %d, got %d\n",
+                      __func__, cmd, (int)expected, (int)length);
             err =  -RIG_EPROTO;
             usleep(rig->caps->timeout * 1000);
         }
@@ -916,7 +915,7 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
     if (rig->caps->rig_model == RIG_MODEL_TS2000 && !priv->is_emulation)
     {
         char retbuf[20];
-        rig_debug(RIG_DEBUG_VERBOSE, "Checking Satellite mode status\n");
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: checking satellite mode status\n", __func__);
         snprintf(cmdbuf, sizeof(cmdbuf), "SA");
 
         retval = kenwood_transaction(rig, cmdbuf, retbuf, 20);
@@ -926,7 +925,7 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
             return retval;
         }
 
-        rig_debug(RIG_DEBUG_VERBOSE, "Satellite mode status %s\n", retbuf);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: satellite mode status %s\n", __func__, retbuf);
 
         //Satellite mode ON
         if (retbuf[2] == '1')
@@ -2249,7 +2248,7 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "Unsupported set_level %d", level);
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported set_level %s", __func__, rig_strlevel(level));
         return -RIG_EINVAL;
     }
 
@@ -2532,7 +2531,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return -RIG_ENIMPL;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "Unsupported get_level %d", level);
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_level %s", __func__, rig_strlevel(level));
         return -RIG_EINVAL;
     }
 
@@ -2658,7 +2657,7 @@ int kenwood_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         return kenwood_transaction(rig, buf, NULL, 0);
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "Unsupported set_func %#x", func);
+        rig_debug(RIG_DEBUG_ERR, "Unsupported set_func %s", rig_strfunc(func));
         return -RIG_EINVAL;
     }
 
@@ -2790,7 +2789,7 @@ int kenwood_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         return get_kenwood_func(rig, "MX", status);
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "Unsupported get_func %#x", func);
+        rig_debug(RIG_DEBUG_ERR, "Unsupported get_func %s", rig_strfunc(func));
         return -RIG_EINVAL;
     }
 
@@ -3528,7 +3527,7 @@ int kenwood_set_powerstat(RIG *rig, powerstat_t status)
 
     if (i == retry)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: timeout waiting for powerup\n", __func__,
+        rig_debug(RIG_DEBUG_TRACE, "%s: timeout waiting for powerup, try %d\n", __func__,
                   i + 1);
         retval = -RIG_ETIMEOUT;
     }
@@ -4326,7 +4325,7 @@ DECLARE_PROBERIG_BACKEND(kenwood)
          */
         if (id_len == 4 || !strcmp(idbuf, "K2"))
         {
-            rig_debug(RIG_DEBUG_VERBOSE, "probe_kenwood: found K2\n");
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: found K2\n", __func__);
 
             if (cfunc)
             {

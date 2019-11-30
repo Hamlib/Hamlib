@@ -516,7 +516,7 @@ int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
         /* with sequential fast writes*/
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s(): TX %d bytes\n", __func__, count);
+    rig_debug(RIG_DEBUG_TRACE, "%s(): TX %d bytes\n", __func__, (int)count);
     dump_hex((unsigned char *) txbuffer, count);
 
     return RIG_OK;
@@ -579,8 +579,8 @@ int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
             rig_debug(RIG_DEBUG_WARN,
                       "%s(): Timed out %d.%d seconds after %d chars\n",
                       __func__,
-                      elapsed_time.tv_sec,
-                      elapsed_time.tv_usec,
+                      (int)elapsed_time.tv_sec,
+                      (int)elapsed_time.tv_usec,
                       total_count);
 
             return -RIG_ETIMEOUT;
@@ -716,8 +716,8 @@ int HAMLIB_API read_string(hamlib_port_t *p,
                 rig_debug(RIG_DEBUG_WARN,
                           "%s(): Timed out %d.%d seconds after %d chars\n",
                           __func__,
-                          elapsed_time.tv_sec,
-                          elapsed_time.tv_usec,
+                          (int)elapsed_time.tv_sec,
+                          (int)elapsed_time.tv_usec,
                           total_count);
 
                 return -RIG_ETIMEOUT;

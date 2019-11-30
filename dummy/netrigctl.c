@@ -108,7 +108,7 @@ static int netrigctl_vfostr(RIG *rig, char *vfostr, int len, vfo_t vfo)
 {
     if (len < 5)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: len must be >=5, len=%d\n", len);
+        rig_debug(RIG_DEBUG_ERR, "%s: len must be >=5, len=%d\n", __func__, len);
         return -RIG_EPROTO;
     }
 

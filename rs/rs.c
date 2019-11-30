@@ -325,7 +325,7 @@ int rs_reset(RIG *rig, reset_t reset)
  */
 DECLARE_INITRIG_BACKEND(rs)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "rs: _init called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
 	rig_register(&esmc_caps);
 	rig_register(&eb200_caps);

@@ -113,19 +113,19 @@ static int dummy_amp_reset(AMP *amp, amp_reset_t reset)
   switch (reset)
   {
   case AMP_RESET_MEM:
-    rig_debug(RIG_DEBUG_VERBOSE, "Reset memory\n");
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: Reset memory\n",__FUNCTION__);
     break;
 
   case AMP_RESET_FAULT:
-    rig_debug(RIG_DEBUG_VERBOSE, "Reset fault\n");
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: Reset fault\n",__FUNCTION__);
     break;
 
   case AMP_RESET_AMP:
-    rig_debug(RIG_DEBUG_VERBOSE, "Reset amplifier\n");
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: Reset amplifier\n",__FUNCTION__);
     break;
 
   default:
-    rig_debug(RIG_DEBUG_VERBOSE, "Reset unknown=%d\n", reset);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: Reset unknown=%d\n",__FUNCTION__, reset);
     return -RIG_EINVAL;
   }
 
@@ -225,7 +225,7 @@ static int dummy_amp_get_level(AMP *amp, setting_t level, value_t *val)
     return RIG_OK;
 
   default:
-    rig_debug(RIG_DEBUG_VERBOSE, "%s Unknownd AMP_LEVEL=%d\n", __func__, level);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s Unknown AMP_LEVEL=%s\n", __func__, rig_strlevel(level));
   }
 
   rig_debug(RIG_DEBUG_VERBOSE, "%s flag=%d\n", __func__, flag);
@@ -365,7 +365,7 @@ const struct amp_caps dummy_amp_caps =
 
 DECLARE_INITAMP_BACKEND(dummy)
 {
-  rig_debug(RIG_DEBUG_VERBOSE, "dummy: _init called\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n",__FUNCTION__);
 
   amp_register(&dummy_amp_caps);
   amp_register(&netampctl_caps);

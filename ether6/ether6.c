@@ -289,7 +289,7 @@ const struct rot_caps ether6_rot_caps = {
 
 DECLARE_INITROT_BACKEND(ether6)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "ether6: _init called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
 	rot_register(&ether6_rot_caps);
 

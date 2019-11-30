@@ -190,8 +190,8 @@ int kachina_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 			case RIG_MODE_AM:       k_mode = M_AM; break;
 			default:
 				rig_debug(RIG_DEBUG_ERR,
-								"kachina_set_mode: unsupported mode %d\n",
-								mode);
+								"%s: unsupported mode %s\n",
+								__func__, rig_strrmode(mode));
 				return -RIG_EINVAL;
 		}
 
@@ -260,7 +260,7 @@ int kachina_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
  */
 DECLARE_INITRIG_BACKEND(kachina)
 {
-		rig_debug(RIG_DEBUG_VERBOSE, "kachina: _init called\n");
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n",__func__);
 
 		rig_register(&k505dsp_caps);
 

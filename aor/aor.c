@@ -314,9 +314,9 @@ int format8k_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width)
 				case RIG_PASSBAND_NOCHANGE: aormode = AR8K_AM; break;
 				default:
 					rig_debug(RIG_DEBUG_ERR,
-										"%s: unsupported passband %d %d\n",
+										"%s: unsupported passband %s %d\n",
 										__FUNCTION__,
-										mode, width);
+										rig_strrmode(mode), (int)width);
 					return -RIG_EINVAL;
 				}
 			}
@@ -340,16 +340,16 @@ int format8k_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width)
 				case RIG_PASSBAND_NOCHANGE: aormode = AR8K_NFM; break;
 				default:
 					rig_debug(RIG_DEBUG_ERR,
-										"%s: unsupported passband %d %d\n",
+										"%s: unsupported passband %s %d\n",
 										__FUNCTION__,
-										mode, width);
+										rig_strrmode(mode), (int)width);
 					return -RIG_EINVAL;
 				}
 			}
 		break;
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %d\n",
-							__FUNCTION__, mode);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode '%s'\n",
+							__FUNCTION__, rig_strrmode(mode));
 		return -RIG_EINVAL;
 	}
 
@@ -540,7 +540,7 @@ int aor_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		break;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported aor_set_level %d\n", level);
+		rig_debug(RIG_DEBUG_ERR,"Unsupported aor_set_level %d\n", (int)level);
 		return -RIG_EINVAL;
 	}
 
@@ -570,7 +570,7 @@ int aor_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		lvl_len = sprintf(lvlbuf, "AC" EOM);
 		break;
 	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported %s %d\n", __FUNCTION__, level);
+		rig_debug(RIG_DEBUG_ERR,"Unsupported %s %d\n", __FUNCTION__, (int)level);
 		return -RIG_EINVAL;
 	}
 
@@ -651,7 +651,7 @@ int aor_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		break;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported %s %d\n", __FUNCTION__, level);
+		rig_debug(RIG_DEBUG_ERR,"Unsupported %s %d\n", __FUNCTION__, (int)level);
 		return -RIG_EINVAL;
 	}
 
@@ -1182,7 +1182,7 @@ const char *aor_get_info(RIG *rig)
  */
 DECLARE_INITRIG_BACKEND(aor)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "aor: _init called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n",__func__);
 
 	rig_register(&sr2200_caps);
 	rig_register(&ar2700_caps);

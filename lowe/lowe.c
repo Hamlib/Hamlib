@@ -143,8 +143,7 @@ int lowe_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	case RIG_MODE_FAX:     mode_sel = MD_FAX; break;
 	case RIG_MODE_AMS:     mode_sel = MD_AMS; break;
 	default:
-		rig_debug(RIG_DEBUG_ERR,"lowe_set_mode: "
-						"unsupported mode %d\n", mode);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %s\n", __func__, rig_strrmode(mode));
 		return -RIG_EINVAL;
 	}
 
@@ -314,7 +313,7 @@ DECLARE_PROBERIG_BACKEND(lowe)
  */
 DECLARE_INITRIG_BACKEND(lowe)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "lowe: _init called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
 	rig_register(&hf235_caps);
 

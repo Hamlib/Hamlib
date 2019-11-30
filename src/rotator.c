@@ -647,7 +647,7 @@ int HAMLIB_API rot_get_position(ROT *rot,
 
     if (rs->south_zero) {
         *azimuth += *azimuth >=180 ? -180: 180;
-        rot_debug(RIG_DEBUG_VERBOSE,"%s: south adj to az=%.2f\n", __func__, azimuth);
+        rot_debug(RIG_DEBUG_VERBOSE,"%s: south adj to az=%.2f\n", __func__, *azimuth);
     }
     return RIG_OK;
 }

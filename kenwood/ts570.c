@@ -60,8 +60,8 @@ static int ts570_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	length = strlen (buf);
   if (length != 3 || buf[1] != 'D')
   {
-    rig_debug(RIG_DEBUG_ERR,"ts570_get_mode: unexpected MD answer, len=%d\n",
-      length);
+    rig_debug(RIG_DEBUG_ERR,"%s: unexpected MD answer, len=%d\n",
+      __func__, (int)length);
     return -RIG_ERJCTED;
   }
 
@@ -100,7 +100,7 @@ static int ts570_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
       if (length != 6 || buf[1] != 'W')
       {
         rig_debug(RIG_DEBUG_ERR,
-          "ts570_get_mode: unexpected FW answer, len=%d\n", length);
+          "%s: unexpected FW answer, len=%d\n", __func__, (int)length);
         return -RIG_ERJCTED;
       }
       *width = atoi(&buf[2]);
@@ -115,7 +115,7 @@ static int ts570_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
       if (length != 4 || buf[1] != 'L')
       {
         rig_debug(RIG_DEBUG_ERR,
-          "ts570_get_mode: unexpected SL answer, len=%d\n", length);
+          "%s: unexpected SL answer, len=%d\n", __func__, (int)length);
         return -RIG_ERJCTED;
       }
       *width = 50 * atoi(&buf[2]);
@@ -139,7 +139,7 @@ static char mode_to_char(rmode_t mode)
          case RIG_MODE_RTTY:     return(MD_FSK);
          case RIG_MODE_RTTYR:    return(MD_FSKR);
 	 default:
-		rig_debug(RIG_DEBUG_WARN,"ts570_mode_to_char %s: unsupported mode %d\n", __func__,mode);
+		rig_debug(RIG_DEBUG_WARN,"%s: unsupported mode %s\n", __func__, rig_strrmode(mode));
      }
  return(RIG_MODE_NONE);
 }
@@ -234,8 +234,7 @@ int ts570_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 				return retval;
 			fct_len = strlen (fctbuf);
 			if (fct_len != 3) {
-				rig_debug(RIG_DEBUG_ERR,"kenwood_get_func: "
-					"wrong answer len=%d\n", fct_len);
+				rig_debug(RIG_DEBUG_ERR,"%s: wrong answer len=%d\n", __func__, (int)fct_len);
 				return -RIG_ERJCTED;
 			}
 
@@ -248,8 +247,7 @@ int ts570_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 				return retval;
 			fct_len = strlen (fctbuf);
 			if (fct_len != 5) {
-				rig_debug(RIG_DEBUG_ERR,"kenwood_get_func: "
-					"wrong answer len=%d\n", fct_len);
+				rig_debug(RIG_DEBUG_ERR,"%s: wrong answer len=%d\n", __func__, (int)fct_len);
 				return -RIG_ERJCTED;
 			}
 
@@ -361,8 +359,7 @@ ts570_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 	    return retval;
 			ack_len = strlen (ackbuf);
 	if (3  != ack_len) {
-	    rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer len=%d\n",
-			__func__, ack_len);
+	    rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer len=%d\n", __func__, (int)ack_len);
 	    return -RIG_ERJCTED;
 	}
 
@@ -372,9 +369,7 @@ ts570_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 	} else {
 	    for (i=0; i<levelint && i<MAXDBLSTSIZ; i++) {
 		if (rig->state.preamp[i] == 0) {
-		    rig_debug(RIG_DEBUG_ERR,"%s: "
-			    "unexpected att level %d\n",
-			    __func__, levelint);
+		    rig_debug(RIG_DEBUG_ERR,"%s: unexpected att level %d\n", __func__, (int)levelint);
 		    return -RIG_EPROTO;
 		}
 	    }
@@ -580,8 +575,7 @@ int ts570_get_xit(RIG *rig, vfo_t vfo, shortfreq_t * rit)
 		return retval;
 	size_t info_len = strlen (infobuf);
 	if (info_len != 37 || infobuf[1] != 'F') {
-	rig_debug(RIG_DEBUG_ERR,"kenwood_get_rit: wrong answer len=%d\n",
-					info_len);
+	rig_debug(RIG_DEBUG_ERR,"%s: wrong answer len=%d\n", __func__, (int)info_len);
 	return -RIG_ERJCTED;
 	}
 

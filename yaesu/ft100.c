@@ -341,21 +341,21 @@ int ft100_cleanup(RIG *rig) {
     free(rig->state.priv);
   rig->state.priv = NULL;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft100:ft100_cleanup called \n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: called\n", __func__);
 
   return RIG_OK;
 }
 
 int ft100_open(RIG *rig) {
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft100:ft100_open called \n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: called\n", __func__);
 
   return RIG_OK;
 }
 
 int ft100_close(RIG *rig) {
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft100:ft100_close called \n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: called\n", __func__);
 
   return RIG_OK;
 }
@@ -459,7 +459,7 @@ int ft100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
    char freq_str[10];
    int ret;
 
-   rig_debug(RIG_DEBUG_VERBOSE,"ft100: get_freq \n");
+   rig_debug(RIG_DEBUG_VERBOSE,"%s:\n", __func__);
 
    if( !freq )  return -RIG_EINVAL;
 
@@ -467,7 +467,8 @@ int ft100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
    if (ret != RIG_OK)
 	return ret;
 
-   rig_debug(RIG_DEBUG_VERBOSE,"ft100: Freq= %3i %3i %3i %3i \n",
+   rig_debug(RIG_DEBUG_VERBOSE,"%s: Freq= %3i %3i %3i %3i \n",
+       __func__,
 		   (int)priv->status.freq[0],
 		   (int)priv->status.freq[1],
 		   (int)priv->status.freq[2],
@@ -498,7 +499,7 @@ int ft100_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
   unsigned char p_cmd[YAESU_CMD_LENGTH];
   int ret;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft100: generic mode = %x, width %d\n", mode, width);
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: generic mode = %s, width %d\n", __func__, rig_strrmode(mode), (int)width);
 
   switch(mode) {
   case RIG_MODE_AM:
@@ -862,9 +863,9 @@ int ft100_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift) {
 
   unsigned char cmd_index;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft100:ft100_set_rptr_shift called \n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s:ft100_set_rptr_shift called\n", __func__);
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft100: + - 0 %3i %3i %3i %3i %c\n", RIG_RPT_SHIFT_PLUS, RIG_RPT_SHIFT_MINUS, RIG_RPT_SHIFT_NONE, shift,  (char)shift);
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: + - 0 %3i %3i %3i %3i %c\n", __func__, RIG_RPT_SHIFT_PLUS, RIG_RPT_SHIFT_MINUS, RIG_RPT_SHIFT_NONE, shift,  (char)shift);
   switch(shift) {
   case RIG_RPT_SHIFT_PLUS:
     cmd_index = FT100_NATIVE_CAT_SET_RPT_SHIFT_PLUS;

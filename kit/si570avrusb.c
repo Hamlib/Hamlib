@@ -943,7 +943,7 @@ static int setBPF(RIG *rig, int enable)
 		if (nBytes < 0)
 			return -RIG_EIO;
 
-		rig_debug(RIG_DEBUG_TRACE, "Filter Bank 1:\n");
+		rig_debug(RIG_DEBUG_TRACE, "%s: Filter Bank 1:\n", __func__);
 
 		for (i = 0; i < (nBytes / 2) - 1; i++) {
 			rig_debug(RIG_DEBUG_TRACE, "  CrossOver[%d] = %f\n",

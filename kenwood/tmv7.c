@@ -244,7 +244,7 @@ int tmv7_decode_event (RIG *rig)
             return -RIG_ERJCTED;
         }
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: Buffer (freq %"PRIfreq" Hz, mode %d)\n", __func__, freq);
+        rig_debug(RIG_DEBUG_TRACE, "%s: Buffer (freq %"PRIfreq" Hz)\n", __func__, freq);
 
         /* Callback execution */
         if (rig->callbacks.vfo_event) {

@@ -273,7 +273,7 @@ static int easycomm_rot_get_conf(ROT *rot, token_t token, char *val) {
 	int retval;
 
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-	rig_debug(RIG_DEBUG_TRACE, "%s: token = %d", __func__, token);
+	rig_debug(RIG_DEBUG_TRACE, "%s: token = %d", __func__, (int)token);
 
 	if (!rot)
 		return -RIG_EINVAL;
@@ -332,7 +332,7 @@ static int easycomm_rot_set_conf(ROT *rot, token_t token, const char *val) {
 	int retval;
 
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-	rig_debug(RIG_DEBUG_TRACE, "%s: token = %d", __func__, token);
+	rig_debug(RIG_DEBUG_TRACE, "%s: token = %d", __func__, (int)token);
 
 	if (!rot)
 		return -RIG_EINVAL;

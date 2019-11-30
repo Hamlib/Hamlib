@@ -322,8 +322,8 @@ int ra37xx_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	case RIG_MODE_FM:	widthtype = 3; ra_mode = MD_FM; break;
 	case RIG_MODE_RTTY:	widthtype = 3; ra_mode = MD_FSK; break;
 	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %d\n",
-				__FUNCTION__, mode);
+		rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n",
+				__FUNCTION__, rig_strrmode(mode));
 		return -RIG_EINVAL;
 	}
 
@@ -368,8 +368,8 @@ int ra37xx_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	case MD_FM:  widthtype = 3; *mode = RIG_MODE_FM; break;
 	case MD_AM:  widthtype = 3; *mode = RIG_MODE_AM; break;
 	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %d\n",
-				__FUNCTION__, mode);
+		rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n",
+				__func__, rig_strrmode(*mode));
 		return -RIG_EPROTO;
 	}
 
@@ -399,8 +399,8 @@ int ra37xx_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 		sprintf(cmdbuf, "MUTE%d", status ? 1 : 0);
 		break;
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported %d\n",
-				__FUNCTION__, func);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported %s\n",
+				__func__, rig_strfunc(func));
 		return -RIG_EINVAL;
 	}
 
@@ -423,7 +423,7 @@ int ra37xx_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 		break;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported %d\n", __FUNCTION__, func);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported %s\n", __FUNCTION__, rig_strfunc(func));
 		return -RIG_EINVAL;
 	}
 
@@ -473,8 +473,8 @@ int ra37xx_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		break;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported %d\n",
-				__FUNCTION__, level);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported %s\n",
+				__func__, rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 
@@ -562,7 +562,7 @@ int ra37xx_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		}
 		break;
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported %d\n", __FUNCTION__, level);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported %s\n", __func__, rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 

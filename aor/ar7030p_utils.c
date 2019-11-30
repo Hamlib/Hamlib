@@ -1242,8 +1242,8 @@ rmode_t modeToHamlib( const unsigned char mode )
     break;
   };
 
-  rig_debug( RIG_DEBUG_VERBOSE, "%s: Native %d, Hamlib %d\n",
-             __func__, mode, rc );
+  rig_debug( RIG_DEBUG_VERBOSE, "%s: Native %s, Hamlib %s\n",
+             __func__, rig_strrmode(mode), rig_strrmode(rc) );
 
   return( rc );
 }
@@ -1293,8 +1293,8 @@ unsigned char modeToNative( const rmode_t mode )
     break;
   };
 
-  rig_debug( RIG_DEBUG_VERBOSE, "%s: Hamlib %d, native %d\n",
-             __func__, mode, rc );
+  rig_debug( RIG_DEBUG_VERBOSE, "%s: Hamlib %s, native %d\n",
+             __func__, rig_strrmode(mode), rc );
 
   return( rc );
 }

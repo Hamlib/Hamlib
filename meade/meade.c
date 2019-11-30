@@ -252,7 +252,6 @@ static int meade_set_position(ROT *rot, azimuth_t az, elevation_t el)
   /* So we just ignore commands while moving */
   /* Should we return RIG_OK or an error though? */
   meade_transaction(rot, ":D#", return_str, &return_str_size, sizeof(return_str));
-  rig_debug(RIG_DEBUG_VERBOSE,"%s: size=%d, str[0]=0x%02x\n",__func__, return_str_size, return_str[0]);
   // LX200 return 0xff bytes and Autostart returns 0x7f 
   if(return_str_size > 0 && ((return_str[0] & 0x7f) == 0x7f)) {
       rig_debug(RIG_DEBUG_WARN,"%s: rotor is moving...ignoring move\n",__func__);
@@ -445,7 +444,7 @@ const struct rot_caps meade_caps = {
 
 DECLARE_INITROT_BACKEND(meade)
 {
-  rig_debug(RIG_DEBUG_VERBOSE, "meade: _init called\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
   rot_register(&meade_caps);
 

@@ -243,7 +243,7 @@ int xg3_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
             break;
 
         default:
-            rig_debug(RIG_DEBUG_ERR, "Unsupported set_level %d", level);
+            rig_debug(RIG_DEBUG_ERR, "%s: unsupported set_level %s", __func__, rig_strlevel(level));
             return -RIG_EINVAL;
     }
 
@@ -308,7 +308,7 @@ int xg3_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val)
             return -RIG_ENIMPL;
 
         default:
-            rig_debug(RIG_DEBUG_ERR, "Unsupported get_level %d", level);
+            rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_level %s", __func__, rig_strlevel(level));
             return -RIG_EINVAL;
     }
 
@@ -523,7 +523,7 @@ int xg3_set_mem(RIG * rig, vfo_t vfo, int ch)
     retval = kenwood_transaction(rig, cmdbuf, NULL, 0);
     if (retval != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s invalid set_mem cmd=%d\n", __func__,
+        rig_debug(RIG_DEBUG_VERBOSE, "%s invalid set_mem cmd=%s\n", __func__,
             cmdbuf);
         return -RIG_EINVAL;
     }
@@ -624,7 +624,7 @@ int xg3_set_parm(RIG *rig, setting_t parm, value_t val)
             retval = kenwood_simple_transaction(rig, cmdbuf, 0);
             break;
         default:
-            rig_debug(RIG_DEBUG_ERR,"%s: Unsupported set_parm %d\n", __func__,parm);
+            rig_debug(RIG_DEBUG_ERR,"%s: Unsupported set_parm %s\n", __func__, rig_strparm(parm));
             return -RIG_EINVAL;
     }
     return retval;
@@ -651,7 +651,7 @@ int xg3_get_parm(RIG *rig, setting_t parm, value_t *val)
             }
             break;
         default:
-            rig_debug(RIG_DEBUG_ERR,"%s: Unsupported set_parm %d\n", __func__,parm);
+            rig_debug(RIG_DEBUG_ERR,"%s: Unsupported set_parm %s\n", __func__, rig_strparm(parm));
             return -RIG_EINVAL;
     }
     return retval;

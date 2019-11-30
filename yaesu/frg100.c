@@ -288,7 +288,7 @@ int frg100_open(RIG *rig)
 {
   unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x0e};
 
-  rig_debug(RIG_DEBUG_TRACE, "frg100: frg100_open called\n");
+  rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
   /* send 0 delay pacing */
   return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
@@ -332,7 +332,7 @@ int frg100_set_powerstat(RIG *rig, powerstat_t status)
 {
   unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x20};
 
-  rig_debug(RIG_DEBUG_TRACE,"frg100: frg100_set_powerstat called\n");
+  rig_debug(RIG_DEBUG_TRACE,"%s: called\n", __func__);
 
   cmd[3] = status == RIG_POWER_OFF ? 0x00 : 0x01;
 

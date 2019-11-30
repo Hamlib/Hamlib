@@ -700,8 +700,8 @@ tt550_set_rx_mode (RIG * rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	ttmode = TT_FM;
 	break;
       default:
-	rig_debug (RIG_DEBUG_ERR, "tt550_set_rxmode: unsupported mode %d\n",
-		   mode);
+	rig_debug (RIG_DEBUG_ERR, "%s: unsupported mode %s\n",
+		   __func__, rig_strrmode(mode));
 	return -RIG_EINVAL;
     }
 
@@ -722,8 +722,8 @@ tt550_set_rx_mode (RIG * rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
       }
     if (tt550_filters[ttfilter] != width)
       {
-        rig_debug (RIG_DEBUG_ERR, "tt550_set_mode: unsupported width %d\n",
-                   width);
+        rig_debug (RIG_DEBUG_ERR, "%s: unsupported width %d\n",
+                   __func__, (int)width);
         return -RIG_EINVAL;
 
       }
@@ -797,8 +797,8 @@ tt550_set_tx_mode (RIG * rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	ttmode = TT_FM;
 	break;
       default:
-	rig_debug (RIG_DEBUG_ERR, "tt550_set_mode: unsupported tx mode %d\n",
-		   mode);
+	rig_debug (RIG_DEBUG_ERR, "%s: unsupported tx mode %s\n",
+		   __func__, rig_strrmode(mode));
 	return -RIG_EINVAL;
     }
 
@@ -829,7 +829,7 @@ tt550_set_tx_mode (RIG * rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     if (tt550_tx_filters[ttfilter] != width)
       {
         rig_debug (RIG_DEBUG_ERR,
-                   "tt550_set_mode: unsupported tx width %d,%d\n", width,
+                   "%s: unsupported tx width %d,%d\n", __func__, (int)width,
                    ttfilter);
         return -RIG_EINVAL;
 
@@ -1081,7 +1081,7 @@ tt550_set_level (RIG * rig, vfo_t vfo, setting_t level, value_t val)
         return retval;
 
       default:
-	rig_debug (RIG_DEBUG_ERR, "Unsupported set_level %d\n", level);
+	rig_debug (RIG_DEBUG_ERR, "%s: unsupported set_level %s\n", __func__, rig_strlevel(level));
 	return -RIG_EINVAL;
     }
 
@@ -1212,7 +1212,7 @@ tt550_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
         break;
 
       default:
-	rig_debug (RIG_DEBUG_ERR, "Unsupported get_level %d\n", level);
+	rig_debug (RIG_DEBUG_ERR, "%s: unsupported get_level %s\n", __func__, rig_strlevel(level));
 	return -RIG_EINVAL;
 
     }
@@ -1362,7 +1362,7 @@ tt550_set_func (RIG * rig, vfo_t vfo, setting_t func, int status)
 	return RIG_OK;
 
       default:
-	rig_debug (RIG_DEBUG_ERR, "Unsupported set_func %#x", func);
+	rig_debug (RIG_DEBUG_ERR, "%s: unsupported set_func %s", __func__, rig_strfunc(func));
 	return -RIG_EINVAL;
     }
 
@@ -1396,7 +1396,7 @@ tt550_get_func (RIG * rig, vfo_t vfo, setting_t func, int *status)
 	break;
 
       default:
-	rig_debug (RIG_DEBUG_ERR, "Unsupported get_func %#x", func);
+	rig_debug (RIG_DEBUG_ERR, "%s: unsupported get_func %s", __func__, rig_strfunc(func));
 	return -RIG_EINVAL;
     }
 
@@ -1416,8 +1416,8 @@ tt550_set_tuning_step (RIG * rig, vfo_t vfo, shortfreq_t stepsize)
   rs = &rig->state;
   priv = (struct tt550_priv_data *) rs->priv;
 
-  rig_debug (RIG_DEBUG_VERBOSE, "tt550: tt550_set_tuning_step - %d\n",
-	     stepsize);
+  rig_debug (RIG_DEBUG_VERBOSE, "%s: tt550_set_tuning_step - %d\n",
+	     __func__, (int)stepsize);
 
   priv->stepsize = stepsize;
 
@@ -1437,8 +1437,8 @@ tt550_get_tuning_step (RIG * rig, vfo_t vfo, shortfreq_t * stepsize)
   rs = &rig->state;
   priv = (struct tt550_priv_data *) rs->priv;
 
-  rig_debug (RIG_DEBUG_VERBOSE, "tt550: tt550_get_tuning_step - %d\n",
-	     priv->stepsize);
+  rig_debug (RIG_DEBUG_VERBOSE, "%s: tt550_get_tuning_step - %d\n",
+	     __func__, (int)priv->stepsize);
 
   *stepsize = priv->stepsize;
 
@@ -1556,7 +1556,7 @@ tt550_decode_event (RIG * rig)
 //  char key;
 
 
-  rig_debug (RIG_DEBUG_VERBOSE, "tt550: tt550_decode_event called\n");
+  rig_debug (RIG_DEBUG_VERBOSE, "%s/tt: tt550_decode_event called\n", __func__);
 
   rs = &rig->state;
   priv = (struct tt550_priv_data *) rs->priv;
@@ -1567,11 +1567,11 @@ tt550_decode_event (RIG * rig)
 
   if (data_len == -RIG_ETIMEOUT) {
     rig_debug (RIG_DEBUG_VERBOSE,
-	       "tt550: tt550_decode got a timeout before the first character\n");
+	       "%s: tt550_decode got a timeout before the first character\n", __func__);
 	return RIG_OK;
 	}
 
-      rig_debug (RIG_DEBUG_VERBOSE, "tt550: tt550_decode %x\n", &buf);
+      rig_debug (RIG_DEBUG_VERBOSE, "%s: tt550_decode %p\n", __func__, &buf);
 
       /*
        * The first byte must be either 'U' for keypad operations
@@ -1593,7 +1593,7 @@ tt550_decode_event (RIG * rig)
 		movement = movement | buf[2];
 //		key = buf[3];
 		rig_debug (RIG_DEBUG_VERBOSE,
-			   "tt550: Step Direction = %d\n", movement);
+			   "%s: Step Direction = %d\n", __func__, movement);
 		if (movement > 0)
 		  priv->rx_freq += priv->stepsize;
 		if (movement < 0)

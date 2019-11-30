@@ -533,7 +533,7 @@ int icom_init(RIG *rig)
     priv->tx_vfo = RIG_VFO_NONE;
     priv->rx_vfo = RIG_VFO_NONE;
     priv->curr_vfo = RIG_VFO_NONE;
-    rig_debug(RIG_DEBUG_TRACE, "icom_init\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s: done\n", __FUNCTION__);
 
     return RIG_OK;
 }
@@ -586,7 +586,7 @@ int icom_rig_open(RIG *rig)
 
         if (retval == RIG_OK)
         {
-            rig_debug(RIG_DEBUG_VERBOSE, "USB echo on detected\n");
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo on detected\n",__FUNCTION__);
             return RIG_OK;
         }
 
@@ -595,7 +595,7 @@ int icom_rig_open(RIG *rig)
 
         if (retval == RIG_OK)
         {
-            rig_debug(RIG_DEBUG_VERBOSE, "USB echo off detected\n");
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo off detected\n",__FUNCTION__);
             return RIG_OK;
         }
     }
@@ -720,7 +720,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     // Pick the appropriate VFO when VFO_TX is requested
     if (vfo == RIG_VFO_TX)
     {
-        rig_debug(RIG_DEBUG_TRACE,"%s: VFO_TX requested, vfo=%s\n",rig_strvfo(vfo));
+        rig_debug(RIG_DEBUG_TRACE,"%s: VFO_TX requested, vfo=%s\n",__FUNCTION__,rig_strvfo(vfo));
         if (priv->split_on)
         {
             vfo = rig->state.vfo_list & RIG_VFO_B ? RIG_VFO_B : RIG_VFO_SUB;
@@ -735,7 +735,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     // Pick the appropriate VFO when VFO_RX is requested
     if (vfo == RIG_VFO_RX)
     {
-        rig_debug(RIG_DEBUG_TRACE,"%s: VFO_RX requested, vfo=%s\n",rig_strvfo(vfo));
+        rig_debug(RIG_DEBUG_TRACE,"%s: VFO_RX requested, vfo=%s\n",__FUNCTION__,rig_strvfo(vfo));
         vfo = rig->state.vfo_list & RIG_VFO_B ? RIG_VFO_A : RIG_VFO_MAIN;
     }
 
@@ -859,7 +859,7 @@ static int icom_set_it_new(RIG *rig, vfo_t vfo, shortfreq_t ts, int set_xit)
     int ack_len;
     int retval;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: ts=%d\n", __func__, ts);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: ts=%d\n", __func__, (int)ts);
 
     to_bcd(tsbuf, abs((int) ts), 4);
     // set sign bit
@@ -1403,7 +1403,7 @@ int icom_get_vfo(RIG *rig, vfo_t *vfo)
 
     if (ack_len != 3)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s wrong frame len=%d\n", ack_len);
+        rig_debug(RIG_DEBUG_ERR, "%s wrong frame len=%d\n", __FUNCTION__, ack_len);
         return -RIG_ERJCTED;
     }
 
@@ -1830,7 +1830,7 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "Unsupported set_level %d", level);
+        rig_debug(RIG_DEBUG_ERR, "Unsupported set_level %s", rig_strlevel(level));
         return -RIG_EINVAL;
     }
 
@@ -2059,7 +2059,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "Unsupported get_level %d", level);
+        rig_debug(RIG_DEBUG_ERR, "Unsupported get_level %s", rig_strlevel(level));
         return -RIG_EINVAL;
     }
 
@@ -3631,7 +3631,7 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "Unsupported set_func %d", func);
+        rig_debug(RIG_DEBUG_ERR, "Unsupported set_func %s", rig_strfunc(func));
         return -RIG_EINVAL;
     }
 
@@ -3790,7 +3790,7 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "Unsupported get_func %d", func);
+        rig_debug(RIG_DEBUG_ERR, "Unsupported get_func %s", rig_strfunc(func));
         return -RIG_EINVAL;
     }
 
@@ -3863,7 +3863,7 @@ int icom_set_parm(RIG *rig, setting_t parm, value_t val)
     }
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "Unsupported set_parm %d\n", parm);
+        rig_debug(RIG_DEBUG_ERR, "Unsupported set_parm %s\n", rig_strparm(parm));
         return -RIG_EINVAL;
     }
 }
@@ -3886,7 +3886,7 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
     switch (parm)
     {
     default:
-        rig_debug(RIG_DEBUG_ERR, "Unsupported get_parm %d", parm);
+        rig_debug(RIG_DEBUG_ERR, "Unsupported get_parm %s", rig_strparm(parm));
         return -RIG_EINVAL;
     }
 
@@ -4205,7 +4205,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
     unsigned char fe_buf[200]; // for FE's to power up
     int fe_len = 0;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called status=\n", __func__, status);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called status=%d\n", __func__, (int)status);
 
     switch (status)
     {
@@ -4254,8 +4254,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
 
     if (i == retry)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: Wait failed for get_powerstat\n", __func__,
-                  i + 1);
+        rig_debug(RIG_DEBUG_TRACE, "%s: Wait failed for get_powerstat\n", __func__);
         retval = -RIG_ETIMEOUT;
     }
 
@@ -4735,7 +4734,7 @@ int icom_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq,
 
     rig_debug(RIG_DEBUG_TRACE, "%s: passed mwpower = %i\n", __func__, mwpower);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %"PRIfreq" Hz\n", __func__, freq);
-    rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = %i\n", __func__, mode);
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = %s\n", __func__, rig_strrmode(mode));
 
     if (mwpower > 100000)
     {
@@ -4778,7 +4777,7 @@ int icom_decode_event(RIG *rig)
     if (frm_len == -RIG_ETIMEOUT)
     {
         rig_debug(RIG_DEBUG_VERBOSE,
-                  "icom: icom_decode got a timeout before the first character\n");
+                  "%s: icom_decode got a timeout before the first character\n",__FUNCTION__);
     }
 
     if (frm_len < 0)
@@ -4789,7 +4788,7 @@ int icom_decode_event(RIG *rig)
     switch (buf[frm_len - 1])
     {
     case COL:
-        rig_debug(RIG_DEBUG_VERBOSE, "icom: icom_decode saw a collision\n");
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: icom_decode saw a collision\n",__FUNCTION__);
         /* Collision */
         return -RIG_BUSBUSY;
 
@@ -5308,7 +5307,7 @@ DECLARE_PROBERIG_BACKEND(icom)
  */
 DECLARE_INITRIG_BACKEND(icom)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "icom: _init called\n");
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n",__FUNCTION__);
 
     rig_register(&ic703_caps);
     rig_register(&ic706_caps);

@@ -287,7 +287,7 @@ const struct rot_caps prosistel_rot_caps =
 
 DECLARE_INITROT_BACKEND(prosistel)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "prosistel: _init called\n");
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
     rot_register(&prosistel_rot_caps);
 

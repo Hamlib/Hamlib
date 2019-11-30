@@ -53,10 +53,12 @@ static int rshfiq_open(RIG *rig)
  if( retval != RIG_OK)
   return retval;
  retval=ser_get_dtr(&rig->state.rigport, &flag);
- if(retval == RIG_OK)
+ if(retval == RIG_OK) {
    rig_debug(RIG_DEBUG_TRACE, "%s: DTR: %d\n", __func__,flag);
- else
+ }
+ else {
   rig_debug(RIG_DEBUG_TRACE, "%s: Could not get DTR\n", __func__);
+ }
  if(flag == 0)
   {
    flag=1; // Set DTR

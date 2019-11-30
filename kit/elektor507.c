@@ -466,7 +466,7 @@ int elektor507_ftdi_write_data(RIG *rig, void *FTOutBuf, unsigned long BufferSiz
 	libusb_device_handle *udh = rig->state.rigport.handle;
 	int ret, actual_length;
 
-	rig_debug(RIG_DEBUG_TRACE, "%s called, %d bytes\n", __func__, BufferSize);
+	rig_debug(RIG_DEBUG_TRACE, "%s called, %lu bytes\n", __func__, BufferSize);
 
 	ret = libusb_bulk_transfer(udh, FTDI_IN_EP, FTOutBuf, BufferSize, &actual_length, FTDI_USB_WRITE_TIMEOUT);
 

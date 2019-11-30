@@ -321,7 +321,7 @@ int ft897_init(RIG *rig)
 {
   struct ft897_priv_data *p;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft897:ft897_init called \n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: called\n", __func__);
 
   if ((p = calloc(1, sizeof(struct ft897_priv_data))) == NULL)
     return -RIG_ENOMEM;
@@ -336,7 +336,7 @@ int ft897_init(RIG *rig)
 
 int ft897_cleanup(RIG *rig)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,"ft897:ft897_cleanup called \n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: called\n", __func__);
 
   if (rig->state.priv)
     free(rig->state.priv);
@@ -347,14 +347,14 @@ int ft897_cleanup(RIG *rig)
 
 int ft897_open(RIG *rig)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,"ft897:ft897_open called \n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: called\n", __func__);
 
   return RIG_OK;
 }
 
 int ft897_close(RIG *rig)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,"ft897:ft897_close called \n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: called\n", __func__);
 
   return RIG_OK;
 }
@@ -377,17 +377,17 @@ static int check_cache_timeout(struct timeval *tv)
   long t;
 
   if (tv->tv_sec == 0 && tv->tv_usec == 0) {
-    rig_debug(RIG_DEBUG_VERBOSE, "ft897: cache invalid\n");
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: cache invalid\n", __func__);
     return 1;
   }
 
   gettimeofday(&curr, NULL);
 
   if ((t = timediff(&curr, tv)) < FT897_CACHE_TIMEOUT) {
-    rig_debug(RIG_DEBUG_VERBOSE, "ft897: using cache (%ld ms)\n", t);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: using cache (%ld ms)\n", __func__, t);
     return 0;
   } else {
-    rig_debug(RIG_DEBUG_VERBOSE, "ft897: cache timed out (%ld ms)\n", t);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: cache timed out (%ld ms)\n", __func__, t);
     return 1;
   }
 }
@@ -441,7 +441,7 @@ static int ft897_get_status(RIG *rig, int status)
     tv   = &p->tx_status_tv;
     break;
   default:
-    rig_debug(RIG_DEBUG_ERR, "ft897_get_status: Internal error!\n");
+    rig_debug(RIG_DEBUG_ERR, "%s: internal error!\n", __func__);
     return -RIG_EINTERNAL;
   }
 
@@ -688,11 +688,11 @@ static int ft897_read_ack(RIG *rig)
   int n;
 
   if ((n = read_block(&rig->state.rigport, &dummy, 1)) < 0) {
-    rig_debug(RIG_DEBUG_ERR, "ft897: error reading ack\n");
+    rig_debug(RIG_DEBUG_ERR, "%s: error reading ack\n", __func__);
     return n;
   }
 
-  rig_debug(RIG_DEBUG_TRACE,"ft897: ack received (%d)\n", dummy);
+  rig_debug(RIG_DEBUG_TRACE,"%s: ack received (%d)\n", __func__, dummy);
 
   if (dummy != 0)
     return -RIG_ERJCTED;
@@ -710,7 +710,7 @@ static int ft897_send_cmd(RIG *rig, int index)
   struct ft897_priv_data *p = (struct ft897_priv_data *) rig->state.priv;
 
   if (p->pcs[index].ncomp == 0) {
-    rig_debug(RIG_DEBUG_VERBOSE, "ft897: Incomplete sequence\n");
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: incomplete sequence\n", __func__);
     return -RIG_EINTERNAL;
   }
 
@@ -727,7 +727,7 @@ static int ft897_send_icmd(RIG *rig, int index, unsigned char *data)
   unsigned char cmd[YAESU_CMD_LENGTH];
 
   if (p->pcs[index].ncomp == 1) {
-    rig_debug(RIG_DEBUG_VERBOSE, "ft897: Complete sequence\n");
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: Complete sequence\n", __func__);
     return -RIG_EINTERNAL;
   }
 
@@ -747,7 +747,7 @@ int ft897_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
   if (vfo != RIG_VFO_CURR)
     return -RIG_ENTARGET;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft897: requested freq = %"PRIfreq" Hz\n", freq);
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: requested freq = %"PRIfreq" Hz\n", __func__, freq);
 
   /* fill in the frequency */
   to_bcd_be(data, (freq + 5) / 10, 8);
@@ -765,7 +765,7 @@ int ft897_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   if (vfo != RIG_VFO_CURR)
     return -RIG_ENTARGET;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft897: generic mode = %x \n", mode);
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: generic mode = %s\n", __func__, rig_strrmode(mode));
 
   switch(mode) {
   case RIG_MODE_AM:
@@ -813,7 +813,7 @@ int ft897_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
   if (vfo != RIG_VFO_CURR)
     return -RIG_ENTARGET;
 
-  rig_debug(RIG_DEBUG_VERBOSE, "ft897: ft897_set_ptt called\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
   switch(ptt) {
   case RIG_PTT_ON:
@@ -843,7 +843,7 @@ int ft897_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
   if (vfo != RIG_VFO_CURR)
     return -RIG_ENTARGET;
 
-  rig_debug(RIG_DEBUG_VERBOSE, "ft897: ft897_vfo_op called\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
   switch (op) {
   case RIG_OP_TOGGLE:
@@ -869,7 +869,7 @@ int ft897_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
   if (vfo != RIG_VFO_CURR)
     return -RIG_ENTARGET;
 
-  rig_debug(RIG_DEBUG_VERBOSE, "ft897: ft897_set_split_vfo called\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
   switch(split) {
   case RIG_SPLIT_OFF:

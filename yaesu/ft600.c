@@ -259,21 +259,21 @@ int ft600_cleanup(RIG *rig) {
     free(rig->state.priv);
   rig->state.priv = NULL;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft600:ft600_cleanup called \n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: called\n", __func__);
 
   return RIG_OK;
 }
 
 int ft600_open(RIG *rig) {
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft600:ft600_open called \n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: called\n", __func__);
 
   return RIG_OK;
 }
 
 int ft600_close(RIG *rig) {
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft600:ft600_close called \n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s:called\n", __func__);
 
   return RIG_OK;
 }
@@ -385,7 +385,7 @@ int ft600_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
    struct ft600_priv_data *priv = (struct ft600_priv_data*)rig->state.priv;
    freq_t f;
    int ret;
-   rig_debug(RIG_DEBUG_VERBOSE,"ft600: get_freq \n");
+   rig_debug(RIG_DEBUG_VERBOSE,"%s: get_freq\n", __func__);
 
    if( !freq )  return -RIG_EINVAL;
 
@@ -475,7 +475,7 @@ int ft600_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
   unsigned char p_cmd[YAESU_CMD_LENGTH];
   int ret;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft600: generic mode = %x, width %d\n", mode, width);
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: generic mode = %s, width %d\n", __func__, rig_strrmode(mode), (int)width);
 
   switch(mode) {
     case RIG_MODE_LSB:

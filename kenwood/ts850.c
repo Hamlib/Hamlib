@@ -325,7 +325,7 @@ static char mode_to_char(rmode_t mode)
 		case RIG_MODE_RTTY:     return(MD_FSK);
 		case RIG_MODE_RTTYR:    return(MD_FSKR);
 		default:
-			rig_debug(RIG_DEBUG_WARN,"%s: unsupported mode %d\n", __func__,mode);
+			rig_debug(RIG_DEBUG_WARN,"%s: unsupported mode %s\n", __func__, rig_strrmode(mode));
 	}
 	return(RIG_MODE_NONE);
 }

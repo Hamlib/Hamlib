@@ -744,7 +744,7 @@ static int ic756pro2_get_ext_parm(RIG *rig, token_t token, value_t *val)
 		ep_sc = S_MEM_RTTY_FL_PB;
 		break;
 	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported get_ext_parm %d", token);
+		rig_debug(RIG_DEBUG_ERR,"Unsupported get_ext_parm %s", rig_strparm(token));
 		return -RIG_EINVAL;
 	}
 

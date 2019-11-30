@@ -292,8 +292,8 @@ int ar3k_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	case RIG_MODE_WFM:      aormode = 'W'; break;
 	case RIG_MODE_FM:	aormode = 'N'; break;
 	default:
-		rig_debug(RIG_DEBUG_ERR,"ar3k_set_mode: unsupported mode %d\n",
-						mode);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %s\n",__func__,
+						rig_strrmode(mode));
 		return -RIG_EINVAL;
 	}
 

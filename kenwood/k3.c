@@ -1013,7 +1013,7 @@ int k3_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
     case TOK_IF_NB:
       return k3_set_nb_level(rig, -1, val.f / 21.0f);
     default:
-      rig_debug(RIG_DEBUG_WARN, "%s: Unsupported set_ext_level %d\n", __func__, token);
+      rig_debug(RIG_DEBUG_WARN, "%s: Unsupported set_ext_level %s\n", __func__, rig_strlevel(token));
       return -RIG_EINVAL;
   }
 }
@@ -1069,7 +1069,7 @@ int k3_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
       break;
     }
     default:
-      rig_debug(RIG_DEBUG_WARN, "%s: Unsupported get_ext_level %d\n", __func__, token);
+      rig_debug(RIG_DEBUG_WARN, "%s: Unsupported get_ext_level %s\n", __func__, rig_strlevel(token));
       return -RIG_EINVAL;
   }
 

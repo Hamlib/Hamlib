@@ -200,7 +200,7 @@ static libusb_device_handle *find_and_open_device(const hamlib_port_t *port)
 
             libusb_free_device_list(devs, 1);
 
-            rig_debug(RIG_DEBUG_VERBOSE, " -> found\n");
+            rig_debug(RIG_DEBUG_VERBOSE, "%s", " -> found\n");
 
             return udh;
         }
@@ -208,7 +208,7 @@ static libusb_device_handle *find_and_open_device(const hamlib_port_t *port)
 
     libusb_free_device_list(devs, 1);
 
-    rig_debug(RIG_DEBUG_VERBOSE, " -> not found\n");
+    rig_debug(RIG_DEBUG_VERBOSE, "%s", " -> not found\n");
 
     return NULL;        /* not found */
 }

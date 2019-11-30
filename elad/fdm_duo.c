@@ -56,7 +56,7 @@ elad_fdm_duo_get_info (RIG * rig)
   size_t firm_len = strlen (firmbuf);
   if (firm_len != 5)
     {
-      rig_debug (RIG_DEBUG_ERR, "elad_get_info: wrong answer len=%d\n", firm_len);
+      rig_debug (RIG_DEBUG_ERR, "elad_get_info: wrong answer len=%d\n", (int)firm_len);
       return NULL;
     }
   switch (firmbuf[4])
@@ -126,14 +126,14 @@ elad_fdm_duo_set_level (RIG * rig, vfo_t vfo, setting_t level, value_t val)
 	  elad_val = 2;
 	  break;
 	default:
-	  rig_debug (RIG_DEBUG_ERR, "Unsupported agc value");
+	  rig_debug (RIG_DEBUG_ERR, "%s: Unsupported agc value",__FUNCTION__);
 	  return -RIG_EINVAL;
 	};
       sprintf (levelbuf, "GT%03d", elad_val);
       break;
 
     default:
-      rig_debug (RIG_DEBUG_ERR, "Unsupported set_level %d", level);
+      rig_debug (RIG_DEBUG_ERR, "%s: Unsupported set_level %s", __FUNCTION__, rig_strlevel(level));
       return -RIG_EINVAL;
     }
 
@@ -242,7 +242,7 @@ elad_fdm_duo_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
       return -RIG_ENIMPL;
 
     default:
-      rig_debug (RIG_DEBUG_ERR, "Unsupported get_level %d", level);
+      rig_debug (RIG_DEBUG_ERR, "Unsupported get_level %s", rig_strlevel(level));
       return -RIG_EINVAL;
     }
 

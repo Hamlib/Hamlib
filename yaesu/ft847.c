@@ -551,7 +551,7 @@ int ft847_cleanup(RIG *rig) {
     free(rig->state.priv);
   rig->state.priv = NULL;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft847:ft847_cleanup called \n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: called \n", __func__);
 
   return RIG_OK;
 }
@@ -566,7 +566,7 @@ int ft847_open(RIG *rig) {
 
   /* Good time to set CAT ON */
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft847:ft847_open called \n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: called\n", __func__);
 
   return ft847_send_priv_cmd(rig,FT_847_NATIVE_CAT_ON);
 }
@@ -580,7 +580,7 @@ int ft847_close(RIG *rig) {
 
   /* Good time to set CAT OFF */
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft847:ft847_close called \n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: called\n", __func__);
 
   /* don't care about return value */
   ft847_send_priv_cmd(rig,FT_847_NATIVE_CAT_OFF);
@@ -603,7 +603,7 @@ static int ft847_send_priv_cmd(RIG *rig, int cmd_index) {
     return -RIG_EINVAL;
 
   if (! ncmd[cmd_index].ncomp) {
-    rig_debug(RIG_DEBUG_VERBOSE,"ft847: Attempt to send incomplete sequence \n");
+    rig_debug(RIG_DEBUG_VERBOSE,"%s: attempt to send incomplete sequence\n", __func__);
     return -RIG_EINVAL;
   }
 
@@ -641,8 +641,7 @@ static int opcode_vfo(RIG *rig, unsigned char * cmd, int cmd_index, vfo_t vfo)
 	    cmd[4] |= 0x20;  /* SAT TX VFO */
 	    break;
 	  default:
-	    rig_debug(RIG_DEBUG_WARN,"%s: Unsupported VFO %s\n",
-			    rig_strvfo(vfo));
+	    rig_debug(RIG_DEBUG_WARN,"%s: Unsupported VFO %s\n", __func__, rig_strvfo(vfo));
 	    return -RIG_EINVAL;		/* sorry, wrong VFO */
 	  }
   }
@@ -675,7 +674,7 @@ int ft847_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 
   to_bcd_be(p_cmd,freq/10,8);	/* store bcd format in in p_cmd */
 
-  rig_debug(RIG_DEBUG_VERBOSE,"%s: requested freq after conversion = %"PRIll" Hz \n", __func__, from_bcd_be(p_cmd,8)* 10 );
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: requested freq after conversion = %"PRIll" Hz \n", __func__, (int64_t)from_bcd_be(p_cmd,8)* 10 );
 
   if (rig->caps->rig_model == RIG_MODEL_FT847UNI) {
     struct ft847_priv_data *priv = (struct ft847_priv_data*)rig->state.priv;
@@ -817,7 +816,7 @@ int ft847_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
    * translate mode from generic to ft847 specific
    */
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft847: generic mode = %x \n", mode);
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: generic mode = %s\n", __func__, rig_strrmode(mode));
 
   if (rig->caps->rig_model == RIG_MODEL_FT847UNI) {
     struct ft847_priv_data *priv = (struct ft847_priv_data*)rig->state.priv;
@@ -873,16 +872,16 @@ int ft847_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
         break;
       default:
         rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode/width: %s/%d, narrow: %d\n",
-                  __FUNCTION__, rig_strrmode(mode), width,
-                  rig_passband_narrow(rig, mode));
+                  __FUNCTION__, rig_strrmode(mode), (int)width,
+                  (int)rig_passband_narrow(rig, mode));
         return -RIG_EINVAL;		/* sorry, wrong MODE/WIDTH combo  */
       }
     } else {
   		if (width != RIG_PASSBAND_NORMAL &&
           width != rig_passband_normal(rig, mode)) {
         rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode/width: %s/%d, narrow: %d\n",
-                  __FUNCTION__, rig_strrmode(mode), width,
-                  rig_passband_narrow(rig, mode));
+                  __FUNCTION__, rig_strrmode(mode), (int)width,
+                  (int)rig_passband_narrow(rig, mode));
         return -RIG_EINVAL;		/* sorry, wrong MODE/WIDTH combo  */
       }
     }
@@ -975,7 +974,7 @@ int ft847_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 int ft847_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt) {
   unsigned char cmd_index;	/* index of sequence to send */
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft847:ft847_set_ptt called \n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: called \n", __func__);
 
   if (rig->caps->rig_model == RIG_MODEL_FT847UNI) {
     struct ft847_priv_data *priv = (struct ft847_priv_data*)rig->state.priv;
@@ -1021,7 +1020,7 @@ static int ft847_get_status(RIG *rig, int status_ci)
     len  = 1;
     break;
   default:
-    rig_debug(RIG_DEBUG_ERR, "ft847_get_status: Internal error!\n");
+    rig_debug(RIG_DEBUG_ERR, "%s: Internal error!\n", __func__);
     return -RIG_EINTERNAL;
   }
 

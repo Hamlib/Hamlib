@@ -468,10 +468,12 @@ static void dump_radio_state(RIG *rig){
     if (rig == NULL) return;
 
     if ((ret = vx1700_read_mem_channel_number(rig, &channel)) != RIG_OK) return;
-    if (vx1700_channel_is_ok(channel))
+    if (vx1700_channel_is_ok(channel)) {
 	rig_debug(RIG_DEBUG_TRACE, "%s: Current Memory Channel %d\n", __func__, (int)channel);
-    else
+    }
+    else {
 	rig_debug(RIG_DEBUG_TRACE, "%s: Memory Channel number is not available at the moment\n", __func__);
+    }
 
     if ((ret = vx1700_read_op_data_raw(rig, reply)) != RIG_OK) return;
     vx1700_parse_op_data(__func__, reply);
@@ -753,7 +755,7 @@ static int vx1700_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt){
 static int vx1700_set_func(RIG *rig, vfo_t vfo, setting_t func, int status){
     (void) rig;
     (void) vfo;
-    rig_debug(RIG_DEBUG_TRACE, "%s: func=0x%04x, status=%d\n", __func__, func, status);
+    rig_debug(RIG_DEBUG_TRACE, "%s: func=%s, status=%d\n", __func__, rig_strfunc(func), status);
     return -RIG_EINVAL;
 }
 
@@ -763,7 +765,7 @@ static int vx1700_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status){
 
     (void) rig;
     (void) vfo;
-    rig_debug(RIG_DEBUG_TRACE, "%s: func=0x%04x\n", __func__, func);
+    rig_debug(RIG_DEBUG_TRACE, "%s: func=%s\n", __func__, rig_strfunc(func));
 
     switch(func){
 	case RIG_FUNC_LOCK:
@@ -784,7 +786,7 @@ static int vx1700_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status){
 static int vx1700_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val){
     (void) rig;
     (void) vfo;
-    rig_debug(RIG_DEBUG_TRACE, "%s: level=0x%04x, val=???\n", __func__, level);
+    rig_debug(RIG_DEBUG_TRACE, "%s: level=%s, val=???\n", __func__, rig_strlevel(level));
 
     switch(level){
 	case RIG_LEVEL_RFPOWER:
@@ -802,7 +804,7 @@ static int vx1700_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val){
 static int vx1700_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val){
     (void) rig;
     (void) vfo;
-    rig_debug(RIG_DEBUG_TRACE, "%s: level=0x%04x\n", __func__, level);
+    rig_debug(RIG_DEBUG_TRACE, "%s: level=%s\n", __func__, rig_strlevel(level));
     return -RIG_EINVAL;
 }
 

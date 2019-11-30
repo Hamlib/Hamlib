@@ -60,18 +60,24 @@ int verify_flexradio_id(RIG *rig, char *id)
 	if (*idptr == ' ')
 		idptr++;
 
-	if (strcmp("904", idptr) == 0)
+	if (strcmp("904", idptr) == 0) {
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig ID is %s (Flex 6700)\n", __func__, id);
-	else if (strcmp("905", idptr) == 0)
+  }
+	else if (strcmp("905", idptr) == 0) {
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig ID is %s (Flex 6500)\n", __func__, id);
-	else if (strcmp("906", idptr) == 0)
+  }
+	else if (strcmp("906", idptr) == 0) {
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig ID is %s (Flex 6500R)\n", __func__, id);
-	else if (strcmp("907", idptr) == 0)
+  }
+	else if (strcmp("907", idptr) == 0) {
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig ID is %s (Flex 6300)\n", __func__, id);
-	else if (strcmp("908", idptr) == 0)
+  }
+	else if (strcmp("908", idptr) == 0) {
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig ID is %s (Flex 6400)\n", __func__, id);
-	else if (strcmp("909", idptr) == 0)
+  }
+	else if (strcmp("909", idptr) == 0) {
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig ID is %s (Flex 6600)\n", __func__, id);
+  }
 	else {
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig (%s) is not a Flex 6000 Series\n", __func__, id);
 		return -RIG_EPROTO;

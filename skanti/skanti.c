@@ -167,8 +167,8 @@ int skanti_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	case RIG_MODE_RTTY:     sk_mode = MD_RTTY EOM; break;
 	case RIG_MODE_AM:       sk_mode = MD_AM EOM; break;
 	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %d\n",
-				__FUNCTION__, mode);
+		rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n",
+				__func__, rig_strrmode(mode));
 		return -RIG_EINVAL;
 	}
 
@@ -252,7 +252,7 @@ int skanti_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		return skanti_transaction (rig, agc, strlen(agc), NULL, NULL);
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported set_level %d\n", level);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported set_level %s\n", __func__, rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 
@@ -291,7 +291,7 @@ int skanti_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
  */
 DECLARE_INITRIG_BACKEND(skanti)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "skanti: _init called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
 	rig_register(&trp8000_caps);
 	rig_register(&trp8255_caps);
