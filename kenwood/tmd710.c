@@ -1369,7 +1369,7 @@ static int tmd710_get_mode_tmd710_value(rmode_t mode, int *tmd710_mode)
  */
 static int tmd710_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-    int retval, tmd710_mode;
+    int retval, tmd710_mode = 0;
     tmd710_fo fo_struct;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
