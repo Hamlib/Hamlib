@@ -435,7 +435,7 @@ int HAMLIB_API locator2longlat(double *longitude,
 
             /* Value of digit or letter */
             locvalue -= (loc_char_range[pair] == 10) ? '0' :
-                (isupper(locvalue)) ? 'A' : 'a';
+                        (isupper(locvalue)) ? 'A' : 'a';
 
             /* Check range for non-letter/digit or out of range */
             if ((locvalue < 0) || (locvalue >= loc_char_range[pair]))

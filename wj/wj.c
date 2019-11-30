@@ -41,24 +41,26 @@
 
 #define CMDSZ 10
 
-const struct confparams wj_cfg_params[] = {
-	{ TOK_RIGID, "receiver_id", "receiver ID", "receiver ID",
-			"0", RIG_CONF_NUMERIC, { .n = { 0, 15, 1 } }
-	},
-	{ RIG_CONF_END, NULL, }
+const struct confparams wj_cfg_params[] =
+{
+    {
+        TOK_RIGID, "receiver_id", "receiver ID", "receiver ID",
+        "0", RIG_CONF_NUMERIC, { .n = { 0, 15, 1 } }
+    },
+    { RIG_CONF_END, NULL, }
 };
 
 
 /*
  * modes
  */
-#define MD_AM	0
-#define MD_FM	1
-#define MD_CW	2
-#define MD_VCW	3	/* BFO variable */
-#define MD_ISB	4
-#define MD_LSB	5
-#define MD_USB	6
+#define MD_AM   0
+#define MD_FM   1
+#define MD_CW   2
+#define MD_VCW  3   /* BFO variable */
+#define MD_ISB  4
+#define MD_LSB  5
+#define MD_USB  6
 #define MD_AMNL 7
 
 
@@ -72,146 +74,186 @@ const struct confparams wj_cfg_params[] = {
  */
 static int wj_transaction(RIG *rig, int monitor)
 {
-	struct wj_priv_data *priv = (struct wj_priv_data*)rig->state.priv;
+    struct wj_priv_data *priv = (struct wj_priv_data *)rig->state.priv;
 
-	unsigned char buf[CMDSZ] = { 0x8, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-	unsigned char rxbuf[CMDSZ];
-	unsigned char freqbuf[4];
-	unsigned wj_agc, wj_mode, wj_width, wj_bfo, wj_rfgain;
-	int retval;
+    unsigned char buf[CMDSZ] = { 0x8, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    unsigned char rxbuf[CMDSZ];
+    unsigned char freqbuf[4];
+    unsigned wj_agc, wj_mode, wj_width, wj_bfo, wj_rfgain;
+    int retval;
 
-	if (monitor)
-		buf[1] |= 0x40;	/* Monitor+AGC dump */
-	else
-		buf[0] |= 0x40;	/* Command */
+    if (monitor)
+    {
+        buf[1] |= 0x40;    /* Monitor+AGC dump */
+    }
+    else
+    {
+        buf[0] |= 0x40;    /* Command */
+    }
 
-	buf[0] |= priv->receiver_id & 0x0f;
+    buf[0] |= priv->receiver_id & 0x0f;
 
-	/* tuned frequency */
-	to_bcd_be(freqbuf, priv->freq/10, 7);
-	buf[1] |= freqbuf[0] & 0x3f;
-	buf[2] |= freqbuf[1]>>1;
-	buf[3] |= ((freqbuf[1]&0x1)<<6) | (freqbuf[2]>>2);
-	buf[4] |= ((freqbuf[2]&0x2)<<5) | (freqbuf[3]>>3);
+    /* tuned frequency */
+    to_bcd_be(freqbuf, priv->freq / 10, 7);
+    buf[1] |= freqbuf[0] & 0x3f;
+    buf[2] |= freqbuf[1] >> 1;
+    buf[3] |= ((freqbuf[1] & 0x1) << 6) | (freqbuf[2] >> 2);
+    buf[4] |= ((freqbuf[2] & 0x2) << 5) | (freqbuf[3] >> 3);
 
-	/* gain mode */
-	switch (priv->agc.i) {
-		case RIG_AGC_SLOW: wj_agc = 0; break;	/* slow, 2s */
-		case RIG_AGC_OFF: wj_agc = 1; break;	/* "not used" */
-		case RIG_AGC_FAST: wj_agc = 2; break;	/* normal, 0.1s */
-		case RIG_AGC_USER: wj_agc = 3; break;	/* manual */
-		default: return -RIG_EINVAL;
-	}
-	buf[4] |= wj_agc & 0x1;
-	buf[5] |= (wj_agc & 0x2)<<5;
+    /* gain mode */
+    switch (priv->agc.i)
+    {
+    case RIG_AGC_SLOW: wj_agc = 0; break;   /* slow, 2s */
 
-	/* IF BW */
-	switch (priv->width) {
-		case  200:
-		case 1000: wj_width = 0; break;	/* spare */
+    case RIG_AGC_OFF: wj_agc = 1; break;    /* "not used" */
 
-		case  500: wj_width = 1; break;
-		case 2000: wj_width = 2; break;
-		case 4000: wj_width = 3; break;
-		case 8000: wj_width = 4; break;
+    case RIG_AGC_FAST: wj_agc = 2; break;   /* normal, 0.1s */
 
-		case 3000:
-		case 6000:
-		case 12000:
-		case 16000: wj_width = 5; break;	/* spare */
-		default:
-			   return -RIG_EINVAL;
-	}
-	buf[5] |= (wj_width & 0x7)<<3;
+    case RIG_AGC_USER: wj_agc = 3; break;   /* manual */
 
-	/* Detection mode */
-	switch (priv->mode) {
-	case RIG_MODE_CW:	wj_mode = (priv->ifshift.i!=0) ? MD_VCW:MD_CW; break;
-	case RIG_MODE_USB:	wj_mode = MD_USB; break;
-	case RIG_MODE_LSB:	wj_mode = MD_LSB; break;
-	case RIG_MODE_FM:	wj_mode = MD_FM; break;
-	case RIG_MODE_AM:	wj_mode = MD_AM; break;
-	case RIG_MODE_AMS:	wj_mode = MD_ISB; break;
-	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n",
-				__func__, rig_strrmode(priv->mode));
-		return -RIG_EINVAL;
-	}
-	buf[5] |= wj_mode & 0x7;
+    default: return -RIG_EINVAL;
+    }
 
-	/* BFO frequency, not sure though */
-	wj_bfo = (priv->ifshift.i/10) + 0x400;	/* LSBit is 10Hz, +455kHz */
-	buf[6] |= (wj_bfo >> 5) & 0x3f;
-	buf[7] |= (wj_bfo & 0x1f) << 2;
+    buf[4] |= wj_agc & 0x1;
+    buf[5] |= (wj_agc & 0x2) << 5;
 
-	/* RF gain */
-	wj_rfgain = (unsigned)(priv->rfgain.f * 0x7f);
-	buf[7] |= (wj_rfgain >> 6) & 0x1;
-	buf[8] |= (wj_rfgain & 0x3f) << 1;
+    /* IF BW */
+    switch (priv->width)
+    {
+    case  200:
+    case 1000: wj_width = 0; break; /* spare */
 
-	/* buf[9]: not used if command byte, but must be transmitted */
+    case  500: wj_width = 1; break;
 
-	serial_flush(&rig->state.rigport);
+    case 2000: wj_width = 2; break;
 
-	retval = write_block(&rig->state.rigport, (char *) buf, CMDSZ);
-	if (retval != RIG_OK)
-		return retval;
+    case 4000: wj_width = 3; break;
 
-	if (monitor) {
-		/*
-	 	* Transceiver sends back ">"
-	 	*/
-		retval = read_block(&rig->state.rigport, (char *) rxbuf, CMDSZ);
-		if (retval < 0 || retval > CMDSZ)
-			return -RIG_ERJCTED;
+    case 8000: wj_width = 4; break;
 
-		/*
-		 *  TODO: analyze back the reply, and fill in the priv struct
-		 */
-		priv->rawstr.i = rxbuf[9] & 0x7f;
-	}
+    case 3000:
+    case 6000:
+    case 12000:
+    case 16000: wj_width = 5; break;    /* spare */
 
-	return retval;
+    default:
+        return -RIG_EINVAL;
+    }
+
+    buf[5] |= (wj_width & 0x7) << 3;
+
+    /* Detection mode */
+    switch (priv->mode)
+    {
+    case RIG_MODE_CW:   wj_mode = (priv->ifshift.i != 0) ? MD_VCW : MD_CW; break;
+
+    case RIG_MODE_USB:  wj_mode = MD_USB; break;
+
+    case RIG_MODE_LSB:  wj_mode = MD_LSB; break;
+
+    case RIG_MODE_FM:   wj_mode = MD_FM; break;
+
+    case RIG_MODE_AM:   wj_mode = MD_AM; break;
+
+    case RIG_MODE_AMS:  wj_mode = MD_ISB; break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n",
+                  __func__, rig_strrmode(priv->mode));
+        return -RIG_EINVAL;
+    }
+
+    buf[5] |= wj_mode & 0x7;
+
+    /* BFO frequency, not sure though */
+    wj_bfo = (priv->ifshift.i / 10) + 0x400; /* LSBit is 10Hz, +455kHz */
+    buf[6] |= (wj_bfo >> 5) & 0x3f;
+    buf[7] |= (wj_bfo & 0x1f) << 2;
+
+    /* RF gain */
+    wj_rfgain = (unsigned)(priv->rfgain.f * 0x7f);
+    buf[7] |= (wj_rfgain >> 6) & 0x1;
+    buf[8] |= (wj_rfgain & 0x3f) << 1;
+
+    /* buf[9]: not used if command byte, but must be transmitted */
+
+    serial_flush(&rig->state.rigport);
+
+    retval = write_block(&rig->state.rigport, (char *) buf, CMDSZ);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    if (monitor)
+    {
+        /*
+        * Transceiver sends back ">"
+        */
+        retval = read_block(&rig->state.rigport, (char *) rxbuf, CMDSZ);
+
+        if (retval < 0 || retval > CMDSZ)
+        {
+            return -RIG_ERJCTED;
+        }
+
+        /*
+         *  TODO: analyze back the reply, and fill in the priv struct
+         */
+        priv->rawstr.i = rxbuf[9] & 0x7f;
+    }
+
+    return retval;
 }
 
 int wj_init(RIG *rig)
 {
-	struct wj_priv_data *priv;
+    struct wj_priv_data *priv;
 
-	if (!rig || !rig->caps)
-		return -RIG_EINVAL;
+    if (!rig || !rig->caps)
+    {
+        return -RIG_EINVAL;
+    }
 
-	priv = (struct wj_priv_data*)malloc(sizeof(struct wj_priv_data));
-	if (!priv) {
-		/* whoops! memory shortage! */
-		return -RIG_ENOMEM;
-	}
+    priv = (struct wj_priv_data *)malloc(sizeof(struct wj_priv_data));
 
-	rig->state.priv = (void*)priv;
+    if (!priv)
+    {
+        /* whoops! memory shortage! */
+        return -RIG_ENOMEM;
+    }
 
-	priv->receiver_id = 0;
-	priv->freq = kHz(500);
-	priv->mode = RIG_MODE_AM;
-	priv->width = kHz(8);
-	priv->agc.i = RIG_AGC_SLOW;
-	priv->rfgain.f = 1;
-	priv->ifshift.i = 0;
+    rig->state.priv = (void *)priv;
 
-	return RIG_OK;
+    priv->receiver_id = 0;
+    priv->freq = kHz(500);
+    priv->mode = RIG_MODE_AM;
+    priv->width = kHz(8);
+    priv->agc.i = RIG_AGC_SLOW;
+    priv->rfgain.f = 1;
+    priv->ifshift.i = 0;
+
+    return RIG_OK;
 }
 
 /*
  */
 int wj_cleanup(RIG *rig)
 {
-	if (!rig)
-		return -RIG_EINVAL;
+    if (!rig)
+    {
+        return -RIG_EINVAL;
+    }
 
-	if (rig->state.priv)
-		free(rig->state.priv);
-	rig->state.priv = NULL;
+    if (rig->state.priv)
+    {
+        free(rig->state.priv);
+    }
 
-	return RIG_OK;
+    rig->state.priv = NULL;
+
+    return RIG_OK;
 }
 
 
@@ -221,16 +263,19 @@ int wj_cleanup(RIG *rig)
  */
 int wj_set_conf(RIG *rig, token_t token, const char *val)
 {
-	struct wj_priv_data *priv = (struct wj_priv_data*)rig->state.priv;
+    struct wj_priv_data *priv = (struct wj_priv_data *)rig->state.priv;
 
-	switch (token) {
-		case TOK_RIGID:
-			priv->receiver_id = atoi(val);
-			break;
-		default:
-			return -RIG_EINVAL;
-	}
-	return RIG_OK;
+    switch (token)
+    {
+    case TOK_RIGID:
+        priv->receiver_id = atoi(val);
+        break;
+
+    default:
+        return -RIG_EINVAL;
+    }
+
+    return RIG_OK;
 }
 
 /*
@@ -240,16 +285,19 @@ int wj_set_conf(RIG *rig, token_t token, const char *val)
  */
 int wj_get_conf(RIG *rig, token_t token, char *val)
 {
-	struct wj_priv_data *priv = (struct wj_priv_data*)rig->state.priv;
+    struct wj_priv_data *priv = (struct wj_priv_data *)rig->state.priv;
 
-	switch(token) {
-		case TOK_RIGID:
-			sprintf(val, "%d", priv->receiver_id);
-			break;
-		default:
-			return -RIG_EINVAL;
-	}
-	return RIG_OK;
+    switch (token)
+    {
+    case TOK_RIGID:
+        sprintf(val, "%d", priv->receiver_id);
+        break;
+
+    default:
+        return -RIG_EINVAL;
+    }
+
+    return RIG_OK;
 }
 
 /*
@@ -258,11 +306,11 @@ int wj_get_conf(RIG *rig, token_t token, char *val)
  */
 int wj_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-	struct wj_priv_data *priv = (struct wj_priv_data*)rig->state.priv;
+    struct wj_priv_data *priv = (struct wj_priv_data *)rig->state.priv;
 
-	priv->freq = freq;
+    priv->freq = freq;
 
-	return wj_transaction (rig, 0);
+    return wj_transaction(rig, 0);
 }
 
 /*
@@ -271,16 +319,19 @@ int wj_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  */
 int wj_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-	struct wj_priv_data *priv = (struct wj_priv_data*)rig->state.priv;
-	int retval;
+    struct wj_priv_data *priv = (struct wj_priv_data *)rig->state.priv;
+    int retval;
 
-	retval =  wj_transaction (rig, 1);
-	if (retval == RIG_OK)
-		return retval;
+    retval =  wj_transaction(rig, 1);
 
-	*freq = priv->freq;
+    if (retval == RIG_OK)
+    {
+        return retval;
+    }
 
-	return RIG_OK;
+    *freq = priv->freq;
+
+    return RIG_OK;
 }
 
 /*
@@ -289,18 +340,21 @@ int wj_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  */
 int wj_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-	struct wj_priv_data *priv = (struct wj_priv_data*)rig->state.priv;
+    struct wj_priv_data *priv = (struct wj_priv_data *)rig->state.priv;
 
-	priv->mode = mode;
+    priv->mode = mode;
 
-	if (width != RIG_PASSBAND_NOCHANGE) {
-		if (width == RIG_PASSBAND_NORMAL)
-			width = rig_passband_normal(rig, mode);
+    if (width != RIG_PASSBAND_NOCHANGE)
+    {
+        if (width == RIG_PASSBAND_NORMAL)
+        {
+            width = rig_passband_normal(rig, mode);
+        }
 
-		priv->width = width;
-	}
+        priv->width = width;
+    }
 
-	return wj_transaction (rig, 0);
+    return wj_transaction(rig, 0);
 }
 
 /*
@@ -309,17 +363,20 @@ int wj_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
  */
 int wj_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-	struct wj_priv_data *priv = (struct wj_priv_data*)rig->state.priv;
-	int retval;
+    struct wj_priv_data *priv = (struct wj_priv_data *)rig->state.priv;
+    int retval;
 
-	retval =  wj_transaction (rig, 1);
-	if (retval == RIG_OK)
-		return retval;
+    retval =  wj_transaction(rig, 1);
 
-	*mode = priv->mode;
-	*width = priv->width;
+    if (retval == RIG_OK)
+    {
+        return retval;
+    }
 
-	return RIG_OK;
+    *mode = priv->mode;
+    *width = priv->width;
+
+    return RIG_OK;
 }
 
 
@@ -330,27 +387,28 @@ int wj_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  */
 int wj_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-	struct wj_priv_data *priv = (struct wj_priv_data*)rig->state.priv;
+    struct wj_priv_data *priv = (struct wj_priv_data *)rig->state.priv;
 
-	switch (level) {
-	case RIG_LEVEL_IF:
-		priv->ifshift.i = val.i;
-		break;
+    switch (level)
+    {
+    case RIG_LEVEL_IF:
+        priv->ifshift.i = val.i;
+        break;
 
-	case RIG_LEVEL_RF:
-		priv->rfgain.f = val.f;
-		break;
+    case RIG_LEVEL_RF:
+        priv->rfgain.f = val.f;
+        break;
 
-	case RIG_LEVEL_AGC:
-		priv->agc.i = val.i;
-		break;
+    case RIG_LEVEL_AGC:
+        priv->agc.i = val.i;
+        break;
 
-	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported %s\n", __func__, rig_strlevel(level));
-		return -RIG_EINVAL;
-	}
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported %s\n", __func__, rig_strlevel(level));
+        return -RIG_EINVAL;
+    }
 
-	return wj_transaction (rig, 0);
+    return wj_transaction(rig, 0);
 }
 
 /*
@@ -359,37 +417,41 @@ int wj_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
  */
 int wj_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-	struct wj_priv_data *priv = (struct wj_priv_data*)rig->state.priv;
-	int retval = RIG_OK;
+    struct wj_priv_data *priv = (struct wj_priv_data *)rig->state.priv;
+    int retval = RIG_OK;
 
-	retval =  wj_transaction (rig, 1);
-	if (retval == RIG_OK)
-		return retval;
+    retval =  wj_transaction(rig, 1);
 
-	switch (level) {
-	case RIG_LEVEL_RAWSTR:
-		val->i = priv->rawstr.i;
-		break;
+    if (retval == RIG_OK)
+    {
+        return retval;
+    }
 
-	case RIG_LEVEL_IF:
-		val->i = priv->ifshift.i;
-		break;
+    switch (level)
+    {
+    case RIG_LEVEL_RAWSTR:
+        val->i = priv->rawstr.i;
+        break;
 
-	case RIG_LEVEL_RF:
-		val->f = priv->rfgain.f;
-		break;
+    case RIG_LEVEL_IF:
+        val->i = priv->ifshift.i;
+        break;
 
-	case RIG_LEVEL_AGC:
-		val->i = priv->agc.i;
-		break;
+    case RIG_LEVEL_RF:
+        val->f = priv->rfgain.f;
+        break;
+
+    case RIG_LEVEL_AGC:
+        val->i = priv->agc.i;
+        break;
 
 
-	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported %s\n", __func__, rig_strlevel(level));
-		return -RIG_EINVAL;
-	}
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported %s\n", __func__, rig_strlevel(level));
+        return -RIG_EINVAL;
+    }
 
-	return retval;
+    return retval;
 }
 
 
@@ -398,11 +460,11 @@ int wj_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
  */
 DECLARE_INITRIG_BACKEND(wj)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
-	rig_register(&wj8888_caps);
+    rig_register(&wj8888_caps);
 
-	return RIG_OK;
+    return RIG_OK;
 }
 
 

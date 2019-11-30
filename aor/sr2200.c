@@ -46,42 +46,42 @@
 #define SR2200_SCAN_OPS (RIG_SCAN_MEM|RIG_SCAN_VFO|RIG_SCAN_PROG|RIG_SCAN_SLCT)
 
 #define SR2200_VFO (RIG_VFO_A | RIG_VFO_B | RIG_VFO_C | RIG_VFO_N(3) | RIG_VFO_N(4) \
-					| RIG_VFO_N(5) | RIG_VFO_N(6) | RIG_VFO_N(7) | RIG_VFO_N(8) \
-					| RIG_VFO_N(9))
+                    | RIG_VFO_N(5) | RIG_VFO_N(6) | RIG_VFO_N(7) | RIG_VFO_N(8) \
+                    | RIG_VFO_N(9))
 
 #define SR2200_PREAMP 10
 
 /*   The data available on http://www.aoruk.com did not match very well on HF */
 #define SR2200_STR_CAL { 16, { \
-		{   0, -60 }, \
-		{   3, -48 }, \
-		{  14, -42 }, \
-		{  26, -36 }, \
-		{  34, -30 }, \
-		{  42, -24 }, \
-		{  52, -18 }, \
-		{  62, -12 }, \
-		{  74, -6 }, \
-		{  87,  0 }, \
-		{ 101, 10 }, \
-		{ 117, 20 }, \
-		{ 135, 30 }, \
-		{ 152, 40 }, \
-		{ 202, 50 }, \
-		{ 255, 60 }, \
-	} }
+        {   0, -60 }, \
+        {   3, -48 }, \
+        {  14, -42 }, \
+        {  26, -36 }, \
+        {  34, -30 }, \
+        {  42, -24 }, \
+        {  52, -18 }, \
+        {  62, -12 }, \
+        {  74, -6 }, \
+        {  87,  0 }, \
+        { 101, 10 }, \
+        { 117, 20 }, \
+        { 135, 30 }, \
+        { 152, 40 }, \
+        { 202, 50 }, \
+        { 255, 60 }, \
+    } }
 
 
-#define SR2200_MEM_CAP {	\
-	.freq = 1,	\
-	.mode = 1,	\
-	.width = 1,	\
-	.bank_num = 1,	\
-	.tuning_step = 1,	\
-	.channel_desc = 1,	\
-	.flags = 1,	\
-	.levels = RIG_LEVEL_ATT | RIG_LEVEL_AGC,	\
-	.funcs = RIG_FUNC_ABM,    \
+#define SR2200_MEM_CAP {    \
+    .freq = 1,  \
+    .mode = 1,  \
+    .width = 1, \
+    .bank_num = 1,  \
+    .tuning_step = 1,   \
+    .channel_desc = 1,  \
+    .flags = 1, \
+    .levels = RIG_LEVEL_ATT | RIG_LEVEL_AGC,    \
+    .funcs = RIG_FUNC_ABM,    \
 }
 
 #define CR '\r'
@@ -92,11 +92,14 @@
 
 static int sr2200_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 
-static int parse_s2200_aor_mode(RIG *rig, char aormode, char aorwidth, rmode_t *mode, pbwidth_t *width);
+static int parse_s2200_aor_mode(RIG *rig, char aormode, char aorwidth,
+                                rmode_t *mode, pbwidth_t *width);
 
-static int sr2200_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len);
+static int sr2200_transaction(RIG *rig, const char *cmd, int cmd_len,
+                              char *data, int *data_len);
 
-static int sr2200_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+static int sr2200_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
+                           pbwidth_t *width);
 static int sr2200_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 
 static int sr2200_get_vfo(RIG *rig, vfo_t *vfo);
@@ -105,12 +108,13 @@ static int sr2200_set_vfo(RIG *rig, vfo_t vfo);
 static int sr2200_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 static int sr2200_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
-static const struct aor_priv_caps sr2200_priv_caps = {
+static const struct aor_priv_caps sr2200_priv_caps =
+{
     .bank_base1 = '0',
     .bank_base2 = '0',
 };
 
- //	 Derived from AOR AR8200 backend
+//  Derived from AOR AR8200 backend
 
 /*
  * sr2200 rig capabilities.
@@ -121,7 +125,8 @@ static const struct aor_priv_caps sr2200_priv_caps = {
  *
  * TODO: retrieve BW info, and rest of commands
  */
-const struct rig_caps sr2200_caps = {
+const struct rig_caps sr2200_caps =
+{
     .rig_model =  RIG_MODEL_SR2200,
     .model_name = "SR2200",
     .mfg_name =  "AOR",
@@ -150,7 +155,7 @@ const struct rig_caps sr2200_caps = {
     .has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
     .level_gran =  {},                 /* FIXME: granularity */
     .parm_gran =  {},
-    .ctcss_list =  NULL,				/* FIXME: CTCSS list */
+    .ctcss_list =  NULL,                /* FIXME: CTCSS list */
     .dcs_list =  NULL,
     .preamp =   { SR2200_PREAMP, RIG_DBLST_END, },
     .attenuator =   { 10, 20, RIG_DBLST_END, },
@@ -166,55 +171,56 @@ const struct rig_caps sr2200_caps = {
     .str_cal = SR2200_STR_CAL,
 
     .chan_list =  {
-	{   0,  999, RIG_MTYPE_MEM, SR2200_MEM_CAP },
-        RIG_CHAN_END, },
+        {   0,  999, RIG_MTYPE_MEM, SR2200_MEM_CAP },
+        RIG_CHAN_END,
+    },
 
     .rx_range_list1 =  {
-	{MHz(25),MHz(3000),SR2200_MODES,-1,-1,SR2200_VFO},
-	RIG_FRNG_END,
-	},
+        {MHz(25), MHz(3000), SR2200_MODES, -1, -1, SR2200_VFO},
+        RIG_FRNG_END,
+    },
 
     .tx_range_list1 =  { RIG_FRNG_END, },
 
     .rx_range_list2 =  {
-	{MHz(25),MHz(3000),SR2200_MODES,-1,-1,SR2200_VFO},
-	RIG_FRNG_END,
-	},
+        {MHz(25), MHz(3000), SR2200_MODES, -1, -1, SR2200_VFO},
+        RIG_FRNG_END,
+    },
 
-    .tx_range_list2 =  { RIG_FRNG_END, },	/* no tx range, this is a scanner! */
+    .tx_range_list2 =  { RIG_FRNG_END, },   /* no tx range, this is a scanner! */
 
     .tuning_steps =  {
-	{SR2200_MODES,1},
-	{SR2200_MODES,100},
-	{SR2200_MODES,500},
-	{SR2200_MODES,kHz(1)},
-	{SR2200_MODES,kHz(2)},
-	{SR2200_MODES,kHz(5)},
-	{SR2200_MODES,kHz(6.25)},
-	{SR2200_MODES,kHz(9)},
-	{SR2200_MODES,kHz(10)},
-	{SR2200_MODES,kHz(12.5)},
-	{SR2200_MODES,kHz(20)},
-	{SR2200_MODES,kHz(25)},
-	{SR2200_MODES,kHz(30)},
-	{SR2200_MODES,kHz(50)},
-	{SR2200_MODES,kHz(100)},
+        {SR2200_MODES, 1},
+        {SR2200_MODES, 100},
+        {SR2200_MODES, 500},
+        {SR2200_MODES, kHz(1)},
+        {SR2200_MODES, kHz(2)},
+        {SR2200_MODES, kHz(5)},
+        {SR2200_MODES, kHz(6.25)},
+        {SR2200_MODES, kHz(9)},
+        {SR2200_MODES, kHz(10)},
+        {SR2200_MODES, kHz(12.5)},
+        {SR2200_MODES, kHz(20)},
+        {SR2200_MODES, kHz(25)},
+        {SR2200_MODES, kHz(30)},
+        {SR2200_MODES, kHz(50)},
+        {SR2200_MODES, kHz(100)},
 #if 0
-	{SR2200_MODES,0},	/* any tuning step */
+        {SR2200_MODES, 0},  /* any tuning step */
 #endif
-	RIG_TS_END,
+        RIG_TS_END,
     },
-        /* mode/filter list, .remember =  order matters! */
+    /* mode/filter list, .remember =  order matters! */
     .filters =  {
-	{RIG_MODE_AM, kHz(6)},
-	{RIG_MODE_AM, kHz(15)},
-	{RIG_MODE_FM, kHz(15)},    /* narrow */
-	{RIG_MODE_FM, kHz(6)},
-	{RIG_MODE_WFM, kHz(300)}, /*  wide  */
-	RIG_FLT_END,
+        {RIG_MODE_AM, kHz(6)},
+        {RIG_MODE_AM, kHz(15)},
+        {RIG_MODE_FM, kHz(15)},    /* narrow */
+        {RIG_MODE_FM, kHz(6)},
+        {RIG_MODE_WFM, kHz(300)}, /*  wide  */
+        RIG_FLT_END,
     },
 
-    .priv = (void*)&sr2200_priv_caps,
+    .priv = (void *)& sr2200_priv_caps,
 
     .rig_init =  NULL,
     .rig_cleanup =  NULL,
@@ -269,48 +275,65 @@ const struct rig_caps sr2200_caps = {
  * return value: RIG_OK if everything's fine, negative value otherwise
  * TODO: error case handling
  */
-static int sr2200_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
+static int sr2200_transaction(RIG *rig, const char *cmd, int cmd_len,
+                              char *data, int *data_len)
 {
-	int retval;
-	struct rig_state *rs;
-	char ackbuf[BUFSZ];
-	int ack_len;
+    int retval;
+    struct rig_state *rs;
+    char ackbuf[BUFSZ];
+    int ack_len;
 
-	rs = &rig->state;
+    rs = &rig->state;
 
-	serial_flush(&rs->rigport);
+    serial_flush(&rs->rigport);
 
-	retval = write_block(&rs->rigport, cmd, cmd_len);
-	if (retval != RIG_OK)
-		return retval;
+    retval = write_block(&rs->rigport, cmd, cmd_len);
 
-	if (!data)
-		data = ackbuf;
-	if (!data_len)
-		data_len = &ack_len;
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
 
-	/*
-	 * Do wait for a reply
-	 */
-	retval = read_string(&rs->rigport, data, BUFSZ, EOM, strlen(EOM));
-	if (retval < 0)
-		return retval;
+    if (!data)
+    {
+        data = ackbuf;
+    }
 
-	*data_len = retval;
+    if (!data_len)
+    {
+        data_len = &ack_len;
+    }
 
-	if (*data_len < BUFSZ)
-		data[*data_len] = '\0';
-	else
-		data[BUFSZ-1] = '\0';
+    /*
+     * Do wait for a reply
+     */
+    retval = read_string(&rs->rigport, data, BUFSZ, EOM, strlen(EOM));
 
-	if (data[0] == '?') {
-		/* command failed? resync with radio */
-		write_block(&rs->rigport, EOM, 1);
+    if (retval < 0)
+    {
+        return retval;
+    }
 
-		return -RIG_EPROTO;
-	}
+    *data_len = retval;
 
-	return RIG_OK;
+    if (*data_len < BUFSZ)
+    {
+        data[*data_len] = '\0';
+    }
+    else
+    {
+        data[BUFSZ - 1] = '\0';
+    }
+
+    if (data[0] == '?')
+    {
+        /* command failed? resync with radio */
+        write_block(&rs->rigport, EOM, 1);
+
+        return -RIG_EPROTO;
+    }
+
+    return RIG_OK;
 }
 /*
  * sr2200_set_freq
@@ -318,43 +341,51 @@ static int sr2200_transaction(RIG *rig, const char *cmd, int cmd_len, char *data
  */
 int sr2200_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-	char freqbuf[BUFSZ],ackbuf[BUFSZ],*rfp;
-	int freq_len, ret_freq_len;
+    char freqbuf[BUFSZ], ackbuf[BUFSZ], *rfp;
+    int freq_len, ret_freq_len;
 
-	ret_freq_len = BUFSZ;
+    ret_freq_len = BUFSZ;
 
-	if (freq < sr2200_caps.rx_range_list1[0].startf) {
-		rig_debug(RIG_DEBUG_WARN, "Error in %s: frequency is lower than minimum supported value (%.0f Hz)\n",
-				__func__, sr2200_caps.rx_range_list1[0].startf);
-		return -RIG_EPROTO;
-	}
+    if (freq < sr2200_caps.rx_range_list1[0].startf)
+    {
+        rig_debug(RIG_DEBUG_WARN,
+                  "Error in %s: frequency is lower than minimum supported value (%.0f Hz)\n",
+                  __func__, sr2200_caps.rx_range_list1[0].startf);
+        return -RIG_EPROTO;
+    }
 
-		if (freq > sr2200_caps.rx_range_list1[0].endf) {
-		rig_debug(RIG_DEBUG_WARN, "Error in %s: frequency is higher than maximum supported value (%.0f Hz)\n",
-				__func__, sr2200_caps.rx_range_list1[0].endf);
-		return -RIG_EPROTO;
-	}
+    if (freq > sr2200_caps.rx_range_list1[0].endf)
+    {
+        rig_debug(RIG_DEBUG_WARN,
+                  "Error in %s: frequency is higher than maximum supported value (%.0f Hz)\n",
+                  __func__, sr2200_caps.rx_range_list1[0].endf);
+        return -RIG_EPROTO;
+    }
 
-	freq_len = sprintf(freqbuf,"RF%010.0f"EOM, freq);
+    freq_len = sprintf(freqbuf, "RF%010.0f"EOM, freq);
 
-	strcpy(freqbuf+freq_len, EOM);
-	freq_len += strlen(EOM);
+    strcpy(freqbuf + freq_len, EOM);
+    freq_len += strlen(EOM);
 
-	int retval = sr2200_transaction (rig, freqbuf, freq_len, ackbuf, &ret_freq_len);
+    int retval = sr2200_transaction(rig, freqbuf, freq_len, ackbuf, &ret_freq_len);
 
-	if (retval != RIG_OK)
-		return retval;
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
 
-	rfp = strstr(ackbuf, "RF");
-	if (!rfp) {
-		rig_debug(RIG_DEBUG_WARN, "NO RF in returned string in %s: '%s'\n",
-				__func__, freqbuf);
-		return -RIG_EPROTO;
-	}
+    rfp = strstr(ackbuf, "RF");
 
-	sscanf(rfp+2,"%"SCNfreq, &freq);
+    if (!rfp)
+    {
+        rig_debug(RIG_DEBUG_WARN, "NO RF in returned string in %s: '%s'\n",
+                  __func__, freqbuf);
+        return -RIG_EPROTO;
+    }
 
-	return RIG_OK;
+    sscanf(rfp + 2, "%"SCNfreq, &freq);
+
+    return RIG_OK;
 
 }
 
@@ -364,37 +395,43 @@ int sr2200_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  */
 int sr2200_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-	char mdbuf[BUFSZ];
-	int mdbuf_len, aormode, retval;
-	pbwidth_t normal_width;
+    char mdbuf[BUFSZ];
+    int mdbuf_len, aormode, retval;
+    pbwidth_t normal_width;
 
-	normal_width = rig_passband_normal(rig, mode);
+    normal_width = rig_passband_normal(rig, mode);
 
-	if (width == RIG_PASSBAND_NORMAL)
-		width = normal_width;
+    if (width == RIG_PASSBAND_NORMAL)
+    {
+        width = normal_width;
+    }
 
-	switch (mode) {
-	case RIG_MODE_AM:
-		aormode = width > normal_width ?
-			SR2200_WAM : SR2200_AM;
-		break;
-	case RIG_MODE_FM:
-		aormode = width >= normal_width ?
-			SR2200_FM : SR2200_SFM;
-		break;
-	case RIG_MODE_WFM:
-		aormode = SR2200_WFM;
-		break;
-	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %s\n",
-					__func__,rig_strrmode(mode));
-		return -RIG_EINVAL;
-	}
+    switch (mode)
+    {
+    case RIG_MODE_AM:
+        aormode = width > normal_width ?
+                  SR2200_WAM : SR2200_AM;
+        break;
 
-	mdbuf_len = sprintf(mdbuf, "MD%c" EOM,	aormode);
-	retval = sr2200_transaction (rig, mdbuf, mdbuf_len, NULL, NULL);
+    case RIG_MODE_FM:
+        aormode = width >= normal_width ?
+                  SR2200_FM : SR2200_SFM;
+        break;
 
-	return retval;
+    case RIG_MODE_WFM:
+        aormode = SR2200_WFM;
+        break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n",
+                  __func__, rig_strrmode(mode));
+        return -RIG_EINVAL;
+    }
+
+    mdbuf_len = sprintf(mdbuf, "MD%c" EOM,  aormode);
+    retval = sr2200_transaction(rig, mdbuf, mdbuf_len, NULL, NULL);
+
+    return retval;
 }
 
 /*
@@ -403,49 +440,67 @@ int sr2200_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
  */
 int sr2200_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-	char ackbuf[BUFSZ], *mdp;
-	int ack_len, retval;
+    char ackbuf[BUFSZ], *mdp;
+    int ack_len, retval;
 
-	retval = sr2200_transaction (rig, "MD" EOM, 3, ackbuf, &ack_len);
-	if (retval != RIG_OK)
-		return retval;
+    retval = sr2200_transaction(rig, "MD" EOM, 3, ackbuf, &ack_len);
 
-	mdp = strstr(ackbuf, "MD");
-	if (!mdp) {
-		rig_debug(RIG_DEBUG_ERR, "%s: no MD in returned string: '%s'\n",
-				__func__, ackbuf);
-		return -RIG_EPROTO;
-	}
-
-	retval = parse_s2200_aor_mode(rig, mdp[2], mdp[2], mode, width);
-
-	return retval;
-}
-
-int parse_s2200_aor_mode(RIG *rig, char aormode, char aorwidth, rmode_t *mode, pbwidth_t *width)
-{
-    switch (aormode) {
-	case SR2200_FM:		*mode = RIG_MODE_FM; break;
-	case SR2200_AM:		*mode = RIG_MODE_AM; break;
-	case SR2200_SFM:	*mode = RIG_MODE_FM; break;
-	case SR2200_WAM:	*mode = RIG_MODE_AM; break;
-	case SR2200_WFM:	*mode = RIG_MODE_WFM; break;
-	default:
-	    rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode '%c'\n",
-		      __func__, aormode);
-	    return -RIG_EPROTO;
+    if (retval != RIG_OK)
+    {
+        return retval;
     }
 
-    switch (aorwidth) {
-	case SR2200_FM:		*width = s_kHz(15); break;
-	case SR2200_AM:		*width = s_kHz(6); break;
-	case SR2200_SFM:	*width = s_kHz(6); break;
-	case SR2200_WAM:	*width = s_kHz(15); break;
-	case SR2200_WFM:	*width = s_kHz(300); break;
-	default:
-	    rig_debug(RIG_DEBUG_ERR,"%s: unsupported width %d\n",
-		      __func__, aorwidth);
-	    return -RIG_EPROTO;
+    mdp = strstr(ackbuf, "MD");
+
+    if (!mdp)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: no MD in returned string: '%s'\n",
+                  __func__, ackbuf);
+        return -RIG_EPROTO;
+    }
+
+    retval = parse_s2200_aor_mode(rig, mdp[2], mdp[2], mode, width);
+
+    return retval;
+}
+
+int parse_s2200_aor_mode(RIG *rig, char aormode, char aorwidth, rmode_t *mode,
+                         pbwidth_t *width)
+{
+    switch (aormode)
+    {
+    case SR2200_FM:     *mode = RIG_MODE_FM; break;
+
+    case SR2200_AM:     *mode = RIG_MODE_AM; break;
+
+    case SR2200_SFM:    *mode = RIG_MODE_FM; break;
+
+    case SR2200_WAM:    *mode = RIG_MODE_AM; break;
+
+    case SR2200_WFM:    *mode = RIG_MODE_WFM; break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode '%c'\n",
+                  __func__, aormode);
+        return -RIG_EPROTO;
+    }
+
+    switch (aorwidth)
+    {
+    case SR2200_FM:     *width = s_kHz(15); break;
+
+    case SR2200_AM:     *width = s_kHz(6); break;
+
+    case SR2200_SFM:    *width = s_kHz(6); break;
+
+    case SR2200_WAM:    *width = s_kHz(15); break;
+
+    case SR2200_WFM:    *width = s_kHz(300); break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported width %d\n",
+                  __func__, aorwidth);
+        return -RIG_EPROTO;
     }
 
     return RIG_OK;
@@ -457,27 +512,37 @@ int parse_s2200_aor_mode(RIG *rig, char aormode, char aorwidth, rmode_t *mode, p
  */
 int sr2200_set_vfo(RIG *rig, vfo_t vfo)
 {
-	char *vfocmd;
+    char *vfocmd;
 
-	switch (vfo) {
-	case RIG_VFO_A: vfocmd = "VA" EOM; break;
-	case RIG_VFO_B: vfocmd = "VB" EOM; break;
-	case RIG_VFO_C: vfocmd = "VC" EOM; break;
-	case RIG_VFO_N(3): vfocmd = "VD" EOM; break;
-	case RIG_VFO_N(4): vfocmd = "VE" EOM; break;
-	case RIG_VFO_N(5): vfocmd = "VF" EOM; break;
-	case RIG_VFO_N(6): vfocmd = "VG" EOM; break;
-	case RIG_VFO_N(7): vfocmd = "VH" EOM; break;
-	case RIG_VFO_N(8): vfocmd = "VI" EOM; break;
-	case RIG_VFO_N(9): vfocmd = "VJ" EOM; break;
+    switch (vfo)
+    {
+    case RIG_VFO_A: vfocmd = "VA" EOM; break;
 
-	default:
-		rig_debug(RIG_DEBUG_ERR,"aor_set_vfo: unsupported vfo %d\n",
-						vfo);
-		return -RIG_EINVAL;
-	}
+    case RIG_VFO_B: vfocmd = "VB" EOM; break;
 
-	return sr2200_transaction (rig, vfocmd, strlen(vfocmd), NULL, NULL);
+    case RIG_VFO_C: vfocmd = "VC" EOM; break;
+
+    case RIG_VFO_N(3): vfocmd = "VD" EOM; break;
+
+    case RIG_VFO_N(4): vfocmd = "VE" EOM; break;
+
+    case RIG_VFO_N(5): vfocmd = "VF" EOM; break;
+
+    case RIG_VFO_N(6): vfocmd = "VG" EOM; break;
+
+    case RIG_VFO_N(7): vfocmd = "VH" EOM; break;
+
+    case RIG_VFO_N(8): vfocmd = "VI" EOM; break;
+
+    case RIG_VFO_N(9): vfocmd = "VJ" EOM; break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "aor_set_vfo: unsupported vfo %d\n",
+                  vfo);
+        return -RIG_EINVAL;
+    }
+
+    return sr2200_transaction(rig, vfocmd, strlen(vfocmd), NULL, NULL);
 }
 
 
@@ -487,33 +552,46 @@ int sr2200_set_vfo(RIG *rig, vfo_t vfo)
  */
 int sr2200_get_vfo(RIG *rig, vfo_t *vfo)
 {
-	int vfo_len, retval;
-	char vfobuf[BUFSZ];
+    int vfo_len, retval;
+    char vfobuf[BUFSZ];
 
-	retval = sr2200_transaction (rig, "RX" EOM, 3, vfobuf, &vfo_len);
-	if (retval != RIG_OK)
-		return retval;
+    retval = sr2200_transaction(rig, "RX" EOM, 3, vfobuf, &vfo_len);
 
-	switch (vfobuf[1]) {
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
 
-	case 'A': *vfo = RIG_VFO_A; break;
-	case 'B': *vfo = RIG_VFO_B; break;
-	case 'C': *vfo = RIG_VFO_C; break;
-	case 'D': *vfo = RIG_VFO_N(3); break;
-	case 'E': *vfo = RIG_VFO_N(4); break;
-	case 'F': *vfo = RIG_VFO_N(5); break;
-	case 'G': *vfo = RIG_VFO_N(6); break;
-	case 'H': *vfo = RIG_VFO_N(7); break;
-	case 'I': *vfo = RIG_VFO_N(8); break;
-	case 'J': *vfo = RIG_VFO_N(9); break;
+    switch (vfobuf[1])
+    {
 
-	default:
-		rig_debug(RIG_DEBUG_ERR,"aor_get_vfo: unknown vfo %c\n",
-						vfobuf[1]);
-		return -RIG_EINVAL;
-	}
+    case 'A': *vfo = RIG_VFO_A; break;
 
-	return RIG_OK;
+    case 'B': *vfo = RIG_VFO_B; break;
+
+    case 'C': *vfo = RIG_VFO_C; break;
+
+    case 'D': *vfo = RIG_VFO_N(3); break;
+
+    case 'E': *vfo = RIG_VFO_N(4); break;
+
+    case 'F': *vfo = RIG_VFO_N(5); break;
+
+    case 'G': *vfo = RIG_VFO_N(6); break;
+
+    case 'H': *vfo = RIG_VFO_N(7); break;
+
+    case 'I': *vfo = RIG_VFO_N(8); break;
+
+    case 'J': *vfo = RIG_VFO_N(9); break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "aor_get_vfo: unknown vfo %c\n",
+                  vfobuf[1]);
+        return -RIG_EINVAL;
+    }
+
+    return RIG_OK;
 }
 
 
@@ -523,61 +601,82 @@ int sr2200_get_vfo(RIG *rig, vfo_t *vfo)
  */
 int sr2200_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-	struct rig_state *rs;
-	char lvlbuf[BUFSZ];
-	int lvl_len;
-	unsigned i;
-	int agc;
-	unsigned att = 0;
+    struct rig_state *rs;
+    char lvlbuf[BUFSZ];
+    int lvl_len;
+    unsigned i;
+    int agc;
+    unsigned att = 0;
 
-	rs = &rig->state;
+    rs = &rig->state;
 
-	switch (level) {
-	case RIG_LEVEL_AF:
-		if (val.f > 255.0F)
-			lvl_len = sprintf(lvlbuf, "AG255" EOM);
-		else
-			lvl_len = sprintf(lvlbuf, "AG%03d" EOM,(int)val.f);
-	break;
+    switch (level)
+    {
+    case RIG_LEVEL_AF:
+        if (val.f > 255.0F)
+        {
+            lvl_len = sprintf(lvlbuf, "AG255" EOM);
+        }
+        else
+        {
+            lvl_len = sprintf(lvlbuf, "AG%03d" EOM, (int)val.f);
+        }
 
-	case RIG_LEVEL_PREAMP:
-		if (val.f > 0)
-			lvl_len = sprintf(lvlbuf, "AM1" EOM);
-		else
-			lvl_len = sprintf(lvlbuf, "AM0" EOM);
-		break;
+        break;
 
-	case RIG_LEVEL_ATT:
-		for (i=0; i<MAXDBLSTSIZ && !RIG_IS_DBLST_END(rs->attenuator[i]); i++) {
-			if (rs->attenuator[i] == val.i) {
-				att = i+1;
-				break;
-			}
-		}
-		/* should be caught by the front end */
-		if ((val.i != 0) & (i>=MAXDBLSTSIZ || RIG_IS_DBLST_END(rs->attenuator[i])) )
-			return -RIG_EINVAL;
+    case RIG_LEVEL_PREAMP:
+        if (val.f > 0)
+        {
+            lvl_len = sprintf(lvlbuf, "AM1" EOM);
+        }
+        else
+        {
+            lvl_len = sprintf(lvlbuf, "AM0" EOM);
+        }
 
-		lvl_len = sprintf(lvlbuf, "AT%u" EOM, att);
-		break;
+        break;
 
-	case RIG_LEVEL_AGC:
-		switch(val.i) {
-		case RIG_AGC_FAST: agc = '1'; break;
-		case RIG_AGC_MEDIUM: agc = '3'; break;
-		case RIG_AGC_SLOW: agc = '2'; break;
-		case RIG_AGC_OFF:
-		default: agc = '0';
-		}
-		lvl_len = sprintf(lvlbuf,"AC%c" EOM, agc);
-		break;
+    case RIG_LEVEL_ATT:
+        for (i = 0; i < MAXDBLSTSIZ && !RIG_IS_DBLST_END(rs->attenuator[i]); i++)
+        {
+            if (rs->attenuator[i] == val.i)
+            {
+                att = i + 1;
+                break;
+            }
+        }
 
-	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported aor_set_level %s\n", rig_strlevel(level));
-		return -RIG_EINVAL;
-	}
+        /* should be caught by the front end */
+        if ((val.i != 0) & (i >= MAXDBLSTSIZ || RIG_IS_DBLST_END(rs->attenuator[i])))
+        {
+            return -RIG_EINVAL;
+        }
 
-	return sr2200_transaction (rig, lvlbuf, lvl_len, NULL, NULL);
+        lvl_len = sprintf(lvlbuf, "AT%u" EOM, att);
+        break;
+
+    case RIG_LEVEL_AGC:
+        switch (val.i)
+        {
+        case RIG_AGC_FAST: agc = '1'; break;
+
+        case RIG_AGC_MEDIUM: agc = '3'; break;
+
+        case RIG_AGC_SLOW: agc = '2'; break;
+
+        case RIG_AGC_OFF:
+        default: agc = '0';
+        }
+
+        lvl_len = sprintf(lvlbuf, "AC%c" EOM, agc);
+        break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "Unsupported aor_set_level %s\n", rig_strlevel(level));
+        return -RIG_EINVAL;
+    }
+
+    return sr2200_transaction(rig, lvlbuf, lvl_len, NULL, NULL);
 }
 
 /*
@@ -586,105 +685,142 @@ int sr2200_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
  */
 int sr2200_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-	struct rig_state *rs;
-	char lvlbuf[BUFSZ],ackbuf[BUFSZ];
-	int lvl_len, ack_len, retval;
+    struct rig_state *rs;
+    char lvlbuf[BUFSZ], ackbuf[BUFSZ];
+    int lvl_len, ack_len, retval;
 
-	rs = &rig->state;
+    rs = &rig->state;
 
-	switch (level) {
-	case RIG_LEVEL_STRENGTH:
-		lvl_len = sprintf(lvlbuf, "LB" EOM);
-		break;
-	case RIG_LEVEL_ATT:
-		lvl_len = sprintf(lvlbuf, "AT" EOM);
-		break;
-	case RIG_LEVEL_AGC:
-		lvl_len = sprintf(lvlbuf, "AC" EOM);
-		break;
-	case RIG_LEVEL_AF:
-		lvl_len = sprintf(lvlbuf, "AG" EOM);
-		break;
-	case RIG_LEVEL_PREAMP:
-		lvl_len = sprintf(lvlbuf, "AM" EOM);
-		break;
-	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported level %s\n", __func__, rig_strlevel(level));
-		return -RIG_EINVAL;
-	}
+    switch (level)
+    {
+    case RIG_LEVEL_STRENGTH:
+        lvl_len = sprintf(lvlbuf, "LB" EOM);
+        break;
 
-	retval = sr2200_transaction (rig, lvlbuf, lvl_len, ackbuf, &ack_len);
+    case RIG_LEVEL_ATT:
+        lvl_len = sprintf(lvlbuf, "AT" EOM);
+        break;
 
-	if (retval != RIG_OK)
-			return retval;
+    case RIG_LEVEL_AGC:
+        lvl_len = sprintf(lvlbuf, "AC" EOM);
+        break;
 
-	switch (level) {
-	case RIG_LEVEL_STRENGTH:
-		if (ack_len < 7 || ackbuf[0] != 'L' || ackbuf[1] != 'B')
-			return -RIG_EPROTO;
-		sscanf(ackbuf+3, "%d", &val->i);
-		// calibrate the S-meter -> values should be referred to S9 (-73 dBm)
-		val->i += 73;
-		break;
+    case RIG_LEVEL_AF:
+        lvl_len = sprintf(lvlbuf, "AG" EOM);
+        break;
 
-	case RIG_LEVEL_ATT:
-		{
-		unsigned att;
-		if (ack_len < 4 || ackbuf[0] != 'A' || ackbuf[1] != 'T')
-			return -RIG_EPROTO;
-		att = ackbuf[2]-'0';
+    case RIG_LEVEL_PREAMP:
+        lvl_len = sprintf(lvlbuf, "AM" EOM);
+        break;
 
-		if (att == 0) {
-			val->i = 0;
-			break;
-		}
-		if (att > MAXDBLSTSIZ || rs->attenuator[att-1]==0) {
-			rig_debug(RIG_DEBUG_ERR,"Unsupported att %s %d\n",
-							__func__, att);
-			return -RIG_EPROTO;
-		}
-		val->i = rs->attenuator[att-1];
-		break;
-		}
-	case RIG_LEVEL_AGC:
-		if (ack_len < 3 || ackbuf[0] != 'A' || ackbuf[1] != 'C')
-			return -RIG_EPROTO;
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported level %s\n", __func__,
+                  rig_strlevel(level));
+        return -RIG_EINVAL;
+    }
 
-		switch(ackbuf[2]) {
-			case '1': val->i = RIG_AGC_FAST; break;
-			case '3': val->i = RIG_AGC_MEDIUM; break;
-			case '2': val->i = RIG_AGC_SLOW; break;
-			case '0':
-			default: val->i = RIG_AGC_OFF;
-		}
+    retval = sr2200_transaction(rig, lvlbuf, lvl_len, ackbuf, &ack_len);
 
-		break;
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
 
-	case RIG_LEVEL_AF:
-			if (ack_len < 3 || ackbuf[0] != 'A' || ackbuf[1] != 'G')
-			return -RIG_EPROTO;
-		sscanf(ackbuf+2, "%f", &val->f);
-		break;
+    switch (level)
+    {
+    case RIG_LEVEL_STRENGTH:
+        if (ack_len < 7 || ackbuf[0] != 'L' || ackbuf[1] != 'B')
+        {
+            return -RIG_EPROTO;
+        }
 
-	case RIG_LEVEL_PREAMP:
-			if (ack_len < 3 || ackbuf[0] != 'A' || ackbuf[1] != 'M')
-			return -RIG_EPROTO;
-		float tmp;
-		sscanf(ackbuf+2, "%f", &tmp);
-		if (tmp != 0.0)
-		{
-			val->i = SR2200_PREAMP;
-		}
-		else
-		{
-			val->i = 0;
-		}
-		break;
+        sscanf(ackbuf + 3, "%d", &val->i);
+        // calibrate the S-meter -> values should be referred to S9 (-73 dBm)
+        val->i += 73;
+        break;
 
-	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported level %s\n", __func__, rig_strlevel(level));
-		return -RIG_EINVAL;
-	}
+    case RIG_LEVEL_ATT:
+    {
+        unsigned att;
 
-	return RIG_OK;
+        if (ack_len < 4 || ackbuf[0] != 'A' || ackbuf[1] != 'T')
+        {
+            return -RIG_EPROTO;
+        }
+
+        att = ackbuf[2] - '0';
+
+        if (att == 0)
+        {
+            val->i = 0;
+            break;
+        }
+
+        if (att > MAXDBLSTSIZ || rs->attenuator[att - 1] == 0)
+        {
+            rig_debug(RIG_DEBUG_ERR, "Unsupported att %s %d\n",
+                      __func__, att);
+            return -RIG_EPROTO;
+        }
+
+        val->i = rs->attenuator[att - 1];
+        break;
+    }
+
+    case RIG_LEVEL_AGC:
+        if (ack_len < 3 || ackbuf[0] != 'A' || ackbuf[1] != 'C')
+        {
+            return -RIG_EPROTO;
+        }
+
+        switch (ackbuf[2])
+        {
+        case '1': val->i = RIG_AGC_FAST; break;
+
+        case '3': val->i = RIG_AGC_MEDIUM; break;
+
+        case '2': val->i = RIG_AGC_SLOW; break;
+
+        case '0':
+        default: val->i = RIG_AGC_OFF;
+        }
+
+        break;
+
+    case RIG_LEVEL_AF:
+        if (ack_len < 3 || ackbuf[0] != 'A' || ackbuf[1] != 'G')
+        {
+            return -RIG_EPROTO;
+        }
+
+        sscanf(ackbuf + 2, "%f", &val->f);
+        break;
+
+    case RIG_LEVEL_PREAMP:
+        if (ack_len < 3 || ackbuf[0] != 'A' || ackbuf[1] != 'M')
+        {
+            return -RIG_EPROTO;
+        }
+
+        float tmp;
+        sscanf(ackbuf + 2, "%f", &tmp);
+
+        if (tmp != 0.0)
+        {
+            val->i = SR2200_PREAMP;
+        }
+        else
+        {
+            val->i = 0;
+        }
+
+        break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported level %s\n", __func__,
+                  rig_strlevel(level));
+        return -RIG_EINVAL;
+    }
+
+    return RIG_OK;
 }

@@ -75,7 +75,7 @@
 #ifndef PATH_MAX
 // should not happen, should be defined in limits.h
 // but better paranoia than a code that does not work
-  #define PATH_MAX 256
+#define PATH_MAX 256
 #endif
 
 #if !(defined(WIN32) || !defined(HAVE_GLOB_H))

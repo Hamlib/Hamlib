@@ -57,7 +57,8 @@
 /*
  * Private data
  */
-struct cu_priv_data {
+struct cu_priv_data
+{
     split_t split;  /* current emulated split state */
     int ch;         /* current memorized memory channel */
 };
@@ -71,8 +72,8 @@ static int cu_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
 static int cu_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
 static int cu_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 static int cu_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
-static int cu_set_parm(RIG * rig, setting_t parm, value_t val);
-static int cu_set_ts(RIG * rig, vfo_t vfo, shortfreq_t ts);
+static int cu_set_parm(RIG *rig, setting_t parm, value_t val);
+static int cu_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts);
 static int cu_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 static int cu_set_mem(RIG *rig, vfo_t vfo, int ch);
 static int cu_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
@@ -83,90 +84,91 @@ static int cu_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
  * because the TRP8255 has the "CU" (Control Unit).
  *
  */
-const struct rig_caps trp8255_caps = {
-.rig_model =  RIG_MODEL_TRP8255,
-.model_name = "TRP 8255 S R",
-.mfg_name =  "Skanti",
-.version =  "0.1",
-.copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
-.rig_type =  RIG_TYPE_TRANSCEIVER,
-.ptt_type =  RIG_PTT_RIG,
-.dcd_type =  RIG_DCD_NONE,
-.port_type =  RIG_PORT_SERIAL,
-.serial_rate_min =  300,
-.serial_rate_max =  2400,
-.serial_data_bits =  7,
-.serial_stop_bits =  1,
-.serial_parity =  RIG_PARITY_ODD,
-.serial_handshake =  RIG_HANDSHAKE_NONE,
-.write_delay =  0,
-.post_write_delay =  0,
-.timeout =  2000,
-.retry =  3,
+const struct rig_caps trp8255_caps =
+{
+    .rig_model =  RIG_MODEL_TRP8255,
+    .model_name = "TRP 8255 S R",
+    .mfg_name =  "Skanti",
+    .version =  "0.1",
+    .copyright =  "LGPL",
+    .status =  RIG_STATUS_UNTESTED,
+    .rig_type =  RIG_TYPE_TRANSCEIVER,
+    .ptt_type =  RIG_PTT_RIG,
+    .dcd_type =  RIG_DCD_NONE,
+    .port_type =  RIG_PORT_SERIAL,
+    .serial_rate_min =  300,
+    .serial_rate_max =  2400,
+    .serial_data_bits =  7,
+    .serial_stop_bits =  1,
+    .serial_parity =  RIG_PARITY_ODD,
+    .serial_handshake =  RIG_HANDSHAKE_NONE,
+    .write_delay =  0,
+    .post_write_delay =  0,
+    .timeout =  2000,
+    .retry =  3,
 
-.has_get_func =  RIG_FUNC_NONE,
-.has_set_func =  TRP8255_FUNC,
-.has_get_level =  RIG_LEVEL_NONE,
-.has_set_level =  RIG_LEVEL_SET(TRP8255_LEVEL_ALL),
-.has_get_parm =  RIG_PARM_NONE,
-.has_set_parm =  RIG_PARM_SET(TRP8255_PARM_ALL),
-.vfo_ops =  TRP8255_VFO_OPS,
-.preamp =   { 10, RIG_DBLST_END },	/* TBC */
-.attenuator =   { 20, RIG_DBLST_END },	/* TBC */
-.max_rit =  Hz(0),
-.max_xit =  Hz(0),
-.max_ifshift =  Hz(0),
-.targetable_vfo =  0,
-.transceive =  RIG_TRN_OFF,
-.bank_qty =   0,
-.chan_desc_sz =  0,
+    .has_get_func =  RIG_FUNC_NONE,
+    .has_set_func =  TRP8255_FUNC,
+    .has_get_level =  RIG_LEVEL_NONE,
+    .has_set_level =  RIG_LEVEL_SET(TRP8255_LEVEL_ALL),
+    .has_get_parm =  RIG_PARM_NONE,
+    .has_set_parm =  RIG_PARM_SET(TRP8255_PARM_ALL),
+    .vfo_ops =  TRP8255_VFO_OPS,
+    .preamp =   { 10, RIG_DBLST_END },  /* TBC */
+    .attenuator =   { 20, RIG_DBLST_END },  /* TBC */
+    .max_rit =  Hz(0),
+    .max_xit =  Hz(0),
+    .max_ifshift =  Hz(0),
+    .targetable_vfo =  0,
+    .transceive =  RIG_TRN_OFF,
+    .bank_qty =   0,
+    .chan_desc_sz =  0,
 
-.chan_list =  {
-    {   0,  76, RIG_MTYPE_MEM, TRP8255_MEM_CAP },
-    RIG_CHAN_END,
-},
+    .chan_list =  {
+        {   0,  76, RIG_MTYPE_MEM, TRP8255_MEM_CAP },
+        RIG_CHAN_END,
+    },
 
-.rx_range_list1 =  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
-.tx_range_list1 =  { RIG_FRNG_END, },
-.rx_range_list2 =  {
-	{kHz(500),MHz(30),TRP8255_ALL_MODES,-1,-1,TRP8255_VFO},
-	RIG_FRNG_END,
-  },
-.tx_range_list2 =  {
-	{MHz(2),MHz(30),TRP8255_AM_TX_MODES,W(4),W(40),TRP8255_VFO},
-	{MHz(2),MHz(30),TRP8255_OTHER_TX_MODES,W(10),W(100),TRP8255_VFO},
-	RIG_FRNG_END,
-  },
-.tuning_steps =  {
-	 {TRP8255_ALL_MODES,10},
-	 {TRP8255_ALL_MODES,100},
-	 {TRP8255_ALL_MODES,kHz(1)},
-	 RIG_TS_END,
-	},
-        /* mode/filter list, remember: order matters! */
-.filters =  {
-		/* rough guesses */
-		{TRP8255_ALL_MODES, kHz(2.7)},	/* intermit */
-		{TRP8255_ALL_MODES, kHz(2.1)},	/* narrow */
-		{TRP8255_ALL_MODES, kHz(6)},	/* wide */
-		{TRP8255_ALL_MODES, Hz(500)},	/* very narrow */
-		RIG_FLT_END,
-	},
+    .rx_range_list1 =  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
+    .tx_range_list1 =  { RIG_FRNG_END, },
+    .rx_range_list2 =  {
+        {kHz(500), MHz(30), TRP8255_ALL_MODES, -1, -1, TRP8255_VFO},
+        RIG_FRNG_END,
+    },
+    .tx_range_list2 =  {
+        {MHz(2), MHz(30), TRP8255_AM_TX_MODES, W(4), W(40), TRP8255_VFO},
+        {MHz(2), MHz(30), TRP8255_OTHER_TX_MODES, W(10), W(100), TRP8255_VFO},
+        RIG_FRNG_END,
+    },
+    .tuning_steps =  {
+        {TRP8255_ALL_MODES, 10},
+        {TRP8255_ALL_MODES, 100},
+        {TRP8255_ALL_MODES, kHz(1)},
+        RIG_TS_END,
+    },
+    /* mode/filter list, remember: order matters! */
+    .filters =  {
+        /* rough guesses */
+        {TRP8255_ALL_MODES, kHz(2.7)},  /* intermit */
+        {TRP8255_ALL_MODES, kHz(2.1)},  /* narrow */
+        {TRP8255_ALL_MODES, kHz(6)},    /* wide */
+        {TRP8255_ALL_MODES, Hz(500)},   /* very narrow */
+        RIG_FLT_END,
+    },
 
-.rig_open =   cu_open,
-.rig_close =  cu_close,
-.set_freq =   cu_set_freq,
-.set_mode =   cu_set_mode,
-.set_split_freq =  cu_set_split_freq,
-.set_split_vfo =  cu_set_split_vfo,
-.set_ptt =  cu_set_ptt,
-.set_mem =  cu_set_mem,
-.vfo_op =   cu_vfo_op,
-.set_level =  cu_set_level,
-.set_func  =  cu_set_func,
-.set_parm  =  cu_set_parm,
-.set_ts    =  cu_set_ts,
+    .rig_open =   cu_open,
+    .rig_close =  cu_close,
+    .set_freq =   cu_set_freq,
+    .set_mode =   cu_set_mode,
+    .set_split_freq =  cu_set_split_freq,
+    .set_split_vfo =  cu_set_split_vfo,
+    .set_ptt =  cu_set_ptt,
+    .set_mem =  cu_set_mem,
+    .vfo_op =   cu_vfo_op,
+    .set_level =  cu_set_level,
+    .set_func  =  cu_set_func,
+    .set_parm  =  cu_set_parm,
+    .set_ts    =  cu_set_ts,
 
 };
 
@@ -184,20 +186,29 @@ static int cu_transaction(RIG *rig, const char *cmd, int cmd_len)
     int i, ret;
     char retchar;
 
-    for (i = 0; i < cmd_len; i++) {
+    for (i = 0; i < cmd_len; i++)
+    {
 
         ret = write_block(&rig->state.rigport, &cmd[i], 1);
+
         if (ret != RIG_OK)
+        {
             return ret;
+        }
 
         ret = read_block(&rig->state.rigport, &retchar, 1);
-        switch(retchar) {
-            case ACK: continue;
-            case NACK:
-                      return -RIG_ERJCTED;
-            default: return -RIG_EPROTO;
+
+        switch (retchar)
+        {
+        case ACK: continue;
+
+        case NACK:
+            return -RIG_ERJCTED;
+
+        default: return -RIG_EPROTO;
         }
     }
+
     return RIG_OK;
 }
 
@@ -206,11 +217,14 @@ static int cu_open(RIG *rig)
     char cmd[] = { 0x01, 0x02 }; /* SOH, STX */
     struct cu_priv_data *priv;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called\n",__func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-    rig->state.priv = malloc(sizeof (struct cu_priv_data));
+    rig->state.priv = malloc(sizeof(struct cu_priv_data));
+
     if (!rig->state.priv)
+    {
         return -RIG_ENOMEM;
+    }
 
     priv = (struct cu_priv_data *)rig->state.priv;
 
@@ -239,17 +253,24 @@ int cu_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     int ret;
 
     if (freq >= MHz(100))
+    {
         return -RIG_EINVAL;
+    }
 
     /* RX freq */
-    cmd_len = sprintf(cmdbuf, ":%06u"CR, (unsigned)(freq/Hz(100)));
+    cmd_len = sprintf(cmdbuf, ":%06u"CR, (unsigned)(freq / Hz(100)));
 
     ret = cu_transaction(rig, cmdbuf, cmd_len);
+
     if (ret != RIG_OK)
+    {
         return ret;
+    }
 
     if (priv->split != RIG_SPLIT_ON)
+    {
         return cu_vfo_op(rig, vfo, RIG_OP_CPY);
+    }
 
     return RIG_OK;
 }
@@ -269,10 +290,12 @@ int cu_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq)
     int cmd_len;
 
     if (freq >= MHz(100))
+    {
         return -RIG_EINVAL;
+    }
 
     /* TX freq */
-    cmd_len = sprintf(cmdbuf, ";%06u"CR, (unsigned)(freq/Hz(100)));
+    cmd_len = sprintf(cmdbuf, ";%06u"CR, (unsigned)(freq / Hz(100)));
 
     return cu_transaction(rig, cmdbuf, cmd_len);
 }
@@ -282,33 +305,51 @@ int cu_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     char cmd;
     int ret;
 
-    switch (mode) {
-        case RIG_MODE_USB: cmd = 'X'; break;
-        case RIG_MODE_LSB: cmd = 'Y'; break;
-        case RIG_MODE_AM:  cmd = 'Z'; break;
-        case RIG_MODE_RTTY: cmd = '['; break;
-        /* case RIG_MODE_R3E: cmd = '\\'; break; */
-        case RIG_MODE_CW:  cmd = ']'; break;
-        /* case RIG_MODE_MCW: cmd = '^'; break; */
+    switch (mode)
+    {
+    case RIG_MODE_USB: cmd = 'X'; break;
 
-        default:
-                           return -RIG_EINVAL;
+    case RIG_MODE_LSB: cmd = 'Y'; break;
+
+    case RIG_MODE_AM:  cmd = 'Z'; break;
+
+    case RIG_MODE_RTTY: cmd = '['; break;
+
+    /* case RIG_MODE_R3E: cmd = '\\'; break; */
+    case RIG_MODE_CW:  cmd = ']'; break;
+
+    /* case RIG_MODE_MCW: cmd = '^'; break; */
+
+    default:
+        return -RIG_EINVAL;
     }
 
     ret = cu_transaction(rig, &cmd, 1);
-    if (ret != RIG_OK)
-        return ret;
 
-    if (RIG_PASSBAND_NOCHANGE == width) return ret;
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    if (RIG_PASSBAND_NOCHANGE == width) { return ret; }
+
     if (width == RIG_PASSBAND_NORMAL)
+    {
         width = rig_passband_normal(rig, mode);
+    }
 
     if (width < rig_passband_normal(rig, mode))
+    {
         cmd = 'D';
+    }
     else if (width > rig_passband_normal(rig, mode))
+    {
         cmd = 'B';
+    }
     else
+    {
         cmd = 'C';
+    }
 
     return cu_transaction(rig, &cmd, 1);
 }
@@ -320,38 +361,59 @@ int cu_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     cmd_len = 1;
 
-    switch (level) {
-        case RIG_LEVEL_PREAMP:
-            cmdbuf[0] = val.i ? 'm' : 'n';
-            break;
-        case RIG_LEVEL_ATT:
-            cmdbuf[0] = val.i ? 'o' : 'p';
-            break;
-        case RIG_LEVEL_AGC:
-            switch (val.i) {
-                case RIG_AGC_AUTO: cmdbuf[0] = 'J'; break;
-                case RIG_AGC_FAST: cmdbuf[0] = 'K'; break;
-                case RIG_AGC_SLOW: cmdbuf[0] = 'L'; break;
-                case RIG_AGC_OFF:  cmdbuf[0] = 'M'; break;
-                default: return -RIG_EINVAL;
-            }
-            break;
-        case RIG_LEVEL_SQL:
-            cmdbuf[0] = val.i ? 'o' : 'p';
-            break;
-        case RIG_LEVEL_RFPOWER:
-            if (val.f < 0.4)
-                cmdbuf[0] = 'S'; /* low */
-            if (val.f < 0.6)
-                cmdbuf[0] = 'U'; /* medium */
-            else
-                cmdbuf[0] = 'W'; /* high */
-            break;
-        case RIG_LEVEL_AF:
-            cmd_len = sprintf(cmdbuf, "y%02u"CR, (unsigned)(99-val.f*99));
-            break;
-        default:
-            return -RIG_EINVAL;
+    switch (level)
+    {
+    case RIG_LEVEL_PREAMP:
+        cmdbuf[0] = val.i ? 'm' : 'n';
+        break;
+
+    case RIG_LEVEL_ATT:
+        cmdbuf[0] = val.i ? 'o' : 'p';
+        break;
+
+    case RIG_LEVEL_AGC:
+        switch (val.i)
+        {
+        case RIG_AGC_AUTO: cmdbuf[0] = 'J'; break;
+
+        case RIG_AGC_FAST: cmdbuf[0] = 'K'; break;
+
+        case RIG_AGC_SLOW: cmdbuf[0] = 'L'; break;
+
+        case RIG_AGC_OFF:  cmdbuf[0] = 'M'; break;
+
+        default: return -RIG_EINVAL;
+        }
+
+        break;
+
+    case RIG_LEVEL_SQL:
+        cmdbuf[0] = val.i ? 'o' : 'p';
+        break;
+
+    case RIG_LEVEL_RFPOWER:
+        if (val.f < 0.4)
+        {
+            cmdbuf[0] = 'S';    /* low */
+        }
+
+        if (val.f < 0.6)
+        {
+            cmdbuf[0] = 'U';    /* medium */
+        }
+        else
+        {
+            cmdbuf[0] = 'W';    /* high */
+        }
+
+        break;
+
+    case RIG_LEVEL_AF:
+        cmd_len = sprintf(cmdbuf, "y%02u"CR, (unsigned)(99 - val.f * 99));
+        break;
+
+    default:
+        return -RIG_EINVAL;
     }
 
     return cu_transaction(rig, cmdbuf, cmd_len);
@@ -364,48 +426,53 @@ int cu_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
     cmd_len = 1;
 
-    switch (func) {
-        case RIG_FUNC_MUTE:
-            cmdbuf[0] = status ? 'l' : 'k';
-            break;
-        default:
-            return -RIG_EINVAL;
+    switch (func)
+    {
+    case RIG_FUNC_MUTE:
+        cmdbuf[0] = status ? 'l' : 'k';
+        break;
+
+    default:
+        return -RIG_EINVAL;
     }
 
     return cu_transaction(rig, cmdbuf, cmd_len);
 }
 
-int cu_set_ts(RIG * rig, vfo_t vfo, shortfreq_t ts)
+int cu_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 {
     char cmdbuf[16];
     int cmd_len;
 
     cmd_len = sprintf(cmdbuf, "w%c"CR,
-            ts >= s_kHz(1) ? '2' :
-            ts >= s_Hz(100) ? '1' : '0');
+                      ts >= s_kHz(1) ? '2' :
+                      ts >= s_Hz(100) ? '1' : '0');
 
     return cu_transaction(rig, cmdbuf, cmd_len);
 }
 
-int cu_set_parm(RIG * rig, setting_t parm, value_t val)
+int cu_set_parm(RIG *rig, setting_t parm, value_t val)
 {
     char cmdbuf[16];
     int cmd_len;
 
     cmd_len = 1;
 
-    switch (parm) {
-        case RIG_PARM_TIME:
-            /* zap seconds */
-            val.i /= 60;
-            cmd_len = sprintf(cmdbuf, "f%02u%02u"CR,
-                    val.i/60, val.i%60);
-            break;
-        case RIG_PARM_BACKLIGHT:
-            cmd_len = sprintf(cmdbuf, "z%1u"CR, (unsigned)(val.f*5));
-            break;
-        default:
-            return -RIG_EINVAL;
+    switch (parm)
+    {
+    case RIG_PARM_TIME:
+        /* zap seconds */
+        val.i /= 60;
+        cmd_len = sprintf(cmdbuf, "f%02u%02u"CR,
+                          val.i / 60, val.i % 60);
+        break;
+
+    case RIG_PARM_BACKLIGHT:
+        cmd_len = sprintf(cmdbuf, "z%1u"CR, (unsigned)(val.f * 5));
+        break;
+
+    default:
+        return -RIG_EINVAL;
     }
 
     return cu_transaction(rig, cmdbuf, cmd_len);
@@ -438,25 +505,30 @@ int cu_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
     char cmdbuf[16];
     int cmd_len;
 
-    switch (op) {
-        case RIG_OP_TUNE:
-            cmdbuf[0] = 'R';
-            cmd_len = 1;
-            break;
-        case RIG_OP_CPY:
-            cmdbuf[0] = ':';
-            cmdbuf[1] = ';';
-            cmdbuf[2] = 0x0d;
-            cmd_len = 3;
-            break;
-        case RIG_OP_TO_VFO:
-            cmd_len = sprintf(cmdbuf, "<%02u"CR, (unsigned)priv->ch);
-            break;
-        case RIG_OP_FROM_VFO:
-            cmd_len = sprintf(cmdbuf, "d%02u"CR, (unsigned)priv->ch);
-            break;
-        default:
-            return -RIG_EINVAL;
+    switch (op)
+    {
+    case RIG_OP_TUNE:
+        cmdbuf[0] = 'R';
+        cmd_len = 1;
+        break;
+
+    case RIG_OP_CPY:
+        cmdbuf[0] = ':';
+        cmdbuf[1] = ';';
+        cmdbuf[2] = 0x0d;
+        cmd_len = 3;
+        break;
+
+    case RIG_OP_TO_VFO:
+        cmd_len = sprintf(cmdbuf, "<%02u"CR, (unsigned)priv->ch);
+        break;
+
+    case RIG_OP_FROM_VFO:
+        cmd_len = sprintf(cmdbuf, "d%02u"CR, (unsigned)priv->ch);
+        break;
+
+    default:
+        return -RIG_EINVAL;
     }
 
     return cu_transaction(rig, cmdbuf, cmd_len);

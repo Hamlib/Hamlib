@@ -160,11 +160,11 @@ ioptron_set_position(ROT *rot, azimuth_t az, elevation_t el)
 
     rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
 
-/* units .01 arc sec */
-    faz = az * 360000;  
+    /* units .01 arc sec */
+    faz = az * 360000;
     fel = el * 360000;
-/* set azmiuth, returns '1" if OK */
-    sprintf(cmdstr, ":Sz%09.0f#", faz); 
+    /* set azmiuth, returns '1" if OK */
+    sprintf(cmdstr, ":Sz%09.0f#", faz);
     retval = ioptron_transaction(rot, cmdstr, retbuf, sizeof(retbuf));
 
     if (retval != RIG_OK || retbuf[0] != ACK1)
@@ -172,8 +172,8 @@ ioptron_set_position(ROT *rot, azimuth_t az, elevation_t el)
         return  -RIG_EPROTO;
     }
 
-/* set altitude, returns '1" if OK */
-    sprintf(cmdstr, ":Sa+%08.0f#", fel); 
+    /* set altitude, returns '1" if OK */
+    sprintf(cmdstr, ":Sa+%08.0f#", fel);
     retval = ioptron_transaction(rot, cmdstr, retbuf, sizeof(retbuf));
 
     if (retval != RIG_OK || retbuf[0] != ACK1)
@@ -181,8 +181,8 @@ ioptron_set_position(ROT *rot, azimuth_t az, elevation_t el)
         return  -RIG_EPROTO;
     }
 
-/* move to set target, V2 command, returns '1" if OK */
-    sprintf(cmdstr, ":MS#"); // 
+    /* move to set target, V2 command, returns '1" if OK */
+    sprintf(cmdstr, ":MS#"); //
     retval = ioptron_transaction(rot, cmdstr, retbuf, sizeof(retbuf));
 
     if (retval != RIG_OK || retbuf[0] != ACK1)
@@ -190,8 +190,8 @@ ioptron_set_position(ROT *rot, azimuth_t az, elevation_t el)
         return  -RIG_EPROTO;
     }
 
-/* stop tracking, V2 command, returns '1" if OK */
-    sprintf(cmdstr, ":ST0#"); 
+    /* stop tracking, V2 command, returns '1" if OK */
+    sprintf(cmdstr, ":ST0#");
     retval = ioptron_transaction(rot, cmdstr, retbuf, sizeof(retbuf));
 
     if (retval != RIG_OK || retbuf[0] != ACK1)
@@ -253,7 +253,7 @@ ioptron_stop(ROT *rot)
     /** stop slew, returns "1" if OK */
     retval = ioptron_transaction(rot, ":Q#", retbuf, 10);
 
-    if (retval != RIG_OK || retbuf[0] != ACK1)     
+    if (retval != RIG_OK || retbuf[0] != ACK1)
     {
         return  -RIG_EPROTO;
     }
@@ -261,7 +261,7 @@ ioptron_stop(ROT *rot)
     /** stops tracking returns "1" if OK */
     retval = ioptron_transaction(rot, ":ST0#", retbuf, 10);
 
-    if (retval != RIG_OK || retbuf[0] != ACK1)    
+    if (retval != RIG_OK || retbuf[0] != ACK1)
     {
         return  -RIG_EPROTO;
     }

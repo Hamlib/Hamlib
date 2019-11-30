@@ -342,8 +342,8 @@ int dumpcaps(RIG *rig, FILE *fout)
     }
 
     if ((caps->has_get_level & RIG_LEVEL_RAWSTR)
-        && caps->str_cal.size == 0
-        && !(caps->has_get_level & RIG_LEVEL_STRENGTH))
+            && caps->str_cal.size == 0
+            && !(caps->has_get_level & RIG_LEVEL_STRENGTH))
     {
 
         fprintf(fout,
@@ -609,22 +609,22 @@ int dumpcaps(RIG *rig, FILE *fout)
     fprintf(fout,
             "Can set Split Freq:\t%c\n",
             caps->set_split_freq != NULL ? 'Y' : (can_esplit
-                                                  && caps->set_freq ? 'E' : 'N'));
+                    && caps->set_freq ? 'E' : 'N'));
 
     fprintf(fout,
             "Can get Split Freq:\t%c\n",
             caps->get_split_freq != NULL ? 'Y' : (can_esplit
-                                                  && caps->get_freq ? 'E' : 'N'));
+                    && caps->get_freq ? 'E' : 'N'));
 
     fprintf(fout,
             "Can set Split Mode:\t%c\n",
             caps->set_split_mode != NULL ? 'Y' : (can_esplit
-                                                  && caps->set_mode ? 'E' : 'N'));
+                    && caps->set_mode ? 'E' : 'N'));
 
     fprintf(fout,
             "Can get Split Mode:\t%c\n",
             caps->get_split_mode != NULL ? 'Y' : (can_esplit
-                                                  && caps->get_mode ? 'E' : 'N'));
+                    && caps->get_mode ? 'E' : 'N'));
 
     fprintf(fout,
             "Can set Split VFO:\t%c\n",
@@ -728,20 +728,28 @@ static int print_ext(RIG *rig, const struct confparams *cfp, rig_ptr_t ptr)
     fprintf((FILE *)ptr, "\t\tType: %s\n", get_rig_conf_type(cfp->type));
     fprintf((FILE *)ptr, "\t\tDefault: %s\n", cfp->dflt != NULL ? cfp->dflt : "");
     fprintf((FILE *)ptr, "\t\tLabel: %s\n", cfp->label != NULL ? cfp->label : "");
-    fprintf((FILE *)ptr, "\t\tTooltip: %s\n", cfp->tooltip != NULL ? cfp->tooltip : "");
+    fprintf((FILE *)ptr, "\t\tTooltip: %s\n",
+            cfp->tooltip != NULL ? cfp->tooltip : "");
 
-    switch (cfp->type) {
-      case RIG_CONF_NUMERIC:
-        fprintf((FILE *)ptr, "\t\tRange: %g..%g/%g\n", cfp->u.n.min, cfp->u.n.max, cfp->u.n.step);
+    switch (cfp->type)
+    {
+    case RIG_CONF_NUMERIC:
+        fprintf((FILE *)ptr, "\t\tRange: %g..%g/%g\n", cfp->u.n.min, cfp->u.n.max,
+                cfp->u.n.step);
         break;
-      case RIG_CONF_COMBO:
+
+    case RIG_CONF_COMBO:
         fprintf((FILE *)ptr, "\t\tValues:");
-        for (i = 0; i < RIG_COMBO_MAX && cfp->u.c.combostr[i] != NULL; i++) {
-          fprintf((FILE *)ptr, " %d=\"%s\"", i, cfp->u.c.combostr[i]);
+
+        for (i = 0; i < RIG_COMBO_MAX && cfp->u.c.combostr[i] != NULL; i++)
+        {
+            fprintf((FILE *)ptr, " %d=\"%s\"", i, cfp->u.c.combostr[i]);
         }
+
         fprintf((FILE *)ptr, "\n");
         break;
-      default:
+
+    default:
         break;
     }
 
@@ -750,36 +758,40 @@ static int print_ext(RIG *rig, const struct confparams *cfp, rig_ptr_t ptr)
 
 void range_print(FILE *fout, const struct freq_range_list range_list[], int rx)
 {
-  int i;
-  char prntbuf[1024];  /* a malloc would be better.. */
+    int i;
+    char prntbuf[1024];  /* a malloc would be better.. */
 
-  for (i = 0; i < FRQRANGESIZ; i++) {
-    if (range_list[i].startf == 0 && range_list[i].endf == 0) {
-      break;
+    for (i = 0; i < FRQRANGESIZ; i++)
+    {
+        if (range_list[i].startf == 0 && range_list[i].endf == 0)
+        {
+            break;
+        }
+
+        fprintf(fout, "\t%.0f Hz - %.0f Hz\n", range_list[i].startf,
+                range_list[i].endf);
+
+        fprintf(fout, "\t\tVFO list: ");
+        sprintf_vfo(prntbuf, range_list[i].vfo);
+        fprintf(fout, "%s", prntbuf);
+        fprintf(fout, "\n");
+
+        fprintf(fout, "\t\tMode list: ");
+        sprintf_mode(prntbuf, range_list[i].modes);
+        fprintf(fout, "%s", prntbuf);
+        fprintf(fout, "\n");
+
+        fprintf(fout, "\t\tAntenna list: ");
+        sprintf_ant(prntbuf, range_list[i].ant);
+        fprintf(fout, "%s", prntbuf);
+        fprintf(fout, "\n");
+
+        if (!rx)
+        {
+            fprintf(fout, "\t\tLow power: %.0f W, High power: %.0f W\n",
+                    range_list[i].low_power / 1000.0f, range_list[i].high_power / 1000.0f);
+        }
     }
-
-    fprintf(fout, "\t%.0f Hz - %.0f Hz\n", range_list[i].startf, range_list[i].endf);
-
-    fprintf(fout, "\t\tVFO list: ");
-    sprintf_vfo(prntbuf, range_list[i].vfo);
-    fprintf(fout, "%s", prntbuf);
-    fprintf(fout, "\n");
-
-    fprintf(fout, "\t\tMode list: ");
-    sprintf_mode(prntbuf, range_list[i].modes);
-    fprintf(fout, "%s", prntbuf);
-    fprintf(fout, "\n");
-
-    fprintf(fout, "\t\tAntenna list: ");
-    sprintf_ant(prntbuf, range_list[i].ant);
-    fprintf(fout, "%s", prntbuf);
-    fprintf(fout, "\n");
-
-    if (!rx) {
-      fprintf(fout, "\t\tLow power: %.0f W, High power: %.0f W\n",
-          range_list[i].low_power / 1000.0f, range_list[i].high_power / 1000.0f);
-    }
-  }
 }
 
 /*
@@ -869,8 +881,8 @@ int ts_sanity_check(const struct tuning_step_list tuning_step[])
         }
 
         if (tuning_step[i].ts != RIG_TS_ANY
-            && tuning_step[i].ts < last_ts
-            && last_modes == tuning_step[i].modes)
+                && tuning_step[i].ts < last_ts
+                && last_modes == tuning_step[i].modes)
         {
 
             return -1;

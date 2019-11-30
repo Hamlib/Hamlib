@@ -320,7 +320,7 @@ int HAMLIB_API rot_unregister(rot_model_t rot_model)
  * executes cfunc on all the elements stored in the rot hash list
  */
 int HAMLIB_API rot_list_foreach(int (*cfunc)(const struct rot_caps *,
-                                             rig_ptr_t),
+                                rig_ptr_t),
                                 rig_ptr_t data)
 {
     struct rot_list *p;

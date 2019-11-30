@@ -48,13 +48,13 @@
 /*
  * modes
  */
-#define MD_LSB	"L"
-#define MD_USB	"J"
-#define MD_CW	"A1"
-#define MD_MCW	"A2"
-#define MD_AM	"H"
+#define MD_LSB  "L"
+#define MD_USB  "J"
+#define MD_CW   "A1"
+#define MD_MCW  "A2"
+#define MD_AM   "H"
 #define MD_RTTY "F"
-#define MD_R3E	"R"
+#define MD_R3E  "R"
 
 
 /*
@@ -63,50 +63,69 @@
  * Otherwise, you'll get a nice seg fault. You've been warned!
  * TODO: error case handling
  */
-static int skanti_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
+static int skanti_transaction(RIG *rig, const char *cmd, int cmd_len,
+                              char *data, int *data_len)
 {
-	int retval;
-	struct rig_state *rs;
-	char retbuf[BUFSZ+1];
+    int retval;
+    struct rig_state *rs;
+    char retbuf[BUFSZ + 1];
 
-	rs = &rig->state;
+    rs = &rig->state;
 
-	serial_flush(&rs->rigport);
+    serial_flush(&rs->rigport);
 
-	retval = write_block(&rs->rigport, cmd, cmd_len);
-	if (retval != RIG_OK)
-		return retval;
+    retval = write_block(&rs->rigport, cmd, cmd_len);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
 
 
-	/* no data expected, check for OK returned */
-	if (!data || !data_len) {
-		/*
-	 	* Transceiver sends back ">"
-	 	*/
-		retval = read_string(&rs->rigport, retbuf, BUFSZ, PROMPT, strlen(PROMPT));
-		if (retval < 0)
-			return retval;
+    /* no data expected, check for OK returned */
+    if (!data || !data_len)
+    {
+        /*
+        * Transceiver sends back ">"
+        */
+        retval = read_string(&rs->rigport, retbuf, BUFSZ, PROMPT, strlen(PROMPT));
 
-		retbuf[retval] = '\0';
+        if (retval < 0)
+        {
+            return retval;
+        }
 
-		if (strstr(retbuf, PROMPT))
-			return RIG_OK;
-		else
-			return -RIG_ERJCTED;
-	}
+        retbuf[retval] = '\0';
 
-	retval = read_string(&rs->rigport, data, BUFSZ, LF, strlen(LF));
-	if (retval == -RIG_ETIMEOUT)
-		retval = 0;
-	if (retval < 0)
-		return retval;
-	*data_len = retval;
+        if (strstr(retbuf, PROMPT))
+        {
+            return RIG_OK;
+        }
+        else
+        {
+            return -RIG_ERJCTED;
+        }
+    }
 
-	/* strip CR/LF from string
-	 */
-	*data_len -= 2;
-	data[*data_len] = 0;
-	return RIG_OK;
+    retval = read_string(&rs->rigport, data, BUFSZ, LF, strlen(LF));
+
+    if (retval == -RIG_ETIMEOUT)
+    {
+        retval = 0;
+    }
+
+    if (retval < 0)
+    {
+        return retval;
+    }
+
+    *data_len = retval;
+
+    /* strip CR/LF from string
+     */
+    *data_len -= 2;
+    data[*data_len] = 0;
+    return RIG_OK;
 }
 
 
@@ -116,20 +135,23 @@ static int skanti_transaction(RIG *rig, const char *cmd, int cmd_len, char *data
  */
 int skanti_reset(RIG *rig, reset_t reset)
 {
-	int retval;
+    int retval;
 
-	/*
-	 * master reset
-	 *
-	 * returned data: *x1A345SF
-	 * 	 whatever this means? unit serial #?
-	 */
+    /*
+     * master reset
+     *
+     * returned data: *x1A345SF
+     *   whatever this means? unit serial #?
+     */
 
-	retval = skanti_transaction (rig, "0" EOM, strlen("0" EOM), NULL, NULL);
-	if (retval != RIG_OK)
-		return retval;
+    retval = skanti_transaction(rig, "0" EOM, strlen("0" EOM), NULL, NULL);
 
-	return RIG_OK;
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    return RIG_OK;
 }
 
 
@@ -140,13 +162,13 @@ int skanti_reset(RIG *rig, reset_t reset)
  */
 int skanti_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-	char freqbuf[BUFSZ];
-	int freq_len;
+    char freqbuf[BUFSZ];
+    int freq_len;
 
-	/* 6 digits */
-	freq_len = sprintf(freqbuf, "Z%06ld" EOM, (long)(freq/100));
+    /* 6 digits */
+    freq_len = sprintf(freqbuf, "Z%06ld" EOM, (long)(freq / 100));
 
-	return skanti_transaction (rig, freqbuf, freq_len, NULL, NULL);
+    return skanti_transaction(rig, freqbuf, freq_len, NULL, NULL);
 }
 
 /*
@@ -155,44 +177,61 @@ int skanti_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  */
 int skanti_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-	int retval;
-	char *sk_mode, *sk_filter;
-	pbwidth_t passband_normal;
+    int retval;
+    char *sk_mode, *sk_filter;
+    pbwidth_t passband_normal;
 
-	switch (mode) {
-		/* TODO: MCW, R3E */
-	case RIG_MODE_CW:       sk_mode = MD_CW EOM; break;
-	case RIG_MODE_USB:      sk_mode = MD_USB EOM; break;
-	case RIG_MODE_LSB:      sk_mode = MD_LSB EOM; break;
-	case RIG_MODE_RTTY:     sk_mode = MD_RTTY EOM; break;
-	case RIG_MODE_AM:       sk_mode = MD_AM EOM; break;
-	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n",
-				__func__, rig_strrmode(mode));
-		return -RIG_EINVAL;
-	}
+    switch (mode)
+    {
+    /* TODO: MCW, R3E */
+    case RIG_MODE_CW:       sk_mode = MD_CW EOM; break;
 
-	retval = skanti_transaction (rig, sk_mode, strlen(sk_mode), NULL, NULL);
-	if (retval != RIG_OK)
-		return retval;
+    case RIG_MODE_USB:      sk_mode = MD_USB EOM; break;
 
-	if (RIG_PASSBAND_NOCHANGE == width) return retval;
-	/*
-	 * TODO: please sk8000 owners, check this, I'm not sure
-	 * 			which passband is default!
-	 */
-	passband_normal = rig_passband_normal(rig, mode);
-	if (width == RIG_PASSBAND_NORMAL ||
-				width == passband_normal)
-		sk_filter = "I" EOM;
-	else if (width < passband_normal)
-		sk_filter = width < 1000 ? "V" EOM : "N" EOM;
-	else
-		sk_filter = "W" EOM;
+    case RIG_MODE_LSB:      sk_mode = MD_LSB EOM; break;
 
-	retval = skanti_transaction (rig, sk_filter, strlen(sk_filter), NULL, NULL);
+    case RIG_MODE_RTTY:     sk_mode = MD_RTTY EOM; break;
 
-	return retval;
+    case RIG_MODE_AM:       sk_mode = MD_AM EOM; break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n",
+                  __func__, rig_strrmode(mode));
+        return -RIG_EINVAL;
+    }
+
+    retval = skanti_transaction(rig, sk_mode, strlen(sk_mode), NULL, NULL);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    if (RIG_PASSBAND_NOCHANGE == width) { return retval; }
+
+    /*
+     * TODO: please sk8000 owners, check this, I'm not sure
+     *          which passband is default!
+     */
+    passband_normal = rig_passband_normal(rig, mode);
+
+    if (width == RIG_PASSBAND_NORMAL ||
+            width == passband_normal)
+    {
+        sk_filter = "I" EOM;
+    }
+    else if (width < passband_normal)
+    {
+        sk_filter = width < 1000 ? "V" EOM : "N" EOM;
+    }
+    else
+    {
+        sk_filter = "W" EOM;
+    }
+
+    retval = skanti_transaction(rig, sk_filter, strlen(sk_filter), NULL, NULL);
+
+    return retval;
 }
 
 
@@ -202,13 +241,13 @@ int skanti_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
  */
 int skanti_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
-	char freqbuf[BUFSZ];
-	int freq_len;
+    char freqbuf[BUFSZ];
+    int freq_len;
 
-	/* 6 digits */
-	freq_len = sprintf(freqbuf, "T%06ld" EOM, (long)(tx_freq/100));
+    /* 6 digits */
+    freq_len = sprintf(freqbuf, "T%06ld" EOM, (long)(tx_freq / 100));
 
-	return skanti_transaction (rig, freqbuf, freq_len, NULL, NULL);
+    return skanti_transaction(rig, freqbuf, freq_len, NULL, NULL);
 }
 
 
@@ -220,44 +259,52 @@ int skanti_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
  */
 int skanti_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-	int cmd_len;
-	char cmdbuf[BUFSZ], *agc;
+    int cmd_len;
+    char cmdbuf[BUFSZ], *agc;
 
-	/* Optimize:
-	 *   sort the switch cases with the most frequent first
-	 */
-	switch (level) {
-	case RIG_LEVEL_PREAMP:
-		cmd_len = sprintf(cmdbuf, "R%c" EOM, val.i?'F':'O');
+    /* Optimize:
+     *   sort the switch cases with the most frequent first
+     */
+    switch (level)
+    {
+    case RIG_LEVEL_PREAMP:
+        cmd_len = sprintf(cmdbuf, "R%c" EOM, val.i ? 'F' : 'O');
 
-		return skanti_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
+        return skanti_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
 
-	case RIG_LEVEL_ATT:
-		cmd_len = sprintf(cmdbuf, "A%c" EOM, val.i?'T':'O');
+    case RIG_LEVEL_ATT:
+        cmd_len = sprintf(cmdbuf, "A%c" EOM, val.i ? 'T' : 'O');
 
-		return skanti_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
+        return skanti_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
 
-	case RIG_LEVEL_RFPOWER:
-		cmd_len = sprintf(cmdbuf, "M%cO" EOM, val.f<0.33?'L':(val.f<0.66?'M':'F'));
+    case RIG_LEVEL_RFPOWER:
+        cmd_len = sprintf(cmdbuf, "M%cO" EOM,
+                          val.f < 0.33 ? 'L' : (val.f < 0.66 ? 'M' : 'F'));
 
-		return skanti_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
+        return skanti_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
 
-	case RIG_LEVEL_AGC:
-		switch (val.i) {
-			case RIG_AGC_SLOW: agc = "AS"EOM; break;
-			case RIG_AGC_FAST: agc = "AA"EOM; break;
-			case RIG_AGC_OFF: agc = "AF"EOM; break;
-			default: return -RIG_EINVAL;
-		}
-		return skanti_transaction (rig, agc, strlen(agc), NULL, NULL);
+    case RIG_LEVEL_AGC:
+        switch (val.i)
+        {
+        case RIG_AGC_SLOW: agc = "AS"EOM; break;
 
-	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported set_level %s\n", __func__, rig_strlevel(level));
-		return -RIG_EINVAL;
-	}
+        case RIG_AGC_FAST: agc = "AA"EOM; break;
+
+        case RIG_AGC_OFF: agc = "AF"EOM; break;
+
+        default: return -RIG_EINVAL;
+        }
+
+        return skanti_transaction(rig, agc, strlen(agc), NULL, NULL);
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported set_level %s\n", __func__,
+                  rig_strlevel(level));
+        return -RIG_EINVAL;
+    }
 
 
-	return RIG_OK;
+    return RIG_OK;
 }
 
 
@@ -267,21 +314,23 @@ int skanti_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
  */
 int skanti_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
-	char cmdbuf[BUFSZ];
-	int cmd_len;
+    char cmdbuf[BUFSZ];
+    int cmd_len;
 
-	cmd_len = sprintf(cmdbuf, "X%c" EOM, ptt == RIG_PTT_ON?'N':'F');
+    cmd_len = sprintf(cmdbuf, "X%c" EOM, ptt == RIG_PTT_ON ? 'N' : 'F');
 
-	return skanti_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
+    return skanti_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
 }
 
 
 int skanti_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
-	if (op != RIG_OP_TUNE)
-		return -RIG_EINVAL;
+    if (op != RIG_OP_TUNE)
+    {
+        return -RIG_EINVAL;
+    }
 
-	return skanti_transaction (rig, "XT"EOM, strlen("XT"EOM), NULL, NULL);
+    return skanti_transaction(rig, "XT"EOM, strlen("XT"EOM), NULL, NULL);
 }
 
 
@@ -291,11 +340,11 @@ int skanti_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
  */
 DECLARE_INITRIG_BACKEND(skanti)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
-	rig_register(&trp8000_caps);
-	rig_register(&trp8255_caps);
+    rig_register(&trp8000_caps);
+    rig_register(&trp8255_caps);
 
-	return RIG_OK;
+    return RIG_OK;
 }
 

@@ -42,51 +42,55 @@
 
 static int setDirection(hamlib_port_t *port, unsigned char outputvalue)
 {
-  int ret;
+    int ret;
 
-  par_lock (port);
+    par_lock(port);
 
-  /* set the data bits.
-   * Should we read before write to not trample the lower significant bits?
-   */
-  ret = par_write_data(port, outputvalue);
+    /* set the data bits.
+     * Should we read before write to not trample the lower significant bits?
+     */
+    ret = par_write_data(port, outputvalue);
 
-  par_unlock (port);
+    par_unlock(port);
 
-  return ret;
+    return ret;
 }
 
 
 static int
 pcrotor_stop(ROT *rot)
 {
-  /* CW=0, CCW=0, Power-up=0 */
-  return setDirection(&rot->state.rotport, 0);
+    /* CW=0, CCW=0, Power-up=0 */
+    return setDirection(&rot->state.rotport, 0);
 }
 
 static int
 pcrotor_move(ROT *rot, int direction, int speed)
 {
- unsigned char outputvalue;
+    unsigned char outputvalue;
 
- rig_debug(RIG_DEBUG_TRACE, "%s called: %d %d\n", __func__, direction, speed);
+    rig_debug(RIG_DEBUG_TRACE, "%s called: %d %d\n", __func__, direction, speed);
 
- switch(direction) {
-	 case ROT_MOVE_CCW:
-		 outputvalue = PCROTOR_POWER|PCROTOR_CCW;
-		 break;
-	 case ROT_MOVE_CW:
-		 outputvalue = PCROTOR_POWER|PCROTOR_CCW;
-		 break;
-	 case 0:
-		 /* Stop */
-		 outputvalue = 0;
-		 break;
-	 default:
-		 return -RIG_EINVAL;
- }
+    switch (direction)
+    {
+    case ROT_MOVE_CCW:
+        outputvalue = PCROTOR_POWER | PCROTOR_CCW;
+        break;
 
-  return setDirection(&rot->state.rotport, outputvalue);
+    case ROT_MOVE_CW:
+        outputvalue = PCROTOR_POWER | PCROTOR_CCW;
+        break;
+
+    case 0:
+        /* Stop */
+        outputvalue = 0;
+        break;
+
+    default:
+        return -RIG_EINVAL;
+    }
+
+    return setDirection(&rot->state.rotport, outputvalue);
 }
 
 
@@ -107,31 +111,32 @@ pcrotor_move(ROT *rot, int direction, int speed)
 /** Fodtrack implement essentially only the set position function.
  *
  */
-const struct rot_caps pcrotor_caps = {
-  .rot_model =      ROT_MODEL_PCROTOR,
-  .model_name =     "PcRotor",
-  .mfg_name =       "WA6UFQ",
-  .version =        "0.1",
-  .copyright = 	    "LGPL",
-  .status =         RIG_STATUS_UNTESTED,
-  .rot_type =       ROT_TYPE_OTHER,
-  .port_type =      RIG_PORT_PARALLEL,
-  .write_delay =  0,
-  .post_write_delay =  0,
-  .timeout =  200,
-  .retry =  3,
+const struct rot_caps pcrotor_caps =
+{
+    .rot_model =      ROT_MODEL_PCROTOR,
+    .model_name =     "PcRotor",
+    .mfg_name =       "WA6UFQ",
+    .version =        "0.1",
+    .copyright =      "LGPL",
+    .status =         RIG_STATUS_UNTESTED,
+    .rot_type =       ROT_TYPE_OTHER,
+    .port_type =      RIG_PORT_PARALLEL,
+    .write_delay =  0,
+    .post_write_delay =  0,
+    .timeout =  200,
+    .retry =  3,
 
-  .min_az = 	0,
-  .max_az =  	360,
-  .min_el = 	0,
-  .max_el =  	0,
+    .min_az =     0,
+    .max_az =     360,
+    .min_el =     0,
+    .max_el =     0,
 
-  .priv =  NULL,	/* priv */
+    .priv =  NULL,    /* priv */
 
-  .move =  pcrotor_move,
-  .stop =  pcrotor_stop,
-  //.set_position =  pcrotor_set_position,
-  //.get_position =  pcrotor_get_position,
+    .move =  pcrotor_move,
+    .stop =  pcrotor_stop,
+    //.set_position =  pcrotor_set_position,
+    //.get_position =  pcrotor_get_position,
 };
 
 /* end of file */

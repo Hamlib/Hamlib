@@ -93,7 +93,7 @@ static struct option long_options[] =
     {"set-conf",        1, 0, 'C'},
     {"show-conf",       0, 0, 'L'},
     {"dump-caps",       0, 0, 'u'},
-    {"debug-time-stamps",0,0, 'Z'},
+    {"debug-time-stamps", 0, 0, 'Z'},
 #ifdef HAVE_READLINE_HISTORY
     {"read-history",    0, 0, 'i'},
     {"save-history",    0, 0, 'I'},
@@ -368,16 +368,16 @@ int main(int argc, char *argv[])
             }
 
             if (((stat(hist_dir, &hist_dir_stat) == -1) && (errno == ENOENT))
-                || !(S_ISDIR(hist_dir_stat.st_mode)))
+                    || !(S_ISDIR(hist_dir_stat.st_mode)))
             {
 
                 fprintf(stderr, "Warning: %s is not a directory!\n", hist_dir);
             }
 
-            int hist_path_size = sizeof(char)*(strlen(hist_dir)+strlen(hist_file) + 1);
-	    hist_path = (char *)calloc(hist_path_size, sizeof(char));
+            int hist_path_size = sizeof(char) * (strlen(hist_dir) + strlen(hist_file) + 1);
+            hist_path = (char *)calloc(hist_path_size, sizeof(char));
 
-	    snprintf(hist_path, hist_path_size, "%s%s", hist_dir, hist_file);
+            snprintf(hist_path, hist_path_size, "%s%s", hist_dir, hist_file);
 
         }
 

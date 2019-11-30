@@ -31,7 +31,7 @@
 
 
 #define AR5000_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM| \
-		      RIG_MODE_WFM|RIG_MODE_SAM|RIG_MODE_SAL|RIG_MODE_SAH)
+              RIG_MODE_WFM|RIG_MODE_SAM|RIG_MODE_SAL|RIG_MODE_SAH)
 
 #define AR5000_FUNC_ALL (RIG_FUNC_TSQL | RIG_FUNC_ABM)
 
@@ -49,42 +49,44 @@
 
    The data available on http://www.aoruk.com did not match very well on HF */
 #define AR5000_STR_CAL { 16, { \
-		{   0, -60 }, \
-		{   3, -48 }, \
-		{  14, -42 }, \
-		{  26, -36 }, \
-		{  34, -30 }, \
-		{  42, -24 }, \
-		{  52, -18 }, \
-		{  62, -12 }, \
-		{  74, -6 }, \
-		{  87,  0 }, \
-		{ 101, 10 }, \
-		{ 117, 20 }, \
-		{ 135, 30 }, \
-		{ 152, 40 }, \
-		{ 202, 50 }, \
-		{ 255, 60 }, \
-	} }
+        {   0, -60 }, \
+        {   3, -48 }, \
+        {  14, -42 }, \
+        {  26, -36 }, \
+        {  34, -30 }, \
+        {  42, -24 }, \
+        {  52, -18 }, \
+        {  62, -12 }, \
+        {  74, -6 }, \
+        {  87,  0 }, \
+        { 101, 10 }, \
+        { 117, 20 }, \
+        { 135, 30 }, \
+        { 152, 40 }, \
+        { 202, 50 }, \
+        { 255, 60 }, \
+    } }
 
 
-#define AR5000_MEM_CAP {	\
-	.freq = 1,	\
-	.mode = 1,	\
-	.width = 1,	\
-	.bank_num = 1,	\
-	.tuning_step = 1,	\
-	.channel_desc = 1,	\
-	.flags = 1,	\
-	.levels = RIG_LEVEL_ATT | RIG_LEVEL_AGC,	\
-	.funcs = RIG_FUNC_ABM,    \
+#define AR5000_MEM_CAP {    \
+    .freq = 1,  \
+    .mode = 1,  \
+    .width = 1, \
+    .bank_num = 1,  \
+    .tuning_step = 1,   \
+    .channel_desc = 1,  \
+    .flags = 1, \
+    .levels = RIG_LEVEL_ATT | RIG_LEVEL_AGC,    \
+    .funcs = RIG_FUNC_ABM,    \
 }
 
 
 static int format5k_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width);
-static int parse5k_aor_mode(RIG *rig, char aormode, char aorwidth, rmode_t *mode, pbwidth_t *width);
+static int parse5k_aor_mode(RIG *rig, char aormode, char aorwidth,
+                            rmode_t *mode, pbwidth_t *width);
 
-static const struct aor_priv_caps ar5k_priv_caps = {
+static const struct aor_priv_caps ar5k_priv_caps =
+{
     .format_mode = format5k_mode,
     .parse_aor_mode = parse5k_aor_mode,
     .bank_base1 = '0',
@@ -100,7 +102,8 @@ static const struct aor_priv_caps ar5k_priv_caps = {
  *
  * TODO: retrieve BW info, and rest of commands
  */
-const struct rig_caps ar5000_caps = {
+const struct rig_caps ar5000_caps =
+{
     .rig_model =  RIG_MODEL_AR5000,
     .model_name = "AR5000",
     .mfg_name =  "AOR",
@@ -129,7 +132,7 @@ const struct rig_caps ar5000_caps = {
     .has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
     .level_gran =  {},                 /* FIXME: granularity */
     .parm_gran =  {},
-    .ctcss_list =  NULL,				/* FIXME: CTCSS list */
+    .ctcss_list =  NULL,                /* FIXME: CTCSS list */
     .dcs_list =  NULL,
     .preamp =   { RIG_DBLST_END, },
     .attenuator =   { 10, 20, RIG_DBLST_END, },
@@ -145,62 +148,63 @@ const struct rig_caps ar5000_caps = {
     .str_cal = AR5000_STR_CAL,
 
     .chan_list =  {
-	{   0,  999, RIG_MTYPE_MEM, AR5000_MEM_CAP },
-        RIG_CHAN_END, },
+        {   0,  999, RIG_MTYPE_MEM, AR5000_MEM_CAP },
+        RIG_CHAN_END,
+    },
 
     .rx_range_list1 =  {
-	{kHz(10),MHz(2600),AR5000_MODES,-1,-1,AR5000_VFO},
-	RIG_FRNG_END,
-	},
+        {kHz(10), MHz(2600), AR5000_MODES, -1, -1, AR5000_VFO},
+        RIG_FRNG_END,
+    },
 
     .tx_range_list1 =  { RIG_FRNG_END, },
 
     .rx_range_list2 =  {
-	{kHz(10),MHz(2600),AR5000_MODES,-1,-1,AR5000_VFO},
-	RIG_FRNG_END,
+        {kHz(10), MHz(2600), AR5000_MODES, -1, -1, AR5000_VFO},
+        RIG_FRNG_END,
     }, /* rx range */
 
-    .tx_range_list2 =  { RIG_FRNG_END, },	/* no tx range, this is a scanner! */
+    .tx_range_list2 =  { RIG_FRNG_END, },   /* no tx range, this is a scanner! */
 
     .tuning_steps =  {
-	{AR5000_MODES,1},
-	{AR5000_MODES,10},
-	{AR5000_MODES,50},
-	{AR5000_MODES,100},
-	{AR5000_MODES,500},
-	{AR5000_MODES,kHz(1)},
-	{AR5000_MODES,kHz(5)},
-	{AR5000_MODES,kHz(6.25)},
-	{AR5000_MODES,kHz(9)},
-	{AR5000_MODES,kHz(10)},
-	{AR5000_MODES,kHz(12.5)},
-	{AR5000_MODES,kHz(20)},
-	{AR5000_MODES,kHz(25)},
-	{AR5000_MODES,kHz(30)},
-	{AR5000_MODES,kHz(50)},
-	{AR5000_MODES,kHz(100)},
-	{AR5000_MODES,kHz(500)},
+        {AR5000_MODES, 1},
+        {AR5000_MODES, 10},
+        {AR5000_MODES, 50},
+        {AR5000_MODES, 100},
+        {AR5000_MODES, 500},
+        {AR5000_MODES, kHz(1)},
+        {AR5000_MODES, kHz(5)},
+        {AR5000_MODES, kHz(6.25)},
+        {AR5000_MODES, kHz(9)},
+        {AR5000_MODES, kHz(10)},
+        {AR5000_MODES, kHz(12.5)},
+        {AR5000_MODES, kHz(20)},
+        {AR5000_MODES, kHz(25)},
+        {AR5000_MODES, kHz(30)},
+        {AR5000_MODES, kHz(50)},
+        {AR5000_MODES, kHz(100)},
+        {AR5000_MODES, kHz(500)},
 #if 0
-	{AR5000_MODES,0},	/* any tuning step */
+        {AR5000_MODES, 0},  /* any tuning step */
 #endif
-	RIG_TS_END,
+        RIG_TS_END,
     },
-        /* mode/filter list, .remember =  order matters! */
+    /* mode/filter list, .remember =  order matters! */
     .filters =  {
-	{RIG_MODE_SSB|RIG_MODE_SAL|RIG_MODE_SAH|RIG_MODE_CW, kHz(3)},
-	{RIG_MODE_CW, Hz(500)},   /* narrow */
-	{RIG_MODE_AM|RIG_MODE_SAM, kHz(6)},
-	{RIG_MODE_AM|RIG_MODE_SAM, kHz(3)},    /* narrow */
-	{RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_SAM, kHz(15)},
-	{RIG_MODE_FM, kHz(6)},    /* narrow */
-	{RIG_MODE_FM, kHz(30)},   /*  wide  */
-	{RIG_MODE_WFM, kHz(110)},
-	{RIG_MODE_WFM, kHz(30)},  /* narrow */
-	{RIG_MODE_WFM, kHz(220)}, /*  wide  */
-	RIG_FLT_END,
+        {RIG_MODE_SSB | RIG_MODE_SAL | RIG_MODE_SAH | RIG_MODE_CW, kHz(3)},
+        {RIG_MODE_CW, Hz(500)},   /* narrow */
+        {RIG_MODE_AM | RIG_MODE_SAM, kHz(6)},
+        {RIG_MODE_AM | RIG_MODE_SAM, kHz(3)},  /* narrow */
+        {RIG_MODE_AM | RIG_MODE_FM | RIG_MODE_SAM, kHz(15)},
+        {RIG_MODE_FM, kHz(6)},    /* narrow */
+        {RIG_MODE_FM, kHz(30)},   /*  wide  */
+        {RIG_MODE_WFM, kHz(110)},
+        {RIG_MODE_WFM, kHz(30)},  /* narrow */
+        {RIG_MODE_WFM, kHz(220)}, /*  wide  */
+        RIG_FLT_END,
     },
 
-    .priv = (void*)&ar5k_priv_caps,
+    .priv = (void *)& ar5k_priv_caps,
 
     .rig_init =  NULL,
     .rig_cleanup =  NULL,
@@ -243,7 +247,8 @@ const struct rig_caps ar5000_caps = {
  *
  * TODO: retrieve BW info, and rest of commands
  */
-const struct rig_caps ar5000a_caps = {
+const struct rig_caps ar5000a_caps =
+{
     .rig_model =  RIG_MODEL_AR5000A,
     .model_name = "AR5000A",
     .mfg_name =  "AOR",
@@ -272,7 +277,7 @@ const struct rig_caps ar5000a_caps = {
     .has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
     .level_gran =  {},                 /* FIXME: granularity */
     .parm_gran =  {},
-    .ctcss_list =  NULL,				/* FIXME: CTCSS list */
+    .ctcss_list =  NULL,                /* FIXME: CTCSS list */
     .dcs_list =  NULL,
     .preamp =   { RIG_DBLST_END, },
     .attenuator =   { 10, 20, RIG_DBLST_END, },
@@ -288,61 +293,62 @@ const struct rig_caps ar5000a_caps = {
     .str_cal = AR5000_STR_CAL,
 
     .chan_list =  {
-	{   0,  999, RIG_MTYPE_MEM, AR5000_MEM_CAP },
-        RIG_CHAN_END, },
+        {   0,  999, RIG_MTYPE_MEM, AR5000_MEM_CAP },
+        RIG_CHAN_END,
+    },
 
 
     .rx_range_list1 =  {
-	{kHz(10),MHz(3000),AR5000_MODES,-1,-1,AR5000_VFO},
-	RIG_FRNG_END,
-	},
+        {kHz(10), MHz(3000), AR5000_MODES, -1, -1, AR5000_VFO},
+        RIG_FRNG_END,
+    },
     .tx_range_list1 =  { RIG_FRNG_END, },
 
     .rx_range_list2 =  {
-	{kHz(10),MHz(3000),AR5000_MODES,-1,-1,AR5000_VFO},
-	RIG_FRNG_END,
+        {kHz(10), MHz(3000), AR5000_MODES, -1, -1, AR5000_VFO},
+        RIG_FRNG_END,
     }, /* rx range */
-    .tx_range_list2 =  { RIG_FRNG_END, },	/* no tx range, this is a scanner! */
+    .tx_range_list2 =  { RIG_FRNG_END, },   /* no tx range, this is a scanner! */
 
     .tuning_steps =  {
-	{AR5000_MODES,1},
-	{AR5000_MODES,10},
-	{AR5000_MODES,50},
-	{AR5000_MODES,100},
-	{AR5000_MODES,500},
-	{AR5000_MODES,kHz(1)},
-	{AR5000_MODES,kHz(5)},
-	{AR5000_MODES,kHz(6.25)},
-	{AR5000_MODES,kHz(9)},
-	{AR5000_MODES,kHz(10)},
-	{AR5000_MODES,kHz(12.5)},
-	{AR5000_MODES,kHz(20)},
-	{AR5000_MODES,kHz(25)},
-	{AR5000_MODES,kHz(30)},
-	{AR5000_MODES,kHz(50)},
-	{AR5000_MODES,kHz(100)},
-	{AR5000_MODES,kHz(500)},
+        {AR5000_MODES, 1},
+        {AR5000_MODES, 10},
+        {AR5000_MODES, 50},
+        {AR5000_MODES, 100},
+        {AR5000_MODES, 500},
+        {AR5000_MODES, kHz(1)},
+        {AR5000_MODES, kHz(5)},
+        {AR5000_MODES, kHz(6.25)},
+        {AR5000_MODES, kHz(9)},
+        {AR5000_MODES, kHz(10)},
+        {AR5000_MODES, kHz(12.5)},
+        {AR5000_MODES, kHz(20)},
+        {AR5000_MODES, kHz(25)},
+        {AR5000_MODES, kHz(30)},
+        {AR5000_MODES, kHz(50)},
+        {AR5000_MODES, kHz(100)},
+        {AR5000_MODES, kHz(500)},
 #if 0
-	{AR5000_MODES,0},	/* any tuning step */
+        {AR5000_MODES, 0},  /* any tuning step */
 #endif
-	RIG_TS_END,
+        RIG_TS_END,
     },
-        /* mode/filter list, .remember =  order matters! */
+    /* mode/filter list, .remember =  order matters! */
     .filters =  {
-	{RIG_MODE_SSB|RIG_MODE_SAL|RIG_MODE_SAH|RIG_MODE_CW, kHz(3)},
-	{RIG_MODE_CW, Hz(500)},   /* narrow */
-	{RIG_MODE_AM|RIG_MODE_SAM, kHz(6)},
-	{RIG_MODE_AM|RIG_MODE_SAM, kHz(3)},    /* narrow */
-	{RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_SAM, kHz(15)},
-	{RIG_MODE_FM, kHz(6)},    /* narrow */
-	{RIG_MODE_FM, kHz(30)},   /*  wide  */
-	{RIG_MODE_WFM, kHz(110)},
-	{RIG_MODE_WFM, kHz(30)},  /* narrow */
-	{RIG_MODE_WFM, kHz(220)}, /*  wide  */
-	RIG_FLT_END,
+        {RIG_MODE_SSB | RIG_MODE_SAL | RIG_MODE_SAH | RIG_MODE_CW, kHz(3)},
+        {RIG_MODE_CW, Hz(500)},   /* narrow */
+        {RIG_MODE_AM | RIG_MODE_SAM, kHz(6)},
+        {RIG_MODE_AM | RIG_MODE_SAM, kHz(3)},  /* narrow */
+        {RIG_MODE_AM | RIG_MODE_FM | RIG_MODE_SAM, kHz(15)},
+        {RIG_MODE_FM, kHz(6)},    /* narrow */
+        {RIG_MODE_FM, kHz(30)},   /*  wide  */
+        {RIG_MODE_WFM, kHz(110)},
+        {RIG_MODE_WFM, kHz(30)},  /* narrow */
+        {RIG_MODE_WFM, kHz(220)}, /*  wide  */
+        RIG_FLT_END,
     },
 
-    .priv = (void*)&ar5k_priv_caps,
+    .priv = (void *)& ar5k_priv_caps,
 
     .rig_init =  NULL,
     .rig_cleanup =  NULL,
@@ -385,91 +391,130 @@ const struct rig_caps ar5000a_caps = {
 /*
  * modes in use by the "MD" command of AR5000
  */
-#define AR5K_FM	 '0'
-#define	AR5K_AM	 '1'
+#define AR5K_FM  '0'
+#define AR5K_AM  '1'
 #define AR5K_LSB '2'
 #define AR5K_USB '3'
-#define AR5K_CW	 '4'
+#define AR5K_CW  '4'
 #define AR5K_SAM '5'
 #define AR5K_SAL '6'
 #define AR5K_SAH '7'
 
 int format5k_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width)
 {
-  int aormode, aorwidth;
+    int aormode, aorwidth;
 
-  switch (mode) {
-	case RIG_MODE_AM:  aormode = AR5K_AM; break;
-	case RIG_MODE_WFM:
-	case RIG_MODE_FM:  aormode = AR5K_FM; break;
-	case RIG_MODE_LSB: aormode = AR5K_LSB; break;
-	case RIG_MODE_USB: aormode = AR5K_USB; break;
-	case RIG_MODE_CW:  aormode = AR5K_CW; break;
-	case RIG_MODE_SAM: aormode = AR5K_SAM; break;
-	case RIG_MODE_SAL: aormode = AR5K_SAL; break;
-	case RIG_MODE_SAH: aormode = AR5K_SAH; break;
-	default:
-    rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %s\n",
-              __func__, rig_strrmode(mode));
-    return -RIG_EINVAL;
-  }
+    switch (mode)
+    {
+    case RIG_MODE_AM:  aormode = AR5K_AM; break;
 
-  if (width != RIG_PASSBAND_NOCHANGE) {
-    if (width == RIG_PASSBAND_NORMAL)
-      width = rig_passband_normal(rig, mode);
+    case RIG_MODE_WFM:
+    case RIG_MODE_FM:  aormode = AR5K_FM; break;
 
-    switch (width) {
-    case 500:	 aorwidth = '0'; break;
-    case s_kHz(3):	 aorwidth = '1'; break;
-    case s_kHz(6):	 aorwidth = '2'; break;
-    case s_kHz(15):	 aorwidth = '3'; break;
-    case s_kHz(30):	 aorwidth = '4'; break;
-    case s_kHz(110): aorwidth = '5'; break;
-    case s_kHz(220): aorwidth = '6'; break;
+    case RIG_MODE_LSB: aormode = AR5K_LSB; break;
+
+    case RIG_MODE_USB: aormode = AR5K_USB; break;
+
+    case RIG_MODE_CW:  aormode = AR5K_CW; break;
+
+    case RIG_MODE_SAM: aormode = AR5K_SAM; break;
+
+    case RIG_MODE_SAL: aormode = AR5K_SAL; break;
+
+    case RIG_MODE_SAH: aormode = AR5K_SAH; break;
+
     default:
-      rig_debug(RIG_DEBUG_ERR,"%s: unsupported width %d\n",
-                __func__, (int)width);
-      return -RIG_EINVAL;
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n",
+                  __func__, rig_strrmode(mode));
+        return -RIG_EINVAL;
     }
 
-    return sprintf(buf, "MD%c BW%c", aormode, aorwidth);
-  }
-  else {
-    return sprintf(buf, "MD%c", aormode);
-  }
+    if (width != RIG_PASSBAND_NOCHANGE)
+    {
+        if (width == RIG_PASSBAND_NORMAL)
+        {
+            width = rig_passband_normal(rig, mode);
+        }
+
+        switch (width)
+        {
+        case 500:    aorwidth = '0'; break;
+
+        case s_kHz(3):   aorwidth = '1'; break;
+
+        case s_kHz(6):   aorwidth = '2'; break;
+
+        case s_kHz(15):  aorwidth = '3'; break;
+
+        case s_kHz(30):  aorwidth = '4'; break;
+
+        case s_kHz(110): aorwidth = '5'; break;
+
+        case s_kHz(220): aorwidth = '6'; break;
+
+        default:
+            rig_debug(RIG_DEBUG_ERR, "%s: unsupported width %d\n",
+                      __func__, (int)width);
+            return -RIG_EINVAL;
+        }
+
+        return sprintf(buf, "MD%c BW%c", aormode, aorwidth);
+    }
+    else
+    {
+        return sprintf(buf, "MD%c", aormode);
+    }
 }
 
 
 
-int parse5k_aor_mode(RIG *rig, char aormode, char aorwidth, rmode_t *mode, pbwidth_t *width)
+int parse5k_aor_mode(RIG *rig, char aormode, char aorwidth, rmode_t *mode,
+                     pbwidth_t *width)
 {
-    switch (aormode) {
-	case AR5K_FM:	*mode = RIG_MODE_FM; break;
-	case AR5K_AM:	*mode = RIG_MODE_AM; break;
-	case AR5K_LSB:	*mode = RIG_MODE_LSB; break;
-	case AR5K_USB:	*mode = RIG_MODE_USB; break;
-	case AR5K_CW:	*mode = RIG_MODE_CW; break;
-	case AR5K_SAM:	*mode = RIG_MODE_SAM; break;
-	case AR5K_SAL:	*mode = RIG_MODE_SAL; break;
-	case AR5K_SAH:	*mode = RIG_MODE_SAH; break;
-	default:
-	    rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode '%c'\n",
-		      __func__, aormode);
-	    return -RIG_EPROTO;
+    switch (aormode)
+    {
+    case AR5K_FM:   *mode = RIG_MODE_FM; break;
+
+    case AR5K_AM:   *mode = RIG_MODE_AM; break;
+
+    case AR5K_LSB:  *mode = RIG_MODE_LSB; break;
+
+    case AR5K_USB:  *mode = RIG_MODE_USB; break;
+
+    case AR5K_CW:   *mode = RIG_MODE_CW; break;
+
+    case AR5K_SAM:  *mode = RIG_MODE_SAM; break;
+
+    case AR5K_SAL:  *mode = RIG_MODE_SAL; break;
+
+    case AR5K_SAH:  *mode = RIG_MODE_SAH; break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode '%c'\n",
+                  __func__, aormode);
+        return -RIG_EPROTO;
     }
 
-    switch (aorwidth) {
-	case '0':	*width = 500; break;
-	case '1':	*width = s_kHz(3); break;
-	case '2':	*width = s_kHz(6); break;
-	case '3':	*width = s_kHz(15); break;
-	case '4':	*width = s_kHz(30); break;
-	case '5':	*width = s_kHz(110); break;
-	case '6':	*width = s_kHz(220); break;
-	default:
-	    rig_debug(RIG_DEBUG_ERR,"%s: unsupported width %d\n",
-		      __func__, aorwidth);
-	    return -RIG_EPROTO;
+    switch (aorwidth)
+    {
+    case '0':   *width = 500; break;
+
+    case '1':   *width = s_kHz(3); break;
+
+    case '2':   *width = s_kHz(6); break;
+
+    case '3':   *width = s_kHz(15); break;
+
+    case '4':   *width = s_kHz(30); break;
+
+    case '5':   *width = s_kHz(110); break;
+
+    case '6':   *width = s_kHz(220); break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported width %d\n",
+                  __func__, aorwidth);
+        return -RIG_EPROTO;
     }
 
     return RIG_OK;

@@ -66,71 +66,84 @@
   E=<ff.f> S=<n> <s><cr>
 */
 
-static int rc2800_parse (char *s, char *device, float *value)
+static int rc2800_parse(char *s, char *device, float *value)
 {
-  int i, msgtype=0, errcode=0;
+    int i, msgtype = 0, errcode = 0;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: device return->%s", __func__, s);
+    rig_debug(RIG_DEBUG_TRACE, "%s: device return->%s", __func__, s);
 
-  int len = strlen(s);
-  if (len == 0)
-    return -RIG_EPROTO;
+    int len = strlen(s);
 
-  if (len > 7)
-  {
-    if (*s == 'A' || *s == 'E')
+    if (len == 0)
     {
-      *device = *s;
-
-      if (!strncmp(s+2, "ERR=", 4))
-      {
-        msgtype=1;
-        i = sscanf(s+6, "%d", &errcode);
-	if (i == EOF)
-	  return -RIG_EINVAL;
-      }
-      else if (!strncmp(s+2, "P=", 2))
-      {
-        msgtype=2;
-        i = num_sscanf(s+5, "%f", value);
-	if (i == EOF)
-	  return -RIG_EINVAL;
-      }
-      else if (s[1] == '=')
-      {
-        msgtype=2;
-        i = num_sscanf(s+2, "%f", value);
-	if (i == EOF)
-	  return -RIG_EINVAL;
-      }
+        return -RIG_EPROTO;
     }
-  }
 
-  if (msgtype == 2)
-  {
-    rig_debug(RIG_DEBUG_TRACE, "%s: device=%c value=%3.1f\n", __func__, *device, *value);
-    return RIG_OK;
-  }
-  else if (msgtype == 1)
-  {
-    rig_debug(RIG_DEBUG_TRACE, "%s: driver error code %d\n", __func__, errcode);
-    *device = ' ';
-    return RIG_OK;
-  }
+    if (len > 7)
+    {
+        if (*s == 'A' || *s == 'E')
+        {
+            *device = *s;
 
-  return -RIG_EPROTO;
+            if (!strncmp(s + 2, "ERR=", 4))
+            {
+                msgtype = 1;
+                i = sscanf(s + 6, "%d", &errcode);
+
+                if (i == EOF)
+                {
+                    return -RIG_EINVAL;
+                }
+            }
+            else if (!strncmp(s + 2, "P=", 2))
+            {
+                msgtype = 2;
+                i = num_sscanf(s + 5, "%f", value);
+
+                if (i == EOF)
+                {
+                    return -RIG_EINVAL;
+                }
+            }
+            else if (s[1] == '=')
+            {
+                msgtype = 2;
+                i = num_sscanf(s + 2, "%f", value);
+
+                if (i == EOF)
+                {
+                    return -RIG_EINVAL;
+                }
+            }
+        }
+    }
+
+    if (msgtype == 2)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: device=%c value=%3.1f\n", __func__, *device,
+                  *value);
+        return RIG_OK;
+    }
+    else if (msgtype == 1)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: driver error code %d\n", __func__, errcode);
+        *device = ' ';
+        return RIG_OK;
+    }
+
+    return -RIG_EPROTO;
 }
 
 
 #if 0
-int testmain ()
+int testmain()
 {
-  rc2800_parse("A P=  98.1 S=9 MV");
-  rc2800_parse("A P= 100.0 S=9 MV");
-  rc2800_parse("E=43.7 S=9 M");
-  rc2800_parse("E=42.8 S=9 S");
-  rc2800_parse("E ERR=05");
-  return 0;
+    rc2800_parse("A P=  98.1 S=9 MV");
+    rc2800_parse("A P= 100.0 S=9 MV");
+    rc2800_parse("E=43.7 S=9 M");
+    rc2800_parse("E=42.8 S=9 S");
+    rc2800_parse("E ERR=05");
+    return 0;
 }
 #endif
 
@@ -152,8 +165,8 @@ int testmain ()
  *   RIG_ETIMEOUT  -  if timeout expires without any characters received.
  */
 static int
-rc2800_transaction (ROT *rot, const char *cmdstr,
-                    char *data, size_t data_len)
+rc2800_transaction(ROT *rot, const char *cmdstr,
+                   char *data, size_t data_len)
 {
     struct rot_state *rs;
     int retval;
@@ -166,33 +179,52 @@ transaction_write:
 
     serial_flush(&rs->rotport);
 
-    if (cmdstr) {
+    if (cmdstr)
+    {
         retval = write_block(&rs->rotport, cmdstr, strlen(cmdstr));
+
         if (retval != RIG_OK)
+        {
             goto transaction_quit;
+        }
     }
 
     /* Always read the reply to know whether the cmd went OK */
     if (!data)
+    {
         data = replybuf;
+    }
+
     if (!data_len)
+    {
         data_len = BUFSZ;
+    }
 
     /* first reply is an echo */
-    memset(data,0,data_len);
+    memset(data, 0, data_len);
     retval = read_string(&rs->rotport, data, data_len, LF, strlen(LF));
-    if (retval < 0) {
+
+    if (retval < 0)
+    {
         if (retry_read++ < rot->state.rotport.retry)
+        {
             goto transaction_write;
+        }
+
         goto transaction_quit;
     }
 
     /* then comes the answer */
-    memset(data,0,data_len);
+    memset(data, 0, data_len);
     retval = read_string(&rs->rotport, data, data_len, LF, strlen(LF));
-    if (retval < 0) {
+
+    if (retval < 0)
+    {
         if (retry_read++ < rot->state.rotport.retry)
+        {
             goto transaction_write;
+        }
+
         goto transaction_quit;
     }
 
@@ -205,87 +237,103 @@ transaction_quit:
 static int
 rc2800_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
-  char cmdstr[64];
-  int retval1, retval2;
+    char cmdstr[64];
+    int retval1, retval2;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
+    rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
 
-  num_sprintf(cmdstr, "A%3.1f"CR, az);
-  retval1 = rc2800_transaction(rot, cmdstr, NULL, 0);
+    num_sprintf(cmdstr, "A%3.1f"CR, az);
+    retval1 = rc2800_transaction(rot, cmdstr, NULL, 0);
 
-  /* do not overwhelm the MCU? */
-  usleep(200*1000);
+    /* do not overwhelm the MCU? */
+    usleep(200 * 1000);
 
-  num_sprintf(cmdstr, "E%3.1f"CR, el);
-  retval2 = rc2800_transaction(rot, cmdstr, NULL, 0);
+    num_sprintf(cmdstr, "E%3.1f"CR, el);
+    retval2 = rc2800_transaction(rot, cmdstr, NULL, 0);
 
-  if (retval1 == retval2)
-    return retval1;
-  return (retval1 != RIG_OK ? retval1 : retval2);
+    if (retval1 == retval2)
+    {
+        return retval1;
+    }
+
+    return (retval1 != RIG_OK ? retval1 : retval2);
 }
 
 static int
 rc2800_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
-  char posbuf[32];
-  int retval;
-  char device;
-  float value;
+    char posbuf[32];
+    int retval;
+    char device;
+    float value;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-  retval = rc2800_transaction(rot, "A" CR, posbuf, sizeof(posbuf));
-  if (retval != RIG_OK || strlen(posbuf) < 5) {
-    return retval < 0 ? retval : -RIG_EPROTO;
-  }
+    retval = rc2800_transaction(rot, "A" CR, posbuf, sizeof(posbuf));
 
-  if (rc2800_parse(posbuf, &device, &value) == RIG_OK) {
-    if (device == 'A')
-      *az = (azimuth_t) value;
-    else
-      return -RIG_EPROTO;
-  }
+    if (retval != RIG_OK || strlen(posbuf) < 5)
+    {
+        return retval < 0 ? retval : -RIG_EPROTO;
+    }
 
-  retval = rc2800_transaction(rot, "E" CR, posbuf, sizeof(posbuf));
+    if (rc2800_parse(posbuf, &device, &value) == RIG_OK)
+    {
+        if (device == 'A')
+        {
+            *az = (azimuth_t) value;
+        }
+        else
+        {
+            return -RIG_EPROTO;
+        }
+    }
 
-  if (retval != RIG_OK || strlen(posbuf) < 5) {
-    return retval < 0 ? retval : -RIG_EPROTO;
-  }
+    retval = rc2800_transaction(rot, "E" CR, posbuf, sizeof(posbuf));
 
-  if (rc2800_parse(posbuf, &device, &value) == RIG_OK) {
-    if (device == 'E')
-      *el = (elevation_t) value;
-    else
-      return -RIG_EPROTO;
-  }
+    if (retval != RIG_OK || strlen(posbuf) < 5)
+    {
+        return retval < 0 ? retval : -RIG_EPROTO;
+    }
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: (az, el) = (%.1f, %.1f)\n",
-            __func__, *az, *el);
+    if (rc2800_parse(posbuf, &device, &value) == RIG_OK)
+    {
+        if (device == 'E')
+        {
+            *el = (elevation_t) value;
+        }
+        else
+        {
+            return -RIG_EPROTO;
+        }
+    }
 
-  return RIG_OK;
+    rig_debug(RIG_DEBUG_TRACE, "%s: (az, el) = (%.1f, %.1f)\n",
+              __func__, *az, *el);
+
+    return RIG_OK;
 }
 
 static int
 rc2800_rot_stop(ROT *rot)
 {
-  int retval;
+    int retval;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-  /* TODO: check each return value (do we care?) */
+    /* TODO: check each return value (do we care?) */
 
-  /* Stop AZ*/
-  retval = rc2800_transaction(rot, "A" CR, NULL, 0); /* select AZ */
-  retval = rc2800_transaction(rot, "S" CR, NULL, 0); /* STOP */
+    /* Stop AZ*/
+    retval = rc2800_transaction(rot, "A" CR, NULL, 0); /* select AZ */
+    retval = rc2800_transaction(rot, "S" CR, NULL, 0); /* STOP */
 
-  /* do not overwhelm the MCU? */
-  usleep(200*1000);
+    /* do not overwhelm the MCU? */
+    usleep(200 * 1000);
 
-  /* Stop EL*/
-  retval = rc2800_transaction(rot, "E" CR, NULL, 0); /* select EL */
-  retval = rc2800_transaction(rot, "S" CR, NULL, 0); /* STOP */
+    /* Stop EL*/
+    retval = rc2800_transaction(rot, "E" CR, NULL, 0); /* select EL */
+    retval = rc2800_transaction(rot, "S" CR, NULL, 0); /* STOP */
 
-  return retval;
+    return retval;
 }
 
 
@@ -300,45 +348,46 @@ rc2800_rot_stop(ROT *rot)
  * Protocol documentation: http://www.confluentdesigns.com/files/PdfFiles/devguide_24.pdf
  */
 
-const struct rot_caps rc2800_rot_caps = {
-  .rot_model =      ROT_MODEL_RC2800,
-  .model_name =     "RC2800",
-  .mfg_name =       "M2",
-  .version =        "0.1.1",
-  .copyright = 	    "LGPL",
-  .status =         RIG_STATUS_BETA,
-  .rot_type =       ROT_TYPE_AZEL,
-  .port_type =      RIG_PORT_SERIAL,
-  .serial_rate_min  = 9600,
-  .serial_rate_max  = 9600,
-  .serial_data_bits = 8,
-  .serial_stop_bits = 1,
-  .serial_parity    = RIG_PARITY_NONE,
-  .serial_handshake = RIG_HANDSHAKE_NONE,
-  .write_delay      = 0,
-  .post_write_delay = 0,
-  .timeout          = 1000,
-  .retry            = 3,
+const struct rot_caps rc2800_rot_caps =
+{
+    .rot_model =      ROT_MODEL_RC2800,
+    .model_name =     "RC2800",
+    .mfg_name =       "M2",
+    .version =        "0.1.1",
+    .copyright =      "LGPL",
+    .status =         RIG_STATUS_BETA,
+    .rot_type =       ROT_TYPE_AZEL,
+    .port_type =      RIG_PORT_SERIAL,
+    .serial_rate_min  = 9600,
+    .serial_rate_max  = 9600,
+    .serial_data_bits = 8,
+    .serial_stop_bits = 1,
+    .serial_parity    = RIG_PARITY_NONE,
+    .serial_handshake = RIG_HANDSHAKE_NONE,
+    .write_delay      = 0,
+    .post_write_delay = 0,
+    .timeout          = 1000,
+    .retry            = 3,
 
-  .min_az = 	0.0,
-  .max_az =  	360.0,
-  .min_el = 	0.0,
-  .max_el =  	180.0,
+    .min_az =     0.0,
+    .max_az =     360.0,
+    .min_el =     0.0,
+    .max_el =     180.0,
 
-  .get_position = rc2800_rot_get_position,
-  .set_position = rc2800_rot_set_position,
-  .stop         = rc2800_rot_stop,
+    .get_position = rc2800_rot_get_position,
+    .set_position = rc2800_rot_set_position,
+    .stop         = rc2800_rot_stop,
 };
 
 /* ************************************************************************* */
 
 DECLARE_INITROT_BACKEND(m2)
 {
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  rot_register(&rc2800_rot_caps);
+    rot_register(&rc2800_rot_caps);
 
-  return RIG_OK;
+    return RIG_OK;
 }
 
 /* ************************************************************************* */

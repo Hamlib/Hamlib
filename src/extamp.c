@@ -64,8 +64,8 @@
  */
 int HAMLIB_API amp_ext_level_foreach(AMP *amp,
                                      int (*cfunc)(AMP *,
-                                                  const struct confparams *,
-                                                  amp_ptr_t),
+                                             const struct confparams *,
+                                             amp_ptr_t),
                                      amp_ptr_t data)
 {
     const struct confparams *cfp;
@@ -110,8 +110,8 @@ int HAMLIB_API amp_ext_level_foreach(AMP *amp,
  */
 int HAMLIB_API amp_ext_parm_foreach(AMP *amp,
                                     int (*cfunc)(AMP *,
-                                                 const struct confparams *,
-                                                 amp_ptr_t),
+                                            const struct confparams *,
+                                            amp_ptr_t),
                                     amp_ptr_t data)
 {
     const struct confparams *cfp;
@@ -194,7 +194,7 @@ const struct confparams *HAMLIB_API amp_ext_lookup(AMP *amp, const char *name)
  *
  * Returns NULL if nothing found
  */
-const struct confparams * HAMLIB_API amp_ext_lookup_tok(AMP *amp, token_t token)
+const struct confparams *HAMLIB_API amp_ext_lookup_tok(AMP *amp, token_t token)
 {
     const struct confparams *cfp;
 

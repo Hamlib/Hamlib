@@ -74,7 +74,7 @@ struct handle_data
     socklen_t clilen;
 };
 
-void * handle_socket(void *arg);
+void *handle_socket(void *arg);
 
 void usage();
 
@@ -96,7 +96,7 @@ static struct option long_options[] =
     {"set-conf",        1, 0, 'C'},
     {"show-conf",       0, 0, 'L'},
     {"dump-caps",       0, 0, 'u'},
-    {"debug-time-stamps",0, 0, 'Z'},
+    {"debug-time-stamps", 0, 0, 'Z'},
     {"verbose",         0, 0, 'v'},
     {"help",            0, 0, 'h'},
     {"version",         0, 0, 'V'},
@@ -442,7 +442,7 @@ int main(int argc, char *argv[])
                            IPV6_V6ONLY,
                            (char *)&sockopt,
                            sizeof(sockopt))
-                < 0)
+                    < 0)
             {
 
                 handle_error(RIG_DEBUG_ERR, "setsockopt");
@@ -538,7 +538,7 @@ int main(int argc, char *argv[])
                                    serv,
                                    sizeof(serv),
                                    NI_NOFQDN))
-            < 0)
+                < 0)
         {
 
             rig_debug(RIG_DEBUG_WARN,
@@ -583,7 +583,7 @@ int main(int argc, char *argv[])
 /*
  * This is the function run by the threads
  */
-void * handle_socket(void *arg)
+void *handle_socket(void *arg)
 {
     struct handle_data *handle_data_arg = (struct handle_data *)arg;
     FILE *fsockin;
@@ -627,7 +627,8 @@ void * handle_socket(void *arg)
 
     do
     {
-      retcode = rotctl_parse(handle_data_arg->rot, fsockin, fsockout, NULL, 0, 1, 0, '\r');
+        retcode = rotctl_parse(handle_data_arg->rot, fsockin, fsockout, NULL, 0, 1, 0,
+                               '\r');
 
         if (ferror(fsockin) || ferror(fsockout))
         {
@@ -643,7 +644,7 @@ void * handle_socket(void *arg)
                                serv,
                                sizeof(serv),
                                NI_NOFQDN))
-        < 0)
+            < 0)
     {
 
         rig_debug(RIG_DEBUG_WARN,

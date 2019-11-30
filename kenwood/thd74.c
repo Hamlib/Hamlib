@@ -232,7 +232,8 @@ static int thd74_get_vfo(RIG *rig, vfo_t *vfo)
     case '1': *vfo = RIG_VFO_B; break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO: %s\n", __func__, rig_strvfo(*vfo));
+        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO: %s\n", __func__,
+                  rig_strvfo(*vfo));
         return -RIG_EVFO;
     }
 
@@ -387,7 +388,8 @@ static int thd74_round_freq(RIG *rig, vfo_t vfo, freq_t freq)
     r = round((double)f / (double)ts);
     r = ts * r;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: rounded %"PRIll" to %"PRIll" because stepsize:%d\n",
+    rig_debug(RIG_DEBUG_TRACE,
+              "%s: rounded %"PRIll" to %"PRIll" because stepsize:%d\n",
               __func__, f, (int64_t)r, (int)ts);
 
     return (freq_t)r;
@@ -494,7 +496,8 @@ int thd74_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_CWR: kmode = '9'; break;
 
         default:
-            rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n", __func__, rig_strrmode(mode));
+            rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n", __func__,
+                      rig_strrmode(mode));
             return -RIG_EINVAL;
         }
     }
@@ -925,7 +928,8 @@ static int thd74_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         return kenwood_simple_transaction(rig, cmd, 6);
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported level %s\n", __func__, rig_strlevel(level));
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported level %s\n", __func__,
+                  rig_strlevel(level));
         return -RIG_EINVAL;
     }
 
@@ -1039,7 +1043,8 @@ static int thd74_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported level %s\n", __func__, rig_strlevel(level));
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported level %s\n", __func__,
+                  rig_strlevel(level));
         return -RIG_EINVAL;
     }
 

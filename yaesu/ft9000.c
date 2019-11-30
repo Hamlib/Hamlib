@@ -46,7 +46,8 @@
  *
  */
 
-const struct rig_caps ft9000_caps = {
+const struct rig_caps ft9000_caps =
+{
     .rig_model =          RIG_MODEL_FT9000,
     .model_name =         "FTDX-9000",
     .mfg_name =           "Yaesu",
@@ -74,8 +75,8 @@ const struct rig_caps ft9000_caps = {
     .has_get_parm =       RIG_PARM_NONE,
     .has_set_parm =       RIG_PARM_NONE,
     .level_gran = {
-	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
-	[LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 50 } },
+        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
+        [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 50 } },
     },
     .ctcss_list =         common_ctcss_list,
     .dcs_list =           NULL,
@@ -85,43 +86,43 @@ const struct rig_caps ft9000_caps = {
     .max_xit =            Hz(9999),
     .max_ifshift =        Hz(1000),
     .vfo_ops =            FT9000_VFO_OPS,
-    .targetable_vfo =     RIG_TARGETABLE_FREQ|RIG_TARGETABLE_MODE,
+    .targetable_vfo =     RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
     .transceive =         RIG_TRN_OFF,        /* May enable later as the 9000 has an Auto Info command */
     .bank_qty =           0,
     .chan_desc_sz =       0,
     .str_cal =            FT9000_STR_CAL,
     .chan_list =          {
-	    	/* TBC */
-               {   1,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
-               { 100, 117, RIG_MTYPE_EDGE, NEWCAT_MEM_CAP },    /* two by two */
-               RIG_CHAN_END,
-                          },
+        /* TBC */
+        {   1,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
+        { 100, 117, RIG_MTYPE_EDGE, NEWCAT_MEM_CAP },    /* two by two */
+        RIG_CHAN_END,
+    },
 
     .rx_range_list1 =     {
-           /* General coverage + ham */
-	{kHz(30), MHz(60), FT9000_ALL_RX_MODES, -1, -1, FT9000_VFO_ALL, FT9000_TX_ANTS|RIG_ANT_5},
+        /* General coverage + ham */
+        {kHz(30), MHz(60), FT9000_ALL_RX_MODES, -1, -1, FT9000_VFO_ALL, FT9000_TX_ANTS | RIG_ANT_5},
         RIG_FRNG_END,
     },
 
     .tx_range_list1 =     {
         FRQ_RNG_HF(1, FT9000_OTHER_TX_MODES, W(5), W(400), FT9000_VFO_ALL, FT9000_TX_ANTS),
-        FRQ_RNG_HF(1, FT9000_AM_TX_MODES, W(2), W(100), FT9000_VFO_ALL, FT9000_TX_ANTS),	/* AM class */
+        FRQ_RNG_HF(1, FT9000_AM_TX_MODES, W(2), W(100), FT9000_VFO_ALL, FT9000_TX_ANTS),    /* AM class */
         FRQ_RNG_6m(1, FT9000_OTHER_TX_MODES, W(5), W(400), FT9000_VFO_ALL, FT9000_TX_ANTS),
-        FRQ_RNG_6m(1, FT9000_AM_TX_MODES, W(2), W(100), FT9000_VFO_ALL, FT9000_TX_ANTS),	/* AM class */
+        FRQ_RNG_6m(1, FT9000_AM_TX_MODES, W(2), W(100), FT9000_VFO_ALL, FT9000_TX_ANTS),    /* AM class */
 
         RIG_FRNG_END,
     },
 
     .rx_range_list2 =     {
-        {kHz(30), MHz(56), FT9000_ALL_RX_MODES, -1, -1, FT9000_VFO_ALL, FT9000_TX_ANTS|RIG_ANT_5},
+        {kHz(30), MHz(56), FT9000_ALL_RX_MODES, -1, -1, FT9000_VFO_ALL, FT9000_TX_ANTS | RIG_ANT_5},
         RIG_FRNG_END,
     },
 
     .tx_range_list2 =     {
         FRQ_RNG_HF(2, FT9000_OTHER_TX_MODES, W(5), W(400), FT9000_VFO_ALL, FT9000_TX_ANTS),
-        FRQ_RNG_HF(2, FT9000_AM_TX_MODES, W(2), W(100), FT9000_VFO_ALL, FT9000_TX_ANTS),	/* AM class */
+        FRQ_RNG_HF(2, FT9000_AM_TX_MODES, W(2), W(100), FT9000_VFO_ALL, FT9000_TX_ANTS),    /* AM class */
         FRQ_RNG_6m(2, FT9000_OTHER_TX_MODES, W(5), W(400), FT9000_VFO_ALL, FT9000_TX_ANTS),
-        FRQ_RNG_6m(2, FT9000_AM_TX_MODES, W(2), W(100), FT9000_VFO_ALL, FT9000_TX_ANTS),	/* AM class */
+        FRQ_RNG_6m(2, FT9000_AM_TX_MODES, W(2), W(100), FT9000_VFO_ALL, FT9000_TX_ANTS),    /* AM class */
 
         RIG_FRNG_END,
     },

@@ -390,7 +390,7 @@ static int scanfc(FILE *fin, const char *format, void *p)
             }
 
             rig_debug(RIG_DEBUG_ERR, "fscanf: %s\n", strerror(errno));
-            rig_debug(RIG_DEBUG_ERR, "fscanf: parsing '%s' with '%s'\n", (char*)p, format);
+            rig_debug(RIG_DEBUG_ERR, "fscanf: parsing '%s' with '%s'\n", (char *)p, format);
         }
 
         return ret;
@@ -556,10 +556,10 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
                 }
 
                 if (cmd != '\\'
-                    && cmd != '_'
-                    && cmd != '#'
-                    && ispunct(cmd)
-                    && !prompt)
+                        && cmd != '_'
+                        && cmd != '#'
+                        && ispunct(cmd)
+                        && !prompt)
                 {
 
                     ext_resp = 1;
@@ -681,8 +681,8 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
         }
 
         if ((cmd_entry->flags & ARG_IN_LINE)
-            && (cmd_entry->flags & ARG_IN1)
-            && cmd_entry->arg1)
+                && (cmd_entry->flags & ARG_IN1)
+                && cmd_entry->arg1)
         {
 
             if (interactive)
@@ -772,9 +772,9 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
         }
 
         if (p1
-            && p1[0] != '?'
-            && (cmd_entry->flags & ARG_IN2)
-            && cmd_entry->arg2)
+                && p1[0] != '?'
+                && (cmd_entry->flags & ARG_IN2)
+                && cmd_entry->arg2)
         {
 
             if (interactive)
@@ -812,9 +812,9 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
         }
 
         if (p1
-            && p1[0] != '?'
-            && (cmd_entry->flags & ARG_IN3)
-            && cmd_entry->arg3)
+                && p1[0] != '?'
+                && (cmd_entry->flags & ARG_IN3)
+                && cmd_entry->arg3)
         {
 
             if (interactive)
@@ -852,9 +852,9 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
         }
 
         if (p1
-            && p1[0] != '?'
-            && (cmd_entry->flags & ARG_IN4)
-            && cmd_entry->arg4)
+                && p1[0] != '?'
+                && (cmd_entry->flags & ARG_IN4)
+                && cmd_entry->arg4)
         {
 
             if (interactive)
@@ -1060,8 +1060,8 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
 
         /* \send_cmd */
         if ((cmd_entry->flags & ARG_IN_LINE)
-            && (cmd_entry->flags & ARG_IN1)
-            && cmd_entry->arg1)
+                && (cmd_entry->flags & ARG_IN1)
+                && cmd_entry->arg1)
         {
 
             /* Check for a non-existent delimiter so as to not break up
@@ -1181,9 +1181,9 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
         }
 
         if (p1
-            && p1[0] != '?'
-            && (cmd_entry->flags & ARG_IN2)
-            && cmd_entry->arg2)
+                && p1[0] != '?'
+                && (cmd_entry->flags & ARG_IN2)
+                && cmd_entry->arg2)
         {
 
             result = strtok(NULL, " ");
@@ -1242,9 +1242,9 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
         }
 
         if (p1
-            && p1[0] != '?'
-            && (cmd_entry->flags & ARG_IN3)
-            && cmd_entry->arg3)
+                && p1[0] != '?'
+                && (cmd_entry->flags & ARG_IN3)
+                && cmd_entry->arg3)
         {
 
             result = strtok(NULL, " ");
@@ -1303,9 +1303,9 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
         }
 
         if (p1
-            && p1[0] != '?'
-            && (cmd_entry->flags & ARG_IN4)
-            && cmd_entry->arg4)
+                && p1[0] != '?'
+                && (cmd_entry->flags & ARG_IN4)
+                && cmd_entry->arg4)
         {
 
             result = strtok(NULL, " ");
@@ -1435,7 +1435,8 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
     pthread_mutex_unlock(&rot_mutex);
 #endif
 
-    if (retcode == RIG_EIO) return retcode;
+    if (retcode == RIG_EIO) { return retcode; }
+
     if (retcode != RIG_OK)
     {
         /* only for rotctld */
@@ -1631,7 +1632,7 @@ int set_conf(ROT *my_rot, char *conf_parms)
     char *p, *q, *n;
     int ret;
 
-    rot_debug(RIG_DEBUG_TRACE,"%s: called\n", __func__);
+    rot_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
     p = conf_parms;
 
     while (p && *p != '\0')
@@ -1652,7 +1653,7 @@ int set_conf(ROT *my_rot, char *conf_parms)
             *n++ = '\0';
         }
 
-        rig_debug(RIG_DEBUG_TRACE,"%s: token=%s, val=%s\n",__func__, p,q);
+        rig_debug(RIG_DEBUG_TRACE, "%s: token=%s, val=%s\n", __func__, p, q);
         ret = rot_set_conf(my_rot, rot_token_lookup(my_rot, p), q);
 
         if (ret != RIG_OK)
@@ -1793,16 +1794,17 @@ declare_proto_rot(move)
 /* 'C' */
 declare_proto_rot(inter_set_conf)
 {
-    rot_debug(RIG_DEBUG_TRACE,"%s: called\n", __func__);
+    rot_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     if (!arg2 || arg2[0] == '\0')
     {
-        rot_debug(RIG_DEBUG_ERR,"%s: arg1=='%s', arg2=='%s'\n", __func__, arg1, arg2);
+        rot_debug(RIG_DEBUG_ERR, "%s: arg1=='%s', arg2=='%s'\n", __func__, arg1, arg2);
 
         return -RIG_EINVAL;
     }
+
     char buf[256];
-    sprintf(buf,"%s=%s",arg1,arg2);
+    sprintf(buf, "%s=%s", arg1, arg2);
     return set_conf(rot, buf);
 }
 
@@ -1873,6 +1875,7 @@ declare_proto_rot(dump_state)
     {
         fprintf(fout, "South Zero: ");
     }
+
     fprintf(fout, "%d%c", rs->south_zero, resp_sep);
 
     return RIG_OK;

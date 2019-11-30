@@ -35,7 +35,7 @@
 #  include <libxml/parser.h>
 #  include <libxml/tree.h>
 
-static int set_chan(RIG *rig, channel_t *chan , xmlNodePtr node);
+static int set_chan(RIG *rig, channel_t *chan, xmlNodePtr node);
 #endif
 
 
@@ -148,7 +148,7 @@ int set_chan(RIG *rig, channel_t *chan, xmlNodePtr node)
     for (i = 0; i < CHANLSTSIZ ; i++)
     {
         if (rig->state.chan_list[i].startc <= n
-            && rig->state.chan_list[i].endc >= n)
+                && rig->state.chan_list[i].endc >= n)
         {
 
             break;
@@ -294,7 +294,7 @@ int set_chan(RIG *rig, channel_t *chan, xmlNodePtr node)
         }
 
         if (rig->state.chan_list[i].mem_caps.rptr_offs
-            && chan->rptr_shift != RIG_RPT_SHIFT_NONE)
+                && chan->rptr_shift != RIG_RPT_SHIFT_NONE)
         {
             prop = xmlGetProp(node, (unsigned char *)"rptr_offs");
 

@@ -152,7 +152,8 @@ kenwood_ts480_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
         break;
 
-    case RIG_LEVEL_AGC: 
+    case RIG_LEVEL_AGC:
+
         /* hamlib argument is int, possible values rig.h:enum agc_level_e */
         /* possible values for TS480 000(=off), 001(=fast), 002(=slow) */
         /* possible values for TS890 0(=off), 1(=slow), 2(=mid), 3(=fast), 4(=off/Last) */
@@ -218,7 +219,8 @@ kenwood_ts480_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported set_level %s", __func__, rig_strlevel(level));
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported set_level %s", __func__,
+                  rig_strlevel(level));
         return -RIG_EINVAL;
     }
 
@@ -236,7 +238,7 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     char ackbuf[50];
     size_t ack_len, ack_len_expected;
     int levelint;
-    int offset_level=3; // default offset for the level return value
+    int offset_level = 3; // default offset for the level return value
     int retval;
     int rf_max_level;
 
@@ -295,7 +297,7 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         ack_len = strlen(ackbuf);
 
-        if (offset_level+3 != ack_len)
+        if (offset_level + 3 != ack_len)
         {
             return -RIG_EPROTO;
         }
@@ -447,7 +449,8 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return -RIG_ENIMPL;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_level %s", __func__, rig_strlevel(level));
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_level %s", __func__,
+                  rig_strlevel(level));
         return -RIG_EINVAL;
     }
 

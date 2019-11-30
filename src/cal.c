@@ -126,48 +126,48 @@ float HAMLIB_API rig_raw2val(int rawval, const cal_table_t *cal)
  */
 float HAMLIB_API rig_raw2val_float(int rawval, const cal_table_float_t *cal)
 {
-  float interpolation;
-  int i;
+    float interpolation;
+    int i;
 
-  /* ASSERT(cal != NULL) */
-  /* ASSERT(cal->size <= MAX_CAL_LENGTH) */
+    /* ASSERT(cal != NULL) */
+    /* ASSERT(cal->size <= MAX_CAL_LENGTH) */
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  if (cal->size == 0)
-  {
-    return rawval;
-  }
-
-  for (i = 0; i < cal->size; i++)
-  {
-    if (rawval < cal->table[i].raw)
+    if (cal->size == 0)
     {
-      break;
+        return rawval;
     }
-  }
 
-  if (i == 0)
-  {
-    return cal->table[0].val;
-  }
+    for (i = 0; i < cal->size; i++)
+    {
+        if (rawval < cal->table[i].raw)
+        {
+            break;
+        }
+    }
 
-  if (i >= cal->size)
-  {
-    return cal->table[i - 1].val;
-  }
+    if (i == 0)
+    {
+        return cal->table[0].val;
+    }
 
-  /* catch divide by 0 error */
-  if (cal->table[i].raw == cal->table[i - 1].raw)
-  {
-    return cal->table[i].val;
-  }
+    if (i >= cal->size)
+    {
+        return cal->table[i - 1].val;
+    }
 
-  interpolation = ((cal->table[i].raw - rawval)
-                   * (float)(cal->table[i].val - cal->table[i - 1].val))
-                  / (float)(cal->table[i].raw - cal->table[i - 1].raw);
+    /* catch divide by 0 error */
+    if (cal->table[i].raw == cal->table[i - 1].raw)
+    {
+        return cal->table[i].val;
+    }
 
-  return cal->table[i].val - interpolation;
+    interpolation = ((cal->table[i].raw - rawval)
+                     * (float)(cal->table[i].val - cal->table[i - 1].val))
+                    / (float)(cal->table[i].raw - cal->table[i - 1].raw);
+
+    return cal->table[i].val - interpolation;
 }
 
 /** @} */

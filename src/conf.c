@@ -114,9 +114,9 @@ static const struct confparams frontend_cfg_params[] =
         "/dev/rig", RIG_CONF_STRING,
     },
     {
-	TOK_LO_FREQ, "lo_freq", "LO Frequency",
-	"Frequency to add to the VFO frequency for use with a transverter",
-	"0", RIG_CONF_NUMERIC, { .n = {0.0, 1e9, .1}}
+        TOK_LO_FREQ, "lo_freq", "LO Frequency",
+        "Frequency to add to the VFO frequency for use with a transverter",
+        "0", RIG_CONF_NUMERIC, { .n = {0.0, 1e9, .1}}
     },
 
     { RIG_CONF_END, NULL, }
@@ -515,9 +515,10 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
     case TOK_POLL_INTERVAL:
         rs->poll_interval = atof(val);
         break;
+
     case TOK_LO_FREQ:
-	rs->lo_freq = atof(val);
-	break;
+        rs->lo_freq = atof(val);
+        break;
 
 
     default:
@@ -845,7 +846,7 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
  */
 int HAMLIB_API rig_token_foreach(RIG *rig,
                                  int (*cfunc)(const struct confparams *,
-                                              rig_ptr_t),
+                                         rig_ptr_t),
                                  rig_ptr_t data)
 {
     const struct confparams *cfp;
@@ -897,8 +898,8 @@ int HAMLIB_API rig_token_foreach(RIG *rig,
  *
  * \return a pointer to the confparams struct if found, otherwise NULL.
  */
-const struct confparams * HAMLIB_API rig_confparam_lookup(RIG *rig,
-                                                          const char *name)
+const struct confparams *HAMLIB_API rig_confparam_lookup(RIG *rig,
+        const char *name)
 {
     const struct confparams *cfp;
     token_t token;

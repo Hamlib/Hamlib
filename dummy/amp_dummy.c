@@ -40,10 +40,10 @@
 #if 0
 static const struct confparams dummy_amp_ext_levels[] =
 {
-  {
-    AMP_LEVEL_SWR, "SWR", "SWR", "SWR",
-    NULL, RIG_CONF_NUMERIC, { .n = { 1, 99, .1 } }
-  }
+    {
+        AMP_LEVEL_SWR, "SWR", "SWR", "SWR",
+        NULL, RIG_CONF_NUMERIC, { .n = { 1, 99, .1 } }
+    }
 };
 #endif
 
@@ -51,85 +51,85 @@ static const struct confparams dummy_amp_ext_levels[] =
 
 struct dummy_amp_priv_data
 {
-  freq_t freq;
-  powerstat_t powerstat;
+    freq_t freq;
+    powerstat_t powerstat;
 };
 
 
 static int dummy_amp_init(AMP *amp)
 {
-  struct dummy_amp_priv_data *priv;
+    struct dummy_amp_priv_data *priv;
 
-  priv = (struct dummy_amp_priv_data *)
-         malloc(sizeof(struct dummy_amp_priv_data));
+    priv = (struct dummy_amp_priv_data *)
+           malloc(sizeof(struct dummy_amp_priv_data));
 
-  if (!priv)
-  {
-    return -RIG_ENOMEM;
-  }
+    if (!priv)
+    {
+        return -RIG_ENOMEM;
+    }
 
-  amp->state.priv = (void *)priv;
+    amp->state.priv = (void *)priv;
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-  amp->state.ampport.type.rig = RIG_PORT_NONE;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    amp->state.ampport.type.rig = RIG_PORT_NONE;
 
-  priv->freq = 0;
+    priv->freq = 0;
 
-  return RIG_OK;
+    return RIG_OK;
 }
 
 static int dummy_amp_cleanup(AMP *amp)
 {
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  if (amp->state.priv)
-  {
-    free(amp->state.priv);
-  }
+    if (amp->state.priv)
+    {
+        free(amp->state.priv);
+    }
 
-  amp->state.priv = NULL;
+    amp->state.priv = NULL;
 
-  return RIG_OK;
+    return RIG_OK;
 }
 
 static int dummy_amp_open(AMP *amp)
 {
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  return RIG_OK;
+    return RIG_OK;
 }
 
 static int dummy_amp_close(AMP *amp)
 {
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  return RIG_OK;
+    return RIG_OK;
 }
 
 static int dummy_amp_reset(AMP *amp, amp_reset_t reset)
 {
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  switch (reset)
-  {
-  case AMP_RESET_MEM:
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: Reset memory\n",__func__);
-    break;
+    switch (reset)
+    {
+    case AMP_RESET_MEM:
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Reset memory\n", __func__);
+        break;
 
-  case AMP_RESET_FAULT:
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: Reset fault\n",__func__);
-    break;
+    case AMP_RESET_FAULT:
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Reset fault\n", __func__);
+        break;
 
-  case AMP_RESET_AMP:
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: Reset amplifier\n",__func__);
-    break;
+    case AMP_RESET_AMP:
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Reset amplifier\n", __func__);
+        break;
 
-  default:
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: Reset unknown=%d\n",__func__, reset);
-    return -RIG_EINVAL;
-  }
+    default:
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Reset unknown=%d\n", __func__, reset);
+        return -RIG_EINVAL;
+    }
 
-  return RIG_OK;
+    return RIG_OK;
 }
 
 /*
@@ -151,176 +151,177 @@ Also a way to display faults (there are commands)
 
 static int dummy_amp_get_freq(AMP *amp, freq_t *freq)
 {
-  struct dummy_amp_priv_data *priv = (struct dummy_amp_priv_data *)
-                                     amp->state.priv;
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-  *freq = priv->freq;
-  return RIG_OK;
+    struct dummy_amp_priv_data *priv = (struct dummy_amp_priv_data *)
+                                       amp->state.priv;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    *freq = priv->freq;
+    return RIG_OK;
 }
 
 static int dummy_amp_set_freq(AMP *amp, freq_t freq)
 {
-  struct dummy_amp_priv_data *priv = (struct dummy_amp_priv_data *)
-                                     amp->state.priv;
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-  priv->freq = freq;
-  return RIG_OK;
+    struct dummy_amp_priv_data *priv = (struct dummy_amp_priv_data *)
+                                       amp->state.priv;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    priv->freq = freq;
+    return RIG_OK;
 }
 
 static const char *dummy_amp_get_info(AMP *amp)
 {
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  return "Dummy amplifier";
+    return "Dummy amplifier";
 }
 
 static int dummy_amp_get_level(AMP *amp, setting_t level, value_t *val)
 {
-  static int flag = 1;
+    static int flag = 1;
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-  flag = !flag;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    flag = !flag;
 
-  // values toggle between two expected min/~max values for dev purposes
-  switch (level)
-  {
-  case AMP_LEVEL_SWR:
-    rig_debug(RIG_DEBUG_VERBOSE, "%s AMP_LEVEL_SWR\n", __func__);
-    val->f = flag == 0 ? 1.0 : 99.0;
-    return RIG_OK;
+    // values toggle between two expected min/~max values for dev purposes
+    switch (level)
+    {
+    case AMP_LEVEL_SWR:
+        rig_debug(RIG_DEBUG_VERBOSE, "%s AMP_LEVEL_SWR\n", __func__);
+        val->f = flag == 0 ? 1.0 : 99.0;
+        return RIG_OK;
 
-  case AMP_LEVEL_PF:
-    rig_debug(RIG_DEBUG_VERBOSE, "%s AMP_LEVEL_PF\n", __func__);
-    val->f = flag == 0 ? 0 :  2701.2;
-    return RIG_OK;
+    case AMP_LEVEL_PF:
+        rig_debug(RIG_DEBUG_VERBOSE, "%s AMP_LEVEL_PF\n", __func__);
+        val->f = flag == 0 ? 0 :  2701.2;
+        return RIG_OK;
 
-  case AMP_LEVEL_NH:
-    rig_debug(RIG_DEBUG_VERBOSE, "%s AMP_LEVEL_UH\n", __func__);
-    val->i = flag == 0 ? 0 : 8370;
-    return RIG_OK;
+    case AMP_LEVEL_NH:
+        rig_debug(RIG_DEBUG_VERBOSE, "%s AMP_LEVEL_UH\n", __func__);
+        val->i = flag == 0 ? 0 : 8370;
+        return RIG_OK;
 
-  case AMP_LEVEL_PWR_INPUT:
-    rig_debug(RIG_DEBUG_VERBOSE, "%s AMP_LEVEL_PWRINPUT\n", __func__);
-    val->i = flag == 0 ? 0 : 1499 ;
-    return RIG_OK;
+    case AMP_LEVEL_PWR_INPUT:
+        rig_debug(RIG_DEBUG_VERBOSE, "%s AMP_LEVEL_PWRINPUT\n", __func__);
+        val->i = flag == 0 ? 0 : 1499 ;
+        return RIG_OK;
 
-  case AMP_LEVEL_PWR_FWD:
-    rig_debug(RIG_DEBUG_VERBOSE, "%s AMP_LEVEL_PWRFWD\n", __func__);
-    val->i = flag == 0 ? 0 : 1499 ;
-    return RIG_OK;
+    case AMP_LEVEL_PWR_FWD:
+        rig_debug(RIG_DEBUG_VERBOSE, "%s AMP_LEVEL_PWRFWD\n", __func__);
+        val->i = flag == 0 ? 0 : 1499 ;
+        return RIG_OK;
 
-  case AMP_LEVEL_PWR_REFLECTED:
-    rig_debug(RIG_DEBUG_VERBOSE, "%s AMP_LEVEL_PWRREFLECTED\n", __func__);
-    val->i = flag == 0 ? 0 : 1499 ;
-    return RIG_OK;
+    case AMP_LEVEL_PWR_REFLECTED:
+        rig_debug(RIG_DEBUG_VERBOSE, "%s AMP_LEVEL_PWRREFLECTED\n", __func__);
+        val->i = flag == 0 ? 0 : 1499 ;
+        return RIG_OK;
 
-  case AMP_LEVEL_PWR_PEAK:
-    rig_debug(RIG_DEBUG_VERBOSE, "%s AMP_LEVEL_PWRPEAK\n", __func__);
-    val->i = flag == 0 ? 0 : 1500 ;
-    return RIG_OK;
+    case AMP_LEVEL_PWR_PEAK:
+        rig_debug(RIG_DEBUG_VERBOSE, "%s AMP_LEVEL_PWRPEAK\n", __func__);
+        val->i = flag == 0 ? 0 : 1500 ;
+        return RIG_OK;
 
-  case AMP_LEVEL_FAULT:
-    rig_debug(RIG_DEBUG_VERBOSE, "%s AMP_LEVEL_FAULT\n", __func__);
-    val->s = flag == 0 ? "No Fault" : "SWR too high"; // SWR too high for KPA1500
-    return RIG_OK;
+    case AMP_LEVEL_FAULT:
+        rig_debug(RIG_DEBUG_VERBOSE, "%s AMP_LEVEL_FAULT\n", __func__);
+        val->s = flag == 0 ? "No Fault" : "SWR too high"; // SWR too high for KPA1500
+        return RIG_OK;
 
-  default:
-    rig_debug(RIG_DEBUG_VERBOSE, "%s Unknown AMP_LEVEL=%s\n", __func__, rig_strlevel(level));
-  }
+    default:
+        rig_debug(RIG_DEBUG_VERBOSE, "%s Unknown AMP_LEVEL=%s\n", __func__,
+                  rig_strlevel(level));
+    }
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s flag=%d\n", __func__, flag);
-  return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s flag=%d\n", __func__, flag);
+    return -RIG_EINVAL;
 }
 
 static int dummy_amp_set_powerstat(AMP *amp, powerstat_t status)
 {
-  struct dummy_amp_priv_data *priv = (struct dummy_amp_priv_data *)
-                                     amp->state.priv;
+    struct dummy_amp_priv_data *priv = (struct dummy_amp_priv_data *)
+                                       amp->state.priv;
 
-  switch (status)
-  {
-  case RIG_POWER_OFF:
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called POWER_OFF\n", __func__);
-    break;
+    switch (status)
+    {
+    case RIG_POWER_OFF:
+        rig_debug(RIG_DEBUG_VERBOSE, "%s called POWER_OFF\n", __func__);
+        break;
 
-  case RIG_POWER_ON:
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called POWER_ON\n", __func__);
-    break;
+    case RIG_POWER_ON:
+        rig_debug(RIG_DEBUG_VERBOSE, "%s called POWER_ON\n", __func__);
+        break;
 
-  case RIG_POWER_STANDBY:
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called POWER_STANDBY\n", __func__);
-    break;
+    case RIG_POWER_STANDBY:
+        rig_debug(RIG_DEBUG_VERBOSE, "%s called POWER_STANDBY\n", __func__);
+        break;
 
-  case RIG_POWER_OPERATE:
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called POWER_OPERATE\n", __func__);
-    break;
+    case RIG_POWER_OPERATE:
+        rig_debug(RIG_DEBUG_VERBOSE, "%s called POWER_OPERATE\n", __func__);
+        break;
 
-  case RIG_POWER_UNKNOWN:
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called POWER_UNKNOWN\n", __func__);
-    break;
+    case RIG_POWER_UNKNOWN:
+        rig_debug(RIG_DEBUG_VERBOSE, "%s called POWER_UNKNOWN\n", __func__);
+        break;
 
-  default:
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called invalid power status=%d\n",
-              __func__, status);
-    return -RIG_EINVAL;
-    break;
-  }
+    default:
+        rig_debug(RIG_DEBUG_VERBOSE, "%s called invalid power status=%d\n",
+                  __func__, status);
+        return -RIG_EINVAL;
+        break;
+    }
 
-  priv->powerstat = status;
+    priv->powerstat = status;
 
-  return RIG_OK;
+    return RIG_OK;
 }
 
 
 static int dummy_amp_get_powerstat(AMP *amp, powerstat_t *status)
 {
-  struct dummy_amp_priv_data *priv = (struct dummy_amp_priv_data *)
-                                     amp->state.priv;
+    struct dummy_amp_priv_data *priv = (struct dummy_amp_priv_data *)
+                                       amp->state.priv;
 
-  *status = priv->powerstat;
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    *status = priv->powerstat;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  return RIG_OK;
+    return RIG_OK;
 }
 
 #if 0 // not implemented yet
 static int dummy_amp_get_ext_level(AMP *amp, token_t token, value_t *val)
 {
-  struct dummy_amp_priv_data *priv = (struct dummy_amp_priv_data *)
-                                     amp->state.priv;
-  const struct confparams *cfp;
-  struct ext_list *elp;
+    struct dummy_amp_priv_data *priv = (struct dummy_amp_priv_data *)
+                                       amp->state.priv;
+    const struct confparams *cfp;
+    struct ext_list *elp;
 
-  cfp = amp_ext_lookup_tok(amp, token);
+    cfp = amp_ext_lookup_tok(amp, token);
 
-  if (!cfp)
-  {
-    return -RIG_EINVAL;
-  }
+    if (!cfp)
+    {
+        return -RIG_EINVAL;
+    }
 
-  switch (token)
-  {
-  case AMP_LEVEL_SWR:
-    break;
+    switch (token)
+    {
+    case AMP_LEVEL_SWR:
+        break;
 
-  default:
-    return -RIG_EINVAL;
-  }
+    default:
+        return -RIG_EINVAL;
+    }
 
-  elp = find_ext(curr->ext_levels, token);
+    elp = find_ext(curr->ext_levels, token);
 
-  if (!elp)
-  {
-    return -RIG_EINTERNAL;
-  }
+    if (!elp)
+    {
+        return -RIG_EINTERNAL;
+    }
 
-  /* load value */
-  *val = elp->val;
+    /* load value */
+    *val = elp->val;
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__,
-            cfp->name);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__,
+              cfp->name);
 
-  return RIG_OK;
+    return RIG_OK;
 }
 #endif
 
@@ -332,43 +333,43 @@ static int dummy_amp_get_ext_level(AMP *amp, token_t token, value_t *val)
 
 const struct amp_caps dummy_amp_caps =
 {
-  .amp_model =      AMP_MODEL_DUMMY,
-  .model_name =     "Dummy",
-  .mfg_name =       "Hamlib",
-  .version =        "0.1",
-  .copyright =      "LGPL",
-  .status =         RIG_STATUS_ALPHA,
-  .amp_type =       AMP_TYPE_OTHER,
-  .port_type =      RIG_PORT_NONE,
+    .amp_model =      AMP_MODEL_DUMMY,
+    .model_name =     "Dummy",
+    .mfg_name =       "Hamlib",
+    .version =        "0.1",
+    .copyright =      "LGPL",
+    .status =         RIG_STATUS_ALPHA,
+    .amp_type =       AMP_TYPE_OTHER,
+    .port_type =      RIG_PORT_NONE,
 
-  .has_get_level = AMP_LEVELS,
-  .has_set_level = RIG_LEVEL_SET(AMP_LEVELS),
+    .has_get_level = AMP_LEVELS,
+    .has_set_level = RIG_LEVEL_SET(AMP_LEVELS),
 
-  .priv =  NULL,  /* priv */
+    .priv =  NULL,  /* priv */
 
-  .amp_init =     dummy_amp_init,
-  .amp_cleanup =  dummy_amp_cleanup,
-  .amp_open =     dummy_amp_open,
-  .amp_close =    dummy_amp_close,
+    .amp_init =     dummy_amp_init,
+    .amp_cleanup =  dummy_amp_cleanup,
+    .amp_open =     dummy_amp_open,
+    .amp_close =    dummy_amp_close,
 
-  .get_freq =     dummy_amp_get_freq,
-  .set_freq =     dummy_amp_set_freq,
-  .get_info =     dummy_amp_get_info,
-  .get_level =    dummy_amp_get_level,
+    .get_freq =     dummy_amp_get_freq,
+    .set_freq =     dummy_amp_set_freq,
+    .get_info =     dummy_amp_get_info,
+    .get_level =    dummy_amp_get_level,
 
-  .set_powerstat = dummy_amp_set_powerstat,
-  .get_powerstat = dummy_amp_get_powerstat,
+    .set_powerstat = dummy_amp_set_powerstat,
+    .get_powerstat = dummy_amp_get_powerstat,
 
-  .reset =    dummy_amp_reset,
+    .reset =    dummy_amp_reset,
 
 };
 
 DECLARE_INITAMP_BACKEND(dummy)
 {
-  rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n",__func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
-  amp_register(&dummy_amp_caps);
-  amp_register(&netampctl_caps);
+    amp_register(&dummy_amp_caps);
+    amp_register(&netampctl_caps);
 
-  return RIG_OK;
+    return RIG_OK;
 }

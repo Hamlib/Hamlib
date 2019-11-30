@@ -238,7 +238,7 @@ static char *xml_build(char *cmd, char *value, char *xmlbuf, int xmllen)
     // We want at least a 4K buf to play with
     if (xmllen < 4096)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: xmllen < 4096\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: xmllen < 4096\n", __func__);
         return NULL;
     }
 
@@ -565,6 +565,7 @@ static void modeMapAdd(rmode_t *modes, rmode_t mode_hamlib, char *mode_flrig)
     // if we already have it just return
     // We get ERROR if the mode is not known so non-ERROR is OK
     if (modeMapGetHamlib(mode_flrig) != RIG_MODE_NONE) { return; }
+
     int len1 = strlen(mode_flrig) + 3; /* bytes needed for allocating */
 
     for (i = 0; modeMap[i].mode_hamlib != 0; ++i)
@@ -595,7 +596,7 @@ static void modeMapAdd(rmode_t *modes, rmode_t mode_hamlib, char *mode_flrig)
 
             strncat(modeMap[i].mode_flrig, mode_flrig, len1 + len2);
             strncat(modeMap[i].mode_flrig, "|", len1 + len2);
-            rig_debug(RIG_DEBUG_TRACE,"%s: Adding mode=%s, index=%d, result=%s\n",
+            rig_debug(RIG_DEBUG_TRACE, "%s: Adding mode=%s, index=%d, result=%s\n",
                       __func__, mode_flrig, i, modeMap[i].mode_flrig);
             return;
         }
@@ -757,7 +758,8 @@ static int flrig_open(RIG *rig)
     }
 
     rig->state.mode_list = modes;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: hamlib modes=%s\n", __func__, rig_strrmode(modes));
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: hamlib modes=%s\n", __func__,
+              rig_strrmode(modes));
 
     return RIG_OK;
 }
@@ -1083,7 +1085,8 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     // if ptt is on do not set mode
     if (priv->ptt)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: returning because priv->ptt=%d\n", __func__,(int)priv->ptt);
+        rig_debug(RIG_DEBUG_TRACE, "%s: returning because priv->ptt=%d\n", __func__,
+                  (int)priv->ptt);
         return RIG_OK;
     }
 
@@ -1444,7 +1447,7 @@ static int flrig_set_vfo(RIG *rig, vfo_t vfo)
 
     if (vfo == RIG_VFO_TX)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: RIG_VFO_TX used\n",__func__);
+        rig_debug(RIG_DEBUG_TRACE, "%s: RIG_VFO_TX used\n", __func__);
         vfo = RIG_VFO_B; // always TX on VFOB
     }
 

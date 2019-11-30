@@ -35,10 +35,10 @@
 #endif
 
 #include <stdio.h>
-#include <stdlib.h>			 /* Standard library definitions */
-#include <string.h>			 /* String function definitions */
-#include <unistd.h>			 /* UNIX standard function definitions */
-#include <ctype.h>			  /* for isdigit function */
+#include <stdlib.h>          /* Standard library definitions */
+#include <string.h>          /* String function definitions */
+#include <unistd.h>          /* UNIX standard function definitions */
+#include <ctype.h>            /* for isdigit function */
 
 #include "hamlib/rotator.h"
 #include "serial.h"
@@ -57,11 +57,16 @@
 static int rotorez_rot_init(ROT *rot);
 static int rotorez_rot_cleanup(ROT *rot);
 
-static int rotorez_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t elevation);
-static int rotorez_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *elevation);
-static int erc_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *elevation);
-static int rt21_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *elevation);
-static int rt21_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t elevation);
+static int rotorez_rot_set_position(ROT *rot, azimuth_t azimuth,
+                                    elevation_t elevation);
+static int rotorez_rot_get_position(ROT *rot, azimuth_t *azimuth,
+                                    elevation_t *elevation);
+static int erc_rot_get_position(ROT *rot, azimuth_t *azimuth,
+                                elevation_t *elevation);
+static int rt21_rot_get_position(ROT *rot, azimuth_t *azimuth,
+                                 elevation_t *elevation);
+static int rt21_rot_set_position(ROT *rot, azimuth_t azimuth,
+                                 elevation_t elevation);
 
 static int rotorez_rot_reset(ROT *rot, rot_reset_t reset);
 static int rotorez_rot_stop(ROT *rot);
@@ -75,8 +80,9 @@ static const char *rotorez_rot_get_info(ROT *rot);
 /*
  * Private data structure
  */
-struct rotorez_rot_priv_data {
-	azimuth_t az;
+struct rotorez_rot_priv_data
+{
+    azimuth_t az;
 };
 
 /*
@@ -89,20 +95,25 @@ static int rotorez_flush_buffer(ROT *rot);
 /*
  * local configuration parameters
  */
-static const struct confparams rotorez_cfg_params[] = {
-	{ TOK_ENDPT, "endpt", "Endpoint option", "Endpoint option",
-		NULL, RIG_CONF_CHECKBUTTON, { }
-	},
-	{ TOK_JAM, "jam", "Jam protection", "Jam protection",
-		NULL, RIG_CONF_CHECKBUTTON, { }
-	},
-	{ TOK_OVRSHT, "oversht", "Overshoot option", "Overshoot option",
-		NULL, RIG_CONF_CHECKBUTTON, { }
-	},
-	{ TOK_UNSTICK, "unstick", "Unstick option", "Unstick option",
-		NULL, RIG_CONF_CHECKBUTTON, { }
-	},
-	{ RIG_CONF_END, NULL, }
+static const struct confparams rotorez_cfg_params[] =
+{
+    {
+        TOK_ENDPT, "endpt", "Endpoint option", "Endpoint option",
+        NULL, RIG_CONF_CHECKBUTTON, { }
+    },
+    {
+        TOK_JAM, "jam", "Jam protection", "Jam protection",
+        NULL, RIG_CONF_CHECKBUTTON, { }
+    },
+    {
+        TOK_OVRSHT, "oversht", "Overshoot option", "Overshoot option",
+        NULL, RIG_CONF_CHECKBUTTON, { }
+    },
+    {
+        TOK_UNSTICK, "unstick", "Unstick option", "Unstick option",
+        NULL, RIG_CONF_CHECKBUTTON, { }
+    },
+    { RIG_CONF_END, NULL, }
 };
 
 /* *************************************
@@ -118,41 +129,42 @@ static const struct confparams rotorez_cfg_params[] = {
  * Hy-Gain CD45, Ham-II, Ham-III, Ham IV and all TailTwister rotors
  */
 
-const struct rot_caps rotorez_rot_caps = {
-	.rot_model =		ROT_MODEL_ROTOREZ,
-	.model_name =		"Rotor-EZ",
-	.mfg_name =			"Idiom Press",
-	.version =			"2010-02-14",
-	.copyright =		"LGPL",
-	.status =			RIG_STATUS_BETA,
-	.rot_type =			ROT_TYPE_OTHER,
-	.port_type =		RIG_PORT_SERIAL,
-	.serial_rate_min =	4800,
-	.serial_rate_max =	4800,
-	.serial_data_bits =	8,
-	.serial_stop_bits =	1,
-	.serial_parity =	RIG_PARITY_NONE,
-	.serial_handshake =	RIG_HANDSHAKE_NONE,
-	.write_delay =		0,
-	.post_write_delay =	500,
-	.timeout =			1500,
-	.retry =			2,
+const struct rot_caps rotorez_rot_caps =
+{
+    .rot_model =        ROT_MODEL_ROTOREZ,
+    .model_name =       "Rotor-EZ",
+    .mfg_name =         "Idiom Press",
+    .version =          "2010-02-14",
+    .copyright =        "LGPL",
+    .status =           RIG_STATUS_BETA,
+    .rot_type =         ROT_TYPE_OTHER,
+    .port_type =        RIG_PORT_SERIAL,
+    .serial_rate_min =  4800,
+    .serial_rate_max =  4800,
+    .serial_data_bits = 8,
+    .serial_stop_bits = 1,
+    .serial_parity =    RIG_PARITY_NONE,
+    .serial_handshake = RIG_HANDSHAKE_NONE,
+    .write_delay =      0,
+    .post_write_delay = 500,
+    .timeout =          1500,
+    .retry =            2,
 
-	.min_az =			0,
-	.max_az =			360,
-	.min_el =			0,
-	.max_el =			0,
+    .min_az =           0,
+    .max_az =           360,
+    .min_el =           0,
+    .max_el =           0,
 
-	.priv =				NULL,	/* priv */
-	.cfgparams =		rotorez_cfg_params,
+    .priv =             NULL,   /* priv */
+    .cfgparams =        rotorez_cfg_params,
 
-	.rot_init =			rotorez_rot_init,
-	.rot_cleanup =		rotorez_rot_cleanup,
-	.set_position =		rotorez_rot_set_position,
-	.get_position =		rotorez_rot_get_position,
-	.stop =				rotorez_rot_stop,
-	.set_conf =			rotorez_rot_set_conf,
-	.get_info =			rotorez_rot_get_info,
+    .rot_init =         rotorez_rot_init,
+    .rot_cleanup =      rotorez_rot_cleanup,
+    .set_position =     rotorez_rot_set_position,
+    .get_position =     rotorez_rot_get_position,
+    .stop =             rotorez_rot_stop,
+    .set_conf =         rotorez_rot_set_conf,
+    .get_info =         rotorez_rot_get_info,
 
 };
 
@@ -162,41 +174,42 @@ const struct rot_caps rotorez_rot_caps = {
  * Yaesu SDX and DXA series rotors
  */
 
-const struct rot_caps rotorcard_rot_caps = {
-	.rot_model =		ROT_MODEL_ROTORCARD,
-	.model_name =		"RotorCard",
-	.mfg_name =			"Idiom Press",
-	.version =			"2010-02-14",
-	.copyright =		"LGPL",
-	.status =			RIG_STATUS_UNTESTED,
-	.rot_type =			ROT_TYPE_OTHER,
-	.port_type =		RIG_PORT_SERIAL,
-	.serial_rate_min =	4800,
-	.serial_rate_max =	4800,
-	.serial_data_bits =	8,
-	.serial_stop_bits =	1,
-	.serial_parity =	RIG_PARITY_NONE,
-	.serial_handshake =	RIG_HANDSHAKE_NONE,
-	.write_delay =		0,
-	.post_write_delay =	500,
-	.timeout =			1500,
-	.retry =			2,
+const struct rot_caps rotorcard_rot_caps =
+{
+    .rot_model =        ROT_MODEL_ROTORCARD,
+    .model_name =       "RotorCard",
+    .mfg_name =         "Idiom Press",
+    .version =          "2010-02-14",
+    .copyright =        "LGPL",
+    .status =           RIG_STATUS_UNTESTED,
+    .rot_type =         ROT_TYPE_OTHER,
+    .port_type =        RIG_PORT_SERIAL,
+    .serial_rate_min =  4800,
+    .serial_rate_max =  4800,
+    .serial_data_bits = 8,
+    .serial_stop_bits = 1,
+    .serial_parity =    RIG_PARITY_NONE,
+    .serial_handshake = RIG_HANDSHAKE_NONE,
+    .write_delay =      0,
+    .post_write_delay = 500,
+    .timeout =          1500,
+    .retry =            2,
 
-	.min_az =			0,
-	.max_az =			360,
-	.min_el =			0,
-	.max_el =			0,
+    .min_az =           0,
+    .max_az =           360,
+    .min_el =           0,
+    .max_el =           0,
 
-	.priv =				NULL,	/* priv */
-	.cfgparams =		rotorez_cfg_params,
+    .priv =             NULL,   /* priv */
+    .cfgparams =        rotorez_cfg_params,
 
-	.rot_init =			rotorez_rot_init,
-	.rot_cleanup =		rotorez_rot_cleanup,
-	.set_position =		rotorez_rot_set_position,
-	.get_position =		rotorez_rot_get_position,
-	.stop =				rotorez_rot_stop,
-	.set_conf =			rotorez_rot_set_conf,
-	.get_info =			rotorez_rot_get_info,
+    .rot_init =         rotorez_rot_init,
+    .rot_cleanup =      rotorez_rot_cleanup,
+    .set_position =     rotorez_rot_set_position,
+    .get_position =     rotorez_rot_get_position,
+    .stop =             rotorez_rot_stop,
+    .set_conf =         rotorez_rot_set_conf,
+    .get_info =         rotorez_rot_get_info,
 
 };
 
@@ -205,39 +218,40 @@ const struct rot_caps rotorcard_rot_caps = {
  * Hy-Gain DCU-1/DCU-1X rotor capabilities
  */
 
-const struct rot_caps dcu_rot_caps = {
-	.rot_model =		ROT_MODEL_DCU,
-	.model_name =		"DCU-1/DCU-1X",
-	.mfg_name =			"Hy-Gain",
-	.version =			"2010-08-23",
-	.copyright =		"LGPL",
-	.status =			RIG_STATUS_UNTESTED,
-	.rot_type =			ROT_TYPE_OTHER,
-	.port_type =		RIG_PORT_SERIAL,
-	.serial_rate_min =	4800,
-	.serial_rate_max =	4800,
-	.serial_data_bits =	8,
-	.serial_stop_bits =	1,
-	.serial_parity =	RIG_PARITY_NONE,
-	.serial_handshake =	RIG_HANDSHAKE_NONE,
-	.write_delay =		0,
-	.post_write_delay =	500,
-	.timeout =			1500,
-	.retry =			2,
+const struct rot_caps dcu_rot_caps =
+{
+    .rot_model =        ROT_MODEL_DCU,
+    .model_name =       "DCU-1/DCU-1X",
+    .mfg_name =         "Hy-Gain",
+    .version =          "2010-08-23",
+    .copyright =        "LGPL",
+    .status =           RIG_STATUS_UNTESTED,
+    .rot_type =         ROT_TYPE_OTHER,
+    .port_type =        RIG_PORT_SERIAL,
+    .serial_rate_min =  4800,
+    .serial_rate_max =  4800,
+    .serial_data_bits = 8,
+    .serial_stop_bits = 1,
+    .serial_parity =    RIG_PARITY_NONE,
+    .serial_handshake = RIG_HANDSHAKE_NONE,
+    .write_delay =      0,
+    .post_write_delay = 500,
+    .timeout =          1500,
+    .retry =            2,
 
-	.min_az =			0,
-	.max_az =			360,
-	.min_el =			0,
-	.max_el =			0,
+    .min_az =           0,
+    .max_az =           360,
+    .min_el =           0,
+    .max_el =           0,
 
-	.priv =				NULL,	/* priv */
+    .priv =             NULL,   /* priv */
 
-	.rot_init =			rotorez_rot_init,
-	.rot_cleanup =		rotorez_rot_cleanup,
-	.set_position =		rotorez_rot_set_position,
-	.stop =				dcu1_rot_stop,
-	.reset =			rotorez_rot_reset,
-	.get_info =			rotorez_rot_get_info,
+    .rot_init =         rotorez_rot_init,
+    .rot_cleanup =      rotorez_rot_cleanup,
+    .set_position =     rotorez_rot_set_position,
+    .stop =             dcu1_rot_stop,
+    .reset =            rotorez_rot_reset,
+    .get_info =         rotorez_rot_get_info,
 
 };
 
@@ -248,82 +262,84 @@ const struct rot_caps dcu_rot_caps = {
  * TODO: Learn of additional capabilities of the ERC
  */
 
-const struct rot_caps erc_rot_caps = {
-	.rot_model =		ROT_MODEL_ERC,
-	.model_name =		"ERC",
-	.mfg_name =			"DF9GR",
-	.version =			"2010-08-23b",		/* second revision on 23 Aug 2010 */
-	.copyright =		"LGPL",
-	.status =			RIG_STATUS_ALPHA,
-	.rot_type =			ROT_TYPE_OTHER,
-	.port_type =		RIG_PORT_SERIAL,
-	.serial_rate_min =	4800,
-	.serial_rate_max =	4800,
-	.serial_data_bits =	8,
-	.serial_stop_bits =	1,
-	.serial_parity =	RIG_PARITY_NONE,
-	.serial_handshake =	RIG_HANDSHAKE_NONE,
-	.write_delay =		0,
-	.post_write_delay =	500,
-	.timeout =			1500,
-	.retry =			2,
+const struct rot_caps erc_rot_caps =
+{
+    .rot_model =        ROT_MODEL_ERC,
+    .model_name =       "ERC",
+    .mfg_name =         "DF9GR",
+    .version =          "2010-08-23b",      /* second revision on 23 Aug 2010 */
+    .copyright =        "LGPL",
+    .status =           RIG_STATUS_ALPHA,
+    .rot_type =         ROT_TYPE_OTHER,
+    .port_type =        RIG_PORT_SERIAL,
+    .serial_rate_min =  4800,
+    .serial_rate_max =  4800,
+    .serial_data_bits = 8,
+    .serial_stop_bits = 1,
+    .serial_parity =    RIG_PARITY_NONE,
+    .serial_handshake = RIG_HANDSHAKE_NONE,
+    .write_delay =      0,
+    .post_write_delay = 500,
+    .timeout =          1500,
+    .retry =            2,
 
-	.min_az =			0,
-	.max_az =			360,
-	.min_el =			0,
-	.max_el =			0,
+    .min_az =           0,
+    .max_az =           360,
+    .min_el =           0,
+    .max_el =           0,
 
-	.priv =				NULL,	/* priv */
-//	.cfgparams =		rotorez_cfg_params,
+    .priv =             NULL,   /* priv */
+//  .cfgparams =        rotorez_cfg_params,
 
-	.rot_init =			rotorez_rot_init,
-	.rot_cleanup =		rotorez_rot_cleanup,
-	.set_position =		rotorez_rot_set_position,
-	.get_position =		erc_rot_get_position,
-	.stop =				dcu1_rot_stop,
-	.reset =			rotorez_rot_reset,
-//	.stop =				rotorez_rot_stop,
-//	.set_conf =			rotorez_rot_set_conf,
-	.get_info =			rotorez_rot_get_info,
+    .rot_init =         rotorez_rot_init,
+    .rot_cleanup =      rotorez_rot_cleanup,
+    .set_position =     rotorez_rot_set_position,
+    .get_position =     erc_rot_get_position,
+    .stop =             dcu1_rot_stop,
+    .reset =            rotorez_rot_reset,
+//  .stop =             rotorez_rot_stop,
+//  .set_conf =         rotorez_rot_set_conf,
+    .get_info =         rotorez_rot_get_info,
 
 };
 
 
-const struct rot_caps rt21_rot_caps = {
-	.rot_model =		ROT_MODEL_RT21,
-	.model_name =		"RT-21",
-	.mfg_name =		"Green Heron",
-	.version =		"2014-09-14",
-	.copyright =		"LGPL",
-	.status =		RIG_STATUS_ALPHA,
-	.rot_type =		ROT_TYPE_OTHER,
-	.port_type =		RIG_PORT_SERIAL,
-	.serial_rate_min =	4800,
-	.serial_rate_max =	4800,
-	.serial_data_bits =	8,
-	.serial_stop_bits =	1,
-	.serial_parity =	RIG_PARITY_NONE,
-	.serial_handshake =	RIG_HANDSHAKE_NONE,
-	.write_delay =		0,
-	.post_write_delay =	500,
-	.timeout =		1500,
-	.retry =		2,
+const struct rot_caps rt21_rot_caps =
+{
+    .rot_model =        ROT_MODEL_RT21,
+    .model_name =       "RT-21",
+    .mfg_name =     "Green Heron",
+    .version =      "2014-09-14",
+    .copyright =        "LGPL",
+    .status =       RIG_STATUS_ALPHA,
+    .rot_type =     ROT_TYPE_OTHER,
+    .port_type =        RIG_PORT_SERIAL,
+    .serial_rate_min =  4800,
+    .serial_rate_max =  4800,
+    .serial_data_bits = 8,
+    .serial_stop_bits = 1,
+    .serial_parity =    RIG_PARITY_NONE,
+    .serial_handshake = RIG_HANDSHAKE_NONE,
+    .write_delay =      0,
+    .post_write_delay = 500,
+    .timeout =      1500,
+    .retry =        2,
 
-	.min_az =		0,
-	.max_az =		359.9,
-	.min_el =		0,
-	.max_el =		0,
+    .min_az =       0,
+    .max_az =       359.9,
+    .min_el =       0,
+    .max_el =       0,
 
-	.priv =			NULL,	/* priv */
-//	.cfgparams =		rotorez_cfg_params,
+    .priv =         NULL,   /* priv */
+//  .cfgparams =        rotorez_cfg_params,
 
-	.rot_init =		rotorez_rot_init,
-	.rot_cleanup =		rotorez_rot_cleanup,
-	.set_position =		rt21_rot_set_position,
-	.get_position =		rt21_rot_get_position,
-//	.stop =				rotorez_rot_stop,
-//	.set_conf =			rotorez_rot_set_conf,
-//	.get_info =			rotorez_rot_get_info,
+    .rot_init =     rotorez_rot_init,
+    .rot_cleanup =      rotorez_rot_cleanup,
+    .set_position =     rt21_rot_set_position,
+    .get_position =     rt21_rot_get_position,
+//  .stop =             rotorez_rot_stop,
+//  .set_conf =         rotorez_rot_set_conf,
+//  .get_info =         rotorez_rot_get_info,
 
 };
 
@@ -340,44 +356,56 @@ const struct rot_caps rt21_rot_caps = {
  * Initialize data structures
  */
 
-static int rotorez_rot_init(ROT *rot) {
-	struct rotorez_rot_priv_data *priv;
+static int rotorez_rot_init(ROT *rot)
+{
+    struct rotorez_rot_priv_data *priv;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	if (!rot)
-		return -RIG_EINVAL;
+    if (!rot)
+    {
+        return -RIG_EINVAL;
+    }
 
-	priv = (struct rotorez_rot_priv_data *)
-	malloc(sizeof(struct rotorez_rot_priv_data));
+    priv = (struct rotorez_rot_priv_data *)
+           malloc(sizeof(struct rotorez_rot_priv_data));
 
-	if (!priv)
-		return -RIG_ENOMEM;
-	rot->state.priv = (void *)priv;
+    if (!priv)
+    {
+        return -RIG_ENOMEM;
+    }
 
-	rot->state.rotport.type.rig = RIG_PORT_SERIAL;
+    rot->state.priv = (void *)priv;
 
-	priv->az = 0;
+    rot->state.rotport.type.rig = RIG_PORT_SERIAL;
 
-	return RIG_OK;
+    priv->az = 0;
+
+    return RIG_OK;
 }
 
 /*
  * Clean up allocated memory structures
  */
 
-static int rotorez_rot_cleanup(ROT *rot) {
+static int rotorez_rot_cleanup(ROT *rot)
+{
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	if (!rot)
-		return -RIG_EINVAL;
+    if (!rot)
+    {
+        return -RIG_EINVAL;
+    }
 
-	if (rot->state.priv)
-		free(rot->state.priv);
-	rot->state.priv = NULL;
+    if (rot->state.priv)
+    {
+        free(rot->state.priv);
+    }
 
-	return RIG_OK;
+    rot->state.priv = NULL;
+
+    return RIG_OK;
 }
 
 
@@ -387,32 +415,46 @@ static int rotorez_rot_cleanup(ROT *rot) {
  * Range is converted to an integer string, 0 to 360 degrees
  */
 
-static int rotorez_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t elevation) {
-	char cmdstr[8];
-	char execstr[5] = "AM1;";
-	int err;
+static int rotorez_rot_set_position(ROT *rot, azimuth_t azimuth,
+                                    elevation_t elevation)
+{
+    char cmdstr[8];
+    char execstr[5] = "AM1;";
+    int err;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	if (!rot)
-		return -RIG_EINVAL;
+    if (!rot)
+    {
+        return -RIG_EINVAL;
+    }
 
-	if (azimuth < 0 || azimuth > 360)
-		return -RIG_EINVAL;
+    if (azimuth < 0 || azimuth > 360)
+    {
+        return -RIG_EINVAL;
+    }
 
-	if (azimuth > 359.4999)		/* DCU-1 compatibility */
-		azimuth = 0;
+    if (azimuth > 359.4999)     /* DCU-1 compatibility */
+    {
+        azimuth = 0;
+    }
 
-	sprintf(cmdstr, "AP1%03.0f;", azimuth);		/* Target bearing */
-	err = rotorez_send_priv_cmd(rot, cmdstr);
-	if (err != RIG_OK)
-		return err;
+    sprintf(cmdstr, "AP1%03.0f;", azimuth);     /* Target bearing */
+    err = rotorez_send_priv_cmd(rot, cmdstr);
 
-	err = rotorez_send_priv_cmd(rot, execstr);	/* Execute command */
-	if (err != RIG_OK)
-		return err;
+    if (err != RIG_OK)
+    {
+        return err;
+    }
 
-	return RIG_OK;
+    err = rotorez_send_priv_cmd(rot, execstr);  /* Execute command */
+
+    if (err != RIG_OK)
+    {
+        return err;
+    }
+
+    return RIG_OK;
 }
 
 
@@ -424,24 +466,33 @@ static int rotorez_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t ele
  * command to be executed immediately (no need to send "AM1;").
  */
 
-static int rt21_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t elevation) {
-	char cmdstr[16];
-	int err;
+static int rt21_rot_set_position(ROT *rot, azimuth_t azimuth,
+                                 elevation_t elevation)
+{
+    char cmdstr[16];
+    int err;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	if (!rot)
-		return -RIG_EINVAL;
+    if (!rot)
+    {
+        return -RIG_EINVAL;
+    }
 
-	if (azimuth < 0 || azimuth > 360)
-		return -RIG_EINVAL;
+    if (azimuth < 0 || azimuth > 360)
+    {
+        return -RIG_EINVAL;
+    }
 
-	sprintf(cmdstr, "AP1%05.1f\r;", azimuth);	/* Total field width of 5 chars */
-	err = rotorez_send_priv_cmd(rot, cmdstr);
-	if (err != RIG_OK)
-		return err;
+    sprintf(cmdstr, "AP1%05.1f\r;", azimuth);   /* Total field width of 5 chars */
+    err = rotorez_send_priv_cmd(rot, cmdstr);
 
-	return RIG_OK;
+    if (err != RIG_OK)
+    {
+        return err;
+    }
+
+    return RIG_OK;
 }
 
 
@@ -452,74 +503,102 @@ static int rt21_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t elevat
  * Elevation is set to 0
  */
 
-static int rotorez_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *elevation) {
-	struct rot_state *rs;
-	char cmdstr[5] = "AI1;";
-	char az[5];			/* read azimuth string */
-	char *p;
-	azimuth_t tmp = 0;
-	int err;
+static int rotorez_rot_get_position(ROT *rot, azimuth_t *azimuth,
+                                    elevation_t *elevation)
+{
+    struct rot_state *rs;
+    char cmdstr[5] = "AI1;";
+    char az[5];         /* read azimuth string */
+    char *p;
+    azimuth_t tmp = 0;
+    int err;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	if (!rot)
-		return -RIG_EINVAL;
+    if (!rot)
+    {
+        return -RIG_EINVAL;
+    }
 
-	do {
-		err = rotorez_send_priv_cmd(rot, cmdstr);
-		if (err != RIG_OK)
-			return err;
+    do
+    {
+        err = rotorez_send_priv_cmd(rot, cmdstr);
 
-		rs = &rot->state;
+        if (err != RIG_OK)
+        {
+            return err;
+        }
 
-		err = read_block(&rs->rotport, az, AZ_READ_LEN);
-		if (err != AZ_READ_LEN)
-			return -RIG_ETRUNC;
+        rs = &rot->state;
 
-		/* The azimuth string should be ';xxx' beginning at offset 0.  If the
-		 * ';' is not there, it's likely the RotorEZ has received an invalid
-		 * command and the buffer needs to be flushed.  See
-		 * rotorez_flush_buffer() definition below for a complete description.
-		 */
-		if (az[0] != ';') {
-			err = rotorez_flush_buffer(rot);
-			if (err == -RIG_EIO)
-				return err;
-			else
-				err = -RIG_EINVAL;
-		} else if (err == AZ_READ_LEN && az[0] == ';') {
-			/* Check if remaining chars are digits if az[0] == ';' */
-			for (p = az + 1;p < az + 4; p++)
-				if (isdigit((int)*p))
-					continue;
-				else
-					err = -RIG_EINVAL;
-		}
-	} while (err == -RIG_EINVAL);
+        err = read_block(&rs->rotport, az, AZ_READ_LEN);
 
-	/*
-	 * Rotor-EZ returns a four octet string consisting of a ';' followed
-	 * by three octets containing the rotor's position in degrees.  The
-	 * semi-colon is ignored when passing the string to atof().
-	 */
-	az[4] = 0x00;				/* NULL terminated string */
-	p = az + 1;					/* advance past leading ';' */
-	tmp = (azimuth_t)atof(p);
-	rig_debug(RIG_DEBUG_TRACE, "%s: \"%s\" after conversion = %.1f\n",
-				__func__, p, tmp);
+        if (err != AZ_READ_LEN)
+        {
+            return -RIG_ETRUNC;
+        }
 
-	if (tmp == 360)
-		tmp = 0;
-	else if (tmp < 0 || tmp > 359)
-		return -RIG_EINVAL;
+        /* The azimuth string should be ';xxx' beginning at offset 0.  If the
+         * ';' is not there, it's likely the RotorEZ has received an invalid
+         * command and the buffer needs to be flushed.  See
+         * rotorez_flush_buffer() definition below for a complete description.
+         */
+        if (az[0] != ';')
+        {
+            err = rotorez_flush_buffer(rot);
 
-	*azimuth = tmp;
-	*elevation = 0;				/* RotorEZ does not support elevation */
-	rig_debug(RIG_DEBUG_TRACE,
-				"%s: azimuth = %.1f deg; elevation = %.1f deg\n",
-				__func__, *azimuth, *elevation);
+            if (err == -RIG_EIO)
+            {
+                return err;
+            }
+            else
+            {
+                err = -RIG_EINVAL;
+            }
+        }
+        else if (err == AZ_READ_LEN && az[0] == ';')
+        {
+            /* Check if remaining chars are digits if az[0] == ';' */
+            for (p = az + 1; p < az + 4; p++)
+                if (isdigit((int)*p))
+                {
+                    continue;
+                }
+                else
+                {
+                    err = -RIG_EINVAL;
+                }
+        }
+    }
+    while (err == -RIG_EINVAL);
 
-	return RIG_OK;
+    /*
+     * Rotor-EZ returns a four octet string consisting of a ';' followed
+     * by three octets containing the rotor's position in degrees.  The
+     * semi-colon is ignored when passing the string to atof().
+     */
+    az[4] = 0x00;               /* NULL terminated string */
+    p = az + 1;                 /* advance past leading ';' */
+    tmp = (azimuth_t)atof(p);
+    rig_debug(RIG_DEBUG_TRACE, "%s: \"%s\" after conversion = %.1f\n",
+              __func__, p, tmp);
+
+    if (tmp == 360)
+    {
+        tmp = 0;
+    }
+    else if (tmp < 0 || tmp > 359)
+    {
+        return -RIG_EINVAL;
+    }
+
+    *azimuth = tmp;
+    *elevation = 0;             /* RotorEZ does not support elevation */
+    rig_debug(RIG_DEBUG_TRACE,
+              "%s: azimuth = %.1f deg; elevation = %.1f deg\n",
+              __func__, *azimuth, *elevation);
+
+    return RIG_OK;
 }
 
 
@@ -530,84 +609,115 @@ static int rotorez_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *e
  * Elevation is set to 0
  */
 
-static int erc_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *elevation) {
-	struct rot_state *rs;
-	char cmdstr[5] = "AI1;";
-	char az[5];			/* read azimuth string */
-	char *p;
-	azimuth_t tmp = 0;
-	int err;
+static int erc_rot_get_position(ROT *rot, azimuth_t *azimuth,
+                                elevation_t *elevation)
+{
+    struct rot_state *rs;
+    char cmdstr[5] = "AI1;";
+    char az[5];         /* read azimuth string */
+    char *p;
+    azimuth_t tmp = 0;
+    int err;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	if (!rot)
-		return -RIG_EINVAL;
+    if (!rot)
+    {
+        return -RIG_EINVAL;
+    }
 
-	do {
-		err = rotorez_send_priv_cmd(rot, cmdstr);
-		if (err != RIG_OK)
-		  return err;
+    do
+    {
+        err = rotorez_send_priv_cmd(rot, cmdstr);
 
-		rs = &rot->state;
+        if (err != RIG_OK)
+        {
+            return err;
+        }
 
-		err = read_block(&rs->rotport, az, AZ_READ_LEN);
-		if (err != AZ_READ_LEN)
-		  return -RIG_ETRUNC;
+        rs = &rot->state;
 
-		/*
-		 * The azimuth string returned by the ERC should be 'xxx;'
-		 * beginning at offset 0.  A new version may implement the
-		 * Idiom PRess format, hence the test for ';xxx'.
-		 */
+        err = read_block(&rs->rotport, az, AZ_READ_LEN);
 
-		/* Check if remaining chars are digits if az[3] == ';' */
-		if (az[3] == ';') {
-			for (p = az; p < az + 3; p++)
-				if (isdigit((int)*p))
-					continue;
-				else
-					err = -RIG_EINVAL;
-		} else if (az[0] == ';') {
-			/* Check if remaining chars are digits if az[0] == ';' */
-			for (p = az + 1;p < az + 4; p++)
-				if (isdigit((int)*p))
-					continue;
-				else
-					err = -RIG_EINVAL;
-		}
-	} while (err == -RIG_EINVAL);
+        if (err != AZ_READ_LEN)
+        {
+            return -RIG_ETRUNC;
+        }
 
-	/*
-	 * Old ERC returns a four octet string consisting of three octets
-	 * followed by ';' ('xxx;') containing the rotor's position in degrees.
-	 * A new version will implement Idiom Press format of ';xxx'.
-	 *
-	 * We test for either case and pass a string of only digits to atof()
-	 */
-	az[4] = 0x00;			/* NULL terminated string */
-	p = az;
+        /*
+         * The azimuth string returned by the ERC should be 'xxx;'
+         * beginning at offset 0.  A new version may implement the
+         * Idiom PRess format, hence the test for ';xxx'.
+         */
 
-	if (*p == ';')
-		p++;
-	else
-		az[3] = 0x00;		/* truncate trailing ';' */
+        /* Check if remaining chars are digits if az[3] == ';' */
+        if (az[3] == ';')
+        {
+            for (p = az; p < az + 3; p++)
+                if (isdigit((int)*p))
+                {
+                    continue;
+                }
+                else
+                {
+                    err = -RIG_EINVAL;
+                }
+        }
+        else if (az[0] == ';')
+        {
+            /* Check if remaining chars are digits if az[0] == ';' */
+            for (p = az + 1; p < az + 4; p++)
+                if (isdigit((int)*p))
+                {
+                    continue;
+                }
+                else
+                {
+                    err = -RIG_EINVAL;
+                }
+        }
+    }
+    while (err == -RIG_EINVAL);
 
-	tmp = (azimuth_t)atof(p);
-	rig_debug(RIG_DEBUG_TRACE, "%s: \"%s\" after conversion = %.1f\n",
-				__func__, p, tmp);
+    /*
+     * Old ERC returns a four octet string consisting of three octets
+     * followed by ';' ('xxx;') containing the rotor's position in degrees.
+     * A new version will implement Idiom Press format of ';xxx'.
+     *
+     * We test for either case and pass a string of only digits to atof()
+     */
+    az[4] = 0x00;           /* NULL terminated string */
+    p = az;
 
-	if (tmp == 360)
-		tmp = 0;
-	else if (tmp < 0 || tmp > 359)
-		return -RIG_EINVAL;
+    if (*p == ';')
+    {
+        p++;
+    }
+    else
+    {
+        az[3] = 0x00;    /* truncate trailing ';' */
+    }
 
-	*azimuth = tmp;
-	*elevation = 0;				/* ERC does not support elevation */
-	rig_debug(RIG_DEBUG_TRACE,
-				"%s: azimuth = %.1f deg; elevation = %.1f deg\n",
-				__func__, *azimuth, *elevation);
+    tmp = (azimuth_t)atof(p);
+    rig_debug(RIG_DEBUG_TRACE, "%s: \"%s\" after conversion = %.1f\n",
+              __func__, p, tmp);
 
-	return RIG_OK;
+    if (tmp == 360)
+    {
+        tmp = 0;
+    }
+    else if (tmp < 0 || tmp > 359)
+    {
+        return -RIG_EINVAL;
+    }
+
+    *azimuth = tmp;
+    *elevation = 0;             /* ERC does not support elevation */
+    rig_debug(RIG_DEBUG_TRACE,
+              "%s: azimuth = %.1f deg; elevation = %.1f deg\n",
+              __func__, *azimuth, *elevation);
+
+    return RIG_OK;
 }
 
 
@@ -617,58 +727,75 @@ static int erc_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *eleva
  * RT-21 is a float, 0.0 to 359.9 degrees Elevation is set to 0
  */
 
-static int rt21_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *elevation) {
-	struct rot_state *rs;
-	char az[8];		/* read azimuth string */
-	azimuth_t tmp = 0;
-	int err;
+static int rt21_rot_get_position(ROT *rot, azimuth_t *azimuth,
+                                 elevation_t *elevation)
+{
+    struct rot_state *rs;
+    char az[8];     /* read azimuth string */
+    azimuth_t tmp = 0;
+    int err;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	if (!rot)
-		return -RIG_EINVAL;
+    if (!rot)
+    {
+        return -RIG_EINVAL;
+    }
 
-	/* 'BI1' is an RT-21 specific command that queries for a floating
-	 * point position (to the tenth of a degree).
-	 */
-	err = rotorez_send_priv_cmd(rot, "BI1;");
-	if (err != RIG_OK)
-		return err;
+    /* 'BI1' is an RT-21 specific command that queries for a floating
+     * point position (to the tenth of a degree).
+     */
+    err = rotorez_send_priv_cmd(rot, "BI1;");
 
-	rs = &rot->state;
+    if (err != RIG_OK)
+    {
+        return err;
+    }
 
-	err = read_string(&rs->rotport, az, RT21_AZ_LEN + 1, ";", strlen(";"));
-	if (err < 0)	/* read_string returns negative on error. */
-		return err;
+    rs = &rot->state;
 
-	/* RT-21 returns a five to six octet string consisting of one to
-	 * three octets containing the rotor's position in degrees, one
-	 * octet containing a decimal '.', one octet containing the rotor's
-	 * position in tenths of a degree, and one octet with the
-	 * terminating ';' with a leading space as padding--'[xx| ]x.y;'.
-	 * Seems as though at least five characters are returned and a
-	 * space is used as a leading pad character if needed.
-	 */
-	if ((isdigit(az[0])) || (isspace(az[0]))) {
-		tmp = strtof(az, NULL);
-		rig_debug(RIG_DEBUG_TRACE, "%s: \"%s\" after conversion = %.1f\n",
-			  __func__, az, tmp);
+    err = read_string(&rs->rotport, az, RT21_AZ_LEN + 1, ";", strlen(";"));
 
-		if (tmp == 360.0)
-			tmp = 0;
-		else if (tmp < 0.0 || tmp > 359.9)
-			return -RIG_EINVAL;
+    if (err < 0)    /* read_string returns negative on error. */
+    {
+        return err;
+    }
 
-		*azimuth = tmp;
-		*elevation = 0.0;	/* RT-21 backend does not support el at this time. */
-		rig_debug(RIG_DEBUG_TRACE,
-			  "%s: azimuth = %.1f deg; elevation = %.1f deg\n",
-			  __func__, *azimuth, *elevation);
-	} else {
-		return -RIG_EINVAL;
-	}
+    /* RT-21 returns a five to six octet string consisting of one to
+     * three octets containing the rotor's position in degrees, one
+     * octet containing a decimal '.', one octet containing the rotor's
+     * position in tenths of a degree, and one octet with the
+     * terminating ';' with a leading space as padding--'[xx| ]x.y;'.
+     * Seems as though at least five characters are returned and a
+     * space is used as a leading pad character if needed.
+     */
+    if ((isdigit(az[0])) || (isspace(az[0])))
+    {
+        tmp = strtof(az, NULL);
+        rig_debug(RIG_DEBUG_TRACE, "%s: \"%s\" after conversion = %.1f\n",
+                  __func__, az, tmp);
 
-	return RIG_OK;
+        if (tmp == 360.0)
+        {
+            tmp = 0;
+        }
+        else if (tmp < 0.0 || tmp > 359.9)
+        {
+            return -RIG_EINVAL;
+        }
+
+        *azimuth = tmp;
+        *elevation = 0.0;   /* RT-21 backend does not support el at this time. */
+        rig_debug(RIG_DEBUG_TRACE,
+                  "%s: azimuth = %.1f deg; elevation = %.1f deg\n",
+                  __func__, *azimuth, *elevation);
+    }
+    else
+    {
+        return -RIG_EINVAL;
+    }
+
+    return RIG_OK;
 }
 
 
@@ -678,46 +805,59 @@ static int rt21_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *elev
  * Sending the ";" string will stop rotation on the RotorEZ and reset the DCU-1
  */
 
-static int rotorez_rot_stop(ROT *rot) {
-	char cmdstr[2] = ";";
-	int err;
+static int rotorez_rot_stop(ROT *rot)
+{
+    char cmdstr[2] = ";";
+    int err;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	if (!rot)
-		return -RIG_EINVAL;
+    if (!rot)
+    {
+        return -RIG_EINVAL;
+    }
 
-	err = rotorez_send_priv_cmd(rot, cmdstr);
-	if (err != RIG_OK)
-		return err;
+    err = rotorez_send_priv_cmd(rot, cmdstr);
 
-	return RIG_OK;
+    if (err != RIG_OK)
+    {
+        return err;
+    }
+
+    return RIG_OK;
 }
 
-static int rotorez_rot_reset(ROT *rot, rot_reset_t reset) {
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+static int rotorez_rot_reset(ROT *rot, rot_reset_t reset)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	return rotorez_rot_stop(rot);
+    return rotorez_rot_stop(rot);
 }
 
 /*
  * Stop rotation on DCU-1
  */
 
-static int dcu1_rot_stop(ROT *rot) {
-	char cmdstr[5] = "AS1;";
-	int err;
+static int dcu1_rot_stop(ROT *rot)
+{
+    char cmdstr[5] = "AS1;";
+    int err;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	if (!rot)
-		return -RIG_EINVAL;
+    if (!rot)
+    {
+        return -RIG_EINVAL;
+    }
 
-	err = rotorez_send_priv_cmd(rot, cmdstr);
-	if (err != RIG_OK)
-		return err;
+    err = rotorez_send_priv_cmd(rot, cmdstr);
 
-	return RIG_OK;
+    if (err != RIG_OK)
+    {
+        return err;
+    }
+
+    return RIG_OK;
 }
 
 
@@ -729,59 +869,94 @@ static int dcu1_rot_stop(ROT *rot) {
  * define in rotorez.h and *val of '1' or '0' (enable/disable).
  */
 
-static int rotorez_rot_set_conf(ROT *rot, token_t token, const char *val) {
-	char cmdstr[2];
-	char c;
-	int err;
+static int rotorez_rot_set_conf(ROT *rot, token_t token, const char *val)
+{
+    char cmdstr[2];
+    char c;
+    int err;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-	rig_debug(RIG_DEBUG_TRACE, "%s: token = %d, *val = %c\n", __func__, (int)token, *val);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: token = %d, *val = %c\n", __func__, (int)token,
+              *val);
 
-	if (!rot)
-		return -RIG_EINVAL;
+    if (!rot)
+    {
+        return -RIG_EINVAL;
+    }
 
-	if (*val < '0' || *val > '1')
-		return -RIG_EINVAL;
+    if (*val < '0' || *val > '1')
+    {
+        return -RIG_EINVAL;
+    }
 
-	switch(token) {
-	case TOK_ENDPT:			 /* Endpoint option */
-		if (*val == '1')
-			c = 'E';
-		else
-			c = 'e';
-		break;
-	case TOK_JAM:			   /* Jam protection */
-		if (*val == '1')
-			c = 'J';
-		else
-			c = 'j';
-		break;
-	case TOK_OVRSHT:			/* Overshoot option */
-		if (*val == '1')
-			c = 'O';
-		else
-			c = 'o';
-		break;
-	case TOK_UNSTICK:		   /* Unstick option */
-		if (*val == '1')
-			c = 'S';
-		else
-			c = 's';
-		break;
-	default:
-		return -RIG_EINVAL;
-	}
-	rig_debug(RIG_DEBUG_TRACE, "%s: c = %c, *val = %c\n", __func__, c, *val);
-	snprintf(cmdstr, sizeof(cmdstr), "%c", c);
+    switch (token)
+    {
+    case TOK_ENDPT:          /* Endpoint option */
+        if (*val == '1')
+        {
+            c = 'E';
+        }
+        else
+        {
+            c = 'e';
+        }
 
-	rig_debug(RIG_DEBUG_TRACE, "%s: cmdstr = %s, *val = %c\n",
-			  __func__, cmdstr, *val);
+        break;
 
-	err = rotorez_send_priv_cmd(rot, cmdstr);
-	if (err != RIG_OK)
-		return err;
+    case TOK_JAM:              /* Jam protection */
+        if (*val == '1')
+        {
+            c = 'J';
+        }
+        else
+        {
+            c = 'j';
+        }
 
-	return RIG_OK;
+        break;
+
+    case TOK_OVRSHT:            /* Overshoot option */
+        if (*val == '1')
+        {
+            c = 'O';
+        }
+        else
+        {
+            c = 'o';
+        }
+
+        break;
+
+    case TOK_UNSTICK:          /* Unstick option */
+        if (*val == '1')
+        {
+            c = 'S';
+        }
+        else
+        {
+            c = 's';
+        }
+
+        break;
+
+    default:
+        return -RIG_EINVAL;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: c = %c, *val = %c\n", __func__, c, *val);
+    snprintf(cmdstr, sizeof(cmdstr), "%c", c);
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: cmdstr = %s, *val = %c\n",
+              __func__, cmdstr, *val);
+
+    err = rotorez_send_priv_cmd(rot, cmdstr);
+
+    if (err != RIG_OK)
+    {
+        return err;
+    }
+
+    return RIG_OK;
 }
 
 
@@ -791,16 +966,18 @@ static int rotorez_rot_set_conf(ROT *rot, token_t token, const char *val) {
  */
 static const char *rotorez_rot_get_info(ROT *rot)
 {
-	const struct rot_caps *rc;
+    const struct rot_caps *rc;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	if (!rot)
-		return (const char *)-RIG_EINVAL;
+    if (!rot)
+    {
+        return (const char *) - RIG_EINVAL;
+    }
 
-	rc = rot->caps;
+    rc = rot->caps;
 
-	return rc->model_name;
+    return rc->model_name;
 }
 
 
@@ -808,21 +985,27 @@ static const char *rotorez_rot_get_info(ROT *rot)
  * Send command string to rotor
  */
 
-static int rotorez_send_priv_cmd(ROT *rot, const char *cmdstr) {
-	struct rot_state *rs;
-	int err;
+static int rotorez_send_priv_cmd(ROT *rot, const char *cmdstr)
+{
+    struct rot_state *rs;
+    int err;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	if (!rot)
-		return -RIG_EINVAL;
+    if (!rot)
+    {
+        return -RIG_EINVAL;
+    }
 
-	rs = &rot->state;
-	err = write_block(&rs->rotport, cmdstr, strlen(cmdstr));
-	if (err != RIG_OK)
-		return err;
+    rs = &rot->state;
+    err = write_block(&rs->rotport, cmdstr, strlen(cmdstr));
 
-	return RIG_OK;
+    if (err != RIG_OK)
+    {
+        return err;
+    }
+
+    return RIG_OK;
 }
 
 
@@ -837,28 +1020,35 @@ static int rotorez_send_priv_cmd(ROT *rot, const char *cmdstr) {
  * this function returns and the buffer is presumed to be empty.
  */
 
-static int rotorez_flush_buffer(ROT *rot) {
-	struct rot_state *rs;
-	char garbage[32];		  /* read buffer */
-	int err = 0;
-	size_t MAX = 31;
+static int rotorez_flush_buffer(ROT *rot)
+{
+    struct rot_state *rs;
+    char garbage[32];         /* read buffer */
+    int err = 0;
+    size_t MAX = 31;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	if (!rot)
-		return -RIG_EINVAL;
+    if (!rot)
+    {
+        return -RIG_EINVAL;
+    }
 
-	rs = &rot->state;
-	do {
-		err = read_block(&rs->rotport, garbage, MAX);
+    rs = &rot->state;
 
-		/* Oops!  An IO error was encountered.  Bail out! */
-		if (err == -RIG_EIO)
-			return -RIG_EIO;
-	}
-	while (err != -RIG_ETIMEOUT);
+    do
+    {
+        err = read_block(&rs->rotport, garbage, MAX);
 
-	return RIG_OK;
+        /* Oops!  An IO error was encountered.  Bail out! */
+        if (err == -RIG_EIO)
+        {
+            return -RIG_EIO;
+        }
+    }
+    while (err != -RIG_ETIMEOUT);
+
+    return RIG_OK;
 }
 
 
@@ -868,13 +1058,13 @@ static int rotorez_flush_buffer(ROT *rot) {
 
 DECLARE_INITROT_BACKEND(rotorez)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	rot_register(&rotorez_rot_caps);
-	rot_register(&rotorcard_rot_caps);
-	rot_register(&dcu_rot_caps);
-	rot_register(&erc_rot_caps);
-	rot_register(&rt21_rot_caps);
+    rot_register(&rotorez_rot_caps);
+    rot_register(&rotorcard_rot_caps);
+    rot_register(&dcu_rot_caps);
+    rot_register(&erc_rot_caps);
+    rot_register(&rt21_rot_caps);
 
-	return RIG_OK;
+    return RIG_OK;
 }

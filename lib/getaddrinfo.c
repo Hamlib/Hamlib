@@ -48,9 +48,9 @@
 #include <sys/socket.h>
 #elif HAVE_WS2TCPIP_H
 #include <ws2tcpip.h>
-#	if defined(HAVE_WSPIAPI_H)
-#		include <wspiapi.h>
-#	endif
+#   if defined(HAVE_WSPIAPI_H)
+#       include <wspiapi.h>
+#   endif
 #endif
 
 
@@ -61,21 +61,26 @@
  */
 #ifndef HAVE_GETADDRINFO
 int getaddrinfo(const char *node, const char *service,
-	const struct addrinfo *hints, struct addrinfo **res)
+                const struct addrinfo *hints, struct addrinfo **res)
 {
     struct addrinfo *p;
     int ai_family, ai_socktype, ai_protocol, ai_flags;
 
     /* limitation: service must be non null */
     if (!service)
+    {
         return -1;
+    }
 
-    if (hints == NULL) {
+    if (hints == NULL)
+    {
         ai_family = AF_UNSPEC;
         ai_socktype = 0;
         ai_protocol = 0;
         ai_flags = 0;
-    } else {
+    }
+    else
+    {
         ai_family = hints->ai_family;
         ai_socktype = hints->ai_socktype;
         ai_protocol = hints->ai_protocol;
@@ -84,14 +89,21 @@ int getaddrinfo(const char *node, const char *service,
 
     /* limitation: this replacement function only for IPv4 */
     if (ai_family == AF_UNSPEC)
+    {
         ai_family = AF_INET;
+    }
 
     if (ai_family != AF_INET)
-    	return -1;
+    {
+        return -1;
+    }
 
     p = malloc(sizeof(struct addrinfo));
+
     if (!p)
-    	return -1;
+    {
+        return -1;
+    }
 
     memset(p, 0, sizeof(struct addrinfo));
     p->ai_family = ai_family;
@@ -99,20 +111,28 @@ int getaddrinfo(const char *node, const char *service,
     p->ai_protocol = ai_protocol;
     p->ai_addrlen = sizeof(struct sockaddr_in);
     p->ai_addr = malloc(p->ai_addrlen);
-    if (!p->ai_addr) {
-    	free(p);
-    	return -1;
+
+    if (!p->ai_addr)
+    {
+        free(p);
+        return -1;
     }
+
     memset((char *) p->ai_addr, 0, p->ai_addrlen);
 
-    ((struct sockaddr_in*)p->ai_addr)->sin_family = p->ai_family;
+    ((struct sockaddr_in *)p->ai_addr)->sin_family = p->ai_family;
     /* limitation: the service must be a port _number_ */
-    ((struct sockaddr_in*)p->ai_addr)->sin_port = htons(atoi(service));
+    ((struct sockaddr_in *)p->ai_addr)->sin_port = htons(atoi(service));
+
     /* limitation: the node must be in numbers-and-dots notation */
     if (!node && (ai_flags & AI_PASSIVE))
-        ((struct sockaddr_in*)p->ai_addr)->sin_addr.s_addr = INADDR_ANY;
+    {
+        ((struct sockaddr_in *)p->ai_addr)->sin_addr.s_addr = INADDR_ANY;
+    }
     else
-        ((struct sockaddr_in*)p->ai_addr)->sin_addr.s_addr = inet_addr(node);
+    {
+        ((struct sockaddr_in *)p->ai_addr)->sin_addr.s_addr = inet_addr(node);
+    }
 
     *res = p;
 
@@ -121,14 +141,14 @@ int getaddrinfo(const char *node, const char *service,
 
 void freeaddrinfo(struct addrinfo *res)
 {
-	free(res->ai_addr);
-	free(res);
+    free(res->ai_addr);
+    free(res);
 }
 #endif /* !HAVE_GETADDRINFO */
 
 #if !defined(HAVE_DECL_GAI_STRERROR) && !defined(gai_strerror)
 const char *gai_strerror(int errcode)
 {
-	return strerror(errcode);
+    return strerror(errcode);
 }
 #endif /* !HAVE_DECL_GAI_STRERROR */

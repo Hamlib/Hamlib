@@ -45,7 +45,8 @@
  *
  */
 
-const struct rig_caps ft450_caps = {
+const struct rig_caps ft450_caps =
+{
     .rig_model =          RIG_MODEL_FT450,
     .model_name =         "FT-450",
     .mfg_name =           "Yaesu",
@@ -73,8 +74,8 @@ const struct rig_caps ft450_caps = {
     .has_get_parm =       RIG_PARM_NONE,
     .has_set_parm =       RIG_PARM_NONE,
     .level_gran = {
-	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
-	[LVL_CWPITCH] = { .min = { .i = 400 }, .max = { .i = 800 }, .step = { .i = 100 } },
+        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
+        [LVL_CWPITCH] = { .min = { .i = 400 }, .max = { .i = 800 }, .step = { .i = 100 } },
     },
     .ctcss_list =         common_ctcss_list,
     .dcs_list =           NULL,
@@ -90,10 +91,10 @@ const struct rig_caps ft450_caps = {
     .chan_desc_sz =       0,
     .str_cal =            FT450_STR_CAL,
     .chan_list =          {
-		{   1, 500, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
-		{ 501, 504, RIG_MTYPE_EDGE, NEWCAT_MEM_CAP },    /* two by two */
-		RIG_CHAN_END,
-	    		  },
+        {   1, 500, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
+        { 501, 504, RIG_MTYPE_EDGE, NEWCAT_MEM_CAP },    /* two by two */
+        RIG_CHAN_END,
+    },
 
     .rx_range_list1 =     {
         {kHz(30), MHz(60), FT450_ALL_RX_MODES, -1, -1, FT450_VFO_ALL, FT450_ANTS},   /* General coverage + ham */
@@ -102,9 +103,9 @@ const struct rig_caps ft450_caps = {
 
     .tx_range_list1 =     {
         FRQ_RNG_HF(1, FT450_OTHER_TX_MODES, W(5), W(100), FT450_VFO_ALL, FT450_ANTS),
-        FRQ_RNG_HF(1, FT450_AM_TX_MODES, W(2), W(25), FT450_VFO_ALL, FT450_ANTS),	/* AM class */
+        FRQ_RNG_HF(1, FT450_AM_TX_MODES, W(2), W(25), FT450_VFO_ALL, FT450_ANTS),   /* AM class */
         FRQ_RNG_6m(1, FT450_OTHER_TX_MODES, W(5), W(100), FT450_VFO_ALL, FT450_ANTS),
-        FRQ_RNG_6m(1, FT450_AM_TX_MODES, W(2), W(25), FT450_VFO_ALL, FT450_ANTS),	/* AM class */
+        FRQ_RNG_6m(1, FT450_AM_TX_MODES, W(2), W(25), FT450_VFO_ALL, FT450_ANTS),   /* AM class */
 
         RIG_FRNG_END,
     },
@@ -116,9 +117,9 @@ const struct rig_caps ft450_caps = {
 
     .tx_range_list2 =     {
         FRQ_RNG_HF(2, FT450_OTHER_TX_MODES, W(5), W(100), FT450_VFO_ALL, FT450_ANTS),
-        FRQ_RNG_HF(2, FT450_AM_TX_MODES, W(2), W(25), FT450_VFO_ALL, FT450_ANTS),	/* AM class */
+        FRQ_RNG_HF(2, FT450_AM_TX_MODES, W(2), W(25), FT450_VFO_ALL, FT450_ANTS),   /* AM class */
         FRQ_RNG_6m(2, FT450_OTHER_TX_MODES, W(5), W(100), FT450_VFO_ALL, FT450_ANTS),
-        FRQ_RNG_6m(2, FT450_AM_TX_MODES, W(2), W(25), FT450_VFO_ALL, FT450_ANTS),	/* AM class */
+        FRQ_RNG_6m(2, FT450_AM_TX_MODES, W(2), W(25), FT450_VFO_ALL, FT450_ANTS),   /* AM class */
 
         RIG_FRNG_END,
     },
@@ -160,7 +161,7 @@ const struct rig_caps ft450_caps = {
     .rig_cleanup =        newcat_cleanup,
     .rig_open =           newcat_open,     /* port opened */
     .rig_close =          newcat_close,    /* port closed */
-    
+
     .cfgparams =          newcat_cfg_params,
     .set_conf =           newcat_set_conf,
     .get_conf =           newcat_get_conf,

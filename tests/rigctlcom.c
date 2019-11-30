@@ -990,7 +990,8 @@ static int handle_ts2000(void *arg)
 
         if (n != 2)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: error parsing preamp cmd '%s'\n", __func__, (char*)arg);
+            rig_debug(RIG_DEBUG_ERR, "%s: error parsing preamp cmd '%s'\n", __func__,
+                      (char *)arg);
         }
 
         int retval = rig_set_func(my_rig, RIG_VFO_A, RIG_FUNC_AIP, valA);
@@ -1171,7 +1172,8 @@ static int handle_ts2000(void *arg)
 
         if (n != 1)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: af level cmd parse failed: %s\n", __func__, (char*)arg);
+            rig_debug(RIG_DEBUG_ERR, "%s: af level cmd parse failed: %s\n", __func__,
+                      (char *)arg);
             return -RIG_EPROTO;
         }
 
@@ -1219,7 +1221,7 @@ static int handle_ts2000(void *arg)
         if (n != 1)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: speech level cmd parse failed: %s\n", __func__,
-                      (char*)arg);
+                      (char *)arg);
             return -RIG_EPROTO;
         }
 
@@ -1272,7 +1274,8 @@ static int handle_ts2000(void *arg)
 
         if (n != 1)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: AGC cmd parse failed: %s\n", __func__, (char*)arg);
+            rig_debug(RIG_DEBUG_ERR, "%s: AGC cmd parse failed: %s\n", __func__,
+                      (char *)arg);
             return -RIG_EPROTO;
         }
 
@@ -1319,7 +1322,8 @@ static int handle_ts2000(void *arg)
 
         if (n != 1)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: squelch cmd parse failed: %s\n", __func__, (char*)arg);
+            rig_debug(RIG_DEBUG_ERR, "%s: squelch cmd parse failed: %s\n", __func__,
+                      (char *)arg);
             return -RIG_EPROTO;
         }
 
@@ -1370,7 +1374,7 @@ static int handle_ts2000(void *arg)
 
         if (n != 1)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: error parsing '%s'\n", __func__, (char*)arg);
+            rig_debug(RIG_DEBUG_ERR, "%s: error parsing '%s'\n", __func__, (char *)arg);
             return -RIG_EPROTO;
         }
 
@@ -1500,7 +1504,7 @@ static int handle_ts2000(void *arg)
         rig_debug(RIG_DEBUG_ERR,
                   "*********************************\n%s: unknown cmd='%s'\n",
                   __func__,
-                  (char*)arg);
+                  (char *)arg);
         return -RIG_EINVAL;
     }
 

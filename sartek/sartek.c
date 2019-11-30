@@ -48,38 +48,39 @@
  * SARtek rotor capabilities
  *
  * Documentation from:
- *	http://www.hosenose.com/sartek/ifcspecs.htm
+ *  http://www.hosenose.com/sartek/ifcspecs.htm
  */
 
-const struct rot_caps sartek_rot_caps = {
-  .rot_model =          ROT_MODEL_SARTEK1,
-  .model_name =         "SARtek-1",
-  .mfg_name =           "SARtek",
-  .version =            "0.2",
-  .copyright = 	        "LGPL",
-  .status =             RIG_STATUS_UNTESTED,
-  .rot_type =           ROT_TYPE_OTHER,
-  .port_type =          RIG_PORT_SERIAL,
-  .serial_rate_min =    1200,
-  .serial_rate_max =    1200,
-  .serial_data_bits =   8,
-  .serial_stop_bits =   2,
-  .serial_parity =      RIG_PARITY_NONE,
-  .serial_handshake =   RIG_HANDSHAKE_NONE,
-  .write_delay =        0,
-  .post_write_delay =   0,
-  .timeout =            1000,
-  .retry =              3,
+const struct rot_caps sartek_rot_caps =
+{
+    .rot_model =          ROT_MODEL_SARTEK1,
+    .model_name =         "SARtek-1",
+    .mfg_name =           "SARtek",
+    .version =            "0.2",
+    .copyright =          "LGPL",
+    .status =             RIG_STATUS_UNTESTED,
+    .rot_type =           ROT_TYPE_OTHER,
+    .port_type =          RIG_PORT_SERIAL,
+    .serial_rate_min =    1200,
+    .serial_rate_max =    1200,
+    .serial_data_bits =   8,
+    .serial_stop_bits =   2,
+    .serial_parity =      RIG_PARITY_NONE,
+    .serial_handshake =   RIG_HANDSHAKE_NONE,
+    .write_delay =        0,
+    .post_write_delay =   0,
+    .timeout =            1000,
+    .retry =              3,
 
-  .min_az = 	        0,
-  .max_az =  	        360,
-  .min_el = 	        0,
-  .max_el =  	        0,
+    .min_az =             0,
+    .max_az =             360,
+    .min_el =             0,
+    .max_el =             0,
 
-  .priv =  NULL,	/* priv */
+    .priv =  NULL,    /* priv */
 
-  .set_position =       sartek_rot_set_position,
-  .stop =               sartek_rot_stop,
+    .set_position =       sartek_rot_set_position,
+    .stop =               sartek_rot_stop,
 };
 
 
@@ -99,33 +100,43 @@ const struct rot_caps sartek_rot_caps = {
  * Range is converted to an integer string, 0 to 360 degrees
  */
 
-static int sartek_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t elevation)
+static int sartek_rot_set_position(ROT *rot, azimuth_t azimuth,
+                                   elevation_t elevation)
 {
-  char cmdstr[8];
-  int len, err;
+    char cmdstr[8];
+    int len, err;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-  if (!rot)
-    return -RIG_EINVAL;
+    if (!rot)
+    {
+        return -RIG_EINVAL;
+    }
 
-  if (azimuth < 0 || azimuth > 360)
-    return -RIG_EINVAL;
+    if (azimuth < 0 || azimuth > 360)
+    {
+        return -RIG_EINVAL;
+    }
 
-  if (azimuth < 2) {
-    azimuth = 2;
-  }
-  else if (azimuth > 358) {
-    azimuth = 358;
-  }
+    if (azimuth < 2)
+    {
+        azimuth = 2;
+    }
+    else if (azimuth > 358)
+    {
+        azimuth = 358;
+    }
 
-  len = sprintf(cmdstr, "P%c", (int) ((azimuth * 255) / 360));
+    len = sprintf(cmdstr, "P%c", (int)((azimuth * 255) / 360));
 
-  err = write_block(&rot->state.rotport, cmdstr, len);
-  if (err != RIG_OK)
-    return err;
+    err = write_block(&rot->state.rotport, cmdstr, len);
 
-  return RIG_OK;
+    if (err != RIG_OK)
+    {
+        return err;
+    }
+
+    return RIG_OK;
 }
 
 
@@ -136,15 +147,18 @@ static int sartek_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t elev
 
 static int sartek_rot_stop(ROT *rot)
 {
-  int err;
+    int err;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-  err = write_block(&rot->state.rotport, "P\0", 2);
-  if (err != RIG_OK)
-    return err;
+    err = write_block(&rot->state.rotport, "P\0", 2);
 
-  return RIG_OK;
+    if (err != RIG_OK)
+    {
+        return err;
+    }
+
+    return RIG_OK;
 }
 
 
@@ -155,10 +169,10 @@ static int sartek_rot_stop(ROT *rot)
 
 DECLARE_INITROT_BACKEND(sartek)
 {
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  rot_register(&sartek_rot_caps);
+    rot_register(&sartek_rot_caps);
 
-  return RIG_OK;
+    return RIG_OK;
 }
 

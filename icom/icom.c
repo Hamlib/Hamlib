@@ -586,7 +586,7 @@ int icom_rig_open(RIG *rig)
 
         if (retval == RIG_OK)
         {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo on detected\n",__func__);
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo on detected\n", __func__);
             return RIG_OK;
         }
 
@@ -595,7 +595,7 @@ int icom_rig_open(RIG *rig)
 
         if (retval == RIG_OK)
         {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo off detected\n",__func__);
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo off detected\n", __func__);
             return RIG_OK;
         }
     }
@@ -666,8 +666,9 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     }
 
 #endif
-    retval = set_vfo_curr(rig,vfo,priv->curr_vfo);
-    if (retval != RIG_OK) return retval;
+    retval = set_vfo_curr(rig, vfo, priv->curr_vfo);
+
+    if (retval != RIG_OK) { return retval; }
 
     freq_len = priv->civ_731_mode ? 4 : 5;
     /*
@@ -720,7 +721,9 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     // Pick the appropriate VFO when VFO_TX is requested
     if (vfo == RIG_VFO_TX)
     {
-        rig_debug(RIG_DEBUG_TRACE,"%s: VFO_TX requested, vfo=%s\n",__func__,rig_strvfo(vfo));
+        rig_debug(RIG_DEBUG_TRACE, "%s: VFO_TX requested, vfo=%s\n", __func__,
+                  rig_strvfo(vfo));
+
         if (priv->split_on)
         {
             vfo = rig->state.vfo_list & RIG_VFO_B ? RIG_VFO_B : RIG_VFO_SUB;
@@ -731,11 +734,13 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         }
     }
 
-    retval = set_vfo_curr(rig,vfo,priv->curr_vfo);
+    retval = set_vfo_curr(rig, vfo, priv->curr_vfo);
+
     // Pick the appropriate VFO when VFO_RX is requested
     if (vfo == RIG_VFO_RX)
     {
-        rig_debug(RIG_DEBUG_TRACE,"%s: VFO_RX requested, vfo=%s\n",__func__,rig_strvfo(vfo));
+        rig_debug(RIG_DEBUG_TRACE, "%s: VFO_RX requested, vfo=%s\n", __func__,
+                  rig_strvfo(vfo));
         vfo = rig->state.vfo_list & RIG_VFO_B ? RIG_VFO_A : RIG_VFO_MAIN;
     }
 
@@ -1431,12 +1436,15 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 
     struct icom_priv_data *priv = (struct icom_priv_data *)rs->priv;
 
-    if ((vfo == RIG_VFO_A || vfo == RIG_VFO_B) && !VFO_HAS_A_B) {
-        rig_debug(RIG_DEBUG_ERR,"%s: Rig does not have VFO A/B?\n",__func__);
+    if ((vfo == RIG_VFO_A || vfo == RIG_VFO_B) && !VFO_HAS_A_B)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: Rig does not have VFO A/B?\n", __func__);
         return -RIG_EINVAL;
     }
-    if ((vfo == RIG_VFO_MAIN || vfo == RIG_VFO_MAIN) && !VFO_HAS_MAIN_SUB) {
-        rig_debug(RIG_DEBUG_ERR,"%s: Rig does not have VFO Main/Sub?\n",__func__);
+
+    if ((vfo == RIG_VFO_MAIN || vfo == RIG_VFO_MAIN) && !VFO_HAS_MAIN_SUB)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: Rig does not have VFO Main/Sub?\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -1507,6 +1515,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
                   "len=%d\n", ackbuf[0], ack_len);
         return -RIG_ERJCTED;
     }
+
     priv->curr_vfo = vfo;
     return RIG_OK;
 }
@@ -2755,12 +2764,12 @@ int icom_get_split_vfos(const RIG *rig, vfo_t *rx_vfo, vfo_t *tx_vfo)
         *tx_vfo = RIG_VFO_B;        /* rig doesn't enforce this but
                                                                      convention is needed here */
     }
-    else if (VFO_HAS_MAIN_SUB_ONLY) 
+    else if (VFO_HAS_MAIN_SUB_ONLY)
     {
         *rx_vfo = RIG_VFO_MAIN;
         *tx_vfo = RIG_VFO_SUB;
     }
-    else if (VFO_HAS_MAIN_SUB_A_B_ONLY) 
+    else if (VFO_HAS_MAIN_SUB_A_B_ONLY)
     {
         // TBD -- newer rigs we need to find active VFO
         // priv->curvfo if VFOA then A/B response else priv->curvfo=Main Main/Sub response
@@ -2813,7 +2822,8 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
          current VFO is VFO A and the split Tx VFO is always VFO B. These
          assumptions allow us to deal with the lack of VFO and split
          queries */
-    if (VFO_HAS_A_B_ONLY && priv->split_on) /* broken if user changes split on rig :( */
+    if (VFO_HAS_A_B_ONLY
+            && priv->split_on) /* broken if user changes split on rig :( */
     {
         /* VFO A/B style rigs swap VFO on split Tx so we need to disable
              split for certainty */
@@ -2880,7 +2890,8 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
          current VFO is VFO A and the split Tx VFO is always VFO B. These
          assumptions allow us to deal with the lack of VFO and split
          queries */
-    if (VFO_HAS_A_B_ONLY && priv->split_on) /* broken if user changes split on rig :( */
+    if (VFO_HAS_A_B_ONLY
+            && priv->split_on) /* broken if user changes split on rig :( */
     {
         /* VFO A/B style rigs swap VFO on split Tx so we need to disable
              split for certainty */
@@ -2949,7 +2960,8 @@ int icom_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
          current VFO is VFO A and the split Tx VFO is always VFO B. These
          assumptions allow us to deal with the lack of VFO and split
          queries */
-    if (VFO_HAS_A_B_ONLY && priv->split_on) /* broken if user changes split on rig :( */
+    if (VFO_HAS_A_B_ONLY
+            && priv->split_on) /* broken if user changes split on rig :( */
     {
         /* VFO A/B style rigs swap VFO on split Tx so we need to disable
              split for certainty */
@@ -3020,7 +3032,8 @@ int icom_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
          current VFO is VFO A and the split Tx VFO is always VFO B. These
          assumptions allow us to deal with the lack of VFO and split
          queries */
-    if (VFO_HAS_A_B_ONLY && priv->split_on) /* broken if user changes split on rig :( */
+    if (VFO_HAS_A_B_ONLY
+            && priv->split_on) /* broken if user changes split on rig :( */
     {
         /* VFO A/B style rigs swap VFO on split Tx so we need to disable
              split for certainty */
@@ -3089,7 +3102,8 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
          current VFO is VFO A and the split Tx VFO is always VFO B. These
          assumptions allow us to deal with the lack of VFO and split
          queries */
-    if (VFO_HAS_A_B_ONLY && priv->split_on) /* broken if user changes split on rig :( */
+    if (VFO_HAS_A_B_ONLY
+            && priv->split_on) /* broken if user changes split on rig :( */
     {
         /* VFO A/B style rigs swap VFO on split Tx so we need to disable
              split for certainty */
@@ -3164,7 +3178,8 @@ int icom_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *tx_freq,
          current VFO is VFO A and the split Tx VFO is always VFO B. These
          assumptions allow us to deal with the lack of VFO and split
          queries */
-    if (VFO_HAS_A_B_ONLY && priv->split_on) /* broken if user changes split on rig :( */
+    if (VFO_HAS_A_B_ONLY
+            && priv->split_on) /* broken if user changes split on rig :( */
     {
         /* VFO A/B style rigs swap VFO on split Tx so we need to disable
              split for certainty */
@@ -3217,10 +3232,12 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     switch (split)
     {
     case RIG_SPLIT_OFF:
+
         // if either VFOA or B is the vfo we set to VFOA when split is turned off
-        if (vfo == RIG_VFO_A || vfo == RIG_VFO_B) rig_set_vfo(rig,RIG_VFO_A);
+        if (vfo == RIG_VFO_A || vfo == RIG_VFO_B) { rig_set_vfo(rig, RIG_VFO_A); }
         // otherwise if Main or Sub we set Main as the current vfo
-        else if (vfo == RIG_VFO_MAIN || vfo == RIG_VFO_SUB) rig_set_vfo(rig,RIG_VFO_MAIN);
+        else if (vfo == RIG_VFO_MAIN || vfo == RIG_VFO_SUB) { rig_set_vfo(rig, RIG_VFO_MAIN); }
+
         split_sc = S_SPLT_OFF;
         break;
 
@@ -3618,15 +3635,18 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         break;
 
     case RIG_FUNC_SATMODE:
-        if (rig->caps->rig_model == RIG_MODEL_IC910) {
-          // Is the 910 the only one that uses this command?
-          fct_cn = C_CTL_MEM;
-          fct_sc = S_MEM_SATMODE910;
+        if (rig->caps->rig_model == RIG_MODEL_IC910)
+        {
+            // Is the 910 the only one that uses this command?
+            fct_cn = C_CTL_MEM;
+            fct_sc = S_MEM_SATMODE910;
         }
-        else {
-          fct_cn = C_CTL_FUNC;
-          fct_sc = S_MEM_SATMODE;
+        else
+        {
+            fct_cn = C_CTL_FUNC;
+            fct_sc = S_MEM_SATMODE;
         }
+
         break;
 
 
@@ -4734,7 +4754,8 @@ int icom_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq,
 
     rig_debug(RIG_DEBUG_TRACE, "%s: passed mwpower = %i\n", __func__, mwpower);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %"PRIfreq" Hz\n", __func__, freq);
-    rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = %s\n", __func__, rig_strrmode(mode));
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = %s\n", __func__,
+              rig_strrmode(mode));
 
     if (mwpower > 100000)
     {
@@ -4777,7 +4798,7 @@ int icom_decode_event(RIG *rig)
     if (frm_len == -RIG_ETIMEOUT)
     {
         rig_debug(RIG_DEBUG_VERBOSE,
-                  "%s: icom_decode got a timeout before the first character\n",__func__);
+                  "%s: icom_decode got a timeout before the first character\n", __func__);
     }
 
     if (frm_len < 0)
@@ -4788,7 +4809,7 @@ int icom_decode_event(RIG *rig)
     switch (buf[frm_len - 1])
     {
     case COL:
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: icom_decode saw a collision\n",__func__);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: icom_decode saw a collision\n", __func__);
         /* Collision */
         return -RIG_BUSBUSY;
 
@@ -5075,27 +5096,36 @@ static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
     struct icom_priv_data *priv = (struct icom_priv_data *)rig->state.priv;
     int retval;
 
-    rig_debug(RIG_DEBUG_TRACE,"%s: vfo=%s, curr_vfo=%s\n",__func__,rig_strvfo(vfo),rig_strvfo(curr_vfo));
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s, curr_vfo=%s\n", __func__,
+              rig_strvfo(vfo), rig_strvfo(curr_vfo));
 
     // first time we will set default to VFOA
     // So if you ask for frequency or such without setting VFO first you'll get VFOA
-    if (priv->curr_vfo == RIG_VFO_NONE && vfo == RIG_VFO_CURR) {
-        rig_debug(RIG_DEBUG_TRACE,"%s: setting default as VFOA\n",__func__);
+    if (priv->curr_vfo == RIG_VFO_NONE && vfo == RIG_VFO_CURR)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: setting default as VFOA\n", __func__);
         retval = rig_set_vfo(rig, RIG_VFO_A); // we'll default to VFOA in this case
-        if (retval != RIG_OK) return retval;
+
+        if (retval != RIG_OK) { return retval; }
+
         priv->curr_vfo = RIG_VFO_A;
     }
     // asking for vfo_curr so give it to them
-    else if (priv->curr_vfo != RIG_VFO_NONE && vfo == RIG_VFO_CURR) {
-        rig_debug(RIG_DEBUG_TRACE,"%s: using curr_vfo=%s\n",__func__,rig_strvfo(priv->curr_vfo));
+    else if (priv->curr_vfo != RIG_VFO_NONE && vfo == RIG_VFO_CURR)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: using curr_vfo=%s\n", __func__,
+                  rig_strvfo(priv->curr_vfo));
         vfo = priv->curr_vfo;
     }
     // only need to set vfo if it's changed
-    else if (priv->curr_vfo != vfo) {
-        rig_debug(RIG_DEBUG_TRACE,"%s: setting new vfo=%s\n",__func__,rig_strvfo(vfo));
+    else if (priv->curr_vfo != vfo)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: setting new vfo=%s\n", __func__,
+                  rig_strvfo(vfo));
         retval = rig_set_vfo(rig, vfo);
         priv->curr_vfo = vfo;
-        if (retval != RIG_OK) return retval;
+
+        if (retval != RIG_OK) { return retval; }
     }
 
     return RIG_OK;
@@ -5307,7 +5337,7 @@ DECLARE_PROBERIG_BACKEND(icom)
  */
 DECLARE_INITRIG_BACKEND(icom)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n",__func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
     rig_register(&ic703_caps);
     rig_register(&ic706_caps);

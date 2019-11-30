@@ -220,7 +220,7 @@ int HAMLIB_API rig_register(const struct rig_caps *caps)
  * ie. rig_hash_table lookup
  */
 
-const struct rig_caps * HAMLIB_API rig_get_caps(rig_model_t rig_model)
+const struct rig_caps *HAMLIB_API rig_get_caps(rig_model_t rig_model)
 {
     struct rig_list *p;
 
@@ -333,7 +333,7 @@ int HAMLIB_API rig_unregister(rig_model_t rig_model)
  * executes cfunc on all the elements stored in the rig hash list
  */
 int HAMLIB_API rig_list_foreach(int (*cfunc)(const struct rig_caps *,
-                                             rig_ptr_t),
+                                rig_ptr_t),
                                 rig_ptr_t data)
 {
     struct rig_list *p;

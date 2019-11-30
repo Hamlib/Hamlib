@@ -62,8 +62,8 @@
  */
 int HAMLIB_API rig_ext_level_foreach(RIG *rig,
                                      int (*cfunc)(RIG *,
-                                                  const struct confparams *,
-                                                  rig_ptr_t),
+                                             const struct confparams *,
+                                             rig_ptr_t),
                                      rig_ptr_t data)
 {
     const struct confparams *cfp;
@@ -108,8 +108,8 @@ int HAMLIB_API rig_ext_level_foreach(RIG *rig,
  */
 int HAMLIB_API rig_ext_parm_foreach(RIG *rig,
                                     int (*cfunc)(RIG *,
-                                                 const struct confparams *,
-                                                 rig_ptr_t),
+                                            const struct confparams *,
+                                            rig_ptr_t),
                                     rig_ptr_t data)
 {
     const struct confparams *cfp;
@@ -191,7 +191,7 @@ const struct confparams *HAMLIB_API rig_ext_lookup(RIG *rig, const char *name)
  *
  * Returns NULL if nothing found
  */
-const struct confparams * HAMLIB_API rig_ext_lookup_tok(RIG *rig, token_t token)
+const struct confparams *HAMLIB_API rig_ext_lookup_tok(RIG *rig, token_t token)
 {
     const struct confparams *cfp;
 

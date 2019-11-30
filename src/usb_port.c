@@ -104,7 +104,7 @@ static libusb_device_handle *find_and_open_device(const hamlib_port_t *port)
                   desc.idProduct);
 
         if (desc.idVendor == port->parm.usb.vid
-            && desc.idProduct == port->parm.usb.pid)
+                && desc.idProduct == port->parm.usb.pid)
         {
 
             /* we need to open the device in order to query strings */

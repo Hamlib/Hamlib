@@ -42,7 +42,7 @@
 #  elif defined(HAVE_READLINE_H)    /* !defined(HAVE_READLINE_READLINE_H) */
 #    include <readline.h>
 #  else                             /* !defined(HAVE_READLINE_H) */
-extern char * readline();
+extern char *readline();
 #  endif                            /* HAVE_READLINE_H */
 #else
 /* no readline */
@@ -325,7 +325,7 @@ static struct test_table test_list[] =
 };
 
 
-static struct test_table * find_cmd_entry(int cmd)
+static struct test_table *find_cmd_entry(int cmd)
 {
     int i;
 
@@ -486,7 +486,7 @@ static int scanfc(FILE *fin, const char *format, void *p)
             rig_debug(RIG_DEBUG_ERR, "fscanf: %s\n", strerror(errno));
             rig_debug(RIG_DEBUG_ERR,
                       "fscanf: parsing '%s' with '%s'\n",
-                      (char*)p,
+                      (char *)p,
                       format);
         }
 
@@ -597,9 +597,10 @@ static int next_word(char *buffer, int argc, char *argv[], int newline)
     })
 
 
-int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc, sync_cb_t sync_cb,
+int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
+                 sync_cb_t sync_cb,
                  int interactive, int prompt, int vfo_mode, char send_cmd_term,
-                 int * ext_resp_ptr, char * resp_sep_ptr)
+                 int *ext_resp_ptr, char *resp_sep_ptr)
 {
     int retcode;        /* generic return code from functions */
     unsigned char cmd;
@@ -647,10 +648,10 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc, syn
                 }
 
                 if (cmd != '\\'
-                    && cmd != '_'
-                    && cmd != '#'
-                    && ispunct(cmd)
-                    && !prompt)
+                        && cmd != '_'
+                        && cmd != '#'
+                        && ispunct(cmd)
+                        && !prompt)
                 {
 
                     *ext_resp_ptr = 1;
@@ -808,8 +809,8 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc, syn
         }
 
         if ((cmd_entry->flags & ARG_IN_LINE)
-            && (cmd_entry->flags & ARG_IN1)
-            && cmd_entry->arg1)
+                && (cmd_entry->flags & ARG_IN1)
+                && cmd_entry->arg1)
         {
 
             if (interactive)
@@ -841,10 +842,12 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc, syn
                     *nl = '\0';    /* chomp */
                 }
 
-                if (cmd=='b') {
+                if (cmd == 'b')
+                {
                     p1 = arg1; /* CW must accept a space argument */
                 }
-                else { /* skip a space arg if first arg...but why? */
+                else   /* skip a space arg if first arg...but why? */
+                {
                     p1 = arg1[0] == ' ' ? arg1 + 1 : arg1;
                 }
             }
@@ -902,9 +905,9 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc, syn
         }
 
         if (p1
-            && p1[0] != '?'
-            && (cmd_entry->flags & ARG_IN2)
-            && cmd_entry->arg2)
+                && p1[0] != '?'
+                && (cmd_entry->flags & ARG_IN2)
+                && cmd_entry->arg2)
         {
 
             if (interactive)
@@ -941,9 +944,9 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc, syn
         }
 
         if (p1
-            && p1[0] != '?'
-            && (cmd_entry->flags & ARG_IN3)
-            && cmd_entry->arg3)
+                && p1[0] != '?'
+                && (cmd_entry->flags & ARG_IN3)
+                && cmd_entry->arg3)
         {
 
             if (interactive)
@@ -1100,7 +1103,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc, syn
 
 #endif
             /* The starting position of the source string is the first
-             * character past the initial '\'.  
+             * character past the initial '\'.
              */
             snprintf(cmd_name, sizeof(cmd_name), "%s", parsed_input[0] + 1);
 
@@ -1238,8 +1241,8 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc, syn
 
         /* \send_cmd, \send_morse */
         if ((cmd_entry->flags & ARG_IN_LINE)
-            && (cmd_entry->flags & ARG_IN1)
-            && cmd_entry->arg1)
+                && (cmd_entry->flags & ARG_IN1)
+                && cmd_entry->arg1)
         {
             /* Check for a non-existent delimiter so as to not break up
              * remaining line into separate tokens (spaces OK).
@@ -1368,9 +1371,9 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc, syn
         }
 
         if (p1
-            && p1[0] != '?'
-            && (cmd_entry->flags & ARG_IN2)
-            && cmd_entry->arg2)
+                && p1[0] != '?'
+                && (cmd_entry->flags & ARG_IN2)
+                && cmd_entry->arg2)
         {
 
             result = strtok(NULL, " ");
@@ -1434,9 +1437,9 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc, syn
         }
 
         if (p1
-            && p1[0] != '?'
-            && (cmd_entry->flags & ARG_IN3)
-            && cmd_entry->arg3)
+                && p1[0] != '?'
+                && (cmd_entry->flags & ARG_IN3)
+                && cmd_entry->arg3)
         {
 
             result = strtok(NULL, " ");
@@ -1513,7 +1516,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc, syn
 
 #endif  /* HAVE_LIBREADLINE */
 
-    if (sync_cb) sync_cb (1);   /* lock if necessary */
+    if (sync_cb) { sync_cb(1); }    /* lock if necessary */
 
     if (!prompt)
     {
@@ -1538,9 +1541,9 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc, syn
         char vfo_str[MAXARGSZ + 2];
 
         vfo_mode == 0 ? vfo_str[0] = '\0' : snprintf(vfo_str,
-                                                     sizeof(vfo_str),
-                                                     " %s",
-                                                     rig_strvfo(vfo));
+                                     sizeof(vfo_str),
+                                     " %s",
+                                     rig_strvfo(vfo));
 
         p1 == NULL ? a1[0] = '\0' : snprintf(a1, sizeof(a1), " %s", p1);
         p2 == NULL ? a2[0] = '\0' : snprintf(a2, sizeof(a2), " %s", p2);
@@ -1571,9 +1574,10 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc, syn
                                         p2 ? p2 : "",
                                         p3 ? p3 : "");
 
-    if (sync_cb) sync_cb (0);   /* unlock if necessary */
+    if (sync_cb) { sync_cb(0); }    /* unlock if necessary */
 
-    if (retcode == RIG_EIO) return retcode;
+    if (retcode == RIG_EIO) { return retcode; }
+
     if (retcode != RIG_OK)
     {
         /* only for rigctld */
@@ -1598,7 +1602,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc, syn
         {
             /* netrigctl RIG_OK */
             if (!(cmd_entry->flags & ARG_OUT)
-                && !*ext_resp_ptr && cmd != 0xf0)
+                    && !*ext_resp_ptr && cmd != 0xf0)
             {
                 fprintf(fout, NETRIGCTL_RET "0\n");
             }
@@ -3686,8 +3690,8 @@ int dump_chan(FILE *fout, RIG *rig, channel_t *chan)
         const char *level_s;
 
         if (!RIG_LEVEL_SET(level)
-            || (!rig_has_set_level(rig, level)
-                && !rig_has_get_level(rig, level)))
+                || (!rig_has_set_level(rig, level)
+                    && !rig_has_get_level(rig, level)))
         {
 
             continue;
@@ -3721,7 +3725,7 @@ int dump_chan(FILE *fout, RIG *rig, channel_t *chan)
 
     /* ext_levels */
     for (idx = 0; chan->ext_levels
-             && !RIG_IS_EXT_END(chan->ext_levels[idx]); idx++)
+            && !RIG_IS_EXT_END(chan->ext_levels[idx]); idx++)
     {
         const struct confparams *cfp;
         char lstr[32];
@@ -4026,10 +4030,10 @@ declare_proto_rig(send_cmd)
     backend_num = RIG_BACKEND_NUM(rig->caps->rig_model);
 
     if (send_cmd_term == -1
-        || backend_num == RIG_YAESU
-        || backend_num == RIG_ICOM
-        || backend_num == RIG_KACHINA
-        || backend_num == RIG_MICROTUNE)
+            || backend_num == RIG_YAESU
+            || backend_num == RIG_ICOM
+            || backend_num == RIG_KACHINA
+            || backend_num == RIG_MICROTUNE)
     {
 
         const char *p = arg1, *pp = NULL;

@@ -63,24 +63,24 @@
 #define IC756_ANTS (RIG_ANT_1|RIG_ANT_2)
 
 #define IC756PRO_STR_CAL { 16, \
-	{ \
-		 { 0,   -60 }, \
-		 { 14,  -52 }, \
-		 { 29,  -44 }, \
-		 { 44,  -36 }, \
-		 { 60,  -28 }, \
-		 { 75,  -20 }, \
-		 { 91,  -12 }, \
-		 { 107, -4 }, \
-		 { 124,  4 }, \
-		 { 141, 12 }, \
-		 { 158, 20 }, \
-		 { 175, 28 }, \
-		 { 192, 36 }, \
-		 { 210, 44 }, \
-		 { 228, 52 }, \
-		 { 247 ,60 } \
-	} }
+    { \
+         { 0,   -60 }, \
+         { 14,  -52 }, \
+         { 29,  -44 }, \
+         { 44,  -36 }, \
+         { 60,  -28 }, \
+         { 75,  -20 }, \
+         { 91,  -12 }, \
+         { 107, -4 }, \
+         { 124,  4 }, \
+         { 141, 12 }, \
+         { 158, 20 }, \
+         { 175, 28 }, \
+         { 192, 36 }, \
+         { 210, 44 }, \
+         { 228, 52 }, \
+         { 247 ,60 } \
+    } }
 
 int ic756_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 int ic756pro2_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
@@ -93,31 +93,34 @@ int ic756pro2_get_parm(RIG *rig, setting_t parm, value_t *val);
  *  (0 - normal, 1 - narrow)
  */
 static int r2i_mode(RIG *rig, rmode_t mode, pbwidth_t width,
-		    unsigned char *md, signed char *pd)
+                    unsigned char *md, signed char *pd)
 {
-  int err;
+    int err;
 
-  err = rig2icom_mode(rig, mode, width, md, pd);
+    err = rig2icom_mode(rig, mode, width, md, pd);
 
-  if (err != RIG_OK)
-    return err;
-
-  if (PD_WIDE_3 == *pd)
+    if (err != RIG_OK)
     {
-      *pd = PD_MEDIUM_2;
-    }
-  else if (*pd > PD_WIDE_3)
-    {
-      (*pd)--;
+        return err;
     }
 
-  return RIG_OK;
+    if (PD_WIDE_3 == *pd)
+    {
+        *pd = PD_MEDIUM_2;
+    }
+    else if (*pd > PD_WIDE_3)
+    {
+        (*pd)--;
+    }
+
+    return RIG_OK;
 }
 
 /*
  * IC-756 rig capabilities.
  */
-static const struct icom_priv_caps ic756_priv_caps = {
+static const struct icom_priv_caps ic756_priv_caps =
+{
     0x50,    /* default address */
     0,       /* 731 mode */
     0,       /* no XCHG */
@@ -125,140 +128,145 @@ static const struct icom_priv_caps ic756_priv_caps = {
     .r2i_mode = r2i_mode,
     .agc_levels_present = 1,
     .agc_levels = {
-            { .level = RIG_AGC_FAST, .icom_level = 1 },
-            { .level = RIG_AGC_MEDIUM, .icom_level = 2 },
-            { .level = RIG_AGC_SLOW, .icom_level = 3 },
-            { .level = -1, .icom_level = 0 },
+        { .level = RIG_AGC_FAST, .icom_level = 1 },
+        { .level = RIG_AGC_MEDIUM, .icom_level = 2 },
+        { .level = RIG_AGC_SLOW, .icom_level = 3 },
+        { .level = -1, .icom_level = 0 },
     },
 };
 
-const struct rig_caps ic756_caps = {
-.rig_model =  RIG_MODEL_IC756,
-.model_name = "IC-756",
-.mfg_name =  "Icom",
-.version =  BACKEND_VER ".1",
-.copyright =  "LGPL",
-.status =  RIG_STATUS_ALPHA,
-.rig_type =  RIG_TYPE_TRANSCEIVER,
-.ptt_type =  RIG_PTT_NONE,
-.dcd_type =  RIG_DCD_RIG,
-.port_type =  RIG_PORT_SERIAL,
-.serial_rate_min =  300,
-.serial_rate_max =  19200,
-.serial_data_bits =  8,
-.serial_stop_bits =  1,
-.serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_NONE,
-.write_delay =  0,
-.post_write_delay =  0,
-.timeout =  1000,
-.retry =  3,
-.has_get_func =  RIG_FUNC_NONE,
-.has_set_func =  RIG_FUNC_NONE,
-.has_get_level =  RIG_LEVEL_NONE,
-.has_set_level =  RIG_LEVEL_NONE,
-.has_get_parm =  RIG_PARM_NONE,
-.has_set_parm =  RIG_PARM_NONE,	/* FIXME: parms */
-.level_gran = {
-	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
-	},
-.parm_gran =  {},
-.ctcss_list =  common_ctcss_list,
-.dcs_list =  NULL,
-.preamp =   { 10, RIG_DBLST_END, },	/* FIXME: TBC */
-.attenuator =   { 20, RIG_DBLST_END, },
-.max_rit =  Hz(9999),
-.max_xit =  Hz(0),
-.max_ifshift =  Hz(0),
-.targetable_vfo =  0,
-.vfo_ops =  IC756_VFO_OPS,
-.scan_ops =  IC756_SCAN_OPS,
-.transceive =  RIG_TRN_RIG,
-.bank_qty =   0,
-.chan_desc_sz =  0,
+const struct rig_caps ic756_caps =
+{
+    .rig_model =  RIG_MODEL_IC756,
+    .model_name = "IC-756",
+    .mfg_name =  "Icom",
+    .version =  BACKEND_VER ".1",
+    .copyright =  "LGPL",
+    .status =  RIG_STATUS_ALPHA,
+    .rig_type =  RIG_TYPE_TRANSCEIVER,
+    .ptt_type =  RIG_PTT_NONE,
+    .dcd_type =  RIG_DCD_RIG,
+    .port_type =  RIG_PORT_SERIAL,
+    .serial_rate_min =  300,
+    .serial_rate_max =  19200,
+    .serial_data_bits =  8,
+    .serial_stop_bits =  1,
+    .serial_parity =  RIG_PARITY_NONE,
+    .serial_handshake =  RIG_HANDSHAKE_NONE,
+    .write_delay =  0,
+    .post_write_delay =  0,
+    .timeout =  1000,
+    .retry =  3,
+    .has_get_func =  RIG_FUNC_NONE,
+    .has_set_func =  RIG_FUNC_NONE,
+    .has_get_level =  RIG_LEVEL_NONE,
+    .has_set_level =  RIG_LEVEL_NONE,
+    .has_get_parm =  RIG_PARM_NONE,
+    .has_set_parm =  RIG_PARM_NONE, /* FIXME: parms */
+    .level_gran = {
+        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
+    },
+    .parm_gran =  {},
+    .ctcss_list =  common_ctcss_list,
+    .dcs_list =  NULL,
+    .preamp =   { 10, RIG_DBLST_END, }, /* FIXME: TBC */
+    .attenuator =   { 20, RIG_DBLST_END, },
+    .max_rit =  Hz(9999),
+    .max_xit =  Hz(0),
+    .max_ifshift =  Hz(0),
+    .targetable_vfo =  0,
+    .vfo_ops =  IC756_VFO_OPS,
+    .scan_ops =  IC756_SCAN_OPS,
+    .transceive =  RIG_TRN_RIG,
+    .bank_qty =   0,
+    .chan_desc_sz =  0,
 
-.chan_list =  {
-				   {   1,  99, RIG_MTYPE_MEM  },
-				   { 100, 101, RIG_MTYPE_EDGE },    /* two by two */
-				   RIG_CHAN_END,
-		},
+    .chan_list =  {
+        {   1,  99, RIG_MTYPE_MEM  },
+        { 100, 101, RIG_MTYPE_EDGE },    /* two by two */
+        RIG_CHAN_END,
+    },
 
-.rx_range_list1 =   { {kHz(30),MHz(60),IC756_ALL_RX_MODES,-1,-1,IC756_VFO_ALL},
-	RIG_FRNG_END, },
-.tx_range_list1 =  {
-	FRQ_RNG_HF(1,IC756_OTHER_TX_MODES, W(5),W(100),IC756_VFO_ALL,IC756_ANTS),
-	FRQ_RNG_6m(1,IC756_OTHER_TX_MODES, W(5),W(100),IC756_VFO_ALL,IC756_ANTS),
-	FRQ_RNG_HF(1,IC756_AM_TX_MODES, W(2),W(40),IC756_VFO_ALL,IC756_ANTS),   /* AM class */
-	FRQ_RNG_6m(1,IC756_AM_TX_MODES, W(2),W(40),IC756_VFO_ALL,IC756_ANTS),   /* AM class */
-	RIG_FRNG_END, },
+    .rx_range_list1 =   { {kHz(30), MHz(60), IC756_ALL_RX_MODES, -1, -1, IC756_VFO_ALL},
+        RIG_FRNG_END,
+    },
+    .tx_range_list1 =  {
+        FRQ_RNG_HF(1, IC756_OTHER_TX_MODES, W(5), W(100), IC756_VFO_ALL, IC756_ANTS),
+        FRQ_RNG_6m(1, IC756_OTHER_TX_MODES, W(5), W(100), IC756_VFO_ALL, IC756_ANTS),
+        FRQ_RNG_HF(1, IC756_AM_TX_MODES, W(2), W(40), IC756_VFO_ALL, IC756_ANTS), /* AM class */
+        FRQ_RNG_6m(1, IC756_AM_TX_MODES, W(2), W(40), IC756_VFO_ALL, IC756_ANTS), /* AM class */
+        RIG_FRNG_END,
+    },
 
-.rx_range_list2 =   { {kHz(30),MHz(60),IC756_ALL_RX_MODES,-1,-1,IC756_VFO_ALL},
-	RIG_FRNG_END, },
-.tx_range_list2 =  {
-	FRQ_RNG_HF(2,IC756_OTHER_TX_MODES, W(5),W(100),IC756_VFO_ALL,IC756_ANTS),
-	FRQ_RNG_6m(2,IC756_OTHER_TX_MODES, W(5),W(100),IC756_VFO_ALL,IC756_ANTS),
-	FRQ_RNG_HF(2,IC756_AM_TX_MODES, W(2),W(40),IC756_VFO_ALL,IC756_ANTS),   /* AM class */
-	FRQ_RNG_6m(2,IC756_AM_TX_MODES, W(2),W(40),IC756_VFO_ALL,IC756_ANTS),   /* AM class */
-	RIG_FRNG_END, },
+    .rx_range_list2 =   { {kHz(30), MHz(60), IC756_ALL_RX_MODES, -1, -1, IC756_VFO_ALL},
+        RIG_FRNG_END,
+    },
+    .tx_range_list2 =  {
+        FRQ_RNG_HF(2, IC756_OTHER_TX_MODES, W(5), W(100), IC756_VFO_ALL, IC756_ANTS),
+        FRQ_RNG_6m(2, IC756_OTHER_TX_MODES, W(5), W(100), IC756_VFO_ALL, IC756_ANTS),
+        FRQ_RNG_HF(2, IC756_AM_TX_MODES, W(2), W(40), IC756_VFO_ALL, IC756_ANTS), /* AM class */
+        FRQ_RNG_6m(2, IC756_AM_TX_MODES, W(2), W(40), IC756_VFO_ALL, IC756_ANTS), /* AM class */
+        RIG_FRNG_END,
+    },
 
-.tuning_steps = 	{
-	 {IC756_1HZ_TS_MODES,1},
-	 {IC756_ALL_RX_MODES,kHz(1)},
-	 {IC756_ALL_RX_MODES,kHz(5)},
-	 {IC756_ALL_RX_MODES,kHz(9)},
-	 {IC756_ALL_RX_MODES,kHz(10)},
-	 RIG_TS_END,
-	},
-	/* mode/filter list, remember: order matters! */
-.filters = 	{
-		{RIG_MODE_SSB|RIG_MODE_RTTY, kHz(2.4)},
-		{RIG_MODE_CW, kHz(2.4)},
-		{RIG_MODE_CW, Hz(500)},
-		{RIG_MODE_AM, kHz(9)},
-		{RIG_MODE_AM, kHz(2.4)},
-		{RIG_MODE_FM, kHz(15)},
-		{RIG_MODE_FM, kHz(9)},
-		RIG_FLT_END,
-	},
-.str_cal = IC756PRO_STR_CAL,
+    .tuning_steps =     {
+        {IC756_1HZ_TS_MODES, 1},
+        {IC756_ALL_RX_MODES, kHz(1)},
+        {IC756_ALL_RX_MODES, kHz(5)},
+        {IC756_ALL_RX_MODES, kHz(9)},
+        {IC756_ALL_RX_MODES, kHz(10)},
+        RIG_TS_END,
+    },
+    /* mode/filter list, remember: order matters! */
+    .filters =  {
+        {RIG_MODE_SSB | RIG_MODE_RTTY, kHz(2.4)},
+        {RIG_MODE_CW, kHz(2.4)},
+        {RIG_MODE_CW, Hz(500)},
+        {RIG_MODE_AM, kHz(9)},
+        {RIG_MODE_AM, kHz(2.4)},
+        {RIG_MODE_FM, kHz(15)},
+        {RIG_MODE_FM, kHz(9)},
+        RIG_FLT_END,
+    },
+    .str_cal = IC756PRO_STR_CAL,
 
-.cfgparams =  icom_cfg_params,
-.set_conf =  icom_set_conf,
-.get_conf =  icom_get_conf,
+    .cfgparams =  icom_cfg_params,
+    .set_conf =  icom_set_conf,
+    .get_conf =  icom_get_conf,
 
-.priv =  (void*)&ic756_priv_caps,
-.rig_init =   icom_init,
-.rig_cleanup =   icom_cleanup,
-.rig_open =  NULL,
-.rig_close =  NULL,
+    .priv = (void *)& ic756_priv_caps,
+    .rig_init =   icom_init,
+    .rig_cleanup =   icom_cleanup,
+    .rig_open =  NULL,
+    .rig_close =  NULL,
 
-.set_freq =  icom_set_freq,
-.get_freq =  icom_get_freq,
-.set_mode =  icom_set_mode,
-.get_mode =  icom_get_mode,
-.set_vfo =  icom_set_vfo,
-.set_ant =  icom_set_ant,
-.get_ant =  icom_get_ant,
+    .set_freq =  icom_set_freq,
+    .get_freq =  icom_get_freq,
+    .set_mode =  icom_set_mode,
+    .get_mode =  icom_get_mode,
+    .set_vfo =  icom_set_vfo,
+    .set_ant =  icom_set_ant,
+    .get_ant =  icom_get_ant,
 
-.decode_event =  icom_decode_event,
-.set_level =  icom_set_level,
-.get_level =  icom_get_level,
-.set_func =  ic756_set_func,
-.get_func =  icom_get_func,
-.set_mem =  icom_set_mem,
-.vfo_op =  icom_vfo_op,
-.scan =  icom_scan,
-.get_dcd =  icom_get_dcd,
-.set_ts =  icom_set_ts,
-.get_ts =  icom_get_ts,
-.set_split_freq =  icom_set_split_freq,
-.get_split_freq =  icom_get_split_freq,
-.set_split_mode =  icom_set_split_mode,
-.get_split_mode =  icom_get_split_mode,
-.set_split_freq_mode =  icom_set_split_freq_mode,
-.get_split_freq_mode =  icom_get_split_freq_mode,
-.set_split_vfo =  icom_set_split_vfo,
-.get_split_vfo =  NULL,
+    .decode_event =  icom_decode_event,
+    .set_level =  icom_set_level,
+    .get_level =  icom_get_level,
+    .set_func =  ic756_set_func,
+    .get_func =  icom_get_func,
+    .set_mem =  icom_set_mem,
+    .vfo_op =  icom_vfo_op,
+    .scan =  icom_scan,
+    .get_dcd =  icom_get_dcd,
+    .set_ts =  icom_set_ts,
+    .get_ts =  icom_get_ts,
+    .set_split_freq =  icom_set_split_freq,
+    .get_split_freq =  icom_get_split_freq,
+    .set_split_mode =  icom_set_split_mode,
+    .get_split_mode =  icom_get_split_mode,
+    .set_split_freq_mode =  icom_set_split_freq_mode,
+    .get_split_freq_mode =  icom_get_split_freq_mode,
+    .set_split_vfo =  icom_set_split_vfo,
+    .get_split_vfo =  NULL,
 
 };
 
@@ -268,157 +276,163 @@ const struct rig_caps ic756_caps = {
  *
  * TODO: check every parameter, add antenna capabilities
  */
-static const struct icom_priv_caps ic756pro_priv_caps = {
+static const struct icom_priv_caps ic756pro_priv_caps =
+{
     0x5c,    /* default address */
     0,        /* 731 mode */
     0,    /* no XCHG */
     ic756pro_ts_sc_list,
     .agc_levels_present = 1,
     .agc_levels = {
-            { .level = RIG_AGC_FAST, .icom_level = 1 },
-            { .level = RIG_AGC_MEDIUM, .icom_level = 2 },
-            { .level = RIG_AGC_SLOW, .icom_level = 3 },
-            { .level = -1, .icom_level = 0 },
+        { .level = RIG_AGC_FAST, .icom_level = 1 },
+        { .level = RIG_AGC_MEDIUM, .icom_level = 2 },
+        { .level = RIG_AGC_SLOW, .icom_level = 3 },
+        { .level = -1, .icom_level = 0 },
     },
 };
 
-const struct rig_caps ic756pro_caps = {
-.rig_model =  RIG_MODEL_IC756PRO,
-.model_name = "IC-756PRO",
-.mfg_name =  "Icom",
-.version =  BACKEND_VER,
-.copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
-.rig_type =  RIG_TYPE_TRANSCEIVER,
-.ptt_type =  RIG_PTT_RIG,
-.dcd_type =  RIG_DCD_RIG,
-.port_type =  RIG_PORT_SERIAL,
-.serial_rate_min =  300,
-.serial_rate_max =  19200,
-.serial_data_bits =  8,
-.serial_stop_bits =  1,
-.serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_NONE,
-.write_delay =  0,
-.post_write_delay =  0,
-.timeout =  1000,
-.retry =  3,
-.has_get_func =  IC756PRO_FUNC_ALL,
-.has_set_func =  IC756PRO_FUNC_SET,
-.has_get_level =  IC756PRO_LEVEL_ALL,
-.has_set_level =  RIG_LEVEL_SET(IC756PRO_LEVEL_ALL),
-.has_get_parm =  RIG_PARM_NONE,
-.has_set_parm =  RIG_PARM_NONE,	/* FIXME: parms */
-.level_gran = {
-	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
-	[LVL_KEYSPD] = { .min = { .i = 6 }, .max = { .i = 48 }, .step = { .i = 1 } },
-	[LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 900 }, .step = { .i = 1 } },
-},
-.parm_gran =  {},
-.ctcss_list =  common_ctcss_list,
-.dcs_list =  NULL,
-.preamp =   { 10, 20, RIG_DBLST_END, },	/* FIXME: TBC */
-.attenuator =   { 6, 12, 18, 20, RIG_DBLST_END, },
-.max_rit =  Hz(9999),
-.max_xit =  Hz(0),
-.max_ifshift =  Hz(0),
-.targetable_vfo =  0,
-.vfo_ops =  IC756_VFO_OPS,
-.scan_ops =  IC756_SCAN_OPS,
-.transceive =  RIG_TRN_RIG,
-.bank_qty =   0,
-.chan_desc_sz =  0,
+const struct rig_caps ic756pro_caps =
+{
+    .rig_model =  RIG_MODEL_IC756PRO,
+    .model_name = "IC-756PRO",
+    .mfg_name =  "Icom",
+    .version =  BACKEND_VER,
+    .copyright =  "LGPL",
+    .status =  RIG_STATUS_UNTESTED,
+    .rig_type =  RIG_TYPE_TRANSCEIVER,
+    .ptt_type =  RIG_PTT_RIG,
+    .dcd_type =  RIG_DCD_RIG,
+    .port_type =  RIG_PORT_SERIAL,
+    .serial_rate_min =  300,
+    .serial_rate_max =  19200,
+    .serial_data_bits =  8,
+    .serial_stop_bits =  1,
+    .serial_parity =  RIG_PARITY_NONE,
+    .serial_handshake =  RIG_HANDSHAKE_NONE,
+    .write_delay =  0,
+    .post_write_delay =  0,
+    .timeout =  1000,
+    .retry =  3,
+    .has_get_func =  IC756PRO_FUNC_ALL,
+    .has_set_func =  IC756PRO_FUNC_SET,
+    .has_get_level =  IC756PRO_LEVEL_ALL,
+    .has_set_level =  RIG_LEVEL_SET(IC756PRO_LEVEL_ALL),
+    .has_get_parm =  RIG_PARM_NONE,
+    .has_set_parm =  RIG_PARM_NONE, /* FIXME: parms */
+    .level_gran = {
+        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
+        [LVL_KEYSPD] = { .min = { .i = 6 }, .max = { .i = 48 }, .step = { .i = 1 } },
+        [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 900 }, .step = { .i = 1 } },
+    },
+    .parm_gran =  {},
+    .ctcss_list =  common_ctcss_list,
+    .dcs_list =  NULL,
+    .preamp =   { 10, 20, RIG_DBLST_END, }, /* FIXME: TBC */
+    .attenuator =   { 6, 12, 18, 20, RIG_DBLST_END, },
+    .max_rit =  Hz(9999),
+    .max_xit =  Hz(0),
+    .max_ifshift =  Hz(0),
+    .targetable_vfo =  0,
+    .vfo_ops =  IC756_VFO_OPS,
+    .scan_ops =  IC756_SCAN_OPS,
+    .transceive =  RIG_TRN_RIG,
+    .bank_qty =   0,
+    .chan_desc_sz =  0,
 
-.chan_list =  {
-				   {   1,  99, RIG_MTYPE_MEM  },
-				   { 100, 101, RIG_MTYPE_EDGE },    /* two by two */
-				   RIG_CHAN_END,
-		},
+    .chan_list =  {
+        {   1,  99, RIG_MTYPE_MEM  },
+        { 100, 101, RIG_MTYPE_EDGE },    /* two by two */
+        RIG_CHAN_END,
+    },
 
-.rx_range_list1 =   { {kHz(30),MHz(60),IC756_ALL_RX_MODES,-1,-1,IC756_VFO_ALL},
-	RIG_FRNG_END, },
-.tx_range_list1 =  {
-	FRQ_RNG_HF(1,IC756_OTHER_TX_MODES, W(5),W(100),IC756_VFO_ALL,IC756_ANTS),
-	FRQ_RNG_6m(1,IC756_OTHER_TX_MODES, W(5),W(100),IC756_VFO_ALL,IC756_ANTS),
-	FRQ_RNG_HF(1,IC756_AM_TX_MODES, W(2),W(40),IC756_VFO_ALL,IC756_ANTS),   /* AM class */
-	FRQ_RNG_6m(1,IC756_AM_TX_MODES, W(2),W(40),IC756_VFO_ALL,IC756_ANTS),   /* AM class */
-	RIG_FRNG_END, },
+    .rx_range_list1 =   { {kHz(30), MHz(60), IC756_ALL_RX_MODES, -1, -1, IC756_VFO_ALL},
+        RIG_FRNG_END,
+    },
+    .tx_range_list1 =  {
+        FRQ_RNG_HF(1, IC756_OTHER_TX_MODES, W(5), W(100), IC756_VFO_ALL, IC756_ANTS),
+        FRQ_RNG_6m(1, IC756_OTHER_TX_MODES, W(5), W(100), IC756_VFO_ALL, IC756_ANTS),
+        FRQ_RNG_HF(1, IC756_AM_TX_MODES, W(2), W(40), IC756_VFO_ALL, IC756_ANTS), /* AM class */
+        FRQ_RNG_6m(1, IC756_AM_TX_MODES, W(2), W(40), IC756_VFO_ALL, IC756_ANTS), /* AM class */
+        RIG_FRNG_END,
+    },
 
-.rx_range_list2 =   { {kHz(30),MHz(60),IC756_ALL_RX_MODES,-1,-1,IC756_VFO_ALL},
-	RIG_FRNG_END, },
-.tx_range_list2 =  {
-	FRQ_RNG_HF(2,IC756_OTHER_TX_MODES, W(5),W(100),IC756_VFO_ALL,IC756_ANTS),
-	FRQ_RNG_6m(2,IC756_OTHER_TX_MODES, W(5),W(100),IC756_VFO_ALL,IC756_ANTS),
-	FRQ_RNG_HF(2,IC756_AM_TX_MODES, W(2),W(40),IC756_VFO_ALL,IC756_ANTS),   /* AM class */
-	FRQ_RNG_6m(2,IC756_AM_TX_MODES, W(2),W(40),IC756_VFO_ALL,IC756_ANTS),   /* AM class */
-	RIG_FRNG_END, },
+    .rx_range_list2 =   { {kHz(30), MHz(60), IC756_ALL_RX_MODES, -1, -1, IC756_VFO_ALL},
+        RIG_FRNG_END,
+    },
+    .tx_range_list2 =  {
+        FRQ_RNG_HF(2, IC756_OTHER_TX_MODES, W(5), W(100), IC756_VFO_ALL, IC756_ANTS),
+        FRQ_RNG_6m(2, IC756_OTHER_TX_MODES, W(5), W(100), IC756_VFO_ALL, IC756_ANTS),
+        FRQ_RNG_HF(2, IC756_AM_TX_MODES, W(2), W(40), IC756_VFO_ALL, IC756_ANTS), /* AM class */
+        FRQ_RNG_6m(2, IC756_AM_TX_MODES, W(2), W(40), IC756_VFO_ALL, IC756_ANTS), /* AM class */
+        RIG_FRNG_END,
+    },
 
-.tuning_steps = 	{
-	 {IC756_1HZ_TS_MODES,1},
-	 {IC756_ALL_RX_MODES,kHz(1)},
-	 {IC756_ALL_RX_MODES,kHz(5)},
-	 {IC756_ALL_RX_MODES,kHz(9)},
-	 {IC756_ALL_RX_MODES,kHz(10)},
-	 RIG_TS_END,
-	},
-	/* mode/filter list, remember: order matters! */
-.filters = 	{
-		{RIG_MODE_SSB|RIG_MODE_RTTY, kHz(2.4)},
-		{RIG_MODE_CW, Hz(500)},
-		{RIG_MODE_AM, kHz(8)},
-		{RIG_MODE_AM, kHz(2.4)},
-		{RIG_MODE_FM, kHz(15)},
-		{RIG_MODE_FM, kHz(8)},
-		RIG_FLT_END,
-	},
-.str_cal = IC756PRO_STR_CAL,
+    .tuning_steps =     {
+        {IC756_1HZ_TS_MODES, 1},
+        {IC756_ALL_RX_MODES, kHz(1)},
+        {IC756_ALL_RX_MODES, kHz(5)},
+        {IC756_ALL_RX_MODES, kHz(9)},
+        {IC756_ALL_RX_MODES, kHz(10)},
+        RIG_TS_END,
+    },
+    /* mode/filter list, remember: order matters! */
+    .filters =  {
+        {RIG_MODE_SSB | RIG_MODE_RTTY, kHz(2.4)},
+        {RIG_MODE_CW, Hz(500)},
+        {RIG_MODE_AM, kHz(8)},
+        {RIG_MODE_AM, kHz(2.4)},
+        {RIG_MODE_FM, kHz(15)},
+        {RIG_MODE_FM, kHz(8)},
+        RIG_FLT_END,
+    },
+    .str_cal = IC756PRO_STR_CAL,
 
-.cfgparams =  icom_cfg_params,
-.set_conf =  icom_set_conf,
-.get_conf =  icom_get_conf,
+    .cfgparams =  icom_cfg_params,
+    .set_conf =  icom_set_conf,
+    .get_conf =  icom_get_conf,
 
-.priv =  (void*)&ic756pro_priv_caps,
-.rig_init =   icom_init,
-.rig_cleanup =   icom_cleanup,
-.rig_open =  NULL,
-.rig_close =  NULL,
+    .priv = (void *)& ic756pro_priv_caps,
+    .rig_init =   icom_init,
+    .rig_cleanup =   icom_cleanup,
+    .rig_open =  NULL,
+    .rig_close =  NULL,
 
-.set_freq =  icom_set_freq,
-.get_freq =  icom_get_freq,
-.set_mode =  icom_set_mode,
-.get_mode =  icom_get_mode,
-.set_vfo =  icom_set_vfo,
-.set_ant =  icom_set_ant,
-.get_ant =  icom_get_ant,
+    .set_freq =  icom_set_freq,
+    .get_freq =  icom_get_freq,
+    .set_mode =  icom_set_mode,
+    .get_mode =  icom_get_mode,
+    .set_vfo =  icom_set_vfo,
+    .set_ant =  icom_set_ant,
+    .get_ant =  icom_get_ant,
 
-.decode_event =  icom_decode_event,
-.set_level =  icom_set_level,
-.get_level =  icom_get_level,
-.set_func =  ic756_set_func,
-.get_func =  icom_get_func,
-.set_mem =  icom_set_mem,
-.vfo_op =  icom_vfo_op,
-.scan =  icom_scan,
-.set_ptt =  icom_set_ptt,
-.get_dcd =  icom_get_dcd,
-.set_ts =  icom_set_ts,
-.get_ts =  icom_get_ts,
-.set_rptr_shift =  icom_set_rptr_shift,
-.get_rptr_shift =  icom_get_rptr_shift,
-.set_rptr_offs =  icom_set_rptr_offs,
-.get_rptr_offs =  icom_get_rptr_offs,
-.set_ctcss_tone =  icom_set_ctcss_tone,
-.get_ctcss_tone =  icom_get_ctcss_tone,
-.set_ctcss_sql =  icom_set_ctcss_sql,
-.get_ctcss_sql =  icom_get_ctcss_sql,
-.set_split_freq =  icom_set_split_freq,
-.get_split_freq =  icom_get_split_freq,
-.set_split_mode =  icom_set_split_mode,
-.get_split_mode =  icom_get_split_mode,
-.set_split_freq_mode =  icom_set_split_freq_mode,
-.get_split_freq_mode =  icom_get_split_freq_mode,
-.set_split_vfo =  icom_set_split_vfo,
-.get_split_vfo =  NULL,
+    .decode_event =  icom_decode_event,
+    .set_level =  icom_set_level,
+    .get_level =  icom_get_level,
+    .set_func =  ic756_set_func,
+    .get_func =  icom_get_func,
+    .set_mem =  icom_set_mem,
+    .vfo_op =  icom_vfo_op,
+    .scan =  icom_scan,
+    .set_ptt =  icom_set_ptt,
+    .get_dcd =  icom_get_dcd,
+    .set_ts =  icom_set_ts,
+    .get_ts =  icom_get_ts,
+    .set_rptr_shift =  icom_set_rptr_shift,
+    .get_rptr_shift =  icom_get_rptr_shift,
+    .set_rptr_offs =  icom_set_rptr_offs,
+    .get_rptr_offs =  icom_get_rptr_offs,
+    .set_ctcss_tone =  icom_set_ctcss_tone,
+    .get_ctcss_tone =  icom_get_ctcss_tone,
+    .set_ctcss_sql =  icom_set_ctcss_sql,
+    .get_ctcss_sql =  icom_get_ctcss_sql,
+    .set_split_freq =  icom_set_split_freq,
+    .get_split_freq =  icom_get_split_freq,
+    .set_split_mode =  icom_set_split_mode,
+    .get_split_mode =  icom_get_split_mode,
+    .set_split_freq_mode =  icom_set_split_freq_mode,
+    .get_split_freq_mode =  icom_get_split_freq_mode,
+    .set_split_vfo =  icom_set_split_vfo,
+    .get_split_vfo =  NULL,
 
 };
 
@@ -427,17 +441,18 @@ const struct rig_caps ic756pro_caps = {
  *
  * TODO: check every parameter, add antenna capabilities
  */
-static const struct icom_priv_caps ic756pro2_priv_caps = {
+static const struct icom_priv_caps ic756pro2_priv_caps =
+{
     0x64,    /* default address */
     0,       /* 731 mode */
     0,       /* no XCHG */
     ic756pro_ts_sc_list,
     .agc_levels_present = 1,
     .agc_levels = {
-            { .level = RIG_AGC_FAST, .icom_level = 1 },
-            { .level = RIG_AGC_MEDIUM, .icom_level = 2 },
-            { .level = RIG_AGC_SLOW, .icom_level = 3 },
-            { .level = -1, .icom_level = 0 },
+        { .level = RIG_AGC_FAST, .icom_level = 1 },
+        { .level = RIG_AGC_MEDIUM, .icom_level = 2 },
+        { .level = RIG_AGC_SLOW, .icom_level = 3 },
+        { .level = -1, .icom_level = 0 },
     },
 };
 
@@ -447,23 +462,29 @@ static const struct icom_priv_caps ic756pro2_priv_caps = {
 #define TOK_MEMNAME TOKEN_BACKEND(1)
 #define TOK_MYCALL  TOKEN_BACKEND(2)
 
-static const struct confparams ic756pro2_ext_parms[] = {
-	{ TOK_SSBBASS, "ssbbass", "SSB Tx Tone (Bass)", "SSB Tx Tone (Bass)",
-		NULL, RIG_CONF_NUMERIC, { .n = { 0, 10, 1 } }
-	},
-	{ TOK_MEMNAME, "showmem", "Show mem name", "Show memory name",
-		NULL, RIG_CONF_CHECKBUTTON, { }
-	},
-	{ TOK_SQLCTRL, "sqlctrl", "RF/Sql control", "set RF/Squelch control",
-		NULL, RIG_CONF_COMBO, { .c = {{ "Auto", "Sql", "RF+Sql", NULL }} }
-	},
-	{ TOK_MYCALL, "mycall", "Callsign", "My call sign",
-		NULL, RIG_CONF_STRING, { }
-	},
-	{ TOK_RTTY_FLTR, "rttyfltr", "RTTY Fltr Width preset", "Set/Read RTTY preset filter width",
-		"350", RIG_CONF_COMBO, { .c = {{"250", "300", "350", "500", "1000", NULL }} }
-	},
-	{ RIG_CONF_END, NULL, }
+static const struct confparams ic756pro2_ext_parms[] =
+{
+    {
+        TOK_SSBBASS, "ssbbass", "SSB Tx Tone (Bass)", "SSB Tx Tone (Bass)",
+        NULL, RIG_CONF_NUMERIC, { .n = { 0, 10, 1 } }
+    },
+    {
+        TOK_MEMNAME, "showmem", "Show mem name", "Show memory name",
+        NULL, RIG_CONF_CHECKBUTTON, { }
+    },
+    {
+        TOK_SQLCTRL, "sqlctrl", "RF/Sql control", "set RF/Squelch control",
+        NULL, RIG_CONF_COMBO, { .c = {{ "Auto", "Sql", "RF+Sql", NULL }} }
+    },
+    {
+        TOK_MYCALL, "mycall", "Callsign", "My call sign",
+        NULL, RIG_CONF_STRING, { }
+    },
+    {
+        TOK_RTTY_FLTR, "rttyfltr", "RTTY Fltr Width preset", "Set/Read RTTY preset filter width",
+        "350", RIG_CONF_COMBO, { .c = {{"250", "300", "350", "500", "1000", NULL }} }
+    },
+    { RIG_CONF_END, NULL, }
 };
 
 
@@ -474,19 +495,19 @@ static const struct confparams ic756pro2_ext_parms[] = {
  * CHECKBUTTON: val.i 0/1
  */
 
- /*IC-756Pro Rig parameters Only available in this namespace*/
-#define S_MEM_SC_LEN		2	/* 756PRO S_MEM subcmd length */
-#define S_MEM_SBASS		0x501	/* SSB TX tone bass level */
-#define S_MEM_NAME		0x514	/* send/read memory name */
-#define S_MEM_MYCALL		0x515
-#define S_MEM_BEEP		0x520	/* Button confirmation */
-#define S_MEM_SQL_CTL		0x522	/* RF/SQL ctl set 0=auto; 1 = sql; 2 = RF+SQL */
-#define S_MEM_QSPLT		0x524	/* enable quick split mode */
-#define S_MEM_TRCV		0x532	/* CI-V trancieve mode */
-#define S_MEM_LANG		0x536	/* 0=English 1=Japanese for voice announcer */
-#define S_MEM_SCN_SPD		0x556	/* 0 = low; 1 = high */
-#define S_MEM_RTTY_FL_PB	0x561	/* 0=250 Hz, 1=300' 2 = 350, 3 = 500, 4 = 1 KHz */
-#define S_MEM_RTTY_TWNPK	0x562	/* rtty twin peak filter off/on */
+/*IC-756Pro Rig parameters Only available in this namespace*/
+#define S_MEM_SC_LEN        2   /* 756PRO S_MEM subcmd length */
+#define S_MEM_SBASS     0x501   /* SSB TX tone bass level */
+#define S_MEM_NAME      0x514   /* send/read memory name */
+#define S_MEM_MYCALL        0x515
+#define S_MEM_BEEP      0x520   /* Button confirmation */
+#define S_MEM_SQL_CTL       0x522   /* RF/SQL ctl set 0=auto; 1 = sql; 2 = RF+SQL */
+#define S_MEM_QSPLT     0x524   /* enable quick split mode */
+#define S_MEM_TRCV      0x532   /* CI-V trancieve mode */
+#define S_MEM_LANG      0x536   /* 0=English 1=Japanese for voice announcer */
+#define S_MEM_SCN_SPD       0x556   /* 0 = low; 1 = high */
+#define S_MEM_RTTY_FL_PB    0x561   /* 0=250 Hz, 1=300' 2 = 350, 3 = 500, 4 = 1 KHz */
+#define S_MEM_RTTY_TWNPK    0x562   /* rtty twin peak filter off/on */
 
 
 static int ic756pro2_set_ext_parm(RIG *rig, token_t token, value_t val);
@@ -501,150 +522,155 @@ static int ic756pro2_get_ext_parm(RIG *rig, token_t token, value_t *val);
 
 #define IC756PROII_PARMS (RIG_PARM_ANN|RIG_PARM_BEEP|RIG_PARM_BACKLIGHT|RIG_PARM_TIME)
 
-const struct rig_caps ic756pro2_caps = {
-.rig_model =  RIG_MODEL_IC756PROII,
-.model_name = "IC-756PROII",
-.mfg_name =  "Icom",
-.version =  BACKEND_VER,
-.copyright =  "LGPL",
-.status =  RIG_STATUS_ALPHA,
-.rig_type =  RIG_TYPE_TRANSCEIVER,
-.ptt_type =  RIG_PTT_RIG,
-.dcd_type =  RIG_DCD_RIG,
-.port_type =  RIG_PORT_SERIAL,
-.serial_rate_min =  300,
-.serial_rate_max =  19200,
-.serial_data_bits =  8,
-.serial_stop_bits =  1,
-.serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_NONE,
-.write_delay =  0,
-.post_write_delay =  0,
-.timeout =  1000,
-.retry =  3,
-.has_get_func =  IC756PRO_FUNC_ALL,
-.has_set_func =  IC756PRO_FUNC_SET,
-.has_get_level =  IC756PROII_LEVEL_ALL,
-.has_set_level =  RIG_LEVEL_SET(IC756PROII_LEVEL_ALL),
-.has_get_parm =  RIG_PARM_NONE,
-.has_set_parm =  RIG_PARM_NONE,	/* FIXME: parms */
-.level_gran = {
-	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
-	[LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
-	[LVL_KEYSPD] = { .min = { .i = 6 }, .max = { .i = 48 }, .step = { .i = 1 } },
-	[LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 900 }, .step = { .i = 1 } },
-},
-.parm_gran =  {},
-.extparms =  ic756pro2_ext_parms,
-.ctcss_list =  common_ctcss_list,
-.dcs_list =  NULL,
-.preamp =   { 10, 20, RIG_DBLST_END, },	/* FIXME: TBC */
-.attenuator =   { 6, 12, 18, 20, RIG_DBLST_END, },
-.max_rit =  Hz(9999),
-.max_xit =  Hz(9999),
-.max_ifshift =  Hz(0),
-.targetable_vfo =  0,
-.vfo_ops =  IC756_VFO_OPS,
-.scan_ops =  IC756_SCAN_OPS,
-.transceive =  RIG_TRN_RIG,
-.bank_qty =   0,
-.chan_desc_sz =  0,
+const struct rig_caps ic756pro2_caps =
+{
+    .rig_model =  RIG_MODEL_IC756PROII,
+    .model_name = "IC-756PROII",
+    .mfg_name =  "Icom",
+    .version =  BACKEND_VER,
+    .copyright =  "LGPL",
+    .status =  RIG_STATUS_ALPHA,
+    .rig_type =  RIG_TYPE_TRANSCEIVER,
+    .ptt_type =  RIG_PTT_RIG,
+    .dcd_type =  RIG_DCD_RIG,
+    .port_type =  RIG_PORT_SERIAL,
+    .serial_rate_min =  300,
+    .serial_rate_max =  19200,
+    .serial_data_bits =  8,
+    .serial_stop_bits =  1,
+    .serial_parity =  RIG_PARITY_NONE,
+    .serial_handshake =  RIG_HANDSHAKE_NONE,
+    .write_delay =  0,
+    .post_write_delay =  0,
+    .timeout =  1000,
+    .retry =  3,
+    .has_get_func =  IC756PRO_FUNC_ALL,
+    .has_set_func =  IC756PRO_FUNC_SET,
+    .has_get_level =  IC756PROII_LEVEL_ALL,
+    .has_set_level =  RIG_LEVEL_SET(IC756PROII_LEVEL_ALL),
+    .has_get_parm =  RIG_PARM_NONE,
+    .has_set_parm =  RIG_PARM_NONE, /* FIXME: parms */
+    .level_gran = {
+        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
+        [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
+        [LVL_KEYSPD] = { .min = { .i = 6 }, .max = { .i = 48 }, .step = { .i = 1 } },
+        [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 900 }, .step = { .i = 1 } },
+    },
+    .parm_gran =  {},
+    .extparms =  ic756pro2_ext_parms,
+    .ctcss_list =  common_ctcss_list,
+    .dcs_list =  NULL,
+    .preamp =   { 10, 20, RIG_DBLST_END, }, /* FIXME: TBC */
+    .attenuator =   { 6, 12, 18, 20, RIG_DBLST_END, },
+    .max_rit =  Hz(9999),
+    .max_xit =  Hz(9999),
+    .max_ifshift =  Hz(0),
+    .targetable_vfo =  0,
+    .vfo_ops =  IC756_VFO_OPS,
+    .scan_ops =  IC756_SCAN_OPS,
+    .transceive =  RIG_TRN_RIG,
+    .bank_qty =   0,
+    .chan_desc_sz =  0,
 
-.chan_list =  {
-	   {   1,  99, RIG_MTYPE_MEM  },
-	   { 100, 101, RIG_MTYPE_EDGE },    /* two by two */
-	   RIG_CHAN_END,
-	},
+    .chan_list =  {
+        {   1,  99, RIG_MTYPE_MEM  },
+        { 100, 101, RIG_MTYPE_EDGE },    /* two by two */
+        RIG_CHAN_END,
+    },
 
-.rx_range_list1 =   { {kHz(30),MHz(60),IC756PROII_ALL_RX_MODES,-1,-1,IC756_VFO_ALL},
-	RIG_FRNG_END, },
-.tx_range_list1 =   {
-	FRQ_RNG_HF(1,IC756PROII_OTHER_TX_MODES, W(5),W(100),IC756_VFO_ALL,IC756_ANTS),
-	FRQ_RNG_6m(1,IC756PROII_OTHER_TX_MODES, W(5),W(100),IC756_VFO_ALL,IC756_ANTS),
-	FRQ_RNG_HF(1,IC756PROII_AM_TX_MODES, W(2),W(40),IC756_VFO_ALL,IC756_ANTS),   /* AM class */
-	FRQ_RNG_6m(1,IC756PROII_AM_TX_MODES, W(2),W(40),IC756_VFO_ALL,IC756_ANTS),   /* AM class */
-    	RIG_FRNG_END, },
+    .rx_range_list1 =   { {kHz(30), MHz(60), IC756PROII_ALL_RX_MODES, -1, -1, IC756_VFO_ALL},
+        RIG_FRNG_END,
+    },
+    .tx_range_list1 =   {
+        FRQ_RNG_HF(1, IC756PROII_OTHER_TX_MODES, W(5), W(100), IC756_VFO_ALL, IC756_ANTS),
+        FRQ_RNG_6m(1, IC756PROII_OTHER_TX_MODES, W(5), W(100), IC756_VFO_ALL, IC756_ANTS),
+        FRQ_RNG_HF(1, IC756PROII_AM_TX_MODES, W(2), W(40), IC756_VFO_ALL, IC756_ANTS), /* AM class */
+        FRQ_RNG_6m(1, IC756PROII_AM_TX_MODES, W(2), W(40), IC756_VFO_ALL, IC756_ANTS), /* AM class */
+        RIG_FRNG_END,
+    },
 
-.rx_range_list2 =   { {kHz(30),MHz(60),IC756PROII_ALL_RX_MODES,-1,-1,IC756_VFO_ALL},
-	RIG_FRNG_END, },
-.tx_range_list2 =  {
-	FRQ_RNG_HF(2,IC756PROII_OTHER_TX_MODES, W(5),W(100),IC756_VFO_ALL,IC756_ANTS),
-	FRQ_RNG_6m(2,IC756PROII_OTHER_TX_MODES, W(5),W(100),IC756_VFO_ALL,IC756_ANTS),
-	FRQ_RNG_HF(2,IC756PROII_AM_TX_MODES, W(2),W(40),IC756_VFO_ALL,IC756_ANTS),   /* AM class */
-	FRQ_RNG_6m(2,IC756PROII_AM_TX_MODES, W(2),W(40),IC756_VFO_ALL,IC756_ANTS),   /* AM class */
-    	RIG_FRNG_END, },
+    .rx_range_list2 =   { {kHz(30), MHz(60), IC756PROII_ALL_RX_MODES, -1, -1, IC756_VFO_ALL},
+        RIG_FRNG_END,
+    },
+    .tx_range_list2 =  {
+        FRQ_RNG_HF(2, IC756PROII_OTHER_TX_MODES, W(5), W(100), IC756_VFO_ALL, IC756_ANTS),
+        FRQ_RNG_6m(2, IC756PROII_OTHER_TX_MODES, W(5), W(100), IC756_VFO_ALL, IC756_ANTS),
+        FRQ_RNG_HF(2, IC756PROII_AM_TX_MODES, W(2), W(40), IC756_VFO_ALL, IC756_ANTS), /* AM class */
+        FRQ_RNG_6m(2, IC756PROII_AM_TX_MODES, W(2), W(40), IC756_VFO_ALL, IC756_ANTS), /* AM class */
+        RIG_FRNG_END,
+    },
 
-.tuning_steps = 	{
-	 {IC756PROII_1HZ_TS_MODES,1},
-	 {IC756PROII_ALL_RX_MODES,kHz(1)},
-	 {IC756PROII_ALL_RX_MODES,kHz(5)},
-	 {IC756PROII_ALL_RX_MODES,kHz(9)},
-	 {IC756PROII_ALL_RX_MODES,kHz(10)},
-	 RIG_TS_END,
-	},
-	/* mode/filter list, remember: order matters! */
-.filters = 	{
-	{RIG_MODE_SSB|RIG_MODE_RTTY, kHz(2.4)},
-	{RIG_MODE_CW, Hz(500)},
-	{RIG_MODE_AM, kHz(6)},
-	{RIG_MODE_AM, kHz(2.4)},
-	{RIG_MODE_FM, kHz(15)},
-	{RIG_MODE_FM, kHz(8)},
-	RIG_FLT_END,
-	},
-.str_cal = IC756PRO_STR_CAL,
+    .tuning_steps =     {
+        {IC756PROII_1HZ_TS_MODES, 1},
+        {IC756PROII_ALL_RX_MODES, kHz(1)},
+        {IC756PROII_ALL_RX_MODES, kHz(5)},
+        {IC756PROII_ALL_RX_MODES, kHz(9)},
+        {IC756PROII_ALL_RX_MODES, kHz(10)},
+        RIG_TS_END,
+    },
+    /* mode/filter list, remember: order matters! */
+    .filters =  {
+        {RIG_MODE_SSB | RIG_MODE_RTTY, kHz(2.4)},
+        {RIG_MODE_CW, Hz(500)},
+        {RIG_MODE_AM, kHz(6)},
+        {RIG_MODE_AM, kHz(2.4)},
+        {RIG_MODE_FM, kHz(15)},
+        {RIG_MODE_FM, kHz(8)},
+        RIG_FLT_END,
+    },
+    .str_cal = IC756PRO_STR_CAL,
 
-.cfgparams =  icom_cfg_params,
-.set_conf =  icom_set_conf,
-.get_conf =  icom_get_conf,
+    .cfgparams =  icom_cfg_params,
+    .set_conf =  icom_set_conf,
+    .get_conf =  icom_get_conf,
 
-.priv =  (void*)&ic756pro2_priv_caps,
-.rig_init =   icom_init,
-.rig_cleanup =   icom_cleanup,
-.rig_open =  NULL,
-.rig_close =  NULL,
+    .priv = (void *)& ic756pro2_priv_caps,
+    .rig_init =   icom_init,
+    .rig_cleanup =   icom_cleanup,
+    .rig_open =  NULL,
+    .rig_close =  NULL,
 
-.set_freq =  icom_set_freq,
-.get_freq =  icom_get_freq,
-.set_mode =  icom_set_mode_with_data,
-.get_mode =  icom_get_mode_with_data,
-.set_vfo =  icom_set_vfo,
-.set_ant =  icom_set_ant,
-.get_ant =  icom_get_ant,
+    .set_freq =  icom_set_freq,
+    .get_freq =  icom_get_freq,
+    .set_mode =  icom_set_mode_with_data,
+    .get_mode =  icom_get_mode_with_data,
+    .set_vfo =  icom_set_vfo,
+    .set_ant =  icom_set_ant,
+    .get_ant =  icom_get_ant,
 
-.decode_event =  icom_decode_event,
-.set_parm =  ic756pro2_set_parm,
-.get_parm =  ic756pro2_get_parm,
-.set_level =  ic756pro2_set_level,
-.get_level =  ic756pro2_get_level,
-.set_func =  ic756_set_func,
-.get_func =  icom_get_func,
-.set_mem =  icom_set_mem,
-.vfo_op =  icom_vfo_op,
-.scan =  icom_scan,
-.set_ptt =  icom_set_ptt,
-.get_dcd =  icom_get_dcd,
-.set_ts =  icom_set_ts,
-.get_ts =  icom_get_ts,
-.set_rptr_shift =  icom_set_rptr_shift,
-.get_rptr_shift =  icom_get_rptr_shift,
-.set_rptr_offs =  icom_set_rptr_offs,
-.get_rptr_offs =  icom_get_rptr_offs,
-.set_ctcss_tone =  icom_set_ctcss_tone,
-.get_ctcss_tone =  icom_get_ctcss_tone,
-.set_ctcss_sql =  icom_set_ctcss_sql,
-.get_ctcss_sql =  icom_get_ctcss_sql,
-.set_split_freq =  icom_set_split_freq,
-.get_split_freq =  icom_get_split_freq,
-.set_split_mode =  icom_set_split_mode,
-.get_split_mode =  icom_get_split_mode,
-.set_split_freq_mode =  icom_set_split_freq_mode,
-.get_split_freq_mode =  icom_get_split_freq_mode,
-.set_split_vfo =  icom_set_split_vfo,
-.get_split_vfo =  NULL,
+    .decode_event =  icom_decode_event,
+    .set_parm =  ic756pro2_set_parm,
+    .get_parm =  ic756pro2_get_parm,
+    .set_level =  ic756pro2_set_level,
+    .get_level =  ic756pro2_get_level,
+    .set_func =  ic756_set_func,
+    .get_func =  icom_get_func,
+    .set_mem =  icom_set_mem,
+    .vfo_op =  icom_vfo_op,
+    .scan =  icom_scan,
+    .set_ptt =  icom_set_ptt,
+    .get_dcd =  icom_get_dcd,
+    .set_ts =  icom_set_ts,
+    .get_ts =  icom_get_ts,
+    .set_rptr_shift =  icom_set_rptr_shift,
+    .get_rptr_shift =  icom_get_rptr_shift,
+    .set_rptr_offs =  icom_set_rptr_offs,
+    .get_rptr_offs =  icom_get_rptr_offs,
+    .set_ctcss_tone =  icom_set_ctcss_tone,
+    .get_ctcss_tone =  icom_get_ctcss_tone,
+    .set_ctcss_sql =  icom_set_ctcss_sql,
+    .get_ctcss_sql =  icom_get_ctcss_sql,
+    .set_split_freq =  icom_set_split_freq,
+    .get_split_freq =  icom_get_split_freq,
+    .set_split_mode =  icom_set_split_mode,
+    .get_split_mode =  icom_get_split_mode,
+    .set_split_freq_mode =  icom_set_split_freq_mode,
+    .get_split_freq_mode =  icom_get_split_freq_mode,
+    .set_split_vfo =  icom_set_split_vfo,
+    .get_split_vfo =  NULL,
 
-.set_ext_parm =  ic756pro2_set_ext_parm,
-.get_ext_parm =  ic756pro2_get_ext_parm,
+    .set_ext_parm =  ic756pro2_set_ext_parm,
+    .get_ext_parm =  ic756pro2_get_ext_parm,
 };
 
 
@@ -653,62 +679,79 @@ const struct rig_caps ic756pro2_caps = {
  */
 static int ic756pro2_set_ext_parm(RIG *rig, token_t token, value_t val)
 {
-	unsigned char epbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
-	int ack_len, ep_len, val_len;
-	int ep_cmd = C_CTL_MEM;
-	int ep_sc;             /* Subcommand in $1A $05xx */
-	int icom_val = 0;
-	int retval;
+    unsigned char epbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
+    int ack_len, ep_len, val_len;
+    int ep_cmd = C_CTL_MEM;
+    int ep_sc;             /* Subcommand in $1A $05xx */
+    int icom_val = 0;
+    int retval;
 
-	ep_len = 0;	/* 0 implies BCD data */
-	val_len = 1;
+    ep_len = 0; /* 0 implies BCD data */
+    val_len = 1;
 
-	switch(token) {
-	case TOK_SSBBASS:
-		ep_sc = S_MEM_SBASS ;
-		icom_val = val.f;
-		break;
-	case TOK_MEMNAME:
-		ep_sc = S_MEM_NAME;
-		icom_val = val.i ? 1 : 0;
-		break;
-	case TOK_SQLCTRL:
-		ep_sc = S_MEM_SQL_CTL;
-		/* TODO: check range this actually doesn't decode the input type 'string' */
-		icom_val = val.i;
-		break;
-	case TOK_MYCALL:	/* max 10 ASCII char */
-		ep_len = strlen(val.cs);
-		if (ep_len > 10)
-			return -RIG_EINVAL;
-		ep_sc = S_MEM_MYCALL;
-		memcpy(epbuf, val.cs, ep_len);
-		break;
-	case TOK_RTTY_FLTR:	/* RTTY filter mode 0 - 4 = 250, 300, 350, 500, 1000 */
-		if (val.i < 0 || val.i > 4) return -RIG_EINVAL;
-		ep_sc = S_MEM_RTTY_FL_PB;
-		icom_val = val.i;
-		break;
-	default:
-		return -RIG_EINVAL;
-	}
+    switch (token)
+    {
+    case TOK_SSBBASS:
+        ep_sc = S_MEM_SBASS ;
+        icom_val = val.f;
+        break;
 
-	if (ep_len == 0) {
-		to_bcd_be(epbuf, (long long)icom_val, val_len*2);
-		ep_len += val_len;
-	}
+    case TOK_MEMNAME:
+        ep_sc = S_MEM_NAME;
+        icom_val = val.i ? 1 : 0;
+        break;
 
-	retval = icom_transaction (rig, ep_cmd, ep_sc, epbuf, ep_len,
-						ackbuf, &ack_len);
-	if (retval != RIG_OK)
-		return retval;
+    case TOK_SQLCTRL:
+        ep_sc = S_MEM_SQL_CTL;
+        /* TODO: check range this actually doesn't decode the input type 'string' */
+        icom_val = val.i;
+        break;
 
-	if (ack_len != 1 || ackbuf[0] != ACK) {
-		rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), "
-			"len=%d\n", __func__, ackbuf[0], ack_len);
-		return -RIG_ERJCTED;
-	}
-	return RIG_OK;
+    case TOK_MYCALL:    /* max 10 ASCII char */
+        ep_len = strlen(val.cs);
+
+        if (ep_len > 10)
+        {
+            return -RIG_EINVAL;
+        }
+
+        ep_sc = S_MEM_MYCALL;
+        memcpy(epbuf, val.cs, ep_len);
+        break;
+
+    case TOK_RTTY_FLTR: /* RTTY filter mode 0 - 4 = 250, 300, 350, 500, 1000 */
+        if (val.i < 0 || val.i > 4) { return -RIG_EINVAL; }
+
+        ep_sc = S_MEM_RTTY_FL_PB;
+        icom_val = val.i;
+        break;
+
+    default:
+        return -RIG_EINVAL;
+    }
+
+    if (ep_len == 0)
+    {
+        to_bcd_be(epbuf, (long long)icom_val, val_len * 2);
+        ep_len += val_len;
+    }
+
+    retval = icom_transaction(rig, ep_cmd, ep_sc, epbuf, ep_len,
+                              ackbuf, &ack_len);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    if (ack_len != 1 || ackbuf[0] != ACK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), "
+                  "len=%d\n", __func__, ackbuf[0], ack_len);
+        return -RIG_ERJCTED;
+    }
+
+    return RIG_OK;
 }
 
 /*
@@ -717,82 +760,102 @@ static int ic756pro2_set_ext_parm(RIG *rig, token_t token, value_t val)
  */
 static int ic756pro2_get_ext_parm(RIG *rig, token_t token, value_t *val)
 {
-	const struct confparams *cfp;
+    const struct confparams *cfp;
 
-	unsigned char resbuf[MAXFRAMELEN];
-	int res_len, icom_val=0;
-	int cmdhead;
-	int retval;
+    unsigned char resbuf[MAXFRAMELEN];
+    int res_len, icom_val = 0;
+    int cmdhead;
+    int retval;
 
-	int ep_cmd = C_CTL_MEM;
-	int ep_sc;             /* Subcommand in $1A $05xx */
+    int ep_cmd = C_CTL_MEM;
+    int ep_sc;             /* Subcommand in $1A $05xx */
 
-	switch(token) {
-	case TOK_SSBBASS:
-		ep_sc = S_MEM_SBASS ;
-		break;
-	case TOK_MEMNAME:
-		ep_sc = S_MEM_NAME;
-		break;
-	case TOK_SQLCTRL:
-		ep_sc = S_MEM_SQL_CTL;
-		break;
-	case TOK_MYCALL:	/* max 10 ASCII char */
-		ep_sc = S_MEM_MYCALL;
-		break;
-	case TOK_RTTY_FLTR:	/* RTTY filter mode 0 - 4 */
-		ep_sc = S_MEM_RTTY_FL_PB;
-		break;
-	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported get_ext_parm %s", rig_strparm(token));
-		return -RIG_EINVAL;
-	}
+    switch (token)
+    {
+    case TOK_SSBBASS:
+        ep_sc = S_MEM_SBASS ;
+        break;
 
-	retval = icom_transaction (rig, ep_cmd, ep_sc, NULL, 0,
-					resbuf, &res_len);
-	if (retval != RIG_OK)
-            return retval;
+    case TOK_MEMNAME:
+        ep_sc = S_MEM_NAME;
+        break;
 
-	/*
-	 * strbuf should contain Cn,Sc,Data area
-	 */
-	cmdhead = (ep_sc == -1) ? 1:S_MEM_SC_LEN + 1;
-	res_len -= cmdhead;
-/* should echo cmd, subcmd and then data, if you get an ack something is wrong */
-	if (resbuf[0] != ep_cmd) {
-		if (resbuf[0] == ACK) {
-				rig_debug(RIG_DEBUG_ERR,"%s: protocol error (%#.2x), "
-			"len=%d\n", __func__,resbuf[0],res_len);
-		return -RIG_EPROTO;
-		}
-		else {
-			rig_debug(RIG_DEBUG_ERR,"%s: ack NG (%#.2x), "
-				"len=%d\n", __func__,resbuf[0],res_len);
-		return -RIG_ERJCTED;
-		}
-	}
-	cfp = rig_ext_lookup_tok(rig, token);
-	switch(cfp->type) {
-		case RIG_CONF_STRING:
-		 memcpy(val->s, resbuf, res_len);
-		break;
-		case RIG_CONF_CHECKBUTTON:
-		case RIG_CONF_COMBO:
-		 val->i = from_bcd_be(resbuf+cmdhead, res_len*2);
-		break;
-		case RIG_CONF_NUMERIC:
-		 val->f = from_bcd_be(resbuf+cmdhead, res_len*2);
-		break;
-		default:
-		 rig_debug(RIG_DEBUG_ERR,"%s: protocol error (%#.2x), "
-			"len=%d\n", __func__,resbuf[0],res_len);
-		return -RIG_EPROTO;
+    case TOK_SQLCTRL:
+        ep_sc = S_MEM_SQL_CTL;
+        break;
 
-	}
-	rig_debug(RIG_DEBUG_TRACE,"%s: %d %d %d %f\n",
-			__func__, res_len, icom_val, val->i, val->f);
+    case TOK_MYCALL:    /* max 10 ASCII char */
+        ep_sc = S_MEM_MYCALL;
+        break;
 
-	return RIG_OK;
+    case TOK_RTTY_FLTR: /* RTTY filter mode 0 - 4 */
+        ep_sc = S_MEM_RTTY_FL_PB;
+        break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "Unsupported get_ext_parm %s", rig_strparm(token));
+        return -RIG_EINVAL;
+    }
+
+    retval = icom_transaction(rig, ep_cmd, ep_sc, NULL, 0,
+                              resbuf, &res_len);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    /*
+     * strbuf should contain Cn,Sc,Data area
+     */
+    cmdhead = (ep_sc == -1) ? 1 : S_MEM_SC_LEN + 1;
+    res_len -= cmdhead;
+
+    /* should echo cmd, subcmd and then data, if you get an ack something is wrong */
+    if (resbuf[0] != ep_cmd)
+    {
+        if (resbuf[0] == ACK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: protocol error (%#.2x), "
+                      "len=%d\n", __func__, resbuf[0], res_len);
+            return -RIG_EPROTO;
+        }
+        else
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), "
+                      "len=%d\n", __func__, resbuf[0], res_len);
+            return -RIG_ERJCTED;
+        }
+    }
+
+    cfp = rig_ext_lookup_tok(rig, token);
+
+    switch (cfp->type)
+    {
+    case RIG_CONF_STRING:
+        memcpy(val->s, resbuf, res_len);
+        break;
+
+    case RIG_CONF_CHECKBUTTON:
+    case RIG_CONF_COMBO:
+        val->i = from_bcd_be(resbuf + cmdhead, res_len * 2);
+        break;
+
+    case RIG_CONF_NUMERIC:
+        val->f = from_bcd_be(resbuf + cmdhead, res_len * 2);
+        break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: protocol error (%#.2x), "
+                  "len=%d\n", __func__, resbuf[0], res_len);
+        return -RIG_EPROTO;
+
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: %d %d %d %f\n",
+              __func__, res_len, icom_val, val->i, val->f);
+
+    return RIG_OK;
 }
 
 
@@ -802,17 +865,18 @@ static int ic756pro2_get_ext_parm(RIG *rig, token_t token, value_t *val)
  *
  * TODO: check every parameter, add antenna capabilities
  */
-static const struct icom_priv_caps ic756pro3_priv_caps = {
+static const struct icom_priv_caps ic756pro3_priv_caps =
+{
     0x6e,    /* default address */
     0,       /* 731 mode */
     0,       /* no XCHG */
     ic756pro_ts_sc_list,
     .agc_levels_present = 1,
     .agc_levels = {
-            { .level = RIG_AGC_FAST, .icom_level = 1 },
-            { .level = RIG_AGC_MEDIUM, .icom_level = 2 },
-            { .level = RIG_AGC_SLOW, .icom_level = 3 },
-            { .level = -1, .icom_level = 0 },
+        { .level = RIG_AGC_FAST, .icom_level = 1 },
+        { .level = RIG_AGC_MEDIUM, .icom_level = 2 },
+        { .level = RIG_AGC_SLOW, .icom_level = 3 },
+        { .level = -1, .icom_level = 0 },
     },
 };
 
@@ -846,185 +910,190 @@ static const struct icom_priv_caps ic756pro3_priv_caps = {
 }
 
 #define IC756PROIII_SWR_CAL { 5, \
-	{ \
-		 { 0, 1.0f }, \
-		 { 48, 1.5f }, \
-		 { 80, 2.0f }, \
-		 { 120, 3.0f }, \
-		 { 240, 6.0f } \
-	} }
+    { \
+         { 0, 1.0f }, \
+         { 48, 1.5f }, \
+         { 80, 2.0f }, \
+         { 120, 3.0f }, \
+         { 240, 6.0f } \
+    } }
 
 #define IC756PROIII_ALC_CAL { 2, \
-	{ \
-		 { 0, 0.0f }, \
-		 { 120, 1.0f } \
-	} }
+    { \
+         { 0, 0.0f }, \
+         { 120, 1.0f } \
+    } }
 
 #define IC756PROIII_RFPOWER_METER_CAL { 3, \
-	{ \
-		 { 0, 0.0f }, \
-		 { 143, 0.5f }, \
-		 { 213, 1.0f } \
-	} }
+    { \
+         { 0, 0.0f }, \
+         { 143, 0.5f }, \
+         { 213, 1.0f } \
+    } }
 
 #define IC756PROIII_COMP_METER_CAL { 3, \
-	{ \
-		 { 0, 0.0f }, \
-		 { 130, 15.0f }, \
-		 { 241, 30.0f } \
-	} }
+    { \
+         { 0, 0.0f }, \
+         { 130, 15.0f }, \
+         { 241, 30.0f } \
+    } }
 
-const struct rig_caps ic756pro3_caps = {
-.rig_model =  RIG_MODEL_IC756PROIII,
-.model_name = "IC-756PROIII",
-.mfg_name =  "Icom",
-.version =  BACKEND_VER ".1",
-.copyright =  "LGPL",
-.status =  RIG_STATUS_BETA,
-.rig_type =  RIG_TYPE_TRANSCEIVER,
-.ptt_type =  RIG_PTT_RIG,
-.dcd_type =  RIG_DCD_RIG,
-.port_type =  RIG_PORT_SERIAL,
-.serial_rate_min =  300,
-.serial_rate_max =  19200,
-.serial_data_bits =  8,
-.serial_stop_bits =  1,
-.serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_NONE,
-.write_delay =  0,
-.post_write_delay =  0,
-.timeout =  1000,
-.retry =  3,
-.has_get_func =  IC756PRO_FUNC_ALL|RIG_FUNC_TUNER,
-.has_set_func =  IC756PRO_FUNC_SET|RIG_FUNC_TUNER,
-.has_get_level =  IC756PROIII_LEVEL_ALL,
-.has_set_level =  RIG_LEVEL_SET(IC756PROIII_LEVEL_ALL),
-.has_get_parm =  IC756PROII_PARMS,
-.has_set_parm =  RIG_PARM_SET(IC756PROII_PARMS),
-.level_gran = {
-	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
-	[LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
-	[LVL_KEYSPD] = { .min = { .i = 6 }, .max = { .i = 48 }, .step = { .i = 1 } },
-	[LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 900 }, .step = { .i = 1 } },
-},
-.parm_gran =  {},
-.extparms =  ic756pro2_ext_parms,
-.ctcss_list =  common_ctcss_list,
-.dcs_list =  NULL,
-.preamp =   { 10, 20, RIG_DBLST_END, },	/* FIXME: TBC values */
-.attenuator =   { 6, 12, 18, RIG_DBLST_END, },
-.max_rit =  Hz(9999),
-.max_xit =  Hz(9999),
-.max_ifshift =  Hz(0),
-.targetable_vfo =  0,
-.vfo_ops =  IC756_VFO_OPS|RIG_OP_TUNE,
-.scan_ops =  IC756_SCAN_OPS,
-.transceive =  RIG_TRN_RIG,
-.bank_qty =   0,
-.chan_desc_sz =  10, /* TODO */
+const struct rig_caps ic756pro3_caps =
+{
+    .rig_model =  RIG_MODEL_IC756PROIII,
+    .model_name = "IC-756PROIII",
+    .mfg_name =  "Icom",
+    .version =  BACKEND_VER ".1",
+    .copyright =  "LGPL",
+    .status =  RIG_STATUS_BETA,
+    .rig_type =  RIG_TYPE_TRANSCEIVER,
+    .ptt_type =  RIG_PTT_RIG,
+    .dcd_type =  RIG_DCD_RIG,
+    .port_type =  RIG_PORT_SERIAL,
+    .serial_rate_min =  300,
+    .serial_rate_max =  19200,
+    .serial_data_bits =  8,
+    .serial_stop_bits =  1,
+    .serial_parity =  RIG_PARITY_NONE,
+    .serial_handshake =  RIG_HANDSHAKE_NONE,
+    .write_delay =  0,
+    .post_write_delay =  0,
+    .timeout =  1000,
+    .retry =  3,
+    .has_get_func =  IC756PRO_FUNC_ALL | RIG_FUNC_TUNER,
+    .has_set_func =  IC756PRO_FUNC_SET | RIG_FUNC_TUNER,
+    .has_get_level =  IC756PROIII_LEVEL_ALL,
+    .has_set_level =  RIG_LEVEL_SET(IC756PROIII_LEVEL_ALL),
+    .has_get_parm =  IC756PROII_PARMS,
+    .has_set_parm =  RIG_PARM_SET(IC756PROII_PARMS),
+    .level_gran = {
+        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
+        [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
+        [LVL_KEYSPD] = { .min = { .i = 6 }, .max = { .i = 48 }, .step = { .i = 1 } },
+        [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 900 }, .step = { .i = 1 } },
+    },
+    .parm_gran =  {},
+    .extparms =  ic756pro2_ext_parms,
+    .ctcss_list =  common_ctcss_list,
+    .dcs_list =  NULL,
+    .preamp =   { 10, 20, RIG_DBLST_END, }, /* FIXME: TBC values */
+    .attenuator =   { 6, 12, 18, RIG_DBLST_END, },
+    .max_rit =  Hz(9999),
+    .max_xit =  Hz(9999),
+    .max_ifshift =  Hz(0),
+    .targetable_vfo =  0,
+    .vfo_ops =  IC756_VFO_OPS | RIG_OP_TUNE,
+    .scan_ops =  IC756_SCAN_OPS,
+    .transceive =  RIG_TRN_RIG,
+    .bank_qty =   0,
+    .chan_desc_sz =  10, /* TODO */
 
-.chan_list =  {
-	   {   1,  99, RIG_MTYPE_MEM,  IC756PROIII_MEM_CAP },
-	   { 100, 101, RIG_MTYPE_EDGE, IC756PROIII_MEM_CAP },    /* two by two */
-	   RIG_CHAN_END,
-	},
+    .chan_list =  {
+        {   1,  99, RIG_MTYPE_MEM,  IC756PROIII_MEM_CAP },
+        { 100, 101, RIG_MTYPE_EDGE, IC756PROIII_MEM_CAP },    /* two by two */
+        RIG_CHAN_END,
+    },
 
-.rx_range_list1 =   { {kHz(30),MHz(60),IC756PROIII_ALL_RX_MODES,-1,-1,IC756_VFO_ALL,IC756_ANTS},
-	RIG_FRNG_END, },
-.tx_range_list1 =   {
-	FRQ_RNG_HF(1,IC756PROIII_OTHER_TX_MODES, W(5),W(100),IC756_VFO_ALL,IC756_ANTS),
-	FRQ_RNG_6m(1,IC756PROIII_OTHER_TX_MODES, W(5),W(100),IC756_VFO_ALL,IC756_ANTS),
-	FRQ_RNG_HF(1,IC756PROIII_AM_TX_MODES, W(5),W(40),IC756_VFO_ALL,IC756_ANTS),   /* AM class */
-	FRQ_RNG_6m(1,IC756PROIII_AM_TX_MODES, W(5),W(40),IC756_VFO_ALL,IC756_ANTS),   /* AM class */
-    	RIG_FRNG_END, },
+    .rx_range_list1 =   { {kHz(30), MHz(60), IC756PROIII_ALL_RX_MODES, -1, -1, IC756_VFO_ALL, IC756_ANTS},
+        RIG_FRNG_END,
+    },
+    .tx_range_list1 =   {
+        FRQ_RNG_HF(1, IC756PROIII_OTHER_TX_MODES, W(5), W(100), IC756_VFO_ALL, IC756_ANTS),
+        FRQ_RNG_6m(1, IC756PROIII_OTHER_TX_MODES, W(5), W(100), IC756_VFO_ALL, IC756_ANTS),
+        FRQ_RNG_HF(1, IC756PROIII_AM_TX_MODES, W(5), W(40), IC756_VFO_ALL, IC756_ANTS), /* AM class */
+        FRQ_RNG_6m(1, IC756PROIII_AM_TX_MODES, W(5), W(40), IC756_VFO_ALL, IC756_ANTS), /* AM class */
+        RIG_FRNG_END,
+    },
 
-.rx_range_list2 =   { {kHz(30),MHz(60),IC756PROIII_ALL_RX_MODES,-1,-1,IC756_VFO_ALL,IC756_ANTS},
-	RIG_FRNG_END, },
-.tx_range_list2 =  {
-	FRQ_RNG_HF(2,IC756PROIII_OTHER_TX_MODES, W(5),W(100),IC756_VFO_ALL,IC756_ANTS),
-	FRQ_RNG_6m(2,IC756PROIII_OTHER_TX_MODES, W(5),W(100),IC756_VFO_ALL,IC756_ANTS),
-	FRQ_RNG_HF(2,IC756PROIII_AM_TX_MODES, W(5),W(40),IC756_VFO_ALL,IC756_ANTS),   /* AM class */
-	FRQ_RNG_6m(2,IC756PROIII_AM_TX_MODES, W(5),W(40),IC756_VFO_ALL,IC756_ANTS),   /* AM class */
-    	RIG_FRNG_END, },
+    .rx_range_list2 =   { {kHz(30), MHz(60), IC756PROIII_ALL_RX_MODES, -1, -1, IC756_VFO_ALL, IC756_ANTS},
+        RIG_FRNG_END,
+    },
+    .tx_range_list2 =  {
+        FRQ_RNG_HF(2, IC756PROIII_OTHER_TX_MODES, W(5), W(100), IC756_VFO_ALL, IC756_ANTS),
+        FRQ_RNG_6m(2, IC756PROIII_OTHER_TX_MODES, W(5), W(100), IC756_VFO_ALL, IC756_ANTS),
+        FRQ_RNG_HF(2, IC756PROIII_AM_TX_MODES, W(5), W(40), IC756_VFO_ALL, IC756_ANTS), /* AM class */
+        FRQ_RNG_6m(2, IC756PROIII_AM_TX_MODES, W(5), W(40), IC756_VFO_ALL, IC756_ANTS), /* AM class */
+        RIG_FRNG_END,
+    },
 
-.tuning_steps = 	{
-	 {IC756PROIII_1HZ_TS_MODES,1},
-	 {IC756PROIII_1HZ_TS_MODES,100},
-	 {IC756PROIII_ALL_RX_MODES,kHz(1)},
-	 {IC756PROIII_ALL_RX_MODES,kHz(5)},
-	 {IC756PROIII_ALL_RX_MODES,kHz(9)},
-	 {IC756PROIII_ALL_RX_MODES,kHz(10)},
-	 {IC756PROIII_ALL_RX_MODES,kHz(12.5)},
-	 {IC756PROIII_ALL_RX_MODES,kHz(20)},
-	 {IC756PROIII_ALL_RX_MODES,kHz(25)},
-	 RIG_TS_END,
-	},
-	/* mode/filter list, remember: order matters! */
-.filters = 	{
-	{RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR, kHz(2.4)},
-	{RIG_MODE_CW|RIG_MODE_CWR, Hz(500)},
-	{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR, kHz(3.6)}, /* wide */
-	{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(50)}, /* narrow */
-	{RIG_MODE_AM, kHz(6)},
-	{RIG_MODE_AM, kHz(2.4)},
-	{RIG_MODE_FM, kHz(15)},
-	{RIG_MODE_FM, kHz(8)},
-	{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR, RIG_FLT_ANY}, /* almost any filter */
-	RIG_FLT_END,
-	},
-.str_cal = IC756PRO_STR_CAL,
-.swr_cal = IC756PROIII_SWR_CAL,
-.alc_cal = IC756PROIII_ALC_CAL,
-.rfpower_meter_cal = IC756PROIII_RFPOWER_METER_CAL,
-.comp_meter_cal = IC756PROIII_COMP_METER_CAL,
+    .tuning_steps =     {
+        {IC756PROIII_1HZ_TS_MODES, 1},
+        {IC756PROIII_1HZ_TS_MODES, 100},
+        {IC756PROIII_ALL_RX_MODES, kHz(1)},
+        {IC756PROIII_ALL_RX_MODES, kHz(5)},
+        {IC756PROIII_ALL_RX_MODES, kHz(9)},
+        {IC756PROIII_ALL_RX_MODES, kHz(10)},
+        {IC756PROIII_ALL_RX_MODES, kHz(12.5)},
+        {IC756PROIII_ALL_RX_MODES, kHz(20)},
+        {IC756PROIII_ALL_RX_MODES, kHz(25)},
+        RIG_TS_END,
+    },
+    /* mode/filter list, remember: order matters! */
+    .filters =  {
+        {RIG_MODE_SSB | RIG_MODE_RTTY | RIG_MODE_RTTYR, kHz(2.4)},
+        {RIG_MODE_CW | RIG_MODE_CWR, Hz(500)},
+        {RIG_MODE_CW | RIG_MODE_CWR | RIG_MODE_SSB | RIG_MODE_RTTY | RIG_MODE_RTTYR, kHz(3.6)}, /* wide */
+        {RIG_MODE_CW | RIG_MODE_CWR | RIG_MODE_SSB | RIG_MODE_RTTY | RIG_MODE_RTTYR, Hz(50)}, /* narrow */
+        {RIG_MODE_AM, kHz(6)},
+        {RIG_MODE_AM, kHz(2.4)},
+        {RIG_MODE_FM, kHz(15)},
+        {RIG_MODE_FM, kHz(8)},
+        {RIG_MODE_CW | RIG_MODE_CWR | RIG_MODE_SSB | RIG_MODE_RTTY | RIG_MODE_RTTYR, RIG_FLT_ANY}, /* almost any filter */
+        RIG_FLT_END,
+    },
+    .str_cal = IC756PRO_STR_CAL,
+    .swr_cal = IC756PROIII_SWR_CAL,
+    .alc_cal = IC756PROIII_ALC_CAL,
+    .rfpower_meter_cal = IC756PROIII_RFPOWER_METER_CAL,
+    .comp_meter_cal = IC756PROIII_COMP_METER_CAL,
 
-.cfgparams =  icom_cfg_params,
-.set_conf =  icom_set_conf,
-.get_conf =  icom_get_conf,
+    .cfgparams =  icom_cfg_params,
+    .set_conf =  icom_set_conf,
+    .get_conf =  icom_get_conf,
 
-.priv =  (void*)&ic756pro3_priv_caps,
-.rig_init =   icom_init,
-.rig_cleanup =   icom_cleanup,
-.rig_open =  NULL,
-.rig_close =  NULL,
+    .priv = (void *)& ic756pro3_priv_caps,
+    .rig_init =   icom_init,
+    .rig_cleanup =   icom_cleanup,
+    .rig_open =  NULL,
+    .rig_close =  NULL,
 
-.set_freq =  icom_set_freq,
-.get_freq =  icom_get_freq,
-.set_mode =  icom_set_mode_with_data,
-.get_mode =  icom_get_mode_with_data,
-.set_vfo =  icom_set_vfo,
-.set_ant =  icom_set_ant,
-.get_ant =  icom_get_ant,
+    .set_freq =  icom_set_freq,
+    .get_freq =  icom_get_freq,
+    .set_mode =  icom_set_mode_with_data,
+    .get_mode =  icom_get_mode_with_data,
+    .set_vfo =  icom_set_vfo,
+    .set_ant =  icom_set_ant,
+    .get_ant =  icom_get_ant,
 
-.decode_event =  icom_decode_event,
-.set_parm =  ic756pro2_set_parm,
-.get_parm =  ic756pro2_get_parm,
-.set_level =  ic756pro2_set_level,
-.get_level =  ic756pro2_get_level,
-.set_func =  ic756_set_func,
-.get_func =  icom_get_func,
-.set_mem =  icom_set_mem,
-.vfo_op =  icom_vfo_op,
-.scan =  icom_scan,
-.set_ptt =  icom_set_ptt,
-.get_dcd =  icom_get_dcd,
-.set_ts =  icom_set_ts,
-.get_ts =  icom_get_ts,
-.set_ctcss_tone =  icom_set_ctcss_tone,
-.get_ctcss_tone =  icom_get_ctcss_tone,
-.set_ctcss_sql =  icom_set_ctcss_sql,
-.get_ctcss_sql =  icom_get_ctcss_sql,
-.set_split_freq =  icom_set_split_freq,
-.get_split_freq =  icom_get_split_freq,
-.set_split_mode =  icom_set_split_mode,
-.get_split_mode =  icom_get_split_mode,
-.set_split_freq_mode =  icom_set_split_freq_mode,
-.get_split_freq_mode =  icom_get_split_freq_mode,
-.set_split_vfo =  icom_set_split_vfo,
-.get_split_vfo =  NULL,
+    .decode_event =  icom_decode_event,
+    .set_parm =  ic756pro2_set_parm,
+    .get_parm =  ic756pro2_get_parm,
+    .set_level =  ic756pro2_set_level,
+    .get_level =  ic756pro2_get_level,
+    .set_func =  ic756_set_func,
+    .get_func =  icom_get_func,
+    .set_mem =  icom_set_mem,
+    .vfo_op =  icom_vfo_op,
+    .scan =  icom_scan,
+    .set_ptt =  icom_set_ptt,
+    .get_dcd =  icom_get_dcd,
+    .set_ts =  icom_set_ts,
+    .get_ts =  icom_get_ts,
+    .set_ctcss_tone =  icom_set_ctcss_tone,
+    .get_ctcss_tone =  icom_get_ctcss_tone,
+    .set_ctcss_sql =  icom_set_ctcss_sql,
+    .get_ctcss_sql =  icom_get_ctcss_sql,
+    .set_split_freq =  icom_set_split_freq,
+    .get_split_freq =  icom_get_split_freq,
+    .set_split_mode =  icom_set_split_mode,
+    .get_split_mode =  icom_get_split_mode,
+    .set_split_freq_mode =  icom_set_split_freq_mode,
+    .get_split_freq_mode =  icom_get_split_freq_mode,
+    .set_split_vfo =  icom_set_split_vfo,
+    .get_split_vfo =  NULL,
 
-.set_ext_parm =  ic756pro2_set_ext_parm,
-.get_ext_parm =  ic756pro2_get_ext_parm,
+    .set_ext_parm =  ic756pro2_set_ext_parm,
+    .get_ext_parm =  ic756pro2_get_ext_parm,
 };
 
 int ic756_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
@@ -1033,21 +1102,27 @@ int ic756_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     int fct_len = 0, acklen, retval;
     int fct_cn, fct_sc;        /* Command Number, Subcommand */
 
-    switch (func) {
+    switch (func)
+    {
     case RIG_FUNC_DUAL_WATCH:
         fct_cn = C_SET_VFO;
         fct_sc = status ? S_DUAL_ON : S_DUAL_OFF;
         break;
+
     default:
         return icom_set_func(rig, vfo, func, status);
     }
 
-    retval = icom_transaction(rig, fct_cn, fct_sc, fctbuf, fct_len, ackbuf, &acklen);
-    if (retval != RIG_OK) {
+    retval = icom_transaction(rig, fct_cn, fct_sc, fctbuf, fct_len, ackbuf,
+                              &acklen);
+
+    if (retval != RIG_OK)
+    {
         return retval;
     }
 
-    if (acklen != 1) {
+    if (acklen != 1)
+    {
         rig_debug(RIG_DEBUG_ERR, "%s: wrong frame len=%d\n", __func__, acklen);
         return -RIG_EPROTO;
     }
@@ -1057,32 +1132,36 @@ int ic756_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
 int ic756pro2_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-  unsigned char cmdbuf[MAXFRAMELEN];
+    unsigned char cmdbuf[MAXFRAMELEN];
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  switch (level) {
+    switch (level)
+    {
     case RIG_LEVEL_VOXDELAY:
-      cmdbuf[0] = 0x60;
-      return icom_set_level_raw(rig, level, C_CTL_MEM, 0x05, 1, cmdbuf, 1, val);
+        cmdbuf[0] = 0x60;
+        return icom_set_level_raw(rig, level, C_CTL_MEM, 0x05, 1, cmdbuf, 1, val);
+
     default:
-      return icom_set_level(rig, vfo, level, val);
-  }
+        return icom_set_level(rig, vfo, level, val);
+    }
 }
 
 int ic756pro2_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-  unsigned char cmdbuf[MAXFRAMELEN];
+    unsigned char cmdbuf[MAXFRAMELEN];
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  switch (level) {
+    switch (level)
+    {
     case RIG_LEVEL_VOXDELAY:
-      cmdbuf[0] = 0x60;
-      return icom_get_level_raw(rig, level, C_CTL_MEM, 0x05, 1, cmdbuf, val);
+        cmdbuf[0] = 0x60;
+        return icom_get_level_raw(rig, level, C_CTL_MEM, 0x05, 1, cmdbuf, val);
+
     default:
-      return icom_get_level(rig, vfo, level, val);
-  }
+        return icom_get_level(rig, vfo, level, val);
+    }
 }
 
 int ic756pro2_set_parm(RIG *rig, setting_t parm, value_t val)
@@ -1091,18 +1170,22 @@ int ic756pro2_set_parm(RIG *rig, setting_t parm, value_t val)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    switch (parm) {
-        case RIG_PARM_BEEP:
-            parmbuf[0] = 0x20;
-            return icom_set_custom_parm(rig, 1, parmbuf, 1, val.i ? 1 : 0);
-        case RIG_PARM_BACKLIGHT:
-            parmbuf[0] = 0x09;
-            return icom_set_custom_parm(rig, 1, parmbuf, 2, (int) (val.f * 255.0f));
-        case RIG_PARM_TIME:
-            parmbuf[0] = 0x16;
-            return icom_set_custom_parm_time(rig, 1, parmbuf, val.i);
-        default:
-            return icom_set_parm(rig, parm, val);
+    switch (parm)
+    {
+    case RIG_PARM_BEEP:
+        parmbuf[0] = 0x20;
+        return icom_set_custom_parm(rig, 1, parmbuf, 1, val.i ? 1 : 0);
+
+    case RIG_PARM_BACKLIGHT:
+        parmbuf[0] = 0x09;
+        return icom_set_custom_parm(rig, 1, parmbuf, 2, (int)(val.f * 255.0f));
+
+    case RIG_PARM_TIME:
+        parmbuf[0] = 0x16;
+        return icom_set_custom_parm_time(rig, 1, parmbuf, val.i);
+
+    default:
+        return icom_set_parm(rig, parm, val);
     }
 }
 
@@ -1113,28 +1196,38 @@ int ic756pro2_get_parm(RIG *rig, setting_t parm, value_t *val)
     int icom_val;
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    switch (parm) {
-        case RIG_PARM_BEEP:
-            parmbuf[0] = 0x20;
-            retval = icom_get_custom_parm(rig, 1, parmbuf, &icom_val);
-            if (retval != RIG_OK) {
-                return retval;
-            }
-            val->i = icom_val ? 1 : 0;
-            break;
-        case RIG_PARM_BACKLIGHT:
-            parmbuf[0] = 0x09;
-            retval = icom_get_custom_parm(rig, 1, parmbuf, &icom_val);
-            if (retval != RIG_OK) {
-                return retval;
-            }
-            val->f = (float) icom_val / 255.0f;
-            break;
-        case RIG_PARM_TIME:
-            parmbuf[0] = 0x16;
-            return icom_get_custom_parm_time(rig, 1, parmbuf, &val->i);
-        default:
-            return icom_get_parm(rig, parm, val);
+    switch (parm)
+    {
+    case RIG_PARM_BEEP:
+        parmbuf[0] = 0x20;
+        retval = icom_get_custom_parm(rig, 1, parmbuf, &icom_val);
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        val->i = icom_val ? 1 : 0;
+        break;
+
+    case RIG_PARM_BACKLIGHT:
+        parmbuf[0] = 0x09;
+        retval = icom_get_custom_parm(rig, 1, parmbuf, &icom_val);
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        val->f = (float) icom_val / 255.0f;
+        break;
+
+    case RIG_PARM_TIME:
+        parmbuf[0] = 0x16;
+        return icom_get_custom_parm_time(rig, 1, parmbuf, &val->i);
+
+    default:
+        return icom_get_parm(rig, parm, val);
     }
 
     return RIG_OK;

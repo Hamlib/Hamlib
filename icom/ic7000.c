@@ -63,51 +63,51 @@
  * Preamp off, ATT off, mode AM, f=10 MHz
  */
 #define IC7000_STR_CAL { 14, \
-	{ \
-		{   0, -54 }, /* first one is made up */ \
-		{   5, -29 }, \
-		{  15, -27 }, \
-		{  43, -22 }, \
-		{  68, -17 }, \
-		{  92, -12 }, \
-		{ 120,  -6 }, \
-		{ 141,   2 }, \
-		{ 162,  13 }, \
-		{ 182,  25 }, \
-		{ 202,  38 }, \
-		{ 222,  47 }, \
-		{ 241,  57 }, \
-		{ 255,  63 } \
-	} }
+    { \
+        {   0, -54 }, /* first one is made up */ \
+        {   5, -29 }, \
+        {  15, -27 }, \
+        {  43, -22 }, \
+        {  68, -17 }, \
+        {  92, -12 }, \
+        { 120,  -6 }, \
+        { 141,   2 }, \
+        { 162,  13 }, \
+        { 182,  25 }, \
+        { 202,  38 }, \
+        { 222,  47 }, \
+        { 241,  57 }, \
+        { 255,  63 } \
+    } }
 
 #define IC7000_SWR_CAL { 5, \
-	{ \
-		 { 0, 1.0f }, \
-		 { 48, 1.5f }, \
-		 { 80, 2.0f }, \
-		 { 120, 3.0f }, \
-		 { 240, 6.0f } \
-	} }
+    { \
+         { 0, 1.0f }, \
+         { 48, 1.5f }, \
+         { 80, 2.0f }, \
+         { 120, 3.0f }, \
+         { 240, 6.0f } \
+    } }
 
 #define IC7000_ALC_CAL { 2, \
-	{ \
-		 { 0, 0.0f }, \
-		 { 120, 1.0f } \
-	} }
+    { \
+         { 0, 0.0f }, \
+         { 120, 1.0f } \
+    } }
 
 #define IC7000_RFPOWER_METER_CAL { 3, \
-	{ \
-		 { 0, 0.0f }, \
-		 { 143, 0.5f }, \
-		 { 213, 1.0f } \
-	} }
+    { \
+         { 0, 0.0f }, \
+         { 143, 0.5f }, \
+         { 213, 1.0f } \
+    } }
 
 #define IC7000_COMP_METER_CAL { 3, \
-	{ \
-		 { 0, 0.0f }, \
-		 { 130, 15.0f }, \
-		 { 241, 30.0f } \
-	} }
+    { \
+         { 0, 0.0f }, \
+         { 130, 15.0f }, \
+         { 241, 30.0f } \
+    } }
 
 /*
  *
@@ -135,223 +135,233 @@ int ic7000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 /*
  * IC-7000 rig capabilities.
  */
-static const struct icom_priv_caps IC7000_priv_caps = {
+static const struct icom_priv_caps IC7000_priv_caps =
+{
     0x70,    /* default address */
     0,       /* 731 mode */
     0,       /* no XCHG */
     ic7000_ts_sc_list,
     .agc_levels_present = 1,
     .agc_levels = {
-            { .level = RIG_AGC_FAST, .icom_level = 1 },
-            { .level = RIG_AGC_MEDIUM, .icom_level = 2 },
-            { .level = RIG_AGC_SLOW, .icom_level = 3 },
-            { .level = -1, .icom_level = 0 },
+        { .level = RIG_AGC_FAST, .icom_level = 1 },
+        { .level = RIG_AGC_MEDIUM, .icom_level = 2 },
+        { .level = RIG_AGC_SLOW, .icom_level = 3 },
+        { .level = -1, .icom_level = 0 },
     },
 };
 
-const struct rig_caps ic7000_caps = {
-.rig_model =  RIG_MODEL_IC7000,
-.model_name = "IC-7000",
-.mfg_name =  "Icom",
-.version =  BACKEND_VER ".2",
-.copyright =  "LGPL",
-.status =  RIG_STATUS_BETA,
-.rig_type =  RIG_TYPE_TRANSCEIVER,
-.ptt_type =  RIG_PTT_RIG,
-.dcd_type =  RIG_DCD_RIG,
-.port_type =  RIG_PORT_SERIAL,
-.serial_rate_min =  300,
-.serial_rate_max =  19200,
-.serial_data_bits =  8,
-.serial_stop_bits =  1,
-.serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_NONE,
-.write_delay =  0,
-.post_write_delay =  0,
-.timeout =  1000,
-.retry =  3,
-.has_get_func =  IC7000_FUNCS,
-.has_set_func =  IC7000_FUNCS,
-.has_get_level =  IC7000_LEVELS,
-.has_set_level =  RIG_LEVEL_SET(IC7000_LEVELS),
-.has_get_parm =  IC7000_PARMS,
-.has_set_parm =  RIG_PARM_SET(IC7000_PARMS),
-.level_gran = {
-	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
-	[LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
-	[LVL_KEYSPD] = { .min = { .i = 6 }, .max = { .i = 48 }, .step = { .i = 1 } },
-	[LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 900 }, .step = { .i = 1 } },
-},
-.parm_gran =  {},
-.ctcss_list =  common_ctcss_list,
-.dcs_list =  common_dcs_list,
-.preamp =   { 10, RIG_DBLST_END, },	/* FIXME: TBC it's a guess*/
-.attenuator =   { 12, RIG_DBLST_END, },
-.max_rit =  Hz(9999),
-.max_xit =  Hz(9999),
-.max_ifshift =  Hz(0), /* TODO */
-.targetable_vfo =  0,
-.vfo_ops =  IC7000_VFO_OPS,
-.scan_ops =  IC7000_SCAN_OPS,
-.transceive =  RIG_TRN_RIG,
-.bank_qty =   5,
-.chan_desc_sz =  0, /* TODO */
+const struct rig_caps ic7000_caps =
+{
+    .rig_model =  RIG_MODEL_IC7000,
+    .model_name = "IC-7000",
+    .mfg_name =  "Icom",
+    .version =  BACKEND_VER ".2",
+    .copyright =  "LGPL",
+    .status =  RIG_STATUS_BETA,
+    .rig_type =  RIG_TYPE_TRANSCEIVER,
+    .ptt_type =  RIG_PTT_RIG,
+    .dcd_type =  RIG_DCD_RIG,
+    .port_type =  RIG_PORT_SERIAL,
+    .serial_rate_min =  300,
+    .serial_rate_max =  19200,
+    .serial_data_bits =  8,
+    .serial_stop_bits =  1,
+    .serial_parity =  RIG_PARITY_NONE,
+    .serial_handshake =  RIG_HANDSHAKE_NONE,
+    .write_delay =  0,
+    .post_write_delay =  0,
+    .timeout =  1000,
+    .retry =  3,
+    .has_get_func =  IC7000_FUNCS,
+    .has_set_func =  IC7000_FUNCS,
+    .has_get_level =  IC7000_LEVELS,
+    .has_set_level =  RIG_LEVEL_SET(IC7000_LEVELS),
+    .has_get_parm =  IC7000_PARMS,
+    .has_set_parm =  RIG_PARM_SET(IC7000_PARMS),
+    .level_gran = {
+        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
+        [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
+        [LVL_KEYSPD] = { .min = { .i = 6 }, .max = { .i = 48 }, .step = { .i = 1 } },
+        [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 900 }, .step = { .i = 1 } },
+    },
+    .parm_gran =  {},
+    .ctcss_list =  common_ctcss_list,
+    .dcs_list =  common_dcs_list,
+    .preamp =   { 10, RIG_DBLST_END, }, /* FIXME: TBC it's a guess*/
+    .attenuator =   { 12, RIG_DBLST_END, },
+    .max_rit =  Hz(9999),
+    .max_xit =  Hz(9999),
+    .max_ifshift =  Hz(0), /* TODO */
+    .targetable_vfo =  0,
+    .vfo_ops =  IC7000_VFO_OPS,
+    .scan_ops =  IC7000_SCAN_OPS,
+    .transceive =  RIG_TRN_RIG,
+    .bank_qty =   5,
+    .chan_desc_sz =  0, /* TODO */
 
-.chan_list =  {
-	   {   1,  99, RIG_MTYPE_MEM,  IC7000_MEM_CAP },
-	   { 100, 105, RIG_MTYPE_EDGE, IC7000_MEM_CAP },    /* two by two */
-	   { 106, 107, RIG_MTYPE_CALL, IC7000_MEM_CAP },
-	   RIG_CHAN_END,
-	},
+    .chan_list =  {
+        {   1,  99, RIG_MTYPE_MEM,  IC7000_MEM_CAP },
+        { 100, 105, RIG_MTYPE_EDGE, IC7000_MEM_CAP },    /* two by two */
+        { 106, 107, RIG_MTYPE_CALL, IC7000_MEM_CAP },
+        RIG_CHAN_END,
+    },
 
-.rx_range_list1 =   { {kHz(30),MHz(199.999999),IC7000_ALL_RX_MODES,-1,-1,IC7000_VFOS},
-	{MHz(400),MHz(470), IC7000_ALL_RX_MODES,-1,-1,IC7000_VFOS}, RIG_FRNG_END, },
-.tx_range_list1 =   {
-	FRQ_RNG_HF(1,IC7000_OTHER_TX_MODES, W(2),W(100),IC7000_VFOS,RIG_ANT_1),
-	FRQ_RNG_6m(1,IC7000_OTHER_TX_MODES, W(2),W(100),IC7000_VFOS,RIG_ANT_1),
-	FRQ_RNG_2m(1,IC7000_OTHER_TX_MODES, W(2),W(50),IC7000_VFOS,RIG_ANT_2),
-	FRQ_RNG_70cm(1,IC7000_OTHER_TX_MODES, W(2), W(35), IC7000_VFOS, RIG_ANT_2),
-	FRQ_RNG_HF(1,IC7000_AM_TX_MODES, W(1),W(40),IC7000_VFOS,RIG_ANT_1),   /* AM class */
-	FRQ_RNG_6m(1,IC7000_AM_TX_MODES, W(1),W(40),IC7000_VFOS,RIG_ANT_1),   /* AM class */
-	FRQ_RNG_2m(1,IC7000_AM_TX_MODES, W(2),W(20),IC7000_VFOS,RIG_ANT_2),
-	FRQ_RNG_70cm(1,IC7000_OTHER_TX_MODES, W(2), W(14), IC7000_VFOS, RIG_ANT_2),
-   	RIG_FRNG_END, },
+    .rx_range_list1 =   { {kHz(30), MHz(199.999999), IC7000_ALL_RX_MODES, -1, -1, IC7000_VFOS},
+        {MHz(400), MHz(470), IC7000_ALL_RX_MODES, -1, -1, IC7000_VFOS}, RIG_FRNG_END,
+    },
+    .tx_range_list1 =   {
+        FRQ_RNG_HF(1, IC7000_OTHER_TX_MODES, W(2), W(100), IC7000_VFOS, RIG_ANT_1),
+        FRQ_RNG_6m(1, IC7000_OTHER_TX_MODES, W(2), W(100), IC7000_VFOS, RIG_ANT_1),
+        FRQ_RNG_2m(1, IC7000_OTHER_TX_MODES, W(2), W(50), IC7000_VFOS, RIG_ANT_2),
+        FRQ_RNG_70cm(1, IC7000_OTHER_TX_MODES, W(2), W(35), IC7000_VFOS, RIG_ANT_2),
+        FRQ_RNG_HF(1, IC7000_AM_TX_MODES, W(1), W(40), IC7000_VFOS, RIG_ANT_1), /* AM class */
+        FRQ_RNG_6m(1, IC7000_AM_TX_MODES, W(1), W(40), IC7000_VFOS, RIG_ANT_1), /* AM class */
+        FRQ_RNG_2m(1, IC7000_AM_TX_MODES, W(2), W(20), IC7000_VFOS, RIG_ANT_2),
+        FRQ_RNG_70cm(1, IC7000_OTHER_TX_MODES, W(2), W(14), IC7000_VFOS, RIG_ANT_2),
+        RIG_FRNG_END,
+    },
 
-.rx_range_list2 =   { {kHz(30),MHz(199.999999),IC7000_ALL_RX_MODES,-1,-1,IC7000_VFOS},
-	{MHz(400),MHz(470), IC7000_ALL_RX_MODES,-1,-1,IC7000_VFOS}, RIG_FRNG_END, },
-.tx_range_list2 =  { /* needs the 5 mhz channels added */
-	FRQ_RNG_HF(2,IC7000_OTHER_TX_MODES, W(2),W(100),IC7000_VFOS,RIG_ANT_1),
-	FRQ_RNG_6m(2,IC7000_OTHER_TX_MODES, W(2),W(100),IC7000_VFOS,RIG_ANT_1),
-	FRQ_RNG_2m(2,IC7000_OTHER_TX_MODES, W(2),W(50),IC7000_VFOS,RIG_ANT_2),
-	FRQ_RNG_70cm(2,IC7000_OTHER_TX_MODES, W(2), W(35), IC7000_VFOS, RIG_ANT_2),
-	FRQ_RNG_HF(2,IC7000_AM_TX_MODES, W(1),W(40),IC7000_VFOS,RIG_ANT_1),   /* AM class */
-	FRQ_RNG_6m(2,IC7000_AM_TX_MODES, W(1),W(40),IC7000_VFOS,RIG_ANT_1),   /* AM class */
-	FRQ_RNG_2m(2,IC7000_AM_TX_MODES, W(2),W(20),IC7000_VFOS,RIG_ANT_2),
-	FRQ_RNG_70cm(2,IC7000_OTHER_TX_MODES, W(2), W(14), IC7000_VFOS, RIG_ANT_2),
-    	RIG_FRNG_END, },
+    .rx_range_list2 =   { {kHz(30), MHz(199.999999), IC7000_ALL_RX_MODES, -1, -1, IC7000_VFOS},
+        {MHz(400), MHz(470), IC7000_ALL_RX_MODES, -1, -1, IC7000_VFOS}, RIG_FRNG_END,
+    },
+    .tx_range_list2 =  { /* needs the 5 mhz channels added */
+        FRQ_RNG_HF(2, IC7000_OTHER_TX_MODES, W(2), W(100), IC7000_VFOS, RIG_ANT_1),
+        FRQ_RNG_6m(2, IC7000_OTHER_TX_MODES, W(2), W(100), IC7000_VFOS, RIG_ANT_1),
+        FRQ_RNG_2m(2, IC7000_OTHER_TX_MODES, W(2), W(50), IC7000_VFOS, RIG_ANT_2),
+        FRQ_RNG_70cm(2, IC7000_OTHER_TX_MODES, W(2), W(35), IC7000_VFOS, RIG_ANT_2),
+        FRQ_RNG_HF(2, IC7000_AM_TX_MODES, W(1), W(40), IC7000_VFOS, RIG_ANT_1), /* AM class */
+        FRQ_RNG_6m(2, IC7000_AM_TX_MODES, W(1), W(40), IC7000_VFOS, RIG_ANT_1), /* AM class */
+        FRQ_RNG_2m(2, IC7000_AM_TX_MODES, W(2), W(20), IC7000_VFOS, RIG_ANT_2),
+        FRQ_RNG_70cm(2, IC7000_OTHER_TX_MODES, W(2), W(14), IC7000_VFOS, RIG_ANT_2),
+        RIG_FRNG_END,
+    },
 
-.tuning_steps = {
-	 {IC7000_1HZ_TS_MODES,1},
-	 {IC7000_NOT_TS_MODES,10},
-	 {IC7000_ALL_RX_MODES,Hz(100)},
-	 {IC7000_ALL_RX_MODES,kHz(1)},
-	 {IC7000_ALL_RX_MODES,kHz(5)},
-	 {IC7000_ALL_RX_MODES,kHz(9)},
-	 {IC7000_ALL_RX_MODES,kHz(10)},
-	 {IC7000_ALL_RX_MODES,kHz(12.5)},
-	 {IC7000_ALL_RX_MODES,kHz(20)},
-	 {IC7000_ALL_RX_MODES,kHz(25)},
-	 {IC7000_ALL_RX_MODES,kHz(100)},
-	 {IC7000_NOT_TS_MODES,MHz(1)},
-	 RIG_TS_END,
-	},
+    .tuning_steps = {
+        {IC7000_1HZ_TS_MODES, 1},
+        {IC7000_NOT_TS_MODES, 10},
+        {IC7000_ALL_RX_MODES, Hz(100)},
+        {IC7000_ALL_RX_MODES, kHz(1)},
+        {IC7000_ALL_RX_MODES, kHz(5)},
+        {IC7000_ALL_RX_MODES, kHz(9)},
+        {IC7000_ALL_RX_MODES, kHz(10)},
+        {IC7000_ALL_RX_MODES, kHz(12.5)},
+        {IC7000_ALL_RX_MODES, kHz(20)},
+        {IC7000_ALL_RX_MODES, kHz(25)},
+        {IC7000_ALL_RX_MODES, kHz(100)},
+        {IC7000_NOT_TS_MODES, MHz(1)},
+        RIG_TS_END,
+    },
 
-	/* mode/filter list, remember: order matters! But duplication may speed up search.  Put the most commonly used modes first!  Remember these are defaults, with dsp rigs you can change them to anything you want except FM and WFM which are fixed */
-.filters = 	{
-		{RIG_MODE_SSB, kHz(2.4)},
-		{RIG_MODE_SSB, kHz(1.8)},
-		{RIG_MODE_SSB, kHz(3)},
-		{RIG_MODE_FM, kHz(10)},
-		{RIG_MODE_FM, kHz(15)},
-		{RIG_MODE_FM, kHz(7)},
-		{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(500)},
-		{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(250)},
-		{RIG_MODE_CW|RIG_MODE_CWR, kHz(1.2)},
-		{RIG_MODE_RTTY|RIG_MODE_RTTYR, kHz(2.4)},
-		{RIG_MODE_AM, kHz(6)},
-		{RIG_MODE_AM, kHz(3)},
-		{RIG_MODE_AM, kHz(9)},
-		{RIG_MODE_WFM, kHz(280)},
-		RIG_FLT_END,
-	},
+    /* mode/filter list, remember: order matters! But duplication may speed up search.  Put the most commonly used modes first!  Remember these are defaults, with dsp rigs you can change them to anything you want except FM and WFM which are fixed */
+    .filters =  {
+        {RIG_MODE_SSB, kHz(2.4)},
+        {RIG_MODE_SSB, kHz(1.8)},
+        {RIG_MODE_SSB, kHz(3)},
+        {RIG_MODE_FM, kHz(10)},
+        {RIG_MODE_FM, kHz(15)},
+        {RIG_MODE_FM, kHz(7)},
+        {RIG_MODE_CW | RIG_MODE_CWR | RIG_MODE_RTTY | RIG_MODE_RTTYR, Hz(500)},
+        {RIG_MODE_CW | RIG_MODE_CWR | RIG_MODE_RTTY | RIG_MODE_RTTYR, Hz(250)},
+        {RIG_MODE_CW | RIG_MODE_CWR, kHz(1.2)},
+        {RIG_MODE_RTTY | RIG_MODE_RTTYR, kHz(2.4)},
+        {RIG_MODE_AM, kHz(6)},
+        {RIG_MODE_AM, kHz(3)},
+        {RIG_MODE_AM, kHz(9)},
+        {RIG_MODE_WFM, kHz(280)},
+        RIG_FLT_END,
+    },
 
-.str_cal = IC7000_STR_CAL,
-.swr_cal = IC7000_SWR_CAL,
-.alc_cal = IC7000_ALC_CAL,
-.rfpower_meter_cal = IC7000_RFPOWER_METER_CAL,
-.comp_meter_cal = IC7000_COMP_METER_CAL,
+    .str_cal = IC7000_STR_CAL,
+    .swr_cal = IC7000_SWR_CAL,
+    .alc_cal = IC7000_ALC_CAL,
+    .rfpower_meter_cal = IC7000_RFPOWER_METER_CAL,
+    .comp_meter_cal = IC7000_COMP_METER_CAL,
 
-.cfgparams =  icom_cfg_params,
-.set_conf =  icom_set_conf,
-.get_conf =  icom_get_conf,
+    .cfgparams =  icom_cfg_params,
+    .set_conf =  icom_set_conf,
+    .get_conf =  icom_get_conf,
 
-.priv =  (void*)&IC7000_priv_caps,
-.rig_init =   icom_init,
-.rig_cleanup =   icom_cleanup,
-.rig_open =  NULL,
-.rig_close =  NULL,
+    .priv = (void *)& IC7000_priv_caps,
+    .rig_init =   icom_init,
+    .rig_cleanup =   icom_cleanup,
+    .rig_open =  NULL,
+    .rig_close =  NULL,
 
-.set_freq =  icom_set_freq,
-.get_freq =  icom_get_freq,
-.set_mode =  icom_set_mode,
-.get_mode =  icom_get_mode,
-.set_vfo =  icom_set_vfo,
-.set_ant =  NULL,  /*automatically set by rig depending band */
-.get_ant =  NULL,
+    .set_freq =  icom_set_freq,
+    .get_freq =  icom_get_freq,
+    .set_mode =  icom_set_mode,
+    .get_mode =  icom_get_mode,
+    .set_vfo =  icom_set_vfo,
+    .set_ant =  NULL,  /*automatically set by rig depending band */
+    .get_ant =  NULL,
 
-.decode_event =  icom_decode_event,
-.set_level =  ic7000_set_level,
-.get_level =  ic7000_get_level,
-.set_func =  icom_set_func,
-.get_func =  icom_get_func,
-.set_parm =  NULL,
-.get_parm =  NULL,
-.set_mem =  icom_set_mem,
-.set_bank =  icom_set_bank,
-.vfo_op =  icom_vfo_op,
-.scan =  icom_scan,
-.set_ptt =  icom_set_ptt,
-.get_ptt =  icom_get_ptt,
-.get_dcd =  icom_get_dcd,
-.set_ts =  icom_set_ts,
-.get_ts =  NULL,
-.set_rptr_shift =  icom_set_rptr_shift,
-.get_rptr_shift =  NULL,
-.set_rptr_offs =  icom_set_rptr_offs,
-.get_rptr_offs =  icom_get_rptr_offs,
-.set_ctcss_tone =  icom_set_ctcss_tone,
-.get_ctcss_tone =  icom_get_ctcss_tone,
-.set_ctcss_sql =  icom_set_ctcss_sql,
-.get_ctcss_sql =  icom_get_ctcss_sql,
-.set_dcs_code =  icom_set_dcs_code,
-.get_dcs_code =  icom_get_dcs_code,
-.set_split_freq =  icom_set_split_freq,
-.get_split_freq =  icom_get_split_freq,
-.set_split_mode =  icom_set_split_mode,
-.get_split_mode =  icom_get_split_mode,
-.set_split_vfo =  icom_set_split_vfo,
-.get_split_vfo =  NULL,
+    .decode_event =  icom_decode_event,
+    .set_level =  ic7000_set_level,
+    .get_level =  ic7000_get_level,
+    .set_func =  icom_set_func,
+    .get_func =  icom_get_func,
+    .set_parm =  NULL,
+    .get_parm =  NULL,
+    .set_mem =  icom_set_mem,
+    .set_bank =  icom_set_bank,
+    .vfo_op =  icom_vfo_op,
+    .scan =  icom_scan,
+    .set_ptt =  icom_set_ptt,
+    .get_ptt =  icom_get_ptt,
+    .get_dcd =  icom_get_dcd,
+    .set_ts =  icom_set_ts,
+    .get_ts =  NULL,
+    .set_rptr_shift =  icom_set_rptr_shift,
+    .get_rptr_shift =  NULL,
+    .set_rptr_offs =  icom_set_rptr_offs,
+    .get_rptr_offs =  icom_get_rptr_offs,
+    .set_ctcss_tone =  icom_set_ctcss_tone,
+    .get_ctcss_tone =  icom_get_ctcss_tone,
+    .set_ctcss_sql =  icom_set_ctcss_sql,
+    .get_ctcss_sql =  icom_get_ctcss_sql,
+    .set_dcs_code =  icom_set_dcs_code,
+    .get_dcs_code =  icom_get_dcs_code,
+    .set_split_freq =  icom_set_split_freq,
+    .get_split_freq =  icom_get_split_freq,
+    .set_split_mode =  icom_set_split_mode,
+    .get_split_mode =  icom_get_split_mode,
+    .set_split_vfo =  icom_set_split_vfo,
+    .get_split_vfo =  NULL,
 
 };
 
 int ic7000_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-  unsigned char cmdbuf[MAXFRAMELEN];
+    unsigned char cmdbuf[MAXFRAMELEN];
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  switch (level) {
+    switch (level)
+    {
     case RIG_LEVEL_VOXDELAY:
-      cmdbuf[0] = 0x01;
-      cmdbuf[1] = 0x17;
-      return icom_set_level_raw(rig, level, C_CTL_MEM, 0x05, 2, cmdbuf, 1, val);
+        cmdbuf[0] = 0x01;
+        cmdbuf[1] = 0x17;
+        return icom_set_level_raw(rig, level, C_CTL_MEM, 0x05, 2, cmdbuf, 1, val);
+
     default:
-      return icom_set_level(rig, vfo, level, val);
-  }
+        return icom_set_level(rig, vfo, level, val);
+    }
 }
 
 int ic7000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-  unsigned char cmdbuf[MAXFRAMELEN];
+    unsigned char cmdbuf[MAXFRAMELEN];
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  switch (level) {
+    switch (level)
+    {
     case RIG_LEVEL_VOXDELAY:
-      cmdbuf[0] = 0x01;
-      cmdbuf[1] = 0x17;
-      return icom_get_level_raw(rig, level, C_CTL_MEM, 0x05, 2, cmdbuf, val);
+        cmdbuf[0] = 0x01;
+        cmdbuf[1] = 0x17;
+        return icom_get_level_raw(rig, level, C_CTL_MEM, 0x05, 2, cmdbuf, val);
+
     default:
-      return icom_get_level(rig, vfo, level, val);
-  }
+        return icom_get_level(rig, vfo, level, val);
+    }
 }

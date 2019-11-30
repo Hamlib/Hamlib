@@ -90,8 +90,8 @@ int HAMLIB_API rig_set_mem(RIG *rig, vfo_t vfo, int ch)
     }
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_PURE)
-        || vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo)
+            || vfo == RIG_VFO_CURR
+            || vfo == rig->state.current_vfo)
     {
         return caps->set_mem(rig, vfo, ch);
     }
@@ -153,8 +153,8 @@ int HAMLIB_API rig_get_mem(RIG *rig, vfo_t vfo, int *ch)
     }
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_PURE)
-        || vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo)
+            || vfo == RIG_VFO_CURR
+            || vfo == rig->state.current_vfo)
     {
         return caps->get_mem(rig, vfo, ch);
     }
@@ -216,8 +216,8 @@ int HAMLIB_API rig_set_bank(RIG *rig, vfo_t vfo, int bank)
     }
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_PURE)
-        || vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo)
+            || vfo == RIG_VFO_CURR
+            || vfo == rig->state.current_vfo)
     {
         return caps->set_bank(rig, vfo, bank);
     }
@@ -479,7 +479,7 @@ static int generic_save_channel(RIG *rig, channel_t *chan)
         setting = rig_idx2setting(i);
 
         if ((setting & mem_cap->funcs)
-            && (rig_get_func(rig, RIG_VFO_CURR, setting, &fstatus) == RIG_OK))
+                && (rig_get_func(rig, RIG_VFO_CURR, setting, &fstatus) == RIG_OK))
         {
             chan->funcs |= fstatus ? setting : 0;
         }
@@ -729,10 +729,10 @@ int HAMLIB_API rig_set_channel(RIG *rig, const channel_t *chan)
     }
 
     can_emulate_by_vfo_mem = rc->set_vfo
-        && ((rig->state.vfo_list & RIG_VFO_MEM) == RIG_VFO_MEM);
+                             && ((rig->state.vfo_list & RIG_VFO_MEM) == RIG_VFO_MEM);
 
     can_emulate_by_vfo_op = rc->vfo_op
-        && rig_has_vfo_op(rig, RIG_OP_FROM_VFO);
+                            && rig_has_vfo_op(rig, RIG_OP_FROM_VFO);
 
     if (!can_emulate_by_vfo_mem && !can_emulate_by_vfo_op)
     {
@@ -881,10 +881,10 @@ int HAMLIB_API rig_get_channel(RIG *rig, channel_t *chan)
     }
 
     can_emulate_by_vfo_mem = rc->set_vfo
-        && ((rig->state.vfo_list & RIG_VFO_MEM) == RIG_VFO_MEM);
+                             && ((rig->state.vfo_list & RIG_VFO_MEM) == RIG_VFO_MEM);
 
     can_emulate_by_vfo_op = rc->vfo_op
-        && rig_has_vfo_op(rig, RIG_OP_TO_VFO);
+                            && rig_has_vfo_op(rig, RIG_OP_TO_VFO);
 
     if (!can_emulate_by_vfo_mem && !can_emulate_by_vfo_op)
     {
@@ -1255,7 +1255,7 @@ int HAMLIB_API rig_copy_channel(RIG *rig,
 
     /* TODO: ext_levels[] of different sizes */
     for (i = 0; !RIG_IS_EXT_END(src->ext_levels[i])
-             && !RIG_IS_EXT_END(dest->ext_levels[i]); i++)
+            && !RIG_IS_EXT_END(dest->ext_levels[i]); i++)
     {
         dest->ext_levels[i] = src->ext_levels[i];
     }

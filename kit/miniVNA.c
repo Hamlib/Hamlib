@@ -38,51 +38,57 @@
 
 static int miniVNA_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-  char fstr[20];
-  char cmdstr[40];
-  int retval;
+    char fstr[20];
+    char cmdstr[40];
+    int retval;
 
-  sprintf_freq(fstr, freq);
-  rig_debug(RIG_DEBUG_TRACE,"%s called: %s %s\n", __func__,
- 			rig_strvfo(vfo), fstr);
+    sprintf_freq(fstr, freq);
+    rig_debug(RIG_DEBUG_TRACE, "%s called: %s %s\n", __func__,
+              rig_strvfo(vfo), fstr);
 
-  serial_flush(&rig->state.rigport);
+    serial_flush(&rig->state.rigport);
 
-  sprintf(cmdstr,"0\r%lu\r1\r0\r",(unsigned long int)(freq*DDS_RATIO));
+    sprintf(cmdstr, "0\r%lu\r1\r0\r", (unsigned long int)(freq * DDS_RATIO));
 
-  retval = write_block(&rig->state.rigport, cmdstr, strlen(cmdstr));
-  if (retval != RIG_OK)
-	return retval;
+    retval = write_block(&rig->state.rigport, cmdstr, strlen(cmdstr));
 
-  return RIG_OK;
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    return RIG_OK;
 }
 
-const struct rig_caps miniVNA_caps = {
-  .rig_model =      RIG_MODEL_MINIVNA,
-  .model_name =     "miniVNA",
-  .mfg_name =       "mRS",
-  .version =        "0.1",
-  .copyright = 	 "LGPL",
-  .status =         RIG_STATUS_ALPHA,
-  .rig_type =       RIG_TYPE_TUNER,
-  .port_type =      RIG_PORT_SERIAL,
-  .serial_rate_min =  115200,
-  .serial_rate_max =  115200,
-  .serial_data_bits =  8,
-  .serial_stop_bits =  1,
-  .serial_parity =  RIG_PARITY_NONE,
-  .serial_handshake =  RIG_HANDSHAKE_NONE,
-  .write_delay =  0,
-  .post_write_delay =  1,
-  .timeout =  1000,
-  .retry =  3,
+const struct rig_caps miniVNA_caps =
+{
+    .rig_model =      RIG_MODEL_MINIVNA,
+    .model_name =     "miniVNA",
+    .mfg_name =       "mRS",
+    .version =        "0.1",
+    .copyright =   "LGPL",
+    .status =         RIG_STATUS_ALPHA,
+    .rig_type =       RIG_TYPE_TUNER,
+    .port_type =      RIG_PORT_SERIAL,
+    .serial_rate_min =  115200,
+    .serial_rate_max =  115200,
+    .serial_data_bits =  8,
+    .serial_stop_bits =  1,
+    .serial_parity =  RIG_PARITY_NONE,
+    .serial_handshake =  RIG_HANDSHAKE_NONE,
+    .write_delay =  0,
+    .post_write_delay =  1,
+    .timeout =  1000,
+    .retry =  3,
 
-  .rx_range_list1 =  { {.startf=kHz(100),.endf=MHz(180),.modes=RIG_MODE_NONE, .low_power=-1,.high_power=-1,RIG_VFO_A},
-		    RIG_FRNG_END, },
-  .tx_range_list1 =   { {.startf=kHz(100),.endf=MHz(180),.modes=RIG_MODE_NONE, .low_power=-1,.high_power=-1,RIG_VFO_A},
-		    RIG_FRNG_END, },
-  .tuning_steps =  { {RIG_MODE_NONE,1}, RIG_TS_END, },
+    .rx_range_list1 =  { {.startf = kHz(100), .endf = MHz(180), .modes = RIG_MODE_NONE, .low_power = -1, .high_power = -1, RIG_VFO_A},
+        RIG_FRNG_END,
+    },
+    .tx_range_list1 =   { {.startf = kHz(100), .endf = MHz(180), .modes = RIG_MODE_NONE, .low_power = -1, .high_power = -1, RIG_VFO_A},
+        RIG_FRNG_END,
+    },
+    .tuning_steps =  { {RIG_MODE_NONE, 1}, RIG_TS_END, },
 
-  .set_freq =     miniVNA_set_freq,
+    .set_freq =     miniVNA_set_freq,
 };
 

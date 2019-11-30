@@ -731,7 +731,7 @@ int adat_parse_freq(char                    *pcStr,
         }
 
         if ((_nVFO != 0)   // VFO = 0 -> Current VFO not active.
-            || (nMode == ADAT_FREQ_PARSE_MODE_WITHOUT_VFO))
+                || (nMode == ADAT_FREQ_PARSE_MODE_WITHOUT_VFO))
         {
             char   acValueBuf[ ADAT_BUFSZ + 1 ];
             char   acUnitBuf[ ADAT_BUFSZ + 1 ];
@@ -744,7 +744,7 @@ int adat_parse_freq(char                    *pcStr,
             // Get Freq Value from response string
 
             while ((isalpha((int)*pcEnd) == 0)
-                   || (*pcEnd == '.'))
+                    || (*pcEnd == '.'))
             {
                 acValueBuf[ nI++ ] = *pcEnd;
                 pcEnd += sizeof(char);
@@ -1482,7 +1482,7 @@ int adat_get_single_cmd_result(RIG *pRig)
         nRC = adat_send(pRig, pPriv->pcCmd);
 
         if ((nRC == RIG_OK)
-            && (pPriv->nCmdKind == ADAT_CMD_KIND_WITH_RESULT))
+                && (pPriv->nCmdKind == ADAT_CMD_KIND_WITH_RESULT))
         {
 
             char  acBuf[ ADAT_RESPSZ + 1 ];
@@ -1619,8 +1619,8 @@ int adat_cmd_recover_from_error(RIG *pRig, int nError)
         // Recover from communication error
 
         if ((nError == RIG_ETIMEOUT)
-            || (nError == RIG_EPROTO)
-            || (nError == RIG_EIO))
+                || (nError == RIG_EPROTO)
+                || (nError == RIG_EIO))
         {
 
             rig_close(pRig);
@@ -2563,8 +2563,8 @@ int adat_transaction(RIG                *pRig,
                                   gFnLevel, nJ, pCmd->pacCmdStrs[ nJ ]);
 
                         while ((nJ < pCmd->nNrCmdStrs)
-                               && (nRC == RIG_OK)
-                               && (pCmd->pacCmdStrs[ nJ ] != NULL))
+                                && (nRC == RIG_OK)
+                                && (pCmd->pacCmdStrs[ nJ ] != NULL))
                         {
 
                             nRC = adat_send(pRig, pCmd->pacCmdStrs[ nJ ]);
@@ -2580,8 +2580,8 @@ int adat_transaction(RIG                *pRig,
                                     nRC = adat_receive(pRig, acBuf);
 
                                     while ((nRC == RIG_OK)
-                                           && (strncmp(acBuf, ADAT_BOM,
-                                                       strlen(ADAT_BOM)) != 0))
+                                            && (strncmp(acBuf, ADAT_BOM,
+                                                        strlen(ADAT_BOM)) != 0))
                                     {
 
                                         nRC = adat_receive(pRig, acBuf);
@@ -2929,7 +2929,7 @@ int adat_close(RIG *pRig)
 // Function adat_get_info
 // ---------------------------------------------------------------------------
 // Status: RELEASED
-const char * adat_get_info(RIG *pRig)
+const char *adat_get_info(RIG *pRig)
 {
     int         nRC = RIG_OK;
     static char acBuf[ 512 ];
