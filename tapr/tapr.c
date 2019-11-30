@@ -110,7 +110,7 @@ int tapr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
  */
 DECLARE_INITRIG_BACKEND(tapr)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "tapr: _init called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
 	rig_register(&dsp10_caps);
 

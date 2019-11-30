@@ -245,8 +245,8 @@ const char * uniden_digital_get_info(RIG *rig)
 	/* NOTE FOR ME: Check Buffer Size with what we got returned in info_len.
 	 * Don't know the max length of return on these units, so check frequently!
 	 * Use five v's (-vvvvv) to activate output. */
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: DEBUG BUFSZ'%i'\n", __FUNCTION__, BUFSZ);
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: DEBUG info_len'%i'\n", __FUNCTION__, info_len);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: DEBUG BUFSZ'%i'\n", __func__, BUFSZ);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: DEBUG info_len'%i'\n", __func__, (int)info_len);
 
 	if (ret != RIG_OK)
 		return NULL;
@@ -274,7 +274,7 @@ const char * uniden_digital_get_info(RIG *rig)
 		return NULL;
 
 	if (info_len >= BUFSZ) {
-		rig_debug(RIG_DEBUG_VERBOSE, "%s: DEBUG Max BUFSZ Reached: info_len  = '%i'\n", __FUNCTION__, info_len);
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: DEBUG Max BUFSZ Reached: info_len  = '%i'\n", __func__, (int)info_len);
 		info_len = BUFSZ-1;
 	}
 

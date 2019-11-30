@@ -676,8 +676,8 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             newcat_is_rig(rig, RIG_MODEL_FTDX5000))
         priv->cmd_str[2] = (RIG_VFO_B == vfo) ? '1' : '0';
 
-    rig_debug(RIG_DEBUG_VERBOSE,"%s: generic mode = %x \n",
-            __func__, mode);
+    rig_debug(RIG_DEBUG_VERBOSE,"%s: generic mode = %s \n",
+            __func__, rig_strrmode(mode));
 
     switch(mode) {
         case RIG_MODE_LSB:
@@ -1348,7 +1348,7 @@ int newcat_get_rit(RIG * rig, vfo_t vfo, shortfreq_t * rit)
         default: offset = 0;
     }
     if (offset == 0) {
-        rig_debug(RIG_DEBUG_ERR,"%s: incorrect length of IF response, expected 27 or 28, got %d",__func__,strlen(priv->ret_data));
+        rig_debug(RIG_DEBUG_ERR,"%s: incorrect length of IF response, expected 27 or 28, got %zu",__func__,strlen(priv->ret_data));
         return -RIG_EPROTO;
     }
 
@@ -1419,7 +1419,7 @@ int newcat_get_xit(RIG * rig, vfo_t vfo, shortfreq_t * xit)
         default: offset = 0;
     }
     if (offset == 0) {
-        rig_debug(RIG_DEBUG_ERR,"%s: incorrect length of IF response, expected 27 or 28, got %d",__func__,strlen(priv->ret_data));
+        rig_debug(RIG_DEBUG_ERR,"%s: incorrect length of IF response, expected 27 or 28, got %zu",__func__,strlen(priv->ret_data));
         return -RIG_EPROTO;
     }
 
@@ -1461,7 +1461,7 @@ int newcat_set_ts(RIG * rig, vfo_t vfo, shortfreq_t ts)
             break;
         }   /* if mode */
 
-    rig_debug(RIG_DEBUG_TRACE, "ts_match = %d, i = %d, ts = %d\n", ts_match, i, ts);
+    rig_debug(RIG_DEBUG_TRACE, "ts_match = %d, i = %d, ts = %d\n", ts_match, i, (int)ts);
 
     if (ts_match)
         return RIG_OK;
@@ -1500,7 +1500,7 @@ int newcat_get_ts(RIG * rig, vfo_t vfo, shortfreq_t * ts)
             break;
         }
 
-    rig_debug(RIG_DEBUG_TRACE, "ts_match = %d, i = %d, i+1 = %d, *ts = %d\n", ts_match, i, i+1, *ts);
+    rig_debug(RIG_DEBUG_TRACE, "ts_match = %d, i = %d, i+1 = %d, *ts = %d\n", ts_match, i, i+1, (int)*ts);
 
     if (ts_match)
         return RIG_OK;
@@ -2926,7 +2926,7 @@ int newcat_set_mem(RIG * rig, vfo_t vfo, int ch)
     if (valid_chan.freq <= 1.0)
       mem_caps = NULL;
 
-    rig_debug(RIG_DEBUG_TRACE, "ValChan Freq = %d, pMemCaps = %d\n", valid_chan.freq, mem_caps);
+    rig_debug(RIG_DEBUG_TRACE, "%s: valChan Freq = %f\n", __func__, valid_chan.freq);
 
     /* Out of Range, or empty */
     if (!mem_caps)
@@ -3299,8 +3299,8 @@ int newcat_get_channel(RIG * rig, channel_t * chan)
     if (!mem_caps)
         return -RIG_ENAVAIL;
 
-    rig_debug(RIG_DEBUG_TRACE, "sizeof(channel_t) = %d\n", sizeof(channel_t) );
-    rig_debug(RIG_DEBUG_TRACE, "sizeof(priv->cmd_str) = %d\n", sizeof(priv->cmd_str) );
+    rig_debug(RIG_DEBUG_TRACE, "sizeof(channel_t) = %zu\n", sizeof(channel_t) );
+    rig_debug(RIG_DEBUG_TRACE, "sizeof(priv->cmd_str) = %zu\n", sizeof(priv->cmd_str) );
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MR%03d%c", chan->channel_num, cat_term);
 
@@ -3645,7 +3645,7 @@ int newcat_get_tx_vfo(RIG * rig, vfo_t * tx_vfo) {
             *tx_vfo = RIG_VFO_B;
             break;
         default:
-            rig_debug(RIG_DEBUG_ERR, "%s: Unknown tx_vfo=%c\n", __func__, c, priv->ret_data);
+            rig_debug(RIG_DEBUG_ERR, "%s: Unknown tx_vfo=%c from index 2 of %s\n", __func__, c, priv->ret_data);
             return -RIG_EPROTO;
     }
 
@@ -3800,7 +3800,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     char narrow = '0';
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-    rig_debug(RIG_DEBUG_TRACE, "%s vfo=%d, mode=%d, width=%d\n", __func__, vfo, mode, width);
+    rig_debug(RIG_DEBUG_TRACE, "%s vfo=%s, mode=%s, width=%d\n", __func__, rig_strvfo(vfo), rig_strrmode(mode), (int)width);
 
     if (!newcat_valid_command(rig, "SH"))
         return -RIG_ENAVAIL;
@@ -4051,7 +4051,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     }
     /* end else */
 
-    rig_debug(RIG_DEBUG_TRACE, "sizeof(width_str) = %d\n", sizeof(width_str) );
+    rig_debug(RIG_DEBUG_TRACE, "sizeof(width_str) = %zu\n", sizeof(width_str) );
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "NA%c%c%cSH%c%s%c",
             main_sub_vfo, narrow, cat_term, main_sub_vfo, width_str, cat_term);
@@ -4370,7 +4370,7 @@ int newcat_get_vfo_mode(RIG * rig, vfo_t * vfo_mode)
         case 27: offset = 21;priv->width_frequency=8;break;
         case 28: offset = 22;priv->width_frequency=9;break;
         default:
-          rig_debug(RIG_DEBUG_ERR,"%s: incorrect length of IF response, expected 27 or 28, got %d",__func__,strlen(priv->ret_data));
+          rig_debug(RIG_DEBUG_ERR,"%s: incorrect length of IF response, expected 27 or 28, got %zu",__func__,strlen(priv->ret_data));
           return -RIG_EPROTO;
     }
     rig_debug(RIG_DEBUG_TRACE, "%s: offset=%d, width_frequeny=%d\n", __func__,offset,priv->width_frequency);
@@ -4499,7 +4499,7 @@ int newcat_get_cmd (RIG *rig)
 
             case '?':
               /* Rig busy wait please */
-              rig_debug(RIG_DEBUG_ERR, "%s: Rig busy\n", __func__, priv->cmd_str);
+              rig_debug(RIG_DEBUG_ERR, "%s: Rig busy\n", __func__);
               rc = -RIG_BUSBUSY;
               break;            /* retry read only */
             }
@@ -4604,7 +4604,7 @@ int newcat_set_cmd (RIG *rig)
 
             case '?':
               /* Rig busy wait please */
-              rig_debug(RIG_DEBUG_WARN, "%s: Rig busy - retrying\n", __func__, priv->cmd_str);
+              rig_debug(RIG_DEBUG_WARN, "%s: Rig busy - retrying\n", __func__);
               /* read the verify command reply */
               if ((rc = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data),
                                     &cat_term, sizeof(cat_term))) > 0)

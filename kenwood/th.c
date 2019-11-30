@@ -328,7 +328,7 @@ th_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     case RIG_MODE_AM: kmode = '1'; break;
 
     default:
-      rig_debug(RIG_DEBUG_ERR, "%s: Unsupported Mode %d\n", __func__, mode);
+      rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n", __func__, rig_strrmode(mode));
       return -RIG_EINVAL;
     }
   }
@@ -541,8 +541,8 @@ th_get_vfo_char(RIG *rig, vfo_t *vfo, char *vfoch)
     break;
 
   default:
-    rig_debug(RIG_DEBUG_ERR, "%s: Unexpected answer length '%c'\n", __func__,
-              length);
+    rig_debug(RIG_DEBUG_ERR, "%s: Unexpected answer length %d\n", __func__,
+              (int)length);
     return -RIG_EPROTO;
     break;
   }
@@ -888,7 +888,7 @@ th_get_kenwood_func(RIG *rig, const char *cmd, int *status)
 int
 th_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
-  rig_debug(RIG_DEBUG_TRACE, "%s: called (0x%04x)\n", __func__, func);
+  rig_debug(RIG_DEBUG_TRACE, "%s: called %s\n", __func__, rig_strfunc(func));
 
   switch (func)
   {
@@ -920,8 +920,8 @@ th_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     return th_get_kenwood_func(rig, "BC", status);
 
   default:
-    rig_debug(RIG_DEBUG_ERR, "%s: Unsupported function %#x\n",
-              __func__, func);
+    rig_debug(RIG_DEBUG_ERR, "%s: Unsupported function %s\n",
+              __func__, rig_strfunc(func));
     return -RIG_EINVAL;
   }
 }
@@ -960,7 +960,7 @@ static int th_set_kenwood_func(RIG *rig, const char *cmd, int status)
 int
 th_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
-  rig_debug(RIG_DEBUG_TRACE, "%s: called (0x%04x)\n", __func__, func);
+  rig_debug(RIG_DEBUG_TRACE, "%s: called %s\n", __func__, rig_strfunc(func));
 
   switch (func)
   {
@@ -995,7 +995,7 @@ th_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     return th_tburst(rig, vfo, status);
 
   default:
-    rig_debug(RIG_DEBUG_ERR, "%s: Unsupported function %#x\n", __func__, func);
+    rig_debug(RIG_DEBUG_ERR, "%s: Unsupported function %s\n", __func__, rig_strfunc(func));
     return -RIG_EINVAL;
   }
 
@@ -1021,7 +1021,7 @@ th_get_parm(RIG *rig, setting_t parm, value_t *val)
   char buf[16];
   int ret, status;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: called (0x%04x)\n", __func__, parm);
+  rig_debug(RIG_DEBUG_TRACE, "%s: called %s\n", __func__, rig_strparm(parm));
 
   switch (parm)
   {
@@ -1075,7 +1075,7 @@ th_get_parm(RIG *rig, setting_t parm, value_t *val)
     return RIG_OK;
 
   default:
-    rig_debug(RIG_DEBUG_ERR, "%s: Unsupported parm %#x\n", __func__, parm);
+    rig_debug(RIG_DEBUG_ERR, "%s: Unsupported parm %s\n", __func__, rig_strparm(parm));
     return -RIG_EINVAL;
   }
 
@@ -1117,7 +1117,7 @@ th_set_parm(RIG *rig, setting_t parm, value_t val)
     }
 
   default:
-    rig_debug(RIG_DEBUG_ERR, "%s: Unsupported parm %#x\n", __func__, parm);
+    rig_debug(RIG_DEBUG_ERR, "%s: Unsupported parm %s\n", __func__, rig_strparm(parm));
     return -RIG_EINVAL;
   }
 
@@ -1311,7 +1311,7 @@ th_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     return -RIG_ENIMPL;
 
   default:
-    rig_debug(RIG_DEBUG_ERR, "%s: Unsupported Level %d\n", __func__, level);
+    rig_debug(RIG_DEBUG_ERR, "%s: unsupported level %s\n", __func__, rig_strlevel(level));
     return -RIG_EINVAL;
   }
 
@@ -1383,7 +1383,7 @@ int th_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
 
   default:
-    rig_debug(RIG_DEBUG_ERR, "%s: Unsupported Level %d\n", __func__, level);
+    rig_debug(RIG_DEBUG_ERR, "%s: unsupported level %s\n", __func__, rig_strlevel(level));
     return -RIG_EINVAL;
   }
 }
@@ -1704,7 +1704,7 @@ th_get_info(RIG *rig)
   if (firm_len < 3)
   {
     rig_debug(RIG_DEBUG_ERR, "%s: unexpected reply '%s', len=%d\n",
-              __func__, firmbuf, firm_len);
+              __func__, firmbuf, (int)firm_len);
     return NULL;
   }
 
@@ -1888,7 +1888,7 @@ int th_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
     return RIG_OK;
 
   default :
-    rig_debug(RIG_DEBUG_ERR, "%s: unexpected reply '%s', len=%d\n",
+    rig_debug(RIG_DEBUG_ERR, "%s: unexpected reply '%s'\n",
               __func__, buf);
   }
 
@@ -2425,8 +2425,8 @@ int th_set_channel(RIG *rig, const channel_t *chan)
 
     if (!priv->mode_table)
     {
-      rig_debug(RIG_DEBUG_ERR, "%s: Buggy backend, no mode_table '%d'\n",
-                __func__, chan->mode);
+      rig_debug(RIG_DEBUG_ERR, "%s: buggy backend, no mode_table '%d'\n",
+                __func__, (int)chan->mode);
       return -RIG_ENIMPL;
     }
 
@@ -2434,8 +2434,8 @@ int th_set_channel(RIG *rig, const channel_t *chan)
 
     if (mode == -1)
     {
-      rig_debug(RIG_DEBUG_ERR, "%s: Unsupported Mode value '%d'\n",
-                __func__, chan->mode);
+      rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode value '%d'\n",
+                __func__, (int)chan->mode);
       return -RIG_EINVAL;
     }
 

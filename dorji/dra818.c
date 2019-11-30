@@ -127,7 +127,7 @@ static int dra818_setvolume(RIG *rig)
 
 int dra818_init(RIG *rig)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "dra818: dra818_init called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: dra818_init called\n",__func__);
 
 	struct dra818_priv *priv = calloc(sizeof(*priv), 1);
 	if (!priv)
@@ -158,7 +158,7 @@ int dra818_init(RIG *rig)
 
 int dra818_cleanup(RIG *rig)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "dra818: dra818_cleanup called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: dra818_cleanup called\n",__func__);
 	
 	free(rig->state.priv);
 
@@ -196,7 +196,7 @@ int dra818_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	
 	rig_debug(RIG_DEBUG_VERBOSE, 
 	    "dra818: requested freq = %"PRIfreq" Hz, set freq = %d Hz\n",
-	    freq, sfreq);
+	    freq, (int)sfreq);
 
 	if (vfo == RIG_VFO_RX) {
 		priv->rx_freq = sfreq;
@@ -220,7 +220,7 @@ int dra818_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		priv->bw = 25000;
 	else
 		priv->bw = 12500;
-	rig_debug(RIG_DEBUG_VERBOSE, "dra818: bandwidth: %d\n", priv->bw);
+	rig_debug(RIG_DEBUG_VERBOSE, "dra818: bandwidth: %d\n", (int)priv->bw);
 	
 	return dra818_setgroup(rig);
 }

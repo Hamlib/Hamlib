@@ -207,10 +207,10 @@ const struct rig_caps barrett_caps = {
 
 DECLARE_INITRIG_BACKEND(barrett)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "barrett: _init called\n");
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n",__func__);
 
     rig_register(&barrett_caps);
-    rig_debug(RIG_DEBUG_VERBOSE, "barrett: _init back from rig_register\n");
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: _init back from rig_register\n",__func__);
 
     return RIG_OK;
 }
@@ -239,7 +239,7 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
         retval = read_string(&rs->rigport, priv->ret_data, sizeof(priv->ret_data),
                              "\x11", 1);
         rig_debug(RIG_DEBUG_VERBOSE, "%s: resultlen=%d\n", __FUNCTION__,
-                  strlen(priv->ret_data));
+                  (int)strlen(priv->ret_data));
 
         if (retval < 0) {
             return retval;
@@ -275,10 +275,6 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
         *p = 0;
     }
 
-
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: result = %04x\n", __FUNCTION__, result);
-
     if (result != NULL) {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: setting result\n", __FUNCTION__);
 
@@ -307,7 +303,7 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
         rig_debug(RIG_DEBUG_VERBOSE, "%s: returning result=%s\n", __FUNCTION__,
                   *result);
     } else {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: no result requested=%s\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: no result requested\n", __FUNCTION__);
     }
 
     return RIG_OK;
@@ -380,14 +376,14 @@ int barrett_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
 
     if (retval != RIG_OK) {
-        rig_debug(RIG_DEBUG_ERR, "%s: invalid response=\n", __FUNCTION__, response);
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid response=%s\n", __FUNCTION__, response);
         return retval;
     }
 
     retval = sscanf(response, "%lg", freq);
 
     if (retval != 1) {
-        rig_debug(RIG_DEBUG_ERR, "Unable to parse response\n");
+        rig_debug(RIG_DEBUG_ERR, "%s: Unable to parse response\n",__func__);
         return -RIG_EPROTO;
     }
 
@@ -467,7 +463,7 @@ int barrett_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     retval = barrett_transaction(rig, cmd_buf, 0, &response);
 
     if (retval < 0) {
-        rig_debug(RIG_DEBUG_ERR, "%s: invalid response=\n", __FUNCTION__, response);
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid response=%s\n", __FUNCTION__, response);
         return retval;
     }
 
@@ -496,7 +492,7 @@ int barrett_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     retval = barrett_transaction(rig, "IP", 0, &response);
 
     if (retval != RIG_OK) {
-        rig_debug(RIG_DEBUG_ERR, "%s: error response?='%s'\n", response);
+        rig_debug(RIG_DEBUG_ERR, "%s: error response?='%s'\n", __func__, response);
         return retval;
     }
 
@@ -505,7 +501,7 @@ int barrett_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     if (c == '1' || c == '0') {
         *ptt = c - '0';
     } else {
-        rig_debug(RIG_DEBUG_ERR, "%s: error response='%s'\n", response);
+        rig_debug(RIG_DEBUG_ERR, "%s: error response='%s'\n", __func__, response);
         return -RIG_EPROTO;
     }
 
@@ -525,8 +521,8 @@ int barrett_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     //struct tt588_priv_data *priv = (struct tt588_priv_data *) rig->state.priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s mode=%d width=%d\n", __FUNCTION__,
-              rig_strvfo(vfo), mode, width);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s mode=%s width=%d\n", __FUNCTION__,
+              rig_strvfo(vfo), rig_strrmode(mode), (int)width);
 
     switch (mode) {
     case RIG_MODE_USB:
@@ -550,7 +546,7 @@ int barrett_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %d\n", __FUNCTION__, mode);
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n", __FUNCTION__, rig_strrmode(mode));
         return -RIG_EINVAL;
     }
 
@@ -613,7 +609,7 @@ int barrett_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     *width = 3000; // we'll default this to 3000 for now
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s mode=%s width=%d\n", __FUNCTION__,
-              rig_strvfo(vfo), rig_strrmode(*mode), *width);
+              rig_strvfo(vfo), rig_strrmode(*mode), (int)*width);
 
     return RIG_OK;
 }
@@ -703,7 +699,7 @@ int barrett_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         if (retval < 0) {
             rig_debug(RIG_DEBUG_ERR, "%s: invalid response=%s\n", __FUNCTION__,
-                      level);
+                      response);
             return retval;
         }
 
@@ -721,12 +717,12 @@ int barrett_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported level %d\n", __FUNCTION__, level);
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported level %s\n", __FUNCTION__, rig_strlevel(level));
         return -RIG_EINVAL;
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s level=%d val=%d\n", __FUNCTION__,
-              rig_strvfo(vfo), level, *val);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s level=%s val=%s\n", __FUNCTION__,
+              rig_strvfo(vfo), rig_strlevel(level), response);
 
     return RIG_OK;
 }
@@ -744,8 +740,7 @@ const char * barrett_get_info(RIG *rig)
     int retval = barrett_transaction(rig, "IVF", 0, &response);
 
     if (retval == RIG_OK) {
-        rig_debug(RIG_DEBUG_ERR, "%s: result=%s\n", __FUNCTION__, response,
-                  strlen(response));
+        rig_debug(RIG_DEBUG_ERR, "%s: result=%s\n", __FUNCTION__, response);
     } else {
         rig_debug(RIG_DEBUG_VERBOSE, "Software Version %s\n", response);
     }

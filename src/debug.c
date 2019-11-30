@@ -160,6 +160,7 @@ char *date_strget(char *buf, int buflen)
  * \param fmt
  * \brief Default is debugging messages are done through stderr
  */
+#undef rig_debug
 void HAMLIB_API rig_debug(enum rig_debug_level_e debug_level,
                           const char *fmt, ...)
 {

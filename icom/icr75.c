@@ -462,7 +462,7 @@ int icr75_set_parm(RIG *rig, setting_t parm, value_t val)
             to_bcd_be(prmbuf + 3, (long long) sec, 2);
             return icom_set_raw(rig, C_CTL_MEM, S_MEM_MODE_SLCT, 4, prmbuf, 0, 0);
         default:
-            rig_debug(RIG_DEBUG_ERR,"Unsupported set_parm %d\n", parm);
+            rig_debug(RIG_DEBUG_ERR,"Unsupported set_parm %s\n", rig_strparm(parm));
             return -RIG_EINVAL;
     }
 }
@@ -505,7 +505,7 @@ int icr75_get_parm(RIG *rig, setting_t parm, value_t *val)
             prmbuf[0] = S_PRM_TIME;
             break;
         default:
-            rig_debug(RIG_DEBUG_ERR,"Unsupported get_parm %d", parm);
+            rig_debug(RIG_DEBUG_ERR,"Unsupported get_parm %s", rig_strparm(parm));
             return -RIG_EINVAL;
     }
 

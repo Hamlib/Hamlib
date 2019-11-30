@@ -64,7 +64,7 @@ kenwood_ts480_get_info(RIG *rig)
 
     if (firm_len != 5)
     {
-        rig_debug(RIG_DEBUG_ERR, "kenwood_get_info: wrong answer len=%d\n", firm_len);
+        rig_debug(RIG_DEBUG_ERR, "%s: wrong answer len=%d\n", __func__, (int)firm_len);
         return NULL;
     }
 
@@ -183,7 +183,7 @@ kenwood_ts480_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
                 break;
 
             default:
-                rig_debug(RIG_DEBUG_ERR, "Unsupported agc value");
+                rig_debug(RIG_DEBUG_ERR, "%s: unsupported agc value", __func__);
                 return -RIG_EINVAL;
             }
 
@@ -208,7 +208,7 @@ kenwood_ts480_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
                 break;
 
             default:
-                rig_debug(RIG_DEBUG_ERR, "Unsupported agc value");
+                rig_debug(RIG_DEBUG_ERR, "%s: unsupported agc value", __func__);
                 return -RIG_EINVAL;
             }
 
@@ -218,7 +218,7 @@ kenwood_ts480_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "Unsupported set_level %d", level);
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported set_level %s", __func__, rig_strlevel(level));
         return -RIG_EINVAL;
     }
 
@@ -447,7 +447,7 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return -RIG_ENIMPL;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "Unsupported get_level %d", level);
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_level %s", __func__, rig_strlevel(level));
         return -RIG_EINVAL;
     }
 

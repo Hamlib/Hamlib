@@ -417,13 +417,13 @@ int ft757_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
 	unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x0c};
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called.\n", __func__);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
 	if (!rig)
 		return -RIG_EINVAL;
 
-	rig_debug(RIG_DEBUG_TRACE, "%s: mode = %d, width = %d\n",
-		  __func__, mode, width);
+	rig_debug(RIG_DEBUG_TRACE, "%s: mode = %s, width = %d\n",
+		  __func__, rig_strrmode(mode), (int)width);
 
 	if (mode == RIG_MODE_NONE)
 		return -RIG_EINVAL;
@@ -663,7 +663,7 @@ int ft757_get_update_data(RIG *rig)
 	/* Maximum number of attempts to ask/read the data. */
 	int maxtries = rig->state.rigport.retry ;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called. Timeout=%ld ms, Retry=%d\n",
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called Timeout=%d ms, Retry=%d\n",
 		  __func__, rig->state.rigport.timeout, maxtries);
 
 	/* At least on one model, returns erraticaly a timeout. Increasing the timeout
@@ -844,7 +844,7 @@ int ft757gx_set_conf(RIG *rig, token_t token, const char *val)
 		if (val[0] != '0')
 			priv->fakefreq = 1;
 
-		rig_debug(RIG_DEBUG_VERBOSE, "fakefreq=%d\n", __func__, priv->fakefreq);
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: fakefreq=%d\n", __func__, priv->fakefreq);
 
 		break;
 

@@ -37,7 +37,7 @@
  */
 DECLARE_INITRIG_BACKEND(dorji)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "dorji: _init called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n",__func__);
 
 	rig_register(&dra818u_caps);
 	rig_register(&dra818v_caps);

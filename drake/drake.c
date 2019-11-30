@@ -280,7 +280,7 @@ int drake_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 	default:
 		rig_debug(RIG_DEBUG_ERR, "drake_set_mode: "
-			  "unsupported mode %d\n", mode);
+			  "unsupported mode %s\n", rig_strrmode(mode));
 		return -RIG_EINVAL;
 	}
 
@@ -861,7 +861,7 @@ int drake_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 		break;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR, "Unsupported get func %d\n", func);
+		rig_debug(RIG_DEBUG_ERR, "Unsupported get func %s\n", rig_strfunc(func));
 		return -RIG_EINVAL;
 	}
 
@@ -994,7 +994,7 @@ int drake_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		break;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR, "Unsupported get_level %d\n", level);
+		rig_debug(RIG_DEBUG_ERR, "Unsupported get_level %s\n", rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 
@@ -1055,7 +1055,7 @@ const char *drake_get_info(RIG *rig)
  */
 DECLARE_INITRIG_BACKEND(drake)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "drake: _init called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n",__func__);
 
 	rig_register(&r8a_caps);
 	rig_register(&r8b_caps);

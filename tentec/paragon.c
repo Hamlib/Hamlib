@@ -547,7 +547,7 @@ int tt585_set_parm(RIG *rig, setting_t parm, value_t val)
         /* TODO: RIG_PARM_TIME */
 
         default:
-            rig_debug (RIG_DEBUG_ERR, "%s: unsupported parm %#x\n", __func__, parm);
+            rig_debug (RIG_DEBUG_ERR, "%s: unsupported parm %s\n", __func__, rig_strparm(parm));
             return -RIG_EINVAL;
     }
 

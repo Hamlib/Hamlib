@@ -358,9 +358,7 @@ int alinco_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     case RIG_MODE_FM:       amode = MD_FM; break;
     case RIG_MODE_AM:       amode = MD_AM; break;
     default:
-        rig_debug(RIG_DEBUG_ERR,
-                  "alinco_set_mode: unsupported mode %d\n",
-                  mode);
+        rig_debug(RIG_DEBUG_ERR, "alinco_set_mode: unsupported mode %s\n", rig_strrmode(mode));
 
         return -RIG_EINVAL;
     }
@@ -651,7 +649,7 @@ int alinco_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         return alinco_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "Unsupported set_func %d\n", func);
+        rig_debug(RIG_DEBUG_ERR, "Unsupported set_func %d\n", (int)func);
         return -RIG_EINVAL;
     }
 
@@ -714,7 +712,7 @@ int alinco_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "Unsupported get_func %d\n", func);
+        rig_debug(RIG_DEBUG_ERR, "Unsupported get_func %d\n", (int)func);
         return -RIG_EINVAL;
     }
 
@@ -860,7 +858,7 @@ int alinco_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         return alinco_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "Unsupported set_level %d\n", level);
+        rig_debug(RIG_DEBUG_ERR, "Unsupported set_level %s\n", rig_strlevel(level));
 
         return -RIG_EINVAL;
     }
@@ -979,7 +977,7 @@ int alinco_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "Unsupported get_level %d\n", level);
+        rig_debug(RIG_DEBUG_ERR, "Unsupported get_level %s\n", rig_strlevel(level));
 
         return -RIG_EINVAL;
     }
@@ -1012,7 +1010,7 @@ int alinco_set_parm(RIG *rig, setting_t parm, value_t val)
         return alinco_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "Unsupported set_parm %d\n", parm);
+        rig_debug(RIG_DEBUG_ERR, "Unsupported set_parm %d\n", (int)parm);
         return -RIG_EINVAL;
     }
 
@@ -1230,8 +1228,6 @@ int alinco_get_mem(RIG *rig, vfo_t vfo, int *ch)
  */
 DECLARE_INITRIG_BACKEND(alinco)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "alinco: _init called\n");
-
     rig_register(&dx77_caps);
 
     return RIG_OK;

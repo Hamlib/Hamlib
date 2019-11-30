@@ -340,7 +340,7 @@ int elad_transaction(RIG *rig, const char *cmdstr, char *data, size_t datasize)
            */
           rig_debug(RIG_DEBUG_ERR, "%s: WRONG reply %c%c for command verification %c%c (datasize=%d)\n",
                     __func__, buffer[0], buffer[1]
-                    , priv->verify_cmd[0], priv->verify_cmd[1], datasize);
+                    , priv->verify_cmd[0], priv->verify_cmd[1], (int)datasize);
 
           if (retry_read++ < rs->rigport.retry)
             goto transaction_write;
@@ -402,7 +402,7 @@ int elad_safe_transaction(RIG *rig, const char *cmd, char *buf,
         {
           rig_debug(RIG_DEBUG_ERR, "%s: wrong answer; len for cmd %s: "
                     "expected = %d, got %d\n",
-                    __func__, cmd, expected, length);
+                    __func__, cmd, (int)expected, (int)length);
           err =  -RIG_EPROTO;
           usleep (rig->caps->timeout * 1000);
         }
@@ -708,7 +708,7 @@ int elad_set_vfo(RIG *rig, vfo_t vfo)
   //if rig=ts2000 then check Satellite mode status
   if(rig->caps->rig_model == RIG_MODEL_TS2000 && !priv->is_emulation) {
     char retbuf[20];
-    rig_debug(RIG_DEBUG_VERBOSE, "Checking Satellite mode status\n");
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: Checking Satellite mode status\n",__FUNCTION__);
     snprintf(cmdbuf, sizeof (cmdbuf), "SA");
 
     retval = elad_transaction(rig, cmdbuf, retbuf, 20);
@@ -1749,7 +1749,7 @@ int elad_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     break;
 
   default:
-    rig_debug(RIG_DEBUG_ERR, "Unsupported set_level %d", level);
+    rig_debug(RIG_DEBUG_ERR, "Unsupported set_level %s", rig_strlevel(level));
     return -RIG_EINVAL;
   }
 
@@ -1959,7 +1959,7 @@ int elad_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     return -RIG_ENIMPL;
 
   default:
-    rig_debug(RIG_DEBUG_ERR, "Unsupported get_level %d", level);
+    rig_debug(RIG_DEBUG_ERR, "Unsupported get_level %s", rig_strlevel(level));
     return -RIG_EINVAL;
   }
 
@@ -2033,7 +2033,7 @@ int elad_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     return elad_transaction(rig, buf, NULL, 0);
 
   default:
-    rig_debug(RIG_DEBUG_ERR, "Unsupported set_func %#x", func);
+    rig_debug(RIG_DEBUG_ERR, "Unsupported set_func %s", rig_strfunc(func));
     return -RIG_EINVAL;
   }
 
@@ -2120,7 +2120,7 @@ int elad_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     return get_elad_func(rig, "MX", status);
 
   default:
-    rig_debug(RIG_DEBUG_ERR, "Unsupported get_func %#x", func);
+    rig_debug(RIG_DEBUG_ERR, "Unsupported get_func %s", rig_strfunc(func));
     return -RIG_EINVAL;
   }
 
@@ -3313,7 +3313,7 @@ DECLARE_PROBERIG_BACKEND(elad)
      * reply should be something like 'K2n;'
      */
     if (id_len == 4 || !strcmp(idbuf, "K2")) {
-      rig_debug(RIG_DEBUG_VERBOSE, "probe_elad: found K2\n");
+      rig_debug(RIG_DEBUG_VERBOSE, "%s: found K2\n",__FUNCTION__);
       if (cfunc)
         (*cfunc)(port, RIG_MODEL_K2, data);
       return RIG_MODEL_K2;

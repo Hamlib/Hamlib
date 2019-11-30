@@ -155,7 +155,7 @@ static int flex6k_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     *width = dsp_bw_dig[index];
     break;
   default:
-    rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %d, setting default BW\n", __func__, *mode);
+    rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s, setting default BW\n", __func__, rig_strrmode(*mode));
     *width = 3000;
     break;
   }
@@ -188,7 +188,7 @@ static int flex6k_find_width(rmode_t mode, pbwidth_t width, int *ridx)
     w_a = dsp_bw_dig;
     break;
   default:
-    rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %d\n", __func__, mode);
+    rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n", __func__, rig_strrmode(mode));
     return -RIG_EINVAL;
   }
 

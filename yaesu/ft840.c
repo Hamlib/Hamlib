@@ -570,10 +570,9 @@ static int ft840_set_mode(RIG *rig, vfo_t vfo, rmode_t mode,
   if (!rig)
     return -RIG_EINVAL;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
-  rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = %i\n", __func__, mode);
-  rig_debug(RIG_DEBUG_TRACE, "%s: passed width = %li Hz\n",
-            __func__, width);
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = %s\n", __func__, rig_strvfo(vfo));
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = %s\n", __func__, rig_strrmode(mode));
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed width = %d Hz\n", __func__, (int)width);
 
   priv = (struct ft840_priv_data *)rig->state.priv;
 
@@ -720,7 +719,7 @@ static int ft840_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) 
   flag = FLAG_MASK & priv->update_data[f_offset];
 
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: mode = 0x%02x\n", __func__, mode);
+  rig_debug(RIG_DEBUG_TRACE, "%s: mode = %s\n", __func__, rig_strrmode(*mode));
   rig_debug(RIG_DEBUG_TRACE, "%s: flag = 0x%02x\n", __func__, flag);
 
   /*
@@ -765,8 +764,8 @@ static int ft840_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) 
     *width = rig_passband_narrow(rig, *mode);
   }
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: set mode = %i\n", __func__, *mode);
-  rig_debug(RIG_DEBUG_TRACE, "%s: set width = %li Hz\n", __func__, *width);
+  rig_debug(RIG_DEBUG_TRACE, "%s: set mode = %s\n", __func__, rig_strrmode(*mode));
+  rig_debug(RIG_DEBUG_TRACE, "%s: set width = %d Hz\n", __func__, (int)*width);
 
   return RIG_OK;
 }
@@ -1284,8 +1283,8 @@ static int ft840_set_func(RIG *rig, vfo_t vfo, setting_t func, int status) {
   if (!rig)
     return -RIG_EINVAL;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: passed func = 0x%02x\n", __func__, func);
-  rig_debug(RIG_DEBUG_TRACE, "%s: passed status = %i\n", __func__, status);
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed func = %s\n", __func__, rig_strfunc(func));
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed status = %d\n", __func__, status);
 
   switch (func) {
   case RIG_FUNC_TUNER:
@@ -1338,7 +1337,7 @@ static int ft840_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val) {
   if (!rig)
     return -RIG_EINVAL;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: passed level = 0x%02x\n", __func__, level);
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed level = %s\n", __func__, rig_strlevel(level));
 
   priv = (struct ft840_priv_data *)rig->state.priv;
 
@@ -1609,7 +1608,7 @@ static int ft840_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq) {
 
   rig_debug(RIG_DEBUG_TRACE,
             "%s: requested freq after conversion = %"PRIll" Hz\n",
-            __func__, from_bcd(priv->p_cmd, FT840_BCD_DIAL)* 10);
+            __func__, (int64_t)from_bcd(priv->p_cmd, FT840_BCD_DIAL)* 10);
 
   err = write_block(&rig_s->rigport, (char *) &priv->p_cmd,
                     YAESU_CMD_LENGTH);

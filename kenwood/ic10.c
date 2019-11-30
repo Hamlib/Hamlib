@@ -284,8 +284,8 @@ int ic10_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	case RIG_MODE_AM   :	mode_letter = MD_AM; break;
 	case RIG_MODE_RTTY :	mode_letter = MD_FSK; break;
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %d\n",
-				__func__,mode);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %s\n",
+				__func__, rig_strrmode(mode));
 		return -RIG_EINVAL;
 	}
 
@@ -574,8 +574,8 @@ int ic10_set_channel(RIG *rig, const channel_t *chan)
 	case RIG_MODE_RTTY:	md = MD_FSK; break;
 	case RIG_MODE_NONE:	md = MD_NONE; break;
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %d\n",
-				__func__,chan->mode);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %s\n",
+				__func__, rig_strrmode(chan->mode));
 		return -RIG_EINVAL;
 	}
 
@@ -600,8 +600,8 @@ int ic10_set_channel(RIG *rig, const channel_t *chan)
 	case RIG_MODE_RTTY:	md = MD_FSK; break;
 	case RIG_MODE_NONE:	md = MD_NONE; break;
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %d\n",
-				__func__,chan->tx_mode);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %s\n",
+				__func__,rig_strrmode(chan->tx_mode));
 		return -RIG_EINVAL;
 	}
 
@@ -630,8 +630,8 @@ int ic10_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 	switch (func) {
 	case RIG_FUNC_LOCK: cmdlen = sprintf(cmdbuf,"LK;"); break;
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported get_func %#x",
-				__func__,func);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported get_func %s",
+				__func__, rig_strfunc(func));
 		return -RIG_EINVAL;
 	}
 
@@ -667,8 +667,8 @@ int ic10_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 			return -RIG_ETRUNC;
 		break;
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported set_func %#x",
-				__func__,func);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported set_func %s",
+				__func__, rig_strfunc(func));
 		return -RIG_EINVAL;
 	}
 
@@ -704,8 +704,8 @@ int ic10_set_parm(RIG *rig, setting_t parm, value_t val)
 		return ic10_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
 		break;
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported set_parm %d\n",
-				__func__,parm);
+		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported set_parm %s\n",
+				__func__, rig_strparm(parm));
 		return -RIG_EINVAL;
 	}
 
@@ -745,8 +745,8 @@ int ic10_get_parm(RIG *rig, setting_t parm, value_t *val)
 					10*lvlbuf[7] + lvlbuf[8];	/* seconds */
 		break;
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported get_parm %d\n",
-				__func__,parm);
+		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported get_parm %s\n",
+				__func__, rig_strparm(parm));
 		return -RIG_EINVAL;
 	}
 

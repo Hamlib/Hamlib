@@ -260,8 +260,8 @@ int racal_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	case RIG_MODE_AMS:	ra_mode = MD_ISB; break;	/* TBC */
 	case RIG_MODE_FM:	ra_mode = MD_FM; break;
 	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %d\n",
-				__FUNCTION__, mode);
+		rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n",
+				__func__, rig_strrmode(mode));
 		return -RIG_EINVAL;
 	}
 
@@ -301,8 +301,8 @@ int racal_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	case MD_FM: *mode = RIG_MODE_FM; break;
 	case MD_AM: *mode = RIG_MODE_AM; break;
 	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %d\n",
-				__FUNCTION__, mode);
+		rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n",
+				__func__, rig_strrmode(*mode));
 		return -RIG_EPROTO;
 	}
 
@@ -350,8 +350,8 @@ int racal_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		break;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported %d\n",
-				__FUNCTION__, level);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported %s\n",
+				__func__, rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 
@@ -418,7 +418,7 @@ int racal_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		}
 		break;
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported %d\n", __FUNCTION__, level);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported %s\n", __func__, rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 
@@ -471,7 +471,7 @@ const char* racal_get_info(RIG *rig)
  */
 DECLARE_INITRIG_BACKEND(racal)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "racal: _init called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
 	rig_register(&ra6790_caps);
 	rig_register(&ra3702_caps);

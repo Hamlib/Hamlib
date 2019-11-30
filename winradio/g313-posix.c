@@ -136,10 +136,12 @@ int g313_open(RIG *rig)
     if(priv->hWRAPI==0) /* might not be done yet, must be done now! */
     {
         priv->hWRAPI = g313_init_api();
-        if(priv->hWRAPI)
+        if(priv->hWRAPI) {
             rig_debug(RIG_DEBUG_VERBOSE, "%s: Initialised G313 API\n", __FUNCTION__);
-        else
+        }
+        else {
             return -RIG_EIO; /* can't go any further */
+        }
     }
 
     if(priv->Opened)

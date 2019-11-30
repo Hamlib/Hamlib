@@ -300,7 +300,7 @@ int ft817_init (RIG *rig)
 {
 	struct ft817_priv_data *p;
 
-	rig_debug (RIG_DEBUG_VERBOSE,"ft817: ft817_init called \n");
+	rig_debug (RIG_DEBUG_VERBOSE,"%s: called\n", __func__);
 
 	if ((p = calloc(1, sizeof(struct ft817_priv_data))) == NULL)
 		return -RIG_ENOMEM;
@@ -315,7 +315,7 @@ int ft817_init (RIG *rig)
 
 int ft817_cleanup (RIG *rig)
 {
-	rig_debug (RIG_DEBUG_VERBOSE,"ft817: ft817_cleanup called \n");
+	rig_debug (RIG_DEBUG_VERBOSE,"%s: called\n", __func__);
 
 	if (rig->state.priv)
 		free(rig->state.priv);
@@ -326,14 +326,14 @@ int ft817_cleanup (RIG *rig)
 
 int ft817_open (RIG *rig)
 {
-	rig_debug (RIG_DEBUG_VERBOSE,"ft817: ft817_open called \n");
+	rig_debug (RIG_DEBUG_VERBOSE,"%s: called \n", __func__);
 
 	return RIG_OK;
 }
 
 int ft817_close (RIG *rig)
 {
-	rig_debug (RIG_DEBUG_VERBOSE,"ft817: ft817_close called \n");
+	rig_debug (RIG_DEBUG_VERBOSE,"%s: called \n", __func__);
 
 	return RIG_OK;
 }
@@ -356,7 +356,7 @@ static int check_cache_timeout(struct timeval *tv)
 	long t;
 
 	if (tv->tv_sec == 0 && tv->tv_usec == 0) {
-		rig_debug(RIG_DEBUG_VERBOSE, "ft817: cache invalid\n");
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: cache invalid\n", __func__);
 		return 1;
 	}
 
@@ -421,7 +421,7 @@ static int ft817_get_status(RIG *rig, int status)
 		tv   = &p->tx_status_tv;
 		break;
 	default:
-		rig_debug(RIG_DEBUG_ERR, "ft817_get_status: Internal error!\n");
+		rig_debug(RIG_DEBUG_ERR, "%s: Internal error!\n", __func__);
 		return -RIG_EINTERNAL;
 	}
 
@@ -720,11 +720,11 @@ static int ft817_read_ack(RIG *rig)
 	int n;
 
 	if ((n = read_block(&rig->state.rigport, &dummy, 1)) < 0) {
-		rig_debug(RIG_DEBUG_ERR, "ft817: error reading ack\n");
+		rig_debug(RIG_DEBUG_ERR, "%s: error reading ack\n", __func__);
 		return n;
 	}
 
-	rig_debug(RIG_DEBUG_TRACE,"ft817: ack received (%d)\n", dummy);
+	rig_debug(RIG_DEBUG_TRACE,"%s: ack received (%d)\n", __func__, dummy);
 
 	if (dummy != 0)
 		return -RIG_ERJCTED;
@@ -742,7 +742,7 @@ static int ft817_send_cmd(RIG *rig, int index)
 	struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
 
 	if (p->pcs[index].ncomp == 0) {
-		rig_debug(RIG_DEBUG_VERBOSE, "ft817: Incomplete sequence\n");
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: Incomplete sequence\n", __func__);
 		return -RIG_EINTERNAL;
 	}
 
@@ -759,7 +759,7 @@ static int ft817_send_icmd(RIG *rig, int index, unsigned char *data)
 	unsigned char cmd[YAESU_CMD_LENGTH];
 
 	if (p->pcs[index].ncomp == 1) {
-		rig_debug(RIG_DEBUG_VERBOSE, "ft817: Complete sequence\n");
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: Complete sequence\n", __func__);
 		return -RIG_EINTERNAL;
 	}
 
@@ -797,7 +797,7 @@ int ft817_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	if (vfo != RIG_VFO_CURR)
 		return -RIG_ENTARGET;
 
-	rig_debug(RIG_DEBUG_VERBOSE,"ft817: generic mode = %x \n", mode);
+	rig_debug(RIG_DEBUG_VERBOSE,"%s: generic mode = %s\n", __func__, rig_strrmode(mode));
 
 	switch(mode) {
 
@@ -858,7 +858,7 @@ int ft817_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 	if (vfo != RIG_VFO_CURR)
 		return -RIG_ENTARGET;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "ft817: ft817_set_ptt called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
 	switch(ptt) {
 	case RIG_PTT_ON:
@@ -1135,7 +1135,7 @@ int ft817_set_split_vfo  (RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 /* 	if (vfo != RIG_VFO_CURR) */
 /* 		return -RIG_ENTARGET; */
 
-	rig_debug(RIG_DEBUG_VERBOSE, "ft817: ft817_set_split_vfo called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
 	switch (split) {
 

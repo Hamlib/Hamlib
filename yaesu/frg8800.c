@@ -159,7 +159,7 @@ int frg8800_open(RIG *rig)
 {
   unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x00};
 
-  rig_debug(RIG_DEBUG_TRACE, "frg8800: frg8800_open called\n");
+  rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
   /* send Ext Cntl ON: Activate CAT */
   return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
@@ -170,7 +170,7 @@ int frg8800_close(RIG *rig)
 {
   unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x80, 0x00};
 
-  rig_debug(RIG_DEBUG_TRACE, "frg8800: frg8800_close called\n");
+  rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
   /* send Ext Cntl OFF: Deactivate CAT */
   return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
@@ -182,7 +182,7 @@ int frg8800_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
   unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x01};
 
-  rig_debug(RIG_DEBUG_TRACE,"frg8800: frg8800_set_freq called\n");
+  rig_debug(RIG_DEBUG_TRACE,"%s: called\n", __func__);
 
    /* store bcd format in cmd (LSB) */
   to_bcd(cmd, freq/10, 8);
@@ -200,7 +200,7 @@ int frg8800_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x80};
   unsigned char md;
 
-  rig_debug(RIG_DEBUG_TRACE,"frg8800: frg8800_set_mode called %x\n", mode);
+  rig_debug(RIG_DEBUG_TRACE,"%s: frg8800_set_mode called %s\n", __func__, rig_strrmode(mode));
 
   /*
    * translate mode from generic to frg8800 specific
@@ -234,7 +234,7 @@ int frg8800_set_powerstat(RIG *rig, powerstat_t status)
 {
   unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x80};
 
-  rig_debug(RIG_DEBUG_TRACE,"frg8800: frg8800_set_powerstat called\n");
+  rig_debug(RIG_DEBUG_TRACE,"%s: called\n", __func__);
 
   cmd[3] = status == RIG_POWER_OFF ? 0xff : 0xfe;
 

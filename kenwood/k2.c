@@ -411,7 +411,7 @@ int k2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	tmp[4] = '\0';
 	*width = atoi(tmp);
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: Mode: %d, Width: %04li\n", __func__, *mode, *width);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: Mode: %s, Width: %d\n", __func__, rig_strrmode(*mode), (int)*width);
 
 	return RIG_OK;
 }
@@ -453,8 +453,8 @@ int k2_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 		}
 		break;
 	default:
-		rig_debug(RIG_DEBUG_WARN, "%s: Unsupported get_ext_level %d\n",
-			__func__, token);
+		rig_debug(RIG_DEBUG_WARN, "%s: Unsupported get_ext_level %s\n",
+			__func__, rig_strlevel(token));
 		return -RIG_EINVAL;
 	}
 

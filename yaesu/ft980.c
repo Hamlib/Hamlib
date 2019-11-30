@@ -264,29 +264,29 @@ static void dump_freq(unsigned char* data) {
 
 static void dump_vfo(unsigned char data) {
   switch ((unsigned int)data) {
-  case 0:   rig_debug(RIG_DEBUG_VERBOSE, "GEN");break;
-  case 128: rig_debug(RIG_DEBUG_VERBOSE, "HAM");break;
+  case 0:   rig_debug(RIG_DEBUG_VERBOSE, "%s","GEN");break;
+  case 128: rig_debug(RIG_DEBUG_VERBOSE, "%s","HAM");break;
   }
 }
 
 
 static void dump_mode(unsigned char data) {
   switch ((unsigned int)data) {
-  case 0: rig_debug(RIG_DEBUG_VERBOSE, " LSB\n");break;
-  case 1: rig_debug(RIG_DEBUG_VERBOSE, " USB\n");break;
-  case 2: rig_debug(RIG_DEBUG_VERBOSE, " CW-W\n");break;
-  case 3: rig_debug(RIG_DEBUG_VERBOSE, " CW-N\n");break;
-  case 4: rig_debug(RIG_DEBUG_VERBOSE, " AM-W\n");break;
-  case 5: rig_debug(RIG_DEBUG_VERBOSE, " AM-N\n");break;
-  case 6: rig_debug(RIG_DEBUG_VERBOSE, " FSK\n");break;
-  case 7: rig_debug(RIG_DEBUG_VERBOSE, " FM\n");break;
+  case 0: rig_debug(RIG_DEBUG_VERBOSE, "%s", " LSB\n");break;
+  case 1: rig_debug(RIG_DEBUG_VERBOSE, "%s", " USB\n");break;
+  case 2: rig_debug(RIG_DEBUG_VERBOSE, "%s", " CW-W\n");break;
+  case 3: rig_debug(RIG_DEBUG_VERBOSE, "%s", " CW-N\n");break;
+  case 4: rig_debug(RIG_DEBUG_VERBOSE, "%s", " AM-W\n");break;
+  case 5: rig_debug(RIG_DEBUG_VERBOSE, "%s", " AM-N\n");break;
+  case 6: rig_debug(RIG_DEBUG_VERBOSE, "%s", " FSK\n");break;
+  case 7: rig_debug(RIG_DEBUG_VERBOSE, "%s", " FM\n");break;
   }
 }
 
 static void dump_switch(unsigned char data) {
   switch ((unsigned int)data) {
-  case 0: rig_debug(RIG_DEBUG_VERBOSE, "OFF");break;
-  case 1: rig_debug(RIG_DEBUG_VERBOSE, "ON ");break;
+  case 0: rig_debug(RIG_DEBUG_VERBOSE, "%s", "OFF");break;
+  case 1: rig_debug(RIG_DEBUG_VERBOSE, "%s", "ON ");break;
   }
 }
 
@@ -307,56 +307,56 @@ static void dump_IF_WIDTH(unsigned char data) {
 }
 
 static void dump_MEM_SHIFT(unsigned char data) {
-  rig_debug(RIG_DEBUG_VERBOSE, "MEM_SHIFT       :");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "MEM_SHIFT       :");
   switch ((unsigned int)data) {
-  case 0:  rig_debug(RIG_DEBUG_VERBOSE, "OFF\n");break;
-  case 16: rig_debug(RIG_DEBUG_VERBOSE, "ON\n");break;
+  case 0:  rig_debug(RIG_DEBUG_VERBOSE, "%s", "OFF\n");break;
+  case 16: rig_debug(RIG_DEBUG_VERBOSE, "%s", "ON\n");break;
   }
 }
 static void dump_CLAR_FLAG(unsigned char data) {
   unsigned char RX_CLAR =data & 0x20;
   unsigned char TX_CLAR =data & 0x40;
-  rig_debug(RIG_DEBUG_VERBOSE, "CLAR_SHIFT RX/TX:");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "CLAR_SHIFT RX/TX:");
   switch ((unsigned int)RX_CLAR) {
-    case 0:     rig_debug(RIG_DEBUG_VERBOSE, "OFF ");break;
-    case 0x20:  rig_debug(RIG_DEBUG_VERBOSE, "ON  ");break;
+    case 0:     rig_debug(RIG_DEBUG_VERBOSE, "%s", "OFF ");break;
+    case 0x20:  rig_debug(RIG_DEBUG_VERBOSE, "%s", "ON  ");break;
   }
   switch ((unsigned int)TX_CLAR) {
-    case 0:     rig_debug(RIG_DEBUG_VERBOSE, " OFF ");break;
-    case 0x40:  rig_debug(RIG_DEBUG_VERBOSE, " ON  ");break;
+    case 0:     rig_debug(RIG_DEBUG_VERBOSE, "%s", " OFF ");break;
+    case 0x40:  rig_debug(RIG_DEBUG_VERBOSE, "%s", " ON  ");break;
   }
-  rig_debug(RIG_DEBUG_VERBOSE, "\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
 }
 static void dump_TAB_FLAG(unsigned char data) {
-  rig_debug(RIG_DEBUG_VERBOSE, "TAB FLAG        :");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "TAB FLAG        :");
   switch (data) {
-    case 0:     rig_debug(RIG_DEBUG_VERBOSE, "OFF\n");break;
-    case 0x80:  rig_debug(RIG_DEBUG_VERBOSE, "ON\n");break;
+    case 0:     rig_debug(RIG_DEBUG_VERBOSE, "%s", "OFF\n");break;
+    case 0x80:  rig_debug(RIG_DEBUG_VERBOSE, "%s", "ON\n");break;
   }
 }
 static void dump_SELECT_SW(unsigned char data) {
-  rig_debug(RIG_DEBUG_VERBOSE, "SELECT_SW       :");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "SELECT_SW       :");
   switch ((unsigned int)data) {
-    case 0:  rig_debug(RIG_DEBUG_VERBOSE, "VFO ");break;
-    case 1:  rig_debug(RIG_DEBUG_VERBOSE, "MR  ");break;
-    case 2:  rig_debug(RIG_DEBUG_VERBOSE, "RX_M");break;
-    case 3:  rig_debug(RIG_DEBUG_VERBOSE, "RX_V");break;
+    case 0:  rig_debug(RIG_DEBUG_VERBOSE, "%s", "VFO ");break;
+    case 1:  rig_debug(RIG_DEBUG_VERBOSE, "%s", "MR  ");break;
+    case 2:  rig_debug(RIG_DEBUG_VERBOSE, "%s", "RX_M");break;
+    case 3:  rig_debug(RIG_DEBUG_VERBOSE, "%s", "RX_V");break;
   }
-  rig_debug(RIG_DEBUG_VERBOSE, "\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
 }
 static void dump_MODE_SW(unsigned char data) {
-  rig_debug(RIG_DEBUG_VERBOSE, "MODE_SW         :");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "MODE_SW         :");
   switch ((unsigned int)data) {
-    case 0:  rig_debug(RIG_DEBUG_VERBOSE, "LSB ");break;
-    case 1:  rig_debug(RIG_DEBUG_VERBOSE, "USB ");break;
-    case 2:  rig_debug(RIG_DEBUG_VERBOSE, "CW-W");break;
-    case 3:  rig_debug(RIG_DEBUG_VERBOSE, "CW-N");break;
-    case 4:  rig_debug(RIG_DEBUG_VERBOSE, "AM-W");break;
-    case 5:  rig_debug(RIG_DEBUG_VERBOSE, "AM-N");break;
-    case 6:  rig_debug(RIG_DEBUG_VERBOSE, "FSK");break;
-    case 7:  rig_debug(RIG_DEBUG_VERBOSE, "FM");break;
+    case 0:  rig_debug(RIG_DEBUG_VERBOSE, "%s", "LSB ");break;
+    case 1:  rig_debug(RIG_DEBUG_VERBOSE, "%s", "USB ");break;
+    case 2:  rig_debug(RIG_DEBUG_VERBOSE, "%s", "CW-W");break;
+    case 3:  rig_debug(RIG_DEBUG_VERBOSE, "%s", "CW-N");break;
+    case 4:  rig_debug(RIG_DEBUG_VERBOSE, "%s", "AM-W");break;
+    case 5:  rig_debug(RIG_DEBUG_VERBOSE, "%s", "AM-N");break;
+    case 6:  rig_debug(RIG_DEBUG_VERBOSE, "%s", "FSK");break;
+    case 7:  rig_debug(RIG_DEBUG_VERBOSE, "%s", "FM");break;
   }
-  rig_debug(RIG_DEBUG_VERBOSE, "\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
 }
 static void dump_MEM_CH_SW(unsigned char data) {
   rig_debug(RIG_DEBUG_VERBOSE, "MEM_CH_SW       :%d\n",data+1);
@@ -366,32 +366,32 @@ static void dump_STATUS_FLAG(unsigned char data) {
   unsigned char SPLIT =data & 0x08;
   unsigned char VFO   =data & 0x20;
   unsigned char CLAR  =data & 0x40;
-  rig_debug(RIG_DEBUG_VERBOSE, "STATUS_FLAG     :");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "STATUS_FLAG     :");
 
   if(TX) {
-    rig_debug(RIG_DEBUG_VERBOSE, "TX ");
+    rig_debug(RIG_DEBUG_VERBOSE, "%s", "TX ");
   } else {
-    rig_debug(RIG_DEBUG_VERBOSE, "RX ");
+    rig_debug(RIG_DEBUG_VERBOSE, "%s", "RX ");
   }
   if(SPLIT) {
-    rig_debug(RIG_DEBUG_VERBOSE, "SPLIT   ");
+    rig_debug(RIG_DEBUG_VERBOSE, "%s", "SPLIT   ");
   } else {
-    rig_debug(RIG_DEBUG_VERBOSE, "SIMPLEX ");
+    rig_debug(RIG_DEBUG_VERBOSE, "%s", "SIMPLEX ");
   }
 
   if(VFO) {
-    rig_debug(RIG_DEBUG_VERBOSE, "VFO    ");
+    rig_debug(RIG_DEBUG_VERBOSE, "%s", "VFO    ");
   } else {
-    rig_debug(RIG_DEBUG_VERBOSE, "MEMORY ");
+    rig_debug(RIG_DEBUG_VERBOSE, "%s", "MEMORY ");
   }
 
   if(CLAR) {
-    rig_debug(RIG_DEBUG_VERBOSE, "CLAR_ON ");
+    rig_debug(RIG_DEBUG_VERBOSE, "%s", "CLAR_ON ");
   } else {
-    rig_debug(RIG_DEBUG_VERBOSE, "CLAR_OFF");
+    rig_debug(RIG_DEBUG_VERBOSE, "%s", "CLAR_OFF");
   }
 
-  rig_debug(RIG_DEBUG_VERBOSE, "\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
 }
 
 
@@ -399,118 +399,118 @@ static void dump_memory(_ft980_memory_t *memory) {
 
   if (!rig_need_debug(RIG_DEBUG_VERBOSE))
 		  return;
-  rig_debug(RIG_DEBUG_VERBOSE, "mem_1          :");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "mem_1          :");
   dump_freq(memory->mem_1);
   dump_vfo(memory->vfo_1);
   dump_mode(memory->mode_1);
 
-  rig_debug(RIG_DEBUG_VERBOSE, "mem_2          :");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "mem_2          :");
   dump_freq(memory->mem_2);
   dump_vfo(memory->vfo_2);
   dump_mode(memory->mode_2);
 
-  rig_debug(RIG_DEBUG_VERBOSE, "mem_3          :");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "mem_3          :");
   dump_freq(memory->mem_3);
   dump_vfo(memory->vfo_3);
   dump_mode(memory->mode_3);
 
-  rig_debug(RIG_DEBUG_VERBOSE, "mem_4          :");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "mem_4          :");
   dump_freq(memory->mem_4);
   dump_vfo(memory->vfo_4);
   dump_mode(memory->mode_4);
 
-  rig_debug(RIG_DEBUG_VERBOSE, "mem_5          :");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "mem_5          :");
   dump_freq(memory->mem_5);
   dump_vfo(memory->vfo_5);
   dump_mode(memory->mode_5);
 
-  rig_debug(RIG_DEBUG_VERBOSE, "mem_6          :");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "mem_6          :");
   dump_freq(memory->mem_6);
   dump_vfo(memory->vfo_6);
   dump_mode(memory->mode_6);
 
-  rig_debug(RIG_DEBUG_VERBOSE, "mem_7          :");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "mem_7          :");
   dump_freq(memory->mem_7);
   dump_vfo(memory->vfo_7);
   dump_mode(memory->mode_7);
 
-  rig_debug(RIG_DEBUG_VERBOSE, "mem_8          :");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "mem_8          :");
   dump_freq(memory->mem_8);
   dump_vfo(memory->vfo_8);
   dump_mode(memory->mode_8);
 
-  rig_debug(RIG_DEBUG_VERBOSE, "mem_9           :");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "mem_9           :");
   dump_freq(memory->mem_9);
   dump_vfo(memory->vfo_9);
   dump_mode(memory->mode_9);
 
-  rig_debug(RIG_DEBUG_VERBOSE, "mem_10          :");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "mem_10          :");
   dump_freq(memory->mem_10);
   dump_vfo(memory->vfo_10);
   dump_mode(memory->mode_10);
 
-  rig_debug(RIG_DEBUG_VERBOSE, "mem_11          :");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "mem_11          :");
   dump_freq(memory->mem_11);
   dump_vfo(memory->vfo_11);
   dump_mode(memory->mode_11);
 
-  rig_debug(RIG_DEBUG_VERBOSE, "mem_12          :");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "mem_12          :");
   dump_freq(memory->mem_12);
   dump_vfo(memory->vfo_12);
   dump_mode(memory->mode_12);
 
-  rig_debug(RIG_DEBUG_VERBOSE, "mem_13          :");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "mem_13          :");
   dump_freq(memory->mem_13);
   dump_vfo(memory->vfo_13);
   dump_mode(memory->mode_13);
 
-  rig_debug(RIG_DEBUG_VERBOSE, "mem_14          :");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "mem_14          :");
   dump_freq(memory->mem_14);
   dump_vfo(memory->vfo_14);
   dump_mode(memory->mode_14);
 
-  rig_debug(RIG_DEBUG_VERBOSE, "mem_15          :");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "mem_15          :");
   dump_freq(memory->mem_15);
   dump_vfo(memory->vfo_15);
   dump_mode(memory->mode_15);
 
-  rig_debug(RIG_DEBUG_VERBOSE, "mem_16          :");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "mem_16          :");
   dump_freq(memory->mem_16);
   dump_vfo(memory->vfo_16);
   dump_mode(memory->mode_16);
 
-  rig_debug(RIG_DEBUG_VERBOSE, "GEN             :");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "GEN             :");
   dump_freq(memory->GEN);
 
-  rig_debug(RIG_DEBUG_VERBOSE, "\nHAM             :");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "\nHAM             :");
   dump_freq(memory->HAM);
-  rig_debug(RIG_DEBUG_VERBOSE, "\n                 ");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n                 ");
   dump_vfo(memory->vfo);
   dump_mode(memory->mode);
 
-  rig_debug(RIG_DEBUG_VERBOSE, "CLAR            :");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "CLAR            :");
   dump_freq(memory->CLAR);
-  rig_debug(RIG_DEBUG_VERBOSE, "\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
 
-  rig_debug(RIG_DEBUG_VERBOSE, "f_1             :");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "f_1             :");
   dump_freq(memory->ff_1);
-  rig_debug(RIG_DEBUG_VERBOSE, "\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
 
-  rig_debug(RIG_DEBUG_VERBOSE, "f_2             :");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "f_2             :");
   dump_freq(memory->ff_2);
-  rig_debug(RIG_DEBUG_VERBOSE, "\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
 
-  rig_debug(RIG_DEBUG_VERBOSE, "                 ");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "                 ");
   dump_vfo(memory->vfo);
   dump_mode(memory->mode);
 
-  rig_debug(RIG_DEBUG_VERBOSE, "LDB             :");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "LDB             :");
   dump_switch(memory->LDB);
-  rig_debug(RIG_DEBUG_VERBOSE, "\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
 
-  rig_debug(RIG_DEBUG_VERBOSE, "EXT_CTL         :");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "EXT_CTL         :");
   dump_switch(memory->EXT_CTL);
-  rig_debug(RIG_DEBUG_VERBOSE, "\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
 
   dump_IF_SHIFT(memory->IF_SHIFT);
   dump_SPLIT_CODE(memory->SPLIT_CODE);
@@ -521,28 +521,28 @@ static void dump_memory(_ft980_memory_t *memory) {
   dump_TAB_FLAG(memory->TAB_FLAG);
   dump_SELECT_SW(memory->SELECT_SW);
 
-  rig_debug(RIG_DEBUG_VERBOSE, "OFFSET_SW       :");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "OFFSET_SW       :");
   dump_switch(memory->OFFSET_SW);
-  rig_debug(RIG_DEBUG_VERBOSE, "\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
 
   dump_MODE_SW(memory->MODE_SW);
   dump_MEM_CH_SW(memory->MEM_CH_SW);
 
-  rig_debug(RIG_DEBUG_VERBOSE, "LOW_TAB         :");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "LOW_TAB         :");
   dump_freq(memory->LOW_TAB);
-  rig_debug(RIG_DEBUG_VERBOSE, "\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
 
-  rig_debug(RIG_DEBUG_VERBOSE, "UP_TAB          :");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "UP_TAB          :");
   dump_freq(memory->UP_TAB);
-  rig_debug(RIG_DEBUG_VERBOSE, "\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
 
-  rig_debug(RIG_DEBUG_VERBOSE, "                 ");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "                 ");
   dump_vfo(memory->VFO_STATUS);
   dump_mode(memory->OP_MODE);
 
-  rig_debug(RIG_DEBUG_VERBOSE, "OP_FREQ         :");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "OP_FREQ         :");
   dump_freq(memory->OP_FREQ);
-  rig_debug(RIG_DEBUG_VERBOSE, "\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
 
   dump_STATUS_FLAG(memory->STATUS_FLAG);
 }
@@ -762,7 +762,7 @@ int ft980_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
 
   my_mode = priv->update_data.OP_MODE;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: mode = 0x%02x\n", __func__, mode);
+  rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
   /*
    * translate mode from ft980 to generic.
@@ -810,8 +810,8 @@ int ft980_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
     *width = rig_passband_narrow(rig, *mode);
   }
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: set mode = %i\n", __func__, *mode);
-  rig_debug(RIG_DEBUG_TRACE, "%s: set width = %li Hz\n", __func__, *width);
+  rig_debug(RIG_DEBUG_TRACE, "%s: set mode = %s\n", __func__, rig_strrmode(*mode));
+  rig_debug(RIG_DEBUG_TRACE, "%s: set width = %d Hz\n", __func__, (int)*width);
 
   return RIG_OK;
 }

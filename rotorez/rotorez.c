@@ -735,7 +735,7 @@ static int rotorez_rot_set_conf(ROT *rot, token_t token, const char *val) {
 	int err;
 
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-	rig_debug(RIG_DEBUG_TRACE, "%s: token = %d, *val = %c\n", __func__, token, *val);
+	rig_debug(RIG_DEBUG_TRACE, "%s: token = %d, *val = %c\n", __func__, (int)token, *val);
 
 	if (!rot)
 		return -RIG_EINVAL;

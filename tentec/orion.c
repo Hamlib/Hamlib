@@ -136,7 +136,7 @@ static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
         if (!data || !data_len) {
         	/* If it's not a 'write' to rig or a Morse command, there must be data. */
                 if ((*cmd != '*') && (*cmd != '/')) {
-                    rig_debug(RIG_DEBUG_ERR,"cmd reject 1\n");
+                    rig_debug(RIG_DEBUG_ERR,"%s: cmd reject 1\n", __func__);
                     return -RIG_ERJCTED;
                     }
                 return RIG_OK;	/* normal exit if write, but no read */
@@ -148,7 +148,7 @@ static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 	*data_len = read_string(&rs->rigport, data, *data_len,
 		        EOM, strlen(EOM));
 	if (!strncmp(data,"Z!",2)) {     // command unrecognized??
-        	rig_debug(RIG_DEBUG_ERR,"cmd reject 2\n");
+        	rig_debug(RIG_DEBUG_ERR,"%s: cmd reject 2\n", __func__);
         	return -RIG_ERJCTED;	// what is a better error return?
         	}
 	/* XX and ?V are oddball commands.  Thanks, Ten-Tec! */
@@ -159,7 +159,7 @@ static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
         	return RIG_OK;		// ditto
         	}
 	if (cmd[0] != '?') {		// was this a read cmd?
-		rig_debug(RIG_DEBUG_ERR,"cmd reject 3\n");
+		rig_debug(RIG_DEBUG_ERR,"%s: cmd reject 3\n", __func__);
 		return -RIG_ERJCTED;	// No, but it should have been!
 		}
 	else {                          // Yes, it was a 'read', phew!
@@ -570,8 +570,8 @@ int tt565_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	case RIG_MODE_FM:	ttmode = TT565_FM; break;
 	case RIG_MODE_RTTY:	ttmode = TT565_RTTY; break;
 	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %d\n",
-					__FUNCTION__, mode);
+		rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n",
+					__func__, rig_strrmode(mode));
 		return -RIG_EINVAL;
 	}
 
@@ -1090,8 +1090,8 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		break;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported level %d\n",
-				__FUNCTION__, level);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported level %s\n",
+				__func__, rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 
@@ -1465,8 +1465,8 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	break;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported level %d\n",
-				__FUNCTION__, level);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported level %s\n",
+				__func__, rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 
@@ -1652,7 +1652,7 @@ int tt565_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 		break;
 
 	default:
-                rig_debug(RIG_DEBUG_ERR,"Unsupported set_func %#x", func);
+                rig_debug(RIG_DEBUG_ERR,"%s: unsupported set_func %s", __func__, rig_strfunc(func));
                 return -RIG_EINVAL;
 	}
         retval = tt565_transaction(rig, fcmdbuf, fcmdlen, NULL, NULL);
@@ -1718,7 +1718,7 @@ int tt565_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 		return RIG_OK;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported get_func %#x", func);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported get_func %s", __func__, rig_strfunc(func));
 		return -RIG_EINVAL;
 	}
 	fresplen = sizeof(frespbuf);

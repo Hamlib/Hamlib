@@ -340,8 +340,8 @@ int rx340_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		case RIG_MODE_DSB:      dmode = RX340_ISB; break;
 		default:
 			rig_debug(RIG_DEBUG_ERR,
-							"%s: unsupported mode %d\n",
-							__func__, mode);
+							"%s: unsupported mode %s\n",
+							__func__, rig_strrmode(mode));
 			return -RIG_EINVAL;
 	}
 
@@ -460,8 +460,8 @@ int rx340_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported set_level %d\n",
-                __func__, level);
+		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported set_level %s\n",
+                __func__, rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 
@@ -510,8 +510,8 @@ int rx340_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return -RIG_ENIMPL;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported get_level %d\n",
-                __func__, level);
+		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported get_level %s\n",
+                __func__, rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 

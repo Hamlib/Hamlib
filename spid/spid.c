@@ -88,7 +88,7 @@ static int spid_get_conf(ROT *rot, token_t token, char *val)
 {
     struct spid_rot2prog_priv_data *priv = (struct spid_rot2prog_priv_data*)rot->state.priv;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called %d\n", __FUNCTION__, token);
+    rig_debug(RIG_DEBUG_TRACE, "%s called %d\n", __func__, (int)token);
 
     if (rot->caps->rot_model != ROT_MODEL_SPID_ROT2PROG &&
 	rot->caps->rot_model != ROT_MODEL_SPID_MD01_ROT2PROG)
@@ -111,7 +111,7 @@ static int spid_set_conf(ROT *rot, token_t token, const char *val)
 {
     struct spid_rot2prog_priv_data *priv = (struct spid_rot2prog_priv_data*)rot->state.priv;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called %d %s\n", __FUNCTION__, token, val);
+    rig_debug(RIG_DEBUG_TRACE, "%s: called %d=%s\n", __func__, (int)token, val);
 
     if (rot->caps->rot_model != ROT_MODEL_SPID_ROT2PROG &&
 	rot->caps->rot_model != ROT_MODEL_SPID_MD01_ROT2PROG)

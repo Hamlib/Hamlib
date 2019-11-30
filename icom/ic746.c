@@ -642,7 +642,7 @@ static int ic746pro_get_ext_parm(RIG *rig, token_t token, value_t *val)
 		ep_sc = S_MEM_RTTY_FL_PB;
 		break;
 	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported get_ext_parm %d", token);
+		rig_debug(RIG_DEBUG_ERR,"Unsupported get_ext_parm %s", rig_strparm(token));
 		return -RIG_EINVAL;
 	}
 
@@ -742,7 +742,7 @@ int ic746_set_parm(RIG *rig, setting_t parm, value_t val)
 		prmbuf[1] = val.i;
 		break;
 	default:
-	  rig_debug(RIG_DEBUG_ERR,"Unsupported set_parm %d\n", parm);
+	  rig_debug(RIG_DEBUG_ERR,"Unsupported set_parm %s\n", rig_strparm(parm));
 	  return -RIG_EINVAL;
 	}
 
@@ -782,7 +782,7 @@ int ic746_get_parm(RIG *rig, setting_t parm, value_t *val)
 		prm_sc = S_MEM_BEEP;
 		break;
 	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported get_parm %d", parm);
+		rig_debug(RIG_DEBUG_ERR,"Unsupported get_parm %s", rig_strparm(parm));
 		return -RIG_EINVAL;
 	}
 

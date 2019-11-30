@@ -586,7 +586,7 @@ const struct rig_caps ft1000mpmkvfld_caps = {
 int ft1000mp_init(RIG *rig) {
   struct ft1000mp_priv_data *p;
 
-  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: ft1000mp_init called \n");
+  rig_debug(RIG_DEBUG_TRACE,"%s: called \n", __func__);
 
 
   p = (struct ft1000mp_priv_data *) calloc(1, sizeof(struct ft1000mp_priv_data));
@@ -617,7 +617,7 @@ int ft1000mp_init(RIG *rig) {
 
 int ft1000mp_cleanup(RIG *rig) {
 
-  rig_debug(RIG_DEBUG_VERBOSE, "ft1000mp: ft1000mp_cleanup called\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
 
   if (rig->state.priv)
@@ -638,7 +638,7 @@ int ft1000mp_open(RIG *rig) {
   struct ft1000mp_priv_data *p;
   unsigned char *cmd;           /* points to sequence to send */
 
-  rig_debug(RIG_DEBUG_VERBOSE, "ft1000mp: ft1000mp_open called\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
   rig_s = &rig->state;
   p = (struct ft1000mp_priv_data *)rig_s->priv;
@@ -672,14 +672,14 @@ int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
   unsigned char *cmd;           /* points to sequence to send */
   int cmd_index = 0;
 
-  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: ft1000mp_set_freq called\n");
+  rig_debug(RIG_DEBUG_TRACE,"%s: ft1000mp_set_freq called\n", __func__);
 
 
   p = (struct ft1000mp_priv_data*)rig->state.priv;
 
   rig_s = &rig->state;
 
-  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: requested freq = %"PRIfreq" Hz \n", freq);
+  rig_debug(RIG_DEBUG_TRACE,"%s: requested freq = %"PRIfreq" Hz \n", __func__, freq);
 
   if (vfo == RIG_VFO_CURR)
 	  vfo = p->current_vfo;
@@ -706,8 +706,8 @@ int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
   to_bcd(p->p_cmd,freq/10,8);   /* store bcd format in in p_cmd */
                                 /* TODO -- fix 10Hz resolution -- FS */
 
-  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: requested freq after conversion = %"PRIll" Hz\n",
-            from_bcd(p->p_cmd,8)* 10 );
+  rig_debug(RIG_DEBUG_TRACE,"%s: requested freq after conversion = %"PRIll" Hz\n",
+            __func__, (int64_t)from_bcd(p->p_cmd,8)* 10 );
 
   cmd = p->p_cmd;               /* get native sequence */
   write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
@@ -727,7 +727,7 @@ int ft1000mp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
   freq_t f;
   int cmd_index, len, retval;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft1000mp: ft1000mp_get_freq called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: called\n", __func__);
 
 
   priv = (struct ft1000mp_priv_data*)rig->state.priv;
@@ -773,12 +773,12 @@ int ft1000mp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 int ft1000mp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
   unsigned char cmd_index = 0;      /* index of sequence to send */
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft1000mp: ft1000mp_set_mode called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: called\n", __func__);
 
 
   /* frontend sets VFO for us */
 
-  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: generic mode = %x\n", mode);
+  rig_debug(RIG_DEBUG_TRACE,"%s: generic mode = %s\n", __func__, rig_strrmode(mode));
 
   /*
    * translate mode from generic to ft1000mp specific
@@ -848,7 +848,7 @@ int ft1000mp_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
   unsigned char mymode_ext;	/* ft1000mp extra mode bit mode */
   int cmd_index, len, retval;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft1000mp: ft1000mp_get_mode called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: called\n", __func__);
 
 
   priv = (struct ft1000mp_priv_data*)rig->state.priv;
@@ -956,18 +956,18 @@ int ft1000mp_set_vfo(RIG *rig, vfo_t vfo) {
   case RIG_VFO_A:
     cmd_index = FT1000MP_NATIVE_VFO_A;
     p->current_vfo = vfo;       /* update active VFO */
-    rig_debug(RIG_DEBUG_TRACE,"ft1000mp: vfo == RIG_VFO_A\n");
+    rig_debug(RIG_DEBUG_TRACE,"%s: vfo == RIG_VFO_A\n", __func__);
     break;
   case RIG_VFO_B:
     cmd_index = FT1000MP_NATIVE_VFO_B;
     p->current_vfo = vfo;       /* update active VFO */
-    rig_debug(RIG_DEBUG_TRACE,"ft1000mp: vfo == RIG_VFO_B\n");
+    rig_debug(RIG_DEBUG_TRACE,"%s: vfo == RIG_VFO_B\n", __func__);
     break;
   case RIG_VFO_CURR:
     	/* do nothing, we're already at it! */
     return RIG_OK;
   default:
-    rig_debug(RIG_DEBUG_VERBOSE,"ft1000mp: Unknown default VFO %d\n", vfo);
+    rig_debug(RIG_DEBUG_VERBOSE,"%s: Unknown default VFO %d\n", __func__, vfo);
     return -RIG_EINVAL;         /* sorry, wrong VFO */
   }
 
@@ -991,7 +991,7 @@ int ft1000mp_get_vfo(RIG *rig, vfo_t *vfo) {
   struct ft1000mp_priv_data *p;
   int retval;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft1000mp: ft1000mp_get_vfo called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: called\n", __func__);
 
 
   p = (struct ft1000mp_priv_data*)rig->state.priv;
@@ -1009,7 +1009,7 @@ int ft1000mp_get_vfo(RIG *rig, vfo_t *vfo) {
   else
 	  *vfo = p->current_vfo = RIG_VFO_A;
 
-  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: vfo status = %x %x\n", p->update_data[0], p->update_data[1]);
+  rig_debug(RIG_DEBUG_TRACE,"%s: vfo status = %x %x\n", __func__, p->update_data[0], p->update_data[1]);
 
   return RIG_OK;
 }
@@ -1023,12 +1023,12 @@ int ft1000mp_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit) {
   struct ft1000mp_priv_data *priv;
   unsigned char *cmd;           /* points to sequence to send */
 
-  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: ft1000mp_set_rit called\n");
+  rig_debug(RIG_DEBUG_TRACE,"%s: called\n", __func__);
 
   rs = &rig->state;
   priv = (struct ft1000mp_priv_data*)rs->priv;
 
-  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: requested freq = %li Hz \n", rit);
+  rig_debug(RIG_DEBUG_TRACE,"%s: requested freq = %d Hz\n", __func__, (int)rit);
 
   /*
    * Copy native cmd freq_set to private cmd storage area
@@ -1056,7 +1056,7 @@ int ft1000mp_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit) {
   shortfreq_t f;
   int cmd_index, len, retval;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft1000mp: ft1000mp_get_rit called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: called\n", __func__);
 
   priv = (struct ft1000mp_priv_data*)rig->state.priv;
 
@@ -1092,7 +1092,7 @@ int ft1000mp_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit) {
 
   f = f*10/16;
 
-  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: freq = %li Hz for VFO [%x]\n", f, vfo);
+  rig_debug(RIG_DEBUG_TRACE,"%s: freq = %d Hz for VFO [%s]\n", __func__, (int)f, rig_strvfo(vfo));
 
   *rit = f;		/* return diplayed frequency */
 
@@ -1108,12 +1108,12 @@ int ft1000mp_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit) {
   struct ft1000mp_priv_data *priv;
   unsigned char *cmd;           /* points to sequence to send */
 
-  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: ft1000mp_set_xit called\n");
+  rig_debug(RIG_DEBUG_TRACE,"%s: called\n", __func__);
 
   rs = &rig->state;
   priv = (struct ft1000mp_priv_data*)rs->priv;
 
-  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: requested freq = %li Hz \n", xit);
+  rig_debug(RIG_DEBUG_TRACE,"%s: requested freq = %d Hz \n", __func__, (int)xit);
 
   /*
    * Copy native cmd freq_set to private cmd storage area
@@ -1141,7 +1141,7 @@ int ft1000mp_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit) {
   shortfreq_t f;
   int cmd_index, len, retval;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft1000mp: ft1000mp_get_xit called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: called\n", __func__);
 
   priv = (struct ft1000mp_priv_data*)rig->state.priv;
 
@@ -1177,7 +1177,7 @@ int ft1000mp_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit) {
 
   f = f*10/16;
 
-  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: freq = %li Hz for VFO [%x]\n", f, vfo);
+  rig_debug(RIG_DEBUG_TRACE,"%s: freq = %d Hz for VFO [%s]\n", __func__, (int)f, rig_strvfo(vfo));
 
   *xit = f;		/* return diplayed frequency */
 
@@ -1228,7 +1228,7 @@ int ft1000mp_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		m = 0xf3;
 		break;
 	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported get_level %d", level);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported get_level %s", __func__, rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 
@@ -1290,7 +1290,7 @@ static int ft1000mp_get_update_data(RIG *rig, unsigned char ci, unsigned char rl
   struct ft1000mp_priv_data *p;
   int n;                        /* for read_  */
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft1000mp: ft1000mp_get_update_data called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: called\n", __func__);
 
 
   p = (struct ft1000mp_priv_data*)rig->state.priv;
@@ -1319,7 +1319,7 @@ static int ft1000mp_send_priv_cmd(RIG *rig, unsigned char ci) {
   unsigned char *cmd;           /* points to sequence to send */
   unsigned char cmd_index;      /* index of sequence to send */
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft1000mp: ft1000mp_send_priv_cmd called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: called\n", __func__);
 
 
 
@@ -1329,7 +1329,7 @@ static int ft1000mp_send_priv_cmd(RIG *rig, unsigned char ci) {
   cmd_index = ci;               /* get command */
 
   if (! p->pcs[cmd_index].ncomp) {
-    rig_debug(RIG_DEBUG_TRACE,"ft1000mp: Attempt to send incomplete sequence\n");
+    rig_debug(RIG_DEBUG_TRACE,"%s: attempt to send incomplete sequence\n", __func__);
     return -RIG_EINVAL;
   }
 

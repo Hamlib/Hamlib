@@ -133,8 +133,8 @@ static int wj_transaction(RIG *rig, int monitor)
 	case RIG_MODE_AM:	wj_mode = MD_AM; break;
 	case RIG_MODE_AMS:	wj_mode = MD_ISB; break;
 	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %d\n",
-				__FUNCTION__, priv->mode);
+		rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n",
+				__func__, rig_strrmode(priv->mode));
 		return -RIG_EINVAL;
 	}
 	buf[5] |= wj_mode & 0x7;
@@ -346,7 +346,7 @@ int wj_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		break;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported %d\n", __FUNCTION__, level);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported %s\n", __func__, rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 
@@ -385,7 +385,7 @@ int wj_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported %d\n", __FUNCTION__, level);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported %s\n", __func__, rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 
@@ -398,7 +398,7 @@ int wj_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
  */
 DECLARE_INITRIG_BACKEND(wj)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "wj: _init called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
 	rig_register(&wj8888_caps);
 

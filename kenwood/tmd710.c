@@ -1175,7 +1175,7 @@ static int tmd710_get_mode_hamlib_values(int tmd710_mode, rmode_t *mode, pbwidth
       *width = 4000;
       break;
     default:
-      rig_debug(RIG_DEBUG_ERR, "%s: Illegal value from radio '%ld'\n", __func__, tmd710_mode);
+      rig_debug(RIG_DEBUG_ERR, "%s: Illegal value from radio %d\n", __func__, tmd710_mode);
       return -RIG_EINVAL;
   }
 
@@ -1214,7 +1214,7 @@ static int tmd710_get_mode_tmd710_value(rmode_t mode, int *tmd710_mode) {
   } else if (mode == RIG_MODE_AM) {
     *tmd710_mode = 2;
   } else {
-    rig_debug(RIG_DEBUG_ERR, "%s: Illegal value from radio '%ld'\n", __func__, mode);
+    rig_debug(RIG_DEBUG_ERR, "%s: Illegal value from radio %d\n", __func__, (int)mode);
     return -RIG_EINVAL;
   }
 
@@ -1793,7 +1793,7 @@ int tmd710_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 
   retval = sscanf(buf, "BY %d,%d", &vfonum, &dcd_val);
   if (retval != 2) {
-    rig_debug(RIG_DEBUG_ERR, "%s: unexpected reply '%s', len=%d\n", __func__, buf);
+    rig_debug(RIG_DEBUG_ERR, "%s: unexpected reply '%s'\n", __func__, buf);
     return -RIG_EPROTO;
   }
 
@@ -1805,7 +1805,7 @@ int tmd710_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
       *dcd = RIG_DCD_ON;
       break;
     default:
-      rig_debug(RIG_DEBUG_ERR, "%s: unexpected reply '%s', len=%d\n", __func__, buf);
+      rig_debug(RIG_DEBUG_ERR, "%s: unexpected reply '%s'\n", __func__, buf);
       return -RIG_ERJCTED;
   }
 
@@ -1881,7 +1881,7 @@ int tmd710_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
       break;
 
     default:
-      rig_debug(RIG_DEBUG_ERR, "%s: Unsupported Level %d\n", __func__, level);
+      rig_debug(RIG_DEBUG_ERR, "%s: Unsupported Level %s\n", __func__, rig_strlevel(level));
       return -RIG_EINVAL;
   }
 
@@ -1915,7 +1915,7 @@ int tmd710_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
       return kenwood_transaction(rig, buf, ackbuf, sizeof(ackbuf));
 
     default:
-      rig_debug(RIG_DEBUG_ERR, "%s: Unsupported Level %d\n", __func__, level);
+      rig_debug(RIG_DEBUG_ERR, "%s: unsupported Level %s\n", __func__, rig_strlevel(level));
       return -RIG_EINVAL;
   }
 }
@@ -1980,7 +1980,7 @@ int tmd710_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
   tmd710_fo fo_struct;
   tmd710_mu mu_struct;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: called (0x%04x)\n", __func__, func);
+  rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
   switch (func) {
     case RIG_FUNC_TONE:
@@ -2031,7 +2031,7 @@ int tmd710_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
       *status = (mu_struct.scan_resume == TMD710_SCAN_RESUME_TIME) ? 1 : 0;
       break;
     default:
-      rig_debug(RIG_DEBUG_ERR, "%s: Unsupported function %#x\n", __func__, func);
+      rig_debug(RIG_DEBUG_ERR, "%s: Unsupported function %s\n", __func__, rig_strfunc(func));
       return -RIG_EINVAL;
   }
 
@@ -2049,7 +2049,7 @@ int tmd710_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
   tmd710_fo fo_struct;
   tmd710_mu mu_struct;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: called (0x%04x)\n", __func__, func);
+  rig_debug(RIG_DEBUG_TRACE, "%s: called %s\n", __func__, rig_strfunc(func));
 
   switch (func) {
     case RIG_FUNC_TONE:
@@ -2103,7 +2103,7 @@ int tmd710_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     case RIG_FUNC_TBURST:
       return tmd710_tburst(rig, status);
     default:
-      rig_debug(RIG_DEBUG_ERR, "%s: Unsupported function %#x\n", __func__, func);
+      rig_debug(RIG_DEBUG_ERR, "%s: Unsupported function %s\n", __func__, rig_strfunc(func));
       return -RIG_EINVAL;
   }
 
@@ -2127,7 +2127,7 @@ int tmd710_get_parm(RIG *rig, setting_t parm, value_t *val)
   int retval;
   tmd710_mu mu_struct;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: called (0x%04x)\n", __func__, parm);
+  rig_debug(RIG_DEBUG_TRACE, "%s: called %s\n", __func__, rig_strparm(parm));
 
   retval = tmd710_pull_mu(rig, &mu_struct);
   if (retval != RIG_OK) {
@@ -2149,7 +2149,7 @@ int tmd710_get_parm(RIG *rig, setting_t parm, value_t *val)
       val->f = ((float) mu_struct.brightness_level) / 8.0f;
       break;
     default:
-      rig_debug(RIG_DEBUG_ERR, "%s: Unsupported parm %#x\n", __func__, parm);
+      rig_debug(RIG_DEBUG_ERR, "%s: Unsupported parm %s\n", __func__, rig_strparm(parm));
       return -RIG_EINVAL;
   }
 
@@ -2198,7 +2198,7 @@ int tmd710_set_parm(RIG *rig, setting_t parm, value_t val)
       break;
     }
     default:
-      rig_debug(RIG_DEBUG_ERR, "%s: Unsupported parm %#x\n", __func__, parm);
+      rig_debug(RIG_DEBUG_ERR, "%s: Unsupported parm %s\n", __func__, rig_strparm(parm));
       return -RIG_EINVAL;
   }
 
@@ -2226,7 +2226,7 @@ int tmd710_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val) {
       val->i = mu_struct.ext_data_band;
       break;
     default:
-      rig_debug(RIG_DEBUG_ERR, "%s: Unsupported ext level %d\n", __func__, token);
+      rig_debug(RIG_DEBUG_ERR, "%s: Unsupported ext level %s\n", __func__, rig_strlevel(token));
       return -RIG_EINVAL;
   }
 
@@ -2261,7 +2261,7 @@ int tmd710_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val) {
       break;
     }
     default:
-      rig_debug(RIG_DEBUG_ERR, "%s: Unsupported ext level %d\n", __func__, token);
+      rig_debug(RIG_DEBUG_ERR, "%s: Unsupported ext level %s\n", __func__, rig_strlevel(token));
       return -RIG_EINVAL;
   }
 

@@ -310,9 +310,9 @@ int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_widt
         return -RIG_EINVAL;
     state = &rig->state;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
-    rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = %i\n", __func__, tx_mode);
-    rig_debug(RIG_DEBUG_TRACE, "%s: passed width = %li Hz\n", __func__, tx_width);
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = %s\n", __func__, rig_strvfo(vfo));
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = %s\n", __func__, rig_strrmode(tx_mode));
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed width = %d Hz\n", __func__, (int)tx_width);
 
     priv = (struct newcat_priv_data *)state->priv;
 

@@ -302,7 +302,7 @@ int ft747_init(RIG *rig) {
   if (!p)			/* whoops! memory shortage! */
     return -RIG_ENOMEM;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft747:ft747_init called \n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: called\n", __func__);
 
   rig->state.priv = (void*)p;
 
@@ -317,7 +317,7 @@ int ft747_init(RIG *rig) {
 
 int ft747_cleanup(RIG *rig) {
 
-  rig_debug(RIG_DEBUG_VERBOSE, "ft747: _cleanup called\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
   if (rig->state.priv)
     free(rig->state.priv);
@@ -372,7 +372,7 @@ int ft747_open(RIG *rig) {
 
 int ft747_close(RIG *rig) {
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft747:ft747_close called \n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: called \n", __func__);
 
   return RIG_OK;
 }
@@ -405,7 +405,7 @@ int ft747_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
      though the rig will internally then round to 25 Hz steps */
   to_bcd(p->p_cmd, (freq + 5)/10, 8);
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft747: requested freq after conversion = %"PRIll" Hz \n", from_bcd(p->p_cmd,8)* 10 );
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: requested freq after conversion = %"PRIll" Hz \n", __func__, (int64_t)from_bcd(p->p_cmd,8)* 10 );
 
   rig_force_cache_timeout(&p->status_tv);
 
@@ -423,7 +423,7 @@ int ft747_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
   freq_t f;
   int ret;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft747:ft747_get_freq called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: called\n", __func__);
 
   p = (struct ft747_priv_data*)rig->state.priv;
 
@@ -473,7 +473,7 @@ int ft747_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
    * translate mode from generic to ft747 specific
    */
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft747: generic mode = %x \n", mode);
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: generic mode = %s \n", __func__, rig_strrmode(mode));
 
   switch(mode) {
   case RIG_MODE_AM:
@@ -627,11 +627,11 @@ int ft747_get_vfo(RIG *rig, vfo_t *vfo) {
    */
 
   if (status) {
-    rig_debug(RIG_DEBUG_VERBOSE,"ft747: VFO = B \n");
+    rig_debug(RIG_DEBUG_VERBOSE,"%s: VFO = B\n", __func__);
     (*vfo) = RIG_VFO_B;
     return RIG_OK;
   } else {
-    rig_debug(RIG_DEBUG_VERBOSE,"ft747: VFO = A \n");
+    rig_debug(RIG_DEBUG_VERBOSE,"%s: VFO = A\n", __func__);
     (*vfo) = RIG_VFO_A;
     return RIG_OK;
   }
@@ -800,7 +800,7 @@ static int ft747_send_priv_cmd(RIG *rig, unsigned char ci) {
   cmd_index = ci;		/* get command */
 
   if (! ft747_ncmd[cmd_index].ncomp) {
-    rig_debug(RIG_DEBUG_VERBOSE,"ft747: Attempt to send incomplete sequence \n");
+    rig_debug(RIG_DEBUG_VERBOSE,"%s: attempt to send incomplete sequence\n", __func__);
     return -RIG_EINVAL;
   }
 

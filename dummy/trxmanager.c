@@ -319,7 +319,7 @@ static int trxmanager_open(RIG *rig) {
     cmd = "FN;";
     retval = write_block(&rs->rigport, cmd, strlen(cmd));
     if (retval != RIG_OK) {
-        rig_debug(RIG_DEBUG_ERR,"%s FN; write failed=%s\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_ERR,"%s FN; write failed\n", __FUNCTION__);
     }
     retval = read_transaction(rig, response, sizeof(response));
     if (retval != RIG_OK) {
@@ -526,7 +526,7 @@ static int trxmanager_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         rig_debug(RIG_DEBUG_ERR, "%s: invalid response='%s'\n", __FUNCTION__, response);
         return -RIG_EPROTO;
     }
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: IF response len='%d'\n", __FUNCTION__, strlen(response));
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: IF response len=%d\n", __FUNCTION__, (int)strlen(response));
     char cptt = response[28];
     *ptt = cptt == '0' ? 0 : 1;
 
@@ -541,7 +541,7 @@ static int trxmanager_set_split_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_
 {
     int retval;
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s mode=%s width=%d\n",
-              __FUNCTION__, rig_strvfo(vfo), rig_strrmode(mode), width);
+              __FUNCTION__, rig_strvfo(vfo), rig_strrmode(mode), (int)width);
     retval = trxmanager_set_mode(rig,RIG_VFO_B,mode,width);
     return retval;
 }
@@ -555,7 +555,7 @@ static int trxmanager_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t widt
     int retval;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s mode=%s width=%d\n",
-              __FUNCTION__, rig_strvfo(vfo), rig_strrmode(mode), width);
+              __FUNCTION__, rig_strvfo(vfo), rig_strrmode(mode), (int)width);
 
     struct rig_state *rs = &rig->state;
 
@@ -732,7 +732,7 @@ static int trxmanager_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *wi
     long iwidth = 0;
     n = sscanf(response,"BW%ld;",&iwidth);
     if (n != 1) {
-        rig_debug(RIG_DEBUG_ERR,"%s bandwidth scan failed 's'\n", __FUNCTION__,strtok(response,"\r\n"));
+        rig_debug(RIG_DEBUG_ERR,"%s bandwidth scan failed '%s'\n", __FUNCTION__,strtok(response,"\r\n"));
         return -RIG_EPROTO;
     }
     *width=iwidth;
@@ -756,7 +756,7 @@ static int trxmanager_set_vfo(RIG *rig, vfo_t vfo)
         return -RIG_EINVAL;
     }
     if (vfo == RIG_VFO_TX) {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: RIG_VFO_TX used\n");
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: RIG_VFO_TX used\n",__func__);
         vfo = RIG_VFO_B; // always TX on VFOB
     }
 

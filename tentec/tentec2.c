@@ -332,8 +332,8 @@ int tentec2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	case RIG_MODE_AM:       ttmode = TT_AM; break;
 	case RIG_MODE_FM:       ttmode = TT_FM; break;
 	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %d\n",
-							__FUNCTION__, mode);
+		rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n",
+							__func__, rig_strrmode(mode));
 		return -RIG_EINVAL;
 	}
 

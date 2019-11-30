@@ -97,7 +97,7 @@ int rft_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  */
 DECLARE_INITRIG_BACKEND(rft)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "rft: _init called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
 	rig_register(&ekd500_caps);
 

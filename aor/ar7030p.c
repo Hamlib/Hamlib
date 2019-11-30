@@ -598,7 +598,7 @@ static int ar7030p_set_mode( RIG * rig, vfo_t vfo, rmode_t mode,
                     }
 
                   rig_debug( RIG_DEBUG_VERBOSE, "%s: width %d ar_filter %d filterTab[%d] %d\n",
-                             __func__, width, ar_filter, i, filterTab[i] );
+                             __func__, (int)width, ar_filter, i, filterTab[i] );
                 }
             }
 
@@ -1362,7 +1362,7 @@ static int ar7030p_set_ts( RIG * rig, vfo_t vfo, shortfreq_t ts )
     {
       rc = execRoutine( rig, SET_ALL );
 
-      rig_debug( RIG_DEBUG_VERBOSE, "%s: chnstp %d (%d)\n", __func__, ts, v );
+      rig_debug( RIG_DEBUG_VERBOSE, "%s: chnstp %d (%d)\n", __func__, (int)ts, v );
     }
 
     rc = lockRx( rig, LOCK_0 );
@@ -1398,7 +1398,7 @@ static int ar7030p_get_ts( RIG * rig, vfo_t vfo, shortfreq_t * ts )
       x = (double) v;
       *ts = (shortfreq_t) (x * HZ_PER_STEP);
 
-      rig_debug( RIG_DEBUG_VERBOSE, "%s: step= %d\n", __func__, *ts );
+      rig_debug( RIG_DEBUG_VERBOSE, "%s: step= %d\n", __func__, (int)*ts );
     }
 
     rc = lockRx( rig, LOCK_0 );

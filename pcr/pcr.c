@@ -721,8 +721,8 @@ pcr_set_mode(RIG * rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	int buf_len, err;
 	int pcrmode, pcrfilter;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: mode = %d (%s), width = %d\n",
-		  __func__, mode, rig_strrmode(mode), width);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: mode = %s, width = %d\n",
+		  __func__, rig_strrmode(mode), (int)width);
 
 	/* XXX? */
 	if (mode == RIG_MODE_NONE)
@@ -752,8 +752,8 @@ pcr_set_mode(RIG * rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		pcrmode = MD_FM;
 		break;
 	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %d\n",
-			  __func__, mode);
+		rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n",
+			  __func__, rig_strrmode(mode));
 		return -RIG_EINVAL;
 	}
 
@@ -762,7 +762,7 @@ pcr_set_mode(RIG * rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 			width = rig_passband_normal(rig, mode);
 
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: will set to %d\n",
-							__func__, width);
+							__func__, (int)width);
 
 		switch (width) {
 			/* nop, pcrfilter already set
@@ -785,12 +785,12 @@ pcr_set_mode(RIG * rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 			break;
 		default:
 			rig_debug(RIG_DEBUG_ERR, "%s: unsupported width %d\n",
-								__func__, width);
+								__func__, (int)width);
 			return -RIG_EINVAL;
 		}
 
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: filter set to %d (%c)\n",
-							__func__, width, pcrfilter);
+							__func__, (int)width, pcrfilter);
 
 		buf_len = sprintf((char *) buf, "K%c%010" PRIll "0%c0%c00",
 											is_sub_rcvr(rig, vfo) ? '1':'0',
@@ -963,11 +963,11 @@ pcr_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 	int err = -RIG_ENIMPL;
 
 	if (RIG_LEVEL_IS_FLOAT(level)) {
-		rig_debug(RIG_DEBUG_VERBOSE, "%s: level = %d, val = %f\n",
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: level = %lu, val = %f\n",
 				__func__, level, val.f);
 	}
         else {
-		rig_debug(RIG_DEBUG_VERBOSE, "%s: level = %d, val = %d\n",
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: level = %lu, val = %ul\n",
 				__func__, level, val.i);
 	}
 
@@ -1099,8 +1099,8 @@ pcr_set_func(RIG * rig, vfo_t vfo, setting_t func, int status)
 	struct pcr_priv_data *priv = (struct pcr_priv_data *) rig->state.priv;
 	struct pcr_rcvr *rcvr = is_sub_rcvr(rig, vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: status = %ld, func = %d\n", __func__,
-		  status, func);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: status = %d, func = %s\n", __func__,
+		  status, rig_strfunc(func));
 
 	switch (func) {
 	case RIG_FUNC_NR: /* sets DSP noise reduction on or off */
@@ -1182,7 +1182,7 @@ pcr_get_func(RIG * rig, vfo_t vfo, setting_t func, int *status)
 int
 pcr_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: tok = %d\n", __func__, token);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: tok = %s\n", __func__, rig_strlevel(token));
 
 	switch (token) {
 
@@ -1195,7 +1195,7 @@ pcr_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
 		return pcr_set_diversity(rig, vfo, (0 == val.i) ? 0 : 2);
 
 	default:
-		rig_debug(RIG_DEBUG_VERBOSE, "%s: unknown token: %d\n", __func__, token);
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: unknown token: %s\n", __func__, rig_strlevel(token));
 		return -RIG_EINVAL;
 	}
 
@@ -1718,7 +1718,7 @@ int pcr_get_dcd(RIG * rig, vfo_t vfo, dcd_t *dcd)
 
 DECLARE_INITRIG_BACKEND(pcr)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "pcr: init called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: init called\n", __func__);
 
 	rig_register(&pcr100_caps);
 	rig_register(&pcr1000_caps);

@@ -742,7 +742,7 @@ int pihpsdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     break;
 
   default:
-    rig_debug(RIG_DEBUG_ERR, "Unsupported set_level %d", level);
+    rig_debug(RIG_DEBUG_ERR, "%s: unsupported set_level %s", __func__, rig_strlevel(level));
     return -RIG_EINVAL;
   }
 
@@ -770,7 +770,7 @@ int pihpsdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			lvl_len = strlen (lvlbuf);
 			if ((lvl_len != 4)){ /*TS-2000 returns 4 chars for PA; */
 				rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer len=%d\n",
-					       __func__, lvl_len);
+					       __func__, (int)lvl_len);
 				return -RIG_ERJCTED;
 			}
 
@@ -787,8 +787,7 @@ int pihpsdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				return retval;
 			lvl_len = strlen (lvlbuf);
 			if ((lvl_len != 6)){ /* TS-2000 returns 6 chars for RA; */
-				rig_debug(RIG_DEBUG_ERR,"pihpsdr_get_level: "
-								"unexpected answer len=%d\n", lvl_len);
+				rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer len=%d\n", __func__, (int)lvl_len);
 				return -RIG_ERJCTED;
 			}
 
@@ -806,8 +805,7 @@ int pihpsdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				return retval;
 			lvl_len = strlen (lvlbuf);
 			if (lvl_len != 6) {
-				rig_debug(RIG_DEBUG_ERR,"pihpsdr_get_level: "
-					"unexpected answer len=%d\n", lvl_len);
+				rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer len=%d\n", __func__, (int)lvl_len);
 				return -RIG_ERJCTED;
                         }
 			sscanf(lvlbuf+2, "%d", &lvl);
@@ -820,8 +818,7 @@ int pihpsdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				return retval;
 			lvl_len = strlen (lvlbuf);
 			if (lvl_len != 6) {
-				rig_debug(RIG_DEBUG_ERR,"pihpsdr_get_level: "
-					"unexpected answer len=%d\n", lvl_len);
+				rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer len=%d\n", __func__, (int)lvl_len);
 				return -RIG_ERJCTED;
                         }
 			sscanf(lvlbuf+2, "%d", &lvl);
@@ -834,8 +831,7 @@ int pihpsdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				return retval;
 			lvl_len = strlen (lvlbuf);
 			if (lvl_len != 5) {
-				rig_debug(RIG_DEBUG_ERR,"pihpsdr_get_level: "
-					"unexpected answer len=%d\n", lvl_len);
+				rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer len=%d\n", __func__, (int)lvl_len);
 				return -RIG_ERJCTED;
                         }
 			sscanf(lvlbuf+2, "%d", &lvl);
@@ -848,8 +844,7 @@ int pihpsdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				return retval;
 			lvl_len = strlen (lvlbuf);
 			if (lvl_len != 6) {
-				rig_debug(RIG_DEBUG_ERR,"pihpsdr_get_level: "
-					"unexpected answer len=%d\n", lvl_len);
+				rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer len=%d\n", __func__, (int)lvl_len);
 				return -RIG_ERJCTED;
                         }
 			sscanf(lvlbuf+3, "%d", &lvl);
@@ -862,8 +857,7 @@ int pihpsdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				return retval;
 			lvl_len = strlen (lvlbuf);
 			if (lvl_len != 15) {
-				rig_debug(RIG_DEBUG_ERR,"pihpsdr_get_level: "
-					"unexpected answer len=%d answer=%s\n", lvl_len, lvlbuf);
+				rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer len=%d answer=%s\n", __func__, (int)lvl_len, lvlbuf);
 				return -RIG_ERJCTED;
                         }
 			sscanf(lvlbuf+8, "%d", &lvl);
@@ -876,8 +870,7 @@ int pihpsdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				return retval;
 			lvl_len = strlen (lvlbuf);
 			if (lvl_len != 5) {
-				rig_debug(RIG_DEBUG_ERR,"pihpsdr_get_level: "
-					"unexpected answer len=%d\n", lvl_len);
+				rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer len=%d\n", __func__, (int)lvl_len);
 				return -RIG_ERJCTED;
                         }
 			sscanf(lvlbuf+3, "%d", &lvl);
@@ -890,8 +883,7 @@ int pihpsdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				return retval;
 			lvl_len = strlen (lvlbuf);
 			if (lvl_len != 5) {
-				rig_debug(RIG_DEBUG_ERR,"pihpsdr_get_level: "
-					"unexpected answer len=%d\n", lvl_len);
+				rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer len=%d\n", __func__, (int)lvl_len);
 				return -RIG_ERJCTED;
                         }
 			sscanf(lvlbuf+2, "%d", &lvl);
@@ -904,8 +896,7 @@ int pihpsdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				return retval;
 			lvl_len = strlen (lvlbuf);
 			if (lvl_len != 5) {
-				rig_debug(RIG_DEBUG_ERR,"pihpsdr_get_level: "
-					"unexpected answer len=%d\n", lvl_len);
+				rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer len=%d\n", __func__, (int)lvl_len);
 				return -RIG_ERJCTED;
                         }
 			sscanf(lvlbuf+2, "%d", &lvl);
@@ -922,8 +913,7 @@ int pihpsdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				return retval;
 			lvl_len = strlen (lvlbuf);
 			if (lvl_len != 8) {
-				rig_debug(RIG_DEBUG_ERR,"pihpsdr_get_level: "
-					"unexpected answer len=%d\n", lvl_len);
+				rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer len=%d\n", __func__, (int)lvl_len);
 				return -RIG_ERJCTED;
                         }
 			sscanf(lvlbuf+2, "%d", &lvl);
@@ -937,8 +927,7 @@ int pihpsdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				return retval;
 			lvl_len = strlen (lvlbuf);
 			if (lvl_len != 5) {
-				rig_debug(RIG_DEBUG_ERR,"pihpsdr_get_level: "
-					"unexpected answer len=%d\n", lvl_len);
+				rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer len=%d\n", __func__, (int)lvl_len);
 				return -RIG_ERJCTED;
             }
 			sscanf(lvlbuf+2, "%d", &lvl);
@@ -955,8 +944,7 @@ int pihpsdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				return retval;
 			lvl_len = strlen (lvlbuf);
 			if (lvl_len != 6) {
-				rig_debug(RIG_DEBUG_ERR,"pihpsdr_get_level: "
-					"unexpected answer len=%d\n", lvl_len);
+				rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer len=%d\n", __func__, (int)lvl_len);
 				return -RIG_ERJCTED;
                         }
 			sscanf(lvlbuf+2, "%d", &lvl);
@@ -973,8 +961,7 @@ int pihpsdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				return retval;
 			lvl_len = strlen (lvlbuf);
 			if (lvl_len != 7) {
-				rig_debug(RIG_DEBUG_ERR,"pihpsdr_get_level: "
-					"unexpected answer len=%d\n", lvl_len);
+				rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer len=%d\n", __func__, (int)lvl_len);
 				return -RIG_ERJCTED;
                         }
 			sscanf(lvlbuf+2, "%d", &lvl);
@@ -987,8 +974,7 @@ int pihpsdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				return retval;
 			lvl_len = strlen (lvlbuf);
 			if (lvl_len != 5) {
-				rig_debug(RIG_DEBUG_ERR,"pihpsdr_get_level: "
-					"unexpected answer len=%d\n", lvl_len);
+				rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer len=%d\n", __func__, (int)lvl_len);
 				return -RIG_ERJCTED;
                         }
 			sscanf(lvlbuf+2, "%d", &lvl);
@@ -1008,7 +994,7 @@ int pihpsdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			if (( (lvl_len !=7)) || lvlbuf[1] != 'M') {
 				/* TS-2000 returns 8 bytes for S meter level */
 				rig_debug(RIG_DEBUG_ERR,"%s: wrong answer len=%d\n",
-					       __func__, lvl_len);
+					       __func__, (int)lvl_len);
 				return -RIG_ERJCTED;
 			}
 
@@ -1021,7 +1007,7 @@ int pihpsdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 
 		default:
-			rig_debug(RIG_DEBUG_ERR,"Unsupported get_level %d", level);
+			rig_debug(RIG_DEBUG_ERR,"%s: unsupported get_level %s", __func__, rig_strlevel(level));
 			return -RIG_EINVAL;
 		}
 

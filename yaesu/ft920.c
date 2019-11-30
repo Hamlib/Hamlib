@@ -623,9 +623,9 @@ static int ft920_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
     if (!rig)
         return -RIG_EINVAL;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
-    rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = %i\n", __func__, mode);
-    rig_debug(RIG_DEBUG_TRACE, "%s: passed width = %li Hz\n", __func__, width);
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = %s\n", __func__, rig_strvfo(vfo));
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = %s\n", __func__, rig_strrmode(mode));
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed width = %d Hz\n", __func__, (int)width);
 
     priv = (struct ft920_priv_data *)rig->state.priv;
 
@@ -932,8 +932,8 @@ static int ft920_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) 
         *width = rig_passband_narrow(rig, *mode);
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: set mode = %i\n", __func__, *mode);
-    rig_debug(RIG_DEBUG_TRACE, "%s: set width = %li Hz\n", __func__, *width);
+    rig_debug(RIG_DEBUG_TRACE, "%s: set mode = %s\n", __func__, rig_strrmode(*mode));
+    rig_debug(RIG_DEBUG_TRACE, "%s: set width = %d Hz\n", __func__, (int)*width);
 
     return RIG_OK;
 }
@@ -1356,9 +1356,9 @@ static int ft920_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t 
     if (!rig)
         return -RIG_EINVAL;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
-    rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = %i\n", __func__, tx_mode);
-    rig_debug(RIG_DEBUG_TRACE, "%s: passed width = %li Hz\n", __func__, tx_width);
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = %s\n", __func__, rig_strvfo(vfo));
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = %s\n", __func__, rig_strrmode(tx_mode));
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed width = %d Hz\n", __func__, (int)tx_width);
 
     priv = (struct ft920_priv_data *)rig->state.priv;
 
@@ -1824,8 +1824,8 @@ static int ft920_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
     priv = (struct ft920_priv_data *)rig->state.priv;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x, func = 0x%02x, status = %d\n",
-              __func__, vfo, func, status);
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = %s, func = %s, status = %d\n",
+              __func__, rig_strvfo(vfo), rig_strfunc(func), status);
 
     if (vfo == RIG_VFO_CURR) {
         vfo = priv->current_vfo;        /* from previous vfo cmd */
@@ -1892,8 +1892,8 @@ static int ft920_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
     priv = (struct ft920_priv_data *)rig->state.priv;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x, func = 0x%02x\n",
-              __func__, vfo, func);
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = %s, func = %s\n",
+              __func__, rig_strvfo(vfo), rig_strfunc(func));
 
     if (vfo == RIG_VFO_CURR) {
         vfo = priv->current_vfo;        /* from previous vfo cmd */
@@ -2163,7 +2163,7 @@ static int ft920_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq)
 
     rig_debug(RIG_DEBUG_TRACE,
               "%s: requested freq after conversion = %"PRIll" Hz\n",
-              __func__, from_bcd(priv->p_cmd, FT920_BCD_DIAL)* 10);
+              __func__, (int64_t)from_bcd(priv->p_cmd, FT920_BCD_DIAL)* 10);
 
     err = write_block(&rig_s->rigport, (char *) &priv->p_cmd, YAESU_CMD_LENGTH);
     if (err != RIG_OK)
@@ -2236,7 +2236,7 @@ static int ft920_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit)
     to_bcd(priv->p_cmd, rit/10, FT920_BCD_RIT);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: requested rit after conversion = %li Hz\n",
-              __func__, from_bcd(priv->p_cmd, FT920_BCD_RIT)* 10);
+              __func__, (int64_t)from_bcd(priv->p_cmd, FT920_BCD_RIT)* 10);
 
     priv->p_cmd[P1] = p1;               /* ick */
     priv->p_cmd[P2] = p2;

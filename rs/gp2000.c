@@ -161,7 +161,7 @@ gp2000_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     int len, retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s, mode=%s, width=%d\n", __func__,
-              rig_strvfo(vfo), rig_strvfo(mode), width);
+              rig_strvfo(vfo), rig_strvfo(mode), (int)width);
 
     switch (mode)
     {

@@ -187,7 +187,7 @@ static void tentec_tuning_factor_calc(RIG *rig)
     case RIG_MODE_USB:
         mcor=1; break;
     default:
-        rig_debug(RIG_DEBUG_BUG, "tentec_tuning_factor_calc: invalid mode!\n");
+        rig_debug(RIG_DEBUG_BUG, "%s: invalid mode %s\n", __func__, rig_strrmode(priv->mode));
         mcor=1; break;
     }
     tfreq = priv->freq / (freq_t)Hz(1);
@@ -267,8 +267,7 @@ int tentec_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		case RIG_MODE_FM:       ttmode = TT_FM; break;
 		default:
 			rig_debug(RIG_DEBUG_ERR,
-							"tentec_set_mode: unsupported mode %d\n",
-							mode);
+							"%s: unsupported mode %s\n", __func__, rig_strrmode(mode));
 			return -RIG_EINVAL;
 	}
 
@@ -288,8 +287,7 @@ int tentec_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		}
 		if (tentec_filters[ttfilter] != width) {
 			rig_debug(RIG_DEBUG_ERR,
-								"tentec_set_mode: unsupported width %d\n",
-								width);
+								"%s: unsupported width %d\n", __func__, (int)width);
 			return -RIG_EINVAL;
 		}
 		priv->width = width;
@@ -397,7 +395,7 @@ int tentec_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         return retval;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported set_level %d\n", level);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported set_level %s\n", __func__, rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 
@@ -456,7 +454,7 @@ int tentec_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported get_level %d\n", level);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported get_level %s\n", __func__, rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 
@@ -493,7 +491,7 @@ const char *tentec_get_info(RIG *rig)
  */
 DECLARE_INITRIG_BACKEND(tentec)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "tentec: _init called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
 	rig_register(&tt550_caps);
 	rig_register(&tt516_caps);

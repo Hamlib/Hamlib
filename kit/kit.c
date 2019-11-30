@@ -38,7 +38,7 @@
  */
 DECLARE_INITRIG_BACKEND(kit)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "kit: _init called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
 	rig_register(&elektor304_caps);
 	rig_register(&drt1_caps);
@@ -76,7 +76,7 @@ DECLARE_INITRIG_BACKEND(kit)
  */
 DECLARE_INITROT_BACKEND(kit)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "kit: _init called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
 	rot_register(&pcrotor_caps);
 

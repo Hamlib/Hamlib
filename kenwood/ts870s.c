@@ -72,8 +72,7 @@ static int ts870s_get_vfo(RIG *rig, vfo_t *vfo)
 			return retval;
 		vfo_len = strlen (vfobuf);
 		if (vfo_len != 3 || vfobuf[1] != 'R') {
-			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer %s, "
-						"len=%d\n",__func__,vfobuf, vfo_len);
+			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer %s, len=%d\n", __func__, vfobuf, (int)vfo_len);
 			return -RIG_ERJCTED;
 		}
 
@@ -104,7 +103,7 @@ static int ts870s_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
   if (buf_len != 3 || buf[1] != 'D')
   {
     rig_debug(RIG_DEBUG_ERR,"%s: unexpected MD answer, len=%d\n",
-      __func__,buf_len);
+      __func__,(int)buf_len);
     return -RIG_ERJCTED;
   }
 
@@ -132,7 +131,7 @@ static int ts870s_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
   if (buf_len != 6 || buf[1] != 'W')
   {
     rig_debug(RIG_DEBUG_ERR,"%s: unexpected FW answer, len=%d\n",
-			__func__,buf_len);
+			__func__,(int)buf_len);
     return -RIG_ERJCTED;
   }
 
@@ -149,7 +148,7 @@ static int ts870s_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
       if (buf_len != 7 || buf[1] != 'S')
         {
           rig_debug(RIG_DEBUG_ERR,"%s: unexpected IS answer, len=%d\n",
-		    __func__,buf_len);
+		    __func__,(int)buf_len);
           return -RIG_ERJCTED;
         }
 
@@ -176,8 +175,8 @@ static int ts870s_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     case RIG_MODE_RTTY:     kmode = MD_FSK; break;
     case RIG_MODE_RTTYR:    kmode = MD_FSKR; break;
     default:
-      rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %d\n",
-		      __func__,mode);
+      rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %s\n",
+		      __func__, rig_strrmode(mode));
       return -RIG_EINVAL;
   }
 
@@ -250,8 +249,7 @@ static int ts870s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				return retval;
 			lvl_len = strlen (lvlbuf);
 			if (lvl_len != 6 || lvlbuf[1] != 'M') {
-				rig_debug(RIG_DEBUG_ERR,"ts870s_get_level: "
-								"wrong answer len=%d\n", lvl_len);
+				rig_debug(RIG_DEBUG_ERR,"ts870s_get_level: wrong answer len=%d\n", (int)lvl_len);
 				return -RIG_ERJCTED;
 			}
 
@@ -324,8 +322,7 @@ static int ts870s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				return retval;
 			lvl_len = strlen (lvlbuf);
 			if (lvl_len != 4) {
-				rig_debug(RIG_DEBUG_ERR,"ts870s_get_level: "
-								"unexpected answer len=%d\n", lvl_len);
+				rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer len=%d\n", __func__, (int)lvl_len);
 				return -RIG_ERJCTED;
 			}
 
@@ -352,8 +349,7 @@ static int ts870s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			lvl_len = strlen (lvlbuf);
 			if (lvl_len != 5 || lvlbuf[1] != 'C')
 			{
-				rig_debug(RIG_DEBUG_ERR,"ts870s_get_level: "
-					"wrong answer len=%d\n", lvl_len);
+				rig_debug(RIG_DEBUG_ERR,"ts870s_get_level: wrong answer len=%d\n", (int)lvl_len);
 				return -RIG_ERJCTED;
 			}
 			sscanf (lvlbuf + 2, "%d", &lvl);
@@ -398,7 +394,7 @@ static int ts870s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			return -RIG_ENAVAIL;
 
 		default:
-			rig_debug(RIG_DEBUG_ERR,"Unsupported get_level %d", level);
+			rig_debug(RIG_DEBUG_ERR,"%s: unsupported get_level %s", __func__, rig_strlevel(level));
 			return -RIG_EINVAL;
 		}
 

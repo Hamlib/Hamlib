@@ -383,7 +383,7 @@ int ar3030_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     long lfreq;
     sscanf(rfp+1,"%ld", &lfreq);
     *freq = lfreq;
-    rig_debug(RIG_DEBUG_ERR,"%s: read lfreq=%d, freq=%.6f\n",__func__,lfreq,*freq);
+    rig_debug(RIG_DEBUG_ERR,"%s: read lfreq=%ld, freq=%.6f\n",__func__,lfreq,*freq);
 
     return RIG_OK;
 }
@@ -420,8 +420,8 @@ int ar3030_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         aormode = 'X';
         break;
     default:
-        rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %d\n",
-                  __FUNCTION__,mode);
+        rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %s\n",
+                  __FUNCTION__,rig_strrmode(mode));
         return -RIG_EINVAL;
     }
 

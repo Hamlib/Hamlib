@@ -582,8 +582,8 @@ int tt538_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	case RIG_MODE_AM:	ttmode = TT538_AM; break;
 	case RIG_MODE_FM:	ttmode = TT538_FM; break;
 	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %d\n",
-			__FUNCTION__, mode);
+		rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n",
+			__func__, rig_strrmode(mode));
 		return -RIG_EINVAL;
 	}
 
@@ -812,8 +812,8 @@ int tt538_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		break;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported level %d\n",
-				__FUNCTION__, level);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported level %s\n",
+				__func__, rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 
@@ -868,8 +868,8 @@ int tt538_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 			break;
 
 		default:
-			rig_debug(RIG_DEBUG_ERR,"%s: unsupported level %d\n",
-				__FUNCTION__, level);
+			rig_debug(RIG_DEBUG_ERR,"%s: unsupported level %s\n",
+				__func__, rig_strlevel(level));
 			return -RIG_EINVAL;
 	}
 	retval = tt538_transaction (rig, cmdbuf, cmd_len, NULL,NULL);
@@ -923,7 +923,7 @@ int tt538_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 			return RIG_OK;
 
 		default:
-			rig_debug(RIG_DEBUG_ERR,"Unsupported get_func %#x", func);
+			rig_debug(RIG_DEBUG_ERR,"%s: unsupported get_func %s", __func__, rig_strfunc(func));
 			return -RIG_EINVAL;
 	}
 }
@@ -996,7 +996,7 @@ int tt538_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 			break;
 
 		default:
-		        rig_debug(RIG_DEBUG_ERR,"Unsupported set_func %#x", func);
+		        rig_debug(RIG_DEBUG_ERR,"%s: unsupported set_func %s", __func__, rig_strfunc(func));
 		        return -RIG_EINVAL;
 	}
 

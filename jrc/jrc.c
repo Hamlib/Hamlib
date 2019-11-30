@@ -171,7 +171,7 @@ static int rig2jrc_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 	case RIG_MODE_WFM:	*jmode = MD_WFM; break;
 	default:
 	  rig_debug(RIG_DEBUG_ERR,
-		    "%s: unsupported mode %d\n", __FUNCTION__, mode);
+		    "%s: unsupported mode %s\n", __FUNCTION__, rig_strrmode(mode));
 	  return -RIG_EINVAL;
 	}
 
@@ -427,7 +427,7 @@ int jrc_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 		return jrc_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported set_func %d\n", func);
+		rig_debug(RIG_DEBUG_ERR,"Unsupported set_func %s\n", rig_strfunc(func));
 		return -RIG_EINVAL;
 	}
 
@@ -542,7 +542,7 @@ int jrc_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 		return RIG_OK;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported get_func %d\n", func);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported get_func %s\n", __func__, rig_strfunc(func));
 		return -RIG_EINVAL;
 	}
 
@@ -635,7 +635,7 @@ int jrc_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 	  return jrc_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
 
 	default:
-	  rig_debug(RIG_DEBUG_ERR,"Unsupported set_level %d\n", level);
+	  rig_debug(RIG_DEBUG_ERR,"%s: unsupported set_level %s\n", __func__, rig_strlevel(level));
 	  return -RIG_EINVAL;
 	}
 
@@ -886,7 +886,7 @@ int jrc_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	  break;
 
 	default:
-	  rig_debug(RIG_DEBUG_ERR,"Unsupported get_level %d\n", level);
+	  rig_debug(RIG_DEBUG_ERR,"%s: unsupported get_level %s\n",__func__, rig_strlevel(level));
 	  return -RIG_EINVAL;
 	}
 
@@ -928,7 +928,7 @@ int jrc_set_parm(RIG *rig, setting_t parm, value_t val)
 	  return jrc_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
 
 	default:
-	  rig_debug(RIG_DEBUG_ERR,"Unsupported set_parm %d\n", parm);
+	  rig_debug(RIG_DEBUG_ERR,"%s: unsupported set_parm %s\n", __func__, rig_strparm(parm));
 	  return -RIG_EINVAL;
 	}
 
@@ -988,7 +988,7 @@ int jrc_get_parm(RIG *rig, setting_t parm, value_t *val)
 	  break;
 
 	default:
-	  rig_debug(RIG_DEBUG_ERR,"Unsupported get_parm %d\n", parm);
+	  rig_debug(RIG_DEBUG_ERR,"%s: unsupported get_parm %s\n", __func__,rig_strparm(parm));
 	  return -RIG_EINVAL;
 	}
 
@@ -1341,7 +1341,7 @@ int jrc_decode_event(RIG *rig)
 	int count;
 	char buf[BUFSZ];
 
-	rig_debug(RIG_DEBUG_VERBOSE, "jrc: jrc_decode called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: jrc_decode called\n",__func__);
 
 	rs = &rig->state;
 
@@ -1389,7 +1389,7 @@ int jrc_decode_event(RIG *rig)
  */
 DECLARE_INITRIG_BACKEND(jrc)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "jrc: _init called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n",__func__);
 
 	rig_register(&nrd535_caps);
 	rig_register(&nrd545_caps);

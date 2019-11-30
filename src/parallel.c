@@ -693,7 +693,7 @@ int par_ptt_get(hamlib_port_t *p, ptt_t *pttx)
 
   default:
     rig_debug(RIG_DEBUG_ERR,
-              "Unsupported PTT type %d\n",
+              "%s: unsupported PTT type %d\n",
               __func__,
               p->type.ptt);
     return -RIG_ENAVAIL;

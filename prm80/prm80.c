@@ -348,7 +348,7 @@ int prm80_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		return -RIG_ENIMPL;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported set_level %d\n", level);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported set_level %s\n", __func__, rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 
@@ -383,7 +383,7 @@ int prm80_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		return RIG_OK;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported set_level %d\n", level);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported set_level %s\n", __func__, rig_strlevel(level));
 		return -RIG_EINVAL;
     }
 
@@ -414,7 +414,7 @@ const char * prm80_get_info(RIG *rig)
  */
 DECLARE_INITRIG_BACKEND(prm80)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "prm80: _init called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
 	rig_register(&prm8060_caps);
 

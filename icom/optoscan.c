@@ -260,9 +260,9 @@ int optoscan_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
 	digits[digitpos] = 0;
 
 	if (*length > 0) {
-		rig_debug(RIG_DEBUG_ERR, "optoscan_recv_dtmf: %d digits - %s\n", *length, digits);
+		rig_debug(RIG_DEBUG_ERR, "%s: %d digits - %s\n",__FUNCTION__, *length, digits);
 	} else {
-		rig_debug(RIG_DEBUG_ERR, "optoscan_recv_dtmf: no digits to read.\n");
+		rig_debug(RIG_DEBUG_ERR, "%s: no digits to read.\n",__FUNCTION__);
 	}
 
 	return RIG_OK;
@@ -416,7 +416,7 @@ int optoscan_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		break;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR, "Unsupported set_level %d", level);
+		rig_debug(RIG_DEBUG_ERR, "Unsupported set_level %s", rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 
@@ -457,7 +457,7 @@ int optoscan_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 
 		default:
-			rig_debug(RIG_DEBUG_ERR, "Unsupported get_level %d", level);
+			rig_debug(RIG_DEBUG_ERR, "Unsupported get_level %s", rig_strlevel(level));
 			return -RIG_EINVAL;
 		}
 
@@ -630,14 +630,14 @@ static int optoscan_get_status_block(RIG *rig, struct optostat *status_block)
 		break;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR, "optoscan_get_status_block: unknown rig model");
+		rig_debug(RIG_DEBUG_ERR, "%s: unknown rig model",__FUNCTION__);
 		return -RIG_ERJCTED;
 		break;
 	}
 
 	if (ack_len != expected_len) {
-		rig_debug(RIG_DEBUG_ERR, "optoscan_get_status_block: ack NG (%#.2x), "
-			  "len=%d\n", ackbuf[0], ack_len);
+		rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n",__FUNCTION__,
+			  ackbuf[0], ack_len);
 		return -RIG_ERJCTED;
 	}
 

@@ -428,8 +428,8 @@ int rx331_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		case RIG_MODE_DSB:      dmode = RX331_ISB; break;
 		default:
 			rig_debug(RIG_DEBUG_ERR,
-					"%s: unsupported mode %d\n",
-							__func__, mode);
+					"%s: unsupported mode %s\n",
+							__func__, rig_strrmode(mode));
 			return -RIG_EINVAL;
 	}
 
@@ -566,8 +566,8 @@ int rx331_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported set_level %d\n",
-                __func__, level);
+		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported set_level %s\n",
+                __func__, rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 
@@ -627,8 +627,8 @@ int rx331_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			case RX331_AGC_PROG: val->i = RIG_AGC_USER; break;
 			default:
 				rig_debug(RIG_DEBUG_ERR,
-					"%s:Unsupported get_level %d\n",
-                			__func__, level);
+					"%s:Unsupported get_level %s\n",
+                			__func__, rig_strlevel(level));
 				return -RIG_EINVAL;
 		}
 		break;
@@ -764,8 +764,8 @@ int rx331_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		break;
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported get_level %d\n",
-                __func__, level);
+		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported get_level %s\n",
+                __func__, rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 

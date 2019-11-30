@@ -232,7 +232,7 @@ const char *wr_get_info(RIG *rig) {
 
 DECLARE_INITRIG_BACKEND(winradio)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "winradio: _init called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
 #ifdef WINRADIO_IOCTL
 	rig_register(&wr1000_caps);

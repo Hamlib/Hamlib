@@ -149,10 +149,10 @@ static void sync_callback (int lock)
   static pthread_mutex_t client_lock = PTHREAD_MUTEX_INITIALIZER;
   if (lock) {
     pthread_mutex_lock (&client_lock);
-    rig_debug (RIG_DEBUG_VERBOSE, "client lock engaged\n");
+    rig_debug (RIG_DEBUG_VERBOSE, "%s: client lock engaged\n", __func__);
   }
   else {
-    rig_debug (RIG_DEBUG_VERBOSE, "client lock disengaged\n");
+    rig_debug (RIG_DEBUG_VERBOSE, "%s: client lock disengaged\n", __func__);
     pthread_mutex_unlock (&client_lock);
   }
 #endif
@@ -485,7 +485,7 @@ int main(int argc, char *argv[])
     rig_set_debug(verbose);
 
     rig_debug(RIG_DEBUG_VERBOSE, "rigctld, %s\n", hamlib_version);
-    rig_debug(RIG_DEBUG_VERBOSE,
+    rig_debug(RIG_DEBUG_VERBOSE,"%s",
               "Report bugs to <hamlib-developer@lists.sourceforge.net>\n\n");
 
     my_rig = rig_init(my_model);
@@ -704,13 +704,13 @@ int main(int argc, char *argv[])
 
     if (NULL == result)
     {
-        rig_debug(RIG_DEBUG_ERR, "bind error - no available interface\n");
+        rig_debug(RIG_DEBUG_ERR, "%s: bind error - no available interface\n", __func__);
         exit(1);
     }
 
     if (listen(sock_listen, 4) < 0)
     {
-        handle_error(RIG_DEBUG_ERR, "listening");
+        handle_error(RIG_DEBUG_ERR, "listeningn");
         exit(1);
     }
 
@@ -780,7 +780,7 @@ int main(int argc, char *argv[])
         timeout.tv_usec = 0;
         retcode = select (sock_listen + 1, &set, NULL, NULL, &timeout);
         if (-1 == retcode) {
-          rig_debug (RIG_DEBUG_ERR, "select\n");
+          rig_debug (RIG_DEBUG_ERR, "%s: select\n", __func__);
         }
         else if (!retcode) {
           if (ctrl_c) {

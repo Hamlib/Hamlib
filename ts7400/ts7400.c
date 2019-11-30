@@ -282,7 +282,7 @@ const struct rot_caps ts7400_rot_caps = {
 
 DECLARE_INITROT_BACKEND(ts7400)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "ts7400: _init called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
 	rot_register(&ts7400_rot_caps);
 

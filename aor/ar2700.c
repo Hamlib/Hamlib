@@ -217,8 +217,8 @@ int format2700_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width)
 	case RIG_MODE_WFM:      aormode = AR2700_WFM; break;
 	case RIG_MODE_FM:       aormode = AR2700_NFM; break;
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %d\n",
-				__FUNCTION__, mode);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %s\n",
+				__FUNCTION__, rig_strrmode(mode));
 		return -RIG_EINVAL;
 	}
 

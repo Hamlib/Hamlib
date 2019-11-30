@@ -87,7 +87,7 @@ int kpa_flushbuffer(AMP *amp)
 {
   struct amp_state *rs;
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called, cmd=%s\n", __func__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   rs = &amp->state;
 
@@ -214,7 +214,7 @@ int kpa_set_freq(AMP *amp, freq_t freq)
 {
   char responsebuf[KPABUFSZ];
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called, freq=%ld\n", __func__, freq);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called, freq=%"PRIfreq"\n", __func__, freq);
 
   if (!amp) { return -RIG_EINVAL; }
 
@@ -237,8 +237,8 @@ int kpa_set_freq(AMP *amp, freq_t freq)
   if (tfreq * 1000 != freq)
   {
     rig_debug(RIG_DEBUG_ERR,
-              "%s Error setting freq: ^FR freq!=freq2, %ld!=%ld '%s'\n", __func__,
-              freq, tfreq * 1000);
+              "%s Error setting freq: ^FR freq!=freq2, %f=%ld '%s'\n", __func__,
+              freq, tfreq * 1000, responsebuf);
     return -RIG_EPROTO;
   }
 
@@ -265,12 +265,12 @@ int kpa_get_level(AMP *amp, setting_t level, value_t *val)
 
   if (nargs != 1)
   {
-    rig_debug(RIG_DEBUG_ERR, "%s invalid value %s='%s'\n", __func__, cmd,
+    rig_debug(RIG_DEBUG_ERR, "%s: invalid value %s='%s'\n", __func__, cmd,
               responsebuf);
     return -RIG_EPROTO;
   }
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s antenna=%d\n", __func__, cmd, antenna);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd=%s, antenna=%d\n", __func__, cmd, antenna);
 
   switch (level)
   {
@@ -341,7 +341,7 @@ int kpa_get_level(AMP *amp, setting_t level, value_t *val)
       return -RIG_EPROTO;
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s freq range=%dKHz,%dKHz\n", __func__, cmd,
+    rig_debug(RIG_DEBUG_VERBOSE, "%s freq range=%dKHz,%dKHz\n", __func__,
               int_value, int_value2);
 
     //
@@ -469,7 +469,7 @@ int kpa_get_level(AMP *amp, setting_t level, value_t *val)
       }
     }
 
-    rig_debug(RIG_DEBUG_ERR, "%s unknown fault=%s\n", __func__, cmd, responsebuf);
+    rig_debug(RIG_DEBUG_ERR, "%s unknown fault from %s\n", __func__, responsebuf);
     struct kpa_priv_data *priv = amp->state.priv;
     sprintf(priv->tmpbuf, "Unknown fault code=0x%02x", fault);
     val->s = priv->tmpbuf;
@@ -478,7 +478,7 @@ int kpa_get_level(AMP *amp, setting_t level, value_t *val)
     break;
 
   default:
-    rig_debug(RIG_DEBUG_ERR, "%s unknown level=%s\n", __func__, cmd, level);
+    rig_debug(RIG_DEBUG_ERR, "%s unknown level=%s\n", __func__, rig_strlevel(level));
 
   }
 
@@ -582,7 +582,7 @@ int kpa_reset(AMP *amp, amp_reset_t reset)
 
   if (retval != RIG_OK)
   {
-    rig_debug(RIG_DEBUG_ERR, "%s error setting RIG_POWER_STANDBY\n", __func__,
+    rig_debug(RIG_DEBUG_ERR, "%s: error setting RIG_POWER_STANDBY '%s'\n", __func__,
               strerror(retval));
 
   }

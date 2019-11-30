@@ -29,7 +29,7 @@
 
 DECLARE_INITRIG_BACKEND(tuner)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "tuner: _init called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
 #ifdef V4L_IOCTL
 	rig_register(&v4l_caps);
