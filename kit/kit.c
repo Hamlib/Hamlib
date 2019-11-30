@@ -38,37 +38,37 @@
  */
 DECLARE_INITRIG_BACKEND(kit)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
-	rig_register(&elektor304_caps);
-	rig_register(&drt1_caps);
-	rig_register(&dds60_caps);
-	rig_register(&miniVNA_caps);
-	rig_register(&hiqsdr_caps);
-  rig_register(&rshfiq_caps);
+    rig_register(&elektor304_caps);
+    rig_register(&drt1_caps);
+    rig_register(&dds60_caps);
+    rig_register(&miniVNA_caps);
+    rig_register(&hiqsdr_caps);
+    rig_register(&rshfiq_caps);
 
 #if (defined(HAVE_LIBUSB) && (defined(HAVE_LIBUSB_H) || defined(HAVE_LIBUSB_1_0_LIBUSB_H)))
-	rig_register(&si570avrusb_caps);
-	rig_register(&si570picusb_caps);
-	rig_register(&si570peaberry1_caps);
-	rig_register(&si570peaberry2_caps);
-	rig_register(&funcube_caps);
-	rig_register(&fifisdr_caps);
-	rig_register(&fasdr_caps);
-	rig_register(&funcubeplus_caps);
+    rig_register(&si570avrusb_caps);
+    rig_register(&si570picusb_caps);
+    rig_register(&si570peaberry1_caps);
+    rig_register(&si570peaberry2_caps);
+    rig_register(&funcube_caps);
+    rig_register(&fifisdr_caps);
+    rig_register(&fasdr_caps);
+    rig_register(&funcubeplus_caps);
 #endif
 #if (defined(HAVE_LIBUSB) && (defined(HAVE_LIBUSB_H) || defined(HAVE_LIBUSB_1_0_LIBUSB_H))) || defined(_WIN32)
-	/* rigs with alternate DLL support on Win32 */
-	rig_register(&dwt_caps);
-	rig_register(&elektor507_caps);
+    /* rigs with alternate DLL support on Win32 */
+    rig_register(&dwt_caps);
+    rig_register(&elektor507_caps);
 #endif
 
 #ifdef HAVE_USRP
-	//rig_register(&usrp0_caps);
-	rig_register(&usrp_caps);
+    //rig_register(&usrp0_caps);
+    rig_register(&usrp_caps);
 #endif
 
-	return RIG_OK;
+    return RIG_OK;
 }
 
 /*
@@ -76,11 +76,11 @@ DECLARE_INITRIG_BACKEND(kit)
  */
 DECLARE_INITROT_BACKEND(kit)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
-	rot_register(&pcrotor_caps);
+    rot_register(&pcrotor_caps);
 
-	return RIG_OK;
+    return RIG_OK;
 }
 
 

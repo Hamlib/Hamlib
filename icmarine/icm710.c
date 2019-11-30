@@ -61,12 +61,14 @@
 #define ICM710_STR_CAL { 2, {{ 0, -60}, { 8, 60}} }
 
 
-static const struct icm710_priv_caps icm710_priv_caps = {
+static const struct icm710_priv_caps icm710_priv_caps =
+{
     .default_remote_id = 0x01,  /* default address */
 };
 
 
-const struct rig_caps icm710_caps = {
+const struct rig_caps icm710_caps =
+{
     .rig_model =  RIG_MODEL_IC_M710,
     .model_name = "IC-M710",
     .mfg_name =  "Icom",
@@ -242,7 +244,8 @@ const struct rig_caps icm710_caps = {
 /* Tokens */
 #define TOK_REMOTEID TOKEN_BACKEND(1)
 
-const struct confparams icm710_cfg_params[] = {
+const struct confparams icm710_cfg_params[] =
+{
     {
         TOK_REMOTEID, "remoteid", "Remote ID", "Transceiver's remote ID",
         "1", RIG_CONF_NUMERIC, { .n = { 1, 99, 1 } }
@@ -259,13 +262,15 @@ int icm710_init(RIG *rig)
     const struct icm710_priv_caps *priv_caps;
     const struct rig_caps *caps;
 
-    if (!rig || !rig->caps) {
+    if (!rig || !rig->caps)
+    {
         return -RIG_EINVAL;
     }
 
     caps = rig->caps;
 
-    if (!caps->priv) {
+    if (!caps->priv)
+    {
         return -RIG_ECONF;
     }
 
@@ -273,7 +278,8 @@ int icm710_init(RIG *rig)
 
     priv = (struct icm710_priv_data *)calloc(1, sizeof(struct icm710_priv_data));
 
-    if (!priv) {
+    if (!priv)
+    {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
@@ -289,8 +295,10 @@ int icm710_open(RIG *rig)
 {
     int retval = icmarine_transaction(rig, "REMOTE", "ON", NULL);
 
-    if (retval != RIG_OK) {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: rig not responding? %s\n", __func__, rigerror(retval));
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: rig not responding? %s\n", __func__,
+                  rigerror(retval));
 
     }
 
@@ -301,8 +309,10 @@ int icm710_close(RIG *rig)
 {
     int retval = icmarine_transaction(rig, "REMOTE", "OFF", NULL);
 
-    if (retval != RIG_OK) {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: rig not responding? %s\n", __func__, rigerror(retval));
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: rig not responding? %s\n", __func__,
+                  rigerror(retval));
 
     }
 
@@ -310,11 +320,13 @@ int icm710_close(RIG *rig)
 }
 int icm710_cleanup(RIG *rig)
 {
-    if (!rig) {
+    if (!rig)
+    {
         return -RIG_EINVAL;
     }
 
-    if (rig->state.priv) {
+    if (rig->state.priv)
+    {
         free(rig->state.priv);
     }
 
@@ -329,7 +341,8 @@ int icm710_set_conf(RIG *rig, token_t token, const char *val)
 
     priv = (struct icm710_priv_data *)rig->state.priv;
 
-    switch (token) {
+    switch (token)
+    {
     case TOK_REMOTEID:
         priv->remote_id = atoi(val);
         break;
@@ -347,7 +360,8 @@ int icm710_get_conf(RIG *rig, token_t token, char *val)
 
     priv = (struct icm710_priv_data *)rig->state.priv;
 
-    switch (token) {
+    switch (token)
+    {
     case TOK_REMOTEID:
         sprintf(val, "%u", priv->remote_id);
         break;
@@ -370,10 +384,12 @@ int icm710_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     sprintf(freqbuf, "%.6f", freq / MHz(1));
 
     /* no error reporting upon TXFREQ failure */
-    if (RIG_SPLIT_OFF == priv->split) {
+    if (RIG_SPLIT_OFF == priv->split)
+    {
         retval = icmarine_transaction(rig, CMD_TXFREQ, freqbuf, NULL);
 
-        if (retval != RIG_OK) {
+        if (retval != RIG_OK)
+        {
             return retval;
         }
 
@@ -382,7 +398,8 @@ int icm710_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     retval = icmarine_transaction(rig, CMD_RXFREQ, freqbuf, NULL);
 
-    if (retval != RIG_OK) {
+    if (retval != RIG_OK)
+    {
         return retval;
     }
 
@@ -415,7 +432,8 @@ int icm710_set_tx_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     retval = icmarine_transaction(rig, CMD_TXFREQ, freqbuf, NULL);
 
-    if (retval != RIG_OK) {
+    if (retval != RIG_OK)
+    {
         return retval;
     }
 
@@ -441,10 +459,12 @@ int icm710_set_split_vfo(RIG *rig, vfo_t rx_vfo, split_t split, vfo_t tx_vfo)
 
 
     /* when disabling split mode */
-    if (RIG_SPLIT_ON == priv->split && RIG_SPLIT_OFF == split) {
+    if (RIG_SPLIT_ON == priv->split && RIG_SPLIT_OFF == split)
+    {
         int retval = icm710_set_tx_freq(rig, rx_vfo, priv->rxfreq);
 
-        if (retval != RIG_OK) {
+        if (retval != RIG_OK)
+        {
             return retval;
         }
     }
@@ -471,7 +491,8 @@ int icm710_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     const char *pmode;
 
-    switch (mode) {
+    switch (mode)
+    {
     case RIG_MODE_CW:
         pmode = MD_CW;
         break;
@@ -522,7 +543,8 @@ int icm710_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     retval = icmarine_transaction(rig, CMD_PTT,
                                   ptt == RIG_PTT_ON ? "TX" : "RX", NULL);
 
-    if (retval != RIG_OK) {
+    if (retval != RIG_OK)
+    {
         return retval;
     }
 
@@ -540,7 +562,8 @@ int icm710_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
 int icm710_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
-    if (RIG_OP_TUNE != op && RIG_OP_NONE != op) {
+    if (RIG_OP_TUNE != op && RIG_OP_NONE != op)
+    {
         return -RIG_EINVAL;
     }
 
@@ -552,7 +575,8 @@ int icm710_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
     int retval;
 
-    switch (func) {
+    switch (func)
+    {
     case RIG_FUNC_NB:
         retval = icmarine_transaction(rig, CMD_NB, status ? "ON" : "OFF", NULL);
         break;
@@ -569,7 +593,8 @@ int icm710_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     char funcbuf[BUFSZ];
     int retval;
 
-    switch (func) {
+    switch (func)
+    {
     case RIG_FUNC_NB:
         retval = icmarine_transaction(rig, CMD_NB, NULL, funcbuf);
         break;
@@ -594,13 +619,15 @@ int icm710_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     priv = (struct icm710_priv_data *)rig->state.priv;
 
 
-    switch (level) {
+    switch (level)
+    {
     case RIG_LEVEL_AF:
         value = (unsigned)(val.f * 255);
         sprintf(lvlbuf, "%u", value);
         retval = icmarine_transaction(rig, CMD_AFGAIN, lvlbuf, NULL);
 
-        if (retval == RIG_OK) {
+        if (retval == RIG_OK)
+        {
             priv->afgain = value;
         }
 
@@ -611,7 +638,8 @@ int icm710_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         sprintf(lvlbuf, "%u", value);
         retval = icmarine_transaction(rig, CMD_RFGAIN, lvlbuf, NULL);
 
-        if (retval == RIG_OK) {
+        if (retval == RIG_OK)
+        {
             priv->rfgain = value;
         }
 
@@ -622,7 +650,8 @@ int icm710_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         sprintf(lvlbuf, "%u", value);
         retval = icmarine_transaction(rig, CMD_RFPWR, lvlbuf, NULL);
 
-        if (retval == RIG_OK) {
+        if (retval == RIG_OK)
+        {
             priv->rfpwr = value;
         }
 
@@ -632,7 +661,8 @@ int icm710_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         retval = icmarine_transaction(rig, CMD_AGC,
                                       RIG_AGC_OFF == val.i ? "OFF" : "ON", NULL);
 
-        if (retval == RIG_OK) {
+        if (retval == RIG_OK)
+        {
             priv->afgain = val.i;
         }
 
@@ -652,7 +682,8 @@ int icm710_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     priv = (struct icm710_priv_data *)rig->state.priv;
 
 
-    switch (level) {
+    switch (level)
+    {
 
     case RIG_LEVEL_AF:
         val->f = priv->afgain / 255.;
@@ -684,7 +715,7 @@ int icm710_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
  */
 DECLARE_INITRIG_BACKEND(icm710)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: icm710_init called\n",__func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: icm710_init called\n", __func__);
 
     rig_register(&icm700pro_caps);
     rig_register(&icm710_caps);

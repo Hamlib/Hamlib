@@ -42,8 +42,9 @@
 #define TS930_VFO (RIG_VFO_A|RIG_VFO_B)
 #define TS930_ANTS (0)
 
-static struct kenwood_priv_caps  ts930_priv_caps  = {
-		.cmdtrm =  EOM_KEN,
+static struct kenwood_priv_caps  ts930_priv_caps  =
+{
+    .cmdtrm =  EOM_KEN,
 };
 
 /*
@@ -53,121 +54,122 @@ static struct kenwood_priv_caps  ts930_priv_caps  = {
  *
  * part of infos comes from .http = //www.kenwood.net/
  */
-const struct rig_caps ts930_caps = {
-.rig_model =  RIG_MODEL_TS930,
-.model_name = "TS-930",
-.mfg_name =  "Kenwood",
-.version =  BACKEND_VER,
-.copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
-.rig_type =  RIG_TYPE_TRANSCEIVER,
-.ptt_type =  RIG_PTT_RIG,
-.dcd_type =  RIG_DCD_RIG,
-.port_type =  RIG_PORT_SERIAL,
-.serial_rate_min =  1200,
-.serial_rate_max =  57600,
-.serial_data_bits =  8,
-.serial_stop_bits =  1,
-.serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_NONE,
-.write_delay =  0,
-.post_write_delay =  0,
-.timeout =  200,
-.retry =  10,
+const struct rig_caps ts930_caps =
+{
+    .rig_model =  RIG_MODEL_TS930,
+    .model_name = "TS-930",
+    .mfg_name =  "Kenwood",
+    .version =  BACKEND_VER,
+    .copyright =  "LGPL",
+    .status =  RIG_STATUS_UNTESTED,
+    .rig_type =  RIG_TYPE_TRANSCEIVER,
+    .ptt_type =  RIG_PTT_RIG,
+    .dcd_type =  RIG_DCD_RIG,
+    .port_type =  RIG_PORT_SERIAL,
+    .serial_rate_min =  1200,
+    .serial_rate_max =  57600,
+    .serial_data_bits =  8,
+    .serial_stop_bits =  1,
+    .serial_parity =  RIG_PARITY_NONE,
+    .serial_handshake =  RIG_HANDSHAKE_NONE,
+    .write_delay =  0,
+    .post_write_delay =  0,
+    .timeout =  200,
+    .retry =  10,
 
-.has_get_func =  TS930_FUNC_ALL,
-.has_set_func =  TS930_FUNC_ALL,
-.has_get_level =  TS930_LEVEL_ALL,
-.has_set_level =  RIG_LEVEL_SET(TS930_LEVEL_ALL),
-.has_get_parm =  RIG_PARM_NONE,
-.has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
-.level_gran =  {},                 /* FIXME: granularity */
-.parm_gran =  {},
-.preamp =   { RIG_DBLST_END, },	/* FIXME: preamp list */
-.attenuator =   { 6, 12, 18, RIG_DBLST_END, },	/* TBC */
-.max_rit =  kHz(9.99),
-.max_xit =  kHz(9.99),
-.max_ifshift =  Hz(0),
-.targetable_vfo =  RIG_TARGETABLE_FREQ,
-.transceive =  RIG_TRN_RIG,
-.bank_qty =   0,
-.chan_desc_sz =  0,
+    .has_get_func =  TS930_FUNC_ALL,
+    .has_set_func =  TS930_FUNC_ALL,
+    .has_get_level =  TS930_LEVEL_ALL,
+    .has_set_level =  RIG_LEVEL_SET(TS930_LEVEL_ALL),
+    .has_get_parm =  RIG_PARM_NONE,
+    .has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
+    .level_gran =  {},                 /* FIXME: granularity */
+    .parm_gran =  {},
+    .preamp =   { RIG_DBLST_END, }, /* FIXME: preamp list */
+    .attenuator =   { 6, 12, 18, RIG_DBLST_END, },  /* TBC */
+    .max_rit =  kHz(9.99),
+    .max_xit =  kHz(9.99),
+    .max_ifshift =  Hz(0),
+    .targetable_vfo =  RIG_TARGETABLE_FREQ,
+    .transceive =  RIG_TRN_RIG,
+    .bank_qty =   0,
+    .chan_desc_sz =  0,
 
 
-.chan_list =  {
-			{  0, 89, RIG_MTYPE_MEM  },	/* TBC */
-			{ 90, 99, RIG_MTYPE_EDGE },
-			RIG_CHAN_END,
-		},
+    .chan_list =  {
+        {  0, 89, RIG_MTYPE_MEM  }, /* TBC */
+        { 90, 99, RIG_MTYPE_EDGE },
+        RIG_CHAN_END,
+    },
 
-.rx_range_list1 =  {
-	{kHz(150),MHz(30),TS930_ALL_MODES,-1,-1,TS930_VFO},
-	RIG_FRNG_END,
-  }, /* rx range */
-.tx_range_list1 =  {
-	FRQ_RNG_HF(1,TS930_OTHER_TX_MODES, W(5),W(250),TS930_VFO,TS930_ANTS),
-	FRQ_RNG_HF(1,TS930_AM_TX_MODES, W(4),W(80),TS930_VFO,TS930_ANTS),   /* AM class */
-	RIG_FRNG_END,
-  },
+    .rx_range_list1 =  {
+        {kHz(150), MHz(30), TS930_ALL_MODES, -1, -1, TS930_VFO},
+        RIG_FRNG_END,
+    }, /* rx range */
+    .tx_range_list1 =  {
+        FRQ_RNG_HF(1, TS930_OTHER_TX_MODES, W(5), W(250), TS930_VFO, TS930_ANTS),
+        FRQ_RNG_HF(1, TS930_AM_TX_MODES, W(4), W(80), TS930_VFO, TS930_ANTS), /* AM class */
+        RIG_FRNG_END,
+    },
 
-.rx_range_list2 =  {
-	{kHz(150),MHz(30),TS930_ALL_MODES,-1,-1,TS930_VFO},
-	RIG_FRNG_END,
-  }, /* rx range */
-.tx_range_list2 =  {
-	FRQ_RNG_HF(1,TS930_OTHER_TX_MODES, W(5),W(250),TS930_VFO,TS930_ANTS),
-	FRQ_RNG_HF(1,TS930_AM_TX_MODES, W(4),W(80),TS930_VFO,TS930_ANTS),   /* AM class */
-	RIG_FRNG_END,
-  }, /* tx range */
-.tuning_steps =  {		/* FIXME: TBC */
-	 {TS930_ALL_MODES,50},
-	 {TS930_ALL_MODES,100},
-	 {TS930_ALL_MODES,kHz(1)},
-	 {TS930_ALL_MODES,kHz(5)},
-	 {TS930_ALL_MODES,kHz(9)},
-	 {TS930_ALL_MODES,kHz(10)},
-	 {TS930_ALL_MODES,12500},
-	 {TS930_ALL_MODES,kHz(20)},
-	 {TS930_ALL_MODES,kHz(25)},
-	 {TS930_ALL_MODES,kHz(100)},
-	 {TS930_ALL_MODES,MHz(1)},
-	 RIG_TS_END,
-	},
-        /* mode/filter list, remember: order matters! */
-.filters =  {
-		{RIG_MODE_AM, kHz(6)},
-		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_AM, kHz(2.7)},
-		RIG_FLT_END,
-	},
-.priv =  (void *)&ts930_priv_caps,
+    .rx_range_list2 =  {
+        {kHz(150), MHz(30), TS930_ALL_MODES, -1, -1, TS930_VFO},
+        RIG_FRNG_END,
+    }, /* rx range */
+    .tx_range_list2 =  {
+        FRQ_RNG_HF(1, TS930_OTHER_TX_MODES, W(5), W(250), TS930_VFO, TS930_ANTS),
+        FRQ_RNG_HF(1, TS930_AM_TX_MODES, W(4), W(80), TS930_VFO, TS930_ANTS), /* AM class */
+        RIG_FRNG_END,
+    }, /* tx range */
+    .tuning_steps =  {      /* FIXME: TBC */
+        {TS930_ALL_MODES, 50},
+        {TS930_ALL_MODES, 100},
+        {TS930_ALL_MODES, kHz(1)},
+        {TS930_ALL_MODES, kHz(5)},
+        {TS930_ALL_MODES, kHz(9)},
+        {TS930_ALL_MODES, kHz(10)},
+        {TS930_ALL_MODES, 12500},
+        {TS930_ALL_MODES, kHz(20)},
+        {TS930_ALL_MODES, kHz(25)},
+        {TS930_ALL_MODES, kHz(100)},
+        {TS930_ALL_MODES, MHz(1)},
+        RIG_TS_END,
+    },
+    /* mode/filter list, remember: order matters! */
+    .filters =  {
+        {RIG_MODE_AM, kHz(6)},
+        {RIG_MODE_SSB | RIG_MODE_CW | RIG_MODE_RTTY | RIG_MODE_AM, kHz(2.7)},
+        RIG_FLT_END,
+    },
+    .priv = (void *)& ts930_priv_caps,
 
-.rig_init = kenwood_init,
-.rig_cleanup = kenwood_cleanup,
-.set_freq =  kenwood_set_freq,
-.get_freq =  kenwood_get_freq,
-.set_rit =  kenwood_set_rit,
-.get_rit =  kenwood_get_rit,
-.set_xit =  kenwood_set_xit,
-.get_xit =  kenwood_get_xit,
-.set_mode =  kenwood_set_mode,
-.get_mode =  kenwood_get_mode,
-.set_vfo =  kenwood_set_vfo,
-.get_vfo =  kenwood_get_vfo_if,
-.get_ptt =  kenwood_get_ptt,
-.set_ptt =  kenwood_set_ptt,
-.get_dcd =  kenwood_get_dcd,
-.set_func =  kenwood_set_func,
-.get_func =  kenwood_get_func,
-.set_level =  kenwood_set_level,
-.get_level =  kenwood_get_level,
-.vfo_op =  kenwood_vfo_op,
-.set_mem =  kenwood_set_mem,
-.get_mem =  kenwood_get_mem,
-.set_trn =  kenwood_set_trn,
-.get_trn =  kenwood_get_trn,
-.set_powerstat =  kenwood_set_powerstat,
-.get_powerstat =  kenwood_get_powerstat,
-.reset =  kenwood_reset,
+    .rig_init = kenwood_init,
+    .rig_cleanup = kenwood_cleanup,
+    .set_freq =  kenwood_set_freq,
+    .get_freq =  kenwood_get_freq,
+    .set_rit =  kenwood_set_rit,
+    .get_rit =  kenwood_get_rit,
+    .set_xit =  kenwood_set_xit,
+    .get_xit =  kenwood_get_xit,
+    .set_mode =  kenwood_set_mode,
+    .get_mode =  kenwood_get_mode,
+    .set_vfo =  kenwood_set_vfo,
+    .get_vfo =  kenwood_get_vfo_if,
+    .get_ptt =  kenwood_get_ptt,
+    .set_ptt =  kenwood_set_ptt,
+    .get_dcd =  kenwood_get_dcd,
+    .set_func =  kenwood_set_func,
+    .get_func =  kenwood_get_func,
+    .set_level =  kenwood_set_level,
+    .get_level =  kenwood_get_level,
+    .vfo_op =  kenwood_vfo_op,
+    .set_mem =  kenwood_set_mem,
+    .get_mem =  kenwood_get_mem,
+    .set_trn =  kenwood_set_trn,
+    .get_trn =  kenwood_get_trn,
+    .set_powerstat =  kenwood_set_powerstat,
+    .get_powerstat =  kenwood_get_powerstat,
+    .reset =  kenwood_reset,
 
 };
 

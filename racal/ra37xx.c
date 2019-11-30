@@ -38,11 +38,13 @@
 #include "ra37xx.h"
 
 
-const struct confparams ra37xx_cfg_params[] = {
-	{ TOK_RIGID, "receiver_id", "receiver ID", "receiver ID, -1 to disable addressing",
-			"-1", RIG_CONF_NUMERIC, { .n = { -1, 9, 1 } }
-	},
-	{ RIG_CONF_END, NULL, }
+const struct confparams ra37xx_cfg_params[] =
+{
+    {
+        TOK_RIGID, "receiver_id", "receiver ID", "receiver ID, -1 to disable addressing",
+        "-1", RIG_CONF_NUMERIC, { .n = { -1, 9, 1 } }
+    },
+    { RIG_CONF_END, NULL, }
 };
 
 
@@ -51,35 +53,36 @@ const struct confparams ra37xx_cfg_params[] = {
 #define BUFSZ 256
 
 #define SOM "\x0a"  /* LF */
-#define EOM "\x0d"	/* CR */
+#define EOM "\x0d"  /* CR */
 
 /*
  * modes
  */
-#define MD_USB	1
-#define MD_LSB	2
-#define MD_AM	3
-#define MD_FM	4
-#define MD_CW	5
-#define MD_FSK	6	/* option */
-#define MD_ISB_USB	7
-#define MD_ISB_LSB	8
-#define MD_FSK_NAR	13	/* option */
-#define MD_FSK_MED	14	/* option */
-#define MD_FSK_WID	15	/* option */
+#define MD_USB  1
+#define MD_LSB  2
+#define MD_AM   3
+#define MD_FM   4
+#define MD_CW   5
+#define MD_FSK  6   /* option */
+#define MD_ISB_USB  7
+#define MD_ISB_LSB  8
+#define MD_FSK_NAR  13  /* option */
+#define MD_FSK_MED  14  /* option */
+#define MD_FSK_WID  15  /* option */
 
 
 /*
  * retries are handled by ra37xx_transaction()
  */
-static int ra37xx_one_transaction(RIG *rig, const char *cmd, char *data, int *data_len)
+static int ra37xx_one_transaction(RIG *rig, const char *cmd, char *data,
+                                  int *data_len)
 {
-	struct ra37xx_priv_data *priv = (struct ra37xx_priv_data*)rig->state.priv;
-	struct rig_state *rs = &rig->state;
-	char cmdbuf[BUFSZ];
-	char respbuf[BUFSZ];
-	int cmd_len;
-	int retval;
+    struct ra37xx_priv_data *priv = (struct ra37xx_priv_data *)rig->state.priv;
+    struct rig_state *rs = &rig->state;
+    char cmdbuf[BUFSZ];
+    char respbuf[BUFSZ];
+    int cmd_len;
+    int retval;
     int pkt_header_len;
     struct timeval tv;
 
@@ -90,84 +93,123 @@ static int ra37xx_one_transaction(RIG *rig, const char *cmd, char *data, int *da
        - (optional) 1 Address Character
        - no Check Character
      */
-    if (priv->receiver_id != -1) {
+    if (priv->receiver_id != -1)
+    {
         pkt_header_len = 2;
-	    cmd_len = sprintf(cmdbuf, SOM "%d%s" EOM, priv->receiver_id, cmd);
-    } else {
+        cmd_len = sprintf(cmdbuf, SOM "%d%s" EOM, priv->receiver_id, cmd);
+    }
+    else
+    {
         pkt_header_len = 1;
-	    cmd_len = sprintf(cmdbuf, SOM "%s" EOM, cmd);
+        cmd_len = sprintf(cmdbuf, SOM "%s" EOM, cmd);
     }
 
-	serial_flush(&rs->rigport);
+    serial_flush(&rs->rigport);
 
-	retval = write_block(&rs->rigport, cmdbuf, cmd_len);
-	if (retval != RIG_OK)
-		return retval;
+    retval = write_block(&rs->rigport, cmdbuf, cmd_len);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
 
 
-	/* forward COMMAND frame? no data expected */
-	if (!data || !data_len) {
-		return retval;
-	}
+    /* forward COMMAND frame? no data expected */
+    if (!data || !data_len)
+    {
+        return retval;
+    }
 
-    do {
+    do
+    {
         retval = read_string(&rs->rigport, respbuf, BUFSZ, EOM, strlen(EOM));
+
         if (retval < 0)
+        {
             return retval;
+        }
 
         /* drop short/invalid packets */
-        if (retval <= pkt_header_len+1 || respbuf[0] != '\x0a') {
+        if (retval <= pkt_header_len + 1 || respbuf[0] != '\x0a')
+        {
             if (!rig_check_cache_timeout(&tv, rs->rigport.timeout))
+            {
                 continue;
+            }
             else
+            {
                 return -RIG_EPROTO;
+            }
         }
 
         /* drop other receiver id, and "pause" (empty) packets */
-        if ((priv->receiver_id != -1 && (respbuf[1]-'0') != priv->receiver_id) ||
-                retval == pkt_header_len+1) {
+        if ((priv->receiver_id != -1 && (respbuf[1] - '0') != priv->receiver_id) ||
+                retval == pkt_header_len + 1)
+        {
             if (!rig_check_cache_timeout(&tv, rs->rigport.timeout))
+            {
                 continue;
+            }
             else
+            {
                 return -RIG_ETIMEOUT;
+            }
         }
 
-        if (retval >= pkt_header_len+3 && !memcmp(respbuf+pkt_header_len, "ERR", 3))
+        if (retval >= pkt_header_len + 3 && !memcmp(respbuf + pkt_header_len, "ERR", 3))
+        {
             return -RIG_ERJCTED;
+        }
 
-        if (retval >= pkt_header_len+5 && !memcmp(respbuf+pkt_header_len, "FAULT", 5))
+        if (retval >= pkt_header_len + 5
+                && !memcmp(respbuf + pkt_header_len, "FAULT", 5))
+        {
             return -RIG_ERJCTED;
+        }
 
-        if (cmd[0] == 'Q' && (retval+pkt_header_len+1 < strlen(cmd) ||
-                cmd[1] != respbuf[pkt_header_len])) {
+        if (cmd[0] == 'Q' && (retval + pkt_header_len + 1 < strlen(cmd) ||
+                              cmd[1] != respbuf[pkt_header_len]))
+        {
 
             rig_debug(RIG_DEBUG_WARN, "%s: unexpected revertive frame\n",
-                    __func__);
+                      __func__);
+
             if (!rig_check_cache_timeout(&tv, rs->rigport.timeout))
+            {
                 continue;
+            }
             else
+            {
                 return -RIG_ETIMEOUT;
+            }
         }
-    } while (retval < 0);
+    }
+    while (retval < 0);
 
     /* Strip starting LF and ending CR */
-    memcpy(data, respbuf+pkt_header_len, retval-pkt_header_len-1);
+    memcpy(data, respbuf + pkt_header_len, retval - pkt_header_len - 1);
 
-	*data_len = retval;
-	return RIG_OK;
+    *data_len = retval;
+    return RIG_OK;
 }
 
-static int ra37xx_transaction(RIG *rig, const char *cmd, char *data, int *data_len)
+static int ra37xx_transaction(RIG *rig, const char *cmd, char *data,
+                              int *data_len)
 {
     int retval, retry;
 
     retry = rig->state.rigport.retry;
 
-    do {
+    do
+    {
         retval = ra37xx_one_transaction(rig, cmd, data, data_len);
+
         if (retval == RIG_OK)
+        {
             break;
-    } while (retry-- > 0);
+        }
+    }
+    while (retry-- > 0);
 
     return retval;
 }
@@ -175,36 +217,45 @@ static int ra37xx_transaction(RIG *rig, const char *cmd, char *data, int *data_l
 
 int ra37xx_init(RIG *rig)
 {
-	struct ra37xx_priv_data *priv;
+    struct ra37xx_priv_data *priv;
 
-	if (!rig || !rig->caps)
-		return -RIG_EINVAL;
+    if (!rig || !rig->caps)
+    {
+        return -RIG_EINVAL;
+    }
 
-	priv = (struct ra37xx_priv_data*)malloc(sizeof(struct ra37xx_priv_data));
-	if (!priv) {
-		/* whoops! memory shortage! */
-		return -RIG_ENOMEM;
-	}
+    priv = (struct ra37xx_priv_data *)malloc(sizeof(struct ra37xx_priv_data));
 
-	rig->state.priv = (void*)priv;
+    if (!priv)
+    {
+        /* whoops! memory shortage! */
+        return -RIG_ENOMEM;
+    }
 
-	priv->receiver_id = -1;
+    rig->state.priv = (void *)priv;
 
-	return RIG_OK;
+    priv->receiver_id = -1;
+
+    return RIG_OK;
 }
 
 /*
  */
 int ra37xx_cleanup(RIG *rig)
 {
-	if (!rig)
-		return -RIG_EINVAL;
+    if (!rig)
+    {
+        return -RIG_EINVAL;
+    }
 
-	if (rig->state.priv)
-		free(rig->state.priv);
-	rig->state.priv = NULL;
+    if (rig->state.priv)
+    {
+        free(rig->state.priv);
+    }
 
-	return RIG_OK;
+    rig->state.priv = NULL;
+
+    return RIG_OK;
 }
 
 
@@ -214,20 +265,27 @@ int ra37xx_cleanup(RIG *rig)
  */
 int ra37xx_set_conf(RIG *rig, token_t token, const char *val)
 {
-	struct ra37xx_priv_data *priv = (struct ra37xx_priv_data*)rig->state.priv;
+    struct ra37xx_priv_data *priv = (struct ra37xx_priv_data *)rig->state.priv;
     int receiver_id;
 
-	switch (token) {
-		case TOK_RIGID:
-			receiver_id = atoi(val);
-            if (receiver_id < -1 || receiver_id > 9)
-                return -RIG_EINVAL;
-			priv->receiver_id = receiver_id;
-			break;
-		default:
-			return -RIG_EINVAL;
-	}
-	return RIG_OK;
+    switch (token)
+    {
+    case TOK_RIGID:
+        receiver_id = atoi(val);
+
+        if (receiver_id < -1 || receiver_id > 9)
+        {
+            return -RIG_EINVAL;
+        }
+
+        priv->receiver_id = receiver_id;
+        break;
+
+    default:
+        return -RIG_EINVAL;
+    }
+
+    return RIG_OK;
 }
 
 /*
@@ -237,16 +295,19 @@ int ra37xx_set_conf(RIG *rig, token_t token, const char *val)
  */
 int ra37xx_get_conf(RIG *rig, token_t token, char *val)
 {
-	struct ra37xx_priv_data *priv = (struct ra37xx_priv_data*)rig->state.priv;
+    struct ra37xx_priv_data *priv = (struct ra37xx_priv_data *)rig->state.priv;
 
-	switch(token) {
-		case TOK_RIGID:
-			sprintf(val, "%d", priv->receiver_id);
-			break;
-		default:
-			return -RIG_EINVAL;
-	}
-	return RIG_OK;
+    switch (token)
+    {
+    case TOK_RIGID:
+        sprintf(val, "%d", priv->receiver_id);
+        break;
+
+    default:
+        return -RIG_EINVAL;
+    }
+
+    return RIG_OK;
 }
 
 /*
@@ -255,9 +316,9 @@ int ra37xx_get_conf(RIG *rig, token_t token, char *val)
  */
 int ra37xx_open(RIG *rig)
 {
-	/* Set Receiver to remote control
-	 */
-	return ra37xx_transaction (rig, "REM1", NULL, NULL);
+    /* Set Receiver to remote control
+     */
+    return ra37xx_transaction(rig, "REM1", NULL, NULL);
 }
 
 
@@ -267,8 +328,8 @@ int ra37xx_open(RIG *rig)
  */
 int ra37xx_close(RIG *rig)
 {
-	/* Set Receiver to local control */
-	return ra37xx_transaction (rig, "REM0", NULL, NULL);
+    /* Set Receiver to local control */
+    return ra37xx_transaction(rig, "REM0", NULL, NULL);
 }
 
 /*
@@ -277,30 +338,36 @@ int ra37xx_close(RIG *rig)
  */
 int ra37xx_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-	char freqbuf[BUFSZ];
-	int freq_len;
+    char freqbuf[BUFSZ];
+    int freq_len;
 
-	freq_len = sprintf(freqbuf, "F%ld", (unsigned long)freq);
-	if (freq_len < 0)
-		return -RIG_ETRUNC;
+    freq_len = sprintf(freqbuf, "F%ld", (unsigned long)freq);
 
-	return ra37xx_transaction (rig, freqbuf, NULL, NULL);
+    if (freq_len < 0)
+    {
+        return -RIG_ETRUNC;
+    }
+
+    return ra37xx_transaction(rig, freqbuf, NULL, NULL);
 }
 
 int ra37xx_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-	char freqbuf[BUFSZ];
-	int retval, len;
-	double f;
+    char freqbuf[BUFSZ];
+    int retval, len;
+    double f;
 
-	retval = ra37xx_transaction (rig, "QF", freqbuf, &len);
-	if (retval != RIG_OK)
-		return retval;
+    retval = ra37xx_transaction(rig, "QF", freqbuf, &len);
 
-	sscanf(freqbuf+1, "%lf", &f);
-	*freq = (freq_t)f;
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
 
-	return RIG_OK;
+    sscanf(freqbuf + 1, "%lf", &f);
+    *freq = (freq_t)f;
+
+    return RIG_OK;
 }
 
 /*
@@ -309,125 +376,159 @@ int ra37xx_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  */
 int ra37xx_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-	//struct ra37xx_priv_data *priv = (struct ra37xx_priv_data*)rig->state.priv;
-	int ra_mode, widthtype, widthnum;
-	char buf[BUFSZ];
+    //struct ra37xx_priv_data *priv = (struct ra37xx_priv_data*)rig->state.priv;
+    int ra_mode, widthtype, widthnum;
+    char buf[BUFSZ];
 
-	switch (mode) {
-	case RIG_MODE_CW:	widthtype = 1; ra_mode = MD_CW; break;
-	case RIG_MODE_CWR:	widthtype = 2; ra_mode = MD_CW; break;
-	case RIG_MODE_USB:	widthtype = 1; ra_mode = MD_USB; break;
-	case RIG_MODE_LSB:	widthtype = 2; ra_mode = MD_LSB; break;
-	case RIG_MODE_AM:	widthtype = 3; ra_mode = MD_AM; break;
-	case RIG_MODE_FM:	widthtype = 3; ra_mode = MD_FM; break;
-	case RIG_MODE_RTTY:	widthtype = 3; ra_mode = MD_FSK; break;
-	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n",
-				__func__, rig_strrmode(mode));
-		return -RIG_EINVAL;
-	}
+    switch (mode)
+    {
+    case RIG_MODE_CW:   widthtype = 1; ra_mode = MD_CW; break;
 
-	if (width == RIG_PASSBAND_NORMAL)
-		width = rig_passband_normal(rig, mode);
+    case RIG_MODE_CWR:  widthtype = 2; ra_mode = MD_CW; break;
+
+    case RIG_MODE_USB:  widthtype = 1; ra_mode = MD_USB; break;
+
+    case RIG_MODE_LSB:  widthtype = 2; ra_mode = MD_LSB; break;
+
+    case RIG_MODE_AM:   widthtype = 3; ra_mode = MD_AM; break;
+
+    case RIG_MODE_FM:   widthtype = 3; ra_mode = MD_FM; break;
+
+    case RIG_MODE_RTTY: widthtype = 3; ra_mode = MD_FSK; break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n",
+                  __func__, rig_strrmode(mode));
+        return -RIG_EINVAL;
+    }
+
+    if (width == RIG_PASSBAND_NORMAL)
+    {
+        width = rig_passband_normal(rig, mode);
+    }
 
     widthtype = 0; /* FIXME: no bandwidth for now */
     widthnum = 0;
     /* width set using 'B', QBCON must be queried firsthand */
 
 #if 0
-	sprintf(buf, "M%d;B%d,%d", ra_mode, widthtype, widthnum);
+    sprintf(buf, "M%d;B%d,%d", ra_mode, widthtype, widthnum);
 #else
-	sprintf(buf, "M%d", ra_mode);
+    sprintf(buf, "M%d", ra_mode);
 #endif
 
-	rig_debug(RIG_DEBUG_TRACE, "%s: widthtype = %i, widthnum = %i\n", __func__, widthtype, widthnum);
+    rig_debug(RIG_DEBUG_TRACE, "%s: widthtype = %i, widthnum = %i\n", __func__,
+              widthtype, widthnum);
 
-	return ra37xx_transaction (rig, buf, NULL, NULL);
+    return ra37xx_transaction(rig, buf, NULL, NULL);
 }
 
 int ra37xx_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-	char buf[BUFSZ], resbuf[BUFSZ];
-	int retval, len, ra_mode, widthtype, widthnum;
+    char buf[BUFSZ], resbuf[BUFSZ];
+    int retval, len, ra_mode, widthtype, widthnum;
 
-	retval = ra37xx_transaction (rig, "QM", resbuf, &len);
-	if (retval != RIG_OK)
-		return retval;
+    retval = ra37xx_transaction(rig, "QM", resbuf, &len);
 
-    sscanf(resbuf+1, "%d", &ra_mode);
-	switch (ra_mode) {
-	case MD_CW:  widthtype = 1; *mode = RIG_MODE_CW; break;
-	case MD_ISB_LSB:
-	case MD_LSB: widthtype = 2; *mode = RIG_MODE_LSB; break;
-	case MD_ISB_USB:
-	case MD_USB: widthtype = 1; *mode = RIG_MODE_USB; break;
-	case MD_FSK_NAR:
-	case MD_FSK_MED:
-	case MD_FSK_WID:
-	case MD_FSK: widthtype = 3; *mode = RIG_MODE_RTTY; break;
-	case MD_FM:  widthtype = 3; *mode = RIG_MODE_FM; break;
-	case MD_AM:  widthtype = 3; *mode = RIG_MODE_AM; break;
-	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n",
-				__func__, rig_strrmode(*mode));
-		return -RIG_EPROTO;
-	}
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
 
-	retval = ra37xx_transaction (rig, "QB", resbuf, &len);
-	if (retval != RIG_OK)
-		return retval;
+    sscanf(resbuf + 1, "%d", &ra_mode);
+
+    switch (ra_mode)
+    {
+    case MD_CW:  widthtype = 1; *mode = RIG_MODE_CW; break;
+
+    case MD_ISB_LSB:
+    case MD_LSB: widthtype = 2; *mode = RIG_MODE_LSB; break;
+
+    case MD_ISB_USB:
+    case MD_USB: widthtype = 1; *mode = RIG_MODE_USB; break;
+
+    case MD_FSK_NAR:
+    case MD_FSK_MED:
+    case MD_FSK_WID:
+    case MD_FSK: widthtype = 3; *mode = RIG_MODE_RTTY; break;
+
+    case MD_FM:  widthtype = 3; *mode = RIG_MODE_FM; break;
+
+    case MD_AM:  widthtype = 3; *mode = RIG_MODE_AM; break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n",
+                  __func__, rig_strrmode(*mode));
+        return -RIG_EPROTO;
+    }
+
+    retval = ra37xx_transaction(rig, "QB", resbuf, &len);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
 
     /* FIXME */
     widthnum = 0;
-	sprintf(buf, "QBCON%d,%d", widthtype, widthnum);
-	retval = ra37xx_transaction (rig, buf, resbuf, &len);
-	if (retval != RIG_OK)
-		return retval;
+    sprintf(buf, "QBCON%d,%d", widthtype, widthnum);
+    retval = ra37xx_transaction(rig, buf, resbuf, &len);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
 
     /* TODO: width */
-	*width = 0;
+    *width = 0;
 
-	return RIG_OK;
+    return RIG_OK;
 }
 
 int ra37xx_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
-	char cmdbuf[BUFSZ];
+    char cmdbuf[BUFSZ];
 
-	switch (func) {
-	case RIG_FUNC_MUTE:
-		sprintf(cmdbuf, "MUTE%d", status ? 1 : 0);
-		break;
-	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported %s\n",
-				__func__, rig_strfunc(func));
-		return -RIG_EINVAL;
-	}
+    switch (func)
+    {
+    case RIG_FUNC_MUTE:
+        sprintf(cmdbuf, "MUTE%d", status ? 1 : 0);
+        break;
 
-	return ra37xx_transaction (rig, cmdbuf, NULL, NULL);
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported %s\n",
+                  __func__, rig_strfunc(func));
+        return -RIG_EINVAL;
+    }
+
+    return ra37xx_transaction(rig, cmdbuf, NULL, NULL);
 }
 
 int ra37xx_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
-	char resbuf[BUFSZ];
-	int retval, len, i;
+    char resbuf[BUFSZ];
+    int retval, len, i;
 
-	switch (func) {
-	case RIG_FUNC_MUTE:
-		retval = ra37xx_transaction (rig, "QMUTE", resbuf, &len);
-		if (retval != RIG_OK)
-			return retval;
+    switch (func)
+    {
+    case RIG_FUNC_MUTE:
+        retval = ra37xx_transaction(rig, "QMUTE", resbuf, &len);
 
-		sscanf(resbuf+4, "%d", &i);
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        sscanf(resbuf + 4, "%d", &i);
         *status = i == 0 ? 0 : 1;
-		break;
+        break;
 
-	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported %s\n", __func__, rig_strfunc(func));
-		return -RIG_EINVAL;
-	}
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported %s\n", __func__, rig_strfunc(func));
+        return -RIG_EINVAL;
+    }
 
-	return RIG_OK;
+    return RIG_OK;
 }
 
 
@@ -437,48 +538,55 @@ int ra37xx_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
  */
 int ra37xx_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-	char cmdbuf[BUFSZ];
-	int agc;
+    char cmdbuf[BUFSZ];
+    int agc;
 
-	switch (level) {
-	case RIG_LEVEL_AF:
-		sprintf(cmdbuf, "AFL%d", (int)(val.f*255));
-		break;
+    switch (level)
+    {
+    case RIG_LEVEL_AF:
+        sprintf(cmdbuf, "AFL%d", (int)(val.f * 255));
+        break;
 
-	case RIG_LEVEL_PREAMP:
-		sprintf(cmdbuf, "RFAMP%d", val.i ? 1 : 0);
-		break;
+    case RIG_LEVEL_PREAMP:
+        sprintf(cmdbuf, "RFAMP%d", val.i ? 1 : 0);
+        break;
 
-	case RIG_LEVEL_CWPITCH: /* BFO */
-		sprintf(cmdbuf, "BFO%d", val.i);
-		break;
+    case RIG_LEVEL_CWPITCH: /* BFO */
+        sprintf(cmdbuf, "BFO%d", val.i);
+        break;
 
-	case RIG_LEVEL_SQL:
-		sprintf(cmdbuf, "CORL%d", (int)(val.f*255));
-		break;
+    case RIG_LEVEL_SQL:
+        sprintf(cmdbuf, "CORL%d", (int)(val.f * 255));
+        break;
 
-	case RIG_LEVEL_RF:
-		sprintf(cmdbuf, "G%d", (int)(val.f*255));
-		break;
+    case RIG_LEVEL_RF:
+        sprintf(cmdbuf, "G%d", (int)(val.f * 255));
+        break;
 
-	case RIG_LEVEL_AGC:
-		switch (val.i) {
-			case RIG_AGC_FAST: agc = 0; break;
-			case RIG_AGC_MEDIUM: agc = 1; break;
-			case RIG_AGC_SLOW: agc = 2; break;
-			case RIG_AGC_USER: agc = 0; break;
-			default: return -RIG_EINVAL;
-		}
-		sprintf(cmdbuf, "AGC%d,%d", val.i==RIG_AGC_USER ? 1:0, agc);
-		break;
+    case RIG_LEVEL_AGC:
+        switch (val.i)
+        {
+        case RIG_AGC_FAST: agc = 0; break;
 
-	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported %s\n",
-				__func__, rig_strlevel(level));
-		return -RIG_EINVAL;
-	}
+        case RIG_AGC_MEDIUM: agc = 1; break;
 
-	return ra37xx_transaction (rig, cmdbuf, NULL, NULL);
+        case RIG_AGC_SLOW: agc = 2; break;
+
+        case RIG_AGC_USER: agc = 0; break;
+
+        default: return -RIG_EINVAL;
+        }
+
+        sprintf(cmdbuf, "AGC%d,%d", val.i == RIG_AGC_USER ? 1 : 0, agc);
+        break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported %s\n",
+                  __func__, rig_strlevel(level));
+        return -RIG_EINVAL;
+    }
+
+    return ra37xx_transaction(rig, cmdbuf, NULL, NULL);
 }
 
 
@@ -488,215 +596,270 @@ int ra37xx_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
  */
 int ra37xx_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-	char resbuf[BUFSZ];
-	int retval, len, i;
+    char resbuf[BUFSZ];
+    int retval, len, i;
 
-	switch (level) {
-	case RIG_LEVEL_AF:
-		retval = ra37xx_transaction (rig, "QAFL", resbuf, &len);
-		if (retval != RIG_OK)
-			return retval;
+    switch (level)
+    {
+    case RIG_LEVEL_AF:
+        retval = ra37xx_transaction(rig, "QAFL", resbuf, &len);
 
-		sscanf(resbuf+3, "%d", &i);
-        val->f = ((float)i)/255;
-		break;
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
 
-	case RIG_LEVEL_CWPITCH:
-		retval = ra37xx_transaction (rig, "QBFO", resbuf, &len);
-		if (retval != RIG_OK)
-			return retval;
+        sscanf(resbuf + 3, "%d", &i);
+        val->f = ((float)i) / 255;
+        break;
 
-		sscanf(resbuf+3, "%d", &val->i);
-		break;
+    case RIG_LEVEL_CWPITCH:
+        retval = ra37xx_transaction(rig, "QBFO", resbuf, &len);
 
-	case RIG_LEVEL_PREAMP:
-		retval = ra37xx_transaction (rig, "QRFAMP", resbuf, &len);
-		if (retval != RIG_OK)
-			return retval;
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
 
-		sscanf(resbuf+5, "%d", &i);
+        sscanf(resbuf + 3, "%d", &val->i);
+        break;
+
+    case RIG_LEVEL_PREAMP:
+        retval = ra37xx_transaction(rig, "QRFAMP", resbuf, &len);
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        sscanf(resbuf + 5, "%d", &i);
         val->i = i ? rig->state.preamp[0] : 0;
-		break;
+        break;
 
-	case RIG_LEVEL_RAWSTR:
-		retval = ra37xx_transaction (rig, "QRFL", resbuf, &len);
-		if (retval != RIG_OK)
-			return retval;
+    case RIG_LEVEL_RAWSTR:
+        retval = ra37xx_transaction(rig, "QRFL", resbuf, &len);
 
-		sscanf(resbuf+3, "%d", &val->i);
-		break;
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
 
-	case RIG_LEVEL_SQL:
-		retval = ra37xx_transaction (rig, "QCORL", resbuf, &len);
-		if (retval != RIG_OK)
-			return retval;
+        sscanf(resbuf + 3, "%d", &val->i);
+        break;
 
-		sscanf(resbuf+4, "%d", &i);
-        val->f = ((float)i)/255;
-		break;
+    case RIG_LEVEL_SQL:
+        retval = ra37xx_transaction(rig, "QCORL", resbuf, &len);
 
-	case RIG_LEVEL_RF:
-		retval = ra37xx_transaction (rig, "QG", resbuf, &len);
-		if (retval != RIG_OK)
-			return retval;
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
 
-		sscanf(resbuf+1, "%d", &i);
-        val->f = ((float)i)/255;
-		break;
+        sscanf(resbuf + 4, "%d", &i);
+        val->f = ((float)i) / 255;
+        break;
 
-	case RIG_LEVEL_AGC:
-		retval = ra37xx_transaction (rig, "QAGC", resbuf, &len);
-		if (retval != RIG_OK)
-			return retval;
+    case RIG_LEVEL_RF:
+        retval = ra37xx_transaction(rig, "QG", resbuf, &len);
 
-		if (resbuf[3] != '0') {
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        sscanf(resbuf + 1, "%d", &i);
+        val->f = ((float)i) / 255;
+        break;
+
+    case RIG_LEVEL_AGC:
+        retval = ra37xx_transaction(rig, "QAGC", resbuf, &len);
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        if (resbuf[3] != '0')
+        {
             val->i = RIG_AGC_USER;
             break;
         }
 
-		switch (resbuf[5]) {
-			case '0': val->i = RIG_AGC_FAST; break;
-			case '1': val->i = RIG_AGC_MEDIUM; break;
-			case '2': val->i = RIG_AGC_SLOW; break;
-			default: return -RIG_EPROTO;
-		}
-		break;
-	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported %s\n", __func__, rig_strlevel(level));
-		return -RIG_EINVAL;
-	}
+        switch (resbuf[5])
+        {
+        case '0': val->i = RIG_AGC_FAST; break;
 
-	return RIG_OK;
+        case '1': val->i = RIG_AGC_MEDIUM; break;
+
+        case '2': val->i = RIG_AGC_SLOW; break;
+
+        default: return -RIG_EPROTO;
+        }
+
+        break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported %s\n", __func__, rig_strlevel(level));
+        return -RIG_EINVAL;
+    }
+
+    return RIG_OK;
 }
 
-const char* ra37xx_get_info(RIG *rig)
+const char *ra37xx_get_info(RIG *rig)
 {
-	static char infobuf[BUFSZ];
-	int res_len, retval;
+    static char infobuf[BUFSZ];
+    int res_len, retval;
 
-	retval = ra37xx_transaction (rig, "QID", infobuf, &res_len);
-	if (retval != RIG_OK || res_len < 2 || res_len >= BUFSZ)
-		return NULL;
+    retval = ra37xx_transaction(rig, "QID", infobuf, &res_len);
+
+    if (retval != RIG_OK || res_len < 2 || res_len >= BUFSZ)
+    {
+        return NULL;
+    }
 
     infobuf[res_len] = '\0';
 
     /* TODO: "QSW"? c.f. 5-43 */
 
     /* skip "ID" */
-    return infobuf+2;
+    return infobuf + 2;
 }
 
 int ra37xx_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
 {
-	char buf[BUFSZ];
+    char buf[BUFSZ];
     int i_ant;
 
     switch (ant)
     {
-    case RIG_ANT_1: i_ant = 1<<0; break;
-    case RIG_ANT_2: i_ant = 1<<1; break;
-    case RIG_ANT_3: i_ant = 1<<2; break;
-    case RIG_ANT_4: i_ant = 1<<3; break;
+    case RIG_ANT_1: i_ant = 1 << 0; break;
+
+    case RIG_ANT_2: i_ant = 1 << 1; break;
+
+    case RIG_ANT_3: i_ant = 1 << 2; break;
+
+    case RIG_ANT_4: i_ant = 1 << 3; break;
+
     default:
-        rig_debug(RIG_DEBUG_ERR,"Unsupported ant %#x", ant);
+        rig_debug(RIG_DEBUG_ERR, "Unsupported ant %#x", ant);
         return -RIG_EINVAL;
     }
 
-	sprintf(buf, "ANT%d", i_ant);
+    sprintf(buf, "ANT%d", i_ant);
 
-	return ra37xx_transaction (rig, buf, NULL, NULL);
+    return ra37xx_transaction(rig, buf, NULL, NULL);
 }
 
 int ra37xx_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
 {
-	char buf[BUFSZ];
-	int retval, buflen, ra_ant;
+    char buf[BUFSZ];
+    int retval, buflen, ra_ant;
 
-	retval = ra37xx_transaction (rig, "QANT", buf, &buflen);
-	if (retval != RIG_OK)
-		return retval;
+    retval = ra37xx_transaction(rig, "QANT", buf, &buflen);
 
-    sscanf(buf+3, "%d", &ra_ant);
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    sscanf(buf + 3, "%d", &ra_ant);
 
     if (ra_ant < 0 || ra_ant > 15)
+    {
         return -RIG_EPROTO;
+    }
 
-    *ant = ((ra_ant & (1<<0)) ? RIG_ANT_1 : 0) |
-           ((ra_ant & (1<<1)) ? RIG_ANT_2 : 0) |
-           ((ra_ant & (1<<2)) ? RIG_ANT_3 : 0) |
-           ((ra_ant & (1<<3)) ? RIG_ANT_4 : 0);
+    *ant = ((ra_ant & (1 << 0)) ? RIG_ANT_1 : 0) |
+           ((ra_ant & (1 << 1)) ? RIG_ANT_2 : 0) |
+           ((ra_ant & (1 << 2)) ? RIG_ANT_3 : 0) |
+           ((ra_ant & (1 << 3)) ? RIG_ANT_4 : 0);
 
     return RIG_OK;
 }
 
 int ra37xx_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
-	char buf[BUFSZ];
+    char buf[BUFSZ];
 
     /* NB: does a RIG_OP_TO_VFO!*/
 
-	sprintf(buf, "CHAN%d", ch);
+    sprintf(buf, "CHAN%d", ch);
 
-	return ra37xx_transaction (rig, buf, NULL, NULL);
+    return ra37xx_transaction(rig, buf, NULL, NULL);
 }
 
 int ra37xx_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
-	char buf[BUFSZ];
-	int retval, buflen;
+    char buf[BUFSZ];
+    int retval, buflen;
 
-	retval = ra37xx_transaction (rig, "QCHAN", buf, &buflen);
-	if (retval != RIG_OK)
-		return retval;
+    retval = ra37xx_transaction(rig, "QCHAN", buf, &buflen);
 
-	*ch = atoi(buf+4);
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
 
-	return RIG_OK;
+    *ch = atoi(buf + 4);
+
+    return RIG_OK;
 }
 
 int ra37xx_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 {
-	char buf[BUFSZ];
+    char buf[BUFSZ];
     int scantype;
 
     switch (scan)
     {
     case RIG_SCAN_STOP: scantype = 0; break;
+
     case RIG_SCAN_VFO: scantype = 1; break;
+
     case RIG_SCAN_MEM: scantype = 2; break;
+
     default:
-        rig_debug(RIG_DEBUG_ERR,"Unsupported scan %#x", scan);
+        rig_debug(RIG_DEBUG_ERR, "Unsupported scan %#x", scan);
         return -RIG_EINVAL;
     }
 
-	sprintf(buf, "SCAN%d,0", scantype);
+    sprintf(buf, "SCAN%d,0", scantype);
 
-	return ra37xx_transaction (rig, buf, NULL, NULL);
+    return ra37xx_transaction(rig, buf, NULL, NULL);
 }
 
 int ra37xx_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
-	char buf[BUFSZ];
+    char buf[BUFSZ];
     int ret, ch;
 
     switch (op)
     {
     case RIG_OP_FROM_VFO:
         ret = rig_get_mem(rig, vfo, &ch);
+
         if (ret < 0)
+        {
             return ret;
+        }
+
         sprintf(buf, "STRE%d", ch);
-	    return ra37xx_transaction (rig, buf, NULL, NULL);
+        return ra37xx_transaction(rig, buf, NULL, NULL);
 
     case RIG_OP_TO_VFO:
         ret = rig_get_mem(rig, vfo, &ch);
+
         if (ret < 0)
+        {
             return ret;
+        }
+
         sprintf(buf, "CHAN%d", ch);
-	    return ra37xx_transaction (rig, buf, NULL, NULL);
+        return ra37xx_transaction(rig, buf, NULL, NULL);
 
     default:
-        rig_debug(RIG_DEBUG_ERR,"Unsupported op %#x", op);
+        rig_debug(RIG_DEBUG_ERR, "Unsupported op %#x", op);
         return -RIG_EINVAL;
     }
 

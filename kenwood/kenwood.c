@@ -540,7 +540,8 @@ int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
         if (length != expected) /* worth retrying as some rigs
                                    occasionally send short results */
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: wrong answer; len for cmd %s: expected = %d, got %d\n",
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: wrong answer; len for cmd %s: expected = %d, got %d\n",
                       __func__, cmd, (int)expected, (int)length);
             err =  -RIG_EPROTO;
             usleep(rig->caps->timeout * 1000);
@@ -925,7 +926,8 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
             return retval;
         }
 
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: satellite mode status %s\n", __func__, retbuf);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: satellite mode status %s\n", __func__,
+                  retbuf);
 
         //Satellite mode ON
         if (retbuf[2] == '1')
@@ -2248,7 +2250,8 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported set_level %s", __func__, rig_strlevel(level));
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported set_level %s", __func__,
+                  rig_strlevel(level));
         return -RIG_EINVAL;
     }
 
@@ -2531,7 +2534,8 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return -RIG_ENIMPL;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_level %s", __func__, rig_strlevel(level));
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_level %s", __func__,
+                  rig_strlevel(level));
         return -RIG_EINVAL;
     }
 
@@ -3527,7 +3531,8 @@ int kenwood_set_powerstat(RIG *rig, powerstat_t status)
 
     if (i == retry)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: timeout waiting for powerup, try %d\n", __func__,
+        rig_debug(RIG_DEBUG_TRACE, "%s: timeout waiting for powerup, try %d\n",
+                  __func__,
                   i + 1);
         retval = -RIG_ETIMEOUT;
     }

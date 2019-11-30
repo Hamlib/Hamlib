@@ -43,215 +43,278 @@
  */
 static int netrotctl_transaction(ROT *rot, char *cmd, int len, char *buf)
 {
-  int ret;
+    int ret;
 
-  ret = write_block(&rot->state.rotport, cmd, len);
-  if (ret != RIG_OK)
-	return ret;
+    ret = write_block(&rot->state.rotport, cmd, len);
 
-  ret = read_string(&rot->state.rotport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret < 0)
-	return ret;
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
 
-  if (!memcmp(buf, NETROTCTL_RET, strlen(NETROTCTL_RET)))
-	return atoi(buf+strlen(NETROTCTL_RET));
+    ret = read_string(&rot->state.rotport, buf, BUF_MAX, "\n", sizeof("\n"));
 
-  return ret;
+    if (ret < 0)
+    {
+        return ret;
+    }
+
+    if (!memcmp(buf, NETROTCTL_RET, strlen(NETROTCTL_RET)))
+    {
+        return atoi(buf + strlen(NETROTCTL_RET));
+    }
+
+    return ret;
 }
 
 static int netrotctl_open(ROT *rot)
 {
-  int ret, len;
-  struct rot_state *rs = &rot->state;
-  int prot_ver;
-  char cmd[CMD_MAX];
-  char buf[BUF_MAX];
+    int ret, len;
+    struct rot_state *rs = &rot->state;
+    int prot_ver;
+    char cmd[CMD_MAX];
+    char buf[BUF_MAX];
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
 
-  len = sprintf(cmd, "\\dump_state\n");
+    len = sprintf(cmd, "\\dump_state\n");
 
-  ret = netrotctl_transaction(rot, cmd, len, buf);
-  if (ret <= 0)
-	return (ret < 0) ? ret : -RIG_EPROTO;
+    ret = netrotctl_transaction(rot, cmd, len, buf);
 
-  prot_ver = atoi(buf);
+    if (ret <= 0)
+    {
+        return (ret < 0) ? ret : -RIG_EPROTO;
+    }
+
+    prot_ver = atoi(buf);
 #define ROTCTLD_PROT_VER 0
-  if (prot_ver < ROTCTLD_PROT_VER)
-	  return -RIG_EPROTO;
 
-  ret = read_string(&rot->state.rotport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0)
-	return (ret < 0) ? ret : -RIG_EPROTO;
+    if (prot_ver < ROTCTLD_PROT_VER)
+    {
+        return -RIG_EPROTO;
+    }
 
-  ret = read_string(&rot->state.rotport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0)
-	return (ret < 0) ? ret : -RIG_EPROTO;
+    ret = read_string(&rot->state.rotport, buf, BUF_MAX, "\n", sizeof("\n"));
 
-  rs->min_az = atof(buf);
+    if (ret <= 0)
+    {
+        return (ret < 0) ? ret : -RIG_EPROTO;
+    }
 
-  ret = read_string(&rot->state.rotport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0)
-	return (ret < 0) ? ret : -RIG_EPROTO;
+    ret = read_string(&rot->state.rotport, buf, BUF_MAX, "\n", sizeof("\n"));
 
-  rs->max_az = atof(buf);
+    if (ret <= 0)
+    {
+        return (ret < 0) ? ret : -RIG_EPROTO;
+    }
 
-  ret = read_string(&rot->state.rotport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0)
-	return (ret < 0) ? ret : -RIG_EPROTO;
+    rs->min_az = atof(buf);
 
-  rs->min_el = atof(buf);
+    ret = read_string(&rot->state.rotport, buf, BUF_MAX, "\n", sizeof("\n"));
 
-  ret = read_string(&rot->state.rotport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0)
-	return (ret < 0) ? ret : -RIG_EPROTO;
+    if (ret <= 0)
+    {
+        return (ret < 0) ? ret : -RIG_EPROTO;
+    }
 
-  rs->max_el = atof(buf);
+    rs->max_az = atof(buf);
 
-  return RIG_OK;
+    ret = read_string(&rot->state.rotport, buf, BUF_MAX, "\n", sizeof("\n"));
+
+    if (ret <= 0)
+    {
+        return (ret < 0) ? ret : -RIG_EPROTO;
+    }
+
+    rs->min_el = atof(buf);
+
+    ret = read_string(&rot->state.rotport, buf, BUF_MAX, "\n", sizeof("\n"));
+
+    if (ret <= 0)
+    {
+        return (ret < 0) ? ret : -RIG_EPROTO;
+    }
+
+    rs->max_el = atof(buf);
+
+    return RIG_OK;
 }
 
 static int netrotctl_close(ROT *rot)
 {
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  /* clean signoff, no read back */
-  write_block(&rot->state.rotport, "q\n", 2);
+    /* clean signoff, no read back */
+    write_block(&rot->state.rotport, "q\n", 2);
 
-  return RIG_OK;
+    return RIG_OK;
 }
 
 static int netrotctl_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
-  int ret, len;
-  char cmd[CMD_MAX];
-  char buf[BUF_MAX];
+    int ret, len;
+    char cmd[CMD_MAX];
+    char buf[BUF_MAX];
 
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %f %f\n", __func__,
- 			az, el);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called: %f %f\n", __func__,
+              az, el);
 
-  len = sprintf(cmd, "P %f %f\n", az, el);
+    len = sprintf(cmd, "P %f %f\n", az, el);
 
-  ret = netrotctl_transaction(rot, cmd, len, buf);
-  if (ret > 0)
-	return -RIG_EPROTO;
-  else
-  	return ret;
+    ret = netrotctl_transaction(rot, cmd, len, buf);
+
+    if (ret > 0)
+    {
+        return -RIG_EPROTO;
+    }
+    else
+    {
+        return ret;
+    }
 }
 
 static int netrotctl_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
-  int ret, len;
-  char cmd[CMD_MAX];
-  char buf[BUF_MAX];
+    int ret, len;
+    char cmd[CMD_MAX];
+    char buf[BUF_MAX];
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  len = sprintf(cmd, "p\n");
+    len = sprintf(cmd, "p\n");
 
-  ret = netrotctl_transaction(rot, cmd, len, buf);
-  if (ret <= 0)
-	return (ret < 0) ? ret : -RIG_EPROTO;
+    ret = netrotctl_transaction(rot, cmd, len, buf);
 
-  *az = atof(buf);
+    if (ret <= 0)
+    {
+        return (ret < 0) ? ret : -RIG_EPROTO;
+    }
 
-  ret = read_string(&rot->state.rotport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0)
-	return (ret < 0) ? ret : -RIG_EPROTO;
+    *az = atof(buf);
 
-  *el = atof(buf);
+    ret = read_string(&rot->state.rotport, buf, BUF_MAX, "\n", sizeof("\n"));
 
-  return RIG_OK;
+    if (ret <= 0)
+    {
+        return (ret < 0) ? ret : -RIG_EPROTO;
+    }
+
+    *el = atof(buf);
+
+    return RIG_OK;
 }
 
 
 static int netrotctl_stop(ROT *rot)
 {
-  int ret, len;
-  char cmd[CMD_MAX];
-  char buf[BUF_MAX];
+    int ret, len;
+    char cmd[CMD_MAX];
+    char buf[BUF_MAX];
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  len = sprintf(cmd, "S\n");
+    len = sprintf(cmd, "S\n");
 
-  ret = netrotctl_transaction(rot, cmd, len, buf);
-  if (ret > 0)
-	return -RIG_EPROTO;
-  else
-  	return ret;
+    ret = netrotctl_transaction(rot, cmd, len, buf);
+
+    if (ret > 0)
+    {
+        return -RIG_EPROTO;
+    }
+    else
+    {
+        return ret;
+    }
 }
 
 
 static int netrotctl_park(ROT *rot)
 {
-  int ret, len;
-  char cmd[CMD_MAX];
-  char buf[BUF_MAX];
+    int ret, len;
+    char cmd[CMD_MAX];
+    char buf[BUF_MAX];
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  len = sprintf(cmd, "K\n");
+    len = sprintf(cmd, "K\n");
 
-  ret = netrotctl_transaction(rot, cmd, len, buf);
-  if (ret > 0)
-	return -RIG_EPROTO;
-  else
-  	return ret;
+    ret = netrotctl_transaction(rot, cmd, len, buf);
+
+    if (ret > 0)
+    {
+        return -RIG_EPROTO;
+    }
+    else
+    {
+        return ret;
+    }
 }
 
 static int netrotctl_reset(ROT *rot, rot_reset_t reset)
 {
-  int ret, len;
-  char cmd[CMD_MAX];
-  char buf[BUF_MAX];
+    int ret, len;
+    char cmd[CMD_MAX];
+    char buf[BUF_MAX];
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  len = sprintf(cmd, "R %d\n", reset);
+    len = sprintf(cmd, "R %d\n", reset);
 
-  ret = netrotctl_transaction(rot, cmd, len, buf);
-  if (ret > 0)
-	return -RIG_EPROTO;
-  else
-  	return ret;
+    ret = netrotctl_transaction(rot, cmd, len, buf);
+
+    if (ret > 0)
+    {
+        return -RIG_EPROTO;
+    }
+    else
+    {
+        return ret;
+    }
 }
 
 static int netrotctl_move(ROT *rot, int direction, int speed)
 {
-  int ret, len;
-  char cmd[CMD_MAX];
-  char buf[BUF_MAX];
+    int ret, len;
+    char cmd[CMD_MAX];
+    char buf[BUF_MAX];
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  len = sprintf(cmd, "M %d %d\n", direction, speed);
+    len = sprintf(cmd, "M %d %d\n", direction, speed);
 
-  ret = netrotctl_transaction(rot, cmd, len, buf);
-  if (ret > 0)
-	return -RIG_EPROTO;
-  else
-  	return ret;
+    ret = netrotctl_transaction(rot, cmd, len, buf);
+
+    if (ret > 0)
+    {
+        return -RIG_EPROTO;
+    }
+    else
+    {
+        return ret;
+    }
 }
 
 static const char *netrotctl_get_info(ROT *rot)
 {
-  int ret, len;
-  char cmd[CMD_MAX];
-  static char buf[BUF_MAX];
+    int ret, len;
+    char cmd[CMD_MAX];
+    static char buf[BUF_MAX];
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  len = sprintf(cmd, "_\n");
+    len = sprintf(cmd, "_\n");
 
-  ret = netrotctl_transaction(rot, cmd, len, buf);
-  if (ret < 0)
-	return NULL;
+    ret = netrotctl_transaction(rot, cmd, len, buf);
 
-  buf [ret] = '\0';
+    if (ret < 0)
+    {
+        return NULL;
+    }
 
-  return buf;
+    buf [ret] = '\0';
+
+    return buf;
 }
 
 
@@ -260,37 +323,38 @@ static const char *netrotctl_get_info(ROT *rot)
  * NET rotctl capabilities.
  */
 
-const struct rot_caps netrotctl_caps = {
-  .rot_model =      ROT_MODEL_NETROTCTL,
-  .model_name =     "NET rotctl",
-  .mfg_name =       "Hamlib",
-  .version =        "0.3",
-  .copyright = 	    "LGPL",
-  .status =         RIG_STATUS_BETA,
-  .rot_type =       ROT_TYPE_OTHER,
-  .port_type =      RIG_PORT_NETWORK,
-  .timeout = 2000,
-  .retry =   3,
+const struct rot_caps netrotctl_caps =
+{
+    .rot_model =      ROT_MODEL_NETROTCTL,
+    .model_name =     "NET rotctl",
+    .mfg_name =       "Hamlib",
+    .version =        "0.3",
+    .copyright =      "LGPL",
+    .status =         RIG_STATUS_BETA,
+    .rot_type =       ROT_TYPE_OTHER,
+    .port_type =      RIG_PORT_NETWORK,
+    .timeout = 2000,
+    .retry =   3,
 
-  .min_az =  	-180.,
-  .max_az =  	180.,
-  .min_el =  	0.,
-  .max_el =  	90.,
+    .min_az =     -180.,
+    .max_az =     180.,
+    .min_el =     0.,
+    .max_el =     90.,
 
-  .priv =  NULL,	/* priv */
+    .priv =  NULL,    /* priv */
 
-  /* .rot_init =     netrotctl_init, */
-  /* .rot_cleanup =  netrotctl_cleanup, */
-  .rot_open =     netrotctl_open,
-  .rot_close =    netrotctl_close,
+    /* .rot_init =     netrotctl_init, */
+    /* .rot_cleanup =  netrotctl_cleanup, */
+    .rot_open =     netrotctl_open,
+    .rot_close =    netrotctl_close,
 
-  .set_position =     netrotctl_set_position,
-  .get_position =     netrotctl_get_position,
-  .park =     netrotctl_park,
-  .stop =     netrotctl_stop,
-  .reset =    netrotctl_reset,
-  .move =     netrotctl_move,
+    .set_position =     netrotctl_set_position,
+    .get_position =     netrotctl_get_position,
+    .park =     netrotctl_park,
+    .stop =     netrotctl_stop,
+    .reset =    netrotctl_reset,
+    .move =     netrotctl_move,
 
-  .get_info =      netrotctl_get_info,
+    .get_info =      netrotctl_get_info,
 };
 

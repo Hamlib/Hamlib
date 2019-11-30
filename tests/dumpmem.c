@@ -35,7 +35,7 @@
 #define SERIAL_PORT "/dev/ttyS0"
 
 
-static char * decode_modes(rmode_t modes);
+static char *decode_modes(rmode_t modes);
 static int dump_chan(RIG *rig, int chan_num);
 
 
@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
     for (i = 0; my_rig->state.chan_list[i].type && i < CHANLSTSIZ; i++)
     {
         for (j = my_rig->state.chan_list[i].startc;
-             j <= my_rig->state.chan_list[i].endc; j++)
+                j <= my_rig->state.chan_list[i].endc; j++)
         {
             dump_chan(my_rig, j);
         }
@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
  * NB: this function is not reentrant, because of the static buf.
  *      but who cares?  --SF
  */
-static char * decode_modes(rmode_t modes)
+static char *decode_modes(rmode_t modes)
 {
     static char buf[80];
 

@@ -48,62 +48,84 @@
 /* ************************************************************************* */
 
 /** outputs an direction to the interface */
-static int setDirection(hamlib_port_t *port, unsigned char outputvalue, int direction)
+static int setDirection(hamlib_port_t *port, unsigned char outputvalue,
+                        int direction)
 {
-  unsigned char outputstatus;
+    unsigned char outputstatus;
 
-  par_lock (port);
+    par_lock(port);
 
-  // set the data bits
-  par_write_data(port, outputvalue);
+    // set the data bits
+    par_write_data(port, outputvalue);
 
-  // autofd=true --> azimuth otherwhise elevation
-  if(direction)
-    outputstatus = PARPORT_CONTROL_AUTOFD;
-  else
-    outputstatus=0;
-  par_write_control(port, outputstatus^CP_ACTIVE_LOW_BITS);
-  // and now the strobe impulse
-  usleep(1);
+    // autofd=true --> azimuth otherwhise elevation
+    if (direction)
+    {
+        outputstatus = PARPORT_CONTROL_AUTOFD;
+    }
+    else
+    {
+        outputstatus = 0;
+    }
 
-  if(direction)
-    outputstatus = PARPORT_CONTROL_AUTOFD | PARPORT_CONTROL_STROBE;
-  else
-    outputstatus = PARPORT_CONTROL_STROBE;
-  par_write_control(port, outputstatus^CP_ACTIVE_LOW_BITS);
-  usleep(1);
+    par_write_control(port, outputstatus ^ CP_ACTIVE_LOW_BITS);
+    // and now the strobe impulse
+    usleep(1);
 
-  if (direction)
-    outputstatus= PARPORT_CONTROL_AUTOFD;
-  else
-    outputstatus=0;
-  par_write_control(port, outputstatus^CP_ACTIVE_LOW_BITS);
+    if (direction)
+    {
+        outputstatus = PARPORT_CONTROL_AUTOFD | PARPORT_CONTROL_STROBE;
+    }
+    else
+    {
+        outputstatus = PARPORT_CONTROL_STROBE;
+    }
 
-  par_unlock (port);
+    par_write_control(port, outputstatus ^ CP_ACTIVE_LOW_BITS);
+    usleep(1);
 
-  return RIG_OK;
+    if (direction)
+    {
+        outputstatus = PARPORT_CONTROL_AUTOFD;
+    }
+    else
+    {
+        outputstatus = 0;
+    }
+
+    par_write_control(port, outputstatus ^ CP_ACTIVE_LOW_BITS);
+
+    par_unlock(port);
+
+    return RIG_OK;
 }
 
 static int
 fodtrack_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
- int retval;
- hamlib_port_t *pport;
+    int retval;
+    hamlib_port_t *pport;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
+    rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
 
-  pport = &rot->state.rotport;
+    pport = &rot->state.rotport;
 
-  retval = setDirection(pport, el/(float)rot->state.max_el*255.0, 0);
-  if (retval != RIG_OK)
-	  return retval;
+    retval = setDirection(pport, el / (float)rot->state.max_el * 255.0, 0);
 
-  retval = setDirection(pport, az/(float)rot->state.max_az*255.0, 1);
-  if (retval != RIG_OK)
-	  return retval;
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    retval = setDirection(pport, az / (float)rot->state.max_az * 255.0, 1);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
 
 
-  return RIG_OK;
+    return RIG_OK;
 }
 
 
@@ -114,28 +136,29 @@ fodtrack_set_position(ROT *rot, azimuth_t az, elevation_t el)
 
 /** Fodtrack implement essentially only the set position function.
  */
-const struct rot_caps fodtrack_rot_caps = {
-  .rot_model =      ROT_MODEL_FODTRACK,
-  .model_name =     "Fodtrack",
-  .mfg_name =       "XQ2FOD",
-  .version =        "0.2",
-  .copyright = 	    "LGPL",
-  .status =         RIG_STATUS_STABLE,
-  .rot_type =       ROT_TYPE_OTHER,
-  .port_type =      RIG_PORT_PARALLEL,
-  .write_delay =  0,
-  .post_write_delay =  0,
-  .timeout =  200,
-  .retry =  3,
+const struct rot_caps fodtrack_rot_caps =
+{
+    .rot_model =      ROT_MODEL_FODTRACK,
+    .model_name =     "Fodtrack",
+    .mfg_name =       "XQ2FOD",
+    .version =        "0.2",
+    .copyright =      "LGPL",
+    .status =         RIG_STATUS_STABLE,
+    .rot_type =       ROT_TYPE_OTHER,
+    .port_type =      RIG_PORT_PARALLEL,
+    .write_delay =  0,
+    .post_write_delay =  0,
+    .timeout =  200,
+    .retry =  3,
 
-  .min_az = 	0,
-  .max_az =  	450,
-  .min_el = 	0,
-  .max_el =  	180,
+    .min_az =     0,
+    .max_az =     450,
+    .min_el =     0,
+    .max_el =     180,
 
-  .priv =  NULL,	/* priv */
+    .priv =  NULL,    /* priv */
 
-  .set_position =  fodtrack_set_position,
+    .set_position =  fodtrack_set_position,
 };
 
 
@@ -143,11 +166,11 @@ const struct rot_caps fodtrack_rot_caps = {
 
 DECLARE_INITROT_BACKEND(fodtrack)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	rot_register(&fodtrack_rot_caps);
+    rot_register(&fodtrack_rot_caps);
 
-	return RIG_OK;
+    return RIG_OK;
 }
 
 /* ************************************************************************* */

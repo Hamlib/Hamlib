@@ -49,28 +49,32 @@
  * Otherwise, you'll get a nice seg fault. You've been warned!
  * TODO: error case handling
  */
-static int tapr_cmd(RIG *rig, unsigned char cmd, unsigned char c1, unsigned char c2, unsigned char c3, unsigned char c4)
+static int tapr_cmd(RIG *rig, unsigned char cmd, unsigned char c1,
+                    unsigned char c2, unsigned char c3, unsigned char c4)
 {
-	int retval;
-	struct rig_state *rs;
-	unsigned char cmdbuf[CMD_LEN];
+    int retval;
+    struct rig_state *rs;
+    unsigned char cmdbuf[CMD_LEN];
 
-	rs = &rig->state;
+    rs = &rig->state;
 
-	serial_flush(&rs->rigport);
+    serial_flush(&rs->rigport);
 
-	cmdbuf[0] = ESC;
-	cmdbuf[1] = cmd;
-	cmdbuf[2] = c1;
-	cmdbuf[3] = c2;
-	cmdbuf[4] = c3;
-	cmdbuf[5] = c4;
+    cmdbuf[0] = ESC;
+    cmdbuf[1] = cmd;
+    cmdbuf[2] = c1;
+    cmdbuf[3] = c2;
+    cmdbuf[4] = c3;
+    cmdbuf[5] = c4;
 
-	retval = write_block(&rs->rigport, (char *) cmdbuf, 6);
-	if (retval != RIG_OK)
-		return retval;
+    retval = write_block(&rs->rigport, (char *) cmdbuf, 6);
 
-	return RIG_OK;
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    return RIG_OK;
 }
 
 
@@ -81,17 +85,17 @@ static int tapr_cmd(RIG *rig, unsigned char cmd, unsigned char c1, unsigned char
  */
 int tapr_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-	unsigned int dsp_dph, dsp_deltap_lo, dsp_deltap_hi;
-	int retval;
+    unsigned int dsp_dph, dsp_deltap_lo, dsp_deltap_hi;
+    int retval;
 
-	return -RIG_ENIMPL;	/* FIXME! */
+    return -RIG_ENIMPL; /* FIXME! */
 
-	dsp_dph=(unsigned int) (1.365333333*(double)(freq-MHz(144)+15000UL));
-	dsp_deltap_lo = 0xff & dsp_dph;
-	dsp_deltap_hi = 0xff & (dsp_dph >> 8);
-	retval =  tapr_cmd (rig, CMD7, 0, NU1, dsp_deltap_lo, dsp_deltap_hi);
+    dsp_dph = (unsigned int)(1.365333333 * (double)(freq - MHz(144) + 15000UL));
+    dsp_deltap_lo = 0xff & dsp_dph;
+    dsp_deltap_hi = 0xff & (dsp_dph >> 8);
+    retval =  tapr_cmd(rig, CMD7, 0, NU1, dsp_deltap_lo, dsp_deltap_hi);
 
-	return retval;
+    return retval;
 }
 
 
@@ -101,7 +105,7 @@ int tapr_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  */
 int tapr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-	return -RIG_ENIMPL;
+    return -RIG_ENIMPL;
 }
 
 
@@ -110,11 +114,11 @@ int tapr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
  */
 DECLARE_INITRIG_BACKEND(tapr)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
-	rig_register(&dsp10_caps);
+    rig_register(&dsp10_caps);
 
-	return RIG_OK;
+    return RIG_OK;
 }
 
 

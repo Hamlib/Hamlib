@@ -50,7 +50,8 @@
  *
  */
 
-const struct rig_caps ft991_caps = {
+const struct rig_caps ft991_caps =
+{
     .rig_model =          RIG_MODEL_FT991,
     .model_name =         "FT-991",
     .mfg_name =           "Yaesu",
@@ -78,8 +79,8 @@ const struct rig_caps ft991_caps = {
     .has_get_parm =       RIG_PARM_NONE,
     .has_set_parm =       RIG_PARM_NONE,
     .level_gran = {
-	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
-	[LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 50 } },
+        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
+        [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 50 } },
     },
     .ctcss_list =         common_ctcss_list,
     .dcs_list =           NULL,
@@ -95,10 +96,10 @@ const struct rig_caps ft991_caps = {
     .chan_desc_sz =       0,
     .str_cal =            FT991_STR_CAL,
     .chan_list =          {
-               {   1,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
-               { 100, 117, RIG_MTYPE_EDGE, NEWCAT_MEM_CAP },    /* two by two */
-               RIG_CHAN_END,
-                          },
+        {   1,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
+        { 100, 117, RIG_MTYPE_EDGE, NEWCAT_MEM_CAP },    /* two by two */
+        RIG_CHAN_END,
+    },
 
     .rx_range_list1 =     {
         {kHz(30), MHz(470), FT991_ALL_RX_MODES, -1, -1, FT991_VFO_ALL, FT991_ANTS},   /* General coverage + ham */
@@ -107,9 +108,9 @@ const struct rig_caps ft991_caps = {
 
     .tx_range_list1 =     {
         FRQ_RNG_HF(1, FT991_OTHER_TX_MODES, W(5), W(100), FT991_VFO_ALL, FT991_ANTS),
-        FRQ_RNG_HF(1, FT991_AM_TX_MODES, W(2), W(25), FT991_VFO_ALL, FT991_ANTS),	/* AM class */
+        FRQ_RNG_HF(1, FT991_AM_TX_MODES, W(2), W(25), FT991_VFO_ALL, FT991_ANTS),   /* AM class */
         FRQ_RNG_6m(1, FT991_OTHER_TX_MODES, W(5), W(100), FT991_VFO_ALL, FT991_ANTS),
-        FRQ_RNG_6m(1, FT991_AM_TX_MODES, W(2), W(25), FT991_VFO_ALL, FT991_ANTS),	/* AM class */
+        FRQ_RNG_6m(1, FT991_AM_TX_MODES, W(2), W(25), FT991_VFO_ALL, FT991_ANTS),   /* AM class */
 
         RIG_FRNG_END,
     },
@@ -121,9 +122,9 @@ const struct rig_caps ft991_caps = {
 
     .tx_range_list2 =     {
         FRQ_RNG_HF(2, FT991_OTHER_TX_MODES, W(5), W(100), FT991_VFO_ALL, FT991_ANTS),
-        FRQ_RNG_HF(2, FT991_AM_TX_MODES, W(2), W(25), FT991_VFO_ALL, FT991_ANTS),	/* AM class */
+        FRQ_RNG_HF(2, FT991_AM_TX_MODES, W(2), W(25), FT991_VFO_ALL, FT991_ANTS),   /* AM class */
         FRQ_RNG_6m(2, FT991_OTHER_TX_MODES, W(5), W(100), FT991_VFO_ALL, FT991_ANTS),
-        FRQ_RNG_6m(2, FT991_AM_TX_MODES, W(2), W(25), FT991_VFO_ALL, FT991_ANTS),	/* AM class */
+        FRQ_RNG_6m(2, FT991_AM_TX_MODES, W(2), W(25), FT991_VFO_ALL, FT991_ANTS),   /* AM class */
 
         RIG_FRNG_END,
     },
@@ -143,7 +144,7 @@ const struct rig_caps ft991_caps = {
     },
 
     /* mode/filter list, .remember =  order matters! */
- .filters =            {
+    .filters =            {
         {FT991_CW_RTTY_PKT_RX_MODES,  Hz(1700)},    /* Normal CW, RTTY, PKT */
         {FT991_CW_RTTY_PKT_RX_MODES,  Hz(500)},     /* Narrow CW, RTTY, PKT */
         {FT991_CW_RTTY_PKT_RX_MODES,  Hz(2400)},    /* Wide   CW, RTTY, PKT */
@@ -254,7 +255,8 @@ const struct rig_caps ft991_caps = {
  *
  */
 
-int ft991_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width)
+int ft991_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
+                         pbwidth_t *tx_width)
 {
     struct newcat_priv_data *priv;
     int err;
@@ -262,13 +264,19 @@ int ft991_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_wi
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!rig || !tx_mode || !tx_width)
+    {
         return -RIG_EINVAL;
+    }
 
     priv = (struct newcat_priv_data *)rig->state.priv;
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "OI;");
-    if (RIG_OK != (err = newcat_get_cmd (rig)))
+
+    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    {
         return err;
+    }
+
     *tx_mode = priv->ret_data[22];
     *tx_width = RIG_PASSBAND_NORMAL;
 
@@ -297,7 +305,8 @@ int ft991_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_wi
  *
  */
 
-int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
+int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
+                         pbwidth_t tx_width)
 {
     struct newcat_priv_data *priv;
     struct rig_state *state;
@@ -307,12 +316,17 @@ int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_widt
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!rig)
+    {
         return -RIG_EINVAL;
+    }
+
     state = &rig->state;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = %s\n", __func__, rig_strvfo(vfo));
-    rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = %s\n", __func__, rig_strrmode(tx_mode));
-    rig_debug(RIG_DEBUG_TRACE, "%s: passed width = %d Hz\n", __func__, (int)tx_width);
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = %s\n", __func__,
+              rig_strrmode(tx_mode));
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed width = %d Hz\n", __func__,
+              (int)tx_width);
 
     priv = (struct newcat_priv_data *)state->priv;
 
@@ -320,35 +334,46 @@ int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_widt
        any Rx glitches */
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MD0;");
     rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
-    if (RIG_OK != (err = newcat_get_cmd (rig)))
-      {
+
+    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    {
         return err;
-      }
-    snprintf(restore_commands, sizeof(restore_commands), "AB;%.*s",(int)sizeof(restore_commands)-4,priv->ret_data);
+    }
+
+    snprintf(restore_commands, sizeof(restore_commands), "AB;%.*s",
+             (int)sizeof(restore_commands) - 4, priv->ret_data);
 
     /* append VFO B frequency restore command */
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "FB;");
     rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
-    if (RIG_OK != (err = newcat_get_cmd (rig)))
-      {
+
+    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    {
         return err;
-      }
+    }
+
     strncpy(restore_commands, priv->ret_data, NEWCAT_DATA_LEN);
 
     /* Change mode on VFOA */
-    if (RIG_OK != (err = newcat_set_mode (rig, RIG_VFO_A, tx_mode, RIG_PASSBAND_NOCHANGE)))
-      {
+    if (RIG_OK != (err = newcat_set_mode(rig, RIG_VFO_A, tx_mode,
+                                         RIG_PASSBAND_NOCHANGE)))
+    {
         return err;
-      }
+    }
+
     /* Send the copy VFO A to VFO B and restore commands */
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s", restore_commands);
-    return newcat_set_cmd (rig);
+    return newcat_set_cmd(rig);
 }
 
-int ft991_init(RIG *rig) {
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called, version %s\n", __func__,rig->caps->version);
-  int ret = newcat_init(rig);
-  if (ret != RIG_OK) return ret;
-  rig->state.current_vfo = RIG_VFO_A;
-  return RIG_OK;
+int ft991_init(RIG *rig)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called, version %s\n", __func__,
+              rig->caps->version);
+    int ret = newcat_init(rig);
+
+    if (ret != RIG_OK) { return ret; }
+
+    rig->state.current_vfo = RIG_VFO_A;
+    return RIG_OK;
 }

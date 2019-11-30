@@ -45,7 +45,8 @@
  *
  */
 
-const struct rig_caps ft950_caps = {
+const struct rig_caps ft950_caps =
+{
     .rig_model =          RIG_MODEL_FT950,
     .model_name =         "FT-950",
     .mfg_name =           "Yaesu",
@@ -73,8 +74,8 @@ const struct rig_caps ft950_caps = {
     .has_get_parm =       RIG_PARM_NONE,
     .has_set_parm =       RIG_PARM_NONE,
     .level_gran = {
-	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
-	[LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 50 } },
+        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
+        [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 50 } },
     },
     .ctcss_list =         common_ctcss_list,
     .dcs_list =           NULL,
@@ -90,14 +91,14 @@ const struct rig_caps ft950_caps = {
     .chan_desc_sz =       0,
     .str_cal =            FT950_STR_CAL,
     .chan_list =          {
-               {   1,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
-               { 100, 117, RIG_MTYPE_EDGE, NEWCAT_MEM_CAP },    /* two by two */
-               { 125, 128, RIG_MTYPE_BAND, NEWCAT_MEM_CAP },    /* 60M Channels U51-U54 or US1-US4, if available */
-               { 130, 130, RIG_MTYPE_BAND, NEWCAT_MEM_CAP },    /* 60M Channel U55 or US5, if available */
-               { 131, 131, RIG_MTYPE_BAND, NEWCAT_MEM_CAP },    /* EU5, 5167.5 KHz Alaska Emergency Freq, if available */
+        {   1,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
+        { 100, 117, RIG_MTYPE_EDGE, NEWCAT_MEM_CAP },    /* two by two */
+        { 125, 128, RIG_MTYPE_BAND, NEWCAT_MEM_CAP },    /* 60M Channels U51-U54 or US1-US4, if available */
+        { 130, 130, RIG_MTYPE_BAND, NEWCAT_MEM_CAP },    /* 60M Channel U55 or US5, if available */
+        { 131, 131, RIG_MTYPE_BAND, NEWCAT_MEM_CAP },    /* EU5, 5167.5 KHz Alaska Emergency Freq, if available */
 
-               RIG_CHAN_END,
-                          },
+        RIG_CHAN_END,
+    },
 
     .rx_range_list1 =     {
         {kHz(30), MHz(56), FT950_ALL_RX_MODES, -1, -1, FT950_VFO_ALL, FT950_ANTS},   /* General coverage + ham */
@@ -106,9 +107,9 @@ const struct rig_caps ft950_caps = {
 
     .tx_range_list1 =     {
         FRQ_RNG_HF(1, FT950_OTHER_TX_MODES, W(5), W(100), FT950_VFO_ALL, FT950_ANTS),
-        FRQ_RNG_HF(1, FT950_AM_TX_MODES, W(2), W(25), FT950_VFO_ALL, FT950_ANTS),	/* AM class */
+        FRQ_RNG_HF(1, FT950_AM_TX_MODES, W(2), W(25), FT950_VFO_ALL, FT950_ANTS),   /* AM class */
         FRQ_RNG_6m(1, FT950_OTHER_TX_MODES, W(5), W(100), FT950_VFO_ALL, FT950_ANTS),
-        FRQ_RNG_6m(1, FT950_AM_TX_MODES, W(2), W(25), FT950_VFO_ALL, FT950_ANTS),	/* AM class */
+        FRQ_RNG_6m(1, FT950_AM_TX_MODES, W(2), W(25), FT950_VFO_ALL, FT950_ANTS),   /* AM class */
 
         RIG_FRNG_END,
     },
@@ -120,9 +121,9 @@ const struct rig_caps ft950_caps = {
 
     .tx_range_list2 =     {
         FRQ_RNG_HF(2, FT950_OTHER_TX_MODES, W(5), W(100), FT950_VFO_ALL, FT950_ANTS),
-        FRQ_RNG_HF(2, FT950_AM_TX_MODES, W(2), W(25), FT950_VFO_ALL, FT950_ANTS),	/* AM class */
+        FRQ_RNG_HF(2, FT950_AM_TX_MODES, W(2), W(25), FT950_VFO_ALL, FT950_ANTS),   /* AM class */
         FRQ_RNG_6m(2, FT950_OTHER_TX_MODES, W(5), W(100), FT950_VFO_ALL, FT950_ANTS),
-        FRQ_RNG_6m(2, FT950_AM_TX_MODES, W(2), W(25), FT950_VFO_ALL, FT950_ANTS),	/* AM class */
+        FRQ_RNG_6m(2, FT950_AM_TX_MODES, W(2), W(25), FT950_VFO_ALL, FT950_ANTS),   /* AM class */
 
         RIG_FRNG_END,
     },
@@ -142,7 +143,7 @@ const struct rig_caps ft950_caps = {
     },
 
     /* mode/filter list, .remember =  order matters! */
- .filters =            {
+    .filters =            {
         {FT950_CW_RTTY_PKT_RX_MODES,  Hz(1700)},    /* Normal CW, RTTY, PKT */
         {FT950_CW_RTTY_PKT_RX_MODES,  Hz(500)},     /* Narrow CW, RTTY, PKT */
         {FT950_CW_RTTY_PKT_RX_MODES,  Hz(2400)},    /* Wide   CW, RTTY, PKT */
@@ -190,7 +191,7 @@ const struct rig_caps ft950_caps = {
     .rig_open =           newcat_open,     /* port opened */
     .rig_close =          newcat_close,    /* port closed */
 
-    .cfgparams = 	        newcat_cfg_params,
+    .cfgparams =            newcat_cfg_params,
     .set_conf =           newcat_set_conf,
     .get_conf =           newcat_get_conf,
     .set_freq =           newcat_set_freq,

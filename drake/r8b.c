@@ -44,35 +44,35 @@
 #define R8B_ANTS (RIG_ANT_1|RIG_ANT_2|RIG_ANT_3)
 
 #define R8B_STR_CAL { 16, { \
-		{   0, -60 }, \
-		{   1, -48 }, \
-		{  11, -42 }, \
-		{  27, -36 }, \
-		{  39, -30 }, \
-		{  51, -24 }, \
-		{  64, -18 }, \
-		{  80, -12 }, \
-		{  97, -6 }, \
-		{ 116,  0 }, \
-		{ 138, 10 }, \
-		{ 163, 20 }, \
-		{ 195, 30 }, \
-		{ 217, 40 }, \
-		{ 228, 50 }, \
-		{ 255, 60 }, \
-	} }
+        {   0, -60 }, \
+        {   1, -48 }, \
+        {  11, -42 }, \
+        {  27, -36 }, \
+        {  39, -30 }, \
+        {  51, -24 }, \
+        {  64, -18 }, \
+        {  80, -12 }, \
+        {  97, -6 }, \
+        { 116,  0 }, \
+        { 138, 10 }, \
+        { 163, 20 }, \
+        { 195, 30 }, \
+        { 217, 40 }, \
+        { 228, 50 }, \
+        { 255, 60 }, \
+    } }
 
 /*
  * channel caps.
  */
-#define DRAKE_MEM_CAP {	\
-	.freq = 1,	\
-	.mode = 1,	\
-	.width = 1,	\
-	.ant = 1,	\
-	.funcs = 1,	\
-	.levels = RIG_LEVEL_AGC|RIG_LEVEL_ATT|RIG_LEVEL_PREAMP,	\
-	.channel_desc = 1,	\
+#define DRAKE_MEM_CAP { \
+    .freq = 1,  \
+    .mode = 1,  \
+    .width = 1, \
+    .ant = 1,   \
+    .funcs = 1, \
+    .levels = RIG_LEVEL_AGC|RIG_LEVEL_ATT|RIG_LEVEL_PREAMP, \
+    .channel_desc = 1,  \
 }
 
 /*
@@ -82,110 +82,111 @@
  *
  */
 
-const struct rig_caps r8b_caps = {
-.rig_model =  RIG_MODEL_DKR8B,
-.model_name = "R-8B",
-.mfg_name =  "Drake",
-.version =  BACKEND_VER,
-.copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
-.rig_type =  RIG_TYPE_RECEIVER,
-.ptt_type =  RIG_PTT_NONE,
-.dcd_type =  RIG_DCD_NONE,
-.port_type =  RIG_PORT_SERIAL,
-.serial_rate_min =  9600,
-.serial_rate_max =  9600,
-.serial_data_bits =  8,
-.serial_stop_bits =  1,
-.serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_HARDWARE,
-.write_delay =  0,
-.post_write_delay =  1,
-.timeout =  200,
-.retry =  3,
+const struct rig_caps r8b_caps =
+{
+    .rig_model =  RIG_MODEL_DKR8B,
+    .model_name = "R-8B",
+    .mfg_name =  "Drake",
+    .version =  BACKEND_VER,
+    .copyright =  "LGPL",
+    .status =  RIG_STATUS_UNTESTED,
+    .rig_type =  RIG_TYPE_RECEIVER,
+    .ptt_type =  RIG_PTT_NONE,
+    .dcd_type =  RIG_DCD_NONE,
+    .port_type =  RIG_PORT_SERIAL,
+    .serial_rate_min =  9600,
+    .serial_rate_max =  9600,
+    .serial_data_bits =  8,
+    .serial_stop_bits =  1,
+    .serial_parity =  RIG_PARITY_NONE,
+    .serial_handshake =  RIG_HANDSHAKE_HARDWARE,
+    .write_delay =  0,
+    .post_write_delay =  1,
+    .timeout =  200,
+    .retry =  3,
 
-.has_get_func =  R8B_FUNC,
-.has_set_func =  R8B_FUNC,
-.has_get_level =  R8B_LEVEL_ALL,
-.has_set_level =  RIG_LEVEL_SET(R8B_LEVEL_ALL),
-.has_get_parm =  R8B_PARM_ALL,
-.has_set_parm =  RIG_PARM_SET(R8B_PARM_ALL),
-.level_gran =  {},                 /* FIXME: granularity */
-.parm_gran =  {},
-.ctcss_list =  NULL,
-.dcs_list =  NULL,
-.preamp =   { 10, RIG_DBLST_END },
-.attenuator =   { 10, RIG_DBLST_END },
-.max_rit =  Hz(0),
-.max_xit =  Hz(0),
-.max_ifshift =  Hz(0),
-.targetable_vfo =  0,
-.transceive =  RIG_TRN_OFF,	/* TODO: acutally has RIG_TRN_RIG */
-.bank_qty =   0,
-.chan_desc_sz =  7,
-.vfo_ops =  R8B_VFO_OPS,
+    .has_get_func =  R8B_FUNC,
+    .has_set_func =  R8B_FUNC,
+    .has_get_level =  R8B_LEVEL_ALL,
+    .has_set_level =  RIG_LEVEL_SET(R8B_LEVEL_ALL),
+    .has_get_parm =  R8B_PARM_ALL,
+    .has_set_parm =  RIG_PARM_SET(R8B_PARM_ALL),
+    .level_gran =  {},                 /* FIXME: granularity */
+    .parm_gran =  {},
+    .ctcss_list =  NULL,
+    .dcs_list =  NULL,
+    .preamp =   { 10, RIG_DBLST_END },
+    .attenuator =   { 10, RIG_DBLST_END },
+    .max_rit =  Hz(0),
+    .max_xit =  Hz(0),
+    .max_ifshift =  Hz(0),
+    .targetable_vfo =  0,
+    .transceive =  RIG_TRN_OFF, /* TODO: acutally has RIG_TRN_RIG */
+    .bank_qty =   0,
+    .chan_desc_sz =  7,
+    .vfo_ops =  R8B_VFO_OPS,
 
-.chan_list =  {
-		{   0,  999, RIG_MTYPE_MEM, DRAKE_MEM_CAP },
-		RIG_CHAN_END
-	},
+    .chan_list =  {
+        {   0,  999, RIG_MTYPE_MEM, DRAKE_MEM_CAP },
+        RIG_CHAN_END
+    },
 
-.rx_range_list1 =  {
-	{kHz(10),MHz(30),R8B_MODES,-1,-1,R8B_VFO,R8B_ANTS},
-	RIG_FRNG_END,
-  },
-.tx_range_list1 =  { RIG_FRNG_END, },
-.rx_range_list2 =  {
-	{kHz(10),MHz(30),R8B_MODES,-1,-1,R8B_VFO,R8B_ANTS},
-	RIG_FRNG_END,
-  },
-.tx_range_list2 =  { RIG_FRNG_END, },
+    .rx_range_list1 =  {
+        {kHz(10), MHz(30), R8B_MODES, -1, -1, R8B_VFO, R8B_ANTS},
+        RIG_FRNG_END,
+    },
+    .tx_range_list1 =  { RIG_FRNG_END, },
+    .rx_range_list2 =  {
+        {kHz(10), MHz(30), R8B_MODES, -1, -1, R8B_VFO, R8B_ANTS},
+        RIG_FRNG_END,
+    },
+    .tx_range_list2 =  { RIG_FRNG_END, },
 
-.tuning_steps =  {
-	 {R8B_MODES,10},
-	 {R8B_MODES,100},
-	 {R8B_MODES,kHz(1)},
-	 {R8B_MODES,kHz(10)},
-	 RIG_TS_END,
-	},
-        /* mode/filter list, remember: order matters! */
-.filters =  {
-		{RIG_MODE_FM, kHz(12)},
-		{RIG_MODE_AM|RIG_MODE_ECSS, kHz(6)},
-		{RIG_MODE_AM|RIG_MODE_ECSS, kHz(4)},
-		{RIG_MODE_SSB|RIG_MODE_RTTY, kHz(2.3)},
-		{RIG_MODE_SSB|RIG_MODE_RTTY, kHz(1.8)},
-		{RIG_MODE_SSB|RIG_MODE_RTTY, kHz(4)},
-		{RIG_MODE_CW, Hz(500)},
-		{RIG_MODE_CW, kHz(1.8)},
-		RIG_FLT_END,
-	},
-.str_cal = R8B_STR_CAL,
-.priv =  NULL,
+    .tuning_steps =  {
+        {R8B_MODES, 10},
+        {R8B_MODES, 100},
+        {R8B_MODES, kHz(1)},
+        {R8B_MODES, kHz(10)},
+        RIG_TS_END,
+    },
+    /* mode/filter list, remember: order matters! */
+    .filters =  {
+        {RIG_MODE_FM, kHz(12)},
+        {RIG_MODE_AM | RIG_MODE_ECSS, kHz(6)},
+        {RIG_MODE_AM | RIG_MODE_ECSS, kHz(4)},
+        {RIG_MODE_SSB | RIG_MODE_RTTY, kHz(2.3)},
+        {RIG_MODE_SSB | RIG_MODE_RTTY, kHz(1.8)},
+        {RIG_MODE_SSB | RIG_MODE_RTTY, kHz(4)},
+        {RIG_MODE_CW, Hz(500)},
+        {RIG_MODE_CW, kHz(1.8)},
+        RIG_FLT_END,
+    },
+    .str_cal = R8B_STR_CAL,
+    .priv =  NULL,
 
-.rig_init = drake_init,
-.rig_cleanup = drake_cleanup,
+    .rig_init = drake_init,
+    .rig_cleanup = drake_cleanup,
 
-.set_freq =  drake_set_freq,
-.get_freq =  drake_get_freq,
-.set_vfo =  drake_set_vfo,
-.get_vfo =  drake_get_vfo,
-.set_mode =  drake_set_mode,
-.get_mode =  drake_get_mode,
-.set_func = drake_set_func,
-.get_func = drake_get_func,
-.set_level = drake_set_level,
-.get_level = drake_get_level,
-.set_ant = drake_set_ant,
-.get_ant = drake_get_ant,
-.set_mem = drake_set_mem,
-.get_mem = drake_get_mem,
-.set_channel = drake_set_chan,
-.get_channel = drake_get_chan,
-.vfo_op = drake_vfo_op,
-.set_powerstat = drake_set_powerstat,
-.get_powerstat = drake_get_powerstat,
-.get_info =  drake_get_info,
+    .set_freq =  drake_set_freq,
+    .get_freq =  drake_get_freq,
+    .set_vfo =  drake_set_vfo,
+    .get_vfo =  drake_get_vfo,
+    .set_mode =  drake_set_mode,
+    .get_mode =  drake_get_mode,
+    .set_func = drake_set_func,
+    .get_func = drake_get_func,
+    .set_level = drake_set_level,
+    .get_level = drake_get_level,
+    .set_ant = drake_set_ant,
+    .get_ant = drake_get_ant,
+    .set_mem = drake_set_mem,
+    .get_mem = drake_get_mem,
+    .set_channel = drake_set_chan,
+    .get_channel = drake_get_chan,
+    .vfo_op = drake_vfo_op,
+    .set_powerstat = drake_set_powerstat,
+    .get_powerstat = drake_get_powerstat,
+    .get_info =  drake_get_info,
 
 };
 

@@ -464,8 +464,8 @@ static void draw_range(const freq_range_t range_list[],
         end_pix = range_list[i].endf;
 
         if ((range_list[i].startf > MHz(30) && range_list[i].startf < MHz(300))
-            || (range_list[i].startf < MHz(30)
-                && range_list[i].endf > MHz(30)))
+                || (range_list[i].startf < MHz(30)
+                    && range_list[i].endf > MHz(30)))
         {
 
             start_pix = (start_pix - MHz(30)) / MHz(300) * RANGE_WIDTH;
@@ -498,8 +498,8 @@ static void draw_range(const freq_range_t range_list[],
         end_pix = range_list[i].endf;
 
         if ((range_list[i].startf > MHz(300) && range_list[i].startf < GHz(3))
-            || (range_list[i].startf < MHz(300)
-                && range_list[i].endf > MHz(300)))
+                || (range_list[i].startf < MHz(300)
+                    && range_list[i].endf > MHz(300)))
         {
 
             start_pix = (start_pix - MHz(300)) / GHz(3) * RANGE_WIDTH;

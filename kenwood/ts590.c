@@ -480,59 +480,87 @@ int ts590_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return get_kenwood_level(rig, "AG0", &val->f);
 
     case RIG_LEVEL_METER:
-        retval = kenwood_transaction (rig, "RM0", lvlbuf, sizeof (lvlbuf));
+        retval = kenwood_transaction(rig, "RM0", lvlbuf, sizeof(lvlbuf));
+
         if (retval != RIG_OK)
+        {
             return retval;
-        lvl_len = strlen (lvlbuf);
-        if (lvl_len != 7) {
-            rig_debug(RIG_DEBUG_ERR,"ts590_get_level: "
-              "unexpected answer len=%d\n", lvl_len);
+        }
+
+        lvl_len = strlen(lvlbuf);
+
+        if (lvl_len != 7)
+        {
+            rig_debug(RIG_DEBUG_ERR, "ts590_get_level: "
+                      "unexpected answer len=%d\n", lvl_len);
             return -RIG_ERJCTED;
         }
+
         // returns the raw value in dots
-        sscanf(lvlbuf+3, "%d", &val->i);
+        sscanf(lvlbuf + 3, "%d", &val->i);
         return retval;
 
     case RIG_LEVEL_SWR:
-        retval = kenwood_transaction (rig, "RM1", lvlbuf, sizeof (lvlbuf));
+        retval = kenwood_transaction(rig, "RM1", lvlbuf, sizeof(lvlbuf));
+
         if (retval != RIG_OK)
+        {
             return retval;
-        lvl_len = strlen (lvlbuf);
-        if (lvl_len != 7) {
-            rig_debug(RIG_DEBUG_ERR,"ts590_get_level: "
-              "unexpected answer len=%d\n", lvl_len);
+        }
+
+        lvl_len = strlen(lvlbuf);
+
+        if (lvl_len != 7)
+        {
+            rig_debug(RIG_DEBUG_ERR, "ts590_get_level: "
+                      "unexpected answer len=%d\n", lvl_len);
             return -RIG_ERJCTED;
         }
+
         // returns the raw value in dots
-        sscanf(lvlbuf+3, "%d", &val->i);
+        sscanf(lvlbuf + 3, "%d", &val->i);
         return retval;
 
     case RIG_LEVEL_COMP:
-        retval = kenwood_transaction (rig, "RM2", lvlbuf, sizeof (lvlbuf));
+        retval = kenwood_transaction(rig, "RM2", lvlbuf, sizeof(lvlbuf));
+
         if (retval != RIG_OK)
+        {
             return retval;
-        lvl_len = strlen (lvlbuf);
-        if (lvl_len != 7) {
-            rig_debug(RIG_DEBUG_ERR,"ts590_get_level: "
-              "unexpected answer len=%d\n", lvl_len);
+        }
+
+        lvl_len = strlen(lvlbuf);
+
+        if (lvl_len != 7)
+        {
+            rig_debug(RIG_DEBUG_ERR, "ts590_get_level: "
+                      "unexpected answer len=%d\n", lvl_len);
             return -RIG_ERJCTED;
         }
+
         // returns the raw value in dots
-        sscanf(lvlbuf+3, "%d", &val->i);
+        sscanf(lvlbuf + 3, "%d", &val->i);
         return retval;
 
     case RIG_LEVEL_ALC:
-        retval = kenwood_transaction (rig, "RM3", lvlbuf, sizeof (lvlbuf));
+        retval = kenwood_transaction(rig, "RM3", lvlbuf, sizeof(lvlbuf));
+
         if (retval != RIG_OK)
+        {
             return retval;
-        lvl_len = strlen (lvlbuf);
-        if (lvl_len != 7) {
-            rig_debug(RIG_DEBUG_ERR,"ts590_get_level: "
-              "unexpected answer len=%d\n", lvl_len);
+        }
+
+        lvl_len = strlen(lvlbuf);
+
+        if (lvl_len != 7)
+        {
+            rig_debug(RIG_DEBUG_ERR, "ts590_get_level: "
+                      "unexpected answer len=%d\n", lvl_len);
             return -RIG_ERJCTED;
         }
+
         // returns the raw value in dots
-        sscanf(lvlbuf+3, "%d", &val->i);
+        sscanf(lvlbuf + 3, "%d", &val->i);
         return retval;
 
     default: return rig_get_level(rig, vfo, level, val);

@@ -55,8 +55,8 @@
  *   RIG_ETIMEOUT  -  if timeout expires without any characters received.
  */
 static int
-celestron_transaction (ROT *rot, const char *cmdstr,
-                    char *data, size_t data_len)
+celestron_transaction(ROT *rot, const char *cmdstr,
+                      char *data, size_t data_len)
 {
     struct rot_state *rs;
     int retval;
@@ -69,34 +69,50 @@ transaction_write:
 
     serial_flush(&rs->rotport);
 
-    if (cmdstr) {
+    if (cmdstr)
+    {
         retval = write_block(&rs->rotport, cmdstr, strlen(cmdstr));
+
         if (retval != RIG_OK)
+        {
             goto transaction_quit;
+        }
     }
 
     /* Always read the reply to know whether the cmd went OK */
     if (!data)
+    {
         data = replybuf;
+    }
+
     if (!data_len)
+    {
         data_len = BUFSZ;
+    }
 
     /* the answer */
-    memset(data,0,data_len);
+    memset(data, 0, data_len);
     retval = read_string(&rs->rotport, data, data_len, ACK, strlen(ACK));
-    if (retval < 0) {
+
+    if (retval < 0)
+    {
         if (retry_read++ < rot->state.rotport.retry)
+        {
             goto transaction_write;
+        }
+
         goto transaction_quit;
     }
 
     /* check for acknowledge */
-    if (retval < 1 || data[retval-1] != '#') {
-        rig_debug(RIG_DEBUG_ERR, "%s: unexpected response, len %d: '%s'\n", __func__, retval, data);
+    if (retval < 1 || data[retval - 1] != '#')
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: unexpected response, len %d: '%s'\n", __func__,
+                  retval, data);
         return -RIG_EPROTO;
     }
 
-    data[retval-1] = '\0';
+    data[retval - 1] = '\0';
 
     retval = RIG_OK;
 transaction_quit:
@@ -107,85 +123,93 @@ transaction_quit:
 static int
 celestron_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
-  char cmdstr[32];
-  int retval;
+    char cmdstr[32];
+    int retval;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
+    rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
 
-  /*
-    Note: if the telescope has not been aligned, the RA/DEC values will not be meaningful and the AZM-ALT values will
-        be relative to where the telescope was powered on. After alignment, RA/DEC values will reflect the actual sky,
-        azimuth will be indexed to North equals 0 and altitude will be indexed with 0 equal to the orientation where the optical
-        tube is perpendicular to the azimuth axis.
-   */
+    /*
+      Note: if the telescope has not been aligned, the RA/DEC values will not be meaningful and the AZM-ALT values will
+          be relative to where the telescope was powered on. After alignment, RA/DEC values will reflect the actual sky,
+          azimuth will be indexed to North equals 0 and altitude will be indexed with 0 equal to the orientation where the optical
+          tube is perpendicular to the azimuth axis.
+     */
 
-  sprintf(cmdstr, "B%04X,%04X",
-          (unsigned)((az/360.)*65535),
-          (unsigned)((el/360.)*65535));
+    sprintf(cmdstr, "B%04X,%04X",
+            (unsigned)((az / 360.) * 65535),
+            (unsigned)((el / 360.) * 65535));
 
-  retval = celestron_transaction(rot, cmdstr, NULL, 0);
+    retval = celestron_transaction(rot, cmdstr, NULL, 0);
 
-  return retval;
+    return retval;
 }
 
 static int
 celestron_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
-  char posbuf[32];
-  int retval;
-  unsigned w;
+    char posbuf[32];
+    int retval;
+    unsigned w;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-  /* Get Azm-Alt */
-  retval = celestron_transaction(rot, "Z" , posbuf, sizeof(posbuf));
-  if (retval != RIG_OK || strlen(posbuf) < 9 || posbuf[4] != ',') {
-    return retval < 0 ? retval : -RIG_EPROTO;
-  }
+    /* Get Azm-Alt */
+    retval = celestron_transaction(rot, "Z", posbuf, sizeof(posbuf));
 
-  if (sscanf(posbuf, "%04X", &w) != 1)
-    return -RIG_EPROTO;
+    if (retval != RIG_OK || strlen(posbuf) < 9 || posbuf[4] != ',')
+    {
+        return retval < 0 ? retval : -RIG_EPROTO;
+    }
 
-  *az = ((azimuth_t)w*360.)/65536.;
+    if (sscanf(posbuf, "%04X", &w) != 1)
+    {
+        return -RIG_EPROTO;
+    }
 
-  if (sscanf(posbuf+5, "%04X", &w) != 1)
-    return -RIG_EPROTO;
+    *az = ((azimuth_t)w * 360.) / 65536.;
 
-  *el = ((elevation_t)w*360.)/65536.;
+    if (sscanf(posbuf + 5, "%04X", &w) != 1)
+    {
+        return -RIG_EPROTO;
+    }
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: (az, el) = (%.1f, %.1f)\n",
-            __func__, *az, *el);
+    *el = ((elevation_t)w * 360.) / 65536.;
 
-  return RIG_OK;
+    rig_debug(RIG_DEBUG_TRACE, "%s: (az, el) = (%.1f, %.1f)\n",
+              __func__, *az, *el);
+
+    return RIG_OK;
 }
 
 static int
 celestron_stop(ROT *rot)
 {
-  int retval;
+    int retval;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-  /* Cancel Goto */
-  retval = celestron_transaction(rot, "M", NULL, 0);
+    /* Cancel Goto */
+    retval = celestron_transaction(rot, "M", NULL, 0);
 
-  return retval;
+    return retval;
 }
 
 static const char *
 celestron_get_info(ROT *rot)
 {
-  static char info[16];
-  char str[8];
+    static char info[16];
+    char str[8];
 
-  rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-  if (celestron_transaction(rot, "V", str, sizeof(str)) != RIG_OK)
-      return NULL;
+    if (celestron_transaction(rot, "V", str, sizeof(str)) != RIG_OK)
+    {
+        return NULL;
+    }
 
-  sprintf(info, "V%c.%c", str[0], str[1]);
+    sprintf(info, "V%c.%c", str[0], str[1]);
 
-  return info;
+    return info;
 }
 
 
@@ -201,46 +225,47 @@ celestron_get_info(ROT *rot)
  *    http://content.telescope.com/rsc/img/catalog/product/instructions/29295.pdf
  */
 
-const struct rot_caps nexstar_rot_caps = {
-  .rot_model =      ROT_MODEL_NEXSTAR,
-  .model_name =     "NexStar",  // Any Celestron starting with version 1.2
-  .mfg_name =       "Celestron",
-  .version =        "0.1",
-  .copyright = 	    "LGPL",
-  .status =         RIG_STATUS_UNTESTED,
-  .rot_type =       ROT_TYPE_AZEL,
-  .port_type =      RIG_PORT_SERIAL,
-  .serial_rate_min  = 9600,
-  .serial_rate_max  = 9600,
-  .serial_data_bits = 8,
-  .serial_stop_bits = 1,
-  .serial_parity    = RIG_PARITY_NONE,
-  .serial_handshake = RIG_HANDSHAKE_NONE,
-  .write_delay      = 0,
-  .post_write_delay = 0,
-  .timeout          = 3500, /* worst case scenario */
-  .retry            = 1,
+const struct rot_caps nexstar_rot_caps =
+{
+    .rot_model =      ROT_MODEL_NEXSTAR,
+    .model_name =     "NexStar",  // Any Celestron starting with version 1.2
+    .mfg_name =       "Celestron",
+    .version =        "0.1",
+    .copyright =      "LGPL",
+    .status =         RIG_STATUS_UNTESTED,
+    .rot_type =       ROT_TYPE_AZEL,
+    .port_type =      RIG_PORT_SERIAL,
+    .serial_rate_min  = 9600,
+    .serial_rate_max  = 9600,
+    .serial_data_bits = 8,
+    .serial_stop_bits = 1,
+    .serial_parity    = RIG_PARITY_NONE,
+    .serial_handshake = RIG_HANDSHAKE_NONE,
+    .write_delay      = 0,
+    .post_write_delay = 0,
+    .timeout          = 3500, /* worst case scenario */
+    .retry            = 1,
 
-  .min_az = 	0.0,
-  .max_az =  	360.0,
-  .min_el = 	0.0,
-  .max_el =  	180.0,
+    .min_az =     0.0,
+    .max_az =     360.0,
+    .min_el =     0.0,
+    .max_el =     180.0,
 
-  .get_position = celestron_get_position,
-  .set_position = celestron_set_position,
-  .stop         = celestron_stop,
-  .get_info     = celestron_get_info,
+    .get_position = celestron_get_position,
+    .set_position = celestron_set_position,
+    .stop         = celestron_stop,
+    .get_info     = celestron_get_info,
 };
 
 /* ************************************************************************* */
 
 DECLARE_INITROT_BACKEND(celestron)
 {
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  rot_register(&nexstar_rot_caps);
+    rot_register(&nexstar_rot_caps);
 
-  return RIG_OK;
+    return RIG_OK;
 }
 
 /* ************************************************************************* */

@@ -166,7 +166,7 @@ static int prosistel_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %.1f %.1f\n", __func__,
               az, el);
 
-    num_sprintf(cmdstr, STX"AG%04.0f"CR, az*10);
+    num_sprintf(cmdstr, STX"AG%04.0f"CR, az * 10);
     retval = prosistel_transaction(rot, cmdstr, NULL, 0);
 
     if (retval != RIG_OK)
@@ -177,11 +177,13 @@ static int prosistel_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
     /*
      * Elevation section
     */
-    num_sprintf(cmdstr, STX"EG%04.0f"CR, el*10);
+    num_sprintf(cmdstr, STX"EG%04.0f"CR, el * 10);
     retval = prosistel_transaction(rot, cmdstr, NULL, 0);
-    if(retval!=RIG_OK) {
-      return retval;
-      }
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
 
     return retval;
 }

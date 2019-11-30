@@ -1,13 +1,13 @@
 /*
- * ts2k_menu.c	(C) Copyright 2002 by Dale E. Edmons.  All rights reserved.
+ * ts2k_menu.c  (C) Copyright 2002 by Dale E. Edmons.  All rights reserved.
  */
 
 /*
- * License:	GNU
+ * License: GNU
  */
 
 /*
- * status:	Never been compiled!
+ * status:  Never been compiled!
  */
 
 /*
@@ -30,18 +30,20 @@
  */
 int ts2k_set_menu_no(RIG *rig, ts2k_menu_t *menu, int main, int sub)
 {
-	int i;
+    int i;
 
-	menu->menu_no[0] = main;
-	menu->menu_no[1] = sub;
-	menu->menu_no[2] = menu->menu_no[3] = 0;
+    menu->menu_no[0] = main;
+    menu->menu_no[1] = sub;
+    menu->menu_no[2] = menu->menu_no[3] = 0;
 
-	i = sprintf( &menu->cmd[0], "ex%03u%02u%01u%01u;", main, sub, 0, 0);
+    i = sprintf(&menu->cmd[0], "ex%03u%02u%01u%01u;", main, sub, 0, 0);
 
-	if(i != 10)
-		return -RIG_EINVAL;
+    if (i != 10)
+    {
+        return -RIG_EINVAL;
+    }
 
-	return RIG_OK;
+    return RIG_OK;
 }
 
 /*
@@ -49,25 +51,32 @@ int ts2k_set_menu_no(RIG *rig, ts2k_menu_t *menu, int main, int sub)
  */
 int ts2k_get_menu_no(RIG *rig, ts2k_menu_t *menu, int *main, int *sub)
 {
-	char tmp[30];
-	int m, s;
+    char tmp[30];
+    int m, s;
 
-	if(menu==NULL)
-		return -RIG_EINVAL;
+    if (menu == NULL)
+    {
+        return -RIG_EINVAL;
+    }
 
-	m = int_n(tmp, &menu->cmd[2], 3);
-	s = int_n(tmp, &menu->cmd[7], 2);
+    m = int_n(tmp, &menu->cmd[2], 3);
+    s = int_n(tmp, &menu->cmd[7], 2);
 
-	menu->menu_no[0] = m; 
-	menu->menu_no[1] = s; 
-	menu->menu_no[2] = menu->menu_no[3] = 0;
+    menu->menu_no[0] = m;
+    menu->menu_no[1] = s;
+    menu->menu_no[2] = menu->menu_no[3] = 0;
 
-	if(main != NULL)
-		*main = m;
-	if(sub != NULL)
-		*sub = s;
+    if (main != NULL)
+    {
+        *main = m;
+    }
 
-	return RIG_OK;
+    if (sub != NULL)
+    {
+        *sub = s;
+    }
+
+    return RIG_OK;
 }
 
 /*
@@ -95,28 +104,38 @@ int ts2k_get_menu_no(RIG *rig, ts2k_menu_t *menu, int *main, int *sub)
  */
 int ts2k_menu_init(RIG *rig, ts2k_menu_t *menu[])
 {
-	int retval, i;
-	ts2k_menu_t *m, *mref;
+    int retval, i;
+    ts2k_menu_t *m, *mref;
 
-	if(menu == NULL || menu == ts2k_menus) {
-		rig_debug(rig, __func__": invalid menu pointer\n");
-		return -RIG_EINVAL;
-	}
+    if (menu == NULL || menu == ts2k_menus)
+    {
+        rig_debug(rig, __func__": invalid menu pointer\n");
+        return -RIG_EINVAL;
+    }
 
-	// One set of defaults has been globally defined (mref)
-	for(i=0, i<(sizeof(menu)/sizeof(ts2k_menu_t)); i++) {
-		m = menu[i];
-		mref = ts2k_menus[i];
-		retval = ts2k_set_menu_no(rig, m, mref->menu[0], mref->menu[1]);
-		if(retval != RIG_OK)
-			return retval;
-		retval = ts2k_get_menu(rig, m);
-		if(retval != RIG_OK)
-			return retval;
-		// FIXME: set some debug traces here?
-	}
+    // One set of defaults has been globally defined (mref)
+    for (i = 0, i < (sizeof(menu) / sizeof(ts2k_menu_t)); i++)
+    {
+        m = menu[i];
+        mref = ts2k_menus[i];
+        retval = ts2k_set_menu_no(rig, m, mref->menu[0], mref->menu[1]);
 
-	return RIG_OK;
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        retval = ts2k_get_menu(rig, m);
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        // FIXME: set some debug traces here?
+    }
+
+    return RIG_OK;
 }
 
 /*
@@ -125,29 +144,41 @@ int ts2k_menu_init(RIG *rig, ts2k_menu_t *menu[])
  * a rig_menu_t.  I do a lot of checking to ensure
  * nothing breaks (hi!).
  */
-int ts2k_get_menu(RIG *rig, ts2k_menu_t *menu, )
+int ts2k_get_menu(RIG *rig, ts2k_menu_t *menu,)
 {
-	int retval, i, j, k, acklen;
-	char ack[30];
+    int retval, i, j, k, acklen;
+    char ack[30];
 
-	if(menu == NULL)
-		return -RIG_EINVAL;
-	else if( (toupper(menu->cmd[0]) != 'E')
-		|| (toupper(menu->cmd[1]) != 'X') )
-		return -RIG_EINVAL;
-	else if(menu->cmd[9] != ';')
-		retval = -RIG_EINVAL;
+    if (menu == NULL)
+    {
+        return -RIG_EINVAL;
+    }
+    else if ((toupper(menu->cmd[0]) != 'E')
+             || (toupper(menu->cmd[1]) != 'X'))
+    {
+        return -RIG_EINVAL;
+    }
+    else if (menu->cmd[9] != ';')
+    {
+        retval = -RIG_EINVAL;
+    }
 
-	retval = ts2k_transaction(rig, menu->cmd, 10, ack, &acklen);
-	if(retval != RIG_OK)
-		return retval;
+    retval = ts2k_transaction(rig, menu->cmd, 10, ack, &acklen);
 
-	strncpy(menu->cmd, ack, 30);
-	retval = ts2k_menu_parse(rig, menu);
-	if(retval != RIG_OK)
-		return retval;
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
 
-	return retval;
+    strncpy(menu->cmd, ack, 30);
+    retval = ts2k_menu_parse(rig, menu);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    return retval;
 }
 
 /*
@@ -155,101 +186,134 @@ int ts2k_get_menu(RIG *rig, ts2k_menu_t *menu, )
  * All we do is determe the value and param_txt
  * for the menu item we are given.
  *
- *	status: real ugly!
+ *  status: real ugly!
  */
 int ts2k_menu_parse(RIG *rig, ts2k_menu_t *menu)
 {
-	ts2k_menu_t *mref, *m;
-	char *vptr;
-	int on_off[] = { 01, 03, 04, 05, 07, 09, 17, 18, 23, 25, 26,
-		 27, 30, 34, 35, 36, 37, 43, 44, 52, 53, 63, 54, 55,
-		-1},
-	    zero2nine = {
+    ts2k_menu_t *mref, *m;
+    char *vptr;
+    int on_off[] = { 01, 03, 04, 05, 07, 09, 17, 18, 23, 25, 26,
+                     27, 30, 34, 35, 36, 37, 43, 44, 52, 53, 63, 54, 55,
+                     -1
+                   },
+                   zero2nine =
+    {
 
-	m = menu;	// to lazy to spell menu-> all the time
+        m = menu;   // to lazy to spell menu-> all the time
 
-	if(m->cmd[0] == '\0' || m->cmd[1] == '\0')
-		return -RIG_EINVAL;	// Caller has blown it!
+        if (m->cmd[0] == '\0' || m->cmd[1] == '\0')
+        {
+            return -RIG_EINVAL;    // Caller has blown it!
+        }
 
-	// find matching refence menu
-	i=0;
-	do {
-		mref = ts2k_menus[i];
-		if(mref == NULL)	// Either Caller or I blew it!
-			return -RIG_EINTERNAL;
-		if(mref->menu_no[i] == NULL)
-			return -RIG_EINVAL;	// It has to match one!
-		if(menu == ts2k_menus[i])	// Nobody changes our REF!
-			return -RIG_EINTERNAL;
-			
-		if(mref->menu[0] == m->menu[0])
-		   && mref->menu[1] == m->menu[1]
-		   && mref->menu[2] == m->menu[2]
-		   /*&& mref->menu[3] == m->menu[3]*/) {
-			break;
-		}
-	} while (++i)
+        // find matching refence menu
+        i = 0;
 
-	/* Match the main menu and only look for sub-menus later */
+        do
+        {
+            mref = ts2k_menus[i];
 
-	// check for menus that are simple on/off first
-	// FIXME: this isn't fast, it just eliminates alot of cases!
-	for(i=0; on_off == -1; i++) {
-		if(m->menu[0] == m->menu[0]) {
-			m->val = m->cmd[9] - '0';
-			m->param_txt = (m->val == 1)? m_on : m_off;
-			return RIG_OK;
-		}
-	}
+            if (mref == NULL)   // Either Caller or I blew it!
+            {
+                return -RIG_EINTERNAL;
+            }
 
-	// Use mref to do all we can
-	retval = -RIG_EINTERNAL;
-	for(i=0; mref->param_txt != NULL; i++) {
-		if(retval == RIG_OK) {
-			return retval;
-		}
-		switch( mref->param_txt[i] ) {
-		case m_tbd:	// menu item under development!
-			m->param_txt = m_tbd;
-			vptr = malloc( 17 );
-			if(vptr == NULL)
-				return -RIG_NOMEM;
+            if (mref->menu_no[i] == NULL)
+            {
+                return -RIG_EINVAL;    // It has to match one!
+            }
 
-			for(j=0; vptr[i] != ';' && i<17; i++) {
-				vptr[i] == m->cmd[i];
-			}
-			vptr[i] = '\0';
-			return -RIG_NIMPL;
+            if (menu == ts2k_menus[i])  // Nobody changes our REF!
+            {
+                return -RIG_EINTERNAL;
+            }
 
-		case m_off:
-			if(m->cmd[9] == '0') {
-				m->param_txt = mref->param_txt[i];
-				m->val = 0;
-				retval = RIG_OK;
-			}
-			break;
-		case m_num:
-		default:
-			return -RIG_NIMPL;
-		}
-	}
+            if (mref->menu[0] == m->menu[0])
+                && mref->menu[1] == m->menu[1]
+                && mref->menu[2] == m->menu[2]
+                /*&& mref->menu[3] == m->menu[3]*/)
+            {
+                break;
+            }
+        }
+        while (++i)
 
-	switch( m->menu[0] ) {
+            /* Match the main menu and only look for sub-menus later */
 
-	case 00:
-	case 00:
-	case 00:
-	case 00:
-	case 00:
-	case 00:
-	case 00:
-	case 00:
+            // check for menus that are simple on/off first
+            // FIXME: this isn't fast, it just eliminates alot of cases!
+            for (i = 0; on_off == -1; i++)
+            {
+                if (m->menu[0] == m->menu[0])
+                {
+                    m->val = m->cmd[9] - '0';
+                    m->param_txt = (m->val == 1) ? m_on : m_off;
+                    return RIG_OK;
+                }
+            }
 
-	default:
-		return -RIG_EINTERNAL;	// I'm requiring 100% match 
-	}
+        // Use mref to do all we can
+        retval = -RIG_EINTERNAL;
 
-	return RIG_OK;
-}
+        for (i = 0; mref->param_txt != NULL; i++)
+        {
+            if (retval == RIG_OK)
+            {
+                return retval;
+            }
+
+            switch (mref->param_txt[i])
+            {
+            case m_tbd: // menu item under development!
+                m->param_txt = m_tbd;
+                vptr = malloc(17);
+
+                if (vptr == NULL)
+                {
+                    return -RIG_NOMEM;
+                }
+
+                for (j = 0; vptr[i] != ';' && i < 17; i++)
+                {
+                    vptr[i] == m->cmd[i];
+                }
+
+                vptr[i] = '\0';
+                return -RIG_NIMPL;
+
+            case m_off:
+                if (m->cmd[9] == '0')
+                {
+                    m->param_txt = mref->param_txt[i];
+                    m->val = 0;
+                    retval = RIG_OK;
+                }
+
+                break;
+
+            case m_num:
+            default:
+                return -RIG_NIMPL;
+            }
+        }
+
+        switch (m->menu[0])
+        {
+
+        case 00:
+        case 00:
+        case 00:
+        case 00:
+        case 00:
+        case 00:
+        case 00:
+        case 00:
+
+        default:
+            return -RIG_EINTERNAL;  // I'm requiring 100% match
+        }
+
+        return RIG_OK;
+    }
 
 // End of ts2k_menu.c

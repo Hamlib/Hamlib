@@ -57,98 +57,99 @@ static int frg8800_set_powerstat(RIG *rig, powerstat_t status);
  *
  */
 
-const struct rig_caps frg8800_caps = {
-  .rig_model =          RIG_MODEL_FRG8800,
-  .model_name =         "FRG-8800",
-  .mfg_name =           "Yaesu",
-  .version =            "0.2",
-  .copyright =          "LGPL",
-  .status =             RIG_STATUS_UNTESTED,
-  .rig_type =           RIG_TYPE_RECEIVER,
-  .ptt_type =           RIG_PTT_NONE,
-  .dcd_type =           RIG_DCD_NONE,
-  .port_type =          RIG_PORT_SERIAL,
-  .serial_rate_min =    4800,
-  .serial_rate_max =    4800,
-  .serial_data_bits =   8,
-  .serial_stop_bits =   2,
-  .serial_parity =      RIG_PARITY_NONE,
-  .serial_handshake =   RIG_HANDSHAKE_NONE,
-  .write_delay =        0,
-  .post_write_delay =   300,
-  .timeout =            2000,
-  .retry =              0,
-  .has_get_func =       RIG_FUNC_NONE,
-  .has_set_func =       RIG_FUNC_NONE,
-  .has_get_level =      RIG_LEVEL_NONE,
-  .has_set_level =      RIG_LEVEL_NONE,
-  .has_get_parm =       RIG_PARM_NONE,
-  .has_set_parm =       RIG_PARM_NONE,
-  .vfo_ops =		RIG_OP_NONE,
-  .preamp =             { RIG_DBLST_END, },
-  .attenuator =         { RIG_DBLST_END, },
-  .max_rit =            Hz(0),
-  .max_xit =            Hz(0),
-  .max_ifshift =        Hz(0),
-  .targetable_vfo =     RIG_TARGETABLE_FREQ,
-  .transceive =         RIG_TRN_OFF,
-  .bank_qty =           0,
-  .chan_desc_sz =       0,
-  .chan_list =          {
-				RIG_CHAN_END,
-			},
-  .rx_range_list1 =     {
-    {kHz(150), MHz(29.999), FRG8800_MODES, -1, -1, FRG8800_VFOS, FRG8800_ANTS },
-    {MHz(118), MHz(173.999), FRG8800_MODES, -1, -1, FRG8800_VFOS, FRG8800_ANTS },
-    RIG_FRNG_END,
-  }, /* Region 1 rx ranges */
+const struct rig_caps frg8800_caps =
+{
+    .rig_model =          RIG_MODEL_FRG8800,
+    .model_name =         "FRG-8800",
+    .mfg_name =           "Yaesu",
+    .version =            "0.2",
+    .copyright =          "LGPL",
+    .status =             RIG_STATUS_UNTESTED,
+    .rig_type =           RIG_TYPE_RECEIVER,
+    .ptt_type =           RIG_PTT_NONE,
+    .dcd_type =           RIG_DCD_NONE,
+    .port_type =          RIG_PORT_SERIAL,
+    .serial_rate_min =    4800,
+    .serial_rate_max =    4800,
+    .serial_data_bits =   8,
+    .serial_stop_bits =   2,
+    .serial_parity =      RIG_PARITY_NONE,
+    .serial_handshake =   RIG_HANDSHAKE_NONE,
+    .write_delay =        0,
+    .post_write_delay =   300,
+    .timeout =            2000,
+    .retry =              0,
+    .has_get_func =       RIG_FUNC_NONE,
+    .has_set_func =       RIG_FUNC_NONE,
+    .has_get_level =      RIG_LEVEL_NONE,
+    .has_set_level =      RIG_LEVEL_NONE,
+    .has_get_parm =       RIG_PARM_NONE,
+    .has_set_parm =       RIG_PARM_NONE,
+    .vfo_ops =        RIG_OP_NONE,
+    .preamp =             { RIG_DBLST_END, },
+    .attenuator =         { RIG_DBLST_END, },
+    .max_rit =            Hz(0),
+    .max_xit =            Hz(0),
+    .max_ifshift =        Hz(0),
+    .targetable_vfo =     RIG_TARGETABLE_FREQ,
+    .transceive =         RIG_TRN_OFF,
+    .bank_qty =           0,
+    .chan_desc_sz =       0,
+    .chan_list =          {
+        RIG_CHAN_END,
+    },
+    .rx_range_list1 =     {
+        {kHz(150), MHz(29.999), FRG8800_MODES, -1, -1, FRG8800_VFOS, FRG8800_ANTS },
+        {MHz(118), MHz(173.999), FRG8800_MODES, -1, -1, FRG8800_VFOS, FRG8800_ANTS },
+        RIG_FRNG_END,
+    }, /* Region 1 rx ranges */
 
-  .tx_range_list1 =     {
-	RIG_FRNG_END,
-  },    /* region 1 TX ranges */
+    .tx_range_list1 =     {
+        RIG_FRNG_END,
+    },    /* region 1 TX ranges */
 
-  .rx_range_list2 =     {
-    {kHz(150), MHz(29.999), FRG8800_MODES, -1, -1, FRG8800_VFOS, FRG8800_ANTS },
-    {MHz(118), MHz(173.999), FRG8800_MODES, -1, -1, FRG8800_VFOS, FRG8800_ANTS },
-    RIG_FRNG_END,
-  }, /* Region 2 rx ranges */
+    .rx_range_list2 =     {
+        {kHz(150), MHz(29.999), FRG8800_MODES, -1, -1, FRG8800_VFOS, FRG8800_ANTS },
+        {MHz(118), MHz(173.999), FRG8800_MODES, -1, -1, FRG8800_VFOS, FRG8800_ANTS },
+        RIG_FRNG_END,
+    }, /* Region 2 rx ranges */
 
-  .tx_range_list2 =     {
-	RIG_FRNG_END,
-  },    /* region 2 TX ranges */
+    .tx_range_list2 =     {
+        RIG_FRNG_END,
+    },    /* region 2 TX ranges */
 
-  .tuning_steps =       {
-    {FRG8800_MODES, Hz(25)},
-    RIG_TS_END,
-  },
+    .tuning_steps =       {
+        {FRG8800_MODES, Hz(25)},
+        RIG_TS_END,
+    },
 
     /* mode/filter list, remember: order matters! */
-  .filters =            {
-    {RIG_MODE_AM,   kHz(6)},
-    {RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_AM,  kHz(2.7)},
-    {RIG_MODE_CW,   Hz(500)},
-    {RIG_MODE_FM,   kHz(12.5)},
-    {RIG_MODE_WFM,   kHz(230)},	/* optional unit */
+    .filters =            {
+        {RIG_MODE_AM,   kHz(6)},
+        {RIG_MODE_SSB | RIG_MODE_CW | RIG_MODE_AM,  kHz(2.7)},
+        {RIG_MODE_CW,   Hz(500)},
+        {RIG_MODE_FM,   kHz(12.5)},
+        {RIG_MODE_WFM,   kHz(230)}, /* optional unit */
 
-    RIG_FLT_END,
-  },
+        RIG_FLT_END,
+    },
 
-  .rig_open =		frg8800_open,
-  .rig_close =		frg8800_close,
+    .rig_open =       frg8800_open,
+    .rig_close =      frg8800_close,
 
-  .set_freq =           frg8800_set_freq,
-  .set_mode =           frg8800_set_mode,
+    .set_freq =           frg8800_set_freq,
+    .set_mode =           frg8800_set_mode,
 
-  .set_powerstat =	frg8800_set_powerstat,
+    .set_powerstat =  frg8800_set_powerstat,
 };
 
 
-#define MODE_SET_AM	0x00
-#define MODE_SET_LSB	0x01
-#define MODE_SET_USB	0x02
-#define MODE_SET_CW	0x03
-#define MODE_SET_FM	0x0c
-#define MODE_SET_FMW	0x04
+#define MODE_SET_AM 0x00
+#define MODE_SET_LSB    0x01
+#define MODE_SET_USB    0x02
+#define MODE_SET_CW 0x03
+#define MODE_SET_FM 0x0c
+#define MODE_SET_FMW    0x04
 
 
 /*
@@ -157,88 +158,97 @@ const struct rig_caps frg8800_caps = {
  */
 int frg8800_open(RIG *rig)
 {
-  unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x00};
+    unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x00};
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-  /* send Ext Cntl ON: Activate CAT */
-  return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
+    /* send Ext Cntl ON: Activate CAT */
+    return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 
 }
 
 int frg8800_close(RIG *rig)
 {
-  unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x80, 0x00};
+    unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x80, 0x00};
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-  /* send Ext Cntl OFF: Deactivate CAT */
-  return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
+    /* send Ext Cntl OFF: Deactivate CAT */
+    return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 
 }
 
 
 int frg8800_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-  unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x01};
+    unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x01};
 
-  rig_debug(RIG_DEBUG_TRACE,"%s: called\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-   /* store bcd format in cmd (LSB) */
-  to_bcd(cmd, freq/10, 8);
+    /* store bcd format in cmd (LSB) */
+    to_bcd(cmd, freq / 10, 8);
 
-  /* Byte1: 100Hz's and 25Hz step code */
-  cmd[0] = ( cmd[0]&0xf0 ) | ( 1 << ((((long long)freq)%100)/25) );
+    /* Byte1: 100Hz's and 25Hz step code */
+    cmd[0] = (cmd[0] & 0xf0) | (1 << ((((long long)freq) % 100) / 25));
 
-  /* Frequency set */
-  return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
+    /* Frequency set */
+    return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 }
 
 
 int frg8800_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-  unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x80};
-  unsigned char md;
+    unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x80};
+    unsigned char md;
 
-  rig_debug(RIG_DEBUG_TRACE,"%s: frg8800_set_mode called %s\n", __func__, rig_strrmode(mode));
+    rig_debug(RIG_DEBUG_TRACE, "%s: frg8800_set_mode called %s\n", __func__,
+              rig_strrmode(mode));
 
-  /*
-   * translate mode from generic to frg8800 specific
-   */
-  switch(mode) {
-  case RIG_MODE_AM:	md = MODE_SET_AM; break;
-  case RIG_MODE_CW:	md = MODE_SET_CW; break;
-  case RIG_MODE_USB:	md = MODE_SET_USB; break;
-  case RIG_MODE_LSB:	md = MODE_SET_LSB; break;
-  case RIG_MODE_FM:	md = MODE_SET_FM; break;
-  case RIG_MODE_WFM:	md = MODE_SET_FMW; break;
-  default:
-    return -RIG_EINVAL;         /* sorry, wrong MODE */
-  }
+    /*
+     * translate mode from generic to frg8800 specific
+     */
+    switch (mode)
+    {
+    case RIG_MODE_AM: md = MODE_SET_AM; break;
 
-  if (width != RIG_PASSBAND_NOCHANGE
-      && width != RIG_PASSBAND_NORMAL
-      && width < rig_passband_normal(rig, mode)) {
-	  md |= 0x08;
-  }
+    case RIG_MODE_CW: md = MODE_SET_CW; break;
 
-  cmd[3] = md;
+    case RIG_MODE_USB:    md = MODE_SET_USB; break;
 
-  /* Mode set */
-  return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
+    case RIG_MODE_LSB:    md = MODE_SET_LSB; break;
+
+    case RIG_MODE_FM: md = MODE_SET_FM; break;
+
+    case RIG_MODE_WFM:    md = MODE_SET_FMW; break;
+
+    default:
+        return -RIG_EINVAL;         /* sorry, wrong MODE */
+    }
+
+    if (width != RIG_PASSBAND_NOCHANGE
+            && width != RIG_PASSBAND_NORMAL
+            && width < rig_passband_normal(rig, mode))
+    {
+        md |= 0x08;
+    }
+
+    cmd[3] = md;
+
+    /* Mode set */
+    return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 }
 
 
 
 int frg8800_set_powerstat(RIG *rig, powerstat_t status)
 {
-  unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x80};
+    unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x80};
 
-  rig_debug(RIG_DEBUG_TRACE,"%s: called\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-  cmd[3] = status == RIG_POWER_OFF ? 0xff : 0xfe;
+    cmd[3] = status == RIG_POWER_OFF ? 0xff : 0xfe;
 
-  /* Frequency set */
-  return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
+    /* Frequency set */
+    return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 }
 

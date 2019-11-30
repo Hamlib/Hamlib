@@ -34,56 +34,72 @@
 
 int verify_flexradio_id(RIG *rig, char *id)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	if (!rig || !id)
-		return -RIG_EINVAL;
+    if (!rig || !id)
+    {
+        return -RIG_EINVAL;
+    }
 
-	int err;
-	char *idptr;
+    int err;
+    char *idptr;
 
-	/* Check for a Flex 6700 which returns "904" */
-	err = kenwood_get_id(rig, id);
-	if (err != RIG_OK) {
-		rig_debug(RIG_DEBUG_VERBOSE, "%s: cannot get identification\n", __func__);
-		return err;
-	}
+    /* Check for a Flex 6700 which returns "904" */
+    err = kenwood_get_id(rig, id);
 
-	/* ID is 'ID904;' */
-	if (strlen(id) < 5) {
-		rig_debug(RIG_DEBUG_VERBOSE, "%s: unknown ID type (%s)\n", __func__, id);
-		return -RIG_EPROTO;
-	}
+    if (err != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: cannot get identification\n", __func__);
+        return err;
+    }
 
-	/* check for any white space and skip it */
-	idptr = &id[2];
-	if (*idptr == ' ')
-		idptr++;
+    /* ID is 'ID904;' */
+    if (strlen(id) < 5)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: unknown ID type (%s)\n", __func__, id);
+        return -RIG_EPROTO;
+    }
 
-	if (strcmp("904", idptr) == 0) {
-		rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig ID is %s (Flex 6700)\n", __func__, id);
-  }
-	else if (strcmp("905", idptr) == 0) {
-		rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig ID is %s (Flex 6500)\n", __func__, id);
-  }
-	else if (strcmp("906", idptr) == 0) {
-		rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig ID is %s (Flex 6500R)\n", __func__, id);
-  }
-	else if (strcmp("907", idptr) == 0) {
-		rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig ID is %s (Flex 6300)\n", __func__, id);
-  }
-	else if (strcmp("908", idptr) == 0) {
-		rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig ID is %s (Flex 6400)\n", __func__, id);
-  }
-	else if (strcmp("909", idptr) == 0) {
-		rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig ID is %s (Flex 6600)\n", __func__, id);
-  }
-	else {
-		rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig (%s) is not a Flex 6000 Series\n", __func__, id);
-		return -RIG_EPROTO;
-	}
+    /* check for any white space and skip it */
+    idptr = &id[2];
 
-	return RIG_OK;
+    if (*idptr == ' ')
+    {
+        idptr++;
+    }
+
+    if (strcmp("904", idptr) == 0)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig ID is %s (Flex 6700)\n", __func__, id);
+    }
+    else if (strcmp("905", idptr) == 0)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig ID is %s (Flex 6500)\n", __func__, id);
+    }
+    else if (strcmp("906", idptr) == 0)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig ID is %s (Flex 6500R)\n", __func__, id);
+    }
+    else if (strcmp("907", idptr) == 0)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig ID is %s (Flex 6300)\n", __func__, id);
+    }
+    else if (strcmp("908", idptr) == 0)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig ID is %s (Flex 6400)\n", __func__, id);
+    }
+    else if (strcmp("909", idptr) == 0)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig ID is %s (Flex 6600)\n", __func__, id);
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig (%s) is not a Flex 6000 Series\n",
+                  __func__, id);
+        return -RIG_EPROTO;
+    }
+
+    return RIG_OK;
 }
 
 /* Shared backend function definitions */
@@ -94,41 +110,51 @@ int verify_flexradio_id(RIG *rig, char *id)
 
 int flexradio_open(RIG *rig)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	if (!rig)
-		return -RIG_EINVAL;
+    if (!rig)
+    {
+        return -RIG_EINVAL;
+    }
 
-  struct kenwood_priv_data *priv = rig->state.priv;
-	int err;
-	char id[FLEXRADIO_MAX_BUF_LEN];
+    struct kenwood_priv_data *priv = rig->state.priv;
 
-	//struct flexradio_priv_data *priv = rig->state.priv;
+    int err;
 
-	/* Use check for "ID017;" to verify rig is reachable */
-	err = verify_flexradio_id(rig, id);
-	if (err != RIG_OK)
-		return err;
-	switch(rig->caps->rig_model) {
-	case RIG_MODEL_F6K:
-		break;
-	default:
-		rig_debug(RIG_DEBUG_WARN, "%s: unrecognized rig model %d\n",
-			__func__, rig->caps->rig_model);
-		return -RIG_EINVAL;
-	}
+    char id[FLEXRADIO_MAX_BUF_LEN];
 
-	/* get current AI state so it can be restored */
-	priv->trn_state = -1;
-	kenwood_get_trn (rig, &priv->trn_state); /* ignore errors */
-	/* Currently we cannot cope with AI mode so turn it off in
-		 case last client left it on */
-	kenwood_set_trn(rig, RIG_TRN_OFF); /* ignore status in case
-																				it's not supported */
+    //struct flexradio_priv_data *priv = rig->state.priv;
 
-	return RIG_OK;
+    /* Use check for "ID017;" to verify rig is reachable */
+    err = verify_flexradio_id(rig, id);
+
+    if (err != RIG_OK)
+    {
+        return err;
+    }
+
+    switch (rig->caps->rig_model)
+    {
+    case RIG_MODEL_F6K:
+        break;
+
+    default:
+        rig_debug(RIG_DEBUG_WARN, "%s: unrecognized rig model %d\n",
+                  __func__, rig->caps->rig_model);
+        return -RIG_EINVAL;
+    }
+
+    /* get current AI state so it can be restored */
+    priv->trn_state = -1;
+    kenwood_get_trn(rig, &priv->trn_state);  /* ignore errors */
+    /* Currently we cannot cope with AI mode so turn it off in
+         case last client left it on */
+    kenwood_set_trn(rig, RIG_TRN_OFF); /* ignore status in case
+                                                                                it's not supported */
+
+    return RIG_OK;
 }
 
-	//stopped
+//stopped
 
 

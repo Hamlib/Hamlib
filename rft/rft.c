@@ -47,32 +47,45 @@
  * rft_transaction
  * We assume that rig!=NULL, rig->state!= NULL, data!=NULL, data_len!=NULL
  */
-int rft_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
+int rft_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
+                    int *data_len)
 {
-	int retval;
-	struct rig_state *rs;
+    int retval;
+    struct rig_state *rs;
 
-	rs = &rig->state;
+    rs = &rig->state;
 
-	serial_flush(&rs->rigport);
+    serial_flush(&rs->rigport);
 
-	retval = write_block(&rs->rigport, cmd, cmd_len);
-	if (retval != RIG_OK)
-		return retval;
+    retval = write_block(&rs->rigport, cmd, cmd_len);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
 
 
-	/* no data expected, TODO: flush input? */
-	if (!data || !data_len)
-		return 0;
+    /* no data expected, TODO: flush input? */
+    if (!data || !data_len)
+    {
+        return 0;
+    }
 
-	retval = read_string(&rs->rigport, data, BUFSZ, CR, 1);
-	if (retval == -RIG_ETIMEOUT)
-		retval = 0;
-	if (retval < 0)
-		return retval;
-	*data_len = retval;
+    retval = read_string(&rs->rigport, data, BUFSZ, CR, 1);
 
-	return RIG_OK;
+    if (retval == -RIG_ETIMEOUT)
+    {
+        retval = 0;
+    }
+
+    if (retval < 0)
+    {
+        return retval;
+    }
+
+    *data_len = retval;
+
+    return RIG_OK;
 }
 
 /*
@@ -81,15 +94,15 @@ int rft_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *dat
  */
 int rft_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-	char freqbuf[16], ackbuf[16];
-	int freq_len, ack_len, retval;
+    char freqbuf[16], ackbuf[16];
+    int freq_len, ack_len, retval;
 
-	/*
-	 */
-	freq_len = sprintf(freqbuf,"FRQ%f" EOM, (float)freq/1000);
-	retval = rft_transaction(rig, freqbuf, freq_len, ackbuf, &ack_len);
+    /*
+     */
+    freq_len = sprintf(freqbuf, "FRQ%f" EOM, (float)freq / 1000);
+    retval = rft_transaction(rig, freqbuf, freq_len, ackbuf, &ack_len);
 
-	return retval;
+    return retval;
 }
 
 /*
@@ -97,10 +110,10 @@ int rft_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  */
 DECLARE_INITRIG_BACKEND(rft)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
-	rig_register(&ekd500_caps);
+    rig_register(&ekd500_caps);
 
-	return RIG_OK;
+    return RIG_OK;
 }
 

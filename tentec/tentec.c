@@ -39,7 +39,7 @@
 
 static void tentec_tuning_factor_calc(RIG *rig);
 
-#define EOM "\015"	/* CR */
+#define EOM "\015"  /* CR */
 
 #define TT_AM  '0'
 #define TT_USB '1'
@@ -47,10 +47,11 @@ static void tentec_tuning_factor_calc(RIG *rig);
 #define TT_CW  '3'
 #define TT_FM  '4'
 
-static int tentec_filters[] = {
-  6000,5700,5400,5100,4800,4500,4200,3900,3600,3300,3000,2850,2700,2550,2400,
-  2250,2100,1950,1800,
-  1650,1500,1350,1200,1050, 900, 750, 675, 600, 525, 450, 375, 330, 300,8000
+static int tentec_filters[] =
+{
+    6000, 5700, 5400, 5100, 4800, 4500, 4200, 3900, 3600, 3300, 3000, 2850, 2700, 2550, 2400,
+    2250, 2100, 1950, 1800,
+    1650, 1500, 1350, 1200, 1050, 900, 750, 675, 600, 525, 450, 375, 330, 300, 8000
 };
 
 
@@ -61,31 +62,44 @@ static int tentec_filters[] = {
  * We assume that rig!=NULL, rig->state!= NULL, data!=NULL, data_len!=NULL
  * Otherwise, you'll get a nice seg fault. You've been warned!
  */
-int tentec_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
+int tentec_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
+                       int *data_len)
 {
-	int retval;
-	struct rig_state *rs;
+    int retval;
+    struct rig_state *rs;
 
-	rs = &rig->state;
+    rs = &rig->state;
 
-	serial_flush(&rs->rigport);
+    serial_flush(&rs->rigport);
 
-	retval = write_block(&rs->rigport, cmd, cmd_len);
-	if (retval != RIG_OK)
-		return retval;
+    retval = write_block(&rs->rigport, cmd, cmd_len);
 
-	/* no data expected, TODO: flush input? */
-	if (!data || !data_len)
-		return 0;
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
 
-	retval = read_string(&rs->rigport, data, *data_len, NULL, 0);
-	if (retval == -RIG_ETIMEOUT)
-		retval = 0;
-	if (retval < 0)
-		return retval;
-	*data_len = retval;
+    /* no data expected, TODO: flush input? */
+    if (!data || !data_len)
+    {
+        return 0;
+    }
 
-	return RIG_OK;
+    retval = read_string(&rs->rigport, data, *data_len, NULL, 0);
+
+    if (retval == -RIG_ETIMEOUT)
+    {
+        retval = 0;
+    }
+
+    if (retval < 0)
+    {
+        return retval;
+    }
+
+    *data_len = retval;
+
+    return RIG_OK;
 }
 
 
@@ -95,34 +109,35 @@ int tentec_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *
  */
 int tentec_init(RIG *rig)
 {
-	struct tentec_priv_data *priv;
+    struct tentec_priv_data *priv;
 
-	priv = (struct tentec_priv_data*)malloc(sizeof(struct tentec_priv_data));
+    priv = (struct tentec_priv_data *)malloc(sizeof(struct tentec_priv_data));
 
-	if (!priv) {
-				/* whoops! memory shortage! */
-		return -RIG_ENOMEM;
-	}
+    if (!priv)
+    {
+        /* whoops! memory shortage! */
+        return -RIG_ENOMEM;
+    }
 
-	memset(priv, 0, sizeof(struct tentec_priv_data));
+    memset(priv, 0, sizeof(struct tentec_priv_data));
 
-	/*
-	 * set arbitrary initial status
-	 */
-	priv->freq = MHz(10);
-	priv->mode = RIG_MODE_AM;
-	priv->width = kHz(6);
-	priv->pbt = 0;
-	priv->cwbfo = 1000;
-	priv->agc = RIG_AGC_MEDIUM;	/* medium */
-	priv->lnvol = priv->spkvol = 0.0;	/* mute */
+    /*
+     * set arbitrary initial status
+     */
+    priv->freq = MHz(10);
+    priv->mode = RIG_MODE_AM;
+    priv->width = kHz(6);
+    priv->pbt = 0;
+    priv->cwbfo = 1000;
+    priv->agc = RIG_AGC_MEDIUM; /* medium */
+    priv->lnvol = priv->spkvol = 0.0;   /* mute */
 
-	rig->state.priv = (rig_ptr_t)priv;
+    rig->state.priv = (rig_ptr_t)priv;
 
-	/* tentec_tuning_factor_calc needs rig->state.priv */
-	tentec_tuning_factor_calc(rig);
+    /* tentec_tuning_factor_calc needs rig->state.priv */
+    tentec_tuning_factor_calc(rig);
 
-	return RIG_OK;
+    return RIG_OK;
 }
 
 /*
@@ -131,12 +146,14 @@ int tentec_init(RIG *rig)
  */
 int tentec_cleanup(RIG *rig)
 {
-	if (rig->state.priv)
-		free(rig->state.priv);
+    if (rig->state.priv)
+    {
+        free(rig->state.priv);
+    }
 
-	rig->state.priv = NULL;
+    rig->state.priv = NULL;
 
-	return RIG_OK;
+    return RIG_OK;
 }
 
 /*
@@ -145,17 +162,20 @@ int tentec_cleanup(RIG *rig)
  */
 int tentec_trx_open(RIG *rig)
 {
-	int retval;
+    int retval;
 
-	/*
-	 * be kind: use XX first, and do 'Dsp Program Execute' only
-	 * in " DSP START" state.
-	 */
-	retval = tentec_transaction (rig, "P1" EOM, 3, NULL, NULL);
-	if (retval != RIG_OK)
-		return retval;
+    /*
+     * be kind: use XX first, and do 'Dsp Program Execute' only
+     * in " DSP START" state.
+     */
+    retval = tentec_transaction(rig, "P1" EOM, 3, NULL, NULL);
 
-	return RIG_OK;
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    return RIG_OK;
 }
 
 
@@ -176,20 +196,27 @@ static void tentec_tuning_factor_calc(RIG *rig)
     /* computed fcor only used if mode is not CW */
     fcor = (int)floor((double)priv->width / 2.0) + 200;
 
-    switch (priv->mode) {
+    switch (priv->mode)
+    {
     case RIG_MODE_AM:
     case RIG_MODE_FM:
-        mcor=0; break;
-	case RIG_MODE_CW:
-	    mcor=-1; cwbfo = priv->cwbfo; fcor = 0; break;
+        mcor = 0; break;
+
+    case RIG_MODE_CW:
+        mcor = -1; cwbfo = priv->cwbfo; fcor = 0; break;
+
     case RIG_MODE_LSB:
-		mcor=-1; break;
+        mcor = -1; break;
+
     case RIG_MODE_USB:
-        mcor=1; break;
+        mcor = 1; break;
+
     default:
-        rig_debug(RIG_DEBUG_BUG, "%s: invalid mode %s\n", __func__, rig_strrmode(priv->mode));
-        mcor=1; break;
+        rig_debug(RIG_DEBUG_BUG, "%s: invalid mode %s\n", __func__,
+                  rig_strrmode(priv->mode));
+        mcor = 1; break;
     }
+
     tfreq = priv->freq / (freq_t)Hz(1);
 
     adjtfreq = (int)tfreq - 1250 + (int)(mcor * (fcor + priv->pbt));
@@ -206,30 +233,32 @@ static void tentec_tuning_factor_calc(RIG *rig)
  */
 int tentec_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-	struct tentec_priv_data *priv;
-	struct rig_state *rs = &rig->state;
-	int freq_len, retval;
-	char freqbuf[16];
-	freq_t old_freq;
+    struct tentec_priv_data *priv;
+    struct rig_state *rs = &rig->state;
+    int freq_len, retval;
+    char freqbuf[16];
+    freq_t old_freq;
 
-	priv = (struct tentec_priv_data *)rig->state.priv;
+    priv = (struct tentec_priv_data *)rig->state.priv;
 
-	old_freq = priv->freq;
-	priv->freq = freq;
-	tentec_tuning_factor_calc(rig);
+    old_freq = priv->freq;
+    priv->freq = freq;
+    tentec_tuning_factor_calc(rig);
 
-	freq_len = sprintf(freqbuf, "N%c%c%c%c%c%c" EOM,
-						priv->ctf >> 8, priv->ctf & 0xff,
-						priv->ftf >> 8, priv->ftf & 0xff,
-						priv->btf >> 8, priv->btf & 0xff);
+    freq_len = sprintf(freqbuf, "N%c%c%c%c%c%c" EOM,
+                       priv->ctf >> 8, priv->ctf & 0xff,
+                       priv->ftf >> 8, priv->ftf & 0xff,
+                       priv->btf >> 8, priv->btf & 0xff);
 
-	retval = write_block(&rs->rigport, freqbuf, freq_len);
-	if (retval != RIG_OK) {
-		priv->freq = old_freq;
-		return retval;
-	}
+    retval = write_block(&rs->rigport, freqbuf, freq_len);
 
-	return RIG_OK;
+    if (retval != RIG_OK)
+    {
+        priv->freq = old_freq;
+        return retval;
+    }
+
+    return RIG_OK;
 }
 
 /*
@@ -238,11 +267,11 @@ int tentec_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  */
 int tentec_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-	struct tentec_priv_data *priv = (struct tentec_priv_data *)rig->state.priv;
+    struct tentec_priv_data *priv = (struct tentec_priv_data *)rig->state.priv;
 
-	*freq = priv->freq;
+    *freq = priv->freq;
 
-	return RIG_OK;
+    return RIG_OK;
 }
 
 /*
@@ -251,84 +280,105 @@ int tentec_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  */
 int tentec_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-	struct tentec_priv_data *priv = (struct tentec_priv_data *)rig->state.priv;
-	struct rig_state *rs = &rig->state;
-	char ttmode;
-	rmode_t saved_mode;
-	pbwidth_t saved_width;
-	int mdbuf_len, ttfilter, retval;
-	char mdbuf[32];
+    struct tentec_priv_data *priv = (struct tentec_priv_data *)rig->state.priv;
+    struct rig_state *rs = &rig->state;
+    char ttmode;
+    rmode_t saved_mode;
+    pbwidth_t saved_width;
+    int mdbuf_len, ttfilter, retval;
+    char mdbuf[32];
 
-	switch (mode) {
-		case RIG_MODE_USB:      ttmode = TT_USB; break;
-		case RIG_MODE_LSB:      ttmode = TT_LSB; break;
-		case RIG_MODE_CW:       ttmode = TT_CW; break;
-		case RIG_MODE_AM:       ttmode = TT_AM; break;
-		case RIG_MODE_FM:       ttmode = TT_FM; break;
-		default:
-			rig_debug(RIG_DEBUG_ERR,
-							"%s: unsupported mode %s\n", __func__, rig_strrmode(mode));
-			return -RIG_EINVAL;
-	}
+    switch (mode)
+    {
+    case RIG_MODE_USB:      ttmode = TT_USB; break;
 
-		/* backup current values
-		 * in case we fail to write to port
-		 */
-	saved_mode = priv->mode;
-	saved_width = priv->width;
+    case RIG_MODE_LSB:      ttmode = TT_LSB; break;
 
-	if (width != RIG_PASSBAND_NOCHANGE) {
-		if (width == RIG_PASSBAND_NORMAL)
-			width = rig_passband_normal(rig, mode);
+    case RIG_MODE_CW:       ttmode = TT_CW; break;
 
-		for (ttfilter=0; tentec_filters[ttfilter] != 0; ttfilter++) {
-			if (tentec_filters[ttfilter] == width)
-				break;
-		}
-		if (tentec_filters[ttfilter] != width) {
-			rig_debug(RIG_DEBUG_ERR,
-								"%s: unsupported width %d\n", __func__, (int)width);
-			return -RIG_EINVAL;
-		}
-		priv->width = width;
-	}
-	
-	priv->mode = mode;
+    case RIG_MODE_AM:       ttmode = TT_AM; break;
 
-	tentec_tuning_factor_calc(rig);
+    case RIG_MODE_FM:       ttmode = TT_FM; break;
 
-	if (width != RIG_PASSBAND_NOCHANGE) {
-		mdbuf_len = sprintf(mdbuf,  "W%c" EOM
-												"N%c%c%c%c%c%c" EOM
-												"M%c" EOM,
-												ttfilter,
-												priv->ctf >> 8, priv->ctf & 0xff,
-												priv->ftf >> 8, priv->ftf & 0xff,
-												priv->btf >> 8, priv->btf & 0xff,
-												ttmode);
-		retval = write_block(&rs->rigport, mdbuf, mdbuf_len);
-		if (retval != RIG_OK) {
-			priv->mode = saved_mode;
-			priv->width = saved_width;
-			return retval;
-		}
-	}
-	else {
-		mdbuf_len = sprintf(mdbuf,
-												"N%c%c%c%c%c%c" EOM
-												"M%c" EOM,
-												priv->ctf >> 8, priv->ctf & 0xff,
-												priv->ftf >> 8, priv->ftf & 0xff,
-												priv->btf >> 8, priv->btf & 0xff,
-												ttmode);
-		retval = write_block(&rs->rigport, mdbuf, mdbuf_len);
-		if (retval != RIG_OK) {
-			priv->mode = saved_mode;
-			return retval;
-		}
-	}
+    default:
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: unsupported mode %s\n", __func__, rig_strrmode(mode));
+        return -RIG_EINVAL;
+    }
 
-	return RIG_OK;
+    /* backup current values
+     * in case we fail to write to port
+     */
+    saved_mode = priv->mode;
+    saved_width = priv->width;
+
+    if (width != RIG_PASSBAND_NOCHANGE)
+    {
+        if (width == RIG_PASSBAND_NORMAL)
+        {
+            width = rig_passband_normal(rig, mode);
+        }
+
+        for (ttfilter = 0; tentec_filters[ttfilter] != 0; ttfilter++)
+        {
+            if (tentec_filters[ttfilter] == width)
+            {
+                break;
+            }
+        }
+
+        if (tentec_filters[ttfilter] != width)
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: unsupported width %d\n", __func__, (int)width);
+            return -RIG_EINVAL;
+        }
+
+        priv->width = width;
+    }
+
+    priv->mode = mode;
+
+    tentec_tuning_factor_calc(rig);
+
+    if (width != RIG_PASSBAND_NOCHANGE)
+    {
+        mdbuf_len = sprintf(mdbuf,  "W%c" EOM
+                            "N%c%c%c%c%c%c" EOM
+                            "M%c" EOM,
+                            ttfilter,
+                            priv->ctf >> 8, priv->ctf & 0xff,
+                            priv->ftf >> 8, priv->ftf & 0xff,
+                            priv->btf >> 8, priv->btf & 0xff,
+                            ttmode);
+        retval = write_block(&rs->rigport, mdbuf, mdbuf_len);
+
+        if (retval != RIG_OK)
+        {
+            priv->mode = saved_mode;
+            priv->width = saved_width;
+            return retval;
+        }
+    }
+    else
+    {
+        mdbuf_len = sprintf(mdbuf,
+                            "N%c%c%c%c%c%c" EOM
+                            "M%c" EOM,
+                            priv->ctf >> 8, priv->ctf & 0xff,
+                            priv->ftf >> 8, priv->ftf & 0xff,
+                            priv->btf >> 8, priv->btf & 0xff,
+                            ttmode);
+        retval = write_block(&rs->rigport, mdbuf, mdbuf_len);
+
+        if (retval != RIG_OK)
+        {
+            priv->mode = saved_mode;
+            return retval;
+        }
+    }
+
+    return RIG_OK;
 }
 
 /*
@@ -339,10 +389,10 @@ int tentec_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     struct tentec_priv_data *priv = (struct tentec_priv_data *)rig->state.priv;
 
-	*mode = priv->mode;
-	*width = priv->width;
+    *mode = priv->mode;
+    *width = priv->width;
 
-	return RIG_OK;
+    return RIG_OK;
 }
 
 
@@ -353,34 +403,43 @@ int tentec_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  */
 int tentec_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-	struct tentec_priv_data *priv = (struct tentec_priv_data *)rig->state.priv;
-	struct rig_state *rs = &rig->state;
-	int cmd_len, retval=RIG_OK;
-	char cmdbuf[32];
+    struct tentec_priv_data *priv = (struct tentec_priv_data *)rig->state.priv;
+    struct rig_state *rs = &rig->state;
+    int cmd_len, retval = RIG_OK;
+    char cmdbuf[32];
 
-	/* Optimize:
-	 *   sort the switch cases with the most frequent first
-	 */
-	switch (level) {
-	case RIG_LEVEL_AGC:
-		/* default to MEDIUM */
-		cmd_len = sprintf(cmdbuf, "G%c" EOM,
-				val.i==RIG_AGC_SLOW ? '1' : (
-				val.i==RIG_AGC_FAST ? '3' : '2' ) );
-		retval = write_block(&rs->rigport, cmdbuf, cmd_len);
-		if (retval == RIG_OK)
-			priv->agc = val.i;
-		return retval;
+    /* Optimize:
+     *   sort the switch cases with the most frequent first
+     */
+    switch (level)
+    {
+    case RIG_LEVEL_AGC:
+        /* default to MEDIUM */
+        cmd_len = sprintf(cmdbuf, "G%c" EOM,
+                          val.i == RIG_AGC_SLOW ? '1' : (
+                              val.i == RIG_AGC_FAST ? '3' : '2'));
+        retval = write_block(&rs->rigport, cmdbuf, cmd_len);
 
-	case RIG_LEVEL_AF:
-		/* FIXME: support also separate Lineout setting
-		 * -> need to create RIG_LEVEL_LINEOUT ?
-		 */
-		cmd_len = sprintf(cmdbuf, "C\x7f%c" EOM, (int)((1.0 - val.f) * 63.0));
-		retval = write_block(&rs->rigport, cmdbuf, cmd_len);
-		if (retval == RIG_OK)
-				priv->lnvol = priv->spkvol = val.f;
-		return retval;
+        if (retval == RIG_OK)
+        {
+            priv->agc = val.i;
+        }
+
+        return retval;
+
+    case RIG_LEVEL_AF:
+        /* FIXME: support also separate Lineout setting
+         * -> need to create RIG_LEVEL_LINEOUT ?
+         */
+        cmd_len = sprintf(cmdbuf, "C\x7f%c" EOM, (int)((1.0 - val.f) * 63.0));
+        retval = write_block(&rs->rigport, cmdbuf, cmd_len);
+
+        if (retval == RIG_OK)
+        {
+            priv->lnvol = priv->spkvol = val.f;
+        }
+
+        return retval;
 
     case RIG_LEVEL_IF:
         priv->pbt = val.i;
@@ -389,17 +448,21 @@ int tentec_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     case RIG_LEVEL_CWPITCH:
         priv->cwbfo = val.i;
-        if(priv->mode == RIG_MODE_CW) {
+
+        if (priv->mode == RIG_MODE_CW)
+        {
             retval = tentec_set_freq(rig, vfo, priv->freq);
         }
+
         return retval;
 
-	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported set_level %s\n", __func__, rig_strlevel(level));
-		return -RIG_EINVAL;
-	}
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported set_level %s\n", __func__,
+                  rig_strlevel(level));
+        return -RIG_EINVAL;
+    }
 
-	return RIG_OK;
+    return RIG_OK;
 }
 
 
@@ -409,41 +472,46 @@ int tentec_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
  */
 int tentec_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-	struct tentec_priv_data *priv = (struct tentec_priv_data *)rig->state.priv;
-	int retval, lvl_len;
-	unsigned char lvlbuf[32];
+    struct tentec_priv_data *priv = (struct tentec_priv_data *)rig->state.priv;
+    int retval, lvl_len;
+    unsigned char lvlbuf[32];
 
 
-	/* Optimize:
-	 *   sort the switch cases with the most frequent first
-	 */
-	switch (level) {
-	case RIG_LEVEL_RAWSTR:
-			/* read A/D converted value */
-		lvl_len = 4;
-		retval = tentec_transaction (rig, "X" EOM, 2, (char *) lvlbuf, &lvl_len);
-		if (retval != RIG_OK)
-			return retval;
+    /* Optimize:
+     *   sort the switch cases with the most frequent first
+     */
+    switch (level)
+    {
+    case RIG_LEVEL_RAWSTR:
+        /* read A/D converted value */
+        lvl_len = 4;
+        retval = tentec_transaction(rig, "X" EOM, 2, (char *) lvlbuf, &lvl_len);
 
-		if (lvl_len != 3) {
-			rig_debug(RIG_DEBUG_ERR,"tentec_get_level: wrong answer"
-							"len=%d\n", lvl_len);
-			return -RIG_ERJCTED;
-		}
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
 
-		lvlbuf[3] = '\0';
-		rig_debug(RIG_DEBUG_VERBOSE,"tentec_get_level: cmd=%c,hi=%d,lo=%d\n",
-				lvlbuf[0],lvlbuf[1],lvlbuf[2]);
-		val->i = (lvlbuf[1]<<8) + lvlbuf[2];
-		break;
+        if (lvl_len != 3)
+        {
+            rig_debug(RIG_DEBUG_ERR, "tentec_get_level: wrong answer"
+                      "len=%d\n", lvl_len);
+            return -RIG_ERJCTED;
+        }
 
-	case RIG_LEVEL_AGC:
-		val->i = priv->agc;
-		break;
+        lvlbuf[3] = '\0';
+        rig_debug(RIG_DEBUG_VERBOSE, "tentec_get_level: cmd=%c,hi=%d,lo=%d\n",
+                  lvlbuf[0], lvlbuf[1], lvlbuf[2]);
+        val->i = (lvlbuf[1] << 8) + lvlbuf[2];
+        break;
 
-	case RIG_LEVEL_AF:
-		val->f = priv->spkvol;
-		break;
+    case RIG_LEVEL_AGC:
+        val->i = priv->agc;
+        break;
+
+    case RIG_LEVEL_AF:
+        val->f = priv->spkvol;
+        break;
 
     case RIG_LEVEL_IF:
         val->i = priv->pbt;
@@ -453,12 +521,13 @@ int tentec_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         val->i = priv->cwbfo;
         break;
 
-	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported get_level %s\n", __func__, rig_strlevel(level));
-		return -RIG_EINVAL;
-	}
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_level %s\n", __func__,
+                  rig_strlevel(level));
+        return -RIG_EINVAL;
+    }
 
-	return RIG_OK;
+    return RIG_OK;
 }
 
 
@@ -468,21 +537,23 @@ int tentec_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
  */
 const char *tentec_get_info(RIG *rig)
 {
-		static char buf[100];	/* FIXME: reentrancy */
-		int firmware_len, retval;
+    static char buf[100];   /* FIXME: reentrancy */
+    int firmware_len, retval;
 
-		/*
-		 * protocol version
-		 */
-		firmware_len = 10;
-		retval = tentec_transaction (rig, "?" EOM, 2, buf, &firmware_len);
-		if ( (retval != RIG_OK) || (firmware_len > 10) )  {
-				rig_debug(RIG_DEBUG_ERR,"tentec_get_info: ack NG, len=%d\n",
-								firmware_len);
-				return NULL;
-		}
+    /*
+     * protocol version
+     */
+    firmware_len = 10;
+    retval = tentec_transaction(rig, "?" EOM, 2, buf, &firmware_len);
 
-		return buf;
+    if ((retval != RIG_OK) || (firmware_len > 10))
+    {
+        rig_debug(RIG_DEBUG_ERR, "tentec_get_info: ack NG, len=%d\n",
+                  firmware_len);
+        return NULL;
+    }
+
+    return buf;
 }
 
 
@@ -491,20 +562,20 @@ const char *tentec_get_info(RIG *rig)
  */
 DECLARE_INITRIG_BACKEND(tentec)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
-	rig_register(&tt550_caps);
-	rig_register(&tt516_caps);
-	rig_register(&tt565_caps);
-	rig_register(&tt538_caps);
-	rig_register(&tt585_caps);
-	rig_register(&tt588_caps);
-	rig_register(&tt599_caps);
-	rig_register(&rx320_caps);
-	rig_register(&rx331_caps);
-	rig_register(&rx340_caps);
-	rig_register(&rx350_caps);
+    rig_register(&tt550_caps);
+    rig_register(&tt516_caps);
+    rig_register(&tt565_caps);
+    rig_register(&tt538_caps);
+    rig_register(&tt585_caps);
+    rig_register(&tt588_caps);
+    rig_register(&tt599_caps);
+    rig_register(&rx320_caps);
+    rig_register(&rx331_caps);
+    rig_register(&rx340_caps);
+    rig_register(&rx350_caps);
 
-	return RIG_OK;
+    return RIG_OK;
 }
 

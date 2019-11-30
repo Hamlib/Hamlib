@@ -327,7 +327,8 @@ void network_flush(hamlib_port_t *rp)
                       __func__,
                       ret, len_read, len_read, buffer);
         }
-        else {
+        else
+        {
             break;
         }
     }

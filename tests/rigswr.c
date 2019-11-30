@@ -276,7 +276,7 @@ int main(int argc, char *argv[])
 
 
     if (!rig_has_get_level(rig, RIG_LEVEL_SWR)
-        || rig->state.pttport.type.ptt == RIG_PTT_NONE)
+            || rig->state.pttport.type.ptt == RIG_PTT_NONE)
     {
 
         fprintf(stderr,

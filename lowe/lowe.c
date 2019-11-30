@@ -42,45 +42,58 @@
 #define CR "\x0d"
 #define EOM CR
 
-#define MD_USB	"USB"
-#define MD_LSB	"LSB"
-#define MD_FAX	"FAX"
-#define MD_CW	"CW"
-#define MD_FM	"FM"
-#define MD_AM	"AM"
-#define MD_AMS	"AMS"
+#define MD_USB  "USB"
+#define MD_LSB  "LSB"
+#define MD_FAX  "FAX"
+#define MD_CW   "CW"
+#define MD_FM   "FM"
+#define MD_AM   "AM"
+#define MD_AMS  "AMS"
 
 
 /*
  * lowe_transaction
  * We assume that rig!=NULL, rig->state!= NULL, data!=NULL, data_len!=NULL
  */
-int lowe_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
+int lowe_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
+                     int *data_len)
 {
-	int retval;
-	struct rig_state *rs;
+    int retval;
+    struct rig_state *rs;
 
-	rs = &rig->state;
+    rs = &rig->state;
 
-	serial_flush(&rs->rigport);
+    serial_flush(&rs->rigport);
 
-	retval = write_block(&rs->rigport, cmd, cmd_len);
-	if (retval != RIG_OK)
-		return retval;
+    retval = write_block(&rs->rigport, cmd, cmd_len);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
 
 
-	/* no data expected, TODO: flush input? */
-	if (!data || !data_len)
-			return 0;
+    /* no data expected, TODO: flush input? */
+    if (!data || !data_len)
+    {
+        return 0;
+    }
 
-	retval = read_string(&rs->rigport, data, BUFSZ, CR, 1);
-   	if (retval == -RIG_ETIMEOUT)
-		retval = 0;
-	if (retval < 0)
-		return retval;
-	*data_len = retval;
+    retval = read_string(&rs->rigport, data, BUFSZ, CR, 1);
 
-	return RIG_OK;
+    if (retval == -RIG_ETIMEOUT)
+    {
+        retval = 0;
+    }
+
+    if (retval < 0)
+    {
+        return retval;
+    }
+
+    *data_len = retval;
+
+    return RIG_OK;
 }
 
 /*
@@ -89,15 +102,15 @@ int lowe_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *da
  */
 int lowe_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-	char freqbuf[16], ackbuf[16];
-	int freq_len, ack_len, retval;
+    char freqbuf[16], ackbuf[16];
+    int freq_len, ack_len, retval;
 
-	/*
-	 */
-	freq_len = sprintf(freqbuf,"FRQ%f" EOM, (float)freq/1000);
-	retval = lowe_transaction(rig, freqbuf, freq_len, ackbuf, &ack_len);
+    /*
+     */
+    freq_len = sprintf(freqbuf, "FRQ%f" EOM, (float)freq / 1000);
+    retval = lowe_transaction(rig, freqbuf, freq_len, ackbuf, &ack_len);
 
-	return retval;
+    return retval;
 }
 
 /*
@@ -106,21 +119,23 @@ int lowe_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  */
 int lowe_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-	char freqbuf[16];
-	int freq_len, retval;
-	float f_freq;
+    char freqbuf[16];
+    int freq_len, retval;
+    float f_freq;
 
-	retval = lowe_transaction(rig, "FRQ?" EOM, 5, freqbuf, &freq_len);
+    retval = lowe_transaction(rig, "FRQ?" EOM, 5, freqbuf, &freq_len);
 
-	if (retval != RIG_OK)
-		return retval;
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
 
-	freqbuf[freq_len < 16 ? freq_len : 15] = '\0';
+    freqbuf[freq_len < 16 ? freq_len : 15] = '\0';
 
-	sscanf(freqbuf+1, "%f", &f_freq);
-	*freq = f_freq*1000;
+    sscanf(freqbuf + 1, "%f", &f_freq);
+    *freq = f_freq * 1000;
 
-	return retval;
+    return retval;
 }
 
 
@@ -130,27 +145,36 @@ int lowe_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  */
 int lowe_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-	char mdbuf[16], ackbuf[16];
-	char *mode_sel;
-	int mdbuf_len, ack_len, retval;
+    char mdbuf[16], ackbuf[16];
+    char *mode_sel;
+    int mdbuf_len, ack_len, retval;
 
-	switch (mode) {
-	case RIG_MODE_CW:       mode_sel = MD_CW; break;
-	case RIG_MODE_USB:      mode_sel = MD_USB; break;
-	case RIG_MODE_LSB:      mode_sel = MD_LSB; break;
-	case RIG_MODE_FM:       mode_sel = MD_FM; break;
-	case RIG_MODE_AM:       mode_sel = MD_AM; break;
-	case RIG_MODE_FAX:     mode_sel = MD_FAX; break;
-	case RIG_MODE_AMS:     mode_sel = MD_AMS; break;
-	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %s\n", __func__, rig_strrmode(mode));
-		return -RIG_EINVAL;
-	}
+    switch (mode)
+    {
+    case RIG_MODE_CW:       mode_sel = MD_CW; break;
 
-	mdbuf_len = sprintf(mdbuf, "MOD%s" EOM, mode_sel);
-	retval = lowe_transaction (rig, mdbuf, mdbuf_len, ackbuf, &ack_len);
+    case RIG_MODE_USB:      mode_sel = MD_USB; break;
 
-	return retval;
+    case RIG_MODE_LSB:      mode_sel = MD_LSB; break;
+
+    case RIG_MODE_FM:       mode_sel = MD_FM; break;
+
+    case RIG_MODE_AM:       mode_sel = MD_AM; break;
+
+    case RIG_MODE_FAX:     mode_sel = MD_FAX; break;
+
+    case RIG_MODE_AMS:     mode_sel = MD_AMS; break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n", __func__,
+                  rig_strrmode(mode));
+        return -RIG_EINVAL;
+    }
+
+    mdbuf_len = sprintf(mdbuf, "MOD%s" EOM, mode_sel);
+    retval = lowe_transaction(rig, mdbuf, mdbuf_len, ackbuf, &ack_len);
+
+    return retval;
 }
 
 
@@ -160,37 +184,54 @@ int lowe_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
  */
 int lowe_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-	char mdbuf[16];
-	int mdbuf_len, retval;
+    char mdbuf[16];
+    int mdbuf_len, retval;
 
-	retval = lowe_transaction (rig, "MOD?" EOM, 5, mdbuf, &mdbuf_len);
+    retval = lowe_transaction(rig, "MOD?" EOM, 5, mdbuf, &mdbuf_len);
 
-	if (retval != RIG_OK)
-		return retval;
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
 
-	if (!strcmp(mdbuf+1, MD_CW))
-		*mode = RIG_MODE_CW;
-	else if (!strcmp(mdbuf+1, MD_USB))
-		*mode = RIG_MODE_USB;
-	else if (!strcmp(mdbuf+1, MD_LSB))
-		*mode = RIG_MODE_LSB;
-	else if (!strcmp(mdbuf+1, MD_FM))
-		*mode = RIG_MODE_FM;
-	else if (!strcmp(mdbuf+1, MD_FAX))
-		*mode = RIG_MODE_FAX;
-	else if (!strcmp(mdbuf+1, MD_AMS))
-		*mode = RIG_MODE_AMS;
-	else if (!strcmp(mdbuf+1, MD_AM))
-		*mode = RIG_MODE_AM;
-	else {
-		rig_debug(RIG_DEBUG_WARN,"%s: unknown mode '%s'\n",
-				__func__, mdbuf);
-		return -RIG_EPROTO;
-	}
+    if (!strcmp(mdbuf + 1, MD_CW))
+    {
+        *mode = RIG_MODE_CW;
+    }
+    else if (!strcmp(mdbuf + 1, MD_USB))
+    {
+        *mode = RIG_MODE_USB;
+    }
+    else if (!strcmp(mdbuf + 1, MD_LSB))
+    {
+        *mode = RIG_MODE_LSB;
+    }
+    else if (!strcmp(mdbuf + 1, MD_FM))
+    {
+        *mode = RIG_MODE_FM;
+    }
+    else if (!strcmp(mdbuf + 1, MD_FAX))
+    {
+        *mode = RIG_MODE_FAX;
+    }
+    else if (!strcmp(mdbuf + 1, MD_AMS))
+    {
+        *mode = RIG_MODE_AMS;
+    }
+    else if (!strcmp(mdbuf + 1, MD_AM))
+    {
+        *mode = RIG_MODE_AM;
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s: unknown mode '%s'\n",
+                  __func__, mdbuf);
+        return -RIG_EPROTO;
+    }
 
-	*width = RIG_PASSBAND_NORMAL;
+    *width = RIG_PASSBAND_NORMAL;
 
-	return retval;
+    return retval;
 }
 
 /*
@@ -199,24 +240,28 @@ int lowe_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  */
 int lowe_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-	char lvlbuf[16];
-	int lvl_len, retval;
+    char lvlbuf[16];
+    int lvl_len, retval;
 
-	if (level != RIG_LEVEL_STRENGTH)
-		return -RIG_EINVAL;
+    if (level != RIG_LEVEL_STRENGTH)
+    {
+        return -RIG_EINVAL;
+    }
 
-	retval = lowe_transaction(rig, "RSS?" EOM, 5, lvlbuf, &lvl_len);
+    retval = lowe_transaction(rig, "RSS?" EOM, 5, lvlbuf, &lvl_len);
 
-	if (retval != RIG_OK)
-		return retval;
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
 
-	lvlbuf[lvl_len < 16 ? lvl_len : 15] = '\0';
+    lvlbuf[lvl_len < 16 ? lvl_len : 15] = '\0';
 
-	sscanf(lvlbuf+1, "%d", &val->i);
+    sscanf(lvlbuf + 1, "%d", &val->i);
 
-	val->i += 60;	/* dBm */
+    val->i += 60;   /* dBm */
 
-	return retval;
+    return retval;
 }
 
 
@@ -226,12 +271,12 @@ int lowe_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
  */
 int lowe_reset(RIG *rig, reset_t reset)
 {
-	static char ackbuf[BUFSZ];
-	int retval, ack_len;
+    static char ackbuf[BUFSZ];
+    int retval, ack_len;
 
-	retval = lowe_transaction(rig, "RES" EOM, 4, ackbuf, &ack_len);
+    retval = lowe_transaction(rig, "RES" EOM, 4, ackbuf, &ack_len);
 
-	return retval;
+    return retval;
 }
 
 
@@ -241,20 +286,23 @@ int lowe_reset(RIG *rig, reset_t reset)
  */
 const char *lowe_get_info(RIG *rig)
 {
-	static char idbuf[BUFSZ];
-	int retval, id_len;
+    static char idbuf[BUFSZ];
+    int retval, id_len;
 
-	/* hack: no idea what INF is for */
-	retval = lowe_transaction(rig, "INF?" EOM, 5, idbuf, &id_len);
+    /* hack: no idea what INF is for */
+    retval = lowe_transaction(rig, "INF?" EOM, 5, idbuf, &id_len);
 
-	/* this is the real one */
-	retval = lowe_transaction(rig, "TYP?" EOM, 5, idbuf, &id_len);
-	if (retval != RIG_OK)
-		return NULL;
+    /* this is the real one */
+    retval = lowe_transaction(rig, "TYP?" EOM, 5, idbuf, &id_len);
 
-	idbuf[id_len] = '\0';
+    if (retval != RIG_OK)
+    {
+        return NULL;
+    }
 
-	return idbuf;
+    idbuf[id_len] = '\0';
+
+    return idbuf;
 }
 
 /*
@@ -262,49 +310,62 @@ const char *lowe_get_info(RIG *rig)
  */
 DECLARE_PROBERIG_BACKEND(lowe)
 {
-	static char idbuf[BUFSZ];
-	int retval, id_len;
+    static char idbuf[BUFSZ];
+    int retval, id_len;
 
-	if (!port)
-		return RIG_MODEL_NONE;
+    if (!port)
+    {
+        return RIG_MODEL_NONE;
+    }
 
-	if (port->type.rig != RIG_PORT_SERIAL)
-		return RIG_MODEL_NONE;
+    if (port->type.rig != RIG_PORT_SERIAL)
+    {
+        return RIG_MODEL_NONE;
+    }
 
-	port->parm.serial.rate = hf235_caps.serial_rate_max;
-	port->write_delay = port->post_write_delay = 0;
-	port->timeout = 50;
-	port->retry = 1;
+    port->parm.serial.rate = hf235_caps.serial_rate_max;
+    port->write_delay = port->post_write_delay = 0;
+    port->timeout = 50;
+    port->retry = 1;
 
-	retval = serial_open(port);
-	if (retval != RIG_OK)
-		return RIG_MODEL_NONE;
+    retval = serial_open(port);
 
-	retval = write_block(port, "TYP?" EOM, 4);
-	id_len = read_string(port, idbuf, BUFSZ, CR, 2);
+    if (retval != RIG_OK)
+    {
+        return RIG_MODEL_NONE;
+    }
 
-	close(port->fd);
+    retval = write_block(port, "TYP?" EOM, 4);
+    id_len = read_string(port, idbuf, BUFSZ, CR, 2);
 
-	if (retval != RIG_OK || id_len <= 0 || id_len >= BUFSZ)
-		return RIG_MODEL_NONE;
+    close(port->fd);
 
-	idbuf[id_len] = '\0';
+    if (retval != RIG_OK || id_len <= 0 || id_len >= BUFSZ)
+    {
+        return RIG_MODEL_NONE;
+    }
 
-	if (!strcmp(idbuf, "HF-235")) {
-		if (cfunc)
-			(*cfunc)(port, RIG_MODEL_HF235, data);
-		return RIG_MODEL_HF235;
-	}
+    idbuf[id_len] = '\0';
 
-	/*
-	 * not found...
-	 */
-	if (memcmp(idbuf, "ID" EOM, 3)) /* catch loopback serial */
-		rig_debug(RIG_DEBUG_VERBOSE,"probe_lowe: found unknown device "
-				"with ID '%s', please report to Hamlib "
-				"developers.\n", idbuf);
+    if (!strcmp(idbuf, "HF-235"))
+    {
+        if (cfunc)
+        {
+            (*cfunc)(port, RIG_MODEL_HF235, data);
+        }
 
-	return RIG_MODEL_NONE;
+        return RIG_MODEL_HF235;
+    }
+
+    /*
+     * not found...
+     */
+    if (memcmp(idbuf, "ID" EOM, 3)) /* catch loopback serial */
+        rig_debug(RIG_DEBUG_VERBOSE, "probe_lowe: found unknown device "
+                  "with ID '%s', please report to Hamlib "
+                  "developers.\n", idbuf);
+
+    return RIG_MODEL_NONE;
 }
 
 
@@ -313,10 +374,10 @@ DECLARE_PROBERIG_BACKEND(lowe)
  */
 DECLARE_INITRIG_BACKEND(lowe)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
-	rig_register(&hf235_caps);
+    rig_register(&hf235_caps);
 
-	return RIG_OK;
+    return RIG_OK;
 }
 

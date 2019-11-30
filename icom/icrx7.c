@@ -45,104 +45,108 @@
  */
 #define ICRX7_STR_CAL UNKNOWN_IC_STR_CAL
 
-static const struct icom_priv_caps icrx7_priv_caps = {
-		0x78,	/* default address */
-		0,		/* 731 mode */
+static const struct icom_priv_caps icrx7_priv_caps =
+{
+    0x78,   /* default address */
+    0,      /* 731 mode */
     0,    /* no XCHG */
-		r8500_ts_sc_list	/* wrong, but don't have set_ts anyway */
+    r8500_ts_sc_list    /* wrong, but don't have set_ts anyway */
 };
 
-const struct rig_caps icrx7_caps = {
-.rig_model =  RIG_MODEL_ICRX7,
-.model_name = "IC-RX7",
-.mfg_name =  "Icom",
-.version =  BACKEND_VER,
-.copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
-.rig_type =  RIG_TYPE_RECEIVER|RIG_FLAG_HANDHELD,
-.ptt_type =  RIG_PTT_NONE,
-.dcd_type =  RIG_DCD_RIG,
-.port_type =  RIG_PORT_SERIAL,
-.serial_rate_min =  300,
-.serial_rate_max =  19200,
-.serial_data_bits =  8,
-.serial_stop_bits =  1,
-.serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_NONE,
-.write_delay =  0,
-.post_write_delay =  0,
-.timeout =  1000,
-.retry =  3,
-.has_get_func =  ICRX7_FUNC_ALL,
-.has_set_func =  ICRX7_FUNC_ALL,
-.has_get_level =  ICRX7_LEVEL_ALL,
-.has_set_level =  RIG_LEVEL_SET(ICRX7_LEVEL_ALL),
-.has_get_parm =  RIG_PARM_NONE,
-.has_set_parm =  RIG_PARM_NONE,
-.level_gran = {
-	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
-},
-.parm_gran =  {},
-.ctcss_list =  NULL,
-.dcs_list =  NULL,
-.preamp =   { RIG_DBLST_END, },
-.attenuator =   { RIG_DBLST_END, },
-.max_rit =  Hz(0),
-.max_xit =  Hz(0),
-.max_ifshift =  Hz(0),
-.targetable_vfo =  0,
-.vfo_ops =  ICRX7_VFO_OPS,
-.scan_ops =  ICRX7_SCAN_OPS,
-.transceive =  RIG_TRN_RIG,
-.bank_qty =   0,
-.chan_desc_sz =  0,
+const struct rig_caps icrx7_caps =
+{
+    .rig_model =  RIG_MODEL_ICRX7,
+    .model_name = "IC-RX7",
+    .mfg_name =  "Icom",
+    .version =  BACKEND_VER,
+    .copyright =  "LGPL",
+    .status =  RIG_STATUS_UNTESTED,
+    .rig_type =  RIG_TYPE_RECEIVER | RIG_FLAG_HANDHELD,
+    .ptt_type =  RIG_PTT_NONE,
+    .dcd_type =  RIG_DCD_RIG,
+    .port_type =  RIG_PORT_SERIAL,
+    .serial_rate_min =  300,
+    .serial_rate_max =  19200,
+    .serial_data_bits =  8,
+    .serial_stop_bits =  1,
+    .serial_parity =  RIG_PARITY_NONE,
+    .serial_handshake =  RIG_HANDSHAKE_NONE,
+    .write_delay =  0,
+    .post_write_delay =  0,
+    .timeout =  1000,
+    .retry =  3,
+    .has_get_func =  ICRX7_FUNC_ALL,
+    .has_set_func =  ICRX7_FUNC_ALL,
+    .has_get_level =  ICRX7_LEVEL_ALL,
+    .has_set_level =  RIG_LEVEL_SET(ICRX7_LEVEL_ALL),
+    .has_get_parm =  RIG_PARM_NONE,
+    .has_set_parm =  RIG_PARM_NONE,
+    .level_gran = {
+        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
+    },
+    .parm_gran =  {},
+    .ctcss_list =  NULL,
+    .dcs_list =  NULL,
+    .preamp =   { RIG_DBLST_END, },
+    .attenuator =   { RIG_DBLST_END, },
+    .max_rit =  Hz(0),
+    .max_xit =  Hz(0),
+    .max_ifshift =  Hz(0),
+    .targetable_vfo =  0,
+    .vfo_ops =  ICRX7_VFO_OPS,
+    .scan_ops =  ICRX7_SCAN_OPS,
+    .transceive =  RIG_TRN_RIG,
+    .bank_qty =   0,
+    .chan_desc_sz =  0,
 
-.chan_list =  {
-		   /* Unfortunately, not accessible through CI-V */
-		   RIG_CHAN_END,
-		},
+    .chan_list =  {
+        /* Unfortunately, not accessible through CI-V */
+        RIG_CHAN_END,
+    },
 
-.rx_range_list1 =   {
-	{kHz(150),GHz(1.3),ICRX7_MODES,-1,-1,ICRX7_VFO_ALL},
-	RIG_FRNG_END, },
-.tx_range_list1 =   { RIG_FRNG_END, },
+    .rx_range_list1 =   {
+        {kHz(150), GHz(1.3), ICRX7_MODES, -1, -1, ICRX7_VFO_ALL},
+        RIG_FRNG_END,
+    },
+    .tx_range_list1 =   { RIG_FRNG_END, },
 
-.rx_range_list2 =   {
-	{kHz(150),MHz(821.995),ICRX7_MODES,-1,-1,ICRX7_VFO_ALL},
-	{MHz(851),MHz(866.995),ICRX7_MODES,-1,-1,ICRX7_VFO_ALL},
-	{MHz(896),GHz(1.3),ICRX7_MODES,-1,-1,ICRX7_VFO_ALL},
-	RIG_FRNG_END, },
-.tx_range_list2 =   { RIG_FRNG_END, },
+    .rx_range_list2 =   {
+        {kHz(150), MHz(821.995), ICRX7_MODES, -1, -1, ICRX7_VFO_ALL},
+        {MHz(851), MHz(866.995), ICRX7_MODES, -1, -1, ICRX7_VFO_ALL},
+        {MHz(896), GHz(1.3), ICRX7_MODES, -1, -1, ICRX7_VFO_ALL},
+        RIG_FRNG_END,
+    },
+    .tx_range_list2 =   { RIG_FRNG_END, },
 
-.tuning_steps = 	{
-	 {ICRX7_MODES,Hz(100)},
-	 RIG_TS_END,
-	},
-.filters = 	{
-		{RIG_MODE_AM|RIG_MODE_FM, kHz(15)},
-		{RIG_MODE_WFM, kHz(150)},
-		RIG_FLT_END,
-	},
-.str_cal = ICRX7_STR_CAL,
+    .tuning_steps =     {
+        {ICRX7_MODES, Hz(100)},
+        RIG_TS_END,
+    },
+    .filters =  {
+        {RIG_MODE_AM | RIG_MODE_FM, kHz(15)},
+        {RIG_MODE_WFM, kHz(150)},
+        RIG_FLT_END,
+    },
+    .str_cal = ICRX7_STR_CAL,
 
-.cfgparams =  icom_cfg_params,
-.set_conf =  icom_set_conf,
-.get_conf =  icom_get_conf,
+    .cfgparams =  icom_cfg_params,
+    .set_conf =  icom_set_conf,
+    .get_conf =  icom_get_conf,
 
-.priv =  (void*)&icrx7_priv_caps,
-.rig_init =   icom_init,
-.rig_cleanup =   icom_cleanup,
-.rig_open =  NULL,
-.rig_close =  NULL,
+    .priv = (void *)& icrx7_priv_caps,
+    .rig_init =   icom_init,
+    .rig_cleanup =   icom_cleanup,
+    .rig_open =  NULL,
+    .rig_close =  NULL,
 
-.set_freq =  icom_set_freq,
-.get_freq =  icom_get_freq,
-.set_mode =  icom_set_mode,	/* TODO: do not pass bandwidth data */
-.get_mode =  icom_get_mode,
+    .set_freq =  icom_set_freq,
+    .get_freq =  icom_get_freq,
+    .set_mode =  icom_set_mode, /* TODO: do not pass bandwidth data */
+    .get_mode =  icom_get_mode,
 
-.decode_event =  icom_decode_event,
-.get_level =  icom_get_level,
-.get_dcd =  icom_get_dcd,
+    .decode_event =  icom_decode_event,
+    .get_level =  icom_get_level,
+    .get_dcd =  icom_get_dcd,
 
 };
 

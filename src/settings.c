@@ -95,8 +95,8 @@ int HAMLIB_API rig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     }
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_PURE)
-        || vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo)
+            || vfo == RIG_VFO_CURR
+            || vfo == rig->state.current_vfo)
     {
         return caps->set_level(rig, vfo, level, val);
     }
@@ -168,9 +168,9 @@ int HAMLIB_API rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
      * Special case(frontend emulation): calibrated S-meter reading
      */
     if (level == RIG_LEVEL_STRENGTH
-        && (caps->has_get_level & RIG_LEVEL_STRENGTH) == 0
-        && rig_has_get_level(rig, RIG_LEVEL_RAWSTR)
-        && rig->state.str_cal.size)
+            && (caps->has_get_level & RIG_LEVEL_STRENGTH) == 0
+            && rig_has_get_level(rig, RIG_LEVEL_RAWSTR)
+            && rig->state.str_cal.size)
     {
 
         value_t rawstr;
@@ -188,8 +188,8 @@ int HAMLIB_API rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_PURE)
-        || vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo)
+            || vfo == RIG_VFO_CURR
+            || vfo == rig->state.current_vfo)
     {
 
         return caps->get_level(rig, vfo, level, val);
@@ -524,8 +524,8 @@ int HAMLIB_API rig_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     }
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_FUNC)
-        || vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo)
+            || vfo == RIG_VFO_CURR
+            || vfo == rig->state.current_vfo)
     {
 
         return caps->set_func(rig, vfo, func, status);
@@ -591,8 +591,8 @@ int HAMLIB_API rig_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     }
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_FUNC)
-        || vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo)
+            || vfo == RIG_VFO_CURR
+            || vfo == rig->state.current_vfo)
     {
 
         return caps->get_func(rig, vfo, func, status);
@@ -657,8 +657,8 @@ int HAMLIB_API rig_set_ext_level(RIG *rig,
     }
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_PURE)
-        || vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo)
+            || vfo == RIG_VFO_CURR
+            || vfo == rig->state.current_vfo)
     {
 
         return caps->set_ext_level(rig, vfo, token, val);
@@ -723,8 +723,8 @@ int HAMLIB_API rig_get_ext_level(RIG *rig,
     }
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_PURE)
-        || vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo)
+            || vfo == RIG_VFO_CURR
+            || vfo == rig->state.current_vfo)
     {
 
         return caps->get_ext_level(rig, vfo, token, val);

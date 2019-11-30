@@ -88,7 +88,7 @@ static int ars_set_position(ROT *rot, azimuth_t az, elevation_t el);
 static int ars_get_position(ROT *rot, azimuth_t *az, elevation_t *el);
 
 #ifdef HAVE_PTHREAD
-static void *handle_set_position(void*);
+static void *handle_set_position(void *);
 #endif
 
 /* ************************************************************************* */
@@ -146,10 +146,14 @@ ars_init(ROT *rot)
     struct ars_priv_data *priv;
 
     if (!rot)
+    {
         return -RIG_EINVAL;
+    }
 
-    priv = (struct ars_priv_data*)malloc(sizeof(struct ars_priv_data));
-    if (!priv) {
+    priv = (struct ars_priv_data *)malloc(sizeof(struct ars_priv_data));
+
+    if (!priv)
+    {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
@@ -163,7 +167,7 @@ ars_init(ROT *rot)
     priv->brake_off = 0; /* i.e. brake is ON */
     priv->curr_move = 0;
 
-    rot->state.priv = (void*)priv;
+    rot->state.priv = (void *)priv;
 
     return RIG_OK;
 }
@@ -172,9 +176,12 @@ int
 ars_cleanup(ROT *rot)
 {
     if (!rot)
+    {
         return -RIG_EINVAL;
+    }
 
-    if (rot->state.priv) {
+    if (rot->state.priv)
+    {
         free(rot->state.priv);
         rot->state.priv = NULL;
     }
@@ -199,8 +206,11 @@ ars_open(ROT *rot)
 
         /* create behind-the-scene thread doing the ars_set_position_sync() */
         retcode = pthread_create(&priv->thread, &attr, handle_set_position, rot);
-        if (retcode != RIG_OK) {
-            rig_debug(RIG_DEBUG_ERR, "%s: pthread_create: %s\n", __func__, strerror(retcode));
+
+        if (retcode != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: pthread_create: %s\n", __func__,
+                      strerror(retcode));
             return -RIG_ENOMEM;
         }
     }
@@ -231,13 +241,13 @@ ars_stop(ROT *rot)
     hamlib_port_t *pport = &rot->state.rotport;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called, brake was %s\n", __func__,
-            priv->brake_off ? "OFF" : "ON");
+              priv->brake_off ? "OFF" : "ON");
 
 #ifdef HAVE_PTHREAD
     priv->set_pos_active = 0;
 #endif
 
-    par_lock (pport);
+    par_lock(pport);
 
     priv->brake_off = 0;
     priv->curr_move = 0;
@@ -249,7 +259,7 @@ ars_stop(ROT *rot)
     // Elevation Relays -> Off
     CHKPPRET(ars_clear_data_pin(rot, DTA_PIN03 | DTA_PIN07));
 
-    par_unlock (pport);
+    par_unlock(pport);
 
     return RIG_OK;
 }
@@ -262,17 +272,18 @@ ars_move(ROT *rot, int direction, int speed)
     int need_settle_delay = 0;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called%s%s%s%s%s\n", __func__,
-            direction & ROT_MOVE_LEFT  ? " LEFT" : "",
-            direction & ROT_MOVE_RIGHT ? " RIGHT" : "",
-            direction & ROT_MOVE_UP    ? " UP" : "",
-            direction & ROT_MOVE_DOWN  ? " DOWN" : "",
-            direction == 0             ? " STOP" : "");
+              direction & ROT_MOVE_LEFT  ? " LEFT" : "",
+              direction & ROT_MOVE_RIGHT ? " RIGHT" : "",
+              direction & ROT_MOVE_UP    ? " UP" : "",
+              direction & ROT_MOVE_DOWN  ? " DOWN" : "",
+              direction == 0             ? " STOP" : "");
 
-    par_lock (pport);
+    par_lock(pport);
 
     /* Allow the rotator to settle down when changing direction */
     if (((priv->curr_move & ROT_MOVE_LEFT) && (direction & ROT_MOVE_RIGHT)) ||
-        ((priv->curr_move & ROT_MOVE_RIGHT) && (direction & ROT_MOVE_LEFT))) {
+            ((priv->curr_move & ROT_MOVE_RIGHT) && (direction & ROT_MOVE_LEFT)))
+    {
 
         // Relay AUX -> Off
         CHKPPRET(ars_clear_data_pin(rot, DTA_PIN02 | DTA_PIN04 | DTA_PIN08));
@@ -280,16 +291,19 @@ ars_move(ROT *rot, int direction, int speed)
         need_settle_delay = 1;
         priv->brake_off = 0;
     }
+
     if (ars_has_el(rot) &&
             (((priv->curr_move & ROT_MOVE_UP) && (direction & ROT_MOVE_DOWN)) ||
-            ((priv->curr_move & ROT_MOVE_DOWN) && (direction & ROT_MOVE_UP)))) {
+             ((priv->curr_move & ROT_MOVE_DOWN) && (direction & ROT_MOVE_UP))))
+    {
 
         // Elevation Relays -> Off
         CHKPPRET(ars_clear_data_pin(rot, DTA_PIN03 | DTA_PIN07));
         need_settle_delay = 1;
     }
 
-    if (need_settle_delay) {
+    if (need_settle_delay)
+    {
         rig_debug(RIG_DEBUG_TRACE, "%s need settling delay\n", __func__);
 
         usleep(ARS_SETTLE_DELAY);
@@ -299,90 +313,112 @@ ars_move(ROT *rot, int direction, int speed)
 
 
     /* Brake handling, only for AZ */
-    if (!priv->brake_off && (direction & (ROT_MOVE_LEFT|ROT_MOVE_RIGHT))) {
+    if (!priv->brake_off && (direction & (ROT_MOVE_LEFT | ROT_MOVE_RIGHT)))
+    {
         /* release the brake */
-        if (ars_has_el(rot)) {
+        if (ars_has_el(rot))
+        {
             // RCI Model Azim & Elev
             // Desactivated CCW/CW relays
             CHKPPRET(ars_clear_ctrl_pin(rot, CTL_PIN17 | CTL_PIN16));
             // Relay Aux
             CHKPPRET(ars_set_data_pin(rot, DTA_PIN02 | DTA_PIN04 | DTA_PIN06 | DTA_PIN08));
-            CHKPPRET(ars_clear_data_pin (rot, DTA_PIN09));
-        } else {
+            CHKPPRET(ars_clear_data_pin(rot, DTA_PIN09));
+        }
+        else
+        {
             // RCI Model Azimuth only
             // Desactivated CCW/CW relays
             CHKPPRET(ars_clear_ctrl_pin(rot, CTL_PIN17 | CTL_PIN16));
             // Relay Aux
-            CHKPPRET(ars_set_data_pin(rot, DTA_PIN02 | DTA_PIN04 | DTA_PIN06 | DTA_PIN07 | DTA_PIN08 | DTA_PIN09));
+            CHKPPRET(ars_set_data_pin(rot,
+                                      DTA_PIN02 | DTA_PIN04 | DTA_PIN06 | DTA_PIN07 | DTA_PIN08 | DTA_PIN09));
             CHKPPRET(ars_clear_data_pin(rot, DTA_PIN03 | DTA_PIN05));
         }
+
         priv->brake_off = 1;
         usleep(ARS_BRAKE_DELAY);
     }
 
 
-    if (ars_has_el(rot)) {
-        if (direction & ROT_MOVE_UP) {
+    if (ars_has_el(rot))
+    {
+        if (direction & ROT_MOVE_UP)
+        {
             /* UP */
             CHKPPRET(ars_set_data_pin(rot, DTA_PIN03 | DTA_PIN06 | DTA_PIN07));
             CHKPPRET(ars_clear_data_pin(rot, DTA_PIN05 | DTA_PIN09));
-        } else
-        if (direction & ROT_MOVE_DOWN) {
+        }
+        else if (direction & ROT_MOVE_DOWN)
+        {
             CHKPPRET(ars_set_data_pin(rot, DTA_PIN03 | DTA_PIN05 | DTA_PIN06 | DTA_PIN07));
             CHKPPRET(ars_clear_data_pin(rot, DTA_PIN09));
         }
-        else {
+        else
+        {
             // Elevation Relays -> Off
             CHKPPRET(ars_clear_data_pin(rot, DTA_PIN03 | DTA_PIN07));
         }
     }
 
-    if (direction & ROT_MOVE_LEFT) {
+    if (direction & ROT_MOVE_LEFT)
+    {
         // Relay Left
-        if (ars_has_el(rot)) {
+        if (ars_has_el(rot))
+        {
             // RCI Model Azim & Elev
             CHKPPRET(ars_set_data_pin(rot, DTA_PIN02 | DTA_PIN04 | DTA_PIN06));
             CHKPPRET(ars_set_ctrl_pin(rot, CTL_PIN16));
             CHKPPRET(ars_clear_data_pin(rot, DTA_PIN09));
             CHKPPRET(ars_clear_ctrl_pin(rot, CTL_PIN17));
-        } else {
+        }
+        else
+        {
             // RCI Model Azimuth only
-            CHKPPRET(ars_set_data_pin(rot, DTA_PIN02 | DTA_PIN04 | DTA_PIN06 | DTA_PIN07 | DTA_PIN08));
+            CHKPPRET(ars_set_data_pin(rot,
+                                      DTA_PIN02 | DTA_PIN04 | DTA_PIN06 | DTA_PIN07 | DTA_PIN08));
             CHKPPRET(ars_set_ctrl_pin(rot, CTL_PIN16));
             CHKPPRET(ars_clear_data_pin(rot, DTA_PIN03 | DTA_PIN05));
             CHKPPRET(ars_clear_ctrl_pin(rot, CTL_PIN17));
         }
-    } else
-    if (direction & ROT_MOVE_RIGHT) {
+    }
+    else if (direction & ROT_MOVE_RIGHT)
+    {
         // Relay Right
-        if (ars_has_el(rot)) {
+        if (ars_has_el(rot))
+        {
             // RCI Model Azim & Elev
-            CHKPPRET(ars_set_data_pin (rot, DTA_PIN02 | DTA_PIN04 | DTA_PIN06));
-            CHKPPRET(ars_set_ctrl_pin (rot, CTL_PIN17));
+            CHKPPRET(ars_set_data_pin(rot, DTA_PIN02 | DTA_PIN04 | DTA_PIN06));
+            CHKPPRET(ars_set_ctrl_pin(rot, CTL_PIN17));
             CHKPPRET(ars_clear_data_pin(rot, DTA_PIN09));
             CHKPPRET(ars_clear_ctrl_pin(rot, CTL_PIN16));
-        } else {
+        }
+        else
+        {
             // RCI Model Azimuth only
-            CHKPPRET(ars_set_data_pin(rot, DTA_PIN02 | DTA_PIN04 | DTA_PIN06 | DTA_PIN07 | DTA_PIN08));
+            CHKPPRET(ars_set_data_pin(rot,
+                                      DTA_PIN02 | DTA_PIN04 | DTA_PIN06 | DTA_PIN07 | DTA_PIN08));
             CHKPPRET(ars_set_ctrl_pin(rot, CTL_PIN17));
             CHKPPRET(ars_clear_data_pin(rot, DTA_PIN03 | DTA_PIN05));
             CHKPPRET(ars_clear_ctrl_pin(rot, CTL_PIN16));
         }
-    } else {
+    }
+    else
+    {
         // Relay AUX -> Off
         CHKPPRET(ars_clear_data_pin(rot, DTA_PIN02 | DTA_PIN04 | DTA_PIN08));
         CHKPPRET(ars_clear_ctrl_pin(rot, CTL_PIN17 | CTL_PIN16));
         // AZ stop
     }
 
-    par_unlock (pport);
+    par_unlock(pport);
 
     return RIG_OK;
 }
 
 static int angle_in_range(float angle, float angle_base, float range)
 {
-    return (angle >= angle_base-range && angle <= angle_base+range);
+    return (angle >= angle_base - range && angle <= angle_base + range);
 }
 
 /*
@@ -391,25 +427,28 @@ static int angle_in_range(float angle, float angle_base, float range)
 #ifdef HAVE_PTHREAD
 static void *handle_set_position(void *arg)
 {
-    ROT *rot = (ROT*) arg;
+    ROT *rot = (ROT *) arg;
     struct ars_priv_data *priv = (struct ars_priv_data *)rot->state.priv;
     int retcode;
 
-    while (1) {
+    while (1)
+    {
 
         if (!priv->set_pos_active)
         {
             /* TODO: replace polling period by cond var */
-            usleep(100*1000);
+            usleep(100 * 1000);
             continue;
         }
 
         retcode = ars_set_position_sync(rot, priv->target_az, priv->target_el);
         priv->set_pos_active = 0;
-        if (retcode != RIG_OK) {
+
+        if (retcode != RIG_OK)
+        {
             rig_debug(RIG_DEBUG_WARN, "%s: ars_set_position_sync() failed: %s\n",
-                    __func__, rigerror(retcode));
-            usleep(1000*1000);
+                      __func__, rigerror(retcode));
+            usleep(1000 * 1000);
             continue;
         }
     }
@@ -437,8 +476,11 @@ ars_set_position_sync(ROT *rot, azimuth_t az, elevation_t el)
     ars_stop(rot);
 
     retval = ars_get_position(rot, &curr_az, &curr_el);
+
     if (retval != RIG_OK)
+    {
         return retval;
+    }
 
     /* watchdog init */
     prev_az = curr_az;
@@ -447,38 +489,58 @@ ars_set_position_sync(ROT *rot, azimuth_t az, elevation_t el)
     last_pos_el_tv = last_pos_az_tv;
 
     while (!angle_in_range(curr_az, az, AZ_RANGE) ||
-           (ars_has_el(rot) && !angle_in_range(curr_el, el, EL_RANGE))
-          ) {
+            (ars_has_el(rot) && !angle_in_range(curr_el, el, EL_RANGE))
+          )
+    {
 
-        if (curr_az < (az-AZ_RANGE))
+        if (curr_az < (az - AZ_RANGE))
+        {
             az_move = ROT_MOVE_RIGHT;
-        else if (curr_az > (az+AZ_RANGE))
+        }
+        else if (curr_az > (az + AZ_RANGE))
+        {
             az_move = ROT_MOVE_LEFT;
+        }
         else
+        {
             az_move = 0;
+        }
 
-        if (ars_has_el(rot)) {
-            if (curr_el < (el-EL_RANGE))
+        if (ars_has_el(rot))
+        {
+            if (curr_el < (el - EL_RANGE))
+            {
                 el_move = ROT_MOVE_UP;
-            else if (curr_el > (el+EL_RANGE))
+            }
+            else if (curr_el > (el + EL_RANGE))
+            {
                 el_move = ROT_MOVE_DOWN;
+            }
             else
+            {
                 el_move = 0;
-        } else {
+            }
+        }
+        else
+        {
             el_move = 0;
         }
 
-        retval = ars_move(rot, az_move|el_move, 0);
-        if (retval != RIG_OK) {
+        retval = ars_move(rot, az_move | el_move, 0);
+
+        if (retval != RIG_OK)
+        {
             ars_stop(rot);
             return retval;
         }
 
         /* wait a little */
-        usleep(10*1000);
+        usleep(10 * 1000);
 
         retval = ars_get_position(rot, &curr_az, &curr_el);
-        if (retval != RIG_OK) {
+
+        if (retval != RIG_OK)
+        {
             ars_stop(rot);
             return retval;
         }
@@ -486,23 +548,32 @@ ars_set_position_sync(ROT *rot, azimuth_t az, elevation_t el)
         /* Watchdog detecting when rotor is blocked unexpectedly */
 #define AZ_WATCHDOG 5000 /* ms */
 #define EL_WATCHDOG 5000 /* ms */
-        if (az_move != 0 && angle_in_range(curr_az, prev_az, AZ_RANGE)) {
-            if (rig_check_cache_timeout(&last_pos_az_tv, AZ_WATCHDOG)) {
+
+        if (az_move != 0 && angle_in_range(curr_az, prev_az, AZ_RANGE))
+        {
+            if (rig_check_cache_timeout(&last_pos_az_tv, AZ_WATCHDOG))
+            {
                 ars_stop(rot);
                 return -RIG_ETIMEOUT;
             }
-        } else {
+        }
+        else
+        {
             prev_az = curr_az;
             gettimeofday(&last_pos_az_tv, NULL);
         }
 
         if (el_move != 0 && ars_has_el(rot) &&
-                angle_in_range(curr_el, prev_el, EL_RANGE)) {
-            if (rig_check_cache_timeout(&last_pos_el_tv, EL_WATCHDOG)) {
+                angle_in_range(curr_el, prev_el, EL_RANGE))
+        {
+            if (rig_check_cache_timeout(&last_pos_el_tv, EL_WATCHDOG))
+            {
                 ars_stop(rot);
                 return -RIG_ETIMEOUT;
             }
-        } else {
+        }
+        else
+        {
             prev_el = curr_el;
             gettimeofday(&last_pos_el_tv, NULL);
         }
@@ -530,9 +601,9 @@ ars_set_position(ROT *rot, azimuth_t az, elevation_t el)
 
 static int comparunsigned(const void *a, const void *b)
 {
-    const unsigned ua=*(const unsigned*)a, ub = *(const unsigned*)b;
+    const unsigned ua = *(const unsigned *)a, ub = *(const unsigned *)b;
 
-    return ua==ub ? 0 : ua<ub ? -1 : 1;
+    return ua == ub ? 0 : ua < ub ? -1 : 1;
 }
 
 int
@@ -546,46 +617,49 @@ ars_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     unsigned el_samples[NUM_SAMPLES], el_value;
     unsigned char status;
 
-    par_lock (pport);
+    par_lock(pport);
 
     /* flush last sampled value, with a dummy read */
     CHKPPRET(ars_clear_ctrl_pin(rot, CTL_PIN_CLK));
-    usleep (PP_IO_PERIOD);
+    usleep(PP_IO_PERIOD);
 
     CHKPPRET(ars_clear_ctrl_pin(rot, CTL_PIN_CS));
-    usleep (PP_IO_PERIOD);
+    usleep(PP_IO_PERIOD);
 
-    for (i = 0; i < priv->adc_res; i++) {
+    for (i = 0; i < priv->adc_res; i++)
+    {
         CHKPPRET(ars_set_ctrl_pin(rot, CTL_PIN_CLK));
-        usleep (PP_IO_PERIOD);
+        usleep(PP_IO_PERIOD);
 
         CHKPPRET(ars_clear_ctrl_pin(rot, CTL_PIN_CLK));
-        usleep (PP_IO_PERIOD);
+        usleep(PP_IO_PERIOD);
     }
 
     CHKPPRET(ars_clear_ctrl_pin(rot, CTL_PIN_CLK));
-    usleep (PP_IO_PERIOD);
+    usleep(PP_IO_PERIOD);
 
     CHKPPRET(ars_set_ctrl_pin(rot, CTL_PIN_CS));
     /* end of dummy read */
 
-    for (num_sample=0; num_sample < NUM_SAMPLES; num_sample++) {
+    for (num_sample = 0; num_sample < NUM_SAMPLES; num_sample++)
+    {
 
         /* read ADC value TLC(1)549 (8/10 bits), by SPI bitbanging */
 
-        usleep (PP_IO_PERIOD);
+        usleep(PP_IO_PERIOD);
         CHKPPRET(ars_clear_ctrl_pin(rot, CTL_PIN_CLK));
-        usleep (PP_IO_PERIOD);
+        usleep(PP_IO_PERIOD);
 
         CHKPPRET(ars_clear_ctrl_pin(rot, CTL_PIN_CS));
-        usleep (PP_IO_PERIOD);
+        usleep(PP_IO_PERIOD);
 
         az_samples[num_sample] = 0;
         el_samples[num_sample] = 0;
 
-        for (i = 0; i < priv->adc_res; i++) {
+        for (i = 0; i < priv->adc_res; i++)
+        {
             CHKPPRET(ars_set_ctrl_pin(rot, CTL_PIN_CLK));
-            usleep (PP_IO_PERIOD);
+            usleep(PP_IO_PERIOD);
 
             CHKPPRET(par_read_status(pport, &status));
 
@@ -596,28 +670,30 @@ ars_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
             el_samples[num_sample] |= (status & STA_PIN_D1) ? 1 : 0;
 
             CHKPPRET(ars_clear_ctrl_pin(rot, CTL_PIN_CLK));
-            usleep (PP_IO_PERIOD);
+            usleep(PP_IO_PERIOD);
         }
 
         CHKPPRET(ars_set_ctrl_pin(rot, CTL_PIN_CS));
 
         rig_debug(RIG_DEBUG_TRACE, "%s: raw samples: az %u, el %u\n",
-                __func__, az_samples[num_sample], el_samples[num_sample]);
+                  __func__, az_samples[num_sample], el_samples[num_sample]);
 
-        usleep (PP_IO_PERIOD);
-	}
+        usleep(PP_IO_PERIOD);
+    }
 
-    par_unlock (pport);
+    par_unlock(pport);
 
-    qsort (az_samples, NUM_SAMPLES, sizeof(unsigned), comparunsigned);
-    qsort (el_samples, NUM_SAMPLES, sizeof(unsigned), comparunsigned);
+    qsort(az_samples, NUM_SAMPLES, sizeof(unsigned), comparunsigned);
+    qsort(el_samples, NUM_SAMPLES, sizeof(unsigned), comparunsigned);
 
     /* select median value in order to rule out glitches */
-    az_value = az_samples[NUM_SAMPLES/2];
-    el_value = el_samples[NUM_SAMPLES/2];
+    az_value = az_samples[NUM_SAMPLES / 2];
+    el_value = el_samples[NUM_SAMPLES / 2];
 
-    *az = rs->min_az + ((float)az_value * (rs->max_az - rs->min_az)) / ((1 << priv->adc_res)-1);
-    *el = rs->min_el + ((float)el_value * (rs->max_el - rs->min_el)) / ((1 << priv->adc_res)-1);
+    *az = rs->min_az + ((float)az_value * (rs->max_az - rs->min_az)) / ((
+                1 << priv->adc_res) - 1);
+    *el = rs->min_el + ((float)el_value * (rs->max_el - rs->min_el)) / ((
+                1 << priv->adc_res) - 1);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: az=%.1f el=%.1f\n", __func__, *az, *el);
 
@@ -633,66 +709,68 @@ ars_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 /*
  * RCI/RCI-SE, with Elevation daugtherboard/unit.
  */
-const struct rot_caps rci_azel_rot_caps = {
-  .rot_model =      ROT_MODEL_RCI_AZEL,
-  .model_name =     "ARS RCI AZ&EL",
-  .mfg_name =       "EA4TX",
-  .version =        "0.1",
-  .copyright = 	    "LGPL",
-  .status =         RIG_STATUS_BETA,
-  .rot_type =       ROT_TYPE_AZEL,  /* AZ&EL units */
-  .port_type =      RIG_PORT_PARALLEL,
-  .write_delay =    0,
-  .post_write_delay =  10,
-  .timeout =  0,
-  .retry =  3,
+const struct rot_caps rci_azel_rot_caps =
+{
+    .rot_model =      ROT_MODEL_RCI_AZEL,
+    .model_name =     "ARS RCI AZ&EL",
+    .mfg_name =       "EA4TX",
+    .version =        "0.1",
+    .copyright =      "LGPL",
+    .status =         RIG_STATUS_BETA,
+    .rot_type =       ROT_TYPE_AZEL,  /* AZ&EL units */
+    .port_type =      RIG_PORT_PARALLEL,
+    .write_delay =    0,
+    .post_write_delay =  10,
+    .timeout =  0,
+    .retry =  3,
 
-  .min_az = 	0,
-  .max_az =  	360,
-  .min_el = 	0,
-  .max_el =  	180,    /* TBC */
+    .min_az =     0,
+    .max_az =     360,
+    .min_el =     0,
+    .max_el =     180,    /* TBC */
 
-  .rot_init     = ars_init,
-  .rot_cleanup  = ars_cleanup,
-  .rot_open     = ars_open,
-  .rot_close    = ars_close,
-  .set_position = ars_set_position,
-  .get_position = ars_get_position,
-  .stop         = ars_stop,
-  .move         = ars_move,
+    .rot_init     = ars_init,
+    .rot_cleanup  = ars_cleanup,
+    .rot_open     = ars_open,
+    .rot_close    = ars_close,
+    .set_position = ars_set_position,
+    .get_position = ars_get_position,
+    .stop         = ars_stop,
+    .move         = ars_move,
 };
 
 /*
  * RCI/RCI-SE, without Elevation daugtherboard/unit.
  * Azimuth only
  */
-const struct rot_caps rci_az_rot_caps = {
-  .rot_model =      ROT_MODEL_RCI_AZ,
-  .model_name =     "ARS RCI AZ",
-  .mfg_name =       "EA4TX",
-  .version =        "0.1",
-  .copyright = 	    "LGPL",
-  .status =         RIG_STATUS_BETA,
-  .rot_type =       ROT_TYPE_AZIMUTH,    /* AZ-only unit */
-  .port_type =      RIG_PORT_PARALLEL,
-  .write_delay =    0,
-  .post_write_delay =  10,
-  .timeout =  0,
-  .retry =  3,
+const struct rot_caps rci_az_rot_caps =
+{
+    .rot_model =      ROT_MODEL_RCI_AZ,
+    .model_name =     "ARS RCI AZ",
+    .mfg_name =       "EA4TX",
+    .version =        "0.1",
+    .copyright =      "LGPL",
+    .status =         RIG_STATUS_BETA,
+    .rot_type =       ROT_TYPE_AZIMUTH,    /* AZ-only unit */
+    .port_type =      RIG_PORT_PARALLEL,
+    .write_delay =    0,
+    .post_write_delay =  10,
+    .timeout =  0,
+    .retry =  3,
 
-  .min_az = 	0,
-  .max_az =  	360,
-  .min_el = 	0,
-  .max_el =  	180,    /* TBC */
+    .min_az =     0,
+    .max_az =     360,
+    .min_el =     0,
+    .max_el =     180,    /* TBC */
 
-  .rot_init     = ars_init,
-  .rot_cleanup  = ars_cleanup,
-  .rot_open     = ars_open,
-  .rot_close    = ars_close,
-  .set_position = ars_set_position,
-  .get_position = ars_get_position,
-  .stop         = ars_stop,
-  .move         = ars_move,
+    .rot_init     = ars_init,
+    .rot_cleanup  = ars_cleanup,
+    .rot_open     = ars_open,
+    .rot_close    = ars_close,
+    .set_position = ars_set_position,
+    .get_position = ars_get_position,
+    .stop         = ars_stop,
+    .move         = ars_move,
 };
 
 
@@ -700,12 +778,12 @@ const struct rot_caps rci_az_rot_caps = {
 
 DECLARE_INITROT_BACKEND(ars)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	rot_register(&rci_az_rot_caps);
-	rot_register(&rci_azel_rot_caps);
+    rot_register(&rci_az_rot_caps);
+    rot_register(&rci_azel_rot_caps);
 
-	return RIG_OK;
+    return RIG_OK;
 }
 
 /* ************************************************************************* */

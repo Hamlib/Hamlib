@@ -19,7 +19,7 @@
  *
  */
 
-#include "tuner.h"	/* config.h */
+#include "tuner.h"  /* config.h */
 
 #include <stdlib.h>
 
@@ -29,13 +29,13 @@
 
 DECLARE_INITRIG_BACKEND(tuner)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
 #ifdef V4L_IOCTL
-	rig_register(&v4l_caps);
-	rig_register(&v4l2_caps);
+    rig_register(&v4l_caps);
+    rig_register(&v4l2_caps);
 #endif
 
-	return RIG_OK;
+    return RIG_OK;
 }
 

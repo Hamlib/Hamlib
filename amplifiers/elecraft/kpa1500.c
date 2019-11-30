@@ -65,35 +65,35 @@ static int kpa1500_cleanup(AMP *amp);
 
 const struct amp_caps kpa1500_amp_caps =
 {
-  .amp_model =    AMP_MODEL_ELECRAFT_KPA1500,
-  .model_name =   "KPA1500",
-  .mfg_name =     "Elecraft",
-  .version =      "2019-05-26",
-  .copyright =    "LGPL",
-  .status =     RIG_STATUS_ALPHA,
-  .amp_type =     AMP_TYPE_OTHER,
-  .port_type =    RIG_PORT_SERIAL,
-  .serial_rate_min =  4800,
-  .serial_rate_max =  230400,
-  .serial_data_bits = 8,
-  .serial_stop_bits = 1,
-  .serial_parity =  RIG_PARITY_NONE,
-  .serial_handshake = RIG_HANDSHAKE_NONE,
-  .write_delay =    0,
-  .post_write_delay = 0,
-  .timeout =      2000,
-  .retry =      2,
+    .amp_model =    AMP_MODEL_ELECRAFT_KPA1500,
+    .model_name =   "KPA1500",
+    .mfg_name =     "Elecraft",
+    .version =      "2019-05-26",
+    .copyright =    "LGPL",
+    .status =     RIG_STATUS_ALPHA,
+    .amp_type =     AMP_TYPE_OTHER,
+    .port_type =    RIG_PORT_SERIAL,
+    .serial_rate_min =  4800,
+    .serial_rate_max =  230400,
+    .serial_data_bits = 8,
+    .serial_stop_bits = 1,
+    .serial_parity =  RIG_PARITY_NONE,
+    .serial_handshake = RIG_HANDSHAKE_NONE,
+    .write_delay =    0,
+    .post_write_delay = 0,
+    .timeout =      2000,
+    .retry =      2,
 
-  .amp_open = amp_open,
-  .amp_init = kpa1500_init,
-  .amp_cleanup = kpa1500_cleanup,
-  .reset = kpa_reset,
-  .get_info = kpa_get_info,
-  .get_powerstat = kpa_get_powerstat,
-  .set_powerstat = kpa_set_powerstat,
-  .set_freq = kpa_set_freq,
-  .get_freq = kpa_get_freq,
-  .get_level = kpa_get_level,
+    .amp_open = amp_open,
+    .amp_init = kpa1500_init,
+    .amp_cleanup = kpa1500_cleanup,
+    .reset = kpa_reset,
+    .get_info = kpa_get_info,
+    .get_powerstat = kpa_get_powerstat,
+    .set_powerstat = kpa_set_powerstat,
+    .set_freq = kpa_set_freq,
+    .get_freq = kpa_get_freq,
+    .get_level = kpa_get_level,
 };
 
 
@@ -111,28 +111,28 @@ const struct amp_caps kpa1500_amp_caps =
 
 static int kpa1500_init(AMP *amp)
 {
-  struct kpa_priv_data *priv;
+    struct kpa_priv_data *priv;
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  if (!amp)
-  {
-    return -RIG_EINVAL;
-  }
+    if (!amp)
+    {
+        return -RIG_EINVAL;
+    }
 
-  priv = (struct kpa_priv_data *)
-         malloc(sizeof(struct kpa_priv_data));
+    priv = (struct kpa_priv_data *)
+           malloc(sizeof(struct kpa_priv_data));
 
-  if (!priv)
-  {
-    return -RIG_ENOMEM;
-  }
+    if (!priv)
+    {
+        return -RIG_ENOMEM;
+    }
 
-  amp->state.priv = (void *)priv;
+    amp->state.priv = (void *)priv;
 
-  amp->state.ampport.type.rig = RIG_PORT_SERIAL;
+    amp->state.ampport.type.rig = RIG_PORT_SERIAL;
 
-  return RIG_OK;
+    return RIG_OK;
 }
 
 /*
@@ -142,21 +142,21 @@ static int kpa1500_init(AMP *amp)
 static int kpa1500_cleanup(AMP *amp)
 {
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  if (!amp)
-  {
-    return -RIG_EINVAL;
-  }
+    if (!amp)
+    {
+        return -RIG_EINVAL;
+    }
 
-  if (amp->state.priv)
-  {
-    free(amp->state.priv);
-  }
+    if (amp->state.priv)
+    {
+        free(amp->state.priv);
+    }
 
-  amp->state.priv = NULL;
+    amp->state.priv = NULL;
 
-  return RIG_OK;
+    return RIG_OK;
 }
 
 
@@ -171,25 +171,25 @@ static int kpa1500_cleanup(AMP *amp)
 
 static int kpa1500_send_priv_cmd(AMP *amp, const char *cmdstr)
 {
-  struct amp_state *rs;
-  int err;
+    struct amp_state *rs;
+    int err;
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  if (!amp)
-  {
-    return -RIG_EINVAL;
-  }
+    if (!amp)
+    {
+        return -RIG_EINVAL;
+    }
 
-  rs = &amp->state;
-  err = write_block(&rs->ampport, cmdstr, strlen(cmdstr));
+    rs = &amp->state;
+    err = write_block(&rs->ampport, cmdstr, strlen(cmdstr));
 
-  if (err != RIG_OK)
-  {
-    return err;
-  }
+    if (err != RIG_OK)
+    {
+        return err;
+    }
 
-  return RIG_OK;
+    return RIG_OK;
 }
 #endif
 
@@ -199,9 +199,9 @@ static int kpa1500_send_priv_cmd(AMP *amp, const char *cmdstr)
 
 DECLARE_INITAMP_BACKEND(kpa1500)
 {
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-  amp_register(&kpa1500_amp_caps);
+    amp_register(&kpa1500_amp_caps);
 
-  return RIG_OK;
+    return RIG_OK;
 }

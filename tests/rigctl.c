@@ -42,7 +42,7 @@
 #  elif defined(HAVE_READLINE_H)    /* !defined(HAVE_READLINE_READLINE_H) */
 #    include <readline.h>
 #  else                             /* !defined(HAVE_READLINE_H) */
-extern char * readline();
+extern char *readline();
 #  endif                            /* HAVE_READLINE_H */
 #else
 /* no readline */
@@ -104,7 +104,7 @@ static struct option long_options[] =
     {"dump-caps",       0, 0, 'u'},
     {"vfo",             0, 0, 'o'},
     {"no-restore-ai",   0, 0, 'n'},
-    {"debug-time-stamps",0, 0, 'Z'},
+    {"debug-time-stamps", 0, 0, 'Z'},
 #ifdef HAVE_READLINE_HISTORY
     {"read-history",    0, 0, 'i'},
     {"save-history",    0, 0, 'I'},
@@ -409,8 +409,8 @@ int main(int argc, char *argv[])
             break;
 
         case 'Z':
-	    rig_set_debug_time_stamp(1);
-	    break;
+            rig_set_debug_time_stamp(1);
+            break;
 
         default:
             usage();    /* unknown option? */
@@ -525,24 +525,32 @@ int main(int argc, char *argv[])
                my_rig->caps->model_name);
     }
 
-    if (my_rig->caps->rig_model == RIG_MODEL_NETRIGCTL) {
-      /* We automatically detect if we need to be in vfo mode or not */
-      int rigctld_vfo_mode = netrigctl_get_vfo_mode(my_rig);
-      if (rigctld_vfo_mode && !vfo_mode) {
-          fprintf(stderr, "Looks like rigctld is using vfo mode so we're switching to vfo mode\n");
-          vfo_mode = rigctld_vfo_mode;
-      }
-      else if (!rigctld_vfo_mode && vfo_mode) {
-          fprintf(stderr, "Looks like rigctld is not using vfo mode so we're switching vfo mode off\n");
-          vfo_mode = rigctld_vfo_mode;
-      }
-      else if (vfo_mode && my_rig->caps->rig_model != RIG_MODEL_NETRIGCTL) {
-          fprintf(stderr, "vfo mode doesn't make sense for any rig other than rig#2\n");
-          fprintf(stderr, "But we'll let you run this way if you want\n");
-      }
-      else if (!vfo_mode && my_rig->caps->rig_model == RIG_MODEL_NETRIGCTL) {
-          fprintf(stderr, "Recommend using --vfo switch for rigctl with rigctld\n");
-      }
+    if (my_rig->caps->rig_model == RIG_MODEL_NETRIGCTL)
+    {
+        /* We automatically detect if we need to be in vfo mode or not */
+        int rigctld_vfo_mode = netrigctl_get_vfo_mode(my_rig);
+
+        if (rigctld_vfo_mode && !vfo_mode)
+        {
+            fprintf(stderr,
+                    "Looks like rigctld is using vfo mode so we're switching to vfo mode\n");
+            vfo_mode = rigctld_vfo_mode;
+        }
+        else if (!rigctld_vfo_mode && vfo_mode)
+        {
+            fprintf(stderr,
+                    "Looks like rigctld is not using vfo mode so we're switching vfo mode off\n");
+            vfo_mode = rigctld_vfo_mode;
+        }
+        else if (vfo_mode && my_rig->caps->rig_model != RIG_MODEL_NETRIGCTL)
+        {
+            fprintf(stderr, "vfo mode doesn't make sense for any rig other than rig#2\n");
+            fprintf(stderr, "But we'll let you run this way if you want\n");
+        }
+        else if (!vfo_mode && my_rig->caps->rig_model == RIG_MODEL_NETRIGCTL)
+        {
+            fprintf(stderr, "Recommend using --vfo switch for rigctl with rigctld\n");
+        }
     }
 
     rig_debug(RIG_DEBUG_VERBOSE,
@@ -569,12 +577,12 @@ int main(int argc, char *argv[])
             }
 
             if (((stat(hist_dir, &hist_dir_stat) == -1) && (errno == ENOENT))
-                || !(S_ISDIR(hist_dir_stat.st_mode)))
+                    || !(S_ISDIR(hist_dir_stat.st_mode)))
             {
                 fprintf(stderr, "Warning: %s is not a directory!\n", hist_dir);
             }
 
-            int hist_path_size = sizeof(char)*(strlen(hist_dir)+strlen(hist_file) + 1);
+            int hist_path_size = sizeof(char) * (strlen(hist_dir) + strlen(hist_file) + 1);
             hist_path = (char *)calloc(hist_path_size, sizeof(char));
 
             snprintf(hist_path, hist_path_size, "%s%s", hist_dir, hist_file);
@@ -597,9 +605,9 @@ int main(int argc, char *argv[])
 
     do
     {
-      retcode = rigctl_parse(my_rig, stdin, stdout, argv, argc, NULL,
-                             interactive, prompt, vfo_mode, send_cmd_term,
-                             &ext_resp, &resp_sep);
+        retcode = rigctl_parse(my_rig, stdin, stdout, argv, argc, NULL,
+                               interactive, prompt, vfo_mode, send_cmd_term,
+                               &ext_resp, &resp_sep);
 
         if (retcode == 2)
         {

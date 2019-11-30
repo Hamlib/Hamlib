@@ -106,7 +106,7 @@ static struct option long_options[] =
     {"verbose",         0, 0, 'v'},
     {"help",            0, 0, 'h'},
     {"version",         0, 0, 'V'},
-    {"debug-time-stamps",0, 0, 'Z'},
+    {"debug-time-stamps", 0, 0, 'Z'},
     {0, 0, 0, 0}
 };
 
@@ -129,7 +129,7 @@ void usage(void);
 static unsigned client_count;
 #endif
 
-static RIG * my_rig;            /* handle to rig (instance) */
+static RIG *my_rig;             /* handle to rig (instance) */
 static int verbose;
 
 #ifdef HAVE_SIG_ATOMIC_T
@@ -143,48 +143,53 @@ const char *src_addr = NULL; /* INADDR_ANY */
 
 #define MAXCONFLEN 128
 
-static void sync_callback (int lock)
+static void sync_callback(int lock)
 {
 #ifdef HAVE_PTHREAD
-  static pthread_mutex_t client_lock = PTHREAD_MUTEX_INITIALIZER;
-  if (lock) {
-    pthread_mutex_lock (&client_lock);
-    rig_debug (RIG_DEBUG_VERBOSE, "%s: client lock engaged\n", __func__);
-  }
-  else {
-    rig_debug (RIG_DEBUG_VERBOSE, "%s: client lock disengaged\n", __func__);
-    pthread_mutex_unlock (&client_lock);
-  }
+    static pthread_mutex_t client_lock = PTHREAD_MUTEX_INITIALIZER;
+
+    if (lock)
+    {
+        pthread_mutex_lock(&client_lock);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: client lock engaged\n", __func__);
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: client lock disengaged\n", __func__);
+        pthread_mutex_unlock(&client_lock);
+    }
+
 #endif
 }
 
 #ifdef WIN32
-static BOOL WINAPI CtrlHandler (DWORD fdwCtrlType)
+static BOOL WINAPI CtrlHandler(DWORD fdwCtrlType)
 {
-  rig_debug (RIG_DEBUG_VERBOSE, "CtrlHandler called\n");
-  switch (fdwCtrlType)
+    rig_debug(RIG_DEBUG_VERBOSE, "CtrlHandler called\n");
+
+    switch (fdwCtrlType)
     {
     case CTRL_C_EVENT:
     case CTRL_CLOSE_EVENT:
-      ctrl_c = 1;
-      return TRUE;
+        ctrl_c = 1;
+        return TRUE;
 
     default:
-      return FALSE;
+        return FALSE;
     }
 }
 #else
-static void signal_handler (int sig)
+static void signal_handler(int sig)
 {
-  switch (sig)
+    switch (sig)
     {
     case SIGINT:
-      ctrl_c = 1;
-      break;
+        ctrl_c = 1;
+        break;
 
     default:
-      /* do nothing */
-      break;
+        /* do nothing */
+        break;
     }
 }
 #endif
@@ -478,14 +483,16 @@ int main(int argc, char *argv[])
         }
     }
 
-    if (!vfo_mode) {
+    if (!vfo_mode)
+    {
         printf("Recommend using --vfo switch for rigctld\n");
         printf("rigctl and netrigctl will automatically detect vfo mode\n");
     }
+
     rig_set_debug(verbose);
 
     rig_debug(RIG_DEBUG_VERBOSE, "rigctld, %s\n", hamlib_version);
-    rig_debug(RIG_DEBUG_VERBOSE,"%s",
+    rig_debug(RIG_DEBUG_VERBOSE, "%s",
               "Report bugs to <hamlib-developer@lists.sourceforge.net>\n\n");
 
     my_rig = rig_init(my_model);
@@ -586,6 +593,7 @@ int main(int argc, char *argv[])
               my_rig->caps->version, rig_strstatus(my_rig->caps->status));
 
     rig_close(my_rig);          /* we will reopen for clients */
+
     if (verbose > 0)
     {
         printf("Closed rig model %d, '%s - will reopen for clients'\n",
@@ -654,7 +662,7 @@ int main(int argc, char *argv[])
                        SO_REUSEADDR,
                        (char *)&reuseaddr,
                        sizeof(reuseaddr))
-            < 0)
+                < 0)
         {
 
             handle_error(RIG_DEBUG_ERR, "setsockopt");
@@ -675,7 +683,7 @@ int main(int argc, char *argv[])
                            IPV6_V6ONLY,
                            (char *)&sockopt,
                            sizeof(sockopt))
-                < 0)
+                    < 0)
             {
 
                 handle_error(RIG_DEBUG_ERR, "setsockopt");
@@ -724,37 +732,47 @@ int main(int argc, char *argv[])
     memset(&act, 0, sizeof act);
     act.sa_handler = SIG_IGN;
     act.sa_flags = SA_RESTART;
+
     if (sigaction(SIGPIPE, &act, NULL))
     {
         handle_error(RIG_DEBUG_ERR, "sigaction SIGPIPE");
     }
+
 #endif
 
 #ifdef SIGINT
     memset(&act, 0, sizeof act);
     act.sa_handler = signal_handler;
+
     if (sigaction(SIGINT, &act, NULL))
     {
         handle_error(RIG_DEBUG_ERR, "sigaction SIGINT");
     }
+
 #endif
 #elif defined (WIN32)
-    if (!SetConsoleCtrlHandler (CtrlHandler, TRUE))
-      {
+
+    if (!SetConsoleCtrlHandler(CtrlHandler, TRUE))
+    {
         handle_error(RIG_DEBUG_ERR, "SetConsoleCtrlHandler");
-      }
+    }
+
 #elif HAVE_SIGNAL
 #ifdef SIGPIPE
+
     if (SIG_ERR == signal(SIGPIPE, SIG_IGN))
-      {
+    {
         handle_error(RIG_DEBUG_ERR, "signal SIGPIPE");
-      }
+    }
+
 #endif
 #ifdef SIGINT
+
     if (SIG_ERR == signal(SIGINT, signal_handler))
-      {
+    {
         handle_error(RIG_DEBUG_ERR, "signal SIGINT");
-      }
+    }
+
 #endif
 #endif
 
@@ -774,66 +792,71 @@ int main(int argc, char *argv[])
         /* use select to allow for periodic checks for CTRL+C */
         fd_set set;
         struct timeval timeout;
-        FD_ZERO (&set);
-        FD_SET (sock_listen, &set);
+        FD_ZERO(&set);
+        FD_SET(sock_listen, &set);
         timeout.tv_sec = 5;
         timeout.tv_usec = 0;
-        retcode = select (sock_listen + 1, &set, NULL, NULL, &timeout);
-        if (-1 == retcode) {
-          rig_debug (RIG_DEBUG_ERR, "%s: select\n", __func__);
-        }
-        else if (!retcode) {
-          if (ctrl_c) {
-            break;
-          }
-        }
-        else {
-          arg->rig = my_rig;
-          arg->clilen = sizeof(arg->cli_addr);
-          arg->vfo_mode = vfo_mode;
-          arg->sock = accept(sock_listen,
-                             (struct sockaddr *)&arg->cli_addr,
-                             &arg->clilen);
+        retcode = select(sock_listen + 1, &set, NULL, NULL, &timeout);
 
-          if (arg->sock < 0)
+        if (-1 == retcode)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: select\n", __func__);
+        }
+        else if (!retcode)
+        {
+            if (ctrl_c)
             {
-              handle_error(RIG_DEBUG_ERR, "accept");
-              break;
+                break;
+            }
+        }
+        else
+        {
+            arg->rig = my_rig;
+            arg->clilen = sizeof(arg->cli_addr);
+            arg->vfo_mode = vfo_mode;
+            arg->sock = accept(sock_listen,
+                               (struct sockaddr *)&arg->cli_addr,
+                               &arg->clilen);
+
+            if (arg->sock < 0)
+            {
+                handle_error(RIG_DEBUG_ERR, "accept");
+                break;
             }
 
-          if ((retcode = getnameinfo((struct sockaddr const *)&arg->cli_addr,
-                                     arg->clilen,
-                                     host,
-                                     sizeof(host),
-                                     serv,
-                                     sizeof(serv),
-                                     NI_NOFQDN))
-              < 0)
+            if ((retcode = getnameinfo((struct sockaddr const *)&arg->cli_addr,
+                                       arg->clilen,
+                                       host,
+                                       sizeof(host),
+                                       serv,
+                                       sizeof(serv),
+                                       NI_NOFQDN))
+                    < 0)
             {
-              rig_debug(RIG_DEBUG_WARN,
-                        "Peer lookup error: %s",
-                        gai_strerror(retcode));
+                rig_debug(RIG_DEBUG_WARN,
+                          "Peer lookup error: %s",
+                          gai_strerror(retcode));
             }
 
-          rig_debug(RIG_DEBUG_VERBOSE,
-                    "Connection opened from %s:%s\n",
-                    host,
-                    serv);
+            rig_debug(RIG_DEBUG_VERBOSE,
+                      "Connection opened from %s:%s\n",
+                      host,
+                      serv);
 
 #ifdef HAVE_PTHREAD
-          pthread_attr_init(&attr);
-          pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+            pthread_attr_init(&attr);
+            pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
-          retcode = pthread_create(&thread, &attr, handle_socket, arg);
+            retcode = pthread_create(&thread, &attr, handle_socket, arg);
 
-          if (retcode != 0)
+            if (retcode != 0)
             {
-              rig_debug(RIG_DEBUG_ERR, "pthread_create: %s\n", strerror(retcode));
-              break;
+                rig_debug(RIG_DEBUG_ERR, "pthread_create: %s\n", strerror(retcode));
+                break;
             }
 
 #else
-          handle_socket(arg);
+            handle_socket(arg);
 #endif
         }
     }
@@ -841,12 +864,15 @@ int main(int argc, char *argv[])
 
 #ifdef HAVE_PTHREAD
     /* allow threads to finish current action */
-    sync_callback (1);
-    if (client_count) {
-      rig_debug (RIG_DEBUG_WARN, "%d outstanding client(s)\n", client_count);
+    sync_callback(1);
+
+    if (client_count)
+    {
+        rig_debug(RIG_DEBUG_WARN, "%d outstanding client(s)\n", client_count);
     }
-    rig_close (my_rig);
-    sync_callback (0);
+
+    rig_close(my_rig);
+    sync_callback(0);
 #else
     rig_close(my_rig); /* close port */
 #endif
@@ -863,7 +889,7 @@ int main(int argc, char *argv[])
 /*
  * This is the function run by the threads
  */
-void * handle_socket(void *arg)
+void *handle_socket(void *arg)
 {
     struct handle_data *handle_data_arg = (struct handle_data *)arg;
     FILE *fsockin;
@@ -910,63 +936,78 @@ void * handle_socket(void *arg)
     }
 
 #ifdef HAVE_PTHREAD
-    sync_callback (1);
-    if (!client_count++) {
-      retcode = rig_open (my_rig);
-      if (RIG_OK == retcode && verbose > 0)
+    sync_callback(1);
+
+    if (!client_count++)
+    {
+        retcode = rig_open(my_rig);
+
+        if (RIG_OK == retcode && verbose > 0)
         {
-          printf("Opened rig model %d, '%s'\n",
-                 my_rig->caps->rig_model,
-                 my_rig->caps->model_name);
+            printf("Opened rig model %d, '%s'\n",
+                   my_rig->caps->rig_model,
+                   my_rig->caps->model_name);
         }
     }
-    sync_callback (0);
+
+    sync_callback(0);
 #else
-    retcode = rig_open (my_rig);
+    retcode = rig_open(my_rig);
+
     if (RIG_OK == retcode && verbose > 0)
     {
         printf("Opened rig model %d, '%s'\n",
                my_rig->caps->rig_model,
                my_rig->caps->model_name);
     }
+
 #endif
 
     do
     {
-      retcode = rigctl_parse(handle_data_arg->rig, fsockin, fsockout, NULL, 0, sync_callback,
-                             1, 0, handle_data_arg->vfo_mode, send_cmd_term, &ext_resp, &resp_sep);
-      if (ferror(fsockin) || ferror(fsockout))
+        retcode = rigctl_parse(handle_data_arg->rig, fsockin, fsockout, NULL, 0,
+                               sync_callback,
+                               1, 0, handle_data_arg->vfo_mode, send_cmd_term, &ext_resp, &resp_sep);
+
+        if (ferror(fsockin) || ferror(fsockout))
         {
-          retcode = 1;
+            retcode = 1;
         }
-      if (retcode == 1)
+
+        if (retcode == 1)
         {
-          retcode = rig_open(my_rig);
+            retcode = rig_open(my_rig);
         }
     }
     while (retcode == 0 || retcode == 2 || retcode == -RIG_ENAVAIL);
 
 #ifdef HAVE_PTHREAD
-    sync_callback (1);
+    sync_callback(1);
+
     /* Release rig if there are no clients */
-    if (!--client_count) {
-      rig_close (my_rig);
-      if (verbose > 0)
+    if (!--client_count)
+    {
+        rig_close(my_rig);
+
+        if (verbose > 0)
         {
-          printf("Closed rig model %d, '%s - no clients, will reopen for new clients'\n",
-                 my_rig->caps->rig_model,
-                 my_rig->caps->model_name);
+            printf("Closed rig model %d, '%s - no clients, will reopen for new clients'\n",
+                   my_rig->caps->rig_model,
+                   my_rig->caps->model_name);
         }
     }
-    sync_callback (0);
+
+    sync_callback(0);
 #else
-    rig_close (my_rig);
+    rig_close(my_rig);
+
     if (verbose > 0)
     {
         printf("Closed rig model %d, '%s - will reopen for new clients'\n",
                my_rig->caps->rig_model,
                my_rig->caps->model_name);
     }
+
 #endif
 
     if ((retcode = getnameinfo((struct sockaddr const *)&handle_data_arg->cli_addr,
@@ -976,7 +1017,7 @@ void * handle_socket(void *arg)
                                serv,
                                sizeof(serv),
                                NI_NOFQDN))
-        < 0)
+            < 0)
     {
 
         rig_debug(RIG_DEBUG_WARN, "Peer lookup error: %s", gai_strerror(retcode));

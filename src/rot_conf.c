@@ -311,7 +311,7 @@ int frontrot_set_conf(ROT *rot, token_t token, const char *val)
     case TOK_MAX_EL:
         rs->max_el = atof(val);
         break;
-    
+
     case TOK_SOUTH_ZERO:
         rs->south_zero = atoi(val);
         break;
@@ -485,7 +485,7 @@ int frontrot_get_conf(ROT *rot, token_t token, char *val)
  */
 int HAMLIB_API rot_token_foreach(ROT *rot,
                                  int (*cfunc)(const struct confparams *,
-                                              rig_ptr_t),
+                                         rig_ptr_t),
                                  rig_ptr_t data)
 {
     const struct confparams *cfp;
@@ -537,8 +537,8 @@ int HAMLIB_API rot_token_foreach(ROT *rot,
  * lookup backend config table first, then fall back to frontend.
  * TODO: should use Lex to speed it up, strcmp hurts!
  */
-const struct confparams * HAMLIB_API rot_confparam_lookup(ROT *rot,
-                                                          const char *name)
+const struct confparams *HAMLIB_API rot_confparam_lookup(ROT *rot,
+        const char *name)
 {
     const struct confparams *cfp;
     token_t token;

@@ -37,31 +37,31 @@ This file is part of the GNU C Library.
 #ifdef apollo
 # include <apollo/base.h>
 # include <apollo/time.h>
-  static time_$clock_t DomainTime100mS =
-    {
-	0, 100000/4
-    };
-  static status_$t DomainStatus;
+static time_$clock_t DomainTime100mS =
+{
+    0, 100000 / 4
+};
+static status_$t DomainStatus;
 #endif
 
 /* Sleep USECONDS microseconds, or until a previously set timer goes off.  */
 int
-usleep (unsigned long useconds)
+usleep(unsigned long useconds)
 {
 #ifdef apollo
-  /* The usleep function does not work under the SYS5.3 environment.
-     Use the Domain/OS time_$wait call instead. */
-  time_$wait (time_$relative, DomainTime100mS, &DomainStatus);
-#elif defined(HAVE_SSLEEP)	/* Win32 */
-  Sleep( useconds/1000 );
+    /* The usleep function does not work under the SYS5.3 environment.
+       Use the Domain/OS time_$wait call instead. */
+    time_$wait(time_$relative, DomainTime100mS, &DomainStatus);
+#elif defined(HAVE_SSLEEP)  /* Win32 */
+    Sleep(useconds / 1000);
 #else
-  struct timeval delay;
+    struct timeval delay;
 
-  delay.tv_sec = 0;
-  delay.tv_usec = useconds;
-  select (0, 0, 0, 0, &delay);
+    delay.tv_sec = 0;
+    delay.tv_usec = useconds;
+    select(0, 0, 0, 0, &delay);
 #endif
-  return 0;
+    return 0;
 }
 
 #endif /* !HAVE_USLEEP */

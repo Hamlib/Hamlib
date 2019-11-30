@@ -6,7 +6,7 @@
  *           (C) Terry Embry 2008-2009
  *           (C) Michael Black W9MDB 2016 -- taken from ft991c
  *
- * The FT891 is very much like the FT991 
+ * The FT891 is very much like the FT991
  * So most of this code is a duplicate of the FT991
  *
  * This shared library provides an API for communicating
@@ -50,7 +50,8 @@
  *
  */
 
-const struct rig_caps ft891_caps = {
+const struct rig_caps ft891_caps =
+{
     .rig_model =          RIG_MODEL_FT891,
     .model_name =         "FT-891",
     .mfg_name =           "Yaesu",
@@ -78,8 +79,8 @@ const struct rig_caps ft891_caps = {
     .has_get_parm =       RIG_PARM_NONE,
     .has_set_parm =       RIG_PARM_NONE,
     .level_gran = {
-	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
-	[LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 50 } },
+        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
+        [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 50 } },
     },
     .ctcss_list =         common_ctcss_list,
     .dcs_list =           NULL,
@@ -95,10 +96,10 @@ const struct rig_caps ft891_caps = {
     .chan_desc_sz =       0,
     .str_cal =            FT891_STR_CAL,
     .chan_list =          {
-               {   1,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
-               { 100, 117, RIG_MTYPE_EDGE, NEWCAT_MEM_CAP },    /* two by two */
-               RIG_CHAN_END,
-                          },
+        {   1,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
+        { 100, 117, RIG_MTYPE_EDGE, NEWCAT_MEM_CAP },    /* two by two */
+        RIG_CHAN_END,
+    },
 
     .rx_range_list1 =     {
         {kHz(30), MHz(470), FT891_ALL_RX_MODES, -1, -1, FT891_VFO_ALL, FT891_ANTS},   /* General coverage + ham */
@@ -107,9 +108,9 @@ const struct rig_caps ft891_caps = {
 
     .tx_range_list1 =     {
         FRQ_RNG_HF(1, FT891_OTHER_TX_MODES, W(5), W(100), FT891_VFO_ALL, FT891_ANTS),
-        FRQ_RNG_HF(1, FT891_AM_TX_MODES, W(2), W(25), FT891_VFO_ALL, FT891_ANTS),	/* AM class */
+        FRQ_RNG_HF(1, FT891_AM_TX_MODES, W(2), W(25), FT891_VFO_ALL, FT891_ANTS),   /* AM class */
         FRQ_RNG_6m(1, FT891_OTHER_TX_MODES, W(5), W(100), FT891_VFO_ALL, FT891_ANTS),
-        FRQ_RNG_6m(1, FT891_AM_TX_MODES, W(2), W(25), FT891_VFO_ALL, FT891_ANTS),	/* AM class */
+        FRQ_RNG_6m(1, FT891_AM_TX_MODES, W(2), W(25), FT891_VFO_ALL, FT891_ANTS),   /* AM class */
 
         RIG_FRNG_END,
     },
@@ -121,9 +122,9 @@ const struct rig_caps ft891_caps = {
 
     .tx_range_list2 =     {
         FRQ_RNG_HF(2, FT891_OTHER_TX_MODES, W(5), W(100), FT891_VFO_ALL, FT891_ANTS),
-        FRQ_RNG_HF(2, FT891_AM_TX_MODES, W(2), W(25), FT891_VFO_ALL, FT891_ANTS),	/* AM class */
+        FRQ_RNG_HF(2, FT891_AM_TX_MODES, W(2), W(25), FT891_VFO_ALL, FT891_ANTS),   /* AM class */
         FRQ_RNG_6m(2, FT891_OTHER_TX_MODES, W(5), W(100), FT891_VFO_ALL, FT891_ANTS),
-        FRQ_RNG_6m(2, FT891_AM_TX_MODES, W(2), W(25), FT891_VFO_ALL, FT891_ANTS),	/* AM class */
+        FRQ_RNG_6m(2, FT891_AM_TX_MODES, W(2), W(25), FT891_VFO_ALL, FT891_ANTS),   /* AM class */
 
         RIG_FRNG_END,
     },
@@ -143,7 +144,7 @@ const struct rig_caps ft891_caps = {
     },
 
     /* mode/filter list, .remember =  order matters! */
- .filters =            {
+    .filters =            {
         {FT891_CW_RTTY_PKT_RX_MODES,  Hz(1700)},    /* Normal CW, RTTY, PKT */
         {FT891_CW_RTTY_PKT_RX_MODES,  Hz(500)},     /* Narrow CW, RTTY, PKT */
         {FT891_CW_RTTY_PKT_RX_MODES,  Hz(2400)},    /* Wide   CW, RTTY, PKT */
@@ -264,7 +265,9 @@ int ft891_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!rig)
+    {
         return -RIG_EINVAL;
+    }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed split = 0x%02x\n", __func__, split);
@@ -275,23 +278,31 @@ int ft891_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
     // RX VFO and TX VFO cannot be the same, no support for MEM as TX VFO
     if (vfo == tx_vfo || tx_vfo == RIG_VFO_MEM)
+    {
         return -RIG_ENTARGET;
+    }
 
-    switch(split) {
-        case RIG_SPLIT_ON:
-            ci = '1';
-            break;
-        case RIG_SPLIT_OFF:
-            ci = '0';
-            break;
-        default:
-            return -RIG_EINVAL;
+    switch (split)
+    {
+    case RIG_SPLIT_ON:
+        ci = '1';
+        break;
+
+    case RIG_SPLIT_OFF:
+        ci = '0';
+        break;
+
+    default:
+        return -RIG_EINVAL;
     }
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "ST%c;", ci);
-    if ( RIG_OK != (err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str))))  {
-      rig_debug(RIG_DEBUG_ERR, "%s: write_block err = %d\n", __func__, err);
-      return err;
+
+    if (RIG_OK != (err = write_block(&state->rigport, priv->cmd_str,
+                                     strlen(priv->cmd_str))))
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: write_block err = %d\n", __func__, err);
+        return err;
     }
 
     return RIG_OK;
@@ -321,22 +332,29 @@ int ft891_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!rig)
+    {
         return -RIG_EINVAL;
+    }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
 
     priv = (struct newcat_priv_data *)rig->state.priv;
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "ST;");
-    if (RIG_OK != (err = newcat_get_cmd (rig)))
+
+    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    {
         return err;
+    }
 
     // Get split mode status
-    *split = priv->ret_data[2]!='0'; // 1=split, 2=split + 5khz
+    *split = priv->ret_data[2] != '0'; // 1=split, 2=split + 5khz
     rig_debug(RIG_DEBUG_TRACE, "%s: get split = 0x%02x\n", __func__, *split);
 
     *tx_vfo = RIG_VFO_A;
-    if (*split) *tx_vfo = RIG_VFO_B;
+
+    if (*split) { *tx_vfo = RIG_VFO_B; }
+
     rig_debug(RIG_DEBUG_TRACE, "%s: get tx_vfo = 0x%02x\n", __func__, *tx_vfo);
 
     return RIG_OK;
@@ -364,7 +382,8 @@ int ft891_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
  *
  */
 
-int ft891_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width)
+int ft891_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
+                         pbwidth_t *tx_width)
 {
     struct newcat_priv_data *priv;
     int err;
@@ -372,13 +391,19 @@ int ft891_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_wi
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!rig)
+    {
         return -RIG_EINVAL;
+    }
 
     priv = (struct newcat_priv_data *)rig->state.priv;
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "OI;");
-    if (RIG_OK != (err = newcat_get_cmd (rig)))
+
+    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    {
         return err;
+    }
+
     *tx_mode = priv->ret_data[22];
 
     return RIG_OK;
@@ -404,7 +429,8 @@ int ft891_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_wi
  *
  */
 
-int ft891_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
+int ft891_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
+                         pbwidth_t tx_width)
 {
     struct newcat_priv_data *priv;
     struct rig_state *state;
@@ -414,40 +440,56 @@ int ft891_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_widt
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!rig)
+    {
         return -RIG_EINVAL;
+    }
+
     state = &rig->state;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = %s\n", __func__, rig_strvfo(vfo));
-    rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = %s\n", __func__, rig_strrmode(tx_mode));
-    rig_debug(RIG_DEBUG_TRACE, "%s: passed width = %d Hz\n", __func__, (int)tx_width);
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = %s\n", __func__,
+              rig_strrmode(tx_mode));
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed width = %d Hz\n", __func__,
+              (int)tx_width);
 
     priv = (struct newcat_priv_data *)rig->state.priv;
 
     // Remember VFOB frequency
-    if (RIG_OK != (err = newcat_get_freq(rig,RIG_VFO_B,&b_freq))) {
+    if (RIG_OK != (err = newcat_get_freq(rig, RIG_VFO_B, &b_freq)))
+    {
         return err;
     }
 
     // Change mode on VFOA and make VFOB match VFOA
-    if (RIG_OK != (err = newcat_set_mode(rig,RIG_VFO_A,tx_mode,tx_width))) {
+    if (RIG_OK != (err = newcat_set_mode(rig, RIG_VFO_A, tx_mode, tx_width)))
+    {
         return err;
     }
+
     // Copy A to B
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "AB;");
-    if (RIG_OK != (err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str))))
-      {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s:%d write_block err = %d\n", __func__, __LINE__, err);
+
+    if (RIG_OK != (err = write_block(&state->rigport, priv->cmd_str,
+                                     strlen(priv->cmd_str))))
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s:%d write_block err = %d\n", __func__, __LINE__,
+                  err);
         return err;
-      }
+    }
 
     // Restore VFOB frequency
-    if (RIG_OK != (err = newcat_set_freq(rig,RIG_VFO_B,b_freq))) {
+    if (RIG_OK != (err = newcat_set_freq(rig, RIG_VFO_B, b_freq)))
+    {
         return err;
     }
 
 #if 0
-    if (RIG_OK != (err = newcat_get_cmd (rig)))
+
+    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    {
         return err;
+    }
+
 #endif
     return RIG_OK;
 }
@@ -455,26 +497,34 @@ int ft891_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_widt
 
 int ft891_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-  struct newcat_priv_data *priv;
-  int err;
+    struct newcat_priv_data *priv;
+    int err;
 
-  // FT891 can't set VFOB mode directly so we always set VFOA
-  // We will always make VFOB match VFOA mode
-  newcat_set_mode(rig, RIG_VFO_A, mode, width);
+    // FT891 can't set VFOB mode directly so we always set VFOA
+    // We will always make VFOB match VFOA mode
+    newcat_set_mode(rig, RIG_VFO_A, mode, width);
 
-  priv = (struct newcat_priv_data *)rig->state.priv;
+    priv = (struct newcat_priv_data *)rig->state.priv;
 
-  // Copy A to B
-  snprintf(priv->cmd_str, sizeof(priv->cmd_str), "AB;");
-  if (RIG_OK != (err = newcat_get_cmd (rig)))
-    return err;
-  return RIG_OK;
+    // Copy A to B
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "AB;");
+
+    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    {
+        return err;
+    }
+
+    return RIG_OK;
 }
 
-int ft891_init(RIG *rig) {
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called, version %s\n", __func__,rig->caps->version);
-  int ret = newcat_init(rig);
-  if (ret != RIG_OK) return ret;
-  rig->state.current_vfo = RIG_VFO_A;
-  return RIG_OK;
+int ft891_init(RIG *rig)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called, version %s\n", __func__,
+              rig->caps->version);
+    int ret = newcat_init(rig);
+
+    if (ret != RIG_OK) { return ret; }
+
+    rig->state.current_vfo = RIG_VFO_A;
+    return RIG_OK;
 }

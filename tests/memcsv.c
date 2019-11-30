@@ -63,7 +63,7 @@ static int set_channel_data(RIG *rig,
                             char **line_key,
                             char **line_data);
 
-static char * mystrtok(char *s, char delim);
+static char *mystrtok(char *s, char delim);
 
 static int  tokenize_line(char *line,
                           char **token_list,
@@ -267,7 +267,7 @@ static int tokenize_line(char *line, char **token_list, size_t siz, char delim)
     \return pointer to token, or NULL if there are no more tokens
     \sa "man strtok"
     */
-static char * mystrtok(char *s, char delim)
+static char *mystrtok(char *s, char delim)
 {
     static size_t pos = 0, length = 0;
     static char *str = 0;

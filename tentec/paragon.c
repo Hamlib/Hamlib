@@ -53,7 +53,8 @@
 #include "hl_sleep.h"
 #endif
 
-struct tt585_priv_data {
+struct tt585_priv_data
+{
     unsigned char status_data[30];
     struct timeval status_tv;
     int channel_num;
@@ -98,7 +99,8 @@ static int tt585_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int tt585_set_vfo(RIG *rig, vfo_t vfo);
 static int tt585_get_vfo(RIG *rig, vfo_t *vfo);
 static int tt585_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo);
-static int tt585_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *txvfo);
+static int tt585_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
+                               vfo_t *txvfo);
 static int tt585_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 static int tt585_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 static int tt585_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
@@ -112,107 +114,108 @@ static int tt585_get_status_data(RIG *rig);
  * tt585 transceiver capabilities,
  * with the optional model 258 RS232 Interface board.
  */
-const struct rig_caps tt585_caps = {
-.rig_model =  RIG_MODEL_TT585,
-.model_name = "TT-585 Paragon",
-.mfg_name =  "Ten-Tec",
-.version =  "0.3",
-.copyright =  "LGPL",
-.status =  RIG_STATUS_BETA,
-.rig_type =  RIG_TYPE_TRANSCEIVER,
-.ptt_type =  RIG_PTT_NONE,
-.dcd_type =  RIG_DCD_NONE,
-.port_type =  RIG_PORT_SERIAL,
-.serial_rate_min =  1200,
-.serial_rate_max =  1200,
-.serial_data_bits =  8,
-.serial_stop_bits =  1,
-.serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_NONE,
-.write_delay =  100, /* instead of 20 ms */
-.post_write_delay =  200, /* FOR T=1 TO 200 on a 4.77 MHz PC */
-.timeout =  1000,
-.retry =  0,
+const struct rig_caps tt585_caps =
+{
+    .rig_model =  RIG_MODEL_TT585,
+    .model_name = "TT-585 Paragon",
+    .mfg_name =  "Ten-Tec",
+    .version =  "0.3",
+    .copyright =  "LGPL",
+    .status =  RIG_STATUS_BETA,
+    .rig_type =  RIG_TYPE_TRANSCEIVER,
+    .ptt_type =  RIG_PTT_NONE,
+    .dcd_type =  RIG_DCD_NONE,
+    .port_type =  RIG_PORT_SERIAL,
+    .serial_rate_min =  1200,
+    .serial_rate_max =  1200,
+    .serial_data_bits =  8,
+    .serial_stop_bits =  1,
+    .serial_parity =  RIG_PARITY_NONE,
+    .serial_handshake =  RIG_HANDSHAKE_NONE,
+    .write_delay =  100, /* instead of 20 ms */
+    .post_write_delay =  200, /* FOR T=1 TO 200 on a 4.77 MHz PC */
+    .timeout =  1000,
+    .retry =  0,
 
-.has_get_func =  TT585_FUNCS,
-.has_set_func =  TT585_FUNCS,
-.has_get_level =  TT585_LEVELS,
-.has_set_level =  RIG_LEVEL_SET(TT585_LEVELS),
-.has_get_parm =  TT585_PARMS,
-.has_set_parm =  TT585_PARMS,
-.level_gran =  {},
-.parm_gran =  {},
-.ctcss_list =  NULL,
-.dcs_list =  NULL,
-.preamp =   { RIG_DBLST_END },
-.attenuator =   { RIG_DBLST_END },
-.max_rit =  Hz(0),
-.max_xit =  Hz(0),
-.max_ifshift =  Hz(0),
-.targetable_vfo = RIG_TARGETABLE_NONE,
-.transceive =  RIG_TRN_OFF,
-.bank_qty =   0,
-.chan_desc_sz =  7,
-.vfo_ops = TT585_VFO_OPS,
+    .has_get_func =  TT585_FUNCS,
+    .has_set_func =  TT585_FUNCS,
+    .has_get_level =  TT585_LEVELS,
+    .has_set_level =  RIG_LEVEL_SET(TT585_LEVELS),
+    .has_get_parm =  TT585_PARMS,
+    .has_set_parm =  TT585_PARMS,
+    .level_gran =  {},
+    .parm_gran =  {},
+    .ctcss_list =  NULL,
+    .dcs_list =  NULL,
+    .preamp =   { RIG_DBLST_END },
+    .attenuator =   { RIG_DBLST_END },
+    .max_rit =  Hz(0),
+    .max_xit =  Hz(0),
+    .max_ifshift =  Hz(0),
+    .targetable_vfo = RIG_TARGETABLE_NONE,
+    .transceive =  RIG_TRN_OFF,
+    .bank_qty =   0,
+    .chan_desc_sz =  7,
+    .vfo_ops = TT585_VFO_OPS,
 
-.chan_list =  {
-		{   0, 61, RIG_MTYPE_MEM, TT585_MEM_CAP },
-		},
+    .chan_list =  {
+        {   0, 61, RIG_MTYPE_MEM, TT585_MEM_CAP },
+    },
 
-.rx_range_list1 =  {
-	{kHz(100),MHz(30)-10,TT585_RXMODES,-1,-1,TT585_VFO,TT585_ANTS},
-	RIG_FRNG_END,
-  },
-.tx_range_list1 =  {
-	FRQ_RNG_HF(1,TT585_MODES, W(5),W(100),TT585_VFO,TT585_ANTS),
-	RIG_FRNG_END,
-  },
+    .rx_range_list1 =  {
+        {kHz(100), MHz(30) - 10, TT585_RXMODES, -1, -1, TT585_VFO, TT585_ANTS},
+        RIG_FRNG_END,
+    },
+    .tx_range_list1 =  {
+        FRQ_RNG_HF(1, TT585_MODES, W(5), W(100), TT585_VFO, TT585_ANTS),
+        RIG_FRNG_END,
+    },
 
-.rx_range_list2 =  {
-	{kHz(100),MHz(30)-10,TT585_RXMODES,-1,-1,TT585_VFO,TT585_ANTS},
-	RIG_FRNG_END,
-  },
-.tx_range_list2 =  {
-	FRQ_RNG_HF(2,TT585_MODES, W(5),W(100),TT585_VFO,TT585_ANTS),
-	{MHz(5.25),MHz(5.40),TT585_MODES,W(5),W(100),TT585_VFO,TT585_ANTS},
-	RIG_FRNG_END,
-  },
+    .rx_range_list2 =  {
+        {kHz(100), MHz(30) - 10, TT585_RXMODES, -1, -1, TT585_VFO, TT585_ANTS},
+        RIG_FRNG_END,
+    },
+    .tx_range_list2 =  {
+        FRQ_RNG_HF(2, TT585_MODES, W(5), W(100), TT585_VFO, TT585_ANTS),
+        {MHz(5.25), MHz(5.40), TT585_MODES, W(5), W(100), TT585_VFO, TT585_ANTS},
+        RIG_FRNG_END,
+    },
 
-.tuning_steps =  {
-	 {TT585_RXMODES,10},
-	 {TT585_RXMODES,20},
-	 {TT585_RXMODES,50},
-	 {TT585_RXMODES,100},
-	 {TT585_RXMODES,500},
-	 RIG_TS_END,
-	},
-        /* mode/filter list, remember: order matters! */
-.filters =  {
-		{RIG_MODE_AM, kHz(6)},
-		{RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_AM, kHz(2.4)},
-		{RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_AM, kHz(1.8)},
-		{RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_AM, 500},
-		{RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_AM, 250},
-		{RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_AM, kHz(6)},
-		{RIG_MODE_FM, kHz(15)},
-		RIG_FLT_END,
-	},
-.priv =  (void*) NULL,
+    .tuning_steps =  {
+        {TT585_RXMODES, 10},
+        {TT585_RXMODES, 20},
+        {TT585_RXMODES, 50},
+        {TT585_RXMODES, 100},
+        {TT585_RXMODES, 500},
+        RIG_TS_END,
+    },
+    /* mode/filter list, remember: order matters! */
+    .filters =  {
+        {RIG_MODE_AM, kHz(6)},
+        {RIG_MODE_CW | RIG_MODE_SSB | RIG_MODE_RTTY | RIG_MODE_AM, kHz(2.4)},
+        {RIG_MODE_CW | RIG_MODE_SSB | RIG_MODE_RTTY | RIG_MODE_AM, kHz(1.8)},
+        {RIG_MODE_CW | RIG_MODE_SSB | RIG_MODE_RTTY | RIG_MODE_AM, 500},
+        {RIG_MODE_CW | RIG_MODE_SSB | RIG_MODE_RTTY | RIG_MODE_AM, 250},
+        {RIG_MODE_CW | RIG_MODE_SSB | RIG_MODE_RTTY | RIG_MODE_AM, kHz(6)},
+        {RIG_MODE_FM, kHz(15)},
+        RIG_FLT_END,
+    },
+    .priv = (void *) NULL,
 
-.rig_init =  tt585_init,
-.rig_cleanup =  tt585_cleanup,
-.set_freq =  tt585_set_freq,
-.get_freq =  tt585_get_freq,
-.set_vfo =  tt585_set_vfo,
-.get_vfo =  tt585_get_vfo,
-.set_split_vfo =  tt585_set_split_vfo,
-.get_split_vfo =  tt585_get_split_vfo,
-.vfo_op =  tt585_vfo_op,
-.set_mode =  tt585_set_mode,
-.get_mode =  tt585_get_mode,
-.set_parm =  tt585_set_parm,
-.set_mem =   tt585_set_mem,
-.get_mem =   tt585_get_mem,
+    .rig_init =  tt585_init,
+    .rig_cleanup =  tt585_cleanup,
+    .set_freq =  tt585_set_freq,
+    .get_freq =  tt585_get_freq,
+    .set_vfo =  tt585_set_vfo,
+    .get_vfo =  tt585_get_vfo,
+    .set_split_vfo =  tt585_set_split_vfo,
+    .get_split_vfo =  tt585_get_split_vfo,
+    .vfo_op =  tt585_vfo_op,
+    .set_mode =  tt585_set_mode,
+    .get_mode =  tt585_get_mode,
+    .set_parm =  tt585_set_parm,
+    .set_mem =   tt585_set_mem,
+    .get_mem =   tt585_get_mem,
 
 };
 
@@ -226,18 +229,20 @@ const struct rig_caps tt585_caps = {
  */
 int tt585_init(RIG *rig)
 {
-	struct tt585_priv_data *priv;
+    struct tt585_priv_data *priv;
 
-	priv = (struct tt585_priv_data *) malloc(sizeof(struct tt585_priv_data));
-	if (!priv) {
-		/* whoops! memory shortage! */
-		return -RIG_ENOMEM;
-	}
+    priv = (struct tt585_priv_data *) malloc(sizeof(struct tt585_priv_data));
 
-	memset(priv, 0, sizeof(struct tt585_priv_data));
+    if (!priv)
+    {
+        /* whoops! memory shortage! */
+        return -RIG_ENOMEM;
+    }
 
-	rig->state.priv = priv;
-	return RIG_OK;
+    memset(priv, 0, sizeof(struct tt585_priv_data));
+
+    rig->state.priv = priv;
+    return RIG_OK;
 }
 
 int tt585_cleanup(RIG *rig)
@@ -248,7 +253,7 @@ int tt585_cleanup(RIG *rig)
         rig->state.priv = NULL;
     }
 
-	return RIG_OK;
+    return RIG_OK;
 }
 
 int tt585_get_vfo(RIG *rig, vfo_t *vfo)
@@ -257,8 +262,11 @@ int tt585_get_vfo(RIG *rig, vfo_t *vfo)
     int ret;
 
     ret = tt585_get_status_data(rig);
+
     if (ret < 0)
+    {
         return ret;
+    }
 
     *vfo = priv->status_data[9] & 0x08 ? RIG_VFO_A : RIG_VFO_B;
 
@@ -275,11 +283,16 @@ int tt585_set_vfo(RIG *rig, vfo_t vfo)
     int ret;
 
     ret = tt585_get_vfo(rig, &curr_vfo);
+
     if (ret < 0)
+    {
         return ret;
+    }
 
     if (vfo == curr_vfo || vfo == RIG_VFO_CURR || vfo == RIG_VFO_VFO)
+    {
         return RIG_OK;
+    }
 
     /* toggle VFOs */
     return write_block(&rig->state.rigport, "F", 1);
@@ -292,11 +305,16 @@ int tt585_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
     int ret;
 
     ret = tt585_get_split_vfo(rig, vfo, &curr_split, &curr_txvfo);
+
     if (ret < 0)
+    {
         return ret;
+    }
 
     if (split == curr_split)
+    {
         return RIG_OK;
+    }
 
     /* toggle split mode */
     return write_block(&rig->state.rigport, "J", 1);
@@ -304,12 +322,15 @@ int tt585_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 
 int tt585_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *txvfo)
 {
-	struct tt585_priv_data *priv = (struct tt585_priv_data *)rig->state.priv;
+    struct tt585_priv_data *priv = (struct tt585_priv_data *)rig->state.priv;
     int ret;
 
     ret = tt585_get_status_data(rig);
+
     if (ret < 0)
+    {
         return ret;
+    }
 
     *split = priv->status_data[9] & 0x02 ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
     *txvfo = RIG_VFO_B;
@@ -329,18 +350,21 @@ int tt585_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     unsigned char *p;
 
     ret = tt585_get_status_data(rig);
+
     if (ret < 0)
+    {
         return ret;
+    }
 
     p = priv->status_data;
 
-    *freq = ((((((p[0]*10 +
-                  p[1])*10 +
-                  p[2])*10 +
-                  p[3])*10 +
-                  p[4])*10 +
-                  p[5])*10 +
-                  p[6])*10;
+    *freq = ((((((p[0] * 10 +
+                  p[1]) * 10 +
+                 p[2]) * 10 +
+                p[3]) * 10 +
+               p[4]) * 10 +
+              p[5]) * 10 +
+             p[6]) * 10;
 
     return RIG_OK;
 }
@@ -353,13 +377,13 @@ int tt585_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 int tt585_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-	struct tt585_priv_data *priv = (struct tt585_priv_data *)rig->state.priv;
+    struct tt585_priv_data *priv = (struct tt585_priv_data *)rig->state.priv;
 #define FREQBUFSZ 16
     char buf[FREQBUFSZ], *p;
     int ret;
 
-    ret = num_snprintf(buf, FREQBUFSZ-1, "%.5f@", (double)freq/MHz(1));
-    buf[FREQBUFSZ-1] = '\0';
+    ret = num_snprintf(buf, FREQBUFSZ - 1, "%.5f@", (double)freq / MHz(1));
+    buf[FREQBUFSZ - 1] = '\0';
 
     /* replace decimal point with W */
     p = strchr(buf, '.');
@@ -380,36 +404,65 @@ int tt585_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     int ret;
 
     ret = tt585_get_status_data(rig);
+
     if (ret < 0)
+    {
         return ret;
+    }
 
     if (priv->status_data[7] & 0x02)
+    {
         *mode = RIG_MODE_CW;
+    }
     else if (priv->status_data[7] & 0x04)
+    {
         *mode = RIG_MODE_USB;
+    }
     else if (priv->status_data[7] & 0x08)
+    {
         *mode = RIG_MODE_LSB;
+    }
     else if (priv->status_data[7] & 0x10)
+    {
         *mode = RIG_MODE_AM;
+    }
     else if (priv->status_data[7] & 0x20)
+    {
         *mode = RIG_MODE_FM;
+    }
     else if (priv->status_data[7] & 0x40)
+    {
         *mode = RIG_MODE_RTTY;
+    }
     else
+    {
         *mode = RIG_MODE_NONE;
+    }
 
     if (priv->status_data[8] & 0x08)
+    {
         *width = 250;
+    }
     else if (priv->status_data[8] & 0x10)
+    {
         *width = 500;
+    }
     else if (priv->status_data[8] & 0x20)
+    {
         *width = 1800;
+    }
     else if (priv->status_data[8] & 0x40)
+    {
         *width = 2400;
+    }
     else if (priv->status_data[8] & 0x80)
+    {
         *width = 6000;
+    }
     else
+    {
         *width = 0;
+    }
 
     return RIG_OK;
 }
@@ -424,48 +477,74 @@ int tt585_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     const char *mcmd, *wcmd;
     int ret;
 
-    switch(mode) {
+    switch (mode)
+    {
     case RIG_MODE_LSB: mcmd = "N"; break;
+
     case RIG_MODE_USB: mcmd = "O"; break;
+
     case RIG_MODE_CW:  mcmd = "P"; break;
+
     case RIG_MODE_FM:  mcmd = "L"; break;
+
     case RIG_MODE_AM:  mcmd = "M"; break;
-    case RIG_MODE_RTTY:mcmd = "XP"; break;
+
+    case RIG_MODE_RTTY: mcmd = "XP"; break;
+
     default:
-        return -RIG_EINVAL;		/* sorry, wrong MODE */
+        return -RIG_EINVAL;     /* sorry, wrong MODE */
     }
 
     rig_force_cache_timeout(&priv->status_tv);
 
     ret =  write_block(&rig->state.rigport, mcmd, strlen(mcmd));
-    if (ret < 0)
-        return ret;
 
-    if (RIG_PASSBAND_NOCHANGE == width) return ret;
+    if (ret < 0)
+    {
+        return ret;
+    }
+
+    if (RIG_PASSBAND_NOCHANGE == width) { return ret; }
+
     if (RIG_PASSBAND_NORMAL == width)
-      width = rig_passband_normal (rig, mode);
+    {
+        width = rig_passband_normal(rig, mode);
+    }
+
     if (width <= 250)
+    {
         wcmd = "V";
+    }
     else if (width <= 500)
+    {
         wcmd = "U";
+    }
     else if (width <= 1800)
+    {
         wcmd = "T";
+    }
     else if (width <= 2400)
+    {
         wcmd = "S";
+    }
     else /* 6000 (or FM?) */
+    {
         wcmd = "R";
+    }
 
     return write_block(&rig->state.rigport, wcmd, strlen(mcmd));
 }
 
 int tt585_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
-	struct tt585_priv_data *priv = (struct tt585_priv_data *)rig->state.priv;
+    struct tt585_priv_data *priv = (struct tt585_priv_data *)rig->state.priv;
     char buf[16];
     int ret;
 
     if (ch < 0 || ch > 61)
+    {
         return -RIG_EINVAL;
+    }
 
     priv->channel_num = ch;
 
@@ -481,12 +560,17 @@ int tt585_get_mem(RIG *rig, vfo_t vfo, int *ch)
     int ret;
 
     ret = tt585_get_status_data(rig);
+
     if (ret < 0)
+    {
         return ret;
+    }
 
     /* 63 means not in MEM mode, 0xfe means mem full */
     if (priv->status_data[11] > 61)
+    {
         return -RIG_ERJCTED;
+    }
 
     *ch = priv->status_data[11];
 
@@ -509,20 +593,28 @@ int tt585_get_status_data(RIG *rig)
     rigport = &rig->state.rigport;
 
     if (!rig_check_cache_timeout(&priv->status_tv, TT585_CACHE_TIMEOUT))
+    {
         return RIG_OK;
+    }
 
     serial_flush(rigport);
 
     /* send STATUS comand to fetch data*/
 
     ret = write_block(rigport, "\\", 1);
+
     if (ret < 0)
+    {
         return ret;
+    }
 
     ret = read_block(rigport, (char *) priv->status_data,
-				  sizeof(priv->status_data));
+                     sizeof(priv->status_data));
+
     if (ret < 0)
+    {
         return ret;
+    }
 
     /* update cache date */
     gettimeofday(&priv->status_tv, NULL);
@@ -534,21 +626,27 @@ int tt585_set_parm(RIG *rig, setting_t parm, value_t val)
 {
     int ret;
 
-    switch (parm) {
-        case RIG_PARM_ANN:
-            /* FIXME: > is a toggle command only */
-            ret = write_block(&rig->state.rigport, ">", 1);
-            if (ret < 0)
-                return ret;
-            /* exact addional delay TBC */
-            sleep(1);
-            return RIG_OK;
+    switch (parm)
+    {
+    case RIG_PARM_ANN:
+        /* FIXME: > is a toggle command only */
+        ret = write_block(&rig->state.rigport, ">", 1);
 
-        /* TODO: RIG_PARM_TIME */
+        if (ret < 0)
+        {
+            return ret;
+        }
 
-        default:
-            rig_debug (RIG_DEBUG_ERR, "%s: unsupported parm %s\n", __func__, rig_strparm(parm));
-            return -RIG_EINVAL;
+        /* exact addional delay TBC */
+        sleep(1);
+        return RIG_OK;
+
+    /* TODO: RIG_PARM_TIME */
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported parm %s\n", __func__,
+                  rig_strparm(parm));
+        return -RIG_EINVAL;
     }
 
     return RIG_OK;
@@ -566,28 +664,38 @@ int tt585_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 
     switch (op)
     {
-        case RIG_OP_TUNE: cmd = "Q"; break;
-        case RIG_OP_MCL:
-                sprintf(buf, ":%02dXD", priv->channel_num);
-                cmd = buf;
-                break;
-        case RIG_OP_TO_VFO:
-                sprintf(buf, ":%02d", priv->channel_num);
-                cmd = buf;
-                break;
-        case RIG_OP_FROM_VFO:
-                sprintf(buf, "<%02d", priv->channel_num);
-                cmd = buf;
-                break;
-        case RIG_OP_CPY: cmd = "E"; break;
-        case RIG_OP_TOGGLE: cmd = "F"; break;
-        case RIG_OP_DOWN: cmd = "]"; break;
-        case RIG_OP_UP: cmd = "["; break;
-        case RIG_OP_BAND_DOWN: cmd = "XY"; break;
-        case RIG_OP_BAND_UP: cmd = "XZ"; break;
-        default:
-            rig_debug (RIG_DEBUG_ERR, "%s: unsupported op %#x\n", __func__, op);
-            return -RIG_EINVAL;
+    case RIG_OP_TUNE: cmd = "Q"; break;
+
+    case RIG_OP_MCL:
+        sprintf(buf, ":%02dXD", priv->channel_num);
+        cmd = buf;
+        break;
+
+    case RIG_OP_TO_VFO:
+        sprintf(buf, ":%02d", priv->channel_num);
+        cmd = buf;
+        break;
+
+    case RIG_OP_FROM_VFO:
+        sprintf(buf, "<%02d", priv->channel_num);
+        cmd = buf;
+        break;
+
+    case RIG_OP_CPY: cmd = "E"; break;
+
+    case RIG_OP_TOGGLE: cmd = "F"; break;
+
+    case RIG_OP_DOWN: cmd = "]"; break;
+
+    case RIG_OP_UP: cmd = "["; break;
+
+    case RIG_OP_BAND_DOWN: cmd = "XY"; break;
+
+    case RIG_OP_BAND_UP: cmd = "XZ"; break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported op %#x\n", __func__, op);
+        return -RIG_EINVAL;
     }
 
     rig_force_cache_timeout(&priv->status_tv);
