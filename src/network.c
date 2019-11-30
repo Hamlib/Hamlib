@@ -98,7 +98,7 @@ static void handle_error(enum rig_debug_level_e lvl, const char *msg)
                       0,
                       NULL))
     {
-        rig_debug(lvl, "%s: Network error %d: %s\n", msg, e, lpMsgBuf);
+        rig_debug(lvl, "%s: Network error %d: %s\n", msg, e, (char*)lpMsgBuf);
         LocalFree(lpMsgBuf);
     }
     else
@@ -312,7 +312,7 @@ void network_flush(hamlib_port_t *rp)
             rig_debug(RIG_DEBUG_WARN,
                       "%s: network data clear d: ret=%d, len=%d, '%s'\n",
                       __func__,
-                      ret, len, buffer);
+                      ret, (int)len, buffer);
             len_read = recv(rp->fd, buffer, len < NET_BUFFER_SIZE ? len : NET_BUFFER_SIZE,
                             0);
 

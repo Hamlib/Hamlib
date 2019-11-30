@@ -130,7 +130,7 @@ static void handle_error(enum rig_debug_level_e lvl, const char *msg)
                       NULL))
     {
 
-        rig_debug(lvl, "%s: Network error %d: %s\n", msg, e, lpMsgBuf);
+        rig_debug(lvl, "%s: Network error %d: %s\n", msg, e, (char*)lpMsgBuf);
         LocalFree(lpMsgBuf);
     }
     else
