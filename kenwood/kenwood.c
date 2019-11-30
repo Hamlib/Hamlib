@@ -4378,8 +4378,6 @@ DECLARE_INITRIG_BACKEND(kenwood)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-//  rig_debug(RIG_DEBUG_VERBOSE, "kenwood: _init called\n");
-
     rig_register(&ts950sdx_caps);
     rig_register(&ts50s_caps);
     rig_register(&ts140_caps);
