@@ -140,7 +140,7 @@ transaction_write:
 	 * consistant carriage return or newline.
 	 * ie: STS command will not return either "\r" or "\n"! */
     /*if (strchr(EOM, data[strlen(data)-1])==NULL) {
-        rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n", __FUNCTION__, data);
+        rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n", __func__, data);
         if (retry_read++ < rig->state.rigport.retry)
             goto transaction_write;
         retval = -RIG_EPROTO;
@@ -159,28 +159,28 @@ transaction_write:
      */
     if (strcmp(data, "NG"EOM)) {
 	    /* Invalid command */
-	    rig_debug(RIG_DEBUG_VERBOSE, "%s: Command Format Error / Value Error for '%s'\n", __FUNCTION__, cmdstr);
+	    rig_debug(RIG_DEBUG_VERBOSE, "%s: Command Format Error / Value Error for '%s'\n", __func__, cmdstr);
 	    retval = -RIG_EPROTO;
 	    goto transaction_quit;
     }
 
     if (strcmp(data, "ERR"EOM)) {
 	    /*  Command format error */
-	    rig_debug(RIG_DEBUG_VERBOSE, "%s: The Command is Invalid at this Time for '%s'\n", __FUNCTION__, cmdstr);
+	    rig_debug(RIG_DEBUG_VERBOSE, "%s: The Command is Invalid at this Time for '%s'\n", __func__, cmdstr);
 	    retval = -RIG_EINVAL;
 	    goto transaction_quit;
     }
 
 	if (strcmp(data, "FER"EOM)) {
 	    /*  Framing error */
-	    rig_debug(RIG_DEBUG_VERBOSE, "%s: Framing Error for '%s'\n", __FUNCTION__, cmdstr);
+	    rig_debug(RIG_DEBUG_VERBOSE, "%s: Framing Error for '%s'\n", __func__, cmdstr);
 	    retval = -RIG_EINVAL;
 	    goto transaction_quit;
     }
 
 	if (strcmp(data, "ORER"EOM)) {
 	    /*  Overrun error */
-	    rig_debug(RIG_DEBUG_VERBOSE, "%s: Overrun Error for '%s'\n", __FUNCTION__, cmdstr);
+	    rig_debug(RIG_DEBUG_VERBOSE, "%s: Overrun Error for '%s'\n", __func__, cmdstr);
 	    retval = -RIG_EINVAL;
 	    goto transaction_quit;
     }
@@ -213,7 +213,7 @@ transaction_write:
           *       to the decoder for callback. That way we don't ignore
           *       any commands.
           */
-        rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __FUNCTION__, data);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, data);
         if (retry_read++ < rig->state.rigport.retry)
             goto transaction_write;
 

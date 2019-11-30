@@ -290,7 +290,7 @@ int icm710_open(RIG *rig)
     int retval = icmarine_transaction(rig, "REMOTE", "ON", NULL);
 
     if (retval != RIG_OK) {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: rig not responding? %s\n", __FUNCTION__, rigerror(retval));
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: rig not responding? %s\n", __func__, rigerror(retval));
 
     }
 
@@ -302,7 +302,7 @@ int icm710_close(RIG *rig)
     int retval = icmarine_transaction(rig, "REMOTE", "OFF", NULL);
 
     if (retval != RIG_OK) {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: rig not responding? %s\n", __FUNCTION__, rigerror(retval));
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: rig not responding? %s\n", __func__, rigerror(retval));
 
     }
 

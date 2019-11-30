@@ -49,23 +49,23 @@ static int ether_transaction(ROT *rot, char *cmd, int len, char *buf)
   int ret;
 
   ret = write_block(&rot->state.rotport, cmd, len);
-  rig_debug(RIG_DEBUG_VERBOSE, "function %s(1): ret=%d || send=%s\n",__FUNCTION__ , ret, cmd);
+  rig_debug(RIG_DEBUG_VERBOSE, "function %s(1): ret=%d || send=%s\n",__func__ , ret, cmd);
   if (ret != RIG_OK)
 	return ret;
 
   ret = read_string(&rot->state.rotport, buf, BUF_MAX, "\n", sizeof("\n"));
-  rig_debug(RIG_DEBUG_VERBOSE, "function %s(2): ret=%d || receive=%s\n",__FUNCTION__ , ret, buf);
+  rig_debug(RIG_DEBUG_VERBOSE, "function %s(2): ret=%d || receive=%s\n",__func__ , ret, buf);
   if (ret < 0)
 	return ret;
 
   if (!memcmp(buf, ROTORCTL_RET, strlen(ROTORCTL_RET))) {
-    rig_debug(RIG_DEBUG_VERBOSE, "function %s(2a): receive=%s\n",__FUNCTION__ , buf);
+    rig_debug(RIG_DEBUG_VERBOSE, "function %s(2a): receive=%s\n",__func__ , buf);
     return RIG_OK;
   }
 
   if (!memcmp(buf, NETROTCTL_RET, strlen(NETROTCTL_RET))) {
    int rv = atoi(buf+strlen(NETROTCTL_RET));
-   rig_debug(RIG_DEBUG_VERBOSE, "function %s(2): ret=%d || receive=%d\n",__FUNCTION__ , ret, rv);
+   rig_debug(RIG_DEBUG_VERBOSE, "function %s(2): ret=%d || receive=%d\n",__func__ , ret, rv);
 	return atoi(buf+strlen(NETROTCTL_RET));
   }
 
@@ -82,7 +82,7 @@ static int ether_rot_open(ROT *rot)
   char cmd[CMD_MAX];
   char buf[BUF_MAX];
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
   /* elevation not need */
 
   len = sprintf(cmd, "rotor state\n");
@@ -104,7 +104,7 @@ static int ether_rot_open(ROT *rot)
 
 static int ether_rot_close(ROT *rot)
 {
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   /* clean signoff, no read back */
   write_block(&rot->state.rotport, "\n", 1);
@@ -118,7 +118,7 @@ static int ether_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
   char cmd[CMD_MAX];
   char buf[BUF_MAX];
 
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %f %f\n", __FUNCTION__,
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %f %f\n", __func__,
  			az, el);
 
   len = sprintf(cmd, "rotor move %d %d\n", (int)az, (int)el);
@@ -137,7 +137,7 @@ static int ether_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
   char buf[BUF_MAX];
   char mv[BUF_MAX];
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   len = sprintf(cmd, "rotor status\n");
 
@@ -164,7 +164,7 @@ static int ether_rot_stop(ROT *rot)
   char cmd[CMD_MAX];
   char buf[BUF_MAX];
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   len = sprintf(cmd, "rotor stop\n");
 
@@ -185,7 +185,7 @@ static int ether_rot_park(ROT *rot)
   char cmd[CMD_MAX];
   char buf[BUF_MAX];
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   len = sprintf(cmd, "rotor park\n");
 
@@ -202,7 +202,7 @@ static int ether_rot_reset(ROT *rot, rot_reset_t reset)
   char cmd[CMD_MAX];
   char buf[BUF_MAX];
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   // orig len = sprintf(cmd, "R %d\n", reset);
   len = sprintf(cmd, "reset\n");
@@ -224,7 +224,7 @@ static int ether_rot_move(ROT *rot, int direction, int speed)
   char cmd[CMD_MAX];
   char buf[BUF_MAX];
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   if (direction == 0)
     len = sprintf(cmd, "rotor cw %d\n", speed);

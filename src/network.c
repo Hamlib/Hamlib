@@ -302,7 +302,7 @@ void network_flush(hamlib_port_t *rp)
 
         if (ret != 0)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: ioctl err '%s'\n", __FUNCTION__, strerror(errno));
+            rig_debug(RIG_DEBUG_ERR, "%s: ioctl err '%s'\n", __func__, strerror(errno));
             break;
         }
 

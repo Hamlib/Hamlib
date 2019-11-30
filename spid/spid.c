@@ -48,7 +48,7 @@ static int spid_rot_init(ROT *rot)
 {
     struct spid_rot2prog_priv_data *priv;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     if (!rot || !rot->caps)
         return -RIG_EINVAL;
@@ -71,7 +71,7 @@ static int spid_rot_init(ROT *rot)
 
 static int spid_rot_cleanup(ROT *rot)
 {
-    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     if (!rot)
         return -RIG_EINVAL;
@@ -137,7 +137,7 @@ static int spid_rot1prog_rot_set_position(ROT *rot, azimuth_t az, elevation_t el
     char cmdstr[13];
     unsigned int u_az;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __FUNCTION__, az, el);
+    rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
 
     u_az = 360 + az;
 
@@ -172,7 +172,7 @@ static int spid_rot2prog_rot_set_position(ROT *rot, azimuth_t az, elevation_t el
     char cmdstr[13];
     unsigned int u_az, u_el;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __FUNCTION__, az, el);
+    rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
 
     if (!priv->az_resolution || !priv->el_resolution) {
         do {
@@ -232,7 +232,7 @@ static int spid_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     int retry_read = 0;
     char posbuf[12];
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     do {
         retval = write_block(&rs->rotport, "\x57\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x1F\x20", 13);
@@ -271,7 +271,7 @@ static int spid_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: (az, el) = (%.1f, %.1f)\n",
-		   __FUNCTION__, *az, *el);
+		   __func__, *az, *el);
 
     return RIG_OK;
 }
@@ -283,7 +283,7 @@ static int spid_rot_stop(ROT *rot)
     int retry_read = 0;
     char posbuf[12];
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     do {
         retval = write_block(&rs->rotport, "\x57\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0F\x20", 13);
@@ -311,7 +311,7 @@ static int spid_md01_rot2prog_rot_move(ROT *rot, int direction, int speed)
     int retval;
     char cmdstr[13];
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     switch (direction) {
         case ROT_MOVE_UP:
@@ -470,7 +470,7 @@ const struct rot_caps spid_md01_rot2prog_rot_caps = {
 
 DECLARE_INITROT_BACKEND(spid)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     rot_register(&spid_rot1prog_rot_caps);
     rot_register(&spid_rot2prog_rot_caps);

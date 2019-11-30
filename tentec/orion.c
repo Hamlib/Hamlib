@@ -281,7 +281,7 @@ static char which_receiver(const RIG *rig, vfo_t vfo)
 	case RIG_VFO_SUB: return 'S';
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported Receiver %s\n",
-				__FUNCTION__, rig_strvfo(vfo));
+				__func__, rig_strvfo(vfo));
 		return -RIG_EINVAL;
 	}
 }
@@ -304,7 +304,7 @@ static char which_vfo(const RIG *rig, vfo_t vfo)
 	case RIG_VFO_NONE: return 'N';
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n",
-				__FUNCTION__, rig_strvfo(vfo));
+				__func__, rig_strvfo(vfo));
 		return -RIG_EINVAL;
 	}
 }
@@ -408,7 +408,7 @@ int tt565_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     /* Test for valid binary mode return. */
 	if (respbuf[1] != which_vfo(rig,vfo) || resp_len <= 5) {
 		rig_debug(RIG_DEBUG_ERR, "%s: unexpected answer '%s'\n",
-					__FUNCTION__, respbuf);
+					__func__, respbuf);
 		return -RIG_EPROTO;
 	}
     /* Convert binary to integer, endedness independent */
@@ -526,7 +526,7 @@ int tt565_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 
 	if (respbuf[2] != 'V' || resp_len < 5) {
 		rig_debug(RIG_DEBUG_ERR, "%s: unexpected answer '%s'\n",
-					__FUNCTION__, respbuf);
+					__func__, respbuf);
 		return -RIG_EPROTO;
 	}
 
@@ -620,7 +620,7 @@ int tt565_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 	if (respbuf[1] != 'R' || respbuf[3] != 'M' || resp_len <= 4) {
 		rig_debug(RIG_DEBUG_ERR, "%s: unexpected answer '%s'\n",
-					__FUNCTION__, respbuf);
+					__func__, respbuf);
 		return -RIG_EPROTO;
 	}
 
@@ -636,7 +636,7 @@ int tt565_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 		case TT565_RTTY:	*mode = RIG_MODE_RTTY;  break;
 		default:
 			rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode '%c'\n",
-					__FUNCTION__, ttmode);
+					__func__, ttmode);
 			return -RIG_EPROTO;
 	}
     /* Orion may need some time to "recover" from ?RxM before ?RxF */
@@ -651,7 +651,7 @@ int tt565_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 	if (respbuf[1] != 'R' || respbuf[3] != 'F' || resp_len <= 4) {
 		rig_debug(RIG_DEBUG_ERR, "%s: unexpected answer '%s'\n",
-					__FUNCTION__, respbuf);
+					__func__, respbuf);
 		return -RIG_EPROTO;
 	}
 
@@ -704,7 +704,7 @@ int tt565_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 
 	if (respbuf[1] != 'R' || respbuf[3] != 'I' || resp_len <= 4) {
 		rig_debug(RIG_DEBUG_ERR, "%s: unexpected answer '%s'\n",
-					__FUNCTION__, respbuf);
+					__func__, respbuf);
 		return -RIG_EPROTO;
 	}
 
@@ -758,7 +758,7 @@ int tt565_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 
 	if (respbuf[1] != 'R' || respbuf[3] != 'R' || resp_len <= 4) {
 		rig_debug(RIG_DEBUG_ERR, "%s: unexpected answer '%s'\n",
-					__FUNCTION__, respbuf);
+					__func__, respbuf);
 		return -RIG_EPROTO;
 	}
 
@@ -814,7 +814,7 @@ int tt565_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 
 	if (respbuf[1] != 'R' || respbuf[3] != 'X' || resp_len <= 4) {
 		rig_debug(RIG_DEBUG_ERR, "%s: unexpected answer '%s'\n",
-					__FUNCTION__, respbuf);
+					__func__, respbuf);
 		return -RIG_EPROTO;
 	}
 
@@ -858,7 +858,7 @@ int tt565_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
 	if (respbuf[1] != 'S' || resp_len < 5) {
 		rig_debug(RIG_DEBUG_ERR, "%s: unexpected answer '%s'\n",
-					__FUNCTION__, respbuf);
+					__func__, respbuf);
 		return -RIG_EPROTO;
 	}
 
@@ -889,7 +889,7 @@ int tt565_reset(RIG *rig, reset_t reset)
 	if (retval != RIG_OK) return retval;
 	if (!strstr(reset_buf, "ORION START")) {
 		rig_debug(RIG_DEBUG_ERR, "%s: unexpected answer '%s'\n",
-					__FUNCTION__, reset_buf);
+					__func__, reset_buf);
 		return -RIG_EPROTO;
         }
 	return RIG_OK;
@@ -911,7 +911,7 @@ const char *tt565_get_info(RIG *rig)
 	retval = tt565_transaction (rig, "?V" EOM, 3, buf, &firmware_len);
 	if (retval != RIG_OK || firmware_len < 8) {
 			rig_debug(RIG_DEBUG_ERR,"%s: ack NG, len=%d\n",
-					__FUNCTION__, firmware_len);
+					__func__, firmware_len);
 		buf[0] = '\0';
 		return buf;
 	        }
@@ -1155,7 +1155,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		if (lvlbuf[1] != 'S' || lvl_len < 5 ) {
 			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
-					__FUNCTION__, lvlbuf);
+					__func__, lvlbuf);
 			return -RIG_EPROTO;
 		}
 		if (lvlbuf[2]=='T') {
@@ -1174,7 +1174,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		if (lvlbuf[1] != 'S' || lvl_len < 5) {
 			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
-					__FUNCTION__, lvlbuf);
+					__func__, lvlbuf);
 			return -RIG_EPROTO;
 		}
 
@@ -1203,7 +1203,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		if (lvlbuf[1] != 'T' || lvlbuf[2] != 'P' || lvl_len < 4) {
 			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
-					__FUNCTION__, lvlbuf);
+					__func__, lvlbuf);
 			return -RIG_EPROTO;
 		}
 
@@ -1221,7 +1221,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		if (lvlbuf[1] != 'R' || lvlbuf[3] != 'A' || lvl_len < 5) {
 			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
-					__FUNCTION__, lvlbuf);
+					__func__, lvlbuf);
 			return -RIG_EPROTO;
 			}
 
@@ -1247,7 +1247,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		if (lvlbuf[1] != 'U' || lvl_len < 4) {
 			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
-					__FUNCTION__, lvlbuf);
+					__func__, lvlbuf);
 			return -RIG_EPROTO;
 		}
 
@@ -1265,7 +1265,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		if (lvlbuf[1] != 'R' || lvlbuf[3] != 'P' || lvl_len < 5) {
 			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
-					__FUNCTION__, lvlbuf);
+					__func__, lvlbuf);
 			return -RIG_EPROTO;
 		}
 
@@ -1283,7 +1283,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		if (lvlbuf[1] != 'R' || lvlbuf[3] != 'G' || lvl_len < 5) {
 			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
-					__FUNCTION__, lvlbuf);
+					__func__, lvlbuf);
 			return -RIG_EPROTO;
 		}
 
@@ -1301,7 +1301,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		if (lvlbuf[1] != 'R' || lvlbuf[3] != 'T' || lvl_len < 5) {
 			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
-					__FUNCTION__, lvlbuf);
+					__func__, lvlbuf);
 			return -RIG_EPROTO;
 		}
 
@@ -1324,7 +1324,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		if (lvlbuf[1] != 'R' || lvlbuf[3] != 'E' || lvl_len < 5) {
 			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
-					__FUNCTION__, lvlbuf);
+					__func__, lvlbuf);
 			return -RIG_EPROTO;
 		}
 
@@ -1342,7 +1342,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		if (lvlbuf[1] != 'R' || lvlbuf[3] != 'S' || lvl_len < 5) {
 			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
-					__FUNCTION__, lvlbuf);
+					__func__, lvlbuf);
 			return -RIG_EPROTO;
 		}
 
@@ -1357,7 +1357,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		if (lvlbuf[1] != 'T' || lvlbuf[2] != 'M' || lvl_len < 4) {
 			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
-					__FUNCTION__, lvlbuf);
+					__func__, lvlbuf);
 			return -RIG_EPROTO;
 		}
 
@@ -1372,7 +1372,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		if (lvlbuf[1] != 'T' || lvlbuf[2] != 'S' || lvl_len < 4) {
 			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
-					__FUNCTION__, lvlbuf);
+					__func__, lvlbuf);
 			return -RIG_EPROTO;
 		}
 
@@ -1387,7 +1387,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		if (lvlbuf[1] != 'C' || lvlbuf[2] != 'T' || lvl_len < 4) {
 			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
-					__FUNCTION__, lvlbuf);
+					__func__, lvlbuf);
 			return -RIG_EPROTO;
 		}
 		val->i = atoi(lvlbuf+3);
@@ -1401,7 +1401,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		if (lvlbuf[1] != 'C' || lvlbuf[2] != 'S' || lvl_len < 4) {
 			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
-					__FUNCTION__, lvlbuf);
+					__func__, lvlbuf);
 			return -RIG_EPROTO;
 		}
 		val->i = atoi(lvlbuf+3);
@@ -1419,7 +1419,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		if (lvlbuf[1] != 'R' || lvlbuf[3] != 'N' || lvlbuf[4] != 'B' ||
 			lvl_len < 6 ) {
 				rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
-					__FUNCTION__, lvlbuf);
+					__func__, lvlbuf);
 				return -RIG_EPROTO;
 			}
 		val->f = atof(lvlbuf+5)/9.0;	/* Note 0-9 -> 0.0 - 1.0 */
@@ -1432,7 +1432,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			return retval;
 		if (lvlbuf[1] != 'T' || lvlbuf[2] != 'H' || lvl_len < 4) {
 			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
-				__FUNCTION__, lvlbuf);
+				__func__, lvlbuf);
 			return -RIG_EPROTO;
 		}
 		val->f = 10.0*atof(lvlbuf+3);
@@ -1445,7 +1445,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			return retval;
 		if (lvlbuf[1] != 'T' || lvlbuf[2] != 'G' || lvl_len < 4) {
 			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
-				__FUNCTION__, lvlbuf);
+				__func__, lvlbuf);
 			return -RIG_EPROTO;
 		}
 		val->f = 0.01 * atof(lvlbuf+3);
@@ -1458,7 +1458,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                         return retval;
                 if (lvlbuf[1] != 'T' || lvlbuf[2] != 'A' || lvl_len < 4) {
                         rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
-                                __FUNCTION__, lvlbuf);
+                                __func__, lvlbuf);
                         return -RIG_EPROTO;
                 }
                 val->f = 0.01 * atof(lvlbuf+3);
@@ -1549,7 +1549,7 @@ int tt565_vfo_op(RIG * rig, vfo_t vfo, vfo_op_t op)
 
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported op %d\n",
-				__FUNCTION__, op);
+				__func__, op);
 		return -RIG_EINVAL;
 	}
 
@@ -1755,7 +1755,7 @@ int tt565_set_ant(RIG * rig, vfo_t vfo, ant_t ant)
                                 return retval;
 		if (resp_len != 7 || respbuf[1] != 'K' || respbuf[2] != 'A') {
 			rig_debug(RIG_DEBUG_ERR,"%s; tt565_set_ant: ?KA NG %s\n",
-				__FUNCTION__, respbuf);
+				__func__, respbuf);
 			return -RIG_EPROTO;
 		}
 
@@ -1828,7 +1828,7 @@ int tt565_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
                                 return retval;
 		if (respbuf[1] != 'K' || respbuf[2] != 'A' || resp_len != 7) {
 			rig_debug(RIG_DEBUG_ERR,"%s; tt565_get_ant: NG %s\n",
-				__FUNCTION__, respbuf);
+				__func__, respbuf);
 			return -RIG_EPROTO;
 		}
 		/* Look for first occurrence of M or S in ant 1, 2, 3 characters */

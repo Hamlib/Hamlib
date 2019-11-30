@@ -69,7 +69,7 @@ pcrotor_move(ROT *rot, int direction, int speed)
 {
  unsigned char outputvalue;
 
- rig_debug(RIG_DEBUG_TRACE, "%s called: %d %d\n", __FUNCTION__, direction, speed);
+ rig_debug(RIG_DEBUG_TRACE, "%s called: %d %d\n", __func__, direction, speed);
 
  switch(direction) {
 	 case ROT_MOVE_CCW:

@@ -67,7 +67,7 @@ static int netrotctl_open(ROT *rot)
   char cmd[CMD_MAX];
   char buf[BUF_MAX];
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
 
   len = sprintf(cmd, "\\dump_state\n");
@@ -114,7 +114,7 @@ static int netrotctl_open(ROT *rot)
 
 static int netrotctl_close(ROT *rot)
 {
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   /* clean signoff, no read back */
   write_block(&rot->state.rotport, "q\n", 2);
@@ -128,7 +128,7 @@ static int netrotctl_set_position(ROT *rot, azimuth_t az, elevation_t el)
   char cmd[CMD_MAX];
   char buf[BUF_MAX];
 
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %f %f\n", __FUNCTION__,
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %f %f\n", __func__,
  			az, el);
 
   len = sprintf(cmd, "P %f %f\n", az, el);
@@ -146,7 +146,7 @@ static int netrotctl_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
   char cmd[CMD_MAX];
   char buf[BUF_MAX];
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   len = sprintf(cmd, "p\n");
 
@@ -172,7 +172,7 @@ static int netrotctl_stop(ROT *rot)
   char cmd[CMD_MAX];
   char buf[BUF_MAX];
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   len = sprintf(cmd, "S\n");
 
@@ -190,7 +190,7 @@ static int netrotctl_park(ROT *rot)
   char cmd[CMD_MAX];
   char buf[BUF_MAX];
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   len = sprintf(cmd, "K\n");
 
@@ -207,7 +207,7 @@ static int netrotctl_reset(ROT *rot, rot_reset_t reset)
   char cmd[CMD_MAX];
   char buf[BUF_MAX];
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   len = sprintf(cmd, "R %d\n", reset);
 
@@ -224,7 +224,7 @@ static int netrotctl_move(ROT *rot, int direction, int speed)
   char cmd[CMD_MAX];
   char buf[BUF_MAX];
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   len = sprintf(cmd, "M %d %d\n", direction, speed);
 
@@ -241,7 +241,7 @@ static const char *netrotctl_get_info(ROT *rot)
   char cmd[CMD_MAX];
   static char buf[BUF_MAX];
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   len = sprintf(cmd, "_\n");
 

@@ -385,7 +385,7 @@ int frg100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
   if (retval < 1) {
 	rig_debug(RIG_DEBUG_ERR,"%s: read meter failed %d\n",
-			__FUNCTION__,retval);
+			__func__,retval);
 
 	return retval < 0 ? retval : -RIG_EIO;
   }

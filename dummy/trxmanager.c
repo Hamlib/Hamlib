@@ -225,14 +225,14 @@ static int vfo_curr(RIG *rig, vfo_t vfo)
  */
 static int read_transaction(RIG *rig, char *response, int response_len)
 {
-    rig_debug(RIG_DEBUG_TRACE, "%s\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
 
     struct rig_state *rs = &rig->state;
 
     char *delims="\n";
     int len = read_string(&rs->rigport, response, response_len, delims, strlen(delims));
     if (len <= 0) {
-        rig_debug(RIG_DEBUG_ERR,"%s: read_string error=%d\n",__FUNCTION__,len);
+        rig_debug(RIG_DEBUG_ERR,"%s: read_string error=%d\n",__func__,len);
         return -RIG_EPROTO;
     }
     return RIG_OK;
@@ -245,7 +245,7 @@ static int read_transaction(RIG *rig, char *response, int response_len)
 static int trxmanager_init(RIG *rig)
 {
 
-    rig_debug(RIG_DEBUG_TRACE, "%s version %s\n", __FUNCTION__, BACKEND_VER);
+    rig_debug(RIG_DEBUG_TRACE, "%s version %s\n", __func__, BACKEND_VER);
 
     struct trxmanager_priv_data *priv = (struct trxmanager_priv_data *)malloc(sizeof(struct trxmanager_priv_data));
 
@@ -280,7 +280,7 @@ static int trxmanager_open(RIG *rig) {
     int retval;
     char response[MAXCMDLEN] = "";
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s version %s\n", __FUNCTION__, BACKEND_VER);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s version %s\n", __func__, BACKEND_VER);
 
     struct rig_state *rs = &rig->state;
     struct trxmanager_priv_data *priv = (struct trxmanager_priv_data *) rig->state.priv;
@@ -288,17 +288,17 @@ static int trxmanager_open(RIG *rig) {
     rs->rigport.timeout = 10000; // long timeout for antenna switching/tuning
     retval = read_transaction(rig, response, sizeof(response));
     if (retval != RIG_OK) {
-        rig_debug(RIG_DEBUG_ERR,"%s read_transaction failed\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_ERR,"%s read_transaction failed\n", __func__);
     }
     if (strlen(response)==0) {
-        rig_debug(RIG_DEBUG_ERR,"%s response len==0\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_ERR,"%s response len==0\n", __func__);
         return -RIG_EPROTO;
     }
 
     // Should have rig info now
     strtok(response,";\r\n");
     strncpy(priv->info,&response[2],sizeof(priv->info));
-    rig_debug(RIG_DEBUG_VERBOSE,"%s connected to %s\n", __FUNCTION__, priv->info);
+    rig_debug(RIG_DEBUG_VERBOSE,"%s connected to %s\n", __func__, priv->info);
 
     // Turn off active messages
     char *cmd = "AI0;";
@@ -308,25 +308,25 @@ static int trxmanager_open(RIG *rig) {
     }
     retval = read_transaction(rig, response, sizeof(response));
     if (retval != RIG_OK) {
-        rig_debug(RIG_DEBUG_ERR,"%s read_transaction failed\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_ERR,"%s read_transaction failed\n", __func__);
     }
     if (strncmp("AI0;",response,4)!=0) {
-        rig_debug(RIG_DEBUG_ERR,"%s AI invalid response=%s\n", __FUNCTION__, response);
+        rig_debug(RIG_DEBUG_ERR,"%s AI invalid response=%s\n", __func__, response);
         return -RIG_EINVAL;
     }
-    rig_debug(RIG_DEBUG_VERBOSE,"%s AI response=%s\n", __FUNCTION__, response);
+    rig_debug(RIG_DEBUG_VERBOSE,"%s AI response=%s\n", __func__, response);
 
     cmd = "FN;";
     retval = write_block(&rs->rigport, cmd, strlen(cmd));
     if (retval != RIG_OK) {
-        rig_debug(RIG_DEBUG_ERR,"%s FN; write failed\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_ERR,"%s FN; write failed\n", __func__);
     }
     retval = read_transaction(rig, response, sizeof(response));
     if (retval != RIG_OK) {
-        rig_debug(RIG_DEBUG_ERR,"%s read_transaction failed\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_ERR,"%s read_transaction failed\n", __func__);
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE,"%s FN response=%s\n", __FUNCTION__, response);
+    rig_debug(RIG_DEBUG_VERBOSE,"%s FN response=%s\n", __func__, response);
     priv->vfo_curr = RIG_VFO_A;
 
     return retval;
@@ -337,7 +337,7 @@ static int trxmanager_open(RIG *rig) {
  * Assumes rig!=NULL
  */
 static int trxmanager_close(RIG *rig) {
-    rig_debug(RIG_DEBUG_TRACE, "%s\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
     return RIG_OK;
 }
 
@@ -364,7 +364,7 @@ static int trxmanager_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     int retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __FUNCTION__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
               rig_strvfo(vfo));
 
     struct rig_state *rs = &rig->state;
@@ -372,7 +372,7 @@ static int trxmanager_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if (check_vfo(vfo) == FALSE) {
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n",
-                  __FUNCTION__, rig_strvfo(vfo));
+                  __func__, rig_strvfo(vfo));
         return -RIG_EINVAL;
     }
 
@@ -383,7 +383,7 @@ static int trxmanager_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         priv->vfo_curr = vfo;
 
         rig_debug(RIG_DEBUG_VERBOSE, "%s: get_freq2 vfo=%s\n",
-                  __FUNCTION__, rig_strvfo(vfo));
+                  __func__, rig_strvfo(vfo));
     }
 
     char cmd[MAXCMDLEN];
@@ -397,15 +397,15 @@ static int trxmanager_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     retval = read_transaction(rig, response, sizeof(response));
     if (retval != RIG_OK) {
-        rig_debug(RIG_DEBUG_ERR,"%s read_transaction failed\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_ERR,"%s read_transaction failed\n", __func__);
     }
     *freq = 0;
     int n = sscanf(&response[2],"%lg",freq);
     if (n != 1) {
-        rig_debug(RIG_DEBUG_ERR, "%s: can't parse freq from %s", __FUNCTION__,response);
+        rig_debug(RIG_DEBUG_ERR, "%s: can't parse freq from %s", __func__,response);
     }
     if (*freq == 0) {
-        rig_debug(RIG_DEBUG_ERR, "%s: freq==0??\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_ERR, "%s: freq==0??\n", __func__);
         return -RIG_EPROTO;
     }
     return retval;
@@ -419,7 +419,7 @@ static int trxmanager_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     int retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s freq=%.1f\n", __FUNCTION__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s freq=%.1f\n", __func__,
               rig_strvfo(vfo), freq);
 
     struct rig_state *rs = &rig->state;
@@ -427,7 +427,7 @@ static int trxmanager_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (check_vfo(vfo) == FALSE) {
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n",
-                  __FUNCTION__, rig_strvfo(vfo));
+                  __func__, rig_strvfo(vfo));
         return -RIG_EINVAL;
     }
 
@@ -451,7 +451,7 @@ static int trxmanager_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     retval = read_transaction(rig, response, sizeof(response)); // get response but don't care
     if (retval != RIG_OK) {
-        rig_debug(RIG_DEBUG_ERR,"%s read_transaction failed\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_ERR,"%s read_transaction failed\n", __func__);
     }
 
     return RIG_OK;
@@ -465,13 +465,13 @@ static int trxmanager_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     int retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: ptt=%d\n", __FUNCTION__, ptt);
+    rig_debug(RIG_DEBUG_TRACE, "%s: ptt=%d\n", __func__, ptt);
 
     struct rig_state *rs = &rig->state;
 
     if (check_vfo(vfo) == FALSE) {
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n",
-                  __FUNCTION__, rig_strvfo(vfo));
+                  __func__, rig_strvfo(vfo));
         return -RIG_EINVAL;
     }
 
@@ -487,10 +487,10 @@ static int trxmanager_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     retval = read_transaction(rig, response, sizeof(response));
     if (retval != RIG_OK) {
-        rig_debug(RIG_DEBUG_ERR,"%s read_transaction failed\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_ERR,"%s read_transaction failed\n", __func__);
     }
     if (strlen(response)!=5 || strstr(response, cmd)==NULL) {
-        rig_debug(RIG_DEBUG_ERR, "%s invalid response='%s'\n", __FUNCTION__, response);
+        rig_debug(RIG_DEBUG_ERR, "%s invalid response='%s'\n", __func__, response);
         return -RIG_EPROTO;
     }
 
@@ -505,7 +505,7 @@ static int trxmanager_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
     int retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __FUNCTION__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
               rig_strvfo(vfo));
 
     struct rig_state *rs = &rig->state;
@@ -520,13 +520,13 @@ static int trxmanager_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
     retval = read_transaction(rig, response, sizeof(response));
     if (retval != RIG_OK) {
-        rig_debug(RIG_DEBUG_ERR,"%s read_transaction failed\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_ERR,"%s read_transaction failed\n", __func__);
     }
     if (strlen(response)!= 40) {
-        rig_debug(RIG_DEBUG_ERR, "%s: invalid response='%s'\n", __FUNCTION__, response);
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid response='%s'\n", __func__, response);
         return -RIG_EPROTO;
     }
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: IF response len=%d\n", __FUNCTION__, (int)strlen(response));
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: IF response len=%d\n", __func__, (int)strlen(response));
     char cptt = response[28];
     *ptt = cptt == '0' ? 0 : 1;
 
@@ -541,7 +541,7 @@ static int trxmanager_set_split_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_
 {
     int retval;
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s mode=%s width=%d\n",
-              __FUNCTION__, rig_strvfo(vfo), rig_strrmode(mode), (int)width);
+              __func__, rig_strvfo(vfo), rig_strrmode(mode), (int)width);
     retval = trxmanager_set_mode(rig,RIG_VFO_B,mode,width);
     return retval;
 }
@@ -555,13 +555,13 @@ static int trxmanager_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t widt
     int retval;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s mode=%s width=%d\n",
-              __FUNCTION__, rig_strvfo(vfo), rig_strrmode(mode), (int)width);
+              __func__, rig_strvfo(vfo), rig_strrmode(mode), (int)width);
 
     struct rig_state *rs = &rig->state;
 
     if (check_vfo(vfo) == FALSE) {
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n",
-                  __FUNCTION__, rig_strvfo(vfo));
+                  __func__, rig_strvfo(vfo));
         return -RIG_EINVAL;
     }
 
@@ -604,7 +604,7 @@ static int trxmanager_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t widt
         ttmode=FLRIG_MODE_PKTAM;
         break;
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n",__FUNCTION__,rig_strrmode(mode));
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n",__func__,rig_strrmode(mode));
         return -RIG_EINVAL;
 
     }
@@ -620,9 +620,9 @@ static int trxmanager_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t widt
     // Get the response
     retval = read_transaction(rig, response, sizeof(response));
     if (retval != RIG_OK) {
-        rig_debug(RIG_DEBUG_ERR,"%s read_transaction failed\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_ERR,"%s read_transaction failed\n", __func__);
     }
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: response=%s\n", __FUNCTION__,response);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: response=%s\n", __func__,response);
 
     // Can't set BW on TRXManger as of 20180427 -- can only read it
 
@@ -637,7 +637,7 @@ static int trxmanager_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *wi
 {
     int retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __FUNCTION__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
               rig_strvfo(vfo));
 
     struct rig_state *rs = &rig->state;
@@ -645,7 +645,7 @@ static int trxmanager_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *wi
 
     if (check_vfo(vfo) == FALSE) {
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n",
-                  __FUNCTION__, rig_strvfo(vfo));
+                  __func__, rig_strvfo(vfo));
         return -RIG_EINVAL;
     }
 
@@ -655,7 +655,7 @@ static int trxmanager_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *wi
         }
         priv->vfo_curr = vfo;
     }
-    rig_debug(RIG_DEBUG_TRACE, "%s: using vfo=%s\n", __FUNCTION__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: using vfo=%s\n", __func__,
               rig_strvfo(vfo));
 
     char cmd[MAXCMDLEN];
@@ -668,12 +668,12 @@ static int trxmanager_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *wi
 
     retval = read_transaction(rig, response, sizeof(response));
     if (retval != RIG_OK) {
-        rig_debug(RIG_DEBUG_ERR,"%s read_transaction failed\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_ERR,"%s read_transaction failed\n", __func__);
     }
     char tmode;
     int n = sscanf(response,"MD%c;",&tmode);
     if (n != 1 || strlen(response)!=6) {
-        rig_debug(RIG_DEBUG_ERR, "%s: invalid response='%s'\n", __FUNCTION__, response);
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid response='%s'\n", __func__, response);
         return -RIG_EPROTO;
     }
     switch(tmode) {
@@ -708,10 +708,10 @@ static int trxmanager_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *wi
         *mode=RIG_MODE_PKTUSB;
         break;
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unknown mode='%c'\n", __FUNCTION__, tmode);
+        rig_debug(RIG_DEBUG_ERR, "%s: unknown mode='%c'\n", __func__, tmode);
         return -RIG_ENIMPL;
     }
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: mode='%s'\n", __FUNCTION__, rig_strrmode(*mode));
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: mode='%s'\n", __func__, rig_strrmode(*mode));
 
     // now get the bandwidth
     snprintf(cmd,sizeof(cmd),"BW;");
@@ -722,17 +722,17 @@ static int trxmanager_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *wi
 
     retval = read_transaction(rig, response, sizeof(response));
     if (retval != RIG_OK) {
-        rig_debug(RIG_DEBUG_ERR,"%s read_transaction failed\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_ERR,"%s read_transaction failed\n", __func__);
     }
 
     if (strncmp(response,"BW",2)!=0) {
-        rig_debug(RIG_DEBUG_ERR, "%s: invalid response='%s'\n", __FUNCTION__, response);
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid response='%s'\n", __func__, response);
         return -RIG_EPROTO;
     }
     long iwidth = 0;
     n = sscanf(response,"BW%ld;",&iwidth);
     if (n != 1) {
-        rig_debug(RIG_DEBUG_ERR,"%s bandwidth scan failed '%s'\n", __FUNCTION__,strtok(response,"\r\n"));
+        rig_debug(RIG_DEBUG_ERR,"%s bandwidth scan failed '%s'\n", __func__,strtok(response,"\r\n"));
         return -RIG_EPROTO;
     }
     *width=iwidth;
@@ -744,7 +744,7 @@ static int trxmanager_set_vfo(RIG *rig, vfo_t vfo)
 {
     int retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __FUNCTION__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
               rig_strvfo(vfo));
 
     struct rig_state *rs = &rig->state;
@@ -752,7 +752,7 @@ static int trxmanager_set_vfo(RIG *rig, vfo_t vfo)
 
     if (check_vfo(vfo) == FALSE) {
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n",
-                  __FUNCTION__, rig_strvfo(vfo));
+                  __func__, rig_strvfo(vfo));
         return -RIG_EINVAL;
     }
     if (vfo == RIG_VFO_TX) {
@@ -776,7 +776,7 @@ static int trxmanager_set_vfo(RIG *rig, vfo_t vfo)
     rs->tx_vfo = RIG_VFO_B; // always VFOB
     retval = read_transaction(rig, response, sizeof(response));
     if (retval != RIG_OK) {
-        rig_debug(RIG_DEBUG_ERR,"%s read_transaction failed\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_ERR,"%s read_transaction failed\n", __func__);
     }
 
     return RIG_OK;
@@ -788,7 +788,7 @@ static int trxmanager_get_vfo(RIG *rig, vfo_t *vfo)
     // So we maintain our own internal state during set_vfo
     // This keeps the hamlib interface consistent with other rigs
 
-    rig_debug(RIG_DEBUG_TRACE, "%s\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
 
     struct trxmanager_priv_data *priv = (struct trxmanager_priv_data *) rig->state.priv;
 
@@ -811,13 +811,13 @@ static int trxmanager_get_vfo(RIG *rig, vfo_t *vfo)
 
     if (check_vfo(*vfo) == FALSE) {
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n",
-                  __FUNCTION__, rig_strvfo(*vfo));
+                  __func__, rig_strvfo(*vfo));
         return -RIG_EINVAL;
     }
 
     priv->vfo_curr = *vfo;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __FUNCTION__,
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__,
               rig_strvfo(*vfo));
 
     return RIG_OK;
@@ -830,14 +830,14 @@ static int trxmanager_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
     int retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s freq=%.1f\n", __FUNCTION__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s freq=%.1f\n", __func__,
               rig_strvfo(vfo), tx_freq);
 
     struct rig_state *rs = &rig->state;
 
     if (check_vfo(vfo) == FALSE) {
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n",
-                  __FUNCTION__, rig_strvfo(vfo));
+                  __func__, rig_strvfo(vfo));
         return -RIG_EINVAL;
     }
 
@@ -850,7 +850,7 @@ static int trxmanager_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     }
     retval = read_transaction(rig, response, sizeof(response)); // get response but don't care
     if (retval != RIG_OK) {
-        rig_debug(RIG_DEBUG_ERR,"%s read_transaction failed\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_ERR,"%s read_transaction failed\n", __func__);
     }
 
     return RIG_OK;
@@ -862,7 +862,7 @@ static int trxmanager_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
  */
 static int trxmanager_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __FUNCTION__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
               rig_strvfo(vfo));
     int retval = trxmanager_get_freq(rig, RIG_VFO_B, tx_freq);
     return retval;
@@ -876,7 +876,7 @@ static int trxmanager_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx
 {
     int retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: tx_vfo=%s\n", __FUNCTION__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: tx_vfo=%s\n", __func__,
               rig_strvfo(tx_vfo));
 
     struct rig_state *rs = &rig->state;
@@ -910,11 +910,11 @@ static int trxmanager_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx
 
     retval = read_transaction(rig, response, sizeof(response)); // get response but don't care
     if (retval != RIG_OK) {
-        rig_debug(RIG_DEBUG_ERR,"%s read_transaction failed\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_ERR,"%s read_transaction failed\n", __func__);
     }
 
     if (strlen(response)!=6 || strstr(response, cmd)==NULL) {
-        rig_debug(RIG_DEBUG_ERR, "%s invalid response='%s'\n", __FUNCTION__, response);
+        rig_debug(RIG_DEBUG_ERR, "%s invalid response='%s'\n", __func__, response);
         return -RIG_EPROTO;
     }
 
@@ -929,7 +929,7 @@ static int trxmanager_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *
 {
     int retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
     struct rig_state *rs = &rig->state;
     struct trxmanager_priv_data *priv = (struct trxmanager_priv_data *) rig->state.priv;
 
@@ -942,14 +942,14 @@ static int trxmanager_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *
     }
     retval = read_transaction(rig, response, sizeof(response)); // get response but don't care
     if (retval != RIG_OK) {
-        rig_debug(RIG_DEBUG_ERR,"%s read_transaction failed\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_ERR,"%s read_transaction failed\n", __func__);
     }
 
     *tx_vfo = RIG_VFO_B;
     int tsplit=0;
     int n = sscanf(response,"SP%d",&tsplit);
     if (n == 0) {
-        rig_debug(RIG_DEBUG_ERR, "%s error getting split from '%s'\n", __FUNCTION__,response);
+        rig_debug(RIG_DEBUG_ERR, "%s error getting split from '%s'\n", __func__,response);
     }
     *split = tsplit;
     priv->split = *split;
@@ -964,7 +964,7 @@ static int trxmanager_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq, rmod
 {
     int retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
 
     struct rig_state *rs = &rig->state;
     struct trxmanager_priv_data *priv = (struct trxmanager_priv_data *) rig->state.priv;
@@ -983,10 +983,10 @@ static int trxmanager_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq, rmod
     }
     retval = read_transaction(rig, response, sizeof(response));
     if (retval != RIG_OK) {
-        rig_debug(RIG_DEBUG_ERR,"%s read_transaction failed\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_ERR,"%s read_transaction failed\n", __func__);
     }
     if (strlen(response)!=16 || strstr(response, cmd)==NULL) {
-        rig_debug(RIG_DEBUG_ERR, "%s invalid response='%s'\n", __FUNCTION__, response);
+        rig_debug(RIG_DEBUG_ERR, "%s invalid response='%s'\n", __func__, response);
         FILE *fp=fopen("debug.txt","w+");
         fprintf(fp,"XT response=%s\n",response);
         fclose(fp);
@@ -1020,7 +1020,7 @@ static int trxmanager_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *freq, rmo
 static const char *trxmanager_get_info(RIG *rig)
 {
     struct trxmanager_priv_data *priv = (struct trxmanager_priv_data *) rig->state.priv;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     return priv->info;
 }

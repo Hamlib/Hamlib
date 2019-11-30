@@ -533,7 +533,7 @@ int icom_init(RIG *rig)
     priv->tx_vfo = RIG_VFO_NONE;
     priv->rx_vfo = RIG_VFO_NONE;
     priv->curr_vfo = RIG_VFO_NONE;
-    rig_debug(RIG_DEBUG_TRACE, "%s: done\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: done\n", __func__);
 
     return RIG_OK;
 }
@@ -586,7 +586,7 @@ int icom_rig_open(RIG *rig)
 
         if (retval == RIG_OK)
         {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo on detected\n",__FUNCTION__);
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo on detected\n",__func__);
             return RIG_OK;
         }
 
@@ -595,7 +595,7 @@ int icom_rig_open(RIG *rig)
 
         if (retval == RIG_OK)
         {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo off detected\n",__FUNCTION__);
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo off detected\n",__func__);
             return RIG_OK;
         }
     }
@@ -720,7 +720,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     // Pick the appropriate VFO when VFO_TX is requested
     if (vfo == RIG_VFO_TX)
     {
-        rig_debug(RIG_DEBUG_TRACE,"%s: VFO_TX requested, vfo=%s\n",__FUNCTION__,rig_strvfo(vfo));
+        rig_debug(RIG_DEBUG_TRACE,"%s: VFO_TX requested, vfo=%s\n",__func__,rig_strvfo(vfo));
         if (priv->split_on)
         {
             vfo = rig->state.vfo_list & RIG_VFO_B ? RIG_VFO_B : RIG_VFO_SUB;
@@ -735,7 +735,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     // Pick the appropriate VFO when VFO_RX is requested
     if (vfo == RIG_VFO_RX)
     {
-        rig_debug(RIG_DEBUG_TRACE,"%s: VFO_RX requested, vfo=%s\n",__FUNCTION__,rig_strvfo(vfo));
+        rig_debug(RIG_DEBUG_TRACE,"%s: VFO_RX requested, vfo=%s\n",__func__,rig_strvfo(vfo));
         vfo = rig->state.vfo_list & RIG_VFO_B ? RIG_VFO_A : RIG_VFO_MAIN;
     }
 
@@ -957,7 +957,7 @@ pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode)
     if (retval != RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: protocol error (%#.2x), "
-                  "len=%d\n", __FUNCTION__, resbuf[0], res_len);
+                  "len=%d\n", __func__, resbuf[0], res_len);
         return 0;   /* use default */
     }
 
@@ -1043,14 +1043,14 @@ int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width)
     if (retval != RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: protocol error (%#.2x), "
-                  "len=%d\n", __FUNCTION__, ackbuf[0], ack_len);
+                  "len=%d\n", __func__, ackbuf[0], ack_len);
         return retval;
     }
 
     if (ack_len != 1 || ackbuf[0] != ACK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: command not supported ? (%#.2x), "
-                  "len=%d\n", __FUNCTION__, ackbuf[0], ack_len);
+                  "len=%d\n", __func__, ackbuf[0], ack_len);
         return retval;
     }
 
@@ -1121,7 +1121,7 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
         if (retval != RIG_OK)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: protocol error (%#.2x), len=%d\n", __FUNCTION__,
+            rig_debug(RIG_DEBUG_ERR, "%s: protocol error (%#.2x), len=%d\n", __func__,
                       ackbuf[0], ack_len);
         }
         else
@@ -1129,7 +1129,7 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             if (ack_len != 1 || ackbuf[0] != ACK)
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: command not supported ? (%#.2x), len=%d\n",
-                          __FUNCTION__, ackbuf[0], ack_len);
+                          __func__, ackbuf[0], ack_len);
             }
         }
     }
@@ -1250,7 +1250,7 @@ int icom_get_mode_with_data(RIG *rig, vfo_t vfo, rmode_t *mode,
 
         if (retval != RIG_OK)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: protocol error (%#.2x), len=%d\n", __FUNCTION__,
+            rig_debug(RIG_DEBUG_ERR, "%s: protocol error (%#.2x), len=%d\n", __func__,
                       databuf[0], data_len);
             return -RIG_ERJCTED;
         }
@@ -1270,7 +1270,7 @@ int icom_get_mode_with_data(RIG *rig, vfo_t vfo, rmode_t *mode,
                which is filter preset
                number, whatever it is we
                ignore it */
-            rig_debug(RIG_DEBUG_ERR, "%s: wrong frame len=%d\n", __FUNCTION__, data_len);
+            rig_debug(RIG_DEBUG_ERR, "%s: wrong frame len=%d\n", __func__, data_len);
             return -RIG_ERJCTED;
         }
 
@@ -1403,7 +1403,7 @@ int icom_get_vfo(RIG *rig, vfo_t *vfo)
 
     if (ack_len != 3)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s wrong frame len=%d\n", __FUNCTION__, ack_len);
+        rig_debug(RIG_DEBUG_ERR, "%s wrong frame len=%d\n", __func__, ack_len);
         return -RIG_ERJCTED;
     }
 
@@ -3239,7 +3239,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported split %d", __FUNCTION__, split);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported split %d", __func__, split);
         return -RIG_EINVAL;
     }
 
@@ -3286,7 +3286,7 @@ int icom_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
     if (split_len != 1)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: wrong frame len=%d\n",
-                  __FUNCTION__, split_len);
+                  __func__, split_len);
         return -RIG_ERJCTED;
     }
 
@@ -4777,7 +4777,7 @@ int icom_decode_event(RIG *rig)
     if (frm_len == -RIG_ETIMEOUT)
     {
         rig_debug(RIG_DEBUG_VERBOSE,
-                  "%s: icom_decode got a timeout before the first character\n",__FUNCTION__);
+                  "%s: icom_decode got a timeout before the first character\n",__func__);
     }
 
     if (frm_len < 0)
@@ -4788,7 +4788,7 @@ int icom_decode_event(RIG *rig)
     switch (buf[frm_len - 1])
     {
     case COL:
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: icom_decode saw a collision\n",__FUNCTION__);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: icom_decode saw a collision\n",__func__);
         /* Collision */
         return -RIG_BUSBUSY;
 
@@ -5260,7 +5260,7 @@ DECLARE_PROBERIG_BACKEND(icom)
             rig_debug(RIG_DEBUG_VERBOSE,
                       "%s, found OptoScan%c%c%c, software version %d.%d, "
                       "interface version %d.%d, at %#x\n",
-                      __FUNCTION__,
+                      __func__,
                       buf[2], buf[3], buf[4],
                       buf[5] >> 4, buf[5] & 0xf,
                       buf[6] >> 4, buf[6] & 0xf,
@@ -5307,7 +5307,7 @@ DECLARE_PROBERIG_BACKEND(icom)
  */
 DECLARE_INITRIG_BACKEND(icom)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n",__FUNCTION__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n",__func__);
 
     rig_register(&ic703_caps);
     rig_register(&ic706_caps);

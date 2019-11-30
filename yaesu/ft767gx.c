@@ -381,7 +381,7 @@ int ft767_init(RIG *rig) {
   if (!p)			/* whoops! memory shortage! */
     return -RIG_ENOMEM;
 
-  rig_debug(RIG_DEBUG_TRACE,"%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_TRACE,"%s called\n", __func__);
 
   /* TODO: read pacing from preferences */
 
@@ -408,7 +408,7 @@ int ft767_cleanup(RIG *rig) {
   if (!rig)
     return -RIG_EINVAL;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
   if (rig->state.priv)
     free(rig->state.priv);
@@ -432,14 +432,14 @@ int ft767_open(RIG *rig)
   /* send 0 delay PACING cmd to rig  */
   retval = ft767_enter_CAT(rig);
   if (retval < 0) {
-	rig_debug(RIG_DEBUG_ERR,"%s: enter_CAT %d\n", __FUNCTION__, retval);
+	rig_debug(RIG_DEBUG_ERR,"%s: enter_CAT %d\n", __func__, retval);
 	memset(priv->update_data,0,FT767GX_STATUS_UPDATE_DATA_LENGTH);
 	return retval;
   }
 
   retval = ft767_leave_CAT(rig);
   if (retval < 0) {
-	rig_debug(RIG_DEBUG_ERR,"%s: leave_CAT %d\n", __FUNCTION__, retval);
+	rig_debug(RIG_DEBUG_ERR,"%s: leave_CAT %d\n", __func__, retval);
 	memset(priv->update_data,0,FT767GX_STATUS_UPDATE_DATA_LENGTH);
 	return retval;
   }
@@ -474,20 +474,20 @@ int ft767_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
   retval = ft767_enter_CAT(rig);
   if (retval < 0) {
-	rig_debug(RIG_DEBUG_ERR,"%s: enter_CAT %d\n", __FUNCTION__, retval);
+	rig_debug(RIG_DEBUG_ERR,"%s: enter_CAT %d\n", __func__, retval);
 	return retval;
   }
 
   retval =  ft767_send_block_and_ack(rig, cmd, YAESU_CMD_LENGTH);
   if (retval < 0) {
 	rig_debug(RIG_DEBUG_ERR,"%s: failed to send command: status %d\n",
-			__FUNCTION__, retval);
+			__func__, retval);
 	return retval;
   }
 
   retval = ft767_leave_CAT(rig);
   if (retval < 0) {
-	rig_debug(RIG_DEBUG_ERR,"%s: leave_CAT %d\n", __FUNCTION__, retval);
+	rig_debug(RIG_DEBUG_ERR,"%s: leave_CAT %d\n", __func__, retval);
   }
   return retval;
 }
@@ -502,20 +502,20 @@ int ft767_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
   retval = ft767_enter_CAT(rig);
   if (retval < 0) {
-	rig_debug(RIG_DEBUG_ERR,"%s: enter_CAT %d\n", __FUNCTION__, retval);
+	rig_debug(RIG_DEBUG_ERR,"%s: enter_CAT %d\n", __func__, retval);
 	return retval;
   }
 
   retval =  ft767_send_block_and_ack(rig, cmd, YAESU_CMD_LENGTH);
   if (retval < 0) {
 	rig_debug(RIG_DEBUG_ERR,"%s: failed to send command: status %d\n",
-			__FUNCTION__, retval);
+			__func__, retval);
 	return retval;
   }
 
   retval = ft767_leave_CAT(rig);
   if (retval < 0) {
-	rig_debug(RIG_DEBUG_ERR,"%s: leave_CAT %d\n", __FUNCTION__, retval);
+	rig_debug(RIG_DEBUG_ERR,"%s: leave_CAT %d\n", __func__, retval);
   }
   return retval;
 }
@@ -609,20 +609,20 @@ int ft767_set_vfo(RIG *rig, vfo_t vfo) {
 
   retval = ft767_enter_CAT(rig);
   if (retval < 0) {
-	rig_debug(RIG_DEBUG_ERR,"%s: enter_CAT %d\n", __FUNCTION__, retval);
+	rig_debug(RIG_DEBUG_ERR,"%s: enter_CAT %d\n", __func__, retval);
 	return retval;
   }
 
   retval =  ft767_send_block_and_ack(rig, cmd, YAESU_CMD_LENGTH);
   if (retval < 0) {
 	rig_debug(RIG_DEBUG_ERR,"%s: failed to send command: status %d\n",
-			__FUNCTION__, retval);
+			__func__, retval);
 	return retval;
   }
 
   retval = ft767_leave_CAT(rig);
   if (retval < 0) {
-	rig_debug(RIG_DEBUG_ERR,"%s: leave_CAT %d\n", __FUNCTION__, retval);
+	rig_debug(RIG_DEBUG_ERR,"%s: leave_CAT %d\n", __func__, retval);
   }
   return retval;
 }
@@ -679,20 +679,20 @@ int ft767_set_ctcss_tone(RIG * rig, vfo_t vfo, tone_t tone) {
 
   retval = ft767_enter_CAT(rig);
   if (retval < 0) {
-	rig_debug(RIG_DEBUG_ERR,"%s: enter_CAT %d\n", __FUNCTION__, retval);
+	rig_debug(RIG_DEBUG_ERR,"%s: enter_CAT %d\n", __func__, retval);
 	return retval;
   }
 
   retval =  ft767_send_block_and_ack(rig, cmd, YAESU_CMD_LENGTH);
   if (retval < 0) {
 	rig_debug(RIG_DEBUG_ERR,"%s: failed to send command: status %d\n",
-			__FUNCTION__, retval);
+			__func__, retval);
 	return retval;
   }
 
   retval = ft767_leave_CAT(rig);
   if (retval < 0) {
-	rig_debug(RIG_DEBUG_ERR,"%s: leave_CAT %d\n", __FUNCTION__, retval);
+	rig_debug(RIG_DEBUG_ERR,"%s: leave_CAT %d\n", __func__, retval);
   }
   return retval;
 }
@@ -704,7 +704,7 @@ int ft767_get_ctcss_tone(RIG * rig, vfo_t vfo, tone_t *tone) {
   retval = ft767_get_update_data(rig);	/* get whole shebang from rig */
   if (retval < 0) {
     rig_debug(RIG_DEBUG_ERR,"%s: get_update_data failed with status %d\n",
-	      __FUNCTION__, retval);
+	      __func__, retval);
     return retval;
   }
   retval = rig2ctcss(rig, priv->update_data[STATUS_CURR_TONE], tone);
@@ -751,10 +751,10 @@ int ft767_set_split_freq(RIG * rig, vfo_t vfo, freq_t tx_freq) {
       change_vfo = RIG_VFO_A;
       break;
     case RIG_VFO_MEM:
-	rig_debug(RIG_DEBUG_ERR,"%s: error, in both split and memory modes\n", __FUNCTION__);
+	rig_debug(RIG_DEBUG_ERR,"%s: error, in both split and memory modes\n", __func__);
 	return RIG_OK;
     default:
-      rig_debug(RIG_DEBUG_ERR,"%s: error, unknown vfo value %d\n", __FUNCTION__, curr_vfo);
+      rig_debug(RIG_DEBUG_ERR,"%s: error, unknown vfo value %d\n", __func__, curr_vfo);
       return RIG_OK;
     }
   } else {
@@ -767,7 +767,7 @@ int ft767_set_split_freq(RIG * rig, vfo_t vfo, freq_t tx_freq) {
 
   retval = ft767_enter_CAT(rig);
   if (retval < 0) {
-	rig_debug(RIG_DEBUG_ERR,"%s: enter_CAT %d\n", __FUNCTION__, retval);
+	rig_debug(RIG_DEBUG_ERR,"%s: enter_CAT %d\n", __func__, retval);
 	return retval;
   }
 
@@ -776,7 +776,7 @@ int ft767_set_split_freq(RIG * rig, vfo_t vfo, freq_t tx_freq) {
   retval =  ft767_send_block_and_ack(rig, vfo_cmd, YAESU_CMD_LENGTH);
   if (retval < 0) {
 	rig_debug(RIG_DEBUG_ERR,"%s: failed to send command: status %d\n",
-			__FUNCTION__, retval);
+			__func__, retval);
 	return retval;
   }
 
@@ -784,7 +784,7 @@ int ft767_set_split_freq(RIG * rig, vfo_t vfo, freq_t tx_freq) {
   retval =  ft767_send_block_and_ack(rig, freq_cmd, YAESU_CMD_LENGTH);
   if (retval < 0) {
 	rig_debug(RIG_DEBUG_ERR,"%s: failed to send command: status %d\n",
-			__FUNCTION__, retval);
+			__func__, retval);
 	return retval;
   }
 
@@ -793,13 +793,13 @@ int ft767_set_split_freq(RIG * rig, vfo_t vfo, freq_t tx_freq) {
   retval =  ft767_send_block_and_ack(rig, vfo_cmd, YAESU_CMD_LENGTH);
   if (retval < 0) {
 	rig_debug(RIG_DEBUG_ERR,"%s: failed to send command: status %d\n",
-			__FUNCTION__, retval);
+			__func__, retval);
 	return retval;
   }
 
   retval = ft767_leave_CAT(rig);
   if (retval < 0) {
-	rig_debug(RIG_DEBUG_ERR,"%s: leave_CAT %d\n", __FUNCTION__, retval);
+	rig_debug(RIG_DEBUG_ERR,"%s: leave_CAT %d\n", __func__, retval);
   }
   return RIG_OK;
 }
@@ -814,7 +814,7 @@ int ft767_get_split_freq(RIG * rig, vfo_t vfo, freq_t * tx_freq) {
   retval = ft767_get_update_data(rig);	/* get whole shebang from rig */
   if (retval < 0) {
     rig_debug(RIG_DEBUG_ERR,"%s: get_update_data failed with status %d\n",
-	      __FUNCTION__, retval);
+	      __func__, retval);
     return retval;
   }
 
@@ -831,10 +831,10 @@ int ft767_get_split_freq(RIG * rig, vfo_t vfo, freq_t * tx_freq) {
       offset = STATUS_VFOA_FREQ;
       break;
     case RIG_VFO_MEM:
-	rig_debug(RIG_DEBUG_ERR,"%s: error, in both split and memory modes\n", __FUNCTION__);
+	rig_debug(RIG_DEBUG_ERR,"%s: error, in both split and memory modes\n", __func__);
 	return RIG_OK;
     default:
-      rig_debug(RIG_DEBUG_ERR,"%s: error, unknown vfo value %d\n", __FUNCTION__, curr_vfo);
+      rig_debug(RIG_DEBUG_ERR,"%s: error, unknown vfo value %d\n", __func__, curr_vfo);
       return RIG_OK;
     }
   } else {
@@ -876,10 +876,10 @@ int ft767_set_split_mode(RIG * rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_wid
       change_vfo = RIG_VFO_A;
       break;
     case RIG_VFO_MEM:
-	rig_debug(RIG_DEBUG_ERR,"%s: error, in both split and memory modes\n", __FUNCTION__);
+	rig_debug(RIG_DEBUG_ERR,"%s: error, in both split and memory modes\n", __func__);
 	return RIG_OK;
     default:
-      rig_debug(RIG_DEBUG_ERR,"%s: error, unknown vfo value %d\n", __FUNCTION__, curr_vfo);
+      rig_debug(RIG_DEBUG_ERR,"%s: error, unknown vfo value %d\n", __func__, curr_vfo);
       return RIG_OK;
     }
   } else {
@@ -892,7 +892,7 @@ int ft767_set_split_mode(RIG * rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_wid
 
   retval = ft767_enter_CAT(rig);
   if (retval < 0) {
-	rig_debug(RIG_DEBUG_ERR,"%s: enter_CAT %d\n", __FUNCTION__, retval);
+	rig_debug(RIG_DEBUG_ERR,"%s: enter_CAT %d\n", __func__, retval);
 	return retval;
   }
 
@@ -901,7 +901,7 @@ int ft767_set_split_mode(RIG * rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_wid
   retval =  ft767_send_block_and_ack(rig, vfo_cmd, YAESU_CMD_LENGTH);
   if (retval < 0) {
 	rig_debug(RIG_DEBUG_ERR,"%s: failed to send vfo change 1 command: status %d\n",
-			__FUNCTION__, retval);
+			__func__, retval);
 	return retval;
   }
 
@@ -909,7 +909,7 @@ int ft767_set_split_mode(RIG * rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_wid
   retval =  ft767_send_block_and_ack(rig, mode_cmd, YAESU_CMD_LENGTH);
   if (retval < 0) {
 	rig_debug(RIG_DEBUG_ERR,"%s: failed to send mode command: status %d\n",
-			__FUNCTION__, retval);
+			__func__, retval);
 	return retval;
   }
 
@@ -918,13 +918,13 @@ int ft767_set_split_mode(RIG * rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_wid
   retval =  ft767_send_block_and_ack(rig, vfo_cmd, YAESU_CMD_LENGTH);
   if (retval < 0) {
 	rig_debug(RIG_DEBUG_ERR,"%s: failed to send vfo change 2command: status %d\n",
-			__FUNCTION__, retval);
+			__func__, retval);
 	return retval;
   }
 
   retval = ft767_leave_CAT(rig);
   if (retval < 0) {
-	rig_debug(RIG_DEBUG_ERR,"%s: leave_CAT %d\n", __FUNCTION__, retval);
+	rig_debug(RIG_DEBUG_ERR,"%s: leave_CAT %d\n", __func__, retval);
   }
   return RIG_OK;
 }
@@ -939,7 +939,7 @@ int ft767_get_split_mode(RIG * rig, vfo_t vfo, rmode_t * tx_mode, pbwidth_t * tx
   retval = ft767_get_update_data(rig);
   if (retval < 0) {
     rig_debug(RIG_DEBUG_ERR,"%s: get_update_data failed with status %d\n",
-	      __FUNCTION__, retval);
+	      __func__, retval);
     return retval;
   }
 
@@ -956,10 +956,10 @@ int ft767_get_split_mode(RIG * rig, vfo_t vfo, rmode_t * tx_mode, pbwidth_t * tx
       offset = STATUS_VFOA_MODE;
       break;
     case RIG_VFO_MEM:
-	rig_debug(RIG_DEBUG_ERR,"%s: error, in both split and memory modes\n", __FUNCTION__);
+	rig_debug(RIG_DEBUG_ERR,"%s: error, in both split and memory modes\n", __func__);
 	return RIG_OK;
     default:
-      rig_debug(RIG_DEBUG_ERR,"%s: error, unknown vfo value %d\n", __FUNCTION__, curr_vfo);
+      rig_debug(RIG_DEBUG_ERR,"%s: error, unknown vfo value %d\n", __func__, curr_vfo);
       return RIG_OK;
     }
   } else {
@@ -1035,7 +1035,7 @@ int ft767_set_split_vfo(RIG * rig, vfo_t vfo, split_t split, vfo_t tx_vfo) {
 
     retval = ft767_enter_CAT(rig);
     if (retval < 0) {
-      rig_debug(RIG_DEBUG_ERR,"%s: enter_CAT %d\n", __FUNCTION__, retval);
+      rig_debug(RIG_DEBUG_ERR,"%s: enter_CAT %d\n", __func__, retval);
       return retval;
     }
 
@@ -1049,7 +1049,7 @@ int ft767_set_split_vfo(RIG * rig, vfo_t vfo, split_t split, vfo_t tx_vfo) {
       retval =  ft767_send_block_and_ack(rig, cmd, YAESU_CMD_LENGTH);
       if (retval < 0) {
 	rig_debug(RIG_DEBUG_ERR,"%s: failed to send split command: status %d\n",
-		  __FUNCTION__, retval);
+		  __func__, retval);
 	return retval;
       }
     }
@@ -1061,7 +1061,7 @@ int ft767_set_split_vfo(RIG * rig, vfo_t vfo, split_t split, vfo_t tx_vfo) {
       retval =  ft767_send_block_and_ack(rig, cmd, YAESU_CMD_LENGTH);
       if (retval < 0) {
 	rig_debug(RIG_DEBUG_ERR,"%s: failed to send set vfo command: status %d\n",
-		  __FUNCTION__, retval);
+		  __func__, retval);
 	return retval;
       }
     }
@@ -1073,14 +1073,14 @@ int ft767_set_split_vfo(RIG * rig, vfo_t vfo, split_t split, vfo_t tx_vfo) {
       retval =  ft767_send_block_and_ack(rig, cmd, YAESU_CMD_LENGTH);
       if (retval < 0) {
 	rig_debug(RIG_DEBUG_ERR,"%s: failed to send set clar command: status %d\n",
-		  __FUNCTION__, retval);
+		  __func__, retval);
 	return retval;
       }
     }
 
     retval = ft767_leave_CAT(rig);
     if (retval < 0) {
-      rig_debug(RIG_DEBUG_ERR,"%s: leave_CAT %d\n", __FUNCTION__, retval);
+      rig_debug(RIG_DEBUG_ERR,"%s: leave_CAT %d\n", __func__, retval);
       return retval;
     }
     break;
@@ -1098,7 +1098,7 @@ int ft767_get_split_vfo(RIG * rig, vfo_t vfo, split_t * split, vfo_t *tx_vfo) {
   retval = ft767_get_update_data(rig);	/* get whole shebang from rig */
   if (retval < 0) {
     rig_debug(RIG_DEBUG_ERR,"%s: get_update_data failed with status %d\n",
-	      __FUNCTION__, retval);
+	      __func__, retval);
     return retval;
   }
 
@@ -1121,7 +1121,7 @@ int ft767_get_split_vfo(RIG * rig, vfo_t vfo, split_t * split, vfo_t *tx_vfo) {
   default:
     /* we don't know how to deal with MEM, anything else is an error */
     /* TODO make sure this is what we want to do here */
-    rig_debug(RIG_DEBUG_ERR,"%s: current vfo is %d with split\n", __FUNCTION__, curr_vfo);
+    rig_debug(RIG_DEBUG_ERR,"%s: current vfo is %d with split\n", __func__, curr_vfo);
     return -RIG_EINVAL;
     break;
   }
@@ -1137,7 +1137,7 @@ int ft767_get_split_vfo(RIG * rig, vfo_t vfo, split_t * split, vfo_t *tx_vfo) {
  */
 int ft767_enter_CAT(RIG *rig) {
   unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, CMD_CAT_SW};
-  rig_debug(RIG_DEBUG_TRACE, "%s: Entered\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_TRACE, "%s: Entered\n", __func__);
   return ft767_send_block_and_ack(rig, cmd, YAESU_CMD_LENGTH);
 }
 
@@ -1146,7 +1146,7 @@ int ft767_enter_CAT(RIG *rig) {
  */
 int ft767_leave_CAT(RIG *rig) {
   unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x01, CMD_CAT_SW};
-  rig_debug(RIG_DEBUG_TRACE, "%s: Entered\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_TRACE, "%s: Entered\n", __func__);
   return ft767_send_block_and_ack(rig, cmd, YAESU_CMD_LENGTH);
 }
 
@@ -1223,7 +1223,7 @@ int ft767_send_block_and_ack(RIG *rig, unsigned char *cmd, size_t length)
       default:
 	/* invalid or unknown sub-command */
 	rig_debug(RIG_DEBUG_ERR,"%s: invalid sub-command 0x%x for command 0x%x\n",
-		  __FUNCTION__, cmd[3], cmd[4]);
+		  __func__, cmd[3], cmd[4]);
 	return -RIG_EINVAL;
       }
     }
@@ -1231,7 +1231,7 @@ int ft767_send_block_and_ack(RIG *rig, unsigned char *cmd, size_t length)
   default:
     /* invalid or unknown command */
     rig_debug(RIG_DEBUG_ERR,"%s: invalid command 0x%x\n",
-	      __FUNCTION__, cmd[4]);
+	      __func__, cmd[4]);
     return -RIG_EINVAL;
   }
 
@@ -1246,7 +1246,7 @@ int ft767_send_block_and_ack(RIG *rig, unsigned char *cmd, size_t length)
   /* see if it matches the command we sent */
   if (memcmp(cmd_echo_buf, cmd, YAESU_CMD_LENGTH)) {
     rig_debug(RIG_DEBUG_ERR,"%s: Command echo doesn't match\n",
-	      __FUNCTION__);
+	      __func__);
     return -RIG_EINVAL;
   }
 
@@ -1260,7 +1260,7 @@ int ft767_send_block_and_ack(RIG *rig, unsigned char *cmd, size_t length)
   // update data
   if (retval != replylen) {
     rig_debug(RIG_DEBUG_ERR,"%s: Got unexpected number of bytes %d in response\n",
-	      __FUNCTION__, retval);
+	      __func__, retval);
     return -RIG_EINVAL;
   }
 
@@ -1293,13 +1293,13 @@ int ft767_get_update_data(RIG *rig)
   /* Entering CAT updates our data structures */
   retval = ft767_enter_CAT(rig);
   if (retval < 0) {
-	rig_debug(RIG_DEBUG_ERR,"%s: enter_CAT %d\n", __FUNCTION__, retval);
+	rig_debug(RIG_DEBUG_ERR,"%s: enter_CAT %d\n", __func__, retval);
 	return retval;
   }
 
   retval = ft767_leave_CAT(rig);
   if (retval < 0) {
-	rig_debug(RIG_DEBUG_ERR,"%s: leave_CAT %d\n", __FUNCTION__, retval);
+	rig_debug(RIG_DEBUG_ERR,"%s: leave_CAT %d\n", __func__, retval);
 	return retval;
   }
 
@@ -1320,26 +1320,26 @@ int ft767_set_split(RIG *rig, unsigned int split)
   /* Entering CAT updates our data structures */
   retval = ft767_enter_CAT(rig);
   if (retval < 0) {
-    rig_debug(RIG_DEBUG_ERR,"%s: enter_CAT %d\n", __FUNCTION__, retval);
+    rig_debug(RIG_DEBUG_ERR,"%s: enter_CAT %d\n", __func__, retval);
     return retval;
   }
 
   /* See whether we need to toggle */
   curr_split = priv->update_data[STATUS_FLAGS] & STATUS_MASK_SPLIT;
 
-  rig_debug(RIG_DEBUG_TRACE,"%s called curr_split = %d, split = %d\n", __FUNCTION__, curr_split, split);
+  rig_debug(RIG_DEBUG_TRACE,"%s called curr_split = %d, split = %d\n", __func__, curr_split, split);
 
   if (curr_split ^ split) {
     retval =  ft767_send_block_and_ack(rig, cmd, YAESU_CMD_LENGTH);
     if (retval < 0) {
       rig_debug(RIG_DEBUG_ERR,"%s: failed to send command: status %d\n",
-		__FUNCTION__, retval);
+		__func__, retval);
       return retval;
     }
   }
   retval = ft767_leave_CAT(rig);
   if (retval < 0) {
-    rig_debug(RIG_DEBUG_ERR,"%s: leave_CAT %d\n", __FUNCTION__, retval);
+    rig_debug(RIG_DEBUG_ERR,"%s: leave_CAT %d\n", __func__, retval);
     return retval;
   }
 
@@ -1508,7 +1508,7 @@ int rig2ctcss(RIG *rig, unsigned char tn, tone_t *tone) {
 #endif
   default:
     rig_debug(RIG_DEBUG_ERR,"%s: Invalid tone value from rig: 0x%02x\n",
-	      __FUNCTION__, tn);
+	      __func__, tn);
     return -RIG_EINVAL;         /* sorry, wrong TONE */
     break;
   }

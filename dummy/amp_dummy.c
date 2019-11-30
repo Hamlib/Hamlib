@@ -113,19 +113,19 @@ static int dummy_amp_reset(AMP *amp, amp_reset_t reset)
   switch (reset)
   {
   case AMP_RESET_MEM:
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: Reset memory\n",__FUNCTION__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: Reset memory\n",__func__);
     break;
 
   case AMP_RESET_FAULT:
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: Reset fault\n",__FUNCTION__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: Reset fault\n",__func__);
     break;
 
   case AMP_RESET_AMP:
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: Reset amplifier\n",__FUNCTION__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: Reset amplifier\n",__func__);
     break;
 
   default:
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: Reset unknown=%d\n",__FUNCTION__, reset);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: Reset unknown=%d\n",__func__, reset);
     return -RIG_EINVAL;
   }
 
@@ -240,28 +240,28 @@ static int dummy_amp_set_powerstat(AMP *amp, powerstat_t status)
   switch (status)
   {
   case RIG_POWER_OFF:
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called POWER_OFF\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called POWER_OFF\n", __func__);
     break;
 
   case RIG_POWER_ON:
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called POWER_ON\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called POWER_ON\n", __func__);
     break;
 
   case RIG_POWER_STANDBY:
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called POWER_STANDBY\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called POWER_STANDBY\n", __func__);
     break;
 
   case RIG_POWER_OPERATE:
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called POWER_OPERATE\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called POWER_OPERATE\n", __func__);
     break;
 
   case RIG_POWER_UNKNOWN:
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called POWER_UNKNOWN\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called POWER_UNKNOWN\n", __func__);
     break;
 
   default:
     rig_debug(RIG_DEBUG_VERBOSE, "%s called invalid power status=%d\n",
-              __FUNCTION__, status);
+              __func__, status);
     return -RIG_EINVAL;
     break;
   }
@@ -278,7 +278,7 @@ static int dummy_amp_get_powerstat(AMP *amp, powerstat_t *status)
                                      amp->state.priv;
 
   *status = priv->powerstat;
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   return RIG_OK;
 }
@@ -317,7 +317,7 @@ static int dummy_amp_get_ext_level(AMP *amp, token_t token, value_t *val)
   /* load value */
   *val = elp->val;
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __FUNCTION__,
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__,
             cfp->name);
 
   return RIG_OK;
@@ -365,7 +365,7 @@ const struct amp_caps dummy_amp_caps =
 
 DECLARE_INITAMP_BACKEND(dummy)
 {
-  rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n",__FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n",__func__);
 
   amp_register(&dummy_amp_caps);
   amp_register(&netampctl_caps);

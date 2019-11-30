@@ -426,7 +426,7 @@ int dttsp_init(RIG *rig)
 	  return -RIG_ENOMEM;
   rig->state.priv = (void*)priv;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__ );
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __func__ );
 
   priv->tuner = NULL;
   priv->tuner_model = RIG_MODEL_DUMMY;
@@ -458,7 +458,7 @@ int dttsp_open(RIG *rig)
   char *meterpath;
 
 
-  rig_debug(RIG_DEBUG_TRACE,"%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_TRACE,"%s called\n", __func__);
 
   /*
    * prevent l8ps
@@ -542,7 +542,7 @@ int dttsp_close(RIG *rig)
 {
   struct dttsp_priv_data *priv = (struct dttsp_priv_data*)rig->state.priv;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __func__);
 
   port_close(&priv->meter_port, priv->meter_port.type.rig);
   rig_close(priv->tuner);
@@ -554,7 +554,7 @@ int dttsp_cleanup(RIG *rig)
 {
   struct dttsp_priv_data *priv = (struct dttsp_priv_data*)rig->state.priv;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __func__);
 
   if (priv->tuner)
   	rig_cleanup(priv->tuner);
@@ -587,7 +587,7 @@ int dttsp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
   sprintf_freq(fstr, freq);
   rig_debug(RIG_DEBUG_TRACE,"%s called: %s %s\n",
- 			__FUNCTION__, rig_strvfo(vfo), fstr);
+ 			__func__, rig_strvfo(vfo), fstr);
 
   ret = rig_get_freq(priv->tuner, RIG_VFO_CURR, &tuner_freq);
   if (ret != RIG_OK)
@@ -613,7 +613,7 @@ int dttsp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
   sprintf_freq(fstr, tuner_freq);
   rig_debug(RIG_DEBUG_TRACE,"%s: tuner=%s, rx_delta=%d Hz\n",
- 			__FUNCTION__, fstr, priv->rx_delta_f);
+ 			__func__, fstr, priv->rx_delta_f);
 
   /* setRxFrequenc */
   buf_len = sprintf (buf, "setOsc %d\n", priv->rx_delta_f );
@@ -633,7 +633,7 @@ int dttsp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
   if (ret != RIG_OK)
 	  return ret;
 
-  rig_debug(RIG_DEBUG_TRACE,"%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_TRACE,"%s called\n", __func__);
 
   *freq = tuner_freq - priv->rx_delta_f;
 
@@ -668,7 +668,7 @@ int dttsp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   ret = send_command (rig, buf, buf_len);
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s: %s\n",
-  		__FUNCTION__, buf);
+  		__func__, buf);
 
   if (ret != RIG_OK || RIG_PASSBAND_NOCHANGE == width) return ret;
 
@@ -676,7 +676,7 @@ int dttsp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	  width = rig_passband_normal(rig, mode);
   sprintf_freq(buf, width);
   rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s %s\n",
-  		__FUNCTION__, rig_strrmode(mode), buf);
+  		__func__, rig_strrmode(mode), buf);
 
   switch (mode) {
 	case RIG_MODE_USB:
@@ -706,7 +706,7 @@ int dttsp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   ret = send_command (rig, buf, buf_len);
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s: %s\n",
-  		__FUNCTION__, buf);
+  		__func__, buf);
 
   return ret;
 }
@@ -740,7 +740,7 @@ int dttsp_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 	break;
   default:
 	rig_debug(RIG_DEBUG_TRACE, "%s: level %s, try tuner\n",
-			  __FUNCTION__, rig_strlevel(level));
+			  __func__, rig_strlevel(level));
 	return rig_set_level(priv->tuner, vfo, level, val);
   }
 
@@ -756,7 +756,7 @@ int dttsp_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
   char buf[32];
   float rxm[MAXRX][RXMETERPTS];
 
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n",__FUNCTION__,
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n",__func__,
 				  rig_strlevel(level));
 
   switch (level) {
@@ -779,7 +779,7 @@ int dttsp_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		break;
   default:
 	rig_debug(RIG_DEBUG_TRACE, "%s: level %s, try tuner\n",
-			  __FUNCTION__, rig_strlevel(level));
+			  __func__, rig_strlevel(level));
 	return rig_get_level(priv->tuner, vfo, level, val);
   }
 
@@ -812,7 +812,7 @@ int dttsp_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 		break;
 	default:
 		rig_debug(RIG_DEBUG_TRACE, "%s: func %s, try tuner\n",
-			  __FUNCTION__, rig_strfunc(func));
+			  __func__, rig_strfunc(func));
 		return rig_set_func(priv->tuner, vfo, func, status);
   }
 
@@ -828,7 +828,7 @@ int dttsp_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
  */
 int dttsp_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
 
   return -RIG_ENIMPL;
@@ -837,7 +837,7 @@ int dttsp_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 
 int dttsp_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   return -RIG_ENIMPL;
 }
@@ -848,7 +848,7 @@ int dttsp_set_ant(RIG * rig, vfo_t vfo, ant_t ant)
   struct dttsp_priv_data *priv = (struct dttsp_priv_data *)rig->state.priv;
 
   rig_debug(RIG_DEBUG_TRACE, "%s: ant %d, try tuner\n",
-		  __FUNCTION__, ant);
+		  __func__, ant);
 
   return rig_set_ant(priv->tuner, vfo, ant);
 }

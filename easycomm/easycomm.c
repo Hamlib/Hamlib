@@ -55,7 +55,7 @@ easycomm_transaction (ROT *rot, const char *cmdstr, char *data, size_t data_len)
   struct rot_state *rs;
   int retval;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s called: %s\n", __FUNCTION__, cmdstr);
+  rig_debug(RIG_DEBUG_TRACE, "%s called: %s\n", __func__, cmdstr);
 
   if (!rot )
     return -RIG_EINVAL;
@@ -72,10 +72,10 @@ easycomm_transaction (ROT *rot, const char *cmdstr, char *data, size_t data_len)
 
   retval = read_string(&rs->rotport, data, data_len, "\n", 1);
   if (retval < 0) {
-    rig_debug(RIG_DEBUG_TRACE, "%s read_string failed with status %d\n", __FUNCTION__, retval);
+    rig_debug(RIG_DEBUG_TRACE, "%s read_string failed with status %d\n", __func__, retval);
     goto transaction_quit;
   } else {
-    rig_debug(RIG_DEBUG_TRACE, "%s read_string: %s\n", __FUNCTION__, data);
+    rig_debug(RIG_DEBUG_TRACE, "%s read_string: %s\n", __func__, data);
     retval = RIG_OK;
   }
 
@@ -90,7 +90,7 @@ easycomm_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
     char cmdstr[64];
     int retval;
-	rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __FUNCTION__, az, el);
+	rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
 
     if (rot->caps->rot_model == ROT_MODEL_EASYCOMM1) {
         sprintf(cmdstr, "AZ%.1f EL%.1f UP000 XXX DN000 XXX\n", az, el);
@@ -112,21 +112,21 @@ easycomm_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     char cmdstr[16], ackbuf[32];
     int retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     sprintf(cmdstr, "AZ EL \n");
 
     retval = easycomm_transaction(rot, cmdstr, ackbuf, sizeof(ackbuf));
 	if (retval != RIG_OK) {
-	  rig_debug(RIG_DEBUG_TRACE, "%s got error: %d\n", __FUNCTION__, retval);
+	  rig_debug(RIG_DEBUG_TRACE, "%s got error: %d\n", __func__, retval);
 	  return retval;
 	}
 
     /* Parse parse string to extract AZ,EL values */
-    rig_debug(RIG_DEBUG_TRACE, "%s got response: %s\n", __FUNCTION__, ackbuf);
+    rig_debug(RIG_DEBUG_TRACE, "%s got response: %s\n", __func__, ackbuf);
     retval = sscanf(ackbuf, "AZ%f EL%f", az, el);
     if (retval != 2) {
-        rig_debug(RIG_DEBUG_ERR, "%s: unknown response (%s)\n", __FUNCTION__, ackbuf);
+        rig_debug(RIG_DEBUG_ERR, "%s: unknown response (%s)\n", __func__, ackbuf);
         return -RIG_ERJCTED;
     }
     return RIG_OK;
@@ -137,7 +137,7 @@ easycomm_rot_stop(ROT *rot)
 {
     int retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     retval = easycomm_transaction(rot, "SA SE \n", NULL, 0);
 	if (retval != RIG_OK)
@@ -152,7 +152,7 @@ static int
 easycomm_rot_reset(ROT *rot, rot_reset_t rst)
 {
     int retval;
-    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     retval = easycomm_transaction(rot, "RESET\n", NULL, 0);
     if (retval != RIG_OK)   /* Custom command (not in Easycomm) */
@@ -165,7 +165,7 @@ static int
 easycomm_rot_park(ROT *rot)
 {
     int retval;
-    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     retval = easycomm_transaction(rot, "PARK\n", NULL, 0);
     if (retval != RIG_OK)   /* Custom command (not in Easycomm) */
@@ -179,7 +179,7 @@ easycomm_rot_move(ROT *rot, int direction, int speed)
 {
     char cmdstr[24];
     int retval;
-    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
    /* For EasyComm 1/2/3 */
     switch (direction) {
@@ -196,7 +196,7 @@ easycomm_rot_move(ROT *rot, int direction, int speed)
         sprintf(cmdstr, "MR\n");
         break;
     default:
-        rig_debug(RIG_DEBUG_ERR,"%s: Invalid direction value! (%d)\n", __FUNCTION__, direction);
+        rig_debug(RIG_DEBUG_ERR,"%s: Invalid direction value! (%d)\n", __func__, direction);
         return -RIG_EINVAL;
     }
 
@@ -212,9 +212,9 @@ easycomm_rot_move_velocity(ROT *rot, int direction, int speed)
 {
     char cmdstr[24];
     int retval;
-    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
     if(speed<0 || speed>9999) {
-       rig_debug(RIG_DEBUG_ERR,"%s: Invalid speed value!(0-9999) (%d)\n", __FUNCTION__, speed);
+       rig_debug(RIG_DEBUG_ERR,"%s: Invalid speed value!(0-9999) (%d)\n", __func__, speed);
        return -RIG_EINVAL;
     }
 
@@ -233,7 +233,7 @@ easycomm_rot_move_velocity(ROT *rot, int direction, int speed)
         sprintf(cmdstr, "VR%04d\n", speed);
         break;
     default:
-        rig_debug(RIG_DEBUG_ERR,"%s: Invalid direction value! (%d)\n", __FUNCTION__, direction);
+        rig_debug(RIG_DEBUG_ERR,"%s: Invalid direction value! (%d)\n", __func__, direction);
         return -RIG_EINVAL;
     }
 
@@ -309,12 +309,12 @@ static int easycomm_rot_get_conf(ROT *rot, token_t token, char *val) {
 	retval = easycomm_transaction(rot, cmdstr, ackbuf, sizeof(ackbuf));
 	
 	if (retval != RIG_OK) {
-	  rig_debug(RIG_DEBUG_TRACE, "%s got error: %d\n", __FUNCTION__, retval);
+	  rig_debug(RIG_DEBUG_TRACE, "%s got error: %d\n", __func__, retval);
 	  return retval;
 	}
 
    
-    rig_debug(RIG_DEBUG_TRACE, "%s got response: %s\n", __FUNCTION__, ackbuf);
+    rig_debug(RIG_DEBUG_TRACE, "%s got response: %s\n", __func__, ackbuf);
     /* Return given string at correct position*/
     memcpy(val, ackbuf + 2, sizeof(ackbuf) - 2); /* CCxxxxxx */
     return RIG_OK;
@@ -349,7 +349,7 @@ static int easycomm_rot_set_conf(ROT *rot, token_t token, const char *val) {
 	retval = easycomm_transaction(rot, cmdstr, NULL, 0);
 	
 	if (retval != RIG_OK) {
-	  rig_debug(RIG_DEBUG_TRACE, "%s got error: %d\n", __FUNCTION__, retval);
+	  rig_debug(RIG_DEBUG_TRACE, "%s got error: %d\n", __func__, retval);
 	  return retval;
 	}
     return RIG_OK;
@@ -491,7 +491,7 @@ const struct rot_caps easycomm3_rot_caps = {
 
 DECLARE_INITROT_BACKEND(easycomm)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     rot_register(&easycomm1_rot_caps);
     rot_register(&easycomm2_rot_caps);

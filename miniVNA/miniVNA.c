@@ -46,7 +46,7 @@ static int miniVNA_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
   int retval;
 
   sprintf_freq(fstr, freq);
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s %s\n", __FUNCTION__,
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s %s\n", __func__,
  			rig_strvfo(vfo), fstr);
 
   serial_flush(&rig->state.rigport);
@@ -63,7 +63,7 @@ static int miniVNA_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 static const char *miniVNA_get_info(RIG *rig)
 {
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   return "miniVNA";
 }

@@ -334,7 +334,7 @@ const struct rot_caps rc2800_rot_caps = {
 
 DECLARE_INITROT_BACKEND(m2)
 {
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   rot_register(&rc2800_rot_caps);
 

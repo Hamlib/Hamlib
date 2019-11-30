@@ -338,7 +338,7 @@ const struct rot_caps ioptron_rot_caps =
 
 DECLARE_INITROT_BACKEND(ioptron)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     rot_register(&ioptron_rot_caps);
 

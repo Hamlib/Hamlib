@@ -256,7 +256,7 @@ static int ad_sdata(hamlib_port_t *port, int i)
 
 	if (ret != RIG_OK)
 		rig_debug(RIG_DEBUG_ERR, "%s: unable to set statusbits\n",
-				__FUNCTION__);
+				__func__);
 
 	return ret;
 }
@@ -270,7 +270,7 @@ static int ad_sclk(hamlib_port_t *port, int i)
 
 	if (ret != RIG_OK)
 		rig_debug(RIG_DEBUG_ERR, "%s: unable to set statusbits\n",
-				__FUNCTION__);
+				__func__);
 
 	return ret;
 }
@@ -284,7 +284,7 @@ static int ad_fsync(hamlib_port_t *port, int i)
 
 	if (ret != RIG_OK)
 		rig_debug(RIG_DEBUG_ERR, "%s: unable to set statusbits\n",
-				__FUNCTION__);
+				__func__);
 
 	return ret;
 }
@@ -339,7 +339,7 @@ int elektor304_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	fhh = (frg>>24)& 0xff;
 
 	rig_debug(RIG_DEBUG_VERBOSE, "%s: %lu=[%02x.%02x.%02x.%02x]\n",
-			__FUNCTION__,frg,fll,flh,fhl,fhh);
+			__func__,frg,fll,flh,fhl,fhh);
 
 	ad_write(port, 0xF800);  /* Reset */
 

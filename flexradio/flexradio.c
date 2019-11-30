@@ -34,7 +34,7 @@
 
 DECLARE_INITRIG_BACKEND(flexradio)
 {
-	rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
+	rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
 	rig_register(&sdr1k_rig_caps);
 	//rig_register(&sdr1krfe_rig_caps);

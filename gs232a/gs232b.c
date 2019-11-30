@@ -123,7 +123,7 @@ transaction_write:
     {
         rig_debug(RIG_DEBUG_ERR,
                   "%s: Command is not correctly terminated '%s'\n",
-                  __FUNCTION__, data);
+                  __func__, data);
 
         if (retry_read++ < rig->state.rotport.retry)
         {
@@ -143,7 +143,7 @@ transaction_write:
     {
         rig_debug(RIG_DEBUG_VERBOSE,
                   "%s: Expected '?>' but got '%s' from cmd '%s'\n",
-                  __FUNCTION__, data, cmdstr);
+                  __func__, data, cmdstr);
         return -RIG_EPROTO;
     }
 
@@ -151,7 +151,7 @@ transaction_write:
     {
         /* Invalid command */
         rig_debug(RIG_DEBUG_VERBOSE, "%s: Error for '%s': '%s'\n",
-                  __FUNCTION__, cmdstr, data);
+                  __func__, cmdstr, data);
         retval = -RIG_EPROTO;
         goto transaction_quit;
     }
@@ -170,7 +170,7 @@ gs232b_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
     int retval;
     unsigned u_az, u_el;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called: az=%.02f el=%.02f\n", __FUNCTION__, az,
+    rig_debug(RIG_DEBUG_TRACE, "%s called: az=%.02f el=%.02f\n", __func__, az,
               el);
 
     if (az < 0.0)
@@ -198,7 +198,7 @@ gs232b_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     char posbuf[32];
     int retval, int_az, int_el;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     retval = gs232b_transaction(rot, "C2" EOM, posbuf, sizeof(posbuf), 0);
 
@@ -214,7 +214,7 @@ gs232b_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
      */
     if (sscanf(posbuf, "AZ=%d EL=%d", &int_az, &int_el) != 2)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: wrong reply '%s'\n", __FUNCTION__,
+        rig_debug(RIG_DEBUG_ERR, "%s: wrong reply '%s'\n", __func__,
                   posbuf);
         return -RIG_EPROTO;
     }
@@ -223,7 +223,7 @@ gs232b_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     *el = (elevation_t) int_el;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: (az, el) = (%.0f, %.0f)\n",
-              __FUNCTION__, *az, *el);
+              __func__, *az, *el);
 
     return RIG_OK;
 }
@@ -234,7 +234,7 @@ gs232b_rot_stop(ROT *rot)
     char buf[32];
     int retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     /* All Stop */
     retval = gs232b_transaction(rot, "S" EOM, buf, sizeof(buf), 0);
@@ -255,7 +255,7 @@ gs232b_rot_move(ROT *rot, int direction, int speed)
     int retval;
     unsigned x_speed;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called %d %d\n", __FUNCTION__,
+    rig_debug(RIG_DEBUG_TRACE, "%s called %d %d\n", __func__,
               direction, speed);
 
     x_speed = (3 * speed) / 100 + 1;
@@ -289,7 +289,7 @@ gs232b_rot_move(ROT *rot, int direction, int speed)
 
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: Invalid direction value! (%d)\n",
-                  __FUNCTION__, direction);
+                  __func__, direction);
         return -RIG_EINVAL;
     }
 

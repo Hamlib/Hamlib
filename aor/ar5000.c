@@ -410,7 +410,7 @@ int format5k_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width)
 	case RIG_MODE_SAH: aormode = AR5K_SAH; break;
 	default:
     rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %s\n",
-              __FUNCTION__, rig_strrmode(mode));
+              __func__, rig_strrmode(mode));
     return -RIG_EINVAL;
   }
 
@@ -428,7 +428,7 @@ int format5k_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width)
     case s_kHz(220): aorwidth = '6'; break;
     default:
       rig_debug(RIG_DEBUG_ERR,"%s: unsupported width %d\n",
-                __FUNCTION__, (int)width);
+                __func__, (int)width);
       return -RIG_EINVAL;
     }
 
@@ -454,7 +454,7 @@ int parse5k_aor_mode(RIG *rig, char aormode, char aorwidth, rmode_t *mode, pbwid
 	case AR5K_SAH:	*mode = RIG_MODE_SAH; break;
 	default:
 	    rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode '%c'\n",
-		      __FUNCTION__, aormode);
+		      __func__, aormode);
 	    return -RIG_EPROTO;
     }
 
@@ -468,7 +468,7 @@ int parse5k_aor_mode(RIG *rig, char aormode, char aorwidth, rmode_t *mode, pbwid
 	case '6':	*width = s_kHz(220); break;
 	default:
 	    rig_debug(RIG_DEBUG_ERR,"%s: unsupported width %d\n",
-		      __FUNCTION__, aorwidth);
+		      __func__, aorwidth);
 	    return -RIG_EPROTO;
     }
 

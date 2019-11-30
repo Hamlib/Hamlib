@@ -126,14 +126,14 @@ elad_fdm_duo_set_level (RIG * rig, vfo_t vfo, setting_t level, value_t val)
 	  elad_val = 2;
 	  break;
 	default:
-	  rig_debug (RIG_DEBUG_ERR, "%s: Unsupported agc value",__FUNCTION__);
+	  rig_debug (RIG_DEBUG_ERR, "%s: Unsupported agc value",__func__);
 	  return -RIG_EINVAL;
 	};
       sprintf (levelbuf, "GT%03d", elad_val);
       break;
 
     default:
-      rig_debug (RIG_DEBUG_ERR, "%s: Unsupported set_level %s", __FUNCTION__, rig_strlevel(level));
+      rig_debug (RIG_DEBUG_ERR, "%s: Unsupported set_level %s", __func__, rig_strlevel(level));
       return -RIG_EINVAL;
     }
 

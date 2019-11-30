@@ -518,7 +518,7 @@ int icr75_get_parm(RIG *rig, setting_t parm, value_t *val)
     res_len -= cmdhead;
 
     if (resbuf[0] != ACK && resbuf[0] != prm_cn) {
-        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __FUNCTION__, resbuf[0], res_len);
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, resbuf[0], res_len);
         return -RIG_ERJCTED;
     }
 
@@ -546,7 +546,7 @@ int icr75_get_parm(RIG *rig, setting_t parm, value_t *val)
             break;
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: %d %d %d %f\n", __FUNCTION__, res_len, icom_val, val->i, val->f);
+    rig_debug(RIG_DEBUG_TRACE, "%s: %d %d %d %f\n", __func__, res_len, icom_val, val->i, val->f);
 
     return RIG_OK;
 }

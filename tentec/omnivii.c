@@ -274,19 +274,19 @@ static int tt588_transaction (RIG *rig, const char *cmd, int cmd_len, char *data
 				retval = read_string(&rs->rigport, data, (*data_len)+1, term, strlen(term));
 				if (retval != -RIG_ETIMEOUT)
 					return RIG_OK;
-				rig_debug(RIG_DEBUG_ERR,"%s: read_string failed, try#%d\n", __FUNCTION__, i+1);
+				rig_debug(RIG_DEBUG_ERR,"%s: read_string failed, try#%d\n", __func__, i+1);
 			}
 			else {
 				return RIG_OK; // no data wanted so just return
 			}
 		}
 		else {
-			rig_debug(RIG_DEBUG_ERR,"%s: write_block failed, try#%d\n", __FUNCTION__, i+1);
+			rig_debug(RIG_DEBUG_ERR,"%s: write_block failed, try#%d\n", __func__, i+1);
 		}
 		write_block(&rs->rigport, "XX" EOM, 3); // we wont' worry about the response here
 		retval = read_string(&rs->rigport, xxbuf, sizeof(xxbuf), "", 0); // this should timeout
 		if (retval != RIG_OK)
-			rig_debug(RIG_DEBUG_ERR,"%s: XX command failed, try#%d\n", __FUNCTION__, i+1);
+			rig_debug(RIG_DEBUG_ERR,"%s: XX command failed, try#%d\n", __func__, i+1);
 	}
 	return retval;
 }
@@ -299,7 +299,7 @@ int tt588_init(RIG *rig)
 {
 	struct tt588_priv_data *priv;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s:\n", __FUNCTION__);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s:\n", __func__);
 	priv = (struct tt588_priv_data *) malloc(sizeof(struct tt588_priv_data));
 	if (!priv) {
 		/* whoops! memory shortage! */
@@ -348,10 +348,10 @@ int tt588_get_vfo(RIG *rig, vfo_t *vfo) {
 	struct tt588_priv_data *priv = (struct tt588_priv_data *) rig->state.priv;
 	*vfo = priv->vfo_curr;
 	if(check_vfo(*vfo)==FALSE) {
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __FUNCTION__, rig_strvfo(*vfo));
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __func__, rig_strvfo(*vfo));
 		return -RIG_EINVAL;
 	}
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __FUNCTION__, rig_strvfo(*vfo));
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(*vfo));
 	return RIG_OK;
 }
 
@@ -363,9 +363,9 @@ int tt588_set_vfo(RIG *rig, vfo_t vfo)
 {
 	struct tt588_priv_data *priv = (struct tt588_priv_data *)rig->state.priv;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __FUNCTION__, rig_strvfo(vfo));
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
 	if(check_vfo(vfo)==FALSE) {
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __FUNCTION__, rig_strvfo(vfo));
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
 		return -RIG_EINVAL;
 	}
 
@@ -383,14 +383,14 @@ int tt588_reset(RIG *rig, reset_t reset) {
 	int retval, reset_len;
 	char reset_buf[32];
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: reset=%d\n", __FUNCTION__, reset);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: reset=%d\n", __func__, reset);
 	reset_len = 32;
 	retval = tt588_transaction (rig, "XX" EOM, 3, reset_buf, &reset_len);
 	if (retval != RIG_OK)
 		return retval;
 
 	if (!strstr(reset_buf, "RADIO START")) {
-		rig_debug(RIG_DEBUG_ERR, "%s: unexpected answer '%s'\n", __FUNCTION__, reset_buf);
+		rig_debug(RIG_DEBUG_ERR, "%s: unexpected answer '%s'\n", __func__, reset_buf);
 		return -RIG_EPROTO;
 	}
 
@@ -411,7 +411,7 @@ int tt588_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 		vfo = priv->vfo_curr;
 
 	if(check_vfo(vfo)==FALSE) {
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __FUNCTION__, rig_strvfo(vfo));
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
 		return -RIG_EINVAL;
 	}
 
@@ -422,7 +422,7 @@ int tt588_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 		return retval;
 
 	if (resp_len != 6) {
-		rig_debug(RIG_DEBUG_ERR, "%s: unexpected length '%d'\n", __FUNCTION__, resp_len);
+		rig_debug(RIG_DEBUG_ERR, "%s: unexpected length '%d'\n", __func__, resp_len);
 		return -RIG_EPROTO;
 	}
 	if ((respbuf[0]=='A' || respbuf[0]=='B') && respbuf[5]==0x0d) {
@@ -434,7 +434,7 @@ int tt588_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 	else {
 		*freq = 0;
 	}
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s freq=%g\n", __FUNCTION__, rig_strvfo(vfo),*freq);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s freq=%g\n", __func__, rig_strvfo(vfo),*freq);
 	return RIG_OK;
 }
 
@@ -448,16 +448,16 @@ int tt588_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	int cmd_len, retval;
 	unsigned char cmdbuf[16];
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s freq=%g\n", __FUNCTION__, rig_strvfo(vfo), freq);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s freq=%g\n", __func__, rig_strvfo(vfo), freq);
 	if(check_vfo(vfo)==FALSE) {
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __FUNCTION__, rig_strvfo(vfo));
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
 		return -RIG_EINVAL;
 	}
 
 	if (vfo == RIG_VFO_CURR) {
 		if ((retval = tt588_get_vfo(rig, &vfo)) != RIG_OK)
 			return retval;
-		rig_debug(RIG_DEBUG_VERBOSE, "%s: set_freq2 vfo=%s\n", __FUNCTION__, rig_strvfo(vfo));
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: set_freq2 vfo=%s\n", __func__, rig_strvfo(vfo));
 	}
 	/* Freq is 4 bytes long, MSB sent first. */
 	bytes[3] = ((int) freq >> 24) & 0xff;
@@ -521,12 +521,12 @@ int tt588_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	unsigned char cmdbuf[16], respbuf[32];
 	char ttmode;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __FUNCTION__, rig_strvfo(vfo));
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
 
 	struct tt588_priv_data *priv = (struct tt588_priv_data *) rig->state.priv;
 
 	if(check_vfo(vfo)==FALSE) {
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __FUNCTION__, rig_strvfo(vfo));
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
 		return -RIG_EINVAL;
 	}
 	if (vfo == RIG_VFO_CURR) {
@@ -544,7 +544,7 @@ int tt588_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 		return retval;
 
 	if (respbuf[0] != 'M' || resp_len != 4) {
-		rig_debug(RIG_DEBUG_ERR, "%s: unexpected answer '%s'\n", __FUNCTION__, respbuf);
+		rig_debug(RIG_DEBUG_ERR, "%s: unexpected answer '%s'\n", __func__, respbuf);
 		return -RIG_EPROTO;
 	}
 
@@ -556,7 +556,7 @@ int tt588_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 		ttmode = respbuf[2];
 		break;
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __FUNCTION__, rig_strvfo(vfo));
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
 		return -RIG_EINVAL;
 		break;
 	}
@@ -569,7 +569,7 @@ int tt588_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	case TT588_CWR: *mode = RIG_MODE_CWR;  break;
 	case TT588_FM: *mode = RIG_MODE_FM;  break;
 	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode '%c'\n", __FUNCTION__, ttmode);
+		rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode '%c'\n", __func__, ttmode);
 		return -RIG_EPROTO;
 	}
 
@@ -582,7 +582,7 @@ int tt588_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 		return retval;
 
 	if (respbuf[0] != 'W' && resp_len != 3) {
-		rig_debug(RIG_DEBUG_ERR, "%s: unexpected answer '%s'\n", __FUNCTION__, respbuf);
+		rig_debug(RIG_DEBUG_ERR, "%s: unexpected answer '%s'\n", __func__, respbuf);
 		return -RIG_EPROTO;
 	}
 
@@ -657,9 +657,9 @@ int tt588_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 	struct tt588_priv_data *priv = (struct tt588_priv_data *) rig->state.priv;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s mode=%s width=%d\n", __FUNCTION__, rig_strvfo(vfo),rig_strrmode(mode),(int)width);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s mode=%s width=%d\n", __func__, rig_strvfo(vfo),rig_strrmode(mode),(int)width);
 	if(check_vfo(vfo)==FALSE) {
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __FUNCTION__, rig_strvfo(vfo));
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
 		return -RIG_EINVAL;
 	}
 
@@ -670,7 +670,7 @@ int tt588_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	if (retval != RIG_OK)
 		return retval;
 	if (respbuf[0] != 'M' || respbuf[3] != 0x0d) {
-		rig_debug(RIG_DEBUG_ERR, "%s: unexpected answer '%s'\n", __FUNCTION__, respbuf);
+		rig_debug(RIG_DEBUG_ERR, "%s: unexpected answer '%s'\n", __func__, respbuf);
 		return -RIG_EPROTO;
 	}
 
@@ -697,7 +697,7 @@ int tt588_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		cmd_len = sprintf((char *) cmdbuf, "*M%c%c" EOM, respbuf[1], ttmode);
 		break;
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __FUNCTION__, rig_strvfo(vfo));
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
 		return -RIG_EINVAL;
 	}
 
@@ -725,7 +725,7 @@ int tt588_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	unsigned char cmdbuf[16],lvlbuf[32];
 
 	if(check_vfo(vfo)==FALSE) {
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __FUNCTION__, rig_strvfo(vfo));
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
 		return -RIG_EINVAL;
 	}
 
@@ -739,7 +739,7 @@ int tt588_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		if (lvlbuf[0] != 'S' || lvl_len != 4 || lvlbuf[3] != 0x0d || ((lvlbuf[1]&0x80)==0)) {
 			val->f = 99; // infinity
 			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer len=%d buf=%02x %02x %02x %02x\n",
-					__FUNCTION__, lvl_len,lvlbuf[0],lvlbuf[1],lvlbuf[2],lvlbuf[3]);
+					__func__, lvl_len,lvlbuf[0],lvlbuf[1],lvlbuf[2],lvlbuf[3]);
 			return -RIG_EPROTO;
 		}
 		/* forward power. */
@@ -762,7 +762,7 @@ int tt588_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			return retval;
 
 		if (lvlbuf[0] != 'S' || lvl_len != 6) {
-			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n", __FUNCTION__, lvlbuf);
+			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n", __func__, lvlbuf);
 			return -RIG_EPROTO;
 		}
 
@@ -775,7 +775,7 @@ int tt588_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			// 1st two bytes are the S-level
 			sscanf((char*)lvlbuf,"S%02d",&val->i);
 			val->i  = (val->i - 9) * 6; // convert S meter to dBS9 relative
-			rig_debug(RIG_DEBUG_TRACE,"%s: meter= %ddB\n",	__FUNCTION__, val->i);
+			rig_debug(RIG_DEBUG_TRACE,"%s: meter= %ddB\n",	__func__, val->i);
 		}
 		else {
 			// transmit reply example S<0x8f><0x01> 0x0f=15 watts, 0x01
@@ -784,7 +784,7 @@ int tt588_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			reflected  = reflected>0 ? reflected-1 : 0;
 			// computer transmit power
 			int strength = (int)(lvlbuf[1]&0x7f)-reflected;
-			rig_debug(RIG_DEBUG_TRACE,"%s: strength fwd=%d, rev=%d\n",	__FUNCTION__, strength, reflected);
+			rig_debug(RIG_DEBUG_TRACE,"%s: strength fwd=%d, rev=%d\n",	__func__, strength, reflected);
 			if (strength > 0) { // convert watts to dbM
 				val->i = 10 * log10(strength) + 30;
 				// now convert to db over 1uV
@@ -793,7 +793,7 @@ int tt588_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			else {
 				val->i = 0;
 			}
-			rig_debug(RIG_DEBUG_TRACE,"%s: strength= %ddB\n",	__FUNCTION__, val->i);
+			rig_debug(RIG_DEBUG_TRACE,"%s: strength= %ddB\n",	__func__, val->i);
 		}
 
 		break;
@@ -808,7 +808,7 @@ int tt588_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			return retval;
 
 		if (lvlbuf[0] != 'G' || lvl_len != 3 || lvlbuf[2] != 0x0d) {
-			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",	__FUNCTION__, lvlbuf);
+			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",	__func__, lvlbuf);
 			return -RIG_EPROTO;
 		}
 
@@ -831,7 +831,7 @@ int tt588_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			return retval;
 
 		if (lvlbuf[0] != 'U' || lvlbuf[2] != 0x0d) {
-			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",	__FUNCTION__, lvlbuf);
+			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",	__func__, lvlbuf);
 			return -RIG_EPROTO;
 		}
 
@@ -840,7 +840,7 @@ int tt588_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 	case RIG_LEVEL_IF:
 		// Omni VII has so such thing
-		rig_debug(RIG_DEBUG_ERR,"%s: no RIG_LEVEL_IF on Omni VII\n", __FUNCTION__);
+		rig_debug(RIG_DEBUG_ERR,"%s: no RIG_LEVEL_IF on Omni VII\n", __func__);
 		val->i = 0;
 		break;
 
@@ -852,7 +852,7 @@ int tt588_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			return retval;
 
 		if (lvlbuf[0] != 'I' || lvlbuf[2] != 0x0d) {
-			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",	__FUNCTION__, lvlbuf);
+			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",	__func__, lvlbuf);
 			return -RIG_EPROTO;
 		}
 
@@ -867,7 +867,7 @@ int tt588_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		if (retval != RIG_OK)
 			return retval;
 		if (lvlbuf[0] != 'J' || lvlbuf[2] != 0x0d) {
-			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",	__FUNCTION__, lvlbuf);
+			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",	__func__, lvlbuf);
 			return -RIG_EPROTO;
 		}
 		val->i = (lvlbuf[1]-'0')*6; // 1=6, 2=12, 3=18
@@ -888,7 +888,7 @@ int tt588_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		if (retval != RIG_OK)
 			return retval;
 		if (lvlbuf[0] != 'H' || lvlbuf[2] != 0x0d) {
-			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",	__FUNCTION__, lvlbuf);
+			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",	__func__, lvlbuf);
 			return -RIG_EPROTO;
 		}
 		val->f = lvlbuf[1] / 127.0f;
@@ -926,9 +926,9 @@ int tt588_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 	int retval, cmd_len,ii;
 	unsigned char cmdbuf[16], agcmode;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s level=%s\n", __FUNCTION__, rig_strvfo(vfo),rig_strlevel(level));
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s level=%s\n", __func__, rig_strvfo(vfo),rig_strlevel(level));
 	if(check_vfo(vfo)==FALSE) {
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __FUNCTION__, rig_strvfo(vfo));
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
 		return -RIG_EINVAL;
 	}
 
@@ -1013,9 +1013,9 @@ int tt588_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 		tx_vfo = RIG_VFO_B;
 	}
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s split=%d tx_vfo=%s\n", __FUNCTION__, rig_strvfo(vfo),split,rig_strvfo(tx_vfo));
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s split=%d tx_vfo=%s\n", __func__, rig_strvfo(vfo),split,rig_strvfo(tx_vfo));
 	if(check_vfo(vfo)==FALSE) {
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __FUNCTION__, rig_strvfo(vfo));
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
 		return -RIG_EINVAL;
 	}
 
@@ -1032,7 +1032,7 @@ int tt588_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 	if (retval != RIG_OK)
 		return retval;
 	if (respbuf[0] != 'N' || respbuf[2] != 0x0d) {
-		rig_debug(RIG_DEBUG_ERR,"%s: unknown response to *N%d='%s'\n", __FUNCTION__,split,respbuf);
+		rig_debug(RIG_DEBUG_ERR,"%s: unknown response to *N%d='%s'\n", __func__,split,respbuf);
 		return -RIG_EINVAL;
 	}
 	return RIG_OK;
@@ -1048,7 +1048,7 @@ int tt588_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 	char cmdbuf[16], respbuf[16];
 
 	if(check_vfo(vfo)==FALSE) {
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __FUNCTION__, rig_strvfo(vfo));
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
 		return -RIG_EINVAL;
 	}
 
@@ -1057,7 +1057,7 @@ int tt588_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 	resp_len = 3;
 	retval = tt588_transaction (rig, cmdbuf, cmd_len, respbuf, &resp_len);
 	if (resp_len != 3) {
-		rig_debug(RIG_DEBUG_ERR,"%s: bad response length, expected %d, got %d\n", __FUNCTION__,3,resp_len);
+		rig_debug(RIG_DEBUG_ERR,"%s: bad response length, expected %d, got %d\n", __func__,3,resp_len);
 	}
 	// respbuf returns "N0" or "N1" for split off/on
 	if (retval != RIG_OK)
@@ -1072,7 +1072,7 @@ int tt588_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 	else
 		*tx_vfo = RIG_VFO_A; // VFO A when not in split
 
-	rig_debug(RIG_DEBUG_VERBOSE,"%s: split=%d tx_vfo=%s\n", __FUNCTION__,*split,rig_strvfo(*tx_vfo));
+	rig_debug(RIG_DEBUG_VERBOSE,"%s: split=%d tx_vfo=%s\n", __func__,*split,rig_strvfo(*tx_vfo));
 
 	return RIG_OK;
 }
@@ -1086,9 +1086,9 @@ int tt588_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 	int retval, cmd_len;
 	char cmdbuf[32];
 
-	rig_debug(RIG_DEBUG_VERBOSE,"%s: ptt=%d\n", __FUNCTION__,ptt);
+	rig_debug(RIG_DEBUG_VERBOSE,"%s: ptt=%d\n", __func__,ptt);
 	if(check_vfo(vfo)==FALSE) {
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __FUNCTION__, rig_strvfo(vfo));
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
 		return -RIG_EINVAL;
 	}
 
@@ -1120,17 +1120,17 @@ const char *tt588_get_info(RIG *rig)
 	cmd_len = sprintf(cmdbuf,"?V" EOM);
 	memset(firmware,0,sizeof(firmware));
 	firmware_len = sizeof(firmware);
-	rig_debug(RIG_DEBUG_VERBOSE,"%s: firmware_len=%d\n", __FUNCTION__,firmware_len);
+	rig_debug(RIG_DEBUG_VERBOSE,"%s: firmware_len=%d\n", __func__,firmware_len);
 	retval = tt588_transaction (rig, cmdbuf, cmd_len, firmware, &firmware_len);
 
 	// Response should be  "VER 1010-588 " plus "RADIO x\r" or "REMOTEx\r"
 	// if x=blank ham band transmit only
 	// if x='M' MARS transmit only
 	if (retval != RIG_OK) {
-			rig_debug(RIG_DEBUG_ERR,"%s: ack NG, len=%d\n",	__FUNCTION__, firmware_len);
+			rig_debug(RIG_DEBUG_ERR,"%s: ack NG, len=%d\n",	__func__, firmware_len);
 			return NULL;
 	}
-	rig_debug(RIG_DEBUG_VERBOSE,"%s: %s\n", __FUNCTION__,firmware);
+	rig_debug(RIG_DEBUG_VERBOSE,"%s: %s\n", __func__,firmware);
 	return firmware;
 }
 
@@ -1146,7 +1146,7 @@ int tt588_get_xit(RIG * rig, vfo_t vfo, shortfreq_t *xit)
 	char cmdbuf[16], respbuf[16];
 
 	if(check_vfo(vfo)==FALSE) {
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __FUNCTION__, rig_strvfo(vfo));
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
 		return -RIG_EINVAL;
 	}
 
@@ -1155,7 +1155,7 @@ int tt588_get_xit(RIG * rig, vfo_t vfo, shortfreq_t *xit)
 	resp_len = 5;
 	retval = tt588_transaction (rig, cmdbuf, cmd_len, respbuf, &resp_len);
 	if (resp_len != 5) {
-		rig_debug(RIG_DEBUG_ERR,"%s: bad response length, expected %d, got %d\n", __FUNCTION__,5,resp_len);
+		rig_debug(RIG_DEBUG_ERR,"%s: bad response length, expected %d, got %d\n", __func__,5,resp_len);
 	}
 	if (retval != RIG_OK)
 		return retval;
@@ -1178,9 +1178,9 @@ static int set_rit_xit(RIG * rig, vfo_t vfo, shortfreq_t rit, int which)
 	int retval, cmd_len;
 	char cmdbuf[16];
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: rit=%d\n", __FUNCTION__, (int)rit);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: rit=%d\n", __func__, (int)rit);
 	if(check_vfo(vfo)==FALSE) {
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __FUNCTION__, rig_strvfo(vfo));
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
 		return -RIG_EINVAL;
 	}
 
@@ -1227,7 +1227,7 @@ int tt588_get_ant(RIG * rig, vfo_t vfo, ant_t *ant)
 	char cmdbuf[16], respbuf[16];
 
 	if(check_vfo(vfo)==FALSE) {
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __FUNCTION__, rig_strvfo(vfo));
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
 		return -RIG_EINVAL;
 	}
 
@@ -1237,7 +1237,7 @@ int tt588_get_ant(RIG * rig, vfo_t vfo, ant_t *ant)
 	// this should be the only line needing change for remote operation
 	retval = tt588_transaction (rig, cmdbuf, cmd_len, respbuf, &resp_len);
 	if (resp_len != 5) {
-		rig_debug(RIG_DEBUG_ERR,"%s: bad response length, expected %d, got %d\n", __FUNCTION__,5,resp_len);
+		rig_debug(RIG_DEBUG_ERR,"%s: bad response length, expected %d, got %d\n", __func__,5,resp_len);
 	}
 	if (retval != RIG_OK)
 		return retval;
@@ -1245,7 +1245,7 @@ int tt588_get_ant(RIG * rig, vfo_t vfo, ant_t *ant)
 	if (respbuf[0] != 'C' || respbuf[4] != 0x0d)
 		return -RIG_EPROTO;
 	*ant = respbuf[3];
-	rig_debug(RIG_DEBUG_VERBOSE,"%s: rit=%d\n", __FUNCTION__,*ant);
+	rig_debug(RIG_DEBUG_VERBOSE,"%s: rit=%d\n", __func__,*ant);
 
 	return RIG_OK;
 }
@@ -1261,10 +1261,10 @@ int tt588_set_ant(RIG * rig, vfo_t vfo, ant_t ant)
 	char cmdbuf[16];
 
 	if(check_vfo(vfo)==FALSE) {
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __FUNCTION__, rig_strvfo(vfo));
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
 		return -RIG_EINVAL;
 	}
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: ant=%d\n", __FUNCTION__, ant);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: ant=%d\n", __func__, ant);
 
 	cmd_len = sprintf(cmdbuf,"*C1Vx" EOM);
 	// 0 = RX=TX=ANT1

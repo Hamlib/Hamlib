@@ -612,7 +612,7 @@ int ft980_open(RIG *rig)
   struct ft980_priv_data *priv;
   int retval, retry_count1=0;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s called\n",__FUNCTION__);
+  rig_debug(RIG_DEBUG_TRACE, "%s called\n",__func__);
 
   rig->state.priv = calloc(1, sizeof (struct ft980_priv_data));
   if (!rig->state.priv)
@@ -646,7 +646,7 @@ int ft980_close(RIG *rig)
   struct ft980_priv_data *priv = (struct ft980_priv_data *)rig->state.priv;
   int retval, retry_count1=0;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s called\n",__FUNCTION__);
+  rig_debug(RIG_DEBUG_TRACE, "%s called\n",__func__);
 
   do {
     int retry_count2=0;

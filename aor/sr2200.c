@@ -325,13 +325,13 @@ int sr2200_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 	if (freq < sr2200_caps.rx_range_list1[0].startf) {
 		rig_debug(RIG_DEBUG_WARN, "Error in %s: frequency is lower than minimum supported value (%.0f Hz)\n",
-				__FUNCTION__, sr2200_caps.rx_range_list1[0].startf);
+				__func__, sr2200_caps.rx_range_list1[0].startf);
 		return -RIG_EPROTO;
 	}
 
 		if (freq > sr2200_caps.rx_range_list1[0].endf) {
 		rig_debug(RIG_DEBUG_WARN, "Error in %s: frequency is higher than maximum supported value (%.0f Hz)\n",
-				__FUNCTION__, sr2200_caps.rx_range_list1[0].endf);
+				__func__, sr2200_caps.rx_range_list1[0].endf);
 		return -RIG_EPROTO;
 	}
 
@@ -348,7 +348,7 @@ int sr2200_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	rfp = strstr(ackbuf, "RF");
 	if (!rfp) {
 		rig_debug(RIG_DEBUG_WARN, "NO RF in returned string in %s: '%s'\n",
-				__FUNCTION__, freqbuf);
+				__func__, freqbuf);
 		return -RIG_EPROTO;
 	}
 
@@ -387,7 +387,7 @@ int sr2200_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %s\n",
-					__FUNCTION__,rig_strrmode(mode));
+					__func__,rig_strrmode(mode));
 		return -RIG_EINVAL;
 	}
 
@@ -413,7 +413,7 @@ int sr2200_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	mdp = strstr(ackbuf, "MD");
 	if (!mdp) {
 		rig_debug(RIG_DEBUG_ERR, "%s: no MD in returned string: '%s'\n",
-				__FUNCTION__, ackbuf);
+				__func__, ackbuf);
 		return -RIG_EPROTO;
 	}
 
@@ -432,7 +432,7 @@ int parse_s2200_aor_mode(RIG *rig, char aormode, char aorwidth, rmode_t *mode, p
 	case SR2200_WFM:	*mode = RIG_MODE_WFM; break;
 	default:
 	    rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode '%c'\n",
-		      __FUNCTION__, aormode);
+		      __func__, aormode);
 	    return -RIG_EPROTO;
     }
 
@@ -444,7 +444,7 @@ int parse_s2200_aor_mode(RIG *rig, char aormode, char aorwidth, rmode_t *mode, p
 	case SR2200_WFM:	*width = s_kHz(300); break;
 	default:
 	    rig_debug(RIG_DEBUG_ERR,"%s: unsupported width %d\n",
-		      __FUNCTION__, aorwidth);
+		      __func__, aorwidth);
 	    return -RIG_EPROTO;
     }
 
@@ -609,7 +609,7 @@ int sr2200_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		lvl_len = sprintf(lvlbuf, "AM" EOM);
 		break;
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported level %s\n", __FUNCTION__, rig_strlevel(level));
+		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported level %s\n", __func__, rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 
@@ -640,7 +640,7 @@ int sr2200_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		}
 		if (att > MAXDBLSTSIZ || rs->attenuator[att-1]==0) {
 			rig_debug(RIG_DEBUG_ERR,"Unsupported att %s %d\n",
-							__FUNCTION__, att);
+							__func__, att);
 			return -RIG_EPROTO;
 		}
 		val->i = rs->attenuator[att-1];
@@ -682,7 +682,7 @@ int sr2200_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		break;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported level %s\n", __FUNCTION__, rig_strlevel(level));
+		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported level %s\n", __func__, rig_strlevel(level));
 		return -RIG_EINVAL;
 	}
 

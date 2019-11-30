@@ -218,7 +218,7 @@ int ft736_open(RIG *rig)
   struct ft736_priv_data *priv;
   int ret;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s called\n",__FUNCTION__);
+  rig_debug(RIG_DEBUG_TRACE, "%s called\n",__func__);
 
   priv = (struct ft736_priv_data *) calloc(1, sizeof(struct ft736_priv_data));
   if (!priv)
@@ -240,7 +240,7 @@ int ft736_close(RIG *rig)
 {
   unsigned char cmd[YAESU_CMD_LENGTH] = { 0x80, 0x80, 0x80, 0x80, 0x80};
 
-  rig_debug(RIG_DEBUG_TRACE, "%s called\n",__FUNCTION__);
+  rig_debug(RIG_DEBUG_TRACE, "%s called\n",__func__);
 
   free(rig->state.priv);
 
@@ -411,7 +411,7 @@ int ft736_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 
   if (retval < 1) {
 	rig_debug(RIG_DEBUG_ERR,"%s: read squelch failed %d\n",
-			__FUNCTION__,retval);
+			__func__,retval);
 
 	return retval < 0 ? retval : -RIG_EIO;
   }
@@ -440,7 +440,7 @@ int ft736_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
   if (retval < 1) {
 	rig_debug(RIG_DEBUG_ERR,"%s: read meter failed %d\n",
-			__FUNCTION__,retval);
+			__func__,retval);
 
 	return retval < 0 ? retval : -RIG_EIO;
   }

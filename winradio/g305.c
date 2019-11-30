@@ -191,7 +191,7 @@ int g3_init(RIG *rig)
 
 	if (!priv->dll) {
 		rig_debug(RIG_DEBUG_ERR, "%s: Unable to LoadLibrary %s\n",
-				__FUNCTION__, WRG3DLL);
+				__func__, WRG3DLL);
 		free(priv);
 		return -RIG_EIO;	/* huh! */
 	}
