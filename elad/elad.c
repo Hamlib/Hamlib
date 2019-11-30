@@ -708,7 +708,7 @@ int elad_set_vfo(RIG *rig, vfo_t vfo)
   //if rig=ts2000 then check Satellite mode status
   if(rig->caps->rig_model == RIG_MODEL_TS2000 && !priv->is_emulation) {
     char retbuf[20];
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: Checking Satellite mode status\n",__FUNCTION__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: Checking Satellite mode status\n",__func__);
     snprintf(cmdbuf, sizeof (cmdbuf), "SA");
 
     retval = elad_transaction(rig, cmdbuf, retbuf, 20);
@@ -3313,7 +3313,7 @@ DECLARE_PROBERIG_BACKEND(elad)
      * reply should be something like 'K2n;'
      */
     if (id_len == 4 || !strcmp(idbuf, "K2")) {
-      rig_debug(RIG_DEBUG_VERBOSE, "%s: found K2\n",__FUNCTION__);
+      rig_debug(RIG_DEBUG_VERBOSE, "%s: found K2\n",__func__);
       if (cfunc)
         (*cfunc)(port, RIG_MODEL_K2, data);
       return RIG_MODEL_K2;

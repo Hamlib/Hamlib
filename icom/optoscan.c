@@ -260,9 +260,9 @@ int optoscan_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
 	digits[digitpos] = 0;
 
 	if (*length > 0) {
-		rig_debug(RIG_DEBUG_ERR, "%s: %d digits - %s\n",__FUNCTION__, *length, digits);
+		rig_debug(RIG_DEBUG_ERR, "%s: %d digits - %s\n",__func__, *length, digits);
 	} else {
-		rig_debug(RIG_DEBUG_ERR, "%s: no digits to read.\n",__FUNCTION__);
+		rig_debug(RIG_DEBUG_ERR, "%s: no digits to read.\n",__func__);
 	}
 
 	return RIG_OK;
@@ -320,7 +320,7 @@ int optoscan_set_ext_parm(RIG *rig, token_t token, value_t val)
 
 	if (ack_len != 1 || ackbuf[0] != ACK) {
 		rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), "
-			  "len=%d\n", __FUNCTION__, ackbuf[0], ack_len);
+			  "len=%d\n", __func__, ackbuf[0], ack_len);
 		return -RIG_ERJCTED;
 	}
 
@@ -630,13 +630,13 @@ static int optoscan_get_status_block(RIG *rig, struct optostat *status_block)
 		break;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: unknown rig model",__FUNCTION__);
+		rig_debug(RIG_DEBUG_ERR, "%s: unknown rig model",__func__);
 		return -RIG_ERJCTED;
 		break;
 	}
 
 	if (ack_len != expected_len) {
-		rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n",__FUNCTION__,
+		rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n",__func__,
 			  ackbuf[0], ack_len);
 		return -RIG_ERJCTED;
 	}

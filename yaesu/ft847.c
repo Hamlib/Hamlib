@@ -872,7 +872,7 @@ int ft847_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
         break;
       default:
         rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode/width: %s/%d, narrow: %d\n",
-                  __FUNCTION__, rig_strrmode(mode), (int)width,
+                  __func__, rig_strrmode(mode), (int)width,
                   (int)rig_passband_narrow(rig, mode));
         return -RIG_EINVAL;		/* sorry, wrong MODE/WIDTH combo  */
       }
@@ -880,7 +880,7 @@ int ft847_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
   		if (width != RIG_PASSBAND_NORMAL &&
           width != rig_passband_normal(rig, mode)) {
         rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode/width: %s/%d, narrow: %d\n",
-                  __FUNCTION__, rig_strrmode(mode), (int)width,
+                  __func__, rig_strrmode(mode), (int)width,
                   (int)rig_passband_narrow(rig, mode));
         return -RIG_EINVAL;		/* sorry, wrong MODE/WIDTH combo  */
       }

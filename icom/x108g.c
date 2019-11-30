@@ -322,7 +322,7 @@ int x108g_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
         /* X108G doesn't quite follow ICOM protocol -- returns 0x1c instead of 0xfb */
         if (ack_len !=3 || ackbuf[0] != 0x1c) {
-                rig_debug(RIG_DEBUG_ERR,"%s: ack NG (%#.2x), len=%d, ptt=%d\n",__FUNCTION__, ackbuf[0],ack_len,ptt);
+                rig_debug(RIG_DEBUG_ERR,"%s: ack NG (%#.2x), len=%d, ptt=%d\n",__func__, ackbuf[0],ack_len,ptt);
                 return -RIG_ERJCTED;
         }
 
@@ -357,7 +357,7 @@ static int x108g_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
                 }
                 break;
         default:
-                rig_debug(RIG_DEBUG_ERR,"%s: Unsupported split %d", __FUNCTION__, split);
+                rig_debug(RIG_DEBUG_ERR,"%s: Unsupported split %d", __func__, split);
                 return -RIG_EINVAL;
         }
 

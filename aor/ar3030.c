@@ -421,7 +421,7 @@ int ar3030_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         break;
     default:
         rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %s\n",
-                  __FUNCTION__,rig_strrmode(mode));
+                  __func__,rig_strrmode(mode));
         return -RIG_EINVAL;
     }
 
@@ -482,7 +482,7 @@ int ar3030_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         break;
     default:
         rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode '%c'\n",
-                  __FUNCTION__,buf[25]);
+                  __func__,buf[25]);
         return -RIG_EPROTO;
     }
 
@@ -681,7 +681,7 @@ int ar3030_get_channel(RIG *rig, channel_t *chan)
         break;
     default:
         rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode '%c'\n",
-                  __FUNCTION__,infobuf[22]);
+                  __func__,infobuf[22]);
         return -RIG_EPROTO;
     }
 

@@ -90,7 +90,7 @@ fodtrack_set_position(ROT *rot, azimuth_t az, elevation_t el)
  int retval;
  hamlib_port_t *pport;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __FUNCTION__, az, el);
+  rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
 
   pport = &rot->state.rotport;
 
@@ -143,7 +143,7 @@ const struct rot_caps fodtrack_rot_caps = {
 
 DECLARE_INITROT_BACKEND(fodtrack)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
 	rot_register(&fodtrack_rot_caps);
 

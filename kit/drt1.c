@@ -303,7 +303,7 @@ static int ad_sdio(hamlib_port_t *port, int i)
 
 	if (ret != RIG_OK)
 		rig_debug(RIG_DEBUG_ERR, "%s: unable to set statusbits\n",
-				__FUNCTION__);
+				__func__);
 
 	return ret;
 }
@@ -317,7 +317,7 @@ static int ad_sclk(hamlib_port_t *port, int i)
 
 	if (ret != RIG_OK)
 		rig_debug(RIG_DEBUG_ERR, "%s: unable to set statusbits\n",
-				__FUNCTION__);
+				__func__);
 
 	return ret;
 }
@@ -331,7 +331,7 @@ static int ad_ioupd(hamlib_port_t *port, int i)
 
 	if (ret != RIG_OK)
 		rig_debug(RIG_DEBUG_ERR, "%s: unable to set statusbits\n",
-				__FUNCTION__);
+				__func__);
 
 	return ret;
 }
@@ -408,7 +408,7 @@ int drt1_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 				(priv->osc_freq * priv->ref_mult)
 				* 4294967296.0);
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: [%#lx]\n", __FUNCTION__,frg);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: [%#lx]\n", __func__,frg);
 
 	ad_write_reg(port, FTW0, 4, frg);
 

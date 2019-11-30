@@ -323,7 +323,7 @@ int ra37xx_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	case RIG_MODE_RTTY:	widthtype = 3; ra_mode = MD_FSK; break;
 	default:
 		rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n",
-				__FUNCTION__, rig_strrmode(mode));
+				__func__, rig_strrmode(mode));
 		return -RIG_EINVAL;
 	}
 
@@ -423,7 +423,7 @@ int ra37xx_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 		break;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported %s\n", __FUNCTION__, rig_strfunc(func));
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported %s\n", __func__, rig_strfunc(func));
 		return -RIG_EINVAL;
 	}
 

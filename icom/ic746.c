@@ -609,7 +609,7 @@ static int ic746pro_set_ext_parm(RIG *rig, token_t token, value_t val)
 
 	if (ack_len != 1 || ackbuf[0] != ACK) {
 		rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), "
-			"len=%d\n", __FUNCTION__, ackbuf[0], ack_len);
+			"len=%d\n", __func__, ackbuf[0], ack_len);
 		return -RIG_ERJCTED;
 	}
 	return RIG_OK;
@@ -660,12 +660,12 @@ static int ic746pro_get_ext_parm(RIG *rig, token_t token, value_t *val)
 	if (resbuf[0] != ep_cmd) {
 		if (resbuf[0] == ACK) {
 				rig_debug(RIG_DEBUG_ERR,"%s: protocol error (%#.2x), "
-			"len=%d\n", __FUNCTION__,resbuf[0],res_len);
+			"len=%d\n", __func__,resbuf[0],res_len);
 		return -RIG_EPROTO;
 		}
 		else {
 			rig_debug(RIG_DEBUG_ERR,"%s: ack NG (%#.2x), "
-				"len=%d\n", __FUNCTION__,resbuf[0],res_len);
+				"len=%d\n", __func__,resbuf[0],res_len);
 		return -RIG_ERJCTED;
 		}
 	}
@@ -683,12 +683,12 @@ static int ic746pro_get_ext_parm(RIG *rig, token_t token, value_t *val)
 		break;
 		default:
 		 rig_debug(RIG_DEBUG_ERR,"%s: protocol error (%#.2x), "
-			"len=%d\n", __FUNCTION__,resbuf[0],res_len);
+			"len=%d\n", __func__,resbuf[0],res_len);
 		return -RIG_EPROTO;
 
 	}
 	rig_debug(RIG_DEBUG_TRACE,"%s: %d %d %d %f\n",
-			__FUNCTION__, res_len, icom_val, val->i, val->f);
+			__func__, res_len, icom_val, val->i, val->f);
 
 	return RIG_OK;
 }
@@ -800,12 +800,12 @@ int ic746_get_parm(RIG *rig, setting_t parm, value_t *val)
 	if (resbuf[0] != prm_cn) {
 		if (resbuf[0] == ACK) {
 				rig_debug(RIG_DEBUG_ERR,"%s: protocol error (%#.2x), "
-			"len=%d\n", __FUNCTION__,resbuf[0],res_len);
+			"len=%d\n", __func__,resbuf[0],res_len);
 		return -RIG_EPROTO;
 		}
 		else {
 			rig_debug(RIG_DEBUG_ERR,"%s: ack NG (%#.2x), "
-				"len=%d\n", __FUNCTION__,resbuf[0],res_len);
+				"len=%d\n", __func__,resbuf[0],res_len);
 		return -RIG_ERJCTED;
 		}
 	}
@@ -817,7 +817,7 @@ int ic746_get_parm(RIG *rig, setting_t parm, value_t *val)
 		val->i = icom_val;
 
 	rig_debug(RIG_DEBUG_TRACE,"%s: %d %d %d %f\n",
-			__FUNCTION__, res_len, icom_val, val->i, val->f);
+			__func__, res_len, icom_val, val->i, val->f);
 
 	return RIG_OK;
 }

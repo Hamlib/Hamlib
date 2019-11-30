@@ -95,7 +95,7 @@ transaction_write:
 #if 0
     /* Check that command termination is correct */
     if (strchr(REPLY_EOM, data[strlen(data)-1])==NULL) {
-        rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n", __FUNCTION__, data);
+        rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n", __func__, data);
         if (retry_read++ < rig->state.rotport.retry)
             goto transaction_write;
         retval = -RIG_EPROTO;
@@ -106,7 +106,7 @@ transaction_write:
     if (data[0] == '?') {
 	    /* Invalid command */
 	    rig_debug(RIG_DEBUG_VERBOSE, "%s: Error for '%s': '%s'\n",
-			    __FUNCTION__, cmdstr, data);
+			    __func__, cmdstr, data);
 	    retval = -RIG_EPROTO;
 	    goto transaction_quit;
     }
@@ -136,7 +136,7 @@ gs232_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
     int retval;
     unsigned u_az, u_el;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __FUNCTION__, az, el);
+    rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
     if (az < 0.0){
     az = az + 360.0;
     }
@@ -158,7 +158,7 @@ gs232_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     char posbuf[32];
     int retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     retval = gs232_transaction(rot, "C2" EOM, posbuf, sizeof(posbuf));
     if (retval != RIG_OK || strlen(posbuf) < 10)
@@ -166,16 +166,16 @@ gs232_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
     /* parse */
     if (sscanf(posbuf+2, "%f", az) != 1) {
-        rig_debug(RIG_DEBUG_ERR, "%s: wrong reply '%s'\n", __FUNCTION__, posbuf);
+        rig_debug(RIG_DEBUG_ERR, "%s: wrong reply '%s'\n", __func__, posbuf);
         return -RIG_EPROTO;
     }
     if (sscanf(posbuf+7, "%f", el) != 1) {
-        rig_debug(RIG_DEBUG_ERR, "%s: wrong reply '%s'\n", __FUNCTION__, posbuf);
+        rig_debug(RIG_DEBUG_ERR, "%s: wrong reply '%s'\n", __func__, posbuf);
         return -RIG_EPROTO;
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: (az, el) = (%.1f, %.1f)\n",
-		   __FUNCTION__, *az, *el);
+		   __func__, *az, *el);
 
     return RIG_OK;
 }
@@ -185,7 +185,7 @@ gs232_rot_stop(ROT *rot)
 {
     int retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     /* All Stop */
     retval = gs232_wo_transaction(rot, "S" EOM, NULL, 0);

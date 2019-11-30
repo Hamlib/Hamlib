@@ -158,10 +158,10 @@ int icmarine_cleanup(RIG *rig)
 int icmarine_open(RIG *rig)
 {
   char respbuf[BUFSZ+1];
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __func__);
   int retval = icmarine_transaction(rig, "REMOTE", "ON", respbuf); 
   if (retval != RIG_OK) {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: rig not responding? %s\n",__FUNCTION__, rigerror(retval));
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: rig not responding? %s\n",__func__, rigerror(retval));
         
   }
   return RIG_OK;
@@ -220,7 +220,7 @@ int icmarine_transaction(RIG *rig, const char *cmd, const char *param, char *res
 	int cmd_len = 0;
 	unsigned csum = 0;
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: cmd='%s', param=%s\n",__FUNCTION__,cmd,param);
+        rig_debug(RIG_DEBUG_TRACE, "%s: cmd='%s', param=%s\n",__func__,cmd,param);
 
 	rs = &rig->state;
 	priv = (struct icmarine_priv_data *)rs->priv;
@@ -278,7 +278,7 @@ int icmarine_transaction(RIG *rig, const char *cmd, const char *param, char *res
 		*strip = 0;
 	}
 	else {
-	        rig_debug(RIG_DEBUG_ERR, "%s: checksum not in response? response='%s'\n",__FUNCTION__,respbuf);
+	        rig_debug(RIG_DEBUG_ERR, "%s: checksum not in response? response='%s'\n",__func__,respbuf);
 		return -RIG_EPROTO;
 	}
 	p = strrchr(respbuf, ',');
@@ -287,7 +287,7 @@ int icmarine_transaction(RIG *rig, const char *cmd, const char *param, char *res
 	else
 		return -RIG_EPROTO;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: returning response='%s'\n", __FUNCTION__,response);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: returning response='%s'\n", __func__,response);
 	return RIG_OK;
 }
 
@@ -297,7 +297,7 @@ int icmarine_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	char freqbuf[BUFSZ];
 	struct icmarine_priv_data *priv;
 
-        rig_debug(RIG_DEBUG_TRACE, "%s:\n",__FUNCTION__);
+        rig_debug(RIG_DEBUG_TRACE, "%s:\n",__func__);
 
 	priv = (struct icmarine_priv_data*)rig->state.priv;
 
@@ -320,7 +320,7 @@ int icmarine_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 	char freqbuf[BUFSZ] = "";
 	double d;
 
-        rig_debug(RIG_DEBUG_TRACE, "%s:\n",__FUNCTION__);
+        rig_debug(RIG_DEBUG_TRACE, "%s:\n",__func__);
 
 	retval = icmarine_transaction (rig, CMD_RXFREQ, NULL, freqbuf);
 	if (retval != RIG_OK)
@@ -330,7 +330,7 @@ int icmarine_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		*freq = 0;
 	} else {
 		if (sscanf(freqbuf, "%lf", &d) != 1) {
-			rig_debug(RIG_DEBUG_ERR,"%s: sscanf('%s') failed\n",__FUNCTION__,freqbuf);
+			rig_debug(RIG_DEBUG_ERR,"%s: sscanf('%s') failed\n",__func__,freqbuf);
 			return -RIG_EPROTO;
 		}
 
@@ -344,7 +344,7 @@ int icmarine_set_tx_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
 	char freqbuf[BUFSZ];
 
-        rig_debug(RIG_DEBUG_TRACE, "%s:\n",__FUNCTION__);
+        rig_debug(RIG_DEBUG_TRACE, "%s:\n",__func__);
 
 	sprintf(freqbuf, "%.6f", freq/MHz(1));
 
@@ -357,7 +357,7 @@ int icmarine_get_tx_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 	char freqbuf[BUFSZ] = "";
 	double d;
 
-        rig_debug(RIG_DEBUG_TRACE, "%s:\n",__FUNCTION__);
+        rig_debug(RIG_DEBUG_TRACE, "%s:\n",__func__);
 
 	retval = icmarine_transaction (rig, CMD_TXFREQ, NULL, freqbuf);
 	if (retval != RIG_OK)
@@ -379,7 +379,7 @@ int icmarine_set_split_vfo(RIG *rig, vfo_t rx_vfo, split_t split, vfo_t tx_vfo)
 {
 	struct icmarine_priv_data *priv;
 
-        rig_debug(RIG_DEBUG_TRACE, "%s:\n",__FUNCTION__);
+        rig_debug(RIG_DEBUG_TRACE, "%s:\n",__func__);
 
 	priv = (struct icmarine_priv_data *)rig->state.priv;
 
@@ -401,7 +401,7 @@ int icmarine_get_split_vfo(RIG *rig, vfo_t rx_vfo, split_t *split, vfo_t *tx_vfo
 {
 	struct icmarine_priv_data *priv;
 
-        rig_debug(RIG_DEBUG_TRACE, "%s:\n",__FUNCTION__);
+        rig_debug(RIG_DEBUG_TRACE, "%s:\n",__func__);
 
 	priv = (struct icmarine_priv_data *)rig->state.priv;
 
@@ -416,7 +416,7 @@ int icmarine_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
 	const char *pmode;
 
-        rig_debug(RIG_DEBUG_TRACE, "%s:\n",__FUNCTION__);
+        rig_debug(RIG_DEBUG_TRACE, "%s:\n",__func__);
 
 	switch (mode) {
 		case RIG_MODE_CW:       pmode = MD_CW; break;
@@ -439,7 +439,7 @@ int icmarine_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	int retval;
 	char modebuf[BUFSZ];
 
-        rig_debug(RIG_DEBUG_TRACE, "%s:\n",__FUNCTION__);
+        rig_debug(RIG_DEBUG_TRACE, "%s:\n",__func__);
 
 	retval = icmarine_transaction (rig, CMD_MODE, NULL, modebuf);
 	if (retval != RIG_OK)
@@ -469,12 +469,12 @@ int icmarine_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  */
 int icmarine_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
-        rig_debug(RIG_DEBUG_TRACE, "%s:\n",__FUNCTION__);
+        rig_debug(RIG_DEBUG_TRACE, "%s:\n",__func__);
 
 	int retval = icmarine_transaction (rig, CMD_PTT,
 			ptt == RIG_PTT_ON ? "TX" : "RX", NULL);
 	if (retval != RIG_OK) {
-	        rig_debug(RIG_DEBUG_ERR, "%s: transaction failed\n",__FUNCTION__);
+	        rig_debug(RIG_DEBUG_ERR, "%s: transaction failed\n",__func__);
 		return retval;
 	}
 	return RIG_OK;
@@ -485,12 +485,12 @@ int icmarine_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 	char pttbuf[BUFSZ];
 	int retval;
 
-        rig_debug(RIG_DEBUG_TRACE, "%s:\n",__FUNCTION__);
+        rig_debug(RIG_DEBUG_TRACE, "%s:\n",__func__);
 
 	retval = icmarine_transaction (rig, CMD_PTT, NULL, pttbuf);
 
 	if (retval != RIG_OK) {
-	        rig_debug(RIG_DEBUG_ERR, "%s: transaction failed\n",__FUNCTION__);
+	        rig_debug(RIG_DEBUG_ERR, "%s: transaction failed\n",__func__);
 		return retval;
 	}
 
@@ -499,7 +499,7 @@ int icmarine_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 	else if (strncmp(pttbuf, "RX",2)==0)
 		*ptt = RIG_PTT_OFF;
 	else {
-	        rig_debug(RIG_DEBUG_ERR, "%s: invalid pttbuf='%s'\n",__FUNCTION__,pttbuf);
+	        rig_debug(RIG_DEBUG_ERR, "%s: invalid pttbuf='%s'\n",__func__,pttbuf);
 		retval = -RIG_EPROTO;
 	}
 
@@ -511,7 +511,7 @@ int icmarine_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 	char dcdbuf[BUFSZ];
 	int retval;
 
-        rig_debug(RIG_DEBUG_TRACE, "%s:\n",__FUNCTION__);
+        rig_debug(RIG_DEBUG_TRACE, "%s:\n",__func__);
 
 	retval = icmarine_transaction (rig, CMD_SQLS, NULL, dcdbuf);
 
@@ -530,7 +530,7 @@ int icmarine_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 
 int icmarine_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
-        rig_debug(RIG_DEBUG_TRACE, "%s:\n",__FUNCTION__);
+        rig_debug(RIG_DEBUG_TRACE, "%s:\n",__func__);
 
 	if (RIG_OP_TUNE != op && RIG_OP_NONE != op)
 		return -RIG_EINVAL;
@@ -543,7 +543,7 @@ int icmarine_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
 	int retval;
 
-        rig_debug(RIG_DEBUG_TRACE, "%s:\n",__FUNCTION__);
+        rig_debug(RIG_DEBUG_TRACE, "%s:\n",__func__);
 
 	switch(func) {
 		case RIG_FUNC_NB:
@@ -562,7 +562,7 @@ int icmarine_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 	char funcbuf[BUFSZ];
 	int retval;
 
-        rig_debug(RIG_DEBUG_TRACE, "%s:\n",__FUNCTION__);
+        rig_debug(RIG_DEBUG_TRACE, "%s:\n",__func__);
 
 	switch(func) {
 		case RIG_FUNC_NB:
@@ -584,7 +584,7 @@ int icmarine_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 	char lvlbuf[BUFSZ];
 	int retval;
 
-        rig_debug(RIG_DEBUG_TRACE, "%s:\n",__FUNCTION__);
+        rig_debug(RIG_DEBUG_TRACE, "%s:\n",__func__);
 
 	switch(level) {
 		case RIG_LEVEL_AF:
@@ -619,7 +619,7 @@ int icmarine_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	char lvlbuf[BUFSZ];
 	int retval;
 
-        rig_debug(RIG_DEBUG_TRACE, "%s:\n",__FUNCTION__);
+        rig_debug(RIG_DEBUG_TRACE, "%s:\n",__func__);
 
 	switch(level) {
 		case RIG_LEVEL_RAWSTR:

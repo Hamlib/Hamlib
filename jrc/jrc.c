@@ -122,7 +122,7 @@ static int jrc2rig_mode(RIG *rig, char jmode, char jwidth,
 	default:
 	  rig_debug(RIG_DEBUG_ERR,
 		    "%s: unsupported mode %c\n",
-		    __FUNCTION__, jmode);
+		    __func__, jmode);
 	  *mode = RIG_MODE_NONE;
 	  return -RIG_EINVAL;
 	}
@@ -146,7 +146,7 @@ static int jrc2rig_mode(RIG *rig, char jmode, char jwidth,
 	default:
 	  rig_debug(RIG_DEBUG_ERR,
 		    "%s: unsupported width %c\n",
-		    __FUNCTION__, jwidth);
+		    __func__, jwidth);
 	  *width = RIG_PASSBAND_NORMAL;
 	  return -RIG_EINVAL;
 	}
@@ -171,7 +171,7 @@ static int rig2jrc_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 	case RIG_MODE_WFM:	*jmode = MD_WFM; break;
 	default:
 	  rig_debug(RIG_DEBUG_ERR,
-		    "%s: unsupported mode %s\n", __FUNCTION__, rig_strrmode(mode));
+		    "%s: unsupported mode %s\n", __func__, rig_strrmode(mode));
 	  return -RIG_EINVAL;
 	}
 

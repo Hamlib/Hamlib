@@ -312,7 +312,7 @@ static char which_vfo(const RIG *rig, vfo_t vfo)
 	case RIG_VFO_NONE: return 'N';
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n",
-				__FUNCTION__, rig_strvfo(vfo));
+				__func__, rig_strvfo(vfo));
 		return -RIG_EINVAL;
 	}
 }
@@ -353,7 +353,7 @@ int tt538_reset(RIG *rig, reset_t reset) {
 
 	if (!strstr(reset_buf, "RADIO START")) {
 		rig_debug(RIG_DEBUG_ERR, "%s: unexpected answer '%s'\n",
-					__FUNCTION__, reset_buf);
+					__func__, reset_buf);
 		return -RIG_EPROTO;
 	}
 
@@ -380,12 +380,12 @@ int tt538_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 	curVfo = which_vfo(rig, vfo);
 	if (respbuf[0] != curVfo) {
 		rig_debug(RIG_DEBUG_ERR, "%s: unexpected answer '%s'\n",
-			__FUNCTION__, respbuf);
+			__func__, respbuf);
 		return -RIG_EPROTO;
 	}
 	if (resp_len != 6) {
 		rig_debug(RIG_DEBUG_ERR, "%s: unexpected length '%d'\n",
-			__FUNCTION__, resp_len);
+			__func__, resp_len);
 		return -RIG_EPROTO;
 	}
 
@@ -476,7 +476,7 @@ int tt538_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 	if (respbuf[0] != 'M' || resp_len != 4) {
 		rig_debug(RIG_DEBUG_ERR, "%s: unexpected answer '%s'\n",
-			__FUNCTION__, respbuf);
+			__func__, respbuf);
 		return -RIG_EPROTO;
 	}
 
@@ -489,7 +489,7 @@ int tt538_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n",
-			__FUNCTION__, rig_strvfo(vfo));
+			__func__, rig_strvfo(vfo));
 		return -RIG_EINVAL;
 		break;
 	}
@@ -502,7 +502,7 @@ int tt538_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	case TT538_FM: *mode = RIG_MODE_FM;  break;
 	default:
 		rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode '%c'\n",
-			__FUNCTION__, ttmode);
+			__func__, ttmode);
 		return -RIG_EPROTO;
 	}
 
@@ -516,7 +516,7 @@ int tt538_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 	if (respbuf[0] != 'W' && resp_len != 3) {
 		rig_debug(RIG_DEBUG_ERR, "%s: unexpected answer '%s'\n",
-			__FUNCTION__, respbuf);
+			__func__, respbuf);
 		return -RIG_EPROTO;
 	}
 	/* Find bandwidth according to response from table. */
@@ -531,7 +531,7 @@ int tt538_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 		 *width = pbwidth[rpb];
 	else {
 		rig_debug(RIG_DEBUG_ERR, "%s: unexpected bandwidth '%c'\n",
-			__FUNCTION__, respbuf[1]);
+			__func__, respbuf[1]);
 		return -RIG_EPROTO;
 	}
 	return RIG_OK;
@@ -571,7 +571,7 @@ int tt538_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		return retval;
 	if (respbuf[0] != 'M' || resp_len != 4) {
 		rig_debug(RIG_DEBUG_ERR, "%s: unexpected answer '%s'\n",
-			__FUNCTION__, respbuf);
+			__func__, respbuf);
 		return -RIG_EPROTO;
 	}
 
@@ -599,7 +599,7 @@ int tt538_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n",
-				__FUNCTION__, rig_strvfo(vfo));
+				__func__, rig_strvfo(vfo));
 		return -RIG_EINVAL;
 	}
 
@@ -656,7 +656,7 @@ int tt538_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			return retval;
 		if (lvlbuf[0] != 'F' || lvl_len != 3) {
 			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
-					__FUNCTION__, lvlbuf);
+					__func__, lvlbuf);
 			return -RIG_EPROTO;
 		}
 		fwd = (float) lvlbuf[1];
@@ -668,7 +668,7 @@ int tt538_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			return retval;
 		if (lvlbuf[0] != 'R' || lvl_len != 3) {
 			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
-					__FUNCTION__, lvlbuf);
+					__func__, lvlbuf);
 			return -RIG_EPROTO;
 		}
 		refl = (float) lvlbuf[1];
@@ -688,7 +688,7 @@ int tt538_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		if (lvlbuf[0] != 'S' || lvl_len != 6) {
 			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
-					__FUNCTION__, lvlbuf);
+					__func__, lvlbuf);
 			return -RIG_EPROTO;
 		}
 		/* Jupiter returns actual S value in 1/256s of an S unit, in
@@ -713,7 +713,7 @@ int tt538_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			return retval;
 		if (lvlbuf[0] != 'G' || lvl_len != 3) {
 			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
-					__FUNCTION__, lvlbuf);
+					__func__, lvlbuf);
 			return -RIG_EPROTO;
 		}
 
@@ -739,7 +739,7 @@ int tt538_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		if (lvlbuf[0] != 'U' || lvl_len != 3) {
 			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
-					__FUNCTION__, lvlbuf);
+					__func__, lvlbuf);
 			return -RIG_EPROTO;
 		}
 
@@ -756,7 +756,7 @@ int tt538_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		if (lvlbuf[0] != 'I' || lvl_len != 3) {
 			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
-					__FUNCTION__, lvlbuf);
+					__func__, lvlbuf);
 			return -RIG_EPROTO;
 		}
 		/* Note: Any RF gain over "50%" on front panel
@@ -775,7 +775,7 @@ int tt538_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			return retval;
 		if (lvlbuf[0] != 'P' || lvl_len != 4) {
 			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
-					__FUNCTION__, lvlbuf);
+					__func__, lvlbuf);
 			return -RIG_EPROTO;
 		}
 		val->i = (int) lvlbuf[1] * 256 + (int) lvlbuf[2];
@@ -790,7 +790,7 @@ int tt538_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			return retval;
 		if (lvlbuf[0] != 'J' || lvl_len != 3) {
 			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
-					__FUNCTION__, lvlbuf);
+					__func__, lvlbuf);
 			return -RIG_EPROTO;
 		}
 		val->i = lvlbuf[1];
@@ -805,7 +805,7 @@ int tt538_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			return retval;
 		if (lvlbuf[0] != 'H' || lvl_len != 3) {
 			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
-					__FUNCTION__, lvlbuf);
+					__func__, lvlbuf);
 			return -RIG_EPROTO;
 		}
 		val->f = ((float) lvlbuf[1] / 127);

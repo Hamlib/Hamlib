@@ -184,7 +184,7 @@ int lowe_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 		*mode = RIG_MODE_AM;
 	else {
 		rig_debug(RIG_DEBUG_WARN,"%s: unknown mode '%s'\n",
-				__FUNCTION__, mdbuf);
+				__func__, mdbuf);
 		return -RIG_EPROTO;
 	}
 

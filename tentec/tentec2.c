@@ -107,7 +107,7 @@ int tentec2_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	case RIG_VFO_B: freqbuf[1] = 'B'; break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n",
-				__FUNCTION__, rig_strvfo(vfo));
+				__func__, rig_strvfo(vfo));
 		return -RIG_EINVAL;
 	}
 	freqbuf[2] = (f >> 24) & 0xFF;
@@ -147,7 +147,7 @@ int tentec2_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 	case RIG_VFO_B: freqbuf[1] = 'B'; break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n",
-				__FUNCTION__, rig_strvfo(vfo));
+				__func__, rig_strvfo(vfo));
 		return -RIG_EINVAL;
 	}
 
@@ -199,7 +199,7 @@ int tentec2_set_vfo(RIG *rig, vfo_t vfo)
 	case RIG_VFO_B: vfobuf[3] = 'B'; break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n",
-				__FUNCTION__, rig_strvfo(vfo));
+				__func__, rig_strvfo(vfo));
 		return -RIG_EINVAL;
 	}
 
@@ -433,7 +433,7 @@ int tentec2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 		case TT_FM:		*mode = RIG_MODE_FM;  break;
 		default:
 			rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode '%c'\n",
-					__FUNCTION__, mdbuf[vfo == RIG_VFO_A ? 1 : 2]);
+					__func__, mdbuf[vfo == RIG_VFO_A ? 1 : 2]);
 			return -RIG_EPROTO;
 	}
 
@@ -560,7 +560,7 @@ const char *tentec2_get_info(RIG *rig)
 	/* "VER 1010-516" */
 	if (retval != RIG_OK || firmware_len != 12) {
 			rig_debug(RIG_DEBUG_ERR,"%s: ack NG, len=%d\n",
-					__FUNCTION__, firmware_len);
+					__func__, firmware_len);
 			return NULL;
 	}
 	if (firmware_len < 100)

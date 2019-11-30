@@ -169,7 +169,7 @@ const struct rig_caps xg3_caps = {
  */
 int xg3_init(RIG * rig)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     struct xg3_priv_data *priv;
     int i;

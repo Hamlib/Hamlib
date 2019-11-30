@@ -75,7 +75,7 @@ static int netampctl_open(AMP *amp)
   char cmd[CMD_MAX];
   char buf[BUF_MAX];
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
 
   len = sprintf(cmd, "\\dump_state\n");
@@ -111,7 +111,7 @@ static int netampctl_open(AMP *amp)
       return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called, string=%s\n", __FUNCTION__, buf);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called, string=%s\n", __func__, buf);
   }
   while (ret > 0);
 
@@ -120,7 +120,7 @@ static int netampctl_open(AMP *amp)
 
 static int netampctl_close(AMP *amp)
 {
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   /* clean signoff, no read back */
   write_block(&amp->state.ampport, "q\n", 2);
@@ -130,13 +130,13 @@ static int netampctl_close(AMP *amp)
 
 static int netampctl_set_freq(AMP *amp, freq_t freq)
 {
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
   return -RIG_ENIMPL;
 }
 
 static int netampctl_get_freq(AMP *amp, freq_t *freq)
 {
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
   *freq = 12345;
   return -RIG_ENIMPL;
 }
@@ -148,7 +148,7 @@ static int netampctl_reset(AMP *amp, amp_reset_t reset)
   char cmd[CMD_MAX];
   char buf[BUF_MAX];
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   len = sprintf(cmd, "R %d\n", reset);
 
@@ -171,7 +171,7 @@ static const char *netampctl_get_info(AMP *amp)
   char cmd[CMD_MAX];
   static char buf[BUF_MAX];
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   len = sprintf(cmd, "_\n");
 

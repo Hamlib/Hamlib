@@ -332,7 +332,7 @@ int dds60_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 				osc_ref * 4294967296.0 + 0.5);
 
 	rig_debug(RIG_DEBUG_VERBOSE, "%s: word %lu, X6 multipler %d, phase %.2f\n",
-			__FUNCTION__, frg, priv->multiplier, priv->phase_step*PHASE_INCR);
+			__func__, frg, priv->multiplier, priv->phase_step*PHASE_INCR);
 
 	control = priv->multiplier ? 0x01 : 0x00;
 	control |= (priv->phase_step & 0x1f) << 3;

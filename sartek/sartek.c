@@ -104,7 +104,7 @@ static int sartek_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t elev
   char cmdstr[8];
   int len, err;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
   if (!rot)
     return -RIG_EINVAL;
@@ -138,7 +138,7 @@ static int sartek_rot_stop(ROT *rot)
 {
   int err;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
   err = write_block(&rot->state.rotport, "P\0", 2);
   if (err != RIG_OK)
@@ -155,7 +155,7 @@ static int sartek_rot_stop(ROT *rot)
 
 DECLARE_INITROT_BACKEND(sartek)
 {
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   rot_register(&sartek_rot_caps);
 

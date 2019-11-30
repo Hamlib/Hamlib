@@ -249,7 +249,7 @@ int g313_init(RIG *rig)
     if(priv->hWRG313WO==NULL)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: Unable to LoadLibrary WRG313WO.dll\n",
-                  __FUNCTION__);
+                  __func__);
         FreeLibrary(priv->WinMM);
         free(priv);
         return -RIG_EIO;
@@ -261,7 +261,7 @@ int g313_init(RIG *rig)
     if(!priv->StartWaveOut || !priv->StopWaveOut)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: Unable to load valid WRG313WO.dll library\n",
-                  __FUNCTION__);
+                  __func__);
         FreeLibrary(priv->hWRG313WO);
         FreeLibrary(priv->WinMM);
         free(priv);
@@ -274,7 +274,7 @@ int g313_init(RIG *rig)
 
     if (!priv->dll) {
         rig_debug(RIG_DEBUG_ERR, "%s: Unable to LoadLibrary %s\n",
-                  __FUNCTION__, WRG313DLL);
+                  __func__, WRG313DLL);
         FreeLibrary(priv->hWRG313WO);
         FreeLibrary(priv->WinMM);
         free(priv);
@@ -311,7 +311,7 @@ int g313_init(RIG *rig)
             !priv->GetSignalStrengthdBm || !priv->GetRawSignalStrength)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: Unable to load valid %s library\n",
-                  __FUNCTION__, WRG313DLL);
+                  __func__, WRG313DLL);
         FreeLibrary(priv->dll);
         FreeLibrary(priv->hWRG313WO);
         FreeLibrary(priv->WinMM);

@@ -236,7 +236,7 @@ const struct rot_caps nexstar_rot_caps = {
 
 DECLARE_INITROT_BACKEND(celestron)
 {
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   rot_register(&nexstar_rot_caps);
 

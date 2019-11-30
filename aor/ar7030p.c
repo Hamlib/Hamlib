@@ -329,7 +329,7 @@ static int ar7030p_cleanup( RIG *rig )
 
   assert( NULL != rig );
 
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __func__);
 
   for ( i = 0; i < NB_CHAN; i++ )
   {

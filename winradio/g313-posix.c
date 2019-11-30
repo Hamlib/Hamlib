@@ -88,12 +88,12 @@ void *g313_init_api(void)
     void *hWRAPI=dlopen("wrg313api.so", RTLD_LAZY);
     if(hWRAPI==0)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: Unable to load G313 shared library wrg313api.so\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unable to load G313 shared library wrg313api.so\n", __func__);
         return 0;
     }
     if(InitAPI(hWRAPI)==0)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: Unable to initialise G313 api\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unable to initialise G313 api\n", __func__);
         return 0;
     }
     return hWRAPI;
@@ -114,7 +114,7 @@ int g313_init(RIG *rig)
 
     priv->hWRAPI = g313_init_api();
     if(priv->hWRAPI)
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: Initialised G313 API\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Initialised G313 API\n", __func__);
     /* otherwise try again when open rig */
 
     rig->state.priv = (void*)priv;
@@ -137,7 +137,7 @@ int g313_open(RIG *rig)
     {
         priv->hWRAPI = g313_init_api();
         if(priv->hWRAPI) {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: Initialised G313 API\n", __FUNCTION__);
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: Initialised G313 API\n", __func__);
         }
         else {
             return -RIG_EIO; /* can't go any further */
@@ -153,7 +153,7 @@ int g313_open(RIG *rig)
 
     /* Open Winradio receiver handle (default to first device?) */
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: found %d rigs 0 is %s\n", __FUNCTION__, Count, List[0].Path);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: found %d rigs 0 is %s\n", __func__, Count, List[0].Path);
 
     if(rig->state.rigport.pathname[0])
         priv->hRadio = OpenDevice(rig->state.rigport.pathname);
@@ -167,23 +167,23 @@ int g313_open(RIG *rig)
     {
         return -RIG_EIO;	/* huh! */
     }
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: Openned G313\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: Openned G313\n", __func__);
 
     /* Make sure the receiver is switched on */
     SetPower(priv->hRadio, 1);
 
     priv->audio_buf.fd = open(priv->audio_buf.path, O_WRONLY|O_NONBLOCK);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: audio path %s fifo: %d\n", __FUNCTION__, priv->audio_buf.path, priv->audio_buf.fd);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: audio path %s fifo: %d\n", __func__, priv->audio_buf.path, priv->audio_buf.fd);
     if(priv->audio_buf.fd == -1)
         audio_callback = NULL;
 
     priv->if_buf.fd = open(priv->if_buf.path, O_WRONLY|O_NONBLOCK);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: if path %s fifo: %d\n", __FUNCTION__, priv->if_buf.path, priv->if_buf.fd);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: if path %s fifo: %d\n", __func__, priv->if_buf.path, priv->if_buf.fd);
     if(priv->if_buf.fd == -1)
         if_callback = NULL;
 
     priv->spectrum_buf.fd = open(priv->spectrum_buf.path, O_WRONLY|O_NONBLOCK);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: spectrum path %s fifo: %d\n", __FUNCTION__, priv->spectrum_buf.path, priv->spectrum_buf.fd);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: spectrum path %s fifo: %d\n", __func__, priv->spectrum_buf.path, priv->spectrum_buf.fd);
     if(priv->spectrum_buf.fd == -1)
         spectrum_callback = NULL;
 
@@ -193,7 +193,7 @@ int g313_open(RIG *rig)
         return -RIG_EIO;
     }
     rig_debug(RIG_DEBUG_VERBOSE, "%s: told G313 to start streaming audio: %d, if: %d, spec: %d\n",
-              __FUNCTION__,
+              __func__,
               audio_callback?1:0, if_callback?1:0, spectrum_callback?1:0);
 
     priv->Opened=1;
@@ -213,14 +213,14 @@ int g313_close(RIG *rig)
     priv->Opened=0;
 
     /*
-    	rig_debug(RIG_DEBUG_VERBOSE, "%s: stop streaming\n", __FUNCTION__);
+    	rig_debug(RIG_DEBUG_VERBOSE, "%s: stop streaming\n", __func__);
     	StopStreaming(priv->hRadio);
 
     	req.tv_sec=0;
     	req.tv_nsec=500000000L;
     	nanosleep(&req, NULL);
     */
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: Closing G313\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: Closing G313\n", __func__);
     CloseDevice(priv->hRadio);
 
     return RIG_OK;
@@ -235,7 +235,7 @@ int g313_cleanup(RIG *rig)
 
     priv=(struct g313_priv_data *)rig->state.priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: close fifos\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: close fifos\n", __func__);
     if(priv->audio_buf.fd>=0)
         close(priv->audio_buf.fd);
     if(priv->if_buf.fd>=0)
@@ -243,7 +243,7 @@ int g313_cleanup(RIG *rig)
     if(priv->spectrum_buf.fd)
         close(priv->spectrum_buf.fd);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: Uninitialising G313 API\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: Uninitialising G313 API\n", __func__);
     if(priv->hWRAPI)
     {
         dlclose(priv->hWRAPI);
@@ -259,7 +259,7 @@ int g313_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     struct g313_priv_data *priv = (struct g313_priv_data *)rig->state.priv;
     int ret;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: %u\n", __FUNCTION__, (unsigned int)freq);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: %u\n", __func__, (unsigned int)freq);
     ret = SetFrequency(priv->hRadio, (unsigned int) (freq));
     ret = ret==0 ? RIG_OK : -RIG_EIO;
 
@@ -272,7 +272,7 @@ int g313_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     unsigned int f;
     int ret = GetFrequency(priv->hRadio, &f);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: ret: %d f: %u\n", __FUNCTION__, ret, f);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: ret: %d f: %u\n", __func__, ret, f);
     if(ret)
         return -RIG_EIO;
 
@@ -286,7 +286,7 @@ int g313_set_powerstat(RIG *rig, powerstat_t status)
 
     int p = status==RIG_POWER_ON ? 1 : 0;
     int ret = SetPower(priv->hRadio, p);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: ret: %d state: %d\n", __FUNCTION__, ret, p);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: ret: %d state: %d\n", __func__, ret, p);
 
     return ret==0 ? RIG_OK : -RIG_EIO;
 }
@@ -297,7 +297,7 @@ int g313_get_powerstat(RIG *rig, powerstat_t *status)
 
     int p;
     int ret = GetPower(priv->hRadio, &p);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: ret: %d state: %d\n", __FUNCTION__, ret, p);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: ret: %d state: %d\n", __func__, ret, p);
     if(ret)
         return -RIG_EIO;
 
@@ -314,7 +314,7 @@ int g313_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     switch(level) {
     case RIG_LEVEL_ATT:
         ret = SetAttenuator(priv->hRadio, val.i != 0 ? 1 : 0);
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: ret: %d Attenuator: %d\n", __FUNCTION__, ret, val.i);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: ret: %d Attenuator: %d\n", __func__, ret, val.i);
         break;
 
     case RIG_LEVEL_AGC:
@@ -335,12 +335,12 @@ int g313_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             return -RIG_EINVAL;
         }
         ret = SetAGC(priv->hRadio, agc);
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: ret: %d AGC: %d\n", __FUNCTION__, ret, val.i);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: ret: %d AGC: %d\n", __func__, ret, val.i);
         break;
 
     case RIG_LEVEL_RF:
         ret = SetIFGain(priv->hRadio, (int)(val.f*100));
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: ret: %d Gain: %f\n", __FUNCTION__, ret, val.f);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: ret: %d Gain: %f\n", __func__, ret, val.f);
         break;
 
     default:
@@ -362,7 +362,7 @@ int g313_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     switch(level) {
     case RIG_LEVEL_ATT:
         ret = GetAttenuator(priv->hRadio, &value);
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: ret: %d Attenuator: %u\n", __FUNCTION__, ret, value);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: ret: %d Attenuator: %u\n", __func__, ret, value);
         if(ret)
             return -RIG_EIO;
         val->i = value?rig->caps->attenuator[0]:0;
@@ -370,7 +370,7 @@ int g313_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_AGC:
         ret = GetAGC(priv->hRadio, &value);
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: ret: %d AGC: %u\n", __FUNCTION__, ret, value);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: ret: %d AGC: %u\n", __func__, ret, value);
         if(ret)
             return -RIG_EIO;
 
@@ -394,7 +394,7 @@ int g313_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_RF:
         ret = GetIFGain(priv->hRadio, &uvalue);
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: ret: %d Gain: %u\n", __FUNCTION__, ret, uvalue);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: ret: %d Gain: %u\n", __func__, ret, uvalue);
         if(ret)
             return -RIG_EIO;
         val->f = ((float)uvalue)/100.0;
@@ -402,7 +402,7 @@ int g313_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_STRENGTH:
         ret = GetSignalStrength(priv->hRadio, &dbl);
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: ret: %d sigstr: %f\n", __FUNCTION__, ret, dbl);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: ret: %d sigstr: %f\n", __func__, ret, dbl);
         if(ret)
             return -RIG_EIO;
         val->i = ((int)dbl/1.0)+73;
@@ -410,7 +410,7 @@ int g313_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_RAWSTR:
         ret = GetRawSignalStrength(priv->hRadio, &ch);
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: ret: %d Raw Sigstr: %u\n", __FUNCTION__, ret, (unsigned int)ch);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: ret: %d Raw Sigstr: %u\n", __func__, ret, (unsigned int)ch);
         if(ret)
             return -RIG_EIO;
         val->i = ch;
@@ -436,7 +436,7 @@ static const char* g313_get_info(RIG *rig)
     if(ret)
         return NULL;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: ret: %d sernum: %s\n", __FUNCTION__, ret, info.SerNum);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: ret: %d sernum: %s\n", __func__, ret, info.SerNum);
     return info.SerNum;
 }
 
@@ -451,32 +451,32 @@ int g313_set_conf(RIG *rig, token_t token, const char *val)
     case TOK_SHM_AUDIO:
         if(len>(FIFO_PATHNAME_SIZE-1))
         {
-            rig_debug(RIG_DEBUG_WARN, "%s: set audio_path %s is too long\n", __FUNCTION__, val);
+            rig_debug(RIG_DEBUG_WARN, "%s: set audio_path %s is too long\n", __func__, val);
             return -RIG_EINVAL;
         }
         memset(priv->audio_buf.path, 0, FIFO_PATHNAME_SIZE);
         strcpy(priv->audio_buf.path, val);
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: set audio_path %s\n", __FUNCTION__, priv->audio_buf.path);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: set audio_path %s\n", __func__, priv->audio_buf.path);
         break;
     case TOK_SHM_IF:
         if(len>(FIFO_PATHNAME_SIZE-1))
         {
-            rig_debug(RIG_DEBUG_WARN, "%s: set if_path %s is too long\n", __FUNCTION__, val);
+            rig_debug(RIG_DEBUG_WARN, "%s: set if_path %s is too long\n", __func__, val);
             return -RIG_EINVAL;
         }
         memset(priv->if_buf.path, 0, FIFO_PATHNAME_SIZE);
         strcpy(priv->if_buf.path, val);
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: set if_path %s\n", __FUNCTION__, priv->if_buf.path);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: set if_path %s\n", __func__, priv->if_buf.path);
         break;
     case TOK_SHM_SPECTRUM:
         if(len>(FIFO_PATHNAME_SIZE-1))
         {
-            rig_debug(RIG_DEBUG_WARN, "%s: set spectrum_path %s is too long\n", __FUNCTION__, val);
+            rig_debug(RIG_DEBUG_WARN, "%s: set spectrum_path %s is too long\n", __func__, val);
             return -RIG_EINVAL;
         }
         memset(priv->spectrum_buf.path, 0, FIFO_PATHNAME_SIZE);
         strcpy(priv->spectrum_buf.path, val);
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: set spectrum_path %s\n", __FUNCTION__, priv->spectrum_buf.path);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: set spectrum_path %s\n", __func__, priv->spectrum_buf.path);
     }
     return RIG_OK;
 }

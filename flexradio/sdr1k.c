@@ -263,7 +263,7 @@ static int set_band(RIG *rig, freq_t freq)
 
 	ret = write_latch (rig, L_BAND, 1 << band, 0x3f);
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s %"PRIll" band %d\n", __FUNCTION__, (int64_t)freq, band);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s %"PRIll" band %d\n", __func__, (int64_t)freq, band);
 
 	return ret;
 }
@@ -290,14 +290,14 @@ int sdr1k_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	 * DDS steps = 3051.7578125Hz
 	 */
 	DDS_step_size = ((double)priv->xtal * priv->pll_mult ) / 65536;
-	rig_debug(RIG_DEBUG_VERBOSE, "%s DDS step size %g %g %g\n", __FUNCTION__, DDS_step_size, (double)freq / DDS_step_size,
+	rig_debug(RIG_DEBUG_VERBOSE, "%s DDS step size %g %g %g\n", __func__, DDS_step_size, (double)freq / DDS_step_size,
 			rint((double)freq / DDS_step_size));
 	if (spur_red)
 		frqval = (freq_t) (DDS_step_size * rint((double)freq / DDS_step_size));
 	else
 		frqval = freq;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s curr %"PRIll" frqval %"PRIll"\n", __FUNCTION__, (int64_t)freq, (int64_t)frqval);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s curr %"PRIll" frqval %"PRIll"\n", __func__, (int64_t)freq, (int64_t)frqval);
 
 	if (priv->dds_freq == frqval) {
 		return RIG_OK;
@@ -334,7 +334,7 @@ int sdr1k_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 	struct sdr1k_priv_data *priv = (struct sdr1k_priv_data *)rig->state.priv;
 
 	*freq = priv->dds_freq;
-	rig_debug(RIG_DEBUG_TRACE,"%s: %"PRIll"\n", __FUNCTION__, (int64_t)priv->dds_freq);
+	rig_debug(RIG_DEBUG_TRACE,"%s: %"PRIll"\n", __func__, (int64_t)priv->dds_freq);
 
 	return RIG_OK;
 }
@@ -385,7 +385,7 @@ int sdr1k_set_ptt (RIG *rig, vfo_t vfo, ptt_t ptt)
 
 int sdr1k_set_level (RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-	rig_debug(RIG_DEBUG_TRACE,"%s: %s %d\n", __FUNCTION__, rig_strlevel(level), val.i);
+	rig_debug(RIG_DEBUG_TRACE,"%s: %s %d\n", __func__, rig_strlevel(level), val.i);
 
 	switch (level) {
 	case RIG_LEVEL_PREAMP:

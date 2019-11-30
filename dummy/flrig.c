@@ -238,7 +238,7 @@ static char *xml_build(char *cmd, char *value, char *xmlbuf, int xmllen)
     // We want at least a 4K buf to play with
     if (xmllen < 4096)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: xmllen < 4096\n",__FUNCTION__);
+        rig_debug(RIG_DEBUG_ERR, "%s: xmllen < 4096\n",__func__);
         return NULL;
     }
 
@@ -272,7 +272,7 @@ static char *xml_parse2(char *xml, char *value, int valueLen)
 {
     char *delims = "<>\r\n ";
     char *xmltmp = strdup(xml);
-    //rig_debug(RIG_DEBUG_TRACE, "%s: xml='%s'\n", __FUNCTION__,xml);
+    //rig_debug(RIG_DEBUG_TRACE, "%s: xml='%s'\n", __func__,xml);
     char *pr = xml;
     char *p = strtok_r(xmltmp, delims, &pr);
     value[0] = 0;
@@ -305,7 +305,7 @@ static char *xml_parse2(char *xml, char *value, int valueLen)
             }
             else   // we'll just stop adding stuff
             {
-                rig_debug(RIG_DEBUG_ERR, "%s: max value length exceeded\n", __FUNCTION__);
+                rig_debug(RIG_DEBUG_ERR, "%s: max value length exceeded\n", __func__);
             }
         }
         else
@@ -314,11 +314,11 @@ static char *xml_parse2(char *xml, char *value, int valueLen)
         }
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: value returned='%s'\n", __FUNCTION__, value);
+    rig_debug(RIG_DEBUG_TRACE, "%s: value returned='%s'\n", __func__, value);
 
     if (rig_need_debug(RIG_DEBUG_WARN) && value != NULL && strlen(value) == 0)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: xml='%s'\n", __FUNCTION__, xml);
+        rig_debug(RIG_DEBUG_ERR, "%s: xml='%s'\n", __func__, xml);
     }
 
     free(xmltmp);
@@ -338,7 +338,7 @@ static char *xml_parse(char *xml, char *value, int value_len)
         return NULL;
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s XML:\n%s\n", __FUNCTION__, xml);
+    rig_debug(RIG_DEBUG_TRACE, "%s XML:\n%s\n", __func__, xml);
 
     // find the xml skipping the other stuff above it
     char *pxml = strstr(xml, "<?xml");
@@ -357,7 +357,7 @@ static char *xml_parse(char *xml, char *value, int value_len)
 
     if (strstr(value, "faultString"))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s error:\n%s\n", __FUNCTION__, value);
+        rig_debug(RIG_DEBUG_ERR, "%s error:\n%s\n", __func__, value);
         value[0] = 0; /* truncate to give empty response */
     }
 
@@ -373,7 +373,7 @@ static int read_transaction(RIG *rig, char *xml, int xml_len)
     int retval;
     char *terminator = "</methodResponse>";
 
-    rig_debug(RIG_DEBUG_TRACE, "%s\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
 
     struct rig_state *rs = &rig->state;
     rs->rigport.timeout = 1000; // 2 second read string timeout
@@ -387,13 +387,13 @@ static int read_transaction(RIG *rig, char *xml, int xml_len)
         char tmp_buf[MAXXMLLEN];        // plenty big for expected flrig responses
         int len = read_string(&rs->rigport, tmp_buf, sizeof(tmp_buf), delims,
                               strlen(delims));
-        rig_debug(RIG_DEBUG_TRACE, "%s: string='%s'", __FUNCTION__, tmp_buf);
+        rig_debug(RIG_DEBUG_TRACE, "%s: string='%s'", __func__, tmp_buf);
 
         if (len > 0) { retry = 3; }
 
         if (len <= 0)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: read_string error=%d\n", __FUNCTION__, len);
+            rig_debug(RIG_DEBUG_ERR, "%s: read_string error=%d\n", __func__, len);
             return -(100 + RIG_EPROTO);
         }
 
@@ -403,19 +403,19 @@ static int read_transaction(RIG *rig, char *xml, int xml_len)
 
     if (retry == 0)
     {
-        rig_debug(RIG_DEBUG_WARN, "%s: retry timeout\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_WARN, "%s: retry timeout\n", __func__);
     }
 
     if (strstr(xml, terminator))
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: got %s\n", __FUNCTION__, terminator);
+        rig_debug(RIG_DEBUG_TRACE, "%s: got %s\n", __func__, terminator);
         // Slow down just a bit -- not sure this is needed anymore but not a big deal here
         usleep(2 * 1000);
         retval = RIG_OK;
     }
     else
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: did not get %s\n", __FUNCTION__, terminator);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: did not get %s\n", __func__, terminator);
         retval = -(101 + RIG_EPROTO);
     }
 
@@ -439,7 +439,7 @@ static int write_transaction(RIG *rig, char *xml, int xml_len)
     // We need to avoid and empty write as rigctld replies with blank line
     if (xml_len == 0)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: len==0??\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_ERR, "%s: len==0??\n", __func__);
         return retval;
     }
 
@@ -467,7 +467,7 @@ static int write_transaction(RIG *rig, char *xml, int xml_len)
 static int flrig_init(RIG *rig)
 {
 
-    rig_debug(RIG_DEBUG_TRACE, "%s version %s\n", __FUNCTION__, BACKEND_VER);
+    rig_debug(RIG_DEBUG_TRACE, "%s version %s\n", __func__, BACKEND_VER);
 
     struct flrig_priv_data *priv = (struct flrig_priv_data *)malloc(sizeof(
                                        struct flrig_priv_data));
@@ -519,7 +519,7 @@ static const char *modeMapGetFLRig(rmode_t modeHamlib)
         }
     }
 
-    rig_debug(RIG_DEBUG_ERR, "%s: Unknown mode requested: %s\n", __FUNCTION__,
+    rig_debug(RIG_DEBUG_ERR, "%s: Unknown mode requested: %s\n", __func__,
               rig_strrmode(modeHamlib));
     return "ERROR";
 }
@@ -537,7 +537,7 @@ static rmode_t modeMapGetHamlib(const char *modeFLRig)
 
     for (i = 0; modeMap[i].mode_hamlib != 0; ++i)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: find '%s' in '%s'\n", __FUNCTION__,
+        rig_debug(RIG_DEBUG_TRACE, "%s: find '%s' in '%s'\n", __func__,
                   modeFLRigCheck, modeMap[i].mode_flrig);
 
         if (modeMap[i].mode_flrig
@@ -547,7 +547,7 @@ static rmode_t modeMapGetHamlib(const char *modeFLRig)
         }
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: Unknown mode requested: %s\n", __FUNCTION__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: Unknown mode requested: %s\n", __func__,
               modeFLRig);
     return RIG_MODE_NONE;
 }
@@ -560,7 +560,7 @@ static rmode_t modeMapGetHamlib(const char *modeFLRig)
 static void modeMapAdd(rmode_t *modes, rmode_t mode_hamlib, char *mode_flrig)
 {
     int i;
-    rig_debug(RIG_DEBUG_TRACE, "%s:mode_flrig=%s\n", __FUNCTION__, mode_flrig);
+    rig_debug(RIG_DEBUG_TRACE, "%s:mode_flrig=%s\n", __func__, mode_flrig);
 
     // if we already have it just return
     // We get ERROR if the mode is not known so non-ERROR is OK
@@ -582,7 +582,7 @@ static void modeMapAdd(rmode_t *modes, rmode_t mode_hamlib, char *mode_flrig)
                 if (modeMap[i].mode_flrig == NULL)
                 {
                     rig_debug(RIG_DEBUG_ERR, "%s: error allocating memory for modeMap\n",
-                              __FUNCTION__);
+                              __func__);
                     return;
                 }
             }
@@ -596,7 +596,7 @@ static void modeMapAdd(rmode_t *modes, rmode_t mode_hamlib, char *mode_flrig)
             strncat(modeMap[i].mode_flrig, mode_flrig, len1 + len2);
             strncat(modeMap[i].mode_flrig, "|", len1 + len2);
             rig_debug(RIG_DEBUG_TRACE,"%s: Adding mode=%s, index=%d, result=%s\n",
-                      __FUNCTION__, mode_flrig, i, modeMap[i].mode_flrig);
+                      __func__, mode_flrig, i, modeMap[i].mode_flrig);
             return;
         }
     }
@@ -612,7 +612,7 @@ static int flrig_open(RIG *rig)
     char xml[MAXXMLLEN];
     char value[MAXXMLLEN];
 
-    rig_debug(RIG_DEBUG_TRACE, "%s version %s\n", __FUNCTION__, BACKEND_VER);
+    rig_debug(RIG_DEBUG_TRACE, "%s version %s\n", __func__, BACKEND_VER);
 
     struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
 
@@ -638,12 +638,12 @@ static int flrig_open(RIG *rig)
     if (strlen(value) > 0) /* must have it since we got an answer */
     {
         priv->has_get_modeA = 1;
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: getmodeA is available=%s\n", __FUNCTION__,
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: getmodeA is available=%s\n", __func__,
                   value);
     }
     else
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: getmodeA is not available\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: getmodeA is not available\n", __func__);
     }
 
     /* see if get_bwA is available */
@@ -655,12 +655,12 @@ static int flrig_open(RIG *rig)
     if (strlen(value) > 0) /* must have it since we got an answer */
     {
         priv->has_get_bwA = 1;
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: get_bwA is available=%s\n", __FUNCTION__,
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: get_bwA is available=%s\n", __func__,
                   value);
     }
     else
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: get_bwA is not available\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: get_bwA is not available\n", __func__);
     }
 
     pxml = xml_build("rig.get_AB", value, xml, sizeof(xml));
@@ -677,7 +677,7 @@ static int flrig_open(RIG *rig)
         priv->curr_vfo = RIG_VFO_B;
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: currvfo=%s value=%s\n", __FUNCTION__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: currvfo=%s value=%s\n", __func__,
               rig_strvfo(priv->curr_vfo), value);
     //vfo_t vfo=RIG_VFO_A;
     //vfo_t vfo_tx=RIG_VFO_B; // split is always VFOB
@@ -694,7 +694,7 @@ static int flrig_open(RIG *rig)
 
     read_transaction(rig, xml, sizeof(xml));
     xml_parse(xml, value, sizeof(value));
-    rig_debug(RIG_DEBUG_TRACE, "%s: modes=%s\n", __FUNCTION__, value);
+    rig_debug(RIG_DEBUG_TRACE, "%s: modes=%s\n", __func__, value);
     rmode_t modes = 0;
     char *p;
     char *pr = value;
@@ -753,11 +753,11 @@ static int flrig_open(RIG *rig)
         else if (streq(p, "RTTY(U)")) { modeMapAdd(&modes, RIG_MODE_RTTY, p); }
         else if (streq(p, "RTTY(R")) { modeMapAdd(&modes, RIG_MODE_RTTYR, p); }
         else if (streq(p, "DIG")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
-        else { rig_debug(RIG_DEBUG_ERR, "%s: Unknown mode (new?) for this rig='%s'\n", __FUNCTION__, p); }
+        else { rig_debug(RIG_DEBUG_ERR, "%s: Unknown mode (new?) for this rig='%s'\n", __func__, p); }
     }
 
     rig->state.mode_list = modes;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: hamlib modes=%s\n", __FUNCTION__, rig_strrmode(modes));
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: hamlib modes=%s\n", __func__, rig_strrmode(modes));
 
     return RIG_OK;
 }
@@ -768,7 +768,7 @@ static int flrig_open(RIG *rig)
  */
 static int flrig_close(RIG *rig)
 {
-    rig_debug(RIG_DEBUG_TRACE, "%s\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
     return RIG_OK;
 }
 
@@ -804,7 +804,7 @@ static int flrig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     int retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __FUNCTION__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
               rig_strvfo(vfo));
 
     struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
@@ -812,7 +812,7 @@ static int flrig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     if (check_vfo(vfo) == FALSE)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n",
-                  __FUNCTION__, rig_strvfo(vfo));
+                  __func__, rig_strvfo(vfo));
         return -RIG_EINVAL;
     }
 
@@ -820,7 +820,7 @@ static int flrig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     {
         vfo = priv->curr_vfo;
         rig_debug(RIG_DEBUG_TRACE, "%s: get_freq2 vfo=%s\n",
-                  __FUNCTION__, rig_strvfo(vfo));
+                  __func__, rig_strvfo(vfo));
     }
 
     int retries = 10;
@@ -852,7 +852,7 @@ static int flrig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
         if (strlen(value) == 0)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: retries=%d\n", __FUNCTION__, retries);
+            rig_debug(RIG_DEBUG_ERR, "%s: retries=%d\n", __func__, retries);
             //usleep(10*1000);
         }
     }
@@ -862,13 +862,13 @@ static int flrig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if (*freq == 0)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: freq==0??\nvalue=%s\n", __FUNCTION__,
+        rig_debug(RIG_DEBUG_ERR, "%s: freq==0??\nvalue=%s\n", __func__,
                   value);
         return -(102 + RIG_EPROTO);
     }
     else
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: freq=%.0f\n", __FUNCTION__, *freq);
+        rig_debug(RIG_DEBUG_TRACE, "%s: freq=%.0f\n", __func__, *freq);
     }
 
     if (vfo == RIG_VFO_A)
@@ -891,7 +891,7 @@ static int flrig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     int retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s freq=%.0f\n", __FUNCTION__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s freq=%.0f\n", __func__,
               rig_strvfo(vfo), freq);
 
     struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
@@ -899,7 +899,7 @@ static int flrig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     if (check_vfo(vfo) == FALSE)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n",
-                  __FUNCTION__, rig_strvfo(vfo));
+                  __func__, rig_strvfo(vfo));
         return -RIG_EINVAL;
     }
 
@@ -960,14 +960,14 @@ static int flrig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     int retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: ptt=%d\n", __FUNCTION__, ptt);
+    rig_debug(RIG_DEBUG_TRACE, "%s: ptt=%d\n", __func__, ptt);
 
     struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
 
     if (check_vfo(vfo) == FALSE)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n",
-                  __FUNCTION__, rig_strvfo(vfo));
+                  __func__, rig_strvfo(vfo));
         return -RIG_EINVAL;
     }
 
@@ -999,7 +999,7 @@ static int flrig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
     int retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __FUNCTION__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
               rig_strvfo(vfo));
 
     struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
@@ -1018,7 +1018,7 @@ static int flrig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     char value[MAXCMDLEN];
     xml_parse(xml, value, sizeof(value));
     *ptt = atoi(value);
-    rig_debug(RIG_DEBUG_TRACE, "%s: '%s'\n", __FUNCTION__, value);
+    rig_debug(RIG_DEBUG_TRACE, "%s: '%s'\n", __func__, value);
 
     priv->ptt = *ptt;
 
@@ -1034,7 +1034,7 @@ static int flrig_set_split_mode(RIG *rig, vfo_t vfo, rmode_t mode,
 {
     int retval;
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s mode=%s width=%d\n",
-              __FUNCTION__, rig_strvfo(vfo), rig_strrmode(mode), (int)width);
+              __func__, rig_strvfo(vfo), rig_strrmode(mode), (int)width);
 
     struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
 
@@ -1051,9 +1051,9 @@ static int flrig_set_split_mode(RIG *rig, vfo_t vfo, rmode_t mode,
 
     // If no change don't do it...modes are kept up to date by client calls
     // to get_mode and set_mode so should be current here
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfoa privmode=%s\n", __FUNCTION__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfoa privmode=%s\n", __func__,
               rig_strrmode(priv->curr_modeA));
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfob privmode=%s\n", __FUNCTION__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfob privmode=%s\n", __func__,
               rig_strrmode(priv->curr_modeB));
 
     // save some VFO swapping .. may replace with VFO specific calls that won't cause VFO change
@@ -1062,7 +1062,7 @@ static int flrig_set_split_mode(RIG *rig, vfo_t vfo, rmode_t mode,
     if (vfo == RIG_VFO_B && mode == priv->curr_modeB) { return RIG_OK; }
 
     retval = flrig_set_mode(rig, vfo, mode, width);
-    rig_debug(RIG_DEBUG_TRACE, "%s: set mode=%s\n", __FUNCTION__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: set mode=%s\n", __func__,
               rig_strrmode(mode));
     return retval;
 }
@@ -1076,7 +1076,7 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     int retval;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s mode=%s width=%d\n",
-              __FUNCTION__, rig_strvfo(vfo), rig_strrmode(mode), (int)width);
+              __func__, rig_strvfo(vfo), rig_strrmode(mode), (int)width);
 
     struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
 
@@ -1095,33 +1095,33 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     if (check_vfo(vfo) == FALSE)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n",
-                  __FUNCTION__, rig_strvfo(vfo));
+                  __func__, rig_strvfo(vfo));
         return -RIG_EINVAL;
     }
 
     if (priv->ptt)
     {
-        rig_debug(RIG_DEBUG_WARN, "%s call not made as PTT=1\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_WARN, "%s call not made as PTT=1\n", __func__);
         return RIG_OK;  // just return OK and ignore this
     }
 
     // Switch to VFOB if appropriate since we can't set mode directly
     // MDB
     int vfoSwitched = 0;
-    rig_debug(RIG_DEBUG_TRACE, "%s: curr_vfo = %s\n", __FUNCTION__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: curr_vfo = %s\n", __func__,
               rig_strvfo(priv->curr_vfo));
 
     // If we don't have the get_bwA call we have to switch VFOs ourself
     if (!priv->has_get_bwA && vfo == RIG_VFO_B && priv->curr_vfo != RIG_VFO_B)
     {
         vfoSwitched = 1;
-        rig_debug(RIG_DEBUG_TRACE, "%s: switch to VFOB = %d\n", __FUNCTION__,
+        rig_debug(RIG_DEBUG_TRACE, "%s: switch to VFOB = %d\n", __func__,
                   vfoSwitched);
     }
 
     if (vfoSwitched)   // swap to B and we'll swap back later
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: switching to VFOB = %d\n", __FUNCTION__,
+        rig_debug(RIG_DEBUG_TRACE, "%s: switching to VFOB = %d\n", __func__,
                   vfoSwitched);
         retval = flrig_set_vfo(rig, RIG_VFO_B);
 
@@ -1133,7 +1133,7 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     // Set the mode
     char *ttmode = strdup(modeMapGetFLRig(mode));
-    rig_debug(RIG_DEBUG_TRACE, "%s: got ttmode = %s\n", __FUNCTION__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: got ttmode = %s\n", __func__,
               ttmode == NULL ? "NULL" : ttmode);
     char *pttmode = ttmode;
 
@@ -1165,7 +1165,7 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         pxml = xml_build(cmd, cmd_buf, xml, sizeof(xml));
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: write_transaction\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: write_transaction\n", __func__);
     retval = write_transaction(rig, pxml, strlen(pxml));
 
     if (retval < 0)
@@ -1173,10 +1173,10 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         return retval;
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: read_transaction\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: read_transaction\n", __func__);
     // Get the response
     read_transaction(rig, xml, sizeof(xml));
-    rig_debug(RIG_DEBUG_TRACE, "%s: response=%s\n", __FUNCTION__, xml);
+    rig_debug(RIG_DEBUG_TRACE, "%s: response=%s\n", __func__, xml);
 
     // Determine if we need to update the bandwidth
     int needBW = 0;
@@ -1185,17 +1185,17 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
         needBW = priv->curr_widthA != width;
         rig_debug(RIG_DEBUG_TRACE, "%s: bw change on VFOA, curr width=%d  needBW=%d\n",
-                  __FUNCTION__, (int)width, needBW);
+                  __func__, (int)width, needBW);
     }
     else if (vfo == RIG_VFO_B)
     {
         needBW = priv->curr_widthB != width;
         rig_debug(RIG_DEBUG_TRACE, "%s: bw change on VFOB, curr width=%d  needBW=%d\n",
-                  __FUNCTION__, (int)width, needBW);
+                  __func__, (int)width, needBW);
     }
     else
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: needBW unknown vfo=%s\n", __FUNCTION__,
+        rig_debug(RIG_DEBUG_TRACE, "%s: needBW unknown vfo=%s\n", __func__,
                   rig_strvfo(vfo));
     }
 
@@ -1223,12 +1223,12 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     }
 
     // Return to VFOA if needed
-    rig_debug(RIG_DEBUG_TRACE, "%s: switch to VFOA? = %d\n", __FUNCTION__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: switch to VFOA? = %d\n", __func__,
               vfoSwitched);
 
     if (vfoSwitched)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: switching to VFOA\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_TRACE, "%s: switching to VFOA\n", __func__);
         retval = flrig_set_vfo(rig, RIG_VFO_A);
 
         if (retval < 0)
@@ -1249,7 +1249,7 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     }
 
     rig_debug(RIG_DEBUG_TRACE,
-              "%s: return modeA=%s, widthA=%d\n,modeB=%s, widthB=%d\n", __FUNCTION__,
+              "%s: return modeA=%s, widthA=%d\n,modeB=%s, widthB=%d\n", __func__,
               rig_strrmode(priv->curr_modeA), (int)priv->curr_widthA,
               rig_strrmode(priv->curr_modeB), (int)priv->curr_widthB);
     return RIG_OK;
@@ -1263,7 +1263,7 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     int retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __FUNCTION__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
               rig_strvfo(vfo));
 
     struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
@@ -1271,7 +1271,7 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     if (check_vfo(vfo) == FALSE)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n",
-                  __FUNCTION__, rig_strvfo(vfo));
+                  __func__, rig_strvfo(vfo));
         return -RIG_EINVAL;
     }
 
@@ -1282,7 +1282,7 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         vfo = priv->curr_vfo;
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: using vfo=%s\n", __FUNCTION__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: using vfo=%s\n", __func__,
               rig_strvfo(vfo));
 
     if (priv->ptt)
@@ -1290,7 +1290,7 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         if (vfo == RIG_VFO_A) { *mode = priv->curr_modeA; }
         else { *mode = priv->curr_modeB; }
 
-        rig_debug(RIG_DEBUG_WARN, "%s call not made as PTT=1\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_WARN, "%s call not made as PTT=1\n", __func__);
         return RIG_OK;  // just return OK and ignore this
     }
 
@@ -1304,7 +1304,7 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     if (vfoSwitched)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s switch to VFOB=%d\n", __FUNCTION__,
+        rig_debug(RIG_DEBUG_TRACE, "%s switch to VFOB=%d\n", __func__,
                   priv->has_get_modeA);
         retval = flrig_set_vfo(rig, RIG_VFO_B);
 
@@ -1347,7 +1347,7 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     }
 
     *mode = retval;
-    rig_debug(RIG_DEBUG_TRACE, "%s: mode='%s'\n", __FUNCTION__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: mode='%s'\n", __func__,
               rig_strrmode(*mode));
 
     if (vfo == RIG_VFO_A)
@@ -1384,7 +1384,7 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     read_transaction(rig, xml, sizeof(xml));
     xml_parse(xml, value, sizeof(value));
-    rig_debug(RIG_DEBUG_TRACE, "%s: mode=%s width='%s'\n", __FUNCTION__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: mode=%s width='%s'\n", __func__,
               rig_strrmode(*mode), value);
 
     // we get 2 entries pipe separated for bandwidth, lower and upper
@@ -1429,7 +1429,7 @@ static int flrig_set_vfo(RIG *rig, vfo_t vfo)
 {
     int retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __FUNCTION__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
               rig_strvfo(vfo));
 
     struct rig_state *rs = &rig->state;
@@ -1438,13 +1438,13 @@ static int flrig_set_vfo(RIG *rig, vfo_t vfo)
     if (check_vfo(vfo) == FALSE)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n",
-                  __FUNCTION__, rig_strvfo(vfo));
+                  __func__, rig_strvfo(vfo));
         return -RIG_EINVAL;
     }
 
     if (vfo == RIG_VFO_TX)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: RIG_VFO_TX used\n",__FUNCTION__);
+        rig_debug(RIG_DEBUG_TRACE, "%s: RIG_VFO_TX used\n",__func__);
         vfo = RIG_VFO_B; // always TX on VFOB
     }
 
@@ -1499,7 +1499,7 @@ static int flrig_get_vfo(RIG *rig, vfo_t *vfo)
 {
     int retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
 
     struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
 
@@ -1515,7 +1515,7 @@ static int flrig_get_vfo(RIG *rig, vfo_t *vfo)
     read_transaction(rig, xml, sizeof(xml));
     char value[MAXCMDLEN];
     xml_parse(xml, value, sizeof(value));
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo value=%s\n", __FUNCTION__, value);
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo value=%s\n", __func__, value);
 
     switch (value[0])
     {
@@ -1535,13 +1535,13 @@ static int flrig_get_vfo(RIG *rig, vfo_t *vfo)
     if (check_vfo(*vfo) == FALSE)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n",
-                  __FUNCTION__, rig_strvfo(*vfo));
+                  __func__, rig_strvfo(*vfo));
         return -RIG_EINVAL;
     }
 
     priv->curr_vfo = *vfo;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __FUNCTION__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
               rig_strvfo(*vfo));
 
     return RIG_OK;
@@ -1555,7 +1555,7 @@ static int flrig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
     int retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s freq=%.1f\n", __FUNCTION__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s freq=%.1f\n", __func__,
               rig_strvfo(vfo), tx_freq);
 
     struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
@@ -1563,7 +1563,7 @@ static int flrig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     if (check_vfo(vfo) == FALSE)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n",
-                  __FUNCTION__, rig_strvfo(vfo));
+                  __func__, rig_strvfo(vfo));
         return -RIG_EINVAL;
     }
 
@@ -1601,7 +1601,7 @@ static int flrig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
  */
 static int flrig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __FUNCTION__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
               rig_strvfo(vfo));
 
     struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
@@ -1619,7 +1619,7 @@ static int flrig_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
     int retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: tx_vfo=%s\n", __FUNCTION__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: tx_vfo=%s\n", __func__,
               rig_strvfo(tx_vfo));
 
     struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
@@ -1639,7 +1639,7 @@ static int flrig_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
     if (priv->ptt)
     {
-        rig_debug(RIG_DEBUG_WARN, "%s call not made as PTT=1\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_WARN, "%s call not made as PTT=1\n", __func__);
         return RIG_OK;  // just return OK and ignore this
     }
 
@@ -1671,7 +1671,7 @@ static int flrig_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
 {
     int retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
     struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
 
     char xml[MAXXMLLEN];
@@ -1690,7 +1690,7 @@ static int flrig_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
     *tx_vfo = RIG_VFO_B;
     *split = atoi(value);
     priv->split = *split;
-    rig_debug(RIG_DEBUG_TRACE, "%s tx_vfo=%s, split=%d\n", __FUNCTION__,
+    rig_debug(RIG_DEBUG_TRACE, "%s tx_vfo=%s, split=%d\n", __func__,
               rig_strvfo(*tx_vfo), *split);
     return RIG_OK;
 }
@@ -1704,7 +1704,7 @@ static int flrig_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq,
 {
     int retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
 
     struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
 
@@ -1715,7 +1715,7 @@ static int flrig_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq,
 
     if (priv->ptt)
     {
-        rig_debug(RIG_DEBUG_WARN, "%s call not made as PTT=1\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_WARN, "%s call not made as PTT=1\n", __func__);
         return RIG_OK;  // just return OK and ignore this
     }
 
@@ -1723,7 +1723,7 @@ static int flrig_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq,
 
     if (retval != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s flrig_set_freq failed\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_ERR, "%s flrig_set_freq failed\n", __func__);
         return retval;
     }
 
@@ -1740,7 +1740,7 @@ static int flrig_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq,
 
     if (retval != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s flrig_set_mode failed\n", __FUNCTION__);
+        rig_debug(RIG_DEBUG_ERR, "%s flrig_set_mode failed\n", __func__);
         return retval;
     }
 
@@ -1780,7 +1780,7 @@ static int flrig_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *freq,
 static const char *flrig_get_info(RIG *rig)
 {
     struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
-    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     return priv->info;
 }

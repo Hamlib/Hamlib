@@ -218,7 +218,7 @@ int format2700_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width)
 	case RIG_MODE_FM:       aormode = AR2700_NFM; break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %s\n",
-				__FUNCTION__, rig_strrmode(mode));
+				__func__, rig_strrmode(mode));
 		return -RIG_EINVAL;
 	}
 
@@ -235,7 +235,7 @@ int parse2700_aor_mode(RIG *rig, char aormode, char aorwidth, rmode_t *mode, pbw
 		case AR2700_AM:	*mode = RIG_MODE_AM; break;
 		default:
 			rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode '%c'\n",
-					__FUNCTION__, aormode);
+					__func__, aormode);
 			return -RIG_EPROTO;
 	}
 

@@ -315,7 +315,7 @@ int format8k_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width)
 				default:
 					rig_debug(RIG_DEBUG_ERR,
 										"%s: unsupported passband %s %d\n",
-										__FUNCTION__,
+										__func__,
 										rig_strrmode(mode), (int)width);
 					return -RIG_EINVAL;
 				}
@@ -341,7 +341,7 @@ int format8k_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width)
 				default:
 					rig_debug(RIG_DEBUG_ERR,
 										"%s: unsupported passband %s %d\n",
-										__FUNCTION__,
+										__func__,
 										rig_strrmode(mode), (int)width);
 					return -RIG_EINVAL;
 				}
@@ -349,7 +349,7 @@ int format8k_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width)
 		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode '%s'\n",
-							__FUNCTION__, rig_strrmode(mode));
+							__func__, rig_strrmode(mode));
 		return -RIG_EINVAL;
 	}
 
@@ -425,7 +425,7 @@ int parse8k_aor_mode(RIG *rig, char aormode, char aorwidth, rmode_t *mode, pbwid
 			break;
 		default:
 			rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode '%c'\n",
-					__FUNCTION__, aormode);
+					__func__, aormode);
 			return -RIG_EINVAL;
 	}
 	if (*width == RIG_PASSBAND_NORMAL)
@@ -458,7 +458,7 @@ int aor_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	mdp = strstr(ackbuf, "MD");
 	if (!mdp) {
 		rig_debug(RIG_DEBUG_ERR, "%s: no MD in returned string: '%s'\n",
-				__FUNCTION__, ackbuf);
+				__func__, ackbuf);
 		return -RIG_EPROTO;
 	}
 
@@ -570,7 +570,7 @@ int aor_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		lvl_len = sprintf(lvlbuf, "AC" EOM);
 		break;
 	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported %s %d\n", __FUNCTION__, (int)level);
+		rig_debug(RIG_DEBUG_ERR,"Unsupported %s %d\n", __func__, (int)level);
 		return -RIG_EINVAL;
 	}
 
@@ -613,7 +613,7 @@ int aor_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		}
 		if (att > MAXDBLSTSIZ || rs->attenuator[att-1]==0) {
 			rig_debug(RIG_DEBUG_ERR,"Unsupported att %s %d\n",
-							__FUNCTION__, att);
+							__func__, att);
 			return -RIG_EPROTO;
 		}
 		val->i = rs->attenuator[att-1];
@@ -651,7 +651,7 @@ int aor_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		break;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported %s %d\n", __FUNCTION__, (int)level);
+		rig_debug(RIG_DEBUG_ERR,"Unsupported %s %d\n", __func__, (int)level);
 		return -RIG_EINVAL;
 	}
 
@@ -870,7 +870,7 @@ static int parse_chan_line(RIG *rig, channel_t *chan, char *basep, const channel
 		int ch_save = chan->channel_num;
 
 		rig_debug(RIG_DEBUG_WARN, "%s: skipping, channel is empty: '%s'\n",
-				__FUNCTION__, basep);
+				__func__, basep);
 
 		memset(chan, 0, sizeof(channel_t));
 		chan->vfo = vfo_save;
@@ -884,7 +884,7 @@ static int parse_chan_line(RIG *rig, channel_t *chan, char *basep, const channel
 		tagp = strstr(basep, "MX");
 		if (!tagp) {
 			rig_debug(RIG_DEBUG_WARN, "%s: no MX in returned string: '%s'\n",
-					__FUNCTION__, basep);
+					__func__, basep);
 			return -RIG_EPROTO;
 		}
 
@@ -897,7 +897,7 @@ static int parse_chan_line(RIG *rig, channel_t *chan, char *basep, const channel
 		tagp = strstr(basep, "MP");
 		if (!tagp) {
 			rig_debug(RIG_DEBUG_WARN, "%s: no MP in returned string: '%s'\n",
-					__FUNCTION__, basep);
+					__func__, basep);
 			return -RIG_EPROTO;
 		}
 
@@ -909,7 +909,7 @@ static int parse_chan_line(RIG *rig, channel_t *chan, char *basep, const channel
 		tagp = strstr(basep, "RF");
 		if (!tagp) {
 			rig_debug(RIG_DEBUG_WARN, "%s: no RF in returned string: '%s'\n",
-					__FUNCTION__, basep);
+					__func__, basep);
 			return -RIG_EPROTO;
 		}
 
@@ -921,7 +921,7 @@ static int parse_chan_line(RIG *rig, channel_t *chan, char *basep, const channel
 		tagp = strstr(basep, "ST");
 		if (!tagp) {
 			rig_debug(RIG_DEBUG_WARN, "%s: no ST in returned string: '%s'\n",
-					__FUNCTION__, basep);
+					__func__, basep);
 			return -RIG_EPROTO;
 		}
                 ts = chan->tuning_step;
@@ -935,7 +935,7 @@ static int parse_chan_line(RIG *rig, channel_t *chan, char *basep, const channel
 		tagp = strstr(basep, "MD");
 		if (!tagp && mem_caps->mode && mem_caps->width) {
 			rig_debug(RIG_DEBUG_WARN, "%s: no MD in returned string: '%s'\n",
-				__FUNCTION__, basep);
+				__func__, basep);
 			return -RIG_EPROTO;
 		}
 		/* "BW" only on AR5000 */
@@ -953,7 +953,7 @@ static int parse_chan_line(RIG *rig, channel_t *chan, char *basep, const channel
 		tagp = strstr(basep, "AU");
 		if (!tagp) {
 			rig_debug(RIG_DEBUG_WARN, "%s: no AU in returned string: '%s'\n",
-					__FUNCTION__, basep);
+					__func__, basep);
 			return -RIG_EPROTO;
 		}
 
@@ -966,7 +966,7 @@ static int parse_chan_line(RIG *rig, channel_t *chan, char *basep, const channel
 		tagp = strstr(basep, "AT");
 		if (!tagp) {
 			rig_debug(RIG_DEBUG_WARN, "%s: no AT in returned string: '%s'\n",
-					__FUNCTION__, basep);
+					__func__, basep);
 			return -RIG_EPROTO;
 		}
 
@@ -982,7 +982,7 @@ static int parse_chan_line(RIG *rig, channel_t *chan, char *basep, const channel
 		tagp = strstr(basep, "TM");
 		if (!tagp) {
 			rig_debug(RIG_DEBUG_WARN, "%s: no TM in returned string: '%s'\n",
-					__FUNCTION__, basep);
+					__func__, basep);
 			return -RIG_EPROTO;
 		}
 
