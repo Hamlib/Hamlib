@@ -601,8 +601,8 @@ size_t trimwhitespace(char *out, size_t len, const char *str)
     gFnLevel++;
 
     rig_debug(RIG_DEBUG_TRACE,
-              "*** ADAT: %d %s (%s:%d): ENTRY. In -> '%s', %zu\n",
-              gFnLevel, __func__, __FILE__, __LINE__, str, len);
+              "*** ADAT: %d %s (%s:%d): ENTRY. In -> '%s', %d\n",
+              gFnLevel, __func__, __FILE__, __LINE__, str, (int)len);
 
     if (len == 0)
     {
@@ -643,8 +643,8 @@ size_t trimwhitespace(char *out, size_t len, const char *str)
     out[out_size] = 0;
 
     rig_debug(RIG_DEBUG_TRACE,
-              "*** ADAT: %d %s (%s:%d): EXIT. Out -> \"%s\", %zu\n",
-              gFnLevel, __func__, __FILE__, __LINE__, out, out_size);
+              "*** ADAT: %d %s (%s:%d): EXIT. Out -> \"%s\", %d\n",
+              gFnLevel, __func__, __FILE__, __LINE__, out, (int)out_size);
     gFnLevel--;
 
     return out_size;

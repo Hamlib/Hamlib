@@ -1664,8 +1664,8 @@ int newcat_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
     if (offset == 0)
     {
         rig_debug(RIG_DEBUG_ERR,
-                  "%s: incorrect length of IF response, expected 27 or 28, got %zu", __func__,
-                  strlen(priv->ret_data));
+                  "%s: incorrect length of IF response, expected 27 or 28, got %du", __func__,
+                  (int)strlen(priv->ret_data));
         return -RIG_EPROTO;
     }
 
@@ -1762,8 +1762,8 @@ int newcat_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
     if (offset == 0)
     {
         rig_debug(RIG_DEBUG_ERR,
-                  "%s: incorrect length of IF response, expected 27 or 28, got %zu", __func__,
-                  strlen(priv->ret_data));
+                  "%s: incorrect length of IF response, expected 27 or 28, got %du", __func__,
+                  (int)strlen(priv->ret_data));
         return -RIG_EPROTO;
     }
 
@@ -4515,9 +4515,9 @@ int newcat_get_channel(RIG *rig, channel_t *chan)
         return -RIG_ENAVAIL;
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "sizeof(channel_t) = %zu\n", sizeof(channel_t));
-    rig_debug(RIG_DEBUG_TRACE, "sizeof(priv->cmd_str) = %zu\n",
-              sizeof(priv->cmd_str));
+    rig_debug(RIG_DEBUG_TRACE, "sizeof(channel_t) = %d\n", (int)sizeof(channel_t));
+    rig_debug(RIG_DEBUG_TRACE, "sizeof(priv->cmd_str) = %d\n",
+              (int)sizeof(priv->cmd_str));
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MR%03d%c", chan->channel_num,
              cat_term);
@@ -5622,7 +5622,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     /* end else */
 
-    rig_debug(RIG_DEBUG_TRACE, "sizeof(width_str) = %zu\n", sizeof(width_str));
+    rig_debug(RIG_DEBUG_TRACE, "sizeof(width_str) = %d\n", (int)sizeof(width_str));
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "NA%c%c%cSH%c%s%c",
              main_sub_vfo, narrow, cat_term, main_sub_vfo, width_str, cat_term);
@@ -6076,8 +6076,8 @@ int newcat_get_vfo_mode(RIG *rig, vfo_t *vfo_mode)
 
     default:
         rig_debug(RIG_DEBUG_ERR,
-                  "%s: incorrect length of IF response, expected 27 or 28, got %zu", __func__,
-                  strlen(priv->ret_data));
+                  "%s: incorrect length of IF response, expected 27 or 28, got %d", __func__,
+                  (int)strlen(priv->ret_data));
         return -RIG_EPROTO;
     }
 
