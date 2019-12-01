@@ -231,36 +231,51 @@ static int check_vfo(vfo_t vfo)
  * So we'll hand craft them
  * xml_build takes a value and return an xml string for FLRig
  */
-static char *xml_build(char *cmd, char *value, char *xmlbuf, int xmllen)
+static char *xml_build(char *cmd, char *value, char *xmlbuf, int xmlbuflen)
 {
     char xml[MAXXMLLEN];
 
     // We want at least a 4K buf to play with
-    if (xmllen < 4096)
+    if (xmlbuflen < 4096)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: xmllen < 4096\n", __func__);
         return NULL;
     }
 
-    sprintf(xmlbuf,
-            "POST /RPC2 HTTP/1.1\r\n" "User-Agent: XMLRPC++ 0.8\r\n"
-            "Host: 127.0.0.1:12345\r\n" "Content-type: text/xml\r\n");
-    sprintf(xml, "<?xml version=\"1.0\"?>\r\n");
-    strcat(xml, "<methodCall><methodName>");
-    strcat(xml, cmd);
-    strcat(xml, "</methodName>\r\n");
+    char *header =
+        "POST /RPC2 HTTP/1.1\r\n" "User-Agent: XMLRPC++ 0.8\r\n"
+        "Host: 127.0.0.1:12345\r\n" "Content-type: text/xml\r\n";
+    int n = snprintf(xmlbuf, xmlbuflen, "%s", header);
+
+    if (n != strlen(header))
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: snprintf of header failed, len=%d, got=%d\n",
+                  __func__, (int)strlen(header), n);
+    }
+
+    n = snprintf(xml, sizeof(xml), "<?xml version=\"1.0\"?>\r\n");
+
+    if (n != strlen(xml))
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: snprintf of xml failed, len=%d, got=%d\n",
+                  __func__, (int)strlen(header), n);
+    }
+
+    strncat(xml, "<methodCall><methodName>", sizeof(xml) - 1);
+    strncat(xml, cmd, sizeof(xml) - 1);
+    strncat(xml, "</methodName>\r\n", sizeof(xml) - 1);
 
     if (value && strlen(value) > 0)
     {
-        strcat(xml, value);
+        strncat(xml, value, sizeof(xml) - 1);
     }
 
-    strcat(xml, "</methodCall>\r\n");
-    strcat(xmlbuf, "Content-length: ");
+    strncat(xml, "</methodCall>\r\n", sizeof(xml) - 1);
+    strncat(xmlbuf, "Content-length: ", xmlbuflen - 1);
     char tmp[32];
-    sprintf(tmp, "%d\r\n\r\n", (int)strlen(xml));
-    strcat(xmlbuf, tmp);
-    strcat(xmlbuf, xml);
+    snprintf(tmp, sizeof(tmp), "%d\r\n\r\n", (int)strlen(xml));
+    strncat(xmlbuf, tmp, xmlbuflen - 1);
+    strncat(xmlbuf, xml, xmlbuflen - 1);
     return xmlbuf;
 }
 
@@ -384,7 +399,7 @@ static int read_transaction(RIG *rig, char *xml, int xml_len)
 
     do
     {
-        char tmp_buf[MAXXMLLEN];        // plenty big for expected flrig responses
+        char tmp_buf[MAXXMLLEN];        // plenty big for expected flrig responses hopefully
         int len = read_string(&rs->rigport, tmp_buf, sizeof(tmp_buf), delims,
                               strlen(delims));
         rig_debug(RIG_DEBUG_TRACE, "%s: string='%s'", __func__, tmp_buf);
@@ -397,7 +412,17 @@ static int read_transaction(RIG *rig, char *xml, int xml_len)
             return -(100 + RIG_EPROTO);
         }
 
-        strcat(xml, tmp_buf);
+        if (strlen(xml) + strlen(tmp_buf) < xml_len - 1)
+        {
+            strncat(xml, tmp_buf, xml_len);
+        }
+        else
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: xml buffer overflow!!\nTrying to add len=%d\n%sTo len=%d\n%s", __func__,
+                      (int)strlen(tmp_buf), tmp_buf, (int)strlen(xml), xml);
+            return -RIG_EPROTO;
+        }
     }
     while (retry-- > 0 && strstr(xml, terminator) == NULL);
 
