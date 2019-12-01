@@ -881,9 +881,9 @@ static int icom_set_it_new(RIG *rig, vfo_t vfo, shortfreq_t ts, int set_xit)
     if (ts == 0)   // Turn off both RIT/XIT
     {
         if (rig->caps->has_get_func
-                && RIG_FUNC_XIT)   // some rigs don't have XIT like the 9700
+                & RIG_FUNC_XIT)
         {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: rig does not have xit command enabled\n",
+            rig_debug(RIG_DEBUG_TRACE, "%s: turning of XIT too\n",
                       __func__);
             retval = icom_set_func(rig, vfo, RIG_FUNC_XIT, 0);
 
@@ -891,6 +891,10 @@ static int icom_set_it_new(RIG *rig, vfo_t vfo, shortfreq_t ts, int set_xit)
             {
                 return retval;
             }
+        }
+        else   // some rigs don't have XIT like the 9700
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: rig does not have xit command enabled\n",
         }
 
         retval = icom_set_func(rig, vfo, RIG_FUNC_RIT, 0);
