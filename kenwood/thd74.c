@@ -885,7 +885,7 @@ static int thd74_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     char c, lvlc, cmd[11];
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
-    rig_debug(RIG_DEBUG_TRACE, "%s: level: %s\n", __func__, rig_level(level));
+    rig_debug(RIG_DEBUG_TRACE, "%s: level: %s\n", __func__, rig_strlevel(level));
     rig_debug(RIG_DEBUG_TRACE, "%s: value.i: %d\n", __func__, val.i);
     rig_debug(RIG_DEBUG_TRACE, "%s: value.f: %lf\n", __func__, val.f);
 
