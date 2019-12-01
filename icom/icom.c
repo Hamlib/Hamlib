@@ -880,11 +880,15 @@ static int icom_set_it_new(RIG *rig, vfo_t vfo, shortfreq_t ts, int set_xit)
 
     if (ts == 0)   // Turn off both RIT/XIT
     {
-        retval = icom_set_func(rig, vfo, RIG_FUNC_XIT, 0);
-
-        if (retval != RIG_OK)
+        if (rig->caps->has_get_func
+                && RIG_FUNC_XIT)   // some rigs don't have XIT like the 9700
         {
-            return retval;
+            retval = icom_set_func(rig, vfo, RIG_FUNC_XIT, 0);
+
+            if (retval != RIG_OK)
+            {
+                return retval;
+            }
         }
 
         retval = icom_set_func(rig, vfo, RIG_FUNC_RIT, 0);
@@ -5099,16 +5103,18 @@ static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s, curr_vfo=%s\n", __func__,
               rig_strvfo(vfo), rig_strvfo(curr_vfo));
 
-    // first time we will set default to VFOA or Main as 
+    // first time we will set default to VFOA or Main as
     // So if you ask for frequency or such without setting VFO first you'll get VFOA
     if (priv->curr_vfo == RIG_VFO_NONE && vfo == RIG_VFO_CURR)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: setting default as VFOA\n", __func__);
+
         if (VFO_HAS_MAIN_SUB_ONLY)
         {
             retval = rig_set_vfo(rig, RIG_VFO_MAIN); // we'll default to Main in this case
         }
-        else {
+        else
+        {
             retval = rig_set_vfo(rig, RIG_VFO_A); // we'll default to VFOA for all others
         }
 
