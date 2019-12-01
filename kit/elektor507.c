@@ -296,7 +296,7 @@ int elektor507_ftdi_write_data(RIG *rig, void *FTOutBuf,
     FT_Result ret;
     int Result;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called, %d bytes\n", __func__, BufferSize);
+    rig_debug(RIG_DEBUG_TRACE, "%s called, %d bytes\n", __func__, (int)BufferSize);
 
     /* Open FTDI */
     ret = extra_priv->FT_Open(0, &extra_priv->ftHandle);

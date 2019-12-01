@@ -2638,8 +2638,8 @@ static int ft920_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit)
     /* store bcd format in in p_cmd */
     to_bcd(priv->p_cmd, rit / 10, FT920_BCD_RIT);
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: requested rit after conversion = %li Hz\n",
-              __func__, (int64_t)from_bcd(priv->p_cmd, FT920_BCD_RIT) * 10);
+    rig_debug(RIG_DEBUG_TRACE, "%s: requested rit after conversion = %d Hz\n",
+              __func__, (int)from_bcd(priv->p_cmd, FT920_BCD_RIT) * 10);
 
     priv->p_cmd[P1] = p1;               /* ick */
     priv->p_cmd[P2] = p2;
