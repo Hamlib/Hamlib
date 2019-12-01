@@ -1113,13 +1113,13 @@ pcr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     if (RIG_LEVEL_IS_FLOAT(level))
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: level = %lu, val = %f\n",
-                  __func__, level, val.f);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: level = %s, val = %f\n",
+                  __func__, rig_strlevel(level), val.f);
     }
     else
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: level = %lu, val = %ul\n",
-                  __func__, level, val.i);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: level = %s, val = %ul\n",
+                  __func__, rig_strlevel(level), val.i);
     }
 
     switch (level)

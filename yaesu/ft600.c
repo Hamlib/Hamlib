@@ -370,7 +370,7 @@ int ft600_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return ret;
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "S_METER: %hhx ", priv->s_meter);
+    rig_debug(RIG_DEBUG_VERBOSE, "S_METER: %u ", priv->s_meter);
 
     //val->i = FT600_DUMMY_S_METER_VALUE; //DUMMY
     val->i = priv->s_meter;

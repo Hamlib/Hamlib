@@ -2312,8 +2312,8 @@ int ft990_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *value)
         return -RIG_EINVAL;
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo 0x%02x\n", __func__, vfo);
-    rig_debug(RIG_DEBUG_TRACE, "%s: passed level %li\n", __func__, level);
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo %s\n", __func__, rig_strvfo(vfo));
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed level %s\n", __func__, rig_strlevel(level));
 
     priv = (struct ft990_priv_data *) rig->state.priv;
 
