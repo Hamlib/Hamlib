@@ -383,11 +383,8 @@ int main(int argc, char *argv[])
             break;
 
         case 'S':
-            printf("yup\n");
-
             if (!optarg)
             {
-                printf("nope\n");
                 usage();        /* wrong arg count */
                 exit(1);
             }
