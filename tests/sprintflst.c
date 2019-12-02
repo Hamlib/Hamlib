@@ -53,70 +53,7 @@ int sprintf_vfo(char *str, vfo_t vfo)
         return 0;
     }
 
-    sv = rig_strvfo(vfo & RIG_VFO_CURR);
-
-    if (sv && sv[0])
-    {
-        len += sprintf(str + len, "%s ", sv);
-    }
-
-    sv = rig_strvfo(vfo & RIG_VFO_MEM);
-
-    if (sv && sv[0])
-    {
-        len += sprintf(str + len, "%s ", sv);
-    }
-
-    sv = rig_strvfo(vfo & RIG_VFO_VFO);
-
-    if (sv && sv[0])
-    {
-        len += sprintf(str + len, "%s ", sv);
-    }
-
-    sv = rig_strvfo(vfo & RIG_VFO_MAIN);
-
-    if (sv && sv[0])
-    {
-        len += sprintf(str + len, "%s ", sv);
-    }
-
-    sv = rig_strvfo(vfo & RIG_VFO_MAIN_A);
-
-    if (sv && sv[0])
-    {
-        len += sprintf(str + len, "%s ", sv);
-    }
-
-    sv = rig_strvfo(vfo & RIG_VFO_MAIN_B);
-
-    if (sv && sv[0])
-    {
-        len += sprintf(str + len, "%s ", sv);
-    }
-
-    sv = rig_strvfo(vfo & RIG_VFO_SUB);
-
-    if (sv && sv[0])
-    {
-        len += sprintf(str + len, "%s ", sv);
-    }
-
-    sv = rig_strvfo(vfo & RIG_VFO_SUB_A);
-
-    if (sv && sv[0])
-    {
-        len += sprintf(str + len, "%s ", sv);
-    }
-
-    sv = rig_strvfo(vfo & RIG_VFO_SUB_B);
-
-    if (sv && sv[0])
-    {
-        len += sprintf(str + len, "%s ", sv);
-    }
-
-    for (i = 0; i < 16; i++)
+    for (i = 0; i < 32; i++)
     {
         sv = rig_strvfo(vfo & RIG_VFO_N(i));
 

@@ -363,7 +363,7 @@ typedef signed long shortfreq_t;
  * Aliases may or may not be honored by a backend and are defined using
  * high significant bits, i.e. RIG_VFO_MEM, RIG_VFO_MAIN, etc.
  */
-typedef int vfo_t;
+typedef unsigned int vfo_t;
 
 /** \brief '' -- used in caps */
 
@@ -411,6 +411,7 @@ typedef int vfo_t;
 #define RIG_VFO_CURR        RIG_VFO_N(29)
 
 #define RIG_VFO_TX_FLAG     RIG_VFO_N(30)
+// we and also use RIG_VFO_N(31) if needed
 
 // Misc VFO Macros
 
