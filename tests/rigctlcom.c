@@ -650,6 +650,10 @@ static rmode_t ts2000_get_mode()
 
     case RIG_MODE_RTTYR: mode = 9; break;
 
+    case RIG_MODE_PKTUSB: mode = 2; break; // need to change to a TS_2000 mode
+
+    case RIG_MODE_PKTLSB: mode = 1; break; // need to change to a TS_2000 mode
+
     default: mode = 0; break;
     }
 
