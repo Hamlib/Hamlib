@@ -1506,6 +1506,48 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 
         return RIG_OK;
 
+    case RIG_VFO_MAIN_A: // we need to select Main before setting VFO
+    case RIG_VFO_MAIN_B:
+        retval = icom_transaction(rig, C_SET_VFO, RIG_VFO_MAIN, NULL, 0,
+                                  ackbuf, &ack_len);
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        if (ack_len != 1 || ackbuf[0] != ACK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0],
+                      ack_len);
+            return -RIG_ERJCTED;
+        }
+
+        return RIG_OK;
+
+        break;
+
+    case RIG_VFO_SUB_A: // we need to select Sub before setting VFO
+    case RIG_VFO_SUB_B:
+        retval = icom_transaction(rig, C_SET_VFO, RIG_VFO_SUB, NULL, 0,
+                                  ackbuf, &ack_len);
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        if (ack_len != 1 || ackbuf[0] != ACK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0],
+                      ack_len);
+            return -RIG_ERJCTED;
+        }
+
+        return RIG_OK;
+
+        break;
+
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
         return -RIG_EINVAL;
