@@ -81,7 +81,35 @@ int sprintf_vfo(char *str, vfo_t vfo)
         len += sprintf(str + len, "%s ", sv);
     }
 
+    sv = rig_strvfo(vfo & RIG_VFO_MAIN_A);
+
+    if (sv && sv[0])
+    {
+        len += sprintf(str + len, "%s ", sv);
+    }
+
+    sv = rig_strvfo(vfo & RIG_VFO_MAIN_B);
+
+    if (sv && sv[0])
+    {
+        len += sprintf(str + len, "%s ", sv);
+    }
+
     sv = rig_strvfo(vfo & RIG_VFO_SUB);
+
+    if (sv && sv[0])
+    {
+        len += sprintf(str + len, "%s ", sv);
+    }
+
+    sv = rig_strvfo(vfo & RIG_VFO_SUB_A);
+
+    if (sv && sv[0])
+    {
+        len += sprintf(str + len, "%s ", sv);
+    }
+
+    sv = rig_strvfo(vfo & RIG_VFO_SUB_B);
 
     if (sv && sv[0])
     {

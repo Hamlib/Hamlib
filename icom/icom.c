@@ -688,8 +688,8 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (ack_len != 1 || ackbuf[0] != ACK)
     {
-        rig_debug(RIG_DEBUG_ERR, "icom_set_freq: ack NG (%#.2x), "
-                  "len=%d\n", ackbuf[0], ack_len);
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0],
+                  ack_len);
         return -RIG_ERJCTED;
     }
 
@@ -744,7 +744,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         vfo = rig->state.vfo_list & RIG_VFO_B ? RIG_VFO_A : RIG_VFO_MAIN;
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "icom_get_freq: using vfo=%s\n", rig_strvfo(vfo));
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: using vfo=%s\n", __func__, rig_strvfo(vfo));
 
     retval = icom_transaction(rig, cmd, subcmd, datalen == 0 ? NULL : &data,
                               datalen, freqbuf, &freq_len);
@@ -771,16 +771,15 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if (freq_len != 4 && freq_len != 5)
     {
-        rig_debug(RIG_DEBUG_ERR, "icom_get_freq: wrong frame len=%d\n",
-                  freq_len);
+        rig_debug(RIG_DEBUG_ERR, "%s: wrong frame len=%d\n",
+                  __func__, freq_len);
         return -RIG_ERJCTED;
     }
 
     if (freq_len != (priv->civ_731_mode ? 4 : 5))
     {
-        rig_debug(RIG_DEBUG_WARN, "icom_get_freq: "
-                  "freq len (%d) differs from "
-                  "expected\n", freq_len);
+        rig_debug(RIG_DEBUG_WARN, "%s: freq len (%d) differs from expected\n", __func__,
+                  freq_len);
     }
 
     /*
@@ -814,8 +813,8 @@ int icom_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 
     if (ack_len != 1 || ackbuf[0] != ACK)
     {
-        rig_debug(RIG_DEBUG_ERR, "icom_set_rit: ack NG (%#.2x), "
-                  "len=%d\n", ackbuf[0], ack_len);
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0],
+                  ack_len);
         return -RIG_ERJCTED;
     }
 
@@ -837,7 +836,7 @@ int icom_get_rit_new(RIG *rig, vfo_t vfo, shortfreq_t *ts)
     /*
      * tsbuf nibbles should contain 10,1,1000,100 hz digits and 00=+, 01=- bit
      */
-    rig_debug(RIG_DEBUG_VERBOSE, "ts_len=%d\n", ts_len);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: ts_len=%d\n", __func__, ts_len);
 
     if (ts_len != 5)
     {
@@ -894,7 +893,8 @@ static int icom_set_it_new(RIG *rig, vfo_t vfo, shortfreq_t ts, int set_xit)
         }
         else   // some rigs don't have XIT like the 9700
         {
-            rig_debug(RIG_DEBUG_TRACE, "%s: rig does not have xit command enabled\n", __func__);
+            rig_debug(RIG_DEBUG_TRACE, "%s: rig does not have xit command enabled\n",
+                      __func__);
         }
 
         retval = icom_set_func(rig, vfo, RIG_FUNC_RIT, 0);
@@ -1209,8 +1209,8 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (ack_len != 1 || ackbuf[0] != ACK)
     {
-        rig_debug(RIG_DEBUG_ERR, "icom_set_mode: ack NG (%#.2x), "
-                  "len=%d\n", ackbuf[0], ack_len);
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0],
+                  ack_len);
         return -RIG_ERJCTED;
     }
 
@@ -1353,8 +1353,8 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     if (mode_len != 2 && mode_len != 1)
     {
-        rig_debug(RIG_DEBUG_ERR, "icom_get_mode: wrong frame len=%d\n",
-                  mode_len);
+        rig_debug(RIG_DEBUG_ERR, "%s: wrong frame len=%d\n",
+                  __func__, mode_len);
         return -RIG_ERJCTED;
     }
 
@@ -1481,8 +1481,8 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 
         if (ack_len != 1 || ackbuf[0] != ACK)
         {
-            rig_debug(RIG_DEBUG_ERR, "icom_set_vfo: ack NG (%#.2x), "
-                      "len=%d\n", ackbuf[0], ack_len);
+            rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0],
+                      ack_len);
             return -RIG_ERJCTED;
         }
 
@@ -1499,15 +1499,15 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 
         if (ack_len != 1 || ackbuf[0] != ACK)
         {
-            rig_debug(RIG_DEBUG_ERR, "icom_set_vfo: ack NG (%#.2x), "
-                      "len=%d\n", ackbuf[0], ack_len);
+            rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0],
+                      ack_len);
             return -RIG_ERJCTED;
         }
 
         return RIG_OK;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "icom: Unsupported VFO %d\n", vfo);
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
         return -RIG_EINVAL;
     }
 
@@ -1521,8 +1521,8 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 
     if (ack_len != 1 || ackbuf[0] != ACK)
     {
-        rig_debug(RIG_DEBUG_ERR, "icom_set_vfo: ack NG (%#.2x), "
-                  "len=%d\n", ackbuf[0], ack_len);
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0],
+                  ack_len);
         return -RIG_ERJCTED;
     }
 
@@ -1649,8 +1649,8 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
         if (i == MAXDBLSTSIZ || rs->preamp[i] == 0)
         {
-            rig_debug(RIG_DEBUG_ERR, "Unsupported preamp set_level %ddB",
-                      val.i);
+            rig_debug(RIG_DEBUG_ERR, "%s: unsupported preamp set_level %ddB",
+                      __func__, val.i);
             return -RIG_EINVAL;
         }
 
@@ -1796,7 +1796,7 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
                 break;
 
             default:
-                rig_debug(RIG_DEBUG_ERR, "Unsupported LEVEL_AGC %d", val.i);
+                rig_debug(RIG_DEBUG_ERR, "%s: unsupported LEVEL_AGC %d", __func__, val.i);
                 return -RIG_EINVAL;
             }
         }
@@ -1849,7 +1849,8 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "Unsupported set_level %s", rig_strlevel(level));
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported set_level %s", __func__,
+                  rig_strlevel(level));
         return -RIG_EINVAL;
     }
 
@@ -1863,7 +1864,7 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     if (ack_len != 1 || ackbuf[0] != ACK)
     {
-        rig_debug(RIG_DEBUG_ERR, "icom_set_level: ack NG (%#.2x), len=%d\n", ackbuf[0],
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0],
                   ack_len);
         return -RIG_ERJCTED;
     }
@@ -2078,7 +2079,8 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "Unsupported get_level %s", rig_strlevel(level));
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_level %s", __func__,
+                  rig_strlevel(level));
         return -RIG_EINVAL;
     }
 
@@ -2106,7 +2108,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     if (lvlbuf[0] != ACK && lvlbuf[0] != lvl_cn)
     {
-        rig_debug(RIG_DEBUG_ERR, "icom_get_level: ack NG (%#.2x), len=%d\n", lvlbuf[0],
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, lvlbuf[0],
                   lvl_len);
         return -RIG_ERJCTED;
     }
@@ -2146,7 +2148,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
             if (!found)
             {
-                rig_debug(RIG_DEBUG_ERR, "Unexpected AGC 0x%02x", icom_val);
+                rig_debug(RIG_DEBUG_ERR, "%s: unexpected AGC 0x%02x", __func__, icom_val);
                 return -RIG_EPROTO;
             }
         }
@@ -2171,7 +2173,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                 break;
 
             default:
-                rig_debug(RIG_DEBUG_ERR, "Unexpected AGC 0x%02x", icom_val);
+                rig_debug(RIG_DEBUG_ERR, "%s: unexpected AGC 0x%02x", __func__, icom_val);
                 return -RIG_EPROTO;
             }
         }
@@ -2267,8 +2269,8 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         if (icom_val > MAXDBLSTSIZ || rs->preamp[icom_val - 1] == 0)
         {
-            rig_debug(RIG_DEBUG_ERR, "Unsupported preamp get_level %ddB",
-                      icom_val);
+            rig_debug(RIG_DEBUG_ERR, "%s: unsupported preamp get_level %ddB",
+                      __func__, icom_val);
             return -RIG_EPROTO;
         }
 
@@ -2314,7 +2316,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "icom_get_level: %d %d %d %f\n", lvl_len,
+    rig_debug(RIG_DEBUG_TRACE, "%s: %d %d %d %f\n", __func__, lvl_len,
               icom_val, val->i, val->f);
 
     return RIG_OK;
@@ -2496,8 +2498,8 @@ int icom_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     if (ack_len != 1 || ackbuf[0] != ACK)
     {
-        rig_debug(RIG_DEBUG_ERR, "icom_set_ptt: ack NG (%#.2x), "
-                  "len=%d\n", ackbuf[0], ack_len);
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0],
+                  ack_len);
         return -RIG_ERJCTED;
     }
 
@@ -2529,8 +2531,8 @@ int icom_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
     if (ptt_len != 1)
     {
-        rig_debug(RIG_DEBUG_ERR, "icom_get_ptt: wrong frame len=%d\n",
-                  ptt_len);
+        rig_debug(RIG_DEBUG_ERR, "%s: wrong frame len=%d\n",
+                  __func__, ptt_len);
         return -RIG_ERJCTED;
     }
 
@@ -2564,8 +2566,8 @@ int icom_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 
     if (dcd_len != 1)
     {
-        rig_debug(RIG_DEBUG_ERR, "icom_get_dcd: wrong frame len=%d\n",
-                  dcd_len);
+        rig_debug(RIG_DEBUG_ERR, "%s: wrong frame len=%d\n",
+                  __func__, dcd_len);
         return -RIG_ERJCTED;
     }
 
@@ -2604,7 +2606,7 @@ int icom_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "Unsupported shift %d", rptr_shift);
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported shift %d", __func__, rptr_shift);
         return -RIG_EINVAL;
     }
 
@@ -2618,8 +2620,8 @@ int icom_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 
     if (ack_len != 1 || ackbuf[0] != ACK)
     {
-        rig_debug(RIG_DEBUG_ERR, "icom_set_rptr_shift: ack NG (%#.2x), "
-                  "len=%d\n", ackbuf[0], ack_len);
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0],
+                  ack_len);
         return -RIG_ERJCTED;
     }
 
@@ -2654,8 +2656,8 @@ int icom_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 
     if (rptr_len != 1)
     {
-        rig_debug(RIG_DEBUG_ERR, "icom_get_rptr_shift: wrong frame len=%d\n",
-                  rptr_len);
+        rig_debug(RIG_DEBUG_ERR, "%s: wrong frame len=%d\n",
+                  __func__, rptr_len);
         return -RIG_ERJCTED;
     }
 
@@ -2674,7 +2676,7 @@ int icom_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "Unsupported shift %d", rptrbuf[1]);
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported shift %d", __func__, rptrbuf[1]);
         return -RIG_EPROTO;
     }
 
@@ -2710,8 +2712,8 @@ int icom_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
 
     if (ack_len != 1 || ackbuf[0] != ACK)
     {
-        rig_debug(RIG_DEBUG_ERR, "icom_set_rptr_offs: ack NG (%#.2x), "
-                  "len=%d\n", ackbuf[0], ack_len);
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0],
+                  ack_len);
         return -RIG_ERJCTED;
     }
 
@@ -2748,8 +2750,7 @@ int icom_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
 
     if (buf_len != offs_len)
     {
-        rig_debug(RIG_DEBUG_ERR, "icom_get_rptr_offs: "
-                  "wrong frame len=%d\n", buf_len);
+        rig_debug(RIG_DEBUG_ERR, "%s: wrong frame len=%d\n", __func__, buf_len);
         return -RIG_ERJCTED;
     }
 
@@ -2842,8 +2843,8 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
         if (ack_len != 1 || ackbuf[0] != ACK)
         {
-            rig_debug(RIG_DEBUG_ERR, "icom_set_split_freq: ack NG (%#.2x), "
-                      "len=%d\n", ackbuf[0], ack_len);
+            rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0],
+                      ack_len);
             return -RIG_ERJCTED;
         }
     }
@@ -2910,8 +2911,8 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 
         if (ack_len != 1 || ackbuf[0] != ACK)
         {
-            rig_debug(RIG_DEBUG_ERR, "icom_get_split_freq: ack NG (%#.2x), "
-                      "len=%d\n", ackbuf[0], ack_len);
+            rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0],
+                      ack_len);
             return -RIG_ERJCTED;
         }
     }
@@ -2980,8 +2981,8 @@ int icom_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
 
         if (ack_len != 1 || ackbuf[0] != ACK)
         {
-            rig_debug(RIG_DEBUG_ERR, "icom_set_split_mode: ack NG (%#.2x), "
-                      "len=%d\n", ackbuf[0], ack_len);
+            rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0],
+                      ack_len);
             return -RIG_ERJCTED;
         }
     }
@@ -3052,8 +3053,8 @@ int icom_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
 
         if (ack_len != 1 || ackbuf[0] != ACK)
         {
-            rig_debug(RIG_DEBUG_ERR, "icom_get_split_mode: ack NG (%#.2x), "
-                      "len=%d\n", ackbuf[0], ack_len);
+            rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0],
+                      ack_len);
             return -RIG_ERJCTED;
         }
     }
@@ -3122,8 +3123,8 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
 
         if (ack_len != 1 || ackbuf[0] != ACK)
         {
-            rig_debug(RIG_DEBUG_ERR, "icom_set_split_freq_mode: ack NG (%#.2x), "
-                      "len=%d\n", ackbuf[0], ack_len);
+            rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0],
+                      ack_len);
             return -RIG_ERJCTED;
         }
     }
@@ -3198,8 +3199,8 @@ int icom_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *tx_freq,
 
         if (ack_len != 1 || ackbuf[0] != ACK)
         {
-            rig_debug(RIG_DEBUG_ERR, "icom_get_split_freq_mode: ack NG (%#.2x), "
-                      "len=%d\n", ackbuf[0], ack_len);
+            rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0],
+                      ack_len);
             return -RIG_ERJCTED;
         }
     }
@@ -3266,7 +3267,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported split %d", __func__, split);
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported split %d", __func__, split);
         return -RIG_EINVAL;
     }
 
@@ -3275,8 +3276,8 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
     if (ack_len != 1 || ackbuf[0] != ACK)
     {
-        rig_debug(RIG_DEBUG_ERR, "icom_set_split: ack NG (%#.2x), "
-                  "len=%d\n", ackbuf[0], ack_len);
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0],
+                  ack_len);
         return -RIG_ERJCTED;
     }
 
@@ -3328,7 +3329,7 @@ int icom_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "Unsupported split %d", splitbuf[1]);
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported split %d", __func__, splitbuf[1]);
         return -RIG_EPROTO;
     }
 
@@ -3414,8 +3415,8 @@ int icom_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 
     if (ack_len != 1 || ackbuf[0] != ACK)
     {
-        rig_debug(RIG_DEBUG_ERR, "icom_set_ts: ack NG (%#.2x), "
-                  "len=%d\n", ackbuf[0], ack_len);
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0],
+                  ack_len);
         return -RIG_ERJCTED;
     }
 
@@ -3450,7 +3451,7 @@ int icom_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 
     if (ts_len != 1)
     {
-        rig_debug(RIG_DEBUG_ERR, "icom_get_ts: wrong frame len=%d\n",
+        rig_debug(RIG_DEBUG_ERR, "%s: wrong frame len=%d\n", __func__,
                   ts_len);
         return -RIG_ERJCTED;
     }
@@ -3661,7 +3662,8 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "Unsupported set_func %s", rig_strfunc(func));
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported set_func %s", __func__,
+                  rig_strfunc(func));
         return -RIG_EINVAL;
     }
 
@@ -3675,7 +3677,7 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
     if (acklen != 1)
     {
-        rig_debug(RIG_DEBUG_ERR, "icom_set_func: wrong frame len=%d\n", acklen);
+        rig_debug(RIG_DEBUG_ERR, "%s: wrong frame len=%d\n", __func__, acklen);
         return -RIG_EPROTO;
     }
 
@@ -3820,7 +3822,8 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "Unsupported get_func %s", rig_strfunc(func));
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_func %s\n", __func__,
+                  rig_strfunc(func));
         return -RIG_EINVAL;
     }
 
@@ -3833,7 +3836,7 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
     if (ack_len != 3)
     {
-        rig_debug(RIG_DEBUG_ERR, "icom_get_func: wrong frame len=%d\n", ack_len);
+        rig_debug(RIG_DEBUG_ERR, "%s: wrong frame len=%d\n", __func__, ack_len);
         return -RIG_EPROTO;
     }
 
@@ -3885,7 +3888,7 @@ int icom_set_parm(RIG *rig, setting_t parm, value_t val)
             break;
 
         default:
-            rig_debug(RIG_DEBUG_ERR, "Unsupported RIG_PARM_ANN %d\n", val.i);
+            rig_debug(RIG_DEBUG_ERR, "%s: unsupported RIG_PARM_ANN %d\n", __func__, val.i);
             return -RIG_EINVAL;
         }
 
@@ -3893,7 +3896,8 @@ int icom_set_parm(RIG *rig, setting_t parm, value_t val)
     }
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "Unsupported set_parm %s\n", rig_strparm(parm));
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported set_parm %s\n", __func__,
+                  rig_strparm(parm));
         return -RIG_EINVAL;
     }
 }
@@ -3916,7 +3920,8 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
     switch (parm)
     {
     default:
-        rig_debug(RIG_DEBUG_ERR, "Unsupported get_parm %s", rig_strparm(parm));
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_parm %s", __func__,
+                  rig_strparm(parm));
         return -RIG_EINVAL;
     }
 
@@ -3970,8 +3975,8 @@ int icom_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 
     if (ack_len != 1 || ackbuf[0] != ACK)
     {
-        rig_debug(RIG_DEBUG_ERR, "icom_set_ctcss_tone: ack NG (%#.2x), "
-                  "len=%d\n", ackbuf[0], ack_len);
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0],
+                  ack_len);
         return -RIG_ERJCTED;
     }
 
@@ -4003,8 +4008,8 @@ int icom_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
     /* cn,sc,data*3 */
     if (tone_len != 5)
     {
-        rig_debug(RIG_DEBUG_ERR, "icom_get_ctcss_tone: ack NG (%#.2x), "
-                  "len=%d\n", tonebuf[0], tone_len);
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, tonebuf[0],
+                  tone_len);
         return -RIG_ERJCTED;
     }
 
@@ -4022,8 +4027,7 @@ int icom_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
         }
     }
 
-    rig_debug(RIG_DEBUG_ERR, "icom_get_ctcss_tone: CTCSS NG "
-              "(%#.2x)\n", tonebuf[2]);
+    rig_debug(RIG_DEBUG_ERR, "%s: CTCSS NG (%#.2x)\n", __func__, tonebuf[2]);
     return -RIG_EPROTO;
 }
 
@@ -4069,8 +4073,8 @@ int icom_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 
     if (ack_len != 1 || ackbuf[0] != ACK)
     {
-        rig_debug(RIG_DEBUG_ERR, "icom_set_ctcss_sql: ack NG (%#.2x), "
-                  "len=%d\n", ackbuf[0], ack_len);
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0],
+                  ack_len);
         return -RIG_ERJCTED;
     }
 
@@ -4101,8 +4105,8 @@ int icom_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 
     if (tone_len != 5)
     {
-        rig_debug(RIG_DEBUG_ERR, "icom_get_ctcss_sql: ack NG (%#.2x), "
-                  "len=%d\n", tonebuf[0], tone_len);
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, tonebuf[0],
+                  tone_len);
         return -RIG_ERJCTED;
     }
 
@@ -4118,8 +4122,7 @@ int icom_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
         }
     }
 
-    rig_debug(RIG_DEBUG_ERR, "icom_get_ctcss_sql: CTCSS NG "
-              "(%#.2x)\n", tonebuf[2]);
+    rig_debug(RIG_DEBUG_ERR, "%s: CTCSS NG (%#.2x)\n", __func__, tonebuf[2]);
     return -RIG_EPROTO;
 }
 
@@ -4164,8 +4167,8 @@ int icom_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 
     if (ack_len != 1 || ackbuf[0] != ACK)
     {
-        rig_debug(RIG_DEBUG_ERR, "icom_set_dcs_code: ack NG (%#.2x), "
-                  "len=%d\n", ackbuf[0], ack_len);
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0],
+                  ack_len);
         return -RIG_ERJCTED;
     }
 
@@ -4197,8 +4200,8 @@ int icom_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
     /* cn,sc,data*3 */
     if (code_len != 5)
     {
-        rig_debug(RIG_DEBUG_ERR, "icom_get_dcs_code: ack NG (%#.2x), "
-                  "len=%d\n", codebuf[0], code_len);
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, codebuf[0],
+                  code_len);
         return -RIG_ERJCTED;
     }
 
@@ -4218,8 +4221,7 @@ int icom_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
         }
     }
 
-    rig_debug(RIG_DEBUG_ERR, "icom_get_dcs_code: DTCS NG "
-              "(%#.2x)\n", codebuf[2]);
+    rig_debug(RIG_DEBUG_ERR, "%s: DTCS NG (%#.2x)\n", __func__, codebuf[2]);
     return -RIG_EPROTO;
 }
 
@@ -4295,8 +4297,8 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
 
     if (status == RIG_POWER_OFF && (ack_len != 1 || ackbuf[0] != ACK))
     {
-        rig_debug(RIG_DEBUG_ERR, "icom_set_powerstat: ack NG (%#.2x), "
-                  "len=%d\n", ackbuf[0], ack_len);
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0],
+                  ack_len);
         return -RIG_ERJCTED;
     }
 
@@ -4344,8 +4346,8 @@ int icom_get_powerstat(RIG *rig, powerstat_t *status)
 
         if (ack_len != 1 || ackbuf[0] != ACK)
         {
-            rig_debug(RIG_DEBUG_ERR, "icom_get_powerstat: ack NG (%#.2x), "
-                      "len=%d\n", ackbuf[0], ack_len);
+            rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0],
+                      ack_len);
             return -RIG_ERJCTED;
         }
 
@@ -4381,8 +4383,8 @@ int icom_set_mem(RIG *rig, vfo_t vfo, int ch)
 
     if (ack_len != 1 || ackbuf[0] != ACK)
     {
-        rig_debug(RIG_DEBUG_ERR, "icom_set_mem: ack NG (%#.2x), "
-                  "len=%d\n", ackbuf[0], ack_len);
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0],
+                  ack_len);
         return -RIG_ERJCTED;
     }
 
@@ -4411,8 +4413,8 @@ int icom_set_bank(RIG *rig, vfo_t vfo, int bank)
 
     if (ack_len != 1 || ackbuf[0] != ACK)
     {
-        rig_debug(RIG_DEBUG_ERR, "icom_set_bank: ack NG (%#.2x), "
-                  "len=%d\n", ackbuf[0], ack_len);
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0],
+                  ack_len);
         return -RIG_ERJCTED;
     }
 
@@ -4446,7 +4448,7 @@ int icom_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
     case RIG_ANT_4: i_ant = 3; break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "Unsupported ant %#x", ant);
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported ant %#x", __func__, ant);
         return -RIG_EINVAL;
     }
 
@@ -4465,8 +4467,8 @@ int icom_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
 
     if (ack_len != 1 || ackbuf[0] != ACK)
     {
-        rig_debug(RIG_DEBUG_ERR, "icom_set_ant: ack NG (%#.2x), "
-                  "len=%d\n", ackbuf[0], ack_len);
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0],
+                  ack_len);
         return -RIG_ERJCTED;
     }
 
@@ -4495,8 +4497,8 @@ int icom_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
     if ((ack_len != 2 && ack_len != 3) || ackbuf[0] != C_CTL_ANT ||
             ackbuf[1] > 3)
     {
-        rig_debug(RIG_DEBUG_ERR, "icom_get_ant: ack NG (%#.2x), "
-                  "len=%d\n", ackbuf[0], ack_len);
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0],
+                  ack_len);
         return -RIG_ERJCTED;
     }
 
@@ -4572,7 +4574,7 @@ int icom_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "Unsupported mem/vfo op %#x", op);
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported mem/vfo op %#x", __func__, op);
         return -RIG_EINVAL;
     }
 
@@ -4587,7 +4589,7 @@ int icom_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
     {
         if (op != RIG_OP_XCHG)
         {
-            rig_debug(RIG_DEBUG_ERR, "icom_vfo_op: ack NG (%#.2x), len=%d\n", ackbuf[0],
+            rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0],
                       ack_len);
         }
 
@@ -4678,7 +4680,7 @@ int icom_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "Unsupported scan %#x", scan);
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported scan %#x", __func__, scan);
         return -RIG_EINVAL;
     }
 
@@ -4692,8 +4694,8 @@ int icom_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 
     if (ack_len != 1 || ackbuf[0] != ACK)
     {
-        rig_debug(RIG_DEBUG_ERR, "icom_scan: ack NG (%#.2x), "
-                  "len=%d\n", ackbuf[0], ack_len);
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0],
+                  ack_len);
         return -RIG_ERJCTED;
     }
 
@@ -4714,7 +4716,7 @@ int icom_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 
     if (len > 30) { len = 30; }
 
-    rig_debug(RIG_DEBUG_TRACE, "icom_send_morse: %s\n", msg);
+    rig_debug(RIG_DEBUG_TRACE, "%s: %s\n", __func__, msg);
 
     retval = icom_transaction(rig, C_SND_CW, -1, (unsigned char *)msg, len,
                               ackbuf, &ack_len);
@@ -4726,8 +4728,8 @@ int icom_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 
     if (ack_len != 1 || ackbuf[0] != ACK)
     {
-        rig_debug(RIG_DEBUG_ERR, "icom_send_morse: ack NG (%#.2x), "
-                  "len=%d\n", ackbuf[0], ack_len);
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0],
+                  ack_len);
         return -RIG_ERJCTED;
     }
 
@@ -4807,8 +4809,8 @@ int icom_decode_event(RIG *rig)
 
     if (frm_len == -RIG_ETIMEOUT)
     {
-        rig_debug(RIG_DEBUG_VERBOSE,
-                  "%s: icom_decode got a timeout before the first character\n", __func__);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: got a timeout before the first character\n",
+                  __func__);
     }
 
     if (frm_len < 0)
@@ -4819,7 +4821,7 @@ int icom_decode_event(RIG *rig)
     switch (buf[frm_len - 1])
     {
     case COL:
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: icom_decode saw a collision\n", __func__);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: saw a collision\n", __func__);
         /* Collision */
         return -RIG_BUSBUSY;
 
@@ -4835,7 +4837,7 @@ int icom_decode_event(RIG *rig)
 
     if (buf[3] != BCASTID && buf[3] != priv->re_civ_addr)
     {
-        rig_debug(RIG_DEBUG_WARN, "icom_decode: CI-V %#x called for %#x!\n",
+        rig_debug(RIG_DEBUG_WARN, "%s: CI-V %#x called for %#x!\n", __func__,
                   priv->re_civ_addr, buf[3]);
     }
 
@@ -4884,8 +4886,8 @@ int icom_decode_event(RIG *rig)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_VERBOSE, "icom_decode: transceive cmd "
-                  "unsupported %#2.2x\n", buf[4]);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: transceive cmd unsupported %#2.2x\n",
+                  __func__, buf[4]);
         return -RIG_ENIMPL;
     }
 
@@ -5250,8 +5252,8 @@ DECLARE_PROBERIG_BACKEND(icom)
             {
                 if (icom_addr_list[i].re_civ_addr == civ_id)
                 {
-                    rig_debug(RIG_DEBUG_VERBOSE, "probe_icom: found %#x"
-                              " at %#x\n", civ_id, buf[3]);
+                    rig_debug(RIG_DEBUG_VERBOSE, "%s: found %#x at %#x\n", __func__, civ_id,
+                              buf[3]);
                     model = icom_addr_list[i].model;
 
                     if (cfunc)
@@ -5268,9 +5270,9 @@ DECLARE_PROBERIG_BACKEND(icom)
              * update icom_addr_list[]!
              */
             if (icom_addr_list[i].model == RIG_MODEL_NONE)
-                rig_debug(RIG_DEBUG_WARN, "probe_icom: found unknown device "
+                rig_debug(RIG_DEBUG_WARN, "%s: found unknown device "
                           "with CI-V ID %#x, please report to Hamlib "
-                          "developers.\n", civ_id);
+                          "developers.\n", __func__, civ_id);
         }
 
         /*
@@ -5305,8 +5307,8 @@ DECLARE_PROBERIG_BACKEND(icom)
                 continue;
             }
 
-            rig_debug(RIG_DEBUG_VERBOSE,
-                      "%s, found OptoScan%c%c%c, software version %d.%d, "
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: "
+                      "found OptoScan%c%c%c, software version %d.%d, "
                       "interface version %d.%d, at %#x\n",
                       __func__,
                       buf[2], buf[3], buf[4],
