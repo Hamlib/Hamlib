@@ -233,7 +233,7 @@ static int check_vfo(vfo_t vfo)
  */
 static char *xml_build(char *cmd, char *value, char *xmlbuf, int xmlbuflen)
 {
-    char xml[MAXXMLLEN];
+    char xml[4096]; // we shouldn't need more the 4096 bytes for this
 
     // We want at least a 4K buf to play with
     if (xmlbuflen < 4096)
