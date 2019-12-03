@@ -1342,27 +1342,27 @@ static int check_port_capabilities(struct termios_list *index)
     if (!(cp.dwProvCapabilities & PCF_DTRDSR))
     {
         sprintf(message,
-                "%s: no DTR & DSR support\n", index->filename);
+                "%s: no DTR & DSR support\n", __func__);
         report(message);
     }
 
     if (!(cp.dwProvCapabilities & PCF_RLSD))
     {
         sprintf(message, "%s: no carrier detect (RLSD) support\n",
-                index->filename);
+                __func__);
         report(message);
     }
 
     if (!(cp.dwProvCapabilities & PCF_RTSCTS))
     {
         sprintf(message,
-                "%s: no RTS & CTS support\n", index->filename);
+                "%s: no RTS & CTS support\n", __func__);
         report(message);
     }
 
     if (!(cp.dwProvCapabilities & PCF_TOTALTIMEOUTS))
     {
-        sprintf(message, "%s: no timeout support\n", index->filename);
+        sprintf(message, "%s: no timeout support\n", __func__);
         report(message);
     }
 
@@ -1392,7 +1392,7 @@ serial_open()
 int win32_serial_open(const char *filename, int flags, ...)
 {
     struct termios_list *index;
-    char message[80];
+    char message[160];
     char fullfilename[80];
 
     ENTER("serial_open");
