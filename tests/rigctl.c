@@ -510,7 +510,14 @@ int main(int argc, char *argv[])
         exit(0);
     }
 
-    retcode = rig_open(my_rig);
+    int i=0;
+    do { // we'll try 5 times and sleep 200ms between tries
+        retcode = rig_open(my_rig);
+        if (retcode != RIG_OK) {
+            usleep(200000);
+            rig_debug(RIG_DEBUG_TRACE, "%s: error opening rig, try#%d\n", __func__, i+1);
+        }
+    } while (retcode != RIG_OK && ++i < 5);
 
     if (retcode != RIG_OK)
     {
