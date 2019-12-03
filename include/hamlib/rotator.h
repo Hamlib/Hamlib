@@ -308,6 +308,8 @@ struct rot_state {
     elevation_t min_el;     /*!< Lower limit for elevation (overridable). */
     elevation_t max_el;     /*!< Upper limit for elevation (overridable). */
     int south_zero;         /*!< South is zero degrees */
+    azimuth_t az_offset;    /*!< Offset to be applied to azimuth */
+    elevation_t el_offset;  /*!< Offset to be applied to elevation */
 
     /*
      * non overridable fields, internal use

@@ -1681,7 +1681,7 @@ declare_proto_rot(set_position)
 
     CHKSCN1ARG(sscanf(arg1, "%f", &az));
     CHKSCN1ARG(sscanf(arg2, "%f", &el));
-    return rot_set_position(rot, az, el);
+    return rot_set_position(rot, az + rot->state.az_offset, el);
 }
 
 
@@ -1693,6 +1693,8 @@ declare_proto_rot(get_position)
     elevation_t el;
 
     status = rot_get_position(rot, &az, &el);
+
+    az -= rot->state.az_offset;
 
     if (status != RIG_OK)
     {

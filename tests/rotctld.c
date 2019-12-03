@@ -84,7 +84,7 @@ void usage();
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:s:C:t:T:LuvhVlZ"
+#define SHORT_OPTIONS "m:r:s:C:o:O:t:T:LuvhVlZ"
 static struct option long_options[] =
 {
     {"model",           1, 0, 'm'},
@@ -94,6 +94,8 @@ static struct option long_options[] =
     {"listen-addr",     1, 0, 'T'},
     {"list",            0, 0, 'l'},
     {"set-conf",        1, 0, 'C'},
+    {"set-azoffset",    1, 0, 'o'},
+    {"set-eloffset",    1, 0, 'O'},
     {"show-conf",       0, 0, 'L'},
     {"dump-caps",       0, 0, 'u'},
     {"debug-time-stamps", 0, 0, 'Z'},
@@ -105,6 +107,8 @@ static struct option long_options[] =
 
 const char *portno = "4533";
 const char *src_addr = NULL;    /* INADDR_ANY */
+azimuth_t az_offset;
+elevation_t el_offset;
 
 #define MAXCONFLEN 128
 
@@ -259,6 +263,25 @@ int main(int argc, char *argv[])
             src_addr = optarg;
             break;
 
+        case 'o':
+            if (!optarg)
+            {
+                usage();    /* wrong arg count */
+                exit(1);
+            }
+
+            az_offset = atof(optarg);
+            break;
+
+        case 'O':
+            if (!optarg)
+            {
+                usage();    /* wrong arg count */
+                exit(1);
+            }
+
+            el_offset = atof(optarg);
+
         case 'v':
             verbose++;
             break;
@@ -348,6 +371,9 @@ int main(int argc, char *argv[])
         fprintf(stderr, "rot_open: error = %s \n", rigerror(retcode));
         exit(2);
     }
+
+    my_rot->state.az_offset = az_offset;
+    my_rot->state.el_offset = el_offset;
 
     if (verbose > 0)
     {
@@ -689,6 +715,8 @@ void usage()
         "  -t, --port=NUM                set TCP listening port, default %s\n"
         "  -T, --listen-addr=IPADDR      set listening IP address, default ANY\n"
         "  -C, --set-conf=PARM=VAL       set config parameters\n"
+        "  -o, --set-azoffset==VAL       set offset for azimuth\n"
+        "  -O, --set-eloffset==VAL       set offset for elevation\n"
         "  -L, --show-conf               list all config parameters\n"
         "  -l, --list                    list all model numbers and exit\n"
         "  -u, --dump-caps               dump capabilities and exit\n"
