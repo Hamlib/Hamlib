@@ -195,8 +195,6 @@ make install
 mkdir -p ${ZIP_DIR}/bin  ${ZIP_DIR}/lib/gcc ${ZIP_DIR}/include ${ZIP_DIR}/doc ${ZIP_DIR}/lib/msvc # ${ZIP_DIR}/pdf
 cp -a src/libhamlib.def ${ZIP_DIR}/lib/msvc/libhamlib-2.def; todos ${ZIP_DIR}/lib/msvc/libhamlib-2.def
 cp -a ${INST_DIR}/include/hamlib ${ZIP_DIR}/include/.; todos ${ZIP_DIR}/include/hamlib/*.h
-cp -a doc/Hamlib_design.png ${ZIP_DIR}/doc
-cp -a doc/hamlib.html ${ZIP_DIR}/doc
 
 # C++ binding is useless on w64 because of ABI
 rm ${ZIP_DIR}/include/hamlib/{rig,rot}class.h
