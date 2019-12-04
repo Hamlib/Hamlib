@@ -95,7 +95,6 @@ package libusb-1.0 which is what is needed.
 
 Documentation:
 * Doxygen
-* Texinfo (for rebuilding the new info and HTML manual)
 
 
 Git master branch daily snapshot build:
