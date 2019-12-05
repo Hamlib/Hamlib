@@ -616,8 +616,8 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     unsigned char freqbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
     int freq_len, ack_len = sizeof(ackbuf), retval;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called %s=%"PRIll"\n", __func__,
-              rig_strvfo(vfo), (int64_t)freq);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called %s=%"PRIfreq"\n", __func__,
+              rig_strvfo(vfo), freq);
     rs = &rig->state;
     priv = (struct icom_priv_data *)rs->priv;
 
@@ -2809,7 +2809,14 @@ int icom_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
  */
 int icom_get_split_vfos(const RIG *rig, vfo_t *rx_vfo, vfo_t *tx_vfo)
 {
+    struct icom_priv_data *priv;
+    struct rig_state *rs;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    rs = (struct rig_state *)&rig->state;
+    priv = (struct icom_priv_data *)rs->priv;
+
 
     if (VFO_HAS_A_B_ONLY)
     {
@@ -2827,8 +2834,8 @@ int icom_get_split_vfos(const RIG *rig, vfo_t *rx_vfo, vfo_t *tx_vfo)
         // TBD -- newer rigs we need to find active VFO
         // priv->curvfo if VFOA then A/B response else priv->curvfo=Main Main/Sub response
         // For now we return Main/Sub
-        *rx_vfo = RIG_VFO_MAIN;
-        *tx_vfo = RIG_VFO_SUB;
+        *rx_vfo = priv->rx_vfo;
+        *tx_vfo = priv->tx_vfo;
     }
     else
     {
@@ -3296,6 +3303,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
     case RIG_SPLIT_ON:
         split_sc = S_SPLT_ON;
+
         // Need to allow for SATMODE split in here
         if (!priv->split_on) // only need to do this if split is not on already
         {
