@@ -27,6 +27,8 @@
 
 #define G313_MODES (RIG_MODE_NONE)
 
+#ifdef _WIN32
+
 #ifdef HAVE_WINDOWS_H
 #include <windows.h>
 #endif
@@ -713,3 +715,5 @@ int g313_get_conf(RIG *rig, token_t token, char *val)
 
     return RIG_OK;
 }
+
+#endif /* _WIN32 */
