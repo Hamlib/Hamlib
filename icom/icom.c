@@ -3296,11 +3296,11 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
     case RIG_SPLIT_ON:
         split_sc = S_SPLT_ON;
-
+        // Need to allow for SATMODE split in here
         if (!priv->split_on) // only need to do this if split is not on already
         {
             /* ensure VFO A is Rx and VFO B is Tx as we assume that elsewhere */
-            if (VFO_HAS_A_B_ONLY)
+            if (VFO_HAS_A_B)
             {
                 if (RIG_OK != (rc = icom_set_vfo(rig, RIG_VFO_A))) { return rc; }
             }
