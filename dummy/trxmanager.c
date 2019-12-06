@@ -279,7 +279,7 @@ static int trxmanager_init(RIG *rig)
     priv->vfo_curr = RIG_VFO_A;
     priv->split = 0;
 
-    if (!rig || !rig->caps)
+    if (!rig->caps)
     {
         return -RIG_EINVAL;
     }
@@ -504,7 +504,7 @@ static int trxmanager_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     char cmd[MAXCMDLEN];
     char response[MAXCMDLEN] = "";
     char vfoab = vfo == RIG_VFO_A ? 'A' : 'B';
-    snprintf(cmd, sizeof(cmd), "F%c%011ld;", vfoab, (unsigned long)freq);
+    snprintf(cmd, sizeof(cmd), "F%c%011lu;", vfoab, (unsigned long)freq);
     retval = write_block(&rs->rigport, cmd, strlen(cmd));
 
     if (retval < 0)
@@ -996,7 +996,7 @@ static int trxmanager_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
     char cmd[MAXCMDLEN];
     char response[MAXCMDLEN] = "";
-    snprintf(cmd, sizeof(cmd), "XT%011ld;", (unsigned long) tx_freq);
+    snprintf(cmd, sizeof(cmd), "XT%011lu;", (unsigned long) tx_freq);
     retval = write_block(&rs->rigport, cmd, strlen(cmd));
 
     if (retval < 0)
@@ -1165,7 +1165,7 @@ static int trxmanager_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq,
     //
     char cmd[MAXCMDLEN];
     char response[MAXCMDLEN] = "";
-    snprintf(cmd, sizeof(cmd), "XT%011ld;", (unsigned long)freq);
+    snprintf(cmd, sizeof(cmd), "XT%011lu;", (unsigned long)freq);
     retval = write_block(&rs->rigport, cmd, strlen(cmd));
 
     if (retval < 0)
