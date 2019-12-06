@@ -508,7 +508,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
 {
     int retcode;            /* generic return code from functions */
     unsigned char cmd;
-    struct test_table *cmd_entry;
+    struct test_table *cmd_entry = NULL;
     int ext_resp = 0;
     char resp_sep = '\n';
 
@@ -1448,7 +1448,9 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
         }
         else
         {
-            fprintf(fout, "%s: error = %s\n", cmd_entry->name, rigerror(retcode));
+            if (cmd_entry != NULL && cmd_entry->name != NULL) {
+              fprintf(fout, "%s: error = %s\n", cmd_entry->name, rigerror(retcode));
+            }
         }
     }
     else

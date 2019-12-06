@@ -72,7 +72,7 @@ extern int errno;
 #endif
 struct termios_list
 {
-    char filename[80];
+    char filename[512];
     int my_errno;
     int interrupt;
     int event_flag;
@@ -1392,8 +1392,8 @@ serial_open()
 int win32_serial_open(const char *filename, int flags, ...)
 {
     struct termios_list *index;
-    char message[160];
-    char fullfilename[80];
+    char message[756];
+    char fullfilename[256];
 
     ENTER("serial_open");
 
@@ -1407,7 +1407,7 @@ int win32_serial_open(const char *filename, int flags, ...)
     }
     else
     {
-        strncpy(fullfilename, filename, sizeof(fullfilename) - 1);
+        strncpy(fullfilename, filename, sizeof(fullfilename)-1);
     }
 
     if (port_opened(fullfilename))
