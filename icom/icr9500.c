@@ -192,8 +192,8 @@ const struct rig_caps icr9500_caps =
     .get_rptr_offs =  icom_get_rptr_offs,
     .set_ctcss_sql =  icom_set_ctcss_sql,
     .get_ctcss_sql =  icom_get_ctcss_sql,
-    .set_dcs_sql =  icom_set_dcs_code,
-    .get_dcs_sql =  icom_get_dcs_code,
+    .set_dcs_sql =  icom_set_dcs_sql,
+    .get_dcs_sql =  icom_get_dcs_sql,
 
     .set_ts =  icom_set_ts,
     .get_ts =  icom_get_ts,
