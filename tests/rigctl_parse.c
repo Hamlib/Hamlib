@@ -4144,7 +4144,8 @@ declare_proto_rig(send_cmd)
         }
         else
         {
-            fwrite(buf, 1, strlen(buf), fout);
+            // we should be in printable ASCII here
+            fprintf(fout, "%s\n", buf);
         }
     }
     while (retval > 0);
