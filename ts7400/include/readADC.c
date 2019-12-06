@@ -47,6 +47,7 @@ int read_calibration(int buf[NUM_CHANNELS][2])
 
     if (fread(cal, NUM_CHANNELS * 4, 1, f) == 1)
     {
+        fclose(f);
         for (j = 0; j < 2; j++)
             for (i = 0; i < NUM_CHANNELS; i++)
             {
@@ -66,6 +67,8 @@ int read_calibration(int buf[NUM_CHANNELS][2])
     }
 
 empty_calibration:
+
+    fclose(f);
 
     printf("/etc/ADC-calibration.dat not found or it's not readable\n");
 
