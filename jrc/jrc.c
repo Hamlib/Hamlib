@@ -897,7 +897,7 @@ int jrc_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         /*
          * 000..255
          */
-        sscanf(lvlbuf + 2, "%u", &lvl);
+        sscanf(lvlbuf + 2, "%d", &lvl);
         val->f = (float)lvl / 255.0;
         break;
 
@@ -919,7 +919,7 @@ int jrc_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         /*
          * 000..255
          */
-        sscanf(lvlbuf + 2, "%u", &lvl);
+        sscanf(lvlbuf + 2, "%d", &lvl);
         val->f = (float)lvl / 255.0;
         break;
 
@@ -941,7 +941,7 @@ int jrc_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         /*
          * 000..255
          */
-        sscanf(lvlbuf + 2, "%u", &lvl);
+        sscanf(lvlbuf + 2, "%d", &lvl);
         val->f = (float)lvl / 255.0;
         break;
 
@@ -963,7 +963,7 @@ int jrc_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         /*
          * 000..255
          */
-        sscanf(lvlbuf + 2, "%u", &lvl);
+        sscanf(lvlbuf + 2, "%d", &lvl);
         val->f = (float)lvl / 255.0;
         break;
 
@@ -1119,7 +1119,7 @@ int jrc_set_parm(RIG *rig, setting_t parm, value_t val)
     case RIG_PARM_BEEP:
 
         cmd_len = sprintf(cmdbuf, "U%0*d" EOM, priv->beep_len,
-                          priv->beep + val.i ? 1 : 0);
+                          (priv->beep + val.i) ? 1 : 0);
 
         return jrc_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
 
@@ -1353,7 +1353,7 @@ int jrc_set_mem(RIG *rig, vfo_t vfo, int ch)
         return -RIG_EINVAL;
     }
 
-    cmd_len = sprintf(cmdbuf, "C%03u" EOM, ch);
+    cmd_len = sprintf(cmdbuf, "C%03d" EOM, ch);
 
     /* don't care about the Automatic reponse from receiver */
 
@@ -1464,7 +1464,7 @@ int jrc_set_chan(RIG *rig, const channel_t *chan)
 int jrc_get_chan(RIG *rig, channel_t *chan)
 {
     struct jrc_priv_caps *priv = (struct jrc_priv_caps *)rig->caps->priv;
-    char    membuf[BUFSZ], cmdbuf[BUFSZ], freqbuf[BUFSZ];
+    char    membuf[BUFSZ], cmdbuf[BUFSZ];
     int     mem_len, cmd_len, retval;
 
     chan->vfo = RIG_VFO_MEM;
@@ -1520,6 +1520,7 @@ int jrc_get_chan(RIG *rig, channel_t *chan)
         jrc2rig_mode(rig, membuf[6], membuf[5],
                      &chan->mode, &chan->width);
 
+        char freqbuf[BUFSZ];
         strncpy(freqbuf, membuf + 7, priv->max_freq_len);
         freqbuf[priv->max_freq_len] = 0x00;
         chan->freq = strtol(freqbuf, NULL, 10);
