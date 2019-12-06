@@ -213,6 +213,8 @@ int icom_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone);
 int icom_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone);
 int icom_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code);
 int icom_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code);
+int icom_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code);
+int icom_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code);
 int icom_set_bank(RIG *rig, vfo_t vfo, int bank);
 int icom_set_mem(RIG *rig, vfo_t vfo, int ch);
 int icom_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);

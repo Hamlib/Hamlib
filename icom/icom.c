@@ -4278,6 +4278,105 @@ int icom_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
 }
 
 /*
+ * icom_set_dcs_sql
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int icom_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
+{
+    const struct rig_caps *caps;
+    unsigned char codebuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
+    int code_len, ack_len = sizeof(ackbuf), retval;
+    int i;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    caps = rig->caps;
+
+    for (i = 0; caps->dcs_list[i] != 0 && i < COMMON_DCS_LIST_COUNT; i++)
+    {
+        if (caps->dcs_list[i] == code)
+        {
+            break;
+        }
+    }
+
+    if (caps->dcs_list[i] != code)
+    {
+        return -RIG_EINVAL;
+    }
+
+    /* DCS Polarity ignored, by setting code_len to 3 it's forced to 0 (= Tx:norm, Rx:norm). */
+    code_len = 3;
+    to_bcd_be(codebuf, code, code_len * 2);
+
+    retval = icom_transaction(rig, C_SET_TONE, S_TONE_DTCS,
+                              codebuf, code_len, ackbuf, &ack_len);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    if (ack_len != 1 || ackbuf[0] != ACK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, ackbuf[0],
+                  ack_len);
+        return -RIG_ERJCTED;
+    }
+
+    return RIG_OK;
+}
+
+/*
+ * icom_get_dcs_sql
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int icom_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
+{
+    const struct rig_caps *caps;
+    unsigned char codebuf[MAXFRAMELEN];
+    int code_len, retval;
+    int i;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    caps = rig->caps;
+
+    retval = icom_transaction(rig, C_SET_TONE, S_TONE_DTCS, NULL, 0,
+                              codebuf, &code_len);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    /* cn,sc,data*3 */
+    if (code_len != 5)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, codebuf[0],
+                  code_len);
+        return -RIG_ERJCTED;
+    }
+
+    /* buf is cn,sc, polarity, code_lo, code_hi, so code bytes start at 3, len is 2
+       polarity is not decoded yet, hard to do without breaking ABI
+    */
+
+    code_len -= 3;
+    *code = from_bcd_be(codebuf + 3, code_len * 2);
+
+    /* check this code exists. That's better than nothing. */
+    for (i = 0; caps->dcs_list[i] != 0 && i < COMMON_DCS_LIST_COUNT; i++)
+    {
+        if (caps->dcs_list[i] == *code)
+        {
+            return RIG_OK;
+        }
+    }
+
+    rig_debug(RIG_DEBUG_ERR, "%s: DTCS NG (%#.2x)\n", __func__, codebuf[2]);
+    return -RIG_EPROTO;
+}
+
+/*
  * icom_set_powerstat
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
