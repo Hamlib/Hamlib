@@ -1047,8 +1047,6 @@ int adat_parse_vfo(char   *pcStr,
 #endif
 
 
-#ifdef XXREMOVEDXX
-// this function wasn't referenced anywhere
 // ---------------------------------------------------------------------------
 // adat_vfo_rnr2anr
 // ---------------------------------------------------------------------------
@@ -1095,7 +1093,6 @@ int adat_vfo_rnr2anr(vfo_t  nRIGVFONr,
 
     return nRC;
 }
-#endif
 
 
 // ---------------------------------------------------------------------------
@@ -1184,6 +1181,8 @@ int adat_parse_ptt(char *pcStr,
 }
 
 
+#ifdef XXREMOVEDXX
+// this function wasn't referenced anywhere
 // ---------------------------------------------------------------------------
 // adat_ptt_rnr2anr
 // ---------------------------------------------------------------------------
@@ -1223,6 +1222,7 @@ int adat_ptt_rnr2anr(ptt_t  nRIGPTTStatus,
 
     return nRC;
 }
+#endif
 
 
 // ---------------------------------------------------------------------------
