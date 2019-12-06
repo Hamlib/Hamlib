@@ -632,8 +632,6 @@ size_t trimwhitespace(char *out, size_t len, const char *str)
         end--;
     }
 
-    end++;
-
     // Set output size to minimum of trimmed string length and buffer size minus 1
     //out_size = (end - str) < len-1 ? (end - str) : len - 1;
     out_size = strlen(str);
@@ -876,7 +874,7 @@ int adat_parse_mode(char     *pcStr,
         // If input string is NULL ...
 
         *nRIGMode  = RIG_MODE_NONE;
-        pcADATMode = NULL;
+        *pcADATMode = 0;
     }
 
     // Done
@@ -1487,7 +1485,6 @@ int adat_get_single_cmd_result(RIG *pRig)
 
             char  acBuf[ ADAT_RESPSZ + 1 ];
             char  acBuf2[ ADAT_RESPSZ + 1 ];
-            int   nBufLength  = 0;
             char *pcBufEnd    = NULL;
             char *pcPos       = NULL;
             char *pcResult    = NULL;
@@ -1505,7 +1502,7 @@ int adat_get_single_cmd_result(RIG *pRig)
 
             if ((nRC == RIG_OK) && (pcPos != NULL))
             {
-                int   nLength = 0;
+                int   nBufLength  = 0;
 
                 if (*pcPos == '\0') // Adjust for 00 byte at beginning ...
                 {
@@ -1519,7 +1516,7 @@ int adat_get_single_cmd_result(RIG *pRig)
 
                 if (pcPos < pcBufEnd)
                 {
-                    nLength = strlen(pcPos);
+                    int nLength = strlen(pcPos);
 
                     if (nLength > 0)
                     {
@@ -2502,7 +2499,6 @@ int adat_transaction(RIG                *pRig,
                      adat_cmd_list_ptr   pCmdList)
 {
     int nRC   = RIG_OK;
-    int nFini = 0;  // = 1 -> Stop executing commands
 
     gFnLevel++;
 
@@ -2517,6 +2513,7 @@ int adat_transaction(RIG                *pRig,
     else
     {
         int                nI    = 0;
+        int nFini = 0;  // = 1 -> Stop executing commands
         adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
 
         rig_debug(RIG_DEBUG_TRACE,
@@ -2554,10 +2551,10 @@ int adat_transaction(RIG                *pRig,
 // TODO: Quell clang warning of conditional always evaluating to true.
 //                    if( pCmd->pacCmdStrs != NULL )
 //                    {
-                    int  nJ       = 0;
 
                     if (pCmd->nNrCmdStrs > 0)
                     {
+                        int  nJ       = 0;
                         rig_debug(RIG_DEBUG_TRACE,
                                   "*** ADAT: %d pacCmdStrs[%d] = %s\n",
                                   gFnLevel, nJ, pCmd->pacCmdStrs[ nJ ]);
@@ -3123,7 +3120,7 @@ int adat_get_level(RIG *pRig, vfo_t vfo, setting_t level, value_t *val)
 // Status: RELEASED
 int adat_set_mode(RIG *pRig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-    int nRC = RIG_OK;
+    int nRC;
 
     gFnLevel++;
 
@@ -3574,7 +3571,8 @@ int adat_get_conf(RIG *pRig, token_t token, char *val)
         switch (token)
         {
         case TOKEN_ADAT_PRODUCT_NAME:
-            val = pPriv->pcProductName;
+            strcpy(val, pPriv->pcProductName != NULL ? pPriv->pcProductName :
+                   "Unknown product");
             break;
 
         default:
