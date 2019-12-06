@@ -1084,7 +1084,7 @@ static int netrigctl_set_dcs_sql(RIG *rig, vfo_t vfo, unsigned int code)
 
     if (ret != RIG_OK) { return ret; }
 
-    len = sprintf(cmd, "\\set_dcs_sql%s %d\n", vfostr, code);
+    len = sprintf(cmd, "\\set_dcs_sql%s %u\n", vfostr, code);
 
     ret = netrigctl_transaction(rig, cmd, len, buf);
 
