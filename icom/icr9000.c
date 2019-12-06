@@ -183,7 +183,7 @@ const struct rig_caps icr9000_caps =
     .get_func =  icom_get_func,
     .set_level =  icom_set_level,
     .get_level =  icom_get_level,
-#if 0
+#ifdef XXREMOVEDXX
     .set_parm =  icom_set_parm,
     .get_parm =  icom_get_parm,
 #endif
