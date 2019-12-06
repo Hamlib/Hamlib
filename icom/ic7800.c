@@ -330,7 +330,6 @@ const struct rig_caps ic7800_caps =
 int ic7800_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     unsigned char cmdbuf[MAXFRAMELEN];
-    int i;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -340,6 +339,7 @@ int ic7800_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         if (val.i != 0)
         {
             /* Convert dB to index */
+            int i;
             for (i = 0; i < 7; i++)
             {
                 if (val.i == rig->state.attenuator[i])

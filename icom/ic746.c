@@ -905,9 +905,9 @@ int ic746pro_get_channel(RIG *rig, channel_t *chan)
 {
     struct icom_priv_data *priv;
     struct rig_state *rs;
-    unsigned char chanbuf[46], databuf[32];
+    unsigned char chanbuf[46];
     mem_buf_t *membuf;
-    int chan_len, freq_len, retval, data_len, sc, band;
+    int chan_len, freq_len, retval, data_len;
 
     rs = &rig->state;
     priv = (struct icom_priv_data *)rs->priv;
@@ -991,12 +991,14 @@ int ic746pro_get_channel(RIG *rig, channel_t *chan)
 
         /* offset is default for the band & is not stored in channel memory.
           The following retrieves the system default for the band */
-        band = (int) chan->freq / 1000000;  /* hf, 2m or 6 m */
+        int band = (int) chan->freq / 1000000;  /* hf, 2m or 6 m */
 
+        int sc;
         if (band < 50) { sc = S_MEM_HF_DUP_OFST; }
         else if (band < 108) { sc = S_MEM_6M_DUP_OFST; }
         else { sc = S_MEM_2M_DUP_OFST; }
 
+        unsigned char databuf[32];
         retval = icom_transaction(rig, C_CTL_MEM, sc,
                                   NULL, 0, databuf, &data_len);
 
