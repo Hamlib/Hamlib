@@ -306,7 +306,9 @@ int sdr1k_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     double ftw;
     double DDS_step_size;
     freq_t frqval;
-    int spur_red = 1;
+// why is spur_red always true?
+//    int spur_red = 1;
+#define spur_red 1
     int ret;
 
     ret = set_band(rig, freq);
@@ -324,6 +326,7 @@ int sdr1k_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
               DDS_step_size, (double)freq / DDS_step_size,
               rint((double)freq / DDS_step_size));
 
+    // why is spur_red always true?
     if (spur_red)
     {
         frqval = (freq_t)(DDS_step_size * rint((double)freq / DDS_step_size));
