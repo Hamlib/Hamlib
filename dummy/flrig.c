@@ -262,8 +262,8 @@ static char *xml_build(char *cmd, char *value, char *xmlbuf, int xmlbuflen)
     }
 
     strncat(xml, "<methodCall><methodName>", sizeof(xml) - 1);
-    strncat(xml, cmd, sizeof(xml) - 1);
-    strncat(xml, "</methodName>\r\n", sizeof(xml) - 1);
+    strncat(xml, cmd, sizeof(xml) - strlen(xml) - 1);
+    strncat(xml, "</methodName>\r\n", sizeof(xml) - strlen(xml) - 1);
 
     if (value && strlen(value) > 0)
     {
@@ -877,8 +877,6 @@ static int flrig_cleanup(RIG *rig)
  */
 static int flrig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    int retval;
-
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
               rig_strvfo(vfo));
 
@@ -915,7 +913,7 @@ static int flrig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
             pxml = xml_build("rig.get_vfoB", NULL, xml, sizeof(xml));
         }
 
-        retval = write_transaction(rig, pxml, strlen(pxml));
+        int retval = write_transaction(rig, pxml, strlen(pxml));
 
         if (retval < 0)
         {
@@ -1549,11 +1547,9 @@ static int flrig_set_vfo(RIG *rig, vfo_t vfo)
     /* so if we are in split and asked for A we have to turn split back on */
     if (priv->split && vfo == RIG_VFO_A)
     {
-        char xml[MAXXMLLEN];
-        char value[MAXCMDLEN];
         sprintf(value, "<params><param><value><i4>%d</i4></value></param></params>",
                 priv->split);
-        char *pxml = xml_build("rig.set_split", value, xml, sizeof(xml));
+        pxml = xml_build("rig.set_split", value, xml, sizeof(xml));
         retval = write_transaction(rig, pxml, strlen(pxml));
 
         if (retval < 0)
