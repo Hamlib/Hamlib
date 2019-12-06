@@ -984,6 +984,8 @@ int adat_mode_anr2rnr(int      nADATMode,
 }
 
 
+#ifdef XXREMOVEDXX
+// this function wasn't referenced anywhere
 // ---------------------------------------------------------------------------
 // adat_parse_vfo
 // ---------------------------------------------------------------------------
@@ -1042,8 +1044,11 @@ int adat_parse_vfo(char   *pcStr,
 
     return nRC;
 }
+#endif
 
 
+#ifdef XXREMOVEDXX
+// this function wasn't referenced anywhere
 // ---------------------------------------------------------------------------
 // adat_vfo_rnr2anr
 // ---------------------------------------------------------------------------
@@ -1090,6 +1095,7 @@ int adat_vfo_rnr2anr(vfo_t  nRIGVFONr,
 
     return nRC;
 }
+#endif
 
 
 // ---------------------------------------------------------------------------
