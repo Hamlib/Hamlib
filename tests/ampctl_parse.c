@@ -205,7 +205,7 @@ struct test_table *find_cmd_entry(int cmd)
 {
     int i;
 
-    for (i = 0; i < MAXNBOPT && test_list[i].cmd != 0x00; i++)
+    for (i = 0; test_list[i].cmd != 0; i++)
         if (test_list[i].cmd == cmd)
         {
             break;
@@ -330,7 +330,7 @@ char parse_arg(const char *arg)
 {
     int i;
 
-    for (i = 0; i < MAXNBOPT && test_list[i].cmd != 0; i++)
+    for (i = 0; test_list[i].cmd != 0; i++)
     {
         if (!strncmp(arg, test_list[i].name, MAXNAMSIZ))
         {
