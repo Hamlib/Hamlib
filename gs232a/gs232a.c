@@ -110,7 +110,7 @@ transaction_write:
         }
     }
 
-#if 0
+#ifdef XXREMOVEDXX
 
     /* Check that command termination is correct */
     if (strchr(REPLY_EOM, data[strlen(data) - 1]) == NULL)
