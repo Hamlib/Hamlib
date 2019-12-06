@@ -3141,7 +3141,7 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
     int ack_len = sizeof(ackbuf);
     vfo_t rx_vfo, tx_vfo;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__, rig_strvfo(vfo));
 
     /* This method works also in memory mode(RIG_VFO_MEM) */
     if (!priv->no_xchg && rig_has_vfo_op(rig, RIG_OP_XCHG))
@@ -3162,7 +3162,7 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
          current VFO is VFO A and the split Tx VFO is always VFO B. These
          assumptions allow us to deal with the lack of VFO and split
          queries */
-    if (VFO_HAS_A_B_ONLY
+    if (VFO_HAS_A_B
             && priv->split_on) /* broken if user changes split on rig :( */
     {
         /* VFO A/B style rigs swap VFO on split Tx so we need to disable
@@ -3178,7 +3178,10 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
         }
     }
 
+    rig_debug(RIG_DEBUG_VERBOSE,"%s: before get_split_vfos rx_vfo=%s tx_vfo=%s\n", __func__, rig_strvfo(priv->rx_vfo), rig_strvfo(priv->tx_vfo));
     if (RIG_OK != (rc = icom_get_split_vfos(rig, &rx_vfo, &tx_vfo))) { return rc; }
+    rig_debug(RIG_DEBUG_VERBOSE,"%s: after get_split_vfos  rx_vfo=%s tx_vfo=%s\n", __func__, rig_strvfo(priv->rx_vfo), rig_strvfo(priv->tx_vfo));
+
 
     if (RIG_OK != (rc = icom_set_vfo(rig, tx_vfo))) { return rc; }
 
@@ -3189,7 +3192,7 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
 
     if (RIG_OK != (rc = icom_set_vfo(rig, rx_vfo))) { return rc; }
 
-    if (VFO_HAS_A_B_ONLY && priv->split_on)
+    if (VFO_HAS_A_B && priv->split_on)
     {
         /* Re-enable split */
         if (RIG_OK != (rc = icom_transaction(rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0,
@@ -3305,13 +3308,10 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         split_sc = S_SPLT_ON;
 
         // Need to allow for SATMODE split in here
-        if (!priv->split_on) // only need to do this if split is not on already
+        /* ensure VFO A is Rx and VFO B is Tx as we assume that elsewhere */
+        if (VFO_HAS_A_B)
         {
-            /* ensure VFO A is Rx and VFO B is Tx as we assume that elsewhere */
-            if (VFO_HAS_A_B)
-            {
-                if (RIG_OK != (rc = icom_set_vfo(rig, RIG_VFO_A))) { return rc; }
-            }
+            if (RIG_OK != (rc = icom_set_vfo(rig, RIG_VFO_A))) { return rc; }
         }
 
         break;
@@ -3334,6 +3334,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     priv->rx_vfo = vfo;
     priv->tx_vfo = tx_vfo;
     priv->split_on = RIG_SPLIT_ON == split;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s rx_vfo=%s tx_vfo=%s split=%d\n", __func__, rig_strvfo(vfo), rig_strvfo(priv->rx_vfo), rig_strvfo(priv->tx_vfo), split);
     return RIG_OK;
 }
 
@@ -3348,6 +3349,7 @@ int icom_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
     unsigned char splitbuf[MAXFRAMELEN];
     int split_len, retval;
+    struct icom_priv_data *priv = (struct icom_priv_data *)rig->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     retval = icom_transaction(rig, C_CTL_SPLT, -1, NULL, 0,
@@ -3384,7 +3386,9 @@ int icom_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported split %d", __func__, splitbuf[1]);
         return -RIG_EPROTO;
     }
-
+    *tx_vfo = priv->tx_vfo;
+    priv->split_on = RIG_SPLIT_ON == *split;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s rx_vfo=%s tx_vfo=%s split=%d\n", __func__, rig_strvfo(vfo), rig_strvfo(priv->rx_vfo), rig_strvfo(priv->tx_vfo), *split);
     return RIG_OK;
 }
 
