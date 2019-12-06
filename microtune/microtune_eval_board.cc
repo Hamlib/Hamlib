@@ -57,7 +57,6 @@ microtune_eval_board::~microtune_eval_board ()
 {
   delete m_i2c;
   delete m_i2cio;
-  delete m_i2c;
 }
 
 
