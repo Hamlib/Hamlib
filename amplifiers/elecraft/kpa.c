@@ -119,7 +119,7 @@ int kpa_transaction(AMP *amp, const char *cmd, char *response, int response_len)
 
         if (err != RIG_OK) { return err; }
 
-        int len = read_string(&rs->ampport, responsebuf, KPABUFSZ, ";", 1);
+        len = read_string(&rs->ampport, responsebuf, KPABUFSZ, ";", 1);
 
         if (len < 0) { return len; }
     }
@@ -197,7 +197,7 @@ int kpa_get_freq(AMP *amp, freq_t *freq)
     if (retval != RIG_OK) { return retval; }
 
     unsigned long tfreq;
-    int nargs = sscanf(responsebuf, "^FR%ld", &tfreq);
+    int nargs = sscanf(responsebuf, "^FR%lu", &tfreq);
 
     if (nargs != 1)
     {
@@ -225,7 +225,7 @@ int kpa_set_freq(AMP *amp, freq_t freq)
     if (retval != RIG_OK) { return retval; }
 
     unsigned long tfreq;
-    int nargs = sscanf(responsebuf, "^FR%ld", &tfreq);
+    int nargs = sscanf(responsebuf, "^FR%lu", &tfreq);
 
     if (nargs != 1)
     {
