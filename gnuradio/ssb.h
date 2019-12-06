@@ -60,7 +60,7 @@ class LSBDemodChainCF : public DemodChainCF {
 	LSBDemodChainCF (VrSource<d_iType> *src, VrSink<d_oType> *snk, rmode_t mode, pbwidth_t width, int input_rate, freq_t centerfreq = 0) :
 		DemodChainCF(src, snk, mode, width, input_rate, centerfreq) {
 
-		float low_cutoff = 300;
+		low_cutoff = 300;
 		// centerfreq, relative to IF_center_freq
 		centerfreq += (freq_t)(-low_cutoff - width/2);
 
