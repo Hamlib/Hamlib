@@ -736,7 +736,7 @@ static int ar7030_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             //val->i = round((smval1 * 6 + smval2) * 10 / 12) - 118;
             val->i = ((smval1 * 6 + smval2) * 10 / 12) - 118;
         }
-        else  if (smval1 >= 11)
+        else
         {
             /* int ops => int result => round has no effect (besides compiler warning */
             //val->i = round((smval1 * 6 + smval2) * 10 / 6) - 173;
