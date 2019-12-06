@@ -166,6 +166,9 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
             Unhold_Decode(rig);
             return retval;
         }
+        if (retval < 1) {
+            return -RIG_EPROTO;
+        }
 
         switch (buf[retval - 1])
         {
@@ -226,6 +229,9 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
         /* RIG_TIMEOUT: timeout getting response, return timeout */
         /* other error: return it */
         return frm_len;
+    }
+    if (frm_len < 1) {
+        return -RIG_EPROTO;
     }
 
     switch (buf[frm_len - 1])
