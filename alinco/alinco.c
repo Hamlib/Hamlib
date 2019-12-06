@@ -138,7 +138,8 @@ int alinco_transaction(RIG *rig,
             return retval;
         }
 
-        retval -= 2;
+        if (retval > 2) { retval -= 2; }
+
         echobuf[retval] = 0;
 
         if (strcmp(echobuf, "OK") == 0)
@@ -695,7 +696,7 @@ int alinco_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
         funcbuf[2] = '\0';
         settings = strtol(funcbuf, (char **)NULL, 16);
-        *status = settings & 0x08 ? 1 : 0;
+        *status = (settings & 0x08) ? 1 : 0;
         break;
 
     case RIG_FUNC_FAGC:
@@ -708,7 +709,7 @@ int alinco_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
         funcbuf[2] = '\0';
         settings = strtol(funcbuf, (char **)NULL, 16);
-        *status = settings & 0x01 ? 1 : 0;
+        *status = (settings & 0x01) ? 1 : 0;
         break;
 
     case RIG_FUNC_NB:
@@ -721,7 +722,7 @@ int alinco_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
         funcbuf[2] = '\0';
         settings = strtol(funcbuf, (char **)NULL, 16);
-        *status = settings & 0x04 ? 1 : 0;
+        *status = (settings & 0x04) ? 1 : 0;
         break;
 
     default:
@@ -1054,8 +1055,7 @@ int alinco_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 
     caps = rig->caps;
 
-    /* TODO: replace 200 by something like RIGTONEMAX */
-    for (i = 0; caps->ctcss_list[i] != 0 && i < 200; i++)
+    for (i = 0; caps->ctcss_list[i] != 0; i++)
     {
         if (caps->ctcss_list[i] == tone)
         {
