@@ -272,11 +272,11 @@ ars_move(ROT *rot, int direction, int speed)
     int need_settle_delay = 0;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called%s%s%s%s%s\n", __func__,
-              direction & ROT_MOVE_LEFT  ? " LEFT" : "",
-              direction & ROT_MOVE_RIGHT ? " RIGHT" : "",
-              direction & ROT_MOVE_UP    ? " UP" : "",
-              direction & ROT_MOVE_DOWN  ? " DOWN" : "",
-              direction == 0             ? " STOP" : "");
+              (direction & ROT_MOVE_LEFT)  ? " LEFT" : "",
+              (direction & ROT_MOVE_RIGHT) ? " RIGHT" : "",
+              (direction & ROT_MOVE_UP)    ? " UP" : "",
+              (direction & ROT_MOVE_DOWN)  ? " DOWN" : "",
+              (direction == 0)             ? " STOP" : "");
 
     par_lock(pport);
 
@@ -714,7 +714,7 @@ const struct rot_caps rci_azel_rot_caps =
     .rot_model =      ROT_MODEL_RCI_AZEL,
     .model_name =     "ARS RCI AZ&EL",
     .mfg_name =       "EA4TX",
-    .version =        "0.1",
+    .version =        "0.2",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_BETA,
     .rot_type =       ROT_TYPE_AZEL,  /* AZ&EL units */
