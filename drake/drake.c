@@ -139,7 +139,7 @@ int drake_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
      * 10Hz resolution
      * TODO: round nearest?
      */
-    freq_len = sprintf((char *) freqbuf, "F%07d" EOM, (unsigned int)freq / 10);
+    freq_len = sprintf((char *) freqbuf, "F%07u" EOM, (unsigned int)freq / 10);
     retval = drake_transaction(rig, (char *) freqbuf, freq_len, (char *) ackbuf,
                                &ack_len);
 
@@ -242,7 +242,6 @@ int drake_get_vfo(RIG *rig, vfo_t *vfo)
 {
     int mdbuf_len, retval;
     char mdbuf[BUFSZ];
-    char cvfo;
 
     retval = drake_transaction(rig, "RA" EOM, 3, mdbuf, &mdbuf_len);
 
@@ -264,7 +263,7 @@ int drake_get_vfo(RIG *rig, vfo_t *vfo)
     }
     else
     {
-        cvfo = (mdbuf[9] & 0x38);
+        char cvfo = (mdbuf[9] & 0x38);
 
         switch (cvfo)
         {
@@ -289,7 +288,7 @@ int drake_get_vfo(RIG *rig, vfo_t *vfo)
 int drake_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     unsigned char mdbuf[16], ackbuf[16];
-    unsigned char mode_sel, width_sel;
+    unsigned char mode_sel;
     int mdbuf_len, ack_len, retval;
 
     switch (mode)
@@ -328,6 +327,7 @@ int drake_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
         if (mode != RIG_MODE_FM)
         {
+            unsigned int width_sel;
 
             if (width == RIG_PASSBAND_NORMAL)
             {
