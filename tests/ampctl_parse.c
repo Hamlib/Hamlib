@@ -263,7 +263,7 @@ void hash_add_model(int id,
 /* Hash sorting functions */
 int hash_model_id_sort(struct mod_lst *a, struct mod_lst *b)
 {
-    return (a->id - b->id);
+    return (a->id > b->id);
 }
 
 
