@@ -308,7 +308,7 @@ static char *xml_parse2(char *xml, char *value, int valueLen)
             }
             else if (streq(p, "array"))
             {
-                p = strtok_r(NULL, delims, &pr);
+                strtok_r(NULL, delims, &pr);
                 p = strtok_r(NULL, delims, &pr);
             }
 
@@ -516,7 +516,7 @@ static int flrig_init(RIG *rig)
     priv->curr_widthA = -1;
     priv->curr_widthB = -1;
 
-    if (!rig || !rig->caps)
+    if (!rig->caps)
     {
         return -RIG_EINVAL;
     }
@@ -675,6 +675,9 @@ static int flrig_open(RIG *rig)
     /* see if get_bwA is available */
     pxml = xml_build("rig.get_bwA", NULL, xml, sizeof(xml));
     retval = write_transaction(rig, pxml, strlen(pxml));
+
+    if (retval != RIG_OK) { return retval; }
+
     read_transaction(rig, xml, sizeof(xml));
     xml_parse(xml, value, sizeof(value));
 
@@ -691,6 +694,9 @@ static int flrig_open(RIG *rig)
 
     pxml = xml_build("rig.get_AB", value, xml, sizeof(xml));
     retval = write_transaction(rig, pxml, strlen(pxml));
+
+    if (retval != RIG_OK) { return retval; }
+
     read_transaction(rig, xml, sizeof(xml));
     xml_parse(xml, value, sizeof(value));
 
