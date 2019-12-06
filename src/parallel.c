@@ -292,7 +292,7 @@ int HAMLIB_API par_read_data(hamlib_port_t *port, unsigned char *data)
     status = ioctl(port->fd, PPIGDATA, &data);
     return status == 0 ? RIG_OK : -RIG_EIO;
 #elif defined(__WIN64__) || defined(__WIN32__)
-    unsigned char ret;
+    unsigned char ret = 0;
     unsigned int dummy;
 
     intptr_t handle;
@@ -433,7 +433,7 @@ int HAMLIB_API par_read_control(hamlib_port_t *port, unsigned char *control)
     *control = ctrl ^ CP_ACTIVE_LOW_BITS;
     return status == 0 ? RIG_OK : -RIG_EIO;
 #elif defined(__WIN64__) || defined(__WIN32__)
-    unsigned char ret;
+    unsigned char ret = 0;
     unsigned int dummy;
 
     intptr_t handle;
@@ -495,7 +495,7 @@ int HAMLIB_API par_read_status(hamlib_port_t *port, unsigned char *status)
     return ret == 0 ? RIG_OK : -RIG_EIO;
 
 #elif defined(__WIN64__) || defined(__WIN32__)
-    unsigned char ret;
+    unsigned char ret = 0;
     unsigned int dummy;
 
     intptr_t handle;
