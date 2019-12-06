@@ -3331,6 +3331,8 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         return -RIG_ERJCTED;
     }
 
+    priv->rx_vfo = vfo;
+    priv->tx_vfo = tx_vfo;
     priv->split_on = RIG_SPLIT_ON == split;
     return RIG_OK;
 }
