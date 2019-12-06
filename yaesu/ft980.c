@@ -251,7 +251,7 @@ const struct rig_caps ft980_caps =
     .set_mem  =           ft980_set_mem,
     .get_mem  =           ft980_get_mem,
 
-#if 0
+#ifdef XXREMOVEDXX
     .get_level =          ft980_get_level,
     .set_level =          ft980_set_level,
 
