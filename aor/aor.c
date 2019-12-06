@@ -461,11 +461,13 @@ int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         mdbuf2_len = strlen(mdbuf2);
 
         retval = aor_transaction(rig, mdbuf2, mdbuf2_len, NULL, NULL);
+        if (retval != RIG_OK) { return retval; }
 
         strncpy(mdbuf2, mdbuf + 4, 3); /* Extract first 'BW' part */
         mdbuf2_len = strlen(mdbuf2);
 
         retval = aor_transaction(rig, mdbuf2, mdbuf2_len, NULL, NULL);
+        if (retval != RIG_OK) { return retval; }
         break;
 
     default:
@@ -536,7 +538,7 @@ int aor_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     struct aor_priv_caps *priv = (struct aor_priv_caps *)rig->caps->priv;
     char ackbuf[BUFSZ], *mdp;
-    char ackbuf2[BUFSZ], *mdp2;
+    char *mdp2;
     int ack_len, ack2_len, retval;
 
 
@@ -563,6 +565,7 @@ int aor_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     if (rig->caps->rig_model == RIG_MODEL_AR5000 ||
             rig->caps->rig_model == RIG_MODEL_AR5000A)
     {
+        char ackbuf2[BUFSZ];
         retval = aor_transaction(rig, "BW" EOM, 3, ackbuf2, &ack2_len);
 
         if (retval != RIG_OK)
@@ -610,7 +613,6 @@ int aor_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     struct rig_state *rs;
     char lvlbuf[BUFSZ];
     int lvl_len;
-    unsigned i;
     int agc;
 
     rs = &rig->state;
@@ -622,6 +624,7 @@ int aor_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     {
         unsigned att = 0;
 
+        unsigned i;
         for (i = 0; i < MAXDBLSTSIZ && !RIG_IS_DBLST_END(rs->attenuator[i]); i++)
         {
             if (rs->attenuator[i] == val.i)
@@ -1048,7 +1051,6 @@ static int parse_chan_line(RIG *rig, channel_t *chan, char *basep,
                            const channel_cap_t *mem_caps)
 {
     struct aor_priv_caps *priv = (struct aor_priv_caps *)rig->caps->priv;
-    int retval;
     char *tagp;
     int ts;
 
@@ -1159,7 +1161,7 @@ static int parse_chan_line(RIG *rig, channel_t *chan, char *basep,
             tag2p = tagp;
         }
 
-        retval = priv->parse_aor_mode(rig, tagp[2], tag2p[2], &chan->mode,
+        int retval = priv->parse_aor_mode(rig, tagp[2], tag2p[2], &chan->mode,
                                       &chan->width);
 
         if (retval != RIG_OK)
@@ -1236,11 +1238,10 @@ int aor_get_channel(RIG *rig, channel_t *chan)
     char aorcmd[BUFSZ];
     int cmd_len, chan_len;
     char chanbuf[BUFSZ];
-    int retval, i;
+    int retval;
     channel_cap_t *mem_caps = NULL;
     chan_t *chan_list;
-    int mem_num, channel_num = chan->channel_num;
-    char bank_base;
+    int channel_num = chan->channel_num;
 
     chan_list = rig->caps->chan_list;
 
@@ -1257,6 +1258,7 @@ int aor_get_channel(RIG *rig, channel_t *chan)
         /*
          * find mem_caps in caps, we'll need it later
          */
+        int i;
         for (i = 0; i < CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++)
         {
             if (channel_num >= chan_list[i].startc &&
@@ -1278,8 +1280,8 @@ int aor_get_channel(RIG *rig, channel_t *chan)
          *  MW should be called the first time instead,
          *  and sizing memorized.
          */
-        mem_num = channel_num % 100;
-
+        int mem_num = channel_num % 100;
+        char bank_base;
         if (mem_num >= 50 && priv->bank_base1 != priv->bank_base2)
         {
             bank_base = priv->bank_base2;
@@ -1427,7 +1429,7 @@ const char *aor_get_info(RIG *rig)
     static char infobuf[BUFSZ];
     int id_len, frm_len, retval;
     char idbuf[BUFSZ];
-    char frmbuf[8];
+    char frmbuf[32]; // only expect 6 chars...please check
 
     retval = aor_transaction(rig, "\001" EOM, 2, idbuf, &id_len);
 
@@ -1436,7 +1438,7 @@ const char *aor_get_info(RIG *rig)
         return NULL;
     }
 
-    idbuf[2] = '\0';
+    if (retval > 2) idbuf[2] = '\0';
 
     retval = aor_transaction(rig, "VR" EOM, 3, frmbuf, &frm_len);
 
