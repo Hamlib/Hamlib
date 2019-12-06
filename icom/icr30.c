@@ -227,6 +227,6 @@ const struct rig_caps icr30_caps =
     .get_dcd =  icom_get_dcd,
     .set_ctcss_sql =  icom_set_ctcss_sql,
     .get_ctcss_sql =  icom_get_ctcss_sql,
-    .set_dcs_code =  icom_set_dcs_code,
-    .get_dcs_code =  icom_get_dcs_code,
+    .set_dcs_sql =  icom_set_dcs_sql,
+    .get_dcs_sql =  icom_get_dcs_sql,
 };
