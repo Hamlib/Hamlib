@@ -230,8 +230,8 @@ const struct rig_caps icr8600_caps =
     .get_ts = icom_get_ts,
     .set_ctcss_sql = icom_set_ctcss_sql,
     .get_ctcss_sql = icom_get_ctcss_sql,
-    .set_dcs_code = icom_set_dcs_code,
-    .get_dcs_code = icom_get_dcs_code,
+    .set_dcs_sql = icom_set_dcs_sql,
+    .get_dcs_sql = icom_get_dcs_sql,
 
 };
 

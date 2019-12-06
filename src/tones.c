@@ -82,7 +82,7 @@ const tone_t full_dcs_list[] = { FULL_DCS_LIST };
  * \param tone  The tone to set to
  *
  *  Sets the current Continuous Tone Controlled Squelch System (CTCSS)
- *  sub-audible tone frequency.
+ *  sub-audible tone frequency for the transmitter only.
  *  \note  the \a tone integer is NOT in Hz, but in tenth of Hz! This way,
  *  if you want to set a subaudible tone of 88.5 Hz for example,
  *  then pass 885 to this function.
@@ -152,7 +152,7 @@ int HAMLIB_API rig_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
  * \param tone  The location where to store the current tone
  *
  *  Retrieves the current Continuous Tone Controlled Squelch System (CTCSS)
- *  sub-audible tone frequency.
+ *  sub-audible tone frequency for the transmitter only.
  *  \note the \a *tone integer is NOT in Hz, but in tenth of Hz! This way,
  *  if the function rig_get_ctcss_tone() returns a subaudible tone of 885
  *  for example, then the real tone is 88.5 Hz.
