@@ -2659,7 +2659,7 @@ int elad_set_ctcss_tone_tn(RIG *rig, vfo_t vfo, tone_t tone)
     }
 
     const struct rig_caps *caps = rig->caps;
-    char buf[6];
+    char buf[16];
     int i;
 
     /* XXX 40 is a fixed constant */
@@ -2812,7 +2812,7 @@ int elad_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
     }
 
     const struct rig_caps *caps = rig->caps;
-    char buf[6];
+    char buf[16];
     int i;
 
     for (i = 0; caps->ctcss_list[i] != 0; i++)
