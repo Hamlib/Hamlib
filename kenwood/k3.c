@@ -912,7 +912,6 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     int err;
     char cmd_m[4];
-    char cmd_s[64];
 
     switch (mode)
     {
@@ -980,6 +979,7 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             width = pb_wid;
         }
 
+        char cmd_s[64];
         snprintf(cmd_s, sizeof(cmd_s), "BW%04ld", width / 10);
         err = kenwood_transaction(rig, cmd_s, NULL, 0);
 
@@ -1240,7 +1240,6 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
 
     int err;
     char cmd_m[4];
-    char cmd_s[32];
 
     switch (tx_mode)
     {
@@ -1339,6 +1338,7 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
             tx_width = pb_wid;
         }
 
+        char cmd_s[32];
         snprintf(cmd_s, sizeof(cmd_s), "BW$%04ld", tx_width / 10);
         err = kenwood_transaction(rig, cmd_s, NULL, 0);
 
@@ -1468,7 +1468,7 @@ int k3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     }
 
     char levelbuf[16];
-    int i, kenwood_val;
+    int kenwood_val;
 
     if (RIG_LEVEL_IS_FLOAT(level))
     {
@@ -1517,6 +1517,8 @@ int k3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
         else
         {
+            int i;
+
             for (i = 0; i < MAXDBLSTSIZ && rig->state.attenuator[i]; i++)
             {
                 if (val.i == rig->state.attenuator[i])
@@ -1577,20 +1579,21 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     }
 
     char lvlbuf[50];
-    int retval, i;
+    int retval;
     int lvl;
     struct kenwood_priv_data *priv = rig->state.priv;
 
     switch (level)
     {
+       float firmwareVersion;
     case RIG_LEVEL_STRENGTH:
         /* As of FW rev 4.37 the K3 supports an 'SMH' command that
          * offers a higher resolution, 0-100 (mine went to 106),
          * rawstr value for more precise S-meter reporting.
          */
-        retval = strncmp(priv->fw_rev, "4.37", 4);
+        firmwareVersion = atof(priv->fw_rev);
 
-        if (retval < 0)
+        if (firmwareVersion < 4.37)
         {
             cal_table_t str_cal = K3_SM_CAL;
 
@@ -1605,7 +1608,7 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
             val->i = (int) rig_raw2val(val->i, &str_cal);
         }
-        else if (retval >= 0)
+        else
         {
             cal_table_t str_cal = K3_SMH_CAL;
 
@@ -1619,12 +1622,6 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             sscanf(lvlbuf + 3, "%d", &val->i);  /* rawstr */
 
             val->i = (int) rig_raw2val(val->i, &str_cal);
-        }
-        else
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: Firmware version comparison failed!\n",
-                      __func__);
-            return -RIG_EINVAL;
         }
 
         break;
@@ -1732,6 +1729,8 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
         else
         {
+            int i;
+
             for (i = 0; i < lvl && i < MAXDBLSTSIZ; i++)
             {
                 if (rig->state.attenuator[i] == 0)
@@ -1823,8 +1822,6 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 int kx3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-    int retval;
-
     switch (level)
     {
     case RIG_LEVEL_RFPOWER_METER:
@@ -1833,7 +1830,7 @@ int kx3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         float pwr;
 
         // Return zero RF power when not in TX mode
-        retval = get_kenwood_func(rig, "TQ", &tx_status);
+        int retval = get_kenwood_func(rig, "TQ", &tx_status);
 
         if (retval != RIG_OK)
         {
@@ -1945,8 +1942,6 @@ int set_rit_xit(RIG *rig, shortfreq_t rit)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     int err;
-    char offs;
-    char cmd[16];
 
     if (!rig)
     {
@@ -1969,6 +1964,8 @@ int set_rit_xit(RIG *rig, shortfreq_t rit)
     /* Set offset */
     if (rit <= 9999 && rit >= -9999)
     {
+        char cmd[16];
+        char offs;
         offs = (rit < 0) ? '-' : '+';
         snprintf(cmd, 8, "RO%c%04d", offs, abs((int)rit));
 
@@ -1998,7 +1995,6 @@ int k3_set_nb_level(RIG *rig, float dsp_nb, float if_nb)
     }
 
     char lvlbuf[16];
-    int retval;
 
     int dsp_nb_raw = 0;
     int if_nb_raw = 0;
@@ -2018,7 +2014,7 @@ int k3_set_nb_level(RIG *rig, float dsp_nb, float if_nb)
         int current_dsp_nb_raw;
         int current_if_nb_raw;
 
-        retval = kenwood_safe_transaction(rig, "NL", lvlbuf, sizeof(lvlbuf), 6);
+        int retval = kenwood_safe_transaction(rig, "NL", lvlbuf, sizeof(lvlbuf), 6);
 
         if (retval != RIG_OK)
         {
