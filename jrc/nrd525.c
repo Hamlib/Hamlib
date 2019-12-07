@@ -239,7 +239,7 @@ static int nrd525_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
     char membuf[12];
 
-    sprintf(membuf, "C%03u", ch);
+    sprintf(membuf, "C%03d", ch);
 
     return write_block(&rig->state.rigport, membuf, strlen(membuf));
 }
