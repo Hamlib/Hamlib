@@ -96,11 +96,6 @@ int elecraft_open(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, rig version=%s\n", __func__,
               rig->caps->version);
 
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     int err;
     char id[KENWOOD_MAX_BUF_LEN];
 
@@ -378,7 +373,7 @@ int elecraft_get_firmware_revision_level(RIG *rig, const char *cmd,
     bufptr += strlen(cmd);
 
     /* Skip leading zero(s) as the revision number has the format of: "04.67" */
-    while (bufptr && *bufptr == '0') { bufptr++; }
+    while (*bufptr == '0') { bufptr++; }
 
     /* Copy out */
     strncpy(fw_rev, bufptr, fw_rev_sz - 1);
