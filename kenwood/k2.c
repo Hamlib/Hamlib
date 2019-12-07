@@ -301,7 +301,6 @@ int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     int err;
     char f;
-    char fcmd[16];
     struct k2_filt_lst_s *flt;
     struct kenwood_priv_data *priv = rig->state.priv;
     shortfreq_t freq = 0;
@@ -400,6 +399,7 @@ int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         }
 
         /* Construct the filter command and set the radio mode and width*/
+        char fcmd[16];
         snprintf(fcmd, 8, "FW0000%c", f);
 
         /* Set the filter slot */
@@ -735,7 +735,6 @@ int k2_pop_fw_lst(RIG *rig, const char *cmd)
     int err, f;
     char fcmd[16];
     char buf[KENWOOD_MAX_BUF_LEN];
-    char *bufptr;
     char tmp[16];
     struct k2_filt_lst_s *flt;
 
@@ -788,7 +787,7 @@ int k2_pop_fw_lst(RIG *rig, const char *cmd)
          * f = crystal filter slot number--1-4
          * a = audio filter slot number--0-2
          */
-        bufptr = buf;
+        char *bufptr = buf;
 
         strncpy(tmp, bufptr + 2, 4);
         tmp[4] = '\0';
