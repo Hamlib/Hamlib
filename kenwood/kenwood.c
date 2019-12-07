@@ -566,12 +566,12 @@ rmode_t kenwood2rmode(unsigned char mode, const rmode_t mode_table[])
 
 char rmode2kenwood(rmode_t mode, const rmode_t mode_table[])
 {
-    int i;
-
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (mode != RIG_MODE_NONE)
     {
+        int i;
+
         for (i = 0; i < KENWOOD_MODE_TABLE_MAX; i++)
         {
             if (mode_table[i] == mode)
@@ -1827,9 +1827,9 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         }
 
         snprintf(buf, sizeof(buf), "OM0%c", c);  /* target vfo is ignored */
-        int err = kenwood_transaction(rig, buf, NULL, 0);
+        err = kenwood_transaction(rig, buf, NULL, 0);
 
-        if (vfo != RIG_VFO_CURR && vfo != curr_vfo)
+        if (err == RIG_OK && vfo != RIG_VFO_CURR && vfo != curr_vfo)
         {
             int err2 = kenwood_set_vfo_main_sub(rig, curr_vfo);
 
@@ -2097,7 +2097,7 @@ int kenwood_get_mode_if(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
             || rig->caps->rig_model == RIG_MODEL_TS950SDX)
     {
 
-        err = kenwood_get_filter(rig, width);
+        kenwood_get_filter(rig, width);
         /* non fatal */
     }
 
@@ -2822,8 +2822,7 @@ int kenwood_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 
     caps = rig->caps;
 
-    /* TODO: replace 200 by something like RIGTONEMAX */
-    for (i = 0; caps->ctcss_list[i] != 0 && i < 200; i++)
+    for (i = 0; caps->ctcss_list[i] != 0; i++)
     {
         if (caps->ctcss_list[i] == tone)
         {
@@ -2855,8 +2854,7 @@ int kenwood_set_ctcss_tone_tn(RIG *rig, vfo_t vfo, tone_t tone)
     char buf[6];
     int i;
 
-    /* XXX 40 is a fixed constant */
-    for (i = 0; caps->ctcss_list[i] != 0 && i < 40; i++)
+    for (i = 0; caps->ctcss_list[i] != 0; i++)
     {
         if (tone == caps->ctcss_list[i])
         {
@@ -3008,7 +3006,7 @@ int kenwood_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
     char buf[6];
     int i;
 
-    for (i = 0; caps->ctcss_list[i] != 0 && i < 40; i++)
+    for (i = 0; caps->ctcss_list[i] != 0; i++)
     {
         if (tone == caps->ctcss_list[i])
         {
@@ -3338,7 +3336,6 @@ int kenwood_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     if (ptt == RIG_PTT_OFF && RIG_MODEL_TS480 == rig->caps->rig_model)
     {
         /* if not in PTT TS-480 will return RX0; */
-        char ackbuf[8];
         ptt_t ptttmp;
         int err = kenwood_get_ptt(rig, vfo, &ptttmp);
 
@@ -3347,7 +3344,11 @@ int kenwood_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
             return err;
         }
 
-        if (ptt) { return kenwood_transaction(rig, ptt_cmd, ackbuf, sizeof(ackbuf)); }
+        if (ptt)
+        {
+            char ackbuf[8];
+            return kenwood_transaction(rig, ptt_cmd, ackbuf, sizeof(ackbuf));
+        }
     }
 
     return kenwood_transaction(rig, ptt_cmd, NULL, 0);
@@ -3634,7 +3635,7 @@ int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
     }
 
     char morsebuf[40], m2[30];
-    int msg_len, buff_len, retval, i;
+    int msg_len, retval, i;
     const char *p;
 
     p = msg;
@@ -3666,7 +3667,7 @@ int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
             else { return -RIG_EINVAL; }
         }
 
-        buff_len = msg_len > 24 ? 24 : msg_len;
+        int buff_len = msg_len > 24 ? 24 : msg_len;
 
         strncpy(m2, p, 24);
         m2[24] = '\0';
