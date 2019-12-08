@@ -125,6 +125,7 @@ static int remove_opened_amp(AMP *amp)
 }
 
 
+#ifdef XXREMOVEDXX
 /**
  * \brief execs cfunc() on each opened amp
  * \param cfunc The function to be executed on each amp
@@ -157,6 +158,7 @@ int foreach_opened_amp(int (*cfunc)(AMP *, rig_ptr_t), rig_ptr_t data)
 
     return RIG_OK;
 }
+#endif
 
 
 /**
@@ -176,7 +178,6 @@ AMP *HAMLIB_API amp_init(amp_model_t amp_model)
     AMP *amp;
     const struct amp_caps *caps;
     struct amp_state *rs;
-    int retcode;
 
     amp_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -253,7 +254,7 @@ AMP *HAMLIB_API amp_init(amp_model_t amp_model)
      */
     if (caps->amp_init != NULL)
     {
-        retcode = caps->amp_init(amp);
+        int retcode = caps->amp_init(amp);
 
         if (retcode != RIG_OK)
         {
@@ -654,6 +655,8 @@ int HAMLIB_API amp_get_ext_level(AMP *amp, token_t level, value_t *val)
     return amp->caps->get_ext_level(amp, level, val);
 }
 
+#if XXREMOVEDXX
+// Not referenced anywhere
 /**
  * \brief turn on/off the amplifier or standby/operate toggle
  * \param amp   The amp handle
@@ -686,6 +689,7 @@ int HAMLIB_API amp_set_powerstat(AMP *amp, powerstat_t status)
 
     return amp->caps->set_powerstat(amp, status);
 }
+#endif
 
 int HAMLIB_API amp_get_powerstat(AMP *amp, powerstat_t *status)
 {
