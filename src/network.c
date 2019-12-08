@@ -280,7 +280,6 @@ int network_open(hamlib_port_t *rp, int default_port)
  */
 void network_flush(hamlib_port_t *rp)
 {
-    int ret;
 #ifdef __MINGW32__
     ULONG len = 0;
 #else
@@ -293,6 +292,7 @@ void network_flush(hamlib_port_t *rp)
 
     for (;;)
     {
+        int ret;
         len = 0;
 #ifdef __MINGW32__
         ret = ioctlsocket(rp->fd, FIONREAD, &len);
