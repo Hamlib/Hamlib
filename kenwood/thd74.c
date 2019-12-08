@@ -458,6 +458,11 @@ int thd74_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     retval = thd74_vfoc(rig, vfo, &v);
 
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
     if (priv->mode_table)
     {
         kmode = rmode2kenwood(mode, priv->mode_table);
@@ -1021,7 +1026,7 @@ static int thd74_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         retval = sscanf(buf, "SQ %d,%d", &v, &l);
 
-        if (retval != 2 || l < 0 || l > 6)
+        if (retval != 2 || l < 0 || l >= 6)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, buf);
             return -RIG_ERJCTED;
