@@ -67,7 +67,6 @@ int HAMLIB_API rig_ext_level_foreach(RIG *rig,
                                      rig_ptr_t data)
 {
     const struct confparams *cfp;
-    int ret;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -78,7 +77,7 @@ int HAMLIB_API rig_ext_level_foreach(RIG *rig,
 
     for (cfp = rig->caps->extlevels; cfp && cfp->name; cfp++)
     {
-        ret = (*cfunc)(rig, cfp, data);
+        int ret = (*cfunc)(rig, cfp, data);
 
         if (ret == 0)
         {
@@ -113,7 +112,6 @@ int HAMLIB_API rig_ext_parm_foreach(RIG *rig,
                                     rig_ptr_t data)
 {
     const struct confparams *cfp;
-    int ret;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -124,7 +122,7 @@ int HAMLIB_API rig_ext_parm_foreach(RIG *rig,
 
     for (cfp = rig->caps->extparms; cfp && cfp->name; cfp++)
     {
-        ret = (*cfunc)(rig, cfp, data);
+        int ret = (*cfunc)(rig, cfp, data);
 
         if (ret == 0)
         {
