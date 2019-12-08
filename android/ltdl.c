@@ -96,11 +96,13 @@ int lt_dlexit(void)
 }
 #endif
 
+#ifdef XXREMOVEDXX
 int lt_dladdsearchdir(const char *search_dir)
 {
 //    __android_log_print(ANDROID_LOG_DEBUG, PACKAGE_NAME, "lt_dladdsearchdir");
     return 0;
 }
+#endif
 
 lt_dlhandle adlopen(const char *filename)
 {
