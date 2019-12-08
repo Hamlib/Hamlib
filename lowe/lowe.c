@@ -292,6 +292,18 @@ const char *lowe_get_info(RIG *rig)
     /* hack: no idea what INF is for */
     retval = lowe_transaction(rig, "INF?" EOM, 5, idbuf, &id_len);
 
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE,"%s: INF didn't work\n", __func__);
+        // non-fatal
+    }
+
+    if (retval != RIG_OK)
+    {
+        return NULL;
+    }
+
+
     /* this is the real one */
     retval = lowe_transaction(rig, "TYP?" EOM, 5, idbuf, &id_len);
 
