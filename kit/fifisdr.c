@@ -418,7 +418,7 @@ const char *fifisdr_get_info(RIG *rig)
         return NULL;
     }
 
-    snprintf(buf, sizeof(buf), "Firmware version: %d", svn_version);
+    snprintf(buf, sizeof(buf), "Firmware version: %u", svn_version);
 
     return buf;
 }
@@ -638,11 +638,6 @@ static int fifisdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     case RIG_LEVEL_SQL:
         /* Transform Hamlib value (float: 0...1) to an integer range (0...100) */
         fifi_squelch = (uint8_t)(val.f * 100.0f);
-
-        if (fifi_squelch < 0)
-        {
-            fifi_squelch = 0;
-        }
 
         if (fifi_squelch > 100)
         {
