@@ -1585,15 +1585,18 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     switch (level)
     {
-       float firmwareVersion;
+       float firmware_have;
+       float firmware_need;
     case RIG_LEVEL_STRENGTH:
         /* As of FW rev 4.37 the K3 supports an 'SMH' command that
          * offers a higher resolution, 0-100 (mine went to 106),
          * rawstr value for more precise S-meter reporting.
          */
-        firmwareVersion = atof(priv->fw_rev);
+        firmware_have = 0;
+        if (priv->fw_rev != NULL) sscanf(priv->fw_rev,"%f",&firmware_have);
+        sscanf("4.37","%f",&firmware_need);
 
-        if (firmwareVersion < 4.37)
+        if (firmware_have < firmware_need)
         {
             cal_table_t str_cal = K3_SM_CAL;
 
