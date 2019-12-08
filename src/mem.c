@@ -253,7 +253,6 @@ static int generic_retr_extl(RIG *rig,
 {
     channel_t *chan = (channel_t *)ptr;
     struct ext_list *p;
-    unsigned el_size = 0;
 
     if (chan->ext_levels == NULL)
     {
@@ -261,6 +260,7 @@ static int generic_retr_extl(RIG *rig,
     }
     else
     {
+        unsigned el_size = 0;
         for (p = chan->ext_levels; !RIG_IS_EXT_END(*p); p++)
         {
             el_size += sizeof(struct ext_list);
@@ -357,7 +357,7 @@ static int rig_mem_caps_empty(const channel_cap_t *mem_cap)
  */
 static int generic_save_channel(RIG *rig, channel_t *chan)
 {
-    int i, retval;
+    int i;
     int chan_num;
     vfo_t vfo;
     setting_t setting;
@@ -388,7 +388,7 @@ static int generic_save_channel(RIG *rig, channel_t *chan)
 
     if (mem_cap->freq)
     {
-        retval = rig_get_freq(rig, RIG_VFO_CURR, &chan->freq);
+        int retval = rig_get_freq(rig, RIG_VFO_CURR, &chan->freq);
 
         /* empty channel ? */
         if (retval == -RIG_ENAVAIL || chan->freq == RIG_FREQ_NONE)
@@ -950,7 +950,7 @@ int HAMLIB_API rig_get_channel(RIG *rig, channel_t *chan)
 #ifndef DOC_HIDDEN
 int get_chan_all_cb_generic(RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
 {
-    int i, j, retval;
+    int i, j;
     chan_t *chan_list = rig->state.chan_list;
     channel_t *chan;
 
@@ -963,7 +963,7 @@ int get_chan_all_cb_generic(RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
          * future data for channel channel_num
          */
         chan = NULL;
-        retval = chan_cb(rig, &chan, chan_list[i].startc, chan_list, arg);
+        int retval = chan_cb(rig, &chan, chan_list[i].startc, chan_list, arg);
 
         if (retval != RIG_OK)
         {
@@ -1572,7 +1572,7 @@ const chan_t *HAMLIB_API rig_lookup_mem_caps(RIG *rig, int ch)
 {
     chan_t *chan_list;
     static chan_t chan_list_all;
-    int i, j;
+    int i;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1598,6 +1598,7 @@ const chan_t *HAMLIB_API rig_lookup_mem_caps(RIG *rig, int ch)
             /* It's kind of hackish, we just want to do update set with:
              *  chan_list_all.mem_caps |= chan_list[i].mem_caps
              */
+            int j;
             for (j = 0; j < sizeof(channel_cap_t); j++)
             {
                 p1[j] |= p2[j];
@@ -1624,6 +1625,8 @@ const chan_t *HAMLIB_API rig_lookup_mem_caps(RIG *rig, int ch)
 }
 
 
+#ifdef XXREMOVEDXX
+// Not referenced anywhere
 /**
  * \brief get memory channel count
  * \param rig   The rig handle
@@ -1654,5 +1657,6 @@ int HAMLIB_API rig_mem_count(RIG *rig)
 
     return count;
 }
+#endif
 
 /*! @} */
