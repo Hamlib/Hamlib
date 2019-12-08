@@ -224,7 +224,7 @@ int drt1_set_conf(RIG *rig, token_t token, const char *val)
         break;
 
     case TOK_REFMULT:
-        sscanf(val, "%d", &priv->ref_mult);
+        sscanf(val, "%u", &priv->ref_mult);
         break;
 
     case TOK_IFMIXFREQ:
@@ -232,7 +232,7 @@ int drt1_set_conf(RIG *rig, token_t token, const char *val)
         break;
 
     case TOK_PUMPCRNT:
-        sscanf(val, "%d", &priv->pump_crrnt);
+        sscanf(val, "%u", &priv->pump_crrnt);
         break;
 
     default:
@@ -260,7 +260,7 @@ int drt1_get_conf(RIG *rig, token_t token, char *val)
         break;
 
     case TOK_REFMULT:
-        sprintf(val, "%d", priv->ref_mult);
+        sprintf(val, "%u", priv->ref_mult);
         break;
 
     case TOK_IFMIXFREQ:
@@ -268,7 +268,7 @@ int drt1_get_conf(RIG *rig, token_t token, char *val)
         break;
 
     case TOK_PUMPCRNT:
-        sprintf(val, "%d", priv->pump_crrnt);
+        sprintf(val, "%u", priv->pump_crrnt);
         break;
 
     default:
@@ -377,7 +377,7 @@ static int ad_write_reg(hamlib_port_t *port, unsigned addr, unsigned nb_bytes,
 
     for (i = 7; i >= 0; i--)
     {
-        ad_sdio(port, addr & (1U << i) ? 0 : 1); /* RTS 0 or 1 */
+        ad_sdio(port, (addr & (1U << i)) ? 0 : 1); /* RTS 0 or 1 */
         ad_sclk(port, 1);   /* TXD 1, clock */
         ad_sclk(port, 0);   /* TXD 0 */
     }
@@ -386,7 +386,7 @@ static int ad_write_reg(hamlib_port_t *port, unsigned addr, unsigned nb_bytes,
     for (i = nb_bytes * 8 - 1; i >= 0; i--)
     {
 
-        ad_sdio(port, data & (1U << i) ? 0 : 1); /* RTS 0 or 1 */
+        ad_sdio(port, (data & (1U << i)) ? 0 : 1); /* RTS 0 or 1 */
         ad_sclk(port, 1);   /* TXD 1, clock */
         ad_sclk(port, 0);   /* TXD 0 */
     }
