@@ -337,7 +337,6 @@ ts570_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     char levelbuf[16];
     int kenwood_val;
-    int i;
 
     switch (level)
     {
@@ -349,7 +348,9 @@ ts570_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             sprintf(levelbuf, "PA0");
         }
-        else
+        else {
+            int i;
+
             for (i = 0; i < MAXDBLSTSIZ; i++)
                 if (kenwood_val == rig->state.preamp[i])
                 {
@@ -360,6 +361,7 @@ ts570_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
                 {
                     return -RIG_EINVAL;
                 }
+        }
 
         return kenwood_transaction(rig, levelbuf, NULL, 0);
 
@@ -394,7 +396,6 @@ ts570_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     size_t ack_len;
     int levelint;
     int retval;
-    int i;
 
     switch (level)
     {
@@ -471,6 +472,8 @@ ts570_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
         else
         {
+            int i;
+
             for (i = 0; i < levelint && i < MAXDBLSTSIZ; i++)
             {
                 if (rig->state.preamp[i] == 0)
