@@ -703,6 +703,7 @@ int HAMLIB_API rig_open(RIG *rig)
         else
         {
             gpio_ptt_set(&rs->pttport, RIG_PTT_OFF);
+            gpio_close(&rs->pttport);
         }
 
         break;
@@ -721,6 +722,7 @@ int HAMLIB_API rig_open(RIG *rig)
         else
         {
             gpio_ptt_set(&rs->pttport, RIG_PTT_OFF);
+            gpio_close(&rs->pttport);
         }
 
         break;
@@ -793,6 +795,9 @@ int HAMLIB_API rig_open(RIG *rig)
                       rs->dcdport.pathname);
             status = -RIG_EIO;
         }
+        else {
+            gpio_close(&rs->dcdport);
+        }
 
         break;
 
@@ -806,6 +811,9 @@ int HAMLIB_API rig_open(RIG *rig)
                       __func__,
                       rs->dcdport.pathname);
             status = -RIG_EIO;
+        }
+        else {
+            gpio_close(&rs->dcdport);
         }
 
         break;
