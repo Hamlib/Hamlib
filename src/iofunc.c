@@ -369,16 +369,15 @@ static int port_select(hamlib_port_t *p,
 
 static ssize_t port_read(hamlib_port_t *p, void *buf, size_t count)
 {
-    int i;
-    ssize_t ret;
-
     if (p->type.rig == RIG_PORT_SERIAL && p->parm.serial.data_bits == 7)
     {
         unsigned char *pbuf = buf;
 
-        ret = read(p->fd, buf, count);
+        int ret = read(p->fd, buf, count);
 
         /* clear MSB */
+        int i;
+
         for (i = 0; i < ret; i++)
         {
             pbuf[i] &= ~0x80;
@@ -428,7 +427,7 @@ static ssize_t port_read(hamlib_port_t *p, void *buf, size_t count)
 
 int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
 {
-    int i, ret;
+    int ret;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -460,6 +459,8 @@ int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
 
     if (p->write_delay > 0)
     {
+        int i;
+
         for (i = 0; i < count; i++)
         {
             ret = port_write(p, txbuffer + i, 1);
@@ -545,8 +546,7 @@ int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
 {
     fd_set rfds, efds;
     struct timeval tv, tv_timeout, start_time, end_time, elapsed_time;
-    int rd_count, total_count = 0;
-    int retval;
+    int total_count = 0;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -567,7 +567,7 @@ int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
         FD_SET(p->fd, &rfds);
         efds = rfds;
 
-        retval = port_select(p, p->fd + 1, &rfds, NULL, &efds, &tv);
+        int retval = port_select(p, p->fd + 1, &rfds, NULL, &efds, &tv);
 
         if (retval == 0)
         {
@@ -612,7 +612,7 @@ int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
          * grab bytes from the rig
          * The file descriptor must have been set up non blocking.
          */
-        rd_count = port_read(p, rxbuffer + total_count, count);
+        int rd_count = port_read(p, rxbuffer + total_count, count);
 
         if (rd_count < 0)
         {
@@ -668,8 +668,7 @@ int HAMLIB_API read_string(hamlib_port_t *p,
 {
     fd_set rfds, efds;
     struct timeval tv, tv_timeout, start_time, end_time, elapsed_time;
-    int rd_count, total_count = 0;
-    int retval;
+    int total_count = 0;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
@@ -702,7 +701,7 @@ int HAMLIB_API read_string(hamlib_port_t *p,
         FD_SET(p->fd, &rfds);
         efds = rfds;
 
-        retval = port_select(p, p->fd + 1, &rfds, NULL, &efds, &tv);
+        int retval = port_select(p, p->fd + 1, &rfds, NULL, &efds, &tv);
 
         if (retval == 0)
         {
@@ -752,7 +751,7 @@ int HAMLIB_API read_string(hamlib_port_t *p,
              * read 1 character from the rig, (check if in stop set)
          * The file descriptor must have been set up non blocking.
          */
-        rd_count = port_read(p, &rxbuffer[total_count], 1);
+        int rd_count = port_read(p, &rxbuffer[total_count], 1);
 
         /* if we get 0 bytes or an error something is wrong */
         if (rd_count <= 0)
