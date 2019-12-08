@@ -400,8 +400,7 @@ int HAMLIB_API locator2longlat(double *longitude,
 {
     int x_or_y, paircount;
     int locvalue, pair;
-    int divisions;
-    double xy[2], ordinate;
+    double xy[2];
 
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -426,8 +425,8 @@ int HAMLIB_API locator2longlat(double *longitude,
     /* For x(=longitude) and y(=latitude) */
     for (x_or_y = 0;  x_or_y < 2;  ++x_or_y)
     {
-        ordinate = -90.0;
-        divisions = 1;
+        double ordinate = -90.0;
+        int divisions = 1;
 
         for (pair = 0;  pair < paircount;  ++pair)
         {
@@ -488,8 +487,8 @@ int HAMLIB_API longlat2locator(double longitude,
                                char *locator,
                                int pair_count)
 {
-    int x_or_y, pair, locvalue, divisions;
-    double square_size, ordinate;
+    int x_or_y, pair, locvalue;
+    double square_size;
 
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -505,8 +504,8 @@ int HAMLIB_API longlat2locator(double longitude,
 
     for (x_or_y = 0;  x_or_y < 2;  ++x_or_y)
     {
-        ordinate = (x_or_y == 0) ? longitude / 2.0 : latitude;
-        divisions = 1;
+        double ordinate = (x_or_y == 0) ? longitude / 2.0 : latitude;
+        int divisions = 1;
 
         /* The 1e-6 here guards against floating point rounding errors */
         ordinate = fmod(ordinate + 270.000001, 180.0);
