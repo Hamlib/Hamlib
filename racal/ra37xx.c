@@ -341,7 +341,7 @@ int ra37xx_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     char freqbuf[BUFSZ];
     int freq_len;
 
-    freq_len = sprintf(freqbuf, "F%ld", (unsigned long)freq);
+    freq_len = sprintf(freqbuf, "F%lu", (unsigned long)freq);
 
     if (freq_len < 0)
     {
@@ -377,7 +377,7 @@ int ra37xx_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 int ra37xx_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     //struct ra37xx_priv_data *priv = (struct ra37xx_priv_data*)rig->state.priv;
-    int ra_mode, widthtype, widthnum;
+    int ra_mode, widthtype, widthnum=0;
     char buf[BUFSZ];
 
     switch (mode)
@@ -407,18 +407,18 @@ int ra37xx_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         width = rig_passband_normal(rig, mode);
     }
 
+    rig_debug(RIG_DEBUG_TRACE, "%s: widthtype = %i, widthnum = %i not implemented\n", __func__, widthtype, widthnum);
+#ifdef XXREMOVEDXX
     widthtype = 0; /* FIXME: no bandwidth for now */
     widthnum = 0;
     /* width set using 'B', QBCON must be queried firsthand */
+#endif
 
-#if 0
+#ifdef XXREMOVEDXX
     sprintf(buf, "M%d;B%d,%d", ra_mode, widthtype, widthnum);
 #else
     sprintf(buf, "M%d", ra_mode);
 #endif
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: widthtype = %i, widthnum = %i\n", __func__,
-              widthtype, widthnum);
 
     return ra37xx_transaction(rig, buf, NULL, NULL);
 }
