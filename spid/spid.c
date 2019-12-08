@@ -47,8 +47,6 @@ struct spid_rot2prog_priv_data
 
 static int spid_rot_init(ROT *rot)
 {
-    struct spid_rot2prog_priv_data *priv;
-
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     if (!rot || !rot->caps)
@@ -59,6 +57,8 @@ static int spid_rot_init(ROT *rot)
     if (rot->caps->rot_model == ROT_MODEL_SPID_ROT2PROG ||
             rot->caps->rot_model == ROT_MODEL_SPID_MD01_ROT2PROG)
     {
+        struct spid_rot2prog_priv_data *priv;
+
         priv = (struct spid_rot2prog_priv_data *)malloc(sizeof(struct
                 spid_rot2prog_priv_data));
 
