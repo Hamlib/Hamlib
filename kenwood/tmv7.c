@@ -691,8 +691,7 @@ int tmv7_set_channel(RIG *rig, const channel_t *chan)
     {
         tone = 1;
 
-        for (tonefq = 0; rig->caps->ctcss_list[tonefq] != 0
-                && tonefq < RIG_TONEMAX; tonefq++)
+        for (tonefq = 0; rig->caps->ctcss_list[tonefq] != 0; tonefq++)
         {
             if (rig->caps->ctcss_list[tonefq] == chan->ctcss_tone)
             {
@@ -711,8 +710,7 @@ int tmv7_set_channel(RIG *rig, const channel_t *chan)
     {
         ctcss = 1;
 
-        for (ctcssfq = 0; rig->caps->ctcss_list[ctcssfq] != 0
-                && ctcssfq < RIG_TONEMAX; ctcssfq++)
+        for (ctcssfq = 0; rig->caps->ctcss_list[ctcssfq] != 0; ctcssfq++)
         {
             if (rig->caps->ctcss_list[ctcssfq] == chan->ctcss_sql)
             {
