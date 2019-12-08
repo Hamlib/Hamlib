@@ -73,7 +73,6 @@ void dump_hex(const unsigned char ptr[], size_t size)
      * 0010  30 30 0d 0a                                      00..
      */
     char line[4 + 4 + 3 * DUMP_HEX_WIDTH + 4 + DUMP_HEX_WIDTH + 1];
-    unsigned char c;
     int i;
 
     if (!rig_need_debug(RIG_DEBUG_TRACE))
@@ -92,7 +91,7 @@ void dump_hex(const unsigned char ptr[], size_t size)
             memset(line + 4, ' ', sizeof(line) - 4 - 1);
         }
 
-        c = ptr[i];
+        char c = ptr[i];
 
         /* hex print */
         sprintf(line + 8 + 3 * (i % DUMP_HEX_WIDTH), "%02x", c);
