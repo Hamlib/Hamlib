@@ -348,7 +348,7 @@ int xg3_get_vfo(RIG *rig, vfo_t *vfo)
 
     struct xg3_priv_data *priv = (struct xg3_priv_data *)rig->state.priv;
 
-    if (!rig || !vfo)
+    if (!vfo)
     {
         return -RIG_EINVAL;
     }
@@ -366,7 +366,7 @@ int xg3_set_vfo(RIG *rig, vfo_t vfo)
 
     struct xg3_priv_data *priv = (struct xg3_priv_data *)rig->state.priv;
 
-    if (!rig || !vfo)
+    if (!vfo)
     {
         return -RIG_EINVAL;
     }
@@ -506,10 +506,11 @@ int xg3_set_powerstat(RIG *rig, powerstat_t status)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     struct xg3_priv_data *priv = (struct xg3_priv_data *)rig->state.priv;
-    const char *cmd = "X";
 
     if (status == RIG_POWER_OFF)
     {
+        const char *cmd = "X";
+
         priv->powerstat = RIG_POWER_OFF;
         return kenwood_transaction(rig, cmd, NULL, 0);
     }
@@ -627,11 +628,6 @@ int xg3_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     struct xg3_priv_data *priv = (struct xg3_priv_data *)rig->state.priv;
 
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     int retval;
 
     retval = kenwood_simple_transaction(rig,
@@ -654,7 +650,7 @@ int xg3_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
     struct xg3_priv_data *priv = (struct xg3_priv_data *)rig->state.priv;
 
-    if (!rig || !ptt)
+    if (!ptt)
     {
         return -RIG_EINVAL;
     }
