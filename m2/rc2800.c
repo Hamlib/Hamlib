@@ -68,7 +68,7 @@
 
 static int rc2800_parse(char *s, char *device, float *value)
 {
-    int i, msgtype = 0, errcode = 0;
+    int msgtype = 0, errcode = 0;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: device return->%s", __func__, s);
 
@@ -83,6 +83,7 @@ static int rc2800_parse(char *s, char *device, float *value)
     {
         if (*s == 'A' || *s == 'E')
         {
+            int i;
             *device = *s;
 
             if (!strncmp(s + 2, "ERR=", 4))
@@ -324,14 +325,24 @@ rc2800_rot_stop(ROT *rot)
 
     /* Stop AZ*/
     retval = rc2800_transaction(rot, "A" CR, NULL, 0); /* select AZ */
+
+    if (retval != RIG_OK) { rig_debug(RIG_DEBUG_VERBOSE, "%s: A command failed?\n", __func__); }
+
     retval = rc2800_transaction(rot, "S" CR, NULL, 0); /* STOP */
+
+    if (retval != RIG_OK) { rig_debug(RIG_DEBUG_VERBOSE, "%s: az S command failed?\n", __func__); }
 
     /* do not overwhelm the MCU? */
     usleep(200 * 1000);
 
     /* Stop EL*/
     retval = rc2800_transaction(rot, "E" CR, NULL, 0); /* select EL */
+
+    if (retval != RIG_OK) { rig_debug(RIG_DEBUG_VERBOSE, "%s: E command failed?\n", __func__); }
+
     retval = rc2800_transaction(rot, "S" CR, NULL, 0); /* STOP */
+
+    if (retval != RIG_OK) { rig_debug(RIG_DEBUG_VERBOSE, "%s: el S command failed?\n", __func__); }
 
     return retval;
 }
