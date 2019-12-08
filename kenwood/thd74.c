@@ -1279,13 +1279,14 @@ static int thd74_parse_channel(int kind, const char *buf, channel_t *chan)
 
 static int thd74_get_channel(RIG *rig, channel_t *chan)
 {
-    int retval, len;
-    char cmd[8], buf[72];
+    int retval;
+    char buf[72];
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     if (chan->vfo == RIG_VFO_MEM)   /* memory channel */
     {
+        char cmd[16];
         sprintf(cmd, "ME %03d", chan->channel_num);
         retval = kenwood_transaction(rig, cmd, buf, sizeof(buf));
 
@@ -1309,7 +1310,7 @@ static int thd74_get_channel(RIG *rig, channel_t *chan)
             return retval;
         }
 
-        len = strlen(buf);
+        int len = strlen(buf);
         memcpy(chan->channel_desc, buf + 7, len - 7);
     }
     else                    /* current channel */
@@ -1400,14 +1401,13 @@ otherwise return -RIG_EPROTO
 int thd74_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
     struct kenwood_priv_data *priv = rig->state.priv;
-    int retval;
-    char fbuf[12], buf[128];
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     if (priv->split == RIG_SPLIT_ON)
     {
-        retval = thd74_get_freq_info(rig, RIG_VFO_A, buf);
+        char fbuf[12], buf[128];
+        int retval = thd74_get_freq_info(rig, RIG_VFO_A, buf);
 
         if (retval != RIG_OK)
         {
@@ -1489,6 +1489,7 @@ static int thd74_get_block(RIG *rig, int block_num, char *block)
     return RIG_OK;
 }
 
+#ifdef XXREMOVEDXX
 int thd74_get_chan_all_cb(RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
 {
     int i, j, ret;
@@ -1621,6 +1622,7 @@ int thd74_get_chan_all_cb(RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
 
     return RIG_OK;
 }
+#endif
 #endif  /* none working stuff */
 /*
  * th-d74 rig capabilities.
