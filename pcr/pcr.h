@@ -49,8 +49,8 @@ struct pcr_priv_data
 	    float	volume;
 	    float	squelch;
 
-	    int raw_level;
-	    int squelch_status;
+	    unsigned int raw_level;
+	    unsigned int squelch_status;
 
 	} main_rcvr, sub_rcvr;
 
