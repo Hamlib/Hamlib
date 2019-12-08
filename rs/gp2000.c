@@ -289,6 +289,8 @@ gp2000_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 }
 
 
+#ifdef XXREMOVEDXX
+// Not referenced anywhere
 int
 gp2000_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
@@ -312,7 +314,10 @@ gp2000_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
     return retval;
 }
+#endif
 
+#ifdef XXREMOVEDXX
+// Not referenced anywhere
 int
 gp2000_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
@@ -343,6 +348,7 @@ gp2000_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
     return retval;
 }
+#endif
 
 int
 gp2000_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
@@ -469,15 +475,15 @@ gp2000_get_info(RIG *rig)
         switch (p[0])
         {
         case 0x0a:
-            sscanf(p, "%*cIDENT%s", type);
+            sscanf(p, "%*cIDENT%31s", type);
             break;
 
         case 'i':
-            sscanf(p, "id%s", rigid);
+            sscanf(p, "id%31s", rigid);
             break;
 
         case 's':
-            sscanf(p, "sn%s", sernum);
+            sscanf(p, "sn%31s", sernum);
             break;
 
         default:
