@@ -323,7 +323,7 @@ static int ad_write(hamlib_port_t *port, unsigned data)
     for (i = 0; i < 16; i++)
     {
 
-        ad_sdata(port, (data & mask ? 0) : 1);    /* RTS 0 or 1 */
+        ad_sdata(port, (data & mask) ? 0 : 1);    /* RTS 0 or 1 */
         ad_sclk(port, 1);   /* TXD 1, clock */
         ad_sclk(port, 0);   /* TXD 0 */
         mask >>= 1; /* Next bit for masking */
