@@ -246,9 +246,7 @@ int cm108_ptt_get(hamlib_port_t *p, ptt_t *pttx)
     {
     case RIG_PTT_CM108:
     {
-        int status;
         return -RIG_ENIMPL;
-        return status;
     }
 
     default:
@@ -262,6 +260,8 @@ int cm108_ptt_get(hamlib_port_t *p, ptt_t *pttx)
     return RIG_OK;
 }
 
+#ifdef XXREMOVEXX
+// Not referenced anywhere
 /**
  * \brief get Data Carrier Detect (squelch) from CM108 GPIO
  * \param p
@@ -281,9 +281,7 @@ int cm108_dcd_get(hamlib_port_t *p, dcd_t *dcdx)
     {
     case RIG_DCD_CM108:
     {
-        int status;
         return -RIG_ENIMPL;
-        return status;
     }
 
     default:
@@ -296,5 +294,6 @@ int cm108_dcd_get(hamlib_port_t *p, dcd_t *dcdx)
 
     return RIG_OK;
 }
+#endif
 
 /** @} */
