@@ -1505,6 +1505,7 @@ static int ft900_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     struct ft900_priv_data *priv;
     unsigned char *p;
     int err;
+    cal_table_t cal = FT900_STR_CAL_SMETER;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1520,6 +1521,7 @@ static int ft900_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     switch (level)
     {
+
     case RIG_LEVEL_STRENGTH:
         err = ft900_get_update_data(rig, FT900_NATIVE_READ_METER,
                                     FT900_STATUS_FLAGS_LENGTH);
@@ -1544,8 +1546,6 @@ static int ft900_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
          * is life when mapping non-linear S-meters to a linear scale.
          *
          */
-        cal_table_t cal = FT900_STR_CAL_SMETER;
-
         if (priv->ptt)
         {
             cal = (cal_table_t)FT900_STR_CAL_POWER;

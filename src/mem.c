@@ -956,6 +956,7 @@ int get_chan_all_cb_generic(RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
 
     for (i = 0; !RIG_IS_CHAN_END(chan_list[i]) && i < CHANLSTSIZ; i++)
     {
+        int retval;
 
         /*
          * setting chan to NULL means the application
@@ -963,7 +964,7 @@ int get_chan_all_cb_generic(RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
          * future data for channel channel_num
          */
         chan = NULL;
-        int retval = chan_cb(rig, &chan, chan_list[i].startc, chan_list, arg);
+        retval = chan_cb(rig, &chan, chan_list[i].startc, chan_list, arg);
 
         if (retval != RIG_OK)
         {
@@ -1590,7 +1591,7 @@ const chan_t *HAMLIB_API rig_lookup_mem_caps(RIG *rig, int ch)
 
         for (i = 0; i < CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++)
         {
-
+            int j;
             unsigned char *p1, *p2;
             p1 = (unsigned char *)&chan_list_all.mem_caps;
             p2 = (unsigned char *)&chan_list[i].mem_caps;
@@ -1598,7 +1599,6 @@ const chan_t *HAMLIB_API rig_lookup_mem_caps(RIG *rig, int ch)
             /* It's kind of hackish, we just want to do update set with:
              *  chan_list_all.mem_caps |= chan_list[i].mem_caps
              */
-            int j;
             for (j = 0; j < sizeof(channel_cap_t); j++)
             {
                 p1[j] |= p2[j];

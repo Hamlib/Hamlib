@@ -393,6 +393,7 @@ int main(int argc, char *argv[])
 
         if (rd_hist || sv_hist)
         {
+            int hist_path_size;
             if (!(hist_dir = getenv("ROTCTL_HIST_DIR")))
             {
                 hist_dir = getenv("HOME");
@@ -405,7 +406,7 @@ int main(int argc, char *argv[])
                 fprintf(stderr, "Warning: %s is not a directory!\n", hist_dir);
             }
 
-            int hist_path_size = sizeof(char) * (strlen(hist_dir) + strlen(hist_file) + 1);
+            hist_path_size = sizeof(char) * (strlen(hist_dir) + strlen(hist_file) + 1);
             hist_path = (char *)calloc(hist_path_size, sizeof(char));
 
             snprintf(hist_path, hist_path_size, "%s%s", hist_dir, hist_file);

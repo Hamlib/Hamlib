@@ -80,6 +80,9 @@
 int cm108_open(hamlib_port_t *port)
 {
     int fd;
+#ifdef HAVE_LINUX_HIDRAW_H
+    struct hidraw_devinfo hiddevinfo;
+#endif
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -102,12 +105,9 @@ int cm108_open(hamlib_port_t *port)
 
 #ifdef HAVE_LINUX_HIDRAW_H
     // CM108 detection copied from Thomas Sailer's soundmodem code
-
     rig_debug(RIG_DEBUG_VERBOSE,
               "%s: checking for cm108 (or compatible) device\n",
               __func__);
-
-    struct hidraw_devinfo hiddevinfo;
 
     if (!ioctl(fd, HIDIOCGRAWINFO, &hiddevinfo)
             && ((hiddevinfo.vendor == 0x0d8c
@@ -163,6 +163,18 @@ int cm108_close(hamlib_port_t *port)
  */
 int cm108_ptt_set(hamlib_port_t *p, ptt_t pttx)
 {
+    ssize_t nw;
+    char out_rep[] =
+    {
+        0x00, // report number
+        // HID output report
+        0x00,
+        (pttx == RIG_PTT_ON) ? (1 << p->parm.cm108.ptt_bitnum) : 0, // set GPIO
+        1 << p->parm.cm108.ptt_bitnum, // Data direction register (1=output)
+          0x00
+    };
+
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     // For a CM108 USB audio device PTT is wired up to one of the GPIO
@@ -191,18 +203,6 @@ int cm108_ptt_set(hamlib_port_t *p, ptt_t pttx)
                   __func__,
                   p->parm.cm108.ptt_bitnum,
                   (pttx == RIG_PTT_ON) ? 1 : 0);
-
-        char out_rep[] =
-        {
-            0x00, // report number
-            // HID output report
-            0x00,
-            (pttx == RIG_PTT_ON) ? (1 << p->parm.cm108.ptt_bitnum) : 0, // set GPIO
-            1 << p->parm.cm108.ptt_bitnum, // Data direction register (1=output)
-              0x00
-        };
-
-        ssize_t nw;
 
         if (p->fd == -1)
         {

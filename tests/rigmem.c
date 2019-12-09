@@ -427,6 +427,8 @@ int set_conf(RIG *rig, char *conf_parms)
 
     while (p && *p != '\0')
     {
+        int ret;
+
         /* FIXME: left hand value of = cannot be null */
         char *q = strchr(p, '=');
 
@@ -443,7 +445,7 @@ int set_conf(RIG *rig, char *conf_parms)
             *n++ = '\0';
         }
 
-        int ret = rig_set_conf(rig, rig_token_lookup(rig, p), q);
+        ret = rig_set_conf(rig, rig_token_lookup(rig, p), q);
 
         if (ret != RIG_OK)
         {

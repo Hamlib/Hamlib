@@ -3191,6 +3191,7 @@ int ft1000d_get_update_data(RIG *rig, unsigned char ci, unsigned short ch)
     int n;
     int err;
     int rl;
+    int retry;
     char temp[5];
     char *p;
 
@@ -3206,7 +3207,7 @@ int ft1000d_get_update_data(RIG *rig, unsigned char ci, unsigned short ch)
     priv = (struct ft1000d_priv_data *)rig->state.priv;
     rig_s = &rig->state;
 
-    int retry = rig_s->rigport.retry;
+    retry = rig_s->rigport.retry;
 
     do
     {

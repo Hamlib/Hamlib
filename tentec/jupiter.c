@@ -506,8 +506,18 @@ int tt538_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 int tt538_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     int cmd_len, resp_len, retval;
+    int rpb;
     unsigned char cmdbuf[16], respbuf[32];
     char ttmode;
+    /* Find bandwidth according to response from table. */
+    static int pbwidth[39] =
+    {
+        8000, 6000, 5700, 5400, 5100, 4800, 4500, 4200,
+        3900, 3600, 3300, 3000, 2850, 2700, 2550, 2400,
+        2250, 2100, 1950, 1800, 1650, 1500, 1350, 1200,
+        1050,  900,  750,  675,  600,  525,  450,  375,
+        330,  300,  260,  225,  180,  165,  150
+    };
 
     /* Query mode */
     cmd_len = sprintf((char *) cmdbuf, "?M" EOM);
@@ -580,16 +590,7 @@ int tt538_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         return -RIG_EPROTO;
     }
 
-    /* Find bandwidth according to response from table. */
-    static int pbwidth[39] =
-    {
-        8000, 6000, 5700, 5400, 5100, 4800, 4500, 4200,
-        3900, 3600, 3300, 3000, 2850, 2700, 2550, 2400,
-        2250, 2100, 1950, 1800, 1650, 1500, 1350, 1200,
-        1050,  900,  750,  675,  600,  525,  450,  375,
-        330,  300,  260,  225,  180,  165,  150
-    };
-    int rpb = respbuf[1];
+    rpb = respbuf[1];
 
     if (rpb >= 0 && rpb <= 38)
     {

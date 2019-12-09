@@ -256,15 +256,10 @@ const struct rig_caps k2_caps =
  */
 int k2_open(RIG *rig)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     int err;
     struct kenwood_priv_data *priv = rig->state.priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     err = elecraft_open(rig);
 
@@ -292,18 +287,14 @@ int k2_open(RIG *rig)
 
 int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
 
     int err;
     char f;
     struct k2_filt_lst_s *flt;
     struct kenwood_priv_data *priv = rig->state.priv;
     shortfreq_t freq = 0;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     /* Select the filter array per mode. */
     switch (mode)
@@ -391,6 +382,8 @@ int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (width != RIG_PASSBAND_NOCHANGE)
     {
+        char fcmd[16];
+
         err = kenwood_transaction(rig, "K22", NULL, 0);
 
         if (err != RIG_OK)
@@ -399,7 +392,6 @@ int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         }
 
         /* Construct the filter command and set the radio mode and width*/
-        char fcmd[16];
         snprintf(fcmd, 8, "FW0000%c", f);
 
         /* Set the filter slot */
@@ -430,18 +422,18 @@ int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 int k2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !mode || !width)
-    {
-        return -RIG_EINVAL;
-    }
-
     int err;
     char buf[KENWOOD_MAX_BUF_LEN];
     char tmp[16];
     char *bufptr;
     pbwidth_t temp_w;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!mode || !width)
+    {
+        return -RIG_EINVAL;
+    }
 
     err = kenwood_get_mode(rig, vfo, mode, &temp_w);
 
@@ -496,16 +488,16 @@ int k2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  */
 int k2_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !val)
-    {
-        return -RIG_EINVAL;
-    }
-
     char buf[KENWOOD_MAX_BUF_LEN];
     int err;
     const struct confparams *cfp;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!val)
+    {
+        return -RIG_EINVAL;
+    }
 
     cfp = rig_ext_lookup_tok(rig, token);
 
@@ -549,18 +541,18 @@ int k2_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
  */
 int k2_probe_mdfw(RIG *rig, struct kenwood_priv_data *priv)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !priv)
-    {
-        return -RIG_EINVAL;
-    }
-
     int err, i, c;
     char buf[KENWOOD_MAX_BUF_LEN];
     char mode[16];
     char fw[16];
     char cmd[16];
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!priv)
+    {
+        return -RIG_EINVAL;
+    }
 
     /* The K2 extension level has been stored by elecraft_open().  Now set rig
      * to K22 for detailed query of mode and filter width values...
@@ -683,14 +675,14 @@ int k2_probe_mdfw(RIG *rig, struct kenwood_priv_data *priv)
 /* Restore mode, filter, and ext_lvl to original values */
 int k2_mdfw_rest(RIG *rig, const char *mode, const char *fw)
 {
+    int err;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !mode || !fw)
+    if (!mode || !fw)
     {
         return -RIG_EINVAL;
     }
-
-    int err;
 
     if (strlen(mode) != 3 || strlen(fw) != 7)
     {
@@ -725,18 +717,18 @@ int k2_mdfw_rest(RIG *rig, const char *mode, const char *fw)
 /* Populate k2_filt_lst_s structure for each mode */
 int k2_pop_fw_lst(RIG *rig, const char *cmd)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !cmd)
-    {
-        return -RIG_EINVAL;
-    }
-
     int err, f;
     char fcmd[16];
     char buf[KENWOOD_MAX_BUF_LEN];
     char tmp[16];
     struct k2_filt_lst_s *flt;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!cmd)
+    {
+        return -RIG_EINVAL;
+    }
 
     /* Store filter data in the correct structure depending on mode */
     if (strcmp(cmd, "MD1") == 0)
@@ -766,6 +758,8 @@ int k2_pop_fw_lst(RIG *rig, const char *cmd)
 
     for (f = 1; f < 5; f++)
     {
+        char *bufptr = buf;
+
         snprintf(fcmd, 8, "FW0000%d", f);
 
         err = kenwood_transaction(rig, fcmd, NULL, 0);
@@ -787,8 +781,6 @@ int k2_pop_fw_lst(RIG *rig, const char *cmd)
          * f = crystal filter slot number--1-4
          * a = audio filter slot number--0-2
          */
-        char *bufptr = buf;
-
         strncpy(tmp, bufptr + 2, 4);
         tmp[4] = '\0';
         flt->filt_list[f - 1].width = atoi(tmp);

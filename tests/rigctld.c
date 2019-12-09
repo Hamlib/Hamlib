@@ -248,6 +248,9 @@ int main(int argc, char *argv[])
     int reuseaddr = 1;
     char host[NI_MAXHOST];
     char serv[NI_MAXSERV];
+#if HAVE_SIGACTION
+    struct sigaction act;
+#endif
 
 #ifdef HAVE_PTHREAD
     pthread_t thread;
@@ -723,7 +726,6 @@ int main(int argc, char *argv[])
     }
 
 #if HAVE_SIGACTION
-    struct sigaction act;
 
 #ifdef SIGPIPE
     /* Ignore SIGPIPE as we will handle it at the write()/send() calls
@@ -781,6 +783,9 @@ int main(int argc, char *argv[])
      */
     do
     {
+        fd_set set;
+        struct timeval timeout;
+
         arg = malloc(sizeof(struct handle_data));
 
         if (!arg)
@@ -790,8 +795,6 @@ int main(int argc, char *argv[])
         }
 
         /* use select to allow for periodic checks for CTRL+C */
-        fd_set set;
-        struct timeval timeout;
         FD_ZERO(&set);
         FD_SET(sock_listen, &set);
         timeout.tv_sec = 5;

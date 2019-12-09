@@ -370,17 +370,19 @@ const struct rig_caps ts2000_caps =
 
 int ts2000_get_channel(RIG *rig, channel_t *chan)
 {
+    int err;
+    int tmp;
+    size_t length;
+    char buf[52];
+    char cmd[8];
+    struct kenwood_priv_caps *caps = kenwood_caps(rig);
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!rig || !chan || chan->vfo != RIG_VFO_MEM)
     {
         return -RIG_EINVAL;
     }
-
-    int err;
-    char buf[52];
-    char cmd[8];
-    struct kenwood_priv_caps *caps = kenwood_caps(rig);
 
     /* put channel num in the command string */
     sprintf(cmd, "MR0%03d;", chan->channel_num);
@@ -392,7 +394,7 @@ int ts2000_get_channel(RIG *rig, channel_t *chan)
         return err;
     }
 
-    size_t length = strlen(buf);
+    length = strlen(buf);
     memset(chan, 0x00, sizeof(channel_t));
 
     chan->vfo = RIG_VFO_MEM;
@@ -417,7 +419,6 @@ int ts2000_get_channel(RIG *rig, channel_t *chan)
        Tuning step depends on this number and the mode,
        just save it for now */
     buf[ 40 ] = '\0';
-    int tmp;
     tmp = atoi(&buf[ 38]);
     /* Offset frequency */
     buf[ 38 ] = '\0';
@@ -597,20 +598,24 @@ int ts2000_get_channel(RIG *rig, channel_t *chan)
 
 int ts2000_set_channel(RIG *rig, const channel_t *chan)
 {
+    char sqltype = '0';
+    char buf[128];
+    char mode, tx_mode = 0;
+    char shift = '0';
+    short dcscode = 0;
+    short code = 0;
+    int tstep = 0;
+    int err;
+    int tone = 0;
+    struct kenwood_priv_caps *caps = kenwood_caps(rig);
+
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !chan)
+    if (!chan)
     {
         return -RIG_EINVAL;
     }
-
-    char buf[128];
-    char mode, tx_mode = 0;
-    int err;
-    int tone = 0;
-
-
-    struct kenwood_priv_caps *caps = kenwood_caps(rig);
 
     mode = rmode2kenwood(chan->mode, caps->mode_table);
 
@@ -634,7 +639,6 @@ int ts2000_set_channel(RIG *rig, const channel_t *chan)
     }
 
     /* find tone */
-    char sqltype = '0';
 
     if (chan->ctcss_tone)
     {
@@ -655,7 +659,6 @@ int ts2000_set_channel(RIG *rig, const channel_t *chan)
     }
 
     /* find CTCSS code */
-    short code = 0;
 
     if (chan->ctcss_sql)
     {
@@ -676,7 +679,6 @@ int ts2000_set_channel(RIG *rig, const channel_t *chan)
     }
 
     /* find DCS code */
-    short dcscode = 0;
 
     if (chan->dcs_code)
     {
@@ -696,8 +698,6 @@ int ts2000_set_channel(RIG *rig, const channel_t *chan)
         dcscode = 0;
     }
 
-    char shift = '0';
-
     if (chan->rptr_shift == RIG_RPT_SHIFT_PLUS)
     {
         shift = '1';
@@ -708,7 +708,6 @@ int ts2000_set_channel(RIG *rig, const channel_t *chan)
         shift = '2';
     }
 
-    int tstep = 0;
 
     if ((chan->mode == RIG_MODE_AM) || (chan->mode == RIG_MODE_FM))
     {

@@ -1076,8 +1076,8 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
             }
             else
             {
-                x = 0;
                 char pmptstr[(strlen(cmd_entry->arg1) + 3)];
+                x = 0;
 
                 strcpy(pmptstr, cmd_entry->arg1);
                 strcat(pmptstr, ": ");
@@ -1134,8 +1134,8 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
             }
             else
             {
-                x = 0;
                 char pmptstr[(strlen(cmd_entry->arg1) + 3)];
+                x = 0;
 
                 strcpy(pmptstr, cmd_entry->arg1);
                 strcat(pmptstr, ": ");
@@ -1195,8 +1195,8 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
             }
             else
             {
-                x = 0;
                 char pmptstr[(strlen(cmd_entry->arg2) + 3)];
+                x = 0;
 
                 strcpy(pmptstr, cmd_entry->arg2);
                 strcat(pmptstr, ": ");
@@ -1256,8 +1256,8 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
             }
             else
             {
-                x = 0;
                 char pmptstr[(strlen(cmd_entry->arg3) + 3)];
+                x = 0;
 
                 strcpy(pmptstr, cmd_entry->arg3);
                 strcat(pmptstr, ": ");
@@ -1317,8 +1317,8 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
             }
             else
             {
-                x = 0;
                 char pmptstr[(strlen(cmd_entry->arg4) + 3)];
+                x = 0;
 
                 strcpy(pmptstr, cmd_entry->arg4);
                 strcat(pmptstr, ": ");
@@ -1798,6 +1798,8 @@ declare_proto_rot(move)
 /* 'C' */
 declare_proto_rot(inter_set_conf)
 {
+    char buf[256];
+
     rot_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     if (!arg2 || arg2[0] == '\0')
@@ -1807,7 +1809,6 @@ declare_proto_rot(inter_set_conf)
         return -RIG_EINVAL;
     }
 
-    char buf[256];
     sprintf(buf, "%s=%s", arg1, arg2);
     return set_conf(rot, buf);
 }

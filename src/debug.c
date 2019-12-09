@@ -84,6 +84,7 @@ void dump_hex(const unsigned char ptr[], size_t size)
 
     for (i = 0; i < size; ++i)
     {
+        char c;
         if (i % DUMP_HEX_WIDTH == 0)
         {
             /* new line */
@@ -91,7 +92,7 @@ void dump_hex(const unsigned char ptr[], size_t size)
             memset(line + 4, ' ', sizeof(line) - 4 - 1);
         }
 
-        char c = ptr[i];
+        c = ptr[i];
 
         /* hex print */
         sprintf(line + 8 + 3 * (i % DUMP_HEX_WIDTH), "%02x", c);
@@ -141,6 +142,7 @@ void HAMLIB_API rig_set_debug_time_stamp(int flag)
 
 char *date_strget(char *buf, int buflen)
 {
+    char tmp[16];
     time_t mytime;
     struct tm *mytm;
     struct timeval tv;
@@ -148,7 +150,6 @@ char *date_strget(char *buf, int buflen)
     mytm = gmtime(&mytime);
     gettimeofday(&tv, NULL);
     strftime(buf, buflen, "%Y-%m-%d:%H:%M:%S.", mytm);
-    char tmp[16];
     sprintf(tmp, "%06ld", (long)tv.tv_usec);
     strcat(buf, tmp);
     return buf;

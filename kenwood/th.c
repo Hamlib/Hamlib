@@ -52,6 +52,7 @@ th_decode_event(RIG *rig)
 {
     char asyncbuf[128];
     int retval;
+    int async_len;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
@@ -64,7 +65,7 @@ th_decode_event(RIG *rig)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: Decoding message\n", __func__);
 
-    size_t async_len = strlen(asyncbuf);
+    async_len = strlen(asyncbuf);
 
     if (async_len > 3 && asyncbuf[0] == 'B' && asyncbuf[1] == 'U'
             && asyncbuf[2] == 'F')
@@ -435,6 +436,7 @@ th_set_vfo(RIG *rig, vfo_t vfo)
     /* set band */
     if (vfo != RIG_VFO_MEM)
     {
+        int retval;
 
         switch (vfo)
         {
@@ -453,7 +455,7 @@ th_set_vfo(RIG *rig, vfo_t vfo)
             return kenwood_wrong_vfo(__func__, vfo);
         }
 
-        int retval = kenwood_simple_transaction(rig, cmd, 5);
+        retval = kenwood_simple_transaction(rig, cmd, 5);
 
         if (retval != RIG_OK)
         {
@@ -507,6 +509,7 @@ th_get_vfo_char(RIG *rig, vfo_t *vfo, char *vfoch)
 {
     char cmdbuf[10], buf[10], vfoc;
     int retval;
+    size_t length;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
@@ -519,7 +522,7 @@ th_get_vfo_char(RIG *rig, vfo_t *vfo, char *vfoch)
         return retval;
     }
 
-    size_t length = strlen(buf);
+    length = strlen(buf);
 
     switch (length)
     {
@@ -1695,6 +1698,7 @@ th_get_info(RIG *rig)
 {
     static char firmbuf[50];
     int retval;
+    size_t firm_len;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
@@ -1705,7 +1709,7 @@ th_get_info(RIG *rig)
         return NULL;
     }
 
-    size_t firm_len = strlen(firmbuf);
+    firm_len = strlen(firmbuf);
 
     if (firm_len < 3)
     {
@@ -2191,6 +2195,7 @@ int th_get_channel(RIG *rig, channel_t *chan)
     /* If not set already by special channels.. */
     if (chan->channel_desc[0] == '\0')
     {
+        size_t ack_len;
         if (chan_caps[1].type == RIG_MTYPE_PRIO)
         {
             sprintf(membuf, "MNA %sI-%01d", mr_extra, channel_num);
@@ -2208,7 +2213,7 @@ int th_get_channel(RIG *rig, channel_t *chan)
             return retval;
         }
 
-        size_t ack_len = strlen(ackbuf);
+        ack_len = strlen(ackbuf);
 
         if (ack_len > rig->caps->chan_desc_sz)
         {
@@ -2428,6 +2433,7 @@ int th_set_channel(RIG *rig, const channel_t *chan)
 
     if (chan_caps->mem_caps.flags && chan_caps->mem_caps.dcs_sql)
     {
+        int mode;
 
         if (!priv->mode_table)
         {
@@ -2436,7 +2442,7 @@ int th_set_channel(RIG *rig, const channel_t *chan)
             return -RIG_ENIMPL;
         }
 
-        int mode = rmode2kenwood(chan->mode, priv->mode_table);
+        mode = rmode2kenwood(chan->mode, priv->mode_table);
 
         if (mode == -1)
         {

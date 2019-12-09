@@ -508,9 +508,10 @@ int thg71_open(RIG *rig)
     for (i = 0; i < FRQRANGESIZ; i++)
     {
         freq_range_t frng;
+        char *stru;
 
         strl = strtok(NULL, ",");
-        char *stru = strtok(NULL, ",");
+        stru = strtok(NULL, ",");
 
         if (strl == NULL && stru == NULL)
         {

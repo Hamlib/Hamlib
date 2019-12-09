@@ -435,15 +435,10 @@ const struct rig_caps ts590sg_caps =
  */
 const char *ts590_get_info(RIG *rig)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return "*rig == NULL";
-    }
-
     char firmbuf[10];
     int retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     retval = kenwood_safe_transaction(rig, "TY", firmbuf, 10, 6);
 

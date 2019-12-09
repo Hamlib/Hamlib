@@ -128,8 +128,6 @@ int par_open(hamlib_port_t *port)
 {
     int fd;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
 #ifdef HAVE_LINUX_PPDEV_H
     int mode;
 #endif
@@ -137,6 +135,8 @@ int par_open(hamlib_port_t *port)
 #if defined (__WIN64__) || defined(__WIN32__)
     HANDLE handle;
 #endif
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!port->pathname[0])
     {
@@ -240,20 +240,24 @@ int par_close(hamlib_port_t *port)
  */
 int HAMLIB_API par_write_data(hamlib_port_t *port, unsigned char data)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
 #ifdef HAVE_LINUX_PPDEV_H
     int status;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
     status = ioctl(port->fd, PPWDATA, &data);
     return status == 0 ? RIG_OK : -RIG_EIO;
 #elif defined(HAVE_DEV_PPBUS_PPI_H)
     int status;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
     status = ioctl(port->fd, PPISDATA, &data);
     return status == 0 ? RIG_OK : -RIG_EIO;
 #elif defined(__WIN64__) || defined(__WIN32__)
     unsigned int dummy = 0;
 
     intptr_t handle;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
 
     handle = _get_osfhandle(port->fd);
 
@@ -281,14 +285,16 @@ int HAMLIB_API par_write_data(hamlib_port_t *port, unsigned char data)
  */
 int HAMLIB_API par_read_data(hamlib_port_t *port, unsigned char *data)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
 #ifdef HAVE_LINUX_PPDEV_H
     int status;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
     status = ioctl(port->fd, PPRDATA, data);
     return status == 0 ? RIG_OK : -RIG_EIO;
 #elif defined(HAVE_DEV_PPBUS_PPI_H)
     int status;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
     status = ioctl(port->fd, PPIGDATA, &data);
     return status == 0 ? RIG_OK : -RIG_EIO;
 #elif defined(__WIN64__) || defined(__WIN32__)
@@ -296,6 +302,8 @@ int HAMLIB_API par_read_data(hamlib_port_t *port, unsigned char *data)
     unsigned int dummy = 0;
 
     intptr_t handle;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     handle = _get_osfhandle(port->fd);
 
@@ -333,12 +341,12 @@ int HAMLIB_API par_read_data(hamlib_port_t *port, unsigned char *data)
  */
 int HAMLIB_API par_write_control(hamlib_port_t *port, unsigned char control)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
 #ifdef HAVE_LINUX_PPDEV_H
     int status;
     unsigned char ctrl = control ^ CP_ACTIVE_LOW_BITS;
     status = ioctl(port->fd, PPWCONTROL, &ctrl);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (status < 0)
     {
@@ -352,6 +360,8 @@ int HAMLIB_API par_write_control(hamlib_port_t *port, unsigned char control)
 #elif defined(HAVE_DEV_PPBUS_PPI_H)
     int status;
     unsigned char ctrl = control ^ CP_ACTIVE_LOW_BITS;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
     status = ioctl(port->fd, PPISCTRL, &ctrl);
     return status == 0 ? RIG_OK : -RIG_EIO;
 #elif defined(__WIN64__) || defined(__WIN32__)
@@ -363,6 +373,8 @@ int HAMLIB_API par_write_control(hamlib_port_t *port, unsigned char control)
                               | C1284_NINIT
                               | C1284_NSELECTIN);
     intptr_t handle;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (ctr & 0x20)
     {
@@ -409,11 +421,12 @@ int HAMLIB_API par_write_control(hamlib_port_t *port, unsigned char control)
  */
 int HAMLIB_API par_read_control(hamlib_port_t *port, unsigned char *control)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
 #ifdef HAVE_LINUX_PPDEV_H
     int status;
     unsigned char ctrl;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     status = ioctl(port->fd, PPRCONTROL, &ctrl);
 
     if (status < 0)
@@ -429,6 +442,8 @@ int HAMLIB_API par_read_control(hamlib_port_t *port, unsigned char *control)
 #elif defined(HAVE_DEV_PPBUS_PPI_H)
     int status;
     unsigned char ctrl;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     status = ioctl(port->fd, PPIGCTRL, &ctrl);
     *control = ctrl ^ CP_ACTIVE_LOW_BITS;
     return status == 0 ? RIG_OK : -RIG_EIO;
@@ -438,6 +453,7 @@ int HAMLIB_API par_read_control(hamlib_port_t *port, unsigned char *control)
 
     intptr_t handle;
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     handle = _get_osfhandle(port->fd);
 
     if (handle != (intptr_t)INVALID_HANDLE_VALUE)
@@ -476,12 +492,12 @@ int HAMLIB_API par_read_control(hamlib_port_t *port, unsigned char *control)
  */
 int HAMLIB_API par_read_status(hamlib_port_t *port, unsigned char *status)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
 #ifdef HAVE_LINUX_PPDEV_H
     int ret;
     unsigned char sta;
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     ret = ioctl(port->fd, PPRSTATUS, &sta);
     *status = sta ^ SP_ACTIVE_LOW_BITS;
     return ret == 0 ? RIG_OK : -RIG_EIO;
@@ -490,6 +506,7 @@ int HAMLIB_API par_read_status(hamlib_port_t *port, unsigned char *status)
     int ret;
     unsigned char sta;
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     ret = ioctl(port->fd, PPIGSTATUS, &sta);
     *status = sta ^ SP_ACTIVE_LOW_BITS;
     return ret == 0 ? RIG_OK : -RIG_EIO;
@@ -500,6 +517,7 @@ int HAMLIB_API par_read_status(hamlib_port_t *port, unsigned char *status)
 
     intptr_t handle;
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     handle = _get_osfhandle(port->fd);
 
     if (handle != (intptr_t)INVALID_HANDLE_VALUE)

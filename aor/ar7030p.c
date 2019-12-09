@@ -268,6 +268,8 @@ static int ar7030p_init(RIG *rig)
     }
     else
     {
+        int i;
+
         rig->state.priv = (void *) priv;
 
         rig->state.rigport.type.rig = RIG_PORT_SERIAL;
@@ -278,8 +280,6 @@ static int ar7030p_init(RIG *rig)
         memset(priv->parms, 0, RIG_SETTING_MAX * sizeof(value_t));
 
         memset(priv->mem, 0, sizeof(priv->mem));
-
-        int i;
 
         for (i = 0; i < NB_CHAN; i++)
         {
@@ -377,10 +377,10 @@ static int ar7030p_open(RIG *rig)
 
     if (RIG_OK == rc)
     {
+        int i;
+
         /* Load calibration table */
         rig->state.str_cal.size = rig->caps->str_cal.size;
-
-        int i;
 
         for (i = 0; i < rig->state.str_cal.size; i++)
         {
@@ -603,10 +603,10 @@ static int ar7030p_set_mode(RIG *rig, vfo_t vfo, rmode_t mode,
             }
             else
             {
+                int i;
+
                 /* TODO - get filter BWs at startup */
                 ar_filter = (unsigned char) 6;
-
-                int i;
 
                 for (i = 1; i <= 6; i++)
                 {
@@ -1632,6 +1632,8 @@ static int ar7030p_get_channel(RIG *rig, channel_t *chan)
 
     if (RIG_OK == rc)
     {
+        int i;
+
         /* Squelch values */
         /* TODO - fix magic numbers */
         if (100 > ch)
@@ -1703,8 +1705,6 @@ static int ar7030p_get_channel(RIG *rig, channel_t *chan)
 
         /* Memory ID values */
         p = (unsigned char *) chan->channel_desc;
-
-        int i;
 
         for (i = 0; i < 14; i++)
         {
