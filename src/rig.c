@@ -1093,7 +1093,7 @@ int HAMLIB_API rig_cleanup(RIG *rig)
 int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     const struct rig_caps *caps;
-    int retcode, rc2;
+    int retcode;
     vfo_t curr_vfo;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -1143,7 +1143,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
         retcode = caps->set_freq(rig, vfo, freq);
         /* try and revert even if we had an error above */
-        rc2 = caps->set_vfo(rig, curr_vfo);
+        int rc2 = caps->set_vfo(rig, curr_vfo);
 
         if (RIG_OK == retcode)
         {
@@ -1182,7 +1182,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     const struct rig_caps *caps;
-    int retcode, rc2;
+    int retcode;
     vfo_t curr_vfo;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -1221,7 +1221,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
         retcode = caps->get_freq(rig, vfo, freq);
         /* try and revert even if we had an error above */
-        rc2 = caps->set_vfo(rig, curr_vfo);
+        int rc2 = caps->set_vfo(rig, curr_vfo);
 
         if (RIG_OK == retcode)
         {
@@ -1273,7 +1273,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     const struct rig_caps *caps;
-    int retcode, rc2;
+    int retcode;
     vfo_t curr_vfo;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -1314,7 +1314,7 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
         retcode = caps->set_mode(rig, vfo, mode, width);
         /* try and revert even if we had an error above */
-        rc2 = caps->set_vfo(rig, curr_vfo);
+        int rc2 = caps->set_vfo(rig, curr_vfo);
 
         /* return the first error code */
         if (RIG_OK == retcode)
@@ -1359,7 +1359,7 @@ int HAMLIB_API rig_get_mode(RIG *rig,
                             pbwidth_t *width)
 {
     const struct rig_caps *caps;
-    int retcode, rc2;
+    int retcode;
     vfo_t curr_vfo;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -1400,7 +1400,7 @@ int HAMLIB_API rig_get_mode(RIG *rig,
 
         retcode = caps->get_mode(rig, vfo, mode, width);
         /* try and revert even if we had an error above */
-        rc2 = caps->set_vfo(rig, curr_vfo);
+        int rc2 = caps->set_vfo(rig, curr_vfo);
 
         if (RIG_OK == retcode)
         {
@@ -1676,7 +1676,6 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     const struct rig_caps *caps;
     struct rig_state *rs = &rig->state;
     int retcode = RIG_OK;
-    int rc2;
     vfo_t curr_vfo;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -1724,7 +1723,7 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
             {
                 retcode = caps->set_ptt(rig, vfo, ptt);
                 /* try and revert even if we had an error above */
-                rc2 = caps->set_vfo(rig, curr_vfo);
+                int rc2 = caps->set_vfo(rig, curr_vfo);
 
                 /* return the first error code */
                 if (RIG_OK == retcode)
