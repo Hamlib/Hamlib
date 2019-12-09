@@ -329,6 +329,9 @@ extern const struct rig_caps os535_caps;
 
 extern const struct rig_caps ic92d_caps;
 extern const struct rig_caps id1_caps;
+extern const struct rig_caps id31_caps;
+extern const struct rig_caps id51_caps;
+extern const struct rig_caps id4100_caps;
 extern const struct rig_caps id5100_caps;
 extern const struct rig_caps ic2730_caps;
 

@@ -320,7 +320,7 @@
 #define S_FUNC_MN	0x48		/* Manual notch setting */
 #define S_FUNC_RF	0x49		/* RTTY Filter setting */
 #define S_FUNC_AFC  	0x4A        	/* Auto Frequency Control (AFC) setting */
-#define S_FUNC_DSQL	0x4B		/* DTCS tone code squelch setting*/
+#define S_FUNC_CSQL	0x4B		/* DTCS tone code squelch setting*/
 #define S_FUNC_VSC	0x4C		/* voice squelch control useful for scanning*/
 #define S_FUNC_MANAGC	0x4D		/* manual AGC */
 #define S_FUNC_DIGISEL	0x4E		/* DIGI-SEL */
@@ -334,7 +334,7 @@
 #define S_FUNC_SSBT	0x58		/* SSB Tx bandwidth */
 #define S_FUNC_SUBB	0x59		/* Sub band */
 #define S_FUNC_SATM	0x5A		/* Satellite mode */
-#define S_FUNC_DSSQL	0x5B		/* D-STAR squelch */
+#define S_FUNC_DSSQL	0x5B		/* D-STAR DSQL */
 #define S_FUNC_DPSQL	0x5F		/* dPMR DSQL */
 #define S_FUNC_NXSQL	0x60		/* NXDN DSQL */
 #define S_FUNC_DCSQL	0x61		/* DCR DSQL */
