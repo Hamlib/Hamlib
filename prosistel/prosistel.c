@@ -198,6 +198,7 @@ static int prosistel_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     char data[20];
     float posval;
     int retval;
+    int n;
 
     num_sprintf(cmdstr, STX"A?"CR);
     retval = prosistel_transaction(rot, cmdstr, data, sizeof(data));
@@ -209,7 +210,7 @@ static int prosistel_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
     // Example response  of 100 azimuth
     // 02 41 2c 3f 2c 31 30 30 30 2c 52 0d   .A,?,1000,R.
-    int n = sscanf(data, "%*cA,?,%f,%*c.", &posval);
+    n = sscanf(data, "%*cA,?,%f,%*c.", &posval);
 
     if (n != 1)
     {

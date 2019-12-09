@@ -245,6 +245,7 @@ int icmarine_transaction(RIG *rig, const char *cmd, const char *param,
     char cmdbuf[BUFSZ + 1];
     char respbuf[BUFSZ + 1];
     char *p;
+    char *strip;
     int cmd_len = 0;
     unsigned csum = 0;
 
@@ -321,7 +322,7 @@ int icmarine_transaction(RIG *rig, const char *cmd, const char *param,
     }
 
     /* strip from *checksum and after */
-    char *strip = strrchr(respbuf, '*');
+    strip = strrchr(respbuf, '*');
 
     if (strip)
     {
@@ -572,9 +573,11 @@ int icmarine_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  */
 int icmarine_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
+    int retval;
+
     rig_debug(RIG_DEBUG_TRACE, "%s:\n", __func__);
 
-    int retval = icmarine_transaction(rig, CMD_PTT,
+    retval = icmarine_transaction(rig, CMD_PTT,
                                       ptt == RIG_PTT_ON ? "TX" : "RX", NULL);
 
     if (retval != RIG_OK)

@@ -222,32 +222,24 @@ const struct confparams kenwood_cfg_params[] =
 int kenwood_transaction(RIG *rig, const char *cmdstr, char *data,
                         size_t datasize)
 {
-    char buffer[KENWOOD_MAX_BUF_LEN]; /* use our own buffer since
+    char buffer[KENWOOD_MAX_BUF_LEN]; /* use our own buffer since 
                                        verification may need a longer
                                        buffer than the user supplied one */
+    char cmdtrm[2];  /* Default Command/Reply termination char */
+    int retval;
+    char *cmd;
+    int len;
+    int retry_read = 0;
+    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_caps *caps = kenwood_caps(rig);
+    struct rig_state *rs;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || (!cmdstr && !datasize) || (datasize && !data))
+    if ((!cmdstr && !datasize) || (datasize && !data))
     {
         return -RIG_EINVAL;
     }
-
-    struct kenwood_priv_data *priv = rig->state.priv;
-
-    struct kenwood_priv_caps *caps = kenwood_caps(rig);
-
-    struct rig_state *rs;
-
-    int retval;
-
-    char cmdtrm[2];  /* Default Command/Reply termination char */
-
-    char *cmd;
-
-    int len;
-
-    int retry_read = 0;
 
     rs = &rig->state;
 
@@ -508,15 +500,15 @@ transaction_quit:
 int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
                              size_t buf_size, size_t expected)
 {
+    int err;
+    int retry = 0;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !cmd)
+    if (!cmd)
     {
         return -RIG_EINVAL;
     }
-
-    int err;
-    int retry = 0;
 
     memset(buf, 0, buf_size);
 
@@ -527,6 +519,7 @@ int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
 
     do
     {
+        size_t length;
         err = kenwood_transaction(rig, cmd, buf, buf_size);
 
         if (err != RIG_OK)        /* return immediately on error as any
@@ -535,7 +528,7 @@ int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
             return err;
         }
 
-        size_t length = strlen(buf);
+        length = strlen(buf);
 
         if (length != expected) /* worth retrying as some rigs
                                    occasionally send short results */
@@ -586,16 +579,10 @@ char rmode2kenwood(rmode_t mode, const rmode_t mode_table[])
 
 int kenwood_init(RIG *rig)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called, version %s\n", __func__, BACKEND_VER);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     struct kenwood_priv_data *priv;
-
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called, version %s\n", __func__, BACKEND_VER);
 
     priv = malloc(sizeof(struct kenwood_priv_data));
 
@@ -632,11 +619,6 @@ int kenwood_cleanup(RIG *rig)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     free(rig->state.priv);
     rig->state.priv = NULL;
 
@@ -645,25 +627,18 @@ int kenwood_cleanup(RIG *rig)
 
 int kenwood_open(RIG *rig)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     struct kenwood_priv_data *priv = rig->state.priv;
-
     int err, i;
-
     char *idptr;
-
     char id[KENWOOD_MAX_BUF_LEN];
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (RIG_MODEL_TS590S == rig->caps->rig_model)
     {
         /* we need the firmware version for these rigs to deal with f/w defects */
         static char fw_version[7];
+        char *dot_pos;
 
         err = kenwood_transaction(rig, "FV", fw_version, sizeof(fw_version));
 
@@ -676,7 +651,7 @@ int kenwood_open(RIG *rig)
         /* store the data  after the "FV" which should be  a f/w version
            string of the form n.n e.g. 1.07 */
         priv->fw_rev = &fw_version[2];
-        char *dot_pos = strchr(fw_version, '.');
+        dot_pos = strchr(fw_version, '.');
 
         if (dot_pos)
         {
@@ -765,6 +740,9 @@ int kenwood_open(RIG *rig)
 
         if (kenwood_id_string_list[i].model == rig->caps->rig_model)
         {
+            int retval;
+            split_t split;
+            vfo_t tx_vfo;
             /* get current AI state so it can be restored */
             kenwood_get_trn(rig, &priv->trn_state);  /* ignore errors */
             /* Currently we cannot cope with AI mode so turn it off in
@@ -772,9 +750,7 @@ int kenwood_open(RIG *rig)
             kenwood_set_trn(rig, RIG_TRN_OFF); /* ignore status in case
                                             it's not supported */
             // call get_split to fill in current split and tx_vfo status
-            split_t split;
-            vfo_t tx_vfo;
-            int retval = kenwood_get_split_vfo_if(rig, RIG_VFO_A, &split, &tx_vfo);
+            retval = kenwood_get_split_vfo_if(rig, RIG_VFO_A, &split, &tx_vfo);
 
             if (retval != RIG_OK)
             {
@@ -805,11 +781,9 @@ int kenwood_open(RIG *rig)
 
 int kenwood_close(RIG *rig)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig) { return -RIG_EINVAL; }
-
     struct kenwood_priv_data *priv = rig->state.priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!no_restore_ai && priv->trn_state >= 0)
     {
@@ -832,11 +806,6 @@ int kenwood_get_id(RIG *rig, char *buf)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     return kenwood_transaction(rig, "ID", buf, KENWOOD_MAX_BUF_LEN);
 }
 
@@ -847,16 +816,10 @@ int kenwood_get_id(RIG *rig, char *buf)
  */
 static int kenwood_get_if(RIG *rig)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     struct kenwood_priv_data *priv = rig->state.priv;
-
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     return kenwood_safe_transaction(rig, "IF", priv->info,
                                     KENWOOD_MAX_BUF_LEN, caps->if_len);
@@ -870,14 +833,13 @@ static int kenwood_get_if(RIG *rig)
  */
 int kenwood_set_vfo(RIG *rig, vfo_t vfo)
 {
+    char cmdbuf[6];
+    int retval;
+    char vfo_function;
+    struct kenwood_priv_data *priv = rig->state.priv;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
-    struct kenwood_priv_data *priv = rig->state.priv;
 
     /* Emulations do not need to set VFO since VFOB is a copy of VFOA
      * except for frequency.  And we can change freq without changing VFOS
@@ -885,10 +847,6 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
      * We'll do this once if curr_mode has not been set yet
      */
     if (priv->is_emulation && priv->curr_mode > 0) { return RIG_OK; }
-
-    char cmdbuf[6];
-    int retval;
-    char vfo_function;
 
     switch (vfo)
     {
@@ -974,15 +932,10 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
  */
 int kenwood_set_vfo_main_sub(RIG *rig, vfo_t vfo)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     char cmdbuf[6];
     char vfo_function;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     switch (vfo)
     {
@@ -1018,7 +971,7 @@ int kenwood_get_vfo_main_sub(RIG *rig, vfo_t *vfo)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !vfo)
+    if (!vfo)
     {
         return -RIG_EINVAL;
     }
@@ -1038,20 +991,12 @@ int kenwood_get_vfo_main_sub(RIG *rig, vfo_t *vfo)
  */
 int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     struct kenwood_priv_data *priv = rig->state.priv;
-
     char cmdbuf[6];
-
     int retval;
-
     unsigned char vfo_function;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (RIG_MODEL_TS990S == rig->caps->rig_model)
     {
@@ -1159,18 +1104,11 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
  */
 int kenwood_set_split(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     struct kenwood_priv_data *priv = rig->state.priv;
-
     char cmdbuf[6];
-
     int retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     snprintf(cmdbuf, sizeof(cmdbuf), "SP%c", RIG_SPLIT_ON == split ? '1' : '0');
 
@@ -1198,16 +1136,17 @@ int kenwood_set_split(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split,
                              vfo_t *txvfo)
 {
+    int transmitting;
+    int retval;
+    struct kenwood_priv_data *priv = rig->state.priv;
+
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !split || !txvfo)
+    if (!split || !txvfo)
     {
         return -RIG_EINVAL;
     }
-
-    struct kenwood_priv_data *priv = rig->state.priv;
-
-    int retval;
 
     if (RIG_MODEL_TS990S == rig->caps->rig_model)
     {
@@ -1261,7 +1200,7 @@ int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split,
 
     /* find where is the txvfo.. */
     /* Elecraft info[30] does not track split VFO when transmitting */
-    int transmitting = '1' == priv->info[28]
+    transmitting = '1' == priv->info[28]
                        && RIG_MODEL_K2 != rig->caps->rig_model
                        && RIG_MODEL_K3 != rig->caps->rig_model;
 
@@ -1302,15 +1241,16 @@ int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split,
  */
 int kenwood_get_vfo_if(RIG *rig, vfo_t *vfo)
 {
+    int retval;
+    int split_and_transmitting;
+    struct kenwood_priv_data *priv = rig->state.priv;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !vfo)
+    if (!vfo)
     {
         return -RIG_EINVAL;
     }
-
-    int retval;
-    struct kenwood_priv_data *priv = rig->state.priv;
 
     retval = kenwood_get_if(rig);
 
@@ -1320,7 +1260,7 @@ int kenwood_get_vfo_if(RIG *rig, vfo_t *vfo)
     }
 
     /* Elecraft info[30] does not track split VFO when transmitting */
-    int split_and_transmitting =
+    split_and_transmitting =
         '1' == priv->info[28] /* transmitting */
         && '1' == priv->info[32]               /* split */
         && RIG_MODEL_K2 != rig->caps->rig_model
@@ -1358,19 +1298,13 @@ int kenwood_get_vfo_if(RIG *rig, vfo_t *vfo)
  */
 int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     char freqbuf[16];
     unsigned char vfo_letter = '\0';
     vfo_t tvfo;
     int err;
-
     struct kenwood_priv_data *priv = rig->state.priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     tvfo = (vfo == RIG_VFO_CURR
             || vfo == RIG_VFO_VFO) ? rig->state.current_vfo : vfo;
@@ -1464,18 +1398,16 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 int kenwood_get_freq_if(RIG *rig, vfo_t vfo, freq_t *freq)
 {
+    struct kenwood_priv_data *priv = rig->state.priv;
+    char freqbuf[50];
+    int retval;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !freq)
+    if (!freq)
     {
         return -RIG_EINVAL;
     }
-
-    struct kenwood_priv_data *priv = rig->state.priv;
-
-    char freqbuf[50];
-
-    int retval;
 
     retval = kenwood_get_if(rig);
 
@@ -1496,18 +1428,19 @@ int kenwood_get_freq_if(RIG *rig, vfo_t vfo, freq_t *freq)
  */
 int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !freq)
-    {
-        return -RIG_EINVAL;
-    }
-
     char freqbuf[50];
     char cmdbuf[4];
     int retval;
     unsigned char vfo_letter = '\0';
     vfo_t tvfo;
+    struct kenwood_priv_data *priv = rig->state.priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!freq)
+    {
+        return -RIG_EINVAL;
+    }
 
     tvfo = (vfo == RIG_VFO_CURR
             || vfo == RIG_VFO_VFO) ? rig->state.current_vfo : vfo;
@@ -1519,8 +1452,6 @@ int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
         if (RIG_OK != retval) { return retval; }
     }
-
-    struct kenwood_priv_data *priv = rig->state.priv;
 
     /* memory frequency cannot be read with an Fx command, use IF */
     if (tvfo == RIG_VFO_MEM)
@@ -1572,16 +1503,16 @@ int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 int kenwood_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !rit)
-    {
-        return -RIG_EINVAL;
-    }
-
     int retval;
     char buf[6];
     struct kenwood_priv_data *priv = rig->state.priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!rit)
+    {
+        return -RIG_EINVAL;
+    }
 
     retval = kenwood_get_if(rig);
 
@@ -1603,15 +1534,10 @@ int kenwood_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
  */
 int kenwood_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     char buf[4];
     int retval, i;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (rit == 0)
     {
@@ -1642,11 +1568,6 @@ int kenwood_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !rit)
-    {
-        return -RIG_EINVAL;
-    }
-
     return kenwood_get_rit(rig, vfo, rit);
 }
 
@@ -1654,22 +1575,12 @@ int kenwood_set_xit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     return kenwood_set_rit(rig, vfo, rit);
 }
 
 int kenwood_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
 
     if (RIG_MODEL_TS990S == rig->caps->rig_model)
     {
@@ -1695,14 +1606,9 @@ int kenwood_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 /* XXX revise */
 static int kenwood_set_filter(RIG *rig, pbwidth_t width)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     char *cmd;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (width <= Hz(250))
     {
@@ -1733,24 +1639,16 @@ static int kenwood_set_filter(RIG *rig, pbwidth_t width)
  */
 int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
+    char c;
+    char kmode;
+    char buf[6];
+    char data_mode = '0';
+    int err;
     struct kenwood_priv_data *priv = rig->state.priv;
-
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
 
-    char buf[6];
 
-    char kmode;
-
-    int err;
-
-    char data_mode = '0';
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (RIG_MODEL_TS590S == rig->caps->rig_model
             || RIG_MODEL_TS590SG == rig->caps->rig_model)
@@ -1794,8 +1692,6 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                   __func__, rig_strrmode(mode));
         return -RIG_EINVAL;
     }
-
-    char c;
 
     if (kmode <= 9)
     {
@@ -1883,15 +1779,15 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 static int kenwood_get_filter(RIG *rig, pbwidth_t *width)
 {
+    int err, f, f1, f2;
+    char buf[10];
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !width)
+    if (!width)
     {
         return -RIG_EINVAL;
     }
-
-    int err, f, f1, f2;
-    char buf[10];
 
     err = kenwood_safe_transaction(rig, "FL", buf, sizeof(buf), 8);
 
@@ -1946,24 +1842,21 @@ static int kenwood_get_filter(RIG *rig, pbwidth_t *width)
  */
 int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
+    char cmd[4];
+    char modebuf[10];
+    int offs;
+    int retval;
+    int kmode;
+
+    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_caps *caps = kenwood_caps(rig);
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !mode || !width)
+    if (!mode || !width)
     {
         return -RIG_EINVAL;
     }
-
-    struct kenwood_priv_data *priv = rig->state.priv;
-
-    struct kenwood_priv_caps *caps = kenwood_caps(rig);
-
-    char cmd[4];
-
-    char modebuf[10];
-
-    int offs;
-
-    int retval;
 
     /* for emulation do not read mode from VFOB as it is copy of VFOA */
     /* we avoid the VFO swapping most of the time this way */
@@ -2011,8 +1904,6 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     {
         return retval;
     }
-
-    int kmode;
 
     if (modebuf[offs] <= '9')
     {
@@ -2069,16 +1960,16 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 /* This is used when the radio does not support MD; for mode reading */
 int kenwood_get_mode_if(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !mode || !width)
-    {
-        return -RIG_EINVAL;
-    }
-
     int err;
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
     struct kenwood_priv_data *priv = rig->state.priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!mode || !width)
+    {
+        return -RIG_EINVAL;
+    }
 
     err = kenwood_get_if(rig);
 
@@ -2106,15 +1997,10 @@ int kenwood_get_mode_if(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     char levelbuf[16];
     int i, kenwood_val;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (RIG_LEVEL_IS_FLOAT(level))
     {
@@ -2260,17 +2146,17 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
 int get_kenwood_level(RIG *rig, const char *cmd, float *f)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !cmd || !f)
-    {
-        return -RIG_EINVAL;
-    }
-
     char lvlbuf[10];
     int retval;
     int lvl;
     int len = strlen(cmd);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!cmd || !f)
+    {
+        return -RIG_EINVAL;
+    }
 
     retval = kenwood_safe_transaction(rig, cmd, lvlbuf, 10, len + 3);
 
@@ -2291,18 +2177,18 @@ int get_kenwood_level(RIG *rig, const char *cmd, float *f)
  */
 int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !val)
-    {
-        return -RIG_EINVAL;
-    }
-
     char lvlbuf[KENWOOD_MAX_BUF_LEN];
     char *cmd;
     int retval;
     int lvl;
     int i, ret, agclevel, len;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!val)
+    {
+        return -RIG_EINVAL;
+    }
 
     switch (level)
     {
@@ -2544,14 +2430,8 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 int kenwood_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     char buf[10]; /* longest cmd is GTxxx */
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     switch (func)
     {
@@ -2675,17 +2555,16 @@ int kenwood_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
  */
 int get_kenwood_func(RIG *rig, const char *cmd, int *status)
 {
+    int retval;
+    char buf[10];
+    int offset = 2;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !cmd || !status)
+    if (!cmd || !status)
     {
         return -RIG_EINVAL;
     }
-
-    int retval;
-    char buf[10];
-
-    int offset = 2;
 
     if (strlen(cmd) == 3) { offset = 3; } // some commands are 3 letters
 
@@ -2707,15 +2586,15 @@ int get_kenwood_func(RIG *rig, const char *cmd, int *status)
 int kenwood_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
     char *cmd;
+    char fctbuf[20];
+    int retval;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !status)
+    if (!status)
     {
         return -RIG_EINVAL;
     }
-
-    char fctbuf[20];
-    int retval;
 
     switch (func)
     {
@@ -2809,16 +2688,11 @@ int kenwood_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
  */
 int kenwood_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     const struct rig_caps *caps;
     char tonebuf[16];
     int i;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     caps = rig->caps;
 
@@ -2843,16 +2717,11 @@ int kenwood_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 
 int kenwood_set_ctcss_tone_tn(RIG *rig, vfo_t vfo, tone_t tone)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     const struct rig_caps *caps = rig->caps;
     char buf[6];
     int i;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     for (i = 0; caps->ctcss_list[i] != 0; i++)
     {
@@ -2908,22 +2777,18 @@ int kenwood_set_ctcss_tone_tn(RIG *rig, vfo_t vfo, tone_t tone)
  */
 int kenwood_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 {
+    struct kenwood_priv_data *priv = rig->state.priv;
+    const struct rig_caps *caps;
+    char tonebuf[3];
+    int i, retval;
+    unsigned int tone_idx;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !tone)
+    if (!tone)
     {
         return -RIG_EINVAL;
     }
-
-    struct kenwood_priv_data *priv = rig->state.priv;
-
-    const struct rig_caps *caps;
-
-    char tonebuf[3];
-
-    int i, retval;
-
-    unsigned int tone_idx;
 
     caps = rig->caps;
 
@@ -2995,16 +2860,11 @@ int kenwood_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 
 int kenwood_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     const struct rig_caps *caps = rig->caps;
     char buf[6];
     int i;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     for (i = 0; caps->ctcss_list[i] != 0; i++)
     {
@@ -3056,19 +2916,19 @@ int kenwood_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 
 int kenwood_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !tone)
-    {
-        return -RIG_EINVAL;
-    }
-
     const struct rig_caps *caps;
     char cmd[4];
     char tonebuf[6];
     int offs;
     int i, retval;
     unsigned int tone_idx;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!tone)
+    {
+        return -RIG_EINVAL;
+    }
 
     caps = rig->caps;
 
@@ -3142,15 +3002,10 @@ int kenwood_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
  */
 int kenwood_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     char cmd[8];
     char a;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     switch (ant)
     {
@@ -3203,14 +3058,9 @@ int kenwood_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
 
 int kenwood_set_ant_no_ack(RIG *rig, vfo_t vfo, ant_t ant)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     const char *cmd;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     switch (ant)
     {
@@ -3242,16 +3092,16 @@ int kenwood_set_ant_no_ack(RIG *rig, vfo_t vfo, ant_t ant)
  */
 int kenwood_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !ant)
-    {
-        return -RIG_EINVAL;
-    }
-
     char ackbuf[8];
     int offs;
     int retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!ant)
+    {
+        return -RIG_EINVAL;
+    }
 
     if (RIG_MODEL_TS990S == rig->caps->rig_model)
     {
@@ -3286,16 +3136,15 @@ int kenwood_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
  */
 int kenwood_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
+    struct kenwood_priv_data *priv = rig->state.priv;
+    int retval;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !ptt)
+    if (!ptt)
     {
         return -RIG_EINVAL;
     }
-
-    struct kenwood_priv_data *priv = rig->state.priv;
-
-    int retval;
 
     retval = kenwood_get_if(rig);
 
@@ -3314,11 +3163,6 @@ int kenwood_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     const char *ptt_cmd;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
 
     switch (ptt)
     {
@@ -3356,15 +3200,10 @@ int kenwood_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
 int kenwood_set_ptt_safe(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     int err;
     ptt_t current_ptt;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     err = kenwood_get_ptt(rig, vfo, &current_ptt);
 
@@ -3388,15 +3227,16 @@ int kenwood_set_ptt_safe(RIG *rig, vfo_t vfo, ptt_t ptt)
  */
 int kenwood_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
+    char busybuf[10];
+    int retval;
+    int offs = 2;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !dcd)
+    if (!dcd)
     {
         return -RIG_EINVAL;
     }
-
-    char busybuf[10];
-    int retval;
 
     retval = kenwood_safe_transaction(rig, "BY", busybuf, 10, 3);
 
@@ -3404,8 +3244,6 @@ int kenwood_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
     {
         return retval;
     }
-
-    int offs = 2;
 
     if (RIG_MODEL_TS990S == rig->caps->rig_model && RIG_VFO_SUB == vfo)
     {
@@ -3423,11 +3261,6 @@ int kenwood_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 int kenwood_set_trn(RIG *rig, int trn)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
 
     switch (rig->caps->rig_model)
     {
@@ -3451,9 +3284,12 @@ int kenwood_set_trn(RIG *rig, int trn)
  */
 int kenwood_get_trn(RIG *rig, int *trn)
 {
+    char trnbuf[6];
+    int retval;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !trn)
+    if (!trn)
     {
         return -RIG_EINVAL;
     }
@@ -3467,9 +3303,6 @@ int kenwood_get_trn(RIG *rig, int *trn)
     {
         return -RIG_ENAVAIL;
     }
-
-    char trnbuf[6];
-    int retval;
 
     if (rig->caps->rig_model == RIG_MODEL_THD74)
     {
@@ -3502,25 +3335,18 @@ int kenwood_get_trn(RIG *rig, int *trn)
  */
 int kenwood_set_powerstat(RIG *rig, powerstat_t status)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called status=%d\n", __func__, status);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
-    int retval = kenwood_transaction(rig, (status == RIG_POWER_ON) ? "PS1" : "PS0",
-                                     NULL, 0);
-
+    int retval = kenwood_transaction(rig, (status == RIG_POWER_ON) ? "PS1" : "PS0", NULL, 0);
     int i = 0;
     int retry = 3 / rig->state.rigport.retry;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called status=%d\n", __func__, status);
 
     if (status == RIG_POWER_ON) // wait for wakeup only
     {
         for (i = 0; i < retry; ++i) // up to 10 seconds
         {
-            sleep(1);
             freq_t freq;
+            sleep(1);
             retval = rig_get_freq(rig, RIG_VFO_A, &freq);
 
             if (retval == RIG_OK) { return retval; }
@@ -3546,15 +3372,15 @@ int kenwood_set_powerstat(RIG *rig, powerstat_t status)
  */
 int kenwood_get_powerstat(RIG *rig, powerstat_t *status)
 {
+    char pwrbuf[6];
+    int retval;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !status)
+    if (!status)
     {
         return -RIG_EINVAL;
     }
-
-    char pwrbuf[6];
-    int retval;
 
     retval = kenwood_safe_transaction(rig, "PS", pwrbuf, 6, 3);
 
@@ -3573,15 +3399,10 @@ int kenwood_get_powerstat(RIG *rig, powerstat_t *status)
  */
 int kenwood_reset(RIG *rig, reset_t reset)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     char rstbuf[6];
     char rst;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (RIG_MODEL_TS990S == rig->caps->rig_model)
     {
@@ -3627,22 +3448,23 @@ int kenwood_reset(RIG *rig, reset_t reset)
  */
 int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !msg)
-    {
-        return -RIG_EINVAL;
-    }
-
     char morsebuf[40], m2[30];
     int msg_len, retval, i;
     const char *p;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!msg)
+    {
+        return -RIG_EINVAL;
+    }
 
     p = msg;
     msg_len = strlen(msg);
 
     while (msg_len > 0)
     {
+        int buff_len;
         /*
          * Check with "KY" if char buffer is available.
          * if not, sleep.
@@ -3667,7 +3489,7 @@ int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
             else { return -RIG_EINVAL; }
         }
 
-        int buff_len = msg_len > 24 ? 24 : msg_len;
+        buff_len = msg_len > 24 ? 24 : msg_len;
 
         strncpy(m2, p, 24);
         m2[24] = '\0';
@@ -3718,11 +3540,6 @@ int kenwood_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     switch (op)
     {
     case RIG_OP_UP:
@@ -3749,14 +3566,9 @@ int kenwood_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
  */
 int kenwood_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     char buf[7];
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (RIG_MODEL_TS990S == rig->caps->rig_model)
     {
@@ -3803,17 +3615,17 @@ int kenwood_set_mem(RIG *rig, vfo_t vfo, int ch)
  */
 int kenwood_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !ch)
-    {
-        return -RIG_EINVAL;
-    }
-
     char cmd[4];
     char membuf[10];
     int offs;
     int retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!ch)
+    {
+        return -RIG_EINVAL;
+    }
 
     if (RIG_MODEL_TS990S == rig->caps->rig_model)
     {
@@ -3866,16 +3678,16 @@ int kenwood_get_mem(RIG *rig, vfo_t vfo, int *ch)
 
 int kenwood_get_mem_if(RIG *rig, vfo_t vfo, int *ch)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !ch)
-    {
-        return -RIG_EINVAL;
-    }
-
     int err;
     char buf[4];
     struct kenwood_priv_data *priv = rig->state.priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!ch)
+    {
+        return -RIG_EINVAL;
+    }
 
     err = kenwood_get_if(rig);
 
@@ -3894,20 +3706,20 @@ int kenwood_get_mem_if(RIG *rig, vfo_t vfo, int *ch)
 
 int kenwood_get_channel(RIG *rig, channel_t *chan)
 {
+    int err;
+    char buf[26];
+    char cmd[8];
+    char bank = ' ';
+    struct kenwood_priv_caps *caps = kenwood_caps(rig);
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !chan)
+    if (!chan)
     {
         return -RIG_EINVAL;
     }
 
-    int err;
-    char buf[26];
-    char cmd[8];
-    struct kenwood_priv_caps *caps = kenwood_caps(rig);
-
     /* put channel num in the command string */
-    char bank = ' ';
 
     if (rig->caps->rig_model == RIG_MODEL_TS940)
     {
@@ -4006,19 +3818,19 @@ int kenwood_get_channel(RIG *rig, channel_t *chan)
 
 int kenwood_set_channel(RIG *rig, const channel_t *chan)
 {
+    char buf[128];
+    char mode, tx_mode = 0;
+    char bank = ' ';
+    int err;
+    int tone = 0;
+    struct kenwood_priv_caps *caps = kenwood_caps(rig);
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !chan)
+    if (!chan)
     {
         return -RIG_EINVAL;
     }
-
-    char buf[128];
-    char mode, tx_mode = 0;
-    int err;
-    int tone = 0;
-
-    struct kenwood_priv_caps *caps = kenwood_caps(rig);
 
     mode = rmode2kenwood(chan->mode, caps->mode_table);
 
@@ -4060,8 +3872,6 @@ int kenwood_set_channel(RIG *rig, const channel_t *chan)
         }
     }
 
-    char bank = ' ';
-
     if (rig->caps->rig_model == RIG_MODEL_TS940)
     {
         bank = '0' + chan->bank_num;
@@ -4099,14 +3909,9 @@ int kenwood_set_channel(RIG *rig, const channel_t *chan)
 
 int kenwood_set_ext_parm(RIG *rig, token_t token, value_t val)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     char buf[4];
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     switch (token)
     {
@@ -4131,15 +3936,15 @@ int kenwood_set_ext_parm(RIG *rig, token_t token, value_t val)
 
 int kenwood_get_ext_parm(RIG *rig, token_t token, value_t *val)
 {
+    int err;
+    struct kenwood_priv_data *priv = rig->state.priv;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !val)
+    if (!val)
     {
         return -RIG_EINVAL;
     }
-
-    int err;
-    struct kenwood_priv_data *priv = rig->state.priv;
 
     switch (token)
     {
@@ -4178,15 +3983,15 @@ int kenwood_get_ext_parm(RIG *rig, token_t token, value_t *val)
  */
 const char *kenwood_get_info(RIG *rig)
 {
+    char firmbuf[10];
+    int retval;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!rig)
     {
         return "*rig == NULL";
     }
-
-    char firmbuf[10];
-    int retval;
 
     retval = kenwood_safe_transaction(rig, "TY", firmbuf, 10, 5);
 
@@ -4219,13 +4024,13 @@ const char *kenwood_get_info(RIG *rig)
  */
 DECLARE_PROBERIG_BACKEND(kenwood)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
     char idbuf[IDBUFSZ];
     int id_len = -1, i, k_id;
     int retval = -1;
     int rates[] = { 115200, 57600, 38400, 19200, 9600, 4800, 1200, 0 }; /* possible baud rates */
     int rates_idx;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!port)
     {

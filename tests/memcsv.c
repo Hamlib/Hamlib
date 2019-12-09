@@ -271,6 +271,7 @@ static char *mystrtok(char *s, char delim)
 {
     static size_t pos = 0, length = 0;
     static char *str = 0;
+    size_t i, ent_pos;
 
     if (s != NULL)
     {
@@ -287,7 +288,7 @@ static char *mystrtok(char *s, char delim)
         return NULL;
     }
 
-    size_t i, ent_pos = pos;
+    ent_pos = pos;
 
     for (i = pos; i < length;)
     {
@@ -729,6 +730,7 @@ int set_channel_data(RIG *rig,
 {
 
     int i, j, n;
+    const channel_cap_t *mem_caps;
 
     memset(chan, 0, sizeof(channel_t));
     chan->vfo = RIG_VFO_CURR;
@@ -754,7 +756,7 @@ int set_channel_data(RIG *rig,
 
     printf("Requested channel number %d, list number %d\n", n, j);
 
-    const channel_cap_t *mem_caps = &rig->state.chan_list[j].mem_caps;
+    mem_caps = &rig->state.chan_list[j].mem_caps;
 
     if (mem_caps->bank_num)
     {

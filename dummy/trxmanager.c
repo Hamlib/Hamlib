@@ -236,13 +236,14 @@ static int vfo_curr(RIG *rig, vfo_t vfo)
  */
 static int read_transaction(RIG *rig, char *response, int response_len)
 {
+    struct rig_state *rs = &rig->state;
+    char *delims = "\n";
+    int len;
+
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
 
-    struct rig_state *rs = &rig->state;
-
-    char *delims = "\n";
-    int len = read_string(&rs->rigport, response, response_len, delims,
-                          strlen(delims));
+    len = read_string(&rs->rigport, response, response_len, delims,
+                      strlen(delims));
 
     if (len <= 0)
     {
@@ -259,11 +260,10 @@ static int read_transaction(RIG *rig, char *response, int response_len)
  */
 static int trxmanager_init(RIG *rig)
 {
-
-    rig_debug(RIG_DEBUG_TRACE, "%s version %s\n", __func__, BACKEND_VER);
-
     struct trxmanager_priv_data *priv = (struct trxmanager_priv_data *)malloc(
                                             sizeof(struct trxmanager_priv_data));
+
+    rig_debug(RIG_DEBUG_TRACE, "%s version %s\n", __func__, BACKEND_VER);
 
     if (!priv)
     {
@@ -297,13 +297,13 @@ static int trxmanager_init(RIG *rig)
 static int trxmanager_open(RIG *rig)
 {
     int retval;
+    char *cmd;
     char response[MAXCMDLEN] = "";
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s version %s\n", __func__, BACKEND_VER);
-
     struct rig_state *rs = &rig->state;
     struct trxmanager_priv_data *priv = (struct trxmanager_priv_data *)
                                         rig->state.priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s version %s\n", __func__, BACKEND_VER);
 
     rs->rigport.timeout = 10000; // long timeout for antenna switching/tuning
     retval = read_transaction(rig, response, sizeof(response));
@@ -325,7 +325,7 @@ static int trxmanager_open(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s connected to %s\n", __func__, priv->info);
 
     // Turn off active messages
-    char *cmd = "AI0;";
+    cmd = "AI0;";
     retval = write_block(&rs->rigport, cmd, strlen(cmd));
 
     if (retval < 0)
@@ -404,13 +404,16 @@ static int trxmanager_cleanup(RIG *rig)
 static int trxmanager_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     int retval;
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
-              rig_strvfo(vfo));
-
+    int n;
+    char vfoab;
+    char cmd[MAXCMDLEN];
+    char response[MAXCMDLEN] = "";
     struct rig_state *rs = &rig->state;
     struct trxmanager_priv_data *priv = (struct trxmanager_priv_data *)
                                         rig->state.priv;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
+              rig_strvfo(vfo));
 
     if (check_vfo(vfo) == FALSE)
     {
@@ -432,9 +435,7 @@ static int trxmanager_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
                   __func__, rig_strvfo(vfo));
     }
 
-    char cmd[MAXCMDLEN];
-    char response[MAXCMDLEN] = "";
-    char vfoab = vfo == RIG_VFO_A ? 'R' : 'T';
+    vfoab = vfo == RIG_VFO_A ? 'R' : 'T';
     snprintf(cmd, sizeof(cmd), "X%c;", vfoab);
     retval = write_block(&rs->rigport, cmd, strlen(cmd));
 
@@ -451,7 +452,7 @@ static int trxmanager_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
 
     *freq = 0;
-    int n = sscanf(&response[2], "%lg", freq);
+    n = sscanf(&response[2], "%lg", freq);
 
     if (n != 1)
     {
@@ -474,13 +475,16 @@ static int trxmanager_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 static int trxmanager_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     int retval;
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s freq=%.1f\n", __func__,
-              rig_strvfo(vfo), freq);
-
+    char vfoab;
+    char cmd[MAXCMDLEN];
+    char response[MAXCMDLEN] = "";
     struct rig_state *rs = &rig->state;
     struct trxmanager_priv_data *priv = (struct trxmanager_priv_data *)
                                         rig->state.priv;
+
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s freq=%.1f\n", __func__,
+              rig_strvfo(vfo), freq);
 
     if (check_vfo(vfo) == FALSE)
     {
@@ -501,9 +505,7 @@ static int trxmanager_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         vfo = RIG_VFO_B; // if split always TX on VFOB
     }
 
-    char cmd[MAXCMDLEN];
-    char response[MAXCMDLEN] = "";
-    char vfoab = vfo == RIG_VFO_A ? 'A' : 'B';
+    vfoab = vfo == RIG_VFO_A ? 'A' : 'B';
     snprintf(cmd, sizeof(cmd), "F%c%011lu;", vfoab, (unsigned long)freq);
     retval = write_block(&rs->rigport, cmd, strlen(cmd));
 
@@ -530,10 +532,11 @@ static int trxmanager_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 static int trxmanager_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     int retval;
+    char cmd[MAXCMDLEN];
+    char response[MAXCMDLEN] = "";
+    struct rig_state *rs = &rig->state;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: ptt=%d\n", __func__, ptt);
-
-    struct rig_state *rs = &rig->state;
 
     if (check_vfo(vfo) == FALSE)
     {
@@ -541,9 +544,6 @@ static int trxmanager_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
                   __func__, rig_strvfo(vfo));
         return -RIG_EINVAL;
     }
-
-    char cmd[MAXCMDLEN];
-    char response[MAXCMDLEN] = "";
 
     snprintf(cmd, sizeof(cmd), "%s;", ptt == 1 ? "TX" : "RX");
     retval = write_block(&rs->rigport, cmd, strlen(cmd));
@@ -576,14 +576,14 @@ static int trxmanager_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 static int trxmanager_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
     int retval;
+    char cptt;
+    char cmd[MAXCMDLEN];
+    char response[MAXCMDLEN] = "";
+    struct rig_state *rs = &rig->state;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
               rig_strvfo(vfo));
 
-    struct rig_state *rs = &rig->state;
-
-    char cmd[MAXCMDLEN];
-    char response[MAXCMDLEN] = "";
     snprintf(cmd, sizeof(cmd), "IF;");
     retval = write_block(&rs->rigport, cmd, strlen(cmd));
 
@@ -607,7 +607,7 @@ static int trxmanager_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: IF response len=%d\n", __func__,
               (int)strlen(response));
-    char cptt = response[28];
+    cptt = response[28];
     *ptt = cptt == '0' ? 0 : 1;
 
     return RIG_OK;
@@ -635,11 +635,13 @@ static int trxmanager_set_mode(RIG *rig, vfo_t vfo, rmode_t mode,
                                pbwidth_t width)
 {
     int retval;
+    char ttmode;
+    char cmd[MAXCMDLEN];
+    char response[MAXCMDLEN] = "";
+    struct rig_state *rs = &rig->state;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s mode=%s width=%d\n",
               __func__, rig_strvfo(vfo), rig_strrmode(mode), (int)width);
-
-    struct rig_state *rs = &rig->state;
 
     if (check_vfo(vfo) == FALSE)
     {
@@ -648,7 +650,7 @@ static int trxmanager_set_mode(RIG *rig, vfo_t vfo, rmode_t mode,
         return -RIG_EINVAL;
     }
 
-    char ttmode = FLRIG_MODE_USB;
+    ttmode = FLRIG_MODE_USB;
 
     switch (mode)
     {
@@ -707,8 +709,6 @@ static int trxmanager_set_mode(RIG *rig, vfo_t vfo, rmode_t mode,
 
     }
 
-    char cmd[MAXCMDLEN];
-    char response[MAXCMDLEN] = "";
     snprintf(cmd, sizeof(cmd), "MD%c;", ttmode);
     retval = write_block(&rs->rigport, cmd, strlen(cmd));
 
@@ -740,13 +740,17 @@ static int trxmanager_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
                                pbwidth_t *width)
 {
     int retval;
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
-              rig_strvfo(vfo));
-
+    int n;
+    long iwidth = 0;
+    char tmode;
+    char cmd[MAXCMDLEN];
+    char response[MAXCMDLEN] = "";
     struct rig_state *rs = &rig->state;
     struct trxmanager_priv_data *priv = (struct trxmanager_priv_data *)
                                         rig->state.priv;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
+              rig_strvfo(vfo));
 
     if (check_vfo(vfo) == FALSE)
     {
@@ -768,8 +772,6 @@ static int trxmanager_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
     rig_debug(RIG_DEBUG_TRACE, "%s: using vfo=%s\n", __func__,
               rig_strvfo(vfo));
 
-    char cmd[MAXCMDLEN];
-    char response[MAXCMDLEN] = "";
     snprintf(cmd, sizeof(cmd), "MD;");
     retval = write_block(&rs->rigport, cmd, strlen(cmd));
 
@@ -785,8 +787,7 @@ static int trxmanager_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
         rig_debug(RIG_DEBUG_ERR, "%s read_transaction failed\n", __func__);
     }
 
-    char tmode;
-    int n = sscanf(response, "MD%c;", &tmode);
+    n = sscanf(response, "MD%c;", &tmode);
 
     if (n != 1 || strlen(response) != 6)
     {
@@ -865,7 +866,6 @@ static int trxmanager_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
         return -RIG_EPROTO;
     }
 
-    long iwidth = 0;
     n = sscanf(response, "BW%ld;", &iwidth);
 
     if (n != 1)
@@ -883,13 +883,15 @@ static int trxmanager_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
 static int trxmanager_set_vfo(RIG *rig, vfo_t vfo)
 {
     int retval;
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
-              rig_strvfo(vfo));
-
+    char cmd[MAXCMDLEN];
+    char response[MAXCMDLEN] = "";
     struct rig_state *rs = &rig->state;
     struct trxmanager_priv_data *priv = (struct trxmanager_priv_data *)
                                         rig->state.priv;
+
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
+              rig_strvfo(vfo));
 
     if (check_vfo(vfo) == FALSE)
     {
@@ -909,8 +911,6 @@ static int trxmanager_set_vfo(RIG *rig, vfo_t vfo)
         vfo = priv->vfo_curr;
     }
 
-    char cmd[MAXCMDLEN];
-    char response[MAXCMDLEN] = "";
     snprintf(cmd, sizeof(cmd), "FN%d;", vfo == RIG_VFO_A ? 0 : 1);
     retval = write_block(&rs->rigport, cmd, strlen(cmd));
 
@@ -936,13 +936,14 @@ static int trxmanager_get_vfo(RIG *rig, vfo_t *vfo)
     // TRXManager does not swap vfos
     // So we maintain our own internal state during set_vfo
     // This keeps the hamlib interface consistent with other rigs
+    struct trxmanager_priv_data *priv = (struct trxmanager_priv_data *)
+                                        rig->state.priv;
+    char vfoab;
+
 
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
 
-    struct trxmanager_priv_data *priv = (struct trxmanager_priv_data *)
-                                        rig->state.priv;
-
-    char vfoab = priv->vfo_curr;
+    vfoab = priv->vfo_curr;
 
     switch (vfoab)
     {
@@ -981,11 +982,12 @@ static int trxmanager_get_vfo(RIG *rig, vfo_t *vfo)
 static int trxmanager_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
     int retval;
+    char cmd[MAXCMDLEN];
+    char response[MAXCMDLEN] = "";
+    struct rig_state *rs = &rig->state;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s freq=%.1f\n", __func__,
               rig_strvfo(vfo), tx_freq);
-
-    struct rig_state *rs = &rig->state;
 
     if (check_vfo(vfo) == FALSE)
     {
@@ -994,8 +996,6 @@ static int trxmanager_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
         return -RIG_EINVAL;
     }
 
-    char cmd[MAXCMDLEN];
-    char response[MAXCMDLEN] = "";
     snprintf(cmd, sizeof(cmd), "XT%011lu;", (unsigned long) tx_freq);
     retval = write_block(&rs->rigport, cmd, strlen(cmd));
 
@@ -1021,9 +1021,10 @@ static int trxmanager_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
  */
 static int trxmanager_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
+    int retval;
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
               rig_strvfo(vfo));
-    int retval = trxmanager_get_freq(rig, RIG_VFO_B, tx_freq);
+    retval = trxmanager_get_freq(rig, RIG_VFO_B, tx_freq);
     return retval;
 }
 
@@ -1035,11 +1036,14 @@ static int trxmanager_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
                                     vfo_t tx_vfo)
 {
     int retval;
+    char cmd[MAXCMDLEN];
+    char response[MAXCMDLEN] = "";
+    split_t tsplit;
+    vfo_t ttx_vfo;
+    struct rig_state *rs = &rig->state;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: tx_vfo=%s\n", __func__,
               rig_strvfo(tx_vfo));
-
-    struct rig_state *rs = &rig->state;
 
     if (tx_vfo == RIG_VFO_SUB || tx_vfo == RIG_VFO_TX)
     {
@@ -1056,8 +1060,6 @@ static int trxmanager_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
     }
 
 #endif
-    split_t tsplit;
-    vfo_t ttx_vfo;
     retval = trxmanager_get_split_vfo(rig, vfo, &tsplit, &ttx_vfo);
 
     if (retval < 0)
@@ -1067,8 +1069,6 @@ static int trxmanager_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
 
     if (tsplit == split) { return RIG_OK; } // don't need to change it
 
-    char cmd[MAXCMDLEN];
-    char response[MAXCMDLEN] = "";
     snprintf(cmd, sizeof(cmd), "SP%c;", split ? '1' : '0');
     retval = write_block(&rs->rigport, cmd, strlen(cmd));
 
@@ -1102,14 +1102,15 @@ static int trxmanager_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
                                     vfo_t *tx_vfo)
 {
     int retval;
-
-    rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
+    int tsplit = 0;
+    int n;
+    char cmd[MAXCMDLEN];
+    char response[MAXCMDLEN] = "";
     struct rig_state *rs = &rig->state;
     struct trxmanager_priv_data *priv = (struct trxmanager_priv_data *)
                                         rig->state.priv;
 
-    char cmd[MAXCMDLEN];
-    char response[MAXCMDLEN] = "";
+    rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
     snprintf(cmd, sizeof(cmd), "SP;");
     retval = write_block(&rs->rigport, cmd, strlen(cmd));
 
@@ -1127,8 +1128,7 @@ static int trxmanager_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
     }
 
     *tx_vfo = RIG_VFO_B;
-    int tsplit = 0;
-    int n = sscanf(response, "SP%d", &tsplit);
+    n = sscanf(response, "SP%d", &tsplit);
 
     if (n == 0)
     {
@@ -1149,12 +1149,13 @@ static int trxmanager_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq,
         rmode_t mode, pbwidth_t width)
 {
     int retval;
-
-    rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
-
+    char cmd[MAXCMDLEN];
+    char response[MAXCMDLEN] = "";
     struct rig_state *rs = &rig->state;
     struct trxmanager_priv_data *priv = (struct trxmanager_priv_data *)
                                         rig->state.priv;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
 
     if (vfo != RIG_VFO_CURR && vfo != RIG_VFO_TX)
     {
@@ -1163,8 +1164,6 @@ static int trxmanager_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq,
 
     // assume split is on B
     //
-    char cmd[MAXCMDLEN];
-    char response[MAXCMDLEN] = "";
     snprintf(cmd, sizeof(cmd), "XT%011lu;", (unsigned long)freq);
     retval = write_block(&rs->rigport, cmd, strlen(cmd));
 
@@ -1182,8 +1181,9 @@ static int trxmanager_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq,
 
     if (strlen(response) != 16 || strstr(response, cmd) == NULL)
     {
+        FILE *fp;
         rig_debug(RIG_DEBUG_ERR, "%s invalid response='%s'\n", __func__, response);
-        FILE *fp = fopen("debug.txt", "w+");
+        fp = fopen("debug.txt", "w+");
         fprintf(fp, "XT response=%s\n", response);
         fclose(fp);
         return -RIG_EPROTO;

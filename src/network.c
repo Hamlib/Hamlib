@@ -229,6 +229,7 @@ int network_open(hamlib_port_t *rp, int default_port)
 
     do
     {
+        char msg[1024];
         fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 
         if (fd < 0)
@@ -243,7 +244,6 @@ int network_open(hamlib_port_t *rp, int default_port)
             break;
         }
 
-        char msg[1024];
         snprintf(msg, sizeof(msg), "connect to %s failed, (trying next interface)",
                  rp->pathname);
         handle_error(RIG_DEBUG_WARN, msg);

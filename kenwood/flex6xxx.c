@@ -94,20 +94,17 @@ static int dsp_bw_dig[DSP_BW_NUM] =
 
 static int flex6k_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
+    struct kenwood_priv_caps *caps = kenwood_caps(rig);
+    char modebuf[10];
+    int index;
+    int retval;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !mode || !width)
+    if (!mode || !width)
     {
         return -RIG_EINVAL;
     }
-
-    struct kenwood_priv_caps *caps = kenwood_caps(rig);
-
-    char modebuf[10];
-
-    int index;
-
-    int retval;
 
     retval = kenwood_safe_transaction(rig, "MD", modebuf, 6, 3);
 
@@ -243,22 +240,13 @@ static int flex6k_find_width(rmode_t mode, pbwidth_t width, int *ridx)
 
 static int flex6k_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
-
     char buf[10];
-
     char kmode;
-
     int idx;
-
     int err;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     kmode = rmode2kenwood(mode, caps->mode_table);
 

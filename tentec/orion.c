@@ -129,9 +129,10 @@ static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
     /* Allow transaction re-tries according to capabilities. */
     for (itry = 0; itry < rig->caps->retry; itry++)
     {
+        int retval;
         rs = &rig->state;
         serial_flush(&rs->rigport); /* discard pending i/p */
-        int retval = write_block(&rs->rigport, cmd, cmd_len);
+        retval = write_block(&rs->rigport, cmd, cmd_len);
 
         if (retval != RIG_OK)
         {
@@ -1332,8 +1333,9 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             }
             else                /* look at main rx info */
             {
+                char *raw_field2;
                 raw_field = lvlbuf + 4;
-                char *raw_field2 = strchr(raw_field, 'S'); /* position may vary */
+                raw_field2 = strchr(raw_field, 'S'); /* position may vary */
 
                 if (raw_field2) { *raw_field2 = '\0'; } /* valid string */
             }

@@ -175,6 +175,9 @@ int main(int argc, char *argv[])
     pthread_attr_t attr;
 #endif
     struct handle_data *arg;
+#if HAVE_SIGACTION
+    struct sigaction act;
+#endif
 
     while (1)
     {
@@ -512,7 +515,6 @@ int main(int argc, char *argv[])
        that will consequently fail with EPIPE. All child threads will
        inherit this disposition which is what we want. */
 #if HAVE_SIGACTION
-    struct sigaction act;
     memset(&act, 0, sizeof act);
     act.sa_handler = SIG_IGN;
     act.sa_flags = SA_RESTART;

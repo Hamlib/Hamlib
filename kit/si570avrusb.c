@@ -981,7 +981,7 @@ static int setBPF(RIG *rig, int enable)
 
     if (nBytes > 2)
     {
-
+        int i;
         int retval = libusb_control_transfer(udh, REQUEST_TYPE_IN,
                                          REQUEST_FILTERS, enable, (nBytes / 2) - 1,
                                          (unsigned char *) FilterCrossOver, sizeof(FilterCrossOver),
@@ -994,8 +994,6 @@ static int setBPF(RIG *rig, int enable)
         nBytes = retval;
 
         rig_debug(RIG_DEBUG_TRACE, "%s: Filter Bank 1:\n", __func__);
-
-        int i;
 
         for (i = 0; i < (nBytes / 2) - 1; i++)
         {

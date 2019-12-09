@@ -157,6 +157,7 @@ int main(int argc, char *argv[])
     char send_cmd_term = '\r';  /* send_cmd termination char */
     int ext_resp = 0;
     char resp_sep = '\n';
+    int i;
 
     while (1)
     {
@@ -513,7 +514,7 @@ int main(int argc, char *argv[])
         exit(0);
     }
 
-    int i=0;
+    i=0;
     do { // we'll try 5 times and sleep 200ms between tries
         retcode = rig_open(my_rig);
         if (retcode != RIG_OK) {
@@ -581,6 +582,7 @@ int main(int argc, char *argv[])
 
         if (rd_hist || sv_hist)
         {
+            int hist_path_size;
             if (!(hist_dir = getenv("RIGCTL_HIST_DIR")))
             {
                 hist_dir = getenv("HOME");
@@ -592,7 +594,7 @@ int main(int argc, char *argv[])
                 fprintf(stderr, "Warning: %s is not a directory!\n", hist_dir);
             }
 
-            int hist_path_size = sizeof(char) * (strlen(hist_dir) + strlen(hist_file) + 1);
+            hist_path_size = sizeof(char) * (strlen(hist_dir) + strlen(hist_file) + 1);
             hist_path = (char *)calloc(hist_path_size, sizeof(char));
 
             snprintf(hist_path, hist_path_size, "%s%s", hist_dir, hist_file);

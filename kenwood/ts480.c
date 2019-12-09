@@ -52,6 +52,7 @@ kenwood_ts480_get_info(RIG *rig)
 {
     char firmbuf[50];
     int retval;
+    size_t firm_len;
 
     retval = kenwood_transaction(rig, "TY", firmbuf, sizeof(firmbuf));
 
@@ -60,7 +61,7 @@ kenwood_ts480_get_info(RIG *rig)
         return NULL;
     }
 
-    size_t firm_len = strlen(firmbuf);
+    firm_len = strlen(firmbuf);
 
     if (firm_len != 5)
     {

@@ -275,9 +275,9 @@ ioptron_get_info(ROT *rot)
 {
     static char info[16];
     char str[6];
+    int retval;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
-    int retval;
 
     retval = ioptron_transaction(rot, ":MountInfo#", str, sizeof(str));
 

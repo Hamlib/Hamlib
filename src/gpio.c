@@ -34,6 +34,7 @@ int gpio_open(hamlib_port_t *port, int output, int on_value)
     char pathname[FILPATHLEN * 2];
     FILE *fexp, *fdir;
     int fd;
+    char *dir;
 
     port->parm.gpio.on_value = on_value;
 
@@ -69,7 +70,7 @@ int gpio_open(hamlib_port_t *port, int output, int on_value)
         return -RIG_EIO;
     }
 
-    char *dir = output ? "out" : "in";
+    dir = output ? "out" : "in";
     rig_debug(RIG_DEBUG_VERBOSE, "Setting direction of GPIO%s to %s\n",
               port->pathname, dir);
     fprintf(fdir, "%s\n", dir);

@@ -343,6 +343,7 @@ int sr2200_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     char freqbuf[BUFSZ], ackbuf[BUFSZ], *rfp;
     int freq_len, ret_freq_len;
+    int retval;
 
     ret_freq_len = BUFSZ;
 
@@ -367,7 +368,7 @@ int sr2200_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     strcpy(freqbuf + freq_len, EOM);
     freq_len += strlen(EOM);
 
-    int retval = sr2200_transaction(rig, freqbuf, freq_len, ackbuf, &ret_freq_len);
+    retval = sr2200_transaction(rig, freqbuf, freq_len, ackbuf, &ret_freq_len);
 
     if (retval != RIG_OK)
     {
@@ -728,6 +729,7 @@ int sr2200_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     switch (level)
     {
+    float tmp;
     case RIG_LEVEL_STRENGTH:
         if (ack_len < 7 || ackbuf[0] != 'L' || ackbuf[1] != 'B')
         {
@@ -802,7 +804,6 @@ int sr2200_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return -RIG_EPROTO;
         }
 
-        float tmp;
         sscanf(ackbuf + 2, "%f", &tmp);
 
         if (tmp != 0.0)

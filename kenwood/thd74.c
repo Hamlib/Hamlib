@@ -202,6 +202,7 @@ static int thd74_get_vfo(RIG *rig, vfo_t *vfo)
 {
     int retval;
     char c, buf[10];
+    size_t length;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
@@ -212,7 +213,7 @@ static int thd74_get_vfo(RIG *rig, vfo_t *vfo)
         return retval;
     }
 
-    size_t length = strlen(buf);
+    length = strlen(buf);
 
     if (length == 4)
     {
@@ -863,11 +864,6 @@ int thd74_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     switch (ptt)
     {
     case RIG_PTT_ON:
@@ -1286,6 +1282,7 @@ static int thd74_get_channel(RIG *rig, channel_t *chan)
 
     if (chan->vfo == RIG_VFO_MEM)   /* memory channel */
     {
+        int len;
         char cmd[16];
         sprintf(cmd, "ME %03d", chan->channel_num);
         retval = kenwood_transaction(rig, cmd, buf, sizeof(buf));
@@ -1310,7 +1307,7 @@ static int thd74_get_channel(RIG *rig, channel_t *chan)
             return retval;
         }
 
-        int len = strlen(buf);
+        len = strlen(buf);
         memcpy(chan->channel_desc, buf + 7, len - 7);
     }
     else                    /* current channel */

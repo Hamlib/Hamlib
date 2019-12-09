@@ -402,6 +402,7 @@ int ar3030_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     char *rfp;
     int freq_len, retval;
     char freqbuf[BUFSZ];
+    long lfreq;
 
     /*
      * D Rn Gn Bn Tn Fnnnnnnnn C
@@ -422,7 +423,6 @@ int ar3030_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         return -RIG_EPROTO;
     }
 
-    long lfreq;
     sscanf(rfp + 1, "%ld", &lfreq);
     *freq = lfreq;
     rig_debug(RIG_DEBUG_ERR, "%s: read lfreq=%ld, freq=%.6f\n", __func__, lfreq,

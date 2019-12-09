@@ -763,6 +763,7 @@ int ts570_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
     char infobuf[50];
     int retval;
+    size_t info_len;
 
     retval = kenwood_transaction(rig, "IF", infobuf, sizeof(infobuf));
 
@@ -771,7 +772,7 @@ int ts570_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
         return retval;
     }
 
-    size_t info_len = strlen(infobuf);
+    info_len = strlen(infobuf);
 
     if (info_len != 37 || infobuf[1] != 'F')
     {

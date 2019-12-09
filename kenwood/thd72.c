@@ -196,11 +196,12 @@ static int thd72_set_vfo(RIG *rig, vfo_t vfo)
 
 static int thd72_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
+    int retval;
     char vfobuf[16];
     struct kenwood_priv_data *priv = rig->state.priv;
-    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
-
     char vfonum = '0';
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     if (vfo == RIG_VFO_B || priv->split)
     {
@@ -208,7 +209,7 @@ static int thd72_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     }
 
     sprintf(vfobuf, "BC %c", vfonum);
-    int retval = kenwood_transaction(rig, vfobuf, NULL, 0);
+    retval = kenwood_transaction(rig, vfobuf, NULL, 0);
 
     if (retval != RIG_OK)
     {
@@ -222,6 +223,7 @@ static int thd72_get_vfo(RIG *rig, vfo_t *vfo)
 {
     int retval;
     char c, buf[10];
+    size_t length;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
@@ -232,7 +234,7 @@ static int thd72_get_vfo(RIG *rig, vfo_t *vfo)
         return retval;
     }
 
-    size_t length = strlen(buf);
+    length = strlen(buf);
 
     if (length == 4)
     {
@@ -431,6 +433,8 @@ static int thd72_set_freq_item(RIG *rig, vfo_t vfo, int item, int val)
 static int thd72_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     int retval;
+    int tsindex;
+    shortfreq_t ts;
     char buf[64], fbuf[11];
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called, vfo=%s, freq=%f\n", __func__,
@@ -444,11 +448,11 @@ static int thd72_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         return retval;
     }
 
-    int tsindex = buf[16] - '0';
+    tsindex = buf[16] - '0';
 
     if (buf[16] >= 'A') { tsindex = buf[16] - 'A' + 10; }
 
-    shortfreq_t ts = thd72tuningstep[tsindex];
+    ts = thd72tuningstep[tsindex];
     rig_debug(RIG_DEBUG_VERBOSE, "%s: tsindex=%d, stepsize=%d\n", __func__, tsindex,
               (int)ts);
     freq = roundl(freq / ts) * ts;
@@ -461,6 +465,8 @@ static int thd72_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 static int thd72_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     int retval;
+    int tsindex;
+    shortfreq_t ts;
     char buf[64];
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
@@ -472,8 +478,8 @@ static int thd72_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         return retval;
     }
 
-    int tsindex = buf[16] - '0';
-    shortfreq_t ts = thd72tuningstep[tsindex];
+    tsindex = buf[16] - '0';
+    ts = thd72tuningstep[tsindex];
     rig_debug(RIG_DEBUG_VERBOSE, "%s: tsindex=%d, stepsize=%d\n", __func__, tsindex,
               (int)ts);
     sscanf(buf + 5, "%"SCNfreq, freq);
@@ -1360,6 +1366,7 @@ static int thd72_get_channel(RIG *rig, channel_t *chan)
 
     if (chan->vfo == RIG_VFO_MEM)   /* memory channel */
     {
+        int len;
         char cmd[16];
         sprintf(cmd, "ME %03d", chan->channel_num);
         retval = kenwood_transaction(rig, cmd, buf, sizeof(buf));
@@ -1384,7 +1391,7 @@ static int thd72_get_channel(RIG *rig, channel_t *chan)
             return retval;
         }
 
-        int len = strlen(buf);
+        len = strlen(buf);
         memcpy(chan->channel_desc, buf + 7, len - 7);
     }
     else            /* current channel */

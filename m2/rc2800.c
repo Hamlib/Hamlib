@@ -69,11 +69,11 @@
 static int rc2800_parse(char *s, char *device, float *value)
 {
     int msgtype = 0, errcode = 0;
+    int len;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: device return->%s", __func__, s);
 
-    int len = strlen(s);
-
+    len = strlen(s);
     if (len == 0)
     {
         return -RIG_EPROTO;

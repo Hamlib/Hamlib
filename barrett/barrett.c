@@ -221,10 +221,13 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
 {
     char cmd_buf[MAXCMDLEN];
     int retval, cmd_len;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd=%s\n", __func__, cmd);
+    char *p;
+    char xon;
+    char xoff;
     struct rig_state *rs = &rig->state;
     struct barrett_priv_data *priv = rig->state.priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd=%s\n", __func__, cmd);
 
     cmd_len = snprintf(cmd_buf, sizeof(cmd_buf), "%s%s", cmd, EOM);
 
@@ -261,9 +264,9 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: retval=%d\n", __func__, retval);
     dump_hex((const unsigned char *)priv->ret_data, strlen(priv->ret_data));
-    char *p = priv->ret_data;
-    char xon = p[0];
-    char xoff = p[strlen(p) - 1];
+    p = priv->ret_data;
+    xon = p[0];
+    xoff = p[strlen(p) - 1];
 
     if (xon == 0x13 && xoff == 0x11)
     {
@@ -288,6 +291,8 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
 
     if (result != NULL)
     {
+        int n = 0;
+
         rig_debug(RIG_DEBUG_VERBOSE, "%s: setting result\n", __func__);
 
         if (priv->ret_data[0] == 0x13)   // we'll return from the 1st good char
@@ -300,8 +305,6 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
         }
 
         // See how many CR's we have
-        int n = 0;
-
         for (p = *result; *p; ++p)
         {
             if (*p == 0x0d)
@@ -332,6 +335,7 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
 
 int barrett_init(RIG *rig)
 {
+    struct barrett_priv_data *priv = (struct barrett_priv_data *)calloc(1, sizeof(struct barrett_priv_data));
     rig_debug(RIG_DEBUG_VERBOSE, "%s version %s\n", __func__,
               rig->caps->version);
 
@@ -340,7 +344,6 @@ int barrett_init(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    struct barrett_priv_data *priv = (struct barrett_priv_data *)calloc(1, sizeof(struct barrett_priv_data));
 
     if (!priv)
     {
@@ -386,11 +389,10 @@ int barrett_cleanup(RIG *rig)
 int barrett_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     int retval;
+    char *response = NULL;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
     *freq = 0;
-
-    char *response = NULL;
 
     if (vfo == RIG_VFO_B)   // We treat the TX VFO as VFO_B and RX VFO as VFO_A
     {
@@ -435,8 +437,8 @@ int barrett_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     // If we are not explicity asking for VFO_B then we'll set the receive side also
     if (vfo != RIG_VFO_B)
     {
-        sprintf((char *) cmd_buf, "TR%08.0f", freq);
         char *response = NULL;
+        sprintf((char *) cmd_buf, "TR%08.0f", freq);
         retval = barrett_transaction(rig, cmd_buf, 0, &response);
 
         if (retval < 0)
@@ -457,8 +459,8 @@ int barrett_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             || vfo == RIG_VFO_B)   // if we aren't in split mode we have to set the TX VFO too
     {
 
-        sprintf((char *) cmd_buf, "TT%08.0f", freq);
         char *response = NULL;
+        sprintf((char *) cmd_buf, "TT%08.0f", freq);
         retval = barrett_transaction(rig, cmd_buf, 0, &response);
 
         if (retval < 0)
@@ -485,6 +487,7 @@ int barrett_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     int retval;
     char cmd_buf[MAXCMDLEN];
+    char *response;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: ptt=%d\n", __func__, ptt);
 
@@ -493,7 +496,7 @@ int barrett_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     // WSJT-X is just a little faster without the network timing
     usleep(100 * 1000);
     sprintf(cmd_buf, "XP%d", ptt);
-    char *response = NULL;
+    response = NULL;
     retval = barrett_transaction(rig, cmd_buf, 0, &response);
 
     if (retval < 0)
@@ -522,6 +525,7 @@ int barrett_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
     int retval;
     char *response = NULL;
+    char c;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
 
@@ -533,7 +537,7 @@ int barrett_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         return retval;
     }
 
-    char c = response[0];
+    c = response[0];
 
     if (c == '1' || c == '0')
     {
@@ -612,10 +616,12 @@ int barrett_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
  */
 int barrett_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
+    char *result=NULL;
+    int retval;
+    
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
 
-    char *result = NULL;
-    int retval = barrett_transaction(rig, "IB", 0, &result);
+    retval = barrett_transaction(rig, "IB", 0, &result);
 
     if (retval != RIG_OK)
     {
@@ -686,13 +692,14 @@ int barrett_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
     // The 2050 only has one RX and one TX VFO -- it's not treated as VFOA/VFOB
     char cmd_buf[MAXCMDLEN];
+    int retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s freq=%g\n", __func__,
               rig_strvfo(vfo), tx_freq);
 
     sprintf((char *) cmd_buf, "TT%08.0f" EOM, tx_freq);
 
-    int retval = barrett_transaction(rig, cmd_buf, 0, NULL);
+    retval = barrett_transaction(rig, cmd_buf, 0, NULL);
 
     if (retval < 0)
     {
@@ -742,6 +749,8 @@ int barrett_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     switch (level)
     {
+    int strength;
+    int n;
     case RIG_LEVEL_STRENGTH:
         retval = barrett_transaction(rig, "IAL", 0, &response);
 
@@ -752,8 +761,7 @@ int barrett_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return retval;
         }
 
-        int strength;
-        int n = sscanf(response, "%2d", &strength);
+        n = sscanf(response, "%2d", &strength);
 
         if (n == 1)
         {
@@ -787,10 +795,11 @@ int barrett_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 const char *barrett_get_info(RIG *rig)
 {
     char *response = NULL;
+    int retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    int retval = barrett_transaction(rig, "IVF", 0, &response);
+    retval = barrett_transaction(rig, "IVF", 0, &response);
 
     if (retval == RIG_OK)
     {

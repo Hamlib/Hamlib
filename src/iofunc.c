@@ -561,13 +561,15 @@ int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
 
     while (count > 0)
     {
+        int retval;
+        int rd_count;
         tv = tv_timeout;    /* select may have updated it */
 
         FD_ZERO(&rfds);
         FD_SET(p->fd, &rfds);
         efds = rfds;
 
-        int retval = port_select(p, p->fd + 1, &rfds, NULL, &efds, &tv);
+        retval = port_select(p, p->fd + 1, &rfds, NULL, &efds, &tv);
 
         if (retval == 0)
         {
@@ -612,7 +614,7 @@ int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
          * grab bytes from the rig
          * The file descriptor must have been set up non blocking.
          */
-        int rd_count = port_read(p, rxbuffer + total_count, count);
+        rd_count = port_read(p, rxbuffer + total_count, count);
 
         if (rd_count < 0)
         {
@@ -695,13 +697,15 @@ int HAMLIB_API read_string(hamlib_port_t *p,
 
     while (total_count < rxmax - 1)
     {
+        int rd_count;
+        int retval;
         tv = tv_timeout;    /* select may have updated it */
 
         FD_ZERO(&rfds);
         FD_SET(p->fd, &rfds);
         efds = rfds;
 
-        int retval = port_select(p, p->fd + 1, &rfds, NULL, &efds, &tv);
+        retval = port_select(p, p->fd + 1, &rfds, NULL, &efds, &tv);
 
         if (retval == 0)
         {
@@ -751,7 +755,7 @@ int HAMLIB_API read_string(hamlib_port_t *p,
              * read 1 character from the rig, (check if in stop set)
          * The file descriptor must have been set up non blocking.
          */
-        int rd_count = port_read(p, &rxbuffer[total_count], 1);
+        rd_count = port_read(p, &rxbuffer[total_count], 1);
 
         /* if we get 0 bytes or an error something is wrong */
         if (rd_count <= 0)

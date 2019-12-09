@@ -783,17 +783,17 @@ const struct rig_caps kx2_caps =
 
 int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !mode || !width)
-    {
-        return -RIG_EINVAL;
-    }
-
     char buf[KENWOOD_MAX_BUF_LEN];
     int err;
     rmode_t temp_m;
     pbwidth_t temp_w;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!mode || !width)
+    {
+        return -RIG_EINVAL;
+    }
 
     err = kenwood_get_mode(rig, vfo, &temp_m, &temp_w);
 
@@ -903,15 +903,10 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     int err;
     char cmd_m[4];
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     switch (mode)
     {
@@ -947,6 +942,7 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (width != RIG_PASSBAND_NOCHANGE)
     {
+        char cmd_s[64];
         /* and set the requested bandwidth.  On my K3, the bandwidth is rounded
          * down to the nearest 50 Hz, i.e. sending BW0239; will cause the bandwidth
          * to be set to 2.350 kHz.  As the width must be divided by 10, 10 Hz values
@@ -979,7 +975,6 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             width = pb_wid;
         }
 
-        char cmd_s[64];
         snprintf(cmd_s, sizeof(cmd_s), "BW%04ld", width / 10);
         err = kenwood_transaction(rig, cmd_s, NULL, 0);
 
@@ -1015,14 +1010,9 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 int k3_set_vfo(RIG *rig, vfo_t vfo)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     int err;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     switch (vfo)
     {
@@ -1058,14 +1048,9 @@ int k3_set_vfo(RIG *rig, vfo_t vfo)
  */
 int k3_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     char buf[10];
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     switch (token)
     {
@@ -1112,15 +1097,15 @@ int k3_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
  */
 int k3_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 {
+    char buf[KENWOOD_MAX_BUF_LEN];
+    int err;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !val)
+    if (!val)
     {
         return -RIG_EINVAL;
     }
-
-    char buf[KENWOOD_MAX_BUF_LEN];
-    int err;
 
     switch (token)
     {
@@ -1180,14 +1165,9 @@ int k3_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
  */
 int k3_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
     int err;
 
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     err = set_rit_xit(rig, rit);
 
@@ -1206,14 +1186,9 @@ int k3_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
  */
 int k3_set_xit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
     int err;
 
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     err = set_rit_xit(rig, rit);
 
@@ -1231,15 +1206,13 @@ int k3_set_xit(RIG *rig, vfo_t vfo, shortfreq_t rit)
  */
 int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
+    struct kenwood_priv_caps *caps = kenwood_caps(rig);
+    char buf[32];
+    char kmode;
     int err;
     char cmd_m[4];
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     switch (tx_mode)
     {
@@ -1283,10 +1256,6 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
 
 #endif
 
-    struct kenwood_priv_caps *caps = kenwood_caps(rig);
-    char buf[32];
-    char kmode;
-
     kmode = rmode2kenwood(tx_mode, caps->mode_table);
 
     if (kmode < 0)
@@ -1306,6 +1275,7 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
 
     if (tx_width != RIG_PASSBAND_NOCHANGE)
     {
+        char cmd_s[32];
         /* and set the requested bandwidth.  On my K3, the bandwidth is rounded
          * down to the nearest 50 Hz, i.e. sending BW0239; will cause the bandwidth
          * to be set to 2.350 kHz.  As the width must be divided by 10, 10 Hz values
@@ -1338,7 +1308,6 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
             tx_width = pb_wid;
         }
 
-        char cmd_s[32];
         snprintf(cmd_s, sizeof(cmd_s), "BW$%04ld", tx_width / 10);
         err = kenwood_transaction(rig, cmd_s, NULL, 0);
 
@@ -1358,18 +1327,17 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
 int k3_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
                       pbwidth_t *tx_width)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !tx_mode || !tx_width)
-    {
-        return -RIG_EINVAL;
-    }
-
     char buf[KENWOOD_MAX_BUF_LEN];
     int err;
     rmode_t temp_m;
-
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!tx_mode || !tx_width)
+    {
+        return -RIG_EINVAL;
+    }
 
     err = kenwood_safe_transaction(rig, "MD$", buf, KENWOOD_MAX_BUF_LEN, 4);
 
@@ -1460,15 +1428,10 @@ int k3_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
 
 int k3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     char levelbuf[16];
     int kenwood_val;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (RIG_LEVEL_IS_FLOAT(level))
     {
@@ -1571,17 +1534,17 @@ int k3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
  */
 int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !val)
-    {
-        return -RIG_EINVAL;
-    }
-
     char lvlbuf[50];
     int retval;
     int lvl;
     struct kenwood_priv_data *priv = rig->state.priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!val)
+    {
+        return -RIG_EINVAL;
+    }
 
     switch (level)
     {
@@ -1867,14 +1830,9 @@ int kx3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 int k3_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     char buf[10];
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     switch (func)
     {
@@ -1906,7 +1864,7 @@ int k3_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !status)
+    if (!status)
     {
         return -RIG_EINVAL;
     }
@@ -1942,14 +1900,9 @@ int k3_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
  */
 int set_rit_xit(RIG *rig, shortfreq_t rit)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
     int err;
 
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (rit == 0)
     {
@@ -1990,17 +1943,11 @@ int set_rit_xit(RIG *rig, shortfreq_t rit)
 
 int k3_set_nb_level(RIG *rig, float dsp_nb, float if_nb)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     char lvlbuf[16];
-
     int dsp_nb_raw = 0;
     int if_nb_raw = 0;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (dsp_nb >= 0)
     {
@@ -2044,18 +1991,12 @@ int k3_set_nb_level(RIG *rig, float dsp_nb, float if_nb)
 
 int k3_get_nb_level(RIG *rig, float *dsp_nb, float *if_nb)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     char lvlbuf[16];
     int retval;
-
     int dsp_nb_raw;
     int if_nb_raw;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     retval = kenwood_safe_transaction(rig, "NL", lvlbuf, sizeof(lvlbuf), 6);
 
@@ -2082,19 +2023,13 @@ int k3_get_nb_level(RIG *rig, float *dsp_nb, float *if_nb)
 int k3_get_bar_graph_level(RIG *rig, float *smeter, float *pwr, float *alc,
                            int *mode_tx)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     char lvlbuf[16];
     int retval;
-
     int tm_raw;
     int bg_raw;
     char mode;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     // Determine transmit metering mode: 0 = RF POWER, 1 = ALC
     retval = get_kenwood_func(rig, "TM", &tm_raw);
@@ -2185,17 +2120,11 @@ int k3_get_bar_graph_level(RIG *rig, float *smeter, float *pwr, float *alc,
 
 int kx3_get_bar_graph_level(RIG *rig, float *level)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     char lvlbuf[16];
     int retval;
-
     int bg_raw;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     retval = kenwood_safe_transaction(rig, "BG", lvlbuf, sizeof(lvlbuf), 4);
 

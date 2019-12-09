@@ -477,11 +477,11 @@ static void parseFrame(unsigned char *frame)
 
             if ((frame[0] & 0x08) == 0 && incontrol)
             {
+                int i;
                 // end of a control sequence
                 controlstring[numcontrolbytes++] = byte;
                 DEBUG("%10d:FromControl:", TIME);
 
-                int i;
                 for (i = 0; i < numcontrolbytes; i++) { DEBUG(" %02x", controlstring[i]); }
 
                 DEBUG(".\n");
@@ -534,6 +534,8 @@ static void writeRadio(unsigned char *bytes, int len)
 
     for (i = 0; i < len; i++)
     {
+        int ret;
+
         seq[0] = 0x28;
         seq[1] = 0x80 | bytes[i];
         seq[2] = 0x80;
@@ -549,7 +551,6 @@ static void writeRadio(unsigned char *bytes, int len)
             seq[0] |= 0x04;
         }
 
-        int ret;
         if ((ret = write(uh_device_fd, seq, 4)) < 4)
         {
             MYERROR("WriteRadio failed with %d\n", ret);
@@ -620,6 +621,8 @@ static void writeWkey(unsigned char *bytes, int len)
 
     for (i = 0; i < len; i++)
     {
+        int ret;
+
         seq[ 0] = 0x08;
         seq[ 1] = 0x80;
         seq[ 2] = 0x80;
@@ -643,7 +646,6 @@ static void writeWkey(unsigned char *bytes, int len)
             seq[ 8] |= 0x01;
         }
 
-        int ret;
         if ((ret = write(uh_device_fd, seq, 12)) < 12)
         {
             MYERROR("WriteWINKEY failed with %d\n", ret);
@@ -680,6 +682,8 @@ static void writeControl(unsigned char *data, int len)
 
     for (i = 0; i < len; i++)
     {
+        int ret;
+
         // encode statusbyte in first frame
         seq[0] = 0x08;
         seq[1] = 0x80;
@@ -705,7 +709,6 @@ static void writeControl(unsigned char *data, int len)
             seq[4] |= 0x01;
         }
 
-        int ret;
         if ((ret = write(uh_device_fd, seq, 8)) < 8)
         {
             MYERROR("WriteControl failed, ret=%d\n", ret);
@@ -761,6 +764,8 @@ static void *read_device(void *p)
     // terminates if the device is closed.
     for (;;)
     {
+        int ret;
+        int maxdev;
         //
         // setting uh_is_initialized to zero in the main thread
         // tells this one that it is all over now
@@ -792,7 +797,7 @@ static void *read_device(void *p)
         FD_SET(uh_wkey_pair[0], &fds);
 
         // determine max of these fd's for use in select()
-        int maxdev = uh_device_fd;
+        maxdev = uh_device_fd;
 
         if (uh_radio_pair[0] > maxdev)
         {
@@ -811,7 +816,7 @@ static void *read_device(void *p)
 
         tv.tv_usec = 100000;
         tv.tv_sec = 0;
-        int ret = select(maxdev + 1, &fds, NULL, NULL, &tv);
+        ret = select(maxdev + 1, &fds, NULL, NULL, &tv);
 
         //
         // select returned error, or nothing has arrived:

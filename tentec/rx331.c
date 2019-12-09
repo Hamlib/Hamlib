@@ -247,6 +247,7 @@ static int rx331_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
     int rig_id;
     int retval;
     char str[BUFSZ];
+    char fmt[16];
     struct rig_state *rs;
     struct rx331_priv_data *priv = (struct rx331_priv_data *)rig->state.priv;
 
@@ -275,7 +276,6 @@ static int rx331_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
         return retval;
     }
 
-    char fmt[16];
     snprintf(fmt,sizeof(fmt)-1,"%%i%%%ds",BUFSZ);
     sscanf(data + 1, fmt, &rig_id, data);
 

@@ -376,9 +376,10 @@ int usb_port_open(hamlib_port_t *port)
  */
 int usb_port_close(hamlib_port_t *port)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     libusb_device_handle *udh = port->handle;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     libusb_release_interface(udh, port->parm.usb.iface);
 
