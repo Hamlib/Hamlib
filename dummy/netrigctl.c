@@ -1084,7 +1084,7 @@ static int netrigctl_set_dcs_sql(RIG *rig, vfo_t vfo, unsigned int code)
 
     if (ret != RIG_OK) { return ret; }
 
-    len = sprintf(cmd, "\\set_dcs_sql%s %d\n", vfostr, code);
+    len = sprintf(cmd, "\\set_dcs_sql%s %u\n", vfostr, code);
 
     ret = netrigctl_transaction(rig, cmd, len, buf);
 
@@ -2044,7 +2044,7 @@ const struct rig_caps netrigctl_caps =
     .rig_model =      RIG_MODEL_NETRIGCTL,
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
-    .version =        "1.1b",
+    .version =        "1.2",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
@@ -2052,8 +2052,8 @@ const struct rig_caps netrigctl_caps =
     .ptt_type =       RIG_PTT_RIG_MICDATA,
     .dcd_type =       RIG_DCD_RIG,
     .port_type =      RIG_PORT_NETWORK,
-    .timeout = 2000,  /* enough for a network */
-    .retry =   3,
+    .timeout = 2500,  /* enough for a network */
+    .retry =   1,
 
     /* following fields updated in rig_state at openning time */
     .has_get_func =   RIG_FUNC_NONE,

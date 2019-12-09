@@ -152,7 +152,7 @@ const struct rig_caps transfox_caps =
     .set_ptt =      kenwood_set_ptt,
     .get_ptt =      transfox_get_ptt,
     .get_info =     transfox_get_info,
-#if 0
+#ifdef XXREMOVEDXX
     .set_trn =      transfox_set_trn,
     .get_trn =      transfox_get_trn,
     .scan =     transfox_scan,

@@ -152,7 +152,7 @@ const struct rig_caps trc80_caps =
     .rig_init    = kenwood_init,
     .rig_cleanup = kenwood_cleanup,
 
-#if 0
+#ifdef XXREMOVEDXX
     .set_freq =  kenwood_set_freq,
 #endif
     .get_freq =  kenwood_get_freq_if,

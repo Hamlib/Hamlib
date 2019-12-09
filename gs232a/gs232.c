@@ -107,7 +107,7 @@ transaction_write:
         goto transaction_quit;
     }
 
-#if 0
+#ifdef XXREMOVEDXX
 
     /* Check that command termination is correct */
     if (strchr(REPLY_EOM, data[strlen(data) - 1]) == NULL)
@@ -378,7 +378,7 @@ const struct rot_caps f1tetracker_rot_caps =
 
     .get_position =  NULL,    /* no position feedback available */
     .set_position =  gs232_rot_set_position,
-#if 0
+#ifdef XXREMOVEDXX 
     .stop =          gs232_rot_stop,
 #endif
 };

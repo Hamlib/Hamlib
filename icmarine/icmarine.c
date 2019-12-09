@@ -169,6 +169,8 @@ int icmarine_cleanup(RIG *rig)
     return RIG_OK;
 }
 
+#ifdef XXREMOVEDXX
+// This function not referenced -- doesn't do anything really
 int icmarine_open(RIG *rig)
 {
     char respbuf[BUFSZ + 1];
@@ -184,6 +186,7 @@ int icmarine_open(RIG *rig)
 
     return RIG_OK;
 }
+#endif
 
 
 int icmarine_set_conf(RIG *rig, token_t token, const char *val)
@@ -253,7 +256,7 @@ int icmarine_transaction(RIG *rig, const char *cmd, const char *param,
     serial_flush(&rs->rigport);
 
     /* command formating */
-    cmd_len = snprintf(cmdbuf, BUFSZ, "$PICOA,%02u,%02u,%s",
+    cmd_len = snprintf(cmdbuf, BUFSZ, "$PICOA,%02d,%02u,%s",
                        CONTROLLER_ID,
                        priv->remote_id,
                        cmd);

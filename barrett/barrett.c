@@ -74,7 +74,7 @@ const struct rig_caps barrett_caps =
     .rig_model =        RIG_MODEL_BARRETT_2050,
     .model_name =       "2050",
     .mfg_name =         "Barrett",
-    .version =          BACKEND_VER,
+    .version =          BACKEND_VER ".1",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_BETA,
     .rig_type =         RIG_TYPE_TRANSCEIVER,
@@ -332,7 +332,6 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
 
 int barrett_init(RIG *rig)
 {
-    struct barrett_priv_data *priv;
     rig_debug(RIG_DEBUG_VERBOSE, "%s version %s\n", __func__,
               rig->caps->version);
 
@@ -341,7 +340,7 @@ int barrett_init(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    priv = (struct barrett_priv_data *)calloc(1, sizeof(struct barrett_priv_data));
+    struct barrett_priv_data *priv = (struct barrett_priv_data *)calloc(1, sizeof(struct barrett_priv_data));
 
     if (!priv)
     {

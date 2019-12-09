@@ -44,9 +44,9 @@
 // So we need to distinguish between them
 #define VFO_HAS_A_B ((rig->state.vfo_list & (RIG_VFO_A|RIG_VFO_B)) == (RIG_VFO_A|RIG_VFO_B))
 #define VFO_HAS_MAIN_SUB ((rig->state.vfo_list & (RIG_VFO_MAIN|RIG_VFO_SUB)) == (RIG_VFO_MAIN|RIG_VFO_SUB))
-#define VFO_HAS_MAIN_SUB_ONLY (!VFO_HAS_A_B & VFO_HAS_MAIN_SUB)
+#define VFO_HAS_MAIN_SUB_ONLY ((!VFO_HAS_A_B) & VFO_HAS_MAIN_SUB)
 #define VFO_HAS_MAIN_SUB_A_B_ONLY (VFO_HAS_A_B & VFO_HAS_MAIN_SUB)
-#define VFO_HAS_A_B_ONLY (VFO_HAS_A_B & !VFO_HAS_MAIN_SUB)
+#define VFO_HAS_A_B_ONLY (VFO_HAS_A_B & (!VFO_HAS_MAIN_SUB))
 
 static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo);
 
@@ -715,8 +715,6 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     // Newer Icoms can read main/sub frequency
     int cmd = C_RD_FREQ;
     int subcmd = -1;
-    unsigned char data;
-    int datalen = 0;
 
     // Pick the appropriate VFO when VFO_TX is requested
     if (vfo == RIG_VFO_TX)
@@ -726,28 +724,28 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
         if (priv->split_on)
         {
-            vfo = rig->state.vfo_list & RIG_VFO_B ? RIG_VFO_B : RIG_VFO_SUB;
+            vfo = (rig->state.vfo_list & RIG_VFO_B) ? RIG_VFO_B : RIG_VFO_SUB;
         }
         else
         {
-            vfo = rig->state.vfo_list & RIG_VFO_B ? RIG_VFO_A : RIG_VFO_MAIN;
+            vfo = (rig->state.vfo_list & RIG_VFO_B) ? RIG_VFO_A : RIG_VFO_MAIN;
         }
     }
 
     retval = set_vfo_curr(rig, vfo, priv->curr_vfo);
+    if (retval != RIG_OK) { return retval; }
 
     // Pick the appropriate VFO when VFO_RX is requested
     if (vfo == RIG_VFO_RX)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: VFO_RX requested, vfo=%s\n", __func__,
                   rig_strvfo(vfo));
-        vfo = rig->state.vfo_list & RIG_VFO_B ? RIG_VFO_A : RIG_VFO_MAIN;
+        vfo = (rig->state.vfo_list & RIG_VFO_B) ? RIG_VFO_A : RIG_VFO_MAIN;
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: using vfo=%s\n", __func__, rig_strvfo(vfo));
 
-    retval = icom_transaction(rig, cmd, subcmd, datalen == 0 ? NULL : &data,
-                              datalen, freqbuf, &freq_len);
+    retval = icom_transaction(rig, cmd, subcmd, NULL, 0, freqbuf, &freq_len);
 
     if (retval != RIG_OK)
     {
@@ -995,9 +993,11 @@ pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode)
     return 0;
 }
 
+#ifdef XXREMOVEDXX
+// not referenced anywhere
 int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width)
 {
-    int retval, rfstatus, i;
+    int retval, rfstatus;
     unsigned char ackbuf[MAXFRAMELEN];
     unsigned char flt_ext;
     value_t rfwidth;
@@ -1017,6 +1017,7 @@ int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width)
     {
         if (!rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_RF, &rfstatus) && (rfstatus))
         {
+            int i;
             for (i = 0; i < RTTY_FIL_NB; i++)
             {
                 if (rtty_fil[i] == width)
@@ -1071,6 +1072,7 @@ int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width)
 
     return RIG_OK;
 }
+#endif
 
 /*
  * icom_set_mode_with_data
@@ -1393,6 +1395,8 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     return RIG_OK;
 }
 
+#ifdef XXREMOVEDXX
+// not implemented yet
 /*
  * icom_get_vfo
  * The IC-9700 has introduced the ability to see MAIN/SUB selection
@@ -1425,6 +1429,7 @@ int icom_get_vfo(RIG *rig, vfo_t *vfo)
     *vfo = ackbuf[2] == 0 ? RIG_VFO_A : RIG_VFO_B;
     return RIG_OK;
 }
+#endif
 
 /*
  * icom_get_vfo
@@ -3141,7 +3146,7 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
     int ack_len = sizeof(ackbuf);
     vfo_t rx_vfo, tx_vfo;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__, rig_strvfo(vfo));
 
     /* This method works also in memory mode(RIG_VFO_MEM) */
     if (!priv->no_xchg && rig_has_vfo_op(rig, RIG_OP_XCHG))
@@ -3162,7 +3167,7 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
          current VFO is VFO A and the split Tx VFO is always VFO B. These
          assumptions allow us to deal with the lack of VFO and split
          queries */
-    if (VFO_HAS_A_B_ONLY
+    if (VFO_HAS_A_B
             && priv->split_on) /* broken if user changes split on rig :( */
     {
         /* VFO A/B style rigs swap VFO on split Tx so we need to disable
@@ -3178,7 +3183,10 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
         }
     }
 
+    rig_debug(RIG_DEBUG_VERBOSE,"%s: before get_split_vfos rx_vfo=%s tx_vfo=%s\n", __func__, rig_strvfo(priv->rx_vfo), rig_strvfo(priv->tx_vfo));
     if (RIG_OK != (rc = icom_get_split_vfos(rig, &rx_vfo, &tx_vfo))) { return rc; }
+    rig_debug(RIG_DEBUG_VERBOSE,"%s: after get_split_vfos  rx_vfo=%s tx_vfo=%s\n", __func__, rig_strvfo(priv->rx_vfo), rig_strvfo(priv->tx_vfo));
+
 
     if (RIG_OK != (rc = icom_set_vfo(rig, tx_vfo))) { return rc; }
 
@@ -3189,7 +3197,7 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
 
     if (RIG_OK != (rc = icom_set_vfo(rig, rx_vfo))) { return rc; }
 
-    if (VFO_HAS_A_B_ONLY && priv->split_on)
+    if (VFO_HAS_A_B && priv->split_on)
     {
         /* Re-enable split */
         if (RIG_OK != (rc = icom_transaction(rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0,
@@ -3305,13 +3313,10 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         split_sc = S_SPLT_ON;
 
         // Need to allow for SATMODE split in here
-        if (!priv->split_on) // only need to do this if split is not on already
+        /* ensure VFO A is Rx and VFO B is Tx as we assume that elsewhere */
+        if (VFO_HAS_A_B)
         {
-            /* ensure VFO A is Rx and VFO B is Tx as we assume that elsewhere */
-            if (VFO_HAS_A_B)
-            {
-                if (RIG_OK != (rc = icom_set_vfo(rig, RIG_VFO_A))) { return rc; }
-            }
+            if (RIG_OK != (rc = icom_set_vfo(rig, RIG_VFO_A))) { return rc; }
         }
 
         break;
@@ -3334,6 +3339,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     priv->rx_vfo = vfo;
     priv->tx_vfo = tx_vfo;
     priv->split_on = RIG_SPLIT_ON == split;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s rx_vfo=%s tx_vfo=%s split=%d\n", __func__, rig_strvfo(vfo), rig_strvfo(priv->rx_vfo), rig_strvfo(priv->tx_vfo), split);
     return RIG_OK;
 }
 
@@ -3348,6 +3354,7 @@ int icom_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
     unsigned char splitbuf[MAXFRAMELEN];
     int split_len, retval;
+    struct icom_priv_data *priv = (struct icom_priv_data *)rig->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     retval = icom_transaction(rig, C_CTL_SPLT, -1, NULL, 0,
@@ -3384,7 +3391,9 @@ int icom_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported split %d", __func__, splitbuf[1]);
         return -RIG_EPROTO;
     }
-
+    *tx_vfo = priv->tx_vfo;
+    priv->split_on = RIG_SPLIT_ON == *split;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s rx_vfo=%s tx_vfo=%s split=%d\n", __func__, rig_strvfo(vfo), rig_strvfo(priv->rx_vfo), rig_strvfo(priv->tx_vfo), *split);
     return RIG_OK;
 }
 
@@ -4006,14 +4015,14 @@ int icom_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
     const struct rig_caps *caps;
     unsigned char tonebuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
     int tone_len, ack_len = sizeof(ackbuf), retval;
-    int i;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     caps = rig->caps;
 
     if (caps->ctcss_list)
     {
-        for (i = 0; caps->ctcss_list[i] != 0 && i < FULL_CTCSS_LIST_COUNT; i++)
+        int i;
+        for (i = 0; caps->ctcss_list[i] != 0; i++)
         {
             if (caps->ctcss_list[i] == tone)
             {
@@ -4086,7 +4095,7 @@ int icom_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
     if (!caps->ctcss_list) { return RIG_OK; }
 
     /* check this tone exists. That's better than nothing. */
-    for (i = 0; caps->ctcss_list[i] != 0 && i < FULL_CTCSS_LIST_COUNT; i++)
+    for (i = 0; caps->ctcss_list[i] != 0; i++)
     {
         if (caps->ctcss_list[i] == *tone)
         {
@@ -4112,7 +4121,7 @@ int icom_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     caps = rig->caps;
 
-    for (i = 0; caps->ctcss_list[i] != 0 && i < FULL_CTCSS_LIST_COUNT; i++)
+    for (i = 0; caps->ctcss_list[i] != 0; i++)
     {
         if (caps->ctcss_list[i] == tone)
         {
@@ -4181,7 +4190,7 @@ int icom_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
     *tone = from_bcd_be(tonebuf + 2, tone_len * 2);
 
     /* check this tone exists. That's better than nothing. */
-    for (i = 0; caps->ctcss_list[i] != 0 && i < FULL_CTCSS_LIST_COUNT; i++)
+    for (i = 0; caps->ctcss_list[i] != 0; i++)
     {
         if (caps->ctcss_list[i] == *tone)
         {
@@ -4207,7 +4216,7 @@ int icom_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     caps = rig->caps;
 
-    for (i = 0; caps->dcs_list[i] != 0 && i < COMMON_DCS_LIST_COUNT; i++)
+    for (i = 0; caps->dcs_list[i] != 0; i++)
     {
         if (caps->dcs_list[i] == code)
         {
@@ -4280,7 +4289,7 @@ int icom_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
     *code = from_bcd_be(codebuf + 3, code_len * 2);
 
     /* check this code exists. That's better than nothing. */
-    for (i = 0; caps->dcs_list[i] != 0 && i < COMMON_DCS_LIST_COUNT; i++)
+    for (i = 0; caps->dcs_list[i] != 0; i++)
     {
         if (caps->dcs_list[i] == *code)
         {
@@ -4306,7 +4315,7 @@ int icom_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     caps = rig->caps;
 
-    for (i = 0; caps->dcs_list[i] != 0 && i < COMMON_DCS_LIST_COUNT; i++)
+    for (i = 0; caps->dcs_list[i] != 0; i++)
     {
         if (caps->dcs_list[i] == code)
         {
@@ -4379,7 +4388,7 @@ int icom_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
     *code = from_bcd_be(codebuf + 3, code_len * 2);
 
     /* check this code exists. That's better than nothing. */
-    for (i = 0; caps->dcs_list[i] != 0 && i < COMMON_DCS_LIST_COUNT; i++)
+    for (i = 0; caps->dcs_list[i] != 0; i++)
     {
         if (caps->dcs_list[i] == *code)
         {
@@ -5382,7 +5391,7 @@ DECLARE_PROBERIG_BACKEND(icom)
             /* read out the bytes we just sent
             * TODO: check this is what we expect
             */
-            frm_len = read_icom_frame(port, buf, sizeof(buf));
+            read_icom_frame(port, buf, sizeof(buf));
 
             /* this is the reply */
             frm_len = read_icom_frame(port, buf, sizeof(buf));
@@ -5456,7 +5465,7 @@ DECLARE_PROBERIG_BACKEND(icom)
             /* read out the bytes we just sent
             * TODO: check this is what we expect
             */
-            frm_len = read_icom_frame(port, buf, sizeof(buf));
+            read_icom_frame(port, buf, sizeof(buf));
 
             /* this is the reply */
             frm_len = read_icom_frame(port, buf, sizeof(buf));

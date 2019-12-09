@@ -71,7 +71,7 @@ easycomm_transaction(ROT *rot, const char *cmdstr, char *data, size_t data_len)
         goto transaction_quit;
     }
 
-    if (data == NULL || data_len <= 0)
+    if (data == NULL)
     {
         return RIG_OK;    /* don't want a reply */
     }

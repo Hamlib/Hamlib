@@ -402,7 +402,7 @@ const struct rig_caps ar5000a_caps =
 
 int format5k_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width)
 {
-    int aormode, aorwidth;
+    int aormode;
 
     switch (mode)
     {
@@ -431,6 +431,7 @@ int format5k_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width)
 
     if (width != RIG_PASSBAND_NOCHANGE)
     {
+        int aorwidth;
         if (width == RIG_PASSBAND_NORMAL)
         {
             width = rig_passband_normal(rig, mode);
