@@ -347,11 +347,9 @@ char parse_arg(const char *arg)
  */
 static int scanfc(FILE *fin, const char *format, void *p)
 {
-    int ret;
-
     do
     {
-        ret = fscanf(fin, format, p);
+        int ret = fscanf(fin, format, p);
 
         if (ret < 0)
         {
