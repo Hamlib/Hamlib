@@ -479,7 +479,7 @@ int HAMLIB_API par_read_status(hamlib_port_t *port, unsigned char *status)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
 #ifdef HAVE_LINUX_PPDEV_H
-    int ret0;
+    int ret;
     unsigned char sta;
 
     ret = ioctl(port->fd, PPRSTATUS, &sta);
