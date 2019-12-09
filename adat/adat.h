@@ -500,9 +500,15 @@ int adat_parse_freq(char *, adat_freq_parse_mode_t, int *, freq_t *);
 
 int adat_parse_mode(char *, rmode_t *, char *);
 int adat_mode_rnr2anr(rmode_t, int *);
+#ifdef XXREMOVEDXX
+// this function wasn't referenced anywhere
 int adat_mode_anr2rnr(int, rmode_t *);
+#endif
 
+#ifdef XXREMOVEDXX
+// this function wasn't referenced anywhere
 int adat_parse_vfo(char *, vfo_t *, int *);
+#endif
 int adat_vfo_rnr2anr(vfo_t, int *);
 int adat_vfo_anr2rnr(int, vfo_t *);
 

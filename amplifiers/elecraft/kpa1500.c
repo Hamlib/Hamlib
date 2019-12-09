@@ -41,7 +41,6 @@ struct kpa_priv_data *kpa1500_priv;
  *
  */
 
-static int kpa1500_init(AMP *amp);
 static int kpa1500_cleanup(AMP *amp);
 
 /*
@@ -68,7 +67,7 @@ const struct amp_caps kpa1500_amp_caps =
     .amp_model =    AMP_MODEL_ELECRAFT_KPA1500,
     .model_name =   "KPA1500",
     .mfg_name =     "Elecraft",
-    .version =      "2019-05-26",
+    .version =      "2019-12-06",
     .copyright =    "LGPL",
     .status =     RIG_STATUS_ALPHA,
     .amp_type =     AMP_TYPE_OTHER,
@@ -85,7 +84,7 @@ const struct amp_caps kpa1500_amp_caps =
     .retry =      2,
 
     .amp_open = amp_open,
-    .amp_init = kpa1500_init,
+    .amp_init = kpa_init,
     .amp_cleanup = kpa1500_cleanup,
     .reset = kpa_reset,
     .get_info = kpa_get_info,
@@ -103,37 +102,6 @@ const struct amp_caps kpa1500_amp_caps =
  *
  * ************************************
  */
-
-
-/*
- * Initialize data structures
- */
-
-static int kpa1500_init(AMP *amp)
-{
-    struct kpa_priv_data *priv;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!amp)
-    {
-        return -RIG_EINVAL;
-    }
-
-    priv = (struct kpa_priv_data *)
-           malloc(sizeof(struct kpa_priv_data));
-
-    if (!priv)
-    {
-        return -RIG_ENOMEM;
-    }
-
-    amp->state.priv = (void *)priv;
-
-    amp->state.ampport.type.rig = RIG_PORT_SERIAL;
-
-    return RIG_OK;
-}
 
 /*
  * Clean up allocated memory structures

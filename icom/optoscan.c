@@ -245,7 +245,7 @@ int optoscan_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
 int optoscan_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
 {
     unsigned char dtmfbuf[MAXFRAMELEN], digit;
-    int len, retval, digitpos;
+    int len, digitpos;
     unsigned char xlate[] = {'0', '1', '2', '3', '4', '5', '6',
                              '7', '8', '9', 'A', 'B', 'C', 'D',
                              '*', '#'
@@ -254,7 +254,7 @@ int optoscan_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
 
     do
     {
-        retval = icom_transaction(rig, C_CTL_MISC, S_OPTO_RDDTMF,
+        int retval = icom_transaction(rig, C_CTL_MISC, S_OPTO_RDDTMF,
                                   NULL, 0, dtmfbuf, &len);
 
         if (retval != RIG_OK)
@@ -271,7 +271,7 @@ int optoscan_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
 
         digit = dtmfbuf[2];
 
-        if (digit < 0x16)
+        if (digit < 16)
         {
             digits[digitpos] = xlate[digit];
             digitpos++;
@@ -495,15 +495,13 @@ int optoscan_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 int optoscan_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     struct optostat status_block;
-    unsigned char lvlbuf[MAXFRAMELEN];
     int lvl_len = 0;
-    int lvl_cn, lvl_sc;     /* Command Number, Subcommand */
     int icom_val;
-    int cmdhead;
     int retval;
 
     if (level != RIG_LEVEL_AF)
     {
+        int lvl_cn, lvl_sc;     /* Command Number, Subcommand */
         switch (level)
         {
         case RIG_LEVEL_RAWSTR:
@@ -516,6 +514,7 @@ int optoscan_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return -RIG_EINVAL;
         }
 
+        unsigned char lvlbuf[MAXFRAMELEN];
         retval = icom_transaction(rig, lvl_cn, lvl_sc, NULL, 0,
                                   lvlbuf, &lvl_len);
 
@@ -527,7 +526,7 @@ int optoscan_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         /*
          * strbuf should contain Cn,Sc,Data area
          */
-        cmdhead = (lvl_sc == -1) ? 1 : 2;
+        int cmdhead = (lvl_sc == -1) ? 1 : 2;
         lvl_len -= cmdhead;
 
         if (lvlbuf[0] != ACK && lvlbuf[0] != lvl_cn)

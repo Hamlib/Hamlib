@@ -528,7 +528,7 @@ static int dummy_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
     static int twiddle = 0;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-    *dcd = twiddle++ & 1 ? RIG_DCD_ON : RIG_DCD_OFF;
+    *dcd = (twiddle++ & 1) ? RIG_DCD_ON : RIG_DCD_OFF;
 
     return RIG_OK;
 }
@@ -865,7 +865,7 @@ static int dummy_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
-    *status = curr->funcs & func ? 1 : 0;
+    *status = (curr->funcs & func) ? 1 : 0;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__,
               rig_strfunc(func));

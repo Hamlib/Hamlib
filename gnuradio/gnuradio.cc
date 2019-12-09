@@ -495,7 +495,7 @@ int gr_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
   int chan_num = vfo2chan_num(rig, vfo);
   channel_t *chan = &priv->chans[chan_num];
   freq_t tuner_freq;
-  int ret, i;
+  int ret;
   char fstr[20];
 
   sprintf_freq(fstr, freq);
@@ -534,6 +534,7 @@ int gr_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	  /*
 	   * tuner freq changed, so adjust frequency offset of other channels
 	   */
+    int i;
 	  for (i = 0; i<NUM_CHAN; i++) {
 		  if (i != chan_num)
   			update_freq(rig, i, tuner_freq, priv->chans[i].freq);

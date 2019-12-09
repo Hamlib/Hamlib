@@ -1,4 +1,3 @@
-
 /*
  *  Hamlib AOR backend - AR7030 Plus utility functions
  *  Copyright (c) 2009-2010 by Larry Gadallah (VE6VQ)
@@ -466,6 +465,7 @@ static int setAddr(RIG *rig, enum PAGE_e page, unsigned int addr)
                 else
                 {
                     rc = -RIG_EIO;
+                    return rc;
                 }
 
                 v = ADR((0x00f & addr));
@@ -615,6 +615,8 @@ int write3Bytes(RIG *rig, enum PAGE_e page, unsigned int addr, unsigned int x)
     return (rc);
 }
 
+#ifdef XXREMOVEDXX
+// this function is not referenced anywhere
 /*
  * /brief Write unsigned int (4 bytes) to the receiver
  *
@@ -653,6 +655,7 @@ int writeInt(RIG *rig, enum PAGE_e page, unsigned int addr, unsigned int x)
 
     return (rc);
 }
+#endif
 
 /*
  * /brief Read one byte from the receiver
@@ -774,6 +777,8 @@ int read3Bytes(RIG *rig, enum PAGE_e page, unsigned int addr, unsigned int *x)
     return (rc);
 }
 
+#ifdef XXREMOVEDXX
+// this function is not referenced anywhere
 /*
  * /brief Read an unsigned int (four bytes) from the receiver
  *
@@ -820,6 +825,7 @@ int readInt(RIG *rig, enum PAGE_e page, unsigned int addr, unsigned int *x)
 
     return (rc);
 }
+#endif
 
 /*
  * /brief Read raw AGC value from the radio
@@ -850,6 +856,8 @@ int readSignal(RIG *rig, unsigned char *x)
     return (rc);
 }
 
+#ifdef XXREMOVEDXX
+// this function is not referenced anywhere
 /*
  * /brief Flush I/O with radio
  *
@@ -870,6 +878,7 @@ int flushBuffer(RIG *rig)
 
     return (rc);
 }
+#endif
 
 /*
  * /brief Lock receiver for remote operations
@@ -941,6 +950,8 @@ int bcd2Int(const unsigned char bcd)
     return (rc);
 }
 
+#ifdef XXREMOVEDXX
+// this function is not referenced anywhere
 /*
  * \brief Convert int into 2 digit BCD number
  *
@@ -970,6 +981,7 @@ unsigned char int2BCD(const unsigned int val)
 
     return (rc);
 }
+#endif
 
 /*
  * \brief Convert raw AGC value to calibrated level in dBm
@@ -1203,6 +1215,8 @@ float pbsToHz(const unsigned char steps)
     return (rc);
 }
 
+#ifdef XXREMOVEDXX
+// this function is not referenced anywhere
 /*
  * /brief Convert PBS/BFO offset frequency in Hz to steps
  *
@@ -1243,6 +1257,7 @@ unsigned char hzToPBS(const float freq)
 
     return (rc);
 }
+#endif
 
 /*
  * /brief Convert native Mode to Hamlib mode

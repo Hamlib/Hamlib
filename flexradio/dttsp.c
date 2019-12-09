@@ -343,11 +343,11 @@ static int fetch_meter(RIG *rig, int *label, float *data, int npts)
 {
     struct dttsp_priv_data *priv = (struct dttsp_priv_data *)rig->state.priv;
     int ret, buf_len;
-    char buf[sizeof(float)*MAXMETERPTS * MAXRX];
 
     if (priv->meter_port.type.rig == RIG_PORT_UDP_NETWORK)
     {
-        buf_len = sizeof(int) + npts * sizeof(float);
+        char buf[sizeof(float)*MAXMETERPTS * MAXRX];
+        buf_len = sizeof(buf);
 
         ret = read_block(&priv->meter_port, buf, buf_len);
 

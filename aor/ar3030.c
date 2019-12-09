@@ -561,12 +561,12 @@ int ar3030_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 int ar3030_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
     struct ar3030_priv_data *priv = (struct ar3030_priv_data *)rig->state.priv;
-    char cmdbuf[BUFSZ];
-    int cmd_len, retval = RIG_OK;
+    int retval = RIG_OK;
 
     if (priv->curr_vfo == RIG_VFO_MEM)
     {
-        cmd_len = sprintf(cmdbuf, "%02dM" CR, ch);
+        char cmdbuf[BUFSZ];
+        int cmd_len = sprintf(cmdbuf, "%02dM" CR, ch);
         retval = ar3030_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
     }
 

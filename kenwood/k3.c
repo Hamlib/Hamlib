@@ -2000,8 +2000,8 @@ int k3_set_nb_level(RIG *rig, float dsp_nb, float if_nb)
     char lvlbuf[16];
     int retval;
 
-    int dsp_nb_raw;
-    int if_nb_raw;
+    int dsp_nb_raw = 0;
+    int if_nb_raw = 0;
 
     if (dsp_nb >= 0)
     {

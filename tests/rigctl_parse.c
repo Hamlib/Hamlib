@@ -329,7 +329,7 @@ static struct test_table *find_cmd_entry(int cmd)
 {
     int i;
 
-    for (i = 0; i < MAXNBOPT && test_list[i].cmd != 0x00; i++)
+    for (i = 0; test_list[i].cmd != 0x00; i++)
     {
         if (test_list[i].cmd == cmd)
         {
@@ -390,7 +390,7 @@ void hash_add_model(int id,
 /* Hash sorting functions */
 int hash_model_id_sort(struct mod_lst *a, struct mod_lst *b)
 {
-    return (a->id - b->id);
+    return (a->id > b->id);
 }
 
 
@@ -453,7 +453,7 @@ static char parse_arg(const char *arg)
 {
     int i;
 
-    for (i = 0; i < MAXNBOPT && test_list[i].cmd != 0; i++)
+    for (i = 0; test_list[i].cmd != 0x00; i++)
     {
         if (!strncmp(arg, test_list[i].name, MAXNAMSIZ))
         {
@@ -4023,6 +4023,9 @@ declare_proto_rig(send_cmd)
     char bufcmd[BUFSZ];
     char buf[BUFSZ];
     char eom_buf[4] = { 0xa, 0xd, 0, 0 };
+    int binary = 0;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     /*
      * binary protocols enter values as \0xZZ\0xYY..
@@ -4051,6 +4054,12 @@ declare_proto_rig(send_cmd)
         /* no End Of Message chars */
         eom_buf[0] = '\0';
     }
+    else if (rig->caps->rig_model == RIG_MODEL_NETRIGCTL)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: we're using netrigctl\n", __func__);
+        snprintf(bufcmd, sizeof(bufcmd), "w %s\n", arg1);
+        cmd_len = strlen(bufcmd);
+    }
     else
     {
         /* text protocol */
@@ -4078,9 +4087,10 @@ declare_proto_rig(send_cmd)
         return retval;
     }
 
-    if (interactive && prompt)
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
-        fprintf(fout, "%s: ", cmd->arg2);
+        fwrite(cmd->arg1, 1, strlen(cmd->arg1), fout); /* i.e. "Frequency" */
+        fwrite(":", 1, 1, fout); /* i.e. "Frequency" */
     }
 
     do
@@ -4102,12 +4112,52 @@ declare_proto_rig(send_cmd)
             buf[BUFSZ - 1] = '\0';
         }
 
-        // we use fwrite in case of any nulls in binary return
-        fwrite(buf, 1, retval, fout);
-        fwrite("\n", 1, 1, fout);
+        if (rig->caps->rig_model != RIG_MODEL_NETRIGCTL)
+        {
+            // see if we have binary being returned
+            int i;
 
+            for (i = 0; i < retval; ++i)
+            {
+                if (!isprint(buf[i]))
+                {
+                    binary = 1;
+                    break;
+                }
+            }
+        }
+
+        if (binary)   // convert our buf to a hex representaion
+        {
+            int i;
+            char hex[64];
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: sending binary\n", __func__);
+
+            for (i = 0; i < retval; ++i)
+            {
+                snprintf(hex, sizeof(hex), "\\0x%02X", (unsigned char)buf[i]);
+                fprintf(fout, "%s", hex);
+            }
+
+            fprintf(fout, " %d\n", retval);
+            return RIG_OK;
+        }
+        else
+        {
+            // we should be in printable ASCII here
+            fprintf(fout, "%s\n", buf);
+        }
     }
     while (retval > 0);
+
+// we use fwrite in case of any nulls in binary return
+    if (binary) { fwrite(buf, 1, retval, fout); }
+
+    if (binary)
+    {
+        fwrite("\n", 1, 1, fout);
+    }
+
 
     if (retval > 0 || retval == -RIG_ETIMEOUT)
     {
