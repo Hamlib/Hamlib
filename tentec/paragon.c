@@ -268,7 +268,7 @@ int tt585_get_vfo(RIG *rig, vfo_t *vfo)
         return ret;
     }
 
-    *vfo = priv->status_data[9] & 0x08 ? RIG_VFO_A : RIG_VFO_B;
+    *vfo = (priv->status_data[9] & 0x08) ? RIG_VFO_A : RIG_VFO_B;
 
     return RIG_OK;
 }
@@ -332,7 +332,7 @@ int tt585_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *txvfo)
         return ret;
     }
 
-    *split = priv->status_data[9] & 0x02 ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
+    *split = (priv->status_data[9] & 0x02) ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
     *txvfo = RIG_VFO_B;
 
     return RIG_OK;
