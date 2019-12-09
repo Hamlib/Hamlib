@@ -151,7 +151,7 @@ int main(int argc, char *argv[])
     int serial_rate = 0;
     char *civaddr = NULL;   /* NULL means no need to set conf */
     char conf_parms[MAXCONFLEN] = "";
-    int interactive = 1;    /* if no cmd on command line, switch to interactive */
+    int interactive;    /* if no cmd on command line, switch to interactive */
     int prompt = 1;         /* Print prompt in rigctl */
     int vfo_mode = 0;       /* vfo_mode = 0 means target VFO is 'currVFO' */
     char send_cmd_term = '\r';  /* send_cmd termination char */
@@ -431,6 +431,9 @@ int main(int argc, char *argv[])
     if (optind < argc)
     {
         interactive = 0;
+    }
+    else {
+        interactive = 1;
     }
 
     my_rig = rig_init(my_model);
