@@ -232,7 +232,7 @@ tt550_tuning_factor_calc(RIG *rig, int tx)
     int TBfo = 0;         // temporary BFO
     int IBfo = 1500;      // Intermediate BFO Freq
     int FilterBw;         // Filter Bandwidth determined from table
-    int Mode, bwBFO, PbtAdj, RitAdj, XitAdj;
+    int Mode, PbtAdj, RitAdj, XitAdj;
 
     priv = (struct tt550_priv_data *) rig->state.priv;
 
@@ -245,7 +245,7 @@ tt550_tuning_factor_calc(RIG *rig, int tx)
 
     if (tx)
     {
-        bwBFO = (FilterBw / 2) + 200;
+        int bwBFO = (FilterBw / 2) + 200;
 
         IBfo = (bwBFO > IBfo) ? bwBFO : IBfo;
 
@@ -1706,7 +1706,6 @@ tt550_decode_event(RIG *rig)
     struct rig_state *rs;
     unsigned char buf[MAXFRAMELEN];
     int data_len;
-    short movement = 0;
 //  char key;
 
 
@@ -1744,7 +1743,7 @@ tt550_decode_event(RIG *rig)
     case '!':
         if (rig->callbacks.freq_event)
         {
-            movement = buf[1] << 8;
+            int movement = buf[1] << 8;
             movement = movement | buf[2];
 //      key = buf[3];
             rig_debug(RIG_DEBUG_VERBOSE,
