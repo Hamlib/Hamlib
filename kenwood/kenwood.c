@@ -2718,7 +2718,7 @@ int kenwood_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 int kenwood_set_ctcss_tone_tn(RIG *rig, vfo_t vfo, tone_t tone)
 {
     const struct rig_caps *caps = rig->caps;
-    char buf[6];
+    char buf[16];
     int i;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -2861,7 +2861,7 @@ int kenwood_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 int kenwood_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 {
     const struct rig_caps *caps = rig->caps;
-    char buf[6];
+    char buf[16];
     int i;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
