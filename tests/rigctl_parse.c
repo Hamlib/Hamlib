@@ -470,11 +470,9 @@ static char parse_arg(const char *arg)
  */
 static int scanfc(FILE *fin, const char *format, void *p)
 {
-    int ret;
-
     do
     {
-        ret = fscanf(fin, format, p);
+        int ret = fscanf(fin, format, p);
 
         if (ret < 0)
         {
@@ -610,12 +608,12 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
     char arg1[MAXARGSZ + 1], *p1 = NULL;
     char arg2[MAXARGSZ + 1], *p2 = NULL;
     char arg3[MAXARGSZ + 1], *p3 = NULL;
-    static int last_was_ret = 1;
     vfo_t vfo = RIG_VFO_CURR;
 
     /* cmd, internal, rigctld */
     if (!(interactive && prompt && have_rl))
     {
+        static int last_was_ret = 1;
         if (interactive)
         {
             if (prompt)
@@ -1270,7 +1268,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 rp_getline(pmptstr);
 
                 /* Blank line entered */
-                if (!(strcmp(input_line, "")))
+                if (input_line && !(strcmp(input_line, "")))
                 {
                     fprintf(fout, "? for help, q to quit.\n");
                     fflush(fout);
@@ -1637,7 +1635,7 @@ void version()
 
 void usage_rig(FILE *fout)
 {
-    int i, nbspaces;
+    int i;
 
     fprintf(fout, "Commands (some may not be available for this rig):\n");
 
@@ -1648,7 +1646,7 @@ void usage_rig(FILE *fout)
                 isprint(test_list[i].cmd) ? test_list[i].cmd : '?',
                 test_list[i].name);
 
-        nbspaces = 18;
+        int nbspaces = 18;
 
         if (test_list[i].arg1 && (test_list[i].flags & ARG_IN1))
         {
@@ -1793,15 +1791,14 @@ void list_models()
 
 int set_conf(RIG *my_rig, char *conf_parms)
 {
-    char *p, *q, *n;
-    int ret;
+    char *p, *n;
 
     p = conf_parms;
 
     while (p && *p != '\0')
     {
         /* FIXME: left hand value of = cannot be null */
-        q = strchr(p, '=');
+        char *q = strchr(p, '=');
 
         if (!q)
         {
@@ -1816,7 +1813,7 @@ int set_conf(RIG *my_rig, char *conf_parms)
             *n++ = '\0';
         }
 
-        ret = rig_set_conf(my_rig, rig_token_lookup(my_rig, p), q);
+        int ret = rig_set_conf(my_rig, rig_token_lookup(my_rig, p), q);
 
         if (ret != RIG_OK)
         {
