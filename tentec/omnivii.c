@@ -513,7 +513,7 @@ int tt588_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 int tt588_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     char    bytes[4];
-    int cmd_len, retval;
+    int cmd_len;
     unsigned char cmdbuf[16];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s freq=%g\n", __func__, rig_strvfo(vfo),
@@ -527,6 +527,8 @@ int tt588_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (vfo == RIG_VFO_CURR)
     {
+        int retval;
+
         if ((retval = tt588_get_vfo(rig, &vfo)) != RIG_OK)
         {
             return retval;
