@@ -185,7 +185,7 @@ static libusb_device_handle *find_and_open_device(const hamlib_port_t *port)
                      */
                     if (strncasecmp(string,
                                     port->parm.usb.product,
-                                    sizeof(port->parm.usb.product - 1)) != 0)
+                                    sizeof(port->parm.usb.product)-1) != 0)
                     {
 
                         rig_debug(RIG_DEBUG_WARN,
