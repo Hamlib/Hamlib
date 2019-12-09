@@ -406,7 +406,6 @@ static int numcontrolbytes = 0;
 
 static void parseFrame(unsigned char *frame)
 {
-    int i;
     unsigned char byte;
     FRAME("RCV frame %02x %02x %02x %02x\n", frame[0], frame[1], frame[2],
           frame[3]);
@@ -482,6 +481,7 @@ static void parseFrame(unsigned char *frame)
                 controlstring[numcontrolbytes++] = byte;
                 DEBUG("%10d:FromControl:", TIME);
 
+                int i;
                 for (i = 0; i < numcontrolbytes; i++) { DEBUG(" %02x", controlstring[i]); }
 
                 DEBUG(".\n");
@@ -522,7 +522,7 @@ static void parseFrame(unsigned char *frame)
 static void writeRadio(unsigned char *bytes, int len)
 {
     unsigned char seq[4];
-    int i, ret;
+    int i;
 
     DEBUG("%10d:Send radio data: ", TIME);
 
@@ -549,6 +549,7 @@ static void writeRadio(unsigned char *bytes, int len)
             seq[0] |= 0x04;
         }
 
+        int ret;
         if ((ret = write(uh_device_fd, seq, 4)) < 4)
         {
             MYERROR("WriteRadio failed with %d\n", ret);
@@ -607,7 +608,7 @@ static void writeFlags()
 static void writeWkey(unsigned char *bytes, int len)
 {
     unsigned char seq[12];
-    int i, ret;
+    int i;
     DEBUG("%10d:Send WinKey data: ", TIME);
 
     for (i = 0; i < len; i++) { DEBUG(" %02x", (int) bytes[i]); }
@@ -642,6 +643,7 @@ static void writeWkey(unsigned char *bytes, int len)
             seq[ 8] |= 0x01;
         }
 
+        int ret;
         if ((ret = write(uh_device_fd, seq, 12)) < 12)
         {
             MYERROR("WriteWINKEY failed with %d\n", ret);
@@ -663,7 +665,7 @@ static void writeWkey(unsigned char *bytes, int len)
 //
 static void writeControl(unsigned char *data, int len)
 {
-    int i, ret;
+    int i;
     unsigned char seq[8];
 
     DEBUG("%10d:WriteControl:", TIME);
@@ -703,6 +705,7 @@ static void writeControl(unsigned char *data, int len)
             seq[4] |= 0x01;
         }
 
+        int ret;
         if ((ret = write(uh_device_fd, seq, 8)) < 8)
         {
             MYERROR("WriteControl failed, ret=%d\n", ret);
@@ -747,12 +750,9 @@ static void *read_device(void *p)
 {
     unsigned char frame[4];
     int framepos = 0;
-    int ret;
     unsigned char buf[2];
     fd_set fds;
     struct timeval tv;
-    int maxdev;
-
 
     // the bytes from the microHam decive come in "frames"
     // a frame is a four-byte sequence. The first byte has the MSB unset,
@@ -792,7 +792,7 @@ static void *read_device(void *p)
         FD_SET(uh_wkey_pair[0], &fds);
 
         // determine max of these fd's for use in select()
-        maxdev = uh_device_fd;
+        int maxdev = uh_device_fd;
 
         if (uh_radio_pair[0] > maxdev)
         {
@@ -811,7 +811,7 @@ static void *read_device(void *p)
 
         tv.tv_usec = 100000;
         tv.tv_sec = 0;
-        ret = select(maxdev + 1, &fds, NULL, NULL, &tv);
+        int ret = select(maxdev + 1, &fds, NULL, NULL, &tv);
 
         //
         // select returned error, or nothing has arrived:
@@ -1117,6 +1117,8 @@ void uh_close_radio()
 }
 
 
+#ifdef XXREMOVEDXX
+// Not referenced anywhere
 void uh_close_wkey()
 {
     uh_wkey_in_use = 0;
@@ -1126,7 +1128,7 @@ void uh_close_wkey()
         close_microham();
     }
 }
-
+#endif
 
 int uh_open_ptt()
 {
@@ -1145,6 +1147,8 @@ int uh_open_ptt()
 }
 
 
+#ifdef XXREVMOVEDXX
+// Not referenced anywhere
 int uh_open_wkey()
 {
     if (!uh_is_initialized)
@@ -1160,6 +1164,7 @@ int uh_open_wkey()
     uh_wkey_in_use = 1;
     return uh_wkey_pair[1];
 }
+#endif
 
 
 //
