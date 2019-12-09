@@ -421,15 +421,14 @@ void usage()
 
 int set_conf(RIG *rig, char *conf_parms)
 {
-    char *p, *q, *n;
-    int ret;
+    char *p, *n;
 
     p = conf_parms;
 
     while (p && *p != '\0')
     {
         /* FIXME: left hand value of = cannot be null */
-        q = strchr(p, '=');
+        char *q = strchr(p, '=');
 
         if (!q)
         {
@@ -444,7 +443,7 @@ int set_conf(RIG *rig, char *conf_parms)
             *n++ = '\0';
         }
 
-        ret = rig_set_conf(rig, rig_token_lookup(rig, p), q);
+        int ret = rig_set_conf(rig, rig_token_lookup(rig, p), q);
 
         if (ret != RIG_OK)
         {
@@ -473,7 +472,7 @@ int clear_chans(RIG *rig, const char *infilename)
     chan.tx_mode = RIG_MODE_NONE;
     chan.vfo = RIG_VFO_MEM;
 
-    for (i = 0; rig->state.chan_list[i].type && i < CHANLSTSIZ; i++)
+    for (i = 0; rig->state.chan_list[i].type; i++)
     {
         for (j = rig->state.chan_list[i].startc;
                 j <= rig->state.chan_list[i].endc; j++)
