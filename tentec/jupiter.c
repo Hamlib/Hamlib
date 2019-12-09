@@ -815,7 +815,8 @@ int tt538_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         that integer (S units * 256) */
         {
             char hex[5];
-            int i, ival;
+            int i; 
+            unsigned int ival;
 
             for (i = 0; i < 4; i++) { hex[i] = lvlbuf[i + 1]; }
 
