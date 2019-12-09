@@ -1135,6 +1135,11 @@ int tt538_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         fresplen = 6;
         retval = tt538_transaction(rig, "?K" EOM, 3, frespbuf, &fresplen);
 
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
         for (i = 0; i < 5; i++)
         {
             fcmdbuf[i + 1] = frespbuf[i];
@@ -1173,6 +1178,11 @@ int tt538_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         fresplen = 6;
         retval = tt538_transaction(rig, "?K" EOM, 3, frespbuf, &fresplen);
 
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
         for (i = 0; i < 5; i++)
         {
             fcmdbuf[i + 1] = frespbuf[i];
@@ -1194,6 +1204,11 @@ int tt538_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     case RIG_FUNC_ANF:
         fresplen = 6;
         retval = tt538_transaction(rig, "?K" EOM, 3, frespbuf, &fresplen);
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
 
         for (i = 0; i < 5; i++)
         {
