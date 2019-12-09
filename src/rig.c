@@ -286,7 +286,7 @@ const char *HAMLIB_API rigerror(int errnum)
 {
     errnum = abs(errnum);
 
-    if (errnum > ERROR_TBL_SZ)
+    if (errnum >= ERROR_TBL_SZ)
     {
         return NULL;
     }
@@ -312,7 +312,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     RIG *rig;
     const struct rig_caps *caps;
     struct rig_state *rs;
-    int i, retcode;
+    int i;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -351,7 +351,6 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs = &rig->state;
 
     rs->rigport.fd = -1;
-    rs->pttport.fd = -1;
     rs->pttport.fd = -1;
     rs->comm_state = 0;
     rs->rigport.type.rig = caps->port_type; /* default from caps */
@@ -485,7 +484,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
      */
     if (caps->rig_init != NULL)
     {
-        retcode = caps->rig_init(rig);
+        int retcode = caps->rig_init(rig);
 
         if (retcode != RIG_OK)
         {
@@ -3724,7 +3723,7 @@ int HAMLIB_API rig_mW2power(RIG *rig,
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !rig->caps || !power || mwpower <= 0)
+    if (!rig || !rig->caps || !power || mwpower == 0)
     {
         return -RIG_EINVAL;
     }
