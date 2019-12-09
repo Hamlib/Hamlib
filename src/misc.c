@@ -81,7 +81,6 @@ unsigned char *HAMLIB_API to_bcd(unsigned char bcd_data[],
                                  unsigned bcd_len)
 {
     int i;
-    unsigned char a;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -90,7 +89,7 @@ unsigned char *HAMLIB_API to_bcd(unsigned char bcd_data[],
 
     for (i = 0; i < bcd_len / 2; i++)
     {
-        a = freq % 10;
+        unsigned char a = freq % 10;
         freq /= 10;
         a |= (freq % 10) << 4;
         freq /= 10;
@@ -166,7 +165,6 @@ unsigned char *HAMLIB_API to_bcd_be(unsigned char bcd_data[],
                                     unsigned bcd_len)
 {
     int i;
-    unsigned char a;
 
     /* '450'/4 -> 0,4;5,0 */
     /* '450'/3 -> 4,5;0,x */
@@ -183,7 +181,7 @@ unsigned char *HAMLIB_API to_bcd_be(unsigned char bcd_data[],
 
     for (i = (bcd_len / 2) - 1; i >= 0; i--)
     {
-        a = freq % 10;
+        unsigned char a = freq % 10;
         freq /= 10;
         a |= (freq % 10) << 4;
         freq /= 10;
