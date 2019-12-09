@@ -655,8 +655,6 @@ int HAMLIB_API amp_get_ext_level(AMP *amp, token_t level, value_t *val)
     return amp->caps->get_ext_level(amp, level, val);
 }
 
-#if XXREMOVEDXX
-// Not referenced anywhere
 /**
  * \brief turn on/off the amplifier or standby/operate toggle
  * \param amp   The amp handle
@@ -689,7 +687,6 @@ int HAMLIB_API amp_set_powerstat(AMP *amp, powerstat_t status)
 
     return amp->caps->set_powerstat(amp, status);
 }
-#endif
 
 int HAMLIB_API amp_get_powerstat(AMP *amp, powerstat_t *status)
 {

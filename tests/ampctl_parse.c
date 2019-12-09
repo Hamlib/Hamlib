@@ -494,13 +494,13 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
     char arg4[MAXARGSZ + 1], *p4 = NULL;
     char *p5 = NULL;
     char *p6 = NULL;
-    static int last_was_ret = 1;
 
     /* cmd, internal, ampctld */
     if (!(interactive && prompt && have_rl))
     {
         if (interactive)
         {
+            static int last_was_ret = 1;
             if (prompt)
             {
                 fprintf_flush(fout, "\nAmplifier command: ");
@@ -1060,7 +1060,7 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
                 rp_getline(pmptstr);
 
                 /* Blank line entered */
-                if (!(strcmp(input_line, "")))
+                if (input_line && !(strcmp(input_line, "")))
                 {
                     fprintf(fout, "? for help, q to quit.\n");
                     fflush(fout);
