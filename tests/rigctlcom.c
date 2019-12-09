@@ -1407,14 +1407,14 @@ static int handle_ts2000(void *arg)
     {
         freq_t freq;
 
-        sscanf(arg + 2, "%"SCNfreq, &freq);
+        sscanf((char*)arg + 2, "%"SCNfreq, &freq);
         return rig_set_freq(my_rig, RIG_VFO_A, freq);
     }
     else if (strncmp(arg, "FB0", 3) == 0)
     {
         freq_t freq;
 
-        sscanf(arg + 2, "%"SCNfreq, &freq);
+        sscanf((char*)arg + 2, "%"SCNfreq, &freq);
         return rig_set_freq(my_rig, RIG_VFO_A, freq);
     }
     else if (strncmp(arg, "MD", 2) == 0)
@@ -1422,7 +1422,7 @@ static int handle_ts2000(void *arg)
         mode_t mode = 0;
         int imode = 0;
 
-        sscanf(arg + 2, "%d", &imode);
+        sscanf((char*)arg + 2, "%d", &imode);
 
         switch (imode)
         {
