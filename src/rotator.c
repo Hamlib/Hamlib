@@ -199,7 +199,6 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
     ROT *rot;
     const struct rot_caps *caps;
     struct rot_state *rs;
-    int retcode;
 
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -283,7 +282,7 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
      */
     if (caps->rot_init != NULL)
     {
-        retcode = caps->rot_init(rot);
+        int retcode = caps->rot_init(rot);
 
         if (retcode != RIG_OK)
         {
