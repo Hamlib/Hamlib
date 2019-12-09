@@ -251,7 +251,7 @@ int HAMLIB_API par_write_data(hamlib_port_t *port, unsigned char data)
     status = ioctl(port->fd, PPISDATA, &data);
     return status == 0 ? RIG_OK : -RIG_EIO;
 #elif defined(__WIN64__) || defined(__WIN32__)
-    unsigned int dummy;
+    unsigned int dummy = 0;
 
     intptr_t handle;
 
@@ -293,7 +293,7 @@ int HAMLIB_API par_read_data(hamlib_port_t *port, unsigned char *data)
     return status == 0 ? RIG_OK : -RIG_EIO;
 #elif defined(__WIN64__) || defined(__WIN32__)
     unsigned char ret = 0;
-    unsigned int dummy;
+    unsigned int dummy = 0;
 
     intptr_t handle;
 
@@ -357,7 +357,7 @@ int HAMLIB_API par_write_control(hamlib_port_t *port, unsigned char control)
 #elif defined(__WIN64__) || defined(__WIN32__)
     unsigned char ctr = control;
     unsigned char dummyc;
-    unsigned int dummy;
+    unsigned int dummy = 0;
     const unsigned char wm = (C1284_NSTROBE
                               | C1284_NAUTOFD
                               | C1284_NINIT
@@ -434,7 +434,7 @@ int HAMLIB_API par_read_control(hamlib_port_t *port, unsigned char *control)
     return status == 0 ? RIG_OK : -RIG_EIO;
 #elif defined(__WIN64__) || defined(__WIN32__)
     unsigned char ret = 0;
-    unsigned int dummy;
+    unsigned int dummy = 0;
 
     intptr_t handle;
 
@@ -479,7 +479,7 @@ int HAMLIB_API par_read_status(hamlib_port_t *port, unsigned char *status)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
 #ifdef HAVE_LINUX_PPDEV_H
-    int ret;
+    int ret0;
     unsigned char sta;
 
     ret = ioctl(port->fd, PPRSTATUS, &sta);
@@ -496,7 +496,7 @@ int HAMLIB_API par_read_status(hamlib_port_t *port, unsigned char *status)
 
 #elif defined(__WIN64__) || defined(__WIN32__)
     unsigned char ret = 0;
-    unsigned int dummy;
+    unsigned int dummy = 0;
 
     intptr_t handle;
 
@@ -724,7 +724,7 @@ int par_dcd_get(hamlib_port_t *p, dcd_t *dcdx)
 
         if (status == RIG_OK)
         {
-            *dcdx = reg & (1 << p->parm.parallel.pin) ?
+            *dcdx = (reg & (1 << p->parm.parallel.pin)) ?
                     RIG_DCD_ON : RIG_DCD_OFF;
         }
 
