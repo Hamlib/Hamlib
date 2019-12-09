@@ -2245,7 +2245,7 @@ static int find_tone_index(const tone_t *tone_list, tone_t tone)
 /* --------------------------------------------------------------------- */
 int th_set_channel(RIG *rig, const channel_t *chan)
 {
-    char membuf[150];
+    char membuf[256];
     int retval;
     char req[64];
     char lockoutstr[8];
@@ -2453,7 +2453,7 @@ int th_set_channel(RIG *rig, const channel_t *chan)
 
         /* Step can be hexa */
         retval = snprintf(membuf, sizeof(membuf),
-                          "%s,%011"PRIll",%X,%d,%d,%d,%d,%d,%02d,%02d,%03d,%09"PRIll",%d%s",
+                          "%8s,%011"PRIll",%X,%d,%d,%d,%d,%d,%02d,%02d,%03d,%09"PRIll",%d%10s",
                           req, (int64_t)chan->freq, step, shift, rev, tone,
                           ctcss, dcs, tonefq, ctcssfq, dcscode,
                           (int64_t)labs((long)(chan->rptr_offs)), mode, lockoutstr
