@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
      *  }
      */
 
-    for (i = 0; my_rig->state.chan_list[i].type && i < CHANLSTSIZ; i++)
+    for (i = 0; my_rig->state.chan_list[i].type; i++)
     {
         for (j = my_rig->state.chan_list[i].startc;
                 j <= my_rig->state.chan_list[i].endc; j++)
