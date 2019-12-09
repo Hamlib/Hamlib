@@ -3,7 +3,7 @@
  *  Edit to specify your rig model and serial port, and baud rate
  *  before compiling.
  *  To compile:
- *      gcc -L/usr/local/lib -lhamlib -o example example.c
+ *      gcc -L/usr/local/lib -o example example.c -lhamlib
  *      if hamlib is installed in /usr/local/...
  *
  */
@@ -21,7 +21,8 @@ int main()
     freq_t freq;
     value_t rawstrength, power, strength;
     float s_meter, rig_raw2val();
-    int status, retcode, isz, mwpower;
+    int status, retcode;
+    unsigned int mwpower;
     rmode_t mode;
     pbwidth_t width;
 
@@ -40,6 +41,13 @@ int main()
 
     /* Open my rig */
     retcode = rig_open(my_rig);
+
+    if (retcode != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: rig_open failed %s\n", __func__,
+                  rigerror(retcode));
+        return 1;
+    }
 
     /* Give me ID info, e.g., firmware version. */
     info_buf = (char *)rig_get_info(my_rig);
@@ -100,24 +108,28 @@ int main()
         break; /* there are more possibilities! */
     }
 
-    printf("Current mode = 0x%X = %s, width = %d\n", mode, mm, width);
+    printf("Current mode = 0x%lX = %s, width = %ld\n", mode, mm, width);
 
     /* rig power output */
     status = rig_get_level(my_rig, RIG_VFO_CURR, RIG_LEVEL_RFPOWER, &power);
+
+    if (status != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s: error rig_get_level: %s\n", __func__, rigerror(status)); }
 
     printf("RF Power relative setting = %.3f (0.0 - 1.0)\n", power.f);
 
     /* Convert power reading to watts */
     status = rig_power2mW(my_rig, &mwpower, power.f, freq, mode);
 
+    if (status != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s: error rig_get_level: %s\n", __func__, rigerror(status)); }
+
     printf("RF Power calibrated = %.1f Watts\n", mwpower / 1000.);
 
     /* Raw and calibrated S-meter values */
     status = rig_get_level(my_rig, RIG_VFO_CURR, RIG_LEVEL_RAWSTR, &rawstrength);
 
-    printf("Raw receive strength = %d\n", rawstrength.i);
+    if (status != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s: error rig_get_level: %s\n", __func__, rigerror(status)); }
 
-    isz = my_rig->caps->str_cal.size;
+    printf("Raw receive strength = %d\n", rawstrength.i);
 
     s_meter = rig_raw2val(rawstrength.i, &my_rig->caps->str_cal);
 
@@ -125,6 +137,8 @@ int main()
 
     /* now try using RIG_LEVEL_STRENGTH itself */
     status = rig_get_strength(my_rig, RIG_VFO_CURR, &strength);
+
+    if (status != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s: error rig_get_level: %s\n", __func__, rigerror(status)); }
 
     printf("LEVEL_STRENGTH returns %d\n", strength.i);
 };
