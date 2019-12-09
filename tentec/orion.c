@@ -116,7 +116,7 @@ double tt565_timenow()  /* returns current time in secs+microsecs */
 static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
                              int *data_len)
 {
-    int retval, data_len_init, itry;
+    int data_len_init, itry;
     struct rig_state *rs;
     static int passcount = 0;
 #ifdef TT565_TIME
@@ -131,7 +131,7 @@ static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
     {
         rs = &rig->state;
         serial_flush(&rs->rigport); /* discard pending i/p */
-        retval = write_block(&rs->rigport, cmd, cmd_len);
+        int retval = write_block(&rs->rigport, cmd, cmd_len);
 
         if (retval != RIG_OK)
         {
@@ -488,8 +488,6 @@ int tt565_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 int tt565_set_vfo(RIG *rig, vfo_t vfo)
 {
     struct tt565_priv_data *priv = (struct tt565_priv_data *)rig->state.priv;
-    int vfo_len;
-    char vfobuf[TT565_BUFSIZE];
 
     if (vfo == RIG_VFO_CURR)
     {
@@ -498,9 +496,10 @@ int tt565_set_vfo(RIG *rig, vfo_t vfo)
 
     if (vfo == RIG_VFO_MAIN || vfo == RIG_VFO_SUB)
     {
+        char vfobuf[TT565_BUFSIZE];
         /* Select Sub or Main RX */
-        vfo_len = sprintf(vfobuf, "*K%c" EOM,
-                          vfo == RIG_VFO_SUB ? 'S' : 'M');
+        int vfo_len = sprintf(vfobuf, "*K%c" EOM,
+                              vfo == RIG_VFO_SUB ? 'S' : 'M');
 
         return tt565_transaction(rig, vfobuf, vfo_len, NULL, NULL);
     }
@@ -1323,7 +1322,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         if (lvlbuf[2] == 'R')
         {
-            char *raw_field, *raw_field2;
+            char *raw_field;
 
             /* response is @SRMnnnSnnn, incl main & sub rx. */
             /* TT's spec indicates variable length data 1-3 digits */
@@ -1334,7 +1333,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             else                /* look at main rx info */
             {
                 raw_field = lvlbuf + 4;
-                raw_field2 = strchr(raw_field, 'S'); /* position may vary */
+                char *raw_field2 = strchr(raw_field, 'S'); /* position may vary */
 
                 if (raw_field2) { *raw_field2 = '\0'; } /* valid string */
             }
@@ -1818,7 +1817,7 @@ int tt565_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
  */
 int tt565_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 {
-    int msg_len, retval, ic, cmdl;
+    int msg_len, retval, ic;
     char morsecmd[8];
     static int keyer_set = FALSE;   /*Shouldn't be here!*/
 
@@ -1842,7 +1841,7 @@ int tt565_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 
     for (ic = 0; ic < msg_len; ic++)
     {
-        cmdl = sprintf(morsecmd, "/%c" EOM, msg[ic]);
+        int cmdl = sprintf(morsecmd, "/%c" EOM, msg[ic]);
         retval = tt565_transaction(rig, morsecmd, cmdl, NULL, NULL);
 
         if (retval != RIG_OK)
