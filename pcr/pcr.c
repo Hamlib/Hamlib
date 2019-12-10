@@ -28,7 +28,7 @@
  * (403) PCR1500 fw 2.0, proto 2.0 (usb) by KM3T
  *
  */
-#define _XOPEN_SOURCE 500
+#define _XOPEN_SOURCE 600
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"

@@ -65,7 +65,7 @@
  * This backend supports the Ten-Tec Orion (565) and Orion II (566) transceivers.
  * \n This backend tested mostly with firmware versions 1.372 and 2.062a
  */
-#define _XOPEN_SOURCE 500
+#define _XOPEN_SOURCE 600
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
