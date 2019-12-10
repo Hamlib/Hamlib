@@ -311,6 +311,7 @@ static struct test_table test_list[] =
     { 0x8a, "recv_dtmf",        ACTION(recv_dtmf),      ARG_OUT, "Digits" },
     { '*',  "reset",            ACTION(reset),          ARG_IN, "Reset" },
     { 'w',  "send_cmd",         ACTION(send_cmd),       ARG_IN1 | ARG_IN_LINE | ARG_OUT2 | ARG_NOVFO, "Cmd", "Reply" },
+    { 'W',  "send_cmd_rx",      ACTION(send_cmd),       ARG_IN | ARG_OUT2 | ARG_NOVFO,"Cmd","NBytes"},
     { 'b',  "send_morse",       ACTION(send_morse),     ARG_IN  | ARG_IN_LINE, "Morse" },
     { 0x8b, "get_dcd",          ACTION(get_dcd),        ARG_OUT, "DCD" },
     { '2',  "power2mW",         ACTION(power2mW),       ARG_IN1 | ARG_IN2 | ARG_IN3 | ARG_OUT1 | ARG_NOVFO, "Power [0.0..1.0]", "Frequency", "Mode", "Power mW" },
@@ -4011,7 +4012,7 @@ declare_proto_rig(get_powerstat)
  * Special debugging purpose send command display reply until there's a
  * timeout.
  *
- * 'w'
+ * 'w' and 'W'
  */
 declare_proto_rig(send_cmd)
 {
@@ -4023,6 +4024,7 @@ declare_proto_rig(send_cmd)
     char buf[BUFSZ];
     char eom_buf[4] = { 0xa, 0xd, 0, 0 };
     int binary = 0;
+    int rxbytes = BUFSZ;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
@@ -4094,8 +4096,10 @@ declare_proto_rig(send_cmd)
 
     do
     {
+        if (arg2) sscanf(arg2, "%d", &rxbytes);
+        if (rxbytes > 0) ++rxbytes;  // need length + 1 for end of string
         /* Assumes CR or LF is end of line char for all ASCII protocols. */
-        retval = read_string(&rs->rigport, buf, BUFSZ, eom_buf, strlen(eom_buf));
+        retval = read_string(&rs->rigport, buf, rxbytes, eom_buf, strlen(eom_buf));
 
         if (retval < 0)
         {
