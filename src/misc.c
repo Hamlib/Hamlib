@@ -527,6 +527,8 @@ static struct
     { RIG_FUNC_BC2, "BC2" },
     { RIG_FUNC_DUAL_WATCH, "DUAL_WATCH"},
     { RIG_FUNC_DIVERSITY, "DIVERSITY"},
+    { RIG_FUNC_CSQL, "CSQL" },
+    { RIG_FUNC_SCEN, "SCEN" },
     { RIG_FUNC_NONE, "" },
 };
 

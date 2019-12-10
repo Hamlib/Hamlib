@@ -3666,9 +3666,19 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         fct_len = 0;
         break;
 
+    case RIG_FUNC_CSQL:
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_CSQL;
+        break;
+
     case RIG_FUNC_DSQL:
         fct_cn = C_CTL_FUNC;
-        fct_sc = S_FUNC_DSQL;
+        fct_sc = S_FUNC_DSSQL;
+        if (status <= 2) {
+            fctbuf[0] = status;
+        } else {
+            fctbuf[0] = 0;
+        }
         break;
 
     case RIG_FUNC_AFLT:
@@ -3847,9 +3857,14 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         fct_sc = S_FUNC_IPPLUS;
         break;
 
+    case RIG_FUNC_CSQL:
+        fct_cn = C_CTL_FUNC;
+        fct_sc = S_FUNC_CSQL;
+        break;
+
     case RIG_FUNC_DSQL:
         fct_cn = C_CTL_FUNC;
-        fct_sc = S_FUNC_DSQL;
+        fct_sc = S_FUNC_DSSQL;
         break;
 
     case RIG_FUNC_AFLT:
@@ -5591,6 +5606,9 @@ DECLARE_INITRIG_BACKEND(icom)
 
     rig_register(&ic92d_caps);
     rig_register(&id1_caps);
+    rig_register(&id31_caps);
+    rig_register(&id51_caps);
+    rig_register(&id4100_caps);
     rig_register(&id5100_caps);
     rig_register(&ic2730_caps);
 
