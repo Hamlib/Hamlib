@@ -1,5 +1,5 @@
 /*
- *  Hamlib CI-V backend - description of ID-5100 and variations
+ *  Hamlib CI-V backend - description of ID-51 and variations
  *  Copyright (c) 2015 by Stephane Fillod
  *  Copyright (c) 2019 by Malcolm Herring
  *
@@ -31,63 +31,59 @@
 #include "icom.h"
 
 /*
- * Specs and protocol details comes from the chapter 13 of ID-5100_Full-Inst_Manual.pdf
- *
- * NB: while the port labeled "Data" is used for firmware upgrades,
- * you have to use the port labeled "SP2" for rig control.
- *
- * TODO:
- * - DV mode
- * - GPS support
- * - Single/dual watch (RIG_LEVEL_BALANCE)
+ * Specs and protocol details comes from the chapter 17 of ID-51A_E_PLUS2_CD_0.pdf
+
+  * NB: while the port labeled "Data" is used for firmware upgrades,
+  * you have to use the port labeled "SP" for rig control.
+  *
  */
 
-#define ID5100_MODES (RIG_MODE_FM|RIG_MODE_DSTAR)
-#define ID5100_ALL_RX_MODES (RIG_MODE_AM|ID5100_MODES)
+#define ID51_MODES (RIG_MODE_FM|RIG_MODE_DSTAR)
+#define ID51_ALL_RX_MODES (RIG_MODE_AM|ID51_MODES)
 
-#define ID5100_VFO_ALL (RIG_VFO_MAIN|RIG_VFO_SUB)
+#define ID51_VFO_ALL (RIG_VFO_MAIN|RIG_VFO_SUB)
 
-#define ID5100_SCAN_OPS RIG_SCAN_NONE
+#define ID51_SCAN_OPS RIG_SCAN_NONE
 
-#define ID5100_VFO_OPS  RIG_OP_NONE
+#define ID51_VFO_OPS  RIG_OP_NONE
 
-#define ID5100_FUNC_ALL ( \
+#define ID51_FUNC_ALL ( \
                             RIG_FUNC_TONE| \
                             RIG_FUNC_TSQL| \
                             RIG_FUNC_CSQL| \
                             RIG_FUNC_DSQL| \
                             RIG_FUNC_VOX)
 
-#define ID5100_LEVEL_ALL    (RIG_LEVEL_AF| \
+#define ID51_LEVEL_ALL    (RIG_LEVEL_AF| \
                             RIG_LEVEL_SQL| \
                             RIG_LEVEL_RAWSTR| \
                             RIG_LEVEL_RFPOWER| \
                             RIG_LEVEL_MICGAIN| \
                             RIG_LEVEL_VOXGAIN)
 
-#define ID5100_PARM_ALL RIG_PARM_NONE
+#define ID51_PARM_ALL RIG_PARM_NONE
 
 
 /*
  * FIXME: real measurement
  */
-#define ID5100_STR_CAL  UNKNOWN_IC_STR_CAL
+#define ID51_STR_CAL  UNKNOWN_IC_STR_CAL
 
 
 
 /*
  */
-static const struct icom_priv_caps id5100_priv_caps =
+static const struct icom_priv_caps id51_priv_caps =
 {
-    0x8C,   /* default address */
+    0x86,   /* default address */
     0,      /* 731 mode */
     1,      /* no XCHG */
 };
 
-const struct rig_caps id5100_caps =
+const struct rig_caps id51_caps =
 {
-    .rig_model =  RIG_MODEL_ID5100,
-    .model_name = "ID-5100",
+    .rig_model =  RIG_MODEL_ID51,
+    .model_name = "ID-51",
     .mfg_name =  "Icom",
     .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
@@ -96,7 +92,7 @@ const struct rig_caps id5100_caps =
     .ptt_type =  RIG_PTT_RIG,
     .dcd_type =  RIG_DCD_RIG,
     .port_type =  RIG_PORT_SERIAL,
-    .serial_rate_min =  4800,
+    .serial_rate_min =  300,
     .serial_rate_max =  19200,
     .serial_data_bits =  8,
     .serial_stop_bits =  1,
@@ -106,12 +102,12 @@ const struct rig_caps id5100_caps =
     .post_write_delay =  0,
     .timeout =  1000,
     .retry =  3,
-    .has_get_func =  ID5100_FUNC_ALL,
-    .has_set_func =  ID5100_FUNC_ALL,
-    .has_get_level =  ID5100_LEVEL_ALL,
-    .has_set_level =  RIG_LEVEL_SET(ID5100_LEVEL_ALL),
-    .has_get_parm =  ID5100_PARM_ALL,
-    .has_set_parm =  ID5100_PARM_ALL,
+    .has_get_func =  ID51_FUNC_ALL,
+    .has_set_func =  ID51_FUNC_ALL,
+    .has_get_level =  ID51_LEVEL_ALL,
+    .has_set_level =  RIG_LEVEL_SET(ID51_LEVEL_ALL),
+    .has_get_parm =  ID51_PARM_ALL,
+    .has_set_parm =  ID51_PARM_ALL,
     .level_gran = {
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
     },
@@ -124,8 +120,8 @@ const struct rig_caps id5100_caps =
     .max_xit =  Hz(0),
     .max_ifshift =  Hz(0),
     .targetable_vfo =  0,
-    .vfo_ops =  ID5100_VFO_OPS,
-    .scan_ops =  ID5100_SCAN_OPS,
+    .vfo_ops =  ID51_VFO_OPS,
+    .scan_ops =  ID51_SCAN_OPS,
     .transceive =  RIG_TRN_RIG,
     .bank_qty =   0,
     .chan_desc_sz =  0,
@@ -137,24 +133,24 @@ const struct rig_caps id5100_caps =
     },
 
     .rx_range_list1 =   {
-        {MHz(118), MHz(174), ID5100_ALL_RX_MODES, -1, -1, ID5100_VFO_ALL},
-        {MHz(375), MHz(550), ID5100_ALL_RX_MODES, -1, -1, ID5100_VFO_ALL},
+        {MHz(118), MHz(174), ID51_ALL_RX_MODES, -1, -1, ID51_VFO_ALL},
+        {MHz(375), MHz(550), ID51_ALL_RX_MODES, -1, -1, ID51_VFO_ALL},
         RIG_FRNG_END,
     },
     .tx_range_list1 =  {
-        {MHz(144), MHz(146), ID5100_MODES, W(5), W(25), ID5100_VFO_ALL},
-        {MHz(430), MHz(440), ID5100_MODES, W(5), W(25), ID5100_VFO_ALL},
+        {MHz(144), MHz(146), ID51_MODES, W(5), W(25), ID51_VFO_ALL},
+        {MHz(430), MHz(440), ID51_MODES, W(5), W(25), ID51_VFO_ALL},
         RIG_FRNG_END,
     },
 
     .rx_range_list2 =   {
-        {MHz(118), MHz(174), ID5100_ALL_RX_MODES, -1, -1, ID5100_VFO_ALL},
-        {MHz(375), MHz(550), ID5100_ALL_RX_MODES, -1, -1, ID5100_VFO_ALL},
+        {MHz(118), MHz(174), ID51_ALL_RX_MODES, -1, -1, ID51_VFO_ALL},
+        {MHz(375), MHz(550), ID51_ALL_RX_MODES, -1, -1, ID51_VFO_ALL},
         RIG_FRNG_END,
     },
     .tx_range_list2 =  {
-        {MHz(144), MHz(148), ID5100_MODES, W(5), W(50), ID5100_VFO_ALL},
-        {MHz(430), MHz(450), ID5100_MODES, W(5), W(50), ID5100_VFO_ALL},
+        {MHz(144), MHz(148), ID51_MODES, W(5), W(50), ID51_VFO_ALL},
+        {MHz(430), MHz(450), ID51_MODES, W(5), W(50), ID51_VFO_ALL},
         RIG_FRNG_END,
     },
 
@@ -168,13 +164,13 @@ const struct rig_caps id5100_caps =
         {RIG_MODE_FM | RIG_MODE_AM, kHz(6)},
         RIG_FLT_END,
     },
-    .str_cal = ID5100_STR_CAL,
+    .str_cal = ID51_STR_CAL,
 
     .cfgparams =  icom_cfg_params,
     .set_conf =  icom_set_conf,
     .get_conf =  icom_get_conf,
 
-    .priv = (void *)& id5100_priv_caps,
+    .priv = (void *)& id51_priv_caps,
     .rig_init =   icom_init,
     .rig_cleanup =   icom_cleanup,
     .rig_open =  NULL,
