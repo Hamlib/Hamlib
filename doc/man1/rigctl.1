@@ -5,7 +5,7 @@
 .\"
 .\" Note: Please keep this page in sync with the source, rigctl.c
 .\"
-.TH RIGCTL "1" "2018-04-29" "Hamlib" "Hamlib Utilities"
+.TH RIGCTL "1" "2019-12-10" "Hamlib" "Hamlib Utilities"
 .
 .
 .SH NAME
@@ -236,7 +236,7 @@ If this is not desired, for example if you are using
 to turn AI mode on or off, pass this option.
 .
 .TP
-.B \-i ", " \-\-read\-history
+.BR \-i ", " \-\-read\-history
 Read previously saved command and argument history from a file (default
 .IR $HOME/.rigctl_history )
 for the current session.
@@ -353,7 +353,8 @@ method.  Each operation also has a long name; in interactive mode, prepend a
 backslash, \(oq\\\(cq, to enter a long command name.
 .
 .PP
-Example: Use \(lq\\dump_caps\(rq to see what this radio and backend support.
+Example: Use \(lq\\dump_caps\(rq to see what capabilities this radio and
+backend support.
 .
 .PP
 .BR Note :
@@ -414,7 +415,7 @@ $
 .RE
 .
 .
-.SS Radio Commands
+.SS rigctl Commands
 .
 A summary of commands is included below (In the case of
 .B set
@@ -981,7 +982,8 @@ Set
 .RI \(aq "Power Status" \(aq.
 .IP
 Power Status is a value: \(oq0\(cq = Power Off, \(oq1\(cq = Power On,
-\(oq2\(cq = Power Standby.
+\(oq2\(cq = Power Standby (enter standby), \(oq4\(cq = Power Operate (leave
+standby).
 .
 .TP
 .BR 0x88 ", " get_powerstat
@@ -1004,6 +1006,10 @@ Get DTMF
 .TP
 .BR _ ", " get_info
 Get misc information about the rig (no VFO in 'VFO mode' or value is passed).
+.
+.TP
+.B dump_state
+Return certain state information about the radio backend.
 .
 .TP
 .BR 1 ", " dump_caps
@@ -1278,15 +1284,16 @@ Hamlib Developer mailing list
 .SH COPYING
 .
 This file is part of Hamlib, a project to develop a library that simplifies
-radio and rotator control functions for developers of software primarily of
-interest to radio amateurs and those interested in radio communications.
+radio, rotator, and amplifier control functions for developers of software
+primarily of interest to radio amateurs and those interested in radio
+communications.
 .
 .PP
 Copyright \(co 2000-2011 Stephane Fillod
 .br
 Copyright \(co 2000-2018 the Hamlib Group (various contributors)
 .br
-Copyright \(co 2010-2018 Nate Bargmann
+Copyright \(co 2010-2019 Nate Bargmann
 .
 .PP
 This is free software; see the file COPYING for copying conditions.  There is
