@@ -5,7 +5,7 @@
 .\"
 .\" Note: Please keep this page in sync with the source, rigctld.c
 .\"
-.TH RIGCTLD "1" "2018-04-29" "Hamlib" "Hamlib Utilities"
+.TH RIGCTLD "1" "2019-12-10" "Hamlib" "Hamlib Utilities"
 .
 .
 .SH NAME
@@ -41,7 +41,10 @@ sockets.  This allows multiple user programs to share one radio (this needs
 more development).  Multiple radios can be controlled on different TCP ports
 by use of multiple
 .B rigctld
-processes.  Note that multiple processes/ports are also necessary if some clients use extended responses and/or vfo mode.  So up to 4 processes/ports may be needed for each combination of extended response/vfo mode.  The syntax of the commands are the same as
+processes.  Note that multiple processes/ports are also necessary if some
+clients use extended responses and/or vfo mode.  So up to 4 processes/ports
+may be needed for each combination of extended response/vfo mode.  The syntax
+of the commands are the same as
 .BR rigctl (1).
 It is hoped that
 .B rigctld
@@ -56,13 +59,15 @@ The protocol is simple, commands are sent to
 .B rigctld
 on one line and
 .B rigctld
-responds to \(lqget\(rq commands with the requested values, one per line, when
-successful, otherwise, it responds with one line \(lqRPRT x\(rq, where
-\(oqx\(cq is a negative number indicating the error code.  Commands that do
-not return values respond with the line \(lqRPRT x\(rq, where \(oqx\(cq is
-\(oq0\(cq when successful, otherwise is a regative number indicating the error
-code.  Each line is terminated with a newline \(oq\\n\(cq character.  This
-protocol is primarily for use by the
+responds to
+.B get
+commands with the requested values, one per line, when successful, otherwise,
+it responds with one line \(lqRPRT x\(rq, where \(oqx\(cq is a negative number
+indicating the error code.  Commands that do not return values respond with
+the line \(lqRPRT x\(rq, where \(oqx\(cq is \(oq0\(cq when successful,
+otherwise is a regative number indicating the error code.  Each line is
+terminated with a newline \(oq\\n\(cq character.  This protocol is primarily
+for use by the
 .B NET rigctl
 (radio model 2) backend.
 .
@@ -1167,6 +1172,7 @@ Passband: 2400
 RPRT 0
 .EE
 .RE
+.
 .IP
 .BR Note :
 The \(oq\\\(cq is still required for the long command name even with the ERP
@@ -1407,7 +1413,7 @@ command must be used to terminate it.
 .
 .PP
 Multiple clients using the daemon may experience contention with the connected
-rotator.
+radio.
 .
 .PP
 Report bugs to:
@@ -1422,15 +1428,16 @@ Hamlib Developer mailing list
 .SH COPYING
 .
 This file is part of Hamlib, a project to develop a library that simplifies
-radio and rotator control functions for developers of software primarily of
-interest to radio amateurs and those interested in radio communications.
+radio, rotator, and amplifier control functions for developers of software
+primarily of interest to radio amateurs and those interested in radio
+communications.
 .
 .PP
 Copyright \(co 2000-2010 Stephane Fillod
 .br
 Copyright \(co 2000-2018 the Hamlib Group (various contributors)
 .br
-Copyright \(co 2011-2018 Nate Bargmann
+Copyright \(co 2011-2019 Nate Bargmann
 .
 .PP
 This is free software; see the file COPYING for copying conditions.  There is
