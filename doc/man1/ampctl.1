@@ -1,0 +1,665 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\"
+.\" For layout and available macros, see man(7), man-pages(7), groff_man(7)
+.\" Please adjust the date whenever revising the manpage.
+.\"
+.\" Note: Please keep this page in sync with the source, ampctl.c
+.\"
+.TH AMPCTL "1" "2019-12-10" "Hamlib" "Hamlib Utilities"
+.
+.
+.SH NAME
+.
+ampctl \- control radio amplifiers
+.
+.SH SYNOPSIS
+.
+.
+.SY ampctl
+.OP \-hiIlLuV
+.OP \-m id
+.OP \-r device
+.OP \-s baud
+.OP \-t char
+.OP \-C parm=val
+.RB [ \-v [ \-Z ]]
+.RB [ command | \- ]
+.YS
+.
+.SH DESCRIPTION
+Control radio amplifiers.
+.B ampctl
+accepts
+.B commands
+from the command line as well as in interactive mode if none are provided on
+the command line.
+.
+.PP
+Keep in mind that Hamlib is BETA level software.  While a lot of backend
+libraries lack complete amplifier support, the basic functions are usually
+well supported.
+.
+.PP
+Please report bugs and provide feedback at the e-mail address given in the
+.B BUGS
+section below.  Patches and code enhancements sent to the same address are
+welcome.
+.
+.
+.SH OPTIONS
+.
+This program follows the usual GNU command line syntax.  Short options that
+take an argument may have the value follow immediately or be separated by a
+space.  Long options starting with two dashes (\(oq\-\(cq) require an
+\(oq=\(cq between the option and any argument.
+.
+.PP
+Here is a summary of the supported options:
+.
+.TP
+.BR \-m ", " \-\-model = \fIid\fP
+Select amplifier model number.
+.IP
+See model list (use \(lqampctl -l\(rq).
+.IP
+.BR Note :
+.B ampctl
+(or third party software using the C API) will use amplifier model 2 for
+.B NET ampctl
+(communicating with
+.BR ampctld ).
+.
+.TP
+.BR \-r ", " \-\-amp\-file = \fIdevice\fP
+Use
+.I device
+as the file name of the port connected to the amplifier.
+.IP
+Often a serial port, but could be a USB to serial adapter.  Typically
+.IR /dev/ttyS0 ", " /dev/ttyS1 ", " /dev/ttyUSB0 ,
+etc. on Linux,
+.IR COM1 ", " COM2 ,
+etc. on MS Windows.  The BSD flavors and Mac OS/X have their own designations.
+See your system's documentation.
+.
+.TP
+.BR \-s ", " \-\-serial\-speed = \fIbaud\fP
+Set serial speed to
+.I baud
+rate.
+.IP
+Uses maximum serial speed from amplifier backend capabilities (set by
+.B -m
+above) as the default.
+.
+.TP
+.BR \-t ", " \-\-send\-cmd\-term = \fIchar\fP
+Change the termination
+.I char
+for text protocol when using the
+.B send_cmd
+command.
+.IP
+The default value is ASCII CR (\(oq0x0D\(cq).  ASCII non-printing characters
+can be given as the ASCII number in hexadecimal format prepended with
+\(lq0x\(rq.  You may pass an empty string for no termination char.  The string
+\(lq\-1\(rq tells
+.B ampctl
+to switch to binary protocol.
+.IP
+For example, to specify a command terminator for Kenwood style text commands
+pass \(lq-t ';'\(rq to ampctl.  See
+.B EXAMPLE
+below.
+.
+.TP
+.BR \-L ", " \-\-show\-conf
+List all config parameters for the amplifier defined with
+.B \-m
+above.
+.
+.TP
+.BR \-C ", " \-\-set\-conf = \fIparm=val\fP [ \fI,parm=val\fP ]
+Set amplifier configuration parameter(s), e.g.
+.IR stop_bits=2 .
+.IP
+Use the
+.B -L
+option above for a list of configuration parameters for a given model number.
+.
+.TP
+.BR \-u ", " \-\-dump\-caps
+Dump capabilities for the amplifier defined with
+.B -m
+above and exit.
+.
+.TP
+.BR \-l ", " \-\-list
+List all amplifier model numbers defined in
+.B Hamlib
+and exit.
+.IP
+The list is sorted by model number.
+.IP
+.BR Note :
+In Linux the list can be scrolled back using
+.BR Shift-PageUp / Shift-PageDown ,
+or using the scrollbars of a virtual terminal in X or the cmd window in
+Windows.  The output can be piped to
+.BR more (1)
+or
+.BR less (1),
+e.g. \(lqampctl -l | more\(rq.
+.
+.TP
+.BR \-i ", " \-\-read\-history
+Read previously saved command and argument history from a file (default
+.IR $HOME/.ampctl_history )
+for the current session.
+.IP
+Available when
+.B ampctl
+is built with Readline support (see READLINE below).
+.IP
+.BR Note :
+To read a history file stored in another directory, set the
+.B AMPCTL_HIST_DIR
+environment variable, e.g. \(lqAMPCTL_HIST_DIR=~/tmp ampctl -i\(rq.  When
+AMPCTL_HIST_DIR is not set, the value of
+.B HOME
+is used.
+.
+.TP
+.BR \-I ", " \-\-save\-history
+Write current session (and previous session(s), if
+.B -i
+option is given) command and argument history to a file (default
+.IR $HOME/.ampctl_history )
+at the end of the current session.
+.IP
+Complete commands with arguments are saved as a single line to be recalled and
+used or edited.  Available when
+.B ampctl
+is built with Readline support (see
+.B READLINE
+below).
+.IP
+.BR Note :
+To write a history file in another directory, set the
+.B AMPCTL_HIST_DIR
+environment variable, e.g. \(lqAMPCTL_HIST_DIR=~/tmp ampctl -I\)Rq.  When
+AMPCTL_HIST_DIR is not set, the value of
+.B HOME
+is used.
+.
+.TP
+.BR \-v ", " \-\-verbose
+Set verbose mode, cumulative (see
+.B DIAGNOSTICS
+below).
+.
+.TP
+.BR \-Z ", " \-\-debug\-time\-stamps
+Enable time stamps for the debug messages.
+.IP
+Use only in combination with the
+.B -v
+option as it generates no output on its own.
+.
+.TP
+.BR \-h ", " \-\-help
+Show a summary of these options and exit.
+.
+.TP
+.BR \-V ", " \-\-version
+Show version of
+.B ampctl
+and exit.
+.
+.TP
+.B \-
+Stop option processing and read commands from standard input.
+.IP
+See
+.B Standard Input
+below.
+.
+.PP
+.BR Note :
+Some options may not be implemented by a given backend and will return an
+error.  This is most likely to occur with the
+.B \-\-set\-conf
+and
+.B \-\-show\-conf
+options.
+.
+.PP
+Please note that the backend for the amplifier to be controlled, or the
+amplifier itself may not support some commands.  In that case, the operation
+will fail with a
+.B Hamlib
+error code.
+.
+.
+.SH COMMANDS
+.
+Commands can be entered either as a single char, or as a long command name.
+The commands are not prefixed with a dash as the options are.  They may be
+typed in when in interactive mode or provided as argument(s) in command line
+interface mode.  In interactive mode commands and their arguments may be
+entered on a single line:
+.
+.sp
+.RS 0.5i
+.EX
+F 14250000
+.EE
+.RE
+.
+.PP
+Since most of the
+.B Hamlib
+operations have a
+.B set
+and a
+.B get
+method, an upper case letter will often be used for a
+.B set
+method whereas the corresponding lower case letter refers to the
+.B get
+method.  Each operation also has a long name; in interactive mode, prepend a
+backslash, \(oq\\\(cq, to enter a long command name.
+.
+.PP
+Example: Use \(lq\\dump_caps\(rq to see what capabilities this amplifier and
+backend support.
+.
+.PP
+.BR Note :
+The backend for the amplifier to be controlled, or the amplifier itself may
+not support some commands. In that case, the operation will fail with a
+.B Hamlib
+error message.
+.
+.
+.PP
+A simple example:
+.
+.sp
+.RS 0.5i
+.EX
+$ cat <<.EOF. >cmds.txt
+> # File of commands
+> F 14250000
+> f
+> l PWRINPUT
+> l PWRFORWARD
+> l SWR
+> \\dump_caps
+> .EOF.
+
+$ ampctl -m1 - <cmds.txt
+
+Amplifier command: # File of commands
+
+Amplifier command: F 14250000
+
+Amplifier command: f
+Frequency(Hz): 14250000
+
+Amplifier command: l PWRINPUT
+Level Value: 0
+
+Amplifier command: l PWRFORWARD
+Level Value: 1499
+
+Amplifier command: l SWR
+Level Value: 1.000000
+
+Amplifier command: \\dump_caps
+Caps dump for model:    1
+Model name:             Dummy
+Mfg name:               Hamlib
+Backend version:        0.1
+Backend copyright:      LGPL
+Backend status:         Alpha
+Amp type:               Other
+Port type:              None
+Write delay:            0mS, timeout 0mS, 0 retries
+Post Write delay:       0mS
+Has priv data:          N
+Get level: SWR NH PF PWRINPUT PWRFORWARD PWRREFLECTED PWRPEAK FAULT
+Has Init:               Y
+Has Cleanup:            Y
+Has Open:               Y
+Has Close:              Y
+Can set Conf:           N
+Can get Conf:           N
+Can Reset:              Y
+Can get Info:           Y
+
+Overall backend warnings: 0
+
+Amplifier command:
+
+$
+.EE
+.RE
+.
+.
+.SS ampctl Commands
+.
+A summary of commands is included below (In the case of
+.B set
+commands the quoted italicized string is replaced by the value in the
+description.  In the case of
+.B get
+commands the quoted italicized string is the key name of the value returned.):
+.
+.TP
+.BR Q | q ", exit ampctl"
+Exit ampctl in interactive mode.
+.IP
+When ampctl is controlling the amplifier directly, will close the amplifier
+backend and port.  When ampctl is connected to ampctld (amplifier model 2),
+the TCP/IP connection to ampctld is closed and ampctld remains running,
+available for another TCP/IP network connection.
+.
+.TP
+.BR F ", " set_freq " \(aq" \fIFrequency\fP \(aq
+Set
+.RI \(aq Frequency \(aq,
+in Hz.
+.IP
+Frequency may be a floating point or integer value.
+.
+.TP
+.BR f ", " get_freq
+Get
+.RI \(aq Frequency \(aq,
+in Hz.
+.IP
+Returns an integer value.
+.
+.TP
+.BR l ", " get_level " \(aq" \fILevel\fP \(aq
+Get
+.RI \(aq "Level Value" \(aq.
+.IP
+Returns Level Value as a float or integer for the Level token given.
+.IP
+.BR Note :
+Passing a \(oq?\(cq (query) as the first argument instead of a Level token
+will return a space separated list of amplifier backend supported get level
+tokens.  Use this to determine the supported levels of a given amplifier
+backend.
+.
+.TP
+.BR w ", " send_cmd " \(aq" \fICmd\fP \(aq
+Send a raw command string to the amplifier.
+.IP
+This is useful for testing and troubleshooting amplifier commands and
+responses when developing a backend.
+.IP
+For binary protocols enter values as \\0xAA\\0xBB.  Expect a
+.RI \(aq Reply \(aq
+from the amplifier which will likely be a binary block or an ASCII string
+depending on the amplifier's protocol (see your amplifier's computer control
+documentation).
+.IP
+The command terminator, set by the
+.B send-cmd-term
+option above, will terminate each command string sent to the amplifier.  This
+character should not be a part of the input string.
+.
+.TP
+.B dump_state
+Return certain state information about the amplifier backend.
+.
+.TP
+.BR 1 ", " dump_caps
+Not a real amplifier remote command, it just dumps capabilities, i.e. what the
+backend knows about this model, and what it can do.
+.IP
+TODO: Ensure this is in a consistent format so it can be read into a hash,
+dictionary, etc.  Bug reports requested.
+.IP
+.BR Note :
+This command will produce many lines of output so be very careful if using a
+fixed length array!  For example, running this command against the Dummy
+backend results in a number of lines of text output.
+.
+.TP
+.BR _ ", " get_info
+Return information from the amplifier backend.
+.
+.TP
+.BR R ", " reset " \(aq" \fIReset\fP \(aq
+Perform amplifier
+.RI \(aq Reset \(aq.
+.IP
+Reset is an integer value: \(oq0\(cq = None, \(oq1\(cq = Memory reset,
+\(oq2\(cq = Fault reset, \(oq3\(cq = Amplifier reset.
+.
+.TP
+.BR set_powerstat " \(aq" "\fIPower Status\fP" \(aq
+Set
+.RI \(aq "Power Status" \(aq.
+.IP
+Power Status is an integer value: \(oq0\(cq = Power Off, \(oq1\(cq = Power On,
+\(oq2\(cq = Power Standby (enter standby), \(oq4\(cq = Power Operate (leave
+standby).
+.
+.TP
+.B get_powerstat
+Get
+.RI \(aq "Power Status" \(aq
+as in
+.B set_powerstat
+above.
+.
+.
+.SH READLINE
+.
+If
+.B Readline
+library development files are found at configure time,
+.B ampctl
+will be conditonally built with Readline support for command and argument entry.
+Readline command key bindings are at their defaults as described in the
+.UR https://tiswww.cwru.edu/php/chet/readline/rluserman.html
+Readline manual
+.UE .
+.B ampctl
+sets the name \(lqampctl\(rq which can be used in Conditional Init Constructs
+in the Readline Init File
+.RI ( $HOME/.inputrc
+by default) for custom keybindings unique to
+.BR ampctl .
+.
+.PP
+Command history is available with Readline support as described in the
+.UR https://tiswww.case.edu/php/chet/readline/history.html#SEC1
+Readline History manual
+.UE .
+Command and argument strings are stored as single lines even when arguments
+are prompted for input individually.  Commands and arguments are not validated
+and are stored as typed with values separated by a single space.
+.
+.PP
+Normally session history is not saved, however, use of either of the
+.BR \-i / \-\-read\-history
+or
+.BR \-I / \-\-save\-history
+options when starting
+.B ampctl
+will cause any previously saved history to be read in and/or the
+current and any previous session history (assuming the
+.BR -i " and " -I
+options are given together) will be written out when
+.B ampctl
+is closed.  Each option is mutually exclusive, i.e. either may be given
+separately or in combination.  This is useful to save a set of commands and
+then read them later but not write the modified history for a consistent set
+of test commands in interactive mode, for example.
+.
+.PP
+History is stored in
+.I $HOME/.ampctl_history
+by default although the destination directory may be changed by setting the
+.B AMPCTL_HIST_DIR
+environment variable.  When AMPCTL_HIST_DIR is unset, the value of the
+.B HOME
+environment variable is used instead.  Only the destination directory may be
+changed at this time.
+.
+.PP
+If Readline support is not found at configure time the original internal
+command handler is used.  Readline is not used for
+.B ampctl
+commands entered on the command line regardless if Readline support is built
+in or not.
+.
+.PP
+.BR Note :
+Readline support is not included in the MS Windows 32 or 64 bit binary builds
+supplied by the Hamlib Project.  Running
+.B ampctl
+on the MS Windows platform in the \(oqcmd\(cq shell does give session command
+line history, however, it is not saved to disk between sessions.
+.
+.
+.SH DIAGNOSTICS
+.
+The
+.BR \-v ,
+.B \-\-verbose
+option allows different levels of diagnostics
+to be output to
+.B stderr
+and correspond to \-v for
+.BR BUG ,
+\-vv for
+.BR ERR ,
+\-vvv for
+.BR WARN ,
+\-vvvv for
+.BR VERBOSE ,
+or \-vvvvv for
+.BR TRACE .
+.
+.PP
+A given verbose level is useful for providing needed debugging information to
+the email address below.  For example, TRACE output shows all of the values
+sent to and received from the amplifier which is very useful for amplifier
+backend library development and may be requested by the developers.
+.
+.
+.SH EXIT STATUS
+.B ampctl
+exits with:
+.
+.TP
+.B 0
+if all operations completed normally;
+.
+.TP
+.B 1
+if there was an invalid command line option or argument;
+.
+.TP
+.B 2
+if an error was returned by
+.BR Hamlib .
+.
+.
+.SH EXAMPLE
+.
+Start
+.B ampctl
+for am Elecraft KPA-1500 using a USB to serial adapter on Linux in interactive
+mode:
+.
+.sp
+.RS 0.5i
+.EX
+$ ampctl -m 201 -r /dev/ttyUSB1
+.EE
+.RE
+.
+.PP
+Start
+.B ampctl
+for an Elecraft KPA-1500 using COM1 on MS Windows while generating TRACE
+output to
+.IR stderr :
+.
+.sp
+.RS 0.5i
+.EX
+> ampctl -m 201 -r COM1 -vvvvv
+.EE
+.RE
+.
+.PP
+Connect to a running
+.B ampctld
+with amplifier model 2 (\(lqNET ampctl\(rq) on the local host and specifying
+the TCP port, setting frequency and mode:
+.
+.sp
+.RS 0.5i
+.EX
+$ ampctl -m 2 -r localhost:4531 F 7253500
+.EE
+.RE
+.
+.
+.SH BUGS
+.
+This almost empty section...
+.PP
+Report bugs to:
+.IP
+.nf
+.MT hamlib\-developer@lists.sourceforge.net
+Hamlib Developer mailing list
+.ME
+.fi
+.
+.
+.SH COPYING
+.
+This file is part of Hamlib, a project to develop a library that simplifies
+radio, rotator, and amplifier control functions for developers of software
+primarily of interest to radio amateurs and those interested in radio
+communications.
+.
+.PP
+Copyright \(co 2000-2011 Stephane Fillod
+.br
+Copyright \(co 2000-2018 the Hamlib Group (various contributors)
+.br
+Copyright \(co 2010-2019 Nate Bargmann
+.
+.PP
+This is free software; see the file COPYING for copying conditions.  There is
+NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+.
+.
+.SH SEE ALSO
+.
+.BR less (1),
+.BR more (1),
+.BR ampctld (1),
+.BR hamlib (7)
+.
+.
+.SH COLOPHON
+.
+Links to the Hamlib Wiki, Git repository, release archives, and daily snapshot
+archives:
+.IP
+.UR http://www.hamlib.org
+hamlib.org
+.UE .
