@@ -106,7 +106,7 @@ static struct option long_options[] =
 int interactive = 1;    /* no cmd because of daemon */
 int prompt = 0 ;        /* Daemon mode for rigparse return string */
 
-const char *portno = "4533";
+const char *portno = "4531";
 const char *src_addr = NULL;    /* INADDR_ANY */
 
 char send_cmd_term = '\r';      /* send_cmd termination char */

@@ -360,7 +360,7 @@ int HAMLIB_API amp_open(AMP *amp)
     case RIG_PORT_NETWORK:
     case RIG_PORT_UDP_NETWORK:
         /* FIXME: default port */
-        status = network_open(&rs->ampport, 4533);
+        status = network_open(&rs->ampport, 4531);
 
         if (status < 0)
         {
