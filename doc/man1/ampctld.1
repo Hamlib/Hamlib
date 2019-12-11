@@ -1,0 +1,790 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\"
+.\" For layout and available macros, see man(7), man-pages(7), groff_man(7)
+.\" Please adjust the date whenever revising the manpage.
+.\"
+.\" Note: Please keep this page in sync with the source, ampctld.c
+.\"
+.TH AMPCTLD "1" "2019-12-10" "Hamlib" "Hamlib Utilities"
+.
+.
+.SH NAME
+.
+ampctld \- TCP amplifier control daemon
+.
+.
+.SH SYNOPSIS
+.
+.SY ampctld
+.OP \-hlLuV
+.OP \-m id
+.OP \-r device
+.OP \-s baud
+.OP \-T IPADDR
+.OP \-t number
+.OP \-C parm=val
+.RB [ \-v [ \-Z ]]
+.YS
+.
+.
+.SH DESCRIPTION
+.
+The
+.B ampctld
+program is an amplifier control daemon that handles client requests via TCP
+sockets.  This allows multiple user programs to share one amplifier (this
+needs more development).  Multiple amplifiers can be controlled on different
+TCP ports by use of multiple
+.B ampctld
+processes.  Note that multiple processes/ports are also necessary if some
+clients use extended responses and/or vfo mode.  So up to 4 processes/ports
+may be needed for each combination of extended response/vfo mode.  The syntax
+of the commands are the same as
+.BR ampctl (1).
+It is hoped that
+.B ampctld
+will be especially useful for client authors using languages such as Perl,
+Python, PHP, and others.
+.
+.PP
+.B ampctld
+communicates to a client through a TCP socket using text commands shared with
+.BR ampctl .
+The protocol is simple, commands are sent to
+.B ampctld
+on one line and
+.B ampctld
+responds to
+.B get
+commands with the requested values, one per line, when successful, otherwise,
+it responds with one line \(lqRPRT x\(rq, where \(oqx\(cq is a negative number
+indicating the error code.  Commands that do not return values respond with
+the line \(lqRPRT x\(rq, where \(oqx\(cq is \(oq0\(cq when successful,
+otherwise is a regative number indicating the error code.  Each line is
+terminated with a newline \(oq\\n\(cq character.  This protocol is primarily
+for use by the
+.B NET ampctl
+(amplifier model 2) backend.
+.
+.PP
+A separate
+.B Extended Response Protocol
+extends the above behavior by echoing the received command string as a header,
+any returned values as a key: value pair, and the \(lqRPRT x\(rq string as the
+end of response marker which includes the
+.B Hamlib
+success or failure value.  See the
+.B PROTOCOL
+section for details.  Consider using this protocol for clients that will
+interact with
+.B ampctld
+directly through a TCP socket.
+.
+.PP
+Keep in mind that Hamlib is BETA level software.  While a lot of backend
+libraries lack complete amplifier support, the basic functions are usually
+well supported.
+.
+.PP
+Please report bugs and provide feedback at the e-mail address given in the
+.B BUGS
+section below.  Patches and code enhancements sent to the same address are
+welcome.
+.
+.
+.SH OPTIONS
+.
+This program follows the usual GNU command line syntax.  Short options that
+take an argument may have the value follow immediately or be separated by a
+space.  Long options starting with two dashes (\(oq\-\(cq) require an
+\(oq=\(cq between the option and any argument.
+.
+.PP
+Here is a summary of the supported options:
+.
+.TP
+.BR \-m ", " \-\-model = \fIid\fP
+Select amplifier model number.
+.IP
+See model list (use \(lqampctl -l\(rq).
+.IP
+.BR Note :
+.B ampctl
+(or third party software using the C API) will use amplifier model 2 for
+.B NET ampctl
+(communicating with
+.BR ampctld ).
+.
+.TP
+.BR \-r ", " \-\-amp\-file = \fIdevice\fP
+Use
+.I device
+as the file name of the port connected to the amplifier.
+.IP
+Often a serial port, but could be a USB to serial adapter.  Typically
+.IR /dev/ttyS0 ", " /dev/ttyS1 ", " /dev/ttyUSB0 ,
+etc. on Linux,
+.IR COM1 ", " COM2 ,
+etc. on MS Windows.  The BSD flavors and Mac OS/X have their own designations.
+See your system's documentation.
+.
+.TP
+.BR \-s ", " \-\-serial\-speed = \fIbaud\fP
+Set serial speed to
+.I baud
+rate.
+.IP
+Uses maximum serial speed from amplifier backend capabilities (set by
+.B -m
+above) as the default.
+.
+.TP
+.BR \-t ", " \-\-port = \fInumber\fP
+Use
+.I number
+as the TCP listening port.
+.IP
+The default is 4531.
+.IP
+.BR Note :
+As
+.BR rigctld 's
+default port is 4532 and
+.BR rotctld 's
+default port is 4533, it is recommended to use DESCENDING odd numbered ports
+for multiple
+.BR ampctld
+instances, e.g. 4529, 4527, 4525, etc.
+.
+.TP
+.BR \-T ", " \-\-listen\-addr = \fIIPADDR\fP
+Use
+.I IPADDR
+as the listening IP address.
+.IP
+The default is ANY.
+.
+.TP
+.BR \-L ", " \-\-show\-conf
+List all config parameters for the amplifier defined with
+.B \-m
+above.
+.
+.TP
+.BR \-C ", " \-\-set\-conf = \fIparm=val\fP [ \fI,parm=val\fP ]
+Set amplifier configuration parameter(s), e.g.
+.IR stop_bits=2 .
+.IP
+Use the
+.B -L
+option above for a list of configuration parameters for a given model number.
+.
+.TP
+.BR \-u ", " \-\-dump\-caps
+Dump capabilities for the amplifier defined with
+.B -m
+above and exit.
+.
+.TP
+.BR \-l ", " \-\-list
+List all amplifier model numbers defined in
+.B Hamlib
+and exit.
+.IP
+The list is sorted by model number.
+.IP
+.BR Note :
+In Linux the list can be scrolled back using
+.BR Shift-PageUp / Shift-PageDown ,
+or using the scrollbars of a virtual terminal in X or the cmd window in
+Windows.  The output can be piped to
+.BR more (1)
+or
+.BR less (1),
+e.g. \(lqampctl -l | more\(rq.
+.
+.TP
+.BR \-v ", " \-\-verbose
+Set verbose mode, cumulative (see
+.B DIAGNOSTICS
+below).
+.
+.TP
+.BR \-Z ", " \-\-debug\-time\-stamps
+Enable time stamps for the debug messages.
+.IP
+Use only in combination with the
+.B -v
+option as it generates no output on its own.
+.
+.TP
+.BR \-h ", " \-\-help
+Show a summary of these options and exit.
+.
+.TP
+.BR \-V ", " \-\-version
+Show version of
+.B ampctl
+and exit.
+.
+.PP
+.BR Note :
+Some options may not be implemented by a given backend and will return an
+error.  This is most likely to occur with the
+.B \-\-set\-conf
+and
+.B \-\-show\-conf
+options.
+.
+.PP
+Please note that the backend for the amplifier to be controlled, or the
+amplifier itself may not support some commands.  In that case, the operation
+will fail with a
+.B Hamlib
+error code.
+.
+.
+.SH COMMANDS
+.
+Commands can be sent over the TCP socket either as a single char, or as a long
+command name plus the value(s) space separated on one \(oq\\n\(cq terminated
+line. See
+.BR PROTOCOL .
+.
+.PP
+Since most of the
+.B Hamlib
+operations have a
+.B set
+and a
+.B get
+method, an upper case letter will be used for
+.B set
+methods whereas the corresponding lower case letter refers to the
+.B get
+method.  Each operation also has a long name; prepend a backslash, \(oq\\\(cq,
+to send a long command name.
+.
+.PP
+Example (Perl): \(lqprint $socket "\\\\dump_caps\\n";\(rq to see what the
+amplifier's backend can do
+.RB ( Note :
+In Perl and many other languages a \(oq\\\(cq will need to be escaped with a
+preceding \(oq\\\(cq so that even though two backslash characters appear in
+the code, only one will be passed to
+.BR ampctld .
+This is a possible bug, beware!).
+.
+.PP
+.BR Note :
+The backend for the amplifier to be controlled, or the amplifier itself may
+not support some commands. In that case, the operation will fail with a
+.B Hamlib
+error message.
+.
+.PP
+Here is a summary of the supported commands (In the case of
+.B set
+commands the quoted italicized string is replaced by the value in the
+description.  In the case of
+.B get
+commands the quoted italicized string is the key name of the value returned.):
+.
+.TP
+.BR F ", " set_freq " \(aq" \fIFrequency\fP \(aq
+Set
+.RI \(aq Frequency \(aq,
+in Hz.
+.IP
+Frequency may be a floating point or integer value.
+.
+.TP
+.BR f ", " get_freq
+Get
+.RI \(aq Frequency \(aq,
+in Hz.
+.IP
+Returns an integer value.
+.
+.TP
+.BR l ", " get_level " \(aq" \fILevel\fP \(aq
+Get
+.RI \(aq "Level Value" \(aq.
+.IP
+Returns Level Value as a float or integer for the Level token given.
+.IP
+.BR Note :
+Passing a \(oq?\(cq (query) as the first argument instead of a Level token
+will return a space separated list of amplifier backend supported get level
+tokens.  Use this to determine the supported levels of a given amplifier
+backend.
+.
+.TP
+.B dump_state
+Return certain state information about the amplifier backend.
+.
+.TP
+.BR 1 ", " dump_caps
+Not a real amplifier remote command, it just dumps capabilities, i.e. what the
+backend knows about this model, and what it can do.
+.IP
+TODO: Ensure this is in a consistent format so it can be read into a hash,
+dictionary, etc.  Bug reports requested.
+.IP
+.BR Note :
+This command will produce many lines of output so be very careful if using a
+fixed length array!  For example, running this command against the Dummy
+backend results in a number of lines of text output.
+.
+.TP
+.BR _ ", " get_info
+Return information from the amplifier backend.
+.
+.TP
+.BR R ", " reset " \(aq" \fIReset\fP \(aq
+Perform amplifier
+.RI \(aq Reset \(aq.
+.IP
+Reset is an integer value: \(oq0\(cq = None, \(oq1\(cq = Memory reset,
+\(oq2\(cq = Fault reset, \(oq3\(cq = Amplifier reset.
+.
+.TP
+.BR set_powerstat " \(aq" "\fIPower Status\fP" \(aq
+Set
+.RI \(aq "Power Status" \(aq.
+.IP
+Power Status is an integer value: \(oq0\(cq = Power Off, \(oq1\(cq = Power On,
+\(oq2\(cq = Power Standby (enter standby), \(oq4\(cq = Power Operate (leave
+standby).
+.
+.TP
+.B get_powerstat
+Get
+.RI \(aq "Power Status" \(aq
+as in
+.B set_powerstat
+above.
+.
+.
+.SH PROTOCOL
+.
+There are two protocols in use by
+.BR ampctld ,
+the
+.B Default Protocol
+and the
+.BR "Extended Response Protocol" .
+.
+.PP
+The
+.B Default Protocol
+is intended primarily for the communication between
+.B Hamlib
+library functions and
+.B ampctld
+(\(lqNET ampctl\(rq, available using amplifier model \(oq2\(cq).
+.
+.PP
+The
+.B Extended Response Protocol
+is intended to be used with scripts or other programs interacting directly
+with
+.B ampctld
+as consistent feedback is provided.
+.
+.
+.SS Default Protocol
+.
+The
+.B Default Protocol
+is intentionally simple.  Commands are entered on a single line with any
+needed values.  In practice, reliable results are obtained by terminating each
+command string with a newline character, \(oq\\n\(cq.
+.
+.PP
+Example set frequency and mode commands (Perl code):
+.
+.sp
+.RS 0.5i
+.EX
+print $socket "F 14250000\\n";
+.br
+print $socket "\\\\set_powerstat 1\\n";   # escape leading '\\'
+.EE
+.RE
+.
+.PP
+A one line response will be sent as a reply to
+.B set
+commands, \(lqRPRT \fIx\fP\\n\(rq where
+.I x
+is the Hamlib error code with \(oq0\(cq indicating success of the command.
+.
+.PP
+Responses from
+.B ampctld
+.B get
+commands are text values and match the same tokens used in the
+.B set
+commands. Each value is returned on its own line.  On error the string \(lqRPRT
+\fIx\fP\\n\(rq is returned where
+.I x
+is the Hamlib error code.
+.
+.PP
+Example get frequency (Perl code):
+.
+.sp
+.RS 0.5i
+.EX
+print $socket "f\\n";
+.br
+"14250000\\n"
+.EE
+.RE
+.
+.PP
+Most
+.B get
+functions return one to three values. A notable exception is the
+.B dump_caps
+command which returns many lines of
+\fBkey\fR:\fIvalue\fR
+pairs.
+.
+.PP
+This protocol is primarily used by the \(lqNET ampctl\(rq (ampctl model 2)
+backend which allows applications already written for Hamlib's C API to take
+advantage of
+.B ampctld
+without the need of rewriting application code.  An application's user can
+select amplifier model 2 (\(lqNET ampctl\(rq) and then set
+.B amp_pathname
+to \(lqlocalhost:4531\(rq or other network
+.IR host : port
+(set by the
+.BR \-T / \-t
+options, respectively, above).
+.
+.
+.SS Extended Response Protocol
+.
+The Extended Response protocol adds several rules to the strings returned by
+.B ampctld
+and adds a rule for the command syntax.
+.
+.PP
+1. The command received by
+.B ampctld
+is echoed with its long command name followed by the value(s) (if any)
+received from the client terminated by the specified response separator as the
+first record of the response.
+.
+.PP
+2. The last record of each block is the string \(lqRPRT \fIx\fP\\n\(rq where
+.I x
+is the numeric return value of the Hamlib backend function that was called by
+the command.
+.
+.PP
+3. Any records consisting of data values returned by the amplifier backend are
+prepended by a string immediately followed by a colon then a space and then
+the value terminated by the response separator. e.g. \(lqFrequency:
+14250000\\n\(rq when the command was prepended by \(oq+\(cq.
+.
+.PP
+4. All commands received will be acknowledged by
+.B ampctld
+ with records from rules 1 and 2.  Records from rule 3 are only returned when
+data values must be returned to the client.
+.
+.PP
+4. All commands received will be acknowledged by
+.B ampctld
+with records from rules 1 and 2.  Records from rule 3 are only returned when
+data values must be returned to the client.
+.
+.PP
+An example response to a
+.B set_frequency
+command sent from the shell prompt (note the prepended \(oq+\(cq):
+.
+.sp
+.RS 0.5i
+.EX
+$ echo "+F 14250000" | nc -w 1 localhost 4531
+.br
+set_freq: 14250000
+.br
+RPRT 0
+.EE
+.RE
+.
+.PP
+In this case the long command name and values are returned on the first line
+and the second line contains the end of block marker and the numeric amplifier
+backend return value indicating success.
+.
+.PP
+An example response to a
+.B get_freq
+query:
+.
+.sp
+.RS 0.5i
+.EX
+$ echo "+\\get_freq" | nc -w 1 localhost 4531
+.br
+get_freq:
+.br
+Frequency(Hz): 14250000
+.br
+RPRT 0
+.EE
+.RE
+.
+.IP
+.BR Note :
+The \(oq\\\(cq is still required for the long command name even with the ERP
+character.
+.
+.PP
+In this case, as no value is passed to
+.BR ampctld ,
+the first line consists only of the long command name.  The final line shows
+that the command was processed successfully by the amplifier backend.
+.
+.PP
+Invoking the Extended Response Protocol requires prepending a command with a
+punctuation character.  As shown in the examples above, prepending a \(oq+\(cq
+character to the command results in the responses being separated by a newline
+character (\(oq\\n\(cq).  Any other punctuation character recognized by the C
+.BR ispunct ()
+function except \(oq\\\(cq, \(oq?\(cq, or \(oq_\(cq will cause that character
+to become the response separator and the entire response will be on one line.
+.
+.PP
+Separator character summary:
+.TP
+.RB \(oq + \(cq
+Each record of the response is appended with a newline (\(oq\\n\(cq).
+.
+.TP
+.RB \(oq ; "\(cq, \(oq" | "\(cq, or, \(oq" , \(cq
+Each record of the response is appended by the given character resulting in
+entire response on one line.
+.IP
+These are common record separators for text representations of spreadsheet
+data, etc.
+.
+.TP
+.RB \(oq ? \(cq
+Reserved for help in
+.BR ampctl .
+.
+.TP
+.RB \(oq _ \(cq
+Reserved for
+.B get_info
+short command
+.
+.TP
+.RB \(oq # \(cq
+Reserved for comments when reading a command file script.
+.IP
+.BR Note :
+Other punctuation characters have not been tested!  Use at your own risk.
+.
+.PP
+For example, invoking a
+.B get_freq
+query with a leading \(oq;\(cq returns:
+.
+.sp
+.RS 0.5i
+.EX
+get_freq:;Frequency(Hz): 14250000;RPRT 0
+.EE
+.RE
+.
+.PP
+Or, using the pipe character \(oq|\(cq returns:
+.
+.sp
+.RS 0.5i
+.EX
+get_freq:|Frequency(Hz): 14250000|RPRT 0
+.EE
+.RE
+.
+.PP
+And a
+.B set_freq
+command prepended with a \(oq|\(cq returns:
+.
+.sp
+.RS 0.5i
+.EX
+set_freq: 14250000|RPRT 0
+.EE
+.RE
+.
+.PP
+Such a format will allow reading a response as a single event using a preferred
+response separator.  Other punctuation characters have not been tested!
+.
+.SH DIAGNOSTICS
+.
+The
+.BR \-v ,
+.B \-\-verbose
+option allows different levels of diagnostics
+to be output to
+.B stderr
+and correspond to \-v for
+.BR BUG ,
+\-vv for
+.BR ERR ,
+\-vvv for
+.BR WARN ,
+\-vvvv for
+.BR VERBOSE ,
+or \-vvvvv for
+.BR TRACE .
+.
+.PP
+A given verbose level is useful for providing needed debugging information to
+the email address below.  For example, TRACE output shows all of the values
+sent to and received from the amplifier which is very useful for amplifier
+backend library development and may be requested by the developers.
+.
+.
+.SH EXAMPLE
+.
+Start
+.B ampctld
+for an Elecraft KPA-1500 using a USB-to-serial adapter and backgrounding:
+.
+.sp
+.RS 0.5i
+.EX
+$ ampctld -m 201 -r /dev/ttyUSB1 &
+.EE
+.RE
+.
+.PP
+Start
+.B ampctld
+for an Elecraft KPA-1500 using COM2 on MS Windows:
+.
+.sp
+.RS 0.5i
+.EX
+$ ampctld -m 201 -r COM2
+.EE
+.RE
+.
+.PP
+Connect to the already running
+.B ampctld
+and set the frequency to 14.266 MHz with a 1 second read timeout using the
+default protocol from the shell prompt:
+.
+.sp
+.RS 0.5i
+.EX
+$ echo "\\set_freq 14266000" | nc -w 1 localhost 4531
+.EE
+.RE
+.
+.PP
+Connect to a running
+.B ampctld
+with
+.B ampctl
+on the local host:
+.
+.sp
+.RS 0.5i
+.EX
+$ ampctl -m2
+.EE
+.RE
+.
+.
+.SH SECURITY
+.
+No authentication whatsoever; DO NOT leave this TCP port open wide to the
+Internet.  Please ask if stronger security is needed or consider using a
+Secure Shell
+.RB ( ssh (1))
+tunnel.
+.
+.PP
+As
+.B ampctld
+does not need any greater permissions than
+.BR ampctl ,
+it is advisable to not start
+.B ampctld
+as \(lqroot\(rq or another system user account in order to limit any
+vulnerability.
+.
+.
+.SH BUGS
+.
+The daemon is not detaching and backgrounding itself.
+.PP
+No method to exit the daemon so the
+.BR kill (1)
+command must be used to terminate it.
+.
+.PP
+Multiple clients using the daemon may experience contention with the connected
+amplifier.
+.
+.PP
+Report bugs to:
+.IP
+.nf
+.MT hamlib\-developer@lists.sourceforge.net
+Hamlib Developer mailing list
+.ME
+.fi
+.
+.
+.SH COPYING
+.
+This file is part of Hamlib, a project to develop a library that simplifies
+radio, rotator, and amplifier control functions for developers of software
+primarily of interest to radio amateurs and those interested in radio
+communications.
+.
+.PP
+Copyright \(co 2000-2010 Stephane Fillod
+.br
+Copyright \(co 2000-2018 the Hamlib Group (various contributors)
+.br
+Copyright \(co 2011-2019 Nate Bargmann
+.
+.PP
+This is free software; see the file COPYING for copying conditions.  There is
+NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+.
+.
+.SH SEE ALSO
+.
+.BR kill (1),
+.BR ampctl (1),
+.BR ssh (1),
+.BR hamlib (7)
+.
+.
+.SH COLOPHON
+.
+Links to the Hamlib Wiki, Git repository, release archives, and daily snapshot
+archives:
+.IP
+.UR http://www.hamlib.org
+hamlib.org
+.UE .
