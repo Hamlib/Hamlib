@@ -383,7 +383,7 @@ const char *HAMLIB_API rig_strrmode(rmode_t mode)
 {
     int i;
 
-    // only enable it needed for debugging -- too verbose otherwise
+    // only enable if needed for debugging -- too verbose otherwise
     //rig_debug(RIG_DEBUG_TRACE, "%s called mode=0x%"PRXll"\n", __func__, mode);
 
     if (mode == RIG_MODE_NONE)
@@ -400,6 +400,43 @@ const char *HAMLIB_API rig_strrmode(rmode_t mode)
     }
 
     return "";
+}
+
+/**
+ * \brief Convert RIG_MODE or'd value to alpha string of all modes
+ * \param modes RIG_MODE or'd value
+ * \param buf char* of result buffer
+ * \param buflen length of buffer
+ * \return rig status -- RIG_ETRUNC if buffer not big enough
+ *
+ * \sa rmode_t
+ */
+const int HAMLIB_API rig_strrmodes(rmode_t modes, char *buf, int buflen)
+{
+    int i;
+
+    // only enable if needed for debugging -- too verbose otherwise
+    //rig_debug(RIG_DEBUG_TRACE, "%s called mode=0x%"PRXll"\n", __func__, mode);
+
+    if (modes == RIG_MODE_NONE)
+    {
+        snprintf(buf,buflen,"NONE");
+        return RIG_OK;
+    }
+
+    for (i = 0 ; mode_str[i].str[0] != '\0'; i++)
+    {
+        if (modes & mode_str[i].mode)
+        {
+            char modebuf[16];
+            if (strlen(buf)==0) snprintf(modebuf, sizeof(modebuf), "%s", mode_str[i].str);
+            else snprintf(modebuf, sizeof(modebuf)," %s", mode_str[i].str);
+            strncat(buf, modebuf, buflen-strlen(buf)-1);
+            if (strlen(buf) > buflen-10) return -RIG_ETRUNC;
+        }
+    }
+
+    return RIG_OK;
 }
 
 
