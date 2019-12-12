@@ -2410,6 +2410,7 @@ rig_probe HAMLIB_PARAMS((hamlib_port_t *p));
 
 /* Misc calls */
 extern HAMLIB_EXPORT(const char *) rig_strrmode(rmode_t mode);
+extern HAMLIB_EXPORT(int)          rig_strrmodes(rmode_t modes, char *buf, int buflen);
 extern HAMLIB_EXPORT(const char *) rig_strvfo(vfo_t vfo);
 extern HAMLIB_EXPORT(const char *) rig_strfunc(setting_t);
 extern HAMLIB_EXPORT(const char *) rig_strlevel(setting_t);

@@ -841,10 +841,14 @@ static int flrig_open(RIG *rig)
     }
 
     rig->state.mode_list = modes;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: hamlib modes=%s\n", __func__,
-              rig_strrmode(modes));
+ 
+    retval = rig_strrmodes(modes, value, sizeof(value));
+    if (retval != RIG_OK) { // we might get TRUNC but we can still print the debug
+      rig_debug(RIG_DEBUG_VERBOSE, "%s: %s\n", __func__, rigerror(retval));
+    }
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: hamlib modes=%s\n", __func__, value);
 
-    return RIG_OK;
+    return retval;
 }
 
 /*
