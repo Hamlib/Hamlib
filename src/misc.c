@@ -411,7 +411,7 @@ const char *HAMLIB_API rig_strrmode(rmode_t mode)
  *
  * \sa rmode_t
  */
-const int HAMLIB_API rig_strrmodes(rmode_t modes, char *buf, int buflen)
+int HAMLIB_API rig_strrmodes(rmode_t modes, char *buf, int buflen)
 {
     int i;
 
