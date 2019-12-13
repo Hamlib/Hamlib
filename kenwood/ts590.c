@@ -29,6 +29,7 @@
 #include "hamlib/rig.h"
 #include "idx_builtin.h"
 #include "kenwood.h"
+#include "cal.h"
 
 
 /* Function declarations  */
@@ -90,7 +91,7 @@ const struct rig_caps ts590_caps =
     .rig_model = RIG_MODEL_TS590S,
     .model_name = "TS-590S",
     .mfg_name = "Kenwood",
-    .version = BACKEND_VER ".2",
+    .version = BACKEND_VER ".3",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -471,6 +472,14 @@ int ts590_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     switch (level)
     {
+    case RIG_LEVEL_KEYSPD:
+    case RIG_LEVEL_AGC:
+    case RIG_LEVEL_SQL:
+    case RIG_LEVEL_CWPITCH:
+    case RIG_LEVEL_RFPOWER:
+    case RIG_LEVEL_RF:
+        return kenwood_get_level(rig, vfo, level, val);
+
     case RIG_LEVEL_AF:
         return get_kenwood_level(rig, "AG0", &val->f);
 
@@ -558,6 +567,38 @@ int ts590_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         sscanf(lvlbuf + 3, "%d", &val->i);
         return retval;
 
-    default: return rig_get_level(rig, vfo, level, val);
+    case RIG_LEVEL_RAWSTR:
+    case RIG_LEVEL_STRENGTH:
+        retval = kenwood_transaction(rig, "SM0", lvlbuf, sizeof(lvlbuf));
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        lvl_len = strlen(lvlbuf);
+
+        if (((lvl_len != 7)) || lvlbuf[1] != 'M')
+        {
+            /* TS-590 returns 8 bytes for S meter level */
+            rig_debug(RIG_DEBUG_ERR, "%s: wrong answer len=%d\n", __func__, (int)lvl_len);
+            return -RIG_ERJCTED;
+        }
+
+        /* Frontend expects:  -54 = S0, 0 = S9  */
+        sscanf(lvlbuf + 3, "%d", &val->i);
+
+        /* TS-590 main receiver returns values from 0 - 30 */
+        /* Indicates # of dots on meter */
+        /* so first 15 are S0-S9 and last 15 are 20/40/60 */
+        if (level == RIG_LEVEL_STRENGTH)
+        {
+            cal_table_t str_cal = TS590_SM_CAL;
+            val->i = (int) rig_raw2val(val->i, &str_cal);
+        }
+
+        return retval;
+
+    default: return -RIG_EINVAL;
     }
 }
