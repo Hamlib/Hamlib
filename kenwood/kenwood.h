@@ -62,6 +62,22 @@ extern const struct confparams kenwood_cfg_params[];
 #define MD_CWR  '7'
 #define MD_FSKR '9'
 
+/* S-meter calibration tables */
+/* This one for the TS590 no doubt applies elsewhere */
+#define TS590_SM_CAL { 10, \
+  { \
+    { 0, -54 }, \
+    { 3, -48 }, \
+    { 6, -36 }, \
+    { 9, -24 }, \
+    { 12, -12 }, \
+    { 15, 0 }, \
+    { 20, 20 }, \
+    { 25, 40 }, \
+    { 30, 60 }, \
+  } }
+
+
 struct kenwood_priv_caps
 {
     char cmdtrm;    /* Command termination chars (ken=';' or th='\r') */
