@@ -17,8 +17,6 @@ main directory and do the following:
 
         $ ./configure
 
-     Note: if ./configure does not exist you must run ./bootstrap first
-
      If you are planning to install the package into your home directory
      or to a location other than `/usr/local' then add the flag
      `--prefix=PATH' to `configure'. For example, if your home directory
