@@ -611,9 +611,6 @@ int kenwood_init(RIG *rig)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: if_len = %d\n", __func__, caps->if_len);
 
-    // Ensure power is on -- any reason not to do this?
-    rig_set_powerstat(rig,1);
-
     return RIG_OK;
 }
 
@@ -635,6 +632,10 @@ int kenwood_open(RIG *rig)
     char id[KENWOOD_MAX_BUF_LEN];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    // Ensure rig is on
+    rig_set_powerstat(rig,1);
+
 
     if (RIG_MODEL_TS590S == rig->caps->rig_model)
     {
