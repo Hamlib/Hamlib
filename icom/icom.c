@@ -4410,7 +4410,10 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
     unsigned char ackbuf[200];
     int ack_len = sizeof(ackbuf), retval;
     int pwr_sc;
-    unsigned char fe_buf[200]; // for FE's to power up
+    // 175 0xfe's are workign for 38,400 but not 57,600
+    // so we'll do up to 175*3 for 115,200
+    int fe_max = 175*3;
+    unsigned char fe_buf[fe_max]; // for FE's to power up
     int fe_len = 0;
     int i;
     int retry;
@@ -4424,7 +4427,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
 
         // ic7300 manual says ~150 for 115,200
         // we'll just send 175 to be sure for all speeds
-        for (fe_len = 0; fe_len < 175; ++fe_len)
+        for (fe_len = 0; fe_len < fe_max; ++fe_len)
         {
             fe_buf[fe_len] = 0xfe;
         }
@@ -4438,13 +4441,13 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
 
     // we can ignore this retval
     // sending more than enough 0xfe's to wake up the rs232
-    icom_transaction(rig, 0xfe, 0xfe, fe_buf, fe_len, ackbuf, &ack_len);
+    icom_transaction(rig, 0xfe, 0xfe, fe_buf, fe_max, ackbuf, &ack_len);
 
     retval = icom_transaction(rig, C_SET_PWR, pwr_sc, NULL, 0, ackbuf, &ack_len);
     rig_debug(RIG_DEBUG_VERBOSE, "%s #2 called retval=%d\n", __func__, retval);
 
     i = 0;
-    retry = 3 / rig->state.rigport.retry;
+    retry = 10;
 
     if (status == RIG_POWER_ON) // wait for wakeup only
     {
