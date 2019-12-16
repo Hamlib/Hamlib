@@ -32,7 +32,7 @@
 
 #define IC821H_MODES (RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_FM)
 
-#define IC821H_VFO_ALL (RIG_VFO_A|RIG_VFO_C|RIG_VFO_MEM|RIG_VFO_MAIN|RIG_VFO_SUB)
+#define IC821H_VFO_ALL (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM|RIG_VFO_MAIN|RIG_VFO_SUB)
 /* FIXME: What about MAIN/SUB mode? And satellite mode? */
 
 #define IC821H_VFO_OPS (RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_CPY|RIG_OP_MCL)
@@ -59,9 +59,9 @@ const struct rig_caps ic821h_caps =
     .rig_model =  RIG_MODEL_IC821H,
     .model_name = "IC-821H",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".1",
+    .version =  BACKEND_VER ".2",
     .copyright =  "LGPL",
-    .status =  RIG_STATUS_ALPHA,
+    .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
     .ptt_type =  RIG_PTT_NONE,
     .dcd_type =  RIG_DCD_NONE,
