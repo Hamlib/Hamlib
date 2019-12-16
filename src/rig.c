@@ -3828,6 +3828,7 @@ int HAMLIB_API rig_set_powerstat(RIG *rig, powerstat_t status)
 
     if (rig->caps->set_powerstat == NULL)
     {
+        rig_debug(RIG_DEBUG_WARN, "%s set_powerstat not implemented\n", __func__);
         return -RIG_ENAVAIL;
     }
 
