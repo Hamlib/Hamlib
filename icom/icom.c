@@ -533,6 +533,7 @@ int icom_init(RIG *rig)
     priv->tx_vfo = RIG_VFO_NONE;
     priv->rx_vfo = RIG_VFO_NONE;
     priv->curr_vfo = RIG_VFO_NONE;
+
     rig_debug(RIG_DEBUG_TRACE, "%s: done\n", __func__);
 
     return RIG_OK;
@@ -576,6 +577,8 @@ int icom_rig_open(RIG *rig)
     struct icom_priv_caps *priv_caps = (struct icom_priv_caps *) rig->caps->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    rig_set_powerstat(rig,1);
 
     if (priv_caps->serial_USB_echo_check)
     {
