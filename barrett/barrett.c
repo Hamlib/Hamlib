@@ -335,22 +335,21 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
 
 int barrett_init(RIG *rig)
 {
-    struct barrett_priv_data *priv = (struct barrett_priv_data *)calloc(1, sizeof(struct barrett_priv_data));
     rig_debug(RIG_DEBUG_VERBOSE, "%s version %s\n", __func__,
               rig->caps->version);
+    rig->state.priv = (struct barrett_priv_data *)calloc(1,
+                      sizeof(struct barrett_priv_data));
 
-    if (!rig || !rig->caps)
+    if (!rig->caps)
     {
         return -RIG_EINVAL;
     }
 
 
-    if (!priv)
+    if (!rig->state.priv)
     {
         return -RIG_ENOMEM;
     }
-
-    rig->state.priv = (void *)priv;
 
     return RIG_OK;
 }
@@ -616,9 +615,9 @@ int barrett_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
  */
 int barrett_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    char *result=NULL;
+    char *result = NULL;
     int retval;
-    
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
 
     retval = barrett_transaction(rig, "IB", 0, &result);
@@ -749,8 +748,9 @@ int barrett_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     switch (level)
     {
-    int strength;
-    int n;
+        int strength;
+        int n;
+
     case RIG_LEVEL_STRENGTH:
         retval = barrett_transaction(rig, "IAL", 0, &response);
 
