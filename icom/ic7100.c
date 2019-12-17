@@ -209,6 +209,7 @@ const struct rig_caps ic7100_caps =
         [LVL_KEYSPD] = { .min = { .i = 6 }, .max = { .i = 48 }, .step = { .i = 1 } },
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 900 }, .step = { .i = 1 } },
     },
+    .extparms = icom_ext_parms,
     .parm_gran =  {},
     .ctcss_list =  common_ctcss_list,
     .dcs_list =  common_dcs_list,
@@ -355,7 +356,8 @@ const struct rig_caps ic7100_caps =
 
     .set_parm =  icom_set_parm,
     .get_parm =  icom_get_parm,
-
+    .set_ext_parm =  icom_set_ext_parm,
+    .get_ext_parm =  icom_get_ext_parm,
     .set_mem =  icom_set_mem,
     .vfo_op =  icom_vfo_op,
     .scan =  icom_scan,

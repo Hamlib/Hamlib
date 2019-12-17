@@ -92,8 +92,10 @@
 #define C_CTL_MEM	0x1a		/* Misc memory/bank/rig control functions, Sc */
 #define C_SET_TONE	0x1b		/* Set tone frequency */
 #define C_CTL_PTT	0x1c		/* Control Transmit On/Off, Sc */
+#define C_CTL_DVT	0x1f		/* Digital modes calsigns & messages */
 #define C_CTL_DIG	0x20		/* Digital modes settings & status */
 #define C_CTL_RIT	0x21		/* RIT/XIT control */
+#define C_CTL_DSD	0x22		/* D-STAR Data */
 #define C_SEND_SEL_FREQ 0x25 /* Send/Recv sel/unsel VFO frequency */
 #define C_CTL_MTEXT	0x70		/* Microtelecom Extension */
 #define C_CTL_MISC	0x7f		/* Miscellaneous control, Sc */
@@ -442,14 +444,17 @@
 #define S_DIG_DSGPSD	 0x03		/* D-STAR GPS data */
 #define S_DIG_DSGPSM	 0x04		/* D-STAR GPS message */
 #define S_DIG_DSCSQL	 0x05		/* D-STAR CSQL */
-#define S_DIG_P25ID	 0x06		/* P25 ID */
+#define S_DIG_P25ID 	 0x06		/* P25 ID */
 #define S_DIG_P25STS	 0x07		/* P25 Rx status */
 #define S_DIG_DPRXID	 0x08		/* dPMR Rx ID */
 #define S_DIG_DPRSTS	 0x09		/* dPMR Rx status */
 #define S_DIG_NXRXID	 0x0A		/* NXDN Rx ID */
 #define S_DIG_NXRSTS	 0x0B		/* NXDN Rx status */
 #define S_DIG_DCRXID	 0x0C		/* DCR Rx ID */
-#define S_DIG_DCRSTS	 0x0D		/* DCR Rx status */
+#define S_DVT_DSMYCS	 0x00		/* D-STAR My CS */
+#define S_DVT_DSTXCS	 0x01		/* D-STAR Tx CS */
+#define S_DVT_DSTXMS	 0x02		/* D-STAR Tx Mess */
+#define S_DSD_DSTXDT	 0x00		/* D-STAR Tx Data */
 
 /*
  * C_CTL_MISC	OptoScan extension
@@ -502,5 +507,34 @@
 #define TOK_DRIVE_GAIN TOKEN_BACKEND(103)
 #define TOK_DIGI_SEL_FUNC TOKEN_BACKEND(104)
 #define TOK_DIGI_SEL_LEVEL TOKEN_BACKEND(105)
+#define TOK_DSTAR_CALL_SIGN TOKEN_BACKEND(106)
+#define TOK_DSTAR_MESSAGE TOKEN_BACKEND(107)
+#define TOK_DSTAR_STATUS TOKEN_BACKEND(108)
+#define TOK_DSTAR_GPS_DATA TOKEN_BACKEND(109)
+#define TOK_DSTAR_GPS_MESS TOKEN_BACKEND(110)
+#define TOK_DSTAR_DSQL TOKEN_BACKEND(111)
+#define TOK_DSTAR_MY_CS TOKEN_BACKEND(112)
+#define TOK_DSTAR_TX_CS TOKEN_BACKEND(113)
+#define TOK_DSTAR_TX_MESS TOKEN_BACKEND(114)
+#define TOK_DSTAR_TX_DATA TOKEN_BACKEND(115)
+
+/*
+ * icom_ext_parm table subcommand modifiers
+ */
+
+ #define SC_MOD_RD 0x01     /* Readable */
+ #define SC_MOD_WR 0x02     /* Writeable */
+ #define SC_MOD_RW 0x03     /* Read-write */
+ #define SC_MOD_RW12 0x07   /* Write +0x01, Read +0x02 */
+
+/*
+ * icom_ext_parm table data types
+ */
+
+ #define CMD_DAT_WRD 0x00     /* literal single word type */
+ #define CMD_DAT_BUF 0x01     /* literal byte buffer type */
+ #define CMD_DAT_INT 0x02     /* bcd int type */
+ #define CMD_DAT_FLT 0x03     /* bcd float type */
+ #define CMD_DAT_BOL 0x04     /* bcd boolean type */
 
 #endif /* _ICOM_DEFS_H */

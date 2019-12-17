@@ -88,7 +88,7 @@ const struct rig_caps id51_caps =
     .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_UNTESTED,
-    .rig_type =  RIG_TYPE_MOBILE,
+    .rig_type =  RIG_TYPE_HANDHELD,
     .ptt_type =  RIG_PTT_RIG,
     .dcd_type =  RIG_DCD_RIG,
     .port_type =  RIG_PORT_SERIAL,
@@ -111,6 +111,7 @@ const struct rig_caps id51_caps =
     .level_gran = {
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
     },
+    .extparms = icom_ext_parms,
     .parm_gran =  {},
     .ctcss_list =  common_ctcss_list,
     .dcs_list =  full_dcs_list,
@@ -190,6 +191,10 @@ const struct rig_caps id51_caps =
     .get_func =  icom_get_func,
     .set_level =  icom_set_level,
     .get_level =  icom_get_level,
+    .set_parm =  icom_set_parm,
+    .get_parm =  icom_get_parm,
+    .set_ext_parm =  icom_set_ext_parm,
+    .get_ext_parm =  icom_get_ext_parm,
 
     .set_ptt =  icom_set_ptt,
     .get_ptt =  icom_get_ptt,
