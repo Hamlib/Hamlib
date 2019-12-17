@@ -4227,13 +4227,24 @@ declare_proto_rig(send_cmd)
         {
             int i;
             char hex[8];
-            char *hexbuf = calloc(retval, 5);
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: sending binary\n", __func__);
+            int hexbufbytes = retval * 6;
+            char *hexbuf = calloc(hexbufbytes, 1);
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: sending binary, hexbuf size=%d\n", __func__,
+                      hexbufbytes);
             hexbuf[0] = 0;
 
             for (i = 0; i < retval; ++i)
             {
                 snprintf(hex, sizeof(hex), "\\0x%02X", (unsigned char)buf[i]);
+
+                if ((strlen(hexbuf) + strlen(hex) + 1) >= hexbufbytes)
+                {
+                    hexbufbytes *= 2;
+                    rig_debug(RIG_DEBUG_TRACE, "%s: doubling hexbuf size to %d\n", __func__,
+                              hexbufbytes);
+                    hexbuf = realloc(hexbuf, hexbufbytes);
+                }
+
                 strncat(hexbuf, hex, strlen(hex));
                 //fprintf(fout, "%s", hex);
             }
