@@ -279,7 +279,7 @@ const struct rig_caps ic785x_caps =
     .priv = (void *)& ic785x_priv_caps,
     .rig_init =   icom_init,
     .rig_cleanup =   icom_cleanup,
-    .rig_open =  NULL,
+    .rig_open =  icom_rig_open,
     .rig_close =  NULL,
 
     .set_freq =  icom_set_freq,
