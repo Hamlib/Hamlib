@@ -578,7 +578,7 @@ int icom_rig_open(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    rig_set_powerstat(rig,1);
+    rig_set_powerstat(rig, 1);
 
     if (priv_caps->serial_USB_echo_check)
     {
@@ -736,6 +736,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
 
     retval = set_vfo_curr(rig, vfo, priv->curr_vfo);
+
     if (retval != RIG_OK) { return retval; }
 
     // Pick the appropriate VFO when VFO_RX is requested
@@ -1021,6 +1022,7 @@ int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width)
         if (!rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_RF, &rfstatus) && (rfstatus))
         {
             int i;
+
             for (i = 0; i < RTTY_FIL_NB; i++)
             {
                 if (rtty_fil[i] == width)
@@ -3184,9 +3186,13 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
         }
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE,"%s: before get_split_vfos rx_vfo=%s tx_vfo=%s\n", __func__, rig_strvfo(priv->rx_vfo), rig_strvfo(priv->tx_vfo));
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: before get_split_vfos rx_vfo=%s tx_vfo=%s\n",
+              __func__, rig_strvfo(priv->rx_vfo), rig_strvfo(priv->tx_vfo));
+
     if (RIG_OK != (rc = icom_get_split_vfos(rig, &rx_vfo, &tx_vfo))) { return rc; }
-    rig_debug(RIG_DEBUG_VERBOSE,"%s: after get_split_vfos  rx_vfo=%s tx_vfo=%s\n", __func__, rig_strvfo(priv->rx_vfo), rig_strvfo(priv->tx_vfo));
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: after get_split_vfos  rx_vfo=%s tx_vfo=%s\n",
+              __func__, rig_strvfo(priv->rx_vfo), rig_strvfo(priv->tx_vfo));
 
 
     if (RIG_OK != (rc = icom_set_vfo(rig, tx_vfo))) { return rc; }
@@ -3340,7 +3346,9 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     priv->rx_vfo = vfo;
     priv->tx_vfo = tx_vfo;
     priv->split_on = RIG_SPLIT_ON == split;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s rx_vfo=%s tx_vfo=%s split=%d\n", __func__, rig_strvfo(vfo), rig_strvfo(priv->rx_vfo), rig_strvfo(priv->tx_vfo), split);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s rx_vfo=%s tx_vfo=%s split=%d\n",
+              __func__, rig_strvfo(vfo), rig_strvfo(priv->rx_vfo), rig_strvfo(priv->tx_vfo),
+              split);
     return RIG_OK;
 }
 
@@ -3392,9 +3400,12 @@ int icom_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported split %d", __func__, splitbuf[1]);
         return -RIG_EPROTO;
     }
+
     *tx_vfo = priv->tx_vfo;
     priv->split_on = RIG_SPLIT_ON == *split;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s rx_vfo=%s tx_vfo=%s split=%d\n", __func__, rig_strvfo(vfo), rig_strvfo(priv->rx_vfo), rig_strvfo(priv->tx_vfo), *split);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s rx_vfo=%s tx_vfo=%s split=%d\n",
+              __func__, rig_strvfo(vfo), rig_strvfo(priv->rx_vfo), rig_strvfo(priv->tx_vfo),
+              *split);
     return RIG_OK;
 }
 
@@ -3675,11 +3686,16 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     case RIG_FUNC_DSQL:
         fct_cn = C_CTL_FUNC;
         fct_sc = S_FUNC_DSSQL;
-        if (status <= 2) {
+
+        if (status <= 2)
+        {
             fctbuf[0] = status;
-        } else {
+        }
+        else
+        {
             fctbuf[0] = 0;
         }
+
         break;
 
     case RIG_FUNC_AFLT:
@@ -4023,6 +4039,7 @@ int icom_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
     if (caps->ctcss_list)
     {
         int i;
+
         for (i = 0; caps->ctcss_list[i] != 0; i++)
         {
             if (caps->ctcss_list[i] == tone)
@@ -4408,52 +4425,56 @@ int icom_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
 int icom_set_powerstat(RIG *rig, powerstat_t status)
 {
     unsigned char ackbuf[200];
-    int ack_len = sizeof(ackbuf), retval;
+    int ack_len = sizeof(ackbuf), retval = RIG_OK;
     int pwr_sc;
-    // 175 0xfe's are workign for 38,400 but not 57,600
-    // so we'll do up to 175*3 for 115,200
-    int fe_max = 175*3;
+    // so we'll do up to 175 for 115,200
+    int fe_max = 175;
     unsigned char fe_buf[fe_max]; // for FE's to power up
-    int fe_len = 0;
     int i;
     int retry;
+    struct rig_state *rs = &rig->state;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called status=%d\n", __func__, (int)status);
 
     switch (status)
     {
     case RIG_POWER_ON:
-        pwr_sc = S_PWR_ON;
 
+        sleep(1); // let serial bus idle for a while
+        rig_debug(RIG_DEBUG_TRACE, "%s: PWR_ON failed, trying 0xfe's\n", __func__);
         // ic7300 manual says ~150 for 115,200
-        // we'll just send 175 to be sure for all speeds
-        for (fe_len = 0; fe_len < fe_max; ++fe_len)
-        {
-            fe_buf[fe_len] = 0xfe;
-        }
+        // we'll just send a few more to be sure for all speeds
+        memset(fe_buf, 0xfe, fe_max);
+        // sending more than enough 0xfe's to wake up the rs232
+        retval = write_block(&rs->rigport, (char *) fe_buf, fe_max);
+
+        usleep(100 * 1000);
+        // we'll try 0x18 0x01 now -- should work on STBY rigs too
+        pwr_sc = S_PWR_ON;
+        fe_buf[0] = 0;
+        retry = rs->rigport.retry;
+        rs->rigport.retry = 0;
+        retval = icom_transaction(rig, C_SET_PWR, pwr_sc, NULL, 0, ackbuf, &ack_len);
+        rs->rigport.retry = retry;
 
         break;
 
     default:
         pwr_sc = S_PWR_OFF;
         fe_buf[0] = 0;
+        retry = rs->rigport.retry;
+        rs->rigport.retry = 0;
+        retval = icom_transaction(rig, C_SET_PWR, pwr_sc, NULL, 0, ackbuf, &ack_len);
+        rs->rigport.retry = retry;
     }
 
-    // we can ignore this retval
-    // sending more than enough 0xfe's to wake up the rs232
-    icom_transaction(rig, 0xfe, 0xfe, fe_buf, fe_max, ackbuf, &ack_len);
-
-    retval = icom_transaction(rig, C_SET_PWR, pwr_sc, NULL, 0, ackbuf, &ack_len);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s #2 called retval=%d\n", __func__, retval);
-
-    i = 0;
     retry = 10;
 
     if (status == RIG_POWER_ON) // wait for wakeup only
     {
         for (i = 0; i < retry; ++i) // up to 10 attempts
         {
-            freq_t freq = 0;
+            freq_t freq;
             sleep(1);
             // Use get_freq as all rigs should repond to this
             retval = rig_get_freq(rig, RIG_VFO_A, &freq);
@@ -4473,6 +4494,8 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
 
     if (retval != RIG_OK)
     {
+        rig_debug(RIG_DEBUG_TRACE, "%s: retval != RIG_OK, =%s\n", __func__,
+                  rigerror(retval));
         return retval;
     }
 
@@ -5268,7 +5291,7 @@ int icom_get_custom_parm_time(RIG *rig, int parmbuflen, unsigned char *parmbuf,
     unsigned char resbuf[MAXFRAMELEN];
     int reslen = sizeof(resbuf);
     int retval;
-    int hour,min;
+    int hour, min;
 
     retval = icom_get_raw_buf(rig, C_CTL_MEM, S_MEM_PARM, parmbuflen, parmbuf,
                               &reslen, resbuf);
