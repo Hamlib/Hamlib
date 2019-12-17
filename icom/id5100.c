@@ -115,6 +115,7 @@ const struct rig_caps id5100_caps =
     .level_gran = {
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
     },
+    .extparms = icom_ext_parms,
     .parm_gran =  {},
     .ctcss_list =  common_ctcss_list,
     .dcs_list =  full_dcs_list,
@@ -194,7 +195,11 @@ const struct rig_caps id5100_caps =
     .get_func =  icom_get_func,
     .set_level =  icom_set_level,
     .get_level =  icom_get_level,
-
+    .set_parm =  icom_set_parm,
+    .get_parm =  icom_get_parm,
+    .set_ext_parm =  icom_set_ext_parm,
+    .get_ext_parm =  icom_get_ext_parm,
+ 
     .set_ptt =  icom_set_ptt,
     .get_ptt =  icom_get_ptt,
     .get_dcd =  icom_get_dcd,

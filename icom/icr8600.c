@@ -122,6 +122,7 @@ const struct rig_caps icr8600_caps =
     .has_set_parm = RIG_PARM_SET(ICR8600_PARM_ALL),
     .level_gran = { [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } } },
     .parm_gran = { [PARM_TIME] = { .min = { .i = 0 }, .max = { .i = 86399} } },
+    .extparms = icom_ext_parms,
     .ctcss_list = common_ctcss_list,
     .dcs_list = common_dcs_list,
     .preamp = { 20, RIG_DBLST_END, },   /* 20 on HF, 14 on VHF, UHF, same setting */
@@ -222,6 +223,8 @@ const struct rig_caps icr8600_caps =
     .get_level = icom_get_level,
     .set_parm = icr8600_set_parm,
     .get_parm = icr8600_get_parm,
+    .set_ext_parm =  icom_set_ext_parm,
+    .get_ext_parm =  icom_get_ext_parm,
     .get_dcd = icom_get_dcd,
     .set_mem = icom_set_mem,
     .vfo_op = icom_vfo_op,

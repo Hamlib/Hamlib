@@ -42,9 +42,9 @@
 #define ICR30_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AF|RIG_LEVEL_RF|\
     RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH)
 
-#define ICR30_VFO_ALL (RIG_VFO_A)
+#define ICR30_VFO_ALL (RIG_VFO_MAIN|RIG_VFO_SUB)
 
-#define ICR30_VFO_OPS (RIG_VFO_MAIN|RIG_VFO_SUB)
+#define ICR30_VFO_OPS (RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL)
 #define ICR30_SCAN_OPS (RIG_SCAN_NONE)
 
 #define ICR30_STR_CAL { 2, \
@@ -126,11 +126,12 @@ const struct rig_caps icr30_caps =
     .has_get_level =  ICR30_LEVEL_ALL,
     .has_set_level =  RIG_LEVEL_SET(ICR30_LEVEL_ALL),
     .has_get_parm =  RIG_PARM_NONE,
-    .has_set_parm =  RIG_PARM_NONE, /* FIXME: parms */
+    .has_set_parm =  RIG_PARM_NONE,
     .level_gran = {
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
     },
     .parm_gran =  {},
+    .extparms = icom_ext_parms,
     .ctcss_list =  common_ctcss_list,
     .dcs_list =  common_dcs_list,
     .preamp =   { RIG_DBLST_END, },
@@ -228,6 +229,10 @@ const struct rig_caps icr30_caps =
     .get_level =  icom_get_level,
     .set_func =  icom_set_func,
     .get_func =  icom_get_func,
+    .set_parm =  icom_set_parm,
+    .get_parm =  icom_get_parm,
+    .set_ext_parm =  icom_set_ext_parm,
+    .get_ext_parm =  icom_get_ext_parm,
     .get_dcd =  icom_get_dcd,
     .set_ctcss_sql =  icom_set_ctcss_sql,
     .get_ctcss_sql =  icom_get_ctcss_sql,
