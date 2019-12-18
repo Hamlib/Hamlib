@@ -3144,7 +3144,7 @@ int adat_set_mode(RIG *pRig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
 
         pPriv->nRIGMode    = mode;
-        nRC = adat_vfo_rnr2anr(vfo, &(pPriv->nCurrentVFO));
+        adat_vfo_rnr2anr(vfo, &(pPriv->nCurrentVFO));
 
         if (width != RIG_PASSBAND_NOCHANGE)
         {
