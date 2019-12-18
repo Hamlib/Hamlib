@@ -492,11 +492,12 @@ int icom_init(RIG *rig)
     struct icom_priv_data *priv;
     const struct icom_priv_caps *priv_caps;
     const struct rig_caps *caps;
+    int retval;
     int satmode;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !rig->caps)
+    if (!rig->caps)
     {
         return -RIG_EINVAL;
     }
@@ -535,8 +536,10 @@ int icom_init(RIG *rig)
     priv->rx_vfo = RIG_VFO_NONE;
     priv->curr_vfo = RIG_VFO_NONE;
     rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: satmode=%d\n", __func__, satmode);
-    if (satmode) {
+    retval = rig_debug(RIG_DEBUG_VERBOSE, "%s: satmode=%d\n", __func__, satmode);
+
+    if (retval == RIG_OK && satmode)
+    {
         priv->rx_vfo = RIG_VFO_MAIN;
         priv->tx_vfo = RIG_VFO_SUB;
     }
@@ -579,13 +582,17 @@ int icom_rig_open(RIG *rig)
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf);
     int retval = RIG_OK;
+    freq_t freq;
     struct rig_state *rs = &rig->state;
     struct icom_priv_data *priv = (struct icom_priv_data *)rs->priv;
     struct icom_priv_caps *priv_caps = (struct icom_priv_caps *) rig->caps->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    rig_set_powerstat(rig, 1);
+    // if we can't get freq we may need to turn power on
+    retval = rig_get_freq(vfo, RIG_VFO_CURR, &freq);
+
+    if (retval == RIG_ETIMEOUT) { rig_set_powerstat(rig, 1); }
 
     if (priv_caps->serial_USB_echo_check)
     {
