@@ -514,6 +514,13 @@ static int ar7030p_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             rc = -RIG_EINVAL;
         }
 
+        // this RIG_OK check added to clear cppcheck warnings
+        // not sure if it's needed but seem like RIG_OK should be expected
+        // if this debug prints out when things are working need to reexamine 
+        if (rc != RIG_OK) {
+          rig_debug(RIG_DEBUG_ERR, "%s: unexpected error?? %s\n", __func__, rigerror(rc));
+        }
+
         rc = execRoutine(rig, SET_ALL);
 
         if (rc == RIG_OK) { rc = lockRx(rig, LOCK_0); }
@@ -562,6 +569,13 @@ static int ar7030p_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         default:
             rc = -RIG_EINVAL;
             break;
+        }
+
+        // this RIG_OK check added to clear cppcheck warnings
+        // not sure if it's needed but seem like RIG_OK should be expected
+        // if this debug prints out when things are working need to reexamine 
+        if (rc != RIG_OK) {
+          rig_debug(RIG_DEBUG_ERR, "%s: unexpected error?? %s\n", __func__, rigerror(rc));
         }
 
         rc = lockRx(rig, LOCK_0);
@@ -629,6 +643,13 @@ static int ar7030p_set_mode(RIG *rig, vfo_t vfo, rmode_t mode,
             {
                 rc = execRoutine(rig, SET_ALL);
             }
+        }
+
+        // this RIG_OK check added to clear cppcheck warnings
+        // not sure if it's needed but seem like RIG_OK should be expected
+        // if this debug prints out when things are working need to reexamine 
+        if (rc != RIG_OK) {
+          rig_debug(RIG_DEBUG_ERR, "%s: unexpected error?? %s\n", __func__, rigerror(rc));
         }
 
         rc = lockRx(rig, LOCK_0);
@@ -966,6 +987,13 @@ static int ar7030p_set_level(RIG *rig, vfo_t vfo, setting_t level,
         default:
             rc = -RIG_EINVAL;
             break;
+        }
+
+        // this RIG_OK check added to clear cppcheck warnings
+        // not sure if it's needed but seem like RIG_OK should be expected
+        // if this debug prints out when things are working need to reexamine 
+        if (rc != RIG_OK) {
+          rig_debug(RIG_DEBUG_ERR, "%s: unexpected error?? %s\n", __func__, rigerror(rc));
         }
 
         rc = lockRx(rig, LOCK_0);
