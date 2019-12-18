@@ -428,7 +428,7 @@ int execRoutine(RIG *rig, enum ROUTINE_e rtn)
  */
 static int setAddr(RIG *rig, enum PAGE_e page, unsigned int addr)
 {
-    int rc = RIG_OK;
+    int rc;
     unsigned char v;
 
     assert(NULL != rig);
@@ -528,7 +528,7 @@ static int setAddr(RIG *rig, enum PAGE_e page, unsigned int addr)
  */
 int writeByte(RIG *rig, enum PAGE_e page, unsigned int addr, unsigned char x)
 {
-    int rc = -RIG_EIO;
+    int rc;
     unsigned char hi = SRH((x & 0xf0) >> 4);
     unsigned char lo = WRD(x & 0x0f);
 
@@ -568,7 +568,7 @@ int writeByte(RIG *rig, enum PAGE_e page, unsigned int addr, unsigned char x)
  */
 int writeShort(RIG *rig, enum PAGE_e page, unsigned int addr, unsigned short x)
 {
-    int rc = -RIG_EIO;
+    int rc;
     unsigned char v = (unsigned char)((x & 0xff00) >> 8);
 
     rc = writeByte(rig, page, addr, v);
@@ -595,7 +595,7 @@ int writeShort(RIG *rig, enum PAGE_e page, unsigned int addr, unsigned short x)
  */
 int write3Bytes(RIG *rig, enum PAGE_e page, unsigned int addr, unsigned int x)
 {
-    int rc = -RIG_EIO;
+    int rc;
     unsigned char v = (unsigned char)((x & 0xff0000) >> 16);
 
     rc = writeByte(rig, page, addr, v);
@@ -630,7 +630,7 @@ int write3Bytes(RIG *rig, enum PAGE_e page, unsigned int addr, unsigned int x)
  */
 int writeInt(RIG *rig, enum PAGE_e page, unsigned int addr, unsigned int x)
 {
-    int rc = -RIG_EIO;
+    int rc;
     unsigned char v = (unsigned char)((x & 0xff000000) >> 24);
 
     rc = writeByte(rig, page, addr, v);
@@ -836,7 +836,7 @@ int readInt(RIG *rig, enum PAGE_e page, unsigned int addr, unsigned int *x)
  */
 int readSignal(RIG *rig, unsigned char *x)
 {
-    int rc = -RIG_EIO;
+    int rc;
 
     assert(NULL != rig);
     assert(NULL != x);
@@ -1479,7 +1479,7 @@ int pageSize(const enum PAGE_e page)
  */
 int sendIRCode(RIG *rig, enum IR_CODE_e code)
 {
-    int rc = -RIG_EIO;
+    int rc;
     unsigned char v = (unsigned char) code;
 
     assert(NULL != rig);
