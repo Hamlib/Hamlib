@@ -492,6 +492,7 @@ int icom_init(RIG *rig)
     struct icom_priv_data *priv;
     const struct icom_priv_caps *priv_caps;
     const struct rig_caps *caps;
+    int satmode;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -533,6 +534,12 @@ int icom_init(RIG *rig)
     priv->tx_vfo = RIG_VFO_NONE;
     priv->rx_vfo = RIG_VFO_NONE;
     priv->curr_vfo = RIG_VFO_NONE;
+    rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: satmode=%d\n", __func__, satmode);
+    if (satmode) {
+        priv->rx_vfo = RIG_VFO_MAIN;
+        priv->tx_vfo = RIG_VFO_SUB;
+    }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: done\n", __func__);
 
@@ -3913,6 +3920,23 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         fct_cn = C_SET_VFO;
         fct_sc = S_DUAL;
         break;
+
+    case RIG_FUNC_SATMODE:
+        if (rig->caps->rig_model == RIG_MODEL_IC910)
+        {
+            // Is the 910 the only one that uses this command?
+            fct_cn = C_CTL_MEM;
+            fct_sc = S_MEM_SATMODE910;
+        }
+        else
+        {
+            fct_cn = C_CTL_FUNC;
+            fct_sc = S_MEM_SATMODE;
+        }
+
+        break;
+
+
 
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_func %s\n", __func__,
