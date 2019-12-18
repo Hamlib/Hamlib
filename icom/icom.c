@@ -535,8 +535,8 @@ int icom_init(RIG *rig)
     priv->tx_vfo = RIG_VFO_NONE;
     priv->rx_vfo = RIG_VFO_NONE;
     priv->curr_vfo = RIG_VFO_NONE;
-    rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
-    retval = rig_debug(RIG_DEBUG_VERBOSE, "%s: satmode=%d\n", __func__, satmode);
+    retval = rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: satmode=%d\n", __func__, satmode);
 
     if (retval == RIG_OK && satmode)
     {
@@ -590,7 +590,7 @@ int icom_rig_open(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     // if we can't get freq we may need to turn power on
-    retval = rig_get_freq(vfo, RIG_VFO_CURR, &freq);
+    retval = rig_get_freq(rig, RIG_VFO_CURR, &freq);
 
     if (retval == RIG_ETIMEOUT) { rig_set_powerstat(rig, 1); }
 
