@@ -133,7 +133,6 @@ int kpa_transaction(AMP *amp, const char *cmd, char *response, int response_len)
 
     if (response) // if response expected get it
     {
-        int len;
         responsebuf[0] = 0;
         len = read_string(&rs->ampport, responsebuf, KPABUFSZ, ";", 1);
 
@@ -153,7 +152,6 @@ int kpa_transaction(AMP *amp, const char *cmd, char *response, int response_len)
 
         do
         {
-            int len;
             char c = ';';
             rig_debug(RIG_DEBUG_VERBOSE, "%s waiting for ;\n", __func__);
             err = write_block(&rs->ampport, &c, 1);
@@ -272,8 +270,6 @@ int kpa_get_level(AMP *amp, setting_t level, value_t *val)
 
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!amp) { return -RIG_EINVAL; }
 
     // get the current antenna selected
     cmd = "^AE;";
