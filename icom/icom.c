@@ -591,6 +591,7 @@ int icom_rig_open(RIG *rig)
 
     // if we can't get freq we may need to turn power on
     retval = rig_get_freq(rig, RIG_VFO_CURR, &freq);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s get_freq retval=%s\n", __func__, rigerror(retval));
 
     if (retval == RIG_ETIMEOUT) { rig_set_powerstat(rig, 1); }
 
