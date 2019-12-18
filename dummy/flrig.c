@@ -1257,6 +1257,10 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         {
             cmd = "rig.set_modeB";
         }
+        else 
+        { // we make VFO_B mode unknown so it expires the cache
+           priv->curr_modeB = RIG_MODE_NONE;
+        }
 
         pxml = xml_build(cmd, cmd_buf, xml, sizeof(xml));
     }
