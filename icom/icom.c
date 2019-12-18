@@ -593,7 +593,7 @@ int icom_rig_open(RIG *rig)
     retval = rig_get_freq(rig, RIG_VFO_CURR, &freq);
     rig_debug(RIG_DEBUG_VERBOSE, "%s get_freq retval=%s\n", __func__, rigerror(retval));
 
-    if (retval == RIG_ETIMEOUT) { rig_set_powerstat(rig, 1); }
+    if (retval == RIG_ETIMEOUT || retval == RIG_ERJCTED) { rig_set_powerstat(rig, 1); }
 
     if (priv_caps->serial_USB_echo_check)
     {
