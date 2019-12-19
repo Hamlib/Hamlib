@@ -133,6 +133,7 @@ static int netrigctl_vfostr(RIG *rig, char *vfostr, int len, vfo_t vfo)
 
 static int netrigctl_init(RIG *rig)
 {
+    // cppcheck says leak here but it's freed in cleanup
     struct netrigctl_priv_data *priv = (struct netrigctl_priv_data *)malloc(sizeof(
                                            struct netrigctl_priv_data));
 
