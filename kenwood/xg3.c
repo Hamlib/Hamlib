@@ -107,7 +107,7 @@ const struct rig_caps xg3_caps =
     .rig_model = RIG_MODEL_XG3,
     .model_name = "XG3",
     .mfg_name = "Elecraft",
-    .version = "20150101",
+    .version = "20191218",
     .copyright = "LGPL",
     .status = RIG_STATUS_BETA,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -513,11 +513,6 @@ int xg3_get_powerstat(RIG *rig, powerstat_t *status)
 
     retval = read_string(&rs->rigport, reply, sizeof(reply), ";", 1);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (retval != RIG_OK)
-    {
-        return retval;
-    }
 
     if (retval != RIG_OK)
     {
