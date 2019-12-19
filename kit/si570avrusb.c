@@ -904,7 +904,7 @@ int si570xxxusb_set_conf(RIG *rig, token_t token, const char *val)
             return -RIG_EINVAL;
         }
 
-        if (i2c_addr < 0 || i2c_addr >= (1 << 9))
+        if (i2c_addr >= (1 << 9))
         {
             return -RIG_EINVAL;
         }
