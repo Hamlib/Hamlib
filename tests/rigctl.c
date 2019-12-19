@@ -558,10 +558,6 @@ int main(int argc, char *argv[])
             fprintf(stderr, "vfo mode doesn't make sense for any rig other than rig#2\n");
             fprintf(stderr, "But we'll let you run this way if you want\n");
         }
-        else if (!vfo_mode && my_rig->caps->rig_model == RIG_MODEL_NETRIGCTL)
-        {
-            fprintf(stderr, "Recommend using --vfo switch for rigctl with rigctld\n");
-        }
     }
 
     rig_debug(RIG_DEBUG_VERBOSE,
