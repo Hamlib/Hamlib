@@ -1094,7 +1094,6 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     const struct rig_caps *caps;
     int retcode;
     vfo_t curr_vfo;
-    int rc2;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1128,6 +1127,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     }
     else
     {
+        int rc2;
         if (!caps->set_vfo)
         {
             return -RIG_ENTARGET;
