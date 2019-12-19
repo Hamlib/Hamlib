@@ -77,7 +77,7 @@
  * \param port
  * \return file descriptor
  */
-int cm108_open(hamlib_port_t *port)
+int cm108_open(hamlib_port_t *p)
 {
     int fd;
 #ifdef HAVE_LINUX_HIDRAW_H
@@ -86,19 +86,19 @@ int cm108_open(hamlib_port_t *port)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!port->pathname[0])
+    if (!p->pathname[0])
     {
         return -RIG_EINVAL;
     }
 
-    fd = open(port->pathname, O_RDWR);
+    fd = open(p->pathname, O_RDWR);
 
     if (fd < 0)
     {
         rig_debug(RIG_DEBUG_ERR,
                   "%s: opening device \"%s\": %s\n",
                   __func__,
-                  port->pathname,
+                  p->pathname,
                   strerror(errno));
         return -RIG_EIO;
     }
@@ -138,7 +138,7 @@ int cm108_open(hamlib_port_t *port)
 
 #endif
 
-    port->fd = fd;
+    p->fd = fd;
     return fd;
 }
 
@@ -147,11 +147,11 @@ int cm108_open(hamlib_port_t *port)
  * \brief Close CM108 HID port
  * \param port
  */
-int cm108_close(hamlib_port_t *port)
+int cm108_close(hamlib_port_t *p)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return close(port->fd);
+    return close(p->fd);
 }
 
 
@@ -174,7 +174,6 @@ int cm108_ptt_set(hamlib_port_t *p, ptt_t pttx)
           0x00
     };
 
-
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     // For a CM108 USB audio device PTT is wired up to one of the GPIO
@@ -186,6 +185,7 @@ int cm108_ptt_set(hamlib_port_t *p, ptt_t pttx)
 
     switch (p->type.ptt)
     {
+
     case RIG_PTT_CM108:
     {
 
