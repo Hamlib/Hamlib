@@ -351,6 +351,7 @@ static char *xml_parse(char *xml, char *value, int value_len)
 {
     char *next;
     char *pxml;
+
     /* first off we should have an OK on the 1st line */
     if (strstr(xml, " 200 OK") == NULL)
     {
@@ -497,7 +498,8 @@ static int write_transaction(RIG *rig, char *xml, int xml_len)
  */
 static int flrig_init(RIG *rig)
 {
-    struct flrig_priv_data *priv = (struct flrig_priv_data *)malloc(sizeof(struct flrig_priv_data));
+    struct flrig_priv_data *priv = (struct flrig_priv_data *)malloc(sizeof(
+                                       struct flrig_priv_data));
 
     rig_debug(RIG_DEBUG_TRACE, "%s version %s\n", __func__, BACKEND_VER);
 
@@ -669,6 +671,9 @@ static int flrig_open(RIG *rig)
     /* see if get_modeA is available */
     pxml = xml_build("rig.get_modeA", NULL, xml, sizeof(xml));
     retval = write_transaction(rig, pxml, strlen(pxml));
+
+    if (retval != RIG_OK) { return retval; }
+
     read_transaction(rig, xml, sizeof(xml));
     xml_parse(xml, value, sizeof(value));
 
@@ -841,11 +846,14 @@ static int flrig_open(RIG *rig)
     }
 
     rig->state.mode_list = modes;
- 
+
     retval = rig_strrmodes(modes, value, sizeof(value));
-    if (retval != RIG_OK) { // we might get TRUNC but we can still print the debug
-      rig_debug(RIG_DEBUG_VERBOSE, "%s: %s\n", __func__, rigerror(retval));
+
+    if (retval != RIG_OK)   // we might get TRUNC but we can still print the debug
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: %s\n", __func__, rigerror(retval));
     }
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s: hamlib modes=%s\n", __func__, value);
 
     return retval;
@@ -1257,9 +1265,10 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         {
             cmd = "rig.set_modeB";
         }
-        else 
-        { // we make VFO_B mode unknown so it expires the cache
-           priv->curr_modeB = RIG_MODE_NONE;
+        else
+        {
+            // we make VFO_B mode unknown so it expires the cache
+            priv->curr_modeB = RIG_MODE_NONE;
         }
 
         pxml = xml_build(cmd, cmd_buf, xml, sizeof(xml));
