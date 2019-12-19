@@ -721,11 +721,11 @@ main(argc, argv)
 int argc;
 char **argv;
 {
-    int c;
-    int digit_optind = 0;
-
     while (1)
     {
+        int c;
+        int digit_optind = 0;
+
         int this_option_optind = optind ? optind : 1;
 
         c = getopt(argc, argv, "abc:d:0123456789");
