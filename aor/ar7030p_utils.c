@@ -428,7 +428,7 @@ int execRoutine(RIG *rig, enum ROUTINE_e rtn)
  */
 static int setAddr(RIG *rig, enum PAGE_e page, unsigned int addr)
 {
-    int rc;
+    int rc=RIG_OK;
     unsigned char v;
 
     assert(NULL != rig);
