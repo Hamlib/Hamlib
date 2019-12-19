@@ -1457,12 +1457,13 @@ void version()
 
 void usage_amp(FILE *fout)
 {
-    int i, nbspaces;
+    int i;
 
     fprintf(fout, "Commands (some may not be available for this amplifier):\n");
 
     for (i = 0; test_list[i].cmd != 0; i++)
     {
+        int nbspaces;
         fprintf(fout,
                 "%c: %-12s(",
                 isprint(test_list[i].cmd) ? test_list[i].cmd : '?',
@@ -1599,13 +1600,14 @@ void list_models()
 
 int set_conf(AMP *my_amp, char *conf_parms)
 {
-    char *p, *q, *n;
-    int ret;
+    char *p, *n;
 
     p = conf_parms;
 
     while (p && *p != '\0')
     {
+        char *q;
+        int ret;
         /* FIXME: left hand value of = cannot be null */
         q = strchr(p, '=');
 
