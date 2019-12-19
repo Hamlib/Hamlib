@@ -2138,9 +2138,9 @@ int tmd710_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return retval;
         }
 
-        retval = sscanf(ackbuf, "PC %d,%d", &v, &l);
+        retval = sscanf(ackbuf, "PC %d,%u", &v, &l);
 
-        if (retval != 2 || l < 0 || l > 2)
+        if (retval != 2 || l > 2)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, ackbuf);
             return -RIG_ERJCTED;
@@ -2165,7 +2165,7 @@ int tmd710_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         retval = sscanf(ackbuf, "SQ %X", &l);
 
-        if (retval != 1 || l < TMD710_SQL_MIN || l > TMD710_SQL_MAX)
+        if (retval != 1 || l > TMD710_SQL_MAX)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, ackbuf);
             return -RIG_ERJCTED;
