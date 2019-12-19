@@ -1175,7 +1175,7 @@ th_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return retval;
         }
 
-        retval = sscanf(ackbuf, "SM %d,%d", &v, &l);
+        retval = sscanf(ackbuf, "SM %d,%u", &v, &l);
 
         if (retval != 2 || l < rig->caps->level_gran[LVL_RAWSTR].min.i
                 || l > rig->caps->level_gran[LVL_RAWSTR].max.i)
@@ -1244,9 +1244,9 @@ th_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return retval;
         }
 
-        retval = sscanf(ackbuf, "PC %d,%d", &v, &l);
+        retval = sscanf(ackbuf, "PC %d,%u", &v, &l);
 
-        if (retval != 2 || l < 0 || l > 3)
+        if ((retval != 2) || l > 3)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, ackbuf);
             return -RIG_ERJCTED;
@@ -2452,7 +2452,7 @@ int th_set_channel(RIG *rig, const channel_t *chan)
         }
 
         /* Step can be hexa */
-        retval = snprintf(membuf, sizeof(membuf),
+        snprintf(membuf, sizeof(membuf),
                           "%8s,%011"PRIll",%X,%d,%d,%d,%d,%d,%02d,%02d,%03d,%09"PRIll",%d%10s",
                           req, (int64_t)chan->freq, step, shift, rev, tone,
                           ctcss, dcs, tonefq, ctcssfq, dcscode,
