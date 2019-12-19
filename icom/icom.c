@@ -4524,7 +4524,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
             freq_t freq;
             sleep(1);
             // Use get_freq as all rigs should repond to this
-            retval = rig_get_freq(rig, RIG_VFO_A, &freq);
+            retval = rig_get_freq(rig, RIG_VFO_CURR, &freq);
 
             if (retval == RIG_OK) { return retval; }
             else { rig_debug(RIG_DEBUG_TRACE, "%s: get_freq err=%s\n", __func__, rigerror(retval));}
