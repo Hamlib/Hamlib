@@ -591,27 +591,28 @@ int icom_rig_open(RIG *rig)
 
     // if we can't get freq we may need to turn power on
     retval = rig_get_freq(rig, RIG_VFO_CURR, &freq);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s get_freq retval=%s\n", __func__, rigerror(retval));
+    rig_debug(RIG_DEBUG_VERBOSE, "%s get_freq retval=%s\n", __func__,
+              rigerror(retval));
 
     if (retval == RIG_ETIMEOUT || retval == RIG_ERJCTED) { rig_set_powerstat(rig, 1); }
 
     if (priv_caps->serial_USB_echo_check)
     {
 
-        priv->serial_USB_echo_off = 0;
         retval = icom_transaction(rig, C_RD_TRXID, 0x00, NULL, 0, ackbuf, &ack_len);
 
         if (retval == RIG_OK)
         {
+            priv->serial_USB_echo_off = 0;
             rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo on detected\n", __func__);
             return RIG_OK;
         }
 
-        priv->serial_USB_echo_off = 1;
         retval = icom_transaction(rig, C_RD_TRXID, 0x00, NULL, 0, ackbuf, &ack_len);
 
         if (retval == RIG_OK)
         {
+            priv->serial_USB_echo_off = 1;
             rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo off detected\n", __func__);
             return RIG_OK;
         }
@@ -4547,8 +4548,8 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
  */
 int icom_get_powerstat(RIG *rig, powerstat_t *status)
 {
-    unsigned char cmdbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
-    int cmd_len, ack_len = sizeof(ackbuf), retval;
+    unsigned char ackbuf[MAXFRAMELEN];
+    int ack_len = sizeof(ackbuf), retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -4557,7 +4558,8 @@ int icom_get_powerstat(RIG *rig, powerstat_t *status)
     {
         /* getting the mode doesn't work if a memory is blank */
         /* so use one of the more innculous 'set mode' commands instead */
-        cmd_len = 1;
+        int cmd_len = 1;
+        unsigned char cmdbuf[MAXFRAMELEN];
         cmdbuf[0] = S_PRM_TIME;
         retval = icom_transaction(rig, C_CTL_MEM, S_MEM_MODE_SLCT,
                                   cmdbuf, cmd_len, ackbuf, &ack_len);
@@ -5050,9 +5052,9 @@ int icom_decode_event(RIG *rig)
                   __func__);
     }
 
-    if (frm_len < 0)
+    if (frm_len < 1)
     {
-        return frm_len;
+        return 0;
     }
 
     switch (buf[frm_len - 1])
@@ -5343,8 +5345,8 @@ int icom_get_custom_parm_time(RIG *rig, int parmbuflen, unsigned char *parmbuf,
 // Sets rig vfo && priv->curr_vfo to default VFOA, or current vfo, or the vfo requested
 static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
 {
-    struct icom_priv_data *priv = (struct icom_priv_data *)rig->state.priv;
     int retval;
+    struct icom_priv_data *priv = (struct icom_priv_data *)rig->state.priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s, curr_vfo=%s\n", __func__,
               rig_strvfo(vfo), rig_strvfo(curr_vfo));
@@ -5381,9 +5383,10 @@ static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
         rig_debug(RIG_DEBUG_TRACE, "%s: setting new vfo=%s\n", __func__,
                   rig_strvfo(vfo));
         retval = rig_set_vfo(rig, vfo);
-        priv->curr_vfo = vfo;
 
         if (retval != RIG_OK) { return retval; }
+
+        priv->curr_vfo = vfo;
     }
 
     return RIG_OK;
