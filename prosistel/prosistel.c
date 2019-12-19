@@ -49,7 +49,6 @@ struct prosistel_rot_priv_data
     azimuth_t az;
     elevation_t el;
 
-    struct timeval tv;  /* time last az/el update */
     azimuth_t target_az;
     elevation_t target_el;
 };
@@ -125,7 +124,7 @@ transaction_write:
                   data[3]);
         retval = RIG_OK;
     }
-    else
+    else if (cmdstr)
     {
         rig_debug(RIG_DEBUG_VERBOSE,
                   "%s Error Command issued: %c doesn't match reply %c\n", __func__, cmdstr[2],
