@@ -3,7 +3,7 @@
  *  Edit to specify your rig model and serial port, and baud rate
  *  before compiling.
  *  To compile:
- *      gcc -L/usr/local/lib -o example example.c -lhamlib
+ *      gcc -I../src -I../include -g -o example example.c sprintflst.c -lhamlib
  *      if hamlib is installed in /usr/local/...
  *
  */
@@ -12,6 +12,7 @@
 #include <string.h>
 #include <hamlib/rig.h>
 #include <hamlib/riglist.h>
+#include "sprintflst.h"
 
 
 int main()
@@ -30,7 +31,7 @@ int main()
     rig_set_debug(RIG_DEBUG_ERR);       // errors only
 
     /* Instantiate a rig */
-    my_rig = rig_init(RIG_MODEL_TT565); // your rig model.
+    my_rig = rig_init(RIG_MODEL_DUMMY); // your rig model.
 
     /* Set up serial port, baud rate */
     rig_file = "/dev/ttyUSB0";        // your serial device
@@ -63,11 +64,13 @@ int main()
 
     /* Main VFO frequency */
     status = rig_get_freq(my_rig, RIG_VFO_CURR, &freq);
+    if (status != RIG_OK) printf("Get freq failed?? Err=%s\n", rigerror(status));
 
     printf("VFO freq. = %.1f Hz\n", freq);
 
     /* Current mode */
     status = rig_get_mode(my_rig, RIG_VFO_CURR, &mode, &width);
+    if (status != RIG_OK) printf("Get mode failed?? Err=%s\n", rigerror(status));
 
     switch (mode)
     {
@@ -141,4 +144,16 @@ int main()
     if (status != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s: error rig_get_level: %s\n", __func__, rigerror(status)); }
 
     printf("LEVEL_STRENGTH returns %d\n", strength.i);
+
+    const freq_range_t *range = rig_get_range(&my_rig->state.rx_range_list[0],14074000,RIG_MODE_USB);
+
+    if (status != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s: error rig_get_ragne: %s\n", __func__, rigerror(status)); }
+    if (range) { 
+    char vfolist[256];
+    sprintf_vfo(vfolist,my_rig->state.vfo_list);
+    printf("Range start=%"PRIfreq", end=%"PRIfreq", low_power=%d, high_power=%d, vfos=%s\n",range->startf, range->endf, range->low_power, range->high_power, vfolist);
+    }
+    else {
+    printf("Not rx range list found\n");
+    }
 };
