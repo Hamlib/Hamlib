@@ -614,10 +614,10 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
     /* cmd, internal, rigctld */
     if (!(interactive && prompt && have_rl))
     {
-        static int last_was_ret = 1;
 
         if (interactive)
         {
+            static int last_was_ret = 1;
             if (prompt)
             {
                 fprintf_flush(fout, "\nRig command: ");
