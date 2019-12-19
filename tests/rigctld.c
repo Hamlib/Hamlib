@@ -212,7 +212,7 @@ static void handle_error(enum rig_debug_level_e lvl, const char *msg)
                       (LPTSTR)&lpMsgBuf, 0, NULL))
     {
 
-        rig_debug(lvl, "%s: Network error %d: %s\n", msg, e, (char*)lpMsgBuf);
+        rig_debug(lvl, "%s: Network error %d: %s\n", msg, e, (char *)lpMsgBuf);
         LocalFree(lpMsgBuf);
     }
     else
@@ -979,6 +979,7 @@ void *handle_socket(void *arg)
 
         if (retcode == 1)
         {
+            rig_close(my_rig);
             retcode = rig_open(my_rig);
         }
     }
@@ -1031,10 +1032,13 @@ void *handle_socket(void *arg)
               host,
               serv);
 
-    fclose(fsockin);
-#ifndef __MINGW32__
-    fclose(fsockout);
-#endif
+    retcode = fclose(fsockin);
+
+    if (retcode != 0) { rig_debug(RIG_DEBUG_ERR, "%s: fclose(fsockin) %s\n", __func__, strerror(retcode)); }
+
+    retcode = fclose(fsockout);
+
+    if (retcode != 0) { rig_debug(RIG_DEBUG_ERR, "%s: fclose(fsockout) %s\n", __func__, strerror(retcode)); }
 
 handle_exit:
 #ifdef __MINGW32__
