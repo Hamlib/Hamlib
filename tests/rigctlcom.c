@@ -966,8 +966,8 @@ static int handle_ts2000(void *arg)
 
             if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
             {
-                char *response = "?;";
-                return write_block2((void *)__func__, &my_com, response, strlen(response));
+                char *responsetmp = "?;";
+                return write_block2((void *)__func__, &my_com, responsetmp, strlen(responsetmp));
             }
 
             return retval;
@@ -1031,8 +1031,8 @@ static int handle_ts2000(void *arg)
 
             if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
             {
-                char *response = "?;";
-                return write_block2((void *)__func__, &my_com, response, strlen(response));
+                char *responsetmp = "?;";
+                return write_block2((void *)__func__, &my_com, responsetmp, strlen(responsetmp));
             }
 
             return retval;
@@ -1074,8 +1074,8 @@ static int handle_ts2000(void *arg)
 
             if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
             {
-                char *response = "?;";
-                return write_block2((void *)__func__, &my_com, response, strlen(response));
+                char *responsetmp = "?;";
+                return write_block2((void *)__func__, &my_com, responsetmp, strlen(responsetmp));
             }
 
             return retval;
@@ -1097,8 +1097,8 @@ static int handle_ts2000(void *arg)
 
             if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
             {
-                char *response = "?;";
-                return write_block2((void *)__func__, &my_com, response, strlen(response));
+                char *responsetmp = "?;";
+                return write_block2((void *)__func__, &my_com, responsetmp, strlen(responsetmp));
             }
         }
 
@@ -1117,8 +1117,8 @@ static int handle_ts2000(void *arg)
 
             if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
             {
-                char *response = "?;";
-                return write_block2((void *)__func__, &my_com, response, strlen(response));
+                char *responsetmp = "?;";
+                return write_block2((void *)__func__, &my_com, responsetmp, strlen(responsetmp));
             }
 
             return retval;
@@ -1140,8 +1140,8 @@ static int handle_ts2000(void *arg)
 
             if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
             {
-                char *response = "?;";
-                return write_block2((void *)__func__, &my_com, response, strlen(response));
+                char *responsetmp = "?;";
+                return write_block2((void *)__func__, &my_com, responsetmp, strlen(responsetmp));
             }
         }
 
@@ -1161,8 +1161,8 @@ static int handle_ts2000(void *arg)
 
             if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
             {
-                char *response = "?;";
-                return write_block2((void *)__func__, &my_com, response, strlen(response));
+                char *responsetmp = "?;";
+                return write_block2((void *)__func__, &my_com, responsetmp, strlen(responsetmp));
             }
 
             return retval;
@@ -1211,8 +1211,8 @@ static int handle_ts2000(void *arg)
 
             if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
             {
-                char *response = "?;";
-                return write_block2((void *)__func__, &my_com, response, strlen(response));
+                char *responsetmp = "?;";
+                return write_block2((void *)__func__, &my_com, responsetmp, strlen(responsetmp));
             }
 
             return retval;
@@ -1247,8 +1247,8 @@ static int handle_ts2000(void *arg)
 
         if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
         {
-            char *response = "?;";
-            return write_block2((void *)__func__, &my_com, response, strlen(response));
+            char *responsetmp = "?;";
+            return write_block2((void *)__func__, &my_com, responsetmp, strlen(responsetmp));
         }
 
         return retval;
@@ -1267,8 +1267,8 @@ static int handle_ts2000(void *arg)
 
             if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
             {
-                char *response = "?;";
-                return write_block2((void *)__func__, &my_com, response, strlen(response));
+                char *responsetmp = "?;";
+                return write_block2((void *)__func__, &my_com, responsetmp, strlen(responsetmp));
             }
 
             return retval;
@@ -1317,8 +1317,8 @@ static int handle_ts2000(void *arg)
 
             if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
             {
-                char *response = "?;";
-                return write_block2((void *)__func__, &my_com, response, strlen(response));
+                char *responsetmp = "?;";
+                return write_block2((void *)__func__, &my_com, responsetmp, strlen(responsetmp));
             }
 
             return retval;
@@ -1352,8 +1352,8 @@ static int handle_ts2000(void *arg)
 
             if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
             {
-                char *response = "?;";
-                return write_block2((void *)__func__, &my_com, response, strlen(response));
+                char *responsetmp = "?;";
+                return write_block2((void *)__func__, &my_com, responsetmp, strlen(responsetmp));
             }
         }
 
