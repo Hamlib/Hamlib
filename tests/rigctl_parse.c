@@ -4142,7 +4142,7 @@ declare_proto_rig(send_cmd)
     {
         char tmpbuf[64];
         /* text protocol */
-        strncpy(bufcmd, arg1, BUFSZ);
+        strncpy(bufcmd, arg1, BUFSZ-1);
         strtok(bufcmd, "\0xa\0xd");
         bufcmd[BUFSZ - 2] = '\0';
         cmd_len = strlen(bufcmd);
@@ -4245,8 +4245,7 @@ declare_proto_rig(send_cmd)
                     hexbuf = realloc(hexbuf, hexbufbytes);
                 }
 
-                strncat(hexbuf, hex, strlen(hex));
-                //fprintf(fout, "%s", hex);
+                strncat(hexbuf, hex, hexbufbytes-1);
             }
 
             rig_debug(RIG_DEBUG_TRACE, "%s: binary=%s, retval=%d\n", __func__, hexbuf,
