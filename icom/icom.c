@@ -594,7 +594,9 @@ int icom_rig_open(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s get_freq retval=%s\n", __func__,
               rigerror(retval));
 
-    if (retval == RIG_ETIMEOUT || retval == RIG_ERJCTED) { rig_set_powerstat(rig, 1); }
+    if (retval == RIG_ETIMEOUT || retval == RIG_ERJCTED || retval == RIG_BUSERROR) { retval = rig_set_powerstat(rig, 1); }
+
+    if (retval != RIG_OK) { rig_debug(RIG_DEBUG_WARN, "%s: unexpected retval here\n", __func__); }
 
     if (priv_caps->serial_USB_echo_check)
     {
@@ -607,6 +609,10 @@ int icom_rig_open(RIG *rig)
             rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo on detected\n", __func__);
             return RIG_OK;
         }
+        else
+        {
+            return retval;
+        }
 
         retval = icom_transaction(rig, C_RD_TRXID, 0x00, NULL, 0, ackbuf, &ack_len);
 
@@ -616,10 +622,14 @@ int icom_rig_open(RIG *rig)
             rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo off detected\n", __func__);
             return RIG_OK;
         }
+        else
+        {
+            return retval;
+        }
     }
 
     priv->serial_USB_echo_off = 0;
-    return retval;
+    return RIG_OK;
 }
 
 
