@@ -594,9 +594,11 @@ int icom_rig_open(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s get_freq retval=%s\n", __func__,
               rigerror(retval));
 
-//    if (retval == RIG_ETIMEOUT || retval == RIG_ERJCTED || retval == RIG_BUSERROR) { 
-    if (retval  != RIG_OK) { // maybe we need powerr on?
-        retval = rig_set_powerstat(rig, 1); 
+//    if (retval == RIG_ETIMEOUT || retval == RIG_ERJCTED || retval == RIG_BUSERROR) {
+    if (retval  != RIG_OK)   // maybe we need powerr on?
+    {
+        retval = rig_set_powerstat(rig, 1);
+
         if (retval != RIG_OK) { rig_debug(RIG_DEBUG_WARN, "%s: unexpected retval here %s\n", __func__, rigerror(retval)); }
     }
 
@@ -4525,6 +4527,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
             retval = rig_get_freq(rig, RIG_VFO_A, &freq);
 
             if (retval == RIG_OK) { return retval; }
+            else { rig_debug(RIG_DEBUG_TRACE, "%s: get_freq err=%s\n", __func__, rigerror(retval));}
 
             rig_debug(RIG_DEBUG_TRACE, "%s: Wait %d of %d for get_powerstat\n", __func__,
                       i + 1, retry);
