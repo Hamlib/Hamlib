@@ -2028,7 +2028,7 @@ int get_elad_level(RIG *rig, const char *cmd, float *f)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if ( !cmd || !f)
+    if ( !f )
     {
         return -RIG_EINVAL;
     }
