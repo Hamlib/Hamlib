@@ -4515,6 +4515,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
         rs->rigport.retry = retry;
     }
 
+    i = 0;
     retry = 10;
 
     if (status == RIG_POWER_ON) // wait for wakeup only
