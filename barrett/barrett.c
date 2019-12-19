@@ -337,14 +337,9 @@ int barrett_init(RIG *rig)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s version %s\n", __func__,
               rig->caps->version);
+    // cppcheck claims leak here but it's freed in cleanup
     rig->state.priv = (struct barrett_priv_data *)calloc(1,
                       sizeof(struct barrett_priv_data));
-
-    if (!rig->caps)
-    {
-        return -RIG_EINVAL;
-    }
-
 
     if (!rig->state.priv)
     {
