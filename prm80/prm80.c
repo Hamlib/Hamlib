@@ -355,7 +355,7 @@ int prm80_set_channel(RIG *rig, const channel_t *chan)
     /* [T] = Set current channel state. (Mode-Chan-Chanstate-Sql-Vol-Lock-RX freq-TX freq) ? */
     /* Example: 1240080AFF0033F02D40 ? */
     statebuf_len = sprintf(statebuf, "T%02X%02X%02X%02X%02X%02X%04X%04X",
-                           (chan->mode == RIG_MODE_FM) ? 0x12 : 0x12,
+                           0x12,
                            chan->channel_num,
                            (chan->flags & RIG_CHFLAG_SKIP) ? 0x08 : 0, /* TODO: tx shift */
                            (unsigned)(chan->levels[LVL_SQL].f * 15),
