@@ -343,7 +343,7 @@ int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             width = rig_passband_normal(rig, mode);
         }
 
-        if (width > flt->filt_list[0].width || ((flt->filt_list[0].width >= width)
+        if ((width > flt->filt_list[0].width) || ((flt->filt_list[0].width >= width)
                                                 && (width > flt->filt_list[1].width)))
         {
             width = flt->filt_list[0].width;
