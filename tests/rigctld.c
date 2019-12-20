@@ -1045,7 +1045,7 @@ void *handle_socket(void *arg)
 
 handle_exit:
 #ifdef __MINGW32__
-    shutdown(handle_data_arg->sock, 2)
+    shutdown(handle_data_arg->sock, 2);
     closesocket(handle_data_arg->sock);
 #else
     close(handle_data_arg->sock);
