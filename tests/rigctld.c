@@ -585,7 +585,7 @@ int main(int argc, char *argv[])
         exit(2);
     }
 
-    if (verbose > 0)
+    if (verbose > RIG_DEBUG_ERR)
     {
         printf("Opened rig model %d, '%s'\n",
                my_rig->caps->rig_model,
@@ -597,7 +597,7 @@ int main(int argc, char *argv[])
 
     rig_close(my_rig);          /* we will reopen for clients */
 
-    if (verbose > 0)
+    if (verbose > RIG_DEBUG_ERR)
     {
         printf("Closed rig model %d, '%s - will reopen for clients'\n",
                my_rig->caps->rig_model,
@@ -721,7 +721,7 @@ int main(int argc, char *argv[])
 
     if (listen(sock_listen, 4) < 0)
     {
-        handle_error(RIG_DEBUG_ERR, "listeningn");
+        handle_error(RIG_DEBUG_ERR, "listening");
         exit(1);
     }
 
@@ -895,8 +895,8 @@ int main(int argc, char *argv[])
 void *handle_socket(void *arg)
 {
     struct handle_data *handle_data_arg = (struct handle_data *)arg;
-    FILE *fsockin;
-    FILE *fsockout;
+    FILE *fsockin = NULL;
+    FILE *fsockout = NULL;
     int retcode = RIG_OK;
     char host[NI_MAXHOST];
     char serv[NI_MAXSERV];
@@ -945,7 +945,7 @@ void *handle_socket(void *arg)
     {
         retcode = rig_open(my_rig);
 
-        if (RIG_OK == retcode && verbose > 0)
+        if (RIG_OK == retcode && verbose > RIG_DEBUG_ERR)
         {
             printf("Opened rig model %d, '%s'\n",
                    my_rig->caps->rig_model,
@@ -957,7 +957,7 @@ void *handle_socket(void *arg)
 #else
     retcode = rig_open(my_rig);
 
-    if (RIG_OK == retcode && verbose > 0)
+    if (RIG_OK == retcode && verbose > RIG_DEBUG_ERR)
     {
         printf("Opened rig model %d, '%s'\n",
                my_rig->caps->rig_model,
@@ -979,7 +979,6 @@ void *handle_socket(void *arg)
 
         if (retcode == 1)
         {
-            rig_close(my_rig);
             retcode = rig_open(my_rig);
         }
     }
@@ -993,7 +992,7 @@ void *handle_socket(void *arg)
     {
         rig_close(my_rig);
 
-        if (verbose > 0)
+        if (verbose > RIG_DEBUG_ERR)
         {
             printf("Closed rig model %d, '%s - no clients, will reopen for new clients'\n",
                    my_rig->caps->rig_model,
@@ -1005,7 +1004,7 @@ void *handle_socket(void *arg)
 #else
     rig_close(my_rig);
 
-    if (verbose > 0)
+    if (verbose > RIG_DEBUG_ERR)
     {
         printf("Closed rig model %d, '%s - will reopen for new clients'\n",
                my_rig->caps->rig_model,
@@ -1032,24 +1031,26 @@ void *handle_socket(void *arg)
               host,
               serv);
 
-    retcode = fclose(fsockin);
+handle_exit:
+
+// for MINGW we close the handle before fclose
+#ifdef __MINGW32__
+    retcode = closesocket(handle_data_arg->sock);
 
     if (retcode != 0) { rig_debug(RIG_DEBUG_ERR, "%s: fclose(fsockin) %s\n", __func__, strerror(retcode)); }
 
+#endif
+    fclose(fsockin);
+    fclose(fsockout);
+
+// for everybody else we close the handle after fclose
 #ifndef __MINGW32__
-    rig_debug(RIG_DEBUG_ERR,"%s: fclose(fsockout)\n", __func__);
-    retcode = fclose(fsockout);
+    retcode = close(handle_data_arg->sock);
 
-    if (retcode != 0) { rig_debug(RIG_DEBUG_ERR, "%s: fclose(fsockout) %s\n", __func__, strerror(retcode)); }
+    if (retcode != 0) { rig_debug(RIG_DEBUG_ERR, "%s: close(handle_data_arg->sock) %s\n", __func__, strerror(retcode)); }
+
 #endif
 
-handle_exit:
-#ifdef __MINGW32__
-    shutdown(handle_data_arg->sock, 2);
-    closesocket(handle_data_arg->sock);
-#else
-    close(handle_data_arg->sock);
-#endif
     free(arg);
 
 #ifdef HAVE_PTHREAD

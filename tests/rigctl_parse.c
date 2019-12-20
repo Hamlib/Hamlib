@@ -473,6 +473,7 @@ static int scanfc(FILE *fin, const char *format, void *p)
 {
     do
     {
+        *(char *)p = 0;
         int ret = fscanf(fin, format, p);
 
         if (ret < 0)
@@ -482,11 +483,13 @@ static int scanfc(FILE *fin, const char *format, void *p)
                 continue;
             }
 
-            rig_debug(RIG_DEBUG_ERR, "fscanf: %s\n", strerror(errno));
-            rig_debug(RIG_DEBUG_ERR,
-                      "fscanf: parsing '%s' with '%s'\n",
-                      (char *)p,
-                      format);
+            if (!feof(fin))
+            {
+                rig_debug(RIG_DEBUG_ERR,
+                          "fscanf: parsing '%s' with '%s'\n",
+                          (char *)p,
+                          format);
+            }
         }
 
         return ret;
@@ -618,6 +621,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
         if (interactive)
         {
             static int last_was_ret = 1;
+
             if (prompt)
             {
                 fprintf_flush(fout, "\nRig command: ");
@@ -4142,7 +4146,7 @@ declare_proto_rig(send_cmd)
     {
         char tmpbuf[64];
         /* text protocol */
-        strncpy(bufcmd, arg1, BUFSZ-1);
+        strncpy(bufcmd, arg1, BUFSZ - 1);
         strtok(bufcmd, "\0xa\0xd");
         bufcmd[BUFSZ - 2] = '\0';
         cmd_len = strlen(bufcmd);
@@ -4245,7 +4249,7 @@ declare_proto_rig(send_cmd)
                     hexbuf = realloc(hexbuf, hexbufbytes);
                 }
 
-                strncat(hexbuf, hex, hexbufbytes-1);
+                strncat(hexbuf, hex, hexbufbytes - 1);
             }
 
             rig_debug(RIG_DEBUG_TRACE, "%s: binary=%s, retval=%d\n", __func__, hexbuf,
