@@ -418,6 +418,7 @@ int newcat_set_conf(RIG *rig, token_t token, const char *val)
     {
         char *end;
         long value;
+
     case TOK_FAST_SET_CMD: ;
         //using strtol because atoi can lead to undefined behaviour
         value = strtol(val, &end, 10);
@@ -875,29 +876,11 @@ int newcat_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     switch (c)
     {
     case '1':
-
-        /* Why is the FT891 backwards with LSB/USB?? Oh well... */
-        if (newcat_is_rig(rig, RIG_MODEL_FT891))
-        {
-            *mode = RIG_MODE_LSB;
-        }
-        else   /* every other Yaesu */
-        {
-            *mode = RIG_MODE_USB;
-        }
-
+        *mode = RIG_MODE_LSB;
         break;
 
     case '2':
-        if (newcat_is_rig(rig, RIG_MODEL_FT891))
-        {
-            *mode = RIG_MODE_USB;
-        }
-        else   /* every other Yaesu */
-        {
-            *mode = RIG_MODE_LSB;
-        }
-
+        *mode = RIG_MODE_USB;
         break;
 
     case '3':
