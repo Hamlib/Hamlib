@@ -1036,12 +1036,16 @@ void *handle_socket(void *arg)
 
     if (retcode != 0) { rig_debug(RIG_DEBUG_ERR, "%s: fclose(fsockin) %s\n", __func__, strerror(retcode)); }
 
+#ifndef __MINGW32__
+    rig_debug(RIG_DEBUG_ERR,"%s: fclose(fsockout)\n", __func__);
     retcode = fclose(fsockout);
 
     if (retcode != 0) { rig_debug(RIG_DEBUG_ERR, "%s: fclose(fsockout) %s\n", __func__, strerror(retcode)); }
+#endif
 
 handle_exit:
 #ifdef __MINGW32__
+    shutdown(handle_data_arg->sock, 2)
     closesocket(handle_data_arg->sock);
 #else
     close(handle_data_arg->sock);
