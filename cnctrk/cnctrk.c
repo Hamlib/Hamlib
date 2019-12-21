@@ -51,7 +51,7 @@ cnctrk_set_position(ROT *rot, azimuth_t az, elevation_t el)
     }
 
     sprintf(axcmd, "/usr/bin/axis-remote --mdi 'G00 X %6.2f Y %6.2f' \n", az, el);
-    return retval = system(axcmd);
+    return system(axcmd);
 }
 
 
