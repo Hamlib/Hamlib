@@ -92,6 +92,20 @@
 #define CONSTANT_64BIT_FLAG(BIT) (1ull << (BIT))
 #endif
 
+#include <time.h>
+#undef sleep
+#undef usleep
+#if 1
+#define usleep(n) \
+  do { \
+    struct timespec t;\
+    t.tv_sec=0;\
+    t.tv_nsec = n*1000ul;\
+    nanosleep(&t,NULL);\
+  } while(0) 
+#define sleep(n) do { struct timespec t;t.tv_sec=0;t.tv_nsec = n*1000000000ul;nanosleep(&t,NULL);} while(0)
+#endif
+
 __BEGIN_DECLS
 
 extern HAMLIB_EXPORT_VAR(const char) hamlib_version[];
