@@ -27,7 +27,6 @@
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
 #include <math.h>
-#include <sys/time.h>
 
 #include "hamlib/rig.h"
 #include "serial.h"

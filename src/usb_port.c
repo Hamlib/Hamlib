@@ -35,8 +35,6 @@
 #  include "config.h"
 #endif
 
-#include <hamlib/rig.h>
-
 /*
  * Compile only if libusb is available
  */
@@ -46,10 +44,11 @@
 #include <stdlib.h>
 #include <stdio.h>   /* Standard input/output definitions */
 #include <string.h>  /* String function definitions */
-#include <unistd.h>  /* UNIX standard function definitions */
+#include <unistd.h>
 #include <errno.h>
 #include <sys/types.h>
-#include <unistd.h>
+
+#include <hamlib/rig.h>
 
 #ifdef HAVE_LIBUSB_H
 #  include <libusb.h>
