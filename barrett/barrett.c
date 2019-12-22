@@ -60,7 +60,7 @@ static int barrett_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
 static int barrett_set_split_vfo(RIG *rig, vfo_t rxvfo, split_t split,
                                  vfo_t txvfo);
 
-static int barrett_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
+static int barrett_get_split_vfo(RIG *rig, vfo_t rxvfo, split_t *split,
                                  vfo_t *txvfo);
 
 static int barrett_get_level(RIG *rig, vfo_t vfo, setting_t level,
@@ -317,7 +317,8 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
         // Several commands can return multiline strings and we'll leave them alone
         if (n == 1)
         {
-            strtok(*result, "\r");
+            char *dummy;
+            strtok_r(*result, "\r", &dummy);
         }
 
         dump_hex((const unsigned char *)*result, strlen(*result));
