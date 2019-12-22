@@ -594,8 +594,7 @@ int icom_rig_open(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s get_freq retval=%s\n", __func__,
               rigerror(retval));
 
-//    if (retval == RIG_ETIMEOUT || retval == RIG_ERJCTED || retval == RIG_BUSERROR) {
-    if (retval  != RIG_OK)   // maybe we need powerr on?
+    if (retval  != RIG_OK)   // maybe we need power on?
     {
         retval = rig_set_powerstat(rig, 1);
 
