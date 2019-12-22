@@ -95,16 +95,20 @@
 #include <time.h>
 #undef sleep
 #undef usleep
-#if 1
-#define usleep(n) \
-  do { \
+#define usleep(n)\
+  do {\
     struct timespec t;\
     t.tv_sec=0;\
     t.tv_nsec = n*1000ul;\
     nanosleep(&t,NULL);\
   } while(0) 
-#define sleep(n) do { struct timespec t;t.tv_sec=0;t.tv_nsec = n*1000000000ul;nanosleep(&t,NULL);} while(0)
-#endif
+#define sleep(n)\
+  do {\
+    struct timespec t;\
+    t.tv_sec=0;\
+    t.tv_nsec = n*1000000000ul;\
+    nanosleep(&t,NULL);\
+  } while(0)
 
 __BEGIN_DECLS
 
