@@ -29,6 +29,7 @@
 #include "bandplan.h"
 #include "kenwood.h"
 
+extern int ts450_open(RIG *rig);
 
 #define TS690_ALL_MODES (RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_CW|RIG_MODE_RTTYR|RIG_MODE_CWR|RIG_MODE_SSB)
 #define TS690_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_CWR)
@@ -166,7 +167,7 @@ const struct rig_caps ts690s_caps =
 
     .rig_init = kenwood_init,
     .rig_cleanup = kenwood_cleanup,
-    .rig_open = kenwood_open,
+    .rig_open = ts450_open,
     .rig_close = kenwood_close,
     .set_freq =  kenwood_set_freq,
     .get_freq =  kenwood_get_freq,
