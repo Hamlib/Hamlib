@@ -97,7 +97,7 @@ const struct rig_caps ts690s_caps =
 
     .has_get_func =  TS690_FUNC_ALL,
     .has_set_func =  TS690_FUNC_ALL,
-    .has_get_level =  TS690_LEVEL_ALL | RIG_LEVEL_RFPOWER,
+    .has_get_level =  TS690_LEVEL_ALL,
     .has_set_level =  RIG_LEVEL_SET(TS690_LEVEL_ALL),
     .has_get_parm =  TS690_PARMS,
     .has_set_parm =  RIG_LEVEL_SET(TS690_PARMS),    /* FIXME: parms */
