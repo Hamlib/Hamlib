@@ -3954,6 +3954,11 @@ int newcat_set_mem(RIG *rig, vfo_t vfo, int ch)
     valid_chan.channel_num = ch;
     err = newcat_get_channel(rig, &valid_chan);
 
+    if (err < 0)
+    {
+        return err;
+    }
+
     if (valid_chan.freq <= 1.0)
     {
         mem_caps = NULL;
@@ -4634,7 +4639,6 @@ ncboolean newcat_valid_command(RIG *rig, char const *const command)
     ncboolean is_ft3000;
     ncboolean is_ft101;
     int search_high;
-    int search_index;
     int search_low;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -4685,6 +4689,7 @@ ncboolean newcat_valid_command(RIG *rig, char const *const command)
     while (search_low <= search_high)
     {
         int search_test;
+        int search_index;
 
         search_index = (search_low + search_high) / 2;
         search_test = strcmp(valid_commands[search_index].command, command);
