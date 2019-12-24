@@ -35,10 +35,6 @@
 #  include "config.h"
 #endif
 
-/*
- * Compile only if libusb is available
- */
-#if defined(HAVE_LIBUSB) && (defined(HAVE_LIBUSB_H) || defined(HAVE_LIBUSB_1_0_LIBUSB_H))
 
 
 #include <stdlib.h>
@@ -58,6 +54,10 @@
 
 #include "usb_port.h"
 
+/*
+ * Compile only if libusb is available
+ */
+#if defined(HAVE_LIBUSB) && (defined(HAVE_LIBUSB_H) || defined(HAVE_LIBUSB_1_0_LIBUSB_H))
 
 /**
  * \brief Find and open USB device
