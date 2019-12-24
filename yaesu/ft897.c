@@ -524,18 +524,19 @@ int ft897_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 int ft897_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     struct ft897_priv_data *p = (struct ft897_priv_data *) rig->state.priv;
-    int n;
 
     if (vfo != RIG_VFO_CURR)
     {
         return -RIG_ENTARGET;
     }
 
-    if (check_cache_timeout(&p->fm_status_tv))
+    if (check_cache_timeout(&p->fm_status_tv)) {
+        int n;
         if ((n = ft897_get_status(rig, FT897_NATIVE_CAT_GET_FREQ_MODE_STATUS)) < 0)
         {
             return n;
         }
+    }
 
     switch (p->fm_status[4] & 0x7f)
     {
@@ -629,13 +630,14 @@ int ft897_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 static int ft897_get_pometer_level(RIG *rig, value_t *val)
 {
     struct ft897_priv_data *p = (struct ft897_priv_data *) rig->state.priv;
-    int n;
 
-    if (check_cache_timeout(&p->tx_status_tv))
+    if (check_cache_timeout(&p->tx_status_tv)) {
+        int n;
         if ((n = ft897_get_status(rig, FT897_NATIVE_CAT_GET_TX_STATUS)) < 0)
         {
             return n;
         }
+    }
 
     /* Valid only if PTT is on */
     if ((p->tx_status & 0x80) == 0)
@@ -653,13 +655,14 @@ static int ft897_get_pometer_level(RIG *rig, value_t *val)
 static int ft897_get_swr_level(RIG *rig, value_t *val)
 {
     struct ft897_priv_data *p = (struct ft897_priv_data *) rig->state.priv;
-    int n;
 
-    if (check_cache_timeout(&p->tx_status_tv))
+    if (check_cache_timeout(&p->tx_status_tv)) {
+        int n;
         if ((n = ft897_get_status(rig, FT897_NATIVE_CAT_GET_TX_STATUS)) < 0)
         {
             return n;
         }
+    }
 
     /* Valid only if PTT is on */
     if ((p->tx_status & 0x80) == 0)
@@ -695,13 +698,14 @@ static int ft897_get_smeter_level(RIG *rig, value_t *val)
 static int ft897_get_rawstr_level(RIG *rig, value_t *val)
 {
     struct ft897_priv_data *p = (struct ft897_priv_data *) rig->state.priv;
-    int n;
 
-    if (check_cache_timeout(&p->rx_status_tv))
+    if (check_cache_timeout(&p->rx_status_tv)) {
+        int n;
         if ((n = ft897_get_status(rig, FT897_NATIVE_CAT_GET_RX_STATUS)) < 0)
         {
             return n;
         }
+    }
 
     val->i = p->rx_status & 0x0F;
 
@@ -739,18 +743,19 @@ int ft897_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 int ft897_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
     struct ft897_priv_data *p = (struct ft897_priv_data *) rig->state.priv;
-    int n;
 
     if (vfo != RIG_VFO_CURR)
     {
         return -RIG_ENTARGET;
     }
 
-    if (check_cache_timeout(&p->rx_status_tv))
+    if (check_cache_timeout(&p->rx_status_tv)) {
+        int n;
         if ((n = ft897_get_status(rig, FT897_NATIVE_CAT_GET_RX_STATUS)) < 0)
         {
             return n;
         }
+    }
 
     /* TODO: consider bit 6 too ??? (CTCSS/DCS code match) */
     if (p->rx_status & 0x80)
