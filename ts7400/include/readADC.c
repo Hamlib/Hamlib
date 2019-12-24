@@ -441,8 +441,7 @@ int test_ADC(int calibration[NUM_CHANNELS][2])
 int main(void)
 {
     int calibration[NUM_CHANNELS][2];
-    int stored_calibration[NUM_CHANNELS][2];
-    int ret_val, state;
+    int ret_val;
     int devmem = open("/dev/mem", O_RDWR | O_SYNC);
     assert(devmem != -1);
 
@@ -465,6 +464,8 @@ int main(void)
 
     if (test_ADC(calibration))
     {
+        int state;
+        int stored_calibration[NUM_CHANNELS][2];
         printf("ADC tested ok(data sheet values)\n");
         state = read_calibration(stored_calibration);
 
