@@ -227,7 +227,7 @@ struct test_table *find_cmd_entry(int cmd)
  */
 struct mod_lst
 {
-    int id;                 /* caps->amp_model This is the hash key */
+    unsigned int id;        /* caps->amp_model This is the hash key */
     char mfg_name[32];      /* caps->mfg_name */
     char model_name[32];    /* caps->model_name */
     char version[32];       /* caps->version */
