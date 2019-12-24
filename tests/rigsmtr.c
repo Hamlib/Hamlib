@@ -467,7 +467,7 @@ int set_conf_rig(RIG *rig, char *conf_parms)
 
 int set_conf_rot(ROT *rot, char *conf_parms)
 {
-    char *p, *q, *n;
+    char *p, *q, *n = NULL;
     int ret;
 
     p = conf_parms;
@@ -480,13 +480,13 @@ int set_conf_rot(ROT *rot, char *conf_parms)
         if (q)
         {
             *q++ = '\0';
-        }
 
-        n = strchr(q, ',');
+            n = strchr(q, ',');
 
-        if (n)
-        {
-            *n++ = '\0';
+            if (n)
+            {
+                *n++ = '\0';
+            }
         }
 
         ret = rot_set_conf(rot, rot_token_lookup(rot, p), q);
