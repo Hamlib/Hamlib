@@ -713,8 +713,8 @@ static int handle_ts2000(void *arg)
         int p13 = 0;            // P13 Tone dummy value for now
         int p14 = 0;            // P14 Tone Freq dummy value for now
         int p15 = 0;            // P15 Shift status dummy value for now
-        char response[64];
         int retval = rig_get_freq(my_rig, RIG_VFO_A, &freq);
+        char response[64];
 
         if (retval != RIG_OK)
         {
