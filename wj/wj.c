@@ -290,7 +290,7 @@ int wj_get_conf(RIG *rig, token_t token, char *val)
     switch (token)
     {
     case TOK_RIGID:
-        sprintf(val, "%d", priv->receiver_id);
+        sprintf(val, "%u", priv->receiver_id);
         break;
 
     default:
