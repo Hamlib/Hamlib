@@ -115,13 +115,13 @@ int g313_init(RIG *rig)
 
     priv = (struct g313_priv_data *)malloc(sizeof(struct g313_priv_data));
 
-    memset(priv, 0, sizeof(struct g313_priv_data));
-
     if (!priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
+
+    memset(priv, 0, sizeof(struct g313_priv_data));
 
     priv->hWRAPI = g313_init_api();
 
