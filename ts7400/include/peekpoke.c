@@ -61,7 +61,6 @@ int main(int argc, char **argv)
     off_t addr, page;
     int fd, bits, dowrite = 0, doread = 1;
     unsigned char *start;
-    unsigned char *chardat, charval;
     unsigned short *shortdat, shortval;
     unsigned int *intdat, intval;
 
@@ -110,6 +109,7 @@ int main(int argc, char **argv)
 
     if (bits == 8)
     {
+        unsigned char *chardat, charval;
         charval = (unsigned char)intval;
         chardat = start + (addr & 0xfff);
 
