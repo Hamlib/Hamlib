@@ -121,6 +121,8 @@ static struct option long_options[] =
 /* variable for readline support */
 #ifdef HAVE_LIBREADLINE
 static const int have_rl = 1;
+#else
+static const int have_rl = 0;
 #endif
 
 
