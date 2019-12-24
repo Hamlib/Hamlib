@@ -113,9 +113,6 @@ static struct option long_options[] =
 static const int have_rl = 1;
 #endif
 
-double az_offset;
-double el_offset;
-
 int main(int argc, char *argv[])
 {
     ROT *my_rot;        /* handle to rot (instance) */
