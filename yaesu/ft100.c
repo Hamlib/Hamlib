@@ -529,7 +529,6 @@ int ft100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 int ft100_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     unsigned char cmd_index;  /* index of sequence to send */
-    unsigned char p_cmd[YAESU_CMD_LENGTH];
     int ret;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: generic mode = %s, width %d\n", __func__,
@@ -586,6 +585,7 @@ int ft100_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (mode != RIG_MODE_FM && mode != RIG_MODE_WFM && width <= kHz(6))
     {
+        unsigned char p_cmd[YAESU_CMD_LENGTH];
         p_cmd[0] = 0x00;
         p_cmd[1] = 0x00;
         p_cmd[2] = 0x00;
@@ -852,7 +852,6 @@ int ft100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
 
     int ret;
-    float f;
     FT100_METER_INFO ft100_meter;
 
     if (!rig) { return -RIG_EINVAL; }
@@ -895,6 +894,7 @@ int ft100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
         else
         {
+            float f;
             f = sqrt((float)ft100_meter.tx_rev_power / (float)ft100_meter.tx_fwd_power);
             val->f = (1 + f) / (1 - f);
         }
