@@ -263,7 +263,7 @@ const struct rig_caps ft767gx_caps =
     .rig_model =        RIG_MODEL_FT767,
     .model_name =       "FT-767GX",
     .mfg_name =         "Yaesu",
-    .version =           "1.0",
+    .version =           "1.1",
     .copyright =         "LGPL",
     .status =            RIG_STATUS_STABLE,
     .rig_type =          RIG_TYPE_TRANSCEIVER,
@@ -730,7 +730,7 @@ int ft767_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         return retval;
     }
 
-    *ptt = priv->update_data[STATUS_FLAGS] & 0x01 ?  RIG_PTT_ON : RIG_PTT_OFF;
+    *ptt = (priv->update_data[STATUS_FLAGS] & 0x01) ?  RIG_PTT_ON : RIG_PTT_OFF;
     return RIG_OK;
 }
 
@@ -1480,6 +1480,10 @@ int ft767_send_block_and_ack(RIG *rig, unsigned char *cmd, size_t length)
     retval = read_block(&rig->state.rigport,
                         (char *) cmd_echo_buf,
                         YAESU_CMD_LENGTH);
+    if (retval < 0) {
+        rig_debug(RIG_DEBUG_ERR, "%s: read_block failed: %s\n", __func__, rigerror(retval));
+        return retval; 
+    }
 
     /* see if it matches the command we sent */
     if (memcmp(cmd_echo_buf, cmd, YAESU_CMD_LENGTH))
@@ -1559,7 +1563,6 @@ int ft767_get_update_data(RIG *rig)
 
 int ft767_set_split(RIG *rig, unsigned int split)
 {
-    unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, SUBCMD_SPLIT, CMD_MULTICMD};
     struct ft767_priv_data *priv = (struct ft767_priv_data *)rig->state.priv;
     int retval;
     unsigned int curr_split;
@@ -1583,6 +1586,7 @@ int ft767_set_split(RIG *rig, unsigned int split)
 
     if (curr_split ^ split)
     {
+        unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, SUBCMD_SPLIT, CMD_MULTICMD};
         retval =  ft767_send_block_and_ack(rig, cmd, YAESU_CMD_LENGTH);
 
         if (retval < 0)
