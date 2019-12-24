@@ -530,8 +530,10 @@ int ft897_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         return -RIG_ENTARGET;
     }
 
-    if (check_cache_timeout(&p->fm_status_tv)) {
+    if (check_cache_timeout(&p->fm_status_tv))
+    {
         int n;
+
         if ((n = ft897_get_status(rig, FT897_NATIVE_CAT_GET_FREQ_MODE_STATUS)) < 0)
         {
             return n;
@@ -631,8 +633,10 @@ static int ft897_get_pometer_level(RIG *rig, value_t *val)
 {
     struct ft897_priv_data *p = (struct ft897_priv_data *) rig->state.priv;
 
-    if (check_cache_timeout(&p->tx_status_tv)) {
+    if (check_cache_timeout(&p->tx_status_tv))
+    {
         int n;
+
         if ((n = ft897_get_status(rig, FT897_NATIVE_CAT_GET_TX_STATUS)) < 0)
         {
             return n;
@@ -656,8 +660,10 @@ static int ft897_get_swr_level(RIG *rig, value_t *val)
 {
     struct ft897_priv_data *p = (struct ft897_priv_data *) rig->state.priv;
 
-    if (check_cache_timeout(&p->tx_status_tv)) {
+    if (check_cache_timeout(&p->tx_status_tv))
+    {
         int n;
+
         if ((n = ft897_get_status(rig, FT897_NATIVE_CAT_GET_TX_STATUS)) < 0)
         {
             return n;
@@ -667,7 +673,7 @@ static int ft897_get_swr_level(RIG *rig, value_t *val)
     /* Valid only if PTT is on */
     if ((p->tx_status & 0x80) == 0)
     {
-        val->f = p->tx_status & 0x40 ? 30.0 : 1.0;    /* or infinity? */
+        val->f = (p->tx_status & 0x40) ? 30.0 : 1.0;    /* or infinity? */
     }
     else
     {
@@ -699,8 +705,10 @@ static int ft897_get_rawstr_level(RIG *rig, value_t *val)
 {
     struct ft897_priv_data *p = (struct ft897_priv_data *) rig->state.priv;
 
-    if (check_cache_timeout(&p->rx_status_tv)) {
+    if (check_cache_timeout(&p->rx_status_tv))
+    {
         int n;
+
         if ((n = ft897_get_status(rig, FT897_NATIVE_CAT_GET_RX_STATUS)) < 0)
         {
             return n;
@@ -749,8 +757,10 @@ int ft897_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
         return -RIG_ENTARGET;
     }
 
-    if (check_cache_timeout(&p->rx_status_tv)) {
+    if (check_cache_timeout(&p->rx_status_tv))
+    {
         int n;
+
         if ((n = ft897_get_status(rig, FT897_NATIVE_CAT_GET_RX_STATUS)) < 0)
         {
             return n;
