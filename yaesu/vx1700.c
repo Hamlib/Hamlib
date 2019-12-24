@@ -1013,8 +1013,7 @@ static int vx1700_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 static int vx1700_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
     struct vx1700_priv_data *priv = (struct vx1700_priv_data *)rig->state.priv;
-    struct rig_state        *state = &rig->state;
-    int             ret;
+    struct rig_state *state = &rig->state;
 
     if (! vx1700_channel_is_ok(ch)) { return -RIG_EINVAL; }
 
@@ -1022,6 +1021,7 @@ static int vx1700_set_mem(RIG *rig, vfo_t vfo, int ch)
 
     if (vfo == RIG_VFO_MEM)
     {
+        int ret;
         ret = vx1700_do_dynamic_cmd(rig, VX1700_NATIVE_RECALL_MEM, ch, 0, 0, 0);
 
         if (ret == RIG_OK) { priv->ch = ch; }
@@ -1038,12 +1038,12 @@ static int vx1700_get_mem(RIG *rig, vfo_t vfo, int *ch)
     struct vx1700_priv_data *priv = (struct vx1700_priv_data *)rig->state.priv;
     struct rig_state        *state = &rig->state;
     unsigned char       channel = 0;
-    int             ret;
 
     if (vfo == RIG_VFO_CURR) { vfo = state->current_vfo; }
 
     if (vfo == RIG_VFO_MEM)
     {
+        int ret;
         ret = vx1700_read_mem_channel_number(rig, &channel);
 
         if (ret != RIG_OK) { return ret; }
