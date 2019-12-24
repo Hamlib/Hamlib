@@ -2260,6 +2260,10 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
     {
     case RIG_POWER_ON:
         ps = '1';
+        // when powering on need a dummy byte to wake it up
+        // then sleep  from 1 to 2 seconds so we'll do 1.5 secs
+        write_block(&state->rigport, "\n", 1);
+        usleep(1500000);
         break;
 
     case RIG_POWER_OFF:
@@ -2273,15 +2277,9 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PS%c%c", ps, cat_term);
 
-    if (RIG_OK != (err = write_block(&state->rigport, priv->cmd_str,
-                                     strlen(priv->cmd_str))))
-    {
-        return err;
-    }
+    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
 
-    // delay 1.5 seconds
-    usleep(1500000);
-    return write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    return err;
 }
 
 
