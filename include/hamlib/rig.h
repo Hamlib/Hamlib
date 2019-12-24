@@ -97,16 +97,18 @@
 #undef usleep
 #define usleep(n)\
   do {\
+    unsigned long sec = n/1000000ul;\
+    unsigned long nsec = n*1000ul - (sec * 1000000000ul);\
     struct timespec t;\
-    t.tv_sec=0;\
-    t.tv_nsec = n*1000ul;\
+    t.tv_sec=sec;\
+    t.tv_nsec = nsec;\
     nanosleep(&t,NULL);\
   } while(0) 
 #define sleep(n)\
   do {\
     struct timespec t;\
-    t.tv_sec=0;\
-    t.tv_nsec = n*1000000000ul;\
+    t.tv_sec=n;\
+    t.tv_nsec = 0;\
     nanosleep(&t,NULL);\
   } while(0)
 
