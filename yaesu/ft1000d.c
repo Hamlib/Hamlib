@@ -2735,7 +2735,7 @@ int ft1000d_get_channel(RIG *rig, channel_t *chan)
 
     priv = (struct ft1000d_priv_data *) rig->state.priv;
 
-    if (chan->channel_num < 0 && chan->channel_num > 90)
+    if (chan->channel_num < 0 || chan->channel_num > 90)
     {
         return -RIG_EINVAL;
     }
