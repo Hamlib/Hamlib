@@ -359,7 +359,7 @@ char parse_arg(const char *arg)
 {
     int i;
 
-    for (i = 0; i < MAXNBOPT && test_list[i].cmd != 0; i++)
+    for (i = 0; test_list[i].cmd != 0; i++)
     {
         if (!strncmp(arg, test_list[i].name, MAXNAMSIZ))
         {
@@ -376,10 +376,10 @@ char parse_arg(const char *arg)
  */
 static int scanfc(FILE *fin, const char *format, void *p)
 {
-    int ret;
-
     do
     {
+        int ret;
+
         ret = fscanf(fin, format, p);
 
         if (ret < 0)
@@ -519,13 +519,14 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
     char arg4[MAXARGSZ + 1], *p4 = NULL;
     char *p5 = NULL;
     char *p6 = NULL;
-    static int last_was_ret = 1;
 
     /* cmd, internal, rotctld */
     if (!(interactive && prompt && have_rl))
     {
         if (interactive)
         {
+            static int last_was_ret = 1;
+
             if (prompt)
             {
                 fprintf_flush(fout, "\nRotator command: ");
@@ -1084,22 +1085,21 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
 
                 rp_getline(pmptstr);
 
+                if (input_line == NULL)
+                {
+                    fprintf_flush(fout, "\n");
+                    return 1;
+                }
                 /* Blank line entered */
-                if (!(strcmp(input_line, "")))
+                else if (!(strcmp(input_line, "")))
                 {
                     fprintf(fout, "? for help, q to quit.\n");
                     fflush(fout);
                     return 0;
                 }
-
-                if (input_line)
-                {
-                    parsed_input[x] = input_line;
-                }
                 else
                 {
-                    fprintf_flush(fout, "\n");
-                    return 1;
+                    parsed_input[x] = input_line;
                 }
             }
 
@@ -1448,8 +1448,9 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
         }
         else
         {
-            if (cmd_entry != NULL && cmd_entry->name != NULL) {
-              fprintf(fout, "%s: error = %s\n", cmd_entry->name, rigerror(retcode));
+            if (cmd_entry != NULL && cmd_entry->name != NULL)
+            {
+                fprintf(fout, "%s: error = %s\n", cmd_entry->name, rigerror(retcode));
             }
         }
     }
@@ -1490,12 +1491,13 @@ void version()
 
 void usage_rot(FILE *fout)
 {
-    int i, nbspaces;
+    int i;
 
     fprintf(fout, "Commands (some may not be available for this rotator):\n");
 
     for (i = 0; test_list[i].cmd != 0; i++)
     {
+        int nbspaces;
         fprintf(fout,
                 "%c: %-12s(",
                 isprint(test_list[i].cmd) ? test_list[i].cmd : '?',
@@ -1631,28 +1633,29 @@ void list_models()
 
 int set_conf(ROT *my_rot, char *conf_parms)
 {
-    char *p, *q, *n;
-    int ret;
+    char *p;
 
     rot_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
     p = conf_parms;
 
     while (p && *p != '\0')
     {
+        int ret;
+        char *q, *n = NULL;
         /* FIXME: left hand value of = cannot be null */
         q = strchr(p, '=');
 
         if (!q)
         {
             return RIG_EINVAL;
-        }
 
-        *q++ = '\0';
-        n = strchr(q, ',');
+            *q++ = '\0';
+            n = strchr(q, ',');
 
-        if (n)
-        {
-            *n++ = '\0';
+            if (n)
+            {
+                *n++ = '\0';
+            }
         }
 
         rig_debug(RIG_DEBUG_TRACE, "%s: token=%s, val=%s\n", __func__, p, q);
