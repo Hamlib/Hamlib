@@ -815,6 +815,7 @@ int alinco_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         return alinco_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
 
     case RIG_LEVEL_CWPITCH:
+        lvl = 4;
         if (val.i < 426)
         {
             lvl = 5;
@@ -864,10 +865,6 @@ int alinco_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             lvl = 3;
         }
         else if (val.i >= 976 && val.i <= 1025)
-        {
-            lvl = 4;
-        }
-        else
         {
             lvl = 4;
         }
