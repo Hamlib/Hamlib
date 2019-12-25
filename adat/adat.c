@@ -2572,6 +2572,11 @@ int adat_transaction(RIG                *pRig,
                                         nRC = adat_receive(pRig, acBuf);
                                     }
 
+                                    if (pPriv->pcResult != NULL)
+                                    {
+                                        free(pPriv->pcResult);
+                                    }
+
                                     pPriv->pcResult = strdup(acBuf);
                                 }
                             }
@@ -3515,6 +3520,7 @@ int adat_set_conf(RIG *pRig, token_t token, const char *val)
         switch (token)
         {
         case TOKEN_ADAT_PRODUCT_NAME:
+            if (pPriv->pcProductName != NULL) free(pPriv->pcProductName);
             pPriv->pcProductName = strdup(val);
             break;
 
