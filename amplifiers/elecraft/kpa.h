@@ -47,7 +47,7 @@ struct kpa_priv_data
 int kpa_init(AMP *amp);
 int kpa_reset(AMP *amp, amp_reset_t reset);
 int kpa_flush_buffer(AMP *amp);
-int kpa_transaction(AMP *amp, const char *cmd, char *reponse, int reponse_len);
+int kpa_transaction(AMP *amp, const char *cmd, char *response, int response_len);
 const char *kpa_get_info (AMP *amp);
 int kpa_get_freq (AMP *amp, freq_t *freq);
 int kpa_set_freq (AMP *amp, freq_t freq);
