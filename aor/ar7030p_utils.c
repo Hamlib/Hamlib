@@ -458,14 +458,10 @@ static int setAddr(RIG *rig, enum PAGE_e page, unsigned int addr)
             {
                 v = SRH((0x0f0 & addr) >> 4);
 
-                if (0 == write_block(&rig->state.rigport, (char *) &v, 1))
+                rc = write_block(&rig->state.rigport, (char *) &v, 1);
+                if (rc != RIG_OK)
                 {
-                    rc = RIG_OK;
-                }
-                else
-                {
-                    rc = -RIG_EIO;
-                    return rc;
+                    return -RIG_EIO;
                 }
 
                 v = ADR((0x00f & addr));
