@@ -456,8 +456,10 @@ static int scanfc(FILE *fin, const char *format, void *p)
 {
     do
     {
+        int ret;
         *(char *)p = 0;
-        int ret = fscanf(fin, format, p);
+        
+        ret = fscanf(fin, format, p);
 
         if (ret < 0)
         {
