@@ -118,14 +118,6 @@ static struct option long_options[] =
 
 #define MAXCONFLEN 128
 
-/* variable for readline support */
-#ifdef HAVE_LIBREADLINE
-static const int have_rl = 1;
-#else
-static const int have_rl = 0;
-#endif
-
-
 int main(int argc, char *argv[])
 {
     RIG *my_rig;        /* handle to rig (instance) */
@@ -571,7 +563,7 @@ int main(int argc, char *argv[])
 
 #ifdef HAVE_LIBREADLINE
 
-    if (interactive && prompt && have_rl)
+    if (interactive && prompt)
     {
         rl_readline_name = "rigctl";
 
@@ -628,7 +620,7 @@ int main(int argc, char *argv[])
 
 #ifdef HAVE_LIBREADLINE
 
-    if (interactive && prompt && have_rl)
+    if (interactive && prompt)
     {
 #ifdef HAVE_READLINE_HISTORY
 
