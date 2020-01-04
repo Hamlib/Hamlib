@@ -118,12 +118,6 @@ static struct option long_options[] =
 
 #define MAXCONFLEN 128
 
-/* variable for readline support */
-#ifdef HAVE_LIBREADLINE
-static const int have_rl = 1;
-#endif
-
-
 int main(int argc, char *argv[])
 {
     RIG *my_rig;        /* handle to rig (instance) */
@@ -151,12 +145,13 @@ int main(int argc, char *argv[])
     int serial_rate = 0;
     char *civaddr = NULL;   /* NULL means no need to set conf */
     char conf_parms[MAXCONFLEN] = "";
-    int interactive = 1;    /* if no cmd on command line, switch to interactive */
+    int interactive;    /* if no cmd on command line, switch to interactive */
     int prompt = 1;         /* Print prompt in rigctl */
     int vfo_mode = 0;       /* vfo_mode = 0 means target VFO is 'currVFO' */
     char send_cmd_term = '\r';  /* send_cmd termination char */
     int ext_resp = 0;
     char resp_sep = '\n';
+    int i;
 
     while (1)
     {
@@ -432,6 +427,9 @@ int main(int argc, char *argv[])
     {
         interactive = 0;
     }
+    else {
+        interactive = 1;
+    }
 
     my_rig = rig_init(my_model);
 
@@ -510,7 +508,7 @@ int main(int argc, char *argv[])
         exit(0);
     }
 
-    int i=0;
+    i=0;
     do { // we'll try 5 times and sleep 200ms between tries
         retcode = rig_open(my_rig);
         if (retcode != RIG_OK) {
@@ -554,10 +552,6 @@ int main(int argc, char *argv[])
             fprintf(stderr, "vfo mode doesn't make sense for any rig other than rig#2\n");
             fprintf(stderr, "But we'll let you run this way if you want\n");
         }
-        else if (!vfo_mode && my_rig->caps->rig_model == RIG_MODEL_NETRIGCTL)
-        {
-            fprintf(stderr, "Recommend using --vfo switch for rigctl with rigctld\n");
-        }
     }
 
     rig_debug(RIG_DEBUG_VERBOSE,
@@ -569,7 +563,7 @@ int main(int argc, char *argv[])
 
 #ifdef HAVE_LIBREADLINE
 
-    if (interactive && prompt && have_rl)
+    if (interactive && prompt)
     {
         rl_readline_name = "rigctl";
 
@@ -578,6 +572,7 @@ int main(int argc, char *argv[])
 
         if (rd_hist || sv_hist)
         {
+            int hist_path_size;
             if (!(hist_dir = getenv("RIGCTL_HIST_DIR")))
             {
                 hist_dir = getenv("HOME");
@@ -589,7 +584,7 @@ int main(int argc, char *argv[])
                 fprintf(stderr, "Warning: %s is not a directory!\n", hist_dir);
             }
 
-            int hist_path_size = sizeof(char) * (strlen(hist_dir) + strlen(hist_file) + 1);
+            hist_path_size = sizeof(char) * (strlen(hist_dir) + strlen(hist_file) + 1);
             hist_path = (char *)calloc(hist_path_size, sizeof(char));
 
             snprintf(hist_path, hist_path_size, "%s%s", hist_dir, hist_file);
@@ -625,7 +620,7 @@ int main(int argc, char *argv[])
 
 #ifdef HAVE_LIBREADLINE
 
-    if (interactive && prompt && have_rl)
+    if (interactive && prompt)
     {
 #ifdef HAVE_READLINE_HISTORY
 

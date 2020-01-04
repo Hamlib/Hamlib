@@ -199,7 +199,6 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
     ROT *rot;
     const struct rot_caps *caps;
     struct rot_state *rs;
-    int retcode;
 
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -283,7 +282,7 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
      */
     if (caps->rot_init != NULL)
     {
-        retcode = caps->rot_init(rot);
+        int retcode = caps->rot_init(rot);
 
         if (retcode != RIG_OK)
         {
@@ -628,6 +627,7 @@ int HAMLIB_API rot_get_position(ROT *rot,
 {
     const struct rot_caps *caps;
     const struct rot_state *rs;
+    int retval;
 
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -644,7 +644,7 @@ int HAMLIB_API rot_get_position(ROT *rot,
         return -RIG_ENAVAIL;
     }
 
-    int retval = caps->get_position(rot, azimuth, elevation);
+    retval = caps->get_position(rot, azimuth, elevation);
 
     if (retval != RIG_OK) { return retval; }
 

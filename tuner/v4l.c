@@ -165,13 +165,14 @@ int v4l_init(RIG *rig)
 
 int v4l_open(RIG *rig)
 {
-    int ret, i;
+    int i;
     struct video_tuner vt;
     struct rig_state *rs = &rig->state;
-    double fact;
 
     for (i = 0; i < 8; i++)
     {
+        int ret;
+        double fact;
         vt.tuner = i;
         ret = ioctl(rig->state.rigport.fd, VIDIOCGTUNER, &vt);
 

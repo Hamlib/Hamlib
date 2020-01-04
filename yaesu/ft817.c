@@ -522,18 +522,19 @@ int ft817_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 int ft817_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
-    int n;
 
     if (vfo != RIG_VFO_CURR)
     {
         return -RIG_ENTARGET;
     }
 
-    if (check_cache_timeout(&p->fm_status_tv))
+    if (check_cache_timeout(&p->fm_status_tv)) {
+        int n;
         if ((n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_FREQ_MODE_STATUS)) < 0)
         {
             return n;
         }
+    }
 
     switch (p->fm_status[4] & 0x7f)
     {
@@ -640,18 +641,19 @@ int ft817_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 int ft817_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
     struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
-    int n;
 
     if (vfo != RIG_VFO_CURR)
     {
         return -RIG_ENTARGET;
     }
 
-    if (check_cache_timeout(&p->tx_status_tv))
+    if (check_cache_timeout(&p->tx_status_tv)) {
+        int n;
         if ((n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_TX_STATUS)) < 0)
         {
             return n;
         }
+    }
 
     *ptt = ((p->tx_status & 0x80) == 0);
 
@@ -661,13 +663,14 @@ int ft817_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 static int ft817_get_pometer_level(RIG *rig, value_t *val)
 {
     struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
-    int n;
 
-    if (check_cache_timeout(&p->tx_status_tv))
+    if (check_cache_timeout(&p->tx_status_tv)) {
+        int n;
         if ((n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_TX_STATUS)) < 0)
         {
             return n;
         }
+    }
 
     /* Valid only if PTT is on.
        FT-817 returns the number of bars in the lowest 4 bits
@@ -730,13 +733,14 @@ static int ft817_get_smeter_level(RIG *rig, value_t *val)
 static int ft817_get_raw_smeter_level(RIG *rig, value_t *val)
 {
     struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
-    int n;
 
-    if (check_cache_timeout(&p->rx_status_tv))
+    if (check_cache_timeout(&p->rx_status_tv)) {
+        int n;
         if ((n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_RX_STATUS)) < 0)
         {
             return n;
         }
+    }
 
     val->i = p->rx_status & 0x0F;
 
@@ -777,18 +781,19 @@ int ft817_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 int ft817_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
     struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
-    int n;
 
     if (vfo != RIG_VFO_CURR)
     {
         return -RIG_ENTARGET;
     }
 
-    if (check_cache_timeout(&p->rx_status_tv))
+    if (check_cache_timeout(&p->rx_status_tv)) {
+        int n;
         if ((n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_RX_STATUS)) < 0)
         {
             return n;
         }
+     }
 
     /* TODO: consider bit 6 too ??? (CTCSS/DCS code match) */
     if (p->rx_status & 0x80)
@@ -955,7 +960,7 @@ int ft817_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 int ft817_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
-    int index, n;
+    int index;
     ptt_t ptt_response = -1;
     int retries = rig->state.rigport.retry;
 
@@ -983,6 +988,7 @@ int ft817_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     do
     {
+        int n;
         n = ft817_send_cmd(rig, index);
 
         rig_force_cache_timeout(
@@ -1285,11 +1291,12 @@ int ft817_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
     switch (op)
     {
+    int n;
 
     case RIG_OP_TOGGLE:
         rig_force_cache_timeout(&((struct ft817_priv_data *)
                                   rig->state.priv)->fm_status_tv);
-        int n = ft817_send_cmd(rig, FT817_NATIVE_CAT_SET_VFOAB);
+        n = ft817_send_cmd(rig, FT817_NATIVE_CAT_SET_VFOAB);
         usleep(100 * 1000); // rig needs a little time to do this
         return n;
 

@@ -44,7 +44,6 @@
 int sprintf_vfo(char *str, vfo_t vfo)
 {
     int i, len = 0;
-    const char *sv;
 
     *str = '\0';
 
@@ -55,6 +54,7 @@ int sprintf_vfo(char *str, vfo_t vfo)
 
     for (i = 0; i < 32; i++)
     {
+        const char *sv;
         sv = rig_strvfo(vfo & RIG_VFO_N(i));
 
         if (sv && sv[0])

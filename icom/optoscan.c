@@ -18,7 +18,6 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -28,7 +27,6 @@
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
 #include <math.h>
-#include <sys/time.h>
 
 #include "hamlib/rig.h"
 #include "serial.h"
@@ -502,6 +500,9 @@ int optoscan_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     if (level != RIG_LEVEL_AF)
     {
         int lvl_cn, lvl_sc;     /* Command Number, Subcommand */
+        unsigned char lvlbuf[MAXFRAMELEN];
+        int cmdhead;
+
         switch (level)
         {
         case RIG_LEVEL_RAWSTR:
@@ -514,7 +515,6 @@ int optoscan_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return -RIG_EINVAL;
         }
 
-        unsigned char lvlbuf[MAXFRAMELEN];
         retval = icom_transaction(rig, lvl_cn, lvl_sc, NULL, 0,
                                   lvlbuf, &lvl_len);
 
@@ -526,7 +526,7 @@ int optoscan_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         /*
          * strbuf should contain Cn,Sc,Data area
          */
-        int cmdhead = (lvl_sc == -1) ? 1 : 2;
+        cmdhead = (lvl_sc == -1) ? 1 : 2;
         lvl_len -= cmdhead;
 
         if (lvlbuf[0] != ACK && lvlbuf[0] != lvl_cn)

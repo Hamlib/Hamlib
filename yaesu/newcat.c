@@ -287,11 +287,6 @@ int newcat_init(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     priv = (struct newcat_priv_data *) calloc(1, sizeof(struct newcat_priv_data));
 
     if (!priv)                                  /* whoops! memory shortage! */
@@ -329,11 +324,6 @@ int newcat_cleanup(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     if (rig->state.priv)
     {
         free(rig->state.priv);
@@ -354,23 +344,19 @@ int newcat_cleanup(RIG *rig)
 
 int newcat_open(RIG *rig)
 {
+    struct newcat_priv_data *priv = rig->state.priv;
+    struct rig_state *rig_s = &rig->state;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
-    struct newcat_priv_data *priv = rig->state.priv;
-
-    struct rig_state *rig_s = &rig->state;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: write_delay = %i msec\n",
               __func__, rig_s->rigport.write_delay);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: post_write_delay = %i msec\n",
               __func__, rig_s->rigport.post_write_delay);
+
+    /* Ensure rig is powered on */
+    rig_set_powerstat(rig, 1);
 
     /* get current AI state so it can be restored */
     priv->trn_state = -1;
@@ -397,14 +383,9 @@ int newcat_open(RIG *rig)
 int newcat_close(RIG *rig)
 {
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     struct newcat_priv_data *priv = rig->state.priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!no_restore_ai && priv->trn_state >= 0)
     {
@@ -426,12 +407,6 @@ int newcat_close(RIG *rig)
 
 int newcat_set_conf(RIG *rig, token_t token, const char *val)
 {
-
-    if (rig == NULL)
-    {
-        return -RIG_EARG;
-    }
-
     int ret = RIG_OK;
     struct newcat_priv_data *priv;
 
@@ -444,9 +419,10 @@ int newcat_set_conf(RIG *rig, token_t token, const char *val)
 
     switch (token)
     {
-    case TOK_FAST_SET_CMD: ;
         char *end;
         long value;
+
+    case TOK_FAST_SET_CMD: ;
         //using strtol because atoi can lead to undefined behaviour
         value = strtol(val, &end, 10);
 
@@ -482,12 +458,6 @@ int newcat_set_conf(RIG *rig, token_t token, const char *val)
 
 int newcat_get_conf(RIG *rig, token_t token, char *val)
 {
-
-    if (rig == NULL)
-    {
-        return -RIG_EARG;
-    }
-
     int ret = RIG_OK;
     struct newcat_priv_data *priv;
 
@@ -530,10 +500,12 @@ int newcat_get_conf(RIG *rig, token_t token, char *val)
 
 int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
+    char c;
+    char target_vfo;
+    int err;
     const struct rig_caps *caps;
     struct newcat_priv_data *priv;
-    char c;
-    int err;
+    int special_60m = 0;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -572,7 +544,6 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     /* vfo should now be modified to a valid VFO constant. */
     /* DX3000/DX5000 can only do VFO_MEM on 60M */
     /* So we will not change freq in that case */
-    int special_60m = 0;
     special_60m = newcat_is_rig(rig, RIG_MODEL_FTDX3000);
     /* duplicate the following line to add more rigs */
     special_60m |= newcat_is_rig(rig, RIG_MODEL_FTDX5000);
@@ -602,7 +573,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         return -RIG_ENIMPL;             /* Only VFO_A or VFO_B are valid */
     }
 
-    char target_vfo = 'A' == c ? '0' : '1';
+    target_vfo = 'A' == c ? '0' : '1';
 
     if (RIG_MODEL_FT450 == caps->rig_model)
     {
@@ -908,29 +879,11 @@ int newcat_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     switch (c)
     {
     case '1':
-
-        /* Why is the FT891 backwards with LSB/USB?? Oh well... */
-        if (newcat_is_rig(rig, RIG_MODEL_FT891))
-        {
-            *mode = RIG_MODE_LSB;
-        }
-        else   /* every other Yaesu */
-        {
-            *mode = RIG_MODE_USB;
-        }
-
+        *mode = RIG_MODE_LSB;
         break;
 
     case '2':
-        if (newcat_is_rig(rig, RIG_MODEL_FT891))
-        {
-            *mode = RIG_MODE_USB;
-        }
-        else   /* every other Yaesu */
-        {
-            *mode = RIG_MODE_LSB;
-        }
-
+        *mode = RIG_MODE_USB;
         break;
 
     case '3':
@@ -1160,7 +1113,7 @@ int newcat_get_vfo(RIG *rig, vfo_t *vfo)
     vfo_t vfo_mode;
     char const *command = "VS";
 
-    if (!rig || !vfo)
+    if (!vfo)
     {
         return -RIG_EINVAL;
     }
@@ -1628,6 +1581,7 @@ int newcat_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
     char *retval;
     char rit_on;
     int err;
+    int offset = 0;
 
     if (!newcat_valid_command(rig, "IF"))
     {
@@ -1650,7 +1604,6 @@ int newcat_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 
     // e.g. FT450 has 27 byte IF response, FT991 has 28 byte if response (one more byte for P2 VFO A Freq)
     // so we now check to ensure we know the length of the response
-    int offset = 0;
 
     switch (strlen(priv->ret_data))
     {
@@ -1726,6 +1679,7 @@ int newcat_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
     char *retval;
     char xit_on;
     int err;
+    int offset = 0;
 
     if (!newcat_valid_command(rig, "IF"))
     {
@@ -1748,7 +1702,6 @@ int newcat_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 
     // e.g. FT450 has 27 byte IF response, FT991 has 28 byte if response (one more byte for P2 VFO A Freq)
     // so we now check to ensure we know the length of the response
-    int offset = 0;
 
     switch (strlen(priv->ret_data))
     {
@@ -2307,6 +2260,10 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
     {
     case RIG_POWER_ON:
         ps = '1';
+        // when powering on need a dummy byte to wake it up
+        // then sleep  from 1 to 2 seconds so we'll do 1.5 secs
+        write_block(&state->rigport, "\n", 1);
+        usleep(1500000);
         break;
 
     case RIG_POWER_OFF:
@@ -2320,15 +2277,9 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PS%c%c", ps, cat_term);
 
-    if (RIG_OK != (err = write_block(&state->rigport, priv->cmd_str,
-                                     strlen(priv->cmd_str))))
-    {
-        return err;
-    }
+    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
 
-    // delay 1.5 seconds
-    usleep(1500000);
-    return write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    return err;
 }
 
 
@@ -2556,11 +2507,6 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     char main_sub_vfo = '0';
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
 
     /* Set Main or SUB vfo */
     err = newcat_set_vfo_from_alias(rig, &vfo);
@@ -3086,11 +3032,6 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     /* Set Main or SUB vfo */
     err = newcat_set_vfo_from_alias(rig, &vfo);
 
@@ -3548,11 +3489,6 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     /* Set Main or SUB vfo */
     err = newcat_set_vfo_from_alias(rig, &vfo);
 
@@ -3723,11 +3659,6 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     char main_sub_vfo = '0';
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
 
     switch (func)
     {
@@ -4021,6 +3952,11 @@ int newcat_set_mem(RIG *rig, vfo_t vfo, int ch)
     valid_chan.channel_num = ch;
     err = newcat_get_channel(rig, &valid_chan);
 
+    if (err < 0)
+    {
+        return err;
+    }
+
     if (valid_chan.freq <= 1.0)
     {
         mem_caps = NULL;
@@ -4125,11 +4061,6 @@ int newcat_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
     char main_sub_vfo = '0';
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
 
     /* Set Main or SUB vfo */
     err = newcat_set_vfo_from_alias(rig, &vfo);
@@ -4665,11 +4596,6 @@ const char *newcat_get_info(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig)
-    {
-        return NULL;
-    }
-
     /* Build the command string */
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "ID;");
 
@@ -4711,17 +4637,10 @@ ncboolean newcat_valid_command(RIG *rig, char const *const command)
     ncboolean is_ft3000;
     ncboolean is_ft101;
     int search_high;
-    int search_index;
     int search_low;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     rig_debug(RIG_DEBUG_TRACE, "%s %s\n", __func__, command);
-
-    if (!rig)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: Rig argument is invalid\n", __func__);
-        return FALSE;
-    }
 
     caps = rig->caps;
 
@@ -4768,6 +4687,7 @@ ncboolean newcat_valid_command(RIG *rig, char const *const command)
     while (search_low <= search_high)
     {
         int search_test;
+        int search_index;
 
         search_index = (search_low + search_high) / 2;
         search_test = strcmp(valid_commands[search_index].command, command);
@@ -6046,6 +5966,7 @@ int newcat_get_vfo_mode(RIG *rig, vfo_t *vfo_mode)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int err;
+    int offset = 0;
     char command[] = "IF";
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -6066,8 +5987,6 @@ int newcat_get_vfo_mode(RIG *rig, vfo_t *vfo_mode)
     /* vfo, mem, P7 ************************** */
     // e.g. FT450 has 27 byte IF response, FT991 has 28 byte if response (one more byte for P2 VFO A Freq)
     // so we now check to ensure we know the length of the response
-    int offset = 0;
-
     switch (strlen(priv->ret_data))
     {
     case 27: offset = 21; priv->width_frequency = 8; break;

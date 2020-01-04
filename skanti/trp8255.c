@@ -183,13 +183,13 @@ const struct rig_caps trp8255_caps =
 /* TODO: retry */
 static int cu_transaction(RIG *rig, const char *cmd, int cmd_len)
 {
-    int i, ret;
+    int i;
     char retchar;
 
     for (i = 0; i < cmd_len; i++)
     {
 
-        ret = write_block(&rig->state.rigport, &cmd[i], 1);
+        int ret = write_block(&rig->state.rigport, &cmd[i], 1);
 
         if (ret != RIG_OK)
         {
@@ -396,8 +396,7 @@ int cu_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             cmdbuf[0] = 'S';    /* low */
         }
-
-        if (val.f < 0.6)
+        else if (val.f < 0.6)
         {
             cmdbuf[0] = 'U';    /* medium */
         }

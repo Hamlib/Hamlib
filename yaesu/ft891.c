@@ -519,9 +519,10 @@ int ft891_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 int ft891_init(RIG *rig)
 {
+    int ret;
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, version %s\n", __func__,
               rig->caps->version);
-    int ret = newcat_init(rig);
+    ret = newcat_init(rig);
 
     if (ret != RIG_OK) { return ret; }
 

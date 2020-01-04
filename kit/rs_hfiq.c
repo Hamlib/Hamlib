@@ -149,10 +149,11 @@ static int rshfiq_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     char cmdstr[15];
     char stopset[2];
-    stopset[0] = '\r';
-    stopset[1] = '\n';
     int retval;
     serial_flush(&rig->state.rigport);
+
+    stopset[0] = '\r';
+    stopset[1] = '\n';
 
     snprintf(cmdstr, sizeof(cmdstr), "*f?\r");
 
@@ -186,11 +187,12 @@ static int rshfiq_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 static int rshfiq_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     char cmdstr[5];
+    int retval;
+
     cmdstr[0] = '*';
     cmdstr[1] = 'x';
     cmdstr[3] = '\r';
     cmdstr[4] = 0;
-    int retval;
 
     if (ptt == RIG_PTT_ON)
     {

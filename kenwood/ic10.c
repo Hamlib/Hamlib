@@ -500,6 +500,8 @@ int ic10_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 }
 
 
+#ifdef XXREMOVEDXX
+// Not referenced anywhere
 /*
  * ic10_set_ptt
  * Assumes rig!=NULL
@@ -527,6 +529,7 @@ int ic10_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     return retval;
 }
+#endif
 
 
 /*

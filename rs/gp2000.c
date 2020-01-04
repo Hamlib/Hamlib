@@ -233,6 +233,10 @@ gp2000_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     char buf[RESPSZ];
     int buf_len, retval;
+    int nmode;
+    char *pmode = "UNKNOWN";
+    int n = sscanf(buf, "%*cI%d", &nmode);
+
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
 
@@ -245,10 +249,6 @@ gp2000_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     {
         return retval;
     }
-
-    int nmode;
-    char *pmode = "UNKNOWN";
-    int n = sscanf(buf, "%*cI%d", &nmode);
 
     if (n != 1)
     {
@@ -289,6 +289,8 @@ gp2000_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 }
 
 
+#ifdef XXREMOVEDXX
+// Not referenced anywhere
 int
 gp2000_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
@@ -312,7 +314,10 @@ gp2000_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
     return retval;
 }
+#endif
 
+#ifdef XXREMOVEDXX
+// Not referenced anywhere
 int
 gp2000_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
@@ -343,6 +348,7 @@ gp2000_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
     return retval;
 }
+#endif
 
 int
 gp2000_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
@@ -444,6 +450,12 @@ gp2000_get_info(RIG *rig)
 {
     static char infobuf[128];
     int info_len, retval;
+    int addr = -1;
+    char type[32] = "unk type";
+    char rigid[32] = "unk rigid";
+    char sernum[32] = "unk sernum";
+    char *p;
+
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", __func__);
 
@@ -457,27 +469,21 @@ gp2000_get_info(RIG *rig)
         return NULL;
     }
 
-    int addr = -1;
-    char type[32] = "unk type";
-    char rigid[32] = "unk rigid";
-    char sernum[32] = "unk sernum";
-
-    char *p = strtok(infobuf, ",");
-
+    p = strtok(infobuf, ",");
     while (p)
     {
         switch (p[0])
         {
         case 0x0a:
-            sscanf(p, "%*cIDENT%s", type);
+            sscanf(p, "%*cIDENT%31s", type);
             break;
 
         case 'i':
-            sscanf(p, "id%s", rigid);
+            sscanf(p, "id%31s", rigid);
             break;
 
         case 's':
-            sscanf(p, "sn%s", sernum);
+            sscanf(p, "sn%31s", sernum);
             break;
 
         default:

@@ -93,16 +93,13 @@ int elecraft_get_firmware_revision_level(RIG *rig, const char *cmd,
 
 int elecraft_open(RIG *rig)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called, rig version=%s\n", __func__,
-              rig->caps->version);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     int err;
     char id[KENWOOD_MAX_BUF_LEN];
+    struct kenwood_priv_data *priv = rig->state.priv;
+
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called, rig version=%s\n", __func__,
+              rig->caps->version);
 
     /* Actual read extension levels from radio.
      *
@@ -111,8 +108,6 @@ int elecraft_open(RIG *rig)
      * elecraft_get_extension_level() private function during elecraft_open()
      * and thereafter shall be treated as READ ONLY!
      */
-    struct kenwood_priv_data *priv = rig->state.priv;
-
     /* As k3_fw_rev is declared static, it is persistent so the structure
      * can point to it.  This way was chosen to allow the compiler to
      * calculate the size of the array to resolve a bug found by gcc 4.8.x
@@ -250,15 +245,15 @@ int elecraft_open(RIG *rig)
 
 int verify_kenwood_id(RIG *rig, char *id)
 {
+    int err;
+    char *idptr;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !id)
+    if (!id)
     {
         return -RIG_EINVAL;
     }
-
-    int err;
-    char *idptr;
 
     /* Check for an Elecraft K2|K3 which returns "017" */
     err = kenwood_get_id(rig, id);
@@ -302,16 +297,16 @@ int verify_kenwood_id(RIG *rig, char *id)
 
 int elecraft_get_extension_level(RIG *rig, const char *cmd, int *ext_level)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !ext_level)
-    {
-        return -RIG_EINVAL;
-    }
-
     int err, i;
     char buf[KENWOOD_MAX_BUF_LEN];
     char *bufptr;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!ext_level)
+    {
+        return -RIG_EINVAL;
+    }
 
     err = kenwood_safe_transaction(rig, cmd, buf, KENWOOD_MAX_BUF_LEN, 3);
 
@@ -347,16 +342,16 @@ int elecraft_get_extension_level(RIG *rig, const char *cmd, int *ext_level)
 int elecraft_get_firmware_revision_level(RIG *rig, const char *cmd,
         char *fw_rev, size_t fw_rev_sz)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !fw_rev)
-    {
-        return -RIG_EINVAL;
-    }
-
     int err;
     char *bufptr;
     char buf[KENWOOD_MAX_BUF_LEN];
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!fw_rev)
+    {
+        return -RIG_EINVAL;
+    }
 
     /* Get the actual firmware revision number. */
     err = kenwood_transaction(rig, cmd, buf, sizeof(buf));
@@ -378,7 +373,7 @@ int elecraft_get_firmware_revision_level(RIG *rig, const char *cmd,
     bufptr += strlen(cmd);
 
     /* Skip leading zero(s) as the revision number has the format of: "04.67" */
-    while (bufptr && *bufptr == '0') { bufptr++; }
+    while (*bufptr == '0') { bufptr++; }
 
     /* Copy out */
     strncpy(fw_rev, bufptr, fw_rev_sz - 1);

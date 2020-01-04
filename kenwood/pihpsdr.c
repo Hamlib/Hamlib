@@ -337,17 +337,19 @@ const struct rig_caps pihpsdr_caps =
 
 int pihspdr_get_channel(RIG *rig, channel_t *chan)
 {
+    int err;
+    int tmp;
+    char buf[52];
+    char cmd[8];
+    size_t length;
+    struct kenwood_priv_caps *caps = kenwood_caps(rig);
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !chan || chan->vfo != RIG_VFO_MEM)
+    if (!chan || chan->vfo != RIG_VFO_MEM)
     {
         return -RIG_EINVAL;
     }
-
-    int err;
-    char buf[52];
-    char cmd[8];
-    struct kenwood_priv_caps *caps = kenwood_caps(rig);
 
     /* put channel num in the command string */
     sprintf(cmd, "MR0%03d;", chan->channel_num);
@@ -359,7 +361,7 @@ int pihspdr_get_channel(RIG *rig, channel_t *chan)
         return err;
     }
 
-    size_t length = strlen(buf);
+    length = strlen(buf);
     memset(chan, 0x00, sizeof(channel_t));
 
     chan->vfo = RIG_VFO_MEM;
@@ -384,7 +386,6 @@ int pihspdr_get_channel(RIG *rig, channel_t *chan)
        Tuning step depends on this number and the mode,
        just save it for now */
     buf[ 40 ] = '\0';
-    int tmp;
     tmp = atoi(&buf[ 38]);
     /* Offset frequency */
     buf[ 38 ] = '\0';
@@ -563,21 +564,19 @@ int pihspdr_get_channel(RIG *rig, channel_t *chan)
 }
 
 int pihspdr_set_channel(RIG *rig, const channel_t *chan)
-{
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !chan)
-    {
-        return -RIG_EINVAL;
-    }
-
+{   
+    char sqltype;
+    char shift;
     char buf[128];
     char mode, tx_mode = 0;
     int err;
     int tone = 0;
-
-
+    int tstep;
+    short code;
+    short dcscode;
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     mode = rmode2kenwood(chan->mode, caps->mode_table);
 
@@ -601,7 +600,7 @@ int pihspdr_set_channel(RIG *rig, const channel_t *chan)
     }
 
     /* find tone */
-    char sqltype = '0';
+    sqltype = '0';
 
     if (chan->ctcss_tone)
     {
@@ -622,7 +621,7 @@ int pihspdr_set_channel(RIG *rig, const channel_t *chan)
     }
 
     /* find CTCSS code */
-    short code = 0;
+    code = 0;
 
     if (chan->ctcss_sql)
     {
@@ -643,7 +642,7 @@ int pihspdr_set_channel(RIG *rig, const channel_t *chan)
     }
 
     /* find DCS code */
-    short dcscode = 0;
+    dcscode = 0;
 
     if (chan->dcs_code)
     {
@@ -663,7 +662,7 @@ int pihspdr_set_channel(RIG *rig, const channel_t *chan)
         dcscode = 0;
     }
 
-    char shift = '0';
+    shift = '0';
 
     if (chan->rptr_shift == RIG_RPT_SHIFT_PLUS)
     {
@@ -675,7 +674,7 @@ int pihspdr_set_channel(RIG *rig, const channel_t *chan)
         shift = '2';
     }
 
-    int tstep = 0;
+    tstep = 0;
 
     if ((chan->mode == RIG_MODE_AM) || (chan->mode == RIG_MODE_FM))
     {
@@ -770,15 +769,10 @@ int pihspdr_set_channel(RIG *rig, const channel_t *chan)
 
 int pihpsdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     char levelbuf[16];
     int i, kenwood_val;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (RIG_LEVEL_IS_FLOAT(level))
     {
@@ -1331,14 +1325,9 @@ int pihpsdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
    to not use the TS-2000 backend open function */
 int pihpsdr_open(RIG *rig)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     char id[KENWOOD_MAX_BUF_LEN];
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     /* get id in buffer, will be null terminated */
     kenwood_get_id(rig, id);

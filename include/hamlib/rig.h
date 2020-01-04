@@ -92,6 +92,26 @@
 #define CONSTANT_64BIT_FLAG(BIT) (1ull << (BIT))
 #endif
 
+#include <time.h>
+#undef sleep
+#undef usleep
+#define usleep(n)\
+  do {\
+    unsigned long sec = n/1000000ul;\
+    unsigned long nsec = n*1000ul - (sec * 1000000000ul);\
+    struct timespec t;\
+    t.tv_sec=sec;\
+    t.tv_nsec = nsec;\
+    nanosleep(&t,NULL);\
+  } while(0) 
+#define sleep(n)\
+  do {\
+    struct timespec t;\
+    t.tv_sec=n;\
+    t.tv_nsec = 0;\
+    nanosleep(&t,NULL);\
+  } while(0)
+
 __BEGIN_DECLS
 
 extern HAMLIB_EXPORT_VAR(const char) hamlib_version[];
@@ -2431,6 +2451,7 @@ rig_probe HAMLIB_PARAMS((hamlib_port_t *p));
 
 /* Misc calls */
 extern HAMLIB_EXPORT(const char *) rig_strrmode(rmode_t mode);
+extern HAMLIB_EXPORT(int)          rig_strrmodes(rmode_t modes, char *buf, int buflen);
 extern HAMLIB_EXPORT(const char *) rig_strvfo(vfo_t vfo);
 extern HAMLIB_EXPORT(const char *) rig_strfunc(setting_t);
 extern HAMLIB_EXPORT(const char *) rig_strlevel(setting_t);

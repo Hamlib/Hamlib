@@ -320,6 +320,7 @@ static int meade_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     char eom;
     size_t return_str_size;
     int az_degrees, az_minutes, az_seconds, el_degrees, el_minutes, el_seconds;
+    int n;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -327,7 +328,7 @@ static int meade_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: returned '%s'\n", __func__, return_str);
     // GZ returns DDD*MM# or DDD*MM'SS#
     // GA returns sDD*MM# or sDD*MM'SS#
-    int n = sscanf(return_str, "%d%*c%d:%d#%d%*c%d:%d%c", &az_degrees, &az_minutes,
+    n = sscanf(return_str, "%d%*c%d:%d#%d%*c%d:%d%c", &az_degrees, &az_minutes,
                    &az_seconds, &el_degrees, &el_minutes, &el_seconds, &eom);
 
     if (n != 7 || eom != '#')
@@ -432,10 +433,10 @@ static int meade_move(ROT *rot, int direction, int speed)
 
 static const char *meade_get_info(ROT *rot)
 {
+    static char buf[256]; // this is not thread-safe but not important either
     struct meade_priv_data *priv = (struct meade_priv_data *)rot->state.priv;
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    static char buf[256]; // this is not thread-safe but not important either
     sprintf(buf, "Meade telescope rotator with LX200 protocol.\nModel: %s",
             priv->product_name);
     return buf;

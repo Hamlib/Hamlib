@@ -3,7 +3,7 @@
  *  Edit to specify your rig model and serial port, and baud rate
  *  before compiling.
  *  To compile:
- *      gcc -L/usr/local/lib -lhamlib -o example example.c
+ *      gcc -I../src -I../include -g -o example example.c sprintflst.c -lhamlib
  *      if hamlib is installed in /usr/local/...
  *
  */
@@ -12,6 +12,7 @@
 #include <string.h>
 #include <hamlib/rig.h>
 #include <hamlib/riglist.h>
+#include "sprintflst.h"
 
 
 int main()
@@ -21,7 +22,8 @@ int main()
     freq_t freq;
     value_t rawstrength, power, strength;
     float s_meter, rig_raw2val();
-    int status, retcode, isz, mwpower;
+    int status, retcode;
+    unsigned int mwpower;
     rmode_t mode;
     pbwidth_t width;
 
@@ -29,7 +31,7 @@ int main()
     rig_set_debug(RIG_DEBUG_ERR);       // errors only
 
     /* Instantiate a rig */
-    my_rig = rig_init(RIG_MODEL_TT565); // your rig model.
+    my_rig = rig_init(RIG_MODEL_DUMMY); // your rig model.
 
     /* Set up serial port, baud rate */
     rig_file = "/dev/ttyUSB0";        // your serial device
@@ -40,6 +42,13 @@ int main()
 
     /* Open my rig */
     retcode = rig_open(my_rig);
+
+    if (retcode != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: rig_open failed %s\n", __func__,
+                  rigerror(retcode));
+        return 1;
+    }
 
     /* Give me ID info, e.g., firmware version. */
     info_buf = (char *)rig_get_info(my_rig);
@@ -55,11 +64,13 @@ int main()
 
     /* Main VFO frequency */
     status = rig_get_freq(my_rig, RIG_VFO_CURR, &freq);
+    if (status != RIG_OK) printf("Get freq failed?? Err=%s\n", rigerror(status));
 
     printf("VFO freq. = %.1f Hz\n", freq);
 
     /* Current mode */
     status = rig_get_mode(my_rig, RIG_VFO_CURR, &mode, &width);
+    if (status != RIG_OK) printf("Get mode failed?? Err=%s\n", rigerror(status));
 
     switch (mode)
     {
@@ -100,24 +111,28 @@ int main()
         break; /* there are more possibilities! */
     }
 
-    printf("Current mode = 0x%X = %s, width = %d\n", mode, mm, width);
+    printf("Current mode = 0x%lX = %s, width = %ld\n", mode, mm, width);
 
     /* rig power output */
     status = rig_get_level(my_rig, RIG_VFO_CURR, RIG_LEVEL_RFPOWER, &power);
+
+    if (status != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s: error rig_get_level: %s\n", __func__, rigerror(status)); }
 
     printf("RF Power relative setting = %.3f (0.0 - 1.0)\n", power.f);
 
     /* Convert power reading to watts */
     status = rig_power2mW(my_rig, &mwpower, power.f, freq, mode);
 
+    if (status != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s: error rig_get_level: %s\n", __func__, rigerror(status)); }
+
     printf("RF Power calibrated = %.1f Watts\n", mwpower / 1000.);
 
     /* Raw and calibrated S-meter values */
     status = rig_get_level(my_rig, RIG_VFO_CURR, RIG_LEVEL_RAWSTR, &rawstrength);
 
-    printf("Raw receive strength = %d\n", rawstrength.i);
+    if (status != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s: error rig_get_level: %s\n", __func__, rigerror(status)); }
 
-    isz = my_rig->caps->str_cal.size;
+    printf("Raw receive strength = %d\n", rawstrength.i);
 
     s_meter = rig_raw2val(rawstrength.i, &my_rig->caps->str_cal);
 
@@ -126,5 +141,19 @@ int main()
     /* now try using RIG_LEVEL_STRENGTH itself */
     status = rig_get_strength(my_rig, RIG_VFO_CURR, &strength);
 
+    if (status != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s: error rig_get_level: %s\n", __func__, rigerror(status)); }
+
     printf("LEVEL_STRENGTH returns %d\n", strength.i);
+
+    const freq_range_t *range = rig_get_range(&my_rig->state.rx_range_list[0],14074000,RIG_MODE_USB);
+
+    if (status != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s: error rig_get_ragne: %s\n", __func__, rigerror(status)); }
+    if (range) { 
+    char vfolist[256];
+    sprintf_vfo(vfolist,my_rig->state.vfo_list);
+    printf("Range start=%"PRIfreq", end=%"PRIfreq", low_power=%d, high_power=%d, vfos=%s\n",range->startf, range->endf, range->low_power, range->high_power, vfolist);
+    }
+    else {
+    printf("Not rx range list found\n");
+    }
 };

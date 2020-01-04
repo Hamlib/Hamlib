@@ -428,27 +428,28 @@ void usage()
 
 int set_conf_rig(RIG *rig, char *conf_parms)
 {
-    char *p, *q, *n;
+    char *p;
     int ret;
 
     p = conf_parms;
 
     while (p && *p != '\0')
     {
+        char *q, *n = NULL;
         /* FIXME: left hand value of = cannot be null */
         q = strchr(p, '=');
 
         if (!q)
         {
             return RIG_EINVAL;
-        }
 
-        *q++ = '\0';
-        n = strchr(q, ',');
+            *q++ = '\0';
+            n = strchr(q, ',');
 
-        if (n)
-        {
-            *n++ = '\0';
+            if (n)
+            {
+                *n++ = '\0';
+            }
         }
 
         ret = rig_set_conf(rig, rig_token_lookup(rig, p), q);
@@ -467,26 +468,27 @@ int set_conf_rig(RIG *rig, char *conf_parms)
 
 int set_conf_rot(ROT *rot, char *conf_parms)
 {
-    char *p, *q, *n;
-    int ret;
+    char *p;
 
     p = conf_parms;
 
     while (p && *p != '\0')
     {
+        char *q, *n = NULL;
+        int ret;
         /* FIXME: left hand value of = cannot be null */
         q = strchr(p, '=');
 
         if (q)
         {
             *q++ = '\0';
-        }
 
-        n = strchr(q, ',');
+            n = strchr(q, ',');
 
-        if (n)
-        {
-            *n++ = '\0';
+            if (n)
+            {
+                *n++ = '\0';
+            }
         }
 
         ret = rot_set_conf(rot, rot_token_lookup(rot, p), q);

@@ -125,6 +125,7 @@ static int remove_opened_amp(AMP *amp)
 }
 
 
+#ifdef XXREMOVEDXX
 /**
  * \brief execs cfunc() on each opened amp
  * \param cfunc The function to be executed on each amp
@@ -157,6 +158,7 @@ int foreach_opened_amp(int (*cfunc)(AMP *, rig_ptr_t), rig_ptr_t data)
 
     return RIG_OK;
 }
+#endif
 
 
 /**
@@ -176,7 +178,6 @@ AMP *HAMLIB_API amp_init(amp_model_t amp_model)
     AMP *amp;
     const struct amp_caps *caps;
     struct amp_state *rs;
-    int retcode;
 
     amp_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -253,7 +254,7 @@ AMP *HAMLIB_API amp_init(amp_model_t amp_model)
      */
     if (caps->amp_init != NULL)
     {
-        retcode = caps->amp_init(amp);
+        int retcode = caps->amp_init(amp);
 
         if (retcode != RIG_OK)
         {
