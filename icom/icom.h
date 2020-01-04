@@ -136,8 +136,8 @@ struct icom_priv_caps
     int offs_len; /* Number of bytes in offset frequency field. 0 defaults to 3 */
     int serial_USB_echo_check; /* Flag to test USB echo state */
     int agc_levels_present; /* Flag to indicate that agc_levels array is populated */
-    struct icom_agc_level agc_levels[RIG_AGC_LAST +
-                                                      1]; /* Icom rig-specific AGC levels, the last entry should have level -1 */
+    struct icom_agc_level agc_levels[RIG_AGC_LAST + 1]; /* Icom rig-specific AGC levels, the last entry should have level -1 */
+    struct cmdparams *cmdparams;    /* Pointer to ext_cmd paramater array */
 };
 
 
