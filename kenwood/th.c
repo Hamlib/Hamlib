@@ -52,6 +52,7 @@ th_decode_event(RIG *rig)
 {
     char asyncbuf[128];
     int retval;
+    int async_len;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
@@ -64,7 +65,7 @@ th_decode_event(RIG *rig)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: Decoding message\n", __func__);
 
-    size_t async_len = strlen(asyncbuf);
+    async_len = strlen(asyncbuf);
 
     if (async_len > 3 && asyncbuf[0] == 'B' && asyncbuf[1] == 'U'
             && asyncbuf[2] == 'F')
@@ -421,7 +422,6 @@ int
 th_set_vfo(RIG *rig, vfo_t vfo)
 {
     const char *cmd;
-    int retval;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
@@ -436,6 +436,7 @@ th_set_vfo(RIG *rig, vfo_t vfo)
     /* set band */
     if (vfo != RIG_VFO_MEM)
     {
+        int retval;
 
         switch (vfo)
         {
@@ -508,6 +509,7 @@ th_get_vfo_char(RIG *rig, vfo_t *vfo, char *vfoch)
 {
     char cmdbuf[10], buf[10], vfoc;
     int retval;
+    size_t length;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
@@ -520,7 +522,7 @@ th_get_vfo_char(RIG *rig, vfo_t *vfo, char *vfoch)
         return retval;
     }
 
-    size_t length = strlen(buf);
+    length = strlen(buf);
 
     switch (length)
     {
@@ -1137,7 +1139,8 @@ int
 th_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     char vch, buf[10], ackbuf[20];
-    int retval, v, l;
+    int retval, v;
+    unsigned int l;
 
     vfo_t tvfo;
 
@@ -1172,7 +1175,7 @@ th_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return retval;
         }
 
-        retval = sscanf(ackbuf, "SM %d,%d", &v, &l);
+        retval = sscanf(ackbuf, "SM %d,%u", &v, &l);
 
         if (retval != 2 || l < rig->caps->level_gran[LVL_RAWSTR].min.i
                 || l > rig->caps->level_gran[LVL_RAWSTR].max.i)
@@ -1241,9 +1244,9 @@ th_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return retval;
         }
 
-        retval = sscanf(ackbuf, "PC %d,%d", &v, &l);
+        retval = sscanf(ackbuf, "PC %d,%u", &v, &l);
 
-        if (retval != 2 || l < 0 || l > 3)
+        if ((retval != 2) || l > 3)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, ackbuf);
             return -RIG_ERJCTED;
@@ -1413,7 +1416,7 @@ th_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 
     caps = rig->caps;
 
-    for (i = 0; caps->ctcss_list[i] != 0 && i < RIG_TONEMAX; i++)
+    for (i = 0; caps->ctcss_list[i] != 0; i++)
     {
         if (caps->ctcss_list[i] == tone)
         {
@@ -1471,7 +1474,7 @@ th_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
     }
 
     /* verify tone index for TH-7DA rig */
-    if (tone_idx <= 0 || tone_idx == 2 || tone_idx > 39)
+    if (tone_idx == 0 || tone_idx == 2 || tone_idx > 39)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: Unexpected CTCSS tone no (%04d)\n",
                   __func__, tone_idx);
@@ -1498,7 +1501,7 @@ th_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 
     caps = rig->caps;
 
-    for (i = 0; caps->ctcss_list[i] != 0 && i < RIG_TONEMAX; i++)
+    for (i = 0; caps->ctcss_list[i] != 0; i++)
     {
         if (caps->ctcss_list[i] == tone)
         {
@@ -1556,7 +1559,7 @@ th_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
     }
 
     /* verify tone index for TH-7DA rig */
-    if (tone_idx <= 0 || tone_idx == 2 || tone_idx > 39)
+    if (tone_idx == 0 || tone_idx == 2 || tone_idx > 39)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: Unexpected CTCSS no (%04d)\n",
                   __func__, tone_idx);
@@ -1592,7 +1595,7 @@ th_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
         return kenwood_transaction(rig, "DCS 0", NULL, 0);
     }
 
-    for (i = 0; caps->dcs_list[i] != 0 && i < RIG_CODEMAX; i++)
+    for (i = 0; caps->dcs_list[i] != 0; i++)
     {
         if (caps->dcs_list[i] == code)
         {
@@ -1646,7 +1649,7 @@ th_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
         return retval;
     }
 
-    retval = sscanf(buf, "DCSN %u", (int *)&code_idx);
+    retval = sscanf(buf, "DCSN %d", (int *)&code_idx);
 
     if (retval != 1)
     {
@@ -1668,7 +1671,7 @@ th_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
         return retval;
     }
 
-    retval = sscanf(buf, "DCSN %u", (int *)&code_idx);
+    retval = sscanf(buf, "DCSN %d", (int *)&code_idx);
 
     if (retval != 1)
     {
@@ -1695,6 +1698,7 @@ th_get_info(RIG *rig)
 {
     static char firmbuf[50];
     int retval;
+    size_t firm_len;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
@@ -1705,7 +1709,7 @@ th_get_info(RIG *rig)
         return NULL;
     }
 
-    size_t firm_len = strlen(firmbuf);
+    firm_len = strlen(firmbuf);
 
     if (firm_len < 3)
     {
@@ -2191,6 +2195,7 @@ int th_get_channel(RIG *rig, channel_t *chan)
     /* If not set already by special channels.. */
     if (chan->channel_desc[0] == '\0')
     {
+        size_t ack_len;
         if (chan_caps[1].type == RIG_MTYPE_PRIO)
         {
             sprintf(membuf, "MNA %sI-%01d", mr_extra, channel_num);
@@ -2208,7 +2213,7 @@ int th_get_channel(RIG *rig, channel_t *chan)
             return retval;
         }
 
-        size_t ack_len = strlen(ackbuf);
+        ack_len = strlen(ackbuf);
 
         if (ack_len > rig->caps->chan_desc_sz)
         {
@@ -2226,7 +2231,7 @@ static int find_tone_index(const tone_t *tone_list, tone_t tone)
 {
     int i;
 
-    for (i = 0; tone_list[i] != 0 && i < RIG_TONEMAX; i++)
+    for (i = 0; tone_list[i] != 0; i++)
     {
         if (tone_list[i] == tone)
         {
@@ -2240,12 +2245,12 @@ static int find_tone_index(const tone_t *tone_list, tone_t tone)
 /* --------------------------------------------------------------------- */
 int th_set_channel(RIG *rig, const channel_t *chan)
 {
-    char membuf[150];
+    char membuf[256];
     int retval;
     char req[64];
     char lockoutstr[8];
     int channel_num, step, shift, rev, tone, ctcss, tonefq, ctcssfq, dcs, dcscode,
-        mode, lockout;
+        lockout;
     const char *mr_extra;
     const struct kenwood_priv_caps *priv = (const struct kenwood_priv_caps *)
                                            rig->caps->priv;
@@ -2414,8 +2419,8 @@ int th_set_channel(RIG *rig, const channel_t *chan)
         return -RIG_EINVAL;
     }
 
-    rev = chan->funcs & RIG_FUNC_REV ? 1 : 0;
-    lockout = chan->flags & RIG_CHFLAG_SKIP ? 1 : 0;
+    rev = (chan->funcs & RIG_FUNC_REV) ? 1 : 0;
+    lockout = (chan->flags & RIG_CHFLAG_SKIP) ? 1 : 0;
 
     if (chan_caps->mem_caps.flags)
     {
@@ -2428,6 +2433,7 @@ int th_set_channel(RIG *rig, const channel_t *chan)
 
     if (chan_caps->mem_caps.flags && chan_caps->mem_caps.dcs_sql)
     {
+        int mode;
 
         if (!priv->mode_table)
         {
@@ -2446,8 +2452,8 @@ int th_set_channel(RIG *rig, const channel_t *chan)
         }
 
         /* Step can be hexa */
-        retval = snprintf(membuf, sizeof(membuf),
-                          "%s,%011"PRIll",%X,%d,%d,%d,%d,%d,%02d,%02d,%03d,%09"PRIll",%d%s",
+        snprintf(membuf, sizeof(membuf),
+                          "%8s,%011"PRIll",%X,%d,%d,%d,%d,%d,%02d,%02d,%03d,%09"PRIll",%d%10s",
                           req, (int64_t)chan->freq, step, shift, rev, tone,
                           ctcss, dcs, tonefq, ctcssfq, dcscode,
                           (int64_t)labs((long)(chan->rptr_offs)), mode, lockoutstr
@@ -2457,8 +2463,7 @@ int th_set_channel(RIG *rig, const channel_t *chan)
     {
 
         /* Without DCS,mode */
-        retval = sprintf(membuf,
-                         "%s,%011"PRIll",%X,%d,%d,%d,%d,,%02d,,%02d,%09"PRIll"%s",
+        sprintf(membuf, "%s,%011"PRIll",%X,%d,%d,%d,%d,,%02d,,%02d,%09"PRIll"%s",
                          req, (int64_t)chan->freq, step, shift, rev, tone,
                          ctcss, tonefq, ctcssfq,
                          (int64_t)labs((long)(chan->rptr_offs)), lockoutstr

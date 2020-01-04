@@ -68,23 +68,6 @@ extern int read_history();
 #include "serial.h"
 #include "sprintflst.h"
 
-/* HAVE_SSLEEP is defined when Windows Sleep is found
- * HAVE_SLEEP is defined when POSIX sleep is found
- * _WIN32 is defined when compiling with MinGW
- *
- * When cross-compiling from POSIX to Windows using MinGW, HAVE_SLEEP
- * will often be defined by configure although it is not supported by
- * MinGW.  So substitute the sleep definition below in such a case and
- * when compiling on Windows using MinGW where HAVE_SLEEP will be
- * undefined.
- *
- * FIXME:  Needs better handling for all versions of MinGW.
- *
- */
-#if (defined(HAVE_SSLEEP) || defined(_WIN32)) && (!defined(HAVE_SLEEP))
-#  include "hl_sleep.h"
-#endif
-
 #include "rigctl_parse.h"
 
 /* Hash table implementation See:  http://uthash.sourceforge.net/ */
@@ -311,6 +294,7 @@ static struct test_table test_list[] =
     { 0x8a, "recv_dtmf",        ACTION(recv_dtmf),      ARG_OUT, "Digits" },
     { '*',  "reset",            ACTION(reset),          ARG_IN, "Reset" },
     { 'w',  "send_cmd",         ACTION(send_cmd),       ARG_IN1 | ARG_IN_LINE | ARG_OUT2 | ARG_NOVFO, "Cmd", "Reply" },
+    { 'W',  "send_cmd_rx",      ACTION(send_cmd),       ARG_IN | ARG_OUT2 | ARG_NOVFO, "Cmd", "Reply"},
     { 'b',  "send_morse",       ACTION(send_morse),     ARG_IN  | ARG_IN_LINE, "Morse" },
     { 0x8b, "get_dcd",          ACTION(get_dcd),        ARG_OUT, "DCD" },
     { '2',  "power2mW",         ACTION(power2mW),       ARG_IN1 | ARG_IN2 | ARG_IN3 | ARG_OUT1 | ARG_NOVFO, "Power [0.0..1.0]", "Frequency", "Mode", "Power mW" },
@@ -470,10 +454,11 @@ static char parse_arg(const char *arg)
  */
 static int scanfc(FILE *fin, const char *format, void *p)
 {
-    int ret;
-
     do
     {
+        int ret;
+        *(char *)p = 0;
+        
         ret = fscanf(fin, format, p);
 
         if (ret < 0)
@@ -483,11 +468,13 @@ static int scanfc(FILE *fin, const char *format, void *p)
                 continue;
             }
 
-            rig_debug(RIG_DEBUG_ERR, "fscanf: %s\n", strerror(errno));
-            rig_debug(RIG_DEBUG_ERR,
-                      "fscanf: parsing '%s' with '%s'\n",
-                      (char *)p,
-                      format);
+            if (!feof(fin))
+            {
+                rig_debug(RIG_DEBUG_ERR,
+                          "fscanf: parsing '%s' with '%s'\n",
+                          (char *)p,
+                          format);
+            }
         }
 
         return ret;
@@ -610,14 +597,16 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
     char arg1[MAXARGSZ + 1], *p1 = NULL;
     char arg2[MAXARGSZ + 1], *p2 = NULL;
     char arg3[MAXARGSZ + 1], *p3 = NULL;
-    static int last_was_ret = 1;
     vfo_t vfo = RIG_VFO_CURR;
 
     /* cmd, internal, rigctld */
     if (!(interactive && prompt && have_rl))
     {
+
         if (interactive)
         {
+            static int last_was_ret = 1;
+
             if (prompt)
             {
                 fprintf_flush(fout, "\nRig command: ");
@@ -808,19 +797,19 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             }
         }
 
+        rig_debug(RIG_DEBUG_TRACE, "%s: debug1\n", __func__);
+
         if ((cmd_entry->flags & ARG_IN_LINE)
                 && (cmd_entry->flags & ARG_IN1)
                 && cmd_entry->arg1)
         {
+            rig_debug(RIG_DEBUG_TRACE, "%s: debug2\n", __func__);
 
             if (interactive)
             {
                 char *nl;
+                rig_debug(RIG_DEBUG_TRACE, "%s: debug2a\n", __func__);
 
-                if (prompt)
-                {
-                    fprintf_flush(fout, "%s: ", cmd_entry->arg1);
-                }
 
                 if (fgets(arg1, MAXARGSZ, fin) == NULL)
                 {
@@ -829,6 +818,13 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
                 if (arg1[0] == 0xa)
                 {
+                    rig_debug(RIG_DEBUG_TRACE, "%s: debug2b\n", __func__);
+
+                    if (prompt)
+                    {
+                        fprintf_flush(fout, "%s: ", cmd_entry->arg1);
+                    }
+
                     if (fgets(arg1, MAXARGSZ, fin) == NULL)
                     {
                         return -1;
@@ -871,16 +867,20 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
         }
         else if ((cmd_entry->flags & ARG_IN1) && cmd_entry->arg1)
         {
+            rig_debug(RIG_DEBUG_TRACE, "%s: debug3\n", __func__);
+
             if (interactive)
             {
-                if (prompt)
-                {
-                    fprintf_flush(fout, "%s: ", cmd_entry->arg1);
-                }
+                rig_debug(RIG_DEBUG_TRACE, "%s: debug4\n", __func__);
 
                 if (scanfc(fin, "%s", arg1) < 1)
                 {
                     return -1;
+                }
+
+                if (prompt && *arg1 == 0x0a)
+                {
+                    fprintf_flush(fout, "%s: ", cmd_entry->arg1);
                 }
 
                 p1 = arg1;
@@ -904,18 +904,28 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             }
         }
 
+        rig_debug(RIG_DEBUG_TRACE, "%s: debug5\n", __func__);
+
         if (p1
                 && p1[0] != '?'
                 && (cmd_entry->flags & ARG_IN2)
                 && cmd_entry->arg2)
         {
+            rig_debug(RIG_DEBUG_TRACE, "%s: debug6\n", __func__);
 
             if (interactive)
             {
+                rig_debug(RIG_DEBUG_TRACE, "%s: debug7\n", __func__);
+
+#ifdef XXREMOVEDXX
+
                 if (prompt)
                 {
+                    rig_debug(RIG_DEBUG_TRACE, "%s: debug8\n", __func__);
                     fprintf_flush(fout, "%s: ", cmd_entry->arg2);
                 }
+
+#endif
 
                 if (scanfc(fin, "%s", arg2) < 1)
                 {
@@ -926,6 +936,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             }
             else
             {
+                rig_debug(RIG_DEBUG_TRACE, "%s: debug9\n", __func__);
                 retcode = next_word(arg2, argc, argv, 0);
 
                 if (EOF == retcode)
@@ -943,16 +954,22 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             }
         }
 
+        rig_debug(RIG_DEBUG_TRACE, "%s: debug10\n", __func__);
+
         if (p1
                 && p1[0] != '?'
                 && (cmd_entry->flags & ARG_IN3)
                 && cmd_entry->arg3)
         {
+            rig_debug(RIG_DEBUG_TRACE, "%s: debug11\n", __func__);
 
             if (interactive)
             {
+                rig_debug(RIG_DEBUG_TRACE, "%s: debug12\n", __func__);
+
                 if (prompt)
                 {
+                    rig_debug(RIG_DEBUG_TRACE, "%s: debug13\n", __func__);
                     fprintf_flush(fout, "%s: ", cmd_entry->arg3);
                 }
 
@@ -965,6 +982,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             }
             else
             {
+                rig_debug(RIG_DEBUG_TRACE, "%s: debug14\n", __func__);
                 retcode = next_word(arg3, argc, argv, 0);
 
                 if (EOF == retcode)
@@ -985,6 +1003,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
     }
 
 #ifdef HAVE_LIBREADLINE
+    rig_debug(RIG_DEBUG_TRACE, "%s: debug15\n", __func__);
 
     if (interactive && prompt && have_rl)
     {
@@ -1261,8 +1280,8 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             }
             else
             {
-                x = 0;
                 char pmptstr[(strlen(cmd_entry->arg1) + 3)];
+                x = 0;
 
                 strcpy(pmptstr, cmd_entry->arg1);
                 strcat(pmptstr, ": ");
@@ -1270,7 +1289,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 rp_getline(pmptstr);
 
                 /* Blank line entered */
-                if (!(strcmp(input_line, "")))
+                if (input_line && !(strcmp(input_line, "")))
                 {
                     fprintf(fout, "? for help, q to quit.\n");
                     fflush(fout);
@@ -1324,8 +1343,8 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             }
             else
             {
-                x = 0;
                 char pmptstr[(strlen(cmd_entry->arg1) + 3)];
+                x = 0;
 
                 strcpy(pmptstr, cmd_entry->arg1);
                 strcat(pmptstr, ": ");
@@ -1390,8 +1409,8 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             }
             else
             {
-                x = 0;
                 char pmptstr[(strlen(cmd_entry->arg2) + 3)];
+                x = 0;
 
                 strcpy(pmptstr, cmd_entry->arg2);
                 strcat(pmptstr, ": ");
@@ -1456,8 +1475,8 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             }
             else
             {
-                x = 0;
                 char pmptstr[(strlen(cmd_entry->arg3) + 3)];
+                x = 0;
 
                 strcpy(pmptstr, cmd_entry->arg3);
                 strcat(pmptstr, ": ");
@@ -1637,18 +1656,18 @@ void version()
 
 void usage_rig(FILE *fout)
 {
-    int i, nbspaces;
+    int i;
 
     fprintf(fout, "Commands (some may not be available for this rig):\n");
 
     for (i = 0; test_list[i].cmd != 0; i++)
     {
+        int nbspaces = 18;
         fprintf(fout,
                 "%c: %-16s(",
                 isprint(test_list[i].cmd) ? test_list[i].cmd : '?',
                 test_list[i].name);
 
-        nbspaces = 18;
 
         if (test_list[i].arg1 && (test_list[i].flags & ARG_IN1))
         {
@@ -1793,15 +1812,16 @@ void list_models()
 
 int set_conf(RIG *my_rig, char *conf_parms)
 {
-    char *p, *q, *n;
-    int ret;
+    char *p, *n;
 
     p = conf_parms;
 
     while (p && *p != '\0')
     {
+        int ret;
+
         /* FIXME: left hand value of = cannot be null */
-        q = strchr(p, '=');
+        char *q = strchr(p, '=');
 
         if (!q)
         {
@@ -2161,7 +2181,7 @@ declare_proto_rig(set_rptr_offs)
 {
     unsigned long rptr_offs;
 
-    CHKSCN1ARG(sscanf(arg1, "%ld", &rptr_offs));
+    CHKSCN1ARG(sscanf(arg1, "%lu", &rptr_offs));
     return rig_set_rptr_offs(rig, vfo, rptr_offs);
 }
 
@@ -2195,7 +2215,7 @@ declare_proto_rig(set_ctcss_tone)
 {
     tone_t tone;
 
-    CHKSCN1ARG(sscanf(arg1, "%d", &tone));
+    CHKSCN1ARG(sscanf(arg1, "%u", &tone));
     return rig_set_ctcss_tone(rig, vfo, tone);
 }
 
@@ -2229,7 +2249,7 @@ declare_proto_rig(set_dcs_code)
 {
     tone_t code;
 
-    CHKSCN1ARG(sscanf(arg1, "%d", &code));
+    CHKSCN1ARG(sscanf(arg1, "%u", &code));
     return rig_set_dcs_code(rig, vfo, code);
 }
 
@@ -2263,7 +2283,7 @@ declare_proto_rig(set_ctcss_sql)
 {
     tone_t tone;
 
-    CHKSCN1ARG(sscanf(arg1, "%d", &tone));
+    CHKSCN1ARG(sscanf(arg1, "%u", &tone));
     return rig_set_ctcss_sql(rig, vfo, tone);
 }
 
@@ -2297,7 +2317,7 @@ declare_proto_rig(set_dcs_sql)
 {
     tone_t code;
 
-    CHKSCN1ARG(sscanf(arg1, "%d", &code));
+    CHKSCN1ARG(sscanf(arg1, "%u", &code));
     return rig_set_dcs_sql(rig, vfo, code);
 }
 
@@ -2544,7 +2564,7 @@ declare_proto_rig(set_ts)
 {
     unsigned long ts;
 
-    CHKSCN1ARG(sscanf(arg1, "%ld", &ts));
+    CHKSCN1ARG(sscanf(arg1, "%lu", &ts));
     return rig_set_ts(rig, vfo, ts);
 }
 
@@ -2613,7 +2633,7 @@ declare_proto_rig(mW2power)
     rmode_t mode;
     unsigned int mwp;
 
-    CHKSCN1ARG(sscanf(arg1, "%i", &mwp));
+    CHKSCN1ARG(sscanf(arg1, "%u", &mwp));
     CHKSCN1ARG(sscanf(arg2, "%"SCNfreq, &freq));
     mode = rig_parse_mode(arg3);
 
@@ -4032,12 +4052,23 @@ declare_proto_rig(get_powerstat)
     return status;
 }
 
+static int hasbinary(char *s)
+{
+    int i;
+
+    for (i = 0; s[i] != 0; ++i)
+    {
+        if (!isascii(s[i])) { return 1; }
+    }
+
+    return 0;
+}
 
 /*
  * Special debugging purpose send command display reply until there's a
  * timeout.
  *
- * 'w'
+ * 'w' and 'W'
  */
 declare_proto_rig(send_cmd)
 {
@@ -4046,9 +4077,10 @@ declare_proto_rig(send_cmd)
     int backend_num, cmd_len;
 #define BUFSZ 128
     char bufcmd[BUFSZ];
-    char buf[BUFSZ];
+    unsigned char buf[BUFSZ];
     char eom_buf[4] = { 0xa, 0xd, 0, 0 };
     int binary = 0;
+    int rxbytes = BUFSZ;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
@@ -4057,15 +4089,37 @@ declare_proto_rig(send_cmd)
      */
     backend_num = RIG_BACKEND_NUM(rig->caps->rig_model);
 
+    rig_debug(RIG_DEBUG_TRACE, "%s: backend_num=%d\n", __func__, backend_num);
+
+    // need to move the eom_buf to rig-specifc backends
+    // we'll let KENWOOD backends use the ; char in the rigctl commands
+    if (backend_num == RIG_KENWOOD)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: KENWOOD\n", __func__);
+        eom_buf[0] = 0;
+        send_cmd_term = 0;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: arg1=%s\n", __func__, arg1);
+
     if (send_cmd_term == -1
             || backend_num == RIG_YAESU
             || backend_num == RIG_ICOM
             || backend_num == RIG_KACHINA
-            || backend_num == RIG_MICROTUNE)
+            || backend_num == RIG_MICROTUNE
+            || (strstr(arg1, "\\0x") && (rig->caps->rig_model != RIG_MODEL_NETRIGCTL))
+       )
     {
 
         const char *p = arg1, *pp = NULL;
         int i;
+        rig_debug(RIG_DEBUG_TRACE, "%s: send_cmd_term==-1, arg1=%s\n", __func__, arg1);
+
+        if (strstr(arg1, "\\0x") == NULL)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: expecting binary hex string here\n", __func__);
+            return -RIG_EINVAL;
+        }
 
         for (i = 0; i < BUFSZ - 1 && p != pp; i++)
         {
@@ -4081,16 +4135,32 @@ declare_proto_rig(send_cmd)
     }
     else if (rig->caps->rig_model == RIG_MODEL_NETRIGCTL)
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: we're using netrigctl\n", __func__);
-        snprintf(bufcmd, sizeof(bufcmd), "w %s\n", arg1);
+        rig_debug(RIG_DEBUG_TRACE, "%s: we're netrigctl#2\n", __func__);
+
+        //snprintf(bufcmd, sizeof(bufcmd), "%s %s\n", cmd->cmd, arg1);
+        if (cmd->cmd == 'w')
+        {
+            snprintf(bufcmd, sizeof(bufcmd), "%c %s\n", cmd->cmd, arg1);
+        }
+        else
+        {
+            int nbytes = 0;
+            sscanf(arg2, "%d", &nbytes);
+            snprintf(bufcmd, sizeof(bufcmd), "%c %s %d\n", cmd->cmd, arg1, nbytes);
+        }
+
         cmd_len = strlen(bufcmd);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd=%s, len=%d\n", __func__, bufcmd, cmd_len);
     }
     else
     {
+        char tmpbuf[64];
         /* text protocol */
-        strncpy(bufcmd, arg1, BUFSZ);
+        strncpy(bufcmd, arg1, BUFSZ - 1);
+        strtok(bufcmd, "\0xa\0xd");
         bufcmd[BUFSZ - 2] = '\0';
         cmd_len = strlen(bufcmd);
+        rig_debug(RIG_DEBUG_TRACE, "%s: bufcmd=%s\n", __func__, bufcmd);
 
         /* Automatic termination char */
         if (send_cmd_term != 0)
@@ -4099,13 +4169,21 @@ declare_proto_rig(send_cmd)
         }
 
         eom_buf[2] = send_cmd_term;
+
+        snprintf(tmpbuf, sizeof(tmpbuf), "0x%02x 0x%02x 0x%02x", eom_buf[0], eom_buf[1],
+                 eom_buf[2]);
+
+        rig_debug(RIG_DEBUG_TRACE, "%s: text protocol, send_cmd_term=%s\n", __func__,
+                  tmpbuf);
     }
 
     rs = &rig->state;
 
     serial_flush(&rs->rigport);
 
-    retval = write_block(&rs->rigport, bufcmd, cmd_len);
+    rig_debug(RIG_DEBUG_TRACE, "%s: rigport=%d, bufcmd=%s, cmd_len=%d\n", __func__,
+              rs->rigport.fd, hasbinary(bufcmd) ? "BINARY" : bufcmd, cmd_len);
+    retval = write_block(&rs->rigport, (char *)bufcmd, cmd_len);
 
     if (retval != RIG_OK)
     {
@@ -4114,17 +4192,33 @@ declare_proto_rig(send_cmd)
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
-        fwrite(cmd->arg1, 1, strlen(cmd->arg1), fout); /* i.e. "Frequency" */
+        rig_debug(RIG_DEBUG_TRACE, "%s: debug Cmd\n", __func__);
+        fwrite(cmd->arg2, 1, strlen(cmd->arg2), fout); /* i.e. "Frequency" */
         fwrite(":", 1, 1, fout); /* i.e. "Frequency" */
     }
 
     do
     {
+        if (arg2) { sscanf(arg2, "%d", &rxbytes); }
+
+        if (rxbytes > 0)
+        {
+            ++rxbytes;  // need length + 1 for end of string
+
+            if (cmd->cmd == 'W') { rxbytes *= 5; }
+
+            eom_buf[0] = 0;
+        }
+
         /* Assumes CR or LF is end of line char for all ASCII protocols. */
-        retval = read_string(&rs->rigport, buf, BUFSZ, eom_buf, strlen(eom_buf));
+        retval = read_string(&rs->rigport, (char *)buf, rxbytes, eom_buf,
+                             strlen(eom_buf));
 
         if (retval < 0)
         {
+            rig_debug(RIG_DEBUG_ERR, "%s: read_string error %s\n", __func__,
+                      rigerror(retval));
+
             break;
         }
 
@@ -4140,31 +4234,38 @@ declare_proto_rig(send_cmd)
         if (rig->caps->rig_model != RIG_MODEL_NETRIGCTL)
         {
             // see if we have binary being returned
-            int i;
-
-            for (i = 0; i < retval; ++i)
-            {
-                if (!isprint(buf[i]))
-                {
-                    binary = 1;
-                    break;
-                }
-            }
+            binary = hasbinary((char *)buf);
         }
 
         if (binary)   // convert our buf to a hex representaion
         {
             int i;
-            char hex[64];
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: sending binary\n", __func__);
+            char hex[8];
+            int hexbufbytes = retval * 6;
+            char *hexbuf = calloc(hexbufbytes, 1);
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: sending binary, hexbuf size=%d\n", __func__,
+                      hexbufbytes);
+            hexbuf[0] = 0;
 
             for (i = 0; i < retval; ++i)
             {
                 snprintf(hex, sizeof(hex), "\\0x%02X", (unsigned char)buf[i]);
-                fprintf(fout, "%s", hex);
+
+                if ((strlen(hexbuf) + strlen(hex) + 1) >= hexbufbytes)
+                {
+                    hexbufbytes *= 2;
+                    rig_debug(RIG_DEBUG_TRACE, "%s: doubling hexbuf size to %d\n", __func__,
+                              hexbufbytes);
+                    hexbuf = realloc(hexbuf, hexbufbytes);
+                }
+
+                strncat(hexbuf, hex, hexbufbytes - 1);
             }
 
-            fprintf(fout, " %d\n", retval);
+            rig_debug(RIG_DEBUG_TRACE, "%s: binary=%s, retval=%d\n", __func__, hexbuf,
+                      retval);
+            fprintf(fout, "%s %d\n", hexbuf, retval);
+            free(hexbuf);
             return RIG_OK;
         }
         else
@@ -4173,7 +4274,7 @@ declare_proto_rig(send_cmd)
             fprintf(fout, "%s\n", buf);
         }
     }
-    while (retval > 0);
+    while (retval > 0 && rxbytes == BUFSZ);
 
 // we use fwrite in case of any nulls in binary return
     if (binary) { fwrite(buf, 1, retval, fout); }

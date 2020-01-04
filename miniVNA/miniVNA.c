@@ -64,12 +64,14 @@ static int miniVNA_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 }
 
 
+#ifdef XXREMOVEDXX
 static const char *miniVNA_get_info(RIG *rig)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     return "miniVNA";
 }
+#endif
 
 const struct rig_caps miniVNA_caps =
 {

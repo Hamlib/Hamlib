@@ -21,7 +21,6 @@
 //   License along with this library; if not, write to the Free Software
 //   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
-
 #ifdef HAVE_CONFIG_H
 #  include "config.h"
 #endif
@@ -48,23 +47,6 @@
 #include "misc.h"
 #include "register.h"
 #include "num_stdio.h"
-
-/* HAVE_SSLEEP is defined when Windows Sleep is found
- * HAVE_SLEEP is defined when POSIX sleep is found
- * _WIN32 is defined when compiling with MinGW
- *
- * When cross-compiling from POSIX to Windows using MinGW, HAVE_SLEEP
- * will often be defined by configure although it is not supported by
- * MinGW.  So substitute the sleep definition below in such a case and
- * when compiling on Windows using MinGW where HAVE_SLEEP will be
- * undefined.
- *
- * FIXME:  Needs better handling for all versions of MinGW.
- *
- */
-#if (defined(HAVE_SSLEEP) || defined(_WIN32)) && (!defined(HAVE_SLEEP))
-#  include "hl_sleep.h"
-#endif
 
 // ---------------------------------------------------------------------------
 //    ADAT INCLUDES
@@ -2590,6 +2572,11 @@ int adat_transaction(RIG                *pRig,
                                         nRC = adat_receive(pRig, acBuf);
                                     }
 
+                                    if (pPriv->pcResult != NULL)
+                                    {
+                                        free(pPriv->pcResult);
+                                    }
+
                                     pPriv->pcResult = strdup(acBuf);
                                 }
                             }
@@ -3145,7 +3132,7 @@ int adat_set_mode(RIG *pRig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
 
         pPriv->nRIGMode    = mode;
-        nRC = adat_vfo_rnr2anr(vfo, &(pPriv->nCurrentVFO));
+        adat_vfo_rnr2anr(vfo, &(pPriv->nCurrentVFO));
 
         if (width != RIG_PASSBAND_NOCHANGE)
         {
@@ -3533,6 +3520,7 @@ int adat_set_conf(RIG *pRig, token_t token, const char *val)
         switch (token)
         {
         case TOKEN_ADAT_PRODUCT_NAME:
+            if (pPriv->pcProductName != NULL) free(pPriv->pcProductName);
             pPriv->pcProductName = strdup(val);
             break;
 

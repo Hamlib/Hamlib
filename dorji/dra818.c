@@ -137,9 +137,9 @@ static int dra818_setvolume(RIG *rig)
 
 int dra818_init(RIG *rig)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: dra818_init called\n", __func__);
-
     struct dra818_priv *priv = calloc(sizeof(*priv), 1);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: dra818_init called\n", __func__);
 
     if (!priv)
     {
@@ -285,13 +285,14 @@ int dra818_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
     struct dra818_priv *priv = rig->state.priv;
     char cmd[80];
+    char response[8];
+    int r;
 
     sprintf(cmd, "S+%03d.%04d\r\n",
             (int)(priv->rx_freq / 1000000), (int)((priv->rx_freq % 1000000) / 100));
     write_block(&rig->state.rigport, cmd, strlen(cmd));
 
-    char response[8];
-    int r = read_string(&rig->state.rigport, response, sizeof(response), "\n", 1);
+    r = read_string(&rig->state.rigport, response, sizeof(response), "\n", 1);
 
     if (r != 5)
     {

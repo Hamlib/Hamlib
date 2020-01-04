@@ -247,6 +247,7 @@ static int rx331_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
     int rig_id;
     int retval;
     char str[BUFSZ];
+    char fmt[16];
     struct rig_state *rs;
     struct rx331_priv_data *priv = (struct rx331_priv_data *)rig->state.priv;
 
@@ -275,7 +276,8 @@ static int rx331_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
         return retval;
     }
 
-    sscanf(data + 1, "%i%s", &rig_id, data);
+    snprintf(fmt,sizeof(fmt)-1,"%%i%%%ds",BUFSZ);
+    sscanf(data + 1, fmt, &rig_id, data);
 
     if (rig_id != priv->receiver_id)
     {
@@ -353,7 +355,7 @@ int rx331_get_conf(RIG *rig, token_t token, char *val)
     switch (token)
     {
     case TOK_RIGID:
-        sprintf(val, "%d", priv->receiver_id);
+        sprintf(val, "%u", priv->receiver_id);
         break;
 
     default:
@@ -569,13 +571,13 @@ int rx331_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     switch (level)
     {
     case RIG_LEVEL_ATT:
-        cmd_len = sprintf(cmdbuf, "$%iK%i" EOM,
+        cmd_len = sprintf(cmdbuf, "$%uK%i" EOM,
                           priv->receiver_id,
                           val.i ? RX331_ATT_ON : RX331_ATT_OFF);
         break;
 
     case RIG_LEVEL_PREAMP:
-        cmd_len = sprintf(cmdbuf, "$%iK%i" EOM,
+        cmd_len = sprintf(cmdbuf, "$%uK%i" EOM,
                           priv->receiver_id,
                           val.i ? RX331_PREAMP_ON : RX331_PREAMP_OFF);
         break;
@@ -598,17 +600,17 @@ int rx331_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             return -RIG_EINVAL;
         }
 
-        cmd_len = sprintf(cmdbuf, "$%iM%i" EOM,
+        cmd_len = sprintf(cmdbuf, "$%uM%i" EOM,
                           priv->receiver_id, val.i);
         break;
 
     case RIG_LEVEL_RF:
-        cmd_len = sprintf(cmdbuf, "$%iA%d" EOM, priv->receiver_id,
+        cmd_len = sprintf(cmdbuf, "$%uA%d" EOM, priv->receiver_id,
                           120 - (int)(val.f * 120));
         break;
 
     case RIG_LEVEL_SQL:
-        cmd_len = sprintf(cmdbuf, "$%iQ%d" EOM, priv->receiver_id,
+        cmd_len = sprintf(cmdbuf, "$%uQ%d" EOM, priv->receiver_id,
                           120 - (int)(val.f * 120));
         break;
 

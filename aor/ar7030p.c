@@ -268,6 +268,8 @@ static int ar7030p_init(RIG *rig)
     }
     else
     {
+        int i;
+
         rig->state.priv = (void *) priv;
 
         rig->state.rigport.type.rig = RIG_PORT_SERIAL;
@@ -278,8 +280,6 @@ static int ar7030p_init(RIG *rig)
         memset(priv->parms, 0, RIG_SETTING_MAX * sizeof(value_t));
 
         memset(priv->mem, 0, sizeof(priv->mem));
-
-        int i;
 
         for (i = 0; i < NB_CHAN; i++)
         {
@@ -377,10 +377,10 @@ static int ar7030p_open(RIG *rig)
 
     if (RIG_OK == rc)
     {
+        int i;
+
         /* Load calibration table */
         rig->state.str_cal.size = rig->caps->str_cal.size;
-
-        int i;
 
         for (i = 0; i < rig->state.str_cal.size; i++)
         {
@@ -514,6 +514,13 @@ static int ar7030p_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             rc = -RIG_EINVAL;
         }
 
+        // this RIG_OK check added to clear cppcheck warnings
+        // not sure if it's needed but seem like RIG_OK should be expected
+        // if this debug prints out when things are working need to reexamine 
+        if (rc != RIG_OK) {
+          rig_debug(RIG_DEBUG_ERR, "%s: unexpected error?? %s\n", __func__, rigerror(rc));
+        }
+
         rc = execRoutine(rig, SET_ALL);
 
         if (rc == RIG_OK) { rc = lockRx(rig, LOCK_0); }
@@ -564,6 +571,13 @@ static int ar7030p_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
             break;
         }
 
+        // this RIG_OK check added to clear cppcheck warnings
+        // not sure if it's needed but seem like RIG_OK should be expected
+        // if this debug prints out when things are working need to reexamine 
+        if (rc != RIG_OK) {
+          rig_debug(RIG_DEBUG_ERR, "%s: unexpected error?? %s\n", __func__, rigerror(rc));
+        }
+
         rc = lockRx(rig, LOCK_0);
     }
 
@@ -603,10 +617,10 @@ static int ar7030p_set_mode(RIG *rig, vfo_t vfo, rmode_t mode,
             }
             else
             {
+                int i;
+
                 /* TODO - get filter BWs at startup */
                 ar_filter = (unsigned char) 6;
-
-                int i;
 
                 for (i = 1; i <= 6; i++)
                 {
@@ -629,6 +643,13 @@ static int ar7030p_set_mode(RIG *rig, vfo_t vfo, rmode_t mode,
             {
                 rc = execRoutine(rig, SET_ALL);
             }
+        }
+
+        // this RIG_OK check added to clear cppcheck warnings
+        // not sure if it's needed but seem like RIG_OK should be expected
+        // if this debug prints out when things are working need to reexamine 
+        if (rc != RIG_OK) {
+          rig_debug(RIG_DEBUG_ERR, "%s: unexpected error?? %s\n", __func__, rigerror(rc));
         }
 
         rc = lockRx(rig, LOCK_0);
@@ -966,6 +987,13 @@ static int ar7030p_set_level(RIG *rig, vfo_t vfo, setting_t level,
         default:
             rc = -RIG_EINVAL;
             break;
+        }
+
+        // this RIG_OK check added to clear cppcheck warnings
+        // not sure if it's needed but seem like RIG_OK should be expected
+        // if this debug prints out when things are working need to reexamine 
+        if (rc != RIG_OK) {
+          rig_debug(RIG_DEBUG_ERR, "%s: unexpected error?? %s\n", __func__, rigerror(rc));
         }
 
         rc = lockRx(rig, LOCK_0);
@@ -1632,6 +1660,8 @@ static int ar7030p_get_channel(RIG *rig, channel_t *chan)
 
     if (RIG_OK == rc)
     {
+        int i;
+
         /* Squelch values */
         /* TODO - fix magic numbers */
         if (100 > ch)
@@ -1703,8 +1733,6 @@ static int ar7030p_get_channel(RIG *rig, channel_t *chan)
 
         /* Memory ID values */
         p = (unsigned char *) chan->channel_desc;
-
-        int i;
 
         for (i = 0; i < 14; i++)
         {

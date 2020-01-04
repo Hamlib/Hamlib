@@ -39,24 +39,6 @@
 
 #include "tt550.h"
 
-/* HAVE_SSLEEP is defined when Windows Sleep is found
- * HAVE_SLEEP is defined when POSIX sleep is found
- * _WIN32 is defined when compiling with MinGW
- *
- * When cross-compiling from POSIX to Windows using MinGW, HAVE_SLEEP
- * will often be defined by configure although it is not supported by
- * MinGW.  So substitute the sleep definition below in such a case and
- * when compiling on Windows using MinGW where HAVE_SLEEP will be
- * undefined.
- *
- * FIXME:  Needs better handling for all versions of MinGW.
- *
- */
-#if (defined(HAVE_SSLEEP) || defined(_WIN32)) && (!defined(HAVE_SLEEP))
-#include "hl_sleep.h"
-#endif
-
-
 /*
  * Filter table for 550 reciver support
  */
@@ -232,7 +214,7 @@ tt550_tuning_factor_calc(RIG *rig, int tx)
     int TBfo = 0;         // temporary BFO
     int IBfo = 1500;      // Intermediate BFO Freq
     int FilterBw;         // Filter Bandwidth determined from table
-    int Mode, bwBFO, PbtAdj, RitAdj, XitAdj;
+    int Mode, PbtAdj, RitAdj, XitAdj;
 
     priv = (struct tt550_priv_data *) rig->state.priv;
 
@@ -245,7 +227,7 @@ tt550_tuning_factor_calc(RIG *rig, int tx)
 
     if (tx)
     {
-        bwBFO = (FilterBw / 2) + 200;
+        int bwBFO = (FilterBw / 2) + 200;
 
         IBfo = (bwBFO > IBfo) ? bwBFO : IBfo;
 
@@ -1706,7 +1688,6 @@ tt550_decode_event(RIG *rig)
     struct rig_state *rs;
     unsigned char buf[MAXFRAMELEN];
     int data_len;
-    short movement = 0;
 //  char key;
 
 
@@ -1744,7 +1725,7 @@ tt550_decode_event(RIG *rig)
     case '!':
         if (rig->callbacks.freq_event)
         {
-            movement = buf[1] << 8;
+            int movement = buf[1] << 8;
             movement = movement | buf[2];
 //      key = buf[3];
             rig_debug(RIG_DEBUG_VERBOSE,

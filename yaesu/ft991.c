@@ -368,10 +368,12 @@ int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
 
 int ft991_init(RIG *rig)
 {
+    int ret;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, version %s\n", __func__,
               rig->caps->version);
-    int ret = newcat_init(rig);
 
+    ret = newcat_init(rig);
     if (ret != RIG_OK) { return ret; }
 
     rig->state.current_vfo = RIG_VFO_A;

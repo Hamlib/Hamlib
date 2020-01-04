@@ -68,7 +68,6 @@ static int skanti_transaction(RIG *rig, const char *cmd, int cmd_len,
 {
     int retval;
     struct rig_state *rs;
-    char retbuf[BUFSZ + 1];
 
     rs = &rig->state;
 
@@ -88,6 +87,7 @@ static int skanti_transaction(RIG *rig, const char *cmd, int cmd_len,
         /*
         * Transceiver sends back ">"
         */
+        char retbuf[BUFSZ + 1];
         retval = read_string(&rs->rigport, retbuf, BUFSZ, PROMPT, strlen(PROMPT));
 
         if (retval < 0)

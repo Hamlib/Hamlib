@@ -21,7 +21,6 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -168,32 +167,25 @@ const struct confparams elad_cfg_params[] =
  */
 int elad_transaction(RIG *rig, const char *cmdstr, char *data, size_t datasize)
 {
+    struct elad_priv_data *priv = rig->state.priv;
+    struct elad_priv_caps *caps = elad_caps(rig);
+    struct rig_state *rs;
+    int retval;
+    char cmdtrm[2];  /* Default Command/Reply termination char */
+    char *cmd;
+    int len;
+    int retry_read = 0;
+
     char buffer[ELAD_MAX_BUF_LEN]; /* use our own buffer since
                                        verification may need a longer
                                        buffer than the user supplied one */
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || (!cmdstr && !datasize) || (datasize && !data))
+    if ((!cmdstr && !datasize) || (datasize && !data))
     {
         return -RIG_EINVAL;
     }
-
-    struct elad_priv_data *priv = rig->state.priv;
-
-    struct elad_priv_caps *caps = elad_caps(rig);
-
-    struct rig_state *rs;
-
-    int retval;
-
-    char cmdtrm[2];  /* Default Command/Reply termination char */
-
-    char *cmd;
-
-    int len;
-
-    int retry_read = 0;
 
     rs = &rig->state;
 
@@ -455,15 +447,10 @@ transaction_quit:
 int elad_safe_transaction(RIG *rig, const char *cmd, char *buf,
                           size_t buf_size, size_t expected)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !cmd)
-    {
-        return -RIG_EINVAL;
-    }
-
     int err;
     int retry = 0;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (expected == 0)
     {
@@ -472,6 +459,7 @@ int elad_safe_transaction(RIG *rig, const char *cmd, char *buf,
 
     do
     {
+        size_t length;
         err = elad_transaction(rig, cmd, buf, buf_size);
 
         if (err != RIG_OK)        /* return immediately on error as any
@@ -480,7 +468,7 @@ int elad_safe_transaction(RIG *rig, const char *cmd, char *buf,
             return err;
         }
 
-        size_t length = strlen(buf);
+        length = strlen(buf);
 
         if (length != expected) /* worth retrying as some rigs
                                    occasionally send short results */
@@ -531,16 +519,10 @@ char rmode2elad(rmode_t mode, const rmode_t mode_table[])
 
 int elad_init(RIG *rig)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     struct elad_priv_data *priv;
-
     struct elad_priv_caps *caps = elad_caps(rig);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     priv = malloc(sizeof(struct elad_priv_data));
 
@@ -577,11 +559,6 @@ int elad_cleanup(RIG *rig)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     free(rig->state.priv);
     rig->state.priv = NULL;
 
@@ -590,23 +567,16 @@ int elad_cleanup(RIG *rig)
 
 int elad_open(RIG *rig)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     struct elad_priv_data *priv = rig->state.priv;
-
     int err, i;
-
     char *idptr;
-
     char id[ELAD_MAX_BUF_LEN];
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (RIG_MODEL_TS590S == rig->caps->rig_model)
     {
+        char *dot_pos;
         /* we need the firmware version for these rigs to deal with f/w defects */
         static char fw_version[7];
 
@@ -621,7 +591,7 @@ int elad_open(RIG *rig)
         /* store the data  after the "FV" which should be  a f/w version
            string of the form n.n e.g. 1.07 */
         priv->fw_rev = &fw_version[2];
-        char *dot_pos = strchr(fw_version, '.');
+        dot_pos = strchr(fw_version, '.');
 
         if (dot_pos)
         {
@@ -737,11 +707,9 @@ int elad_open(RIG *rig)
 
 int elad_close(RIG *rig)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig) { return -RIG_EINVAL; }
-
     struct elad_priv_data *priv = rig->state.priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!no_restore_ai && priv->trn_state >= 0)
     {
@@ -764,11 +732,6 @@ int elad_get_id(RIG *rig, char *buf)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     return elad_transaction(rig, "ID", buf, ELAD_MAX_BUF_LEN);
 }
 
@@ -779,16 +742,10 @@ int elad_get_id(RIG *rig, char *buf)
  */
 static int elad_get_if(RIG *rig)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     struct elad_priv_data *priv = rig->state.priv;
-
     struct elad_priv_caps *caps = elad_caps(rig);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     return elad_safe_transaction(rig, "IF", priv->info,
                                  ELAD_MAX_BUF_LEN, caps->if_len);
@@ -802,14 +759,12 @@ static int elad_get_if(RIG *rig)
  */
 int elad_set_vfo(RIG *rig, vfo_t vfo)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
+    char cmdbuf[6];
+    int retval;
+    char vfo_function;
     struct elad_priv_data *priv = rig->state.priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     /* Emulations do not need to set VFO since VFOB is a copy of VFOA
      * except for frequency.  And we can change freq without changing VFOS
@@ -817,10 +772,6 @@ int elad_set_vfo(RIG *rig, vfo_t vfo)
      * We'll do this once if curr_mode has not been set yet
      */
     if (priv->is_emulation && priv->curr_mode > 0) { return RIG_OK; }
-
-    char cmdbuf[6];
-    int retval;
-    char vfo_function;
 
     switch (vfo)
     {
@@ -905,15 +856,10 @@ int elad_set_vfo(RIG *rig, vfo_t vfo)
  */
 int elad_set_vfo_main_sub(RIG *rig, vfo_t vfo)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     char cmdbuf[6];
     char vfo_function;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     switch (vfo)
     {
@@ -949,11 +895,6 @@ int elad_get_vfo_main_sub(RIG *rig, vfo_t *vfo)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !vfo)
-    {
-        return -RIG_EINVAL;
-    }
-
     if (RIG_OK == (rc = elad_safe_transaction(rig, "CB", buf, sizeof(buf), 3)))
     {
         *vfo = buf[2] == '1' ? RIG_VFO_SUB : RIG_VFO_MAIN;
@@ -969,20 +910,12 @@ int elad_get_vfo_main_sub(RIG *rig, vfo_t *vfo)
  */
 int elad_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     struct elad_priv_data *priv = rig->state.priv;
-
     char cmdbuf[6];
-
     int retval;
-
     unsigned char vfo_function;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (RIG_MODEL_TS990S == rig->caps->rig_model)
     {
@@ -1087,18 +1020,11 @@ int elad_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
  */
 int elad_set_split(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     struct elad_priv_data *priv = rig->state.priv;
-
     char cmdbuf[6];
-
     int retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     snprintf(cmdbuf, sizeof(cmdbuf), "SP%c", RIG_SPLIT_ON == split ? '1' : '0');
 
@@ -1122,16 +1048,17 @@ int elad_set_split(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
  */
 int elad_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split, vfo_t *txvfo)
 {
+    struct elad_priv_data *priv = rig->state.priv;
+    int retval;
+    int transmitting;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !split || !txvfo)
+    if (!split || !txvfo)
     {
         return -RIG_EINVAL;
     }
 
-    struct elad_priv_data *priv = rig->state.priv;
-
-    int retval;
 
     if (RIG_MODEL_TS990S == rig->caps->rig_model)
     {
@@ -1182,7 +1109,7 @@ int elad_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split, vfo_t *txvfo)
 
     /* find where is the txvfo.. */
     /* Elecraft info[30] does not track split VFO when transmitting */
-    int transmitting = '1' == priv->info[28]
+    transmitting = '1' == priv->info[28]
                        && RIG_MODEL_K2 != rig->caps->rig_model
                        && RIG_MODEL_K3 != rig->caps->rig_model;
 
@@ -1219,15 +1146,11 @@ int elad_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split, vfo_t *txvfo)
  */
 int elad_get_vfo_if(RIG *rig, vfo_t *vfo)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !vfo)
-    {
-        return -RIG_EINVAL;
-    }
-
     int retval;
     struct elad_priv_data *priv = rig->state.priv;
+    int split_and_transmitting;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     retval = elad_get_if(rig);
 
@@ -1237,7 +1160,7 @@ int elad_get_vfo_if(RIG *rig, vfo_t *vfo)
     }
 
     /* Elecraft info[30] does not track split VFO when transmitting */
-    int split_and_transmitting =
+    split_and_transmitting =
         '1' == priv->info[28] /* transmitting */
         && '1' == priv->info[32]               /* split */
         && RIG_MODEL_K2 != rig->caps->rig_model
@@ -1272,17 +1195,14 @@ int elad_get_vfo_if(RIG *rig, vfo_t *vfo)
  */
 int elad_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     char freqbuf[16];
     unsigned char vfo_letter = '\0';
     vfo_t tvfo;
     int err;
+    struct elad_priv_data *priv = rig->state.priv;
+
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     tvfo = (vfo == RIG_VFO_CURR
             || vfo == RIG_VFO_VFO) ? rig->state.current_vfo : vfo;
@@ -1319,8 +1239,6 @@ int elad_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     snprintf(freqbuf, sizeof(freqbuf), "F%c%011"PRIll, vfo_letter, (int64_t)freq);
 
     err = elad_transaction(rig, freqbuf, NULL, 0);
-
-    struct elad_priv_data *priv = rig->state.priv;
 
     if (RIG_OK == err && RIG_MODEL_TS590S == rig->caps->rig_model
             && priv->fw_rev_uint <= 107 && ('A' == vfo_letter || 'B' == vfo_letter))
@@ -1367,18 +1285,16 @@ int elad_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 int elad_get_freq_if(RIG *rig, vfo_t vfo, freq_t *freq)
 {
+    struct elad_priv_data *priv = rig->state.priv;
+    char freqbuf[50];
+    int retval;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !freq)
+    if (!freq)
     {
         return -RIG_EINVAL;
     }
-
-    struct elad_priv_data *priv = rig->state.priv;
-
-    char freqbuf[50];
-
-    int retval;
 
     retval = elad_get_if(rig);
 
@@ -1399,18 +1315,18 @@ int elad_get_freq_if(RIG *rig, vfo_t vfo, freq_t *freq)
  */
 int elad_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !freq)
-    {
-        return -RIG_EINVAL;
-    }
-
     char freqbuf[50];
     char cmdbuf[4];
     int retval;
     unsigned char vfo_letter = '\0';
     vfo_t tvfo;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!freq)
+    {
+        return -RIG_EINVAL;
+    }
 
     tvfo = (vfo == RIG_VFO_CURR
             || vfo == RIG_VFO_VFO) ? rig->state.current_vfo : vfo;
@@ -1467,16 +1383,11 @@ int elad_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 int elad_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !rit)
-    {
-        return -RIG_EINVAL;
-    }
-
     int retval;
     char buf[6];
     struct elad_priv_data *priv = rig->state.priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     retval = elad_get_if(rig);
 
@@ -1498,15 +1409,10 @@ int elad_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
  */
 int elad_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     char buf[4];
     int retval, i;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (rit == 0)
     {
@@ -1537,7 +1443,7 @@ int elad_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !rit)
+    if (!rit)
     {
         return -RIG_EINVAL;
     }
@@ -1549,22 +1455,12 @@ int elad_set_xit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     return elad_set_rit(rig, vfo, rit);
 }
 
 int elad_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
 
     if (RIG_MODEL_TS990S == rig->caps->rig_model)
     {
@@ -1589,14 +1485,9 @@ int elad_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 /* XXX revise */
 static int elad_set_filter(RIG *rig, pbwidth_t width)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     char *cmd;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (width <= Hz(250))
     {
@@ -1627,24 +1518,14 @@ static int elad_set_filter(RIG *rig, pbwidth_t width)
  */
 int elad_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     struct elad_priv_data *priv = rig->state.priv;
-
     struct elad_priv_caps *caps = elad_caps(rig);
-
     char buf[6];
-
     char kmode;
-
     int err;
-
     char data_mode = '0';
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (RIG_MODEL_TS590S == rig->caps->rig_model
             || RIG_MODEL_TS590SG == rig->caps->rig_model)
@@ -1776,15 +1657,15 @@ int elad_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 static int elad_get_filter(RIG *rig, pbwidth_t *width)
 {
+    int err, f, f1, f2;
+    char buf[10];
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !width)
+    if (!width)
     {
         return -RIG_EINVAL;
     }
-
-    int err, f, f1, f2;
-    char buf[10];
 
     err = elad_safe_transaction(rig, "FL", buf, sizeof(buf), 8);
 
@@ -1839,24 +1720,20 @@ static int elad_get_filter(RIG *rig, pbwidth_t *width)
  */
 int elad_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
+    struct elad_priv_data *priv = rig->state.priv;
+    struct elad_priv_caps *caps = elad_caps(rig);
+    char cmd[4];
+    char modebuf[10];
+    int offs;
+    int retval;
+    int kmode;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !mode || !width)
+    if (!mode || !width)
     {
         return -RIG_EINVAL;
     }
-
-    struct elad_priv_data *priv = rig->state.priv;
-
-    struct elad_priv_caps *caps = elad_caps(rig);
-
-    char cmd[4];
-
-    char modebuf[10];
-
-    int offs;
-
-    int retval;
 
     /* for emulation do not read mode from VFOB as it is copy of VFOA */
     /* we avoid the VFO swapping most of the time this way */
@@ -1904,8 +1781,6 @@ int elad_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     {
         return retval;
     }
-
-    int kmode;
 
     if (modebuf[offs] <= '9')
     {
@@ -1962,16 +1837,16 @@ int elad_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 /* This is used when the radio does not support MD; for mode reading */
 int elad_get_mode_if(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !mode || !width)
-    {
-        return -RIG_EINVAL;
-    }
-
     int err;
     struct elad_priv_caps *caps = elad_caps(rig);
     struct elad_priv_data *priv = rig->state.priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!mode || !width)
+    {
+        return -RIG_EINVAL;
+    }
 
     err = elad_get_if(rig);
 
@@ -1999,15 +1874,10 @@ int elad_get_mode_if(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 int elad_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     char levelbuf[16];
     int i, elad_val;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (RIG_LEVEL_IS_FLOAT(level))
     {
@@ -2151,17 +2021,17 @@ int elad_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
 int get_elad_level(RIG *rig, const char *cmd, float *f)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !cmd || !f)
-    {
-        return -RIG_EINVAL;
-    }
-
     char lvlbuf[10];
     int retval;
     int lvl;
     int len = strlen(cmd);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if ( !f )
+    {
+        return -RIG_EINVAL;
+    }
 
     retval = elad_safe_transaction(rig, cmd, lvlbuf, 10, len + 3);
 
@@ -2182,18 +2052,18 @@ int get_elad_level(RIG *rig, const char *cmd, float *f)
  */
 int elad_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !val)
-    {
-        return -RIG_EINVAL;
-    }
-
     char lvlbuf[ELAD_MAX_BUF_LEN];
     char *cmd;
     int retval;
     int lvl;
     int i, ret, agclevel, len;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!val)
+    {
+        return -RIG_EINVAL;
+    }
 
     switch (level)
     {
@@ -2434,14 +2304,9 @@ int elad_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 int elad_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     char buf[6]; /* longest cmd is GTxxx */
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     switch (func)
     {
@@ -2515,15 +2380,15 @@ int elad_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
  */
 int get_elad_func(RIG *rig, const char *cmd, int *status)
 {
+    int retval;
+    char buf[10];
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !cmd || !status)
+    if (!cmd || !status)
     {
         return -RIG_EINVAL;
     }
-
-    int retval;
-    char buf[10];
 
     retval = elad_safe_transaction(rig, cmd, buf, 10, 3);
 
@@ -2542,15 +2407,15 @@ int get_elad_func(RIG *rig, const char *cmd, int *status)
  */
 int elad_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
+    char fctbuf[20];
+    int retval;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !status)
+    if (!status)
     {
         return -RIG_EINVAL;
     }
-
-    char fctbuf[20];
-    int retval;
 
     switch (func)
     {
@@ -2616,16 +2481,11 @@ int elad_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
  */
 int elad_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     const struct rig_caps *caps;
     char tonebuf[16];
     int i;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     caps = rig->caps;
 
@@ -2651,16 +2511,11 @@ int elad_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 
 int elad_set_ctcss_tone_tn(RIG *rig, vfo_t vfo, tone_t tone)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     const struct rig_caps *caps = rig->caps;
     char buf[16];
     int i;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     /* XXX 40 is a fixed constant */
     for (i = 0; caps->ctcss_list[i] != 0; i++)
@@ -2717,22 +2572,13 @@ int elad_set_ctcss_tone_tn(RIG *rig, vfo_t vfo, tone_t tone)
  */
 int elad_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !tone)
-    {
-        return -RIG_EINVAL;
-    }
-
     struct elad_priv_data *priv = rig->state.priv;
-
     const struct rig_caps *caps;
-
     char tonebuf[3];
-
     int i, retval;
-
     unsigned int tone_idx;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     caps = rig->caps;
 
@@ -2804,16 +2650,11 @@ int elad_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 
 int elad_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     const struct rig_caps *caps = rig->caps;
     char buf[16];
     int i;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     for (i = 0; caps->ctcss_list[i] != 0; i++)
     {
@@ -2865,19 +2706,14 @@ int elad_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 
 int elad_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !tone)
-    {
-        return -RIG_EINVAL;
-    }
-
     const struct rig_caps *caps;
     char cmd[4];
     char tonebuf[6];
     int offs;
     int i, retval;
     unsigned int tone_idx;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     caps = rig->caps;
 
@@ -2951,15 +2787,10 @@ int elad_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
  */
 int elad_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     char cmd[8];
     char a;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     switch (ant)
     {
@@ -3012,14 +2843,9 @@ int elad_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
 
 int elad_set_ant_no_ack(RIG *rig, vfo_t vfo, ant_t ant)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     const char *cmd;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     switch (ant)
     {
@@ -3051,16 +2877,11 @@ int elad_set_ant_no_ack(RIG *rig, vfo_t vfo, ant_t ant)
  */
 int elad_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !ant)
-    {
-        return -RIG_EINVAL;
-    }
-
     char ackbuf[8];
     int offs;
     int retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (RIG_MODEL_TS990S == rig->caps->rig_model)
     {
@@ -3095,16 +2916,10 @@ int elad_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
  */
 int elad_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !ptt)
-    {
-        return -RIG_EINVAL;
-    }
-
     struct elad_priv_data *priv = rig->state.priv;
-
     int retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     retval = elad_get_if(rig);
 
@@ -3125,11 +2940,6 @@ int elad_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     switch (ptt)
     {
     case RIG_PTT_ON:      ptt_cmd = "TX"; break;
@@ -3149,15 +2959,10 @@ int elad_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 int elad_set_ptt_safe(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     char busybuf[10];
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     int err;
     ptt_t current_ptt;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     err = elad_get_ptt(rig, vfo, &current_ptt);
 
@@ -3181,15 +2986,12 @@ int elad_set_ptt_safe(RIG *rig, vfo_t vfo, ptt_t ptt)
  */
 int elad_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !dcd)
-    {
-        return -RIG_EINVAL;
-    }
-
     char busybuf[10];
     int retval;
+    int offs = 2;
+
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     retval = elad_safe_transaction(rig, "BY", busybuf, 10, 3);
 
@@ -3197,8 +2999,6 @@ int elad_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
     {
         return retval;
     }
-
-    int offs = 2;
 
     if (RIG_MODEL_TS990S == rig->caps->rig_model && RIG_VFO_SUB == vfo)
     {
@@ -3217,11 +3017,6 @@ int elad_set_trn(RIG *rig, int trn)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     if (RIG_MODEL_TS990S == rig->caps->rig_model)
     {
         return elad_transaction(rig, (trn == RIG_TRN_RIG) ? "AI2" : "AI0", NULL, 0);
@@ -3237,9 +3032,12 @@ int elad_set_trn(RIG *rig, int trn)
  */
 int elad_get_trn(RIG *rig, int *trn)
 {
+    char trnbuf[6];
+    int retval;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !trn)
+    if (!trn)
     {
         return -RIG_EINVAL;
     }
@@ -3253,9 +3051,6 @@ int elad_get_trn(RIG *rig, int *trn)
     {
         return -RIG_ENAVAIL;
     }
-
-    char trnbuf[6];
-    int retval;
 
     retval = elad_safe_transaction(rig, "AI", trnbuf, 6, 3);
 
@@ -3276,11 +3071,6 @@ int elad_set_powerstat(RIG *rig, powerstat_t status)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     return elad_transaction(rig, (status == RIG_POWER_ON) ? "PS1" : "PS0", NULL, 0);
 }
 
@@ -3289,15 +3079,15 @@ int elad_set_powerstat(RIG *rig, powerstat_t status)
  */
 int elad_get_powerstat(RIG *rig, powerstat_t *status)
 {
+    char pwrbuf[6];
+    int retval;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !status)
+    if (!status)
     {
         return -RIG_EINVAL;
     }
-
-    char pwrbuf[6];
-    int retval;
 
     retval = elad_safe_transaction(rig, "PS", pwrbuf, 6, 3);
 
@@ -3316,15 +3106,10 @@ int elad_get_powerstat(RIG *rig, powerstat_t *status)
  */
 int elad_reset(RIG *rig, reset_t reset)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     char rstbuf[6];
     char rst;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (RIG_MODEL_TS990S == rig->caps->rig_model)
     {
@@ -3370,22 +3155,18 @@ int elad_reset(RIG *rig, reset_t reset)
  */
 int elad_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !msg)
-    {
-        return -RIG_EINVAL;
-    }
-
     char morsebuf[40], m2[30];
     int msg_len, retval, i;
     const char *p;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     p = msg;
     msg_len = strlen(msg);
 
     while (msg_len > 0)
     {
+        int buff_len;
         /*
          * Check with "KY" if char buffer is available.
          * if not, sleep.
@@ -3410,7 +3191,7 @@ int elad_send_morse(RIG *rig, vfo_t vfo, const char *msg)
             else { return -RIG_EINVAL; }
         }
 
-        int buff_len = msg_len > 24 ? 24 : msg_len;
+        buff_len = msg_len > 24 ? 24 : msg_len;
 
         strncpy(m2, p, 24);
         m2[24] = '\0';
@@ -3458,11 +3239,6 @@ int elad_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     switch (op)
     {
     case RIG_OP_UP:
@@ -3489,14 +3265,9 @@ int elad_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
  */
 int elad_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     char buf[7];
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (RIG_MODEL_TS990S == rig->caps->rig_model)
     {
@@ -3543,17 +3314,12 @@ int elad_set_mem(RIG *rig, vfo_t vfo, int ch)
  */
 int elad_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !ch)
-    {
-        return -RIG_EINVAL;
-    }
-
     char cmd[4];
     char membuf[10];
     int offs;
     int retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (RIG_MODEL_TS990S == rig->caps->rig_model)
     {
@@ -3606,16 +3372,11 @@ int elad_get_mem(RIG *rig, vfo_t vfo, int *ch)
 
 int elad_get_mem_if(RIG *rig, vfo_t vfo, int *ch)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !ch)
-    {
-        return -RIG_EINVAL;
-    }
-
     int err;
     char buf[4];
     struct elad_priv_data *priv = rig->state.priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     err = elad_get_if(rig);
 
@@ -3634,20 +3395,15 @@ int elad_get_mem_if(RIG *rig, vfo_t vfo, int *ch)
 
 int elad_get_channel(RIG *rig, channel_t *chan)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !chan)
-    {
-        return -RIG_EINVAL;
-    }
-
     int err;
     char buf[26];
     char cmd[8];
+    char bank = ' ';
     struct elad_priv_caps *caps = elad_caps(rig);
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
     /* put channel num in the command string */
-    char bank = ' ';
 
     if (rig->caps->rig_model == RIG_MODEL_TS940)
     {
@@ -3746,19 +3502,19 @@ int elad_get_channel(RIG *rig, channel_t *chan)
 
 int elad_set_channel(RIG *rig, const channel_t *chan)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !chan)
-    {
-        return -RIG_EINVAL;
-    }
-
     char buf[128];
     char mode, tx_mode = 0;
     int err;
     int tone = 0;
-
+    char bank = ' ';
     struct elad_priv_caps *caps = elad_caps(rig);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!chan)
+    {
+        return -RIG_EINVAL;
+    }
 
     mode = rmode2elad(chan->mode, caps->mode_table);
 
@@ -3800,8 +3556,6 @@ int elad_set_channel(RIG *rig, const channel_t *chan)
         }
     }
 
-    char bank = ' ';
-
     if (rig->caps->rig_model == RIG_MODEL_TS940)
     {
         bank = '0' + chan->bank_num;
@@ -3839,14 +3593,9 @@ int elad_set_channel(RIG *rig, const channel_t *chan)
 
 int elad_set_ext_parm(RIG *rig, token_t token, value_t val)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     char buf[4];
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     switch (token)
     {
@@ -3871,15 +3620,10 @@ int elad_set_ext_parm(RIG *rig, token_t token, value_t val)
 
 int elad_get_ext_parm(RIG *rig, token_t token, value_t *val)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !val)
-    {
-        return -RIG_EINVAL;
-    }
-
     int err;
     struct elad_priv_data *priv = rig->state.priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     switch (token)
     {
@@ -3918,15 +3662,10 @@ int elad_get_ext_parm(RIG *rig, token_t token, value_t *val)
  */
 const char *elad_get_info(RIG *rig)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return "*rig == NULL";
-    }
-
     char firmbuf[10];
     int retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     retval = elad_safe_transaction(rig, "TY", firmbuf, 10, 5);
 
@@ -3959,13 +3698,13 @@ const char *elad_get_info(RIG *rig)
  */
 DECLARE_PROBERIG_BACKEND(elad)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
     char idbuf[IDBUFSZ];
     int id_len = -1, i, k_id;
     int retval = -1;
     int rates[] = { 115200, 57600, 38400, 19200, 9600, 4800, 1200, 0 }; /* possible baud rates */
     int rates_idx;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!port)
     {

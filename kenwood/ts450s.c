@@ -77,7 +77,7 @@ static const struct confparams ts450_ext_parms[] =
     { RIG_CONF_END, NULL, }
 };
 
-static int ts450_open(RIG *rig)
+int ts450_open(RIG *rig)
 {
     int err;
     int maxtries;

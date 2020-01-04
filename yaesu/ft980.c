@@ -713,7 +713,7 @@ int ft980_open(RIG *rig)
 {
     unsigned char echo_back[YAESU_CMD_LENGTH];
     struct ft980_priv_data *priv;
-    int retval, retry_count1 = 0;
+    int retry_count1 = 0;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
@@ -731,6 +731,7 @@ int ft980_open(RIG *rig)
     /* send Ext Cntl ON: Activate CAT */
     do
     {
+        int retval;
         int retry_count2 = 0;
 
         do
@@ -753,12 +754,13 @@ int ft980_close(RIG *rig)
 {
     unsigned char echo_back[YAESU_CMD_LENGTH];
     struct ft980_priv_data *priv = (struct ft980_priv_data *)rig->state.priv;
-    int retval, retry_count1 = 0;
+    int retry_count1 = 0;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     do
     {
+        int retval;
         int retry_count2 = 0;
 
         do

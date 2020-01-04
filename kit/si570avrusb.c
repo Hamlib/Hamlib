@@ -869,7 +869,7 @@ int si570xxxusb_set_conf(RIG *rig, token_t token, const char *val)
     struct si570xxxusb_priv_data *priv;
     freq_t freq;
     double multiplier;
-    int i2c_addr;
+    unsigned int i2c_addr;
 
     priv = (struct si570xxxusb_priv_data *)rig->state.priv;
 
@@ -904,7 +904,7 @@ int si570xxxusb_set_conf(RIG *rig, token_t token, const char *val)
             return -RIG_EINVAL;
         }
 
-        if (i2c_addr < 0 || i2c_addr >= (1 << 9))
+        if (i2c_addr >= (1 << 9))
         {
             return -RIG_EINVAL;
         }
@@ -964,7 +964,7 @@ static int setBPF(RIG *rig, int enable)
     libusb_device_handle *udh = rig->state.rigport.handle;
     /* allocate enough space for up to 16 filters */
     unsigned short FilterCrossOver[16];
-    int nBytes, i;
+    int nBytes;
 
     // Does FilterCrossOver needs endianess ordering ?
 
@@ -981,16 +981,17 @@ static int setBPF(RIG *rig, int enable)
 
     if (nBytes > 2)
     {
-
-        nBytes = libusb_control_transfer(udh, REQUEST_TYPE_IN,
+        int i;
+        int retval = libusb_control_transfer(udh, REQUEST_TYPE_IN,
                                          REQUEST_FILTERS, enable, (nBytes / 2) - 1,
                                          (unsigned char *) FilterCrossOver, sizeof(FilterCrossOver),
                                          rig->state.rigport.timeout);
 
-        if (nBytes < 0)
+        if (retval < 1)
         {
             return -RIG_EIO;
         }
+        nBytes = retval;
 
         rig_debug(RIG_DEBUG_TRACE, "%s: Filter Bank 1:\n", __func__);
 

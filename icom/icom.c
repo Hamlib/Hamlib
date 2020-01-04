@@ -538,10 +538,12 @@ int icom_init(RIG *rig)
     struct icom_priv_data *priv;
     const struct icom_priv_caps *priv_caps;
     const struct rig_caps *caps;
+    int retval;
+    int satmode;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !rig->caps)
+    if (!rig->caps)
     {
         return -RIG_EINVAL;
     }
@@ -579,6 +581,15 @@ int icom_init(RIG *rig)
     priv->tx_vfo = RIG_VFO_NONE;
     priv->rx_vfo = RIG_VFO_NONE;
     priv->curr_vfo = RIG_VFO_NONE;
+    retval = rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: satmode=%d\n", __func__, satmode);
+
+    if (retval == RIG_OK && satmode)
+    {
+        priv->rx_vfo = RIG_VFO_MAIN;
+        priv->tx_vfo = RIG_VFO_SUB;
+    }
+
     rig_debug(RIG_DEBUG_TRACE, "%s: done\n", __func__);
 
     return RIG_OK;
@@ -617,37 +628,57 @@ int icom_rig_open(RIG *rig)
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf);
     int retval = RIG_OK;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
+    freq_t freq;
     struct rig_state *rs = &rig->state;
     struct icom_priv_data *priv = (struct icom_priv_data *)rs->priv;
     struct icom_priv_caps *priv_caps = (struct icom_priv_caps *) rig->caps->priv;
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    // if we can't get freq we may need to turn power on
+    retval = rig_get_freq(rig, RIG_VFO_CURR, &freq);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s get_freq retval=%s\n", __func__,
+              rigerror(retval));
+
+    if (retval  != RIG_OK)   // maybe we need power on?
+    {
+        retval = rig_set_powerstat(rig, 1);
+
+        if (retval != RIG_OK) { rig_debug(RIG_DEBUG_WARN, "%s: unexpected retval here %s\n", __func__, rigerror(retval)); }
+    }
+
     if (priv_caps->serial_USB_echo_check)
     {
 
-        priv->serial_USB_echo_off = 0;
         retval = icom_transaction(rig, C_RD_TRXID, 0x00, NULL, 0, ackbuf, &ack_len);
 
         if (retval == RIG_OK)
         {
+            priv->serial_USB_echo_off = 0;
             rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo on detected\n", __func__);
             return RIG_OK;
         }
+        else
+        {
+            return retval;
+        }
 
-        priv->serial_USB_echo_off = 1;
         retval = icom_transaction(rig, C_RD_TRXID, 0x00, NULL, 0, ackbuf, &ack_len);
 
         if (retval == RIG_OK)
         {
+            priv->serial_USB_echo_off = 1;
             rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo off detected\n", __func__);
             return RIG_OK;
+        }
+        else
+        {
+            return retval;
         }
     }
 
     priv->serial_USB_echo_off = 0;
-    return retval;
+    return RIG_OK;
 }
 
 
@@ -661,6 +692,7 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     struct rig_state *rs;
     unsigned char freqbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
     int freq_len, ack_len = sizeof(ackbuf), retval;
+    int cmd, subcmd;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called %s=%"PRIfreq"\n", __func__,
               rig_strvfo(vfo), freq);
@@ -722,8 +754,8 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
      */
     to_bcd(freqbuf, freq, freq_len * 2);
 
-    int cmd = C_SET_FREQ;
-    int subcmd = -1;
+    cmd = C_SET_FREQ;
+    subcmd = -1;
     retval = icom_transaction(rig, cmd, subcmd, freqbuf, freq_len, ackbuf,
                               &ack_len);
 
@@ -753,14 +785,14 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     struct rig_state *rs;
     unsigned char freqbuf[MAXFRAMELEN];
     int freq_len, retval;
+    int cmd, subcmd;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called for %s\n", __func__, rig_strvfo(vfo));
     rs = &rig->state;
     priv = (struct icom_priv_data *)rs->priv;
 
-    // Newer Icoms can read main/sub frequency
-    int cmd = C_RD_FREQ;
-    int subcmd = -1;
+    cmd = C_RD_FREQ;
+    subcmd = -1;
 
     // Pick the appropriate VFO when VFO_TX is requested
     if (vfo == RIG_VFO_TX)
@@ -779,6 +811,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
 
     retval = set_vfo_curr(rig, vfo, priv->curr_vfo);
+
     if (retval != RIG_OK) { return retval; }
 
     // Pick the appropriate VFO when VFO_RX is requested
@@ -1064,6 +1097,7 @@ int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width)
         if (!rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_RF, &rfstatus) && (rfstatus))
         {
             int i;
+
             for (i = 0; i < RTTY_FIL_NB; i++)
             {
                 if (rtty_fil[i] == width)
@@ -1485,6 +1519,8 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 {
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf), icvfo, retval;
+    struct rig_state *rs = &rig->state;
+    struct icom_priv_data *priv = (struct icom_priv_data *)rs->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1492,10 +1528,6 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
     {
         return RIG_OK;
     }
-
-    struct rig_state *rs = &rig->state;
-
-    struct icom_priv_data *priv = (struct icom_priv_data *)rs->priv;
 
     if ((vfo == RIG_VFO_A || vfo == RIG_VFO_B) && !VFO_HAS_A_B)
     {
@@ -1639,12 +1671,11 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     int lvl_cn, lvl_sc;     /* Command Number, Subcommand */
     int icom_val;
     int i, retval;
+    const struct icom_priv_caps *priv_caps =
+        (const struct icom_priv_caps *) rig->caps->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     rs = &rig->state;
-
-    const struct icom_priv_caps *priv_caps =
-        (const struct icom_priv_caps *) rig->caps->priv;
 
     /*
      * So far, levels of float type are in [0.0..1.0] range
@@ -1983,12 +2014,11 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     int icom_val;
     int cmdhead;
     int retval;
+    const struct icom_priv_caps *priv_caps =
+        (const struct icom_priv_caps *) rig->caps->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     rs = &rig->state;
-
-    const struct icom_priv_caps *priv_caps =
-        (const struct icom_priv_caps *) rig->caps->priv;
 
     lvl2_len = 0;
 
@@ -2879,12 +2909,13 @@ int icom_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
  */
 int icom_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
 {
-    const struct icom_priv_caps *priv_caps;
-    priv_caps = (const struct icom_priv_caps *)rig->caps->priv;
-    int offs_len = (priv_caps->offs_len) ? priv_caps->offs_len : OFFS_LEN;
-
+    int offs_len;
     unsigned char offsbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf), retval;
+    const struct icom_priv_caps *priv_caps;
+
+    priv_caps = (const struct icom_priv_caps *)rig->caps->priv;
+    offs_len = (priv_caps->offs_len) ? priv_caps->offs_len : OFFS_LEN;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     /*
@@ -2917,12 +2948,13 @@ int icom_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
  */
 int icom_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
 {
-    const struct icom_priv_caps *priv_caps;
-    priv_caps = (const struct icom_priv_caps *)rig->caps->priv;
-    int offs_len = (priv_caps->offs_len) ? priv_caps->offs_len : OFFS_LEN;
-
+    int offs_len;
     unsigned char offsbuf[MAXFRAMELEN];
     int buf_len, retval;
+    const struct icom_priv_caps *priv_caps;
+
+    priv_caps = (const struct icom_priv_caps *)rig->caps->priv;
+    offs_len = (priv_caps->offs_len) ? priv_caps->offs_len : OFFS_LEN;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     retval = icom_transaction(rig, C_RD_OFFS, -1, NULL, 0,
@@ -3326,9 +3358,13 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
         }
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE,"%s: before get_split_vfos rx_vfo=%s tx_vfo=%s\n", __func__, rig_strvfo(priv->rx_vfo), rig_strvfo(priv->tx_vfo));
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: before get_split_vfos rx_vfo=%s tx_vfo=%s\n",
+              __func__, rig_strvfo(priv->rx_vfo), rig_strvfo(priv->tx_vfo));
+
     if (RIG_OK != (rc = icom_get_split_vfos(rig, &rx_vfo, &tx_vfo))) { return rc; }
-    rig_debug(RIG_DEBUG_VERBOSE,"%s: after get_split_vfos  rx_vfo=%s tx_vfo=%s\n", __func__, rig_strvfo(priv->rx_vfo), rig_strvfo(priv->tx_vfo));
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: after get_split_vfos  rx_vfo=%s tx_vfo=%s\n",
+              __func__, rig_strvfo(priv->rx_vfo), rig_strvfo(priv->tx_vfo));
 
 
     if (RIG_OK != (rc = icom_set_vfo(rig, tx_vfo))) { return rc; }
@@ -3482,7 +3518,9 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     priv->rx_vfo = vfo;
     priv->tx_vfo = tx_vfo;
     priv->split_on = RIG_SPLIT_ON == split;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s rx_vfo=%s tx_vfo=%s split=%d\n", __func__, rig_strvfo(vfo), rig_strvfo(priv->rx_vfo), rig_strvfo(priv->tx_vfo), split);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s rx_vfo=%s tx_vfo=%s split=%d\n",
+              __func__, rig_strvfo(vfo), rig_strvfo(priv->rx_vfo), rig_strvfo(priv->tx_vfo),
+              split);
     return RIG_OK;
 }
 
@@ -3534,9 +3572,12 @@ int icom_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported split %d", __func__, splitbuf[1]);
         return -RIG_EPROTO;
     }
+
     *tx_vfo = priv->tx_vfo;
     priv->split_on = RIG_SPLIT_ON == *split;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s rx_vfo=%s tx_vfo=%s split=%d\n", __func__, rig_strvfo(vfo), rig_strvfo(priv->rx_vfo), rig_strvfo(priv->tx_vfo), *split);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s rx_vfo=%s tx_vfo=%s split=%d\n",
+              __func__, rig_strvfo(vfo), rig_strvfo(priv->rx_vfo), rig_strvfo(priv->tx_vfo),
+              *split);
     return RIG_OK;
 }
 
@@ -3817,11 +3858,16 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     case RIG_FUNC_DSQL:
         fct_cn = C_CTL_FUNC;
         fct_sc = S_FUNC_DSSQL;
-        if (status <= 2) {
+
+        if (status <= 2)
+        {
             fctbuf[0] = status;
-        } else {
+        }
+        else
+        {
             fctbuf[0] = 0;
         }
+
         break;
 
     case RIG_FUNC_AFLT:
@@ -4040,6 +4086,23 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         fct_sc = S_DUAL;
         break;
 
+    case RIG_FUNC_SATMODE:
+        if (rig->caps->rig_model == RIG_MODEL_IC910)
+        {
+            // Is the 910 the only one that uses this command?
+            fct_cn = C_CTL_MEM;
+            fct_sc = S_MEM_SATMODE910;
+        }
+        else
+        {
+            fct_cn = C_CTL_FUNC;
+            fct_sc = S_MEM_SATMODE;
+        }
+
+        break;
+
+
+
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_func %s\n", __func__,
                   rig_strfunc(func));
@@ -4165,6 +4228,7 @@ int icom_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
     if (caps->ctcss_list)
     {
         int i;
+
         for (i = 0; caps->ctcss_list[i] != 0; i++)
         {
             if (caps->ctcss_list[i] == tone)
@@ -4550,52 +4614,63 @@ int icom_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
 int icom_set_powerstat(RIG *rig, powerstat_t status)
 {
     unsigned char ackbuf[200];
-    int ack_len = sizeof(ackbuf), retval;
+    int ack_len = sizeof(ackbuf), retval = RIG_OK;
     int pwr_sc;
-    unsigned char fe_buf[200]; // for FE's to power up
-    int fe_len = 0;
+    // so we'll do up to 175 for 115,200
+    int fe_max = 175;
+    unsigned char fe_buf[fe_max]; // for FE's to power up
+    int i;
+    int retry;
+    struct rig_state *rs = &rig->state;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called status=%d\n", __func__, (int)status);
 
     switch (status)
     {
     case RIG_POWER_ON:
-        pwr_sc = S_PWR_ON;
 
+        sleep(1); // let serial bus idle for a while
+        rig_debug(RIG_DEBUG_TRACE, "%s: PWR_ON failed, trying 0xfe's\n", __func__);
         // ic7300 manual says ~150 for 115,200
-        // we'll just send 175 to be sure for all speeds
-        for (fe_len = 0; fe_len < 175; ++fe_len)
-        {
-            fe_buf[fe_len] = 0xfe;
-        }
+        // we'll just send a few more to be sure for all speeds
+        memset(fe_buf, 0xfe, fe_max);
+        // sending more than enough 0xfe's to wake up the rs232
+        retval = write_block(&rs->rigport, (char *) fe_buf, fe_max);
+
+        usleep(100 * 1000);
+        // we'll try 0x18 0x01 now -- should work on STBY rigs too
+        pwr_sc = S_PWR_ON;
+        fe_buf[0] = 0;
+        retry = rs->rigport.retry;
+        rs->rigport.retry = 0;
+        retval = icom_transaction(rig, C_SET_PWR, pwr_sc, NULL, 0, ackbuf, &ack_len);
+        rs->rigport.retry = retry;
 
         break;
 
     default:
         pwr_sc = S_PWR_OFF;
         fe_buf[0] = 0;
+        retry = rs->rigport.retry;
+        rs->rigport.retry = 0;
+        retval = icom_transaction(rig, C_SET_PWR, pwr_sc, NULL, 0, ackbuf, &ack_len);
+        rs->rigport.retry = retry;
     }
 
-    // we can ignore this retval
-    // sending more than enough 0xfe's to wake up the rs232
-    icom_transaction(rig, 0xfe, 0xfe, fe_buf, fe_len, ackbuf, &ack_len);
-
-    retval = icom_transaction(rig, C_SET_PWR, pwr_sc, NULL, 0, ackbuf, &ack_len);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s #2 called retval=%d\n", __func__, retval);
-
-    int i = 0;
-    int retry = 3 / rig->state.rigport.retry;
+    i = 0;
+    retry = 10;
 
     if (status == RIG_POWER_ON) // wait for wakeup only
     {
         for (i = 0; i < retry; ++i) // up to 10 attempts
         {
+            freq_t freq;
             sleep(1);
-            freq_t freq = 0;
             // Use get_freq as all rigs should repond to this
-            retval = rig_get_freq(rig, RIG_VFO_A, &freq);
+            retval = rig_get_freq(rig, RIG_VFO_CURR, &freq);
 
             if (retval == RIG_OK) { return retval; }
+            else { rig_debug(RIG_DEBUG_TRACE, "%s: get_freq err=%s\n", __func__, rigerror(retval));}
 
             rig_debug(RIG_DEBUG_TRACE, "%s: Wait %d of %d for get_powerstat\n", __func__,
                       i + 1, retry);
@@ -4610,6 +4685,8 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
 
     if (retval != RIG_OK)
     {
+        rig_debug(RIG_DEBUG_TRACE, "%s: retval != RIG_OK, =%s\n", __func__,
+                  rigerror(retval));
         return retval;
     }
 
@@ -4629,8 +4706,8 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
  */
 int icom_get_powerstat(RIG *rig, powerstat_t *status)
 {
-    unsigned char cmdbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
-    int cmd_len, ack_len = sizeof(ackbuf), retval;
+    unsigned char ackbuf[MAXFRAMELEN];
+    int ack_len = sizeof(ackbuf), retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -4639,7 +4716,8 @@ int icom_get_powerstat(RIG *rig, powerstat_t *status)
     {
         /* getting the mode doesn't work if a memory is blank */
         /* so use one of the more innculous 'set mode' commands instead */
-        cmd_len = 1;
+        int cmd_len = 1;
+        unsigned char cmdbuf[MAXFRAMELEN];
         cmdbuf[0] = S_PRM_TIME;
         retval = icom_transaction(rig, C_CTL_MEM, S_MEM_MODE_SLCT,
                                   cmdbuf, cmd_len, ackbuf, &ack_len);
@@ -5028,9 +5106,10 @@ int icom_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 {
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf), retval;
+    int len;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-    int len = strlen(msg);
+    len = strlen(msg);
 
     if (len > 30) { len = 30; }
 
@@ -5131,9 +5210,9 @@ int icom_decode_event(RIG *rig)
                   __func__);
     }
 
-    if (frm_len < 0)
+    if (frm_len < 1)
     {
-        return frm_len;
+        return 0;
     }
 
     switch (buf[frm_len - 1])
@@ -5404,6 +5483,7 @@ int icom_get_custom_parm_time(RIG *rig, int parmbuflen, unsigned char *parmbuf,
     unsigned char resbuf[MAXFRAMELEN];
     int reslen = sizeof(resbuf);
     int retval;
+    int hour, min;
 
     retval = icom_get_raw_buf(rig, C_CTL_MEM, S_MEM_PARM, parmbuflen, parmbuf,
                               &reslen, resbuf);
@@ -5413,8 +5493,8 @@ int icom_get_custom_parm_time(RIG *rig, int parmbuflen, unsigned char *parmbuf,
         return retval;
     }
 
-    int hour = from_bcd_be(resbuf, 2);
-    int min = from_bcd_be(resbuf + 1, 2);
+    hour = from_bcd_be(resbuf, 2);
+    min = from_bcd_be(resbuf + 1, 2);
     *seconds = (hour * 3600) + (min * 60);
 
     return RIG_OK;
@@ -5423,8 +5503,8 @@ int icom_get_custom_parm_time(RIG *rig, int parmbuflen, unsigned char *parmbuf,
 // Sets rig vfo && priv->curr_vfo to default VFOA, or current vfo, or the vfo requested
 static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
 {
-    struct icom_priv_data *priv = (struct icom_priv_data *)rig->state.priv;
     int retval;
+    struct icom_priv_data *priv = (struct icom_priv_data *)rig->state.priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s, curr_vfo=%s\n", __func__,
               rig_strvfo(vfo), rig_strvfo(curr_vfo));
@@ -5461,9 +5541,10 @@ static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
         rig_debug(RIG_DEBUG_TRACE, "%s: setting new vfo=%s\n", __func__,
                   rig_strvfo(vfo));
         retval = rig_set_vfo(rig, vfo);
-        priv->curr_vfo = vfo;
 
         if (retval != RIG_OK) { return retval; }
+
+        priv->curr_vfo = vfo;
     }
 
     return RIG_OK;

@@ -437,7 +437,7 @@ static void *handle_set_position(void *arg)
         if (!priv->set_pos_active)
         {
             /* TODO: replace polling period by cond var */
-            usleep(100 * 1000);
+            usleep(100 * 1000 - 1);
             continue;
         }
 

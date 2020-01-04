@@ -49,7 +49,6 @@ struct prosistel_rot_priv_data
     azimuth_t az;
     elevation_t el;
 
-    struct timeval tv;  /* time last az/el update */
     azimuth_t target_az;
     elevation_t target_el;
 };
@@ -119,13 +118,13 @@ transaction_write:
     }
 
     //check if reply match issued command
-    if (data[0] == 0x02 && data[3] == cmdstr[2])
+    if ( cmdstr && data[0] == 0x02 && data[3] == cmdstr[2])
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s Command %c reply received\n", __func__,
                   data[3]);
         retval = RIG_OK;
     }
-    else
+    else if (cmdstr)
     {
         rig_debug(RIG_DEBUG_VERBOSE,
                   "%s Error Command issued: %c doesn't match reply %c\n", __func__, cmdstr[2],
@@ -198,6 +197,7 @@ static int prosistel_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     char data[20];
     float posval;
     int retval;
+    int n;
 
     num_sprintf(cmdstr, STX"A?"CR);
     retval = prosistel_transaction(rot, cmdstr, data, sizeof(data));
@@ -209,7 +209,7 @@ static int prosistel_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
     // Example response  of 100 azimuth
     // 02 41 2c 3f 2c 31 30 30 30 2c 52 0d   .A,?,1000,R.
-    int n = sscanf(data, "%*cA,?,%f,%*c.", &posval);
+    n = sscanf(data, "%*cA,?,%f,%*c.", &posval);
 
     if (n != 1)
     {

@@ -202,6 +202,7 @@ static int thd74_get_vfo(RIG *rig, vfo_t *vfo)
 {
     int retval;
     char c, buf[10];
+    size_t length;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
@@ -212,7 +213,7 @@ static int thd74_get_vfo(RIG *rig, vfo_t *vfo)
         return retval;
     }
 
-    size_t length = strlen(buf);
+    length = strlen(buf);
 
     if (length == 4)
     {
@@ -457,6 +458,11 @@ int thd74_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     retval = thd74_vfoc(rig, vfo, &v);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
 
     if (priv->mode_table)
     {
@@ -858,11 +864,6 @@ int thd74_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     switch (ptt)
     {
     case RIG_PTT_ON:
@@ -1021,7 +1022,7 @@ static int thd74_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         retval = sscanf(buf, "SQ %d,%d", &v, &l);
 
-        if (retval != 2 || l < 0 || l > 6)
+        if (retval != 2 || l < 0 || l >= 6)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, buf);
             return -RIG_ERJCTED;
@@ -1274,13 +1275,15 @@ static int thd74_parse_channel(int kind, const char *buf, channel_t *chan)
 
 static int thd74_get_channel(RIG *rig, channel_t *chan)
 {
-    int retval, len;
-    char cmd[8], buf[72];
+    int retval;
+    char buf[72];
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     if (chan->vfo == RIG_VFO_MEM)   /* memory channel */
     {
+        int len;
+        char cmd[16];
         sprintf(cmd, "ME %03d", chan->channel_num);
         retval = kenwood_transaction(rig, cmd, buf, sizeof(buf));
 
@@ -1395,14 +1398,13 @@ otherwise return -RIG_EPROTO
 int thd74_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
     struct kenwood_priv_data *priv = rig->state.priv;
-    int retval;
-    char fbuf[12], buf[128];
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     if (priv->split == RIG_SPLIT_ON)
     {
-        retval = thd74_get_freq_info(rig, RIG_VFO_A, buf);
+        char fbuf[12], buf[128];
+        int retval = thd74_get_freq_info(rig, RIG_VFO_A, buf);
 
         if (retval != RIG_OK)
         {
@@ -1484,6 +1486,7 @@ static int thd74_get_block(RIG *rig, int block_num, char *block)
     return RIG_OK;
 }
 
+#ifdef XXREMOVEDXX
 int thd74_get_chan_all_cb(RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
 {
     int i, j, ret;
@@ -1616,6 +1619,7 @@ int thd74_get_chan_all_cb(RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
 
     return RIG_OK;
 }
+#endif
 #endif  /* none working stuff */
 /*
  * th-d74 rig capabilities.

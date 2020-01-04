@@ -28,7 +28,6 @@
  * (403) PCR1500 fw 2.0, proto 2.0 (usb) by KM3T
  *
  */
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -167,7 +166,6 @@ static int is_sub_rcvr(RIG *rig, vfo_t vfo);
 static int
 pcr_read_block(RIG *rig, char *rxbuffer, size_t count)
 {
-    int err;
     int read = 0, tries = 4;
 
     struct rig_state *rs = &rig->state;
@@ -188,7 +186,7 @@ pcr_read_block(RIG *rig, char *rxbuffer, size_t count)
         char *p = &rxbuffer[0];
 
         /* read first char */
-        err = read_block(&rs->rigport, p, 1);
+        int err = read_block(&rs->rigport, p, 1);
 
         if (err < 0)
         {
@@ -813,7 +811,7 @@ pcr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     unsigned char buf[20];
     int buf_len, err;
-    int pcrmode, pcrfilter;
+    int pcrmode;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: mode = %s, width = %d\n",
               __func__, rig_strrmode(mode), (int)width);
@@ -862,6 +860,7 @@ pcr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (width != RIG_PASSBAND_NOCHANGE)
     {
+        int pcrfilter;
         if (width == RIG_PASSBAND_NORMAL)
         {
             width = rig_passband_normal(rig, mode);
@@ -1076,8 +1075,8 @@ pcr_get_info(RIG *rig)
             "Optional devices:%s%s%s, Country: %s",
             priv->firmware / 10, priv->firmware % 10,
             priv->protocol / 10, priv->protocol % 10,
-            priv->options & OPT_UT106 ? " DSP" : "",
-            priv->options & OPT_UT107 ? " DARC" : "",
+            (priv->options & OPT_UT106) ? " DSP" : "",
+            (priv->options & OPT_UT107) ? " DARC" : "",
             priv->options ? "" : " none",
             country);
 
@@ -1086,8 +1085,8 @@ pcr_get_info(RIG *rig)
               __func__,
               priv->firmware / 10, priv->firmware % 10,
               priv->protocol / 10, priv->protocol % 10,
-              priv->options & OPT_UT106 ? " DSP" : "",
-              priv->options & OPT_UT107 ? " DARC" : "",
+              (priv->options & OPT_UT106) ? " DSP" : "",
+              (priv->options & OPT_UT107) ? " DARC" : "",
               priv->options ? "" : " none",
               country);
 
@@ -1974,11 +1973,10 @@ int pcr_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
     struct pcr_priv_data *priv = (struct pcr_priv_data *) rig->state.priv;
     struct pcr_rcvr *rcvr = is_sub_rcvr(rig,
                                         vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
-    int err;
 
     if (priv->auto_update == 0)
     {
-        err = pcr_transaction(rig, is_sub_rcvr(rig, vfo) ? "I4?" : "I0?");
+        int err = pcr_transaction(rig, is_sub_rcvr(rig, vfo) ? "I4?" : "I0?");
 
         if (err != RIG_OK)
         {
@@ -1993,7 +1991,7 @@ int pcr_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
      * Bit 2: VSC open
      * Bit 3: RX error (not ready to receive)
      */
-    *dcd = rcvr->squelch_status & 0x02 ? RIG_DCD_ON : RIG_DCD_OFF;
+    *dcd = (rcvr->squelch_status & 0x02) ? RIG_DCD_ON : RIG_DCD_OFF;
 
     return RIG_OK;
 }

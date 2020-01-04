@@ -967,10 +967,10 @@ static void find_P_Q_DIV1N(
 {
 #define VCO_MIN 100000000
 #define VCO_MAX 400000000
-    int Ptotal, Pmin, Pmax;
+    int Ptotal;
     int Qtotal, Qmax = 40;
     int Div1N;
-    double REFdivQ, PmulREFdivQ;
+    double PmulREFdivQ;
     double Ref = priv->osc_freq * 1000.0;
     double freq4 = freq * 4;
     double newdelta, delta = fabs((priv->P * (Ref / priv->Q) / priv->Div1N) -
@@ -980,11 +980,11 @@ static void find_P_Q_DIV1N(
     /* Qmax = (int) ( Ref / 250000); */
     for (Qtotal = 2; Qtotal <= Qmax; Qtotal++)
     {
-        REFdivQ = (Ref / Qtotal);
+        double REFdivQ = (Ref / Qtotal);
 
         /* For stable operation: Ptotal*(Ref/Qtotal) must be ... */
-        Pmin = (int)(VCO_MIN / REFdivQ);   /* ... >= 100mHz */
-        Pmax = (int)(VCO_MAX / REFdivQ);   /* ... <= 400mHz */
+        int Pmin = (int)(VCO_MIN / REFdivQ);   /* ... >= 100mHz */
+        int Pmax = (int)(VCO_MAX / REFdivQ);   /* ... <= 400mHz */
 
         for (Ptotal = Pmin; Ptotal <= Pmax; Ptotal++)
         {
@@ -1023,10 +1023,11 @@ int elektor507_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
                                         rig->state.priv;
     freq_t final_freq;
     int ret = 0;
-    int Mux;
 
     if (priv->ant == ANT_AUTO)
     {
+        int Mux;
+
         /* Automatically select appropriate filter */
         if (freq <= kHz(1600))
         {

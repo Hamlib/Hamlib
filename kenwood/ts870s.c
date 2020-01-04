@@ -108,7 +108,6 @@ static int ts870s_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     size_t buf_len;
     int retval;
 
-    buf_len = 50;
     retval = kenwood_transaction(rig, "MD", buf, sizeof(buf));
 
     if (retval != RIG_OK)

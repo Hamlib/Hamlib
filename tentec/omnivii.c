@@ -378,14 +378,13 @@ static char which_vfo(const RIG *rig, vfo_t vfo)
 int tt588_get_vfo(RIG *rig, vfo_t *vfo)
 {
     static int getinfo = TRUE;
+    struct tt588_priv_data *priv = (struct tt588_priv_data *) rig->state.priv;
 
     if (getinfo)   // this is the first call to this package so we do this here
     {
         getinfo = FALSE;
         tt588_get_info(rig);
     }
-
-    struct tt588_priv_data *priv = (struct tt588_priv_data *) rig->state.priv;
 
     *vfo = priv->vfo_curr;
 
@@ -513,7 +512,7 @@ int tt588_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 int tt588_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     char    bytes[4];
-    int cmd_len, retval;
+    int cmd_len;
     unsigned char cmdbuf[16];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s freq=%g\n", __func__, rig_strvfo(vfo),
@@ -527,6 +526,8 @@ int tt588_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (vfo == RIG_VFO_CURR)
     {
+        int retval;
+
         if ((retval = tt588_get_vfo(rig, &vfo)) != RIG_OK)
         {
             return retval;
@@ -599,10 +600,10 @@ int tt588_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     int cmd_len, resp_len, retval;
     unsigned char cmdbuf[16], respbuf[32];
     char ttmode;
+    struct tt588_priv_data *priv = (struct tt588_priv_data *) rig->state.priv;
+
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
-
-    struct tt588_priv_data *priv = (struct tt588_priv_data *) rig->state.priv;
 
     if (check_vfo(vfo) == FALSE)
     {
@@ -979,10 +980,11 @@ int tt588_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             // transmit reply example S<0x8f><0x01> 0x0f=15 watts, 0x01
             // it appears 0x01 refelected = 0W since 0 means not read yet
+            int strength;
             int reflected = (int)lvlbuf[2];
             reflected  = reflected > 0 ? reflected - 1 : 0;
             // computer transmit power
-            int strength = (int)(lvlbuf[1] & 0x7f) - reflected;
+            strength = (int)(lvlbuf[1] & 0x7f) - reflected;
             rig_debug(RIG_DEBUG_TRACE, "%s: strength fwd=%d, rev=%d\n",  __func__, strength,
                       reflected);
 

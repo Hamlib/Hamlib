@@ -1143,6 +1143,7 @@ static int parse_chan_line(RIG *rig, channel_t *chan, char *basep,
     /* mode and width */
     if (mem_caps->mode && mem_caps->width)
     {
+        int retval;
         char *tag2p;
         tagp = strstr(basep, "MD");
 
@@ -1161,7 +1162,7 @@ static int parse_chan_line(RIG *rig, channel_t *chan, char *basep,
             tag2p = tagp;
         }
 
-        int retval = priv->parse_aor_mode(rig, tagp[2], tag2p[2], &chan->mode,
+        retval = priv->parse_aor_mode(rig, tagp[2], tag2p[2], &chan->mode,
                                       &chan->width);
 
         if (retval != RIG_OK)
@@ -1254,6 +1255,8 @@ int aor_get_channel(RIG *rig, channel_t *chan)
     }
     else
     {
+        int mem_num;
+        char bank_base;
 
         /*
          * find mem_caps in caps, we'll need it later
@@ -1280,8 +1283,7 @@ int aor_get_channel(RIG *rig, channel_t *chan)
          *  MW should be called the first time instead,
          *  and sizing memorized.
          */
-        int mem_num = channel_num % 100;
-        char bank_base;
+        mem_num = channel_num % 100;
         if (mem_num >= 50 && priv->bank_base1 != priv->bank_base2)
         {
             bank_base = priv->bank_base2;

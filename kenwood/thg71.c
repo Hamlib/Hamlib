@@ -455,8 +455,6 @@ int thg71_get_vfo(RIG *rig, vfo_t *vfo)
 /* --------------------------------------------------------------------- */
 int thg71_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
-    int retval;
-
     if (func != RIG_FUNC_TBURST)
     {
         return -RIG_EINVAL;
@@ -464,7 +462,7 @@ int thg71_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
     if (status == 1)
     {
-        retval = kenwood_transaction(rig, "TT", NULL, 0);
+        int retval = kenwood_transaction(rig, "TT", NULL, 0);
 
         if (retval != RIG_OK)
         {
@@ -485,7 +483,7 @@ int thg71_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 /* --------------------------------------------------------------------- */
 int thg71_open(RIG *rig)
 {
-    char ackbuf[ACKBUF_LEN], *strl, *stru;
+    char ackbuf[ACKBUF_LEN], *strl;
     int retval, i;
     const freq_range_t frend = RIG_FRNG_END;
 
@@ -510,6 +508,7 @@ int thg71_open(RIG *rig)
     for (i = 0; i < FRQRANGESIZ; i++)
     {
         freq_range_t frng;
+        char *stru;
 
         strl = strtok(NULL, ",");
         stru = strtok(NULL, ",");

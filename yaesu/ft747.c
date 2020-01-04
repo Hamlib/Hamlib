@@ -858,8 +858,6 @@ static int ft747_get_update_data(RIG *rig)
     hamlib_port_t *rigport;
     struct ft747_priv_data *p;
     char last_byte;
-    int port_timeout;
-    int ret;
 
     p = (struct ft747_priv_data *)rig->state.priv;
     rigport = &rig->state.rigport;
@@ -871,6 +869,8 @@ static int ft747_get_update_data(RIG *rig)
 
     if (!rig->state.transmit)     /* rig doesn't respond in Tx mode */
     {
+        int ret;
+        int port_timeout;
         serial_flush(rigport);
 
         /* send UPDATE comand to fetch data*/

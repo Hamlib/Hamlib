@@ -15,23 +15,6 @@
 #  include "config.h"
 #endif
 
-/* HAVE_SSLEEP is defined when Windows Sleep is found
- * HAVE_SLEEP is defined when POSIX sleep is found
- * _WIN32 is defined when compiling with MinGW
- *
- * When cross-compiling from POSIX to Windows using MinGW, HAVE_SLEEP
- * will often be defined by configure although it is not supported by
- * MinGW.  So substitute the sleep definition below in such a case and
- * when compiling on Windows using MinGW where HAVE_SLEEP will be
- * undefined.
- *
- * FIXME:  Needs better handling for all versions of MinGW.
- *
- */
-#if (defined(HAVE_SSLEEP) || defined(_WIN32)) && (!defined(HAVE_SLEEP))
-#  include "hl_sleep.h"
-#endif
-
 #define SERIAL_PORT "/dev/ttyS0"
 
 
@@ -131,12 +114,18 @@ int main(int argc, char *argv[])
     printf("\nSetting 10m FM Narrow...\n");
 
     retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 29620000); /* 10m */
+
+    if (retcode != RIG_OK)
+    {
+        printf("rig_set_freq: error = %s \n", rigerror(retcode));
+    }
+
     retcode = rig_set_mode(my_rig, RIG_VFO_CURR, RIG_MODE_FM,
                            rig_passband_narrow(my_rig, RIG_MODE_FM));
 
     if (retcode != RIG_OK)
     {
-        printf("rig_set_freq: error = %s \n", rigerror(retcode));
+        printf("rig_set_mode: error = %s \n", rigerror(retcode));
     }
 
     rig_get_freq(my_rig, RIG_VFO_CURR, &freq);
@@ -154,6 +143,12 @@ int main(int argc, char *argv[])
     printf("Setting 15m USB...\n");
 
     retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 21235175); /* 15m  */
+
+    if (retcode != RIG_OK)
+    {
+        printf("rig_set_freq: error = %s \n", rigerror(retcode));
+    }
+
     retcode = rig_set_mode(my_rig,
                            RIG_VFO_CURR,
                            RIG_MODE_USB,
@@ -161,7 +156,7 @@ int main(int argc, char *argv[])
 
     if (retcode != RIG_OK)
     {
-        printf("rig_set_freq: error = %s \n", rigerror(retcode));
+        printf("rig_set_mode: error = %s \n", rigerror(retcode));
     }
 
     rig_get_freq(my_rig, RIG_VFO_CURR, &freq);
@@ -176,6 +171,12 @@ int main(int argc, char *argv[])
     printf("Setting 40m LSB...\n");
 
     retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 7250100); /* 40m  */
+
+    if (retcode != RIG_OK)
+    {
+        printf("rig_set_freq: error = %s \n", rigerror(retcode));
+    }
+
     retcode = rig_set_mode(my_rig,
                            RIG_VFO_CURR,
                            RIG_MODE_LSB,
@@ -183,7 +184,7 @@ int main(int argc, char *argv[])
 
     if (retcode != RIG_OK)
     {
-        printf("rig_set_freq: error = %s \n", rigerror(retcode));
+        printf("rig_set_mode: error = %s \n", rigerror(retcode));
     }
 
     rig_get_freq(my_rig, RIG_VFO_CURR, &freq);
@@ -200,6 +201,12 @@ int main(int argc, char *argv[])
     printf("Setting 80m AM Narrow...\n");
 
     retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 3885000); /* 80m  */
+
+    if (retcode != RIG_OK)
+    {
+        printf("rig_set_freq: error = %s \n", rigerror(retcode));
+    }
+
     retcode = rig_set_mode(my_rig,
                            RIG_VFO_CURR,
                            RIG_MODE_AM,
@@ -207,7 +214,7 @@ int main(int argc, char *argv[])
 
     if (retcode != RIG_OK)
     {
-        printf("rig_set_freq: error = %s \n", rigerror(retcode));
+        printf("rig_set_mode: error = %s \n", rigerror(retcode));
     }
 
     rig_get_freq(my_rig, RIG_VFO_CURR, &freq);
@@ -225,6 +232,12 @@ int main(int argc, char *argv[])
     printf("Setting 160m CW...\n");
 
     retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 1875000); /* 160m  */
+
+    if (retcode != RIG_OK)
+    {
+        printf("rig_set_freq: error = %s \n", rigerror(retcode));
+    }
+
     retcode = rig_set_mode(my_rig,
                            RIG_VFO_CURR,
                            RIG_MODE_CW,
@@ -232,7 +245,7 @@ int main(int argc, char *argv[])
 
     if (retcode != RIG_OK)
     {
-        printf("rig_set_freq: error = %s \n", rigerror(retcode));
+        printf("rig_set_mode: error = %s \n", rigerror(retcode));
     }
 
     rig_get_freq(my_rig, RIG_VFO_CURR, &freq);
@@ -274,6 +287,12 @@ int main(int argc, char *argv[])
     printf("Setting Medium Wave AM...\n");
 
     retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 770000); /* KAAM */
+
+    if (retcode != RIG_OK)
+    {
+        printf("rig_set_freq: error = %s \n", rigerror(retcode));
+    }
+
     retcode = rig_set_mode(my_rig,
                            RIG_VFO_CURR,
                            RIG_MODE_AM,
@@ -299,6 +318,12 @@ int main(int argc, char *argv[])
     printf("Setting 20m on VFO A with two functions...\n");
 
     retcode = rig_set_vfo(my_rig, RIG_VFO_A);
+
+    if (retcode != RIG_OK)
+    {
+        printf("rig_set_vfo: error = %s \n", rigerror(retcode));
+    }
+
     retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 14250375); /* cq de vk3fcs */
 
     if (retcode != RIG_OK)
@@ -424,24 +449,36 @@ int main(int argc, char *argv[])
     if (rig_has_set_func(my_rig, RIG_FUNC_RIT))
     {
         retcode = rig_set_func(my_rig, RIG_VFO_CURR, RIG_FUNC_RIT, 1);
+
+        if (retcode != RIG_OK) { printf("rig_set_func RIT error: %s\n", rigerror(retcode)); }
+
         printf("rig_set_func: Setting RIT ON\n");
     }
 
     if (rig_has_get_func(my_rig, RIG_FUNC_RIT))
     {
         retcode = rig_get_func(my_rig, RIG_VFO_CURR, RIG_FUNC_RIT, &rit);
+
+        if (retcode != RIG_OK) { printf("rig_get_func RIT error: %s\n", rigerror(retcode)); }
+
         printf("rig_get_func: RIT: %d\n", rit);
     }
 
     if (rig_has_set_func(my_rig, RIG_FUNC_XIT))
     {
         retcode = rig_set_func(my_rig, RIG_VFO_CURR, RIG_FUNC_XIT, 1);
+
+        if (retcode != RIG_OK) { printf("rig_set_func XIT error: %s\n", rigerror(retcode)); }
+
         printf("rig_set_func: Setting XIT ON\n");
     }
 
     if (rig_has_get_func(my_rig, RIG_FUNC_XIT))
     {
         retcode = rig_get_func(my_rig, RIG_VFO_CURR, RIG_FUNC_XIT, &xit);
+
+        if (retcode != RIG_OK) { printf("rig_get_func XIT error: %s\n", rigerror(retcode)); }
+
         printf("rig_get_func: XIT: %d\n", xit);
     }
 

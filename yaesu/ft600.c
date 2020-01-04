@@ -462,7 +462,7 @@ int ft600_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         return -RIG_EINVAL;
     }
 
-    if (!width)
+    if (width == NULL)
     {
         *width = RIG_PASSBAND_NORMAL;
     }
@@ -512,7 +512,6 @@ int ft600_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 int ft600_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     unsigned char cmd_index;  /* index of sequence to send */
-    unsigned char p_cmd[YAESU_CMD_LENGTH];
     int ret;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: generic mode = %s, width %d\n", __func__,
@@ -557,6 +556,7 @@ int ft600_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (mode != RIG_MODE_FM && mode != RIG_MODE_WFM && width <= kHz(6))
     {
+        unsigned char p_cmd[YAESU_CMD_LENGTH];
         p_cmd[0] = 0x00;
         p_cmd[1] = 0x00;
         p_cmd[2] = 0x00;

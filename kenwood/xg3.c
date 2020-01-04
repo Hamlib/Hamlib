@@ -107,7 +107,7 @@ const struct rig_caps xg3_caps =
     .rig_model = RIG_MODEL_XG3,
     .model_name = "XG3",
     .mfg_name = "Elecraft",
-    .version = "20150101",
+    .version = "20191218",
     .copyright = "LGPL",
     .status = RIG_STATUS_BETA,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -171,10 +171,10 @@ const struct rig_caps xg3_caps =
  */
 int xg3_init(RIG *rig)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
     struct xg3_priv_data *priv;
     int i;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     priv = (struct xg3_priv_data *)malloc(sizeof(struct xg3_priv_data));
 
@@ -212,14 +212,10 @@ int xg3_init(RIG *rig)
  */
 int xg3_open(RIG *rig)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     int err;
+    ptt_t ptt;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     err = elecraft_open(rig);
 
@@ -228,7 +224,6 @@ int xg3_open(RIG *rig)
         return err;
     }
 
-    ptt_t ptt;
     xg3_get_ptt(rig, RIG_VFO_A, &ptt);  // set our PTT status
 
     return RIG_OK;
@@ -237,14 +232,9 @@ int xg3_open(RIG *rig)
 
 int xg3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     char levelbuf[16];
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     switch (level)
     {
@@ -272,17 +262,12 @@ int xg3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
  */
 int xg3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig || !val)
-    {
-        return -RIG_EINVAL;
-    }
-
     char cmdbuf[32], replybuf[32];
     int retval;
     size_t replysize = sizeof(replybuf);
     struct rig_state *rs = &rig->state;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     switch (level)
     {
@@ -344,11 +329,11 @@ int xg3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
  */
 int xg3_get_vfo(RIG *rig, vfo_t *vfo)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
     struct xg3_priv_data *priv = (struct xg3_priv_data *)rig->state.priv;
 
-    if (!rig || !vfo)
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!vfo)
     {
         return -RIG_EINVAL;
     }
@@ -362,11 +347,11 @@ int xg3_get_vfo(RIG *rig, vfo_t *vfo)
  */
 int xg3_set_vfo(RIG *rig, vfo_t vfo)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
     struct xg3_priv_data *priv = (struct xg3_priv_data *)rig->state.priv;
 
-    if (!rig || !vfo)
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!vfo)
     {
         return -RIG_EINVAL;
     }
@@ -384,16 +369,11 @@ int xg3_set_vfo(RIG *rig, vfo_t vfo)
  */
 int xg3_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
+    int err;
     vfo_t tvfo;
+    char cmdbuf[20];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
-    char cmdbuf[20];
 
     tvfo = (vfo == RIG_VFO_CURR ||
             vfo == RIG_VFO_VFO) ? rig->state.current_vfo : vfo;
@@ -422,7 +402,7 @@ int xg3_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         sprintf(cmdbuf, "F,%011ld", (long)freq);
     }
 
-    int err = kenwood_transaction(rig, cmdbuf, NULL, 0);
+    err = kenwood_transaction(rig, cmdbuf, NULL, 0);
 
     return err;
 }
@@ -432,20 +412,20 @@ int xg3_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  */
 int xg3_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
     struct rig_state *rs;
-
-    if (!rig || !freq)
-    {
-        return -RIG_EINVAL;
-    }
-
     char freqbuf[50];
     int freqsize = sizeof(freqbuf);
     char cmdbuf[16];
     int retval;
+    int offset;
     vfo_t tvfo;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!freq)
+    {
+        return -RIG_EINVAL;
+    }
 
     tvfo = (vfo == RIG_VFO_CURR ||
             vfo == RIG_VFO_VFO) ? rig->state.current_vfo : vfo;
@@ -491,7 +471,7 @@ int xg3_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         return retval;
     }
 
-    int offset = tvfo == RIG_VFO_A ? 2 : 5;
+    offset = tvfo == RIG_VFO_A ? 2 : 5;
 
     sscanf(freqbuf + offset, "%" SCNfreq, freq);
 
@@ -503,13 +483,14 @@ int xg3_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  */
 int xg3_set_powerstat(RIG *rig, powerstat_t status)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
     struct xg3_priv_data *priv = (struct xg3_priv_data *)rig->state.priv;
-    const char *cmd = "X";
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (status == RIG_POWER_OFF)
     {
+        const char *cmd = "X";
+
         priv->powerstat = RIG_POWER_OFF;
         return kenwood_transaction(rig, cmd, NULL, 0);
     }
@@ -524,23 +505,14 @@ int xg3_set_powerstat(RIG *rig, powerstat_t status)
  */
 int xg3_get_powerstat(RIG *rig, powerstat_t *status)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
     const char *cmd = "G";      // any command to test will do
+    char reply[32];
     int retval = kenwood_transaction(rig, cmd, NULL, 0);
-
-    if (retval != RIG_OK)
-    {
-        return retval;
-    }
-
     struct rig_state *rs = &rig->state;
-
     struct xg3_priv_data *priv = (struct xg3_priv_data *)rig->state.priv;
 
-    char reply[32];
-
     retval = read_string(&rs->rigport, reply, sizeof(reply), ";", 1);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (retval != RIG_OK)
     {
@@ -562,10 +534,10 @@ int xg3_get_powerstat(RIG *rig, powerstat_t *status)
  */
 int xg3_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
     char cmdbuf[32];
     int retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (ch < 0 || ch > 11)
     {
@@ -591,13 +563,13 @@ int xg3_set_mem(RIG *rig, vfo_t vfo, int ch)
  */
 int xg3_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
     char cmdbuf[32];
     char reply[32];
     int retval;
-
     struct rig_state *rs = &rig->state;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
     sprintf(cmdbuf, "C;");
     retval = kenwood_transaction(rig, cmdbuf, NULL, 0);
 
@@ -623,16 +595,10 @@ int xg3_get_mem(RIG *rig, vfo_t vfo, int *ch)
  */
 int xg3_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
     struct xg3_priv_data *priv = (struct xg3_priv_data *)rig->state.priv;
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     int retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     retval = kenwood_simple_transaction(rig,
                                         (ptt == RIG_PTT_ON) ? "O,01" : "O,00", 0);
@@ -650,17 +616,16 @@ int xg3_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
  */
 int xg3_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
+    char pttbuf[6];
+    int retval;
     struct xg3_priv_data *priv = (struct xg3_priv_data *)rig->state.priv;
 
-    if (!rig || !ptt)
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!ptt)
     {
         return -RIG_EINVAL;
     }
-
-    char pttbuf[6];
-    int retval;
 
     retval = kenwood_safe_transaction(rig, "O", pttbuf, 6, 4);
 
@@ -680,11 +645,11 @@ int xg3_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
  */
 int xg3_set_parm(RIG *rig, setting_t parm, value_t val)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
     int ival;
     char cmdbuf[16];
     int retval = -RIG_EINVAL;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     switch (parm)
     {
@@ -709,11 +674,11 @@ int xg3_set_parm(RIG *rig, setting_t parm, value_t val)
  */
 int xg3_get_parm(RIG *rig, setting_t parm, value_t *val)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
     int ival;
     char replybuf[6];
     int retval = -RIG_EINVAL;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     switch (parm)
     {

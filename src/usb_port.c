@@ -35,21 +35,16 @@
 #  include "config.h"
 #endif
 
-#include <hamlib/rig.h>
-
-/*
- * Compile only if libusb is available
- */
-#if defined(HAVE_LIBUSB) && (defined(HAVE_LIBUSB_H) || defined(HAVE_LIBUSB_1_0_LIBUSB_H))
 
 
 #include <stdlib.h>
 #include <stdio.h>   /* Standard input/output definitions */
 #include <string.h>  /* String function definitions */
-#include <unistd.h>  /* UNIX standard function definitions */
+#include <unistd.h>
 #include <errno.h>
 #include <sys/types.h>
-#include <unistd.h>
+
+#include <hamlib/rig.h>
 
 #ifdef HAVE_LIBUSB_H
 #  include <libusb.h>
@@ -59,6 +54,10 @@
 
 #include "usb_port.h"
 
+/*
+ * Compile only if libusb is available
+ */
+#if defined(HAVE_LIBUSB) && (defined(HAVE_LIBUSB_H) || defined(HAVE_LIBUSB_1_0_LIBUSB_H))
 
 /**
  * \brief Find and open USB device
@@ -185,7 +184,7 @@ static libusb_device_handle *find_and_open_device(const hamlib_port_t *port)
                      */
                     if (strncasecmp(string,
                                     port->parm.usb.product,
-                                    sizeof(port->parm.usb.product - 1)) != 0)
+                                    sizeof(port->parm.usb.product)-1) != 0)
                     {
 
                         rig_debug(RIG_DEBUG_WARN,
@@ -376,9 +375,10 @@ int usb_port_open(hamlib_port_t *port)
  */
 int usb_port_close(hamlib_port_t *port)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     libusb_device_handle *udh = port->handle;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     libusb_release_interface(udh, port->parm.usb.iface);
 

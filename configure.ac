@@ -27,6 +27,8 @@ AC_CONFIG_HEADERS([include/config.h])
 dnl Place build system provided programs in this directory.
 AC_CONFIG_AUX_DIR([build-aux])
 
+AC_USE_SYSTEM_EXTENSIONS
+
 
 ## ------------------------ ##
 ## Automake Initialisation. ##
@@ -299,6 +301,7 @@ AS_CASE(["$host_os"],
 
 dnl Check if C99 struct initializers are supported
 AC_MSG_CHECKING([whether C99 struct/array initializers are supported])
+
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]],
                   [[struct{char a;int b;}s[8]={[3]={.b=5}};]])],
                   [AC_MSG_RESULT(yes)],
@@ -306,7 +309,6 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]],
 "You need a C99 compliant C compiler that supports struct/array intializers."
 "Have you considered GCC lately?."])
                   ])
-
 
 dnl Check for libusb, treat LIBUSB_LIBS and LIBUSB_CFLAGS as precious variables
 AC_MSG_CHECKING([whether to build USB dependent backends])

@@ -36,23 +36,6 @@
 #include "misc.h"
 #include "num_stdio.h"
 
-/* HAVE_SSLEEP is defined when Windows Sleep is found
- * HAVE_SLEEP is defined when POSIX sleep is found
- * _WIN32 is defined when compiling with MinGW
- *
- * When cross-compiling from POSIX to Windows using MinGW, HAVE_SLEEP
- * will often be defined by configure although it is not supported by
- * MinGW.  So substitute the sleep definition below in such a case and
- * when compiling on Windows using MinGW where HAVE_SLEEP will be
- * undefined.
- *
- * FIXME:  Needs better handling for all versions of MinGW.
- *
- */
-#if (defined(HAVE_SSLEEP) || defined(_WIN32)) && (!defined(HAVE_SLEEP))
-#include "hl_sleep.h"
-#endif
-
 struct tt585_priv_data
 {
     unsigned char status_data[30];
@@ -268,7 +251,7 @@ int tt585_get_vfo(RIG *rig, vfo_t *vfo)
         return ret;
     }
 
-    *vfo = priv->status_data[9] & 0x08 ? RIG_VFO_A : RIG_VFO_B;
+    *vfo = (priv->status_data[9] & 0x08) ? RIG_VFO_A : RIG_VFO_B;
 
     return RIG_OK;
 }
@@ -332,7 +315,7 @@ int tt585_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *txvfo)
         return ret;
     }
 
-    *split = priv->status_data[9] & 0x02 ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
+    *split = (priv->status_data[9] & 0x02) ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
     *txvfo = RIG_VFO_B;
 
     return RIG_OK;

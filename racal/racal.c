@@ -82,7 +82,7 @@ static int racal_transaction(RIG *rig, const char *cmd, char *data,
     int cmd_len;
     int retval;
 
-    cmd_len = sprintf(cmdbuf, SOM "%d%s" EOM, priv->receiver_id, cmd);
+    cmd_len = sprintf(cmdbuf, SOM "%u%s" EOM, priv->receiver_id, cmd);
 
     serial_flush(&rs->rigport);
 
@@ -198,7 +198,7 @@ int racal_get_conf(RIG *rig, token_t token, char *val)
     switch (token)
     {
     case TOK_RIGID:
-        sprintf(val, "%d", priv->receiver_id);
+        sprintf(val, "%u", priv->receiver_id);
         break;
 
     default:

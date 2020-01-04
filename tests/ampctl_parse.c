@@ -66,24 +66,6 @@ extern int read_history();
 #include "misc.h"
 #include "sprintflst.h"
 
-
-/* HAVE_SSLEEP is defined when Windows Sleep is found
- * HAVE_SLEEP is defined when POSIX sleep is found
- * _WIN32 is defined when compiling with MinGW
- *
- * When cross-compiling from POSIX to Windows using MinGW, HAVE_SLEEP
- * will often be defined by configure although it is not supported by
- * MinGW.  So substitute the sleep definition below in such a case and
- * when compiling on Windows using MinGW where HAVE_SLEEP will be
- * undefined.
- *
- * FIXME:  Needs better handling for all versions of MinGW.
- *
- */
-#if (defined(HAVE_SSLEEP) || defined(_WIN32)) && (!defined(HAVE_SLEEP))
-#  include "hl_sleep.h"
-#endif
-
 #include "ampctl_parse.h"
 
 /* Hash table implementation See:  http://uthash.sourceforge.net/ */
@@ -227,7 +209,7 @@ struct test_table *find_cmd_entry(int cmd)
  */
 struct mod_lst
 {
-    int id;                 /* caps->amp_model This is the hash key */
+    unsigned int id;        /* caps->amp_model This is the hash key */
     char mfg_name[32];      /* caps->mfg_name */
     char model_name[32];    /* caps->model_name */
     char version[32];       /* caps->version */
@@ -347,11 +329,9 @@ char parse_arg(const char *arg)
  */
 static int scanfc(FILE *fin, const char *format, void *p)
 {
-    int ret;
-
     do
     {
-        ret = fscanf(fin, format, p);
+        int ret = fscanf(fin, format, p);
 
         if (ret < 0)
         {
@@ -494,13 +474,13 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
     char arg4[MAXARGSZ + 1], *p4 = NULL;
     char *p5 = NULL;
     char *p6 = NULL;
-    static int last_was_ret = 1;
 
     /* cmd, internal, ampctld */
     if (!(interactive && prompt && have_rl))
     {
         if (interactive)
         {
+            static int last_was_ret = 1;
             if (prompt)
             {
                 fprintf_flush(fout, "\nAmplifier command: ");
@@ -1051,8 +1031,8 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
             }
             else
             {
-                x = 0;
                 char pmptstr[(strlen(cmd_entry->arg1) + 3)];
+                x = 0;
 
                 strcpy(pmptstr, cmd_entry->arg1);
                 strcat(pmptstr, ": ");
@@ -1060,7 +1040,7 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
                 rp_getline(pmptstr);
 
                 /* Blank line entered */
-                if (!(strcmp(input_line, "")))
+                if (input_line && !(strcmp(input_line, "")))
                 {
                     fprintf(fout, "? for help, q to quit.\n");
                     fflush(fout);
@@ -1109,8 +1089,8 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
             }
             else
             {
-                x = 0;
                 char pmptstr[(strlen(cmd_entry->arg1) + 3)];
+                x = 0;
 
                 strcpy(pmptstr, cmd_entry->arg1);
                 strcat(pmptstr, ": ");
@@ -1170,8 +1150,8 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
             }
             else
             {
-                x = 0;
                 char pmptstr[(strlen(cmd_entry->arg2) + 3)];
+                x = 0;
 
                 strcpy(pmptstr, cmd_entry->arg2);
                 strcat(pmptstr, ": ");
@@ -1231,8 +1211,8 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
             }
             else
             {
-                x = 0;
                 char pmptstr[(strlen(cmd_entry->arg3) + 3)];
+                x = 0;
 
                 strcpy(pmptstr, cmd_entry->arg3);
                 strcat(pmptstr, ": ");
@@ -1292,8 +1272,8 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
             }
             else
             {
-                x = 0;
                 char pmptstr[(strlen(cmd_entry->arg4) + 3)];
+                x = 0;
 
                 strcpy(pmptstr, cmd_entry->arg4);
                 strcat(pmptstr, ": ");
@@ -1459,12 +1439,13 @@ void version()
 
 void usage_amp(FILE *fout)
 {
-    int i, nbspaces;
+    int i;
 
     fprintf(fout, "Commands (some may not be available for this amplifier):\n");
 
     for (i = 0; test_list[i].cmd != 0; i++)
     {
+        int nbspaces;
         fprintf(fout,
                 "%c: %-12s(",
                 isprint(test_list[i].cmd) ? test_list[i].cmd : '?',
@@ -1601,13 +1582,14 @@ void list_models()
 
 int set_conf(AMP *my_amp, char *conf_parms)
 {
-    char *p, *q, *n;
-    int ret;
+    char *p, *n;
 
     p = conf_parms;
 
     while (p && *p != '\0')
     {
+        char *q;
+        int ret;
         /* FIXME: left hand value of = cannot be null */
         q = strchr(p, '=');
 

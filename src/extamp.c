@@ -69,7 +69,6 @@ int HAMLIB_API amp_ext_level_foreach(AMP *amp,
                                      amp_ptr_t data)
 {
     const struct confparams *cfp;
-    int ret;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -80,7 +79,7 @@ int HAMLIB_API amp_ext_level_foreach(AMP *amp,
 
     for (cfp = amp->caps->extlevels; cfp && cfp->name; cfp++)
     {
-        ret = (*cfunc)(amp, cfp, data);
+        int ret = (*cfunc)(amp, cfp, data);
 
         if (ret == 0)
         {
@@ -115,7 +114,6 @@ int HAMLIB_API amp_ext_parm_foreach(AMP *amp,
                                     amp_ptr_t data)
 {
     const struct confparams *cfp;
-    int ret;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -126,7 +124,7 @@ int HAMLIB_API amp_ext_parm_foreach(AMP *amp,
 
     for (cfp = amp->caps->extparms; cfp && cfp->name; cfp++)
     {
-        ret = (*cfunc)(amp, cfp, data);
+        int ret = (*cfunc)(amp, cfp, data);
 
         if (ret == 0)
         {

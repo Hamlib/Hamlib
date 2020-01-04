@@ -99,7 +99,6 @@ static int prm80_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
             return retval;
         }
 
-        retbuf[retval] = '\0';
 #if 0
 
         /*
@@ -230,7 +229,7 @@ int prm80_set_mem(RIG *rig, vfo_t vfo, int ch)
         return -RIG_EINVAL;
     }
 
-    cmd_len = sprintf(cmdbuf, "N%02u", ch);
+    cmd_len = sprintf(cmdbuf, "N%02d", ch);
 
     return prm80_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
 }
@@ -318,9 +317,9 @@ int prm80_get_channel(RIG *rig, channel_t *chan)
     chanstate = hhtoi(statebuf + 4) & 0x0f;
     /* is it rptr_shift or split mode ? */
     chan->rptr_shift = (chanstate & 0x01) == 0 ? RIG_RPT_SHIFT_NONE :
-                       chanstate & 0x02 ? RIG_RPT_SHIFT_MINUS :
-                       chanstate & 0x04 ? RIG_RPT_SHIFT_PLUS : RIG_RPT_SHIFT_NONE;
-    chan->flags = chanstate & 0x08 ? RIG_CHFLAG_SKIP : 0;
+                       (chanstate & 0x02) ? RIG_RPT_SHIFT_MINUS :
+                       (chanstate & 0x04) ? RIG_RPT_SHIFT_PLUS : RIG_RPT_SHIFT_NONE;
+    chan->flags = (chanstate & 0x08) ? RIG_CHFLAG_SKIP : 0;
 
     chan->levels[LVL_SQL].f = ((float)(hhtoi(statebuf + 6) >> 4)) / 15.;
     chan->levels[LVL_AF].f  = ((float)(hhtoi(statebuf + 8) >> 4)) / 15.;
@@ -356,12 +355,12 @@ int prm80_set_channel(RIG *rig, const channel_t *chan)
     /* [T] = Set current channel state. (Mode-Chan-Chanstate-Sql-Vol-Lock-RX freq-TX freq) ? */
     /* Example: 1240080AFF0033F02D40 ? */
     statebuf_len = sprintf(statebuf, "T%02X%02X%02X%02X%02X%02X%04X%04X",
-                           chan->mode == RIG_MODE_FM ? 0x12 : 0x12,
+                           0x12,
                            chan->channel_num,
-                           chan->flags & RIG_CHFLAG_SKIP ? 0x08 : 0, /* TODO: tx shift */
+                           (chan->flags & RIG_CHFLAG_SKIP) ? 0x08 : 0, /* TODO: tx shift */
                            (unsigned)(chan->levels[LVL_SQL].f * 15),
                            (unsigned)(chan->levels[LVL_AF].f * 15),
-                           chan->flags & RIG_CHFLAG_SKIP ? 0x01 : 0x00, /* Lock */
+                           (chan->flags & RIG_CHFLAG_SKIP) ? 0x01 : 0x00, /* Lock */
                            (unsigned)(chan->freq / 12500.),
                            (unsigned)(chan->tx_freq / 12500.)
                           );

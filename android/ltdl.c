@@ -70,13 +70,18 @@ char *getlibpath(void)
     return libpath;
 }
 
+#ifdef XXREMOVEDXX
+// Not referenced anywhere
 int lt_dlinit(void)
 {
 //    __android_log_print(ANDROID_LOG_DEBUG, PACKAGE_NAME, "lt_dlinit");
     return 0;
 }
+#endif
 
 // not called from hamlib
+#ifdef XXREMOVEDXX
+// Not referenced anywhere
 int lt_dlexit(void)
 {
 //    __android_log_print(ANDROID_LOG_DEBUG, PACKAGE_NAME, "lt_dlexit");
@@ -89,12 +94,15 @@ int lt_dlexit(void)
 
     return 0;
 }
+#endif
 
+#ifdef XXREMOVEDXX
 int lt_dladdsearchdir(const char *search_dir)
 {
 //    __android_log_print(ANDROID_LOG_DEBUG, PACKAGE_NAME, "lt_dladdsearchdir");
     return 0;
 }
+#endif
 
 lt_dlhandle adlopen(const char *filename)
 {
@@ -119,34 +127,49 @@ lt_dlhandle adlopen(const char *filename)
     return ret;
 }
 
+#ifdef XXREMOVEDXX
+// Not referenced anywhere
 lt_dlhandle lt_dlopen(const char *filename)
 {
 //    __android_log_print(ANDROID_LOG_DEBUG, PACKAGE_NAME, "lt_dlopen(%s)", filename);
     return adlopen(filename);
 }
+#endif
 
+#ifdef XXREMOVEDXX
+// Not referenced anywhere
 lt_dlhandle lt_dlopenext(const char *filename)
 {
 //    __android_log_print(ANDROID_LOG_DEBUG, PACKAGE_NAME, "lt_dlopenext(%s)", filename);
     return adlopen(filename);
 }
+#endif
 
+#ifdef XXREMOVEDXX
+// Not referenced anywhere
 int lt_dlclose(lt_dlhandle handle)
 {
 //    __android_log_print(ANDROID_LOG_DEBUG, PACKAGE_NAME, "lt_dlclose");
     return dlclose(handle);
 }
+#endif
 
+#ifdef XXREMOVEDXX
+// Not referenced anywhere
 void *lt_dlsym(lt_dlhandle handle, const char *name)
 {
     void *ret = dlsym(handle, name);
 //    __android_log_print(ANDROID_LOG_DEBUG, PACKAGE_NAME, "lt_dlsym(%s)=%p", name, ret);
     return ret;
 }
+#endif
 
+#ifdef XXREMOVEDXX
+// Not referenced anywhere
 const char *lt_dlerror(void)
 {
     const char *ret = dlerror();
 //    __android_log_print(ANDROID_LOG_DEBUG, PACKAGE_NAME, "lt_dlerror=%s", ret);
     return ret;
 }
+#endif

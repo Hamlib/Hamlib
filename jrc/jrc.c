@@ -1404,9 +1404,11 @@ int jrc_set_chan(RIG *rig, const channel_t *chan)
     struct jrc_priv_caps *priv = (struct jrc_priv_caps *)rig->caps->priv;
     char    cmdbuf[BUFSZ];
     int retval, cmd_len;
+    rmode_t mode;
+    pbwidth_t width;
+    channel_t current;
 
     /* read first to get current values */
-    channel_t current;
     current.channel_num = chan->channel_num;
 
     if ((retval = jrc_get_chan(rig, &current)) != RIG_OK) { return retval; }
@@ -1418,8 +1420,8 @@ int jrc_set_chan(RIG *rig, const channel_t *chan)
         cmdbuf[4] = '1';
     }
 
-    rmode_t mode = chan->mode;
-    pbwidth_t width = chan->width;
+    mode = chan->mode;
+    width = chan->width;
 
     if (RIG_MODE_NONE == mode) { mode = current.mode; }
 
@@ -1512,6 +1514,8 @@ int jrc_get_chan(RIG *rig, channel_t *chan)
 
     if (mem_len != 6)
     {
+        char freqbuf[BUFSZ];
+
         if (membuf[4] == '1')
         {
             chan->levels[rig_setting2idx(RIG_LEVEL_ATT)].i = 20;
@@ -1520,7 +1524,6 @@ int jrc_get_chan(RIG *rig, channel_t *chan)
         jrc2rig_mode(rig, membuf[6], membuf[5],
                      &chan->mode, &chan->width);
 
-        char freqbuf[BUFSZ];
         strncpy(freqbuf, membuf + 7, priv->max_freq_len);
         freqbuf[priv->max_freq_len] = 0x00;
         chan->freq = strtol(freqbuf, NULL, 10);

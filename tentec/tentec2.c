@@ -656,7 +656,7 @@ int tentec2_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         return -RIG_EPROTO;
     }
 
-    *ptt = buf[2] & 0x01 ? RIG_PTT_ON : RIG_PTT_OFF;
+    *ptt = (buf[2] & 0x01) ? RIG_PTT_ON : RIG_PTT_OFF;
 
     return RIG_OK;
 }

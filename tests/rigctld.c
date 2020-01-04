@@ -212,7 +212,7 @@ static void handle_error(enum rig_debug_level_e lvl, const char *msg)
                       (LPTSTR)&lpMsgBuf, 0, NULL))
     {
 
-        rig_debug(lvl, "%s: Network error %d: %s\n", msg, e, (char*)lpMsgBuf);
+        rig_debug(lvl, "%s: Network error %d: %s\n", msg, e, (char *)lpMsgBuf);
         LocalFree(lpMsgBuf);
     }
     else
@@ -248,6 +248,9 @@ int main(int argc, char *argv[])
     int reuseaddr = 1;
     char host[NI_MAXHOST];
     char serv[NI_MAXSERV];
+#if HAVE_SIGACTION
+    struct sigaction act;
+#endif
 
 #ifdef HAVE_PTHREAD
     pthread_t thread;
@@ -582,7 +585,7 @@ int main(int argc, char *argv[])
         exit(2);
     }
 
-    if (verbose > 0)
+    if (verbose > RIG_DEBUG_ERR)
     {
         printf("Opened rig model %d, '%s'\n",
                my_rig->caps->rig_model,
@@ -594,7 +597,7 @@ int main(int argc, char *argv[])
 
     rig_close(my_rig);          /* we will reopen for clients */
 
-    if (verbose > 0)
+    if (verbose > RIG_DEBUG_ERR)
     {
         printf("Closed rig model %d, '%s - will reopen for clients'\n",
                my_rig->caps->rig_model,
@@ -718,12 +721,11 @@ int main(int argc, char *argv[])
 
     if (listen(sock_listen, 4) < 0)
     {
-        handle_error(RIG_DEBUG_ERR, "listeningn");
+        handle_error(RIG_DEBUG_ERR, "listening");
         exit(1);
     }
 
 #if HAVE_SIGACTION
-    struct sigaction act;
 
 #ifdef SIGPIPE
     /* Ignore SIGPIPE as we will handle it at the write()/send() calls
@@ -781,6 +783,9 @@ int main(int argc, char *argv[])
      */
     do
     {
+        fd_set set;
+        struct timeval timeout;
+
         arg = malloc(sizeof(struct handle_data));
 
         if (!arg)
@@ -790,8 +795,6 @@ int main(int argc, char *argv[])
         }
 
         /* use select to allow for periodic checks for CTRL+C */
-        fd_set set;
-        struct timeval timeout;
         FD_ZERO(&set);
         FD_SET(sock_listen, &set);
         timeout.tv_sec = 5;
@@ -892,8 +895,8 @@ int main(int argc, char *argv[])
 void *handle_socket(void *arg)
 {
     struct handle_data *handle_data_arg = (struct handle_data *)arg;
-    FILE *fsockin;
-    FILE *fsockout;
+    FILE *fsockin = NULL;
+    FILE *fsockout = NULL;
     int retcode = RIG_OK;
     char host[NI_MAXHOST];
     char serv[NI_MAXSERV];
@@ -942,7 +945,7 @@ void *handle_socket(void *arg)
     {
         retcode = rig_open(my_rig);
 
-        if (RIG_OK == retcode && verbose > 0)
+        if (RIG_OK == retcode && verbose > RIG_DEBUG_ERR)
         {
             printf("Opened rig model %d, '%s'\n",
                    my_rig->caps->rig_model,
@@ -954,7 +957,7 @@ void *handle_socket(void *arg)
 #else
     retcode = rig_open(my_rig);
 
-    if (RIG_OK == retcode && verbose > 0)
+    if (RIG_OK == retcode && verbose > RIG_DEBUG_ERR)
     {
         printf("Opened rig model %d, '%s'\n",
                my_rig->caps->rig_model,
@@ -989,7 +992,7 @@ void *handle_socket(void *arg)
     {
         rig_close(my_rig);
 
-        if (verbose > 0)
+        if (verbose > RIG_DEBUG_ERR)
         {
             printf("Closed rig model %d, '%s - no clients, will reopen for new clients'\n",
                    my_rig->caps->rig_model,
@@ -1001,7 +1004,7 @@ void *handle_socket(void *arg)
 #else
     rig_close(my_rig);
 
-    if (verbose > 0)
+    if (verbose > RIG_DEBUG_ERR)
     {
         printf("Closed rig model %d, '%s - will reopen for new clients'\n",
                my_rig->caps->rig_model,
@@ -1028,17 +1031,26 @@ void *handle_socket(void *arg)
               host,
               serv);
 
+handle_exit:
+
+// for MINGW we close the handle before fclose
+#ifdef __MINGW32__
+    retcode = closesocket(handle_data_arg->sock);
+
+    if (retcode != 0) { rig_debug(RIG_DEBUG_ERR, "%s: fclose(fsockin) %s\n", __func__, strerror(retcode)); }
+
+#endif
     fclose(fsockin);
-#ifndef __MINGW32__
     fclose(fsockout);
+
+// for everybody else we close the handle after fclose
+#ifndef __MINGW32__
+    retcode = close(handle_data_arg->sock);
+
+    if (retcode != 0) { rig_debug(RIG_DEBUG_ERR, "%s: close(handle_data_arg->sock) %s\n", __func__, strerror(retcode)); }
+
 #endif
 
-handle_exit:
-#ifdef __MINGW32__
-    closesocket(handle_data_arg->sock);
-#else
-    close(handle_data_arg->sock);
-#endif
     free(arg);
 
 #ifdef HAVE_PTHREAD

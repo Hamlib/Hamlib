@@ -280,6 +280,8 @@ const struct rig_caps ic9100_caps =
 
 };
 
+#ifdef XXREMOVEDXX
+// Not referenced anywhere
 int ic9100_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     unsigned char cmdbuf[MAXFRAMELEN];
@@ -297,7 +299,10 @@ int ic9100_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         return icom_set_level(rig, vfo, level, val);
     }
 }
+#endif
 
+#ifdef XXREMOVEDXX
+// Not referenced anywhere
 int ic9100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     unsigned char cmdbuf[MAXFRAMELEN];
@@ -315,3 +320,4 @@ int ic9100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return icom_get_level(rig, vfo, level, val);
     }
 }
+#endif

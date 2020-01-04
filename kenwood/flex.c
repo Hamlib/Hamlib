@@ -34,15 +34,15 @@
 
 int verify_flexradio_id(RIG *rig, char *id)
 {
+    int err;
+    char *idptr;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !id)
+    if (!id)
     {
         return -RIG_EINVAL;
     }
-
-    int err;
-    char *idptr;
 
     /* Check for a Flex 6700 which returns "904" */
     err = kenwood_get_id(rig, id);
@@ -110,18 +110,11 @@ int verify_flexradio_id(RIG *rig, char *id)
 
 int flexradio_open(RIG *rig)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     struct kenwood_priv_data *priv = rig->state.priv;
-
     int err;
-
     char id[FLEXRADIO_MAX_BUF_LEN];
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     //struct flexradio_priv_data *priv = rig->state.priv;
 
