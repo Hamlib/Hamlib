@@ -29,6 +29,7 @@
 #include "bandplan.h"
 #include "kenwood.h"
 
+extern int ts450_open(RIG *rig);
 
 #define TS690_ALL_MODES (RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_CW|RIG_MODE_RTTYR|RIG_MODE_CWR|RIG_MODE_SSB)
 #define TS690_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_CWR)
@@ -37,7 +38,7 @@
 /* FIXME: TBC */
 #define TS690_FUNC_ALL (RIG_FUNC_LOCK|RIG_FUNC_AIP|RIG_FUNC_TONE)
 
-#define TS690_LEVEL_ALL (RIG_LEVEL_STRENGTH|RIG_LEVEL_AGC|RIG_LEVEL_METER|RIG_LEVEL_SWR|RIG_LEVEL_ALC)
+#define TS690_LEVEL_ALL (RIG_LEVEL_STRENGTH|RIG_LEVEL_METER|RIG_LEVEL_SWR|RIG_LEVEL_ALC)
 
 #define TS690_PARMS (RIG_PARM_ANN)  /* optional */
 
@@ -76,7 +77,7 @@ const struct rig_caps ts690s_caps =
     .rig_model =  RIG_MODEL_TS690S,
     .model_name = "TS-690S",
     .mfg_name =  "Kenwood",
-    .version =  BACKEND_VER ".1",
+    .version =  BACKEND_VER ".2",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -96,7 +97,7 @@ const struct rig_caps ts690s_caps =
 
     .has_get_func =  TS690_FUNC_ALL,
     .has_set_func =  TS690_FUNC_ALL,
-    .has_get_level =  TS690_LEVEL_ALL | RIG_LEVEL_RFPOWER,
+    .has_get_level =  TS690_LEVEL_ALL,
     .has_set_level =  RIG_LEVEL_SET(TS690_LEVEL_ALL),
     .has_get_parm =  TS690_PARMS,
     .has_set_parm =  RIG_LEVEL_SET(TS690_PARMS),    /* FIXME: parms */
@@ -166,7 +167,7 @@ const struct rig_caps ts690s_caps =
 
     .rig_init = kenwood_init,
     .rig_cleanup = kenwood_cleanup,
-    .rig_open = kenwood_open,
+    .rig_open = ts450_open,
     .rig_close = kenwood_close,
     .set_freq =  kenwood_set_freq,
     .get_freq =  kenwood_get_freq,
