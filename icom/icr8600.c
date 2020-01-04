@@ -55,6 +55,7 @@
 #define ICR8600_VFO_ALL (RIG_VFO_VFO|RIG_VFO_MEM)
 
 #define ICR8600_VFO_OPS (RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL)
+
 #define ICR8600_SCAN_OPS (RIG_SCAN_MEM|RIG_SCAN_VFO|RIG_SCAN_SLCT|\
     RIG_SCAN_PRIO|RIG_SCAN_PRIO|RIG_SCAN_DELTA|RIG_SCAN_STOP)
 
@@ -65,6 +66,17 @@
     {   0, -60 }, \
     { 255, 60 }, \
 } }
+
+struct confparams icr8600_ext[] = {
+    { TOK_KEY_BEEP, "beep", "Key beep enable", "", "", RIG_CONF_CHECKBUTTON, {} },
+    { 0 }
+};
+
+struct cmdparams icr8600_cmd[] = {
+    { TOK_KEY_BEEP, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x38}, CMD_DAT_BOL, 1 },
+//    { TOK_LINK }
+{ 0 }
+};
 
 /*
  * channel caps.
@@ -89,7 +101,8 @@ static const struct icom_priv_caps icr8600_priv_caps =
     0,                          /* no XCHG */
     r8600_ts_sc_list,           /* list of tuning steps */
     .offs_len = 4,              /* Repeater offset is 4 bytes */
-    .serial_USB_echo_check = 1  /* USB CI-V may not echo */
+    .serial_USB_echo_check = 1, /* USB CI-V may not echo */
+    .cmdparams = icr8600_cmd
 };
 
 const struct rig_caps icr8600_caps =
@@ -122,6 +135,7 @@ const struct rig_caps icr8600_caps =
     .has_set_parm = RIG_PARM_SET(ICR8600_PARM_ALL),
     .level_gran = { [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } } },
     .parm_gran = { [PARM_TIME] = { .min = { .i = 0 }, .max = { .i = 86399} } },
+    .extlevels = icr8600_ext,
     .extparms = icom_ext_parms,
     .ctcss_list = common_ctcss_list,
     .dcs_list = common_dcs_list,

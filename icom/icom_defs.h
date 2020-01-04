@@ -507,16 +507,18 @@
 #define TOK_DRIVE_GAIN TOKEN_BACKEND(103)
 #define TOK_DIGI_SEL_FUNC TOKEN_BACKEND(104)
 #define TOK_DIGI_SEL_LEVEL TOKEN_BACKEND(105)
-#define TOK_DSTAR_CALL_SIGN TOKEN_BACKEND(106)
-#define TOK_DSTAR_MESSAGE TOKEN_BACKEND(107)
-#define TOK_DSTAR_STATUS TOKEN_BACKEND(108)
-#define TOK_DSTAR_GPS_DATA TOKEN_BACKEND(109)
-#define TOK_DSTAR_GPS_MESS TOKEN_BACKEND(110)
-#define TOK_DSTAR_DSQL TOKEN_BACKEND(111)
-#define TOK_DSTAR_MY_CS TOKEN_BACKEND(112)
-#define TOK_DSTAR_TX_CS TOKEN_BACKEND(113)
+#define TOK_KEY_BEEP TOKEN_BACKEND(106)
+#define TOK_DSTAR_CALL_SIGN TOKEN_BACKEND(120)
+#define TOK_DSTAR_MESSAGE TOKEN_BACKEND(121)
+#define TOK_DSTAR_STATUS TOKEN_BACKEND(122)
+#define TOK_DSTAR_GPS_DATA TOKEN_BACKEND(123)
+#define TOK_DSTAR_GPS_MESS TOKEN_BACKEND(124)
+#define TOK_DSTAR_DSQL TOKEN_BACKEND(125)
+#define TOK_DSTAR_MY_CS TOKEN_BACKEND(126)
+#define TOK_DSTAR_TX_CS TOKEN_BACKEND(127)
 #define TOK_DSTAR_TX_MESS TOKEN_BACKEND(114)
 #define TOK_DSTAR_TX_DATA TOKEN_BACKEND(115)
+#define TOK_DSTAR_CODE TOKEN_BACKEND(116)
 
 /*
  * icom_ext_parm table subcommand modifiers
@@ -532,9 +534,10 @@
  */
 
  #define CMD_DAT_WRD 0x00     /* literal single word type */
- #define CMD_DAT_BUF 0x01     /* literal byte buffer type */
- #define CMD_DAT_INT 0x02     /* bcd int type */
- #define CMD_DAT_FLT 0x03     /* bcd float type */
- #define CMD_DAT_BOL 0x04     /* bcd boolean type */
+ #define CMD_DAT_INT 0x01     /* bcd int type */
+ #define CMD_DAT_FLT 0x02     /* bcd float type */
+ #define CMD_DAT_BOL 0x03     /* bcd boolean type */
+ #define CMD_DAT_STR 0x04     /* string type */
+ #define CMD_DAT_BUF 0x05     /* literal byte buffer type */
 
 #endif /* _ICOM_DEFS_H */

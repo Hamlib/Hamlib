@@ -600,6 +600,7 @@ typedef long token_t;
  *   COMBO: val.i, starting from 0.  Points to a table of strings or asci stored values.
  *   STRING: val.s or val.cs
  *   CHECKBUTTON: val.i 0/1
+ *   BINARY: val.b
  */
 
 /* strongly inspired from soundmodem. Thanks Thomas! */
@@ -608,11 +609,13 @@ enum rig_conf_e {
     RIG_CONF_COMBO,         /*!<    Combo type */
     RIG_CONF_NUMERIC,       /*!<    Numeric type integer or real */
     RIG_CONF_CHECKBUTTON,   /*!<    on/off type */
-    RIG_CONF_BUTTON         /*!<    Button type */
+    RIG_CONF_BUTTON,        /*!<    Button type */
+    RIG_CONF_BINARY         /*!<    Binary buffer type */
 };
 
-
+#define TOK_LINK        -1
 #define RIG_COMBO_MAX   16
+#define RIG_BIN_MAX  80
 
 /**
  * \brief Configuration parameter structure.
@@ -706,10 +709,14 @@ enum meter_level_e {
  * \sa rig_set_level(), rig_get_level(), rig_set_parm(), rig_get_parm()
  */
 typedef union {
-    signed int i;   /*!< Signed integer */
-    float f;        /*!< Single precision float */
-    char *s;        /*!< Pointer to char string */
-    const char *cs; /*!< Pointer to constant char string */
+    signed int i;       /*!< Signed integer */
+    float f;            /*!< Single precision float */
+    char *s;            /*!< Pointer to char string */
+    const char *cs;     /*!< Pointer to constant char string */
+    struct {
+        int l;          /*!< Length of data */
+        unsigned char *d; /* Pointer to data buffer */
+    } b;
 } value_t;
 
 
@@ -1574,6 +1581,9 @@ struct rig_caps {
     int (*set_ext_level)(RIG *rig, vfo_t vfo, token_t token, value_t val);
     int (*get_ext_level)(RIG *rig, vfo_t vfo, token_t token, value_t *val);
 
+    int (*set_ext_func)(RIG *rig, vfo_t vfo, token_t token, int status);
+    int (*get_ext_func)(RIG *rig, vfo_t vfo, token_t token, int *status);
+
     int (*set_ext_parm)(RIG *rig, token_t token, value_t val);
     int (*get_ext_parm)(RIG *rig, token_t token, value_t *val);
 
@@ -2085,6 +2095,17 @@ rig_get_ext_level HAMLIB_PARAMS((RIG *rig,
                                  vfo_t vfo,
                                  token_t token,
                                  value_t *val));
+
+extern HAMLIB_EXPORT(int)
+rig_set_ext_func HAMLIB_PARAMS((RIG *rig,
+                                 vfo_t vfo,
+                                 token_t token,
+                                 int status));
+extern HAMLIB_EXPORT(int)
+rig_get_ext_func HAMLIB_PARAMS((RIG *rig,
+                                 vfo_t vfo,
+                                 token_t token,
+                                 int *status));
 
 extern HAMLIB_EXPORT(int)
 rig_set_ext_parm HAMLIB_PARAMS((RIG *rig,

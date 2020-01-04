@@ -53,6 +53,14 @@
         { 255, 60 } /* +60 */ \
     } }
 
+struct confparams icr30_ext[] = {
+    { 0 }
+};
+
+struct cmdparams icr30_cmd[] = {
+    { TOK_LINK }
+};
+
 /*
  * This function does the special bandwidth coding for IC-R30
  * (1 - normal, 2 - narrow)
@@ -96,7 +104,8 @@ static const struct icom_priv_caps icr30_priv_caps =
     0,    /* no XCHG */
     r8500_ts_sc_list, /* wrong, but don't have set_ts anyway */
     .r2i_mode = icr30_r2i_mode,
-    .offs_len = 4
+    .offs_len = 4,
+    .cmdparams = icr30_cmd
 };
 
 const struct rig_caps icr30_caps =
@@ -131,6 +140,7 @@ const struct rig_caps icr30_caps =
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
     },
     .parm_gran =  {},
+    .extlevels = icr30_ext,
     .extparms = icom_ext_parms,
     .ctcss_list =  common_ctcss_list,
     .dcs_list =  common_dcs_list,

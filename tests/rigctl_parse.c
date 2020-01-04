@@ -2930,6 +2930,10 @@ declare_proto_rig(set_parm)
             val.cs = arg2;
             break;
 
+        case RIG_CONF_BINARY:
+            val.b.d = arg2;
+            break;
+
         default:
             return -RIG_ECONF;
         }
@@ -2956,6 +2960,7 @@ declare_proto_rig(get_parm)
     int status;
     setting_t parm;
     value_t val;
+    char buffer[RIG_BIN_MAX];
 
     if (!strcmp(arg1, "?"))
     {
@@ -2976,6 +2981,22 @@ declare_proto_rig(get_parm)
         if (!cfp)
         {
             return -RIG_EINVAL;    /* no such parameter */
+        }
+
+        switch (cfp->type)
+        {
+        case RIG_CONF_STRING:
+            memset(buffer, '0', sizeof(buffer));
+            buffer[sizeof(buffer)-1] = 0;
+            val.s = buffer;
+            break;
+        case RIG_CONF_BINARY:
+            memset(buffer, 0, sizeof(buffer));
+            val.b.d = (unsigned char *)buffer;
+            val.b.l = RIG_BIN_MAX;
+            break;
+        default:
+            break;
         }
 
         status = rig_get_ext_parm(rig, cfp->token, &val);
@@ -3007,6 +3028,10 @@ declare_proto_rig(get_parm)
 
         case RIG_CONF_STRING:
             fprintf(fout, "%s\n", val.s);
+            break;
+
+        case RIG_CONF_BINARY:
+            dump_hex((unsigned char *)buffer, val.b.l);
             break;
 
         default:
