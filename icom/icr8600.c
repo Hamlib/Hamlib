@@ -74,8 +74,7 @@ struct confparams icr8600_ext[] = {
 
 struct cmdparams icr8600_cmd[] = {
     { TOK_KEY_BEEP, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x38}, CMD_DAT_BOL, 1 },
-//    { TOK_LINK }
-{ 0 }
+    { TOK_LINK }
 };
 
 /*
