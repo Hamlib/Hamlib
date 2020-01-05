@@ -47,19 +47,25 @@
 #define ICR30_VFO_OPS (RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL)
 #define ICR30_SCAN_OPS (RIG_SCAN_NONE)
 
+struct confparams icr30_ext[] = {
+    { TOK_ANL_R30, "anl", "Auto noise limiter", "", "", RIG_CONF_CHECKBUTTON, {} },
+    { TOK_EAR_R30, "ear", "Earphone mode", "", "", RIG_CONF_CHECKBUTTON, {} },
+    { TOK_REC_R30, "record", "Recorder on/off", "", "", RIG_CONF_CHECKBUTTON, {} },
+    { 0 }
+};
+
+struct cmdparams icr30_cmd[] = {
+    { TOK_ANL_R30, C_CTL_MEM, S_MEM_ANL, SC_MOD_RW, 0, {}, CMD_DAT_BOL, 1 },
+    { TOK_EAR_R30, C_CTL_MEM, S_MEM_EAR, SC_MOD_RW, 0, {}, CMD_DAT_BOL, 1 },
+    { TOK_REC_R30, C_CTL_MEM, S_MEM_REC, SC_MOD_WR, 0, {}, CMD_DAT_BOL, 1 },
+    { TOK_LINK }
+};
+
 #define ICR30_STR_CAL { 2, \
     { \
         {  0, -60 }, /* S0 */ \
         { 255, 60 } /* +60 */ \
     } }
-
-struct confparams icr30_ext[] = {
-    { 0 }
-};
-
-struct cmdparams icr30_cmd[] = {
-    { TOK_LINK }
-};
 
 /*
  * This function does the special bandwidth coding for IC-R30
@@ -243,6 +249,8 @@ const struct rig_caps icr30_caps =
     .get_parm =  icom_get_parm,
     .set_ext_parm =  icom_set_ext_parm,
     .get_ext_parm =  icom_get_ext_parm,
+    .set_ext_level =  icom_set_ext_level,
+    .get_ext_level =  icom_get_ext_level,
     .get_dcd =  icom_get_dcd,
     .set_ctcss_sql =  icom_set_ctcss_sql,
     .get_ctcss_sql =  icom_get_ctcss_sql,

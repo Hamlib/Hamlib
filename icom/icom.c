@@ -420,6 +420,7 @@ const struct confparams icom_ext_parms[] =
     { TOK_DRIVE_GAIN, "drive_gain", "Drive gain", "", "", RIG_CONF_NUMERIC, { .n = { 0, 255, 1 } } },
     { TOK_DIGI_SEL_FUNC, "digi_sel", "DIGI-SEL enable", "", "", RIG_CONF_CHECKBUTTON, {} },
     { TOK_DIGI_SEL_LEVEL, "digi_sel_level", "DIGI-SEL level", "", "", RIG_CONF_NUMERIC, { .n = { 0, 255, 1 } } },
+    { TOK_KEY_BEEP, "beep", "Key beep enable", "", "", RIG_CONF_CHECKBUTTON, {} },
     { RIG_CONF_END, NULL, }
 };
 
@@ -443,6 +444,7 @@ const struct cmdparams icom_ext_cmd[] =
     { TOK_DRIVE_GAIN, C_CTL_LVL, S_LVL_DRIVE, SC_MOD_RW, 1, {0}, CMD_DAT_FLT, 2 },
     { TOK_DIGI_SEL_FUNC, C_CTL_FUNC, S_FUNC_DIGISEL, SC_MOD_RW, 1, {0}, CMD_DAT_BOL, 1 },
     { TOK_DIGI_SEL_LEVEL, C_CTL_LVL, S_LVL_DIGI, SC_MOD_RW, 1, {0}, CMD_DAT_FLT, 2 },
+    { TOK_KEY_BEEP, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x38}, CMD_DAT_BOL, 1 },
     { 0 }
 };
 
@@ -2504,7 +2506,7 @@ int icom_get_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t *val)
             continue;
         }
         if (cmd[i].token == token) {
-            if (!(cmd[i].submod & SC_MOD_WR)) break;
+            if (!(cmd[i].submod & SC_MOD_RD)) break;
             if ((cmd[i].submod & SC_MOD_RW12) == SC_MOD_RW12) {
                 retval = icom_get_raw_buf(rig, cmd[i].command, cmd[i].subcmd,
                  1, &ssc, &reslen, resbuf);
@@ -2581,7 +2583,7 @@ int icom_set_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t val)
             continue;
         }
         if (cmd[i].token == token) {
-            if (!(cmd[i].submod & SC_MOD_RD)) break;
+            if (!(cmd[i].submod & SC_MOD_WR)) break;
             if ((cmd[i].submod & SC_MOD_RW12) == SC_MOD_RW12) {
                 cmdbuf[0] = 0x01;
                 cmdlen = 1;
