@@ -1003,8 +1003,6 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
     }
 
 #ifdef HAVE_LIBREADLINE
-    rig_debug(RIG_DEBUG_TRACE, "%s: debug15\n", __func__);
-
     if (interactive && prompt && have_rl)
     {
         int j, x;
