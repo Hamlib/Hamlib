@@ -510,6 +510,9 @@
 #define TOK_DIGI_SEL_FUNC TOKEN_BACKEND(104)
 #define TOK_DIGI_SEL_LEVEL TOKEN_BACKEND(105)
 #define TOK_KEY_BEEP TOKEN_BACKEND(106)
+#define TOK_BACKLIGHT TOKEN_BACKEND(107)
+#define TOK_KEYLIGHT TOKEN_BACKEND(108)
+#define TOK_TIME TOKEN_BACKEND(109)
 #define TOK_ANL_R30 TOKEN_BACKEND(110)
 #define TOK_EAR_R30 TOKEN_BACKEND(111)
 #define TOK_REC_R30 TOKEN_BACKEND(112)
@@ -544,5 +547,6 @@
  #define CMD_DAT_BOL 0x03     /* bcd boolean type */
  #define CMD_DAT_STR 0x04     /* string type */
  #define CMD_DAT_BUF 0x05     /* literal byte buffer type */
+ #define CMD_DAT_TIM 0x06     /* Time type HHMM<>seconds */
 
 #endif /* _ICOM_DEFS_H */

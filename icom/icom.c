@@ -422,6 +422,9 @@ const struct confparams icom_ext_parms[] =
     { TOK_DIGI_SEL_FUNC, "digi_sel", "DIGI-SEL enable", "", "", RIG_CONF_CHECKBUTTON, {} },
     { TOK_DIGI_SEL_LEVEL, "digi_sel_level", "DIGI-SEL level", "", "", RIG_CONF_NUMERIC, { .n = { 0, 255, 1 } } },
     { TOK_KEY_BEEP, "beep", "Key beep enable", "", "", RIG_CONF_CHECKBUTTON, {} },
+    { TOK_BACKLIGHT, "backlight", "Display brightness", "", "", RIG_CONF_NUMERIC, { .n = { 0, 255, 1 } } },
+    { TOK_KEYLIGHT, "keylight", "LED brightness", "", "", RIG_CONF_NUMERIC, { .n = { 0, 255, 1 } } },
+    { TOK_TIME, "time", "Time (seconds)", "", "", RIG_CONF_NUMERIC, { .n = { 0, 2359, 1 } } },
     { RIG_CONF_END, NULL, }
 };
 
@@ -446,6 +449,9 @@ const struct cmdparams icom_ext_cmd[] =
     { TOK_DIGI_SEL_FUNC, C_CTL_FUNC, S_FUNC_DIGISEL, SC_MOD_RW, 1, {0}, CMD_DAT_BOL, 1 },
     { TOK_DIGI_SEL_LEVEL, C_CTL_LVL, S_LVL_DIGI, SC_MOD_RW, 1, {0}, CMD_DAT_FLT, 2 },
     { TOK_KEY_BEEP, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x38}, CMD_DAT_BOL, 1 },
+    { TOK_BACKLIGHT, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x15}, CMD_DAT_FLT, 2 },
+    { TOK_KEYLIGHT, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x16}, CMD_DAT_FLT, 2 },
+    { TOK_TIME, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x32}, CMD_DAT_TIM, 2 },
     { 0 }
 };
 
@@ -2567,8 +2573,8 @@ int icom_get_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t *val)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     const struct icom_priv_caps *priv = rig->caps->priv;
-    const struct cmdparams *cmd = priv->cmdparams;
-    for (i = 0; cmd[i].token != 0; i++) {
+    const struct cmdparams *cmd = priv->cmdparams ? priv->cmdparams : icom_ext_cmd;
+    for (i = 0; cmd && cmd[i].token != 0; i++) {
         if (cmd[i].token == TOK_LINK) {
             cmd = icom_ext_cmd;
             i = -1;
@@ -2619,6 +2625,9 @@ int icom_get_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t *val)
             case CMD_DAT_BOL:
                 val->i = (from_bcd_be(resbuf, (reslen * 2)) == 0) ? 0 : 1;
                 break;
+            case CMD_DAT_TIM:
+                val->f = (float)((from_bcd_be(resbuf, 2) * 3600) + (from_bcd_be(&resbuf[1], 2) * 60));
+                break;
             default:
                 val->i = 0;
                 break;
@@ -2644,8 +2653,8 @@ int icom_set_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t val)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     const struct icom_priv_caps *priv = rig->caps->priv;
-    const struct cmdparams *cmd = priv->cmdparams;
-    for (i = 0; cmd[i].token != 0; i++) {
+    const struct cmdparams *cmd = priv->cmdparams ? priv->cmdparams : icom_ext_cmd;
+    for (i = 0; cmd && cmd[i].token != 0; i++) {
         if (cmd[i].token == TOK_LINK) {
             cmd = icom_ext_cmd;
             i = -1;
@@ -2678,6 +2687,9 @@ int icom_set_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t val)
                 break;
             case CMD_DAT_FLT:
                 to_bcd_be(&cmdbuf[cmdlen], (int) val.f, (cmdlen * 2));
+                break;
+            case CMD_DAT_TIM:
+                to_bcd_be(&cmdbuf[cmdlen], ((((int)val.f / 3600) * 100) + (((int)val.f / 60) % 60)), (cmd[i].datlen * 2));
                 break;
             default:
                 break;
