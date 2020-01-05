@@ -588,8 +588,6 @@ icom_rig_open(RIG *rig)
     int retval = RIG_OK;
     struct rig_state *rs = &rig->state;
     struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
-    struct icom_priv_caps *priv_caps =
-        (struct icom_priv_caps *) rig->caps->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1148,12 +1146,14 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
                             pbwidth_t width)
 {
     int retval;
-    unsigned char datamode;
+    unsigned char datamode[2];
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf);
     rmode_t icom_mode;
     unsigned char dm_sub_cmd = RIG_MODEL_IC7200 == rig->caps->rig_model ? 0x04 :
                                S_MEM_DATA_MODE;
+    int filter_byte = rig->caps->rig_model == RIG_MODEL_IC7300
+                   || rig->caps->rig_model == RIG_MODEL_IC7610;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1193,17 +1193,30 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
             /* some rigs (e.g. IC-7700 & IC-7800)
                have D1/2/3 but we cannot know
                which to set so just set D1 */
-            datamode = 0x01;
+            datamode[0] = 0x01;
             break;
 
         default:
-            datamode = 0x00;
+            datamode[0] = 0x00;
             break;
         }
 
-        retval =
-            icom_transaction(rig, C_CTL_MEM, dm_sub_cmd, &datamode, 1, ackbuf,
+        if (filter_byte) { // then we need the width byte too
+            unsigned char md;
+            signed char pd;
+            retval = rig2icom_mode(rig, mode, width, &md, &pd); 
+            if (retval == RIG_OK) {
+              datamode[1] = pd;
+            retval =
+                icom_transaction(rig, C_CTL_MEM, dm_sub_cmd, datamode, 2, ackbuf,
                              &ack_len);
+            }
+        }
+        else {
+            retval =
+                icom_transaction(rig, C_CTL_MEM, dm_sub_cmd, datamode, 1, ackbuf,
+                             &ack_len);
+        }
 
         if (retval != RIG_OK)
         {
