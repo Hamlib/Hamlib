@@ -26,6 +26,7 @@
 #include <stdlib.h>
 
 #include "hamlib/rig.h"
+#include "token.h"
 #include "icom.h"
 #include "idx_builtin.h"
 #include "icom_defs.h"
@@ -47,17 +48,23 @@
 #define ICR30_VFO_OPS (RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL)
 #define ICR30_SCAN_OPS (RIG_SCAN_NONE)
 
+#define TOK_ANL TOKEN_BACKEND(110)
+#define TOK_EAR TOKEN_BACKEND(111)
+#define TOK_REC TOKEN_BACKEND(112)
+
+int icr30_tokens[] = { TOK_ANL, TOK_EAR, TOK_REC, TOK_BACKEND_NONE };
+
 struct confparams icr30_ext[] = {
-    { TOK_ANL_R30, "anl", "Auto noise limiter", "", "", RIG_CONF_CHECKBUTTON, {} },
-    { TOK_EAR_R30, "ear", "Earphone mode", "", "", RIG_CONF_CHECKBUTTON, {} },
-    { TOK_REC_R30, "record", "Recorder on/off", "", "", RIG_CONF_CHECKBUTTON, {} },
+    { TOK_ANL, "anl", "Auto noise limiter", "", "", RIG_CONF_CHECKBUTTON, {} },
+    { TOK_EAR, "ear", "Earphone mode", "", "", RIG_CONF_CHECKBUTTON, {} },
+    { TOK_REC, "record", "Recorder on/off", "", "", RIG_CONF_CHECKBUTTON, {} },
     { 0 }
 };
 
 struct cmdparams icr30_cmd[] = {
-    { TOK_ANL_R30, C_CTL_MEM, S_MEM_ANL, SC_MOD_RW, 0, {}, CMD_DAT_BOL, 1 },
-    { TOK_EAR_R30, C_CTL_MEM, S_MEM_EAR, SC_MOD_RW, 0, {}, CMD_DAT_BOL, 1 },
-    { TOK_REC_R30, C_CTL_MEM, S_MEM_REC, SC_MOD_WR, 0, {}, CMD_DAT_BOL, 1 },
+    { TOK_ANL, C_CTL_MEM, S_MEM_ANL, SC_MOD_RW, 0, {}, CMD_DAT_BOL, 1 },
+    { TOK_EAR, C_CTL_MEM, S_MEM_EAR, SC_MOD_RW, 0, {}, CMD_DAT_BOL, 1 },
+    { TOK_REC, C_CTL_MEM, S_MEM_REC, SC_MOD_WR, 0, {}, CMD_DAT_BOL, 1 },
     { TOK_LINK }
 };
 
@@ -146,6 +153,7 @@ const struct rig_caps icr30_caps =
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
     },
     .parm_gran =  {},
+    .ext_tokens = icr30_tokens,
     .extlevels = icr30_ext,
     .extparms = icom_ext_parms,
     .ctcss_list =  common_ctcss_list,

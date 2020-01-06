@@ -2526,18 +2526,6 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     return RIG_OK;
 }
 
-int icom_set_ext_func(RIG *rig, vfo_t vfo, token_t token, int status)
-{
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-    return icom_set_ext_cmd(rig, vfo, token, (value_t)status);
-}
-
-int icom_get_ext_func(RIG *rig, vfo_t vfo, token_t token, int *status)
-{
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-    return icom_get_ext_cmd(rig, vfo, token, (value_t *)status);
-}
-
 int icom_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -2572,67 +2560,73 @@ int icom_get_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    const struct icom_priv_caps *priv = rig->caps->priv;
-    const struct cmdparams *cmd = priv->cmdparams ? priv->cmdparams : icom_ext_cmd;
-    for (i = 0; cmd && cmd[i].token != 0; i++) {
-        if (cmd[i].token == TOK_LINK) {
-            cmd = icom_ext_cmd;
-            i = -1;
-            continue;
-        }
-        if (cmd[i].token == token) {
-            if (!(cmd[i].submod & SC_MOD_RD)) break;
-            if ((cmd[i].submod & SC_MOD_RW12) == SC_MOD_RW12) {
-                retval = icom_get_raw_buf(rig, cmd[i].command, cmd[i].subcmd,
-                 1, &ssc, &reslen, resbuf);
-            } else {
-                retval = icom_get_raw_buf(rig, cmd[i].command, cmd[i].subcmd,
-                cmd[i].sublen, (unsigned char *)cmd[i].subext, &reslen, resbuf);
+    for (i = 0; rig->caps->ext_tokens && rig->caps->ext_tokens[i] != TOK_BACKEND_NONE; i++) {
+        if (rig->caps->ext_tokens[i] == token) {
+
+            const struct icom_priv_caps *priv = rig->caps->priv;
+            const struct cmdparams *cmd = priv->cmdparams ? priv->cmdparams : icom_ext_cmd;
+            for (i = 0; cmd && cmd[i].token != 0; i++) {
+                if (cmd[i].token == TOK_LINK) {
+                    cmd = icom_ext_cmd;
+                    i = -1;
+                    continue;
+                }
+                if (cmd[i].token == token) {
+                    if (!(cmd[i].submod & SC_MOD_RD)) break;
+                    if ((cmd[i].submod & SC_MOD_RW12) == SC_MOD_RW12) {
+                        retval = icom_get_raw_buf(rig, cmd[i].command, cmd[i].subcmd,
+                        1, &ssc, &reslen, resbuf);
+                    } else {
+                        retval = icom_get_raw_buf(rig, cmd[i].command, cmd[i].subcmd,
+                        cmd[i].sublen, (unsigned char *)cmd[i].subext, &reslen, resbuf);
+                    }
+                    if (retval != RIG_OK) {
+                        return retval;
+                    }
+                    switch (cmd[i].dattyp) {
+                    case CMD_DAT_WRD: {
+                        int wrd = 0;
+                        int j;
+                        for (j = 0; j < cmd[i].datlen; j++) {
+                            wrd = (wrd << 8) + resbuf[j];
+                        }
+                        val->i = wrd;
+                        }
+                        break;
+                    case CMD_DAT_STR:
+                        if (strlen(val->s) < reslen) {
+                            return -RIG_EINTERNAL;
+                        }
+                        memcpy(val->s, resbuf, reslen);
+                        val->s[reslen] = 0;
+                        break;
+                    case CMD_DAT_BUF:
+                        if (reslen > val->b.l) {
+                            return -RIG_EINTERNAL;
+                        }
+                        memcpy(val->b.d, resbuf, reslen);
+                        val->b.l = reslen;
+                        break;
+                    case CMD_DAT_INT:
+                        val->i = from_bcd_be(resbuf, (reslen * 2));
+                        break;
+                    case CMD_DAT_FLT:
+                        val->f = (float) from_bcd_be(resbuf, (reslen * 2));
+                        break;
+                    case CMD_DAT_BOL:
+                        val->i = (from_bcd_be(resbuf, (reslen * 2)) == 0) ? 0 : 1;
+                        break;
+                    case CMD_DAT_TIM:
+                        val->f = (float)((from_bcd_be(resbuf, 2) * 3600) + (from_bcd_be(&resbuf[1], 2) * 60));
+                        break;
+                    default:
+                        val->i = 0;
+                        break;
+                    }
+                    return RIG_OK;
+                }
             }
-            if (retval != RIG_OK) {
-                return retval;
-            }
-            switch (cmd[i].dattyp) {
-            case CMD_DAT_WRD: {
-                int wrd = 0;
-                int j;
-                for (j = 0; j < cmd[i].datlen; j++) {
-                    wrd = (wrd << 8) + resbuf[j];
-                }
-                val->i = wrd;
-                }
-                break;
-            case CMD_DAT_STR:
-                if (strlen(val->s) < reslen) {
-                    return -RIG_EINTERNAL;
-                }
-                memcpy(val->s, resbuf, reslen);
-                val->s[reslen] = 0;
-                break;
-            case CMD_DAT_BUF:
-                if (reslen > val->b.l) {
-                    return -RIG_EINTERNAL;
-                }
-                memcpy(val->b.d, resbuf, reslen);
-                val->b.l = reslen;
-                break;
-            case CMD_DAT_INT:
-                val->i = from_bcd_be(resbuf, (reslen * 2));
-                break;
-            case CMD_DAT_FLT:
-                val->f = (float) from_bcd_be(resbuf, (reslen * 2));
-                break;
-            case CMD_DAT_BOL:
-                val->i = (from_bcd_be(resbuf, (reslen * 2)) == 0) ? 0 : 1;
-                break;
-            case CMD_DAT_TIM:
-                val->f = (float)((from_bcd_be(resbuf, 2) * 3600) + (from_bcd_be(&resbuf[1], 2) * 60));
-                break;
-            default:
-                val->i = 0;
-                break;
-            }
-            return RIG_OK;
+            return -RIG_EINVAL;
         }
     }
     return -RIG_EINVAL;
@@ -2652,51 +2646,57 @@ int icom_set_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t val)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    const struct icom_priv_caps *priv = rig->caps->priv;
-    const struct cmdparams *cmd = priv->cmdparams ? priv->cmdparams : icom_ext_cmd;
-    for (i = 0; cmd && cmd[i].token != 0; i++) {
-        if (cmd[i].token == TOK_LINK) {
-            cmd = icom_ext_cmd;
-            i = -1;
-            continue;
-        }
-        if (cmd[i].token == token) {
-            if (!(cmd[i].submod & SC_MOD_WR)) break;
-            if ((cmd[i].submod & SC_MOD_RW12) == SC_MOD_RW12) {
-                cmdbuf[0] = 0x01;
-                cmdlen = 1;
-            } else {
-                cmdlen = cmd[i].sublen;
-                memcpy(cmdbuf, cmd[i].subext, cmdlen);
-            }
-            int wrd = val.i;
-            int j;
-            switch (cmd[i].dattyp) {
-            case CMD_DAT_WRD:
-                for (j = 1; j <= cmd[i].datlen; j++) {
-                    cmdbuf[cmdlen + cmd[i].datlen - j] = wrd & 0xff;
-                    wrd >>= 8;
+    for (i = 0; rig->caps->ext_tokens && rig->caps->ext_tokens[i] != TOK_BACKEND_NONE; i++) {
+        if (rig->caps->ext_tokens[i] == token) {
+
+            const struct icom_priv_caps *priv = rig->caps->priv;
+            const struct cmdparams *cmd = priv->cmdparams ? priv->cmdparams : icom_ext_cmd;
+            for (i = 0; cmd && cmd[i].token != 0; i++) {
+                if (cmd[i].token == TOK_LINK) {
+                    cmd = icom_ext_cmd;
+                    i = -1;
+                    continue;
                 }
-                break;
-            case CMD_DAT_BUF:
-                memcpy(&cmdbuf[cmdlen], val.b.d, cmd[i].datlen);
-                break;
-            case CMD_DAT_INT:
-            case CMD_DAT_BOL:
-                to_bcd_be(&cmdbuf[cmdlen], val.i, (cmd[i].datlen * 2));
-                break;
-            case CMD_DAT_FLT:
-                to_bcd_be(&cmdbuf[cmdlen], (int) val.f, (cmdlen * 2));
-                break;
-            case CMD_DAT_TIM:
-                to_bcd_be(&cmdbuf[cmdlen], ((((int)val.f / 3600) * 100) + (((int)val.f / 60) % 60)), (cmd[i].datlen * 2));
-                break;
-            default:
-                break;
+                if (cmd[i].token == token) {
+                    if (!(cmd[i].submod & SC_MOD_WR)) break;
+                    if ((cmd[i].submod & SC_MOD_RW12) == SC_MOD_RW12) {
+                        cmdbuf[0] = 0x01;
+                        cmdlen = 1;
+                    } else {
+                        cmdlen = cmd[i].sublen;
+                        memcpy(cmdbuf, cmd[i].subext, cmdlen);
+                    }
+                    int wrd = val.i;
+                    int j;
+                    switch (cmd[i].dattyp) {
+                    case CMD_DAT_WRD:
+                        for (j = 1; j <= cmd[i].datlen; j++) {
+                            cmdbuf[cmdlen + cmd[i].datlen - j] = wrd & 0xff;
+                            wrd >>= 8;
+                        }
+                        break;
+                    case CMD_DAT_BUF:
+                        memcpy(&cmdbuf[cmdlen], val.b.d, cmd[i].datlen);
+                        break;
+                    case CMD_DAT_INT:
+                    case CMD_DAT_BOL:
+                        to_bcd_be(&cmdbuf[cmdlen], val.i, (cmd[i].datlen * 2));
+                        break;
+                    case CMD_DAT_FLT:
+                        to_bcd_be(&cmdbuf[cmdlen], (int) val.f, (cmdlen * 2));
+                        break;
+                    case CMD_DAT_TIM:
+                        to_bcd_be(&cmdbuf[cmdlen], ((((int)val.f / 3600) * 100) + (((int)val.f / 60) % 60)), (cmd[i].datlen * 2));
+                        break;
+                    default:
+                        break;
+                    }
+                    cmdlen += cmd[i].datlen;
+                    return icom_transaction(rig, cmd[i].command, cmd[i].subcmd,
+                        cmdbuf, cmdlen, ackbuf, &acklen);
+                }
             }
-            cmdlen += cmd[i].datlen;
-            return icom_transaction(rig, cmd[i].command, cmd[i].subcmd,
-                cmdbuf, cmdlen, ackbuf, &acklen);
+            return -RIG_EINVAL;
         }
     }
     return -RIG_EINVAL;

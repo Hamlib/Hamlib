@@ -2949,7 +2949,7 @@ declare_proto_rig(set_parm)
             break;
 
         case RIG_CONF_BINARY:
-            val.b.d = arg2;
+            val.b.d = (unsigned char *)arg2;
             break;
 
         default:

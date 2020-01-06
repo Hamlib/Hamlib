@@ -31,6 +31,7 @@
 #include "hamlib/rig.h"
 #include "misc.h"
 #include "idx_builtin.h"
+#include "token.h"
 
 #include "icom.h"
 #include "icom_defs.h"
@@ -66,6 +67,8 @@
     {   0, -60 }, \
     { 255, 60 }, \
 } }
+
+int icr8600_tokens[] = { TOK_DSTAR_CALL_SIGN, TOK_BACKEND_NONE };
 
 struct confparams icr8600_ext[] = {
     { TOK_KEY_BEEP, "beep", "Key beep enable", "", "", RIG_CONF_CHECKBUTTON, {} },
@@ -134,6 +137,7 @@ const struct rig_caps icr8600_caps =
     .has_set_parm = RIG_PARM_SET(ICR8600_PARM_ALL),
     .level_gran = { [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } } },
     .parm_gran = { [PARM_TIME] = { .min = { .i = 0 }, .max = { .i = 86399} } },
+    .ext_tokens = icr8600_tokens,
     .extlevels = icr8600_ext,
     .extparms = icom_ext_parms,
     .ctcss_list = common_ctcss_list,
