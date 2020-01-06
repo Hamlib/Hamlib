@@ -37,7 +37,7 @@
  */
 #include <unistd.h>
 #include <errno.h>
-#include "hamlib/rig.h"
+#include <time.h>
 
 unsigned int sleep(unsigned int secs)
 {
