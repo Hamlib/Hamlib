@@ -236,8 +236,6 @@ int icom_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val);
 int icom_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val);
 int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
-int icom_set_ext_func(RIG *rig, vfo_t vfo, token_t token, int status);
-int icom_get_ext_func(RIG *rig, vfo_t vfo, token_t token, int *status);
 int icom_set_parm(RIG *rig, setting_t parm, value_t val);
 int icom_get_parm(RIG *rig, setting_t parm, value_t *val);
 int icom_set_ext_parm(RIG *rig, token_t token, value_t val);
