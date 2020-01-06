@@ -92,8 +92,6 @@
 #define CONSTANT_64BIT_FLAG(BIT) (1ull << (BIT))
 #endif
 
-#include <time.h>
-
 __BEGIN_DECLS
 
 extern HAMLIB_EXPORT_VAR(const char) hamlib_version[];
