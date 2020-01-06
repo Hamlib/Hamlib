@@ -5693,6 +5693,7 @@ static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
                       __func__);
 
             vfo = RIG_VFO_CURR;
+            retval = RIG_OK;
         }
 
         if (retval != RIG_OK)
