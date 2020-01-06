@@ -100,6 +100,16 @@
 
 #define IC7100_PARM_ALL (RIG_PARM_ANN|RIG_PARM_BACKLIGHT)
 
+struct confparams ic7100_ext[] = {
+    { TOK_TIME, "time", "Time (seconds)", "", "", RIG_CONF_NUMERIC, { .n = { 0, 2359, 1 } } },
+    { 0 }
+};
+        
+struct cmdparams ic7100_cmd[] = {
+    { TOK_TIME, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x21}, CMD_DAT_TIM, 2 },
+    { TOK_LINK }
+};
+
 // IC-7100 S-meter calibration data based on manual
 #define IC7100_STR_CAL { 14, \
     { \
@@ -173,6 +183,7 @@ static const struct icom_priv_caps ic7100_priv_caps =
         { .level = RIG_AGC_SLOW, .icom_level = 3 },
         { .level = -1, .icom_level = 0 },
     },
+    .cmdparams = ic7100_cmd
 };
 
 const struct rig_caps ic7100_caps =
@@ -209,6 +220,7 @@ const struct rig_caps ic7100_caps =
         [LVL_KEYSPD] = { .min = { .i = 6 }, .max = { .i = 48 }, .step = { .i = 1 } },
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 900 }, .step = { .i = 1 } },
     },
+    .extlevels = ic7100_ext,
     .extparms = icom_ext_parms,
     .parm_gran =  {},
     .ctcss_list =  common_ctcss_list,
