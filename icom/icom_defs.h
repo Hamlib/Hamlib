@@ -541,9 +541,10 @@
  #define CMD_DAT_WRD 0x00     /* literal single word type */
  #define CMD_DAT_INT 0x01     /* bcd int type */
  #define CMD_DAT_FLT 0x02     /* bcd float type */
- #define CMD_DAT_BOL 0x03     /* bcd boolean type */
- #define CMD_DAT_STR 0x04     /* string type */
- #define CMD_DAT_BUF 0x05     /* literal byte buffer type */
- #define CMD_DAT_TIM 0x06     /* Time type HHMM<>seconds */
+ #define CMD_DAT_LVL 0x03     /* bcd level type */
+ #define CMD_DAT_BOL 0x04     /* bcd boolean type */
+ #define CMD_DAT_STR 0x05     /* string type */
+ #define CMD_DAT_BUF 0x06     /* literal byte buffer type */
+ #define CMD_DAT_TIM 0x07     /* Time type HHMM<>seconds */
 
 #endif /* _ICOM_DEFS_H */
