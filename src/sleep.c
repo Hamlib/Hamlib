@@ -35,6 +35,7 @@
  * \param same as man page for each
  *
  */
+#ifdef HAVE_NANOSLEEP
 #include <unistd.h>
 #include <errno.h>
 #include <time.h>
@@ -70,3 +71,4 @@ int usleep(useconds_t usec)
 
     return 0;
 }
+#endif // HAVE_NANOSLEEP
