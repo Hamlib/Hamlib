@@ -410,7 +410,7 @@ const struct confparams icom_ext_parms[] =
     { TOK_DSTAR_DSQL, "dsdsql", "D-STAR CSQL Status", "", "", RIG_CONF_CHECKBUTTON, {} },
     { TOK_DSTAR_CALL_SIGN, "dscals", "D-STAR Call sign", "", "", RIG_CONF_BINARY, {} },
     { TOK_DSTAR_MESSAGE, "dsrmes", "D-STAR Rx Message", "", "", RIG_CONF_STRING, {} },
-    { TOK_DSTAR_STATUS, "dsstat", "D-STAR Rx Status", "", "", RIG_CONF_NUMERIC, {} },
+    { TOK_DSTAR_STATUS, "dsstat", "D-STAR Rx Status", "", "", RIG_CONF_BINARY, {} },
     { TOK_DSTAR_GPS_DATA, "dsgpsd", "D-STAR GPS Data", "", "", RIG_CONF_BINARY, {} },
     { TOK_DSTAR_GPS_MESS, "dsgpsm", "D-STAR GPS Message", "", "", RIG_CONF_STRING, {} },
     { TOK_DSTAR_CODE, "dscode", "D-STAR CSQL Code", "", "", RIG_CONF_NUMERIC, {} },
@@ -418,13 +418,9 @@ const struct confparams icom_ext_parms[] =
     { TOK_DSTAR_MY_CS, "dsmycs", "D-STAR MY Call Sign", "", "", RIG_CONF_STRING, {} },
     { TOK_DSTAR_TX_CS, "dstxcs", "D-STAR Tx Call Sign", "", "", RIG_CONF_BINARY, {} },
     { TOK_DSTAR_TX_MESS, "dstmes", "D-STAR Tx Message", "", "", RIG_CONF_STRING, {} },
-    { TOK_DRIVE_GAIN, "drive_gain", "Drive gain", "", "", RIG_CONF_NUMERIC, { .n = { 0, 255, 1 } } },
+    { TOK_DRIVE_GAIN, "drive_gain", "Drive gain", "", "", RIG_CONF_NUMERIC, {} },
     { TOK_DIGI_SEL_FUNC, "digi_sel", "DIGI-SEL enable", "", "", RIG_CONF_CHECKBUTTON, {} },
-    { TOK_DIGI_SEL_LEVEL, "digi_sel_level", "DIGI-SEL level", "", "", RIG_CONF_NUMERIC, { .n = { 0, 255, 1 } } },
-    { TOK_KEY_BEEP, "beep", "Key beep enable", "", "", RIG_CONF_CHECKBUTTON, {} },
-    { TOK_BACKLIGHT, "backlight", "Display brightness", "", "", RIG_CONF_NUMERIC, { .n = { 0, 255, 1 } } },
-    { TOK_KEYLIGHT, "keylight", "LED brightness", "", "", RIG_CONF_NUMERIC, { .n = { 0, 255, 1 } } },
-    { TOK_TIME, "time", "Time (seconds)", "", "", RIG_CONF_NUMERIC, { .n = { 0, 2359, 1 } } },
+    { TOK_DIGI_SEL_LEVEL, "digi_sel_level", "DIGI-SEL level", "", "", RIG_CONF_NUMERIC, {} },
     { RIG_CONF_END, NULL, }
 };
 
@@ -436,10 +432,10 @@ const struct cmdparams icom_ext_cmd[] =
 {
     { TOK_DSTAR_CALL_SIGN, C_CTL_DIG, S_DIG_DSCALS, SC_MOD_RW12, 2, {0}, CMD_DAT_BUF, 38 },
     { TOK_DSTAR_MESSAGE, C_CTL_DIG, S_DIG_DSMESS, SC_MOD_RW12, 2, {0}, CMD_DAT_STR, 32 },
-    { TOK_DSTAR_STATUS, C_CTL_DIG, S_DIG_DSRSTS, SC_MOD_RW12, 2, {0}, CMD_DAT_WRD, 1 },
+    { TOK_DSTAR_STATUS, C_CTL_DIG, S_DIG_DSRSTS, SC_MOD_RW12, 2, {0}, CMD_DAT_BUF, 1 },
     { TOK_DSTAR_GPS_DATA, C_CTL_DIG, S_DIG_DSGPSD, SC_MOD_RW12, 2, {0}, CMD_DAT_BUF, 52 },
     { TOK_DSTAR_GPS_MESS, C_CTL_DIG, S_DIG_DSGPSM, SC_MOD_RW12, 2, {0}, CMD_DAT_STR, 52 },
-    { TOK_DSTAR_DSQL, C_CTL_DIG, S_DIG_DSCSQL, SC_MOD_RW, 2, {0}, CMD_DAT_INT, 1 },
+    { TOK_DSTAR_DSQL, C_CTL_DIG, S_DIG_DSCSQL, SC_MOD_RW, 1, {0}, CMD_DAT_BOL, 1 },
     { TOK_DSTAR_CODE, C_CTL_DIG, S_DIG_DSCSQL, SC_MOD_RW12, 2, {0}, CMD_DAT_FLT, 1 },
     { TOK_DSTAR_TX_DATA, C_CTL_DSD, S_DSD_DSTXDT, SC_MOD_RW, 1, {0}, CMD_DAT_BUF, 30 },
     { TOK_DSTAR_MY_CS, C_CTL_DVT, S_DVT_DSMYCS, SC_MOD_RW, 1, {0}, CMD_DAT_STR, 12 },
@@ -448,10 +444,6 @@ const struct cmdparams icom_ext_cmd[] =
     { TOK_DRIVE_GAIN, C_CTL_LVL, S_LVL_DRIVE, SC_MOD_RW, 1, {0}, CMD_DAT_FLT, 2 },
     { TOK_DIGI_SEL_FUNC, C_CTL_FUNC, S_FUNC_DIGISEL, SC_MOD_RW, 1, {0}, CMD_DAT_BOL, 1 },
     { TOK_DIGI_SEL_LEVEL, C_CTL_LVL, S_LVL_DIGI, SC_MOD_RW, 1, {0}, CMD_DAT_FLT, 2 },
-    { TOK_KEY_BEEP, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x38}, CMD_DAT_BOL, 1 },
-    { TOK_BACKLIGHT, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x15}, CMD_DAT_FLT, 2 },
-    { TOK_KEYLIGHT, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x16}, CMD_DAT_FLT, 2 },
-    { TOK_TIME, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x32}, CMD_DAT_TIM, 2 },
     { 0 }
 };
 
@@ -2613,6 +2605,9 @@ int icom_get_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t *val)
                     case CMD_DAT_FLT:
                         val->f = (float) from_bcd_be(resbuf, (reslen * 2));
                         break;
+                    case CMD_DAT_LVL:
+                        val->f = (float) from_bcd_be(resbuf, (reslen * 2)) / 255.0;
+                        break;
                     case CMD_DAT_BOL:
                         val->i = (from_bcd_be(resbuf, (reslen * 2)) == 0) ? 0 : 1;
                         break;
@@ -2684,6 +2679,9 @@ int icom_set_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t val)
                         break;
                     case CMD_DAT_FLT:
                         to_bcd_be(&cmdbuf[cmdlen], (int) val.f, (cmdlen * 2));
+                        break;
+                    case CMD_DAT_LVL:
+                        to_bcd_be(&cmdbuf[cmdlen], (int)(val.f * 255.0), (cmdlen * 2));
                         break;
                     case CMD_DAT_TIM:
                         to_bcd_be(&cmdbuf[cmdlen], ((((int)val.f / 3600) * 100) + (((int)val.f / 60) % 60)), (cmd[i].datlen * 2));

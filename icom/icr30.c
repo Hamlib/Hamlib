@@ -52,7 +52,10 @@
 #define TOK_EAR TOKEN_BACKEND(111)
 #define TOK_REC TOKEN_BACKEND(112)
 
-int icr30_tokens[] = { TOK_ANL, TOK_EAR, TOK_REC, TOK_BACKEND_NONE };
+int icr30_tokens[] = { TOK_ANL, TOK_EAR, TOK_REC,
+    TOK_DSTAR_DSQL, TOK_DSTAR_CALL_SIGN, TOK_DSTAR_MESSAGE, TOK_DSTAR_STATUS,
+    TOK_DSTAR_GPS_DATA, TOK_DSTAR_GPS_MESS, TOK_DSTAR_CODE, TOK_DSTAR_TX_DATA,
+    TOK_BACKEND_NONE };
 
 struct confparams icr30_ext[] = {
     { TOK_ANL, "anl", "Auto noise limiter", "", "", RIG_CONF_CHECKBUTTON, {} },

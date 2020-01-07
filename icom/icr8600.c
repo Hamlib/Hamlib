@@ -50,8 +50,7 @@
     RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_PREAMP|\
     RIG_LEVEL_AGC|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH)
 
-#define ICR8600_PARM_ALL (RIG_PARM_ANN|RIG_PARM_BACKLIGHT|\
-    RIG_PARM_BEEP|RIG_PARM_TIME|RIG_PARM_KEYLIGHT)
+#define ICR8600_PARM_ALL (RIG_PARM_NONE)
 
 #define ICR8600_VFO_ALL (RIG_VFO_VFO|RIG_VFO_MEM)
 
@@ -68,15 +67,24 @@
     { 255, 60 }, \
 } }
 
-int icr8600_tokens[] = { TOK_DSTAR_CALL_SIGN, TOK_BACKEND_NONE };
+int icr8600_tokens[] = { TOK_KEY_BEEP, TOK_BACKLIGHT, TOK_KEYLIGHT, TOK_TIME,
+    TOK_DSTAR_DSQL, TOK_DSTAR_CALL_SIGN, TOK_DSTAR_MESSAGE, TOK_DSTAR_STATUS, TOK_DSTAR_GPS_DATA,
+    TOK_DSTAR_GPS_MESS, TOK_DSTAR_CODE, TOK_DSTAR_TX_DATA,
+    TOK_BACKEND_NONE };
 
 struct confparams icr8600_ext[] = {
     { TOK_KEY_BEEP, "beep", "Key beep enable", "", "", RIG_CONF_CHECKBUTTON, {} },
+    { TOK_BACKLIGHT, "backlight", "Display brightness", "", "", RIG_CONF_NUMERIC, {} },
+    { TOK_KEYLIGHT, "keylight", "LED brightness", "", "", RIG_CONF_NUMERIC, {} },
+    { TOK_TIME, "time", "Time (seconds)", "", "", RIG_CONF_NUMERIC, {} },
     { 0 }
 };
 
 struct cmdparams icr8600_cmd[] = {
     { TOK_KEY_BEEP, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x38}, CMD_DAT_BOL, 1 },
+    { TOK_BACKLIGHT, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x15}, CMD_DAT_LVL, 2 },
+    { TOK_KEYLIGHT, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x16}, CMD_DAT_LVL, 2 },
+    { TOK_TIME, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x32}, CMD_DAT_TIM, 2 },
     { TOK_LINK }
 };
 
@@ -92,9 +100,6 @@ struct cmdparams icr8600_cmd[] = {
     .channel_desc = 1,  \
     .flags = 1, \
 }
-
-int icr8600_set_parm(RIG *rig, setting_t parm, value_t val);
-int icr8600_get_parm(RIG *rig, setting_t parm, value_t *val);
 
 static const struct icom_priv_caps icr8600_priv_caps =
 {
@@ -238,10 +243,10 @@ const struct rig_caps icr8600_caps =
     .get_func = icom_get_func,
     .set_level = icom_set_level,
     .get_level = icom_get_level,
-    .set_parm = icr8600_set_parm,
-    .get_parm = icr8600_get_parm,
-    .set_ext_parm =  icom_set_ext_parm,
-    .get_ext_parm =  icom_get_ext_parm,
+    .set_parm = icom_set_parm,
+    .get_parm = icom_get_parm,
+    .set_ext_parm = icom_set_ext_parm,
+    .get_ext_parm = icom_get_ext_parm,
     .get_dcd = icom_get_dcd,
     .set_mem = icom_set_mem,
     .vfo_op = icom_vfo_op,
@@ -254,96 +259,3 @@ const struct rig_caps icr8600_caps =
     .get_dcs_sql = icom_get_dcs_sql,
 
 };
-
-int icr8600_set_parm(RIG *rig, setting_t parm, value_t val)
-{
-    unsigned char parmbuf[MAXFRAMELEN];
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    switch (parm)
-    {
-    case RIG_PARM_BEEP:
-        parmbuf[0] = 0x00;
-        parmbuf[1] = 0x38;
-        return icom_set_custom_parm(rig, 2, parmbuf, 1, val.i ? 1 : 0);
-
-    case RIG_PARM_BACKLIGHT:
-        parmbuf[0] = 0x01;
-        parmbuf[1] = 0x15;
-        return icom_set_custom_parm(rig, 2, parmbuf, 2, (int)(val.f * 255.0f));
-
-    case RIG_PARM_KEYLIGHT:
-        parmbuf[0] = 0x01;
-        parmbuf[1] = 0x16;
-        return icom_set_custom_parm(rig, 2, parmbuf, 2, val.f != 0 ? 255 : 0);
-
-    case RIG_PARM_TIME:
-        parmbuf[0] = 0x01;
-        parmbuf[1] = 0x32;
-        return icom_set_custom_parm_time(rig, 2, parmbuf, val.i);
-
-    default:
-        return icom_set_parm(rig, parm, val);
-    }
-}
-
-int icr8600_get_parm(RIG *rig, setting_t parm, value_t *val)
-{
-    unsigned char parmbuf[MAXFRAMELEN];
-    int retval;
-    int icom_val;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    switch (parm)
-    {
-    case RIG_PARM_BEEP:
-        parmbuf[0] = 0x00;
-        parmbuf[1] = 0x38;
-        retval = icom_get_custom_parm(rig, 2, parmbuf, &icom_val);
-
-        if (retval != RIG_OK)
-        {
-            return retval;
-        }
-
-        val->i = icom_val ? 1 : 0;
-        break;
-
-    case RIG_PARM_BACKLIGHT:
-        parmbuf[0] = 0x01;
-        parmbuf[1] = 0x15;
-        retval = icom_get_custom_parm(rig, 2, parmbuf, &icom_val);
-
-        if (retval != RIG_OK)
-        {
-            return retval;
-        }
-
-        val->f = (float) icom_val / 255.0f;
-        break;
-
-    case RIG_PARM_KEYLIGHT:
-        parmbuf[0] = 0x01;
-        parmbuf[1] = 0x16;
-        retval = icom_get_custom_parm(rig, 2, parmbuf, &icom_val);
-
-        if (retval != RIG_OK)
-        {
-            return retval;
-        }
-
-        val->f = icom_val != 0;
-        break;
-
-    case RIG_PARM_TIME:
-        parmbuf[0] = 0x01;
-        parmbuf[1] = 0x32;
-        return icom_get_custom_parm_time(rig, 2, parmbuf, &val->i);
-
-    default:
-        return icom_get_parm(rig, parm, val);
-    }
-
-    return RIG_OK;
-}

@@ -31,6 +31,7 @@
 #include "frame.h"
 #include "idx_builtin.h"
 #include "bandplan.h"
+#include "token.h"
 
 
 #define IC7100_MODES (RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR|\
@@ -100,11 +101,16 @@
 
 #define IC7100_PARM_ALL (RIG_PARM_ANN|RIG_PARM_BACKLIGHT)
 
+int ic7100_tokens[] = { TOK_KEY_BEEP, TOK_BACKLIGHT, TOK_KEYLIGHT, TOK_TIME,
+    TOK_DSTAR_CODE, TOK_DSTAR_DSQL, TOK_DSTAR_CALL_SIGN, TOK_DSTAR_MESSAGE, TOK_DSTAR_STATUS,
+    TOK_DSTAR_MY_CS, TOK_DSTAR_TX_CS, TOK_DSTAR_TX_MESS,
+    TOK_BACKEND_NONE };
+
 struct confparams ic7100_ext[] = {
     { TOK_TIME, "time", "Time (seconds)", "", "", RIG_CONF_NUMERIC, { .n = { 0, 2359, 1 } } },
     { 0 }
 };
-        
+
 struct cmdparams ic7100_cmd[] = {
     { TOK_TIME, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x21}, CMD_DAT_TIM, 2 },
     { TOK_LINK }
@@ -220,6 +226,7 @@ const struct rig_caps ic7100_caps =
         [LVL_KEYSPD] = { .min = { .i = 6 }, .max = { .i = 48 }, .step = { .i = 1 } },
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 900 }, .step = { .i = 1 } },
     },
+    .ext_tokens = ic7100_tokens,
     .extlevels = ic7100_ext,
     .extparms = icom_ext_parms,
     .parm_gran =  {},
