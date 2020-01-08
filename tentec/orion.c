@@ -729,7 +729,7 @@ int tt565_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     }
 
     /* Orion may need some time to "recover" from ?RxM before ?RxF */
-    usleep(80000);      // try 80 ms
+    hl_usleep(80000);      // try 80 ms
     /* Query passband width (filter) */
     cmd_len = sprintf(cmdbuf, "?R%cF" EOM, ttreceiver);
     resp_len = sizeof(respbuf);
@@ -1833,7 +1833,7 @@ int tt565_send_morse(RIG *rig, vfo_t vfo, const char *msg)
         }
 
         keyer_set = TRUE;
-        usleep(100000); /* 100 msec - guess */
+        hl_usleep(100000); /* 100 msec - guess */
     }
 
     msg_len = strlen(msg);

@@ -306,7 +306,7 @@ ars_move(ROT *rot, int direction, int speed)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s need settling delay\n", __func__);
 
-        usleep(ARS_SETTLE_DELAY);
+        hl_usleep(ARS_SETTLE_DELAY);
     }
 
     priv->curr_move = direction;
@@ -337,7 +337,7 @@ ars_move(ROT *rot, int direction, int speed)
         }
 
         priv->brake_off = 1;
-        usleep(ARS_BRAKE_DELAY);
+        hl_usleep(ARS_BRAKE_DELAY);
     }
 
 
@@ -437,7 +437,7 @@ static void *handle_set_position(void *arg)
         if (!priv->set_pos_active)
         {
             /* TODO: replace polling period by cond var */
-            usleep(100 * 1000 - 1);
+            hl_usleep(100 * 1000 - 1);
             continue;
         }
 
@@ -448,7 +448,7 @@ static void *handle_set_position(void *arg)
         {
             rig_debug(RIG_DEBUG_WARN, "%s: ars_set_position_sync() failed: %s\n",
                       __func__, rigerror(retcode));
-            usleep(1000 * 1000);
+            hl_usleep(1000 * 1000);
             continue;
         }
     }
@@ -535,7 +535,7 @@ ars_set_position_sync(ROT *rot, azimuth_t az, elevation_t el)
         }
 
         /* wait a little */
-        usleep(10 * 1000);
+        hl_usleep(10 * 1000);
 
         retval = ars_get_position(rot, &curr_az, &curr_el);
 
@@ -621,22 +621,22 @@ ars_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
     /* flush last sampled value, with a dummy read */
     CHKPPRET(ars_clear_ctrl_pin(rot, CTL_PIN_CLK));
-    usleep(PP_IO_PERIOD);
+    hl_usleep(PP_IO_PERIOD);
 
     CHKPPRET(ars_clear_ctrl_pin(rot, CTL_PIN_CS));
-    usleep(PP_IO_PERIOD);
+    hl_usleep(PP_IO_PERIOD);
 
     for (i = 0; i < priv->adc_res; i++)
     {
         CHKPPRET(ars_set_ctrl_pin(rot, CTL_PIN_CLK));
-        usleep(PP_IO_PERIOD);
+        hl_usleep(PP_IO_PERIOD);
 
         CHKPPRET(ars_clear_ctrl_pin(rot, CTL_PIN_CLK));
-        usleep(PP_IO_PERIOD);
+        hl_usleep(PP_IO_PERIOD);
     }
 
     CHKPPRET(ars_clear_ctrl_pin(rot, CTL_PIN_CLK));
-    usleep(PP_IO_PERIOD);
+    hl_usleep(PP_IO_PERIOD);
 
     CHKPPRET(ars_set_ctrl_pin(rot, CTL_PIN_CS));
     /* end of dummy read */
@@ -646,12 +646,12 @@ ars_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
         /* read ADC value TLC(1)549 (8/10 bits), by SPI bitbanging */
 
-        usleep(PP_IO_PERIOD);
+        hl_usleep(PP_IO_PERIOD);
         CHKPPRET(ars_clear_ctrl_pin(rot, CTL_PIN_CLK));
-        usleep(PP_IO_PERIOD);
+        hl_usleep(PP_IO_PERIOD);
 
         CHKPPRET(ars_clear_ctrl_pin(rot, CTL_PIN_CS));
-        usleep(PP_IO_PERIOD);
+        hl_usleep(PP_IO_PERIOD);
 
         az_samples[num_sample] = 0;
         el_samples[num_sample] = 0;
@@ -659,7 +659,7 @@ ars_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
         for (i = 0; i < priv->adc_res; i++)
         {
             CHKPPRET(ars_set_ctrl_pin(rot, CTL_PIN_CLK));
-            usleep(PP_IO_PERIOD);
+            hl_usleep(PP_IO_PERIOD);
 
             CHKPPRET(par_read_status(pport, &status));
 
@@ -670,7 +670,7 @@ ars_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
             el_samples[num_sample] |= (status & STA_PIN_D1) ? 1 : 0;
 
             CHKPPRET(ars_clear_ctrl_pin(rot, CTL_PIN_CLK));
-            usleep(PP_IO_PERIOD);
+            hl_usleep(PP_IO_PERIOD);
         }
 
         CHKPPRET(ars_set_ctrl_pin(rot, CTL_PIN_CS));
@@ -678,7 +678,7 @@ ars_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
         rig_debug(RIG_DEBUG_TRACE, "%s: raw samples: az %u, el %u\n",
                   __func__, az_samples[num_sample], el_samples[num_sample]);
 
-        usleep(PP_IO_PERIOD);
+        hl_usleep(PP_IO_PERIOD);
     }
 
     par_unlock(pport);

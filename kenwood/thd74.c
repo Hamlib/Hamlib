@@ -1513,7 +1513,7 @@ int thd74_get_chan_all_cb(RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
     serial_setup(rp);
 
 
-    usleep(100 * 1000); /* let the pcr settle */
+    hl_usleep(100 * 1000); /* let the pcr settle */
     serial_flush(rp);   /* flush any remaining data */
     ret = ser_set_rts(rp, 1);   /* setRTS or Hardware flow control? */
 

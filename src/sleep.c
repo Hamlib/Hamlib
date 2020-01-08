@@ -35,11 +35,29 @@
  * \param same as man page for each
  *
  */
-#ifdef HAVE_NANOSLEEP
 #include <unistd.h>
 #include <errno.h>
 #include <time.h>
 
+// In order to stop the usleep warnings in cppcheck we provide our own interface
+// So this will use system usleep or our usleep depending on availability of nanosleep
+// This version of usleep can handle > 1000000 usec values
+int hl_usleep(useconds_t usec)
+{
+    int retval = 0;
+
+    while (usec > 1000000)
+    {
+        if (retval != 0) { return retval; }
+
+        retval = usleep(1000000);
+        usec -= 1000000;
+    }
+
+    return usleep(usec);
+}
+
+#ifdef HAVE_NANOSLEEP
 unsigned int sleep(unsigned int secs)
 {
     int retval;
@@ -53,6 +71,7 @@ unsigned int sleep(unsigned int secs)
 
     return 0;
 }
+
 
 // Does not have the same 1000000 limit as usleep
 int usleep(useconds_t usec)

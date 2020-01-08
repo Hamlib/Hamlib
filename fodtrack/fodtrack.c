@@ -70,7 +70,7 @@ static int setDirection(hamlib_port_t *port, unsigned char outputvalue,
 
     par_write_control(port, outputstatus ^ CP_ACTIVE_LOW_BITS);
     // and now the strobe impulse
-    usleep(1);
+    hl_usleep(1);
 
     if (direction)
     {
@@ -82,7 +82,7 @@ static int setDirection(hamlib_port_t *port, unsigned char outputvalue,
     }
 
     par_write_control(port, outputstatus ^ CP_ACTIVE_LOW_BITS);
-    usleep(1);
+    hl_usleep(1);
 
     if (direction)
     {

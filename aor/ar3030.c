@@ -251,7 +251,7 @@ static int ar3030_transaction(RIG *rig, const char *cmd, int cmd_len,
             if (retval == -RIG_ETIMEOUT)
             {
                 rig_debug(RIG_DEBUG_ERR, "%s:timeout retry=%d\n", __func__, retry);
-                usleep(50000);
+                hl_usleep(50000);
             }
         }
 
@@ -259,7 +259,7 @@ static int ar3030_transaction(RIG *rig, const char *cmd, int cmd_len,
     }
     while ((retval <= 0) && (--retry > 0));
 
-    usleep(1000); // 1ms sleep per manual
+    hl_usleep(1000); // 1ms sleep per manual
 
     if (data_len != NULL && retval > 0)
     {

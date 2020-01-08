@@ -753,7 +753,7 @@ int ft757_get_update_data(RIG *rig)
                   __func__, retval, FT757GX_STATUS_UPDATE_DATA_LENGTH,
                   nbtries, maxtries);
         /* The delay is quadratic. */
-        usleep(nbtries * nbtries * 1000000);
+        hl_usleep(nbtries * nbtries * 1000000);
     }
 
     if (retval != FT757GX_STATUS_UPDATE_DATA_LENGTH)
