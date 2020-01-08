@@ -1202,15 +1202,13 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
         }
 
         if (filter_byte) { // then we need the width byte too
-            unsigned char md;
-            signed char pd;
-            retval = rig2icom_mode(rig, mode, width, &md, &pd); 
-            if (retval == RIG_OK) {
-              datamode[1] = pd;
+            rmode_t mode2;
+            pbwidth_t width2;
+            icom2rig_mode(rig, mode, width, &mode2, &width2); 
+            datamode[1] = datamode[1] ? width2 : 0;
             retval =
                 icom_transaction(rig, C_CTL_MEM, dm_sub_cmd, datamode, 2, ackbuf,
                              &ack_len);
-            }
         }
         else {
             retval =
