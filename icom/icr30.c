@@ -65,10 +65,10 @@ struct confparams icr30_ext[] = {
 };
 
 struct cmdparams icr30_cmd[] = {
-    { TOK_ANL, C_CTL_MEM, S_MEM_ANL, SC_MOD_RW, 0, {}, CMD_DAT_BOL, 1 },
-    { TOK_EAR, C_CTL_MEM, S_MEM_EAR, SC_MOD_RW, 0, {}, CMD_DAT_BOL, 1 },
-    { TOK_REC, C_CTL_MEM, S_MEM_REC, SC_MOD_WR, 0, {}, CMD_DAT_BOL, 1 },
-    { TOK_LINK }
+    { {.t=TOK_ANL}, C_CTL_MEM, S_MEM_ANL, SC_MOD_RW, 0, {}, CMD_DAT_BOL, 1 },
+    { {.t=TOK_EAR}, C_CTL_MEM, S_MEM_EAR, SC_MOD_RW, 0, {}, CMD_DAT_BOL, 1 },
+    { {.t=TOK_REC}, C_CTL_MEM, S_MEM_REC, SC_MOD_WR, 0, {}, CMD_DAT_BOL, 1 },
+    { {.t=TOK_LINK} }
 };
 
 #define ICR30_STR_CAL { 2, \
@@ -121,7 +121,7 @@ static const struct icom_priv_caps icr30_priv_caps =
     r8500_ts_sc_list, /* wrong, but don't have set_ts anyway */
     .r2i_mode = icr30_r2i_mode,
     .offs_len = 4,
-    .cmdparams = icr30_cmd
+    .extcmds = icr30_cmd
 };
 
 const struct rig_caps icr30_caps =

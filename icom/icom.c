@@ -430,21 +430,21 @@ const struct confparams icom_ext_parms[] =
 
 const struct cmdparams icom_ext_cmd[] =
 {
-    { TOK_DSTAR_CALL_SIGN, C_CTL_DIG, S_DIG_DSCALS, SC_MOD_RW12, 2, {0}, CMD_DAT_BUF, 38 },
-    { TOK_DSTAR_MESSAGE, C_CTL_DIG, S_DIG_DSMESS, SC_MOD_RW12, 2, {0}, CMD_DAT_STR, 32 },
-    { TOK_DSTAR_STATUS, C_CTL_DIG, S_DIG_DSRSTS, SC_MOD_RW12, 2, {0}, CMD_DAT_BUF, 1 },
-    { TOK_DSTAR_GPS_DATA, C_CTL_DIG, S_DIG_DSGPSD, SC_MOD_RW12, 2, {0}, CMD_DAT_BUF, 52 },
-    { TOK_DSTAR_GPS_MESS, C_CTL_DIG, S_DIG_DSGPSM, SC_MOD_RW12, 2, {0}, CMD_DAT_STR, 52 },
-    { TOK_DSTAR_DSQL, C_CTL_DIG, S_DIG_DSCSQL, SC_MOD_RW, 1, {0}, CMD_DAT_BOL, 1 },
-    { TOK_DSTAR_CODE, C_CTL_DIG, S_DIG_DSCSQL, SC_MOD_RW12, 2, {0}, CMD_DAT_FLT, 1 },
-    { TOK_DSTAR_TX_DATA, C_CTL_DSD, S_DSD_DSTXDT, SC_MOD_RW, 1, {0}, CMD_DAT_BUF, 30 },
-    { TOK_DSTAR_MY_CS, C_CTL_DVT, S_DVT_DSMYCS, SC_MOD_RW, 1, {0}, CMD_DAT_STR, 12 },
-    { TOK_DSTAR_TX_CS, C_CTL_DVT, S_DVT_DSTXCS, SC_MOD_RW, 1, {0}, CMD_DAT_STR, 24 },
-    { TOK_DSTAR_TX_MESS, C_CTL_DVT, S_DVT_DSTXMS, SC_MOD_RW, 1, {0}, CMD_DAT_STR, 20 },
-    { TOK_DRIVE_GAIN, C_CTL_LVL, S_LVL_DRIVE, SC_MOD_RW, 1, {0}, CMD_DAT_FLT, 2 },
-    { TOK_DIGI_SEL_FUNC, C_CTL_FUNC, S_FUNC_DIGISEL, SC_MOD_RW, 1, {0}, CMD_DAT_BOL, 1 },
-    { TOK_DIGI_SEL_LEVEL, C_CTL_LVL, S_LVL_DIGI, SC_MOD_RW, 1, {0}, CMD_DAT_FLT, 2 },
-    { 0 }
+    { {.t=TOK_DSTAR_CALL_SIGN}, C_CTL_DIG, S_DIG_DSCALS, SC_MOD_RW12, 2, {0}, CMD_DAT_BUF, 38 },
+    { {.t=TOK_DSTAR_MESSAGE}, C_CTL_DIG, S_DIG_DSMESS, SC_MOD_RW12, 2, {0}, CMD_DAT_STR, 32 },
+    { {.t=TOK_DSTAR_STATUS}, C_CTL_DIG, S_DIG_DSRSTS, SC_MOD_RW12, 2, {0}, CMD_DAT_BUF, 1 },
+    { {.t=TOK_DSTAR_GPS_DATA}, C_CTL_DIG, S_DIG_DSGPSD, SC_MOD_RW12, 2, {0}, CMD_DAT_BUF, 52 },
+    { {.t=TOK_DSTAR_GPS_MESS}, C_CTL_DIG, S_DIG_DSGPSM, SC_MOD_RW12, 2, {0}, CMD_DAT_STR, 52 },
+    { {.t=TOK_DSTAR_DSQL}, C_CTL_DIG, S_DIG_DSCSQL, SC_MOD_RW, 1, {0}, CMD_DAT_BOL, 1 },
+    { {.t=TOK_DSTAR_CODE}, C_CTL_DIG, S_DIG_DSCSQL, SC_MOD_RW12, 2, {0}, CMD_DAT_FLT, 1 },
+    { {.t=TOK_DSTAR_TX_DATA}, C_CTL_DSD, S_DSD_DSTXDT, SC_MOD_RW, 1, {0}, CMD_DAT_BUF, 30 },
+    { {.t=TOK_DSTAR_MY_CS}, C_CTL_DVT, S_DVT_DSMYCS, SC_MOD_RW, 1, {0}, CMD_DAT_STR, 12 },
+    { {.t=TOK_DSTAR_TX_CS}, C_CTL_DVT, S_DVT_DSTXCS, SC_MOD_RW, 1, {0}, CMD_DAT_STR, 24 },
+    { {.t=TOK_DSTAR_TX_MESS}, C_CTL_DVT, S_DVT_DSTXMS, SC_MOD_RW, 1, {0}, CMD_DAT_STR, 20 },
+    { {.t=TOK_DRIVE_GAIN}, C_CTL_LVL, S_LVL_DRIVE, SC_MOD_RW, 1, {0}, CMD_DAT_FLT, 2 },
+    { {.t=TOK_DIGI_SEL_FUNC}, C_CTL_FUNC, S_FUNC_DIGISEL, SC_MOD_RW, 1, {0}, CMD_DAT_BOL, 1 },
+    { {.t=TOK_DIGI_SEL_LEVEL}, C_CTL_LVL, S_LVL_DIGI, SC_MOD_RW, 1, {0}, CMD_DAT_FLT, 2 },
+    { {0} }
 };
 
 /*
@@ -2542,13 +2542,75 @@ int icom_get_ext_parm(RIG *rig, token_t token, value_t *val)
     return icom_get_ext_cmd(rig, RIG_VFO_NONE, token, val);
 }
 
-int icom_get_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t *val)
+int icom_get_cmd(RIG *rig, vfo_t vfo, struct cmdparams *par, value_t *val)
 {
-    int i;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
     unsigned char ssc = 0x02;
     unsigned char resbuf[MAXFRAMELEN];
     int reslen = sizeof(resbuf);
     int retval;
+
+    if (!(par->submod & SC_MOD_RD)) return -RIG_EINVAL;
+    if ((par->submod & SC_MOD_RW12) == SC_MOD_RW12) {
+        retval = icom_get_raw_buf(rig, par->command, par->subcmd, 1, &ssc, &reslen, resbuf);
+    } else {
+        retval = icom_get_raw_buf(rig, par->command, par->subcmd,
+            par->sublen, (unsigned char *)par->subext, &reslen, resbuf);
+    }
+    if (retval != RIG_OK) {
+        return retval;
+    }
+    switch (par->dattyp) {
+        case CMD_DAT_WRD: {
+                int wrd = 0;
+                int i;
+                for (i = 0; i < par->datlen; i++) {
+                    wrd = (wrd << 8) + resbuf[i];
+                }
+                val->i = wrd;
+            }
+            break;
+        case CMD_DAT_STR:
+            if (strlen(val->s) < reslen) {
+                return -RIG_EINTERNAL;
+            }
+            memcpy(val->s, resbuf, reslen);
+            val->s[reslen] = 0;
+            break;
+        case CMD_DAT_BUF:
+            if (reslen > val->b.l) {
+                 return -RIG_EINTERNAL;
+            }
+            memcpy(val->b.d, resbuf, reslen);
+            val->b.l = reslen;
+            break;
+        case CMD_DAT_INT:
+            val->i = from_bcd_be(resbuf, (reslen * 2));
+            break;
+        case CMD_DAT_FLT:
+            val->f = (float) from_bcd_be(resbuf, (reslen * 2));
+            break;
+        case CMD_DAT_LVL:
+            val->f = (float) from_bcd_be(resbuf, (reslen * 2)) / 255.0;
+            break;
+        case CMD_DAT_BOL:
+            val->i = (from_bcd_be(resbuf, (reslen * 2)) == 0) ? 0 : 1;
+            break;
+        case CMD_DAT_TIM:
+            val->i = (from_bcd_be(resbuf, 2) * 3600) + (from_bcd_be(&resbuf[1], 2) * 60);
+            break;
+        default:
+            val->i = 0;
+            break;
+    }
+    return RIG_OK;
+}
+
+int icom_get_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t *val)
+{
+    int i;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -2556,69 +2618,15 @@ int icom_get_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t *val)
         if (rig->caps->ext_tokens[i] == token) {
 
             const struct icom_priv_caps *priv = rig->caps->priv;
-            const struct cmdparams *cmd = priv->cmdparams ? priv->cmdparams : icom_ext_cmd;
-            for (i = 0; cmd && cmd[i].token != 0; i++) {
-                if (cmd[i].token == TOK_LINK) {
+            const struct cmdparams *cmd = priv->extcmds ? priv->extcmds : icom_ext_cmd;
+            for (i = 0; cmd && cmd[i].id.t != 0; i++) {
+                if (cmd[i].id.t == TOK_LINK) {
                     cmd = icom_ext_cmd;
                     i = -1;
                     continue;
                 }
-                if (cmd[i].token == token) {
-                    if (!(cmd[i].submod & SC_MOD_RD)) break;
-                    if ((cmd[i].submod & SC_MOD_RW12) == SC_MOD_RW12) {
-                        retval = icom_get_raw_buf(rig, cmd[i].command, cmd[i].subcmd,
-                        1, &ssc, &reslen, resbuf);
-                    } else {
-                        retval = icom_get_raw_buf(rig, cmd[i].command, cmd[i].subcmd,
-                        cmd[i].sublen, (unsigned char *)cmd[i].subext, &reslen, resbuf);
-                    }
-                    if (retval != RIG_OK) {
-                        return retval;
-                    }
-                    switch (cmd[i].dattyp) {
-                    case CMD_DAT_WRD: {
-                        int wrd = 0;
-                        int j;
-                        for (j = 0; j < cmd[i].datlen; j++) {
-                            wrd = (wrd << 8) + resbuf[j];
-                        }
-                        val->i = wrd;
-                        }
-                        break;
-                    case CMD_DAT_STR:
-                        if (strlen(val->s) < reslen) {
-                            return -RIG_EINTERNAL;
-                        }
-                        memcpy(val->s, resbuf, reslen);
-                        val->s[reslen] = 0;
-                        break;
-                    case CMD_DAT_BUF:
-                        if (reslen > val->b.l) {
-                            return -RIG_EINTERNAL;
-                        }
-                        memcpy(val->b.d, resbuf, reslen);
-                        val->b.l = reslen;
-                        break;
-                    case CMD_DAT_INT:
-                        val->i = from_bcd_be(resbuf, (reslen * 2));
-                        break;
-                    case CMD_DAT_FLT:
-                        val->f = (float) from_bcd_be(resbuf, (reslen * 2));
-                        break;
-                    case CMD_DAT_LVL:
-                        val->f = (float) from_bcd_be(resbuf, (reslen * 2)) / 255.0;
-                        break;
-                    case CMD_DAT_BOL:
-                        val->i = (from_bcd_be(resbuf, (reslen * 2)) == 0) ? 0 : 1;
-                        break;
-                    case CMD_DAT_TIM:
-                        val->f = (float)((from_bcd_be(resbuf, 2) * 3600) + (from_bcd_be(&resbuf[1], 2) * 60));
-                        break;
-                    default:
-                        val->i = 0;
-                        break;
-                    }
-                    return RIG_OK;
+                if (cmd[i].id.t == token) {
+                    return icom_get_cmd(rig, vfo, (struct cmdparams *)&cmd[i], val);
                 }
             }
             return -RIG_EINVAL;
@@ -2627,17 +2635,58 @@ int icom_get_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t *val)
     return -RIG_EINVAL;
 }
 
-/*
- * icom_set_ext_cmd
- * Assumes rig!=NULL, rig->state.priv!=NULL
- */
-int icom_set_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t val)
+int icom_set_cmd(RIG *rig, vfo_t vfo, struct cmdparams *par, value_t val)
 {
-    int i;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
     unsigned char cmdbuf[MAXFRAMELEN];
     int cmdlen = 0;
     unsigned char ackbuf[MAXFRAMELEN];
     int acklen = 0;
+
+    if (!(par->submod & SC_MOD_WR)) return -RIG_EINVAL;
+    if ((par->submod & SC_MOD_RW12) == SC_MOD_RW12) {
+        cmdbuf[0] = 0x01;
+        cmdlen = 1;
+    } else {
+        cmdlen = par->sublen;
+        memcpy(cmdbuf, par->subext, cmdlen);
+    }
+    int wrd = val.i;
+    int i;
+    switch (par->dattyp) {
+        case CMD_DAT_WRD:
+            for (i = 1; i <= par->datlen; i++) {
+                cmdbuf[cmdlen + par->datlen - i] = wrd & 0xff;
+                wrd >>= 8;
+            }
+            break;
+        case CMD_DAT_BUF:
+            memcpy(&cmdbuf[cmdlen], val.b.d, par->datlen);
+            break;
+        case CMD_DAT_INT:
+        case CMD_DAT_BOL:
+            to_bcd_be(&cmdbuf[cmdlen], val.i, (par->datlen * 2));
+            break;
+        case CMD_DAT_FLT:
+            to_bcd_be(&cmdbuf[cmdlen], (int) val.f, (cmdlen * 2));
+            break;
+        case CMD_DAT_LVL:
+            to_bcd_be(&cmdbuf[cmdlen], (int)(val.f * 255.0), (cmdlen * 2));
+            break;
+        case CMD_DAT_TIM:
+            to_bcd_be(&cmdbuf[cmdlen], ((((int)val.f / 3600) * 100) + (((int)val.f / 60) % 60)), (par->datlen * 2));
+            break;
+        default:
+            break;
+    }
+    cmdlen += par->datlen;
+    return icom_transaction(rig, par->command, par->subcmd, cmdbuf, cmdlen, ackbuf, &acklen);
+}
+
+int icom_set_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t val)
+{
+    int i;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -2645,53 +2694,15 @@ int icom_set_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t val)
         if (rig->caps->ext_tokens[i] == token) {
 
             const struct icom_priv_caps *priv = rig->caps->priv;
-            const struct cmdparams *cmd = priv->cmdparams ? priv->cmdparams : icom_ext_cmd;
-            for (i = 0; cmd && cmd[i].token != 0; i++) {
-                if (cmd[i].token == TOK_LINK) {
+            const struct cmdparams *cmd = priv->extcmds ? priv->extcmds : icom_ext_cmd;
+            for (i = 0; cmd && cmd[i].id.t != 0; i++) {
+                if (cmd[i].id.t == TOK_LINK) {
                     cmd = icom_ext_cmd;
                     i = -1;
                     continue;
                 }
-                if (cmd[i].token == token) {
-                    if (!(cmd[i].submod & SC_MOD_WR)) break;
-                    if ((cmd[i].submod & SC_MOD_RW12) == SC_MOD_RW12) {
-                        cmdbuf[0] = 0x01;
-                        cmdlen = 1;
-                    } else {
-                        cmdlen = cmd[i].sublen;
-                        memcpy(cmdbuf, cmd[i].subext, cmdlen);
-                    }
-                    int wrd = val.i;
-                    int j;
-                    switch (cmd[i].dattyp) {
-                    case CMD_DAT_WRD:
-                        for (j = 1; j <= cmd[i].datlen; j++) {
-                            cmdbuf[cmdlen + cmd[i].datlen - j] = wrd & 0xff;
-                            wrd >>= 8;
-                        }
-                        break;
-                    case CMD_DAT_BUF:
-                        memcpy(&cmdbuf[cmdlen], val.b.d, cmd[i].datlen);
-                        break;
-                    case CMD_DAT_INT:
-                    case CMD_DAT_BOL:
-                        to_bcd_be(&cmdbuf[cmdlen], val.i, (cmd[i].datlen * 2));
-                        break;
-                    case CMD_DAT_FLT:
-                        to_bcd_be(&cmdbuf[cmdlen], (int) val.f, (cmdlen * 2));
-                        break;
-                    case CMD_DAT_LVL:
-                        to_bcd_be(&cmdbuf[cmdlen], (int)(val.f * 255.0), (cmdlen * 2));
-                        break;
-                    case CMD_DAT_TIM:
-                        to_bcd_be(&cmdbuf[cmdlen], ((((int)val.f / 3600) * 100) + (((int)val.f / 60) % 60)), (cmd[i].datlen * 2));
-                        break;
-                    default:
-                        break;
-                    }
-                    cmdlen += cmd[i].datlen;
-                    return icom_transaction(rig, cmd[i].command, cmd[i].subcmd,
-                        cmdbuf, cmdlen, ackbuf, &acklen);
+                if (cmd[i].id.t == token) {
+                    return icom_set_cmd(rig, vfo, (struct cmdparams *)&cmd[i], val);
                 }
             }
             return -RIG_EINVAL;
@@ -4448,10 +4459,19 @@ int icom_set_parm(RIG *rig, setting_t parm, value_t val)
         return icom_set_raw(rig, C_CTL_ANN, ann_mode, 0, NULL, 0, 0);
     }
 
-    default:
+    default:{
+        int i;
+        const struct icom_priv_caps *priv = rig->caps->priv;
+        const struct cmdparams *cmd = priv->rigcmds;
+        for (i = 0; cmd && cmd[i].id.s != 0; i++) {
+            if (cmd[i].id.s == parm) {
+                return icom_set_cmd(rig, RIG_VFO_NONE, (struct cmdparams *)&cmd[i], val);
+            }
+        }
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported set_parm %s\n", __func__,
                   rig_strparm(parm));
         return -RIG_EINVAL;
+        }
     }
 }
 
@@ -4472,10 +4492,19 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 
     switch (parm)
     {
-    default:
+    default: {
+        const struct icom_priv_caps *priv = rig->caps->priv;
+        const struct cmdparams *cmd = priv->rigcmds;
+        int i;
+        for (i = 0; cmd && cmd[i].id.s != 0; i++) {
+            if (cmd[i].id.s == parm) {
+                return icom_get_cmd(rig, RIG_VFO_NONE, (struct cmdparams *)&cmd[i], val);
+            }
+        }
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_parm %s", __func__,
                   rig_strparm(parm));
         return -RIG_EINVAL;
+        }
     }
 
     return RIG_OK;
