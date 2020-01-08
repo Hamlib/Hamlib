@@ -166,7 +166,9 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
             Unhold_Decode(rig);
             return retval;
         }
-        if (retval < 1) {
+
+        if (retval < 1)
+        {
             return -RIG_EPROTO;
         }
 
@@ -230,7 +232,9 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
         /* other error: return it */
         return frm_len;
     }
-    if (frm_len < 1) {
+
+    if (frm_len < 1)
+    {
         return -RIG_EPROTO;
     }
 
@@ -465,6 +469,9 @@ void icom2rig_mode(RIG *rig, unsigned char md, int pd, rmode_t *mode,
                    pbwidth_t *width)
 {
     *width = RIG_PASSBAND_NORMAL;
+
+    if (md == RIG_MODE_PKTUSB) { md = RIG_MODE_USB; }
+    else if (md == RIG_MODE_PKTLSB) { md = RIG_MODE_LSB; }
 
     switch (md)
     {
