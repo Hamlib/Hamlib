@@ -50,7 +50,7 @@
     RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_PREAMP|\
     RIG_LEVEL_AGC|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH)
 
-#define ICR8600_PARM_ALL (RIG_PARM_NONE)
+#define ICR8600_PARM_ALL (RIG_PARM_BACKLIGHT|RIG_PARM_BEEP|RIG_PARM_TIME|RIG_PARM_KEYLIGHT)
 
 #define ICR8600_VFO_ALL (RIG_VFO_VFO|RIG_VFO_MEM)
 
@@ -67,25 +67,24 @@
     { 255, 60 }, \
 } }
 
-int icr8600_tokens[] = { TOK_KEY_BEEP, TOK_BACKLIGHT, TOK_KEYLIGHT, TOK_TIME,
-    TOK_DSTAR_DSQL, TOK_DSTAR_CALL_SIGN, TOK_DSTAR_MESSAGE, TOK_DSTAR_STATUS, TOK_DSTAR_GPS_DATA,
-    TOK_DSTAR_GPS_MESS, TOK_DSTAR_CODE, TOK_DSTAR_TX_DATA,
+struct cmdparams icr8600_rigcmds[] = {
+    { {.s=RIG_PARM_BEEP}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x38}, CMD_DAT_BOL, 1 },
+    { {.s=RIG_PARM_BACKLIGHT}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x15}, CMD_DAT_LVL, 2 },
+    { {.s=RIG_PARM_KEYLIGHT}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x16}, CMD_DAT_LVL, 2 },
+    { {.s=RIG_PARM_TIME}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x32}, CMD_DAT_TIM, 2 },
+    { {.s=RIG_PARM_NONE} }
+};
+
+int icr8600_tokens[] = { TOK_DSTAR_DSQL, TOK_DSTAR_CALL_SIGN, TOK_DSTAR_MESSAGE, TOK_DSTAR_STATUS,
+    TOK_DSTAR_GPS_DATA, TOK_DSTAR_GPS_MESS, TOK_DSTAR_CODE, TOK_DSTAR_TX_DATA,
     TOK_BACKEND_NONE };
 
 struct confparams icr8600_ext[] = {
-    { TOK_KEY_BEEP, "beep", "Key beep enable", "", "", RIG_CONF_CHECKBUTTON, {} },
-    { TOK_BACKLIGHT, "backlight", "Display brightness", "", "", RIG_CONF_NUMERIC, {} },
-    { TOK_KEYLIGHT, "keylight", "LED brightness", "", "", RIG_CONF_NUMERIC, {} },
-    { TOK_TIME, "time", "Time (seconds)", "", "", RIG_CONF_NUMERIC, {} },
     { 0 }
 };
 
-struct cmdparams icr8600_cmd[] = {
-    { TOK_KEY_BEEP, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x38}, CMD_DAT_BOL, 1 },
-    { TOK_BACKLIGHT, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x15}, CMD_DAT_LVL, 2 },
-    { TOK_KEYLIGHT, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x16}, CMD_DAT_LVL, 2 },
-    { TOK_TIME, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x32}, CMD_DAT_TIM, 2 },
-    { TOK_LINK }
+struct cmdparams icr8600_extcmds[] = {
+    { {.t=TOK_LINK} }
 };
 
 /*
@@ -109,7 +108,8 @@ static const struct icom_priv_caps icr8600_priv_caps =
     r8600_ts_sc_list,           /* list of tuning steps */
     .offs_len = 4,              /* Repeater offset is 4 bytes */
     .serial_USB_echo_check = 1, /* USB CI-V may not echo */
-    .cmdparams = icr8600_cmd
+    .rigcmds = icr8600_rigcmds,
+    .extcmds = icr8600_extcmds
 };
 
 const struct rig_caps icr8600_caps =
