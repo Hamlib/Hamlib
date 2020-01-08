@@ -86,3 +86,25 @@ const struct rig_caps rpi_caps = {
     .get_ptt = rpi_get_ptt,
     .get_dcd = rpi_get_dcd,
 };
+
+/*
+ * proberigs_rpi
+ * rig_model_t probeallrigs_rpi(port_t *port, rig_probe_func_t cfunc, rig_ptr_t data)
+ */
+DECLARE_PROBERIG_BACKEND(rpi)
+{
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+  return RIG_MODEL_RPI_WIRINGPI;
+}
+
+/*
+ * initrigs_rpi is called by rig_backend_load
+ */
+DECLARE_INITRIG_BACKEND(rpi)
+{
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  rig_register(&rpi_caps);
+
+  return RIG_OK;
+}
