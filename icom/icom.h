@@ -140,8 +140,9 @@ struct icom_priv_caps
     int serial_USB_echo_check;  /* Flag to test USB echo state */
     int agc_levels_present;     /* Flag to indicate that agc_levels array is populated */
     struct icom_agc_level agc_levels[RIG_AGC_LAST + 1]; /* Icom rig-specific AGC levels, the last entry should have level -1 */
-    struct cmdparams *rigcmds;  /* Pointer to rig paramater array */
-    struct cmdparams *extcmds;  /* Pointer to ext_cmd paramater array */
+    struct cmdparams *rigparms; /* Pointer to rig custom parameters array */
+    struct cmdparams *riglevels;/* Pointer to rig custom levels array */
+    struct cmdparams *extcmds;  /* Pointer to extended operations array */
 };
 
 
