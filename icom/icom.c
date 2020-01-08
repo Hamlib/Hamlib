@@ -1146,7 +1146,6 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
                             pbwidth_t width)
 {
     int retval;
-    unsigned char datamode[2];
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf);
     rmode_t icom_mode;
@@ -1184,6 +1183,7 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
 
     if (RIG_OK == retval)
     {
+        unsigned char datamode[2];
         switch (mode)
         {
         case RIG_MODE_PKTUSB:
@@ -4758,7 +4758,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
         // we'll just send a few more to be sure for all speeds
         memset(fe_buf, 0xfe, fe_max);
         // sending more than enough 0xfe's to wake up the rs232
-        retval = write_block(&rs->rigport, (char *) fe_buf, fe_max);
+        write_block(&rs->rigport, (char *) fe_buf, fe_max);
 
         hl_usleep(100 * 1000);
         // we'll try 0x18 0x01 now -- should work on STBY rigs too
@@ -5737,7 +5737,6 @@ DECLARE_PROBERIG_BACKEND(icom)
 {
     unsigned char buf[MAXFRAMELEN], civ_addr, civ_id;
     int frm_len, i;
-    int retval;
     rig_model_t model = RIG_MODEL_NONE;
     int rates[] = { 19200, 9600, 300, 0 };
     int rates_idx;
@@ -5762,6 +5761,7 @@ DECLARE_PROBERIG_BACKEND(icom)
      */
     for (rates_idx = 0; rates[rates_idx]; rates_idx++)
     {
+        int retval;
         port->parm.serial.rate = rates[rates_idx];
         port->timeout = 2 * 1000 / rates[rates_idx] + 40;
 
