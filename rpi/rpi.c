@@ -25,8 +25,6 @@
 #include <hamlib/rig.h>
 
 #include <wiringPi.h>
-#define PIN_PTT 0
-#define PIN_DCD 2
 
 #include "rpi.h"
 
@@ -50,24 +48,24 @@ int rpi_close(RIG* rig){
     return RIG_OK;
 }
 
-int rpi_set_ptt(RIG* rig, vfo_f vfo, ptt_t ptt){
+int rpi_set_ptt(RIG* rig, vfo_t vfo, ptt_t ptt){
     digitalWrite(PIN_PTT, ptt);
     return RIG_OK;
 }
 
-int rpi_get_ptt(RIG* rig, vfo_f vfo, ptt_t *ptt){
+int rpi_get_ptt(RIG* rig, vfo_t vfo, ptt_t *ptt){
     if(ptt)
         *ptt = digitalRead(PIN_PTT);
     return RIG_OK;
 }
 
-int rpi_get_dcd(RIG* rig, vfo_f vfo, dcd_t *dcd){
+int rpi_get_dcd(RIG* rig, vfo_t vfo, dcd_t *dcd){
     if(dcd)
         *dcd = digitalRead(PIN_DCD);
     return RIG_OK;
 }
 
-extern const struct rig_caps rpi_caps = {
+const struct rig_caps rpi_caps = {
     .rig_model = RIG_MODEL_RPI_WIRINGPI,
     .model_name = "WiringPI",
     .mfg_name = "Raspberry PI",
@@ -78,16 +76,13 @@ extern const struct rig_caps rpi_caps = {
     .ptt_type = RIG_PTT_GPIO,
     .dcd_type = RIG_DCD_GPIO,
     .port_type = RIG_PORT_NONE,
-    .ctcss_list = common_ctcss_list,
-    .dcs_list = full_dcs_list,
-    .chan_list = {},
     .transceive = RIG_TRN_OFF,
     .rig_init = rpi_init,
     .rig_cleanup = rpi_cleanup,
     .rig_open = rpi_open,
     .rig_close = rpi_close,
 
-    .rig_set_ptt = rpi_set_ptt,
-    .rig_get_ptt = rpi_get_ptt,
-    .rig_get_dcd = rpi_get_dcd,
+    .set_ptt = rpi_set_ptt,
+    .get_ptt = rpi_get_ptt,
+    .get_dcd = rpi_get_dcd,
 };

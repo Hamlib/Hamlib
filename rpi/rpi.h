@@ -24,6 +24,9 @@
 
 #include "hamlib/rig.h"
 
+#define PIN_PTT 0
+#define PIN_DCD 2
+
 extern const struct rig_caps rpi_caps;
 
 #endif /* _RPI_H */
