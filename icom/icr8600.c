@@ -67,7 +67,7 @@
     { 255, 60 }, \
 } }
 
-struct cmdparams icr8600_rigcmds[] = {
+struct cmdparams icr8600_rigparms[] = {
     { {.s=RIG_PARM_BEEP}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x38}, CMD_DAT_BOL, 1 },
     { {.s=RIG_PARM_BACKLIGHT}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x15}, CMD_DAT_LVL, 2 },
     { {.s=RIG_PARM_KEYLIGHT}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x16}, CMD_DAT_LVL, 2 },
@@ -108,7 +108,7 @@ static const struct icom_priv_caps icr8600_priv_caps =
     r8600_ts_sc_list,           /* list of tuning steps */
     .offs_len = 4,              /* Repeater offset is 4 bytes */
     .serial_USB_echo_check = 1, /* USB CI-V may not echo */
-    .rigcmds = icr8600_rigcmds,
+    .rigparms = icr8600_rigparms,
     .extcmds = icr8600_extcmds
 };
 
