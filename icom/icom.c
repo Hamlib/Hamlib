@@ -1202,7 +1202,7 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
         }
 
         if (filter_byte) { // then we need the width byte too
-            rmode_t mode2;
+            rmode_t mode2; // not used as it will map to USB/LSB
             pbwidth_t width2;
             icom2rig_mode(rig, mode, width, &mode2, &width2); 
             datamode[1] = datamode[1] ? width2 : 0;
