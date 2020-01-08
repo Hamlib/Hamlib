@@ -321,7 +321,7 @@ int main(int argc, char *argv[])
         value_t swr;
 
         rig_set_ptt(rig, RIG_VFO_CURR, RIG_PTT_ON);
-        usleep(500000);
+        hl_usleep(500000);
         rig_get_level(rig, RIG_VFO_CURR, RIG_LEVEL_SWR, &swr);
         rig_set_ptt(rig, RIG_VFO_CURR, RIG_PTT_OFF);
 

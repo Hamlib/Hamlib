@@ -4760,7 +4760,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
         // sending more than enough 0xfe's to wake up the rs232
         retval = write_block(&rs->rigport, (char *) fe_buf, fe_max);
 
-        usleep(100 * 1000);
+        hl_usleep(100 * 1000);
         // we'll try 0x18 0x01 now -- should work on STBY rigs too
         pwr_sc = S_PWR_ON;
         fe_buf[0] = 0;

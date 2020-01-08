@@ -2263,7 +2263,7 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
         // when powering on need a dummy byte to wake it up
         // then sleep  from 1 to 2 seconds so we'll do 1.5 secs
         write_block(&state->rigport, "\n", 1);
-        usleep(1500000);
+        hl_usleep(1500000);
         break;
 
     case RIG_POWER_OFF:

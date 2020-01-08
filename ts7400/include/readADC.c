@@ -324,7 +324,7 @@ static void read_7xxx_adc(int adc_result[NUM_CHANNELS][NUM_SAMPLES])
         //read more samples
         for (j = 0; j < NUM_SAMPLES; j++)
         {
-            usleep(10000);
+            hl_usleep(10000);
             adc_result[i][j] = read_channel(adc_page, cur_ch);
         }
     }
