@@ -2439,7 +2439,7 @@ extern HAMLIB_EXPORT(const char *) rig_copyright HAMLIB_PARAMS(());
 HAMLIB_EXPORT(void) rig_no_restore_ai();
 
 #include <unistd.h>
-int hl_usleep(useconds_t msec);
+extern HAMLIB_EXPORT(int) hl_usleep(useconds_t msec);
 
 __END_DECLS
 
