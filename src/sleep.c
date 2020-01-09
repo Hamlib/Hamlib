@@ -38,6 +38,12 @@
 #include <unistd.h>
 #include <errno.h>
 #include <time.h>
+#include <pthread.h>
+
+#ifdef  __cplusplus
+extern "C" {
+#endif
+
 
 // In order to stop the usleep warnings in cppcheck we provide our own interface
 // So this will use system usleep or our usleep depending on availability of nanosleep
@@ -91,3 +97,7 @@ int usleep(useconds_t usec)
     return 0;
 }
 #endif // HAVE_NANOSLEEP
+
+#ifdef __cplusplus
+}
+#endif
