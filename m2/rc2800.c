@@ -247,7 +247,7 @@ rc2800_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
     retval1 = rc2800_transaction(rot, cmdstr, NULL, 0);
 
     /* do not overwhelm the MCU? */
-    usleep(200 * 1000);
+    hl_usleep(200 * 1000);
 
     num_sprintf(cmdstr, "E%3.1f"CR, el);
     retval2 = rc2800_transaction(rot, cmdstr, NULL, 0);
@@ -333,7 +333,7 @@ rc2800_rot_stop(ROT *rot)
     if (retval != RIG_OK) { rig_debug(RIG_DEBUG_VERBOSE, "%s: az S command failed?\n", __func__); }
 
     /* do not overwhelm the MCU? */
-    usleep(200 * 1000);
+    hl_usleep(200 * 1000);
 
     /* Stop EL*/
     retval = rc2800_transaction(rot, "E" CR, NULL, 0); /* select EL */

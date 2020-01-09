@@ -2602,7 +2602,7 @@ int adat_transaction(RIG                *pRig,
 
             // sleep between cmds - ADAT needs time to act upoon cmds
 
-            usleep(ADAT_SLEEP_MICROSECONDS_BETWEEN_CMDS);
+            hl_usleep(ADAT_SLEEP_MICROSECONDS_BETWEEN_CMDS);
         }
     }
 
@@ -2884,6 +2884,10 @@ int adat_open(RIG *pRig)
 int adat_close(RIG *pRig)
 {
     int nRC = RIG_OK;
+    adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+
+    if (pPriv->pcCmd != NULL) free(pPriv->pcCmd);
+    if (pPriv->pcResult != NULL) free(pPriv->pcResult);
 
     gFnLevel++;
 

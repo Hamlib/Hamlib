@@ -1192,7 +1192,6 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
                             pbwidth_t width)
 {
     int retval;
-    unsigned char datamode[2];
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf);
     rmode_t icom_mode;
@@ -1230,6 +1229,7 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
 
     if (RIG_OK == retval)
     {
+        unsigned char datamode[2];
         switch (mode)
         {
         case RIG_MODE_PKTUSB:
@@ -1248,15 +1248,14 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
         }
 
         if (filter_byte) { // then we need the width byte too
-            unsigned char md;
-            signed char pd;
-            retval = rig2icom_mode(rig, mode, width, &md, &pd); 
-            if (retval == RIG_OK) {
-              datamode[1] = pd;
+            rmode_t mode2; // not used as it will map to USB/LSB
+            pbwidth_t width2;
+            icom2rig_mode(rig, mode, width, &mode2, &width2); 
+            // since width2 is 0-2 for rigs that need this here we have to make it 1-3
+            datamode[1] = datamode[1] ? width2+1 : 0;
             retval =
                 icom_transaction(rig, C_CTL_MEM, dm_sub_cmd, datamode, 2, ackbuf,
                              &ack_len);
-            }
         }
         else {
             retval =
@@ -4958,9 +4957,9 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
         // we'll just send a few more to be sure for all speeds
         memset(fe_buf, 0xfe, fe_max);
         // sending more than enough 0xfe's to wake up the rs232
-        retval = write_block(&rs->rigport, (char *) fe_buf, fe_max);
+        write_block(&rs->rigport, (char *) fe_buf, fe_max);
 
-        usleep(100 * 1000);
+        hl_usleep(100 * 1000);
         // we'll try 0x18 0x01 now -- should work on STBY rigs too
         pwr_sc = S_PWR_ON;
         fe_buf[0] = 0;
@@ -5937,7 +5936,6 @@ DECLARE_PROBERIG_BACKEND(icom)
 {
     unsigned char buf[MAXFRAMELEN], civ_addr, civ_id;
     int frm_len, i;
-    int retval;
     rig_model_t model = RIG_MODEL_NONE;
     int rates[] = { 19200, 9600, 300, 0 };
     int rates_idx;
@@ -5962,6 +5960,7 @@ DECLARE_PROBERIG_BACKEND(icom)
      */
     for (rates_idx = 0; rates[rates_idx]; rates_idx++)
     {
+        int retval;
         port->parm.serial.rate = rates[rates_idx];
         port->timeout = 2 * 1000 / rates[rates_idx] + 40;
 

@@ -1006,7 +1006,7 @@ int ft817_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
         if (ptt_response != ptt)
         {
-            usleep(1000l *
+            hl_usleep(1000l *
                    FT817_RETRY_DELAY); // Wait before next try. Helps with slower rigs cloning FT817 protocol (e.g. MCHF)
         }
 
@@ -1297,7 +1297,7 @@ int ft817_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
         rig_force_cache_timeout(&((struct ft817_priv_data *)
                                   rig->state.priv)->fm_status_tv);
         n = ft817_send_cmd(rig, FT817_NATIVE_CAT_SET_VFOAB);
-        usleep(100 * 1000); // rig needs a little time to do this
+        hl_usleep(100 * 1000); // rig needs a little time to do this
         return n;
 
     default:

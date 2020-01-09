@@ -298,6 +298,7 @@ static int trxmanager_open(RIG *rig)
 {
     int retval;
     char *cmd;
+    char *saveptr;
     char response[MAXCMDLEN] = "";
     struct rig_state *rs = &rig->state;
     struct trxmanager_priv_data *priv = (struct trxmanager_priv_data *)
@@ -320,7 +321,7 @@ static int trxmanager_open(RIG *rig)
     }
 
     // Should have rig info now
-    strtok(response, ";\r\n");
+    strtok_r(response, ";\r\n", &saveptr);
     strncpy(priv->info, &response[2], sizeof(priv->info));
     rig_debug(RIG_DEBUG_VERBOSE, "%s connected to %s\n", __func__, priv->info);
 
@@ -870,8 +871,9 @@ static int trxmanager_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
 
     if (n != 1)
     {
+        char *saveptr;
         rig_debug(RIG_DEBUG_ERR, "%s bandwidth scan failed '%s'\n", __func__,
-                  strtok(response, "\r\n"));
+                  strtok_r(response, "\r\n", &saveptr));
         return -RIG_EPROTO;
     }
 

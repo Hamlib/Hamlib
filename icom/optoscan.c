@@ -832,7 +832,7 @@ static int optoscan_wait_timer(RIG *rig, pltstate_t *state)
 
     if (usec_diff < settle_usec)
     {
-        usleep(settle_usec - usec_diff);   /* sleep balance of settle_time */
+        hl_usleep(settle_usec - usec_diff);   /* sleep balance of settle_time */
     }
 
     return RIG_OK;

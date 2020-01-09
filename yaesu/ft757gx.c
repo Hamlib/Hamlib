@@ -381,7 +381,6 @@ int ft757_cleanup(RIG *rig)
 int ft757_open(RIG *rig)
 {
     struct ft757_priv_data *priv = (struct ft757_priv_data *)rig->state.priv;
-    int retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called.\n", __func__);
 
@@ -393,7 +392,7 @@ int ft757_open(RIG *rig)
     else
     {
         /* read back the 75 status bytes from FT757GXII */
-        retval = ft757_get_update_data(rig);
+        int retval = ft757_get_update_data(rig);
 
         if (retval < 0)
         {
@@ -418,11 +417,6 @@ int ft757_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x0a};
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called. Freq=%"PRIfreq"\n", __func__, freq);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
 
     /* fill in first four bytes */
     to_bcd(cmd, freq / 10, BCD_LEN);
@@ -482,11 +476,6 @@ int ft757_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called.\n", __func__);
 
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     retval = ft757_get_update_data(rig);    /* get whole shebang from rig */
 
     if (retval < 0)
@@ -525,11 +514,6 @@ int ft757_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     int retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called.\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
 
     retval = ft757_get_update_data(rig);    /* get whole shebang from rig */
 
@@ -573,11 +557,6 @@ int ft757_set_vfo(RIG *rig, vfo_t vfo)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called.\n", __func__);
 
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     switch (vfo)
     {
     case RIG_VFO_CURR:
@@ -607,11 +586,6 @@ int ft757_get_vfo(RIG *rig, vfo_t *vfo)
     int retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called.\n", __func__);
-
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
 
     retval = ft757_get_update_data(rig);    /* get whole shebang from rig */
 
@@ -644,11 +618,6 @@ int ft757_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called.\n", __func__);
 
-    if (!rig)
-    {
-        return -RIG_EINVAL;
-    }
-
     retval = ft757_get_update_data(rig);    /* get whole shebang from rig */
 
     if (retval < 0)
@@ -656,7 +625,7 @@ int ft757_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         return retval;
     }
 
-    *ptt = priv->update_data[0] & 0x20 ?  RIG_PTT_ON : RIG_PTT_OFF;
+    *ptt = (priv->update_data[0] & 0x20) ?  RIG_PTT_ON : RIG_PTT_OFF;
     return RIG_OK;
 }
 
@@ -753,7 +722,7 @@ int ft757_get_update_data(RIG *rig)
                   __func__, retval, FT757GX_STATUS_UPDATE_DATA_LENGTH,
                   nbtries, maxtries);
         /* The delay is quadratic. */
-        usleep(nbtries * nbtries * 1000000);
+        hl_usleep(nbtries * nbtries * 1000000);
     }
 
     if (retval != FT757GX_STATUS_UPDATE_DATA_LENGTH)
@@ -895,7 +864,7 @@ int ft757gx_get_conf(RIG *rig, token_t token, char *val)
         break;
 
     default:
-        val = NULL;
+        *val = 0;
         return -RIG_EINVAL;
     }
 

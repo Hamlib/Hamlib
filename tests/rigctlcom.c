@@ -668,7 +668,7 @@ static int write_block2(void *func,
                         size_t count)
 {
     int retval = write_block(p, txbuffer, count);
-    usleep(5000);
+    hl_usleep(5000);
 
     if (retval != RIG_OK)
     {

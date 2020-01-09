@@ -489,7 +489,7 @@ int barrett_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     // we need a little extra time before we assert PTT
     // testing with rigctld worked, but from WSJT-X did not
     // WSJT-X is just a little faster without the network timing
-    usleep(100 * 1000);
+    hl_usleep(100 * 1000);
     sprintf(cmd_buf, "XP%d", ptt);
     response = NULL;
     retval = barrett_transaction(rig, cmd_buf, 0, &response);
