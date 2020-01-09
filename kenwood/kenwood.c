@@ -401,7 +401,7 @@ transaction_read:
             if (retry_read++ < rs->rigport.retry)
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: Retrying shortly\n", __func__);
-                usleep(rig->caps->timeout * 1000);
+                hl_usleep(rig->caps->timeout * 1000);
                 goto transaction_read;
             }
 
@@ -536,7 +536,7 @@ int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
                       "%s: wrong answer; len for cmd %s: expected = %d, got %d\n",
                       __func__, cmd, (int)expected, (int)length);
             err =  -RIG_EPROTO;
-            usleep(rig->caps->timeout * 1000);
+            hl_usleep(rig->caps->timeout * 1000);
         }
     }
     while (err != RIG_OK && ++retry < rig->state.rigport.retry);
@@ -3488,7 +3488,7 @@ int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
              */
             if (!strncmp(m2, "KY0", 3)) { break; }
 
-            if (!strncmp(m2, "KY1", 3)) { usleep(500000); }
+            if (!strncmp(m2, "KY1", 3)) { hl_usleep(500000); }
             else { return -RIG_EINVAL; }
         }
 

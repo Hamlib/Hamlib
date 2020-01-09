@@ -37,7 +37,7 @@
 
 
 // Some commands are very slow to process so we put a DELAY in those places
-#define DELAY usleep(300*1000)
+#define DELAY hl_usleep(300*1000)
 
 #define THD72_MODES (RIG_MODE_FM|RIG_MODE_FMN|RIG_MODE_AM)
 #define THD72_MODES_TX  (RIG_MODE_FM|RIG_MODE_FMN)
@@ -1502,7 +1502,7 @@ int thd72_get_chan_all_cb(RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
     serial_setup(rp);
 
 
-    usleep(100 * 1000); /* let the pcr settle */
+    hl_usleep(100 * 1000); /* let the pcr settle */
     serial_flush(rp); /* flush any remaining data */
     ret = ser_set_rts(rp, 1); /* setRTS or Hardware flow control? */
 

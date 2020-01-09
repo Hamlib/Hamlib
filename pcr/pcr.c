@@ -580,15 +580,15 @@ pcr_open(RIG *rig)
     serial_setup(&rs->rigport);
 
     /* let the pcr settle and flush any remaining data*/
-    usleep(100 * 1000);
+    hl_usleep(100 * 1000);
     serial_flush(&rs->rigport);
 
     /* try powering on twice, sometimes the pcr answers H100 (off) */
     pcr_send(rig, "H101");
-    usleep(100 * 250);
+    hl_usleep(100 * 250);
 
     pcr_send(rig, "H101");
-    usleep(100 * 250);
+    hl_usleep(100 * 250);
 
     serial_flush(&rs->rigport);
 
