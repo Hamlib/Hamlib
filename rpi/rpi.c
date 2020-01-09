@@ -27,6 +27,7 @@
 #include <wiringPi.h>
 
 #include "rpi.h"
+#include "register.h"
 
 int rpi_init(RIG* rig){
     if(wiringPiSetup() == -1)
@@ -40,7 +41,7 @@ int rpi_cleanup(RIG* rig){
 
 int rpi_open(RIG* rig){
     pinMode(PIN_PTT, OUTPUT);
-    pinMode(PIN_DCD, OUTPUT);
+    pinMode(PIN_DCD, INPUT);
     return RIG_OK;
 }
 
@@ -73,8 +74,8 @@ const struct rig_caps rpi_caps = {
     .copyright = "LGPL",
     .status = RIG_STATUS_ALPHA,
     .rig_type = RIG_TYPE_TRANSCEIVER,
-    .ptt_type = RIG_PTT_GPIO,
-    .dcd_type = RIG_DCD_GPIO,
+    .ptt_type = RIG_PTT_RIG,
+    .dcd_type = RIG_DCD_RIG,
     .port_type = RIG_PORT_NONE,
     .transceive = RIG_TRN_OFF,
     .rig_init = rpi_init,
