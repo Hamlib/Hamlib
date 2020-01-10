@@ -389,7 +389,11 @@ int rig2icom_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 
     case RIG_MODE_USB:  icmode = S_USB; break;
 
+    case RIG_MODE_PKTUSB:  icmode = S_USB; break;
+
     case RIG_MODE_LSB:  icmode = S_LSB; break;
+
+    case RIG_MODE_PKTLSB:  icmode = S_LSB; break;
 
     case RIG_MODE_RTTY: icmode = S_RTTY; break;
 
@@ -469,9 +473,6 @@ void icom2rig_mode(RIG *rig, unsigned char md, int pd, rmode_t *mode,
                    pbwidth_t *width)
 {
     *width = RIG_PASSBAND_NORMAL;
-
-    if (md == RIG_MODE_PKTUSB) { md = RIG_MODE_USB; }
-    else if (md == RIG_MODE_PKTLSB) { md = RIG_MODE_LSB; }
 
     switch (md)
     {
