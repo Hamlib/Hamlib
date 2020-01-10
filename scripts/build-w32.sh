@@ -15,7 +15,7 @@
 BUILD_DIR=~/builds
 
 # Set this to LibUSB archive extracted in $BUILD_DIR
-LIBUSB_VER=libusb-1.0.20
+LIBUSB_VER=libusb-1.0.22
 
 # uncomment the correct HOST_ARCH= line for your minGW installation
 HOST_ARCH=i686-w64-mingw32
@@ -225,6 +225,9 @@ cp -a ${LIBUSB_1_0_BIN_PATH}/MinGW32/dll/libusb-1.0.dll ${ZIP_DIR}/bin/libusb-1.
 cp -a /usr/lib/gcc/i686-w64-mingw32/6.3-posix/libgcc_s_sjlj-1.dll ${ZIP_DIR}/bin/libgcc_s_sjlj-1.dll
 
 ## Need VC++ free toolkit installed (default Wine directory installation shown)
-( cd ${ZIP_DIR}/lib/msvc/ && wine ~/.wine/drive_c/Program\ Files/Microsoft\ Visual\ C++\ Toolkit\ 2003/bin/link.exe /lib /machine:i386 /def:libhamlib-2.def )
+# Path for 2003 version of Visual C++ Toolkit
+#-( cd ${ZIP_DIR}/lib/msvc/ && wine ~/.wine/drive_c/Program\ Files/Microsoft\ Visual\ C++\ Toolkit\ 2003/bin/link.exe /lib /machine:i386 /def:libhamlib-2.def )
+# Path for Current version of Visual Studio
+( cd ${ZIP_DIR}/lib/msvc/ && wine ~/.wine/drive_c/Program\ Files\ (x86)\/Microsoft\ Visual\ Studio/2017/BuildTools/VC/Tools/MSVC/14.16.27023/bin/Hostx64/x86/bin/link.exe /lib /machine:i386 /def:libhamlib-2.def )
 
 /usr/bin/zip -r ${HL_FILENAME}.zip `basename ${ZIP_DIR}`

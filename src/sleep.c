@@ -39,6 +39,8 @@
 #include <errno.h>
 #include <time.h>
 #include <pthread.h>
+#include "config.h"
+#include "sleep.h"
 
 #ifdef  __cplusplus
 extern "C" {
