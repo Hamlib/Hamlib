@@ -575,6 +575,56 @@ icom_cleanup(RIG *rig)
     return RIG_OK;
 }
 
+/**
+ * Returns 1 when USB ECHO is off
+ * Returns 0 when USB ECHO is on
+ * \return Returns < 0 when error occurs (e.g. timeout, nimple, navail)
+ */
+int icom_get_usb_echo_off(RIG *rig)
+{
+    int retval;
+    unsigned char ackbuf[MAXFRAMELEN];
+    int ack_len = sizeof(ackbuf);
+    struct rig_state *rs = &rig->state;
+    int retry_save = rs->rigport.retry;
+    struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
+
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    // reduce the retry here so it's quicker
+    rs->rigport.retry = 1;
+    // Check for echo on first
+    priv->serial_USB_echo_off = 0;
+    retval = icom_transaction(rig, C_RD_TRXID, 0x00, NULL, 0, ackbuf, &ack_len);
+
+    if (retval == RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo on detected\n",
+                  __func__);
+        rs->rigport.retry = retry_save;
+        return RIG_OK;
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s %d \n", __func__, __LINE__);
+        priv->serial_USB_echo_off = 1;
+
+        retval = icom_transaction(rig, C_RD_TRXID, 0x00, NULL, 0, ackbuf, &ack_len);
+
+        if (retval == RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo off detected\n",
+                      __func__);
+            rs->rigport.retry = retry_save;
+            return RIG_OK;
+        }
+    }
+
+    rs->rigport.retry = retry_save;
+    return retval;
+}
+
 
 /*
  * ICOM rig open routine
@@ -583,66 +633,37 @@ icom_cleanup(RIG *rig)
 int
 icom_rig_open(RIG *rig)
 {
-    unsigned char ackbuf[MAXFRAMELEN];
-    int ack_len = sizeof(ackbuf);
     int retval = RIG_OK;
-    struct rig_state *rs = &rig->state;
-    struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s %d \n", __func__, __LINE__);
 
-    priv->serial_USB_echo_off = 0;
+    retval = icom_get_usb_echo_off(rig);
 
-    retval = icom_transaction(rig, C_RD_TRXID, 0x00, NULL, 0, ackbuf, &ack_len);
+    if (retval >= 0) { return RIG_OK; }
 
-    if (retval == RIG_OK)
+    // maybe we need power on?
+    rig_debug(RIG_DEBUG_VERBOSE, "%s trying power on\n", __func__);
+    retval = abs(rig_set_powerstat(rig, 1));
+
+    // this is only a fatal error if powerstat is implemented
+    // if not iplemented than we're at an error here
+    if (retval != RIG_OK && retval != RIG_ENIMPL && retval != RIG_ENAVAIL)
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo on detected\n",
-                  __func__);
-        return RIG_OK;
-    }
-    else
-    {
-        // maybe we need power on?
-        retval = abs(rig_set_powerstat(rig, 1));
+        rig_debug(RIG_DEBUG_WARN, "%s: unexpected retval here: %s\n",
+                  __func__, rigerror(retval));
 
-        // this is only a fatal error if powerstat is implemented
-        if (retval != RIG_OK && retval != RIG_ENIMPL && retval != RIG_ENAVAIL)
-        {
-            rig_debug(RIG_DEBUG_WARN, "%s: unexpected retval here: %s\n",
-                      __func__, rigerror(retval));
-
-            rig_debug(RIG_DEBUG_WARN, "%s: rig_set_powerstat failed: =%s\n", __func__,
-                      rigerror(retval));
-            return retval;
-        }
-
-        // Now that we're powered up let's try again
-        retval =
-            icom_transaction(rig, C_RD_TRXID, 0x00, NULL, 0, ackbuf, &ack_len);
-
-        if (retval == RIG_OK)
-        {
-            priv->serial_USB_echo_off = 0;
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo on detected\n",
-                      __func__);
-            return RIG_OK;
-        }
-    }
-
-    priv->serial_USB_echo_off = 1;
-    retval = icom_transaction(rig, C_RD_TRXID, 0x00, NULL, 0, ackbuf, &ack_len);
-
-    if (retval == RIG_OK)
-    {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo off detected\n",
-                  __func__);
-        return RIG_OK;
-    }
-    else
-    {
+        rig_debug(RIG_DEBUG_WARN, "%s: rig_set_powerstat failed: =%s\n", __func__,
+                  rigerror(retval));
         return retval;
     }
+
+    // Now that we're powered up let's try again
+    retval = icom_get_usb_echo_off(rig);
+
+    if (retval >= 0) { return RIG_OK; }
+
+    rig_debug(RIG_DEBUG_ERR, "%s: Unable to determine USB echo status\n", __func__);
+    return retval;
 }
 
 
@@ -1152,7 +1173,7 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
     unsigned char dm_sub_cmd = RIG_MODEL_IC7200 == rig->caps->rig_model ? 0x04 :
                                S_MEM_DATA_MODE;
     int filter_byte = rig->caps->rig_model == RIG_MODEL_IC7300
-                   || rig->caps->rig_model == RIG_MODEL_IC7610;
+                      || rig->caps->rig_model == RIG_MODEL_IC7610;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1184,6 +1205,7 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
     if (RIG_OK == retval)
     {
         unsigned char datamode[2];
+
         switch (mode)
         {
         case RIG_MODE_PKTUSB:
@@ -1201,20 +1223,22 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
             break;
         }
 
-        if (filter_byte) { // then we need the width byte too
+        if (filter_byte)   // then we need the width byte too
+        {
             unsigned char mode_icom; // not used as it will map to USB/LSB
             signed char width_icom;
-            rig2icom_mode(rig, mode, width, &mode_icom, &width_icom); 
+            rig2icom_mode(rig, mode, width, &mode_icom, &width_icom);
             // since width_icom is 0-2 for rigs that need this here we have to make it 1-3
             datamode[1] = datamode[0] ? width_icom : 0;
             retval =
                 icom_transaction(rig, C_CTL_MEM, dm_sub_cmd, datamode, 2, ackbuf,
-                             &ack_len);
+                                 &ack_len);
         }
-        else {
+        else
+        {
             retval =
                 icom_transaction(rig, C_CTL_MEM, dm_sub_cmd, datamode, 1, ackbuf,
-                             &ack_len);
+                                 &ack_len);
         }
 
         if (retval != RIG_OK)
@@ -4744,6 +4768,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
     int i;
     int retry;
     struct rig_state *rs = &rig->state;
+    struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called status=%d\n", __func__,
               (int) status);
@@ -4767,6 +4792,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
         fe_buf[0] = 0;
         retry = rs->rigport.retry;
         rs->rigport.retry = 0;
+        priv->serial_USB_echo_off = 1;
         retval =
             icom_transaction(rig, C_SET_PWR, pwr_sc, NULL, 0, ackbuf, &ack_len);
         rs->rigport.retry = retry;
@@ -4788,10 +4814,15 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
 
     if (status == RIG_POWER_ON)   // wait for wakeup only
     {
+
         for (i = 0; i < retry; ++i)   // up to 10 attempts
         {
             freq_t freq;
             sleep(1);
+            // need to see if echo is on or not first
+            // until such time as rig is awake we don't know
+            icom_get_usb_echo_off(rig);
+
             // Use get_freq as all rigs should repond to this
             retval = rig_get_freq(rig, RIG_VFO_CURR, &freq);
 
