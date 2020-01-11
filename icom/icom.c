@@ -1248,11 +1248,11 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
         }
 
         if (filter_byte) { // then we need the width byte too
-            rmode_t mode2; // not used as it will map to USB/LSB
-            pbwidth_t width2;
-            icom2rig_mode(rig, mode, width, &mode2, &width2); 
-            // since width2 is 0-2 for rigs that need this here we have to make it 1-3
-            datamode[1] = datamode[1] ? width2+1 : 0;
+            unsigned char mode_icom; // not used as it will map to USB/LSB
+            signed char width_icom;
+            rig2icom_mode(rig, mode, width, &mode_icom, &width_icom); 
+            // since width_icom is 0-2 for rigs that need this here we have to make it 1-3
+            datamode[1] = datamode[0] ? width_icom : 0;
             retval =
                 icom_transaction(rig, C_CTL_MEM, dm_sub_cmd, datamode, 2, ackbuf,
                              &ack_len);

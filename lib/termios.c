@@ -1,4 +1,5 @@
 #ifdef HAVE_CONFIG_H
+#include "hamlib/rig.h"
 #include <config.h>
 #endif
 

@@ -2447,7 +2447,6 @@ extern HAMLIB_EXPORT(const char *) rig_copyright HAMLIB_PARAMS(());
 HAMLIB_EXPORT(void) rig_no_restore_ai();
 
 #include <unistd.h>
-#include <pthread.h> // so configure can pick up nanosleep on Win32
 extern HAMLIB_EXPORT(int) hl_usleep(useconds_t msec);
 
 __END_DECLS
