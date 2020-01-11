@@ -421,6 +421,9 @@ const struct confparams icom_ext_parms[] =
     { TOK_DRIVE_GAIN, "drive_gain", "Drive gain", "", "", RIG_CONF_NUMERIC, {} },
     { TOK_DIGI_SEL_FUNC, "digi_sel", "DIGI-SEL enable", "", "", RIG_CONF_CHECKBUTTON, {} },
     { TOK_DIGI_SEL_LEVEL, "digi_sel_level", "DIGI-SEL level", "", "", RIG_CONF_NUMERIC, {} },
+    { TOK_SCOPE_DAT, "scpdat", "Scope data", "", "", RIG_CONF_BINARY, {} },
+    { TOK_SCOPE_STS, "scpsts", "Scope status", "", "", RIG_CONF_CHECKBUTTON, {} },
+    { TOK_SCOPE_DOP, "scpdop", "Scope data output", "", "", RIG_CONF_CHECKBUTTON, {} },
     { RIG_CONF_END, NULL, }
 };
 
@@ -444,6 +447,20 @@ const struct cmdparams icom_ext_cmd[] =
     { {.t=TOK_DRIVE_GAIN}, C_CTL_LVL, S_LVL_DRIVE, SC_MOD_RW, 1, {0}, CMD_DAT_FLT, 2 },
     { {.t=TOK_DIGI_SEL_FUNC}, C_CTL_FUNC, S_FUNC_DIGISEL, SC_MOD_RW, 1, {0}, CMD_DAT_BOL, 1 },
     { {.t=TOK_DIGI_SEL_LEVEL}, C_CTL_LVL, S_LVL_DIGI, SC_MOD_RW, 1, {0}, CMD_DAT_FLT, 2 },
+    { {.t=TOK_SCOPE_DAT}, C_CTL_SCP, S_SCP_DAT, SC_MOD_RD, 0, {0}, CMD_DAT_BUF, 481 },
+    { {.t=TOK_SCOPE_STS}, C_CTL_SCP, S_SCP_STS, SC_MOD_RW, 0, {0}, CMD_DAT_BOL, 1 },
+    { {.t=TOK_SCOPE_DOP}, C_CTL_SCP, S_SCP_DOP, SC_MOD_RW, 0, {0}, CMD_DAT_BOL, 1 },
+    { {.t=TOK_SCOPE_MSS}, C_CTL_SCP, S_SCP_MSS, SC_MOD_RW, 0, {0}, CMD_DAT_BOL, 1 },
+    { {.t=TOK_SCOPE_MOD}, C_CTL_SCP, S_SCP_MOD, SC_MOD_RW, 0, {0}, CMD_DAT_WRD, 2 },
+    { {.t=TOK_SCOPE_SPN}, C_CTL_SCP, S_SCP_SPN, SC_MOD_RW, 0, {0}, CMD_DAT_BUF, 6 },
+    { {.t=TOK_SCOPE_EDG}, C_CTL_SCP, S_SCP_EDG, SC_MOD_RW, 0, {0}, CMD_DAT_WRD, 2 },
+    { {.t=TOK_SCOPE_HLD}, C_CTL_SCP, S_SCP_HLD, SC_MOD_RW, 0, {0}, CMD_DAT_WRD, 2 },
+    { {.t=TOK_SCOPE_REF}, C_CTL_SCP, S_SCP_REF, SC_MOD_RW, 0, {0}, CMD_DAT_BUF, 4 },
+    { {.t=TOK_SCOPE_SWP}, C_CTL_SCP, S_SCP_SWP, SC_MOD_RW, 0, {0}, CMD_DAT_WRD, 2 },
+    { {.t=TOK_SCOPE_STX}, C_CTL_SCP, S_SCP_STX, SC_MOD_RW, 0, {0}, CMD_DAT_BOL, 1 },
+    { {.t=TOK_SCOPE_TYP}, C_CTL_SCP, S_SCP_TYP, SC_MOD_RW, 0, {0}, CMD_DAT_INT, 1 },
+    { {.t=TOK_SCOPE_VBW}, C_CTL_SCP, S_SCP_VBW, SC_MOD_RW, 0, {0}, CMD_DAT_WRD, 2 },
+    { {.t=TOK_SCOPE_FEF}, C_CTL_SCP, S_SCP_FEF, SC_MOD_RW, 0, {0}, CMD_DAT_BUF, 12 },
     { {0} }
 };
 

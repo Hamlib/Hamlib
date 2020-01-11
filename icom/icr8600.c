@@ -77,6 +77,7 @@ struct cmdparams icr8600_rigparms[] = {
 
 int icr8600_tokens[] = { TOK_DSTAR_DSQL, TOK_DSTAR_CALL_SIGN, TOK_DSTAR_MESSAGE, TOK_DSTAR_STATUS,
     TOK_DSTAR_GPS_DATA, TOK_DSTAR_GPS_MESS, TOK_DSTAR_CODE, TOK_DSTAR_TX_DATA,
+    TOK_SCOPE_DAT, TOK_SCOPE_STS, TOK_SCOPE_DOP,
     TOK_BACKEND_NONE };
 
 struct confparams icr8600_ext[] = {
@@ -125,7 +126,7 @@ const struct rig_caps icr8600_caps =
     .dcd_type = RIG_DCD_RIG,
     .port_type = RIG_PORT_SERIAL,
     .serial_rate_min = 300,
-    .serial_rate_max = 19200, // USB can do up to 115000
+    .serial_rate_max = 115200,
     .serial_data_bits = 8,
     .serial_stop_bits = 1,
     .serial_parity = RIG_PARITY_NONE,

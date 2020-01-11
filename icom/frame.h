@@ -22,7 +22,7 @@
 #ifndef _FRAME_H
 #define _FRAME_H 1
 
-#define MAXFRAMELEN 80
+#define MAXFRAMELEN 512
 
 /*
  * helper functions
