@@ -1111,7 +1111,7 @@ int getCalLevel(RIG *rig, unsigned char rawAgc, int *dbm)
  */
 int getFilterBW(RIG *rig, enum FILTER_e filter)
 {
-    int rc = -1;
+    int rc;
     unsigned char bw;
 
     rc = readByte(rig, BBRAM, (FL_BW + ((filter - 1) * 4)), &bw);
@@ -1122,7 +1122,8 @@ int getFilterBW(RIG *rig, enum FILTER_e filter)
     }
     else
     {
-        rc = -1;
+        rig_debug(RIG_DEBUG_ERR, "%s: readByte err: %s\n", __func__, strerror(rc));
+        return rc;
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: filter %1d BW %5d\n", __func__, filter, rc);
