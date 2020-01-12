@@ -224,6 +224,15 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
      * ACKFRMLEN is the smallest frame we can expect from the rig
      */
     frm_len = read_icom_frame(&rs->rigport, buf, sizeof(buf));
+
+    if (memcmp(buf, sendbuf, frm_len) == 0 && priv->serial_USB_echo_off)
+    {
+        // Hmmm -- got an echo back when not expected so let's change
+        priv->serial_USB_echo_off = 0;
+        // And try again
+        frm_len = read_icom_frame(&rs->rigport, buf, sizeof(buf));
+    }
+
     Unhold_Decode(rig);
 
     if (frm_len < 0)
