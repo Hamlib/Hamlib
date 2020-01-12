@@ -792,8 +792,6 @@ static int optoscan_send_freq(RIG *rig, pltstate_t *state)
      *  chars, but the read will be blocking anyway. --SF
      * */
     return icom_transaction(rig, C_CTL_MISC, S_OPTO_NXT, buff, 6, NULL, NULL);
-
-    return RIG_OK;
 }
 
 static int optoscan_RTS_toggle(RIG *rig)
