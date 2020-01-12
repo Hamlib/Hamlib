@@ -41,8 +41,6 @@ struct kpa_priv_data *kpa1500_priv;
  *
  */
 
-static int kpa1500_cleanup(AMP *amp);
-
 /*
  * Private helper function prototypes
  */
@@ -67,7 +65,7 @@ const struct amp_caps kpa1500_amp_caps =
     .amp_model =    AMP_MODEL_ELECRAFT_KPA1500,
     .model_name =   "KPA1500",
     .mfg_name =     "Elecraft",
-    .version =      "2019-12-06",
+    .version =      "2020-01-12",
     .copyright =    "LGPL",
     .status =     RIG_STATUS_ALPHA,
     .amp_type =     AMP_TYPE_OTHER,
@@ -85,7 +83,7 @@ const struct amp_caps kpa1500_amp_caps =
 
     .amp_open = amp_open,
     .amp_init = kpa_init,
-    .amp_cleanup = kpa1500_cleanup,
+    .amp_close = kpa_close,
     .reset = kpa_reset,
     .get_info = kpa_get_info,
     .get_powerstat = kpa_get_powerstat,
@@ -102,31 +100,6 @@ const struct amp_caps kpa1500_amp_caps =
  *
  * ************************************
  */
-
-/*
- * Clean up allocated memory structures
- */
-
-static int kpa1500_cleanup(AMP *amp)
-{
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!amp)
-    {
-        return -RIG_EINVAL;
-    }
-
-    if (amp->state.priv)
-    {
-        free(amp->state.priv);
-    }
-
-    amp->state.priv = NULL;
-
-    return RIG_OK;
-}
-
 
 /*
  *

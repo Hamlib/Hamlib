@@ -83,6 +83,17 @@ int kpa_init(AMP *amp)
     return RIG_OK;
 }
 
+int kpa_close(AMP *amp)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (amp->state.priv) { free(amp->state.priv); }
+
+    amp->state.priv = NULL;
+
+    return RIG_OK;
+}
+
 int kpa_flushbuffer(AMP *amp)
 {
     struct amp_state *rs;
