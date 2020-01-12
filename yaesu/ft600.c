@@ -42,7 +42,7 @@
 #include "bandplan.h"
 
 /* prototypes */
-static int ft600_send_priv_cmd(RIG *rig, unsigned char ci);
+static int ft600_send_priv_cmd(RIG *rig, unsigned char cmd_index);
 
 static const yaesu_cmd_set_t ncmd[] =
 {
