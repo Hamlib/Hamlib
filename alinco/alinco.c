@@ -163,8 +163,14 @@ int alinco_transaction(RIG *rig,
 
     /* strip CR/LF from string
      */
-    *data_len -= 2;
-    data[*data_len] = 0;
+    data[0] = 0;
+
+    if (*data_len > 2)
+    {
+        *data_len -= 2;
+        data[*data_len] = 0;
+    }
+
     return RIG_OK;
 }
 
@@ -816,6 +822,7 @@ int alinco_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     case RIG_LEVEL_CWPITCH:
         lvl = 4;
+
         if (val.i < 426)
         {
             lvl = 5;
