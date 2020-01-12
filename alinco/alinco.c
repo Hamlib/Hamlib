@@ -106,6 +106,15 @@ int alinco_transaction(RIG *rig,
     struct rig_state *rs;
     char echobuf[BUFSZ + 1];
 
+    if (cmd == NULL || data == NULL || data_len == NULL)
+    {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: null argument?  cmd(%s), data(%s), data_len(%s)\n", __func__,
+                  cmd == NULL ? "OK" : "NULL", data == NULL ? "OK" : "NULL",
+                  data_len == NULL ? "OK" : "NULL");
+        return -RIG_EINTERNAL;
+    }
+
     rs = &rig->state;
 
     serial_flush(&rs->rigport);
