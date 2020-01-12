@@ -104,15 +104,15 @@ extern int getopt (int argc, char *const *argv, const char *shortopts);
 #else /* not __GNU_LIBRARY__ */
 extern int getopt ();
 #endif /* not __GNU_LIBRARY__ */
-extern int getopt_long (int argc, char *const *argv, const char *shortopts,
-		        const struct option *longopts, int *longind);
+extern int getopt_long (int argc, char *const *argv, const char *options,
+		        const struct option *long_options, int *opt_index);
 extern int getopt_long_only (int argc, char *const *argv,
-			     const char *shortopts,
-		             const struct option *longopts, int *longind);
+			     const char *options,
+		             const struct option *longopts, int *opt_index);
 
 /* Internal only.  Users should not call this directly.  */
 extern int _getopt_internal (int argc, char *const *argv,
-			     const char *shortopts,
+			     const char *optstring,
 		             const struct option *longopts, int *longind,
 			     int long_only);
 #else /* not __STDC__ */
