@@ -379,7 +379,7 @@ int ts2000_get_channel(RIG *rig, channel_t *chan)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !chan || chan->vfo != RIG_VFO_MEM)
+    if (!chan || chan->vfo != RIG_VFO_MEM)
     {
         return -RIG_EINVAL;
     }
