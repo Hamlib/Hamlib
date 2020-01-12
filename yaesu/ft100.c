@@ -43,7 +43,7 @@
 
 /* prototypes */
 
-static int ft100_send_priv_cmd(RIG *rig, unsigned char ci);
+static int ft100_send_priv_cmd(RIG *rig, unsigned char cmd_index);
 
 
 /* Native ft100 cmd set prototypes. These are READ ONLY as each */
