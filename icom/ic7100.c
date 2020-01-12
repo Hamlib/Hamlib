@@ -180,9 +180,6 @@ struct cmdparams ic7100_extcmds[] = {
 
 #define IC7100_HF_ANTS (RIG_ANT_1|RIG_ANT_2)
 
-int ic7100_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
-int ic7100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-
 /*
  * IC-7100 rig capabilities.
  */
@@ -366,8 +363,8 @@ const struct rig_caps ic7100_caps =
     .set_ts =  icom_set_ts,
     .get_func =  icom_get_func,
     .set_func =  icom_set_func,
-    .get_level =  ic7100_get_level,
-    .set_level =  ic7100_set_level,
+    .get_level =  icom_get_level,
+    .set_level =  icom_set_level,
 
     .set_ptt =  icom_set_ptt,
     .get_ptt =  icom_get_ptt,
@@ -404,39 +401,3 @@ const struct rig_caps ic7100_caps =
     .get_powerstat = icom_get_powerstat,
     .send_morse = icom_send_morse
 };
-
-int ic7100_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
-{
-    unsigned char cmdbuf[MAXFRAMELEN];
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    switch (level)
-    {
-    case RIG_LEVEL_VOXDELAY:
-        cmdbuf[0] = 0x01;
-        cmdbuf[1] = 0x65;
-        return icom_set_level_raw(rig, level, C_CTL_MEM, 0x05, 2, cmdbuf, 1, val);
-
-    default:
-        return icom_set_level(rig, vfo, level, val);
-    }
-}
-
-int ic7100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
-{
-    unsigned char cmdbuf[MAXFRAMELEN];
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    switch (level)
-    {
-    case RIG_LEVEL_VOXDELAY:
-        cmdbuf[0] = 0x01;
-        cmdbuf[1] = 0x65;
-        return icom_get_level_raw(rig, level, C_CTL_MEM, 0x05, 2, cmdbuf, val);
-
-    default:
-        return icom_get_level(rig, vfo, level, val);
-    }
-}
