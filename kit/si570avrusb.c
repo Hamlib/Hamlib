@@ -987,7 +987,7 @@ static int setBPF(RIG *rig, int enable)
                                          (unsigned char *) FilterCrossOver, sizeof(FilterCrossOver),
                                          rig->state.rigport.timeout);
 
-        if (retval < 1)
+        if (retval < 2)
         {
             return -RIG_EIO;
         }
