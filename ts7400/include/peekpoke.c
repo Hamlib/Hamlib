@@ -104,6 +104,7 @@ int main(int argc, char **argv)
     if (start == MAP_FAILED)
     {
         perror("mmap:");
+        close(fd);
         return 0;
     }
 
