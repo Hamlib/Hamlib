@@ -307,8 +307,14 @@ int icom_transaction(RIG *rig, int cmd, int subcmd,
         {
             break;
         }
+        hl_usleep(500*1000);   // pause a half second
     }
     while (retry-- > 0);
+
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: failed: %s\n", __func__, strerror(retval));
+    }
 
     return retval;
 }
