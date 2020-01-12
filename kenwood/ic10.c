@@ -821,8 +821,6 @@ int ic10_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     }
 
     return ic10_transaction(rig, fctbuf, fct_len, ackbuf, &ack_len);
-
-    return RIG_OK;
 }
 
 
