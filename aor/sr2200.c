@@ -130,7 +130,7 @@ const struct rig_caps sr2200_caps =
     .rig_model =  RIG_MODEL_SR2200,
     .model_name = "SR2200",
     .mfg_name =  "AOR",
-    .version =  "0.1",
+    .version =  "0.2",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_SCANNER,
@@ -648,7 +648,7 @@ int sr2200_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
 
         /* should be caught by the front end */
-        if ((val.i != 0) & (i >= MAXDBLSTSIZ || RIG_IS_DBLST_END(rs->attenuator[i])))
+        if ((val.i != 0) && (i >= MAXDBLSTSIZ || RIG_IS_DBLST_END(rs->attenuator[i])))
         {
             return -RIG_EINVAL;
         }
