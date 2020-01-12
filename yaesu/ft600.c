@@ -462,7 +462,7 @@ int ft600_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         return -RIG_EINVAL;
     }
 
-    if (width == NULL)
+    if (width != NULL)
     {
         *width = RIG_PASSBAND_NORMAL;
     }
