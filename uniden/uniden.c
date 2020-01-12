@@ -229,7 +229,8 @@ transaction_write:
 #endif
 
     /* Special case for SQuelch */
-    if (replystr && !memcmp(cmdstr, "SQ", 2) && (replystr[0] == '-' || replystr[0] == '+'))
+    if (replystr && !memcmp(cmdstr, "SQ", 2) && (replystr[0] == '-'
+            || replystr[0] == '+'))
     {
         retval = RIG_OK;
         goto transaction_quit;
@@ -672,7 +673,7 @@ int uniden_set_channel(RIG *rig, const channel_t *chan)
         return ret;
     }
 
-    if (chan->vfo == RIG_VFO_MEM && rig->caps->chan_desc_sz != 0)
+    if (rig->caps->chan_desc_sz != 0)
     {
         /* only BC780 BC250 BC785 */
         cmd_len = sprintf(cmdbuf, "TA C %03d %s" EOM,
