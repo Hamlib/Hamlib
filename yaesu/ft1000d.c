@@ -315,12 +315,14 @@ int ft1000d_init(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    priv = (struct ft1000d_priv_data *) calloc(1, sizeof(struct ft1000d_priv_data));
+    rig->state.priv = (struct ft1000d_priv_data *) calloc(1, sizeof(struct ft1000d_priv_data));
 
-    if (!priv)
+    if (!rig->state.priv)
     {
         return -RIG_ENOMEM;
     }
+
+    priv = rig->state.priv;
 
 // Copy native cmd set to private cmd storage area
     memcpy(priv->pcs, ncmd, sizeof(ncmd));
@@ -334,8 +336,6 @@ int ft1000d_init(RIG *rig)
     // Set operating vfo mode to current VFO changed from RIG_VFO_MAIN to RIG_VFO_A December 2016
     priv->current_vfo =  RIG_VFO_A;
 
-
-    rig->state.priv = (void *)priv;
 
     return RIG_OK;
 }

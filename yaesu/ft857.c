@@ -291,19 +291,19 @@ const struct rig_caps ft857_caps =
 
 int ft857_init(RIG *rig)
 {
-    struct ft857_priv_data *p;
+    struct ft857_priv_data *priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
 
-    if ((p = calloc(1, sizeof(struct ft857_priv_data))) == NULL)
+    if ((rig->state.priv = calloc(1, sizeof(struct ft857_priv_data))) == NULL)
     {
         return -RIG_ENOMEM;
     }
 
-    /* Copy complete native cmd set to private cmd storage area */
-    memcpy(p->pcs, ncmd, sizeof(ncmd));
+    priv = rig->state.priv;
 
-    rig->state.priv = (void *) p;
+    /* Copy complete native cmd set to private cmd storage area */
+    memcpy(priv->pcs, ncmd, sizeof(ncmd));
 
     return RIG_OK;
 }
