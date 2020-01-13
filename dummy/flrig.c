@@ -498,23 +498,25 @@ static int write_transaction(RIG *rig, char *xml, int xml_len)
  */
 static int flrig_init(RIG *rig)
 {
-    struct flrig_priv_data *priv = (struct flrig_priv_data *)malloc(sizeof(
-                                       struct flrig_priv_data));
+    struct flrig_priv_data *priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s version %s\n", __func__, BACKEND_VER);
 
+    rig->state.priv  = (struct flrig_priv_data *)malloc(sizeof(
+                struct flrig_priv_data));
 
-    if (!priv)
+    if (!rig->state.priv)
     {
         return -RIG_ENOMEM;
     }
+
+    priv = rig->state.priv;
 
     memset(priv, 0, sizeof(struct flrig_priv_data));
 
     /*
      * set arbitrary initial status
      */
-    rig->state.priv = (rig_ptr_t) priv;
     priv->curr_vfo = RIG_VFO_A;
     priv->split = 0;
     priv->ptt = 0;
@@ -866,6 +868,9 @@ static int flrig_open(RIG *rig)
 static int flrig_close(RIG *rig)
 {
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
+
+    if (rig->state.priv) { free(rig->state.priv); }
+
     return RIG_OK;
 }
 
@@ -1241,6 +1246,13 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     ttmode = strdup(modeMapGetFLRig(mode));
     rig_debug(RIG_DEBUG_TRACE, "%s: got ttmode = %s\n", __func__,
               ttmode == NULL ? "NULL" : ttmode);
+
+    if (ttmode == NULL)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: strdup failed\n", __func__);
+        return -RIG_EINTERNAL;
+    }
+
     pttmode = ttmode;
 
     if (ttmode[0] == '|') { pttmode = &ttmode[1]; } // remove first pipe symbol
