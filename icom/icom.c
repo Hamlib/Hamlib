@@ -514,15 +514,15 @@ icom_init(RIG *rig)
     priv_caps = (const struct icom_priv_caps *) caps->priv;
 
 
-    priv = (struct icom_priv_data *) calloc(1, sizeof(struct icom_priv_data));
+    rig->state.priv = (struct icom_priv_data *) calloc(1, sizeof(struct icom_priv_data));
 
-    if (!priv)
+    if (!rig->state.priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
 
-    rig->state.priv = (void *) priv;
+    priv = rig->state.priv;
 
     /* TODO: CI-V address should be customizable */
 
