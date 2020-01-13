@@ -324,7 +324,7 @@ const struct rig_caps ft757gx2_caps =
 
 int ft757_init(RIG *rig)
 {
-    struct ft757_priv_data *p;
+    struct ft757_priv_data *priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called.\n", __func__);
 
@@ -333,22 +333,23 @@ int ft757_init(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    p = (struct ft757_priv_data *) calloc(1, sizeof(struct ft757_priv_data));
+    rig->state.priv = (struct ft757_priv_data *) calloc(1, sizeof(struct ft757_priv_data));
 
-    if (!p)     /* whoops! memory shortage! */
+    if (!rig->state.priv)     /* whoops! memory shortage! */
     {
         return -RIG_ENOMEM;
     }
 
-    p->curfreq = 1e6;
+    priv = rig->state.priv;
+
+    priv->curfreq = 1e6;
 
     /* TODO: read pacing from preferences */
 
-    p->pacing = FT757GX_PACING_DEFAULT_VALUE;   /* set pacing to minimum for now */
-    p->read_update_delay =
+    priv->pacing = FT757GX_PACING_DEFAULT_VALUE;   /* set pacing to minimum for now */
+    priv->read_update_delay =
         FT757GX_DEFAULT_READ_TIMEOUT;    /* set update timeout to safe value */
-    p->current_vfo =  RIG_VFO_A;            /* default to VFO_A ? */
-    rig->state.priv = (void *)p;
+    priv->current_vfo =  RIG_VFO_A;            /* default to VFO_A ? */
 
     return RIG_OK;
 }

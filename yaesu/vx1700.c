@@ -601,12 +601,12 @@ static int vx1700_init(RIG *rig)
 
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
 
-    priv = calloc(1, sizeof(struct vx1700_priv_data));
+    rig->state.priv = calloc(1, sizeof(struct vx1700_priv_data));
 
-    if (priv == NULL) { return -RIG_ENOMEM; }
+    if (rig->state.priv == NULL) { return -RIG_ENOMEM; }
+    priv = rig->state.priv;
 
     priv->ch = 1;
-    rig->state.priv = (rig_ptr_t)priv;
     return RIG_OK;
 }
 

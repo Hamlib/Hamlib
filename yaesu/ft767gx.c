@@ -389,34 +389,34 @@ const struct rig_caps ft767gx_caps =
 
 int ft767_init(RIG *rig)
 {
-    struct ft767_priv_data *p;
+    struct ft767_priv_data *priv;
 
     if (!rig)
     {
         return -RIG_EINVAL;
     }
 
-    p = (struct ft767_priv_data *) calloc(1, sizeof(struct ft767_priv_data));
+    rig->state.priv = (struct ft767_priv_data *) calloc(1, sizeof(struct ft767_priv_data));
 
-    if (!p)           /* whoops! memory shortage! */
+    if (!rig->state.priv)           /* whoops! memory shortage! */
     {
         return -RIG_ENOMEM;
     }
+    priv = rig->state.priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     /* TODO: read pacing from preferences */
 
-    p->pacing = FT767GX_PACING_DEFAULT_VALUE; /* set pacing to minimum for now */
-    p->read_update_delay =
+    priv->pacing = FT767GX_PACING_DEFAULT_VALUE; /* set pacing to minimum for now */
+    priv->read_update_delay =
         FT767GX_DEFAULT_READ_TIMEOUT; /* set update timeout to safe value */
-    p->current_vfo =  RIG_VFO_A;  /* default to VFO_A ? */
-    p->ack_cmd[0] = 00;
-    p->ack_cmd[1] = 00;
-    p->ack_cmd[2] = 00;
-    p->ack_cmd[3] = 00;
-    p->ack_cmd[4] = 0x0B;
-    rig->state.priv = (void *)p;
+    priv->current_vfo =  RIG_VFO_A;  /* default to VFO_A ? */
+    priv->ack_cmd[0] = 00;
+    priv->ack_cmd[1] = 00;
+    priv->ack_cmd[2] = 00;
+    priv->ack_cmd[3] = 00;
+    priv->ack_cmd[4] = 0x0B;
 
     return RIG_OK;
 }

@@ -326,15 +326,11 @@ const struct rig_caps ft100_caps =
 
 int ft100_init(RIG *rig)
 {
-    struct ft100_priv_data *priv;
-
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    priv = (struct ft100_priv_data *) calloc(1, sizeof(struct ft100_priv_data));
+    rig->state.priv = (struct ft100_priv_data *) calloc(1, sizeof(struct ft100_priv_data));
 
-    if (!priv) { return -RIG_ENOMEM; }
-
-    rig->state.priv = (void *)priv;
+    if (!rig->state.priv) { return -RIG_ENOMEM; }
 
     return RIG_OK;
 }

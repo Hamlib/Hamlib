@@ -287,12 +287,14 @@ int newcat_init(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    priv = (struct newcat_priv_data *) calloc(1, sizeof(struct newcat_priv_data));
+    rig->state.priv = (struct newcat_priv_data *) calloc(1, sizeof(struct newcat_priv_data));
 
-    if (!priv)                                  /* whoops! memory shortage! */
+    if (!rig->state.priv)                                  /* whoops! memory shortage! */
     {
         return -RIG_ENOMEM;
     }
+
+    priv = rig->state.priv;
 
     /* TODO: read pacing from preferences */
     //    priv->pacing = NEWCAT_PACING_DEFAULT_VALUE; /* set pacing to minimum for now */
@@ -301,8 +303,6 @@ int newcat_init(RIG *rig)
 
     //    priv->current_vfo =  RIG_VFO_MAIN;          /* default to whatever */
 //    priv->current_vfo = RIG_VFO_A;
-
-    rig->state.priv = (void *)priv;
 
     priv->rig_id = NC_RIGID_NONE;
     priv->current_mem = NC_MEM_CHANNEL_NONE;
