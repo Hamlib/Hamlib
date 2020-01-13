@@ -276,15 +276,15 @@ int icm710_init(RIG *rig)
 
     priv_caps = (const struct icm710_priv_caps *) caps->priv;
 
-    priv = (struct icm710_priv_data *)calloc(1, sizeof(struct icm710_priv_data));
+    rig->state.priv = (struct icm710_priv_data *)calloc(1, sizeof(struct icm710_priv_data));
 
-    if (!priv)
+    if (!rig->state.priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
 
-    rig->state.priv = (void *)priv;
+    priv = rig->state.priv;
 
     priv->remote_id = priv_caps->default_remote_id;
     priv->split = RIG_SPLIT_OFF;
