@@ -1121,9 +1121,6 @@ void uh_close_radio()
     }
 }
 
-
-#ifdef XXREMOVEDXX
-// Not referenced anywhere
 void uh_close_wkey()
 {
     uh_wkey_in_use = 0;
@@ -1133,7 +1130,6 @@ void uh_close_wkey()
         close_microham();
     }
 }
-#endif
 
 int uh_open_ptt()
 {

@@ -137,16 +137,18 @@ static int dra818_setvolume(RIG *rig)
 
 int dra818_init(RIG *rig)
 {
-    struct dra818_priv *priv = calloc(sizeof(*priv), 1);
+    struct dra818_priv *priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: dra818_init called\n", __func__);
 
-    if (!priv)
+    rig->state.priv = calloc(sizeof(*priv), 1);
+
+    if (!rig->state.priv)
     {
         return -RIG_ENOMEM;
     }
 
-    rig->state.priv = priv;
+    priv = rig->state.priv;
 
     switch (rig->caps->rig_model)
     {
