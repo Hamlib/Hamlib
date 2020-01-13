@@ -136,15 +136,15 @@ int icmarine_init(RIG *rig)
 
     priv_caps = (const struct icmarine_priv_caps *) caps->priv;
 
-    priv = (struct icmarine_priv_data *)malloc(sizeof(struct icmarine_priv_data));
+    rig->state.priv = (struct icmarine_priv_data *)malloc(sizeof(struct icmarine_priv_data));
 
-    if (!priv)
+    if (!rig->state.priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
 
-    rig->state.priv = (void *)priv;
+    priv = rig->state.priv;
 
     priv->remote_id = priv_caps->default_remote_id;
     priv->split = RIG_SPLIT_OFF;
