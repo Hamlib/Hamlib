@@ -481,16 +481,16 @@ int dttsp_init(RIG *rig)
     const char *cmdpath;
     char *p;
 
-    priv = (struct dttsp_priv_data *)calloc(1, sizeof(struct dttsp_priv_data));
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!priv)
+    rig->state.priv = (struct dttsp_priv_data *)calloc(1, sizeof(struct dttsp_priv_data));
+
+    if (!rig->state.priv)
     {
         return -RIG_ENOMEM;
     }
 
-    rig->state.priv = (void *)priv;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    priv = rig->state.priv;
 
     priv->tuner = NULL;
     priv->tuner_model = RIG_MODEL_DUMMY;
