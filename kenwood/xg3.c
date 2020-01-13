@@ -506,7 +506,6 @@ int xg3_set_powerstat(RIG *rig, powerstat_t status)
 int xg3_get_powerstat(RIG *rig, powerstat_t *status)
 {
     const char *cmd = "G";      // any command to test will do
-    char reply[32];
     int retval = kenwood_transaction(rig, cmd, NULL, 0);
     struct rig_state *rs = &rig->state;
     struct xg3_priv_data *priv = (struct xg3_priv_data *)rig->state.priv;
@@ -515,12 +514,13 @@ int xg3_get_powerstat(RIG *rig, powerstat_t *status)
 
     if (retval == RIG_OK)
     {
+        char reply[32];
         retval = read_string(&rs->rigport, reply, sizeof(reply), ";", 1);
         *status = RIG_POWER_ON;
         priv->powerstat = RIG_POWER_ON;
     }
 
-    else if (retval != RIG_OK)
+    if (retval != RIG_OK)
     {
         *status = RIG_POWER_OFF;    // Error indicates power is off
         rig_debug(RIG_DEBUG_VERBOSE, "%s read_string failed\n", __func__);
