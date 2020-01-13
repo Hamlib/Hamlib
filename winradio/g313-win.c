@@ -233,13 +233,15 @@ int g313_init(RIG *rig)
 {
     struct g313_priv_data *priv;
 
-    priv = (struct g313_priv_data *)malloc(sizeof(struct g313_priv_data));
+    rig->state.priv = (struct g313_priv_data *)malloc(sizeof(struct g313_priv_data));
 
-    if (!priv)
+    if (!rig->state.priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
+
+    priv = rig->state.priv;
 
     priv->WaveOutDeviceID = -1;
 
@@ -340,8 +342,6 @@ int g313_init(RIG *rig)
     priv->waveOutGetNumDevs = (TwaveOutGetNumDevs)GetProcAddress(priv->WinMM,
                               "waveOutGetNumDevs");
 
-
-    rig->state.priv = (void *)priv;
 
 
     return RIG_OK;
