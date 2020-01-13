@@ -297,20 +297,16 @@ int rx331_init(RIG *rig)
 {
     struct rx331_priv_data *priv;
 
-    priv = (struct rx331_priv_data *)malloc(sizeof(struct rx331_priv_data));
+    rig->state.priv = (struct rx331_priv_data *)malloc(sizeof(struct rx331_priv_data));
 
-    if (!priv)
+    if (!rig->state.priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
+    priv = rig->state.priv;
 
     memset(priv, 0, sizeof(struct rx331_priv_data));
-
-    /*
-     * set arbitrary initial status
-     */
-    rig->state.priv = (rig_ptr_t)priv;
 
     return RIG_OK;
 }

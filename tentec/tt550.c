@@ -367,15 +367,17 @@ tt550_init(RIG *rig)
 {
     struct tt550_priv_data *priv;
 
-    priv = (struct tt550_priv_data *) malloc(sizeof(struct tt550_priv_data));
+    rig->state.priv = (struct tt550_priv_data *) malloc(sizeof(struct tt550_priv_data));
 
-    if (!priv)
+    if (!rig->state.priv)
     {
         /*
          * whoops! memory shortage!
          */
         return -RIG_ENOMEM;
     }
+
+    priv = rig->state.priv;
 
     memset(priv, 0, sizeof(struct tt550_priv_data));
 
@@ -393,7 +395,6 @@ tt550_init(RIG *rig)
     priv->lineout = priv->spkvol = 0.0;   /* mute */
     priv->stepsize = 100;     /* default to 100Hz tuning step */
 
-    rig->state.priv = (rig_ptr_t) priv;
     return RIG_OK;
 }
 
