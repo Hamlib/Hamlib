@@ -332,14 +332,16 @@ int fifisdr_init(RIG *rig)
     hamlib_port_t *rp = &rig->state.rigport;
     struct fifisdr_priv_instance_data *priv;
 
-    priv = (struct fifisdr_priv_instance_data *)calloc(sizeof(
+    rig->state.priv = (struct fifisdr_priv_instance_data *)calloc(sizeof(
                 struct fifisdr_priv_instance_data), 1);
 
-    if (!priv)
+    if (!rig->state.priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
+
+    priv = rig->state.priv;
 
     priv->multiplier = 4;
 
@@ -353,8 +355,6 @@ int fifisdr_init(RIG *rig)
 
     rp->parm.usb.vendor_name = FIFISDR_VENDOR_NAME;
     rp->parm.usb.product = FIFISDR_PRODUCT_NAME;
-
-    rig->state.priv = (void *)priv;
 
     return RIG_OK;
 }
