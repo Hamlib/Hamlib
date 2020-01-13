@@ -1550,7 +1550,7 @@ void print_model_list()
 
     for (s = models; s != NULL; s = (struct mod_lst *)(s->hh.next))
     {
-        printf("%6d  %-23s%-24s%-16s%s\n",
+        printf("%6u  %-23s%-24s%-16s%s\n",
                s->id,
                s->mfg_name,
                s->model_name,
