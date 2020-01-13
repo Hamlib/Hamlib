@@ -176,8 +176,10 @@ int main(int argc, char *argv[])
     pthread_attr_t attr;
 #endif
     struct handle_data *arg;
+#ifdef SIGPIPE
 #if HAVE_SIGACTION
     struct sigaction act;
+#endif
 #endif
 
     while (1)
