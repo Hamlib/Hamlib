@@ -503,7 +503,7 @@ int thg71_open(RIG *rig)
         return retval;
     }
 
-    strl = strtok(ackbuf, " ");
+    strtok(ackbuf, " ");
 
     for (i = 0; i < FRQRANGESIZ; i++)
     {
