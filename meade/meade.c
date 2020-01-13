@@ -165,15 +165,15 @@ static int meade_init(ROT *rot)
 {
     struct meade_priv_data *priv;
 
-    priv = (struct meade_priv_data *)
+    rot->state.priv = (struct meade_priv_data *)
            calloc(1, sizeof(struct meade_priv_data));
 
-    if (!priv)
+    if (!rot->state.priv)
     {
         return -RIG_ENOMEM;
     }
 
-    rot->state.priv = (void *)priv;
+    priv = rot->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called version %s\n", __func__,
               rot->caps->version);
