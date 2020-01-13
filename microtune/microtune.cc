@@ -61,15 +61,15 @@ int microtune_init(RIG *rig)
 {
 	struct microtune_priv_data *priv;
 
-	priv = (struct microtune_priv_data*)malloc(sizeof(struct microtune_priv_data));
-	if (!priv) {
+	rig->state.priv = (struct microtune_priv_data*)malloc(sizeof(struct microtune_priv_data));
+	if (!rig->state.priv) {
 		/* whoops! memory shortage! */
 		return -RIG_ENOMEM;
 	}
+	priv = rig->state.priv;
 
 	priv->actual_freq = RIG_FREQ_NONE;
 
-	rig->state.priv = (void*)priv;
 
 	return RIG_OK;
 }
