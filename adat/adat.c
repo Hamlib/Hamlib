@@ -2636,9 +2636,9 @@ adat_priv_data_ptr adat_new_priv_data(RIG *pRig)
     {
         // Init Priv Data
 
-        pPriv = (adat_priv_data_ptr) calloc(sizeof(adat_priv_data_t), 1);
+        pRig->state.priv = (adat_priv_data_ptr) calloc(sizeof(adat_priv_data_t), 1);
 
-        if (pPriv != NULL)
+        if (pRig->state.priv != NULL)
         {
             char acBuf[ ADAT_BUFSZ + 1 ];
             memset(acBuf, 0, ADAT_BUFSZ + 1);
@@ -2654,8 +2654,6 @@ adat_priv_data_ptr adat_new_priv_data(RIG *pRig)
                 pRig->state.priv = (void *) pPriv;
             }
 
-#else
-            pRig->state.priv = (void *) pPriv;
 #endif
         }
         else
@@ -2886,8 +2884,9 @@ int adat_close(RIG *pRig)
     int nRC = RIG_OK;
     adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
 
-    if (pPriv->pcCmd != NULL) free(pPriv->pcCmd);
-    if (pPriv->pcResult != NULL) free(pPriv->pcResult);
+    if (pPriv->pcCmd != NULL) { free(pPriv->pcCmd); }
+
+    if (pPriv->pcResult != NULL) { free(pPriv->pcResult); }
 
     gFnLevel++;
 
@@ -2895,18 +2894,9 @@ int adat_close(RIG *pRig)
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = %p\n",
               gFnLevel, __func__, __FILE__, __LINE__, pRig);
 
-    // Check Params
+    // Now switch to interactive mode
 
-    if (pRig == NULL)
-    {
-        nRC = -RIG_EARG;
-    }
-    else
-    {
-        // Now switch to interactive mode
-
-        nRC = adat_transaction(pRig, &adat_cmd_list_close_adat);
-    }
+    nRC = adat_transaction(pRig, &adat_cmd_list_close_adat);
 
     // Done !
 
@@ -3524,7 +3514,8 @@ int adat_set_conf(RIG *pRig, token_t token, const char *val)
         switch (token)
         {
         case TOKEN_ADAT_PRODUCT_NAME:
-            if (pPriv->pcProductName != NULL) free(pPriv->pcProductName);
+            if (pPriv->pcProductName != NULL) { free(pPriv->pcProductName); }
+
             pPriv->pcProductName = strdup(val);
             break;
 
