@@ -274,7 +274,7 @@ static int thd74_get_freq_info(RIG *rig, vfo_t vfo, char *buf)
 
     sprintf(cmd, "FO %c", c);
     retval = kenwood_transaction(rig, cmd, buf, 73);
-    return RIG_OK;
+    return retval;
 }
 
 /* item is an offset into reply buf that is a single char */
