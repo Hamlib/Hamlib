@@ -260,22 +260,24 @@ static int read_transaction(RIG *rig, char *response, int response_len)
  */
 static int trxmanager_init(RIG *rig)
 {
-    struct trxmanager_priv_data *priv = (struct trxmanager_priv_data *)malloc(
-                                            sizeof(struct trxmanager_priv_data));
+    struct trxmanager_priv_data *priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s version %s\n", __func__, BACKEND_VER);
 
-    if (!priv)
+    rig->state.priv = (struct trxmanager_priv_data *)malloc(
+                                            sizeof(struct trxmanager_priv_data));
+    if (!rig->state.priv)
     {
         return -RIG_ENOMEM;
     }
+
+    priv = rig->state.priv;
 
     memset(priv, 0, sizeof(struct trxmanager_priv_data));
 
     /*
      * set arbitrary initial status
      */
-    rig->state.priv = (rig_ptr_t) priv;
     priv->vfo_curr = RIG_VFO_A;
     priv->split = 0;
 
