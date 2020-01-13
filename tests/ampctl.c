@@ -107,12 +107,6 @@ static struct option long_options[] =
 
 #define MAXCONFLEN 128
 
-/* variable for readline support */
-#ifdef HAVE_LIBREADLINE
-static const int have_rl = 1;
-#endif
-
-
 int interactive = 1;    /* if no cmd on command line, switch to interactive */
 int prompt = 1;         /* Print prompt in ampctl */
 
@@ -363,7 +357,7 @@ int main(int argc, char *argv[])
 
 #ifdef HAVE_LIBREADLINE
 
-    if (interactive && prompt && have_rl)
+    if (interactive && prompt)
     {
         rl_readline_name = "ampctl";
 #ifdef HAVE_READLINE_HISTORY
@@ -419,7 +413,7 @@ int main(int argc, char *argv[])
 
 #ifdef HAVE_LIBREADLINE
 
-    if (interactive && prompt && have_rl)
+    if (interactive && prompt)
     {
 #ifdef HAVE_READLINE_HISTORY
 
