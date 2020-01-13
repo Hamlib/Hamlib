@@ -120,15 +120,15 @@ static int hd1780_rot_init(ROT *rot)
         return -RIG_EINVAL;
     }
 
-    priv = (struct hd1780_rot_priv_data *)
+    rot->state.priv = (struct hd1780_rot_priv_data *)
            malloc(sizeof(struct hd1780_rot_priv_data));
 
-    if (!priv)
+    if (!rot->state.priv)
     {
         return -RIG_ENOMEM;
     }
 
-    rot->state.priv = (void *)priv;
+    priv = rot->state.priv;
 
     rot->state.rotport.type.rig = RIG_PORT_SERIAL;
 
