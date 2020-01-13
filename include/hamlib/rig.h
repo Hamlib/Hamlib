@@ -92,6 +92,7 @@
 #define CONSTANT_64BIT_FLAG(BIT) (1ull << (BIT))
 #endif
 
+#ifndef __APPLE__
 #include <time.h>
 #undef sleep
 #undef usleep
@@ -111,6 +112,7 @@
     t.tv_nsec = 0;\
     nanosleep(&t,NULL);\
   } while(0)
+#endif
 
 __BEGIN_DECLS
 
