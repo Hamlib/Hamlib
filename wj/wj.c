@@ -216,15 +216,15 @@ int wj_init(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    priv = (struct wj_priv_data *)malloc(sizeof(struct wj_priv_data));
+    rig->state.priv = (struct wj_priv_data *)malloc(sizeof(struct wj_priv_data));
 
-    if (!priv)
+    if (!rig->state.priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
 
-    rig->state.priv = (void *)priv;
+    priv = rig->state.priv;
 
     priv->receiver_id = 0;
     priv->freq = kHz(500);
