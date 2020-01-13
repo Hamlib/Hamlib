@@ -150,13 +150,15 @@ ars_init(ROT *rot)
         return -RIG_EINVAL;
     }
 
-    priv = (struct ars_priv_data *)malloc(sizeof(struct ars_priv_data));
+    rot->state.priv = (struct ars_priv_data *)malloc(sizeof(struct ars_priv_data));
 
-    if (!priv)
+    if (!rot->state.priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
+
+    priv = rot->state.priv;
 
     priv->pp_control = 0;
     priv->pp_data = 0;
@@ -166,8 +168,6 @@ ars_init(ROT *rot)
     priv->adc_res = 10; /* 8 bits vs. 10 bits ADC */
     priv->brake_off = 0; /* i.e. brake is ON */
     priv->curr_move = 0;
-
-    rot->state.priv = (void *)priv;
 
     return RIG_OK;
 }
