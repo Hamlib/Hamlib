@@ -59,8 +59,6 @@ const struct fault_list kpa_fault_list [] =
 
 int kpa_init(AMP *amp)
 {
-    struct kpa_priv_data *priv;
-
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!amp)
@@ -68,15 +66,13 @@ int kpa_init(AMP *amp)
         return -RIG_EINVAL;
     }
 
-    priv = (struct kpa_priv_data *)
+    amp->state.priv = (struct kpa_priv_data *)
            malloc(sizeof(struct kpa_priv_data));
 
-    if (!priv)
+    if (!amp->state.priv)
     {
         return -RIG_ENOMEM;
     }
-
-    amp->state.priv = (void *)priv;
 
     amp->state.ampport.type.rig = RIG_PORT_SERIAL;
 
