@@ -571,14 +571,16 @@ int si570avrusb_init(RIG *rig)
     hamlib_port_t *rp = &rig->state.rigport;
     struct si570xxxusb_priv_data *priv;
 
-    priv = (struct si570xxxusb_priv_data *)calloc(sizeof(struct
+    rig->state.priv = (struct si570xxxusb_priv_data *)calloc(sizeof(struct
             si570xxxusb_priv_data), 1);
 
-    if (!priv)
+    if (!rig->state.priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
+
+    priv = rig->state.priv;
 
     priv->osc_freq = SI570_NOMINAL_XTALL_FREQ;
     /* QSD/QSE */
@@ -599,8 +601,6 @@ int si570avrusb_init(RIG *rig)
     rp->parm.usb.vendor_name = VENDOR_NAME;
     rp->parm.usb.product = AVR_PRODUCT_NAME;
 
-    rig->state.priv = (void *)priv;
-
     return RIG_OK;
 }
 
@@ -612,14 +612,16 @@ int si570peaberry1_init(RIG *rig)
     hamlib_port_t *rp = &rig->state.rigport;
     struct si570xxxusb_priv_data *priv;
 
-    priv = (struct si570xxxusb_priv_data *)calloc(sizeof(struct
+    rig->state.priv = (struct si570xxxusb_priv_data *)calloc(sizeof(struct
             si570xxxusb_priv_data), 1);
 
-    if (!priv)
+    if (!rig->state.priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
+
+    priv = rig->state.priv;
 
     priv->osc_freq = SI570_NOMINAL_XTALL_FREQ;
     /* QSD/QSE */
@@ -640,8 +642,6 @@ int si570peaberry1_init(RIG *rig)
     rp->parm.usb.vendor_name = PEABERRY_VENDOR_NAME;
     rp->parm.usb.product = PEABERRY_PRODUCT_NAME;
 
-    rig->state.priv = (void *)priv;
-
     return RIG_OK;
 }
 
@@ -653,14 +653,16 @@ int si570peaberry2_init(RIG *rig)
     hamlib_port_t *rp = &rig->state.rigport;
     struct si570xxxusb_priv_data *priv;
 
-    priv = (struct si570xxxusb_priv_data *)calloc(sizeof(struct
+    rig->state.priv = (struct si570xxxusb_priv_data *)calloc(sizeof(struct
             si570xxxusb_priv_data), 1);
 
-    if (!priv)
+    if (!rig->state.priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
+
+    priv = rig->state.priv;
 
     priv->osc_freq = SI570_NOMINAL_XTALL_FREQ;
     /* QSD/QSE */
@@ -681,8 +683,6 @@ int si570peaberry2_init(RIG *rig)
     rp->parm.usb.vendor_name = VENDOR_NAME;
     rp->parm.usb.product = PEABERRY_PRODUCT_NAME;
 
-    rig->state.priv = (void *)priv;
-
     return RIG_OK;
 }
 
@@ -694,14 +694,16 @@ int si570picusb_init(RIG *rig)
     hamlib_port_t *rp = &rig->state.rigport;
     struct si570xxxusb_priv_data *priv;
 
-    priv = (struct si570xxxusb_priv_data *)calloc(sizeof(struct
+    rig->state.priv = (struct si570xxxusb_priv_data *)calloc(sizeof(struct
             si570xxxusb_priv_data), 1);
 
-    if (!priv)
+    if (!rig->state.priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
+
+    priv = rig->state.priv;
 
     priv->osc_freq = SI570_NOMINAL_XTALL_FREQ;
     /* QSD/QSE */
@@ -722,8 +724,6 @@ int si570picusb_init(RIG *rig)
     rp->parm.usb.vendor_name = VENDOR_NAME;
     rp->parm.usb.product = PIC_PRODUCT_NAME;
 
-    rig->state.priv = (void *)priv;
-
     return RIG_OK;
 }
 /*
@@ -735,14 +735,16 @@ int fasdr_init(RIG *rig)
     hamlib_port_t *rp = &rig->state.rigport;
     struct si570xxxusb_priv_data *priv;
 
-    priv = (struct si570xxxusb_priv_data *)calloc(sizeof(struct
+    rig->state.priv = (struct si570xxxusb_priv_data *)calloc(sizeof(struct
             si570xxxusb_priv_data), 1);
 
-    if (!priv)
+    if (!rig->state.priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
+
+    priv = rig->state.priv;
 
     priv->osc_freq = SI570_NOMINAL_XTALL_FREQ;
     /* QSD/QSE */
@@ -762,8 +764,6 @@ int fasdr_init(RIG *rig)
 
     rp->parm.usb.vendor_name = VENDOR_NAME;
     rp->parm.usb.product = AVR_PRODUCT_NAME;
-
-    rig->state.priv = (void *)priv;
 
     return RIG_OK;
 }
