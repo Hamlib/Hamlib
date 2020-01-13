@@ -47,17 +47,11 @@ struct usrp_priv_data {
 
 int usrp_init(RIG *rig)
 {
-	struct usrp_priv_data *priv;
-
-	priv = (struct usrp_priv_data*)malloc(sizeof(struct usrp_priv_data));
-	if (!priv) {
+	rig->state.priv = (struct usrp_priv_data*)malloc(sizeof(struct usrp_priv_data));
+	if (!rig->state.priv) {
 		/* whoops! memory shortage! */
 		return -RIG_ENOMEM;
 	}
-
-	rig->state.priv = (void*)priv;
-
-	//priv->if_mix_freq = IFMIXFREQ;
 
 	return RIG_OK;
 }
