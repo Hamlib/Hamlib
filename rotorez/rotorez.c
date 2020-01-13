@@ -358,8 +358,6 @@ const struct rot_caps rt21_rot_caps =
 
 static int rotorez_rot_init(ROT *rot)
 {
-    struct rotorez_rot_priv_data *priv;
-
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!rot)
@@ -367,19 +365,17 @@ static int rotorez_rot_init(ROT *rot)
         return -RIG_EINVAL;
     }
 
-    priv = (struct rotorez_rot_priv_data *)
+    rot->state.priv = (struct rotorez_rot_priv_data *)
            malloc(sizeof(struct rotorez_rot_priv_data));
 
-    if (!priv)
+    if (!rot->state.priv)
     {
         return -RIG_ENOMEM;
     }
 
-    rot->state.priv = (void *)priv;
-
     rot->state.rotport.type.rig = RIG_PORT_SERIAL;
 
-    priv->az = 0;
+    ((struct rotorez_rot_priv_data*)rot->state.priv)->az = 0;
 
     return RIG_OK;
 }
