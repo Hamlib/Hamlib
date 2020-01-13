@@ -283,17 +283,17 @@ int ar3030_init(RIG *rig)
 {
     struct ar3030_priv_data *priv;
 
-    priv = malloc(sizeof(struct ar3030_priv_data));
+    rig->state.priv = malloc(sizeof(struct ar3030_priv_data));
 
-    if (!priv)
+    if (!rig->state.priv)
     {
         return -RIG_ENOMEM;
     }
 
+    priv = rig->state.priv;
+
     priv->curr_ch = 99; /* huh! FIXME: get_mem in open() ? */
     priv->curr_vfo = RIG_VFO_A;
-
-    rig->state.priv = priv;
 
     return RIG_OK;
 }
