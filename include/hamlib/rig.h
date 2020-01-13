@@ -92,28 +92,6 @@
 #define CONSTANT_64BIT_FLAG(BIT) (1ull << (BIT))
 #endif
 
-#ifndef __APPLE__
-#include <time.h>
-#undef sleep
-#undef usleep
-#define usleep(n)\
-  do {\
-    unsigned long sec = n/1000000ul;\
-    unsigned long nsec = n*1000ul - (sec * 1000000000ul);\
-    struct timespec t;\
-    t.tv_sec=sec;\
-    t.tv_nsec = nsec;\
-    nanosleep(&t,NULL);\
-  } while(0) 
-#define sleep(n)\
-  do {\
-    struct timespec t;\
-    t.tv_sec=n;\
-    t.tv_nsec = 0;\
-    nanosleep(&t,NULL);\
-  } while(0)
-#endif
-
 __BEGIN_DECLS
 
 extern HAMLIB_EXPORT_VAR(const char) hamlib_version[];
@@ -2459,6 +2437,9 @@ extern HAMLIB_EXPORT(const char *) rig_version HAMLIB_PARAMS(());
 extern HAMLIB_EXPORT(const char *) rig_copyright HAMLIB_PARAMS(());
 
 HAMLIB_EXPORT(void) rig_no_restore_ai();
+
+#include <unistd.h>
+extern HAMLIB_EXPORT(int) hl_usleep(useconds_t msec);
 
 __END_DECLS
 

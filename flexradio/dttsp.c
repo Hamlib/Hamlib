@@ -357,8 +357,8 @@ static int fetch_meter(RIG *rig, int *label, float *data, int npts)
         }
 
         /* copy payload back to client space */
-        memcpy((char *) label, buf, sizeof(int));
-        memcpy((char *) data,  buf + sizeof(int), npts * sizeof(float));
+        memcpy((void *) label, buf, sizeof(int));
+        memcpy((void *) data,  buf + sizeof(int), npts * sizeof(float));
 
     }
     else
@@ -378,7 +378,11 @@ static int fetch_meter(RIG *rig, int *label, float *data, int npts)
         }
 
         buf_len = sizeof(float) * npts;
-        ret = read_block(&priv->meter_port, (char *)data, buf_len);
+        if (sizeof(float)!=4) {
+            rig_debug(RIG_DEBUG_ERR,"%s: sizeof(float)!=4, instead = %d\n",__func__, (int)sizeof(float));
+            return -RIG_EINTERNAL;
+        }
+        ret = read_block(&priv->meter_port, (char *)(void*)data, buf_len);
 
         if (ret != buf_len)
         {

@@ -1,12 +1,9 @@
 #ifdef HAVE_CONFIG_H
+#include "hamlib/rig.h"
 #include <config.h>
 #endif
 
 #if defined(WIN32) && !defined(HAVE_TERMIOS_H)
-
-#ifdef HAVE_UNISTD_H
-#include <unistd.h> /* usleep() */
-#endif
 
 #undef DEBUG
 #undef TRACE
@@ -1631,9 +1628,9 @@ int win32_serial_read(int fd, void *vb, int size)
             if (stat.cbInQue < index->ttyset->c_cc[VMIN])
             {
                 /*
-                  usleep(50);
+                  hl_usleep(50);
                 */
-                usleep(100);     /* don't hog the CPU while waiting */
+                hl_usleep(100);     /* don't hog the CPU while waiting */
 
                 /* we should use -1 instead of 0 for disabled timeout */
                 now = GetTickCount();
@@ -1665,7 +1662,7 @@ int win32_serial_read(int fd, void *vb, int size)
         do
         {
             ClearErrors(index, &stat);
-            usleep(1000);
+            hl_usleep(1000);
         }
         while (stat.cbInQue < index->ttyset->c_cc[VMIN] && c > clock());
 
@@ -1700,7 +1697,7 @@ int win32_serial_read(int fd, void *vb, int size)
 
             case ERROR_MORE_DATA:
                 /*
-                  usleep(1000);
+                  hl_usleep(1000);
                 */
                 report("ERROR_MORE_DATA\n");
                 break;
@@ -1746,14 +1743,14 @@ int win32_serial_read(int fd, void *vb, int size)
                 sprintf(message, "end nBytes=%ld] ", nBytes);
                 report(message);
                 /*
-                  usleep(1000);
+                  hl_usleep(1000);
                 */
                 report("ERROR_IO_PENDING\n");
                 break;
 
             default:
                 /*
-                  usleep(1000);
+                  hl_usleep(1000);
                 */
                 YACK();
                 return -1;
@@ -1765,7 +1762,7 @@ int win32_serial_read(int fd, void *vb, int size)
             total += nBytes;
 
             /*
-              usleep(1000);
+              hl_usleep(1000);
             */
             ClearErrors(index, &stat);
             return (total);
@@ -1829,8 +1826,8 @@ int win32_serial_read(int fd, void *vb, int size)
 #endif /* DEBUG_VERBOSE */
             ClearErrors(index, &Stat);
             /*
-                        usleep(1000);
-                        usleep(50);
+                        hl_usleep(1000);
+                        hl_usleep(50);
             */
             /* we should use -1 instead of 0 for disabled timeout */
             now = GetTickCount();
@@ -1863,7 +1860,7 @@ int win32_serial_read(int fd, void *vb, int size)
         do
         {
             error = ClearErrors(index, &Stat);
-            usleep(1000);
+            hl_usleep(1000);
         }
         while (c > clock());
 
@@ -1898,7 +1895,7 @@ int win32_serial_read(int fd, void *vb, int size)
 
             case ERROR_MORE_DATA:
                 /*
-                                    usleep(1000);
+                                    hl_usleep(1000);
                 */
                 report("ERROR_MORE_DATA\n");
                 break;
@@ -1946,14 +1943,14 @@ int win32_serial_read(int fd, void *vb, int size)
                 sprintf(message, "end nBytes=%ld] ", nBytes);
                 report(message);
                 /*
-                                    usleep(1000);
+                                    hl_usleep(1000);
                 */
                 report("ERROR_IO_PENDING\n");
                 break;
 
             default:
                 /*
-                                    usleep(1000);
+                                    hl_usleep(1000);
                 */
                 YACK();
                 errno = EIO;
@@ -1967,7 +1964,7 @@ int win32_serial_read(int fd, void *vb, int size)
             total += nBytes;
 
             /*
-                        usleep(1000);
+                        hl_usleep(1000);
             */
             ClearErrors(index, &Stat);
             printf("7\n");
@@ -2876,7 +2873,7 @@ int tcsendbreak(int fd, int duration)
     }
 
     /* 0.25 seconds == 250000 usec */
-    usleep(duration * 250000);
+    hl_usleep(duration * 250000);
 
     if (!ClearCommBreak(index->hComm))
     {
@@ -3722,7 +3719,7 @@ static void termios_interrupt_event_loop(int fd, int flag)
     /*
         index->event_flag = 0;
          TRENT SetCommMask( index->hComm, index->event_flag );
-        usleep(2000);
+        hl_usleep(2000);
         tcdrain( index->fd );
         SetEvent( index->sol.hEvent );
     */
@@ -3786,9 +3783,9 @@ int  win32_serial_select(int  n,  fd_set  *readfds,  fd_set  *writefds,
            things can fire up
 
            this does happen.  loops ~twice on a 350 Mzh with
-           usleep(1000000)
+           hl_usleep(1000000)
         */
-        /* usleep(10000); */
+        /* hl_usleep(10000); */
         LEAVE("serial_uselect");
         return (0);
     }
@@ -3820,7 +3817,7 @@ int  win32_serial_select(int  n,  fd_set  *readfds,  fd_set  *writefds,
                 goto end;
             }
 
-            usleep(10000);
+            hl_usleep(10000);
             /* FIXME: not very accurate wrt process time */
             timeout_usec -= 10000;
 
@@ -3885,7 +3882,7 @@ int  win32_serial_select(int  n,  fd_set  *readfds,  fd_set  *writefds,
 
 end:
     /*  You may want to chop this out for lower latency */
-    /* usleep(1000); */
+    /* hl_usleep(1000); */
     LEAVE("serial_select");
     return (1);
 timeout:
@@ -3913,7 +3910,7 @@ int  win32_serial_select(int  n,  fd_set  *readfds,  fd_set  *writefds,
 
     if (fd <= 0)
     {
-        /* usleep(1000); */
+        /* hl_usleep(1000); */
         return 1;
     }
 
@@ -3932,7 +3929,7 @@ int  win32_serial_select(int  n,  fd_set  *readfds,  fd_set  *writefds,
 
     while (!index->event_flag)
     {
-        /* usleep(1000); */
+        /* hl_usleep(1000); */
         return -1;
     }
 
@@ -4012,7 +4009,7 @@ int  win32_serial_select(int  n,  fd_set  *readfds,  fd_set  *writefds,
 
 end:
     /*
-        usleep(1000);
+        hl_usleep(1000);
     */
     LEAVE("serial_select");
     return (1);

@@ -3339,7 +3339,7 @@ int ft1000d_send_static_cmd(RIG *rig, unsigned char ci)
         return err;
     }
 
-    usleep(rig_s->rigport.write_delay * 1000);
+    hl_usleep(rig_s->rigport.write_delay * 1000);
     return RIG_OK;
 }
 
@@ -3402,7 +3402,7 @@ int ft1000d_send_dynamic_cmd(RIG *rig, unsigned char ci,
         return err;
     }
 
-    usleep(rig_s->rigport.write_delay * 1000);
+    hl_usleep(rig_s->rigport.write_delay * 1000);
     return RIG_OK;
 }
 
@@ -3464,7 +3464,7 @@ int ft1000d_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq)
         return err;
     }
 
-    usleep(rig_s->rigport.write_delay * 1000);
+    hl_usleep(rig_s->rigport.write_delay * 1000);
     return RIG_OK;
 }
 
@@ -3532,7 +3532,7 @@ int ft1000d_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit)
         return err;
     }
 
-    usleep(rig_s->rigport.write_delay * 1000);
+    hl_usleep(rig_s->rigport.write_delay * 1000);
     return RIG_OK;
 }
 

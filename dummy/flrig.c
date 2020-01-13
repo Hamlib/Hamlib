@@ -442,7 +442,7 @@ static int read_transaction(RIG *rig, char *xml, int xml_len)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: got %s\n", __func__, terminator);
         // Slow down just a bit -- not sure this is needed anymore but not a big deal here
-        usleep(2 * 1000);
+        hl_usleep(2 * 1000);
         retval = RIG_OK;
     }
     else
@@ -949,7 +949,7 @@ static int flrig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         if (strlen(value) == 0)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: retries=%d\n", __func__, retries);
-            //usleep(10*1000);
+            //hl_usleep(10*1000);
         }
     }
     while (--retries && strlen(value) == 0);

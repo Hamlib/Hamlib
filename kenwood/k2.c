@@ -122,7 +122,7 @@ const struct rig_caps k2_caps =
     .rig_model =        RIG_MODEL_K2,
     .model_name =       "K2",
     .mfg_name =     "Elecraft",
-    .version =      "20120615",
+    .version =      "20200107",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_BETA,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -137,6 +137,7 @@ const struct rig_caps k2_caps =
     .serial_handshake = RIG_HANDSHAKE_NONE,
     .write_delay =      0,  /* Timing between bytes */
     .post_write_delay = 100,    /* Timing between command strings */
+    // Note that 2000 timeout exceeds usleep but hl_usleep handles it
     .timeout =      2000,   /* FA and FB make take up to 500 ms on band change */
     .retry =        10,
 

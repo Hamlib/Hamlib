@@ -23,6 +23,8 @@
 AC_DEFUN([GR_PWIN32],
 [
 AC_REQUIRE([AC_HEADER_TIME])
+AC_SEARCH_LIBS([nanosleep], [pthread], [], [AC_MSG_ERROR([unable to find nanosleep])])
+AC_CHECK_HEADERS([pthread.h])
 AC_CHECK_HEADERS([sys/types.h])
 AC_CHECK_HEADERS([windows.h])
 AC_CHECK_HEADERS([winioctl.h winbase.h], [], [], [
@@ -31,8 +33,11 @@ AC_CHECK_HEADERS([winioctl.h winbase.h], [], [], [
 	#endif
 ])
 
-AC_CHECK_FUNCS([getopt getopt_long usleep sleep gettimeofday])
+AC_CHECK_FUNCS([getopt getopt_long usleep sleep nanosleep gettimeofday])
 AC_CHECK_TYPES([struct timezone, ssize_t],[],[],[
+     #if HAVE_PTHREAD_H
+     #include <pthread.h>
+     #endif
      #if HAVE_SYS_TYPES_H
      # include <sys/types.h>
      #endif

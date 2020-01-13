@@ -155,7 +155,7 @@ static int ether_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     int ret, len, sval, speed, adv;
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
-    char mv[BUF_MAX];
+    char mv[5];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 

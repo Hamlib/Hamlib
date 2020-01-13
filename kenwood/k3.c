@@ -179,7 +179,7 @@ const struct rig_caps k3_caps =
     .rig_model =        RIG_MODEL_K3,
     .model_name =       "K3",
     .mfg_name =     "Elecraft",
-    .version =      "20190529",
+    .version =      "20200107",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_BETA,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -912,20 +912,17 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
     case RIG_MODE_PKTLSB:
         mode = RIG_MODE_RTTY;
-        strncpy(cmd_m, "DT1",
-                4); /* AFSK A mode - AFSK on LSB optimised for RTTY, VFO dial is MARK */
+        snprintf(cmd_m, sizeof(cmd_m), "DT1"); /* AFSK A mode - AFSK on LSB optimised for RTTY, VFO dial is MARK */
         break;
 
     case RIG_MODE_PKTUSB:
         mode = RIG_MODE_RTTY;
-        strncpy(cmd_m, "DT0",
-                4); /* DATA A mode - AFSK on USB general, VFO dial is suppressed carrier QRG */
+        snprintf(cmd_m, sizeof(cmd_m), "DT0"); /* DATA A mode - AFSK on USB general, VFO dial is suppressed carrier QRG */
         break;
 
     case RIG_MODE_RTTY:
     case RIG_MODE_RTTYR:
-        strncpy(cmd_m, "DT2",
-                4); /* FSK D mode - direct FSK keying, LSB is "normal", VFO dial is MARK */
+        snprintf(cmd_m, sizeof(cmd_m), "DT2"); /* FSK D mode - direct FSK keying, LSB is "normal", VFO dial is MARK */
         break;
 
     default:
@@ -1218,20 +1215,17 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
     {
     case RIG_MODE_PKTLSB:
         tx_mode = RIG_MODE_RTTY;
-        strncpy(cmd_m, "DT1",
-                4); /* AFSK A mode - AFSK on LSB optimised for RTTY, VFO dial is MARK */
+        snprintf(cmd_m, sizeof(cmd_m), "DT1"); /* AFSK A mode - AFSK on LSB optimised for RTTY, VFO dial is MARK */
         break;
 
     case RIG_MODE_PKTUSB:
         tx_mode = RIG_MODE_RTTY;
-        strncpy(cmd_m, "DT0",
-                4); /* DATA A mode - AFSK on USB general, VFO dial is suppressed carrier QRG */
+        snprintf(cmd_m, sizeof(cmd_m), "DT0"); /* DATA A mode - AFSK on USB general, VFO dial is suppressed carrier QRG */
         break;
 
     case RIG_MODE_RTTY:
     case RIG_MODE_RTTYR:
-        strncpy(cmd_m, "DT2",
-                4); /* FSK D mode - direct FSK keying, LSB is "normal", VFO dial is MARK */
+        snprintf(cmd_m, sizeof(cmd_m), "DT2"); /* FSK D mode - direct FSK keying, LSB is "normal", VFO dial is MARK */
         break;
 
     default:

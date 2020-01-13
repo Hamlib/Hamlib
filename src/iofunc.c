@@ -109,7 +109,7 @@ int HAMLIB_API port_open(hamlib_port_t *p)
          */
         if (want_state_delay)
         {
-            usleep(100 * 1000);
+            hl_usleep(100 * 1000);
         }
 
         break;
@@ -449,7 +449,7 @@ int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
             /*
              * optional delay after last write
              */
-            usleep(date_delay);
+            hl_sleep(date_delay);
         }
 
         p->post_write_date.tv_sec = 0;
@@ -477,7 +477,7 @@ int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
                 return -RIG_EIO;
             }
 
-            usleep(p->write_delay * 1000);
+            hl_usleep(p->write_delay * 1000);
         }
     }
     else
@@ -511,7 +511,7 @@ int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
         }
         else
 #endif
-            usleep(p->post_write_delay * 1000); /* optional delay after last write */
+            hl_usleep(p->post_write_delay * 1000); /* optional delay after last write */
 
         /* otherwise some yaesu rigs get confused */
         /* with sequential fast writes*/

@@ -366,7 +366,7 @@ int main(int argc, char *argv[])
     while (fabs(azimuth - rot->state.min_az) > 1.)
     {
         rot_get_position(rot, &azimuth, &elevation);
-        usleep(step);
+        hl_usleep(step);
     }
 
     fprintf(stderr, "Now initiating full 360° rotation...\n");

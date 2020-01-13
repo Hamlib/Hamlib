@@ -144,6 +144,7 @@ static const struct icom_priv_caps ic706_priv_caps =
     0,      /* 731 mode */
     0,    /* no XCHG */
     ic706_ts_sc_list,
+    .serial_USB_echo_check = 1,  /* USB CI-V may not echo */
     .r2i_mode = ic706_r2i_mode
 };
 
@@ -152,7 +153,7 @@ const struct rig_caps ic706_caps =
     .rig_model =  RIG_MODEL_IC706,
     .model_name = "IC-706",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".1",
+    .version =  BACKEND_VER ".2",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_UNTESTED,
     .rig_type =  RIG_TYPE_MOBILE,
@@ -249,7 +250,7 @@ const struct rig_caps ic706_caps =
     .priv = (void *)& ic706_priv_caps,
     .rig_init =   icom_init,
     .rig_cleanup =   icom_cleanup,
-    .rig_open =  NULL,
+    .rig_open =  icom_rig_open,
     .rig_close =  NULL,
 
     .set_freq =  icom_set_freq,
@@ -281,6 +282,7 @@ static const struct icom_priv_caps ic706mkii_priv_caps =
     0,      /* 731 mode */
     0,    /* no XCHG */
     ic706_ts_sc_list,
+    .serial_USB_echo_check = 1,  /* USB CI-V may not echo */
     .r2i_mode = ic706_r2i_mode
 };
 
@@ -289,7 +291,7 @@ const struct rig_caps ic706mkii_caps =
     .rig_model =  RIG_MODEL_IC706MKII,
     .model_name = "IC-706MkII",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".1",
+    .version =  BACKEND_VER ".2",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_UNTESTED,
     .rig_type =  RIG_TYPE_MOBILE,
@@ -390,7 +392,7 @@ const struct rig_caps ic706mkii_caps =
     .priv = (void *)& ic706mkii_priv_caps,
     .rig_init =   icom_init,
     .rig_cleanup =   icom_cleanup,
-    .rig_open =  NULL,
+    .rig_open =  icom_rig_open,
     .rig_close =  NULL,
 
     .set_freq =  icom_set_freq,
@@ -442,6 +444,7 @@ static const struct icom_priv_caps ic706mkiig_priv_caps =
     0,      /* 731 mode */
     0,    /* no XCHG */
     ic706_ts_sc_list,
+    .serial_USB_echo_check = 1,  /* USB CI-V may not echo */
     .r2i_mode = ic706_r2i_mode
 };
 
@@ -450,7 +453,7 @@ const struct rig_caps ic706mkiig_caps =
     .rig_model =  RIG_MODEL_IC706MKIIG,
     .model_name = "IC-706MkIIG",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".2",
+    .version =  BACKEND_VER ".3",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_MOBILE,
@@ -579,7 +582,7 @@ const struct rig_caps ic706mkiig_caps =
     .priv = (void *)& ic706mkiig_priv_caps,
     .rig_init =   icom_init,
     .rig_cleanup =   icom_cleanup,
-    .rig_open =  NULL,
+    .rig_open =  icom_rig_open,
     .rig_close =  NULL,
 
     .set_freq =  icom_set_freq,
