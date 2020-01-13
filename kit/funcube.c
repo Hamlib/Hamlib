@@ -233,13 +233,15 @@ int funcube_init(RIG *rig)
     hamlib_port_t *rp = &rig->state.rigport;
     struct funcube_priv_data *priv;
 
-    priv = (struct funcube_priv_data *)calloc(sizeof(struct funcube_priv_data), 1);
+    rig->state.priv = (struct funcube_priv_data *)calloc(sizeof(struct funcube_priv_data), 1);
 
-    if (!priv)
+    if (!rig->state.priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
+
+    priv = rig->state.priv;
 
     priv->freq = 0;
 
@@ -251,8 +253,6 @@ int funcube_init(RIG *rig)
 
     rp->parm.usb.vendor_name = VENDOR_NAME;
     rp->parm.usb.product = PRODUCT_NAME;
-
-    rig->state.priv = (void *)priv;
 
     return RIG_OK;
 }
