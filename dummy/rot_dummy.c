@@ -53,17 +53,18 @@ static int dummy_rot_init(ROT *rot)
 {
     struct dummy_rot_priv_data *priv;
 
-    priv = (struct dummy_rot_priv_data *)
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    rot->state.priv = (struct dummy_rot_priv_data *)
            malloc(sizeof(struct dummy_rot_priv_data));
 
-    if (!priv)
+    if (!rot->state.priv)
     {
         return -RIG_ENOMEM;
     }
 
-    rot->state.priv = (void *)priv;
+    priv = rot->state.priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     rot->state.rotport.type.rig = RIG_PORT_NONE;
 
     priv->az = priv->el = 0;
