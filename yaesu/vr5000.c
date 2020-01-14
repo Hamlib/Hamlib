@@ -132,7 +132,7 @@ const struct rig_caps vr5000_caps =
     .rig_model =          RIG_MODEL_VR5000,
     .model_name =         "VR-5000",
     .mfg_name =           "Yaesu",
-    .version =            "0.2",
+    .version =            "0.3",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_ALPHA,
     .rig_type =           RIG_TYPE_RECEIVER,
@@ -530,11 +530,6 @@ void correct_frequency(RIG *rig, vfo_t vfo, freq_t curr_freq, freq_t *freq)
     struct vr5000_priv_data *priv = rig->state.priv;
     shortfreq_t ts = priv->curr_ts;
     unsigned long long correct_freq = (unsigned long long)curr_freq;
-
-    if (vfo == RIG_VFO_CURR)
-    {
-        vfo = priv->curr_vfo;
-    }
 
     /* RIG_VFO_A frequency correction */
     if (correct_freq % ts != 0)
