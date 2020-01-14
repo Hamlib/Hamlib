@@ -600,15 +600,14 @@ static int ar7030p_set_mode(RIG *rig, vfo_t vfo, rmode_t mode,
                             pbwidth_t width)
 {
     int rc = RIG_OK;
-    unsigned char ar_mode;
-    unsigned char ar_filter = (unsigned char) FILTER_3;
+    unsigned char ar_filter;
 
     rc = lockRx(rig, LOCK_1);
 
     if (RIG_OK == rc)
     {
         /* TODO - deal with selected VFO */
-        ar_mode = modeToNative(mode);
+        unsigned char ar_mode = modeToNative(mode);
 
         rc = writeByte(rig, WORKING, MODE, ar_mode);
 
