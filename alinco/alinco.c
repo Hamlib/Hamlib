@@ -138,7 +138,7 @@ int alinco_transaction(RIG *rig,
     }
 
     /* no data expected, check for OK returned */
-    if (!data || !data_len)
+    if (data_len == 0)
     {
         retval = read_string(&rs->rigport, echobuf, BUFSZ, LF, strlen(LF));
 
