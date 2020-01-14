@@ -106,6 +106,7 @@ int wr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
         default: return -RIG_EINVAL;
         }
+        break;
 
     default: return -RIG_EINVAL;
     }
