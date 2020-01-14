@@ -535,10 +535,9 @@ static int ft857_send_icmd(RIG *rig, int index, unsigned char *data)
 int ft857_get_vfo(RIG *rig, vfo_t *vfo)
 {
     unsigned char c;
-    int n;
     *vfo = RIG_VFO_B;
 
-    if ((n = ft857_read_eeprom(rig, 0x0068, &c)) < 0)   /* get vfo status */
+    if (ft857_read_eeprom(rig, 0x0068, &c) < 0)   /* get vfo status */
     {
         return -RIG_EPROTO;
     }
