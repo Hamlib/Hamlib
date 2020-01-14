@@ -2915,7 +2915,6 @@ int adat_close(RIG *pRig)
 // Status: RELEASED
 const char *adat_get_info(RIG *pRig)
 {
-    int         nRC;
     static char acBuf[ 512 ];
 
     gFnLevel++;
@@ -2928,7 +2927,7 @@ const char *adat_get_info(RIG *pRig)
 
     if (pRig != NULL)
     {
-        nRC = adat_transaction(pRig, &adat_cmd_list_get_info);
+        int nRC = adat_transaction(pRig, &adat_cmd_list_get_info);
 
         if (nRC == RIG_OK)
         {
