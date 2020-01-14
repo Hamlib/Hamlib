@@ -1648,7 +1648,7 @@ int elad_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             width = rig_passband_normal(rig, mode);
         }
 
-        err = elad_set_filter(rig, width);
+        elad_set_filter(rig, width);
         /* non fatal */
     }
 
