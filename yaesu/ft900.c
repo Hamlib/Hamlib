@@ -1313,7 +1313,10 @@ static int ft900_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     {
         err = ft900_send_dynamic_cmd(rig, FT900_NATIVE_CLARIFIER_OPS,
                                      CLAR_RX_OFF, 0, 0, 0);
-        return RIG_OK;
+        if (err != RIG_OK) {
+            rig_debug(RIG_DEBUG_ERR,"%s: clarifier off error: %s\n", __func__, strerror(err));
+        }
+        return err;
     }
 
     /*
