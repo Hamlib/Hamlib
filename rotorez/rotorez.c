@@ -728,7 +728,7 @@ static int rt21_rot_get_position(ROT *rot, azimuth_t *azimuth,
 {
     struct rot_state *rs;
     char az[8];     /* read azimuth string */
-    azimuth_t tmp = 0;
+    azimuth_t tmp;
     int err;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
