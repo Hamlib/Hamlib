@@ -1027,6 +1027,9 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo)
         }
 
         err = newcat_get_vfo_mode(rig, &vfo_mode);
+        if (err != RIG_OK) {
+            return err;
+        }
 
         if (vfo_mode == RIG_VFO_MEM)
         {
@@ -1155,6 +1158,9 @@ int newcat_get_vfo(RIG *rig, vfo_t *vfo)
 
     /* Check to see if RIG is in MEM mode */
     err = newcat_get_vfo_mode(rig, &vfo_mode);
+    if (err != RIG_OK) {
+        return err;
+    }
 
     if (vfo_mode == RIG_VFO_MEM)
     {
@@ -4591,7 +4597,6 @@ int newcat_get_channel(RIG *rig, channel_t *chan)
 const char *newcat_get_info(RIG *rig)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
-    int err;
     static char idbuf[129]; /* extra large static string array */
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -4602,7 +4607,7 @@ const char *newcat_get_info(RIG *rig)
     rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
 
     /* Get Identification Channel */
-    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    if (RIG_OK != newcat_get_cmd(rig))
     {
         return NULL;
     }
@@ -4890,6 +4895,9 @@ int newcat_get_tx_vfo(RIG *rig, vfo_t *tx_vfo)
 
     /* Check to see if RIG is in MEM mode */
     err = newcat_get_vfo_mode(rig, &vfo_mode);
+    if (err != RIG_OK) {
+        return err;
+    }
 
     if (vfo_mode == RIG_VFO_MEM && *tx_vfo == RIG_VFO_A)
     {
