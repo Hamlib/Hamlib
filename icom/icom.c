@@ -3776,6 +3776,7 @@ int icom_mem_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
         *split = RIG_SPLIT_ON;
         /* get it back to normal */
         retval = icom_vfo_op(rig, vfo, RIG_OP_XCHG);
+        if (retval != RIG_OK) return retval;
     }
     else if (retval == -RIG_ERJCTED)
     {
