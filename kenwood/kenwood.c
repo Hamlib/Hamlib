@@ -1773,7 +1773,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             width = rig_passband_normal(rig, mode);
         }
 
-        err = kenwood_set_filter(rig, width);
+        kenwood_set_filter(rig, width);
         /* non fatal */
     }
 
