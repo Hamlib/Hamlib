@@ -404,7 +404,7 @@ int ra37xx_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (width == RIG_PASSBAND_NORMAL)
     {
-        width = rig_passband_normal(rig, mode);
+        rig_passband_normal(rig, mode);
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: widthtype = %i, widthnum = %i not implemented\n", __func__, widthtype, widthnum);
