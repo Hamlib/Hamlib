@@ -503,7 +503,6 @@ static int ft897_get_status(RIG *rig, int status)
 int ft897_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     struct ft897_priv_data *p = (struct ft897_priv_data *) rig->state.priv;
-    int n;
 
     if (vfo != RIG_VFO_CURR)
     {
@@ -511,10 +510,14 @@ int ft897_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
 
     if (check_cache_timeout(&p->fm_status_tv))
+    {
+        int n;
+
         if ((n = ft897_get_status(rig, FT897_NATIVE_CAT_GET_FREQ_MODE_STATUS)) < 0)
         {
             return n;
         }
+    }
 
     *freq = from_bcd_be(p->fm_status, 8) * 10;
 
@@ -611,7 +614,6 @@ int ft897_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 int ft897_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
     struct ft897_priv_data *p = (struct ft897_priv_data *) rig->state.priv;
-    int n;
 
     if (vfo != RIG_VFO_CURR)
     {
@@ -619,10 +621,13 @@ int ft897_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     }
 
     if (check_cache_timeout(&p->tx_status_tv))
+    { 
+        int n;
         if ((n = ft897_get_status(rig, FT897_NATIVE_CAT_GET_TX_STATUS)) < 0)
         {
             return n;
         }
+    }
 
     *ptt = ((p->tx_status & 0x80) == 0);
 
