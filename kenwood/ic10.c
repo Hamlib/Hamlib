@@ -740,6 +740,12 @@ int ic10_set_channel(RIG *rig, const channel_t *chan)
                   md
                  );
     retval = ic10_transaction(rig, membuf, len, ackbuf, &ack_len);
+    // I assume we need to check the retval here -- W9MDB
+    // This was found from cppcheck
+    if (retval != RIG_OK) {
+        rig_debug(RIG_DEBUG_ERR,"%s: transaction failed: %s\n", __func__, strerror(retval));
+        return retval;
+    }
 
     return RIG_OK;
 }
