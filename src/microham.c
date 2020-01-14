@@ -1136,11 +1136,10 @@ int uh_open_ptt()
     if (!uh_is_initialized)
     {
         start_thread();
-    }
-
-    if (!uh_is_initialized)
-    {
-        return -1;
+        if (!uh_is_initialized)
+        {
+            return -1;
+        }
     }
 
     uh_ptt_in_use = 1;
@@ -1148,24 +1147,22 @@ int uh_open_ptt()
 }
 
 
-#ifdef XXREVMOVEDXX
 // Not referenced anywhere
 int uh_open_wkey()
 {
     if (!uh_is_initialized)
     {
         start_thread();
+        if (!uh_is_initialized)
+        {
+            return -1;
+        }
     }
 
-    if (!uh_is_initialized)
-    {
-        return -1;
-    }
 
     uh_wkey_in_use = 1;
     return uh_wkey_pair[1];
 }
-#endif
 
 
 //
@@ -1182,11 +1179,10 @@ int uh_open_radio(int baud, int databits, int stopbits, int rtscts)
     if (!uh_is_initialized)
     {
         start_thread();
-    }
-
-    if (!uh_is_initialized)
-    {
-        return -1;
+        if (!uh_is_initialized)
+        {
+            return -1;
+        }
     }
 
     baudrateConst = 11059200 / baud ;
