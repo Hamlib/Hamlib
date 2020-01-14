@@ -60,13 +60,13 @@ class DemodChainCF {
 	VrSource<d_iType> *d_source;
 	VrSink<d_oType> *d_sink;
 
-	VrSigProc *demod_in;
-	VrSigProc *demod_out;
+	VrSigProc *demod_in = NULL;
+	VrSigProc *demod_out = NULL;
 
-	HrAGC<d_oType,d_oType> *agc;
-	GrFreqXlatingFIRfilterCCF *mixer;
-	VrAmp<d_oType,d_oType> *gainstage;
-	GrFIRfilterFFF *audio_filter;
+	HrAGC<d_oType,d_oType> *agc = NULL;
+	GrFreqXlatingFIRfilterCCF *mixer = NULL;
+	VrAmp<d_oType,d_oType> *gainstage = NULL;
+	GrFIRfilterFFF *audio_filter = NULL;
 
 	int input_rate;
 	freq_t centerfreq;
