@@ -1015,7 +1015,7 @@ int getCalLevel(RIG *rig, unsigned char rawAgc, int *dbm)
     int rc = RIG_OK;
     int i;
     int raw = (int) rawAgc;
-    int step = 10;
+    int step;
     unsigned char v;
 
     assert(NULL != rig);
