@@ -408,7 +408,8 @@ static int ar7030p_open(RIG *rig)
 
                 if (rc < 0)
                 {
-                    rig_debug(RIG_DEBUG_ERR,"%s: err in getFilterBW: %s\n",__func__, strerror(rc));
+                    rig_debug(RIG_DEBUG_ERR, "%s: err in getFilterBW: %s\n", __func__,
+                              strerror(rc));
                     return rc;
                 }
                 else
@@ -516,9 +517,10 @@ static int ar7030p_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
         // this RIG_OK check added to clear cppcheck warnings
         // not sure if it's needed but seem like RIG_OK should be expected
-        // if this debug prints out when things are working need to reexamine 
-        if (rc != RIG_OK) {
-          rig_debug(RIG_DEBUG_ERR, "%s: unexpected error?? %s\n", __func__, rigerror(rc));
+        // if this debug prints out when things are working need to reexamine
+        if (rc != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: unexpected error?? %s\n", __func__, rigerror(rc));
         }
 
         rc = execRoutine(rig, SET_ALL);
@@ -573,9 +575,10 @@ static int ar7030p_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
         // this RIG_OK check added to clear cppcheck warnings
         // not sure if it's needed but seem like RIG_OK should be expected
-        // if this debug prints out when things are working need to reexamine 
-        if (rc != RIG_OK) {
-          rig_debug(RIG_DEBUG_ERR, "%s: unexpected error?? %s\n", __func__, rigerror(rc));
+        // if this debug prints out when things are working need to reexamine
+        if (rc != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: unexpected error?? %s\n", __func__, rigerror(rc));
         }
 
         rc = lockRx(rig, LOCK_0);
@@ -597,7 +600,7 @@ static int ar7030p_set_mode(RIG *rig, vfo_t vfo, rmode_t mode,
                             pbwidth_t width)
 {
     int rc = RIG_OK;
-    unsigned char ar_mode = (unsigned char) USB;
+    unsigned char ar_mode;
     unsigned char ar_filter = (unsigned char) FILTER_3;
 
     rc = lockRx(rig, LOCK_1);
@@ -611,30 +614,23 @@ static int ar7030p_set_mode(RIG *rig, vfo_t vfo, rmode_t mode,
 
         if (RIG_OK == rc && width != RIG_PASSBAND_NOCHANGE)
         {
-            if (RIG_PASSBAND_NORMAL == width)
-            {
-                width = rig_passband_normal(rig, mode);
-            }
-            else
-            {
-                int i;
+            int i;
 
-                /* TODO - get filter BWs at startup */
-                ar_filter = (unsigned char) 6;
+            /* TODO - get filter BWs at startup */
+            ar_filter = (unsigned char) 6;
 
-                for (i = 1; i <= 6; i++)
+            for (i = 1; i <= 6; i++)
+            {
+                if (width <= filterTab[ i ])
                 {
-                    if (width <= filterTab[ i ])
+                    if (filterTab[ i ] < filterTab[(int) ar_filter ])
                     {
-                        if (filterTab[ i ] < filterTab[(int) ar_filter ])
-                        {
-                            ar_filter = (unsigned char) i;
-                        }
+                        ar_filter = (unsigned char) i;
                     }
-
-                    rig_debug(RIG_DEBUG_VERBOSE, "%s: width %d ar_filter %d filterTab[%d] %d\n",
-                              __func__, (int)width, ar_filter, i, filterTab[i]);
                 }
+
+                rig_debug(RIG_DEBUG_VERBOSE, "%s: width %d ar_filter %d filterTab[%d] %d\n",
+                          __func__, (int)width, ar_filter, i, filterTab[i]);
             }
 
             rc = writeByte(rig, WORKING, FILTER, ar_filter);
@@ -647,9 +643,10 @@ static int ar7030p_set_mode(RIG *rig, vfo_t vfo, rmode_t mode,
 
         // this RIG_OK check added to clear cppcheck warnings
         // not sure if it's needed but seem like RIG_OK should be expected
-        // if this debug prints out when things are working need to reexamine 
-        if (rc != RIG_OK) {
-          rig_debug(RIG_DEBUG_ERR, "%s: unexpected error?? %s\n", __func__, rigerror(rc));
+        // if this debug prints out when things are working need to reexamine
+        if (rc != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: unexpected error?? %s\n", __func__, rigerror(rc));
         }
 
         rc = lockRx(rig, LOCK_0);
@@ -991,9 +988,10 @@ static int ar7030p_set_level(RIG *rig, vfo_t vfo, setting_t level,
 
         // this RIG_OK check added to clear cppcheck warnings
         // not sure if it's needed but seem like RIG_OK should be expected
-        // if this debug prints out when things are working need to reexamine 
-        if (rc != RIG_OK) {
-          rig_debug(RIG_DEBUG_ERR, "%s: unexpected error?? %s\n", __func__, rigerror(rc));
+        // if this debug prints out when things are working need to reexamine
+        if (rc != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: unexpected error?? %s\n", __func__, rigerror(rc));
         }
 
         rc = lockRx(rig, LOCK_0);
@@ -1538,7 +1536,7 @@ static int ar7030p_set_powerstat(RIG *rig, powerstat_t status)
             break;
         }
 
-        rc = lockRx(rig, LOCK_0);
+        lockRx(rig, LOCK_0);
     }
 
     return (-RIG_ENIMPL);
