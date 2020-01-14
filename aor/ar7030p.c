@@ -600,7 +600,6 @@ static int ar7030p_set_mode(RIG *rig, vfo_t vfo, rmode_t mode,
                             pbwidth_t width)
 {
     int rc = RIG_OK;
-    unsigned char ar_filter;
 
     rc = lockRx(rig, LOCK_1);
 
@@ -616,7 +615,7 @@ static int ar7030p_set_mode(RIG *rig, vfo_t vfo, rmode_t mode,
             int i;
 
             /* TODO - get filter BWs at startup */
-            ar_filter = (unsigned char) 6;
+            unsigned char ar_filter = (unsigned char) 6;
 
             for (i = 1; i <= 6; i++)
             {
