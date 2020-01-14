@@ -193,7 +193,6 @@ do {                                                                            
  */
 #define HASH_DELETE(hh,head,delptr)                                              \
 do {                                                                             \
-    unsigned _hd_bkt;                                                            \
     struct UT_hash_handle *_hd_hh_del;                                           \
     if ( ((delptr)->hh.prev == NULL) && ((delptr)->hh.next == NULL) )  {         \
         uthash_free((head)->hh.tbl->buckets,                                     \
@@ -202,6 +201,7 @@ do {                                                                            
         uthash_free((head)->hh.tbl, sizeof(UT_hash_table));                      \
         head = NULL;                                                             \
     } else {                                                                     \
+        unsigned _hd_bkt;                                                        \
         _hd_hh_del = &((delptr)->hh);                                            \
         if ((delptr) == ELMT_FROM_HH((head)->hh.tbl,(head)->hh.tbl->tail)) {     \
             (head)->hh.tbl->tail =                                               \
@@ -689,19 +689,19 @@ do {                                                                            
 #define HASH_SORT(head,cmpfcn) HASH_SRT(hh,head,cmpfcn)
 #define HASH_SRT(hh,head,cmpfcn)                                                 \
 do {                                                                             \
-  unsigned _hs_i;                                                                \
-  unsigned _hs_looping,_hs_nmerges,_hs_insize,_hs_psize,_hs_qsize;               \
   struct UT_hash_handle *_hs_p, *_hs_q, *_hs_e, *_hs_list, *_hs_tail;            \
   if (head) {                                                                    \
+      unsigned _hs_looping,_hs_insize,_hs_psize,_hs_qsize;           \
       _hs_insize = 1;                                                            \
       _hs_looping = 1;                                                           \
       _hs_list = &((head)->hh);                                                  \
       while (_hs_looping) {                                                      \
+          int _hs_nmerges = 0;                                                   \
           _hs_p = _hs_list;                                                      \
           _hs_list = NULL;                                                       \
           _hs_tail = NULL;                                                       \
-          _hs_nmerges = 0;                                                       \
           while (_hs_p) {                                                        \
+              int _hs_i;                                                         \
               _hs_nmerges++;                                                     \
               _hs_q = _hs_p;                                                     \
               _hs_psize = 0;                                                     \
@@ -754,7 +754,7 @@ do {                                                                            
               }                                                                  \
               _hs_p = _hs_q;                                                     \
           }                                                                      \
-          _hs_tail->next = NULL;                                                 \
+          if (_hs_tail) _hs_tail->next = NULL;                                                 \
           if ( _hs_nmerges <= 1 ) {                                              \
               _hs_looping=0;                                                     \
               (head)->hh.tbl->tail = _hs_tail;                                   \
