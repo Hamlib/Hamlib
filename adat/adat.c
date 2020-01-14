@@ -691,7 +691,7 @@ int adat_parse_freq(char                    *pcStr,
     if (pcStr != NULL)
     {
         int    _nVFO  = 0;
-        freq_t _nFreq = 0;
+        freq_t _nFreq;
 
         char   *pcEnd = NULL;
 
@@ -2915,7 +2915,7 @@ int adat_close(RIG *pRig)
 // Status: RELEASED
 const char *adat_get_info(RIG *pRig)
 {
-    int         nRC = RIG_OK;
+    int         nRC;
     static char acBuf[ 512 ];
 
     gFnLevel++;
