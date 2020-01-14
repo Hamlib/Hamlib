@@ -654,7 +654,9 @@ int uniden_set_channel(RIG *rig, const channel_t *chan)
     char cmdbuf[BUFSZ], membuf[BUFSZ];
     size_t cmd_len = BUFSZ, mem_len = BUFSZ;
     int ret;
+#if 0 // deprecated
     int trunked = 0;
+#endif
 
     if (chan->vfo != RIG_VFO_MEM)
     {
@@ -663,7 +665,11 @@ int uniden_set_channel(RIG *rig, const channel_t *chan)
 
     /* PM089T08511625 */
     cmd_len = sprintf(cmdbuf, "PM%03d%c%08u" EOM, chan->channel_num,
+#if 0
                       trunked ? 'T' : ' ',
+#else
+                      ' ',
+#endif
                       (unsigned)(chan->freq / 100));
 
     ret = uniden_transaction(rig, cmdbuf, cmd_len, NULL, membuf, &mem_len);
