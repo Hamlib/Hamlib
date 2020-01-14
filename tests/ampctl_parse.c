@@ -472,8 +472,10 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
     char arg2[MAXARGSZ + 1], *p2 = NULL;
     char arg3[MAXARGSZ + 1], *p3 = NULL;
     char arg4[MAXARGSZ + 1], *p4 = NULL;
-    char *p5 = NULL;
+#ifdef __USEP5P6__ // to avoid cppcheck warning
+    char *p5 = NULL; 
     char *p6 = NULL;
+#endif
 
     /* cmd, internal, ampctld */
     if (!(interactive && prompt && have_rl))
@@ -1379,8 +1381,13 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
                                         p2 ? p2 : "",
                                         p3 ? p3 : "",
                                         p4 ? p4 : "",
+#ifdef __USEP5P6__
                                         p5 ? p5 : "",
                                         p6 ? p6 : "");
+#else
+                                        "",
+                                        "");
+#endif
 
 #ifdef HAVE_PTHREAD
     pthread_mutex_unlock(&amp_mutex);
