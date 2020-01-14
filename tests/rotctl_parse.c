@@ -240,7 +240,7 @@ struct test_table *find_cmd_entry(int cmd)
             break;
         }
 
-    if (i >= MAXNBOPT || test_list[i].cmd == 0x00)
+    if (test_list[i].cmd == 0x00)
     {
         return NULL;
     }
@@ -517,8 +517,10 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
     char arg2[MAXARGSZ + 1], *p2 = NULL;
     char arg3[MAXARGSZ + 1], *p3 = NULL;
     char arg4[MAXARGSZ + 1], *p4 = NULL;
+#ifdef __USEP5P6__
     char *p5 = NULL;
     char *p6 = NULL;
+#endif
 
     /* cmd, internal, rotctld */
     if (!(interactive && prompt && have_rl))
@@ -1428,8 +1430,13 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
                                         p2 ? p2 : "",
                                         p3 ? p3 : "",
                                         p4 ? p4 : "",
+#ifdef __USEP5P6__
                                         p5 ? p5 : "",
                                         p6 ? p6 : "");
+#else
+                                        "",
+                                        "");
+#endif
 
 #ifdef HAVE_PTHREAD
     pthread_mutex_unlock(&rot_mutex);
@@ -1448,11 +1455,8 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
         }
         else
         {
-            if (cmd_entry != NULL)
-            {
-                if (cmd_entry->name != NULL) {
-                    fprintf(fout, "%s: error = %s\n", cmd_entry->name, rigerror(retcode));
-                }
+            if (cmd_entry->name != NULL) {
+                fprintf(fout, "%s: error = %s\n", cmd_entry->name, rigerror(retcode));
             }
         }
     }
@@ -1471,7 +1475,6 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
             else if (ext_resp && cmd != 0xf0)
             {
                 fprintf(fout, NETROTCTL_RET "0\n");
-                ext_resp = 0;
                 resp_sep = '\n';
             }
         }
