@@ -3171,15 +3171,6 @@ int ft990_get_update_data(RIG *rig, unsigned char ci, unsigned short ch)
     switch (ci)
     {
     case FT990_NATIVE_UPDATE_ALL_DATA:
-        p = (char *) &priv->update_data;
-        rl = FT990_ALL_DATA_LENGTH;
-
-
-        /* FT1000D
-        *  if (RIG_MODEL_FT1000D == rig->caps->rig_model); Removed December 2016 see separate ft1000d.c and .h files
-        */
-
-
         return RIG_OK;
         break;
 
