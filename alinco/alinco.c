@@ -106,7 +106,7 @@ int alinco_transaction(RIG *rig,
     struct rig_state *rs;
     char echobuf[BUFSZ + 1];
 
-    if (cmd == NULL || data == NULL || data_len == NULL)
+    if (cmd == NULL)
     {
         rig_debug(RIG_DEBUG_ERR,
                   "%s: null argument?  cmd(%s), data(%s), data_len(%s)\n", __func__,
@@ -137,8 +137,14 @@ int alinco_transaction(RIG *rig,
         return retval;
     }
 
+    if ((data == NULL && data_len != NULL) || (data != NULL && data_len == NULL))
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: data and datalen not both NULL??\n", __func__);
+        return -RIG_EINTERNAL;
+    }
+
     /* no data expected, check for OK returned */
-    if (data_len == 0)
+    if (data == NULL)
     {
         retval = read_string(&rs->rigport, echobuf, BUFSZ, LF, strlen(LF));
 
