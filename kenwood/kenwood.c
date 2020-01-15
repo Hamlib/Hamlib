@@ -79,6 +79,7 @@ static const struct kenwood_id kenwood_id_list[] =
     { RIG_MODEL_TS850, 9 },
     { RIG_MODEL_TS450S, 10 },
     { RIG_MODEL_TS690S, 11 },
+    { RIG_MODEL_TS50S, 13 },
     { RIG_MODEL_TS870S, 15 },
     { RIG_MODEL_TRC80, 16 },
     { RIG_MODEL_TS570D, 17 }, /* Elecraft K2|K3 also returns 17 */
