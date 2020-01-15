@@ -95,10 +95,10 @@ extern int read_history();
 #define ARG_OUT (ARG_OUT1|ARG_OUT2|ARG_OUT3|ARG_OUT4)
 
 /* variables for readline support */
-#ifdef HAVE_LIBREADLINE
 static char *input_line = (char *)NULL;
 static char *result = (char *)NULL;
 static char *parsed_input[sizeof(char *) * 5];
+#ifdef HAVE_LIBREADLINE
 static const int have_rl = 1;
 
 #ifdef HAVE_READLINE_HISTORY
