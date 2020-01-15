@@ -106,6 +106,7 @@ static const struct kenwood_id_string kenwood_id_string_list[] =
     { RIG_MODEL_TS850,  "009" },
     { RIG_MODEL_TS450S, "010" },
     { RIG_MODEL_TS690S, "011" },
+    { RIG_MODEL_TS50,   "013" },
     { RIG_MODEL_TS870S, "015" },
     { RIG_MODEL_TS570D, "017" },  /* Elecraft K2|K3 also returns 17 */
     { RIG_MODEL_TS570S, "018" },
@@ -677,7 +678,7 @@ int kenwood_open(RIG *rig)
     if (RIG_MODEL_XG3 != rig->caps->rig_model && -RIG_ETIMEOUT == err)
     {
         /* Some Kenwood emulations have no ID command response :(
-         * Try an FA command to see is anyone is listening */
+         * Try an FA command to see if anyone is listening */
         char buffer[KENWOOD_MAX_BUF_LEN];
         err = kenwood_transaction(rig, "FA", buffer, sizeof(buffer));
 
