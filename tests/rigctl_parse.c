@@ -1019,9 +1019,6 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
         rp_hist_buf = (char *)calloc(512, sizeof(char));
 #endif
 
-        rl_instream = fin;
-        rl_outstream = fout;
-
         rp_getline("\nRig command: ");
 
         /* EOF (Ctl-D) received on empty input line, bail out gracefully. */
