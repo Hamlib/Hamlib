@@ -403,7 +403,6 @@ void hash_delete_all()
 }
 
 
-#ifdef HAVE_LIBREADLINE
 /* Frees allocated memory and sets pointers to NULL before calling readline
  * and then parses the input into space separated tokens.
  */
@@ -431,10 +430,6 @@ static void rp_getline(const char *s)
     /* Action!  Returns typed line with newline stripped. */
     input_line = readline(s);
 }
-
-
-#endif
-
 
 /*
  * TODO: use Lex?

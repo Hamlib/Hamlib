@@ -115,8 +115,8 @@ static pthread_mutex_t rot_mutex = PTHREAD_MUTEX_INITIALIZER;
 #define ARG_OUT  (ARG_OUT1|ARG_OUT2|ARG_OUT3|ARG_OUT4)
 
 /* variables for readline support */
-#ifdef HAVE_LIBREADLINE
 static char *input_line = (char *)NULL;
+#ifdef HAVE_LIBREADLINE
 static char *result = (char *)NULL;
 static char *parsed_input[sizeof(char *) * 7];
 static const int have_rl = 1;
@@ -316,7 +316,6 @@ void hash_delete_all()
 }
 
 
-#ifdef HAVE_LIBREADLINE
 /* Frees allocated memory and sets pointers to NULL before calling readline
  * and then parses the input into space separated tokens.
  */
@@ -347,9 +346,6 @@ static void rp_getline(const char *s)
     /* Action!  Returns typed line with newline stripped. */
     input_line = readline(s);
 }
-
-
-#endif
 
 
 /*
