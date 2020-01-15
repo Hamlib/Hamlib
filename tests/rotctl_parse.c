@@ -898,8 +898,8 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
     }
 
 #ifdef HAVE_LIBREADLINE
-
     if (interactive && prompt && have_rl)
+#endif
     {
         int j, x;
 
@@ -1378,9 +1378,6 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
 
 #endif
     }
-
-#endif  /* HAVE_LIBREADLINE */
-
 
     /*
      * mutex locking needed because rotctld is multithreaded

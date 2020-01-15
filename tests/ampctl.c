@@ -411,8 +411,6 @@ int main(int argc, char *argv[])
     }
     while (retcode == 0 || retcode == 2);
 
-#ifdef HAVE_LIBREADLINE
-
     if (interactive && prompt)
     {
 #ifdef HAVE_READLINE_HISTORY
@@ -436,7 +434,6 @@ int main(int argc, char *argv[])
 #endif  /* HAVE_READLINE_HISTORY */
     }
 
-#endif  /* HAVE_LIBREADLINE */
     amp_close(my_amp);   /* close port */
     amp_cleanup(my_amp); /* if you care about memory */
 

@@ -605,9 +605,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
     vfo_t vfo = RIG_VFO_CURR;
 
     /* cmd, internal, rigctld */
-#ifdef HAVE_LIBREADLINE
     if (!(interactive && prompt && have_rl))
-#endif
     {
 
         if (interactive)
