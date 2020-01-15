@@ -478,9 +478,7 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
 #endif
 
     /* cmd, internal, ampctld */
-#ifdef HAVE_LIBREADLINE
     if (!(interactive && prompt && have_rl))
-#endif
     {
         if (interactive)
         {
@@ -852,8 +850,8 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
     }
 
 #ifdef HAVE_LIBREADLINE
-
     if (interactive && prompt && have_rl)
+#endif
     {
         int j, x;
 
@@ -1333,9 +1331,6 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
 
 #endif
     }
-
-#endif  /* HAVE_LIBREADLINE */
-
 
     /*
      * mutex locking needed because ampctld is multithreaded

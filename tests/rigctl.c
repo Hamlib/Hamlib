@@ -618,8 +618,6 @@ int main(int argc, char *argv[])
     }
     while (retcode == 0 || retcode == 2 || retcode == -RIG_ENAVAIL);
 
-#ifdef HAVE_LIBREADLINE
-
     if (interactive && prompt)
     {
 #ifdef HAVE_READLINE_HISTORY
@@ -643,7 +641,6 @@ int main(int argc, char *argv[])
 #endif  /* HAVE_READLINE_HISTORY */
     }
 
-#endif  /* HAVE_LIBREADLINE */
     rig_close(my_rig);   /* close port */
     rig_cleanup(my_rig); /* if you care about memory */
 
