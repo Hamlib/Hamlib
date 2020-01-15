@@ -41,11 +41,10 @@
 #    include <readline/readline.h>
 #  elif defined(HAVE_READLINE_H)    /* !defined(HAVE_READLINE_READLINE_H) */
 #    include <readline.h>
-#  else                             /* !defined(HAVE_READLINE_H) */
-extern char *readline();
 #  endif                            /* HAVE_READLINE_H */
 #else
 /* no readline */
+extern char *readline();
 #endif                              /* HAVE_LIBREADLINE */
 
 #ifdef HAVE_READLINE_HISTORY
@@ -109,7 +108,7 @@ static const int have_rl = 1;
 static char *rp_hist_buf = (char *)NULL;
 #endif
 
-#else                               /* no readline */
+#else
 static const int have_rl = 0;
 #endif
 

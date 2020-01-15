@@ -115,18 +115,15 @@ static pthread_mutex_t rot_mutex = PTHREAD_MUTEX_INITIALIZER;
 #define ARG_OUT  (ARG_OUT1|ARG_OUT2|ARG_OUT3|ARG_OUT4)
 
 /* variables for readline support */
+#ifdef HAVE_LIBREADLINE
 static char *input_line = (char *)NULL;
 static char *result = (char *)NULL;
 static char *parsed_input[sizeof(char *) * 7];
-#ifdef HAVE_LIBREADLINE
 static const int have_rl = 1;
+#endif
 
 #ifdef HAVE_READLINE_HISTORY
 static char *rp_hist_buf = (char *)NULL;
-#endif
-
-#else                               /* no readline */
-static const int have_rl = 0;
 #endif
 
 struct test_table
@@ -316,6 +313,7 @@ void hash_delete_all()
 }
 
 
+#ifdef HAVE_LIBREADLINE
 /* Frees allocated memory and sets pointers to NULL before calling readline
  * and then parses the input into space separated tokens.
  */
@@ -346,6 +344,7 @@ static void rp_getline(const char *s)
     /* Action!  Returns typed line with newline stripped. */
     input_line = readline(s);
 }
+#endif
 
 
 /*
@@ -895,7 +894,6 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
 
 #ifdef HAVE_LIBREADLINE
     if (interactive && prompt && have_rl)
-#endif
     {
         int j, x;
 
@@ -1371,6 +1369,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
 
 #endif
     }
+#endif // HAVE_LIBREADLINE
 
     /*
      * mutex locking needed because rotctld is multithreaded
