@@ -109,9 +109,7 @@ int alinco_transaction(RIG *rig,
     if (cmd == NULL)
     {
         rig_debug(RIG_DEBUG_ERR,
-                  "%s: null argument?  cmd(%s), data(%s), data_len(%s)\n", __func__,
-                  cmd == NULL ? "OK" : "NULL", data == NULL ? "OK" : "NULL",
-                  data_len == NULL ? "OK" : "NULL");
+                  "%s: null argument for cmd?\n", __func__);
         return -RIG_EINTERNAL;
     }
 
@@ -137,7 +135,7 @@ int alinco_transaction(RIG *rig,
         return retval;
     }
 
-    if ((data == NULL && data_len != NULL) || (data != NULL && data_len == NULL))
+    if (!(data && data_len))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: data and datalen not both NULL??\n", __func__);
         return -RIG_EINTERNAL;

@@ -239,7 +239,7 @@ int network_open(hamlib_port_t *rp, int default_port)
             return -RIG_EIO;
         }
 
-        if ((status = connect(fd, res->ai_addr, res->ai_addrlen)) == 0)
+        if (connect(fd, res->ai_addr, res->ai_addrlen) == 0)
         {
             break;
         }
@@ -281,9 +281,9 @@ int network_open(hamlib_port_t *rp, int default_port)
 void network_flush(hamlib_port_t *rp)
 {
 #ifdef __MINGW32__
-    ULONG len = 0;
+    ULONG len;
 #else
-    uint len = 0;
+    uint len;
 #endif
 
     char buffer[NET_BUFFER_SIZE] = { 0 };

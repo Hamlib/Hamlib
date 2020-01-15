@@ -523,7 +523,9 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
 #endif
 
     /* cmd, internal, rotctld */
+#ifdef HAVE_LIBREADLINE
     if (!(interactive && prompt && have_rl))
+#endif
     {
         if (interactive)
         {
@@ -1450,7 +1452,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
         if (interactive && !prompt)
         {
             fprintf(fout, NETROTCTL_RET "%d\n", retcode);
-            ext_resp = 0;
+            // ext_resp = 0; // not used ?
             resp_sep = '\n';
         }
         else
