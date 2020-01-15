@@ -41,10 +41,11 @@
 #    include <readline/readline.h>
 #  elif defined(HAVE_READLINE_H)    /* !defined(HAVE_READLINE_READLINE_H) */
 #    include <readline.h>
+#  else                             /* !defined(HAVE_READLINE_H) */
+extern char *readline();
 #  endif                            /* HAVE_READLINE_H */
 #else
 /* no readline */
-extern char *readline();
 #endif                              /* HAVE_LIBREADLINE */
 
 #ifdef HAVE_READLINE_HISTORY
@@ -401,7 +402,6 @@ void hash_delete_all()
     }
 }
 
-
 #ifdef HAVE_LIBREADLINE
 /* Frees allocated memory and sets pointers to NULL before calling readline
  * and then parses the input into space separated tokens.
@@ -430,7 +430,8 @@ static void rp_getline(const char *s)
     /* Action!  Returns typed line with newline stripped. */
     input_line = readline(s);
 }
-#endif 
+#endif
+
 /*
  * TODO: use Lex?
  */
