@@ -136,7 +136,6 @@ int main(int argc, char *argv[])
     const char *hist_dir = NULL;
     const char hist_file[] = "/.rigctl_history";
     char *hist_path = NULL;
-    struct stat hist_dir_stat;
 #endif  /* HAVE_READLINE_HISTORY */
 
     const char *rig_file = NULL, *ptt_file = NULL, *dcd_file = NULL;
@@ -573,6 +572,8 @@ int main(int argc, char *argv[])
         if (rd_hist || sv_hist)
         {
             int hist_path_size;
+            struct stat hist_dir_stat;
+
             if (!(hist_dir = getenv("RIGCTL_HIST_DIR")))
             {
                 hist_dir = getenv("HOME");
