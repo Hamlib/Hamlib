@@ -126,8 +126,8 @@
  */
 int par_open(hamlib_port_t *port)
 {
-#ifdef HAVE_LINUX_PPDEV_H
     int fd;
+#ifdef HAVE_LINUX_PPDEV_H
     int mode;
 #endif
 
