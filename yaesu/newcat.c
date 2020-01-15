@@ -769,6 +769,10 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         priv->cmd_str[3] = '3';
         break;
 
+    case RIG_MODE_FM:
+        priv->cmd_str[3] = '4';
+        break;
+
     case RIG_MODE_AM:
         priv->cmd_str[3] = '5';
         break;
@@ -793,8 +797,8 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         priv->cmd_str[3] = 'A';
         break;
 
-    case RIG_MODE_FM:
-        priv->cmd_str[3] = '4';
+    case RIG_MODE_FMN:
+        priv->cmd_str[3] = 'B';
         break;
 
     case RIG_MODE_PKTUSB:   /* FT450 USER-U */
@@ -952,7 +956,7 @@ int newcat_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         return err;
 
     case 'B':
-        *mode = RIG_MODE_FM;       /* narrow */
+        *mode = RIG_MODE_FMN;       /* narrow */
         *width = rig_passband_narrow(rig, *mode);
         return RIG_OK;
 
@@ -962,6 +966,11 @@ int newcat_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     case 'D':
         *mode = RIG_MODE_AM;       /* narrow, FT950 */
+        *width = rig_passband_narrow(rig, *mode);
+        return RIG_OK;
+
+    case 'E':
+        *mode = RIG_MODE_C4FM;     /* narrow, FT950 */
         *width = rig_passband_narrow(rig, *mode);
         return RIG_OK;
 
@@ -4342,7 +4351,13 @@ int newcat_set_channel(RIG *rig, const channel_t *chan)
 
     case RIG_MODE_PKTFM:  c_mode = 'A'; break;
 
+    case RIG_MODE_FMN:    c_mode = 'B'; break;
+
     case RIG_MODE_PKTUSB: c_mode = 'C'; break;
+
+    case RIG_MODE_AMN:    c_mode = 'D'; break;
+
+    case RIG_MODE_C4FM:   c_mode = 'E'; break;
 
     default: c_mode = '1'; break;
     }
@@ -4558,7 +4573,11 @@ int newcat_get_channel(RIG *rig, channel_t *chan)
 
     case 'D': chan->mode = RIG_MODE_AM;     break;
 
-    default:  chan->mode = RIG_MODE_LSB;
+    case 'E': chan->mode = RIG_MODE_C4FM;     break;
+
+    default:  
+        rig_debug(RIG_DEBUG_ERR,"%s: unknown mode=%c\n", __func__, *retval);
+        chan->mode = RIG_MODE_LSB;
     }
 
     /* Clarifier TX P5 *********************** */
