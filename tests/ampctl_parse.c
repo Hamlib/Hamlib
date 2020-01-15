@@ -41,10 +41,11 @@
 #    include <readline/readline.h>
 #  elif defined(HAVE_READLINE_H)    /* !defined(HAVE_READLINE_READLINE_H) */
 #    include <readline.h>
+#  else                             /* !defined(HAVE_READLINE_H) */
+extern char *readline();
 #  endif                            /* HAVE_READLINE_H */
 #else
 /* no readline */
-extern char *readline();
 #endif                              /* HAVE_LIBREADLINE */
 
 #ifdef HAVE_READLINE_HISTORY
@@ -98,10 +99,10 @@ static pthread_mutex_t amp_mutex = PTHREAD_MUTEX_INITIALIZER;
 #define ARG_OUT  (ARG_OUT1|ARG_OUT2|ARG_OUT3|ARG_OUT4)
 
 /* variables for readline support */
+#ifdef HAVE_LIBREADLINE
 static char *input_line = (char *)NULL;
 static char *result = (char *)NULL;
 static char *parsed_input[sizeof(char *) * 7];
-#ifdef HAVE_LIBREADLINE
 static const int have_rl = 1;
 
 #ifdef HAVE_READLINE_HISTORY
@@ -268,6 +269,7 @@ void hash_delete_all()
 }
 
 
+#ifdef HAVE_LIBREADLINE
 /* Frees allocated memory and sets pointers to NULL before calling readline
  * and then parses the input into space separated tokens.
  */
@@ -298,6 +300,7 @@ static void rp_getline(const char *s)
     /* Action!  Returns typed line with newline stripped. */
     input_line = readline(s);
 }
+#endif
 
 /*
  * TODO: use Lex?
@@ -845,7 +848,6 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
 
 #ifdef HAVE_LIBREADLINE
     if (interactive && prompt && have_rl)
-#endif
     {
         int j, x;
 
@@ -1322,6 +1324,7 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
 
 #endif
     }
+#endif // HAVE_LIBREADLINE
 
     /*
      * mutex locking needed because ampctld is multithreaded
