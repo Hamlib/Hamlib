@@ -478,7 +478,9 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
 #endif
 
     /* cmd, internal, ampctld */
+#ifdef HAVE_LIBREADLINE
     if (!(interactive && prompt && have_rl))
+#endif
     {
         if (interactive)
         {

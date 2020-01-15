@@ -163,17 +163,6 @@ int cm108_close(hamlib_port_t *p)
  */
 int cm108_ptt_set(hamlib_port_t *p, ptt_t pttx)
 {
-    ssize_t nw;
-    char out_rep[] =
-    {
-        0x00, // report number
-        // HID output report
-        0x00,
-        (pttx == RIG_PTT_ON) ? (1 << p->parm.cm108.ptt_bitnum) : 0, // set GPIO
-        1 << p->parm.cm108.ptt_bitnum, // Data direction register (1=output)
-          0x00
-    };
-
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     // For a CM108 USB audio device PTT is wired up to one of the GPIO
@@ -188,6 +177,16 @@ int cm108_ptt_set(hamlib_port_t *p, ptt_t pttx)
 
     case RIG_PTT_CM108:
     {
+        ssize_t nw;
+        char out_rep[] =
+        {
+            0x00, // report number
+            // HID output report
+            0x00,
+            (pttx == RIG_PTT_ON) ? (1 << p->parm.cm108.ptt_bitnum) : 0, // set GPIO
+            1 << p->parm.cm108.ptt_bitnum, // Data direction register (1=output)
+              0x00
+        };
 
         // Build a packet for CM108 HID to turn GPIO bit on or off.
         // Packet is 4 bytes, preceded by a 'report number' byte
