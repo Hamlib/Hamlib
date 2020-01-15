@@ -805,6 +805,14 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         priv->cmd_str[3] = 'C';
         break;
 
+    case RIG_MODE_AMN:   
+        priv->cmd_str[3] = 'D';
+        break;
+
+    case RIG_MODE_C4FM:   
+        priv->cmd_str[3] = 'E';
+        break;
+
     default:
         return -RIG_EINVAL;
     }
