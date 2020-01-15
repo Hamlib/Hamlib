@@ -116,9 +116,9 @@ static pthread_mutex_t rot_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /* variables for readline support */
 static char *input_line = (char *)NULL;
-#ifdef HAVE_LIBREADLINE
 static char *result = (char *)NULL;
 static char *parsed_input[sizeof(char *) * 7];
+#ifdef HAVE_LIBREADLINE
 static const int have_rl = 1;
 
 #ifdef HAVE_READLINE_HISTORY
