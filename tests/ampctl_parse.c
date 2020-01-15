@@ -862,9 +862,6 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
         rp_hist_buf = (char *)calloc(896, sizeof(char));
 #endif
 
-        rl_instream = fin;
-        rl_outstream = fout;
-
         rp_getline("\nAmplifier command: ");
 
         /* EOF (Ctl-D) received on empty input line, bail out gracefully. */
