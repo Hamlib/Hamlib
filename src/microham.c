@@ -1146,8 +1146,6 @@ int uh_open_ptt()
     return uh_ptt_pair[1];
 }
 
-
-// Not referenced anywhere
 int uh_open_wkey()
 {
     if (!uh_is_initialized)
