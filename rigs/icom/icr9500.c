@@ -188,8 +188,8 @@ const struct rig_caps icr9500_caps =
     .priv = (void *)& icr9500_priv_caps,
     .rig_init =   icom_init,
     .rig_cleanup =   icom_cleanup,
-    .rig_open =  NULL,
-    .rig_close =  NULL,
+    .rig_open =  icom_rig_open,
+    .rig_close =  icom_rig_close,
 
     .set_freq =  icom_set_freq,
     .get_freq =  icom_get_freq,
