@@ -48,9 +48,9 @@
 #define ICR30_VFO_OPS (RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL)
 #define ICR30_SCAN_OPS (RIG_SCAN_NONE)
 
-#define TOK_ANL TOKEN_BACKEND(110)
-#define TOK_EAR TOKEN_BACKEND(111)
-#define TOK_REC TOKEN_BACKEND(112)
+#define TOK_ANL TOKEN_BACKEND(001)
+#define TOK_EAR TOKEN_BACKEND(002)
+#define TOK_REC TOKEN_BACKEND(003)
 
 int icr30_tokens[] = { TOK_ANL, TOK_EAR, TOK_REC,
     TOK_DSTAR_DSQL, TOK_DSTAR_CALL_SIGN, TOK_DSTAR_MESSAGE, TOK_DSTAR_STATUS,
@@ -64,11 +64,11 @@ struct confparams icr30_ext[] = {
     { 0 }
 };
 
-struct cmdparams icr30_cmd[] = {
+struct cmdparams icr30_extcmds[] = {
     { {.t=TOK_ANL}, C_CTL_MEM, S_MEM_ANL, SC_MOD_RW, 0, {}, CMD_DAT_BOL, 1 },
     { {.t=TOK_EAR}, C_CTL_MEM, S_MEM_EAR, SC_MOD_RW, 0, {}, CMD_DAT_BOL, 1 },
     { {.t=TOK_REC}, C_CTL_MEM, S_MEM_REC, SC_MOD_WR, 0, {}, CMD_DAT_BOL, 1 },
-    { {.t=TOK_LINK} }
+    { {0} }
 };
 
 #define ICR30_STR_CAL { 2, \
@@ -121,7 +121,7 @@ static const struct icom_priv_caps icr30_priv_caps =
     r8500_ts_sc_list, /* wrong, but don't have set_ts anyway */
     .r2i_mode = icr30_r2i_mode,
     .offs_len = 4,
-    .extcmds = icr30_cmd
+    .extcmds = icr30_extcmds      /* Custom ext_parm parameters */
 };
 
 const struct rig_caps icr30_caps =
@@ -225,46 +225,47 @@ const struct rig_caps icr30_caps =
     },
     .str_cal = ICR30_STR_CAL,
 
-    .cfgparams =  icom_cfg_params,
-    .set_conf =  icom_set_conf,
-    .get_conf =  icom_get_conf,
+    .cfgparams = icom_cfg_params,
+    .set_conf = icom_set_conf,
+    .get_conf = icom_get_conf,
+    .set_powerstat = icom_set_powerstat,
 
     .priv = (void *)& icr30_priv_caps,
-    .rig_init =   icom_init,
-    .rig_cleanup =   icom_cleanup,
-    .rig_open =  NULL,
-    .rig_close =  NULL,
+    .rig_init = icom_init,
+    .rig_cleanup = icom_cleanup,
+    .rig_open = NULL,
+    .rig_close = NULL,
 
-    .set_freq =  icom_set_freq,
-    .get_freq =  icom_get_freq,
-    .set_mode =  icr30_set_mode,
-    .get_mode =  icom_get_mode,
-    .vfo_op =  icom_vfo_op,
-    .set_vfo =  icom_set_vfo,
+    .set_freq = icom_set_freq,
+    .get_freq = icom_get_freq,
+    .set_mode = icr30_set_mode,
+    .get_mode = icom_get_mode,
+    .vfo_op = icom_vfo_op,
+    .set_vfo = icom_set_vfo,
     .set_rptr_offs = icom_set_rptr_offs,
     .get_rptr_offs = icom_get_rptr_offs,
     .set_rptr_shift = icom_set_rptr_shift,
     .get_rptr_shift = icom_get_rptr_shift,
-    .set_ts =  icom_set_ts,
-    .get_ts =  icom_get_ts,
-    .set_ant =  icom_set_ant,
-    .get_ant =  icom_get_ant,
+    .set_ts = icom_set_ts,
+    .get_ts = icom_get_ts,
+    .set_ant = icom_set_ant,
+    .get_ant = icom_get_ant,
     .set_bank = icom_set_bank,
     .set_mem = icom_set_mem,
     .decode_event =  icom_decode_event,
-    .set_level =  icom_set_level,
-    .get_level =  icom_get_level,
-    .set_func =  icom_set_func,
-    .get_func =  icom_get_func,
-    .set_parm =  icom_set_parm,
-    .get_parm =  icom_get_parm,
-    .set_ext_parm =  icom_set_ext_parm,
-    .get_ext_parm =  icom_get_ext_parm,
-    .set_ext_level =  icom_set_ext_level,
-    .get_ext_level =  icom_get_ext_level,
-    .get_dcd =  icom_get_dcd,
-    .set_ctcss_sql =  icom_set_ctcss_sql,
-    .get_ctcss_sql =  icom_get_ctcss_sql,
-    .set_dcs_sql =  icom_set_dcs_sql,
-    .get_dcs_sql =  icom_get_dcs_sql,
+    .set_level = icom_set_level,
+    .get_level = icom_get_level,
+    .set_func = icom_set_func,
+    .get_func = icom_get_func,
+    .set_parm = icom_set_parm,
+    .get_parm = icom_get_parm,
+    .set_ext_parm = icom_set_ext_parm,
+    .get_ext_parm = icom_get_ext_parm,
+    .set_ext_level = icom_set_ext_level,
+    .get_ext_level = icom_get_ext_level,
+    .get_dcd = icom_get_dcd,
+    .set_ctcss_sql = icom_set_ctcss_sql,
+    .get_ctcss_sql = icom_get_ctcss_sql,
+    .set_dcs_sql = icom_set_dcs_sql,
+    .get_dcs_sql = icom_get_dcs_sql,
 };

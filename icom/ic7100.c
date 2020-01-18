@@ -123,7 +123,7 @@ struct confparams ic7100_ext[] = {
 };
 
 struct cmdparams ic7100_extcmds[] = {
-    { {.t=TOK_LINK} }
+    { {0} }
 };
 
 // IC-7100 S-meter calibration data based on manual

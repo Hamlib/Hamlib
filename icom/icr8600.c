@@ -77,7 +77,8 @@ struct cmdparams icr8600_rigparms[] = {
 
 int icr8600_tokens[] = { TOK_DSTAR_DSQL, TOK_DSTAR_CALL_SIGN, TOK_DSTAR_MESSAGE, TOK_DSTAR_STATUS,
     TOK_DSTAR_GPS_DATA, TOK_DSTAR_GPS_MESS, TOK_DSTAR_CODE, TOK_DSTAR_TX_DATA,
-    TOK_SCOPE_DAT, TOK_SCOPE_STS, TOK_SCOPE_DOP,
+    TOK_SCOPE_DAT, TOK_SCOPE_STS, TOK_SCOPE_DOP, TOK_SCOPE_MSS, TOK_SCOPE_MOD, TOK_SCOPE_SPN,
+    TOK_SCOPE_HLD, TOK_SCOPE_REF, TOK_SCOPE_SWP, TOK_SCOPE_TYP, TOK_SCOPE_VBW, TOK_SCOPE_FEF,
     TOK_BACKEND_NONE };
 
 struct confparams icr8600_ext[] = {
@@ -85,7 +86,7 @@ struct confparams icr8600_ext[] = {
 };
 
 struct cmdparams icr8600_extcmds[] = {
-    { {.t=TOK_LINK} }
+    { {0} }
 };
 
 /*
@@ -103,14 +104,14 @@ struct cmdparams icr8600_extcmds[] = {
 
 static const struct icom_priv_caps icr8600_priv_caps =
 {
-    0x96,                       /* default address */
-    0,                          /* 731 mode */
-    0,                          /* no XCHG */
-    r8600_ts_sc_list,           /* list of tuning steps */
-    .offs_len = 4,              /* Repeater offset is 4 bytes */
-    .serial_USB_echo_check = 1, /* USB CI-V may not echo */
-    .rigparms = icr8600_rigparms,
-    .extcmds = icr8600_extcmds
+    0x96,                           /* default address */
+    0,                              /* 731 mode */
+    0,                              /* no XCHG */
+    r8600_ts_sc_list,               /* list of tuning steps */
+    .offs_len = 4,                  /* Repeater offset is 4 bytes */
+    .serial_USB_echo_check = 1,     /* USB CI-V may not echo */
+    .rigparms = icr8600_rigparms,   /* Custom parm parameters */
+    .extcmds = icr8600_extcmds      /* Custom ext_parm parameters */
 };
 
 const struct rig_caps icr8600_caps =
@@ -219,6 +220,7 @@ const struct rig_caps icr8600_caps =
 
     .set_conf = icom_set_conf,
     .get_conf = icom_get_conf,
+//    .set_powerstat = icom_set_powerstat,
 
     .priv = (void *)& icr8600_priv_caps,
     .rig_init = icom_init,
