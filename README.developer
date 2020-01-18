@@ -38,7 +38,7 @@ utility), and USB.  Other connectivity will follow afterwards.
 General Guidelines.
 -------------------
 
-0. The top level directory looks like this as of 2020-01-163
+0. The top level directory looks like this as of 2020-01-18
 
 $ tree -d -I .git
 .
