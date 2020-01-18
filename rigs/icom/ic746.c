@@ -184,9 +184,9 @@ const struct rig_caps ic746_caps =
     .rig_model =  RIG_MODEL_IC746,
     .model_name = "IC-746",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".1",
+    .version =  BACKEND_VER ".2",
     .copyright =  "LGPL",
-    .status =  RIG_STATUS_BETA,
+    .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
     .ptt_type =  RIG_PTT_RIG,
     .dcd_type =  RIG_DCD_NONE,
@@ -905,7 +905,7 @@ int ic746pro_get_channel(RIG *rig, channel_t *chan)
 {
     struct icom_priv_data *priv;
     struct rig_state *rs;
-    unsigned char chanbuf[46];
+    unsigned char chanbuf[50];
     mem_buf_t *membuf;
     int chan_len, freq_len, retval, data_len;
 
@@ -961,13 +961,20 @@ int ic746pro_get_channel(RIG *rig, channel_t *chan)
     /*
      * chanbuf should contain Cn,Sc, Chan #, Data area
      */
+    // Do we get chan_len==1 || chan_len==5 on empty memory?
+    // The IC746Pro returns 1a 00 00 01 ff on a blank channel 
+    // So this logic should apply to any Icom with chan_len==5 hopefully
+    if (chan_len == 5 && chanbuf[4]==0xff) {
+        rig_debug(RIG_DEBUG_TRACE,"%s: chan %d is empty\n", __func__, chan->channel_num);
+        return RIG_OK;
+    }
+
     if ((chan_len != freq_len * 2 + 40) && (chan_len != 1))
     {
-        rig_debug(RIG_DEBUG_ERR, "ic746pro_get_channel: wrong frame len=%d\n",
+        rig_debug(RIG_DEBUG_ERR, "%s: wrong frame len=%d\n", __func__, 
                   chan_len);
         return -RIG_ERJCTED;
     }
-
     /* do this only if not a blank channel */
     if (chan_len != 1)
     {
@@ -978,19 +985,22 @@ int ic746pro_get_channel(RIG *rig, channel_t *chan)
         membuf = (mem_buf_t *)(chanbuf + 4);
 
         chan->flags = membuf->chan_flag && 0x01 ? RIG_CHFLAG_SKIP : RIG_CHFLAG_NONE;
-
+        rig_debug(RIG_DEBUG_TRACE, "%s: chan->flags=0x%02x\n", __func__, chan->flags);
         /* data mode on */
+        rig_debug(RIG_DEBUG_TRACE, "%s: membuf->rx.data=0x%02x\n", __func__, membuf->rx.data);
         if (membuf->rx.data) { chan->flags |= RIG_CHFLAG_DATA; }
 
         /*
          * from_bcd requires nibble len
          */
         chan->freq = from_bcd(membuf->rx.freq, freq_len * 2);
+        rig_debug(RIG_DEBUG_TRACE, "%s: chan->freq=%f\n", __func__, chan->freq);
 
         icom2rig_mode(rig, membuf->rx.mode, membuf->rx.pb,
                       &chan->mode, &chan->width);
 
         chan->rptr_shift = (rptr_shift_t)(membuf->rx.dup >> 8);
+        rig_debug(RIG_DEBUG_TRACE, "%s: chan->rptr_shift=%d\n", __func__, chan->rptr_shift);
 
         /* offset is default for the band & is not stored in channel memory.
           The following retrieves the system default for the band */
@@ -1009,18 +1019,24 @@ int ic746pro_get_channel(RIG *rig, channel_t *chan)
         }
 
         chan->rptr_offs = from_bcd(databuf + 3, 6) * 100;
+        rig_debug(RIG_DEBUG_TRACE, "%s: chan->rptr_offs=%d\n", __func__, (int)chan->rptr_offs);
 
         chan->ctcss_tone = from_bcd_be(membuf->rx.tone, 6);
+        rig_debug(RIG_DEBUG_TRACE, "%s: chan->ctcss_tone=%d\n", __func__, chan->ctcss_tone);
         chan->ctcss_sql = from_bcd_be(membuf->rx.tone_sql, 6);
+        rig_debug(RIG_DEBUG_TRACE, "%s: chan->ctcss_sql=%d\n", __func__, chan->ctcss_sql);
         chan->dcs_code = from_bcd_be(membuf->rx.dcs.code, 4);
+        rig_debug(RIG_DEBUG_TRACE, "%s: chan->dcs_code=%d\n", __func__, chan->dcs_code);
         /* The dcs information include in the channel includes polarity information
         for both tx and receive.  Both directions are enabled when in dcs mode */
 
         chan->tx_freq = from_bcd(membuf->tx.freq, freq_len * 2);
+        rig_debug(RIG_DEBUG_TRACE, "%s: chan->tx_freq=%f\n", __func__, chan->tx_freq);
         icom2rig_mode(rig, membuf->tx.mode, membuf->tx.pb,
                       &chan->tx_mode, &chan->tx_width);
         strncpy(chan->channel_desc, membuf->name, 9);
         chan->channel_desc[9] = '\0';   /* add null terminator */
+        rig_debug(RIG_DEBUG_TRACE, "%s: chan->channel_desc=%s\n", __func__, chan->channel_desc);
     }
 
     return RIG_OK;
