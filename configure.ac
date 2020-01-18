@@ -51,8 +51,9 @@ dnl added to AC_CONFIG_FILES near the end of this file.  See README.developer
 dnl Beware of duplication should a backend directory include both rig and
 dnl rotor definitions, e.g. "dummy".  Optional backends will not be listed
 dnl here but will be added later, e.g. "winradio".
-BACKEND_LIST="adat alinco aor barrett dorji drake dummy elad flexradio icom icmarine jrc kachina kenwood kit lowe pcr prm80 racal rft rs skanti tapr tentec tuner uniden wj yaesu"
-ROT_BACKEND_LIST="amsat ars celestron cnctrk easycomm ether6 fodtrack gs232a heathkit m2 meade rotorez sartek spid ts7400 prosistel ioptron"
+BACKEND_LIST="dummy"
+RIG_BACKEND_LIST="rigs/adat rigs/alinco rigs/aor rigs/barrett rigs/dorji rigs/drake rigs/elad rigs/flexradio rigs/icom rigs/icmarine rigs/jrc rigs/kachina rigs/kenwood rigs/kit rigs/lowe rigs/pcr rigs/prm80 rigs/racal rigs/rft rigs/rs rigs/skanti rigs/tapr rigs/tentec rigs/tuner rigs/uniden rigs/winradio rigs/wj rigs/yaesu"
+ROT_BACKEND_LIST="rotators/amsat rotators/ars rotators/celestron rotators/cnctrk rotators/easycomm rotators/ether6 rotators/fodtrack rotators/gs232a rotators/heathkit rotators/m2 rotators/meade rotators/rotorez rotators/sartek rotators/spid rotators/ts7400 rotators/prosistel rotators/ioptron"
 # Amplifiers are all in the amplifiers directory
 AMP_BACKEND_LIST="amplifiers/elecraft"
 
@@ -653,7 +654,7 @@ AC_MSG_RESULT([$cf_with_winradio])
 DL_LIBS=""
 
 AS_IF([test x"${cf_with_winradio}" = "xyes"],
-      [BACKEND_LIST="$BACKEND_LIST winradio"
+      [RIGS_BACKEND_LIST="$RIGS_BACKEND_LIST rigs/winradio"
 dnl Check for libdl and set DL_LIBS if found--used for linradio WR-G313 backend.
        AC_CHECK_LIB([dl], [dlopen], [DL_LIBS="-ldl"],
                     [AC_MSG_WARN([dlopen was not found in libdl--linradio backend will be disabled])])
@@ -704,12 +705,28 @@ AM_CONDITIONAL([HAVE_USRP], [test x"${cf_with_usrp}" = "xyes"])
 
 dnl otherwise parallel 'make -jn' will fail
 
+## ---------------------------------- ##
+## Prepare toplevel backend dependencies ##
+## ---------------------------------- ##
+
 for be in ${BACKEND_LIST} ; do
         BACKENDEPS="${BACKENDEPS} \$(top_builddir)/${be}/libhamlib-${be}.la"
 done
 
 AC_SUBST([BACKEND_LIST])
 AC_SUBST([BACKENDEPS])
+
+## ---------------------------------- ##
+## Prepare rig backend dependencies ##
+## ---------------------------------- ##
+
+for be in ${RIG_BACKEND_LIST} ; do
+        RIGDIR=`echo $be | awk -F "/" '{print $2}'`
+        RIG_BACKENDEPS="${RIG_BACKENDEPS} \$(top_builddir)/rigs/${RIGDIR}/libhamlib-${RIGDIR}.la"
+done
+
+AC_SUBST([RIG_BACKEND_LIST])
+AC_SUBST([RIG_BACKENDEPS])
 
 
 ## ---------------------------------- ##
@@ -719,7 +736,8 @@ AC_SUBST([BACKENDEPS])
 # otherwise parallel 'make -jn' will fail
 
 for be in ${ROT_BACKEND_LIST} ; do
-        ROT_BACKENDEPS="${ROT_BACKENDEPS} \$(top_builddir)/${be}/libhamlib-${be}.la"
+        ROTDIR=`echo $be | awk -F "/" '{print $2}'`
+        ROT_BACKENDEPS="${ROT_BACKENDEPS} \$(top_builddir)/rotators/${ROTDIR}/libhamlib-${ROTDIR}.la"
 done
 
 AC_SUBST([ROT_BACKEND_LIST])
@@ -756,59 +774,59 @@ macros/Makefile
 include/Makefile
 lib/Makefile
 dummy/Makefile
-elad/Makefile
-yaesu/Makefile
-icom/Makefile
-icmarine/Makefile
-aor/Makefile
-kenwood/Makefile
-winradio/Makefile
-pcr/Makefile
-alinco/Makefile
-uniden/Makefile
-tentec/Makefile
-kachina/Makefile
-jrc/Makefile
-drake/Makefile
-lowe/Makefile
-rft/Makefile
-rs/Makefile
-kit/Makefile
-tapr/Makefile
-skanti/Makefile
-prm80/Makefile
-wj/Makefile
-racal/Makefile
-tuner/Makefile
-ars/Makefile
-easycomm/Makefile
-fodtrack/Makefile
-gs232a/Makefile
-heathkit/Makefile
-spid/Makefile
-sartek/Makefile
 src/Makefile
 c++/Makefile
 bindings/Makefile
-tests/Makefile
 doc/Makefile
 doc/hamlib.cfg
-rotorez/Makefile
-flexradio/Makefile
-m2/Makefile
-amsat/Makefile
-adat/Makefile
-ts7400/Makefile
-celestron/Makefile
-cnctrk/Makefile
-ether6/Makefile
+rotators/amsat/Makefile
+rotators/ars/Makefile
+rotators/celestron/Makefile
+rotators/cnctrk/Makefile
+rotators/easycomm/Makefile
+rotators/ether6/Makefile
+rotators/fodtrack/Makefile
+rotators/gs232a/Makefile
+rotators/heathkit/Makefile
+rotators/ioptron/Makefile
+rotators/m2/Makefile
+rotators/meade/Makefile
+rotators/prosistel/Makefile
+rotators/rotorez/Makefile
+rotators/sartek/Makefile
+rotators/spid/Makefile
+rotators/ts7400/Makefile
+rigs/adat/Makefile
+rigs/alinco/Makefile
+rigs/aor/Makefile
+rigs/barrett/Makefile
+rigs/dorji/Makefile
+rigs/drake/Makefile
+rigs/elad/Makefile
+rigs/flexradio/Makefile
+rigs/icmarine/Makefile
+rigs/icom/Makefile
+rigs/jrc/Makefile
+rigs/kachina/Makefile
+rigs/kenwood/Makefile
+rigs/kit/Makefile
+rigs/lowe/Makefile
+rigs/pcr/Makefile
+rigs/prm80/Makefile
+rigs/racal/Makefile
+rigs/rft/Makefile
+rigs/rs/Makefile
+rigs/skanti/Makefile
+rigs/tapr/Makefile
+rigs/tentec/Makefile
+rigs/tuner/Makefile
+rigs/uniden/Makefile
+rigs/winradio/Makefile
+rigs/wj/Makefile
+rigs/yaesu/Makefile
+tests/Makefile
 scripts/Makefile
 android/Makefile
-prosistel/Makefile
-dorji/Makefile
-barrett/Makefile
-meade/Makefile
-ioptron/Makefile
 amplifiers/elecraft/Makefile
 hamlib.pc
 ])
