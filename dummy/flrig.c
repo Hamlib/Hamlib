@@ -869,8 +869,6 @@ static int flrig_close(RIG *rig)
 {
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
 
-    if (rig->state.priv) { free(rig->state.priv); }
-
     return RIG_OK;
 }
 
@@ -892,7 +890,12 @@ static int flrig_cleanup(RIG *rig)
 
     for (i = 0; modeMap[i].mode_hamlib != 0; ++i)
     {
-        if (modeMap[i].mode_flrig) { free(modeMap[i].mode_flrig); }
+        if (modeMap[i].mode_flrig) 
+        { 
+            free(modeMap[i].mode_flrig); 
+            modeMap[i].mode_flrig = NULL; 
+        }
+
     }
 
     return RIG_OK;
