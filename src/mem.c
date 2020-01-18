@@ -261,6 +261,7 @@ static int generic_retr_extl(RIG *rig,
     else
     {
         unsigned el_size = 0;
+
         for (p = chan->ext_levels; !RIG_IS_EXT_END(*p); p++)
         {
             el_size += sizeof(struct ext_list);
@@ -1625,7 +1626,6 @@ const chan_t *HAMLIB_API rig_lookup_mem_caps(RIG *rig, int ch)
 }
 
 
-#ifdef XXREMOVEDXX
 // Not referenced anywhere
 /**
  * \brief get memory channel count
@@ -1657,6 +1657,5 @@ int HAMLIB_API rig_mem_count(RIG *rig)
 
     return count;
 }
-#endif
 
 /*! @} */
