@@ -206,6 +206,7 @@ int par_open(hamlib_port_t *port)
     }
 
 #else
+    port->fd = fd = 0;
     return -RIG_ENIMPL;
 #endif
     port->fd = fd;

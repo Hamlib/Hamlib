@@ -372,12 +372,13 @@ static int ft920_init(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    priv = (struct ft920_priv_data *) calloc(1, sizeof(struct ft920_priv_data));
+    rig->state.priv = (struct ft920_priv_data *) calloc(1, sizeof(struct ft920_priv_data));
 
-    if (!priv)
+    if (!rig->state.priv)
     {
         return -RIG_ENOMEM;    /* whoops! memory shortage! */
     }
+    priv = rig->state.priv;
 
     /*
      * Copy native cmd set to private cmd storage area
@@ -390,7 +391,6 @@ static int ft920_init(RIG *rig)
     priv->read_update_delay =
         FT920_DEFAULT_READ_TIMEOUT;   /* set update timeout to safe value */
     priv->current_vfo =  RIG_VFO_A;                         /* default to VFO_A */
-    rig->state.priv = (void *)priv;
 
     return RIG_OK;
 }

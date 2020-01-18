@@ -141,14 +141,15 @@ static int netrigctl_init(RIG *rig)
         return -RIG_EINVAL;
     }
 
+    rig->state.priv = (struct netrigctl_priv_data *)malloc(sizeof(
+                          struct netrigctl_priv_data));
 
-    priv = (struct netrigctl_priv_data *)malloc(sizeof(struct netrigctl_priv_data));
-
-    if (!priv)
+    if (!rig->state.priv)
     {
         return -RIG_ENOMEM;
     }
 
+    priv = rig->state.priv;
     memset(priv, 0, sizeof(struct netrigctl_priv_data));
 
     rig_debug(RIG_DEBUG_TRACE, "%s version %s\n", __func__, rig->caps->version);
@@ -157,10 +158,8 @@ static int netrigctl_init(RIG *rig)
      * set arbitrary initial status
      * VFO will be updated in open call
      */
-    rig->state.priv = (rig_ptr_t) priv;
     priv->vfo_curr = RIG_VFO_A;
     priv->rigctld_vfo_mode = 0;
-
 
     return RIG_OK;
 }

@@ -561,11 +561,10 @@ static void dump_radio_state(RIG *rig)
 {
     unsigned char   channel = 0;
     unsigned char   reply[VX1700_OP_DATA_LENGTH];
-    int         ret;
 
     if (rig == NULL) { return; }
 
-    if ((ret = vx1700_read_mem_channel_number(rig, &channel)) != RIG_OK) { return; }
+    if (vx1700_read_mem_channel_number(rig, &channel) != RIG_OK) { return; }
 
     if (vx1700_channel_is_ok(channel))
     {
@@ -578,19 +577,19 @@ static void dump_radio_state(RIG *rig)
                   "%s: Memory Channel number is not available at the moment\n", __func__);
     }
 
-    if ((ret = vx1700_read_op_data_raw(rig, reply)) != RIG_OK) { return; }
+    if (vx1700_read_op_data_raw(rig, reply) != RIG_OK) { return; }
 
     vx1700_parse_op_data(__func__, reply);
 
-    if ((ret = vx1700_read_vfo_data_raw(rig, reply)) != RIG_OK) { return; }
+    if (vx1700_read_vfo_data_raw(rig, reply) != RIG_OK) { return; }
 
     vx1700_parse_vfo_data(__func__, reply);
 
-    if ((ret = vx1700_read_status_flags(rig, reply)) != RIG_OK) { return; }
+    if (vx1700_read_status_flags(rig, reply) != RIG_OK) { return; }
 
     vx1700_parse_status_flags(__func__, reply);
 
-    if ((ret = vx1700_read_meter(rig, reply)) != RIG_OK) { return; }
+    if (vx1700_read_meter(rig, reply) != RIG_OK) { return; }
 
     vx1700_parse_meter(__func__, reply);
 }
@@ -601,12 +600,12 @@ static int vx1700_init(RIG *rig)
 
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
 
-    priv = calloc(1, sizeof(struct vx1700_priv_data));
+    rig->state.priv = calloc(1, sizeof(struct vx1700_priv_data));
 
-    if (priv == NULL) { return -RIG_ENOMEM; }
+    if (rig->state.priv == NULL) { return -RIG_ENOMEM; }
+    priv = rig->state.priv;
 
     priv->ch = 1;
-    rig->state.priv = (rig_ptr_t)priv;
     return RIG_OK;
 }
 

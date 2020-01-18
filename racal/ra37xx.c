@@ -224,15 +224,15 @@ int ra37xx_init(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    priv = (struct ra37xx_priv_data *)malloc(sizeof(struct ra37xx_priv_data));
+    rig->state.priv = (struct ra37xx_priv_data *)malloc(sizeof(struct ra37xx_priv_data));
 
-    if (!priv)
+    if (!rig->state.priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
 
-    rig->state.priv = (void *)priv;
+    priv = rig->state.priv;
 
     priv->receiver_id = -1;
 
@@ -404,7 +404,7 @@ int ra37xx_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (width == RIG_PASSBAND_NORMAL)
     {
-        width = rig_passband_normal(rig, mode);
+        rig_passband_normal(rig, mode);
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: widthtype = %i, widthnum = %i not implemented\n", __func__, widthtype, widthnum);

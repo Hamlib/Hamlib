@@ -38,7 +38,7 @@ class USBDemodChainCF : public DemodChainCF {
 
 		low_cutoff = 300;
 		// centerfreq, relative to IF_center_freq
-		centerfreq += (freq_t)(low_cutoff + width/2);
+		// centerfreq += (freq_t)(low_cutoff + width/2);
 
 		s_demod = new GrSSBMod<d_oType>(2*M_PI*(low_cutoff+width/2)/(double)input_rate,1.0);
 
@@ -62,7 +62,7 @@ class LSBDemodChainCF : public DemodChainCF {
 
 		low_cutoff = 300;
 		// centerfreq, relative to IF_center_freq
-		centerfreq += (freq_t)(-low_cutoff - width/2);
+		//centerfreq += (freq_t)(-low_cutoff - width/2);
 
 		s_demod = new GrSSBMod<d_oType>(-2*M_PI*(low_cutoff+width/2)/(double)input_rate,1.0);
 

@@ -131,8 +131,8 @@ typedef struct
     unsigned char tone_sql[3];  /* tone squelch frequency as tone */
     struct
     {
-        unsigned char
-        pol;  /* DTCS polarity by nibbles Tx pol | Rx pol; 0 = normal; 1 = rev */
+        //unsigned char
+        //pol;  /* DTCS polarity by nibbles Tx pol | Rx pol; 0 = normal; 1 = rev */
         unsigned char code[2];  /* DTCS code bigendian */
     } dcs;
 } channel_str_t;

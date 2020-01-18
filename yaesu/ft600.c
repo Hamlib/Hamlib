@@ -42,7 +42,7 @@
 #include "bandplan.h"
 
 /* prototypes */
-static int ft600_send_priv_cmd(RIG *rig, unsigned char ci);
+static int ft600_send_priv_cmd(RIG *rig, unsigned char cmd_index);
 
 static const yaesu_cmd_set_t ncmd[] =
 {
@@ -242,15 +242,11 @@ const struct rig_caps ft600_caps =
 
 int ft600_init(RIG *rig)
 {
-    struct ft600_priv_data *priv;
-
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    priv = (struct ft600_priv_data *) calloc(1, sizeof(struct ft600_priv_data));
+    rig->state.priv = (struct ft600_priv_data *) calloc(1, sizeof(struct ft600_priv_data));
 
-    if (!priv) { return -RIG_ENOMEM; }
-
-    rig->state.priv = (void *)priv;
+    if (!rig->state.priv) { return -RIG_ENOMEM; }
 
     return RIG_OK;
 }
@@ -462,7 +458,7 @@ int ft600_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         return -RIG_EINVAL;
     }
 
-    if (width == NULL)
+    if (width != NULL)
     {
         *width = RIG_PASSBAND_NORMAL;
     }

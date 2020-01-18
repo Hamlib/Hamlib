@@ -79,6 +79,7 @@ static const struct kenwood_id kenwood_id_list[] =
     { RIG_MODEL_TS850, 9 },
     { RIG_MODEL_TS450S, 10 },
     { RIG_MODEL_TS690S, 11 },
+    { RIG_MODEL_TS50, 13 },
     { RIG_MODEL_TS870S, 15 },
     { RIG_MODEL_TRC80, 16 },
     { RIG_MODEL_TS570D, 17 }, /* Elecraft K2|K3 also returns 17 */
@@ -105,6 +106,7 @@ static const struct kenwood_id_string kenwood_id_string_list[] =
     { RIG_MODEL_TS850,  "009" },
     { RIG_MODEL_TS450S, "010" },
     { RIG_MODEL_TS690S, "011" },
+    { RIG_MODEL_TS50,   "013" },
     { RIG_MODEL_TS870S, "015" },
     { RIG_MODEL_TS570D, "017" },  /* Elecraft K2|K3 also returns 17 */
     { RIG_MODEL_TS570S, "018" },
@@ -583,19 +585,19 @@ int kenwood_init(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, version %s\n", __func__, BACKEND_VER);
 
-    priv = malloc(sizeof(struct kenwood_priv_data));
+    rig->state.priv = malloc(sizeof(struct kenwood_priv_data));
 
-    if (priv == NULL)
+    if (rig->state.priv == NULL)
     {
         return -RIG_ENOMEM;
     }
+    priv = rig->state.priv;
 
     memset(priv, 0x00, sizeof(struct kenwood_priv_data));
     strcpy(priv->verify_cmd, RIG_MODEL_XG3 == rig->caps->rig_model ? ";" : "ID;");
     priv->split = RIG_SPLIT_OFF;
     priv->trn_state = -1;
     priv->curr_mode = 0;
-    rig->state.priv = priv;
 
     /* default mode_table */
     if (caps->mode_table == NULL)
@@ -676,7 +678,7 @@ int kenwood_open(RIG *rig)
     if (RIG_MODEL_XG3 != rig->caps->rig_model && -RIG_ETIMEOUT == err)
     {
         /* Some Kenwood emulations have no ID command response :(
-         * Try an FA command to see is anyone is listening */
+         * Try an FA command to see if anyone is listening */
         char buffer[KENWOOD_MAX_BUF_LEN];
         err = kenwood_transaction(rig, "FA", buffer, sizeof(buffer));
 
@@ -1773,7 +1775,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             width = rig_passband_normal(rig, mode);
         }
 
-        err = kenwood_set_filter(rig, width);
+        kenwood_set_filter(rig, width);
         /* non fatal */
     }
 

@@ -131,7 +131,6 @@ int main(int argc, char *argv[])
     const char *hist_dir = NULL;
     const char hist_file[] = "/.rotctl_history";
     char *hist_path = NULL;
-    struct stat hist_dir_stat;
 #endif  /* HAVE_READLINE_HISTORY */
 
     const char *rot_file = NULL;
@@ -391,6 +390,8 @@ int main(int argc, char *argv[])
         if (rd_hist || sv_hist)
         {
             int hist_path_size;
+            struct stat hist_dir_stat;
+
             if (!(hist_dir = getenv("ROTCTL_HIST_DIR")))
             {
                 hist_dir = getenv("HOME");

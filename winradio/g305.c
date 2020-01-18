@@ -191,13 +191,15 @@ int g3_init(RIG *rig)
 {
     struct g3_priv_data *priv;
 
-    priv = (struct g3_priv_data *)malloc(sizeof(struct g3_priv_data));
+    rig->state.priv = (struct g3_priv_data *)malloc(sizeof(struct g3_priv_data));
 
-    if (!priv)
+    if (!rig->state.priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
+
+    priv = rig->state.priv;
 
     /* Try to load required dll */
     priv->dll = LoadLibrary(WRG3DLL);
@@ -232,8 +234,6 @@ int g3_init(RIG *rig)
     priv->GetRawSignalStrength =
         (FNCGetRawSignalStrength) GetProcAddress(priv->dll, "GetRawSignalStrength");
     priv->G3GetInfo = (FNCG3GetInfo) GetProcAddress(priv->dll, "G3GetInfo");
-
-    rig->state.priv = (void *)priv;
 
     return RIG_OK;
 }

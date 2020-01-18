@@ -229,14 +229,14 @@ static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 int tt565_init(RIG *rig)
 {
     struct tt565_priv_data *priv;
-    priv = (struct tt565_priv_data *)malloc(sizeof(struct tt565_priv_data));
+    rig->state.priv = (struct tt565_priv_data *)malloc(sizeof(struct tt565_priv_data));
 
-    if (!priv) { return -RIG_ENOMEM; } /* no memory available */
+    if (!rig->state.priv) { return -RIG_ENOMEM; } /* no memory available */
+    priv = rig->state.priv;
 
     memset(priv, 0, sizeof(struct tt565_priv_data));
     priv->ch = 0; /* set arbitrary initial status */
     priv->vfo_curr = RIG_VFO_A;
-    rig->state.priv = (rig_ptr_t)priv;
     return RIG_OK;
 }
 

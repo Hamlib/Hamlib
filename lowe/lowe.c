@@ -298,12 +298,6 @@ const char *lowe_get_info(RIG *rig)
         // non-fatal
     }
 
-    if (retval != RIG_OK)
-    {
-        return NULL;
-    }
-
-
     /* this is the real one */
     retval = lowe_transaction(rig, "TYP?" EOM, 5, idbuf, &id_len);
 
