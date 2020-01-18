@@ -972,8 +972,8 @@ typedef uint64_t rmode_t;
 #define    RIG_MODE_PSKR      CONSTANT_64BIT_FLAG (31)  /*!< \c PSKR - Kenwood PSKR and others */
 #ifndef SWIGLUA
 /* hide the top 32 bits from the Lua binding as they will not work */
-#define    RIG_MODE_DD     CONSTANT_64BIT_FLAG (32)  /* DD Mode IC-9700 */
-#define    RIG_MODE_BIT33     CONSTANT_64BIT_FLAG (33)  /* reserved for future expansion */
+#define    RIG_MODE_DD        CONSTANT_64BIT_FLAG (32)  /*!< \c DD Mode IC-9700 */
+#define    RIG_MODE_C4FM      CONSTANT_64BIT_FLAG (33)  /*!< \c Yaesu C4FM mode */
 #define    RIG_MODE_BIT34     CONSTANT_64BIT_FLAG (34)  /* reserved for future expansion */
 #define    RIG_MODE_BIT35     CONSTANT_64BIT_FLAG (35)  /* reserved for future expansion */
 #define    RIG_MODE_BIT36     CONSTANT_64BIT_FLAG (36)  /* reserved for future expansion */

@@ -622,7 +622,7 @@ int tmv7_get_channel(RIG *rig, channel_t *chan)
         {
             strcpy(scf, req);
             strcat(scf, ",%"SCNfreq",%d");
-            retval = num_sscanf(ackbuf, scf, &freq, &step);
+            num_sscanf(ackbuf, scf, &freq, &step);
             chan->tx_freq = freq;
         }
     }

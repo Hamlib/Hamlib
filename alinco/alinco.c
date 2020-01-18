@@ -106,6 +106,13 @@ int alinco_transaction(RIG *rig,
     struct rig_state *rs;
     char echobuf[BUFSZ + 1];
 
+    if (cmd == NULL)
+    {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: null argument for cmd?\n", __func__);
+        return -RIG_EINTERNAL;
+    }
+
     rs = &rig->state;
 
     serial_flush(&rs->rigport);
@@ -128,8 +135,14 @@ int alinco_transaction(RIG *rig,
         return retval;
     }
 
+    if (!(data && data_len))
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: data and datalen not both NULL??\n", __func__);
+        return -RIG_EINTERNAL;
+    }
+
     /* no data expected, check for OK returned */
-    if (!data || !data_len)
+    if (data == NULL)
     {
         retval = read_string(&rs->rigport, echobuf, BUFSZ, LF, strlen(LF));
 
@@ -163,8 +176,14 @@ int alinco_transaction(RIG *rig,
 
     /* strip CR/LF from string
      */
-    *data_len -= 2;
-    data[*data_len] = 0;
+    data[0] = 0;
+
+    if (*data_len > 2)
+    {
+        *data_len -= 2;
+        data[*data_len] = 0;
+    }
+
     return RIG_OK;
 }
 
@@ -816,6 +835,7 @@ int alinco_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     case RIG_LEVEL_CWPITCH:
         lvl = 4;
+
         if (val.i < 426)
         {
             lvl = 5;

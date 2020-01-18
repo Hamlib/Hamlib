@@ -40,21 +40,23 @@ extern const struct amp_caps kpa1500_rot_caps;
  */
 struct kpa_priv_data
 {
-  char tmpbuf[256];  // for unknown error msg 
+    char tmpbuf[256];  // for unknown error msg
 };
 
 
 int kpa_init(AMP *amp);
+int kpa_close(AMP *amp);
 int kpa_reset(AMP *amp, amp_reset_t reset);
 int kpa_flush_buffer(AMP *amp);
-int kpa_transaction(AMP *amp, const char *cmd, char *response, int response_len);
-const char *kpa_get_info (AMP *amp);
-int kpa_get_freq (AMP *amp, freq_t *freq);
-int kpa_set_freq (AMP *amp, freq_t freq);
+int kpa_transaction(AMP *amp, const char *cmd, char *response,
+                    int response_len);
+const char *kpa_get_info(AMP *amp);
+int kpa_get_freq(AMP *amp, freq_t *freq);
+int kpa_set_freq(AMP *amp, freq_t freq);
 
-int kpa_get_level (AMP *amp, setting_t level, value_t *val);
-int kpa_get_powerstat (AMP *amp, powerstat_t *status);
-int kpa_set_powerstat (AMP *amp, powerstat_t status);
+int kpa_get_level(AMP *amp, setting_t level, value_t *val);
+int kpa_get_powerstat(AMP *amp, powerstat_t *status);
+int kpa_set_powerstat(AMP *amp, powerstat_t status);
 
 #endif  /* _AMP_ELECRAFT_H */
 

@@ -101,7 +101,10 @@ int main(int argc, char *argv[])
 
     int retcode;        /* generic return code from functions */
 
-    int verbose = 0, xml = 0;
+    int verbose = 0;
+#ifdef HAVE_XML2
+    int xml = 0;
+#endif
     const char *rig_file = NULL;
     int serial_rate = 0;
     char *civaddr = NULL;   /* NULL means no need to set conf */
@@ -311,44 +314,52 @@ int main(int argc, char *argv[])
 
     if (!strcmp(argv[optind], "save"))
     {
+#ifdef HAVE_XML2
         if (xml)
         {
             retcode = xml_save(rig, argv[optind + 1]);
         }
         else
+#endif
         {
             retcode = csv_save(rig, argv[optind + 1]);
         }
     }
     else if (!strcmp(argv[optind], "load"))
     {
+#ifdef HAVE_XML2
         if (xml)
         {
             retcode = xml_load(rig, argv[optind + 1]);
         }
         else
+#endif
         {
             retcode = csv_load(rig, argv[optind + 1]);
         }
     }
     else if (!strcmp(argv[optind], "save_parm"))
     {
+#ifdef HAVE_XML2
         if (xml)
         {
             retcode = xml_parm_save(rig, argv[optind + 1]);
         }
         else
+#endif
         {
             retcode = csv_parm_save(rig, argv[optind + 1]);
         }
     }
     else if (!strcmp(argv[optind], "load_parm"))
     {
+#ifdef HAVE_XML2
         if (xml)
         {
             retcode = xml_parm_load(rig, argv[optind + 1]);
         }
         else
+#endif
         {
             retcode = csv_parm_load(rig, argv[optind + 1]);
         }

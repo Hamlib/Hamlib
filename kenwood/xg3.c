@@ -506,24 +506,25 @@ int xg3_set_powerstat(RIG *rig, powerstat_t status)
 int xg3_get_powerstat(RIG *rig, powerstat_t *status)
 {
     const char *cmd = "G";      // any command to test will do
-    char reply[32];
     int retval = kenwood_transaction(rig, cmd, NULL, 0);
     struct rig_state *rs = &rig->state;
     struct xg3_priv_data *priv = (struct xg3_priv_data *)rig->state.priv;
 
-    retval = read_string(&rs->rigport, reply, sizeof(reply), ";", 1);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (retval == RIG_OK)
+    {
+        char reply[32];
+        retval = read_string(&rs->rigport, reply, sizeof(reply), ";", 1);
+        *status = RIG_POWER_ON;
+        priv->powerstat = RIG_POWER_ON;
+    }
 
     if (retval != RIG_OK)
     {
         *status = RIG_POWER_OFF;    // Error indicates power is off
         rig_debug(RIG_DEBUG_VERBOSE, "%s read_string failed\n", __func__);
         priv->powerstat = RIG_POWER_OFF;
-    }
-    else
-    {
-        *status = RIG_POWER_ON;
-        priv->powerstat = RIG_POWER_ON;
     }
 
     return RIG_OK;              // Always OK since it's a binary state

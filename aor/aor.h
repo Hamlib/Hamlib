@@ -24,7 +24,7 @@
 
 #include <hamlib/rig.h>
 
-#define BACKEND_VER "0.6"
+#define BACKEND_VER "0.7"
 
 
 int format8k_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width);

@@ -736,13 +736,13 @@ int ft980_open(RIG *rig)
 
         do
         {
-            retval = write_block(&rig->state.rigport, (char *) cmd_ON_OFF,
+            write_block(&rig->state.rigport, (char *) cmd_ON_OFF,
                                  YAESU_CMD_LENGTH);
             retval = read_block(&rig->state.rigport, (char *) echo_back, YAESU_CMD_LENGTH);
         }
         while (retval != 5 && retry_count2++ < rig->state.rigport.retry);
 
-        retval = write_block(&rig->state.rigport, (char *) cmd_OK, YAESU_CMD_LENGTH);
+        write_block(&rig->state.rigport, (char *) cmd_OK, YAESU_CMD_LENGTH);
         retval = read_block(&rig->state.rigport, (char *) &priv->update_data, 148);
     }
     while (!priv->update_data.EXT_CTL && retry_count1++ < rig->state.rigport.retry);
@@ -765,13 +765,13 @@ int ft980_close(RIG *rig)
 
         do
         {
-            retval = write_block(&rig->state.rigport, (char *) cmd_ON_OFF,
+            write_block(&rig->state.rigport, (char *) cmd_ON_OFF,
                                  YAESU_CMD_LENGTH);
             retval = read_block(&rig->state.rigport, (char *) echo_back, YAESU_CMD_LENGTH);
         }
         while (retval != 5 && retry_count2++ < rig->state.rigport.retry);
 
-        retval = write_block(&rig->state.rigport, (char *) cmd_OK, YAESU_CMD_LENGTH);
+        write_block(&rig->state.rigport, (char *) cmd_OK, YAESU_CMD_LENGTH);
         retval = read_block(&rig->state.rigport, (char *) &priv->update_data, 148);
     }
     while (priv->update_data.EXT_CTL && retry_count1++ < rig->state.rigport.retry);
@@ -964,9 +964,10 @@ int ft980_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 int ft980_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
+    return -RIG_ENIMPL;
+#if 0 // deprecated as was ignored before now
     unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x8e};
 
-    return -RIG_ENIMPL;
 
     /*
      * this can be misleading as Yaesu call it "Full duplex"
@@ -975,6 +976,7 @@ int ft980_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     cmd[4] = split == RIG_SPLIT_ON ? 0x0e : 0x8e;
 
     return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
+#endif
 }
 
 int ft980_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq)

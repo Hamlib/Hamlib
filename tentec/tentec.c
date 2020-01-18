@@ -111,13 +111,15 @@ int tentec_init(RIG *rig)
 {
     struct tentec_priv_data *priv;
 
-    priv = (struct tentec_priv_data *)malloc(sizeof(struct tentec_priv_data));
+    rig->state.priv = (struct tentec_priv_data *)malloc(sizeof(struct tentec_priv_data));
 
-    if (!priv)
+    if (!rig->state.priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
+
+    priv = rig->state.priv;
 
     memset(priv, 0, sizeof(struct tentec_priv_data));
 
@@ -131,8 +133,6 @@ int tentec_init(RIG *rig)
     priv->cwbfo = 1000;
     priv->agc = RIG_AGC_MEDIUM; /* medium */
     priv->lnvol = priv->spkvol = 0.0;   /* mute */
-
-    rig->state.priv = (rig_ptr_t)priv;
 
     /* tentec_tuning_factor_calc needs rig->state.priv */
     tentec_tuning_factor_calc(rig);

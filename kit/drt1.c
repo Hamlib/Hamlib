@@ -172,15 +172,15 @@ int drt1_init(RIG *rig)
 {
     struct drt1_priv_data *priv;
 
-    priv = (struct drt1_priv_data *)malloc(sizeof(struct drt1_priv_data));
+    rig->state.priv = (struct drt1_priv_data *)malloc(sizeof(struct drt1_priv_data));
 
-    if (!priv)
+    if (!rig->state.priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
 
-    rig->state.priv = (void *)priv;
+    priv = rig->state.priv;
 
     priv->osc_freq = OSCFREQ;
     priv->ref_mult = REFMULT;

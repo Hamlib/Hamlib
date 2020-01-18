@@ -594,30 +594,29 @@ const struct rig_caps ft1000mpmkvfld_caps =
 
 int ft1000mp_init(RIG *rig)
 {
-    struct ft1000mp_priv_data *p;
+    struct ft1000mp_priv_data *priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called \n", __func__);
 
 
-    p = (struct ft1000mp_priv_data *) calloc(1, sizeof(struct ft1000mp_priv_data));
+    rig->state.priv = (struct ft1000mp_priv_data *) calloc(1, sizeof(struct ft1000mp_priv_data));
 
-    if (!p)                       /* whoops! memory shortage! */
+    if (!rig->state.priv)                       /* whoops! memory shortage! */
     {
         return -RIG_ENOMEM;
     }
+    priv = rig->state.priv;
 
     /*
      * Copy native cmd set to private cmd storage area
      */
-    memcpy(p->pcs, ncmd, sizeof(ncmd));
+    memcpy(priv->pcs, ncmd, sizeof(ncmd));
 
     /* TODO: read pacing from preferences */
-    p->pacing = FT1000MP_PACING_DEFAULT_VALUE; /* set pacing to minimum for now */
-    p->read_update_delay =
+    priv->pacing = FT1000MP_PACING_DEFAULT_VALUE; /* set pacing to minimum for now */
+    priv->read_update_delay =
         FT1000MP_DEFAULT_READ_TIMEOUT; /* set update timeout to safe value */
-    p->current_vfo =  RIG_VFO_A;  /* default to VFO_A ? */
-
-    rig->state.priv = (void *)p;
+    priv->current_vfo =  RIG_VFO_A;  /* default to VFO_A ? */
 
     return RIG_OK;
 }

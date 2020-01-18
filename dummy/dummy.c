@@ -1541,7 +1541,7 @@ static int dummy_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 
         if (!ret) { break; }
 
-        ret = dummy_set_freq(rig, vfo, freq + ts);  /* up */
+        dummy_set_freq(rig, vfo, freq + ts);  /* up */
         break;
 
     case RIG_OP_DOWN:
@@ -1553,7 +1553,7 @@ static int dummy_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 
         if (!ret) { break; }
 
-        ret = dummy_set_freq(rig, vfo, freq - ts);  /* down */
+        dummy_set_freq(rig, vfo, freq - ts);  /* down */
         break;
 
     default:

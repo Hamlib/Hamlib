@@ -429,12 +429,12 @@ void usage()
 int set_conf_rig(RIG *rig, char *conf_parms)
 {
     char *p;
-    int ret;
 
     p = conf_parms;
 
     while (p && *p != '\0')
     {
+        int ret;
         char *q, *n = NULL;
         /* FIXME: left hand value of = cannot be null */
         q = strchr(p, '=');

@@ -379,14 +379,16 @@ int elektor507_init(RIG *rig)
     hamlib_port_t *rp = &rig->state.rigport;
     struct elektor507_priv_data *priv;
 
-    priv = (struct elektor507_priv_data *)calloc(sizeof(struct
+    rig->state.priv = (struct elektor507_priv_data *)calloc(sizeof(struct
             elektor507_priv_data), 1);
 
-    if (!priv)
+    if (!rig->state.priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
+
+    priv = rig->state.priv;
 
     priv->xtal_cal = XTAL_CAL;
     priv->osc_freq = OSCFREQ;
@@ -402,8 +404,6 @@ int elektor507_init(RIG *rig)
     rp->parm.usb.conf = 1;
     rp->parm.usb.iface = 0;
     rp->parm.usb.alt = 0;   /* necessary ? */
-
-    rig->state.priv = (void *)priv;
 
     return RIG_OK;
 }

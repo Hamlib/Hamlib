@@ -483,7 +483,7 @@ int thg71_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 /* --------------------------------------------------------------------- */
 int thg71_open(RIG *rig)
 {
-    char ackbuf[ACKBUF_LEN], *strl;
+    char ackbuf[ACKBUF_LEN];
     int retval, i;
     const freq_range_t frend = RIG_FRNG_END;
 
@@ -503,12 +503,12 @@ int thg71_open(RIG *rig)
         return retval;
     }
 
-    strl = strtok(ackbuf, " ");
+    strtok(ackbuf, " ");
 
     for (i = 0; i < FRQRANGESIZ; i++)
     {
         freq_range_t frng;
-        char *stru;
+        char *strl,*stru;
 
         strl = strtok(NULL, ",");
         stru = strtok(NULL, ",");

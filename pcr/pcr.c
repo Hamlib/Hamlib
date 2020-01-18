@@ -485,13 +485,15 @@ pcr_init(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    priv = (struct pcr_priv_data *) malloc(sizeof(struct pcr_priv_data));
+    rig->state.priv = (struct pcr_priv_data *) malloc(sizeof(struct pcr_priv_data));
 
-    if (!priv)
+    if (!rig->state.priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
+
+    priv = rig->state.priv;
 
     memset(priv, 0x00, sizeof(struct pcr_priv_data));
 
@@ -518,7 +520,6 @@ pcr_init(RIG *rig)
     priv->sub_rcvr = priv->main_rcvr;
     priv->current_vfo = RIG_VFO_MAIN;
 
-    rig->state.priv     = (rig_ptr_t) priv;
     rig->state.transceive   = RIG_TRN_OFF;
 
     return RIG_OK;

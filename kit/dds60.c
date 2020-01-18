@@ -172,15 +172,15 @@ int dds60_init(RIG *rig)
 {
     struct dds60_priv_data *priv;
 
-    priv = (struct dds60_priv_data *)malloc(sizeof(struct dds60_priv_data));
+    rig->state.priv = (struct dds60_priv_data *)malloc(sizeof(struct dds60_priv_data));
 
-    if (!priv)
+    if (!rig->state.priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
 
-    rig->state.priv = (void *)priv;
+    priv = rig->state.priv;
 
     priv->osc_freq = OSCFREQ;
     priv->if_mix_freq = IFMIXFREQ;

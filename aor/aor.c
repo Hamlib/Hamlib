@@ -635,7 +635,7 @@ int aor_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
 
         /* should be caught by the front end */
-        if ((val.i != 0) & (i >= MAXDBLSTSIZ || RIG_IS_DBLST_END(rs->attenuator[i])))
+        if ((val.i != 0) && (i >= MAXDBLSTSIZ || RIG_IS_DBLST_END(rs->attenuator[i])))
         {
             return -RIG_EINVAL;
         }

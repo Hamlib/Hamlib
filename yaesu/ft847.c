@@ -523,7 +523,7 @@ const struct rig_caps ft847uni_caps =
 
 int ft847_init(RIG *rig)
 {
-    struct ft847_priv_data *p;
+    struct ft847_priv_data *priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called \n", __func__);
 
@@ -532,24 +532,24 @@ int ft847_init(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    p = (struct ft847_priv_data *) calloc(1, sizeof(struct ft847_priv_data));
+    rig->state.priv = (struct ft847_priv_data *) calloc(1, sizeof(struct ft847_priv_data));
 
-    if (!p)
+    if (!rig->state.priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
+    priv = rig->state.priv;
 
 
-    p->sat_mode = RIG_SPLIT_OFF;
-    rig->state.priv = (void *)p;
+    priv->sat_mode = RIG_SPLIT_OFF;
 
     /* for early FT-847's we have our own memory items due to one way comm*/
     /* until these are set we won't know what the values are */
-    p->freqA = 1;  /* 1Hz default */
-    p->freqB = 1;  /* 1Hz default */
-    p->mode = RIG_MODE_USB; /* mode USB by default to avoid users not setting mode */
-    p->width = 1; /* 1Hz default */
+    priv->freqA = 1;  /* 1Hz default */
+    priv->freqB = 1;  /* 1Hz default */
+    priv->mode = RIG_MODE_USB; /* mode USB by default to avoid users not setting mode */
+    priv->width = 1; /* 1Hz default */
 
     return RIG_OK;
 }

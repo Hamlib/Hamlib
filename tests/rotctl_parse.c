@@ -120,13 +120,10 @@ static char *input_line = (char *)NULL;
 static char *result = (char *)NULL;
 static char *parsed_input[sizeof(char *) * 7];
 static const int have_rl = 1;
+#endif
 
 #ifdef HAVE_READLINE_HISTORY
 static char *rp_hist_buf = (char *)NULL;
-#endif
-
-#else                               /* no readline */
-static const int have_rl = 0;
 #endif
 
 struct test_table
@@ -240,7 +237,7 @@ struct test_table *find_cmd_entry(int cmd)
             break;
         }
 
-    if (i >= MAXNBOPT || test_list[i].cmd == 0x00)
+    if (test_list[i].cmd == 0x00)
     {
         return NULL;
     }
@@ -347,8 +344,6 @@ static void rp_getline(const char *s)
     /* Action!  Returns typed line with newline stripped. */
     input_line = readline(s);
 }
-
-
 #endif
 
 
@@ -517,11 +512,15 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
     char arg2[MAXARGSZ + 1], *p2 = NULL;
     char arg3[MAXARGSZ + 1], *p3 = NULL;
     char arg4[MAXARGSZ + 1], *p4 = NULL;
+#ifdef __USEP5P6__
     char *p5 = NULL;
     char *p6 = NULL;
+#endif
 
     /* cmd, internal, rotctld */
+#ifdef HAVE_LIBREADLINE
     if (!(interactive && prompt && have_rl))
+#endif
     {
         if (interactive)
         {
@@ -894,7 +893,6 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
     }
 
 #ifdef HAVE_LIBREADLINE
-
     if (interactive && prompt && have_rl)
     {
         int j, x;
@@ -905,9 +903,6 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
          */
         rp_hist_buf = (char *)calloc(896, sizeof(char));
 #endif
-
-        rl_instream = fin;
-        rl_outstream = fout;
 
         rp_getline("\nRotator command: ");
 
@@ -1374,9 +1369,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
 
 #endif
     }
-
-#endif  /* HAVE_LIBREADLINE */
-
+#endif // HAVE_LIBREADLINE
 
     /*
      * mutex locking needed because rotctld is multithreaded
@@ -1428,8 +1421,13 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
                                         p2 ? p2 : "",
                                         p3 ? p3 : "",
                                         p4 ? p4 : "",
+#ifdef __USEP5P6__
                                         p5 ? p5 : "",
                                         p6 ? p6 : "");
+#else
+                                        "",
+                                        "");
+#endif
 
 #ifdef HAVE_PTHREAD
     pthread_mutex_unlock(&rot_mutex);
@@ -1443,16 +1441,13 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
         if (interactive && !prompt)
         {
             fprintf(fout, NETROTCTL_RET "%d\n", retcode);
-            ext_resp = 0;
+            // ext_resp = 0; // not used ?
             resp_sep = '\n';
         }
         else
         {
-            if (cmd_entry != NULL)
-            {
-                if (cmd_entry->name != NULL) {
-                    fprintf(fout, "%s: error = %s\n", cmd_entry->name, rigerror(retcode));
-                }
+            if (cmd_entry->name != NULL) {
+                fprintf(fout, "%s: error = %s\n", cmd_entry->name, rigerror(retcode));
             }
         }
     }
@@ -1471,7 +1466,6 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
             else if (ext_resp && cmd != 0xf0)
             {
                 fprintf(fout, NETROTCTL_RET "0\n");
-                ext_resp = 0;
                 resp_sep = '\n';
             }
         }

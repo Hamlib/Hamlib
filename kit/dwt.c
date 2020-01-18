@@ -229,13 +229,15 @@ int dwtdll_init(RIG *rig)
 {
     struct dwtdll_priv_data *priv;
 
-    priv = (struct dwtdll_priv_data *)malloc(sizeof(struct dwtdll_priv_data));
+    rig->state.priv = (struct dwtdll_priv_data *)malloc(sizeof(struct dwtdll_priv_data));
 
-    if (!priv)
+    if (!rig->state.priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
+
+    priv = rig->state.priv;
 
     /* Try to load required dll */
     priv->dll = LoadLibrary(DWTDLL);
@@ -244,9 +246,11 @@ int dwtdll_init(RIG *rig)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: Unable to LoadLibrary %s\n",
                   __func__, DWTDLL);
-        free(priv);
+        free(rig->state.priv);
         return -RIG_EIO;    /* huh! */
     }
+
+
 
     /* Get process addresses from dll for function access */
     priv->FrontendOpen =
@@ -287,8 +291,6 @@ int dwtdll_init(RIG *rig)
         (FNCFrontendSetFmMode) GetProcAddress(priv->dll, "FrontendSetFmMode");
     priv->FrontendGetFmMode =
         (FNCFrontendGetFmMode) GetProcAddress(priv->dll, "FrontendGetFmMode");
-
-    rig->state.priv = (void *)priv;
 
     return RIG_OK;
 }

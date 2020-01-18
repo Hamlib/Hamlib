@@ -1583,7 +1583,7 @@ int tmd710_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *shift)
  * tmd710_set_rptr_offs
  * Assumes rig!=NULL
  */
-int tmd710_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t freq)
+int tmd710_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offset)
 {
     int retval;
     tmd710_fo fo_struct;
@@ -1598,10 +1598,10 @@ int tmd710_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t freq)
         return retval;
     }
 
-    freq5 = round(freq / 5000) * 5000;
-    freq625 = round(freq / 6250) * 6250;
+    freq5 = round(offset / 5000) * 5000;
+    freq625 = round(offset / 6250) * 6250;
 
-    if (abs((int)(freq5 - freq)) < abs((int)(freq625 - freq)))
+    if (abs((int)(freq5 - offset)) < abs((int)(freq625 - offset)))
     {
         freq_sent = freq5;
     }
@@ -1623,7 +1623,7 @@ int tmd710_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t freq)
  * tmd710_get_rptr_offs
  * Assumes rig!=NULL, freq!=NULL
  */
-int tmd710_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
+int tmd710_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *offset)
 {
     tmd710_fo fo_struct;
     int retval;
@@ -1634,7 +1634,7 @@ int tmd710_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
 
     if (retval == RIG_OK)
     {
-        *rptr_offs = fo_struct.offset;
+        *offset = fo_struct.offset;
     }
 
 

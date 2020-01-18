@@ -321,7 +321,7 @@ static struct test_table *find_cmd_entry(int cmd)
         }
     }
 
-    if (i >= MAXNBOPT || test_list[i].cmd == 0x00)
+    if (test_list[i].cmd == 0x00)
     {
         return NULL;
     }
@@ -380,7 +380,13 @@ int hash_model_id_sort(struct mod_lst *a, struct mod_lst *b)
 
 void hash_sort_by_model_id()
 {
-    HASH_SORT(models, hash_model_id_sort);
+    if (models != NULL)
+    {
+        HASH_SORT(models, hash_model_id_sort);
+    }
+    else {
+        rig_debug(RIG_DEBUG_ERR,"%s: models empty?\n", __func__);
+    }
 }
 
 
@@ -395,7 +401,6 @@ void hash_delete_all()
         free(current_model);                /* free it */
     }
 }
-
 
 #ifdef HAVE_LIBREADLINE
 /* Frees allocated memory and sets pointers to NULL before calling readline
@@ -425,10 +430,7 @@ static void rp_getline(const char *s)
     /* Action!  Returns typed line with newline stripped. */
     input_line = readline(s);
 }
-
-
 #endif
-
 
 /*
  * TODO: use Lex?
@@ -576,11 +578,10 @@ static int next_word(char *buffer, int argc, char *argv[], int newline)
 }
 
 
-#define fprintf_flush(f, a...)                  \
-    ({ int __ret;                               \
-        __ret = fprintf((f), a);                \
-        fflush((f));                            \
-        __ret;                                  \
+#define fprintf_flush(f, a...)        \
+    ({ fprintf((f), a);               \
+       fflush((f));                   \
+                                      \
     })
 
 
@@ -1013,9 +1014,6 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
          */
         rp_hist_buf = (char *)calloc(512, sizeof(char));
 #endif
-
-        rl_instream = fin;
-        rl_outstream = fout;
 
         rp_getline("\nRig command: ");
 
@@ -1530,8 +1528,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
 #endif
     }
-
-#endif  /* HAVE_LIBREADLINE */
+#endif // HAVE_LIBREADLINE
 
     if (sync_cb) { sync_cb(1); }    /* lock if necessary */
 
@@ -3713,14 +3710,14 @@ int dump_chan(FILE *fout, RIG *rig, channel_t *chan)
     sprintf_freq(freqbuf, chan->xit);
     fprintf(fout, "XIT: %s%s\n", chan->xit > 0 ? "+" : "", freqbuf);
 
-    fprintf(fout, "CTCSS: %d.%dHz, ", chan->ctcss_tone / 10, chan->ctcss_tone % 10);
+    fprintf(fout, "CTCSS: %u.%uHz, ", chan->ctcss_tone / 10, chan->ctcss_tone % 10);
     fprintf(fout,
-            "CTCSSsql: %d.%dHz, ",
+            "CTCSSsql: %u.%uHz, ",
             chan->ctcss_sql / 10,
             chan->ctcss_sql % 10);
 
-    fprintf(fout, "DCS: %d.%d, ", chan->dcs_code / 10, chan->dcs_code % 10);
-    fprintf(fout, "DCSsql: %d.%d\n", chan->dcs_sql / 10, chan->dcs_sql % 10);
+    fprintf(fout, "DCS: %u.%u, ", chan->dcs_code / 10, chan->dcs_code % 10);
+    fprintf(fout, "DCSsql: %u.%u\n", chan->dcs_sql / 10, chan->dcs_sql % 10);
 
     sprintf_func(prntbuf, chan->funcs);
     fprintf(fout, "Functions: %s\n", prntbuf);

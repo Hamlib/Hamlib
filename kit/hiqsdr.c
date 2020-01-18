@@ -292,16 +292,16 @@ int hiqsdr_init(RIG *rig)
 {
     struct hiqsdr_priv_data *priv;
 
-    priv = (struct hiqsdr_priv_data *)malloc(sizeof(struct hiqsdr_priv_data));
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!priv)
+    rig->state.priv = (struct hiqsdr_priv_data *)malloc(sizeof(struct hiqsdr_priv_data));
+
+    if (!rig->state.priv)
     {
         return -RIG_ENOMEM;
     }
 
-    rig->state.priv = (void *)priv;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    priv = rig->state.priv;
 
     priv->split = RIG_SPLIT_OFF;
     priv->ref_clock = REFCLOCK;

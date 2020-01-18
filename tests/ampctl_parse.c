@@ -109,7 +109,7 @@ static const int have_rl = 1;
 static char *rp_hist_buf = (char *)NULL;
 #endif
 
-#else                               /* no readline */
+#else
 static const int have_rl = 0;
 #endif
 
@@ -193,7 +193,7 @@ struct test_table *find_cmd_entry(int cmd)
             break;
         }
 
-    if (i >= MAXNBOPT || test_list[i].cmd == 0x00)
+    if (test_list[i].cmd == 0x00)
     {
         return NULL;
     }
@@ -300,10 +300,7 @@ static void rp_getline(const char *s)
     /* Action!  Returns typed line with newline stripped. */
     input_line = readline(s);
 }
-
-
 #endif
-
 
 /*
  * TODO: use Lex?
@@ -472,8 +469,10 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
     char arg2[MAXARGSZ + 1], *p2 = NULL;
     char arg3[MAXARGSZ + 1], *p3 = NULL;
     char arg4[MAXARGSZ + 1], *p4 = NULL;
-    char *p5 = NULL;
+#ifdef __USEP5P6__ // to avoid cppcheck warning
+    char *p5 = NULL; 
     char *p6 = NULL;
+#endif
 
     /* cmd, internal, ampctld */
     if (!(interactive && prompt && have_rl))
@@ -848,7 +847,6 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
     }
 
 #ifdef HAVE_LIBREADLINE
-
     if (interactive && prompt && have_rl)
     {
         int j, x;
@@ -859,9 +857,6 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
          */
         rp_hist_buf = (char *)calloc(896, sizeof(char));
 #endif
-
-        rl_instream = fin;
-        rl_outstream = fout;
 
         rp_getline("\nAmplifier command: ");
 
@@ -1329,9 +1324,7 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
 
 #endif
     }
-
-#endif  /* HAVE_LIBREADLINE */
-
+#endif // HAVE_LIBREADLINE
 
     /*
      * mutex locking needed because ampctld is multithreaded
@@ -1379,8 +1372,13 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
                                         p2 ? p2 : "",
                                         p3 ? p3 : "",
                                         p4 ? p4 : "",
+#ifdef __USEP5P6__
                                         p5 ? p5 : "",
                                         p6 ? p6 : "");
+#else
+                                        "",
+                                        "");
+#endif
 
 #ifdef HAVE_PTHREAD
     pthread_mutex_unlock(&amp_mutex);
@@ -1550,7 +1548,7 @@ void print_model_list()
 
     for (s = models; s != NULL; s = (struct mod_lst *)(s->hh.next))
     {
-        printf("%6d  %-23s%-24s%-16s%s\n",
+        printf("%6u  %-23s%-24s%-16s%s\n",
                s->id,
                s->mfg_name,
                s->model_name,

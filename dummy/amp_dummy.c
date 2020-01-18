@@ -60,17 +60,18 @@ static int dummy_amp_init(AMP *amp)
 {
     struct dummy_amp_priv_data *priv;
 
-    priv = (struct dummy_amp_priv_data *)
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    amp->state.priv = (struct dummy_amp_priv_data *)
            malloc(sizeof(struct dummy_amp_priv_data));
 
-    if (!priv)
+    if (!amp->state.priv)
     {
         return -RIG_ENOMEM;
     }
 
-    amp->state.priv = (void *)priv;
+    priv = amp->state.priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     amp->state.ampport.type.rig = RIG_PORT_NONE;
 
     priv->freq = 0;

@@ -214,17 +214,18 @@ int tt585_init(RIG *rig)
 {
     struct tt585_priv_data *priv;
 
-    priv = (struct tt585_priv_data *) malloc(sizeof(struct tt585_priv_data));
+    rig->state.priv = (struct tt585_priv_data *) malloc(sizeof(struct tt585_priv_data));
 
-    if (!priv)
+    if (!rig->state.priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
 
+    priv = rig->state.priv;
+
     memset(priv, 0, sizeof(struct tt585_priv_data));
 
-    rig->state.priv = priv;
     return RIG_OK;
 }
 

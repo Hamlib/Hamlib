@@ -189,7 +189,7 @@ int ft1000d_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 int ft1000d_set_parm(RIG *rig, setting_t parm, value_t val);
 int ft1000d_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit);
 int ft1000d_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit);
-int ft1000d_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+int ft1000d_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *value);
 int ft1000d_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
 int ft1000d_set_mem(RIG *rig, vfo_t vfo, int ch);
 int ft1000d_get_mem(RIG *rig, vfo_t vfo, int *ch);
