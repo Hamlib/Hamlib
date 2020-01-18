@@ -424,6 +424,17 @@ const struct confparams icom_ext_parms[] =
     { TOK_SCOPE_DAT, "scpdat", "Scope data", "", "", RIG_CONF_BINARY, {} },
     { TOK_SCOPE_STS, "scpsts", "Scope status", "", "", RIG_CONF_CHECKBUTTON, {} },
     { TOK_SCOPE_DOP, "scpdop", "Scope data output", "", "", RIG_CONF_CHECKBUTTON, {} },
+    { TOK_SCOPE_MSS, "scpmss", "Scope main/sub", "", "", RIG_CONF_CHECKBUTTON, {} },
+    { TOK_SCOPE_MOD, "scpmod", "Scope mode", "", "", RIG_CONF_BINARY, {} },
+    { TOK_SCOPE_SPN, "scpspn", "Scope span", "", "", RIG_CONF_BINARY, {} },
+    { TOK_SCOPE_EDG, "scpedg", "Scope edge", "", "", RIG_CONF_BINARY, {} },
+    { TOK_SCOPE_HLD, "scphld", "Scope hold", "", "", RIG_CONF_BINARY, {} },
+    { TOK_SCOPE_REF, "scpref", "Scope reference", "", "", RIG_CONF_BINARY, {} },
+    { TOK_SCOPE_SWP, "scpswp", "Scope sweep", "", "", RIG_CONF_BINARY, {} },
+    { TOK_SCOPE_STX, "scpstx", "Scope Tx o/p", "", "", RIG_CONF_CHECKBUTTON, {} },
+    { TOK_SCOPE_TYP, "scptyp", "Scope type", "", "", RIG_CONF_NUMERIC, {} },
+    { TOK_SCOPE_VBW, "scpvbw", "Scope vbw", "", "", RIG_CONF_BINARY, {} },
+    { TOK_SCOPE_FEF, "scpfef", "Scope edge", "", "", RIG_CONF_BINARY, {} },
     { RIG_CONF_END, NULL, }
 };
 
@@ -1867,6 +1878,14 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         (const struct icom_priv_caps *) rig->caps->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    const struct cmdparams *cmd = priv_caps->riglevels;
+    for (i = 0; cmd && cmd[i].id.s != 0; i++) {
+        if (cmd[i].id.s == level) {
+            return icom_set_cmd(rig,vfo, (struct cmdparams *)&cmd[i], val);
+        }
+    }
+
     rs = &rig->state;
 
     /*
@@ -2170,19 +2189,10 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         lvl_sc = S_LVL_MON;
         break;
 
-    default: {
-        int i;
-        const struct icom_priv_caps *priv = rig->caps->priv;
-        const struct cmdparams *cmd = priv->riglevels;
-        for (i = 0; cmd && cmd[i].id.s != 0; i++) {
-            if (cmd[i].id.s == level) {
-                return icom_set_cmd(rig,vfo, (struct cmdparams *)&cmd[i], val);
-            }
-        }
+    default:
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported set_level %s", __func__,
                   rig_strlevel(level));
         return -RIG_EINVAL;
-        }
     }
 
     retval = icom_transaction(rig, lvl_cn, lvl_sc, lvlbuf, lvl_len, ackbuf,
@@ -2221,6 +2231,16 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         (const struct icom_priv_caps *) rig->caps->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    const struct icom_priv_caps *priv = rig->caps->priv;
+    const struct cmdparams *cmd = priv->riglevels;
+    int i;
+    for (i = 0; cmd && cmd[i].id.s != 0; i++) {
+        if (cmd[i].id.s == level) {
+            return icom_get_cmd(rig, vfo, (struct cmdparams *)&cmd[i], val);
+        }
+    }
+
     rs = &rig->state;
 
     lvl2_len = 0;
@@ -2408,19 +2428,10 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         lvl_sc = S_LVL_MON;
         break;
 
-    default: {
-        const struct icom_priv_caps *priv = rig->caps->priv;
-        const struct cmdparams *cmd = priv->riglevels;
-        int i;
-        for (i = 0; cmd && cmd[i].id.s != 0; i++) {
-            if (cmd[i].id.s == level) {
-                return icom_get_cmd(rig, vfo, (struct cmdparams *)&cmd[i], val);
-            }
-        }
+    default:
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_level %s", __func__,
                   rig_strlevel(level));
         return -RIG_EINVAL;
-        }
     }
 
     /* use lvl2buf and lvl2_len for 'set mode' subcommand */
@@ -2702,15 +2713,13 @@ int icom_get_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 
             const struct icom_priv_caps *priv = rig->caps->priv;
             const struct cmdparams *cmd = priv->extcmds ? priv->extcmds : icom_ext_cmd;
-            for (i = 0; cmd && cmd[i].id.t != 0; i++) {
-                if (cmd[i].id.t == TOK_LINK) {
+            for (i = 0; (cmd[i].id.t != 0) || (cmd != icom_ext_cmd); ) {
+                if (cmd[i].id.t == 0) {
                     cmd = icom_ext_cmd;
-                    i = -1;
-                    continue;
-                }
-                if (cmd[i].id.t == token) {
+                    i = 0;
+                } else if (cmd[i].id.t == token) {
                     return icom_get_cmd(rig, vfo, (struct cmdparams *)&cmd[i], val);
-                }
+                } else i++;
             }
             return -RIG_EINVAL;
         }
@@ -2729,15 +2738,13 @@ int icom_set_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t val)
 
             const struct icom_priv_caps *priv = rig->caps->priv;
             const struct cmdparams *cmd = priv->extcmds ? priv->extcmds : icom_ext_cmd;
-            for (i = 0; cmd && cmd[i].id.t != 0; i++) {
-                if (cmd[i].id.t == TOK_LINK) {
+            for (i = 0; (cmd[i].id.t != 0) || (cmd != icom_ext_cmd); ) {
+                if (cmd[i].id.t == 0) {
                     cmd = icom_ext_cmd;
-                    i = -1;
-                    continue;
-                }
-                if (cmd[i].id.t == token) {
+                    i = 0;
+                } else if (cmd[i].id.t == token) {
                     return icom_set_cmd(rig, vfo, (struct cmdparams *)&cmd[i], val);
-                }
+                } else i++;
             }
             return -RIG_EINVAL;
         }
@@ -4464,6 +4471,14 @@ int icom_set_parm(RIG *rig, setting_t parm, value_t val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
+    int i;
+    const struct icom_priv_caps *priv = rig->caps->priv;
+    const struct cmdparams *cmd = priv->rigparms;
+    for (i = 0; cmd && cmd[i].id.s != 0; i++) {
+        if (cmd[i].id.s == parm) {
+            return icom_set_cmd(rig, RIG_VFO_NONE, (struct cmdparams *)&cmd[i], val);
+        }
+    }
     switch (parm)
     {
     case RIG_PARM_ANN:
@@ -4493,19 +4508,10 @@ int icom_set_parm(RIG *rig, setting_t parm, value_t val)
         return icom_set_raw(rig, C_CTL_ANN, ann_mode, 0, NULL, 0, 0);
     }
 
-    default:{
-        int i;
-        const struct icom_priv_caps *priv = rig->caps->priv;
-        const struct cmdparams *cmd = priv->rigparms;
-        for (i = 0; cmd && cmd[i].id.s != 0; i++) {
-            if (cmd[i].id.s == parm) {
-                return icom_set_cmd(rig, RIG_VFO_NONE, (struct cmdparams *)&cmd[i], val);
-            }
-        }
+    default:
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported set_parm %s\n", __func__,
                   rig_strparm(parm));
         return -RIG_EINVAL;
-        }
     }
 }
 
@@ -4524,21 +4530,21 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
+    const struct icom_priv_caps *priv = rig->caps->priv;
+    const struct cmdparams *cmd = priv->rigparms;
+    int i;
+    for (i = 0; cmd && cmd[i].id.s != 0; i++) {
+        if (cmd[i].id.s == parm) {
+            return icom_get_cmd(rig, RIG_VFO_NONE, (struct cmdparams *)&cmd[i], val);
+        }
+    }
+
     switch (parm)
     {
-    default: {
-        const struct icom_priv_caps *priv = rig->caps->priv;
-        const struct cmdparams *cmd = priv->rigparms;
-        int i;
-        for (i = 0; cmd && cmd[i].id.s != 0; i++) {
-            if (cmd[i].id.s == parm) {
-                return icom_get_cmd(rig, RIG_VFO_NONE, (struct cmdparams *)&cmd[i], val);
-            }
-        }
+    default:
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_parm %s", __func__,
                   rig_strparm(parm));
         return -RIG_EINVAL;
-        }
     }
 
     return RIG_OK;

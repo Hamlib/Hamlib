@@ -613,7 +613,6 @@ enum rig_conf_e {
     RIG_CONF_BINARY         /*!<    Binary buffer type */
 };
 
-#define TOK_LINK        -1
 #define RIG_COMBO_MAX   16
 #define RIG_BIN_MAX  80
 
