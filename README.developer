@@ -38,75 +38,89 @@ utility), and USB.  Other connectivity will follow afterwards.
 General Guidelines.
 -------------------
 
-0. The top level directory looks like this as of 07 May 2013
-(Note, it has grown considerably).
+0. The top level directory looks like this as of 2020-01-18
 
 $ tree -d -I .git
 .
-├── adat
-├── alinco
-├── amsat
+├── amplifiers
+│   └── elecraft
 ├── android
-├── aor
-├── ars
+├── autom4te.cache
 ├── bindings
+├── build-aux
 ├── c++
-├── celestron
 ├── doc
-├── drake
+│   ├── man1
+│   └── man7
 ├── dummy
-├── easycomm
-├── flexradio
-├── fodtrack
-├── gnuradio
-├── gs232a
-├── heathkit
-├── icom
+├── extra
+│   ├── gnuradio
+│   └── kylix
+│       └── tests
 ├── include
-│   └── hamlib
-├── jrc
-├── kachina
-├── kenwood
-├── kit
-├── kylix
-│   └── tests
+│   └── hamlib
 ├── lib
-├── lowe
-├── m2
 ├── macros
-├── microtune
-├── miniVNA
-├── pcr
 ├── perl
-├── prm80
-├── racal
-├── rft
-├── rotorez
-├── rs
-├── sartek
+├── rigs
+│   ├── adat
+│   ├── alinco
+│   ├── aor
+│   ├── barrett
+│   ├── dorji
+│   ├── drake
+│   ├── elad
+│   ├── flexradio
+│   ├── icmarine
+│   ├── icom
+│   ├── jrc
+│   ├── kachina
+│   ├── kenwood
+│   ├── kit
+│   ├── lowe
+│   ├── pcr
+│   ├── prm80
+│   ├── racal
+│   ├── rft
+│   ├── rs
+│   ├── skanti
+│   ├── tapr
+│   ├── tentec
+│   ├── tuner
+│   ├── uniden
+│   ├── winradio
+│   │   └── linradio
+│   ├── wj
+│   └── yaesu
+├── rotators
+│   ├── amsat
+│   ├── ars
+│   ├── celestron
+│   ├── cnctrk
+│   ├── easycomm
+│   ├── ether6
+│   ├── fodtrack
+│   ├── gs232a
+│   ├── heathkit
+│   ├── ioptron
+│   ├── m2
+│   ├── meade
+│   ├── prosistel
+│   ├── rotorez
+│   ├── sartek
+│   ├── spid
+│   └── ts7400
+│       └── include
 ├── scripts
-├── skanti
-├── spid
 ├── src
-├── tapr
-├── tentec
-├── tests
-│   ├── config
-│   ├── rigctl.test
-│   ├── testbcd.test
-│   ├── testfreq.test
-│   └── testloc.test
-├── ts7400
-│   └── include
-├── tuner
-├── uniden
-├── winradio
-│   └── linradio
-├── wj
-└── yaesu
+└── tests
+    ├── config
+    ├── rigctl.test
+    ├── testbcd.test
+    ├── testfreq.test
+    └── testloc.test
 
-61 directories
-
+77 directories
 
 1. Building
 
