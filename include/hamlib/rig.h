@@ -85,11 +85,13 @@
    double-precision floating point type internally for number
    representations (max 53 bits of precision) so makes a string
    constant from a constant number literal using ull */
-/* #define CONSTANT_64BIT_FLAG(BIT) (1 << (BIT)) */
+// #define CONSTANT_64BIT_FLAG(BIT) (1 << (BIT))
+// #define SWIGLUAHIDE
 /* But this appears to have been fixed so we'll use the correct one now 
    If you have the older version of SWIG comment out this line and use
-   the one above */
-#define CONSTANT_64BIT_FLAG(BIT) (1ull << (BIT))
+   the two above */
+// This 1ul definition works on swig 4.0.1 and lua 5.3.5
+#define CONSTANT_64BIT_FLAG(BIT) (1ul << (BIT))
 #endif
 
 __BEGIN_DECLS
@@ -872,8 +874,8 @@ typedef uint64_t setting_t;
 #define RIG_FUNC_TBURST     CONSTANT_64BIT_FLAG (29)   /*!< \c TBURST -- 1750 Hz tone burst */
 #define RIG_FUNC_TUNER      CONSTANT_64BIT_FLAG (30)   /*!< \c TUNER -- Enable automatic tuner */
 #define RIG_FUNC_XIT        CONSTANT_64BIT_FLAG (31)   /*!< \c XIT -- Transmitter Incremental Tuning */
-#ifndef SWIGLUA
-/* Hide the top 32 bits from the Lua binding as they can't be represented */
+#ifndef SWIGLUAHIDE
+/* Hide the top 32 bits from the old Lua binding as they can't be represented */
 #define RIG_FUNC_NB2        CONSTANT_64BIT_FLAG (32)   /*!< \c NB2 -- 2nd Noise Blanker */
 #define RIG_FUNC_CSQL       CONSTANT_64BIT_FLAG (33)   /*!< \c CSQL -- DCS Squelch setting */
 #define RIG_FUNC_AFLT       CONSTANT_64BIT_FLAG (34)   /*!< \c AFLT -- AF Filter setting */
@@ -964,7 +966,7 @@ typedef uint64_t rmode_t;
 #define    RIG_MODE_AMN       CONSTANT_64BIT_FLAG (29)  /*!< \c AM-N -- Narrow band AM mode IC-R30 */
 #define    RIG_MODE_PSK       CONSTANT_64BIT_FLAG (30)  /*!< \c PSK - Kenwood PSK and others */
 #define    RIG_MODE_PSKR      CONSTANT_64BIT_FLAG (31)  /*!< \c PSKR - Kenwood PSKR and others */
-#ifndef SWIGLUA
+#ifndef SWIGLUAHIDE
 /* hide the top 32 bits from the Lua binding as they will not work */
 #define    RIG_MODE_DD        CONSTANT_64BIT_FLAG (32)  /*!< \c DD Mode IC-9700 */
 #define    RIG_MODE_C4FM      CONSTANT_64BIT_FLAG (33)  /*!< \c Yaesu C4FM mode */
