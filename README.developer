@@ -333,6 +333,11 @@ Additionally, you may want to add the '--with-perl-binding' or
 '--with-python-binding' or '--with-tcl-binding' or '--with-lua-binding' if you are
 interested in SWIG binding support for those scripting languages.
 
+For LUA bindinds if you run "lua luatest.lua" and see this error message:
+luatest.lua:44: Error in Rig::set_mode (arg 2), expected 'rmode_t' got 'string'
+This means you need to upgrade both swig and lua for 64-bit lua support
+This is known to work on swig 4.0.1 and lua 5.3.5
+
 NOTE: The bootstrap script has only to be run the first time after a fresh
 checkout or when a Makefile.am or other build file is modified or added.
 
