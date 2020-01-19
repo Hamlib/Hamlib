@@ -42,7 +42,6 @@
  *
  * TODO:
  *  - advanced scanning functions
- *  - set_channel
  *  - set_ctcss_tone/ctcss_sql
  *  - set keyer?
  *  - test all that stuff..
@@ -115,9 +114,9 @@
 
 typedef struct
 {
-    unsigned char freq[5];      /* little endian frequency */
+    unsigned char freq[5];  /* little endian frequency */
     unsigned char mode;
-    unsigned char pb;       /* passband or filter selection*/
+    signed char pb;         /* passband or filter selection*/
     unsigned char data;     /* data port 0=off 1=on */
     unsigned char dup;      /* duplex, tone, tonesql and DTCS
                     Values in hex are "or"ed together
@@ -156,6 +155,7 @@ typedef channel_str_t band_stack_reg_t;
 static int ic746_set_parm(RIG *rig, setting_t parm, value_t val);
 static int ic746_get_parm(RIG *rig, setting_t parm, value_t *val);
 static int ic746pro_get_channel(RIG *rig, channel_t *chan);
+static int ic746pro_set_channel(RIG *rig, const channel_t *chan);
 static int ic746pro_set_ext_parm(RIG *rig, token_t token, value_t val);
 static int ic746pro_get_ext_parm(RIG *rig, token_t token, value_t *val);
 
@@ -575,6 +575,7 @@ const struct rig_caps ic746pro_caps =
     .set_ext_parm =  ic746pro_set_ext_parm,
     .get_ext_parm =  ic746pro_get_ext_parm,
     .get_channel = ic746pro_get_channel,
+    .set_channel = ic746pro_set_channel,
 };
 
 
@@ -1040,4 +1041,154 @@ int ic746pro_get_channel(RIG *rig, channel_t *chan)
     }
 
     return RIG_OK;
+}
+
+/*
+ * ic746pro_set_channel
+ * Assumes rig!=NULL, rig->state.priv!=NULL, chan!=NULL
+ */
+int ic746pro_set_channel(RIG *rig, const channel_t *chan)
+{
+  struct icom_priv_data *priv;
+  struct rig_state *rs;
+  mem_buf_t membuf = {0};
+  unsigned char chanbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
+  int chan_len, ack_len, freq_len, retval;
+
+  rs = &rig->state;
+  priv = (struct icom_priv_data *)rs->priv;
+
+  freq_len = priv->civ_731_mode ? 4 : 5;
+
+  // set memory channel
+  to_bcd_be(chanbuf, chan->channel_num, 4);
+  chan_len = 2;
+
+  // if good value, we change the memory otherwise clear
+  if (chan->freq != 0 || chan->mode != 0)
+    {
+      if (chan->split == RIG_SPLIT_ON)
+        membuf.chan_flag |= 0x10;
+      else
+        membuf.chan_flag |= chan->flags & RIG_CHFLAG_SKIP ? 0x01 : 0x00;
+
+      // RX
+      to_bcd(membuf.rx.freq, chan->freq, freq_len * 2);
+
+      retval = rig2icom_mode(rig, chan->mode, chan->width,
+                             &membuf.rx.mode, &membuf.rx.pb);
+
+      if (retval != RIG_OK)
+        {
+          return retval;
+        }
+
+      if(membuf.rx.pb == -1)
+        membuf.rx.pb = PD_MEDIUM_3;
+
+      membuf.rx.data = chan->flags & RIG_CHFLAG_DATA ? 1 : 0;
+      membuf.rx.dup = chan->rptr_shift;
+
+      // not empty otherwise the call fail
+      if (chan->ctcss_tone == 0)
+        to_bcd_be(membuf.rx.tone, 885, 6);
+      else
+        to_bcd_be(membuf.rx.tone, chan->ctcss_tone, 6);
+      if (chan->ctcss_sql == 0)
+        to_bcd_be(membuf.rx.tone_sql, 885, 6);
+      else
+        to_bcd_be(membuf.rx.tone_sql, chan->ctcss_sql, 6);
+
+      if (chan->dcs_code == 0)
+        to_bcd_be(membuf.rx.dcs.code, 23, 4);
+      else
+        to_bcd_be(membuf.rx.dcs.code, chan->dcs_code, 4);
+
+      // TX
+      to_bcd(membuf.tx.freq, chan->tx_freq, freq_len * 2);
+
+      retval = rig2icom_mode(rig, chan->tx_mode, chan->tx_width,
+                             &membuf.tx.mode, &membuf.tx.pb);
+
+      if (retval != RIG_OK)
+        {
+          return retval;
+        }
+
+      if(membuf.tx.pb == -1)
+        membuf.tx.pb = PD_MEDIUM_3;
+
+      membuf.tx.data = chan->flags | RIG_CHFLAG_DATA ? 1 : 0;
+      membuf.tx.dup = chan->rptr_shift;
+
+      // not empty otherwise the call fail
+      if (chan->ctcss_tone == 0)
+        to_bcd_be(membuf.tx.tone, 885, 6);
+      else
+        to_bcd_be(membuf.tx.tone, chan->ctcss_tone, 6);
+      if (chan->ctcss_sql == 0)
+        to_bcd_be(membuf.tx.tone_sql, 885, 6);
+      else
+        to_bcd_be(membuf.tx.tone_sql, chan->ctcss_sql, 6);
+
+      if (chan->dcs_code == 0)
+        to_bcd_be(membuf.tx.dcs.code, 23, 4);
+      else
+        to_bcd_be(membuf.tx.dcs.code, chan->dcs_code, 4);
+
+      // set description
+      memcpy(membuf.name, chan->channel_desc, sizeof(membuf.name));
+
+      memcpy(chanbuf+chan_len, &membuf, sizeof(mem_buf_t));
+      chan_len += sizeof(mem_buf_t);
+
+      retval = icom_transaction(rig, C_CTL_MEM, S_MEM_CNTNT,
+                                chanbuf, chan_len, ackbuf, &ack_len);
+
+      if (retval != RIG_OK)
+        {
+          return retval;
+        }
+
+      if (ack_len != 1 || ackbuf[0] != ACK)
+        {
+          rig_debug(RIG_DEBUG_ERR, "icom_set_channel: ack NG (%#.2x), "
+                    "len=%d\n", ackbuf[0], ack_len);
+          return -RIG_ERJCTED;
+        }
+    }
+  else
+    {
+      retval = icom_transaction(rig, C_SET_MEM, -1,
+                                chanbuf, chan_len, ackbuf, &ack_len);
+
+      if (retval != RIG_OK)
+        {
+          return retval;
+        }
+
+      if (ack_len != 1 || ackbuf[0] != ACK)
+        {
+          rig_debug(RIG_DEBUG_ERR, "icom_set_channel: ack NG (%#.2x), "
+                    "len=%d\n", ackbuf[0], ack_len);
+          return -RIG_ERJCTED;
+        }
+
+      retval = icom_transaction(rig, C_CLR_MEM, -1, NULL, 0, ackbuf, &ack_len);
+
+      if (retval != RIG_OK)
+        {
+          return retval;
+        }
+
+      if (ack_len != 1 || ackbuf[0] != ACK)
+        {
+          rig_debug(RIG_DEBUG_ERR, "icom_set_channel: ack NG (%#.2x), "
+                    "len=%d\n", ackbuf[0], ack_len);
+          return -RIG_ERJCTED;
+        }
+
+    }
+
+  return RIG_OK;
 }
