@@ -66,7 +66,7 @@ static rig_ptr_t rig_vprintf_arg;
  * \param size Number of chars to words to dump
  * \brief Do a hex dump of the unsigned char array.
  */
-void dump_hex(const unsigned char ptr[], size_t size)
+HAMLIB_EXPORT(void) dump_hex(const unsigned char ptr[], size_t size)
 {
     /* example
      * 0000  4b 30 30 31 34 35 30 30 30 30 30 30 30 35 30 32  K001450000000502
