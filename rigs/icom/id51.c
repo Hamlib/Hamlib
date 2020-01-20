@@ -192,8 +192,6 @@ const struct rig_caps id51_caps =
     .get_mode =  icom_get_mode,
     .set_vfo =  icom_set_vfo,
 
-    .set_powerstat = icom_set_powerstat,
-    .get_powerstat = icom_get_powerstat,
     .decode_event =  icom_decode_event,
 
     .set_func =  icom_set_func,
