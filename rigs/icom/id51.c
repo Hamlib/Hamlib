@@ -27,8 +27,11 @@
 #include <stdlib.h>
 
 #include "hamlib/rig.h"
-#include "idx_builtin.h"
+#include "token.h"
 #include "icom.h"
+#include "idx_builtin.h"
+#include "icom_defs.h"
+#include "frame.h"
 
 /*
  * Specs and protocol details comes from the chapter 17 of ID-51A_E_PLUS2_CD_0.pdf
@@ -63,6 +66,10 @@
 
 #define ID51_PARM_ALL RIG_PARM_NONE
 
+int id51_tokens[] = { TOK_DSTAR_DSQL, TOK_DSTAR_CALL_SIGN, TOK_DSTAR_MESSAGE, TOK_DSTAR_STATUS,
+    TOK_DSTAR_GPS_DATA, TOK_DSTAR_GPS_MESS, TOK_DSTAR_CODE, TOK_DSTAR_TX_DATA,
+    TOK_DSTAR_MY_CS, TOK_DSTAR_TX_CS, TOK_DSTAR_TX_MESS,
+    TOK_BACKEND_NONE };
 
 /*
  * FIXME: real measurement
@@ -88,7 +95,7 @@ const struct rig_caps id51_caps =
     .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_UNTESTED,
-    .rig_type =  RIG_TYPE_MOBILE,
+    .rig_type =  RIG_TYPE_HANDHELD,
     .ptt_type =  RIG_PTT_RIG,
     .dcd_type =  RIG_DCD_RIG,
     .port_type =  RIG_PORT_SERIAL,
@@ -111,6 +118,8 @@ const struct rig_caps id51_caps =
     .level_gran = {
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
     },
+    .ext_tokens = id51_tokens,
+    .extparms = icom_ext_parms,
     .parm_gran =  {},
     .ctcss_list =  common_ctcss_list,
     .dcs_list =  full_dcs_list,
@@ -169,6 +178,7 @@ const struct rig_caps id51_caps =
     .cfgparams =  icom_cfg_params,
     .set_conf =  icom_set_conf,
     .get_conf =  icom_get_conf,
+    .set_powerstat = icom_set_powerstat,
 
     .priv = (void *)& id51_priv_caps,
     .rig_init =   icom_init,
@@ -190,6 +200,10 @@ const struct rig_caps id51_caps =
     .get_func =  icom_get_func,
     .set_level =  icom_set_level,
     .get_level =  icom_get_level,
+    .set_parm =  icom_set_parm,
+    .get_parm =  icom_get_parm,
+    .set_ext_parm =  icom_set_ext_parm,
+    .get_ext_parm =  icom_get_ext_parm,
 
     .set_ptt =  icom_set_ptt,
     .get_ptt =  icom_get_ptt,

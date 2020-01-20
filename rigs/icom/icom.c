@@ -402,6 +402,80 @@ const struct confparams icom_cfg_params[] =
 };
 
 /*
+ *  Lookup table for icom_get_ext_parm
+ */
+
+const struct confparams icom_ext_parms[] =
+{
+    { TOK_DSTAR_DSQL, "dsdsql", "D-STAR CSQL Status", "", "", RIG_CONF_CHECKBUTTON, {} },
+    { TOK_DSTAR_CALL_SIGN, "dscals", "D-STAR Call sign", "", "", RIG_CONF_BINARY, {} },
+    { TOK_DSTAR_MESSAGE, "dsrmes", "D-STAR Rx Message", "", "", RIG_CONF_STRING, {} },
+    { TOK_DSTAR_STATUS, "dsstat", "D-STAR Rx Status", "", "", RIG_CONF_BINARY, {} },
+    { TOK_DSTAR_GPS_DATA, "dsgpsd", "D-STAR GPS Data", "", "", RIG_CONF_BINARY, {} },
+    { TOK_DSTAR_GPS_MESS, "dsgpsm", "D-STAR GPS Message", "", "", RIG_CONF_STRING, {} },
+    { TOK_DSTAR_CODE, "dscode", "D-STAR CSQL Code", "", "", RIG_CONF_NUMERIC, {} },
+    { TOK_DSTAR_TX_DATA, "dstdat", "D-STAR Tx Data", "", "", RIG_CONF_BINARY, {} },
+    { TOK_DSTAR_MY_CS, "dsmycs", "D-STAR MY Call Sign", "", "", RIG_CONF_STRING, {} },
+    { TOK_DSTAR_TX_CS, "dstxcs", "D-STAR Tx Call Sign", "", "", RIG_CONF_BINARY, {} },
+    { TOK_DSTAR_TX_MESS, "dstmes", "D-STAR Tx Message", "", "", RIG_CONF_STRING, {} },
+    { TOK_DRIVE_GAIN, "drive_gain", "Drive gain", "", "", RIG_CONF_NUMERIC, {} },
+    { TOK_DIGI_SEL_FUNC, "digi_sel", "DIGI-SEL enable", "", "", RIG_CONF_CHECKBUTTON, {} },
+    { TOK_DIGI_SEL_LEVEL, "digi_sel_level", "DIGI-SEL level", "", "", RIG_CONF_NUMERIC, {} },
+    { TOK_SCOPE_DAT, "scpdat", "Scope data", "", "", RIG_CONF_BINARY, {} },
+    { TOK_SCOPE_STS, "scpsts", "Scope status", "", "", RIG_CONF_CHECKBUTTON, {} },
+    { TOK_SCOPE_DOP, "scpdop", "Scope data output", "", "", RIG_CONF_CHECKBUTTON, {} },
+    { TOK_SCOPE_MSS, "scpmss", "Scope main/sub", "", "", RIG_CONF_CHECKBUTTON, {} },
+    { TOK_SCOPE_MOD, "scpmod", "Scope mode", "", "", RIG_CONF_BINARY, {} },
+    { TOK_SCOPE_SPN, "scpspn", "Scope span", "", "", RIG_CONF_BINARY, {} },
+    { TOK_SCOPE_EDG, "scpedg", "Scope edge", "", "", RIG_CONF_BINARY, {} },
+    { TOK_SCOPE_HLD, "scphld", "Scope hold", "", "", RIG_CONF_BINARY, {} },
+    { TOK_SCOPE_REF, "scpref", "Scope reference", "", "", RIG_CONF_BINARY, {} },
+    { TOK_SCOPE_SWP, "scpswp", "Scope sweep", "", "", RIG_CONF_BINARY, {} },
+    { TOK_SCOPE_STX, "scpstx", "Scope Tx o/p", "", "", RIG_CONF_CHECKBUTTON, {} },
+    { TOK_SCOPE_TYP, "scptyp", "Scope type", "", "", RIG_CONF_NUMERIC, {} },
+    { TOK_SCOPE_VBW, "scpvbw", "Scope vbw", "", "", RIG_CONF_BINARY, {} },
+    { TOK_SCOPE_FEF, "scpfef", "Scope edge", "", "", RIG_CONF_BINARY, {} },
+    { RIG_CONF_END, NULL, }
+};
+
+/*
+ *  Lookup table for icom_get_ext_* & icom_set_ext_* functions
+ */
+
+const struct cmdparams icom_ext_cmd[] =
+{
+    { {.t=TOK_DSTAR_CALL_SIGN}, C_CTL_DIG, S_DIG_DSCALS, SC_MOD_RW12, 2, {0}, CMD_DAT_BUF, 38 },
+    { {.t=TOK_DSTAR_MESSAGE}, C_CTL_DIG, S_DIG_DSMESS, SC_MOD_RW12, 2, {0}, CMD_DAT_STR, 32 },
+    { {.t=TOK_DSTAR_STATUS}, C_CTL_DIG, S_DIG_DSRSTS, SC_MOD_RW12, 2, {0}, CMD_DAT_BUF, 1 },
+    { {.t=TOK_DSTAR_GPS_DATA}, C_CTL_DIG, S_DIG_DSGPSD, SC_MOD_RW12, 2, {0}, CMD_DAT_BUF, 52 },
+    { {.t=TOK_DSTAR_GPS_MESS}, C_CTL_DIG, S_DIG_DSGPSM, SC_MOD_RW12, 2, {0}, CMD_DAT_STR, 52 },
+    { {.t=TOK_DSTAR_DSQL}, C_CTL_DIG, S_DIG_DSCSQL, SC_MOD_RW, 1, {0}, CMD_DAT_BOL, 1 },
+    { {.t=TOK_DSTAR_CODE}, C_CTL_DIG, S_DIG_DSCSQL, SC_MOD_RW12, 2, {0}, CMD_DAT_FLT, 1 },
+    { {.t=TOK_DSTAR_TX_DATA}, C_CTL_DSD, S_DSD_DSTXDT, SC_MOD_RW, 1, {0}, CMD_DAT_BUF, 30 },
+    { {.t=TOK_DSTAR_MY_CS}, C_CTL_DVT, S_DVT_DSMYCS, SC_MOD_RW, 1, {0}, CMD_DAT_STR, 12 },
+    { {.t=TOK_DSTAR_TX_CS}, C_CTL_DVT, S_DVT_DSTXCS, SC_MOD_RW, 1, {0}, CMD_DAT_STR, 24 },
+    { {.t=TOK_DSTAR_TX_MESS}, C_CTL_DVT, S_DVT_DSTXMS, SC_MOD_RW, 1, {0}, CMD_DAT_STR, 20 },
+    { {.t=TOK_DRIVE_GAIN}, C_CTL_LVL, S_LVL_DRIVE, SC_MOD_RW, 1, {0}, CMD_DAT_FLT, 2 },
+    { {.t=TOK_DIGI_SEL_FUNC}, C_CTL_FUNC, S_FUNC_DIGISEL, SC_MOD_RW, 1, {0}, CMD_DAT_BOL, 1 },
+    { {.t=TOK_DIGI_SEL_LEVEL}, C_CTL_LVL, S_LVL_DIGI, SC_MOD_RW, 1, {0}, CMD_DAT_FLT, 2 },
+    { {.t=TOK_SCOPE_DAT}, C_CTL_SCP, S_SCP_DAT, SC_MOD_RD, 0, {0}, CMD_DAT_BUF, 481 },
+    { {.t=TOK_SCOPE_STS}, C_CTL_SCP, S_SCP_STS, SC_MOD_RW, 0, {0}, CMD_DAT_BOL, 1 },
+    { {.t=TOK_SCOPE_DOP}, C_CTL_SCP, S_SCP_DOP, SC_MOD_RW, 0, {0}, CMD_DAT_BOL, 1 },
+    { {.t=TOK_SCOPE_MSS}, C_CTL_SCP, S_SCP_MSS, SC_MOD_RW, 0, {0}, CMD_DAT_BOL, 1 },
+    { {.t=TOK_SCOPE_MOD}, C_CTL_SCP, S_SCP_MOD, SC_MOD_RW, 0, {0}, CMD_DAT_WRD, 2 },
+    { {.t=TOK_SCOPE_SPN}, C_CTL_SCP, S_SCP_SPN, SC_MOD_RW, 0, {0}, CMD_DAT_BUF, 6 },
+    { {.t=TOK_SCOPE_EDG}, C_CTL_SCP, S_SCP_EDG, SC_MOD_RW, 0, {0}, CMD_DAT_WRD, 2 },
+    { {.t=TOK_SCOPE_HLD}, C_CTL_SCP, S_SCP_HLD, SC_MOD_RW, 0, {0}, CMD_DAT_WRD, 2 },
+    { {.t=TOK_SCOPE_REF}, C_CTL_SCP, S_SCP_REF, SC_MOD_RW, 0, {0}, CMD_DAT_BUF, 4 },
+    { {.t=TOK_SCOPE_SWP}, C_CTL_SCP, S_SCP_SWP, SC_MOD_RW, 0, {0}, CMD_DAT_WRD, 2 },
+    { {.t=TOK_SCOPE_STX}, C_CTL_SCP, S_SCP_STX, SC_MOD_RW, 0, {0}, CMD_DAT_BOL, 1 },
+    { {.t=TOK_SCOPE_TYP}, C_CTL_SCP, S_SCP_TYP, SC_MOD_RW, 0, {0}, CMD_DAT_INT, 1 },
+    { {.t=TOK_SCOPE_VBW}, C_CTL_SCP, S_SCP_VBW, SC_MOD_RW, 0, {0}, CMD_DAT_WRD, 2 },
+    { {.t=TOK_SCOPE_FEF}, C_CTL_SCP, S_SCP_FEF, SC_MOD_RW, 0, {0}, CMD_DAT_BUF, 12 },
+    { {0} }
+};
+
+/*
  * Please, if the default CI-V address of your rig is listed as UNKNOWN_ADDR,
  * send the value to <fillods@users.sourceforge.net> for inclusion. Thanks --SF
  */
@@ -1616,6 +1690,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
             return -RIG_ERJCTED;
         }
 
+        priv->curr_vfo = vfo;
         return RIG_OK;
 
     case RIG_VFO_MEM:
@@ -1634,6 +1709,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
             return -RIG_ERJCTED;
         }
 
+        priv->curr_vfo = vfo;
         return RIG_OK;
 
     case RIG_VFO_MAIN_A:    // we need to select Main before setting VFO
@@ -1653,6 +1729,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
             return -RIG_ERJCTED;
         }
 
+        priv->curr_vfo = vfo;
         return RIG_OK;
 
         break;
@@ -1674,6 +1751,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
             return -RIG_ERJCTED;
         }
 
+        priv->curr_vfo = vfo;
         return RIG_OK;
 
         break;
@@ -1703,6 +1781,121 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
     return RIG_OK;
 }
 
+int icom_set_cmd(RIG *rig, vfo_t vfo, struct cmdparams *par, value_t val)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    unsigned char cmdbuf[MAXFRAMELEN];
+    int cmdlen = 0;
+    unsigned char ackbuf[MAXFRAMELEN];
+    int acklen = 0;
+
+    if (!(par->submod & SC_MOD_WR)) return -RIG_EINVAL;
+    if ((par->submod & SC_MOD_RW12) == SC_MOD_RW12) {
+        cmdbuf[0] = 0x01;
+        cmdlen = 1;
+    } else {
+        cmdlen = par->sublen;
+        memcpy(cmdbuf, par->subext, cmdlen);
+    }
+    int wrd = val.i;
+    int i;
+    switch (par->dattyp) {
+        case CMD_DAT_WRD:
+            for (i = 1; i <= par->datlen; i++) {
+                cmdbuf[cmdlen + par->datlen - i] = wrd & 0xff;
+                wrd >>= 8;
+            }
+            break;
+        case CMD_DAT_BUF:
+            memcpy(&cmdbuf[cmdlen], val.b.d, par->datlen);
+            break;
+        case CMD_DAT_INT:
+        case CMD_DAT_BOL:
+            to_bcd_be(&cmdbuf[cmdlen], val.i, (par->datlen * 2));
+            break;
+        case CMD_DAT_FLT:
+            to_bcd_be(&cmdbuf[cmdlen], (int) val.f, (cmdlen * 2));
+            break;
+        case CMD_DAT_LVL:
+            to_bcd_be(&cmdbuf[cmdlen], (int)(val.f * 255.0), (cmdlen * 2));
+            break;
+        case CMD_DAT_TIM:
+            to_bcd_be(&cmdbuf[cmdlen], ((((int)val.f / 3600) * 100) + (((int)val.f / 60) % 60)), (par->datlen * 2));
+            break;
+        default:
+            break;
+    }
+    cmdlen += par->datlen;
+    return icom_transaction(rig, par->command, par->subcmd, cmdbuf, cmdlen, ackbuf, &acklen);
+}
+
+int icom_get_cmd(RIG *rig, vfo_t vfo, struct cmdparams *par, value_t *val)
+{
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    unsigned char ssc = 0x02;
+    unsigned char resbuf[MAXFRAMELEN];
+    int reslen = sizeof(resbuf);
+    int retval;
+
+    if (!(par->submod & SC_MOD_RD)) return -RIG_EINVAL;
+    if ((par->submod & SC_MOD_RW12) == SC_MOD_RW12) {
+        retval = icom_get_raw_buf(rig, par->command, par->subcmd, 1, &ssc, &reslen, resbuf);
+    } else {
+        retval = icom_get_raw_buf(rig, par->command, par->subcmd,
+            par->sublen, (unsigned char *)par->subext, &reslen, resbuf);
+    }
+    if (retval != RIG_OK) {
+        return retval;
+    }
+    switch (par->dattyp) {
+        case CMD_DAT_WRD: {
+                int wrd = 0;
+                int i;
+                for (i = 0; i < par->datlen; i++) {
+                    wrd = (wrd << 8) + resbuf[i];
+                }
+                val->i = wrd;
+            }
+            break;
+        case CMD_DAT_STR:
+            if (strlen(val->s) < reslen) {
+                return -RIG_EINTERNAL;
+            }
+            memcpy(val->s, resbuf, reslen);
+            val->s[reslen] = 0;
+            break;
+        case CMD_DAT_BUF:
+            if (reslen > val->b.l) {
+                 return -RIG_EINTERNAL;
+            }
+            memcpy(val->b.d, resbuf, reslen);
+            val->b.l = reslen;
+            break;
+        case CMD_DAT_INT:
+            val->i = from_bcd_be(resbuf, (reslen * 2));
+            break;
+        case CMD_DAT_FLT:
+            val->f = (float) from_bcd_be(resbuf, (reslen * 2));
+            break;
+        case CMD_DAT_LVL:
+            val->f = (float) from_bcd_be(resbuf, (reslen * 2)) / 255.0;
+            break;
+        case CMD_DAT_BOL:
+            val->i = (from_bcd_be(resbuf, (reslen * 2)) == 0) ? 0 : 1;
+            break;
+        case CMD_DAT_TIM:
+            val->i = (from_bcd_be(resbuf, 2) * 3600) + (from_bcd_be(&resbuf[1], 2) * 60);
+            break;
+        default:
+            val->i = 0;
+            break;
+    }
+    return RIG_OK;
+}
+
 /*
  * icom_set_level
  * Assumes rig!=NULL, rig->state.priv!=NULL
@@ -1719,6 +1912,14 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         (const struct icom_priv_caps *) rig->caps->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    const struct cmdparams *cmd = priv_caps->riglevels;
+    for (i = 0; cmd && cmd[i].id.s != 0; i++) {
+        if (cmd[i].id.s == level) {
+            return icom_set_cmd(rig,vfo, (struct cmdparams *)&cmd[i], val);
+        }
+    }
+
     rs = &rig->state;
 
     /*
@@ -2064,6 +2265,16 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         (const struct icom_priv_caps *) rig->caps->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    const struct icom_priv_caps *priv = rig->caps->priv;
+    const struct cmdparams *cmd = priv->riglevels;
+    int i;
+    for (i = 0; cmd && cmd[i].id.s != 0; i++) {
+        if (cmd[i].id.s == level) {
+            return icom_get_cmd(rig, vfo, (struct cmdparams *)&cmd[i], val);
+        }
+    }
+
     rs = &rig->state;
 
     lvl2_len = 0;
@@ -2501,85 +2712,78 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     return RIG_OK;
 }
 
-/*
- * icom_set_ext_level
- * Assumes rig!=NULL, rig->state.priv!=NULL
- */
 int icom_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    switch (token)
-    {
-    case TOK_DRIVE_GAIN:
-        return icom_set_raw(rig, C_CTL_LVL, S_LVL_DRIVE, 0, NULL, 2,
-                            (int) val.f);
-
-    case TOK_DIGI_SEL_FUNC:
-        return icom_set_raw(rig, C_CTL_FUNC, S_FUNC_DIGISEL, 0, NULL, 1,
-                            val.i ? 1 : 0);
-
-    case TOK_DIGI_SEL_LEVEL:
-        return icom_set_raw(rig, C_CTL_LVL, S_LVL_DIGI, 0, NULL, 2,
-                            (int) val.f);
-
-    default:
-        return -RIG_EINVAL;
-    }
+    return icom_set_ext_cmd(rig, vfo, token, val);
 }
 
-/*
- * icom_get_ext_level
- * Assumes rig!=NULL, rig->state.priv!=NULL, val!=NULL
- */
 int icom_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 {
-    int icom_val;
-    int retval;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    return icom_get_ext_cmd(rig, vfo, token, val);
+}
+
+int icom_set_ext_parm(RIG *rig, token_t token, value_t val)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    return icom_set_ext_cmd(rig, RIG_VFO_NONE, token, val);
+}
+
+int icom_get_ext_parm(RIG *rig, token_t token, value_t *val)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    return icom_get_ext_cmd(rig, RIG_VFO_NONE, token, val);
+}
+
+int icom_get_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t *val)
+{
+    int i;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    switch (token)
-    {
-    case TOK_DRIVE_GAIN:
-        retval = icom_get_raw(rig, C_CTL_LVL, S_LVL_DRIVE, 0, NULL, &icom_val);
+    for (i = 0; rig->caps->ext_tokens && rig->caps->ext_tokens[i] != TOK_BACKEND_NONE; i++) {
+        if (rig->caps->ext_tokens[i] == token) {
 
-        if (retval != RIG_OK)
-        {
-            return retval;
+            const struct icom_priv_caps *priv = rig->caps->priv;
+            const struct cmdparams *cmd = priv->extcmds ? priv->extcmds : icom_ext_cmd;
+            for (i = 0; (cmd[i].id.t != 0) || (cmd != icom_ext_cmd); ) {
+                if (cmd[i].id.t == 0) {
+                    cmd = icom_ext_cmd;
+                    i = 0;
+                } else if (cmd[i].id.t == token) {
+                    return icom_get_cmd(rig, vfo, (struct cmdparams *)&cmd[i], val);
+                } else i++;
+            }
+            return -RIG_EINVAL;
         }
-
-        val->f = (float) icom_val;
-        break;
-
-    case TOK_DIGI_SEL_FUNC:
-        retval =
-            icom_get_raw(rig, C_CTL_FUNC, S_FUNC_DIGISEL, 0, NULL, &icom_val);
-
-        if (retval != RIG_OK)
-        {
-            return retval;
-        }
-
-        val->i = icom_val ? 1 : 0;
-        break;
-
-    case TOK_DIGI_SEL_LEVEL:
-        retval = icom_get_raw(rig, C_CTL_LVL, S_LVL_DIGI, 0, NULL, &icom_val);
-
-        if (retval != RIG_OK)
-        {
-            return retval;
-        }
-
-        val->f = (float) icom_val;
-        break;
-
-    default:
-        return -RIG_EINVAL;
     }
+    return -RIG_EINVAL;
+}
 
-    return RIG_OK;
+int icom_set_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t val)
+{
+    int i;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    for (i = 0; rig->caps->ext_tokens && rig->caps->ext_tokens[i] != TOK_BACKEND_NONE; i++) {
+        if (rig->caps->ext_tokens[i] == token) {
+
+            const struct icom_priv_caps *priv = rig->caps->priv;
+            const struct cmdparams *cmd = priv->extcmds ? priv->extcmds : icom_ext_cmd;
+            for (i = 0; (cmd[i].id.t != 0) || (cmd != icom_ext_cmd); ) {
+                if (cmd[i].id.t == 0) {
+                    cmd = icom_ext_cmd;
+                    i = 0;
+                } else if (cmd[i].id.t == token) {
+                    return icom_set_cmd(rig, vfo, (struct cmdparams *)&cmd[i], val);
+                } else i++;
+            }
+            return -RIG_EINVAL;
+        }
+    }
+    return -RIG_EINVAL;
 }
 
 /*
@@ -4302,6 +4506,14 @@ int icom_set_parm(RIG *rig, setting_t parm, value_t val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
+    int i;
+    const struct icom_priv_caps *priv = rig->caps->priv;
+    const struct cmdparams *cmd = priv->rigparms;
+    for (i = 0; cmd && cmd[i].id.s != 0; i++) {
+        if (cmd[i].id.s == parm) {
+            return icom_set_cmd(rig, RIG_VFO_NONE, (struct cmdparams *)&cmd[i], val);
+        }
+    }
     switch (parm)
     {
     case RIG_PARM_ANN:
@@ -4352,6 +4564,15 @@ int icom_set_parm(RIG *rig, setting_t parm, value_t val)
 int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    const struct icom_priv_caps *priv = rig->caps->priv;
+    const struct cmdparams *cmd = priv->rigparms;
+    int i;
+    for (i = 0; cmd && cmd[i].id.s != 0; i++) {
+        if (cmd[i].id.s == parm) {
+            return icom_get_cmd(rig, RIG_VFO_NONE, (struct cmdparams *)&cmd[i], val);
+        }
+    }
 
     switch (parm)
     {
