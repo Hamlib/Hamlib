@@ -26,6 +26,7 @@
 #include <stdlib.h>
 
 #include "hamlib/rig.h"
+#include "token.h"
 #include "icom.h"
 #include "idx_builtin.h"
 #include "icom_defs.h"
@@ -42,10 +43,33 @@
 #define ICR30_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AF|RIG_LEVEL_RF|\
     RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH)
 
-#define ICR30_VFO_ALL (RIG_VFO_A)
+#define ICR30_VFO_ALL (RIG_VFO_MAIN|RIG_VFO_SUB)
 
-#define ICR30_VFO_OPS (RIG_VFO_MAIN|RIG_VFO_SUB)
+#define ICR30_VFO_OPS (RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL)
 #define ICR30_SCAN_OPS (RIG_SCAN_NONE)
+
+#define TOK_ANL TOKEN_BACKEND(001)
+#define TOK_EAR TOKEN_BACKEND(002)
+#define TOK_REC TOKEN_BACKEND(003)
+
+int icr30_tokens[] = { TOK_ANL, TOK_EAR, TOK_REC,
+    TOK_DSTAR_DSQL, TOK_DSTAR_CALL_SIGN, TOK_DSTAR_MESSAGE, TOK_DSTAR_STATUS,
+    TOK_DSTAR_GPS_DATA, TOK_DSTAR_GPS_MESS, TOK_DSTAR_CODE, TOK_DSTAR_TX_DATA,
+    TOK_BACKEND_NONE };
+
+struct confparams icr30_ext[] = {
+    { TOK_ANL, "anl", "Auto noise limiter", "", "", RIG_CONF_CHECKBUTTON, {} },
+    { TOK_EAR, "ear", "Earphone mode", "", "", RIG_CONF_CHECKBUTTON, {} },
+    { TOK_REC, "record", "Recorder on/off", "", "", RIG_CONF_CHECKBUTTON, {} },
+    { 0 }
+};
+
+struct cmdparams icr30_extcmds[] = {
+    { {.t=TOK_ANL}, C_CTL_MEM, S_MEM_ANL, SC_MOD_RW, 0, {}, CMD_DAT_BOL, 1 },
+    { {.t=TOK_EAR}, C_CTL_MEM, S_MEM_EAR, SC_MOD_RW, 0, {}, CMD_DAT_BOL, 1 },
+    { {.t=TOK_REC}, C_CTL_MEM, S_MEM_REC, SC_MOD_WR, 0, {}, CMD_DAT_BOL, 1 },
+    { {0} }
+};
 
 #define ICR30_STR_CAL { 2, \
     { \
@@ -96,7 +120,8 @@ static const struct icom_priv_caps icr30_priv_caps =
     0,    /* no XCHG */
     r8500_ts_sc_list, /* wrong, but don't have set_ts anyway */
     .r2i_mode = icr30_r2i_mode,
-    .offs_len = 4
+    .offs_len = 4,
+    .extcmds = icr30_extcmds      /* Custom ext_parm parameters */
 };
 
 const struct rig_caps icr30_caps =
@@ -126,11 +151,14 @@ const struct rig_caps icr30_caps =
     .has_get_level =  ICR30_LEVEL_ALL,
     .has_set_level =  RIG_LEVEL_SET(ICR30_LEVEL_ALL),
     .has_get_parm =  RIG_PARM_NONE,
-    .has_set_parm =  RIG_PARM_NONE, /* FIXME: parms */
+    .has_set_parm =  RIG_PARM_NONE,
     .level_gran = {
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
     },
     .parm_gran =  {},
+    .ext_tokens = icr30_tokens,
+    .extlevels = icr30_ext,
+    .extparms = icom_ext_parms,
     .ctcss_list =  common_ctcss_list,
     .dcs_list =  common_dcs_list,
     .preamp =   { RIG_DBLST_END, },
@@ -197,9 +225,10 @@ const struct rig_caps icr30_caps =
     },
     .str_cal = ICR30_STR_CAL,
 
-    .cfgparams =  icom_cfg_params,
-    .set_conf =  icom_set_conf,
-    .get_conf =  icom_get_conf,
+    .cfgparams = icom_cfg_params,
+    .set_conf = icom_set_conf,
+    .get_conf = icom_get_conf,
+    .set_powerstat = icom_set_powerstat,
 
     .priv = (void *)& icr30_priv_caps,
     .rig_init =   icom_init,
@@ -217,20 +246,26 @@ const struct rig_caps icr30_caps =
     .get_rptr_offs = icom_get_rptr_offs,
     .set_rptr_shift = icom_set_rptr_shift,
     .get_rptr_shift = icom_get_rptr_shift,
-    .set_ts =  icom_set_ts,
-    .get_ts =  icom_get_ts,
-    .set_ant =  icom_set_ant,
-    .get_ant =  icom_get_ant,
+    .set_ts = icom_set_ts,
+    .get_ts = icom_get_ts,
+    .set_ant = icom_set_ant,
+    .get_ant = icom_get_ant,
     .set_bank = icom_set_bank,
     .set_mem = icom_set_mem,
     .decode_event =  icom_decode_event,
-    .set_level =  icom_set_level,
-    .get_level =  icom_get_level,
-    .set_func =  icom_set_func,
-    .get_func =  icom_get_func,
-    .get_dcd =  icom_get_dcd,
-    .set_ctcss_sql =  icom_set_ctcss_sql,
-    .get_ctcss_sql =  icom_get_ctcss_sql,
-    .set_dcs_sql =  icom_set_dcs_sql,
-    .get_dcs_sql =  icom_get_dcs_sql,
+    .set_level = icom_set_level,
+    .get_level = icom_get_level,
+    .set_func = icom_set_func,
+    .get_func = icom_get_func,
+    .set_parm = icom_set_parm,
+    .get_parm = icom_get_parm,
+    .set_ext_parm = icom_set_ext_parm,
+    .get_ext_parm = icom_get_ext_parm,
+    .set_ext_level = icom_set_ext_level,
+    .get_ext_level = icom_get_ext_level,
+    .get_dcd = icom_get_dcd,
+    .set_ctcss_sql = icom_set_ctcss_sql,
+    .get_ctcss_sql = icom_get_ctcss_sql,
+    .set_dcs_sql = icom_set_dcs_sql,
+    .get_dcs_sql = icom_get_dcs_sql,
 };

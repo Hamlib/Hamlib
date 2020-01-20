@@ -105,6 +105,20 @@ struct icom_agc_level
     icom_level; /* Icom AGC level for C_CTL_FUNC (0x16), S_FUNC_AGC (0x12) command */
 };
 
+struct cmdparams {      /* Lookup table item for levels & parms */
+    union {
+        setting_t s;    /* Level or parm */
+        token_t t;      /* TOKEN_BACKEND */
+    } id;
+    int command;        /* CI-V command */
+    int subcmd;         /* CI-V Subcommand */
+    int submod;         /* Subcommand modifier */
+    int sublen;         /* Number of bytes for subcommand extension */
+    unsigned char subext[4];   /* Subcommand extension bytes */
+    int dattyp;         /* Data type conversion */
+    int datlen;         /* Number of data bytes in frame */
+};
+
 struct icom_priv_caps
 {
     unsigned char re_civ_addr;  /* the remote dlft equipment's CI-V address*/
@@ -121,12 +135,14 @@ struct icom_priv_caps
                                to convert response
                                tokens to bandwidth and
                                mode */
-    int serial_full_duplex; /*!< Whether RXD&TXD are not tied together */
-    int offs_len; /* Number of bytes in offset frequency field. 0 defaults to 3 */
-    int serial_USB_echo_check; /* Flag to test USB echo state */
-    int agc_levels_present; /* Flag to indicate that agc_levels array is populated */
-    struct icom_agc_level agc_levels[RIG_AGC_LAST +
-                                                      1]; /* Icom rig-specific AGC levels, the last entry should have level -1 */
+    int serial_full_duplex;     /*!< Whether RXD&TXD are not tied together */
+    int offs_len;               /* Number of bytes in offset frequency field. 0 defaults to 3 */
+    int serial_USB_echo_check;  /* Flag to test USB echo state */
+    int agc_levels_present;     /* Flag to indicate that agc_levels array is populated */
+    struct icom_agc_level agc_levels[RIG_AGC_LAST + 1]; /* Icom rig-specific AGC levels, the last entry should have level -1 */
+    struct cmdparams *rigparms; /* Pointer to rig custom parameters array */
+    struct cmdparams *riglevels;/* Pointer to rig custom levels array */
+    struct cmdparams *extcmds;  /* Pointer to extended operations array */
 };
 
 
@@ -228,6 +244,10 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 int icom_set_parm(RIG *rig, setting_t parm, value_t val);
 int icom_get_parm(RIG *rig, setting_t parm, value_t *val);
+int icom_set_ext_parm(RIG *rig, token_t token, value_t val);
+int icom_get_ext_parm(RIG *rig, token_t token, value_t *val);
+int icom_set_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t val);
+int icom_get_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t *val);
 int icom_set_conf(RIG *rig, token_t token, const char *val);
 int icom_get_conf(RIG *rig, token_t token, char *val);
 int icom_set_powerstat(RIG *rig, powerstat_t status);
@@ -262,6 +282,9 @@ int icom_get_custom_parm_time(RIG *rig, int parmbuflen, unsigned char *parmbuf,
                               int *seconds);
 
 extern const struct confparams icom_cfg_params[];
+extern const struct confparams icom_ext_parms[];
+extern const struct cmdparams icom_rig_cmds[];
+extern const struct cmdparams icom_ext_cmds[];
 
 extern const struct rig_caps ic703_caps;
 extern const struct rig_caps ic706_caps;

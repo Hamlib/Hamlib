@@ -92,9 +92,12 @@
 #define C_CTL_MEM	0x1a		/* Misc memory/bank/rig control functions, Sc */
 #define C_SET_TONE	0x1b		/* Set tone frequency */
 #define C_CTL_PTT	0x1c		/* Control Transmit On/Off, Sc */
+#define C_CTL_DVT	0x1f		/* Digital modes calsigns & messages */
 #define C_CTL_DIG	0x20		/* Digital modes settings & status */
 #define C_CTL_RIT	0x21		/* RIT/XIT control */
+#define C_CTL_DSD	0x22		/* D-STAR Data */
 #define C_SEND_SEL_FREQ 0x25 /* Send/Recv sel/unsel VFO frequency */
+#define C_CTL_SCP	0x27		/* Scope control & data */
 #define C_CTL_MTEXT	0x70		/* Microtelecom Extension */
 #define C_CTL_MISC	0x7f		/* Miscellaneous control, Sc */
 
@@ -411,6 +414,8 @@
 
 /* IC-R30 */
 #define S_MEM_ANL 0x00		/* ANL Off/On */
+#define S_MEM_EAR 0x01		/* Earphone mode Off/On */
+#define S_MEM_REC 0x09		/* Recorder Off/On */
 
 /*
  * Tone control (C_SET_TONE) subcommands
@@ -442,14 +447,35 @@
 #define S_DIG_DSGPSD	 0x03		/* D-STAR GPS data */
 #define S_DIG_DSGPSM	 0x04		/* D-STAR GPS message */
 #define S_DIG_DSCSQL	 0x05		/* D-STAR CSQL */
-#define S_DIG_P25ID	 0x06		/* P25 ID */
+#define S_DIG_P25ID 	 0x06		/* P25 ID */
 #define S_DIG_P25STS	 0x07		/* P25 Rx status */
 #define S_DIG_DPRXID	 0x08		/* dPMR Rx ID */
 #define S_DIG_DPRSTS	 0x09		/* dPMR Rx status */
 #define S_DIG_NXRXID	 0x0A		/* NXDN Rx ID */
 #define S_DIG_NXRSTS	 0x0B		/* NXDN Rx status */
 #define S_DIG_DCRXID	 0x0C		/* DCR Rx ID */
-#define S_DIG_DCRSTS	 0x0D		/* DCR Rx status */
+#define S_DVT_DSMYCS	 0x00		/* D-STAR My CS */
+#define S_DVT_DSTXCS	 0x01		/* D-STAR Tx CS */
+#define S_DVT_DSTXMS	 0x02		/* D-STAR Tx Mess */
+#define S_DSD_DSTXDT	 0x00		/* D-STAR Tx Data */
+
+/*
+ * S_CTL_SCP	Scope control & data subcommands
+ */
+#define S_SCP_DAT		0x00        /* Read data */
+#define S_SCP_STS		0x10        /* On/Off status */
+#define S_SCP_DOP		0x11        /* Data O/P Control */
+#define S_SCP_MSS		0x12        /* Main/Sub setting */
+#define S_SCP_MOD		0x14        /* Centre/Fixed mode */
+#define S_SCP_SPN		0x15        /* Span setting */
+#define S_SCP_EDG		0x16        /* Edge setting */
+#define S_SCP_HLD		0x17        /* Hold On/Off */
+#define S_SCP_REF		0x19        /* Reference level */
+#define S_SCP_SWP		0x1a        /* Sweep speed */
+#define S_SCP_STX		0x1b        /* Scope during Tx */
+#define S_SCP_TYP		0x1c        /* Display type */
+#define S_SCP_VBW		0x1d        /* VBW setting */
+#define S_SCP_FEF		0x1e        /* Fixed edge freqs */
 
 /*
  * C_CTL_MISC	OptoScan extension
@@ -502,5 +528,52 @@
 #define TOK_DRIVE_GAIN TOKEN_BACKEND(103)
 #define TOK_DIGI_SEL_FUNC TOKEN_BACKEND(104)
 #define TOK_DIGI_SEL_LEVEL TOKEN_BACKEND(105)
+#define TOK_DSTAR_CALL_SIGN TOKEN_BACKEND(120)
+#define TOK_DSTAR_MESSAGE TOKEN_BACKEND(121)
+#define TOK_DSTAR_STATUS TOKEN_BACKEND(122)
+#define TOK_DSTAR_GPS_DATA TOKEN_BACKEND(123)
+#define TOK_DSTAR_GPS_MESS TOKEN_BACKEND(124)
+#define TOK_DSTAR_DSQL TOKEN_BACKEND(125)
+#define TOK_DSTAR_MY_CS TOKEN_BACKEND(126)
+#define TOK_DSTAR_TX_CS TOKEN_BACKEND(127)
+#define TOK_DSTAR_TX_MESS TOKEN_BACKEND(128)
+#define TOK_DSTAR_TX_DATA TOKEN_BACKEND(129)
+#define TOK_DSTAR_CODE TOKEN_BACKEND(130)
+#define TOK_SCOPE_DAT TOKEN_BACKEND(131)
+#define TOK_SCOPE_STS TOKEN_BACKEND(132)
+#define TOK_SCOPE_DOP TOKEN_BACKEND(133)
+#define TOK_SCOPE_MSS TOKEN_BACKEND(134)
+#define TOK_SCOPE_MOD TOKEN_BACKEND(135)
+#define TOK_SCOPE_SPN TOKEN_BACKEND(136)
+#define TOK_SCOPE_EDG TOKEN_BACKEND(137)
+#define TOK_SCOPE_HLD TOKEN_BACKEND(138)
+#define TOK_SCOPE_REF TOKEN_BACKEND(139)
+#define TOK_SCOPE_SWP TOKEN_BACKEND(140)
+#define TOK_SCOPE_STX TOKEN_BACKEND(141)
+#define TOK_SCOPE_TYP TOKEN_BACKEND(142)
+#define TOK_SCOPE_VBW TOKEN_BACKEND(143)
+#define TOK_SCOPE_FEF TOKEN_BACKEND(144)
+
+/*
+ * icom_ext_parm table subcommand modifiers
+ */
+
+ #define SC_MOD_RD 0x01     /* Readable */
+ #define SC_MOD_WR 0x02     /* Writeable */
+ #define SC_MOD_RW 0x03     /* Read-write */
+ #define SC_MOD_RW12 0x07   /* Write +0x01, Read +0x02 */
+
+/*
+ * icom_ext_parm table data types
+ */
+
+ #define CMD_DAT_WRD 0x00     /* literal single word type */
+ #define CMD_DAT_INT 0x01     /* bcd int type */
+ #define CMD_DAT_FLT 0x02     /* bcd float type */
+ #define CMD_DAT_LVL 0x03     /* bcd level type */
+ #define CMD_DAT_BOL 0x04     /* bcd boolean type */
+ #define CMD_DAT_STR 0x05     /* string type */
+ #define CMD_DAT_BUF 0x06     /* literal byte buffer type */
+ #define CMD_DAT_TIM 0x07     /* Time type HHMM<>seconds */
 
 #endif /* _ICOM_DEFS_H */

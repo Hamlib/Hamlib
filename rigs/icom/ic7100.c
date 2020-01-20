@@ -31,6 +31,7 @@
 #include "frame.h"
 #include "idx_builtin.h"
 #include "bandplan.h"
+#include "token.h"
 
 
 #define IC7100_MODES (RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR|\
@@ -98,7 +99,32 @@
                             RIG_LEVEL_MONITOR_GAIN| \
                             RIG_LEVEL_NB)
 
-#define IC7100_PARM_ALL (RIG_PARM_ANN|RIG_PARM_BACKLIGHT)
+#define IC7100_PARM_ALL (RIG_PARM_ANN|RIG_PARM_BACKLIGHT|RIG_PARM_KEYLIGHT|RIG_PARM_BEEP|RIG_PARM_TIME)
+
+struct cmdparams ic7100_rigparms[] = {
+    { {.s=RIG_PARM_BEEP}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x03}, CMD_DAT_BOL, 1 },
+    { {.s=RIG_PARM_BACKLIGHT}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x04}, CMD_DAT_LVL, 2 },
+    { {.s=RIG_PARM_KEYLIGHT}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x05}, CMD_DAT_LVL, 2 },
+    { {.s=RIG_PARM_TIME}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x21}, CMD_DAT_TIM, 2 },
+    { {.s=RIG_PARM_NONE} }
+};
+
+struct cmdparams ic7100_riglevels[] = {
+    { {.s=RIG_LEVEL_VOXDELAY}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x65}, CMD_DAT_INT, 1 },
+    { {.s=RIG_LEVEL_NONE} }
+};
+
+int ic7100_tokens[] = { TOK_DSTAR_CODE, TOK_DSTAR_DSQL, TOK_DSTAR_CALL_SIGN, TOK_DSTAR_MESSAGE,
+    TOK_DSTAR_STATUS, TOK_DSTAR_MY_CS, TOK_DSTAR_TX_CS, TOK_DSTAR_TX_MESS,
+    TOK_BACKEND_NONE };
+
+struct confparams ic7100_ext[] = {
+    { 0 }
+};
+
+struct cmdparams ic7100_extcmds[] = {
+    { {0} }
+};
 
 // IC-7100 S-meter calibration data based on manual
 #define IC7100_STR_CAL { 14, \
@@ -154,9 +180,6 @@
 
 #define IC7100_HF_ANTS (RIG_ANT_1|RIG_ANT_2)
 
-int ic7100_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
-int ic7100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-
 /*
  * IC-7100 rig capabilities.
  */
@@ -173,6 +196,9 @@ static const struct icom_priv_caps ic7100_priv_caps =
         { .level = RIG_AGC_SLOW, .icom_level = 3 },
         { .level = -1, .icom_level = 0 },
     },
+    .rigparms = ic7100_rigparms,
+    .riglevels = ic7100_riglevels,
+    .extcmds = ic7100_extcmds
 };
 
 const struct rig_caps ic7100_caps =
@@ -182,7 +208,7 @@ const struct rig_caps ic7100_caps =
     .mfg_name =  "Icom",
     .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
-    .status =  RIG_STATUS_UNTESTED,
+    .status =  RIG_STATUS_ALPHA,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
     .ptt_type =  RIG_PTT_RIG,
     .dcd_type =  RIG_DCD_RIG,
@@ -209,6 +235,9 @@ const struct rig_caps ic7100_caps =
         [LVL_KEYSPD] = { .min = { .i = 6 }, .max = { .i = 48 }, .step = { .i = 1 } },
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 900 }, .step = { .i = 1 } },
     },
+    .ext_tokens = ic7100_tokens,
+    .extlevels = ic7100_ext,
+    .extparms = icom_ext_parms,
     .parm_gran =  {},
     .ctcss_list =  common_ctcss_list,
     .dcs_list =  common_dcs_list,
@@ -334,8 +363,8 @@ const struct rig_caps ic7100_caps =
     .set_ts =  icom_set_ts,
     .get_func =  icom_get_func,
     .set_func =  icom_set_func,
-    .get_level =  ic7100_get_level,
-    .set_level =  ic7100_set_level,
+    .get_level =  icom_get_level,
+    .set_level =  icom_set_level,
 
     .set_ptt =  icom_set_ptt,
     .get_ptt =  icom_get_ptt,
@@ -355,7 +384,8 @@ const struct rig_caps ic7100_caps =
 
     .set_parm =  icom_set_parm,
     .get_parm =  icom_get_parm,
-
+    .set_ext_parm =  icom_set_ext_parm,
+    .get_ext_parm =  icom_get_ext_parm,
     .set_mem =  icom_set_mem,
     .vfo_op =  icom_vfo_op,
     .scan =  icom_scan,
@@ -371,39 +401,3 @@ const struct rig_caps ic7100_caps =
     .get_powerstat = icom_get_powerstat,
     .send_morse = icom_send_morse
 };
-
-int ic7100_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
-{
-    unsigned char cmdbuf[MAXFRAMELEN];
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    switch (level)
-    {
-    case RIG_LEVEL_VOXDELAY:
-        cmdbuf[0] = 0x01;
-        cmdbuf[1] = 0x65;
-        return icom_set_level_raw(rig, level, C_CTL_MEM, 0x05, 2, cmdbuf, 1, val);
-
-    default:
-        return icom_set_level(rig, vfo, level, val);
-    }
-}
-
-int ic7100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
-{
-    unsigned char cmdbuf[MAXFRAMELEN];
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    switch (level)
-    {
-    case RIG_LEVEL_VOXDELAY:
-        cmdbuf[0] = 0x01;
-        cmdbuf[1] = 0x65;
-        return icom_get_level_raw(rig, level, C_CTL_MEM, 0x05, 2, cmdbuf, val);
-
-    default:
-        return icom_get_level(rig, vfo, level, val);
-    }
-}
