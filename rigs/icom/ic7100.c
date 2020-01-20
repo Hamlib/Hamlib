@@ -398,6 +398,5 @@ const struct rig_caps ic7100_caps =
     .set_split_mode = icom_set_split_mode,
     .get_split_mode = icom_get_split_mode,
     .set_powerstat = icom_set_powerstat,
-    .get_powerstat = icom_get_powerstat,
     .send_morse = icom_send_morse
 };
