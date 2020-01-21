@@ -415,6 +415,7 @@ const struct rig_caps ic7300_caps =
     .set_split_vfo =  icom_set_split_vfo,
     .get_split_vfo =  icom_get_split_vfo,
     .set_powerstat = icom_set_powerstat,
+    .get_powerstat = icom_get_powerstat,
     .power2mW = icom_power2mW,
     .mW2power = icom_mW2power,
     .send_morse = icom_send_morse
