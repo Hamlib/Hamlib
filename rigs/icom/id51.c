@@ -178,7 +178,6 @@ const struct rig_caps id51_caps =
     .cfgparams =  icom_cfg_params,
     .set_conf =  icom_set_conf,
     .get_conf =  icom_get_conf,
-    .set_powerstat = icom_set_powerstat,
 
     .priv = (void *)& id51_priv_caps,
     .rig_init =   icom_init,
