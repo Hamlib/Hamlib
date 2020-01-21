@@ -7,7 +7,7 @@ void used_externally()
 {
     uh_close_wkey(); // used by external programs
     uh_open_wkey();  // used by external programs
-    rig_mem_count(); // referenced by rig.swg
+    rig_mem_count(); // referenced by rig.swg and tcl
 }
 
 void never_used()
