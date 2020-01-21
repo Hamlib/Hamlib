@@ -131,8 +131,7 @@ typedef struct
     unsigned char tone_sql[3];  /* tone squelch frequency as tone */
     struct
     {
-        //unsigned char
-        //pol;  /* DTCS polarity by nibbles Tx pol | Rx pol; 0 = normal; 1 = rev */
+        unsigned char pol;      /* DTCS polarity by nibbles Tx pol | Rx pol; 0 = normal; 1 = rev */
         unsigned char code[2];  /* DTCS code bigendian */
     } dcs;
 } channel_str_t;
@@ -905,7 +904,7 @@ int ic746pro_get_channel(RIG *rig, channel_t *chan)
 {
     struct icom_priv_data *priv;
     struct rig_state *rs;
-    unsigned char chanbuf[50];
+    unsigned char chanbuf[MAXFRAMELEN];
     mem_buf_t *membuf;
     int chan_len, freq_len, retval, data_len;
 
@@ -984,7 +983,8 @@ int ic746pro_get_channel(RIG *rig, channel_t *chan)
 
         membuf = (mem_buf_t *)(chanbuf + 4);
 
-        chan->flags = membuf->chan_flag && 0x01 ? RIG_CHFLAG_SKIP : RIG_CHFLAG_NONE;
+        chan->split = membuf->chan_flag & 0x10 ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
+        chan->flags = membuf->chan_flag & 0x01 ? RIG_CHFLAG_SKIP : RIG_CHFLAG_NONE;
         rig_debug(RIG_DEBUG_TRACE, "%s: chan->flags=0x%02x\n", __func__, chan->flags);
         /* data mode on */
         rig_debug(RIG_DEBUG_TRACE, "%s: membuf->rx.data=0x%02x\n", __func__, membuf->rx.data);
@@ -1003,7 +1003,7 @@ int ic746pro_get_channel(RIG *rig, channel_t *chan)
         rig_debug(RIG_DEBUG_TRACE, "%s: chan->rptr_shift=%d\n", __func__, chan->rptr_shift);
 
         /* offset is default for the band & is not stored in channel memory.
-          The following retrieves the system default for the band */
+           The following retrieves the system default for the band */
         band = (int) chan->freq / 1000000;  /* hf, 2m or 6 m */
 
         if (band < 50) { sc = S_MEM_HF_DUP_OFST; }
