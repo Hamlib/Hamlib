@@ -2019,7 +2019,7 @@ int tt565_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
  * The efficient way would be to keep current config in rig priv area, but we will
  * ask the rig what its state is each time...
  */
-int tt565_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
+int tt565_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 {
     char respbuf[TT565_BUFSIZE];
     int resp_len, retval;
@@ -2116,7 +2116,7 @@ int tt565_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
  *
  * \sa tt565_set_ant
  */
-int tt565_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
+int tt565_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option)
 {
     char respbuf[TT565_BUFSIZE];
     int resp_len, retval;

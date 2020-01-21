@@ -94,7 +94,7 @@ static int dttsp_get_conf(RIG *rig, token_t token, char *val);
 static int dttsp_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 static int dttsp_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 static int dttsp_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
-static int dttsp_set_ant(RIG *rig, vfo_t vfo, ant_t ant);
+static int dttsp_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option);
 
 static int dttsp_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
 static int dttsp_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
@@ -992,13 +992,13 @@ int dttsp_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 }
 
 
-int dttsp_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
+int dttsp_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 {
     struct dttsp_priv_data *priv = (struct dttsp_priv_data *)rig->state.priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: ant %d, try tuner\n",
               __func__, ant);
 
-    return rig_set_ant(priv->tuner, vfo, ant);
+    return rig_set_ant(priv->tuner, vfo, ant, option);
 }
 
