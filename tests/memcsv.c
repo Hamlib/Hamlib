@@ -548,11 +548,6 @@ void dump_csv_name(const channel_cap_t *mem_caps, FILE *f)
         fprintf(f, "flags%c", csv_sep);
     }
 
-    if (mem_caps->channel_desc)
-    {
-        fprintf(f, "channel_desc%c", csv_sep);
-    }
-
     fprintf(f, "\n");
 }
 
@@ -706,11 +701,6 @@ int dump_csv_chan(RIG *rig,
     if (mem_caps->flags)
     {
         fprintf(f, "%x%c", chan.flags, csv_sep);
-    }
-
-    if (mem_caps->channel_desc)
-    {
-        fprintf(f, "%s", chan.channel_desc);
     }
 
     fprintf(f, "\n");
