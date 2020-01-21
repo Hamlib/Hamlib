@@ -487,7 +487,7 @@ int drake_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  * drake_set_ant
  * Assumes rig!=NULL
  */
-int drake_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
+int drake_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 {
     unsigned char buf[16], ackbuf[16];
     int len, ack_len, retval;
@@ -504,7 +504,7 @@ int drake_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
  * drake_get_ant
  * Assumes rig!=NULL
  */
-int drake_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
+int drake_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option)
 {
     int mdbuf_len, retval;
     char mdbuf[BUFSZ];
@@ -541,7 +541,6 @@ int drake_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
         *ant = RIG_ANT_NONE;
         return -RIG_EINVAL;
     }
-
     return RIG_OK;
 }
 
@@ -617,6 +616,7 @@ int drake_set_chan(RIG *rig, const channel_t *chan)
     int     old_chan;
     char    mdbuf[16], ackbuf[16];
     int     mdbuf_len, ack_len, retval;
+    value_t dummy;
 
     drake_get_vfo(rig, &old_vfo);
     old_chan = 0;
@@ -634,7 +634,7 @@ int drake_set_chan(RIG *rig, const channel_t *chan)
     }
 
     /* set all memory features */
-    drake_set_ant(rig, RIG_VFO_CURR, chan->ant);
+    drake_set_ant(rig, RIG_VFO_CURR, chan->ant, dummy);
     drake_set_freq(rig, RIG_VFO_CURR, chan->freq);
     drake_set_mode(rig, RIG_VFO_CURR, chan->mode, chan->width);
     drake_set_func(rig, RIG_VFO_CURR, RIG_FUNC_NB,

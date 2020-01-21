@@ -519,7 +519,7 @@ int main(int argc, char *argv[])
     if (retcode != RIG_OK)
     {
         fprintf(stderr, "rig_open: error = %s \n", rigerror(retcode));
-        exit(2);
+//        exit(2);
     }
 
     if (verbose > 0)
