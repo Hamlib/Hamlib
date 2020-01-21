@@ -76,8 +76,7 @@
 
 /* Delay sequential fast writes */
 
-#define FT900_POST_WRITE_DELAY               5
-
+#define FT900_POST_WRITE_DELAY               50
 
 /* Rough safe value for default timeout */
 
