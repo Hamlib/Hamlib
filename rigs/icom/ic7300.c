@@ -57,6 +57,18 @@
 
 #define IC7300_ANTS (RIG_ANT_1) /* ant-1 is Hf-6m */
 
+struct cmdparams ic7300_rigparms[] = {
+    { {.s=RIG_PARM_BEEP}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x23}, CMD_DAT_BOL, 1 },
+    { {.s=RIG_PARM_BACKLIGHT}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x81}, CMD_DAT_LVL, 2 },
+    { {.s=RIG_PARM_TIME}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x95}, CMD_DAT_TIM, 2 },
+    { {.s=RIG_PARM_NONE} }
+};
+
+struct cmdparams ic7300_riglevels[] = {
+    { {.s=RIG_LEVEL_VOXDELAY}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x91}, CMD_DAT_INT, 1 },
+    { {.s=RIG_LEVEL_NONE} }
+};
+
 /*
  * IC-7300 S-meter levels measured from live signals on multiple bands. Provides a good approximation.
  */
@@ -125,6 +137,17 @@
 #define IC9700_VFO_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL)
 #define IC9700_ALL_TX_MODES (RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_DSTAR|RIG_MODE_DD)
 #define IC9700_ALL_RX_MODES (RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_DSTAR|RIG_MODE_DD)
+
+struct cmdparams ic9700_rigparms[] = {
+    { {.s=RIG_PARM_BEEP}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x29}, CMD_DAT_BOL, 1 },
+    { {.s=RIG_PARM_BACKLIGHT}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x52}, CMD_DAT_LVL, 2 },
+    { {.s=RIG_PARM_NONE} }
+};
+
+struct cmdparams ic9700_riglevels[] = {
+    { {.s=RIG_LEVEL_VOXDELAY}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x03, 0x30}, CMD_DAT_INT, 1 },
+    { {.s=RIG_LEVEL_NONE} }
+};
 
 #define IC9700_STR_CAL { 7, \
     { \
@@ -196,6 +219,8 @@ static const struct icom_priv_caps IC7300_priv_caps =
         { .level = RIG_AGC_SLOW, .icom_level = 3 },
         { .level = -1, .icom_level = 0 },
     },
+    .rigparms = ic7300_rigparms,   /* Custom parm parameters */
+    .riglevels = ic7300_riglevels,   /* Custom level parameters */
 };
 
 static const struct icom_priv_caps IC9700_priv_caps =
@@ -212,14 +237,9 @@ static const struct icom_priv_caps IC9700_priv_caps =
         { .level = RIG_AGC_SLOW, .icom_level = 3 },
         { .level = -1, .icom_level = 0 },
     },
+    .rigparms = ic9700_rigparms,   /* Custom parm parameters */
+    .riglevels = ic9700_riglevels,   /* Custom level parameters */
 };
-
-int ic7300_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
-int ic7300_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-int ic9700_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
-int ic9700_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-int ic7300_set_parm(RIG *rig, setting_t parm, value_t val);
-int ic7300_get_parm(RIG *rig, setting_t parm, value_t *val);
 
 const struct rig_caps ic7300_caps =
 {
@@ -364,14 +384,14 @@ const struct rig_caps ic7300_caps =
     .set_xit =  icom_set_xit_new,
 
     .decode_event =  icom_decode_event,
-    .set_level =  ic7300_set_level,
-    .get_level =  ic7300_get_level,
+    .set_level =  icom_set_level,
+    .get_level =  icom_get_level,
     .set_ext_level =  icom_set_ext_level,
     .get_ext_level =  icom_get_ext_level,
     .set_func =  icom_set_func,
     .get_func =  icom_get_func,
-    .set_parm =  ic7300_set_parm,
-    .get_parm =  ic7300_get_parm,
+    .set_parm =  icom_set_parm,
+    .get_parm =  icom_get_parm,
     .set_mem =  icom_set_mem,
     .vfo_op =  icom_vfo_op,
     .scan =  icom_scan,
@@ -395,11 +415,9 @@ const struct rig_caps ic7300_caps =
     .set_split_vfo =  icom_set_split_vfo,
     .get_split_vfo =  icom_get_split_vfo,
     .set_powerstat = icom_set_powerstat,
-    .get_powerstat = icom_get_powerstat,
     .power2mW = icom_power2mW,
     .mW2power = icom_mW2power,
     .send_morse = icom_send_morse
-
 };
 
 const struct rig_caps ic9700_caps =
@@ -540,8 +558,8 @@ const struct rig_caps ic9700_caps =
     .get_rit =  icom_get_rit_new,
 
     .decode_event =  icom_decode_event,
-    .set_level =  ic9700_set_level,
-    .get_level =  ic9700_get_level,
+    .set_level =  icom_set_level,
+    .get_level =  icom_get_level,
     .set_ext_level =  icom_set_ext_level,
     .get_ext_level =  icom_get_ext_level,
     .set_func =  icom_set_func,
@@ -571,156 +589,7 @@ const struct rig_caps ic9700_caps =
     .set_split_vfo =  icom_set_split_vfo,
     .get_split_vfo =  icom_get_split_vfo,
     .set_powerstat = icom_set_powerstat,
-    .get_powerstat = icom_get_powerstat,
     .power2mW = icom_power2mW,
     .mW2power = icom_mW2power,
     .send_morse = icom_send_morse
-
 };
-
-int ic7300_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
-{
-    unsigned char cmdbuf[MAXFRAMELEN];
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    switch (level)
-    {
-    case RIG_LEVEL_VOXDELAY:
-        cmdbuf[0] = 0x01;
-        cmdbuf[1] = 0x91;
-        return icom_set_level_raw(rig, level, C_CTL_MEM, S_MEM_PARM, 2, cmdbuf, 1, val);
-
-    default:
-        return icom_set_level(rig, vfo, level, val);
-    }
-}
-
-int ic7300_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
-{
-    unsigned char cmdbuf[MAXFRAMELEN];
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    switch (level)
-    {
-    case RIG_LEVEL_VOXDELAY:
-        cmdbuf[0] = 0x01;
-        cmdbuf[1] = 0x91;
-        return icom_get_level_raw(rig, level, C_CTL_MEM, S_MEM_PARM, 2, cmdbuf, val);
-
-    default:
-        return icom_get_level(rig, vfo, level, val);
-    }
-}
-
-int ic9700_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
-{
-    unsigned char cmdbuf[MAXFRAMELEN];
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    switch (level)
-    {
-    case RIG_LEVEL_VOXDELAY:
-        cmdbuf[0] = 0x03;
-        cmdbuf[1] = 0x30;
-        return icom_set_level_raw(rig, level, C_CTL_MEM, S_MEM_PARM, 2, cmdbuf, 1, val);
-
-    default:
-        return ic7300_set_level(rig, vfo, level, val);
-    }
-}
-
-int ic9700_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
-{
-    unsigned char cmdbuf[MAXFRAMELEN];
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    switch (level)
-    {
-    case RIG_LEVEL_VOXDELAY:
-        cmdbuf[0] = 0x03;
-        cmdbuf[1] = 0x30;
-        return icom_get_level_raw(rig, level, C_CTL_MEM, S_MEM_PARM, 2, cmdbuf, val);
-
-    default:
-        return ic7300_get_level(rig, vfo, level, val);
-    }
-}
-
-int ic7300_set_parm(RIG *rig, setting_t parm, value_t val)
-{
-    unsigned char parmbuf[MAXFRAMELEN];
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    switch (parm)
-    {
-    case RIG_PARM_BEEP:
-        parmbuf[0] = 0x00;
-        parmbuf[1] = 0x23;
-        return icom_set_custom_parm(rig, 2, parmbuf, 1, val.i ? 1 : 0);
-
-    case RIG_PARM_BACKLIGHT:
-        parmbuf[0] = 0x00;
-        parmbuf[1] = 0x81;
-        return icom_set_custom_parm(rig, 2, parmbuf, 2, (int)(val.f * 255.0f));
-
-    case RIG_PARM_TIME:
-        parmbuf[0] = 0x00;
-        parmbuf[1] = 0x95;
-        return icom_set_custom_parm_time(rig, 2, parmbuf, val.i);
-
-    default:
-        return icom_set_parm(rig, parm, val);
-    }
-}
-
-int ic7300_get_parm(RIG *rig, setting_t parm, value_t *val)
-{
-    unsigned char parmbuf[MAXFRAMELEN];
-    int retval;
-    int icom_val;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    switch (parm)
-    {
-    case RIG_PARM_BEEP:
-        parmbuf[0] = 0x00;
-        parmbuf[1] = 0x23;
-        retval = icom_get_custom_parm(rig, 2, parmbuf, &icom_val);
-
-        if (retval != RIG_OK)
-        {
-            return retval;
-        }
-
-        val->i = icom_val ? 1 : 0;
-        break;
-
-    case RIG_PARM_BACKLIGHT:
-        parmbuf[0] = 0x00;
-        parmbuf[1] = 0x81;
-        retval = icom_get_custom_parm(rig, 2, parmbuf, &icom_val);
-
-        if (retval != RIG_OK)
-        {
-            return retval;
-        }
-
-        val->f = (float) icom_val / 255.0f;
-        break;
-
-    case RIG_PARM_TIME:
-        parmbuf[0] = 0x00;
-        parmbuf[1] = 0x95;
-        return icom_get_custom_parm_time(rig, 2, parmbuf, &val->i);
-
-    default:
-        return icom_get_parm(rig, parm, val);
-    }
-
-    return RIG_OK;
-}

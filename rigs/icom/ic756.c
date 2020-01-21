@@ -62,6 +62,18 @@
 
 #define IC756_ANTS (RIG_ANT_1|RIG_ANT_2)
 
+struct cmdparams ic756pro_rigparms[] = {
+    { {.s=RIG_PARM_BEEP}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x20}, CMD_DAT_BOL, 1 },
+    { {.s=RIG_PARM_BACKLIGHT}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x09}, CMD_DAT_LVL, 2 },
+    { {.s=RIG_PARM_TIME}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x16}, CMD_DAT_TIM, 2 },
+    { {.s=RIG_PARM_NONE} }
+};
+
+struct cmdparams ic756pro_riglevels[] = {
+    { {.s=RIG_LEVEL_VOXDELAY}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x60}, CMD_DAT_INT, 1 },
+    { {.s=RIG_LEVEL_NONE} }
+};
+
 #define IC756PRO_STR_CAL { 16, \
     { \
          { 0,   -60 }, \
@@ -83,10 +95,6 @@
     } }
 
 int ic756_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
-int ic756pro2_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
-int ic756pro2_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-int ic756pro2_set_parm(RIG *rig, setting_t parm, value_t val);
-int ic756pro2_get_parm(RIG *rig, setting_t parm, value_t *val);
 
 /*
  *  This function deals with the older type radios with only 2 filter widths
@@ -454,6 +462,8 @@ static const struct icom_priv_caps ic756pro2_priv_caps =
         { .level = RIG_AGC_SLOW, .icom_level = 3 },
         { .level = -1, .icom_level = 0 },
     },
+    .rigparms = ic756pro_rigparms,   /* Custom parm parameters */
+    .riglevels = ic756pro_riglevels,   /* Custom level parameters */
 };
 
 /*
@@ -639,10 +649,10 @@ const struct rig_caps ic756pro2_caps =
     .get_ant =  icom_get_ant,
 
     .decode_event =  icom_decode_event,
-    .set_parm =  ic756pro2_set_parm,
-    .get_parm =  ic756pro2_get_parm,
-    .set_level =  ic756pro2_set_level,
-    .get_level =  ic756pro2_get_level,
+    .set_parm =  icom_set_parm,
+    .get_parm =  icom_get_parm,
+    .set_level =  icom_set_level,
+    .get_level =  icom_get_level,
     .set_func =  ic756_set_func,
     .get_func =  icom_get_func,
     .set_mem =  icom_set_mem,
@@ -878,6 +888,8 @@ static const struct icom_priv_caps ic756pro3_priv_caps =
         { .level = RIG_AGC_SLOW, .icom_level = 3 },
         { .level = -1, .icom_level = 0 },
     },
+    .rigparms = ic756pro_rigparms,   /* Custom parm parameters */
+    .riglevels = ic756pro_riglevels,   /* Custom level parameters */
 };
 
 
@@ -1066,10 +1078,10 @@ const struct rig_caps ic756pro3_caps =
     .get_ant =  icom_get_ant,
 
     .decode_event =  icom_decode_event,
-    .set_parm =  ic756pro2_set_parm,
-    .get_parm =  ic756pro2_get_parm,
-    .set_level =  ic756pro2_set_level,
-    .get_level =  ic756pro2_get_level,
+    .set_parm =  icom_set_parm,
+    .get_parm =  icom_get_parm,
+    .set_level =  icom_set_level,
+    .get_level =  icom_get_level,
     .set_func =  ic756_set_func,
     .get_func =  icom_get_func,
     .set_mem =  icom_set_mem,
@@ -1125,109 +1137,6 @@ int ic756_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: wrong frame len=%d\n", __func__, acklen);
         return -RIG_EPROTO;
-    }
-
-    return RIG_OK;
-}
-
-int ic756pro2_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
-{
-    unsigned char cmdbuf[MAXFRAMELEN];
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    switch (level)
-    {
-    case RIG_LEVEL_VOXDELAY:
-        cmdbuf[0] = 0x60;
-        return icom_set_level_raw(rig, level, C_CTL_MEM, 0x05, 1, cmdbuf, 1, val);
-
-    default:
-        return icom_set_level(rig, vfo, level, val);
-    }
-}
-
-int ic756pro2_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
-{
-    unsigned char cmdbuf[MAXFRAMELEN];
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    switch (level)
-    {
-    case RIG_LEVEL_VOXDELAY:
-        cmdbuf[0] = 0x60;
-        return icom_get_level_raw(rig, level, C_CTL_MEM, 0x05, 1, cmdbuf, val);
-
-    default:
-        return icom_get_level(rig, vfo, level, val);
-    }
-}
-
-int ic756pro2_set_parm(RIG *rig, setting_t parm, value_t val)
-{
-    unsigned char parmbuf[MAXFRAMELEN];
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    switch (parm)
-    {
-    case RIG_PARM_BEEP:
-        parmbuf[0] = 0x20;
-        return icom_set_custom_parm(rig, 1, parmbuf, 1, val.i ? 1 : 0);
-
-    case RIG_PARM_BACKLIGHT:
-        parmbuf[0] = 0x09;
-        return icom_set_custom_parm(rig, 1, parmbuf, 2, (int)(val.f * 255.0f));
-
-    case RIG_PARM_TIME:
-        parmbuf[0] = 0x16;
-        return icom_set_custom_parm_time(rig, 1, parmbuf, val.i);
-
-    default:
-        return icom_set_parm(rig, parm, val);
-    }
-}
-
-int ic756pro2_get_parm(RIG *rig, setting_t parm, value_t *val)
-{
-    unsigned char parmbuf[MAXFRAMELEN];
-    int retval;
-    int icom_val;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    switch (parm)
-    {
-    case RIG_PARM_BEEP:
-        parmbuf[0] = 0x20;
-        retval = icom_get_custom_parm(rig, 1, parmbuf, &icom_val);
-
-        if (retval != RIG_OK)
-        {
-            return retval;
-        }
-
-        val->i = icom_val ? 1 : 0;
-        break;
-
-    case RIG_PARM_BACKLIGHT:
-        parmbuf[0] = 0x09;
-        retval = icom_get_custom_parm(rig, 1, parmbuf, &icom_val);
-
-        if (retval != RIG_OK)
-        {
-            return retval;
-        }
-
-        val->f = (float) icom_val / 255.0f;
-        break;
-
-    case RIG_PARM_TIME:
-        parmbuf[0] = 0x16;
-        return icom_get_custom_parm_time(rig, 1, parmbuf, &val->i);
-
-    default:
-        return icom_get_parm(rig, parm, val);
     }
 
     return RIG_OK;
