@@ -618,6 +618,8 @@ int drake_set_chan(RIG *rig, const channel_t *chan)
     int     mdbuf_len, ack_len, retval;
     value_t dummy;
 
+    dummy.i = 0;
+
     drake_get_vfo(rig, &old_vfo);
     old_chan = 0;
 
