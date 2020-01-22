@@ -1760,7 +1760,7 @@ static int netrigctl_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 
 static int netrigctl_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option)
 {
-    int ret, len, ioption;
+    int ret, len;
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
     char vfostr[6] = "";
