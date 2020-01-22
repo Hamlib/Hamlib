@@ -49,6 +49,7 @@
 #endif
 
 #include <hamlib/rig.h>
+#include <hamlib/rig_dll.h>
 #include "misc.h"
 
 #define DUMP_HEX_WIDTH 16
