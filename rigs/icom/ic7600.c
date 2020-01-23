@@ -53,6 +53,18 @@
 
 #define IC7600_ANTS (RIG_ANT_1|RIG_ANT_2)
 
+struct cmdparams ic7600_rigparms[] = {
+    { {.s=RIG_PARM_BEEP}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x59}, CMD_DAT_BOL, 1 },
+    { {.s=RIG_PARM_BACKLIGHT}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x38}, CMD_DAT_LVL, 2 },
+    { {.s=RIG_PARM_TIME}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x54}, CMD_DAT_TIM, 2 },
+    { {.s=RIG_PARM_NONE} }
+};
+
+struct cmdparams ic7600_riglevels[] = {
+    { {.s=RIG_LEVEL_VOXDELAY}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x67}, CMD_DAT_INT, 1 },
+    { {.s=RIG_LEVEL_NONE} }
+};
+
 /*
  * Measurement by Roeland, PA3MET
  */
@@ -120,11 +132,6 @@
          { 241, 25.0f } \
     } }
 
-int ic7600_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
-int ic7600_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-int ic7600_set_parm(RIG *rig, setting_t parm, value_t val);
-int ic7600_get_parm(RIG *rig, setting_t parm, value_t *val);
-
 /*
  * IC-7600 rig capabilities.
  *
@@ -143,6 +150,8 @@ static const struct icom_priv_caps ic7600_priv_caps =
         { .level = RIG_AGC_SLOW, .icom_level = 3 },
         { .level = -1, .icom_level = 0 },
     },
+    .rigparms = ic7600_rigparms,   /* Custom parm parameters */
+    .riglevels = ic7600_riglevels,   /* Custom level parameters */
 };
 
 const struct confparams ic7600_ext_levels[] =
@@ -299,14 +308,14 @@ const struct rig_caps ic7600_caps =
     .set_xit =  icom_set_xit_new,
 
     .decode_event =  icom_decode_event,
-    .set_level =  ic7600_set_level,
-    .get_level =  ic7600_get_level,
+    .set_level =  icom_set_level,
+    .get_level =  icom_get_level,
     .set_ext_level =  icom_set_ext_level,
     .get_ext_level =  icom_get_ext_level,
     .set_func =  icom_set_func,
     .get_func =  icom_get_func,
-    .set_parm =  ic7600_set_parm,
-    .get_parm =  ic7600_get_parm,
+    .set_parm =  icom_set_parm,
+    .get_parm =  icom_get_parm,
     .set_mem =  icom_set_mem,
     .vfo_op =  icom_vfo_op,
     .scan =  icom_scan,
@@ -329,132 +338,3 @@ const struct rig_caps ic7600_caps =
     .get_powerstat = icom_get_powerstat,
     .send_morse = icom_send_morse
 };
-
-int ic7600_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
-{
-    unsigned char cmdbuf[MAXFRAMELEN];
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    switch (level)
-    {
-    case RIG_LEVEL_VOXDELAY:
-        cmdbuf[0] = 0x01;
-        cmdbuf[1] = 0x67;
-        return icom_set_level_raw(rig, level, C_CTL_MEM, 0x05, 2, cmdbuf, 1, val);
-
-    default:
-        return icom_set_level(rig, vfo, level, val);
-    }
-}
-
-int ic7600_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
-{
-    unsigned char cmdbuf[MAXFRAMELEN];
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    switch (level)
-    {
-    case RIG_LEVEL_VOXDELAY:
-        cmdbuf[0] = 0x01;
-        cmdbuf[1] = 0x67;
-        return icom_get_level_raw(rig, level, C_CTL_MEM, 0x05, 2, cmdbuf, val);
-
-    default:
-        return icom_get_level(rig, vfo, level, val);
-    }
-}
-
-int ic7600_set_parm(RIG *rig, setting_t parm, value_t val)
-{
-    unsigned char parmbuf[MAXFRAMELEN];
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    switch (parm)
-    {
-    case RIG_PARM_BEEP:
-        parmbuf[0] = 0x00;
-        parmbuf[1] = 0x59;
-        return icom_set_custom_parm(rig, 2, parmbuf, 1, val.i ? 1 : 0);
-
-    case RIG_PARM_BACKLIGHT:
-        parmbuf[0] = 0x00;
-        parmbuf[1] = 0x38;
-        return icom_set_custom_parm(rig, 2, parmbuf, 2, (int)(val.f * 255.0f));
-
-    case RIG_PARM_KEYLIGHT:
-        parmbuf[0] = 0x00;
-        parmbuf[1] = 0x39;
-        return icom_set_custom_parm(rig, 2, parmbuf, 2, val.f != 0 ? 255 : 0);
-
-    case RIG_PARM_TIME:
-        parmbuf[0] = 0x00;
-        parmbuf[1] = 0x54;
-        return icom_set_custom_parm_time(rig, 2, parmbuf, val.i);
-
-    default:
-        return icom_set_parm(rig, parm, val);
-    }
-}
-
-int ic7600_get_parm(RIG *rig, setting_t parm, value_t *val)
-{
-    unsigned char parmbuf[MAXFRAMELEN];
-    int retval;
-    int icom_val;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    switch (parm)
-    {
-    case RIG_PARM_BEEP:
-        parmbuf[0] = 0x00;
-        parmbuf[1] = 0x59;
-        retval = icom_get_custom_parm(rig, 2, parmbuf, &icom_val);
-
-        if (retval != RIG_OK)
-        {
-            return retval;
-        }
-
-        val->i = icom_val ? 1 : 0;
-        break;
-
-    case RIG_PARM_BACKLIGHT:
-        parmbuf[0] = 0x00;
-        parmbuf[1] = 0x38;
-        retval = icom_get_custom_parm(rig, 2, parmbuf, &icom_val);
-
-        if (retval != RIG_OK)
-        {
-            return retval;
-        }
-
-        val->f = (float) icom_val / 255.0f;
-        break;
-
-    case RIG_PARM_KEYLIGHT:
-        parmbuf[0] = 0x00;
-        parmbuf[1] = 0x39;
-        retval = icom_get_custom_parm(rig, 2, parmbuf, &icom_val);
-
-        if (retval != RIG_OK)
-        {
-            return retval;
-        }
-
-        val->f = icom_val > 0 ? 1 : 0;
-        break;
-
-    case RIG_PARM_TIME:
-        parmbuf[0] = 0x00;
-        parmbuf[1] = 0x54;
-        return icom_get_custom_parm_time(rig, 2, parmbuf, &val->i);
-
-    default:
-        return icom_get_parm(rig, parm, val);
-    }
-
-    return RIG_OK;
-}
