@@ -285,12 +285,6 @@ int dump_xml_chan(RIG *rig,
         xmlNewProp(node, (unsigned char *) "flags", (unsigned char *) attrbuf);
     }
 
-    if (mem_caps->channel_desc)
-    {
-        sprintf(attrbuf, "%s", chan.channel_desc);
-        xmlNewProp(node, (unsigned char *) "channel_desc", (unsigned char *) attrbuf);
-    }
-
     return 0;
 }
 #endif
