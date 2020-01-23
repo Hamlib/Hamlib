@@ -4497,8 +4497,7 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
  *
  * NOTE: Most of the parm commands are rig-specific.
  *
- * See the IC-7300 backend how to implement them for newer rigs that have 0x1A 0x05-based commands where
- * icom_set_custom_parm()/icom_get_custom_parm() can be used.
+ * See the IC-7300 backend how to implement them for newer rigs that have 0x1A 0x05-based commands.
  *
  * For older rigs, see the IC-R75 backend where icom_set_raw()/icom_get_raw() are used.
  */
@@ -4556,8 +4555,7 @@ int icom_set_parm(RIG *rig, setting_t parm, value_t val)
  *
  * NOTE: Most of the parm commands are rig-specific.
  *
- * See the IC-7300 backend how to implement them for newer rigs that have 0x1A 0x05-based commands where
- * icom_set_custom_parm()/icom_get_custom_parm() can be used.
+ * See the IC-7300 backend how to implement them for newer rigs that have 0x1A 0x05-based commands.
  *
  * For older rigs, see the IC-R75 backend where icom_set_raw()/icom_get_raw() are used.
  */
@@ -5860,63 +5858,6 @@ int icom_get_level_raw(RIG *rig, setting_t level, int cmd, int subcmd,
     {
         val->i = icom_val;
     }
-
-    return RIG_OK;
-}
-
-int icom_set_custom_parm(RIG *rig, int parmbuflen, unsigned char *parmbuf,
-                         int val_bytes, int value)
-{
-    return icom_set_raw(rig, C_CTL_MEM, S_MEM_PARM, parmbuflen, parmbuf,
-                        val_bytes, value);
-}
-
-int icom_get_custom_parm(RIG *rig, int parmbuflen, unsigned char *parmbuf,
-                         int *value)
-{
-    return icom_get_raw(rig, C_CTL_MEM, S_MEM_PARM, parmbuflen, parmbuf,
-                        value);
-}
-
-int icom_set_custom_parm_time(RIG *rig, int parmbuflen,
-                              unsigned char *parmbuf, int seconds)
-{
-    unsigned char cmdbuf[MAXFRAMELEN];
-    int hour = (int)((float) seconds / 3600.0);
-    int min = (int)((float)(seconds - (hour * 3600)) / 60.0);
-
-    if (parmbuflen > 0)
-    {
-        memcpy(cmdbuf, parmbuf, parmbuflen);
-    }
-
-    to_bcd_be(cmdbuf + parmbuflen, (long long) hour, 2);
-    to_bcd_be(cmdbuf + parmbuflen + 1, (long long) min, 2);
-
-    return icom_set_raw(rig, C_CTL_MEM, S_MEM_PARM, parmbuflen + 2, cmdbuf, 0,
-                        0);
-}
-
-int icom_get_custom_parm_time(RIG *rig, int parmbuflen,
-                              unsigned char *parmbuf, int *seconds)
-{
-    unsigned char resbuf[MAXFRAMELEN];
-    int reslen = sizeof(resbuf);
-    int retval;
-    int hour, min;
-
-    retval =
-        icom_get_raw_buf(rig, C_CTL_MEM, S_MEM_PARM, parmbuflen, parmbuf,
-                         &reslen, resbuf);
-
-    if (retval != RIG_OK)
-    {
-        return retval;
-    }
-
-    hour = from_bcd_be(resbuf, 2);
-    min = from_bcd_be(resbuf + 1, 2);
-    *seconds = (hour * 3600) + (min * 60);
 
     return RIG_OK;
 }

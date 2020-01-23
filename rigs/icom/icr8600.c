@@ -220,7 +220,8 @@ const struct rig_caps icr8600_caps =
 
     .set_conf = icom_set_conf,
     .get_conf = icom_get_conf,
-//    .set_powerstat = icom_set_powerstat,
+    .set_powerstat = icom_set_powerstat,
+    .get_powerstat = icom_get_powerstat,
 
     .priv = (void *)& icr8600_priv_caps,
     .rig_init = icom_init,
