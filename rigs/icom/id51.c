@@ -183,7 +183,7 @@ const struct rig_caps id51_caps =
     .rig_init =   icom_init,
     .rig_cleanup =   icom_cleanup,
     .rig_open =  icom_rig_open,
-    .rig_close =  icom_rig_open,
+    .rig_close =  icom_rig_close,
     .set_powerstat =  icom_set_powerstat,
     .get_powerstat =  icom_get_powerstat,
 
