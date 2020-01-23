@@ -28,7 +28,7 @@ rigmem_SOURCES = rigmem.c memsave.c memload.c memcsv.c sprintflst.c sprintflst.h
 rigctl_CPPFLAGS = -I$(top_srcdir) $(AM_CPPFLAGS)
 
 # all the programs need this
-LDADD = $(top_builddir)/src/libhamlib.la $(top_builddir)/lib/libmisc.la
+LDADD = $(top_builddir)/src/libhamlib.la $(top_builddir)/lib/libmisc.la $(DL_LIBS)
 
 rigmem_CFLAGS = $(AM_CFLAGS) $(LIBXML2_CFLAGS)
 rigctld_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
@@ -36,7 +36,7 @@ rotctld_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 ampctld_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 rigctlcom_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 
-rigctl_LDADD = $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
+rigctl_LDADD = $(PTHREAD_LIBS) $(READLINE_LIBS) $(LDADD)
 rigctld_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rotctl_LDADD = $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rotctld_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)

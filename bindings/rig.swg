@@ -344,7 +344,7 @@ typedef channel_t * const_channel_t_p;
 	METHOD3(set_rit, shortfreq_t)
 	METHOD3(set_xit, shortfreq_t)
 	METHOD3(set_ts, shortfreq_t)
-	METHOD3(set_ant, ant_t)
+	METHOD2(set_ant, ant_t, value_t)
 	METHOD2(set_func, setting_t, int)
 	METHOD3(set_bank, int)
 	METHOD3(set_mem, int)
@@ -436,7 +436,7 @@ typedef channel_t * const_channel_t_p;
 	METHOD1VGET(get_rit, shortfreq_t)
 	METHOD1VGET(get_xit, shortfreq_t)
 	METHOD1VGET(get_ts, shortfreq_t)
-	METHOD1VGET(get_ant, ant_t)
+	extern void get_ant(value_t * OUTPUT, ant_t * OUTPUT, vfo_t vfo = RIG_VFO_CURR);
 	METHOD1VGET(get_mem, int)
 	METHOD1GET(get_powerstat, powerstat_t)
 	METHOD1GET(get_trn, int)
@@ -555,6 +555,11 @@ void Rig_get_mode(Rig *self, rmode_t *mode, pbwidth_t *width, vfo_t vfo)
 void Rig_get_split_mode(Rig *self, rmode_t *mode, pbwidth_t *width, vfo_t vfo)
 {
 	self->error_status = rig_get_split_mode(self->rig, vfo, mode, width);
+}
+
+void Rig_get_ant(Rig *self, value_t *option, ant_t *ant, vfo_t vfo)
+{
+	self->error_status = rig_get_ant(self->rig, vfo, ant, option);
 }
 
 struct channel *Rig_get_chan_all(Rig *self)

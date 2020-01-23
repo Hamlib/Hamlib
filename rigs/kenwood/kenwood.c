@@ -3005,7 +3005,7 @@ int kenwood_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 /*
  * set the aerial/antenna to use
  */
-int kenwood_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
+int kenwood_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 {
     char cmd[8];
     char a;
@@ -3061,7 +3061,7 @@ int kenwood_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
     return kenwood_transaction(rig, cmd, NULL, 0);
 }
 
-int kenwood_set_ant_no_ack(RIG *rig, vfo_t vfo, ant_t ant)
+int kenwood_set_ant_no_ack(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 {
     const char *cmd;
 
@@ -3095,7 +3095,7 @@ int kenwood_set_ant_no_ack(RIG *rig, vfo_t vfo, ant_t ant)
 /*
  * get the aerial/antenna in use
  */
-int kenwood_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
+int kenwood_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option)
 {
     char ackbuf[8];
     int offs;
