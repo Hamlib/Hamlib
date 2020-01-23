@@ -54,6 +54,7 @@ struct dummy_priv_data
     powerstat_t powerstat;
     int bank;
     value_t parms[RIG_SETTING_MAX];
+    int ant_option;
 
     channel_t *curr;    /* points to vfo_a, vfo_b or mem[] */
 
@@ -1302,25 +1303,27 @@ static int dummy_get_ext_parm(RIG *rig, token_t token, value_t *val)
 
 
 
-static int dummy_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
+static int dummy_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
     curr->ant = ant;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    priv->ant_option = option.i;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called ant=%d, option=%d\n", __func__, ant, option.i);
 
     return RIG_OK;
 }
 
 
-static int dummy_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
+static int dummy_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     *ant = curr->ant;
+    option->i = priv->ant_option;
 
     return RIG_OK;
 }

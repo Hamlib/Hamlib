@@ -363,6 +363,7 @@ static int generic_save_channel(RIG *rig, channel_t *chan)
     vfo_t vfo;
     setting_t setting;
     const channel_cap_t *mem_cap = NULL;
+    value_t vdummy;
 
     chan_num = chan->channel_num;
     vfo = chan->vfo;
@@ -446,7 +447,7 @@ static int generic_save_channel(RIG *rig, channel_t *chan)
 
     if (mem_cap->ant)
     {
-        rig_get_ant(rig, RIG_VFO_CURR, &chan->ant);
+        rig_get_ant(rig, RIG_VFO_CURR, &chan->ant, &vdummy);
     }
 
     if (mem_cap->tuning_step)
@@ -529,6 +530,7 @@ static int generic_restore_channel(RIG *rig, const channel_t *chan)
     struct ext_list *p;
     setting_t setting;
     const channel_cap_t *mem_cap = NULL;
+    value_t vdummy;
 
     if (chan->vfo == RIG_VFO_MEM)
     {
@@ -596,7 +598,7 @@ static int generic_restore_channel(RIG *rig, const channel_t *chan)
 
     if (mem_cap->ant)
     {
-        rig_set_ant(rig, RIG_VFO_CURR, chan->ant);
+        rig_set_ant(rig, RIG_VFO_CURR, chan->ant, vdummy);
     }
 
     if (mem_cap->tuning_step)

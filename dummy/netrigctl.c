@@ -1730,7 +1730,7 @@ static int netrigctl_get_parm(RIG *rig, setting_t parm, value_t *val)
 }
 
 
-static int netrigctl_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
+static int netrigctl_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 {
     int ret, len;
     char cmd[CMD_MAX];
@@ -1743,7 +1743,7 @@ static int netrigctl_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
 
     if (ret != RIG_OK) { return ret; }
 
-    len = sprintf(cmd, "Y%s %d\n", vfostr, ant);
+    len = sprintf(cmd, "Y%s %d %d\n", vfostr, ant, option.i);
 
     ret = netrigctl_transaction(rig, cmd, len, buf);
 
@@ -1758,7 +1758,7 @@ static int netrigctl_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
 }
 
 
-static int netrigctl_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
+static int netrigctl_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option)
 {
     int ret, len;
     char cmd[CMD_MAX];
@@ -1780,7 +1780,30 @@ static int netrigctl_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    *ant = atoi(buf);
+    rig_debug(RIG_DEBUG_TRACE, "%s: buf='%s'\n", __func__, buf);
+    ret = sscanf(buf, "%d\n", ant);
+
+    if (ret != 1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: expected 1 ant integer in '%s', got %d\n", __func__, buf,
+                  ret);
+    }
+
+    ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
+
+    if (ret <= 0)
+    {
+        return (ret < 0) ? ret : -RIG_EPROTO;
+    }
+
+    ret = sscanf(buf, "%d\n",&(option->i));
+
+    if (ret != 1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: expected 1 option integer in '%s', got %d\n", __func__, buf,
+                  ret);
+    }
+
 
     return RIG_OK;
 }

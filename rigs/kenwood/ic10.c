@@ -428,7 +428,7 @@ int ic10_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  * ic10_set_ant
  * Assumes rig!=NULL
  */
-int ic10_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
+int ic10_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 {
     char buf[6], ackbuf[16];
     int len, ack_len, retval;
@@ -445,7 +445,7 @@ int ic10_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
  * ic10_get_ant
  * Assumes rig!=NULL, ptt!=NULL
  */
-int ic10_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
+int ic10_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option)
 {
     char infobuf[50];
     int info_len, retval;

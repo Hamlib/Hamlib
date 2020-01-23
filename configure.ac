@@ -660,6 +660,14 @@ dnl Check for libdl and set DL_LIBS if found--used for linradio WR-G313 backend.
                     [AC_MSG_WARN([dlopen was not found in libdl--linradio backend will be disabled])])
       ])
 
+# Still need -ldl if we have it
+AS_IF([test x"${cf_with_winradio}" = "xno"],
+      [RIGS_BACKEND_LIST="$RIGS_BACKEND_LIST"
+dnl Check for libdl and set DL_LIBS if found--used for linradio WR-G313 backend.
+       AC_CHECK_LIB([dl], [dlopen], [DL_LIBS="-ldl"],
+                    [AC_MSG_WARN([dlopen was not found in libdl--linradio backend will be disabled])])
+      ])
+
 dnl Set conditional compilation for G-313.
 AS_CASE(["$host_os"],
         [mingw* | pw32* | cygwin ], [

@@ -286,8 +286,8 @@ static struct test_table test_list[] =
     { 'j',  "get_rit",          ACTION(get_rit),        ARG_OUT, "RIT" },
     { 'Z',  "set_xit",          ACTION(set_xit),        ARG_IN, "XIT" },
     { 'z',  "get_xit",          ACTION(get_xit),        ARG_OUT, "XIT" },
-    { 'Y',  "set_ant",          ACTION(set_ant),        ARG_IN, "Antenna" },
-    { 'y',  "get_ant",          ACTION(get_ant),        ARG_OUT, "Antenna" },
+    { 'Y',  "set_ant",          ACTION(set_ant),        ARG_IN, "Antenna", "Option" },
+    { 'y',  "get_ant",          ACTION(get_ant),        ARG_OUT, "Antenna", "Option" },
     { 0x87, "set_powerstat",    ACTION(set_powerstat),  ARG_IN  | ARG_NOVFO, "Power Status" },
     { 0x88, "get_powerstat",    ACTION(get_powerstat),  ARG_OUT | ARG_NOVFO, "Power Status" },
     { 0x89, "send_dtmf",        ACTION(send_dtmf),      ARG_IN, "Digits" },
@@ -3936,9 +3936,12 @@ declare_proto_rig(dump_conf)
 declare_proto_rig(set_ant)
 {
     ant_t ant;
+    value_t option; // some rigs have a another option for the antenna
 
     CHKSCN1ARG(sscanf(arg1, "%d", &ant));
-    return rig_set_ant(rig, vfo, rig_idx2setting(ant));
+    CHKSCN1ARG(sscanf(arg2, "%d", &option.i)); // assuming they are integer values
+
+    return rig_set_ant(rig, vfo, rig_idx2setting(ant), option);
 }
 
 
@@ -3947,8 +3950,9 @@ declare_proto_rig(get_ant)
 {
     int status;
     ant_t ant;
+    value_t option;
 
-    status = rig_get_ant(rig, vfo, &ant);
+    status = rig_get_ant(rig, vfo, &ant, &option);
 
     if (status != RIG_OK)
     {
@@ -3961,6 +3965,13 @@ declare_proto_rig(get_ant)
     }
 
     fprintf(fout, "%d%c", rig_setting2idx(ant), resp_sep);
+
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
+        fprintf(fout, "%s: ", cmd->arg2);
+    }
+
+    fprintf(fout, "%d%c", option.i, resp_sep);
 
     return status;
 }
