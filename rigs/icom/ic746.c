@@ -130,7 +130,6 @@ typedef struct
     unsigned char tone_sql[3];  /* tone squelch frequency as tone */
     struct
     {
-        unsigned char pol;      /* DTCS polarity by nibbles Tx pol | Rx pol; 0 = normal; 1 = rev */
         unsigned char code[2];  /* DTCS code bigendian */
     } dcs;
 } channel_str_t;
@@ -906,7 +905,6 @@ int ic746pro_get_channel(RIG *rig, channel_t *chan)
     struct icom_priv_data *priv;
     struct rig_state *rs;
     unsigned char chanbuf[MAXFRAMELEN];
-    mem_buf_t *membuf;
     int chan_len, freq_len, retval, data_len;
 
     rs = &rig->state;
@@ -981,11 +979,12 @@ int ic746pro_get_channel(RIG *rig, channel_t *chan)
         int band;
         int sc;
         unsigned char databuf[32];
+        mem_buf_t *membuf;
 
         membuf = (mem_buf_t *)(chanbuf + 4);
 
-        chan->split = membuf->chan_flag & 0x10 ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
-        chan->flags = membuf->chan_flag & 0x01 ? RIG_CHFLAG_SKIP : RIG_CHFLAG_NONE;
+        chan->split = (membuf->chan_flag & 0x10) ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
+        chan->flags = (membuf->chan_flag & 0x01) ? RIG_CHFLAG_SKIP : RIG_CHFLAG_NONE;
         rig_debug(RIG_DEBUG_TRACE, "%s: chan->flags=0x%02x\n", __func__, chan->flags);
         /* data mode on */
         rig_debug(RIG_DEBUG_TRACE, "%s: membuf->rx.data=0x%02x\n", __func__, membuf->rx.data);
@@ -1070,7 +1069,7 @@ int ic746pro_set_channel(RIG *rig, const channel_t *chan)
       if (chan->split == RIG_SPLIT_ON)
         membuf.chan_flag |= 0x10;
       else
-        membuf.chan_flag |= chan->flags & RIG_CHFLAG_SKIP ? 0x01 : 0x00;
+        membuf.chan_flag |= (chan->flags & RIG_CHFLAG_SKIP) ? 0x01 : 0x00;
 
       // RX
       to_bcd(membuf.rx.freq, chan->freq, freq_len * 2);
@@ -1086,7 +1085,7 @@ int ic746pro_set_channel(RIG *rig, const channel_t *chan)
       if(membuf.rx.pb == -1)
         membuf.rx.pb = PD_MEDIUM_3;
 
-      membuf.rx.data = chan->flags & RIG_CHFLAG_DATA ? 1 : 0;
+      membuf.rx.data = (chan->flags & RIG_CHFLAG_DATA) ? 1 : 0;
       membuf.rx.dup = chan->rptr_shift;
 
       // not empty otherwise the call fail
@@ -1118,7 +1117,7 @@ int ic746pro_set_channel(RIG *rig, const channel_t *chan)
       if(membuf.tx.pb == -1)
         membuf.tx.pb = PD_MEDIUM_3;
 
-      membuf.tx.data = chan->flags | RIG_CHFLAG_DATA ? 1 : 0;
+      membuf.tx.data = (chan->flags | RIG_CHFLAG_DATA) ? 1 : 0;
       membuf.tx.dup = chan->rptr_shift;
 
       // not empty otherwise the call fail
