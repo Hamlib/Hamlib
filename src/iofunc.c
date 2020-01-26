@@ -53,6 +53,7 @@
 #include "usb_port.h"
 #include "network.h"
 #include "cm108.h"
+#include "gpio.h"
 
 /**
  * \brief Open a hamlib_port based on its rig port type
@@ -207,6 +208,11 @@ int HAMLIB_API port_close(hamlib_port_t *p, rig_port_t port_type)
 
         case RIG_PORT_CM108:
             ret = cm108_close(p);
+            break;
+
+        case RIG_PORT_GPIO:
+        case RIG_PORT_GPION:
+            ret = gpio_close(p);
             break;
 
         case RIG_PORT_USB:
