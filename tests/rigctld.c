@@ -352,6 +352,10 @@ int main(int argc, char *argv[])
             {
                 ptt_type = RIG_PTT_CM108;
             }
+            else if (!strcmp(optarg, "GPIO"))
+            {
+                ptt_type = RIG_PTT_GPIO;
+            }
             else if (!strcmp(optarg, "NONE"))
             {
                 ptt_type = RIG_PTT_NONE;
