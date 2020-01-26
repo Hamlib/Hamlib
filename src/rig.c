@@ -981,6 +981,7 @@ int HAMLIB_API rig_close(RIG *rig)
     case RIG_PTT_GPION:
         gpio_ptt_set(&rs->pttport, RIG_PTT_OFF);
         port_close(&rs->pttport, RIG_PORT_GPIO);
+        break;
 
     default:
         rig_debug(RIG_DEBUG_ERR,
@@ -1012,6 +1013,7 @@ int HAMLIB_API rig_close(RIG *rig)
     case RIG_DCD_GPIO:
     case RIG_DCD_GPION:
         port_close(&rs->dcdport, RIG_PORT_GPIO);
+        break;
 
     default:
         rig_debug(RIG_DEBUG_ERR,
