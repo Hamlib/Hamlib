@@ -366,7 +366,8 @@ int main(int argc, char *argv[])
             }
             else
             {
-                ptt_type = atoi(optarg);
+                puts("Unrecognised PTT type, using NONE");
+                ptt_type = RIG_PTT_NONE;
             }
 
             break;
@@ -416,7 +417,8 @@ int main(int argc, char *argv[])
             }
             else
             {
-                dcd_type = atoi(optarg);
+                puts("Unrecognised DCD type, using NONE");
+                dcd_type = RIG_DCD_NONE;
             }
 
             break;
