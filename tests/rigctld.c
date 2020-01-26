@@ -352,6 +352,14 @@ int main(int argc, char *argv[])
             {
                 ptt_type = RIG_PTT_CM108;
             }
+            else if (!strcmp(optarg, "GPIO"))
+            {
+                ptt_type = RIG_PTT_GPIO;
+            }
+            else if (!strcmp(optarg, "GPION"))
+            {
+                ptt_type = RIG_PTT_GPION;
+            }
             else if (!strcmp(optarg, "NONE"))
             {
                 ptt_type = RIG_PTT_NONE;
@@ -389,6 +397,18 @@ int main(int argc, char *argv[])
             else if (!strcmp(optarg, "PARALLEL"))
             {
                 dcd_type = RIG_DCD_PARALLEL;
+            }
+            else if (!strcmp(optarg, "CM108"))
+            {
+                dcd_type = RIG_DCD_CM108;
+            }
+            else if (!strcmp(optarg, "GPIO"))
+            {
+                dcd_type = RIG_DCD_GPIO;
+            }
+            else if (!strcmp(optarg, "GPION"))
+            {
+                dcd_type = RIG_DCD_GPION;
             }
             else if (!strcmp(optarg, "NONE"))
             {
