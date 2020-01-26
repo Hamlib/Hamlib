@@ -690,31 +690,12 @@ int HAMLIB_API rig_open(RIG *rig)
         break;
 
     case RIG_PTT_GPIO:
-        rs->pttport.fd = gpio_open(&rs->pttport, 1, 1);
-
-        if (rs->pttport.fd < 0)
-        {
-            rig_debug(RIG_DEBUG_ERR,
-                      "%s: cannot open PTT device \"%s\"\n",
-                      __func__,
-                      rs->pttport.pathname);
-            status = -RIG_EIO;
-        }
-        else
-        {
-            gpio_ptt_set(&rs->pttport, RIG_PTT_OFF);
-            gpio_close(&rs->pttport);
-        }
-
-        break;
-
     case RIG_PTT_GPION:
-        rs->pttport.fd = gpio_open(&rs->pttport, 1, 0);
-
+        rs->pttport.fd = gpio_open(&rs->pttport, 1, RIG_PTT_GPION == rs->pttport.type.ptt ? 0 : 1);
         if (rs->pttport.fd < 0)
         {
             rig_debug(RIG_DEBUG_ERR,
-                      "%s: cannot open PTT device \"%s\"\n",
+                      "%s: cannot open PTT device \"GPIO%s\"\n",
                       __func__,
                       rs->pttport.pathname);
             status = -RIG_EIO;
@@ -785,29 +766,12 @@ int HAMLIB_API rig_open(RIG *rig)
         break;
 
     case RIG_DCD_GPIO:
-        rs->dcdport.fd = gpio_open(&rs->dcdport, 0, 1);
-
-        if (rs->dcdport.fd < 0)
-        {
-            rig_debug(RIG_DEBUG_ERR,
-                      "%s: cannot open DCD device \"%s\"\n",
-                      __func__,
-                      rs->dcdport.pathname);
-            status = -RIG_EIO;
-        }
-        else {
-            gpio_close(&rs->dcdport);
-        }
-
-        break;
-
     case RIG_DCD_GPION:
-        rs->dcdport.fd = gpio_open(&rs->dcdport, 0, 0);
-
+        rs->dcdport.fd = gpio_open(&rs->dcdport, 0, RIG_DCD_GPION == rs->dcdport.type.dcd ? 0 : 1);
         if (rs->dcdport.fd < 0)
         {
             rig_debug(RIG_DEBUG_ERR,
-                      "%s: cannot open DCD device \"%s\"\n",
+                      "%s: cannot open DCD device \"GPIO%s\"\n",
                       __func__,
                       rs->dcdport.pathname);
             status = -RIG_EIO;
