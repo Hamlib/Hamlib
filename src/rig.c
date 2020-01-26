@@ -703,7 +703,6 @@ int HAMLIB_API rig_open(RIG *rig)
         else
         {
             gpio_ptt_set(&rs->pttport, RIG_PTT_OFF);
-            gpio_close(&rs->pttport);
         }
 
         break;
@@ -775,9 +774,6 @@ int HAMLIB_API rig_open(RIG *rig)
                       __func__,
                       rs->dcdport.pathname);
             status = -RIG_EIO;
-        }
-        else {
-            gpio_close(&rs->dcdport);
         }
 
         break;
@@ -933,18 +929,18 @@ int HAMLIB_API rig_close(RIG *rig)
 
     case RIG_PTT_PARALLEL:
         par_ptt_set(&rs->pttport, RIG_PTT_OFF);
-        port_close(&rs->pttport, RIG_PORT_PARALLEL);
+        par_close(&rs->pttport);
         break;
 
     case RIG_PTT_CM108:
         cm108_ptt_set(&rs->pttport, RIG_PTT_OFF);
-        port_close(&rs->pttport, RIG_PORT_CM108);
+        cm108_close(&rs->pttport);
         break;
 
     case RIG_PTT_GPIO:
     case RIG_PTT_GPION:
         gpio_ptt_set(&rs->pttport, RIG_PTT_OFF);
-        port_close(&rs->pttport, RIG_PORT_GPIO);
+        gpio_close(&rs->pttport);
         break;
 
     default:
@@ -971,12 +967,12 @@ int HAMLIB_API rig_close(RIG *rig)
         break;
 
     case RIG_DCD_PARALLEL:
-        port_close(&rs->dcdport, RIG_PORT_PARALLEL);
+        par_close(&rs->dcdport);
         break;
 
     case RIG_DCD_GPIO:
     case RIG_DCD_GPION:
-        port_close(&rs->dcdport, RIG_PORT_GPIO);
+        gpio_close(&rs->dcdport);
         break;
 
     default:
