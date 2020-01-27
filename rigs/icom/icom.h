@@ -30,7 +30,7 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "0.23"
+#define BACKEND_VER "0.24"
 
 /*
  * defines used by comp_cal_str in rig.c
@@ -137,6 +137,7 @@ struct icom_priv_caps
                                mode */
     int serial_full_duplex;     /*!< Whether RXD&TXD are not tied together */
     int offs_len;               /* Number of bytes in offset frequency field. 0 defaults to 3 */
+    int antack_len;             /* Length of 0x12 cmd may be 3 or 4 bytes as of 2020-01-22 e.g. 7851 */
     int serial_USB_echo_check;  /* Flag to test USB echo state */
     int agc_levels_present;     /* Flag to indicate that agc_levels array is populated */
     struct icom_agc_level agc_levels[RIG_AGC_LAST + 1]; /* Icom rig-specific AGC levels, the last entry should have level -1 */
