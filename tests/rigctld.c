@@ -1043,6 +1043,14 @@ handle_exit:
     fclose(fsockin);
     fclose(fsockout);
 
+// for everybody else we close the handle after fclose
+#ifndef __MINGW32__
+    retcode = close(handle_data_arg->sock);
+
+    if (retcode != 0) { rig_debug(RIG_DEBUG_ERR, "%s: close(handle_data_arg->sock) %s\n", __func__, strerror(retcode)); }
+
+#endif
+
     free(arg);
 
 #ifdef HAVE_PTHREAD
