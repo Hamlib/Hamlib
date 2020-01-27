@@ -680,6 +680,8 @@ void *handle_socket(void *arg)
 handle_exit:
 #ifdef __MINGW32__
     closesocket(handle_data_arg->sock);
+#else
+    close(handle_data_arg->sock);
 #endif
     free(arg);
 
