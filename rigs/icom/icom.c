@@ -672,7 +672,7 @@ int icom_get_usb_echo_off(RIG *rig)
     rs->rigport.retry = 1;
     // Check for echo on first
     priv->serial_USB_echo_off = 0;
-    retval = icom_transaction(rig, C_RD_TRXID, 0x00, NULL, 0, ackbuf, &ack_len);
+    retval = icom_transaction(rig, C_RD_FREQ, -1, NULL, 0, ackbuf, &ack_len);
 
     if (retval == RIG_OK)
     {
