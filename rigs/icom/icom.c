@@ -5409,7 +5409,9 @@ int icom_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     retval = icom_transaction(rig, C_CTL_ANT, -1, NULL, 0, ackbuf, &ack_len);
 
-    if (retval != RIG_OK) {
+    if (retval != RIG_OK)
+    {
+        return retval;
     }
 
     // ack_len should be either 2 or 3
@@ -5418,11 +5420,7 @@ int icom_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option)
     // 0x12 0xaa 0xrr
     // Where aa is a zero-base antenna number and rr is a binary for rx only
     priv_caps->antack_len = ack_len; // remember this for set_ant
-
-    if (retval != RIG_OK)
-    {
-        return retval;
-    }
+    rig_debug(RIG_DEBUG_VERBOSE,"%s: debug#2\n",__func__)
 
     if ((ack_len != 2 && ack_len != 3) || ackbuf[0] != C_CTL_ANT ||
             ackbuf[1] > 3)
@@ -5432,12 +5430,14 @@ int icom_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option)
         return -RIG_ERJCTED;
     }
 
+    rig_debug(RIG_DEBUG_VERBOSE,"%s: debug#3\n",__func__)
     *ant = RIG_ANT_N(ackbuf[1]);
 
-    /* Note: with IC756/IC-756Pro/IC-7800 and more, ackbuf[2] deals with [RX ANT] */
+    // Note: with IC756/IC-756Pro/IC-7800 and more, ackbuf[2] deals with [RX ANT] 
+    // Hopefully any ack_len=3 can fit in the option field
     if (ack_len == 3)
     {
-        option->i = ackbuf[1];
+        option->i = ackbuf[2];
     }
 
     return RIG_OK;
