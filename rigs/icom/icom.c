@@ -5420,7 +5420,6 @@ int icom_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option)
     // 0x12 0xaa 0xrr
     // Where aa is a zero-base antenna number and rr is a binary for rx only
     priv_caps->antack_len = ack_len; // remember this for set_ant
-    rig_debug(RIG_DEBUG_VERBOSE,"%s: debug#2\n",__func__)
 
     if ((ack_len != 2 && ack_len != 3) || ackbuf[0] != C_CTL_ANT ||
             ackbuf[1] > 3)
@@ -5430,7 +5429,6 @@ int icom_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option)
         return -RIG_ERJCTED;
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE,"%s: debug#3\n",__func__)
     *ant = RIG_ANT_N(ackbuf[1]);
 
     // Note: with IC756/IC-756Pro/IC-7800 and more, ackbuf[2] deals with [RX ANT] 
