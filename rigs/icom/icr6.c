@@ -46,7 +46,7 @@
         { 255, 60 } /* +60 */ \
     } }
 
-static const struct icom_priv_caps icr6_priv_caps =
+static struct icom_priv_caps icr6_priv_caps =
 {
     0x7e,   /* default address */
     0,      /* 731 mode */

@@ -113,7 +113,7 @@ int icr30_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     }
 }
 
-static const struct icom_priv_caps icr30_priv_caps =
+static struct icom_priv_caps icr30_priv_caps =
 {
     0x9c, /* default address */
     0,        /* 731 mode */

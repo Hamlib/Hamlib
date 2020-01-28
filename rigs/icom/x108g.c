@@ -124,7 +124,7 @@ static int x108g_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
  *
  * TODO: complete command set (esp. the $1A bunch!) and testing..
  */
-static const struct icom_priv_caps x108g_priv_caps =
+static struct icom_priv_caps x108g_priv_caps =
 {
     0x70,   /* default address */
     0,      /* 731 mode */

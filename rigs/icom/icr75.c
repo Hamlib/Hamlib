@@ -96,7 +96,7 @@ static int icr75_get_channel(RIG *rig, channel_t *chan);
 int icr75_set_parm(RIG *rig, setting_t parm, value_t val);
 int icr75_get_parm(RIG *rig, setting_t parm, value_t *val);
 
-static const struct icom_priv_caps icr75_priv_caps =
+static struct icom_priv_caps icr75_priv_caps =
 {
     0x5a,   /* default address */
     0,      /* 731 mode */

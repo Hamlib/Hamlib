@@ -102,7 +102,7 @@ struct cmdparams icr8600_extcmds[] = {
     .flags = 1, \
 }
 
-static const struct icom_priv_caps icr8600_priv_caps =
+static struct icom_priv_caps icr8600_priv_caps =
 {
     0x96,                           /* default address */
     0,                              /* 731 mode */

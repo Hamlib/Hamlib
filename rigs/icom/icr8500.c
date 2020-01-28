@@ -63,7 +63,7 @@
 
 int icr8500_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 
-static const struct icom_priv_caps icr8500_priv_caps =
+static struct icom_priv_caps icr8500_priv_caps =
 {
     0x4a,   /* default address */
     0,      /* 731 mode */
