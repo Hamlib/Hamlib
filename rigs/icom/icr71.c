@@ -40,7 +40,7 @@
 #define ICR71_VFO_OPS (RIG_OP_FROM_VFO|RIG_OP_TO_VFO)
 #define ICR71_SCAN_OPS (RIG_SCAN_NONE)
 
-static const struct icom_priv_caps icr71_priv_caps =
+static struct icom_priv_caps icr71_priv_caps =
 {
     0x1a,   /* default address */
     0,      /* 731 mode */

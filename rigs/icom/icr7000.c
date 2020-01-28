@@ -49,7 +49,7 @@ static int r7000_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 /* FIXME: S-Meter measurements */
 #define ICR7100_STR_CAL UNKNOWN_IC_STR_CAL
 
-static const struct icom_priv_caps icr7000_priv_caps =
+static struct icom_priv_caps icr7000_priv_caps =
 {
     0x08,   /* default address */
     0,      /* 731 mode */
@@ -164,7 +164,7 @@ const struct rig_caps icr7000_caps =
 };
 
 
-static const struct icom_priv_caps icr7100_priv_caps =
+static struct icom_priv_caps icr7100_priv_caps =
 {
     0x34,   /* default address */
     0,      /* 731 mode */

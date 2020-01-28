@@ -64,7 +64,7 @@ const struct ts_sc_list id1_ts_sc_list[] =
 
 /*
  */
-static const struct icom_priv_caps id1_priv_caps =
+static struct icom_priv_caps id1_priv_caps =
 {
     0x01,   /* default address */
     0,      /* 731 mode */

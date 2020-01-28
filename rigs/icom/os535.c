@@ -56,7 +56,7 @@ extern struct confparams opto_ext_parms[];
  * TODO: srch_dcs, srch_ctcss, rcv_dtmf, and make icom_probe opto aware
  */
 
-static const struct icom_priv_caps os535_priv_caps =
+static struct icom_priv_caps os535_priv_caps =
 {
     0x80,   /* default address */
     0,      /* 731 mode */

@@ -55,7 +55,7 @@ static int omni6_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 static int omni6_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
 static int omni6_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
 
-static const struct icom_priv_caps omnivip_priv_caps =
+static struct icom_priv_caps omnivip_priv_caps =
 {
     0x04,   /* default address */
     0,      /* 731 mode */
