@@ -66,7 +66,7 @@ static int hiqsdr_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
 static int hiqsdr_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
 static int hiqsdr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 static int hiqsdr_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
-static int hiqsdr_set_ant(RIG *rig, vfo_t vfo, ant_t ant);
+static int hiqsdr_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option);
 
 static int hiqsdr_set_conf(RIG *rig, token_t token, const char *val);
 static int hiqsdr_get_conf(RIG *rig, token_t token, char *val);
@@ -502,7 +502,7 @@ int hiqsdr_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     return ret;
 }
 
-int hiqsdr_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
+int hiqsdr_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 {
     struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)rig->state.priv;
     int ret = RIG_OK;
@@ -525,8 +525,6 @@ int hiqsdr_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
 }
 
 
-/*
- */
 int hiqsdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)rig->state.priv;

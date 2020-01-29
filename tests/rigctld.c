@@ -352,13 +352,22 @@ int main(int argc, char *argv[])
             {
                 ptt_type = RIG_PTT_CM108;
             }
+            else if (!strcmp(optarg, "GPIO"))
+            {
+                ptt_type = RIG_PTT_GPIO;
+            }
+            else if (!strcmp(optarg, "GPION"))
+            {
+                ptt_type = RIG_PTT_GPION;
+            }
             else if (!strcmp(optarg, "NONE"))
             {
                 ptt_type = RIG_PTT_NONE;
             }
             else
             {
-                ptt_type = atoi(optarg);
+                puts("Unrecognised PTT type, using NONE");
+                ptt_type = RIG_PTT_NONE;
             }
 
             break;
@@ -390,13 +399,26 @@ int main(int argc, char *argv[])
             {
                 dcd_type = RIG_DCD_PARALLEL;
             }
+            else if (!strcmp(optarg, "CM108"))
+            {
+                dcd_type = RIG_DCD_CM108;
+            }
+            else if (!strcmp(optarg, "GPIO"))
+            {
+                dcd_type = RIG_DCD_GPIO;
+            }
+            else if (!strcmp(optarg, "GPION"))
+            {
+                dcd_type = RIG_DCD_GPION;
+            }
             else if (!strcmp(optarg, "NONE"))
             {
                 dcd_type = RIG_DCD_NONE;
             }
             else
             {
-                dcd_type = atoi(optarg);
+                puts("Unrecognised DCD type, using NONE");
+                dcd_type = RIG_DCD_NONE;
             }
 
             break;

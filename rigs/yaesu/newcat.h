@@ -145,8 +145,8 @@ int newcat_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 
 int newcat_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 int newcat_get_ptt(RIG * rig, vfo_t vfo, ptt_t * ptt);
-int newcat_set_ant(RIG * rig, vfo_t vfo, ant_t ant);
-int newcat_get_ant(RIG * rig, vfo_t vfo, ant_t * ant);
+int newcat_set_ant(RIG * rig, vfo_t vfo, ant_t ant, value_t option);
+int newcat_get_ant(RIG * rig, vfo_t vfo, ant_t * ant, value_t * option);
 int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val);
 int newcat_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val);
 int newcat_set_func(RIG * rig, vfo_t vfo, setting_t func, int status);

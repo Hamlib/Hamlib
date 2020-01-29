@@ -726,7 +726,7 @@ const char *ra37xx_get_info(RIG *rig)
     return infobuf + 2;
 }
 
-int ra37xx_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
+int ra37xx_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 {
     char buf[BUFSZ];
     int i_ant;
@@ -751,7 +751,7 @@ int ra37xx_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
     return ra37xx_transaction(rig, buf, NULL, NULL);
 }
 
-int ra37xx_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
+int ra37xx_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option)
 {
     char buf[BUFSZ];
     int retval, buflen, ra_ant;

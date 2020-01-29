@@ -2521,7 +2521,7 @@ int th_set_channel(RIG *rig, const channel_t *chan)
 /*
  * set the aerial/antenna to use
  */
-int th_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
+int th_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 {
     const char *cmd;
 
@@ -2552,7 +2552,7 @@ int th_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
 /*
  * get the aerial/antenna in use
  */
-int th_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
+int th_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option)
 {
     char buf[8];
     int retval;

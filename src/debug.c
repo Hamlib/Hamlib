@@ -49,6 +49,7 @@
 #endif
 
 #include <hamlib/rig.h>
+#include <hamlib/rig_dll.h>
 #include "misc.h"
 
 #define DUMP_HEX_WIDTH 16
@@ -60,13 +61,14 @@ static FILE *rig_debug_stream;
 static vprintf_cb_t rig_vprintf_cb;
 static rig_ptr_t rig_vprintf_arg;
 
+extern HAMLIB_EXPORT(void) dump_hex(const unsigned char ptr[], size_t size);
 
 /**
  * \param ptr Pointer to memory area
  * \param size Number of chars to words to dump
  * \brief Do a hex dump of the unsigned char array.
  */
-HAMLIB_EXPORT(void) dump_hex(const unsigned char ptr[], size_t size)
+void dump_hex(const unsigned char ptr[], size_t size)
 {
     /* example
      * 0000  4b 30 30 31 34 35 30 30 30 30 30 30 30 35 30 32  K001450000000502
