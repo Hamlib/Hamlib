@@ -1568,8 +1568,8 @@ struct rig_caps {
 
     int (*reset)(RIG *rig, reset_t reset);
 
-    int (*set_ant)(RIG *rig, vfo_t vfo, ant_t ant);
-    int (*get_ant)(RIG *rig, vfo_t vfo, ant_t *ant);
+    int (*set_ant)(RIG *rig, vfo_t vfo, ant_t ant, value_t option);
+    int (*get_ant)(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option);
 
     int (*set_level)(RIG *rig, vfo_t vfo, setting_t level, value_t val);
     int (*get_level)(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
@@ -2151,11 +2151,13 @@ rig_cleanup HAMLIB_PARAMS((RIG *rig));
 extern HAMLIB_EXPORT(int)
 rig_set_ant HAMLIB_PARAMS((RIG *rig,
                            vfo_t vfo,
-                           ant_t ant));  /* antenna */
+                           ant_t ant,  /* antenna */
+                           value_t option));  /* optional ant info */
 extern HAMLIB_EXPORT(int)
 rig_get_ant HAMLIB_PARAMS((RIG *rig,
                            vfo_t vfo,
-                           ant_t *ant));
+                           ant_t *ant,
+                           value_t *option));
 
 extern HAMLIB_EXPORT(setting_t)
 rig_has_get_level HAMLIB_PARAMS((RIG *rig,

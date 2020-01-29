@@ -535,16 +535,14 @@ shortfreq_t Rig::getXit(vfo_t vfo)
 	return xit;
 }
 
-void Rig::setAnt(ant_t ant, vfo_t vfo)
+void Rig::setAnt(value_t option, ant_t ant, vfo_t vfo)
 {
-	CHECK_RIG(rig_set_ant(theRig, vfo, ant));
+	CHECK_RIG(rig_set_ant(theRig, vfo, ant, option));
 }
 
-ant_t Rig::getAnt(vfo_t vfo)
+ant_t Rig::getAnt(value_t &option, ant_t &ant, vfo_t vfo)
 {
-	ant_t ant;
-
-	CHECK_RIG( rig_get_ant(theRig, vfo, &ant) );
+	CHECK_RIG( rig_get_ant(theRig, vfo, &ant, &option) );
 
 	return ant;
 }

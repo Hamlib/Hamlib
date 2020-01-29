@@ -5040,7 +5040,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
     }
 
     i = 0;
-    retry = 10;
+    retry = 2;
 
     if (status == RIG_POWER_ON)   // wait for wakeup only
     {
@@ -5216,7 +5216,7 @@ int icom_set_bank(RIG *rig, vfo_t vfo, int bank)
  * icom_set_ant
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int icom_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
+int icom_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 {
     unsigned char antarg;
     unsigned char ackbuf[MAXFRAMELEN];
@@ -5247,11 +5247,11 @@ int icom_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported ant %#x", __func__, ant);
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported ant %#x\n", __func__, ant);
         return -RIG_EINVAL;
     }
 
-    antarg = 0;
+    antarg = option.i;
     ant_len = ((rig->caps->rig_model == RIG_MODEL_ICR75)
                || (rig->caps->rig_model == RIG_MODEL_ICR8600) ||
                (rig->caps->rig_model == RIG_MODEL_ICR6)
@@ -5279,7 +5279,7 @@ int icom_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
  * Assumes rig!=NULL, rig->state.priv!=NULL
  * only meaningfull for HF
  */
-int icom_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
+int icom_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *rxant)
 {
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf), retval;
@@ -5303,6 +5303,9 @@ int icom_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
     /* Note: with IC756/IC-756Pro/IC-7800, ackbuf[2] deals with [RX ANT] */
 
     *ant = RIG_ANT_N(ackbuf[1]);
+    if (ack_len  == 3) { // then this should be rx ant on/off status
+         rxant->i = RIG_ANT_N(ackbuf[2]);
+    }
 
     return RIG_OK;
 }

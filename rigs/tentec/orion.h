@@ -77,8 +77,8 @@ static const char* tt565_get_info(RIG *rig);
 static int tt565_send_morse(RIG *rig, vfo_t vfo, const char *msg);
 static int tt565_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 static int tt565_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
-static int tt565_set_ant(RIG * rig, vfo_t vfo, ant_t ant);
-static int tt565_get_ant(RIG *rig, vfo_t vfo, ant_t *ant);
+static int tt565_set_ant(RIG * rig, vfo_t vfo, ant_t ant, value_t option);
+static int tt565_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option);
 
 /** \brief Orion private data */
 struct tt565_priv_data {

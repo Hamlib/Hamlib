@@ -33,6 +33,8 @@
 #include "hamlib/rig.h"
 #include "serial.h"
 #include "parallel.h"
+#include "cm108.h"
+#include "gpio.h"
 #include "misc.h"
 #include "tones.h"
 #include "idx_builtin.h"
@@ -54,6 +56,7 @@ struct dummy_priv_data
     powerstat_t powerstat;
     int bank;
     value_t parms[RIG_SETTING_MAX];
+    int ant_option;
 
     channel_t *curr;    /* points to vfo_a, vfo_b or mem[] */
 
@@ -495,29 +498,57 @@ static int dummy_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 static int dummy_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    int rc;
     int status = 0;
-    ptt_t par_status = RIG_PTT_OFF;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-    *ptt = priv->ptt;
 
     // sneak a look at the hardware PTT and OR that in with our result
     // as if it had keyed us
     switch (rig->state.pttport.type.ptt)
     {
-    case RIG_PTT_SERIAL_DTR: if (rig->state.pttport.fd >= 0) ser_get_dtr(
-                &rig->state.pttport, &status); break;
+    case RIG_PTT_SERIAL_DTR:
+        if (rig->state.pttport.fd >= 0)
+        {
+            if (RIG_OK != (rc = ser_get_dtr(&rig->state.pttport, &status))) return rc;
+            *ptt = status ? RIG_PTT_ON : RIG_PTT_OFF;
+        }
+        break;
 
-    case RIG_PTT_SERIAL_RTS: if (rig->state.pttport.fd >= 0) ser_get_rts(
-                &rig->state.pttport, &status); break;
+    case RIG_PTT_SERIAL_RTS:
+        if (rig->state.pttport.fd >= 0)
+        {
+            if (RIG_OK != (rc = ser_get_rts(&rig->state.pttport, &status))) return rc;
+            *ptt = status ? RIG_PTT_ON : RIG_PTT_OFF;
+        }
+        break;
 
-    case RIG_PTT_PARALLEL: if (rig->state.pttport.fd >= 0) par_ptt_get(
-                &rig->state.pttport, &par_status); break;
+    case RIG_PTT_PARALLEL:
+        if (rig->state.pttport.fd >= 0)
+        {
+            if (RIG_OK != (rc = par_ptt_get(&rig->state.pttport, ptt))) return rc;
+        }
+        break;
 
-    default: break;
+    case RIG_PTT_CM108:
+        if (rig->state.pttport.fd >= 0)
+        {
+            if (RIG_OK != (rc = cm108_ptt_get(&rig->state.pttport, ptt))) return rc;
+        }
+        break;
+
+    case RIG_PTT_GPIO:
+    case RIG_PTT_GPION:
+        if (rig->state.pttport.fd >= 0)
+        {
+            if (RIG_OK != (rc = gpio_ptt_get(&rig->state.pttport, ptt))) return rc;
+        }
+        break;
+
+    default:
+        *ptt = priv->ptt;
+        break;
     }
-
-    *ptt = *ptt || status || RIG_PTT_ON == par_status;
     return RIG_OK;
 }
 
@@ -1302,25 +1333,27 @@ static int dummy_get_ext_parm(RIG *rig, token_t token, value_t *val)
 
 
 
-static int dummy_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
+static int dummy_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
     curr->ant = ant;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    priv->ant_option = option.i;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called ant=%d, option=%d\n", __func__, ant, option.i);
 
     return RIG_OK;
 }
 
 
-static int dummy_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
+static int dummy_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     *ant = curr->ant;
+    option->i = priv->ant_option;
 
     return RIG_OK;
 }
