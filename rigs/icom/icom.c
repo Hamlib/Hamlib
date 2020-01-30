@@ -673,7 +673,7 @@ int icom_get_usb_echo_off(RIG *rig)
     // Check for echo on first
     priv->serial_USB_echo_off = 0;
     retval = icom_transaction(rig, C_RD_FREQ, -1, NULL, 0, ackbuf, &ack_len);
-
+return RIG_OK;
     if (retval == RIG_OK)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo on detected\n",
@@ -5295,6 +5295,28 @@ int icom_set_bank(RIG *rig, vfo_t vfo, int bank)
     return RIG_OK;
 }
 
+/* gets the number of antennas detected by querying them until it fails */
+static int icom_get_ant_count(RIG *rig) 
+{
+    struct icom_priv_caps *priv_caps = (struct icom_priv_caps *)
+            rig->caps->priv;
+    // we only need to do this once if we haven't done it yet
+    if (priv_caps->ant_count == 0) {
+        ant_t tmp_ant;
+        value_t tmp_option;
+        int retval;
+        do {
+            retval = rig_get_ant(rig, RIG_VFO_CURR, &tmp_ant, &tmp_option);
+            if (retval == RIG_OK) {
+                ++priv_caps->ant_count;
+                rig_debug(RIG_DEBUG_TRACE,"%s: found ant#%d\n", __func__, priv_caps->ant_count);
+            }
+        } while(retval == RIG_OK);
+    }
+    rig_debug(RIG_DEBUG_TRACE,"%s: ant_count=%d\n", __func__, priv_caps->ant_count);
+    return priv_caps->ant_count;
+}
+
 /*
  * icom_set_ant
  * Assumes rig!=NULL, rig->state.priv!=NULL
@@ -5308,11 +5330,15 @@ int icom_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
     const struct icom_priv_caps *priv_caps = (const struct icom_priv_caps *)
             rig->caps->priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    /*
-     * TODO: IC-756* and [RX ANT]
-     */
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called, ant=0x%02x, option=%d\n", __func__, ant, option.i);
+    // query the antennas once and find out how many we have
+    icom_get_ant_count(rig);
+    if (ant >= rig_idx2setting(priv_caps->ant_count)) {
+        return -RIG_EINVAL;
+    }
+    if (ant > RIG_ANT_4) {
+        return -RIG_EDOM;
+    }
     switch (ant)
     {
     case RIG_ANT_1:
@@ -5336,6 +5362,7 @@ int icom_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
         return -RIG_EINVAL;
     }
 
+
     if (priv_caps->antack_len == 0) { // we need to find out the antack_len
         ant_t tmp_ant;
         value_t tmp_option;
@@ -5345,6 +5372,7 @@ int icom_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
             return retval; 
         }
     }
+
     // Some rigs have 3-byte ant cmd so there is an option to be set
     if (priv_caps->antack_len == 3)
     {
@@ -5429,7 +5457,7 @@ int icom_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option)
         return -RIG_ERJCTED;
     }
 
-    *ant = RIG_ANT_N(ackbuf[1]);
+    *ant = ackbuf[1];
 
     // Note: with IC756/IC-756Pro/IC-7800 and more, ackbuf[2] deals with [RX ANT] 
     // Hopefully any ack_len=3 can fit in the option field
