@@ -124,6 +124,7 @@ static struct icom_priv_caps ic785x_priv_caps =
     .civ_731_mode = 0,      /* 731 mode */
     .no_xchg = 0,           /* no XCHG */
     .antack_len = 3,        
+//    .ant_count = 4,       // disabled for test automatic detection
     .ts_sc_list = ic756pro_ts_sc_list,
     .agc_levels_present = 1,
     .agc_levels = {

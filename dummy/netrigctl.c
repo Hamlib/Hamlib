@@ -1736,14 +1736,24 @@ static int netrigctl_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
     char vfostr[6] = "";
+    int i_ant = 0;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called, ant=0x%02x, option=%d\n", __func__, ant, option.i);
+
+    switch(ant) {
+        case RIG_ANT_1: i_ant = 0; break;
+        case RIG_ANT_2: i_ant = 1; break;
+        case RIG_ANT_3: i_ant = 2; break;
+        case RIG_ANT_4: i_ant = 3; break;
+        default: 
+            rig_debug(RIG_DEBUG_ERR,"%s: more than 4 antennas? ant=0x%02x\n", __func__, ant);
+    }
 
     ret = netrigctl_vfostr(rig, vfostr, sizeof(vfostr), vfo);
 
     if (ret != RIG_OK) { return ret; }
 
-    len = sprintf(cmd, "Y%s %d %d\n", vfostr, ant, option.i);
+    len = sprintf(cmd, "Y%s %d %d\n", vfostr, i_ant, option.i);
 
     ret = netrigctl_transaction(rig, cmd, len, buf);
 
