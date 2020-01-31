@@ -5302,7 +5302,7 @@ static int icom_get_ant_count(RIG *rig)
             rig->caps->priv;
     // we only need to do this once if we haven't done it yet
     if (priv_caps->ant_count == 0) {
-        ant_t tmp_ant;
+        ant_t tmp_ant=0;
         value_t tmp_option;
         int retval;
         do {
@@ -5310,6 +5310,7 @@ static int icom_get_ant_count(RIG *rig)
             if (retval == RIG_OK) {
                 ++priv_caps->ant_count;
                 rig_debug(RIG_DEBUG_TRACE,"%s: found ant#%d\n", __func__, priv_caps->ant_count);
+                ++tmp_ant;
             }
         } while(retval == RIG_OK);
     }
