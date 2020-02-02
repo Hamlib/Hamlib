@@ -504,7 +504,7 @@ int drake_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
  * drake_get_ant
  * Assumes rig!=NULL
  */
-int drake_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option)
+int drake_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *option)
 {
     int mdbuf_len, retval;
     char mdbuf[BUFSZ];

@@ -255,7 +255,7 @@ int icom_get_conf(RIG *rig, token_t token, char *val);
 int icom_set_powerstat(RIG *rig, powerstat_t status);
 int icom_get_powerstat(RIG *rig, powerstat_t *status);
 int icom_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option);
-int icom_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option);
+int icom_get_ant(RIG *rig, vfo_t vfo, ant_t ant, ant_t *ant_curr, value_t *option);
 int icom_decode_event(RIG *rig);
 int icom_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq,
                   rmode_t mode);

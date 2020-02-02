@@ -660,7 +660,7 @@ typedef enum {
 /**
  * \brief Antenna number
  */
-typedef int ant_t;
+typedef unsigned int ant_t;
 
 #define RIG_ANT_NONE    0
 #define RIG_ANT_N(n)    ((ant_t)1<<(n))
@@ -669,6 +669,8 @@ typedef int ant_t;
 #define RIG_ANT_3       RIG_ANT_N(2)
 #define RIG_ANT_4       RIG_ANT_N(3)
 #define RIG_ANT_5       RIG_ANT_N(4)
+
+#define RIG_ANT_CURR    RIG_ANT_N(31)
 
 #define RIG_ANT_MAX 32
 
@@ -1147,7 +1149,7 @@ struct channel {
     int channel_num;                    /*!< Channel number */
     int bank_num;                       /*!< Bank number */
     vfo_t vfo;                          /*!< VFO */
-    int ant;                            /*!< Selected antenna */
+    ant_t ant;                            /*!< Selected antenna */
     freq_t freq;                        /*!< Receive frequency */
     rmode_t mode;                       /*!< Receive mode */
     pbwidth_t width;                    /*!< Receive passband width associated with mode */
@@ -1569,7 +1571,7 @@ struct rig_caps {
     int (*reset)(RIG *rig, reset_t reset);
 
     int (*set_ant)(RIG *rig, vfo_t vfo, ant_t ant, value_t option);
-    int (*get_ant)(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option);
+    int (*get_ant)(RIG *rig, vfo_t vfo, ant_t ant, ant_t *ant_curr, value_t *option);
 
     int (*set_level)(RIG *rig, vfo_t vfo, setting_t level, value_t val);
     int (*get_level)(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
@@ -2156,7 +2158,8 @@ rig_set_ant HAMLIB_PARAMS((RIG *rig,
 extern HAMLIB_EXPORT(int)
 rig_get_ant HAMLIB_PARAMS((RIG *rig,
                            vfo_t vfo,
-                           ant_t *ant,
+                           ant_t ant,
+                           ant_t *ant_curr,
                            value_t *option));
 
 extern HAMLIB_EXPORT(setting_t)

@@ -33,7 +33,7 @@ int ic10_get_split_vfo(RIG *rig, vfo_t vfo , split_t *split, vfo_t *txvfo);
 int ic10_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 int ic10_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int ic10_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option);
-int ic10_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option);
+int ic10_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *option);
 int ic10_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 int ic10_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 int ic10_set_parm(RIG *rig, setting_t parm, value_t val);
