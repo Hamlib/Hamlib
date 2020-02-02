@@ -445,7 +445,7 @@ int ic10_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
  * ic10_get_ant
  * Assumes rig!=NULL, ptt!=NULL
  */
-int ic10_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option)
+int ic10_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *option)
 {
     char infobuf[50];
     int info_len, retval;

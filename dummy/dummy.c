@@ -1346,13 +1346,13 @@ static int dummy_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 }
 
 
-static int dummy_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option)
+static int dummy_get_ant(RIG *rig, vfo_t vfo, ant_t ant, ant_t *ant_curr, value_t *option)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-    *ant = curr->ant;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called, ant=0x%02x\n", __func__, ant);
+    *ant_curr = curr->ant;
     option->i = priv->ant_option;
 
     return RIG_OK;

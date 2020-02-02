@@ -159,7 +159,7 @@ int kenwood_reset(RIG *rig, reset_t reset);
 int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg);
 int kenwood_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option);
 int kenwood_set_ant_no_ack(RIG *rig, vfo_t vfo, ant_t ant, value_t option);
-int kenwood_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option);
+int kenwood_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *option);
 int kenwood_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 int kenwood_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 int kenwood_set_ptt_safe(RIG *rig, vfo_t vfo, ptt_t ptt);

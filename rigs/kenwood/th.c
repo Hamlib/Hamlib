@@ -2552,7 +2552,7 @@ int th_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 /*
  * get the aerial/antenna in use
  */
-int th_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option)
+int th_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *option)
 {
     char buf[8];
     int retval;

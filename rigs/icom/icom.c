@@ -612,7 +612,7 @@ icom_init(RIG *rig)
     priv->tx_vfo = RIG_VFO_NONE;
     priv->rx_vfo = RIG_VFO_NONE;
     priv->curr_vfo = RIG_VFO_NONE;
-    //priv_caps->antack_len = 0;
+    priv_caps->ant_count = -1;
     retval = rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
     rig_debug(RIG_DEBUG_VERBOSE, "%s: satmode=%d\n", __func__, satmode);
 
@@ -5296,23 +5296,28 @@ int icom_set_bank(RIG *rig, vfo_t vfo, int bank)
 }
 
 /* gets the number of antennas detected by querying them until it fails */
+/* assumes priv_caps->ant_count is set to -1, otherwise will not be queried */
+/* so one can set ant_count in the rig priv_caps to bypass this check */
 static int icom_get_ant_count(RIG *rig) 
 {
     struct icom_priv_caps *priv_caps = (struct icom_priv_caps *)
             rig->caps->priv;
     // we only need to do this once if we haven't done it yet
-    if (priv_caps->ant_count == 0) {
+    if (priv_caps->ant_count == -1) {
         ant_t tmp_ant=0;
+        int ant = 0;
         value_t tmp_option;
         int retval;
+        int looplimit = 0;
+        priv_caps->ant_count = 0;
         do {
-            retval = rig_get_ant(rig, RIG_VFO_CURR, &tmp_ant, &tmp_option);
+            retval = rig_get_ant(rig, RIG_VFO_CURR, rig_idx2setting(ant), &tmp_ant, &tmp_option);
             if (retval == RIG_OK) {
                 ++priv_caps->ant_count;
                 rig_debug(RIG_DEBUG_TRACE,"%s: found ant#%d\n", __func__, priv_caps->ant_count);
-                ++tmp_ant;
+                ++ant;
             }
-        } while(retval == RIG_OK);
+        } while(retval == RIG_OK && ++looplimit < 10);
     }
     rig_debug(RIG_DEBUG_TRACE,"%s: ant_count=%d\n", __func__, priv_caps->ant_count);
     return priv_caps->ant_count;
@@ -5366,8 +5371,9 @@ int icom_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 
     if (priv_caps->antack_len == 0) { // we need to find out the antack_len
         ant_t tmp_ant;
+        int ant = 0;
         value_t tmp_option;
-        retval = rig_get_ant(rig, vfo, &tmp_ant, &tmp_option);
+        retval = rig_get_ant(rig, vfo, ant, &tmp_ant, &tmp_option);
         if (retval != RIG_OK) {
             rig_debug(RIG_DEBUG_ERR,"%s: rig_get_ant error: %s \n", __func__, rigerror(retval));
             return retval; 
@@ -5429,14 +5435,29 @@ int icom_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
  * Assumes rig!=NULL, rig->state.priv!=NULL
  * only meaningfull for HF
  */
-int icom_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option)
+int icom_get_ant(RIG *rig, vfo_t vfo, ant_t ant, ant_t *ant_curr, value_t *option)
 {
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf), retval;
     struct icom_priv_caps *priv_caps = (struct icom_priv_caps *) rig->caps->priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-    retval = icom_transaction(rig, C_CTL_ANT, -1, NULL, 0, ackbuf, &ack_len);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called, ant=0x%02x\n", __func__, ant);
+
+    if (priv_caps->ant_count == -1) {
+        icom_get_ant_count(rig);
+    }
+
+    if (ant == RIG_ANT_CURR) {
+        retval = icom_transaction(rig, C_CTL_ANT, -1, NULL, 0, ackbuf, &ack_len);
+    }
+    else if (priv_caps->ant_count > 0) {
+        retval = icom_transaction(rig, C_CTL_ANT, rig_setting2idx(ant), NULL, 0, ackbuf, &ack_len);
+    }
+    else {
+      rig_debug(RIG_DEBUG_ERR,"%s: asking for non-current antenna and ant_count==0?\n", __func__);
+      return -RIG_EINVAL;
+    }
 
     if (retval != RIG_OK)
     {
@@ -5458,7 +5479,7 @@ int icom_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option)
         return -RIG_ERJCTED;
     }
 
-    *ant = ackbuf[1];
+    *ant_curr = ackbuf[1];
 
     // Note: with IC756/IC-756Pro/IC-7800 and more, ackbuf[2] deals with [RX ANT] 
     // Hopefully any ack_len=3 can fit in the option field
