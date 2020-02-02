@@ -5311,14 +5311,15 @@ static int icom_get_ant_count(RIG *rig)
         int looplimit = 0;
         priv_caps->ant_count = 0;
         do {
+            ++priv_caps->ant_count; // need to bump thsi up before rig_get_ant
             retval = rig_get_ant(rig, RIG_VFO_CURR, rig_idx2setting(ant), &tmp_ant, &tmp_option);
             if (retval == RIG_OK) {
-                ++priv_caps->ant_count;
                 rig_debug(RIG_DEBUG_TRACE,"%s: found ant#%d\n", __func__, priv_caps->ant_count);
                 ++ant;
             }
         } while(retval == RIG_OK && ++looplimit < 10);
     }
+    --priv_caps->ant_count; // we have 1 too many when we get here
     rig_debug(RIG_DEBUG_TRACE,"%s: ant_count=%d\n", __func__, priv_caps->ant_count);
     return priv_caps->ant_count;
 }
