@@ -673,7 +673,6 @@ int icom_get_usb_echo_off(RIG *rig)
     // Check for echo on first
     priv->serial_USB_echo_off = 0;
     retval = icom_transaction(rig, C_RD_FREQ, -1, NULL, 0, ackbuf, &ack_len);
-return RIG_OK;
     if (retval == RIG_OK)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo on detected\n",
