@@ -51,7 +51,9 @@ static struct icom_priv_caps icr6_priv_caps =
     0x7e,   /* default address */
     0,      /* 731 mode */
     0,    /* no XCHG */
-    r8500_ts_sc_list    /* wrong, but don't have set_ts anyway */
+    .antack_len = 2,
+    .ant_count = 2,
+    .ts_sc_list = r8500_ts_sc_list    /* wrong, but don't have set_ts anyway */
 };
 
 const struct rig_caps icr6_caps =
@@ -59,7 +61,7 @@ const struct rig_caps icr6_caps =
     .rig_model =  RIG_MODEL_ICR6,
     .model_name = "IC-R6",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".0",
+    .version =  BACKEND_VER ".1",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_RECEIVER | RIG_FLAG_HANDHELD,

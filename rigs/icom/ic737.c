@@ -55,7 +55,9 @@ static const struct icom_priv_caps ic737_priv_caps =
     0x3c,   /* default address */
     0,      /* 731 mode */
     0,    /* no XCHG */
-    ic737_ts_sc_list
+    .antack_len = 2,
+    .ant_count = 2,
+    .ts_sc_list = ic737_ts_sc_list
 };
 
 const struct rig_caps ic737_caps =
@@ -63,7 +65,7 @@ const struct rig_caps ic737_caps =
     .rig_model =  RIG_MODEL_IC737,
     .model_name = "IC-737",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".0",
+    .version =  BACKEND_VER ".2",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_UNTESTED,
     .rig_type =  RIG_TYPE_TRANSCEIVER,

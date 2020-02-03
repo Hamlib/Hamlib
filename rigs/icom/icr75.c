@@ -101,7 +101,9 @@ static struct icom_priv_caps icr75_priv_caps =
     0x5a,   /* default address */
     0,      /* 731 mode */
     0,    /* no XCHG */
-    r75_ts_sc_list
+    .antack_len = 2,
+    .ant_count = 2,
+    .ts_sc_list = r75_ts_sc_list
 };
 
 const struct rig_caps icr75_caps =
@@ -109,7 +111,7 @@ const struct rig_caps icr75_caps =
     .rig_model =  RIG_MODEL_ICR75,
     .model_name = "IC-R75",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".0",
+    .version =  BACKEND_VER ".1",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_RECEIVER,

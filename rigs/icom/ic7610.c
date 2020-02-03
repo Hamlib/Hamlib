@@ -134,7 +134,9 @@ static const struct icom_priv_caps ic7610_priv_caps =
     0x98,    /* default address */
     0,       /* 731 mode */
     0,       /* no XCHG */
-    ic756pro_ts_sc_list,
+    .antack_len = 2,
+    .ant_count = 2,
+    .ts_sc_list = ic756pro_ts_sc_list,
     .agc_levels_present = 1,
     .agc_levels = {
         { .level = RIG_AGC_FAST, .icom_level = 1 },
@@ -166,7 +168,7 @@ const struct rig_caps ic7610_caps =
     .rig_model =  RIG_MODEL_IC7610,
     .model_name = "IC-7610",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".1",
+    .version =  BACKEND_VER ".2",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
