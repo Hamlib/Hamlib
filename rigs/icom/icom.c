@@ -5295,35 +5295,6 @@ int icom_set_bank(RIG *rig, vfo_t vfo, int bank)
     return RIG_OK;
 }
 
-/* gets the number of antennas detected by querying them until it fails */
-/* assumes priv_caps->ant_count is set to -1, otherwise will not be queried */
-/* so one can set ant_count in the rig priv_caps to bypass this check */
-static int icom_get_ant_count(RIG *rig) 
-{
-    struct icom_priv_caps *priv_caps = (struct icom_priv_caps *)
-            rig->caps->priv;
-    // we only need to do this once if we haven't done it yet
-    if (priv_caps->ant_count == -1) {
-        ant_t tmp_ant=0;
-        int ant = 0;
-        value_t tmp_option;
-        int retval;
-        int looplimit = 0;
-        priv_caps->ant_count = 0;
-        do {
-            ++priv_caps->ant_count; // need to bump thsi up before rig_get_ant
-            retval = rig_get_ant(rig, RIG_VFO_CURR, rig_idx2setting(ant), &tmp_ant, &tmp_option);
-            if (retval == RIG_OK) {
-                rig_debug(RIG_DEBUG_TRACE,"%s: found ant#%d\n", __func__, priv_caps->ant_count);
-                ++ant;
-            }
-        } while(retval == RIG_OK && ++looplimit < 10);
-    }
-    --priv_caps->ant_count; // we have 1 too many when we get here
-    rig_debug(RIG_DEBUG_TRACE,"%s: ant_count=%d\n", __func__, priv_caps->ant_count);
-    return priv_caps->ant_count;
-}
-
 /*
  * icom_set_ant
  * Assumes rig!=NULL, rig->state.priv!=NULL
@@ -5339,7 +5310,6 @@ int icom_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, ant=0x%02x, option=%d\n", __func__, ant, option.i);
     // query the antennas once and find out how many we have
-    icom_get_ant_count(rig);
     if (ant >= rig_idx2setting(priv_caps->ant_count)) {
         return -RIG_EINVAL;
     }
@@ -5444,10 +5414,6 @@ int icom_get_ant(RIG *rig, vfo_t vfo, ant_t ant, ant_t *ant_curr, value_t *optio
 
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, ant=0x%02x\n", __func__, ant);
-
-    if (priv_caps->ant_count == -1) {
-        icom_get_ant_count(rig);
-    }
 
     if (ant == RIG_ANT_CURR) {
         retval = icom_transaction(rig, C_CTL_ANT, -1, NULL, 0, ackbuf, &ack_len);
