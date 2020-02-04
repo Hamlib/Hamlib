@@ -188,9 +188,7 @@ static const struct icom_priv_caps ic7100_priv_caps =
     0x88,           /* default address */
     0,              /* 731 mode */
     0,              /* no XCHG */
-    .antack_len = 2,
-    .ant_count = 2,
-    .ts_sc_list = ic7100_ts_sc_list,   /* FIXME */
+    ic7100_ts_sc_list,   /* FIXME */
     .agc_levels_present = 1,
     .agc_levels = {
         { .level = RIG_AGC_FAST, .icom_level = 1 },
@@ -200,7 +198,9 @@ static const struct icom_priv_caps ic7100_priv_caps =
     },
     .rigparms = ic7100_rigparms,
     .riglevels = ic7100_riglevels,
-    .extcmds = ic7100_extcmds
+    .extcmds = ic7100_extcmds,
+    .antack_len = 2,
+    .ant_count = 2
 };
 
 const struct rig_caps ic7100_caps =

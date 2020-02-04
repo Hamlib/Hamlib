@@ -107,9 +107,9 @@ static struct icom_priv_caps icr8600_priv_caps =
     0x96,                           /* default address */
     0,                              /* 731 mode */
     0,                              /* no XCHG */
+    r8600_ts_sc_list,               /* list of tuning steps */
     .antack_len = 2,
     .ant_count = 3,
-    .ts_sc_list = r8600_ts_sc_list,               /* list of tuning steps */
     .offs_len = 4,                  /* Repeater offset is 4 bytes */
     .serial_USB_echo_check = 1,     /* USB CI-V may not echo */
     .rigparms = icr8600_rigparms,   /* Custom parm parameters */

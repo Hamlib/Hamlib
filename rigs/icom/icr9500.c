@@ -78,9 +78,9 @@ static struct icom_priv_caps icr9500_priv_caps =
     0x72,   /* default address */
     0,      /* 731 mode */
     0,      /* no XCHG */
+    .ts_sc_list = r9500_ts_sc_list,
     .antack_len = 2,
-    .ant_count = 3,
-    .ts_sc_list = r9500_ts_sc_list
+    .ant_count = 3
 };
 
 /*
