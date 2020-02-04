@@ -3952,10 +3952,9 @@ declare_proto_rig(get_ant)
     ant_t ant, ant_curr;
     value_t option;
 
-//    CHKSCN1ARG(sscanf(arg1, "%d", &ant));
-    if (arg1) sscanf(arg1, "%d", &ant);
+    CHKSCN1ARG(sscanf(arg1, "%d", &ant));
 
-    status = rig_get_ant(rig, vfo, ant, &ant_curr, &option);
+    status = rig_get_ant(rig, vfo, rig_idx2setting(ant), &ant_curr, &option);
 
     if (status != RIG_OK)
     {
