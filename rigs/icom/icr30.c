@@ -118,9 +118,9 @@ static struct icom_priv_caps icr30_priv_caps =
     0x9c, /* default address */
     0,        /* 731 mode */
     0,    /* no XCHG */
+    r8500_ts_sc_list, /* wrong, but don't have set_ts anyway */
     .antack_len = 2,
     .ant_count = 2,
-    .ts_sc_list = r8500_ts_sc_list, /* wrong, but don't have set_ts anyway */
     .r2i_mode = icr30_r2i_mode,
     .offs_len = 4,
     .extcmds = icr30_extcmds      /* Custom ext_parm parameters */

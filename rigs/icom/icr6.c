@@ -51,9 +51,9 @@ static struct icom_priv_caps icr6_priv_caps =
     0x7e,   /* default address */
     0,      /* 731 mode */
     0,    /* no XCHG */
+    r8500_ts_sc_list,    /* wrong, but don't have set_ts anyway */
     .antack_len = 2,
-    .ant_count = 2,
-    .ts_sc_list = r8500_ts_sc_list    /* wrong, but don't have set_ts anyway */
+    .ant_count = 2
 };
 
 const struct rig_caps icr6_caps =

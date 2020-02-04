@@ -125,6 +125,8 @@ struct icom_priv_caps
     int civ_731_mode; /* Off: freqs on 10 digits, On: freqs on 8 digits */
     int no_xchg; /* Off: use VFO XCHG to set other VFO, On: use set VFO to set other VFO */
     const struct ts_sc_list *ts_sc_list;
+    // the 4 elements above are mandatory
+    // everything below here is optional in the backends
     int settle_time; /*!< Receiver settle time, in ms */
     int (*r2i_mode)(RIG *rig, rmode_t mode, pbwidth_t width,
                     unsigned char *md, signed char *pd); /*< backend specific code
@@ -135,10 +137,10 @@ struct icom_priv_caps
                                to convert response
                                tokens to bandwidth and
                                mode */
+    int antack_len;             /* Length of 0x12 cmd may be 3 or 4 bytes as of 2020-01-22 e.g. 7851 */
+    int ant_count;              /* number of antennas */
     int serial_full_duplex;     /*!< Whether RXD&TXD are not tied together */
     int offs_len;               /* Number of bytes in offset frequency field. 0 defaults to 3 */
-    int antack_len;             /* Length of 0x12 cmd may be 3 or 4 bytes as of 2020-01-22 e.g. 7851 */
-    int ant_count;              /* number of antennas discovered in set/get ant*/
     int serial_USB_echo_check;  /* Flag to test USB echo state */
     int agc_levels_present;     /* Flag to indicate that agc_levels array is populated */
     struct icom_agc_level agc_levels[RIG_AGC_LAST + 1]; /* Icom rig-specific AGC levels, the last entry should have level -1 */

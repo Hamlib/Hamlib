@@ -96,9 +96,9 @@ static const struct icom_priv_caps ic7410_priv_caps =
     0x80,    /* default address */
     0,       /* 731 mode */
     0,       /* no XCHG */
+    ic756pro_ts_sc_list,
     .antack_len = 2,
     .ant_count = 2,
-    .ts_sc_list = ic756pro_ts_sc_list,
     .agc_levels_present = 1,
     .agc_levels = {
         { .level = RIG_AGC_OFF, .icom_level = 0 },

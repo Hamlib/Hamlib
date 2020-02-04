@@ -55,9 +55,9 @@ static const struct icom_priv_caps ic737_priv_caps =
     0x3c,   /* default address */
     0,      /* 731 mode */
     0,    /* no XCHG */
+    ic737_ts_sc_list,
     .antack_len = 2,
-    .ant_count = 2,
-    .ts_sc_list = ic737_ts_sc_list
+    .ant_count = 2
 };
 
 const struct rig_caps ic737_caps =
