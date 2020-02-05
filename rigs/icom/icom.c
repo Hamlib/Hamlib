@@ -5417,7 +5417,8 @@ int icom_get_ant(RIG *rig, vfo_t vfo, ant_t ant, ant_t *ant_curr, value_t *optio
         retval = icom_transaction(rig, C_CTL_ANT, -1, NULL, 0, ackbuf, &ack_len);
     }
     else if (priv_caps->ant_count > 0) {
-        retval = icom_transaction(rig, C_CTL_ANT, rig_setting2idx(ant), NULL, 0, ackbuf, &ack_len);
+        //retval = icom_transaction(rig, C_CTL_ANT, rig_setting2idx(ant), NULL, 0, ackbuf, &ack_len);
+        retval = icom_transaction(rig, C_CTL_ANT, -1, NULL, 0, ackbuf, &ack_len);
     }
     else {
       rig_debug(RIG_DEBUG_ERR,"%s: asking for non-current antenna and ant_count==0?\n", __func__);
@@ -5434,7 +5435,6 @@ int icom_get_ant(RIG *rig, vfo_t vfo, ant_t ant, ant_t *ant_curr, value_t *optio
     // 0x12 0xaa
     // 0x12 0xaa 0xrr
     // Where aa is a zero-base antenna number and rr is a binary for rx only
-    priv_caps->antack_len = ack_len; // remember this for set_ant
 
     if ((ack_len != 2 && ack_len != 3) || ackbuf[0] != C_CTL_ANT ||
             ackbuf[1] > 3)
