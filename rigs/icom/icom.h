@@ -260,6 +260,7 @@ int icom_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq,
 int icom_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq,
                   rmode_t mode);
 int icom_send_morse(RIG *rig, vfo_t vfo, const char *msg);
+int icom_send_voice_mem(RIG *rig, vfo_t vfo, int bank);
 /* Exposed routines */
 int icom_get_split_vfos(const RIG *rig, vfo_t *rx_vfo, vfo_t *tx_vfo);
 int icom_set_raw(RIG *rig, int cmd, int subcmd, int subcmdbuflen,
