@@ -1594,6 +1594,8 @@ struct rig_caps {
 
     int (*send_morse)(RIG *rig, vfo_t vfo, const char *msg);
 
+    int (*send_voice_mem)(RIG *rig, vfo_t vfo, int ch);
+
     int (*set_bank)(RIG *rig, vfo_t vfo, int bank);
 
     int (*set_mem)(RIG *rig, vfo_t vfo, int ch);
@@ -2205,6 +2207,11 @@ extern HAMLIB_EXPORT(int)
 rig_send_morse HAMLIB_PARAMS((RIG *rig,
                               vfo_t vfo,
                               const char *msg));
+
+extern HAMLIB_EXPORT(int)
+rig_send_voice_mem HAMLIB_PARAMS((RIG *rig,
+                              vfo_t vfo,
+                              int ch));
 
 extern HAMLIB_EXPORT(int)
 rig_set_bank HAMLIB_PARAMS((RIG *rig,
