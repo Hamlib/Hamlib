@@ -63,7 +63,7 @@ extern int th_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd);
 extern int th_get_channel(RIG *rig, channel_t *chan);
 extern int th_set_channel(RIG *rig, const channel_t *chan);
 extern int th_set_ant (RIG * rig, vfo_t vfo, ant_t ant, value_t option);
-extern int th_get_ant (RIG * rig, vfo_t vfo, ant_t * ant, value_t *option);
+extern int th_get_ant (RIG * rig, vfo_t vfo, ant_t dummy, ant_t * ant, value_t *option);
 extern int th_reset(RIG *rig, reset_t reset);
 extern int th_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch);
 

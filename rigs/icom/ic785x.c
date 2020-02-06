@@ -118,12 +118,14 @@ int ic785x_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
  *
  * TODO: complete command set (esp. the $1A bunch!) and testing..
  */
-static const struct icom_priv_caps ic785x_priv_caps =
+static struct icom_priv_caps ic785x_priv_caps =
 {
-    0x8e,    /* default address */
-    0,       /* 731 mode */
-    0,       /* no XCHG */
+    0x8e, /* default address */
+    0,    /* 731 mode */
+    0,    /* no XCHG */
     ic756pro_ts_sc_list,
+    .antack_len = 3,        
+    .ant_count = 4,       
     .agc_levels_present = 1,
     .agc_levels = {
         { .level = RIG_AGC_OFF, .icom_level = 0 },

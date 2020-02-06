@@ -282,8 +282,6 @@ int HAMLIB_API sprintf_freq(char *str, freq_t freq)
  */
 const char *HAMLIB_API rig_strstatus(enum rig_status_e status)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
     switch (status)
     {
     case RIG_STATUS_ALPHA:

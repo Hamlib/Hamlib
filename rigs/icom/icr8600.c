@@ -102,12 +102,14 @@ struct cmdparams icr8600_extcmds[] = {
     .flags = 1, \
 }
 
-static const struct icom_priv_caps icr8600_priv_caps =
+static struct icom_priv_caps icr8600_priv_caps =
 {
     0x96,                           /* default address */
     0,                              /* 731 mode */
     0,                              /* no XCHG */
     r8600_ts_sc_list,               /* list of tuning steps */
+    .antack_len = 2,
+    .ant_count = 3,
     .offs_len = 4,                  /* Repeater offset is 4 bytes */
     .serial_USB_echo_check = 1,     /* USB CI-V may not echo */
     .rigparms = icr8600_rigparms,   /* Custom parm parameters */
@@ -119,7 +121,7 @@ const struct rig_caps icr8600_caps =
     .rig_model = RIG_MODEL_ICR8600,
     .model_name = "IC-R8600",
     .mfg_name = "Icom",
-    .version = "0.8",
+    .version =  BACKEND_VER ".9",
     .copyright = "LGPL",
     .status = RIG_STATUS_ALPHA,
     .rig_type = RIG_TYPE_RECEIVER,

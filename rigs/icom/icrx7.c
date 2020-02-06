@@ -45,7 +45,7 @@
  */
 #define ICRX7_STR_CAL UNKNOWN_IC_STR_CAL
 
-static const struct icom_priv_caps icrx7_priv_caps =
+static struct icom_priv_caps icrx7_priv_caps =
 {
     0x78,   /* default address */
     0,      /* 731 mode */
