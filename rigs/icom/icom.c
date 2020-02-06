@@ -671,6 +671,9 @@ int icom_get_usb_echo_off(RIG *rig)
     rs->rigport.retry = 1;
     // Check for echo on first
     priv->serial_USB_echo_off = 0;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: retry temp set to 1\n", __func__);
+
     retval = icom_transaction(rig, C_RD_FREQ, -1, NULL, 0, ackbuf, &ack_len);
     if (retval == RIG_OK)
     {
@@ -5349,7 +5352,7 @@ int icom_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
         }
     }
 
-    // Some rigs have 3-byte ant cmd so there is an option to be set
+    // Some rigs have 3-byte ant cmd so there is an option to be set too
     if (priv_caps->antack_len == 3)
     {
         if (option.i != 0 && option.i != 1)
@@ -5360,6 +5363,15 @@ int icom_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 
         antopt_len = 1;
         antopt[0] = option.i;
+        // we have to set the rx option by itself apparently
+        retval = icom_transaction(rig, C_CTL_ANT, i_ant,
+                              antopt, antopt_len, ackbuf, &ack_len);
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        antopt_len = 0;
         rig_debug(RIG_DEBUG_TRACE, "%s: antack_len=%d so antopt_len=%d, antopt=0x%02x\n",
                   __func__, priv_caps->antack_len, antopt_len, antopt[0]);
     }
