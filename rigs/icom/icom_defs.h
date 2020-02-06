@@ -96,7 +96,7 @@
 #define C_CTL_DIG	0x20		/* Digital modes settings & status */
 #define C_CTL_RIT	0x21		/* RIT/XIT control */
 #define C_CTL_DSD	0x22		/* D-STAR Data */
-#define C_SEND_SEL_FREQ 0x25i		/* Send/Recv sel/unsel VFO frequency */
+#define C_SEND_SEL_FREQ 0x25		/* Send/Recv sel/unsel VFO frequency */
 #define C_CTL_SCP	0x27		/* Scope control & data */
 #define C_SND_VOICE	0x28		/* Transmit Voice Memory Contents */
 #define C_CTL_MTEXT	0x70		/* Microtelecom Extension */
