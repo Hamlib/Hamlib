@@ -4333,6 +4333,74 @@ int HAMLIB_API rig_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 
 
 /**
+ * \brief send voice memory content
+ * \param rig   The rig handle
+ * \param vfo   The target VFO
+ * \param ch    Voice memory number to be sent
+ *
+ *  Sends voice memory content.
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
+ * set appropriately).
+ *
+ */
+
+int HAMLIB_API rig_send_voice_mem(RIG *rig, vfo_t vfo, int ch)
+{
+    const struct rig_caps *caps;
+    int retcode, rc2;
+    vfo_t curr_vfo;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if CHECK_RIG_ARG(rig)
+    {
+        return -RIG_EINVAL;
+    }
+
+    caps = rig->caps;
+
+    if (caps->send_voice_mem == NULL)
+    {
+        return -RIG_ENAVAIL;
+    }
+
+    if ((caps->targetable_vfo & RIG_TARGETABLE_PURE)
+            || vfo == RIG_VFO_CURR
+            || vfo == rig->state.current_vfo)
+    {
+        return caps->send_voice_mem(rig, vfo, ch);
+    }
+
+    if (!caps->set_vfo)
+    {
+        return -RIG_ENTARGET;
+    }
+
+    curr_vfo = rig->state.current_vfo;
+    retcode = caps->set_vfo(rig, vfo);
+
+    if (retcode != RIG_OK)
+    {
+        return retcode;
+    }
+
+    retcode = caps->send_voice_mem(rig, vfo, ch);
+    /* try and revert even if we had an error above */
+    rc2 = caps->set_vfo(rig, curr_vfo);
+
+    if (RIG_OK == retcode)
+    {
+        /* return the first error code */
+        retcode = rc2;
+    }
+
+    return retcode;
+}
+
+
+/**
  * \brief find the freq_range of freq/mode
  * \param range_list    The range list to search from
  * \param freq  The frequency that will be part of this range

@@ -215,6 +215,7 @@ declare_proto_rig(set_ant);
 declare_proto_rig(get_ant);
 declare_proto_rig(reset);
 declare_proto_rig(send_morse);
+declare_proto_rig(send_voice_mem);
 declare_proto_rig(send_cmd);
 declare_proto_rig(set_powerstat);
 declare_proto_rig(get_powerstat);
@@ -296,6 +297,7 @@ static struct test_table test_list[] =
     { 'w',  "send_cmd",         ACTION(send_cmd),       ARG_IN1 | ARG_IN_LINE | ARG_OUT2 | ARG_NOVFO, "Cmd", "Reply" },
     { 'W',  "send_cmd_rx",      ACTION(send_cmd),       ARG_IN | ARG_OUT2 | ARG_NOVFO, "Cmd", "Reply"},
     { 'b',  "send_morse",       ACTION(send_morse),     ARG_IN  | ARG_IN_LINE, "Morse" },
+    { 0x94,  "send_voice_mem",   ACTION(send_voice_mem), ARG_IN , "Voice Mem#" },
     { 0x8b, "get_dcd",          ACTION(get_dcd),        ARG_OUT, "DCD" },
     { '2',  "power2mW",         ACTION(power2mW),       ARG_IN1 | ARG_IN2 | ARG_IN3 | ARG_OUT1 | ARG_NOVFO, "Power [0.0..1.0]", "Frequency", "Mode", "Power mW" },
     { '4',  "mW2power",         ACTION(mW2power),       ARG_IN1 | ARG_IN2 | ARG_IN3 | ARG_OUT1 | ARG_NOVFO, "Power mW", "Frequency", "Mode", "Power [0.0..1.0]" },
@@ -3993,6 +3995,14 @@ declare_proto_rig(send_morse)
     return rig_send_morse(rig, vfo, arg1);
 }
 
+/* '8' */
+declare_proto_rig(send_voice_mem)
+{
+    int ch;
+
+    CHKSCN1ARG(sscanf(arg1, "%d", &ch));
+    return rig_send_voice_mem(rig, vfo, ch);
+}
 
 declare_proto_rig(send_dtmf)
 {
