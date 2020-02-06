@@ -418,7 +418,8 @@ const struct rig_caps ic7300_caps =
     .get_powerstat = icom_get_powerstat,
     .power2mW = icom_power2mW,
     .mW2power = icom_mW2power,
-    .send_morse = icom_send_morse
+    .send_morse = icom_send_morse,
+    .send_voice_mem = icom_send_voice_mem
 };
 
 const struct rig_caps ic9700_caps =
@@ -592,5 +593,6 @@ const struct rig_caps ic9700_caps =
     .set_powerstat = icom_set_powerstat,
     .power2mW = icom_power2mW,
     .mW2power = icom_mW2power,
-    .send_morse = icom_send_morse
+    .send_morse = icom_send_morse,
+    .send_voice_mem = icom_send_voice_mem
 };

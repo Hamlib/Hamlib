@@ -5865,6 +5865,38 @@ int icom_get_level_raw(RIG *rig, setting_t level, int cmd, int subcmd,
     return RIG_OK;
 }
 
+/*
+ * icom_send_voice_mem
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int icom_send_voice_mem(RIG *rig, vfo_t vfo, int ch)
+{
+    unsigned char chbuf[1];
+    unsigned char ackbuf[MAXFRAMELEN];
+    int ack_len = sizeof(ackbuf), retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    to_bcd_be(chbuf, ch, 2);
+
+    retval = icom_transaction(rig, C_SND_VOICE, 0, chbuf, 1,
+                              ackbuf, &ack_len);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    if (ack_len != 1 || ackbuf[0] != ACK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
+                  ackbuf[0], ack_len);
+        return -RIG_ERJCTED;
+    }
+
+    return RIG_OK;
+}
+
 // Sets rig vfo && priv->curr_vfo to default VFOA, or current vfo, or the vfo requested
 static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
 {
