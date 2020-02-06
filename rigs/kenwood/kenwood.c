@@ -3095,7 +3095,7 @@ int kenwood_set_ant_no_ack(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 /*
  * get the aerial/antenna in use
  */
-int kenwood_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option)
+int kenwood_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *option)
 {
     char ackbuf[8];
     int offs;

@@ -63,7 +63,7 @@ static int perseus_r2i_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 static void perseus_i2r_mode(RIG *rig, unsigned char md, int pd,
                              rmode_t *mode, pbwidth_t *width);
 
-static const struct icom_priv_caps perseus_priv_caps =
+static struct icom_priv_caps perseus_priv_caps =
 {
     0xE1,   /* default address */
     0,      /* 731 mode */

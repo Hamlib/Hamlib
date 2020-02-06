@@ -2450,7 +2450,7 @@ int newcat_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 }
 
 
-int newcat_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option)
+int newcat_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *option)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int err;

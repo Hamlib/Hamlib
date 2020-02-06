@@ -77,7 +77,7 @@
 
 /*
  */
-static const struct icom_priv_caps id4100_priv_caps =
+static struct icom_priv_caps id4100_priv_caps =
 {
     0x9A,   /* default address */
     0,      /* 731 mode */

@@ -157,7 +157,7 @@ public:
     shortfreq_t getXit(vfo_t vfo = RIG_VFO_CURR);
 
     void setAnt(value_t option, ant_t ant, vfo_t vfo = RIG_VFO_CURR);
-    ant_t getAnt(value_t &option, ant_t &ant, vfo_t vfo = RIG_VFO_CURR);
+    ant_t getAnt(value_t &option, ant_t ant, ant_t &ant_curr, vfo_t vfo = RIG_VFO_CURR);
 
     void sendDtmf(const char *digits, vfo_t vfo = RIG_VFO_CURR);
     int recvDtmf(char *digits, vfo_t vfo = RIG_VFO_CURR);

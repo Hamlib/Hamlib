@@ -288,7 +288,7 @@ static struct test_table test_list[] =
     { 'Z',  "set_xit",          ACTION(set_xit),        ARG_IN, "XIT" },
     { 'z',  "get_xit",          ACTION(get_xit),        ARG_OUT, "XIT" },
     { 'Y',  "set_ant",          ACTION(set_ant),        ARG_IN, "Antenna", "Option" },
-    { 'y',  "get_ant",          ACTION(get_ant),        ARG_OUT, "Antenna", "Option" },
+    { 'y',  "get_ant",          ACTION(get_ant),        ARG_IN1 | ARG_OUT2 |ARG_NOVFO, "Antenna", "Antenna", "Option" },
     { 0x87, "set_powerstat",    ACTION(set_powerstat),  ARG_IN  | ARG_NOVFO, "Power Status" },
     { 0x88, "get_powerstat",    ACTION(get_powerstat),  ARG_OUT | ARG_NOVFO, "Power Status" },
     { 0x89, "send_dtmf",        ACTION(send_dtmf),      ARG_IN, "Digits" },
@@ -3951,22 +3951,23 @@ declare_proto_rig(set_ant)
 declare_proto_rig(get_ant)
 {
     int status;
-    ant_t ant;
+    ant_t ant, ant_curr;
     value_t option;
 
-    status = rig_get_ant(rig, vfo, &ant, &option);
+    CHKSCN1ARG(sscanf(arg1, "%d", &ant));
+
+    status = rig_get_ant(rig, vfo, rig_idx2setting(ant), &ant_curr, &option);
 
     if (status != RIG_OK)
     {
         return status;
     }
-
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
         fprintf(fout, "%s: ", cmd->arg1);
     }
 
-    fprintf(fout, "%d%c", rig_setting2idx(ant), resp_sep);
+    fprintf(fout, "%d%c", rig_setting2idx(ant_curr), resp_sep);
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {

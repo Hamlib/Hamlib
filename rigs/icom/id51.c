@@ -80,7 +80,7 @@ int id51_tokens[] = { TOK_DSTAR_DSQL, TOK_DSTAR_CALL_SIGN, TOK_DSTAR_MESSAGE, TO
 
 /*
  */
-static const struct icom_priv_caps id51_priv_caps =
+static struct icom_priv_caps id51_priv_caps =
 {
     0x86,   /* default address */
     0,      /* 731 mode */
