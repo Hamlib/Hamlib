@@ -5309,7 +5309,7 @@ int icom_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
     const struct icom_priv_caps *priv_caps = (const struct icom_priv_caps *)
             rig->caps->priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called, ant=0x%02x, option=%d\n", __func__, ant, option.i);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called, ant=0x%02x, option=%d, antack_len=%d\n", __func__, ant, option.i, priv_caps->antack_len);
     // query the antennas once and find out how many we have
     if (ant >= rig_idx2setting(priv_caps->ant_count)) {
         return -RIG_EINVAL;
@@ -5364,6 +5364,7 @@ int icom_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
         antopt_len = 1;
         antopt[0] = option.i;
         // we have to set the rx option by itself apparently
+        rig_debug(RIG_DEBUG_TRACE,"%s: seeing antopt=%d\n", __func__, antopt[0]);
         retval = icom_transaction(rig, C_CTL_ANT, i_ant,
                               antopt, antopt_len, ackbuf, &ack_len);
         if (retval != RIG_OK)
@@ -5424,16 +5425,25 @@ int icom_get_ant(RIG *rig, vfo_t vfo, ant_t ant, ant_t *ant_curr, value_t *optio
 
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, ant=0x%02x\n", __func__, ant);
-
-    if (ant == RIG_ANT_CURR) {
+    ant = rig_setting2idx(ant);
+    if (ant >= priv_caps->ant_count) return -RIG_EINVAL;
+    if (ant == RIG_ANT_CURR || priv_caps->ant_count <= 2) {
         retval = icom_transaction(rig, C_CTL_ANT, -1, NULL, 0, ackbuf, &ack_len);
     }
-    else if (priv_caps->ant_count > 0) {
-        //retval = icom_transaction(rig, C_CTL_ANT, rig_setting2idx(ant), NULL, 0, ackbuf, &ack_len);
-        retval = icom_transaction(rig, C_CTL_ANT, -1, NULL, 0, ackbuf, &ack_len);
+    else if (rig->caps->rig_model == RIG_MODEL_IC785x) {
+        unsigned char buf[2];
+        buf[0] = 0x03;
+        buf[1] = 0x05+ant;
+        *ant_curr = ant;
+        retval = icom_transaction(rig, C_CTL_MEM, 0x05, buf, sizeof(buf), ackbuf, &ack_len);
+        if (retval == RIG_OK) {
+            option->i = ackbuf[4];
+            return RIG_OK;
+        }
     }
     else {
       rig_debug(RIG_DEBUG_ERR,"%s: asking for non-current antenna and ant_count==0?\n", __func__);
+      rig_debug(RIG_DEBUG_ERR,"%s: need to implement ant control for this rig?\n", __func__);
       return -RIG_EINVAL;
     }
 
