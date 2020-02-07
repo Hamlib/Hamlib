@@ -198,7 +198,9 @@ static const struct icom_priv_caps ic7100_priv_caps =
     },
     .rigparms = ic7100_rigparms,
     .riglevels = ic7100_riglevels,
-    .extcmds = ic7100_extcmds
+    .extcmds = ic7100_extcmds,
+    .antack_len = 2,
+    .ant_count = 2
 };
 
 const struct rig_caps ic7100_caps =

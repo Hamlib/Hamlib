@@ -238,7 +238,7 @@ AMP *HAMLIB_API amp_init(amp_model_t amp_model)
 
     case RIG_PORT_NETWORK:
     case RIG_PORT_UDP_NETWORK:
-        strncpy(rs->ampport.pathname, "127.0.0.1:4534", FILPATHLEN - 1);
+        strncpy(rs->ampport.pathname, "127.0.0.1:4531", FILPATHLEN - 1);
         break;
 
     default:

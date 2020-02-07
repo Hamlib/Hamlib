@@ -687,6 +687,7 @@ int dumpcaps(RIG *rig, FILE *fout)
     fprintf(fout, "Can send DTMF:\t%c\n", caps->send_dtmf != NULL ? 'Y' : 'N');
     fprintf(fout, "Can recv DTMF:\t%c\n", caps->recv_dtmf != NULL ? 'Y' : 'N');
     fprintf(fout, "Can send Morse:\t%c\n", caps->send_morse != NULL ? 'Y' : 'N');
+    fprintf(fout, "Can send Voice:\t%c\n", caps->send_voice_mem != NULL ? 'Y' : 'N');
 
     fprintf(fout,
             "Can decode Events:\t%c\n",

@@ -64,7 +64,7 @@ extern struct confparams opto_ext_parms[];
  * TODO: srch_dcs, srch_ctcss, rcv_dtmf, and make icom_probe opto aware
  */
 
-static const struct icom_priv_caps os456_priv_caps =
+static struct icom_priv_caps os456_priv_caps =
 {
     0x80,   /* default address */
     0,      /* 731 mode */
@@ -78,7 +78,7 @@ const struct rig_caps os456_caps =
     .rig_model =  RIG_MODEL_OS456,
     .model_name = "OptoScan456",
     .mfg_name =  "Optoelectronics",
-    .version =  "0.3",
+    .version =  BACKEND_VER ".3",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_SCANNER,

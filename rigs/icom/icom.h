@@ -30,7 +30,7 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "0.23"
+#define BACKEND_VER "0.25"
 
 /*
  * defines used by comp_cal_str in rig.c
@@ -125,6 +125,8 @@ struct icom_priv_caps
     int civ_731_mode; /* Off: freqs on 10 digits, On: freqs on 8 digits */
     int no_xchg; /* Off: use VFO XCHG to set other VFO, On: use set VFO to set other VFO */
     const struct ts_sc_list *ts_sc_list;
+    // the 4 elements above are mandatory
+    // everything below here is optional in the backends
     int settle_time; /*!< Receiver settle time, in ms */
     int (*r2i_mode)(RIG *rig, rmode_t mode, pbwidth_t width,
                     unsigned char *md, signed char *pd); /*< backend specific code
@@ -135,6 +137,8 @@ struct icom_priv_caps
                                to convert response
                                tokens to bandwidth and
                                mode */
+    int antack_len;             /* Length of 0x12 cmd may be 3 or 4 bytes as of 2020-01-22 e.g. 7851 */
+    int ant_count;              /* number of antennas */
     int serial_full_duplex;     /*!< Whether RXD&TXD are not tied together */
     int offs_len;               /* Number of bytes in offset frequency field. 0 defaults to 3 */
     int serial_USB_echo_check;  /* Flag to test USB echo state */
@@ -253,13 +257,14 @@ int icom_get_conf(RIG *rig, token_t token, char *val);
 int icom_set_powerstat(RIG *rig, powerstat_t status);
 int icom_get_powerstat(RIG *rig, powerstat_t *status);
 int icom_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option);
-int icom_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option);
+int icom_get_ant(RIG *rig, vfo_t vfo, ant_t ant, ant_t *ant_curr, value_t *option);
 int icom_decode_event(RIG *rig);
 int icom_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq,
                   rmode_t mode);
 int icom_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq,
                   rmode_t mode);
 int icom_send_morse(RIG *rig, vfo_t vfo, const char *msg);
+int icom_send_voice_mem(RIG *rig, vfo_t vfo, int bank);
 /* Exposed routines */
 int icom_get_split_vfos(const RIG *rig, vfo_t *rx_vfo, vfo_t *tx_vfo);
 int icom_set_raw(RIG *rig, int cmd, int subcmd, int subcmdbuflen,

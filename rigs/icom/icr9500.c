@@ -73,12 +73,14 @@
     } }
 
 
-static const struct icom_priv_caps icr9500_priv_caps =
+static struct icom_priv_caps icr9500_priv_caps =
 {
     0x72,   /* default address */
     0,      /* 731 mode */
     0,      /* no XCHG */
-    r9500_ts_sc_list
+    .ts_sc_list = r9500_ts_sc_list,
+    .antack_len = 2,
+    .ant_count = 3
 };
 
 /*
@@ -89,7 +91,7 @@ const struct rig_caps icr9500_caps =
     .rig_model =  RIG_MODEL_ICR9500,
     .model_name = "IC-R9500",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".2",
+    .version =  BACKEND_VER ".3",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_RECEIVER,

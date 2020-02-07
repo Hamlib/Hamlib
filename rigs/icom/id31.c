@@ -73,7 +73,7 @@
 
 /*
  */
-static const struct icom_priv_caps id31_priv_caps =
+static struct icom_priv_caps id31_priv_caps =
 {
     0xA0,   /* default address */
     0,      /* 731 mode */
