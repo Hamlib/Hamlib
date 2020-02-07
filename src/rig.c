@@ -3551,7 +3551,7 @@ int HAMLIB_API rig_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
  *
  * \sa rig_set_ant()
  */
-int HAMLIB_API rig_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option)
+int HAMLIB_API rig_get_ant(RIG *rig, vfo_t vfo, ant_t ant, ant_t *ant_curr, value_t *option)
 {
     const struct rig_caps *caps;
     int retcode, rc2;
@@ -3559,7 +3559,7 @@ int HAMLIB_API rig_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (CHECK_RIG_ARG(rig) || !ant)
+    if (CHECK_RIG_ARG(rig) || !ant_curr)
     {
         return -RIG_EINVAL;
     }
@@ -3575,7 +3575,7 @@ int HAMLIB_API rig_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option)
             || vfo == RIG_VFO_CURR
             || vfo == rig->state.current_vfo)
     {
-        return caps->get_ant(rig, vfo, ant, option);
+        return caps->get_ant(rig, vfo, ant, ant_curr, option);
     }
 
     if (!caps->set_vfo)
@@ -3591,7 +3591,7 @@ int HAMLIB_API rig_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option)
         return retcode;
     }
 
-    retcode = caps->get_ant(rig, vfo, ant, option);
+    retcode = caps->get_ant(rig, vfo, ant, ant_curr, option);
     /* try and revert even if we had an error above */
     rc2 = caps->set_vfo(rig, curr_vfo);
 
@@ -4319,6 +4319,74 @@ int HAMLIB_API rig_send_morse(RIG *rig, vfo_t vfo, const char *msg)
     }
 
     retcode = caps->send_morse(rig, vfo, msg);
+    /* try and revert even if we had an error above */
+    rc2 = caps->set_vfo(rig, curr_vfo);
+
+    if (RIG_OK == retcode)
+    {
+        /* return the first error code */
+        retcode = rc2;
+    }
+
+    return retcode;
+}
+
+
+/**
+ * \brief send voice memory content
+ * \param rig   The rig handle
+ * \param vfo   The target VFO
+ * \param ch    Voice memory number to be sent
+ *
+ *  Sends voice memory content.
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
+ * set appropriately).
+ *
+ */
+
+int HAMLIB_API rig_send_voice_mem(RIG *rig, vfo_t vfo, int ch)
+{
+    const struct rig_caps *caps;
+    int retcode, rc2;
+    vfo_t curr_vfo;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if CHECK_RIG_ARG(rig)
+    {
+        return -RIG_EINVAL;
+    }
+
+    caps = rig->caps;
+
+    if (caps->send_voice_mem == NULL)
+    {
+        return -RIG_ENAVAIL;
+    }
+
+    if ((caps->targetable_vfo & RIG_TARGETABLE_PURE)
+            || vfo == RIG_VFO_CURR
+            || vfo == rig->state.current_vfo)
+    {
+        return caps->send_voice_mem(rig, vfo, ch);
+    }
+
+    if (!caps->set_vfo)
+    {
+        return -RIG_ENTARGET;
+    }
+
+    curr_vfo = rig->state.current_vfo;
+    retcode = caps->set_vfo(rig, vfo);
+
+    if (retcode != RIG_OK)
+    {
+        return retcode;
+    }
+
+    retcode = caps->send_voice_mem(rig, vfo, ch);
     /* try and revert even if we had an error above */
     rc2 = caps->set_vfo(rig, curr_vfo);
 

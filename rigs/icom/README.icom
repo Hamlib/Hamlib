@@ -17,3 +17,27 @@ Notes on Icom backends
 	as expected in most cases. Only problem: Bandwidth in Get_Mode is reported always as 0.
 	Besides this backend seems to be stable -> Changing State to RIG_STATUS_BETA.
 
+2020-02, W9MDB: Antenna count and ack length for existing Icom's with antenna settings
+Model #Ant  ack length
+7100	2	2
+737	2	2
+7410	2	2
+746	2	2
+746	2	2
+756	2	2
+756	2	2
+756	2	2
+756	2	2
+7600	2	3
+7610	2	3
+7700	4	3
+7800	4	3
+785x	4	3
+9100	2	2
+icr30	2	2
+icr6	2	2
+icr75	2	2
+icr8600	3	2
+icr9000	2	2
+icr9500	3	2
+

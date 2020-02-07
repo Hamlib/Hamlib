@@ -119,6 +119,8 @@ static const struct icom_priv_caps ic7800_priv_caps =
     0,       /* 731 mode */
     0,       /* no XCHG */
     ic756pro_ts_sc_list,
+    .antack_len = 4,
+    .ant_count = 3,
     .agc_levels_present = 1,
     .agc_levels = {
         { .level = RIG_AGC_OFF, .icom_level = 0 },
@@ -151,7 +153,7 @@ const struct rig_caps ic7800_caps =
     .rig_model =  RIG_MODEL_IC7800,
     .model_name = "IC-7800",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".2",
+    .version =  BACKEND_VER ".3",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_UNTESTED,
     .rig_type =  RIG_TYPE_TRANSCEIVER,

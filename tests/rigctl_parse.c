@@ -215,6 +215,7 @@ declare_proto_rig(set_ant);
 declare_proto_rig(get_ant);
 declare_proto_rig(reset);
 declare_proto_rig(send_morse);
+declare_proto_rig(send_voice_mem);
 declare_proto_rig(send_cmd);
 declare_proto_rig(set_powerstat);
 declare_proto_rig(get_powerstat);
@@ -287,7 +288,7 @@ static struct test_table test_list[] =
     { 'Z',  "set_xit",          ACTION(set_xit),        ARG_IN, "XIT" },
     { 'z',  "get_xit",          ACTION(get_xit),        ARG_OUT, "XIT" },
     { 'Y',  "set_ant",          ACTION(set_ant),        ARG_IN, "Antenna", "Option" },
-    { 'y',  "get_ant",          ACTION(get_ant),        ARG_OUT, "Antenna", "Option" },
+    { 'y',  "get_ant",          ACTION(get_ant),        ARG_IN1 | ARG_OUT2 |ARG_NOVFO, "Antenna", "Antenna", "Option" },
     { 0x87, "set_powerstat",    ACTION(set_powerstat),  ARG_IN  | ARG_NOVFO, "Power Status" },
     { 0x88, "get_powerstat",    ACTION(get_powerstat),  ARG_OUT | ARG_NOVFO, "Power Status" },
     { 0x89, "send_dtmf",        ACTION(send_dtmf),      ARG_IN, "Digits" },
@@ -296,6 +297,7 @@ static struct test_table test_list[] =
     { 'w',  "send_cmd",         ACTION(send_cmd),       ARG_IN1 | ARG_IN_LINE | ARG_OUT2 | ARG_NOVFO, "Cmd", "Reply" },
     { 'W',  "send_cmd_rx",      ACTION(send_cmd),       ARG_IN | ARG_OUT2 | ARG_NOVFO, "Cmd", "Reply"},
     { 'b',  "send_morse",       ACTION(send_morse),     ARG_IN  | ARG_IN_LINE, "Morse" },
+    { 0x94,  "send_voice_mem",   ACTION(send_voice_mem), ARG_IN , "Voice Mem#" },
     { 0x8b, "get_dcd",          ACTION(get_dcd),        ARG_OUT, "DCD" },
     { '2',  "power2mW",         ACTION(power2mW),       ARG_IN1 | ARG_IN2 | ARG_IN3 | ARG_OUT1 | ARG_NOVFO, "Power [0.0..1.0]", "Frequency", "Mode", "Power mW" },
     { '4',  "mW2power",         ACTION(mW2power),       ARG_IN1 | ARG_IN2 | ARG_IN3 | ARG_OUT1 | ARG_NOVFO, "Power mW", "Frequency", "Mode", "Power [0.0..1.0]" },
@@ -3949,22 +3951,23 @@ declare_proto_rig(set_ant)
 declare_proto_rig(get_ant)
 {
     int status;
-    ant_t ant;
+    ant_t ant, ant_curr;
     value_t option;
 
-    status = rig_get_ant(rig, vfo, &ant, &option);
+    CHKSCN1ARG(sscanf(arg1, "%d", &ant));
+
+    status = rig_get_ant(rig, vfo, rig_idx2setting(ant), &ant_curr, &option);
 
     if (status != RIG_OK)
     {
         return status;
     }
-
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
         fprintf(fout, "%s: ", cmd->arg1);
     }
 
-    fprintf(fout, "%d%c", rig_setting2idx(ant), resp_sep);
+    fprintf(fout, "%d%c", rig_setting2idx(ant_curr), resp_sep);
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
@@ -3993,6 +3996,14 @@ declare_proto_rig(send_morse)
     return rig_send_morse(rig, vfo, arg1);
 }
 
+/* '8' */
+declare_proto_rig(send_voice_mem)
+{
+    int ch;
+
+    CHKSCN1ARG(sscanf(arg1, "%d", &ch));
+    return rig_send_voice_mem(rig, vfo, ch);
+}
 
 declare_proto_rig(send_dtmf)
 {

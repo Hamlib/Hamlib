@@ -2116,7 +2116,7 @@ int tt565_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
  *
  * \sa tt565_set_ant
  */
-int tt565_get_ant(RIG *rig, vfo_t vfo, ant_t *ant, value_t *option)
+int tt565_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *option)
 {
     char respbuf[TT565_BUFSIZE];
     int resp_len, retval;
