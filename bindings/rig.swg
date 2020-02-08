@@ -441,6 +441,7 @@ typedef channel_t * const_channel_t_p;
 	METHOD1GET(get_powerstat, powerstat_t)
 	METHOD1GET(get_trn, int)
 
+  METHOD1VGET(get_dcd, dcd_t)
 
 	//METHOD2GET(get_ext_parm, token_t, value_t)
 
