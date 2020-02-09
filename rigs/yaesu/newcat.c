@@ -3403,6 +3403,18 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             // value of 0.448 determined by data from W6HN
             // seems to be pretty linear
+            // SMeter, rig answer, %fullscale
+            // S0    SM0000 0
+            // S2    SM0026 10
+            // S4    SM0051 20
+            // S6    SM0081 30
+            // S7.5  SM0105 40
+            // S9    SM0130 50
+            // +12db SM0157 60
+            // +25db SM0186 70
+            // +35db SM0203 80
+            // +50db SM0237 90
+            // +60db SM0255 10
             val->i = atoi(retlvl)/0.448;
         }
         else // some Yaesu's return straight s-meter answers
