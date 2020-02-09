@@ -3398,9 +3398,19 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_STRENGTH: // Yaesu's return straight s-meter answers
 
-        // Return dbS9 -- does >S9 mean 10dB increments? If not, add to rig driver
-        if (val->i > 0) { val->i = (atoi(retlvl) - 9) * 10; }
-        else { val->i = (atoi(retlvl) - 9) * 6; } // Return dbS9  does >S9 mean 10dB increments?
+        
+        if (newcat_is_rig(rig, RIG_MODEL_FT991))
+        {
+            // value of 0.448 determined by data from W6HN
+            // seems to be pretty linear
+            val->i = atoi(retlvl)/0.448;
+        }
+        else // some Yaesu's return straight s-meter answers
+        { 
+            // Return dbS9 -- does >S9 mean 10dB increments? If not, add to rig driver
+            if (val->i > 0) { val->i = (atoi(retlvl) - 9) * 10; }
+            else { val->i = (atoi(retlvl) - 9) * 6; } // Return dbS9  does >S9 mean 10dB increments?
+        }
 
         break;
 
