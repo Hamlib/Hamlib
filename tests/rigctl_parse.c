@@ -288,7 +288,7 @@ static struct test_table test_list[] =
     { 'Z',  "set_xit",          ACTION(set_xit),        ARG_IN, "XIT" },
     { 'z',  "get_xit",          ACTION(get_xit),        ARG_OUT, "XIT" },
     { 'Y',  "set_ant",          ACTION(set_ant),        ARG_IN, "Antenna", "Option" },
-    { 'y',  "get_ant",          ACTION(get_ant),        ARG_IN1 | ARG_OUT2 |ARG_NOVFO, "Antenna", "Antenna", "Option" },
+    { 'y',  "get_ant",          ACTION(get_ant),        ARG_IN1 | ARG_OUT2 |ARG_NOVFO, "Antenna", "Option" },
     { 0x87, "set_powerstat",    ACTION(set_powerstat),  ARG_IN  | ARG_NOVFO, "Power Status" },
     { 0x88, "get_powerstat",    ACTION(get_powerstat),  ARG_OUT | ARG_NOVFO, "Power Status" },
     { 0x89, "send_dtmf",        ACTION(send_dtmf),      ARG_IN, "Digits" },
