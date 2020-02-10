@@ -3943,7 +3943,7 @@ declare_proto_rig(set_ant)
     CHKSCN1ARG(sscanf(arg1, "%d", &ant));
     CHKSCN1ARG(sscanf(arg2, "%d", &option.i)); // assuming they are integer values
 
-    return rig_set_ant(rig, vfo, rig_idx2setting(ant), option);
+    return rig_set_ant(rig, vfo, rig_idx2setting(ant-1), option);
 }
 
 
@@ -3956,7 +3956,14 @@ declare_proto_rig(get_ant)
 
     CHKSCN1ARG(sscanf(arg1, "%d", &ant));
 
-    status = rig_get_ant(rig, vfo, rig_idx2setting(ant), &ant_curr, &option);
+    if (ant == 0) // then we want the current antenna info
+    {
+        status = rig_get_ant(rig, vfo, RIG_ANT_CURR, &ant_curr, &option);
+    }
+    else
+    {
+        status = rig_get_ant(rig, vfo, rig_idx2setting(ant-1), &ant_curr, &option);
+    }
 
     if (status != RIG_OK)
     {
@@ -3967,7 +3974,7 @@ declare_proto_rig(get_ant)
         fprintf(fout, "%s: ", cmd->arg1);
     }
 
-    fprintf(fout, "%d%c", rig_setting2idx(ant_curr), resp_sep);
+    fprintf(fout, "%d%c", rig_setting2idx(ant_curr)+1, resp_sep);
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
