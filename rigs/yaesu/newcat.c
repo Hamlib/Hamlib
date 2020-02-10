@@ -3414,8 +3414,8 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             // +25db SM0186 70
             // +35db SM0203 80
             // +50db SM0237 90
-            // +60db SM0255 10
-            val->i = atoi(retlvl)/0.448;
+            // +60db SM0255 100
+            val->i = atoi(retlvl)*0.448;
         }
         else // some Yaesu's return straight s-meter answers
         { 
