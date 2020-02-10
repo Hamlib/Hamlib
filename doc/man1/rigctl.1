@@ -653,16 +653,24 @@ Returns TX Mode as a token and TX Passband in Hz as in
 above.
 .
 .TP
-.BR Y ", " set_ant " \(aq" \fIAntenna\fP \(aq
+.BR Y ", " set_ant " \(aq" \fIAntenna\fP "\(aq \(aq" \fIOption\fP \(aq
 Set
 .RI \(aq Antenna \(aq
-number (\(oq0\(cq, \(oq1\(cq, \(oq2\(cq, ...).
+and
+.RI \(aq Option \(aq.
+.IP
+Number is 1-based antenna# (\(oq1\(cq, \(oq2\(cq, \(oq3\(cq, ...).
+.IP
+Option depends on rig..for Icom it probably sets the RX only flag. See your manual for specific option values.
 .
 .TP
-.BR y ", " get_ant
+.BR y ", " get_ant " \(aq" \fIAntenna\fP \(aq
 Get
 .RI \(aq Antenna \(aq
-number (\(oq0\(cq, \(oq1\(cq, \(oq2\(cq, ...).
+.IP
+Number is 1-based antenna# (\(oq1\(cq, \(oq2\(cq, \(oq3\(cq, ...).
+.IP
+Option returned depends on rig..for Icom is likely the RX only flag.
 .
 .TP
 .BR b ", " send_morse " \(aq" \fIMorse\fP \(aq
