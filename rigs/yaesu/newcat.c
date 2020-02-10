@@ -3415,7 +3415,8 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             // +35db SM0203 80
             // +50db SM0237 90
             // +60db SM0255 100
-            val->i = atoi(retlvl)*0.448;
+            // 114dB range over 0-255 referenced to S0 of -54dB 
+            val->i = atoi(retlvl) * (114.0/255.0) - 54;
         }
         else // some Yaesu's return straight s-meter answers
         { 
