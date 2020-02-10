@@ -56,7 +56,7 @@ struct dummy_priv_data
     powerstat_t powerstat;
     int bank;
     value_t parms[RIG_SETTING_MAX];
-    int ant_option;
+    int ant_option[4]; /* simulate 4 antennas */
 
     channel_t *curr;    /* points to vfo_a, vfo_b or mem[] */
 
@@ -1338,9 +1338,22 @@ static int dummy_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
-    curr->ant = ant;
-    priv->ant_option = option.i;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called ant=%d, option=%d\n", __func__, ant, option.i);
+    switch(ant) {
+        case RIG_ANT_CURR: 
+            break;
+        case RIG_ANT_1:
+        case RIG_ANT_2:
+        case RIG_ANT_3:
+        case RIG_ANT_4: 
+            curr->ant = ant;
+            break;
+        default:
+            rig_debug(RIG_DEBUG_ERR,"%s: unknown antenna requested=0x%02x\n",__func__, ant);
+            return -RIG_EINVAL;
+    }
+
+    priv->ant_option[rig_setting2idx(curr->ant)] = option.i;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called ant=0x%02x, option=%d, curr->ant=0x%02x\n", __func__, ant, option.i, curr->ant);
 
     return RIG_OK;
 }
@@ -1352,8 +1365,23 @@ static int dummy_get_ant(RIG *rig, vfo_t vfo, ant_t ant, ant_t *ant_curr, value_
     channel_t *curr = priv->curr;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, ant=0x%02x\n", __func__, ant);
-    *ant_curr = curr->ant;
-    option->i = priv->ant_option;
+   
+    switch(ant) {
+        case RIG_ANT_CURR: 
+            *ant_curr = curr->ant;  
+            break;
+        case RIG_ANT_1:
+        case RIG_ANT_2:
+        case RIG_ANT_3:
+        case RIG_ANT_4:
+            *ant_curr = ant;
+            break;
+        default:
+            rig_debug(RIG_DEBUG_ERR,"%s: unknown antenna requested=0x%02x\n",__func__, ant);
+            return -RIG_EINVAL;
+    }
+    rig_debug(RIG_DEBUG_TRACE,"%s: ant_curr=0x%02x, idx=%d\n",__func__, *ant_curr, rig_setting2idx(*ant_curr));
+    option->i = priv->ant_option[rig_setting2idx(*ant_curr)];
 
     return RIG_OK;
 }
@@ -1827,7 +1855,7 @@ const struct rig_caps dummy_caps =
     .rig_model =      RIG_MODEL_DUMMY,
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
-    .version =        "0.5",
+    .version =        "0.6",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_BETA,
     .rig_type =       RIG_TYPE_OTHER,
