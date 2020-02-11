@@ -101,29 +101,17 @@
 
 #define IC7100_PARM_ALL (RIG_PARM_ANN|RIG_PARM_BACKLIGHT|RIG_PARM_KEYLIGHT|RIG_PARM_BEEP|RIG_PARM_TIME)
 
-struct cmdparams ic7100_rigparms[] = {
-    { {.s=RIG_PARM_BEEP}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x03}, CMD_DAT_BOL, 1 },
-    { {.s=RIG_PARM_BACKLIGHT}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x04}, CMD_DAT_LVL, 2 },
-    { {.s=RIG_PARM_KEYLIGHT}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x05}, CMD_DAT_LVL, 2 },
-    { {.s=RIG_PARM_TIME}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x21}, CMD_DAT_TIM, 2 },
-    { {.s=RIG_PARM_NONE} }
-};
-
-struct cmdparams ic7100_riglevels[] = {
-    { {.s=RIG_LEVEL_VOXDELAY}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x65}, CMD_DAT_INT, 1 },
-    { {.s=RIG_LEVEL_NONE} }
-};
-
 int ic7100_tokens[] = { TOK_DSTAR_CODE, TOK_DSTAR_DSQL, TOK_DSTAR_CALL_SIGN, TOK_DSTAR_MESSAGE,
     TOK_DSTAR_STATUS, TOK_DSTAR_MY_CS, TOK_DSTAR_TX_CS, TOK_DSTAR_TX_MESS,
     TOK_BACKEND_NONE };
 
-struct confparams ic7100_ext[] = {
-    { 0 }
-};
-
 struct cmdparams ic7100_extcmds[] = {
-    { {0} }
+    { {.s=RIG_PARM_BEEP}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x03}, CMD_DAT_BOL, 1 },
+    { {.s=RIG_PARM_BACKLIGHT}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x04}, CMD_DAT_LVL, 2 },
+    { {.s=RIG_PARM_KEYLIGHT}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x05}, CMD_DAT_LVL, 2 },
+    { {.s=RIG_PARM_TIME}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x21}, CMD_DAT_TIM, 2 },
+    { {.s=RIG_LEVEL_VOXDELAY}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x65}, CMD_DAT_INT, 1 },
+    { {.s=RIG_PARM_NONE} }
 };
 
 // IC-7100 S-meter calibration data based on manual
@@ -196,8 +184,6 @@ static const struct icom_priv_caps ic7100_priv_caps =
         { .level = RIG_AGC_SLOW, .icom_level = 3 },
         { .level = -1, .icom_level = 0 },
     },
-    .rigparms = ic7100_rigparms,
-    .riglevels = ic7100_riglevels,
     .extcmds = ic7100_extcmds,
     .antack_len = 2,
     .ant_count = 2
@@ -238,7 +224,8 @@ const struct rig_caps ic7100_caps =
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 900 }, .step = { .i = 1 } },
     },
     .ext_tokens = ic7100_tokens,
-    .extlevels = ic7100_ext,
+    .extlevels = icom_ext_levels,
+    .extfuncs = icom_ext_funcs,
     .extparms = icom_ext_parms,
     .parm_gran =  {},
     .ctcss_list =  common_ctcss_list,
@@ -388,6 +375,8 @@ const struct rig_caps ic7100_caps =
     .get_parm =  icom_get_parm,
     .set_ext_parm =  icom_set_ext_parm,
     .get_ext_parm =  icom_get_ext_parm,
+    .set_ext_func =  icom_set_ext_func,
+    .get_ext_func =  icom_get_ext_func,
     .set_mem =  icom_set_mem,
     .vfo_op =  icom_vfo_op,
     .scan =  icom_scan,
