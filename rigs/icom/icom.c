@@ -5364,7 +5364,7 @@ int icom_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
         antopt_len = 1;
         antopt[0] = option.i;
         // we have to set the rx option by itself apparently
-        rig_debug(RIG_DEBUG_TRACE,"%s: seeing antopt=%d\n", __func__, antopt[0]);
+        rig_debug(RIG_DEBUG_TRACE,"%s: setting antopt=%d\n", __func__, antopt[0]);
         retval = icom_transaction(rig, C_CTL_ANT, i_ant,
                               antopt, antopt_len, ackbuf, &ack_len);
         if (retval != RIG_OK)
