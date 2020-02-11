@@ -144,8 +144,6 @@ struct icom_priv_caps
     int serial_USB_echo_check;  /* Flag to test USB echo state */
     int agc_levels_present;     /* Flag to indicate that agc_levels array is populated */
     struct icom_agc_level agc_levels[RIG_AGC_LAST + 1]; /* Icom rig-specific AGC levels, the last entry should have level -1 */
-    struct cmdparams *rigparms; /* Pointer to rig custom parameters array */
-    struct cmdparams *riglevels;/* Pointer to rig custom levels array */
     struct cmdparams *extcmds;  /* Pointer to extended operations array */
 };
 
@@ -246,6 +244,8 @@ int icom_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val);
 int icom_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val);
 int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
+int icom_set_ext_func(RIG *rig, vfo_t vfo, token_t token, int status);
+int icom_get_ext_func(RIG *rig, vfo_t vfo, token_t token, int *status);
 int icom_set_parm(RIG *rig, setting_t parm, value_t val);
 int icom_get_parm(RIG *rig, setting_t parm, value_t *val);
 int icom_set_ext_parm(RIG *rig, token_t token, value_t val);
@@ -287,8 +287,9 @@ int icom_get_custom_parm_time(RIG *rig, int parmbuflen, unsigned char *parmbuf,
                               int *seconds);
 
 extern const struct confparams icom_cfg_params[];
+extern const struct confparams icom_ext_levels[];
+extern const struct confparams icom_ext_funcs[];
 extern const struct confparams icom_ext_parms[];
-extern const struct cmdparams icom_rig_cmds[];
 extern const struct cmdparams icom_ext_cmds[];
 
 extern const struct rig_caps ic703_caps;

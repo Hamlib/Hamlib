@@ -62,16 +62,12 @@
 
 #define IC756_ANTS (RIG_ANT_1|RIG_ANT_2)
 
-struct cmdparams ic756pro_rigparms[] = {
+struct cmdparams ic756pro_cmdparms[] = {
     { {.s=RIG_PARM_BEEP}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x20}, CMD_DAT_BOL, 1 },
     { {.s=RIG_PARM_BACKLIGHT}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x09}, CMD_DAT_LVL, 2 },
     { {.s=RIG_PARM_TIME}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x16}, CMD_DAT_TIM, 2 },
-    { {.s=RIG_PARM_NONE} }
-};
-
-struct cmdparams ic756pro_riglevels[] = {
     { {.s=RIG_LEVEL_VOXDELAY}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x60}, CMD_DAT_INT, 1 },
-    { {.s=RIG_LEVEL_NONE} }
+    { {.s=RIG_PARM_NONE} }
 };
 
 #define IC756PRO_STR_CAL { 16, \
@@ -468,8 +464,7 @@ static const struct icom_priv_caps ic756pro2_priv_caps =
         { .level = RIG_AGC_SLOW, .icom_level = 3 },
         { .level = -1, .icom_level = 0 },
     },
-    .rigparms = ic756pro_rigparms,   /* Custom parm parameters */
-    .riglevels = ic756pro_riglevels,   /* Custom level parameters */
+    .extcmds = ic756pro_cmdparms,   /* Custom op parameters */
 };
 
 /*
@@ -896,8 +891,7 @@ static const struct icom_priv_caps ic756pro3_priv_caps =
         { .level = RIG_AGC_SLOW, .icom_level = 3 },
         { .level = -1, .icom_level = 0 },
     },
-    .rigparms = ic756pro_rigparms,   /* Custom parm parameters */
-    .riglevels = ic756pro_riglevels,   /* Custom level parameters */
+    .extcmds = ic756pro_cmdparms,   /* Custom op parameters */
 };
 
 

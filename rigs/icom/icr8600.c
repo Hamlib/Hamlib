@@ -67,7 +67,7 @@
     { 255, 60 }, \
 } }
 
-struct cmdparams icr8600_rigparms[] = {
+struct cmdparams icr8600_extcmds[] = {
     { {.s=RIG_PARM_BEEP}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x38}, CMD_DAT_BOL, 1 },
     { {.s=RIG_PARM_BACKLIGHT}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x15}, CMD_DAT_LVL, 2 },
     { {.s=RIG_PARM_KEYLIGHT}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x16}, CMD_DAT_LVL, 2 },
@@ -80,14 +80,6 @@ int icr8600_tokens[] = { TOK_DSTAR_DSQL, TOK_DSTAR_CALL_SIGN, TOK_DSTAR_MESSAGE,
     TOK_SCOPE_DAT, TOK_SCOPE_STS, TOK_SCOPE_DOP, TOK_SCOPE_MSS, TOK_SCOPE_MOD, TOK_SCOPE_SPN,
     TOK_SCOPE_HLD, TOK_SCOPE_REF, TOK_SCOPE_SWP, TOK_SCOPE_TYP, TOK_SCOPE_VBW, TOK_SCOPE_FEF,
     TOK_BACKEND_NONE };
-
-struct confparams icr8600_ext[] = {
-    { 0 }
-};
-
-struct cmdparams icr8600_extcmds[] = {
-    { {0} }
-};
 
 /*
  * channel caps.
@@ -112,8 +104,7 @@ static struct icom_priv_caps icr8600_priv_caps =
     .ant_count = 3,
     .offs_len = 4,                  /* Repeater offset is 4 bytes */
     .serial_USB_echo_check = 1,     /* USB CI-V may not echo */
-    .rigparms = icr8600_rigparms,   /* Custom parm parameters */
-    .extcmds = icr8600_extcmds      /* Custom ext_parm parameters */
+    .extcmds = icr8600_extcmds      /* Custom ext_cmd parameters */
 };
 
 const struct rig_caps icr8600_caps =
@@ -147,7 +138,8 @@ const struct rig_caps icr8600_caps =
     .level_gran = { [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } } },
     .parm_gran = { [PARM_TIME] = { .min = { .i = 0 }, .max = { .i = 86399} } },
     .ext_tokens = icr8600_tokens,
-    .extlevels = icr8600_ext,
+    .extlevels = icom_ext_levels,
+    .extfuncs = icom_ext_funcs,
     .extparms = icom_ext_parms,
     .ctcss_list = common_ctcss_list,
     .dcs_list = common_dcs_list,
@@ -253,6 +245,8 @@ const struct rig_caps icr8600_caps =
     .get_parm = icom_get_parm,
     .set_ext_parm = icom_set_ext_parm,
     .get_ext_parm = icom_get_ext_parm,
+    .set_ext_func = icom_set_ext_func,
+    .get_ext_func = icom_get_ext_func,
     .get_dcd = icom_get_dcd,
     .set_mem = icom_set_mem,
     .vfo_op = icom_vfo_op,
