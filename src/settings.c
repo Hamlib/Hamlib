@@ -749,6 +749,137 @@ int HAMLIB_API rig_get_ext_level(RIG *rig,
     return retcode;
 }
 
+/**
+ * \brief set a radio function extra parameter
+ * \param rig   The rig handle
+ * \param vfo   The target VFO
+ * \param token The parameter
+ * \param status The value to set the parameter to
+ *
+ *  Sets a function extra parameter.
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
+ * set appropriately).
+ *
+ * \sa rig_get_ext_func()
+ */
+int HAMLIB_API rig_set_ext_func(RIG *rig,
+                                 vfo_t vfo,
+                                 token_t token,
+                                 int status)
+{
+    const struct rig_caps *caps;
+    int retcode;
+    vfo_t curr_vfo;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (CHECK_RIG_ARG(rig))
+    {
+        return -RIG_EINVAL;
+    }
+
+    caps = rig->caps;
+
+    if (caps->set_ext_level == NULL)
+    {
+        return -RIG_ENAVAIL;
+    }
+
+    if ((caps->targetable_vfo & RIG_TARGETABLE_PURE)
+            || vfo == RIG_VFO_CURR
+            || vfo == rig->state.current_vfo)
+    {
+
+        return caps->set_ext_func(rig, vfo, token, status);
+    }
+
+    if (!caps->set_vfo)
+    {
+        return -RIG_ENTARGET;
+    }
+
+    curr_vfo = rig->state.current_vfo;
+    retcode = caps->set_vfo(rig, vfo);
+
+    if (retcode != RIG_OK)
+    {
+        return retcode;
+    }
+
+    retcode = caps->set_ext_func(rig, vfo, token, status);
+    caps->set_vfo(rig, curr_vfo);
+
+    return retcode;
+}
+
+
+/**
+ * \brief get the value of a function extra parameter
+ * \param rig   The rig handle
+ * \param vfo   The target VFO
+ * \param token The parameter
+ * \param status The location where to store the value of \a token
+ *
+ *  Retrieves the value of a function extra parameter associated with \a token.
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
+ * set appropriately).
+ *
+ * \sa rig_set_ext_func()
+ */
+int HAMLIB_API rig_get_ext_func(RIG *rig,
+                                 vfo_t vfo,
+                                 token_t token,
+                                 int *status)
+{
+    const struct rig_caps *caps;
+    int retcode;
+    vfo_t curr_vfo;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (CHECK_RIG_ARG(rig) || !status)
+    {
+        return -RIG_EINVAL;
+    }
+
+    caps = rig->caps;
+
+    if (caps->get_ext_func == NULL)
+    {
+        return -RIG_ENAVAIL;
+    }
+
+    if ((caps->targetable_vfo & RIG_TARGETABLE_PURE)
+            || vfo == RIG_VFO_CURR
+            || vfo == rig->state.current_vfo)
+    {
+
+        return caps->get_ext_func(rig, vfo, token, status);
+    }
+
+    if (!caps->set_vfo)
+    {
+        return -RIG_ENTARGET;
+    }
+
+    curr_vfo = rig->state.current_vfo;
+    retcode = caps->set_vfo(rig, vfo);
+
+    if (retcode != RIG_OK)
+    {
+        return retcode;
+    }
+
+    retcode = caps->get_ext_func(rig, vfo, token, status);
+    caps->set_vfo(rig, curr_vfo);
+
+    return retcode;
+}
+
 
 /**
  * \brief set a radio parm extra parameter

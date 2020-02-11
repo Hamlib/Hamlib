@@ -1424,6 +1424,7 @@ struct rig_caps {
 
     const struct confparams *extparms;  /*!< Extension parm list, \sa ext.c */
     const struct confparams *extlevels; /*!< Extension level list, \sa ext.c */
+    const struct confparams *extfuncs; /*!< Extension func list, \sa ext.c */
     int *ext_tokens;                    /*!< Extension token list */
 
     const tone_t *ctcss_list;   /*!< CTCSS tones list, zero ended */
@@ -1584,6 +1585,9 @@ struct rig_caps {
 
     int (*set_ext_level)(RIG *rig, vfo_t vfo, token_t token, value_t val);
     int (*get_ext_level)(RIG *rig, vfo_t vfo, token_t token, value_t *val);
+
+    int (*set_ext_func)(RIG *rig, vfo_t vfo, token_t token, int status);
+    int (*get_ext_func)(RIG *rig, vfo_t vfo, token_t token, int *status);
 
     int (*set_ext_parm)(RIG *rig, token_t token, value_t val);
     int (*get_ext_parm)(RIG *rig, token_t token, value_t *val);
@@ -2098,6 +2102,17 @@ rig_get_ext_level HAMLIB_PARAMS((RIG *rig,
                                  vfo_t vfo,
                                  token_t token,
                                  value_t *val));
+
+extern HAMLIB_EXPORT(int)
+rig_set_ext_func HAMLIB_PARAMS((RIG *rig,
+                                 vfo_t vfo,
+                                 token_t token,
+                                 int status));
+extern HAMLIB_EXPORT(int)
+rig_get_ext_func HAMLIB_PARAMS((RIG *rig,
+                                 vfo_t vfo,
+                                 token_t token,
+                                 int *status));
 
 extern HAMLIB_EXPORT(int)
 rig_set_ext_parm HAMLIB_PARAMS((RIG *rig,
