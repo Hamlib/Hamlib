@@ -2850,9 +2850,20 @@ declare_proto_rig(set_func)
 
     func = rig_parse_func(arg1);
 
-    if (RIG_FUNC_NONE == func)
+    if (!rig_has_set_func(rig, func))
     {
-        return -RIG_EINVAL;
+        const struct confparams *cfp;
+
+        cfp = rig_ext_lookup(rig, arg1);
+
+        if (!cfp)
+        {
+            return -RIG_ENAVAIL;    /* no such parameter */
+        }
+
+        CHKSCN1ARG(sscanf(arg2, "%d", &func_stat));
+
+        return rig_set_ext_func(rig, vfo, cfp->token, func_stat);
     }
 
     CHKSCN1ARG(sscanf(arg2, "%d", &func_stat));
@@ -2877,9 +2888,32 @@ declare_proto_rig(get_func)
 
     func = rig_parse_func(arg1);
 
-    if (RIG_FUNC_NONE == func)
+    if (!rig_has_get_func(rig, func))
     {
-        return -RIG_EINVAL;
+        const struct confparams *cfp;
+
+        cfp = rig_ext_lookup(rig, arg1);
+
+        if (!cfp)
+        {
+            return -RIG_EINVAL;    /* no such parameter */
+        }
+
+        status = rig_get_ext_func(rig, vfo, cfp->token, &func_stat);
+
+        if (status != RIG_OK)
+        {
+            return status;
+        }
+
+        if (interactive && prompt)
+        {
+            fprintf(fout, "%s: ", cmd->arg2);
+        }
+
+        fprintf(fout, "%d\n", func_stat);
+
+        return status;
     }
 
     status = rig_get_func(rig, vfo, func, &func_stat);
