@@ -57,16 +57,12 @@
 
 #define IC7300_ANTS (RIG_ANT_1) /* ant-1 is Hf-6m */
 
-struct cmdparams ic7300_rigparms[] = {
+struct cmdparams ic7300_extcmds[] = {
     { {.s=RIG_PARM_BEEP}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x23}, CMD_DAT_BOL, 1 },
     { {.s=RIG_PARM_BACKLIGHT}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x81}, CMD_DAT_LVL, 2 },
     { {.s=RIG_PARM_TIME}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x95}, CMD_DAT_TIM, 2 },
-    { {.s=RIG_PARM_NONE} }
-};
-
-struct cmdparams ic7300_riglevels[] = {
     { {.s=RIG_LEVEL_VOXDELAY}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x91}, CMD_DAT_INT, 1 },
-    { {.s=RIG_LEVEL_NONE} }
+    { {.s=RIG_PARM_NONE} }
 };
 
 /*
@@ -138,15 +134,11 @@ struct cmdparams ic7300_riglevels[] = {
 #define IC9700_ALL_TX_MODES (RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_DSTAR|RIG_MODE_DD)
 #define IC9700_ALL_RX_MODES (RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_DSTAR|RIG_MODE_DD)
 
-struct cmdparams ic9700_rigparms[] = {
+struct cmdparams ic9700_extcmds[] = {
     { {.s=RIG_PARM_BEEP}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x29}, CMD_DAT_BOL, 1 },
     { {.s=RIG_PARM_BACKLIGHT}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x52}, CMD_DAT_LVL, 2 },
-    { {.s=RIG_PARM_NONE} }
-};
-
-struct cmdparams ic9700_riglevels[] = {
     { {.s=RIG_LEVEL_VOXDELAY}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x03, 0x30}, CMD_DAT_INT, 1 },
-    { {.s=RIG_LEVEL_NONE} }
+    { {.s=RIG_PARM_NONE} }
 };
 
 #define IC9700_STR_CAL { 7, \
@@ -219,8 +211,7 @@ static const struct icom_priv_caps IC7300_priv_caps =
         { .level = RIG_AGC_SLOW, .icom_level = 3 },
         { .level = -1, .icom_level = 0 },
     },
-    .rigparms = ic7300_rigparms,   /* Custom parm parameters */
-    .riglevels = ic7300_riglevels,   /* Custom level parameters */
+    .extcmds = ic7300_extcmds,   /* Custom op parameters */
 };
 
 static const struct icom_priv_caps IC9700_priv_caps =
@@ -237,8 +228,7 @@ static const struct icom_priv_caps IC9700_priv_caps =
         { .level = RIG_AGC_SLOW, .icom_level = 3 },
         { .level = -1, .icom_level = 0 },
     },
-    .rigparms = ic9700_rigparms,   /* Custom parm parameters */
-    .riglevels = ic9700_riglevels,   /* Custom level parameters */
+    .extcmds = ic9700_extcmds,   /* Custom op parameters */
 };
 
 const struct rig_caps ic7300_caps =

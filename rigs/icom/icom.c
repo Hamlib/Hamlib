@@ -402,6 +402,22 @@ const struct confparams icom_cfg_params[] =
 };
 
 /*
+ *  Lookup table for icom_get_ext_func
+ */
+const struct confparams icom_ext_funcs[] =
+{
+    {}
+};
+
+/*
+ *  Lookup table for icom_get_ext_level
+ */
+const struct confparams icom_ext_levels[] =
+{
+    {}
+};
+
+/*
  *  Lookup table for icom_get_ext_parm
  */
 
@@ -444,12 +460,12 @@ const struct confparams icom_ext_parms[] =
 
 const struct cmdparams icom_ext_cmd[] =
 {
+    { {.t = TOK_DSTAR_DSQL}, C_CTL_DIG, S_DIG_DSCSQL, SC_MOD_RW, 1, {0}, CMD_DAT_BOL, 1 },
     { {.t = TOK_DSTAR_CALL_SIGN}, C_CTL_DIG, S_DIG_DSCALS, SC_MOD_RW12, 2, {0}, CMD_DAT_BUF, 38 },
     { {.t = TOK_DSTAR_MESSAGE}, C_CTL_DIG, S_DIG_DSMESS, SC_MOD_RW12, 2, {0}, CMD_DAT_STR, 32 },
     { {.t = TOK_DSTAR_STATUS}, C_CTL_DIG, S_DIG_DSRSTS, SC_MOD_RW12, 2, {0}, CMD_DAT_BUF, 1 },
     { {.t = TOK_DSTAR_GPS_DATA}, C_CTL_DIG, S_DIG_DSGPSD, SC_MOD_RW12, 2, {0}, CMD_DAT_BUF, 52 },
     { {.t = TOK_DSTAR_GPS_MESS}, C_CTL_DIG, S_DIG_DSGPSM, SC_MOD_RW12, 2, {0}, CMD_DAT_STR, 52 },
-    { {.t = TOK_DSTAR_DSQL}, C_CTL_DIG, S_DIG_DSCSQL, SC_MOD_RW, 1, {0}, CMD_DAT_BOL, 1 },
     { {.t = TOK_DSTAR_CODE}, C_CTL_DIG, S_DIG_DSCSQL, SC_MOD_RW12, 2, {0}, CMD_DAT_FLT, 1 },
     { {.t = TOK_DSTAR_TX_DATA}, C_CTL_DSD, S_DSD_DSTXDT, SC_MOD_RW, 1, {0}, CMD_DAT_BUF, 30 },
     { {.t = TOK_DSTAR_MY_CS}, C_CTL_DVT, S_DVT_DSMYCS, SC_MOD_RW, 1, {0}, CMD_DAT_STR, 12 },
@@ -1962,7 +1978,7 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    const struct cmdparams *cmd = priv_caps->riglevels;
+    const struct cmdparams *cmd = priv_caps->extcmds;
 
     for (i = 0; cmd && cmd[i].id.s != 0; i++)
     {
@@ -2319,7 +2335,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     const struct icom_priv_caps *priv = rig->caps->priv;
-    const struct cmdparams *cmd = priv->riglevels;
+    const struct cmdparams *cmd = priv->extcmds;
     int i;
 
     for (i = 0; cmd && cmd[i].id.s != 0; i++)
@@ -2776,6 +2792,18 @@ int icom_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     return icom_get_ext_cmd(rig, vfo, token, val);
+}
+
+int icom_set_ext_func(RIG *rig, vfo_t vfo, token_t token, int status)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    return icom_set_ext_cmd(rig, vfo, token, (value_t)status);
+}
+
+int icom_get_ext_func(RIG *rig, vfo_t vfo, token_t token, int *status)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    return icom_get_ext_cmd(rig, vfo, token, (value_t*)status);
 }
 
 int icom_set_ext_parm(RIG *rig, token_t token, value_t val)
@@ -4584,7 +4612,7 @@ int icom_set_parm(RIG *rig, setting_t parm, value_t val)
 
     int i;
     const struct icom_priv_caps *priv = rig->caps->priv;
-    const struct cmdparams *cmd = priv->rigparms;
+    const struct cmdparams *cmd = priv->extcmds;
 
     for (i = 0; cmd && cmd[i].id.s != 0; i++)
     {
@@ -4645,7 +4673,7 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     const struct icom_priv_caps *priv = rig->caps->priv;
-    const struct cmdparams *cmd = priv->rigparms;
+    const struct cmdparams *cmd = priv->extcmds;
     int i;
 
     for (i = 0; cmd && cmd[i].id.s != 0; i++)
