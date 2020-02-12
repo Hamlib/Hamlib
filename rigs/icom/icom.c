@@ -5453,8 +5453,16 @@ int icom_get_ant(RIG *rig, vfo_t vfo, ant_t ant, ant_t *ant_curr, value_t *optio
 
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, ant=0x%02x\n", __func__, ant);
-    ant = rig_setting2idx(ant);
-    if (ant >= priv_caps->ant_count) return -RIG_EINVAL;
+    if (ant != RIG_ANT_CURR)
+    {
+        ant = rig_setting2idx(ant);
+        if (ant >= priv_caps->ant_count) 
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: ant index=%d > ant_count=%d\n", __func__, ant, priv_caps->ant_count);
+            return -RIG_EINVAL;
+        }
+    }
+    // Should be able to use just C_CTL_ANT for 1 or 2 antennas hopefully
     if (ant == RIG_ANT_CURR || priv_caps->ant_count <= 2) {
         retval = icom_transaction(rig, C_CTL_ANT, -1, NULL, 0, ackbuf, &ack_len);
     }
