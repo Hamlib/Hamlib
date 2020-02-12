@@ -282,20 +282,11 @@ const struct rig_caps thf6a_caps =
 
 int thf6a_init(RIG *rig)
 {
-    rig->state.itu_region = RIG_ITU_REGION2;
     return kenwood_init(rig);
 }
 
 int thf6a_open(RIG *rig)
 {
-    /* TH-F7E is Region 1 only.
-     * Region 2 is supported by TH-F6A
-     */
-    if (rig->state.itu_region != RIG_ITU_REGION2)
-    {
-        return -RIG_ECONF;
-    }
-
     return kenwood_open(rig);
 }
 
