@@ -5501,8 +5501,10 @@ int icom_get_ant(RIG *rig, vfo_t vfo, ant_t ant, ant_t *ant_curr, value_t *optio
                   ackbuf[0], ack_len, ackbuf[1]);
         return -RIG_ERJCTED;
     }
+    rig_debug(RIG_DEBUG_ERR, "%s: ackbuf= 0x%02x 0x%02x 0x%02x\n", __func__,
+                  ackbuf[0], ackbuf[1], ackbuf[2]);
 
-    *ant_curr = ackbuf[1];
+    *ant_curr = rig_idx2setting(ackbuf[1]);
 
     // Note: with IC756/IC-756Pro/IC-7800 and more, ackbuf[2] deals with [RX ANT] 
     // Hopefully any ack_len=3 can fit in the option field
