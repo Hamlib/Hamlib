@@ -789,7 +789,7 @@ void range_print(FILE *fout, const struct freq_range_list range_list[], int rx)
 
         if (!rx)
         {
-            fprintf(fout, "\t\tLow power: %.0f W, High power: %.0f W\n",
+            fprintf(fout, "\t\tLow power: %g W, High power: %g W\n",
                     range_list[i].low_power / 1000.0f, range_list[i].high_power / 1000.0f);
         }
     }
