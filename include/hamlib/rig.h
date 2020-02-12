@@ -1038,7 +1038,7 @@ typedef struct freq_range_list {
     int low_power;      /*!< Lower RF power in mW, -1 for no power (ie. rx list) */
     int high_power;     /*!< Higher RF power in mW, -1 for no power (ie. rx list) */
     vfo_t vfo;          /*!< VFO list equipped with this range */
-    ant_t ant;          /*!< Antenna list equipped with this range, 0 means all, RIG_ANT_CURR means dedicated to certain bands and automatically switches */
+    ant_t ant;          /*!< Antenna list equipped with this range, 0 means all, RIG_ANT_CURR means dedicated to certain bands and automatically switches, no set_ant command */
 } freq_range_t;
 
 #define RIG_FRNG_END        {Hz(0),Hz(0),RIG_MODE_NONE,0,0,RIG_VFO_NONE}
