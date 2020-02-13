@@ -2785,37 +2785,115 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 int icom_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-    return icom_set_ext_cmd(rig, vfo, token, val);
+
+    const struct confparams *cfp = rig->caps->extlevels;
+    cfp = (cfp == NULL) ? icom_ext_levels : cfp;
+    int i;
+
+    for (i = 0; (cfp[i].token != RIG_CONF_END) || (cfp != icom_ext_levels);) {
+        if (cfp[i].token == RIG_CONF_END) {
+            cfp = icom_ext_levels;
+            i = 0;
+        } else if (cfp[i].token == token) {
+            return icom_set_ext_cmd(rig, vfo, token, val);
+        } else { i++; }
+    }
+    return -RIG_EINVAL;
 }
 
 int icom_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-    return icom_get_ext_cmd(rig, vfo, token, val);
+
+    const struct confparams *cfp = rig->caps->extlevels;
+    cfp = (cfp == NULL) ? icom_ext_levels : cfp;
+    int i;
+
+    for (i = 0; (cfp[i].token != RIG_CONF_END) || (cfp != icom_ext_levels);) {
+        if (cfp[i].token == RIG_CONF_END) {
+            cfp = icom_ext_levels;
+            i = 0;
+        } else if (cfp[i].token == token) {
+            return icom_get_ext_cmd(rig, vfo, token, val);
+        } else { i++; }
+    }
+    return -RIG_EINVAL;
 }
 
 int icom_set_ext_func(RIG *rig, vfo_t vfo, token_t token, int status)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-    return icom_set_ext_cmd(rig, vfo, token, (value_t)status);
+
+    const struct confparams *cfp = rig->caps->extfuncs;
+    cfp = (cfp == NULL) ? icom_ext_funcs : cfp;
+    int i;
+
+    for (i = 0; (cfp[i].token != RIG_CONF_END) || (cfp != icom_ext_funcs);) {
+        if (cfp[i].token == RIG_CONF_END) {
+            cfp = icom_ext_funcs;
+            i = 0;
+        } else if (cfp[i].token == token) {
+            return icom_set_ext_cmd(rig, vfo, token, (value_t)status);
+        } else { i++; }
+    }
+    return -RIG_EINVAL;
 }
 
 int icom_get_ext_func(RIG *rig, vfo_t vfo, token_t token, int *status)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-    return icom_get_ext_cmd(rig, vfo, token, (value_t*)status);
+
+    const struct confparams *cfp = rig->caps->extfuncs;
+    cfp = (cfp == NULL) ? icom_ext_funcs : cfp;
+    int i;
+
+    for (i = 0; (cfp[i].token != RIG_CONF_END) || (cfp != icom_ext_funcs);) {
+        if (cfp[i].token == RIG_CONF_END) {
+            cfp = icom_ext_funcs;
+            i = 0;
+        } else if (cfp[i].token == token) {
+            return icom_get_ext_cmd(rig, vfo, token, (value_t*)status);
+        } else { i++; }
+    }
+    return -RIG_EINVAL;
 }
 
 int icom_set_ext_parm(RIG *rig, token_t token, value_t val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-    return icom_set_ext_cmd(rig, RIG_VFO_NONE, token, val);
+
+    const struct confparams *cfp = rig->caps->extparms;
+    cfp = (cfp == NULL) ? icom_ext_parms : cfp;
+    int i;
+
+    for (i = 0; (cfp[i].token != RIG_CONF_END) || (cfp != icom_ext_parms);) {
+        if (cfp[i].token == RIG_CONF_END) {
+            cfp = icom_ext_parms;
+            i = 0;
+        } else if (cfp[i].token == token) {
+            return icom_set_ext_cmd(rig, RIG_VFO_NONE, token, val);
+        } else { i++; }
+    }
+    return -RIG_EINVAL;
 }
 
 int icom_get_ext_parm(RIG *rig, token_t token, value_t *val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-    return icom_get_ext_cmd(rig, RIG_VFO_NONE, token, val);
+
+    const struct confparams *cfp = rig->caps->extparms;
+    cfp = (cfp == NULL) ? icom_ext_parms : cfp;
+    int i;
+
+    for (i = 0; (cfp[i].token != RIG_CONF_END) || (cfp != icom_ext_parms);) {
+        if (cfp[i].token == RIG_CONF_END) {
+            cfp = icom_ext_parms;
+            i = 0;
+        } else if (cfp[i].token == token) {
+            return icom_get_ext_cmd(rig, RIG_VFO_NONE, token, val);
+        } else { i++; }
+    }
+    return -RIG_EINVAL;
 }
 
 int icom_get_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t *val)
