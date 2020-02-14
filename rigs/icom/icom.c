@@ -584,8 +584,6 @@ icom_init(RIG *rig)
     struct icom_priv_data *priv;
     struct icom_priv_caps *priv_caps;
     struct rig_caps *caps;
-    int retval;
-    int satmode = 0;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -628,14 +626,6 @@ icom_init(RIG *rig)
     priv->tx_vfo = RIG_VFO_NONE;
     priv->rx_vfo = RIG_VFO_NONE;
     priv->curr_vfo = RIG_VFO_NONE;
-    retval = rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: satmode=%d\n", __func__, satmode);
-
-    if (retval == RIG_OK && satmode)
-    {
-        priv->rx_vfo = RIG_VFO_MAIN;
-        priv->tx_vfo = RIG_VFO_SUB;
-    }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: done\n", __func__);
 
@@ -727,6 +717,9 @@ int
 icom_rig_open(RIG *rig)
 {
     int retval = RIG_OK;
+    int satmode = 0;
+    struct rig_state *rs = &rig->state;
+    struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s %d \n", __func__, __LINE__);
 
@@ -755,9 +748,20 @@ icom_rig_open(RIG *rig)
     // Now that we're powered up let's try again
     retval = icom_get_usb_echo_off(rig);
 
-    if (retval >= 0) { return RIG_OK; }
+    if (retval < 0) { 
+        rig_debug(RIG_DEBUG_ERR, "%s: Unable to determine USB echo status\n", __func__);
+        return retval; 
+    }
 
-    rig_debug(RIG_DEBUG_ERR, "%s: Unable to determine USB echo status\n", __func__);
+    retval = rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: satmode=%d\n", __func__, satmode);
+
+    if (retval == RIG_OK && satmode)
+    {
+        priv->rx_vfo = RIG_VFO_MAIN;
+        priv->tx_vfo = RIG_VFO_SUB;
+    }
+
     return retval;
 }
 
@@ -3971,12 +3975,19 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
         // Need to allow for SATMODE split in here
         /* ensure VFO A is Rx and VFO B is Tx as we assume that elsewhere */
-        if (VFO_HAS_A_B)
+        if (VFO_HAS_A_B && (vfo == RIG_VFO_A || vfo == RIG_VFO_B))
         {
             if (RIG_OK != (rc = icom_set_vfo(rig, RIG_VFO_A)))
             {
                 return rc;
             }
+        }
+        else if (vfo == RIG_VFO_MAIN) {
+            if (RIG_OK != (rc = icom_set_vfo(rig, RIG_VFO_MAIN)))
+            {
+                return rc;
+            }
+            split_sc = S_SPLT_ON;
         }
 
         break;
