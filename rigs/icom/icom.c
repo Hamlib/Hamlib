@@ -3278,11 +3278,13 @@ int icom_get_split_vfos(const RIG *rig, vfo_t *rx_vfo, vfo_t *tx_vfo)
         *rx_vfo = RIG_VFO_A;
         *tx_vfo = RIG_VFO_B;  /* rig doesn't enforce this but
                    convention is needed here */
+        rig_debug(RIG_DEBUG_TRACE,"%s: VFO_HAS_A_B_ONLY, rx=%s, tx=%s\n", __func__, rig_strvfo(*rx_vfo), rig_strvfo(*tx_vfo));
     }
     else if (VFO_HAS_MAIN_SUB_ONLY)
     {
         *rx_vfo = RIG_VFO_MAIN;
         *tx_vfo = RIG_VFO_SUB;
+        rig_debug(RIG_DEBUG_TRACE,"%s: VFO_HAS_MAIN_SUB_ONLY, rx=%s, tx=%s\n", __func__, rig_strvfo(*rx_vfo), rig_strvfo(*tx_vfo));
     }
     else if (VFO_HAS_MAIN_SUB_A_B_ONLY)
     {
@@ -3291,6 +3293,7 @@ int icom_get_split_vfos(const RIG *rig, vfo_t *rx_vfo, vfo_t *tx_vfo)
         // For now we return Main/Sub
         *rx_vfo = priv->rx_vfo;
         *tx_vfo = priv->tx_vfo;
+        rig_debug(RIG_DEBUG_TRACE,"%s: VFO_HAS_MAIN_SUB_A_B_ONLY, rx=%s, tx=%s\n", __func__, rig_strvfo(*rx_vfo), rig_strvfo(*tx_vfo));
     }
     else
     {
@@ -3320,6 +3323,8 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     rs = &rig->state;
     priv = (struct icom_priv_data *) rs->priv;
+
+    if (vfo == RIG_VFO_CURR) vfo = priv->curr_vfo;
 
     /* This method works also in memory mode(RIG_VFO_MEM) */
     if (!priv->no_xchg && rig_has_vfo_op(rig, RIG_OP_XCHG))
