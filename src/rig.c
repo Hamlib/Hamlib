@@ -405,10 +405,9 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->tx_vfo = RIG_VFO_CURR;  /* we don't know yet! */
     rs->transceive = RIG_TRN_OFF;
     rs->poll_interval = 500;
-    /* should it be a parameter to rig_init ? --SF */
-    rs->itu_region = RIG_ITU_REGION2;
     rs->lo_freq = 0;
 
+#if 0 // this is no longer applicatle -- replace it with something?
     switch (rs->itu_region)
     {
     case RIG_ITU_REGION1:
@@ -427,7 +426,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
                sizeof(struct freq_range_list)*FRQRANGESIZ);
         break;
     }
-
+#endif
     rs->vfo_list = 0;
     rs->mode_list = 0;
 
