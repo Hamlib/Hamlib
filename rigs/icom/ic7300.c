@@ -459,12 +459,11 @@ const struct rig_caps ic9700_caps =
     .vfo_ops =  IC9700_VFO_OPS,
     .scan_ops =  IC7300_SCAN_OPS,
     .transceive =  RIG_TRN_RIG,
-    .bank_qty =   1,
+    .bank_qty =   3,
     .chan_desc_sz =  0,
 
     .chan_list =  {
         {   1,  99, RIG_MTYPE_MEM  },
-        { 100, 101, RIG_MTYPE_EDGE },    /* two by two */
         RIG_CHAN_END,
     },
 
