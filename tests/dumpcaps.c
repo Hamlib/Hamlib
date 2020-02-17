@@ -51,6 +51,8 @@ int dumpcaps(RIG *rig, FILE *fout)
     char freqbuf[20];
     int backend_warnings = 0;
     static char prntbuf[1024];  /* a malloc would be better.. */
+    char *label1, *label2, *label3, *label4, *label5;
+    char *labelrx1, *labelrx2, *labelrx3, *labelrx4, *labelrx5;
 
     if (!rig || !rig->caps)
     {
@@ -432,21 +434,59 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     fprintf(fout, "\n");
 
-    fprintf(fout, "TX ranges, region 1:\n");
+    label1 = caps->tx_range_list1->label;
+    label1 = label1==NULL?"TBD":label1;
+    fprintf(fout, "TX ranges #1 for %s:\n", label1);
     range_print(fout, caps->tx_range_list1, 0);
 
-    fprintf(fout, "RX ranges, region 1:\n");
+    labelrx1 = caps->rx_range_list1->label;
+    labelrx1 = labelrx1==NULL?"TBD":labelrx1;
+    fprintf(fout, "RX ranges #1 for %s:\n", labelrx1);
     range_print(fout, caps->rx_range_list1, 1);
 
-    fprintf(fout, "TX ranges, region 2:\n");
+    label2 = caps->rx_range_list2->label;
+    label2 = label2==NULL?"TBD":label2;
+    fprintf(fout, "TX ranges #2 for %s:\n", label2);
     range_print(fout, caps->tx_range_list2, 0);
 
-    fprintf(fout, "RX ranges, region 2:\n");
+    label2 = caps->rx_range_list2->label;
+    label2 = label2==NULL?"TBD":label2;
+    fprintf(fout, "RX ranges #2 for %s:\n", label2);
     range_print(fout, caps->rx_range_list2, 1);
+
+    label3 = caps->rx_range_list3->label;
+    label3 = label3==NULL?"TBD":label3;
+    fprintf(fout, "TX ranges #3 for %s:\n", label3);
+    range_print(fout, caps->tx_range_list3, 0);
+
+    label3 = caps->rx_range_list3->label;
+    label3 = label3==NULL?"TBD":label3;
+    fprintf(fout, "RX ranges #3 for %s:\n", label3);
+    range_print(fout, caps->rx_range_list3, 1);
+
+    label4 = caps->rx_range_list4->label;
+    label4 = label4==NULL?"TBD":label4;
+    fprintf(fout, "TX ranges #4 for %s:\n", label4);
+    range_print(fout, caps->tx_range_list5, 0);
+
+    label4 = caps->rx_range_list4->label;
+    label4 = label4==NULL?"TBD":label4;
+    fprintf(fout, "RX ranges #4 for %s:\n", label4);
+    range_print(fout, caps->rx_range_list5, 1);
+
+    label5 = caps->rx_range_list5->label;
+    label5 = label5==NULL?"TBD":label5;
+    fprintf(fout, "TX ranges #5 for %s:\n", label5);
+    range_print(fout, caps->tx_range_list5, 0);
+
+    label5 = caps->rx_range_list5->label;
+    label5 = label5==NULL?"TBD":label5;
+    fprintf(fout, "RX ranges #5 for %s:\n", label5);
+    range_print(fout, caps->rx_range_list5, 1);
 
     status = range_sanity_check(caps->tx_range_list1, 0);
     fprintf(fout,
-            "TX ranges status, region 1:\t%s (%d)\n",
+            "TX ranges #1 status for:%s \t%s (%d)\n", label1,
             status ? "Bad" : "OK",
             status);
 
@@ -457,7 +497,7 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     status = range_sanity_check(caps->rx_range_list1, 1);
     fprintf(fout,
-            "RX ranges status, region 1:\t%s (%d)\n",
+            "RX ranges #1 status for %s:\t%s (%d)\n", labelrx1,
             status ? "Bad" : "OK",
             status);
 
@@ -468,7 +508,7 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     status = range_sanity_check(caps->tx_range_list2, 0);
     fprintf(fout,
-            "TX ranges status, region 2:\t%s (%d)\n",
+            "TX ranges #2 status for %s:\t%s (%d)\n", label2,
             status ? "Bad" : "OK",
             status);
 
@@ -479,7 +519,73 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     status = range_sanity_check(caps->rx_range_list2, 1);
     fprintf(fout,
-            "RX ranges status, region 2:\t%s (%d)\n",
+            "RX ranges #2 status for %s:\t%s (%d)\n", label2,
+            status ? "Bad" : "OK",
+            status);
+
+    if (status)
+    {
+        backend_warnings++;
+    }
+
+    status = range_sanity_check(caps->tx_range_list3, 0);
+    fprintf(fout,
+            "TX ranges #3 status for %s:\t%s (%d)\n", label3,
+            status ? "Bad" : "OK",
+            status);
+
+    if (status)
+    {
+        backend_warnings++;
+    }
+
+    status = range_sanity_check(caps->rx_range_list3, 1);
+    fprintf(fout,
+            "RX ranges #3 status for %s:\t%s (%d)\n", label3,
+            status ? "Bad" : "OK",
+            status);
+
+    if (status)
+    {
+        backend_warnings++;
+    }
+
+    status = range_sanity_check(caps->tx_range_list4, 0);
+    fprintf(fout,
+            "TX ranges #4 status for %s:\t%s (%d)\n", label4,
+            status ? "Bad" : "OK",
+            status);
+
+    if (status)
+    {
+        backend_warnings++;
+    }
+
+    status = range_sanity_check(caps->rx_range_list4, 1);
+    fprintf(fout,
+            "RX ranges #4 status for %s:\t%s (%d)\n", label4,
+            status ? "Bad" : "OK",
+            status);
+
+    if (status)
+    {
+        backend_warnings++;
+    }
+
+    status = range_sanity_check(caps->tx_range_list5, 0);
+    fprintf(fout,
+            "TX ranges #5 status for %s:\t%s (%d)\n", label5,
+            status ? "Bad" : "OK",
+            status);
+
+    if (status)
+    {
+        backend_warnings++;
+    }
+
+    status = range_sanity_check(caps->rx_range_list5, 1);
+    fprintf(fout,
+            "RX ranges #5 status for %s:\t%s (%d)\n", label5,
             status ? "Bad" : "OK",
             status);
 
