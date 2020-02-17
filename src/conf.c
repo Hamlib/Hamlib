@@ -379,17 +379,35 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
 
         switch (val_i)
         {
-        case RIG_ITU_REGION1:
-            rs->itu_region = val_i;
+        case 1:
             memcpy(rs->tx_range_list, caps->tx_range_list1,
                    sizeof(struct freq_range_list)*FRQRANGESIZ);
             memcpy(rs->rx_range_list, caps->rx_range_list1,
                    sizeof(struct freq_range_list)*FRQRANGESIZ);
             break;
 
-        case RIG_ITU_REGION2:
-        case RIG_ITU_REGION3:
-            rs->itu_region = val_i;
+        case 2:
+            memcpy(rs->tx_range_list, caps->tx_range_list2,
+                   sizeof(struct freq_range_list)*FRQRANGESIZ);
+            memcpy(rs->rx_range_list, caps->rx_range_list2,
+                   sizeof(struct freq_range_list)*FRQRANGESIZ);
+            break;
+
+        case 3:
+            memcpy(rs->tx_range_list, caps->tx_range_list2,
+                   sizeof(struct freq_range_list)*FRQRANGESIZ);
+            memcpy(rs->rx_range_list, caps->rx_range_list2,
+                   sizeof(struct freq_range_list)*FRQRANGESIZ);
+            break;
+
+        case 4:
+            memcpy(rs->tx_range_list, caps->tx_range_list2,
+                   sizeof(struct freq_range_list)*FRQRANGESIZ);
+            memcpy(rs->rx_range_list, caps->rx_range_list2,
+                   sizeof(struct freq_range_list)*FRQRANGESIZ);
+            break;
+
+        case 5:
             memcpy(rs->tx_range_list, caps->tx_range_list2,
                    sizeof(struct freq_range_list)*FRQRANGESIZ);
             memcpy(rs->rx_range_list, caps->rx_range_list2,
@@ -562,10 +580,12 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
         sprintf(val, "%d", rs->rigport.retry);
         break;
 
+#if 0 // needs to be replace?
     case TOK_ITU_REGION:
         sprintf(val, "%d",
                 rs->itu_region == 1 ? RIG_ITU_REGION1 : RIG_ITU_REGION2);
         break;
+#endif
 
     case TOK_SERIAL_SPEED:
         if (rs->rigport.type.rig != RIG_PORT_SERIAL)
