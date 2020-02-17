@@ -407,7 +407,12 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->poll_interval = 500;
     rs->lo_freq = 0;
 
-#if 0 // this is no longer applicatle -- replace it with something?
+#if 0 // this is no longer applicable -- replace it with something?
+// we need to be able to figure out what model radio we have
+// before we can set up the rig_state with the rig's specific freq range
+// if we can't figure out what model rig we have this is impossible
+// so we will likely have to make this a parameter the user provides
+// or eliminate this logic entirely and make specific RIG_MODEL entries
     switch (rs->itu_region)
     {
     case RIG_ITU_REGION1:
@@ -430,16 +435,16 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->vfo_list = 0;
     rs->mode_list = 0;
 
-    for (i = 0; i < FRQRANGESIZ && !RIG_IS_FRNG_END(rs->rx_range_list[i]); i++)
+    for (i = 0; i < FRQRANGESIZ && !RIG_IS_FRNG_END(caps->rx_range_list1[i]); i++)
     {
-        rs->vfo_list |= rs->rx_range_list[i].vfo;
-        rs->mode_list |= rs->rx_range_list[i].modes;
+        rs->vfo_list |= caps->rx_range_list1[i].vfo;
+        rs->mode_list |= caps->rx_range_list1[i].modes;
     }
 
-    for (i = 0; i < FRQRANGESIZ && !RIG_IS_FRNG_END(rs->tx_range_list[i]); i++)
+    for (i = 0; i < FRQRANGESIZ && !RIG_IS_FRNG_END(caps->tx_range_list1[i]); i++)
     {
-        rs->vfo_list |= rs->tx_range_list[i].vfo;
-        rs->mode_list |= rs->tx_range_list[i].modes;
+        rs->vfo_list |= caps->tx_range_list1[i].vfo;
+        rs->mode_list |= caps->tx_range_list1[i].modes;
     }
 
     memcpy(rs->preamp, caps->preamp, sizeof(int)*MAXDBLSTSIZ);
