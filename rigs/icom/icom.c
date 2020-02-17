@@ -3958,7 +3958,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (vfo == RIG_VFO_CURR) {
-       rig_debug(RIG_DEBUG_TRACE,"%s: asking for currVFO=%s\n", priv->curr_vfo_;
+       rig_debug(RIG_DEBUG_TRACE,"%s: asking for currVFO=%s\n", __func__, rig_strvfo(priv->curr_vfo));
        vfo = priv->curr_vfo;
     }
 
