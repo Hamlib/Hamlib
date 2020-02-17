@@ -1039,16 +1039,11 @@ typedef struct freq_range_list {
     int high_power;     /*!< Higher RF power in mW, -1 for no power (ie. rx list) */
     vfo_t vfo;          /*!< VFO list equipped with this range */
     ant_t ant;          /*!< Antenna list equipped with this range, 0 means all, RIG_ANT_CURR means dedicated to certain bands and automatically switches, no set_ant command */
+    char *label;        /*!< Label for this range that explains why.  e.g. Icom rigs USA, EUR, ITR, TPE, KOR */
 } freq_range_t;
 
 #define RIG_FRNG_END        {Hz(0),Hz(0),RIG_MODE_NONE,0,0,RIG_VFO_NONE}
 #define RIG_IS_FRNG_END(r)  ((r).startf == Hz(0) && (r).endf == Hz(0))
-
-
-#define RIG_ITU_REGION1 1
-#define RIG_ITU_REGION2 2
-#define RIG_ITU_REGION3 3
-
 
 /**
  * \brief Tuning step definition
@@ -1448,10 +1443,18 @@ struct rig_caps {
 
     chan_t chan_list[CHANLSTSIZ];   /*!< Channel list, zero ended */
 
-    freq_range_t rx_range_list1[FRQRANGESIZ];   /*!< Receive frequency range list for ITU region 1 */
-    freq_range_t tx_range_list1[FRQRANGESIZ];   /*!< Transmit frequency range list for ITU region 1 */
-    freq_range_t rx_range_list2[FRQRANGESIZ];   /*!< Receive frequency range list for ITU region 2 */
-    freq_range_t tx_range_list2[FRQRANGESIZ];   /*!< Transmit frequency range list for ITU region 2 */
+    // As of 2020-02-12 we know of 5 models from Icom USA, EUR, ITR, TPE, KOR for the IC-9700
+    // These frequency ranges will have a label field to explain what rig they refer too
+    freq_range_t rx_range_list1[FRQRANGESIZ];   /*!< Receive frequency range list #1 */
+    freq_range_t tx_range_list1[FRQRANGESIZ];   /*!< Transmit frequency range list #1 */
+    freq_range_t rx_range_list2[FRQRANGESIZ];   /*!< Receive frequency range list #2 */
+    freq_range_t tx_range_list2[FRQRANGESIZ];   /*!< Transmit frequency range list #2 */
+    freq_range_t rx_range_list3[FRQRANGESIZ];   /*!< Receive frequency range list #2 */
+    freq_range_t tx_range_list3[FRQRANGESIZ];   /*!< Transmit frequency range list #2 */
+    freq_range_t rx_range_list4[FRQRANGESIZ];   /*!< Receive frequency range list #2 */
+    freq_range_t tx_range_list4[FRQRANGESIZ];   /*!< Transmit frequency range list #2 */
+    freq_range_t rx_range_list5[FRQRANGESIZ];   /*!< Receive frequency range list #2 */
+    freq_range_t tx_range_list5[FRQRANGESIZ];   /*!< Transmit frequency range list #2 */
 
     struct tuning_step_list tuning_steps[TSLSTSIZ];     /*!< Tuning step list */
     struct filter_list filters[FLTLSTSIZ];              /*!< mode/filter table, at -6dB */
