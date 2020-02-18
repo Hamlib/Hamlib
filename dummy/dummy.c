@@ -1359,12 +1359,14 @@ static int dummy_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 }
 
 
-static int dummy_get_ant(RIG *rig, vfo_t vfo, ant_t ant, ant_t *ant_curr, value_t *option)
+static int dummy_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option, ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, ant=0x%02x\n", __func__, ant);
+
+    *ant_tx = *ant_rx = RIG_ANT_UNKNOWN;
    
     switch(ant) {
         case RIG_ANT_CURR: 
@@ -1855,9 +1857,9 @@ const struct rig_caps dummy_caps =
     .rig_model =      RIG_MODEL_DUMMY,
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
-    .version =        "0.6",
+    .version =        "0.7",
     .copyright =      "LGPL",
-    .status =         RIG_STATUS_BETA,
+    .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
     .targetable_vfo =      0,
     .ptt_type =       RIG_PTT_RIG,
@@ -1885,21 +1887,21 @@ const struct rig_caps dummy_caps =
     .preamp =          { 10, RIG_DBLST_END, },
     .rx_range_list1 =  { {
             .startf = kHz(150), .endf = MHz(1500), .modes = DUMMY_MODES,
-            .low_power = -1, .high_power = -1, DUMMY_VFOS, RIG_ANT_1 | RIG_ANT_2,
+            .low_power = -1, .high_power = -1, DUMMY_VFOS, RIG_ANT_1 | RIG_ANT_2 | RIG_ANT_3 | RIG_ANT_4,
             .label = "Dummy#1"
         },
         RIG_FRNG_END,
     },
     .tx_range_list1 =  { {
             .startf = kHz(150), .endf = MHz(1500), .modes = DUMMY_MODES,
-            .low_power = W(5), .high_power = W(100), DUMMY_VFOS, RIG_ANT_1 | RIG_ANT_2,
+            .low_power = W(5), .high_power = W(100), DUMMY_VFOS, RIG_ANT_1 | RIG_ANT_2 | RIG_ANT_3 | RIG_ANT_4,
             .label = "Dummy#1"
         },
         RIG_FRNG_END,
     },
     .rx_range_list2 =  { {
             .startf = kHz(150), .endf = MHz(1500), .modes = DUMMY_MODES,
-            .low_power = -1, .high_power = -1, DUMMY_VFOS, RIG_ANT_1 | RIG_ANT_2,
+            .low_power = -1, .high_power = -1, DUMMY_VFOS, RIG_ANT_1 | RIG_ANT_2 | RIG_ANT_3 | RIG_ANT_4,
             .label = "Dummy#2"
         },
         RIG_FRNG_END,
