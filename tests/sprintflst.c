@@ -118,6 +118,7 @@ int sprintf_ant(char *str, ant_t ant)
                 case 2: ant_name = "ANT3";break;
                 case 3: ant_name = "ANT4";break;
                 case 4: ant_name = "ANT5";break;
+                case 30: ant_name = "ANT_UNKNOWN";break;
                 case 31: ant_name = "ANT_CURR";break;
                 default: 
                     ant_name = "ANT_UNK";
