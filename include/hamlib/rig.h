@@ -670,6 +670,7 @@ typedef unsigned int ant_t;
 #define RIG_ANT_4       RIG_ANT_N(3)
 #define RIG_ANT_5       RIG_ANT_N(4)
 
+#define RIG_ANT_UNKNOWN RIG_ANT_N(30)
 #define RIG_ANT_CURR    RIG_ANT_N(31)
 
 #define RIG_ANT_MAX 32
@@ -1444,17 +1445,19 @@ struct rig_caps {
     chan_t chan_list[CHANLSTSIZ];   /*!< Channel list, zero ended */
 
     // As of 2020-02-12 we know of 5 models from Icom USA, EUR, ITR, TPE, KOR for the IC-9700
-    // These frequency ranges will have a label field to explain what rig they refer too
+    // So we currently have 5 ranges we need to deal with
+    // The backend for the model should fill in the label field to explain what model it is
+    // The the IC-9700 in ic7300.c for an example 
     freq_range_t rx_range_list1[FRQRANGESIZ];   /*!< Receive frequency range list #1 */
     freq_range_t tx_range_list1[FRQRANGESIZ];   /*!< Transmit frequency range list #1 */
     freq_range_t rx_range_list2[FRQRANGESIZ];   /*!< Receive frequency range list #2 */
     freq_range_t tx_range_list2[FRQRANGESIZ];   /*!< Transmit frequency range list #2 */
-    freq_range_t rx_range_list3[FRQRANGESIZ];   /*!< Receive frequency range list #2 */
-    freq_range_t tx_range_list3[FRQRANGESIZ];   /*!< Transmit frequency range list #2 */
-    freq_range_t rx_range_list4[FRQRANGESIZ];   /*!< Receive frequency range list #2 */
-    freq_range_t tx_range_list4[FRQRANGESIZ];   /*!< Transmit frequency range list #2 */
-    freq_range_t rx_range_list5[FRQRANGESIZ];   /*!< Receive frequency range list #2 */
-    freq_range_t tx_range_list5[FRQRANGESIZ];   /*!< Transmit frequency range list #2 */
+    freq_range_t rx_range_list3[FRQRANGESIZ];   /*!< Receive frequency range list #3 */
+    freq_range_t tx_range_list3[FRQRANGESIZ];   /*!< Transmit frequency range list #3 */
+    freq_range_t rx_range_list4[FRQRANGESIZ];   /*!< Receive frequency range list #4 */
+    freq_range_t tx_range_list4[FRQRANGESIZ];   /*!< Transmit frequency range list #4 */
+    freq_range_t rx_range_list5[FRQRANGESIZ];   /*!< Receive frequency range list #5 */
+    freq_range_t tx_range_list5[FRQRANGESIZ];   /*!< Transmit frequency range list #5 */
 
     struct tuning_step_list tuning_steps[TSLSTSIZ];     /*!< Tuning step list */
     struct filter_list filters[FLTLSTSIZ];              /*!< mode/filter table, at -6dB */
@@ -1575,7 +1578,7 @@ struct rig_caps {
     int (*reset)(RIG *rig, reset_t reset);
 
     int (*set_ant)(RIG *rig, vfo_t vfo, ant_t ant, value_t option);
-    int (*get_ant)(RIG *rig, vfo_t vfo, ant_t ant, ant_t *ant_curr, value_t *option);
+    int (*get_ant)(RIG *rig, vfo_t vfo, ant_t ant, value_t *option, ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx);
 
     int (*set_level)(RIG *rig, vfo_t vfo, setting_t level, value_t val);
     int (*get_level)(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
@@ -2179,8 +2182,10 @@ extern HAMLIB_EXPORT(int)
 rig_get_ant HAMLIB_PARAMS((RIG *rig,
                            vfo_t vfo,
                            ant_t ant,
+                           value_t *option,
                            ant_t *ant_curr,
-                           value_t *option));
+                           ant_t *ant_tx,
+                           ant_t *ant_rx));
 
 extern HAMLIB_EXPORT(setting_t)
 rig_has_get_level HAMLIB_PARAMS((RIG *rig,
