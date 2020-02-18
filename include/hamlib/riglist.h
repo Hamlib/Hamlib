@@ -23,8 +23,13 @@
 #ifndef _RIGLIST_H
 #define _RIGLIST_H 1
 
-#define RIG_MAKE_MODEL(a,b) ((a)*100+(b))
-#define RIG_BACKEND_NUM(a) ((a)/100)
+// The rig model number is designed to fit in a 32-bit int
+// As of 2020-02-18 we have 33 backends defined
+// With a max of 1000 models per backend we get total a model number range of 1001-33001
+// This MAX was 100 prior to 2020-02-18 and Icom was close to running out of the 100 range
+#define  MAX_MODELS_PER_BACKEND 1000
+#define RIG_MAKE_MODEL(a,b) ((a)*MAX_MODELS_PER_BACKEND+(b))
+#define RIG_BACKEND_NUM(a) ((a)/MAX_MODELS_PER_BACKEND)
 
 /*! \file riglist.h
  *  \brief Hamlib rig(radio) model definitions.
@@ -623,7 +628,7 @@
 /*! \typedef typedef int rig_model_t
     \brief Convenience type definition for rig model.
 */
-typedef int rig_model_t;
+typedef uint32_t rig_model_t;
 
 
 /*
