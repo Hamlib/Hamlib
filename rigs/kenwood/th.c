@@ -2552,12 +2552,14 @@ int th_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 /*
  * get the aerial/antenna in use
  */
-int th_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *option)
+int th_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option, ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
     char buf[8];
     int retval;
 
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
+
+    *ant_tx = *ant_rx = RIG_ANT_UNKNOWN;
 
     retval = kenwood_safe_transaction(rig, "ANT", buf, sizeof(buf), 5);
 
@@ -2571,9 +2573,9 @@ int th_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *option)
         return -RIG_EPROTO;
     }
 
-    *ant = RIG_ANT_N(buf[4] - '0');
+    *ant_curr = RIG_ANT_N(buf[4] - '0');
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: ant = %d\n", __func__, *ant);
+    rig_debug(RIG_DEBUG_TRACE, "%s: ant = %d\n", __func__, *ant_curr);
 
     return RIG_OK;
 }

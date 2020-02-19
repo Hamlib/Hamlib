@@ -447,7 +447,8 @@ static int generic_save_channel(RIG *rig, channel_t *chan)
 
     if (mem_cap->ant)
     {
-        rig_get_ant(rig, RIG_VFO_CURR, RIG_ANT_CURR, &chan->ant, &vdummy);
+        ant_t ant_tx, ant_rx;
+        rig_get_ant(rig, RIG_VFO_CURR, RIG_ANT_CURR, &vdummy, &chan->ant, &ant_tx, &ant_rx);
     }
 
     if (mem_cap->tuning_step)

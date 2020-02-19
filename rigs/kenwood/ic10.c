@@ -445,11 +445,12 @@ int ic10_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
  * ic10_get_ant
  * Assumes rig!=NULL, ptt!=NULL
  */
-int ic10_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *option)
+int ic10_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option, ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
     char infobuf[50];
     int info_len, retval;
 
+    *ant_tx = *ant_rx = RIG_ANT_UNKNOWN;
     info_len = 4;
     retval = ic10_transaction(rig, "AN;", 3, infobuf, &info_len);
 
@@ -465,7 +466,7 @@ int ic10_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *option)
         return -RIG_ERJCTED;
     }
 
-    *ant = infobuf[2] == '1' ? RIG_ANT_1 : RIG_ANT_2;
+    *ant_curr = infobuf[2] == '1' ? RIG_ANT_1 : RIG_ANT_2;
 
     return RIG_OK;
 }

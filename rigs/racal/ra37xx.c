@@ -751,10 +751,12 @@ int ra37xx_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
     return ra37xx_transaction(rig, buf, NULL, NULL);
 }
 
-int ra37xx_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *option)
+int ra37xx_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option, ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
     char buf[BUFSZ];
     int retval, buflen, ra_ant;
+
+    *ant_tx = *ant_rx = RIG_ANT_UNKNOWN;
 
     retval = ra37xx_transaction(rig, "QANT", buf, &buflen);
 
@@ -770,10 +772,10 @@ int ra37xx_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *option
         return -RIG_EPROTO;
     }
 
-    *ant = ((ra_ant & (1 << 0)) ? RIG_ANT_1 : 0) |
-           ((ra_ant & (1 << 1)) ? RIG_ANT_2 : 0) |
-           ((ra_ant & (1 << 2)) ? RIG_ANT_3 : 0) |
-           ((ra_ant & (1 << 3)) ? RIG_ANT_4 : 0);
+    *ant_curr = ((ra_ant & (1 << 0)) ? RIG_ANT_1 : 0) |
+                ((ra_ant & (1 << 1)) ? RIG_ANT_2 : 0) |
+                ((ra_ant & (1 << 2)) ? RIG_ANT_3 : 0) |
+                ((ra_ant & (1 << 3)) ? RIG_ANT_4 : 0);
 
     return RIG_OK;
 }

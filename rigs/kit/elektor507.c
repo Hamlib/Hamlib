@@ -54,7 +54,7 @@ static int elektor507_set_level(RIG *rig, vfo_t vfo, setting_t level,
 static int elektor507_get_level(RIG *rig, vfo_t vfo, setting_t level,
                                 value_t *val);
 static int elektor507_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option);
-static int elektor507_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *option);
+static int elektor507_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option, ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx);
 static int elektor507_set_conf(RIG *rig, token_t token, const char *val);
 static int elektor507_get_conf(RIG *rig, token_t token, char *val);
 
@@ -1191,12 +1191,12 @@ int elektor507_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
     return (ret != 0) ? -RIG_EIO : RIG_OK;
 }
 
-int elektor507_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *option)
+int elektor507_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option, ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
     struct elektor507_priv_data *priv = (struct elektor507_priv_data *)
                                         rig->state.priv;
 
-    *ant = priv->ant;
+    *ant_curr = priv->ant;
 
     return RIG_OK;
 }

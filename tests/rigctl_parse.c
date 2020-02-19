@@ -288,7 +288,7 @@ static struct test_table test_list[] =
     { 'Z',  "set_xit",          ACTION(set_xit),        ARG_IN, "XIT" },
     { 'z',  "get_xit",          ACTION(get_xit),        ARG_OUT, "XIT" },
     { 'Y',  "set_ant",          ACTION(set_ant),        ARG_IN, "Antenna", "Option" },
-    { 'y',  "get_ant",          ACTION(get_ant),        ARG_IN1 | ARG_OUT2 |ARG_NOVFO, "Antenna", "Option" },
+    { 'y',  "get_ant",          ACTION(get_ant),        ARG_IN1 | ARG_OUT2 |ARG_NOVFO, "AntCurr", "Option", "AntTx", "AntRx" },
     { 0x87, "set_powerstat",    ACTION(set_powerstat),  ARG_IN  | ARG_NOVFO, "Power Status" },
     { 0x88, "get_powerstat",    ACTION(get_powerstat),  ARG_OUT | ARG_NOVFO, "Power Status" },
     { 0x89, "send_dtmf",        ACTION(send_dtmf),      ARG_IN, "Digits" },
@@ -3985,18 +3985,19 @@ declare_proto_rig(set_ant)
 declare_proto_rig(get_ant)
 {
     int status;
-    ant_t ant, ant_curr;
+    ant_t ant, ant_curr, ant_tx, ant_rx;
     value_t option;
+    char antbuf[32];
 
     CHKSCN1ARG(sscanf(arg1, "%d", &ant));
 
     if (ant == 0) // then we want the current antenna info
     {
-        status = rig_get_ant(rig, vfo, RIG_ANT_CURR, &ant_curr, &option);
+        status = rig_get_ant(rig, vfo, RIG_ANT_CURR, &option, &ant_curr, &ant_tx, &ant_rx);
     }
     else
     {
-        status = rig_get_ant(rig, vfo, rig_idx2setting(ant-1), &ant_curr, &option);
+        status = rig_get_ant(rig, vfo, rig_idx2setting(ant-1), &option, &ant_curr, &ant_tx, &ant_rx);
     }
 
     if (status != RIG_OK)
@@ -4008,7 +4009,9 @@ declare_proto_rig(get_ant)
         fprintf(fout, "%s: ", cmd->arg1);
     }
 
-    fprintf(fout, "%d%c", rig_setting2idx(ant_curr)+1, resp_sep);
+    sprintf_ant(antbuf,ant_curr);
+    fprintf(fout, "%s%c", antbuf, resp_sep);
+    //fprintf(fout, "%d%c", rig_setting2idx(ant_curr)+1, resp_sep);
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
@@ -4016,6 +4019,24 @@ declare_proto_rig(get_ant)
     }
 
     fprintf(fout, "%d%c", option.i, resp_sep);
+
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
+        fprintf(fout, "%s: ", cmd->arg3);
+    }
+
+    sprintf_ant(antbuf,ant_tx);
+    fprintf(fout, "%s%c", antbuf, resp_sep);
+    //fprintf(fout, "%d%c", rig_setting2idx(ant_tx)+1, resp_sep);
+
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
+        fprintf(fout, "%s: ", cmd->arg4);
+    }
+
+    sprintf_ant(antbuf,ant_rx);
+    fprintf(fout, "%s%c", antbuf, resp_sep);
+    //fprintf(fout, "%d%c", rig_setting2idx(ant_rx)+1, resp_sep);
 
     return status;
 }
