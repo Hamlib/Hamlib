@@ -47,6 +47,8 @@
 #define VFO_HAS_MAIN_SUB_ONLY ((!VFO_HAS_A_B) & VFO_HAS_MAIN_SUB)
 #define VFO_HAS_MAIN_SUB_A_B_ONLY (VFO_HAS_A_B & VFO_HAS_MAIN_SUB)
 #define VFO_HAS_A_B_ONLY (VFO_HAS_A_B & (!VFO_HAS_MAIN_SUB))
+#define VFO_DUAL(RIG_VFO_MAIN_A|RIG_VFO_MAIN_B|RIG_VFO_SUB_A|RIG_VFO_SUB_B)
+#define VFO_HAS_DUAL((rig->state.vfo_list & VFO_DUAL) == VFO_DUAL)
 
 static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo);
 
@@ -3958,7 +3960,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (vfo == RIG_VFO_CURR) {
-       rig_debug(RIG_DEBUG_TRACE,"%s: asking for currVFO=%s\n", __func__, rig_strvfo(priv->curr_vfo));
+       rig_debug(RIG_DEBUG_TRACE,"%s: asking for currVFO=(%d)%s\n", __func__, priv->curr_vfo, rig_strvfo(priv->curr_vfo));
        vfo = priv->curr_vfo;
     }
 
@@ -5395,10 +5397,10 @@ int icom_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 
 
     if (priv_caps->antack_len == 0) { // we need to find out the antack_len
-        ant_t tmp_ant;
+        ant_t tmp_ant, ant_tx, ant_rx;
         int ant = 0;
         value_t tmp_option;
-        retval = rig_get_ant(rig, vfo, ant, &tmp_ant, &tmp_option);
+        retval = rig_get_ant(rig, vfo, ant, &tmp_option, &tmp_ant, &ant_tx, &ant_rx);
         if (retval != RIG_OK) {
             rig_debug(RIG_DEBUG_ERR,"%s: rig_get_ant error: %s \n", __func__, rigerror(retval));
             return retval; 
@@ -5470,7 +5472,7 @@ int icom_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
  * Assumes rig!=NULL, rig->state.priv!=NULL
  * only meaningfull for HF
  */
-int icom_get_ant(RIG *rig, vfo_t vfo, ant_t ant, ant_t *ant_curr, value_t *option)
+int icom_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option, ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf), retval;
@@ -5478,6 +5480,9 @@ int icom_get_ant(RIG *rig, vfo_t vfo, ant_t ant, ant_t *ant_curr, value_t *optio
 
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, ant=0x%02x\n", __func__, ant);
+
+    *ant_tx = *ant_rx = RIG_ANT_UNKNOWN;
+
     if (ant != RIG_ANT_CURR)
     {
         ant = rig_setting2idx(ant);

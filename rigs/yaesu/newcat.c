@@ -2450,7 +2450,7 @@ int newcat_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 }
 
 
-int newcat_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *option)
+int newcat_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option, ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int err;
@@ -2492,26 +2492,27 @@ int newcat_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *option
     switch (c)
     {
     case '1':
-        *ant = RIG_ANT_1;
+        *ant_curr = RIG_ANT_1;
         break;
 
     case '2' :
-        *ant = RIG_ANT_2;
+        *ant_curr = RIG_ANT_2;
         break;
 
     case '3' :
-        *ant = RIG_ANT_3;
+        *ant_curr = RIG_ANT_3;
         break;
 
     case '4' :
-        *ant = RIG_ANT_4;
+        *ant_curr = RIG_ANT_4;
         break;
 
     case '5' :
-        *ant = RIG_ANT_5;
+        *ant_curr = RIG_ANT_5;
         break;
 
     default:
+        *ant_curr = RIG_ANT_UNKNOWN;
         return -RIG_EPROTO;
     }
 

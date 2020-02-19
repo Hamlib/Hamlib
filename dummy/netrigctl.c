@@ -1768,7 +1768,7 @@ static int netrigctl_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 }
 
 
-static int netrigctl_get_ant(RIG *rig, vfo_t vfo, ant_t ant, ant_t *ant_curr,  value_t *option)
+static int netrigctl_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option, ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
     int ret, len;
     char cmd[CMD_MAX];
@@ -1776,6 +1776,8 @@ static int netrigctl_get_ant(RIG *rig, vfo_t vfo, ant_t ant, ant_t *ant_curr,  v
     char vfostr[6] = "";
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    *ant_tx = *ant_rx = RIG_ANT_UNKNOWN;
 
     ret = netrigctl_vfostr(rig, vfostr, sizeof(vfostr), vfo);
 

@@ -3095,7 +3095,7 @@ int kenwood_set_ant_no_ack(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 /*
  * get the aerial/antenna in use
  */
-int kenwood_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *option)
+int kenwood_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option, ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
     char ackbuf[8];
     int offs;
@@ -3103,7 +3103,9 @@ int kenwood_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *optio
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!ant)
+    *ant_tx = *ant_rx = RIG_ANT_UNKNOWN;
+
+    if (!ant_curr)
     {
         return -RIG_EINVAL;
     }
@@ -3129,7 +3131,7 @@ int kenwood_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *optio
         return -RIG_EPROTO;
     }
 
-    *ant = RIG_ANT_N(ackbuf[offs] - '1');
+    *ant_curr = RIG_ANT_N(ackbuf[offs] - '1');
 
     /* XXX check that the returned antenna is valid for the current rig */
 

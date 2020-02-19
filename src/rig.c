@@ -3555,13 +3555,15 @@ int HAMLIB_API rig_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
  *
  * \sa rig_set_ant()
  */
-int HAMLIB_API rig_get_ant(RIG *rig, vfo_t vfo, ant_t ant, ant_t *ant_curr, value_t *option)
+int HAMLIB_API rig_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option, ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
     const struct rig_caps *caps;
     int retcode, rc2;
     vfo_t curr_vfo;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    *ant_tx = *ant_rx = RIG_ANT_UNKNOWN;
 
     if (CHECK_RIG_ARG(rig) || !ant_curr)
     {
@@ -3579,7 +3581,7 @@ int HAMLIB_API rig_get_ant(RIG *rig, vfo_t vfo, ant_t ant, ant_t *ant_curr, valu
             || vfo == RIG_VFO_CURR
             || vfo == rig->state.current_vfo)
     {
-        return caps->get_ant(rig, vfo, ant, ant_curr, option);
+        return caps->get_ant(rig, vfo, ant, option, ant_curr, ant_tx, ant_rx);
     }
 
     if (!caps->set_vfo)
@@ -3595,7 +3597,7 @@ int HAMLIB_API rig_get_ant(RIG *rig, vfo_t vfo, ant_t ant, ant_t *ant_curr, valu
         return retcode;
     }
 
-    retcode = caps->get_ant(rig, vfo, ant, ant_curr, option);
+    retcode = caps->get_ant(rig, vfo, ant, option, ant_curr, ant_tx, ant_rx);
     /* try and revert even if we had an error above */
     rc2 = caps->set_vfo(rig, curr_vfo);
 

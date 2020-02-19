@@ -105,6 +105,7 @@ int sprintf_ant(char *str, ant_t ant)
 
     if (ant == RIG_ANT_NONE)
     {
+        sprintf(str, "ANT_NONE");
         return 0;
     }
 
