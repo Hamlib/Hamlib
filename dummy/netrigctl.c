@@ -646,7 +646,7 @@ static int netrigctl_set_vfo(RIG *rig, vfo_t vfo)
     int ret, len;
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
-    char vfostr[6] = "";
+    char vfostr[16] = "";
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -2096,7 +2096,7 @@ const struct rig_caps netrigctl_caps =
     .rig_model =      RIG_MODEL_NETRIGCTL,
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
-    .version =        "1.2",
+    .version =        "1.3",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
