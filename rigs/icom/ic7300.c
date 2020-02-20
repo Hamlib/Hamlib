@@ -293,10 +293,10 @@ const struct rig_caps ic7300_caps =
         FRQ_RNG_60m(1, IC7300_OTHER_TX_MODES, W(2), W(100), IC7300_VFOS, RIG_ANT_1),
         FRQ_RNG_6m(1, IC7300_OTHER_TX_MODES, W(2), W(100), IC7300_VFOS, RIG_ANT_1),
         FRQ_RNG_4m(1, IC7300_OTHER_TX_MODES, W(2), W(100), IC7300_VFOS, RIG_ANT_1),
-        FRQ_RNG_HF(1, IC7300_AM_TX_MODES, W(1), W(40), IC7300_VFOS, RIG_ANT_1), /* AM class */
-        FRQ_RNG_60m(1, IC7300_AM_TX_MODES, W(1), W(40), IC7300_VFOS, RIG_ANT_1), /* AM class */
-        FRQ_RNG_6m(1, IC7300_AM_TX_MODES, W(1), W(40), IC7300_VFOS, RIG_ANT_1), /* AM class */
-        FRQ_RNG_4m(1, IC7300_AM_TX_MODES, W(1), W(40), IC7300_VFOS, RIG_ANT_1), /* AM class */
+        FRQ_RNG_HF(1, IC7300_AM_TX_MODES, W(1), W(25), IC7300_VFOS, RIG_ANT_1), /* AM class */
+        FRQ_RNG_60m(1, IC7300_AM_TX_MODES, W(1), W(25), IC7300_VFOS, RIG_ANT_1), /* AM class */
+        FRQ_RNG_6m(1, IC7300_AM_TX_MODES, W(1), W(25), IC7300_VFOS, RIG_ANT_1), /* AM class */
+        FRQ_RNG_4m(1, IC7300_AM_TX_MODES, W(1), W(12.5), IC7300_VFOS, RIG_ANT_1), /* AM class */
         RIG_FRNG_END,
     },
 
@@ -305,9 +305,9 @@ const struct rig_caps ic7300_caps =
         FRQ_RNG_HF(2, IC7300_OTHER_TX_MODES, W(2), W(100), IC7300_VFOS, RIG_ANT_1),
         FRQ_RNG_60m(2, IC7300_OTHER_TX_MODES, W(2), W(100), IC7300_VFOS, RIG_ANT_1),
         FRQ_RNG_6m(2, IC7300_OTHER_TX_MODES, W(2), W(100), IC7300_VFOS, RIG_ANT_1),
-        FRQ_RNG_HF(2, IC7300_AM_TX_MODES, W(1), W(40), IC7300_VFOS, RIG_ANT_1), /* AM class */
-        FRQ_RNG_60m(2, IC7300_AM_TX_MODES, W(1), W(40), IC7300_VFOS, RIG_ANT_1), /* AM class */
-        FRQ_RNG_6m(2, IC7300_AM_TX_MODES, W(1), W(40), IC7300_VFOS, RIG_ANT_1), /* AM class */
+        FRQ_RNG_HF(2, IC7300_AM_TX_MODES, W(1), W(25), IC7300_VFOS, RIG_ANT_1), /* AM class */
+        FRQ_RNG_60m(2, IC7300_AM_TX_MODES, W(1), W(25), IC7300_VFOS, RIG_ANT_1), /* AM class */
+        FRQ_RNG_6m(2, IC7300_AM_TX_MODES, W(1), W(25), IC7300_VFOS, RIG_ANT_1), /* AM class */
         RIG_FRNG_END,
     },
 
