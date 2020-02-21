@@ -3399,6 +3399,7 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     {
         return rc;
     }
+    rig_debug(RIG_DEBUG_TRACE,"%s: rx_vfo=%s, tx_vfo=%s\n", __func__, rig_strvfo(rx_vfo), rig_strvfo(tx_vfo));
 
     if (RIG_OK != (rc = icom_set_vfo(rig, tx_vfo)))
     {
@@ -4075,7 +4076,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 int icom_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
     unsigned char splitbuf[MAXFRAMELEN];
-    int split_len, retval;
+    int split_len, retval, satmode=0;
     struct icom_priv_data *priv = (struct icom_priv_data *) rig->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -4113,6 +4114,13 @@ int icom_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported split %d", __func__,
                   splitbuf[1]);
         return -RIG_EPROTO;
+    }
+
+    rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
+    // don't care about retval here...only care about satmode=1
+    if (satmode) {
+        priv->tx_vfo = RIG_VFO_SUB;
+        priv->rx_vfo = RIG_VFO_MAIN;
     }
 
     *tx_vfo = priv->tx_vfo;
