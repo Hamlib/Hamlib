@@ -122,7 +122,28 @@ struct cmdparams {      /* Lookup table item for levels & parms */
 struct icom_priv_caps
 {
     unsigned char re_civ_addr;  /* the remote dlft equipment's CI-V address*/
-    int civ_731_mode; /* Off: freqs on 10 digits, On: freqs on 8 digits */
+    int civ_731_mode; /* Off: freqs on 10 digits, On: freqs on 8 digits plus passband setting */
+    // According to the CI-V+ manual the IC-781, IC-R9000, and IC-R7000 can select pas$
+    // The other rigs listed apparently cannot and may need the civ_731_mode=1 which are
+    // 1-706
+    // 2-706MKII
+    // 3-706MKIIG
+    // 4-707
+    // 5-718
+    // 6-746
+    // 7-746PRO
+    // 8-756
+    // 9-756PRO
+    // 10-756PROII
+    // 11-820H
+    // 12-821H
+    // 13-910H
+    // 14-R10
+    // 15-R8500
+    // 16-703
+    // 17-7800
+
+
     int no_xchg; /* Off: use VFO XCHG to set other VFO, On: use set VFO to set other VFO */
     const struct ts_sc_list *ts_sc_list;
     // the 4 elements above are mandatory
