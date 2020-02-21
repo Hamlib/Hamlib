@@ -487,6 +487,7 @@ int rig2icom_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 void icom2rig_mode(RIG *rig, unsigned char md, int pd, rmode_t *mode,
                    pbwidth_t *width)
 {
+    rig_debug(RIG_DEBUG_TRACE, "%s: mode=0x%02x, pd=%d\n", __func__, md, pd);
     *width = RIG_PASSBAND_NORMAL;
 
     switch (md)
@@ -561,9 +562,9 @@ void icom2rig_mode(RIG *rig, unsigned char md, int pd, rmode_t *mode,
            rigs these are presets, which can be programmed for 30 - 41 bandwidths,
            depending on mode  */
 
-    if (rig->caps->rig_model == RIG_MODEL_IC706MKIIG ||
+    if (pd >= 0 && (rig->caps->rig_model == RIG_MODEL_IC706MKIIG ||
             rig->caps->rig_model == RIG_MODEL_IC706 ||
-            rig->caps->rig_model ==  RIG_MODEL_IC706MKII) { pd++; }
+            rig->caps->rig_model ==  RIG_MODEL_IC706MKII)) { pd++; }
 
     switch (pd)
     {
