@@ -1567,6 +1567,7 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     retval = icom_transaction(rig, C_RD_MODE, -1, NULL, 0, modebuf, &mode_len);
 
+    rig_debug(RIG_DEBUG_TRACE,"%s: modebuf[0]=0x%02x, modebuf[1]=0x%02x, mode_len=%d\n", __func__, modebuf[0], modebuf[1], mode_len);
     if (retval != RIG_OK)
     {
         return retval;
@@ -1611,7 +1612,7 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
      * Lets check for dsp filters
      */
 
-    if ((retval = icom_get_dsp_flt(rig, *mode)) != 0)
+    if (width && (retval = icom_get_dsp_flt(rig, *mode)) != 0)
     {
         *width = retval;
     }
@@ -1666,13 +1667,29 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
     struct rig_state *rs = &rig->state;
     struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__, rig_strvfo(vfo));
 
     if (vfo == RIG_VFO_CURR)
     {
         return RIG_OK;
     }
 
+    if (vfo == RIG_VFO_CURR) {
+        rig_debug(RIG_DEBUG_TRACE,"%s: Asking for currVFO,  currVFO=%s\n", __func__, rig_strvfo(priv->curr_vfo));
+        vfo = priv->curr_vfo;
+    }
+    if (vfo == RIG_VFO_MAIN && VFO_HAS_A_B_ONLY)
+    {
+        vfo = RIG_VFO_A;
+        rig_debug(RIG_DEBUG_TRACE,"%s: Rig does not have MAIN/SUB so Main=%s\n", __func__, rig_strvfo(vfo));
+    }
+    else if (vfo == RIG_VFO_SUB && VFO_HAS_A_B_ONLY)
+    {
+        vfo = RIG_VFO_B;
+        rig_debug(RIG_DEBUG_TRACE,"%s: Rig does not have MAIN/SUB so Sub=%s\n", __func__, rig_strvfo(vfo));
+    }
+
+    /* This method works also in memory mode(RIG_VFO_MEM) */
     if ((vfo == RIG_VFO_A || vfo == RIG_VFO_B) && !VFO_HAS_A_B)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: Rig does not have VFO A/B?\n", __func__);
@@ -3329,13 +3346,10 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called for %s\n", __func__, rig_strvfo(vfo));
     rs = &rig->state;
     priv = (struct icom_priv_data *) rs->priv;
 
-    if (vfo == RIG_VFO_CURR) vfo = priv->curr_vfo;
-
-    /* This method works also in memory mode(RIG_VFO_MEM) */
     if (!priv->no_xchg && rig_has_vfo_op(rig, RIG_OP_XCHG))
     {
         if (RIG_OK != (rc = icom_vfo_op(rig, vfo, RIG_OP_XCHG)))
@@ -3964,7 +3978,11 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     int ack_len = sizeof(ackbuf), rc;
     int split_sc;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo='%s', split=%d, tx_vfo=%s\n", __func__, rig_strvfo(vfo), split, rig_strvfo(tx_vfo));
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo='%s', split=%d, tx_vfo=%s, curr_vfo=%s\n", __func__, rig_strvfo(vfo), split, rig_strvfo(tx_vfo), rig_strvfo(priv->curr_vfo));
+
+    if (vfo == RIG_VFO_CURR) {
+        vfo = priv->curr_vfo;
+    }
 
     switch (split)
     {
@@ -6154,6 +6172,22 @@ static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s, curr_vfo=%s\n", __func__,
               rig_strvfo(vfo), rig_strvfo(curr_vfo));
 
+    if (vfo == RIG_VFO_CURR) {
+        rig_debug(RIG_DEBUG_TRACE,"%s: Asking for currVFO,  currVFO=%s\n", __func__, rig_strvfo(priv->curr_vfo));
+        vfo = priv->curr_vfo;
+    }
+    if (vfo == RIG_VFO_MAIN && VFO_HAS_A_B_ONLY)
+    {
+        vfo = RIG_VFO_A;
+        rig_debug(RIG_DEBUG_TRACE,"%s: Rig does not have MAIN/SUB so Main=%s\n", __func__, rig_strvfo(vfo));
+    }
+    else if (vfo == RIG_VFO_SUB && VFO_HAS_A_B_ONLY)
+    {
+        vfo = RIG_VFO_B;
+        rig_debug(RIG_DEBUG_TRACE,"%s: Rig does not have MAIN/SUB so Sub=%s\n", __func__, rig_strvfo(vfo));
+    }
+
+    /* This method works also in memory mode(RIG_VFO_MEM) */
     // first time we will set default to VFOA or Main as
     // So if you ask for frequency or such without setting VFO first you'll get VFOA
     if (priv->curr_vfo == RIG_VFO_NONE && vfo == RIG_VFO_CURR)
