@@ -3317,8 +3317,8 @@ int icom_get_split_vfos(const RIG *rig, vfo_t *rx_vfo, vfo_t *tx_vfo)
         // TBD -- newer rigs we need to find active VFO
         // priv->curvfo if VFOA then A/B response else priv->curvfo=Main Main/Sub response
         // For now we return Main/Sub
-        *rx_vfo = priv->rx_vfo;
-        *tx_vfo = priv->tx_vfo;
+        *rx_vfo = priv->rx_vfo = RIG_VFO_MAIN;
+        *tx_vfo = priv->tx_vfo = RIG_VFO_SUB;
         rig_debug(RIG_DEBUG_TRACE,"%s: VFO_HAS_MAIN_SUB_A_B_ONLY, rx=%s, tx=%s\n", __func__, rig_strvfo(*rx_vfo), rig_strvfo(*tx_vfo));
     }
     else
