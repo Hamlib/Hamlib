@@ -796,6 +796,7 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     unsigned char freqbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
     int freq_len, ack_len = sizeof(ackbuf), retval;
     int cmd, subcmd;
+    int vfos_collide;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called %s=%" PRIfreq "\n", __func__,
               rig_strvfo(vfo), freq);
@@ -806,12 +807,8 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     // So we query both and ensure they won't match
     // If a potential collision we just swap VFOs
     // This covers setting VFOA, VFOB, Main or Sub
-#if 0
-
     if (rig->caps->rig_model == RIG_MODEL_IC9700)
     {
-        // the 0x07 0xd2 is not working as of IC-9700 firmwave 1.05
-        // When it does work this can be unblocked
         freq_t freqMain, freqSub;
         retval = rig_get_freq(rig, RIG_VFO_MAIN, &freqMain);
 
@@ -826,15 +823,24 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         {
             return retval;
         }
+        rig_debug(RIG_DEBUG_TRACE,"%s: before rounding freqMain=%g, freqSub=%g\n", __func__, freqMain, freqSub);
 
         // Make our 2M = 1, 70cm = 4, and 23cm=12
         freqMain = freqMain / 1e8;
-        freqSub = freqMain / 1e8;
+        freqSub = freqSub / 1e8;
         freq_t freq2 = freq / 1e8;
+        rig_debug(RIG_DEBUG_TRACE,"%s: after rounding freqMain=%g, freqSub=%g, collides=%d\n", __func__, freqMain, freqSub, vfos_collide);
         // Check if changing bands on Main and it matches Sub band
-        int mainCollides = freq2 != freqMain && freq2 == freqSub;
+        if (vfo == RIG_VFO_MAIN && freq2!=freqMain) {
+            rig_debug(RIG_DEBUG_TRACE,"%s: requested freq collides with Sub\n", __func__);
+            vfos_collide = 1;
+        }
+        else if (vfo == RIG_VFO_SUB && freq2!=freqSub) {
+            rig_debug(RIG_DEBUG_TRACE,"%s: requested freq collides with Main", __func__);
+            vfos_collide = 1;
+        }
 
-        if (mainCollides)
+        if (vfos_collide)
         {
             // we'll just swap Main/Sub
             retval = icom_vfo_op(rig, vfo, RIG_OP_XCHG);
@@ -846,7 +852,7 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         }
     }
 
-#endif
+    rig_debug(RIG_DEBUG_TRACE, "%s: set_vfo_curr=%s\n", __func__, rig_strvfo(priv->curr_vfo));
     retval = set_vfo_curr(rig, vfo, priv->curr_vfo);
 
     if (retval != RIG_OK)
