@@ -1042,6 +1042,34 @@ int HAMLIB_API rig_cleanup(RIG *rig)
 }
 
 
+// detect if somebody is twiddling the VFO
+// indicator is last set freq doesn't match current freq
+// so we have to query freq every time we set freq or vfo to handle this
+static int twiddling(RIG *rig)
+{
+    const struct rig_caps *caps;
+
+    caps = rig->caps;
+
+    if ( caps->get_freq) { // gotta have get_freq of course
+        freq_t curr_freq = 0;
+        int retval2;
+        int elapsed;
+
+        retval2 = caps->get_freq(rig, RIG_VFO_CURR, &curr_freq);
+        if (retval2 == RIG_OK && rig->state.current_freq != curr_freq) {
+            rig_debug(RIG_DEBUG_TRACE,"%s: Somebody twiddling the VFO? last_freq=%.0f, curr_freq=%.0f\n", __func__, rig->state.current_freq, curr_freq);
+            rig->state.twiddling = time(NULL); // update last twiddle time
+        }
+        elapsed = time(NULL) - rig->state.twiddling;
+        if (elapsed < 3) {
+            rig_debug(RIG_DEBUG_TRACE,"%s: Twiddle elapsed < 3, elapsed=%d\n", __func__, elapsed);
+            return 1; // would be better as error but other software won't handle it
+        }
+    }
+    return 0; // 
+}
+
 /**
  * \brief set the frequency of the target VFO
  * \param rig   The rig handle
@@ -1106,6 +1134,11 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         if (retcode != RIG_OK)
         {
             return retcode;
+        }
+
+        if (twiddling(rig)) {
+            rig_debug(RIG_DEBUG_TRACE,"%s: Ignoring set_freq due to VFO twiddling\n", __func__);
+            return RIG_OK; // would be better as error but other software won't handle errors
         }
 
         retcode = caps->set_freq(rig, vfo, freq);
@@ -1569,6 +1602,11 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
     if (caps->set_vfo == NULL)
     {
         return -RIG_ENAVAIL;
+    }
+
+    if (twiddling(rig)) {
+        rig_debug(RIG_DEBUG_TRACE,"%s: Ignoring set_vfo due to VFO twiddling\n", __func__);
+        return RIG_OK; // would be better as error but other software won't handle errors
     }
 
     retcode = caps->set_vfo(rig, vfo);
