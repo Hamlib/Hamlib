@@ -253,7 +253,7 @@ int optoscan_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
     do
     {
         int retval = icom_transaction(rig, C_CTL_MISC, S_OPTO_RDDTMF,
-                                  NULL, 0, dtmfbuf, &len);
+                                      NULL, 0, dtmfbuf, &len);
 
         if (retval != RIG_OK)
         {

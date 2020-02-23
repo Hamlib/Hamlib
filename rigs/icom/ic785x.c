@@ -124,8 +124,8 @@ static struct icom_priv_caps ic785x_priv_caps =
     0,    /* 731 mode */
     0,    /* no XCHG */
     ic756pro_ts_sc_list,
-    .antack_len = 3,        
-    .ant_count = 4,       
+    .antack_len = 3,
+    .ant_count = 4,
     .agc_levels_present = 1,
     .agc_levels = {
         { .level = RIG_AGC_OFF, .icom_level = 0 },

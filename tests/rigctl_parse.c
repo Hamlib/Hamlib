@@ -288,7 +288,7 @@ static struct test_table test_list[] =
     { 'Z',  "set_xit",          ACTION(set_xit),        ARG_IN, "XIT" },
     { 'z',  "get_xit",          ACTION(get_xit),        ARG_OUT, "XIT" },
     { 'Y',  "set_ant",          ACTION(set_ant),        ARG_IN, "Antenna", "Option" },
-    { 'y',  "get_ant",          ACTION(get_ant),        ARG_IN1 | ARG_OUT2 |ARG_NOVFO, "AntCurr", "Option", "AntTx", "AntRx" },
+    { 'y',  "get_ant",          ACTION(get_ant),        ARG_IN1 | ARG_OUT2 | ARG_NOVFO, "AntCurr", "Option", "AntTx", "AntRx" },
     { 0x87, "set_powerstat",    ACTION(set_powerstat),  ARG_IN  | ARG_NOVFO, "Power Status" },
     { 0x88, "get_powerstat",    ACTION(get_powerstat),  ARG_OUT | ARG_NOVFO, "Power Status" },
     { 0x89, "send_dtmf",        ACTION(send_dtmf),      ARG_IN, "Digits" },
@@ -297,7 +297,7 @@ static struct test_table test_list[] =
     { 'w',  "send_cmd",         ACTION(send_cmd),       ARG_IN1 | ARG_IN_LINE | ARG_OUT2 | ARG_NOVFO, "Cmd", "Reply" },
     { 'W',  "send_cmd_rx",      ACTION(send_cmd),       ARG_IN | ARG_OUT2 | ARG_NOVFO, "Cmd", "Reply"},
     { 'b',  "send_morse",       ACTION(send_morse),     ARG_IN  | ARG_IN_LINE, "Morse" },
-    { 0x94,  "send_voice_mem",   ACTION(send_voice_mem), ARG_IN , "Voice Mem#" },
+    { 0x94,  "send_voice_mem",   ACTION(send_voice_mem), ARG_IN, "Voice Mem#" },
     { 0x8b, "get_dcd",          ACTION(get_dcd),        ARG_OUT, "DCD" },
     { '2',  "power2mW",         ACTION(power2mW),       ARG_IN1 | ARG_IN2 | ARG_IN3 | ARG_OUT1 | ARG_NOVFO, "Power [0.0..1.0]", "Frequency", "Mode", "Power mW" },
     { '4',  "mW2power",         ACTION(mW2power),       ARG_IN1 | ARG_IN2 | ARG_IN3 | ARG_OUT1 | ARG_NOVFO, "Power mW", "Frequency", "Mode", "Power [0.0..1.0]" },
@@ -386,8 +386,9 @@ void hash_sort_by_model_id()
     {
         HASH_SORT(models, hash_model_id_sort);
     }
-    else {
-        rig_debug(RIG_DEBUG_ERR,"%s: models empty?\n", __func__);
+    else
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: models empty?\n", __func__);
     }
 }
 
@@ -462,7 +463,7 @@ static int scanfc(FILE *fin, const char *format, void *p)
     {
         int ret;
         *(char *)p = 0;
-        
+
         ret = fscanf(fin, format, p);
 
         if (ret < 0)
@@ -1006,6 +1007,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
     }
 
 #ifdef HAVE_LIBREADLINE
+
     if (interactive && prompt && have_rl)
     {
         int j, x;
@@ -1530,6 +1532,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
 #endif
     }
+
 #endif // HAVE_LIBREADLINE
 
     if (sync_cb) { sync_cb(1); }    /* lock if necessary */
@@ -3038,14 +3041,16 @@ declare_proto_rig(get_parm)
         {
         case RIG_CONF_STRING:
             memset(buffer, '0', sizeof(buffer));
-            buffer[sizeof(buffer)-1] = 0;
+            buffer[sizeof(buffer) - 1] = 0;
             val.s = buffer;
             break;
+
         case RIG_CONF_BINARY:
             memset(buffer, 0, sizeof(buffer));
             val.b.d = (unsigned char *)buffer;
             val.b.l = RIG_BIN_MAX;
             break;
+
         default:
             break;
         }
@@ -3977,7 +3982,7 @@ declare_proto_rig(set_ant)
     CHKSCN1ARG(sscanf(arg1, "%d", &ant));
     CHKSCN1ARG(sscanf(arg2, "%d", &option.i)); // assuming they are integer values
 
-    return rig_set_ant(rig, vfo, rig_idx2setting(ant-1), option);
+    return rig_set_ant(rig, vfo, rig_idx2setting(ant - 1), option);
 }
 
 
@@ -3993,23 +3998,26 @@ declare_proto_rig(get_ant)
 
     if (ant == 0) // then we want the current antenna info
     {
-        status = rig_get_ant(rig, vfo, RIG_ANT_CURR, &option, &ant_curr, &ant_tx, &ant_rx);
+        status = rig_get_ant(rig, vfo, RIG_ANT_CURR, &option, &ant_curr, &ant_tx,
+                             &ant_rx);
     }
     else
     {
-        status = rig_get_ant(rig, vfo, rig_idx2setting(ant-1), &option, &ant_curr, &ant_tx, &ant_rx);
+        status = rig_get_ant(rig, vfo, rig_idx2setting(ant - 1), &option, &ant_curr,
+                             &ant_tx, &ant_rx);
     }
 
     if (status != RIG_OK)
     {
         return status;
     }
+
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
         fprintf(fout, "%s: ", cmd->arg1);
     }
 
-    sprintf_ant(antbuf,ant_curr);
+    sprintf_ant(antbuf, ant_curr);
     fprintf(fout, "%s%c", antbuf, resp_sep);
     //fprintf(fout, "%d%c", rig_setting2idx(ant_curr)+1, resp_sep);
 
@@ -4025,7 +4033,7 @@ declare_proto_rig(get_ant)
         fprintf(fout, "%s: ", cmd->arg3);
     }
 
-    sprintf_ant(antbuf,ant_tx);
+    sprintf_ant(antbuf, ant_tx);
     fprintf(fout, "%s%c", antbuf, resp_sep);
     //fprintf(fout, "%d%c", rig_setting2idx(ant_tx)+1, resp_sep);
 
@@ -4034,7 +4042,7 @@ declare_proto_rig(get_ant)
         fprintf(fout, "%s: ", cmd->arg4);
     }
 
-    sprintf_ant(antbuf,ant_rx);
+    sprintf_ant(antbuf, ant_rx);
     fprintf(fout, "%s%c", antbuf, resp_sep);
     //fprintf(fout, "%d%c", rig_setting2idx(ant_rx)+1, resp_sep);
 

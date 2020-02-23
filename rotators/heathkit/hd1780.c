@@ -121,7 +121,7 @@ static int hd1780_rot_init(ROT *rot)
     }
 
     rot->state.priv = (struct hd1780_rot_priv_data *)
-           malloc(sizeof(struct hd1780_rot_priv_data));
+                      malloc(sizeof(struct hd1780_rot_priv_data));
 
     if (!rot->state.priv)
     {

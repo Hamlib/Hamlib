@@ -408,6 +408,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->lo_freq = 0;
 
 #if 0 // this is no longer applicable -- replace it with something?
+
 // we need to be able to figure out what model radio we have
 // before we can set up the rig_state with the rig's specific freq range
 // if we can't figure out what model rig we have this is impossible
@@ -431,6 +432,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
                sizeof(struct freq_range_list)*FRQRANGESIZ);
         break;
     }
+
 #endif
     rs->vfo_list = 0;
     rs->mode_list = 0;
@@ -696,7 +698,9 @@ int HAMLIB_API rig_open(RIG *rig)
 
     case RIG_PTT_GPIO:
     case RIG_PTT_GPION:
-        rs->pttport.fd = gpio_open(&rs->pttport, 1, RIG_PTT_GPION == rs->pttport.type.ptt ? 0 : 1);
+        rs->pttport.fd = gpio_open(&rs->pttport, 1,
+                                   RIG_PTT_GPION == rs->pttport.type.ptt ? 0 : 1);
+
         if (rs->pttport.fd < 0)
         {
             rig_debug(RIG_DEBUG_ERR,
@@ -771,7 +775,9 @@ int HAMLIB_API rig_open(RIG *rig)
 
     case RIG_DCD_GPIO:
     case RIG_DCD_GPION:
-        rs->dcdport.fd = gpio_open(&rs->dcdport, 0, RIG_DCD_GPION == rs->dcdport.type.dcd ? 0 : 1);
+        rs->dcdport.fd = gpio_open(&rs->dcdport, 0,
+                                   RIG_DCD_GPION == rs->dcdport.type.dcd ? 0 : 1);
+
         if (rs->dcdport.fd < 0)
         {
             rig_debug(RIG_DEBUG_ERR,
@@ -1057,28 +1063,41 @@ static int twiddling(RIG *rig)
 
     caps = rig->caps;
 
-    if ( caps->get_freq) { // gotta have get_freq of course
+    if (caps->get_freq)    // gotta have get_freq of course
+    {
         freq_t curr_freq = 0;
         int retval2;
         int elapsed;
 
         retval2 = caps->get_freq(rig, RIG_VFO_CURR, &curr_freq);
-        if (retval2 == RIG_OK && rig->state.current_freq != curr_freq) {
-            rig_debug(RIG_DEBUG_TRACE,"%s: Somebody twiddling the VFO? last_freq=%.0f, curr_freq=%.0f\n", __func__, rig->state.current_freq, curr_freq);
-            if (rig->state.current_freq == 0) {
+
+        if (retval2 == RIG_OK && rig->state.current_freq != curr_freq)
+        {
+            rig_debug(RIG_DEBUG_TRACE,
+                      "%s: Somebody twiddling the VFO? last_freq=%.0f, curr_freq=%.0f\n", __func__,
+                      rig->state.current_freq, curr_freq);
+
+            if (rig->state.current_freq == 0)
+            {
                 rig->state.current_freq = curr_freq;
                 return 0; // not twiddling as first time freq is being set
             }
+
             rig->state.twiddling = time(NULL); // update last twiddle time
             rig->state.current_freq = curr_freq; // we have a new freq to remember
         }
+
         elapsed = time(NULL) - rig->state.twiddling;
-        if (elapsed < 3) {
-            rig_debug(RIG_DEBUG_TRACE,"%s: Twiddle elapsed < 3, elapsed=%d\n", __func__, elapsed);
+
+        if (elapsed < 3)
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: Twiddle elapsed < 3, elapsed=%d\n", __func__,
+                      elapsed);
             return 1; // would be better as error but other software won't handle it
         }
     }
-    return 0; // 
+
+    return 0; //
 }
 
 /**
@@ -1129,8 +1148,10 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     if ((caps->targetable_vfo & RIG_TARGETABLE_FREQ)
             || vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
     {
-        if (twiddling(rig)) {
-            rig_debug(RIG_DEBUG_TRACE,"%s: Ignoring set_freq due to VFO twiddling\n", __func__);
+        if (twiddling(rig))
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: Ignoring set_freq due to VFO twiddling\n",
+                      __func__);
             return RIG_OK; // would be better as error but other software won't handle errors
         }
 
@@ -1139,6 +1160,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     else
     {
         int rc2;
+
         if (!caps->set_vfo)
         {
             return -RIG_ENTARGET;
@@ -1152,8 +1174,10 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             return retcode;
         }
 
-        if (twiddling(rig)) {
-            rig_debug(RIG_DEBUG_TRACE,"%s: Ignoring set_freq due to VFO twiddling\n", __func__);
+        if (twiddling(rig))
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: Ignoring set_freq due to VFO twiddling\n",
+                      __func__);
             return RIG_OK; // would be better as error but other software won't handle errors
         }
 
@@ -1223,6 +1247,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     else
     {
         int rc2;
+
         if (!caps->set_vfo)
         {
             return -RIG_ENAVAIL;
@@ -1620,8 +1645,10 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
         return -RIG_ENAVAIL;
     }
 
-    if (twiddling(rig)) {
-        rig_debug(RIG_DEBUG_TRACE,"%s: Ignoring set_vfo due to VFO twiddling\n", __func__);
+    if (twiddling(rig))
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: Ignoring set_vfo due to VFO twiddling\n",
+                  __func__);
         return RIG_OK; // would be better as error but other software won't handle errors
     }
 
@@ -3609,7 +3636,8 @@ int HAMLIB_API rig_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
  *
  * \sa rig_set_ant()
  */
-int HAMLIB_API rig_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option, ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
+int HAMLIB_API rig_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
+                           ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
     const struct rig_caps *caps;
     int retcode, rc2;

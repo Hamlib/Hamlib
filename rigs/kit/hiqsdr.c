@@ -294,7 +294,8 @@ int hiqsdr_init(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    rig->state.priv = (struct hiqsdr_priv_data *)malloc(sizeof(struct hiqsdr_priv_data));
+    rig->state.priv = (struct hiqsdr_priv_data *)malloc(sizeof(
+                          struct hiqsdr_priv_data));
 
     if (!rig->state.priv)
     {

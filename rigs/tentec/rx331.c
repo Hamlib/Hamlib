@@ -276,7 +276,7 @@ static int rx331_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
         return retval;
     }
 
-    snprintf(fmt,sizeof(fmt)-1,"%%i%%%ds",BUFSZ);
+    snprintf(fmt, sizeof(fmt) - 1, "%%i%%%ds", BUFSZ);
     sscanf(data + 1, fmt, &rig_id, data);
 
     if (rig_id != priv->receiver_id)
@@ -297,13 +297,15 @@ int rx331_init(RIG *rig)
 {
     struct rx331_priv_data *priv;
 
-    rig->state.priv = (struct rx331_priv_data *)malloc(sizeof(struct rx331_priv_data));
+    rig->state.priv = (struct rx331_priv_data *)malloc(sizeof(
+                          struct rx331_priv_data));
 
     if (!rig->state.priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
+
     priv = rig->state.priv;
 
     memset(priv, 0, sizeof(struct rx331_priv_data));

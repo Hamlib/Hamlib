@@ -110,6 +110,7 @@ int drake_init(RIG *rig)
     {
         return -RIG_ENOMEM;
     }
+
     priv = rig->state.priv;
 
     priv->curr_ch = 0;
@@ -504,7 +505,8 @@ int drake_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
  * drake_get_ant
  * Assumes rig!=NULL
  */
-int drake_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option, ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
+int drake_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
+                  ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
     int mdbuf_len, retval;
     char mdbuf[BUFSZ];
@@ -543,6 +545,7 @@ int drake_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option, ant_t *ant_
         *ant_curr = RIG_ANT_UNKNOWN;
         return -RIG_EINVAL;
     }
+
     return RIG_OK;
 }
 

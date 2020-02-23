@@ -470,7 +470,7 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
     char arg3[MAXARGSZ + 1], *p3 = NULL;
     char arg4[MAXARGSZ + 1], *p4 = NULL;
 #ifdef __USEP5P6__ // to avoid cppcheck warning
-    char *p5 = NULL; 
+    char *p5 = NULL;
     char *p6 = NULL;
 #endif
 
@@ -480,6 +480,7 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
         if (interactive)
         {
             static int last_was_ret = 1;
+
             if (prompt)
             {
                 fprintf_flush(fout, "\nAmplifier command: ");
@@ -847,6 +848,7 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
     }
 
 #ifdef HAVE_LIBREADLINE
+
     if (interactive && prompt && have_rl)
     {
         int j, x;
@@ -1324,6 +1326,7 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
 
 #endif
     }
+
 #endif // HAVE_LIBREADLINE
 
     /*

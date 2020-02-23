@@ -599,12 +599,14 @@ int ft1000mp_init(RIG *rig)
     rig_debug(RIG_DEBUG_TRACE, "%s: called \n", __func__);
 
 
-    rig->state.priv = (struct ft1000mp_priv_data *) calloc(1, sizeof(struct ft1000mp_priv_data));
+    rig->state.priv = (struct ft1000mp_priv_data *) calloc(1,
+                      sizeof(struct ft1000mp_priv_data));
 
     if (!rig->state.priv)                       /* whoops! memory shortage! */
     {
         return -RIG_ENOMEM;
     }
+
     priv = rig->state.priv;
 
     /*
@@ -613,7 +615,8 @@ int ft1000mp_init(RIG *rig)
     memcpy(priv->pcs, ncmd, sizeof(ncmd));
 
     /* TODO: read pacing from preferences */
-    priv->pacing = FT1000MP_PACING_DEFAULT_VALUE; /* set pacing to minimum for now */
+    priv->pacing =
+        FT1000MP_PACING_DEFAULT_VALUE; /* set pacing to minimum for now */
     priv->read_update_delay =
         FT1000MP_DEFAULT_READ_TIMEOUT; /* set update timeout to safe value */
     priv->current_vfo =  RIG_VFO_A;  /* default to VFO_A ? */

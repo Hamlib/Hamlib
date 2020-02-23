@@ -1404,7 +1404,7 @@ int win32_serial_open(const char *filename, int flags, ...)
     }
     else
     {
-        strncpy(fullfilename, filename, sizeof(fullfilename)-1);
+        strncpy(fullfilename, filename, sizeof(fullfilename) - 1);
     }
 
     if (port_opened(fullfilename))

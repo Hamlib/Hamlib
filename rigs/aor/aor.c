@@ -461,13 +461,16 @@ int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         mdbuf2_len = strlen(mdbuf2);
 
         retval = aor_transaction(rig, mdbuf2, mdbuf2_len, NULL, NULL);
+
         if (retval != RIG_OK) { return retval; }
 
         strncpy(mdbuf2, mdbuf + 4, 3); /* Extract first 'BW' part */
         mdbuf2_len = strlen(mdbuf2);
 
         retval = aor_transaction(rig, mdbuf2, mdbuf2_len, NULL, NULL);
+
         if (retval != RIG_OK) { return retval; }
+
         break;
 
     default:
@@ -625,6 +628,7 @@ int aor_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         unsigned att = 0;
 
         unsigned i;
+
         for (i = 0; i < MAXDBLSTSIZ && !RIG_IS_DBLST_END(rs->attenuator[i]); i++)
         {
             if (rs->attenuator[i] == val.i)
@@ -1262,6 +1266,7 @@ int aor_get_channel(RIG *rig, channel_t *chan)
          * find mem_caps in caps, we'll need it later
          */
         int i;
+
         for (i = 0; i < CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++)
         {
             if (channel_num >= chan_list[i].startc &&
@@ -1284,6 +1289,7 @@ int aor_get_channel(RIG *rig, channel_t *chan)
          *  and sizing memorized.
          */
         mem_num = channel_num % 100;
+
         if (mem_num >= 50 && priv->bank_base1 != priv->bank_base2)
         {
             bank_base = priv->bank_base2;
@@ -1440,7 +1446,7 @@ const char *aor_get_info(RIG *rig)
         return NULL;
     }
 
-    if (retval > 2) idbuf[2] = '\0';
+    if (retval > 2) { idbuf[2] = '\0'; }
 
     retval = aor_transaction(rig, "VR" EOM, 3, frmbuf, &frm_len);
 

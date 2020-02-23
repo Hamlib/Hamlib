@@ -581,6 +581,7 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
         break;
 
 #if 0 // needs to be replace?
+
     case TOK_ITU_REGION:
         sprintf(val, "%d",
                 rs->itu_region == 1 ? RIG_ITU_REGION1 : RIG_ITU_REGION2);

@@ -113,19 +113,28 @@ int sprintf_ant(char *str, ant_t ant)
     {
         if (ant & (1UL << i))
         {
-            switch(i) {
-                case 0: ant_name = "ANT1";break;
-                case 1: ant_name = "ANT2";break;
-                case 2: ant_name = "ANT3";break;
-                case 3: ant_name = "ANT4";break;
-                case 4: ant_name = "ANT5";break;
-                case 30: ant_name = "ANT_UNKNOWN";break;
-                case 31: ant_name = "ANT_CURR";break;
-                default: 
-                    ant_name = "ANT_UNK";
-                    rig_debug(RIG_DEBUG_ERR,"%s: unknown ant=%d\n", __func__, i);
-                    break;
+            switch (i)
+            {
+            case 0: ant_name = "ANT1"; break;
+
+            case 1: ant_name = "ANT2"; break;
+
+            case 2: ant_name = "ANT3"; break;
+
+            case 3: ant_name = "ANT4"; break;
+
+            case 4: ant_name = "ANT5"; break;
+
+            case 30: ant_name = "ANT_UNKNOWN"; break;
+
+            case 31: ant_name = "ANT_CURR"; break;
+
+            default:
+                ant_name = "ANT_UNK";
+                rig_debug(RIG_DEBUG_ERR, "%s: unknown ant=%d\n", __func__, i);
+                break;
             }
+
             len += sprintf(str + len, "%s ", ant_name);
         }
     }

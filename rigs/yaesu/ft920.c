@@ -372,12 +372,14 @@ static int ft920_init(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    rig->state.priv = (struct ft920_priv_data *) calloc(1, sizeof(struct ft920_priv_data));
+    rig->state.priv = (struct ft920_priv_data *) calloc(1,
+                      sizeof(struct ft920_priv_data));
 
     if (!rig->state.priv)
     {
         return -RIG_ENOMEM;    /* whoops! memory shortage! */
     }
+
     priv = rig->state.priv;
 
     /*

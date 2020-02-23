@@ -519,6 +519,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
 
     /* cmd, internal, rotctld */
 #ifdef HAVE_LIBREADLINE
+
     if (!(interactive && prompt && have_rl))
 #endif
     {
@@ -893,6 +894,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
     }
 
 #ifdef HAVE_LIBREADLINE
+
     if (interactive && prompt && have_rl)
     {
         int j, x;
@@ -1369,6 +1371,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
 
 #endif
     }
+
 #endif // HAVE_LIBREADLINE
 
     /*
@@ -1446,7 +1449,8 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
         }
         else
         {
-            if (cmd_entry->name != NULL) {
+            if (cmd_entry->name != NULL)
+            {
                 fprintf(fout, "%s: error = %s\n", cmd_entry->name, rigerror(retcode));
             }
         }

@@ -74,6 +74,7 @@ static int rc2800_parse(char *s, char *device, float *value)
     rig_debug(RIG_DEBUG_TRACE, "%s: device return->%s", __func__, s);
 
     len = strlen(s);
+
     if (len == 0)
     {
         return -RIG_EPROTO;

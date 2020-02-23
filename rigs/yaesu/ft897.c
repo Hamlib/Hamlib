@@ -621,8 +621,9 @@ int ft897_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     }
 
     if (check_cache_timeout(&p->tx_status_tv))
-    { 
+    {
         int n;
+
         if ((n = ft897_get_status(rig, FT897_NATIVE_CAT_GET_TX_STATUS)) < 0)
         {
             return n;

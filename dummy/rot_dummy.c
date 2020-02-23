@@ -56,7 +56,7 @@ static int dummy_rot_init(ROT *rot)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     rot->state.priv = (struct dummy_rot_priv_data *)
-           malloc(sizeof(struct dummy_rot_priv_data));
+                      malloc(sizeof(struct dummy_rot_priv_data));
 
     if (!rot->state.priv)
     {

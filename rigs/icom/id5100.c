@@ -199,7 +199,7 @@ const struct rig_caps id5100_caps =
     .get_parm =  icom_get_parm,
     .set_ext_parm =  icom_set_ext_parm,
     .get_ext_parm =  icom_get_ext_parm,
- 
+
     .set_ptt =  icom_set_ptt,
     .get_ptt =  icom_get_ptt,
     .get_dcd =  icom_get_dcd,
