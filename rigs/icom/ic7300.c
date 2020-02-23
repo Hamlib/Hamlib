@@ -139,7 +139,7 @@ struct cmdparams ic9700_extcmds[] = {
     { {.s=RIG_PARM_BEEP}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x29}, CMD_DAT_BOL, 1 },
     { {.s=RIG_PARM_BACKLIGHT}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x52}, CMD_DAT_LVL, 2 },
     { {.s=RIG_LEVEL_VOXDELAY}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x03, 0x30}, CMD_DAT_INT, 1 },
-//    { {.s=RIG_PARM_SCREENSAVER}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x67}, CMD_DAT_INT, 1 },
+    { {.s=RIG_PARM_SCREENSAVER}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x67}, CMD_DAT_INT, 1 },
     { {.s=RIG_PARM_NONE} }
 };
 
