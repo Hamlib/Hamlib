@@ -527,6 +527,7 @@ int HAMLIB_API rig_open(RIG *rig)
     const struct rig_caps *caps;
     struct rig_state *rs;
     int status = RIG_OK;
+    value_t parm_value;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -821,6 +822,11 @@ int HAMLIB_API rig_open(RIG *rig)
     {
         rs->tx_vfo = rs->current_vfo;
     }
+
+    // try to turn off the screensaver if possible
+    // don't care about the return here...it's just a nice-to-have
+    parm_value.i = 0;
+    rig_set_parm(rig, RIG_PARM_SCREENSAVER, parm_value);
 
 #if 0
 
