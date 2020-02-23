@@ -136,7 +136,8 @@ int icmarine_init(RIG *rig)
 
     priv_caps = (const struct icmarine_priv_caps *) caps->priv;
 
-    rig->state.priv = (struct icmarine_priv_data *)malloc(sizeof(struct icmarine_priv_data));
+    rig->state.priv = (struct icmarine_priv_data *)malloc(sizeof(
+                          struct icmarine_priv_data));
 
     if (!rig->state.priv)
     {
@@ -578,7 +579,7 @@ int icmarine_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     rig_debug(RIG_DEBUG_TRACE, "%s:\n", __func__);
 
     retval = icmarine_transaction(rig, CMD_PTT,
-                                      ptt == RIG_PTT_ON ? "TX" : "RX", NULL);
+                                  ptt == RIG_PTT_ON ? "TX" : "RX", NULL);
 
     if (retval != RIG_OK)
     {

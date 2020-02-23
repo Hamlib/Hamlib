@@ -576,13 +576,15 @@ int ft857_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         return -RIG_ENTARGET;
     }
 
-    if (check_cache_timeout(&p->fm_status_tv)) {
+    if (check_cache_timeout(&p->fm_status_tv))
+    {
         int n;
+
         if ((n = ft857_get_status(rig, FT857_NATIVE_CAT_GET_FREQ_MODE_STATUS)) < 0)
         {
             return n;
         }
-     }
+    }
 
     *freq = from_bcd_be(p->fm_status, 8) * 10;
 
@@ -667,8 +669,10 @@ int ft857_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         return -RIG_ENTARGET;
     }
 
-    if (check_cache_timeout(&p->fm_status_tv)) {
+    if (check_cache_timeout(&p->fm_status_tv))
+    {
         int n;
+
         if ((n = ft857_get_status(rig, FT857_NATIVE_CAT_GET_FREQ_MODE_STATUS)) < 0)
         {
             return n;
@@ -748,12 +752,14 @@ int ft857_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 int ft857_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
     struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
+
     if (vfo != RIG_VFO_CURR)
     {
         return -RIG_ENTARGET;
     }
 
-    if (check_cache_timeout(&p->tx_status_tv)) {
+    if (check_cache_timeout(&p->tx_status_tv))
+    {
         int n;
 
         if ((n = ft857_get_status(rig, FT857_NATIVE_CAT_GET_TX_STATUS)) < 0)
@@ -771,8 +777,10 @@ static int ft857_get_pometer_level(RIG *rig, value_t *val)
 {
     struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
 
-    if (check_cache_timeout(&p->tx_status_tv)) {
+    if (check_cache_timeout(&p->tx_status_tv))
+    {
         int n;
+
         if ((n = ft857_get_status(rig, FT857_NATIVE_CAT_GET_TX_STATUS)) < 0)
         {
             return n;
@@ -845,13 +853,15 @@ int ft857_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
         return -RIG_ENTARGET;
     }
 
-    if (check_cache_timeout(&p->rx_status_tv)) {
+    if (check_cache_timeout(&p->rx_status_tv))
+    {
         int n;
+
         if ((n = ft857_get_status(rig, FT857_NATIVE_CAT_GET_RX_STATUS)) < 0)
         {
             return n;
         }
-     }
+    }
 
     /* TODO: consider bit 6 too ??? (CTCSS/DCS code match) */
     if (p->rx_status & 0x80)

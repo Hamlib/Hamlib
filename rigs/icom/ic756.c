@@ -62,12 +62,13 @@
 
 #define IC756_ANTS (RIG_ANT_1|RIG_ANT_2)
 
-struct cmdparams ic756pro_cmdparms[] = {
-    { {.s=RIG_PARM_BEEP}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x20}, CMD_DAT_BOL, 1 },
-    { {.s=RIG_PARM_BACKLIGHT}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x09}, CMD_DAT_LVL, 2 },
-    { {.s=RIG_PARM_TIME}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x16}, CMD_DAT_TIM, 2 },
-    { {.s=RIG_LEVEL_VOXDELAY}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x60}, CMD_DAT_INT, 1 },
-    { {.s=RIG_PARM_NONE} }
+struct cmdparams ic756pro_cmdparms[] =
+{
+    { {.s = RIG_PARM_BEEP}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x20}, CMD_DAT_BOL, 1 },
+    { {.s = RIG_PARM_BACKLIGHT}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x09}, CMD_DAT_LVL, 2 },
+    { {.s = RIG_PARM_TIME}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x16}, CMD_DAT_TIM, 2 },
+    { {.s = RIG_LEVEL_VOXDELAY}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x60}, CMD_DAT_INT, 1 },
+    { {.s = RIG_PARM_NONE} }
 };
 
 #define IC756PRO_STR_CAL { 16, \

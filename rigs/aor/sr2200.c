@@ -729,7 +729,8 @@ int sr2200_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     switch (level)
     {
-    float tmp;
+        float tmp;
+
     case RIG_LEVEL_STRENGTH:
         if (ack_len < 7 || ackbuf[0] != 'L' || ackbuf[1] != 'B')
         {

@@ -1738,15 +1738,22 @@ static int netrigctl_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
     char vfostr[6] = "";
     int i_ant = 0;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called, ant=0x%02x, option=%d\n", __func__, ant, option.i);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called, ant=0x%02x, option=%d\n", __func__,
+              ant, option.i);
 
-    switch(ant) {
-        case RIG_ANT_1: i_ant = 0; break;
-        case RIG_ANT_2: i_ant = 1; break;
-        case RIG_ANT_3: i_ant = 2; break;
-        case RIG_ANT_4: i_ant = 3; break;
-        default: 
-            rig_debug(RIG_DEBUG_ERR,"%s: more than 4 antennas? ant=0x%02x\n", __func__, ant);
+    switch (ant)
+    {
+    case RIG_ANT_1: i_ant = 0; break;
+
+    case RIG_ANT_2: i_ant = 1; break;
+
+    case RIG_ANT_3: i_ant = 2; break;
+
+    case RIG_ANT_4: i_ant = 3; break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: more than 4 antennas? ant=0x%02x\n", __func__,
+                  ant);
     }
 
     ret = netrigctl_vfostr(rig, vfostr, sizeof(vfostr), vfo);
@@ -1768,7 +1775,8 @@ static int netrigctl_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 }
 
 
-static int netrigctl_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option, ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
+static int netrigctl_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
+                             ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
     int ret, len;
     char cmd[CMD_MAX];
@@ -1783,10 +1791,12 @@ static int netrigctl_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option, an
 
     if (ret != RIG_OK) { return ret; }
 
-    if (ant == RIG_ANT_CURR) {
+    if (ant == RIG_ANT_CURR)
+    {
         len = sprintf(cmd, "y%s\n", vfostr);
     }
-    else {
+    else
+    {
         len = sprintf(cmd, "y%s %d\n", vfostr, ant);
     }
 
@@ -1802,17 +1812,20 @@ static int netrigctl_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option, an
 
     if (ret != 1)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: expected 1 ant integer in '%s', got %d\n", __func__, buf,
+        rig_debug(RIG_DEBUG_ERR, "%s: expected 1 ant integer in '%s', got %d\n",
+                  __func__, buf,
                   ret);
     }
 
-    if (ant != RIG_ANT_CURR) {
+    if (ant != RIG_ANT_CURR)
+    {
         ret = sscanf(buf, "%d\n", &option->i);
     }
 
     if (ret != 1)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: expected 1 option integer in '%s', got %d\n", __func__, buf,
+        rig_debug(RIG_DEBUG_ERR, "%s: expected 1 option integer in '%s', got %d\n",
+                  __func__, buf,
                   ret);
     }
 
@@ -1823,11 +1836,12 @@ static int netrigctl_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option, an
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    ret = sscanf(buf, "%d\n",&(option->i));
+    ret = sscanf(buf, "%d\n", &(option->i));
 
     if (ret != 1)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: expected 1 option integer in '%s', got %d\n", __func__, buf,
+        rig_debug(RIG_DEBUG_ERR, "%s: expected 1 option integer in '%s', got %d\n",
+                  __func__, buf,
                   ret);
     }
 

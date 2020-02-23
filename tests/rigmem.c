@@ -315,6 +315,7 @@ int main(int argc, char *argv[])
     if (!strcmp(argv[optind], "save"))
     {
 #ifdef HAVE_XML2
+
         if (xml)
         {
             retcode = xml_save(rig, argv[optind + 1]);
@@ -328,6 +329,7 @@ int main(int argc, char *argv[])
     else if (!strcmp(argv[optind], "load"))
     {
 #ifdef HAVE_XML2
+
         if (xml)
         {
             retcode = xml_load(rig, argv[optind + 1]);
@@ -341,6 +343,7 @@ int main(int argc, char *argv[])
     else if (!strcmp(argv[optind], "save_parm"))
     {
 #ifdef HAVE_XML2
+
         if (xml)
         {
             retcode = xml_parm_save(rig, argv[optind + 1]);
@@ -354,6 +357,7 @@ int main(int argc, char *argv[])
     else if (!strcmp(argv[optind], "load_parm"))
     {
 #ifdef HAVE_XML2
+
         if (xml)
         {
             retcode = xml_parm_load(rig, argv[optind + 1]);

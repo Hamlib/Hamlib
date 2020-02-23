@@ -528,8 +528,10 @@ int ft817_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         return -RIG_ENTARGET;
     }
 
-    if (check_cache_timeout(&p->fm_status_tv)) {
+    if (check_cache_timeout(&p->fm_status_tv))
+    {
         int n;
+
         if ((n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_FREQ_MODE_STATUS)) < 0)
         {
             return n;
@@ -647,8 +649,10 @@ int ft817_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         return -RIG_ENTARGET;
     }
 
-    if (check_cache_timeout(&p->tx_status_tv)) {
+    if (check_cache_timeout(&p->tx_status_tv))
+    {
         int n;
+
         if ((n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_TX_STATUS)) < 0)
         {
             return n;
@@ -664,8 +668,10 @@ static int ft817_get_pometer_level(RIG *rig, value_t *val)
 {
     struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
 
-    if (check_cache_timeout(&p->tx_status_tv)) {
+    if (check_cache_timeout(&p->tx_status_tv))
+    {
         int n;
+
         if ((n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_TX_STATUS)) < 0)
         {
             return n;
@@ -734,8 +740,10 @@ static int ft817_get_raw_smeter_level(RIG *rig, value_t *val)
 {
     struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
 
-    if (check_cache_timeout(&p->rx_status_tv)) {
+    if (check_cache_timeout(&p->rx_status_tv))
+    {
         int n;
+
         if ((n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_RX_STATUS)) < 0)
         {
             return n;
@@ -787,13 +795,15 @@ int ft817_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
         return -RIG_ENTARGET;
     }
 
-    if (check_cache_timeout(&p->rx_status_tv)) {
+    if (check_cache_timeout(&p->rx_status_tv))
+    {
         int n;
+
         if ((n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_RX_STATUS)) < 0)
         {
             return n;
         }
-     }
+    }
 
     /* TODO: consider bit 6 too ??? (CTCSS/DCS code match) */
     if (p->rx_status & 0x80)
@@ -1007,7 +1017,7 @@ int ft817_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         if (ptt_response != ptt)
         {
             hl_usleep(1000l *
-                   FT817_RETRY_DELAY); // Wait before next try. Helps with slower rigs cloning FT817 protocol (e.g. MCHF)
+                      FT817_RETRY_DELAY); // Wait before next try. Helps with slower rigs cloning FT817 protocol (e.g. MCHF)
         }
 
     }
@@ -1291,7 +1301,7 @@ int ft817_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
     switch (op)
     {
-    int n;
+        int n;
 
     case RIG_OP_TOGGLE:
         rig_force_cache_timeout(&((struct ft817_priv_data *)

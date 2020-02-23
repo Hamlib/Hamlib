@@ -67,7 +67,7 @@ int kpa_init(AMP *amp)
     }
 
     amp->state.priv = (struct kpa_priv_data *)
-           malloc(sizeof(struct kpa_priv_data));
+                      malloc(sizeof(struct kpa_priv_data));
 
     if (!amp->state.priv)
     {

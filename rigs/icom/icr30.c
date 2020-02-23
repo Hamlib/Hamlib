@@ -53,21 +53,24 @@
 #define TOK_REC TOKEN_BACKEND(003)
 
 int icr30_tokens[] = { TOK_ANL, TOK_EAR, TOK_REC,
-    TOK_DSTAR_DSQL, TOK_DSTAR_CALL_SIGN, TOK_DSTAR_MESSAGE, TOK_DSTAR_STATUS,
-    TOK_DSTAR_GPS_DATA, TOK_DSTAR_GPS_MESS, TOK_DSTAR_CODE, TOK_DSTAR_TX_DATA,
-    TOK_BACKEND_NONE };
+                       TOK_DSTAR_DSQL, TOK_DSTAR_CALL_SIGN, TOK_DSTAR_MESSAGE, TOK_DSTAR_STATUS,
+                       TOK_DSTAR_GPS_DATA, TOK_DSTAR_GPS_MESS, TOK_DSTAR_CODE, TOK_DSTAR_TX_DATA,
+                       TOK_BACKEND_NONE
+                     };
 
-struct confparams icr30_ext[] = {
+struct confparams icr30_ext[] =
+{
     { TOK_ANL, "anl", "Auto noise limiter", "", "", RIG_CONF_CHECKBUTTON, {} },
     { TOK_EAR, "ear", "Earphone mode", "", "", RIG_CONF_CHECKBUTTON, {} },
     { TOK_REC, "record", "Recorder on/off", "", "", RIG_CONF_CHECKBUTTON, {} },
     { 0 }
 };
 
-struct cmdparams icr30_extcmds[] = {
-    { {.t=TOK_ANL}, C_CTL_MEM, S_MEM_ANL, SC_MOD_RW, 0, {}, CMD_DAT_BOL, 1 },
-    { {.t=TOK_EAR}, C_CTL_MEM, S_MEM_EAR, SC_MOD_RW, 0, {}, CMD_DAT_BOL, 1 },
-    { {.t=TOK_REC}, C_CTL_MEM, S_MEM_REC, SC_MOD_WR, 0, {}, CMD_DAT_BOL, 1 },
+struct cmdparams icr30_extcmds[] =
+{
+    { {.t = TOK_ANL}, C_CTL_MEM, S_MEM_ANL, SC_MOD_RW, 0, {}, CMD_DAT_BOL, 1 },
+    { {.t = TOK_EAR}, C_CTL_MEM, S_MEM_EAR, SC_MOD_RW, 0, {}, CMD_DAT_BOL, 1 },
+    { {.t = TOK_REC}, C_CTL_MEM, S_MEM_REC, SC_MOD_WR, 0, {}, CMD_DAT_BOL, 1 },
     { {0} }
 };
 

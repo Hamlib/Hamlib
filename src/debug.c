@@ -87,6 +87,7 @@ void dump_hex(const unsigned char ptr[], size_t size)
     for (i = 0; i < size; ++i)
     {
         unsigned char c;
+
         if (i % DUMP_HEX_WIDTH == 0)
         {
             /* new line */

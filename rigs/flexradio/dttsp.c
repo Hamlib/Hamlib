@@ -378,11 +378,15 @@ static int fetch_meter(RIG *rig, int *label, float *data, int npts)
         }
 
         buf_len = sizeof(float) * npts;
-        if (sizeof(float)!=4) {
-            rig_debug(RIG_DEBUG_ERR,"%s: sizeof(float)!=4, instead = %d\n",__func__, (int)sizeof(float));
+
+        if (sizeof(float) != 4)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: sizeof(float)!=4, instead = %d\n", __func__,
+                      (int)sizeof(float));
             return -RIG_EINTERNAL;
         }
-        ret = read_block(&priv->meter_port, (char *)(void*)data, buf_len);
+
+        ret = read_block(&priv->meter_port, (char *)(void *)data, buf_len);
 
         if (ret != buf_len)
         {
@@ -483,7 +487,8 @@ int dttsp_init(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    rig->state.priv = (struct dttsp_priv_data *)calloc(1, sizeof(struct dttsp_priv_data));
+    rig->state.priv = (struct dttsp_priv_data *)calloc(1,
+                      sizeof(struct dttsp_priv_data));
 
     if (!rig->state.priv)
     {

@@ -307,7 +307,8 @@ int icom_transaction(RIG *rig, int cmd, int subcmd,
         {
             break;
         }
-        hl_usleep(500*1000);   // pause a half second
+
+        hl_usleep(500 * 1000); // pause a half second
     }
     while (retry-- > 0);
 
@@ -563,8 +564,8 @@ void icom2rig_mode(RIG *rig, unsigned char md, int pd, rmode_t *mode,
            depending on mode  */
 
     if (pd >= 0 && (rig->caps->rig_model == RIG_MODEL_IC706MKIIG ||
-            rig->caps->rig_model == RIG_MODEL_IC706 ||
-            rig->caps->rig_model ==  RIG_MODEL_IC706MKII)) { pd++; }
+                    rig->caps->rig_model == RIG_MODEL_IC706 ||
+                    rig->caps->rig_model ==  RIG_MODEL_IC706MKII)) { pd++; }
 
     switch (pd)
     {

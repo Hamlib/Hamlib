@@ -912,17 +912,20 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
     case RIG_MODE_PKTLSB:
         mode = RIG_MODE_RTTY;
-        snprintf(cmd_m, sizeof(cmd_m), "DT1"); /* AFSK A mode - AFSK on LSB optimised for RTTY, VFO dial is MARK */
+        snprintf(cmd_m, sizeof(cmd_m),
+                 "DT1"); /* AFSK A mode - AFSK on LSB optimised for RTTY, VFO dial is MARK */
         break;
 
     case RIG_MODE_PKTUSB:
         mode = RIG_MODE_RTTY;
-        snprintf(cmd_m, sizeof(cmd_m), "DT0"); /* DATA A mode - AFSK on USB general, VFO dial is suppressed carrier QRG */
+        snprintf(cmd_m, sizeof(cmd_m),
+                 "DT0"); /* DATA A mode - AFSK on USB general, VFO dial is suppressed carrier QRG */
         break;
 
     case RIG_MODE_RTTY:
     case RIG_MODE_RTTYR:
-        snprintf(cmd_m, sizeof(cmd_m), "DT2"); /* FSK D mode - direct FSK keying, LSB is "normal", VFO dial is MARK */
+        snprintf(cmd_m, sizeof(cmd_m),
+                 "DT2"); /* FSK D mode - direct FSK keying, LSB is "normal", VFO dial is MARK */
         break;
 
     default:
@@ -1215,17 +1218,20 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
     {
     case RIG_MODE_PKTLSB:
         tx_mode = RIG_MODE_RTTY;
-        snprintf(cmd_m, sizeof(cmd_m), "DT1"); /* AFSK A mode - AFSK on LSB optimised for RTTY, VFO dial is MARK */
+        snprintf(cmd_m, sizeof(cmd_m),
+                 "DT1"); /* AFSK A mode - AFSK on LSB optimised for RTTY, VFO dial is MARK */
         break;
 
     case RIG_MODE_PKTUSB:
         tx_mode = RIG_MODE_RTTY;
-        snprintf(cmd_m, sizeof(cmd_m), "DT0"); /* DATA A mode - AFSK on USB general, VFO dial is suppressed carrier QRG */
+        snprintf(cmd_m, sizeof(cmd_m),
+                 "DT0"); /* DATA A mode - AFSK on USB general, VFO dial is suppressed carrier QRG */
         break;
 
     case RIG_MODE_RTTY:
     case RIG_MODE_RTTYR:
-        snprintf(cmd_m, sizeof(cmd_m), "DT2"); /* FSK D mode - direct FSK keying, LSB is "normal", VFO dial is MARK */
+        snprintf(cmd_m, sizeof(cmd_m),
+                 "DT2"); /* FSK D mode - direct FSK keying, LSB is "normal", VFO dial is MARK */
         break;
 
     default:
@@ -1542,16 +1548,19 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     switch (level)
     {
-       float firmware_have;
-       float firmware_need;
+        float firmware_have;
+        float firmware_need;
+
     case RIG_LEVEL_STRENGTH:
         /* As of FW rev 4.37 the K3 supports an 'SMH' command that
          * offers a higher resolution, 0-100 (mine went to 106),
          * rawstr value for more precise S-meter reporting.
          */
         firmware_have = 0;
-        if (priv->fw_rev != NULL) sscanf(priv->fw_rev,"%f",&firmware_have);
-        sscanf("4.37","%f",&firmware_need);
+
+        if (priv->fw_rev != NULL) { sscanf(priv->fw_rev, "%f", &firmware_have); }
+
+        sscanf("4.37", "%f", &firmware_need);
 
         if (firmware_have < firmware_need)
         {

@@ -229,9 +229,11 @@ static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 int tt565_init(RIG *rig)
 {
     struct tt565_priv_data *priv;
-    rig->state.priv = (struct tt565_priv_data *)malloc(sizeof(struct tt565_priv_data));
+    rig->state.priv = (struct tt565_priv_data *)malloc(sizeof(
+                          struct tt565_priv_data));
 
     if (!rig->state.priv) { return -RIG_ENOMEM; } /* no memory available */
+
     priv = rig->state.priv;
 
     memset(priv, 0, sizeof(struct tt565_priv_data));
@@ -2116,7 +2118,8 @@ int tt565_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
  *
  * \sa tt565_set_ant
  */
-int tt565_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option, ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
+int tt565_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
+                  ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
     char respbuf[TT565_BUFSIZE];
     int resp_len, retval;

@@ -510,45 +510,53 @@ static int dummy_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     case RIG_PTT_SERIAL_DTR:
         if (rig->state.pttport.fd >= 0)
         {
-            if (RIG_OK != (rc = ser_get_dtr(&rig->state.pttport, &status))) return rc;
+            if (RIG_OK != (rc = ser_get_dtr(&rig->state.pttport, &status))) { return rc; }
+
             *ptt = status ? RIG_PTT_ON : RIG_PTT_OFF;
         }
+
         break;
 
     case RIG_PTT_SERIAL_RTS:
         if (rig->state.pttport.fd >= 0)
         {
-            if (RIG_OK != (rc = ser_get_rts(&rig->state.pttport, &status))) return rc;
+            if (RIG_OK != (rc = ser_get_rts(&rig->state.pttport, &status))) { return rc; }
+
             *ptt = status ? RIG_PTT_ON : RIG_PTT_OFF;
         }
+
         break;
 
     case RIG_PTT_PARALLEL:
         if (rig->state.pttport.fd >= 0)
         {
-            if (RIG_OK != (rc = par_ptt_get(&rig->state.pttport, ptt))) return rc;
+            if (RIG_OK != (rc = par_ptt_get(&rig->state.pttport, ptt))) { return rc; }
         }
+
         break;
 
     case RIG_PTT_CM108:
         if (rig->state.pttport.fd >= 0)
         {
-            if (RIG_OK != (rc = cm108_ptt_get(&rig->state.pttport, ptt))) return rc;
+            if (RIG_OK != (rc = cm108_ptt_get(&rig->state.pttport, ptt))) { return rc; }
         }
+
         break;
 
     case RIG_PTT_GPIO:
     case RIG_PTT_GPION:
         if (rig->state.pttport.fd >= 0)
         {
-            if (RIG_OK != (rc = gpio_ptt_get(&rig->state.pttport, ptt))) return rc;
+            if (RIG_OK != (rc = gpio_ptt_get(&rig->state.pttport, ptt))) { return rc; }
         }
+
         break;
 
     default:
         *ptt = priv->ptt;
         break;
     }
+
     return RIG_OK;
 }
 
@@ -1338,28 +1346,35 @@ static int dummy_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
-    switch(ant) {
-        case RIG_ANT_CURR: 
-            break;
-        case RIG_ANT_1:
-        case RIG_ANT_2:
-        case RIG_ANT_3:
-        case RIG_ANT_4: 
-            curr->ant = ant;
-            break;
-        default:
-            rig_debug(RIG_DEBUG_ERR,"%s: unknown antenna requested=0x%02x\n",__func__, ant);
-            return -RIG_EINVAL;
+    switch (ant)
+    {
+    case RIG_ANT_CURR:
+        break;
+
+    case RIG_ANT_1:
+    case RIG_ANT_2:
+    case RIG_ANT_3:
+    case RIG_ANT_4:
+        curr->ant = ant;
+        break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unknown antenna requested=0x%02x\n", __func__,
+                  ant);
+        return -RIG_EINVAL;
     }
 
     priv->ant_option[rig_setting2idx(curr->ant)] = option.i;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called ant=0x%02x, option=%d, curr->ant=0x%02x\n", __func__, ant, option.i, curr->ant);
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "%s called ant=0x%02x, option=%d, curr->ant=0x%02x\n", __func__, ant, option.i,
+              curr->ant);
 
     return RIG_OK;
 }
 
 
-static int dummy_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option, ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
+static int dummy_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
+                         ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
@@ -1367,22 +1382,28 @@ static int dummy_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option, ant_t 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, ant=0x%02x\n", __func__, ant);
 
     *ant_tx = *ant_rx = RIG_ANT_UNKNOWN;
-   
-    switch(ant) {
-        case RIG_ANT_CURR: 
-            *ant_curr = curr->ant;  
-            break;
-        case RIG_ANT_1:
-        case RIG_ANT_2:
-        case RIG_ANT_3:
-        case RIG_ANT_4:
-            *ant_curr = ant;
-            break;
-        default:
-            rig_debug(RIG_DEBUG_ERR,"%s: unknown antenna requested=0x%02x\n",__func__, ant);
-            return -RIG_EINVAL;
+
+    switch (ant)
+    {
+    case RIG_ANT_CURR:
+        *ant_curr = curr->ant;
+        break;
+
+    case RIG_ANT_1:
+    case RIG_ANT_2:
+    case RIG_ANT_3:
+    case RIG_ANT_4:
+        *ant_curr = ant;
+        break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unknown antenna requested=0x%02x\n", __func__,
+                  ant);
+        return -RIG_EINVAL;
     }
-    rig_debug(RIG_DEBUG_TRACE,"%s: ant_curr=0x%02x, idx=%d\n",__func__, *ant_curr, rig_setting2idx(*ant_curr));
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: ant_curr=0x%02x, idx=%d\n", __func__, *ant_curr,
+              rig_setting2idx(*ant_curr));
     option->i = priv->ant_option[rig_setting2idx(*ant_curr)];
 
     return RIG_OK;

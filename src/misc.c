@@ -419,7 +419,7 @@ int HAMLIB_API rig_strrmodes(rmode_t modes, char *buf, int buflen)
 
     if (modes == RIG_MODE_NONE)
     {
-        snprintf(buf,buflen,"NONE");
+        snprintf(buf, buflen, "NONE");
         return RIG_OK;
     }
 
@@ -428,10 +428,13 @@ int HAMLIB_API rig_strrmodes(rmode_t modes, char *buf, int buflen)
         if (modes & mode_str[i].mode)
         {
             char modebuf[16];
-            if (strlen(buf)==0) snprintf(modebuf, sizeof(modebuf), "%s", mode_str[i].str);
-            else snprintf(modebuf, sizeof(modebuf)," %s", mode_str[i].str);
-            strncat(buf, modebuf, buflen-strlen(buf)-1);
-            if (strlen(buf) > buflen-10) return -RIG_ETRUNC;
+
+            if (strlen(buf) == 0) { snprintf(modebuf, sizeof(modebuf), "%s", mode_str[i].str); }
+            else { snprintf(modebuf, sizeof(modebuf), " %s", mode_str[i].str); }
+
+            strncat(buf, modebuf, buflen - strlen(buf) - 1);
+
+            if (strlen(buf) > buflen - 10) { return -RIG_ETRUNC; }
         }
     }
 

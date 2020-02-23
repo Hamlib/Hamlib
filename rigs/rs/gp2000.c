@@ -470,6 +470,7 @@ gp2000_get_info(RIG *rig)
     }
 
     p = strtok(infobuf, ",");
+
     while (p)
     {
         switch (p[0])

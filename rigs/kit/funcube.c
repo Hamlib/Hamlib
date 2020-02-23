@@ -233,7 +233,8 @@ int funcube_init(RIG *rig)
     hamlib_port_t *rp = &rig->state.rigport;
     struct funcube_priv_data *priv;
 
-    rig->state.priv = (struct funcube_priv_data *)calloc(sizeof(struct funcube_priv_data), 1);
+    rig->state.priv = (struct funcube_priv_data *)calloc(sizeof(
+                          struct funcube_priv_data), 1);
 
     if (!rig->state.priv)
     {
@@ -262,7 +263,8 @@ int funcubeplus_init(RIG *rig)
     hamlib_port_t *rp = &rig->state.rigport;
     struct funcube_priv_data *priv;
 
-    rig->state.priv = (struct funcube_priv_data *)calloc(sizeof(struct funcube_priv_data), 1);
+    rig->state.priv = (struct funcube_priv_data *)calloc(sizeof(
+                          struct funcube_priv_data), 1);
 
     if (!rig->state.priv)
     {
