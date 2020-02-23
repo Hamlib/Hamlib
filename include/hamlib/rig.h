@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <inttypes.h>
+#include <time.h>
 
 /* Rig list is in a separate file so as not to mess up w/ this one */
 #include <hamlib/riglist.h>
@@ -1784,8 +1785,8 @@ struct rig_state {
     int transmit;               /*!< rig should be transmitting i.e. hard
                                      wired PTT asserted - used by rigs that
                                      don't do CAT while in Tx */
-    freq_t lo_freq;             /*!< Local oscillator frequency of any
-				     transverter */
+    freq_t lo_freq;             /*!< Local oscillator frequency of any transverter */
+    time_t twiddling;           /*!< time when vfo twiddling was detected */
 };
 
 
