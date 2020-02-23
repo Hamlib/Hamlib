@@ -826,6 +826,7 @@ static struct
     { RIG_PARM_TIME, "TIME" },
     { RIG_PARM_BAT, "BAT" },
     { RIG_PARM_KEYLIGHT, "KEYLIGHT"},
+    { RIG_PARM_SCREENSAVER, "SCREENSAVER"},
     { RIG_PARM_NONE, "" },
 };
 
