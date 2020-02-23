@@ -785,6 +785,34 @@ icom_rig_close(RIG *rig)
     return RIG_OK;
 }
 
+// return true if band is changing from last set_freq
+// Assumes rig is currently on the VFO being changed
+// This handles the case case Main/Sub cannot be on the same band
+int icom_band_changing(RIG *rig, freq_t test_freq)
+{
+    freq_t curr_freq, freq1, freq2;
+    int retval;
+
+    // We should be sitting on the VFO we want to change so just get it's frequency
+    retval = icom_get_freq(rig,RIG_VFO_CURR, &curr_freq);
+    if (retval != RIG_OK) {
+        rig_debug(RIG_DEBUG_ERR,"%s: icom_get_freq failed??\n", __func__);
+        return 0; // I guess we need to say no change in this case
+    }
+  
+    // Make our HF=0, 2M = 1, 70cm = 4, and 23cm=12
+    freq1 = floor(curr_freq / 1e8);
+    freq2 = floor(test_freq / 1e8);
+
+    rig_debug(RIG_DEBUG_TRACE,"%s: lastfreq=%.0f, thisfreq=%.0f\n", __func__, freq1, freq2);
+    if (freq1 != freq2) {
+        rig_debug(RIG_DEBUG_TRACE,"%s: Band change detected\n", __func__);
+        return 1;
+    }
+    rig_debug(RIG_DEBUG_TRACE,"%s: Band change not detected\n", __func__);
+    return 0;
+}
+
 /*
  * icom_set_freq
  * Assumes rig!=NULL, rig->state.priv!=NULL
@@ -796,65 +824,27 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     unsigned char freqbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
     int freq_len, ack_len = sizeof(ackbuf), retval;
     int cmd, subcmd;
-    int vfos_collide;
+    freq_t curr_freq;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called %s=%" PRIfreq "\n", __func__,
               rig_strvfo(vfo), freq);
     rs = &rig->state;
     priv = (struct icom_priv_data *) rs->priv;
 
-    // IC-9700 cannot set freq MAIN to same band as SUB
-    // So we query both and ensure they won't match
-    // If a potential collision we just swap VFOs
-    // This covers setting VFOA, VFOB, Main or Sub
-    if (rig->caps->rig_model == RIG_MODEL_IC9700)
-    {
-        freq_t freqMain, freqSub;
-        retval = rig_get_freq(rig, RIG_VFO_MAIN, &freqMain);
-
-        if (retval != RIG_OK)
-        {
-            return retval;
-        }
-
-        retval = rig_get_freq(rig, RIG_VFO_SUB, &freqSub);
-
-        if (retval != RIG_OK)
-        {
-            return retval;
-        }
-        rig_debug(RIG_DEBUG_TRACE,"%s: before rounding freqMain=%g, freqSub=%g\n", __func__, freqMain, freqSub);
-
-        // Make our 2M = 1, 70cm = 4, and 23cm=12
-        freqMain = freqMain / 1e8;
-        freqSub = freqSub / 1e8;
-        freq_t freq2 = freq / 1e8;
-        rig_debug(RIG_DEBUG_TRACE,"%s: after rounding freqMain=%g, freqSub=%g, collides=%d\n", __func__, freqMain, freqSub, vfos_collide);
-        // Check if changing bands on Main and it matches Sub band
-        if (vfo == RIG_VFO_MAIN && freq2!=freqMain) {
-            rig_debug(RIG_DEBUG_TRACE,"%s: requested freq collides with Sub\n", __func__);
-            vfos_collide = 1;
-        }
-        else if (vfo == RIG_VFO_SUB && freq2!=freqSub) {
-            rig_debug(RIG_DEBUG_TRACE,"%s: requested freq collides with Main", __func__);
-            vfos_collide = 1;
-        }
-
-        if (vfos_collide)
-        {
-            // we'll just swap Main/Sub
-            retval = icom_vfo_op(rig, vfo, RIG_OP_XCHG);
-
-            if (retval != RIG_OK)
-            {
-                return retval;
-            }
-        }
+    if (vfo==RIG_VFO_CURR) {
+        vfo=priv->curr_vfo;
+        rig_debug(RIG_DEBUG_TRACE,"%s: currVFO asked for so vfo set to %s\n", __func__, rig_strvfo(vfo));
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: set_vfo_curr=%s\n", __func__, rig_strvfo(priv->curr_vfo));
     retval = set_vfo_curr(rig, vfo, priv->curr_vfo);
 
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    retval = icom_get_freq(rig, RIG_VFO_CURR, &curr_freq);
     if (retval != RIG_OK)
     {
         return retval;
@@ -868,12 +858,29 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     cmd = C_SET_FREQ;
     subcmd = -1;
-    retval = icom_transaction(rig, cmd, subcmd, freqbuf, freq_len, ackbuf,
-                              &ack_len);
+    retval = icom_transaction(rig, cmd, subcmd, freqbuf, freq_len, ackbuf, &ack_len);
 
     if (retval != RIG_OK)
     {
-        return retval;
+        // We might have a failed command if we're changing bands 
+        // For example, IC9700 setting Sub=VHF when Main=VHF will fail
+        // So we'll try a VFO swap and see if that helps things
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: special check for vfo swap\n",__func__);
+        if (icom_band_changing(rig, freq)) {
+            if (rig_has_vfo_op(rig, RIG_OP_XCHG))
+            {
+                if (RIG_OK != (retval = icom_vfo_op(rig, vfo, RIG_OP_XCHG)))
+                {
+                    return retval;
+                }
+                // Try the command again and fall through to handle errors
+                retval = icom_transaction(rig, cmd, subcmd, freqbuf, freq_len, ackbuf, &ack_len);
+            }
+        }
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
     }
 
     if (ack_len != 1 || ackbuf[0] != ACK)
@@ -883,6 +890,13 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         return -RIG_ERJCTED;
     }
 
+    if (vfo == RIG_VFO_MAIN) {
+        priv->main_freq = freq;
+    }
+    else if (vfo == RIG_VFO_SUB) {
+        priv->sub_freq = freq;
+    }
+    priv->curr_freq = freq;
     return RIG_OK;
 }
 
@@ -1709,6 +1723,11 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
         return -RIG_EINVAL;
     }
 
+    if (vfo != priv->curr_vfo) {
+        rig_debug(RIG_DEBUG_TRACE, "%s: VFO changing from %s to %s\n", __func__, rig_strvfo(priv->curr_vfo), rig_strvfo(vfo));
+        priv->curr_freq = 0; // reset curr_freq so set_freq works 1st time
+    }
+
     switch (vfo)
     {
     case RIG_VFO_A:
@@ -1833,7 +1852,6 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
                   ackbuf[0], ack_len);
         return -RIG_ERJCTED;
     }
-
     priv->curr_vfo = vfo;
     return RIG_OK;
 }
@@ -3432,6 +3450,13 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
         {
             return rc;
         }
+    }
+
+    if (vfo == RIG_VFO_MAIN) {
+        priv->main_freq = tx_freq;
+    }
+    else if (vfo == RIG_VFO_SUB) {
+        priv->sub_freq = tx_freq;
     }
 
     return rc;
