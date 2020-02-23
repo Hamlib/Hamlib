@@ -1059,7 +1059,12 @@ static int twiddling(RIG *rig)
         retval2 = caps->get_freq(rig, RIG_VFO_CURR, &curr_freq);
         if (retval2 == RIG_OK && rig->state.current_freq != curr_freq) {
             rig_debug(RIG_DEBUG_TRACE,"%s: Somebody twiddling the VFO? last_freq=%.0f, curr_freq=%.0f\n", __func__, rig->state.current_freq, curr_freq);
+            if (rig->state.current_freq == 0) {
+                rig->state.current_freq = curr_freq;
+                return 0; // not twiddling as first time freq is being set
+            }
             rig->state.twiddling = time(NULL); // update last twiddle time
+            rig->state.current_freq = curr_freq; // we have a new freq to remember
         }
         elapsed = time(NULL) - rig->state.twiddling;
         if (elapsed < 3) {
@@ -1118,6 +1123,11 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     if ((caps->targetable_vfo & RIG_TARGETABLE_FREQ)
             || vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
     {
+        if (twiddling(rig)) {
+            rig_debug(RIG_DEBUG_TRACE,"%s: Ignoring set_freq due to VFO twiddling\n", __func__);
+            return RIG_OK; // would be better as error but other software won't handle errors
+        }
+
         retcode = caps->set_freq(rig, vfo, freq);
     }
     else
