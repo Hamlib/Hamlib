@@ -52,7 +52,7 @@ int dumpcaps(RIG *rig, FILE *fout)
     int backend_warnings = 0;
     static char prntbuf[1024];  /* a malloc would be better.. */
     char *label1, *label2, *label3, *label4, *label5;
-    char *labelrx1, *labelrx2, *labelrx3, *labelrx4, *labelrx5;
+    char *labelrx1; // , *labelrx2, *labelrx3, *labelrx4, *labelrx5;
 
     if (!rig || !rig->caps)
     {
