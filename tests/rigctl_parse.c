@@ -222,6 +222,8 @@ declare_proto_rig(get_powerstat);
 declare_proto_rig(send_dtmf);
 declare_proto_rig(recv_dtmf);
 declare_proto_rig(chk_vfo);
+declare_proto_rig(set_twiddle);
+declare_proto_rig(get_twiddle);
 declare_proto_rig(halt);
 declare_proto_rig(pause);
 
@@ -297,8 +299,10 @@ static struct test_table test_list[] =
     { 'w',  "send_cmd",         ACTION(send_cmd),       ARG_IN1 | ARG_IN_LINE | ARG_OUT2 | ARG_NOVFO, "Cmd", "Reply" },
     { 'W',  "send_cmd_rx",      ACTION(send_cmd),       ARG_IN | ARG_OUT2 | ARG_NOVFO, "Cmd", "Reply"},
     { 'b',  "send_morse",       ACTION(send_morse),     ARG_IN  | ARG_IN_LINE, "Morse" },
-    { 0x94,  "send_voice_mem",   ACTION(send_voice_mem), ARG_IN, "Voice Mem#" },
+    { 0x94,  "send_voice_mem",  ACTION(send_voice_mem), ARG_IN, "Voice Mem#" },
     { 0x8b, "get_dcd",          ACTION(get_dcd),        ARG_OUT, "DCD" },
+    { 0x8c, "set_twiddle",      ACTION(set_twiddle),  ARG_IN  | ARG_NOVFO, "Timeout (secs)" },
+    { 0x8d, "get_twiddle",      ACTION(get_twiddle),  ARG_OUT | ARG_NOVFO, "Timeout (secs)" },
     { '2',  "power2mW",         ACTION(power2mW),       ARG_IN1 | ARG_IN2 | ARG_IN3 | ARG_OUT1 | ARG_NOVFO, "Power [0.0..1.0]", "Frequency", "Mode", "Power mW" },
     { '4',  "mW2power",         ACTION(mW2power),       ARG_IN1 | ARG_IN2 | ARG_IN3 | ARG_OUT1 | ARG_NOVFO, "Power mW", "Frequency", "Mode", "Power [0.0..1.0]" },
     { '1',  "dump_caps",        ACTION(dump_caps),      ARG_NOVFO },
@@ -4412,4 +4416,37 @@ declare_proto_rig(pause)
     CHKSCN1ARG(sscanf(arg1, "%u", &seconds));
     sleep(seconds);
     return RIG_OK;
+}
+
+/* '0x8d' */
+declare_proto_rig(set_twiddle)
+{
+    int seconds;
+
+    CHKSCN1ARG(sscanf(arg1, "%d", &seconds));
+    return rig_set_twiddle(rig, seconds);
+}
+
+
+/* '0x8e' */
+declare_proto_rig(get_twiddle)
+{
+    int status;
+    int seconds;
+
+    status = rig_get_twiddle(rig, &seconds);
+
+    if (status != RIG_OK)
+    {
+        return status;
+    }
+
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
+        fprintf(fout, "%s: ", cmd->arg1);
+    }
+
+    fprintf(fout, "%d\n", seconds);
+
+    return status;
 }

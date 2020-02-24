@@ -1787,7 +1787,8 @@ struct rig_state {
                                      wired PTT asserted - used by rigs that
                                      don't do CAT while in Tx */
     freq_t lo_freq;             /*!< Local oscillator frequency of any transverter */
-    time_t twiddling;           /*!< time when vfo twiddling was detected */
+    time_t twiddle_time;        /*!< time when vfo twiddling was detected */
+    int twiddle_timeout;        /*!< timeout to resume from twiddling */
 };
 
 
@@ -2361,6 +2362,14 @@ extern HAMLIB_EXPORT(int)
 rig_set_pltune_callback HAMLIB_PARAMS((RIG *,
                                        pltune_cb_t,
                                        rig_ptr_t));
+
+extern HAMLIB_EXPORT(int)
+rig_set_twiddle HAMLIB_PARAMS((RIG *rig,
+                                 int seconds));
+
+extern HAMLIB_EXPORT(int)
+rig_get_twiddle HAMLIB_PARAMS((RIG *rig,
+                                 int *seconds));
 
 extern HAMLIB_EXPORT(const char *)
 rig_get_info HAMLIB_PARAMS((RIG *rig));
