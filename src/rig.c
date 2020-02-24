@@ -1053,6 +1053,58 @@ int HAMLIB_API rig_cleanup(RIG *rig)
     return RIG_OK;
 }
 
+/**
+ * \brief timeout (secs) to stop rigctld when VFO is manually changed
+ * \param rig   The rig handle
+ * \param timeout_secs    The timeout to set to
+ *
+ * timeout (secs) to stop rigctld when VFO is manually changed
+ * turns on/off the radio.
+ * See \set_twiddle
+ *
+ * \return RIG_OK if the operation has been sucessful, ortherwise
+ * a negative value if an error occured (in which case, cause is
+ * set appropriately).
+ *
+ * \sa rig_set_twiddle()
+ */
+int HAMLIB_API rig_set_twiddle(RIG *rig, int seconds)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (CHECK_RIG_ARG(rig))
+    {
+        return -RIG_EINVAL;
+    }
+
+    rig->state.twiddle_timeout = seconds;
+
+    return RIG_OK;
+}
+
+/**
+ * \brief get the twiddle timeout value (secs)
+ * \param rig   The rig handle
+ * \param seconds    The timeout value
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
+ * set appropriately).
+ *
+ * \sa rig_set_powerstat()
+ */
+int HAMLIB_API rig_get_twiddle(RIG *rig, int *seconds)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (CHECK_RIG_ARG(rig) || !seconds)
+    {
+        return -RIG_EINVAL;
+    }
+
+    *seconds = rig->state.twiddle_timeout;
+    return RIG_OK;
+}
 
 // detect if somebody is twiddling the VFO
 // indicator is last set freq doesn't match current freq
@@ -1061,7 +1113,7 @@ static int twiddling(RIG *rig)
 {
     const struct rig_caps *caps;
 
-    return 0;  // disable for the moment
+    if (rig->state.twiddle_timeout == 0) { return 0; } // don't detect twiddling
 
     caps = rig->caps;
 
@@ -1085,13 +1137,13 @@ static int twiddling(RIG *rig)
                 return 0; // not twiddling as first time freq is being set
             }
 
-            rig->state.twiddling = time(NULL); // update last twiddle time
+            rig->state.twiddle_time = time(NULL); // update last twiddle time
             rig->state.current_freq = curr_freq; // we have a new freq to remember
         }
 
-        elapsed = time(NULL) - rig->state.twiddling;
+        elapsed = time(NULL) - rig->state.twiddle_time;
 
-        if (elapsed < 3)
+        if (elapsed < rig->state.twiddle_timeout)
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: Twiddle elapsed < 3, elapsed=%d\n", __func__,
                       elapsed);
@@ -1662,8 +1714,9 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
     {
         rig->state.current_vfo = vfo;
     }
+
     // we need to update our internal freq to avoid getting detected as twiddling
-    if (caps->get_freq) retcode = rig_get_freq(rig, RIG_VFO_CURR, &curr_freq);
+    if (caps->get_freq) { retcode = rig_get_freq(rig, RIG_VFO_CURR, &curr_freq); }
 
     return retcode;
 }
@@ -3896,7 +3949,7 @@ int HAMLIB_API rig_set_powerstat(RIG *rig, powerstat_t status)
 /**
  * \brief get the on/off status of the radio
  * \param rig   The rig handle
- * \param status    The locatation where to store the current status
+ * \param status    The location where to store the current status
  *
  *  Retrieve the status of the radio. See RIG_POWER_ON, RIG_POWER_OFF and
  *  RIG_POWER_STANDBY defines for the \a status.
