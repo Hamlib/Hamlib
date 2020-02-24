@@ -1061,6 +1061,8 @@ static int twiddling(RIG *rig)
 {
     const struct rig_caps *caps;
 
+    return 0;  // disable for the moment
+
     caps = rig->caps;
 
     if (caps->get_freq)    // gotta have get_freq of course
