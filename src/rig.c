@@ -1166,6 +1166,13 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             return -RIG_ENTARGET;
         }
 
+        if (twiddling(rig))
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: Ignoring set_freq due to VFO twiddling\n",
+                      __func__);
+            return RIG_OK; // would be better as error but other software won't handle errors
+        }
+
         curr_vfo = rig->state.current_vfo;
         retcode = caps->set_vfo(rig, vfo);
 
@@ -1174,12 +1181,6 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             return retcode;
         }
 
-        if (twiddling(rig))
-        {
-            rig_debug(RIG_DEBUG_TRACE, "%s: Ignoring set_freq due to VFO twiddling\n",
-                      __func__);
-            return RIG_OK; // would be better as error but other software won't handle errors
-        }
 
         retcode = caps->set_freq(rig, vfo, freq);
         /* try and revert even if we had an error above */
@@ -1630,6 +1631,7 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
 {
     const struct rig_caps *caps;
     int retcode;
+    freq_t curr_freq;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1658,6 +1660,8 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
     {
         rig->state.current_vfo = vfo;
     }
+    // we need to update our internal freq to avoid getting detected as twiddling
+    if (caps->get_freq) retcode = rig_get_freq(rig, RIG_VFO_CURR, &curr_freq);
 
     return retcode;
 }
