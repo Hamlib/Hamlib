@@ -1715,14 +1715,9 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 
     if (vfo == RIG_VFO_CURR)
     {
-        return RIG_OK;
-    }
-
-    if (vfo == RIG_VFO_CURR)
-    {
         rig_debug(RIG_DEBUG_TRACE, "%s: Asking for currVFO,  currVFO=%s\n", __func__,
                   rig_strvfo(priv->curr_vfo));
-        vfo = priv->curr_vfo;
+        return RIG_OK;
     }
 
     if (vfo == RIG_VFO_MAIN && VFO_HAS_A_B_ONLY)
