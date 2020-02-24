@@ -333,7 +333,8 @@ int ft757_init(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    rig->state.priv = (struct ft757_priv_data *) calloc(1, sizeof(struct ft757_priv_data));
+    rig->state.priv = (struct ft757_priv_data *) calloc(1,
+                      sizeof(struct ft757_priv_data));
 
     if (!rig->state.priv)     /* whoops! memory shortage! */
     {
@@ -346,7 +347,8 @@ int ft757_init(RIG *rig)
 
     /* TODO: read pacing from preferences */
 
-    priv->pacing = FT757GX_PACING_DEFAULT_VALUE;   /* set pacing to minimum for now */
+    priv->pacing =
+        FT757GX_PACING_DEFAULT_VALUE;   /* set pacing to minimum for now */
     priv->read_update_delay =
         FT757GX_DEFAULT_READ_TIMEOUT;    /* set update timeout to safe value */
     priv->current_vfo =  RIG_VFO_A;            /* default to VFO_A ? */

@@ -118,7 +118,7 @@ transaction_write:
     }
 
     //check if reply match issued command
-    if ( cmdstr && data[0] == 0x02 && data[3] == cmdstr[2])
+    if (cmdstr && data[0] == 0x02 && data[3] == cmdstr[2])
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s Command %c reply received\n", __func__,
                   data[3]);

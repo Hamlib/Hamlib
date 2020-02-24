@@ -30,7 +30,7 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "0.25"
+#define BACKEND_VER "0.31"
 
 /*
  * defines used by comp_cal_str in rig.c
@@ -122,7 +122,28 @@ struct cmdparams {      /* Lookup table item for levels & parms */
 struct icom_priv_caps
 {
     unsigned char re_civ_addr;  /* the remote dlft equipment's CI-V address*/
-    int civ_731_mode; /* Off: freqs on 10 digits, On: freqs on 8 digits */
+    int civ_731_mode; /* Off: freqs on 10 digits, On: freqs on 8 digits plus passband setting */
+    // According to the CI-V+ manual the IC-781, IC-R9000, and IC-R7000 can select pas$
+    // The other rigs listed apparently cannot and may need the civ_731_mode=1 which are
+    // 1-706
+    // 2-706MKII
+    // 3-706MKIIG
+    // 4-707
+    // 5-718
+    // 6-746
+    // 7-746PRO
+    // 8-756
+    // 9-756PRO
+    // 10-756PROII
+    // 11-820H
+    // 12-821H
+    // 13-910H
+    // 14-R10
+    // 15-R8500
+    // 16-703
+    // 17-7800
+
+
     int no_xchg; /* Off: use VFO XCHG to set other VFO, On: use set VFO to set other VFO */
     const struct ts_sc_list *ts_sc_list;
     // the 4 elements above are mandatory
@@ -162,6 +183,9 @@ struct icom_priv_data
     vfo_t curr_vfo; 
     vfo_t rx_vfo; 
     vfo_t tx_vfo; 
+    freq_t curr_freq; // our current freq depending on which vfo is selected
+    freq_t main_freq; // track last setting of main -- not being used yet
+    freq_t sub_freq;  // track last setting of sub -- not being used yet
 };
 
 extern const struct ts_sc_list r8500_ts_sc_list[];
@@ -257,7 +281,7 @@ int icom_get_conf(RIG *rig, token_t token, char *val);
 int icom_set_powerstat(RIG *rig, powerstat_t status);
 int icom_get_powerstat(RIG *rig, powerstat_t *status);
 int icom_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option);
-int icom_get_ant(RIG *rig, vfo_t vfo, ant_t ant, ant_t *ant_curr, value_t *option);
+int icom_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option, ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx);
 int icom_decode_event(RIG *rig);
 int icom_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq,
                   rmode_t mode);

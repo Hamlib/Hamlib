@@ -247,7 +247,8 @@ struct vr5000_priv_data
 
 int vr5000_init(RIG *rig)
 {
-    rig->state.priv = (struct vr5000_priv_data *) calloc(1, sizeof(struct vr5000_priv_data));
+    rig->state.priv = (struct vr5000_priv_data *) calloc(1,
+                      sizeof(struct vr5000_priv_data));
 
     if (!rig->state.priv) { return -RIG_ENOMEM; }
 

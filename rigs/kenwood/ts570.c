@@ -348,7 +348,8 @@ ts570_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             sprintf(levelbuf, "PA0");
         }
-        else {
+        else
+        {
             int i;
 
             for (i = 0; i < MAXDBLSTSIZ; i++)

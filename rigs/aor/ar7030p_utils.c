@@ -428,7 +428,7 @@ int execRoutine(RIG *rig, enum ROUTINE_e rtn)
  */
 static int setAddr(RIG *rig, enum PAGE_e page, unsigned int addr)
 {
-    int rc=RIG_OK;
+    int rc = RIG_OK;
     unsigned char v;
 
     assert(NULL != rig);
@@ -459,6 +459,7 @@ static int setAddr(RIG *rig, enum PAGE_e page, unsigned int addr)
                 v = SRH((0x0f0 & addr) >> 4);
 
                 rc = write_block(&rig->state.rigport, (char *) &v, 1);
+
                 if (rc != RIG_OK)
                 {
                     return -RIG_EIO;

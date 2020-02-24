@@ -405,10 +405,15 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->tx_vfo = RIG_VFO_CURR;  /* we don't know yet! */
     rs->transceive = RIG_TRN_OFF;
     rs->poll_interval = 500;
-    /* should it be a parameter to rig_init ? --SF */
-    rs->itu_region = RIG_ITU_REGION2;
     rs->lo_freq = 0;
 
+#if 0 // this is no longer applicable -- replace it with something?
+
+// we need to be able to figure out what model radio we have
+// before we can set up the rig_state with the rig's specific freq range
+// if we can't figure out what model rig we have this is impossible
+// so we will likely have to make this a parameter the user provides
+// or eliminate this logic entirely and make specific RIG_MODEL entries
     switch (rs->itu_region)
     {
     case RIG_ITU_REGION1:
@@ -428,19 +433,20 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
         break;
     }
 
+#endif
     rs->vfo_list = 0;
     rs->mode_list = 0;
 
-    for (i = 0; i < FRQRANGESIZ && !RIG_IS_FRNG_END(rs->rx_range_list[i]); i++)
+    for (i = 0; i < FRQRANGESIZ && !RIG_IS_FRNG_END(caps->rx_range_list1[i]); i++)
     {
-        rs->vfo_list |= rs->rx_range_list[i].vfo;
-        rs->mode_list |= rs->rx_range_list[i].modes;
+        rs->vfo_list |= caps->rx_range_list1[i].vfo;
+        rs->mode_list |= caps->rx_range_list1[i].modes;
     }
 
-    for (i = 0; i < FRQRANGESIZ && !RIG_IS_FRNG_END(rs->tx_range_list[i]); i++)
+    for (i = 0; i < FRQRANGESIZ && !RIG_IS_FRNG_END(caps->tx_range_list1[i]); i++)
     {
-        rs->vfo_list |= rs->tx_range_list[i].vfo;
-        rs->mode_list |= rs->tx_range_list[i].modes;
+        rs->vfo_list |= caps->tx_range_list1[i].vfo;
+        rs->mode_list |= caps->tx_range_list1[i].modes;
     }
 
     memcpy(rs->preamp, caps->preamp, sizeof(int)*MAXDBLSTSIZ);
@@ -523,6 +529,7 @@ int HAMLIB_API rig_open(RIG *rig)
     const struct rig_caps *caps;
     struct rig_state *rs;
     int status = RIG_OK;
+    value_t parm_value;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -691,7 +698,9 @@ int HAMLIB_API rig_open(RIG *rig)
 
     case RIG_PTT_GPIO:
     case RIG_PTT_GPION:
-        rs->pttport.fd = gpio_open(&rs->pttport, 1, RIG_PTT_GPION == rs->pttport.type.ptt ? 0 : 1);
+        rs->pttport.fd = gpio_open(&rs->pttport, 1,
+                                   RIG_PTT_GPION == rs->pttport.type.ptt ? 0 : 1);
+
         if (rs->pttport.fd < 0)
         {
             rig_debug(RIG_DEBUG_ERR,
@@ -766,7 +775,9 @@ int HAMLIB_API rig_open(RIG *rig)
 
     case RIG_DCD_GPIO:
     case RIG_DCD_GPION:
-        rs->dcdport.fd = gpio_open(&rs->dcdport, 0, RIG_DCD_GPION == rs->dcdport.type.dcd ? 0 : 1);
+        rs->dcdport.fd = gpio_open(&rs->dcdport, 0,
+                                   RIG_DCD_GPION == rs->dcdport.type.dcd ? 0 : 1);
+
         if (rs->dcdport.fd < 0)
         {
             rig_debug(RIG_DEBUG_ERR,
@@ -817,6 +828,11 @@ int HAMLIB_API rig_open(RIG *rig)
     {
         rs->tx_vfo = rs->current_vfo;
     }
+
+    // try to turn off the screensaver if possible
+    // don't care about the return here...it's just a nice-to-have
+    parm_value.i = 0;
+    rig_set_parm(rig, RIG_PARM_SCREENSAVER, parm_value);
 
 #if 0
 
@@ -1038,6 +1054,52 @@ int HAMLIB_API rig_cleanup(RIG *rig)
 }
 
 
+// detect if somebody is twiddling the VFO
+// indicator is last set freq doesn't match current freq
+// so we have to query freq every time we set freq or vfo to handle this
+static int twiddling(RIG *rig)
+{
+    const struct rig_caps *caps;
+
+    caps = rig->caps;
+
+    if (caps->get_freq)    // gotta have get_freq of course
+    {
+        freq_t curr_freq = 0;
+        int retval2;
+        int elapsed;
+
+        retval2 = caps->get_freq(rig, RIG_VFO_CURR, &curr_freq);
+
+        if (retval2 == RIG_OK && rig->state.current_freq != curr_freq)
+        {
+            rig_debug(RIG_DEBUG_TRACE,
+                      "%s: Somebody twiddling the VFO? last_freq=%.0f, curr_freq=%.0f\n", __func__,
+                      rig->state.current_freq, curr_freq);
+
+            if (rig->state.current_freq == 0)
+            {
+                rig->state.current_freq = curr_freq;
+                return 0; // not twiddling as first time freq is being set
+            }
+
+            rig->state.twiddling = time(NULL); // update last twiddle time
+            rig->state.current_freq = curr_freq; // we have a new freq to remember
+        }
+
+        elapsed = time(NULL) - rig->state.twiddling;
+
+        if (elapsed < 3)
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: Twiddle elapsed < 3, elapsed=%d\n", __func__,
+                      elapsed);
+            return 1; // would be better as error but other software won't handle it
+        }
+    }
+
+    return 0; //
+}
+
 /**
  * \brief set the frequency of the target VFO
  * \param rig   The rig handle
@@ -1086,14 +1148,29 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     if ((caps->targetable_vfo & RIG_TARGETABLE_FREQ)
             || vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
     {
+        if (twiddling(rig))
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: Ignoring set_freq due to VFO twiddling\n",
+                      __func__);
+            return RIG_OK; // would be better as error but other software won't handle errors
+        }
+
         retcode = caps->set_freq(rig, vfo, freq);
     }
     else
     {
         int rc2;
+
         if (!caps->set_vfo)
         {
             return -RIG_ENTARGET;
+        }
+
+        if (twiddling(rig))
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: Ignoring set_freq due to VFO twiddling\n",
+                      __func__);
+            return RIG_OK; // would be better as error but other software won't handle errors
         }
 
         curr_vfo = rig->state.current_vfo;
@@ -1103,6 +1180,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         {
             return retcode;
         }
+
 
         retcode = caps->set_freq(rig, vfo, freq);
         /* try and revert even if we had an error above */
@@ -1170,6 +1248,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     else
     {
         int rc2;
+
         if (!caps->set_vfo)
         {
             return -RIG_ENAVAIL;
@@ -1552,6 +1631,7 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
 {
     const struct rig_caps *caps;
     int retcode;
+    freq_t curr_freq;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1567,12 +1647,21 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
         return -RIG_ENAVAIL;
     }
 
+    if (twiddling(rig))
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: Ignoring set_vfo due to VFO twiddling\n",
+                  __func__);
+        return RIG_OK; // would be better as error but other software won't handle errors
+    }
+
     retcode = caps->set_vfo(rig, vfo);
 
     if (retcode == RIG_OK)
     {
         rig->state.current_vfo = vfo;
     }
+    // we need to update our internal freq to avoid getting detected as twiddling
+    if (caps->get_freq) retcode = rig_get_freq(rig, RIG_VFO_CURR, &curr_freq);
 
     return retcode;
 }
@@ -3551,13 +3640,16 @@ int HAMLIB_API rig_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
  *
  * \sa rig_set_ant()
  */
-int HAMLIB_API rig_get_ant(RIG *rig, vfo_t vfo, ant_t ant, ant_t *ant_curr, value_t *option)
+int HAMLIB_API rig_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
+                           ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
     const struct rig_caps *caps;
     int retcode, rc2;
     vfo_t curr_vfo;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    *ant_tx = *ant_rx = RIG_ANT_UNKNOWN;
 
     if (CHECK_RIG_ARG(rig) || !ant_curr)
     {
@@ -3575,7 +3667,7 @@ int HAMLIB_API rig_get_ant(RIG *rig, vfo_t vfo, ant_t ant, ant_t *ant_curr, valu
             || vfo == RIG_VFO_CURR
             || vfo == rig->state.current_vfo)
     {
-        return caps->get_ant(rig, vfo, ant, ant_curr, option);
+        return caps->get_ant(rig, vfo, ant, option, ant_curr, ant_tx, ant_rx);
     }
 
     if (!caps->set_vfo)
@@ -3591,7 +3683,7 @@ int HAMLIB_API rig_get_ant(RIG *rig, vfo_t vfo, ant_t ant, ant_t *ant_curr, valu
         return retcode;
     }
 
-    retcode = caps->get_ant(rig, vfo, ant, ant_curr, option);
+    retcode = caps->get_ant(rig, vfo, ant, option, ant_curr, ant_tx, ant_rx);
     /* try and revert even if we had an error above */
     rc2 = caps->set_vfo(rig, curr_vfo);
 

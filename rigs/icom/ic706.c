@@ -141,7 +141,7 @@ static int ic706_r2i_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 static const struct icom_priv_caps ic706_priv_caps =
 {
     0x48,   /* default address */
-    0,      /* 731 mode */
+    1,      /* 731 mode */
     0,    /* no XCHG */
     ic706_ts_sc_list,
     .serial_USB_echo_check = 1,  /* USB CI-V may not echo */
@@ -279,7 +279,7 @@ const struct rig_caps ic706_caps =
 static const struct icom_priv_caps ic706mkii_priv_caps =
 {
     0x4e,   /* default address */
-    0,      /* 731 mode */
+    1,      /* 731 mode */
     0,    /* no XCHG */
     ic706_ts_sc_list,
     .serial_USB_echo_check = 1,  /* USB CI-V may not echo */
@@ -441,7 +441,7 @@ const struct rig_caps ic706mkii_caps =
 static const struct icom_priv_caps ic706mkiig_priv_caps =
 {
     0x58,   /* default address */
-    0,      /* 731 mode */
+    1,      /* 731 mode */
     0,    /* no XCHG */
     ic706_ts_sc_list,
     .serial_USB_echo_check = 1,  /* USB CI-V may not echo */
@@ -453,7 +453,7 @@ const struct rig_caps ic706mkiig_caps =
     .rig_model =  RIG_MODEL_IC706MKIIG,
     .model_name = "IC-706MkIIG",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".3",
+    .version =  BACKEND_VER ".4",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_MOBILE,

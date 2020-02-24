@@ -765,9 +765,9 @@ int HAMLIB_API rig_get_ext_level(RIG *rig,
  * \sa rig_get_ext_func()
  */
 int HAMLIB_API rig_set_ext_func(RIG *rig,
-                                 vfo_t vfo,
-                                 token_t token,
-                                 int status)
+                                vfo_t vfo,
+                                token_t token,
+                                int status)
 {
     const struct rig_caps *caps;
     int retcode;
@@ -831,9 +831,9 @@ int HAMLIB_API rig_set_ext_func(RIG *rig,
  * \sa rig_set_ext_func()
  */
 int HAMLIB_API rig_get_ext_func(RIG *rig,
-                                 vfo_t vfo,
-                                 token_t token,
-                                 int *status)
+                                vfo_t vfo,
+                                token_t token,
+                                int *status)
 {
     const struct rig_caps *caps;
     int retcode;

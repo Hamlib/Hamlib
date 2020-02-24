@@ -737,7 +737,7 @@ int ft980_open(RIG *rig)
         do
         {
             write_block(&rig->state.rigport, (char *) cmd_ON_OFF,
-                                 YAESU_CMD_LENGTH);
+                        YAESU_CMD_LENGTH);
             retval = read_block(&rig->state.rigport, (char *) echo_back, YAESU_CMD_LENGTH);
         }
         while (retval != 5 && retry_count2++ < rig->state.rigport.retry);
@@ -766,7 +766,7 @@ int ft980_close(RIG *rig)
         do
         {
             write_block(&rig->state.rigport, (char *) cmd_ON_OFF,
-                                 YAESU_CMD_LENGTH);
+                        YAESU_CMD_LENGTH);
             retval = read_block(&rig->state.rigport, (char *) echo_back, YAESU_CMD_LENGTH);
         }
         while (retval != 5 && retry_count2++ < rig->state.rigport.retry);

@@ -64,13 +64,15 @@ int main()
 
     /* Main VFO frequency */
     status = rig_get_freq(my_rig, RIG_VFO_CURR, &freq);
-    if (status != RIG_OK) printf("Get freq failed?? Err=%s\n", rigerror(status));
+
+    if (status != RIG_OK) { printf("Get freq failed?? Err=%s\n", rigerror(status)); }
 
     printf("VFO freq. = %.1f Hz\n", freq);
 
     /* Current mode */
     status = rig_get_mode(my_rig, RIG_VFO_CURR, &mode, &width);
-    if (status != RIG_OK) printf("Get mode failed?? Err=%s\n", rigerror(status));
+
+    if (status != RIG_OK) { printf("Get mode failed?? Err=%s\n", rigerror(status)); }
 
     switch (mode)
     {
@@ -145,15 +147,20 @@ int main()
 
     printf("LEVEL_STRENGTH returns %d\n", strength.i);
 
-    const freq_range_t *range = rig_get_range(&my_rig->state.rx_range_list[0],14074000,RIG_MODE_USB);
+    const freq_range_t *range = rig_get_range(&my_rig->state.rx_range_list[0],
+                                14074000, RIG_MODE_USB);
 
     if (status != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s: error rig_get_ragne: %s\n", __func__, rigerror(status)); }
-    if (range) { 
-    char vfolist[256];
-    sprintf_vfo(vfolist,my_rig->state.vfo_list);
-    printf("Range start=%"PRIfreq", end=%"PRIfreq", low_power=%d, high_power=%d, vfos=%s\n",range->startf, range->endf, range->low_power, range->high_power, vfolist);
+
+    if (range)
+    {
+        char vfolist[256];
+        sprintf_vfo(vfolist, my_rig->state.vfo_list);
+        printf("Range start=%"PRIfreq", end=%"PRIfreq", low_power=%d, high_power=%d, vfos=%s\n",
+               range->startf, range->endf, range->low_power, range->high_power, vfolist);
     }
-    else {
-    printf("Not rx range list found\n");
+    else
+    {
+        printf("Not rx range list found\n");
     }
 };

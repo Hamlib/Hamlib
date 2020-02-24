@@ -540,9 +540,9 @@ void Rig::setAnt(value_t option, ant_t ant, vfo_t vfo)
 	CHECK_RIG(rig_set_ant(theRig, vfo, ant, option));
 }
 
-ant_t Rig::getAnt(value_t &option, ant_t ant, ant_t &ant_curr, vfo_t vfo)
+ant_t Rig::getAnt(ant_t &ant_rx, ant_t &ant_tx, ant_t ant, value_t &option, ant_t &ant_curr, vfo_t vfo)
 {
-	CHECK_RIG( rig_get_ant(theRig, vfo, ant, &ant_curr, &option) );
+	CHECK_RIG( rig_get_ant(theRig, vfo, ant, &option, &ant_curr, &ant_tx, &ant_rx) );
 
 	return ant;
 }

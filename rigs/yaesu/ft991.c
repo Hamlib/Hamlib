@@ -55,7 +55,7 @@ const struct rig_caps ft991_caps =
     .rig_model =          RIG_MODEL_FT991,
     .model_name =         "FT-991",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".6",
+    .version =            NEWCAT_VER ".9",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -101,31 +101,21 @@ const struct rig_caps ft991_caps =
         RIG_CHAN_END,
     },
 
+    // Rig only has 1 model
     .rx_range_list1 =     {
-        {kHz(30), MHz(470), FT991_ALL_RX_MODES, -1, -1, FT991_VFO_ALL, FT991_ANTS},   /* General coverage + ham */
+        {kHz(30), MHz(56), FT991_ALL_RX_MODES, -1, -1, FT991_VFO_ALL, FT991_ANTS, "Operating"},
+        {MHz(118), MHz(164), FT991_ALL_RX_MODES, -1, -1, FT991_VFO_ALL, FT991_ANTS, "Operating"},
+        {MHz(420), MHz(470), FT991_ALL_RX_MODES, -1, -1, FT991_VFO_ALL, FT991_ANTS, "Operating"},
         RIG_FRNG_END,
-    }, /* FIXME:  Are these the correct Region 1 values? */
+    },
 
     .tx_range_list1 =     {
-        FRQ_RNG_HF(1, FT991_OTHER_TX_MODES, W(5), W(100), FT991_VFO_ALL, FT991_ANTS),
-        FRQ_RNG_HF(1, FT991_AM_TX_MODES, W(2), W(25), FT991_VFO_ALL, FT991_ANTS),   /* AM class */
-        FRQ_RNG_6m(1, FT991_OTHER_TX_MODES, W(5), W(100), FT991_VFO_ALL, FT991_ANTS),
-        FRQ_RNG_6m(1, FT991_AM_TX_MODES, W(2), W(25), FT991_VFO_ALL, FT991_ANTS),   /* AM class */
-
-        RIG_FRNG_END,
-    },
-
-    .rx_range_list2 =     {
-        {kHz(30), MHz(470), FT991_ALL_RX_MODES, -1, -1, FT991_VFO_ALL, FT991_ANTS},
-        RIG_FRNG_END,
-    },
-
-    .tx_range_list2 =     {
-        FRQ_RNG_HF(2, FT991_OTHER_TX_MODES, W(5), W(100), FT991_VFO_ALL, FT991_ANTS),
-        FRQ_RNG_HF(2, FT991_AM_TX_MODES, W(2), W(25), FT991_VFO_ALL, FT991_ANTS),   /* AM class */
-        FRQ_RNG_6m(2, FT991_OTHER_TX_MODES, W(5), W(100), FT991_VFO_ALL, FT991_ANTS),
-        FRQ_RNG_6m(2, FT991_AM_TX_MODES, W(2), W(25), FT991_VFO_ALL, FT991_ANTS),   /* AM class */
-
+        {MHz(1.8), MHz(54), FT991_OTHER_TX_MODES, W(5), W(100), FT991_VFO_ALL, FT991_ANTS, "Operating"},
+        {MHz(1.8), MHz(54), FT991_AM_TX_MODES, W(2), W(25), FT991_VFO_ALL, FT991_ANTS, "Operating"}, /* AM class */
+        {MHz(144), MHz(148), FT991_OTHER_TX_MODES, W(5), W(100), FT991_VFO_ALL, FT991_ANTS, "Operating"},
+        {MHz(144), MHz(148), FT991_AM_TX_MODES, W(2), W(25), FT991_VFO_ALL, FT991_ANTS, "Operating"}, /* AM class */
+        {MHz(430), MHz(450), FT991_OTHER_TX_MODES, W(5), W(100), FT991_VFO_ALL, FT991_ANTS, "Operating"},
+        {MHz(430), MHz(450), FT991_AM_TX_MODES, W(2), W(25), FT991_VFO_ALL, FT991_ANTS, "Operating"}, /* AM class */
         RIG_FRNG_END,
     },
 
@@ -352,7 +342,8 @@ int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
         return err;
     }
 
-    strncat(restore_commands, priv->ret_data, NEWCAT_DATA_LEN-strlen(restore_commands));
+    strncat(restore_commands, priv->ret_data,
+            NEWCAT_DATA_LEN - strlen(restore_commands));
 
     /* Change mode on VFOA */
     if (RIG_OK != (err = newcat_set_mode(rig, RIG_VFO_A, tx_mode,
@@ -374,6 +365,7 @@ int ft991_init(RIG *rig)
               rig->caps->version);
 
     ret = newcat_init(rig);
+
     if (ret != RIG_OK) { return ret; }
 
     rig->state.current_vfo = RIG_VFO_A;

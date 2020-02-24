@@ -166,7 +166,7 @@ static int meade_init(ROT *rot)
     struct meade_priv_data *priv;
 
     rot->state.priv = (struct meade_priv_data *)
-           calloc(1, sizeof(struct meade_priv_data));
+                      calloc(1, sizeof(struct meade_priv_data));
 
     if (!rot->state.priv)
     {
@@ -329,7 +329,7 @@ static int meade_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     // GZ returns DDD*MM# or DDD*MM'SS#
     // GA returns sDD*MM# or sDD*MM'SS#
     n = sscanf(return_str, "%d%*c%d:%d#%d%*c%d:%d%c", &az_degrees, &az_minutes,
-                   &az_seconds, &el_degrees, &el_minutes, &el_seconds, &eom);
+               &az_seconds, &el_degrees, &el_minutes, &el_seconds, &eom);
 
     if (n != 7 || eom != '#')
     {

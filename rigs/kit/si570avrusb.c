@@ -572,7 +572,7 @@ int si570avrusb_init(RIG *rig)
     struct si570xxxusb_priv_data *priv;
 
     rig->state.priv = (struct si570xxxusb_priv_data *)calloc(sizeof(struct
-            si570xxxusb_priv_data), 1);
+                      si570xxxusb_priv_data), 1);
 
     if (!rig->state.priv)
     {
@@ -613,7 +613,7 @@ int si570peaberry1_init(RIG *rig)
     struct si570xxxusb_priv_data *priv;
 
     rig->state.priv = (struct si570xxxusb_priv_data *)calloc(sizeof(struct
-            si570xxxusb_priv_data), 1);
+                      si570xxxusb_priv_data), 1);
 
     if (!rig->state.priv)
     {
@@ -654,7 +654,7 @@ int si570peaberry2_init(RIG *rig)
     struct si570xxxusb_priv_data *priv;
 
     rig->state.priv = (struct si570xxxusb_priv_data *)calloc(sizeof(struct
-            si570xxxusb_priv_data), 1);
+                      si570xxxusb_priv_data), 1);
 
     if (!rig->state.priv)
     {
@@ -695,7 +695,7 @@ int si570picusb_init(RIG *rig)
     struct si570xxxusb_priv_data *priv;
 
     rig->state.priv = (struct si570xxxusb_priv_data *)calloc(sizeof(struct
-            si570xxxusb_priv_data), 1);
+                      si570xxxusb_priv_data), 1);
 
     if (!rig->state.priv)
     {
@@ -736,7 +736,7 @@ int fasdr_init(RIG *rig)
     struct si570xxxusb_priv_data *priv;
 
     rig->state.priv = (struct si570xxxusb_priv_data *)calloc(sizeof(struct
-            si570xxxusb_priv_data), 1);
+                      si570xxxusb_priv_data), 1);
 
     if (!rig->state.priv)
     {
@@ -983,14 +983,15 @@ static int setBPF(RIG *rig, int enable)
     {
         int i;
         int retval = libusb_control_transfer(udh, REQUEST_TYPE_IN,
-                                         REQUEST_FILTERS, enable, (nBytes / 2) - 1,
-                                         (unsigned char *) FilterCrossOver, sizeof(FilterCrossOver),
-                                         rig->state.rigport.timeout);
+                                             REQUEST_FILTERS, enable, (nBytes / 2) - 1,
+                                             (unsigned char *) FilterCrossOver, sizeof(FilterCrossOver),
+                                             rig->state.rigport.timeout);
 
         if (retval < 2)
         {
             return -RIG_EIO;
         }
+
         nBytes = retval;
 
         rig_debug(RIG_DEBUG_TRACE, "%s: Filter Bank 1:\n", __func__);

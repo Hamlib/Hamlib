@@ -244,7 +244,8 @@ int ft600_init(RIG *rig)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    rig->state.priv = (struct ft600_priv_data *) calloc(1, sizeof(struct ft600_priv_data));
+    rig->state.priv = (struct ft600_priv_data *) calloc(1,
+                      sizeof(struct ft600_priv_data));
 
     if (!rig->state.priv) { return -RIG_ENOMEM; }
 

@@ -766,6 +766,7 @@ static void *read_device(void *p)
     {
         int ret;
         int maxdev;
+
         //
         // setting uh_is_initialized to zero in the main thread
         // tells this one that it is all over now
@@ -1136,6 +1137,7 @@ int uh_open_ptt()
     if (!uh_is_initialized)
     {
         start_thread();
+
         if (!uh_is_initialized)
         {
             return -1;
@@ -1151,6 +1153,7 @@ int uh_open_wkey()
     if (!uh_is_initialized)
     {
         start_thread();
+
         if (!uh_is_initialized)
         {
             return -1;
@@ -1177,6 +1180,7 @@ int uh_open_radio(int baud, int databits, int stopbits, int rtscts)
     if (!uh_is_initialized)
     {
         start_thread();
+
         if (!uh_is_initialized)
         {
             return -1;

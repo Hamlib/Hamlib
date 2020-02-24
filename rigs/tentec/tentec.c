@@ -111,7 +111,8 @@ int tentec_init(RIG *rig)
 {
     struct tentec_priv_data *priv;
 
-    rig->state.priv = (struct tentec_priv_data *)malloc(sizeof(struct tentec_priv_data));
+    rig->state.priv = (struct tentec_priv_data *)malloc(sizeof(
+                          struct tentec_priv_data));
 
     if (!rig->state.priv)
     {

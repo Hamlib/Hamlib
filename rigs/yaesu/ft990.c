@@ -300,7 +300,8 @@ int ft990_init(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    rig->state.priv = (struct ft990_priv_data *) calloc(1, sizeof(struct ft990_priv_data));
+    rig->state.priv = (struct ft990_priv_data *) calloc(1,
+                      sizeof(struct ft990_priv_data));
 
     if (!rig->state.priv)
     {
@@ -2313,7 +2314,8 @@ int ft990_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *value)
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo %s\n", __func__, rig_strvfo(vfo));
-    rig_debug(RIG_DEBUG_TRACE, "%s: passed level %s\n", __func__, rig_strlevel(level));
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed level %s\n", __func__,
+              rig_strlevel(level));
 
     priv = (struct ft990_priv_data *) rig->state.priv;
 

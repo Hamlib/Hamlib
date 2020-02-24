@@ -116,7 +116,7 @@ const struct rig_caps thf7e_caps =
     .rig_model =  RIG_MODEL_THF7E,
     .model_name = "TH-F7E",
     .mfg_name =  "Kenwood",
-    .version =  TH_VER ".1",
+    .version =  TH_VER ".2",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_HANDHELD,
@@ -276,20 +276,11 @@ const struct rig_caps thf7e_caps =
 
 int thf7e_init(RIG *rig)
 {
-    rig->state.itu_region = RIG_ITU_REGION1;
     return kenwood_init(rig);
 }
 
 int thf7e_open(RIG *rig)
 {
-    /* TH-F7E is Region 1 only.
-     * Region 2 is supported by TH-F6A
-     */
-    if (rig->state.itu_region != RIG_ITU_REGION1)
-    {
-        return -RIG_ECONF;
-    }
-
     return kenwood_open(rig);
 }
 

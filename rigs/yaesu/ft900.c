@@ -294,12 +294,14 @@ static int ft900_init(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    rig->state.priv = (struct ft900_priv_data *) calloc(1, sizeof(struct ft900_priv_data));
+    rig->state.priv = (struct ft900_priv_data *) calloc(1,
+                      sizeof(struct ft900_priv_data));
 
     if (!rig->state.priv)                       /* whoops! memory shortage! */
     {
         return -RIG_ENOMEM;
     }
+
     priv = rig->state.priv;
 
     /*
@@ -1313,9 +1315,13 @@ static int ft900_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     {
         err = ft900_send_dynamic_cmd(rig, FT900_NATIVE_CLARIFIER_OPS,
                                      CLAR_RX_OFF, 0, 0, 0);
-        if (err != RIG_OK) {
-            rig_debug(RIG_DEBUG_ERR,"%s: clarifier off error: %s\n", __func__, strerror(err));
+
+        if (err != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: clarifier off error: %s\n", __func__,
+                      strerror(err));
         }
+
         return err;
     }
 

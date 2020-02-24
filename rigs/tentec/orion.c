@@ -229,9 +229,11 @@ static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 int tt565_init(RIG *rig)
 {
     struct tt565_priv_data *priv;
-    rig->state.priv = (struct tt565_priv_data *)malloc(sizeof(struct tt565_priv_data));
+    rig->state.priv = (struct tt565_priv_data *)malloc(sizeof(
+                          struct tt565_priv_data));
 
     if (!rig->state.priv) { return -RIG_ENOMEM; } /* no memory available */
+
     priv = rig->state.priv;
 
     memset(priv, 0, sizeof(struct tt565_priv_data));
@@ -2116,10 +2118,13 @@ int tt565_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
  *
  * \sa tt565_set_ant
  */
-int tt565_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *option)
+int tt565_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
+                  ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
     char respbuf[TT565_BUFSIZE];
     int resp_len, retval;
+
+    *ant_tx = *ant_rx = RIG_ANT_UNKNOWN;
 
     resp_len = sizeof(respbuf);
     retval = tt565_transaction(rig, "?KA" EOM, 4, respbuf, &resp_len);
@@ -2139,17 +2144,17 @@ int tt565_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *option)
     /* Look for first occurrence of M or S in ant 1, 2, 3 characters */
     if (respbuf[3] == which_receiver(rig, vfo) || respbuf[3] == 'B')
     {
-        *ant = RIG_ANT_1;
+        *ant_curr = RIG_ANT_1;
         return RIG_OK;
     }
 
     if (respbuf[4] == which_receiver(rig, vfo) || respbuf[4] == 'B')
     {
-        *ant = RIG_ANT_2;
+        *ant_curr = RIG_ANT_2;
         return RIG_OK;
     }
 
-    *ant = RIG_ANT_NONE;    /* ignore possible RIG_ANT_3 = rx only ant */
+    *ant_curr = RIG_ANT_NONE;    /* ignore possible RIG_ANT_3 = rx only ant */
     return RIG_OK;
 }
 /* End of orion.c */

@@ -967,7 +967,8 @@ static int handle_ts2000(void *arg)
             if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
             {
                 char *responsetmp = "?;";
-                return write_block2((void *)__func__, &my_com, responsetmp, strlen(responsetmp));
+                return write_block2((void *)__func__, &my_com, responsetmp,
+                                    strlen(responsetmp));
             }
 
             return retval;
@@ -1032,7 +1033,8 @@ static int handle_ts2000(void *arg)
             if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
             {
                 char *responsetmp = "?;";
-                return write_block2((void *)__func__, &my_com, responsetmp, strlen(responsetmp));
+                return write_block2((void *)__func__, &my_com, responsetmp,
+                                    strlen(responsetmp));
             }
 
             return retval;
@@ -1075,7 +1077,8 @@ static int handle_ts2000(void *arg)
             if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
             {
                 char *responsetmp = "?;";
-                return write_block2((void *)__func__, &my_com, responsetmp, strlen(responsetmp));
+                return write_block2((void *)__func__, &my_com, responsetmp,
+                                    strlen(responsetmp));
             }
 
             return retval;
@@ -1098,7 +1101,8 @@ static int handle_ts2000(void *arg)
             if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
             {
                 char *responsetmp = "?;";
-                return write_block2((void *)__func__, &my_com, responsetmp, strlen(responsetmp));
+                return write_block2((void *)__func__, &my_com, responsetmp,
+                                    strlen(responsetmp));
             }
         }
 
@@ -1118,7 +1122,8 @@ static int handle_ts2000(void *arg)
             if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
             {
                 char *responsetmp = "?;";
-                return write_block2((void *)__func__, &my_com, responsetmp, strlen(responsetmp));
+                return write_block2((void *)__func__, &my_com, responsetmp,
+                                    strlen(responsetmp));
             }
 
             return retval;
@@ -1141,7 +1146,8 @@ static int handle_ts2000(void *arg)
             if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
             {
                 char *responsetmp = "?;";
-                return write_block2((void *)__func__, &my_com, responsetmp, strlen(responsetmp));
+                return write_block2((void *)__func__, &my_com, responsetmp,
+                                    strlen(responsetmp));
             }
         }
 
@@ -1162,7 +1168,8 @@ static int handle_ts2000(void *arg)
             if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
             {
                 char *responsetmp = "?;";
-                return write_block2((void *)__func__, &my_com, responsetmp, strlen(responsetmp));
+                return write_block2((void *)__func__, &my_com, responsetmp,
+                                    strlen(responsetmp));
             }
 
             return retval;
@@ -1212,7 +1219,8 @@ static int handle_ts2000(void *arg)
             if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
             {
                 char *responsetmp = "?;";
-                return write_block2((void *)__func__, &my_com, responsetmp, strlen(responsetmp));
+                return write_block2((void *)__func__, &my_com, responsetmp,
+                                    strlen(responsetmp));
             }
 
             return retval;
@@ -1248,7 +1256,8 @@ static int handle_ts2000(void *arg)
         if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
         {
             char *responsetmp = "?;";
-            return write_block2((void *)__func__, &my_com, responsetmp, strlen(responsetmp));
+            return write_block2((void *)__func__, &my_com, responsetmp,
+                                strlen(responsetmp));
         }
 
         return retval;
@@ -1268,7 +1277,8 @@ static int handle_ts2000(void *arg)
             if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
             {
                 char *responsetmp = "?;";
-                return write_block2((void *)__func__, &my_com, responsetmp, strlen(responsetmp));
+                return write_block2((void *)__func__, &my_com, responsetmp,
+                                    strlen(responsetmp));
             }
 
             return retval;
@@ -1318,7 +1328,8 @@ static int handle_ts2000(void *arg)
             if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
             {
                 char *responsetmp = "?;";
-                return write_block2((void *)__func__, &my_com, responsetmp, strlen(responsetmp));
+                return write_block2((void *)__func__, &my_com, responsetmp,
+                                    strlen(responsetmp));
             }
 
             return retval;
@@ -1353,7 +1364,8 @@ static int handle_ts2000(void *arg)
             if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
             {
                 char *responsetmp = "?;";
-                return write_block2((void *)__func__, &my_com, responsetmp, strlen(responsetmp));
+                return write_block2((void *)__func__, &my_com, responsetmp,
+                                    strlen(responsetmp));
             }
         }
 
@@ -1421,14 +1433,14 @@ static int handle_ts2000(void *arg)
     {
         freq_t freq;
 
-        sscanf((char*)arg + 2, "%"SCNfreq, &freq);
+        sscanf((char *)arg + 2, "%"SCNfreq, &freq);
         return rig_set_freq(my_rig, RIG_VFO_A, freq);
     }
     else if (strncmp(arg, "FB0", 3) == 0)
     {
         freq_t freq;
 
-        sscanf((char*)arg + 2, "%"SCNfreq, &freq);
+        sscanf((char *)arg + 2, "%"SCNfreq, &freq);
         return rig_set_freq(my_rig, RIG_VFO_A, freq);
     }
     else if (strncmp(arg, "MD", 2) == 0)
@@ -1437,7 +1449,7 @@ static int handle_ts2000(void *arg)
         mode_t mode = 0;
         int imode = 0;
 
-        sscanf((char*)arg + 2, "%d", &imode);
+        sscanf((char *)arg + 2, "%d", &imode);
 
         switch (imode)
         {

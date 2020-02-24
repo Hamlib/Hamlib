@@ -366,7 +366,7 @@ static int rotorez_rot_init(ROT *rot)
     }
 
     rot->state.priv = (struct rotorez_rot_priv_data *)
-           malloc(sizeof(struct rotorez_rot_priv_data));
+                      malloc(sizeof(struct rotorez_rot_priv_data));
 
     if (!rot->state.priv)
     {
@@ -375,7 +375,7 @@ static int rotorez_rot_init(ROT *rot)
 
     rot->state.rotport.type.rig = RIG_PORT_SERIAL;
 
-    ((struct rotorez_rot_priv_data*)rot->state.priv)->az = 0;
+    ((struct rotorez_rot_priv_data *)rot->state.priv)->az = 0;
 
     return RIG_OK;
 }
