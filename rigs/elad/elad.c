@@ -530,6 +530,7 @@ int elad_init(RIG *rig)
     {
         return -RIG_ENOMEM;
     }
+
     priv = rig->state.priv;
 
     memset(priv, 0x00, sizeof(struct elad_priv_data));
@@ -1110,8 +1111,8 @@ int elad_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split, vfo_t *txvfo)
     /* find where is the txvfo.. */
     /* Elecraft info[30] does not track split VFO when transmitting */
     transmitting = '1' == priv->info[28]
-                       && RIG_MODEL_K2 != rig->caps->rig_model
-                       && RIG_MODEL_K3 != rig->caps->rig_model;
+                   && RIG_MODEL_K2 != rig->caps->rig_model
+                   && RIG_MODEL_K3 != rig->caps->rig_model;
 
     switch (priv->info[30])
     {
@@ -2028,7 +2029,7 @@ int get_elad_level(RIG *rig, const char *cmd, float *f)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if ( !f )
+    if (!f)
     {
         return -RIG_EINVAL;
     }
@@ -2875,7 +2876,8 @@ int elad_set_ant_no_ack(RIG *rig, vfo_t vfo, ant_t ant)
 /*
  * get the aerial/antenna in use
  */
-int elad_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *option)
+int elad_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
+                 ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
     char ackbuf[8];
     int offs;
@@ -2904,7 +2906,7 @@ int elad_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *option)
         return -RIG_EPROTO;
     }
 
-    *ant = RIG_ANT_N(ackbuf[offs] - '1');
+    *ant_curr = RIG_ANT_N(ackbuf[offs] - '1');
 
     /* XXX check that the returned antenna is valid for the current rig */
 
@@ -3167,6 +3169,7 @@ int elad_send_morse(RIG *rig, vfo_t vfo, const char *msg)
     while (msg_len > 0)
     {
         int buff_len;
+
         /*
          * Check with "KY" if char buffer is available.
          * if not, sleep.

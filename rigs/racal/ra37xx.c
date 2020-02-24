@@ -224,7 +224,8 @@ int ra37xx_init(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    rig->state.priv = (struct ra37xx_priv_data *)malloc(sizeof(struct ra37xx_priv_data));
+    rig->state.priv = (struct ra37xx_priv_data *)malloc(sizeof(
+                          struct ra37xx_priv_data));
 
     if (!rig->state.priv)
     {
@@ -377,7 +378,7 @@ int ra37xx_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 int ra37xx_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     //struct ra37xx_priv_data *priv = (struct ra37xx_priv_data*)rig->state.priv;
-    int ra_mode, widthtype, widthnum=0;
+    int ra_mode, widthtype, widthnum = 0;
     char buf[BUFSZ];
 
     switch (mode)
@@ -407,7 +408,9 @@ int ra37xx_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         rig_passband_normal(rig, mode);
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: widthtype = %i, widthnum = %i not implemented\n", __func__, widthtype, widthnum);
+    rig_debug(RIG_DEBUG_TRACE,
+              "%s: widthtype = %i, widthnum = %i not implemented\n", __func__, widthtype,
+              widthnum);
 #ifdef XXREMOVEDXX
     widthtype = 0; /* FIXME: no bandwidth for now */
     widthnum = 0;
@@ -751,10 +754,13 @@ int ra37xx_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
     return ra37xx_transaction(rig, buf, NULL, NULL);
 }
 
-int ra37xx_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *option)
+int ra37xx_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
+                   ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
     char buf[BUFSZ];
     int retval, buflen, ra_ant;
+
+    *ant_tx = *ant_rx = RIG_ANT_UNKNOWN;
 
     retval = ra37xx_transaction(rig, "QANT", buf, &buflen);
 
@@ -770,10 +776,10 @@ int ra37xx_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *option
         return -RIG_EPROTO;
     }
 
-    *ant = ((ra_ant & (1 << 0)) ? RIG_ANT_1 : 0) |
-           ((ra_ant & (1 << 1)) ? RIG_ANT_2 : 0) |
-           ((ra_ant & (1 << 2)) ? RIG_ANT_3 : 0) |
-           ((ra_ant & (1 << 3)) ? RIG_ANT_4 : 0);
+    *ant_curr = ((ra_ant & (1 << 0)) ? RIG_ANT_1 : 0) |
+                ((ra_ant & (1 << 1)) ? RIG_ANT_2 : 0) |
+                ((ra_ant & (1 << 2)) ? RIG_ANT_3 : 0) |
+                ((ra_ant & (1 << 3)) ? RIG_ANT_4 : 0);
 
     return RIG_OK;
 }

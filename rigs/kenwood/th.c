@@ -2196,6 +2196,7 @@ int th_get_channel(RIG *rig, channel_t *chan)
     if (chan->channel_desc[0] == '\0')
     {
         size_t ack_len;
+
         if (chan_caps[1].type == RIG_MTYPE_PRIO)
         {
             sprintf(membuf, "MNA %sI-%01d", mr_extra, channel_num);
@@ -2453,21 +2454,21 @@ int th_set_channel(RIG *rig, const channel_t *chan)
 
         /* Step can be hexa */
         snprintf(membuf, sizeof(membuf),
-                          "%8s,%011"PRIll",%X,%d,%d,%d,%d,%d,%02d,%02d,%03d,%09"PRIll",%d%10s",
-                          req, (int64_t)chan->freq, step, shift, rev, tone,
-                          ctcss, dcs, tonefq, ctcssfq, dcscode,
-                          (int64_t)labs((long)(chan->rptr_offs)), mode, lockoutstr
-                         );
+                 "%8s,%011"PRIll",%X,%d,%d,%d,%d,%d,%02d,%02d,%03d,%09"PRIll",%d%10s",
+                 req, (int64_t)chan->freq, step, shift, rev, tone,
+                 ctcss, dcs, tonefq, ctcssfq, dcscode,
+                 (int64_t)labs((long)(chan->rptr_offs)), mode, lockoutstr
+                );
     }
     else
     {
 
         /* Without DCS,mode */
         sprintf(membuf, "%s,%011"PRIll",%X,%d,%d,%d,%d,,%02d,,%02d,%09"PRIll"%s",
-                         req, (int64_t)chan->freq, step, shift, rev, tone,
-                         ctcss, tonefq, ctcssfq,
-                         (int64_t)labs((long)(chan->rptr_offs)), lockoutstr
-                        );
+                req, (int64_t)chan->freq, step, shift, rev, tone,
+                ctcss, tonefq, ctcssfq,
+                (int64_t)labs((long)(chan->rptr_offs)), lockoutstr
+               );
     }
 
     retval = kenwood_transaction(rig, membuf, NULL, 0);
@@ -2552,12 +2553,15 @@ int th_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 /*
  * get the aerial/antenna in use
  */
-int th_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *option)
+int th_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
+               ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
     char buf[8];
     int retval;
 
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
+
+    *ant_tx = *ant_rx = RIG_ANT_UNKNOWN;
 
     retval = kenwood_safe_transaction(rig, "ANT", buf, sizeof(buf), 5);
 
@@ -2571,9 +2575,9 @@ int th_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *option)
         return -RIG_EPROTO;
     }
 
-    *ant = RIG_ANT_N(buf[4] - '0');
+    *ant_curr = RIG_ANT_N(buf[4] - '0');
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: ant = %d\n", __func__, *ant);
+    rig_debug(RIG_DEBUG_TRACE, "%s: ant = %d\n", __func__, *ant_curr);
 
     return RIG_OK;
 }

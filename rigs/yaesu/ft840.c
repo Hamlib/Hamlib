@@ -356,12 +356,14 @@ static int ft840_init(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    rig->state.priv = (struct ft840_priv_data *) calloc(1, sizeof(struct ft840_priv_data));
+    rig->state.priv = (struct ft840_priv_data *) calloc(1,
+                      sizeof(struct ft840_priv_data));
 
     if (!rig->state.priv)                       /* whoops! memory shortage! */
     {
         return -RIG_ENOMEM;
     }
+
     priv = rig->state.priv;
 
     /*

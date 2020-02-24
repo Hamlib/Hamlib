@@ -603,6 +603,7 @@ static int vx1700_init(RIG *rig)
     rig->state.priv = calloc(1, sizeof(struct vx1700_priv_data));
 
     if (rig->state.priv == NULL) { return -RIG_ENOMEM; }
+
     priv = rig->state.priv;
 
     priv->ch = 1;

@@ -77,7 +77,7 @@ int ra37xx_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int ra37xx_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 const char* ra37xx_get_info(RIG *rig);
 int ra37xx_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option);
-int ra37xx_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *option);
+int ra37xx_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option, ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx);
 int ra37xx_set_mem(RIG *rig, vfo_t vfo, int ch);
 int ra37xx_get_mem(RIG *rig, vfo_t vfo, int *ch);
 int ra37xx_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch);

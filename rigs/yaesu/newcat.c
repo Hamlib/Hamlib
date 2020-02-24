@@ -287,7 +287,8 @@ int newcat_init(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    rig->state.priv = (struct newcat_priv_data *) calloc(1, sizeof(struct newcat_priv_data));
+    rig->state.priv = (struct newcat_priv_data *) calloc(1,
+                      sizeof(struct newcat_priv_data));
 
     if (!rig->state.priv)                                  /* whoops! memory shortage! */
     {
@@ -805,11 +806,11 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         priv->cmd_str[3] = 'C';
         break;
 
-    case RIG_MODE_AMN:   
+    case RIG_MODE_AMN:
         priv->cmd_str[3] = 'D';
         break;
 
-    case RIG_MODE_C4FM:   
+    case RIG_MODE_C4FM:
         priv->cmd_str[3] = 'E';
         break;
 
@@ -1044,7 +1045,9 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo)
         }
 
         err = newcat_get_vfo_mode(rig, &vfo_mode);
-        if (err != RIG_OK) {
+
+        if (err != RIG_OK)
+        {
             return err;
         }
 
@@ -1175,7 +1178,9 @@ int newcat_get_vfo(RIG *rig, vfo_t *vfo)
 
     /* Check to see if RIG is in MEM mode */
     err = newcat_get_vfo_mode(rig, &vfo_mode);
-    if (err != RIG_OK) {
+
+    if (err != RIG_OK)
+    {
         return err;
     }
 
@@ -2450,7 +2455,8 @@ int newcat_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 }
 
 
-int newcat_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *option)
+int newcat_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
+                   ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int err;
@@ -2492,26 +2498,27 @@ int newcat_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *option
     switch (c)
     {
     case '1':
-        *ant = RIG_ANT_1;
+        *ant_curr = RIG_ANT_1;
         break;
 
     case '2' :
-        *ant = RIG_ANT_2;
+        *ant_curr = RIG_ANT_2;
         break;
 
     case '3' :
-        *ant = RIG_ANT_3;
+        *ant_curr = RIG_ANT_3;
         break;
 
     case '4' :
-        *ant = RIG_ANT_4;
+        *ant_curr = RIG_ANT_4;
         break;
 
     case '5' :
-        *ant = RIG_ANT_5;
+        *ant_curr = RIG_ANT_5;
         break;
 
     default:
+        *ant_curr = RIG_ANT_UNKNOWN;
         return -RIG_EPROTO;
     }
 
@@ -3398,9 +3405,32 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_STRENGTH: // Yaesu's return straight s-meter answers
 
-        // Return dbS9 -- does >S9 mean 10dB increments? If not, add to rig driver
-        if (val->i > 0) { val->i = (atoi(retlvl) - 9) * 10; }
-        else { val->i = (atoi(retlvl) - 9) * 6; } // Return dbS9  does >S9 mean 10dB increments?
+
+        if (newcat_is_rig(rig, RIG_MODEL_FT991))
+        {
+            // value of 0.448 determined by data from W6HN
+            // seems to be pretty linear
+            // SMeter, rig answer, %fullscale
+            // S0    SM0000 0
+            // S2    SM0026 10
+            // S4    SM0051 20
+            // S6    SM0081 30
+            // S7.5  SM0105 40
+            // S9    SM0130 50
+            // +12db SM0157 60
+            // +25db SM0186 70
+            // +35db SM0203 80
+            // +50db SM0237 90
+            // +60db SM0255 100
+            // 114dB range over 0-255 referenced to S0 of -54dB
+            val->i = atoi(retlvl) * (114.0 / 255.0) - 54;
+        }
+        else // some Yaesu's return straight s-meter answers
+        {
+            // Return dbS9 -- does >S9 mean 10dB increments? If not, add to rig driver
+            if (val->i > 0) { val->i = (atoi(retlvl) - 9) * 10; }
+            else { val->i = (atoi(retlvl) - 9) * 6; } // Return dbS9  does >S9 mean 10dB increments?
+        }
 
         break;
 
@@ -4583,8 +4613,8 @@ int newcat_get_channel(RIG *rig, channel_t *chan)
 
     case 'E': chan->mode = RIG_MODE_C4FM;     break;
 
-    default:  
-        rig_debug(RIG_DEBUG_ERR,"%s: unknown mode=%c\n", __func__, *retval);
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unknown mode=%c\n", __func__, *retval);
         chan->mode = RIG_MODE_LSB;
     }
 
@@ -4922,7 +4952,9 @@ int newcat_get_tx_vfo(RIG *rig, vfo_t *tx_vfo)
 
     /* Check to see if RIG is in MEM mode */
     err = newcat_get_vfo_mode(rig, &vfo_mode);
-    if (err != RIG_OK) {
+
+    if (err != RIG_OK)
+    {
         return err;
     }
 

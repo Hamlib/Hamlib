@@ -225,12 +225,14 @@ int ft736_open(RIG *rig)
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-    rig->state.priv = (struct ft736_priv_data *) calloc(1, sizeof(struct ft736_priv_data));
+    rig->state.priv = (struct ft736_priv_data *) calloc(1,
+                      sizeof(struct ft736_priv_data));
 
     if (!rig->state.priv)
     {
         return -RIG_ENOMEM;
     }
+
     priv = rig->state.priv;
 
     priv->split = RIG_SPLIT_OFF;

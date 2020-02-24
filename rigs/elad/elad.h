@@ -140,7 +140,7 @@ int elad_reset(RIG *rig, reset_t reset);
 int elad_send_morse(RIG *rig, vfo_t vfo, const char *msg);
 int elad_set_ant (RIG * rig, vfo_t vfo, ant_t ant, value_t option);
 int elad_set_ant_no_ack(RIG * rig, vfo_t vfo, ant_t ant);
-int elad_get_ant (RIG * rig, vfo_t vfo, ant_t dummy, ant_t * ant, value_t *option);
+int elad_get_ant (RIG * rig, vfo_t vfo, ant_t dummy, value_t *option, ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx);
 int elad_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 int elad_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 int elad_set_ptt_safe(RIG *rig, vfo_t vfo, ptt_t ptt);

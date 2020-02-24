@@ -396,12 +396,14 @@ int ft767_init(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    rig->state.priv = (struct ft767_priv_data *) calloc(1, sizeof(struct ft767_priv_data));
+    rig->state.priv = (struct ft767_priv_data *) calloc(1,
+                      sizeof(struct ft767_priv_data));
 
     if (!rig->state.priv)           /* whoops! memory shortage! */
     {
         return -RIG_ENOMEM;
     }
+
     priv = rig->state.priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
@@ -1475,9 +1477,12 @@ int ft767_send_block_and_ack(RIG *rig, unsigned char *cmd, size_t length)
     retval = read_block(&rig->state.rigport,
                         (char *) cmd_echo_buf,
                         YAESU_CMD_LENGTH);
-    if (retval < 0) {
-        rig_debug(RIG_DEBUG_ERR, "%s: read_block failed: %s\n", __func__, rigerror(retval));
-        return retval; 
+
+    if (retval < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: read_block failed: %s\n", __func__,
+                  rigerror(retval));
+        return retval;
     }
 
     /* see if it matches the command we sent */

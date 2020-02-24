@@ -146,7 +146,7 @@
 
 /* UHF: 300 MHz - 3 GHz */
 #define FRQ_RNG_70cm_REGION2(md,lp,hp,v,a) \
-            { MHz(430),MHz(440), (md), (lp), (hp), (v), (a) }
+            { MHz(430),MHz(450), (md), (lp), (hp), (v), (a) }
 
 #define FRQ_RNG_23cm_REGION2(md,lp,hp,v,a) \
             { MHz(1240),MHz(1300), (md), (lp), (hp), (v), (a) }

@@ -294,7 +294,7 @@ const char *lowe_get_info(RIG *rig)
 
     if (retval != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_VERBOSE,"%s: INF didn't work\n", __func__);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: INF didn't work\n", __func__);
         // non-fatal
     }
 

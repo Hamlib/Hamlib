@@ -564,7 +564,7 @@ int pihspdr_get_channel(RIG *rig, channel_t *chan)
 }
 
 int pihspdr_set_channel(RIG *rig, const channel_t *chan)
-{   
+{
     char sqltype;
     char shift;
     char buf[128];

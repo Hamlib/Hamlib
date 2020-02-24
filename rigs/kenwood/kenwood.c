@@ -223,7 +223,7 @@ const struct confparams kenwood_cfg_params[] =
 int kenwood_transaction(RIG *rig, const char *cmdstr, char *data,
                         size_t datasize)
 {
-    char buffer[KENWOOD_MAX_BUF_LEN]; /* use our own buffer since 
+    char buffer[KENWOOD_MAX_BUF_LEN]; /* use our own buffer since
                                        verification may need a longer
                                        buffer than the user supplied one */
     char cmdtrm[2];  /* Default Command/Reply termination char */
@@ -591,6 +591,7 @@ int kenwood_init(RIG *rig)
     {
         return -RIG_ENOMEM;
     }
+
     priv = rig->state.priv;
 
     memset(priv, 0x00, sizeof(struct kenwood_priv_data));
@@ -636,7 +637,7 @@ int kenwood_open(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     // Ensure rig is on
-    rig_set_powerstat(rig,1);
+    rig_set_powerstat(rig, 1);
 
 
     if (RIG_MODEL_TS590S == rig->caps->rig_model)
@@ -1206,8 +1207,8 @@ int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split,
     /* find where is the txvfo.. */
     /* Elecraft info[30] does not track split VFO when transmitting */
     transmitting = '1' == priv->info[28]
-                       && RIG_MODEL_K2 != rig->caps->rig_model
-                       && RIG_MODEL_K3 != rig->caps->rig_model;
+                   && RIG_MODEL_K2 != rig->caps->rig_model
+                   && RIG_MODEL_K3 != rig->caps->rig_model;
 
     switch (priv->info[30])
     {
@@ -3095,7 +3096,8 @@ int kenwood_set_ant_no_ack(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 /*
  * get the aerial/antenna in use
  */
-int kenwood_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *option)
+int kenwood_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
+                    ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
     char ackbuf[8];
     int offs;
@@ -3103,7 +3105,9 @@ int kenwood_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *optio
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!ant)
+    *ant_tx = *ant_rx = RIG_ANT_UNKNOWN;
+
+    if (!ant_curr)
     {
         return -RIG_EINVAL;
     }
@@ -3129,7 +3133,7 @@ int kenwood_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *optio
         return -RIG_EPROTO;
     }
 
-    *ant = RIG_ANT_N(ackbuf[offs] - '1');
+    *ant_curr = RIG_ANT_N(ackbuf[offs] - '1');
 
     /* XXX check that the returned antenna is valid for the current rig */
 
@@ -3340,7 +3344,8 @@ int kenwood_get_trn(RIG *rig, int *trn)
  */
 int kenwood_set_powerstat(RIG *rig, powerstat_t status)
 {
-    int retval = kenwood_transaction(rig, (status == RIG_POWER_ON) ? "PS1" : "PS0", NULL, 0);
+    int retval = kenwood_transaction(rig, (status == RIG_POWER_ON) ? "PS1" : "PS0",
+                                     NULL, 0);
     int i = 0;
     int retry = 3 / rig->state.rigport.retry;
 
@@ -3470,6 +3475,7 @@ int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
     while (msg_len > 0)
     {
         int buff_len;
+
         /*
          * Check with "KY" if char buffer is available.
          * if not, sleep.

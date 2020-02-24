@@ -367,7 +367,8 @@ tt550_init(RIG *rig)
 {
     struct tt550_priv_data *priv;
 
-    rig->state.priv = (struct tt550_priv_data *) malloc(sizeof(struct tt550_priv_data));
+    rig->state.priv = (struct tt550_priv_data *) malloc(sizeof(
+                          struct tt550_priv_data));
 
     if (!rig->state.priv)
     {

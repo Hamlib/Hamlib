@@ -56,7 +56,7 @@ struct dummy_priv_data
     powerstat_t powerstat;
     int bank;
     value_t parms[RIG_SETTING_MAX];
-    int ant_option;
+    int ant_option[4]; /* simulate 4 antennas */
 
     channel_t *curr;    /* points to vfo_a, vfo_b or mem[] */
 
@@ -510,45 +510,53 @@ static int dummy_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     case RIG_PTT_SERIAL_DTR:
         if (rig->state.pttport.fd >= 0)
         {
-            if (RIG_OK != (rc = ser_get_dtr(&rig->state.pttport, &status))) return rc;
+            if (RIG_OK != (rc = ser_get_dtr(&rig->state.pttport, &status))) { return rc; }
+
             *ptt = status ? RIG_PTT_ON : RIG_PTT_OFF;
         }
+
         break;
 
     case RIG_PTT_SERIAL_RTS:
         if (rig->state.pttport.fd >= 0)
         {
-            if (RIG_OK != (rc = ser_get_rts(&rig->state.pttport, &status))) return rc;
+            if (RIG_OK != (rc = ser_get_rts(&rig->state.pttport, &status))) { return rc; }
+
             *ptt = status ? RIG_PTT_ON : RIG_PTT_OFF;
         }
+
         break;
 
     case RIG_PTT_PARALLEL:
         if (rig->state.pttport.fd >= 0)
         {
-            if (RIG_OK != (rc = par_ptt_get(&rig->state.pttport, ptt))) return rc;
+            if (RIG_OK != (rc = par_ptt_get(&rig->state.pttport, ptt))) { return rc; }
         }
+
         break;
 
     case RIG_PTT_CM108:
         if (rig->state.pttport.fd >= 0)
         {
-            if (RIG_OK != (rc = cm108_ptt_get(&rig->state.pttport, ptt))) return rc;
+            if (RIG_OK != (rc = cm108_ptt_get(&rig->state.pttport, ptt))) { return rc; }
         }
+
         break;
 
     case RIG_PTT_GPIO:
     case RIG_PTT_GPION:
         if (rig->state.pttport.fd >= 0)
         {
-            if (RIG_OK != (rc = gpio_ptt_get(&rig->state.pttport, ptt))) return rc;
+            if (RIG_OK != (rc = gpio_ptt_get(&rig->state.pttport, ptt))) { return rc; }
         }
+
         break;
 
     default:
         *ptt = priv->ptt;
         break;
     }
+
     return RIG_OK;
 }
 
@@ -1338,22 +1346,65 @@ static int dummy_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
-    curr->ant = ant;
-    priv->ant_option = option.i;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called ant=%d, option=%d\n", __func__, ant, option.i);
+    switch (ant)
+    {
+    case RIG_ANT_CURR:
+        break;
+
+    case RIG_ANT_1:
+    case RIG_ANT_2:
+    case RIG_ANT_3:
+    case RIG_ANT_4:
+        curr->ant = ant;
+        break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unknown antenna requested=0x%02x\n", __func__,
+                  ant);
+        return -RIG_EINVAL;
+    }
+
+    priv->ant_option[rig_setting2idx(curr->ant)] = option.i;
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "%s called ant=0x%02x, option=%d, curr->ant=0x%02x\n", __func__, ant, option.i,
+              curr->ant);
 
     return RIG_OK;
 }
 
 
-static int dummy_get_ant(RIG *rig, vfo_t vfo, ant_t ant, ant_t *ant_curr, value_t *option)
+static int dummy_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
+                         ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, ant=0x%02x\n", __func__, ant);
-    *ant_curr = curr->ant;
-    option->i = priv->ant_option;
+
+    *ant_tx = *ant_rx = RIG_ANT_UNKNOWN;
+
+    switch (ant)
+    {
+    case RIG_ANT_CURR:
+        *ant_curr = curr->ant;
+        break;
+
+    case RIG_ANT_1:
+    case RIG_ANT_2:
+    case RIG_ANT_3:
+    case RIG_ANT_4:
+        *ant_curr = ant;
+        break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unknown antenna requested=0x%02x\n", __func__,
+                  ant);
+        return -RIG_EINVAL;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: ant_curr=0x%02x, idx=%d\n", __func__, *ant_curr,
+              rig_setting2idx(*ant_curr));
+    option->i = priv->ant_option[rig_setting2idx(*ant_curr)];
 
     return RIG_OK;
 }
@@ -1827,9 +1878,9 @@ const struct rig_caps dummy_caps =
     .rig_model =      RIG_MODEL_DUMMY,
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
-    .version =        "0.5",
+    .version =        "0.7",
     .copyright =      "LGPL",
-    .status =         RIG_STATUS_BETA,
+    .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
     .targetable_vfo =      0,
     .ptt_type =       RIG_PTT_RIG,
@@ -1857,19 +1908,22 @@ const struct rig_caps dummy_caps =
     .preamp =          { 10, RIG_DBLST_END, },
     .rx_range_list1 =  { {
             .startf = kHz(150), .endf = MHz(1500), .modes = DUMMY_MODES,
-            .low_power = -1, .high_power = -1, DUMMY_VFOS, RIG_ANT_1 | RIG_ANT_2
+            .low_power = -1, .high_power = -1, DUMMY_VFOS, RIG_ANT_1 | RIG_ANT_2 | RIG_ANT_3 | RIG_ANT_4,
+            .label = "Dummy#1"
         },
         RIG_FRNG_END,
     },
     .tx_range_list1 =  { {
             .startf = kHz(150), .endf = MHz(1500), .modes = DUMMY_MODES,
-            .low_power = W(5), .high_power = W(100), DUMMY_VFOS, RIG_ANT_1 | RIG_ANT_2
+            .low_power = W(5), .high_power = W(100), DUMMY_VFOS, RIG_ANT_1 | RIG_ANT_2 | RIG_ANT_3 | RIG_ANT_4,
+            .label = "Dummy#1"
         },
         RIG_FRNG_END,
     },
     .rx_range_list2 =  { {
             .startf = kHz(150), .endf = MHz(1500), .modes = DUMMY_MODES,
-            .low_power = -1, .high_power = -1, DUMMY_VFOS, RIG_ANT_1 | RIG_ANT_2
+            .low_power = -1, .high_power = -1, DUMMY_VFOS, RIG_ANT_1 | RIG_ANT_2 | RIG_ANT_3 | RIG_ANT_4,
+            .label = "Dummy#2"
         },
         RIG_FRNG_END,
     },

@@ -57,12 +57,13 @@
 
 #define IC7300_ANTS (RIG_ANT_1) /* ant-1 is Hf-6m */
 
-struct cmdparams ic7300_extcmds[] = {
-    { {.s=RIG_PARM_BEEP}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x23}, CMD_DAT_BOL, 1 },
-    { {.s=RIG_PARM_BACKLIGHT}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x81}, CMD_DAT_LVL, 2 },
-    { {.s=RIG_PARM_TIME}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x95}, CMD_DAT_TIM, 2 },
-    { {.s=RIG_LEVEL_VOXDELAY}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x91}, CMD_DAT_INT, 1 },
-    { {.s=RIG_PARM_NONE} }
+struct cmdparams ic7300_extcmds[] =
+{
+    { {.s = RIG_PARM_BEEP}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x23}, CMD_DAT_BOL, 1 },
+    { {.s = RIG_PARM_BACKLIGHT}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x81}, CMD_DAT_LVL, 2 },
+    { {.s = RIG_PARM_TIME}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x95}, CMD_DAT_TIM, 2 },
+    { {.s = RIG_LEVEL_VOXDELAY}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x91}, CMD_DAT_INT, 1 },
+    { {.s = RIG_PARM_NONE} }
 };
 
 /*
@@ -128,17 +129,20 @@ struct cmdparams ic7300_extcmds[] = {
  * IC9700 items that differ from IC7300
  */
 #define IC9700_VFOS (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MAIN|RIG_VFO_SUB|RIG_VFO_MEM|RIG_VFO_MAIN_A|RIG_VFO_MAIN_B|RIG_VFO_SUB_A|RIG_VFO_SUB_B)
+#define IC9700_PARMS (RIG_PARM_ANN|RIG_PARM_BACKLIGHT|RIG_PARM_TIME|RIG_PARM_BEEP|RIG_PARM_SCREENSAVER)
 #define IC9700_FUNCS (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_ANF|RIG_FUNC_LOCK|RIG_FUNC_RIT|RIG_FUNC_SCOPE|RIG_FUNC_SATMODE|RIG_FUNC_AFC)
 
 #define IC9700_VFO_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL)
-#define IC9700_ALL_TX_MODES (RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_DSTAR|RIG_MODE_DD)
-#define IC9700_ALL_RX_MODES (RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_DSTAR|RIG_MODE_DD)
+#define IC9700_ALL_TX_MODES (RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_DSTAR|RIG_MODE_DD|RIG_MODE_DSTAR)
+#define IC9700_ALL_RX_MODES (RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_DSTAR|RIG_MODE_DD|RIG_MODE_DSTAR)
 
-struct cmdparams ic9700_extcmds[] = {
-    { {.s=RIG_PARM_BEEP}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x29}, CMD_DAT_BOL, 1 },
-    { {.s=RIG_PARM_BACKLIGHT}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x52}, CMD_DAT_LVL, 2 },
-    { {.s=RIG_LEVEL_VOXDELAY}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x03, 0x30}, CMD_DAT_INT, 1 },
-    { {.s=RIG_PARM_NONE} }
+struct cmdparams ic9700_extcmds[] =
+{
+    { {.s = RIG_PARM_BEEP}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x29}, CMD_DAT_BOL, 1 },
+    { {.s = RIG_PARM_BACKLIGHT}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x52}, CMD_DAT_LVL, 2 },
+    { {.s = RIG_LEVEL_VOXDELAY}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x03, 0x30}, CMD_DAT_INT, 1 },
+    { {.s = RIG_PARM_SCREENSAVER}, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x67}, CMD_DAT_INT, 1 },
+    { {.s = RIG_PARM_NONE} }
 };
 
 #define IC9700_STR_CAL { 7, \
@@ -293,10 +297,10 @@ const struct rig_caps ic7300_caps =
         FRQ_RNG_60m(1, IC7300_OTHER_TX_MODES, W(2), W(100), IC7300_VFOS, RIG_ANT_1),
         FRQ_RNG_6m(1, IC7300_OTHER_TX_MODES, W(2), W(100), IC7300_VFOS, RIG_ANT_1),
         FRQ_RNG_4m(1, IC7300_OTHER_TX_MODES, W(2), W(100), IC7300_VFOS, RIG_ANT_1),
-        FRQ_RNG_HF(1, IC7300_AM_TX_MODES, W(1), W(40), IC7300_VFOS, RIG_ANT_1), /* AM class */
-        FRQ_RNG_60m(1, IC7300_AM_TX_MODES, W(1), W(40), IC7300_VFOS, RIG_ANT_1), /* AM class */
-        FRQ_RNG_6m(1, IC7300_AM_TX_MODES, W(1), W(40), IC7300_VFOS, RIG_ANT_1), /* AM class */
-        FRQ_RNG_4m(1, IC7300_AM_TX_MODES, W(1), W(40), IC7300_VFOS, RIG_ANT_1), /* AM class */
+        FRQ_RNG_HF(1, IC7300_AM_TX_MODES, W(1), W(25), IC7300_VFOS, RIG_ANT_1), /* AM class */
+        FRQ_RNG_60m(1, IC7300_AM_TX_MODES, W(1), W(25), IC7300_VFOS, RIG_ANT_1), /* AM class */
+        FRQ_RNG_6m(1, IC7300_AM_TX_MODES, W(1), W(25), IC7300_VFOS, RIG_ANT_1), /* AM class */
+        FRQ_RNG_4m(1, IC7300_AM_TX_MODES, W(1), W(12.5), IC7300_VFOS, RIG_ANT_1), /* AM class */
         RIG_FRNG_END,
     },
 
@@ -305,9 +309,9 @@ const struct rig_caps ic7300_caps =
         FRQ_RNG_HF(2, IC7300_OTHER_TX_MODES, W(2), W(100), IC7300_VFOS, RIG_ANT_1),
         FRQ_RNG_60m(2, IC7300_OTHER_TX_MODES, W(2), W(100), IC7300_VFOS, RIG_ANT_1),
         FRQ_RNG_6m(2, IC7300_OTHER_TX_MODES, W(2), W(100), IC7300_VFOS, RIG_ANT_1),
-        FRQ_RNG_HF(2, IC7300_AM_TX_MODES, W(1), W(40), IC7300_VFOS, RIG_ANT_1), /* AM class */
-        FRQ_RNG_60m(2, IC7300_AM_TX_MODES, W(1), W(40), IC7300_VFOS, RIG_ANT_1), /* AM class */
-        FRQ_RNG_6m(2, IC7300_AM_TX_MODES, W(1), W(40), IC7300_VFOS, RIG_ANT_1), /* AM class */
+        FRQ_RNG_HF(2, IC7300_AM_TX_MODES, W(1), W(25), IC7300_VFOS, RIG_ANT_1), /* AM class */
+        FRQ_RNG_60m(2, IC7300_AM_TX_MODES, W(1), W(25), IC7300_VFOS, RIG_ANT_1), /* AM class */
+        FRQ_RNG_6m(2, IC7300_AM_TX_MODES, W(1), W(25), IC7300_VFOS, RIG_ANT_1), /* AM class */
         RIG_FRNG_END,
     },
 
@@ -417,7 +421,7 @@ const struct rig_caps ic9700_caps =
     .rig_model =  RIG_MODEL_IC9700,
     .model_name = "IC-9700",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".3",
+    .version =  BACKEND_VER ".4",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -438,8 +442,8 @@ const struct rig_caps ic9700_caps =
     .has_set_func =  IC9700_FUNCS,
     .has_get_level =  IC7300_LEVELS,
     .has_set_level =  RIG_LEVEL_SET(IC7300_LEVELS),
-    .has_get_parm =  IC7300_PARMS,
-    .has_set_parm =  RIG_PARM_SET(IC7300_PARMS),
+    .has_get_parm =  IC9700_PARMS,
+    .has_set_parm =  RIG_PARM_SET(IC9700_PARMS),
     .level_gran = {
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
@@ -459,28 +463,99 @@ const struct rig_caps ic9700_caps =
     .vfo_ops =  IC9700_VFO_OPS,
     .scan_ops =  IC7300_SCAN_OPS,
     .transceive =  RIG_TRN_RIG,
-    .bank_qty =   1,
+    .bank_qty =   3,
     .chan_desc_sz =  0,
 
     .chan_list =  {
         {   1,  99, RIG_MTYPE_MEM  },
-        { 100, 101, RIG_MTYPE_EDGE },    /* two by two */
         RIG_CHAN_END,
     },
 
-    .rx_range_list1 =   { {kHz(30), MHz(74.8), IC7300_ALL_RX_MODES, -1, -1, IC9700_VFOS}, RIG_FRNG_END, },
-    .tx_range_list1 =   {
-        FRQ_RNG_2m(1, IC9700_ALL_TX_MODES, W(2), W(100), IC9700_VFOS, RIG_ANT_2),
-        FRQ_RNG_70cm(1, IC9700_ALL_TX_MODES, W(2), W(75), IC9700_VFOS, RIG_ANT_2),
-        FRQ_RNG_23cm(1, IC9700_ALL_TX_MODES, W(2), W(23), IC9700_VFOS, RIG_ANT_3),
+    // Hopefully any future changes in bandplans can be fixed with firmware updates
+    // So we use the global REGION2 macros in here
+    .rx_range_list1 =   { // USA Version
+        {MHz(144), MHz(148), IC9700_ALL_RX_MODES, -1, -1, IC9700_VFOS, RIG_ANT_CURR, "USA"},
+        {MHz(430), MHz(450), IC9700_ALL_RX_MODES, -1, -1, IC9700_VFOS, RIG_ANT_CURR, "USA"},
+        {MHz(1240), MHz(1300), IC9700_ALL_RX_MODES, -1, -1, IC9700_VFOS, RIG_ANT_CURR, "USA"},
+        RIG_FRNG_END,
+    },
+    .tx_range_list1 =  {
+        {MHz(144), MHz(148), IC9700_ALL_TX_MODES ^ RIG_MODE_AM, W(0.5), W(100), IC9700_VFOS, RIG_ANT_CURR, "USA"},
+        {MHz(430), MHz(450), IC9700_ALL_TX_MODES ^ RIG_MODE_AM, W(0.5), W(75), IC9700_VFOS, RIG_ANT_CURR, "USA"},
+        {MHz(1240), MHz(1300), IC9700_ALL_TX_MODES ^ RIG_MODE_AM, W(0.1), W(10), IC9700_VFOS, RIG_ANT_CURR, "USA"},
+        {MHz(144), MHz(148), RIG_MODE_AM, W(0.125), W(25), IC9700_VFOS, RIG_ANT_CURR, "USA"},
+        {MHz(430), MHz(450), RIG_MODE_AM, W(0.125), W(18.75), IC9700_VFOS, RIG_ANT_CURR, "USA"},
+        {MHz(1240), MHz(1300), RIG_MODE_AM, W(0.025), W(2.5), IC9700_VFOS, RIG_ANT_CURR, "USA"},
         RIG_FRNG_END,
     },
 
-    .rx_range_list2 =   { {kHz(30), MHz(74.8), IC7300_ALL_RX_MODES, -1, -1, IC9700_VFOS}, RIG_FRNG_END, },
-    .tx_range_list2 =  {
-        FRQ_RNG_2m(1, IC9700_ALL_TX_MODES, W(2), W(100), IC9700_VFOS, RIG_ANT_2),
-        FRQ_RNG_70cm(1, IC9700_ALL_TX_MODES, W(2), W(75), IC9700_VFOS, RIG_ANT_2),
-        FRQ_RNG_23cm(1, IC9700_ALL_TX_MODES, W(2), W(23), IC9700_VFOS, RIG_ANT_3),
+    .rx_range_list2 =   { // EUR Version
+        {MHz(144), MHz(146), IC9700_ALL_RX_MODES, -1, -1, IC9700_VFOS, RIG_ANT_CURR, "EUR"},
+        {MHz(430), MHz(440), IC9700_ALL_RX_MODES, -1, -1, IC9700_VFOS, RIG_ANT_CURR, "EUR"},
+        {MHz(1240), MHz(1300), IC9700_ALL_RX_MODES, -1, -1, IC9700_VFOS, RIG_ANT_CURR, "EUR"},
+        RIG_FRNG_END,
+    },
+    .tx_range_list2 =   {
+        {MHz(144), MHz(146), IC9700_ALL_TX_MODES ^ RIG_MODE_AM, W(0.5), W(100), IC9700_VFOS, RIG_ANT_CURR, "EUR"},
+        {MHz(430), MHz(440), IC9700_ALL_TX_MODES ^ RIG_MODE_AM, W(0.5), W(75), IC9700_VFOS, RIG_ANT_CURR, "EUR"},
+        {MHz(1240), MHz(1300), IC9700_ALL_TX_MODES ^ RIG_MODE_AM, W(0.1), W(10), IC9700_VFOS, RIG_ANT_CURR, "EUR"},
+        {MHz(144), MHz(146), RIG_MODE_AM, W(0.125), W(25), IC9700_VFOS, RIG_ANT_CURR, "EUR"},
+        {MHz(430), MHz(440), RIG_MODE_AM, W(0.125), W(18.75), IC9700_VFOS, RIG_ANT_CURR, "EUR"},
+        {MHz(1240), MHz(1300), RIG_MODE_AM, W(0.025), W(2.5), IC9700_VFOS, RIG_ANT_CURR, "EUR"},
+        RIG_FRNG_END,
+    },
+
+    .rx_range_list3 =   { // ITR Version
+        {MHz(144), MHz(146), IC9700_ALL_RX_MODES, -1, -1, IC9700_VFOS, RIG_ANT_CURR, "ITR"},
+        {MHz(430), MHz(434), IC9700_ALL_RX_MODES, -1, -1, IC9700_VFOS, RIG_ANT_CURR, "ITR"},
+        {MHz(435), MHz(438), IC9700_ALL_RX_MODES, -1, -1, IC9700_VFOS, RIG_ANT_CURR, "ITR"},
+        {MHz(1240), MHz(1245), IC9700_ALL_RX_MODES, -1, -1, IC9700_VFOS, RIG_ANT_CURR, "ITR"},
+        {MHz(1270), MHz(1298), IC9700_ALL_RX_MODES, -1, -1, IC9700_VFOS, RIG_ANT_CURR, "ITR"},
+        RIG_FRNG_END,
+    },
+    .tx_range_list3 =  {
+        {MHz(144), MHz(146), IC9700_ALL_TX_MODES ^ RIG_MODE_AM, W(0.5), W(100), IC9700_VFOS, RIG_ANT_CURR, "ITR"},
+        {MHz(430), MHz(434), IC9700_ALL_TX_MODES ^ RIG_MODE_AM, W(0.5), W(75), IC9700_VFOS, RIG_ANT_CURR, "ITR"},
+        {MHz(435), MHz(438), IC9700_ALL_TX_MODES ^ RIG_MODE_AM, W(0.5), W(75), IC9700_VFOS, RIG_ANT_CURR, "ITR"},
+        {MHz(1240), MHz(1245), IC9700_ALL_TX_MODES ^ RIG_MODE_AM, W(0.1), W(10), IC9700_VFOS, RIG_ANT_CURR, "ITR"},
+        {MHz(1270), MHz(1298), IC9700_ALL_TX_MODES ^ RIG_MODE_AM, W(0.1), W(10), IC9700_VFOS, RIG_ANT_CURR, "ITR"},
+        {MHz(144), MHz(146), RIG_MODE_AM, W(0.125), W(25), IC9700_VFOS, RIG_ANT_CURR, "ITR"},
+        {MHz(430), MHz(434), RIG_MODE_AM, W(0.125), W(18.75), IC9700_VFOS, RIG_ANT_CURR, "ITR"},
+        {MHz(435), MHz(438), RIG_MODE_AM, W(0.125), W(18.75), IC9700_VFOS, RIG_ANT_CURR, "ITR"},
+        {MHz(1240), MHz(1245), RIG_MODE_AM, W(0.025), W(2.5), IC9700_VFOS, RIG_ANT_CURR, "ITR"},
+        {MHz(1270), MHz(1298), RIG_MODE_AM, W(0.025), W(2.5), IC9700_VFOS, RIG_ANT_CURR, "ITR"},
+        RIG_FRNG_END,
+    },
+
+    .rx_range_list4 =   { // TPE Version
+        {MHz(144), MHz(146), IC9700_ALL_RX_MODES, -1, -1, IC9700_VFOS, RIG_ANT_CURR, "TPE"},
+        {MHz(430), MHz(432), IC9700_ALL_RX_MODES, -1, -1, IC9700_VFOS, RIG_ANT_CURR, "TPE"},
+        {MHz(1260), MHz(1265), IC9700_ALL_RX_MODES, -1, -1, IC9700_VFOS, RIG_ANT_CURR, "TPE"},
+        RIG_FRNG_END,
+    },
+    .tx_range_list4 =  {
+        {MHz(144), MHz(146), IC9700_ALL_TX_MODES ^ RIG_MODE_AM, W(0.5), W(100), IC9700_VFOS, RIG_ANT_CURR, "TPE"},
+        {MHz(430), MHz(432), IC9700_ALL_TX_MODES ^ RIG_MODE_AM, W(0.5), W(75), IC9700_VFOS, RIG_ANT_CURR, "TPE"},
+        {MHz(1260), MHz(1265), IC9700_ALL_TX_MODES ^ RIG_MODE_AM, W(0.1), W(10), IC9700_VFOS, RIG_ANT_CURR, "TPE"},
+        {MHz(144), MHz(146), RIG_MODE_AM, W(0.125), W(25), IC9700_VFOS, RIG_ANT_CURR, "TPE"},
+        {MHz(430), MHz(432), RIG_MODE_AM, W(0.125), W(18.75), IC9700_VFOS, RIG_ANT_CURR, "TPE"},
+        {MHz(1260), MHz(1265), RIG_MODE_AM, W(0.025), W(2.5), IC9700_VFOS, RIG_ANT_CURR, "TPE"},
+        RIG_FRNG_END,
+    },
+
+    .rx_range_list5 =   { // KOR Version
+        {MHz(144), MHz(146), IC9700_ALL_RX_MODES, -1, -1, IC9700_VFOS, RIG_ANT_CURR, "KOR"},
+        {MHz(430), MHz(440), IC9700_ALL_RX_MODES, -1, -1, IC9700_VFOS, RIG_ANT_CURR, "KOR"},
+        {MHz(1260), MHz(1300), IC9700_ALL_RX_MODES, -1, -1, IC9700_VFOS, RIG_ANT_CURR, "KOR"},
+        RIG_FRNG_END,
+    },
+    .tx_range_list5 =  {
+        {MHz(144), MHz(146), IC9700_ALL_TX_MODES ^ RIG_MODE_AM, W(0.5), W(100), IC9700_VFOS, RIG_ANT_CURR, "KOR"},
+        {MHz(430), MHz(440), IC9700_ALL_TX_MODES ^ RIG_MODE_AM, W(0.5), W(75), IC9700_VFOS, RIG_ANT_CURR, "KOR"},
+        {MHz(1260), MHz(1300), IC9700_ALL_TX_MODES ^ RIG_MODE_AM, W(0.1), W(10), IC9700_VFOS, RIG_ANT_CURR, "KOR"},
+        {MHz(144), MHz(146), RIG_MODE_AM, W(0.125), W(25), IC9700_VFOS, RIG_ANT_CURR, "KOR"},
+        {MHz(430), MHz(440), RIG_MODE_AM, W(0.125), W(18.75), IC9700_VFOS, RIG_ANT_CURR, "KOR"},
+        {MHz(1260), MHz(1300), RIG_MODE_AM, W(0.025), W(2.5), IC9700_VFOS, RIG_ANT_CURR, "KOR"},
         RIG_FRNG_END,
     },
 

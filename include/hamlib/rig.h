@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <inttypes.h>
+#include <time.h>
 
 /* Rig list is in a separate file so as not to mess up w/ this one */
 #include <hamlib/riglist.h>
@@ -670,6 +671,7 @@ typedef unsigned int ant_t;
 #define RIG_ANT_4       RIG_ANT_N(3)
 #define RIG_ANT_5       RIG_ANT_N(4)
 
+#define RIG_ANT_UNKNOWN RIG_ANT_N(30)
 #define RIG_ANT_CURR    RIG_ANT_N(31)
 
 #define RIG_ANT_MAX 32
@@ -802,7 +804,8 @@ enum rig_parm_e {
     RIG_PARM_BEEP =         (1 << 4),   /*!< \c BEEP -- Beep on keypressed, int (0,1) */
     RIG_PARM_TIME =         (1 << 5),   /*!< \c TIME -- hh:mm:ss, int in seconds from 00:00:00 */
     RIG_PARM_BAT =          (1 << 6),   /*!< \c BAT -- battery level, float [0.0 ... 1.0] */
-    RIG_PARM_KEYLIGHT =     (1 << 7)    /*!< \c KEYLIGHT -- Button backlight, on/off */
+    RIG_PARM_KEYLIGHT =     (1 << 7),   /*!< \c KEYLIGHT -- Button backlight, on/off */
+    RIG_PARM_SCREENSAVER =  (1 << 8)    /*!< \c SCREENSAVER -- rig specific timeouts */
 };
 
 #define RIG_PARM_FLOAT_LIST (RIG_PARM_BACKLIGHT|RIG_PARM_BAT|RIG_PARM_KEYLIGHT)
@@ -1038,17 +1041,12 @@ typedef struct freq_range_list {
     int low_power;      /*!< Lower RF power in mW, -1 for no power (ie. rx list) */
     int high_power;     /*!< Higher RF power in mW, -1 for no power (ie. rx list) */
     vfo_t vfo;          /*!< VFO list equipped with this range */
-    ant_t ant;          /*!< Antenna list equipped with this range, 0 means all */
+    ant_t ant;          /*!< Antenna list equipped with this range, 0 means all, RIG_ANT_CURR means dedicated to certain bands and automatically switches, no set_ant command */
+    char *label;        /*!< Label for this range that explains why.  e.g. Icom rigs USA, EUR, ITR, TPE, KOR */
 } freq_range_t;
 
 #define RIG_FRNG_END        {Hz(0),Hz(0),RIG_MODE_NONE,0,0,RIG_VFO_NONE}
 #define RIG_IS_FRNG_END(r)  ((r).startf == Hz(0) && (r).endf == Hz(0))
-
-
-#define RIG_ITU_REGION1 1
-#define RIG_ITU_REGION2 2
-#define RIG_ITU_REGION3 3
-
 
 /**
  * \brief Tuning step definition
@@ -1448,10 +1446,20 @@ struct rig_caps {
 
     chan_t chan_list[CHANLSTSIZ];   /*!< Channel list, zero ended */
 
-    freq_range_t rx_range_list1[FRQRANGESIZ];   /*!< Receive frequency range list for ITU region 1 */
-    freq_range_t tx_range_list1[FRQRANGESIZ];   /*!< Transmit frequency range list for ITU region 1 */
-    freq_range_t rx_range_list2[FRQRANGESIZ];   /*!< Receive frequency range list for ITU region 2 */
-    freq_range_t tx_range_list2[FRQRANGESIZ];   /*!< Transmit frequency range list for ITU region 2 */
+    // As of 2020-02-12 we know of 5 models from Icom USA, EUR, ITR, TPE, KOR for the IC-9700
+    // So we currently have 5 ranges we need to deal with
+    // The backend for the model should fill in the label field to explain what model it is
+    // The the IC-9700 in ic7300.c for an example 
+    freq_range_t rx_range_list1[FRQRANGESIZ];   /*!< Receive frequency range list #1 */
+    freq_range_t tx_range_list1[FRQRANGESIZ];   /*!< Transmit frequency range list #1 */
+    freq_range_t rx_range_list2[FRQRANGESIZ];   /*!< Receive frequency range list #2 */
+    freq_range_t tx_range_list2[FRQRANGESIZ];   /*!< Transmit frequency range list #2 */
+    freq_range_t rx_range_list3[FRQRANGESIZ];   /*!< Receive frequency range list #3 */
+    freq_range_t tx_range_list3[FRQRANGESIZ];   /*!< Transmit frequency range list #3 */
+    freq_range_t rx_range_list4[FRQRANGESIZ];   /*!< Receive frequency range list #4 */
+    freq_range_t tx_range_list4[FRQRANGESIZ];   /*!< Transmit frequency range list #4 */
+    freq_range_t rx_range_list5[FRQRANGESIZ];   /*!< Receive frequency range list #5 */
+    freq_range_t tx_range_list5[FRQRANGESIZ];   /*!< Transmit frequency range list #5 */
 
     struct tuning_step_list tuning_steps[TSLSTSIZ];     /*!< Tuning step list */
     struct filter_list filters[FLTLSTSIZ];              /*!< mode/filter table, at -6dB */
@@ -1572,7 +1580,7 @@ struct rig_caps {
     int (*reset)(RIG *rig, reset_t reset);
 
     int (*set_ant)(RIG *rig, vfo_t vfo, ant_t ant, value_t option);
-    int (*get_ant)(RIG *rig, vfo_t vfo, ant_t ant, ant_t *ant_curr, value_t *option);
+    int (*get_ant)(RIG *rig, vfo_t vfo, ant_t ant, value_t *option, ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx);
 
     int (*set_level)(RIG *rig, vfo_t vfo, setting_t level, value_t val);
     int (*get_level)(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
@@ -1778,8 +1786,8 @@ struct rig_state {
     int transmit;               /*!< rig should be transmitting i.e. hard
                                      wired PTT asserted - used by rigs that
                                      don't do CAT while in Tx */
-    freq_t lo_freq;             /*!< Local oscillator frequency of any
-				     transverter */
+    freq_t lo_freq;             /*!< Local oscillator frequency of any transverter */
+    time_t twiddling;           /*!< time when vfo twiddling was detected */
 };
 
 
@@ -2176,8 +2184,10 @@ extern HAMLIB_EXPORT(int)
 rig_get_ant HAMLIB_PARAMS((RIG *rig,
                            vfo_t vfo,
                            ant_t ant,
+                           value_t *option,
                            ant_t *ant_curr,
-                           value_t *option));
+                           ant_t *ant_tx,
+                           ant_t *ant_rx));
 
 extern HAMLIB_EXPORT(setting_t)
 rig_has_get_level HAMLIB_PARAMS((RIG *rig,

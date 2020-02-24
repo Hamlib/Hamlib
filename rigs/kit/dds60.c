@@ -172,7 +172,8 @@ int dds60_init(RIG *rig)
 {
     struct dds60_priv_data *priv;
 
-    rig->state.priv = (struct dds60_priv_data *)malloc(sizeof(struct dds60_priv_data));
+    rig->state.priv = (struct dds60_priv_data *)malloc(sizeof(
+                          struct dds60_priv_data));
 
     if (!rig->state.priv)
     {

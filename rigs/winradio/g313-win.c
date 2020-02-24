@@ -233,7 +233,8 @@ int g313_init(RIG *rig)
 {
     struct g313_priv_data *priv;
 
-    rig->state.priv = (struct g313_priv_data *)malloc(sizeof(struct g313_priv_data));
+    rig->state.priv = (struct g313_priv_data *)malloc(sizeof(
+                          struct g313_priv_data));
 
     if (!rig->state.priv)
     {

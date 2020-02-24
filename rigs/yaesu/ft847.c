@@ -532,13 +532,15 @@ int ft847_init(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    rig->state.priv = (struct ft847_priv_data *) calloc(1, sizeof(struct ft847_priv_data));
+    rig->state.priv = (struct ft847_priv_data *) calloc(1,
+                      sizeof(struct ft847_priv_data));
 
     if (!rig->state.priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
+
     priv = rig->state.priv;
 
 
@@ -548,7 +550,8 @@ int ft847_init(RIG *rig)
     /* until these are set we won't know what the values are */
     priv->freqA = 1;  /* 1Hz default */
     priv->freqB = 1;  /* 1Hz default */
-    priv->mode = RIG_MODE_USB; /* mode USB by default to avoid users not setting mode */
+    priv->mode =
+        RIG_MODE_USB; /* mode USB by default to avoid users not setting mode */
     priv->width = 1; /* 1Hz default */
 
     return RIG_OK;

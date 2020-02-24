@@ -110,6 +110,7 @@ int drake_init(RIG *rig)
     {
         return -RIG_ENOMEM;
     }
+
     priv = rig->state.priv;
 
     priv->curr_ch = 0;
@@ -504,11 +505,14 @@ int drake_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
  * drake_get_ant
  * Assumes rig!=NULL
  */
-int drake_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *option)
+int drake_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
+                  ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
     int mdbuf_len, retval;
     char mdbuf[BUFSZ];
     char cant;
+
+    *ant_tx = *ant_rx = RIG_ANT_UNKNOWN;
 
     retval = drake_transaction(rig, "RM" EOM, 3, mdbuf, &mdbuf_len);
 
@@ -528,19 +532,20 @@ int drake_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, ant_t *ant, value_t *option)
 
     switch (cant & 0x3c)
     {
-    case '0': *ant = RIG_ANT_1; break;
+    case '0': *ant_curr = RIG_ANT_1; break;
 
-    case '4': *ant = RIG_ANT_3; break;
+    case '4': *ant_curr = RIG_ANT_3; break;
 
-    case '8': *ant = RIG_ANT_2; break;
+    case '8': *ant_curr = RIG_ANT_2; break;
 
     default :
         rig_debug(RIG_DEBUG_ERR,
                   "drake_get_ant: unsupported antenna %c\n",
                   cant);
-        *ant = RIG_ANT_NONE;
+        *ant_curr = RIG_ANT_UNKNOWN;
         return -RIG_EINVAL;
     }
+
     return RIG_OK;
 }
 

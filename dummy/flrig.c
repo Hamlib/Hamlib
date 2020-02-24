@@ -503,7 +503,7 @@ static int flrig_init(RIG *rig)
     rig_debug(RIG_DEBUG_TRACE, "%s version %s\n", __func__, BACKEND_VER);
 
     rig->state.priv  = (struct flrig_priv_data *)malloc(sizeof(
-                struct flrig_priv_data));
+                           struct flrig_priv_data));
 
     if (!rig->state.priv)
     {
@@ -890,10 +890,10 @@ static int flrig_cleanup(RIG *rig)
 
     for (i = 0; modeMap[i].mode_hamlib != 0; ++i)
     {
-        if (modeMap[i].mode_flrig) 
-        { 
-            free(modeMap[i].mode_flrig); 
-            modeMap[i].mode_flrig = NULL; 
+        if (modeMap[i].mode_flrig)
+        {
+            free(modeMap[i].mode_flrig);
+            modeMap[i].mode_flrig = NULL;
         }
 
     }

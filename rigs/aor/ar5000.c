@@ -432,6 +432,7 @@ int format5k_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width)
     if (width != RIG_PASSBAND_NOCHANGE)
     {
         int aorwidth;
+
         if (width == RIG_PASSBAND_NORMAL)
         {
             width = rig_passband_normal(rig, mode);

@@ -428,7 +428,8 @@ int main(int argc, char *argv[])
     {
         interactive = 0;
     }
-    else {
+    else
+    {
         interactive = 1;
     }
 
@@ -509,14 +510,19 @@ int main(int argc, char *argv[])
         exit(0);
     }
 
-    i=0;
-    do { // we'll try 5 times and sleep 200ms between tries
+    i = 0;
+
+    do   // we'll try 5 times and sleep 200ms between tries
+    {
         retcode = rig_open(my_rig);
-        if (retcode != RIG_OK) {
+
+        if (retcode != RIG_OK)
+        {
             hl_usleep(200000);
-            rig_debug(RIG_DEBUG_TRACE, "%s: error opening rig, try#%d\n", __func__, i+1);
+            rig_debug(RIG_DEBUG_TRACE, "%s: error opening rig, try#%d\n", __func__, i + 1);
         }
-    } while (retcode != RIG_OK && ++i < 5);
+    }
+    while (retcode != RIG_OK && ++i < 5);
 
     if (retcode != RIG_OK)
     {
