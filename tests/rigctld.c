@@ -85,7 +85,7 @@
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:p:d:P:D:s:c:T:t:C:lLuovhVWZ"
+#define SHORT_OPTIONS "m:r:p:d:P:D:s:c:T:t:C:X:lLuovhVZ"
 static struct option long_options[] =
 {
     {"model",           1, 0, 'm'},
@@ -106,7 +106,7 @@ static struct option long_options[] =
     {"verbose",         0, 0, 'v'},
     {"help",            0, 0, 'h'},
     {"version",         0, 0, 'V'},
-    {"twiddle_timeout", 0, 0, 'W'},
+    {"twiddle_timeout", 1, 0, 'X'},
     {"debug-time-stamps", 0, 0, 'Z'},
     {0, 0, 0, 0}
 };
@@ -247,6 +247,7 @@ int main(int argc, char *argv[])
     int sock_listen;
     int sockopt;
     int reuseaddr = 1;
+    int twiddle = 0;
     char host[NI_MAXHOST];
     char serv[NI_MAXSERV];
 #if HAVE_SIGACTION
@@ -499,14 +500,14 @@ int main(int argc, char *argv[])
             dump_caps_opt++;
             break;
 
-        case 'W':
+        case 'X':
             if (!optarg)
             {
                 usage();    /* wrong arg count */
                 exit(1);
             }
 
-            my_rig->state.twiddle_timeout = atoi(optarg);
+            twiddle = atoi(optarg);
             break;
 
         case 'Z':
@@ -555,6 +556,8 @@ int main(int argc, char *argv[])
     {
         strncpy(my_rig->state.rigport.pathname, rig_file, FILPATHLEN - 1);
     }
+
+    my_rig->state.twiddle_timeout = twiddle;
 
     /*
      * ex: RIG_PTT_PARALLEL and /dev/parport0
