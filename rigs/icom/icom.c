@@ -3445,13 +3445,18 @@ int icom_get_split_vfos(const RIG *rig, vfo_t *rx_vfo, vfo_t *tx_vfo)
     }
     else if (VFO_HAS_MAIN_SUB_A_B_ONLY)
     {
-        // TBD -- newer rigs we need to find active VFO
-        // priv->curvfo if VFOA then A/B response else priv->curvfo=Main Main/Sub response
-        // For now we return Main/Sub
-        *rx_vfo = priv->rx_vfo = RIG_VFO_MAIN;
-        *tx_vfo = priv->tx_vfo = RIG_VFO_SUB;
-        rig_debug(RIG_DEBUG_TRACE, "%s: VFO_HAS_MAIN_SUB_A_B_ONLY, rx=%s, tx=%s\n",
-                  __func__, rig_strvfo(*rx_vfo), rig_strvfo(*tx_vfo));
+        // e.g. IC9700 split on Main/Sub does not work
+        // only Main VFOA/B and SubRx/MainTx split works
+        if (priv->split_on) {
+            *rx_vfo = priv->rx_vfo = RIG_VFO_A;
+            *tx_vfo = priv->tx_vfo = RIG_VFO_B;
+        }
+        else {
+            *rx_vfo = priv->rx_vfo = RIG_VFO_SUB;
+            *tx_vfo = priv->tx_vfo = RIG_VFO_MAIN;
+        }
+        rig_debug(RIG_DEBUG_TRACE, "%s: VFO_HAS_MAIN_SUB_A_B_ONLY, split=%d, rx=%s, tx=%s\n",
+                  __func__, priv->split_on, rig_strvfo(*rx_vfo), rig_strvfo(*tx_vfo));
     }
     else
     {
