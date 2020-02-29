@@ -3530,10 +3530,13 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     struct rig_state *rs;
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf);
+    vfo_t save_vfo;
+
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     rs = &rig->state;
     priv = (struct icom_priv_data *) rs->priv;
+    save_vfo = priv->curr_vfo; // so we can restore it later
 
     /* This method works also in memory mode(RIG_VFO_MEM) */
     if (!priv->no_xchg && rig_has_vfo_op(rig, RIG_OP_XCHG))
@@ -3596,7 +3599,13 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
         return rc;
     }
 
-    if (RIG_OK != (rc = icom_set_vfo(rig, rx_vfo)))
+    if (VFO_HAS_MAIN_SUB_A_B_ONLY)
+    {
+        // Then we return the VFO to where it was
+        rig_debug(RIG_DEBUG_TRACE, "%s: SATMODE rig so returning vfo to %s\n", __func__,
+                  rig_strvfo(save_vfo));
+    }
+    else if (RIG_OK != (rc = icom_set_vfo(rig, rx_vfo)))
     {
         return rc;
     }
