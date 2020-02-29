@@ -3367,17 +3367,26 @@ int icom_get_split_vfos(const RIG *rig, vfo_t *rx_vfo, vfo_t *tx_vfo)
     }
     else if (VFO_HAS_MAIN_SUB_A_B_ONLY)
     {
+        int satmode = 0;
         // e.g. IC9700 split on Main/Sub does not work
         // only Main VFOA/B and SubRx/MainTx split works
-        if (priv->split_on)
+        rig_get_func((RIG*)rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
+
+        // don't care about retval here...only care about satmode=1
+        if (satmode)
+        {
+            *rx_vfo = priv->rx_vfo = RIG_VFO_MAIN;
+            *tx_vfo = priv->tx_vfo = RIG_VFO_SUB;
+        }
+        else if (priv->split_on)
         {
             *rx_vfo = priv->rx_vfo = RIG_VFO_A;
             *tx_vfo = priv->tx_vfo = RIG_VFO_B;
         }
         else
         {
-            *rx_vfo = priv->rx_vfo = RIG_VFO_SUB;
-            *tx_vfo = priv->tx_vfo = RIG_VFO_MAIN;
+            *rx_vfo = priv->rx_vfo = RIG_VFO_A;
+            *tx_vfo = priv->tx_vfo = RIG_VFO_A;
         }
 
         rig_debug(RIG_DEBUG_TRACE,
