@@ -3447,15 +3447,19 @@ int icom_get_split_vfos(const RIG *rig, vfo_t *rx_vfo, vfo_t *tx_vfo)
     {
         // e.g. IC9700 split on Main/Sub does not work
         // only Main VFOA/B and SubRx/MainTx split works
-        if (priv->split_on) {
+        if (priv->split_on)
+        {
             *rx_vfo = priv->rx_vfo = RIG_VFO_A;
             *tx_vfo = priv->tx_vfo = RIG_VFO_B;
         }
-        else {
+        else
+        {
             *rx_vfo = priv->rx_vfo = RIG_VFO_SUB;
             *tx_vfo = priv->tx_vfo = RIG_VFO_MAIN;
         }
-        rig_debug(RIG_DEBUG_TRACE, "%s: VFO_HAS_MAIN_SUB_A_B_ONLY, split=%d, rx=%s, tx=%s\n",
+
+        rig_debug(RIG_DEBUG_TRACE,
+                  "%s: VFO_HAS_MAIN_SUB_A_B_ONLY, split=%d, rx=%s, tx=%s\n",
                   __func__, priv->split_on, rig_strvfo(*rx_vfo), rig_strvfo(*tx_vfo));
     }
     else
@@ -3550,7 +3554,19 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
         return rc;
     }
 
-    if (RIG_OK != (rc = icom_set_vfo(rig, rx_vfo)))
+    if (VFO_HAS_MAIN_SUB_A_B_ONLY)
+    {
+        // Then we leave the VFO on the tx_vfo which should be Main
+        // in satellite mode
+        rig_debug(RIG_DEBUG_TRACE, "%s: SATMODE rig so setting vfo to %s\n", __func__,
+                  rig_strvfo(tx_vfo));
+
+        if (RIG_OK != (rc = icom_set_vfo(rig, tx_vfo)))
+        {
+            return rc;
+        }
+    }
+    else if (RIG_OK != (rc = icom_set_vfo(rig, rx_vfo)))
     {
         return rc;
     }
@@ -4179,13 +4195,17 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
             priv->tx_vfo = RIG_VFO_B;
             priv->rx_vfo = RIG_VFO_A;
         }
-        else if (VFO_HAS_MAIN_SUB_A_B_ONLY && (tx_vfo == RIG_VFO_MAIN || tx_vfo == RIG_VFO_SUB))
-        { // if we're asking for split in this case we split Main on A/B
+        else if (VFO_HAS_MAIN_SUB_A_B_ONLY && (tx_vfo == RIG_VFO_MAIN
+                                               || tx_vfo == RIG_VFO_SUB))
+        {
+            // if we're asking for split in this case we split Main on A/B
             priv->tx_vfo = RIG_VFO_B;
             priv->rx_vfo = RIG_VFO_A;
-            rig_debug(RIG_DEBUG_TRACE, "%s: tx=%s, rx=%s because tx_vfo=%s, charing tx_vfo to Main\n", __func__,
+            rig_debug(RIG_DEBUG_TRACE,
+                      "%s: tx=%s, rx=%s because tx_vfo=%s, charing tx_vfo to Main\n", __func__,
                       rig_strvfo(priv->tx_vfo), rig_strvfo(priv->rx_vfo), rig_strvfo(tx_vfo));
             tx_vfo = RIG_VFO_B;
+
             if (RIG_OK != (rc = icom_set_vfo(rig, RIG_VFO_MAIN)))
             {
                 return rc;
