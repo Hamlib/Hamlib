@@ -3682,6 +3682,11 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
         // Then we return the VFO to where it was
         rig_debug(RIG_DEBUG_TRACE, "%s: SATMODE rig so returning vfo to %s\n", __func__,
                   rig_strvfo(save_vfo));
+
+        if (RIG_OK != (rc = icom_set_vfo(rig, save_vfo)))
+        {
+            return rc;
+        }
     }
     else if (RIG_OK != (rc = icom_set_vfo(rig, rx_vfo)))
     {
