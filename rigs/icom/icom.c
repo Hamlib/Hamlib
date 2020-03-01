@@ -3422,11 +3422,13 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called for %s\n", __func__, rig_strvfo(vfo));
     rs = &rig->state;
     priv = (struct icom_priv_data *) rs->priv;
+    set_vfo_curr(rig, RIG_VFO_CURR, RIG_VFO_CURR);
     save_vfo = priv->curr_vfo;
 
     if (!priv->no_xchg && rig_has_vfo_op(rig, RIG_OP_XCHG))
     {
-        rig_debug(RIG_DEBUG_TRACE,"%s: Using XCHG to swap/set/swap\n", __func__);
+        rig_debug(RIG_DEBUG_TRACE, "%s: Using XCHG to swap/set/swap\n", __func__);
+
         if (RIG_OK != (rc = icom_vfo_op(rig, vfo, RIG_OP_XCHG)))
         {
             return rc;
@@ -4629,6 +4631,34 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: wrong frame len=%d\n", __func__, acklen);
         return -RIG_EPROTO;
+    }
+
+    // turning satmode on/off can change the tx/rx vfos
+    // when in satmode split=off always
+    if (VFO_HAS_MAIN_SUB_A_B_ONLY)
+    {
+        struct rig_state *rs = &rig->state;
+        struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
+        vfo_t tx_vfo;
+        split_t split;
+
+        // update split status
+        retval = icom_get_split_vfo(rig, RIG_VFO_CURR, &split, &tx_vfo);
+
+        if (retval != RIG_OK) { return retval; }
+
+        if (priv->split_on)   // must have turned off satmode
+        {
+            priv->tx_vfo = RIG_VFO_B;
+        }
+        else if (status)   // turned on satmode so tx is always Sub
+        {
+            priv->tx_vfo = RIG_VFO_SUB;
+        }
+        else if (!status && !priv->split_on) // turned off satmode
+        {
+            priv->tx_vfo = RIG_VFO_A;
+        }
     }
 
     return RIG_OK;
@@ -6440,6 +6470,9 @@ static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
 
         priv->curr_vfo = vfo;
     }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: curr_vfo now=%s\n", __func__,
+              rig_strvfo(priv->curr_vfo));
 
     return RIG_OK;
 }
