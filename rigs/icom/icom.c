@@ -3448,7 +3448,7 @@ int icom_get_split_vfos(const RIG *rig, vfo_t *rx_vfo, vfo_t *tx_vfo)
         int satmode = 0;
         // e.g. IC9700 split on Main/Sub does not work
         // only Main VFOA/B and SubRx/MainTx split works
-        rig_get_func((RIG*)rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
+        rig_get_func((RIG *)rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
 
         // don't care about retval here...only care about satmode=1
         if (satmode)
@@ -3495,13 +3495,16 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     struct rig_state *rs;
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf);
+    vfo_t save_vfo;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called for %s\n", __func__, rig_strvfo(vfo));
     rs = &rig->state;
     priv = (struct icom_priv_data *) rs->priv;
+    save_vfo = priv->curr_vfo;
 
     if (!priv->no_xchg && rig_has_vfo_op(rig, RIG_OP_XCHG))
     {
+        rig_debug(RIG_DEBUG_TRACE,"%s: Using XCHG to swap/set/swap\n", __func__);
         if (RIG_OK != (rc = icom_vfo_op(rig, vfo, RIG_OP_XCHG)))
         {
             return rc;
@@ -3565,12 +3568,11 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
     if (VFO_HAS_MAIN_SUB_A_B_ONLY)
     {
-        // Then we leave the VFO on the tx_vfo which should be Main
-        // in satellite mode
+        // Then we return the VFO to where it was
         rig_debug(RIG_DEBUG_TRACE, "%s: SATMODE rig so setting vfo to %s\n", __func__,
-                  rig_strvfo(tx_vfo));
+                  rig_strvfo(save_vfo));
 
-        if (RIG_OK != (rc = icom_set_vfo(rig, tx_vfo)))
+        if (RIG_OK != (rc = icom_set_vfo(rig, save_vfo)))
         {
             return rc;
         }
@@ -3592,6 +3594,7 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
         }
     }
 
+    // Update our internal freqs to match what we just did
     if (vfo == RIG_VFO_MAIN)
     {
         priv->main_freq = tx_freq;
@@ -6449,6 +6452,20 @@ static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
     // So if you ask for frequency or such without setting VFO first you'll get VFOA
     if (priv->curr_vfo == RIG_VFO_NONE && vfo == RIG_VFO_CURR)
     {
+
+        if (VFO_HAS_MAIN_SUB_A_B_ONLY)
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: setting default as MAIN/VFOA\n",
+                      __func__);
+            retval = rig_set_vfo(rig, RIG_VFO_MAIN);  // we'll default to Main in this case
+
+            if (retval != RIG_OK)
+            {
+                return retval;
+            }
+
+            retval = rig_set_vfo(rig, RIG_VFO_A);  // we'll default to Main in this case
+        }
 
         if (VFO_HAS_MAIN_SUB_ONLY)
         {
