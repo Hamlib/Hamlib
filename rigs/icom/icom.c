@@ -3426,6 +3426,7 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
     if (!priv->no_xchg && rig_has_vfo_op(rig, RIG_OP_XCHG))
     {
+        rig_debug(RIG_DEBUG_TRACE,"%s: Using XCHG to swap/set/swap\n", __func__);
         if (RIG_OK != (rc = icom_vfo_op(rig, vfo, RIG_OP_XCHG)))
         {
             return rc;
@@ -3515,6 +3516,7 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
         }
     }
 
+    // Update our internal freqs to match what we just did
     if (vfo == RIG_VFO_MAIN)
     {
         priv->main_freq = tx_freq;
@@ -6372,6 +6374,20 @@ static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
     // So if you ask for frequency or such without setting VFO first you'll get VFOA
     if (priv->curr_vfo == RIG_VFO_NONE && vfo == RIG_VFO_CURR)
     {
+
+        if (VFO_HAS_MAIN_SUB_A_B_ONLY)
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: setting default as MAIN/VFOA\n",
+                      __func__);
+            retval = rig_set_vfo(rig, RIG_VFO_MAIN);  // we'll default to Main in this case
+
+            if (retval != RIG_OK)
+            {
+                return retval;
+            }
+
+            retval = rig_set_vfo(rig, RIG_VFO_A);  // we'll default to Main in this case
+        }
 
         if (VFO_HAS_MAIN_SUB_ONLY)
         {
