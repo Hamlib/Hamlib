@@ -28,6 +28,7 @@ rigctld \- TCP radio control daemon
 .OP \-T IPADDR
 .OP \-t number
 .OP \-C parm=val
+.OP \-X seconds
 .RB [ \-v [ \-Z ]]
 .YS
 .
@@ -281,6 +282,14 @@ below.
 Set verbose mode, cumulative (see
 .B DIAGNOSTICS
 below).
+.
+.TP
+.BR \-X ", " \-\-twiddle = \fIseconds\fP
+Enables timeout when VFO twiddling is detected.  Some functons will be ignored.
+.IP
+Should only be needed when controlling software should be "paused"
+.B -v
+so you can move the VFO.  Continuous movement extends the timeout.
 .
 .TP
 .BR \-Z ", " \-\-debug\-time\-stamps
