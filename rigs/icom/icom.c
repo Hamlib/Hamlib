@@ -680,7 +680,7 @@ int icom_get_usb_echo_off(RIG *rig)
     // Check for echo on first
     priv->serial_USB_echo_off = 0;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: retry temp set to 1\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: retry temp set to %d\n", __func__, rs->rigport.retry);
 
     retval = icom_transaction(rig, C_RD_FREQ, -1, NULL, 0, ackbuf, &ack_len);
 
@@ -4248,6 +4248,8 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
             {
                 return rc;
             }
+            priv->rx_vfo = vfo;
+            priv->tx_vfo = tx_vfo;
 
             split_sc = S_SPLT_ON;
         }
@@ -4278,8 +4280,6 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         return -RIG_ERJCTED;
     }
 
-    priv->rx_vfo = vfo;
-    priv->tx_vfo = tx_vfo;
     priv->split_on = RIG_SPLIT_ON == split;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s rx_vfo=%s tx_vfo=%s split=%d\n",
               __func__, rig_strvfo(vfo), rig_strvfo(priv->rx_vfo),
@@ -6495,6 +6495,10 @@ static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
             }
 
             retval = rig_set_vfo(rig, RIG_VFO_A);  // we'll default to Main in this case
+            if (retval != RIG_OK)
+            {
+                return retval;
+            }
         }
 
         if (VFO_HAS_MAIN_SUB_ONLY)
