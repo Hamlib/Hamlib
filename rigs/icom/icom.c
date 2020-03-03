@@ -680,7 +680,8 @@ int icom_get_usb_echo_off(RIG *rig)
     // Check for echo on first
     priv->serial_USB_echo_off = 0;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: retry temp set to %d\n", __func__, rs->rigport.retry);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: retry temp set to %d\n", __func__,
+              rs->rigport.retry);
 
     retval = icom_transaction(rig, C_RD_FREQ, -1, NULL, 0, ackbuf, &ack_len);
 
@@ -2871,14 +2872,20 @@ int icom_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
     cfp = (cfp == NULL) ? icom_ext_levels : cfp;
     int i;
 
-    for (i = 0; (cfp[i].token != RIG_CONF_END) || (cfp != icom_ext_levels);) {
-        if (cfp[i].token == RIG_CONF_END) {
+    for (i = 0; (cfp[i].token != RIG_CONF_END) || (cfp != icom_ext_levels);)
+    {
+        if (cfp[i].token == RIG_CONF_END)
+        {
             cfp = icom_ext_levels;
             i = 0;
-        } else if (cfp[i].token == token) {
+        }
+        else if (cfp[i].token == token)
+        {
             return icom_set_ext_cmd(rig, vfo, token, val);
-        } else { i++; }
+        }
+        else { i++; }
     }
+
     return -RIG_EINVAL;
 }
 
@@ -2890,14 +2897,20 @@ int icom_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
     cfp = (cfp == NULL) ? icom_ext_levels : cfp;
     int i;
 
-    for (i = 0; (cfp[i].token != RIG_CONF_END) || (cfp != icom_ext_levels);) {
-        if (cfp[i].token == RIG_CONF_END) {
+    for (i = 0; (cfp[i].token != RIG_CONF_END) || (cfp != icom_ext_levels);)
+    {
+        if (cfp[i].token == RIG_CONF_END)
+        {
             cfp = icom_ext_levels;
             i = 0;
-        } else if (cfp[i].token == token) {
+        }
+        else if (cfp[i].token == token)
+        {
             return icom_get_ext_cmd(rig, vfo, token, val);
-        } else { i++; }
+        }
+        else { i++; }
     }
+
     return -RIG_EINVAL;
 }
 
@@ -2909,14 +2922,20 @@ int icom_set_ext_func(RIG *rig, vfo_t vfo, token_t token, int status)
     cfp = (cfp == NULL) ? icom_ext_funcs : cfp;
     int i;
 
-    for (i = 0; (cfp[i].token != RIG_CONF_END) || (cfp != icom_ext_funcs);) {
-        if (cfp[i].token == RIG_CONF_END) {
+    for (i = 0; (cfp[i].token != RIG_CONF_END) || (cfp != icom_ext_funcs);)
+    {
+        if (cfp[i].token == RIG_CONF_END)
+        {
             cfp = icom_ext_funcs;
             i = 0;
-        } else if (cfp[i].token == token) {
+        }
+        else if (cfp[i].token == token)
+        {
             return icom_set_ext_cmd(rig, vfo, token, (value_t)status);
-        } else { i++; }
+        }
+        else { i++; }
     }
+
     return -RIG_EINVAL;
 }
 
@@ -2928,14 +2947,20 @@ int icom_get_ext_func(RIG *rig, vfo_t vfo, token_t token, int *status)
     cfp = (cfp == NULL) ? icom_ext_funcs : cfp;
     int i;
 
-    for (i = 0; (cfp[i].token != RIG_CONF_END) || (cfp != icom_ext_funcs);) {
-        if (cfp[i].token == RIG_CONF_END) {
+    for (i = 0; (cfp[i].token != RIG_CONF_END) || (cfp != icom_ext_funcs);)
+    {
+        if (cfp[i].token == RIG_CONF_END)
+        {
             cfp = icom_ext_funcs;
             i = 0;
-        } else if (cfp[i].token == token) {
-            return icom_get_ext_cmd(rig, vfo, token, (value_t*)status);
-        } else { i++; }
+        }
+        else if (cfp[i].token == token)
+        {
+            return icom_get_ext_cmd(rig, vfo, token, (value_t *)status);
+        }
+        else { i++; }
     }
+
     return -RIG_EINVAL;
 }
 
@@ -2947,14 +2972,20 @@ int icom_set_ext_parm(RIG *rig, token_t token, value_t val)
     cfp = (cfp == NULL) ? icom_ext_parms : cfp;
     int i;
 
-    for (i = 0; (cfp[i].token != RIG_CONF_END) || (cfp != icom_ext_parms);) {
-        if (cfp[i].token == RIG_CONF_END) {
+    for (i = 0; (cfp[i].token != RIG_CONF_END) || (cfp != icom_ext_parms);)
+    {
+        if (cfp[i].token == RIG_CONF_END)
+        {
             cfp = icom_ext_parms;
             i = 0;
-        } else if (cfp[i].token == token) {
+        }
+        else if (cfp[i].token == token)
+        {
             return icom_set_ext_cmd(rig, RIG_VFO_NONE, token, val);
-        } else { i++; }
+        }
+        else { i++; }
     }
+
     return -RIG_EINVAL;
 }
 
@@ -2966,14 +2997,20 @@ int icom_get_ext_parm(RIG *rig, token_t token, value_t *val)
     cfp = (cfp == NULL) ? icom_ext_parms : cfp;
     int i;
 
-    for (i = 0; (cfp[i].token != RIG_CONF_END) || (cfp != icom_ext_parms);) {
-        if (cfp[i].token == RIG_CONF_END) {
+    for (i = 0; (cfp[i].token != RIG_CONF_END) || (cfp != icom_ext_parms);)
+    {
+        if (cfp[i].token == RIG_CONF_END)
+        {
             cfp = icom_ext_parms;
             i = 0;
-        } else if (cfp[i].token == token) {
+        }
+        else if (cfp[i].token == token)
+        {
             return icom_get_ext_cmd(rig, RIG_VFO_NONE, token, val);
-        } else { i++; }
+        }
+        else { i++; }
     }
+
     return -RIG_EINVAL;
 }
 
@@ -4209,6 +4246,17 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     case RIG_SPLIT_ON:
         split_sc = S_SPLT_ON;
 
+        /* If asking for Sub or Main on rig that doesn't have it map it */
+        if (VFO_HAS_A_B_ONLY && ((tx_vfo == RIG_VFO_MAIN || tx_vfo == RIG_VFO_SUB)
+                            || vfo == RIG_VFO_MAIN || vfo == RIG_VFO_SUB))
+        {
+            if (tx_vfo == RIG_VFO_MAIN) { tx_vfo = RIG_VFO_A; }
+            else if (tx_vfo == RIG_VFO_SUB) { tx_vfo = RIG_VFO_B; }
+
+            if (vfo == RIG_VFO_MAIN) { vfo = RIG_VFO_A; }
+            else if (vfo == RIG_VFO_SUB) { vfo = RIG_VFO_B; }
+        }
+
         /* ensure VFO A is Rx and VFO B is Tx as we assume that elsewhere */
         if (VFO_HAS_A_B && (tx_vfo == RIG_VFO_A || tx_vfo == RIG_VFO_B))
         {
@@ -4248,6 +4296,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
             {
                 return rc;
             }
+
             priv->rx_vfo = vfo;
             priv->tx_vfo = tx_vfo;
 
@@ -6495,6 +6544,7 @@ static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
             }
 
             retval = rig_set_vfo(rig, RIG_VFO_A);  // we'll default to Main in this case
+
             if (retval != RIG_OK)
             {
                 return retval;
