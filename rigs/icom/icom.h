@@ -30,7 +30,7 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "0.31a"
+#define BACKEND_VER "0.32"
 
 /*
  * defines used by comp_cal_str in rig.c
