@@ -141,6 +141,7 @@
 %ignore rig_mW2power;
 %ignore rig_get_resolution;
 %ignore rig_set_level;
+%ignore rig_set_ext_level;
 %ignore rig_get_level;
 %ignore rig_set_parm;
 %ignore rig_get_parm;
@@ -212,6 +213,7 @@
 
 #ifdef SWIGLUA
 %ignore Rig::set_level(setting_t,int,vfo_t);
+%ignore Rig::set_ext_level(setting_t,value_t,vfo_t);
 %ignore Rig::set_level(char const *,int,vfo_t);
 %ignore Rig::set_parm(setting_t,int);
 %ignore Rig::set_parm(char const *,int);

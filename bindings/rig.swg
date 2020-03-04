@@ -349,6 +349,7 @@ typedef channel_t * const_channel_t_p;
 	METHOD3(set_ts, shortfreq_t)
 	METHOD2(set_ant, ant_t, value_t)
 	METHOD2(set_func, setting_t, int)
+	METHOD2(set_ext_func, token_t, int)
 	METHOD3(set_bank, int)
 	METHOD3(set_mem, int)
 	METHOD3(send_dtmf, const_char_string)
@@ -378,7 +379,7 @@ typedef channel_t * const_channel_t_p;
 	METHOD1(set_vfo, vfo_t)		/* particular case */
 	METHOD1(set_powerstat, powerstat_t)
 	METHOD1(set_trn, int)
-	METHOD1(has_set_level, setting_t)
+	METHOD1(has_get_level, setting_t)
 	METHOD1(has_set_parm, setting_t)
 	METHOD1(has_set_func, setting_t)
 	METHOD1(reset, reset_t)
@@ -443,11 +444,7 @@ typedef channel_t * const_channel_t_p;
 	METHOD1VGET(get_mem, int)
 	METHOD1GET(get_powerstat, powerstat_t)
 	METHOD1GET(get_trn, int)
-
-  METHOD1VGET(get_dcd, dcd_t)
-
-	//METHOD2GET(get_ext_parm, token_t, value_t)
-
+	METHOD1VGET(get_dcd, dcd_t)
 
 	int mem_count(void) {
 		return rig_mem_count(self->rig);
@@ -531,7 +528,11 @@ typedef channel_t * const_channel_t_p;
 		return status;
 	}
 
-
+	int get_ext_func(token_t func, vfo_t vfo = RIG_VFO_CURR) {
+		int status;
+		self->error_status = rig_get_ext_func(self->rig, vfo, func, &status);
+		return status;
+	}
 
 #ifndef SWIGJAVA
 	/* TODO */
@@ -541,11 +542,24 @@ typedef channel_t * const_channel_t_p;
 			/* TODO: dynamic casting */
 		}
 
+	void get_ext_level(token_t token, vfo_t vfo = RIG_VFO_CURR)
+		{ value_t val; self->error_status = rig_get_level(self->rig, vfo, token, &val);
+			//if (RIG_LEVEL_IS_FLOAT(level))
+			/* TODO: dynamic casting */
+		}
+
 	void get_parm(setting_t parm)
 		{ value_t val; self->error_status = rig_get_parm(self->rig, parm, &val);
 			//if (RIG_LEVEL_IS_FLOAT(parm))
 			/* TODO: dynamic casting */
 		}
+
+	void get_ext_parm(token_t parm)
+		{ value_t val; self->error_status = rig_get_parm(self->rig, parm, &val);
+			//if (RIG_LEVEL_IS_FLOAT(parm))
+			/* TODO: dynamic casting */
+		}
+
 #endif
 
 };
