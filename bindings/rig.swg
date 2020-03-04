@@ -540,9 +540,14 @@ typedef channel_t * const_channel_t_p;
 			//if (RIG_LEVEL_IS_FLOAT(level))
 			/* TODO: dynamic casting */
 		}
+
+	void get_parm(setting_t parm)
+		{ value_t val; self->error_status = rig_get_parm(self->rig, parm, &val);
+			//if (RIG_LEVEL_IS_FLOAT(parm))
+			/* TODO: dynamic casting */
+		}
 #endif
 
-	/* TODO also: get_parm */
 };
 
 %{
