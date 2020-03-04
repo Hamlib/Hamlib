@@ -68,6 +68,8 @@ typedef channel_t * const_channel_t_p;
 				{ self->error_status = rig_##f(self->rig  _VFO_ARG, _##t1##_1, _##t2##_2); }
 #define METHOD3(f, t1) void f ( vfo_t vfo, t1 _##t1) \
 				{ self->error_status = rig_##f(self->rig  _VFO_ARG, _##t1); }
+#define METHOD3_INIT(f, t1, t2, t3, i3) void f (t1 _##t1##_1, t2 _##t2##_2, t3 _##t3##_3 = i3  _VFO_DECL) \
+				{ self->error_status = rig_##f(self->rig  _VFO_ARG, _##t1##_1, _##t2##_2, _##t3##_3); }
 /*
  * declare wrapper method with one output argument besides RIG* (no target vfo)
  */
@@ -340,6 +342,7 @@ typedef channel_t * const_channel_t_p;
 	METHOD1(set_dcs_sql, tone_t)
 	METHOD3(set_split_freq, freq_t)
 	METHOD2_INIT(set_split_mode, rmode_t, pbwidth_t, RIG_PASSBAND_NORMAL)
+	METHOD3_INIT(set_split_freq_mode, freq_t, rmode_t, pbwidth_t, RIG_PASSBAND_NORMAL)
 	METHOD2(set_split_vfo, split_t, vfo_t)
 	METHOD3(set_rit, shortfreq_t)
 	METHOD3(set_xit, shortfreq_t)
@@ -545,7 +548,7 @@ typedef channel_t * const_channel_t_p;
 %{
 
 /*
- * these ones returns 2 values, here is a perl example:
+ * these ones return 2 values, here is a perl example:
  * 	($mode, $width) = $rig->get_mode();
  */
 void Rig_get_mode(Rig *self, rmode_t *mode, pbwidth_t *width, vfo_t vfo)
@@ -557,6 +560,15 @@ void Rig_get_split_mode(Rig *self, rmode_t *mode, pbwidth_t *width, vfo_t vfo)
 {
 	self->error_status = rig_get_split_mode(self->rig, vfo, mode, width);
 }
+
+/*
+ * these ones return 3 values
+ */
+void Rig_get_split_freq_mode(Rig *self, vfo_t vfo, freq_t *tx_freq, rmode_t *tx_mode, pbwidth_t *tx_width)
+{
+	self->error_status = rig_get_split_freq_mode(self->rig, vfo, tx_freq, tx_mode, tx_width);
+}
+
 
 /*
  * these ones return 4 values
