@@ -1391,7 +1391,8 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
             // since width_icom is 0-2 for rigs that need this here we have to make it 1-3
             datamode[1] = datamode[0] ? width_icom : 0;
             retval =
-                icom_transaction(rig, C_CTL_MEM, dm_sub_cmd, datamode, 2, ackbuf,
+                icom_transaction(rig, C_CTL_MEM, dm_sub_cmd, datamode, width_icom == -1 ? 1 : 2,
+                                 ackbuf,
                                  &ack_len);
         }
         else
@@ -4248,7 +4249,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
         /* If asking for Sub or Main on rig that doesn't have it map it */
         if (VFO_HAS_A_B_ONLY && ((tx_vfo == RIG_VFO_MAIN || tx_vfo == RIG_VFO_SUB)
-                            || vfo == RIG_VFO_MAIN || vfo == RIG_VFO_SUB))
+                                 || vfo == RIG_VFO_MAIN || vfo == RIG_VFO_SUB))
         {
             if (tx_vfo == RIG_VFO_MAIN) { tx_vfo = RIG_VFO_A; }
             else if (tx_vfo == RIG_VFO_SUB) { tx_vfo = RIG_VFO_B; }

@@ -95,7 +95,7 @@ static int tmv7_set_channel(RIG *rig, const channel_t *chan);
  */
 const struct rig_caps tmv7_caps =
 {
-    .rig_model =  RIG_MODEL_TMV7,
+    RIG_MODEL(RIG_MODEL_TMV7),
     .model_name = "TM-V7",
     .mfg_name =  "Kenwood",
     .version =  TH_VER,

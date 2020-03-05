@@ -108,7 +108,7 @@ const struct confparams hiqsdr_cfg_params[] =
 
 const struct rig_caps hiqsdr_caps =
 {
-    .rig_model =      RIG_MODEL_HIQSDR,
+    RIG_MODEL(RIG_MODEL_HIQSDR),
     .model_name =     "HiQSDR",
     .mfg_name =       "N2ADR",
     .version =        "0.1",

@@ -61,7 +61,7 @@ static struct icom_priv_caps icr7000_priv_caps =
  */
 const struct rig_caps icr7000_caps =
 {
-    .rig_model =  RIG_MODEL_ICR7000,
+    RIG_MODEL(RIG_MODEL_ICR7000),
     .model_name = "IC-R7000",
     .mfg_name =  "Icom",
     .version =  BACKEND_VER ".0",
@@ -176,7 +176,7 @@ static struct icom_priv_caps icr7100_priv_caps =
  */
 const struct rig_caps icr7100_caps =
 {
-    .rig_model =  RIG_MODEL_ICR7100,
+    RIG_MODEL(RIG_MODEL_ICR7100),
     .model_name = "IC-R7100",
     .mfg_name =  "Icom",
     .version =  BACKEND_VER ".0",

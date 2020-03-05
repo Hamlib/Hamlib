@@ -121,7 +121,7 @@ static int mode2rig(RIG *rig, rmode_t mode, pbwidth_t width);
 
 const struct rig_caps frg100_caps =
 {
-    .rig_model =          RIG_MODEL_FRG100,
+    RIG_MODEL(RIG_MODEL_FRG100),
     .model_name =         "FRG-100",
     .mfg_name =           "Yaesu",
     .version =            "0.5",

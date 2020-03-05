@@ -1759,7 +1759,7 @@ static int ar7030p_get_channel(RIG *rig, channel_t *chan)
 
 const struct rig_caps ar7030p_caps =
 {
-    .rig_model = RIG_MODEL_AR7030P,
+    RIG_MODEL(RIG_MODEL_AR7030P),
     .model_name = "AR7030 Plus",
     .mfg_name = "AOR",
     .version = "0.1",

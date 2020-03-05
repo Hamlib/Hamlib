@@ -801,7 +801,7 @@ int main(int argc, char *argv[])
     printf("<P>");
 
     time(&gentime);
-    printf("Rigmatrix generated %s by %s\n", ctime(&gentime), getenv("USER"));
+    printf("Rigmatrix generated %s\n", ctime(&gentime));
 
     printf("</body></html>\n");
 

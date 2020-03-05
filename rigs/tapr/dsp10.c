@@ -58,7 +58,7 @@
  */
 const struct rig_caps dsp10_caps =
 {
-    .rig_model =  RIG_MODEL_DSP10,
+    RIG_MODEL(RIG_MODEL_DSP10),
     .model_name = "DSP-10",
     .mfg_name =  "TAPR",
     .version =  "0.2",

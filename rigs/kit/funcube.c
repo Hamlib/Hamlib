@@ -98,7 +98,7 @@ struct funcube_priv_data
 
 const struct rig_caps funcube_caps =
 {
-    .rig_model =        RIG_MODEL_FUNCUBEDONGLE,
+    RIG_MODEL(RIG_MODEL_FUNCUBEDONGLE),
     .model_name =       "FUNcube Dongle",
     .mfg_name =     "AMSAT-UK",
     .version =      "0.3",
@@ -161,7 +161,7 @@ const struct rig_caps funcube_caps =
 
 const struct rig_caps funcubeplus_caps =
 {
-    .rig_model =        RIG_MODEL_FUNCUBEDONGLEPLUS,
+    RIG_MODEL(RIG_MODEL_FUNCUBEDONGLEPLUS),
     .model_name =       "FUNcube Dongle Pro+",
     .mfg_name =     "AMSAT-UK",
     .version =      "0.4",

@@ -99,7 +99,7 @@ struct ar3030_priv_data
  */
 const struct rig_caps ar3030_caps =
 {
-    .rig_model =  RIG_MODEL_AR3030,
+    RIG_MODEL(RIG_MODEL_AR3030),
     .model_name = "AR3030",
     .mfg_name =  "AOR",
     .version =  "1.0",

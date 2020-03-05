@@ -99,7 +99,7 @@ static struct kenwood_priv_caps  ts2000_priv_caps  =
  */
 const struct rig_caps pihpsdr_caps =
 {
-    .rig_model =  RIG_MODEL_HPSDR,
+    RIG_MODEL(RIG_MODEL_HPSDR),
     .model_name = "PiHPSDR",
     .mfg_name =  "OpenHPSDR",
     .version =  "20170121",

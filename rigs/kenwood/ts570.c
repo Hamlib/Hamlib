@@ -936,7 +936,7 @@ int ts570_set_xit(RIG *rig, vfo_t vfo, shortfreq_t rit)
  */
 const struct rig_caps ts570s_caps =
 {
-    .rig_model =  RIG_MODEL_TS570S,
+    RIG_MODEL(RIG_MODEL_TS570S),
     .model_name = "TS-570S",
     .mfg_name =  "Kenwood",
     .version =  BACKEND_VER ".1",
@@ -1117,7 +1117,7 @@ const struct rig_caps ts570s_caps =
  */
 const struct rig_caps ts570d_caps =
 {
-    .rig_model =  RIG_MODEL_TS570D,
+    RIG_MODEL(RIG_MODEL_TS570D),
     .model_name = "TS-570D",
     .mfg_name =  "Kenwood",
     .version =  BACKEND_VER ".2",

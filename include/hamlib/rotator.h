@@ -216,6 +216,7 @@ typedef enum {
  * n.b.: Don't move fields around, as the backends depend on it when
  *       initializing their caps.
  */
+#define ROT_MODEL(arg) .rot_model=arg,.rot_model_macro_name=#arg
 struct rot_caps {
     rot_model_t rot_model;                      /*!< Rotator model. */
     const char *model_name;                     /*!< Model name. */
@@ -254,6 +255,7 @@ struct rot_caps {
 
     const struct confparams *cfgparams;         /*!< Configuration parametres. */
     const rig_ptr_t priv;                       /*!< Private data. */
+    const char *rot_model_macro_name;           /*!< Model macro name */
 
     /*
      * Rot Admin API

@@ -123,7 +123,7 @@ struct g3_priv_data
 
 const struct rig_caps g305_caps =
 {
-    .rig_model =      RIG_MODEL_G305,
+    RIG_MODEL(RIG_MODEL_G305),
     .model_name =     "WR-G305",
     .mfg_name =       "Winradio",
     .version =        "0.2.1",

@@ -165,7 +165,7 @@ static const struct hamlib_vs_dttsp
 
 const struct rig_caps dttsp_rig_caps =
 {
-    .rig_model =      RIG_MODEL_DTTSP,
+    RIG_MODEL(RIG_MODEL_DTTSP),
     .model_name =     "DttSP IPC",
     .mfg_name =       "DTTS Microwave Society",
     .version =        "0.2",
@@ -250,7 +250,7 @@ const struct rig_caps dttsp_rig_caps =
  */
 const struct rig_caps dttsp_udp_rig_caps =
 {
-    .rig_model =      RIG_MODEL_DTTSP_UDP,
+    RIG_MODEL(RIG_MODEL_DTTSP_UDP),
     .model_name =     "DttSP UDP",
     .mfg_name =       "DTTS Microwave Society",
     .version =        "0.2",

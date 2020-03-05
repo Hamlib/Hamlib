@@ -148,7 +148,7 @@ static const char *dwtdll_get_info(RIG *rig);
 
 const struct rig_caps dwt_caps =
 {
-    .rig_model =        RIG_MODEL_DWT,
+    RIG_MODEL(RIG_MODEL_DWT),
     .model_name =       "Digital World Traveller",
     .mfg_name =     "Coding Technologies",
     .version =      "0.1.1",
@@ -547,7 +547,7 @@ static const char *dwt_get_info(RIG *rig);
 
 const struct rig_caps dwt_caps =
 {
-    .rig_model =        RIG_MODEL_DWT,
+    RIG_MODEL(RIG_MODEL_DWT),
     .model_name =       "Digital World Traveller",
     .mfg_name =     "Coding Technologies",
     .version =      "0.2",

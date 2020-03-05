@@ -84,7 +84,7 @@ static int thg71_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
  */
 const struct rig_caps thg71_caps =
 {
-    .rig_model =  RIG_MODEL_THG71,
+    RIG_MODEL(RIG_MODEL_THG71),
     .model_name = "TH-G71",
     .mfg_name =  "Kenwood",
     .version =  TH_VER,

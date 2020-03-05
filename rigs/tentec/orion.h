@@ -190,7 +190,7 @@ struct tt565_priv_data {
  *		http://www.rfsquared.com/
  */
 const struct rig_caps tt565_caps = {
-.rig_model =  RIG_MODEL_TT565,
+RIG_MODEL(RIG_MODEL_TT565),
 .model_name = "TT-565 Orion",
 .mfg_name =  "Ten-Tec",
 .version =  "0.6",
@@ -407,7 +407,7 @@ const struct rig_caps tt565_caps = {
  *
  */
 const struct rig_caps tt599_caps = {
-.rig_model =  RIG_MODEL_TT599,
+RIG_MODEL(RIG_MODEL_TT599),
 .model_name = "TT-599 Eagle",
 .mfg_name =  "Ten-Tec",
 .version =  "0.5",

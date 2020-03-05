@@ -49,7 +49,7 @@
  */
 const struct rig_caps ra6790_caps =
 {
-    .rig_model =  RIG_MODEL_RA6790,
+    RIG_MODEL(RIG_MODEL_RA6790),
     .model_name = "RA6790/GM",
     .mfg_name =  "Racal",
     .version =  "0.1",

@@ -71,7 +71,7 @@ static const char *barrett_get_info(RIG *rig);
 
 const struct rig_caps barrett_caps =
 {
-    .rig_model =        RIG_MODEL_BARRETT_2050,
+    RIG_MODEL(RIG_MODEL_BARRETT_2050),
     .model_name =       "2050",
     .mfg_name =         "Barrett",
     .version =          BACKEND_VER ".1",

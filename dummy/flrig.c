@@ -106,7 +106,7 @@ struct flrig_priv_data
 
 const struct rig_caps flrig_caps =
 {
-    .rig_model = RIG_MODEL_FLRIG,
+    RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "FLRig",
     .mfg_name = "FLRig",
     .version = BACKEND_VER,

@@ -1875,7 +1875,7 @@ static int dummy_mW2power(RIG *rig, float *power, unsigned int mwpower,
 
 const struct rig_caps dummy_caps =
 {
-    .rig_model =      RIG_MODEL_DUMMY,
+    RIG_MODEL(RIG_MODEL_DUMMY),
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
     .version =        "0.7",

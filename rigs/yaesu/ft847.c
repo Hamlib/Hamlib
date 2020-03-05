@@ -211,7 +211,7 @@ static const tone_t ft847_ctcss_list[] =
 
 const struct rig_caps ft847_caps =
 {
-    .rig_model =  RIG_MODEL_FT847,
+    RIG_MODEL(RIG_MODEL_FT847),
     .model_name = "FT-847",
     .mfg_name =  "Yaesu",
     .version =  "0.5",
@@ -366,7 +366,7 @@ const struct rig_caps ft847_caps =
 
 const struct rig_caps ft847uni_caps =
 {
-    .rig_model =  RIG_MODEL_FT847UNI,
+    RIG_MODEL(RIG_MODEL_FT847UNI),
     .model_name = "FT-847UNI",
     .mfg_name =  "Yaesu",
     .version =  "0.1b",

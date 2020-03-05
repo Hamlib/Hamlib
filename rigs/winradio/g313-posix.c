@@ -649,7 +649,7 @@ static void  g313_spectrum_callback(float *buffer, int count, void *arg)
 
 const struct rig_caps g313_caps =
 {
-    .rig_model =      RIG_MODEL_G313,
+    RIG_MODEL(RIG_MODEL_G313),
     .model_name =     "WR-G313",
     .mfg_name =       "Winradio",
     .version =        "0.1",

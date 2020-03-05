@@ -72,7 +72,7 @@
 
 const struct rig_caps xk2100_caps =
 {
-    .rig_model = RIG_MODEL_XK2100,
+    RIG_MODEL(RIG_MODEL_XK2100),
     .model_name = "XK2100",
     .mfg_name = "Rohde&Schwarz",
     .version = "0.8f",

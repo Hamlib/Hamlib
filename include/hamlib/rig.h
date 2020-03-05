@@ -1382,11 +1382,13 @@ typedef int (* confval_cb_t)(RIG *,
  * sharing the struct rig_caps of the backend, while keeping their own
  * customized data.
  *
- * NB: Don't move fields around, as the backends depend on it when
- *     initializing their caps.
+ * mdblack: Don't move fields around without bumping the version numbers
+ *          DLL or shared library replacement would break the interface
  */
+#define RIG_MODEL(arg) .rig_model=arg,.rig_model_macro_name=#arg
 struct rig_caps {
     rig_model_t rig_model;      /*!< Rig model. */
+    const char *rig_model_macro_name;   /*!< Rig model macro name */
     const char *model_name;     /*!< Model name. */
     const char *mfg_name;       /*!< Manufacturer. */
     const char *version;        /*!< Driver version. */
@@ -2378,7 +2380,7 @@ extern HAMLIB_EXPORT(const struct rig_caps *)
 rig_get_caps HAMLIB_PARAMS((rig_model_t rig_model));
 
 extern HAMLIB_EXPORT(const freq_range_t *)
-rig_get_range HAMLIB_PARAMS((const freq_range_t range_list[],
+rig_get_range HAMLIB_PARAMS((const freq_range_t *range_list,
                              freq_t freq,
                              rmode_t mode));
 

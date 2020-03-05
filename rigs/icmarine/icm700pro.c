@@ -56,7 +56,7 @@ static const struct icmarine_priv_caps icm700pro_priv_caps =
 
 const struct rig_caps icm700pro_caps =
 {
-    .rig_model =  RIG_MODEL_IC_M700PRO,
+    RIG_MODEL(RIG_MODEL_IC_M700PRO),
     .model_name = "IC-M700PRO",
     .mfg_name =  "Icom",
     .version =  BACKEND_VER,

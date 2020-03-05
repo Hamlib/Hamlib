@@ -83,7 +83,7 @@ static struct kenwood_priv_caps  thd7_priv_caps  =
  */
 const struct rig_caps thd7a_caps =
 {
-    .rig_model =  RIG_MODEL_THD7A,
+    RIG_MODEL(RIG_MODEL_THD7A),
     .model_name = "TH-D7A",
     .mfg_name =  "Kenwood",
     .version =  TH_VER,
