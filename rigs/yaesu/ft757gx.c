@@ -89,7 +89,7 @@ const struct confparams ft757gx_cfg_params[] =
  */
 const struct rig_caps ft757gx_caps =
 {
-    .rig_model =        RIG_MODEL_FT757,
+    RIG_MODEL(RIG_MODEL_FT757),
     .model_name =       "FT-757GX",
     .mfg_name =     "Yaesu",
     .version =      "0.5.0",
@@ -200,7 +200,7 @@ const struct rig_caps ft757gx_caps =
  */
 const struct rig_caps ft757gx2_caps =
 {
-    .rig_model =        RIG_MODEL_FT757GXII,
+    RIG_MODEL(RIG_MODEL_FT757GXII),
     .model_name =       "FT-757GXII",
     .mfg_name =     "Yaesu",
     .version =      "0.4",

@@ -71,7 +71,7 @@ static const char *v4l2_get_info(RIG *rig);
  */
 const struct rig_caps v4l2_caps =
 {
-    .rig_model =  RIG_MODEL_V4L2,
+    RIG_MODEL(RIG_MODEL_V4L2),
     .model_name = "SW/FM radio",
     .mfg_name =  "Video4Linux2",
     .version =  "0.2.1",

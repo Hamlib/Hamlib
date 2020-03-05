@@ -86,7 +86,7 @@ static int cu_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
  */
 const struct rig_caps trp8255_caps =
 {
-    .rig_model =  RIG_MODEL_TRP8255,
+    RIG_MODEL(RIG_MODEL_TRP8255),
     .model_name = "TRP 8255 S R",
     .mfg_name =  "Skanti",
     .version =  "0.1",

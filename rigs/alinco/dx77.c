@@ -76,7 +76,7 @@
  */
 const struct rig_caps dx77_caps =
 {
-    .rig_model =        RIG_MODEL_DX77,
+    RIG_MODEL(RIG_MODEL_DX77),
     .model_name =       "DX-77",
     .mfg_name =         "Alinco",
     .version =          "0.9",

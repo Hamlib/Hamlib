@@ -128,7 +128,7 @@ struct fifisdr_priv_instance_data
 /** FiFi-SDR receiver description. */
 const struct rig_caps fifisdr_caps =
 {
-    .rig_model = RIG_MODEL_FIFISDR,
+    RIG_MODEL(RIG_MODEL_FIFISDR),
     .model_name = "FiFi-SDR",
     .mfg_name = "FiFi",
     .version = "0.6",

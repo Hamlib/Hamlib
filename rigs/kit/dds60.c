@@ -100,7 +100,7 @@ static int dds60_get_conf(RIG *rig, token_t token, char *val);
 
 const struct rig_caps dds60_caps =
 {
-    .rig_model =  RIG_MODEL_DDS60,
+    RIG_MODEL(RIG_MODEL_DDS60),
     .model_name = "DDS-60",
     .mfg_name =  "AmQRP",
     .version =  "0.1",

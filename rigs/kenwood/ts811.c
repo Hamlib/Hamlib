@@ -86,7 +86,7 @@ ts811_set_vfo(RIG *rig, vfo_t vfo)
  */
 const struct rig_caps ts811_caps =
 {
-    .rig_model =  RIG_MODEL_TS811,
+    RIG_MODEL(RIG_MODEL_TS811),
     .model_name = "TS-811",
     .mfg_name =  "Kenwood",
     .version =  BACKEND_VER ".1",

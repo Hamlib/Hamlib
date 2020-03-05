@@ -119,7 +119,7 @@ int k2_pop_fw_lst(RIG *rig, const char *cmd);
  */
 const struct rig_caps k2_caps =
 {
-    .rig_model =        RIG_MODEL_K2,
+    RIG_MODEL(RIG_MODEL_K2),
     .model_name =       "K2",
     .mfg_name =     "Elecraft",
     .version =      "20200107",

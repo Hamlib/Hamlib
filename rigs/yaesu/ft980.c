@@ -157,7 +157,7 @@ static int ft980_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs);
 
 const struct rig_caps ft980_caps =
 {
-    .rig_model =          RIG_MODEL_FT980,
+    RIG_MODEL(RIG_MODEL_FT980),
     .model_name =         "FT-980",
     .mfg_name =           "Yaesu",
     .version =            "0.1",

@@ -55,7 +55,7 @@
 
 const struct rig_caps adt_200a_caps =
 {
-    .rig_model          =  RIG_MODEL_ADT_200A,
+    RIG_MODEL(RIG_MODEL_ADT_200A),
     .model_name         =  "ADT-200A",
     .mfg_name           =  "ADAT www.adat.ch",
     .version            =  "1.37",

@@ -99,7 +99,7 @@ static const tone_t ft736_ctcss_list[] =
 
 const struct rig_caps ft736_caps =
 {
-    .rig_model =          RIG_MODEL_FT736R,
+    RIG_MODEL(RIG_MODEL_FT736R),
     .model_name =         "FT-736R",
     .mfg_name =           "Yaesu",
     .version =            "0.3",

@@ -176,7 +176,7 @@ int kx3_get_bar_graph_level(RIG *rig, float *level);
  */
 const struct rig_caps k3_caps =
 {
-    .rig_model =        RIG_MODEL_K3,
+    RIG_MODEL(RIG_MODEL_K3),
     .model_name =       "K3",
     .mfg_name =     "Elecraft",
     .version =      "20200107",
@@ -325,7 +325,7 @@ const struct rig_caps k3_caps =
 
 const struct rig_caps k3s_caps =
 {
-    .rig_model =        RIG_MODEL_K3S,
+    RIG_MODEL(RIG_MODEL_K3S),
     .model_name =       "K3S",
     .mfg_name =     "Elecraft",
     .version =      "20190529",
@@ -474,7 +474,7 @@ const struct rig_caps k3s_caps =
 
 const struct rig_caps kx3_caps =
 {
-    .rig_model =        RIG_MODEL_KX3,
+    RIG_MODEL(RIG_MODEL_KX3),
     .model_name =       "KX3",
     .mfg_name =     "Elecraft",
     .version =      "20190529",
@@ -623,7 +623,7 @@ const struct rig_caps kx3_caps =
 
 const struct rig_caps kx2_caps =
 {
-    .rig_model =        RIG_MODEL_KX2,
+    RIG_MODEL(RIG_MODEL_KX2),
     .model_name =       "KX2",
     .mfg_name =     "Elecraft",
     .version =      "20190529",

@@ -95,7 +95,7 @@ static const struct jrc_priv_caps nrd535_priv_caps =
  */
 const struct rig_caps nrd535_caps =
 {
-    .rig_model =  RIG_MODEL_NRD535,
+    RIG_MODEL(RIG_MODEL_NRD535),
     .model_name = "NRD-535D",
     .mfg_name =  "JRC",
     .version =  BACKEND_VER,

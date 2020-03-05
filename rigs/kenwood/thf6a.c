@@ -119,7 +119,7 @@ static int thf6a_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
  */
 const struct rig_caps thf6a_caps =
 {
-    .rig_model =  RIG_MODEL_THF6A,
+    RIG_MODEL(RIG_MODEL_THF6A),
     .model_name = "TH-F6A",
     .mfg_name =  "Kenwood",
     .version =  TH_VER,

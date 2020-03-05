@@ -111,7 +111,7 @@ static struct icom_priv_caps icr8600_priv_caps =
 
 const struct rig_caps icr8600_caps =
 {
-    .rig_model = RIG_MODEL_ICR8600,
+    RIG_MODEL(RIG_MODEL_ICR8600),
     .model_name = "IC-R8600",
     .mfg_name = "Icom",
     .version =  BACKEND_VER ".9",

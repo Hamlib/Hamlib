@@ -54,7 +54,7 @@
  */
 const struct rig_caps tt516_caps =
 {
-    .rig_model =  RIG_MODEL_TT516,
+    RIG_MODEL(RIG_MODEL_TT516),
     .model_name = "TT-516 Argonaut V",
     .mfg_name =  "Ten-Tec",
     .version =  "0.2",

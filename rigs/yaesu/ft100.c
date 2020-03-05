@@ -172,7 +172,7 @@ static const tone_t ft100_dcs_list[] =
 
 const struct rig_caps ft100_caps =
 {
-    .rig_model =      RIG_MODEL_FT100,
+    RIG_MODEL(RIG_MODEL_FT100),
     .model_name =     "FT-100",
     .mfg_name =       "Yaesu",
     .version =        "0.4.1",

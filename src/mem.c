@@ -365,6 +365,7 @@ static int generic_save_channel(RIG *rig, channel_t *chan)
     const channel_cap_t *mem_cap = NULL;
     value_t vdummy;
 
+    vdummy.i = 0;
     chan_num = chan->channel_num;
     vfo = chan->vfo;
     memset(chan, 0, sizeof(channel_t));

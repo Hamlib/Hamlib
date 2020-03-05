@@ -260,7 +260,7 @@ const tone_t static_767gx_ctcss_list[] =
 
 const struct rig_caps ft767gx_caps =
 {
-    .rig_model =        RIG_MODEL_FT767,
+    RIG_MODEL(RIG_MODEL_FT767),
     .model_name =       "FT-767GX",
     .mfg_name =         "Yaesu",
     .version =           "1.1",

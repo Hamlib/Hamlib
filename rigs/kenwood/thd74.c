@@ -1626,7 +1626,7 @@ int thd74_get_chan_all_cb(RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
  */
 const struct rig_caps thd74_caps =
 {
-    .rig_model =  RIG_MODEL_THD74,
+    RIG_MODEL(RIG_MODEL_THD74),
     .model_name = "TH-D74",
     .mfg_name =  "Kenwood",
     .version =  "0.1",

@@ -81,7 +81,7 @@ static struct icom_priv_caps perseus_priv_caps =
  */
 const struct rig_caps perseus_caps =
 {
-    .rig_model =  RIG_MODEL_PERSEUS,
+    RIG_MODEL(RIG_MODEL_PERSEUS),
     .model_name = "Perseus",
     .mfg_name =  "Microtelecom",
     .version =  BACKEND_VER ".0",
