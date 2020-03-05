@@ -2107,7 +2107,7 @@ static int netrigctl_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 
 const struct rig_caps netrigctl_caps =
 {
-    .rig_model =      RIG_MODEL_NETRIGCTL,
+    RIG_MODEL(RIG_MODEL_NETRIGCTL),
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
     .version =        "1.3",

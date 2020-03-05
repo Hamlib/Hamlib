@@ -165,7 +165,7 @@ const struct confparams ic7610_ext_levels[] =
 
 const struct rig_caps ic7610_caps =
 {
-    .rig_model =  RIG_MODEL_IC7610,
+    RIG_MODEL(RIG_MODEL_IC7610),
     .model_name = "IC-7610",
     .mfg_name =  "Icom",
     .version =  BACKEND_VER ".2",

@@ -148,6 +148,7 @@ enum amp_level_e
  * n.b.: Don't move fields around, as the backends depend on it when
  *       initializing their caps.
  */
+#define AMP_MODEL(arg) .amp_model=arg,.amp_model_macro_name=#arg
 struct amp_caps
 {
   amp_model_t amp_model;                      /*!< Amplifier model. */
@@ -174,6 +175,7 @@ struct amp_caps
 
   const struct confparams *cfgparams;         /*!< Configuration parametres. */
   const rig_ptr_t priv;                       /*!< Private data. */
+  const char *amp_model_macro_name;           /*!< Model macro name */
 
   setting_t has_get_level;
   setting_t has_set_level;

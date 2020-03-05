@@ -54,7 +54,7 @@ static int frg9600_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 
 const struct rig_caps frg9600_caps =
 {
-    .rig_model =          RIG_MODEL_FRG9600,
+    RIG_MODEL(RIG_MODEL_FRG9600),
     .model_name =         "FRG-9600",
     .mfg_name =           "Yaesu",
     .version =            "0.2",

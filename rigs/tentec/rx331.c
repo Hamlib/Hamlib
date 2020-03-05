@@ -96,7 +96,7 @@ static const char *rx331_get_info(RIG *rig);
  */
 const struct rig_caps rx331_caps =
 {
-    .rig_model =  RIG_MODEL_RX331,
+    RIG_MODEL(RIG_MODEL_RX331),
     .model_name = "RX-331",
     .mfg_name =  "Ten-Tec",
     .version =  "0.1",

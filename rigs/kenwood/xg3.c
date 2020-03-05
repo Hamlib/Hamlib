@@ -104,7 +104,7 @@ int xg3_get_parm(RIG *rig, setting_t parm, value_t *val);
  */
 const struct rig_caps xg3_caps =
 {
-    .rig_model = RIG_MODEL_XG3,
+    RIG_MODEL(RIG_MODEL_XG3),
     .model_name = "XG3",
     .mfg_name = "Elecraft",
     .version = "20191218",

@@ -53,7 +53,7 @@
  */
 const struct rig_caps bcd396t_caps =
 {
-    .rig_model =  RIG_MODEL_BCD396T,
+    RIG_MODEL(RIG_MODEL_BCD396T),
     .model_name = "BCD-396T",
     .mfg_name =  "Uniden",
     .version =  BACKEND_DIGITAL_VER,

@@ -155,7 +155,7 @@ struct ft900_priv_data
 
 const struct rig_caps ft900_caps =
 {
-    .rig_model =          RIG_MODEL_FT900,
+    RIG_MODEL(RIG_MODEL_FT900),
     .model_name =         "FT-900",
     .mfg_name =           "Yaesu",
     .version =            "0.3",

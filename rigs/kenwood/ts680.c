@@ -83,7 +83,7 @@ static int ts680_set_vfo(RIG *rig, vfo_t vfo)
 
 const struct rig_caps ts680s_caps =
 {
-    .rig_model =  RIG_MODEL_TS680S,
+    RIG_MODEL(RIG_MODEL_TS680S),
     .model_name = "TS-680S",
     .mfg_name =  "Kenwood",
     .version =  BACKEND_VER ".1",

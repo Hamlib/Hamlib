@@ -67,7 +67,7 @@ static struct icom_priv_caps os535_priv_caps =
 
 const struct rig_caps os535_caps =
 {
-    .rig_model =  RIG_MODEL_OS535,
+    RIG_MODEL(RIG_MODEL_OS535),
     .model_name = "OptoScan535",
     .mfg_name =  "Optoelectronics",
     .version =  BACKEND_VER ".3",

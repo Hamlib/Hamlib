@@ -97,7 +97,7 @@ static struct kenwood_priv_caps  tmd700_priv_caps  =
  */
 const struct rig_caps tmd700_caps =
 {
-    .rig_model =  RIG_MODEL_TMD700,
+    RIG_MODEL(RIG_MODEL_TMD700),
     .model_name = "TM-D700",
     .mfg_name =  "Kenwood",
     .version =  TH_VER,

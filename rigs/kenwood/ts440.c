@@ -61,7 +61,7 @@ static struct kenwood_priv_caps  ts440_priv_caps  =
  */
 const struct rig_caps ts440_caps =
 {
-    .rig_model =  RIG_MODEL_TS440,
+    RIG_MODEL(RIG_MODEL_TS440),
     .model_name = "TS-440",
     .mfg_name =  "Kenwood",
     .version =  BACKEND_VER "." IC10_VER,

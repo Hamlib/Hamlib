@@ -71,7 +71,7 @@ static int ar3k_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
  */
 const struct rig_caps ar3000a_caps =
 {
-    .rig_model =  RIG_MODEL_AR3000A,
+    RIG_MODEL(RIG_MODEL_AR3000A),
     .model_name = "AR3000A",
     .mfg_name =  "AOR",
     .version =  "0.5",

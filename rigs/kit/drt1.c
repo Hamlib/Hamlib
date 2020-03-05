@@ -95,7 +95,7 @@ static int drt1_get_conf(RIG *rig, token_t token, char *val);
 
 const struct rig_caps drt1_caps =
 {
-    .rig_model =  RIG_MODEL_DRT1,
+    RIG_MODEL(RIG_MODEL_DRT1),
     .model_name = "DRT1",
     .mfg_name =  "SAT-Schneider",
     .version =  "0.2",

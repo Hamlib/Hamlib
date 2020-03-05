@@ -63,7 +63,7 @@ static const struct icom_priv_caps delta2_priv_caps =
 
 const struct rig_caps delta2_caps =
 {
-    .rig_model =  RIG_MODEL_DELTAII,
+    RIG_MODEL(RIG_MODEL_DELTAII),
     .model_name = "Delta II",
     .mfg_name =  "Ten-Tec",
     .version =  BACKEND_VER ".1",

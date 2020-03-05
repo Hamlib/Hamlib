@@ -103,7 +103,7 @@ static const struct confparams ts850_ext_parms[] =
 */
 const struct rig_caps ts850_caps =
 {
-    .rig_model =  RIG_MODEL_TS850,
+    RIG_MODEL(RIG_MODEL_TS850),
     .model_name = "TS-850",
     .mfg_name =  "Kenwood",
     .version =  BACKEND_VER ".1",

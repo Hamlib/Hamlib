@@ -39,7 +39,7 @@
 
 const struct rig_caps wr3150_caps =
 {
-    .rig_model =      RIG_MODEL_WR3150,
+    RIG_MODEL(RIG_MODEL_WR3150),
     .model_name =     "WR-3150",
     .mfg_name =       "Winradio",
     .version =        "0.6",

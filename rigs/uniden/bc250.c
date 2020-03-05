@@ -55,7 +55,7 @@
  */
 const struct rig_caps bc250_caps =
 {
-    .rig_model =  RIG_MODEL_BC250,
+    RIG_MODEL(RIG_MODEL_BC250),
     .model_name = "BC250D",
     .mfg_name =  "Uniden",
     .version =  BACKEND_VER,

@@ -144,7 +144,7 @@ static const struct icom_priv_caps ic756_priv_caps =
 
 const struct rig_caps ic756_caps =
 {
-    .rig_model =  RIG_MODEL_IC756,
+    RIG_MODEL(RIG_MODEL_IC756),
     .model_name = "IC-756",
     .mfg_name =  "Icom",
     .version =  BACKEND_VER ".2",
@@ -302,7 +302,7 @@ static const struct icom_priv_caps ic756pro_priv_caps =
 
 const struct rig_caps ic756pro_caps =
 {
-    .rig_model =  RIG_MODEL_IC756PRO,
+    RIG_MODEL(RIG_MODEL_IC756PRO),
     .model_name = "IC-756PRO",
     .mfg_name =  "Icom",
     .version =  BACKEND_VER ".1",
@@ -536,7 +536,7 @@ static int ic756pro2_get_ext_parm(RIG *rig, token_t token, value_t *val);
 
 const struct rig_caps ic756pro2_caps =
 {
-    .rig_model =  RIG_MODEL_IC756PROII,
+    RIG_MODEL(RIG_MODEL_IC756PROII),
     .model_name = "IC-756PROII",
     .mfg_name =  "Icom",
     .version =  BACKEND_VER ".1",
@@ -955,7 +955,7 @@ static const struct icom_priv_caps ic756pro3_priv_caps =
 
 const struct rig_caps ic756pro3_caps =
 {
-    .rig_model =  RIG_MODEL_IC756PROIII,
+    RIG_MODEL(RIG_MODEL_IC756PROIII),
     .model_name = "IC-756PROIII",
     .mfg_name =  "Icom",
     .version =  BACKEND_VER ".2",

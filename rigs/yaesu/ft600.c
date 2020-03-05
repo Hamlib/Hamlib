@@ -133,7 +133,7 @@ static const yaesu_cmd_set_t ncmd[] =
 
 const struct rig_caps ft600_caps =
 {
-    .rig_model =      RIG_MODEL_FT600,
+    RIG_MODEL(RIG_MODEL_FT600),
     .model_name =     "FT-600",
     .mfg_name =       "Yaesu",
     .version =        "0.2",

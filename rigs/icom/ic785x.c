@@ -155,7 +155,7 @@ const struct confparams ic785x_ext_levels[] =
 
 const struct rig_caps ic785x_caps =
 {
-    .rig_model =  RIG_MODEL_IC785x,
+    RIG_MODEL(RIG_MODEL_IC785x),
     .model_name = "IC-785x",
     .mfg_name =  "Icom",
     .version =  BACKEND_VER ".2",

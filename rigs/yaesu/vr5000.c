@@ -129,7 +129,7 @@ static int  check_tuning_step(RIG *rig, vfo_t vfo, rmode_t mode,
 
 const struct rig_caps vr5000_caps =
 {
-    .rig_model =          RIG_MODEL_VR5000,
+    RIG_MODEL(RIG_MODEL_VR5000),
     .model_name =         "VR-5000",
     .mfg_name =           "Yaesu",
     .version =            "0.3",

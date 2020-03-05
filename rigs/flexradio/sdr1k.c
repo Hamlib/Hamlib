@@ -120,7 +120,7 @@ struct sdr1k_priv_data
 
 const struct rig_caps sdr1k_rig_caps =
 {
-    .rig_model =      RIG_MODEL_SDR1000,
+    RIG_MODEL(RIG_MODEL_SDR1000),
     .model_name =     "SDR-1000",
     .mfg_name =       "Flex-radio",
     .version =        "0.2",

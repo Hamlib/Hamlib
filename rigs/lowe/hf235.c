@@ -49,7 +49,7 @@
 
 const struct rig_caps hf235_caps =
 {
-    .rig_model =  RIG_MODEL_HF235,
+    RIG_MODEL(RIG_MODEL_HF235),
     .model_name = "HF-235",
     .mfg_name =  "Lowe",
     .version =  "0.4",

@@ -104,7 +104,7 @@ static const struct aor_priv_caps ar5k_priv_caps =
  */
 const struct rig_caps ar5000_caps =
 {
-    .rig_model =  RIG_MODEL_AR5000,
+    RIG_MODEL(RIG_MODEL_AR5000),
     .model_name = "AR5000",
     .mfg_name =  "AOR",
     .version =  BACKEND_VER ".1",
@@ -249,7 +249,7 @@ const struct rig_caps ar5000_caps =
  */
 const struct rig_caps ar5000a_caps =
 {
-    .rig_model =  RIG_MODEL_AR5000A,
+    RIG_MODEL(RIG_MODEL_AR5000A),
     .model_name = "AR5000A",
     .mfg_name =  "AOR",
     .version =  BACKEND_VER,

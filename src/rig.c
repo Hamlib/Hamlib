@@ -4560,7 +4560,7 @@ int HAMLIB_API rig_send_voice_mem(RIG *rig, vfo_t vfo, int ch)
  * otherwise NULL if not found or if \a range_list is invalid.
  *
  */
-const freq_range_t *HAMLIB_API rig_get_range(const freq_range_t range_list[],
+const freq_range_t *HAMLIB_API rig_get_range(const freq_range_t *range_list,
         freq_t freq,
         rmode_t mode)
 {
