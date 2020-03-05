@@ -3610,7 +3610,8 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
     if (VFO_HAS_MAIN_SUB_A_B_ONLY)
     {
-        // Then we return the VFO to where it was
+        // Then we return the VFO to where it was 
+        if (save_vfo == RIG_VFO_MAIN && priv->split_on) save_vfo = RIG_VFO_A;
         rig_debug(RIG_DEBUG_TRACE, "%s: SATMODE rig so setting vfo to %s\n", __func__,
                   rig_strvfo(save_vfo));
 
@@ -6540,7 +6541,7 @@ static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
 
     /* This method works also in memory mode(RIG_VFO_MEM) */
     // first time we will set default to VFOA or Main as
-    // So if you ask for frequency or such without setting VFO first you'll get VFOA
+    // So if you ask for frequency or such without setting VFO first you'll get Main/VFOA
     if (priv->curr_vfo == RIG_VFO_NONE && vfo == RIG_VFO_CURR)
     {
 
