@@ -4288,7 +4288,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
             priv->tx_vfo = RIG_VFO_B;
             priv->rx_vfo = RIG_VFO_A;
             rig_debug(RIG_DEBUG_TRACE,
-                      "%s: tx=%s, rx=%s because tx_vfo=%s, charing tx_vfo to Main\n", __func__,
+                      "%s: tx=%s, rx=%s because tx_vfo=%s, changing tx_vfo to Main\n", __func__,
                       rig_strvfo(priv->tx_vfo), rig_strvfo(priv->rx_vfo), rig_strvfo(tx_vfo));
             tx_vfo = RIG_VFO_B;
 
