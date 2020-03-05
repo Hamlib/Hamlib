@@ -1772,6 +1772,8 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 
     case RIG_VFO_SUB:
         icvfo = S_SUB;
+        // If split is on these rigs can only split on Main/VFOB
+        if (VFO_HAS_MAIN_SUB_A_B_ONLY && priv->split_on) icvfo = S_VFOB;
         break;
 
     case RIG_VFO_TX:
