@@ -66,8 +66,8 @@
 #serial 11
 
 AC_DEFUN([AX_PKG_SWIG],[
-        # Ubuntu has swig 2.0 as /usr/bin/swig2.0
-        AC_PATH_PROGS([SWIG],[swig swig2.0])
+        # Ubuntu has swig 3.0 as /usr/bin/swig3.0
+        AC_PATH_PROGS([SWIG],[swig swig3.0])
         if test -z "$SWIG" ; then
                 m4_ifval([$3],[$3],[:])
         elif test -n "$1" ; then

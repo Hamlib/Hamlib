@@ -68,6 +68,8 @@ typedef channel_t * const_channel_t_p;
 				{ self->error_status = rig_##f(self->rig  _VFO_ARG, _##t1##_1, _##t2##_2); }
 #define METHOD3(f, t1) void f ( vfo_t vfo, t1 _##t1) \
 				{ self->error_status = rig_##f(self->rig  _VFO_ARG, _##t1); }
+#define METHOD3_INIT(f, t1, t2, t3, i3) void f (t1 _##t1##_1, t2 _##t2##_2, t3 _##t3##_3 = i3  _VFO_DECL) \
+				{ self->error_status = rig_##f(self->rig  _VFO_ARG, _##t1##_1, _##t2##_2, _##t3##_3); }
 /*
  * declare wrapper method with one output argument besides RIG* (no target vfo)
  */
@@ -340,12 +342,14 @@ typedef channel_t * const_channel_t_p;
 	METHOD1(set_dcs_sql, tone_t)
 	METHOD3(set_split_freq, freq_t)
 	METHOD2_INIT(set_split_mode, rmode_t, pbwidth_t, RIG_PASSBAND_NORMAL)
+	METHOD3_INIT(set_split_freq_mode, freq_t, rmode_t, pbwidth_t, RIG_PASSBAND_NORMAL)
 	METHOD2(set_split_vfo, split_t, vfo_t)
 	METHOD3(set_rit, shortfreq_t)
 	METHOD3(set_xit, shortfreq_t)
 	METHOD3(set_ts, shortfreq_t)
 	METHOD2(set_ant, ant_t, value_t)
 	METHOD2(set_func, setting_t, int)
+	METHOD2(set_ext_func, token_t, int)
 	METHOD3(set_bank, int)
 	METHOD3(set_mem, int)
 	METHOD3(send_dtmf, const_char_string)
@@ -375,7 +379,7 @@ typedef channel_t * const_channel_t_p;
 	METHOD1(set_vfo, vfo_t)		/* particular case */
 	METHOD1(set_powerstat, powerstat_t)
 	METHOD1(set_trn, int)
-	METHOD1(has_set_level, setting_t)
+	METHOD1(has_get_level, setting_t)
 	METHOD1(has_set_parm, setting_t)
 	METHOD1(has_set_func, setting_t)
 	METHOD1(reset, reset_t)
@@ -436,15 +440,11 @@ typedef channel_t * const_channel_t_p;
 	METHOD1VGET(get_rit, shortfreq_t)
 	METHOD1VGET(get_xit, shortfreq_t)
 	METHOD1VGET(get_ts, shortfreq_t)
-	extern void get_ant(value_t * OUTPUT, ant_t * OUTPUT, ant_t ant, vfo_t vfo = RIG_VFO_CURR);
+	extern void get_ant(ant_t *ant_rx, ant_t *ant_tx, ant_t *ant_curr, value_t * OUTPUT, ant_t ant, vfo_t vfo = RIG_VFO_CURR);
 	METHOD1VGET(get_mem, int)
 	METHOD1GET(get_powerstat, powerstat_t)
 	METHOD1GET(get_trn, int)
-
-  METHOD1VGET(get_dcd, dcd_t)
-
-	//METHOD2GET(get_ext_parm, token_t, value_t)
-
+	METHOD1VGET(get_dcd, dcd_t)
 
 	int mem_count(void) {
 		return rig_mem_count(self->rig);
@@ -528,7 +528,11 @@ typedef channel_t * const_channel_t_p;
 		return status;
 	}
 
-
+	int get_ext_func(token_t func, vfo_t vfo = RIG_VFO_CURR) {
+		int status;
+		self->error_status = rig_get_ext_func(self->rig, vfo, func, &status);
+		return status;
+	}
 
 #ifndef SWIGJAVA
 	/* TODO */
@@ -537,15 +541,33 @@ typedef channel_t * const_channel_t_p;
 			//if (RIG_LEVEL_IS_FLOAT(level))
 			/* TODO: dynamic casting */
 		}
+
+	void get_ext_level(token_t token, vfo_t vfo = RIG_VFO_CURR)
+		{ value_t val; self->error_status = rig_get_level(self->rig, vfo, token, &val);
+			//if (RIG_LEVEL_IS_FLOAT(level))
+			/* TODO: dynamic casting */
+		}
+
+	void get_parm(setting_t parm)
+		{ value_t val; self->error_status = rig_get_parm(self->rig, parm, &val);
+			//if (RIG_LEVEL_IS_FLOAT(parm))
+			/* TODO: dynamic casting */
+		}
+
+	void get_ext_parm(token_t parm)
+		{ value_t val; self->error_status = rig_get_parm(self->rig, parm, &val);
+			//if (RIG_LEVEL_IS_FLOAT(parm))
+			/* TODO: dynamic casting */
+		}
+
 #endif
 
-	/* TODO also: get_parm */
 };
 
 %{
 
 /*
- * these ones returns 2 values, here is a perl example:
+ * these ones return 2 values, here is a perl example:
  * 	($mode, $width) = $rig->get_mode();
  */
 void Rig_get_mode(Rig *self, rmode_t *mode, pbwidth_t *width, vfo_t vfo)
@@ -558,9 +580,21 @@ void Rig_get_split_mode(Rig *self, rmode_t *mode, pbwidth_t *width, vfo_t vfo)
 	self->error_status = rig_get_split_mode(self->rig, vfo, mode, width);
 }
 
-void Rig_get_ant(Rig *self, value_t *option, ant_t *ant_curr, ant_t ant, vfo_t vfo)
+/*
+ * these ones return 3 values
+ */
+void Rig_get_split_freq_mode(Rig *self, vfo_t vfo, freq_t *tx_freq, rmode_t *tx_mode, pbwidth_t *tx_width)
 {
-	self->error_status = rig_get_ant(self->rig, vfo, ant, ant_curr, option);
+	self->error_status = rig_get_split_freq_mode(self->rig, vfo, tx_freq, tx_mode, tx_width);
+}
+
+
+/*
+ * these ones return 4 values
+ */
+void Rig_get_ant(Rig *self, ant_t *ant_rx, ant_t *ant_tx, ant_t *ant_curr, value_t *option, ant_t ant, vfo_t vfo)
+{
+	self->error_status = rig_get_ant(self->rig, vfo, ant, option, ant_curr, ant_tx, ant_rx);
 }
 
 struct channel *Rig_get_chan_all(Rig *self)
