@@ -50,7 +50,7 @@
  */
 const struct rig_caps prm8060_caps =
 {
-    .rig_model =  RIG_MODEL_PRM8060,
+    RIG_MODEL(RIG_MODEL_PRM8060),
     .model_name = "PRM8060",
     .mfg_name =  "Philips/Simoco",
     .version =  "0.1",

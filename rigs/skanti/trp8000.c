@@ -51,7 +51,7 @@
  */
 const struct rig_caps trp8000_caps =
 {
-    .rig_model =  RIG_MODEL_TRP8000,
+    RIG_MODEL(RIG_MODEL_TRP8000),
     .model_name = "TRP8000",
     .mfg_name =  "Skanti",
     .version =  "0.2",

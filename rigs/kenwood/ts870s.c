@@ -537,7 +537,7 @@ static int ts870s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
  */
 const struct rig_caps ts870s_caps =
 {
-    .rig_model =  RIG_MODEL_TS870S,
+    RIG_MODEL(RIG_MODEL_TS870S),
     .model_name = "TS-870S",
     .mfg_name =  "Kenwood",
     .version =  BACKEND_VER ".0",

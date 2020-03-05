@@ -129,7 +129,7 @@ static int tt538_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
  */
 const struct rig_caps tt538_caps =
 {
-    .rig_model =  RIG_MODEL_TT538,
+    RIG_MODEL(RIG_MODEL_TT538),
     .model_name = "TT-538 Jupiter",
     .mfg_name =  "Ten-Tec",
     .version =  "0.7",

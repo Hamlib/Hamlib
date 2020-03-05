@@ -210,7 +210,7 @@ struct ft1000mp_priv_data
 
 const struct rig_caps ft1000mp_caps =
 {
-    .rig_model =          RIG_MODEL_FT1000MP,
+    RIG_MODEL(RIG_MODEL_FT1000MP),
     .model_name =         "FT-1000MP",
     .mfg_name =           "Yaesu",
     .version =            "0.1.1",
@@ -336,7 +336,7 @@ const struct rig_caps ft1000mp_caps =
 
 const struct rig_caps ft1000mpmkv_caps =
 {
-    .rig_model =          RIG_MODEL_FT1000MPMKV,
+    RIG_MODEL(RIG_MODEL_FT1000MPMKV),
     .model_name =         "MARK-V FT-1000MP",
     .mfg_name =           "Yaesu",
     .version =            "0.0.5",
@@ -462,7 +462,7 @@ const struct rig_caps ft1000mpmkv_caps =
 
 const struct rig_caps ft1000mpmkvfld_caps =
 {
-    .rig_model =          RIG_MODEL_FT1000MPMKVFLD,
+    RIG_MODEL(RIG_MODEL_FT1000MPMKVFLD),
     .model_name =         "MARK-V Field FT-1000MP",
     .mfg_name =           "Yaesu",
     .version =            "0.0.5",

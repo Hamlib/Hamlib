@@ -72,7 +72,7 @@ static const tone_t bc898_ctcss_list[] =
  */
 const struct rig_caps bc898_caps =
 {
-    .rig_model =  RIG_MODEL_BC898,
+    RIG_MODEL(RIG_MODEL_BC898),
     .model_name = "BC898T",
     .mfg_name =  "Uniden",
     .version =  BACKEND_VER,

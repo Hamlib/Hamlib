@@ -84,7 +84,7 @@
 
 const struct rig_caps r8b_caps =
 {
-    .rig_model =  RIG_MODEL_DKR8B,
+    RIG_MODEL(RIG_MODEL_DKR8B),
     .model_name = "R-8B",
     .mfg_name =  "Drake",
     .version =  BACKEND_VER,

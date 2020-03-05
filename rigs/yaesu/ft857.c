@@ -150,7 +150,7 @@ static int ft857_send_icmd(RIG *rig, int index, unsigned char *data);
 
 const struct rig_caps ft857_caps =
 {
-    .rig_model =      RIG_MODEL_FT857,
+    RIG_MODEL(RIG_MODEL_FT857),
     .model_name =     "FT-857",
     .mfg_name =       "Yaesu",
     .version =        "0.6",

@@ -52,7 +52,7 @@
 
 const struct rig_caps ft891_caps =
 {
-    .rig_model =          RIG_MODEL_FT891,
+    RIG_MODEL(RIG_MODEL_FT891),
     .model_name =         "FT-891",
     .mfg_name =           "Yaesu",
     .version =            NEWCAT_VER ".2",

@@ -135,7 +135,7 @@ static struct icom_priv_caps x108g_priv_caps =
 
 const struct rig_caps x108g_caps =
 {
-    .rig_model =  RIG_MODEL_X108G,
+    RIG_MODEL(RIG_MODEL_X108G),
     .model_name = "X108G",
     .mfg_name =  "Xeigu",
     .version =  BACKEND_VER ".1",

@@ -48,7 +48,7 @@
 
 const struct rig_caps ftdx5000_caps =
 {
-    .rig_model =          RIG_MODEL_FTDX5000,
+    RIG_MODEL(RIG_MODEL_FTDX5000),
     .model_name =         "FT-DX5000",
     .mfg_name =           "Yaesu",
     .version =            NEWCAT_VER,
@@ -220,7 +220,7 @@ const struct rig_caps ftdx5000_caps =
 
 const struct rig_caps ftdx3000_caps =
 {
-    .rig_model =          RIG_MODEL_FTDX3000,
+    RIG_MODEL(RIG_MODEL_FTDX3000),
     .model_name =         "FT-DX3000",
     .mfg_name =           "Yaesu",
     .version =            NEWCAT_VER ".1",
@@ -383,7 +383,7 @@ const struct rig_caps ftdx3000_caps =
 
 const struct rig_caps ftdx101d_caps =
 {
-    .rig_model =          RIG_MODEL_FTDX101D,
+    RIG_MODEL(RIG_MODEL_FTDX101D),
     .model_name =         "FT-DX101D",
     .mfg_name =           "Yaesu",
     .version =            NEWCAT_VER ".1",

@@ -87,7 +87,7 @@ static int elektor304_get_conf(RIG *rig, token_t token, char *val);
 
 const struct rig_caps elektor304_caps =
 {
-    .rig_model =  RIG_MODEL_ELEKTOR304,
+    RIG_MODEL(RIG_MODEL_ELEKTOR304),
     .model_name = "Elektor 3/04",
     .mfg_name =  "Elektor",
     .version =  "0.4",

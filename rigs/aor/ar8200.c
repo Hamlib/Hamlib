@@ -90,7 +90,7 @@ static const struct aor_priv_caps ar8k_priv_caps =
  */
 const struct rig_caps ar8200_caps =
 {
-    .rig_model =  RIG_MODEL_AR8200,
+    RIG_MODEL(RIG_MODEL_AR8200),
     .model_name = "AR8200",
     .mfg_name =  "AOR",
     .version =  BACKEND_VER ".1",

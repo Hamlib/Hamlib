@@ -66,7 +66,7 @@ static const struct confparams usrp_cfg_params[] =
 
 const struct rig_caps usrp_caps =
 {
-    .rig_model =  RIG_MODEL_USRP,
+    RIG_MODEL(RIG_MODEL_USRP),
     .model_name = "USRP",
     .mfg_name =  "GNU Radio",
     .version =  "0.1",

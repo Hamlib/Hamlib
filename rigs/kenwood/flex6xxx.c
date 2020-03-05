@@ -314,7 +314,7 @@ static int flex6k_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
  */
 const struct rig_caps f6k_caps =
 {
-    .rig_model =        RIG_MODEL_F6K,
+    RIG_MODEL(RIG_MODEL_F6K),
     .model_name =       "6xxx",
     .mfg_name =     "FlexRadio",
     .version =      "20130717",

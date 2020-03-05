@@ -616,7 +616,7 @@ AM_CONDITIONAL([ENABLE_LUA], [test x"${cf_with_lua_binding}" = "xyes"])
 dnl Only search for Swig if one or more bindings are enabled.
 AS_IF([test "x${BINDING_ALL}" != "x"],
     [# macros/ax_pkg_swig.m4
-    AX_PKG_SWIG([1.3.22],
+    AX_PKG_SWIG([3.0.12],
         [BINDINGS="${BINDINGS} bindings"
         cf_with_bindings="yes"],
         [AC_MSG_ERROR([SWIG is required to build bindings...])

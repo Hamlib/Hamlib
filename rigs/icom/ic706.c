@@ -150,7 +150,7 @@ static const struct icom_priv_caps ic706_priv_caps =
 
 const struct rig_caps ic706_caps =
 {
-    .rig_model =  RIG_MODEL_IC706,
+    RIG_MODEL(RIG_MODEL_IC706),
     .model_name = "IC-706",
     .mfg_name =  "Icom",
     .version =  BACKEND_VER ".2",
@@ -288,7 +288,7 @@ static const struct icom_priv_caps ic706mkii_priv_caps =
 
 const struct rig_caps ic706mkii_caps =
 {
-    .rig_model =  RIG_MODEL_IC706MKII,
+    RIG_MODEL(RIG_MODEL_IC706MKII),
     .model_name = "IC-706MkII",
     .mfg_name =  "Icom",
     .version =  BACKEND_VER ".2",
@@ -450,7 +450,7 @@ static const struct icom_priv_caps ic706mkiig_priv_caps =
 
 const struct rig_caps ic706mkiig_caps =
 {
-    .rig_model =  RIG_MODEL_IC706MKIIG,
+    RIG_MODEL(RIG_MODEL_IC706MKIIG),
     .model_name = "IC-706MkIIG",
     .mfg_name =  "Icom",
     .version =  BACKEND_VER ".4",

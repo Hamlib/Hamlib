@@ -69,7 +69,7 @@ static struct kenwood_priv_caps trc80_priv_caps  =
  */
 const struct rig_caps trc80_caps =
 {
-    .rig_model =  RIG_MODEL_TRC80,
+    RIG_MODEL(RIG_MODEL_TRC80),
     .model_name = "TRC-80",
     .mfg_name =  "Kenwood",
     .version =  BACKEND_VER,

@@ -101,7 +101,7 @@ struct vx1700_priv_data
 
 const struct rig_caps vx1700_caps =
 {
-    .rig_model =  RIG_MODEL_VX1700,
+    RIG_MODEL(RIG_MODEL_VX1700),
     .model_name =  "VX-1700",
     .mfg_name =  "Vertex Standard",
     .version =  "1.1",

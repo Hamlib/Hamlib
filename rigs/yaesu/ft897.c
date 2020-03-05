@@ -187,7 +187,7 @@ enum ft897_digi
 
 const struct rig_caps ft897_caps =
 {
-    .rig_model =      RIG_MODEL_FT897,
+    RIG_MODEL(RIG_MODEL_FT897),
     .model_name =     "FT-897",
     .mfg_name =       "Yaesu",
     .version =        "0.3.3",

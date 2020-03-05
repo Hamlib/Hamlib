@@ -211,7 +211,7 @@ static int rshfiq_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
 const struct rig_caps rshfiq_caps =
 {
-    .rig_model =      RIG_MODEL_RSHFIQ,
+    RIG_MODEL(RIG_MODEL_RSHFIQ),
     .model_name =     "RS-HFIQ",
     .mfg_name =       "HobbyPCB",
     .version =        "0.1",

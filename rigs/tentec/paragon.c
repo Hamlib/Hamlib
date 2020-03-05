@@ -99,7 +99,7 @@ static int tt585_get_status_data(RIG *rig);
  */
 const struct rig_caps tt585_caps =
 {
-    .rig_model =  RIG_MODEL_TT585,
+    RIG_MODEL(RIG_MODEL_TT585),
     .model_name = "TT-585 Paragon",
     .mfg_name =  "Ten-Tec",
     .version =  "0.3",

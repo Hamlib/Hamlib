@@ -126,7 +126,7 @@ static int tt588_set_ant(RIG *rig, vfo_t vfo, ant_t ant);
  */
 const struct rig_caps tt588_caps =
 {
-    .rig_model =  RIG_MODEL_TT588,
+    RIG_MODEL(RIG_MODEL_TT588),
     .model_name = "TT-588 Omni VII",
     .mfg_name =  "Ten-Tec",
     .version =  "0.5",

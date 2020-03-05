@@ -72,7 +72,7 @@
  */
 const struct rig_caps rx320_caps =
 {
-    .rig_model =  RIG_MODEL_RX320,
+    RIG_MODEL(RIG_MODEL_RX320),
     .model_name = "RX-320",
     .mfg_name =  "Ten-Tec",
     .version =  "0.6",
