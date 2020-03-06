@@ -428,6 +428,15 @@ Returns
 \(lqModel Name\(rq at present.
 .
 .TP
+.B dump_state
+Return certain state information about the rotator backend.
+.
+.TP
+.BR 1 ", " dump_caps
+Not a real rot remote command, it just dumps capabilities, i.e. what the
+backend knows about this model, and what it can do.
+.
+.TP
 .BR w ", " send_cmd " \(aq" \fICmd\fP \(aq
 Send a raw command string to the rotator.
 .IP
