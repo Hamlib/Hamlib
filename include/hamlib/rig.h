@@ -1388,12 +1388,12 @@ typedef int (* confval_cb_t)(RIG *,
 #define RIG_MODEL(arg) .rig_model=arg,.macro_name=#arg
 struct rig_caps {
     rig_model_t rig_model;      /*!< Rig model. */
-    const char *macro_name;     /*!< Rig model macro name */
     const char *model_name;     /*!< Model name. */
     const char *mfg_name;       /*!< Manufacturer. */
     const char *version;        /*!< Driver version. */
     const char *copyright;      /*!< Copyright info. */
     enum rig_status_e status;   /*!< Driver status. */
+    const char *macro_name;     /*!< Rig model macro name */
 
     int rig_type;               /*!< Rig type. */
     ptt_type_t ptt_type;        /*!< Type of the PTT port. */
