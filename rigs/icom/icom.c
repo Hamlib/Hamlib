@@ -1772,8 +1772,10 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 
     case RIG_VFO_SUB:
         icvfo = S_SUB;
+
         // If split is on these rigs can only split on Main/VFOB
-        if (VFO_HAS_MAIN_SUB_A_B_ONLY && priv->split_on) icvfo = S_VFOB;
+        if (VFO_HAS_MAIN_SUB_A_B_ONLY && priv->split_on) { icvfo = S_VFOB; }
+
         break;
 
     case RIG_VFO_TX:
@@ -3610,8 +3612,9 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
     if (VFO_HAS_MAIN_SUB_A_B_ONLY)
     {
-        // Then we return the VFO to where it was 
-        if (save_vfo == RIG_VFO_MAIN && priv->split_on) save_vfo = RIG_VFO_A;
+        // Then we return the VFO to where it was
+        if (save_vfo == RIG_VFO_MAIN && priv->split_on) { save_vfo = RIG_VFO_A; }
+
         rig_debug(RIG_DEBUG_TRACE, "%s: SATMODE rig so setting vfo to %s\n", __func__,
                   rig_strvfo(save_vfo));
 
