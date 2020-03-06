@@ -53,7 +53,7 @@
 
 const struct rot_caps sartek_rot_caps =
 {
-    .rot_model =          ROT_MODEL_SARTEK1,
+    ROT_MODEL(ROT_MODEL_SARTEK1),
     .model_name =         "SARtek-1",
     .mfg_name =           "SARtek",
     .version =            "0.2",

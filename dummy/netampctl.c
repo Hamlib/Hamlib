@@ -195,7 +195,7 @@ static const char *netampctl_get_info(AMP *amp)
 
 const struct amp_caps netampctl_caps =
 {
-    .amp_model =      AMP_MODEL_NETAMPCTL,
+    AMP_MODEL(AMP_MODEL_NETAMPCTL),
     .model_name =     "NET ampctl",
     .mfg_name =       "Hamlib",
     .version =        "0.1",
