@@ -448,7 +448,7 @@ static const char *meade_get_info(ROT *rot)
 
 const struct rot_caps meade_caps =
 {
-    .rot_model =        ROT_MODEL_MEADE,
+    ROT_MODEL(ROT_MODEL_MEADE),
     .model_name =       "LX200/Autostar",
     .mfg_name =         "Meade",
     .version =          "0.2",

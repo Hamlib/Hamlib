@@ -272,7 +272,7 @@ static const char *ts7400_rot_get_info(ROT *rot)
 
 const struct rot_caps ts7400_rot_caps =
 {
-    .rot_model =      ROT_MODEL_TS7400,
+    ROT_MODEL(ROT_MODEL_TS7400),
     .model_name =     "ts7400",
     .mfg_name =       "LA7LKA",
     .version =        "0.1",

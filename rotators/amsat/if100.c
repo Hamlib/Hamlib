@@ -102,7 +102,7 @@ if100_set_position(ROT *rot, azimuth_t az, elevation_t el)
  */
 const struct rot_caps if100_rot_caps =
 {
-    .rot_model =        ROT_MODEL_IF100,
+    ROT_MODEL(ROT_MODEL_IF100),
     .model_name =       "IF-100",
     .mfg_name =         "AMSAT",
     .version =          "0.1",

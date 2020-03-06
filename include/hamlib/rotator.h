@@ -213,13 +213,14 @@ typedef enum {
  * sharing the struct rot_caps of the backend, while keeping their own
  * customized data.
  *
- * n.b.: Don't move fields around, as the backends depend on it when
- *       initializing their caps.
+ * mdblack: Careful movinf fields around, as the backends depend on it when
+ *       initializing their caps in shared libraries and dlls.
  */
-#define ROT_MODEL(arg) .rot_model=arg,.rot_model_macro_name=#arg
+#define ROT_MODEL(arg) .rot_model=arg,.macro_name=#arg
 struct rot_caps {
     rot_model_t rot_model;                      /*!< Rotator model. */
     const char *model_name;                     /*!< Model name. */
+    const char *macro_name;                     /*!< Macro name. */
     const char *mfg_name;                       /*!< Manufacturer. */
     const char *version;                        /*!< Driver version. */
     const char *copyright;                      /*!< Copyright info. */

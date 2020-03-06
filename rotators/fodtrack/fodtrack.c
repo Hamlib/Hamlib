@@ -138,7 +138,7 @@ fodtrack_set_position(ROT *rot, azimuth_t az, elevation_t el)
  */
 const struct rot_caps fodtrack_rot_caps =
 {
-    .rot_model =      ROT_MODEL_FODTRACK,
+    ROT_MODEL(ROT_MODEL_FODTRACK),
     .model_name =     "Fodtrack",
     .mfg_name =       "XQ2FOD",
     .version =        "0.2",

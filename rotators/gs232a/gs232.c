@@ -241,7 +241,7 @@ gs232_rot_stop(ROT *rot)
 
 const struct rot_caps gs232_generic_rot_caps =
 {
-    .rot_model =      ROT_MODEL_GS232_GENERIC,
+    ROT_MODEL(ROT_MODEL_GS232_GENERIC),
     .model_name =     "GS-232 Generic",
     .mfg_name =       "Various",
     .version =        "0.3",
@@ -277,7 +277,7 @@ const struct rot_caps gs232_generic_rot_caps =
 
 const struct rot_caps amsat_lvb_rot_caps =
 {
-    .rot_model =      ROT_MODEL_LVB,
+    ROT_MODEL(ROT_MODEL_LVB),
     .model_name =     "LVB Tracker",
     .mfg_name =       "AMSAT",
     .version =        "0.1",
@@ -314,7 +314,7 @@ const struct rot_caps amsat_lvb_rot_caps =
 
 const struct rot_caps st2_rot_caps =
 {
-    .rot_model =      ROT_MODEL_ST2,
+    ROT_MODEL(ROT_MODEL_ST2),
     .model_name =     "GS232/ST2",
     .mfg_name =       "FoxDelta",
     .version =        "0.1",
@@ -352,7 +352,7 @@ const struct rot_caps st2_rot_caps =
 
 const struct rot_caps f1tetracker_rot_caps =
 {
-    .rot_model =      ROT_MODEL_F1TETRACKER,
+    ROT_MODEL(ROT_MODEL_F1TETRACKER),
     .model_name =     "GS232/F1TE Tracker",
     .mfg_name =       "F1TE",
     .version =        "0.1",

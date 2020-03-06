@@ -29,57 +29,58 @@
 
 int print_caps_sum(const struct rig_caps *caps, void *data)
 {
-
-    printf("%d\t%-10s\t%-14s\t%-8s\t",
+    char *fmt1 = "%-13s";
+    printf("%6d \t%-22s \t%-23s\t%-8s   \t",
            caps->rig_model,
            caps->mfg_name,
            caps->model_name,
            caps->version);
 
-    printf("%.10s\t", rig_strstatus(caps->status));
+    printf("%-8s \t", rig_strstatus(caps->status));
 
     switch (caps->rig_type & RIG_TYPE_MASK)
     {
     case RIG_TYPE_TRANSCEIVER:
-        printf("%.16s\t","Transceiver");
+        printf(fmt1, "Transceiver");
         break;
 
     case RIG_TYPE_HANDHELD:
-        printf("%.16s\t","Handheld");
+        printf(fmt1, "Handheld");
         break;
 
     case RIG_TYPE_MOBILE:
-        printf("%.16s\t","Mobile");
+        printf(fmt1, "Mobile");
         break;
 
     case RIG_TYPE_RECEIVER:
-        printf("%.16s\t","Receiver");
+        printf(fmt1, "Receiver");
         break;
 
     case RIG_TYPE_PCRECEIVER:
-        printf("%.16s\t","PC Receiver");
+        printf(fmt1, "PC Receiver");
         break;
 
     case RIG_TYPE_SCANNER:
-        printf("%.16s\t","Scanner");
+        printf(fmt1, "Scanner");
         break;
 
     case RIG_TYPE_TRUNKSCANNER:
-        printf("%.16s\t","Trunking scanner");
+        printf(fmt1, "Trunk scanner");
         break;
 
     case RIG_TYPE_COMPUTER:
-        printf("%.16s\t","Computer");
+        printf(fmt1, "Computer");
         break;
 
     case RIG_TYPE_OTHER:
-        printf("%.16s\t","Other");
+        printf(fmt1, "Other");
         break;
 
     default:
-        printf("%.16s\t","Unknown");
+        printf(fmt1, "Unknown");
     }
-    printf("%s\n",caps->rig_model_macro_name==NULL?"Unknown":caps->rig_model_macro_name);
+
+    printf("\t%s\n", caps->macro_name == NULL ? "Unknown" : caps->macro_name);
     return -1;  /* !=0, we want them all ! */
 }
 
@@ -90,7 +91,7 @@ int main(int argc, char *argv[])
 
     rig_load_all_backends();
 
-    printf("Rig#\tMfg       \tModel       \tVers.   \tStatus    \tType            \tMacro\n");
+    printf(" Rig#  \tMfg                    \tModel                  \tVersion    \tStatus   \tType         \tMacro\n");
 
     status = rig_list_foreach(print_caps_sum, NULL);
 

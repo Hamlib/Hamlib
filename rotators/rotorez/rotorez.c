@@ -131,7 +131,7 @@ static const struct confparams rotorez_cfg_params[] =
 
 const struct rot_caps rotorez_rot_caps =
 {
-    .rot_model =        ROT_MODEL_ROTOREZ,
+    ROT_MODEL(ROT_MODEL_ROTOREZ),
     .model_name =       "Rotor-EZ",
     .mfg_name =         "Idiom Press",
     .version =          "2010-02-14",
@@ -176,7 +176,7 @@ const struct rot_caps rotorez_rot_caps =
 
 const struct rot_caps rotorcard_rot_caps =
 {
-    .rot_model =        ROT_MODEL_ROTORCARD,
+    ROT_MODEL(ROT_MODEL_ROTORCARD),
     .model_name =       "RotorCard",
     .mfg_name =         "Idiom Press",
     .version =          "2010-02-14",
@@ -220,7 +220,7 @@ const struct rot_caps rotorcard_rot_caps =
 
 const struct rot_caps dcu_rot_caps =
 {
-    .rot_model =        ROT_MODEL_DCU,
+    ROT_MODEL(ROT_MODEL_DCU),
     .model_name =       "DCU-1/DCU-1X",
     .mfg_name =         "Hy-Gain",
     .version =          "2010-08-23",
@@ -264,7 +264,7 @@ const struct rot_caps dcu_rot_caps =
 
 const struct rot_caps erc_rot_caps =
 {
-    .rot_model =        ROT_MODEL_ERC,
+    ROT_MODEL(ROT_MODEL_ERC),
     .model_name =       "ERC",
     .mfg_name =         "DF9GR",
     .version =          "2010-08-23b",      /* second revision on 23 Aug 2010 */
@@ -306,7 +306,7 @@ const struct rot_caps erc_rot_caps =
 
 const struct rot_caps rt21_rot_caps =
 {
-    .rot_model =        ROT_MODEL_RT21,
+    ROT_MODEL(ROT_MODEL_RT21),
     .model_name =       "RT-21",
     .mfg_name =     "Green Heron",
     .version =      "2014-09-14",

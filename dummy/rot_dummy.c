@@ -272,7 +272,7 @@ static const char *dummy_rot_get_info(ROT *rot)
 
 const struct rot_caps dummy_rot_caps =
 {
-    .rot_model =      ROT_MODEL_DUMMY,
+    ROT_MODEL(ROT_MODEL_DUMMY),
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
     .version =        "0.2",
