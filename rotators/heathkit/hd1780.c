@@ -64,7 +64,7 @@ static int hd1780_send_priv_cmd(ROT *rot, const char *cmd);
 
 const struct rot_caps hd1780_rot_caps =
 {
-    .rot_model =          ROT_MODEL_HD1780,
+    ROT_MODEL(ROT_MODEL_HD1780),
     .model_name =         "HD 1780 Intellirotor",
     .mfg_name =           "Heathkit",
     .version =            "0.1",

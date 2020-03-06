@@ -62,10 +62,10 @@ struct kpa_priv_data *kpa1500_priv;
 
 const struct amp_caps kpa1500_amp_caps =
 {
-    .amp_model =    AMP_MODEL_ELECRAFT_KPA1500,
+    AMP_MODEL(AMP_MODEL_ELECRAFT_KPA1500),
     .model_name =   "KPA1500",
     .mfg_name =     "Elecraft",
-    .version =      "2020-01-12",
+    .version =      "20200112",
     .copyright =    "LGPL",
     .status =     RIG_STATUS_ALPHA,
     .amp_type =     AMP_TYPE_OTHER,

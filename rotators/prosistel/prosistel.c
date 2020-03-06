@@ -256,7 +256,7 @@ static int prosistel_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
 const struct rot_caps prosistel_rot_caps =
 {
-    .rot_model =      ROT_MODEL_PROSISTEL,
+    ROT_MODEL(ROT_MODEL_PROSISTEL),
     .model_name =     "Prosistel D",
     .mfg_name =       "Prosistel",
     .version =        "0.5",

@@ -214,6 +214,7 @@ struct mod_lst
     char model_name[32];    /* caps->model_name */
     char version[32];       /* caps->version */
     char status[32];        /* caps->status */
+    char macro_name[32];    /* caps->macro_name */
     UT_hash_handle hh;      /* makes this structure hashable */
 };
 
@@ -226,7 +227,8 @@ void hash_add_model(int id,
                     const char *mfg_name,
                     const char *model_name,
                     const char *version,
-                    const char *status)
+                    const char *status,
+                    const char *macro_name)
 {
     struct mod_lst *s;
 
@@ -237,6 +239,7 @@ void hash_add_model(int id,
     snprintf(s->model_name, sizeof(s->model_name), "%s", model_name);
     snprintf(s->version, sizeof(s->version), "%s", version);
     snprintf(s->status, sizeof(s->status), "%s", status);
+    snprintf(s->macro_name, sizeof(s->macro_name), "%s", macro_name);
 
     HASH_ADD_INT(models, id, s);    /* id: name of key field */
 }
@@ -1540,7 +1543,8 @@ static int hash_model_list(const struct amp_caps *caps, void *data)
                    caps->mfg_name,
                    caps->model_name,
                    caps->version,
-                   rig_strstatus(caps->status));
+                   rig_strstatus(caps->status),
+                   caps->macro_name);
 
     return 1;  /* !=0, we want them all ! */
 }
@@ -1551,12 +1555,13 @@ void print_model_list()
 
     for (s = models; s != NULL; s = (struct mod_lst *)(s->hh.next))
     {
-        printf("%6u  %-23s%-24s%-16s%s\n",
+        printf("%6u  %-23s%-24s%-16s%-14s%s\n",
                s->id,
                s->mfg_name,
                s->model_name,
                s->version,
-               s->status);
+               s->status,
+               s->macro_name);
     }
 }
 
@@ -1567,7 +1572,7 @@ void list_models()
 
     amp_load_all_backends();
 
-    printf(" Amp #  Mfg                    Model                   Version         Status\n");
+    printf(" Amp #  Mfg                    Model                   Version         Status        Macro\n");
     status = amp_list_foreach(hash_model_list, NULL);
 
     if (status != RIG_OK)

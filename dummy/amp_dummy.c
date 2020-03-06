@@ -334,7 +334,7 @@ static int dummy_amp_get_ext_level(AMP *amp, token_t token, value_t *val)
 
 const struct amp_caps dummy_amp_caps =
 {
-    .amp_model =      AMP_MODEL_DUMMY,
+    AMP_MODEL(AMP_MODEL_DUMMY),
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
     .version =        "0.1",

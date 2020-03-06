@@ -291,7 +291,7 @@ gs232a_rot_move(ROT *rot, int direction, int speed)
 
 const struct rot_caps gs23_rot_caps =
 {
-    .rot_model =      ROT_MODEL_GS23,
+    ROT_MODEL(ROT_MODEL_GS23),
     .model_name =     "GS-23",
     .mfg_name =       "Yaesu/Kenpro",
     .version =        "0.2",
@@ -327,7 +327,7 @@ const struct rot_caps gs23_rot_caps =
 
 const struct rot_caps gs232_rot_caps =
 {
-    .rot_model =      ROT_MODEL_GS232,
+    ROT_MODEL(ROT_MODEL_GS232),
     .model_name =     "GS-232",
     .mfg_name =       "Yaesu/Kenpro",
     .version =        "0.1",
@@ -363,7 +363,7 @@ const struct rot_caps gs232_rot_caps =
 
 const struct rot_caps gs232a_rot_caps =
 {
-    .rot_model =      ROT_MODEL_GS232A,
+    ROT_MODEL(ROT_MODEL_GS232A),
     .model_name =     "GS-232A",
     .mfg_name =       "Yaesu",
     .version =        "0.5",

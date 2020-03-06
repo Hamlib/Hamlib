@@ -1385,10 +1385,10 @@ typedef int (* confval_cb_t)(RIG *,
  * mdblack: Don't move fields around without bumping the version numbers
  *          DLL or shared library replacement would break the interface
  */
-#define RIG_MODEL(arg) .rig_model=arg,.rig_model_macro_name=#arg
+#define RIG_MODEL(arg) .rig_model=arg,.macro_name=#arg
 struct rig_caps {
     rig_model_t rig_model;      /*!< Rig model. */
-    const char *rig_model_macro_name;   /*!< Rig model macro name */
+    const char *macro_name;     /*!< Rig model macro name */
     const char *model_name;     /*!< Model name. */
     const char *mfg_name;       /*!< Manufacturer. */
     const char *version;        /*!< Driver version. */

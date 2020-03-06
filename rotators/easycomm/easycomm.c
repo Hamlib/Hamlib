@@ -442,7 +442,7 @@ static int easycomm_rot_set_conf(ROT *rot, token_t token, const char *val)
  */
 const struct rot_caps easycomm1_rot_caps =
 {
-    .rot_model =      ROT_MODEL_EASYCOMM1,
+    ROT_MODEL(ROT_MODEL_EASYCOMM1),
     .model_name =     "EasycommI",
     .mfg_name =       "Hamlib",
     .version =        "0.4",
@@ -478,7 +478,7 @@ const struct rot_caps easycomm1_rot_caps =
  */
 const struct rot_caps easycomm2_rot_caps =
 {
-    .rot_model =      ROT_MODEL_EASYCOMM2,
+    ROT_MODEL(ROT_MODEL_EASYCOMM2),
     .model_name =     "EasycommII",
     .mfg_name =       "Hamlib",
     .version =        "0.4",
@@ -524,7 +524,7 @@ const struct rot_caps easycomm2_rot_caps =
  */
 const struct rot_caps easycomm3_rot_caps =
 {
-    .rot_model =      ROT_MODEL_EASYCOMM3,
+    ROT_MODEL(ROT_MODEL_EASYCOMM3),
     .model_name =     "EasycommIII",
     .mfg_name =       "Hamlib",
     .version =        "0.4",

@@ -450,7 +450,7 @@ const struct confparams spid_cfg_params[] =
 
 const struct rot_caps spid_rot1prog_rot_caps =
 {
-    .rot_model =         ROT_MODEL_SPID_ROT1PROG,
+    ROT_MODEL(ROT_MODEL_SPID_ROT1PROG),
     .model_name =        "Rot1Prog",
     .mfg_name =          "SPID",
     .version =           "1.0",
@@ -487,7 +487,7 @@ const struct rot_caps spid_rot1prog_rot_caps =
 
 const struct rot_caps spid_rot2prog_rot_caps =
 {
-    .rot_model =         ROT_MODEL_SPID_ROT2PROG,
+    ROT_MODEL(ROT_MODEL_SPID_ROT2PROG),
     .model_name =        "Rot2Prog",
     .mfg_name =          "SPID",
     .version =           "1.0",
@@ -524,7 +524,7 @@ const struct rot_caps spid_rot2prog_rot_caps =
 
 const struct rot_caps spid_md01_rot2prog_rot_caps =
 {
-    .rot_model =         ROT_MODEL_SPID_MD01_ROT2PROG,
+    ROT_MODEL(ROT_MODEL_SPID_MD01_ROT2PROG),
     .model_name =        "MD-01/02 (ROT2 mode)",
     .mfg_name =          "SPID",
     .version =           "1.0",

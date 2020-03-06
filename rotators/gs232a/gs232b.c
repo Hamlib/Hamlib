@@ -310,7 +310,7 @@ gs232b_rot_move(ROT *rot, int direction, int speed)
 
 const struct rot_caps gs232b_rot_caps =
 {
-    .rot_model = ROT_MODEL_GS232B,
+    ROT_MODEL(ROT_MODEL_GS232B),
     .model_name = "GS-232B",
     .mfg_name = "Yaesu",
     .version = "0.5",

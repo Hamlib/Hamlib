@@ -711,7 +711,7 @@ ars_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
  */
 const struct rot_caps rci_azel_rot_caps =
 {
-    .rot_model =      ROT_MODEL_RCI_AZEL,
+    ROT_MODEL(ROT_MODEL_RCI_AZEL),
     .model_name =     "ARS RCI AZ&EL",
     .mfg_name =       "EA4TX",
     .version =        "0.2",
@@ -745,7 +745,7 @@ const struct rot_caps rci_azel_rot_caps =
  */
 const struct rot_caps rci_az_rot_caps =
 {
-    .rot_model =      ROT_MODEL_RCI_AZ,
+    ROT_MODEL(ROT_MODEL_RCI_AZ),
     .model_name =     "ARS RCI AZ",
     .mfg_name =       "EA4TX",
     .version =        "0.1",

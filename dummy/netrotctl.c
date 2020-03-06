@@ -325,7 +325,7 @@ static const char *netrotctl_get_info(ROT *rot)
 
 const struct rot_caps netrotctl_caps =
 {
-    .rot_model =      ROT_MODEL_NETROTCTL,
+    ROT_MODEL(ROT_MODEL_NETROTCTL),
     .model_name =     "NET rotctl",
     .mfg_name =       "Hamlib",
     .version =        "0.3",

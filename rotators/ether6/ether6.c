@@ -306,7 +306,7 @@ static const char *ether_rot_get_info(ROT *rot)
 
 const struct rot_caps ether6_rot_caps =
 {
-    .rot_model =      ROT_MODEL_ETHER6,
+    ROT_MODEL(ROT_MODEL_ETHER6),
     .model_name =     "Ether6 (via ethernet)",
     .mfg_name =       "DG9OAA",
     .version =        "0.1",
