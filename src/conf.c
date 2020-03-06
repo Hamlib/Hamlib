@@ -73,9 +73,14 @@ static const struct confparams frontend_cfg_params[] =
         "0", RIG_CONF_NUMERIC, { .n = { 0, 10, 1 } }
     },
     {
-        TOK_ITU_REGION, "itu_region", "ITU region",
-        "ITU region this rig has been manufactured for (freq. band plan)",
-        "0", RIG_CONF_NUMERIC, { .n = { 1, 3, 1 } }
+        TOK_RANGE_SELECTED, "Selected range list", "Range list#",
+        "The tx/rx range list in use",
+        "0", RIG_CONF_NUMERIC, { .n = { 1, 5, 1 } }
+    },
+    {
+        TOK_RANGE_NAME, "Selected range list", "Range list name",
+        "The tx/rx range list name",
+        "Default", RIG_CONF_STRING
     },
 
     {
@@ -371,7 +376,7 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
 
         break;
 
-    case TOK_ITU_REGION:
+    case TOK_RANGE_SELECTED:
         if (1 != sscanf(val, "%d", &val_i))
         {
             return -RIG_EINVAL;//value format error
@@ -394,23 +399,23 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
             break;
 
         case 3:
-            memcpy(rs->tx_range_list, caps->tx_range_list2,
+            memcpy(rs->tx_range_list, caps->tx_range_list3,
                    sizeof(struct freq_range_list)*FRQRANGESIZ);
-            memcpy(rs->rx_range_list, caps->rx_range_list2,
+            memcpy(rs->rx_range_list, caps->rx_range_list3,
                    sizeof(struct freq_range_list)*FRQRANGESIZ);
             break;
 
         case 4:
-            memcpy(rs->tx_range_list, caps->tx_range_list2,
+            memcpy(rs->tx_range_list, caps->tx_range_list4,
                    sizeof(struct freq_range_list)*FRQRANGESIZ);
-            memcpy(rs->rx_range_list, caps->rx_range_list2,
+            memcpy(rs->rx_range_list, caps->rx_range_list4,
                    sizeof(struct freq_range_list)*FRQRANGESIZ);
             break;
 
         case 5:
-            memcpy(rs->tx_range_list, caps->tx_range_list2,
+            memcpy(rs->tx_range_list, caps->tx_range_list5,
                    sizeof(struct freq_range_list)*FRQRANGESIZ);
-            memcpy(rs->rx_range_list, caps->rx_range_list2,
+            memcpy(rs->rx_range_list, caps->rx_range_list5,
                    sizeof(struct freq_range_list)*FRQRANGESIZ);
             break;
 
