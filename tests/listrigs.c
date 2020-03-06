@@ -41,45 +41,46 @@ int print_caps_sum(const struct rig_caps *caps, void *data)
     switch (caps->rig_type & RIG_TYPE_MASK)
     {
     case RIG_TYPE_TRANSCEIVER:
-        printf(fmt1,"Transceiver");
+        printf(fmt1, "Transceiver");
         break;
 
     case RIG_TYPE_HANDHELD:
-        printf(fmt1,"Handheld");
+        printf(fmt1, "Handheld");
         break;
 
     case RIG_TYPE_MOBILE:
-        printf(fmt1,"Mobile");
+        printf(fmt1, "Mobile");
         break;
 
     case RIG_TYPE_RECEIVER:
-        printf(fmt1,"Receiver");
+        printf(fmt1, "Receiver");
         break;
 
     case RIG_TYPE_PCRECEIVER:
-        printf(fmt1,"PC Receiver");
+        printf(fmt1, "PC Receiver");
         break;
 
     case RIG_TYPE_SCANNER:
-        printf(fmt1,"Scanner");
+        printf(fmt1, "Scanner");
         break;
 
     case RIG_TYPE_TRUNKSCANNER:
-        printf(fmt1,"Trunk scanner");
+        printf(fmt1, "Trunk scanner");
         break;
 
     case RIG_TYPE_COMPUTER:
-        printf(fmt1,"Computer");
+        printf(fmt1, "Computer");
         break;
 
     case RIG_TYPE_OTHER:
-        printf(fmt1,"Other");
+        printf(fmt1, "Other");
         break;
 
     default:
-        printf(fmt1,"Unknown");
+        printf(fmt1, "Unknown");
     }
-    printf("\t%s\n",caps->macro_name==NULL?"Unknown":caps->macro_name);
+
+    printf("\t%s\n", caps->macro_name == NULL ? "Unknown" : caps->macro_name);
     return -1;  /* !=0, we want them all ! */
 }
 

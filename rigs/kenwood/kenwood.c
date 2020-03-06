@@ -3344,7 +3344,8 @@ int kenwood_get_trn(RIG *rig, int *trn)
  */
 int kenwood_set_powerstat(RIG *rig, powerstat_t status)
 {
-    int retval = kenwood_transaction(rig, (status == RIG_POWER_ON) ? ";;;;PS1;" : "PS0",
+    int retval = kenwood_transaction(rig,
+                                     (status == RIG_POWER_ON) ? ";;;;PS1;" : "PS0",
                                      NULL, 0);
     int i = 0;
     int retry = 3 / rig->state.rigport.retry;
