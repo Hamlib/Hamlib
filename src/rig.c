@@ -406,7 +406,15 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->transceive = RIG_TRN_OFF;
     rs->poll_interval = 500;
     rs->lo_freq = 0;
-
+ 
+    // We are using range_list1 as the default
+    // Eventually we will have separate model number for different rig variations
+    // So range_list1 will become just range_list (per model)
+    // See ic9700.c for a 5-model example
+    memcpy(rs->tx_range_list, caps->tx_range_list1,
+           sizeof(struct freq_range_list)*FRQRANGESIZ);
+    memcpy(rs->rx_range_list, caps->rx_range_list1,
+           sizeof(struct freq_range_list)*FRQRANGESIZ);
 #if 0 // this is no longer applicable -- replace it with something?
 
 // we need to be able to figure out what model radio we have
