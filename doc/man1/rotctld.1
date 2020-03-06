@@ -170,6 +170,12 @@ Use the
 option above for a list of configuration parameters for a given model number.
 .
 .TP
+.BR \-u ", " \-\-dump\-state
+Dump state for the rotator defined with
+.B -m
+above and exit.
+.
+.TP
 .BR \-u ", " \-\-dump\-caps
 Dump capabilities for the rotator defined with
 .B -m
@@ -361,6 +367,15 @@ Get misc information about the rotator.
 Returns
 .RI \(aq Info \(aq
 \(lqModel Name\(rq.
+.
+.TP
+.B dump_state
+Return certain state information about the rotator backend.
+.
+.TP
+.BR 1 ", " dump_caps
+Not a real rot remote command, it just dumps capabilities, i.e. what the
+backend knows about this model, and what it can do.
 .
 .TP
 .BR w ", " send_cmd " \(aq" \fICmd\fP \(aq
