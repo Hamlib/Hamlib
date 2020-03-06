@@ -227,7 +227,7 @@ celestron_get_info(ROT *rot)
 
 const struct rot_caps nexstar_rot_caps =
 {
-    .rot_model =      ROT_MODEL_NEXSTAR,
+    ROT_MODEL(ROT_MODEL_NEXSTAR),
     .model_name =     "NexStar",  // Any Celestron starting with version 1.2
     .mfg_name =       "Celestron",
     .version =        "0.1",

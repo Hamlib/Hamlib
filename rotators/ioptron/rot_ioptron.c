@@ -303,7 +303,7 @@ ioptron_get_info(ROT *rot)
 
 const struct rot_caps ioptron_rot_caps =
 {
-    .rot_model =      ROT_MODEL_IOPTRON,
+    ROT_MODEL(ROT_MODEL_IOPTRON),
     .model_name =     "iOptron",
     .mfg_name =       "iOptron",
     .version =        "0.1",

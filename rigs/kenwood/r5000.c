@@ -62,7 +62,7 @@ const struct rig_caps r5000_caps =
     RIG_MODEL(RIG_MODEL_R5000),
     .model_name = "R-5000",
     .mfg_name =  "Kenwood",
-    .version =  IC10_VER,
+    .version =  BACKEND_VER IC10_VER,
     .copyright =  "LGPL",
     .status =  RIG_STATUS_ALPHA,
     .rig_type =  RIG_TYPE_RECEIVER,

@@ -362,7 +362,7 @@ rc2800_rot_stop(ROT *rot)
 
 const struct rot_caps rc2800_rot_caps =
 {
-    .rot_model =      ROT_MODEL_RC2800,
+    ROT_MODEL(ROT_MODEL_RC2800),
     .model_name =     "RC2800",
     .mfg_name =       "M2",
     .version =        "0.1.1",
