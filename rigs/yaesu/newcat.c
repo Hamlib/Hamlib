@@ -523,14 +523,13 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %"PRIfreq" Hz\n", __func__, freq);
 
     /* additional debugging */
-    rig_debug(RIG_DEBUG_TRACE, "%s: R2 minimum freq = %"PRIfreq" Hz\n", __func__,
-              caps->rx_range_list2[0].startf);
-    rig_debug(RIG_DEBUG_TRACE, "%s: R2 maximum freq = %"PRIfreq" Hz\n", __func__,
-              caps->rx_range_list2[0].endf);
+    rig_debug(RIG_DEBUG_TRACE, "%s: minimum freq = %"PRIfreq" Hz\n", __func__,
+              caps->rx_range_list1[0].startf);
+    rig_debug(RIG_DEBUG_TRACE, "%s: maximum freq = %"PRIfreq" Hz\n", __func__,
+              caps->rx_range_list1[0].endf);
 
     if (freq < caps->rx_range_list1[0].startf
-            || freq > caps->rx_range_list1[0].endf ||
-            freq < caps->rx_range_list2[0].startf || freq > caps->rx_range_list2[0].endf)
+            || freq > caps->rx_range_list1[0].endf)
     {
         return -RIG_EINVAL;
     }
