@@ -76,22 +76,23 @@
 #define C_MEM2VFO	0x0a		/* Memory to VFO */
 #define C_CLR_MEM	0x0b		/* Memory clear */
 #define C_RD_OFFS	0x0c		/* Read duplex offset frequency; default changes with HF/6M/2M */
-#define C_SET_OFFS	0x0d		/* Set duplex offset frequency */
-#define C_CTL_SCAN	0x0e		/* Control scan, Sc */
-#define C_CTL_SPLT	0x0f		/* Control split, and duplex mode Sc */
-#define C_SET_TS	0x10		/* Set tuning step, Sc */
+#define C_SET_OFFS 0x0d		/* Set duplex offset frequency */
+#define C_CTL_SCAN 0x0e		/* Control scan, Sc */
+#define C_CTL_SPLT 0x0f		/* Control split, and duplex mode Sc */
+#define C_SET_TS 0x10	  	/* Set tuning step, Sc */
 #define C_CTL_ATT	0x11		/* Set/get attenuator, Sc */
 #define C_CTL_ANT	0x12		/* Set/get antenna, Sc */
 #define C_CTL_ANN	0x13		/* Control announce (speech synth.), Sc */
 #define C_CTL_LVL	0x14		/* Set AF/RF/squelch, Sc */
 #define C_RD_SQSM	0x15		/* Read squelch condition/S-meter level, Sc */
-#define C_CTL_FUNC	0x16		/* Function settings (AGC,NB,etc.), Sc */
+#define C_CTL_FUNC 0x16		/* Function settings (AGC,NB,etc.), Sc */
 #define C_SND_CW	0x17		/* Send CW message */
 #define C_SET_PWR	0x18		/* Set Power ON/OFF, Sc */
-#define C_RD_TRXID	0x19		/* Read transceiver ID code */
+#define C_RD_TRXID 0x19		/* Read transceiver ID code */
 #define C_CTL_MEM	0x1a		/* Misc memory/bank/rig control functions, Sc */
-#define C_SET_TONE	0x1b		/* Set tone frequency */
+#define C_SET_TONE 0x1b		/* Set tone frequency */
 #define C_CTL_PTT	0x1c		/* Control Transmit On/Off, Sc */
+#define C_CTL_EDGE 0x1e   /* Band edges */
 #define C_CTL_DVT	0x1f		/* Digital modes calsigns & messages */
 #define C_CTL_DIG	0x20		/* Digital modes settings & status */
 #define C_CTL_RIT	0x21		/* RIT/XIT control */
@@ -359,6 +360,14 @@
  */
 #define S_PTT		0x00
 #define S_ANT_TUN	0x01	/* Auto tuner 0=OFF, 1 = ON, 2=Start Tuning */
+
+/*
+ * Band Edge control (C_CTL_EDGE) subcommands
+ */
+#define S_EDGE_RD_N  0x00 // Fixed band edge count
+#define S_EDGE_RD    0x01 // Fixed band edges
+#define S_EDGE_RD_NU 0x02 // User band edge count
+#define S_EDGE_RD_U  0x03 // User band edges
 
 /*
  * RIT/XIT control (C_CTL_RIT) subcommands
