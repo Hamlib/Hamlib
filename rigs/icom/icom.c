@@ -731,31 +731,33 @@ icom_rig_open(RIG *rig)
               rig->caps->version);
     retval = icom_get_usb_echo_off(rig);
 
-    if (retval >= 0) { return RIG_OK; }
-
-    // maybe we need power on?
-    rig_debug(RIG_DEBUG_VERBOSE, "%s trying power on\n", __func__);
-    retval = abs(rig_set_powerstat(rig, 1));
-
-    // this is only a fatal error if powerstat is implemented
-    // if not iplemented than we're at an error here
-    if (retval != RIG_OK && retval != RIG_ENIMPL && retval != RIG_ENAVAIL)
+    if (retval != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_WARN, "%s: unexpected retval here: %s\n",
-                  __func__, rigerror(retval));
 
-        rig_debug(RIG_DEBUG_WARN, "%s: rig_set_powerstat failed: =%s\n", __func__,
-                  rigerror(retval));
-        return retval;
-    }
+        // maybe we need power on?
+        rig_debug(RIG_DEBUG_VERBOSE, "%s trying power on\n", __func__);
+        retval = abs(rig_set_powerstat(rig, 1));
 
-    // Now that we're powered up let's try again
-    retval = icom_get_usb_echo_off(rig);
+        // this is only a fatal error if powerstat is implemented
+        // if not iplemented than we're at an error here
+        if (retval != RIG_OK && retval != RIG_ENIMPL && retval != RIG_ENAVAIL)
+        {
+            rig_debug(RIG_DEBUG_WARN, "%s: unexpected retval here: %s\n",
+                      __func__, rigerror(retval));
 
-    if (retval < 0)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: Unable to determine USB echo status\n", __func__);
-        return retval;
+            rig_debug(RIG_DEBUG_WARN, "%s: rig_set_powerstat failed: =%s\n", __func__,
+                      rigerror(retval));
+            return retval;
+        }
+
+        // Now that we're powered up let's try again
+        retval = icom_get_usb_echo_off(rig);
+
+        if (retval < 0)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: Unable to determine USB echo status\n", __func__);
+            return retval;
+        }
     }
 
     retval = rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
@@ -6524,6 +6526,7 @@ int icom_send_voice_mem(RIG *rig, vfo_t vfo, int ch)
 /*
  * icom_get_freq_range
  * Assumes rig!=NULL, rig->state.priv!=NULL
+ * Always returns RIG_OK
  */
 int icom_get_freq_range(RIG *rig)
 {
