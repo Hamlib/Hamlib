@@ -363,9 +363,8 @@ static int generic_save_channel(RIG *rig, channel_t *chan)
     vfo_t vfo;
     setting_t setting;
     const channel_cap_t *mem_cap = NULL;
-    value_t vdummy;
+    value_t vdummy = {0};
 
-    vdummy.i = 0;
     chan_num = chan->channel_num;
     vfo = chan->vfo;
     memset(chan, 0, sizeof(channel_t));
@@ -533,7 +532,7 @@ static int generic_restore_channel(RIG *rig, const channel_t *chan)
     struct ext_list *p;
     setting_t setting;
     const channel_cap_t *mem_cap = NULL;
-    value_t vdummy;
+    value_t vdummy = {0};
 
     if (chan->vfo == RIG_VFO_MEM)
     {
