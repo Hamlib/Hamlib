@@ -774,7 +774,7 @@ icom_rig_open(RIG *rig)
         priv->tx_vfo = RIG_VFO_MAIN;
     }
 
-    return retval;
+    return RIG_OK;
 }
 
 /*
@@ -6516,6 +6516,15 @@ int icom_send_voice_mem(RIG *rig, vfo_t vfo, int ch)
     }
 
     return RIG_OK;
+}
+
+/*
+ * icom_get_freq_range
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int icom_get_freq_range(RIG *rig, vfo_t vfo, int ch)
+{
+    // Automatically fill in the freq range for this rig if available 
 }
 
 // Sets rig vfo && priv->curr_vfo to default VFOA, or current vfo, or the vfo requested
