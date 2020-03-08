@@ -1382,8 +1382,8 @@ typedef int (* confval_cb_t)(RIG *,
  * sharing the struct rig_caps of the backend, while keeping their own
  * customized data.
  *
- * mdblack: Don't move fields around without bumping the version numbers
- *          DLL or shared library replacement would break the interface
+ * mdblack: Don't move or add fields around without bumping the version numbers
+ *          DLL or shared library replacement depends on order
  */
 #define RIG_MODEL(arg) .rig_model=arg,.macro_name=#arg
 struct rig_caps {
@@ -1393,7 +1393,6 @@ struct rig_caps {
     const char *version;        /*!< Driver version. */
     const char *copyright;      /*!< Copyright info. */
     enum rig_status_e status;   /*!< Driver status. */
-    const char *macro_name;     /*!< Rig model macro name */
 
     int rig_type;               /*!< Rig type. */
     ptt_type_t ptt_type;        /*!< Type of the PTT port. */
@@ -1645,6 +1644,7 @@ struct rig_caps {
 
     const char *clone_combo_set;    /*!< String describing key combination to enter load cloning mode */
     const char *clone_combo_get;    /*!< String describing key combination to enter save cloning mode */
+    const char *macro_name;     /*!< Rig model macro name */
 };
 
 
