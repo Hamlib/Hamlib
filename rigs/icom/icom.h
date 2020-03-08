@@ -309,6 +309,7 @@ int icom_set_custom_parm_time(RIG *rig, int parmbuflen, unsigned char *parmbuf,
                               int seconds);
 int icom_get_custom_parm_time(RIG *rig, int parmbuflen, unsigned char *parmbuf,
                               int *seconds);
+int icom_get_freq_range(RIG *rig);
 
 extern const struct confparams icom_cfg_params[];
 extern const struct confparams icom_ext_levels[];

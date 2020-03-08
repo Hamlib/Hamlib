@@ -774,6 +774,8 @@ icom_rig_open(RIG *rig)
         priv->tx_vfo = RIG_VFO_MAIN;
     }
 
+    icom_get_freq_range(rig); // try get to get rig range capability dyamically
+
     return RIG_OK;
 }
 
@@ -4303,6 +4305,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
             {
                 return rc;
             }
+
             if (RIG_OK != (rc = icom_set_vfo(rig, RIG_VFO_A)))
             {
                 return rc;
@@ -6522,9 +6525,69 @@ int icom_send_voice_mem(RIG *rig, vfo_t vfo, int ch)
  * icom_get_freq_range
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int icom_get_freq_range(RIG *rig, vfo_t vfo, int ch)
+int icom_get_freq_range(RIG *rig)
 {
-    // Automatically fill in the freq range for this rig if available 
+    int nrange = 0;
+    int ack_len;
+    int i;
+    int cmd, subcmd;
+    int retval;
+    unsigned char lenbuf[1];
+    unsigned char cmdbuf[MAXFRAMELEN];
+    unsigned char ackbuf[MAXFRAMELEN];
+    struct icom_priv_data *priv = (struct icom_priv_data *) rig->state.priv;
+    int freq_len = priv->civ_731_mode ? 4 : 5;
+
+    cmd = C_CTL_EDGE;
+    subcmd = 0;
+    retval = icom_transaction(rig, cmd, subcmd, lenbuf, sizeof(lenbuf), ackbuf,
+                              &ack_len);
+
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_TRACE,
+                  "%s: rig does not have 0x1e command so skipping this check\n", __func__);
+        return RIG_OK;
+    }
+
+    nrange = from_bcd(lenbuf, 2);
+    rig_debug(RIG_DEBUG_TRACE, "%s: nrange=%d\n", __func__, nrange);
+
+    for (i = 0; i < nrange; ++i)
+    {
+        cmd = C_CTL_EDGE;
+        subcmd = 1;
+        retval = icom_transaction(rig, cmd, subcmd, cmdbuf, sizeof(cmdbuf), ackbuf,
+                                  &ack_len);
+
+        if (retval == RIG_OK)
+        {
+            freq_t freqlo, freqhi;
+            rig_debug(RIG_DEBUG_TRACE, "%s: cmdbuf= %02x %02x %02x %02x...\n", __func__,
+                      cmdbuf[0], cmdbuf[1], cmdbuf[2], cmdbuf[3]);
+            freqlo = from_bcd(&cmdbuf[2], freq_len * 2);
+            freqhi = from_bcd(&cmdbuf[2 + freq_len], freq_len * 2);
+            rig_debug(RIG_DEBUG_TRACE, "%s: rig chan %d, low=%.0f, high=%.0f\n", __func__,
+                      i, freqlo, freqhi);
+        }
+        else
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: error from C_CTL_EDGE?  err=%s\n", __func__,
+                      rigerror(retval));
+        }
+    }
+
+#if 0
+    // To be implemented
+    // Automatically fill in the freq range for this rig if available
+    rig_debug(RIG_DEBUG_TRACE, "%s: \n", __func__);
+
+    for (i = 0; i < FRQRANGESIZ && !RIG_IS_FRNG_END(caps->rx_range_list1[i]); i++)
+    {
+    }
+
+#endif
+    return RIG_OK;
 }
 
 // Sets rig vfo && priv->curr_vfo to default VFOA, or current vfo, or the vfo requested
