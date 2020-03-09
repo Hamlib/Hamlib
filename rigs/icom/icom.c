@@ -6543,8 +6543,7 @@ int icom_get_freq_range(RIG *rig)
 
     cmd = C_CTL_EDGE;
     subcmd = 0;
-    retval = icom_transaction(rig, cmd, subcmd, lenbuf, sizeof(lenbuf), ackbuf,
-                              &ack_len);
+    retval = icom_transaction(rig, cmd, subcmd, NULL, 0, ackbuf, &ack_len);
 
     if (retval != RIG_OK)
     {
@@ -6553,7 +6552,8 @@ int icom_get_freq_range(RIG *rig)
         return RIG_OK;
     }
 
-    nrange = from_bcd(lenbuf, 2);
+    rig_debug(RIG_DEBUG_TRACE, "%s: ackbuf[0]=%02x, ackbuf[1]=%02x\n", __func__, ackbuf[0], ackbuf[1]);
+    nrange = from_bcd(&ackbuf[2], 2);
     rig_debug(RIG_DEBUG_TRACE, "%s: nrange=%d\n", __func__, nrange);
 
     for (i = 0; i < nrange; ++i)
@@ -6580,16 +6580,15 @@ int icom_get_freq_range(RIG *rig)
         }
     }
 
-#if 0
     // To be implemented
     // Automatically fill in the freq range for this rig if available
-    rig_debug(RIG_DEBUG_TRACE, "%s: \n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: Hamlib ranges\n", __func__);
 
-    for (i = 0; i < FRQRANGESIZ && !RIG_IS_FRNG_END(caps->rx_range_list1[i]); i++)
+    for (i = 0; i < FRQRANGESIZ && !RIG_IS_FRNG_END(rig->caps->rx_range_list1[i]); i++)
     {
+        rig_debug(RIG_DEBUG_TRACE,"%s: rig chan %d, low=%.0f, high=%.0f\n", __func__, i, (double)rig->caps->rx_range_list1[i].startf, (double)rig->caps->rx_range_list1[i].endf);
     }
 
-#endif
     return RIG_OK;
 }
 
