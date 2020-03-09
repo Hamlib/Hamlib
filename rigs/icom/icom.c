@@ -4218,6 +4218,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf), rc;
     int split_sc;
+    vfo_t vfo_final = RIG_VFO_NONE;  // where does the VFO end up?
 
     rig_debug(RIG_DEBUG_VERBOSE,
               "%s called vfo='%s', split=%d, tx_vfo=%s, curr_vfo=%s\n", __func__,
@@ -4237,9 +4238,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: set_vfo to VFO_A because tx_vfo=%s\n", __func__,
                       rig_strvfo(tx_vfo));
-            rig_set_vfo(rig, RIG_VFO_A);
-            priv->tx_vfo = RIG_VFO_A;
-            priv->rx_vfo = RIG_VFO_A;
+            vfo_final = RIG_VFO_A;
         }
         // otherwise if Main or Sub we set Main or VFOA as the current vfo
         else if (tx_vfo == RIG_VFO_MAIN || tx_vfo == RIG_VFO_SUB)
@@ -4247,6 +4246,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
             rig_debug(RIG_DEBUG_TRACE, "%s: set_vfo to VFO_MAIN because tx_vfo=%s\n",
                       __func__, rig_strvfo(tx_vfo));
             rig_set_vfo(rig, RIG_VFO_MAIN);
+            vfo_final = RIG_VFO_MAIN;
 
             if (VFO_HAS_A_B_ONLY)
             {
@@ -4270,16 +4270,19 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         if (VFO_HAS_A_B_ONLY && ((tx_vfo == RIG_VFO_MAIN || tx_vfo == RIG_VFO_SUB)
                                  || vfo == RIG_VFO_MAIN || vfo == RIG_VFO_SUB))
         {
+            rig_debug(RIG_DEBUG_TRACE,"%s: vfo clause 1\n", __func__);
             if (tx_vfo == RIG_VFO_MAIN) { tx_vfo = RIG_VFO_A; }
             else if (tx_vfo == RIG_VFO_SUB) { tx_vfo = RIG_VFO_B; }
 
             if (vfo == RIG_VFO_MAIN) { vfo = RIG_VFO_A; }
             else if (vfo == RIG_VFO_SUB) { vfo = RIG_VFO_B; }
+            vfo_final = RIG_VFO_A;
         }
 
         /* ensure VFO A is Rx and VFO B is Tx as we assume that elsewhere */
         if (VFO_HAS_A_B && (tx_vfo == RIG_VFO_A || tx_vfo == RIG_VFO_B))
         {
+            rig_debug(RIG_DEBUG_TRACE,"%s: vfo clause 2\n", __func__);
             rig_debug(RIG_DEBUG_TRACE, "%s: set_vfo to VFO_A because tx_vfo=%s\n", __func__,
                       rig_strvfo(tx_vfo));
 
@@ -4290,10 +4293,12 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
             priv->tx_vfo = RIG_VFO_B;
             priv->rx_vfo = RIG_VFO_A;
+            vfo_final = RIG_VFO_A;
         }
         else if (VFO_HAS_MAIN_SUB_A_B_ONLY && (tx_vfo == RIG_VFO_MAIN
                                                || tx_vfo == RIG_VFO_SUB))
         {
+            rig_debug(RIG_DEBUG_TRACE,"%s: vfo clause 3\n", __func__);
             // if we're asking for split in this case we split Main on A/B
             priv->tx_vfo = RIG_VFO_B;
             priv->rx_vfo = RIG_VFO_A;
@@ -4315,6 +4320,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         }
         else if (VFO_HAS_MAIN_SUB && (tx_vfo == RIG_VFO_MAIN || tx_vfo == RIG_VFO_SUB))
         {
+            rig_debug(RIG_DEBUG_TRACE,"%s: vfo clause 4\n", __func__);
             rig_debug(RIG_DEBUG_TRACE, "%s: set_vfo because tx_vfo=%s\n", __func__,
                       rig_strvfo(tx_vfo));
 
@@ -4325,6 +4331,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
             priv->rx_vfo = vfo;
             priv->tx_vfo = tx_vfo;
+            vfo_final = RIG_VFO_MAIN;
 
             split_sc = S_SPLT_ON;
         }
@@ -4356,8 +4363,16 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     }
 
     priv->split_on = RIG_SPLIT_ON == split;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s rx_vfo=%s tx_vfo=%s split=%d\n",
-              __func__, rig_strvfo(vfo), rig_strvfo(priv->rx_vfo),
+
+    if (vfo_final != RIG_VFO_NONE && vfo_final != priv->curr_vfo) {
+        rig_debug(RIG_DEBUG_TRACE,"%s: vfo_final set %s\n", __func__, rig_strvfo(vfo_final));
+        rc = rig_set_vfo(rig, vfo_final);
+        if (rc != RIG_OK) {
+            rig_debug(RIG_DEBUG_TRACE,"%s: vfo_final set failed? err=%s\n", __func__, rigerror(rc));
+        }
+    }
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s curr_vfo=%s rx_vfo=%s tx_vfo=%s split=%d\n",
+              __func__, rig_strvfo(vfo), rig_strvfo(priv->curr_vfo), rig_strvfo(priv->rx_vfo),
               rig_strvfo(priv->tx_vfo), split);
     return RIG_OK;
 }
@@ -6535,7 +6550,6 @@ int icom_get_freq_range(RIG *rig)
     int i;
     int cmd, subcmd;
     int retval;
-    unsigned char lenbuf[1];
     unsigned char cmdbuf[MAXFRAMELEN];
     unsigned char ackbuf[MAXFRAMELEN];
     struct icom_priv_data *priv = (struct icom_priv_data *) rig->state.priv;
