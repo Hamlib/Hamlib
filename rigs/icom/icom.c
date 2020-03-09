@@ -4243,9 +4243,9 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         // otherwise if Main or Sub we set Main or VFOA as the current vfo
         else if (tx_vfo == RIG_VFO_MAIN || tx_vfo == RIG_VFO_SUB)
         {
-            rig_debug(RIG_DEBUG_TRACE, "%s: set_vfo to VFO_MAIN because tx_vfo=%s\n",
+            rig_debug(RIG_DEBUG_TRACE, "%s: vfo is VFO_MAIN/SUB tx_vfo=%s\n",
                       __func__, rig_strvfo(tx_vfo));
-            rig_set_vfo(rig, RIG_VFO_MAIN);
+            //rig_set_vfo(rig, RIG_VFO_MAIN);
             //vfo_final = RIG_VFO_MAIN;
 
             if (VFO_HAS_A_B_ONLY)
