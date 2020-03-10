@@ -543,7 +543,7 @@ const struct confparams *HAMLIB_API rot_confparam_lookup(ROT *rot,
     const struct confparams *cfp;
     token_t token;
 
-    rot_debug(RIG_DEBUG_VERBOSE, "%s called lookup=%s\n", __func__, name);
+    //rot_debug(RIG_DEBUG_VERBOSE, "%s called lookup=%s\n", __func__, name);
 
     if (!rot || !rot->caps)
     {
@@ -553,16 +553,20 @@ const struct confparams *HAMLIB_API rot_confparam_lookup(ROT *rot,
     /* 0 returned for invalid format */
     token = strtol(name, NULL, 0);
 
+    //rig_debug(RIG_DEBUG_TRACE, "%s: token=%d\n", __func__, (int)token);
     for (cfp = rot->caps->cfgparams; cfp && cfp->name; cfp++)
     {
+        //rig_debug(RIG_DEBUG_TRACE, "%s: name=%s cfp->name=%s cfp->token=%d, token=%d\n", __func__, name, cfp->name, (int)cfp->token, (int)token);
         if (!strcmp(cfp->name, name) || token == cfp->token)
         {
             return cfp;
         }
     }
 
+    //rig_debug(RIG_DEBUG_TRACE, "%s: frontend check\n", __func__);
     for (cfp = rotfrontend_cfg_params; cfp->name; cfp++)
     {
+        //rig_debug(RIG_DEBUG_TRACE, "%s: name=%s cfp->name=%s cfp->token=%d, token=%d\n", __func__, name, cfp->name, (int)cfp->token, (int)token);
         if (!strcmp(cfp->name, name) || token == cfp->token)
         {
             return cfp;
