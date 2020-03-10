@@ -6545,12 +6545,12 @@ int icom_send_voice_mem(RIG *rig, vfo_t vfo, int ch)
 int icom_get_freq_range(RIG *rig)
 {
     int nrange = 0;
-    int ack_len;
     int i;
     int cmd, subcmd;
     int retval;
     unsigned char cmdbuf[MAXFRAMELEN];
     unsigned char ackbuf[MAXFRAMELEN];
+    int ack_len = sizeof(ackbuf);
     struct icom_priv_data *priv = (struct icom_priv_data *) rig->state.priv;
     int freq_len = priv->civ_731_mode ? 4 : 5;
 
