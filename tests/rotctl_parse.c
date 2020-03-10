@@ -1653,14 +1653,14 @@ int set_conf(ROT *my_rot, char *conf_parms)
         if (!q)
         {
             return RIG_EINVAL;
+        }
 
-            *q++ = '\0';
-            n = strchr(q, ',');
+        *q++ = '\0';
+        n = strchr(q, ',');
 
-            if (n)
-            {
-                *n++ = '\0';
-            }
+        if (n)
+        {
+            *n++ = '\0';
         }
 
         rig_debug(RIG_DEBUG_TRACE, "%s: token=%s, val=%s\n", __func__, p, q);
