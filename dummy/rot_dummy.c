@@ -293,6 +293,9 @@ const struct rot_caps dummy_rot_caps =
     .rot_open =     dummy_rot_open,
     .rot_close =    dummy_rot_close,
 
+    .set_conf =     rot_set_conf,
+    .get_conf =     rot_get_conf,
+
     .set_position =     dummy_rot_set_position,
     .get_position =     dummy_rot_get_position,
     .park =     dummy_rot_park,
