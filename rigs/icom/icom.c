@@ -4243,9 +4243,9 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         // otherwise if Main or Sub we set Main or VFOA as the current vfo
         else if (tx_vfo == RIG_VFO_MAIN || tx_vfo == RIG_VFO_SUB)
         {
-            rig_debug(RIG_DEBUG_TRACE, "%s: set_vfo to VFO_MAIN because tx_vfo=%s\n",
+            rig_debug(RIG_DEBUG_TRACE, "%s: vfo is VFO_MAIN/SUB tx_vfo=%s\n",
                       __func__, rig_strvfo(tx_vfo));
-            rig_set_vfo(rig, RIG_VFO_MAIN);
+            //rig_set_vfo(rig, RIG_VFO_MAIN);
             //vfo_final = RIG_VFO_MAIN;
 
             if (VFO_HAS_A_B_ONLY)
@@ -6545,12 +6545,12 @@ int icom_send_voice_mem(RIG *rig, vfo_t vfo, int ch)
 int icom_get_freq_range(RIG *rig)
 {
     int nrange = 0;
-    int ack_len;
     int i;
     int cmd, subcmd;
     int retval;
     unsigned char cmdbuf[MAXFRAMELEN];
     unsigned char ackbuf[MAXFRAMELEN];
+    int ack_len = sizeof(ackbuf);
     struct icom_priv_data *priv = (struct icom_priv_data *) rig->state.priv;
     int freq_len = priv->civ_731_mode ? 4 : 5;
 
