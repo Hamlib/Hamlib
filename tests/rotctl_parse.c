@@ -1562,6 +1562,10 @@ int print_conf_list(const struct confparams *cfp, rig_ptr_t data)
                cfp->u.n.step);
         break;
 
+    case RIG_CONF_CHECKBUTTON:
+        printf("\tCheckbox: 0,1\n");
+        break;
+
     case RIG_CONF_COMBO:
         if (!cfp->u.c.combostr[0])
         {
