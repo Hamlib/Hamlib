@@ -467,6 +467,10 @@ int frontrot_get_conf(ROT *rot, token_t token, char *val)
         sprintf(val, "%f", rs->max_el);
         break;
 
+    case TOK_SOUTH_ZERO:
+        sprintf(val, "%d", rs->south_zero);
+        break;
+
     default:
         return -RIG_EINVAL;
     }
