@@ -1861,28 +1861,28 @@ declare_proto_rot(dump_state)
         fprintf(fout, "Minimum Azimuth: ");
     }
 
-    fprintf(fout, "%lf%c", rs->min_az, resp_sep);
+    fprintf(fout, "%lf%c", rs->min_az + rot->state.az_offset, resp_sep);
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
         fprintf(fout, "Maximum Azimuth: ");
     }
 
-    fprintf(fout, "%lf%c", rs->max_az, resp_sep);
+    fprintf(fout, "%lf%c", rs->max_az + rot->state.az_offset, resp_sep);
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
         fprintf(fout, "Minimum Elevation: ");
     }
 
-    fprintf(fout, "%lf%c", rs->min_el, resp_sep);
+    fprintf(fout, "%lf%c", rs->min_el + rot->state.el_offset, resp_sep);
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
         fprintf(fout, "Maximum Elevation: ");
     }
 
-    fprintf(fout, "%lf%c", rs->max_el, resp_sep);
+    fprintf(fout, "%lf%c", rs->max_el + rot->state.el_offset, resp_sep);
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
