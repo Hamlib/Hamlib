@@ -6573,7 +6573,8 @@ int icom_get_freq_range(RIG *rig)
     {
         cmd = C_CTL_EDGE;
         subcmd = 1;
-        retval = icom_transaction(rig, cmd, subcmd, cmdbuf, sizeof(cmdbuf), ackbuf,
+        to_bcd(cmdbuf,i,2);
+        retval = icom_transaction(rig, cmd, subcmd, cmdbuf, 1, ackbuf,
                                   &ack_len);
 
         if (retval == RIG_OK)
