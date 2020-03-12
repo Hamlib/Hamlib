@@ -6692,7 +6692,7 @@ int icom_get_freq_range(RIG *rig)
             rig_debug(RIG_DEBUG_TRACE, "%s: ackbuf= %02x %02x %02x %02x...\n", __func__,
                       ackbuf[0], ackbuf[1], ackbuf[2], ackbuf[3]);
             freqlo = from_bcd(&ackbuf[3], freq_len * 2);
-            freqhi = from_bcd(&ackbuf[3 + freq_len * 2 + 2], freq_len * 2);
+            freqhi = from_bcd(&ackbuf[3 + freq_len + 1], freq_len * 2);
             rig_debug(RIG_DEBUG_TRACE, "%s: rig chan %d, low=%.0f, high=%.0f\n", __func__,
                       i, freqlo, freqhi);
         }
