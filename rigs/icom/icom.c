@@ -6677,7 +6677,7 @@ int icom_get_freq_range(RIG *rig)
     nrange = from_bcd(&ackbuf[2], 2);
     rig_debug(RIG_DEBUG_TRACE, "%s: nrange=%d\n", __func__, nrange);
 
-    for (i = 0; i < nrange; ++i)
+    for (i = 1; i <= nrange; ++i)
     {
         cmd = C_CTL_EDGE;
         subcmd = 1;
@@ -6688,10 +6688,10 @@ int icom_get_freq_range(RIG *rig)
         if (retval == RIG_OK)
         {
             freq_t freqlo, freqhi;
-            rig_debug(RIG_DEBUG_TRACE, "%s: cmdbuf= %02x %02x %02x %02x...\n", __func__,
-                      cmdbuf[0], cmdbuf[1], cmdbuf[2], cmdbuf[3]);
-            freqlo = from_bcd(&cmdbuf[2], freq_len * 2);
-            freqhi = from_bcd(&cmdbuf[2 + freq_len], freq_len * 2);
+            rig_debug(RIG_DEBUG_TRACE, "%s: ackbuf= %02x %02x %02x %02x...\n", __func__,
+                      ackbuf[0], ackbuf[1], ackbuf[2], ackbuf[3]);
+            freqlo = from_bcd(&ackbuf[2], freq_len * 2);
+            freqhi = from_bcd(&ackbuf[2 + freq_len], freq_len * 2);
             rig_debug(RIG_DEBUG_TRACE, "%s: rig chan %d, low=%.0f, high=%.0f\n", __func__,
                       i, freqlo, freqhi);
         }
