@@ -158,7 +158,7 @@ struct rig_list
 
 // This size has to be > than the max# of rigs for any manufacturer
 // A fatal error will occur when running rigctl if this value is too small
-#define RIGLSTHASHSZ 256
+#define RIGLSTHASHSZ 65535
 #define HASH_FUNC(a) ((a)%RIGLSTHASHSZ)
 
 
