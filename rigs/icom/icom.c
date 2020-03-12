@@ -6658,9 +6658,9 @@ int icom_get_freq_range(RIG *rig)
     unsigned char cmdbuf[MAXFRAMELEN];
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf);
-    struct icom_priv_data *priv = (struct icom_priv_data *) rig->state.priv;
+//    struct icom_priv_data *priv = (struct icom_priv_data *) rig->state.priv;
 //    int freq_len = priv->civ_731_mode ? 4 : 5;
-    int freq_len = 4;
+    int freq_len = 5;
 
     cmd = C_CTL_EDGE;
     subcmd = 0;
@@ -6692,7 +6692,7 @@ int icom_get_freq_range(RIG *rig)
             rig_debug(RIG_DEBUG_TRACE, "%s: ackbuf= %02x %02x %02x %02x...\n", __func__,
                       ackbuf[0], ackbuf[1], ackbuf[2], ackbuf[3]);
             freqlo = from_bcd(&ackbuf[2], freq_len * 2);
-            freqhi = from_bcd(&ackbuf[2 + freq_len], freq_len * 2);
+            freqhi = from_bcd(&ackbuf[2 + freq_len + 2], freq_len * 2);
             rig_debug(RIG_DEBUG_TRACE, "%s: rig chan %d, low=%.0f, high=%.0f\n", __func__,
                       i, freqlo, freqhi);
         }
