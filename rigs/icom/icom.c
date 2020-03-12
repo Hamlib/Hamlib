@@ -776,7 +776,7 @@ icom_rig_open(RIG *rig)
         priv->tx_vfo = RIG_VFO_MAIN;
     }
 
-//    icom_get_freq_range(rig); // try get to get rig range capability dyamically
+    icom_get_freq_range(rig); // try get to get rig range capability dyamically
 
     return RIG_OK;
 }
