@@ -156,7 +156,9 @@ struct rig_list
 };
 
 
-#define RIGLSTHASHSZ 16
+// This size has to be > than the max# of rigs for any manufacturer
+// A fatal error will occur when running rigctl if this value is too small
+#define RIGLSTHASHSZ 256
 #define HASH_FUNC(a) ((a)%RIGLSTHASHSZ)
 
 
@@ -190,15 +192,6 @@ int HAMLIB_API rig_register(const struct rig_caps *caps)
               __func__,
               caps->rig_model);
 
-#ifndef DONT_WANT_DUP_CHECK
-
-    if (rig_get_caps(caps->rig_model) != NULL)
-    {
-        return -RIG_EINVAL;
-    }
-
-#endif
-
     p = (struct rig_list *)malloc(sizeof(struct rig_list));
 
     if (!p)
@@ -207,6 +200,11 @@ int HAMLIB_API rig_register(const struct rig_caps *caps)
     }
 
     hval = HASH_FUNC(caps->rig_model);
+    if(rig_hash_table[hval])
+    {
+        printf("Hash collision!!! Fatal error!!\n");
+        exit(1);
+    }
     p->caps = caps;
     // p->handle = NULL;
     p->next = rig_hash_table[hval];
