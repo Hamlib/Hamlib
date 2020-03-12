@@ -776,7 +776,7 @@ icom_rig_open(RIG *rig)
         priv->tx_vfo = RIG_VFO_MAIN;
     }
 
-    icom_get_freq_range(rig); // try get to get rig range capability dyamically
+//    icom_get_freq_range(rig); // try get to get rig range capability dyamically
 
     return RIG_OK;
 }
@@ -802,6 +802,8 @@ int icom_set_default_vfo(RIG *rig)
 {
     int retval;
     struct icom_priv_data *priv = (struct icom_priv_data *) rig->state.priv;
+
+    rig_debug(RIG_DEBUG_TRACE,"%s: called, curr_vfo=%s\n", __func__, rig_strvfo(priv->curr_vfo));
 
     if (VFO_HAS_MAIN_SUB_A_B_ONLY)
     {
@@ -1012,6 +1014,11 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
               rig_strvfo(vfo));
     rs = &rig->state;
     priv = (struct icom_priv_data *) rs->priv;
+
+    if (priv->curr_vfo == RIG_VFO_NONE)
+    {
+        icom_set_default_vfo(rig);
+    }
 
     cmd = C_RD_FREQ;
     subcmd = -1;
@@ -3748,9 +3755,16 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     vfo_t save_vfo;
 
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called %s\n", __func__, rig_strvfo(vfo));
+
     rs = &rig->state;
     priv = (struct icom_priv_data *) rs->priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s curr_vfo=%s\n", __func__, rig_strvfo(priv->curr_vfo));
+    if (priv->curr_vfo == RIG_VFO_NONE)
+    {
+        icom_set_default_vfo(rig);
+    }
     save_vfo = priv->curr_vfo; // so we can restore it later
 
     /* This method works also in memory mode(RIG_VFO_MEM) */
@@ -4067,6 +4081,10 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__,
               rig_strvfo(vfo));
 
+    if (priv->curr_vfo == RIG_VFO_NONE)
+    {
+        icom_set_default_vfo(rig);
+    }
     /* This method works also in memory mode(RIG_VFO_MEM) */
     if (!priv->no_xchg && rig_has_vfo_op(rig, RIG_OP_XCHG))
     {
@@ -4481,9 +4499,9 @@ int icom_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     retval = icom_transaction(rig, C_CTL_SPLT, -1, NULL, 0,
                               splitbuf, &split_len);
-
     if (retval != RIG_OK)
     {
+        rig_debug(RIG_DEBUG_ERR, "%s: CTL_SPLT failed?\n", __func__);
         return retval;
     }
 
