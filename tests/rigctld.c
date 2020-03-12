@@ -631,6 +631,7 @@ int main(int argc, char *argv[])
     rig_debug(RIG_DEBUG_VERBOSE, "Backend version: %s, Status: %s\n",
               my_rig->caps->version, rig_strstatus(my_rig->caps->status));
 
+#if 0
     rig_close(my_rig);          /* we will reopen for clients */
 
     if (verbose > RIG_DEBUG_ERR)
@@ -639,6 +640,7 @@ int main(int argc, char *argv[])
                my_rig->caps->rig_model,
                my_rig->caps->model_name);
     }
+#endif
 
 #ifdef __MINGW32__
 #  ifndef SO_OPENTYPE
@@ -977,6 +979,7 @@ void *handle_socket(void *arg)
 #ifdef HAVE_PTHREAD
     sync_callback(1);
 
+#if 0
     if (!client_count++)
     {
         retcode = rig_open(my_rig);
@@ -988,6 +991,7 @@ void *handle_socket(void *arg)
                    my_rig->caps->model_name);
         }
     }
+#endif
 
     sync_callback(0);
 #else
