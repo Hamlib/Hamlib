@@ -6659,7 +6659,8 @@ int icom_get_freq_range(RIG *rig)
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf);
     struct icom_priv_data *priv = (struct icom_priv_data *) rig->state.priv;
-    int freq_len = priv->civ_731_mode ? 4 : 5;
+//    int freq_len = priv->civ_731_mode ? 4 : 5;
+    int freq_len = 4;
 
     cmd = C_CTL_EDGE;
     subcmd = 0;
