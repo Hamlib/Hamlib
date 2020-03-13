@@ -810,8 +810,6 @@ int icom_set_default_vfo(RIG *rig)
         rig_debug(RIG_DEBUG_TRACE, "%s: setting default as MAIN/VFOA\n",
                   __func__);
         retval = rig_set_vfo(rig, RIG_VFO_MAIN);  // we'll default to Main in this case
-        priv->curr_vfo = RIG_VFO_MAIN;
-
         if (retval != RIG_OK)
         {
             return retval;
@@ -823,6 +821,8 @@ int icom_set_default_vfo(RIG *rig)
         {
             return retval;
         }
+
+        priv->curr_vfo = RIG_VFO_MAIN;
     }
 
     if (VFO_HAS_MAIN_SUB_ONLY)
