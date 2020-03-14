@@ -3650,6 +3650,7 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     {
         return rc;
     }
+    priv->x25cmdfails = 1;
     }
 
 
@@ -3799,6 +3800,7 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
         *tx_freq = from_bcd(ackbuf + 2, (priv->civ_731_mode ? 4 : 5) * 2);
         return rc;
     }
+    priv->x25cmdfails = 1;
     }
     save_vfo = priv->curr_vfo; // so we can restore it later
 
