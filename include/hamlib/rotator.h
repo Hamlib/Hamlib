@@ -52,7 +52,7 @@ struct rot_state;
  *  \typedef typedef struct rot ROT
  *  \brief Rotator structure definition (see rot for details).
  */
-typedef struct rot ROT;
+typedef struct s_rot ROT;
 
 
 /**
@@ -220,7 +220,6 @@ typedef enum {
 struct rot_caps {
     rot_model_t rot_model;                      /*!< Rotator model. */
     const char *model_name;                     /*!< Model name. */
-    const char *macro_name;                     /*!< Macro name. */
     const char *mfg_name;                       /*!< Manufacturer. */
     const char *version;                        /*!< Driver version. */
     const char *copyright;                      /*!< Copyright info. */
@@ -256,7 +255,6 @@ struct rot_caps {
 
     const struct confparams *cfgparams;         /*!< Configuration parametres. */
     const rig_ptr_t priv;                       /*!< Private data. */
-    const char *rot_model_macro_name;           /*!< Model macro name */
 
     /*
      * Rot Admin API
@@ -287,6 +285,7 @@ struct rot_caps {
     /* get firmware info, etc. */
     const char * (*get_info)(ROT *rot);
 
+    const char *macro_name;                     /*!< Macro name. */
     /* more to come... */
 };
 
@@ -339,7 +338,7 @@ struct rot_state {
  *
  * \sa rot_init(), rot_caps(), rot_state()
  */
-struct rot {
+struct s_rot {
     struct rot_caps *caps;      /*!< Rotator caps. */
     struct rot_state state;     /*!< Rotator state. */
 };
