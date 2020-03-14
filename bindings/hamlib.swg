@@ -245,6 +245,11 @@ typedef const char * const_char_string;
 %include "rotator.swg"
 
 /*
+ * The Amp "class"
+ */
+%include "amplifier.swg"
+
+/*
  * Put binding specific code in separate files
  *
   %include "perl.i"

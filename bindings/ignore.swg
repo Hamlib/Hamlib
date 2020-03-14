@@ -210,6 +210,7 @@
 
 %ignore hamlib_copyright2;
 %ignore hamlib_version2;
+%ignore macro_name;
 
 #ifdef SWIGLUA
 %ignore Rig::set_level(setting_t,int,vfo_t);
