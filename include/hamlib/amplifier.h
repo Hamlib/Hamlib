@@ -145,15 +145,14 @@ enum amp_level_e
  * sharing the struct amp_caps of the backend, while keeping their own
  * customized data.
  *
- * n.b.: Don't move fields around, as the backends depend on it when
- *       initializing their caps.
+ * mdblack98: Don't move fields around and add new fields at end of caps
+ *   Shared libraries depend on constant structure to maintain compatibility
  */
 #define AMP_MODEL(arg) .amp_model=arg,.macro_name=#arg
 struct amp_caps
 {
   amp_model_t amp_model;                      /*!< Amplifier model. */
   const char *model_name;                     /*!< Model name. */
-  const char *macro_name;                     /*!< Macro name. */
   const char *mfg_name;                       /*!< Manufacturer. */
   const char *version;                        /*!< Driver version. */
   const char *copyright;                      /*!< Copyright info. */
@@ -219,6 +218,8 @@ struct amp_caps
   unsigned ext_levels;
   const struct confparams *extlevels;
   const struct confparams *extparms;
+
+  const char *macro_name;                     /*!< Macro name. */
 };
 
 
