@@ -3636,23 +3636,30 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     save_vfo = priv->curr_vfo;
 
     // If the rigs supports the 0x25 command we'll use it
-    // This eliminates VFO swapping and improves satmode operations
+    // This eliminates VFO swapping and improves split operations
     if (priv->x25cmdfails == 0)
     {
-        freq_len = priv->civ_731_mode ? 4 : 5;
-        /*
-         * to_bcd requires nibble len
-         */
-        to_bcd(freqbuf, tx_freq, freq_len * 2);
+        int satmode = 0;
+        rc = rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: satmode=%d\n", __func__, satmode);
 
-        cmd = C_SEND_SEL_FREQ;
-        subcmd = 0x01; // set the unselected vfo
-        rc = icom_transaction(rig, cmd, subcmd, freqbuf, freq_len, ackbuf,
-                              &ack_len);
-
-        if (rc == RIG_OK) // then we're done!!
+        if (satmode == 0) // only worth trying if not in satmode
         {
-            return rc;
+            freq_len = priv->civ_731_mode ? 4 : 5;
+            /*
+             * to_bcd requires nibble len
+             */
+            to_bcd(freqbuf, tx_freq, freq_len * 2);
+
+            cmd = C_SEND_SEL_FREQ;
+            subcmd = 0x01; // set the unselected vfo
+            rc = icom_transaction(rig, cmd, subcmd, freqbuf, freq_len, ackbuf,
+                                  &ack_len);
+
+            if (rc == RIG_OK) // then we're done!!
+            {
+                return rc;
+            }
         }
 
         priv->x25cmdfails = 1;
@@ -3798,18 +3805,26 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     }
 
     // If the rigs supports the 0x25 command we'll use it
-    // This eliminates VFO swapping and improves satmode operations
+    // This eliminates VFO swapping and improves split operations
+    // This does not work in satellite mode for the 9700
     if (priv->x25cmdfails == 0)
     {
-        cmd = C_SEND_SEL_FREQ;
-        subcmd = 0x01; // get the unselected vfo
-        rc = icom_transaction(rig, cmd, subcmd, NULL, 0, ackbuf,
-                              &ack_len);
+        int satmode = 0;
+        rc = rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: satmode=%d\n", __func__, satmode);
 
-        if (rc == RIG_OK) // then we're done!!
+        if (satmode == 0) // only worth trying if not in satmode
         {
-            *tx_freq = from_bcd(ackbuf + 2, (priv->civ_731_mode ? 4 : 5) * 2);
-            return rc;
+            cmd = C_SEND_SEL_FREQ;
+            subcmd = 0x01; // get the unselected vfo
+            rc = icom_transaction(rig, cmd, subcmd, NULL, 0, ackbuf,
+                                  &ack_len);
+
+            if (rc == RIG_OK) // then we're done!!
+            {
+                *tx_freq = from_bcd(ackbuf + 2, (priv->civ_731_mode ? 4 : 5) * 2);
+                return rc;
+            }
         }
 
         priv->x25cmdfails = 1;
