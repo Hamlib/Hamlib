@@ -3645,7 +3645,7 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
          */
         to_bcd(freqbuf, tx_freq, freq_len * 2);
 
-        cmd = 0x25;
+        cmd = C_SEND_SEL_FREQ;
         subcmd = 0x01; // set the unselected vfo
         rc = icom_transaction(rig, cmd, subcmd, freqbuf, freq_len, ackbuf,
                               &ack_len);
@@ -3801,7 +3801,7 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     // This eliminates VFO swapping and improves satmode operations
     if (priv->x25cmdfails == 0)
     {
-        cmd = 0x25;
+        cmd = C_SEND_SEL_FREQ;
         subcmd = 0x01; // get the unselected vfo
         rc = icom_transaction(rig, cmd, subcmd, NULL, 0, ackbuf,
                               &ack_len);
