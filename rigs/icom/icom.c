@@ -4765,6 +4765,8 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     unsigned char fctbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
     int fct_len, acklen, retval;
     int fct_cn, fct_sc;       /* Command Number, Subcommand */
+    struct rig_state *rs = &rig->state;
+    struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -4950,6 +4952,7 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             fct_cn = C_CTL_FUNC;
             fct_sc = S_MEM_SATMODE;
         }
+        priv->x25cmdfails = 0; // we reset this to try it again
 
         break;
 
