@@ -3616,8 +3616,10 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     struct icom_priv_data *priv;
     struct rig_state *rs;
     unsigned char ackbuf[MAXFRAMELEN];
+    unsigned char freqbuf[32];
     int ack_len = sizeof(ackbuf);
     vfo_t save_vfo;
+    int cmd, subcmd, freq_len;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called for %s\n", __func__, rig_strvfo(vfo));
     rs = &rig->state;
@@ -3630,6 +3632,26 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
     set_vfo_curr(rig, RIG_VFO_CURR, RIG_VFO_CURR);
     save_vfo = priv->curr_vfo;
+
+    // If the rigs supports the 0x25 command we'll use it
+    // This eliminates VFO swapping and improves satmode operations
+    if (priv->x25cmdfails==0) {
+    freq_len = priv->civ_731_mode ? 4 : 5;
+    /*
+     * to_bcd requires nibble len
+     */
+    to_bcd(freqbuf, tx_freq, freq_len * 2);
+
+    cmd = 0x25;
+    subcmd = 0x01; // set the unselected vfo
+    rc = icom_transaction(rig, cmd, subcmd, freqbuf, freq_len, ackbuf,
+                              &ack_len);
+    if (rc == RIG_OK) // then we're done!!
+    {
+        return rc;
+    }
+    }
+
 
     if (!priv->no_xchg && rig_has_vfo_op(rig, RIG_OP_XCHG))
     {
@@ -3753,7 +3775,7 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf);
     vfo_t save_vfo;
-
+    int cmd, subcmd;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called %s\n", __func__, rig_strvfo(vfo));
 
@@ -3764,6 +3786,19 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     if (priv->curr_vfo == RIG_VFO_NONE)
     {
         icom_set_default_vfo(rig);
+    }
+    // If the rigs supports the 0x25 command we'll use it
+    // This eliminates VFO swapping and improves satmode operations
+    if (priv->x25cmdfails==0) {
+    cmd = 0x25;
+    subcmd = 0x01; // get the unselected vfo
+    rc = icom_transaction(rig, cmd, subcmd, NULL, 0, ackbuf,
+                              &ack_len);
+    if (rc == RIG_OK) // then we're done!!
+    {
+        *tx_freq = from_bcd(ackbuf + 2, (priv->civ_731_mode ? 4 : 5) * 2);
+        return rc;
+    }
     }
     save_vfo = priv->curr_vfo; // so we can restore it later
 
