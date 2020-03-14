@@ -33,7 +33,10 @@
 
 #include <hamlib/rig.h>
 #include <hamlib/rotator.h>
-#include "misc.h"
+#include <hamlib/amplifier.h>
+//mdblack98 -- Commented this out -- is anybody using the functions in misc.h?
+//If so, then those functions should be moved to rig.h
+//#include "misc.h"
 
 #include <limits.h>
 
@@ -48,7 +51,9 @@
 %include stdint.i
 %include exception.i
 #ifndef SWIGLUA
+#ifndef SWIGJAVA
 %include cstring.i
+#endif
 #endif
 #ifdef SWIGPYTHON
 %include python/file.i
@@ -178,17 +183,22 @@
 %apply int *OUTPUT { int *degrees, double *minutes, int *sw };
 %apply double *OUTPUT { double *longitude, double *latitude };
 
+#ifndef SWIGJAVA
+// If SWIGJAVA ever maps char * we can enable these
 %apply char *OUTPUT { char *locator_res };
 %apply char *OUTPUT { char *hamlib_version2 };
 %apply char *OUTPUT { char *hamlib_copyright2 };
 %apply char *OUTPUT { char *returnstr };
+#endif
 
 #ifndef SWIGLUA
 #ifndef SWIG_CSTRING_UNIMPL
+#ifndef SWIGJAVA
 /* longlat2locator */
 %cstring_bounded_output(char *locator_res, 13)
 %cstring_bounded_output(char *hamlib_version2, 4)
 %cstring_bounded_output(char *hamlib_copyright2, 4)
+#endif
 #endif
 #endif
 

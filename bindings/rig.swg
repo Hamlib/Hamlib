@@ -272,7 +272,9 @@ typedef channel_t * const_channel_t_p;
 %ignore MAX_RETURNSTR;
 #define MAX_RETURNSTR 256
 
+#ifndef SWIGJAVA
 %apply char *OUTPUT { char *returnstr };
+#endif
 
 /*
  * Rig class alike
@@ -281,7 +283,9 @@ typedef channel_t * const_channel_t_p;
 
 #ifndef SWIGLUA
 #ifndef SWIG_CSTRING_UNIMPL
+#ifndef SWIGJAVA
 	%cstring_bounded_output(char *returnstr, MAX_RETURNSTR);
+#endif
 #endif
 #endif
 
