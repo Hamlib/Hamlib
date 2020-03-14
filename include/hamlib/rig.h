@@ -162,7 +162,7 @@ struct rig_state;
 /**
  * \brief Rig structure definition (see rig for details).
  */
-typedef struct rig RIG;
+typedef struct s_rig RIG;
 
 #define RIGNAMSIZ 30
 #define RIGVERSIZ 8
@@ -1854,7 +1854,7 @@ struct rig_callbacks {
  *
  * \sa rig_init(), rig_caps(), rig_state()
  */
-struct rig {
+struct s_rig {
     struct rig_caps *caps;          /*!< Pointer to rig capabilities (read only) */
     struct rig_state state;         /*!< Rig state */
     struct rig_callbacks callbacks; /*!< registered event callbacks */
