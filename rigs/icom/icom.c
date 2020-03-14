@@ -810,8 +810,6 @@ int icom_set_default_vfo(RIG *rig)
         rig_debug(RIG_DEBUG_TRACE, "%s: setting default as MAIN/VFOA\n",
                   __func__);
         retval = rig_set_vfo(rig, RIG_VFO_MAIN);  // we'll default to Main in this case
-        priv->curr_vfo = RIG_VFO_MAIN;
-
         if (retval != RIG_OK)
         {
             return retval;
@@ -823,6 +821,8 @@ int icom_set_default_vfo(RIG *rig)
         {
             return retval;
         }
+
+        priv->curr_vfo = RIG_VFO_MAIN;
     }
 
     if (VFO_HAS_MAIN_SUB_ONLY)
@@ -3698,11 +3698,11 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
     if (VFO_HAS_MAIN_SUB_A_B_ONLY)
     {
-        // Then we return the VFO to where it was
-        if (save_vfo == RIG_VFO_MAIN && priv->split_on) { save_vfo = RIG_VFO_A; }
+        // Then we return the VFO to the rx_vfo
+        save_vfo = rx_vfo; 
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: SATMODE split_on rig so setting vfo to %s\n", __func__,
-                  rig_strvfo(save_vfo));
+        rig_debug(RIG_DEBUG_TRACE, "%s: SATMODE split_on=%d rig so setting vfo to %s\n", __func__,
+                  priv->split_on, rig_strvfo(save_vfo));
 
         if (RIG_OK != (rc = icom_set_vfo(rig, save_vfo)))
         {
