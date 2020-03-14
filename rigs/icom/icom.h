@@ -186,6 +186,7 @@ struct icom_priv_data
     freq_t curr_freq; // our current freq depending on which vfo is selected
     freq_t main_freq; // track last setting of main -- not being used yet
     freq_t sub_freq;  // track last setting of sub -- not being used yet
+    int x25cmdfails;  // This will get set if the 0x25 command fails so we try just once
 };
 
 extern const struct ts_sc_list r8500_ts_sc_list[];
