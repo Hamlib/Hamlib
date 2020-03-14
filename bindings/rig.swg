@@ -84,7 +84,7 @@ typedef channel_t * const_channel_t_p;
 
 #ifndef SWIGLUA
 #define METHODSIMPLESET(f, t1, fld, chk) void set_##f (setting_t stg, t1 fld  _VFO_DECL) \
-		{ value_t val; 	if (chk) {	\
+		{ value_t val = {0}; 	if (chk) {	\
 			self->error_status = -RIG_EINVAL;	/* invalid type */	\
 			return;	\
 		}	\
@@ -93,7 +93,7 @@ typedef channel_t * const_channel_t_p;
 	}
 #else
 #define METHODSIMPLESET(f, t1, fld, chk) void set_##f (setting_t stg, t1 fld  _VFO_DECL) \
-		{ value_t val; 	\
+		{ value_t val = {0}; 	\
 		if (chk) {	\
 			int ival = (int)fld;	\
 			val.i = fld;	\
@@ -115,7 +115,7 @@ typedef channel_t * const_channel_t_p;
 
 #ifndef SWIGLUA
 #define METHODSUPERSET(f, t1, fld, chk) void set_##f (const char *name, t1 fld  _VFO_DECL) \
-		{ setting_t stg; value_t val; 	\
+		{ setting_t stg; value_t val = {0}; 	\
 		stg = rig_parse_##f(name);	\
 		if (!rig_has_set_##f(self->rig, stg)) {	\
 			const struct confparams *cfp;	\
@@ -151,7 +151,7 @@ typedef channel_t * const_channel_t_p;
 	}
 #else
 #define METHODSUPERSET(f, t1, fld, chk) void set_##f (const char *name, t1 fld  _VFO_DECL) \
-		{ setting_t stg; value_t val; 	\
+		{ setting_t stg; value_t val = {0}; 	\
 		stg = rig_parse_##f(name);	\
 		if (!rig_has_set_##f(self->rig, stg)) {	\
 			const struct confparams *cfp;	\
@@ -190,7 +190,7 @@ typedef channel_t * const_channel_t_p;
 #endif
 
 #define METHODSTRSET(f) void set_##f (const char *name, const char *s  _VFO_DECL) \
-		{ value_t val; /* only ext_level/parm's can have string values */  \
+		{ value_t val = {0}; /* only ext_level/parm's can have string values */  \
 		const struct confparams *cfp; \
 		cfp = rig_ext_lookup(self->rig, name); \
 		if (!cfp) {	\
@@ -206,7 +206,7 @@ typedef channel_t * const_channel_t_p;
 	}
 
 #define METHODSIMPLEGET(f, t1, fld, chk) t1 get_##f##_##fld (setting_t stg  _VFO_DECL) \
-		{ value_t val; 	if (chk) {	\
+		{ value_t val = {0}; 	if (chk) {	\
 			self->error_status = -RIG_EINVAL;	/* invalid type */	\
 			return val.fld;		/* undefined value */	\
 		}	\
@@ -217,7 +217,7 @@ typedef channel_t * const_channel_t_p;
 
 
 #define METHODSUPERGET(fct, t1, fld, chk) t1 get_##fct##_##fld(const char *name  _VFO_DECL) \
-		{ setting_t stg; value_t val; 	\
+		{ setting_t stg; value_t val = {0}; 	\
 		stg = rig_parse_##fct(name);	\
 		if (!rig_has_get_##fct(self->rig, stg)) {	\
 			const struct confparams *cfp;	\
@@ -251,7 +251,7 @@ typedef channel_t * const_channel_t_p;
 	}
 
 #define METHODSTRGET(f) void get_##f (const char *name, char *returnstr  _VFO_DECL) \
-		{ value_t val; /* only ext_level/parm's can have string values */ \
+		{ value_t val = {0}; /* only ext_level/parm's can have string values */ \
 		const struct confparams *cfp; \
 		returnstr[0] = '\0'; \
 		cfp = rig_ext_lookup(self->rig, name); \
@@ -538,33 +538,33 @@ typedef channel_t * const_channel_t_p;
 		return status;
 	}
 
-#ifndef SWIGJAVA
+//#ifndef SWIGJAVA
 	/* TODO */
 	void get_level(setting_t level, vfo_t vfo = RIG_VFO_CURR)
-		{ value_t val; self->error_status = rig_get_level(self->rig, vfo, level, &val);
+		{ value_t val = {0}; self->error_status = rig_get_level(self->rig, vfo, level, &val);
 			//if (RIG_LEVEL_IS_FLOAT(level))
 			/* TODO: dynamic casting */
 		}
 
 	void get_ext_level(token_t token, vfo_t vfo = RIG_VFO_CURR)
-		{ value_t val; self->error_status = rig_get_level(self->rig, vfo, token, &val);
+		{ value_t val = {0}; self->error_status = rig_get_level(self->rig, vfo, token, &val);
 			//if (RIG_LEVEL_IS_FLOAT(level))
 			/* TODO: dynamic casting */
 		}
 
 	void get_parm(setting_t parm)
-		{ value_t val; self->error_status = rig_get_parm(self->rig, parm, &val);
+		{ value_t val = {0}; self->error_status = rig_get_parm(self->rig, parm, &val);
 			//if (RIG_LEVEL_IS_FLOAT(parm))
 			/* TODO: dynamic casting */
 		}
 
 	void get_ext_parm(token_t parm)
-		{ value_t val; self->error_status = rig_get_parm(self->rig, parm, &val);
+		{ value_t val = {0}; self->error_status = rig_get_parm(self->rig, parm, &val);
 			//if (RIG_LEVEL_IS_FLOAT(parm))
 			/* TODO: dynamic casting */
 		}
 
-#endif
+//#endif
 
 };
 
