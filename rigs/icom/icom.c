@@ -803,13 +803,15 @@ int icom_set_default_vfo(RIG *rig)
     int retval;
     struct icom_priv_data *priv = (struct icom_priv_data *) rig->state.priv;
 
-    rig_debug(RIG_DEBUG_TRACE,"%s: called, curr_vfo=%s\n", __func__, rig_strvfo(priv->curr_vfo));
+    rig_debug(RIG_DEBUG_TRACE, "%s: called, curr_vfo=%s\n", __func__,
+              rig_strvfo(priv->curr_vfo));
 
     if (VFO_HAS_MAIN_SUB_A_B_ONLY)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: setting default as MAIN/VFOA\n",
                   __func__);
         retval = rig_set_vfo(rig, RIG_VFO_MAIN);  // we'll default to Main in this case
+
         if (retval != RIG_OK)
         {
             return retval;
@@ -3635,21 +3637,25 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
     // If the rigs supports the 0x25 command we'll use it
     // This eliminates VFO swapping and improves satmode operations
-    if (priv->x25cmdfails==0) {
-    freq_len = priv->civ_731_mode ? 4 : 5;
-    /*
-     * to_bcd requires nibble len
-     */
-    to_bcd(freqbuf, tx_freq, freq_len * 2);
-
-    cmd = 0x25;
-    subcmd = 0x01; // set the unselected vfo
-    rc = icom_transaction(rig, cmd, subcmd, freqbuf, freq_len, ackbuf,
-                              &ack_len);
-    if (rc == RIG_OK) // then we're done!!
+    if (priv->x25cmdfails == 0)
     {
-        return rc;
-    }
+        freq_len = priv->civ_731_mode ? 4 : 5;
+        /*
+         * to_bcd requires nibble len
+         */
+        to_bcd(freqbuf, tx_freq, freq_len * 2);
+
+        cmd = C_SEND_SEL_FREQ;
+        subcmd = 0x01; // set the unselected vfo
+        rc = icom_transaction(rig, cmd, subcmd, freqbuf, freq_len, ackbuf,
+                              &ack_len);
+
+        if (rc == RIG_OK) // then we're done!!
+        {
+            return rc;
+        }
+
+        priv->x25cmdfails = 1;
     }
 
 
@@ -3721,9 +3727,10 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     if (VFO_HAS_MAIN_SUB_A_B_ONLY)
     {
         // Then we return the VFO to the rx_vfo
-        save_vfo = rx_vfo; 
+        save_vfo = rx_vfo;
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: SATMODE split_on=%d rig so setting vfo to %s\n", __func__,
+        rig_debug(RIG_DEBUG_TRACE, "%s: SATMODE split_on=%d rig so setting vfo to %s\n",
+                  __func__,
                   priv->split_on, rig_strvfo(save_vfo));
 
         if (RIG_OK != (rc = icom_set_vfo(rig, save_vfo)))
@@ -3782,24 +3789,32 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     rs = &rig->state;
     priv = (struct icom_priv_data *) rs->priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s curr_vfo=%s\n", __func__, rig_strvfo(priv->curr_vfo));
+    rig_debug(RIG_DEBUG_VERBOSE, "%s curr_vfo=%s\n", __func__,
+              rig_strvfo(priv->curr_vfo));
+
     if (priv->curr_vfo == RIG_VFO_NONE)
     {
         icom_set_default_vfo(rig);
     }
+
     // If the rigs supports the 0x25 command we'll use it
     // This eliminates VFO swapping and improves satmode operations
-    if (priv->x25cmdfails==0) {
-    cmd = 0x25;
-    subcmd = 0x01; // get the unselected vfo
-    rc = icom_transaction(rig, cmd, subcmd, NULL, 0, ackbuf,
-                              &ack_len);
-    if (rc == RIG_OK) // then we're done!!
+    if (priv->x25cmdfails == 0)
     {
-        *tx_freq = from_bcd(ackbuf + 2, (priv->civ_731_mode ? 4 : 5) * 2);
-        return rc;
+        cmd = C_SEND_SEL_FREQ;
+        subcmd = 0x01; // get the unselected vfo
+        rc = icom_transaction(rig, cmd, subcmd, NULL, 0, ackbuf,
+                              &ack_len);
+
+        if (rc == RIG_OK) // then we're done!!
+        {
+            *tx_freq = from_bcd(ackbuf + 2, (priv->civ_731_mode ? 4 : 5) * 2);
+            return rc;
+        }
+
+        priv->x25cmdfails = 1;
     }
-    }
+
     save_vfo = priv->curr_vfo; // so we can restore it later
 
     /* This method works also in memory mode(RIG_VFO_MEM) */
@@ -4120,6 +4135,7 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
     {
         icom_set_default_vfo(rig);
     }
+
     /* This method works also in memory mode(RIG_VFO_MEM) */
     if (!priv->no_xchg && rig_has_vfo_op(rig, RIG_OP_XCHG))
     {
@@ -4534,6 +4550,7 @@ int icom_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     retval = icom_transaction(rig, C_CTL_SPLT, -1, NULL, 0,
                               splitbuf, &split_len);
+
     if (retval != RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: CTL_SPLT failed?\n", __func__);
