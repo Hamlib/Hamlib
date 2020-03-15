@@ -1020,10 +1020,12 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     priv = (struct icom_priv_data *) rs->priv;
 
 #if 0 // disabled to test if IC9700 satmode/gpredict still works OK
+
     if (priv->curr_vfo == RIG_VFO_NONE)
     {
         icom_set_default_vfo(rig);
     }
+
 #endif
 
     cmd = C_RD_FREQ;
@@ -1037,7 +1039,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
             cmd = 0x1c;
             subcmd = 0x03;
             retval = icom_transaction(rig, cmd, subcmd, NULL, 0, ackbuf,
-                                  &ack_len);
+                                      &ack_len);
 
             if (retval == RIG_OK) // then we're done!!
             {
@@ -3674,7 +3676,7 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
             cmd = C_SEND_SEL_FREQ;
             subcmd = 0x01; // set the unselected vfo
             retval = icom_transaction(rig, cmd, subcmd, freqbuf, freq_len, ackbuf,
-                                  &ack_len);
+                                      &ack_len);
 
             if (retval == RIG_OK) // then we're done!!
             {
@@ -3840,7 +3842,7 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
                 cmd = C_SEND_SEL_FREQ;
                 subcmd = 0x01; // get the unselected vfo
                 retval = icom_transaction(rig, cmd, subcmd, NULL, 0, ackbuf,
-                                      &ack_len);
+                                          &ack_len);
 
                 if (retval == RIG_OK) // then we're done!!
                 {
@@ -3858,7 +3860,7 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
                 cmd = 0x1c;
                 subcmd = 0x03;
                 retval = icom_transaction(rig, cmd, subcmd, NULL, 0, ackbuf,
-                                      &ack_len);
+                                          &ack_len);
 
                 if (retval == RIG_OK) // then we're done!!
                 {
@@ -3994,7 +3996,7 @@ int icom_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
         }
 
         if (RIG_OK != (retval = rig->caps->set_mode(rig, RIG_VFO_CURR, tx_mode,
-                                                tx_width)))
+                                tx_width)))
         {
             return retval;
         }
@@ -4043,7 +4045,7 @@ int icom_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
     }
 
     if (RIG_OK != (retval = rig->caps->set_mode(rig, RIG_VFO_CURR, tx_mode,
-                                            tx_width)))
+                            tx_width)))
     {
         return retval;
     }
@@ -4097,7 +4099,7 @@ int icom_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
         }
 
         if (RIG_OK != (retval = rig->caps->get_mode(rig, RIG_VFO_CURR, tx_mode,
-                                                tx_width)))
+                                tx_width)))
         {
             return retval;
         }
@@ -4146,7 +4148,7 @@ int icom_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
     }
 
     if (RIG_OK != (retval = rig->caps->get_mode(rig, RIG_VFO_CURR, tx_mode,
-                                            tx_width)))
+                            tx_width)))
     {
         return retval;
     }
@@ -4207,7 +4209,7 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
         }
 
         if (RIG_OK != (retval = rig->caps->set_mode(rig, RIG_VFO_CURR, tx_mode,
-                                                tx_width)))
+                                tx_width)))
         {
             return retval;
         }
@@ -4270,7 +4272,7 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
     }
 
     if (RIG_OK != (retval = rig->caps->set_mode(rig, RIG_VFO_CURR, tx_mode,
-                                            tx_width)))
+                            tx_width)))
     {
         return retval;
     }
@@ -4329,7 +4331,7 @@ int icom_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *tx_freq,
         }
 
         if (RIG_OK != (retval = rig->caps->get_mode(rig, RIG_VFO_CURR, tx_mode,
-                                                tx_width)))
+                                tx_width)))
         {
             return retval;
         }
@@ -4383,7 +4385,7 @@ int icom_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *tx_freq,
     }
 
     if (RIG_OK != (retval = rig->caps->get_mode(rig, RIG_VFO_CURR, tx_mode,
-                                            tx_width)))
+                            tx_width)))
     {
         return retval;
     }
@@ -4557,7 +4559,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     }
 
     if (RIG_OK != (retval = icom_transaction(rig, C_CTL_SPLT, split_sc, NULL, 0,
-                                         ackbuf, &ack_len)))
+                            ackbuf, &ack_len)))
     {
         return retval;
     }

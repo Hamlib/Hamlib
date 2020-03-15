@@ -57,7 +57,7 @@ int sprintf_vfo(char *str, vfo_t vfo)
         const char *sv;
         sv = rig_strvfo(vfo & RIG_VFO_N(i));
 
-        if (sv && sv[0] && strstr(str,"None")==0)
+        if (sv && sv[0] && strstr(str, "None") == 0)
         {
             len += sprintf(str + len, "%s ", sv);
         }
