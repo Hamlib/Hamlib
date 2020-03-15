@@ -3815,19 +3815,41 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 
         if (satmode == 0) // only worth trying if not in satmode
         {
-            cmd = C_SEND_SEL_FREQ;
-            subcmd = 0x01; // get the unselected vfo
-            rc = icom_transaction(rig, cmd, subcmd, NULL, 0, ackbuf,
-                                  &ack_len);
-
-            if (rc == RIG_OK) // then we're done!!
+            if (priv->x25cmdfails == 0)
             {
-                *tx_freq = from_bcd(ackbuf + 2, (priv->civ_731_mode ? 4 : 5) * 2);
-                return rc;
+                cmd = C_SEND_SEL_FREQ;
+                subcmd = 0x01; // get the unselected vfo
+                rc = icom_transaction(rig, cmd, subcmd, NULL, 0, ackbuf,
+                                      &ack_len);
+
+                if (rc == RIG_OK) // then we're done!!
+                {
+                    *tx_freq = from_bcd(ackbuf + 2, (priv->civ_731_mode ? 4 : 5) * 2);
+                    return rc;
+                }
+
+                priv->x25cmdfails = 1;
+            }
+        }
+        else   // we're in satmode so we try another command
+        {
+            if (priv->x1cx03cmdfails == 0)
+            {
+                cmd = 0x1c;
+                subcmd = 0x03;
+                rc = icom_transaction(rig, cmd, subcmd, NULL, 0, ackbuf,
+                                      &ack_len);
+
+                if (rc == RIG_OK) // then we're done!!
+                {
+                    *tx_freq = from_bcd(ackbuf, (priv->civ_731_mode ? 4 : 5) * 2);
+                    return rc;
+                }
+
+                priv->x1cx03cmdfails = 1;
             }
         }
 
-        priv->x25cmdfails = 1;
     }
 
     save_vfo = priv->curr_vfo; // so we can restore it later
@@ -4952,7 +4974,9 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             fct_cn = C_CTL_FUNC;
             fct_sc = S_MEM_SATMODE;
         }
+
         priv->x25cmdfails = 0; // we reset this to try it again
+        priv->x1cx03cmdfails = 0; // we reset this to try it again
 
         break;
 
