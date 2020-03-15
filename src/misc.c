@@ -462,7 +462,7 @@ static struct
     { RIG_VFO_SUB, "Sub" },
     { RIG_VFO_SUB_A, "SubA" },
     { RIG_VFO_SUB_B, "SubB" },
-    { RIG_VFO_NONE, "" },
+    { RIG_VFO_NONE, "None" },
 };
 
 
@@ -502,13 +502,8 @@ const char *HAMLIB_API rig_strvfo(vfo_t vfo)
 {
     int i;
 
-    //a git too verbose
+    //a bit too verbose
     //rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
-
-    if (vfo == RIG_VFO_NONE)
-    {
-        return "";
-    }
 
     for (i = 0 ; vfo_str[i].str[0] != '\0'; i++)
     {
@@ -949,11 +944,6 @@ const char *HAMLIB_API rig_strvfop(vfo_op_t op)
     int i;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (op == RIG_OP_NONE)
-    {
-        return "";
-    }
 
     for (i = 0; vfo_op_str[i].str[0] != '\0'; i++)
     {
