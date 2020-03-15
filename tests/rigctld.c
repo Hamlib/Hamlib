@@ -640,6 +640,7 @@ int main(int argc, char *argv[])
                my_rig->caps->rig_model,
                my_rig->caps->model_name);
     }
+
 #endif
 
 #ifdef __MINGW32__
@@ -980,6 +981,7 @@ void *handle_socket(void *arg)
     sync_callback(1);
 
 #if 0
+
     if (!client_count++)
     {
         retcode = rig_open(my_rig);
@@ -991,6 +993,7 @@ void *handle_socket(void *arg)
                    my_rig->caps->model_name);
         }
     }
+
 #endif
 
     sync_callback(0);

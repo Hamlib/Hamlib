@@ -637,7 +637,9 @@ int kenwood_open(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     err = kenwood_get_id(rig, id);
-    if (err == -RIG_ETIMEOUT) {
+
+    if (err == -RIG_ETIMEOUT)
+    {
         // Ensure rig is on
         rig_set_powerstat(rig, 1);
     }

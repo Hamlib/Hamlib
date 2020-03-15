@@ -416,7 +416,8 @@ int main(int argc, char *argv[])
 
     rig_set_debug(verbose);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "rigctl, %s %s\n", hamlib_version, __DATE__ " " __TIME__);
+    rig_debug(RIG_DEBUG_VERBOSE, "rigctl, %s %s\n", hamlib_version,
+              __DATE__ " " __TIME__);
     rig_debug(RIG_DEBUG_VERBOSE, "%s",
               "Report bugs to <hamlib-developer@lists.sourceforge.net>\n\n");
 
