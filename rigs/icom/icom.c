@@ -1019,10 +1019,12 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     rs = &rig->state;
     priv = (struct icom_priv_data *) rs->priv;
 
+#if 0 // disabled to test if IC9700 satmode/gpredict still works OK
     if (priv->curr_vfo == RIG_VFO_NONE)
     {
         icom_set_default_vfo(rig);
     }
+#endif
 
     cmd = C_RD_FREQ;
     subcmd = -1;
@@ -1039,7 +1041,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
             if (retval == RIG_OK) // then we're done!!
             {
-                *freq = from_bcd(ackbuf, (priv->civ_731_mode ? 4 : 5) * 2);
+                *freq = from_bcd(ackbuf[2], (priv->civ_731_mode ? 4 : 5) * 2);
                 return retval;
             }
 
@@ -3860,7 +3862,7 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 
                 if (retval == RIG_OK) // then we're done!!
                 {
-                    *tx_freq = from_bcd(ackbuf, (priv->civ_731_mode ? 4 : 5) * 2);
+                    *tx_freq = from_bcd(ackbuf[2], (priv->civ_731_mode ? 4 : 5) * 2);
                     return retval;
                 }
 
