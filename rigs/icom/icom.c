@@ -1009,8 +1009,10 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     struct icom_priv_data *priv;
     struct rig_state *rs;
     unsigned char freqbuf[MAXFRAMELEN];
+    unsigned char ackbuf[MAXFRAMELEN];
     int freq_len, retval;
     int cmd, subcmd;
+    int ack_len = sizeof(ackbuf);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called for %s\n", __func__,
               rig_strvfo(vfo));
@@ -1028,6 +1030,22 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     // Pick the appropriate VFO when VFO_TX is requested
     if (vfo == RIG_VFO_TX)
     {
+        if (priv->x1cx03cmdfails == 0) // we can try this command to avoid vfo swapping
+        {
+            cmd = 0x1c;
+            subcmd = 0x03;
+            retval = icom_transaction(rig, cmd, subcmd, NULL, 0, ackbuf,
+                                  &ack_len);
+
+            if (retval == RIG_OK) // then we're done!!
+            {
+                *freq = from_bcd(ackbuf, (priv->civ_731_mode ? 4 : 5) * 2);
+                return retval;
+            }
+
+            priv->x1cx03cmdfails = 1;
+        }
+
         rig_debug(RIG_DEBUG_TRACE, "%s: VFO_TX requested, vfo=%s\n", __func__,
                   rig_strvfo(vfo));
 
