@@ -200,11 +200,13 @@ int HAMLIB_API rig_register(const struct rig_caps *caps)
     }
 
     hval = HASH_FUNC(caps->rig_model);
-    if(rig_hash_table[hval])
+
+    if (rig_hash_table[hval])
     {
         printf("Hash collision!!! Fatal error!!\n");
         exit(1);
     }
+
     p->caps = caps;
     // p->handle = NULL;
     p->next = rig_hash_table[hval];

@@ -406,7 +406,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->transceive = RIG_TRN_OFF;
     rs->poll_interval = 500;
     rs->lo_freq = 0;
- 
+
     // We are using range_list1 as the default
     // Eventually we will have separate model number for different rig variations
     // So range_list1 will become just range_list (per model)
