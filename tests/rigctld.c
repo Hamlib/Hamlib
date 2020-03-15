@@ -980,6 +980,7 @@ void *handle_socket(void *arg)
 #ifdef HAVE_PTHREAD
     sync_callback(1);
 
+//    ++client_count;
 #if 0
 
     if (!client_count++)
@@ -1028,6 +1029,7 @@ void *handle_socket(void *arg)
     while (retcode == 0 || retcode == 2 || retcode == -RIG_ENAVAIL);
 
 #ifdef HAVE_PTHREAD
+#if 0
     sync_callback(1);
 
     /* Release rig if there are no clients */
@@ -1044,6 +1046,7 @@ void *handle_socket(void *arg)
     }
 
     sync_callback(0);
+#endif
 #else
     rig_close(my_rig);
 
