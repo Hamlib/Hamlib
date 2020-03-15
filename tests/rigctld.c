@@ -1093,7 +1093,7 @@ handle_exit:
 #ifndef __MINGW32__
     retcode = close(handle_data_arg->sock);
 
-    if (retcode != 0) { rig_debug(RIG_DEBUG_ERR, "%s: close(handle_data_arg->sock) %s\n", __func__, strerror(retcode)); }
+    if (retcode != 0 && errno != EBADF) { rig_debug(RIG_DEBUG_ERR, "%s: close(handle_data_arg->sock) %s\n", __func__, strerror(errno)); }
 
 #endif
 
