@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
     printf("%s\n", hamlib_version);
     printf("caps size: %lu\n", (long unsigned) sizeof(struct rig_caps));
     printf("state size: %lu\n", (long unsigned) sizeof(struct rig_state));
-    printf("RIG size: %lu\n", (long unsigned) sizeof(struct rig));
+    printf("RIG size: %lu\n", (long unsigned) sizeof(RIG));
     printf("freq_t size: %lu\n", (long unsigned) sizeof(freq_t));
     printf("shortfreq_t size: %lu\n", (long unsigned) sizeof(shortfreq_t));
 
