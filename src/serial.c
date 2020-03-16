@@ -592,31 +592,30 @@ int HAMLIB_API serial_flush(hamlib_port_t *p)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s MDB called\n", __func__);
 
-//    if (p->fd == uh_ptt_fd || p->fd == uh_radio_fd)
-//    {
-    unsigned char buf[32];
-    /*
-     * Catch microHam case:
-     * if fd corresponds to a microHam device drain the line
-     * (which is a socket) by reading until it is empty.
-     */
-    int n;
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: flushing: ", __func__);
-
-    while ((n = read(p->fd, buf, 32)) > 0)
+    if (p->fd == uh_ptt_fd || p->fd == uh_radio_fd)
     {
-        int i;
+        unsigned char buf[32];
+        /*
+         * Catch microHam case:
+         * if fd corresponds to a microHam device drain the line
+         * (which is a socket) by reading until it is empty.
+         */
+        int n;
 
-        for (i = 0; i < n; ++i) { printf("0x%02x(%c) ", buf[i], isprint(buf[i]) ? buf[i] : '~'); }
+        rig_debug(RIG_DEBUG_TRACE, "%s: flushing: ", __func__);
 
-        /* do nothing */
+        while ((n = read(p->fd, buf, 32)) > 0)
+        {
+            //int i;
+
+            //for (i = 0; i < n; ++i) { printf("0x%02x(%c) ", buf[i], isprint(buf[i]) ? buf[i] : '~'); }
+
+            /* do nothing */
+        }
+
+
+        return RIG_OK;
     }
-
-    printf("DONE\n");
-
-    return RIG_OK;
-//    }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: tcflush\n", __func__);
     tcflush(p->fd, TCIFLUSH);
