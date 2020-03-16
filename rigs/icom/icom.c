@@ -776,7 +776,9 @@ icom_rig_open(RIG *rig)
         priv->tx_vfo = RIG_VFO_MAIN;
     }
 
+#if 0 // do not do this here -- needs to be done when ranges are requested instead
     icom_get_freq_range(rig); // try get to get rig range capability dyamically
+#endif
 
     return RIG_OK;
 }
@@ -825,6 +827,7 @@ int icom_set_default_vfo(RIG *rig)
         }
 
         priv->curr_vfo = RIG_VFO_MAIN;
+        return RIG_OK;
     }
 
     if (VFO_HAS_MAIN_SUB_ONLY)
@@ -3640,10 +3643,8 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     struct icom_priv_data *priv;
     struct rig_state *rs;
     unsigned char ackbuf[MAXFRAMELEN];
-    unsigned char freqbuf[32];
     int ack_len = sizeof(ackbuf);
     vfo_t save_vfo;
-    int cmd, subcmd, freq_len;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called for %s\n", __func__, rig_strvfo(vfo));
     rs = &rig->state;
@@ -3661,12 +3662,15 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     // This eliminates VFO swapping and improves split operations
     if (priv->x25cmdfails == 0)
     {
+        int cmd, subcmd, freq_len;
         int satmode = 0;
-        retval = rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
+        // retval not important here...only satmode=1 means anything
+        rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
         rig_debug(RIG_DEBUG_VERBOSE, "%s: satmode=%d\n", __func__, satmode);
 
         if (satmode == 0) // only worth trying if not in satmode
         {
+            unsigned char freqbuf[32];
             freq_len = priv->civ_731_mode ? 4 : 5;
             /*
              * to_bcd requires nibble len
@@ -3811,7 +3815,6 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf);
     vfo_t save_vfo;
-    int cmd, subcmd;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called %s\n", __func__, rig_strvfo(vfo));
 
@@ -3831,8 +3834,10 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     // This does not work in satellite mode for the 9700
     if (priv->x25cmdfails == 0)
     {
+        int cmd, subcmd;
         int satmode = 0;
-        retval = rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
+        // don't care about the retval here..only satmode=1 is important
+        rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
         rig_debug(RIG_DEBUG_VERBOSE, "%s: satmode=%d\n", __func__, satmode);
 
         if (satmode == 0) // only worth trying if not in satmode
@@ -5027,8 +5032,6 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     // when in satmode split=off always
     if (VFO_HAS_MAIN_SUB_A_B_ONLY)
     {
-        struct rig_state *rs = &rig->state;
-        struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
         vfo_t tx_vfo;
         split_t split;
 
