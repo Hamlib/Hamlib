@@ -3662,7 +3662,6 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     // This eliminates VFO swapping and improves split operations
     if (priv->x25cmdfails == 0)
     {
-        int cmd, subcmd, freq_len;
         int satmode = 0;
         // retval not important here...only satmode=1 means anything
         rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
@@ -3670,6 +3669,7 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
         if (satmode == 0) // only worth trying if not in satmode
         {
+            int cmd, subcmd, freq_len;
             unsigned char freqbuf[32];
             freq_len = priv->civ_731_mode ? 4 : 5;
             /*
