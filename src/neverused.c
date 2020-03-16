@@ -112,12 +112,15 @@ void never_used()
     rig_license();
     rig_parse_mtype();
     rig_probe_all();
+    rig_send_voice_mem();
     rig_set_bank();
     rig_set_debug_callback();
     rig_set_debug_file();
+    rig_set_ext_func();
     rig_set_mem_all();
     rig_set_mem_all_cb();
     rig_set_pltune_callback();
+    rig_set_twiddle();
     rig_unregister();
     rig_version();
     rot_probe_all();
