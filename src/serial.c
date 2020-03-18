@@ -590,7 +590,7 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
  */
 int HAMLIB_API serial_flush(hamlib_port_t *p)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s MDB called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (p->fd == uh_ptt_fd || p->fd == uh_radio_fd)
     {
