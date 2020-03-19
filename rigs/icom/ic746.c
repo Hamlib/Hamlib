@@ -184,7 +184,7 @@ const struct rig_caps ic746_caps =
     RIG_MODEL(RIG_MODEL_IC746),
     .model_name = "IC-746",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".4",
+    .version =  BACKEND_VER ".5",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -1152,7 +1152,7 @@ int ic746pro_set_channel(RIG *rig, const channel_t *chan)
             membuf.tx.pb = PD_MEDIUM_3;
         }
 
-        membuf.tx.data = (chan->flags | RIG_CHFLAG_DATA) ? 1 : 0;
+        membuf.tx.data = (chan->flags & RIG_CHFLAG_DATA) ? 1 : 0;
         membuf.tx.dup = chan->rptr_shift;
 
         // not empty otherwise the call fail
