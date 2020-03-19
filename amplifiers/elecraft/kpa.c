@@ -249,7 +249,7 @@ int kpa_set_freq(AMP *amp, freq_t freq)
     if (tfreq * 1000 != freq)
     {
         rig_debug(RIG_DEBUG_ERR,
-                  "%s Error setting freq: ^FR freq!=freq2, %f=%ld '%s'\n", __func__,
+                  "%s Error setting freq: ^FR freq!=freq2, %f=%lu '%s'\n", __func__,
                   freq, tfreq * 1000, responsebuf);
         return -RIG_EPROTO;
     }
