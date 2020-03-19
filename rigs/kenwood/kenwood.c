@@ -1740,7 +1740,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         {
             int err2 = kenwood_set_vfo_main_sub(rig, curr_vfo);
 
-            if (RIG_OK == err && err2 != RIG_OK) { return err2; }
+            if (err2 != RIG_OK) { return err2; }
         }
     }
     else
@@ -2067,16 +2067,18 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
         else
         {
+            int foundit = 0;
             for (i = 0; i < MAXDBLSTSIZ && rig->state.attenuator[i]; i++)
             {
                 if (val.i == rig->state.attenuator[i])
                 {
                     snprintf(levelbuf, sizeof(levelbuf), "RA%02d", i + 1);
+                    foundit = 1;
                     break;
                 }
             }
 
-            if (val.i != rig->state.attenuator[i])
+            if (!foundit)
             {
                 return -RIG_EINVAL;
             }
@@ -2093,16 +2095,18 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
         else
         {
+            int foundit = 0;
             for (i = 0; i < MAXDBLSTSIZ && rig->state.preamp[i]; i++)
             {
                 if (val.i == rig->state.preamp[i])
                 {
                     snprintf(levelbuf, sizeof(levelbuf), "PA%01d", i + 1);
+                    foundit = 1;
                     break;
                 }
             }
 
-            if (val.i != rig->state.preamp[i])
+            if (!foundit)
             {
                 return -RIG_EINVAL;
             }
@@ -3202,7 +3206,7 @@ int kenwood_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
             return err;
         }
 
-        if (ptt)
+        if (ptttmp)
         {
             char ackbuf[8];
             return kenwood_transaction(rig, ptt_cmd, ackbuf, sizeof(ackbuf));
