@@ -1045,7 +1045,7 @@ int aor_set_channel(RIG *rig, const channel_t *chan)
 
     cmd_len += priv->format_mode(rig, aorcmd + cmd_len, chan->mode, chan->width);
 
-    cmd_len += sprintf(aorcmd + cmd_len, " AT%d TM%12s"EOM,
+    cmd_len += sprintf(aorcmd + cmd_len, (" AT%d TM%12s"EOM),
                        chan->levels[LVL_ATT].i ? 1 : 0, chan->channel_desc);
 
     return aor_transaction(rig, aorcmd, cmd_len, NULL, NULL);

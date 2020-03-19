@@ -1050,11 +1050,6 @@ static int trxmanager_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
     rig_debug(RIG_DEBUG_TRACE, "%s: tx_vfo=%s\n", __func__,
               rig_strvfo(tx_vfo));
 
-    if (tx_vfo == RIG_VFO_SUB || tx_vfo == RIG_VFO_TX)
-    {
-        tx_vfo = RIG_VFO_B;
-    }
-
 #if 0
 
     /* for flrig we have to be on VFOA when we set split for VFOB Tx */

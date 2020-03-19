@@ -196,7 +196,7 @@ int gnuradio_get_conf(RIG *rig, token_t token, char *val)
 
 	switch(token) {
 	case TOK_TUNER_MODEL:
-		sprintf(val, "%d", priv->tuner_model);
+		sprintf(val, "%u", priv->tuner_model);
 		break;
 	default:
 		/* if it's not for the gnuradio backend, maybe it's for the tuner */

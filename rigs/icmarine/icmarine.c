@@ -250,7 +250,8 @@ int icmarine_transaction(RIG *rig, const char *cmd, const char *param,
     int cmd_len = 0;
     unsigned csum = 0;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: cmd='%s', param=%s\n", __func__, cmd, param);
+    rig_debug(RIG_DEBUG_TRACE, "%s: cmd='%s', param=%s\n", __func__, cmd,
+              param == NULL ? "NULL" : param);
 
     rs = &rig->state;
     priv = (struct icmarine_priv_data *)rs->priv;
@@ -348,7 +349,7 @@ int icmarine_transaction(RIG *rig, const char *cmd, const char *param,
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: returning response='%s'\n", __func__,
-              response);
+              response == NULL ? "NULL" : response);
     return RIG_OK;
 }
 

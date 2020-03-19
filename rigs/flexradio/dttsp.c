@@ -456,7 +456,7 @@ int dttsp_get_conf(RIG *rig, token_t token, char *val)
     switch (token)
     {
     case TOK_TUNER_MODEL:
-        sprintf(val, "%d", priv->tuner_model);
+        sprintf(val, "%u", priv->tuner_model);
         break;
 
     case TOK_SAMPLE_RATE:
@@ -1001,7 +1001,7 @@ int dttsp_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 {
     struct dttsp_priv_data *priv = (struct dttsp_priv_data *)rig->state.priv;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: ant %d, try tuner\n",
+    rig_debug(RIG_DEBUG_TRACE, "%s: ant %u, try tuner\n",
               __func__, ant);
 
     return rig_set_ant(priv->tuner, vfo, ant, option);
