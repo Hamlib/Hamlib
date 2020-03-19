@@ -1894,6 +1894,13 @@ declare_proto_rig(get_freq)
 
     fprintf(fout, "%"PRIll"%c", (int64_t)freq, resp_sep);
 
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
+        fprintf(fout, "VFO: ");    /* i.e. "Frequency" */
+    }
+
+    fprintf(fout, "%s%c", rig_strvfo(rig->state.current_vfo), resp_sep);
+
     return status;
 }
 
