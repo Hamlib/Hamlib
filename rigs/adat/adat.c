@@ -691,7 +691,6 @@ int adat_parse_freq(char                    *pcStr,
     if (pcStr != NULL)
     {
         int    _nVFO  = 0;
-        freq_t _nFreq;
 
         char   *pcEnd = NULL;
 
@@ -717,6 +716,7 @@ int adat_parse_freq(char                    *pcStr,
             char   acUnitBuf[ ADAT_BUFSZ + 1 ];
             int    nI       = 0;
             double dTmpFreq = 0.0;
+            freq_t _nFreq;
 
             memset(acValueBuf, 0, ADAT_BUFSZ + 1);
             memset(acUnitBuf, 0, ADAT_BUFSZ + 1);
@@ -1043,7 +1043,7 @@ int adat_vfo_rnr2anr(vfo_t  nRIGVFONr,
     gFnLevel++;
 
     rig_debug(RIG_DEBUG_TRACE,
-              "*** ADAT: %d %s (%s:%d): ENTRY. Params: nRIGVFONr = %d\n",
+              "*** ADAT: %d %s (%s:%d): ENTRY. Params: nRIGVFONr = %u\n",
               gFnLevel, __func__, __FILE__, __LINE__, nRIGVFONr);
 
     while ((nI < the_adat_vfo_list.nNrVFOs) && (nFini == 0))
@@ -1117,7 +1117,7 @@ int adat_vfo_anr2rnr(int   nADATVFONr,
     // Done
 
     rig_debug(RIG_DEBUG_TRACE,
-              "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d, RIG VFO Nr = %d\n",
+              "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d, RIG VFO Nr = %u\n",
               gFnLevel, __func__, __FILE__, __LINE__, nRC, *nRIGVFONr);
     gFnLevel--;
 

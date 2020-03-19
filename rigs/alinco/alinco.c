@@ -213,8 +213,8 @@ int alinco_set_vfo(RIG *rig, vfo_t vfo)
 
     default:
         rig_debug(RIG_DEBUG_ERR,
-                  "alinco_set_vfo: unsupported VFO %d\n",
-                  vfo);
+                  "alinco_set_vfo: unsupported VFO %s\n",
+                  rig_strvfo(vfo));
 
         return -RIG_EINVAL;
     }
