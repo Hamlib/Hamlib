@@ -33,7 +33,7 @@ private:
 
 protected:
 public:
-    Rig(rig_model_t rig_model);
+    explicit Rig(rig_model_t rig_model);
 
     virtual ~Rig();
 
@@ -250,15 +250,15 @@ public:
     const char *message;
     int errorno;
 
-    RigException(const char *msg, int err)
+    explicit RigException(const char *msg, int err)
         : message(msg), errorno(err)
     {};
 
-    RigException(int err)
+    explicit RigException(int err)
         : message(rigerror(err)), errorno(err)
     {};
 
-    RigException(const char *msg)
+    explicit RigException(const char *msg)
         : message(msg), errorno(-RIG_EINTERNAL)
     {};
 

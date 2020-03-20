@@ -245,13 +245,13 @@ static int netrigctl_open(RIG *rig)
         }
 
         ret = num_sscanf(buf, "%"SCNfreq"%"SCNfreq"%"SCNXll"%d%d%x%x",
-                         &rs->rx_range_list[i].startf,
-                         &rs->rx_range_list[i].endf,
-                         &rs->rx_range_list[i].modes,
-                         &rs->rx_range_list[i].low_power,
-                         &rs->rx_range_list[i].high_power,
-                         &rs->rx_range_list[i].vfo,
-                         &rs->rx_range_list[i].ant
+                         &(rs->rx_range_list[i].startf),
+                         &(rs->rx_range_list[i].endf),
+                         &(rs->rx_range_list[i].modes),
+                         &(rs->rx_range_list[i].low_power),
+                         &(rs->rx_range_list[i].high_power),
+                         &(rs->rx_range_list[i].vfo),
+                         &(rs->rx_range_list[i].ant)
                         );
 
         if (ret != 7)
@@ -918,7 +918,7 @@ static int netrigctl_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 
     if (ret != RIG_OK) { return ret; }
 
-    len = sprintf(cmd, "C%s %d\n", vfostr, tone);
+    len = sprintf(cmd, "C%s %u\n", vfostr, tone);
 
     ret = netrigctl_transaction(rig, cmd, len, buf);
 
@@ -974,7 +974,7 @@ static int netrigctl_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 
     if (ret != RIG_OK) { return ret; }
 
-    len = sprintf(cmd, "D%s %d\n", vfostr, code);
+    len = sprintf(cmd, "D%s %u\n", vfostr, code);
 
     ret = netrigctl_transaction(rig, cmd, len, buf);
 
@@ -1030,7 +1030,7 @@ static int netrigctl_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 
     if (ret != RIG_OK) { return ret; }
 
-    len = sprintf(cmd, "\\set_ctcss_sql%s %d\n", vfostr, tone);
+    len = sprintf(cmd, "\\set_ctcss_sql%s %u\n", vfostr, tone);
 
     ret = netrigctl_transaction(rig, cmd, len, buf);
 
@@ -1797,7 +1797,7 @@ static int netrigctl_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
     }
     else
     {
-        len = sprintf(cmd, "y%s %d\n", vfostr, ant);
+        len = sprintf(cmd, "y%s %u\n", vfostr, ant);
     }
 
     ret = netrigctl_transaction(rig, cmd, len, buf);
@@ -1808,7 +1808,7 @@ static int netrigctl_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: buf='%s'\n", __func__, buf);
-    ret = sscanf(buf, "%d\n", ant_curr);
+    ret = sscanf(buf, "%u\n", ant_curr);
 
     if (ret != 1)
     {

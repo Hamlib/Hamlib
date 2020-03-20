@@ -153,7 +153,7 @@ const struct rig_caps ft857_caps =
     RIG_MODEL(RIG_MODEL_FT857),
     .model_name =     "FT-857",
     .mfg_name =       "Yaesu",
-    .version =        "0.6",
+    .version =        "0.7",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_TRANSCEIVER,
@@ -790,14 +790,13 @@ static int ft857_get_pometer_level(RIG *rig, value_t *val)
     /* Valid only if PTT is on */
     if ((p->tx_status & 0x80) == 0)
     {
-        // convert watts to dBm
-        val->i = 10 * log10(p->tx_status & 0x0F) + 30;
-        // now convert to db over S9
-        val->i += 73;
+        rig_debug(RIG_DEBUG_TRACE,"%s: bars=%d\n", __func__, p->tx_status & 0x0F);
+        // does rig have 10 bars or 15?
+        val->i = (p->tx_status & 0x0F) / 10.0;
     }
     else
     {
-        val->i = -911;    // invalid value return
+        val->i = 0;    // invalid value return
     }
 
     return RIG_OK;

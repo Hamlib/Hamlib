@@ -1180,7 +1180,6 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     const struct rig_caps *caps;
     int retcode;
-    vfo_t curr_vfo;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1222,6 +1221,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     else
     {
         int rc2;
+        vfo_t curr_vfo;
 
         if (!caps->set_vfo)
         {
@@ -1286,7 +1286,6 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     const struct rig_caps *caps;
     int retcode;
-    vfo_t curr_vfo;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1310,6 +1309,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     else
     {
         int rc2;
+        vfo_t curr_vfo;
 
         if (!caps->set_vfo)
         {
@@ -1379,7 +1379,6 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     const struct rig_caps *caps;
     int retcode;
-    vfo_t curr_vfo;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1404,6 +1403,7 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     else
     {
         int rc2;
+        vfo_t curr_vfo;
 
         if (!caps->set_vfo)
         {
@@ -1466,7 +1466,6 @@ int HAMLIB_API rig_get_mode(RIG *rig,
 {
     const struct rig_caps *caps;
     int retcode;
-    vfo_t curr_vfo;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1491,6 +1490,7 @@ int HAMLIB_API rig_get_mode(RIG *rig,
     else
     {
         int rc2;
+        vfo_t curr_vfo;
 
         if (!caps->set_vfo)
         {
@@ -1794,7 +1794,6 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     const struct rig_caps *caps;
     struct rig_state *rs = &rig->state;
     int retcode = RIG_OK;
-    vfo_t curr_vfo;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1829,6 +1828,7 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         }
         else
         {
+            vfo_t curr_vfo;
             if (!caps->set_vfo)
             {
                 return -RIG_ENTARGET;

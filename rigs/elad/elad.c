@@ -692,7 +692,7 @@ int elad_open(RIG *rig)
 
         /* driver mismatch */
         rig_debug(RIG_DEBUG_ERR,
-                  "%s: wrong driver selected (%d instead of %d)\n",
+                  "%s: wrong driver selected (%u instead of %u)\n",
                   __func__, rig->caps->rig_model,
                   elad_id_string_list[i].model);
 
@@ -792,7 +792,7 @@ int elad_set_vfo(RIG *rig, vfo_t vfo)
         return RIG_OK;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
         return -RIG_EINVAL;
     }
 
@@ -876,7 +876,7 @@ int elad_set_vfo_main_sub(RIG *rig, vfo_t vfo)
         return RIG_OK;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
         return -RIG_EINVAL;
     }
 
@@ -943,7 +943,7 @@ int elad_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
         case RIG_VFO_MEM: vfo_function = '2'; break;
 
         default:
-            rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);
+            rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
             return -RIG_EINVAL;
         }
 
@@ -983,7 +983,7 @@ int elad_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
     case RIG_VFO_MEM: vfo_function = '2'; break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, txvfo);
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(txvfo));
         return -RIG_EINVAL;
     }
 
@@ -1233,7 +1233,7 @@ int elad_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
         return -RIG_EINVAL;
     }
 
@@ -1364,7 +1364,7 @@ int elad_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
         return -RIG_EINVAL;
     }
 
@@ -1763,7 +1763,7 @@ int elad_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         case RIG_VFO_SUB: c = '1'; break;
 
         default:
-            rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);
+            rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
             return -RIG_EINVAL;
         }
 
@@ -1933,16 +1933,19 @@ int elad_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
         else
         {
+            int foundit = 0;
+
             for (i = 0; i < MAXDBLSTSIZ && rig->state.attenuator[i]; i++)
             {
                 if (val.i == rig->state.attenuator[i])
                 {
                     snprintf(levelbuf, sizeof(levelbuf), "RA%02d", i + 1);
+                    foundit = 1;
                     break;
                 }
             }
 
-            if (val.i != rig->state.attenuator[i])
+            if (!foundit)
             {
                 return -RIG_EINVAL;
             }
@@ -1959,16 +1962,18 @@ int elad_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
         else
         {
+            int foundit = 0;
             for (i = 0; i < MAXDBLSTSIZ && rig->state.preamp[i]; i++)
             {
                 if (val.i == rig->state.preamp[i])
                 {
                     snprintf(levelbuf, sizeof(levelbuf), "PA%01d", i + 1);
+                    foundit = 1;
                     break;
                 }
             }
 
-            if (val.i != rig->state.preamp[i])
+            if (!foundit)
             {
                 return -RIG_EINVAL;
             }
@@ -2553,7 +2558,7 @@ int elad_set_ctcss_tone_tn(RIG *rig, vfo_t vfo, tone_t tone)
         case RIG_VFO_SUB: c = '1'; break;
 
         default:
-            rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);
+            rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
             return -RIG_EINVAL;
         }
 
@@ -2604,7 +2609,7 @@ int elad_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
         case RIG_VFO_SUB: c = '1'; break;
 
         default:
-            rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);
+            rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
             return -RIG_EINVAL;
         }
 
@@ -2638,7 +2643,7 @@ int elad_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
     {
         if (caps->ctcss_list[i] == 0)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: CTCSS NG (%04d)\n",
+            rig_debug(RIG_DEBUG_ERR, "%s: CTCSS NG (%04u)\n",
                       __func__, tone_idx);
             return -RIG_EPROTO;
         }
@@ -2691,7 +2696,7 @@ int elad_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
         case RIG_VFO_SUB: c = '1'; break;
 
         default:
-            rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);
+            rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
             return -RIG_EINVAL;
         }
 
@@ -2737,7 +2742,7 @@ int elad_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
         case RIG_VFO_SUB: c = '1'; break;
 
         default:
-            rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);
+            rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
             return -RIG_EINVAL;
         }
 
@@ -2771,7 +2776,7 @@ int elad_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
     {
         if (caps->ctcss_list[i] == 0)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: CTCSS NG (%04d)\n",
+            rig_debug(RIG_DEBUG_ERR, "%s: CTCSS NG (%04u)\n",
                       __func__, tone_idx);
             return -RIG_EPROTO;
         }
@@ -2828,7 +2833,7 @@ int elad_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
         case RIG_VFO_SUB: c = '1'; break;
 
         default:
-            rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);
+            rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
             return -RIG_EINVAL;
         }
 
@@ -3293,7 +3298,7 @@ int elad_set_mem(RIG *rig, vfo_t vfo, int ch)
         case RIG_VFO_SUB: c = '1'; break;
 
         default:
-            rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);
+            rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
             return -RIG_EINVAL;
         }
 
@@ -3343,7 +3348,7 @@ int elad_get_mem(RIG *rig, vfo_t vfo, int *ch)
         case RIG_VFO_SUB: c = '1'; break;
 
         default:
-            rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);
+            rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
             return -RIG_EINVAL;
         }
 

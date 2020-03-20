@@ -33,7 +33,7 @@ private:
 
 protected:
 public:
-    Rotator(rot_model_t rot_model);
+    explicit Rotator(rot_model_t rot_model);
 
     virtual ~Rotator();
 

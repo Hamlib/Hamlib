@@ -202,7 +202,7 @@ int optoscan_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
     tone_len -= 2;
 
     *tone = from_bcd_be(tonebuf + 2, tone_len * 2);
-    rig_debug(RIG_DEBUG_ERR, "optoscan_get_ctcss_tone: *tone=%d\n", *tone);
+    rig_debug(RIG_DEBUG_ERR, "optoscan_get_ctcss_tone: *tone=%u\n", *tone);
 
     return RIG_OK;
 }
@@ -235,7 +235,7 @@ int optoscan_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
     tone_len -= 2;
 
     *code = from_bcd_be(tonebuf + 2, tone_len * 2);
-    rig_debug(RIG_DEBUG_ERR, "optoscan_get_dcs_code: *code=%d\n", *code);
+    rig_debug(RIG_DEBUG_ERR, "optoscan_get_dcs_code: *code=%u\n", *code);
 
     return RIG_OK;
 }
@@ -646,7 +646,7 @@ int optoscan_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
         optoscan_send_freq(rig, state); /*Step 2*/
     }
 
-    rc = !RIG_SCAN_STOP;
+    rc = 0;
 
     while (rc != RIG_SCAN_STOP)
     {

@@ -120,7 +120,7 @@ int ic10_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 static int get_ic10_if(RIG *rig, char *data)
 {
     struct kenwood_priv_caps *priv = (struct kenwood_priv_caps *)rig->caps->priv;
-    int i, data_len, retval = !RIG_OK;
+    int i, data_len, retval = RIG_EINVAL;
 
     for (i = 0; retval != RIG_OK && i < rig->caps->retry; i++)
     {
@@ -168,8 +168,8 @@ int ic10_set_vfo(RIG *rig, vfo_t vfo)
     case RIG_VFO_CURR: return RIG_OK;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n",
-                  __func__, vfo);
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n",
+                  __func__, rig_strvfo(vfo));
         return -RIG_EINVAL;
     }
 
@@ -412,8 +412,8 @@ int ic10_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     case RIG_VFO_B: vfo_letter = 'B'; break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n",
-                  __func__, vfo);
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n",
+                  __func__, rig_strvfo(vfo));
         return -RIG_EINVAL;
     }
 

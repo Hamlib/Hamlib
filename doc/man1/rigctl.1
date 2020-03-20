@@ -447,7 +447,9 @@ Get
 .RI \(aq Frequency \(aq,
 in Hz.
 .IP
-Returns an integer value.
+Returns an integer value and the VFO hamlib thinks is active.
+Note that some rigs (e.g. all Icoms) cannot track current VFO so hamlib can
+get out of sync with the rig if the user presses rig buttons like the VFO.
 .
 .TP
 .BR M ", " set_mode " \(aq" \fIMode\fP "\(aq \(aq" \fIPassband\fP \(aq

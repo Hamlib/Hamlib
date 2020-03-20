@@ -80,7 +80,7 @@ static void dra818_subaudio(RIG *rig, char *subaudio, tone_t tone, tone_t code)
 {
     if (code)
     {
-        sprintf(subaudio, "%03dI", code);
+        sprintf(subaudio, "%03uI", code);
         return;
     }
     else if (tone)

@@ -184,7 +184,7 @@ const struct rig_caps ic746_caps =
     RIG_MODEL(RIG_MODEL_IC746),
     .model_name = "IC-746",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".4",
+    .version =  BACKEND_VER ".5",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -1033,13 +1033,13 @@ int ic746pro_get_channel(RIG *rig, channel_t *chan)
                   (int)chan->rptr_offs);
 
         chan->ctcss_tone = from_bcd_be(membuf->rx.tone, 6);
-        rig_debug(RIG_DEBUG_TRACE, "%s: chan->ctcss_tone=%d\n", __func__,
+        rig_debug(RIG_DEBUG_TRACE, "%s: chan->ctcss_tone=%u\n", __func__,
                   chan->ctcss_tone);
         chan->ctcss_sql = from_bcd_be(membuf->rx.tone_sql, 6);
-        rig_debug(RIG_DEBUG_TRACE, "%s: chan->ctcss_sql=%d\n", __func__,
+        rig_debug(RIG_DEBUG_TRACE, "%s: chan->ctcss_sql=%u\n", __func__,
                   chan->ctcss_sql);
         chan->dcs_code = from_bcd_be(membuf->rx.dcs.code, 4);
-        rig_debug(RIG_DEBUG_TRACE, "%s: chan->dcs_code=%d\n", __func__, chan->dcs_code);
+        rig_debug(RIG_DEBUG_TRACE, "%s: chan->dcs_code=%u\n", __func__, chan->dcs_code);
         /* The dcs information include in the channel includes polarity information
         for both tx and receive.  Both directions are enabled when in dcs mode */
 
@@ -1152,7 +1152,7 @@ int ic746pro_set_channel(RIG *rig, const channel_t *chan)
             membuf.tx.pb = PD_MEDIUM_3;
         }
 
-        membuf.tx.data = (chan->flags | RIG_CHFLAG_DATA) ? 1 : 0;
+        membuf.tx.data = (chan->flags & RIG_CHFLAG_DATA) ? 1 : 0;
         membuf.tx.dup = chan->rptr_shift;
 
         // not empty otherwise the call fail

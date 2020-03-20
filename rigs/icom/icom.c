@@ -6107,7 +6107,7 @@ int icom_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
 
         if (ant >= priv_caps->ant_count)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: ant index=%d > ant_count=%d\n", __func__, ant,
+            rig_debug(RIG_DEBUG_ERR, "%s: ant index=%u > ant_count=%d\n", __func__, ant,
                       priv_caps->ant_count);
             return -RIG_EINVAL;
         }
@@ -6437,7 +6437,7 @@ int icom_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq,
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     rig_id = rig->caps->rig_model;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: passed mwpower = %i\n", __func__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed mwpower = %u\n", __func__,
               mwpower);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %" PRIfreq " Hz\n",
               __func__, freq);
@@ -6471,7 +6471,6 @@ int icom_decode_event(RIG *rig)
     struct rig_state *rs;
     unsigned char buf[MAXFRAMELEN];
     int frm_len;
-    freq_t freq;
     rmode_t mode;
     pbwidth_t width;
 
@@ -6534,6 +6533,7 @@ int icom_decode_event(RIG *rig)
          */
         if (rig->callbacks.freq_event)
         {
+            freq_t freq;
             freq = from_bcd(buf + 5, (priv->civ_731_mode ? 4 : 5) * 2);
             return rig->callbacks.freq_event(rig, RIG_VFO_CURR, freq,
                                              rig->callbacks.freq_arg);

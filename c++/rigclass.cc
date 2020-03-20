@@ -50,7 +50,7 @@ static int hamlibpp_freq_event(RIG *rig, vfo_t vfo, freq_t freq, rig_ptr_t arg)
 		return -RIG_EINVAL;
 
 /* assert rig == ((Rig*)rig->state.obj).theRig */
-	return ((Rig*)rig->state.obj)->FreqEvent(vfo, freq, arg);
+	return (static_cast<Rig*>(rig->state.obj))->FreqEvent(vfo, freq, arg);
 }
 
 
@@ -535,7 +535,7 @@ shortfreq_t Rig::getXit(vfo_t vfo)
 	return xit;
 }
 
-void Rig::setAnt(value_t option, ant_t ant, vfo_t vfo)
+void Rig::setAnt(const value_t option, ant_t ant, vfo_t vfo)
 {
 	CHECK_RIG(rig_set_ant(theRig, vfo, ant, option));
 }

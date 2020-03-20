@@ -1807,7 +1807,7 @@ static int dummy_power2mW(RIG *rig, unsigned int *mwpower, float power,
 static int dummy_mW2power(RIG *rig, float *power, unsigned int mwpower,
                           freq_t freq, rmode_t mode)
 {
-    rig_debug(RIG_DEBUG_TRACE, "%s: passed mwpower = %i\n", __func__, mwpower);
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed mwpower = %u\n", __func__, mwpower);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %"PRIfreq" Hz\n", __func__, freq);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = %s\n", __func__,
               rig_strrmode(mode));

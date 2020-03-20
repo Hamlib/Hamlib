@@ -576,8 +576,8 @@ int ts570_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
         case RIG_VFO_MEM: vfo_function = '2'; break;
 
         default:
-            rig_debug(RIG_DEBUG_ERR, "ts570_set_split_vfo: unsupported VFO %d\n",
-                      vfo);
+            rig_debug(RIG_DEBUG_ERR, "ts570_set_split_vfo: unsupported VFO %s\n",
+                      rig_strvfo(vfo));
             return -RIG_EINVAL;
         }
 
@@ -623,7 +623,8 @@ int ts570_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
             break;
 
         default:
-            rig_debug(RIG_DEBUG_ERR, "ts570_set_split_vfo: unsupported VFO %d\n", txvfo);
+            rig_debug(RIG_DEBUG_ERR, "ts570_set_split_vfo: unsupported VFO %s\n",
+                      rig_strvfo(txvfo));
             return -RIG_EINVAL;
         }
 

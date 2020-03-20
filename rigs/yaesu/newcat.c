@@ -1545,8 +1545,8 @@ int newcat_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
         *split = RIG_SPLIT_OFF;
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "SPLIT = %d, vfo = %d, TX_vfo = %d\n", *split, vfo,
-              *tx_vfo);
+    rig_debug(RIG_DEBUG_TRACE, "SPLIT = %d, vfo = %s, TX_vfo = %s\n", *split, rig_strvfo(vfo),
+              rig_strvfo(*tx_vfo));
 
     return RIG_OK;
 }
@@ -1930,7 +1930,7 @@ int newcat_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
             break;
         }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: tone = %d, tone_match = %d, i = %d", __func__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: tone = %u, tone_match = %d, i = %d", __func__,
               tone, tone_match, i);
 
     if (tone_match == FALSE && tone != 0)
@@ -2099,7 +2099,7 @@ int newcat_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq,
     case NC_RIGID_FT450:
         /* 100 Watts */
         *mwpower = power * 100000;
-        rig_debug(RIG_DEBUG_TRACE, "case FT450 - rig_id = %d, *mwpower = %d\n", rig_id,
+        rig_debug(RIG_DEBUG_TRACE, "case FT450 - rig_id = %d, *mwpower = %u\n", rig_id,
                   *mwpower);
         break;
 
@@ -2107,35 +2107,35 @@ int newcat_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq,
         /* 100 Watts */
         *mwpower = power * 100000;      /* 0..100 Linear scale */
         rig_debug(RIG_DEBUG_TRACE,
-                  "case FT950 - rig_id = %d, power = %f, *mwpower = %d\n", rig_id, power,
+                  "case FT950 - rig_id = %d, power = %f, *mwpower = %u\n", rig_id, power,
                   *mwpower);
         break;
 
     case NC_RIGID_FT2000:
         /* 100 Watts */
         *mwpower = power * 100000;
-        rig_debug(RIG_DEBUG_TRACE, "case FT2000 - rig_id = %d, *mwpower = %d\n", rig_id,
+        rig_debug(RIG_DEBUG_TRACE, "case FT2000 - rig_id = %d, *mwpower = %u\n", rig_id,
                   *mwpower);
         break;
 
     case NC_RIGID_FT2000D:
         /* 200 Watts */
         *mwpower = power * 200000;
-        rig_debug(RIG_DEBUG_TRACE, "case FT2000D - rig_id = %d, *mwpower = %d\n",
+        rig_debug(RIG_DEBUG_TRACE, "case FT2000D - rig_id = %d, *mwpower = %u\n",
                   rig_id, *mwpower);
         break;
 
     case NC_RIGID_FTDX5000:
         /* 200 Watts */
         *mwpower = power * 200000;
-        rig_debug(RIG_DEBUG_TRACE, "case FTDX5000 - rig_id = %d, *mwpower = %d\n",
+        rig_debug(RIG_DEBUG_TRACE, "case FTDX5000 - rig_id = %d, *mwpower = %u\n",
                   rig_id, *mwpower);
         break;
 
     case NC_RIGID_FTDX9000D:
         /* 200 Watts */
         *mwpower = power * 200000;
-        rig_debug(RIG_DEBUG_TRACE, "case FTDX9000D - rig_id = %d, *mwpower = %d\n",
+        rig_debug(RIG_DEBUG_TRACE, "case FTDX9000D - rig_id = %d, *mwpower = %u\n",
                   rig_id, *mwpower);
         break;
 
@@ -2143,13 +2143,13 @@ int newcat_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq,
         /* 200 Watts */
         *mwpower = power * 200000;
         rig_debug(RIG_DEBUG_TRACE,
-                  "case FTDX9000Contest - rig_id = %d, *mwpower = %d\n", rig_id, *mwpower);
+                  "case FTDX9000Contest - rig_id = %d, *mwpower = %u\n", rig_id, *mwpower);
         break;
 
     case NC_RIGID_FTDX9000MP:
         /* 400 Watts */
         *mwpower = power * 400000;
-        rig_debug(RIG_DEBUG_TRACE, "case FTDX9000MP - rig_id = %d, *mwpower = %d\n",
+        rig_debug(RIG_DEBUG_TRACE, "case FTDX9000MP - rig_id = %d, *mwpower = %u\n",
                   rig_id, *mwpower);
         break;
 
@@ -2163,7 +2163,7 @@ int newcat_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq,
     default:
         /* 100 Watts */
         *mwpower = power * 100000;
-        rig_debug(RIG_DEBUG_TRACE, "default - rig_id = %d, *mwpower = %d\n", rig_id,
+        rig_debug(RIG_DEBUG_TRACE, "default - rig_id = %d, *mwpower = %u\n", rig_id,
                   *mwpower);
     }
 
@@ -2193,7 +2193,7 @@ int newcat_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq,
         /* 100 Watts */
         *power = mwpower / 100000.0;      /* 0..100 Linear scale */
         rig_debug(RIG_DEBUG_TRACE,
-                  "case FT950 - rig_id = %d, mwpower = %d, *power = %f\n", rig_id, mwpower,
+                  "case FT950 - rig_id = %d, mwpower = %u, *power = %f\n", rig_id, mwpower,
                   *power);
         break;
 
@@ -4039,7 +4039,7 @@ int newcat_set_mem(RIG *rig, vfo_t vfo, int ch)
     }
 
     /* Set Memory Channel Number ************** */
-    rig_debug(RIG_DEBUG_TRACE, "channel_num = %d, vfo = %d\n", ch, vfo);
+    rig_debug(RIG_DEBUG_TRACE, "channel_num = %d, vfo = %s\n", ch, rig_strvfo(vfo));
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MC%03d%c", ch, cat_term);
 
@@ -4433,7 +4433,7 @@ int newcat_set_channel(RIG *rig, const channel_t *chan)
     }
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str),
-             "MW%03d%08d%+.4d%c%c%c%c%c%02d%c%c",
+             "MW%03d%08d%+.4d%c%c%c%c%c%02u%c%c",
              chan->channel_num, (int)chan->freq, rxit, c_rit, c_xit, c_mode, c_vfo,
              c_tone, tone, c_rptr_shift, cat_term);
 
@@ -4988,7 +4988,7 @@ int newcat_set_vfo_from_alias(RIG *rig, vfo_t *vfo)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_TRACE, "Unrecognized.  vfo= %d\n", *vfo);
+        rig_debug(RIG_DEBUG_TRACE, "Unrecognized.  vfo= %s\n", rig_strvfo(*vfo));
         return -RIG_EINVAL;
     }
 
@@ -6004,7 +6004,7 @@ int newcat_get_rigid(RIG *rig)
         }
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "rig_id = %d, *s = %s\n", priv->rig_id, s);
+    rig_debug(RIG_DEBUG_TRACE, "rig_id = %d, *s = %s\n", priv->rig_id, s==NULL?"NULL":s);
 
     return priv->rig_id;
 }
@@ -6069,7 +6069,7 @@ int newcat_get_vfo_mode(RIG *rig, vfo_t *vfo_mode)
         *vfo_mode = RIG_VFO_MEM;
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo mode = %d\n", __func__, *vfo_mode);
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo mode = %s\n", __func__, rig_strrmode(*vfo_mode));
 
     return err;
 }

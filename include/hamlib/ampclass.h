@@ -33,7 +33,7 @@ private:
 
 protected:
 public:
-    Amplifier(amp_model_t amp_model);
+    explicit Amplifier(amp_model_t amp_model);
 
     virtual ~Amplifier();
 

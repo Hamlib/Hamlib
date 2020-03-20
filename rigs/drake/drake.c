@@ -212,8 +212,8 @@ int drake_set_vfo(RIG *rig, vfo_t vfo)
     case RIG_VFO_MEM: vfo_function = 'C'; break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "drake_set_vfo: unsupported VFO %d\n",
-                  vfo);
+        rig_debug(RIG_DEBUG_ERR, "drake_set_vfo: unsupported VFO %s\n",
+                  rig_strvfo(vfo));
         return -RIG_EINVAL;
     }
 

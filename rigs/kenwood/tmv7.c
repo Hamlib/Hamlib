@@ -330,7 +330,7 @@ int tmv7_decode_event(RIG *rig)
 
         vfo_t bandmode;
 
-        retval = sscanf(asyncbuf, "VMC 0,%d", &bandmode);
+        retval = sscanf(asyncbuf, "VMC 0,%u", &bandmode);
 
         if (retval != 1)
         {
@@ -349,7 +349,7 @@ int tmv7_decode_event(RIG *rig)
         default:    bandmode = RIG_VFO_CURR; break;
         }
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: Mode of Band event -  %d\n", __func__,
+        rig_debug(RIG_DEBUG_TRACE, "%s: Mode of Band event -  %u\n", __func__,
                   bandmode);
 
         /* TODO: This event does not have a callback! */
@@ -374,7 +374,7 @@ int tmv7_set_vfo(RIG *rig, vfo_t vfo)
     char vfobuf[16], ackbuf[ACKBUF_LEN];
     int retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: called %d\n", __func__, vfo);
+    rig_debug(RIG_DEBUG_TRACE, "%s: called %s\n", __func__, rig_strvfo(vfo));
 
     switch (vfo)
     {
@@ -397,7 +397,8 @@ int tmv7_set_vfo(RIG *rig, vfo_t vfo)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __func__, vfo);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %s\n", __func__,
+                  rig_strvfo(vfo));
         return -RIG_EVFO;
     }
 
@@ -409,7 +410,7 @@ int tmv7_set_vfo(RIG *rig, vfo_t vfo)
         return retval;
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: next %d\n", __func__, vfo);
+    rig_debug(RIG_DEBUG_TRACE, "%s: next %s\n", __func__, rig_strvfo(vfo));
 
     switch (vfo)
     {
@@ -457,7 +458,7 @@ int tmv7_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     case RIG_VFO_A: break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __func__, vfo);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %s\n", __func__, rig_strvfo(vfo));
         return -RIG_EVFO;
     }
 
