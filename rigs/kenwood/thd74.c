@@ -191,7 +191,8 @@ static int thd74_set_vfo(RIG *rig, vfo_t vfo)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO: %d\n", __func__, vfo);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO: %s\n", __func__,
+                  rig_strvfo(vfo));
         return -RIG_ENTARGET;
     }
 
@@ -252,7 +253,8 @@ static int thd74_vfoc(RIG *rig, vfo_t vfo, char *vfoc)
     case RIG_VFO_B: *vfoc = '1'; break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO: %d\n", __func__, vfo);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO: %s\n", __func__,
+                  rig_strvfo(vfo));
         return -RIG_ENTARGET;
     }
 
