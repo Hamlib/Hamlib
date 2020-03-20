@@ -188,7 +188,7 @@ int HAMLIB_API rig_register(const struct rig_caps *caps)
     }
 
     rig_debug(RIG_DEBUG_VERBOSE,
-              "%s: rig_register (%d)\n",
+              "%s: rig_register (%u)\n",
               __func__,
               caps->rig_model);
 
@@ -284,7 +284,7 @@ int HAMLIB_API rig_check_backend(rig_model_t rig_model)
     if (be_idx == -1)
     {
         rig_debug(RIG_DEBUG_VERBOSE,
-                  "rig_check_backend: unsupported backend %d for model %d\n",
+                  "rig_check_backend: unsupported backend %d for model %u\n",
                   RIG_BACKEND_NUM(rig_model),
                   rig_model);
         return -RIG_ENAVAIL;
@@ -367,7 +367,7 @@ static int dummy_rig_probe(const hamlib_port_t *p,
                            rig_model_t model,
                            rig_ptr_t data)
 {
-    rig_debug(RIG_DEBUG_TRACE, "Found rig, model %d\n", model);
+    rig_debug(RIG_DEBUG_TRACE, "Found rig, model %u\n", model);
 
     return RIG_OK;
 }

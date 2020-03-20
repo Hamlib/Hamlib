@@ -776,7 +776,7 @@ int kenwood_open(RIG *rig)
 
         /* driver mismatch */
         rig_debug(RIG_DEBUG_ERR,
-                  "%s: wrong driver selected (%d instead of %d)\n",
+                  "%s: wrong driver selected (%u instead of %d)\n",
                   __func__, rig->caps->rig_model,
                   kenwood_id_string_list[i].model);
 
@@ -2068,6 +2068,7 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         else
         {
             int foundit = 0;
+
             for (i = 0; i < MAXDBLSTSIZ && rig->state.attenuator[i]; i++)
             {
                 if (val.i == rig->state.attenuator[i])
@@ -2096,6 +2097,7 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         else
         {
             int foundit = 0;
+
             for (i = 0; i < MAXDBLSTSIZ && rig->state.preamp[i]; i++)
             {
                 if (val.i == rig->state.preamp[i])
@@ -2862,7 +2864,7 @@ int kenwood_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
     {
         if (caps->ctcss_list[i] == 0)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: CTCSS NG (%04d)\n",
+            rig_debug(RIG_DEBUG_ERR, "%s: CTCSS NG (%04u)\n",
                       __func__, tone_idx);
             return -RIG_EPROTO;
         }
@@ -3000,7 +3002,7 @@ int kenwood_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
     {
         if (caps->ctcss_list[i] == 0)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: CTCSS NG (%04d)\n",
+            rig_debug(RIG_DEBUG_ERR, "%s: CTCSS NG (%04u)\n",
                       __func__, tone_idx);
             return -RIG_EPROTO;
         }

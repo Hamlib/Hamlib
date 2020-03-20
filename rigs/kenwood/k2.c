@@ -293,7 +293,6 @@ int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     char f;
     struct k2_filt_lst_s *flt;
     struct kenwood_priv_data *priv = rig->state.priv;
-    shortfreq_t freq = 0;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -329,6 +328,8 @@ int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (width != RIG_PASSBAND_NOCHANGE)
     {
+        shortfreq_t freq = 0;
+
         if (width < 0)
         {
             width = labs(width);

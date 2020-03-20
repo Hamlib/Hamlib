@@ -2679,8 +2679,8 @@ int ft990_get_channel(RIG *rig, channel_t *chan)
         return -RIG_EINVAL;
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: passed chan->vfo = %i\n",
-              __func__, chan->vfo);
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed chan->vfo = %s\n",
+              __func__, rig_strvfo(chan->vfo));
     rig_debug(RIG_DEBUG_TRACE, "%s: passed chan->channel_num = %i\n",
               __func__, chan->channel_num);
 

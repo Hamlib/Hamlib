@@ -1481,17 +1481,19 @@ int k3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         else
         {
             int i;
+            int foundit = 0;
 
             for (i = 0; i < MAXDBLSTSIZ && rig->state.attenuator[i]; i++)
             {
                 if (val.i == rig->state.attenuator[i])
                 {
                     snprintf(levelbuf, sizeof(levelbuf), "RA%02d", i + 1);
+                    foundit = 1;
                     break;
                 }
             }
 
-            if (val.i != rig->state.attenuator[i])
+            if (!foundit)
             {
                 return -RIG_EINVAL;
             }

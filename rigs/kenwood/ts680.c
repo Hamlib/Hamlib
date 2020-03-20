@@ -66,8 +66,8 @@ static int ts680_set_vfo(RIG *rig, vfo_t vfo)
     case RIG_VFO_CURR: return RIG_OK;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "ts680_set_vfo: unsupported VFO %d\n",
-                  vfo);
+        rig_debug(RIG_DEBUG_ERR, "ts680_set_vfo: unsupported VFO %s\n",
+                  rig_strvfo(vfo));
         return -RIG_EINVAL;
     }
 

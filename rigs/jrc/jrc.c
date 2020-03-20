@@ -77,6 +77,7 @@ static int jrc_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 
     serial_flush(&rs->rigport);
 
+    // cppcheck-suppress *
     Hold_Decode(rig);
 
     retval = write_block(&rs->rigport, cmd, cmd_len);
@@ -297,6 +298,8 @@ int jrc_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         return -RIG_EINVAL;
     }
 
+    // cppcheck-suppress *
+    // suppressing bogus cppcheck error in ver 1.90
     freq_len = sprintf(freqbuf, "F%0*"PRIll EOM, priv->max_freq_len, (int64_t)freq);
 
     return jrc_transaction(rig, freqbuf, freq_len, NULL, NULL);
@@ -372,8 +375,8 @@ int jrc_set_vfo(RIG *rig, vfo_t vfo)
     case RIG_VFO_MEM: vfo_function = 'C'; break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "jrc_set_vfo: unsupported VFO %d\n",
-                  vfo);
+        rig_debug(RIG_DEBUG_ERR, "jrc_set_vfo: unsupported VFO %s\n",
+                  rig_strvfo(vfo));
         return -RIG_EINVAL;
     }
 
