@@ -300,7 +300,7 @@ int thg71_decode_event(RIG *rig)
 
         vfo_t bandmode;
 
-        retval = sscanf(asyncbuf, "VMC 0,%d", &bandmode);
+        retval = sscanf(asyncbuf, "VMC 0,%u", &bandmode);
 
         if (retval != 1)
         {
@@ -319,7 +319,7 @@ int thg71_decode_event(RIG *rig)
         default:    bandmode = RIG_VFO_CURR; break;
         }
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: Mode of Band event -  %d\n", __func__,
+        rig_debug(RIG_DEBUG_TRACE, "%s: Mode of Band event -  %u\n", __func__,
                   bandmode);
 
         /* TODO: This event does not have a callback! */
@@ -354,7 +354,7 @@ int thg71_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     case RIG_VFO_A: break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __func__, vfo);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %s\n", __func__, rig_strvfo(vfo));
         return -RIG_EVFO;
     }
 
@@ -402,7 +402,7 @@ int thg71_set_vfo(RIG *rig, vfo_t vfo)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __func__, vfo);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %s\n", __func__, rig_strvfo(vfo));
         return -RIG_EVFO;
     }
 
@@ -505,7 +505,7 @@ int thg71_open(RIG *rig)
 
     strtok(ackbuf, " ");
 
-    for (i = 0; i < FRQRANGESIZ; i++)
+    for (i = 0; i < FRQRANGESIZ - 1; i++)
     {
         freq_range_t frng;
         char *strl, *stru;
@@ -534,6 +534,7 @@ int thg71_open(RIG *rig)
 
         frng.high_power = -1;
         frng.low_power = -1;
+        frng.label = "";
         rig->state.rx_range_list[i] = frng;
 
         if (frng.startf > MHz(200))

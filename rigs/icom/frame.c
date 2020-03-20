@@ -127,6 +127,7 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
     /*
      * should check return code and that write wrote cmd_len chars!
      */
+    // cppcheck-suppress *
     Hold_Decode(rig);
 
     serial_flush(&rs->rigport);
@@ -135,6 +136,7 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
 
     if (retval != RIG_OK)
     {
+        // cppcheck-suppress *
         Unhold_Decode(rig);
         return retval;
     }
@@ -387,7 +389,6 @@ int rig2icom_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 {
     unsigned char icmode;
     signed char icmode_ext;
-    pbwidth_t medium_width;
 
     icmode_ext = -1;
 
@@ -447,7 +448,7 @@ int rig2icom_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 
     if (width != RIG_PASSBAND_NOCHANGE)
     {
-        medium_width = rig_passband_normal(rig, mode);
+        pbwidth_t medium_width = rig_passband_normal(rig, mode);
 
         if (width == medium_width || width == RIG_PASSBAND_NORMAL)
         {

@@ -1756,12 +1756,6 @@ static int flrig_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     rig_debug(RIG_DEBUG_TRACE, "%s: tx_vfo=%s\n", __func__,
               rig_strvfo(tx_vfo));
 
-
-    if (tx_vfo == RIG_VFO_SUB || tx_vfo == RIG_VFO_TX)
-    {
-        tx_vfo = RIG_VFO_B;
-    }
-
     retval = flrig_get_split_vfo(rig, RIG_VFO_A, &qsplit, &qtx_vfo);
 
     if (retval != RIG_OK) { return retval; }

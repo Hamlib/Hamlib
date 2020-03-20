@@ -115,7 +115,7 @@ int elecraft_open(RIG *rig)
     priv->fw_rev = k3_fw_rev;
 
     /* Use check for "ID017;" to verify rig is reachable */
-    rig_debug(RIG_DEBUG_TRACE, "%s: rig_model=%d,%d\n", __func__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: rig_model=%u,%d\n", __func__,
               rig->caps->rig_model, RIG_MODEL_XG3);
 
     if (rig->caps->rig_model == RIG_MODEL_XG3)   // XG3 doesn't have ID
@@ -218,7 +218,7 @@ int elecraft_open(RIG *rig)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_WARN, "%s: unrecognized rig model %d\n",
+        rig_debug(RIG_DEBUG_WARN, "%s: unrecognized rig model %u\n",
                   __func__, rig->caps->rig_model);
         return -RIG_EINVAL;
     }

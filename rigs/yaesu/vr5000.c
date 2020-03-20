@@ -472,13 +472,7 @@ int vr5000_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 
 int mode2rig(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-    struct vr5000_priv_data *priv = rig->state.priv;
     int md;
-
-    if (priv->curr_vfo == RIG_VFO_CURR)
-    {
-        vfo = priv->curr_vfo;
-    }
 
     /*
      * translate mode from generic to vr5000 specific

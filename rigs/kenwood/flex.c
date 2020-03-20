@@ -132,7 +132,7 @@ int flexradio_open(RIG *rig)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_WARN, "%s: unrecognized rig model %d\n",
+        rig_debug(RIG_DEBUG_WARN, "%s: unrecognized rig model %u\n",
                   __func__, rig->caps->rig_model);
         return -RIG_EINVAL;
     }

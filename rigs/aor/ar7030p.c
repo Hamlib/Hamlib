@@ -627,7 +627,7 @@ static int ar7030p_set_mode(RIG *rig, vfo_t vfo, rmode_t mode,
                     }
                 }
 
-                rig_debug(RIG_DEBUG_VERBOSE, "%s: width %d ar_filter %d filterTab[%d] %d\n",
+                rig_debug(RIG_DEBUG_VERBOSE, "%s: width %d ar_filter %d filterTab[%d] %u\n",
                           __func__, (int)width, ar_filter, i, filterTab[i]);
             }
 
@@ -1168,7 +1168,7 @@ static int ar7030p_get_level(RIG *rig, vfo_t vfo, setting_t level,
                 /* Scale parameter */
                 val->i = (int)((float)(x) / NOTCH_STEP_HZ);
 
-                rig_debug(RIG_DEBUG_VERBOSE, "%s: nchfr %d (%d)\n",
+                rig_debug(RIG_DEBUG_VERBOSE, "%s: nchfr %u (%d)\n",
                           __func__, x, val->i);
             }
 

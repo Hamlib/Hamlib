@@ -652,7 +652,7 @@ static int vx1700_set_vfo(RIG *rig, vfo_t vfo)
 {
     struct vx1700_priv_data *priv = (struct vx1700_priv_data *)rig->state.priv;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s, vfo=%d\n", __func__, vfo);
+    rig_debug(RIG_DEBUG_TRACE, "%s, vfo=%s\n", __func__, rig_strvfo(vfo));
 
     switch (vfo)
     {

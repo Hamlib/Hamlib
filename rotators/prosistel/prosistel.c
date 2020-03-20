@@ -44,6 +44,7 @@
 #define STX "\x02"
 
 
+#if 0
 struct prosistel_rot_priv_data
 {
     azimuth_t az;
@@ -52,6 +53,7 @@ struct prosistel_rot_priv_data
     azimuth_t target_az;
     elevation_t target_el;
 };
+#endif
 
 
 
