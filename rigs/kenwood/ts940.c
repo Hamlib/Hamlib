@@ -189,7 +189,6 @@ const struct rig_caps ts940_caps =
     .scan =  kenwood_scan,
     .set_channel = kenwood_set_channel,
     .get_channel = kenwood_get_channel,
-    /* .decode_event = ic10_decode_event, */
 
 };
 

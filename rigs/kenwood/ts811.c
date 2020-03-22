@@ -27,7 +27,6 @@
 
 #include <hamlib/rig.h>
 #include "kenwood.h"
-#include "ic10.h"
 
 
 #define TS811_ALL_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM)
