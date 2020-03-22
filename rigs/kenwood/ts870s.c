@@ -198,7 +198,6 @@ static int ts870s_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     char buf[16];
     int kmode, retval;
-    pbwidth_t mode_default_hpf;
 
     switch (mode)
     {
@@ -236,6 +235,7 @@ static int ts870s_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         {
             if (RIG_MODE_USB == mode || RIG_MODE_LSB == mode || RIG_MODE_AM == mode)
             {
+                pbwidth_t mode_default_hpf;
                 /* we assume the HPF is set to default and set the LPF to
                      give the best approximaation of the requested width */
                 if (RIG_MODE_AM == mode)
