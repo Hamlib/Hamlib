@@ -193,6 +193,7 @@ int ic10_get_vfo(RIG *rig, vfo_t *vfo)
     unsigned char c;
     int retval, iflen;
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
     /* query RX VFO */
     retval = get_ic10_if(rig, vfobuf);
@@ -223,6 +224,7 @@ int ic10_get_vfo(RIG *rig, vfo_t *vfo)
                   __func__, c);
         return -RIG_EPROTO;
     }
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: returning VFO=%s\n", __func__, rig_strvfo(*vfo));
 
     return RIG_OK;
 }
