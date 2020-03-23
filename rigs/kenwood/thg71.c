@@ -38,6 +38,9 @@
 #define RIG_ASSERT(x)
 #endif
 
+#define THG71_VFO (RIG_VFO_A)
+#define THG71_MODES (RIG_MODE_FM)
+
 #define THG71_FUNC_ALL (\
                        RIG_FUNC_TBURST \
                        )
@@ -139,6 +142,19 @@ const struct rig_caps thg71_caps =
     },
 
     /* no rx/tx_range_list */
+    .rx_range_list1 =  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
+    .tx_range_list1 =  { RIG_FRNG_END, },
+    .rx_range_list2 =  {
+        {MHz(118), MHz(174), THG71_MODES, -1, -1, THG71_VFO},
+        {MHz(400), MHz(470), THG71_MODES, -1, -1, THG71_VFO},
+        RIG_FRNG_END,
+    },
+    .tx_range_list2 =  {
+        {MHz(144), MHz(148), THG71_MODES, W(0.05), W(5), THG71_VFO},
+        {MHz(430), MHz(450), THG71_MODES, W(0.05), W(5), THG71_VFO},
+        RIG_FRNG_END,
+    },
+
     /* computed in thg71_open */
 
     .tuning_steps =  {
