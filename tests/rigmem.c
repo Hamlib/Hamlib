@@ -236,7 +236,7 @@ int main(int argc, char *argv[])
     if (!rig)
     {
         fprintf(stderr,
-                "Unknown rig num %d, or initialization error.\n",
+                "Unknown rig num %u, or initialization error.\n",
                 my_model);
 
         fprintf(stderr, "Please check with --list option.\n");
@@ -260,7 +260,7 @@ int main(int argc, char *argv[])
     {
 
         fprintf(stderr,
-                "Error: rig num %d has no memory support implemented/available.\n",
+                "Error: rig num %u has no memory support implemented/available.\n",
                 my_model);
         exit(3);
     }
@@ -268,7 +268,7 @@ int main(int argc, char *argv[])
     /* check channel description */
     if (rig->caps->chan_list[0].type == 0)
     {
-        fprintf(stderr, "Error: rig num %d has no channel list.\n",
+        fprintf(stderr, "Error: rig num %u has no channel list.\n",
                 my_model);
         exit(3);
     }
@@ -299,7 +299,7 @@ int main(int argc, char *argv[])
 
     if (verbose > 0)
     {
-        printf("Opened rig model %d, '%s'\n",
+        printf("Opened rig model %u, '%s'\n",
                rig->caps->rig_model,
                rig->caps->model_name);
     }

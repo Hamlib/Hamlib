@@ -439,7 +439,7 @@ int main(int argc, char *argv[])
     if (!my_rig)
     {
         fprintf(stderr,
-                "Unknown rig num %d, or initialization error.\n",
+                "Unknown rig num %u, or initialization error.\n",
                 my_model);
         fprintf(stderr, "Please check with --list option.\n");
         exit(2);
@@ -533,7 +533,7 @@ int main(int argc, char *argv[])
 
     if (verbose > 0)
     {
-        printf("Opened rig model %d, '%s'\n",
+        printf("Opened rig model %u, '%s'\n",
                my_rig->caps->rig_model,
                my_rig->caps->model_name);
     }

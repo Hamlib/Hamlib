@@ -693,6 +693,8 @@ int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     struct ft1000mp_priv_data *p;
     unsigned char *cmd;           /* points to sequence to send */
     int cmd_index = 0;
+    // cppcheck-suppress *
+    char *fmt = "%s: requested freq after conversion = %"PRIll" Hz\n";
 
     rig_debug(RIG_DEBUG_TRACE, "%s: ft1000mp_set_freq called\n", __func__);
 
@@ -736,10 +738,7 @@ int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     to_bcd(p->p_cmd, freq / 10, 8); /* store bcd format in in p_cmd */
     /* TODO -- fix 10Hz resolution -- FS */
 
-    // cppcheck-suppress *
-    rig_debug(RIG_DEBUG_TRACE,
-              "%s: requested freq after conversion = %"PRIll" Hz\n",
-              __func__, (int64_t)from_bcd(p->p_cmd, 8) * 10);
+    rig_debug(RIG_DEBUG_TRACE, fmt, __func__, (int64_t)from_bcd(p->p_cmd, 8) * 10);
 
     cmd = p->p_cmd;               /* get native sequence */
     write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);

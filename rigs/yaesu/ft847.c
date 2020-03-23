@@ -699,6 +699,8 @@ int ft847_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     struct rig_state *rig_s;
     unsigned char p_cmd[YAESU_CMD_LENGTH]; /* sequence to send */
     int ret;
+    // cppcheck-suppress *
+    char *fmt = "%s: requested freq after conversion = %"PRIll" Hz \n";
 
     if (!rig)
     {
@@ -719,9 +721,7 @@ int ft847_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     to_bcd_be(p_cmd, freq / 10, 8); /* store bcd format in in p_cmd */
 
-    // cppcheck-suppress *
-    rig_debug(RIG_DEBUG_VERBOSE,
-              "%s: requested freq after conversion = %"PRIll" Hz \n", __func__,
+    rig_debug(RIG_DEBUG_VERBOSE, fmt, __func__,
               (int64_t)from_bcd_be(p_cmd, 8) * 10);
 
     if (rig->caps->rig_model == RIG_MODEL_FT847UNI)
