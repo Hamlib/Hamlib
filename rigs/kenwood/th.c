@@ -242,6 +242,7 @@ th_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     step = freq_sent >= MHz(470) ? 4 : step;
     freq_sent = freq_sent >= MHz(470) ? (round(freq_sent / 10000) * 10000) :
                 freq_sent;
+    // cppcheck-suppress *
     sprintf(buf, "FQ %011"PRIll",%X", (int64_t) freq_sent, step);
 
     return kenwood_transaction(rig, buf, NULL, 0);

@@ -863,8 +863,8 @@ int ft767_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
             return RIG_OK;
 
         default:
-            rig_debug(RIG_DEBUG_ERR, "%s: error, unknown vfo value %d\n", __func__,
-                      curr_vfo);
+            rig_debug(RIG_DEBUG_ERR, "%s: error, unknown vfo value %s\n", __func__,
+                      rig_strvfo(curr_vfo));
             return RIG_OK;
         }
     }
@@ -966,8 +966,8 @@ int ft767_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
             return RIG_OK;
 
         default:
-            rig_debug(RIG_DEBUG_ERR, "%s: error, unknown vfo value %d\n", __func__,
-                      curr_vfo);
+            rig_debug(RIG_DEBUG_ERR, "%s: error, unknown vfo value %s\n", __func__,
+                      rig_strvfo(curr_vfo));
             return RIG_OK;
         }
     }
@@ -1026,8 +1026,8 @@ int ft767_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
             return RIG_OK;
 
         default:
-            rig_debug(RIG_DEBUG_ERR, "%s: error, unknown vfo value %d\n", __func__,
-                      curr_vfo);
+            rig_debug(RIG_DEBUG_ERR, "%s: error, unknown vfo value %s\n", __func__,
+                      rig_strvfo(curr_vfo));
             return RIG_OK;
         }
     }
@@ -1130,8 +1130,8 @@ int ft767_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
             return RIG_OK;
 
         default:
-            rig_debug(RIG_DEBUG_ERR, "%s: error, unknown vfo value %d\n", __func__,
-                      curr_vfo);
+            rig_debug(RIG_DEBUG_ERR, "%s: error, unknown vfo value %s\n", __func__,
+                      rig_strvfo(curr_vfo));
             return RIG_OK;
         }
     }
@@ -1341,8 +1341,8 @@ int ft767_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
     default:
         /* we don't know how to deal with MEM, anything else is an error */
         /* TODO make sure this is what we want to do here */
-        rig_debug(RIG_DEBUG_ERR, "%s: current vfo is %d with split\n", __func__,
-                  curr_vfo);
+        rig_debug(RIG_DEBUG_ERR, "%s: current vfo is %s with split\n", __func__,
+                  rig_strvfo(curr_vfo));
         return -RIG_EINVAL;
         break;
     }
@@ -1581,7 +1581,7 @@ int ft767_set_split(RIG *rig, unsigned int split)
     /* See whether we need to toggle */
     curr_split = priv->update_data[STATUS_FLAGS] & STATUS_MASK_SPLIT;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called curr_split = %d, split = %d\n", __func__,
+    rig_debug(RIG_DEBUG_TRACE, "%s called curr_split = %u, split = %u\n", __func__,
               curr_split, split);
 
     if (curr_split ^ split)

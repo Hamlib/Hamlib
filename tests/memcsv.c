@@ -351,7 +351,7 @@ int csv_parm_save(RIG *rig, const char *outfilename)
 {
     int i, ret;
     FILE *f;
-    setting_t parm, get_parm = all ? 0x7fffffff : rig->state.has_get_parm;
+    setting_t get_parm = all ? 0x7fffffff : rig->state.has_get_parm;
 
     f = fopen(outfilename, "w");
 
@@ -379,6 +379,7 @@ int csv_parm_save(RIG *rig, const char *outfilename)
     {
         const char *ms;
         value_t val;
+        setting_t parm;
 
         parm = get_parm & rig_idx2setting(i);
         ms = rig_strparm(parm);

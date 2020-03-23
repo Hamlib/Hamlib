@@ -782,6 +782,7 @@ int tmv7_set_channel(RIG *rig, const channel_t *chan)
     if (chan->tx_freq != RIG_FREQ_NONE)
     {
         req[5] = '1';
+        // cppcheck-suppress *
         sprintf(membuf, "%s,%011"PRIll",%01d", req, (int64_t)chan->tx_freq, step);
         retval = kenwood_transaction(rig, membuf, NULL, 0);
 

@@ -2,6 +2,23 @@
 # Hamlib bindings using SWIG
 # more information on swig at http://www.swig.org
 #
+#UNAME_S := $(shell uname -s)
+#AM_CONDITIONAL(BUILD_OS_IS_UBUNTU, [test x"$build_os" = ubuntu])
+#AM_CONDITIONAL(BUILD_OS_IS_FEDORA, [test x"$build_os" = fedora])
+#ifeq ("\$(shell test -e /etc/fedora-release && echo yup)","yup")
+
+# OS Detection for perl installation location
+if BUILD_OS_IS_UBUNTU
+	PERLINSTALL = install_site
+	echo Ubuntu install=$(PERLINSTALL)
+else if BUILD_OS_IS_FEDORA
+	PERLINSTALL = pure_vendor_install
+	echo Fedora install=$(PERLINSTALL)
+else
+	PERLINSTALL = install_site
+	echo Default install=$(PERLINSTALL)
+endif
+
 
 AM_CPPFLAGS = @AM_CPPFLAGS@ -I$(top_srcdir)/bindings $(PYTHON_CPPFLAGS) \
 	$(TCL_INCLUDE_SPEC)
@@ -70,7 +87,7 @@ distcheck-perl: Hamlib-pl.mk
 	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk distcheck
 
 install-perl: Hamlib-pl.mk
-	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk install_site
+	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk $(PERLINSTALL)
 
 ## ExtUtils::MakeMaker says uninstall is deprecated and won't remove the files
 ## anyway, so we'll have to figure out another way to remove the installed files.
