@@ -110,13 +110,14 @@ gp2000_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     char freqbuf[32];
     int freq_len, retval;
+    // cppcheck-suppress *
+    char *fmt = BOM "F%" PRIll ",%" PRIll EOM;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s,freq=%.0f\n", __func__,
               rig_strvfo(vfo), freq);
 
-    // cppcheck-suppress *
     freq_len =
-        snprintf(freqbuf, sizeof(freqbuf), BOM "F%" PRIll ",%" PRIll EOM,
+        snprintf(freqbuf, sizeof(freqbuf), fmt,
                  (int64_t) freq,
                  (int64_t) freq);
     retval = gp2000_transaction(rig, freqbuf, freq_len, NULL, NULL);

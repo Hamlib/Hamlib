@@ -50,6 +50,7 @@ int main(int argc, char *argv[])
         printf(",%2.2x", b[i]);
     }
 
+    // cppcheck-suppress *
     printf("\nResult after recoding: %"PRIll"\n", (int64_t)from_bcd(b, digits));
 
     printf("\nBig Endian mode\n");

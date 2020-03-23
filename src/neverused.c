@@ -126,6 +126,9 @@ void never_used()
     rot_probe_all();
     rot_unregister();
     set_parm_all_cb_generic();
+    sprintf_level();
+    sprintf_level_ext();
+    sprintf_parm();
     tentec_trx_open();
     thd72_get_chan_all_cb();
     thd74_get_chan_all_cb();

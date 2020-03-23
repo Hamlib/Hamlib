@@ -1360,6 +1360,7 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         return -RIG_EINVAL;
     }
 
+    // cppcheck-suppress *
     snprintf(freqbuf, sizeof(freqbuf), "F%c%011"PRIll, vfo_letter, (int64_t)freq);
 
     err = kenwood_transaction(rig, freqbuf, NULL, 0);
