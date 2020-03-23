@@ -255,7 +255,7 @@ static int rx331_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 
     serial_flush(&rs->rigport);
 
-    num_snprintf(str, BUFSZ, "$%i%s", priv->receiver_id, cmd);
+    num_snprintf(str, BUFSZ, "$%u%s", priv->receiver_id, cmd);
     retval = write_block(&rs->rigport, str, strlen(str));
 
     if (retval != RIG_OK)
@@ -398,7 +398,7 @@ int rx331_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     int freq_len, retval;
     char freqbuf[16];
 
-    freq_len = num_sprintf(freqbuf, "$%iF%.6f" EOM,
+    freq_len = num_sprintf(freqbuf, "$%uF%.6f" EOM,
                            priv->receiver_id, freq / 1e6);
 
     retval = write_block(&rs->rigport, freqbuf, freq_len);
@@ -480,7 +480,7 @@ int rx331_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         /*
          * Set DETECTION MODE and IF FILTER
          */
-        mdbuf_len = num_sprintf(mdbuf,  "$%iD%cI%.02f" EOM, priv->receiver_id,
+        mdbuf_len = num_sprintf(mdbuf,  "$%uD%cI%.02f" EOM, priv->receiver_id,
                                 dmode, (float)width / 1e3);
     }
     else
@@ -488,7 +488,7 @@ int rx331_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         /*
          * Set DETECTION MODE
          */
-        mdbuf_len = num_sprintf(mdbuf,  "$%iD%c" EOM, priv->receiver_id, dmode);
+        mdbuf_len = num_sprintf(mdbuf,  "$%uD%c" EOM, priv->receiver_id, dmode);
     }
 
     retval = write_block(&rs->rigport, mdbuf, mdbuf_len);
@@ -613,18 +613,18 @@ int rx331_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     case RIG_LEVEL_NOTCHF:
-        cmd_len = num_sprintf(cmdbuf, "$%iN%f" EOM, priv->receiver_id,
+        cmd_len = num_sprintf(cmdbuf, "$%uN%f" EOM, priv->receiver_id,
                               ((float)val.i) / 1e3);
         break;
 
     case RIG_LEVEL_IF:
-        cmd_len = num_sprintf(cmdbuf, "$%iP%f" EOM, priv->receiver_id,
+        cmd_len = num_sprintf(cmdbuf, "$%uP%f" EOM, priv->receiver_id,
                               ((float)val.i) / 1e3);
         break;
 
     case RIG_LEVEL_CWPITCH:
         /* only in CW mode */
-        cmd_len = num_sprintf(cmdbuf, "$%iB%f" EOM, priv->receiver_id,
+        cmd_len = num_sprintf(cmdbuf, "$%uB%f" EOM, priv->receiver_id,
                               ((float)val.i) / 1e3);
         break;
 

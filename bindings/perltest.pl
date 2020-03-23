@@ -1,4 +1,5 @@
-#!/usr/bin/perl -Iblib/arch -Iblib/lib
+#!/usr/bin/perl
+##!/usr/bin/perl -Iblib/arch -Iblib/lib
 
 use Hamlib;
 

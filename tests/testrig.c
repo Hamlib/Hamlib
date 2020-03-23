@@ -15,7 +15,7 @@
 #  include "config.h"
 #endif
 
-#define SERIAL_PORT "/dev/ttyS0"
+#define SERIAL_PORT "/dev/ttyUSB0"
 
 
 int main(int argc, char *argv[])

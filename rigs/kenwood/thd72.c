@@ -456,6 +456,7 @@ static int thd72_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: tsindex=%d, stepsize=%d\n", __func__, tsindex,
               (int)ts);
     freq = roundl(freq / ts) * ts;
+    // cppcheck-suppress *
     sprintf(fbuf, "%010"PRIll, (int64_t)freq);
     memcpy(buf + 5, fbuf, 10);
     retval = kenwood_simple_transaction(rig, buf, 52);

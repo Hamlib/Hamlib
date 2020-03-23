@@ -387,7 +387,7 @@ int xg3_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
         return -RIG_EINVAL;
     }
 
@@ -440,7 +440,7 @@ int xg3_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__, vfo);
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
         return -RIG_EINVAL;
     }
 

@@ -290,6 +290,7 @@ static int set_band(RIG *rig, freq_t freq)
 
     ret = write_latch(rig, L_BAND, 1 << band, 0x3f);
 
+    // cppcheck-suppress *
     rig_debug(RIG_DEBUG_VERBOSE, "%s %"PRIll" band %d\n", __func__, (int64_t)freq,
               band);
 
