@@ -251,6 +251,7 @@ static void close_microham()
 #define NUMUHTYPES 9
 static struct uhtypes
 {
+    // cppcheck-suppress *
     const char *name;
     const char *device;
 } uhtypes[NUMUHTYPES] =

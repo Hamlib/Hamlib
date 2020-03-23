@@ -38,26 +38,32 @@ int main(int argc, char *argv[])
 
     /* freq on 31bits test */
     f = GHz(2);
+    // cppcheck-suppress *
     printf("GHz(2) = %"PRIll"\n", (int64_t)f);
 
     /* freq on 32bits test */
     f = GHz(4);
+    // cppcheck-suppress *
     printf("GHz(4) = %"PRIll"\n", (int64_t)f);
 
     /* freq on >32bits test */
     f = GHz(5);
+    // cppcheck-suppress *
     printf("GHz(5) = %"PRIll"\n", (int64_t)f);
 
     /* floating point to freq conversion test */
     f = GHz(1.3);
+    // cppcheck-suppress *
     printf("GHz(1.3) = %"PRIll"\n", (int64_t)f);
 
     /* floating point to freq conversion precision test */
     f = GHz(1.234567890);
+    // cppcheck-suppress *
     printf("GHz(1.234567890) = %"PRIll"\n", (int64_t)f);
 
     /* floating point to freq conversion precision test, with freq >32bits */
     f = GHz(123.456789012);
+    // cppcheck-suppress *
     printf("GHz(123.456789012) = %"PRIll"\n", (int64_t)f);
 
     return 0;

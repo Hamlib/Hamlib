@@ -1879,6 +1879,8 @@ declare_proto_rig(get_freq)
 {
     int status;
     freq_t freq;
+    // cppcheck-suppress
+    char *fmt = "%"PRIll"%c";
 
     status = rig_get_freq(rig, vfo, &freq);
 
@@ -1892,7 +1894,7 @@ declare_proto_rig(get_freq)
         fprintf(fout, "%s: ", cmd->arg1);    /* i.e. "Frequency" */
     }
 
-    fprintf(fout, "%"PRIll"%c", (int64_t)freq, resp_sep);
+    fprintf(fout, fmt, (int64_t)freq, resp_sep);
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
