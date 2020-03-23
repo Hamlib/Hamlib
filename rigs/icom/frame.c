@@ -158,6 +158,7 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
         if (retval == -RIG_ETIMEOUT || retval == 0)
         {
             /* Nothing recieved, CI-V interface is not echoing */
+            // cppcheck-suppress *
             Unhold_Decode(rig);
             return -RIG_BUSERROR;
         }
@@ -165,6 +166,7 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
         if (retval < 0)
         {
             /* Other error, return it */
+            // cppcheck-suppress *
             Unhold_Decode(rig);
             return retval;
         }
@@ -178,6 +180,7 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
         {
         case COL:
             /* Collision */
+            // cppcheck-suppress *
             Unhold_Decode(rig);
             return -RIG_BUSBUSY;
 
@@ -188,6 +191,7 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
         default:
             /* Timeout after reading at least one character */
             /* Problem on ci-v bus? */
+            // cppcheck-suppress *
             Unhold_Decode(rig);
             return -RIG_BUSERROR;
         }
@@ -197,6 +201,7 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
             /* Not the same length??? */
             /* Problem on ci-v bus? */
             /* Someone else got a packet in? */
+            // cppcheck-suppress *
             Unhold_Decode(rig);
             return -RIG_EPROTO;
         }
@@ -206,6 +211,7 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
             /* Frames are different? */
             /* Problem on ci-v bus? */
             /* Someone else got a packet in? */
+            // cppcheck-suppress *
             Unhold_Decode(rig);
             return -RIG_EPROTO;
         }
@@ -216,6 +222,7 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
      */
     if (data_len == NULL)
     {
+        // cppcheck-suppress *
         Unhold_Decode(rig);
         return RIG_OK;
     }
@@ -234,7 +241,7 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
         // And try again
         frm_len = read_icom_frame(&rs->rigport, buf, sizeof(buf));
     }
-
+    // cppcheck-suppress *
     Unhold_Decode(rig);
 
     if (frm_len < 0)

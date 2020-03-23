@@ -438,7 +438,7 @@ int g313_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     {
     case RIG_LEVEL_ATT:
         ret = GetAttenuator(priv->hRadio, &value);
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: ret: %d Attenuator: %u\n", __func__, ret,
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: ret: %d Attenuator: %d\n", __func__, ret,
                   value);
 
         if (ret)
@@ -451,7 +451,7 @@ int g313_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_AGC:
         ret = GetAGC(priv->hRadio, &value);
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: ret: %d AGC: %u\n", __func__, ret, value);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: ret: %d AGC: %d\n", __func__, ret, value);
 
         if (ret)
         {

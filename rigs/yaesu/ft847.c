@@ -719,6 +719,7 @@ int ft847_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     to_bcd_be(p_cmd, freq / 10, 8); /* store bcd format in in p_cmd */
 
+    // cppcheck-suppress *
     rig_debug(RIG_DEBUG_VERBOSE,
               "%s: requested freq after conversion = %"PRIll" Hz \n", __func__,
               (int64_t)from_bcd_be(p_cmd, 8) * 10);

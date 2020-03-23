@@ -299,6 +299,7 @@ int alinco_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     }
 
     /* at least 6 digits */
+    // cppcheck-suppress *
     freq_len = sprintf(freqbuf, AL CMD_RXFREQ "%06"PRIll EOM, (int64_t)freq);
 
     return alinco_transaction(rig, freqbuf, freq_len, NULL, NULL);

@@ -601,6 +601,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         newcat_get_vfo_mode(rig, &vfo_mode);
     }
 
+    // cppcheck-suppress *
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "F%c%0*"PRIll"%c", c,
              priv->width_frequency, (int64_t)freq, cat_term);
     rig_debug(RIG_DEBUG_TRACE, "%s:%d cmd_str = %s\n", __func__, __LINE__,

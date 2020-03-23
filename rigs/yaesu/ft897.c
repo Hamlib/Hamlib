@@ -328,6 +328,7 @@ int ft897_init(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
+    // cppcheck-suppress *
     if ((rig->state.priv = calloc(1, sizeof(struct ft897_priv_data))) == NULL)
     {
         return -RIG_ENOMEM;
@@ -1161,7 +1162,7 @@ int ft897_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
         return -RIG_ENTARGET;
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "ft897: set DCS code (%d)\n", code);
+    rig_debug(RIG_DEBUG_VERBOSE, "ft897: set DCS code (%u)\n", code);
 
     if (code == 0)
     {
@@ -1219,7 +1220,7 @@ int ft897_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
         return -RIG_ENTARGET;
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "ft897: set DCS sql (%d)\n", code);
+    rig_debug(RIG_DEBUG_VERBOSE, "ft897: set DCS sql (%u)\n", code);
 
     if (code == 0)
     {

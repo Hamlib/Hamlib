@@ -2556,6 +2556,7 @@ static int ft920_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq)
     /* store bcd format in in p_cmd */
     to_bcd(priv->p_cmd, freq / 10, FT920_BCD_DIAL);
 
+    // cppcheck-suppress *
     rig_debug(RIG_DEBUG_TRACE,
               "%s: requested freq after conversion = %"PRIll" Hz\n",
               __func__, (int64_t)from_bcd(priv->p_cmd, FT920_BCD_DIAL) * 10);

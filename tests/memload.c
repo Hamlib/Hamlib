@@ -155,6 +155,8 @@ int set_chan(RIG *rig, channel_t *chan, xmlNodePtr node)
         }
     }
 
+    if (i == CHANLSTSIZ) { return -RIG_EINVAL; }
+
     fprintf(stderr, "node %d %d\n", n, i);
 
     if (rig->state.chan_list[i].mem_caps.bank_num)

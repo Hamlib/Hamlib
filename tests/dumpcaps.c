@@ -61,7 +61,7 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     caps = rig->caps;
 
-    fprintf(fout, "Caps dump for model: %d\n", caps->rig_model);
+    fprintf(fout, "Caps dump for model: %u\n", caps->rig_model);
     fprintf(fout, "Model name:\t%s\n", caps->model_name);
     fprintf(fout, "Mfg name:\t%s\n", caps->mfg_name);
     fprintf(fout, "Backend version:\t%s\n", caps->version);
@@ -295,7 +295,7 @@ int dumpcaps(RIG *rig, FILE *fout)
     for (i = 0; caps->ctcss_list && i < 60 && caps->ctcss_list[i] != 0; i++)
     {
         fprintf(fout,
-                " %d.%1d",
+                " %u.%1u",
                 caps->ctcss_list[i] / 10, caps->ctcss_list[i] % 10);
     }
 
@@ -314,7 +314,7 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     for (i = 0; caps->dcs_list && i < 128 && caps->dcs_list[i] != 0; i++)
     {
-        fprintf(fout, " %d", caps->dcs_list[i]);
+        fprintf(fout, " %u", caps->dcs_list[i]);
     }
 
     if (i == 0)

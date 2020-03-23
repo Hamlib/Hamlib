@@ -43,7 +43,7 @@
 
 int sprintf_vfo(char *str, vfo_t vfo)
 {
-    int i, len = 0;
+    unsigned int i, len = 0;
 
     *str = '\0';
 

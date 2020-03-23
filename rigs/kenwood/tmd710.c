@@ -625,7 +625,7 @@ static int tmd710_scan_me(char *buf, tmd710_me *me_struct)
     int retval;
 
     retval = num_sscanf(buf,
-                        "ME %x,%"SCNfreq",%x,%x,%x,%x,%x,%x,%d,%d,%d,%d,%d,%"SCNfreq",%d,%d",
+                        "ME %x,%"SCNfreq",%x,%x,%x,%x,%x,%x,%u,%u,%u,%u,%u,%"SCNfreq",%u,%u",
                         &me_struct->channel, &me_struct->freq,
                         &me_struct->step, &me_struct->shift,
                         &me_struct->reverse, &me_struct->tone,
@@ -684,7 +684,7 @@ int tmd710_push_me(RIG *rig, tmd710_me *me_struct)
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     snprintf(cmdbuf, sizeof(cmdbuf),
-             "ME %03d,%010.0f,%1d,%1d,%1d,%1d,%1d,%1d,%02d,%02d,%03d,%08d,%1d,%010.0f,%1d,%1d",
+             "ME %03u,%010.0f,%1u,%1u,%1u,%1u,%1u,%1u,%02u,%02u,%03u,%08u,%1u,%010.0f,%1u,%1u",
              me_struct->channel, me_struct->freq,
              me_struct->step, me_struct->shift,
              me_struct->reverse, me_struct->tone,
@@ -800,7 +800,7 @@ int tmd710_push_fo(RIG *rig, vfo_t vfo, tmd710_fo *fo_struct)
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     snprintf(cmdbuf, sizeof(cmdbuf),
-             "FO %1d,%010.0f,%1d,%1d,%1d,%1d,%1d,%1d,%02d,%02d,%03d,%08d,%1d",
+             "FO %1u,%010.0f,%1u,%1u,%1u,%1u,%1u,%1u,%02d,%02d,%03d,%08d,%1d",
              fo_struct->vfo, fo_struct->freq,
              fo_struct->step, fo_struct->shift,
              fo_struct->reverse, fo_struct->tone,
@@ -1075,7 +1075,7 @@ static int tmd710_find_ctcss_index(RIG *rig, tone_t tone, uint32_t *ctcss_index)
 
     if (stepind == -1)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported tone value '%d'\n", __func__, tone);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported tone value '%u'\n", __func__, tone);
         return -RIG_EINVAL;
     }
 
@@ -1723,7 +1723,7 @@ int tmd710_set_vfo(RIG *rig, vfo_t vfo)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __func__, vfo);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %s\n", __func__, rig_strvfo(vfo));
         return -RIG_EVFO;
     }
 
