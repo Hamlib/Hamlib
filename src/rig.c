@@ -456,6 +456,17 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
         rs->vfo_list |= caps->tx_range_list1[i].vfo;
         rs->mode_list |= caps->tx_range_list1[i].modes;
     }
+    for (i = 0; i < FRQRANGESIZ && !RIG_IS_FRNG_END(caps->rx_range_list2[i]); i++)
+    {
+        rs->vfo_list |= caps->rx_range_list2[i].vfo;
+        rs->mode_list |= caps->rx_range_list2[i].modes;
+    }
+
+    for (i = 0; i < FRQRANGESIZ && !RIG_IS_FRNG_END(caps->tx_range_list2[i]); i++)
+    {
+        rs->vfo_list |= caps->tx_range_list2[i].vfo;
+        rs->mode_list |= caps->tx_range_list2[i].modes;
+    }
 
     memcpy(rs->preamp, caps->preamp, sizeof(int)*MAXDBLSTSIZ);
     memcpy(rs->attenuator, caps->attenuator, sizeof(int)*MAXDBLSTSIZ);
