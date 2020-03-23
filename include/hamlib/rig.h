@@ -370,7 +370,7 @@ typedef unsigned int vfo_t;
 
 /** \brief '' -- used in caps */
 
-#define RIG_VFO_N(n)        (1<<(n))
+#define RIG_VFO_N(n)        (1u<<(n))
 
 #define RIG_VFO_NONE        0
 
@@ -1171,7 +1171,7 @@ struct channel {
     tone_t dcs_code;                    /*!< DCS code */
     tone_t dcs_sql;                     /*!< DCS squelch code */
     int scan_group;                     /*!< Scan group */
-    int flags;                          /*!< Channel flags, see RIG_CHFLAG's */
+    unsigned int flags;                 /*!< Channel flags, see RIG_CHFLAG's */
     char channel_desc[MAXCHANDESC];     /*!< Name */
     struct ext_list
             *ext_levels;                /*!< Extension level value list, NULL ended. ext_levels can be NULL */

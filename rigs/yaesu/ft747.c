@@ -410,6 +410,8 @@ int ft747_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     struct rig_state *rig_s;
     struct ft747_priv_data *p;
     unsigned char *cmd;       /* points to sequence to send */
+    // cppcheck-suppress *
+    char *fmt = "%s: requested freq after conversion = %"PRIll" Hz \n";
 
     p = (struct ft747_priv_data *)rig->state.priv;
 
@@ -427,10 +429,8 @@ int ft747_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
        though the rig will internally then round to 25 Hz steps */
     to_bcd(p->p_cmd, (freq + 5) / 10, 8);
 
-    // cppcheck-suppress *
-    rig_debug(RIG_DEBUG_VERBOSE,
-              "%s: requested freq after conversion = %"PRIll" Hz \n", __func__,
-              (int64_t)from_bcd(p->p_cmd, 8) * 10);
+    rig_debug(RIG_DEBUG_VERBOSE, fmt, __func__, (int64_t)from_bcd(p->p_cmd,
+              8) * 10);
 
     rig_force_cache_timeout(&p->status_tv);
 

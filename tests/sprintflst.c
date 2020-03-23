@@ -80,6 +80,7 @@ int sprintf_mode(char *str, rmode_t mode)
 
     for (i = 0; i < 63; i++)
     {
+        // cppcheck-suppress *
         const char *ms = rig_strrmode(mode & (1ULL << i));
 
         if (!ms || !ms[0])

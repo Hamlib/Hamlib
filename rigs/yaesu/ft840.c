@@ -1866,6 +1866,8 @@ static int ft840_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq)
     struct rig_state *rig_s;
     struct ft840_priv_data *priv;
     int err;
+    // cppcheck-suppress *
+    char *fmt = "%s: requested freq after conversion = %"PRIll" Hz\n";
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1894,10 +1896,8 @@ static int ft840_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq)
     /* store bcd format in in p_cmd */
     to_bcd(priv->p_cmd, freq / 10, FT840_BCD_DIAL);
 
-    // cppcheck-suppress *
-    rig_debug(RIG_DEBUG_TRACE,
-              "%s: requested freq after conversion = %"PRIll" Hz\n",
-              __func__, (int64_t)from_bcd(priv->p_cmd, FT840_BCD_DIAL) * 10);
+    rig_debug(RIG_DEBUG_TRACE, fmt, __func__, (int64_t)from_bcd(priv->p_cmd,
+              FT840_BCD_DIAL) * 10);
 
     err = write_block(&rig_s->rigport, (char *) &priv->p_cmd,
                       YAESU_CMD_LENGTH);

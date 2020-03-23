@@ -162,7 +162,9 @@ int dump_xml_chan(RIG *rig,
 
     if (mem_caps->freq && chan.freq != RIG_FREQ_NONE)
     {
-        sprintf(attrbuf, "%"PRIll, (int64_t)chan.freq);
+        // cppcheck-suppress *
+        char *fmt = "%"PRIll;
+        sprintf(attrbuf, fmt, (int64_t)chan.freq);
         xmlNewProp(node, (unsigned char *) "freq", (unsigned char *) attrbuf);
     }
 

@@ -1635,6 +1635,8 @@ declare_proto_amp(get_freq)
 {
     int status;
     freq_t freq;
+    // cppcheck-suppress *
+    char *fmt = "%"PRIll"%c";
 
     status = amp_get_freq(amp, &freq);
 
@@ -1648,7 +1650,7 @@ declare_proto_amp(get_freq)
         fprintf(fout, "%s: ", cmd->arg1);    /* i.e. "Frequency" */
     }
 
-    fprintf(fout, "%"PRIll"%c", (int64_t)freq, resp_sep);
+    fprintf(fout, fmt, (int64_t)freq, resp_sep);
 
     return status;
 }

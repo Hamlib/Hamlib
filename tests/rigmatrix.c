@@ -40,7 +40,7 @@ int create_png_range(const freq_range_t rx_range_list[],
 int print_caps_sum(const struct rig_caps *caps, void *data)
 {
 
-    printf("<TR><TD><A HREF=\"support/model%d.txt\">%s</A></TD><TD>%s</TD>"
+    printf("<TR><TD><A HREF=\"support/model%u.txt\">%s</A></TD><TD>%s</TD>"
            "<TD>%s</TD><TD>%s</TD><TD>",
            caps->rig_model,
            caps->model_name,
@@ -90,15 +90,15 @@ int print_caps_sum(const struct rig_caps *caps, void *data)
         printf("Unknown");
     }
 
-    printf("</TD><TD><A HREF=\"#rng%d\">range</A></TD>"
-           "<TD><A HREF=\"#parms%d\">parms</A></TD>"
-           "<TD><A HREF=\"#caps%d\">caps</A></TD>"
-           "<TD><A HREF=\"#getfunc%d\">funcs</A></TD>"
-           "<TD><A HREF=\"#setfunc%d\">funcs</A></TD>"
-           "<TD><A HREF=\"#getlevel%d\">levels</A></TD>"
-           "<TD><A HREF=\"#setlevel%d\">levels</A></TD>"
-           "<TD><A HREF=\"#getparm%d\">parms</A></TD>"
-           "<TD><A HREF=\"#setparm%d\">parms</A></TD>"
+    printf("</TD><TD><A HREF=\"#rng%u\">range</A></TD>"
+           "<TD><A HREF=\"#parms%u\">parms</A></TD>"
+           "<TD><A HREF=\"#caps%u\">caps</A></TD>"
+           "<TD><A HREF=\"#getfunc%u\">funcs</A></TD>"
+           "<TD><A HREF=\"#setfunc%u\">funcs</A></TD>"
+           "<TD><A HREF=\"#getlevel%u\">levels</A></TD>"
+           "<TD><A HREF=\"#setlevel%u\">levels</A></TD>"
+           "<TD><A HREF=\"#getparm%u\">parms</A></TD>"
+           "<TD><A HREF=\"#setparm%u\">parms</A></TD>"
            "</TR>\n",
            caps->rig_model, caps->rig_model, caps->rig_model,
            caps->rig_model, caps->rig_model, caps->rig_model,
@@ -113,7 +113,7 @@ int print_caps_sum(const struct rig_caps *caps, void *data)
  */
 int print_caps_parameters(const struct rig_caps *caps, void *data)
 {
-    printf("<A NAME=\"parms%d\"><TR><TD>%s</TD><TD>",
+    printf("<A NAME=\"parms%u\"><TR><TD>%s</TD><TD>",
            caps->rig_model,
            caps->model_name);
 
@@ -224,7 +224,7 @@ int print_caps_parameters(const struct rig_caps *caps, void *data)
  */
 int print_caps_caps(const struct rig_caps *caps, void *data)
 {
-    printf("<A NAME=\"caps%d\"><TR><TD>%s</TD>",
+    printf("<A NAME=\"caps%u\"><TR><TD>%s</TD>",
            caps->rig_model,
            caps->model_name);
 
@@ -282,7 +282,7 @@ int print_caps_parm(const struct rig_caps *caps, void *data)
 
     parm = (*(int *)data) ? caps->has_set_parm : caps->has_get_parm;
 
-    printf("<A NAME=\"%sparm%d\"><TR><TD>%s</TD>",
+    printf("<A NAME=\"%sparm%u\"><TR><TD>%s</TD>",
            (*(int *)data) ? "set" : "get",
            caps->rig_model,
            caps->model_name);
@@ -319,7 +319,7 @@ int print_caps_level(const struct rig_caps *caps, void *data)
 
     level = (*(int *)data) ? caps->has_set_level : caps->has_get_level;
 
-    printf("<A NAME=\"%slevel%d\"><TR><TD>%s</TD>",
+    printf("<A NAME=\"%slevel%u\"><TR><TD>%s</TD>",
            (*(int *)data) ? "set" : "get",
            caps->rig_model,
            caps->model_name);
@@ -356,7 +356,7 @@ int print_caps_func(const struct rig_caps *caps, void *data)
 
     func = (*(int *)data) ? caps->has_set_func : caps->has_get_func;
 
-    printf("<A NAME=\"%sfunc%d\"><TR><TD>%s</TD>",
+    printf("<A NAME=\"%sfunc%u\"><TR><TD>%s</TD>",
            (*(int *)data) ? "set" : "get",
            caps->rig_model,
            caps->model_name);
@@ -388,8 +388,8 @@ int print_caps_range(const struct rig_caps *caps, void *data)
     create_png_range(caps->rx_range_list2, caps->tx_range_list2,
                      caps->rig_model);
 
-    printf("<A NAME=\"rng%d\"><TR><TD>%s</TD>"
-           "<TD><IMG SRC=\"range%d.png\"></TD></TR></A>",
+    printf("<A NAME=\"rng%u\"><TR><TD>%s</TD>"
+           "<TD><IMG SRC=\"range%u.png\"></TD></TR></A>",
            caps->rig_model,
            caps->model_name,
            caps->rig_model);
