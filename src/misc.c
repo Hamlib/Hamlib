@@ -573,7 +573,7 @@ static struct
  */
 uint64_t rig_idx2setting(int i)
 {
-    return 1ULL << i;
+    return ((uint64_t)1) << i;
 }
 
 /**

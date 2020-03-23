@@ -180,6 +180,7 @@ static int format_freq(char *buf, freq_t freq)
 
     f = f * 100 + lowhz;
 
+    // cppcheck-suppress *
     return sprintf(buf, "RF%010"PRIll, f);
 }
 
@@ -1045,6 +1046,7 @@ int aor_set_channel(RIG *rig, const channel_t *chan)
 
     cmd_len += priv->format_mode(rig, aorcmd + cmd_len, chan->mode, chan->width);
 
+    // cppcheck-suppress *
     cmd_len += sprintf(aorcmd + cmd_len, " AT%d TM%12s%s",
                        chan->levels[LVL_ATT].i ? 1 : 0, chan->channel_desc, EOM);
 

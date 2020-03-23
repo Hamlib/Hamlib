@@ -516,6 +516,7 @@ int ft100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     rig_debug(RIG_DEBUG_VERBOSE, "ft100: d1=%"PRIfreq" d2=%"PRIfreq"\n", d1, d2);
 
+    // cppcheck-suppress *
     rig_debug(RIG_DEBUG_VERBOSE, "ft100: get_freq= %8"PRIll" \n", (int64_t)d2);
 
     *freq = d2;

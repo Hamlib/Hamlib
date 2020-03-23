@@ -391,6 +391,7 @@ static int thd74_round_freq(RIG *rig, vfo_t vfo, freq_t freq)
     r = round((double)f / (double)ts);
     r = ts * r;
 
+    // cppcheck-suppress *
     rig_debug(RIG_DEBUG_TRACE,
               "%s: rounded %"PRIll" to %"PRIll" because stepsize:%d\n",
               __func__, f, (int64_t)r, (int)ts);

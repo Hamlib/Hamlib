@@ -462,7 +462,7 @@ int cu_set_parm(RIG *rig, setting_t parm, value_t val)
     case RIG_PARM_TIME:
         /* zap seconds */
         val.i /= 60;
-        cmd_len = sprintf(cmdbuf, "f%02u%02u"CR,
+        cmd_len = sprintf(cmdbuf, "f%02d%02d"CR,
                           val.i / 60, val.i % 60);
         break;
 

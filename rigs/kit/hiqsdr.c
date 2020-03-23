@@ -508,7 +508,7 @@ int hiqsdr_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
     struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)rig->state.priv;
     int ret = RIG_OK;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called: %d\n",
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called: %u\n",
               __func__, ant);
 
     if (ant == RIG_ANT_2)

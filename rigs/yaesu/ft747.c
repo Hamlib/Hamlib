@@ -427,6 +427,7 @@ int ft747_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
        though the rig will internally then round to 25 Hz steps */
     to_bcd(p->p_cmd, (freq + 5) / 10, 8);
 
+    // cppcheck-suppress *
     rig_debug(RIG_DEBUG_VERBOSE,
               "%s: requested freq after conversion = %"PRIll" Hz \n", __func__,
               (int64_t)from_bcd(p->p_cmd, 8) * 10);

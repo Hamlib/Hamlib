@@ -417,6 +417,7 @@ int ic10_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         return -RIG_EINVAL;
     }
 
+    // cppcheck-suppress *
     freq_len = sprintf(freqbuf, "F%c%011"PRIll";", vfo_letter, (int64_t)freq);
     retval = ic10_transaction(rig, freqbuf, freq_len, ackbuf, &ack_len);
 
@@ -502,7 +503,6 @@ int ic10_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 }
 
 
-#ifdef XXREMOVEDXX
 // Not referenced anywhere
 /*
  * ic10_set_ptt
@@ -531,7 +531,6 @@ int ic10_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     return retval;
 }
-#endif
 
 
 /*

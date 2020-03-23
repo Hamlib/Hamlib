@@ -706,6 +706,11 @@ AS_IF([test x"${cf_with_usrp}" = "xyes"],[
 
 AM_CONDITIONAL([HAVE_USRP], [test x"${cf_with_usrp}" = "xyes"])
 
+AM_CONDITIONAL(BUILD_OS_IS_UBUNTU, [test x"$build_os" = ubuntu])
+AM_CONDITIONAL(BUILD_OS_IS_FEDORA, [test x"$build_os" = fedora])
+echo Build_OS is $build_os
+
+
 
 ## -------------------------------- ##
 ## Prepare rig backend dependencies ##

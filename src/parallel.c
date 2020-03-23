@@ -132,6 +132,7 @@ int par_open(hamlib_port_t *port)
 #endif
 
 #if defined (__WIN64__) || defined(__WIN32__)
+    // cppcheck-suppress *
     HANDLE handle;
 #endif
 

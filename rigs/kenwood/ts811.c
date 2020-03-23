@@ -27,7 +27,6 @@
 
 #include <hamlib/rig.h>
 #include "kenwood.h"
-#include "ic10.h"
 
 
 #define TS811_ALL_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM)
@@ -72,8 +71,8 @@ ts811_set_vfo(RIG *rig, vfo_t vfo)
     case RIG_VFO_CURR: return RIG_OK;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n",
-                  __func__, vfo);
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n",
+                  __func__, rig_strvfo(vfo));
         return -RIG_EINVAL;
     }
 

@@ -114,6 +114,7 @@ gp2000_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s,freq=%.0f\n", __func__,
               rig_strvfo(vfo), freq);
 
+    // cppcheck-suppress *
     freq_len =
         snprintf(freqbuf, sizeof(freqbuf), BOM "F%" PRIll ",%" PRIll EOM,
                  (int64_t) freq,

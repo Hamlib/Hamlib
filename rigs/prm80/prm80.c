@@ -433,12 +433,12 @@ int prm80_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_AF:
         val->f = chan.levels[LVL_AF].f;
 
-        return RIG_OK;
+        break;
 
     case RIG_LEVEL_SQL:
         val->f = chan.levels[LVL_SQL].f;
 
-        return RIG_OK;
+        break;
 
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported set_level %s\n", __func__,

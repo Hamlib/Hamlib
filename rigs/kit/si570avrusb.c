@@ -1379,7 +1379,7 @@ int si570xxxusb_get_freq_by_value(RIG *rig, vfo_t vfo, freq_t *freq)
 
     iFreq = getLongWord(buffer);
     rig_debug(RIG_DEBUG_VERBOSE,
-              "%s: Freq raw: %02x%02x%02x%02x endian converted: %d\n",
+              "%s: Freq raw: %02x%02x%02x%02x endian converted: %u\n",
               __func__, buffer[0], buffer[1], buffer[2], buffer[3], iFreq);
     *freq = (((double)iFreq / (1UL << 21)) / priv->multiplier) * 1e6;
 
