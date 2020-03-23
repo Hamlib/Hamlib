@@ -228,9 +228,10 @@ int ic10_get_vfo(RIG *rig, vfo_t *vfo)
 
 int ic10_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 {
-    char ackbuf[16];
+    char ackbuf[64];
     int ack_len;
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
     return ic10_transaction(rig, split == RIG_SPLIT_ON ? "SP1;" : "SP0;", 4,
                             ackbuf, &ack_len);
 }
@@ -514,6 +515,7 @@ int ic10_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     int ptt_len, ack_len, retval;
     unsigned char ptt_letter;
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
     switch (ptt)
     {
     case RIG_PTT_OFF: ptt_letter = 'R'; break;
