@@ -159,8 +159,10 @@ int ic10_set_vfo(RIG *rig, vfo_t vfo)
     switch (vfo)
     {
     case RIG_VFO_VFO:
+    case RIG_VFO_MAIN:
     case RIG_VFO_A: vfo_function = '0'; break;
 
+    case RIG_VFO_SUB:
     case RIG_VFO_B: vfo_function = '1'; break;
 
     case RIG_VFO_MEM: vfo_function = '2'; break;
@@ -408,9 +410,11 @@ int ic10_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     switch (tvfo)
     {
-    case RIG_VFO_A: vfo_letter = 'A'; break;
+    case RIG_VFO_A:
+    case RIG_VFO_MAIN: vfo_letter = 'A'; break;
 
-    case RIG_VFO_B: vfo_letter = 'B'; break;
+    case RIG_VFO_B: 
+    case RIG_VFO_SUB: vfo_letter = 'B'; break;
 
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n",
