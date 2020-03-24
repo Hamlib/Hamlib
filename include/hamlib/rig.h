@@ -737,7 +737,7 @@ enum rig_level_e {
     RIG_LEVEL_NONE =        0,              /*!< '' -- No Level */
     RIG_LEVEL_PREAMP =      (1 << 0),       /*!< \c PREAMP -- Preamp, arg int (dB) */
     RIG_LEVEL_ATT =         (1 << 1),       /*!< \c ATT -- Attenuator, arg int (dB) */
-    RIG_LEVEL_VOX =         (1 << 2),       /*!< \c VOX -- VOX delay, arg int (tenth of seconds) */
+    RIG_LEVEL_VOXDELAY =    (1 << 2),       /*!< \c VOXDELAY -- VOX delay, arg int (tenth of seconds) */
     RIG_LEVEL_AF =          (1 << 3),       /*!< \c AF -- Volume, arg float [0.0 ... 1.0] */
     RIG_LEVEL_RF =          (1 << 4),       /*!< \c RF -- RF gain (not TX power), arg float [0.0 ... 1.0] */
     RIG_LEVEL_SQL =         (1 << 5),       /*!< \c SQL -- Squelch, arg float [0.0 ... 1.0] */
@@ -757,7 +757,6 @@ enum rig_level_e {
     RIG_LEVEL_BALANCE =     (1 << 19),      /*!< \c BAL -- Balance (Dual Watch), arg float [0.0 ... 1.0] */
     RIG_LEVEL_METER =       (1 << 20),      /*!< \c METER -- Display meter, arg int (see enum meter_level_e) */
     RIG_LEVEL_VOXGAIN =     (1 << 21),      /*!< \c VOXGAIN -- VOX gain level, arg float [0.0 ... 1.0] */
-    RIG_LEVEL_VOXDELAY =    RIG_LEVEL_VOX,  /*!< Synonym of RIG_LEVEL_VOX */
     RIG_LEVEL_ANTIVOX =     (1 << 22),      /*!< \c ANTIVOX -- anti-VOX level, arg float [0.0 ... 1.0] */
     RIG_LEVEL_SLOPE_LOW =   (1 << 23),      /*!< \c SLOPE_LOW -- Slope tune, low frequency cut, */
     RIG_LEVEL_SLOPE_HIGH =  (1 << 24),      /*!< \c SLOPE_HIGH -- Slope tune, high frequency cut, */
