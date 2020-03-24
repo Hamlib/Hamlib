@@ -64,50 +64,12 @@
                  (s)==(1ull<<23)?23:   \
                  (s)==(1ull<<24)?24:   \
                  (s)==(1ull<<25)?25:   \
-                 (s)==(1ull<<26)?26:   \
-                 (s)==(1ull<<27)?27:   \
-                 (s)==(1ull<<28)?28:   \
-                 (s)==(1ull<<29)?29:   \
-                 (s)==(1ull<<30)?30:   \
-                 (s)==(1ull<<31)?31:   \
-                 (s)==(1ull<<32)?32:   \
-                 (s)==(1ull<<33)?33:   \
-                 (s)==(1ull<<34)?34:   \
-                 (s)==(1ull<<35)?35:   \
-                 (s)==(1ull<<36)?36:   \
-                 (s)==(1ull<<37)?37:   \
-                 (s)==(1ull<<38)?38:   \
-                 (s)==(1ull<<39)?39:   \
-                 (s)==(1ull<<40)?40:   \
-                 (s)==(1ull<<41)?41:   \
-                 (s)==(1ull<<42)?42:   \
-                 (s)==(1ull<<43)?43:   \
-                 (s)==(1ull<<44)?44:   \
-                 (s)==(1ull<<45)?45:   \
-                 (s)==(1ull<<46)?46:   \
-                 (s)==(1ull<<47)?47:   \
-                 (s)==(1ull<<48)?48:   \
-                 (s)==(1ull<<49)?49:   \
-                 (s)==(1ull<<50)?50:   \
-                 (s)==(1ull<<51)?51:   \
-                 (s)==(1ull<<52)?52:   \
-                 (s)==(1ull<<53)?53:   \
-                 (s)==(1ull<<54)?54:   \
-                 (s)==(1ull<<55)?55:   \
-                 (s)==(1ull<<56)?56:   \
-                 (s)==(1ull<<57)?57:   \
-                 (s)==(1ull<<58)?58:   \
-                 (s)==(1ull<<59)?59:   \
-                 (s)==(1ull<<60)?60:   \
-                 (s)==(1ull<<61)?61:   \
-                 (s)==(1ull<<62)?62:   \
-                 (s)==(1ull<<63)?63:   \
                  0 \
                 )
 
 #define LVL_PREAMP  setting2idx_builtin(RIG_LEVEL_PREAMP)
 #define LVL_ATT     setting2idx_builtin(RIG_LEVEL_ATT)
-#define LVL_VOX     setting2idx_builtin(RIG_LEVEL_VOX)
+#define LVL_VOXDELAY setting2idx_builtin(RIG_LEVEL_VOXDELAY)
 #define LVL_AF      setting2idx_builtin(RIG_LEVEL_AF)
 #define LVL_RF      setting2idx_builtin(RIG_LEVEL_RF)
 #define LVL_SQL     setting2idx_builtin(RIG_LEVEL_SQL)
@@ -127,7 +89,6 @@
 #define LVL_BALANCE setting2idx_builtin(RIG_LEVEL_BALANCE)
 #define LVL_METER   setting2idx_builtin(RIG_LEVEL_METER)
 #define LVL_VOXGAIN setting2idx_builtin(RIG_LEVEL_VOXGAIN)
-#define LVL_VOXDELAY    setting2idx_builtin(RIG_LEVEL_VOXDELAY)
 #define LVL_ANTIVOX setting2idx_builtin(RIG_LEVEL_ANTIVOX)
 
 #define LVL_RAWSTR  setting2idx_builtin(RIG_LEVEL_RAWSTR)
