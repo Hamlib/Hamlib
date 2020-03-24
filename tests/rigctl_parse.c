@@ -1879,7 +1879,7 @@ declare_proto_rig(get_freq)
 {
     int status;
     freq_t freq;
-    // cppcheck-suppress
+    // cppcheck-suppress *
     char *fmt = "%"PRIll"%c";
 
     status = rig_get_freq(rig, vfo, &freq);
