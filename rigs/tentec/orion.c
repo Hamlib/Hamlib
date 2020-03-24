@@ -1063,7 +1063,7 @@ const char *tt565_get_info(RIG *rig)
  * \n  -RIG_LEVEL_CWPITCH, int Hz
  * \n  -RIG_LEVEL_KEYSPD, int wpm
  * \n  -RIG_LEVEL_NR, noise reduction/blank, float 0.0 - 1.0
- * \n  -RIG_LEVEL_VOX, vox delay, float x 1/10 second
+ * \n  -RIG_LEVEL_VOXDELAY, vox delay, float x 1/10 second
  * \n  -RIG_LEVEL_VOXGAIN, float 0.0 - 1.0
  * \n  -RIG_LEVEL_ANTIVOX, float 0.0 - 1.0
  *
@@ -1206,7 +1206,7 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
                           (int)(val.f * 9));
         break;
 
-    case RIG_LEVEL_VOX:
+    case RIG_LEVEL_VOXDELAY:
         /* VOX delay, float tenths of seconds */
         cmd_len = sprintf(cmdbuf, "*TH%4.2f" EOM, 0.1 * val.f);
         break;
@@ -1649,7 +1649,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         val->f = atof(lvlbuf + 5) / 9.0; /* Note 0-9 -> 0.0 - 1.0 */
         break;
 
-    case RIG_LEVEL_VOX: /* =VOXDELAY, tenths of secs. */
+    case RIG_LEVEL_VOXDELAY: /* =VOXDELAY, tenths of secs. */
         lvl_len = sizeof(lvlbuf);
         retval = tt565_transaction(rig, "?TH" EOM, 4, lvlbuf, &lvl_len);
 

@@ -2923,7 +2923,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
                  cat_term);
         break;
 
-    case RIG_LEVEL_VOX:
+    case RIG_LEVEL_VOXDELAY:
         if (!newcat_valid_command(rig, "VD"))
         {
             return -RIG_ENAVAIL;
@@ -3231,7 +3231,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                  cat_term);
         break;
 
-    case RIG_LEVEL_VOX:
+    case RIG_LEVEL_VOXDELAY:
 
         /* VOX delay, arg int (tenth of seconds) */
         if (!newcat_valid_command(rig, "VD"))
@@ -3442,7 +3442,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         break;
 
-    case RIG_LEVEL_VOX:
+    case RIG_LEVEL_VOXDELAY:
         /* VOX delay, arg int (tenth of seconds), 100ms intervals */
         val->i = atoi(retlvl) / 100;
         break;
