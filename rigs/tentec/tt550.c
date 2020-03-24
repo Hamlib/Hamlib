@@ -1141,7 +1141,7 @@ tt550_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
         return retval;
 
-    case RIG_LEVEL_VOX:
+    case RIG_LEVEL_VOXDELAY:
         cmd_len = sprintf(cmdbuf, "UH%c" EOM, (int)(val.f * 255));
         retval = write_block(&rs->rigport, cmdbuf, cmd_len);
 
@@ -1317,7 +1317,7 @@ tt550_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         val->f = priv->voxgain;
         break;
 
-    case RIG_LEVEL_VOX:
+    case RIG_LEVEL_VOXDELAY:
         val->f = priv->voxdelay;
         break;
 
