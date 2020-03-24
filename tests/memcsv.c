@@ -601,7 +601,7 @@ int dump_csv_chan(RIG *rig,
 
     if (mem_caps->ant)
     {
-        fprintf(f, "%d%c", chan.ant, csv_sep);
+        fprintf(f, "%u%c", chan.ant, csv_sep);
     }
 
     if (mem_caps->freq)
@@ -676,22 +676,22 @@ int dump_csv_chan(RIG *rig,
 
     if (mem_caps->ctcss_tone)
     {
-        fprintf(f, "%d%c", chan.ctcss_tone, csv_sep);
+        fprintf(f, "%u%c", chan.ctcss_tone, csv_sep);
     }
 
     if (mem_caps->ctcss_sql)
     {
-        fprintf(f, "%d%c", chan.ctcss_sql, csv_sep);
+        fprintf(f, "%u%c", chan.ctcss_sql, csv_sep);
     }
 
     if (mem_caps->dcs_code)
     {
-        fprintf(f, "%d%c", chan.dcs_code, csv_sep);
+        fprintf(f, "%u%c", chan.dcs_code, csv_sep);
     }
 
     if (mem_caps->dcs_sql)
     {
-        fprintf(f, "%d%c", chan.dcs_sql, csv_sep);
+        fprintf(f, "%u%c", chan.dcs_sql, csv_sep);
     }
 
     if (mem_caps->scan_group)
