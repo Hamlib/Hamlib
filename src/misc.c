@@ -640,7 +640,7 @@ static struct
 {
     { RIG_LEVEL_PREAMP, "PREAMP" },
     { RIG_LEVEL_ATT, "ATT" },
-    { RIG_LEVEL_VOX, "VOX" },
+    { RIG_LEVEL_VOXDELAY, "VOXDELAY" },
     { RIG_LEVEL_AF, "AF" },
     { RIG_LEVEL_RF, "RF" },
     { RIG_LEVEL_SQL, "SQL" },
