@@ -504,46 +504,6 @@ static int ar7030_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 }
 
-
-/*!
-    RIG_LEVEL_NONE =    0,  < None
-    RIG_LEVEL_PREAMP =  (1<<0), < Preamp, arg int (dB)
-    RIG_LEVEL_ATT =     (1<<1), < Attenuator, arg int (dB)
-    RIG_LEVEL_VOX =     (1<<2), < VOX delay, arg int (tenth of seconds)
-af_vol  RIG_LEVEL_AF =      (1<<3), < Volume, arg float [0.0..1.0]
-rfgain  RIG_LEVEL_RF =      (1<<4), < RF gain (not TX power), arg float [-0.4..0.0..0.1 > -40..0..10 dB]
-sqlval  RIG_LEVEL_SQL =     (1<<5), < Squelch, arg float [0.0 .. 1.0]
-    RIG_LEVEL_IF =      (1<<6), < IF, arg int (Hz)
-    RIG_LEVEL_APF =     (1<<7), < APF, arg float [0.0 .. 1.0]
-    RIG_LEVEL_NR =      (1<<8), < Noise Reduction, arg float [0.0 .. 1.0]
-    RIG_LEVEL_PBT_IN =  (1<<9), < Twin PBT (inside), arg float [0.0 .. 1.0]
-    RIG_LEVEL_PBT_OUT = (1<<10),< Twin PBT (outside), arg float [0.0 .. 1.0]
-bfoval  RIG_LEVEL_CWPITCH = (1<<11),< CW pitch, arg int (Hz)
-    RIG_LEVEL_RFPOWER = (1<<12),< RF Power, arg float [0.0 .. 1.0]
-    RIG_LEVEL_MICGAIN = (1<<13),< MIC Gain, arg float [0.0 .. 1.0]
-    RIG_LEVEL_KEYSPD =  (1<<14),< Key Speed, arg int (WPM)
-    RIG_LEVEL_NOTCHF =  (1<<15),< Notch Freq., arg int (Hz)
-    RIG_LEVEL_COMP =    (1<<16),< Compressor, arg float [0.0 .. 1.0]
-agcspd  RIG_LEVEL_AGC =     (1<<17),< AGC, arg int (see enum agc_level_e)
-                    Current AGC speed : 0 = Fast 2 = Slow 1 = Medium 3 = Off.
-    RIG_LEVEL_BKINDL =  (1<<18),< BKin Delay, arg int (tenth of dots)
-    RIG_LEVEL_BALANCE = (1<<19),< Balance (Dual Watch), arg float [0.0 .. 1.0]
-    RIG_LEVEL_METER =   (1<<20),< Display meter, arg int (see enum meter_level_e)
-
-    RIG_LEVEL_VOXGAIN = (1<<21),< VOX gain level, arg float [0.0 .. 1.0]
-    RIG_LEVEL_VOXDELAY =          RIG_LEVEL_VOX,    < VOX delay, arg int (tenth of seconds)
-    RIG_LEVEL_ANTIVOX = (1<<22),< anti-VOX level, arg float [0.0 .. 1.0]
-    RIG_LEVEL_LINEOUT = (1<<23),< Lineout Volume, arg float [0.0 .. 1.0]
-
-        < These ones are not settable
-Rou.14  RIG_LEVEL_RAWSTR =  (1<<26),< Raw (A/D) value for signal strength, specific to each rig, arg int
-    RIG_LEVEL_SQLSTAT = (1<<27),< SQL status, arg int (open=1/closed=0). Deprecated, use get_dcd
-                      instead
-    RIG_LEVEL_SWR =     (1<<28),< SWR, arg float
-    RIG_LEVEL_ALC =     (1<<29),< ALC, arg float
-smval   RIG_LEVEL_STRENGTH =    (1<<30) < Effective (calibrated) signal strength relative to S9, arg int(dB)
-    RIG_LEVEL_BWC =     (1<<31) < Bandwidth Control, arg int (Hz)
-*/
 static int ar7030_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     switch (level)
