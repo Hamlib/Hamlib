@@ -24,6 +24,7 @@ void never_used()
     amp_token_foreach();
     amp_unregister();
     cm108_dcd_get();
+    CtrlHandler();
     elad_close();
     elad_get_channel();
     elad_get_ctcss_sql();
