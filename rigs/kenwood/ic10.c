@@ -224,7 +224,9 @@ int ic10_get_vfo(RIG *rig, vfo_t *vfo)
                   __func__, c);
         return -RIG_EPROTO;
     }
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: returning VFO=%s\n", __func__, rig_strvfo(*vfo));
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: returning VFO=%s\n", __func__,
+              rig_strvfo(*vfo));
 
     return RIG_OK;
 }
@@ -415,7 +417,7 @@ int ic10_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     case RIG_VFO_A:
     case RIG_VFO_MAIN: vfo_letter = 'A'; break;
 
-    case RIG_VFO_B: 
+    case RIG_VFO_B:
     case RIG_VFO_SUB: vfo_letter = 'B'; break;
 
     default:
@@ -522,6 +524,7 @@ int ic10_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     unsigned char ptt_letter;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
+
     switch (ptt)
     {
     case RIG_PTT_OFF: ptt_letter = 'R'; break;
