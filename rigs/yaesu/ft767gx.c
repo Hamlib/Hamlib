@@ -108,6 +108,8 @@ static int rig2ctcss(RIG *rig, unsigned char tn, tone_t *tone);
  */
 /* #define USE_YAESU_PUBLISHED_TONES */
 
+#define FT767GX_VFOS (RIG_VFO_A|RIG_VFO_B)
+
 /* Valid command codes */
 #define CMD_CAT_SW  0x00
 #define CMD_CHECK   0x01
@@ -311,29 +313,29 @@ const struct rig_caps ft767gx_caps =
         RIG_FRNG_END,
     }, /* rx range */
 
-    .tx_range_list2 =    { {kHz(1500), 1999900, FT767GX_HF_TX_MODES, .low_power = 5000, .high_power = 100000},
+    .tx_range_list2 =    { {kHz(1500), 1999900, FT767GX_HF_TX_MODES, .low_power = 5000, .high_power = 100000, FT767GX_VFOS, RIG_ANT_CURR},
 
-        {.startf = kHz(3500), 3999900, FT767GX_HF_TX_MODES, 5000, 100000},
+        {.startf = kHz(3500), 3999900, FT767GX_HF_TX_MODES, 5000, 100000, FT767GX_VFOS, RIG_ANT_CURR},
 
-        {.startf = kHz(7000), 7499900, FT767GX_HF_TX_MODES, 5000, 100000},
+        {.startf = kHz(7000), 7499900, FT767GX_HF_TX_MODES, 5000, 100000, FT767GX_VFOS, RIG_ANT_CURR},
 
-        {.startf = MHz(10), 10499900, FT767GX_HF_TX_MODES, 5000, 100000},
+        {.startf = MHz(10), 10499900, FT767GX_HF_TX_MODES, 5000, 100000, FT767GX_VFOS, RIG_ANT_CURR},
 
-        {.startf = MHz(14), 14499900, FT767GX_HF_TX_MODES, 5000, 100000},
+        {.startf = MHz(14), 14499900, FT767GX_HF_TX_MODES, 5000, 100000, FT767GX_VFOS, RIG_ANT_CURR},
 
-        {.startf = MHz(18), 18499900, FT767GX_HF_TX_MODES, 5000, 100000},
+        {.startf = MHz(18), 18499900, FT767GX_HF_TX_MODES, 5000, 100000, FT767GX_VFOS, RIG_ANT_CURR},
 
-        {.startf = MHz(21), 21499900, FT767GX_HF_TX_MODES, 5000, 100000},
+        {.startf = MHz(21), 21499900, FT767GX_HF_TX_MODES, 5000, 100000, FT767GX_VFOS, RIG_ANT_CURR},
 
-        {.startf = kHz(24500), 24999900, FT767GX_HF_TX_MODES, 5000, 100000},
+        {.startf = kHz(24500), 24999900, FT767GX_HF_TX_MODES, 5000, 100000, FT767GX_VFOS, RIG_ANT_CURR},
 
-        {.startf = MHz(28), 29999900, FT767GX_HF_TX_MODES, 5000, 100000},
+        {.startf = MHz(28), 29999900, FT767GX_HF_TX_MODES, 5000, 100000, FT767GX_VFOS, RIG_ANT_CURR},
 
-        {.startf = MHz(50), 59999900, FT767GX_ALL_TX_MODES, 5000, 10000},
+        {.startf = MHz(50), 59999900, FT767GX_ALL_TX_MODES, 5000, 10000, FT767GX_VFOS, RIG_ANT_CURR},
 
-        {.startf = MHz(144), 147999900, FT767GX_ALL_TX_MODES, 5000, 10000},
+        {.startf = MHz(144), 147999900, FT767GX_ALL_TX_MODES, 5000, 10000, FT767GX_VFOS, RIG_ANT_CURR},
 
-        {.startf = MHz(430), 449999990, FT767GX_ALL_TX_MODES, 5000, 10000},
+        {.startf = MHz(430), 449999990, FT767GX_ALL_TX_MODES, 5000, 10000, FT767GX_VFOS, RIG_ANT_CURR},
 
         RIG_FRNG_END,
     },
