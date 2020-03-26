@@ -793,7 +793,7 @@ static int ft857_get_pometer_level(RIG *rig, value_t *val)
     /* Valid only if PTT is on */
     if ((p->tx_status & 0x80) == 0)
     {
-        rig_debug(RIG_DEBUG_TRACE,"%s: bars=%d\n", __func__, p->tx_status & 0x0F);
+        rig_debug(RIG_DEBUG_TRACE, "%s: bars=%d\n", __func__, p->tx_status & 0x0F);
         // does rig have 10 bars or 15?
         val->i = (p->tx_status & 0x0F) / 10.0;
     }

@@ -2636,7 +2636,8 @@ adat_priv_data_ptr adat_new_priv_data(RIG *pRig)
     {
         // Init Priv Data
 
-        pPriv = pRig->state.priv = (adat_priv_data_ptr) calloc(sizeof(adat_priv_data_t), 1);
+        pPriv = pRig->state.priv = (adat_priv_data_ptr) calloc(sizeof(adat_priv_data_t),
+                                   1);
 
         if (pRig->state.priv != NULL)
         {

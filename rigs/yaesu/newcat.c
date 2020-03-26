@@ -1546,7 +1546,8 @@ int newcat_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
         *split = RIG_SPLIT_OFF;
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "SPLIT = %d, vfo = %s, TX_vfo = %s\n", *split, rig_strvfo(vfo),
+    rig_debug(RIG_DEBUG_TRACE, "SPLIT = %d, vfo = %s, TX_vfo = %s\n", *split,
+              rig_strvfo(vfo),
               rig_strvfo(*tx_vfo));
 
     return RIG_OK;
@@ -6005,7 +6006,8 @@ int newcat_get_rigid(RIG *rig)
         }
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "rig_id = %d, *s = %s\n", priv->rig_id, s==NULL?"NULL":s);
+    rig_debug(RIG_DEBUG_TRACE, "rig_id = %d, *s = %s\n", priv->rig_id,
+              s == NULL ? "NULL" : s);
 
     return priv->rig_id;
 }
@@ -6070,7 +6072,8 @@ int newcat_get_vfo_mode(RIG *rig, vfo_t *vfo_mode)
         *vfo_mode = RIG_VFO_MEM;
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo mode = %s\n", __func__, rig_strrmode(*vfo_mode));
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo mode = %s\n", __func__,
+              rig_strrmode(*vfo_mode));
 
     return err;
 }
