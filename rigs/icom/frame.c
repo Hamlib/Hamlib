@@ -241,6 +241,7 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
         // And try again
         frm_len = read_icom_frame(&rs->rigport, buf, sizeof(buf));
     }
+
     // cppcheck-suppress *
     Unhold_Decode(rig);
 

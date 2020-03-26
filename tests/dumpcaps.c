@@ -900,23 +900,33 @@ void range_print(FILE *fout, const struct freq_range_list range_list[], int rx)
             char *label_hi = "W";
             double low = range_list[i].low_power / 1000.0f;
             double hi = range_list[i].high_power / 1000.0f;
-            if (low < 0) {
-              label_lo = "mW";
-              low *= 1000;
+
+            if (low < 0)
+            {
+                label_lo = "mW";
+                low *= 1000;
             }
-            if (low < 0) {
-              label_lo = "uW";
-              low *= 1000;
+
+            if (low < 0)
+            {
+                label_lo = "uW";
+                low *= 1000;
             }
-            if (hi < 0) {
-              label_hi = "mW";
-              hi *= 1000;
+
+            if (hi < 0)
+            {
+                label_hi = "mW";
+                hi *= 1000;
             }
-            if (hi < 0) {
-              label_hi = "uW";
-              hi *= 1000;
+
+            if (hi < 0)
+            {
+                label_hi = "uW";
+                hi *= 1000;
             }
-            fprintf(fout, "\t\tLow power: %g %s, High power: %g %s\n", low, label_lo, hi, label_hi);
+
+            fprintf(fout, "\t\tLow power: %g %s, High power: %g %s\n", low, label_lo, hi,
+                    label_hi);
         }
     }
 }
