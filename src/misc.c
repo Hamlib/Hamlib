@@ -510,7 +510,7 @@ const char *HAMLIB_API rig_strvfo(vfo_t vfo)
     {
         if (vfo == vfo_str[i].vfo)
         {
-    rig_debug(RIG_DEBUG_TRACE, "%s returning %s\n", __func__, vfo_str[i].str);
+            rig_debug(RIG_DEBUG_TRACE, "%s returning %s\n", __func__, vfo_str[i].str);
             return vfo_str[i].str;
         }
     }

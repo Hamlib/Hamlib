@@ -983,7 +983,8 @@ int elad_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
     case RIG_VFO_MEM: vfo_function = '2'; break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(txvfo));
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__,
+                  rig_strvfo(txvfo));
         return -RIG_EINVAL;
     }
 
@@ -1964,6 +1965,7 @@ int elad_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         else
         {
             int foundit = 0;
+
             for (i = 0; i < MAXDBLSTSIZ && rig->state.preamp[i]; i++)
             {
                 if (val.i == rig->state.preamp[i])

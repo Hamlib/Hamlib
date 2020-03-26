@@ -456,6 +456,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
         rs->vfo_list |= caps->tx_range_list1[i].vfo;
         rs->mode_list |= caps->tx_range_list1[i].modes;
     }
+
     for (i = 0; i < FRQRANGESIZ && !RIG_IS_FRNG_END(caps->rx_range_list2[i]); i++)
     {
         rs->vfo_list |= caps->rx_range_list2[i].vfo;
@@ -1840,6 +1841,7 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         else
         {
             vfo_t curr_vfo;
+
             if (!caps->set_vfo)
             {
                 return -RIG_ENTARGET;
