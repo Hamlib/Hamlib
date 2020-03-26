@@ -256,10 +256,10 @@ const struct rig_caps ft847_caps =
     .chan_list =  { RIG_CHAN_END, }, /* FIXME: memory chan list: 78, but only in clonable mode? */
 
     .rx_range_list1 =  {
-        {kHz(100), MHz(30), FT847_ALL_RX_MODES, -1, -1}, /* rx range begin */
-        {MHz(36), MHz(76), FT847_ALL_RX_MODES, -1, -1},
-        {MHz(108), MHz(174), FT847_ALL_RX_MODES, -1, -1},
-        {MHz(420), MHz(512), FT847_ALL_RX_MODES, -1, -1},
+        {kHz(100), MHz(30), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS}, /* rx range begin */
+        {MHz(36), MHz(76), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS},
+        {MHz(108), MHz(174), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS},
+        {MHz(420), MHz(512), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS},
 
         RIG_FRNG_END,
     }, /* rx range end */
@@ -281,10 +281,10 @@ const struct rig_caps ft847_caps =
     }, /* tx range end */
 
     .rx_range_list2 =
-    {   {kHz(100), MHz(30), FT847_ALL_RX_MODES, -1, -1}, /* rx range begin */
-        {MHz(36), MHz(76), FT847_ALL_RX_MODES, -1, -1},
-        {MHz(108), MHz(174), FT847_ALL_RX_MODES, -1, -1},
-        {MHz(420), MHz(512), FT847_ALL_RX_MODES, -1, -1},
+    {   {kHz(100), MHz(30), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS}, /* rx range begin */
+        {MHz(36), MHz(76), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS},
+        {MHz(108), MHz(174), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS},
+        {MHz(420), MHz(512), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS},
 
         RIG_FRNG_END,
     }, /* rx range end */
