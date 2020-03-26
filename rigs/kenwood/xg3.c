@@ -142,6 +142,11 @@ const struct rig_caps xg3_caps =
         {0, 11, RIG_MTYPE_MEM, XG3_CHANNEL_CAPS},
         RIG_CHAN_END,
     },
+    .tx_range_list1 =  { // lo power is actually 5e-14W which can't be represented in hamlib as of 20200325
+        {kHz(1500), MHz(200), RIG_MODE_CW, 0,  2, RIG_VFO_A, RIG_ANT_1},
+        RIG_FRNG_END,
+    },
+
 
     .priv = (void *)& xg3_priv_caps,
 
