@@ -49,6 +49,8 @@
 #include "yaesu.h"
 #include "ft757gx.h"
 
+#define FT757GX_VFOS (RIG_VFO_A|RIG_VFO_B)
+
 /* Private helper function prototypes */
 static int ft757_get_update_data(RIG *rig);
 static int mode2rig(RIG *rig, rmode_t mode, pbwidth_t width);
@@ -139,23 +141,23 @@ const struct rig_caps ft757gx_caps =
         RIG_FRNG_END,
     }, /* rx range */
 
-    .tx_range_list2 =   { {kHz(1500), 1999900, FT757GX_ALL_TX_MODES, .low_power = 5000, .high_power = 100000},
+    .tx_range_list2 =   { {kHz(1500), 1999900, FT757GX_ALL_TX_MODES, .low_power = 5000, .high_power = 100000, FT757GX_VFOS, RIG_ANT_1},
 
-        {.startf = kHz(3500), 3999900, FT757GX_ALL_TX_MODES, 5000, 100000},
+        {.startf = kHz(3500), 3999900, FT757GX_ALL_TX_MODES, 5000, 100000, FT757GX_VFOS, RIG_ANT_1},
 
-        {.startf = kHz(7000), 7499900, FT757GX_ALL_TX_MODES, 5000, 100000},
+        {.startf = kHz(7000), 7499900, FT757GX_ALL_TX_MODES, 5000, 100000, FT757GX_VFOS, RIG_ANT_1},
 
-        {.startf = MHz(10), 10499900, FT757GX_ALL_TX_MODES, 5000, 100000},
+        {.startf = MHz(10), 10499900, FT757GX_ALL_TX_MODES, 5000, 100000, FT757GX_VFOS, RIG_ANT_1},
 
-        {.startf = MHz(14), 14499900, FT757GX_ALL_TX_MODES, 5000, 100000},
+        {.startf = MHz(14), 14499900, FT757GX_ALL_TX_MODES, 5000, 100000, FT757GX_VFOS, RIG_ANT_1},
 
-        {.startf = MHz(18), 18499900, FT757GX_ALL_TX_MODES, 5000, 100000},
+        {.startf = MHz(18), 18499900, FT757GX_ALL_TX_MODES, 5000, 100000, FT757GX_VFOS, RIG_ANT_1},
 
-        {.startf = MHz(21), 21499900, FT757GX_ALL_TX_MODES, 5000, 100000},
+        {.startf = MHz(21), 21499900, FT757GX_ALL_TX_MODES, 5000, 100000, FT757GX_VFOS, RIG_ANT_1},
 
-        {.startf = kHz(24500), 24999900, FT757GX_ALL_TX_MODES, 5000, 100000},
+        {.startf = kHz(24500), 24999900, FT757GX_ALL_TX_MODES, 5000, 100000, FT757GX_VFOS, RIG_ANT_1},
 
-        {.startf = MHz(28), 29999900, FT757GX_ALL_TX_MODES, 5000, 100000},
+        {.startf = MHz(28), 29999900, FT757GX_ALL_TX_MODES, 5000, 100000, FT757GX_VFOS, RIG_ANT_1},
 
         RIG_FRNG_END,
     },
@@ -260,23 +262,23 @@ const struct rig_caps ft757gx2_caps =
     }, /* rx range */
 
     /* FIXME: 10m is "less" and AM is 25W carrier */
-    .tx_range_list2 = { {kHz(1500), 1999900, FT757GX_ALL_TX_MODES, .low_power = 5000, .high_power = 100000},
+    .tx_range_list2 = { {kHz(1500), 1999900, FT757GX_ALL_TX_MODES, .low_power = 5000, .high_power = 100000, FT757GX_VFOS, RIG_ANT_1},
 
-        {.startf = kHz(3500), 3999900, FT757GX_ALL_TX_MODES, 5000, 100000},
+        {.startf = kHz(3500), 3999900, FT757GX_ALL_TX_MODES, 5000, 100000, FT757GX_VFOS, RIG_ANT_1},
 
-        {.startf = kHz(7000), 7499900, FT757GX_ALL_TX_MODES, 5000, 100000},
+        {.startf = kHz(7000), 7499900, FT757GX_ALL_TX_MODES, 5000, 100000, FT757GX_VFOS, RIG_ANT_1},
 
-        {.startf = MHz(10), 10499900, FT757GX_ALL_TX_MODES, 5000, 100000},
+        {.startf = MHz(10), 10499900, FT757GX_ALL_TX_MODES, 5000, 100000, FT757GX_VFOS, RIG_ANT_1},
 
-        {.startf = MHz(14), 14499900, FT757GX_ALL_TX_MODES, 5000, 100000},
+        {.startf = MHz(14), 14499900, FT757GX_ALL_TX_MODES, 5000, 100000, FT757GX_VFOS, RIG_ANT_1},
 
-        {.startf = MHz(18), 18499900, FT757GX_ALL_TX_MODES, 5000, 100000},
+        {.startf = MHz(18), 18499900, FT757GX_ALL_TX_MODES, 5000, 100000, FT757GX_VFOS, RIG_ANT_1},
 
-        {.startf = MHz(21), 21499900, FT757GX_ALL_TX_MODES, 5000, 100000},
+        {.startf = MHz(21), 21499900, FT757GX_ALL_TX_MODES, 5000, 100000, FT757GX_VFOS, RIG_ANT_1},
 
-        {.startf = kHz(24500), 24999900, FT757GX_ALL_TX_MODES, 5000, 100000},
+        {.startf = kHz(24500), 24999900, FT757GX_ALL_TX_MODES, 5000, 100000, FT757GX_VFOS, RIG_ANT_1},
 
-        {.startf = MHz(28), 29999900, FT757GX_ALL_TX_MODES, 5000, 100000},
+        {.startf = MHz(28), 29999900, FT757GX_ALL_TX_MODES, 5000, 100000, FT757GX_VFOS, RIG_ANT_1},
 
         RIG_FRNG_END,
     },

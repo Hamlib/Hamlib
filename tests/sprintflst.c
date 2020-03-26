@@ -45,6 +45,7 @@ int sprintf_vfo(char *str, vfo_t vfo)
 {
     unsigned int i, len = 0;
 
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
     *str = '\0';
 
     if (vfo == RIG_VFO_NONE)
@@ -57,7 +58,7 @@ int sprintf_vfo(char *str, vfo_t vfo)
         const char *sv;
         sv = rig_strvfo(vfo & RIG_VFO_N(i));
 
-        if (sv && sv[0] && strstr(str, "None") == 0)
+        if (sv && sv[0] && (strstr(sv, "None") == 0))
         {
             len += sprintf(str + len, "%s ", sv);
         }
@@ -69,6 +70,7 @@ int sprintf_vfo(char *str, vfo_t vfo)
 
 int sprintf_mode(char *str, rmode_t mode)
 {
+    // cppcheck-suppress *
     uint64_t i, len = 0;
 
     *str = '\0';
@@ -146,6 +148,7 @@ int sprintf_ant(char *str, ant_t ant)
 
 int sprintf_func(char *str, setting_t func)
 {
+    // cppcheck-suppress *
     uint64_t i, len = 0;
 
     *str = '\0';
