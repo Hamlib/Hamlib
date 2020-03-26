@@ -2636,7 +2636,7 @@ adat_priv_data_ptr adat_new_priv_data(RIG *pRig)
     {
         // Init Priv Data
 
-        pRig->state.priv = (adat_priv_data_ptr) calloc(sizeof(adat_priv_data_t), 1);
+        pPriv = pRig->state.priv = (adat_priv_data_ptr) calloc(sizeof(adat_priv_data_t), 1);
 
         if (pRig->state.priv != NULL)
         {
@@ -2768,11 +2768,7 @@ int adat_init(RIG *pRig)
 
     // Check Params
 
-    if (pRig == NULL)
-    {
-        nRC = -RIG_EARG;
-    }
-    else
+    if (pRig != NULL)
     {
         adat_priv_data_ptr pPriv = NULL;
 
