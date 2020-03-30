@@ -62,7 +62,7 @@ const struct rig_caps k505dsp_caps =
     RIG_MODEL(RIG_MODEL_505DSP),
     .model_name = "505DSP",
     .mfg_name =  "Kachina",
-    .version =  "0.3",
+    .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_ALPHA,
     .rig_type =  RIG_TYPE_COMPUTER,

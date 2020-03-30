@@ -88,7 +88,7 @@ const struct rig_caps rx340_caps =
     RIG_MODEL(RIG_MODEL_RX340),
     .model_name = "RX-340",
     .mfg_name =  "Ten-Tec",
-    .version =  "0.3",
+    .version =  "20160409.0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_UNTESTED,
     .rig_type =  RIG_TYPE_RECEIVER,

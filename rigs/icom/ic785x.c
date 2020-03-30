@@ -158,7 +158,7 @@ const struct rig_caps ic785x_caps =
     RIG_MODEL(RIG_MODEL_IC785x),
     .model_name = "IC-785x",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".2",
+    .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_TRANSCEIVER,

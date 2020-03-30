@@ -98,7 +98,7 @@ const struct rig_caps drt1_caps =
     RIG_MODEL(RIG_MODEL_DRT1),
     .model_name = "DRT1",
     .mfg_name =  "SAT-Schneider",
-    .version =  "0.2",
+    .version =  "20200112.0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_TUNER,

@@ -103,7 +103,7 @@ const struct rig_caps dds60_caps =
     RIG_MODEL(RIG_MODEL_DDS60),
     .model_name = "DDS-60",
     .mfg_name =  "AmQRP",
-    .version =  "0.1",
+    .version =  "20200112.0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_ALPHA,
     .rig_type =  RIG_TYPE_TUNER,

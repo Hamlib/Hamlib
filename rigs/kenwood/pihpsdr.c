@@ -102,7 +102,7 @@ const struct rig_caps pihpsdr_caps =
     RIG_MODEL(RIG_MODEL_HPSDR),
     .model_name = "PiHPSDR",
     .mfg_name =  "OpenHPSDR",
-    .version =  "20170121",
+    .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_TRANSCEIVER,

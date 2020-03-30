@@ -75,7 +75,7 @@ const struct rig_caps xk2100_caps =
     RIG_MODEL(RIG_MODEL_XK2100),
     .model_name = "XK2100",
     .mfg_name = "Rohde&Schwarz",
-    .version = "0.8f",
+    .version = BACKEND_VER ".0",
     .copyright = "LGPL",
     .status = RIG_STATUS_BETA,
     .rig_type = RIG_TYPE_TRANSCEIVER,

@@ -31,6 +31,9 @@
  * This backend supports the Ten-Tec Orion (565) and Orion II (566) transceivers.
  */
 
+
+#define BACKEND_VER "20200324"
+
 #define TRUE	1
 #define FALSE	0
 #define TT565_BUFSIZE 16
@@ -193,7 +196,7 @@ const struct rig_caps tt565_caps = {
 RIG_MODEL(RIG_MODEL_TT565),
 .model_name = "TT-565 Orion",
 .mfg_name =  "Ten-Tec",
-.version =  "0.6",
+.version =  BACKEND_VER ".0",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -410,7 +413,7 @@ const struct rig_caps tt599_caps = {
 RIG_MODEL(RIG_MODEL_TT599),
 .model_name = "TT-599 Eagle",
 .mfg_name =  "Ten-Tec",
-.version =  "0.5",
+.version =  BACKEND_VER ".0",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_TRANSCEIVER,

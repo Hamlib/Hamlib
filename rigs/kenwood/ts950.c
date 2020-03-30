@@ -61,7 +61,7 @@ const struct rig_caps ts950sdx_caps =
     RIG_MODEL(RIG_MODEL_TS950SDX),
     .model_name = "TS-950SDX",
     .mfg_name =  "Kenwood",
-    .version =  BACKEND_VER,
+    .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_TRANSCEIVER,

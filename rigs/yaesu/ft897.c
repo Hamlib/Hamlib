@@ -190,7 +190,7 @@ const struct rig_caps ft897_caps =
     RIG_MODEL(RIG_MODEL_FT897),
     .model_name =     "FT-897",
     .mfg_name =       "Yaesu",
-    .version =        "0.3.3",
+    .version =        "20200323.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_BETA,
     .rig_type =       RIG_TYPE_TRANSCEIVER,

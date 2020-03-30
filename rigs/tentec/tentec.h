@@ -33,6 +33,11 @@
 
 #include <hamlib/rig.h>
 
+// The include order will determine which BACKEND_VER is used
+// tentec2.h may also be included and the last include is the BACKEND_VER used
+#undef BACKEND_VER
+#define BACKEND_VER "20200113"
+
 /**
  * \brief Private tentec info
  */

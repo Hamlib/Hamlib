@@ -86,7 +86,7 @@ const struct rig_caps thd7a_caps =
     RIG_MODEL(RIG_MODEL_THD7A),
     .model_name = "TH-D7A",
     .mfg_name =  "Kenwood",
-    .version =  TH_VER,
+    .version =  TH_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_ALPHA,
     .rig_type =  RIG_TYPE_HANDHELD | RIG_FLAG_APRS | RIG_FLAG_TNC | RIG_FLAG_DXCLUSTER,

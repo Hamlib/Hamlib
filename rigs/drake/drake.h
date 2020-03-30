@@ -24,7 +24,7 @@
 
 #include <hamlib/rig.h>
 
-#define BACKEND_VER "0.5"
+#define BACKEND_VER "20200319"
 
 struct drake_priv_data {
 	int curr_ch;

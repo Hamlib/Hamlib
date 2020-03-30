@@ -136,7 +136,7 @@ const struct rig_caps ft600_caps =
     RIG_MODEL(RIG_MODEL_FT600),
     .model_name =     "FT-600",
     .mfg_name =       "Yaesu",
-    .version =        "0.2",
+    .version =        "20200113.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_BETA,
     .rig_type =       RIG_TYPE_TRANSCEIVER,

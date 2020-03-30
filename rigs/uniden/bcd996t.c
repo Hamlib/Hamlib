@@ -56,7 +56,7 @@ const struct rig_caps bcd996t_caps =
     RIG_MODEL(RIG_MODEL_BCD996T),
     .model_name = "BCD-996T",
     .mfg_name =  "Uniden",
-    .version =  BACKEND_DIGITAL_VER,
+    .version =  BACKEND_DIGITAL_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_ALPHA,
     .rig_type =  RIG_TYPE_TRUNKSCANNER,

@@ -63,7 +63,7 @@ const struct rig_caps nrd525_caps =
     RIG_MODEL(RIG_MODEL_NRD525),
     .model_name = "NRD-525",
     .mfg_name =  "JRC",
-    .version =  "0.1",
+    .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_ALPHA,
     .rig_type =  RIG_TYPE_RECEIVER,

@@ -60,7 +60,7 @@ const struct rig_caps ic775_caps =
     RIG_MODEL(RIG_MODEL_IC775),
     .model_name = "IC-775",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".1",
+    .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_UNTESTED,
     .rig_type =  RIG_TYPE_TRANSCEIVER,

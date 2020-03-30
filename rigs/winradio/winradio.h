@@ -25,6 +25,8 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#define BACKEND_VER "20110822"
 /*
  * So far, only Linux has Linradio support through ioctl,
  * until someone port it to some other OS...

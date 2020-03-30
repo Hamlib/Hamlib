@@ -102,7 +102,7 @@ const struct rig_caps ts711_caps =
     RIG_MODEL(RIG_MODEL_TS711),
     .model_name = "TS-711",
     .mfg_name =  "Kenwood",
-    .version =  BACKEND_VER ".1",
+    .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_UNTESTED,
     .rig_type =  RIG_TYPE_TRANSCEIVER,

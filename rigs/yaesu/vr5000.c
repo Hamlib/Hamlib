@@ -132,7 +132,7 @@ const struct rig_caps vr5000_caps =
     RIG_MODEL(RIG_MODEL_VR5000),
     .model_name =         "VR-5000",
     .mfg_name =           "Yaesu",
-    .version =            "0.3",
+    .version =            "20200320.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_ALPHA,
     .rig_type =           RIG_TYPE_RECEIVER,

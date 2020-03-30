@@ -122,7 +122,7 @@ const struct rig_caps thf6a_caps =
     RIG_MODEL(RIG_MODEL_THF6A),
     .model_name = "TH-F6A",
     .mfg_name =  "Kenwood",
-    .version =  TH_VER,
+    .version =  TH_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_HANDHELD,

@@ -53,7 +53,7 @@ const struct rig_caps prm8060_caps =
     RIG_MODEL(RIG_MODEL_PRM8060),
     .model_name = "PRM8060",
     .mfg_name =  "Philips/Simoco",
-    .version =  "0.1",
+    .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_ALPHA,
     .rig_type =  RIG_TYPE_TRANSCEIVER,

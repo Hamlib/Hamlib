@@ -59,7 +59,7 @@ const struct rig_caps ic821h_caps =
     RIG_MODEL(RIG_MODEL_IC821H),
     .model_name = "IC-821H",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".2",
+    .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_TRANSCEIVER,

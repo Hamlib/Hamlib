@@ -54,7 +54,7 @@ const struct rig_caps trp8000_caps =
     RIG_MODEL(RIG_MODEL_TRP8000),
     .model_name = "TRP8000",
     .mfg_name =  "Skanti",
-    .version =  "0.2",
+    .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_UNTESTED,
     .rig_type =  RIG_TYPE_TRANSCEIVER,

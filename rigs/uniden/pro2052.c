@@ -61,7 +61,7 @@ const struct rig_caps pro2052_caps =
     RIG_MODEL(RIG_MODEL_PRO2052),
     .model_name = "PRO-2052",
     .mfg_name =  "Radio Shack",
-    .version =  BACKEND_VER,
+    .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_UNTESTED,
     .rig_type =  RIG_TYPE_TRUNKSCANNER,

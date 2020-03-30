@@ -130,7 +130,7 @@ const struct rig_caps sr2200_caps =
     RIG_MODEL(RIG_MODEL_SR2200),
     .model_name = "SR2200",
     .mfg_name =  "AOR",
-    .version =  "0.2",
+    .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_SCANNER,

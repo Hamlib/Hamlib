@@ -29,6 +29,7 @@
 
 #include "kit.h"
 
+#define BACKEND_VER "20200112"
 
 /*
  * Compile only this model if libusb is available
@@ -151,7 +152,7 @@ const struct rig_caps dwt_caps =
     RIG_MODEL(RIG_MODEL_DWT),
     .model_name =       "Digital World Traveller",
     .mfg_name =     "Coding Technologies",
-    .version =      "0.1.1",
+    .version =      BACKEND_VER ".0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_PCRECEIVER,
@@ -550,7 +551,7 @@ const struct rig_caps dwt_caps =
     RIG_MODEL(RIG_MODEL_DWT),
     .model_name =       "Digital World Traveller",
     .mfg_name =     "Coding Technologies",
-    .version =      "0.2",
+    .version =      BACKEND_VER ".0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_UNTESTED,
     .rig_type =     RIG_TYPE_TUNER,

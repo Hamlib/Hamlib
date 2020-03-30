@@ -95,7 +95,7 @@ const struct rig_caps ar8600_caps =
     RIG_MODEL(RIG_MODEL_AR8600),
     .model_name = "AR8600",
     .mfg_name =  "AOR",
-    .version =  BACKEND_VER ".1",
+    .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_SCANNER,

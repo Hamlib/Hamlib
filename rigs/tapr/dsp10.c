@@ -61,7 +61,7 @@ const struct rig_caps dsp10_caps =
     RIG_MODEL(RIG_MODEL_DSP10),
     .model_name = "DSP-10",
     .mfg_name =  "TAPR",
-    .version =  "0.2",
+    .version =  "20061007.0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_ALPHA,
     .rig_type =  RIG_TYPE_TRANSCEIVER,

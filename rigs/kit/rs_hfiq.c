@@ -214,7 +214,7 @@ const struct rig_caps rshfiq_caps =
     RIG_MODEL(RIG_MODEL_RSHFIQ),
     .model_name =     "RS-HFIQ",
     .mfg_name =       "HobbyPCB",
-    .version =        "0.1",
+    .version =        "20191209.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_BETA,
     .rig_type =       RIG_TYPE_TRANSCEIVER,

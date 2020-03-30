@@ -70,7 +70,7 @@ const struct rig_caps os535_caps =
     RIG_MODEL(RIG_MODEL_OS535),
     .model_name = "OptoScan535",
     .mfg_name =  "Optoelectronics",
-    .version =  BACKEND_VER ".3",
+    .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_SCANNER,

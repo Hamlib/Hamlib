@@ -158,7 +158,7 @@ const struct rig_caps ft1000d_caps =
     RIG_MODEL(RIG_MODEL_FT1000D),
     .model_name =         "FT-1000D",
     .mfg_name =           "Yaesu",
-    .version =            "0.1.2",
+    .version =            "20200323.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_BETA,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
