@@ -46,13 +46,13 @@ puts "Attenuators:\t[$rigcaps cget -attenuator]"
 
 puts "getinfo:\t[my_rig get_info]"
 
-my_rig set_level "VOX"  1
+my_rig set_level "VOXDELAY"  1
 puts "status:\t\t[my_rig cget -error_status]"
-puts "VOX level:\t[my_rig get_level_i 'VOX']"
+puts "VOX delay:\t[my_rig get_level_i 'VOXDELAY']"
 puts "status:\t\t[my_rig cget -error_status]"
-my_rig set_level $RIG_LEVEL_VOX 5
+my_rig set_level $RIG_LEVEL_VOXDELAY 5
 puts "status:\t\t[my_rig cget -error_status]"
-puts "VOX level:\t[my_rig get_level_i $RIG_LEVEL_VOX]"
+puts "VOX delay:\t[my_rig get_level_i $RIG_LEVEL_VOXDELAY]"
 puts "status:\t\t[my_rig cget -error_status]"
 
 puts "strength:\t[my_rig get_level_i $RIG_LEVEL_STRENGTH]"

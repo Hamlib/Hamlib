@@ -3,13 +3,6 @@
 # more information on swig at http://www.swig.org
 #
 
-# Different installations need different locations for some reason
-# Trying to check for all the possible types seems a bit much
-# So right now we just install in both locations -- no harm done
-PERLINSTALL1 = install_site
-PERLINSTALL2 = pure_vendor_install
-echo Default install=$(PERLINSTALL1) and $(PERLINSTALL2)
-
 AM_CPPFLAGS = @AM_CPPFLAGS@ -I$(top_srcdir)/bindings $(PYTHON_CPPFLAGS) \
 	$(TCL_INCLUDE_SPEC)
 
@@ -77,8 +70,7 @@ distcheck-perl: Hamlib-pl.mk
 	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk distcheck
 
 install-perl: Hamlib-pl.mk
-	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk $(PERLINSTALL1)
-	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk $(PERLINSTALL2)
+	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk install_site
 
 ## ExtUtils::MakeMaker says uninstall is deprecated and won't remove the files
 ## anyway, so we'll have to figure out another way to remove the installed files.
