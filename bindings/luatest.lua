@@ -56,11 +56,11 @@ function doStartup()
 
     my_rig:set_level("VOXDELAY", 1)
     print(string.format("status:\t\t\t%s - %s", my_rig.error_status, Hamlib.rigerror(my_rig.error_status)))
-    print(string.format("VOX level:\t\t%d", my_rig:get_level_i("VOXDELAY")))
+    print(string.format("VOX delay:\t\t%d", my_rig:get_level_i("VOXDELAY")))
     my_rig:set_level(Hamlib.RIG_LEVEL_VOXDELAY, 5)
     print(string.format("status:\t\t\t%s - %s", my_rig.error_status, Hamlib.rigerror(my_rig.error_status)))
     -- see the func name (get_level_i) and format (%d)
-    print(string.format("VOX level:\t\t%d", my_rig:get_level_i(Hamlib.RIG_LEVEL_VOXDELAY)))
+    print(string.format("VOX delay:\t\t%d", my_rig:get_level_i(Hamlib.RIG_LEVEL_VOXDELAY)))
 
     af = 12.34
     print(string.format("Setting AF to %f...", af))
