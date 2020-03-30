@@ -111,7 +111,7 @@ const struct rig_caps hiqsdr_caps =
     RIG_MODEL(RIG_MODEL_HIQSDR),
     .model_name =     "HiQSDR",
     .mfg_name =       "N2ADR",
-    .version =        "0.1",
+    .version =        "20200323.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_UNTESTED,
     .rig_type =       RIG_TYPE_TUNER,

@@ -59,7 +59,7 @@ const struct rig_caps wj8888_caps =
     RIG_MODEL(RIG_MODEL_WJ8888),
     .model_name = "WJ-8888",
     .mfg_name =  "Watkins-Johnson",
-    .version =  "0.2",
+    .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_UNTESTED,
     .rig_type =  RIG_TYPE_RECEIVER,

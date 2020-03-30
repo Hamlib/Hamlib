@@ -25,6 +25,8 @@
 #include <hamlib/rig.h>
 #include <tones.h>
 
+#define BACKEND_VER "20200323"
+
 int alinco_set_vfo(RIG *rig, vfo_t vfo);
 int alinco_get_vfo(RIG *rig, vfo_t *vfo);
 int alinco_set_freq(RIG *rig, vfo_t vfo, freq_t freq);

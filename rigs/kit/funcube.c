@@ -39,6 +39,8 @@
 
 #include "kit.h"
 
+#define BACKEND_VER "20200112"
+
 /*
  * Compile this model only if libusb is available
  */
@@ -101,7 +103,7 @@ const struct rig_caps funcube_caps =
     RIG_MODEL(RIG_MODEL_FUNCUBEDONGLE),
     .model_name =       "FUNcube Dongle",
     .mfg_name =     "AMSAT-UK",
-    .version =      "0.3",
+    .version =      BACKEND_VER ".0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_BETA,
     .rig_type =     RIG_TYPE_TUNER,
@@ -164,7 +166,7 @@ const struct rig_caps funcubeplus_caps =
     RIG_MODEL(RIG_MODEL_FUNCUBEDONGLEPLUS),
     .model_name =       "FUNcube Dongle Pro+",
     .mfg_name =     "AMSAT-UK",
-    .version =      "0.4",
+    .version =      BACKEND_VER ".0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_BETA,
     .rig_type =     RIG_TYPE_TUNER,

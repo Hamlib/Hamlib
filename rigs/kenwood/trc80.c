@@ -72,7 +72,7 @@ const struct rig_caps trc80_caps =
     RIG_MODEL(RIG_MODEL_TRC80),
     .model_name = "TRC-80",
     .mfg_name =  "Kenwood",
-    .version =  BACKEND_VER,
+    .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_ALPHA,
     .rig_type =  RIG_TYPE_TRANSCEIVER,

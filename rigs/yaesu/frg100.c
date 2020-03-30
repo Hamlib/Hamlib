@@ -124,7 +124,7 @@ const struct rig_caps frg100_caps =
     RIG_MODEL(RIG_MODEL_FRG100),
     .model_name =         "FRG-100",
     .mfg_name =           "Yaesu",
-    .version =            "0.5",
+    .version =            "20160409.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_BETA,
     .rig_type =           RIG_TYPE_RECEIVER,

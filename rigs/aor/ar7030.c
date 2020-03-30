@@ -784,7 +784,7 @@ const struct rig_caps ar7030_caps =
     RIG_MODEL(RIG_MODEL_AR7030),
     .model_name = "AR7030",
     .mfg_name =  "AOR",
-    .version =  "0.4.1",
+    .version =  "20200324.0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_RECEIVER,

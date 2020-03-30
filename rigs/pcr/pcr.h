@@ -29,7 +29,7 @@
 #define TOK_EL_ANL  TOKEN_BACKEND(1)
 #define TOK_EL_DIVERSITY  TOKEN_BACKEND(2)
 
-#define BACKEND_VER		"0.8"
+#define BACKEND_VER		"20200323"
 #define PCR_MAX_CMD_LEN		32
 
 struct pcr_priv_data

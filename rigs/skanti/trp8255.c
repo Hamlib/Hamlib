@@ -89,7 +89,7 @@ const struct rig_caps trp8255_caps =
     RIG_MODEL(RIG_MODEL_TRP8255),
     .model_name = "TRP 8255 S R",
     .mfg_name =  "Skanti",
-    .version =  "0.1",
+    .version =  "20200323.0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_UNTESTED,
     .rig_type =  RIG_TYPE_TRANSCEIVER,

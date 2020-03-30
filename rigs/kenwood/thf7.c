@@ -116,7 +116,7 @@ const struct rig_caps thf7e_caps =
     RIG_MODEL(RIG_MODEL_THF7E),
     .model_name = "TH-F7E",
     .mfg_name =  "Kenwood",
-    .version =  TH_VER ".2",
+    .version =  TH_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_HANDHELD,

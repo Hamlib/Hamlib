@@ -58,7 +58,7 @@ const struct rig_caps bc250_caps =
     RIG_MODEL(RIG_MODEL_BC250),
     .model_name = "BC250D",
     .mfg_name =  "Uniden",
-    .version =  BACKEND_VER,
+    .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_UNTESTED,
     .rig_type =  RIG_TYPE_TRUNKSCANNER,

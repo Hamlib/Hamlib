@@ -164,7 +164,7 @@ const struct rig_caps g313_caps =
     RIG_MODEL(RIG_MODEL_G313),
     .model_name =     "WR-G313",
     .mfg_name =       "Winradio",
-    .version =        "0.1",
+    .version =        "20191204.0",
     .copyright =        "LGPL", /* This wrapper, not the G313 DLL */
     .status =         RIG_STATUS_BETA,
     .rig_type =       RIG_TYPE_PCRECEIVER,

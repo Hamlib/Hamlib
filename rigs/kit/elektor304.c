@@ -90,7 +90,7 @@ const struct rig_caps elektor304_caps =
     RIG_MODEL(RIG_MODEL_ELEKTOR304),
     .model_name = "Elektor 3/04",
     .mfg_name =  "Elektor",
-    .version =  "0.4",
+    .version =  "20200112.0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TUNER,

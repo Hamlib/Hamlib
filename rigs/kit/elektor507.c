@@ -562,7 +562,7 @@ const struct rig_caps elektor507_caps =
     RIG_MODEL(RIG_MODEL_ELEKTOR507),
     .model_name =       "Elektor SDR-USB",
     .mfg_name =     "Elektor",
-    .version =      "0.3.2",
+    .version =      "20200112.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TUNER,

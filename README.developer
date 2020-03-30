@@ -409,6 +409,8 @@ So far, Hamlib has been tested successfully under the following systems:
     The rule is one backend per protocol family.
     Try to share code between rigs of the same family, if applicable.
     The steps in Section 3 below will need to be followed as well.
+    Version numbers used are in the form YYYYMMDD.N where the .N is
+    intended for multiple versions in one day....so typically would be .0
 
     2.1. mkdir mybackend
          Create a new subdir, of the name of the protocol backend.

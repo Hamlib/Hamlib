@@ -49,7 +49,7 @@ const struct rig_caps bc245_caps =
     RIG_MODEL(RIG_MODEL_BC245),
     .model_name = "BC245xlt",
     .mfg_name =  "Uniden",
-    .version =  BACKEND_VER,
+    .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_UNTESTED,
     .rig_type =  RIG_TYPE_TRUNKSCANNER,

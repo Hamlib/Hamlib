@@ -42,7 +42,7 @@ const struct rig_caps wr3500_caps =
     RIG_MODEL(RIG_MODEL_WR3500),
     .model_name =     "WR-3500",
     .mfg_name =       "Winradio",
-    .version =        "0.6",
+    .version =        BACKEND_VER ".0",
     .copyright =   "LGPL",
     .status =         RIG_STATUS_UNTESTED,
     .rig_type =       RIG_TYPE_PCRECEIVER,

@@ -26,6 +26,8 @@
 #include "config.h"
 #endif
 
+#define BACKEND_VER "20200112"
+
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
 #endif
@@ -158,7 +160,7 @@ const struct rig_caps si570avrusb_caps =
     RIG_MODEL(RIG_MODEL_SI570AVRUSB),
     .model_name =       "Si570 AVR-USB",
     .mfg_name =     "SoftRock",
-    .version =      "0.3",
+    .version =      BACKEND_VER ".0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_BETA,
     .rig_type =     RIG_TYPE_TUNER,
@@ -235,7 +237,7 @@ const struct rig_caps si570peaberry1_caps =
     RIG_MODEL(RIG_MODEL_SI570PEABERRY1),
     .model_name =       "Si570 Peaberry V1",
     .mfg_name =     "AE9RB",
-    .version =      "0.3",
+    .version =      BACKEND_VER ".0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_BETA,
     .rig_type =     RIG_TYPE_TUNER,
@@ -312,7 +314,7 @@ const struct rig_caps si570peaberry2_caps =
     RIG_MODEL(RIG_MODEL_SI570PEABERRY2),
     .model_name =       "Si570 Peaberry V2",
     .mfg_name =     "AE9RB",
-    .version =      "0.2",
+    .version =      BACKEND_VER ".0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_BETA,
     .rig_type =     RIG_TYPE_TUNER,
@@ -394,7 +396,7 @@ const struct rig_caps si570picusb_caps =
     RIG_MODEL(RIG_MODEL_SI570PICUSB),
     .model_name =       "Si570 PIC-USB",
     .mfg_name =     "KTH-SDR kit",
-    .version =      "0.3",
+    .version =      BACKEND_VER ".0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_BETA,
     .rig_type =     RIG_TYPE_TUNER,
@@ -475,7 +477,7 @@ const struct rig_caps fasdr_caps =
     RIG_MODEL(RIG_MODEL_FASDR),
     .model_name =       "FA-SDR",
     .mfg_name =     "Funkamatuer",
-    .version =      "0.2",
+    .version =      BACKEND_VER ".0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_ALPHA,
     .rig_type =     RIG_FLAG_TUNER | RIG_FLAG_TRANSMITTER,

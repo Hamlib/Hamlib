@@ -67,7 +67,7 @@ const struct rig_caps esmc_caps =
     RIG_MODEL(RIG_MODEL_ESMC),
     .model_name = "ESMC",
     .mfg_name =  "Rohde&Schwarz",
-    .version =  "0.1",
+    .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_ALPHA,
     .rig_type =  RIG_TYPE_RECEIVER,

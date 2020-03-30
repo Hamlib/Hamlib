@@ -58,7 +58,7 @@ const struct rig_caps adt_200a_caps =
     RIG_MODEL(RIG_MODEL_ADT_200A),
     .model_name         =  "ADT-200A",
     .mfg_name           =  "ADAT www.adat.ch",
-    .version            =  "1.37",
+    .version            =  BACKEND_VER ".0",
     .copyright          =  "Frank Goenninger, DG1SBG. License: Creative Commons",
     .status             =  RIG_STATUS_BETA,
     .rig_type           =  RIG_TYPE_TRANSCEIVER,

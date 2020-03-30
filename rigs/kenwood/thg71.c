@@ -90,7 +90,7 @@ const struct rig_caps thg71_caps =
     RIG_MODEL(RIG_MODEL_THG71),
     .model_name = "TH-G71",
     .mfg_name =  "Kenwood",
-    .version =  TH_VER,
+    .version =  TH_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_HANDHELD,

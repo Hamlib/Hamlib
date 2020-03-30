@@ -52,7 +52,7 @@ const struct rig_caps ra6790_caps =
     RIG_MODEL(RIG_MODEL_RA6790),
     .model_name = "RA6790/GM",
     .mfg_name =  "Racal",
-    .version =  "0.1",
+    .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_UNTESTED,
     .rig_type =  RIG_TYPE_RECEIVER,

@@ -28,7 +28,7 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "1.12"
+#define BACKEND_VER "20200319"
 
 #define EOM "\r"
 #define TRUE 1

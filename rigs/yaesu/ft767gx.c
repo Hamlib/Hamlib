@@ -265,7 +265,7 @@ const struct rig_caps ft767gx_caps =
     RIG_MODEL(RIG_MODEL_FT767),
     .model_name =       "FT-767GX",
     .mfg_name =         "Yaesu",
-    .version =           "1.1",
+    .version =           "20200325.0",
     .copyright =         "LGPL",
     .status =            RIG_STATUS_STABLE,
     .rig_type =          RIG_TYPE_TRANSCEIVER,

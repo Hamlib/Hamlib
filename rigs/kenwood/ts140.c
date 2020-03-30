@@ -86,7 +86,7 @@ const struct rig_caps ts140_caps =
     RIG_MODEL(RIG_MODEL_TS140S),
     .model_name = "TS-140S",
     .mfg_name =  "Kenwood",
-    .version =  BACKEND_VER ".1",
+    .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_TRANSCEIVER,

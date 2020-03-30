@@ -250,7 +250,7 @@ const struct rig_caps tmd710_caps =
     RIG_MODEL(RIG_MODEL_TMD710),
     .model_name = "TM-D710(G)",
     .mfg_name =  "Kenwood",
-    .version =  BACKEND_VER ".2",
+    .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_MOBILE | RIG_FLAG_APRS | RIG_FLAG_TNC,
