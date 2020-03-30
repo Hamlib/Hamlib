@@ -104,7 +104,7 @@ const struct rig_caps vx1700_caps =
     RIG_MODEL(RIG_MODEL_VX1700),
     .model_name =  "VX-1700",
     .mfg_name =  "Vertex Standard",
-    .version =  "1.1",
+    .version =  "20200320.0",
     .copyright =  "LGPL",
     .status =   RIG_STATUS_ALPHA,
     .rig_type =  RIG_TYPE_TRANSCEIVER,

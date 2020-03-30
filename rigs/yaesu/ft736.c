@@ -102,7 +102,7 @@ const struct rig_caps ft736_caps =
     RIG_MODEL(RIG_MODEL_FT736R),
     .model_name =         "FT-736R",
     .mfg_name =           "Yaesu",
-    .version =            "0.3",
+    .version =            "20200113.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,

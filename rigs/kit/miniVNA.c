@@ -65,7 +65,7 @@ const struct rig_caps miniVNA_caps =
     RIG_MODEL(RIG_MODEL_MINIVNA),
     .model_name =     "miniVNA",
     .mfg_name =       "mRS",
-    .version =        "0.1",
+    .version =        "20190817.0",
     .copyright =   "LGPL",
     .status =         RIG_STATUS_ALPHA,
     .rig_type =       RIG_TYPE_TUNER,

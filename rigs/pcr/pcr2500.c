@@ -67,7 +67,7 @@ const struct rig_caps pcr2500_caps =
     RIG_MODEL(RIG_MODEL_PCR2500),
     .model_name     = "IC-PCR2500",
     .mfg_name       = "Icom",
-    .version        = BACKEND_VER,
+    .version        = BACKEND_VER ".0",
     .copyright      = "LGPL",
     .status         = RIG_STATUS_BETA,
 

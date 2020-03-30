@@ -87,7 +87,7 @@ const struct rig_caps ar2700_caps =
     RIG_MODEL(RIG_MODEL_AR2700),
     .model_name = "AR2700",
     .mfg_name =  "AOR",
-    .version =  BACKEND_VER,
+    .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_UNTESTED,
     .rig_type =  RIG_TYPE_SCANNER,

@@ -102,7 +102,7 @@ const struct rig_caps tt585_caps =
     RIG_MODEL(RIG_MODEL_TT585),
     .model_name = "TT-585 Paragon",
     .mfg_name =  "Ten-Tec",
-    .version =  "0.3",
+    .version =  "20200305.0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_TRANSCEIVER,

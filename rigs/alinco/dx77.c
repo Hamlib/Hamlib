@@ -79,7 +79,7 @@ const struct rig_caps dx77_caps =
     RIG_MODEL(RIG_MODEL_DX77),
     .model_name =       "DX-77",
     .mfg_name =         "Alinco",
-    .version =          "0.9",
+    .version =          BACKEND_VER ".0",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_BETA,
     .rig_type =         RIG_TYPE_TRANSCEIVER,

@@ -114,7 +114,7 @@ const struct rig_caps icr8600_caps =
     RIG_MODEL(RIG_MODEL_ICR8600),
     .model_name = "IC-R8600",
     .mfg_name = "Icom",
-    .version =  BACKEND_VER ".9",
+    .version =  BACKEND_VER ".0",
     .copyright = "LGPL",
     .status = RIG_STATUS_ALPHA,
     .rig_type = RIG_TYPE_RECEIVER,

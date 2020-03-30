@@ -24,6 +24,7 @@
 
 #include <hamlib/rig.h>
 
+#define BACKEND_VER "20090803"
 
 int rs_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int rs_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);

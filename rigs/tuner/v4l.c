@@ -74,7 +74,7 @@ const struct rig_caps v4l_caps =
     RIG_MODEL(RIG_MODEL_V4L),
     .model_name = "SW/FM radio",
     .mfg_name =  "Video4Linux",
-    .version =  "0.2.1",
+    .version =  "20120107.0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_PCRECEIVER,

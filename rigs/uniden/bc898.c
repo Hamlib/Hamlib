@@ -75,7 +75,7 @@ const struct rig_caps bc898_caps =
     RIG_MODEL(RIG_MODEL_BC898),
     .model_name = "BC898T",
     .mfg_name =  "Uniden",
-    .version =  BACKEND_VER,
+    .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_UNTESTED,
     .rig_type =  RIG_TYPE_TRUNKSCANNER,

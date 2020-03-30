@@ -74,7 +74,7 @@ const struct rig_caps ar3000a_caps =
     RIG_MODEL(RIG_MODEL_AR3000A),
     .model_name = "AR3000A",
     .mfg_name =  "AOR",
-    .version =  "0.5",
+    .version =  "20061007.0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_SCANNER,

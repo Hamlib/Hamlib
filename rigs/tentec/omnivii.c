@@ -129,7 +129,7 @@ const struct rig_caps tt588_caps =
     RIG_MODEL(RIG_MODEL_TT588),
     .model_name = "TT-588 Omni VII",
     .mfg_name =  "Ten-Tec",
-    .version =  "0.5",
+    .version =  "20200113.0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,

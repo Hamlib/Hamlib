@@ -167,7 +167,7 @@ const struct rig_caps ft747_caps =
     RIG_MODEL(RIG_MODEL_FT747),
     .model_name =       "FT-747GX",
     .mfg_name =         "Yaesu",
-    .version =           "0.4.1",
+    .version =           "20200323.0",
     .copyright =         "LGPL",
     .status =            RIG_STATUS_BETA,
     .rig_type =          RIG_TYPE_MOBILE,

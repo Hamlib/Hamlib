@@ -73,7 +73,7 @@ const struct rig_caps eb200_caps =
     RIG_MODEL(RIG_MODEL_EB200),
     .model_name = "EB200",
     .mfg_name =  "Rohde&Schwarz",
-    .version =  "0.1",
+    .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_UNTESTED,
     .rig_type =  RIG_TYPE_RECEIVER,

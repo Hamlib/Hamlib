@@ -72,7 +72,7 @@ const struct rig_caps icm710_caps =
     RIG_MODEL(RIG_MODEL_IC_M710),
     .model_name = "IC-M710",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER".1",
+    .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =   RIG_TYPE_TRANSCEIVER,

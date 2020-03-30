@@ -317,7 +317,7 @@ const struct rig_caps f6k_caps =
     RIG_MODEL(RIG_MODEL_F6K),
     .model_name =       "6xxx",
     .mfg_name =     "FlexRadio",
-    .version =      "20130717",
+    .version =      "20130717.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_BETA,
     .rig_type =     RIG_TYPE_TRANSCEIVER,

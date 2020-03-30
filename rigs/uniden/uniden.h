@@ -25,7 +25,7 @@
 #include <hamlib/rig.h>
 #include <cal.h>
 
-#define BACKEND_VER	"0.3"
+#define BACKEND_VER	"20200114"
 
 /* TODO: Trunk, Delay, Recording
  *

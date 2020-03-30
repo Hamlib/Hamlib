@@ -24,7 +24,7 @@
 
 #include <hamlib/rig.h>
 
-#define BACKEND_VER	"0.6"
+#define BACKEND_VER	"20200320"
 
 struct jrc_priv_caps {
 	int max_freq_len;

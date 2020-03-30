@@ -122,7 +122,7 @@ const struct rig_caps k2_caps =
     RIG_MODEL(RIG_MODEL_K2),
     .model_name =       "K2",
     .mfg_name =     "Elecraft",
-    .version =      "20200107",
+    .version =      BACKEND_VER ".0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_BETA,
     .rig_type =     RIG_TYPE_TRANSCEIVER,

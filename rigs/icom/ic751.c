@@ -89,7 +89,7 @@ const struct rig_caps ic751_caps =
     RIG_MODEL(RIG_MODEL_IC751),
     .model_name = "IC-751",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".1",
+    .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_TRANSCEIVER,

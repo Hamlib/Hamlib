@@ -57,7 +57,7 @@ const struct rig_caps tt516_caps =
     RIG_MODEL(RIG_MODEL_TT516),
     .model_name = "TT-516 Argonaut V",
     .mfg_name =  "Ten-Tec",
-    .version =  "0.2",
+    .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,

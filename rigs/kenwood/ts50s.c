@@ -55,7 +55,7 @@ const struct rig_caps ts50s_caps =
     RIG_MODEL(RIG_MODEL_TS50),
     .model_name = "TS-50S",
     .mfg_name =  "Kenwood",
-    .version =  BACKEND_VER".1",
+    .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_ALPHA,
     .rig_type =  RIG_TYPE_MOBILE,

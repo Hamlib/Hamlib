@@ -57,7 +57,7 @@ const struct rig_caps frg9600_caps =
     RIG_MODEL(RIG_MODEL_FRG9600),
     .model_name =         "FRG-9600",
     .mfg_name =           "Yaesu",
-    .version =            "0.2",
+    .version =            "20160409.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_UNTESTED,
     .rig_type =           RIG_TYPE_RECEIVER,
