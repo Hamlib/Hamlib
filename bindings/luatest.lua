@@ -54,19 +54,19 @@ function doStartup()
     print(string.format("Backend license:\t%s", my_rig.caps.copyright))
     print(string.format("Rig info:\t\t%s", my_rig:get_info()))
 
-    my_rig:set_level("VOX", 1)
+    my_rig:set_level("VOXDELAY", 1)
     print(string.format("status:\t\t\t%s - %s", my_rig.error_status, Hamlib.rigerror(my_rig.error_status)))
-    print(string.format("VOX level:\t\t%d", my_rig:get_level_i("VOX")))
-    my_rig:set_level(Hamlib.RIG_LEVEL_VOX, 5)
+    print(string.format("VOX delay:\t\t%d", my_rig:get_level_i("VOXDELAY")))
+    my_rig:set_level(Hamlib.RIG_LEVEL_VOXDELAY, 5)
     print(string.format("status:\t\t\t%s - %s", my_rig.error_status, Hamlib.rigerror(my_rig.error_status)))
     -- see the func name (get_level_i) and format (%d)
-    print(string.format("VOX level:\t\t%d", my_rig:get_level_i(Hamlib.RIG_LEVEL_VOX)))
+    print(string.format("VOX delay:\t\t%d", my_rig:get_level_i(Hamlib.RIG_LEVEL_VOXDELAY)))
 
     af = 12.34
     print(string.format("Setting AF to %f...", af))
     my_rig:set_level(Hamlib.RIG_LEVEL_AF, af)
     print(string.format("status:\t\t\t%s - %s", my_rig.error_status, Hamlib.rigerror(my_rig.error_status)))
-    -- see the different of func name and format related to RIG_LEVEL_VOX!
+    -- see the different of func name and format related to RIG_LEVEL_VOXDELAY!
     print(string.format("AF level:\t\t%f", my_rig:get_level_f("AF")))
 
     print(string.format("strength:\t\t%d", my_rig:get_level_i(Hamlib.RIG_LEVEL_STRENGTH)))
