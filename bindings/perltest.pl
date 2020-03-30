@@ -1,5 +1,4 @@
-#!/usr/bin/perl
-##!/usr/bin/perl -Iblib/arch -Iblib/lib
+#!/usr/bin/perl -Iblib/arch -Iblib/lib
 
 use Hamlib;
 
@@ -50,10 +49,10 @@ print "get_info:\t\t$inf\n";
 
 $rig->set_level("VOX", 1);
 $lvl = $rig->get_level_i("VOX");
-print "VOX level:\t\t$lvl\n";
-$rig->set_level($Hamlib::RIG_LEVEL_VOX, 5);
-$lvl = $rig->get_level_i($Hamlib::RIG_LEVEL_VOX);
-print "VOX level:\t\t$lvl\n";
+print "VOX delay:\t\t$lvl\n";
+$rig->set_level($Hamlib::RIG_LEVEL_VOXDELAY, 5);
+$lvl = $rig->get_level_i($Hamlib::RIG_LEVEL_VOXDELAY);
+print "VOX delay:\t\t$lvl\n";
 
 $lvl = $rig->get_level_i($Hamlib::RIG_LEVEL_STRENGTH);
 print "strength:\t\t$lvl\n";
