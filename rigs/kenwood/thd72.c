@@ -1619,7 +1619,7 @@ const struct rig_caps thd72a_caps =
     RIG_MODEL(RIG_MODEL_THD72A),
     .model_name = "TH-D72A",
     .mfg_name =  "Kenwood",
-    .version =  TH_VER ".4",
+    .version =  TH_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_HANDHELD | RIG_FLAG_APRS | RIG_FLAG_TNC | RIG_FLAG_DXCLUSTER,

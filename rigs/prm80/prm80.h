@@ -24,6 +24,8 @@
 
 #include <hamlib/rig.h>
 
+#define BACKEND_VER "20101027"
+
 #define PRM80_MEM_CAP {    \
         .freq = 1,  \
         .mode = 1,  \

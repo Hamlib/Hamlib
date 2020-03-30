@@ -23,7 +23,7 @@
 
 #include "idx_builtin.h"
 
-#define TH_VER "0.7"
+#define TH_VER "20200212"
 
 extern int th_transaction (RIG *rig, const char *cmdstr, char *data, size_t datasize);
 extern int th_get_vfo_char(RIG *rig, vfo_t *vfo, char *vfoch);

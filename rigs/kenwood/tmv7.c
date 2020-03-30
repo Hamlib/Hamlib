@@ -98,7 +98,7 @@ const struct rig_caps tmv7_caps =
     RIG_MODEL(RIG_MODEL_TMV7),
     .model_name = "TM-V7",
     .mfg_name =  "Kenwood",
-    .version =  TH_VER,
+    .version =  TH_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_MOBILE,

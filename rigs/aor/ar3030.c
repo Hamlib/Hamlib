@@ -102,7 +102,7 @@ const struct rig_caps ar3030_caps =
     RIG_MODEL(RIG_MODEL_AR3030),
     .model_name = "AR3030",
     .mfg_name =  "AOR",
-    .version =  "1.0",
+    .version =  "20200113.0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_RECEIVER,

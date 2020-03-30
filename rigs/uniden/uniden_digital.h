@@ -24,7 +24,7 @@
 
 #include "hamlib/rig.h"
 
-#define BACKEND_DIGITAL_VER	"0.3"
+#define BACKEND_DIGITAL_VER	"20170808"
 
 int uniden_digital_transaction (RIG *rig, const char *cmdstr, int cmd_len,
 		const char *replystr, char *data, size_t *datasize);

@@ -73,7 +73,7 @@ const struct rig_caps transfox_caps =
     RIG_MODEL(RIG_MODEL_TRANSFOX),
     .model_name =       "Transfox",
     .mfg_name =     "SigFox",
-    .version =      "20111223",
+    .version =      "20111223.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_ALPHA,
     .rig_type =     RIG_TYPE_TUNER,

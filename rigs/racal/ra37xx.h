@@ -24,6 +24,10 @@
 #include "hamlib/rig.h"
 #include "racal.h"
 
+
+#undef BACKEND_VER
+#define BACKEND_VER "20200114"
+
 extern const struct confparams ra37xx_cfg_params[];
 
 /* Packet timeout at Master port, 5-9 */

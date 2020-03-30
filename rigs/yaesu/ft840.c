@@ -218,7 +218,7 @@ const struct rig_caps ft840_caps =
     RIG_MODEL(RIG_MODEL_FT840),
     .model_name =         "FT-840",
     .mfg_name =           "Yaesu",
-    .version =            "0.1",
+    .version =            "20200323.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,

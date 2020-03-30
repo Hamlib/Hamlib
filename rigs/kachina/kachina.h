@@ -25,6 +25,8 @@
 #include <hamlib/rig.h>
 #include <tones.h>
 
+#define BACKEND_VER "20061007"
+
 int kachina_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int kachina_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int kachina_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);

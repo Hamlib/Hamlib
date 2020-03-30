@@ -30,7 +30,7 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "0.2"
+#define BACKEND_VER "20181007"
 
 struct icmarine_priv_caps {
     unsigned char default_remote_id;  /* the remote default equipment's ID */

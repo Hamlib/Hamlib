@@ -30,7 +30,7 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "1.2"
+#define BACKEND_VER "20200329"
 
 #define EOM "\r"
 #define TRUE 1

@@ -128,7 +128,7 @@ const struct rig_caps ts2000_caps =
     RIG_MODEL(RIG_MODEL_TS2000),
     .model_name = "TS-2000",
     .mfg_name =  "Kenwood",
-    .version =  BACKEND_VER ".4",
+    .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,

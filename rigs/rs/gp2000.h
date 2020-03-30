@@ -24,6 +24,9 @@
 #ifndef _XK2000_H
 #define _XK2000_H 1
 
+#undef BACKEND_VER
+#define BACKEND_VER "20180307"
+
 #include <hamlib/rig.h>
 
 

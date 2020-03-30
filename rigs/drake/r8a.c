@@ -87,7 +87,7 @@ const struct rig_caps r8a_caps =
     RIG_MODEL(RIG_MODEL_DKR8A),
     .model_name = "R-8A",
     .mfg_name =  "Drake",
-    .version =  BACKEND_VER ".1",
+    .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_RECEIVER,

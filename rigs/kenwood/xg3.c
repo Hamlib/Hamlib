@@ -107,7 +107,7 @@ const struct rig_caps xg3_caps =
     RIG_MODEL(RIG_MODEL_XG3),
     .model_name = "XG3",
     .mfg_name = "Elecraft",
-    .version = "20191218",
+    .version = "20191218.0",
     .copyright = "LGPL",
     .status = RIG_STATUS_BETA,
     .rig_type = RIG_TYPE_TRANSCEIVER,

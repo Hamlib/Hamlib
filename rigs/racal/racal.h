@@ -24,6 +24,8 @@
 
 #include "hamlib/rig.h"
 
+#define BACKEND_VER "20200113"
+
 #define TOK_RIGID TOKEN_BACKEND(1)
 
 extern const struct confparams racal_cfg_params[];

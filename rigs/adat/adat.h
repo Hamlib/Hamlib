@@ -40,6 +40,8 @@
 //    GLOBAL DEFINITIONS
 // ---------------------------------------------------------------------------
 
+#define BACKEND_VER "20191206"
+
 #define ADAT_BUFSZ                 256
 #define ADAT_RESPSZ                256
 

@@ -75,7 +75,7 @@ const struct rig_caps icr9000_caps =
     RIG_MODEL(RIG_MODEL_ICR9000),
     .model_name = "IC-R9000",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".1",
+    .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_ALPHA,
     .rig_type =  RIG_TYPE_RECEIVER,

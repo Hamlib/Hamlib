@@ -24,6 +24,8 @@
 
 #include <hamlib/rig.h>
 
+#define BACKEND_VER "20191208"
+
 int skanti_reset(RIG *rig, reset_t reset);
 int skanti_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int skanti_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
