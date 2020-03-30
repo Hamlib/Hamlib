@@ -58,13 +58,13 @@ def StartUp():
     print("Backend status:\t\t%s" % Hamlib.rig_strstatus(my_rig.caps.status))
     print("Rig info:\t\t%s" % my_rig.get_info())
 
-    my_rig.set_level("VOX",  1)
+    my_rig.set_level("VOXDELAY",  1)
 
-    print("VOX level:\t\t%s" % my_rig.get_level_i("VOX"))
+    print("VOX delay:\t\t%s" % my_rig.get_level_i("VOXDELAY"))
 
-    my_rig.set_level(Hamlib.RIG_LEVEL_VOX, 5)
+    my_rig.set_level(Hamlib.RIG_LEVEL_VOXDELAY, 5)
 
-    print("VOX level:\t\t%s" % my_rig.get_level_i(Hamlib.RIG_LEVEL_VOX))
+    print("VOX delay:\t\t%s" % my_rig.get_level_i(Hamlib.RIG_LEVEL_VOXDELAY))
 
     af = 12.34
 
