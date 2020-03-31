@@ -81,6 +81,8 @@ int ic10_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
     int retval;
     struct rig_state *rs;
 
+    rig_debug(RIG_DEBUG_TRACE,"%s: called cmd='%s', len=%d, data=%p, data_len=%p\n", __func__, cmd, cmd_len, data, data_len);
+
     rs = &rig->state;
 
     serial_flush(&rs->rigport);
@@ -121,6 +123,8 @@ static int get_ic10_if(RIG *rig, char *data)
 {
     struct kenwood_priv_caps *priv = (struct kenwood_priv_caps *)rig->caps->priv;
     int i, data_len, retval = RIG_EINVAL;
+
+    rig_debug(RIG_DEBUG_TRACE,"%s: called\n", __func__);
 
     for (i = 0; retval != RIG_OK && i < rig->caps->retry; i++)
     {
