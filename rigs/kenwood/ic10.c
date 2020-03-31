@@ -234,12 +234,9 @@ int ic10_get_vfo(RIG *rig, vfo_t *vfo)
 
 int ic10_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 {
-    char ackbuf[64];
-    int ack_len;
-
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
     return ic10_transaction(rig, split == RIG_SPLIT_ON ? "SP1;" : "SP0;", 4,
-                            ackbuf, &ack_len);
+                            NULL, 0);
 }
 
 
