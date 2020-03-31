@@ -1016,7 +1016,8 @@ const char *HAMLIB_API rig_strscan(scan_t rscan)
 {
     int i;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+// too verbose
+//    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (rscan == RIG_SCAN_NONE)
     {
