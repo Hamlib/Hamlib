@@ -398,8 +398,8 @@ int ic10_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  */
 int ic10_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    char freqbuf[64], ackbuf[64];
-    int freq_len, ack_len, retval;
+    char freqbuf[64];
+    int freq_len, retval;
     unsigned char vfo_letter;
     vfo_t   tvfo;
 
@@ -428,7 +428,7 @@ int ic10_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     // cppcheck-suppress *
     freq_len = sprintf(freqbuf, "F%c%011"PRIll";", vfo_letter, (int64_t)freq);
-    retval = ic10_transaction(rig, freqbuf, freq_len, ackbuf, &ack_len);
+    retval = ic10_transaction(rig, freqbuf, freq_len, NULL, 0);
 
     return retval;
 }
