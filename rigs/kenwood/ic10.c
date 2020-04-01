@@ -520,8 +520,8 @@ int ic10_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
  */
 int ic10_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
-    char pttbuf[4], ackbuf[64];
-    int ptt_len, ack_len, retval;
+    char pttbuf[4];
+    int ptt_len, retval;
     unsigned char ptt_letter;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
@@ -539,7 +539,7 @@ int ic10_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     }
 
     ptt_len = sprintf(pttbuf, "%cX;", ptt_letter);
-    retval = ic10_transaction(rig, pttbuf, ptt_len, ackbuf, &ack_len);
+    retval = ic10_transaction(rig, pttbuf, ptt_len, NULL, 0);
 
     return retval;
 }
