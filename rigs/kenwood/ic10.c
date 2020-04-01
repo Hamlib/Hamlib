@@ -81,6 +81,8 @@ int ic10_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
     int retval;
     struct rig_state *rs;
 
+    rig_debug(RIG_DEBUG_TRACE,"%s: called cmd='%s', len=%d, data=%p, data_len=%p\n", __func__, cmd, cmd_len, data, data_len);
+
     rs = &rig->state;
 
     serial_flush(&rs->rigport);
@@ -121,6 +123,8 @@ static int get_ic10_if(RIG *rig, char *data)
 {
     struct kenwood_priv_caps *priv = (struct kenwood_priv_caps *)rig->caps->priv;
     int i, data_len, retval = RIG_EINVAL;
+
+    rig_debug(RIG_DEBUG_TRACE,"%s: called\n", __func__);
 
     for (i = 0; retval != RIG_OK && i < rig->caps->retry; i++)
     {
@@ -516,8 +520,8 @@ int ic10_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
  */
 int ic10_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
-    char pttbuf[4], ackbuf[64];
-    int ptt_len, ack_len, retval;
+    char pttbuf[4];
+    int ptt_len, retval;
     unsigned char ptt_letter;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
@@ -535,7 +539,7 @@ int ic10_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     }
 
     ptt_len = sprintf(pttbuf, "%cX;", ptt_letter);
-    retval = ic10_transaction(rig, pttbuf, ptt_len, ackbuf, &ack_len);
+    retval = ic10_transaction(rig, pttbuf, ptt_len, NULL, 0);
 
     return retval;
 }
