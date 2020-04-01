@@ -1544,8 +1544,16 @@ int kenwood_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
     char buf[4];
     int retval, i;
+    shortfreq_t curr_rit;
+    int diff;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called: vfo=%s, rit=%ld\n", __func__, rig_strvfo(vfo), rit);
+
+    retval = kenwood_get_rit(rig, vfo, &curr_rit);
+    if (retval != RIG_OK)
+    {
+       return retval; 
+    }
 
     if (rit == 0)
     {
@@ -1554,14 +1562,10 @@ int kenwood_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 
     snprintf(buf, sizeof(buf), "R%c", (rit > 0) ? 'U' : 'D');
 
-    retval = kenwood_transaction(rig, "RC", NULL, 0);
+    diff = (rit - curr_rit)/10;
+    rig_debug(RIG_DEBUG_TRACE, "%s: rit change=%d\n", __func__, diff);
 
-    if (retval != RIG_OK)
-    {
-        return retval;
-    }
-
-    for (i = 0; i < labs(lrint(rit / 10)); i++)
+    for (i = 0; i < diff; i++)
     {
         retval = kenwood_transaction(rig, buf, NULL, 0);
     }
