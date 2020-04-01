@@ -111,7 +111,7 @@ const char *src_addr = NULL;    /* INADDR_ANY */
 
 char send_cmd_term = '\r';      /* send_cmd termination char */
 
-#define MAXCONFLEN 128
+#define MAXCONFLEN 1024
 
 
 static void handle_error(enum rig_debug_level_e lvl, const char *msg)
@@ -244,6 +244,13 @@ int main(int argc, char *argv[])
             if (*conf_parms != '\0')
             {
                 strcat(conf_parms, ",");
+            }
+
+            if (strlen(conf_parms) + strlen(optarg) > MAXCONFLEN - 24)
+            {
+                printf("Length of conf_parms exceeds internal maximum of %d\n",
+                       MAXCONFLEN - 24);
+                return 1;
             }
 
             strncat(conf_parms, optarg, MAXCONFLEN - strlen(conf_parms));

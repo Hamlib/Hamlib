@@ -116,7 +116,7 @@ static sig_atomic_t volatile ctrl_c;
 static int volatile ctrl_c;
 #endif
 
-#define MAXCONFLEN 128
+#define MAXCONFLEN 1024
 
 #if 0
 # ifdef WIN32
@@ -404,6 +404,13 @@ int main(int argc, char *argv[])
             if (*conf_parms != '\0')
             {
                 strcat(conf_parms, ",");
+            }
+
+            if (strlen(conf_parms) + strlen(optarg) > MAXCONFLEN - 24)
+            {
+                printf("Length of conf_parms exceeds internal maximum of %d\n",
+                       MAXCONFLEN - 24);
+                return 1;
             }
 
             strncat(conf_parms, optarg, MAXCONFLEN - strlen(conf_parms));

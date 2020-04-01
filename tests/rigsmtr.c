@@ -70,7 +70,7 @@ static struct option long_options[] =
     {0, 0, 0, 0}
 };
 
-#define MAXCONFLEN 128
+#define MAXCONFLEN 1024
 
 
 int main(int argc, char *argv[])
@@ -167,6 +167,13 @@ int main(int argc, char *argv[])
             if (*rig_conf_parms != '\0')
             {
                 strcat(rig_conf_parms, ",");
+            }
+
+            if (strlen(rig_conf_parms) + strlen(optarg) > MAXCONFLEN - 24)
+            {
+                printf("Length of conf_parms exceeds internal maximum of %d\n",
+                       MAXCONFLEN - 24);
+                return 1;
             }
 
             strncat(rig_conf_parms, optarg, MAXCONFLEN - strlen(rig_conf_parms));
