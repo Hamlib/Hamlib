@@ -142,7 +142,7 @@ static int volatile ctrl_c;
 const char *portno = "4532";
 const char *src_addr = NULL; /* INADDR_ANY */
 
-#define MAXCONFLEN 128
+#define MAXCONFLEN 1024
 
 static void sync_callback(int lock)
 {
@@ -455,6 +455,13 @@ int main(int argc, char *argv[])
             if (*conf_parms != '\0')
             {
                 strcat(conf_parms, ",");
+            }
+
+            if (strlen(conf_parms) + strlen(optarg) > MAXCONFLEN - 24)
+            {
+                printf("Length of conf_parms exceeds internal maximum of %d\n",
+                       MAXCONFLEN - 24);
+                return 1;
             }
 
             strncat(conf_parms, optarg, MAXCONFLEN - strlen(conf_parms));

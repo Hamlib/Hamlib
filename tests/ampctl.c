@@ -105,7 +105,7 @@ static struct option long_options[] =
     {0, 0, 0, 0}
 };
 
-#define MAXCONFLEN 128
+#define MAXCONFLEN 1024
 
 int interactive = 1;    /* if no cmd on command line, switch to interactive */
 int prompt = 1;         /* Print prompt in ampctl */
@@ -203,6 +203,13 @@ int main(int argc, char *argv[])
             if (*conf_parms != '\0')
             {
                 strcat(conf_parms, ",");
+            }
+
+            if (strlen(conf_parms) + strlen(optarg) > MAXCONFLEN - 24)
+            {
+                printf("Length of conf_parms exceeds internal maximum of %d\n",
+                       MAXCONFLEN - 24);
+                return 1;
             }
 
             strncat(conf_parms, optarg, MAXCONFLEN - strlen(conf_parms));
