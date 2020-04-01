@@ -27,7 +27,7 @@
 #include <string.h>
 #include "token.h"
 
-#define BACKEND_VER "20200329"
+#define BACKEND_VER "20200401"
 
 #define EOM_KEN ';'
 #define EOM_TH '\r'
@@ -77,6 +77,25 @@ extern const struct confparams kenwood_cfg_params[];
     { 30, 60 }, \
   } }
 
+#define RIG_IS_HPSDR     (rig->caps->rig_model == RIG_MODEL_HPSDR)
+#define RIG_IS_K2        (rig->caps->rig_model == RIG_MODEL_K2)
+#define RIG_IS_K3        (rig->caps->rig_model == RIG_MODEL_K3)
+#define RIG_IS_THD74     (rig->caps->rig_model == RIG_MODEL_THD74)
+#define RIG_IS_TS2000    (rig->caps->rig_model == RIG_MODEL_TS2000)
+#define RIG_IS_TS50      (rig->caps->rig_model == RIG_MODEL_TS50)
+#define RIG_IS_TS450S    (rig->caps->rig_model == RIG_MODEL_TS450S)
+#define RIG_IS_TS450S    (rig->caps->rig_model == RIG_MODEL_TS450S)
+#define RIG_IS_TS590S    (rig->caps->rig_model == RIG_MODEL_TS590S)
+#define RIG_IS_TS590SG   (rig->caps->rig_model == RIG_MODEL_TS590SG)
+#define RIG_IS_TS690S    (rig->caps->rig_model == RIG_MODEL_TS690S)
+#define RIG_IS_TS790     (rig->caps->rig_model == RIG_MODEL_TS790)
+#define RIG_IS_TS850     (rig->caps->rig_model == RIG_MODEL_TS850)
+#define RIG_IS_TS890S    (rig->caps->rig_model == RIG_MODEL_TS890S)
+#define RIG_IS_TS940     (rig->caps->rig_model == RIG_MODEL_TS940)
+#define RIG_IS_TS950SDX  (rig->caps->rig_model == RIG_MODEL_TS950SDX)
+#define RIG_IS_TS950     (rig->caps->rig_model == RIG_MODEL_TS950)
+#define RIG_IS_TS990S    (rig->caps->rig_model == RIG_MODEL_TS990S)
+#define RIG_IS_XG3       (rig->caps->rig_model == RIG_MODEL_XG3)
 
 struct kenwood_priv_caps
 {
@@ -100,6 +119,10 @@ struct kenwood_priv_data
     int is_emulation;     /* flag for TS-2000 emulations */
     void *data;           /* model specific data */
     rmode_t curr_mode;     /* used for is_emulation to avoid get_mode on VFOB */
+    // Boolean flags true when model is in use
+    int is_590s;
+    int is_590sg;
+    int is_950;
 };
 
 
