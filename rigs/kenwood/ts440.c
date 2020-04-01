@@ -34,7 +34,7 @@
 #define TS440_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
 #define TS440_AM_TX_MODES RIG_MODE_AM
 
-#define TS440_FUNC_ALL RIG_FUNC_LOCK
+#define TS440_FUNC_ALL (RIG_FUNC_LOCK|RIG_FUNC_RIT|RIG_FUNC_XIT)
 
 #define TS440_LEVEL_ALL RIG_LEVEL_NONE
 
@@ -62,7 +62,7 @@ const struct rig_caps ts440_caps =
     RIG_MODEL(RIG_MODEL_TS440),
     .model_name = "TS-440",
     .mfg_name =  "Kenwood",
-    .version =  IC10_VER ".1",
+    .version =  IC10_VER ".2",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
