@@ -1756,9 +1756,12 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                 || RIG_MODE_RTTYR == mode))
         {
             char *data_cmd = "DA";
-            if (RIG_IS_TS950 || RIG_IS_TS950SDX) {
+
+            if (RIG_IS_TS950 || RIG_IS_TS950SDX)
+            {
                 data_cmd = "DT";
             }
+
             /* supports DATA sub modes - see above */
             snprintf(buf, sizeof(buf), "%s%c", data_cmd, data_mode);
             err = kenwood_transaction(rig, buf, NULL, 0);
@@ -1988,7 +1991,7 @@ int kenwood_get_mode_if(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     *width = rig_passband_normal(rig, *mode);
 
-    if ( RIG_IS_TS450S || RIG_IS_TS690S || RIG_IS_TS850 || RIG_IS_TS950SDX)
+    if (RIG_IS_TS450S || RIG_IS_TS690S || RIG_IS_TS850 || RIG_IS_TS950SDX)
     {
 
         kenwood_get_filter(rig, width);
@@ -3287,7 +3290,8 @@ int kenwood_get_trn(RIG *rig, int *trn)
     }
 
     /* these rigs only have AI[0|1] set commands and no AI query */
-    if (RIG_IS_TS450S || RIG_IS_TS690S || RIG_IS_TS790 || RIG_IS_TS850 || RIG_IS_TS950SDX)
+    if (RIG_IS_TS450S || RIG_IS_TS690S || RIG_IS_TS790 || RIG_IS_TS850
+            || RIG_IS_TS950SDX)
     {
         return -RIG_ENAVAIL;
     }
