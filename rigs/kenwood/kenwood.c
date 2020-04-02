@@ -75,11 +75,11 @@ static const struct kenwood_id kenwood_id_list[] =
     { RIG_MODEL_TS440, 4 },
     { RIG_MODEL_R5000, 5 },
     { RIG_MODEL_TS790, 7 },
-    { RIG_MODEL_TS950, 8 },  
+    { RIG_MODEL_TS950, 8 },
     { RIG_MODEL_TS850, 9 },
     { RIG_MODEL_TS450S, 10 },
     { RIG_MODEL_TS690S, 11 },
-    { RIG_MODEL_TS950SDX, 12 },  
+    { RIG_MODEL_TS950SDX, 12 },
     { RIG_MODEL_TS50, 13 },
     { RIG_MODEL_TS870S, 15 },
     { RIG_MODEL_TRC80, 16 },
@@ -270,6 +270,13 @@ transaction_write:
         }
 
         memcpy(cmd, cmdstr, len);
+
+        /* XXX the if is temporary, until all invocations are fixed */
+        if (cmdstr[len - 1] != ';' && cmdstr[len - 1] != '\r')
+        {
+            cmd[len] = caps->cmdtrm;
+            len++;
+        }
 
         /* flush anything in the read buffer before command is sent */
         if (rs->rigport.type.rig == RIG_PORT_NETWORK
@@ -1542,30 +1549,33 @@ int kenwood_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     shortfreq_t curr_rit;
     int diff;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called: vfo=%s, rit=%ld\n", __func__, rig_strvfo(vfo), rit);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called: vfo=%s, rit=%ld\n", __func__,
+              rig_strvfo(vfo), rit);
 
     retval = kenwood_get_rit(rig, vfo, &curr_rit);
+
     if (retval != RIG_OK)
     {
-       return retval; 
+        return retval;
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s get_rit=%ld\n", __func__, curr_rit);
+
     if (rit == 0)
     {
         return kenwood_transaction(rig, "RC", NULL, 0);
     }
 
     retval = kenwood_transaction(rig, "RC", NULL, 0);
-    
+
     if (retval != RIG_OK)
     {
-      return retval;
+        return retval;
     }
 
     snprintf(buf, sizeof(buf), "R%c", (rit > 0) ? 'U' : 'D');
 
-    diff = abs((rit+5)/10); // round to nearest
+    diff = abs((rit + 5) / 10); // round to nearest
     rig_debug(RIG_DEBUG_TRACE, "%s: rit change loop=%d\n", __func__, diff);
 
     for (i = 0; i < diff; i++)
