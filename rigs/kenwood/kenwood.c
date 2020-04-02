@@ -271,13 +271,6 @@ transaction_write:
 
         memcpy(cmd, cmdstr, len);
 
-        /* XXX the if is temporary, until all invocations are fixed */
-        if (cmdstr[len - 1] != ';' && cmdstr[len - 1] != '\r')
-        {
-            cmd[len] = caps->cmdtrm;
-            len++;
-        }
-
         /* flush anything in the read buffer before command is sent */
         if (rs->rigport.type.rig == RIG_PORT_NETWORK
                 || rs->rigport.type.rig == RIG_PORT_UDP_NETWORK)
