@@ -320,7 +320,8 @@ transaction_read:
 
     if (retval < 0)
     {
-        if (retry_read++ < rs->rigport.retry)
+        // only retry if we expect a response from the command
+        if (datasize && retry_read++ < rs->rigport.retry)
         {
             goto transaction_write;
         }
