@@ -75,10 +75,11 @@ static const struct kenwood_id kenwood_id_list[] =
     { RIG_MODEL_TS440, 4 },
     { RIG_MODEL_R5000, 5 },
     { RIG_MODEL_TS790, 7 },
-    { RIG_MODEL_TS950SDX, 8 },  /* reported as RIG_MODEL_TS950SD originally */
+    { RIG_MODEL_TS950, 8 },  
     { RIG_MODEL_TS850, 9 },
     { RIG_MODEL_TS450S, 10 },
     { RIG_MODEL_TS690S, 11 },
+    { RIG_MODEL_TS950SDX, 12 },  
     { RIG_MODEL_TS50, 13 },
     { RIG_MODEL_TS870S, 15 },
     { RIG_MODEL_TRC80, 16 },
