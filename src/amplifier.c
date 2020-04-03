@@ -310,6 +310,13 @@ int HAMLIB_API amp_open(AMP *amp)
 
     rs->ampport.fd = -1;
 
+    // determine if we have a network address
+    if (sscanf(rs->rotport.pathname,"%d.%d.%d.%d:%d", &net1, &net2, &net3, &net4, &port)==5) 
+    {
+        rig_debug(RIG_DEBUG_TRACE,"%s: using network address %s\n", __func__, rs->rotport.pathname);
+        rs->rotport.type.rig = RIG_PORT_NETWORK;
+    }
+
     switch (rs->ampport.type.rig)
     {
     case RIG_PORT_SERIAL:
