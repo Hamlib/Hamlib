@@ -158,8 +158,8 @@ static int get_ic10_if(RIG *rig, char *data)
  */
 int ic10_set_vfo(RIG *rig, vfo_t vfo)
 {
-    char ackbuf[64], cmdbuf[6];
-    int cmd_len, retval, ack_len;
+    char cmdbuf[6];
+    int cmd_len, retval;
     char vfo_function;
 
     switch (vfo)
@@ -183,7 +183,7 @@ int ic10_set_vfo(RIG *rig, vfo_t vfo)
 
     cmd_len = sprintf(cmdbuf, "FN%c;", vfo_function);
 
-    retval = ic10_transaction(rig, cmdbuf, cmd_len, ackbuf, &ack_len);
+    retval = ic10_transaction(rig, cmdbuf, cmd_len, NULL, 0);
     return retval;
 }
 
@@ -237,6 +237,19 @@ int ic10_get_vfo(RIG *rig, vfo_t *vfo)
     return RIG_OK;
 }
 
+
+int ic10_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called vfo=%s tx_freq=%.0f\n", __func__,
+              rig_strvfo(vfo), tx_freq);
+    return ic10_set_freq(rig, RIG_VFO_B, tx_freq);
+}
+
+int ic10_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called vfo=%s\n", __func__, rig_strvfo(vfo));
+    return ic10_get_freq(rig, RIG_VFO_B, tx_freq);
+}
 
 int ic10_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 {
@@ -332,8 +345,8 @@ int ic10_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  */
 int ic10_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-    char modebuf[6], ackbuf[64];
-    int mode_len, ack_len, retval;
+    char modebuf[6];
+    int mode_len, retval;
     char mode_letter;
 
     switch (mode)
@@ -357,7 +370,7 @@ int ic10_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     }
 
     mode_len = sprintf(modebuf, "MD%c;", mode_letter);
-    retval = ic10_transaction(rig, modebuf, mode_len, ackbuf, &ack_len);
+    retval = ic10_transaction(rig, modebuf, mode_len, NULL, 0);
 
     return retval;
 }
