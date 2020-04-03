@@ -1678,7 +1678,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (RIG_IS_TS590S || RIG_IS_TS590SG)
+    if (RIG_IS_TS590S || RIG_IS_TS590SG || RIG_IS_TS950S || RIG_IS_TS950SDX)
     {
         /* supports DATA sub modes */
         switch (mode)
@@ -1955,7 +1955,7 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         if (RIG_MODE_RTTYR == *mode) { *mode = RIG_MODE_PKTUSB; }
     }
 
-    if (RIG_IS_TS590S || RIG_IS_TS590SG)
+    if (RIG_IS_TS590S || RIG_IS_TS590SG || RIG_IS_TS950S || RIG_IS_TS950SDX)
     {
         /* supports DATA sub-modes */
         retval = kenwood_safe_transaction(rig, "DA", modebuf, 6, 3);
