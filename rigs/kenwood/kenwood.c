@@ -586,7 +586,7 @@ int kenwood_init(RIG *rig)
     struct kenwood_priv_data *priv;
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called, version %s\n", __func__, BACKEND_VER);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called, version %s/%s\n", __func__, BACKEND_VER, rig->caps->version);
 
     rig->state.priv = malloc(sizeof(struct kenwood_priv_data));
 
@@ -1314,12 +1314,14 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     int err;
     struct kenwood_priv_data *priv = rig->state.priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s freq=%.0f\n", __func__, rig_strvfo(vfo), freq);
 
     tvfo = (vfo == RIG_VFO_CURR
             || vfo == RIG_VFO_VFO) ? rig->state.current_vfo : vfo;
 
-    if (RIG_VFO_CURR == tvfo)
+    rig_debug(RIG_DEBUG_TRACE, "%s: tvfo=%s\n", __func__, rig_strvfo(vfo));
+
+    if (tvfo == RIG_VFO_CURR || tvfo == RIG_VFO_NONE)
     {
         /* fetch from rig */
         err = rig_get_vfo(rig, &tvfo);
