@@ -27,7 +27,7 @@
 #include <string.h>
 #include "token.h"
 
-#define BACKEND_VER "20200402"
+#define BACKEND_VER "20200403"
 
 #define EOM_KEN ';'
 #define EOM_TH '\r'
@@ -93,7 +93,7 @@ extern const struct confparams kenwood_cfg_params[];
 #define RIG_IS_TS890S    (rig->caps->rig_model == RIG_MODEL_TS890S)
 #define RIG_IS_TS940     (rig->caps->rig_model == RIG_MODEL_TS940)
 #define RIG_IS_TS950SDX  (rig->caps->rig_model == RIG_MODEL_TS950SDX)
-#define RIG_IS_TS950     (rig->caps->rig_model == RIG_MODEL_TS950)
+#define RIG_IS_TS950S    (rig->caps->rig_model == RIG_MODEL_TS950S)
 #define RIG_IS_TS990S    (rig->caps->rig_model == RIG_MODEL_TS990S)
 #define RIG_IS_XG3       (rig->caps->rig_model == RIG_MODEL_XG3)
 
@@ -204,6 +204,7 @@ int kenwood_get_trn(RIG *rig, int *trn);
 int get_kenwood_level(RIG *rig, const char *cmd, float *f);
 int get_kenwood_func(RIG *rig, const char *cmd, int *status);
 
+extern const struct rig_caps ts950s_caps;
 extern const struct rig_caps ts950sdx_caps;
 extern const struct rig_caps ts50s_caps;
 extern const struct rig_caps ts140_caps;
