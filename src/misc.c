@@ -248,7 +248,8 @@ int HAMLIB_API sprintf_freq(char *str, freq_t freq)
     double f;
     char *hz;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    // too verbose
+    //rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (llabs(freq) >= GHz(1))
     {
