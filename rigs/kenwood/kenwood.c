@@ -75,7 +75,7 @@ static const struct kenwood_id kenwood_id_list[] =
     { RIG_MODEL_TS440, 4 },
     { RIG_MODEL_R5000, 5 },
     { RIG_MODEL_TS790, 7 },
-    { RIG_MODEL_TS950, 8 },
+    { RIG_MODEL_TS950S, 8 },
     { RIG_MODEL_TS850, 9 },
     { RIG_MODEL_TS450S, 10 },
     { RIG_MODEL_TS690S, 11 },
@@ -103,10 +103,11 @@ static const struct kenwood_id_string kenwood_id_string_list[] =
     { RIG_MODEL_TS440,  "004" },
     { RIG_MODEL_R5000,  "005" },
     { RIG_MODEL_TS790,  "007" },
-    { RIG_MODEL_TS950SDX, "008" },  /* reported as RIG_MODEL_TS950SD originally */
+    { RIG_MODEL_TS950S, "008" },
     { RIG_MODEL_TS850,  "009" },
     { RIG_MODEL_TS450S, "010" },
     { RIG_MODEL_TS690S, "011" },
+    { RIG_MODEL_TS950SDX, "012" },
     { RIG_MODEL_TS50,   "013" },
     { RIG_MODEL_TS870S, "015" },
     { RIG_MODEL_TS570D, "017" },  /* Elecraft K2|K3 also returns 17 */
@@ -1764,7 +1765,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (err != RIG_OK) { return err; }
 
-    if (RIG_IS_TS590S || RIG_IS_TS590SG || RIG_IS_TS950 || RIG_IS_TS950SDX)
+    if (RIG_IS_TS590S || RIG_IS_TS590SG || RIG_IS_TS950S || RIG_IS_TS950SDX)
     {
         if (!(RIG_MODE_CW == mode
                 || RIG_MODE_CWR == mode
@@ -1774,7 +1775,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         {
             char *data_cmd = "DA";
 
-            if (RIG_IS_TS950 || RIG_IS_TS950SDX)
+            if (RIG_IS_TS950S || RIG_IS_TS950SDX)
             {
                 data_cmd = "DT";
             }
@@ -1789,7 +1790,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (RIG_PASSBAND_NOCHANGE == width) { return RIG_OK; }
 
-    if (RIG_IS_TS450S || RIG_IS_TS690S || RIG_IS_TS850 || RIG_IS_TS950SDX)
+    if (RIG_IS_TS450S || RIG_IS_TS690S || RIG_IS_TS850 || RIG_IS_TS950S || RIG_IS_TS950SDX)
     {
 
         if (RIG_PASSBAND_NORMAL == width)
@@ -2008,7 +2009,7 @@ int kenwood_get_mode_if(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     *width = rig_passband_normal(rig, *mode);
 
-    if (RIG_IS_TS450S || RIG_IS_TS690S || RIG_IS_TS850 || RIG_IS_TS950SDX)
+    if (RIG_IS_TS450S || RIG_IS_TS690S || RIG_IS_TS850 || RIG_IS_TS950S || RIG_IS_TS950SDX)
     {
 
         kenwood_get_filter(rig, width);
@@ -3308,7 +3309,7 @@ int kenwood_get_trn(RIG *rig, int *trn)
 
     /* these rigs only have AI[0|1] set commands and no AI query */
     if (RIG_IS_TS450S || RIG_IS_TS690S || RIG_IS_TS790 || RIG_IS_TS850
-            || RIG_IS_TS950SDX)
+            || RIG_IS_TS950S || RIG_IS_TS950SDX)
     {
         return -RIG_ENAVAIL;
     }
@@ -4196,6 +4197,7 @@ DECLARE_INITRIG_BACKEND(kenwood)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
+    rig_register(&ts950s_caps);
     rig_register(&ts950sdx_caps);
     rig_register(&ts50s_caps);
     rig_register(&ts140_caps);
