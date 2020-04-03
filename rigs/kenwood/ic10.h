@@ -22,12 +22,14 @@
 #ifndef _IC10_H
 #define _IC10_H 1
 
-#define IC10_VER	"20200331"
+#define IC10_VER	"20200402"
 
 int ic10_cmd_trim (char *data, int data_len);
 int ic10_transaction (RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len);
 int ic10_set_vfo(RIG *rig, vfo_t vfo);
 int ic10_get_vfo(RIG *rig, vfo_t *vfo);
+int ic10_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
+int ic10_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq);
 int ic10_set_split_vfo(RIG *rig, vfo_t vfo , split_t split, vfo_t txvfo);
 int ic10_get_split_vfo(RIG *rig, vfo_t vfo , split_t *split, vfo_t *txvfo);
 int ic10_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
