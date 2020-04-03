@@ -150,7 +150,8 @@ int HAMLIB_API rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     int retcode;
     vfo_t curr_vfo;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    // too verbose
+    //rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (CHECK_RIG_ARG(rig) || !val)
     {
@@ -300,7 +301,8 @@ int HAMLIB_API rig_get_parm(RIG *rig, setting_t parm, value_t *val)
  */
 setting_t HAMLIB_API rig_has_get_level(RIG *rig, setting_t level)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    // too verbose
+    //rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!rig || !rig->caps)
     {
@@ -358,7 +360,8 @@ setting_t HAMLIB_API amp_has_get_level(AMP *amp, setting_t level)
  */
 setting_t HAMLIB_API rig_has_set_level(RIG *rig, setting_t level)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    // too verbose
+    //rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!rig || !rig->caps)
     {
@@ -445,7 +448,8 @@ setting_t HAMLIB_API rig_has_set_parm(RIG *rig, setting_t parm)
  */
 setting_t HAMLIB_API rig_has_get_func(RIG *rig, setting_t func)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    // too verbose
+    //rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!rig || !rig->caps)
     {
@@ -576,7 +580,8 @@ int HAMLIB_API rig_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     int retcode;
     vfo_t curr_vfo;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    // too verbose
+    //rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (CHECK_RIG_ARG(rig) || !func)
     {
