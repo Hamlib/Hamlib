@@ -320,6 +320,7 @@ int HAMLIB_API rot_open(ROT *rot)
     const struct rot_caps *caps;
     struct rot_state *rs;
     int status;
+    int net1,net2,net3,net4,port;
 
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -337,6 +338,13 @@ int HAMLIB_API rot_open(ROT *rot)
     }
 
     rs->rotport.fd = -1;
+
+    // determine if we have a network address
+    if (sscanf(rs->rotport.pathname,"%d.%d.%d.%d:%d", &net1, &net2, &net3, &net4, &port)==5) 
+    {
+        rig_debug(RIG_DEBUG_TRACE,"%s: using network address %s\n", __func__, rs->rotport.pathname);
+        rs->rotport.type.rig = RIG_PORT_NETWORK;
+    }
 
     switch (rs->rotport.type.rig)
     {

@@ -568,6 +568,13 @@ int HAMLIB_API rig_open(RIG *rig)
 
     rs->rigport.fd = -1;
 
+    // determine if we have a network address
+    if (sscanf(rs->rotport.pathname,"%d.%d.%d.%d:%d", &net1, &net2, &net3, &net4, &port)==5) 
+    {
+        rig_debug(RIG_DEBUG_TRACE,"%s: using network address %s\n", __func__, rs->rotport.pathname);
+        rs->rotport.type.rig = RIG_PORT_NETWORK;
+    }
+
     if (rs->rigport.type.rig == RIG_PORT_SERIAL)
     {
         if (rs->rigport.parm.serial.rts_state != RIG_SIGNAL_UNSET
