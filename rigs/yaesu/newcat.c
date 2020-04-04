@@ -6152,7 +6152,7 @@ int newcat_get_cmd(RIG *rig)
 
         /* Check that command termination is correct - alternative is
            response is longer that the buffer */
-        if (!strchr(&cat_term, priv->ret_data[strlen(priv->ret_data) - 1]))
+        if (cat_term  != priv->ret_data[strlen(priv->ret_data) - 1])
         {
             rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n",
                       __func__, priv->ret_data);
