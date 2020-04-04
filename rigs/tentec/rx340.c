@@ -316,7 +316,7 @@ int rx340_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 int rx340_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     char buf[BUFSZ];
-    int buf_len;
+    int buf_len = 0;
     int retval;
     double f;
 
@@ -406,7 +406,7 @@ int rx340_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 int rx340_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     char buf[BUFSZ];
-    int buf_len;
+    int buf_len = 0;
     int retval;
     double f;
 
