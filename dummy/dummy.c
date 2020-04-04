@@ -1873,7 +1873,7 @@ static int dummy_mW2power(RIG *rig, float *power, unsigned int mwpower,
     .ext_levels = 1,    \
     }
 
-const struct rig_caps dummy_caps =
+struct rig_caps dummy_caps =
 {
     RIG_MODEL(RIG_MODEL_DUMMY),
     .model_name =     "Dummy",
