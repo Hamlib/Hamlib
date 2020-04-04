@@ -530,6 +530,7 @@ static int netrigctl_open(RIG *rig)
             }
             else
             {
+                // not an error -- just a warning for backward compatibily
                 rig_debug(RIG_DEBUG_ERR, "%s: unknown setting='%s'\n", __func__, buf);
             }
         }
