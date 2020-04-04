@@ -503,6 +503,47 @@ static int netrigctl_open(RIG *rig)
         rs->vfo_list |= rs->tx_range_list[i].vfo;
     }
 
+    if (prot_ver == 0) { return RIG_OK; }
+
+    // otherwise we continue reading protocol 1 fields
+
+
+    do
+    {
+        char setting[32], value[256];
+        ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
+        strtok(buf, "\r\n"); // chop the EOL
+
+        if (ret <= 0)
+        {
+            return (ret < 0) ? ret : -RIG_EPROTO;
+        }
+
+        if (strncmp(buf, "done", 4) == 0) { return RIG_OK; }
+
+        if (sscanf(buf, "%[^=]=%[^\t\n]", setting, value) == 2)
+        {
+            if (strcmp(setting, "vfo_ops") == 0)
+            {
+                rig_debug(RIG_DEBUG_TRACE, "%s: %s set to %s\n", __func__, setting, value);
+                rig->caps->vfo_ops = strtol(value, NULL, 0);
+            }
+            else
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: unknown setting='%s'\n", __func__, buf);
+            }
+        }
+        else
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: invalid dumpcaps line, expected 'setting=value', got '%s'\n", __func__,
+                      buf);
+        }
+
+
+    }
+    while (1);
+
     return RIG_OK;
 }
 
@@ -2105,7 +2146,7 @@ static int netrigctl_send_morse(RIG *rig, vfo_t vfo, const char *msg)
  * Netrigctl rig capabilities.
  */
 
-const struct rig_caps netrigctl_caps =
+struct rig_caps netrigctl_caps =
 {
     RIG_MODEL(RIG_MODEL_NETRIGCTL),
     .model_name =     "NET rigctl",

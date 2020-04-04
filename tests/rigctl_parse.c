@@ -1063,7 +1063,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             return 0;
         }
 
-        rig_debug(RIG_DEBUG_BUG, "%s: input_line: %s\n", __func__, input_line);
+        rig_debug(RIG_DEBUG_TRACE, "%s: input_line: %s\n", __func__, input_line);
 
         /* Split input_line on any number of spaces to get the command token
          * Tabs are intercepted by readline for completion and a newline
@@ -3888,7 +3888,7 @@ declare_proto_rig(dump_state)
     /*
      * - Protocol version
      */
-#define RIGCTLD_PROT_VER 0
+#define RIGCTLD_PROT_VER 1
     fprintf(fout, "%d\n", RIGCTLD_PROT_VER);
     fprintf(fout, "%d\n", rig->caps->rig_model);
     fprintf(fout, "%d\n", rs->itu_region);
@@ -3973,7 +3973,13 @@ declare_proto_rig(dump_state)
     fprintf(fout, "0x%"PRXll"\n", rs->has_get_parm);
     fprintf(fout, "0x%"PRXll"\n", rs->has_set_parm);
 
-#if 0
+    // protocol 1 fields are "setting=value"
+    // protocol 1 allows fields can be listed/processed in any order
+    // protocol 1 fields can be multi-line -- just write the thing to allow for it
+    fprintf(fout, "vfo_ops=0x%"PRXll"\n", (unsigned long)rig->caps->vfo_ops);
+    fprintf(fout, "done\n");
+
+#if 0 // why isn't this implemented?  Does anybody care?
     gran_t level_gran[RIG_SETTING_MAX];   /*!< level granularity */
     gran_t parm_gran[RIG_SETTING_MAX];  /*!< parm granularity */
 #endif
