@@ -3977,7 +3977,7 @@ declare_proto_rig(dump_state)
     // protocol 1 allows fields can be listed/processed in any order
     // protocol 1 fields can be multi-line -- just write the thing to allow for it
     // backward compatible as new values will just generate warnings
-    fprintf(fout, "vfo_ops=0x%"PRXll"\n", (unsigned long)rig->caps->vfo_ops);
+    fprintf(fout, "vfo_ops=0x%"PRXll"\n", (uint64_t)rig->caps->vfo_ops);
     fprintf(fout, "done\n");
 
 #if 0 // why isn't this implemented?  Does anybody care?
