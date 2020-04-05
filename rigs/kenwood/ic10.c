@@ -611,16 +611,17 @@ int ic10_get_channel(RIG *rig, channel_t *chan)
     char membuf[16], infobuf[32];
     int retval, info_len, len;
 
-    len = sprintf(membuf, "MR0%02d;", chan->channel_num);
+    len = sprintf(membuf, "MR00%02d;", chan->channel_num);
     info_len = 24;
     retval = ic10_transaction(rig, membuf, len, infobuf, &info_len);
 
-    if (retval != RIG_OK && info_len > 17)
+    if (retval != RIG_OK)
     {
         return retval;
     }
 
-    /* MRn rrggmmmkkkhhhdz    ; */
+    /* MRs-ccfffffffffffml----; */
+    /* 012345678901234567890123 */
     switch (infobuf[17])
     {
     case MD_CW  :   chan->mode = RIG_MODE_CW; break;
@@ -649,7 +650,7 @@ int ic10_get_channel(RIG *rig, channel_t *chan)
     chan->vfo = RIG_VFO_MEM;
 
     /* TX VFO (Split channel only) */
-    len = sprintf(membuf, "MR1%02d;", chan->channel_num);
+    len = sprintf(membuf, "MR10%02d;", chan->channel_num);
     info_len = 24;
     retval = ic10_transaction(rig, membuf, len, infobuf, &info_len);
 
