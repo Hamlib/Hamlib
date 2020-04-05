@@ -85,7 +85,7 @@ DEFINE_INITROT_BACKEND(meade);
 DEFINE_INITROT_BACKEND(ioptron);
 
 /**
- *  \def ROT_BACKEND_LIST
+ *  \def rot_backend_list
  *  \brief Static list of rotator models.
  *
  *  This is a NULL terminated list of available rotator backends. Each entry

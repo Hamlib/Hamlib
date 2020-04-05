@@ -134,7 +134,7 @@ int HAMLIB_API rig_need_debug(enum rig_debug_level_e debug_level)
 }
 
 /**
- * \param debug_time_stamp
+ * \param flag
  * \brief Enbable/disable time stamp on debug output
  */
 void HAMLIB_API rig_set_debug_time_stamp(int flag)

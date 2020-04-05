@@ -32,7 +32,7 @@
 
 /**
  * \brief provide sleep and usleep replacements
- * \param same as man page for each
+ * \note parameters are same as man page for each
  *
  */
 #include <unistd.h>
@@ -99,7 +99,7 @@ int usleep(useconds_t usec)
     return 0;
 }
 #endif // HAVE_NANOSLEEP
-
+#pragma GCC diagnostic ignored "-Wall"
 #ifdef __cplusplus
 }
 #endif

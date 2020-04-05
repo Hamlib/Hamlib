@@ -1084,17 +1084,17 @@ int HAMLIB_API rig_cleanup(RIG *rig)
 /**
  * \brief timeout (secs) to stop rigctld when VFO is manually changed
  * \param rig   The rig handle
- * \param timeout_secs    The timeout to set to
+ * \param seconds    The timeout to set to
  *
- * timeout (secs) to stop rigctld when VFO is manually changed
+ * timeout seconds to stop rigctld when VFO is manually changed
  * turns on/off the radio.
- * See \set_twiddle
+ * See \rig_set_twiddle
  *
  * \return RIG_OK if the operation has been sucessful, ortherwise
  * a negative value if an error occured (in which case, cause is
  * set appropriately).
  *
- * \sa rig_set_twiddle()
+ * \sa rig_get_twiddle()
  */
 int HAMLIB_API rig_set_twiddle(RIG *rig, int seconds)
 {

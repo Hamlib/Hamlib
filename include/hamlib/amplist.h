@@ -81,10 +81,10 @@
  */
 
 /**
- *  \def AMP_MODEL_ELECRAFT1
+ *  \def AMP_MODEL_ELECRAFT
  *  \brief A macro that returns the model number of the EasyComm 1 backend.
  *
- *  The Elecraft 1 backend can be used with amplifiers that support the
+ *  The Elecraft #1 backend can be used with amplifiers that support the
  *  KPA1500 protocol.
  */
 #define AMP_ELECRAFT 2

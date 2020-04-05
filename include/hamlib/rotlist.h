@@ -205,8 +205,8 @@
  *  GS23 protocol.
  */
  /**
- *  \def ROT_MODEL_AMSAT_LVB
- *  \brief A macro that returns the model number of the AMSAT_LVB TRACKER backend.
+ *  \def ROT_MODEL_LVB
+ *  \brief A macro that returns the model number of the LVB TRACKER backend.
  *
  *  The AMSAT LVB TRACKER backend can be used with rotators that support the
  *  AMSAT LVB TRACKER GS232 based protocol.

@@ -77,7 +77,7 @@
  * \param port
  * \return file descriptor
  */
-int cm108_open(hamlib_port_t *p)
+int cm108_open(hamlib_port_t *port)
 {
     int fd;
 #ifdef HAVE_LINUX_HIDRAW_H
@@ -86,19 +86,19 @@ int cm108_open(hamlib_port_t *p)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!p->pathname[0])
+    if (!port->pathname[0])
     {
         return -RIG_EINVAL;
     }
 
-    fd = open(p->pathname, O_RDWR);
+    fd = open(port->pathname, O_RDWR);
 
     if (fd < 0)
     {
         rig_debug(RIG_DEBUG_ERR,
                   "%s: opening device \"%s\": %s\n",
                   __func__,
-                  p->pathname,
+                  port->pathname,
                   strerror(errno));
         return -RIG_EIO;
     }
@@ -138,7 +138,7 @@ int cm108_open(hamlib_port_t *p)
 
 #endif
 
-    p->fd = fd;
+    port->fd = fd;
     return fd;
 }
 
@@ -147,11 +147,11 @@ int cm108_open(hamlib_port_t *p)
  * \brief Close CM108 HID port
  * \param port
  */
-int cm108_close(hamlib_port_t *p)
+int cm108_close(hamlib_port_t *port)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return close(p->fd);
+    return close(port->fd);
 }
 
 
