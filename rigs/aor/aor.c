@@ -439,17 +439,17 @@ int format8k_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width)
 int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     struct aor_priv_caps *priv = (struct aor_priv_caps *)rig->caps->priv;
-    char mdbuf[BUFSZ];
-    char mdbuf2[BUFSZ] = "";
-    int mdbuf_len, mdbuf2_len, retval;
+    char mdbuf[8];
+    char mdbuf2[16] = "";
+    int mdbuf2_len, retval;
 
-    mdbuf_len = priv->format_mode(rig, mdbuf, mode, width);
+    if (priv->format_mode(rig, mdbuf, mode, width) <= 0)
+    { 
+        rig_debug(RIG_DEBUG_ERR, "%s: format_mode=%s failed?\n", __func__, rig_strrmode(mode));
+        return -RIG_EINVAL; 
+    }
 
-    // Return on error
-    if (mdbuf_len < 0) { return mdbuf_len; }
-
-    strcpy(mdbuf + mdbuf_len, EOM);
-    mdbuf_len += strlen(EOM);
+    strcat(mdbuf, EOM);
 
     switch (rig->caps->rig_model)
     {
@@ -475,7 +475,7 @@ int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         break;
 
     default:
-        retval = aor_transaction(rig, mdbuf, mdbuf_len, NULL, NULL);
+        retval = aor_transaction(rig, mdbuf, strlen(mdbuf), NULL, NULL);
     }
 
     return retval;
