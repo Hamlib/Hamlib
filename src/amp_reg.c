@@ -68,7 +68,7 @@ DEFINE_INITAMP_BACKEND(dummy);
 DEFINE_INITAMP_BACKEND(kpa1500);
 
 /**
- *  \def AMP_BACKEND_LIST
+ *  \def amp_backend_list
  *  \brief Static list of amplifier models.
  *
  *  This is a NULL terminated list of available amplifier backends. Each entry

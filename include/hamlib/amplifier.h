@@ -31,7 +31,7 @@
  */
 
 /**
- *  \file amp.h
+ *  \file amplifier.h
  *  \brief Hamlib amplifier data structures.
  *
  *  This file contains the data structures and declarations for the Hamlib

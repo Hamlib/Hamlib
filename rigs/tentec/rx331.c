@@ -909,7 +909,7 @@ int rx331_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 const char *rx331_get_info(RIG *rig)
 {
     static char buf[BUFSZ]; /* FIXME: reentrancy */
-    int firmware_len, retval;
+    int firmware_len = sizeof(buf), retval;
 
     retval = rx331_transaction(rig, REPORT_FIRM, strlen(REPORT_FIRM),
                                buf, &firmware_len);

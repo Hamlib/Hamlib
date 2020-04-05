@@ -1433,7 +1433,7 @@ int tt588_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 const char *tt588_get_info(RIG *rig)
 {
     static char cmdbuf[16], firmware[64];
-    int cmd_len, firmware_len, retval;
+    int cmd_len, firmware_len=sizeof(firmware), retval;
 
     cmd_len = sprintf(cmdbuf, "?V" EOM);
     memset(firmware, 0, sizeof(firmware));
