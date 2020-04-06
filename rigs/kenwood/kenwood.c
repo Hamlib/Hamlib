@@ -3351,7 +3351,7 @@ int kenwood_set_powerstat(RIG *rig, powerstat_t status)
                                      (status == RIG_POWER_ON) ? ";;;;PS1;" : "PS0",
                                      NULL, 0);
     int i = 0;
-    int retry = 3 / rig->state.rigport.retry;
+    int retry = rig->state.rigport.retry / 3;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called status=%d\n", __func__, status);
 
