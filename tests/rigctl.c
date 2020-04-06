@@ -698,6 +698,7 @@ void usage(void)
         "  -I, --save-history            save current interactive session history\n"
 #endif
         "  -v, --verbose                 set verbose mode, cumulative (-v to -vvvvv)\n"
+        "  -Y, --ignore_err              ignore rig_open errors\n"
         "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
         "  -h, --help                    display this help and exit\n"
         "  -V, --version                 output version information and exit\n\n"
