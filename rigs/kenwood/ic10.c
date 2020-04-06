@@ -79,6 +79,7 @@ int ic10_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
                      int *data_len)
 {
     int retval;
+    int retry_cmd = 0;
     struct rig_state *rs;
 
     rig_debug(RIG_DEBUG_TRACE,
@@ -87,6 +88,7 @@ int ic10_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 
     rs = &rig->state;
 
+transaction:
     serial_flush(&rs->rigport);
 
     retval = write_block(&rs->rigport, cmd, cmd_len);
@@ -109,6 +111,13 @@ int ic10_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 
         // this should be the ID response
         retval = read_string(&rs->rigport, buffer, sizeof(buffer), ";", 1);
+
+        // might be ?; too
+        if (buffer[0] == '?' && retry_cmd++ < rs->rigport.retry)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: retrying cmd #%d\n", __func__, retry_cmd);
+            goto transaction;
+        }
 
         if (strncmp("ID", buffer, 2))
         {
