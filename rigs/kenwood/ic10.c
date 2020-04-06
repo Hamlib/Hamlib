@@ -96,9 +96,27 @@ int ic10_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
         return retval;
     }
 
-    if (!data || !data_len)
+    if (!data)
     {
-        return 0;
+        char buffer[50];
+        struct kenwood_priv_data *priv = rig->state.priv;
+
+        if (RIG_OK != (retval = write_block(&rs->rigport, priv->verify_cmd
+                                            , strlen(priv->verify_cmd))))
+        {
+            return retval;
+        }
+
+        // this should be the ID response
+        retval = read_string(&rs->rigport, buffer, sizeof(buffer), ";", 1);
+
+        if (strncmp("ID", buffer, 2))
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: expected ID reponse and got %s\n", __func__,
+                      buffer);
+        }
+
+        return retval;
     }
 
     retval = read_string(&rs->rigport, data, 50, ";", 1);
@@ -691,8 +709,8 @@ int ic10_get_channel(RIG *rig, channel_t *chan)
 
 int ic10_set_channel(RIG *rig, const channel_t *chan)
 {
-    char membuf[32], ackbuf[64];
-    int retval, ack_len, len, md;
+    char membuf[32];
+    int retval, len, md;
     int64_t freq;
 
     freq = (int64_t) chan->freq;
@@ -725,7 +743,7 @@ int ic10_set_channel(RIG *rig, const channel_t *chan)
                   freq,
                   md
                  );
-    retval = ic10_transaction(rig, membuf, len, ackbuf, &ack_len);
+    retval = ic10_transaction(rig, membuf, len, NULL, 0);
 
     if (retval != RIG_OK)
     {
@@ -763,7 +781,7 @@ int ic10_set_channel(RIG *rig, const channel_t *chan)
                   freq,
                   md
                  );
-    retval = ic10_transaction(rig, membuf, len, ackbuf, &ack_len);
+    retval = ic10_transaction(rig, membuf, len, NULL, 0);
 
     // I assume we need to check the retval here -- W9MDB
     // This was found from cppcheck
