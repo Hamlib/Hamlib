@@ -104,6 +104,7 @@ static struct option long_options[] =
     {"dump-caps",       0, 0, 'u'},
     {"vfo",             0, 0, 'o'},
     {"no-restore-ai",   0, 0, 'n'},
+    {"ignore rig open error", 0, 0, 'Y'},
     {"debug-time-stamps", 0, 0, 'Z'},
 #ifdef HAVE_READLINE_HISTORY
     {"read-history",    0, 0, 'i'},
@@ -129,6 +130,7 @@ int main(int argc, char *argv[])
     int verbose = 0;
     int show_conf = 0;
     int dump_caps_opt = 0;
+    int ignore_rig_open_error = 0;
 
 #ifdef HAVE_READLINE_HISTORY
     int rd_hist = 0;
@@ -411,6 +413,9 @@ int main(int argc, char *argv[])
             dump_caps_opt++;
             break;
 
+        case 'Y':
+            ignore_rig_open_error = 1;
+
         case 'Z':
             rig_set_debug_time_stamp(1);
             break;
@@ -535,7 +540,8 @@ int main(int argc, char *argv[])
     if (retcode != RIG_OK)
     {
         fprintf(stderr, "rig_open: error = %s \n", rigerror(retcode));
-//        exit(2);
+
+        if (!ignore_rig_open_error) { exit(2); }
     }
 
     if (verbose > 0)
