@@ -27,6 +27,7 @@ rigctl \- control radio transceivers and receivers
 .OP \-c id
 .OP \-t char
 .OP \-C parm=val
+.RG \-Y
 .RB [ \-v [ \-Z ]]
 .RB [ command | \- ]
 .YS
@@ -281,6 +282,9 @@ is used.
 Set verbose mode, cumulative (see
 .B DIAGNOSTICS
 below).
+.TP
+.BR \-Y "," \-\-\ignore\-err
+Ignores rig open errors 
 .
 .TP
 .BR \-Z ", " \-\-debug\-time\-stamps
