@@ -729,6 +729,10 @@ int ic10_set_channel(RIG *rig, const channel_t *chan)
 
     freq = (int64_t) chan->freq;
 
+    if (chan->channel_num < 90 &&  chan->tx_freq != 0) {
+        rig_debug(RIG_DEBUG_ERR,"%s: Transmit/split can only be on channels 90-99\n", __func__);
+        return -RIG_EINVAL;
+    }
     switch (chan->mode)
     {
     case RIG_MODE_CW  : md = MD_CW; break;
@@ -789,21 +793,24 @@ int ic10_set_channel(RIG *rig, const channel_t *chan)
         return -RIG_EINVAL;
     }
 
-    /* MWnxrrggmmmkkkhhhdzxxxx; */
-    len = sprintf(membuf, "MW1 %02d%011"PRIll"%c0    ;",
-                  chan->channel_num,
-                  freq,
-                  md
-                 );
-    retval = ic10_transaction(rig, membuf, len, NULL, 0);
-
-    // I assume we need to check the retval here -- W9MDB
-    // This was found from cppcheck
-    if (retval != RIG_OK)
+    if (chan->channel_num >= 90)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: transaction failed: %s\n", __func__,
-                  strerror(retval));
-        return retval;
+        /* MWnxrrggmmmkkkhhhdzxxxx; */
+        len = sprintf(membuf, "MW1 %02d%011"PRIll"%c0    ;",
+                      chan->channel_num,
+                      freq,
+                      md
+                     );
+        retval = ic10_transaction(rig, membuf, len, NULL, 0);
+
+        // I assume we need to check the retval here -- W9MDB
+        // This was found from cppcheck
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: transaction failed: %s\n", __func__,
+                      strerror(retval));
+            return retval;
+        }
     }
 
     return RIG_OK;
