@@ -723,7 +723,7 @@ int ic10_get_channel(RIG *rig, channel_t *chan)
 
 int ic10_set_channel(RIG *rig, const channel_t *chan)
 {
-    char membuf[32];
+    char membuf[64];
     int retval, len, md;
     int64_t freq;
 
