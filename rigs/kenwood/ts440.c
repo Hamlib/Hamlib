@@ -75,8 +75,8 @@ const struct rig_caps ts440_caps =
     .serial_stop_bits =  2,
     .serial_parity =  RIG_PARITY_NONE,
     .serial_handshake =  RIG_HANDSHAKE_NONE,
-    .write_delay =  20,
-    .post_write_delay =  30,
+    .write_delay =  0,
+    .post_write_delay =  0,
     .timeout =  200,
     .retry =  10,
 

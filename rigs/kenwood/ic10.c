@@ -123,9 +123,10 @@ transaction:
         {
             rig_debug(RIG_DEBUG_ERR, "%s: expected ID reponse and got %s\n", __func__,
                       buffer);
+            return retval;
         }
 
-        return retval;
+        return RIG_OK;
     }
 
     retval = read_string(&rs->rigport, data, 50, ";", 1);
