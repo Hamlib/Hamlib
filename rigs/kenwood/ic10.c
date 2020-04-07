@@ -677,40 +677,44 @@ int ic10_get_channel(RIG *rig, channel_t *chan)
     sscanf(infobuf + 6, "%011"SCNfreq, &chan->freq);
     chan->vfo = RIG_VFO_MEM;
 
-    /* TX VFO (Split channel only) */
-    len = sprintf(membuf, "MR10%02d;", chan->channel_num);
-    info_len = 24;
-    retval = ic10_transaction(rig, membuf, len, infobuf, &info_len);
-
-    if (retval == RIG_OK && info_len > 17)
+    if (chan->channel_num >= 90)
     {
+        chan->split = 1;
+        /* TX VFO (Split channel only) */
+        len = sprintf(membuf, "MR10%02d;", chan->channel_num);
+        info_len = 24;
+        retval = ic10_transaction(rig, membuf, len, infobuf, &info_len);
 
-        /* MRn rrggmmmkkkhhhdz    ; */
-        switch (infobuf[17])
+        if (retval == RIG_OK && info_len > 17)
         {
-        case MD_CW  :   chan->tx_mode = RIG_MODE_CW; break;
 
-        case MD_USB :   chan->tx_mode = RIG_MODE_USB; break;
+            /* MRn rrggmmmkkkhhhdz    ; */
+            switch (infobuf[17])
+            {
+            case MD_CW  :   chan->tx_mode = RIG_MODE_CW; break;
 
-        case MD_LSB :   chan->tx_mode = RIG_MODE_LSB; break;
+            case MD_USB :   chan->tx_mode = RIG_MODE_USB; break;
 
-        case MD_FM  :   chan->tx_mode = RIG_MODE_FM; break;
+            case MD_LSB :   chan->tx_mode = RIG_MODE_LSB; break;
 
-        case MD_AM  :   chan->tx_mode = RIG_MODE_AM; break;
+            case MD_FM  :   chan->tx_mode = RIG_MODE_FM; break;
 
-        case MD_FSK :   chan->tx_mode = RIG_MODE_RTTY; break;
+            case MD_AM  :   chan->tx_mode = RIG_MODE_AM; break;
 
-        case MD_NONE:   chan->tx_mode = RIG_MODE_NONE; break;
+            case MD_FSK :   chan->tx_mode = RIG_MODE_RTTY; break;
 
-        default:
-            rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode '%c'\n",
-                      __func__, infobuf[17]);
-            return -RIG_EINVAL;
+            case MD_NONE:   chan->tx_mode = RIG_MODE_NONE; break;
+
+            default:
+                rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode '%c'\n",
+                          __func__, infobuf[17]);
+                return -RIG_EINVAL;
+            }
+
+            chan->tx_width = rig_passband_normal(rig, chan->tx_mode);
+
+            sscanf(infobuf + 6, "%011"SCNfreq, &chan->tx_freq);
         }
-
-        chan->tx_width = rig_passband_normal(rig, chan->tx_mode);
-
-        sscanf(infobuf + 6, "%011"SCNfreq, &chan->tx_freq);
     }
 
     return RIG_OK;
