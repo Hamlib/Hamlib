@@ -76,7 +76,9 @@
 static int wsstarted;
 #endif
 
+//! @cond Doxygen_Suppress
 #define NET_BUFFER_SIZE 64
+//! @endcond
 
 static void handle_error(enum rig_debug_level_e lvl, const char *msg)
 {
@@ -335,6 +337,7 @@ void network_flush(hamlib_port_t *rp)
 }
 
 
+//! @cond Doxygen_Suppress
 int network_close(hamlib_port_t *rp)
 {
     int ret;
@@ -354,5 +357,6 @@ int network_close(hamlib_port_t *rp)
 #endif
     return ret;
 }
+//! @endcond
 
 /** @} */

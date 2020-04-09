@@ -26,6 +26,7 @@
 
 
 
+//! @cond Doxygen_Suppress
 class BACKEND_IMPEXP Amplifier
 {
 private:
@@ -56,6 +57,7 @@ public:
 
     void reset(amp_reset_t reset);
 };
+//! @endcond
 
 
 

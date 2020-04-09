@@ -103,11 +103,13 @@ static struct
  * This struct to keep track of known amp models.
  * It is chained, and used in a hash table, see below.
  */
+//! @cond Doxygen_Suppress
 struct amp_list
 {
     const struct amp_caps *caps;
     struct amp_list *next;
 };
+//! @endcond
 
 
 #define AMPLSTHASHSZ 16

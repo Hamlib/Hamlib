@@ -82,8 +82,10 @@
  * dynamic loader.
  */
 const char *hamlib_license = "LGPL";
+//! @cond Doxygen_Suppress
 const char hamlib_version[21] = "Hamlib " PACKAGE_VERSION;
 const char *hamlib_version2 = "Hamlib " PACKAGE_VERSION;
+//! @endcond
 
 /**
  * \brief Hamlib copyright notice
@@ -93,11 +95,13 @@ const char *hamlib_copyright2 =
     "Copyright (C) 2000-2003 Frank Singleton\n"
     "This is free software; see the source for copying conditions.  There is NO\n"
     "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.";
+//! @cond Doxygen_Suppress
 const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
     "Copyright (C) 2000-2012 Stephane Fillod\n"
     "Copyright (C) 2000-2003 Frank Singleton\n"
     "This is free software; see the source for copying conditions.  There is NO\n"
     "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.";
+//! @endcond
 
 
 #ifndef DOC_HIDDEN
@@ -1088,7 +1092,6 @@ int HAMLIB_API rig_cleanup(RIG *rig)
  *
  * timeout seconds to stop rigctld when VFO is manually changed
  * turns on/off the radio.
- * See \rig_set_twiddle
  *
  * \return RIG_OK if the operation has been sucessful, ortherwise
  * a negative value if an error occured (in which case, cause is
@@ -1119,7 +1122,7 @@ int HAMLIB_API rig_set_twiddle(RIG *rig, int seconds)
  * a negative value if an error occured (in which case, cause is
  * set appropriately).
  *
- * \sa rig_set_powerstat()
+ * \sa rig_set_twiddle()
  */
 int HAMLIB_API rig_get_twiddle(RIG *rig, int *seconds)
 {
@@ -3643,6 +3646,7 @@ int HAMLIB_API rig_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
  * \param rig   The rig handle
  * \param vfo   The target VFO
  * \param ant   The anntena to select
+ * \param option An optoin that the ant command for the rig recognizes
  *
  *  Select the antenna connector.
 \code
@@ -3715,6 +3719,10 @@ int HAMLIB_API rig_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
  * \param rig   The rig handle
  * \param vfo   The target VFO
  * \param ant   The location where to store the current antenna
+ * \param option  The option value for the antenna
+ * \param ant_curr  The currently selected antenna
+ * \param ant_tx  The currently selected TX antenna
+ * \param ant_rx  The currently selected RX antenna
  *
  *  Retrieves the current antenna.
  *
@@ -4039,11 +4047,13 @@ int HAMLIB_API rig_reset(RIG *rig, reset_t reset)
 }
 
 
+//! @cond Doxygen_Suppress
 extern int rig_probe_first(hamlib_port_t *p);
 
 extern int rig_probe_all_backends(hamlib_port_t *p,
                                   rig_probe_func_t cfunc,
                                   rig_ptr_t data);
+//! @endcond
 
 
 /**
@@ -4645,18 +4655,30 @@ const char *HAMLIB_API rig_get_info(RIG *rig)
 }
 
 
+/**
+ * \brief get the Hamlib license
+ *
+ */
 const char *HAMLIB_API rig_license()
 {
     return hamlib_license;
 }
 
 
+/**
+ * \brief get the Hamlib version
+ *
+ */
 const char *HAMLIB_API rig_version()
 {
     return hamlib_version2;
 }
 
 
+/**
+ * \brief get the Hamlib copyright
+ *
+ */
 const char *HAMLIB_API rig_copyright()
 {
     return hamlib_copyright2;

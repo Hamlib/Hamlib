@@ -62,16 +62,20 @@
 #include "amp_conf.h"
 #include "token.h"
 
+//! @cond Doxygen_Suppress
 #define CHECK_AMP_ARG(r) (!(r) || !(r)->caps || !(r)->state.comm_state)
+//! @endcond
 
 /*
  * Data structure to track the opened amp (by amp_open)
  */
+//! @cond Doxygen_Suppress
 struct opened_amp_l
 {
     AMP *amp;
     struct opened_amp_l *next;
 };
+//! @endcond
 static struct opened_amp_l *opened_amp_list = { NULL };
 
 
@@ -558,7 +562,9 @@ int HAMLIB_API amp_reset(AMP *amp, amp_reset_t reset)
 
     return caps->reset(amp, reset);
 }
+//! @endcond
 
+//! @cond Doxygen_Suppress
 int HAMLIB_API amp_get_freq(AMP *amp, freq_t *freq)
 {
     const struct amp_caps *caps;
@@ -579,7 +585,9 @@ int HAMLIB_API amp_get_freq(AMP *amp, freq_t *freq)
 
     return caps->get_freq(amp, freq);
 }
+//! @endcond
 
+//! @cond Doxygen_Suppress
 int HAMLIB_API amp_set_freq(AMP *amp, freq_t freq)
 {
     const struct amp_caps *caps;
@@ -600,6 +608,7 @@ int HAMLIB_API amp_set_freq(AMP *amp, freq_t freq)
 
     return caps->set_freq(amp, freq);
 }
+//! @endcond
 
 /**
  * \brief get general information from the amplifier
@@ -629,6 +638,7 @@ const char *HAMLIB_API amp_get_info(AMP *amp)
     return amp->caps->get_info(amp);
 }
 
+//! @cond Doxygen_Suppress
 int HAMLIB_API amp_get_level(AMP *amp, setting_t level, value_t *val)
 {
     amp_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -645,7 +655,9 @@ int HAMLIB_API amp_get_level(AMP *amp, setting_t level, value_t *val)
 
     return amp->caps->get_level(amp, level, val);
 }
+//! @endcond
 
+//! @cond Doxygen_Suppress
 int HAMLIB_API amp_get_ext_level(AMP *amp, token_t level, value_t *val)
 {
     amp_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -662,6 +674,7 @@ int HAMLIB_API amp_get_ext_level(AMP *amp, token_t level, value_t *val)
 
     return amp->caps->get_ext_level(amp, level, val);
 }
+//! @endcond
 
 /**
  * \brief turn on/off the amplifier or standby/operate toggle
@@ -696,6 +709,7 @@ int HAMLIB_API amp_set_powerstat(AMP *amp, powerstat_t status)
     return amp->caps->set_powerstat(amp, status);
 }
 
+//! @cond Doxygen_Suppress
 int HAMLIB_API amp_get_powerstat(AMP *amp, powerstat_t *status)
 {
     amp_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -712,6 +726,7 @@ int HAMLIB_API amp_get_powerstat(AMP *amp, powerstat_t *status)
 
     return amp->caps->get_powerstat(amp, status);
 }
+//! @endcond
 
 
 /*! @} */

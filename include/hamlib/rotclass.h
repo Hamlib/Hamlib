@@ -26,6 +26,7 @@
 
 
 
+//! @cond Doxygen_Suppress
 class BACKEND_IMPEXP Rotator
 {
 private:
@@ -59,6 +60,7 @@ public:
 
     void move(int direction, int speed);
 };
+//! @endcond
 
 
 

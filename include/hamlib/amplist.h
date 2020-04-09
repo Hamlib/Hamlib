@@ -24,6 +24,7 @@
 #ifndef _AMPLIST_H
 #define _AMPLIST_H 1
 
+//! @cond Doxygen_Suppress
 #define AMP_MAKE_MODEL(a,b) ((a)*100+(b))
 #define AMP_BACKEND_NUM(a) ((a)/100)
 
@@ -34,7 +35,7 @@
  */
 
 /**
- *  \file rotlist.h
+ *  \file amplist.h
  *  \brief Hamlib amplifier model definitions.
  *
  *  This file contains amplifier model definitions for the Hamlib amplifier API.
@@ -98,6 +99,7 @@
 */
 typedef int amp_model_t;
 
+//! @endcond
 
 #endif /* _AMPLIST_H */
 

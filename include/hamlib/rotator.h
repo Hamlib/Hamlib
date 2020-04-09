@@ -49,7 +49,7 @@ struct rot_state;
 
 
 /**
- *  \typedef typedef struct rot ROT
+ *  \typedef typedef struct s_rot ROT
  *  \brief Rotator structure definition (see rot for details).
  */
 typedef struct s_rot ROT;
@@ -103,6 +103,7 @@ typedef float azimuth_t;
 typedef int rot_reset_t;
 
 
+//! @cond Doxygen_Suppress
 /**
  * \brief Rotator type flags
  */
@@ -117,6 +118,7 @@ typedef enum {
 #define ROT_TYPE_AZIMUTH    ROT_FLAG_AZIMUTH
 #define ROT_TYPE_ELEVATION  ROT_FLAG_ELEVATION
 #define ROT_TYPE_AZEL       (ROT_FLAG_AZIMUTH|ROT_FLAG_ELEVATION)
+//! @endcond
 
 
 /**
@@ -216,6 +218,8 @@ typedef enum {
  * mdblack: Careful movinf fields around, as the backends depend on it when
  *       initializing their caps in shared libraries and dlls.
  */
+
+//! @cond Doxygen_Suppress
 #define ROT_MODEL(arg) .rot_model=arg,.macro_name=#arg
 struct rot_caps {
     rot_model_t rot_model;                      /*!< Rotator model. */
@@ -288,6 +292,7 @@ struct rot_caps {
     const char *macro_name;                     /*!< Macro name. */
     /* more to come... */
 };
+//! @endcond
 
 
 /**
@@ -328,7 +333,7 @@ struct rot_state {
 
 /**
  * Rotator structure
- * \struct rot
+ * \struct s_rot
  * \brief This is the master data structure,
  * acting as a handle for the controlled rotator.
  *
@@ -344,6 +349,7 @@ struct s_rot {
 };
 
 
+//! @cond Doxygen_Suppress
 /* --------------- API function prototypes -----------------*/
 
 extern HAMLIB_EXPORT(ROT *)
@@ -487,6 +493,7 @@ dmmm2dec HAMLIB_PARAMS((int degrees,
                         double minutes,
                         int sw));
 
+//! @endcond
 
 /**
  *  \def rot_debug

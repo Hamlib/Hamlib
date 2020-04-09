@@ -1250,6 +1250,20 @@ int HAMLIB_API rig_get_chan_all(RIG *rig, channel_t chans[])
 }
 
 
+/**
+ * \brief copy channel structure to another channel structure
+ * \param rig   The rig handle
+ * \param dest The destination location
+ * \param src The source location
+ *
+ * Copies the data associated with one channel structure to another
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
+ * set appropriately).
+ *
+ * \sa rig_get_chan_all_cb(), rig_set_chan_all()
+ */
 int HAMLIB_API rig_copy_channel(RIG *rig,
                                 channel_t *dest,
                                 const channel_t *src)

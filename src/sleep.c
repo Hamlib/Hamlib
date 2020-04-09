@@ -66,6 +66,10 @@ int hl_usleep(useconds_t usec)
 }
 
 #ifdef HAVE_NANOSLEEP
+/**
+ * \brief sleep
+ * \param secs is seconds to sleep
+ */
 unsigned int sleep(unsigned int secs)
 {
     int retval;
@@ -81,7 +85,11 @@ unsigned int sleep(unsigned int secs)
 }
 
 
-// Does not have the same 1000000 limit as usleep
+/**
+ * \brief microsecond sleep
+ * \param usec is microseconds to sleep
+ * This does not have the same 1000000 limit as POSIX usleep
+ */
 int usleep(useconds_t usec)
 {
     int retval;

@@ -83,12 +83,14 @@ typedef int tune_value_t;
 #define NETAMPCTL_RET "RPRT "
 
 
+//! @cond Doxygen_Suppress
 typedef enum
 {
   AMP_RESET_MEM, // erase tuner memory
   AMP_RESET_FAULT, // reset any fault
   AMP_RESET_AMP  // for kpa1500
 } amp_reset_t;
+//! @endcond
 
 /**
  * \brief Amplifier type flags
@@ -99,6 +101,7 @@ typedef enum
   AMP_FLAG_2 = (1 << 2)       /*!< TBD */
 } amp_type_t;
 
+//! @cond Doxygen_Suppress
 // TBD AMP_TYPE
 #define AMP_TYPE_MASK (AMP_FLAG_1|AMP_FLAG_2)
 
@@ -106,8 +109,10 @@ typedef enum
 #define AMP_TYPE_1     AMP_FLAG_1
 #define AMP_TYPE_2     AMP_FLAG_2
 #define AMP_TYPE_ALL       (AMP_FLAG_1|AMP_FLAG_2)
+//! @endcond
 
 
+//! @cond Doxygen_Suppress
 enum amp_level_e
 {
   AMP_LEVEL_NONE          = 0,        /*!< '' -- No Level */
@@ -120,11 +125,14 @@ enum amp_level_e
   AMP_LEVEL_PWR_PEAK      = (1 << 6), /*!< \c Power reading peak */
   AMP_LEVEL_FAULT         = (1 << 7)  /*!< \c Fault code */
 };
+//! @endcond
 
+//! @cond Doxygen_Suppress
 #define AMP_LEVEL_FLOAT_LIST  (AMP_LEVEL_SWR)
 #define AMP_LEVEL_STRING_LIST  (AMP_LEVEL_FAULT)
 #define AMP_LEVEL_IS_FLOAT(l) ((l)&AMP_LEVEL_FLOAT_LIST)
 #define AMP_LEVEL_IS_STRING(l) ((l)&AMP_LEVEL_STRING_LIST)
+//! @endcond
 
 /* Basic amp type, can store some useful info about different amplifiers. Each
  * lib must be able to populate this structure, so we can make useful
@@ -148,6 +156,7 @@ enum amp_level_e
  * mdblack98: Don't move fields around and add new fields at end of caps
  *   Shared libraries depend on constant structure to maintain compatibility
  */
+//! @cond Doxygen_Suppress
 #define AMP_MODEL(arg) .amp_model=arg,.macro_name=#arg
 struct amp_caps
 {
@@ -221,6 +230,7 @@ struct amp_caps
 
   const char *macro_name;                     /*!< Macro name. */
 };
+//! @cond Doxygen_Suppress
 
 
 /**
