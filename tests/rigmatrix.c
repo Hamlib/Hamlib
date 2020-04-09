@@ -632,7 +632,7 @@ int main(int argc, char *argv[])
     time_t gentime;
     int set_or_get;
     int i;
-    char *pbuf, prntbuf[512];
+    char *pbuf, prntbuf[4096];
 
     rig_load_all_backends();
 
