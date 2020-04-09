@@ -26,6 +26,7 @@
 #include <iostream>
 
 
+//! @cond Doxygen_Suppress
 class BACKEND_IMPEXP Rig
 {
 private:
@@ -189,6 +190,7 @@ public:
         return RIG_OK;
     }
 };
+//! @endcond
 
 
 #ifdef __GNUG__
@@ -242,8 +244,8 @@ extern "C" void exit(int);
 #endif
 
 
+//! @cond Doxygen_Suppress
 // Forward Declarations
-
 class BACKEND_IMPEXP RigException
 {
 public:
@@ -274,6 +276,7 @@ public:
         return "Rig";
     }
 };
+//! @endcond
 
 
 inline void THROW(const RigException *e)

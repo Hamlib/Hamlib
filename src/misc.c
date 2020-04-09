@@ -229,9 +229,11 @@ unsigned long long HAMLIB_API from_bcd_be(const unsigned char bcd_data[],
 }
 
 
+//! @cond Doxygen_Suppress
 #ifndef llabs
 #define llabs(a) ((a)<0?-(a):(a))
 #endif
+//! @endcond
 
 
 /**
@@ -1238,14 +1240,18 @@ void HAMLIB_API rig_force_cache_timeout(struct timeval *tv)
 }
 
 
+//! @cond Doxygen_Suppress
 int no_restore_ai;
+//! @endcond
 
 
+//! @cond Doxygen_Suppress
 void HAMLIB_API rig_no_restore_ai()
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     no_restore_ai = -1;
 }
+//! @endcond
 
 /** @} */

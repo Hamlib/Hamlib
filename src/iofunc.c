@@ -382,8 +382,10 @@ static ssize_t port_read(hamlib_port_t *p, void *buf, size_t count)
     }
 }
 
+//! @cond Doxygen_Suppress
 #define port_write(p,b,c) write((p)->fd,(b),(c))
 #define port_select(p,n,r,w,e,t) select((n),(r),(w),(e),(t))
+//! @endcond
 
 #endif
 

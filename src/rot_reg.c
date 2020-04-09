@@ -137,11 +137,13 @@ static struct
  * This struct to keep track of known rot models.
  * It is chained, and used in a hash table, see below.
  */
+//! @cond Doxygen_Suppress
 struct rot_list
 {
     const struct rot_caps *caps;
     struct rot_list *next;
 };
+//! @endcond
 
 
 #define ROTLSTHASHSZ 16

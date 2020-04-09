@@ -67,6 +67,7 @@
 #  endif
 #endif
 
+//! @cond Doxygen_Suppress
 #if defined(WIN32) && !defined(HAVE_TERMIOS_H)
 #  include "win32termios.h"
 #  define HAVE_TERMIOS_H  1   /* we have replacement */
@@ -75,6 +76,7 @@
 #  define CLOSE close
 #  define IOCTL ioctl
 #endif
+//! @endcond
 
 #include <hamlib/rig.h>
 #include "serial.h"
@@ -89,6 +91,7 @@
 static int uh_ptt_fd   = -1;
 static int uh_radio_fd = -1;
 
+//! @cond Doxygen_Suppress
 typedef struct term_options_backup
 {
     int fd;
@@ -101,6 +104,7 @@ typedef struct term_options_backup
 #endif
     struct term_options_backup *next;
 } term_options_backup_t;
+//! @endcond
 static term_options_backup_t *term_options_backup_head = NULL;
 
 
@@ -111,6 +115,7 @@ static term_options_backup_t *term_options_backup_head = NULL;
  * This function is only used in the WIN32 case and implements access "from
  * outside" to uh_radio_fd.
  */
+//! @cond Doxygen_Suppress
 int is_uh_radio_fd(int fd)
 {
     if (uh_radio_fd >= 0 && uh_radio_fd == fd)
@@ -122,6 +127,7 @@ int is_uh_radio_fd(int fd)
         return 0;
     }
 }
+//! @endcond
 
 
 /**

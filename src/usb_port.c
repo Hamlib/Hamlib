@@ -391,20 +391,24 @@ int usb_port_close(hamlib_port_t *port)
 
 #else
 
+//! @cond Doxygen_Suppress
 int usb_port_open(hamlib_port_t *port)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     return -RIG_ENAVAIL;
 }
+//! @endcond
 
 
+//! @cond Doxygen_Suppress
 int usb_port_close(hamlib_port_t *port)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     return -RIG_ENAVAIL;
 }
+//! @endcond
 
 #endif  /* defined(HAVE_LIBUSB) && defined(HAVE_LIBUSB_H) */
 

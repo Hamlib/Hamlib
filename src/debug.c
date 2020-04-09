@@ -52,7 +52,9 @@
 #include <hamlib/rig_dll.h>
 #include "misc.h"
 
+//! @cond Doxygen_Suppress
 #define DUMP_HEX_WIDTH 16
+//! @endcond
 
 
 static int rig_debug_level = RIG_DEBUG_TRACE;
@@ -143,6 +145,7 @@ void HAMLIB_API rig_set_debug_time_stamp(int flag)
 }
 
 
+//! @cond Doxygen_Suppress
 char *date_strget(char *buf, int buflen)
 {
     char tmp[16];
@@ -157,6 +160,7 @@ char *date_strget(char *buf, int buflen)
     strcat(buf, tmp);
     return buf;
 }
+//! @endcond
 
 /**
  * \param debug_level

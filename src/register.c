@@ -149,11 +149,13 @@ static struct
  * This struct to keep track of known rig models.
  * It is chained, and used in a hash table, see below.
  */
+//! @cond Doxygen_Suppress
 struct rig_list
 {
     const struct rig_caps *caps;
     struct rig_list *next;
 };
+//! @endcond
 
 
 // This size has to be > than the max# of rigs for any manufacturer
