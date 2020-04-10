@@ -296,7 +296,7 @@ int HAMLIB_API amp_open(AMP *amp)
     const struct amp_caps *caps;
     struct amp_state *rs;
     int status;
-    int net1,net2,net3,net4,port;
+    int net1, net2, net3, net4, port;
 
     amp_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -316,9 +316,11 @@ int HAMLIB_API amp_open(AMP *amp)
     rs->ampport.fd = -1;
 
     // determine if we have a network address
-    if (sscanf(rs->ampport.pathname,"%d.%d.%d.%d:%d", &net1, &net2, &net3, &net4, &port)==5) 
+    if (sscanf(rs->ampport.pathname, "%d.%d.%d.%d:%d", &net1, &net2, &net3, &net4,
+               &port) == 5)
     {
-        rig_debug(RIG_DEBUG_TRACE,"%s: using network address %s\n", __func__, rs->ampport.pathname);
+        rig_debug(RIG_DEBUG_TRACE, "%s: using network address %s\n", __func__,
+                  rs->ampport.pathname);
         rs->ampport.type.rig = RIG_PORT_NETWORK;
     }
 
