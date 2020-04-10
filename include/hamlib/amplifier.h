@@ -230,7 +230,7 @@ struct amp_caps
 
   const char *macro_name;                     /*!< Macro name. */
 };
-//! @cond Doxygen_Suppress
+//! @endcond
 
 
 /**
@@ -259,7 +259,9 @@ struct amp_state
   rig_ptr_t priv;         /*!< Pointer to private amplifier state data. */
   rig_ptr_t obj;          /*!< Internal use by hamlib++ for event handling. */
 
+//! @cond Doxygen_Suppress
   setting_t has_get_level;
+//! @endcond
 
   gran_t level_gran[RIG_SETTING_MAX]; /*!< level granularity */
   gran_t parm_gran[RIG_SETTING_MAX]; /*!< level granularity */
@@ -285,6 +287,7 @@ struct amp
 };
 
 
+//! @cond Doxygen_Suppress
 /* --------------- API function prototypes -----------------*/
 
 extern HAMLIB_EXPORT(AMP *)
@@ -394,6 +397,7 @@ extern HAMLIB_EXPORT(const char *) amp_strlevel(setting_t);
 extern HAMLIB_EXPORT(const struct confparams *)
 rig_ext_lookup HAMLIB_PARAMS((RIG *rig,
                               const char *name));
+//! @endcond
 
 
 /**

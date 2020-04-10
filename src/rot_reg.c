@@ -42,6 +42,7 @@
 
 #include "register.h"
 
+//! @cond Doxygen_Suppress
 #ifndef PATH_MAX
 # define PATH_MAX       1024
 #endif
@@ -83,6 +84,7 @@ DEFINE_INITROT_BACKEND(cnctrk);
 DEFINE_INITROT_BACKEND(prosistel);
 DEFINE_INITROT_BACKEND(meade);
 DEFINE_INITROT_BACKEND(ioptron);
+//! @endcond
 
 /**
  *  \def rot_backend_list
@@ -146,8 +148,10 @@ struct rot_list
 //! @endcond
 
 
+//! @cond Doxygen_Suppress
 #define ROTLSTHASHSZ 16
 #define HASH_FUNC(a) ((a)%ROTLSTHASHSZ)
+//! @endcond
 
 
 /*
@@ -163,6 +167,7 @@ static int rot_lookup_backend(rot_model_t rot_model);
 /*
  * Basically, this is a hash insert function that doesn't check for dup!
  */
+//! @cond Doxygen_Suppress
 int HAMLIB_API rot_register(const struct rot_caps *caps)
 {
     int hval;
@@ -199,12 +204,14 @@ int HAMLIB_API rot_register(const struct rot_caps *caps)
 
     return RIG_OK;
 }
+//! @endcond
 
 
 /*
  * Get rot capabilities.
  * i.e. rot_hash_table lookup
  */
+//! @cond Doxygen_Suppress
 const struct rot_caps *HAMLIB_API rot_get_caps(rot_model_t rot_model)
 {
     struct rot_list *p;
@@ -219,6 +226,7 @@ const struct rot_caps *HAMLIB_API rot_get_caps(rot_model_t rot_model)
 
     return NULL;    /* sorry, caps not registered! */
 }
+//! @endcond
 
 
 /*
@@ -249,6 +257,7 @@ static int rot_lookup_backend(rot_model_t rot_model)
  * and if not loaded already, load it!
  * This permits seamless operation in rot_init.
  */
+//! @cond Doxygen_Suppress
 int HAMLIB_API rot_check_backend(rot_model_t rot_model)
 {
     const struct rot_caps *caps;
@@ -283,8 +292,10 @@ int HAMLIB_API rot_check_backend(rot_model_t rot_model)
 
     return retval;
 }
+//! @endcond
 
 
+//! @cond Doxygen_Suppress
 int HAMLIB_API rot_unregister(rot_model_t rot_model)
 {
     int hval;
@@ -315,12 +326,14 @@ int HAMLIB_API rot_unregister(rot_model_t rot_model)
 
     return -RIG_EINVAL; /* sorry, caps not registered! */
 }
+//! @endcond
 
 
 /*
  * rot_list_foreach
  * executes cfunc on all the elements stored in the rot hash list
  */
+//! @cond Doxygen_Suppress
 int HAMLIB_API rot_list_foreach(int (*cfunc)(const struct rot_caps *,
                                 rig_ptr_t),
                                 rig_ptr_t data)
@@ -344,12 +357,14 @@ int HAMLIB_API rot_list_foreach(int (*cfunc)(const struct rot_caps *,
 
     return RIG_OK;
 }
+//! @endcond
 
 
 /*
  * rot_probe_all
  * called straight by rot_probe
  */
+//! @cond Doxygen_Suppress
 rot_model_t HAMLIB_API rot_probe_all(hamlib_port_t *p)
 {
     int i;
@@ -370,8 +385,10 @@ rot_model_t HAMLIB_API rot_probe_all(hamlib_port_t *p)
 
     return ROT_MODEL_NONE;
 }
+//! @endcond
 
 
+//! @cond Doxygen_Suppress
 int rot_load_all_backends()
 {
     int i;
@@ -383,12 +400,14 @@ int rot_load_all_backends()
 
     return RIG_OK;
 }
+//! @endcond
 
 
 /*
  * rot_load_backend
  * Dynamically load a rot backend through dlopen mechanism
  */
+//! @cond Doxygen_Suppress
 int HAMLIB_API rot_load_backend(const char *be_name)
 {
     int status;
@@ -415,3 +434,4 @@ int HAMLIB_API rot_load_backend(const char *be_name)
     return -EINVAL;
 
 }
+//! @endcond
