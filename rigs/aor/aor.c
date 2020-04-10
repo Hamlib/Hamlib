@@ -444,9 +444,10 @@ int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     int mdbuf2_len, retval;
 
     if (priv->format_mode(rig, mdbuf, mode, width) <= 0)
-    { 
-        rig_debug(RIG_DEBUG_ERR, "%s: format_mode=%s failed?\n", __func__, rig_strrmode(mode));
-        return -RIG_EINVAL; 
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: format_mode=%s failed?\n", __func__,
+                  rig_strrmode(mode));
+        return -RIG_EINVAL;
     }
 
     strcat(mdbuf, EOM);

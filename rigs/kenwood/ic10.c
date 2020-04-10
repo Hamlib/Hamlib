@@ -729,10 +729,13 @@ int ic10_set_channel(RIG *rig, const channel_t *chan)
 
     freq = (int64_t) chan->freq;
 
-    if (chan->channel_num < 90 &&  chan->tx_freq != 0) {
-        rig_debug(RIG_DEBUG_ERR,"%s: Transmit/split can only be on channels 90-99\n", __func__);
+    if (chan->channel_num < 90 &&  chan->tx_freq != 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: Transmit/split can only be on channels 90-99\n",
+                  __func__);
         return -RIG_EINVAL;
     }
+
     switch (chan->mode)
     {
     case RIG_MODE_CW  : md = MD_CW; break;

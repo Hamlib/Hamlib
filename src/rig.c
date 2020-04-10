@@ -554,7 +554,7 @@ int HAMLIB_API rig_open(RIG *rig)
     struct rig_state *rs;
     int status = RIG_OK;
     value_t parm_value;
-    int net1,net2,net3,net4,port;
+    int net1, net2, net3, net4, port;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -574,9 +574,11 @@ int HAMLIB_API rig_open(RIG *rig)
     rs->rigport.fd = -1;
 
     // determine if we have a network address
-    if (sscanf(rs->rigport.pathname,"%d.%d.%d.%d:%d", &net1, &net2, &net3, &net4, &port)==5) 
+    if (sscanf(rs->rigport.pathname, "%d.%d.%d.%d:%d", &net1, &net2, &net3, &net4,
+               &port) == 5)
     {
-        rig_debug(RIG_DEBUG_TRACE,"%s: using network address %s\n", __func__, rs->rigport.pathname);
+        rig_debug(RIG_DEBUG_TRACE, "%s: using network address %s\n", __func__,
+                  rs->rigport.pathname);
         rs->rigport.type.rig = RIG_PORT_NETWORK;
     }
 
