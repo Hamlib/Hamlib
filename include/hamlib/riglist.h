@@ -23,6 +23,8 @@
 #ifndef _RIGLIST_H
 #define _RIGLIST_H 1
 
+//! @cond Doxygen_Suppress
+
 // The rig model number is designed to fit in a 32-bit int
 // As of 2020-02-18 we have 33 backends defined
 // With a max of 1000 models per backend we get total a model number range of 1001-33001
@@ -615,6 +617,7 @@
 #define RIG_ELAD 33
 #define RIG_BACKEND_ELAD "elad"
 #define RIG_MODEL_ELAD_FDM_DUO RIG_MAKE_MODEL(RIG_ELAD, 1)
+//! @endcond
 
 
 /*

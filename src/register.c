@@ -41,6 +41,7 @@
 
 #include <hamlib/rig.h>
 
+//! @cond Doxygen_Suppress
 #ifndef PATH_MAX
 #  define PATH_MAX       1024
 #endif
@@ -88,9 +89,12 @@ DEFINE_INITRIG_BACKEND(adat);
 DEFINE_INITRIG_BACKEND(dorji);
 DEFINE_INITRIG_BACKEND(barrett);
 DEFINE_INITRIG_BACKEND(elad);
+//! @endcond
 
 #ifdef HAVE_WINRADIO
+//! @cond Doxygen_Suppress
 DEFINE_INITRIG_BACKEND(winradio);
+//! @endcond
 #endif
 
 
@@ -160,8 +164,10 @@ struct rig_list
 
 // This size has to be > than the max# of rigs for any manufacturer
 // A fatal error will occur when running rigctl if this value is too small
+//! @cond Doxygen_Suppress
 #define RIGLSTHASHSZ 65535
 #define HASH_FUNC(a) ((a)%RIGLSTHASHSZ)
+//! @endcond
 
 
 /*
@@ -177,6 +183,7 @@ static int rig_lookup_backend(rig_model_t rig_model);
 /*
  * Basically, this is a hash insert function that doesn't check for dup!
  */
+//! @cond Doxygen_Suppress
 int HAMLIB_API rig_register(const struct rig_caps *caps)
 {
     int hval;
@@ -216,12 +223,14 @@ int HAMLIB_API rig_register(const struct rig_caps *caps)
 
     return RIG_OK;
 }
+//! @endcond
 
 /*
  * Get rig capabilities.
  * ie. rig_hash_table lookup
  */
 
+//! @cond Doxygen_Suppress
 const struct rig_caps *HAMLIB_API rig_get_caps(rig_model_t rig_model)
 {
     struct rig_list *p;
@@ -236,12 +245,14 @@ const struct rig_caps *HAMLIB_API rig_get_caps(rig_model_t rig_model)
 
     return NULL;    /* sorry, caps not registered! */
 }
+//! @endcond
 
 /*
  * lookup for backend index in rig_backend_list table,
  * according to BACKEND_NUM
  * return -1 if not found.
  */
+//! @cond Doxygen_Suppress
 static int rig_lookup_backend(rig_model_t rig_model)
 {
     int i;
@@ -257,6 +268,7 @@ static int rig_lookup_backend(rig_model_t rig_model)
 
     return -1;
 }
+//! @endcond
 
 /*
  * rig_check_backend
@@ -264,6 +276,7 @@ static int rig_lookup_backend(rig_model_t rig_model)
  * and if not loaded already, load it!
  * This permits seamless operation in rig_init.
  */
+//! @cond Doxygen_Suppress
 int HAMLIB_API rig_check_backend(rig_model_t rig_model)
 {
     const struct rig_caps *caps;
@@ -296,9 +309,11 @@ int HAMLIB_API rig_check_backend(rig_model_t rig_model)
 
     return retval;
 }
+//! @endcond
 
 
 
+//! @cond Doxygen_Suppress
 int HAMLIB_API rig_unregister(rig_model_t rig_model)
 {
     int hval;
@@ -329,11 +344,13 @@ int HAMLIB_API rig_unregister(rig_model_t rig_model)
 
     return -RIG_EINVAL; /* sorry, caps not registered! */
 }
+//! @endcond
 
 /*
  * rig_list_foreach
  * executes cfunc on all the elements stored in the rig hash list
  */
+//! @cond Doxygen_Suppress
 int HAMLIB_API rig_list_foreach(int (*cfunc)(const struct rig_caps *,
                                 rig_ptr_t),
                                 rig_ptr_t data)
@@ -363,8 +380,10 @@ int HAMLIB_API rig_list_foreach(int (*cfunc)(const struct rig_caps *,
 
     return RIG_OK;
 }
+//! @endcond
 
 
+//! @cond Doxygen_Suppress
 static int dummy_rig_probe(const hamlib_port_t *p,
                            rig_model_t model,
                            rig_ptr_t data)
@@ -373,12 +392,14 @@ static int dummy_rig_probe(const hamlib_port_t *p,
 
     return RIG_OK;
 }
+//! @endcond
 
 
 /*
  * rig_probe_first
  * called straight by rig_probe
  */
+//! @cond Doxygen_Suppress
 rig_model_t rig_probe_first(hamlib_port_t *p)
 {
     int i;
@@ -401,12 +422,14 @@ rig_model_t rig_probe_first(hamlib_port_t *p)
 
     return RIG_MODEL_NONE;
 }
+//! @endcond
 
 
 /*
  * rig_probe_all_backends
  * called straight by rig_probe_all
  */
+//! @cond Doxygen_Suppress
 int rig_probe_all_backends(hamlib_port_t *p,
                            rig_probe_func_t cfunc,
                            rig_ptr_t data)
@@ -423,8 +446,10 @@ int rig_probe_all_backends(hamlib_port_t *p,
 
     return RIG_OK;
 }
+//! @endcond
 
 
+//! @cond Doxygen_Suppress
 int rig_load_all_backends()
 {
     int i;
@@ -436,14 +461,18 @@ int rig_load_all_backends()
 
     return RIG_OK;
 }
+//! @endcond
 
 
+//! @cond Doxygen_Suppress
 typedef int (*backend_init_t)(rig_ptr_t);
+//! @endcond
 
 
 /*
  * rig_load_backend
  */
+//! @cond Doxygen_Suppress
 int HAMLIB_API rig_load_backend(const char *be_name)
 {
     int i;
@@ -468,3 +497,4 @@ int HAMLIB_API rig_load_backend(const char *be_name)
 
     return -RIG_EINVAL;
 }
+//! @endcond

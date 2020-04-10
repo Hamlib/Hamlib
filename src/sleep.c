@@ -106,8 +106,9 @@ int usleep(useconds_t usec)
 
     return 0;
 }
+
 #endif // HAVE_NANOSLEEP
-#pragma GCC diagnostic ignored "-Wall"
 #ifdef __cplusplus
 }
 #endif
+/** @} */

@@ -42,6 +42,7 @@
 
 #include "register.h"
 
+//! @cond Doxygen_Suppress
 #ifndef PATH_MAX
 # define PATH_MAX       1024
 #endif
@@ -66,6 +67,7 @@
 
 DEFINE_INITAMP_BACKEND(dummy);
 DEFINE_INITAMP_BACKEND(kpa1500);
+//! @endcond
 
 /**
  *  \def amp_backend_list
@@ -109,11 +111,11 @@ struct amp_list
     const struct amp_caps *caps;
     struct amp_list *next;
 };
-//! @endcond
 
 
 #define AMPLSTHASHSZ 16
 #define HASH_FUNC(a) ((a)%AMPLSTHASHSZ)
+//! @endcond
 
 
 /*
@@ -129,6 +131,7 @@ static int amp_lookup_backend(amp_model_t amp_model);
 /*
  * Basically, this is a hash insert function that doesn't check for dup!
  */
+//! @cond Doxygen_Suppress
 int HAMLIB_API amp_register(const struct amp_caps *caps)
 {
     int hval;
@@ -165,12 +168,14 @@ int HAMLIB_API amp_register(const struct amp_caps *caps)
 
     return RIG_OK;
 }
+//! @endcond
 
 
 /*
  * Get amp capabilities.
  * i.e. amp_hash_table lookup
  */
+//! @cond Doxygen_Suppress
 const struct amp_caps *HAMLIB_API amp_get_caps(amp_model_t amp_model)
 {
     struct amp_list *p;
@@ -185,6 +190,7 @@ const struct amp_caps *HAMLIB_API amp_get_caps(amp_model_t amp_model)
 
     return NULL;    /* sorry, caps not registered! */
 }
+//! @endcond
 
 
 /*
@@ -192,6 +198,7 @@ const struct amp_caps *HAMLIB_API amp_get_caps(amp_model_t amp_model)
  * according to BACKEND_NUM
  * return -1 if not found.
  */
+//! @cond Doxygen_Suppress
 static int amp_lookup_backend(amp_model_t amp_model)
 {
     int i;
@@ -207,6 +214,7 @@ static int amp_lookup_backend(amp_model_t amp_model)
 
     return -1;
 }
+//! @endcond
 
 
 /*
@@ -215,6 +223,7 @@ static int amp_lookup_backend(amp_model_t amp_model)
  * and if not loaded already, load it!
  * This permits seamless operation in amp_init.
  */
+//! @cond Doxygen_Suppress
 int HAMLIB_API amp_check_backend(amp_model_t amp_model)
 {
     const struct amp_caps *caps;
@@ -249,8 +258,10 @@ int HAMLIB_API amp_check_backend(amp_model_t amp_model)
 
     return retval;
 }
+//! @endcond
 
 
+//! @cond Doxygen_Suppress
 int HAMLIB_API amp_unregister(amp_model_t amp_model)
 {
     int hval;
@@ -281,12 +292,14 @@ int HAMLIB_API amp_unregister(amp_model_t amp_model)
 
     return -RIG_EINVAL; /* sorry, caps not registered! */
 }
+//! @endcond
 
 
 /*
  * amp_list_foreach
  * executes cfunc on all the elements stored in the amp hash list
  */
+//! @cond Doxygen_Suppress
 int HAMLIB_API amp_list_foreach(int (*cfunc)(const struct amp_caps *,
                                 rig_ptr_t),
                                 rig_ptr_t data)
@@ -310,12 +323,14 @@ int HAMLIB_API amp_list_foreach(int (*cfunc)(const struct amp_caps *,
 
     return RIG_OK;
 }
+//! @endcond
 
 
 /*
  * amp_probe_all
  * called straight by amp_probe
  */
+//! @cond Doxygen_Suppress
 amp_model_t HAMLIB_API amp_probe_all(hamlib_port_t *p)
 {
     int i;
@@ -336,8 +351,10 @@ amp_model_t HAMLIB_API amp_probe_all(hamlib_port_t *p)
 
     return AMP_MODEL_NONE;
 }
+//! @endcond
 
 
+//! @cond Doxygen_Suppress
 int amp_load_all_backends()
 {
     int i;
@@ -349,12 +366,14 @@ int amp_load_all_backends()
 
     return RIG_OK;
 }
+//! @endcond
 
 
 /*
  * amp_load_backend
  * Dynamically load a amp backend through dlopen mechanism
  */
+//! @cond Doxygen_Suppress
 int HAMLIB_API amp_load_backend(const char *be_name)
 {
     int status;
@@ -381,3 +400,4 @@ int HAMLIB_API amp_load_backend(const char *be_name)
     return -EINVAL;
 
 }
+//! @endcond
