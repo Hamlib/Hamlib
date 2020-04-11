@@ -32,6 +32,7 @@
 #include "kenwood.h"
 
 #define TS480_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR)
+#define PS8000A_ALL_MODES (RIG_MODE_AM|RIG_MODE_AMS|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR)
 #define TS890_ALL_MODES (RIG_MODE_LSB|RIG_MODE_USB|RIG_MODE_CW|RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_RTTY|RIG_MODE_CWR|RIG_MODE_RTTYR|RIG_MODE_PSK|RIG_MODE_PSKR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTFM|RIG_MODE_PKTAM)
 
 #define TS480_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
@@ -585,6 +586,167 @@ const struct rig_caps ts480_caps =
         {RIG_MODE_RTTY, Hz(500)},
         {RIG_MODE_AM, kHz(9)},
         {RIG_MODE_FM, kHz(14)},
+        RIG_FLT_END,
+    },
+    .priv = (void *)& ts480_priv_caps,
+    .rig_init = kenwood_init,
+    .rig_open = kenwood_open,
+    .rig_cleanup = kenwood_cleanup,
+    .set_freq = kenwood_set_freq,
+    .get_freq = kenwood_get_freq,
+    .set_rit = kenwood_set_rit,   /*  FIXME should this switch to rit mode or just set the frequency? */
+    .get_rit = kenwood_get_rit,
+    .set_xit = kenwood_set_xit,   /* FIXME should this switch to xit mode or just set the frequency?  */
+    .get_xit = kenwood_get_xit,
+    .set_mode = kenwood_set_mode,
+    .get_mode = kenwood_get_mode,
+    .set_vfo = kenwood_set_vfo,
+    .get_vfo = kenwood_get_vfo_if,
+    .set_split_vfo = kenwood_set_split_vfo,
+    .get_split_vfo = kenwood_get_split_vfo_if,
+    .get_ptt = kenwood_get_ptt,
+    .set_ptt = kenwood_set_ptt,
+    .get_dcd = kenwood_get_dcd,
+    .set_powerstat = kenwood_set_powerstat,
+    .get_powerstat = kenwood_get_powerstat,
+    .get_info = kenwood_ts480_get_info,
+    .reset = kenwood_reset,
+    .set_ant = kenwood_set_ant,
+    .get_ant = kenwood_get_ant,
+    .scan = kenwood_scan,     /* not working, invalid arguments using rigctl; kenwood_scan does only support on/off and not tone and CTCSS scan */
+    .has_set_level = TS480_LEVEL_ALL,
+    .has_get_level = TS480_LEVEL_ALL,
+    .set_level = kenwood_ts480_set_level,
+    .get_level = kenwood_ts480_get_level,
+    .has_get_func = TS480_FUNC_ALL,
+    .has_set_func = TS480_FUNC_ALL,
+    .set_func = kenwood_set_func,
+    .get_func = kenwood_get_func,
+};
+
+/*
+ * Hilberling PS8000A TS480 emulation
+ * Notice that some rigs share the same functions.
+ * Also this struct is READONLY!
+ */
+const struct rig_caps pt8000a_caps =
+{
+    RIG_MODEL(RIG_MODEL_HILBERLING_PT8000A),
+    .model_name = "PT-8000A",
+    .mfg_name = "Hilberling",
+    .version = BACKEND_VER ".0",
+    .copyright = "LGPL",
+    .status = RIG_STATUS_ALPHA,
+    .rig_type = RIG_TYPE_TRANSCEIVER,
+    .ptt_type = RIG_PTT_RIG_MICDATA,
+    .dcd_type = RIG_DCD_RIG,
+    .port_type = RIG_PORT_SERIAL,
+    .serial_rate_min = 4800,
+    .serial_rate_max = 115200,
+    .serial_data_bits = 8,
+    .serial_stop_bits = 1,
+    .serial_parity = RIG_PARITY_NONE,
+    .serial_handshake = RIG_HANDSHAKE_NONE,
+    .write_delay = 0,
+    .post_write_delay = 0,
+    .timeout = 200,
+    .retry = 10,
+    .preamp = {12, RIG_DBLST_END,},
+    .attenuator = {12, RIG_DBLST_END,},
+    .max_rit = kHz(9.99),
+    .max_xit = kHz(9.99),
+    .max_ifshift = Hz(0),
+    .targetable_vfo = RIG_TARGETABLE_FREQ,
+    .transceive = RIG_TRN_RIG,
+
+
+    .rx_range_list1 = { // not region specific
+        {kHz(9),   MHz(30), PS8000A_ALL_MODES, -1, -1, TS480_VFO, RIG_ANT_2 | RIG_ANT_3, "Generic"},
+        {MHz(50),   MHz(54), PS8000A_ALL_MODES, -1, -1, TS480_VFO, RIG_ANT_1, "Generic"},
+        {MHz(69.9),   MHz(70.5), PS8000A_ALL_MODES, -1, -1, TS480_VFO, RIG_ANT_1, "Generic"},
+        {MHz(110),   MHz(143.99), PS8000A_ALL_MODES, -1, -1, TS480_VFO, RIG_ANT_1, "Generic"},
+        {MHz(144),   MHz(148), PS8000A_ALL_MODES, -1, -1, TS480_VFO, RIG_ANT_1, "Generic"},
+        RIG_FRNG_END,
+    }, /*!< Receive frequency range list for ITU region 1 */
+    .tx_range_list1 = {
+        {MHz(1.8),  MHz(30),  TS480_OTHER_TX_MODES, 1000, 200000, TS480_VFO, RIG_ANT_2 | RIG_ANT_3, "Generic"}, /* 200W class */
+        {MHz(1.8),  MHz(30),  TS480_AM_TX_MODES | RIG_MODE_AMS, 5000, 50000, TS480_VFO, RIG_ANT_2 | RIG_ANT_3, "Generic"},   /* 50W class */
+        {MHz(50),  MHz(54),  TS480_OTHER_TX_MODES, 1000, 100000, TS480_VFO, RIG_ANT_1, "Generic"},   /* 100W class */
+        {MHz(50),  MHz(54),  TS480_AM_TX_MODES | RIG_MODE_AMS, 5000, 25000, TS480_VFO, RIG_ANT_1, "Generic"},     /* 25W class */
+        {MHz(69.9),  MHz(70.5),  TS480_OTHER_TX_MODES, 1000, 100000, TS480_VFO, RIG_ANT_1, "Generic"},   /* 100W class */
+        {MHz(69.9),  MHz(70.5),  TS480_AM_TX_MODES | RIG_MODE_AMS, 5000, 25000, TS480_VFO, RIG_ANT_1, "Generic"},     /* 25W class */
+        {MHz(144),  MHz(148),  TS480_OTHER_TX_MODES, 1000, 100000, TS480_VFO, RIG_ANT_1, "Generic"},   /* 100W class */
+        {MHz(144),  MHz(148),  TS480_AM_TX_MODES | RIG_MODE_AMS, 5000, 25000, TS480_VFO, RIG_ANT_1, "Generic"},     /* 25W class */
+        RIG_FRNG_END,
+    },
+    .tuning_steps =  {
+        {PS8000A_ALL_MODES, Hz(1)},
+        {PS8000A_ALL_MODES, Hz(10)},
+        {PS8000A_ALL_MODES, Hz(100)},
+        {PS8000A_ALL_MODES, Hz(1000)},
+        RIG_TS_END,
+    },
+    /* mode/filter list, remember: order matters! */
+    .filters =  {
+        {RIG_MODE_SSB, kHz(1.0)},
+        {RIG_MODE_SSB, kHz(1.2)},
+        {RIG_MODE_SSB, kHz(1.4)},
+        {RIG_MODE_SSB, kHz(1.6)},
+        {RIG_MODE_SSB, kHz(1.8)},
+        {RIG_MODE_SSB, kHz(1.9)},
+        {RIG_MODE_SSB, kHz(2.0)},
+        {RIG_MODE_SSB, kHz(2.1)},
+        {RIG_MODE_SSB, kHz(2.2)},
+        {RIG_MODE_SSB, kHz(2.3)},
+        {RIG_MODE_SSB, kHz(2.4)},
+        {RIG_MODE_SSB, kHz(2.5)},
+        {RIG_MODE_SSB, kHz(2.6)},
+        {RIG_MODE_SSB, kHz(2.7)},
+        {RIG_MODE_SSB, kHz(2.8)},
+        {RIG_MODE_SSB, kHz(2.9)},
+        {RIG_MODE_SSB, kHz(3.0)},
+        {RIG_MODE_SSB, kHz(3.1)},
+        {RIG_MODE_SSB, kHz(3.2)},
+        {RIG_MODE_SSB, kHz(3.3)},
+        {RIG_MODE_SSB, kHz(3.4)},
+        {RIG_MODE_SSB, kHz(3.5)},
+        {RIG_MODE_SSB, kHz(4.6)},
+        {RIG_MODE_SSB, kHz(6.0)},
+        {RIG_MODE_CW, Hz(50)},
+        {RIG_MODE_CW, Hz(100)},
+        {RIG_MODE_CW, Hz(200)},
+        {RIG_MODE_CW, Hz(400)},
+        {RIG_MODE_CW, Hz(500)},
+        {RIG_MODE_AM, kHz(2.4)},
+        {RIG_MODE_AM, kHz(2.5)},
+        {RIG_MODE_AM, kHz(2.6)},
+        {RIG_MODE_AM, kHz(2.7)},
+        {RIG_MODE_AM, kHz(2.8)},
+        {RIG_MODE_AM, kHz(2.9)},
+        {RIG_MODE_AM, kHz(3.0)},
+        {RIG_MODE_AM, kHz(3.1)},
+        {RIG_MODE_AM, kHz(3.2)},
+        {RIG_MODE_AM, kHz(3.3)},
+        {RIG_MODE_AM, kHz(3.4)},
+        {RIG_MODE_AM, kHz(3.5)},
+        {RIG_MODE_AM, kHz(3.5)},
+        {RIG_MODE_AM, kHz(4.6)},
+        {RIG_MODE_AM, kHz(6.0)},
+        {RIG_MODE_FM, kHz(2.4)},
+        {RIG_MODE_FM, kHz(2.5)},
+        {RIG_MODE_FM, kHz(2.6)},
+        {RIG_MODE_FM, kHz(2.7)},
+        {RIG_MODE_FM, kHz(2.8)},
+        {RIG_MODE_FM, kHz(2.9)},
+        {RIG_MODE_FM, kHz(3.0)},
+        {RIG_MODE_FM, kHz(3.1)},
+        {RIG_MODE_FM, kHz(3.2)},
+        {RIG_MODE_FM, kHz(3.3)},
+        {RIG_MODE_FM, kHz(3.4)},
+        {RIG_MODE_FM, kHz(3.5)},
+        {RIG_MODE_FM, kHz(3.5)},
+        {RIG_MODE_FM, kHz(4.6)},
+        {RIG_MODE_FM, kHz(6.0)},
         RIG_FLT_END,
     },
     .priv = (void *)& ts480_priv_caps,
