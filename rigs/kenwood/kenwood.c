@@ -114,6 +114,7 @@ static const struct kenwood_id_string kenwood_id_string_list[] =
     { RIG_MODEL_TS570S, "018" },
     { RIG_MODEL_TS2000, "019" },
     { RIG_MODEL_TS480,  "020" },
+    { RIG_MODEL_PT8000A,"020" }, // TS480 ID but behaves differently
     { RIG_MODEL_TS590S, "021" },
     { RIG_MODEL_TS990S, "022" },
     { RIG_MODEL_TS590SG,  "023" },
@@ -780,11 +781,11 @@ int kenwood_open(RIG *rig)
 
         /* driver mismatch */
         rig_debug(RIG_DEBUG_ERR,
-                  "%s: wrong driver selected (%u instead of %d)\n",
+                  "%s: wrong driver (%u instead of %d)\n",
                   __func__, rig->caps->rig_model,
                   kenwood_id_string_list[i].model);
 
-        return -RIG_EINVAL;
+        // we continue to search for other matching IDs/models
     }
 
     rig_debug(RIG_DEBUG_ERR, "%s: your rig (%s) is unknown\n",
