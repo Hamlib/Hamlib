@@ -631,7 +631,7 @@ const struct rig_caps ts480_caps =
  */
 const struct rig_caps pt8000a_caps =
 {
-    RIG_MODEL(RIG_MODEL_HILBERLING_PT8000A),
+    RIG_MODEL(RIG_MODEL_PT8000A),
     .model_name = "PT-8000A",
     .mfg_name = "Hilberling",
     .version = BACKEND_VER ".0",
