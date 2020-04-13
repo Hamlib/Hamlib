@@ -74,6 +74,8 @@ static const struct kenwood_id kenwood_id_list[] =
     { RIG_MODEL_TS711, 3 },
     { RIG_MODEL_TS440, 4 },
     { RIG_MODEL_R5000, 5 },
+    { RIG_MODEL_TS140S, 6 },
+//    { RIG_MODEL_TS680S, 6 }, // The TS680S is supposed #6 too but it will return as TS140S since it matches it
     { RIG_MODEL_TS790, 7 },
     { RIG_MODEL_TS950S, 8 },
     { RIG_MODEL_TS850, 9 },
@@ -102,6 +104,7 @@ static const struct kenwood_id_string kenwood_id_string_list[] =
     { RIG_MODEL_TS711,  "003" },
     { RIG_MODEL_TS440,  "004" },
     { RIG_MODEL_R5000,  "005" },
+    { RIG_MODEL_TS140S, "006" },
     { RIG_MODEL_TS790,  "007" },
     { RIG_MODEL_TS950S, "008" },
     { RIG_MODEL_TS850,  "009" },
