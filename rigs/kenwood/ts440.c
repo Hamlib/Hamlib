@@ -148,6 +148,7 @@ const struct rig_caps ts440_caps =
     .priv = (void *)& ts440_priv_caps,
 
     .rig_init = kenwood_init,
+    .rig_open = kenwood_open,
     .rig_cleanup = kenwood_cleanup,
     .set_freq =  ic10_set_freq,
     .get_freq =  ic10_get_freq,

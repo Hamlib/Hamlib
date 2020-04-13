@@ -174,6 +174,7 @@ const struct rig_caps ts811_caps =
     .priv = (void *)& ts811_priv_caps,
 
     .rig_init = kenwood_init,
+    .rig_open = kenwood_open,
     .rig_cleanup = kenwood_cleanup,
     .set_freq =  kenwood_set_freq,
     .get_freq =  kenwood_get_freq,

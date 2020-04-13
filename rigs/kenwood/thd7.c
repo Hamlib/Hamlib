@@ -170,6 +170,7 @@ const struct rig_caps thd7a_caps =
     .priv = (void *)& thd7_priv_caps,
 
     .rig_init = kenwood_init,
+    .rig_open = kenwood_open,
     .rig_cleanup = kenwood_cleanup,
     .set_freq =  th_set_freq,
     .get_freq =  th_get_freq,
