@@ -789,7 +789,7 @@ int kenwood_open(RIG *rig)
         // we continue to search for other matching IDs/models
     }
 
-    rig_debug(RIG_DEBUG_ERR, "%s: your rig (%s) is unknown\n",
+    rig_debug(RIG_DEBUG_ERR, "%s: your rig (%s) did not match but we will continue anyways\n",
               __func__, id);
 
     // we're making this non fatal
