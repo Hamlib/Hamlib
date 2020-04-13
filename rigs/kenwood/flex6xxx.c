@@ -326,7 +326,7 @@ const struct rig_caps f6k_caps =
     .port_type =        RIG_PORT_NETWORK,
     // -spc- TODO set this reasonably, don't know what the flex should be
     .timeout =      600,    /* FA and FB make take up to 500 ms on band change */
-    .retry =        3,
+    .retry =        10,
 
     .has_get_func =     RIG_FUNC_NONE, /* has VOX but not implemented here */
     .has_set_func =     RIG_FUNC_NONE,
@@ -338,6 +338,7 @@ const struct rig_caps f6k_caps =
     .parm_gran =        {},
     //.extlevels =      elecraft_ext_levels,
     //.extparms =       kenwood_cfg_params,
+    .post_write_delay = 20,
     .preamp =       { RIG_DBLST_END, },
     .attenuator =       { RIG_DBLST_END, },
     .max_rit =      Hz(0),
