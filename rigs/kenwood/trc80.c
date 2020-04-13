@@ -150,6 +150,7 @@ const struct rig_caps trc80_caps =
     .priv = (void *)& trc80_priv_caps,
 
     .rig_init    = kenwood_init,
+    .rig_open = kenwood_open,
     .rig_cleanup = kenwood_cleanup,
 
 #ifdef XXREMOVEDXX
