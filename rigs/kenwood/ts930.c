@@ -145,6 +145,7 @@ const struct rig_caps ts930_caps =
 
     .rig_init = kenwood_init,
     .rig_open = kenwood_open, // we don't know the ID for this rig
+    .rig_close = kenwood_close,
     .rig_cleanup = kenwood_cleanup,
     .set_freq =  kenwood_set_freq,
     .get_freq =  kenwood_get_freq,
