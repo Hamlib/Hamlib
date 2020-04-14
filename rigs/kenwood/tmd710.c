@@ -350,6 +350,7 @@ const struct rig_caps tmd710_caps =
 
     .rig_init = kenwood_init,
     .rig_open = kenwood_open,
+    .rig_close = kenwood_close,
     .rig_cleanup = kenwood_cleanup,
     .set_freq =  tmd710_set_freq,
     .get_freq =  tmd710_get_freq,
