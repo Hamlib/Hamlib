@@ -151,6 +151,7 @@ const struct rig_caps trc80_caps =
 
     .rig_init    = kenwood_init,
     .rig_open = kenwood_open,
+    .rig_close = kenwood_close,
     .rig_cleanup = kenwood_cleanup,
 
 #ifdef XXREMOVEDXX

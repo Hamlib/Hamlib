@@ -134,6 +134,7 @@ const struct rig_caps r5000_caps =
 
     .rig_init = kenwood_init,
     .rig_open = kenwood_open,
+    .rig_close = kenwood_close,
     .rig_cleanup = kenwood_cleanup,
     .set_freq =  ic10_set_freq,
     .get_freq =  ic10_get_freq,
