@@ -628,6 +628,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 if (scanfc(fin, "%c", &cmd) < 1)
                 {
                     rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#1?\n", __func__);
+                    cmd = 0x0a;
                     //return -1;
                     continue;
                 }
