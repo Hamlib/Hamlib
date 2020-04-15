@@ -1542,7 +1542,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
 #endif // HAVE_LIBREADLINE
 
-    if (sync_cb) { sync_cb(1); }    /* lock if necessary */
+    if (sync_cb) sync_cb(1);    /* lock if necessary */
 
     if (!prompt)
     {
@@ -1600,9 +1600,13 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                                         p2 ? p2 : "",
                                         p3 ? p3 : "");
 
-    if (sync_cb) { sync_cb(0); }    /* unlock if necessary */
 
-    if (retcode == RIG_EIO) { return retcode; }
+    if (retcode == RIG_EIO)
+    {
+        if (sync_cb) sync_cb(0);    /* unlock if necessary */
+
+        return retcode;
+    }
 
     if (retcode != RIG_OK)
     {
@@ -1644,6 +1648,8 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
     }
 
     fflush(fout);
+
+    if (sync_cb) sync_cb(0);    /* unlock if necessary */
 
     if (retcode == -RIG_ENAVAIL)
     {
