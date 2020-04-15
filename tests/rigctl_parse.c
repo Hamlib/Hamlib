@@ -136,7 +136,7 @@ struct test_table
 };
 
 
-#define CHKSCN1ARG(a) if ((a) != 1) return -RIG_EINVAL; else do {} while(0)
+#define CHKSCN1ARG(a) if ((a) != 1) { rig_debug(RIG_DEBUG_ERR,"%s: chkarg err\n", __func__);return -RIG_EINVAL;} else do {} while(0)
 
 #define ACTION(f) rigctl_##f
 #define declare_proto_rig(f) static int (ACTION(f))(RIG *rig,           \
@@ -627,6 +627,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             {
                 if (scanfc(fin, "%c", &cmd) < 1)
                 {
+                    rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#1?\n", __func__);
                     return -1;
                 }
 
@@ -639,6 +640,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
                     if (scanfc(fin, "%c", &cmd) < 1)
                     {
+                        rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#2?\n", __func__);
                         return -1;
                     }
                 }
@@ -659,6 +661,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
                     if (scanfc(fin, "%c", &cmd) < 1)
                     {
+                        rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#3?\n", __func__);
                         return -1;
                     }
                 }
@@ -681,6 +684,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
                     if (scanfc(fin, "%c", pcmd) < 1)
                     {
+                        rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#4?\n", __func__);
                         return -1;
                     }
 
@@ -688,6 +692,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                     {
                         if (scanfc(fin, "%c", ++pcmd) < 1)
                         {
+                            rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#5?\n", __func__);
                             return -1;
                         }
                     }
@@ -724,6 +729,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 {
                     if (scanfc(fin, "%c", &cmd) < 1)
                     {
+                        rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#6?\n", __func__);
                         return -1;
                     }
                 }
@@ -785,6 +791,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
                 if (scanfc(fin, "%s", arg1) < 1)
                 {
+                    rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#7?\n", __func__);
                     return -1;
                 }
 
@@ -886,6 +893,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
                 if (scanfc(fin, "%s", arg1) < 1)
                 {
+                    rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#8?\n", __func__);
                     return -1;
                 }
 
@@ -940,6 +948,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
                 if (scanfc(fin, "%s", arg2) < 1)
                 {
+                    rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#9?\n", __func__);
                     return -1;
                 }
 
@@ -986,6 +995,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
                 if (scanfc(fin, "%s", arg3) < 1)
                 {
+                    rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#10?\n", __func__);
                     return -1;
                 }
 
@@ -1542,7 +1552,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
 #endif // HAVE_LIBREADLINE
 
-    if (sync_cb) sync_cb(1);    /* lock if necessary */
+    if (sync_cb) { sync_cb(1); }    /* lock if necessary */
 
     if (!prompt)
     {
@@ -1603,7 +1613,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
     if (retcode == RIG_EIO)
     {
-        if (sync_cb) sync_cb(0);    /* unlock if necessary */
+        if (sync_cb) { sync_cb(0); }    /* unlock if necessary */
 
         return retcode;
     }
@@ -1649,7 +1659,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
     fflush(fout);
 
-    if (sync_cb) sync_cb(0);    /* unlock if necessary */
+    if (sync_cb) { sync_cb(0); }    /* unlock if necessary */
 
     if (retcode == -RIG_ENAVAIL)
     {
