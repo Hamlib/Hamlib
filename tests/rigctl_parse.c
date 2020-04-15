@@ -628,9 +628,8 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 if (scanfc(fin, "%c", &cmd) < 1)
                 {
                     rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#1?\n", __func__);
-                    cmd = 0x0a;
-                    //return -1;
-                    continue;
+                    cmd = 0x0a; // setting 0x0a as though CR/LF was sent
+                    hl_usleep(200*1e6);
                 }
 
                 /* Extended response protocol requested with leading '+' on command
