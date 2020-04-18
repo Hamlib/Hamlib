@@ -193,7 +193,7 @@ END_OF_README
 make install
 
 mkdir -p ${ZIP_DIR}/bin ${ZIP_DIR}/lib/msvc ${ZIP_DIR}/lib/gcc ${ZIP_DIR}/include ${ZIP_DIR}/doc
-cp -a src/libhamlib.def ${ZIP_DIR}/lib/msvc/libhanlib-4.def; todos ${ZIP_DIR}/lib/msvc/libhanlib-4.def
+cp -a src/libhamlib.def ${ZIP_DIR}/lib/msvc/libhamlib-4.def; todos ${ZIP_DIR}/lib/msvc/libhamlib-4.def
 cp -a ${INST_DIR}/include/hamlib ${ZIP_DIR}/include/.; todos ${ZIP_DIR}/include/hamlib/*.h
 
 # C++ binding is useless on w32 because of ABI
@@ -226,8 +226,8 @@ cp -a /usr/lib/gcc/i686-w64-mingw32/6.3-posix/libgcc_s_sjlj-1.dll ${ZIP_DIR}/bin
 
 ## Need VC++ free toolkit installed (default Wine directory installation shown)
 # Path for 2003 version of Visual C++ Toolkit
-#-( cd ${ZIP_DIR}/lib/msvc/ && wine ~/.wine/drive_c/Program\ Files/Microsoft\ Visual\ C++\ Toolkit\ 2003/bin/link.exe /lib /machine:i386 /def:libhanlib-4.def )
+#-( cd ${ZIP_DIR}/lib/msvc/ && wine ~/.wine/drive_c/Program\ Files/Microsoft\ Visual\ C++\ Toolkit\ 2003/bin/link.exe /lib /machine:i386 /def:libhamlib-4.def )
 # Path for Current version of Visual Studio
-( cd ${ZIP_DIR}/lib/msvc/ && wine ~/.wine/drive_c/Program\ Files\ (x86)\/Microsoft\ Visual\ Studio/2017/BuildTools/VC/Tools/MSVC/14.16.27023/bin/Hostx64/x86/bin/link.exe /lib /machine:i386 /def:libhanlib-4.def )
+( cd ${ZIP_DIR}/lib/msvc/ && wine ~/.wine/drive_c/Program\ Files\ (x86)\/Microsoft\ Visual\ Studio/2017/BuildTools/VC/Tools/MSVC/14.16.27023/bin/Hostx64/x86/bin/link.exe /lib /machine:i386 /def:libhamlib-4.def )
 
 /usr/bin/zip -r ${HL_FILENAME}.zip `basename ${ZIP_DIR}`
