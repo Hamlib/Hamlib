@@ -193,7 +193,7 @@ END_OF_README
 make install
 
 mkdir -p ${ZIP_DIR}/bin  ${ZIP_DIR}/lib/gcc ${ZIP_DIR}/include ${ZIP_DIR}/doc ${ZIP_DIR}/lib/msvc # ${ZIP_DIR}/pdf
-cp -a src/libhamlib.def ${ZIP_DIR}/lib/msvc/libhamlib-2.def; todos ${ZIP_DIR}/lib/msvc/libhamlib-2.def
+cp -a src/libhamlib.def ${ZIP_DIR}/lib/msvc/libhamlib-4.def; todos ${ZIP_DIR}/lib/msvc/libhamlib-4.def
 cp -a ${INST_DIR}/include/hamlib ${ZIP_DIR}/include/.; todos ${ZIP_DIR}/include/hamlib/*.h
 
 # C++ binding is useless on w64 because of ABI
@@ -225,6 +225,6 @@ cp -a ${LIBUSB_1_0_BIN_PATH}/MinGW64/dll/libusb-1.0.dll ${ZIP_DIR}/bin/libusb-1.
 cp -a /usr/lib/gcc/x86_64-w64-mingw32/6.3-posix/libgcc_s_seh-1.dll ${ZIP_DIR}/bin/libgcc_s_seh-1.dll
 
 ## Need VC++ free toolkit installed (default Wine directory installation shown)
-( cd ${ZIP_DIR}/lib/msvc/ && wine ~/.wine/drive_c/Program\ Files/Microsoft\ Visual\ C++\ Toolkit\ 2003/bin/link.exe /lib /machine:amd64 /def:libhamlib-2.def )
+( cd ${ZIP_DIR}/lib/msvc/ && wine ~/.wine/drive_c/Program\ Files/Microsoft\ Visual\ C++\ Toolkit\ 2003/bin/link.exe /lib /machine:amd64 /def:libhamlib-4.def )
 
 zip -r ${HL_FILENAME}.zip `basename ${ZIP_DIR}`
