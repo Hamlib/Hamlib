@@ -190,7 +190,7 @@ END_OF_README
  LDFLAGS="-L${LIBUSB_1_0_BIN_PATH}/MinGW64/dll"
 
 
-make install
+make -j 4 install
 
 mkdir -p ${ZIP_DIR}/bin  ${ZIP_DIR}/lib/gcc ${ZIP_DIR}/include ${ZIP_DIR}/doc ${ZIP_DIR}/lib/msvc # ${ZIP_DIR}/pdf
 cp -a src/libhamlib.def ${ZIP_DIR}/lib/msvc/libhamlib-4.def; todos ${ZIP_DIR}/lib/msvc/libhamlib-4.def
