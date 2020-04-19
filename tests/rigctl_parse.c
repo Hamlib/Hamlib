@@ -489,6 +489,7 @@ static int scanfc(FILE *fin, const char *format, void *p)
             }
         }
 
+        if (ret < 1) rig_debug(RIG_DEBUG_TRACE, "%s: ret=%d\n", __func__, ret);
         return ret;
     }
     while (1);
