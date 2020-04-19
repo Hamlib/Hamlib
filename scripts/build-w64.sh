@@ -234,14 +234,29 @@ if test -f "$FILE"; then
 cp -a ${FILE} ${ZIP_DIR}/bin/libgcc_s_sjlj-1.dll
 fi
 
-## Need VC++ free toolkit installed (default Wine directory installation shown)
-( cd ${ZIP_DIR}/lib/msvc/ && wine ~/.wine/drive_c/Program\ Files/Microsoft\ Visual\ C++\ Toolkit\ 2003/bin/link.exe /lib /machine:amd64 /def:libhamlib-4.def )
+pushd .
+cd ${ZIP_DIR}/lib/msvc/
 
 ## Need VC++ free toolkit installed (default Wine directory installation shown)
-# Path for 2003 version of Visual C++ Toolkit
+wine ~/.wine/drive_c/Program\ Files/Microsoft\ Visual\ C++\ Toolkit\ 2003/bin/link.exe /lib /machine:amd64 /def:libhamlib-4.def
+
+## Need VC++ free toolkit installed (default Wine directory installation shown)
+# Path for 2003 version of Visual C++ Toolkit -- anybody have this anymore?
+# Commented out 20200418
 #( cd ${ZIP_DIR}/lib/msvc/ && wine ~/.wine/drive_c/Program\ Files/Microsoft\ Visual\ C++\ Toolkit\ 2003/bin/link.exe /lib /machine:i386 /def:libhamlib-4.def )
+if [ $? -ne 0 ];then
 # Path for 2017 version of Visual Studio
 ( cd ${ZIP_DIR}/lib/msvc/ && wine ~/.wine/drive_c/Program\ Files\ (x86)\/Microsoft\ Visual\ Studio/2017/BuildTools/VC/Tools/MSVC/14.16.27023/bin/Hostx64/x86/bin/link.exe /lib /machine:i386 /def:libhamlib-4.def )
+fi
+if [ $? -ne 0 ];then
+echo Did not find 2017 link.exe...trying 2019
 # Path for 2019 version Visual Studio Community
 #( cd ${ZIP_DIR}/lib/msvc/ && wine ~/.wine/drive_c/Program\ Files\ \(x86)\\/Microsoft\ Visual\ Studio\2019\Community\VC\Tools\MSVC\14.25.28610\bin\Hostx64\x86\bin\link.exe /lib /machine:i386 /def:libhamlib-4.def )
+#else
+echo Cannot find MSVC link executable!!
+echo You must put in your own path in here
+popd
+exit 1
+fi
+popd
 /usr/bin/zip -r ${HL_FILENAME}.zip `basename ${ZIP_DIR}`
