@@ -250,8 +250,6 @@ const struct confparams newcat_cfg_params[] =
 
 /* NewCAT Internal Functions */
 static ncboolean newcat_is_rig(RIG *rig, rig_model_t model);
-static int newcat_get_tx_vfo(RIG *rig, vfo_t *tx_vfo);
-static int newcat_set_tx_vfo(RIG *rig, vfo_t tx_vfo);
 
 static int newcat_set_vfo_from_alias(RIG *rig, vfo_t *vfo);
 static int newcat_scale_float(int scale, float fval);
@@ -515,6 +513,11 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         return -RIG_ENAVAIL;
     }
 
+    if (!newcat_valid_command(rig, "FB"))
+    {
+        return -RIG_ENAVAIL;
+    }
+
     priv = (struct newcat_priv_data *)rig->state.priv;
     caps = rig->caps;
 
@@ -655,6 +658,11 @@ int newcat_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         return -RIG_ENAVAIL;
     }
 
+    if (!newcat_valid_command(rig, "FB"))
+    {
+        return -RIG_ENAVAIL;
+    }
+
     err = newcat_set_vfo_from_alias(rig, &vfo);
 
     if (err < 0)
@@ -744,65 +752,10 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: generic mode = %s \n",
               __func__, rig_strrmode(mode));
 
-    switch (mode)
+
+    priv->cmd_str[3] = newcat_modechar(mode);
+    if (priv->cmd_str[3] == '0')
     {
-    case RIG_MODE_LSB:
-        priv->cmd_str[3] = '1';
-        break;
-
-    case RIG_MODE_USB:
-        priv->cmd_str[3] = '2';
-        break;
-
-    case RIG_MODE_CW:
-        priv->cmd_str[3] = '3';
-        break;
-
-    case RIG_MODE_FM:
-        priv->cmd_str[3] = '4';
-        break;
-
-    case RIG_MODE_AM:
-        priv->cmd_str[3] = '5';
-        break;
-
-    case RIG_MODE_RTTY:
-        priv->cmd_str[3] = '6';
-        break;
-
-    case RIG_MODE_CWR:
-        priv->cmd_str[3] = '7';
-        break;
-
-    case RIG_MODE_PKTLSB:   /* FT450 USER-L */
-        priv->cmd_str[3] = '8';
-        break;
-
-    case RIG_MODE_RTTYR:
-        priv->cmd_str[3] = '9';
-        break;
-
-    case RIG_MODE_PKTFM:
-        priv->cmd_str[3] = 'A';
-        break;
-
-    case RIG_MODE_FMN:
-        priv->cmd_str[3] = 'B';
-        break;
-
-    case RIG_MODE_PKTUSB:   /* FT450 USER-U */
-        priv->cmd_str[3] = 'C';
-        break;
-
-    case RIG_MODE_AMN:
-        priv->cmd_str[3] = 'D';
-        break;
-
-    case RIG_MODE_C4FM:
-        priv->cmd_str[3] = 'E';
-        break;
-
-    default:
         return -RIG_EINVAL;
     }
 
@@ -832,7 +785,6 @@ int newcat_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     char c;
     int err;
-    ncboolean narrow;
     char main_sub_vfo = '0';
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -877,101 +829,10 @@ int newcat_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     /* default, unless set otherwise */
     *width = RIG_PASSBAND_NORMAL;
 
-    switch (c)
+    *mode = newcat_rmode_width(rig, vfo, c, width);
+
+    if (*mode == '0')
     {
-    case '1':
-        *mode = RIG_MODE_LSB;
-        break;
-
-    case '2':
-        *mode = RIG_MODE_USB;
-        break;
-
-    case '3':
-        *mode = RIG_MODE_CW;
-        break;
-
-    case '4':
-        *mode = RIG_MODE_FM;
-        err = newcat_get_narrow(rig, vfo, &narrow);
-
-        if (narrow == TRUE)
-        {
-            *width = rig_passband_narrow(rig, *mode);
-        }
-        else
-        {
-            *width = rig_passband_normal(rig, *mode);
-        }
-
-        return err;
-
-    case '5':
-        *mode = RIG_MODE_AM;
-        err = newcat_get_narrow(rig, vfo, &narrow);
-
-        if (narrow == TRUE)
-        {
-            *width = rig_passband_narrow(rig, *mode);
-        }
-        else
-        {
-            *width = rig_passband_normal(rig, *mode);
-        }
-
-        return err;
-
-    case '6':
-        *mode = RIG_MODE_RTTY;
-        break;
-
-    case '7':
-        *mode = RIG_MODE_CWR;
-        break;
-
-    case '8':
-        *mode = RIG_MODE_PKTLSB;    /* FT450 USER-L */
-        break;
-
-    case '9':
-        *mode = RIG_MODE_RTTYR;
-        break;
-
-    case 'A':
-        *mode = RIG_MODE_PKTFM;
-        err = newcat_get_narrow(rig, vfo, &narrow);
-
-        if (narrow == TRUE)
-        {
-            *width = rig_passband_narrow(rig, *mode);
-        }
-        else
-        {
-            *width = rig_passband_normal(rig, *mode);
-        }
-
-        return err;
-
-    case 'B':
-        *mode = RIG_MODE_FMN;       /* narrow */
-        *width = rig_passband_narrow(rig, *mode);
-        return RIG_OK;
-
-    case 'C':
-        *mode = RIG_MODE_PKTUSB;    /* FT450 USER-U */
-        break;
-
-    case 'D':
-        *mode = RIG_MODE_AM;       /* narrow, FT950 */
-        *width = rig_passband_narrow(rig, *mode);
-        return RIG_OK;
-
-    case 'E':
-        *mode = RIG_MODE_C4FM;     /* narrow, FT950 */
-        *width = rig_passband_narrow(rig, *mode);
-        return RIG_OK;
-
-    default:
         return -RIG_EPROTO;
     }
 
@@ -4356,38 +4217,7 @@ int newcat_set_channel(RIG *rig, const channel_t *chan)
     }
 
     /* MODE */
-    switch (chan->mode)
-    {
-    case RIG_MODE_LSB:    c_mode = '1'; break;
-
-    case RIG_MODE_USB:    c_mode = '2'; break;
-
-    case RIG_MODE_CW:     c_mode = '3'; break;
-
-    case RIG_MODE_FM:     c_mode = '4'; break;
-
-    case RIG_MODE_AM:     c_mode = '5'; break;
-
-    case RIG_MODE_RTTY:   c_mode = '6'; break;
-
-    case RIG_MODE_CWR:    c_mode = '7'; break;
-
-    case RIG_MODE_PKTLSB: c_mode = '8'; break;
-
-    case RIG_MODE_RTTYR:  c_mode = '9'; break;
-
-    case RIG_MODE_PKTFM:  c_mode = 'A'; break;
-
-    case RIG_MODE_FMN:    c_mode = 'B'; break;
-
-    case RIG_MODE_PKTUSB: c_mode = 'C'; break;
-
-    case RIG_MODE_AMN:    c_mode = 'D'; break;
-
-    case RIG_MODE_C4FM:   c_mode = 'E'; break;
-
-    default: c_mode = '1'; break;
-    }
+    c_mode = newcat_modechar(chan->mode);
 
     /* VFO Fixed */
     c_vfo = '0';
@@ -4571,38 +4401,10 @@ int newcat_get_channel(RIG *rig, channel_t *chan)
     chan->width = 0;
 
     retval = priv->ret_data + 20;
+    chan->mode = newcat_rmode(*retval);
 
-    switch (*retval)
+    if (chan->mode == RIG_MODE_NONE)
     {
-    case '1': chan->mode = RIG_MODE_LSB;    break;
-
-    case '2': chan->mode = RIG_MODE_USB;    break;
-
-    case '3': chan->mode = RIG_MODE_CW;     break;
-
-    case '4': chan->mode = RIG_MODE_FM;     break;
-
-    case '5': chan->mode = RIG_MODE_AM;     break;
-
-    case '6': chan->mode = RIG_MODE_RTTY;   break;
-
-    case '7': chan->mode = RIG_MODE_CWR;    break;
-
-    case '8': chan->mode = RIG_MODE_PKTLSB; break;
-
-    case '9': chan->mode = RIG_MODE_RTTYR;  break;
-
-    case 'A': chan->mode = RIG_MODE_PKTFM;  break;
-
-    case 'B': chan->mode = RIG_MODE_FM;     break;
-
-    case 'C': chan->mode = RIG_MODE_PKTUSB; break;
-
-    case 'D': chan->mode = RIG_MODE_AM;     break;
-
-    case 'E': chan->mode = RIG_MODE_C4FM;     break;
-
-    default:
         rig_debug(RIG_DEBUG_ERR, "%s: unknown mode=%c\n", __func__, *retval);
         chan->mode = RIG_MODE_LSB;
     }
@@ -6057,7 +5859,7 @@ int newcat_get_vfo_mode(RIG *rig, vfo_t *vfo_mode)
         return -RIG_EPROTO;
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: offset=%d, width_frequeny=%d\n", __func__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: offset=%d, width_frequency=%d\n", __func__,
               offset, priv->width_frequency);
 
     switch (priv->ret_data[offset])
@@ -6073,7 +5875,7 @@ int newcat_get_vfo_mode(RIG *rig, vfo_t *vfo_mode)
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo mode = %s\n", __func__,
-              rig_strrmode(*vfo_mode));
+              rig_strvfo(*vfo_mode));
 
     return err;
 }
@@ -6348,4 +6150,96 @@ int newcat_set_cmd(RIG *rig)
     }
 
     return rc;
+}
+
+struct {
+    rmode_t mode;
+    char modechar;
+    ncboolean chk_width;
+} static const newcat_mode_conv[] =
+{
+    { RIG_MODE_LSB,    '1', FALSE },
+    { RIG_MODE_USB,    '2', FALSE },
+    { RIG_MODE_CW,     '3', FALSE },
+    { RIG_MODE_FM,     '4', TRUE },
+    { RIG_MODE_AM,     '5', TRUE },
+    { RIG_MODE_RTTY,   '6', FALSE },
+    { RIG_MODE_CWR,    '7', FALSE },
+    { RIG_MODE_PKTLSB, '8', FALSE },
+    { RIG_MODE_RTTYR,  '9', FALSE },
+    { RIG_MODE_PKTFM,  'A', TRUE },
+    { RIG_MODE_FMN,    'B', TRUE },
+    { RIG_MODE_PKTUSB, 'C', FALSE },
+    { RIG_MODE_AMN,    'D', TRUE },
+    { RIG_MODE_C4FM,   'E', TRUE }
+};
+
+rmode_t newcat_rmode(char mode)
+{
+    int i;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    for (i = 0; i < sizeof(newcat_mode_conv) / sizeof(newcat_mode_conv[0]); i++)
+    {
+        if (newcat_mode_conv[i].modechar == mode)
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: %s for %c\n", __func__,
+                      rig_strrmode(newcat_mode_conv[i].mode), mode);
+            return (newcat_mode_conv[i].mode);
+	}
+   }
+
+   return (RIG_MODE_NONE);
+}
+
+char newcat_modechar(rmode_t rmode)
+{
+    int i;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    for (i = 0; i < sizeof(newcat_mode_conv) / sizeof(newcat_mode_conv[0]); i++)
+    {
+        if (newcat_mode_conv[i].mode == rmode)
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: return %c for %s\n", __func__,
+                     newcat_mode_conv[i].modechar, rig_strrmode(rmode));
+            return (newcat_mode_conv[i].modechar);
+	}
+    }
+
+    return ('0');
+}
+
+rmode_t newcat_rmode_width(RIG *rig, vfo_t vfo, char mode, pbwidth_t *width)
+{
+    ncboolean narrow;
+    int i;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if(width != NULL)
+        *width = RIG_PASSBAND_NORMAL;
+
+    for (i = 0; i < sizeof(newcat_mode_conv) / sizeof(newcat_mode_conv[0]); i++)
+    {
+        if (newcat_mode_conv[i].modechar == mode)
+        {
+            if (newcat_mode_conv[i].chk_width == TRUE && width != NULL)
+            {
+                 if(newcat_get_narrow(rig, vfo, &narrow) != RIG_OK)
+                     return (newcat_mode_conv[i].mode);
+                 if (narrow == TRUE)
+                    *width = rig_passband_narrow(rig, mode);
+                 else
+                    *width = rig_passband_normal(rig, mode);
+            }
+            return (newcat_mode_conv[i].mode);
+	}
+    }
+    rig_debug(RIG_DEBUG_VERBOSE, "%s fell out the bottom %c %s\n", __func__,
+              mode, rig_strrmode(mode));
+
+    return ('0');
 }

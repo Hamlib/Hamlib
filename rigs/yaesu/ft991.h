@@ -38,10 +38,10 @@
 /* Receiver caps */
 
 #define FT991_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|\
-		RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTFM|\
+        RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTFM|\
     RIG_MODE_C4FM)
 #define FT991_SSB_CW_RX_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|\
-		RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB)
+        RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB)
 #define FT991_AM_RX_MODES (RIG_MODE_AM)
 #define FT991_FM_RX_MODES (RIG_MODE_FM|RIG_MODE_PKTFM|RIG_MODE_C4FM)
 #define FT991_CW_RX_MODES (RIG_MODE_CW|RIG_MODE_CWR)
@@ -73,24 +73,24 @@
 
 /* TBC */
 #define FT991_STR_CAL { 16, \
-	       { \
-			{   0, -54 }, /*  S0 */ \
-			{  12, -48 }, /*  S1 */ \
-			{  27, -42 }, /*  S2 */ \
-			{  40, -36 }, /*  S3 */ \
-			{  55, -30 }, /*  S4 */ \
-			{  65, -24 }, /*  S5 */ \
-			{  80, -18 }, /*  S6 */ \
-			{  95, -12 }, /*  S7 */ \
-			{ 112,  -6 }, /*  S8 */ \
-			{ 130,   0 }, /*  S9 */ \
-			{ 150,  10 }, /* +10 */ \
-			{ 172,  20 }, /* +20 */ \
-			{ 190,  30 }, /* +30 */ \
-			{ 220,  40 }, /* +40 */ \
-			{ 240,  50 }, /* +50 */ \
-			{ 255,  60 }, /* +60 */ \
-		} }
+           { \
+            {   0, -54 }, /*  S0 */ \
+            {  12, -48 }, /*  S1 */ \
+            {  27, -42 }, /*  S2 */ \
+            {  40, -36 }, /*  S3 */ \
+            {  55, -30 }, /*  S4 */ \
+            {  65, -24 }, /*  S5 */ \
+            {  80, -18 }, /*  S6 */ \
+            {  95, -12 }, /*  S7 */ \
+            { 112,  -6 }, /*  S8 */ \
+            { 130,   0 }, /*  S9 */ \
+            { 150,  10 }, /* +10 */ \
+            { 172,  20 }, /* +20 */ \
+            { 190,  30 }, /* +30 */ \
+            { 220,  40 }, /* +40 */ \
+            { 240,  50 }, /* +50 */ \
+            { 255,  60 }, /* +60 */ \
+        } }
 
 
 /*
@@ -123,9 +123,34 @@
 
 #define FT991_POST_WRITE_DELAY               50
 
+typedef struct
+{
+    char command[2];      /* depends on command "IF", "MR", "MW" "OI" */
+    char memory_ch[3];    /* 001 -> 117 */
+    char vfo_freq[9];     /* 9 digit value in Hz */
+    char clarifier[5];    /* '+' | '-', 0000 -> 9999 Hz */
+    char rx_clarifier;    /* '0' = off, '1' = on */
+    char tx_clarifier;    /* '0' = off, '1' = on */
+    char mode;            /* '1'=LSB, '2'=USB, '3'=CW, '4'=FM, '5'=AM, */
+    /* '6'=RTTY-LSB, '7'=CW-R, '8'=DATA-LSB, */
+    /* '9'=RTTY-USB,'A'=DATA-FM, 'B'=FM-N, */
+    /* 'C'=DATA-USB, 'D'=AM-N, 'E'=C4FM */
+    char vfo_memory;      /* '0'=VFO, '1'=Memory, '2'=Memory Tune, */
+    /* '3'=Quick Memory Bank, '4'=QMB-MT, '5'=PMS, '6'=HOME */
+    char tone_mode;       /* '0' = off, CTCSS '1' ENC, '2' ENC/DEC, */
+    /* '3' = DCS ENC/DEC, '4' = ENC */
+    char fixed[2];        /* Always '0', '0' */
+    char repeater_offset; /* '0' = Simplex, '1' Plus, '2' minus */
+    char terminator;      /* ';' */
+} ft991info;
+
 /* Prototypes */
 static int ft991_init(RIG *rig);
-static int ft991_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width);
-static int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width);
-
+static int ft991_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
+                                pbwidth_t *tx_width);
+static int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
+                                pbwidth_t tx_width);
+static int ft991_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
+static int ft991_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq);
+static void debug_ft991info_data(const ft991info *rdata);
 #endif /* _FT991_H */
