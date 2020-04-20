@@ -60,13 +60,13 @@ typedef char ncboolean;
 
 
 #define NEWCAT_MEM_CAP {    \
-	.freq = 1,      \
-	.mode = 1,      \
-	.rit = 1,       \
-	.xit = 1,       \
-	.rptr_shift = 1, \
-	.ctcss_tone = 1,\
-	.ctcss_sql = 1,\
+    .freq = 1,      \
+    .mode = 1,      \
+    .rit = 1,       \
+    .xit = 1,       \
+    .rptr_shift = 1, \
+    .ctcss_tone = 1,\
+    .ctcss_sql = 1,\
 }
 
 extern const struct confparams newcat_cfg_params[];
@@ -78,15 +78,20 @@ extern const struct confparams newcat_cfg_params[];
  * rig_caps.priv?  I'm guessing not since it's private to the backend.  -N0NB
  */
 
-struct newcat_priv_data {
-    unsigned int        read_update_delay;              /* depends on pacing value */
+struct newcat_priv_data
+{
+    unsigned int
+    read_update_delay;              /* depends on pacing value */
 //    vfo_t               current_vfo;                    /* active VFO from last cmd */
     char                cmd_str[NEWCAT_DATA_LEN];       /* command string buffer */
-    char                ret_data[NEWCAT_DATA_LEN];      /* returned data--max value, most are less */
-    int                 current_mem;                    /* private memory channel number */
-    int                 rig_id;                         /* rig id from CAT Command ID; */
+    char
+    ret_data[NEWCAT_DATA_LEN];      /* returned data--max value, most are less */
+    int
+    current_mem;                    /* private memory channel number */
+    int
+    rig_id;                         /* rig id from CAT Command ID; */
     int trn_state;  /* AI state found at startup */
-		int fast_set_commands; /* do not check for ACK/NAK; needed for high throughput > 100 commands/s */
+    int fast_set_commands; /* do not check for ACK/NAK; needed for high throughput > 100 commands/s */
     int width_frequency; /* found at startup */
 };
 
@@ -123,8 +128,8 @@ struct newcat_priv_data {
  *
  */
 
-int newcat_get_cmd(RIG * rig);
-int newcat_set_cmd (RIG *rig);
+int newcat_get_cmd(RIG *rig);
+int newcat_set_cmd(RIG *rig);
 
 int newcat_init(RIG *rig);
 int newcat_cleanup(RIG *rig);
@@ -140,43 +145,53 @@ int newcat_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 int newcat_set_vfo(RIG *rig, vfo_t vfo);
 int newcat_get_vfo(RIG *rig, vfo_t *vfo);
 
+int newcat_set_tx_vfo(RIG *rig, vfo_t tx_vfo);
+int newcat_get_tx_vfo(RIG *rig, vfo_t *tx_vfo);
+
 int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int newcat_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 
 int newcat_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
-int newcat_get_ptt(RIG * rig, vfo_t vfo, ptt_t * ptt);
-int newcat_set_ant(RIG * rig, vfo_t vfo, ant_t ant, value_t option);
-int newcat_get_ant(RIG * rig, vfo_t vfo, ant_t dummy, value_t * option, ant_t * ant_curr, ant_t * ant_tx, ant_t *ant_rx);
-int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val);
-int newcat_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val);
-int newcat_set_func(RIG * rig, vfo_t vfo, setting_t func, int status);
-int newcat_get_func(RIG * rig, vfo_t vfo, setting_t func, int *status);
-int newcat_set_mem(RIG * rig, vfo_t vfo, int ch);
-int newcat_get_mem(RIG * rig, vfo_t vfo, int *ch);
-int newcat_vfo_op(RIG * rig, vfo_t vfo, vfo_op_t op);
-const char *newcat_get_info(RIG * rig);
+int newcat_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
+int newcat_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option);
+int newcat_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
+                   ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx);
+int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
+int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
+int newcat_set_mem(RIG *rig, vfo_t vfo, int ch);
+int newcat_get_mem(RIG *rig, vfo_t vfo, int *ch);
+int newcat_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
+const char *newcat_get_info(RIG *rig);
 
-int newcat_get_rit(RIG * rig, vfo_t vfo, shortfreq_t * rit);
-int newcat_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit);
-int newcat_get_xit(RIG * rig, vfo_t vfo, shortfreq_t * xit);
-int newcat_set_xit(RIG * rig, vfo_t vfo, shortfreq_t xit);
-int newcat_power2mW(RIG * rig, unsigned int *mwpower, float power, freq_t freq, rmode_t mode);
-int newcat_mW2power(RIG * rig, float *power, unsigned int mwpower, freq_t freq, rmode_t mode);
-int newcat_set_split_vfo(RIG * rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
-int newcat_get_split_vfo(RIG * rig, vfo_t vfo, split_t * split, vfo_t *tx_vfo);
-int newcat_set_rptr_shift(RIG * rig, vfo_t vfo, rptr_shift_t rptr_shift);
-int newcat_get_rptr_shift(RIG * rig, vfo_t vfo, rptr_shift_t * rptr_shift);
-int newcat_set_ctcss_tone(RIG * rig, vfo_t vfo, tone_t tone);
-int newcat_get_ctcss_tone(RIG * rig, vfo_t vfo, tone_t * tone);
-int newcat_set_ctcss_sql(RIG * rig, vfo_t vfo, tone_t tone);
-int newcat_get_ctcss_sql(RIG * rig, vfo_t vfo, tone_t * tone);
-int newcat_set_powerstat(RIG * rig, powerstat_t status);
-int newcat_get_powerstat(RIG * rig, powerstat_t * status);
-int newcat_set_ts(RIG * rig, vfo_t vfo, shortfreq_t ts);
-int newcat_get_ts(RIG * rig, vfo_t vfo, shortfreq_t * ts);
-int newcat_set_trn(RIG * rig, int trn);
-int newcat_get_trn(RIG * rig, int *trn);
-int newcat_set_channel(RIG * rig, const channel_t * chan);
-int newcat_get_channel(RIG * rig, channel_t * chan);
+int newcat_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
+int newcat_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
+int newcat_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit);
+int newcat_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit);
+int newcat_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq,
+                    rmode_t mode);
+int newcat_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq,
+                    rmode_t mode);
+int newcat_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
+int newcat_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
+int newcat_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift);
+int newcat_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift);
+int newcat_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone);
+int newcat_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone);
+int newcat_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone);
+int newcat_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone);
+int newcat_set_powerstat(RIG *rig, powerstat_t status);
+int newcat_get_powerstat(RIG *rig, powerstat_t *status);
+int newcat_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts);
+int newcat_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts);
+int newcat_set_trn(RIG *rig, int trn);
+int newcat_get_trn(RIG *rig, int *trn);
+int newcat_set_channel(RIG *rig, const channel_t *chan);
+int newcat_get_channel(RIG *rig, channel_t *chan);
+rmode_t newcat_rmode(char mode);
+char newcat_modechar(rmode_t rmode);
+rmode_t newcat_rmode_width(RIG *rig, vfo_t vfo, char mode, pbwidth_t *width);
+
 
 #endif /* _NEWCAT_H */
