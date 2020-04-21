@@ -490,7 +490,7 @@ static int scanfc(FILE *fin, const char *format, void *p)
         }
 
         if (ret < 1) rig_debug(RIG_DEBUG_TRACE, "%s: ret=%d\n", __func__, ret);
-        if (ferror(fin)) rig_debug(RIG_DEBUG_TRACE, "%s: errno=%d\n", __func__, errno);
+        if (ferror(fin)) rig_debug(RIG_DEBUG_TRACE, "%s: errno=%d, %s\n", __func__, errno, strerror(errno));
  
         return ret;
     }
