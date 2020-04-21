@@ -1024,19 +1024,23 @@ void *handle_socket(void *arg)
                                1, 0, handle_data_arg->vfo_mode, send_cmd_term, &ext_resp, &resp_sep);
 
         if (retcode != 0) rig_debug(RIG_DEBUG_ERR, "%s: rigctl_parse retcode=%d\n", __func__, retcode);
+        if (retcode == -1) {
+            continue;
+            sleep(1);
+        }
 
         if (ferror(fsockin) || ferror(fsockout))
         {
-            rig_debug(RIG_DEBUG_ERR,"%s: %d, %d\n", __func__, ferror(fsockin), ferror(fsockout));
+            rig_debug(RIG_DEBUG_ERR,"%s: socket error in=%d, out=%d\n", __func__, ferror(fsockin), ferror(fsockout));
             retcode = 1;
-        }
 
-        if (retcode == 1 || retcode == -1)
+        if (retcode == 1)
         {
             retcode = rig_close(my_rig);
             rig_debug(RIG_DEBUG_ERR,"%s: rig_close retcode=%d\n", __func__, retcode);
             retcode = rig_open(my_rig);
             rig_debug(RIG_DEBUG_ERR,"%s: rig_open retcode=%d\n", __func__, retcode);
+        }
         }
     }
     while (retcode == 0 || retcode == 2 || retcode == -RIG_ENAVAIL);
