@@ -1031,7 +1031,7 @@ void *handle_socket(void *arg)
             retcode = 1;
         }
 
-        if (retcode == 1)
+        if (retcode == 1 || retcode == -1)
         {
             retcode = rig_close(my_rig);
             rig_debug(RIG_DEBUG_ERR,"%s: rig_close retcode=%d\n", __func__, retcode);
