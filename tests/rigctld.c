@@ -1025,8 +1025,8 @@ void *handle_socket(void *arg)
 
         if (retcode != 0) rig_debug(RIG_DEBUG_ERR, "%s: rigctl_parse retcode=%d\n", __func__, retcode);
         if (retcode == -1) {
-            continue;
             sleep(1);
+            continue;
         }
 
         if (ferror(fsockin) || ferror(fsockout))
