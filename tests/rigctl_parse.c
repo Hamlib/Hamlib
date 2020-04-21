@@ -1615,6 +1615,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
     if (retcode == RIG_EIO)
     {
+        rig_debug(RIG_DEBUG_ERR, "%s: RIG_EIO?\n", __func__);
         if (sync_cb) { sync_cb(0); }    /* unlock if necessary */
 
         return retcode;
@@ -1661,6 +1662,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
     fflush(fout);
 
+    rig_debug(RIG_DEBUG_TRACE, "%s: retcode=%d\n", __func__, retcode);
     if (sync_cb) { sync_cb(0); }    /* unlock if necessary */
 
     if (retcode == -RIG_ENAVAIL)
