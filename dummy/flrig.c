@@ -409,14 +409,15 @@ static int read_transaction(RIG *rig, char *xml, int xml_len)
         char tmp_buf[MAXXMLLEN];        // plenty big for expected flrig responses hopefully
         int len = read_string(&rs->rigport, tmp_buf, sizeof(tmp_buf), delims,
                               strlen(delims));
-        rig_debug(RIG_DEBUG_TRACE, "%s: string='%s'", __func__, tmp_buf);
+        rig_debug(RIG_DEBUG_TRACE, "%s: string='%s'\n", __func__, tmp_buf);
 
         if (len > 0) { retry = 3; }
 
         if (len <= 0)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: read_string error=%d\n", __func__, len);
-            return -(100 + RIG_EPROTO);
+            //return -(100 + RIG_EPROTO);
+	    continue;
         }
 
         if (strlen(xml) + strlen(tmp_buf) < xml_len - 1)
@@ -436,6 +437,7 @@ static int read_transaction(RIG *rig, char *xml, int xml_len)
     if (retry == 0)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: retry timeout\n", __func__);
+        return -RIG_ETIMEOUT;
     }
 
     if (strstr(xml, terminator))
@@ -1464,7 +1466,9 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         return retval;
     }
 
-    read_transaction(rig, xml, sizeof(xml));
+    retval = read_transaction(rig, xml, sizeof(xml));
+    if (retval < 0) {
+    }
     xml_parse(xml, value, sizeof(value));
     retval = modeMapGetHamlib(value);
 
