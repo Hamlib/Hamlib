@@ -591,6 +591,7 @@ static int netrigctl_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
     char vfostr[6] = "";
+    char vfotmp[16];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -608,6 +609,7 @@ static int netrigctl_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
 
     CHKSCN1ARG(num_sscanf(buf, "%"SCNfreq, freq));
+    CHKSCN1ARG(num_sscanf(buf, "%s", vfotmp));
 
     return RIG_OK;
 }
@@ -2152,7 +2154,7 @@ struct rig_caps netrigctl_caps =
     RIG_MODEL(RIG_MODEL_NETRIGCTL),
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
-    .version =        "20200319.0",
+    .version =        "20200422.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
@@ -2161,7 +2163,7 @@ struct rig_caps netrigctl_caps =
     .dcd_type =       RIG_DCD_RIG,
     .port_type =      RIG_PORT_NETWORK,
     .timeout = 2500,  /* enough for a network */
-    .retry =   1,
+    .retry =   2,
 
     /* following fields updated in rig_state at openning time */
     .has_get_func =   RIG_FUNC_NONE,
