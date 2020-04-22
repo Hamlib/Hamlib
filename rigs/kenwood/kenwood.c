@@ -326,6 +326,7 @@ transaction_read:
 
     if (retval < 0)
     {
+        rig_debug(RIG_DEBUG_WARN, "%s: read_string retval < 0, retval = %d, retry_read=%d, retry=%d\n", __func__, retval);
         // only retry if we expect a response from the command
         if (datasize && retry_read++ < rs->rigport.retry)
         {
