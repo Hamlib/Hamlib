@@ -2163,7 +2163,7 @@ struct rig_caps netrigctl_caps =
     .dcd_type =       RIG_DCD_RIG,
     .port_type =      RIG_PORT_NETWORK,
     .timeout = 2500,  /* enough for a network */
-    .retry =   2,
+    .retry =   3,
 
     /* following fields updated in rig_state at openning time */
     .has_get_func =   RIG_FUNC_NONE,
