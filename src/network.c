@@ -77,7 +77,7 @@ static int wsstarted;
 #endif
 
 //! @cond Doxygen_Suppress
-#define NET_BUFFER_SIZE 64
+#define NET_BUFFER_SIZE 8192
 //! @endcond
 
 static void handle_error(enum rig_debug_level_e lvl, const char *msg)
