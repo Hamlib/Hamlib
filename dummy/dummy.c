@@ -44,6 +44,9 @@
 
 #define NB_CHAN 22      /* see caps->chan_list */
 
+
+#define CMDSLEEP 20*1000  /* ms for each command */
+
 struct dummy_priv_data
 {
     /* current vfo already in rig_state ? */
@@ -369,6 +372,7 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     channel_t *curr = priv->curr;
     char fstr[20];
 
+    hl_usleep(CMDSLEEP);
     sprintf_freq(fstr, freq);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %s\n", __func__,
               rig_strvfo(vfo), fstr);
@@ -383,6 +387,7 @@ static int dummy_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
+    hl_usleep(CMDSLEEP);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, rig_strvfo(vfo));
     *freq = curr->freq;
     return RIG_OK;
@@ -395,6 +400,7 @@ static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     channel_t *curr = priv->curr;
     char buf[16];
 
+    hl_usleep(CMDSLEEP);
     sprintf_freq(buf, width);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %s %s\n", __func__,
               rig_strvfo(vfo), rig_strrmode(mode), buf);
@@ -421,6 +427,7 @@ static int dummy_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
+    hl_usleep(CMDSLEEP);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, rig_strvfo(vfo));
 
     *mode = curr->mode;
@@ -435,6 +442,7 @@ static int dummy_set_vfo(RIG *rig, vfo_t vfo)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
+    hl_usleep(CMDSLEEP);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, rig_strvfo(vfo));
 
     priv->last_vfo = priv->curr_vfo;
@@ -477,6 +485,7 @@ static int dummy_get_vfo(RIG *rig, vfo_t *vfo)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
 
+    hl_usleep(CMDSLEEP);
     *vfo = priv->curr_vfo;
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, rig_strvfo(*vfo));
 
@@ -488,6 +497,7 @@ static int dummy_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
 
+    hl_usleep(CMDSLEEP);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     priv->ptt = ptt;
 
@@ -501,6 +511,7 @@ static int dummy_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     int rc;
     int status = 0;
 
+    hl_usleep(CMDSLEEP);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     // sneak a look at the hardware PTT and OR that in with our result
@@ -565,6 +576,7 @@ static int dummy_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
     static int twiddle = 0;
 
+    hl_usleep(CMDSLEEP);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     *dcd = (twiddle++ & 1) ? RIG_DCD_ON : RIG_DCD_OFF;
 
@@ -577,6 +589,7 @@ static int dummy_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
+    hl_usleep(CMDSLEEP);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     curr->rptr_shift = rptr_shift;
 
@@ -589,6 +602,7 @@ static int dummy_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
+    hl_usleep(CMDSLEEP);
     *rptr_shift = curr->rptr_shift;
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -601,6 +615,7 @@ static int dummy_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
+    hl_usleep(CMDSLEEP);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     curr->rptr_offs = rptr_offs;
 
@@ -625,6 +640,7 @@ static int dummy_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
+    hl_usleep(CMDSLEEP);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     curr->ctcss_tone = tone;
 
@@ -637,6 +653,7 @@ static int dummy_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
+    hl_usleep(CMDSLEEP);
     *tone = curr->ctcss_tone;
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -649,6 +666,7 @@ static int dummy_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
+    hl_usleep(CMDSLEEP);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     curr->dcs_code = code;
 
@@ -661,6 +679,7 @@ static int dummy_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
+    hl_usleep(CMDSLEEP);
     *code = curr->dcs_code;
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -673,6 +692,7 @@ static int dummy_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
+    hl_usleep(CMDSLEEP);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     curr->ctcss_sql = tone;
 
@@ -1878,7 +1898,7 @@ struct rig_caps dummy_caps =
     RIG_MODEL(RIG_MODEL_DUMMY),
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
-    .version =        "20200319.0",
+    .version =        "2020004220",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
