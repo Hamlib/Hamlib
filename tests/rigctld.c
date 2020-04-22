@@ -489,6 +489,7 @@ int main(int argc, char *argv[])
 
         case 'o':
             vfo_mode++;
+            rig_debug(RIG_DEBUG_ERR, "%s: #0 vfo_mode=%d\n", __func__, vfo_mode);
             break;
 
         case 'v':
@@ -526,6 +527,8 @@ int main(int argc, char *argv[])
             exit(1);
         }
     }
+
+    rig_debug(RIG_DEBUG_ERR, "%s: #1 vfo_mode=%d\n", __func__, vfo_mode);
 
     if (!vfo_mode)
     {
@@ -862,6 +865,7 @@ int main(int argc, char *argv[])
         {
             arg->rig = my_rig;
             arg->clilen = sizeof(arg->cli_addr);
+            rig_debug(RIG_DEBUG_ERR, "%s: #2 vfo_mode=%d\n", __func__, vfo_mode);
             arg->vfo_mode = vfo_mode;
             arg->sock = accept(sock_listen,
                                (struct sockaddr *)&arg->cli_addr,
@@ -1019,107 +1023,110 @@ void *handle_socket(void *arg)
 
     do
     {
+        rig_debug(RIG_DEBUG_ERR, "%s: vfo_mode=%d\n", __func__,
+                  handle_data_arg->vfo_mode);
         retcode = rigctl_parse(handle_data_arg->rig, fsockin, fsockout, NULL, 0,
                                sync_callback,
                                1, 0, handle_data_arg->vfo_mode, send_cmd_term, &ext_resp, &resp_sep);
 
-        if (retcode != 0) rig_debug(RIG_DEBUG_ERR, "%s: rigctl_parse retcode=%d\n", __func__, retcode);
-        if (retcode == -1) {
+        if (retcode != 0) { rig_debug(RIG_DEBUG_ERR, "%s: rigctl_parse retcode=%d\n", __func__, retcode); }
+
+        if (retcode == -1)
+        {
             sleep(1);
             continue;
         }
 
         if (ferror(fsockin) || ferror(fsockout))
         {
-            rig_debug(RIG_DEBUG_ERR,"%s: socket error in=%d, out=%d\n", __func__, ferror(fsockin), ferror(fsockout));
-            retcode = 1;
+            rig_debug(RIG_DEBUG_ERR, "%s: socket error in=%d, out=%d\n", __func__,
+                      ferror(fsockin), ferror(fsockout));
 
-        if (retcode == 1)
-        {
             retcode = rig_close(my_rig);
-            rig_debug(RIG_DEBUG_ERR,"%s: rig_close retcode=%d\n", __func__, retcode);
+            rig_debug(RIG_DEBUG_ERR, "%s: rig_close retcode=%d\n", __func__, retcode);
             retcode = rig_open(my_rig);
-            rig_debug(RIG_DEBUG_ERR,"%s: rig_open retcode=%d\n", __func__, retcode);
-        }
+            rig_debug(RIG_DEBUG_ERR, "%s: rig_open retcode=%d\n", __func__, retcode);
         }
     }
-    while (retcode == 0 || retcode == 2 || retcode == -RIG_ENAVAIL);
+}
+
+while (retcode == 0 || retcode == 2 || retcode == -RIG_ENAVAIL);
 
 #ifdef HAVE_PTHREAD
 #if 0
-    sync_callback(1);
+sync_callback(1);
 
-    /* Release rig if there are no clients */
-    if (!--client_count)
-    {
-        rig_close(my_rig);
-
-        if (verbose > RIG_DEBUG_ERR)
-        {
-            printf("Closed rig model %d, '%s - no clients, will reopen for new clients'\n",
-                   my_rig->caps->rig_model,
-                   my_rig->caps->model_name);
-        }
-    }
-
-    sync_callback(0);
-#endif
-#else
+/* Release rig if there are no clients */
+if (!--client_count)
+{
     rig_close(my_rig);
 
     if (verbose > RIG_DEBUG_ERR)
     {
-        printf("Closed rig model %d, '%s - will reopen for new clients'\n",
+        printf("Closed rig model %d, '%s - no clients, will reopen for new clients'\n",
                my_rig->caps->rig_model,
                my_rig->caps->model_name);
     }
+}
+
+sync_callback(0);
+#endif
+#else
+rig_close(my_rig);
+
+if (verbose > RIG_DEBUG_ERR)
+{
+    printf("Closed rig model %d, '%s - will reopen for new clients'\n",
+           my_rig->caps->rig_model,
+           my_rig->caps->model_name);
+}
 
 #endif
 
-    if ((retcode = getnameinfo((struct sockaddr const *)&handle_data_arg->cli_addr,
-                               handle_data_arg->clilen,
-                               host,
-                               sizeof(host),
-                               serv,
-                               sizeof(serv),
-                               NI_NOFQDN))
-            < 0)
-    {
+if ((retcode = getnameinfo((struct sockaddr const *)&handle_data_arg->cli_addr,
+                           handle_data_arg->clilen,
+                           host,
+                           sizeof(host),
+                           serv,
+                           sizeof(serv),
+                           NI_NOFQDN))
+        < 0)
+{
 
-        rig_debug(RIG_DEBUG_WARN, "Peer lookup error: %s", gai_strerror(retcode));
-    }
+    rig_debug(RIG_DEBUG_WARN, "Peer lookup error: %s", gai_strerror(retcode));
+}
 
-    rig_debug(RIG_DEBUG_VERBOSE,
-              "Connection closed from %s:%s\n",
-              host,
-              serv);
+rig_debug(RIG_DEBUG_VERBOSE,
+          "Connection closed from %s:%s\n",
+          host,
+          serv);
 
 handle_exit:
 
 // for MINGW we close the handle before fclose
 #ifdef __MINGW32__
-    retcode = closesocket(handle_data_arg->sock);
+retcode = closesocket(handle_data_arg->sock);
 
-    if (retcode != 0) { rig_debug(RIG_DEBUG_ERR, "%s: fclose(fsockin) %s\n", __func__, strerror(retcode)); }
+if (retcode != 0) { rig_debug(RIG_DEBUG_ERR, "%s: fclose(fsockin) %s\n", __func__, strerror(retcode)); }
 
 #endif
-    fclose(fsockin);
-    fclose(fsockout);
+fclose(fsockin);
+fclose(fsockout);
 
 // for everybody else we close the handle after fclose
 #ifndef __MINGW32__
-    retcode = close(handle_data_arg->sock);
+retcode = close(handle_data_arg->sock);
 
-    if (retcode != 0 && errno != EBADF) { rig_debug(RIG_DEBUG_ERR, "%s: close(handle_data_arg->sock) %s\n", __func__, strerror(errno)); }
+if (retcode != 0 && errno != EBADF) { rig_debug(RIG_DEBUG_ERR, "%s: close(handle_data_arg->sock) %s\n", __func__, strerror(errno)); }
 
 #endif
 
-    free(arg);
+free(arg);
 
 #ifdef HAVE_PTHREAD
-    pthread_exit(NULL);
+pthread_exit(NULL);
 #endif
-    return NULL;
+return NULL;
 }
 
 
