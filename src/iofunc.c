@@ -669,13 +669,14 @@ int HAMLIB_API read_string(hamlib_port_t *p,
 
     if (!p || !rxbuffer)
     {
-        rig_debug(RIG_DEBUG_ERR,"%s: error p=%p, rxbuffer=%p\n", __func__, p, rxbuffer);
+        rig_debug(RIG_DEBUG_ERR, "%s: error p=%p, rxbuffer=%p\n", __func__, p,
+                  rxbuffer);
         return -RIG_EINVAL;
     }
 
     if (rxmax < 1)
     {
-        rig_debug(RIG_DEBUG_ERR,"%s: error rxmax=%ld\n", __func__, rxmax);
+        rig_debug(RIG_DEBUG_ERR, "%s: error rxmax=%ld\n", __func__, rxmax);
         return 0;
     }
 
