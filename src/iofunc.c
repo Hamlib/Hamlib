@@ -669,11 +669,14 @@ int HAMLIB_API read_string(hamlib_port_t *p,
 
     if (!p || !rxbuffer)
     {
+        rig_debug(RIG_DEBUG_ERR, "%s: error p=%p, rxbuffer=%p\n", __func__, p,
+                  rxbuffer);
         return -RIG_EINVAL;
     }
 
     if (rxmax < 1)
     {
+        rig_debug(RIG_DEBUG_ERR, "%s: error rxmax=%ld\n", __func__, rxmax);
         return 0;
     }
 
@@ -772,7 +775,7 @@ int HAMLIB_API read_string(hamlib_port_t *p,
 
     /*
      * Doesn't hurt anyway. But be aware, some binary protocols may have
-     * null chars within th received buffer.
+     * null chars within the received buffer.
      */
     rxbuffer[total_count] = '\000';
 
