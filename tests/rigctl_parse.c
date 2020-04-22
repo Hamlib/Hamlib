@@ -240,7 +240,7 @@ declare_proto_rig(pause);
 static struct test_table test_list[] =
 {
     { 'F',  "set_freq",         ACTION(set_freq),       ARG_IN, "Frequency" },
-    { 'f',  "get_freq",         ACTION(get_freq),       ARG_OUT, "Frequency" },
+    { 'f',  "get_freq",         ACTION(get_freq),       ARG_OUT, "Frequency", "VFO" },
     { 'M',  "set_mode",         ACTION(set_mode),       ARG_IN, "Mode", "Passband" },
     { 'm',  "get_mode",         ACTION(get_mode),       ARG_OUT, "Mode", "Passband" },
     { 'I',  "set_split_freq",   ACTION(set_split_freq), ARG_IN, "TX Frequency" },
@@ -489,9 +489,10 @@ static int scanfc(FILE *fin, const char *format, void *p)
             }
         }
 
-        if (ret < 1) rig_debug(RIG_DEBUG_TRACE, "%s: ret=%d\n", __func__, ret);
-        if (ferror(fin)) rig_debug(RIG_DEBUG_TRACE, "%s: errno=%d, %s\n", __func__, errno, strerror(errno));
- 
+        if (ret < 1) { rig_debug(RIG_DEBUG_TRACE, "%s: ret=%d\n", __func__, ret); }
+
+        if (ferror(fin)) { rig_debug(RIG_DEBUG_TRACE, "%s: errno=%d, %s\n", __func__, errno, strerror(errno)); }
+
         return ret;
     }
     while (1);
@@ -630,7 +631,8 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             {
                 if ((retcode = scanfc(fin, "%c", &cmd)) < 1)
                 {
-                    rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#1? retcode=%d\n", __func__, retcode);
+                    rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#1? retcode=%d\n", __func__,
+                              retcode);
                     return -1;
                 }
 
@@ -1598,6 +1600,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 *resp_sep_ptr);
     }
 
+    rig_debug(RIG_DEBUG_ERR, "%s: vfo_mode=%d\n", __func__, vfo_mode);
     retcode = (*cmd_entry->rig_routine)(my_rig,
                                         fout,
                                         fin,
@@ -1613,10 +1616,10 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                                         p2 ? p2 : "",
                                         p3 ? p3 : "");
 
-
     if (retcode == RIG_EIO)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: RIG_EIO?\n", __func__);
+
         if (sync_cb) { sync_cb(0); }    /* unlock if necessary */
 
         return retcode;
@@ -1664,6 +1667,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
     fflush(fout);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: retcode=%d\n", __func__, retcode);
+
     if (sync_cb) { sync_cb(0); }    /* unlock if necessary */
 
     if (retcode == -RIG_ENAVAIL)
@@ -1919,7 +1923,7 @@ declare_proto_rig(get_freq)
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
-        fprintf(fout, "VFO: ");    /* i.e. "Frequency" */
+        fprintf(fout, "%s: ", cmd->arg2);    /* i.e. "Frequency" */
     }
 
     fprintf(fout, "%s%c", rig_strvfo(rig->state.current_vfo), resp_sep);
