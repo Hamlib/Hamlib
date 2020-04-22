@@ -323,10 +323,15 @@ transaction_read:
     len = min(datasize ? datasize + 1 : strlen(priv->verify_cmd) + 13,
               KENWOOD_MAX_BUF_LEN);
     retval = read_string(&rs->rigport, buffer, len, cmdtrm, strlen(cmdtrm));
+    rig_debug(RIG_DEBUG_TRACE, "%s: read_string(len=%d)='%s'\n", __func__,
+              (int)strlen(buffer), buffer);
 
     if (retval < 0)
     {
-        rig_debug(RIG_DEBUG_WARN, "%s: read_string retval < 0, retval = %d, retry_read=%d, retry=%d\n", __func__, retval);
+        rig_debug(RIG_DEBUG_WARN,
+                  "%s: read_string retval < 0, retval = %d, retry_read=%d, retry=%d\n", __func__,
+                  retval, retry_read, rs->rigport.retry);
+
         // only retry if we expect a response from the command
         if (datasize && retry_read++ < rs->rigport.retry)
         {
@@ -793,7 +798,8 @@ int kenwood_open(RIG *rig)
         // we continue to search for other matching IDs/models
     }
 
-    rig_debug(RIG_DEBUG_ERR, "%s: your rig (%s) did not match but we will continue anyways\n",
+    rig_debug(RIG_DEBUG_ERR,
+              "%s: your rig (%s) did not match but we will continue anyways\n",
               __func__, id);
 
     // we're making this non fatal
