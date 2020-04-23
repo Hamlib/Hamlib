@@ -324,9 +324,12 @@ const struct rig_caps f6k_caps =
     .ptt_type =     RIG_PTT_RIG,
     .dcd_type =     RIG_DCD_NONE,
     .port_type =        RIG_PORT_NETWORK,
-    // -spc- TODO set this reasonably, don't know what the flex should be
-    .timeout =      600,    /* FA and FB make take up to 500 ms on band change */
-    .retry =        10,
+    // The combination of timeout and retry is important
+    // We need at least 3 seconds to do profile switches
+    // Hitting the timeout is OK as long as we retry
+    // Previous note showed FA/FB may take up to 500ms on band change
+    .timeout =      300,
+    .retry =        13,
 
     .has_get_func =     RIG_FUNC_NONE, /* has VOX but not implemented here */
     .has_set_func =     RIG_FUNC_NONE,
