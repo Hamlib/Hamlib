@@ -614,6 +614,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
     char arg3[MAXARGSZ + 1], *p3 = NULL;
     vfo_t vfo = RIG_VFO_CURR;
 
+    rig_debug(RIG_DEBUG_TRACE, "%s: called, interactive=%d\n", __func__, interactive);
     /* cmd, internal, rigctld */
     if (!(interactive && prompt && have_rl))
     {
@@ -635,6 +636,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                               retcode);
                     return -1;
                 }
+                rig_debug(RIG_DEBUG_TRACE, "%s: cmd=%c(%02x)\n", __func__, cmd, cmd);
 
                 /* Extended response protocol requested with leading '+' on command
                  * string--rigctld only!
