@@ -463,6 +463,10 @@ transaction_read:
     }
     else
     {
+        rig_debug(RIG_DEBUG_TRACE, "%s: No data expected, checking %s in %s\n",
+                  __func__,
+                  priv->verify_cmd, buffer);
+
         if (priv->verify_cmd[0] != buffer[0]
                 || (priv->verify_cmd[1] && priv->verify_cmd[1] != buffer[1]))
         {
@@ -486,10 +490,13 @@ transaction_read:
     }
 
     retval = RIG_OK;
+    rig_debug(RIG_DEBUG_TRACE, "%s: returning RIG_OK, retval=%d\n", __func__,
+              retval);
 
 transaction_quit:
 
     rs->hold_decode = 0;
+    rig_debug(RIG_DEBUG_TRACE, "%s: returning retval=%d\n", __func__, retval);
     return retval;
 }
 
