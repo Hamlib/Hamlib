@@ -4651,12 +4651,7 @@ int icom_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 
     rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
 
-    // don't care about retval here...only care about satmode=1
-    if (satmode)
-    {
-        priv->tx_vfo = RIG_VFO_SUB;
-        priv->rx_vfo = RIG_VFO_MAIN;
-    }
+    icom_get_split_vfos(rig, &priv->rx_vfo, &priv->tx_vfo);
 
     *tx_vfo = priv->tx_vfo;
     priv->split_on = RIG_SPLIT_ON == *split;
