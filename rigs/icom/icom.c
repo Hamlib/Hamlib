@@ -4651,10 +4651,11 @@ int icom_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 
     rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
 
+    priv->split_on = RIG_SPLIT_ON == *split;
+
     icom_get_split_vfos(rig, &priv->rx_vfo, &priv->tx_vfo);
 
     *tx_vfo = priv->tx_vfo;
-    priv->split_on = RIG_SPLIT_ON == *split;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s rx_vfo=%s tx_vfo=%s split=%d\n",
               __func__, rig_strvfo(vfo), rig_strvfo(priv->rx_vfo),
               rig_strvfo(priv->tx_vfo), *split);
