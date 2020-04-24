@@ -64,7 +64,6 @@ gs232_transaction(ROT *rot, const char *cmdstr,
     struct rot_state *rs;
     int retval;
     int retry_read = 0;
-    char replybuf[BUFSZ];
 
     rs = &rot->state;
 
