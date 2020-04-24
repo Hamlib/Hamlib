@@ -90,10 +90,10 @@ transaction_write:
 
     if (no_reply) { return RIG_OK; } // nothing expected so return
 
-    /* Always read the reply to know whether the cmd went OK */
+    /* If no data requested just return */
     if (!data)
     {
-        data = replybuf;
+        return RIG_OK;
     }
 
     if (!data_len)
@@ -313,7 +313,7 @@ const struct rot_caps gs232b_rot_caps =
     ROT_MODEL(ROT_MODEL_GS232B),
     .model_name = "GS-232B",
     .mfg_name = "Yaesu",
-    .version = "0.5",
+    .version = "20200424",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rot_type = ROT_TYPE_OTHER,
