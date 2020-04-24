@@ -82,10 +82,11 @@ transaction_write:
         }
     }
 
-    /* Always read the reply to know whether the cmd went OK */
+    /* If no data requested just return */
     if (!data)
     {
         data = replybuf;
+        return RIG_OK;
     }
 
     if (!data_len)
@@ -294,7 +295,7 @@ const struct rot_caps gs23_rot_caps =
     ROT_MODEL(ROT_MODEL_GS23),
     .model_name =     "GS-23",
     .mfg_name =       "Yaesu/Kenpro",
-    .version =        "0.2",
+    .version =        "20200424",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_ALPHA,
     .rot_type =       ROT_TYPE_AZEL,
