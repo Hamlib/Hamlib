@@ -636,7 +636,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                               retcode);
                     return -1;
                 }
-                rig_debug(RIG_DEBUG_TRACE, "%s: cmd=%c(%02x)\n", __func__, cmd, cmd);
+                rig_debug(RIG_DEBUG_TRACE, "%s: cmd=%c(%02x)\n", __func__, isprint(cmd)?cmd:' ', cmd);
 
                 /* Extended response protocol requested with leading '+' on command
                  * string--rigctld only!
