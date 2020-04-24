@@ -85,7 +85,7 @@ transaction_write:
     /* Always read the reply to know whether the cmd went OK */
     if (!data)
     {
-        data = replybuf;
+        return RIG_OK;
     }
 
     if (!data_len)
@@ -244,7 +244,7 @@ const struct rot_caps gs232_generic_rot_caps =
     ROT_MODEL(ROT_MODEL_GS232_GENERIC),
     .model_name =     "GS-232 Generic",
     .mfg_name =       "Various",
-    .version =        "0.3",
+    .version =        "20200424",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_BETA,
     .rot_type =       ROT_TYPE_AZEL,
