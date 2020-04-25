@@ -417,7 +417,7 @@ static int read_transaction(RIG *rig, char *xml, int xml_len)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: read_string error=%d\n", __func__, len);
             //return -(100 + RIG_EPROTO);
-	    continue;
+            continue;
         }
 
         if (strlen(xml) + strlen(tmp_buf) < xml_len - 1)
@@ -1467,8 +1467,11 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     }
 
     retval = read_transaction(rig, xml, sizeof(xml));
-    if (retval < 0) {
+
+    if (retval < 0)
+    {
     }
+
     xml_parse(xml, value, sizeof(value));
     retval = modeMapGetHamlib(value);
 
