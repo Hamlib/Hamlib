@@ -45,7 +45,7 @@ static int ar3030_set_mem(RIG *rig, vfo_t vfo, int ch);
 static int ar3030_get_mem(RIG *rig, vfo_t vfo, int *ch);
 static int ar3030_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 static int ar3030_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-static int ar3030_get_channel(RIG *rig, channel_t *chan);
+static int ar3030_get_channel(RIG *rig, channel_t *chan, int read_only);
 static int ar3030_init(RIG *rig);
 static int ar3030_cleanup(RIG *rig);
 static int ar3030_close(RIG *rig);
@@ -721,7 +721,7 @@ int ar3030_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     return RIG_OK;
 }
 
-int ar3030_get_channel(RIG *rig, channel_t *chan)
+int ar3030_get_channel(RIG *rig, channel_t *chan, int read_only)
 {
     struct ar3030_priv_data *priv = (struct ar3030_priv_data *)rig->state.priv;
     char cmdbuf[BUFSZ], infobuf[BUFSZ];
@@ -804,6 +804,11 @@ int ar3030_get_channel(RIG *rig, channel_t *chan)
 
     chan->levels[LVL_AGC].i = infobuf[8] == '0' ? RIG_AGC_SLOW : RIG_AGC_FAST;
     chan->flags = infobuf[4] == '1' ? RIG_CHFLAG_SKIP : RIG_CHFLAG_NONE;
+
+#warning Need to add setting rig to channel values
+    if (!read_only) {
+      // Set rig to channel values
+    }
 
     return RIG_OK;
 }

@@ -3744,7 +3744,7 @@ int kenwood_get_mem_if(RIG *rig, vfo_t vfo, int *ch)
     return RIG_OK;
 }
 
-int kenwood_get_channel(RIG *rig, channel_t *chan)
+int kenwood_get_channel(RIG *rig, channel_t *chan, int read_only)
 {
     int err;
     char buf[26];
@@ -3851,6 +3851,11 @@ int kenwood_get_channel(RIG *rig, channel_t *chan)
     else
     {
         chan->split = RIG_SPLIT_ON;
+    }
+
+#warning Need to add setting rig to channel values
+    if (!read_only) {
+      // Set rig to channel values
     }
 
     return RIG_OK;

@@ -2664,7 +2664,7 @@ int ft990_set_channel(RIG *rig, const channel_t *chan)
  *           Status for split operation, active rig functions and tuning steps
  *           are only relevant for currVFO
  */
-int ft990_get_channel(RIG *rig, channel_t *chan)
+int ft990_get_channel(RIG *rig, channel_t *chan, int read_only)
 {
     struct ft990_priv_data *priv;
     ft990_op_data_t *p;
@@ -3113,6 +3113,11 @@ int ft990_get_channel(RIG *rig, channel_t *chan)
     if (chan->vfo & RIG_VFO_MEM)
     {
         chan->flags |= RIG_CHFLAG_SKIP;
+    }
+
+#warning Need to add setting rig to channel values
+    if (!read_only) {
+      // Set rig to channel values
     }
 
     return RIG_OK;
