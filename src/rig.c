@@ -581,6 +581,12 @@ int HAMLIB_API rig_open(RIG *rig)
                   rs->rigport.pathname);
         rs->rigport.type.rig = RIG_PORT_NETWORK;
     }
+    else if (sscanf(rs->rigport.pathname, ":%d", &port) == 1)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: using network address %s\n", __func__,
+                  rs->rigport.pathname);
+        rs->rigport.type.rig = RIG_PORT_NETWORK;
+    }
 
     if (rs->rigport.type.rig == RIG_PORT_SERIAL)
     {
