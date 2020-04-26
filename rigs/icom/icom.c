@@ -1016,6 +1016,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     int freq_len, retval;
     int cmd, subcmd;
     int ack_len = sizeof(ackbuf);
+    int civ_731_mode = 0; // even these rigs have 5-byte channels
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called for %s\n", __func__,
               rig_strvfo(vfo));
@@ -1033,6 +1034,14 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     cmd = C_RD_FREQ;
     subcmd = -1;
+
+    if (vfo == RIG_VFO_MEM && priv->civ_731_mode)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: VFO=MEM so turning off civ_731\n", __func__);
+        civ_731_mode = 1;
+        priv->civ_731_mode = 0;
+
+    }
 
     // Pick the appropriate VFO when VFO_TX is requested
     if (vfo == RIG_VFO_TX)
@@ -1070,6 +1079,8 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if (retval != RIG_OK)
     {
+        if (vfo == RIG_VFO_MEM && civ_731_mode) { priv->civ_731_mode = 1; }
+
         return retval;
     }
 
@@ -1088,6 +1099,8 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if (retval != RIG_OK)
     {
+        if (vfo == RIG_VFO_MEM && civ_731_mode) { priv->civ_731_mode = 1; }
+
         return retval;
     }
 
@@ -1103,6 +1116,8 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     {
         *freq = RIG_FREQ_NONE;
 
+        if (vfo == RIG_VFO_MEM && civ_731_mode) { priv->civ_731_mode = 1; }
+
         return RIG_OK;
     }
 
@@ -1110,6 +1125,9 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: wrong frame len=%d\n",
                   __func__, freq_len);
+
+        if (vfo == RIG_VFO_MEM && civ_731_mode) { priv->civ_731_mode = 1; }
+
         return -RIG_ERJCTED;
     }
 
@@ -1123,6 +1141,8 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
      * from_bcd requires nibble len
      */
     *freq = from_bcd(freqbuf + 1, freq_len * 2);
+
+    if (vfo == RIG_VFO_MEM && civ_731_mode) { priv->civ_731_mode = 1; }
 
     return RIG_OK;
 }
