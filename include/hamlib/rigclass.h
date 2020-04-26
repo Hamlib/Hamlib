@@ -127,7 +127,7 @@ public:
     int getMem(vfo_t vfo = RIG_VFO_CURR);
 
     void setChannel(const channel_t *chan);
-    void getChannel(channel_t *chan);
+    void getChannel(channel_t *chan, int readOnly);
 
     void setPowerStat(powerstat_t status);
     powerstat_t getPowerStat(void);

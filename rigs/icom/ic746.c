@@ -153,7 +153,7 @@ typedef channel_str_t band_stack_reg_t;
 
 static int ic746_set_parm(RIG *rig, setting_t parm, value_t val);
 static int ic746_get_parm(RIG *rig, setting_t parm, value_t *val);
-static int ic746pro_get_channel(RIG *rig, channel_t *chan);
+static int ic746pro_get_channel(RIG *rig, channel_t *chan, int read_only);
 static int ic746pro_set_channel(RIG *rig, const channel_t *chan);
 static int ic746pro_set_ext_parm(RIG *rig, token_t token, value_t val);
 static int ic746pro_get_ext_parm(RIG *rig, token_t token, value_t *val);
@@ -904,7 +904,7 @@ int ic746_get_parm(RIG *rig, setting_t parm, value_t *val)
  *
  * If memory is empty it will return RIG_OK,but every thing will be null. Where do we boundary check?
  */
-int ic746pro_get_channel(RIG *rig, channel_t *chan)
+int ic746pro_get_channel(RIG *rig, channel_t *chan, int read_only)
 {
     struct icom_priv_data *priv;
     struct rig_state *rs;
@@ -1051,6 +1051,11 @@ int ic746pro_get_channel(RIG *rig, channel_t *chan)
         chan->channel_desc[9] = '\0';   /* add null terminator */
         rig_debug(RIG_DEBUG_TRACE, "%s: chan->channel_desc=%s\n", __func__,
                   chan->channel_desc);
+    }
+
+#warning Need to add setting rig to channel values
+    if (!read_only) {
+      // Set rig to channel values
     }
 
     return RIG_OK;

@@ -3853,7 +3853,7 @@ int newcat_set_mem(RIG *rig, vfo_t vfo, int ch)
     /* Test for valid usable channel, skip if empty */
     memset(&valid_chan, 0, sizeof(channel_t));
     valid_chan.channel_num = ch;
-    err = newcat_get_channel(rig, &valid_chan);
+    err = newcat_get_channel(rig, &valid_chan, 1);
 
     if (err < 0)
     {
@@ -4290,7 +4290,7 @@ int newcat_set_channel(RIG *rig, const channel_t *chan)
 }
 
 
-int newcat_get_channel(RIG *rig, channel_t *chan)
+int newcat_get_channel(RIG *rig, channel_t *chan, int read_only)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     char *retval;
@@ -4437,6 +4437,11 @@ int newcat_get_channel(RIG *rig, channel_t *chan)
     /* Frequency P2 ************************** */
     retval = priv->ret_data + 5;
     chan->freq = atof(retval);
+
+#warning Need to add setting rig to channel values
+    if (!read_only) {
+      // Set rig to channel values
+    }
 
     return RIG_OK;
 }

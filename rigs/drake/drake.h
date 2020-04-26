@@ -43,7 +43,7 @@ int drake_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option, ant_t *ant_
 int drake_set_mem(RIG *rig, vfo_t vfo, int ch);
 int drake_get_mem(RIG *rig, vfo_t vfo, int *ch);
 int drake_set_chan(RIG *rig, const channel_t *chan);
-int drake_get_chan(RIG *rig, channel_t *chan);
+int drake_get_chan(RIG *rig, channel_t *chan, int read_only);
 int drake_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
 int drake_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 int drake_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);

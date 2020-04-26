@@ -2022,7 +2022,7 @@ static int netrigctl_set_channel(RIG *rig, const channel_t *chan)
 }
 
 
-static int netrigctl_get_channel(RIG *rig, channel_t *chan)
+static int netrigctl_get_channel(RIG *rig, channel_t *chan, int read_only)
 {
     return -RIG_ENIMPL;
 }
