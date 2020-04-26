@@ -561,7 +561,7 @@ int uniden_get_mem(RIG *rig, vfo_t vfo, int *ch)
  * uniden_get_channel
  * Assumes rig!=NULL
  */
-int uniden_get_channel(RIG *rig, channel_t *chan)
+int uniden_get_channel(RIG *rig, channel_t *chan, int read_only)
 {
     char cmdbuf[BUFSZ], membuf[BUFSZ];
     size_t cmd_len = BUFSZ, mem_len = BUFSZ;
@@ -639,6 +639,11 @@ int uniden_get_channel(RIG *rig, channel_t *chan)
 
         /*  TA C 001 My Alpha Tag */
         strncpy(chan->channel_desc, membuf + 9, rig->caps->chan_desc_sz);
+    }
+
+#warning Need to add setting rig to channel values
+    if (!read_only) {
+      // Set rig to channel values
     }
 
     return RIG_OK;

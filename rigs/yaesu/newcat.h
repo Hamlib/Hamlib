@@ -177,6 +177,6 @@ int newcat_get_ts(RIG * rig, vfo_t vfo, shortfreq_t * ts);
 int newcat_set_trn(RIG * rig, int trn);
 int newcat_get_trn(RIG * rig, int *trn);
 int newcat_set_channel(RIG * rig, const channel_t * chan);
-int newcat_get_channel(RIG * rig, channel_t * chan);
+int newcat_get_channel(RIG * rig, channel_t * chan, int read_only);
 
 #endif /* _NEWCAT_H */

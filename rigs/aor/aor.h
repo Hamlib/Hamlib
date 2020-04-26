@@ -60,7 +60,7 @@ int aor_set_mem(RIG *rig, vfo_t vfo, int ch);
 int aor_get_mem(RIG *rig, vfo_t vfo, int *ch);
 int aor_set_bank(RIG *rig, vfo_t vfo, int bank);
 
-int aor_get_channel(RIG *rig, channel_t *chan);
+int aor_get_channel(RIG *rig, channel_t *chan, int read_only);
 int aor_set_channel(RIG *rig, const channel_t *chan);
 int aor_get_chan_all_cb (RIG * rig, chan_cb_t chan_cb, rig_ptr_t);
 

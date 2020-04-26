@@ -1762,7 +1762,7 @@ struct rig_caps {
     int (*decode_event)(RIG *rig);
 
     int (*set_channel)(RIG *rig, const channel_t *chan);
-    int (*get_channel)(RIG *rig, channel_t *chan);
+    int (*get_channel)(RIG *rig, channel_t *chan, int read_only);
 
     const char * (*get_info)(RIG *rig);
 
@@ -2424,7 +2424,7 @@ rig_set_channel HAMLIB_PARAMS((RIG *rig,
                                const channel_t *chan)); /* mem */
 extern HAMLIB_EXPORT(int)
 rig_get_channel HAMLIB_PARAMS((RIG *rig,
-                               channel_t *chan));
+                               channel_t *chan, int read_only));
 
 extern HAMLIB_EXPORT(int)
 rig_set_chan_all HAMLIB_PARAMS((RIG *rig,

@@ -55,7 +55,7 @@ int jrc_set_trn(RIG *rig, int trn);
 int jrc_set_mem(RIG *rig, vfo_t vfo, int ch);
 int jrc_get_mem(RIG *rig, vfo_t vfo, int *ch);
 int jrc_set_chan(RIG *rig, const channel_t *chan);
-int jrc_get_chan(RIG *rig, channel_t *chan);
+int jrc_get_chan(RIG *rig, channel_t *chan, int read_only);
 int jrc_set_powerstat(RIG *rig, powerstat_t status);
 int jrc_get_powerstat(RIG *rig, powerstat_t *status);
 int jrc_reset(RIG *rig, reset_t reset);

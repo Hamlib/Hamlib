@@ -176,7 +176,7 @@ int ft990_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
 int ft990_set_mem(RIG *rig, vfo_t vfo, int ch);
 int ft990_get_mem(RIG *rig, vfo_t vfo, int *ch);
 int ft990_set_channel (RIG *rig, const channel_t *chan);
-int ft990_get_channel (RIG *rig, channel_t *chan);
+int ft990_get_channel (RIG *rig, channel_t *chan, int read_only);
 
 
 /*

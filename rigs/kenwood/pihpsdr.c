@@ -64,7 +64,7 @@ static int pihpsdr_open(RIG *rig);
 static int pihpsdr_get_level(RIG *rig, vfo_t vfo, setting_t level,
                              value_t *val);
 static int pihpsdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
-static int pihspdr_get_channel(RIG *rig, channel_t *chan);
+static int pihspdr_get_channel(RIG *rig, channel_t *chan, int read_only);
 static int pihspdr_set_channel(RIG *rig, const channel_t *chan);
 
 
@@ -335,7 +335,7 @@ const struct rig_caps pihpsdr_caps =
 
  */
 
-int pihspdr_get_channel(RIG *rig, channel_t *chan)
+int pihspdr_get_channel(RIG *rig, channel_t *chan, int read_only)
 {
     int err;
     int tmp;
@@ -558,6 +558,11 @@ int pihspdr_get_channel(RIG *rig, channel_t *chan)
     else
     {
         chan->split = RIG_SPLIT_ON;
+    }
+
+#warning Need to add setting rig to channel values
+    if (!read_only) {
+      // Set rig to channel values
     }
 
     return RIG_OK;
