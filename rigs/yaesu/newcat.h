@@ -60,13 +60,13 @@ typedef char ncboolean;
 
 
 #define NEWCAT_MEM_CAP {    \
-	.freq = 1,      \
-	.mode = 1,      \
-	.rit = 1,       \
-	.xit = 1,       \
-	.rptr_shift = 1, \
-	.ctcss_tone = 1,\
-	.ctcss_sql = 1,\
+    .freq = 1,      \
+    .mode = 1,      \
+    .rit = 1,       \
+    .xit = 1,       \
+    .rptr_shift = 1, \
+    .ctcss_tone = 1,\
+    .ctcss_sql = 1,\
 }
 
 extern const struct confparams newcat_cfg_params[];
@@ -78,15 +78,20 @@ extern const struct confparams newcat_cfg_params[];
  * rig_caps.priv?  I'm guessing not since it's private to the backend.  -N0NB
  */
 
-struct newcat_priv_data {
-    unsigned int        read_update_delay;              /* depends on pacing value */
+struct newcat_priv_data
+{
+    unsigned int
+    read_update_delay;              /* depends on pacing value */
 //    vfo_t               current_vfo;                    /* active VFO from last cmd */
     char                cmd_str[NEWCAT_DATA_LEN];       /* command string buffer */
-    char                ret_data[NEWCAT_DATA_LEN];      /* returned data--max value, most are less */
-    int                 current_mem;                    /* private memory channel number */
-    int                 rig_id;                         /* rig id from CAT Command ID; */
+    char
+    ret_data[NEWCAT_DATA_LEN];      /* returned data--max value, most are less */
+    int
+    current_mem;                    /* private memory channel number */
+    int
+    rig_id;                         /* rig id from CAT Command ID; */
     int trn_state;  /* AI state found at startup */
-		int fast_set_commands; /* do not check for ACK/NAK; needed for high throughput > 100 commands/s */
+    int fast_set_commands; /* do not check for ACK/NAK; needed for high throughput > 100 commands/s */
     int width_frequency; /* found at startup */
     struct timespec cache_start;
     char last_if_response[NEWCAT_DATA_LEN];
@@ -125,8 +130,8 @@ struct newcat_priv_data {
  *
  */
 
-int newcat_get_cmd(RIG * rig);
-int newcat_set_cmd (RIG *rig);
+int newcat_get_cmd(RIG *rig);
+int newcat_set_cmd(RIG *rig);
 
 int newcat_init(RIG *rig);
 int newcat_cleanup(RIG *rig);
@@ -141,6 +146,9 @@ int newcat_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 
 int newcat_set_vfo(RIG *rig, vfo_t vfo);
 int newcat_get_vfo(RIG *rig, vfo_t *vfo);
+
+int newcat_set_tx_vfo(RIG *rig, vfo_t tx_vfo);
+int newcat_get_tx_vfo(RIG *rig, vfo_t *tx_vfo);
 
 int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int newcat_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
@@ -180,5 +188,6 @@ int newcat_set_trn(RIG * rig, int trn);
 int newcat_get_trn(RIG * rig, int *trn);
 int newcat_set_channel(RIG * rig, const channel_t * chan);
 int newcat_get_channel(RIG * rig, channel_t * chan, int read_only);
+>>>>>>> 5eb5b6f3d8c543332e31c43d128fadbcb5604a5c
 
 #endif /* _NEWCAT_H */

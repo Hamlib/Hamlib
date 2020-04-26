@@ -188,6 +188,8 @@ const struct rig_caps ft991_caps =
     .get_ptt =            newcat_get_ptt,
     .set_split_vfo =      newcat_set_split_vfo,
     .get_split_vfo =      newcat_get_split_vfo,
+    .set_split_freq =     ft991_set_split_freq,
+    .get_split_freq =     ft991_get_split_freq,
     .get_split_mode =     ft991_get_split_mode,
     .set_split_mode =     ft991_set_split_mode,
     .set_rit =            newcat_set_rit,
@@ -223,6 +225,104 @@ const struct rig_caps ft991_caps =
 
 };
 
+
+static int
+ft991_get_tx_split(RIG *rig, split_t *in_split)
+{
+    vfo_t cur_tx_vfo;
+    int rval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!rig || !in_split)
+    {
+        return (-RIG_EINVAL);
+    }
+
+    rval = newcat_get_tx_vfo(rig, &cur_tx_vfo);
+
+    if (rval != RIG_OK)
+    {
+        return (rval);
+    }
+
+    if (cur_tx_vfo == RIG_VFO_B || cur_tx_vfo == RIG_VFO_MEM)
+    {
+        *in_split = RIG_SPLIT_ON;
+    }
+    else if (cur_tx_vfo == RIG_VFO_A)
+    {
+        *in_split = RIG_SPLIT_OFF;
+    }
+    else
+    {
+        return (-RIG_EINVAL);
+    }
+
+    return (rval);
+}
+
+int
+ft991_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
+{
+    int rval;
+    split_t is_split;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    rval = ft991_get_tx_split(rig, &is_split);
+
+    if (rval != RIG_OK)
+    {
+        return (rval);
+    }
+
+    if (is_split == RIG_SPLIT_OFF)
+    {
+        rval = newcat_set_tx_vfo(rig, RIG_VFO_B);
+
+        if (rval != RIG_OK)
+        {
+            return (rval);
+        }
+    }
+
+    rval = newcat_set_freq(rig, RIG_VFO_B, tx_freq);
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "%s newcat_set_freq() rval = %d freq = %f\n",
+              __func__, rval, tx_freq);
+    return (rval);
+}
+
+int
+ft991_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
+{
+    int rval;
+    split_t is_split;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    rval = ft991_get_tx_split(rig, &is_split);
+
+    if (rval != RIG_OK)
+    {
+        return (rval);
+    }
+
+    if (is_split == RIG_SPLIT_OFF)
+    {
+        *tx_freq = 0.0;
+        return (rval);
+    }
+
+    rval = newcat_get_freq(rig, RIG_VFO_B, tx_freq);
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "%s newcat_get_freq() rval = %d freq = %f\n",
+              __func__, rval, *tx_freq);
+
+    return (rval);
+}
+
 /*
  * rig_get_split_mode*
  *
@@ -250,6 +350,7 @@ int ft991_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
 {
     struct newcat_priv_data *priv;
     int err;
+    ft991info *rdata;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -259,6 +360,7 @@ int ft991_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
     }
 
     priv = (struct newcat_priv_data *)rig->state.priv;
+    rdata = (ft991info *)priv->ret_data;
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "OI;");
 
@@ -267,10 +369,44 @@ int ft991_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
         return err;
     }
 
-    *tx_mode = priv->ret_data[22];
+    debug_ft991info_data(rdata);
+
+    *tx_mode = newcat_rmode(rdata->mode);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s opposite mode %s\n", __func__,
+              rig_strrmode(*tx_mode));
     *tx_width = RIG_PASSBAND_NORMAL;
 
     return RIG_OK;
+}
+
+static void debug_ft991info_data(const ft991info *rdata)
+{
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s command         %2.2s\n",
+             __func__, rdata->command);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s memory_ch       %3.3s\n",
+             __func__, rdata->memory_ch);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s vfo_freq        %9.9s\n",
+             __func__, rdata->vfo_freq);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s clarifier       %5.5s\n",
+             __func__, rdata->clarifier);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s rx_clarifier    %c\n",
+             __func__, rdata->rx_clarifier);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s tx_clarifier    %c\n",
+             __func__, rdata->tx_clarifier);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s mode            %c\n",
+             __func__, rdata->mode);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s vfo_memory      %c\n",
+             __func__, rdata->vfo_memory);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s tone_mode       %c\n",
+             __func__, rdata->tone_mode);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s fixed           %2.2s\n",
+             __func__, rdata->fixed);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s repeater_offset %c\n",
+             __func__, rdata->repeater_offset);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s terminator      %c\n",
+             __func__, rdata->terminator);
+
 }
 
 /*
@@ -302,6 +438,7 @@ int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
     struct rig_state *state;
     int err;
     char restore_commands[NEWCAT_DATA_LEN];
+    split_t is_split;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -309,6 +446,24 @@ int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
     {
         return -RIG_EINVAL;
     }
+
+    err = ft991_get_tx_split(rig, &is_split);
+
+    if (err != RIG_OK)
+    {
+        return (err);
+    }
+
+    if (is_split == RIG_SPLIT_OFF)
+    {
+        err = newcat_set_tx_vfo(rig, RIG_VFO_B);
+
+        if (err != RIG_OK)
+        {
+            return (err);
+        }
+    }
+
 
     state = &rig->state;
 
