@@ -3595,7 +3595,7 @@ declare_proto_rig(get_channel)
         chan.channel_num = 0;
     }
 
-    status = rig_get_channel(rig, &chan);
+    status = rig_get_channel(rig, &chan, 0);
 
     if (status != RIG_OK)
     {

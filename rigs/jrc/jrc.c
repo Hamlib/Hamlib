@@ -1414,7 +1414,7 @@ int jrc_set_chan(RIG *rig, const channel_t *chan)
     /* read first to get current values */
     current.channel_num = chan->channel_num;
 
-    if ((retval = jrc_get_chan(rig, &current)) != RIG_OK) { return retval; }
+    if ((retval = jrc_get_chan(rig, &current, 1)) != RIG_OK) { return retval; }
 
     sprintf(cmdbuf, "K%03d000", chan->channel_num);
 
@@ -1466,7 +1466,7 @@ int jrc_set_chan(RIG *rig, const channel_t *chan)
  * jrc_get_chan
  * Assumes rig!=NULL
  */
-int jrc_get_chan(RIG *rig, channel_t *chan)
+int jrc_get_chan(RIG *rig, channel_t *chan, int read_only)
 {
     struct jrc_priv_caps *priv = (struct jrc_priv_caps *)rig->caps->priv;
     char    membuf[BUFSZ], cmdbuf[BUFSZ];

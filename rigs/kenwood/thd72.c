@@ -1358,7 +1358,7 @@ static int thd72_parse_channel(int kind, const char *buf, channel_t *chan)
     return RIG_OK;
 }
 
-static int thd72_get_channel(RIG *rig, channel_t *chan)
+static int thd72_get_channel(RIG *rig, channel_t *chan, int read_only)
 {
     int retval;
     char buf[72];
@@ -1405,6 +1405,11 @@ static int thd72_get_channel(RIG *rig, channel_t *chan)
         }
 
         return thd72_parse_channel(0, buf, chan);
+    }
+
+#warning Need to add setting rig to channel values
+    if (!read_only) {
+      // Set rig to channel values
     }
 
     return RIG_OK;

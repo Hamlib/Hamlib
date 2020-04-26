@@ -47,7 +47,7 @@ int ic10_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 int ic10_set_mem(RIG *rig, vfo_t vfo, int ch);
 int ic10_get_mem(RIG *rig, vfo_t vfo, int *ch);
 int ic10_set_channel(RIG *rig, const channel_t *chan);
-int ic10_get_channel(RIG *rig, channel_t *chan);
+int ic10_get_channel(RIG *rig, channel_t *chan, int read_only);
 int ic10_set_powerstat(RIG *rig, powerstat_t status);
 int ic10_get_powerstat(RIG *rig, powerstat_t *status);
 int ic10_set_trn(RIG *rig, int trn);

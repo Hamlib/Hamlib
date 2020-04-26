@@ -693,9 +693,6 @@ int HAMLIB_API rig_set_channel(RIG *rig, const channel_t *chan)
     vfo_t vfo; /* requested vfo */
     int retcode;
     int can_emulate_by_vfo_mem, can_emulate_by_vfo_op;
-#ifdef PARANOID_CHANNEL_HANDLING
-    channel_t curr_chan;
-#endif
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -745,10 +742,6 @@ int HAMLIB_API rig_set_channel(RIG *rig, const channel_t *chan)
     }
 
     curr_vfo = rig->state.current_vfo;
-    /* may be needed if the restore_channel has some side effects */
-#ifdef PARANOID_CHANNEL_HANDLING
-    generic_save_channel(rig, &curr_chan);
-#endif
 
     if (vfo == RIG_VFO_MEM)
     {
@@ -793,9 +786,6 @@ int HAMLIB_API rig_set_channel(RIG *rig, const channel_t *chan)
         rig_set_vfo(rig, curr_vfo);
     }
 
-#ifdef PARANOID_CHANNEL_HANDLING
-    generic_restore_channel(rig, &curr_chan);
-#endif
     return retcode;
 }
 
@@ -804,6 +794,7 @@ int HAMLIB_API rig_set_channel(RIG *rig, const channel_t *chan)
  * \brief get channel data
  * \param rig   The rig handle
  * \param chan  The location where to store the channel data
+ * \param read_only  if true chan info will be filled but rig will not change, if false rig will update to chan info
  *
  *  Retrieves the data associated with a channel. This channel can either
  *  be the state of a VFO specified by \a chan->vfo, or a memory channel
@@ -817,6 +808,7 @@ int HAMLIB_API rig_set_channel(RIG *rig, const channel_t *chan)
 
   chan->vfo = RIG_VFO_MEM;
   chan->channel_num = 10;
+  char->read_only = 1;
   err = rig_get_channel(rig, &chan);
   if (err != RIG_OK)
     error("get_channel failed: %s", rigerror(err));
@@ -837,17 +829,14 @@ int HAMLIB_API rig_set_channel(RIG *rig, const channel_t *chan)
  *
  * \sa rig_set_channel()
  */
-int HAMLIB_API rig_get_channel(RIG *rig, channel_t *chan)
+int HAMLIB_API rig_get_channel(RIG *rig, channel_t *chan, int read_only)
 {
     struct rig_caps *rc;
     int curr_chan_num, get_mem_status = RIG_OK;
     vfo_t curr_vfo;
     vfo_t vfo;  /* requested vfo */
-    int retcode;
+    int retcode = RIG_OK;
     int can_emulate_by_vfo_mem, can_emulate_by_vfo_op;
-#ifdef PARANOID_CHANNEL_HANDLING
-    channel_t curr_chan;
-#endif
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -864,7 +853,7 @@ int HAMLIB_API rig_get_channel(RIG *rig, channel_t *chan)
 
     if (rc->get_channel)
     {
-        return rc->get_channel(rig, chan);
+        return rc->get_channel(rig, chan, 0);
     }
 
     /*
@@ -897,57 +886,54 @@ int HAMLIB_API rig_get_channel(RIG *rig, channel_t *chan)
     }
 
     curr_vfo = rig->state.current_vfo;
-    /* may be needed if the restore_channel has some side effects */
-#ifdef PARANOID_CHANNEL_HANDLING
-    generic_save_channel(rig, &curr_chan);
-#endif
 
     if (vfo == RIG_VFO_MEM)
     {
         get_mem_status = rig_get_mem(rig, RIG_VFO_CURR, &curr_chan_num);
     }
 
-    if (can_emulate_by_vfo_mem && curr_vfo != vfo)
+    if (!read_only)
     {
-        retcode = rig_set_vfo(rig, vfo);
-
-        if (retcode != RIG_OK)
+        if (can_emulate_by_vfo_mem && curr_vfo != vfo)
         {
-            return retcode;
+            retcode = rig_set_vfo(rig, vfo);
+
+            if (retcode != RIG_OK)
+            {
+                return retcode;
+            }
         }
-    }
 
-    if (vfo == RIG_VFO_MEM)
-    {
-        rig_set_mem(rig, RIG_VFO_CURR, chan->channel_num);
-    }
-
-    if (!can_emulate_by_vfo_mem && can_emulate_by_vfo_op)
-    {
-        retcode = rig_vfo_op(rig, RIG_VFO_CURR, RIG_OP_TO_VFO);
-
-        if (retcode != RIG_OK)
+        if (vfo == RIG_VFO_MEM)
         {
-            return retcode;
+            rig_set_mem(rig, RIG_VFO_CURR, chan->channel_num);
         }
+
+        if (!can_emulate_by_vfo_mem && can_emulate_by_vfo_op)
+        {
+            retcode = rig_vfo_op(rig, RIG_VFO_CURR, RIG_OP_TO_VFO);
+
+            if (retcode != RIG_OK)
+            {
+                return retcode;
+            }
+        }
+
+        retcode = generic_save_channel(rig, chan);
+
+        /* restore current memory number */
+        if (vfo == RIG_VFO_MEM && get_mem_status == RIG_OK)
+        {
+            rig_set_mem(rig, RIG_VFO_CURR, curr_chan_num);
+        }
+
+        if (can_emulate_by_vfo_mem)
+        {
+            rig_set_vfo(rig, curr_vfo);
+        }
+
     }
 
-    retcode = generic_save_channel(rig, chan);
-
-    /* restore current memory number */
-    if (vfo == RIG_VFO_MEM && get_mem_status == RIG_OK)
-    {
-        rig_set_mem(rig, RIG_VFO_CURR, curr_chan_num);
-    }
-
-    if (can_emulate_by_vfo_mem)
-    {
-        rig_set_vfo(rig, curr_vfo);
-    }
-
-#ifdef PARANOID_CHANNEL_HANDLING
-    generic_restore_channel(rig, &curr_chan);
-#endif
     return retcode;
 }
 
@@ -991,7 +977,7 @@ int get_chan_all_cb_generic(RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
             /*
              * TODO: if doesn't have rc->get_channel, special generic
              */
-            retval = rig_get_channel(rig, chan);
+            retval = rig_get_channel(rig, chan, 1);
 
             if (retval == -RIG_ENAVAIL)
             {

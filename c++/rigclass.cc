@@ -648,9 +648,9 @@ void Rig::setChannel (const channel_t *chan)
 	CHECK_RIG( rig_set_channel(theRig, chan) );
 }
 
-void Rig::getChannel (channel_t *chan)
+void Rig::getChannel (channel_t *chan, int readOnly)
 {
-	CHECK_RIG( rig_get_channel(theRig, chan) );
+	CHECK_RIG( rig_get_channel(theRig, chan, readOnly) );
 }
 
 

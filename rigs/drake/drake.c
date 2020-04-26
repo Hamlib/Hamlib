@@ -670,7 +670,7 @@ int drake_set_chan(RIG *rig, const channel_t *chan)
  * drake_get_chan
  * Assumes rig!=NULL
  */
-int drake_get_chan(RIG *rig, channel_t *chan)
+int drake_get_chan(RIG *rig, channel_t *chan, int read_only)
 {
     struct drake_priv_data *priv = rig->state.priv;
     vfo_t   old_vfo;
@@ -854,6 +854,7 @@ int drake_get_chan(RIG *rig, channel_t *chan)
     strncpy(chan->channel_desc, mdbuf + 25, 7);
 
     //now put the radio back the way it was
+    //we apparently can't do a read-only channel read
     if (old_vfo != RIG_VFO_MEM)
     {
         retval = drake_set_vfo(rig, RIG_VFO_VFO);

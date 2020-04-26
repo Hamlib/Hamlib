@@ -1712,7 +1712,7 @@ static int dummy_set_channel(RIG *rig, const channel_t *chan)
 }
 
 
-static int dummy_get_channel(RIG *rig, channel_t *chan)
+static int dummy_get_channel(RIG *rig, channel_t *chan, int read_only)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
 

@@ -65,7 +65,7 @@ int uniden_get_mem(RIG *rig, vfo_t vfo, int *ch);
 int uniden_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd);
 int uniden_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int uniden_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-int uniden_get_channel(RIG *rig, channel_t *chan);
+int uniden_get_channel(RIG *rig, channel_t *chan, int read_only);
 int uniden_set_channel(RIG *rig, const channel_t *chan);
 const char* uniden_get_info(RIG *rig);
 

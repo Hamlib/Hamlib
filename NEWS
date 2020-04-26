@@ -2,6 +2,7 @@ Hamlib -- History of visible changes.
 
 Copyright (C) 2000-2003  Frank Singleton
 Copyright (C) 2000-2018  Stephane Fillod, and others
+Copyright (C) 2000-2020  Michael Black W9MDB, and others
 
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
@@ -15,9 +16,12 @@ Version 4.0
 	* New utility: rigctlcom.  Mike, W9MDB
 	* New model: FT847UNI for unidirectional early serial numbers.  Mike, W9MDB
 	* Remove GNU Texinfo files and build system dependency.
+        * Rig model numbers have changed to allow future growth
 	* Fix a lot of static code analysis errors and warnings.  Mike, W9MDB
 	* Rearrange directory structure to put rigs and rotators sources
 	  under their own subdirectories.  Mike, W9MDB
+        * rig_get_channel changed to add read_only flag
+        * rigctl(d) f command also returns VFO now
 
 Version 3.3
         2018-08-12
