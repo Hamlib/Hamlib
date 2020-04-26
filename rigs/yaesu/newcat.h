@@ -188,6 +188,9 @@ int newcat_set_trn(RIG * rig, int trn);
 int newcat_get_trn(RIG * rig, int *trn);
 int newcat_set_channel(RIG * rig, const channel_t * chan);
 int newcat_get_channel(RIG * rig, channel_t * chan, int read_only);
->>>>>>> 5eb5b6f3d8c543332e31c43d128fadbcb5604a5c
+rmode_t newcat_rmode(char mode);
+char newcat_modechar(rmode_t rmode);
+rmode_t newcat_rmode_width(RIG *rig, vfo_t vfo, char mode, pbwidth_t *width);
+
 
 #endif /* _NEWCAT_H */
