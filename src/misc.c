@@ -1252,6 +1252,29 @@ void HAMLIB_API rig_no_restore_ai()
 
     no_restore_ai = -1;
 }
+
+//! @cond Doxygen_Suppress
+int HAMLIB_API elapsed_ms(struct timespec *start, int flag_start)
+{
+    // If flag_start then we are starting the timing, else we get elapsed
+    struct timespec stop;
+    double elapsed_secs;
+
+    if (flag_start)
+    {
+        clock_gettime(CLOCK_REALTIME, start);
+        return 0;
+    }
+    else
+    {
+        clock_gettime(CLOCK_REALTIME, &stop);
+    }
+
+    elapsed_secs = (stop.tv_sec - start->tv_sec) * 1e6 + (stop.tv_nsec -
+                   start->tv_nsec) / 1e3;
+    return elapsed_secs / 1000;
+}
+
 //! @endcond
 
 /** @} */

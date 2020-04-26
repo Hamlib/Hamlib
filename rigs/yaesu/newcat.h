@@ -88,6 +88,8 @@ struct newcat_priv_data {
     int trn_state;  /* AI state found at startup */
 		int fast_set_commands; /* do not check for ACK/NAK; needed for high throughput > 100 commands/s */
     int width_frequency; /* found at startup */
+    struct timespec cache_start;
+    char last_if_response[NEWCAT_DATA_LEN];
 };
 
 
