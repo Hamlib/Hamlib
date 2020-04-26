@@ -4439,8 +4439,10 @@ int newcat_get_channel(RIG *rig, channel_t *chan, int read_only)
     chan->freq = atof(retval);
 
 #warning Need to add setting rig to channel values
-    if (!read_only) {
-      // Set rig to channel values
+
+    if (!read_only)
+    {
+        // Set rig to channel values
     }
 
     return RIG_OK;
@@ -5932,6 +5934,25 @@ int newcat_get_cmd(RIG *rig)
     int retry_count = 0;
     int rc = -RIG_EPROTO;
 
+    // try to cache rapid repeats of the IF command
+    // this is for WSJT-X/JTDX sequence of v/f/m/t
+    // should reduce 3 IF requests to 1 request and 2 cache hits
+    if (strcmp(priv->cmd_str, "IF") == 0 && priv->cache_start.tv_sec != 0)
+    {
+        int cache_age_ms;
+
+        cache_age_ms = elapsed_ms(&priv->cache_start, 0);
+
+        if (cache_age_ms < 500) // 500ms cache time
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: cache hit, age=%dms\n", __func__, cache_age_ms);
+            strcpy(priv->ret_data, priv->last_if_response);
+            return RIG_OK;
+        }
+
+        // else we drop through and do the real IF command
+    }
+
     while (rc != RIG_OK && retry_count++ <= state->rigport.retry)
     {
         if (rc != -RIG_BUSBUSY)
@@ -6024,6 +6045,10 @@ int newcat_get_cmd(RIG *rig)
             rc = -RIG_BUSBUSY;    /* retry read only */
         }
     }
+
+    // update the cache
+    elapsed_ms(&priv->cache_start, 1);
+    strcpy(priv->last_if_response, priv->ret_data);
 
     return rc;
 }
