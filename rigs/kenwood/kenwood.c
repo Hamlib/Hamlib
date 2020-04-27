@@ -589,7 +589,7 @@ int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
     while (err != RIG_OK && ++retry < rig->state.rigport.retry);
 
     // update the cache
-    if (strncmp(cmd, "IF;", 3) == 0)
+    if (strcmp(cmd, "IF") == 0)
     {
         elapsed_ms(&priv->cache_start, 1);
         strcpy(priv->last_if_response, buf);
