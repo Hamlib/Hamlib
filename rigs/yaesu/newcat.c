@@ -5943,7 +5943,7 @@ int newcat_get_cmd(RIG *rig)
     // this is for WSJT-X/JTDX sequence of v/f/m/t
     // should allow rapid repeat of any call using the IF; cmd
     // Any call that changes something in the IF response should invalidate the cache
-    if (strncmp(priv->cmd_str, "IF;", 2) == 0 && priv->cache_start.tv_sec != 0)
+    if (strcmp(priv->cmd_str, "IF;") == 0 && priv->cache_start.tv_sec != 0)
     {
         int cache_age_ms;
 
@@ -5957,7 +5957,7 @@ int newcat_get_cmd(RIG *rig)
         }
         // we drop through and do the real IF command
     }
-    else if (priv->cmd_str[2] != ';') // then we must be setting something so we'll invalidate the cache
+    if (priv->cmd_str[2] != ';') // then we must be setting something so we'll invalidate the cache
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: cache invalidated\n", __func__);
         priv->cache_start.tv_sec = 0;
