@@ -754,6 +754,7 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 
     priv->cmd_str[3] = newcat_modechar(mode);
+
     if (priv->cmd_str[3] == '0')
     {
         return -RIG_EINVAL;
@@ -5937,7 +5938,7 @@ int newcat_get_cmd(RIG *rig)
     // try to cache rapid repeats of the IF command
     // this is for WSJT-X/JTDX sequence of v/f/m/t
     // should reduce 3 IF requests to 1 request and 2 cache hits
-    if (strcmp(priv->cmd_str, "IF") == 0 && priv->cache_start.tv_sec != 0)
+    if (strncmp(priv->cmd_str, "IF", 2) == 0 && priv->cache_start.tv_sec != 0)
     {
         int cache_age_ms;
 
@@ -6047,8 +6048,11 @@ int newcat_get_cmd(RIG *rig)
     }
 
     // update the cache
-    elapsed_ms(&priv->cache_start, 1);
-    strcpy(priv->last_if_response, priv->ret_data);
+    if (strncmp(priv->cmd_str, "IF", 2) == 0)
+    {
+        elapsed_ms(&priv->cache_start, 1);
+        strcpy(priv->last_if_response, priv->ret_data);
+    }
 
     return rc;
 }
@@ -6182,7 +6186,8 @@ int newcat_set_cmd(RIG *rig)
     return rc;
 }
 
-struct {
+struct
+{
     rmode_t mode;
     char modechar;
     ncboolean chk_width;
@@ -6217,10 +6222,10 @@ rmode_t newcat_rmode(char mode)
             rig_debug(RIG_DEBUG_TRACE, "%s: %s for %c\n", __func__,
                       rig_strrmode(newcat_mode_conv[i].mode), mode);
             return (newcat_mode_conv[i].mode);
-	}
-   }
+        }
+    }
 
-   return (RIG_MODE_NONE);
+    return (RIG_MODE_NONE);
 }
 
 char newcat_modechar(rmode_t rmode)
@@ -6234,9 +6239,9 @@ char newcat_modechar(rmode_t rmode)
         if (newcat_mode_conv[i].mode == rmode)
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: return %c for %s\n", __func__,
-                     newcat_mode_conv[i].modechar, rig_strrmode(rmode));
+                      newcat_mode_conv[i].modechar, rig_strrmode(rmode));
             return (newcat_mode_conv[i].modechar);
-	}
+        }
     }
 
     return ('0');
@@ -6249,8 +6254,10 @@ rmode_t newcat_rmode_width(RIG *rig, vfo_t vfo, char mode, pbwidth_t *width)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if(width != NULL)
+    if (width != NULL)
+    {
         *width = RIG_PASSBAND_NORMAL;
+    }
 
     for (i = 0; i < sizeof(newcat_mode_conv) / sizeof(newcat_mode_conv[0]); i++)
     {
@@ -6258,16 +6265,25 @@ rmode_t newcat_rmode_width(RIG *rig, vfo_t vfo, char mode, pbwidth_t *width)
         {
             if (newcat_mode_conv[i].chk_width == TRUE && width != NULL)
             {
-                 if(newcat_get_narrow(rig, vfo, &narrow) != RIG_OK)
-                     return (newcat_mode_conv[i].mode);
-                 if (narrow == TRUE)
+                if (newcat_get_narrow(rig, vfo, &narrow) != RIG_OK)
+                {
+                    return (newcat_mode_conv[i].mode);
+                }
+
+                if (narrow == TRUE)
+                {
                     *width = rig_passband_narrow(rig, mode);
-                 else
+                }
+                else
+                {
                     *width = rig_passband_normal(rig, mode);
+                }
             }
+
             return (newcat_mode_conv[i].mode);
-	}
+        }
     }
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s fell out the bottom %c %s\n", __func__,
               mode, rig_strrmode(mode));
 
