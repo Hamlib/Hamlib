@@ -60,7 +60,7 @@ const struct rig_caps ts950s_caps =
     RIG_MODEL(RIG_MODEL_TS950S),
     .model_name = "TS-950S",
     .mfg_name =  "Kenwood",
-    .version =  BACKEND_VER ".1",
+    .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
