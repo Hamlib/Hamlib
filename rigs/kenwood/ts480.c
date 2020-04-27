@@ -634,7 +634,7 @@ const struct rig_caps pt8000a_caps =
     RIG_MODEL(RIG_MODEL_PT8000A),
     .model_name = "PT-8000A",
     .mfg_name = "Hilberling",
-    .version = BACKEND_VER ".1",
+    .version = BACKEND_VER ".0",
     .copyright = "LGPL",
     .status = RIG_STATUS_BETA,
     .rig_type = RIG_TYPE_TRANSCEIVER,
