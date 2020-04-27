@@ -787,7 +787,9 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
         if (!cmd_entry)
         {
-            fprintf(stderr, "Command '%c' not found!\n", cmd);
+            if (cmd != ' ') {
+                fprintf(stderr, "Command '%c' not found!\n", cmd);
+            }
             return 0;
         }
 
