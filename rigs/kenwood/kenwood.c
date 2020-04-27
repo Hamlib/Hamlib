@@ -523,6 +523,7 @@ int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
 {
     int err;
     int retry = 0;
+    struct kenwood_priv_data *priv = rig->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -530,6 +531,24 @@ int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
     {
         return -RIG_EINVAL;
     }
+
+    // if this is an IF cmd and not the first time through check cache
+    if (strncmp(cmd, "IF", 2) == 0 && priv->cache_start.tv_sec != 0)
+    {
+        int cache_age_ms;
+
+        cache_age_ms = elapsed_ms(&priv->cache_start, 0);
+
+        if (cache_age_ms < 500) // 500ms cache time
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: cache hit, age=%dms\n", __func__, cache_age_ms);
+            strcpy(buf, priv->last_if_response);
+            return RIG_OK;
+        }
+
+        // else we drop through and do the real IF command
+    }
+
 
     memset(buf, 0, buf_size);
 
@@ -562,6 +581,13 @@ int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
         }
     }
     while (err != RIG_OK && ++retry < rig->state.rigport.retry);
+    
+    // update the cache
+    if (strncmp(cmd, "IF", 2) == 0)
+    {
+    	elapsed_ms(&priv->cache_start, 1);
+    	strcpy(priv->last_if_response, buf);
+    }
 
     return err;
 }
