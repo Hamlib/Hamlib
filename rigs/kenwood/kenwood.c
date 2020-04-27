@@ -532,8 +532,8 @@ int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
         return -RIG_EINVAL;
     }
 
-    // if this is an IF; cmd and not the first time through check cache
-    if (strncmp(cmd, "IF;", 3) == 0 && priv->cache_start.tv_sec != 0)
+    // if this is an IF cmd and not the first time through check cache
+    if (strcmp(cmd, "IF") == 0 && priv->cache_start.tv_sec != 0)
     {
         int cache_age_ms;
 
@@ -548,14 +548,13 @@ int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
 
         // else we drop through and do the real IF command
     }
-    else if (cmd[2] != ';')
+
+    if (strlen(cmd) > 2)
     {
         // then we must be setting something so we'll invalidate the cache
         rig_debug(RIG_DEBUG_TRACE, "%s: cache invalidated\n", __func__);
         priv->cache_start.tv_sec = 0;
     }
-
-
 
     memset(buf, 0, buf_size);
 
