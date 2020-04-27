@@ -17,7 +17,8 @@
 # Please email any bugs, comments, and/or additions to this file to:
 # hamlib-developer@lists.sourceforge.net
 
-set RIGCTL "$srcdir/rigctl"
+set RIGCTL "../rigctl"
+set verbose 0
 
 if ![info exists prompt] then {
     set prompt "Rig command: "
@@ -70,3 +71,16 @@ proc rigctl_start {} {
 }
 
 rigctl_start
+send "v\n"
+expect { -re ""}
+expect { -re "v*"}
+expect { -re "VFO:*"}
+expect { -re "Rig Command:"}
+#send "f\n"
+#expect { -re "Frequency:*"}
+#interact
+#send "m\n"
+#expect { -re "Mode:*"}
+#send "t\n"
+#expect { -re "PTT:*"}
+rigctl_exit
