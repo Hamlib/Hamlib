@@ -549,7 +549,7 @@ int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
         // else we drop through and do the real IF command
     }
 
-    if (strlen(cmd) > 2)
+    if (strlen(cmd) > 2 || strcmp(cmd,"RX")==0 || strcmp(cmd,"TX") == 0)
     {
         // then we must be setting something so we'll invalidate the cache
         rig_debug(RIG_DEBUG_TRACE, "%s: cache invalidated\n", __func__);
