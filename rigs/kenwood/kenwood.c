@@ -598,7 +598,7 @@ int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
                       "%s: wrong answer; len for cmd %s: expected = %d, got %d\n",
                       __func__, cmd, (int)expected, (int)length);
             err =  -RIG_EPROTO;
-            hl_usleep(rig->caps->timeout * 1000);
+            hl_usleep(50 * 1000); // let's do a short wait
         }
     }
     while (err != RIG_OK && ++retry < rig->state.rigport.retry);
