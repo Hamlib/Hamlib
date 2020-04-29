@@ -532,7 +532,7 @@ transaction_quit:
     if (strcmp(cmdstr, "IF") == 0)
     {
         elapsed_ms(&priv->cache_start, 1);
-        strncpy(priv->last_if_response, buffer, sizeof(priv->last_if_response));
+        strncpy(priv->last_if_response, buffer, caps->if_len);
     }
 
     rs->hold_decode = 0;
