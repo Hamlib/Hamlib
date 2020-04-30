@@ -463,8 +463,8 @@ typedef channel_t * const_channel_t_p;
 		self->error_status = rig_set_channel(self->rig, chan);
 	}
 
-	void get_channel(struct channel *chan) {
-		self->error_status = rig_get_channel(self->rig, chan);
+	void get_channel(struct channel *chan, int read_only) {
+		self->error_status = rig_get_channel(self->rig, chan, read_only);
 		/* TODO: handle ext_level's */
 	}
 
@@ -487,7 +487,7 @@ typedef channel_t * const_channel_t_p;
 	 * get_channel(0, RIG_VFO_A) returns VFO A data
 	 * Rem: does swig has to be told that returned object need to be handled by gc?
 	 */
-	struct channel *get_channel(int channel_num = INT_MAX, vfo_t vfo = RIG_VFO_MEM) {
+	struct channel *get_channel(int read_only, int channel_num = INT_MAX, vfo_t vfo = RIG_VFO_MEM) {
 		struct channel *chan;
 		chan = new_channel(channel_num != INT_MAX ? vfo : RIG_VFO_CURR, channel_num);
 		if (!chan)
@@ -495,7 +495,7 @@ typedef channel_t * const_channel_t_p;
 			self->error_status = -RIG_ENOMEM;
 			return NULL;
 		}
-		self->error_status = rig_get_channel(self->rig, chan);
+		self->error_status = rig_get_channel(self->rig, chan, read_only);
 		/* TODO: copy ext_level's */
 		return chan;
 	}
