@@ -8,7 +8,7 @@ DISTCLEANFILES = rigctl.log rigctl.sum testbcd.log testbcd.sum
 
 bin_PROGRAMS = rigctl rigctld rigmem rigsmtr rigswr rotctl rotctld rigctlcom ampctl ampctld
 
-check_PROGRAMS = dumpmem testrig testtrn testbcd testfreq listrigs testloc rig_bench
+check_PROGRAMS = dumpmem testrig testtrn testbcd testfreq listrigs testloc rig_bench cachetest cachetest2
 
 RIGCOMMONSRC = rigctl_parse.c rigctl_parse.h dumpcaps.c sprintflst.c sprintflst.h uthash.h
 ROTCOMMONSRC = rotctl_parse.c rotctl_parse.h dumpcaps_rot.c uthash.h
