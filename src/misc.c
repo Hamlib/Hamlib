@@ -1260,7 +1260,7 @@ int HAMLIB_API elapsed_ms(struct timespec *start, int flag_start)
     struct timespec stop;
     double elapsed_secs;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: start = %ld,%ld\n",__func__,start->tv_sec,start->tv_nsec);
+    rig_debug(RIG_DEBUG_TRACE, "%s: start = %ld,%ld\n",__func__,(long)start->tv_sec,(long)start->tv_nsec);
     if (!flag_start && start->tv_nsec == 0) return 1000000; 
 
     if (flag_start)
