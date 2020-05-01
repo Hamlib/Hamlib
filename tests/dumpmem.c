@@ -165,7 +165,7 @@ int dump_chan(RIG *rig, int chan_num)
 
     chan.vfo = RIG_VFO_MEM;
     chan.channel_num = chan_num;
-    status = rig_get_channel(rig, &chan);
+    status = rig_get_channel(rig, &chan, 1);
 
     if (status != RIG_OK)
     {
