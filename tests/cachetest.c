@@ -41,7 +41,7 @@
 int main(int argc, char *argv[])
 {
     RIG *my_rig;
-    char *rig_file, *info_buf, *mm;
+    char *rig_file, *info_buf;
     freq_t freq;
     int retcode;
     int model;
