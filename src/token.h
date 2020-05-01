@@ -102,6 +102,8 @@
 #define TOK_RANGE_SELECTED  TOKEN_FRONTEND(121)
 /** \brief rig: Range Name */
 #define TOK_RANGE_NAME  TOKEN_FRONTEND(122)
+/** \brief rig: Cache timeout */
+#define TOK_CACHE_TIMEOUT  TOKEN_FRONTEND(123)
 /*
  * rotator specific tokens
  * (strictly, should be documented as rotator_internal)

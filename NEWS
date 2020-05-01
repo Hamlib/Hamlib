@@ -22,6 +22,8 @@ Version 4.0
 	  under their own subdirectories.  Mike, W9MDB
         * rig_get_channel changed to add read_only flag
         * rigctl(d) f command also returns VFO now
+        * caching of vfo, frequency, mode, and ptt speeds up rigctld for all
+        * caching of kenwood/yaesu "IF" speeds up polling from WSJTX/JTDX
 
 Version 3.3
         2018-08-12
