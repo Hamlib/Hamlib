@@ -703,8 +703,13 @@ int kenwood_open(RIG *rig)
     {
         // Ensure rig is on
         rig_set_powerstat(rig, 1);
+        /* Try get id again */
+        err = kenwood_get_id(rig, id);
+        if (RIG_OK != err)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: no response to get_id from rig...contintuing anyways.\n", __func__);
+        }
     }
-
 
     if (RIG_IS_TS590S)
     {
@@ -738,9 +743,6 @@ int kenwood_open(RIG *rig)
         rig_debug(RIG_DEBUG_TRACE, "%s: found f/w version %s\n", __func__,
                   priv->fw_rev);
     }
-
-    /* get id in buffer, will be null terminated */
-    err = kenwood_get_id(rig, id);
 
     if (!RIG_IS_XG3 && -RIG_ETIMEOUT == err)
     {
