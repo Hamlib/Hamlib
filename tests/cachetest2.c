@@ -23,14 +23,10 @@
 int main(int argc, char *argv[])
 {
     RIG *my_rig;
-    char *rig_file, *info_buf, *mm;
+    char *rig_file, *info_buf;
     int retcode;
     int model;
-    int baud;
-    int loops;
-    int cache_timeout;
-    int i;
-    struct timespec start, startall;
+    int cache_timeout = 0;
 
     if (argc != 1)
     {
