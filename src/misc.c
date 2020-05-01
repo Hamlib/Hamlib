@@ -1260,6 +1260,9 @@ int HAMLIB_API elapsed_ms(struct timespec *start, int flag_start)
     struct timespec stop;
     double elapsed_secs;
 
+    rig_debug(RIG_DEBUG_TRACE, "%s: start = %ld,%ld\n",__func__,start->tv_sec,start->tv_nsec);
+    if (!flag_start && start->tv_nsec == 0) return 1000000; 
+
     if (flag_start)
     {
         clock_gettime(CLOCK_REALTIME, start);
@@ -1272,7 +1275,24 @@ int HAMLIB_API elapsed_ms(struct timespec *start, int flag_start)
 
     elapsed_secs = (stop.tv_sec - start->tv_sec) * 1e6 + (stop.tv_nsec -
                    start->tv_nsec) / 1e3;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: elapse_secs=%g\n",__func__,elapsed_secs);
+    if (elapsed_secs < 0) return 1000000;
+
     return elapsed_secs / 1000;
+}
+
+int HAMLIB_API rig_get_cache_timeout_ms(RIG *rig, cache_t selection)
+{
+    rig_debug(RIG_DEBUG_TRACE, "%s: called selection=%d\n", __func__, selection);
+    return rig->state.cache.timeout_ms;
+}
+
+int HAMLIB_API rig_set_cache_timeout_ms(RIG *rig, cache_t selection, int ms)
+{
+    rig_debug(RIG_DEBUG_TRACE, "%s: called selection=%d, ms=%d\n", __func__, selection, ms);
+    rig->state.cache.timeout_ms = ms;
+    return RIG_OK;
 }
 
 //! @endcond

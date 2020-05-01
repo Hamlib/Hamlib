@@ -313,6 +313,8 @@ static struct test_table test_list[] =
     { '3',  "dump_conf",        ACTION(dump_conf),      ARG_NOVFO },
     { 0x8f, "dump_state",       ACTION(dump_state),     ARG_OUT | ARG_NOVFO },
     { 0xf0, "chk_vfo",          ACTION(chk_vfo),        ARG_NOVFO, "ChkVFO" },   /* rigctld only--check for VFO mode */
+    { '(',  "set_vfo_mode_on",  ACTION(chk_vfo),        ARG_NOVFO, "SetVFOMode 1=On 2=Off" },   /* rigctld only--check for VFO mode */
+    { ')',  "set_vfo_mode_off", ACTION(chk_vfo),        ARG_NOVFO, "SetVFOMode 1=On 2=Off" },   /* rigctld only--check for VFO mode */
     { 0xf1, "halt",             ACTION(halt),           ARG_NOVFO },   /* rigctld only--halt the daemon */
     { 0x8c, "pause",            ACTION(pause),          ARG_IN, "Seconds" },
     { 0x00, "", NULL },
@@ -605,7 +607,7 @@ static int next_word(char *buffer, int argc, char *argv[], int newline)
 
 int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                  sync_cb_t sync_cb,
-                 int interactive, int prompt, int vfo_mode, char send_cmd_term,
+                 int interactive, int prompt, int *vfo_mode, char send_cmd_term,
                  int *ext_resp_ptr, char *resp_sep_ptr)
 {
     int retcode;        /* generic return code from functions */
@@ -667,6 +669,8 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 if (cmd != '\\'
                         && cmd != '_'
                         && cmd != '#'
+                         && cmd != '('
+                         && cmd != ')'
                         && ispunct(cmd)
                         && !prompt)
                 {
@@ -684,6 +688,8 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                          && cmd != '?'
                          && cmd != '_'
                          && cmd != '#'
+                         && cmd != '('
+                         && cmd != ')'
                          && ispunct(cmd)
                          && prompt)
                 {
@@ -752,6 +758,10 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 return 0;
             }
 
+            if (cmd == '(') {rig_debug(RIG_DEBUG_ERR, "%s: vfo_mode on\n", __func__); *vfo_mode = 1; return 0;}
+
+            if (cmd == ')') {rig_debug(RIG_DEBUG_ERR, "%s: vfo_mode off\n", __func__); *vfo_mode = 0; return 0;}
+
             if (cmd == 'Q' || cmd == 'q')
             {
                 return 1;
@@ -791,13 +801,15 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
         if (!cmd_entry)
         {
-            if (cmd != ' ') {
+            if (cmd != ' ')
+            {
                 fprintf(stderr, "Command '%c' not found!\n", cmd);
             }
+
             return 0;
         }
 
-        if (!(cmd_entry->flags & ARG_NOVFO) && vfo_mode)
+        if (!(cmd_entry->flags & ARG_NOVFO) && *vfo_mode)
         {
             if (interactive)
             {
@@ -1206,7 +1218,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
         /* If vfo_mode is enabled (-o|--vfo) check if already given
          * or prompt for it.
          */
-        if (!(cmd_entry->flags & ARG_NOVFO) && vfo_mode)
+        if (!(cmd_entry->flags & ARG_NOVFO) && *vfo_mode)
         {
             /* Check if VFO was given with command. */
             result = strtok(NULL, " ");
@@ -1302,7 +1314,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
              */
             result = strtok(NULL, "\0");
 
-            if (vfo_mode && result)
+            if (*vfo_mode && result)
             {
                 x = 2;
                 parsed_input[x] = result;
@@ -1365,7 +1377,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
         {
             result = strtok(NULL, " ");
 
-            if (vfo_mode && result)
+            if (*vfo_mode && result)
             {
                 x = 2;
                 parsed_input[x] = result;
@@ -1431,7 +1443,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
             result = strtok(NULL, " ");
 
-            if (vfo_mode && result)
+            if (*vfo_mode && result)
             {
                 x = 3;
                 parsed_input[x] = result;
@@ -1497,7 +1509,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
             result = strtok(NULL, " ");
 
-            if (vfo_mode && result)
+            if (*vfo_mode && result)
             {
                 x = 4;
                 parsed_input[x] = result;
@@ -1593,10 +1605,10 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
         char a3[MAXARGSZ + 2];
         char vfo_str[MAXARGSZ + 2];
 
-        vfo_mode == 0 ? vfo_str[0] = '\0' : snprintf(vfo_str,
-                                     sizeof(vfo_str),
-                                     " %s",
-                                     rig_strvfo(vfo));
+        *vfo_mode == 0 ? vfo_str[0] = '\0' : snprintf(vfo_str,
+                                      sizeof(vfo_str),
+                                      " %s",
+                                      rig_strvfo(vfo));
 
         p1 == NULL ? a1[0] = '\0' : snprintf(a1, sizeof(a1), " %s", p1);
         p2 == NULL ? a2[0] = '\0' : snprintf(a2, sizeof(a2), " %s", p2);
@@ -1612,13 +1624,13 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 *resp_sep_ptr);
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo_mode=%d\n", __func__, vfo_mode);
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo_mode=%d\n", __func__, *vfo_mode);
     retcode = (*cmd_entry->rig_routine)(my_rig,
                                         fout,
                                         fin,
                                         interactive,
                                         prompt,
-                                        vfo_mode,
+                                        *vfo_mode,
                                         send_cmd_term,
                                         *ext_resp_ptr,
                                         *resp_sep_ptr,
