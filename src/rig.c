@@ -70,6 +70,7 @@
 #include "event.h"
 #include "cm108.h"
 #include "gpio.h"
+#include "misc.h"
 
 /**
  * \brief Hamlib release number
@@ -410,6 +411,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->transceive = RIG_TRN_OFF;
     rs->poll_interval = 500;
     rs->lo_freq = 0;
+    rs->cache.timeout_ms = 500;  // 500ms cache timeout by default
 
     // We are using range_list1 as the default
     // Eventually we will have separate model number for different rig variations
@@ -1293,6 +1295,10 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         rig->state.current_freq = freq;
     }
 
+    elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
+    rig->state.cache.freq = freq;
+    rig->state.cache.vfo_freq = vfo;
+
     return retcode;
 }
 
@@ -1317,12 +1323,28 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     const struct rig_caps *caps;
     int retcode;
+    int cache_ms;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (CHECK_RIG_ARG(rig) || !freq)
     {
+        rig_debug(RIG_DEBUG_TRACE, "%s: rig or freq ptr invalid\n", __func__);
         return -RIG_EINVAL;
+    }
+
+    cache_ms = elapsed_ms(&rig->state.cache.time_freq, ELAPSED_GET);
+    rig_debug(RIG_DEBUG_TRACE, "%s: cache check age=%dms\n", __func__, cache_ms);
+
+    if (cache_ms < rig->state.cache.timeout_ms && rig->state.cache.vfo_freq == vfo)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: cache hit age=%dms\n", __func__, cache_ms);
+        *freq = rig->state.cache.freq;
+        return RIG_OK;
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: cache miss age=%dms\n", __func__, cache_ms);
     }
 
     caps = rig->caps;
@@ -1382,6 +1404,12 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     {
         *freq += rig->state.lo_freq;
     }
+
+
+    cache_ms = elapsed_ms(&(rig->state.cache.time_freq), ELAPSED_SET);
+    rig_debug(RIG_DEBUG_TRACE, "%s: cache reset age=%dms\n", __func__, cache_ms);
+    rig->state.cache.freq = *freq;
+    rig->state.cache.vfo_freq = vfo;
 
     return retcode;
 }
@@ -1467,6 +1495,10 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         rig->state.current_width = width;
     }
 
+    rig->state.cache.mode = mode;
+    rig->state.cache.vfo_mode = vfo;
+    elapsed_ms(&rig->state.cache.time_mode, ELAPSED_SET);
+
     return retcode;
 }
 
@@ -1497,6 +1529,7 @@ int HAMLIB_API rig_get_mode(RIG *rig,
 {
     const struct rig_caps *caps;
     int retcode;
+    int cache_ms;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1510,6 +1543,21 @@ int HAMLIB_API rig_get_mode(RIG *rig,
     if (caps->get_mode == NULL)
     {
         return -RIG_ENAVAIL;
+    }
+
+    cache_ms = elapsed_ms(&rig->state.cache.time_mode, ELAPSED_GET);
+    rig_debug(RIG_DEBUG_TRACE, "%s: cache check age=%dms\n", __func__, cache_ms);
+
+    if (cache_ms < rig->state.cache.timeout_ms && rig->state.cache.vfo_mode == vfo)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: cache hit age=%dms\n", __func__, cache_ms);
+        *mode = rig->state.cache.mode;
+        *width = rig->state.cache.width;
+        return RIG_OK;
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: cache miss age=%dms\n", __func__, cache_ms);
     }
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_MODE)
@@ -1558,6 +1606,11 @@ int HAMLIB_API rig_get_mode(RIG *rig,
     {
         *width = rig_passband_normal(rig, *mode);
     }
+
+    rig->state.cache.mode = *mode;
+    rig->state.cache.width = *width;
+    rig->state.cache.vfo_mode = vfo;
+    cache_ms = elapsed_ms(&rig->state.cache.time_mode, ELAPSED_SET);
 
     return retcode;
 }
@@ -1757,6 +1810,12 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
     // we need to update our internal freq to avoid getting detected as twiddling
     if (caps->get_freq) { retcode = rig_get_freq(rig, RIG_VFO_CURR, &curr_freq); }
 
+    rig->state.cache.vfo = vfo;
+    // expire several cached items when we switch VFOs
+    elapsed_ms(&rig->state.cache.time_vfo, ELAPSED_SET);
+    elapsed_ms(&rig->state.cache.time_freq, ELAPSED_SET);
+    elapsed_ms(&rig->state.cache.time_mode, ELAPSED_SET);
+
     return retcode;
 }
 
@@ -1780,6 +1839,7 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
 {
     const struct rig_caps *caps;
     int retcode;
+    int cache_ms;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1795,6 +1855,20 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
         return -RIG_ENAVAIL;
     }
 
+    cache_ms = elapsed_ms(&rig->state.cache.time_vfo, ELAPSED_GET);
+    rig_debug(RIG_DEBUG_TRACE, "%s: cache check age=%dms\n", __func__, cache_ms);
+
+    if (cache_ms < rig->state.cache.timeout_ms)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: cache hit age=%dms\n", __func__, cache_ms);
+        *vfo = rig->state.cache.vfo;
+        return RIG_OK;
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: cache miss age=%dms\n", __func__, cache_ms);
+    }
+
     retcode = caps->get_vfo(rig, vfo);
 
     if (retcode == RIG_OK)
@@ -1802,6 +1876,8 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
         rig->state.current_vfo = *vfo;
     }
 
+    rig->state.cache.vfo = *vfo;
+    cache_ms = elapsed_ms(&rig->state.cache.time_vfo, ELAPSED_SET);
     return retcode;
 }
 
@@ -1998,6 +2074,8 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         rs->transmit = ptt != RIG_PTT_OFF;
     }
 
+    rig->state.cache.ptt = ptt;
+    elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
     return retcode;
 }
 
@@ -2023,12 +2101,27 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     int retcode = RIG_OK;
     int rc2, status;
     vfo_t curr_vfo;
+    int cache_ms;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (CHECK_RIG_ARG(rig) || !ptt)
     {
         return -RIG_EINVAL;
+    }
+
+    cache_ms = elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_GET);
+    rig_debug(RIG_DEBUG_TRACE, "%s: cache check age=%dms\n", __func__, cache_ms);
+
+    if (cache_ms < rig->state.cache.timeout_ms)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: cache hit age=%dms\n", __func__, cache_ms);
+        *ptt = rig->state.cache.ptt;
+        return RIG_OK;
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: cache miss age=%dms\n", __func__, cache_ms);
     }
 
     caps = rig->caps;
@@ -2048,6 +2141,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
                 || vfo == rig->state.current_vfo)
         {
 
+            elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
             return caps->get_ptt(rig, vfo, ptt);
         }
 
@@ -2072,6 +2166,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         {
             /* return the first error code */
             retcode = rc2;
+            elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
         }
 
         return retcode;
@@ -2079,6 +2174,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     case RIG_PTT_SERIAL_RTS:
         if (caps->get_ptt)
         {
+            elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
             return caps->get_ptt(rig, vfo, ptt);
         }
 
@@ -2088,18 +2184,24 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
             /* port is closed so assume PTT off */
             *ptt = RIG_PTT_OFF;
+            elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
+            rig->state.cache.ptt = *ptt;
         }
         else
         {
             retcode = ser_get_rts(&rig->state.pttport, &status);
             *ptt = status ? RIG_PTT_ON : RIG_PTT_OFF;
+            elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
+            rig->state.cache.ptt = *ptt;
         }
 
+        elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
         return retcode;
 
     case RIG_PTT_SERIAL_DTR:
         if (caps->get_ptt)
         {
+            elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
             return caps->get_ptt(rig, vfo, ptt);
         }
 
@@ -2109,38 +2211,49 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
             /* port is closed so assume PTT off */
             *ptt = RIG_PTT_OFF;
+            rig->state.cache.ptt = *ptt;
+            elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
         }
         else
         {
             retcode = ser_get_dtr(&rig->state.pttport, &status);
             *ptt = status ? RIG_PTT_ON : RIG_PTT_OFF;
+            elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
+            rig->state.cache.ptt = *ptt;
         }
 
+        elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
         return retcode;
 
     case RIG_PTT_PARALLEL:
         if (caps->get_ptt)
         {
+            elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
             return caps->get_ptt(rig, vfo, ptt);
         }
 
+        elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
         return par_ptt_get(&rig->state.pttport, ptt);
 
     case RIG_PTT_CM108:
         if (caps->get_ptt)
         {
+            elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
             return caps->get_ptt(rig, vfo, ptt);
         }
 
+        elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
         return cm108_ptt_get(&rig->state.pttport, ptt);
 
     case RIG_PTT_GPIO:
     case RIG_PTT_GPION:
         if (caps->get_ptt)
         {
+            elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
             return caps->get_ptt(rig, vfo, ptt);
         }
 
+        elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
         return gpio_ptt_get(&rig->state.pttport, ptt);
 
     case RIG_PTT_NONE:
@@ -2150,6 +2263,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         return -RIG_EINVAL;
     }
 
+    elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
     return RIG_OK;
 }
 
@@ -3162,6 +3276,9 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
         rig->state.tx_vfo = tx_vfo;
     }
 
+    rig->state.cache.split = split;
+    rig->state.cache.split_vfo = tx_vfo;
+    elapsed_ms(&rig->state.cache.time_split, ELAPSED_SET);
     return retcode;
 }
 
@@ -3189,6 +3306,7 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
     const struct rig_caps *caps;
     int retcode, rc2;
     vfo_t curr_vfo;
+    int cache_ms;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -3204,6 +3322,21 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
         return -RIG_ENAVAIL;
     }
 
+    cache_ms = elapsed_ms(&rig->state.cache.time_split, ELAPSED_GET);
+    rig_debug(RIG_DEBUG_TRACE, "%s: cache check age=%dms\n", __func__, cache_ms);
+
+    if (cache_ms < rig->state.cache.timeout_ms)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: cache hit age=%dms\n", __func__, cache_ms);
+        *split = rig->state.cache.split;
+        *tx_vfo = rig->state.cache.split_vfo;
+        return RIG_OK;
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: cache miss age=%dms\n", __func__, cache_ms);
+    }
+
     /* overidden by backend at will */
     *tx_vfo = rig->state.tx_vfo;
 
@@ -3211,6 +3344,9 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
             || vfo == RIG_VFO_CURR
             || vfo == rig->state.current_vfo)
     {
+        rig->state.cache.split = *split;
+        rig->state.cache.split_vfo = *tx_vfo;
+        elapsed_ms(&rig->state.cache.time_split, ELAPSED_SET);
         return caps->get_split_vfo(rig, vfo, split, tx_vfo);
     }
 
@@ -3236,6 +3372,10 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
         /* return the first error code */
         retcode = rc2;
     }
+
+    rig->state.cache.split = *split;
+    rig->state.cache.split_vfo = *tx_vfo;
+    elapsed_ms(&rig->state.cache.time_split, ELAPSED_SET);
 
     return retcode;
 }

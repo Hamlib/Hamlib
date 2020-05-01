@@ -1854,6 +1854,41 @@ typedef struct hamlib_port {
 typedef hamlib_port_t port_t;
 #endif
 
+#define ELAPSED_GET 0
+#define ELAPSED_SET 1
+
+typedef enum {
+    CACHE_ALL, // to set all cache timeouts at once
+    CACHE_VFO,
+    CACHE_FREQ,
+    CACHE_MODE,
+    CACHE_PTT,
+    CACHE_SPLIT
+} cache_t;
+
+/**
+ * \brief Rig cache data
+ * 
+ * This struct contains all the items we cache at the highest level
+ */
+struct rig_cache {
+    int timeout_ms;  // the cache timeout for invalidating itself
+    vfo_t vfo;
+    freq_t freq;
+    rmode_t mode;
+    pbwidth_t width;
+    ptt_t ptt;
+    split_t split;
+    vfo_t split_vfo;  // split caches two values
+    struct timespec time_freq;
+    struct timespec time_vfo;
+    struct timespec time_mode;
+    struct timespec time_ptt;
+    struct timespec time_split;
+    vfo_t vfo_freq; // last vfo cached
+    vfo_t vfo_mode; // last vfo cached
+};
+
 
 /**
  * \brief Rig state containing live data and customized fields.
@@ -1930,6 +1965,7 @@ struct rig_state {
     freq_t lo_freq;             /*!< Local oscillator frequency of any transverter */
     time_t twiddle_time;        /*!< time when vfo twiddling was detected */
     int twiddle_timeout;        /*!< timeout to resume from twiddling */
+    struct rig_cache cache;
 };
 
 //! @cond Doxygen_Suppress
@@ -2637,6 +2673,9 @@ extern HAMLIB_EXPORT(const char *) rig_version HAMLIB_PARAMS(());
 extern HAMLIB_EXPORT(const char *) rig_copyright HAMLIB_PARAMS(());
 
 extern HAMLIB_EXPORT(void) rig_no_restore_ai();
+
+extern HAMLIB_EXPORT(int) rig_get_cache_timeout_ms(RIG *rig, cache_t selection);
+extern HAMLIB_EXPORT(int) rig_set_cache_timeout_ms(RIG *rig, cache_t selection, int ms);
 
 #include <unistd.h>
 extern HAMLIB_EXPORT(int) hl_usleep(useconds_t msec);

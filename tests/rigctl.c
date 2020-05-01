@@ -631,7 +631,7 @@ int main(int argc, char *argv[])
     do
     {
         retcode = rigctl_parse(my_rig, stdin, stdout, argv, argc, NULL,
-                               interactive, prompt, vfo_mode, send_cmd_term,
+                               interactive, prompt, &vfo_mode, send_cmd_term,
                                &ext_resp, &resp_sep);
 
         if (retcode == 2)
