@@ -676,7 +676,7 @@ int HAMLIB_API read_string(hamlib_port_t *p,
 
     if (rxmax < 1)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: error rxmax=%ld\n", __func__, rxmax);
+        rig_debug(RIG_DEBUG_ERR, "%s: error rxmax=%ld\n", __func__, (long)rxmax);
         return 0;
     }
 
