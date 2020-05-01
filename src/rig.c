@@ -3344,10 +3344,11 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
             || vfo == RIG_VFO_CURR
             || vfo == rig->state.current_vfo)
     {
+        retcode = caps->get_split_vfo(rig, vfo, split, tx_vfo);
         rig->state.cache.split = *split;
         rig->state.cache.split_vfo = *tx_vfo;
         elapsed_ms(&rig->state.cache.time_split, ELAPSED_SET);
-        return caps->get_split_vfo(rig, vfo, split, tx_vfo);
+        return retcode;
     }
 
     if (!caps->set_vfo)
