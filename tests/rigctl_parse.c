@@ -224,6 +224,8 @@ declare_proto_rig(recv_dtmf);
 declare_proto_rig(chk_vfo);
 declare_proto_rig(set_twiddle);
 declare_proto_rig(get_twiddle);
+declare_proto_rig(set_cache);
+declare_proto_rig(get_cache);
 declare_proto_rig(halt);
 declare_proto_rig(pause);
 
@@ -303,6 +305,8 @@ static struct test_table test_list[] =
     { 0x8b, "get_dcd",          ACTION(get_dcd),        ARG_OUT, "DCD" },
     { 0x8d, "set_twiddle",      ACTION(set_twiddle),  ARG_IN  | ARG_NOVFO, "Timeout (secs)" },
     { 0x8e, "get_twiddle",      ACTION(get_twiddle),  ARG_OUT | ARG_NOVFO, "Timeout (secs)" },
+    { 0x95, "set_cache",        ACTION(set_cache),      ARG_IN | ARG_NOVFO, "Timeout (msecs)" },
+    { 0x96, "get_cache",        ACTION(get_cache),      ARG_OUT | ARG_NOVFO, "Timeout (msecs)" },
     { '2',  "power2mW",         ACTION(power2mW),       ARG_IN1 | ARG_IN2 | ARG_IN3 | ARG_OUT1 | ARG_NOVFO, "Power [0.0..1.0]", "Frequency", "Mode", "Power mW" },
     { '4',  "mW2power",         ACTION(mW2power),       ARG_IN1 | ARG_IN2 | ARG_IN3 | ARG_OUT1 | ARG_NOVFO, "Power mW", "Frequency", "Mode", "Power [0.0..1.0]" },
     { '1',  "dump_caps",        ACTION(dump_caps),      ARG_NOVFO },
@@ -1608,7 +1612,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 *resp_sep_ptr);
     }
 
-    rig_debug(RIG_DEBUG_ERR, "%s: vfo_mode=%d\n", __func__, vfo_mode);
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo_mode=%d\n", __func__, vfo_mode);
     retcode = (*cmd_entry->rig_routine)(my_rig,
                                         fout,
                                         fin,
@@ -4503,4 +4507,31 @@ declare_proto_rig(get_twiddle)
     fprintf(fout, "%d\n", seconds);
 
     return status;
+}
+
+/* '0x95' */
+declare_proto_rig(set_cache)
+{
+    int ms;
+
+    CHKSCN1ARG(sscanf(arg1, "%d", &ms));
+    return rig_set_cache_timeout_ms(rig, CACHE_ALL, ms);
+}
+
+
+/* '0x96' */
+declare_proto_rig(get_cache)
+{
+    int ms;
+
+    ms = rig_get_cache_timeout_ms(rig, CACHE_ALL);
+
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
+        fprintf(fout, "%s: ", cmd->arg1);
+    }
+
+    fprintf(fout, "%d\n", ms);
+
+    return RIG_OK;
 }
