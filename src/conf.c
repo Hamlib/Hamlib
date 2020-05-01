@@ -123,6 +123,11 @@ static const struct confparams frontend_cfg_params[] =
         "Frequency to add to the VFO frequency for use with a transverter",
         "0", RIG_CONF_NUMERIC, { .n = {0.0, 1e9, .1}}
     },
+    {
+        TOK_CACHE_TIMEOUT, "cache_timeout", "Cache timeout value in ms",
+        "Cache timeout, value of 0 disables caching",
+        "500", RIG_CONF_NUMERIC, { .n = {0, 5000, 1}}
+    },
 
     { RIG_CONF_END, NULL, }
 };
@@ -543,6 +548,9 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         rs->lo_freq = atof(val);
         break;
 
+    case TOK_CACHE_TIMEOUT:
+        rig_set_cache_timeout_ms(rig,CACHE_ALL,atol(val));
+        break;
 
     default:
         return -RIG_EINVAL;
@@ -846,6 +854,14 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
 
     case TOK_DCD_PATHNAME:
         strcpy(val, rs->dcdport.pathname);
+        break;
+
+    case TOK_LO_FREQ:
+        sprintf(val,"%g", rs->lo_freq);
+        break;
+
+    case TOK_CACHE_TIMEOUT:
+        sprintf(val,"%d", rig_get_cache_timeout_ms(rig, CACHE_ALL));
         break;
 
     default:
