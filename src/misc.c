@@ -1254,32 +1254,41 @@ void HAMLIB_API rig_no_restore_ai()
 }
 
 //! @cond Doxygen_Suppress
-int HAMLIB_API elapsed_ms(struct timespec *start, int flag_start)
+int HAMLIB_API elapsed_ms(struct timespec *start, int option)
 {
-    // If flag_start then we are starting the timing, else we get elapsed
+    // If option then we are starting the timing, else we get elapsed
     struct timespec stop;
-    double elapsed_secs;
+    double elapsed_msec;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: start = %ld,%ld\n",__func__,(long)start->tv_sec,(long)start->tv_nsec);
-    if (!flag_start && start->tv_nsec == 0) return 1000000; 
+    rig_debug(RIG_DEBUG_TRACE, "%s: start = %ld,%ld\n", __func__,
+              (long)start->tv_sec, (long)start->tv_nsec);
 
-    if (flag_start)
+
+    switch (option)
     {
-        clock_gettime(CLOCK_REALTIME, start);
-        return 0;
-    }
-    else
-    {
+    case ELAPSED_GET:
+        if (start->tv_nsec == 0) { return 1000000; } // if we haven't done SET yet
         clock_gettime(CLOCK_REALTIME, &stop);
+        break;
+
+    case ELAPSED_SET:
+        clock_gettime(CLOCK_REALTIME, start);
+        rig_debug(RIG_DEBUG_TRACE, "%s: after gettime, start = %ld,%ld\n", __func__,
+                  (long)start->tv_sec, (long)start->tv_nsec);
+        break;
+
+    case ELAPSED_INVALIDATE: // we take care of this below
+        break;
     }
 
-    elapsed_secs = (stop.tv_sec - start->tv_sec) * 1e6 + (stop.tv_nsec -
-                   start->tv_nsec) / 1e3;
+    elapsed_msec = ((stop.tv_sec - start->tv_sec) + ((stop.tv_nsec -
+                    start->tv_nsec) / 1e6)) / 1e3;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: elapse_secs=%g\n",__func__,elapsed_secs);
-    if (elapsed_secs < 0) return 1000000;
+    rig_debug(RIG_DEBUG_TRACE, "%s: elapse_secs=%g\n", __func__, elapsed_msec);
 
-    return elapsed_secs / 1000;
+    if (elapsed_msec < 0 || option == ELAPSED_INVALIDATE) { return 1000000; }
+
+    return elapsed_msec;
 }
 
 int HAMLIB_API rig_get_cache_timeout_ms(RIG *rig, cache_t selection)
@@ -1290,7 +1299,8 @@ int HAMLIB_API rig_get_cache_timeout_ms(RIG *rig, cache_t selection)
 
 int HAMLIB_API rig_set_cache_timeout_ms(RIG *rig, cache_t selection, int ms)
 {
-    rig_debug(RIG_DEBUG_TRACE, "%s: called selection=%d, ms=%d\n", __func__, selection, ms);
+    rig_debug(RIG_DEBUG_TRACE, "%s: called selection=%d, ms=%d\n", __func__,
+              selection, ms);
     rig->state.cache.timeout_ms = ms;
     return RIG_OK;
 }
