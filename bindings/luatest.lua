@@ -75,7 +75,7 @@ function doStartup()
 
     chan = Hamlib.channel(Hamlib.RIG_VFO_B)
 
-    my_rig:get_channel(chan)
+    my_rig:get_channel(chan,1)
     print(string.format("get_channel status:\t%d", my_rig.error_status))
 
     print(string.format("VFO:\t\t\t%s, %s", Hamlib.rig_strvfo(chan.vfo), chan.freq))

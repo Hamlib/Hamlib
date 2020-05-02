@@ -60,7 +60,7 @@ print "strength:\t\t$lvl\n";
 
 $chan = new Hamlib::channel($Hamlib::RIG_VFO_A);
 
-$rig->get_channel($chan);
+$rig->get_channel($chan,1);
 print "get_channel status:\t$rig->{error_status} = ".Hamlib::rigerror($rig->{error_status})."\n";
 
 print "VFO:\t\t\t".Hamlib::rig_strvfo($chan->{vfo}).", $chan->{freq}\n";
