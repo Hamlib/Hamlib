@@ -1345,7 +1345,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
     else
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: cache miss age=%dms\n", __func__, cache_ms);
+        rig_debug(RIG_DEBUG_TRACE, "%s: cache miss age=%dms, cached_vfo=%s, asked_vfo=%s\n", __func__, cache_ms, rig_strvfo(rig->state.cache.vfo_freq), rig_strvfo(vfo));
     }
 
     caps = rig->caps;
@@ -1410,7 +1410,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 
     cache_ms = elapsed_ms(&(rig->state.cache.time_freq), ELAPSED_SET);
-    rig_debug(RIG_DEBUG_TRACE, "%s: cache reset age=%dm, vfo=%s, freq=%g\n",
+    rig_debug(RIG_DEBUG_TRACE, "%s: cache reset age=%dms, vfo=%s, freq=%g\n",
               __func__, cache_ms, rig_strvfo(vfo), *freq);
     rig->state.cache.freq = *freq;
     rig->state.cache.vfo_freq = vfo;
@@ -1812,7 +1812,7 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
     }
 
     // we need to update our internal freq to avoid getting detected as twiddling
-    if (caps->get_freq) { retcode = rig_get_freq(rig, RIG_VFO_CURR, &curr_freq); }
+    if (caps->get_freq) { retcode = rig_get_freq(rig, vfo, &curr_freq); }
 
     rig->state.cache.vfo = vfo;
     // expire several cached items when we switch VFOs
