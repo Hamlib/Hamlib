@@ -81,7 +81,7 @@ def StartUp():
     print("status(str):\t\t%s" % Hamlib.rigerror(my_rig.error_status))
 
     chan = Hamlib.channel(Hamlib.RIG_VFO_B)
-    my_rig.get_channel(chan)
+    my_rig.get_channel(chan,1)
 
     print("get_channel status:\t%s" % my_rig.error_status)
     print("VFO:\t\t\t%s, %s" % (Hamlib.rig_strvfo(chan.vfo), chan.freq))
