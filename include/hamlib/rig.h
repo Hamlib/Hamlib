@@ -1856,6 +1856,7 @@ typedef hamlib_port_t port_t;
 
 #define ELAPSED_GET 0
 #define ELAPSED_SET 1
+#define ELAPSED_INVALIDATE 2
 
 typedef enum {
     CACHE_ALL, // to set all cache timeouts at once
