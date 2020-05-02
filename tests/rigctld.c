@@ -865,7 +865,6 @@ int main(int argc, char *argv[])
         {
             arg->rig = my_rig;
             arg->clilen = sizeof(arg->cli_addr);
-            rig_debug(RIG_DEBUG_ERR, "%s: #2 vfo_mode=%d\n", __func__, vfo_mode);
             arg->vfo_mode = vfo_mode;
             arg->sock = accept(sock_listen,
                                (struct sockaddr *)&arg->cli_addr,
