@@ -44,7 +44,7 @@
  *  The exact model numbers can be acquired using the macros in this file. To
  *  obtain a list of supported amplifier branches, one can use the statically
  *  defined AMP_BACKEND_LIST macro. To obtain a full list of supported
- *  amplifier (including each model in every branch), the foreach_opened_rot()
+ *  amplifiers (including each model in every branch), the foreach_opened_amp()
  *  API function can be used.
  *
  *  The model number, or ID, is used to tell Hamlib which amplifier the client
@@ -68,7 +68,7 @@
  *  \def AMP_MODEL_NETAMPCTL
  *  \brief A macro that returns the model number for the Network backend.
  *
- *  This backend allows use of the rotctld daemon through the normal
+ *  This backend allows use of the ampctld daemon through the normal
  *  Hamlib API.
  */
 #define AMP_DUMMY 0
