@@ -14,11 +14,20 @@
 #include <hamlib/riglist.h>
 #include "sprintflst.h"
 
+#if 0
+#define MODEL RIG_MODEL_DUMMY
+#define PATH "/dev/ttyUSB0"
+#define BAUD 19200
+#else
+#define MODEL RIG_MODEL_NETRIGCTL
+#define PATH "127.0.0.1:4532"
+#define BAUD 0
+#endif
 
 int main()
 {
     RIG *my_rig;
-    char *rig_file, *info_buf, *mm;
+    char *info_buf;
     freq_t freq;
     value_t rawstrength, power, strength;
     float s_meter, rig_raw2val();
@@ -28,17 +37,14 @@ int main()
     pbwidth_t width;
 
     /* Set verbosity level */
-    rig_set_debug(RIG_DEBUG_ERR);       // errors only
+    rig_set_debug(RIG_DEBUG_TRACE);       // errors only
 
     /* Instantiate a rig */
-    my_rig = rig_init(RIG_MODEL_DUMMY); // your rig model.
+    my_rig = rig_init(MODEL); // your rig model.
 
-    /* Set up serial port, baud rate */
-    rig_file = "/dev/ttyUSB0";        // your serial device
+    strncpy(my_rig->state.rigport.pathname, PATH, FILPATHLEN - 1);
 
-    strncpy(my_rig->state.rigport.pathname, rig_file, FILPATHLEN - 1);
-
-    my_rig->state.rigport.parm.serial.rate = 57600; // your baud rate
+    my_rig->state.rigport.parm.serial.rate = BAUD; // your baud rate
 
     /* Open my rig */
     retcode = rig_open(my_rig);
@@ -74,46 +80,7 @@ int main()
 
     if (status != RIG_OK) { printf("Get mode failed?? Err=%s\n", rigerror(status)); }
 
-    switch (mode)
-    {
-    case RIG_MODE_USB:
-        mm = "USB";
-        break;
-
-    case RIG_MODE_LSB:
-        mm = "LSB";
-        break;
-
-    case RIG_MODE_CW:
-        mm = "CW";
-        break;
-
-    case RIG_MODE_CWR:
-        mm = "CWR";
-        break;
-
-    case RIG_MODE_AM:
-        mm = "AM";
-        break;
-
-    case RIG_MODE_FM:
-        mm = "FM";
-        break;
-
-    case RIG_MODE_WFM:
-        mm = "WFM";
-        break;
-
-    case RIG_MODE_RTTY:
-        mm = "RTTY";
-        break;
-
-    default:
-        mm = "unrecognized";
-        break; /* there are more possibilities! */
-    }
-
-    printf("Current mode = 0x%lX = %s, width = %ld\n", mode, mm, width);
+    printf("Current mode = 0x%lX = %s, width = %ld\n", mode, rig_strrmode(mode), width);
 
     /* rig power output */
     status = rig_get_level(my_rig, RIG_VFO_CURR, RIG_LEVEL_RFPOWER, &power);
@@ -162,5 +129,30 @@ int main()
     else
     {
         printf("Not rx range list found\n");
+    }
+
+    printf("Closing and reopening rig\n");
+    rig_close(my_rig);
+
+    while (1) {
+    //my_rig = rig_init(MODEL); // your rig model.
+
+    retcode = rig_open(my_rig);
+
+    if (retcode != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: rig_open failed %s\n", __func__,
+                  rigerror(retcode));
+        return 1;
+    }
+#if 0
+    status = rig_get_freq(my_rig, RIG_VFO_CURR, &freq);
+
+    if (status != RIG_OK) { printf("Get freq failed?? Err=%s\n", rigerror(status)); }
+
+    printf("VFO freq. = %.1f Hz\n", freq);
+    printf("rig reopen is OK\n");
+#endif
+    rig_close(my_rig);
     }
 };
