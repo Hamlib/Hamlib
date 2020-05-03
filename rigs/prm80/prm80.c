@@ -330,8 +330,10 @@ int prm80_get_channel(RIG *rig, channel_t *chan, int read_only)
     chan->rptr_offs = chan->tx_freq - chan->freq;
 
 #warning Need to add setting rig to channel values
-    if (!read_only) {
-      // Set rig to channel values
+
+    if (!read_only)
+    {
+        // Set rig to channel values
     }
 
     return RIG_OK;

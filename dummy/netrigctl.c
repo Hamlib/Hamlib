@@ -564,7 +564,7 @@ static int netrigctl_close(RIG *rig)
     }
 
     rig_debug(RIG_DEBUG_ERR, "%s: done status=%s\n", __func__, rigerror(ret));
-    usleep(10*1000);
+    usleep(10 * 1000);
 
     return RIG_OK;
 }

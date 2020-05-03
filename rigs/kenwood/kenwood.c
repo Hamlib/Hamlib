@@ -265,14 +265,17 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data,
         if (cache_age_ms < 500) // 500ms cache time
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: cache hit, age=%dms\n", __func__, cache_age_ms);
-            if (data) strncpy(data, priv->last_if_response, datasize);
+
+            if (data) { strncpy(data, priv->last_if_response, datasize); }
+
             return RIG_OK;
         }
 
         // else we drop through and do the real IF command
     }
 
-    if (strlen(cmdstr) > 2 || strcmp(cmdstr,"RX")==0 || strcmp(cmdstr,"TX") == 0)
+    if (strlen(cmdstr) > 2 || strcmp(cmdstr, "RX") == 0
+            || strcmp(cmdstr, "TX") == 0)
     {
         // then we must be setting something so we'll invalidate the cache
         rig_debug(RIG_DEBUG_TRACE, "%s: cache invalidated\n", __func__);
@@ -494,12 +497,16 @@ transaction_read:
         // seems some rigs will send back an IF response to RX/TX when it changes the status
         // normally RX/TX returns nothing when it's a null effect
         // TS-950SDX is known to behave this way
-        if (strncmp(cmdstr,"RX",2)==0 || strncmp(cmdstr,"TX",2)==0) {
-            if (strncmp(priv->verify_cmd,"IF",2)==0) {
-                rig_debug(RIG_DEBUG_TRACE,"%s: RX/TX got IF response so we're good\n", __func__);
+        if (strncmp(cmdstr, "RX", 2) == 0 || strncmp(cmdstr, "TX", 2) == 0)
+        {
+            if (strncmp(priv->verify_cmd, "IF", 2) == 0)
+            {
+                rig_debug(RIG_DEBUG_TRACE, "%s: RX/TX got IF response so we're good\n",
+                          __func__);
                 goto transaction_quit;
             }
         }
+
         if (priv->verify_cmd[0] != buffer[0]
                 || (priv->verify_cmd[1] && priv->verify_cmd[1] != buffer[1]))
         {
@@ -699,10 +706,12 @@ int kenwood_open(RIG *rig)
 
     err = kenwood_get_id(rig, id);
 
-    if (err == RIG_OK) { // some rigs give ID while in standby
+    if (err == RIG_OK)   // some rigs give ID while in standby
+    {
         powerstat_t powerstat = 0;
         rig_debug(RIG_DEBUG_TRACE, "%s: got ID so try PS\n", __func__);
         err = rig_get_powerstat(rig, &powerstat);
+
         if (err == RIG_OK && powerstat == 0)
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: got PS0 so powerup\n", __func__);
@@ -716,9 +725,11 @@ int kenwood_open(RIG *rig)
         rig_set_powerstat(rig, 1);
         /* Try get id again */
         err = kenwood_get_id(rig, id);
+
         if (RIG_OK != err)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: no response to get_id from rig...contintuing anyways.\n", __func__);
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: no response to get_id from rig...contintuing anyways.\n", __func__);
         }
     }
 

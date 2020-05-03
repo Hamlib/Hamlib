@@ -1345,7 +1345,9 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
     else
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: cache miss age=%dms, cached_vfo=%s, asked_vfo=%s\n", __func__, cache_ms, rig_strvfo(rig->state.cache.vfo_freq), rig_strvfo(vfo));
+        rig_debug(RIG_DEBUG_TRACE,
+                  "%s: cache miss age=%dms, cached_vfo=%s, asked_vfo=%s\n", __func__, cache_ms,
+                  rig_strvfo(rig->state.cache.vfo_freq), rig_strvfo(vfo));
     }
 
     caps = rig->caps;
@@ -1820,7 +1822,8 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
     elapsed_ms(&rig->state.cache.time_freq, ELAPSED_INVALIDATE);
     elapsed_ms(&rig->state.cache.time_mode, ELAPSED_INVALIDATE);
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: return %d, vfo=%s\n", __func__, retcode, rig_strvfo(vfo));
+    rig_debug(RIG_DEBUG_TRACE, "%s: return %d, vfo=%s\n", __func__, retcode,
+              rig_strvfo(vfo));
     return retcode;
 }
 

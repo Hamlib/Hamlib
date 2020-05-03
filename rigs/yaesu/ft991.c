@@ -383,29 +383,29 @@ static void debug_ft991info_data(const ft991info *rdata)
 {
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s command         %2.2s\n",
-             __func__, rdata->command);
+              __func__, rdata->command);
     rig_debug(RIG_DEBUG_VERBOSE, "%s memory_ch       %3.3s\n",
-             __func__, rdata->memory_ch);
+              __func__, rdata->memory_ch);
     rig_debug(RIG_DEBUG_VERBOSE, "%s vfo_freq        %9.9s\n",
-             __func__, rdata->vfo_freq);
+              __func__, rdata->vfo_freq);
     rig_debug(RIG_DEBUG_VERBOSE, "%s clarifier       %5.5s\n",
-             __func__, rdata->clarifier);
+              __func__, rdata->clarifier);
     rig_debug(RIG_DEBUG_VERBOSE, "%s rx_clarifier    %c\n",
-             __func__, rdata->rx_clarifier);
+              __func__, rdata->rx_clarifier);
     rig_debug(RIG_DEBUG_VERBOSE, "%s tx_clarifier    %c\n",
-             __func__, rdata->tx_clarifier);
+              __func__, rdata->tx_clarifier);
     rig_debug(RIG_DEBUG_VERBOSE, "%s mode            %c\n",
-             __func__, rdata->mode);
+              __func__, rdata->mode);
     rig_debug(RIG_DEBUG_VERBOSE, "%s vfo_memory      %c\n",
-             __func__, rdata->vfo_memory);
+              __func__, rdata->vfo_memory);
     rig_debug(RIG_DEBUG_VERBOSE, "%s tone_mode       %c\n",
-             __func__, rdata->tone_mode);
+              __func__, rdata->tone_mode);
     rig_debug(RIG_DEBUG_VERBOSE, "%s fixed           %2.2s\n",
-             __func__, rdata->fixed);
+              __func__, rdata->fixed);
     rig_debug(RIG_DEBUG_VERBOSE, "%s repeater_offset %c\n",
-             __func__, rdata->repeater_offset);
+              __func__, rdata->repeater_offset);
     rig_debug(RIG_DEBUG_VERBOSE, "%s terminator      %c\n",
-             __func__, rdata->terminator);
+              __func__, rdata->terminator);
 
 }
 

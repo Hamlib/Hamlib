@@ -130,7 +130,8 @@ int main(int argc, char *argv[])
 
         if (retcode != RIG_OK) { printf("Get mode failed?? Err=%s\n", rigerror(retcode)); }
 
-        printf("%4dms: Current mode = %s, width = %ld\n", elapsed_ms(&start, ELAPSED_GET),
+        printf("%4dms: Current mode = %s, width = %ld\n", elapsed_ms(&start,
+                ELAPSED_GET),
                rig_strrmode(mode), width);
 
         elapsed_ms(&start, ELAPSED_SET);

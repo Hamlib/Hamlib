@@ -1755,8 +1755,10 @@ static int ar7030p_get_channel(RIG *rig, channel_t *chan, int read_only)
     }
 
 #warning Need to add setting rig to channel values
-    if (!read_only) {
-      // Set rig to channel values
+
+    if (!read_only)
+    {
+        // Set rig to channel values
     }
 
     return (rc);

@@ -1325,8 +1325,10 @@ static int thd74_get_channel(RIG *rig, channel_t *chan, int read_only)
     }
 
 #warning Need to add setting rig to channel values
-    if (!read_only) {
-      // Set rig to channel values
+
+    if (!read_only)
+    {
+        // Set rig to channel values
     }
 
     return RIG_OK;

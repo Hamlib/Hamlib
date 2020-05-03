@@ -1260,7 +1260,8 @@ int HAMLIB_API elapsed_ms(struct timespec *start, int option)
     struct timespec stop;
     double elapsed_msec;
 
-    if (option == ELAPSED_SET) { 
+    if (option == ELAPSED_SET)
+    {
         start->tv_sec = start->tv_nsec = 0;
     }
 
@@ -1271,10 +1272,12 @@ int HAMLIB_API elapsed_ms(struct timespec *start, int option)
     switch (option)
     {
     case ELAPSED_GET:
-        if (start->tv_nsec == 0) { // if we haven't done SET yet
+        if (start->tv_nsec == 0)   // if we haven't done SET yet
+        {
             clock_gettime(CLOCK_REALTIME, start);
-            return 1000 * 1000; 
+            return 1000 * 1000;
         }
+
         clock_gettime(CLOCK_REALTIME, &stop);
         break;
 
@@ -1285,12 +1288,14 @@ int HAMLIB_API elapsed_ms(struct timespec *start, int option)
         return 999 * 1000; // so we can tell the difference in debug where we came from
         break;
 
-    case ELAPSED_INVALIDATE: 
-        start->tv_sec -= 3600*24*365; // let's back off 1 year -- should expire most elapsed measurements
+    case ELAPSED_INVALIDATE:
+        start->tv_sec -= 3600 * 24 *
+                         365; // let's back off 1 year -- should expire most elapsed measurements
         break;
     }
-    elapsed_msec = ((stop.tv_sec - start->tv_sec) + (stop.tv_nsec/1e9 -
-                    start->tv_nsec/1e9)) * 1e3;
+
+    elapsed_msec = ((stop.tv_sec - start->tv_sec) + (stop.tv_nsec / 1e9 -
+                    start->tv_nsec / 1e9)) * 1e3;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: elapsed_secs=%g\n", __func__, elapsed_msec);
 

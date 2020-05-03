@@ -806,8 +806,10 @@ int ar3030_get_channel(RIG *rig, channel_t *chan, int read_only)
     chan->flags = infobuf[4] == '1' ? RIG_CHFLAG_SKIP : RIG_CHFLAG_NONE;
 
 #warning Need to add setting rig to channel values
-    if (!read_only) {
-      // Set rig to channel values
+
+    if (!read_only)
+    {
+        // Set rig to channel values
     }
 
     return RIG_OK;
