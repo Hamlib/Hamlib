@@ -550,10 +550,21 @@ static int netrigctl_open(RIG *rig)
 
 static int netrigctl_close(RIG *rig)
 {
+    int ret;
+    char buf[BUF_MAX];
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    /* clean signoff, no read back */
-    write_block(&rig->state.rigport, "q\n", 2);
+    ret = netrigctl_transaction(rig, "q\n", 2, buf);
+
+    if (ret != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: close error %s\n", __func__, rigerror(ret));
+        return ret;
+    }
+
+    rig_debug(RIG_DEBUG_ERR, "%s: done status=%s\n", __func__, rigerror(ret));
+    usleep(10*1000);
 
     return RIG_OK;
 }
@@ -609,7 +620,15 @@ static int netrigctl_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
 
     CHKSCN1ARG(num_sscanf(buf, "%"SCNfreq, freq));
-    CHKSCN1ARG(num_sscanf(buf, "%s", vfotmp));
+
+    ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
+
+    if (ret <= 0)
+    {
+        return (ret < 0) ? ret : -RIG_EPROTO;
+    }
+
+    *vfotmp = rig_parse_vfo(buf);
 
     return RIG_OK;
 }
@@ -2154,7 +2173,7 @@ struct rig_caps netrigctl_caps =
     RIG_MODEL(RIG_MODEL_NETRIGCTL),
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
-    .version =        "20200422.0",
+    .version =        "20200503.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
