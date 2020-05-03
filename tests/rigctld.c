@@ -969,7 +969,7 @@ void *handle_socket(void *arg)
 
     if (!fsockin)
     {
-        rig_debug(RIG_DEBUG_ERR, "fdopen in: %s\n", strerror(errno));
+        rig_debug(RIG_DEBUG_ERR, "fdopen(0x%d) in: %s\n", handle_data_arg->sock, strerror(errno));
         goto handle_exit;
     }
 
