@@ -309,12 +309,16 @@ static int dummy_open(RIG *rig)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
+    usleep(CMDSLEEP);
+
     return RIG_OK;
 }
 
 static int dummy_close(RIG *rig)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    usleep(CMDSLEEP);
 
     return RIG_OK;
 }
@@ -1898,7 +1902,7 @@ struct rig_caps dummy_caps =
     RIG_MODEL(RIG_MODEL_DUMMY),
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
-    .version =        "2020004220",
+    .version =        "20200503.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
