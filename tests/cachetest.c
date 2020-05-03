@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
         printf("Rig_info: '%s'\n", info_buf);
     }
 
-    elapsed_ms(&startall, 1);
+    elapsed_ms(&startall, ELAPSED_SET);
 
     for (i = 0; i < loops; ++i)
     {
@@ -111,47 +111,47 @@ int main(int argc, char *argv[])
         ptt_t ptt;
         split_t split;
 
-        elapsed_ms(&start, 1);
+        elapsed_ms(&start, ELAPSED_SET);
 
         retcode = rig_get_vfo(my_rig, &vfo);
 
         if (retcode != RIG_OK) { printf("Get vfo failed?? Err=%s\n", rigerror(retcode)); }
 
-        printf("%4dms: VFO = %s\n", elapsed_ms(&start, 0), rig_strvfo(vfo));
+        printf("%4dms: VFO = %s\n", elapsed_ms(&start, ELAPSED_GET), rig_strvfo(vfo));
 
-        elapsed_ms(&start, 1);
+        elapsed_ms(&start, ELAPSED_SET);
         retcode = rig_get_freq(my_rig, RIG_VFO_CURR, &freq);
 
         if (retcode != RIG_OK) { printf("Get freq failed?? Err=%s\n", rigerror(retcode)); }
 
-        printf("%4dms: VFO freq. = %.1f Hz\n", elapsed_ms(&start, 0), freq);
-        elapsed_ms(&start, 1);
+        printf("%4dms: VFO freq. = %.1f Hz\n", elapsed_ms(&start, ELAPSED_GET), freq);
+        elapsed_ms(&start, ELAPSED_SET);
         retcode = rig_get_mode(my_rig, RIG_VFO_CURR, &mode, &width);
 
         if (retcode != RIG_OK) { printf("Get mode failed?? Err=%s\n", rigerror(retcode)); }
 
-        printf("%4dms: Current mode = %s, width = %ld\n", elapsed_ms(&start, 0),
+        printf("%4dms: Current mode = %s, width = %ld\n", elapsed_ms(&start, ELAPSED_GET),
                rig_strrmode(mode), width);
 
-        elapsed_ms(&start, 1);
+        elapsed_ms(&start, ELAPSED_SET);
         retcode = rig_get_ptt(my_rig, RIG_VFO_A, &ptt);
 
         if (retcode != RIG_OK) { printf("Get ptt failed?? Err=%s\n", rigerror(retcode)); }
 
-        printf("%4dms: ptt=%d\n", elapsed_ms(&start, 0), ptt);
+        printf("%4dms: ptt=%d\n", elapsed_ms(&start, ELAPSED_GET), ptt);
 
 #if 1
-        elapsed_ms(&start, 1);
+        elapsed_ms(&start, ELAPSED_SET);
         retcode = rig_get_split_vfo(my_rig, RIG_VFO_A, &split, &vfo);
 
         if (retcode != RIG_OK) { printf("Get split_vfo failed?? Err=%s\n", rigerror(retcode)); }
 
-        printf("%4dms: split=%d, tx_vfo=%s\n", elapsed_ms(&start, 0), split,
+        printf("%4dms: split=%d, tx_vfo=%s\n", elapsed_ms(&start, ELAPSED_GET), split,
                rig_strvfo(vfo));
 #endif
     }
 
-    printf("Elapsed %gsec\n", elapsed_ms(&startall, 0) / 1000.0);
+    printf("Elapsed %gsec\n", elapsed_ms(&startall, ELAPSED_GET) / 1000.0);
 
     rig_close(my_rig);
     return 0;

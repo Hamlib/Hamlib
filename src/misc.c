@@ -1260,6 +1260,10 @@ int HAMLIB_API elapsed_ms(struct timespec *start, int option)
     struct timespec stop;
     double elapsed_msec;
 
+    if (option == ELAPSED_SET) { 
+        start->tv_sec = start->tv_nsec = 0;
+    }
+
     rig_debug(RIG_DEBUG_TRACE, "%s: start = %ld,%ld\n", __func__,
               (long)start->tv_sec, (long)start->tv_nsec);
 
@@ -1286,7 +1290,7 @@ int HAMLIB_API elapsed_ms(struct timespec *start, int option)
         break;
     }
     elapsed_msec = ((stop.tv_sec - start->tv_sec) + (stop.tv_nsec/1e9 -
-                    start->tv_nsec/1e9)) / 1e3;
+                    start->tv_nsec/1e9)) * 1e3;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: elapsed_secs=%g\n", __func__, elapsed_msec);
 
