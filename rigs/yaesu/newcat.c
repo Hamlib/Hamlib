@@ -5955,9 +5955,12 @@ int newcat_get_cmd(RIG *rig)
             strcpy(priv->ret_data, priv->last_if_response);
             return RIG_OK;
         }
+
         // we drop through and do the real IF command
     }
-    if (priv->cmd_str[2] != ';') // then we must be setting something so we'll invalidate the cache
+
+    if (priv->cmd_str[2] !=
+            ';') // then we must be setting something so we'll invalidate the cache
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: cache invalidated\n", __func__);
         priv->cache_start.tv_sec = 0;

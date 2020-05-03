@@ -549,7 +549,7 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         break;
 
     case TOK_CACHE_TIMEOUT:
-        rig_set_cache_timeout_ms(rig,CACHE_ALL,atol(val));
+        rig_set_cache_timeout_ms(rig, CACHE_ALL, atol(val));
         break;
 
     default:
@@ -857,11 +857,11 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
         break;
 
     case TOK_LO_FREQ:
-        sprintf(val,"%g", rs->lo_freq);
+        sprintf(val, "%g", rs->lo_freq);
         break;
 
     case TOK_CACHE_TIMEOUT:
-        sprintf(val,"%d", rig_get_cache_timeout_ms(rig, CACHE_ALL));
+        sprintf(val, "%d", rig_get_cache_timeout_ms(rig, CACHE_ALL));
         break;
 
     default:
