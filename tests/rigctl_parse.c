@@ -669,8 +669,8 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 if (cmd != '\\'
                         && cmd != '_'
                         && cmd != '#'
-                         && cmd != '('
-                         && cmd != ')'
+                        && cmd != '('
+                        && cmd != ')'
                         && ispunct(cmd)
                         && !prompt)
                 {
@@ -764,6 +764,11 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
             if (cmd == 'Q' || cmd == 'q')
             {
+                rig_debug(RIG_DEBUG_TRACE, "%s: quit returning NETRIGCTL_RET 0\n", __func__);
+
+                if (interactive && !prompt) { fprintf(fout, "%s0\n", NETRIGCTL_RET); }
+
+                fflush(fout);
                 return 1;
             }
 
@@ -1654,6 +1659,8 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
         /* only for rigctld */
         if (interactive && !prompt)
         {
+            rig_debug(RIG_DEBUG_TRACE, "%s: return#1 "NETRIGCTL_RET "%d\n", __func__,
+                      retcode);
             fprintf(fout, NETRIGCTL_RET "%d\n", retcode);
             *ext_resp_ptr = 0;
             *resp_sep_ptr = '\n';
@@ -1675,12 +1682,14 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             if (!(cmd_entry->flags & ARG_OUT)
                     && !*ext_resp_ptr && cmd != 0xf0)
             {
+                rig_debug(RIG_DEBUG_TRACE, "%s: return#2 "NETRIGCTL_RET "0\n", __func__);
                 fprintf(fout, NETRIGCTL_RET "0\n");
             }
 
             /* Extended Response protocol */
             else if (*ext_resp_ptr && cmd != 0xf0)
             {
+                rig_debug(RIG_DEBUG_TRACE, "%s: return#3 "NETRIGCTL_RET "0\n", __func__);
                 fprintf(fout, NETRIGCTL_RET "0\n");
                 *ext_resp_ptr = 0;
                 *resp_sep_ptr = '\n';
