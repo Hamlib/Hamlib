@@ -80,7 +80,8 @@ int main()
 
     if (status != RIG_OK) { printf("Get mode failed?? Err=%s\n", rigerror(status)); }
 
-    printf("Current mode = 0x%lX = %s, width = %ld\n", mode, rig_strrmode(mode), width);
+    printf("Current mode = 0x%lX = %s, width = %ld\n", mode, rig_strrmode(mode),
+           width);
 
     /* rig power output */
     status = rig_get_level(my_rig, RIG_VFO_CURR, RIG_LEVEL_RFPOWER, &power);
@@ -134,25 +135,25 @@ int main()
     printf("Closing and reopening rig\n");
     rig_close(my_rig);
 
-    while (1) {
-    //my_rig = rig_init(MODEL); // your rig model.
-
-    retcode = rig_open(my_rig);
-
-    if (retcode != RIG_OK)
+    while (1)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig_open failed %s\n", __func__,
-                  rigerror(retcode));
-        return 1;
-    }
+        retcode = rig_open(my_rig);
+
+        if (retcode != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: rig_open failed %s\n", __func__,
+                      rigerror(retcode));
+            return 1;
+        }
+
 #if 0
-    status = rig_get_freq(my_rig, RIG_VFO_CURR, &freq);
+        status = rig_get_freq(my_rig, RIG_VFO_CURR, &freq);
 
-    if (status != RIG_OK) { printf("Get freq failed?? Err=%s\n", rigerror(status)); }
+        if (status != RIG_OK) { printf("Get freq failed?? Err=%s\n", rigerror(status)); }
 
-    printf("VFO freq. = %.1f Hz\n", freq);
-    printf("rig reopen is OK\n");
+        printf("VFO freq. = %.1f Hz\n", freq);
+        printf("rig reopen is OK\n");
 #endif
-    rig_close(my_rig);
+        rig_close(my_rig);
     }
 };
