@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# Builds Hamlib 3.x W32 binary distribution.
+# Builds Hamlib 4.x W32 binary distribution.
 
-# A script to build a set of W32 binary DLLs from a Hamlib tarball.
-# This script assumes that the Hamlib tarball has been extracted to the
-# directory specified in $BUILD_DIR and that libusb-1.x.y has also
-# been extracted to $BUILD_DIR.  The MS VC++ Toolkit must also be installed
-# and working with Wine.
-#
-# See README.build-win32 for complete details.
+# A script to build a set of W32 binary DLLs from a Hamlib tarball.  This
+# script assumes that the Hamlib tarball has been extracted to the directory
+# specified in $BUILD_DIR and that libusb-1.x.y has also been extracted to
+# $BUILD_DIR.  The MS VC++ Toolkit must also be installed and working with
+# Wine.
+
+# See README.build-Windows for complete details.
 
 
 # Set this to a desired directory
@@ -17,7 +17,7 @@ BUILD_DIR=~/builds
 # Set this to LibUSB archive extracted in $BUILD_DIR
 LIBUSB_VER=libusb-1.0.22
 
-# uncomment the correct HOST_ARCH= line for your minGW installation
+# Set to the correct HOST_ARCH= line for your minGW installation
 HOST_ARCH=i686-w64-mingw32
 
 # Set to the strip name for your version of minGW
@@ -30,8 +30,8 @@ EX_NOINPUT=66
 
 # Pass name of Hamlib archive extracted in $BUILD_DIR
 if [ $# -ne 1 ]; then
-	echo -e "\nUsage: `basename $0` hamlib-version\n"
-	echo -e "See README.build-win32 for more information.\n"
+	echo -e "\nUsage: $(basename $0) hamlib-version\n"
+	echo -e "See README.build-Windows for more information.\n"
 	exit ${EX_USAGE}
 fi
 
@@ -44,10 +44,10 @@ else
 	exit ${EX_NOINPUT}
 fi
 
-RELEASE=`/usr/bin/awk 'BEGIN{FS="["; RS="]"} /\[4\./ {print $2;exit}' ./configure.ac`
+RELEASE=$(/usr/bin/awk 'BEGIN{FS="["; RS="]"} /\[4\./ {print $2;exit}' ./configure.ac)
 HL_FILENAME=hamlib-w32-${RELEASE}
-INST_DIR=`pwd`/mingw32-inst
-ZIP_DIR=`pwd`/${HL_FILENAME}
+INST_DIR=$(pwd)/mingw32-inst
+ZIP_DIR=$(pwd)/${HL_FILENAME}
 LIBUSB_1_0_BIN_PATH=${BUILD_DIR}/${LIBUSB_VER}
 
 
@@ -57,8 +57,8 @@ What is it?
 ===========
 
 This ZIP archive or Windows installer contains a build of Hamlib-$RELEASE
-cross-compiled for MS Windows 32 bit systems using MinGW under Debian 
-GNU/Linux 8 (nice, heh!).
+cross-compiled for MS Windows 32 bit using MinGW under Debian GNU/Linux 9
+(nice, heh!).
 
 The DLL has a cdecl interface for MS VC++.
 
@@ -66,9 +66,8 @@ This software is copyrighted. The library license is LGPL, and the *.EXE files
 licenses are GPL.  Hamlib comes WITHOUT ANY WARRANTY. See the LICENSE.txt,
 COPYING.txt, and COPYING.LIB.txt files.
 
-A draft user manual in HTML format is included in the doc directory.  Supporting
-documentation in the form of Unix manual pages have also been included after
-being converted to HTML.
+Supporting documentation in the form of Unix manual pages have also been
+included after being converted to HTML.
 
 
 Installation and Configuration
@@ -112,9 +111,9 @@ Testing with the Hamlib Utilities
 =================================
 
 To continue, be sure you have read the README.betatester file, especially the
-"Testing Hamlib" section.  The primary means of testing is by way of the rigctl
-utility for radios and rotctl utility for rotators.  Each is a command line
-program that is interactive or can act on a single command and exit.
+"Testing Hamlib" section.  The primary means of testing is by way of the
+rigctl utility for radios and rotctl utility for rotators.  Each is a command
+line program that is interactive or can act on a single command and exit.
 
 Documentation for each utility can be found as an HTML file in the doc
 directory.
@@ -132,7 +131,7 @@ In short, the command syntax is of the form:
         development.
 
 To run rigctl or rotctl open a cmd window (Start|Run|enter 'cmd' in the
-dialog). If text scrolls off the screen, you can scroll back with the mouse. 
+dialog).  If text scrolls off the screen, you can scroll back with the mouse.
 To copy output text into a mailer or editor (I recommend Notepad++, a free
 editor also licensed under the GPL), highlight the text as a rectangle in the
 cmd window, press <Enter> (or right-click the window icon in the upper left
@@ -164,6 +163,8 @@ your choosing.  The published Hamlib API may be found at:
 
 http://hamlib.sourceforge.net/manuals/3.0.1/index.html
 
+(The 4.0 API/ABI is changed and new documentation will be forthcoming.)
+
 
 Thank You!
 ==========
@@ -180,7 +181,7 @@ http://www.hamlib.org
 END_OF_README
 
 
-# Configure and build hamlib for mingw32, with libusb-win32
+# Configure and build hamlib for i686-w64-mingw32, with libusb-1.0
 
 ./configure --host=${HOST_ARCH} \
  --prefix=${INST_DIR} \
