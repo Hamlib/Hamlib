@@ -1,25 +1,23 @@
 #!/bin/bash
 
-# Builds Hamlib 3.x W64 binary distribution.
+# Builds Hamlib 4.x W64 binary distribution.
 
-# A script to build a set of W64 binary DLLs from a Hamlib tarball.
-# This script assumes that the Hamlib tarball has been extracted to the
-# directory specified in $BUILD_DIR and that libusb-win32-bin-1.x.y.z has also
-# been extracted to $BUILD_DIR.  The MS VC++Toolkit must also be installed
-# and working with Wine.
-#
-# Requires libusb-1.0 to be accessible for USB backends to be built.
+# A script to build a set of W64 binary DLLs from a Hamlib tarball.  This
+# script assumes that the Hamlib tarball has been extracted to the directory
+# specified in $BUILD_DIR and that libusb-1.x.y has also been extracted to
+# $BUILD_DIR.  The MS VC++ Toolkit must also be installed and working with
+# Wine.
 
-# See README.build-w64 for complete details.
+# See README.build-Windows for complete details.
 
 
 # Set this to a desired directory
 BUILD_DIR=~/builds
 
 # Set this to LibUSB archive extracted in $BUILD_DIR
-LIBUSB_VER=libusb-1.0.20
+LIBUSB_VER=libusb-1.0.22
 
-# uncomment the correct HOST_ARCH= line for your minGW installation
+# Set to the correct HOST_ARCH= line for your minGW installation
 HOST_ARCH=x86_64-w64-mingw32
 
 # Set to the strip name for your version of minGW
@@ -32,24 +30,24 @@ EX_NOINPUT=66
 
 # Pass name of Hamlib archive extracted in $BUILD_DIR
 if [ $# -ne 1 ]; then
-	echo -e "\nUsage: `basename $0` hamlib-version\n"
-	echo -e "See README.build-w64 for more information.\n"
+	echo -e "\nUsage: $(basename $0) hamlib-version\n"
+	echo -e "See README.build-Windows for more information.\n"
 	exit ${EX_USAGE}
 fi
 
 # Make sure the Hamlib archive is where we expect
 if [ -d ${BUILD_DIR}/$1 ]; then
-	echo -e "\nBuilding w64 binaries in ${BUILD_DIR}/$1\n\n"
+	echo -e "\nBuilding W64 binaries in ${BUILD_DIR}/$1\n\n"
 	cd ${BUILD_DIR}/$1
 else
 	echo -e "\nBuild directory, ${BUILD_DIR}/$1 not found!\nCheck path for $1 or correct the version number.\n"
-	exit $EX_NOINPUT
+	exit ${EX_NOINPUT}
 fi
 
-RELEASE=`/usr/bin/awk 'BEGIN{FS="["; RS="]"} /\[4\./ {print $2;exit}' ./configure.ac`
+RELEASE=$(/usr/bin/awk 'BEGIN{FS="["; RS="]"} /\[4\./ {print $2;exit}' ./configure.ac)
 HL_FILENAME=hamlib-w64-${RELEASE}
-INST_DIR=`pwd`/mingw64-inst
-ZIP_DIR=`pwd`/${HL_FILENAME}
+INST_DIR=$(pwd)/mingw64-inst
+ZIP_DIR=$(pwd)/${HL_FILENAME}
 LIBUSB_1_0_BIN_PATH=${BUILD_DIR}/${LIBUSB_VER}
 
 
@@ -59,20 +57,18 @@ What is it?
 ===========
 
 This ZIP archive or Windows installer contains a build of Hamlib-$RELEASE
-cross-compiled for MS Windows 64 bit using MinGW under Debian GNU/Linux 8
+cross-compiled for MS Windows 64 bit using MinGW under Debian GNU/Linux 9
 (nice, heh!).
 
-NB:  This Windows 64 bit release is EXPERIMENTAL!  Some features such as USB
-backends have been disabled at this time.  Please report bugs, failures, and
-success to the Hamlib mailing list below.
+NB: This Windows 64 bit release is EXPERIMENTAL!  Please report bugs,
+failures, and success to the Hamlib mailing list below.
 
-This software is copyrighted. The library license is LGPL, and the *.EXE
-files licenses are GPL.  Hamlib comes WITHOUT ANY WARRANTY. See the
-LICENSE.txt, COPYING.txt, and COPYING.LIB.txt files.
+This software is copyrighted. The library license is LGPL, and the *.EXE files
+licenses are GPL.  Hamlib comes WITHOUT ANY WARRANTY. See the LICENSE.txt,
+COPYING.txt, and COPYING.LIB.txt files.
 
-A draft user manual in HTML format is included in the doc directory.  Supporting
-documentation in the form of Unix manual pages have also been included after
-being converted to HTML.
+Supporting documentation in the form of Unix manual pages have also been
+included after being converted to HTML.
 
 
 Installation and Configuration
@@ -82,9 +78,9 @@ Extract the ZIP archive into a convenient location, C:\Program Files is a
 reasonable choice.
 
 Make sure *all* the .DLL files are in your PATH (leave them in the bin
-directory and set the PATH).  To set the PATH environment variable in
-Windows 2000, Windows XP, and Windows 7 (need info on Vista and Windows 8/10)
-do the following:
+directory and set the PATH).  To set the PATH environment variable in Windows
+2000, Windows XP, and Windows 7 (need info on Vista and Windows 8/10) do the
+following:
 
  * W2k/XP: Right-click on "My Computer"
    Win7: Right-click on "Computer"
@@ -98,8 +94,8 @@ do the following:
    dialog
 
    NB: If you are not the administrator, system policy may not allow editing
-   the path variable.  The complete path to an executable file will need to
-   be given to run one of the Hamlib programs.
+   the path variable.  The complete path to an executable file will need to be
+   given to run one of the Hamlib programs.
 
  * Click the Edit button
 
@@ -115,12 +111,13 @@ do the following:
 Testing with the Hamlib Utilities
 =================================
 
-To continue, be sure you have read the README.betatester file, especially
-the "Testing Hamlib" section.  The primary means of testing is by way of the
+To continue, be sure you have read the README.betatester file, especially the
+"Testing Hamlib" section.  The primary means of testing is by way of the
 rigctl utility for radios and rotctl utility for rotators.  Each is a command
 line program that is interactive or can act on a single command and exit.
 
-Documentation for each utility can be found as a PDF in the pdf/ directory.
+Documentation for each utility can be found as an HTML file in the doc
+directory.
 
 In short, the command syntax is of the form:
 
@@ -134,13 +131,13 @@ In short, the command syntax is of the form:
         variables.  These traces are vital information for Hamlib rig backend
         development.
 
-To run rigctl or rotctl open a cmd window (Start|Run|enter 'cmd' in the dialog).
-If text scrolls off the screen, you can scroll back with the mouse.  To copy
-output text into a mailer or editor (I recommend Notepad++, a free editor also
-licensed under the GPL), highlight the text as a rectangle in the cmd window,
-press <Enter> (or right-click the window icon in the upper left corner and
-select Edit, then Copy), and paste it into your editor with Ctl-V (or
-Edit|Paste from the typical GUI menu).
+To run rigctl or rotctl open a cmd window (Start|Run|enter 'cmd' in the
+dialog).  If text scrolls off the screen, you can scroll back with the mouse.
+To copy output text into a mailer or editor (I recommend Notepad++, a free
+editor also licensed under the GPL), highlight the text as a rectangle in the
+cmd window, press <Enter> (or right-click the window icon in the upper left
+corner and select Edit, then Copy), and paste it into your editor with Ctl-V
+(or Edit|Paste from the typical GUI menu).
 
 All feedback is welcome to the mail address below.
 
@@ -156,13 +153,13 @@ Information for w64 Programmers
 =================================
 
 As the source code for the library DLLs is licensed under the LGPL, your
-program is not considered a "derivative work" when using the published
-Hamlib API and normal linking to the front-end library, and may be of a
-license of your choosing.  The published Hamlib API may be found at:
+program is not considered a "derivative work" when using the published Hamlib
+API and normal linking to the front-end library, and may be of a license of
+your choosing.  The published Hamlib API may be found at:
 
-http://hamlib.sourceforge.net/manuals/1.2.15/index.html
+http://hamlib.sourceforge.net/manuals/3.0.1/index.html
 
-(The 3.0 API is unchanged although new documentation will be forthcoming.)
+(The 4.0 API/ABI is changed and new documentation will be forthcoming.)
 
 
 Thank You!
@@ -192,7 +189,7 @@ END_OF_README
 
 make -j 4 install
 
-mkdir -p ${ZIP_DIR}/bin  ${ZIP_DIR}/lib/gcc ${ZIP_DIR}/include ${ZIP_DIR}/doc ${ZIP_DIR}/lib/msvc # ${ZIP_DIR}/pdf
+mkdir -p ${ZIP_DIR}/bin ${ZIP_DIR}/lib/msvc ${ZIP_DIR}/lib/gcc ${ZIP_DIR}/include ${ZIP_DIR}/doc
 cp -a src/libhamlib.def ${ZIP_DIR}/lib/msvc/libhamlib-4.def; todos ${ZIP_DIR}/lib/msvc/libhamlib-4.def
 cp -a ${INST_DIR}/include/hamlib ${ZIP_DIR}/include/.; todos ${ZIP_DIR}/include/hamlib/*.h
 
@@ -222,14 +219,14 @@ cp -a /usr/x86_64-w64-mingw32/lib/libwinpthread-1.dll ${ZIP_DIR}/bin/.
 cp -a ${LIBUSB_1_0_BIN_PATH}/MinGW64/dll/libusb-1.0.dll ${ZIP_DIR}/bin/libusb-1.0.dll
 
 # Required for MinGW with GCC 6.3
-FILE= /usr/lib/gcc/i686-w64-mingw32/6.3-posix/libgcc_s_sjlj-1.dll
+FILE="/usr/lib/gcc/i686-w64-mingw32/6.3-posix/libgcc_s_sjlj-1.dll"
 if test -f "$FILE"; then
 cp -a /usr/lib/gcc/i686-w64-mingw32/6.3-posix/libgcc_s_sjlj-1.dll ${ZIP_DIR}/bin/libgcc_s_sjlj-1.dll
 cp -a ${FILE} ${ZIP_DIR}/bin/libgcc_s_sjlj-1.dll
 fi
 
 # Required for MinGW with GCC 8.3
-FILE= /usr/lib/gcc/i686-w64-mingw32/8.3-posix/libgcc_s_sjlj-1.dll
+FILE="/usr/lib/gcc/i686-w64-mingw32/8.3-posix/libgcc_s_sjlj-1.dll"
 if test -f "$FILE"; then
 cp -a ${FILE} ${ZIP_DIR}/bin/libgcc_s_sjlj-1.dll
 fi
