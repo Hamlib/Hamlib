@@ -25,6 +25,7 @@
 #ifndef RIGCTL_PARSE_H
 #define RIGCTL_PARSE_H
 
+// cppcheck-suppress *
 #include <stdio.h>
 #include <hamlib/rig.h>
 

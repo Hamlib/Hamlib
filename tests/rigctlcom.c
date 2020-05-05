@@ -33,30 +33,43 @@
 
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
+// cppcheck-suppress *
 #include <windows.h>
 #endif
 
+// cppcheck-suppress *
 #include <stdio.h>
+// cppcheck-suppress *
 #include <stdlib.h>
+// cppcheck-suppress *
 #include <string.h>
+// cppcheck-suppress *
 #include <unistd.h>
+// cppcheck-suppress *
 #include <ctype.h>
+// cppcheck-suppress *
 #include <errno.h>
+// cppcheck-suppress *
 #include <signal.h>
 
+// cppcheck-suppress *
 #include <getopt.h>
 
+// cppcheck-suppress *
 #include <sys/types.h>
 
 #ifdef HAVE_NETINET_IN_H
+// cppcheck-suppress *
 #  include <netinet/in.h>
 #endif
 
 #ifdef HAVE_ARPA_INET_H
+// cppcheck-suppress *
 #  include <arpa/inet.h>
 #endif
 
 #ifdef HAVE_SYS_SOCKET_H
+// cppcheck-suppress *
 #  include <sys/socket.h>
 #elif HAVE_WS2TCPIP_H
 #  include <ws2tcpip.h>
@@ -722,9 +735,7 @@ static int handle_ts2000(void *arg)
         int p15 = 0;            // P15 Shift status dummy value for now
         int retval = rig_get_freq(my_rig, RIG_VFO_A, &freq);
         char response[64];
-        // cppcheck-suppress *
-        char *fmt =
-            "IF%011"PRIll"%04d+%05d%1d%1d%1d%02d%1d%1"PRIll"%1d%1d%1d%1d%02d%1d;";
+        char *fmt = "IF%011"PRIll"%04d+%05d%1d%1d%1d%02d%1d%1"PRIll"%1d%1d%1d%1d%02d%1d;";
 
         if (retval != RIG_OK)
         {

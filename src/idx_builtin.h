@@ -39,7 +39,7 @@
 
 // Note that 1<<0 is satisfied by the last clause here == 0
 // This is future-proofed for 63 levels
-#define setting2idx_builtin(s)  ( \
+#define setting2idx_builtin(s)  (( \
                  (s)==(1ull<<1)?1: \
                  (s)==(1ull<<2)?2: \
                  (s)==(1ull<<3)?3: \
@@ -103,7 +103,7 @@
                  (s)==(1ull<<61)?61:   \
                  (s)==(1ull<<62)?62:   \
                  (s)==(1ull<<63)?63:   \
-                 0 \
+                 0) \
                 )
 
 #define LVL_PREAMP  setting2idx_builtin(RIG_LEVEL_PREAMP)
