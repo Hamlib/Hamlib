@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Builds Hamlib 4.x W32 binary distribution.
 
@@ -30,18 +30,18 @@ EX_NOINPUT=66
 
 # Pass name of Hamlib archive extracted in $BUILD_DIR
 if [ $# -ne 1 ]; then
-	echo -e "\nUsage: $(basename $0) hamlib-version\n"
-	echo -e "See README.build-Windows for more information.\n"
-	exit ${EX_USAGE}
+    echo -e "\nUsage: $(basename $0) hamlib-version\n"
+    echo -e "See README.build-Windows for more information.\n"
+    exit ${EX_USAGE}
 fi
 
 # Make sure the Hamlib archive is where we expect
 if [ -d ${BUILD_DIR}/$1 ]; then
-	echo -e "\nBuilding W32 binaries in ${BUILD_DIR}/$1\n\n"
-	cd ${BUILD_DIR}/$1
+    echo -e "\nBuilding W32 binaries in ${BUILD_DIR}/$1\n\n"
+    cd ${BUILD_DIR}/$1
 else
-	echo -e "\nBuild directory, ${BUILD_DIR}/$1 not found!\nCheck path for $1 or correct the version number.\n"
-	exit ${EX_NOINPUT}
+    echo -e "\nBuild directory, ${BUILD_DIR}/$1 not found!\nCheck path for $1 or correct the version number.\n"
+    exit ${EX_NOINPUT}
 fi
 
 RELEASE=$(/usr/bin/awk 'BEGIN{FS="["; RS="]"} /\[4\./ {print $2;exit}' ./configure.ac)
@@ -57,10 +57,8 @@ What is it?
 ===========
 
 This ZIP archive or Windows installer contains a build of Hamlib-$RELEASE
-cross-compiled for MS Windows 32 bit using MinGW under Debian GNU/Linux 9
+cross-compiled for MS Windows 32 bit using MinGW under Debian GNU/Linux 10
 (nice, heh!).
-
-The DLL has a cdecl interface for MS VC++.
 
 This software is copyrighted. The library license is LGPL, and the *.EXE files
 licenses are GPL.  Hamlib comes WITHOUT ANY WARRANTY. See the LICENSE.txt,
@@ -102,7 +100,7 @@ following:
    a semi-colon ';' after the last path before adding the Hamlib path (NB. The
    entire path is highlighted and will be erased upon typing a character so
    click in the box to unselect the text first.  The PATH is important!!)
-   Append the Hamlib path, e.g. C:\Program Files\hamlib-w32-3.0~git\bin
+   Append the Hamlib path, e.g. C:\Program Files\hamlib-w32-4.0~git\bin
 
  * Click OK for all three dialog boxes to save your changes.
 
@@ -151,15 +149,42 @@ PATH as above to remove the Hamlib bin path, if desired.
 Information for w32 Programmers
 =================================
 
-There is a .LIB import library for MS-VC++ in lib/msvc.  Simply #include
-<hamlib/rig.h> (add directory to include path), include the .LIB in your
-project and you are done. Note: MS-VC++ cannot compile all the Hamlib code, but
-the API defined by rig.h has been made MSVC friendly :-)
+The DLL has a cdecl interface.
+
+There is a libhamlib-4.def definition file for MS Visual C++/Visual Studio in
+lib/msvc.  Refer to the sample commands below to generate a local
+libhamlib-4.lib file for use with the VC++/VS linker.
+
+Simply #include <hamlib/rig.h> (add directory to include path), include
+libhamlib-4.lib in your project and you are done.  Note: VC++/VS cannot
+compile all the Hamlib code, but the API defined by rig.h has been made MSVC
+friendly :-)
 
 As the source code for the library DLLs is licensed under the LGPL, your
 program is not considered a "derivative work" when using the published Hamlib
 API and normal linking to the front-end library, and may be of a license of
-your choosing.  The published Hamlib API may be found at:
+your choosing.
+
+For linking the library with MS Visual C++ 2003, from the directory you
+installed Hamlib run the following commands to generate the libhamlib-4.lib
+file needed for linking with your MSVC project:
+
+cd lib\msvc
+c:\Program Files\Microsoft Visual C++ Toolkit 2003\bin\link.exe /lib /machine:i386 /def:libhamlib-4.def
+
+To do the same for Visual Studio 2017:
+
+cd lib\msvc
+c:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\Tools\MSVC\14.16.27023\bin\Hostx64\x86\bin\link.exe /lib /machine:i386 /def:libhamlib-4.def
+
+and for VS 2019:
+
+cd lib\msvc
+c:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.25.28610\bin\Hostx64\x86\bin\link.exe /lib /machine:i386 /def:libhamlib-4.def
+
+NOTE: feedback is requested on the previous two command examples!
+
+The published Hamlib API may be found at:
 
 http://hamlib.sourceforge.net/manuals/3.0.1/index.html
 
@@ -198,7 +223,9 @@ cp -a src/libhamlib.def ${ZIP_DIR}/lib/msvc/libhamlib-4.def; todos ${ZIP_DIR}/li
 cp -a ${INST_DIR}/include/hamlib ${ZIP_DIR}/include/.; todos ${ZIP_DIR}/include/hamlib/*.h
 
 # C++ binding is useless on w32 because of ABI
-rm ${ZIP_DIR}/include/hamlib/{rig,rot}class.h
+for f in *class.h ; do \
+    rm ${ZIP_DIR}/include/hamlib/${f}
+done
 
 for f in AUTHORS ChangeLog COPYING COPYING.LIB LICENSE README README.betatester README.w32-bin THANKS ; do \
     cp -a ${f} ${ZIP_DIR}/${f}.txt ; todos ${ZIP_DIR}/${f}.txt ; done
@@ -211,7 +238,10 @@ for f in doc/man1/*.1 doc/man7/*.7; do \
 cd ${BUILD_DIR}/$1
 
 # Copy build files into specific locations for Zip file
-cp -a ${INST_DIR}/bin/{rigctld.exe,rigctl.exe,rigmem.exe,rigsmtr.exe,rigswr.exe,rotctld.exe,rotctl.exe,rigctlcom.exe,ampctl.exe,ampctld.exe} ${ZIP_DIR}/bin/.
+for f in *.exe ; do \
+    cp -a ${INST_DIR}/bin/${f} ${ZIP_DIR}/bin/.
+done
+
 cp -a ${INST_DIR}/bin/libhamlib-?.dll ${ZIP_DIR}/bin/.
 cp -a ${INST_DIR}/lib/libhamlib.dll.a ${ZIP_DIR}/lib/gcc/.
 
@@ -222,36 +252,16 @@ ${HOST_ARCH_STRIP} ${ZIP_DIR}/bin/*.exe ${ZIP_DIR}/bin/*hamlib-*.dll
 cp -a /usr/i686-w64-mingw32/lib/libwinpthread-1.dll ${ZIP_DIR}/bin/.
 cp -a ${LIBUSB_1_0_BIN_PATH}/MinGW32/dll/libusb-1.0.dll ${ZIP_DIR}/bin/libusb-1.0.dll
 
-# Required for MinGW with GCC 6.3
+# Required for MinGW with GCC 6.3 (Debian 9)
 FILE="/usr/lib/gcc/i686-w64-mingw32/6.3-posix/libgcc_s_sjlj-1.dll"
 if test -f "$FILE"; then
-cp -a /usr/lib/gcc/i686-w64-mingw32/6.3-posix/libgcc_s_sjlj-1.dll ${ZIP_DIR}/bin/libgcc_s_sjlj-1.dll
-cp -a ${FILE} ${ZIP_DIR}/bin/libgcc_s_sjlj-1.dll
+    cp -a ${FILE} ${ZIP_DIR}/bin/.
 fi
 
-# Required for MinGW with GCC 8.3
+# Required for MinGW with GCC 8.3 (Debian 10)
 FILE="/usr/lib/gcc/i686-w64-mingw32/8.3-posix/libgcc_s_sjlj-1.dll"
 if test -f "$FILE"; then
-cp -a ${FILE} ${ZIP_DIR}/bin/libgcc_s_sjlj-1.dll
+    cp -a ${FILE} ${ZIP_DIR}/bin/.
 fi
 
-pushd .
-cd ${ZIP_DIR}/lib/msvc/
-## Need VC++ free toolkit installed (default Wine directory installation shown)
-# Path for 2003 version of Visual C++ Toolkit
-#wine ~/.wine/drive_c/Program\ Files/Microsoft\ Visual\ C++\ Toolkit\ 2003/bin/link.exe /lib /machine:i386 /def:libhamlib-4.def
-# Path for 2017 version of Visual Studio
-wine ~/.wine/drive_c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2017/BuildTools/VC/Tools/MSVC/14.16.27023/bin/Hostx64/x86/bin/link.exe /lib /machine:i386 /def:libhamlib-4.def
-if [ $? -ne 0 ];then
-echo Did not find 2017 link.exe...trying 2019
-# Path for 2019 version Visual Studio Community
-wine ~/.wine/drive_c/Program\ Files\ \(x86\)/Microsoft\ Visual\ Studio/2019/Community/VC/Tools/MSVC/14.25.28610/bin/Hostx64/x86/bin/link.exe /lib /machine:i386 /def:libhamlib-4.def
-fi
-if [ $? -ne 0 ]; then
-echo Cannot find MSVC link executable!!
-echo You must put in your own path in here
-popd
-exit 1
-fi
-popd
-/usr/bin/zip -r ${HL_FILENAME}.zip `basename ${ZIP_DIR}`
+/usr/bin/zip -r ${HL_FILENAME}.zip $(basename ${ZIP_DIR})
