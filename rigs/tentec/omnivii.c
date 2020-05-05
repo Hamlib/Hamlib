@@ -1437,7 +1437,6 @@ const char *tt588_get_info(RIG *rig)
 
     cmd_len = sprintf(cmdbuf, "?V" EOM);
     memset(firmware, 0, sizeof(firmware));
-    firmware_len = sizeof(firmware);
     rig_debug(RIG_DEBUG_VERBOSE, "%s: firmware_len=%d\n", __func__, firmware_len);
     retval = tt588_transaction(rig, cmdbuf, cmd_len, firmware, &firmware_len);
 

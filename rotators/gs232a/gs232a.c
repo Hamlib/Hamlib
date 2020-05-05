@@ -23,10 +23,15 @@
 #include "config.h"
 #endif
 
+// cppcheck-suppress *
 #include <stdio.h>
+// cppcheck-suppress *
 #include <stdlib.h>
+// cppcheck-suppress *
 #include <string.h>  /* String function definitions */
+// cppcheck-suppress *
 #include <unistd.h>  /* UNIX standard function definitions */
+// cppcheck-suppress *
 #include <math.h>
 
 #include "hamlib/rotator.h"

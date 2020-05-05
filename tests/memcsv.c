@@ -25,13 +25,20 @@
 #  include "config.h"
 #endif
 
+// cppcheck-suppress *
 #include <stdio.h>
+// cppcheck-suppress *
 #include <stdlib.h>
+// cppcheck-suppress *
 #include <string.h>
+// cppcheck-suppress *
 #include <unistd.h>
+// cppcheck-suppress *
 #include <ctype.h>
+// cppcheck-suppress *
 #include <errno.h>
 
+// cppcheck-suppress *
 #include <getopt.h>
 
 #include <hamlib/rig.h>
@@ -754,7 +761,9 @@ int set_channel_data(RIG *rig,
             break;
         }
     }
-
+    if (j == CHANLSTSIZ) {
+        return -RIG_EINVAL;
+    }
     printf("Requested channel number %d, list number %d\n", n, j);
 
     mem_caps = &rig->state.chan_list[j].mem_caps;

@@ -22,10 +22,15 @@
 #include "config.h"
 #endif
 
+// cppcheck-suppress *
 #include <stdio.h>
+// cppcheck-suppress *
 #include <stdlib.h>
+// cppcheck-suppress *
 #include <string.h>     /* String function definitions */
+// cppcheck-suppress *
 #include <unistd.h>     /* UNIX standard function definitions */
+// cppcheck-suppress *
 #include <math.h>
 
 #include <hamlib/rig.h>
@@ -5079,7 +5084,7 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         {
             priv->tx_vfo = RIG_VFO_SUB;
         }
-        else if (!status && !priv->split_on) // turned off satmode
+        else if (!priv->split_on) // turned off satmode
         {
             priv->tx_vfo = RIG_VFO_A;
         }
@@ -6041,9 +6046,9 @@ int icom_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
     if (priv_caps->antack_len == 0)   // we need to find out the antack_len
     {
         ant_t tmp_ant, ant_tx, ant_rx;
-        int ant = 0;
+        int ant0 = 0;
         value_t tmp_option;
-        retval = rig_get_ant(rig, vfo, ant, &tmp_option, &tmp_ant, &ant_tx, &ant_rx);
+        retval = rig_get_ant(rig, vfo, ant0, &tmp_option, &tmp_ant, &ant_tx, &ant_rx);
 
         if (retval != RIG_OK)
         {

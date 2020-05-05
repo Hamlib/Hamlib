@@ -27,10 +27,11 @@
 #include "tones.h"
 
 #ifdef HAVE_SYS_TIME_H
+// cppcheck-suppress *
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "20200501"
+#define BACKEND_VER "20200505"
 
 /*
  * defines used by comp_cal_str in rig.c
