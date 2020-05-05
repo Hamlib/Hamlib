@@ -245,7 +245,6 @@ int main(int argc, char *argv[])
 
     struct addrinfo hints, *result, *saved_result;
     int sock_listen;
-    int sockopt;
     int reuseaddr = 1;
     int twiddle = 0;
     char host[NI_MAXHOST];
@@ -672,9 +671,12 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    sockopt = SO_SYNCHRONOUS_NONALERT;
-    setsockopt(INVALID_SOCKET, SOL_SOCKET, SO_OPENTYPE, (char *)&sockopt,
-               sizeof(sockopt));
+    {
+        int sockopt = SO_SYNCHRONOUS_NONALERT;
+        setsockopt(INVALID_SOCKET, SOL_SOCKET, SO_OPENTYPE, (char *)&sockopt,
+                   sizeof(sockopt));
+    }
+
 #endif
 
     /*
@@ -728,7 +730,7 @@ int main(int argc, char *argv[])
         {
             /* allow IPv4 mapped to IPv6 clients Windows and BSD default
                this to 1 (i.e. disallowed) and we prefer it off */
-            sockopt = 0;
+            int sockopt = 0;
 
             if (setsockopt(sock_listen,
                            IPPROTO_IPV6,
