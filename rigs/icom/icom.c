@@ -776,7 +776,7 @@ icom_rig_open(RIG *rig)
         priv->tx_vfo = RIG_VFO_MAIN;
     }
 
-#if 0 // do not do this here -- needs to be done when ranges are requested instead
+#if 0 // do not do this here -- needs to be done when ranges are requested instead as this is very slow
     icom_get_freq_range(rig); // try get to get rig range capability dyamically
 #endif
 
