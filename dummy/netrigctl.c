@@ -521,7 +521,7 @@ static int netrigctl_open(RIG *rig)
 
         if (strncmp(buf, "done", 4) == 0) { return RIG_OK; }
 
-        if (sscanf(buf, "%[^=]=%[^\t\n]", setting, value) == 2)
+        if (sscanf(buf, "%31[^=]=%255[^\t\n]", setting, value) == 2)
         {
             if (strcmp(setting, "vfo_ops") == 0)
             {
