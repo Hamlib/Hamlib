@@ -1295,9 +1295,11 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         rig->state.current_freq = freq;
     }
 
-    elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
-    rig->state.cache.freq = freq;
-    rig->state.cache.vfo_freq = vfo;
+    if (retcode == RIG_OK) {
+        elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
+        rig->state.cache.freq = freq;
+        rig->state.cache.vfo_freq = vfo;
+    }
 
     return retcode;
 }
