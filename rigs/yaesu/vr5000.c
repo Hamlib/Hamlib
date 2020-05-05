@@ -58,8 +58,11 @@
 #include "config.h"
 #endif
 
+// cppcheck-suppress *
 #include <stdlib.h>
+// cppcheck-suppress *
 #include <string.h>  /* String function definitions */
+// cppcheck-suppress *
 #include <unistd.h>  /* UNIX standard function definitions */
 
 #include "hamlib/rig.h"
@@ -132,7 +135,7 @@ const struct rig_caps vr5000_caps =
     RIG_MODEL(RIG_MODEL_VR5000),
     .model_name =         "VR-5000",
     .mfg_name =           "Yaesu",
-    .version =            "20200320.0",
+    .version =            "20200505.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_ALPHA,
     .rig_type =           RIG_TYPE_RECEIVER,
@@ -598,7 +601,7 @@ int set_vr5000(RIG *rig, vfo_t vfo, freq_t freq, rmode_t mode, pbwidth_t width,
     /* fill in m1 */
     cmd_mode_ts[0] = retval;
 
-    for (i = 0; i < TSLSTSIZ; i++)
+    for (i = 0; i < sizeof(steps); i++)
     {
         if (rig->caps->tuning_steps[i].ts == ts)
         {
@@ -606,7 +609,7 @@ int set_vr5000(RIG *rig, vfo_t vfo, freq_t freq, rmode_t mode, pbwidth_t width,
         }
     }
 
-    if (i >= TSLSTSIZ)
+    if (i >= sizeof(steps))
     {
         return -RIG_EINVAL;     /* not found, unsupported */
     }
