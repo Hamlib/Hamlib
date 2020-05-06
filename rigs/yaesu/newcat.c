@@ -5194,7 +5194,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
         case RIG_MODE_AM:
 
-        //case RIG_MODE_FM: // Can you set passband on FM or FMN for FT991? Returns error for now.
+        case RIG_MODE_FM:
         case RIG_MODE_PKTFM:
             if (width < rig_passband_normal(rig, mode))
             {
