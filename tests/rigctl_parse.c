@@ -283,8 +283,8 @@ static struct test_table test_list[] =
     { 't',  "get_ptt",          ACTION(get_ptt),        ARG_OUT, "PTT" },
     { 'E',  "set_mem",          ACTION(set_mem),        ARG_IN, "Memory#" },
     { 'e',  "get_mem",          ACTION(get_mem),        ARG_OUT, "Memory#" },
-    { 'H',  "set_channel",      ACTION(set_channel),    ARG_IN  | ARG_NOVFO, "Channel" },
-    { 'h',  "get_channel",      ACTION(get_channel),    ARG_IN  | ARG_NOVFO, "Channel" },
+    { 'H',  "set_channel",      ACTION(set_channel),    ARG_IN  | ARG_NOVFO, "Channel"},
+    { 'h',  "get_channel",      ACTION(get_channel),    ARG_IN  | ARG_NOVFO, "Channel", "Read Only" },
     { 'B',  "set_bank",         ACTION(set_bank),       ARG_IN, "Bank" },
     { '_',  "get_info",         ACTION(get_info),       ARG_OUT | ARG_NOVFO, "Info" },
     { 'J',  "set_rit",          ACTION(set_rit),        ARG_IN, "RIT" },
@@ -3607,6 +3607,7 @@ declare_proto_rig(set_channel)
 declare_proto_rig(get_channel)
 {
     int status;
+    int read_only = 0;
     channel_t chan;
 
     memset(&chan, 0, sizeof(channel_t));
@@ -3622,7 +3623,9 @@ declare_proto_rig(get_channel)
         chan.channel_num = 0;
     }
 
-    status = rig_get_channel(rig, &chan, 0);
+    CHKSCN1ARG(sscanf(arg2, "%d", &read_only));
+
+    status = rig_get_channel(rig, &chan, read_only);
 
     if (status != RIG_OK)
     {

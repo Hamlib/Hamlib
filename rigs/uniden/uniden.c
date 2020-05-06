@@ -641,11 +641,12 @@ int uniden_get_channel(RIG *rig, channel_t *chan, int read_only)
         strncpy(chan->channel_desc, membuf + 9, rig->caps->chan_desc_sz);
     }
 
-#warning Need to add setting rig to channel values
-
     if (!read_only)
     {
         // Set rig to channel values
+        rig_debug(RIG_DEBUG_ERR, "%s: please contact hamlib mailing list to implement this\n", __func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: need to know if rig updates when channel read or not\n", __func__);
+        return -RIG_ENIMPL;
     }
 
     return RIG_OK;
