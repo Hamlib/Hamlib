@@ -23,11 +23,17 @@
 #include "config.h"
 #endif
 
+// cppcheck-suppress *
 #include <stdio.h>
+// cppcheck-suppress *
 #include <stdlib.h>
+// cppcheck-suppress *
 #include <string.h>  /* String function definitions */
+// cppcheck-suppress *
 #include <unistd.h>  /* UNIX standard function definitions */
+// cppcheck-suppress *
 #include <math.h>
+// cppcheck-suppress *
 #include <time.h>
 
 #include "hamlib/rig.h"
@@ -991,6 +997,7 @@ static int dummy_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
         else
         {
+            uint64_t level1, level2;
             /* make S-Meter jiggle */
             int qrm = -56;
 
@@ -1007,9 +1014,12 @@ static int dummy_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                 qrm = -50;
             }
 
-            curr->levels[idx].i = qrm + time(NULL) % 32 + rand() % 4
-                                  - curr->levels[LVL_ATT].i
-                                  + curr->levels[LVL_PREAMP].i;
+            // cppcheck-suppress *
+            level1 = LVL_ATT;
+            // cppcheck-suppress *
+            level2 = LVL_PREAMP;
+            curr->levels[idx].i = qrm + (time(NULL) % 32) + (rand() % 4)
+                                  - curr->levels[level1].i + curr->levels[level2].i;
         }
 
         break;
