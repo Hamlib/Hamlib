@@ -4288,7 +4288,7 @@ declare_proto_rig(send_cmd)
         int i;
         rig_debug(RIG_DEBUG_TRACE, "%s: send_cmd_term==-1, arg1=%s\n", __func__, arg1);
 
-        if (strstr(arg1, "\\0x") == NULL)
+        if (arg1[strlen(arg1)-1] != ';' && strstr(arg1, "\\0x") == NULL)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: expecting binary hex string here\n", __func__);
             return -RIG_EINVAL;
