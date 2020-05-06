@@ -3696,7 +3696,6 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     }
 
     set_vfo_curr(rig, RIG_VFO_CURR, RIG_VFO_CURR);
-    save_vfo = priv->curr_vfo;
 
     // If the rigs supports the 0x25 command we'll use it
     // This eliminates VFO swapping and improves split operations
