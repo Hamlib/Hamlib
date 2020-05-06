@@ -925,15 +925,15 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             {
                 rig_debug(RIG_DEBUG_TRACE, "%s: debug4\n", __func__);
 
+                if (prompt)
+                {
+                    fprintf_flush(fout, "%s: ", cmd_entry->arg1);
+                }
+
                 if (scanfc(fin, "%s", arg1) < 1)
                 {
                     rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#8?\n", __func__);
                     return -1;
-                }
-
-                if (prompt && *arg1 == 0x0a)
-                {
-                    fprintf_flush(fout, "%s: ", cmd_entry->arg1);
                 }
 
                 p1 = arg1;
