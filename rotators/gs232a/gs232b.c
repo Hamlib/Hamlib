@@ -70,7 +70,6 @@ gs232b_transaction(ROT *rot, const char *cmdstr,
     struct rot_state *rs;
     int retval;
     int retry_read = 0;
-    char replybuf[BUFSZ];
 
     rs = &rot->state;
 
@@ -144,7 +143,7 @@ transaction_write:
     // If asked for we will check for connection
     // we don't expect a reply...just a prompt return
     // Seems some GS232B's only echo the CR
-    if (data == replybuf && (strncmp(data, "?>", 2) != 0) && data[0] != 0x0d)
+    if ((strncmp(data, "?>", 2) != 0) && data[0] != 0x0d)
     {
         rig_debug(RIG_DEBUG_VERBOSE,
                   "%s: Expected '?>' but got '%s' from cmd '%s'\n",
