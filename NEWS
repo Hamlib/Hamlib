@@ -24,6 +24,8 @@ Version 4.0
         * rigctl(d) f command also returns VFO now
         * caching of vfo, frequency, mode, and ptt speeds up rigctld for all
         * caching of kenwood/yaesu "IF" speeds up polling from WSJTX/JTDX
+        * rig_get_channel now has read_only flag but it still needs to be implemented based on rig behavior
+        *    So if you use rig_get_channel you may get a RIG_ENIMPL error to contact us for fixing it
 
 Version 3.3
         2018-08-12

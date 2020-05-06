@@ -805,11 +805,12 @@ int ar3030_get_channel(RIG *rig, channel_t *chan, int read_only)
     chan->levels[LVL_AGC].i = infobuf[8] == '0' ? RIG_AGC_SLOW : RIG_AGC_FAST;
     chan->flags = infobuf[4] == '1' ? RIG_CHFLAG_SKIP : RIG_CHFLAG_NONE;
 
-#warning Need to add setting rig to channel values
-
     if (!read_only)
     {
         // Set rig to channel values
+        rig_debug(RIG_DEBUG_ERR, "%s: please contact hamlib mailing list to implement this\n", __func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: need to know if rig updates when channel read or not\n", __func__);
+        return -RIG_ENIMPL;
     }
 
     return RIG_OK;
