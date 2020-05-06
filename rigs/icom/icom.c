@@ -5075,6 +5075,8 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
         if (retval != RIG_OK) { return retval; }
 
+        priv->tx_vfo = RIG_VFO_A;
+
         if (priv->split_on)   // must have turned off satmode
         {
             priv->tx_vfo = RIG_VFO_B;
@@ -5082,10 +5084,6 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         else if (status)   // turned on satmode so tx is always Sub
         {
             priv->tx_vfo = RIG_VFO_SUB;
-        }
-        else if (!priv->split_on) // turned off satmode
-        {
-            priv->tx_vfo = RIG_VFO_A;
         }
     }
 
