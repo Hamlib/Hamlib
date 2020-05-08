@@ -717,6 +717,7 @@ int kenwood_open(RIG *rig)
             rig_debug(RIG_DEBUG_TRACE, "%s: got PS0 so powerup\n", __func__);
             rig_set_powerstat(rig, 1);
         }
+        err = RIG_OK;  // reset our err back to OK for later checks
     }
 
     if (err == -RIG_ETIMEOUT)
