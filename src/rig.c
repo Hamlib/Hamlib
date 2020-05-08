@@ -1814,12 +1814,12 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
     if (retcode == RIG_OK)
     {
         rig->state.current_vfo = vfo;
+        rig->state.cache.vfo = vfo;
     }
 
     // we need to update our internal freq to avoid getting detected as twiddling
     if (caps->get_freq) { retcode = rig_get_freq(rig, vfo, &curr_freq); }
 
-    rig->state.cache.vfo = vfo;
     // expire several cached items when we switch VFOs
     elapsed_ms(&rig->state.cache.time_vfo, ELAPSED_INVALIDATE);
     elapsed_ms(&rig->state.cache.time_freq, ELAPSED_INVALIDATE);
