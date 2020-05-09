@@ -256,10 +256,10 @@ const struct rig_caps ft847_caps =
     .chan_list =  { RIG_CHAN_END, }, /* FIXME: memory chan list: 78, but only in clonable mode? */
 
     .rx_range_list1 =  {
-        {kHz(100), MHz(30), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS}, /* rx range begin */
-        {MHz(36), MHz(76), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS},
-        {MHz(108), MHz(174), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS},
-        {MHz(420), MHz(512), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS},
+        {kHz(100), MHz(30), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS, "Operating"}, /* rx range begin */
+        {MHz(36), MHz(76), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS, "Operating"},
+        {MHz(108), MHz(174), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS, "Operating"},
+        {MHz(420), MHz(512), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS, "Operating"},
 
         RIG_FRNG_END,
     }, /* rx range end */
@@ -271,6 +271,9 @@ const struct rig_caps ft847_caps =
         FRQ_RNG_6m(2, FT847_OTHER_TX_MODES, W(5), W(100), FT847_VFOS, FT847_ANTS),
         FRQ_RNG_6m(2, FT847_AM_TX_MODES, W(1), W(25), FT847_VFOS, FT847_ANTS),
 
+        FRQ_RNG_4m(1, FT847_OTHER_TX_MODES, W(1), W(50), FT847_VFOS, FT847_ANTS),
+        FRQ_RNG_4m(1, FT847_AM_TX_MODES, W(1), W(12.5), FT847_VFOS, FT847_ANTS),
+
         FRQ_RNG_2m(2, FT847_OTHER_TX_MODES, W(1), W(50), FT847_VFOS, FT847_ANTS),
         FRQ_RNG_2m(2, FT847_AM_TX_MODES, W(1), W(12.5), FT847_VFOS, FT847_ANTS),
 
@@ -279,32 +282,6 @@ const struct rig_caps ft847_caps =
 
         RIG_FRNG_END,
     }, /* tx range end */
-
-    .rx_range_list2 =
-    {   {kHz(100), MHz(30), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS}, /* rx range begin */
-        {MHz(36), MHz(76), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS},
-        {MHz(108), MHz(174), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS},
-        {MHz(420), MHz(512), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS},
-
-        RIG_FRNG_END,
-    }, /* rx range end */
-
-    .tx_range_list2 =
-    {
-        FRQ_RNG_HF(2, FT847_OTHER_TX_MODES, W(5), W(100), FT847_VFOS, FT847_ANTS),
-        FRQ_RNG_HF(2, FT847_AM_TX_MODES, W(1), W(25), FT847_VFOS, FT847_ANTS),
-
-        FRQ_RNG_6m(2, FT847_OTHER_TX_MODES, W(5), W(100), FT847_VFOS, FT847_ANTS),
-        FRQ_RNG_6m(2, FT847_AM_TX_MODES, W(1), W(25), FT847_VFOS, FT847_ANTS),
-
-        FRQ_RNG_2m(2, FT847_OTHER_TX_MODES, W(1), W(50), FT847_VFOS, FT847_ANTS),
-        FRQ_RNG_2m(2, FT847_AM_TX_MODES, W(1), W(12.5), FT847_VFOS, FT847_ANTS),
-
-        FRQ_RNG_70cm(2, FT847_OTHER_TX_MODES, W(1), W(50), FT847_VFOS, FT847_ANTS),
-        FRQ_RNG_70cm(2, FT847_AM_TX_MODES, W(1), W(12.5), FT847_VFOS, FT847_ANTS),
-
-        RIG_FRNG_END,
-    },
 
     .tuning_steps =  { {FT847_SSB_CW_RX_MODES, 1}, /* normal */
         {FT847_SSB_CW_RX_MODES, 10}, /* fast */
@@ -369,9 +346,9 @@ const struct rig_caps ft847uni_caps =
     RIG_MODEL(RIG_MODEL_FT847UNI),
     .model_name = "FT-847UNI",
     .mfg_name =  "Yaesu",
-    .version =  "20200305.0",
+    .version =  "20200509.0",
     .copyright =  "LGPL",
-    .status =  RIG_STATUS_BETA,
+    .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
     .ptt_type =  RIG_PTT_RIG,
     .dcd_type =  RIG_DCD_RIG,
