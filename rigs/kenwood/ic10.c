@@ -819,7 +819,7 @@ int ic10_set_channel(RIG *rig, const channel_t *chan)
         if (retval != RIG_OK)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: transaction failed: %s\n", __func__,
-                      strerror(retval));
+                      rigerror(retval));
             return retval;
         }
     }

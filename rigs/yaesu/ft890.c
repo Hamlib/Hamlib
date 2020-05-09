@@ -1313,7 +1313,7 @@ static int ft890_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
         if (err != RIG_OK)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: clarifier off error: %s\n", __func__,
-                      strerror(err));
+                      rigerror(err));
         }
 
         return err;

@@ -1107,7 +1107,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         if (retval != RIG_OK)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: set_vfo failed? retval=%s\n", __func__,
-                      strerror(retval));
+                      rigerror(retval));
         }
     }
 
