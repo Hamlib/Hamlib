@@ -4446,8 +4446,10 @@ int newcat_get_channel(RIG *rig, channel_t *chan, int read_only)
     if (!read_only)
     {
         // Set rig to channel values
-        rig_debug(RIG_DEBUG_ERR, "%s: please contact hamlib mailing list to implement this\n", __func__);
-        rig_debug(RIG_DEBUG_ERR, "%s: need to know if rig updates when channel read or not\n", __func__);
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: please contact hamlib mailing list to implement this\n", __func__);
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: need to know if rig updates when channel read or not\n", __func__);
         return -RIG_ENIMPL;
     }
 
@@ -5085,8 +5087,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             return -RIG_EINVAL;
         }   /* end switch(mode) */
     }   /* end if FT950 */
-    else if (newcat_is_rig(rig, RIG_MODEL_FT991)
-             || newcat_is_rig(rig, RIG_MODEL_FT891))
+    else if (newcat_is_rig(rig, RIG_MODEL_FT891))
     {
         switch (mode)
         {
@@ -5195,6 +5196,189 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_AM:
 
         case RIG_MODE_FM:
+        case RIG_MODE_PKTFM:
+            if (width < rig_passband_normal(rig, mode))
+            {
+                err = newcat_set_narrow(rig, vfo, TRUE);
+            }
+            else
+            {
+                err = newcat_set_narrow(rig, vfo, FALSE);
+            }
+
+            return err;
+
+        default:
+            return -RIG_EINVAL;
+        }   /* end switch(mode) */
+    }   /* end if FT891 */
+    else if (newcat_is_rig(rig, RIG_MODEL_FT991))
+    {
+        switch (mode)
+        {
+        case RIG_MODE_PKTUSB:
+        case RIG_MODE_PKTLSB:
+        case RIG_MODE_RTTY:
+        case RIG_MODE_RTTYR:
+        case RIG_MODE_CW:
+        case RIG_MODE_CWR:
+            switch (width)   // the defaults can be different for CW and RTTY (e.g. FT991) but I don't think it matters here
+            {
+            case 1700: snprintf(width_str, sizeof(width_str), "14"); narrow = '0';
+                break;  /* normal */
+
+            case  500: snprintf(width_str, sizeof(width_str), "10"); narrow = '0';
+                break;  /* narrow */
+
+            case 3000: snprintf(width_str, sizeof(width_str), "17"); narrow = '0';
+                break;  /* wide */
+
+            case 2400: snprintf(width_str, sizeof(width_str), "16"); narrow = '0'; break;
+
+            case 2000: snprintf(width_str, sizeof(width_str), "15"); narrow = '0'; break;
+
+            case 1400: snprintf(width_str, sizeof(width_str), "13"); narrow = '0'; break;
+
+            case 1200: snprintf(width_str, sizeof(width_str), "12"); narrow = '0'; break;
+
+            case  800: snprintf(width_str, sizeof(width_str), "11"); narrow = '0'; break;
+
+            case  450: snprintf(width_str, sizeof(width_str), "09"); narrow = '1'; break;
+
+            case  400: snprintf(width_str, sizeof(width_str), "08"); narrow = '1'; break;
+
+            case  350: snprintf(width_str, sizeof(width_str), "07"); narrow = '1'; break;
+
+            case  300: snprintf(width_str, sizeof(width_str), "06"); narrow = '1'; break;
+
+            case  250: snprintf(width_str, sizeof(width_str), "05"); narrow = '1'; break;
+
+            case  200: snprintf(width_str, sizeof(width_str), "04"); narrow = '1'; break;
+
+            case  150: snprintf(width_str, sizeof(width_str), "03"); narrow = '1'; break;
+
+            case  100: snprintf(width_str, sizeof(width_str), "02"); narrow = '1'; break;
+
+            case   50: snprintf(width_str, sizeof(width_str), "01"); narrow = '1'; break;
+
+            default: return -RIG_EINVAL;
+            }
+
+            break;
+
+        case RIG_MODE_LSB:
+        case RIG_MODE_USB:
+            switch (width)
+            {
+            case 2400: snprintf(width_str, sizeof(width_str), "14"); narrow = '0';
+                break;  /* normal */
+
+            case 1500: snprintf(width_str, sizeof(width_str), "07"); narrow = '0';
+                break;  /* narrow */
+
+            case 3200: snprintf(width_str, sizeof(width_str), "21"); narrow = '0';
+                break;  /* wide */
+
+            case 3000: snprintf(width_str, sizeof(width_str), "20"); narrow = '0'; break;
+
+            case 2900: snprintf(width_str, sizeof(width_str), "19"); narrow = '0'; break;
+
+            case 2800: snprintf(width_str, sizeof(width_str), "18"); narrow = '0'; break;
+
+            case 2700: snprintf(width_str, sizeof(width_str), "17"); narrow = '0'; break;
+
+            case 2600: snprintf(width_str, sizeof(width_str), "16"); narrow = '0'; break;
+
+            case 2500: snprintf(width_str, sizeof(width_str), "15"); narrow = '0'; break;
+
+            case 2250: snprintf(width_str, sizeof(width_str), "12"); narrow = '0'; break;
+
+            case 2100: snprintf(width_str, sizeof(width_str), "11"); narrow = '0'; break;
+
+            case 1950: snprintf(width_str, sizeof(width_str), "10"); narrow = '0'; break;
+
+            case 1800: snprintf(width_str, sizeof(width_str), "09"); narrow = '0'; break;
+
+            case 1650: snprintf(width_str, sizeof(width_str), "08"); narrow = '1'; break;
+
+            case 1350: snprintf(width_str, sizeof(width_str), "06"); narrow = '1'; break;
+
+            case 1100: snprintf(width_str, sizeof(width_str), "05"); narrow = '1'; break;
+
+            case  850: snprintf(width_str, sizeof(width_str), "04"); narrow = '1'; break;
+
+            case  600: snprintf(width_str, sizeof(width_str), "03"); narrow = '1'; break;
+
+            case  400: snprintf(width_str, sizeof(width_str), "02"); narrow = '1'; break;
+
+            case  200: snprintf(width_str, sizeof(width_str), "01"); narrow = '1';  break;
+
+            default: return -RIG_EINVAL;
+            }
+
+            break;
+
+        case RIG_MODE_AM: //Only 1 passband each for AM or AMN
+            if (width == 0 || width == 9000)
+            {
+                err = newcat_set_narrow(rig, vfo, FALSE);
+            }
+
+            return err;
+
+            break;
+
+        case RIG_MODE_AMN:
+            if (width == 0 || width == 6000)
+            {
+                err = newcat_set_narrow(rig, vfo, TRUE);
+            }
+
+            return err;
+
+            break;
+
+        case RIG_MODE_FM: //Only 1 passband each for FM or FMN
+
+            if (width == 0 || width == 16000)
+            {
+                err = newcat_set_narrow(rig, vfo, FALSE);
+            }
+
+            return err;
+
+            break;
+
+        case RIG_MODE_FMN:
+
+            if (width == 0 || width == 9000)
+            {
+                err = newcat_set_narrow(rig, vfo, TRUE);
+            }
+
+            return err;
+
+            break;
+
+        case RIG_MODE_C4FM:
+
+            if (width == 0 || width == 16000)
+            {
+                err = newcat_set_narrow(rig, vfo, TRUE);
+            }
+            else if (width == 9000)
+            {
+                err = newcat_set_narrow(rig, vfo, FALSE);
+            }
+            else
+            {
+                return -RIG_EINVAL;
+            }
+
+            return err;
+
+            break;
+
         case RIG_MODE_PKTFM:
             if (width < rig_passband_normal(rig, mode))
             {
@@ -5693,8 +5877,143 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
             return -RIG_EINVAL;
         }   /* end switch(mode) */
 
+    }  /* end if FT1200 */
+    else if (newcat_is_rig(rig, RIG_MODEL_FT991))
+    {
+        switch (mode)
+        {
+        case RIG_MODE_PKTUSB:
+        case RIG_MODE_PKTLSB:
+        case RIG_MODE_RTTY:
+        case RIG_MODE_RTTYR:
+        case RIG_MODE_CW:
+        case RIG_MODE_CWR:
+            switch (w)
+            {
+            case  0:
+            case 10: *width =  500; break;  /* narrow */
+
+            case 16: *width = 2400; break;  /* wide   */
+
+            case 17: *width = 3000; break;
+
+            case 15: *width = 2000; break;
+
+            case 14: *width = 1700; break;
+
+            case 13: *width = 1400; break;
+
+            case 12: *width = 1200; break;
+
+            case 11: *width =  800; break;
+
+            case  9: *width =  450; break;
+
+            case  8: *width =  400; break;
+
+            case  7: *width =  350; break;
+
+            case  6: *width =  300; break;
+
+            case  5: *width =  250; break;
+
+            case  4: *width =  200; break;
+
+            case  3: *width =  150; break;
+
+            case  2: *width =  100; break;
+
+            case  1: *width =   50; break;
+
+            default: return -RIG_EINVAL;
+            }
+
+            break;
+
+        case RIG_MODE_LSB:
+        case RIG_MODE_USB:
+            switch (w)
+            {
+            case  0:
+            case 14: *width = 2400; break;  /* normal */
+
+            case  9: *width = 1800; break;  /* narrow */
+
+            case 21: *width = 3200; break;
+
+            case 20: *width = 3000; break;
+
+            case 19: *width = 2900; break;
+
+            case 18: *width = 2800; break;
+
+            case 17: *width = 2700; break;
+
+            case 16: *width = 2600; break;
+
+            case 15: *width = 2500; break;
+
+            case 13: *width = 2300; break;
+
+            case 12: *width = 2200; break;
+
+            case 11: *width = 2100; break;
+
+            case 10: *width = 1950; break;
+
+            case  8: *width = 1650; break;
+
+            case  7: *width = 1500; break;
+
+            case  6: *width = 1350; break;
+
+            case  5: *width = 1100; break;
+
+            case  4: *width =  850; break;
+
+            case  3: *width =  600; break;
+
+            case  2: *width =  400; break;
+
+            case  1: *width =  200; break;
+
+            default: return -RIG_EINVAL;
+            }
+
+            break;
+
+        case RIG_MODE_FM:
+            *width =  16000; break;  /* wide */
+
+        case RIG_MODE_FMN:
+            *width =  9000; break;  /* narrow */
+
+        case RIG_MODE_AM:
+            *width =  9000; break;  /* wide */
+
+        case RIG_MODE_AMN:
+            *width =  6000; break;  /* wide */
+
+        case RIG_MODE_C4FM:
+        case RIG_MODE_PKTFM:
+            switch (w)
+            {
+            case  0:
+            case  2: *width =  16000; break;
+
+            case  1: *width =  9000; break;
+
+            default: return -RIG_EINVAL;
+            }
+
+            break;
+
+        default:
+            return -RIG_EINVAL;
+        }   /* end switch(mode) */
+
     }
-    else      /* end if FT950 */
+    else      /* end if FT991 */
     {
         /* FT450, FT2000, FT5000, FT9000 */
         switch (mode)
@@ -6265,7 +6584,6 @@ rmode_t newcat_rmode_width(RIG *rig, vfo_t vfo, char mode, pbwidth_t *width)
 {
     ncboolean narrow;
     int i;
-
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (width != NULL)
@@ -6279,18 +6597,27 @@ rmode_t newcat_rmode_width(RIG *rig, vfo_t vfo, char mode, pbwidth_t *width)
         {
             if (newcat_mode_conv[i].chk_width == TRUE && width != NULL)
             {
-                if (newcat_get_narrow(rig, vfo, &narrow) != RIG_OK)
+                if (newcat_is_rig(rig, RIG_MODEL_FT991)
+                        && mode == 'E') // crude fix because 991 hangs on NA0; command while in C4FM
                 {
-                    return (newcat_mode_conv[i].mode);
-                }
-
-                if (narrow == TRUE)
-                {
-                    *width = rig_passband_narrow(rig, mode);
+                    rig_debug(RIG_DEBUG_TRACE, "991A & C4FM Skip newcat_get_narrow in %s\n",
+                              __func__);
                 }
                 else
                 {
-                    *width = rig_passband_normal(rig, mode);
+                    if (newcat_get_narrow(rig, vfo, &narrow) != RIG_OK)
+                    {
+                        return (newcat_mode_conv[i].mode);
+                    }
+
+                    if (narrow == TRUE)
+                    {
+                        *width = rig_passband_narrow(rig, mode);
+                    }
+                    else
+                    {
+                        *width = rig_passband_normal(rig, mode);
+                    }
                 }
             }
 
