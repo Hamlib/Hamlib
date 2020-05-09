@@ -324,7 +324,7 @@ int icom_transaction(RIG *rig, int cmd, int subcmd,
 
     if (retval != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: failed: %s\n", __func__, strerror(retval));
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: failed: %s\n", __func__, rigerror(retval));
     }
 
     return retval;

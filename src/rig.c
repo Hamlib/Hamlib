@@ -1818,7 +1818,7 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
     }
     else
     {
-	rig_debug(RIG_DEBUG_ERR, "%s: set_vfo failed with '%s'\n", __func__, strerror(retcode));
+	rig_debug(RIG_DEBUG_ERR, "%s: set_vfo %s failed with '%s'\n", __func__, rig_strvfo(vfo), rigerror(retcode));
     }
 
     // we need to update our internal freq to avoid getting detected as twiddling
