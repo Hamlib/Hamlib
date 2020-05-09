@@ -1816,9 +1816,14 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
         rig->state.current_vfo = vfo;
         rig->state.cache.vfo = vfo;
     }
+    else
+    {
+	rig_debug(RIG_DEBUG_ERR, "%s: set_vfo failed with '%s'\n", __func__, strerror(retcode));
+    }
 
     // we need to update our internal freq to avoid getting detected as twiddling
-    if (caps->get_freq) { retcode = rig_get_freq(rig, vfo, &curr_freq); }
+    // we only get the freq if we set the vfo OK
+    if (retcode == RIG_OK && caps->get_freq) { retcode = rig_get_freq(rig, vfo, &curr_freq); }
 
     // expire several cached items when we switch VFOs
     elapsed_ms(&rig->state.cache.time_vfo, ELAPSED_INVALIDATE);
