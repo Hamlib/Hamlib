@@ -55,7 +55,7 @@ const struct rig_caps ft991_caps =
     RIG_MODEL(RIG_MODEL_FT991),
     .model_name =         "FT-991",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".1",
+    .version =            NEWCAT_VER ".0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -148,6 +148,7 @@ const struct rig_caps ft991_caps =
         {FT991_CW_RTTY_PKT_RX_MODES,  Hz(100)},     /*        CW, RTTY, PKT */
         {RIG_MODE_SSB,                Hz(2400)},    /* Normal SSB */
         {RIG_MODE_SSB,                Hz(1800)},    /* Narrow SSB */
+        {RIG_MODE_SSB,                Hz(3200)},    /* Wide   SSB */
         {RIG_MODE_SSB,                Hz(3000)},    /* Wide   SSB */
         {RIG_MODE_SSB,                Hz(2900)},    /*        SSB */
         {RIG_MODE_SSB,                Hz(2800)},    /*        SSB */
@@ -166,7 +167,7 @@ const struct rig_caps ft991_caps =
         {RIG_MODE_SSB,                Hz(400)},     /*        SSB */
         {RIG_MODE_SSB,                Hz(200)},     /*        SSB */
         {RIG_MODE_AM,                 Hz(9000)},    /* Normal AM */
-        {RIG_MODE_AM,                 Hz(6000)},    /* Narrow AM */
+        {RIG_MODE_AMN,                 Hz(6000)},    /* Narrow AM */
         {FT991_FM_RX_MODES,           Hz(16000)},   /* Normal FM */
         {FT991_FM_RX_MODES,           Hz(9000)},    /* Narrow FM */
 
