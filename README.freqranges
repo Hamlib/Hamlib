@@ -1,0 +1,16 @@
+Frequency ranges are being changed to reflect rig capabilities instead of region restrictions
+As of 2020-05-05 the behavior is:
+#1 Any range which shows ITU# or TBD has not been modified to this convention
+#2 Ranges on the backends are being change to USA/EUR/KOR/TPE/ITR per the IC-9700 convention.  So if you see one of those monikers on a rig's freq range it should accurately reflect the rig's capabilities.
+
+Note that most rigs will have just USA or USA/EUR models.  Not too many rigs have more than 2 models but it appears at least Icom is headed that way.
+
+USA - United States of America
+EUR - Europe
+KOR - Korea
+TPE - Japan
+ITR - ??
+AUS - Australia
+CHN - China
+
+
