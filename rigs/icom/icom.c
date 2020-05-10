@@ -972,17 +972,32 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             {
                 if (RIG_OK != (retval = icom_vfo_op(rig, vfo, RIG_OP_XCHG)))
                 {
+                    rig_debug(RIG_DEBUG_ERR, "%s: vfo_op XCHG failed: %s\n", __func__, rigerror(retval));
                     return retval;
                 }
 
-                // Try the command again and fall through to handle errors
+                // Try the command again 
                 retval = icom_transaction(rig, cmd, subcmd, freqbuf, freq_len, ackbuf,
                                           &ack_len);
+
+                // Swap back if we got an error otherwise we fall through for more processing
+                if (retval != RIG_OK)
+                {
+                    int retval2;
+                    rig_debug(RIG_DEBUG_ERR, "%s: 2nd set freq failed: %s\n", __func__, rigerror(retval));
+                    if (RIG_OK != (retval2 = icom_vfo_op(rig, vfo, RIG_OP_XCHG)))
+                    {
+                        rig_debug(RIG_DEBUG_ERR, "%s: 2nd vfo_op XCHG failed: %s\n", __func__, rigerror(retval));
+                        return retval2;
+                    }
+                    return retval;
+                }
             }
         }
 
         if (retval != RIG_OK)
         {
+            rig_debug(RIG_DEBUG_ERR, "%s: set freq failed: %s\n", __func__, rigerror(retval));
             return retval;
         }
     }
@@ -3692,10 +3707,24 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
     if (priv->curr_vfo == RIG_VFO_NONE)
     {
-        icom_set_default_vfo(rig);
+        retval = icom_set_default_vfo(rig);
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: set_default_vfo failed: %s\n", __func__,
+                      rigerror(retval));
+            return retval;
+        }
     }
 
-    set_vfo_curr(rig, RIG_VFO_CURR, RIG_VFO_CURR);
+    retval = set_vfo_curr(rig, RIG_VFO_CURR, RIG_VFO_CURR);
+
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: set_default_vfo failed: %s\n", __func__,
+                  rigerror(retval));
+        return retval;
+    }
 
     // If the rigs supports the 0x25 command we'll use it
     // This eliminates VFO swapping and improves split operations
