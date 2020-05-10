@@ -409,7 +409,7 @@ static int ar7030p_open(RIG *rig)
                 if (rc < 0)
                 {
                     rig_debug(RIG_DEBUG_ERR, "%s: err in getFilterBW: %s\n", __func__,
-                              strerror(rc));
+                              rigerror(rc));
                     return rc;
                 }
                 else
