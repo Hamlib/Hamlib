@@ -1191,7 +1191,6 @@ static int twiddling(RIG *rig)
             return 1; // would be better as error but other software won't handle it
         }
     }
-
     return 0; //
 }
 
@@ -1270,6 +1269,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
         curr_vfo = rig->state.current_vfo;
         retcode = caps->set_vfo(rig, vfo);
+        vfo = rig->state.current_vfo; // can't call get_vfo since Icoms don't have it
 
         if (retcode != RIG_OK)
         {
@@ -1341,8 +1341,8 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if (cache_ms < rig->state.cache.timeout_ms && rig->state.cache.vfo_freq == vfo)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: %s cache hit age=%dms\n", __func__,
-                  rig_strvfo(vfo), cache_ms);
+        rig_debug(RIG_DEBUG_TRACE, "%s: %s cache hit age=%dms, freq=%g\n", __func__,
+                  rig_strvfo(vfo), cache_ms, *freq);
         *freq = rig->state.cache.freq;
         return RIG_OK;
     }
@@ -1364,8 +1364,10 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
             || vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
     {
         retcode = caps->get_freq(rig, vfo, freq);
-        rig->state.cache.freq = *freq;
-        rig->state.cache.vfo_freq = vfo;
+        if (retcode == RIG_OK) {
+            rig->state.cache.freq = *freq;
+            rig->state.cache.vfo_freq = vfo;
+        }
     }
     else
     {
