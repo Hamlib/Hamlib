@@ -31,7 +31,11 @@
 #include <sys/time.h>
 #endif
 
+<<<<<<< HEAD
 #define BACKEND_VER "20200510"
+=======
+#define BACKEND_VER "20200511"
+>>>>>>> 3b2225e4891cf4420814b19c214b8c64e174539d
 
 /*
  * defines used by comp_cal_str in rig.c
@@ -187,8 +191,11 @@ struct icom_priv_data
     freq_t curr_freq; // our current freq depending on which vfo is selected
     freq_t main_freq; // track last setting of main -- not being used yet
     freq_t sub_freq;  // track last setting of sub -- not being used yet
+    freq_t vfoa_freq;  // track last setting of vfoa -- used to return last freq when ptt is asserted
+    freq_t vfob_freq;  // track last setting of vfob -- used to return last freq when ptt is asserted
     int x25cmdfails;  // This will get set if the 0x25 command fails so we try just once
     int x1cx03cmdfails;  // This will get set if the 0x1c 0x03 command fails so we try just once
+    int satmode;      // Remember satmode for handling TX/RX VFOs and such
 };
 
 extern const struct ts_sc_list r8500_ts_sc_list[];

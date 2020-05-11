@@ -961,14 +961,20 @@ static int flrig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
             return retval;
         }
 
-        if (read_transaction(rig, xml, sizeof(xml)) > 0)
+        if ((retval = read_transaction(rig, xml, sizeof(xml))))
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: read_transation failed retval=%d\n", __func__,
+                      retval);
+            return retval;
+        }
+
+        if (strstr(xml, "methodResponse>"))
         {
             xml_parse(xml, value, sizeof(value));
 
             if (strlen(value) == 0)
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: retries=%d\n", __func__, retries);
-                //hl_usleep(10*1000);
             }
         }
     }
@@ -1128,6 +1134,7 @@ static int flrig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
     do
     {
+        value[0] = 0;
         pxml = xml_build("rig.get_ptt", NULL, xml, sizeof(xml));
 
         retval = write_transaction(rig, pxml, strlen(pxml));
@@ -1137,7 +1144,14 @@ static int flrig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
             return retval;
         }
 
-        if (read_transaction(rig, xml, sizeof(xml) > 0))
+        retval = read_transaction(rig, xml, sizeof(xml));
+
+        if (retval < 0)
+        {
+            return retval;
+        }
+
+        if (strstr(xml, "methodResponse>"))
         {
             xml_parse(xml, value, sizeof(value));
             *ptt = atoi(value);
@@ -1663,6 +1677,7 @@ static int flrig_get_vfo(RIG *rig, vfo_t *vfo)
 
     do
     {
+        value[0] = 0;
         pxml = xml_build("rig.get_AB", NULL, xml, sizeof(xml));
         retval = write_transaction(rig, pxml, strlen(pxml));
 
@@ -1671,9 +1686,15 @@ static int flrig_get_vfo(RIG *rig, vfo_t *vfo)
             return retval;
         }
 
-        if (read_transaction(rig, xml, sizeof(xml)) > 0)
+        retval = read_transaction(rig, xml, sizeof(xml));
+
+        if (retval < 0)
         {
-            read_transaction(rig, xml, sizeof(xml));
+            return retval;
+        }
+
+        if (strstr(xml, "methodResponse>"))
+        {
             xml_parse(xml, value, sizeof(value));
             rig_debug(RIG_DEBUG_TRACE, "%s: vfo value=%s\n", __func__, value);
         }
@@ -1849,7 +1870,14 @@ static int flrig_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
             return retval;
         }
 
-        if (read_transaction(rig, xml, sizeof(xml)) > 0)
+        retval = read_transaction(rig, xml, sizeof(xml));
+
+        if (retval < 0)
+        {
+            return retval;
+        }
+
+        if (strstr(xml, "methodResponse>"))
         {
             xml_parse(xml, value, sizeof(value));
         }

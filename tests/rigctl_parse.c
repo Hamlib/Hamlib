@@ -241,7 +241,7 @@ declare_proto_rig(pause);
  */
 static struct test_table test_list[] =
 {
-    { 'F',  "set_freq",         ACTION(set_freq),       ARG_IN, "Frequency" },
+    { 'F',  "set_freq",         ACTION(set_freq),       ARG_IN1 | ARG_OUT1, "Frequency" },
     { 'f',  "get_freq",         ACTION(get_freq),       ARG_OUT, "Frequency", "VFO" },
     { 'M',  "set_mode",         ACTION(set_mode),       ARG_IN, "Mode", "Passband" },
     { 'm',  "get_mode",         ACTION(get_mode),       ARG_OUT, "Mode", "Passband" },
@@ -277,7 +277,7 @@ static struct test_table test_list[] =
     { 0x91, "get_ctcss_sql",    ACTION(get_ctcss_sql),  ARG_OUT, "CTCSS Sql" },
     { 0x92, "set_dcs_sql",      ACTION(set_dcs_sql),    ARG_IN, "DCS Sql" },
     { 0x93, "get_dcs_sql",      ACTION(get_dcs_sql),    ARG_OUT, "DCS Sql" },
-    { 'V',  "set_vfo",          ACTION(set_vfo),        ARG_IN  | ARG_NOVFO, "VFO" },
+    { 'V',  "set_vfo",          ACTION(set_vfo),        ARG_IN  | ARG_NOVFO | ARG_OUT, "VFO" },
     { 'v',  "get_vfo",          ACTION(get_vfo),        ARG_OUT, "VFO" },
     { 'T',  "set_ptt",          ACTION(set_ptt),        ARG_IN, "PTT" },
     { 't',  "get_ptt",          ACTION(get_ptt),        ARG_OUT, "PTT" },
@@ -970,15 +970,11 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             {
                 rig_debug(RIG_DEBUG_TRACE, "%s: debug7\n", __func__);
 
-#ifdef XXREMOVEDXX
-
                 if (prompt)
                 {
                     rig_debug(RIG_DEBUG_TRACE, "%s: debug8\n", __func__);
                     fprintf_flush(fout, "%s: ", cmd_entry->arg2);
                 }
-
-#endif
 
                 if (scanfc(fin, "%s", arg2) < 1)
                 {
@@ -1926,9 +1922,20 @@ int set_conf(RIG *my_rig, char *conf_parms)
 declare_proto_rig(set_freq)
 {
     freq_t freq;
+    int retval;
+    char *fmt = "%"PRIll"%c";
 
     CHKSCN1ARG(sscanf(arg1, "%"SCNfreq, &freq));
-    return rig_set_freq(rig, vfo, freq);
+    retval = rig_set_freq(rig, vfo, freq);
+
+    if (retval == RIG_OK)
+    {
+        fprintf(fout, "%s%c", rig_strvfo(vfo), resp_sep);
+        fprintf(fout, fmt, (int64_t)freq, resp_sep);
+
+    }
+
+    return retval;
 }
 
 
@@ -1937,7 +1944,6 @@ declare_proto_rig(get_freq)
 {
     int status;
     freq_t freq;
-    // cppcheck-suppress *
     char *fmt = "%"PRIll"%c";
 
     status = rig_get_freq(rig, vfo, &freq);
@@ -1959,7 +1965,7 @@ declare_proto_rig(get_freq)
         fprintf(fout, "%s: ", cmd->arg2);    /* i.e. "Frequency" */
     }
 
-    fprintf(fout, "%s%c", rig_strvfo(rig->state.current_vfo), resp_sep);
+    fprintf(fout, "%s%c", rig_strvfo(vfo), resp_sep);
 
     return status;
 }
@@ -2088,6 +2094,8 @@ declare_proto_rig(get_mode)
 /* 'V' */
 declare_proto_rig(set_vfo)
 {
+    int retval;
+
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
@@ -2096,7 +2104,20 @@ declare_proto_rig(set_vfo)
         return RIG_OK;
     }
 
-    return rig_set_vfo(rig, rig_parse_vfo(arg1));
+    vfo = rig_parse_vfo(arg1);
+    retval = rig_set_vfo(rig, vfo);
+
+    if (retval == RIG_OK)
+    {
+        if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+        {
+            // fprintf(fout, "%s: ", cmd->arg1);
+        }
+
+        fprintf(fout, "%s%c", rig_strvfo(vfo), resp_sep);
+    }
+
+    return retval;
 }
 
 
@@ -4288,7 +4309,7 @@ declare_proto_rig(send_cmd)
         int i;
         rig_debug(RIG_DEBUG_TRACE, "%s: send_cmd_term==-1, arg1=%s\n", __func__, arg1);
 
-        if (arg1[strlen(arg1)-1] != ';' && strstr(arg1, "\\0x") == NULL)
+        if (arg1[strlen(arg1) - 1] != ';' && strstr(arg1, "\\0x") == NULL)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: expecting binary hex string here\n", __func__);
             return -RIG_EINVAL;

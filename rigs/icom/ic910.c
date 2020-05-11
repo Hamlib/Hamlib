@@ -266,21 +266,27 @@ static int ic910_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     int retval;
     freq_t origfreq;
+    vfo_t vfo_save;
 
     /* start off by reading the current VFO frequency */
     if ((retval = icom_get_freq(rig, RIG_VFO_CURR, &origfreq)) != RIG_OK) { return retval; }
+    vfo_save = rig->state.current_vfo;
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
 
     if (RIG_VFO_A == vfo || RIG_VFO_B == vfo)
     {
         /* switch to desired VFO and read its frequency */
-        if ((retval = icom_set_vfo(rig, vfo)) != RIG_OK) { return retval; }
+        if (vfo_save != vfo) 
+	{
+		if ((retval = icom_set_vfo(rig, vfo)) != RIG_OK) { return retval; }
+	}
 
         if ((retval = icom_get_freq(rig, vfo, freq)) != RIG_OK) { return retval; }
 
-        if (*freq != origfreq)
+        if (vfo_save != vfo)
         {
             /* swap VFOs back as original was the other one */
-            icom_set_vfo(rig, RIG_VFO_A == vfo ? RIG_VFO_B : RIG_VFO_A);
+            icom_set_vfo(rig, vfo_save);
         }
     }
     else if (RIG_VFO_MAIN == vfo || RIG_VFO_SUB == vfo)
@@ -480,7 +486,7 @@ const struct rig_caps ic910_caps =
     .max_rit =    Hz(0),    /* SSB,CW: +-1.0kHz  FM: +-5.0kHz */
     .max_xit =    Hz(0),
     .max_ifshift =    Hz(0),    /* 1.2kHz manual knob */
-    .targetable_vfo = RIG_TARGETABLE_FREQ,
+//    .targetable_vfo = RIG_TARGETABLE_FREQ,
     .vfo_ops =    IC910_VFO_OPS,
     .scan_ops =   IC910_SCAN_OPS,
     .transceive =   RIG_TRN_RIG,
@@ -566,7 +572,7 @@ const struct rig_caps ic910_caps =
 
     .set_ptt = icom_set_ptt,
     .get_ptt = icom_get_ptt,
-    .set_vfo =  icom_set_vfo,
+    .set_vfo = icom_set_vfo,
     .get_ts =  icom_get_ts,
     .set_ts =  icom_set_ts,
     .get_func =  ic910_get_func,
