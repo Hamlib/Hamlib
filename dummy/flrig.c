@@ -411,6 +411,14 @@ static int read_transaction(RIG *rig, char *xml, int xml_len)
                               strlen(delims));
         rig_debug(RIG_DEBUG_TRACE, "%s: string='%s'\n", __func__, tmp_buf);
 
+        // if our first response we should see the HTTP header
+        if (strlen(xml) == 0 && strstr(tmp_buf, "HTTP/1.1 200 OK") == NULL)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: Expected 'HTTP/1.1 200 OK', got '%s'\n", __func__,
+                      tmp_buf);
+            return -1;
+        }
+
         if (len > 0) { retry = 3; }
 
         if (len <= 0)
@@ -909,7 +917,7 @@ static int flrig_cleanup(RIG *rig)
  */
 static int flrig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    int retries = 10;
+    int retries = 2;
     char xml[MAXXMLLEN];
     char value[MAXCMDLEN];
     struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
@@ -953,16 +961,20 @@ static int flrig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
             return retval;
         }
 
-        read_transaction(rig, xml, sizeof(xml));
-        xml_parse(xml, value, sizeof(value));
-
-        if (strlen(value) == 0)
+        if (read_transaction(rig, xml, sizeof(xml)) > 0)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: retries=%d\n", __func__, retries);
-            //hl_usleep(10*1000);
+            xml_parse(xml, value, sizeof(value));
+
+            if (strlen(value) == 0)
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: retries=%d\n", __func__, retries);
+                //hl_usleep(10*1000);
+            }
         }
     }
     while (--retries && strlen(value) == 0);
+
+    if (retries == 0) { return -RIG_EPROTO; }
 
     *freq = atof(value);
 
@@ -1104,6 +1116,7 @@ static int flrig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 static int flrig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
     int retval;
+    int retries = 2;
     char value[MAXCMDLEN];
     char xml[MAXXMLLEN];
     char *pxml;
@@ -1113,19 +1126,27 @@ static int flrig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
               rig_strvfo(vfo));
 
 
-    pxml = xml_build("rig.get_ptt", NULL, xml, sizeof(xml));
-
-    retval = write_transaction(rig, pxml, strlen(pxml));
-
-    if (retval < 0)
+    do
     {
-        return retval;
-    }
+        pxml = xml_build("rig.get_ptt", NULL, xml, sizeof(xml));
 
-    read_transaction(rig, xml, sizeof(xml));
-    xml_parse(xml, value, sizeof(value));
-    *ptt = atoi(value);
-    rig_debug(RIG_DEBUG_TRACE, "%s: '%s'\n", __func__, value);
+        retval = write_transaction(rig, pxml, strlen(pxml));
+
+        if (retval < 0)
+        {
+            return retval;
+        }
+
+        if (read_transaction(rig, xml, sizeof(xml) > 0))
+        {
+            xml_parse(xml, value, sizeof(value));
+            *ptt = atoi(value);
+            rig_debug(RIG_DEBUG_TRACE, "%s: '%s'\n", __func__, value);
+        }
+    }
+    while (--retries > 0 && strlen(value) == 0);
+
+    if (retries == 0) { return -RIG_EPROTO; }
 
     priv->ptt = *ptt;
 
@@ -1556,7 +1577,7 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 }
 
 /*
- * flrig_get_vfo
+ * flrig_set_vfo
  * assumes rig!=NULL
  */
 static int flrig_set_vfo(RIG *rig, vfo_t vfo)
@@ -1631,6 +1652,7 @@ static int flrig_set_vfo(RIG *rig, vfo_t vfo)
 static int flrig_get_vfo(RIG *rig, vfo_t *vfo)
 {
     int retval;
+    int retries = 2;
     char value[MAXCMDLEN];
     char xml[MAXXMLLEN];
     char *pxml;
@@ -1639,17 +1661,26 @@ static int flrig_get_vfo(RIG *rig, vfo_t *vfo)
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
 
 
-    pxml = xml_build("rig.get_AB", NULL, xml, sizeof(xml));
-    retval = write_transaction(rig, pxml, strlen(pxml));
-
-    if (retval < 0)
+    do
     {
-        return retval;
-    }
+        pxml = xml_build("rig.get_AB", NULL, xml, sizeof(xml));
+        retval = write_transaction(rig, pxml, strlen(pxml));
 
-    read_transaction(rig, xml, sizeof(xml));
-    xml_parse(xml, value, sizeof(value));
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo value=%s\n", __func__, value);
+        if (retval < 0)
+        {
+            return retval;
+        }
+
+        if (read_transaction(rig, xml, sizeof(xml)) > 0)
+        {
+            read_transaction(rig, xml, sizeof(xml));
+            xml_parse(xml, value, sizeof(value));
+            rig_debug(RIG_DEBUG_TRACE, "%s: vfo value=%s\n", __func__, value);
+        }
+    }
+    while (--retries > 0 && strlen(value) == 0);
+
+    if (retries == 0) { return -RIG_EPROTO; }
 
     switch (value[0])
     {
@@ -1800,6 +1831,7 @@ static int flrig_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
                                vfo_t *tx_vfo)
 {
     int retval;
+    int retries = 2;
     char value[MAXCMDLEN];
     char xml[MAXXMLLEN];
     struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
@@ -1807,16 +1839,24 @@ static int flrig_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
 
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
 
-    pxml = xml_build("rig.get_split", NULL, xml, sizeof(xml));
-    retval = write_transaction(rig, pxml, strlen(pxml));
-
-    if (retval < 0)
+    do
     {
-        return retval;
-    }
+        pxml = xml_build("rig.get_split", NULL, xml, sizeof(xml));
+        retval = write_transaction(rig, pxml, strlen(pxml));
 
-    read_transaction(rig, xml, sizeof(xml));
-    xml_parse(xml, value, sizeof(value));
+        if (retval < 0)
+        {
+            return retval;
+        }
+
+        if (read_transaction(rig, xml, sizeof(xml)) > 0)
+        {
+            xml_parse(xml, value, sizeof(value));
+        }
+    }
+    while (--retries > 0 && strlen(value) == 0);
+
+    if (retries == 0) { return -RIG_EPROTO; }
 
     *tx_vfo = RIG_VFO_B;
     *split = atoi(value);
