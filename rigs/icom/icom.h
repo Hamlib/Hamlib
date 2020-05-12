@@ -31,11 +31,7 @@
 #include <sys/time.h>
 #endif
 
-<<<<<<< HEAD
-#define BACKEND_VER "20200510"
-=======
 #define BACKEND_VER "20200511"
->>>>>>> 3b2225e4891cf4420814b19c214b8c64e174539d
 
 /*
  * defines used by comp_cal_str in rig.c
