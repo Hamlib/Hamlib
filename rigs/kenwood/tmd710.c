@@ -1936,8 +1936,10 @@ int tmd710_get_channel(RIG *rig, channel_t *chan, int read_only)
     if (!read_only)
     {
         // Set rig to channel values
-        rig_debug(RIG_DEBUG_ERR, "%s: please contact hamlib mailing list to implement this\n", __func__);
-        rig_debug(RIG_DEBUG_ERR, "%s: need to know if rig updates when channel read or not\n", __func__);
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: please contact hamlib mailing list to implement this\n", __func__);
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: need to know if rig updates when channel read or not\n", __func__);
         return -RIG_ENIMPL;
     }
 

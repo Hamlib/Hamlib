@@ -1262,6 +1262,7 @@ int newcat_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
     freq_t freq;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
     if (newcat_is_rig(rig, RIG_MODEL_FT991))
     {
         freq = 0;
@@ -1294,9 +1295,11 @@ int newcat_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
             return RIG_OK;
         }
 
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%04li%c", command, offs, cat_term);
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%04li%c", command, offs,
+                 cat_term);
         return newcat_set_cmd(rig);
     }
+
     return -RIG_ENAVAIL;
 }
 
@@ -1360,6 +1363,7 @@ int newcat_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *offs)
     {
         return -RIG_ENAVAIL;
     }
+
     return RIG_OK;
 }
 

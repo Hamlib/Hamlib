@@ -717,6 +717,7 @@ int kenwood_open(RIG *rig)
             rig_debug(RIG_DEBUG_TRACE, "%s: got PS0 so powerup\n", __func__);
             rig_set_powerstat(rig, 1);
         }
+
         err = RIG_OK;  // reset our err back to OK for later checks
     }
 
@@ -3921,8 +3922,10 @@ int kenwood_get_channel(RIG *rig, channel_t *chan, int read_only)
     if (!read_only)
     {
         // Set rig to channel values
-        rig_debug(RIG_DEBUG_ERR, "%s: please contact hamlib mailing list to implement this\n", __func__);
-        rig_debug(RIG_DEBUG_ERR, "%s: need to know if rig updates when channel read or not\n", __func__);
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: please contact hamlib mailing list to implement this\n", __func__);
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: need to know if rig updates when channel read or not\n", __func__);
         return -RIG_ENIMPL;
     }
 
