@@ -3976,7 +3976,6 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 
     if (rig->caps->rig_model == RIG_MODEL_IC910)
     {
-<<<<<<< HEAD
         ptt_t ptt;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: ic910#2\n", __func__);
         retval = rig_get_ptt(rig, RIG_VFO_CURR, &ptt);
@@ -3988,23 +3987,12 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 
         if (ptt)
         {
-            rig_debug(RIG_DEBUG_TRACE, "%s: split is on so returning last known freq\n",
+            rig_debug(RIG_DEBUG_TRACE, "%s: ptt is on so returning last known freq\n",
                       __func__);
             *tx_freq = priv->vfob_freq;
             return RIG_OK;
         }
-=======
-	ptt_t ptt;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: ic910#2\n", __func__);
-	retval = rig_get_ptt(rig,RIG_VFO_CURR,&ptt);
-	if (retval != RIG_OK) {
-	    return retval;
-	}
-	if (ptt) {
-	    rig_debug(RIG_DEBUG_TRACE, "%s: ptt is on so returning last known freq\n", __func__);
-	    *tx_freq = priv->vfob_freq;
-	    return RIG_OK;
-	}
+    }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s curr_vfo=%s\n", __func__,
               rig_strvfo(priv->curr_vfo));
