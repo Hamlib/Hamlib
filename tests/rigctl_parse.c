@@ -4287,7 +4287,7 @@ declare_proto_rig(send_cmd)
 
     // need to move the eom_buf to rig-specifc backends
     // we'll let KENWOOD backends use the ; char in the rigctl commands
-    if (backend_num == RIG_KENWOOD)
+    if (backend_num == RIG_KENWOOD || backend_num == RIG_YAESU)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: KENWOOD\n", __func__);
         eom_buf[0] = 0;
@@ -4297,7 +4297,6 @@ declare_proto_rig(send_cmd)
     rig_debug(RIG_DEBUG_TRACE, "%s: arg1=%s\n", __func__, arg1);
 
     if (send_cmd_term == -1
-            || backend_num == RIG_YAESU
             || backend_num == RIG_ICOM
             || backend_num == RIG_KACHINA
             || backend_num == RIG_MICROTUNE
