@@ -50,7 +50,7 @@
 typedef char ncboolean;
 
 /* shared function version */
-#define NEWCAT_VER "20200509"
+#define NEWCAT_VER "20200511"
 
 /* Hopefully large enough for future use, 128 chars plus '\0' */
 #define NEWCAT_DATA_LEN                 129
@@ -176,6 +176,8 @@ int newcat_set_split_vfo(RIG * rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
 int newcat_get_split_vfo(RIG * rig, vfo_t vfo, split_t * split, vfo_t *tx_vfo);
 int newcat_set_rptr_shift(RIG * rig, vfo_t vfo, rptr_shift_t rptr_shift);
 int newcat_get_rptr_shift(RIG * rig, vfo_t vfo, rptr_shift_t * rptr_shift);
+int newcat_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs);
+int newcat_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *offs);
 int newcat_set_ctcss_tone(RIG * rig, vfo_t vfo, tone_t tone);
 int newcat_get_ctcss_tone(RIG * rig, vfo_t vfo, tone_t * tone);
 int newcat_set_ctcss_sql(RIG * rig, vfo_t vfo, tone_t tone);

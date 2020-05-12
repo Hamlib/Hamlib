@@ -1256,17 +1256,111 @@ int newcat_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 
 int newcat_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    int err;
+    char command[16] ;
+    freq_t freq;
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    if (newcat_is_rig(rig, RIG_MODEL_FT991))
+    {
+        freq = 0;
+        err = newcat_get_freq(rig, vfo, &freq); // Need to get freq to determine band
+
+        if (err < 0)
+        {
+            return err;
+        }
+
+        if (freq >= 28000000 && freq <= 29700000)
+        {
+            strcpy(command, "EX080");
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            strcpy(command, "EX081");
+        }
+        else if (freq >= 144000000 && freq <= 148000000)
+        {
+            strcpy(command, "EX082");
+        }
+        else if (freq >= 430000000 && freq <= 450000000)
+        {
+            strcpy(command, "EX083");
+        }
+        else
+        {
+            // only valid on 10m to 70cm bands
+            return RIG_OK;
+        }
+
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%04li%c", command, offs, cat_term);
+        return newcat_set_cmd(rig);
+    }
     return -RIG_ENAVAIL;
 }
 
 
 int newcat_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *offs)
 {
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    int err;
+    int ret_data_len;
+    char *retoffs;
+    freq_t freq;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return -RIG_ENAVAIL;
+    if (newcat_is_rig(rig, RIG_MODEL_FT991))
+    {
+        freq = 0;
+        err = newcat_get_freq(rig, vfo, &freq); // Need to get freq to determine band
+
+        if (err < 0)
+        {
+            return err;
+        }
+
+        if (freq >= 28000000 && freq <= 29700000)
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "EX080%c", cat_term);
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "EX081%c", cat_term);
+        }
+        else if (freq >= 144000000 && freq <= 148000000)
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "EX082%c", cat_term);
+        }
+        else if (freq >= 430000000 && freq <= 450000000)
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "EX083%c", cat_term);
+        }
+        else
+        {
+            *offs = 0;     // only valid on 10m to 70cm bands
+            return RIG_OK;
+        }
+
+        if (RIG_OK != (err = newcat_get_cmd(rig)))
+        {
+            return err;
+        }
+
+        ret_data_len = strlen(priv->ret_data);
+
+        /* skip command */
+        retoffs = priv->ret_data + strlen(priv->cmd_str) - 1;
+        /* chop term */
+        priv->ret_data[ret_data_len - 1] = '\0';
+        *offs = atoi(retoffs);
+    }
+    else
+    {
+        return -RIG_ENAVAIL;
+    }
+    return RIG_OK;
 }
 
 
