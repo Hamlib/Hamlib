@@ -1191,6 +1191,7 @@ static int twiddling(RIG *rig)
             return 1; // would be better as error but other software won't handle it
         }
     }
+
     return 0; //
 }
 
@@ -1364,7 +1365,9 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
             || vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
     {
         retcode = caps->get_freq(rig, vfo, freq);
-        if (retcode == RIG_OK) {
+
+        if (retcode == RIG_OK)
+        {
             rig->state.cache.freq = *freq;
             rig->state.cache.vfo_freq = vfo;
         }
@@ -1820,7 +1823,8 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
     }
     else
     {
-	rig_debug(RIG_DEBUG_ERR, "%s: set_vfo %s failed with '%s'\n", __func__, rig_strvfo(vfo), rigerror(retcode));
+        rig_debug(RIG_DEBUG_ERR, "%s: set_vfo %s failed with '%s'\n", __func__,
+                  rig_strvfo(vfo), rigerror(retcode));
     }
 
     // we need to update our internal freq to avoid getting detected as twiddling
@@ -2158,9 +2162,15 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
                 || vfo == RIG_VFO_CURR
                 || vfo == rig->state.current_vfo)
         {
+            retcode = caps->get_ptt(rig, vfo, ptt);
 
-            elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
-            return caps->get_ptt(rig, vfo, ptt);
+            if (retcode == RIG_OK)
+            {
+                rig->state.cache.ptt = *ptt;
+                elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
+            }
+
+            return retcode;
         }
 
         if (!caps->set_vfo)
@@ -2184,6 +2194,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         {
             /* return the first error code */
             retcode = rc2;
+            rig->state.cache.ptt = *ptt;
             elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
         }
 
@@ -2192,8 +2203,15 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     case RIG_PTT_SERIAL_RTS:
         if (caps->get_ptt)
         {
-            elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
-            return caps->get_ptt(rig, vfo, ptt);
+            retcode = caps->get_ptt(rig, vfo, ptt);
+
+            if (retcode == RIG_OK)
+            {
+                elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
+                rig->state.cache.ptt = *ptt;
+            }
+
+            return retcode;
         }
 
         if (strcmp(rs->pttport.pathname, rs->rigport.pathname)
@@ -2202,25 +2220,29 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
             /* port is closed so assume PTT off */
             *ptt = RIG_PTT_OFF;
-            elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
-            rig->state.cache.ptt = *ptt;
         }
         else
         {
             retcode = ser_get_rts(&rig->state.pttport, &status);
             *ptt = status ? RIG_PTT_ON : RIG_PTT_OFF;
-            elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
-            rig->state.cache.ptt = *ptt;
         }
 
+        rig->state.cache.ptt = *ptt;
         elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
         return retcode;
 
     case RIG_PTT_SERIAL_DTR:
         if (caps->get_ptt)
         {
-            elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
-            return caps->get_ptt(rig, vfo, ptt);
+            retcode = caps->get_ptt(rig, vfo, ptt);
+
+            if (retcode == RIG_OK)
+            {
+                elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
+                rig->state.cache.ptt = *ptt;
+            }
+
+            return retcode;
         }
 
         if (strcmp(rs->pttport.pathname, rs->rigport.pathname)
@@ -2229,46 +2251,78 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
             /* port is closed so assume PTT off */
             *ptt = RIG_PTT_OFF;
-            rig->state.cache.ptt = *ptt;
-            elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
         }
         else
         {
             retcode = ser_get_dtr(&rig->state.pttport, &status);
             *ptt = status ? RIG_PTT_ON : RIG_PTT_OFF;
-            elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
-            rig->state.cache.ptt = *ptt;
         }
 
+        rig->state.cache.ptt = *ptt;
         elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
         return retcode;
 
     case RIG_PTT_PARALLEL:
         if (caps->get_ptt)
         {
-            elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
-            return caps->get_ptt(rig, vfo, ptt);
+            retcode = caps->get_ptt(rig, vfo, ptt);
+
+            if (retcode == RIG_OK)
+            {
+                elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
+                rig->state.cache.ptt = *ptt;
+            }
+
+            return retcode;
         }
 
-        elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
-        return par_ptt_get(&rig->state.pttport, ptt);
+        retcode = par_ptt_get(&rig->state.pttport, ptt);
+
+        if (retcode == RIG_OK)
+        {
+            elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
+            rig->state.cache.ptt = *ptt;
+        }
+
+        return retcode;
 
     case RIG_PTT_CM108:
         if (caps->get_ptt)
         {
-            elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
-            return caps->get_ptt(rig, vfo, ptt);
+            retcode = caps->get_ptt(rig, vfo, ptt);
+
+            if (retcode == RIG_OK)
+            {
+                elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
+                rig->state.cache.ptt = *ptt;
+            }
+
+            return retcode;
         }
 
-        elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
-        return cm108_ptt_get(&rig->state.pttport, ptt);
+        retcode = cm108_ptt_get(&rig->state.pttport, ptt);
+
+        if (retcode == RIG_OK)
+        {
+            elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
+            rig->state.cache.ptt = *ptt;
+        }
+
+        return retcode;
 
     case RIG_PTT_GPIO:
     case RIG_PTT_GPION:
         if (caps->get_ptt)
         {
-            elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
-            return caps->get_ptt(rig, vfo, ptt);
+            retcode = caps->get_ptt(rig, vfo, ptt);
+
+            if (retcode == RIG_OK)
+            {
+                elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
+                rig->state.cache.ptt = *ptt;
+            }
+
+            return retcode;
         }
 
         elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
