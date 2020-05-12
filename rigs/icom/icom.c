@@ -4005,8 +4005,11 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 	    *tx_freq = priv->vfob_freq;
 	    return RIG_OK;
 	}
+<<<<<<< HEAD
 >>>>>>> 28ce6d0b54b500fc8b7329eed58b725b94690d3d
     }
+=======
+>>>>>>> 6a199559fa99a8d9cb82716e1dad6cfc486c4852
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s curr_vfo=%s\n", __func__,
               rig_strvfo(priv->curr_vfo));
