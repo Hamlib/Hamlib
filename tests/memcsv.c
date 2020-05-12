@@ -761,9 +761,12 @@ int set_channel_data(RIG *rig,
             break;
         }
     }
-    if (j == CHANLSTSIZ) {
+
+    if (j == CHANLSTSIZ)
+    {
         return -RIG_EINVAL;
     }
+
     printf("Requested channel number %d, list number %d\n", n, j);
 
     mem_caps = &rig->state.chan_list[j].mem_caps;

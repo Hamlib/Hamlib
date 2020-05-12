@@ -270,16 +270,17 @@ static int ic910_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     /* start off by reading the current VFO frequency */
     if ((retval = icom_get_freq(rig, RIG_VFO_CURR, &origfreq)) != RIG_OK) { return retval; }
+
     vfo_save = rig->state.current_vfo;
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
 
     if (RIG_VFO_A == vfo || RIG_VFO_B == vfo)
     {
         /* switch to desired VFO and read its frequency */
-        if (vfo_save != vfo) 
-	{
-		if ((retval = icom_set_vfo(rig, vfo)) != RIG_OK) { return retval; }
-	}
+        if (vfo_save != vfo)
+        {
+            if ((retval = icom_set_vfo(rig, vfo)) != RIG_OK) { return retval; }
+        }
 
         if ((retval = icom_get_freq(rig, vfo, freq)) != RIG_OK) { return retval; }
 

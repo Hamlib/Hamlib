@@ -1191,6 +1191,7 @@ static int twiddling(RIG *rig)
             return 1; // would be better as error but other software won't handle it
         }
     }
+
     return 0; //
 }
 
@@ -1364,7 +1365,9 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
             || vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
     {
         retcode = caps->get_freq(rig, vfo, freq);
-        if (retcode == RIG_OK) {
+
+        if (retcode == RIG_OK)
+        {
             rig->state.cache.freq = *freq;
             rig->state.cache.vfo_freq = vfo;
         }
@@ -1820,7 +1823,8 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
     }
     else
     {
-	rig_debug(RIG_DEBUG_ERR, "%s: set_vfo %s failed with '%s'\n", __func__, rig_strvfo(vfo), rigerror(retcode));
+        rig_debug(RIG_DEBUG_ERR, "%s: set_vfo %s failed with '%s'\n", __func__,
+                  rig_strvfo(vfo), rigerror(retcode));
     }
 
     // we need to update our internal freq to avoid getting detected as twiddling
