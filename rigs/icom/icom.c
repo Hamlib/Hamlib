@@ -3927,7 +3927,7 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 	    return retval;
 	}
 	if (ptt) {
-	    rig_debug(RIG_DEBUG_TRACE, "%s: split is on so returning last known freq\n", __func__);
+	    rig_debug(RIG_DEBUG_TRACE, "%s: ptt is on so returning last known freq\n", __func__);
 	    *tx_freq = priv->vfob_freq;
 	    return RIG_OK;
 	}
