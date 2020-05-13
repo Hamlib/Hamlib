@@ -2194,7 +2194,7 @@ declare_proto_rig(set_ptt)
 declare_proto_rig(get_ptt)
 {
     int status;
-    ptt_t ptt;
+    ptt_t ptt = 0;
 
     status = rig_get_ptt(rig, vfo, &ptt);
 
