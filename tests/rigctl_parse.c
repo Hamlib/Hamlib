@@ -241,7 +241,11 @@ declare_proto_rig(pause);
  */
 static struct test_table test_list[] =
 {
-    { 'F',  "set_freq",         ACTION(set_freq),       ARG_IN1 | ARG_OUT1, "Frequency" },
+#if 0 // implement set_freq VFO later if it can be detected
+//    { 'F',  "set_freq",         ACTION(set_freq),       ARG_IN1 | ARG_OUT1, "Frequency" },
+#else
+    { 'F',  "set_freq",         ACTION(set_freq),       ARG_IN1, "Frequency" },
+#endif
     { 'f',  "get_freq",         ACTION(get_freq),       ARG_OUT, "Frequency", "VFO" },
     { 'M',  "set_mode",         ACTION(set_mode),       ARG_IN, "Mode", "Passband" },
     { 'm',  "get_mode",         ACTION(get_mode),       ARG_OUT, "Mode", "Passband" },
@@ -1923,15 +1927,17 @@ declare_proto_rig(set_freq)
 {
     freq_t freq;
     int retval;
+#if 0 // implement set_freq VFO later if it can be detected
     char *fmt = "%"PRIll"%c";
+#endif
 
     CHKSCN1ARG(sscanf(arg1, "%"SCNfreq, &freq));
     retval = rig_set_freq(rig, vfo, freq);
 
     if (retval == RIG_OK)
     {
-        fprintf(fout, "%s%c", rig_strvfo(vfo), resp_sep);
-        fprintf(fout, fmt, (int64_t)freq, resp_sep);
+        //fprintf(fout, "%s%c", rig_strvfo(vfo), resp_sep);
+        //fprintf(fout, fmt, (int64_t)freq, resp_sep);
 
     }
 
