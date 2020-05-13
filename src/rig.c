@@ -1274,6 +1274,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
         if (retcode != RIG_OK)
         {
+            rig_debug(RIG_DEBUG_ERR,"%s: set_vfo err %s\n", __func__, rigerror(retcode));
             return retcode;
         }
 
