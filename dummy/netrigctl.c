@@ -578,11 +578,15 @@ static int netrigctl_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
+#if 0 // implement set_freq VFO later if it can be detected
     ret = netrigctl_vfostr(rig, vfostr, sizeof(vfostr), vfo);
 
     if (ret != RIG_OK) { return ret; }
 
     len = sprintf(cmd, "F%s %"FREQFMT"\n", vfostr, freq);
+#else
+    len = sprintf(cmd, "F %"FREQFMT"\n", freq);
+#endif
 
     ret = netrigctl_transaction(rig, cmd, len, buf);
 
@@ -621,6 +625,7 @@ static int netrigctl_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     CHKSCN1ARG(num_sscanf(buf, "%"SCNfreq, freq));
 
+#if 0 // implement set_freq VFO later if it can be detected
     ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
 
     if (ret <= 0)
@@ -629,6 +634,7 @@ static int netrigctl_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
 
     *vfotmp = rig_parse_vfo(buf);
+#endif
 
     return RIG_OK;
 }
