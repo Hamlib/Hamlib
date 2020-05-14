@@ -3788,6 +3788,14 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     rs = &rig->state;
     priv = (struct icom_priv_data *) rs->priv;
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: satmode=%d, subvfo=%s\n", __func__, priv->satmode, rig_strvfo(priv->tx_vfo)); 
+    if (RIG_VFO_TX) {
+	    if (priv->satmode) vfo = RIG_VFO_SUB;
+	    else vfo = priv->tx_vfo;
+    }
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo is now %s\n", __func__, rig_strvfo(vfo));
+    if (priv->satmode && vfo == RIG_VFO_TX) vfo = RIG_VFO_SUB;
+
     if (priv->curr_vfo == RIG_VFO_NONE)
     {
         retval = icom_set_default_vfo(rig);
