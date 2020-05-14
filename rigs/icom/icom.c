@@ -3788,13 +3788,18 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     rs = &rig->state;
     priv = (struct icom_priv_data *) rs->priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: satmode=%d, subvfo=%s\n", __func__, priv->satmode, rig_strvfo(priv->tx_vfo)); 
-    if (RIG_VFO_TX) {
-	    if (priv->satmode) vfo = RIG_VFO_SUB;
-	    else vfo = priv->tx_vfo;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: satmode=%d, subvfo=%s\n", __func__,
+              priv->satmode, rig_strvfo(priv->tx_vfo));
+
+    if (RIG_VFO_TX)
+    {
+        if (priv->satmode) { vfo = RIG_VFO_SUB; }
+        else { vfo = priv->tx_vfo; }
     }
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo is now %s\n", __func__, rig_strvfo(vfo));
-    if (priv->satmode && vfo == RIG_VFO_TX) vfo = RIG_VFO_SUB;
+
+    if (priv->satmode && vfo == RIG_VFO_TX) { vfo = RIG_VFO_SUB; }
 
     if (priv->curr_vfo == RIG_VFO_NONE)
     {
@@ -4622,6 +4627,24 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         vfo = priv->curr_vfo;
     }
 
+    // This should automaticaly switch between satmode on/off based on the requested split vfo
+    if (tx_vfo == RIG_VFO_SUB && !priv->satmode)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: VFO_SUB and satmode is off so turning on\n",
+                  __func__);
+        rig_set_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, 1);
+        priv->satmode = 1;
+        priv->tx_vfo = RIG_VFO_SUB;
+    }
+    else if ((tx_vfo == RIG_VFO_B && priv->satmode) || (tx_vfo == RIG_VFO_A && priv->satmode))
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: VFO_B and satmode is on so turning off\n",
+                  __func__);
+        rig_set_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, 0);
+        priv->satmode = 0;
+        priv->tx_vfo = RIG_VFO_B;
+    }
+
     switch (split)
     {
     case RIG_SPLIT_OFF:
@@ -4689,15 +4712,15 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         }
         else if (VFO_HAS_MAIN_SUB_A_B_ONLY && (tx_vfo == RIG_VFO_MAIN
                                                || tx_vfo == RIG_VFO_SUB))
-        {
+        { // do we need another case for tx_vfo = A/B ?
             rig_debug(RIG_DEBUG_TRACE, "%s: vfo clause 3\n", __func__);
             // if we're asking for split in this case we split Main on A/B
-            priv->tx_vfo = RIG_VFO_B;
-            priv->rx_vfo = RIG_VFO_A;
+            priv->tx_vfo = RIG_VFO_SUB;
+            priv->rx_vfo = RIG_VFO_MAIN;
             rig_debug(RIG_DEBUG_TRACE,
                       "%s: tx=%s, rx=%s because tx_vfo=%s, changing tx_vfo to Main\n", __func__,
                       rig_strvfo(priv->tx_vfo), rig_strvfo(priv->rx_vfo), rig_strvfo(tx_vfo));
-            tx_vfo = RIG_VFO_B;
+            tx_vfo = RIG_VFO_SUB;
 
 #if 0 // is this needed for satmode?
 
