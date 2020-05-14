@@ -267,6 +267,7 @@ static int ic910_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     int retval;
     freq_t origfreq;
     vfo_t vfo_save;
+    struct icom_priv_data *priv = (struct icom_priv_data *) rig->state.priv;
 
     /* start off by reading the current VFO frequency */
     if ((retval = icom_get_freq(rig, RIG_VFO_CURR, &origfreq)) != RIG_OK) { return retval; }
@@ -306,6 +307,14 @@ static int ic910_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     else if (RIG_VFO_CURR == vfo)
     {
         *freq = origfreq;
+    }
+    else if (RIG_VFO_TX == vfo) {
+	    vfo = priv->tx_vfo;
+	    rig_debug(RIG_DEBUG_VERBOSE, "%s: VFO_TX asked for so vfo=%s\n", __func__, rig_strvfo(vfo));
+    }
+    else if (RIG_VFO_RX == vfo) {
+	    vfo = priv->rx_vfo;
+	    rig_debug(RIG_DEBUG_VERBOSE, "%s: VFO_RX asked for so vfo=%s\n", __func__, rig_strvfo(vfo));
     }
     else { retval = -RIG_EVFO; }
 
