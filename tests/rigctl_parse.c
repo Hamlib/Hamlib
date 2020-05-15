@@ -281,7 +281,9 @@ static struct test_table test_list[] =
     { 0x91, "get_ctcss_sql",    ACTION(get_ctcss_sql),  ARG_OUT, "CTCSS Sql" },
     { 0x92, "set_dcs_sql",      ACTION(set_dcs_sql),    ARG_IN, "DCS Sql" },
     { 0x93, "get_dcs_sql",      ACTION(get_dcs_sql),    ARG_OUT, "DCS Sql" },
-    { 'V',  "set_vfo",          ACTION(set_vfo),        ARG_IN  | ARG_NOVFO | ARG_OUT, "VFO" },
+    // 
+    //{ 'V',  "set_vfo",          ACTION(set_vfo),        ARG_IN  | ARG_NOVFO | ARG_OUT, "VFO" },
+    { 'V',  "set_vfo",          ACTION(set_vfo),        ARG_IN  | ARG_NOVFO, "VFO" },
     { 'v',  "get_vfo",          ACTION(get_vfo),        ARG_OUT, "VFO" },
     { 'T',  "set_ptt",          ACTION(set_ptt),        ARG_IN, "PTT" },
     { 't',  "get_ptt",          ACTION(get_ptt),        ARG_OUT, "PTT" },
@@ -2113,6 +2115,7 @@ declare_proto_rig(set_vfo)
     vfo = rig_parse_vfo(arg1);
     retval = rig_set_vfo(rig, vfo);
 
+#if 0 // see if we can make this dynamic
     if (retval == RIG_OK)
     {
         if ((interactive && prompt) || (interactive && !prompt && ext_resp))
@@ -2122,6 +2125,7 @@ declare_proto_rig(set_vfo)
 
         fprintf(fout, "%s%c", rig_strvfo(vfo), resp_sep);
     }
+#endif
 
     return retval;
 }

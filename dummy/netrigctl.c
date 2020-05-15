@@ -724,7 +724,7 @@ static int netrigctl_set_vfo(RIG *rig, vfo_t vfo)
     if (ret != RIG_OK) { return ret; }
 
     len = sprintf(cmd, "V%s %s\n", vfostr, rig_strvfo(vfo));
-
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd='%s'\n", __func__, cmd);
     ret = netrigctl_transaction(rig, cmd, len, buf);
 
     if (ret > 0)
