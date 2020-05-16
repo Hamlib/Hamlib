@@ -1981,12 +1981,14 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
                   __func__, rig_strvfo(vfo));
     }
 
-    /* This method works also in memory mode(RIG_VFO_MEM) */
-    if ((vfo == RIG_VFO_A || vfo == RIG_VFO_B) && !VFO_HAS_A_B)
+    if ((vfo == RIG_VFO_A || vfo == RIG_VFO_B) && !VFO_HAS_A_B && VFO_HAS_MAIN_SUB)
     {
+        // If we're being asked for A/B but we are a Main/Sub rig change it
+        vfo_t vfo_old = vfo;
+        vfo = vfo == RIG_VFO_A ? RIG_VFO_MAIN : RIG_VFO_SUB;
         rig_debug(RIG_DEBUG_ERR, "%s: Rig does not have VFO A/B?\n", __func__);
-        rig_debug(RIG_DEBUG_ERR, "%s: Mapping VFOA=Main, VFOB=Sub\n", __func__);
-        vfo = vfo == RIG_VFO_A ? RIG_VFO_A : RIG_VFO_B;
+        rig_debug(RIG_DEBUG_ERR, "%s: Mapping %s=%s\n", __func__, rig_strvfo(vfo_old),
+                  rig_strvfo(vfo));
     }
 
     if ((vfo == RIG_VFO_MAIN || vfo == RIG_VFO_SUB) && !VFO_HAS_MAIN_SUB)
