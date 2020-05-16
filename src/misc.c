@@ -1254,7 +1254,7 @@ void HAMLIB_API rig_no_restore_ai()
 }
 
 //! @cond Doxygen_Suppress
-int HAMLIB_API elapsed_ms(struct timespec *start, int option)
+double HAMLIB_API elapsed_ms(struct timespec *start, int option)
 {
     // If option then we are starting the timing, else we get elapsed
     struct timespec stop;
@@ -1289,8 +1289,8 @@ int HAMLIB_API elapsed_ms(struct timespec *start, int option)
         break;
 
     case ELAPSED_INVALIDATE:
-        start->tv_sec -= 3600 * 24 *
-                         365; // let's back off 1 year -- should expire most elapsed measurements
+        clock_gettime(CLOCK_REALTIME, start);
+        start->tv_sec -= 3600;
         break;
     }
 
