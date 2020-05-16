@@ -7103,6 +7103,7 @@ static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
     // only need to set vfo if it's changed
     else if (priv->curr_vfo != vfo)
     {
+        if (!(VFO_HAS_MAIN_SUB_A_B_ONLY && !priv->split_on && !priv->satmode && vfo == RIG_VFO_SUB && priv->curr_vfo == RIG_VFO_B)) {
         rig_debug(RIG_DEBUG_TRACE, "%s: setting new vfo=%s\n", __func__,
                   rig_strvfo(vfo));
         retval = rig_set_vfo(rig, vfo);
@@ -7113,6 +7114,7 @@ static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
         }
 
         priv->curr_vfo = vfo;
+	}
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: curr_vfo now=%s\n", __func__,
