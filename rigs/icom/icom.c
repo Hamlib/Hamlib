@@ -1964,13 +1964,20 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
     if (vfo == RIG_VFO_MAIN && VFO_HAS_A_B_ONLY)
     {
         vfo = RIG_VFO_A;
-        rig_debug(RIG_DEBUG_TRACE, "%s: Rig does not have MAIN/SUB so Main=%s\n",
+        rig_debug(RIG_DEBUG_TRACE,
+                  "%s: Rig does not have MAIN/SUB so Main changed to %s\n",
                   __func__, rig_strvfo(vfo));
     }
-    else if (vfo == RIG_VFO_SUB && VFO_HAS_A_B_ONLY)
+    else if ((vfo == RIG_VFO_SUB) && (VFO_HAS_A_B_ONLY
+                                      || (VFO_HAS_MAIN_SUB_A_B_ONLY && !priv->split_on && !priv->satmode)))
     {
+        // if rig doesn't have Main/Sub
+        // or if rig has both Main/Sub and A/B -- e.g. 9700
+        // and we dont' have split or satmode turned on
+        // then we dont' use Sub -- instead we use Main/VFOB
         vfo = RIG_VFO_B;
-        rig_debug(RIG_DEBUG_TRACE, "%s: Rig does not have MAIN/SUB so Sub=%s\n",
+        rig_debug(RIG_DEBUG_TRACE,
+                  "%s: Rig does not have MAIN/SUB so Sub changed to %s\n",
                   __func__, rig_strvfo(vfo));
     }
 
@@ -2015,6 +2022,12 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 
         // If split is on these rigs can only split on Main/VFOB
         if (VFO_HAS_MAIN_SUB_A_B_ONLY && priv->split_on) { icvfo = S_VFOB; }
+
+        // If not split or satmode then we must want VFOB
+        if (VFO_HAS_MAIN_SUB_A_B_ONLY && !priv->split_on && !priv->satmode) { icvfo = S_VFOB; }
+
+        rig_debug(RIG_DEBUG_TRACE, "%s: Sub asked for, ended up with vfo=%s\n",
+                  __func__, icvfo == S_SUB ? "Sub" : "VFOB");
 
         break;
 
@@ -4636,7 +4649,8 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         priv->satmode = 1;
         priv->tx_vfo = RIG_VFO_SUB;
     }
-    else if ((tx_vfo == RIG_VFO_B && priv->satmode) || (tx_vfo == RIG_VFO_A && priv->satmode))
+    else if ((tx_vfo == RIG_VFO_B && priv->satmode) || (tx_vfo == RIG_VFO_A
+             && priv->satmode))
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: VFO_B and satmode is on so turning off\n",
                   __func__);
@@ -4712,7 +4726,8 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         }
         else if (VFO_HAS_MAIN_SUB_A_B_ONLY && (tx_vfo == RIG_VFO_MAIN
                                                || tx_vfo == RIG_VFO_SUB))
-        { // do we need another case for tx_vfo = A/B ?
+        {
+            // do we need another case for tx_vfo = A/B ?
             rig_debug(RIG_DEBUG_TRACE, "%s: vfo clause 3\n", __func__);
             // if we're asking for split in this case we split Main on A/B
             priv->tx_vfo = RIG_VFO_SUB;
