@@ -3731,18 +3731,24 @@ int icom_get_split_vfos(const RIG *rig, vfo_t *rx_vfo, vfo_t *tx_vfo)
 
     if (VFO_HAS_A_B_ONLY)
     {
+	*rx_vfo = *tx_vfo = RIG_VFO_A;
+	if (priv->split_on) {
         *rx_vfo = RIG_VFO_A;
         *tx_vfo = RIG_VFO_B;  /* rig doesn't enforce this but
                    convention is needed here */
-        rig_debug(RIG_DEBUG_TRACE, "%s: VFO_HAS_A_B_ONLY, rx=%s, tx=%s\n", __func__,
-                  rig_strvfo(*rx_vfo), rig_strvfo(*tx_vfo));
+	 }
+        rig_debug(RIG_DEBUG_TRACE, "%s: VFO_HAS_A_B_ONLY, split=%d, rx=%s, tx=%s\n", __func__,
+                  priv->split_on, rig_strvfo(*rx_vfo), rig_strvfo(*tx_vfo));
     }
     else if (VFO_HAS_MAIN_SUB_ONLY)
     {
+	*rx_vfo = *tx_vfo = RIG_VFO_MAIN;
+	if (priv->split_on) {
         *rx_vfo = RIG_VFO_MAIN;
         *tx_vfo = RIG_VFO_SUB;
-        rig_debug(RIG_DEBUG_TRACE, "%s: VFO_HAS_MAIN_SUB_ONLY, rx=%s, tx=%s\n",
-                  __func__, rig_strvfo(*rx_vfo), rig_strvfo(*tx_vfo));
+	}
+        rig_debug(RIG_DEBUG_TRACE, "%s: VFO_HAS_MAIN_SUB_ONLY, split=%d, rx=%s, tx=%s\n",
+                  __func__, priv->split_on, rig_strvfo(*rx_vfo), rig_strvfo(*tx_vfo));
     }
     else if (VFO_HAS_MAIN_SUB_A_B_ONLY)
     {
