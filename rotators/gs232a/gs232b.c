@@ -143,7 +143,7 @@ transaction_write:
     // If asked for we will check for connection
     // we don't expect a reply...just a prompt return
     // Seems some GS232B's only echo the CR
-    if ((strncmp(data, "?>", 2) != 0) && data[0] != 0x0d)
+    if (no_reply && (strncmp(data, "?>", 2) != 0) && data[0] != 0x0d)
     {
         rig_debug(RIG_DEBUG_VERBOSE,
                   "%s: Expected '?>' but got '%s' from cmd '%s'\n",
@@ -317,7 +317,7 @@ const struct rot_caps gs232b_rot_caps =
     ROT_MODEL(ROT_MODEL_GS232B),
     .model_name = "GS-232B",
     .mfg_name = "Yaesu",
-    .version = "20200424",
+    .version = "20200517",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rot_type = ROT_TYPE_OTHER,
