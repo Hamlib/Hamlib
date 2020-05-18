@@ -1343,9 +1343,9 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if (cache_ms < rig->state.cache.timeout_ms && rig->state.cache.vfo_freq == vfo)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: %s cache hit age=%dms, freq=%g\n", __func__,
-                  rig_strvfo(vfo), cache_ms, *freq);
         *freq = rig->state.cache.freq;
+        rig_debug(RIG_DEBUG_TRACE, "%s: %s cache hit age=%dms, freq=%.0f\n", __func__,
+                  rig_strvfo(vfo), cache_ms, *freq);
         return RIG_OK;
     }
     else
@@ -1421,7 +1421,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 
     cache_ms = elapsed_ms(&(rig->state.cache.time_freq), ELAPSED_SET);
-    rig_debug(RIG_DEBUG_TRACE, "%s: cache reset age=%dms, vfo=%s, freq=%g\n",
+    rig_debug(RIG_DEBUG_TRACE, "%s: cache reset age=%dms, vfo=%s, freq=%.0f\n",
               __func__, cache_ms, rig_strvfo(vfo), *freq);
     rig->state.cache.freq = *freq;
     rig->state.cache.vfo_freq = vfo;
