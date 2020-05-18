@@ -53,7 +53,7 @@
 
 static const struct icmarine_priv_caps ICM803_priv_caps =
 {
-    .default_remote_id = 0x20,  /* default address */
+    .default_remote_id = 20,  /* default address */
 };
 
 
