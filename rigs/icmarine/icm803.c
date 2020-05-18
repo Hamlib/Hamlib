@@ -51,7 +51,7 @@
 #define ICM803_STR_CAL { 2, {{ 0, -60}, { 8, 60}} }
 
 
-static const struct icmarine_priv_caps ICM803_priv_caps =
+static const struct icmarine_priv_caps icm803_priv_caps =
 {
     .default_remote_id = 20,  /* default address */
 };
@@ -155,7 +155,7 @@ const struct rig_caps icm803_caps =
     .set_conf =  icmarine_set_conf,
     .get_conf =  icmarine_get_conf,
 
-    .priv = (void *)& ICM803_priv_caps,
+    .priv = (void *)& icm803_priv_caps,
     .rig_init =   icmarine_init,
     .rig_cleanup =   icmarine_cleanup,
     .rig_open =  NULL,
