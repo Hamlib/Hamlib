@@ -82,7 +82,7 @@ M: Michael Smith, KE4RJQ
 [icom]
 M: Stephane Fillod, F8CFE
 
-[icmarine: icom803]
+[icmarine: icm803]
 M: Blaine Kubesh, K5KUB
 
 [jrc]
@@ -315,7 +315,7 @@ E-mail addresses:
 
 Frank Singleton, VK3FCS, <vk3fcs (at) ix.netcom.com>
 Stephane Fillod, F8CFE, <fillods (at) users.sourceforge.net>
-Pascal Brisset <pab (at) users.sourceforge.net>
+Pascal Brisset <pab (at) users.sourceforge.net
 Nate Bargmann, N0NB, <n0nb (at) arrl.net>
 Chris Karpinsky, AA1VL, <aa1vl (at) arrl.net>
 Joop Stakenborg, PG4I, <pg4i (at) amsat.org>
@@ -364,3 +364,4 @@ Alexander Sack <pisymbol (at) gmail.com>
 Nirgal Vourgère <contact_hamlib (at) nirgal.com>
 Andrew Errington <a.errington (at) lancaster.ac.uk>
 Kārlis Millers YL3ALK <yl3alk (at) lrg.lv>
+Blaine Kubesh <k5kub (at) kubesh.org>
