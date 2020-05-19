@@ -1,8 +1,6 @@
 /*
  *  Hamlib ICOM Marine backend - model IC-M803 (derived from IC-M802)
- *     - The Remote-ID changes to 20 with the IC-M803. 
- *  IC-M802 Copyright (c) 2014-2015 by Stephane Fillod
- *  IC-M803 Copyright (c) 2020 by Blaine Kubesh  (k5kub)
+ *  Modifications by Blaine Kubesh  (k5kub)
  *
  *
  *   This library is free software; you can redistribute it and/or
