@@ -842,6 +842,7 @@ DECLARE_INITRIG_BACKEND(icmarine)
     rig_register(&icm700pro_caps);
     rig_register(&icm710_caps);
     rig_register(&icm802_caps);
+    rig_register(&icm803_caps);
 
     return RIG_OK;
 }
