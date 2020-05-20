@@ -690,6 +690,8 @@ int icom_get_usb_echo_off(RIG *rig)
 
     retval = icom_transaction(rig, C_RD_FREQ, -1, NULL, 0, ackbuf, &ack_len);
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: ack_len=%d\n", __func__, ack_len);
+
     if (retval == RIG_OK)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo on detected\n",
@@ -4666,6 +4668,13 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         priv->satmode = 0;
         priv->tx_vfo = RIG_VFO_B;
     }
+    else if (tx_vfo == RIG_VFO_SUB && priv->satmode && split==1)
+    {
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: rig in satmode so setting split on is redundant and will create error...returning OK\n", __func__);
+	// we'll return OK anyways as this is a split mode
+	// and gpredict wants to see the OK response here
+	return RIG_OK;  // we'll return OK anyways as this is a split mode
+    }
 
     switch (split)
     {
@@ -4741,7 +4750,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
             priv->tx_vfo = RIG_VFO_SUB;
             priv->rx_vfo = RIG_VFO_MAIN;
             rig_debug(RIG_DEBUG_TRACE,
-                      "%s: tx=%s, rx=%s because tx_vfo=%s, changing tx_vfo to Main\n", __func__,
+                      "%s: tx=%s, rx=%s because tx_vfo=%s\n", __func__,
                       rig_strvfo(priv->tx_vfo), rig_strvfo(priv->rx_vfo), rig_strvfo(tx_vfo));
             tx_vfo = RIG_VFO_SUB;
 
