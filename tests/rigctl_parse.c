@@ -1968,12 +1968,14 @@ declare_proto_rig(get_freq)
 
     fprintf(fout, fmt, (int64_t)freq, resp_sep);
 
+#if 0 // this extra VFO being returned was confusing Log4OM
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
         fprintf(fout, "%s: ", cmd->arg2);    /* i.e. "Frequency" */
     }
 
     fprintf(fout, "%s%c", rig_strvfo(vfo), resp_sep);
+#endif
 
     return status;
 }
