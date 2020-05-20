@@ -60,9 +60,9 @@ version included in your distribution.
 Developing with Hamlib API
 --------------------------
 
-C language API documentation is at:
+API documentation is at:
 
-        http://www.hamlib.org/index.php?title=Documentation
+        https://github.com/Hamlib/Hamlib/wiki/Documentation
 
 Take a look at tests/README for more info on simple programming examples and
 test programs.
