@@ -1801,6 +1801,17 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
         return -RIG_EINVAL;
     }
 
+    // make sure we are asking for a VFO that the rig actually has
+    if ((vfo == RIG_VFO_A || vfo == RIG_VFO_B) && !VFO_HAS_A_B) {
+	rig_debug(RIG_DEBUG_ERR, "%s: rig does not have %s\n", __func__, rig_strvfo(vfo));
+	return -RIG_EINVAL;
+    }
+    if ((vfo == RIG_VFO_MAIN || vfo == RIG_VFO_SUB) && !VFO_HAS_MAIN_SUB)
+    {
+	rig_debug(RIG_DEBUG_ERR, "%s: rig does not have %s\n", __func__, rig_strvfo(vfo));
+	return -RIG_EINVAL;
+    }
+
     caps = rig->caps;
 
     if (caps->set_vfo == NULL)
