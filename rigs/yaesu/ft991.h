@@ -153,4 +153,12 @@ static int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
 static int ft991_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
 static int ft991_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq);
 static void debug_ft991info_data(const ft991info *rdata);
+static int ft991_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone);
+static int ft991_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone);
+static int ft991_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code);
+static int ft991_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code);
+static int ft991_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone);
+static int ft991_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone);
+static int ft991_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code);
+static int ft991_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code);
 #endif /* _FT991_H */
