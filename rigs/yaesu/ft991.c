@@ -34,6 +34,7 @@
 #include "config.h"
 #endif
 
+#include <stdlib.h>
 #include <string.h>
 #include "hamlib/rig.h"
 #include "bandplan.h"
@@ -55,7 +56,7 @@ const struct rig_caps ft991_caps =
     RIG_MODEL(RIG_MODEL_FT991),
     .model_name =         "FT-991",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".0",
+    .version =            NEWCAT_VER ".1",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -83,7 +84,7 @@ const struct rig_caps ft991_caps =
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 50 } },
     },
     .ctcss_list =         common_ctcss_list,
-    .dcs_list =           NULL,
+    .dcs_list =           common_dcs_list,
     .preamp =             { 10, 20, RIG_DBLST_END, }, /* TBC */
     .attenuator =         { 6, 12, 18, RIG_DBLST_END, },
     .max_rit =            Hz(9999),
@@ -213,10 +214,14 @@ const struct rig_caps ft991_caps =
     .get_rptr_shift =     newcat_get_rptr_shift,
     .set_rptr_offs =      newcat_set_rptr_offs,  /*ve9gj */
     .get_rptr_offs =      newcat_get_rptr_offs,  /*ve9gj */
-    .set_ctcss_tone =     newcat_set_ctcss_tone,
-    .get_ctcss_tone =     newcat_get_ctcss_tone,
-    .set_ctcss_sql  =     newcat_set_ctcss_sql,
-    .get_ctcss_sql  =     newcat_get_ctcss_sql,
+    .set_ctcss_tone =     ft991_set_ctcss_tone,
+    .get_ctcss_tone =     ft991_get_ctcss_tone,
+    .set_dcs_code =       ft991_set_dcs_code,
+    .get_dcs_code =       ft991_get_dcs_code,
+    .set_ctcss_sql  =     ft991_set_ctcss_sql,
+    .get_ctcss_sql  =     ft991_get_ctcss_sql,
+    .set_dcs_sql =        ft991_set_dcs_sql,
+    .get_dcs_sql =        ft991_get_dcs_sql,
     .set_powerstat =      newcat_set_powerstat,
     .get_powerstat =      newcat_get_powerstat,
     .set_ts =             newcat_set_ts,
@@ -470,7 +475,8 @@ int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
 
     state = &rig->state;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = %s\n", __func__, rig_strvfo(vfo));
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = %s\n", __func__,
+              rig_strvfo(vfo));
     rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = %s\n", __func__,
               rig_strrmode(tx_mode));
     rig_debug(RIG_DEBUG_TRACE, "%s: passed width = %d Hz\n", __func__,
@@ -527,5 +533,470 @@ int ft991_init(RIG *rig)
     if (ret != RIG_OK) { return ret; }
 
     rig->state.current_vfo = RIG_VFO_A;
+    return RIG_OK;
+}
+
+static int ft991_find_current_vfo(RIG *rig, vfo_t *vfo, tone_t *enc_dec_mode,
+                                  rmode_t *mode)
+{
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    ft991info *info = (ft991info *)priv->ret_data;
+    int err;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
+
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "IF;");
+
+    /* Get info */
+    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    {
+        return err;
+    }
+
+    debug_ft991info_data(info);
+
+    if (enc_dec_mode != NULL)
+    {
+        *enc_dec_mode = info->tone_mode;
+    }
+
+    if (mode != NULL)
+    {
+        *mode = newcat_rmode(info->mode);
+    }
+
+    switch (info->vfo_memory)
+    {
+    case '1':    // Memory
+    case '2':    // Memory Tune
+    case '3':    // Quick Memory
+    case '4':    // Quick Memory Tune
+        *vfo = RIG_VFO_MEM;
+        break;
+
+    case '0':    // VFO
+        *vfo = RIG_VFO_A;
+        break;
+
+    default:
+        rig_debug(RIG_DEBUG_BUG, "%s: unexpected vfo returned 0x%X\n",
+                  __func__, info->vfo_memory);
+        return -RIG_EINTERNAL;
+    }
+
+    return RIG_OK;
+}
+
+static int ft991_get_enabled_ctcss_dcs_mode(RIG *rig)
+{
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    int err;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
+
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CT0;");
+
+    /* Get enabled mode */
+    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    {
+        return err;
+    }
+
+    return priv->ret_data[3];
+}
+
+static int ft991_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
+{
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    int i;
+    ncboolean tone_match;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
+
+    for (i = 0, tone_match = FALSE; rig->caps->ctcss_list[i] != 0; i++)
+    {
+        if (tone == rig->caps->ctcss_list[i])
+        {
+            tone_match = TRUE;
+            break;
+        }
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: tone = %u, tone_match = %d, i = %d\n",
+              __func__, tone, tone_match, i);
+
+    if (tone_match == FALSE && tone != 0)
+    {
+        return -RIG_EINVAL;
+    }
+
+    if (tone == 0)     /* turn off ctcss */
+    {
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CT00;");
+    }
+    else
+    {
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CN00%3.3d;CT02;", i);
+    }
+
+    return newcat_set_cmd(rig);
+}
+
+static int ft991_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
+{
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    int ret;
+    int t;
+    int ret_data_len;
+    tone_t enc_dec_mode;
+    rmode_t rmode;
+    char *retlvl;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s called with vfo %s\n",
+              __func__, rig_strvfo(vfo));
+
+    *tone = 0;
+
+    ret = ft991_find_current_vfo(rig, &vfo, &enc_dec_mode, &rmode);
+
+    if (ret < 0)
+    {
+        return ret;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s current vfo is %s\n",
+              __func__, rig_strvfo(vfo));
+
+    if (rmode != RIG_MODE_FM && rmode != RIG_MODE_FMN && rmode != RIG_MODE_C4FM)
+    {
+        return RIG_OK;
+    }
+
+    if ((enc_dec_mode == '0') ||      // CTCSS and DCS Disabled
+            (enc_dec_mode == '3') ||  // DCS Encode and Decode Enabled
+            (enc_dec_mode == '4'))    // DCS Encode only
+    {
+        return RIG_OK;                // Any of the above not CTCSS return 0
+    }
+
+    /* Get CTCSS TONE */
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CN00;");
+
+    if (RIG_OK != (ret = newcat_get_cmd(rig)))
+    {
+        return ret;
+    }
+
+    ret_data_len = strlen(priv->ret_data);
+
+    /* skip command */
+    retlvl = priv->ret_data + strlen(priv->cmd_str) - 1;
+    /* chop term */
+    priv->ret_data[ret_data_len - 1] = '\0';
+
+    t = atoi(retlvl);   /*  tone index */
+
+    rig_debug(RIG_DEBUG_TRACE, "%s ctcss code %d\n", __func__, t);
+
+    if (t < 0 || t > 49)
+    {
+        return -RIG_EINVAL;
+    }
+
+    *tone = rig->caps->ctcss_list[t];
+
+    return RIG_OK;
+}
+
+static int ft991_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
+{
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    int i;
+    int err;
+    ncboolean tone_match;
+    rmode_t rmode;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
+
+    err = ft991_find_current_vfo(rig, &vfo, NULL, &rmode);
+
+    if (err != RIG_OK)
+    {
+        return err;
+    }
+
+    if (rmode != RIG_MODE_FM && rmode != RIG_MODE_FMN && rmode != RIG_MODE_C4FM)
+    {
+        return -RIG_EINVAL;  // Invalid mode for setting ctcss
+    }
+
+    if (tone == 0)
+    {
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CT00;");
+    }
+    else
+    {
+        for (i = 0, tone_match = FALSE; rig->caps->ctcss_list[i] != 0; i++)
+        {
+            if (tone == rig->caps->ctcss_list[i])
+            {
+                tone_match = TRUE;
+                break;
+            }
+        }
+
+        if (tone_match == FALSE)
+        {
+            return -RIG_EINVAL;   // Tone not on the list
+        }
+
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CN0%3.3d;CT01;", i);
+    }
+
+    return newcat_set_cmd(rig);
+}
+
+static int ft991_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
+{
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    int ret;
+    int t;
+    int ret_data_len;
+    char *retlvl;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
+
+    *tone = 0;
+
+    ret = ft991_get_enabled_ctcss_dcs_mode(rig);
+
+    if (ret < 0)
+    {
+        return ret;
+    }
+
+    if (ret != '1') // If not CTCSS Encode and Decode return tone of zero.
+    {
+        return RIG_OK;
+    }
+
+    /* Get CTCSS TONE */
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CN00;");
+
+    if (RIG_OK != (ret = newcat_get_cmd(rig)))
+    {
+        return ret;
+    }
+
+    ret_data_len = strlen(priv->ret_data);
+
+    /* skip command */
+    retlvl = priv->ret_data + strlen(priv->cmd_str) - 1;
+    /* chop term */
+    priv->ret_data[ret_data_len - 1] = '\0';
+
+    t = atoi(retlvl);   /*  tone index */
+
+    rig_debug(RIG_DEBUG_TRACE, "%s ctcss code %d\n", __func__, t);
+
+    if (t < 0 || t > 49)
+    {
+        return -RIG_EINVAL;
+    }
+
+    *tone = rig->caps->ctcss_list[t];
+
+    return RIG_OK;
+}
+
+static int ft991_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
+{
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    int err;
+    int t;
+    tone_t enc_dec_mode;
+    rmode_t rmode;
+    int ret_data_len;
+    char *retlvl;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
+
+    *code = 0;
+
+    err = ft991_find_current_vfo(rig, &vfo, &enc_dec_mode, &rmode);
+
+    if (err < 0)
+    {
+        return err;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s current vfo is %s\n",
+              __func__, rig_strvfo(vfo));
+
+    if (rmode != RIG_MODE_FM && rmode != RIG_MODE_FMN && rmode != RIG_MODE_C4FM)
+    {
+        return RIG_OK;
+    }
+
+    if ((enc_dec_mode == '0') ||     // Encode off
+            (enc_dec_mode == '1') || // CTCSS Encode and Decode
+            (enc_dec_mode == '2'))   // CTCSS Encode Only
+    {
+        return RIG_OK;               // Any of the above not DCS return 0
+    }
+
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CN01;");
+
+    /* Get DCS code */
+    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    {
+        return err;
+    }
+
+    ret_data_len = strlen(priv->ret_data);
+
+    /* skip command */
+    retlvl = priv->ret_data + strlen(priv->cmd_str) - 1;
+    /* chop term */
+    priv->ret_data[ret_data_len - 1] = '\0';
+
+    t = atoi(retlvl);   /*  code index */
+
+    if (t < 0 || t > 103)
+    {
+        return -RIG_EINVAL;
+    }
+
+    *code = rig->caps->dcs_list[t];
+
+    rig_debug(RIG_DEBUG_TRACE, "%s dcs code %d\n", __func__, *code);
+
+    return RIG_OK;
+}
+
+static int ft991_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
+{
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    int i;
+    ncboolean code_match;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
+
+    for (i = 0, code_match = FALSE; rig->caps->dcs_list[i] != 0; i++)
+    {
+        if (code == rig->caps->dcs_list[i])
+        {
+            code_match = TRUE;
+            break;
+        }
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: code = %u, code_match = %d, i = %d\n",
+              __func__, code, code_match, i);
+
+    if (code_match == FALSE && code != 0)
+    {
+        return -RIG_EINVAL;
+    }
+
+    if (code == 0)     /* turn off dcs */
+    {
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CT00;");
+    }
+    else
+    {
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CN01%3.3d;CT04;", i);
+    }
+
+    return newcat_set_cmd(rig);
+}
+
+static int ft991_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
+{
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    int i;
+    ncboolean code_match;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
+
+    for (i = 0, code_match = FALSE; rig->caps->dcs_list[i] != 0; i++)
+    {
+        if (code == rig->caps->dcs_list[i])
+        {
+            code_match = TRUE;
+            break;
+        }
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: code = %u, code_match = %d, i = %d\n",
+              __func__, code, code_match, i);
+
+    if (code_match == FALSE && code != 0)
+    {
+        return -RIG_EINVAL;
+    }
+
+    if (code == 0)     /* turn off dcs */
+    {
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CT00;");
+    }
+    else
+    {
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CN01%3.3d;CT03;", i);
+    }
+
+    return newcat_set_cmd(rig);
+}
+
+static int ft991_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
+{
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    int codeindex;
+    int ret;
+    int ret_data_len;
+    char *retlvl;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
+
+    *code = 0;
+
+    ret = ft991_get_enabled_ctcss_dcs_mode(rig);
+
+    if (ret < 0)
+    {
+        return ret;
+    }
+
+    if (ret != '3')
+    {
+        return RIG_OK;   // If not DCS Encode and Decode return zero.
+    }
+
+    /* Get DCS CODE */
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CN01;");
+
+    if (RIG_OK != (ret = newcat_get_cmd(rig)))
+    {
+        return ret;
+    }
+
+    ret_data_len = strlen(priv->ret_data);
+
+    /* skip command */
+    retlvl = priv->ret_data + strlen(priv->cmd_str) - 1;
+    /* chop term */
+    priv->ret_data[ret_data_len - 1] = '\0';
+
+    codeindex = atoi(retlvl);   /*  code index */
+
+    rig_debug(RIG_DEBUG_TRACE, "%s dcs code %d\n", __func__, codeindex);
+
+    if (codeindex < 0 || codeindex > 103)
+    {
+        return -RIG_EINVAL;
+    }
+
+    *code = rig->caps->dcs_list[codeindex];
+
     return RIG_OK;
 }
