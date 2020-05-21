@@ -471,7 +471,20 @@ typedef unsigned int vfo_t;
 #define RIG_TARGETABLE_FUNC (1<<4)
 #define RIG_TARGETABLE_ALL  0x7fffffff
 //! @endcond
-
+//
+//
+// Newer Icoms like the 9700 and 910 have VFOA/B on both Main & Sub
+// Compared to older rigs which have one or the other
+// So we need to distinguish between them
+//! @cond Doxygen_Suppress
+#define VFO_HAS_A_B ((rig->state.vfo_list & (RIG_VFO_A|RIG_VFO_B)) == (RIG_VFO_A|RIG_VFO_B))
+#define VFO_HAS_MAIN_SUB ((rig->state.vfo_list & (RIG_VFO_MAIN|RIG_VFO_SUB)) == (RIG_VFO_MAIN|RIG_VFO_SUB))
+#define VFO_HAS_MAIN_SUB_ONLY ((!VFO_HAS_A_B) & VFO_HAS_MAIN_SUB)
+#define VFO_HAS_MAIN_SUB_A_B_ONLY (VFO_HAS_A_B & VFO_HAS_MAIN_SUB)
+#define VFO_HAS_A_B_ONLY (VFO_HAS_A_B & (!VFO_HAS_MAIN_SUB))
+#define VFO_DUAL (RIG_VFO_MAIN_A|RIG_VFO_MAIN_B|RIG_VFO_SUB_A|RIG_VFO_SUB_B)
+#define VFO_HAS_DUAL ((rig->state.vfo_list & VFO_DUAL == VFO_DUAL)
+//! @endcond
 
 /**
  * \brief Macro for bandpass to be set to normal
@@ -2630,7 +2643,7 @@ rig_need_debug HAMLIB_PARAMS((enum rig_debug_level_e debug_level));
 #ifndef __cplusplus
 #ifdef __GNUC__
 // doing the debug macro with a dummy sprintf allows gcc to check the format string
-#define rig_debug(debug_level,fmt,...) { char xxxbuf[16384]="";snprintf(xxxbuf,sizeof(xxxbuf),fmt,__VA_ARGS__);rig_debug(debug_level,fmt,##__VA_ARGS__); }
+#define rig_debug(debug_level,fmt,...) { char xxxbuf[756]="";snprintf(xxxbuf,sizeof(xxxbuf),fmt,__VA_ARGS__);rig_debug(debug_level,fmt,##__VA_ARGS__); }
 #endif
 #endif
 extern HAMLIB_EXPORT(void)

@@ -44,17 +44,6 @@
 #include "icom_defs.h"
 #include "frame.h"
 
-// Newer Icoms like the 9700 and 910 have VFOA/B on both Main & Sub
-// Compared to older rigs which have one or the other
-// So we need to distinguish between them
-#define VFO_HAS_A_B ((rig->state.vfo_list & (RIG_VFO_A|RIG_VFO_B)) == (RIG_VFO_A|RIG_VFO_B))
-#define VFO_HAS_MAIN_SUB ((rig->state.vfo_list & (RIG_VFO_MAIN|RIG_VFO_SUB)) == (RIG_VFO_MAIN|RIG_VFO_SUB))
-#define VFO_HAS_MAIN_SUB_ONLY ((!VFO_HAS_A_B) & VFO_HAS_MAIN_SUB)
-#define VFO_HAS_MAIN_SUB_A_B_ONLY (VFO_HAS_A_B & VFO_HAS_MAIN_SUB)
-#define VFO_HAS_A_B_ONLY (VFO_HAS_A_B & (!VFO_HAS_MAIN_SUB))
-#define VFO_DUAL (RIG_VFO_MAIN_A|RIG_VFO_MAIN_B|RIG_VFO_SUB_A|RIG_VFO_SUB_B)
-#define VFO_HAS_DUAL ((rig->state.vfo_list & VFO_DUAL == VFO_DUAL)
-
 static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo);
 
 const cal_table_float_t icom_default_swr_cal =
@@ -1999,7 +1988,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
                   __func__);
         return -RIG_EINVAL;
     }
-
+rig_debug(RIG_DEBUG_TRACE,"%s: debug#1\n", __func__);
     if (vfo != priv->curr_vfo)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: VFO changing from %s to %s\n", __func__,
@@ -2007,6 +1996,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
         priv->curr_freq = 0; // reset curr_freq so set_freq works 1st time
     }
 
+rig_debug(RIG_DEBUG_TRACE,"%s: debug#2\n", __func__);
     switch (vfo)
     {
     case RIG_VFO_A:
@@ -2130,8 +2120,10 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
         return -RIG_EINVAL;
     }
 
+rig_debug(RIG_DEBUG_TRACE,"%s: debug#3\n", __func__);
     retval = icom_transaction(rig, C_SET_VFO, icvfo, NULL, 0,
                               ackbuf, &ack_len);
+rig_debug(RIG_DEBUG_TRACE,"%s: debug#4\n", __func__);
 
     if (retval != RIG_OK)
     {
@@ -2147,6 +2139,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 
     priv->curr_vfo = vfo;
     rig->state.current_vfo = vfo;
+rig_debug(RIG_DEBUG_TRACE,"%s: debug#5\n", __func__);
     return RIG_OK;
 }
 
