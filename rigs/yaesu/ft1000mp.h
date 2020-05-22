@@ -25,7 +25,7 @@
 #ifndef _FT1000MP_H
 #define _FT1000MP_H 1
 
-#define FT1000MP_STATUS_FLAGS_LENGTH      6          /* 0xfa return size */
+#define FT1000MP_STATUS_FLAGS_LENGTH      5          /* 0xfa return size */
 #define FT1000MP_STATUS_UPDATE_LENGTH         16         /* 0x10 U = 02 return size */
 
 #define FT1000MP_PACING_INTERVAL                5
