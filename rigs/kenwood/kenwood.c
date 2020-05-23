@@ -4320,6 +4320,7 @@ DECLARE_INITRIG_BACKEND(kenwood)
     rig_register(&k3s_caps);
     rig_register(&kx2_caps);
     rig_register(&kx3_caps);
+    rig_register(&k4_caps);
     rig_register(&xg3_caps);
 
     rig_register(&ts440_caps);
