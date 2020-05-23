@@ -226,6 +226,7 @@ extern const struct rig_caps k3_caps;
 extern const struct rig_caps k3s_caps;
 extern const struct rig_caps kx2_caps;
 extern const struct rig_caps kx3_caps;
+extern const struct rig_caps k4_caps;
 extern const struct rig_caps xg3_caps;
 extern const struct rig_caps trc80_caps;
 
