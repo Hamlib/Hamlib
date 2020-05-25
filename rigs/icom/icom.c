@@ -757,7 +757,7 @@ icom_rig_open(RIG *rig)
     }
 
     retval = rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
-    priv->satmode = satmode;
+    rig->state.cache.satmode = satmode;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: satmode=%d\n", __func__, satmode);
 
     // RIG_OK return means this rig has satmode capabiltiy and Main/Sub VFOs
@@ -1159,7 +1159,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
             vfo = RIG_VFO_A;
 
             if (priv->split_on) { vfo = RIG_VFO_B; }
-            else if (priv->satmode) { vfo = RIG_VFO_SUB; }
+            else if (rig->state.cache.satmode) { vfo = RIG_VFO_SUB; }
         }
 
         rig_debug(RIG_DEBUG_TRACE, "%s: VFO_TX requested, new vfo=%s\n", __func__,
@@ -1960,7 +1960,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
                   __func__, rig_strvfo(vfo));
     }
     else if ((vfo == RIG_VFO_SUB) && (VFO_HAS_A_B_ONLY
-                                      || (VFO_HAS_MAIN_SUB_A_B_ONLY && !priv->split_on && !priv->satmode)))
+                                      || (VFO_HAS_MAIN_SUB_A_B_ONLY && !priv->split_on && !rig->state.cache.satmode)))
     {
         // if rig doesn't have Main/Sub
         // or if rig has both Main/Sub and A/B -- e.g. 9700
@@ -1970,6 +1970,13 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
         rig_debug(RIG_DEBUG_TRACE,
                   "%s: Rig does not have MAIN/SUB so Sub changed to %s\n",
                   __func__, rig_strvfo(vfo));
+    }
+    else if (vfo == RIG_VFO_TX)
+    {
+        vfo = RIG_VFO_A;
+        if (VFO_HAS_A_B_ONLY && rig->state.cache.satmode) vfo = RIG_VFO_B;
+        else if (VFO_HAS_MAIN_SUB_ONLY) vfo = RIG_VFO_SUB;
+        else if (VFO_HAS_MAIN_SUB_A_B_ONLY && rig->state.cache.satmode) vfo = RIG_VFO_SUB;
     }
 
     if ((vfo == RIG_VFO_A || vfo == RIG_VFO_B) && !VFO_HAS_A_B && VFO_HAS_MAIN_SUB)
@@ -2018,7 +2025,7 @@ rig_debug(RIG_DEBUG_TRACE,"%s: debug#2\n", __func__);
         if (VFO_HAS_MAIN_SUB_A_B_ONLY && priv->split_on) { icvfo = S_VFOB; }
 
         // If not split or satmode then we must want VFOB
-        if (VFO_HAS_MAIN_SUB_A_B_ONLY && !priv->split_on && !priv->satmode) { icvfo = S_VFOB; }
+        if (VFO_HAS_MAIN_SUB_A_B_ONLY && !priv->split_on && !rig->state.cache.satmode) { icvfo = S_VFOB; }
 
         rig_debug(RIG_DEBUG_TRACE, "%s: Sub asked for, ended up with vfo=%s\n",
                   __func__, icvfo == S_SUB ? "Sub" : "VFOB");
@@ -3713,7 +3720,7 @@ int icom_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
 /*
  * Helper function to go back and forth split VFO
  */
-int icom_get_split_vfos(const RIG *rig, vfo_t *rx_vfo, vfo_t *tx_vfo)
+int icom_get_split_vfos(RIG *rig, vfo_t *rx_vfo, vfo_t *tx_vfo)
 {
     struct icom_priv_data *priv;
     struct rig_state *rs;
@@ -3751,7 +3758,7 @@ int icom_get_split_vfos(const RIG *rig, vfo_t *rx_vfo, vfo_t *tx_vfo)
         // e.g. IC9700 split on Main/Sub does not work
         // only Main VFOA/B and SubRx/MainTx split works
         rig_get_func((RIG *)rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
-        priv->satmode = satmode;
+        rig->state.cache.satmode = satmode;
 
         // don't care about retval here...only care about satmode=1
         if (satmode)
@@ -3805,17 +3812,17 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     priv = (struct icom_priv_data *) rs->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: satmode=%d, subvfo=%s\n", __func__,
-              priv->satmode, rig_strvfo(priv->tx_vfo));
+              rig->state.cache.satmode, rig_strvfo(priv->tx_vfo));
 
     if (RIG_VFO_TX)
     {
-        if (priv->satmode) { vfo = RIG_VFO_SUB; }
+        if (rig->state.cache.satmode) { vfo = RIG_VFO_SUB; }
         else { vfo = priv->tx_vfo; }
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo is now %s\n", __func__, rig_strvfo(vfo));
 
-    if (priv->satmode && vfo == RIG_VFO_TX) { vfo = RIG_VFO_SUB; }
+    if (rig->state.cache.satmode && vfo == RIG_VFO_TX) { vfo = RIG_VFO_SUB; }
 
     if (priv->curr_vfo == RIG_VFO_NONE)
     {
@@ -3845,7 +3852,7 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
         int satmode = 0;
         // retval not important here...only satmode=1 means anything
         rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
-        priv->satmode = satmode;
+        rig->state.cache.satmode = satmode;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: satmode=%d\n", __func__, satmode);
 
         if (satmode == 0) // only worth trying if not in satmode
@@ -4040,7 +4047,7 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
         int satmode = 0;
         // don't care about the retval here..only satmode=1 is important
         rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
-        priv->satmode = satmode;
+        rig->state.cache.satmode = satmode;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: satmode=%d\n", __func__, satmode);
 
         if (satmode == 0) // only worth trying if not in satmode
@@ -4644,24 +4651,24 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     }
 
     // This should automaticaly switch between satmode on/off based on the requested split vfo
-    if (tx_vfo == RIG_VFO_SUB && !priv->satmode)
+    if (tx_vfo == RIG_VFO_SUB && !rig->state.cache.satmode)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: VFO_SUB and satmode is off so turning on\n",
                   __func__);
         rig_set_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, 1);
-        priv->satmode = 1;
+        rig->state.cache.satmode = 1;
         priv->tx_vfo = RIG_VFO_SUB;
     }
-    else if ((tx_vfo == RIG_VFO_B && priv->satmode) || (tx_vfo == RIG_VFO_A
-             && priv->satmode))
+    else if ((tx_vfo == RIG_VFO_B && rig->state.cache.satmode) || (tx_vfo == RIG_VFO_A
+             && rig->state.cache.satmode))
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: VFO_B and satmode is on so turning off\n",
                   __func__);
         rig_set_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, 0);
-        priv->satmode = 0;
+        rig->state.cache.satmode = 0;
         priv->tx_vfo = RIG_VFO_B;
     }
-    else if (tx_vfo == RIG_VFO_SUB && priv->satmode && split==1)
+    else if (tx_vfo == RIG_VFO_SUB && rig->state.cache.satmode && split==1)
     {
 	rig_debug(RIG_DEBUG_VERBOSE, "%s: rig in satmode so setting split on is redundant and will create error...returning OK\n", __func__);
 	// we'll return OK anyways as this is a split mode
@@ -4884,7 +4891,7 @@ int icom_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
     }
 
     rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
-    priv->satmode = satmode;
+    rig->state.cache.satmode = satmode;
 
     priv->split_on = RIG_SPLIT_ON == *split;
 
@@ -5235,7 +5242,7 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
         priv->x25cmdfails = 0; // we reset this to try it again
         priv->x1cx03cmdfails = 0; // we reset this to try it again
-        priv->satmode = status;
+        rig->state.cache.satmode = status;
 
         break;
 
@@ -7113,7 +7120,7 @@ static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
     // only need to set vfo if it's changed
     else if (priv->curr_vfo != vfo)
     {
-        if (!(VFO_HAS_MAIN_SUB_A_B_ONLY && !priv->split_on && !priv->satmode && vfo == RIG_VFO_SUB && priv->curr_vfo == RIG_VFO_B)) {
+        if (!(VFO_HAS_MAIN_SUB_A_B_ONLY && !priv->split_on && !rig->state.cache.satmode && vfo == RIG_VFO_SUB && priv->curr_vfo == RIG_VFO_B)) {
         rig_debug(RIG_DEBUG_TRACE, "%s: setting new vfo=%s\n", __func__,
                   rig_strvfo(vfo));
         retval = rig_set_vfo(rig, vfo);
