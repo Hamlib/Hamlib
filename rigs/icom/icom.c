@@ -4685,7 +4685,8 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: tx_vfo=%s\n", __func__,
                       rig_strvfo(tx_vfo));
-            //vfo_final = RIG_VFO_A;
+            priv->tx_vfo = RIG_VFO_A;
+            //vfo_final = RIG_VFO_A; // do we need to switch back at all?
         }
         // otherwise if Main or Sub we set Main or VFOA as the current vfo
         else if (tx_vfo == RIG_VFO_MAIN || tx_vfo == RIG_VFO_SUB)
@@ -4694,7 +4695,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
                       __func__, rig_strvfo(tx_vfo));
 
             //rig_set_vfo(rig, RIG_VFO_MAIN);
-            //vfo_final = RIG_VFO_MAIN;
+            //vfo_final = RIG_VFO_MAIN; // do we need to switch back at all?
 
             if (VFO_HAS_A_B_ONLY)
             {
@@ -4726,7 +4727,8 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
             if (vfo == RIG_VFO_MAIN) { vfo = RIG_VFO_A; }
             else if (vfo == RIG_VFO_SUB) { vfo = RIG_VFO_B; }
 
-            //vfo_final = RIG_VFO_A;
+            priv->tx_vfo = tx_vfo;
+            //vfo_final = RIG_VFO_A; // do we need to switch back at all?
         }
 
         /* ensure VFO A is Rx and VFO B is Tx as we assume that elsewhere */
@@ -4922,6 +4924,7 @@ int icom_mem_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
     if (rig->state.current_vfo != RIG_VFO_MEM ||
             !rig_has_vfo_op(rig, RIG_OP_XCHG))
     {
+        *split = rig->state.cache.split; // we set this but still return ENAVAIL
         return -RIG_ENAVAIL;
     }
 
