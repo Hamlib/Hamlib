@@ -1820,7 +1820,13 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
     }
     if (vfo == RIG_VFO_TX)
     {
-        int split = rig->state.cache.split;
+        split_t split = 0;
+        // get split if we can -- it will default to off otherwise
+        // maybe split/satmode/vfo/freq/mode can be cached for rigs 
+        // that don't have read capability or get_vfo like Icom?
+        // Icom's lack of get_vfo is problematic in this respect
+        // If we cache vfo or others than twiddling the rig may cause problems
+        rig_get_split(rig,vfo,&split); 
         int satmode = rig->state.cache.satmode;
         vfo = RIG_VFO_A;
         if (split) vfo = RIG_VFO_B;
