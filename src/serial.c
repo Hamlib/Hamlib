@@ -808,10 +808,13 @@ int HAMLIB_API ser_set_rts(hamlib_port_t *p, int state)
     }
 
 #if defined(TIOCMBIS) && defined(TIOCMBIC)
+    rc = IOCTL(p->fd, TIOCMGET, &y);
+    rig_debug(RIG_DEBUG_TRACE,"%s: IOCTL#1 got y=%d\n", __func__, y);
     rc = IOCTL(p->fd, state ? TIOCMBIS : TIOCMBIC, &y);
+    rig_debug(RIG_DEBUG_TRACE,"%s: IOCTL#1 after set y=%d\n", __func__, y);
 #else
     rc = IOCTL(p->fd, TIOCMGET, &y);
-
+    rig_debug(RIG_DEBUG_TRACE,"%s: IOCTL#2 got y=%d\n", __func__, y);
     if (rc >= 0)
     {
         if (state)
@@ -823,7 +826,10 @@ int HAMLIB_API ser_set_rts(hamlib_port_t *p, int state)
             y &= ~TIOCM_RTS;
         }
 
+        rig_debug(RIG_DEBUG_TRACE,"%s: IOCTL#2 set y=%d\n", __func__, y);
         rc = IOCTL(p->fd, TIOCMSET, &y);
+        rc = IOCTL(p->fd, TIOCMGET, &y);
+        rig_debug(RIG_DEBUG_TRACE,"%s: IOCTL#2 after set y=%d\n", __func__, y);
     }
 
 #endif
