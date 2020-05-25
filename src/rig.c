@@ -1214,7 +1214,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     const struct rig_caps *caps;
     int retcode;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__, rig_strvfo(vfo));
 
     if (CHECK_RIG_ARG(rig))
     {
@@ -1362,8 +1362,9 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         return -RIG_ENAVAIL;
     }
 
+    // If we're in vfo_mode then rigctld will do any VFO swapping we need
     if ((caps->targetable_vfo & RIG_TARGETABLE_FREQ)
-            || vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
+            || vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo || rig->state.vfo_opt == 1)
     {
         retcode = caps->get_freq(rig, vfo, freq);
 
@@ -1810,6 +1811,24 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
     {
 	rig_debug(RIG_DEBUG_ERR, "%s: rig does not have %s\n", __func__, rig_strvfo(vfo));
 	return -RIG_EINVAL;
+    }
+    if (vfo == RIG_VFO_RX)
+    {
+        vfo = RIG_VFO_A;
+        if (VFO_HAS_MAIN_SUB_ONLY) vfo = RIG_VFO_MAIN;
+        if (VFO_HAS_MAIN_SUB_A_B_ONLY) vfo = RIG_VFO_MAIN;
+    }
+    if (vfo == RIG_VFO_TX)
+    {
+        int split = rig->state.cache.split;
+        int satmode = rig->state.cache.satmode;
+        vfo = RIG_VFO_A;
+        if (split) vfo = RIG_VFO_B;
+        if (VFO_HAS_MAIN_SUB_ONLY && !split && !satmode) vfo = RIG_VFO_MAIN;
+        if (VFO_HAS_MAIN_SUB_ONLY && (split || satmode)) vfo = RIG_VFO_SUB;
+        if (VFO_HAS_MAIN_SUB_A_B_ONLY && split) vfo = RIG_VFO_B;
+        if (VFO_HAS_MAIN_SUB_A_B_ONLY && satmode) vfo = RIG_VFO_SUB;
+        rig_debug(RIG_DEBUG_TRACE, "%s: RIG_VFO_TX changed to %s, split=%d, satmode=%d\n", __func__, rig_strvfo(vfo), split, satmode);
     }
 
     caps = rig->caps;
@@ -3336,6 +3355,9 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
             rig->state.tx_vfo = tx_vfo;
         }
 
+        rig->state.cache.split = split;
+        rig->state.cache.split_vfo = tx_vfo;
+        elapsed_ms(&rig->state.cache.time_split, ELAPSED_SET);
         return retcode;
     }
 
