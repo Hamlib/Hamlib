@@ -2117,6 +2117,7 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
                 && ptt == RIG_PTT_OFF)
         {
 
+            rig_debug(RIG_DEBUG_ERR, "%s: PTT RTS debug#3\n", __func__);
             /* free the port */
             ser_close(&rs->pttport);
         }
