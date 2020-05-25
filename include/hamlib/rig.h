@@ -1930,6 +1930,7 @@ struct rig_cache {
     struct timespec time_split;
     vfo_t vfo_freq; // last vfo cached
     vfo_t vfo_mode; // last vfo cached
+    int satmode; // if rig is in satellite mode
 };
 
 
@@ -2009,6 +2010,7 @@ struct rig_state {
     time_t twiddle_time;        /*!< time when vfo twiddling was detected */
     int twiddle_timeout;        /*!< timeout to resume from twiddling */
     struct rig_cache cache;
+    int vfo_opt;                /*!< Is -o switch turned on? */
 };
 
 //! @cond Doxygen_Suppress
