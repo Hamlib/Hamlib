@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
     char conf_parms[MAXCONFLEN] = "";
     int interactive;    /* if no cmd on command line, switch to interactive */
     int prompt = 1;         /* Print prompt in rigctl */
-    int vfo_mode = 0;       /* vfo_mode = 0 means target VFO is 'currVFO' */
+    int vfo_opt = 0;       /* vfo_opt = 0 means target VFO is 'currVFO' */
     char send_cmd_term = '\r';  /* send_cmd termination char */
     int ext_resp = 0;
     char resp_sep = '\n';
@@ -380,7 +380,7 @@ int main(int argc, char *argv[])
             break;
 
         case 'o':
-            vfo_mode++;
+            vfo_opt = 1;
             break;
 
         case 'n':
@@ -448,6 +448,7 @@ int main(int argc, char *argv[])
     }
 
     my_rig = rig_init(my_model);
+    my_rig->state.vfo_opt = 1;
 
     if (!my_rig)
     {
@@ -555,21 +556,21 @@ int main(int argc, char *argv[])
     if (my_rig->caps->rig_model == RIG_MODEL_NETRIGCTL)
     {
         /* We automatically detect if we need to be in vfo mode or not */
-        int rigctld_vfo_mode = netrigctl_get_vfo_mode(my_rig);
+        int rigctld_vfo_opt = netrigctl_get_vfo_mode(my_rig);
 
-        if (rigctld_vfo_mode && !vfo_mode)
+        if (rigctld_vfo_opt && !vfo_opt)
         {
             fprintf(stderr,
                     "Looks like rigctld is using vfo mode so we're switching to vfo mode\n");
-            vfo_mode = rigctld_vfo_mode;
+            vfo_opt = rigctld_vfo_opt;
         }
-        else if (!rigctld_vfo_mode && vfo_mode)
+        else if (!rigctld_vfo_opt && vfo_opt)
         {
             fprintf(stderr,
                     "Looks like rigctld is not using vfo mode so we're switching vfo mode off\n");
-            vfo_mode = rigctld_vfo_mode;
+            vfo_opt = rigctld_vfo_opt;
         }
-        else if (vfo_mode && my_rig->caps->rig_model != RIG_MODEL_NETRIGCTL)
+        else if (vfo_opt && my_rig->caps->rig_model != RIG_MODEL_NETRIGCTL)
         {
             fprintf(stderr, "vfo mode doesn't make sense for any rig other than rig#2\n");
             fprintf(stderr, "But we'll let you run this way if you want\n");
@@ -632,7 +633,7 @@ int main(int argc, char *argv[])
     do
     {
         retcode = rigctl_parse(my_rig, stdin, stdout, argv, argc, NULL,
-                               interactive, prompt, &vfo_mode, send_cmd_term,
+                               interactive, prompt, &vfo_opt, send_cmd_term,
                                &ext_resp, &resp_sep);
 
         if (retcode == 2)
