@@ -535,6 +535,10 @@ static int dummy_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
             *ptt = status ? RIG_PTT_ON : RIG_PTT_OFF;
         }
+        else
+        {
+            *ptt = RIG_PTT_OFF;
+        }
 
         break;
 
@@ -544,6 +548,10 @@ static int dummy_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
             if (RIG_OK != (rc = ser_get_rts(&rig->state.pttport, &status))) { return rc; }
 
             *ptt = status ? RIG_PTT_ON : RIG_PTT_OFF;
+        }
+        else
+        {
+            *ptt = RIG_PTT_OFF;
         }
 
         break;
