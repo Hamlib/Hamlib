@@ -144,7 +144,7 @@ struct test_table
                                                     FILE *fin,          \
                                                     int interactive,    \
                                                     int prompt,         \
-                                                    int vfo_mode,       \
+                                                    int vfo_opt,       \
                                                     char send_cmd_term, \
                                                     int ext_resp,       \
                                                     char resp_sep,      \
@@ -613,7 +613,7 @@ static int next_word(char *buffer, int argc, char *argv[], int newline)
 
 int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                  sync_cb_t sync_cb,
-                 int interactive, int prompt, int *vfo_mode, char send_cmd_term,
+                 int interactive, int prompt, int *vfo_opt, char send_cmd_term,
                  int *ext_resp_ptr, char *resp_sep_ptr)
 {
     int retcode;        /* generic return code from functions */
@@ -651,8 +651,10 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                     return -1;
                 }
 
+                if (cmd != 0xa) {
                 rig_debug(RIG_DEBUG_TRACE, "%s: cmd=%c(%02x)\n", __func__,
                           isprint(cmd) ? cmd : ' ', cmd);
+                }
 
                 /* Extended response protocol requested with leading '+' on command
                  * string--rigctld only!
@@ -764,9 +766,11 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 return 0;
             }
 
-            if (cmd == '(') {rig_debug(RIG_DEBUG_ERR, "%s: vfo_mode on\n", __func__); *vfo_mode = 1; return 0;}
+            if (cmd == '(') {rig_debug(RIG_DEBUG_ERR, "%s: vfo_opt on\n", __func__); *vfo_opt = 1; return 0;}
 
-            if (cmd == ')') {rig_debug(RIG_DEBUG_ERR, "%s: vfo_mode off\n", __func__); *vfo_mode = 0; return 0;}
+            if (cmd == ')') {rig_debug(RIG_DEBUG_ERR, "%s: vfo_opt off\n", __func__); *vfo_opt = 0; return 0;}
+
+            my_rig->state.vfo_opt = *vfo_opt;
 
             if (cmd == 'Q' || cmd == 'q')
             {
@@ -820,7 +824,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             return 0;
         }
 
-        if (!(cmd_entry->flags & ARG_NOVFO) && *vfo_mode)
+        if (!(cmd_entry->flags & ARG_NOVFO) && *vfo_opt)
         {
             if (interactive)
             {
@@ -1222,10 +1226,10 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             return 0;
         }
 
-        /* If vfo_mode is enabled (-o|--vfo) check if already given
+        /* If vfo_opt is enabled (-o|--vfo) check if already given
          * or prompt for it.
          */
-        if (!(cmd_entry->flags & ARG_NOVFO) && *vfo_mode)
+        if (!(cmd_entry->flags & ARG_NOVFO) && *vfo_opt)
         {
             /* Check if VFO was given with command. */
             result = strtok(NULL, " ");
@@ -1321,7 +1325,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
              */
             result = strtok(NULL, "\0");
 
-            if (*vfo_mode && result)
+            if (*vfo_opt && result)
             {
                 x = 2;
                 parsed_input[x] = result;
@@ -1384,7 +1388,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
         {
             result = strtok(NULL, " ");
 
-            if (*vfo_mode && result)
+            if (*vfo_opt && result)
             {
                 x = 2;
                 parsed_input[x] = result;
@@ -1450,7 +1454,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
             result = strtok(NULL, " ");
 
-            if (*vfo_mode && result)
+            if (*vfo_opt && result)
             {
                 x = 3;
                 parsed_input[x] = result;
@@ -1516,7 +1520,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
             result = strtok(NULL, " ");
 
-            if (*vfo_mode && result)
+            if (*vfo_opt && result)
             {
                 x = 4;
                 parsed_input[x] = result;
@@ -1612,7 +1616,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
         char a3[MAXARGSZ + 2];
         char vfo_str[MAXARGSZ + 2];
 
-        *vfo_mode == 0 ? vfo_str[0] = '\0' : snprintf(vfo_str,
+        *vfo_opt == 0 ? vfo_str[0] = '\0' : snprintf(vfo_str,
                                       sizeof(vfo_str),
                                       " %s",
                                       rig_strvfo(vfo));
@@ -1631,13 +1635,13 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 *resp_sep_ptr);
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo_mode=%d\n", __func__, *vfo_mode);
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo_opt=%d\n", __func__, *vfo_opt);
     retcode = (*cmd_entry->rig_routine)(my_rig,
                                         fout,
                                         fin,
                                         interactive,
                                         prompt,
-                                        *vfo_mode,
+                                        *vfo_opt,
                                         send_cmd_term,
                                         *ext_resp_ptr,
                                         *resp_sep_ptr,
@@ -4507,7 +4511,7 @@ declare_proto_rig(chk_vfo)
         fprintf(fout, "%s: ", cmd->arg1);    /* i.e. "Frequency" */
     }
 
-    fprintf(fout, "%d\n", vfo_mode);
+    fprintf(fout, "%d\n", rig->state.vfo_opt);
 
     return RIG_OK;
 }
