@@ -119,7 +119,7 @@ struct test_table
                        FILE *,
                        int,
                        int,
-                       int,
+                       int *,
                        char,
                        int,
                        char,
@@ -144,7 +144,7 @@ struct test_table
                                                     FILE *fin,          \
                                                     int interactive,    \
                                                     int prompt,         \
-                                                    int vfo_opt,       \
+                                                    int *vfo_opt,       \
                                                     char send_cmd_term, \
                                                     int ext_resp,       \
                                                     char resp_sep,      \
@@ -222,6 +222,7 @@ declare_proto_rig(get_powerstat);
 declare_proto_rig(send_dtmf);
 declare_proto_rig(recv_dtmf);
 declare_proto_rig(chk_vfo);
+declare_proto_rig(set_vfo_opt);
 declare_proto_rig(set_twiddle);
 declare_proto_rig(get_twiddle);
 declare_proto_rig(set_cache);
@@ -281,10 +282,10 @@ static struct test_table test_list[] =
     { 0x91, "get_ctcss_sql",    ACTION(get_ctcss_sql),  ARG_OUT, "CTCSS Sql" },
     { 0x92, "set_dcs_sql",      ACTION(set_dcs_sql),    ARG_IN, "DCS Sql" },
     { 0x93, "get_dcs_sql",      ACTION(get_dcs_sql),    ARG_OUT, "DCS Sql" },
-    // 
+    //
     //{ 'V',  "set_vfo",          ACTION(set_vfo),        ARG_IN  | ARG_NOVFO | ARG_OUT, "VFO" },
     { 'V',  "set_vfo",          ACTION(set_vfo),        ARG_IN  | ARG_NOVFO, "VFO" },
-    { 'v',  "get_vfo",          ACTION(get_vfo),        ARG_OUT, "VFO" },
+    { 'v',  "get_vfo",          ACTION(get_vfo),        ARG_NOVFO | ARG_OUT, "VFO" },
     { 'T',  "set_ptt",          ACTION(set_ptt),        ARG_IN, "PTT" },
     { 't',  "get_ptt",          ACTION(get_ptt),        ARG_OUT, "PTT" },
     { 'E',  "set_mem",          ACTION(set_mem),        ARG_IN, "Memory#" },
@@ -319,8 +320,7 @@ static struct test_table test_list[] =
     { '3',  "dump_conf",        ACTION(dump_conf),      ARG_NOVFO },
     { 0x8f, "dump_state",       ACTION(dump_state),     ARG_OUT | ARG_NOVFO },
     { 0xf0, "chk_vfo",          ACTION(chk_vfo),        ARG_NOVFO, "ChkVFO" },   /* rigctld only--check for VFO mode */
-    { '(',  "set_vfo_mode_on",  ACTION(chk_vfo),        ARG_NOVFO, "SetVFOMode 1=On 2=Off" },   /* rigctld only--check for VFO mode */
-    { ')',  "set_vfo_mode_off", ACTION(chk_vfo),        ARG_NOVFO, "SetVFOMode 1=On 2=Off" },   /* rigctld only--check for VFO mode */
+    { 0xf2, "set_vfo_opt",      ACTION(set_vfo_opt),    ARG_NOVFO|ARG_IN, "Status" },   /* turn vfo option on/off */
     { 0xf1, "halt",             ACTION(halt),           ARG_NOVFO },   /* rigctld only--halt the daemon */
     { 0x8c, "pause",            ACTION(pause),          ARG_IN, "Seconds" },
     { 0x00, "", NULL },
@@ -651,9 +651,10 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                     return -1;
                 }
 
-                if (cmd != 0xa) {
-                rig_debug(RIG_DEBUG_TRACE, "%s: cmd=%c(%02x)\n", __func__,
-                          isprint(cmd) ? cmd : ' ', cmd);
+                if (cmd != 0xa)
+                {
+                    rig_debug(RIG_DEBUG_TRACE, "%s: cmd=%c(%02x)\n", __func__,
+                              isprint(cmd) ? cmd : ' ', cmd);
                 }
 
                 /* Extended response protocol requested with leading '+' on command
@@ -766,11 +767,8 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 return 0;
             }
 
-            if (cmd == '(') {rig_debug(RIG_DEBUG_ERR, "%s: vfo_opt on\n", __func__); *vfo_opt = 1; return 0;}
-
-            if (cmd == ')') {rig_debug(RIG_DEBUG_ERR, "%s: vfo_opt off\n", __func__); *vfo_opt = 0; return 0;}
-
             my_rig->state.vfo_opt = *vfo_opt;
+            rig_debug(RIG_DEBUG_ERR, "%s: vfo_opt=%d\n", __func__, *vfo_opt); 
 
             if (cmd == 'Q' || cmd == 'q')
             {
@@ -1617,9 +1615,9 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
         char vfo_str[MAXARGSZ + 2];
 
         *vfo_opt == 0 ? vfo_str[0] = '\0' : snprintf(vfo_str,
-                                      sizeof(vfo_str),
-                                      " %s",
-                                      rig_strvfo(vfo));
+                                     sizeof(vfo_str),
+                                     " %s",
+                                     rig_strvfo(vfo));
 
         p1 == NULL ? a1[0] = '\0' : snprintf(a1, sizeof(a1), " %s", p1);
         p2 == NULL ? a2[0] = '\0' : snprintf(a2, sizeof(a2), " %s", p2);
@@ -1641,7 +1639,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                                         fin,
                                         interactive,
                                         prompt,
-                                        *vfo_opt,
+                                        vfo_opt,
                                         send_cmd_term,
                                         *ext_resp_ptr,
                                         *resp_sep_ptr,
@@ -1651,6 +1649,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                                         p2 ? p2 : "",
                                         p3 ? p3 : "");
 
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo_opt=%d\n", __func__, *vfo_opt);
     if (retcode == RIG_EIO)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: RIG_EIO?\n", __func__);
@@ -1973,6 +1972,7 @@ declare_proto_rig(get_freq)
     fprintf(fout, fmt, (int64_t)freq, resp_sep);
 
 #if 0 // this extra VFO being returned was confusing Log4OM
+
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
         fprintf(fout, "%s: ", cmd->arg2);    /* i.e. "Frequency" */
@@ -2122,6 +2122,7 @@ declare_proto_rig(set_vfo)
     retval = rig_set_vfo(rig, vfo);
 
 #if 0 // see if we can make this dynamic
+
     if (retval == RIG_OK)
     {
         if ((interactive && prompt) || (interactive && !prompt && ext_resp))
@@ -2131,6 +2132,7 @@ declare_proto_rig(set_vfo)
 
         fprintf(fout, "%s%c", rig_strvfo(vfo), resp_sep);
     }
+
 #endif
 
     return retval;
@@ -4516,6 +4518,18 @@ declare_proto_rig(chk_vfo)
     return RIG_OK;
 }
 
+/* '(' -- turn vfo option on */
+declare_proto_rig(set_vfo_opt)
+{
+    int opt = 0;
+    char cmdbuf[16];
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__ );
+    CHKSCN1ARG(sscanf(arg1, "%d", &opt));
+    *vfo_opt = rig->state.vfo_opt = opt;
+    sprintf(cmdbuf, "( %d\n", opt);
+    write_block(&rig->state.rigport, cmdbuf , strlen(cmdbuf));
+    return RIG_OK;
+}
 
 /* '0xf1'--halt rigctld daemon */
 declare_proto_rig(halt)

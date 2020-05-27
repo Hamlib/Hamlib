@@ -4899,6 +4899,25 @@ const freq_range_t *HAMLIB_API rig_get_range(const freq_range_t *range_list,
     return NULL;
 }
 
+/**
+ * \brief set the vfo option for rigctld
+ * \param status 1=On, 0=Off
+ *
+ *  Returns RIG_OK or -RIG_EPROTO;
+ *
+ * \return RIG_OK or -RIG_EPROTO;
+ *
+ */
+int HAMLIB_API rig_set_vfo_opt(RIG *rig, int status)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (rig->caps->set_vfo_opt == NULL)
+    {
+        return -RIG_ENAVAIL;
+    }
+    return rig->caps->set_vfo_opt(rig, status);
+}
 
 /**
  * \brief get general information from the radio
