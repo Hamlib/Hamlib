@@ -1820,6 +1820,8 @@ struct rig_caps {
                           confval_cb_t parm_cb,
                           rig_ptr_t);
 
+    int (*set_vfo_opt)(RIG *rig, int status); // only for Net Rigctl device
+
     const char *clone_combo_set;    /*!< String describing key combination to enter load cloning mode */
     const char *clone_combo_get;    /*!< String describing key combination to enter save cloning mode */
     const char *macro_name;     /*!< Rig model macro name */
@@ -2721,6 +2723,8 @@ extern HAMLIB_EXPORT(void) rig_no_restore_ai();
 
 extern HAMLIB_EXPORT(int) rig_get_cache_timeout_ms(RIG *rig, cache_t selection);
 extern HAMLIB_EXPORT(int) rig_set_cache_timeout_ms(RIG *rig, cache_t selection, int ms);
+
+extern HAMLIB_EXPORT(int) rig_set_vfo_opt(RIG *rig, int status);
 
 // cppcheck-suppress *
 #include <unistd.h>

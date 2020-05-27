@@ -1114,6 +1114,24 @@ option above, will terminate each command string sent to the radio.  This
 character should not be a part of the input string.
 .
 .TP
+.BR chk_vfo
+Get
+.RI \(aq Status \(aq
+.IP
+Returns Status as 1 if vfo option is on and 0 if vfo option is off.
+This command reflects the -o switch for rigctl and ritctld and can be dynamically changed by 
+.B set_vfo_opt.
+.
+.TP
+.BR set_vfo_opt " \(aq" \fIStatus\fP \(aq
+Set
+.RI \(aq Status \(aq
+.IP
+Set vfo option Status 1=on or 0=off
+This is the same as using the -o switch for rigctl and ritctld. 
+This can be dyamically changed while running.
+.
+.TP
 .BR pause " \(aq" \fISeconds\fP \(aq
 Pause for the given whole (integer) number of
 .RI \(aq Seconds \(aq

@@ -448,7 +448,6 @@ int main(int argc, char *argv[])
     }
 
     my_rig = rig_init(my_model);
-    my_rig->state.vfo_opt = 1;
 
     if (!my_rig)
     {
