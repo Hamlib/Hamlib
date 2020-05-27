@@ -1364,7 +1364,8 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     // If we're in vfo_mode then rigctld will do any VFO swapping we need
     if ((caps->targetable_vfo & RIG_TARGETABLE_FREQ)
-            || vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo || rig->state.vfo_opt == 1)
+            || vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo
+            || rig->state.vfo_opt == 1)
     {
         retcode = caps->get_freq(rig, vfo, freq);
 
@@ -1795,7 +1796,7 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
     int retcode;
     freq_t curr_freq;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__,rig_strvfo(vfo));
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__, rig_strvfo(vfo));
 
     if (CHECK_RIG_ARG(rig))
     {
@@ -1803,38 +1804,54 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
     }
 
     // make sure we are asking for a VFO that the rig actually has
-    if ((vfo == RIG_VFO_A || vfo == RIG_VFO_B) && !VFO_HAS_A_B) {
-	rig_debug(RIG_DEBUG_ERR, "%s: rig does not have %s\n", __func__, rig_strvfo(vfo));
-	return -RIG_EINVAL;
+    if ((vfo == RIG_VFO_A || vfo == RIG_VFO_B) && !VFO_HAS_A_B)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: rig does not have %s\n", __func__,
+                  rig_strvfo(vfo));
+        return -RIG_EINVAL;
     }
+
     if ((vfo == RIG_VFO_MAIN || vfo == RIG_VFO_SUB) && !VFO_HAS_MAIN_SUB)
     {
-	rig_debug(RIG_DEBUG_ERR, "%s: rig does not have %s\n", __func__, rig_strvfo(vfo));
-	return -RIG_EINVAL;
+        rig_debug(RIG_DEBUG_ERR, "%s: rig does not have %s\n", __func__,
+                  rig_strvfo(vfo));
+        return -RIG_EINVAL;
     }
+
     if (vfo == RIG_VFO_RX)
     {
         vfo = RIG_VFO_A;
-        if (VFO_HAS_MAIN_SUB_ONLY) vfo = RIG_VFO_MAIN;
-        if (VFO_HAS_MAIN_SUB_A_B_ONLY) vfo = RIG_VFO_MAIN;
+
+        if (VFO_HAS_MAIN_SUB_ONLY) { vfo = RIG_VFO_MAIN; }
+
+        if (VFO_HAS_MAIN_SUB_A_B_ONLY) { vfo = RIG_VFO_MAIN; }
     }
+
     if (vfo == RIG_VFO_TX)
     {
         split_t split = 0;
         // get split if we can -- it will default to off otherwise
-        // maybe split/satmode/vfo/freq/mode can be cached for rigs 
+        // maybe split/satmode/vfo/freq/mode can be cached for rigs
         // that don't have read capability or get_vfo like Icom?
         // Icom's lack of get_vfo is problematic in this respect
         // If we cache vfo or others than twiddling the rig may cause problems
-        rig_get_split(rig,vfo,&split); 
+        rig_get_split(rig, vfo, &split);
         int satmode = rig->state.cache.satmode;
         vfo = RIG_VFO_A;
-        if (split) vfo = RIG_VFO_B;
-        if (VFO_HAS_MAIN_SUB_ONLY && !split && !satmode) vfo = RIG_VFO_MAIN;
-        if (VFO_HAS_MAIN_SUB_ONLY && (split || satmode)) vfo = RIG_VFO_SUB;
-        if (VFO_HAS_MAIN_SUB_A_B_ONLY && split) vfo = RIG_VFO_B;
-        if (VFO_HAS_MAIN_SUB_A_B_ONLY && satmode) vfo = RIG_VFO_SUB;
-        rig_debug(RIG_DEBUG_TRACE, "%s: RIG_VFO_TX changed to %s, split=%d, satmode=%d\n", __func__, rig_strvfo(vfo), split, satmode);
+
+        if (split) { vfo = RIG_VFO_B; }
+
+        if (VFO_HAS_MAIN_SUB_ONLY && !split && !satmode) { vfo = RIG_VFO_MAIN; }
+
+        if (VFO_HAS_MAIN_SUB_ONLY && (split || satmode)) { vfo = RIG_VFO_SUB; }
+
+        if (VFO_HAS_MAIN_SUB_A_B_ONLY && split) { vfo = RIG_VFO_B; }
+
+        if (VFO_HAS_MAIN_SUB_A_B_ONLY && satmode) { vfo = RIG_VFO_SUB; }
+
+        rig_debug(RIG_DEBUG_TRACE,
+                  "%s: RIG_VFO_TX changed to %s, split=%d, satmode=%d\n", __func__,
+                  rig_strvfo(vfo), split, satmode);
     }
 
     caps = rig->caps;
@@ -1868,11 +1885,12 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
     // we only get the freq if we set the vfo OK
     if (retcode == RIG_OK && caps->get_freq)
     {
-        if (caps->get_freq) {
+        if (caps->get_freq)
+        {
             retcode = caps->get_freq(rig, vfo, &curr_freq);
             rig_debug(RIG_DEBUG_TRACE, "%s: retcode from rig_get_freq = %s\n", __func__,
-                  rigerror(retcode));
-	}
+                      rigerror(retcode));
+        }
     }
 
 
@@ -2077,6 +2095,7 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     case RIG_PTT_SERIAL_RTS:
 
         rig_debug(RIG_DEBUG_ERR, "%s: PTT RTS\n", __func__);
+
         /* when the PTT port is not the control port we want to free the
            port when PTT is reset and seize the port when PTT is set,
            this allows limited sharing of the PTT port between
@@ -2147,7 +2166,9 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     rig->state.cache.ptt = ptt;
     elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
-    if (retcode != RIG_OK) rig_debug(RIG_DEBUG_ERR, "%s: return code=%d\n", __func__, retcode);
+
+    if (retcode != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s: return code=%d\n", __func__, retcode); }
+
     return retcode;
 }
 
@@ -4916,6 +4937,7 @@ int HAMLIB_API rig_set_vfo_opt(RIG *rig, int status)
     {
         return -RIG_ENAVAIL;
     }
+
     return rig->caps->set_vfo_opt(rig, status);
 }
 

@@ -299,7 +299,8 @@ int main(int argc, char *argv[])
 
     rig_set_debug(verbose);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "rotctl %s\nLast commit was %s\n", hamlib_version, HAMLIBDATETIME);
+    rig_debug(RIG_DEBUG_VERBOSE, "rotctl %s\nLast commit was %s\n", hamlib_version,
+              HAMLIBDATETIME);
     rig_debug(RIG_DEBUG_VERBOSE, "%s",
               "Report bugs to <hamlib-developer@lists.sourceforge.net>\n\n");
 

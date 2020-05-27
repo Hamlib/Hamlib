@@ -308,13 +308,17 @@ static int ic910_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     {
         *freq = origfreq;
     }
-    else if (RIG_VFO_TX == vfo) {
-	    vfo = priv->tx_vfo;
-	    rig_debug(RIG_DEBUG_VERBOSE, "%s: VFO_TX asked for so vfo=%s\n", __func__, rig_strvfo(vfo));
+    else if (RIG_VFO_TX == vfo)
+    {
+        vfo = priv->tx_vfo;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: VFO_TX asked for so vfo=%s\n", __func__,
+                  rig_strvfo(vfo));
     }
-    else if (RIG_VFO_RX == vfo) {
-	    vfo = priv->rx_vfo;
-	    rig_debug(RIG_DEBUG_VERBOSE, "%s: VFO_RX asked for so vfo=%s\n", __func__, rig_strvfo(vfo));
+    else if (RIG_VFO_RX == vfo)
+    {
+        vfo = priv->rx_vfo;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: VFO_RX asked for so vfo=%s\n", __func__,
+                  rig_strvfo(vfo));
     }
     else { retval = -RIG_EVFO; }
 

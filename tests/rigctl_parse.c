@@ -320,7 +320,7 @@ static struct test_table test_list[] =
     { '3',  "dump_conf",        ACTION(dump_conf),      ARG_NOVFO },
     { 0x8f, "dump_state",       ACTION(dump_state),     ARG_OUT | ARG_NOVFO },
     { 0xf0, "chk_vfo",          ACTION(chk_vfo),        ARG_NOVFO, "ChkVFO" },   /* rigctld only--check for VFO mode */
-    { 0xf2, "set_vfo_opt",      ACTION(set_vfo_opt),    ARG_NOVFO|ARG_IN, "Status" },   /* turn vfo option on/off */
+    { 0xf2, "set_vfo_opt",      ACTION(set_vfo_opt),    ARG_NOVFO | ARG_IN, "Status" }, /* turn vfo option on/off */
     { 0xf1, "halt",             ACTION(halt),           ARG_NOVFO },   /* rigctld only--halt the daemon */
     { 0x8c, "pause",            ACTION(pause),          ARG_IN, "Seconds" },
     { 0x00, "", NULL },
@@ -768,7 +768,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             }
 
             my_rig->state.vfo_opt = *vfo_opt;
-            rig_debug(RIG_DEBUG_ERR, "%s: vfo_opt=%d\n", __func__, *vfo_opt); 
+            rig_debug(RIG_DEBUG_ERR, "%s: vfo_opt=%d\n", __func__, *vfo_opt);
 
             if (cmd == 'Q' || cmd == 'q')
             {
@@ -1650,6 +1650,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                                         p3 ? p3 : "");
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo_opt=%d\n", __func__, *vfo_opt);
+
     if (retcode == RIG_EIO)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: RIG_EIO?\n", __func__);
@@ -4523,11 +4524,11 @@ declare_proto_rig(set_vfo_opt)
 {
     int opt = 0;
     char cmdbuf[16];
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__ );
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
     CHKSCN1ARG(sscanf(arg1, "%d", &opt));
     *vfo_opt = rig->state.vfo_opt = opt;
     sprintf(cmdbuf, "( %d\n", opt);
-    write_block(&rig->state.rigport, cmdbuf , strlen(cmdbuf));
+    write_block(&rig->state.rigport, cmdbuf, strlen(cmdbuf));
     return RIG_OK;
 }
 

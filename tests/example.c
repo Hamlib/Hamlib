@@ -71,8 +71,10 @@ int main()
     if (my_rig->caps->rig_model == RIG_MODEL_NETRIGCTL)
     {
         status = rig_set_vfo_opt(my_rig, 1);
+
         if (status != RIG_OK) { printf("set_vfo_opt failed?? Err=%s\n", rigerror(status)); }
     }
+
     status = rig_get_freq(my_rig, RIG_VFO_CURR, &freq);
 
     /* Main VFO frequency */
@@ -143,6 +145,7 @@ int main()
     rig_close(my_rig);
 
     int loops = 1;
+
     while (loops--)
     {
         retcode = rig_open(my_rig);
