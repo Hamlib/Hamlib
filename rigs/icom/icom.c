@@ -1974,9 +1974,10 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
     else if (vfo == RIG_VFO_TX)
     {
         vfo = RIG_VFO_A;
-        if (VFO_HAS_A_B_ONLY && rig->state.cache.satmode) vfo = RIG_VFO_B;
-        else if (VFO_HAS_MAIN_SUB_ONLY) vfo = RIG_VFO_SUB;
-        else if (VFO_HAS_MAIN_SUB_A_B_ONLY && rig->state.cache.satmode) vfo = RIG_VFO_SUB;
+
+        if (VFO_HAS_A_B_ONLY && rig->state.cache.satmode) { vfo = RIG_VFO_B; }
+        else if (VFO_HAS_MAIN_SUB_ONLY) { vfo = RIG_VFO_SUB; }
+        else if (VFO_HAS_MAIN_SUB_A_B_ONLY && rig->state.cache.satmode) { vfo = RIG_VFO_SUB; }
     }
 
     if ((vfo == RIG_VFO_A || vfo == RIG_VFO_B) && !VFO_HAS_A_B && VFO_HAS_MAIN_SUB)
@@ -1995,7 +1996,9 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
                   __func__);
         return -RIG_EINVAL;
     }
-rig_debug(RIG_DEBUG_TRACE,"%s: debug#1\n", __func__);
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: debug#1\n", __func__);
+
     if (vfo != priv->curr_vfo)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: VFO changing from %s to %s\n", __func__,
@@ -2003,7 +2006,8 @@ rig_debug(RIG_DEBUG_TRACE,"%s: debug#1\n", __func__);
         priv->curr_freq = 0; // reset curr_freq so set_freq works 1st time
     }
 
-rig_debug(RIG_DEBUG_TRACE,"%s: debug#2\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: debug#2\n", __func__);
+
     switch (vfo)
     {
     case RIG_VFO_A:
@@ -2127,10 +2131,10 @@ rig_debug(RIG_DEBUG_TRACE,"%s: debug#2\n", __func__);
         return -RIG_EINVAL;
     }
 
-rig_debug(RIG_DEBUG_TRACE,"%s: debug#3\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: debug#3\n", __func__);
     retval = icom_transaction(rig, C_SET_VFO, icvfo, NULL, 0,
                               ackbuf, &ack_len);
-rig_debug(RIG_DEBUG_TRACE,"%s: debug#4\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: debug#4\n", __func__);
 
     if (retval != RIG_OK)
     {
@@ -2146,7 +2150,7 @@ rig_debug(RIG_DEBUG_TRACE,"%s: debug#4\n", __func__);
 
     priv->curr_vfo = vfo;
     rig->state.current_vfo = vfo;
-rig_debug(RIG_DEBUG_TRACE,"%s: debug#5\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: debug#5\n", __func__);
     return RIG_OK;
 }
 
@@ -3733,23 +3737,31 @@ int icom_get_split_vfos(RIG *rig, vfo_t *rx_vfo, vfo_t *tx_vfo)
 
     if (VFO_HAS_A_B_ONLY)
     {
-	*rx_vfo = *tx_vfo = RIG_VFO_A;
-	if (priv->split_on) {
-        *rx_vfo = RIG_VFO_A;
-        *tx_vfo = RIG_VFO_B;  /* rig doesn't enforce this but
+        *rx_vfo = *tx_vfo = RIG_VFO_A;
+
+        if (priv->split_on)
+        {
+            *rx_vfo = RIG_VFO_A;
+            *tx_vfo = RIG_VFO_B;  /* rig doesn't enforce this but
                    convention is needed here */
-	 }
-        rig_debug(RIG_DEBUG_TRACE, "%s: VFO_HAS_A_B_ONLY, split=%d, rx=%s, tx=%s\n", __func__,
+        }
+
+        rig_debug(RIG_DEBUG_TRACE, "%s: VFO_HAS_A_B_ONLY, split=%d, rx=%s, tx=%s\n",
+                  __func__,
                   priv->split_on, rig_strvfo(*rx_vfo), rig_strvfo(*tx_vfo));
     }
     else if (VFO_HAS_MAIN_SUB_ONLY)
     {
-	*rx_vfo = *tx_vfo = RIG_VFO_MAIN;
-	if (priv->split_on) {
-        *rx_vfo = RIG_VFO_MAIN;
-        *tx_vfo = RIG_VFO_SUB;
-	}
-        rig_debug(RIG_DEBUG_TRACE, "%s: VFO_HAS_MAIN_SUB_ONLY, split=%d, rx=%s, tx=%s\n",
+        *rx_vfo = *tx_vfo = RIG_VFO_MAIN;
+
+        if (priv->split_on)
+        {
+            *rx_vfo = RIG_VFO_MAIN;
+            *tx_vfo = RIG_VFO_SUB;
+        }
+
+        rig_debug(RIG_DEBUG_TRACE,
+                  "%s: VFO_HAS_MAIN_SUB_ONLY, split=%d, rx=%s, tx=%s\n",
                   __func__, priv->split_on, rig_strvfo(*rx_vfo), rig_strvfo(*tx_vfo));
     }
     else if (VFO_HAS_MAIN_SUB_A_B_ONLY)
@@ -4659,8 +4671,9 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         rig->state.cache.satmode = 1;
         priv->tx_vfo = RIG_VFO_SUB;
     }
-    else if ((tx_vfo == RIG_VFO_B && rig->state.cache.satmode) || (tx_vfo == RIG_VFO_A
-             && rig->state.cache.satmode))
+    else if ((tx_vfo == RIG_VFO_B && rig->state.cache.satmode)
+             || (tx_vfo == RIG_VFO_A
+                 && rig->state.cache.satmode))
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: VFO_B and satmode is on so turning off\n",
                   __func__);
@@ -4668,12 +4681,14 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         rig->state.cache.satmode = 0;
         priv->tx_vfo = RIG_VFO_B;
     }
-    else if (tx_vfo == RIG_VFO_SUB && rig->state.cache.satmode && split==1)
+    else if (tx_vfo == RIG_VFO_SUB && rig->state.cache.satmode && split == 1)
     {
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: rig in satmode so setting split on is redundant and will create error...returning OK\n", __func__);
-	// we'll return OK anyways as this is a split mode
-	// and gpredict wants to see the OK response here
-	return RIG_OK;  // we'll return OK anyways as this is a split mode
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: rig in satmode so setting split on is redundant and will create error...returning OK\n",
+                  __func__);
+        // we'll return OK anyways as this is a split mode
+        // and gpredict wants to see the OK response here
+        return RIG_OK;  // we'll return OK anyways as this is a split mode
     }
 
     switch (split)
@@ -7123,18 +7138,20 @@ static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
     // only need to set vfo if it's changed
     else if (priv->curr_vfo != vfo)
     {
-        if (!(VFO_HAS_MAIN_SUB_A_B_ONLY && !priv->split_on && !rig->state.cache.satmode && vfo == RIG_VFO_SUB && priv->curr_vfo == RIG_VFO_B)) {
-        rig_debug(RIG_DEBUG_TRACE, "%s: setting new vfo=%s\n", __func__,
-                  rig_strvfo(vfo));
-        retval = rig_set_vfo(rig, vfo);
-
-        if (retval != RIG_OK)
+        if (!(VFO_HAS_MAIN_SUB_A_B_ONLY && !priv->split_on && !rig->state.cache.satmode
+                && vfo == RIG_VFO_SUB && priv->curr_vfo == RIG_VFO_B))
         {
-            return retval;
-        }
+            rig_debug(RIG_DEBUG_TRACE, "%s: setting new vfo=%s\n", __func__,
+                      rig_strvfo(vfo));
+            retval = rig_set_vfo(rig, vfo);
 
-        priv->curr_vfo = vfo;
-	}
+            if (retval != RIG_OK)
+            {
+                return retval;
+            }
+
+            priv->curr_vfo = vfo;
+        }
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: curr_vfo now=%s\n", __func__,

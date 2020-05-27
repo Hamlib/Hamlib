@@ -385,15 +385,19 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     channel_t *curr = priv->curr;
     char fstr[20];
 
-    if (vfo == RIG_VFO_CURR) vfo = priv->curr_vfo;
+    if (vfo == RIG_VFO_CURR) { vfo = priv->curr_vfo; }
+
     usleep(CMDSLEEP);
     sprintf_freq(fstr, freq);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %s\n", __func__,
               rig_strvfo(vfo), fstr);
     curr->freq = freq;
-    if (vfo == RIG_VFO_A) priv->freq_vfoa = freq;
-    else if (vfo == RIG_VFO_B) priv->freq_vfob = freq;
-    rig_debug(RIG_DEBUG_TRACE, "%s: freq_vfoa=%.0f, freq_vfob=%.0f\n", __func__, priv->freq_vfoa, priv->freq_vfob);
+
+    if (vfo == RIG_VFO_A) { priv->freq_vfoa = freq; }
+    else if (vfo == RIG_VFO_B) { priv->freq_vfob = freq; }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: freq_vfoa=%.0f, freq_vfob=%.0f\n", __func__,
+              priv->freq_vfoa, priv->freq_vfob);
     return RIG_OK;
 }
 
@@ -402,11 +406,14 @@ static int dummy_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
 
-    if (vfo == RIG_VFO_CURR) vfo = priv->curr_vfo;
+    if (vfo == RIG_VFO_CURR) { vfo = priv->curr_vfo; }
+
     usleep(CMDSLEEP);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, rig_strvfo(vfo));
-    if (vfo == RIG_VFO_A) *freq = priv->freq_vfoa;
-    else if (vfo == RIG_VFO_B) *freq = priv->freq_vfob;
+
+    if (vfo == RIG_VFO_A) { *freq = priv->freq_vfoa; }
+    else if (vfo == RIG_VFO_B) { *freq = priv->freq_vfob; }
+
     rig_debug(RIG_DEBUG_TRACE, "%s: freq=%.0f\n", __func__, *freq);
     return RIG_OK;
 }

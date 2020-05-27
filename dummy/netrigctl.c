@@ -121,7 +121,8 @@ static int netrigctl_vfostr(RIG *rig, char *vfostr, int len, vfo_t vfo)
     if (vfo == RIG_VFO_CURR)
     {
         vfo = priv->vfo_curr;
-        if (vfo == RIG_VFO_NONE) vfo = RIG_VFO_A;
+
+        if (vfo == RIG_VFO_NONE) { vfo = RIG_VFO_A; }
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo_opt=%d\n", __func__, rig->state.vfo_opt);
@@ -201,8 +202,10 @@ static int netrigctl_open(RIG *rig)
         rig_debug(RIG_DEBUG_WARN, "%s: chk_vfo error: %s\n", __func__,
                   rigerror(ret));
     }
-    else {
-        rig_debug(RIG_DEBUG_ERR, "%s:  unknown return from netrigctl_transaction=%d\n", __func__, ret);
+    else
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s:  unknown return from netrigctl_transaction=%d\n",
+                  __func__, ret);
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo_mode=%d\n", __func__,
@@ -595,7 +598,7 @@ static int netrigctl_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 #endif
 
     ret = netrigctl_transaction(rig, cmd, len, buf);
-    rig_debug(RIG_DEBUG_TRACE, "%s: cmd=%s\n", __func__, strtok(cmd,"\r\n"));
+    rig_debug(RIG_DEBUG_TRACE, "%s: cmd=%s\n", __func__, strtok(cmd, "\r\n"));
 
     if (ret > 0)
     {
@@ -617,7 +620,8 @@ static int netrigctl_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     char vfotmp[16];
 #endif
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called, vfo=%s, freq=%.0f\n", __func__, rig_strvfo(vfo), *freq);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called, vfo=%s, freq=%.0f\n", __func__,
+              rig_strvfo(vfo), *freq);
 
     ret = netrigctl_vfostr(rig, vfostr, sizeof(vfostr), vfo);
 
@@ -627,7 +631,8 @@ static int netrigctl_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     ret = netrigctl_transaction(rig, cmd, len, buf);
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: cmd=%s, reply=%s\n", __func__, strtok(cmd,"\r\n"), buf);
+    rig_debug(RIG_DEBUG_TRACE, "%s: cmd=%s, reply=%s\n", __func__, strtok(cmd,
+              "\r\n"), buf);
 
     if (ret <= 0)
     {
@@ -2187,10 +2192,12 @@ static int netrigctl_set_vfo_opt(RIG *rig, int status)
 
     sprintf(cmdbuf, "\\set_vfo_opt %d\n", status);
     ret = netrigctl_transaction(rig, cmdbuf, strlen(cmdbuf), buf);
+
     if (ret > 0)
     {
         return -RIG_EPROTO;
     }
+
     rig->state.vfo_opt = status;
     return RIG_OK;
 }
