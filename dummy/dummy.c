@@ -77,6 +77,9 @@ struct dummy_priv_data
 
     char *magic_conf;
     int static_data;
+
+    freq_t freq_vfoa;
+    freq_t freq_vfob;
 };
 
 /* levels pertain to each VFO */
@@ -382,12 +385,15 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     channel_t *curr = priv->curr;
     char fstr[20];
 
+    if (vfo == RIG_VFO_CURR) vfo = priv->curr_vfo;
     usleep(CMDSLEEP);
     sprintf_freq(fstr, freq);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %s\n", __func__,
               rig_strvfo(vfo), fstr);
     curr->freq = freq;
-
+    if (vfo == RIG_VFO_A) priv->freq_vfoa = freq;
+    else if (vfo == RIG_VFO_B) priv->freq_vfob = freq;
+    rig_debug(RIG_DEBUG_TRACE, "%s: freq_vfoa=%.0f, freq_vfob=%.0f\n", __func__, priv->freq_vfoa, priv->freq_vfob);
     return RIG_OK;
 }
 
@@ -395,11 +401,13 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 static int dummy_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
-    channel_t *curr = priv->curr;
 
+    if (vfo == RIG_VFO_CURR) vfo = priv->curr_vfo;
     usleep(CMDSLEEP);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, rig_strvfo(vfo));
-    *freq = curr->freq;
+    if (vfo == RIG_VFO_A) *freq = priv->freq_vfoa;
+    else if (vfo == RIG_VFO_B) *freq = priv->freq_vfob;
+    rig_debug(RIG_DEBUG_TRACE, "%s: freq=%.0f\n", __func__, *freq);
     return RIG_OK;
 }
 
@@ -507,7 +515,6 @@ static int dummy_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
 
-    usleep(CMDSLEEP);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     priv->ptt = ptt;
 
@@ -1920,7 +1927,7 @@ struct rig_caps dummy_caps =
     RIG_MODEL(RIG_MODEL_DUMMY),
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
-    .version =        "20200503.0",
+    .version =        "20200527.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
