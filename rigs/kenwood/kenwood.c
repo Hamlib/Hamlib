@@ -360,9 +360,16 @@ transaction_read:
                   retval, retry_read, rs->rigport.retry);
 
         // only retry if we expect a response from the command
-        if (datasize && retry_read++ < rs->rigport.retry)
+        if (retry_read++ < rs->rigport.retry)
         {
-            goto transaction_write;
+            if (datasize)
+            {
+                goto transaction_write;
+            }
+            else if (-RIG_ETIMEOUT == retval)
+            {
+                goto transaction_read;
+            }
         }
 
         goto transaction_quit;
