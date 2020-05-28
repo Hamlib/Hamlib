@@ -4524,7 +4524,6 @@ declare_proto_rig(chk_vfo)
 declare_proto_rig(set_vfo_opt)
 {
     int opt = 0;
-    char cmdbuf[16];
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
     CHKSCN1ARG(sscanf(arg1, "%d", &opt));
     *vfo_opt = rig->state.vfo_opt = opt;
