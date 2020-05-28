@@ -309,7 +309,7 @@ static int flex6k_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     return RIG_OK;
 }
 /*
- * kenwood_get_ptt
+ * flex6k_get_ptt
  */
 int flex6k_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
