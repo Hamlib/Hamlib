@@ -244,10 +244,11 @@ static struct test_table test_list[] =
 {
 #if 0 // implement set_freq VFO later if it can be detected
 //    { 'F',  "set_freq",         ACTION(set_freq),       ARG_IN1 | ARG_OUT1, "Frequency" },
+    { 'f',  "get_freq",         ACTION(get_freq),       ARG_OUT, "Frequency", "VFO" },
 #else
     { 'F',  "set_freq",         ACTION(set_freq),       ARG_IN1, "Frequency" },
 #endif
-    { 'f',  "get_freq",         ACTION(get_freq),       ARG_OUT, "Frequency", "VFO" },
+    { 'f',  "get_freq",         ACTION(get_freq),       ARG_OUT, "Frequency" },
     { 'M',  "set_mode",         ACTION(set_mode),       ARG_IN, "Mode", "Passband" },
     { 'm',  "get_mode",         ACTION(get_mode),       ARG_OUT, "Mode", "Passband" },
     { 'I',  "set_split_freq",   ACTION(set_split_freq), ARG_IN, "TX Frequency" },
@@ -4527,9 +4528,7 @@ declare_proto_rig(set_vfo_opt)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
     CHKSCN1ARG(sscanf(arg1, "%d", &opt));
     *vfo_opt = rig->state.vfo_opt = opt;
-    sprintf(cmdbuf, "( %d\n", opt);
-    write_block(&rig->state.rigport, cmdbuf, strlen(cmdbuf));
-    return RIG_OK;
+    return rig_set_vfo_opt(rig, opt);
 }
 
 /* '0xf1'--halt rigctld daemon */
