@@ -432,3 +432,135 @@ const struct rig_caps f6k_caps =
     //.set_ant =       kenwood_set_ant_no_ack,
     //.get_ant =       kenwood_get_ant,
 };
+
+/*
+ * PowerSDR rig capabilities.
+ */
+const struct rig_caps powersdr_caps =
+{
+    RIG_MODEL(RIG_MODEL_POWERSDR),
+    .model_name =       "PowerSDR",
+    .mfg_name =     "FlexRadio",
+    .version =      "20200528.0",
+    .copyright =        "LGPL",
+    .status =       RIG_STATUS_BETA,
+    .rig_type =     RIG_TYPE_TRANSCEIVER,
+    .ptt_type =     RIG_PTT_RIG,
+    .dcd_type =     RIG_DCD_NONE,
+    .port_type =        RIG_PORT_SERIAL,
+    .serial_rate_min =  1200,
+    .serial_rate_max =  57600,
+    .serial_data_bits =  8,
+    .serial_stop_bits =  1,
+    .serial_parity =  RIG_PARITY_NONE,
+    .serial_handshake =  RIG_HANDSHAKE_NONE,
+    .write_delay =  0,
+    .post_write_delay =  0, /* ms */
+    // The combination of timeout and retry is important
+    // We need at least 3 seconds to do profile switches
+    // Hitting the timeout is OK as long as we retry
+    // Previous note showed FA/FB may take up to 500ms on band change
+    .timeout =      200,
+    .retry =        3,
+
+    .has_get_func =     RIG_FUNC_NONE, /* has VOX but not implemented here */
+    .has_set_func =     RIG_FUNC_NONE,
+    .has_get_level =    F6K_LEVEL_ALL,
+    .has_set_level =    F6K_LEVEL_ALL,
+    .has_get_parm =     RIG_PARM_NONE,
+    .has_set_parm =     RIG_PARM_NONE,  /* FIXME: parms */
+    .level_gran =       {},     /* FIXME: granularity */
+    .parm_gran =        {},
+    //.extlevels =      elecraft_ext_levels,
+    //.extparms =       kenwood_cfg_params,
+    .post_write_delay = 20,
+    .preamp =       { RIG_DBLST_END, },
+    .attenuator =       { RIG_DBLST_END, },
+    .max_rit =      Hz(0),
+    .max_xit =      Hz(0),
+    .max_ifshift =      Hz(0),
+    .vfo_ops =      RIG_OP_NONE,
+    .targetable_vfo =   RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
+    .transceive =       RIG_TRN_RIG,
+    .bank_qty =     0,
+    .chan_desc_sz =     0,
+
+    .chan_list =        { RIG_CHAN_END },
+
+    .rx_range_list1 =  {
+        {kHz(30), MHz(77), F6K_MODES, -1, -1, F6K_VFO, F6K_ANTS},
+        {MHz(135), MHz(165), F6K_MODES, -1, - 1, F6K_VFO, F6K_ANTS},
+        RIG_FRNG_END,
+    }, /* rx range */
+    .tx_range_list1 =  {
+        FRQ_RNG_HF(1, F6K_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
+        FRQ_RNG_6m(1, F6K_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
+        FRQ_RNG_2m(1, F6K_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
+        RIG_FRNG_END,
+    }, /* tx range */
+
+    .rx_range_list2 =  {
+        {kHz(30), MHz(77), F6K_MODES, -1, -1, F6K_VFO, F6K_ANTS},
+        { MHz(135), MHz(165), F6K_MODES, -1, -1, F6K_VFO, F6K_ANTS},
+        RIG_FRNG_END,
+    }, /* rx range */
+    .tx_range_list2 =  {
+        FRQ_RNG_HF(2, F6K_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
+        FRQ_RNG_6m(2, F6K_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
+        FRQ_RNG_2m(2, F6K_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
+        RIG_FRNG_END,
+    }, /* tx range */
+
+    .tuning_steps =  {
+        {F6K_MODES, 1},
+        RIG_TS_END,
+    },
+
+    /* mode/filter list, remember: order matters! */
+    .filters =  {
+        {RIG_MODE_SSB, kHz(2.7)},
+        {RIG_MODE_SSB, kHz(3.3)},
+        {RIG_MODE_SSB, kHz(1.8)},
+        {RIG_MODE_SSB, kHz(1.6)},
+        {RIG_MODE_SSB, kHz(4.0)},
+        {RIG_MODE_SSB, RIG_FLT_ANY},
+        {RIG_MODE_CW, kHz(0.4)},
+        {RIG_MODE_CW, kHz(1.5)},
+        {RIG_MODE_CW, Hz(50)},
+        {RIG_MODE_CW, kHz(3.0)},
+        {RIG_MODE_CW, RIG_FLT_ANY},
+        {RIG_MODE_PKTUSB | RIG_MODE_PKTLSB, kHz(1.5)},
+        {RIG_MODE_PKTUSB | RIG_MODE_PKTLSB, kHz(3.0)},
+        {RIG_MODE_PKTUSB | RIG_MODE_PKTLSB, kHz(0.1)},
+        {RIG_MODE_PKTUSB | RIG_MODE_PKTLSB, RIG_FLT_ANY},
+        {RIG_MODE_AM, kHz(6)},
+        {RIG_MODE_AM, kHz(14)},
+        {RIG_MODE_AM, kHz(5.6)},
+        {RIG_MODE_AM, kHz(20.0)},
+        {RIG_MODE_AM, RIG_FLT_ANY},
+        {RIG_MODE_FM, kHz(13)}, /* TBC */
+        RIG_FLT_END,
+    },
+    .priv = (void *)& f6k_priv_caps,
+
+    .rig_init =     kenwood_init,
+    .rig_cleanup =      kenwood_cleanup,
+    .rig_open =     flexradio_open,
+    .rig_close =        kenwood_close,
+    .set_freq =     kenwood_set_freq,
+    .get_freq =     kenwood_get_freq,
+    .set_mode =     flex6k_set_mode,
+    .get_mode =     flex6k_get_mode,
+    .set_vfo =      kenwood_set_vfo,
+    .get_vfo =      kenwood_get_vfo_if,
+    .set_split_vfo =    kenwood_set_split_vfo,
+    .get_split_vfo =    kenwood_get_split_vfo_if,
+    .get_ptt =      kenwood_get_ptt,
+    .set_ptt =      kenwood_set_ptt,
+    // TODO copy over kenwood_[set|get]_level and modify to handle DSP filter values
+    // correctly - use actual values instead of indices
+    .set_level =        kenwood_set_level,
+    .get_level =        kenwood_get_level,
+    //.set_ant =       kenwood_set_ant_no_ack,
+    //.get_ant =       kenwood_get_ant,
+};
