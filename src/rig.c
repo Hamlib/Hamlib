@@ -1399,6 +1399,11 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
         if (RIG_OK == retcode)
         {
+            cache_ms = elapsed_ms(&(rig->state.cache.time_freq), ELAPSED_SET);
+            rig_debug(RIG_DEBUG_TRACE, "%s: cache reset age=%dms, vfo=%s, freq=%.0f\n",
+                      __func__, cache_ms, rig_strvfo(vfo), *freq);
+            rig->state.cache.freq = *freq;
+            rig->state.cache.vfo_freq = vfo;
             /* return the first error code */
             retcode = rc2;
         }
