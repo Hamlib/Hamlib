@@ -308,6 +308,69 @@ static int flex6k_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     return RIG_OK;
 }
+/*
+ * kenwood_get_ptt
+ */
+int flex6k_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
+{
+    const char *ptt_cmd;
+    int err;
+    char response[16];
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!ptt)
+    {
+        return -RIG_EINVAL;
+    }
+
+    ptt_cmd = "ZZTX";
+
+    err =  kenwood_transaction(rig, ptt_cmd, response, sizeof(response));
+
+    if (err != RIG_OK)
+    {
+        return err;
+    }
+
+    *ptt = response[4] == '0' ? RIG_PTT_OFF : RIG_PTT_ON;
+
+    return RIG_OK;
+}
+
+int flex6k_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
+{
+    const char *ptt_cmd;
+    char response[16];
+    int err;
+    int retry = 3;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    switch (ptt)
+    {
+    case RIG_PTT_ON_DATA:
+    case RIG_PTT_ON_MIC:
+    case RIG_PTT_ON:  ptt_cmd = "ZZTX1;ZZTX"; break;
+
+    case RIG_PTT_OFF: ptt_cmd = "ZZTX0;ZZTX"; break;
+
+    default: return -RIG_EINVAL;
+    }
+
+    do
+    {
+        err =  kenwood_transaction(rig, ptt_cmd, response, sizeof(response));
+
+        if (ptt_cmd[4] != response[4])
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: %s != %s\n", __func__, ptt_cmd, response);
+        }
+    }
+    while (ptt_cmd[4] != response[4] && --retry);
+
+    return err;
+}
 
 /*
  * F6K rig capabilities.
@@ -449,7 +512,7 @@ const struct rig_caps powersdr_caps =
     .dcd_type =     RIG_DCD_NONE,
     .port_type =        RIG_PORT_SERIAL,
     .serial_rate_min =  1200,
-    .serial_rate_max =  57600,
+    .serial_rate_max =  115200,
     .serial_data_bits =  8,
     .serial_stop_bits =  1,
     .serial_parity =  RIG_PARITY_NONE,
@@ -460,7 +523,7 @@ const struct rig_caps powersdr_caps =
     // We need at least 3 seconds to do profile switches
     // Hitting the timeout is OK as long as we retry
     // Previous note showed FA/FB may take up to 500ms on band change
-    .timeout =      200,
+    .timeout =      250,
     .retry =        3,
 
     .has_get_func =     RIG_FUNC_NONE, /* has VOX but not implemented here */
@@ -555,8 +618,8 @@ const struct rig_caps powersdr_caps =
     .get_vfo =      kenwood_get_vfo_if,
     .set_split_vfo =    kenwood_set_split_vfo,
     .get_split_vfo =    kenwood_get_split_vfo_if,
-    .get_ptt =      kenwood_get_ptt,
-    .set_ptt =      kenwood_set_ptt,
+    .get_ptt =      flex6k_get_ptt,
+    .set_ptt =      flex6k_set_ptt,
     // TODO copy over kenwood_[set|get]_level and modify to handle DSP filter values
     // correctly - use actual values instead of indices
     .set_level =        kenwood_set_level,
