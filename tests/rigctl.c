@@ -556,24 +556,8 @@ int main(int argc, char *argv[])
     {
         /* We automatically detect if we need to be in vfo mode or not */
         int rigctld_vfo_opt = netrigctl_get_vfo_mode(my_rig);
-
-        if (rigctld_vfo_opt && !vfo_opt)
-        {
-            fprintf(stderr,
-                    "Looks like rigctld is using vfo mode so we're switching to vfo mode\n");
-            vfo_opt = rigctld_vfo_opt;
-        }
-        else if (!rigctld_vfo_opt && vfo_opt)
-        {
-            fprintf(stderr,
-                    "Looks like rigctld is not using vfo mode so we're switching vfo mode off\n");
-            vfo_opt = rigctld_vfo_opt;
-        }
-        else if (vfo_opt && my_rig->caps->rig_model != RIG_MODEL_NETRIGCTL)
-        {
-            fprintf(stderr, "vfo mode doesn't make sense for any rig other than rig#2\n");
-            fprintf(stderr, "But we'll let you run this way if you want\n");
-        }
+        vfo_opt = my_rig->state.vfo_opt = rigctld_vfo_opt;
+        fprintf(stderr, "rigctld vfo_opt=%d\n", vfo_opt);
     }
 
     rig_debug(RIG_DEBUG_VERBOSE,
