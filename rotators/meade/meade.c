@@ -293,7 +293,7 @@ static int meade_set_position(ROT *rot, azimuth_t az, elevation_t el)
     priv->target_az = az;
     priv->target_el = el;
 
-    num_sprintf(cmd_str, ":Sz %03.0f*%02.0f#:Sa+%02.0f*%02.0f#:MA#",
+    num_sprintf(cmd_str, ":Sz %03.0f*%02.0f#:Sas+%02.0f*%02.0f#:MA#",
                 az_degrees, az_minutes, el_degrees, el_minutes);
 
     meade_transaction(rot, cmd_str, return_str, &return_str_size, 3);
@@ -451,7 +451,7 @@ const struct rot_caps meade_caps =
     ROT_MODEL(ROT_MODEL_MEADE),
     .model_name =       "LX200/Autostar",
     .mfg_name =         "Meade",
-    .version =          "0.2",
+    .version =          "20200528",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_STABLE,
     .rot_type =         ROT_TYPE_AZEL,
