@@ -557,7 +557,7 @@ int main(int argc, char *argv[])
         /* We automatically detect if we need to be in vfo mode or not */
         int rigctld_vfo_opt = netrigctl_get_vfo_mode(my_rig);
         vfo_opt = my_rig->state.vfo_opt = rigctld_vfo_opt;
-        fprintf(stderr, "rigctld vfo_opt=%d\n", vfo_opt);
+        rig_debug(RIG_DEBUG_TRACE, "%s vfo_opt=%d\n", __func__, vfo_opt);
     }
 
     rig_debug(RIG_DEBUG_VERBOSE,
