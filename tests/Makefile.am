@@ -98,8 +98,8 @@ testloc.sh:
 
 # If we have a .git directory then we will update the hamlibdate.h file
 hamlibdatetime.h: FORCE
-	test ! -x $(top_srcdir)/.git || echo // This date time is from the last commit to hamlib > $(builddir)/hamlibdatetime.h
-	test ! -x $(top_srcdir)/.git || echo "#define HAMLIBDATETIME "\"$$(git --git-dir=$(top_srcdir)/.git log -n 1 | grep Date:|cut -c9-)"\"" >> $(builddir)/hamlibdatetime.h
+	test ! -x $(top_srcdir)/.git || echo "/* This date time is from the last non-merge commit to Hamlib. */" > $(srcdir)/hamlibdatetime.h
+	test ! -x $(top_srcdir)/.git || echo "#define HAMLIBDATETIME "\"$$(TZ=UTC git --git-dir=$(top_srcdir)/.git log --no-merges --date='format-local:%a %b %d %H:%M:%S %Y %z' --format='%cd' -n 1)\""" >> $(srcdir)/hamlibdatetime.h
 
 FORCE: ;
 
