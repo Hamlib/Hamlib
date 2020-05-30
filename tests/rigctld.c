@@ -528,8 +528,6 @@ int main(int argc, char *argv[])
         }
     }
 
-    rig_debug(RIG_DEBUG_ERR, "%s: #1 vfo_mode=%d\n", __func__, vfo_mode);
-
     if (!vfo_mode)
     {
         printf("Recommend using --vfo switch for rigctld if client supports it\n");
