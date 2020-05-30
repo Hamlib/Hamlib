@@ -194,6 +194,10 @@ static vfo_t vfo_fixup(RIG *rig, vfo_t vfo)
 {
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
 
+    if (vfo == RIG_VFO_CURR && rig->state.current_vfo == RIG_VFO_CURR)
+    {
+        vfo = RIG_VFO_A;
+    }
     if (vfo == RIG_VFO_RX)
     {
         vfo = RIG_VFO_A;

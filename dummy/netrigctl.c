@@ -537,6 +537,11 @@ static int netrigctl_open(RIG *rig)
                 rig_debug(RIG_DEBUG_TRACE, "%s: %s set to %s\n", __func__, setting, value);
                 rig->caps->vfo_ops = strtol(value, NULL, 0);
             }
+            else if (strcmp(setting, "ptt_type") == 0)
+            {
+                rig_debug(RIG_DEBUG_TRACE, "%s: %s set to %s\n", __func__, setting, value);
+                rig->caps->ptt_type = strtol(value, NULL, 0);
+            }
             else
             {
                 // not an error -- just a warning for backward compatibily
