@@ -96,8 +96,10 @@ testloc.sh:
 	echo './testloc EM79UT96LW 5' > testloc.sh
 	chmod +x ./testloc.sh
 
-# If we have a .git directory then we will update the hamlibdate.h file
+# If we have a .git directory then we will generate the hamlibdate.h file.
+# if not, then copy the placeholder.
 hamlibdatetime.h: FORCE
+	test -x $(top_srcdir)/.git || cp $(srcdir)/hamlibdatetime.h.in $(srcdir)/hamlibdatetime.h
 	test ! -x $(top_srcdir)/.git || echo "/* This date time is from the last non-merge commit to Hamlib. */" > $(srcdir)/hamlibdatetime.h
 	test ! -x $(top_srcdir)/.git || echo "#define HAMLIBDATETIME "\"$$(TZ=UTC git --git-dir=$(top_srcdir)/.git log --no-merges --date='format-local:%a %b %d %H:%M:%S %Y %z' --format='%cd' -n 1)\""" >> $(srcdir)/hamlibdatetime.h
 
