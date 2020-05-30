@@ -189,6 +189,55 @@ static const char *rigerror_table[] =
 
 #define ERROR_TBL_SZ (sizeof(rigerror_table)/sizeof(char *))
 
+
+static vfo_t vfo_fixup(RIG *rig, vfo_t vfo)
+{
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
+
+    if (vfo == RIG_VFO_RX)
+    {
+        vfo = RIG_VFO_A;
+
+        if (VFO_HAS_MAIN_SUB_ONLY) { vfo = RIG_VFO_MAIN; }
+
+        if (VFO_HAS_MAIN_SUB_A_B_ONLY) { vfo = RIG_VFO_MAIN; }
+    }
+
+    if (vfo == RIG_VFO_TX)
+    {
+        int retval;
+        split_t split = 0;
+        // get split if we can -- it will default to off otherwise
+        // maybe split/satmode/vfo/freq/mode can be cached for rigs
+        // that don't have read capability or get_vfo like Icom?
+        // Icom's lack of get_vfo is problematic in this respect
+        // If we cache vfo or others than twiddling the rig may cause problems
+        retval = rig_get_split(rig, vfo, &split);
+        if (retval != RIG_OK)
+        {
+            split = rig->state.cache.split;
+        }
+        int satmode = rig->state.cache.satmode;
+        vfo = RIG_VFO_A;
+
+        if (split) { vfo = RIG_VFO_B; }
+
+        if (VFO_HAS_MAIN_SUB_ONLY && !split && !satmode) { vfo = RIG_VFO_MAIN; }
+
+        if (VFO_HAS_MAIN_SUB_ONLY && (split || satmode)) { vfo = RIG_VFO_SUB; }
+
+        if (VFO_HAS_MAIN_SUB_A_B_ONLY && split) { vfo = RIG_VFO_B; }
+
+        if (VFO_HAS_MAIN_SUB_A_B_ONLY && satmode) { vfo = RIG_VFO_SUB; }
+
+        rig_debug(RIG_DEBUG_TRACE,
+                  "%s: RIG_VFO_TX changed to %s, split=%d, satmode=%d\n", __func__,
+                  rig_strvfo(vfo), split, satmode);
+    }
+    rig_debug(RIG_DEBUG_TRACE, "%s: final vfo=%s\n", __func__, rig_strvfo(vfo));
+    return vfo;
+}
+
 /*
  * track which rig is opened (with rig_open)
  * needed at least for transceive mode
@@ -1223,6 +1272,8 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     caps = rig->caps;
 
+    vfo = vfo_fixup(rig, vfo);
+
     if (rig->state.lo_freq != 0.0)
     {
         freq -= rig->state.lo_freq;
@@ -1337,6 +1388,8 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         rig_debug(RIG_DEBUG_TRACE, "%s: rig or freq ptr invalid\n", __func__);
         return -RIG_EINVAL;
     }
+
+    vfo = vfo_fixup(rig, vfo);
 
     cache_ms = elapsed_ms(&rig->state.cache.time_freq, ELAPSED_GET);
     rig_debug(RIG_DEBUG_TRACE, "%s: cache check age=%dms\n", __func__, cache_ms);
@@ -1823,41 +1876,7 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
         return -RIG_EINVAL;
     }
 
-    if (vfo == RIG_VFO_RX)
-    {
-        vfo = RIG_VFO_A;
-
-        if (VFO_HAS_MAIN_SUB_ONLY) { vfo = RIG_VFO_MAIN; }
-
-        if (VFO_HAS_MAIN_SUB_A_B_ONLY) { vfo = RIG_VFO_MAIN; }
-    }
-
-    if (vfo == RIG_VFO_TX)
-    {
-        split_t split = 0;
-        // get split if we can -- it will default to off otherwise
-        // maybe split/satmode/vfo/freq/mode can be cached for rigs
-        // that don't have read capability or get_vfo like Icom?
-        // Icom's lack of get_vfo is problematic in this respect
-        // If we cache vfo or others than twiddling the rig may cause problems
-        rig_get_split(rig, vfo, &split);
-        int satmode = rig->state.cache.satmode;
-        vfo = RIG_VFO_A;
-
-        if (split) { vfo = RIG_VFO_B; }
-
-        if (VFO_HAS_MAIN_SUB_ONLY && !split && !satmode) { vfo = RIG_VFO_MAIN; }
-
-        if (VFO_HAS_MAIN_SUB_ONLY && (split || satmode)) { vfo = RIG_VFO_SUB; }
-
-        if (VFO_HAS_MAIN_SUB_A_B_ONLY && split) { vfo = RIG_VFO_B; }
-
-        if (VFO_HAS_MAIN_SUB_A_B_ONLY && satmode) { vfo = RIG_VFO_SUB; }
-
-        rig_debug(RIG_DEBUG_TRACE,
-                  "%s: RIG_VFO_TX changed to %s, split=%d, satmode=%d\n", __func__,
-                  rig_strvfo(vfo), split, satmode);
-    }
+    vfo = vfo_fixup(rig, vfo);
 
     caps = rig->caps;
 
@@ -2830,6 +2849,9 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
         return caps->set_split_freq(rig, vfo, tx_freq);
     }
 
+    vfo = vfo_fixup(rig, vfo);
+
+
     /* Assisted mode */
     curr_vfo = rig->state.current_vfo;
 
@@ -3380,6 +3402,8 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
     {
         return -RIG_ENAVAIL;
     }
+
+    vfo = vfo_fixup(rig, vfo);
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_PURE)
             || vfo == RIG_VFO_CURR
