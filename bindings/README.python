@@ -73,7 +73,7 @@ The next step is to configure and build for Python3:
 
 If that doesn't work try:
 
-    ../hamlib/configure --with-python-binding PYTHON=`which python3` --prefix=$HOME/local
+    ../hamlib/configure --with-python-binding PYTHON=$(which python3) --prefix=$HOME/local
 
 then do the build:
 
