@@ -1,7 +1,7 @@
 dnl Configure Paths for Hamlib
 dnl Cloned from Alsa project http://www.alsa-project.org
 dnl AM_PATH_HAMLIB([MINIMUM-VERSION [, ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
-dnl Test for libhamlib, and define HAMLIB_LTDL, 
+dnl Test for libhamlib, and define HAMLIB_LTDL,
 dnl HAMLIB_CFLAGS and HAMLIB_LIBS as appropriate.
 dnl enables arguments --with-hamlib-prefix=
 dnl                   --with-hamlib-inc-prefix=
@@ -51,9 +51,9 @@ fi
 
 dnl add the hamlib library
 HAMLIB_LIBS="$HAMLIB_LIBS -lhamlib -lm -ldl"
-LIBS=`echo $LIBS | sed 's/-lm//'`
-LIBS=`echo $LIBS | sed 's/-ldl//'`
-LIBS=`echo $LIBS | sed 's/  //'`
+LIBS=$(echo $LIBS | sed 's/-lm//')
+LIBS=$(echo $LIBS | sed 's/-ldl//')
+LIBS=$(echo $LIBS | sed 's/  //')
 #LIBS="$HAMLIB_LIBS $LIBS"
 AC_MSG_RESULT($HAMLIB_LIBS)
 
@@ -75,8 +75,8 @@ dnl Now that we know that we have the right version, let's see if we have the li
 
 if test "x$hamlib_found" = "xyes" ; then
    ifelse([$2], , :, [$2])
-   LIBS=`echo $LIBS | sed 's/-lhamlib//g'`
-   LIBS=`echo $LIBS | sed 's/  //'`
+   LIBS=$(echo $LIBS | sed 's/-lhamlib//g')
+   LIBS=$(echo $LIBS | sed 's/  //')
    LIBS="-lhamlib $LIBS"
 fi
 if test "x$hamlib_found" = "xno" ; then
@@ -93,4 +93,3 @@ AC_SUBST(HAMLIB_CFLAGS)
 AC_SUBST(HAMLIB_LIBS)
 AC_SUBST(HAMLIB_LTDL)
 ])
-

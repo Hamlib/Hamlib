@@ -143,6 +143,30 @@ The old file will be copied to 'moonmelter.c.orig' as a back up.
       /* NOP unless x is true. */
       while (!x);
 
+* Avoid the use of backticks (`) to invoke a subshell, also known as the grave
+  accent, in shell scripts, configure.ac, any Makefile.am, or .m4 files we
+  maintain.  While their use will likely be long supported, they do require
+  some care in use and can be difficult to read on the screen.
+
+  The preferred construct is to use parentheses to invoke a subshell and the
+  '$()' construct when the output of the command is intended to be captured in
+  a shell variable.  This answer covers the reasoning well:
+
+        https://unix.stackexchange.com/a/126928
+
+  In Makefile.am files use the '$$()' construct to capture subshell command
+  output into a make variable.
+
+  Exceptions:
+
+  Files intended to be formatted in Markdown syntax use backticks as a
+  formatting cue.  In these files such use is permitted.
+
+  There are a number of files sourced from the GNU Project where the
+  backtick is used extensively as an opening single quote character.  As we
+  don't usually maintain these files except to update them as needed, these
+  rules are waived for those files.
+
 
 4. Use of code formatting tools
 
