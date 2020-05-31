@@ -103,7 +103,7 @@ $socket = new IO::Socket::INET (PeerAddr    => $host,
     or die $@;
 
 
-print "Welcome to testctld.pl a program to test `rigctld'\n";
+print "Welcome to testctld.pl a program to test 'rigctld'\n";
 print "Type '?' or 'help' for commands help.\n\n";
 
 
@@ -464,7 +464,7 @@ F 28400000
 
 \\set_mode USB 2400
 
-See `man rigctld' for complete command descriptions.
+See 'man rigctld' for complete command descriptions.
 
 Type 'q' or 'exit' to exit $0.
 
@@ -657,7 +657,7 @@ sub chk_opt {
     }
 
     # The CHK* line will have a space separated interger of 0 or 1
-    # for `rigctld' invocation without and with -b|--block or
+    # for 'rigctld' invocation without and with -b|--block or
     # -o|--vfo options respectively
     foreach (@lines) {
         if ($_ =~ /^$_[0]\s(\d)/) {
@@ -706,15 +706,15 @@ __END__
 
 =head1 NAME
 
-testctld.pl - A test and example program for `rigctld' written in Perl.
+testctld.pl - A test and example program for 'rigctld' written in Perl.
 
 =head1 SYNOPSIS
 
 testctld.pl [options]
 
  Options:
-    --host          Hostname or IP address of target `rigctld' process
-    --port          TCP Port of target `rigctld' process
+    --host          Hostname or IP address of target 'rigctld' process
+    --port          TCP Port of target 'rigctld' process
     --help          Brief help message
     --man           Full documentation
     --debug         Enable debugging output
