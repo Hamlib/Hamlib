@@ -230,7 +230,7 @@ static int meade_open(ROT *rot)
 
     /* Set Telescope to Land alignment mode to deactivate sloping */
     /* Allow 0-90 Degree Elevation */
-    if (strcmp(priv->product_name, "Audiostar"))  // if we're not an audiostar
+    if (strcmp(priv->product_name, "Autostar"))  // if we're not an audiostar
     {
         retval = meade_transaction(rot, ":AL#:So00#:Sh90#", NULL, 0, 0);
     }
