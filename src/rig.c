@@ -194,10 +194,13 @@ static vfo_t vfo_fixup(RIG *rig, vfo_t vfo)
 {
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
 
+#if 0 // Icoms require VFO_CURR -- 2020-05-30 -- if no other problems
+      // reported after WSJT-X is released delete this
     if (vfo == RIG_VFO_CURR && rig->state.current_vfo == RIG_VFO_CURR)
     {
         vfo = RIG_VFO_A;
     }
+#endif
     if (vfo == RIG_VFO_RX)
     {
         vfo = RIG_VFO_A;
