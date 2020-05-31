@@ -4,7 +4,7 @@ As of version 0.5 of the rotorez backend, the serial
 timeout has been shortened to 1500 mS and the retry count reduced to 2
 to speed up  recovery when flushing the buffer as described below.
 Also, four tokens have been defined in rotorez.h for the set_conf
-function used by `rotctl' and `rotctld'. They are:
+function used by 'rotctl' and 'rotctld'. They are:
 
     ENDPT,
     JAM,
@@ -13,8 +13,8 @@ function used by `rotctl' and `rotctld'. They are:
 
 and have the integer values of 1-4 respectively.  Until tokens are more
 completely developed in the Hamlib frontend, passing the integers to
-`rotcrl' and `rotctld' will be necessary.  The 'value' given to
-`rotclt' and `rotctld' is the character '0' or '1' to disable or
+'rotcrl' and 'rotctld' will be necessary.  The 'value' given to
+'rotclt' and 'rotctld' is the character '0' or '1' to disable or
 enable the function.  For example, to disable Endpoint Protection give
 the command 'C 1 0' and to enable it again use 'C 1 1'.
 
@@ -31,7 +31,7 @@ it is possible some other character could be placed there.
 
 If the RotorEZ should receive an invalid command, such as an the ';'
 character while the rotor is not in motion, as sent by the rotorez_rot_stop
-function ('S' command from `rotctl'), it will output the following
+function ('S' command from 'rotctl'), it will output the following
 string, "C2000 IDIOM V1.4S " into the input buffer.  A new function,
 rotorez_flush_buffer, flushes the buffer by reading it until a timeout
 occurs.  Once the timeout occurs, this function returns and the buffer is
@@ -128,6 +128,3 @@ Subject: Rotor Card and Rotor-EZ command reference
 >
 > 73, de Nate >>
 >
-
-
-
