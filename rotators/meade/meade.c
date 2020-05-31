@@ -459,7 +459,7 @@ const struct rot_caps meade_caps =
     ROT_MODEL(ROT_MODEL_MEADE),
     .model_name =       "LX200/Autostar",
     .mfg_name =         "Meade",
-    .version =          "20200528",
+    .version =          "20200531",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_STABLE,
     .rot_type =         ROT_TYPE_AZEL,
