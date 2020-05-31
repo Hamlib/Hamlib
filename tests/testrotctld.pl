@@ -113,7 +113,7 @@ $socket = new IO::Socket::INET (PeerAddr    => $host,
     or die $@;
 
 
-print "Welcome to testrotctld.pl a program to test `rotctld'\n";
+print "Welcome to testrotctld.pl a program to test 'rotctld'\n";
 print "Type '?' or 'help' for commands help.\n\n";
 
 
@@ -385,7 +385,7 @@ P 150.75 22.5
 
 \\get_pos
 
-See `man rotctld' for complete command descriptions.
+See 'man rotctld' for complete command descriptions.
 
 Type 'q' or 'exit' to exit $0.
 
@@ -599,15 +599,15 @@ __END__
 
 =head1 NAME
 
-testctld.pl - A test and example program for `rotctld' written in Perl.
+testctld.pl - A test and example program for 'rotctld' written in Perl.
 
 =head1 SYNOPSIS
 
 testctld.pl [options]
 
  Options:
-    --host          Hostname or IP address of target `rotctld' process
-    --port          TCP Port of target `rotctld' process
+    --host          Hostname or IP address of target 'rotctld' process
+    --port          TCP Port of target 'rotctld' process
     --help          Brief help message
     --man           Full documentation
     --debug         Enable debugging output

@@ -1009,7 +1009,7 @@ static int rotorez_send_priv_cmd(ROT *rot, const char *cmdstr)
  *
  * If the RotorEZ should receive an invalid command, such as an the ';'
  * character while the rotor is not in motion, as sent by the rotorez_rot_stop
- * function or the 'S' command from `rotctl', it will output the following
+ * function or the 'S' command from 'rotctl', it will output the following
  * string, "C2000 IDIOM V1.4S " into the input buffer.  This function flushes
  * the buffer by reading it until a timeout occurs.  Once the timeout occurs,
  * this function returns and the buffer is presumed to be empty.
