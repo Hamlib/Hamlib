@@ -1993,6 +1993,9 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
         rig->state.cache.vfo = *vfo;
         cache_ms = elapsed_ms(&rig->state.cache.time_vfo, ELAPSED_SET);
     }
+    else {
+        cache_ms = elapsed_ms(&rig->state.cache.time_vfo, ELAPSED_INVALIDATE);
+    }
 
     return retcode;
 }
