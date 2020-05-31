@@ -39,11 +39,11 @@ example_DATA += perltest.pl
 
 hamlibperl_wrap.c: hamlib.swg $(SWIGDEP)
 	$(AM_V_GEN)$(SWIG) -perl5 -shadow $(AM_CPPFLAGS) -I$(top_srcdir)/bindings \
-		-o $@ `test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
+		-o $@ $$(test -f hamlib.swg || echo '$(srcdir)/')hamlib.swg
 
 Hamlib-pl.mk: $(srcdir)/Makefile.PL
 	$(AM_V_at)test -f Makefile.PL || $(LN_S) $(srcdir)/Makefile.PL Makefile.PL
-	$(AM_V_at)perl `test -f Makefile.PL || echo '$(srcdir)/'`Makefile.PL \
+	$(AM_V_at)perl $$(test -f Makefile.PL || echo '$(srcdir)/')Makefile.PL \
 			MAKEFILE="Hamlib-pl.mk" \
 			PREFIX="$(prefix)" \
 			INC="$(AM_CPPFLAGS)"  \
@@ -120,7 +120,7 @@ Hamlib.py: hamlibpy_wrap.c
 
 hamlibpy_wrap.c: hamlib.swg $(SWGDEP)
 	$(AM_V_GEN)$(SWIG) -python $(AM_CPPFLAGS) -I$(top_srcdir)/bindings \
-		-o $@ `test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
+		-o $@ $$(test -f hamlib.swg || echo '$(srcdir)/')hamlib.swg
 
 install-py:
 clean-py:
@@ -165,7 +165,7 @@ pkgIndex.tcl: Makefile
 hamlibtcl_wrap.c: hamlib.swg $(SWGDEP)
 	$(AM_V_GEN)$(SWIG) -tcl -pkgversion $(PKG_VER) $(AM_CPPFLAGS) \
 		-I$(top_srcdir)/bindings \
-		-o $@ `test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
+		-o $@ $$(test -f hamlib.swg || echo '$(srcdir)/')hamlib.swg
 
 do_subst = sed -e 's,[@]tcldir[@],$(tcldir),g'
 
@@ -217,7 +217,7 @@ Hamlib.lua: hamliblua_wrap.c
 
 hamliblua_wrap.c: hamlib.swg $(SWGDEP)
 	$(AM_V_GEN)$(SWIG) -lua $(AM_CPPFLAGS) -I$(top_srcdir)/bindings \
-		-o $@ `test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
+		-o $@ $$(test -f hamlib.swg || echo '$(srcdir)/')hamlib.swg
 
 install-lua:
 clean-lua:

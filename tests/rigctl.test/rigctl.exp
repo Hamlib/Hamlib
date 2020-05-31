@@ -19,7 +19,7 @@
 
 set timeout 3
 #
-# expectations that clean up in case of error. Note that `$test' is
+# expectations that clean up in case of error. Note that '$test' is
 # a purely local variable.
 #
 # The first of these is used to match any bad responses, and resynchronise
@@ -59,4 +59,3 @@ send "\\get_info\n"
 expect {
 	-re "Info:.*$prompt$"		{ pass "$test" }
 }
-

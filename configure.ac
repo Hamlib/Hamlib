@@ -739,7 +739,7 @@ AC_SUBST([BACKENDEPS])
 ## ---------------------------------- ##
 
 for be in ${RIG_BACKEND_LIST} ; do
-        RIGDIR=`echo $be | awk -F "/" '{print $2}'`
+        RIGDIR=$(echo $be | awk -F "/" '{print $2}')
         RIG_BACKENDEPS="${RIG_BACKENDEPS} \$(top_builddir)/rigs/${RIGDIR}/libhamlib-${RIGDIR}.la"
 done
 
@@ -754,7 +754,7 @@ AC_SUBST([RIG_BACKENDEPS])
 # otherwise parallel 'make -jn' will fail
 
 for be in ${ROT_BACKEND_LIST} ; do
-        ROTDIR=`echo $be | awk -F "/" '{print $2}'`
+        ROTDIR=$(echo $be | awk -F "/" '{print $2}')
         ROT_BACKENDEPS="${ROT_BACKENDEPS} \$(top_builddir)/rotators/${ROTDIR}/libhamlib-${ROTDIR}.la"
 done
 
@@ -768,7 +768,7 @@ AC_SUBST([ROT_BACKENDEPS])
 # otherwise parallel 'make -jn' will fail
 
 for be in ${AMP_BACKEND_LIST} ; do
-        AMPDIR=`echo $be | awk -F "/" '{print $2}'`
+        AMPDIR=$(echo $be | awk -F "/" '{print $2}')
         AMP_BACKENDEPS="${AMP_BACKENDEPS} \$(top_builddir)/amplifiers/${AMPDIR}/libhamlib-${AMPDIR}.la"
 done
 

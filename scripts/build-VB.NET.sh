@@ -24,7 +24,7 @@ EX_NOINPUT=66
 
 # Pass name of Hamlib archive extracted in $BUILD_DIR
 if [ $# -ne 1 ]; then
-	echo -e "\nUsage: `basename $0` hamlib-version\n"
+	echo -e "\nUsage: $(basename $0) hamlib-version\n"
 	echo -e "See README.build-VB.NET for more information.\n"
 	exit $EX_USAGE
 fi
@@ -40,9 +40,9 @@ fi
 
 # FIXME: Determine RELEASE only from AC_INIT line to avoid any other similar
 # values and avoid hard coded version number.
-RELEASE=`/usr/bin/awk 'BEGIN{FS="["; RS="]"} /\[3\./ {print $2}' ./configure.ac`
-INST_DIR=`pwd`/mingw-inst
-ZIP_DIR=`pwd`/hamlib-VB.NET-${RELEASE}
+RELEASE=$(/usr/bin/awk 'BEGIN{FS="["; RS="]"} /\[3\./ {print $2}' ./configure.ac)
+INST_DIR=$(pwd)/mingw-inst
+ZIP_DIR=$(pwd)/hamlib-VB.NET-${RELEASE}
 LIBUSB_WIN32_BIN_PATH=${BUILD_DIR}/${LIBUSB_VER}
 
 
@@ -178,7 +178,7 @@ rm include/hamlib/rig_dll.h.orig
 # Configure and build hamlib for mingw32, with libusb-win32
 
 ./configure --host=i586-mingw32msvc \
- --prefix=`pwd`/mingw-inst \
+ --prefix=$(pwd)/mingw-inst \
  --without-cxx-binding \
  PKG_CONFIG_LIBDIR=${LIBUSB_WIN32_BIN_PATH}/lib/pkgconfig
 
@@ -205,5 +205,4 @@ cp -a ${LIBUSB_WIN32_BIN_PATH}/bin/x86/libusb0_x86.dll ${ZIP_DIR}/bin/libusb0.dl
 
 # Need VC++ free toolkit installed (default Wine directory installation shown)
 ( cd ${ZIP_DIR}/lib/msvc/ && wine ~/.wine/drive_c/Program\ Files/Microsoft\ Visual\ C++\ Toolkit\ 2003/bin/link.exe /lib /machine:i386 /def:libhamlib-2.def )
-zip -r hamlib-VB.NET-${RELEASE}.zip `basename ${ZIP_DIR}`
-
+zip -r hamlib-VB.NET-${RELEASE}.zip $(basename ${ZIP_DIR})
