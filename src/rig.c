@@ -925,6 +925,11 @@ int HAMLIB_API rig_open(RIG *rig)
     {
         rs->tx_vfo = rs->current_vfo;
     }
+    else // vfo fails so set some sensible defaults
+    {
+        rs->current_vfo = RIG_VFO_CURR;
+        rs->tx_vfo = RIG_VFO_TX;
+    }
 
     // try to turn off the screensaver if possible
     // don't care about the return here...it's just a nice-to-have
