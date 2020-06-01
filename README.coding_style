@@ -143,10 +143,30 @@ The old file will be copied to 'moonmelter.c.orig' as a back up.
       /* NOP unless x is true. */
       while (!x);
 
+3.1 Shell scripts
+
+Shell scripts should be written for POSIX portability as much as possible.
+Avoid using '/bin/bash' in the shebang line.  Use '/bin/sh' instead to allow
+for use of the system shell (some systems may not have Bash installed at all!)
+when the script is run.  The caveat is that some favorite Bash extensions are
+not POSIX portable so care is needed.  To help avoid the pitfalls, various
+tools exist such as 'checkbashisms' which will report syntax that is not
+portable.
+
+* Use four space indents as with the C style above.
+
+* Vertical space around conditional blocks can aid readability (newlines are
+  cheap!).
+
+* Try to keep line length between 80 and 100 characters if possible.
+  Backslashes (\) can sometimes be used to break up long lines.  Be careful as
+  the shell is often less forgiving than the C compiler with extra spaces.
+  Experiment.
+
 * Avoid the use of backticks (`) to invoke a subshell, also known as the grave
-  accent, in shell scripts, configure.ac, any Makefile.am, or .m4 files we
-  maintain.  While their use will likely be long supported, they do require
-  some care in use and can be difficult to read on the screen.
+  accent and backquote, in shell scripts, configure.ac, any Makefile.am, or
+  .m4 files we maintain.  While their use will likely be long supported, they
+  do require some care in use and can be difficult to read on the screen.
 
   The preferred construct is to use parentheses to invoke a subshell and the
   '$()' construct when the output of the command is intended to be captured in
@@ -166,6 +186,21 @@ The old file will be copied to 'moonmelter.c.orig' as a back up.
   backtick is used extensively as an opening single quote character.  As we
   don't usually maintain these files except to update them as needed, these
   rules are waived for those files.
+
+3.2 Python
+
+Python authors are already well aware of the classic PEP8 and need no further
+instruction on the matter.
+
+3.3 Perl
+
+Perl authors already know their code can resemble modem line noise and it will
+work flawlessly.  Somehow.
+
+3.4 Makefile
+
+When indenting a line in a Makefile.am (and the resulting Makefile) that a
+real Tab character (0x09) is required.  Spaces will cause 'make' errors.
 
 
 4. Use of code formatting tools
