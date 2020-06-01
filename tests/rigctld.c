@@ -571,6 +571,11 @@ int main(int argc, char *argv[])
     /*
      * ex: RIG_PTT_PARALLEL and /dev/parport0
      */
+    if (ptt_type != RIG_PTT_NONE)
+    {
+        my_rig->state.pttport.type.ptt = ptt_type;
+    }
+
     if (dcd_type != RIG_DCD_NONE)
     {
         my_rig->state.dcdport.type.dcd = dcd_type;
@@ -623,12 +628,6 @@ int main(int argc, char *argv[])
     {
         fprintf(stderr, "rig_open: error = %s \n", rigerror(retcode));
         exit(2);
-    }
-
-    if (ptt_type != RIG_PTT_NONE)
-    {
-        my_rig->state.pttport.type.ptt = ptt_type;
-        my_rig->caps->ptt_type = ptt_type;
     }
 
     if (verbose > RIG_DEBUG_ERR)
