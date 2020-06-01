@@ -1128,6 +1128,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         }
     }
 
+#if 0 // does not work with rigs without VFO_A
     if (vfo == RIG_VFO_CURR)
     {
         vfo = priv->curr_vfo;
@@ -1135,6 +1136,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         rig_debug(RIG_DEBUG_VERBOSE, "%s: CurrVFO changed to %s\n", __func__,
                   rig_strvfo(vfo));
     }
+#endif
 
 
     retval = set_vfo_curr(rig, vfo, priv->curr_vfo);
