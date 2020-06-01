@@ -539,9 +539,17 @@ static int netrigctl_open(RIG *rig)
             }
             else if (strcmp(setting, "ptt_type") == 0)
             {
-                rig->caps->ptt_type = strtol(value, NULL, 0);
-                rig->state.pttport.type.ptt = rig->caps->ptt_type;
-                rig_debug(RIG_DEBUG_TRACE, "%s: %s set to %d\n", __func__, setting, rig->caps->ptt_type);
+                ptt_type_t temp = (ptt_type_t)strtol(value, NULL, 0);
+                if (RIG_PTT_RIG_MICDATA == rig->state.pttport.type.ptt && RIG_PTT_NONE == temp)
+                {
+                    /*
+                     * remote PTT must always be RIG_PTT_RIG_MICDATA
+                     * if there is any PTT capability and we have not
+                     * locally overridden it
+                     */
+                    rig->state.pttport.type.ptt = temp;
+                    rig_debug(RIG_DEBUG_TRACE, "%s: %s set to %d\n", __func__, setting, rig->state.pttport.type.ptt);
+                }
             }
             else
             {
