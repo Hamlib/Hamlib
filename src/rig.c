@@ -197,7 +197,7 @@ static vfo_t vfo_fixup(RIG *rig, vfo_t vfo)
     if (vfo == RIG_VFO_CURR)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: Leaving currVFO alone\n", __func__);
-        return RIG_OK;  // don't modify vfo for RIG_VFO_CURR
+        return vfo;  // don't modify vfo for RIG_VFO_CURR
     }
 
     if (vfo == RIG_VFO_RX)
