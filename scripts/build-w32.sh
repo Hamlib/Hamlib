@@ -30,17 +30,27 @@ EX_NOINPUT=66
 
 # Pass name of Hamlib archive extracted in $BUILD_DIR
 if [ $# -ne 1 ]; then
-    echo -e "\nUsage: $(basename $0) hamlib-version\n"
-    echo -e "See README.build-Windows for more information.\n"
+    echo
+    echo "Usage: $(basename $0) hamlib-version"
+    echo "See README.build-Windows for more information."
+    echo
+
     exit ${EX_USAGE}
 fi
 
 # Make sure the Hamlib archive is where we expect
 if [ -d ${BUILD_DIR}/$1 ]; then
-    echo -e "\nBuilding W32 binaries in ${BUILD_DIR}/$1\n\n"
+    echo
+    echo "Building W32 binaries in ${BUILD_DIR}/$1"
+    echo
+
     cd ${BUILD_DIR}/$1
 else
-    echo -e "\nBuild directory, ${BUILD_DIR}/$1 not found!\nCheck path for $1 or correct the version number.\n"
+    echo
+    echo "Build directory, ${BUILD_DIR}/$1 not found!"
+    echo "Check path for $1 or correct the version number."
+    echo
+
     exit ${EX_NOINPUT}
 fi
 
