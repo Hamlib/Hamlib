@@ -4080,7 +4080,7 @@ declare_proto_rig(dump_state)
     // protocol 1 fields can be multi-line -- just write the thing to allow for it
     // backward compatible as new values will just generate warnings
     fprintf(fout, "vfo_ops=0x%x\n", rig->caps->vfo_ops);
-    fprintf(fout, "ptt_type=0x%x\n", rig->caps->ptt_type);
+    fprintf(fout, "ptt_type=0x%x\n", rig->state.pttport.type.ptt);
     fprintf(fout, "done\n");
 
 #if 0 // why isn't this implemented?  Does anybody care?
