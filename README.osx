@@ -23,9 +23,9 @@ $ ./configure
 
 Then compile the hamlib files
 
-$ ./make
+$ make
 
-Hint: "./make -jx" with x for the amount of CPU cores will speed up the
+Hint: "make -jx" with x for the amount of CPU cores will speed up the
 compilation
 
 Install hamlib
@@ -33,4 +33,4 @@ Install hamlib
 
 Install the Hamlib libraries and executables
 
-$ sudo ./make install
+$ sudo make install
