@@ -169,7 +169,6 @@ transaction_quit:
 static int
 gs232b_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
-    char buf[32];
     char cmdstr[64];
     int retval;
     unsigned u_az, u_el;
