@@ -704,6 +704,7 @@ static int write_block2(void *func,
  */
 static int handle_ts2000(void *arg)
 {
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd=%s\n", __func__, (char*)arg);
     // Handle all the queries
     if (strcmp(arg, "ID;") == 0)
     {
@@ -752,14 +753,15 @@ static int handle_ts2000(void *arg)
             return retval;
         }
 
-        if (ptt)
+        // we need to know split status -- don't care about the vfo
+        retval = rig_get_split_vfo(my_rig, RIG_VFO_CURR, &split, &vfo);
+
+        if (retval != RIG_OK)
         {
-            retval = rig_get_split_vfo(my_rig, RIG_VFO_CURR, &split, &vfo);
+            return retval;
         }
-        else
-        {
-            retval = rig_get_vfo(my_rig, &vfo);
-        }
+
+        retval = rig_get_vfo(my_rig, &vfo);
 
         if (retval != RIG_OK)
         {

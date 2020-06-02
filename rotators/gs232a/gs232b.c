@@ -169,7 +169,6 @@ transaction_quit:
 static int
 gs232b_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
-    char buf[32];
     char cmdstr[64];
     int retval;
     unsigned u_az, u_el;
@@ -186,12 +185,16 @@ gs232b_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
     u_el = (unsigned) rint(el);
 
     sprintf(cmdstr, "W%03u %03u" EOM, u_az, u_el);
+#if 0 // do any GS232B models need a reply to the W command?
     retval = gs232b_transaction(rot, cmdstr, buf, sizeof(buf), 0);
+#else
+    retval = gs232b_transaction(rot, cmdstr, NULL, 0 , 0);
 
     if (retval != RIG_OK)
     {
         return retval;
     }
+#endif
 
     return RIG_OK;
 }
@@ -317,7 +320,7 @@ const struct rot_caps gs232b_rot_caps =
     ROT_MODEL(ROT_MODEL_GS232B),
     .model_name = "GS-232B",
     .mfg_name = "Yaesu",
-    .version = "20200517",
+    .version = "20200531",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rot_type = ROT_TYPE_OTHER,

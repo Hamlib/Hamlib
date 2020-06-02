@@ -194,13 +194,12 @@ static vfo_t vfo_fixup(RIG *rig, vfo_t vfo)
 {
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
 
-#if 0 // Icoms require VFO_CURR -- 2020-05-30 -- if no other problems
-      // reported after WSJT-X is released delete this
-    if (vfo == RIG_VFO_CURR && rig->state.current_vfo == RIG_VFO_CURR)
+    if (vfo == RIG_VFO_CURR)
     {
-        vfo = RIG_VFO_A;
+        rig_debug(RIG_DEBUG_TRACE, "%s: Leaving currVFO alone\n", __func__);
+        return vfo;  // don't modify vfo for RIG_VFO_CURR
     }
-#endif
+
     if (vfo == RIG_VFO_RX)
     {
         vfo = RIG_VFO_A;
@@ -925,6 +924,11 @@ int HAMLIB_API rig_open(RIG *rig)
     if (rig_get_vfo(rig, &rs->current_vfo) == RIG_OK)
     {
         rs->tx_vfo = rs->current_vfo;
+    }
+    else // vfo fails so set some sensible defaults
+    {
+        rs->current_vfo = RIG_VFO_CURR;
+        rs->tx_vfo = RIG_VFO_TX;
     }
 
     // try to turn off the screensaver if possible
