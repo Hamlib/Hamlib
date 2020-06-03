@@ -936,17 +936,20 @@ int HAMLIB_API rig_open(RIG *rig)
 
         if (backend_num == RIG_ICOM)
         {
-            rig_debug(RIG_DEBUG_TRACE, "%s: Icom rig so default vfo = %s\n", __func__, rig_strvfo(rs->current_vfo));
+            rig_debug(RIG_DEBUG_TRACE, "%s: Icom rig so default vfo = %s\n", __func__,
+                      rig_strvfo(rs->current_vfo));
         }
         else if (rig->caps->get_vfo == NULL)
-        { // for non-Icom rigs if there's no get_vfo then we need to set one
+        {
+            // for non-Icom rigs if there's no get_vfo then we need to set one
             rs->current_vfo = vfo_fixup(rig, RIG_VFO_A);
             rig_debug(RIG_DEBUG_TRACE, "%s: No get_vfo function rig so default vfo = %s\n",
                       __func__, rig_strvfo(rs->current_vfo));
         }
         else
         {
-            rig_debug(RIG_DEBUG_TRACE, "%s: default vfo = %s\n", __func__, rig_strvfo(rs->current_vfo));
+            rig_debug(RIG_DEBUG_TRACE, "%s: default vfo = %s\n", __func__,
+                      rig_strvfo(rs->current_vfo));
         }
     }
 
@@ -1450,6 +1453,13 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
             || vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo
             || rig->state.vfo_opt == 1)
     {
+        // If rig does not have set_vfo we need to change vfo
+        if (vfo == RIG_VFO_CURR && caps->set_vfo == NULL)
+        {
+            vfo = vfo_fixup(rig, RIG_VFO_A);
+            rig_debug(RIG_DEBUG_TRACE, "%s: no set_vfo so vfo=%s\n", __func__, rig_strvfo(vfo));
+        }
+
         retcode = caps->get_freq(rig, vfo, freq);
 
         if (retcode == RIG_OK)
