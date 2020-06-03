@@ -280,7 +280,15 @@ static int dummy_init(RIG *rig)
     init_chan(rig, RIG_VFO_A, &priv->vfo_a);
     init_chan(rig, RIG_VFO_B, &priv->vfo_b);
     priv->curr = &priv->vfo_a;
-    priv->curr_vfo = priv->last_vfo = RIG_VFO_A;
+
+    if (rig->caps->rig_model == RIG_MODEL_DUMMY_NOVFO)
+    {
+        priv->curr_vfo = priv->last_vfo = RIG_VFO_CURR;
+    }
+    else
+    {
+        priv->curr_vfo = priv->last_vfo = RIG_VFO_A;
+    }
 
     priv->magic_conf = strdup("DX");
 
@@ -317,6 +325,15 @@ static int dummy_cleanup(RIG *rig)
 static int dummy_open(RIG *rig)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (rig->caps->rig_model == RIG_MODEL_DUMMY_NOVFO)
+    {
+        // then we emulate a rig without set_vfo or get_vfo
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Emulating rig without get_vfo or set_vfo\n",
+                  __func__);
+        rig->caps->set_vfo = NULL;
+        rig->caps->get_vfo = NULL;
+    }
 
     usleep(CMDSLEEP);
 
@@ -406,13 +423,19 @@ static int dummy_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
 
-    if (vfo == RIG_VFO_CURR) { vfo = priv->curr_vfo; }
+    if (vfo == RIG_VFO_CURR && rig->caps->rig_model != RIG_MODEL_DUMMY_NOVFO) { vfo = priv->curr_vfo; }
 
     usleep(CMDSLEEP);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, rig_strvfo(vfo));
 
-    if (vfo == RIG_VFO_A) { *freq = priv->freq_vfoa; }
-    else if (vfo == RIG_VFO_B) { *freq = priv->freq_vfob; }
+    switch (vfo)
+    {
+    case RIG_VFO_A:  *freq = priv->freq_vfoa; break;
+
+    case RIG_VFO_B:  *freq = priv->freq_vfob; break;
+
+    default: return -RIG_EINVAL;
+    }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: freq=%.0f\n", __func__, *freq);
     return RIG_OK;
@@ -2091,6 +2114,168 @@ struct rig_caps dummy_caps =
     .mW2power =   dummy_mW2power,
 };
 
+struct rig_caps dummy_no_vfo_caps =
+{
+    RIG_MODEL(RIG_MODEL_DUMMY_NOVFO),
+    .model_name =     "Dummy No VFO",
+    .mfg_name =       "Hamlib",
+    .version =        "20200603.0",
+    .copyright =      "LGPL",
+    .status =         RIG_STATUS_STABLE,
+    .rig_type =       RIG_TYPE_OTHER,
+    .targetable_vfo =      0,
+    .ptt_type =       RIG_PTT_RIG,
+    .dcd_type =       RIG_DCD_RIG,
+    .port_type =      RIG_PORT_NONE,
+    .has_get_func =   DUMMY_FUNC,
+    .has_set_func =   DUMMY_FUNC,
+    .has_get_level =  DUMMY_LEVEL,
+    .has_set_level =  RIG_LEVEL_SET(DUMMY_LEVEL),
+    .has_get_parm =    DUMMY_PARM,
+    .has_set_parm =    RIG_PARM_SET(DUMMY_PARM),
+    .level_gran =      { [LVL_CWPITCH] = { .step = { .i = 10 } } },
+    .ctcss_list =      common_ctcss_list,
+    .dcs_list =        full_dcs_list,
+    .chan_list =   {
+        {   0,  18, RIG_MTYPE_MEM, DUMMY_MEM_CAP },
+        {  19,  19, RIG_MTYPE_CALL },
+        {  20,  NB_CHAN - 1, RIG_MTYPE_EDGE },
+        RIG_CHAN_END,
+    },
+    .scan_ops =    DUMMY_SCAN,
+    .vfo_ops =     DUMMY_VFO_OP,
+    .transceive =     RIG_TRN_OFF,
+    .attenuator =     { 10, 20, 30, RIG_DBLST_END, },
+    .preamp =          { 10, RIG_DBLST_END, },
+    .rx_range_list1 =  { {
+            .startf = kHz(150), .endf = MHz(1500), .modes = DUMMY_MODES,
+            .low_power = -1, .high_power = -1, DUMMY_VFOS, RIG_ANT_1 | RIG_ANT_2 | RIG_ANT_3 | RIG_ANT_4,
+            .label = "Dummy#1"
+        },
+        RIG_FRNG_END,
+    },
+    .tx_range_list1 =  { {
+            .startf = kHz(150), .endf = MHz(1500), .modes = DUMMY_MODES,
+            .low_power = W(5), .high_power = W(100), DUMMY_VFOS, RIG_ANT_1 | RIG_ANT_2 | RIG_ANT_3 | RIG_ANT_4,
+            .label = "Dummy#1"
+        },
+        RIG_FRNG_END,
+    },
+    .rx_range_list2 =  { {
+            .startf = kHz(150), .endf = MHz(1500), .modes = DUMMY_MODES,
+            .low_power = -1, .high_power = -1, DUMMY_VFOS, RIG_ANT_1 | RIG_ANT_2 | RIG_ANT_3 | RIG_ANT_4,
+            .label = "Dummy#2"
+        },
+        RIG_FRNG_END,
+    },
+    .tx_range_list2 =  { RIG_FRNG_END, },
+    .tuning_steps =  { {DUMMY_MODES, 1}, {DUMMY_MODES, RIG_TS_ANY}, RIG_TS_END, },
+    .filters =  {
+        {RIG_MODE_SSB, kHz(2.4)},
+        {RIG_MODE_SSB, kHz(1.8)},
+        {RIG_MODE_SSB, kHz(3.0)},
+        {RIG_MODE_SSB, RIG_FLT_ANY},
+        {RIG_MODE_CW, Hz(500)},
+        {RIG_MODE_CW, kHz(2.4)},
+        {RIG_MODE_CW, Hz(50)},
+        {RIG_MODE_CW, RIG_FLT_ANY},
+        {RIG_MODE_RTTY, Hz(300)},
+        {RIG_MODE_RTTY, kHz(2.4)},
+        {RIG_MODE_RTTY, Hz(50)},
+        {RIG_MODE_RTTY, RIG_FLT_ANY},
+        {RIG_MODE_AM, kHz(8)},
+        {RIG_MODE_AM, kHz(2.4)},
+        {RIG_MODE_AM, kHz(10)},
+        {RIG_MODE_FM, kHz(15)},
+        {RIG_MODE_FM, kHz(8)},
+        {RIG_MODE_WFM, kHz(230)},
+        RIG_FLT_END,
+    },
+    .max_rit = 9990,
+    .max_xit = 9990,
+    .max_ifshift = 10000,
+    .priv =  NULL,    /* priv */
+
+    .extlevels =    dummy_ext_levels,
+    .extparms =     dummy_ext_parms,
+    .cfgparams =    dummy_cfg_params,
+
+    .rig_init =     dummy_init,
+    .rig_cleanup =  dummy_cleanup,
+    .rig_open =     dummy_open,
+    .rig_close =    dummy_close,
+
+    .set_conf =     dummy_set_conf,
+    .get_conf =     dummy_get_conf,
+
+    .set_freq =     dummy_set_freq,
+    .get_freq =     dummy_get_freq,
+    .set_mode =     dummy_set_mode,
+    .get_mode =     dummy_get_mode,
+    .set_vfo =      dummy_set_vfo,
+    .get_vfo =      dummy_get_vfo,
+
+    .set_powerstat =  dummy_set_powerstat,
+    .get_powerstat =  dummy_get_powerstat,
+    .set_level =     dummy_set_level,
+    .get_level =     dummy_get_level,
+    .set_func =      dummy_set_func,
+    .get_func =      dummy_get_func,
+    .set_parm =      dummy_set_parm,
+    .get_parm =      dummy_get_parm,
+    .set_ext_level = dummy_set_ext_level,
+    .get_ext_level = dummy_get_ext_level,
+    .set_ext_parm =  dummy_set_ext_parm,
+    .get_ext_parm =  dummy_get_ext_parm,
+
+    .get_info =      dummy_get_info,
+
+
+    .set_ptt =    dummy_set_ptt,
+    .get_ptt =    dummy_get_ptt,
+    .get_dcd =    dummy_get_dcd,
+    .set_rptr_shift =     dummy_set_rptr_shift,
+    .get_rptr_shift =     dummy_get_rptr_shift,
+    .set_rptr_offs =  dummy_set_rptr_offs,
+    .get_rptr_offs =  dummy_get_rptr_offs,
+    .set_ctcss_tone =     dummy_set_ctcss_tone,
+    .get_ctcss_tone =     dummy_get_ctcss_tone,
+    .set_dcs_code =   dummy_set_dcs_code,
+    .get_dcs_code =   dummy_get_dcs_code,
+    .set_ctcss_sql =  dummy_set_ctcss_sql,
+    .get_ctcss_sql =  dummy_get_ctcss_sql,
+    .set_dcs_sql =    dummy_set_dcs_sql,
+    .get_dcs_sql =    dummy_get_dcs_sql,
+    .set_split_freq =     dummy_set_split_freq,
+    .get_split_freq =     dummy_get_split_freq,
+    .set_split_mode =     dummy_set_split_mode,
+    .get_split_mode =     dummy_get_split_mode,
+    .set_split_vfo =  dummy_set_split_vfo,
+    .get_split_vfo =  dummy_get_split_vfo,
+    .set_rit =    dummy_set_rit,
+    .get_rit =    dummy_get_rit,
+    .set_xit =    dummy_set_xit,
+    .get_xit =    dummy_get_xit,
+    .set_ts =     dummy_set_ts,
+    .get_ts =     dummy_get_ts,
+    .set_ant =    dummy_set_ant,
+    .get_ant =    dummy_get_ant,
+    .set_bank =   dummy_set_bank,
+    .set_mem =    dummy_set_mem,
+    .get_mem =    dummy_get_mem,
+    .vfo_op =     dummy_vfo_op,
+    .scan =       dummy_scan,
+    .send_dtmf =  dummy_send_dtmf,
+    .recv_dtmf =  dummy_recv_dtmf,
+    .send_morse =  dummy_send_morse,
+    .set_channel =    dummy_set_channel,
+    .get_channel =    dummy_get_channel,
+    .set_trn =    dummy_set_trn,
+    .get_trn =    dummy_get_trn,
+    .power2mW =   dummy_power2mW,
+    .mW2power =   dummy_mW2power,
+};
+
 DECLARE_INITRIG_BACKEND(dummy)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
@@ -2099,6 +2284,7 @@ DECLARE_INITRIG_BACKEND(dummy)
     rig_register(&netrigctl_caps);
     rig_register(&flrig_caps);
     rig_register(&trxmanager_caps);
+    rig_register(&dummy_no_vfo_caps);
 
     return RIG_OK;
 }
