@@ -936,17 +936,20 @@ int HAMLIB_API rig_open(RIG *rig)
 
         if (backend_num == RIG_ICOM)
         {
-            rig_debug(RIG_DEBUG_TRACE, "%s: Icom rig so default vfo = %s\n", __func__, rig_strvfo(rs->current_vfo));
+            rig_debug(RIG_DEBUG_TRACE, "%s: Icom rig so default vfo = %s\n", __func__,
+                      rig_strvfo(rs->current_vfo));
         }
         else if (rig->caps->set_vfo == NULL)
-        { // for non-Icom rigs if there's no set_vfo then we need to set one
+        {
+            // for non-Icom rigs if there's no set_vfo then we need to set one
             rs->current_vfo = vfo_fixup(rig, RIG_VFO_A);
             rig_debug(RIG_DEBUG_TRACE, "%s: No set_vfo function rig so default vfo = %s\n",
                       __func__, rig_strvfo(rs->current_vfo));
         }
         else
         {
-            rig_debug(RIG_DEBUG_TRACE, "%s: default vfo = %s\n", __func__, rig_strvfo(rs->current_vfo));
+            rig_debug(RIG_DEBUG_TRACE, "%s: default vfo = %s\n", __func__,
+                      rig_strvfo(rs->current_vfo));
         }
     }
 
@@ -1421,6 +1424,30 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     vfo = vfo_fixup(rig, vfo);
 
+    // there are some rigs that can't get VFOA freq while VFOB is transmitting
+    // so we'll return the cached VFOA freq for them
+    // should we use the cached ptt maybe?
+    if (vfo == RIG_VFO_A && rig->state.cache.split && 
+            (rig->caps->rig_model == RIG_MODEL_FTDX101D || rig->caps->rig_model == RIG_MODEL_IC910))
+    { // if we're in PTT don't get VFOA freq -- otherwise we interrupt transmission
+        ptt_t ptt;
+        retcode = rig_get_ptt(rig, RIG_VFO_CURR, &ptt);
+
+        if (retcode != RIG_OK)
+        {
+            return retcode;
+        }
+
+        if (ptt)
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: split is on so returning VFOA last known freq\n",
+                      __func__);
+            *freq = rig->state.cache.freq;
+            return RIG_OK;
+        }
+    }
+
+
     cache_ms = elapsed_ms(&rig->state.cache.time_freq, ELAPSED_GET);
     rig_debug(RIG_DEBUG_TRACE, "%s: cache check age=%dms\n", __func__, cache_ms);
 
@@ -1454,7 +1481,8 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         if (vfo == RIG_VFO_CURR && caps->set_vfo == NULL)
         {
             vfo = vfo_fixup(rig, RIG_VFO_A);
-            rig_debug(RIG_DEBUG_TRACE, "%s: no set_vfo so vfo=%s\n", __func__, rig_strvfo(vfo));
+            rig_debug(RIG_DEBUG_TRACE, "%s: no set_vfo so vfo=%s\n", __func__,
+                      rig_strvfo(vfo));
         }
 
         retcode = caps->get_freq(rig, vfo, freq);

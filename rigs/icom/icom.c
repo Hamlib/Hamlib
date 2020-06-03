@@ -1057,25 +1057,6 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     rs = &rig->state;
     priv = (struct icom_priv_data *) rs->priv;
 
-    if (rig->caps->rig_model == RIG_MODEL_IC910)
-    {
-        ptt_t ptt;
-        retval = rig_get_ptt(rig, RIG_VFO_CURR, &ptt);
-
-        if (retval != RIG_OK)
-        {
-            return retval;
-        }
-
-        if (ptt)
-        {
-            rig_debug(RIG_DEBUG_TRACE, "%s: split is on so returning last known freq\n",
-                      __func__);
-            *freq = priv->vfoa_freq;
-            return RIG_OK;
-        }
-    }
-
 #if 0 // disabled to test if IC9700 satmode/gpredict still works OK
 
     if (priv->curr_vfo == RIG_VFO_NONE)
