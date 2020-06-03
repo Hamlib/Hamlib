@@ -219,10 +219,12 @@ static vfo_t vfo_fixup(RIG *rig, vfo_t vfo)
         // Icom's lack of get_vfo is problematic in this respect
         // If we cache vfo or others than twiddling the rig may cause problems
         retval = rig_get_split(rig, vfo, &split);
+
         if (retval != RIG_OK)
         {
             split = rig->state.cache.split;
         }
+
         int satmode = rig->state.cache.satmode;
         vfo = RIG_VFO_A;
 
@@ -240,6 +242,7 @@ static vfo_t vfo_fixup(RIG *rig, vfo_t vfo)
                   "%s: RIG_VFO_TX changed to %s, split=%d, satmode=%d\n", __func__,
                   rig_strvfo(vfo), split, satmode);
     }
+
     rig_debug(RIG_DEBUG_TRACE, "%s: final vfo=%s\n", __func__, rig_strvfo(vfo));
     return vfo;
 }
@@ -927,8 +930,24 @@ int HAMLIB_API rig_open(RIG *rig)
     }
     else // vfo fails so set some sensible defaults
     {
-        rs->current_vfo = RIG_VFO_CURR;
+        int backend_num = RIG_BACKEND_NUM(rig->caps->rig_model);
         rs->tx_vfo = RIG_VFO_TX;
+        rs->current_vfo = RIG_VFO_CURR;
+
+        if (backend_num == RIG_ICOM)
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: Icom rig so default vfo = %s\n", __func__, rig_strvfo(rs->current_vfo));
+        }
+        else if (rig->caps->get_vfo == NULL)
+        { // for non-Icom rigs if there's no get_vfo then we need to set one
+            rs->current_vfo = vfo_fixup(rig, RIG_VFO_A);
+            rig_debug(RIG_DEBUG_TRACE, "%s: No get_vfo function rig so default vfo = %s\n",
+                      __func__, rig_strvfo(rs->current_vfo));
+        }
+        else
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: default vfo = %s\n", __func__, rig_strvfo(rs->current_vfo));
+        }
     }
 
     // try to turn off the screensaver if possible
@@ -1997,7 +2016,8 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
         rig->state.cache.vfo = *vfo;
         cache_ms = elapsed_ms(&rig->state.cache.time_vfo, ELAPSED_SET);
     }
-    else {
+    else
+    {
         cache_ms = elapsed_ms(&rig->state.cache.time_vfo, ELAPSED_INVALIDATE);
     }
 
