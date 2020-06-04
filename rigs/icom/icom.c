@@ -4166,7 +4166,7 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
         return retval;
     }
 
-    if (RIG_OK != (retval = icom_get_freq(rig, RIG_VFO_CURR, tx_freq)))
+    if (RIG_OK != (retval = icom_get_freq(rig, tx_vfo, tx_freq)))
     {
         return retval;
     }
@@ -4668,7 +4668,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     }
 
     // This should automaticaly switch between satmode on/off based on the requested split vfo
-    if (tx_vfo == RIG_VFO_SUB && !rig->state.cache.satmode)
+    if (tx_vfo == RIG_VFO_SUB || tx_vfo == RIG_VFO_MAIN && !rig->state.cache.satmode)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: VFO_SUB and satmode is off so turning on\n",
                   __func__);
@@ -4676,9 +4676,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         rig->state.cache.satmode = 1;
         priv->tx_vfo = RIG_VFO_SUB;
     }
-    else if ((tx_vfo == RIG_VFO_B && rig->state.cache.satmode)
-             || (tx_vfo == RIG_VFO_A
-                 && rig->state.cache.satmode))
+    else if ((tx_vfo == RIG_VFO_A || tx_vfo == RIG_VFO_B) && rig->state.cache.satmode)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: VFO_B and satmode is on so turning off\n",
                   __func__);
