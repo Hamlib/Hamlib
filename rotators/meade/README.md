@@ -31,8 +31,8 @@ Have Fun.
 
 ## LX200 Protocol
 
-* [2003 Protocol Verison](https://www.meade.com/support/LX200CommandSet.pdf)
-* [2010 Protocol Verison](https://www.meade.com/support/TelescopeProtocol_2010-10.pdf)
+* [2003 Protocol Version](https://www.meade.com/support/LX200CommandSet.pdf)
+* [2010 Protocol Version](https://www.meade.com/support/TelescopeProtocol_2010-10.pdf)
 
 ## Current Status
 
