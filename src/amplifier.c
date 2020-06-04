@@ -287,7 +287,6 @@ AMP *HAMLIB_API amp_init(amp_model_t amp_model)
  * set appropriately).
  *
  * \retval RIG_EINVAL   \a amp is NULL or unconsistent.
- * \retval RIG_ENIMPL   port type communication is not implemented yet.
  *
  * \sa amp_init(), amp_close()
  */
@@ -652,7 +651,7 @@ int HAMLIB_API amp_get_level(AMP *amp, setting_t level, value_t *val)
 
     if (amp->caps->get_level == NULL)
     {
-        return -RIG_ENIMPL;
+        return -RIG_ENAVAIL;
     }
 
     return amp->caps->get_level(amp, level, val);
@@ -671,7 +670,7 @@ int HAMLIB_API amp_get_ext_level(AMP *amp, token_t level, value_t *val)
 
     if (amp->caps->get_ext_level == NULL)
     {
-        return -RIG_ENIMPL;
+        return -RIG_ENAVAIL;
     }
 
     return amp->caps->get_ext_level(amp, level, val);
@@ -705,7 +704,7 @@ int HAMLIB_API amp_set_powerstat(AMP *amp, powerstat_t status)
 
     if (amp->caps->set_powerstat == NULL)
     {
-        return -RIG_ENIMPL;
+        return -RIG_ENAVAIL;
     }
 
     return amp->caps->set_powerstat(amp, status);
@@ -723,7 +722,7 @@ int HAMLIB_API amp_get_powerstat(AMP *amp, powerstat_t *status)
 
     if (amp->caps->get_powerstat == NULL)
     {
-        return -RIG_ENIMPL;
+        return -RIG_ENAVAIL;
     }
 
     return amp->caps->get_powerstat(amp, status);
