@@ -219,10 +219,12 @@ static vfo_t vfo_fixup(RIG *rig, vfo_t vfo)
         // Icom's lack of get_vfo is problematic in this respect
         // If we cache vfo or others than twiddling the rig may cause problems
         retval = rig_get_split(rig, vfo, &split);
+
         if (retval != RIG_OK)
         {
             split = rig->state.cache.split;
         }
+
         int satmode = rig->state.cache.satmode;
         vfo = RIG_VFO_A;
 
@@ -240,6 +242,7 @@ static vfo_t vfo_fixup(RIG *rig, vfo_t vfo)
                   "%s: RIG_VFO_TX changed to %s, split=%d, satmode=%d\n", __func__,
                   rig_strvfo(vfo), split, satmode);
     }
+
     rig_debug(RIG_DEBUG_TRACE, "%s: final vfo=%s\n", __func__, rig_strvfo(vfo));
     return vfo;
 }
@@ -927,8 +930,27 @@ int HAMLIB_API rig_open(RIG *rig)
     }
     else // vfo fails so set some sensible defaults
     {
-        rs->current_vfo = RIG_VFO_CURR;
+        int backend_num = RIG_BACKEND_NUM(rig->caps->rig_model);
         rs->tx_vfo = RIG_VFO_TX;
+        rs->current_vfo = RIG_VFO_CURR;
+
+        if (backend_num == RIG_ICOM)
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: Icom rig so default vfo = %s\n", __func__,
+                      rig_strvfo(rs->current_vfo));
+        }
+        else if (rig->caps->set_vfo == NULL)
+        {
+            // for non-Icom rigs if there's no set_vfo then we need to set one
+            rs->current_vfo = vfo_fixup(rig, RIG_VFO_A);
+            rig_debug(RIG_DEBUG_TRACE, "%s: No set_vfo function rig so default vfo = %s\n",
+                      __func__, rig_strvfo(rs->current_vfo));
+        }
+        else
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: default vfo = %s\n", __func__,
+                      rig_strvfo(rs->current_vfo));
+        }
     }
 
     // try to turn off the screensaver if possible
@@ -1402,6 +1424,30 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     vfo = vfo_fixup(rig, vfo);
 
+    // there are some rigs that can't get VFOA freq while VFOB is transmitting
+    // so we'll return the cached VFOA freq for them
+    // should we use the cached ptt maybe?
+    if (vfo == RIG_VFO_A && rig->state.cache.split && 
+            (rig->caps->rig_model == RIG_MODEL_FTDX101D || rig->caps->rig_model == RIG_MODEL_IC910))
+    { // if we're in PTT don't get VFOA freq -- otherwise we interrupt transmission
+        ptt_t ptt;
+        retcode = rig_get_ptt(rig, RIG_VFO_CURR, &ptt);
+
+        if (retcode != RIG_OK)
+        {
+            return retcode;
+        }
+
+        if (ptt)
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: split is on so returning VFOA last known freq\n",
+                      __func__);
+            *freq = rig->state.cache.freq;
+            return RIG_OK;
+        }
+    }
+
+
     cache_ms = elapsed_ms(&rig->state.cache.time_freq, ELAPSED_GET);
     rig_debug(RIG_DEBUG_TRACE, "%s: cache check age=%dms\n", __func__, cache_ms);
 
@@ -1431,6 +1477,14 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
             || vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo
             || rig->state.vfo_opt == 1)
     {
+        // If rig does not have set_vfo we need to change vfo
+        if (vfo == RIG_VFO_CURR && caps->set_vfo == NULL)
+        {
+            vfo = vfo_fixup(rig, RIG_VFO_A);
+            rig_debug(RIG_DEBUG_TRACE, "%s: no set_vfo so vfo=%s\n", __func__,
+                      rig_strvfo(vfo));
+        }
+
         retcode = caps->get_freq(rig, vfo, freq);
 
         if (retcode == RIG_OK)
@@ -1997,7 +2051,8 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
         rig->state.cache.vfo = *vfo;
         cache_ms = elapsed_ms(&rig->state.cache.time_vfo, ELAPSED_SET);
     }
-    else {
+    else
+    {
         cache_ms = elapsed_ms(&rig->state.cache.time_vfo, ELAPSED_INVALIDATE);
     }
 

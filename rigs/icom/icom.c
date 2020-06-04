@@ -1057,7 +1057,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     rs = &rig->state;
     priv = (struct icom_priv_data *) rs->priv;
 
-    if (rig->caps->rig_model == RIG_MODEL_IC910)
+    if (rig->caps->rig_model == RIG_MODEL_IC910 || rig->caps->rig_model == RIG_MODEL_FTDX101D)
     {
         ptt_t ptt;
         retval = rig_get_ptt(rig, RIG_VFO_CURR, &ptt);
