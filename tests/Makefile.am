@@ -100,8 +100,10 @@ testloc.sh:
 # If we have a .git directory then we will generate the hamlibdate.h file.
 # if not, then copy the placeholder.
 hamlibdatetime.h: FORCE
+	echo "SHA=$(SHA)"
 	test ! -x $(top_srcdir)/.git || echo "/* This date time is from the last non-merge commit to Hamlib. */" > $(srcdir)/hamlibdatetime.h
-	test ! -x $(top_srcdir)/.git || echo "#define HAMLIBDATETIME "\"$$(TZ=UTC git --git-dir=$(top_srcdir)/.git log --no-merges --date='format-local:%a %b %d %H:%M:%S %Y %z' --format='%cd' -n 1)\""" >> $(srcdir)/hamlibdatetime.h
+	test ! -x $(top_srcdir)/.git || echo -n "#define HAMLIBDATETIME "\"$$(TZ=UTC git --git-dir=$(top_srcdir)/.git log --no-merges --date='format-local:%a %b %d %H:%M:%S %Y %z SHA=' --format='%cd' -n 1)"" >> $(srcdir)/hamlibdatetime.h
+	test ! -x $(top_srcdir)/.git || echo $$(git --git-dir=$(top_srcdir)/.git log --no-merges | grep commit | head -n 1 | cut -c8-13)\"  >> $(srcdir)/hamlibdatetime.h
 	test -f $(srcdir)/hamlibdatetime.h || cp $(srcdir)/hamlibdatetime.h.in $(srcdir)/hamlibdatetime.h
 
 FORCE: ;
