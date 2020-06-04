@@ -1919,13 +1919,28 @@ typedef enum {
 struct rig_cache {
     int timeout_ms;  // the cache timeout for invalidating itself
     vfo_t vfo;
-    freq_t freq;
+    freq_t freq; // to be deprecated
+    // othe abstraction here is based on dual vfo rigs and mapped to all others
+    // So we have four possible states of rig
+    // MainA, MainB, SubA, SubB
+    // Main is the Main VFO and Sub is for the 2nd VFO
+    // Most rigs have MainA and MainB
+    // Dual VFO rigs can have SubA and SubB too
+    // For dual VFO rigs simplex opeations are all done on MainA/MainB -- ergo this abstraction
+    freq_t freqMainA; // VFO_A, VFO_MAIN, and VFO_MAINA
+    freq_t freqMainB; // VFO_B, VFO_SUB, and VFO_MAINB
+    freq_t freqSubA;  // VFO_SUBA
+    freq_t freqSubB;  // VFO_SUBB
     rmode_t mode;
     pbwidth_t width;
     ptt_t ptt;
     split_t split;
     vfo_t split_vfo;  // split caches two values
     struct timespec time_freq;
+    struct timespec time_freqMainA;
+    struct timespec time_freqMainB;
+    struct timespec time_freqSubA;
+    struct timespec time_freqSubB;
     struct timespec time_vfo;
     struct timespec time_mode;
     struct timespec time_ptt;
