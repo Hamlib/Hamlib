@@ -358,8 +358,8 @@ static int meade_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: az=%03d:%02d:%02d, el=%03d:%02d:%02d\n",
               __func__, az_degrees, az_minutes, az_seconds, el_degrees, el_minutes,
               el_seconds);
-    *az = dmmm2dec(az_degrees, az_minutes, az_seconds);
-    *el = dmmm2dec(el_degrees, el_minutes, el_seconds);
+    *az = dmmm2dec(az_degrees, az_minutes, az_seconds, az_seconds);
+    *el = dmmm2dec(el_degrees, el_minutes, el_seconds, el_seconds);
     return RIG_OK;
 }
 
