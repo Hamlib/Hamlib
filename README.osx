@@ -2,13 +2,19 @@ OSX Builds
 ----------
 
 To compile Hamlib on OSX you have to install autoconf, automake and libtool.
-The easiest way to install them is via the brew packet manager.
+The easiest way to install them is either via the brew package manager or macports..
 
-http://brew.sh
+Brew: https://brew.sh
 
 Once brew is installed, execute
 
 $ brew install automake autoconf libtool
+
+Macports: https://www.macports.org/install.php
+
+Once installed, execute
+
+$ sudo port install automake autoconf libtool
 
 Build
 -----
