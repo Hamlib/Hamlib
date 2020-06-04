@@ -193,7 +193,7 @@ double HAMLIB_API dms2dec(int degrees, int minutes, double seconds, int sw)
  *
  * \sa dec2dmmm()
  */
-double HAMLIB_API dmmm2dec(int degrees, double minutes, int sw)
+double HAMLIB_API dmmm2dec(int degrees, double minutes, double seconds, int sw)
 {
     double st;
 
@@ -209,7 +209,7 @@ double HAMLIB_API dmmm2dec(int degrees, double minutes, int sw)
         minutes = fabs(minutes);
     }
 
-    st = (double)degrees + minutes / 60.;
+    st = (double)degrees + (minutes / 60) + (seconds / 3600);
 
     if (sw == 1)
     {
