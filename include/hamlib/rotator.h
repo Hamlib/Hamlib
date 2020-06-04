@@ -491,6 +491,7 @@ dec2dmmm HAMLIB_PARAMS((double dec,
 extern HAMLIB_EXPORT(double)
 dmmm2dec HAMLIB_PARAMS((int degrees,
                         double minutes,
+                        double seconds,
                         int sw));
 
 //! @endcond

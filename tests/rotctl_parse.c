@@ -2155,7 +2155,7 @@ declare_proto_rot(d_mm2dec)
     CHKSCN1ARG(sscanf(arg2, "%lf", &min));
     CHKSCN1ARG(sscanf(arg3, "%d", &sw));
 
-    dec_deg = dmmm2dec(deg, min, sw);
+    dec_deg = dmmm2dec(deg, min, sw, 0.0); // we'll add real seconds when somebody asks for it
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
