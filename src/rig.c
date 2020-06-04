@@ -1426,10 +1426,12 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     // there are some rigs that can't get VFOA freq while VFOB is transmitting
     // so we'll return the cached VFOA freq for them
-    // should we use the cached ptt maybe?
-    if (vfo == RIG_VFO_A && rig->state.cache.split && 
-            (rig->caps->rig_model == RIG_MODEL_FTDX101D || rig->caps->rig_model == RIG_MODEL_IC910))
-    { // if we're in PTT don't get VFOA freq -- otherwise we interrupt transmission
+    // should we use the cached ptt maybe? No -- we have to be 100% sure we're in PTT to ignore this request
+    if ((vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN) && rig->state.cache.split &&
+            (rig->caps->rig_model == RIG_MODEL_FTDX101D
+             || rig->caps->rig_model == RIG_MODEL_IC910))
+    {
+        // if we're in PTT don't get VFOA freq -- otherwise we interrupt transmission
         ptt_t ptt;
         retcode = rig_get_ptt(rig, RIG_VFO_CURR, &ptt);
 
@@ -1440,9 +1442,10 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
         if (ptt)
         {
-            rig_debug(RIG_DEBUG_TRACE, "%s: split is on so returning VFOA last known freq\n",
+            rig_debug(RIG_DEBUG_TRACE,
+                      "%s: split is on so returning VFOA last known freq\n",
                       __func__);
-            *freq = rig->state.cache.freq;
+            *freq = rig->state.cache.freqMainA;
             return RIG_OK;
         }
     }
@@ -1490,6 +1493,35 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         if (retcode == RIG_OK)
         {
             rig->state.cache.freq = *freq;
+
+            switch (vfo)
+            {
+            case RIG_VFO_A:
+            case RIG_VFO_MAIN:
+            case RIG_VFO_MAIN_A:
+                rig->state.cache.freqMainA = *freq;
+                elapsed_ms(&rig->state.cache.time_freqMainA, ELAPSED_SET);
+                rig->state.cache.freqMainA = *freq;
+                break;
+
+            case RIG_VFO_B:
+            case RIG_VFO_SUB:
+            case RIG_VFO_MAIN_B:
+                rig->state.cache.freqMainB = *freq;
+                elapsed_ms(&rig->state.cache.time_freqMainB, ELAPSED_SET);
+                break;
+
+            case RIG_VFO_SUB_A:
+                rig->state.cache.freqSubA = *freq;
+                elapsed_ms(&rig->state.cache.time_freqSubA, ELAPSED_SET);
+                break;
+
+            case RIG_VFO_SUB_B:
+                rig->state.cache.freqSubB = *freq;
+                elapsed_ms(&rig->state.cache.time_freqSubB, ELAPSED_SET);
+                break;
+            }
+
             rig->state.cache.vfo_freq = vfo;
         }
     }
@@ -3014,6 +3046,8 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
         return -RIG_EINVAL;
     }
 
+    vfo = vfo_fixup(rig, vfo);
+
     caps = rig->caps;
 
     if (caps->get_split_freq
@@ -3086,6 +3120,8 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
         /* return the first error code */
         retcode = rc2;
     }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: tx_freq=%.0f\n", __func__, *tx_freq);
 
     return retcode;
 }
