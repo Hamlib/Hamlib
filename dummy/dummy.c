@@ -78,8 +78,8 @@ struct dummy_priv_data
     char *magic_conf;
     int static_data;
 
-    freq_t freq_vfoa;
-    freq_t freq_vfob;
+    //freq_t freq_vfoa;
+    //freq_t freq_vfob;
 };
 
 /* levels pertain to each VFO */
@@ -410,11 +410,11 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
               rig_strvfo(vfo), fstr);
     curr->freq = freq;
 
-    if (vfo == RIG_VFO_A) { priv->freq_vfoa = freq; }
-    else if (vfo == RIG_VFO_B) { priv->freq_vfob = freq; }
+    if (vfo == RIG_VFO_A) { priv->vfo_a.freq = freq; }
+    else if (vfo == RIG_VFO_B) { priv->vfo_b.freq = freq; }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: freq_vfoa=%.0f, freq_vfob=%.0f\n", __func__,
-              priv->freq_vfoa, priv->freq_vfob);
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo_a.freq=%.0f, vfo_b.freq=%.0f\n", __func__,
+              priv->vfo_a.freq, priv->vfo_b.freq);
     return RIG_OK;
 }
 
@@ -430,9 +430,9 @@ static int dummy_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     switch (vfo)
     {
-    case RIG_VFO_A:  *freq = priv->freq_vfoa; break;
+    case RIG_VFO_A:  *freq = priv->vfo_a.freq; break;
 
-    case RIG_VFO_B:  *freq = priv->freq_vfob; break;
+    case RIG_VFO_B:  *freq = priv->vfo_b.freq; break;
 
     default: return -RIG_EINVAL;
     }
@@ -1957,7 +1957,7 @@ struct rig_caps dummy_caps =
     RIG_MODEL(RIG_MODEL_DUMMY),
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
-    .version =        "20200527.0",
+    .version =        "20200605.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
