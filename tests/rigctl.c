@@ -571,7 +571,7 @@ int main(int argc, char *argv[])
 
     if (interactive && prompt)
     {
-        char *rl_readline_name = "rigctl";
+        rl_readline_name = "rigctl";
 
 #ifdef HAVE_READLINE_HISTORY
         using_history();    /* Initialize Readline History */
