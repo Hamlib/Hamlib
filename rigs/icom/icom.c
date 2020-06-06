@@ -4668,7 +4668,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     }
 
     // This should automaticaly switch between satmode on/off based on the requested split vfo
-    if (tx_vfo == RIG_VFO_SUB || tx_vfo == RIG_VFO_MAIN && !rig->state.cache.satmode)
+    if ((tx_vfo == RIG_VFO_SUB || tx_vfo == RIG_VFO_MAIN) && !rig->state.cache.satmode)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: VFO_SUB and satmode is off so turning on\n",
                   __func__);
