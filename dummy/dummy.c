@@ -399,7 +399,6 @@ static int dummy_get_conf(RIG *rig, token_t token, char *val)
 static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
-    channel_t *curr = priv->curr;
     char fstr[20];
 
     if (vfo == RIG_VFO_CURR) { vfo = priv->curr_vfo; }
@@ -408,13 +407,12 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     sprintf_freq(fstr, freq);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %s\n", __func__,
               rig_strvfo(vfo), fstr);
-    curr->freq = freq;
 
-    if (vfo == RIG_VFO_A) { priv->vfo_a.freq = freq; }
-    else if (vfo == RIG_VFO_B) { priv->vfo_b.freq = freq; }
+    if (vfo == RIG_VFO_A) { priv->curr->freq = freq; }
+    else if (vfo == RIG_VFO_B) { priv->curr->tx_freq = freq; }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo_a.freq=%.0f, vfo_b.freq=%.0f\n", __func__,
-              priv->vfo_a.freq, priv->vfo_b.freq);
+    rig_debug(RIG_DEBUG_TRACE, "%s: curr->freq=%.0f, curr->tx_freq=%.0f\n", __func__,
+              priv->curr->freq, priv->curr->tx_freq);
     return RIG_OK;
 }
 
@@ -430,9 +428,9 @@ static int dummy_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     switch (vfo)
     {
-    case RIG_VFO_A:  *freq = priv->vfo_a.freq; break;
+    case RIG_VFO_A:  *freq = priv->curr->freq; break;
 
-    case RIG_VFO_B:  *freq = priv->vfo_b.freq; break;
+    case RIG_VFO_B:  *freq = priv->curr->tx_freq; break;
 
     default: return -RIG_EINVAL;
     }
@@ -794,13 +792,12 @@ static int dummy_get_dcs_sql(RIG *rig, vfo_t vfo, unsigned int *code)
 static int dummy_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
-    channel_t *curr = priv->curr;
     char fstr[20];
 
     sprintf_freq(fstr, tx_freq);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %s\n", __func__,
               rig_strvfo(vfo), fstr);
-    curr->tx_freq = tx_freq;
+    priv->curr->tx_freq = tx_freq;
 
     return RIG_OK;
 }
@@ -809,11 +806,10 @@ static int dummy_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 static int dummy_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
-    channel_t *curr = priv->curr;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, rig_strvfo(vfo));
 
-    *tx_freq = curr->tx_freq;
+    *tx_freq = priv->curr->tx_freq;
 
     return RIG_OK;
 }
@@ -861,8 +857,6 @@ static int dummy_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
               __func__, split, rig_strvfo(vfo), rig_strvfo(tx_vfo));
     curr->split = split;
     priv->tx_vfo = tx_vfo;
-
-    if (priv->curr_vfo == RIG_VFO_TX) { dummy_set_vfo(rig, RIG_VFO_TX); }
 
     return RIG_OK;
 }
@@ -1957,7 +1951,7 @@ struct rig_caps dummy_caps =
     RIG_MODEL(RIG_MODEL_DUMMY),
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
-    .version =        "20200605.0",
+    .version =        "20200606.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
@@ -2119,7 +2113,7 @@ struct rig_caps dummy_no_vfo_caps =
     RIG_MODEL(RIG_MODEL_DUMMY_NOVFO),
     .model_name =     "Dummy No VFO",
     .mfg_name =       "Hamlib",
-    .version =        "20200603.0",
+    .version =        "20200606.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
