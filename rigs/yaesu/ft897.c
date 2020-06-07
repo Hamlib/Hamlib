@@ -88,8 +88,8 @@ static int ft897_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int ft897_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 static int ft897_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 static int ft897_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
-// static int ft897_set_vfo(RIG *rig, vfo_t vfo);
-// static int ft897_get_vfo(RIG *rig, vfo_t *vfo);
+extern int ft857_set_vfo(RIG *rig, vfo_t vfo);
+extern int ft857_get_vfo(RIG *rig, vfo_t *vfo);
 static int ft897_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
                                vfo_t tx_vfo);
 static int ft897_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
@@ -190,9 +190,9 @@ const struct rig_caps ft897_caps =
     RIG_MODEL(RIG_MODEL_FT897),
     .model_name =     "FT-897",
     .mfg_name =       "Yaesu",
-    .version =        "20200323.0",
+    .version =        "20200607.0",
     .copyright =      "LGPL",
-    .status =         RIG_STATUS_BETA,
+    .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_TRANSCEIVER,
     .ptt_type =       RIG_PTT_RIG,
     .dcd_type =       RIG_DCD_RIG,
@@ -299,6 +299,8 @@ const struct rig_caps ft897_caps =
     .rig_cleanup =    ft897_cleanup,
     .rig_open =       ft897_open,
     .rig_close =      ft897_close,
+    .get_vfo =        ft857_get_vfo,
+    .set_vfo =        ft857_set_vfo,
     .set_freq =       ft897_set_freq,
     .get_freq =       ft897_get_freq,
     .set_mode =       ft897_set_mode,
