@@ -337,9 +337,9 @@ const struct amp_caps dummy_amp_caps =
     AMP_MODEL(AMP_MODEL_DUMMY),
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
-    .version =        "0.1",
+    .version =        "20200112.0",
     .copyright =      "LGPL",
-    .status =         RIG_STATUS_ALPHA,
+    .status =         RIG_STATUS_STABLE,
     .amp_type =       AMP_TYPE_OTHER,
     .port_type =      RIG_PORT_NONE,
 
