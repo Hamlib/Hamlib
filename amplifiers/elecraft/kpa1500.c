@@ -65,7 +65,7 @@ const struct amp_caps kpa1500_amp_caps =
     AMP_MODEL(AMP_MODEL_ELECRAFT_KPA1500),
     .model_name =   "KPA1500",
     .mfg_name =     "Elecraft",
-    .version =      "20200112",
+    .version =      "20200112.0",
     .copyright =    "LGPL",
     .status =     RIG_STATUS_ALPHA,
     .amp_type =     AMP_TYPE_OTHER,
