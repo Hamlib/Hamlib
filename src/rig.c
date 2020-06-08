@@ -1415,6 +1415,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     const struct rig_caps *caps;
     int retcode;
     int cache_ms;
+    vfo_t curr_vfo;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__, rig_strvfo(vfo));
 
@@ -1423,6 +1424,8 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         rig_debug(RIG_DEBUG_TRACE, "%s: rig or freq ptr invalid\n", __func__);
         return -RIG_EINVAL;
     }
+
+    curr_vfo = rig->state.current_vfo; // save vfo for restore later
 
     vfo = vfo_fixup(rig, vfo);
 
@@ -1530,14 +1533,11 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     else
     {
         int rc2;
-        vfo_t curr_vfo;
-
         if (!caps->set_vfo)
         {
             return -RIG_ENAVAIL;
         }
 
-        curr_vfo = rig->state.current_vfo;
         retcode = caps->set_vfo(rig, vfo);
 
         if (retcode != RIG_OK)
