@@ -56,7 +56,7 @@ const struct rot_caps sartek_rot_caps =
     ROT_MODEL(ROT_MODEL_SARTEK1),
     .model_name =         "SARtek-1",
     .mfg_name =           "SARtek",
-    .version =            "0.2",
+    .version =            "20061007.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_UNTESTED,
     .rot_type =           ROT_TYPE_OTHER,

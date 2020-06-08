@@ -62,7 +62,7 @@ const struct rot_caps cnctrk_rot_caps =
     ROT_MODEL(ROT_MODEL_CNCTRK),
     .model_name =     "CNCTRK",
     .mfg_name =       "CNCTRK",
-    .version =        "0.1",
+    .version =        "20191220.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_UNTESTED,
     .rot_type =       ROT_TYPE_OTHER,

@@ -365,7 +365,7 @@ const struct rot_caps rc2800_rot_caps =
     ROT_MODEL(ROT_MODEL_RC2800),
     .model_name =     "RC2800",
     .mfg_name =       "M2",
-    .version =        "0.1.1",
+    .version =        "20200107.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_BETA,
     .rot_type =       ROT_TYPE_AZEL,

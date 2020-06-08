@@ -105,7 +105,7 @@ const struct rot_caps if100_rot_caps =
     ROT_MODEL(ROT_MODEL_IF100),
     .model_name =       "IF-100",
     .mfg_name =         "AMSAT",
-    .version =          "0.1",
+    .version =          "20110531.0",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_UNTESTED,
     .rot_type =         ROT_TYPE_OTHER,

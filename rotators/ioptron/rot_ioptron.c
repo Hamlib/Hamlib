@@ -306,7 +306,7 @@ const struct rot_caps ioptron_rot_caps =
     ROT_MODEL(ROT_MODEL_IOPTRON),
     .model_name =     "iOptron",
     .mfg_name =       "iOptron",
-    .version =        "0.1",
+    .version =        "20191209.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_ALPHA,
     .rot_type =       ROT_TYPE_AZEL,

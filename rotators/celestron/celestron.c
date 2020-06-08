@@ -230,7 +230,7 @@ const struct rot_caps nexstar_rot_caps =
     ROT_MODEL(ROT_MODEL_NEXSTAR),
     .model_name =     "NexStar",  // Any Celestron starting with version 1.2
     .mfg_name =       "Celestron",
-    .version =        "0.1",
+    .version =        "20110821.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_UNTESTED,
     .rot_type =       ROT_TYPE_AZEL,
