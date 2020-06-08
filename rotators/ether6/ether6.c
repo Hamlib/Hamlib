@@ -309,7 +309,7 @@ const struct rot_caps ether6_rot_caps =
     ROT_MODEL(ROT_MODEL_ETHER6),
     .model_name =     "Ether6 (via ethernet)",
     .mfg_name =       "DG9OAA",
-    .version =        "0.1",
+    .version =        "20200106.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_BETA,
     .rot_type =       ROT_FLAG_AZIMUTH,

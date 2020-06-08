@@ -714,7 +714,7 @@ const struct rot_caps rci_azel_rot_caps =
     ROT_MODEL(ROT_MODEL_RCI_AZEL),
     .model_name =     "ARS RCI AZ&EL",
     .mfg_name =       "EA4TX",
-    .version =        "0.2",
+    .version =        "20200112.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_BETA,
     .rot_type =       ROT_TYPE_AZEL,  /* AZ&EL units */
@@ -748,7 +748,7 @@ const struct rot_caps rci_az_rot_caps =
     ROT_MODEL(ROT_MODEL_RCI_AZ),
     .model_name =     "ARS RCI AZ",
     .mfg_name =       "EA4TX",
-    .version =        "0.1",
+    .version =        "20200112.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_BETA,
     .rot_type =       ROT_TYPE_AZIMUTH,    /* AZ-only unit */

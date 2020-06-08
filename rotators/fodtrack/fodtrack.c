@@ -141,7 +141,7 @@ const struct rot_caps fodtrack_rot_caps =
     ROT_MODEL(ROT_MODEL_FODTRACK),
     .model_name =     "Fodtrack",
     .mfg_name =       "XQ2FOD",
-    .version =        "0.2",
+    .version =        "20200107.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_OTHER,

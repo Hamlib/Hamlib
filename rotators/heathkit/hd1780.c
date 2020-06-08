@@ -67,7 +67,7 @@ const struct rot_caps hd1780_rot_caps =
     ROT_MODEL(ROT_MODEL_HD1780),
     .model_name =         "HD 1780 Intellirotor",
     .mfg_name =           "Heathkit",
-    .version =            "0.1",
+    .version =            "20200112.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_BETA,
     .rot_type =           ROT_TYPE_OTHER,

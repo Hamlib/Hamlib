@@ -275,9 +275,9 @@ const struct rot_caps dummy_rot_caps =
     ROT_MODEL(ROT_MODEL_DUMMY),
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
-    .version =        "0.2",
+    .version =        "20200310.0",
     .copyright =      "LGPL",
-    .status =         RIG_STATUS_BETA,
+    .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_AZEL,
     .port_type =      RIG_PORT_NONE,
 
