@@ -756,22 +756,25 @@ icom_rig_open(RIG *rig)
         }
     }
 
-    // retval is important here so we always call for satmode
-    retval = rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
-    rig->state.cache.satmode = satmode;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: satmode=%d\n", __func__, satmode);
+    if (rig->caps->has_get_func & RIG_FUNC_SATMODE)
+    {
+        // retval is important here -- used below
+        retval = rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
+        rig->state.cache.satmode = satmode;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: satmode=%d\n", __func__, satmode);
 
-    // RIG_OK return means this rig has satmode capabiltiy and Main/Sub VFOs
-    // Should we also set/force VFOA for Main&Sub here?
-    if (retval == RIG_OK && satmode)
-    {
-        priv->rx_vfo = RIG_VFO_MAIN;
-        priv->tx_vfo = RIG_VFO_SUB;
-    }
-    else if (retval == RIG_OK && !satmode)
-    {
-        priv->rx_vfo = RIG_VFO_MAIN;
-        priv->tx_vfo = RIG_VFO_MAIN;
+        // RIG_OK return means this rig has satmode capabiltiy and Main/Sub VFOs
+        // Should we also set/force VFOA for Main&Sub here?
+        if (retval == RIG_OK && satmode)
+        {
+            priv->rx_vfo = RIG_VFO_MAIN;
+            priv->tx_vfo = RIG_VFO_SUB;
+        }
+        else if (retval == RIG_OK && !satmode)
+        {
+            priv->rx_vfo = RIG_VFO_MAIN;
+            priv->tx_vfo = RIG_VFO_MAIN;
+        }
     }
 
 #if 0 // do not do this here -- needs to be done when ranges are requested instead as this is very slow
