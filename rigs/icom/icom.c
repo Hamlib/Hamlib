@@ -3844,7 +3844,7 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: satmode=%d, subvfo=%s\n", __func__,
               rig->state.cache.satmode, rig_strvfo(priv->tx_vfo));
 
-    if (RIG_VFO_TX)
+    if (vfo == RIG_VFO_TX)
     {
         if (rig->state.cache.satmode) { vfo = RIG_VFO_SUB; }
         else { vfo = priv->tx_vfo; }
