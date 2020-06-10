@@ -580,7 +580,7 @@ int rx340_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 const char *rx340_get_info(RIG *rig)
 {
     static char buf[BUFSZ]; /* FIXME: reentrancy */
-    int firmware_len, retval;
+    int firmware_len=0, retval;
 
 #define REPORT_FIRM "V"EOM
     retval = rx340_transaction(rig, REPORT_FIRM, strlen(REPORT_FIRM), buf,

@@ -439,7 +439,7 @@ int format8k_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width)
 int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     struct aor_priv_caps *priv = (struct aor_priv_caps *)rig->caps->priv;
-    char mdbuf[8];
+    char mdbuf[9];
     char mdbuf2[16] = "";
     int mdbuf2_len, retval;
 
