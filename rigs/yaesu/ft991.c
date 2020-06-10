@@ -869,7 +869,7 @@ static int ft991_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
 
     *code = rig->caps->dcs_list[t];
 
-    rig_debug(RIG_DEBUG_TRACE, "%s dcs code %d\n", __func__, *code);
+    rig_debug(RIG_DEBUG_TRACE, "%s dcs code %u\n", __func__, *code);
 
     return RIG_OK;
 }
