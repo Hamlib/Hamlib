@@ -77,7 +77,7 @@ extern const struct confparams kenwood_cfg_params[];
     { 30, 60 }, \
   } }
 
-#define RIG_IS_HPSDR     (rig->caps->rig_model == RIG_MODEL_HPSDR)
+#define RIG_IS_HPSDR     (rig->caps->rig_model == RIG_MODEL_HPSDR || rig->caps->rig_model == RIG_MODEL_HPSDR_TCP)
 #define RIG_IS_K2        (rig->caps->rig_model == RIG_MODEL_K2)
 #define RIG_IS_K3        (rig->caps->rig_model == RIG_MODEL_K3)
 #define RIG_IS_THD74     (rig->caps->rig_model == RIG_MODEL_THD74)
@@ -256,6 +256,7 @@ extern const struct rig_caps transfox_caps;
 extern const struct rig_caps f6k_caps;
 extern const struct rig_caps powersdr_caps;
 extern const struct rig_caps pihpsdr_caps;
+extern const struct rig_caps pihpsdr_tcp_caps;
 extern const struct rig_caps ts890s_caps;
 extern const struct rig_caps pt8000a_caps;
 

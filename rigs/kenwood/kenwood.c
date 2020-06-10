@@ -4359,6 +4359,7 @@ DECLARE_INITRIG_BACKEND(kenwood)
     rig_register(&f6k_caps);
     rig_register(&powersdr_caps);
     rig_register(&pihpsdr_caps);
+    rig_register(&pihpsdr_tcp_caps);
     rig_register(&ts890s_caps);
     rig_register(&pt8000a_caps);
 
