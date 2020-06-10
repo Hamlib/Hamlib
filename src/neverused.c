@@ -62,6 +62,7 @@ void never_used()
     ic9100_set_level();
     icmarine_open();
     icom_get_vfo();
+    icom_get_freq_range();
     icom_set_dsp_flt();
     int2BCD();
     is_uh_radio_fd();
