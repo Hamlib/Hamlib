@@ -1121,11 +1121,9 @@ static int flrig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
  */
 static int flrig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
-    int retval;
     int retries = 2;
     char value[MAXCMDLEN];
     char xml[MAXXMLLEN];
-    char *pxml;
     struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
@@ -1134,6 +1132,8 @@ static int flrig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
     do
     {
+        int retval;
+        char *pxml;
         value[0] = 0;
         pxml = xml_build("rig.get_ptt", NULL, xml, sizeof(xml));
 
@@ -1665,11 +1665,9 @@ static int flrig_set_vfo(RIG *rig, vfo_t vfo)
  */
 static int flrig_get_vfo(RIG *rig, vfo_t *vfo)
 {
-    int retval;
     int retries = 2;
     char value[MAXCMDLEN];
     char xml[MAXXMLLEN];
-    char *pxml;
     struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
@@ -1677,6 +1675,8 @@ static int flrig_get_vfo(RIG *rig, vfo_t *vfo)
 
     do
     {
+        int retval;
+        char *pxml;
         value[0] = 0;
         pxml = xml_build("rig.get_AB", NULL, xml, sizeof(xml));
         retval = write_transaction(rig, pxml, strlen(pxml));
@@ -1851,17 +1851,17 @@ static int flrig_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 static int flrig_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
                                vfo_t *tx_vfo)
 {
-    int retval;
     int retries = 2;
     char value[MAXCMDLEN];
     char xml[MAXXMLLEN];
     struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
-    char *pxml;
 
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
 
     do
     {
+        char *pxml;
+        int retval;
         pxml = xml_build("rig.get_split", NULL, xml, sizeof(xml));
         retval = write_transaction(rig, pxml, strlen(pxml));
 
