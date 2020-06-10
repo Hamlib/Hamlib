@@ -535,11 +535,13 @@ static int netrigctl_open(RIG *rig)
             if (strcmp(setting, "vfo_ops") == 0)
             {
                 rig->caps->vfo_ops = strtol(value, NULL, 0);
-                rig_debug(RIG_DEBUG_TRACE, "%s: %s set to %d\n", __func__, setting, rig->caps->vfo_ops);
+                rig_debug(RIG_DEBUG_TRACE, "%s: %s set to %d\n", __func__, setting,
+                          rig->caps->vfo_ops);
             }
             else if (strcmp(setting, "ptt_type") == 0)
             {
                 ptt_type_t temp = (ptt_type_t)strtol(value, NULL, 0);
+
                 if (RIG_PTT_RIG_MICDATA == rig->state.pttport.type.ptt && RIG_PTT_NONE == temp)
                 {
                     /*
@@ -548,7 +550,8 @@ static int netrigctl_open(RIG *rig)
                      * locally overridden it
                      */
                     rig->state.pttport.type.ptt = temp;
-                    rig_debug(RIG_DEBUG_TRACE, "%s: %s set to %d\n", __func__, setting, rig->state.pttport.type.ptt);
+                    rig_debug(RIG_DEBUG_TRACE, "%s: %s set to %d\n", __func__, setting,
+                              rig->state.pttport.type.ptt);
                 }
             }
             else

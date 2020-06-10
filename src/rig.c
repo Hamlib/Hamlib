@@ -1354,7 +1354,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
         curr_vfo = rig->state.current_vfo;
         retcode = caps->set_vfo(rig, vfo);
-        // why is the line below here?  
+        // why is the line below here?
         // it's causing set_freq on the wrong vfo
         //vfo = rig->state.current_vfo; // can't call get_vfo since Icoms don't have it
 
@@ -1533,6 +1533,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     else
     {
         int rc2;
+
         if (!caps->set_vfo)
         {
             return -RIG_ENAVAIL;
@@ -1997,7 +1998,8 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
     {
         rig->state.current_vfo = vfo;
         rig->state.cache.vfo = vfo;
-        rig_debug(RIG_DEBUG_TRACE, "%s: rig->state.current_vfo=%s\n", __func__, rig_strvfo(vfo));
+        rig_debug(RIG_DEBUG_TRACE, "%s: rig->state.current_vfo=%s\n", __func__,
+                  rig_strvfo(vfo));
     }
     else
     {

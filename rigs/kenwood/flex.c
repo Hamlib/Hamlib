@@ -70,7 +70,8 @@ int verify_flexradio_id(RIG *rig, char *id)
 
     if (strcmp("900", idptr) == 0)
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig ID is %s (PowerSDR compatible)\n", __func__, id);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig ID is %s (PowerSDR compatible)\n",
+                  __func__, id);
     }
     else if (strcmp("904", idptr) == 0)
     {
@@ -134,6 +135,7 @@ int flexradio_open(RIG *rig)
     {
     case RIG_MODEL_F6K:
         break;
+
     case RIG_MODEL_POWERSDR:
         break;
 

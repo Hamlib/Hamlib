@@ -117,14 +117,16 @@ int main(int argc, char *argv[])
 
         if (retcode != RIG_OK) { printf("Get vfo failed?? Err=%s\n", rigerror(retcode)); }
 
-        printf("%4dms: VFO = %s\n", (int)elapsed_ms(&start, ELAPSED_GET), rig_strvfo(vfo));
+        printf("%4dms: VFO = %s\n", (int)elapsed_ms(&start, ELAPSED_GET),
+               rig_strvfo(vfo));
 
         elapsed_ms(&start, ELAPSED_SET);
         retcode = rig_get_freq(my_rig, RIG_VFO_CURR, &freq);
 
         if (retcode != RIG_OK) { printf("Get freq failed?? Err=%s\n", rigerror(retcode)); }
 
-        printf("%4dms: VFO freq. = %.1f Hz\n", (int)elapsed_ms(&start, ELAPSED_GET), freq);
+        printf("%4dms: VFO freq. = %.1f Hz\n", (int)elapsed_ms(&start, ELAPSED_GET),
+               freq);
         elapsed_ms(&start, ELAPSED_SET);
         retcode = rig_get_mode(my_rig, RIG_VFO_CURR, &mode, &width);
 
@@ -147,7 +149,8 @@ int main(int argc, char *argv[])
 
         if (retcode != RIG_OK) { printf("Get split_vfo failed?? Err=%s\n", rigerror(retcode)); }
 
-        printf("%4dms: split=%d, tx_vfo=%s\n", (int)elapsed_ms(&start, ELAPSED_GET), split,
+        printf("%4dms: split=%d, tx_vfo=%s\n", (int)elapsed_ms(&start, ELAPSED_GET),
+               split,
                rig_strvfo(vfo));
 #endif
     }

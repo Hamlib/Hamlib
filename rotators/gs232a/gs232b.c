@@ -188,12 +188,13 @@ gs232b_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 #if 0 // do any GS232B models need a reply to the W command?
     retval = gs232b_transaction(rot, cmdstr, buf, sizeof(buf), 0);
 #else
-    retval = gs232b_transaction(rot, cmdstr, NULL, 0 , 0);
+    retval = gs232b_transaction(rot, cmdstr, NULL, 0, 0);
 
     if (retval != RIG_OK)
     {
         return retval;
     }
+
 #endif
 
     return RIG_OK;

@@ -234,6 +234,7 @@ static int meade_open(ROT *rot)
     {
         retval = meade_transaction(rot, ":AL#:So00#:Sh90#", NULL, 0, 0);
     }
+
     {
         // Audiostar elevation is in arcminutes
         retval = meade_transaction(rot, ":So00#:Sh5400#", NULL, 0, 0);
