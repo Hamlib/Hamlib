@@ -219,6 +219,9 @@ static const yaesu_newcat_commands_t valid_commands[] =
     {"SM",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
     {"SQ",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
     {"SS",      FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE    },
+    // ST command has two meanings Step or Split Status
+    // If new rig is added that has ST ensure it means Split
+    // Otherwise modify newcat_get_tx_vfo
     {"ST",      TRUE,   FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE    },
     {"SV",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
     {"SY",      FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE    },
@@ -4796,6 +4799,13 @@ int newcat_get_tx_vfo(RIG *rig, vfo_t *tx_vfo)
     char c;
     vfo_t vfo_mode;
     char const *command = "FT";
+
+    if (rig->caps->rig_model == RIG_MODEL_FTDX101D)
+    {
+        // what other Yaeus rigs should be using this?
+        // The DX101D returns FT0 when in split and not transmitting
+        command = "ST";
+    }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
