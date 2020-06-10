@@ -4522,9 +4522,11 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
               rig_strvfo(priv->rx_vfo), rig_strvfo(priv->tx_vfo));
 
     // if not asking for RIG_VFO_CURR we'll use the requested VFO in the function call as tx_vfo
-    if (!priv->split_on && vfo != RIG_VFO_CURR) {
+    if (!priv->split_on && vfo != RIG_VFO_CURR)
+    {
         tx_vfo = vfo;
-        rig_debug(RIG_DEBUG_TRACE, "%s: split not on so using requested vfo=%s\n", __func__, rig_strvfo(tx_vfo));
+        rig_debug(RIG_DEBUG_TRACE, "%s: split not on so using requested vfo=%s\n",
+                  __func__, rig_strvfo(tx_vfo));
     }
 
     if (RIG_OK != (retval = icom_set_vfo(rig, tx_vfo)))
