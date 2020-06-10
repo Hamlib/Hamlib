@@ -304,25 +304,25 @@
 /*
  * Function settings (C_CTL_FUNC) subcommands  Set and Read
  */
-#define S_FUNC_PAMP	0x02		/* Preamp setting */
-#define S_FUNC_AGCOFF	0x10		/* IC-R8500 only */
-#define S_FUNC_AGCON 	0x11		/* IC-R8500 only */
-#define S_FUNC_AGC	0x12		/* AGC setting presets: the dsp models allow these to be modified */
-#define S_FUNC_NBOFF	0x20		/* IC-R8500 only */
-#define S_FUNC_NBON	0x21		/* IC-R8500 only */
-#define S_FUNC_NB	0x22		/* NB setting */
-#define S_FUNC_APFOFF	0x30		/* IC-R8500 only */
-#define S_FUNC_APFON	0x31		/* IC-R8500 only */
-#define S_FUNC_APF	0x32		/* APF setting */
-#define S_FUNC_NR	0x40		/* NR setting */
-#define S_FUNC_ANF	0x41		/* ANF setting */
-#define S_FUNC_TONE	0x42		/* TONE setting */
-#define S_FUNC_TSQL	0x43		/* TSQL setting */
-#define S_FUNC_COMP	0x44		/* COMP setting */
-#define S_FUNC_MON	0x45		/* Monitor setting */
-#define S_FUNC_VOX	0x46		/* VOX setting */
-#define S_FUNC_BKIN	0x47		/* BK-IN setting */
-#define S_FUNC_MN	0x48		/* Manual notch setting */
+#define S_FUNC_PAMP   0x02		/* Preamp setting */
+#define S_FUNC_AGCOFF 0x10		/* IC-R8500 only */
+#define S_FUNC_AGCON  0x11		/* IC-R8500 only */
+#define S_FUNC_AGC    0x12		/* AGC setting presets: the dsp models allow these to be modified */
+#define S_FUNC_NBOFF  0x20		/* IC-R8500 only */
+#define S_FUNC_NBON   0x21		/* IC-R8500 only */
+#define S_FUNC_NB     0x22		/* NB setting */
+#define S_FUNC_APFOFF 0x30		/* IC-R8500 only */
+#define S_FUNC_APFON  0x31		/* IC-R8500 only */
+#define S_FUNC_APF    0x32		/* APF setting */
+#define S_FUNC_NR     0x40		/* NR setting */
+#define S_FUNC_ANF    0x41		/* ANF setting */
+#define S_FUNC_TONE   0x42		/* TONE setting */
+#define S_FUNC_TSQL   0x43		/* TSQL setting */
+#define S_FUNC_COMP   0x44		/* COMP setting */
+#define S_FUNC_MON    0x45		/* Monitor setting */
+#define S_FUNC_VOX    0x46		/* VOX setting */
+#define S_FUNC_BKIN   0x47		/* BK-IN setting */
+#define S_FUNC_MN     0x48		/* Manual notch setting */
 #define S_FUNC_RF	0x49		/* RTTY Filter setting */
 #define S_FUNC_AFC  	0x4A        	/* Auto Frequency Control (AFC) setting */
 #define S_FUNC_CSQL	0x4B		/* DTCS tone code squelch setting*/
