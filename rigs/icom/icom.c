@@ -3839,7 +3839,8 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called for %s\n", __func__, rig_strvfo(vfo));
     rs = &rig->state;
     priv = (struct icom_priv_data *) rs->priv;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: curr_vfo=%s\n", __func__, rig_strvfo(priv->curr_vfo));
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: curr_vfo=%s\n", __func__,
+              rig_strvfo(priv->curr_vfo));
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: satmode=%d, subvfo=%s\n", __func__,
               rig->state.cache.satmode, rig_strvfo(priv->tx_vfo));
@@ -4043,7 +4044,8 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 
     rs = &rig->state;
     priv = (struct icom_priv_data *) rs->priv;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: curr_vfo=%s\n", __func__, rig_strvfo(priv->curr_vfo));
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: curr_vfo=%s\n", __func__,
+              rig_strvfo(priv->curr_vfo));
 
 
     if (rig->caps->rig_model == RIG_MODEL_IC910)
@@ -4443,10 +4445,16 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf);
     vfo_t rx_vfo, tx_vfo;
+    int split_assumed = 0;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__,
               rig_strvfo(vfo));
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: curr_vfo=%s\n", __func__, rig_strvfo(priv->curr_vfo));
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: curr_vfo=%s\n", __func__,
+              rig_strvfo(priv->curr_vfo));
+
+    // If the user is asking to set split on VFO_CURR we'll assume split mode
+    // WSJT-X calls this function before turning on split mode
+    if (vfo == RIG_VFO_CURR) { split_assumed = 1; }
 
     if (priv->curr_vfo == RIG_VFO_NONE)
     {
@@ -4484,8 +4492,8 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
        current VFO is VFO A and the split Tx VFO is always VFO B. These
        assumptions allow us to deal with the lack of VFO and split
        queries */
-    if (VFO_HAS_A_B
-            && priv->split_on)    /* broken if user changes split on rig :( */
+    /* broken if user changes split on rig :( */
+    if (VFO_HAS_A_B && (split_assumed || priv->split_on))
     {
         /* VFO A/B style rigs swap VFO on split Tx so we need to disable
            split for certainty */
@@ -4513,6 +4521,16 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
     {
         return retval;
     }
+
+    // WSJT-X calls this function before setting split
+    // So in this case we have to force the tx_vfo
+    if (split_assumed && vfo == RIG_VFO_CURR)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: split_assumed so tx_vfo=%s\n", __func__,
+                  rig_strvfo(vfo));
+        tx_vfo = VFO_HAS_A_B_ONLY ? RIG_VFO_B : RIG_VFO_SUB;
+    }
+
 
     rig_debug(RIG_DEBUG_VERBOSE,
               "%s: after get_split_vfos  rx_vfo=%s tx_vfo=%s\n", __func__,
