@@ -4724,6 +4724,7 @@ int newcat_set_tx_vfo(RIG *rig, vfo_t tx_vfo)
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int err;
     char p1;
+    char *command = "FT";
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -4780,7 +4781,13 @@ int newcat_set_tx_vfo(RIG *rig, vfo_t tx_vfo)
         p1 = p1 + 2;    /* use non-Toggle commands */
     }
 
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", "FT", p1, cat_term);
+    if (is_ft101)
+    {
+        // what other Yaeus rigs should be using this?
+        // The DX101D returns FT0 when in split and not transmitting
+        command = "ST";
+    }
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", command, p1, cat_term);
 
     rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
 
@@ -4800,7 +4807,7 @@ int newcat_get_tx_vfo(RIG *rig, vfo_t *tx_vfo)
     vfo_t vfo_mode;
     char const *command = "FT";
 
-    if (rig->caps->rig_model == RIG_MODEL_FTDX101D)
+    if (is_ft101)
     {
         // what other Yaeus rigs should be using this?
         // The DX101D returns FT0 when in split and not transmitting
