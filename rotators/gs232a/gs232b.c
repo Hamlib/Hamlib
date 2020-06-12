@@ -143,7 +143,7 @@ transaction_write:
     // If asked for we will check for connection
     // we don't expect a reply...just a prompt return
     // Seems some GS232B's only echo the CR
-    if (no_reply && (strncmp(data, "?>", 2) != 0) && data[0] != 0x0d)
+    if ((strncmp(data, "?>", 2) != 0) && data[0] != 0x0d)
     {
         rig_debug(RIG_DEBUG_VERBOSE,
                   "%s: Expected '?>' but got '%s' from cmd '%s'\n",
