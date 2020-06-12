@@ -1024,13 +1024,19 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     switch (vfo)
     {
+    case RIG_VFO_MAIN_A:
+    case RIG_VFO_SUB_A:
     case RIG_VFO_A: priv->vfoa_freq = freq; break;
 
+    case RIG_VFO_MAIN_B:
+    case RIG_VFO_SUB_B:
     case RIG_VFO_B: priv->vfob_freq = freq; break;
 
     case RIG_VFO_MAIN: priv->sub_freq = freq; break;
 
     case RIG_VFO_SUB: priv->main_freq = freq; break;
+
+    case RIG_VFO_CURR: break; 
 
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unknown VFO?  VFO=%s\n", __func__,
