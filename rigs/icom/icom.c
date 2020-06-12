@@ -873,11 +873,11 @@ int icom_band_changing(RIG *rig, freq_t test_freq)
     int retval;
 
     // We should be sitting on the VFO we want to change so just get it's frequency
-    retval = icom_get_freq(rig, RIG_VFO_CURR, &curr_freq);
+    retval = rig_get_freq(rig, RIG_VFO_CURR, &curr_freq);
 
     if (retval != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: icom_get_freq failed??\n", __func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig_get_freq failed??\n", __func__);
         return 0; // I guess we need to say no change in this case
     }
 
@@ -937,7 +937,7 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         return retval;
     }
 
-    retval = icom_get_freq(rig, RIG_VFO_CURR, &curr_freq);
+    retval = rig_get_freq(rig, RIG_VFO_CURR, &curr_freq);
 
     if (retval != RIG_OK)
     {
@@ -1128,19 +1128,35 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         return retval;
     }
 
+#if 0
+
     // Pick the appropriate VFO when VFO_RX or VFO_TX is requested
-    if (vfo == RIG_VFO_RX)
+    if (vfo == RIG_VFO_RX && priv->curr_vfo)
     {
         vfo = vfo_fixup(rig, vfo);
-        rig_debug(RIG_DEBUG_TRACE, "%s: VFO_RX requested, new vfo=%s\n", __func__,
+        rig_debug(RIG_DEBUG_TRACE, "%s: vfo_fixup vfo=%s\n", __func__, rig_strvfo(vfo));
+        vfo = (rig->state.vfo_list & RIG_VFO_B) ? RIG_VFO_A : RIG_VFO_MAIN;
+        rig_debug(RIG_DEBUG_ERR, "%s: VFO_RX requested, new vfo=%s\n", __func__,
                   rig_strvfo(vfo));
     }
     else if (vfo == RIG_VFO_TX)
     {
-        vfo = vfo_fixup(rig, vfo);
-        rig_debug(RIG_DEBUG_TRACE, "%s: VFO_TX requested, new vfo=%s\n", __func__,
+        vfo = vfo_fixup(rig, vfo)
+              rig_debug(RIG_DEBUG_TRACE, "%s: vfo_fixup vfo=%s\n", __func__, rig_strvfo(vfo));
+
+        if (rig->state.vfo_list == VFO_HAS_MAIN_SUB_A_B_ONLY)
+        {
+            vfo = RIG_VFO_A;
+
+            if (priv->split_on) { vfo = RIG_VFO_B; }
+            else if (rig->state.cache.satmode) { vfo = RIG_VFO_SUB; }
+        }
+
+        rig_debug(RIG_DEBUG_ERR, "%s: VFO_TX requested, new vfo=%s\n", __func__,
                   rig_strvfo(vfo));
     }
+
+#endif
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: using vfo=%s\n", __func__,
               rig_strvfo(vfo));
@@ -3938,7 +3954,7 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     rig_debug(RIG_DEBUG_TRACE, "%s: rx_vfo=%s, tx_vfo=%s\n", __func__,
               rig_strvfo(rx_vfo), rig_strvfo(tx_vfo));
 
-    if (RIG_OK != (retval = icom_set_vfo(rig, tx_vfo)))
+    if (RIG_OK != (retval = rig_set_vfo(rig, tx_vfo)))
     {
         return retval;
     }
@@ -3955,12 +3971,12 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
                   __func__,
                   priv->split_on, rig_strvfo(rx_vfo));
 
-        if (RIG_OK != (retval = icom_set_vfo(rig, rx_vfo)))
+        if (RIG_OK != (retval = rig_set_vfo(rig, rx_vfo)))
         {
             return retval;
         }
     }
-    else if (RIG_OK != (retval = icom_set_vfo(rig, rx_vfo)))
+    else if (RIG_OK != (retval = rig_set_vfo(rig, rx_vfo)))
     {
         return retval;
     }
@@ -4104,7 +4120,7 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
             return retval;
         }
 
-        if (RIG_OK != (retval = icom_get_freq(rig, RIG_VFO_CURR, tx_freq)))
+        if (RIG_OK != (retval = rig_get_freq(rig, RIG_VFO_CURR, tx_freq)))
         {
             return retval;
         }
@@ -4149,12 +4165,12 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
         return retval;
     }
 
-    if (RIG_OK != (retval = icom_set_vfo(rig, tx_vfo)))
+    if (RIG_OK != (retval = rig_set_vfo(rig, tx_vfo)))
     {
         return retval;
     }
 
-    if (RIG_OK != (retval = icom_get_freq(rig, tx_vfo, tx_freq)))
+    if (RIG_OK != (retval = rig_get_freq(rig, tx_vfo, tx_freq)))
     {
         return retval;
     }
@@ -4165,12 +4181,12 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
         rig_debug(RIG_DEBUG_TRACE, "%s: SATMODE rig so returning vfo to %s\n", __func__,
                   rig_strvfo(rx_vfo));
 
-        if (RIG_OK != (retval = icom_set_vfo(rig, rx_vfo)))
+        if (RIG_OK != (retval = rig_set_vfo(rig, rx_vfo)))
         {
             return retval;
         }
     }
-    else if (RIG_OK != (retval = icom_set_vfo(rig, rx_vfo)))
+    else if (RIG_OK != (retval = rig_set_vfo(rig, rx_vfo)))
     {
         return retval;
     }
@@ -4262,7 +4278,7 @@ int icom_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
         return retval;
     }
 
-    if (RIG_OK != (retval = icom_set_vfo(rig, tx_vfo)))
+    if (RIG_OK != (retval = rig_set_vfo(rig, tx_vfo)))
     {
         return retval;
     }
@@ -4273,7 +4289,7 @@ int icom_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
         return retval;
     }
 
-    if (RIG_OK != (retval = icom_set_vfo(rig, rx_vfo)))
+    if (RIG_OK != (retval = rig_set_vfo(rig, rx_vfo)))
     {
         return retval;
     }
@@ -4365,7 +4381,7 @@ int icom_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
         return retval;
     }
 
-    if (RIG_OK != (retval = icom_set_vfo(rig, tx_vfo)))
+    if (RIG_OK != (retval = rig_set_vfo(rig, tx_vfo)))
     {
         return retval;
     }
@@ -4376,7 +4392,7 @@ int icom_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
         return retval;
     }
 
-    if (RIG_OK != (retval = icom_set_vfo(rig, rx_vfo)))
+    if (RIG_OK != (retval = rig_set_vfo(rig, rx_vfo)))
     {
         return retval;
     }
@@ -4508,7 +4524,7 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
                   __func__, rig_strvfo(tx_vfo));
     }
 
-    if (RIG_OK != (retval = icom_set_vfo(rig, tx_vfo)))
+    if (RIG_OK != (retval = rig_set_vfo(rig, tx_vfo)))
     {
         return retval;
     }
@@ -4524,7 +4540,7 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
         return retval;
     }
 
-    if (RIG_OK != (retval = icom_set_vfo(rig, rx_vfo)))
+    if (RIG_OK != (retval = rig_set_vfo(rig, rx_vfo)))
     {
         return retval;
     }
@@ -4621,12 +4637,12 @@ int icom_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *tx_freq,
         return retval;
     }
 
-    if (RIG_OK != (retval = icom_set_vfo(rig, tx_vfo)))
+    if (RIG_OK != (retval = rig_set_vfo(rig, tx_vfo)))
     {
         return retval;
     }
 
-    if (RIG_OK != (retval = icom_get_freq(rig, RIG_VFO_CURR, tx_freq)))
+    if (RIG_OK != (retval = rig_get_freq(rig, RIG_VFO_CURR, tx_freq)))
     {
         return retval;
     }
@@ -4637,7 +4653,7 @@ int icom_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *tx_freq,
         return retval;
     }
 
-    if (RIG_OK != (retval = icom_set_vfo(rig, rx_vfo)))
+    if (RIG_OK != (retval = rig_set_vfo(rig, rx_vfo)))
     {
         return retval;
     }
@@ -6568,7 +6584,7 @@ int icom_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
         scan_sc = S_SCAN_STOP;
         break;
 
-    case RIG_SCAN_MEM: retval = icom_set_vfo(rig, RIG_VFO_MEM);
+    case RIG_SCAN_MEM: retval = rig_set_vfo(rig, RIG_VFO_MEM);
 
         if (retval != RIG_OK)
         {
@@ -6591,7 +6607,7 @@ int icom_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
         break;
 
     case RIG_SCAN_SLCT:
-        retval = icom_set_vfo(rig, RIG_VFO_MEM);
+        retval = rig_set_vfo(rig, RIG_VFO_MEM);
 
         if (retval != RIG_OK)
         {
@@ -6612,7 +6628,7 @@ int icom_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
             return retval;
         }
 
-        retval = icom_set_vfo(rig, RIG_VFO_VFO);
+        retval = rig_set_vfo(rig, RIG_VFO_VFO);
 
         if (retval != RIG_OK)
         {
