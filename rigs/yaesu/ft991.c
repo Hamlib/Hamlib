@@ -711,9 +711,7 @@ static int ft991_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 static int ft991_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
-    int i;
     int err;
-    ncboolean tone_match;
     rmode_t rmode;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
@@ -736,6 +734,8 @@ static int ft991_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
     }
     else
     {
+        int i;
+        ncboolean tone_match;
         for (i = 0, tone_match = FALSE; rig->caps->ctcss_list[i] != 0; i++)
         {
             if (tone == rig->caps->ctcss_list[i])
