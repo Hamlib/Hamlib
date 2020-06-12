@@ -2741,6 +2741,7 @@ extern HAMLIB_EXPORT(int) rig_set_cache_timeout_ms(RIG *rig, cache_t selection, 
 
 extern HAMLIB_EXPORT(int) rig_set_vfo_opt(RIG *rig, int status);
 
+
 // cppcheck-suppress *
 #include <unistd.h>
 extern HAMLIB_EXPORT(int) hl_usleep(useconds_t msec);

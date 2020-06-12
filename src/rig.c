@@ -189,64 +189,6 @@ static const char *rigerror_table[] =
 
 #define ERROR_TBL_SZ (sizeof(rigerror_table)/sizeof(char *))
 
-
-static vfo_t vfo_fixup(RIG *rig, vfo_t vfo)
-{
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
-
-    if (vfo == RIG_VFO_CURR)
-    {
-        rig_debug(RIG_DEBUG_TRACE, "%s: Leaving currVFO alone\n", __func__);
-        return vfo;  // don't modify vfo for RIG_VFO_CURR
-    }
-
-    if (vfo == RIG_VFO_RX)
-    {
-        vfo = RIG_VFO_A;
-
-        if (VFO_HAS_MAIN_SUB_ONLY) { vfo = RIG_VFO_MAIN; }
-
-        if (VFO_HAS_MAIN_SUB_A_B_ONLY) { vfo = RIG_VFO_MAIN; }
-    }
-
-    if (vfo == RIG_VFO_TX)
-    {
-        int retval;
-        split_t split = 0;
-        // get split if we can -- it will default to off otherwise
-        // maybe split/satmode/vfo/freq/mode can be cached for rigs
-        // that don't have read capability or get_vfo like Icom?
-        // Icom's lack of get_vfo is problematic in this respect
-        // If we cache vfo or others than twiddling the rig may cause problems
-        retval = rig_get_split(rig, vfo, &split);
-
-        if (retval != RIG_OK)
-        {
-            split = rig->state.cache.split;
-        }
-
-        int satmode = rig->state.cache.satmode;
-        vfo = RIG_VFO_A;
-
-        if (split) { vfo = RIG_VFO_B; }
-
-        if (VFO_HAS_MAIN_SUB_ONLY && !split && !satmode) { vfo = RIG_VFO_MAIN; }
-
-        if (VFO_HAS_MAIN_SUB_ONLY && (split || satmode)) { vfo = RIG_VFO_SUB; }
-
-        if (VFO_HAS_MAIN_SUB_A_B_ONLY && split) { vfo = RIG_VFO_B; }
-
-        if (VFO_HAS_MAIN_SUB_A_B_ONLY && satmode) { vfo = RIG_VFO_SUB; }
-
-        rig_debug(RIG_DEBUG_TRACE,
-                  "%s: RIG_VFO_TX changed to %s, split=%d, satmode=%d\n", __func__,
-                  rig_strvfo(vfo), split, satmode);
-    }
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: final vfo=%s\n", __func__, rig_strvfo(vfo));
-    return vfo;
-}
-
 /*
  * track which rig is opened (with rig_open)
  * needed at least for transceive mode
