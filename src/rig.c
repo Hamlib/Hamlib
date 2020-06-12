@@ -2011,14 +2011,10 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
     // we only get the freq if we set the vfo OK
     if (retcode == RIG_OK && caps->get_freq)
     {
-        if (caps->get_freq)
-        {
-            retcode = caps->get_freq(rig, vfo, &curr_freq);
-            rig_debug(RIG_DEBUG_TRACE, "%s: retcode from rig_get_freq = %s\n", __func__,
-                      rigerror(retcode));
-        }
+        retcode = caps->get_freq(rig, vfo, &curr_freq);
+        rig_debug(RIG_DEBUG_TRACE, "%s: retcode from rig_get_freq = %s\n", __func__,
+                  rigerror(retcode));
     }
-
 
     // expire several cached items when we switch VFOs
     elapsed_ms(&rig->state.cache.time_vfo, ELAPSED_INVALIDATE);
