@@ -1903,6 +1903,8 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
         return -RIG_EINVAL;
     }
 
+    if (vfo == RIG_VFO_CURR) { return RIG_OK; }
+
     // make sure we are asking for a VFO that the rig actually has
     if ((vfo == RIG_VFO_A || vfo == RIG_VFO_B) && !VFO_HAS_A_B)
     {
@@ -3023,7 +3025,10 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 
     if (caps->set_vfo)
     {
-        retcode = caps->set_vfo(rig, tx_vfo);
+        // if the underlying rig has OP_XCHC we don't need to set VFO
+        if (!rig_has_vfo_op(rig, RIG_OP_XCHG)){
+            retcode = caps->set_vfo(rig, tx_vfo);
+        }
     }
     else if (rig_has_vfo_op(rig, RIG_OP_TOGGLE) && caps->vfo_op)
     {
