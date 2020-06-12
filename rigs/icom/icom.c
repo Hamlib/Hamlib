@@ -1128,23 +1128,16 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         return retval;
     }
 
-    // Pick the appropriate VFO when VFO_RX is requested
+    // Pick the appropriate VFO when VFO_RX or VFO_TX is requested
     if (vfo == RIG_VFO_RX)
     {
-        vfo = (rig->state.vfo_list & RIG_VFO_B) ? RIG_VFO_A : RIG_VFO_MAIN;
+        vfo = vfo_fixup(rig, vfo);
         rig_debug(RIG_DEBUG_TRACE, "%s: VFO_RX requested, new vfo=%s\n", __func__,
                   rig_strvfo(vfo));
     }
     else if (vfo == RIG_VFO_TX)
     {
-        if (rig->state.vfo_list == VFO_HAS_MAIN_SUB_A_B_ONLY)
-        {
-            vfo = RIG_VFO_A;
-
-            if (priv->split_on) { vfo = RIG_VFO_B; }
-            else if (rig->state.cache.satmode) { vfo = RIG_VFO_SUB; }
-        }
-
+        vfo = vfo_fixup(rig, vfo);
         rig_debug(RIG_DEBUG_TRACE, "%s: VFO_TX requested, new vfo=%s\n", __func__,
                   rig_strvfo(vfo));
     }
