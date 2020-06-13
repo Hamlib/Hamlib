@@ -582,32 +582,25 @@ int HAMLIB_API rig_open(RIG *rig)
     is_network |= sscanf(rs->rigport.pathname, "%u.%u.%u.%u:%u", &net1, &net2,
                          &net3, &net4, &port) == 5;
     is_network |= sscanf(rs->rigport.pathname, ":%u", &port) == 1;
-    is_network |= strstr(rs->rigport.pathname, "localhost") != NULL;
     is_network |= sscanf(rs->rigport.pathname, "%u::%u:%u:%u:%u:%u", &net1, &net2,
                          &net3, &net4, &net5, &port) == 6;
     is_network |= sscanf(rs->rigport.pathname, "%u:%u:%u:%u:%u:%u:%u:%u:%u", &net1,
                          &net2, &net3, &net4, &net5, &net6, &net7, &net8, &port) == 9;
-
-    if ((token = strtok_r(rs->rigport.pathname, ":", &strtokp)))
+    // if we haven't met one of the condition above then we must have a hostname
+    if (!is_network && (token = strtok_r(rs->rigport.pathname, ":", &strtokp)))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: token1=%s\n", __func__, token);
+        rig_debug(RIG_DEBUG_TRACE, "%s: token1=%s\n", __func__, token);
         token = strtok_r(strtokp, ":", &strtokp);
 
         if (token)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: token2=%s\n",  __func__, token);
+            rig_debug(RIG_DEBUG_TRACE, "%s: token2=%s\n",  __func__, token);
 
             if (sscanf(token, "%d", &port)) { is_network |= 1; }
         }
     }
 
     if (is_network)
-    {
-        rig_debug(RIG_DEBUG_TRACE, "%s: using network address %s\n", __func__,
-                  rs->rigport.pathname);
-        rs->rigport.type.rig = RIG_PORT_NETWORK;
-    }
-    else if (sscanf(rs->rigport.pathname, ":%u", &port) == 1)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: using network address %s\n", __func__,
                   rs->rigport.pathname);
