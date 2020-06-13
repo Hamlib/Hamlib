@@ -582,32 +582,25 @@ int HAMLIB_API rig_open(RIG *rig)
     is_network |= sscanf(rs->rigport.pathname, "%u.%u.%u.%u:%u", &net1, &net2,
                          &net3, &net4, &port) == 5;
     is_network |= sscanf(rs->rigport.pathname, ":%u", &port) == 1;
-    is_network |= strstr(rs->rigport.pathname, "localhost") != NULL;
     is_network |= sscanf(rs->rigport.pathname, "%u::%u:%u:%u:%u:%u", &net1, &net2,
                          &net3, &net4, &net5, &port) == 6;
     is_network |= sscanf(rs->rigport.pathname, "%u:%u:%u:%u:%u:%u:%u:%u:%u", &net1,
                          &net2, &net3, &net4, &net5, &net6, &net7, &net8, &port) == 9;
-
-    if ((token = strtok_r(rs->rigport.pathname, ":", &strtokp)))
+    // if we haven't met one of the condition above then we must have a hostname
+    if (!is_network && (token = strtok_r(rs->rigport.pathname, ":", &strtokp)))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: token1=%s\n", __func__, token);
+        rig_debug(RIG_DEBUG_TRACE, "%s: token1=%s\n", __func__, token);
         token = strtok_r(strtokp, ":", &strtokp);
 
         if (token)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: token2=%s\n",  __func__, token);
+            rig_debug(RIG_DEBUG_TRACE, "%s: token2=%s\n",  __func__, token);
 
             if (sscanf(token, "%d", &port)) { is_network |= 1; }
         }
     }
 
     if (is_network)
-    {
-        rig_debug(RIG_DEBUG_TRACE, "%s: using network address %s\n", __func__,
-                  rs->rigport.pathname);
-        rs->rigport.type.rig = RIG_PORT_NETWORK;
-    }
-    else if (sscanf(rs->rigport.pathname, ":%u", &port) == 1)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: using network address %s\n", __func__,
                   rs->rigport.pathname);
@@ -3006,7 +2999,7 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
     const struct rig_caps *caps;
     int retcode, rc2;
-    vfo_t curr_vfo, tx_vfo;
+    vfo_t save_vfo, tx_vfo;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -3029,7 +3022,7 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     }
 
     /* Assisted mode */
-    curr_vfo = rig->state.current_vfo;
+    save_vfo = rig->state.current_vfo;
 
     /* Use previously setup TxVFO */
     if (vfo == RIG_VFO_CURR || vfo == RIG_VFO_TX)
@@ -3081,7 +3074,7 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     /* try and revert even if we had an error above */
     if (caps->set_vfo)
     {
-        rc2 = caps->set_vfo(rig, curr_vfo);
+        rc2 = caps->set_vfo(rig, save_vfo);
     }
     else
     {
