@@ -597,7 +597,7 @@ int HAMLIB_API rig_open(RIG *rig)
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: token2=%s\n",  __func__, token);
 
-            if (sscanf(token, "%d", &port)) { is_network |= 1; }
+            if (sscanf(token, "%u", &port)) { is_network |= 1; }
         }
     }
 
@@ -2900,7 +2900,7 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     vfo_t curr_vfo, tx_vfo;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, curr_vfo=%s\n", __func__,
-              rig_strvfo(vfo), rig_strvfo(vfo_curr));
+              rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
 
     if (CHECK_RIG_ARG(rig))
     {
@@ -3004,7 +3004,7 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
     const struct rig_caps *caps;
-    int retcode, rc2;
+    int retcode = -RIG_EPROTO, rc2;
     vfo_t save_vfo, tx_vfo;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -3052,6 +3052,7 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
         if (!rig_has_vfo_op(rig, RIG_OP_XCHG))
         {
             retcode = caps->set_vfo(rig, tx_vfo);
+            return retcode;
         }
     }
     else if (rig_has_vfo_op(rig, RIG_OP_TOGGLE) && caps->vfo_op)
