@@ -3042,7 +3042,7 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 
     if (caps->set_vfo)
     {
-        // if the underlying rig has OP_XCHC we don't need to set VFO
+        // if the underlying rig has OP_XCHG we don't need to set VFO
         if (!rig_has_vfo_op(rig, RIG_OP_XCHG))
         {
             retcode = caps->set_vfo(rig, tx_vfo);
