@@ -586,6 +586,7 @@ int HAMLIB_API rig_open(RIG *rig)
                          &net3, &net4, &net5, &port) == 6;
     is_network |= sscanf(rs->rigport.pathname, "%u:%u:%u:%u:%u:%u:%u:%u:%u", &net1,
                          &net2, &net3, &net4, &net5, &net6, &net7, &net8, &port) == 9;
+
     // if we haven't met one of the condition above then we must have a hostname
     if (!is_network && (token = strtok_r(rs->rigport.pathname, ":", &strtokp)))
     {
@@ -1292,10 +1293,14 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             return RIG_OK; // would be better as error but other software won't handle errors
         }
 
+        rig_debug(RIG_DEBUG_TRACE, "%s: TARGETABLE_FREQ vfo=%s\n", __func__,
+                  rig_strvfo(vfo));
         retcode = caps->set_freq(rig, vfo, freq);
     }
     else
     {
+        rig_debug(RIG_DEBUG_TRACE, "%s: not a TARGETABLE_FREQ vfo=%s\n", __func__,
+                  rig_strvfo(vfo));
         int rc2;
         vfo_t curr_vfo;
 
