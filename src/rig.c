@@ -556,7 +556,9 @@ int HAMLIB_API rig_open(RIG *rig)
     struct rig_state *rs;
     int status = RIG_OK;
     value_t parm_value;
-    int net1, net2, net3, net4, port;
+    unsigned int net1, net2, net3, net4, net5, net6, net7, net8, port;
+    int is_network = 0;
+    char *token, *strtokp;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -576,14 +578,36 @@ int HAMLIB_API rig_open(RIG *rig)
     rs->rigport.fd = -1;
 
     // determine if we have a network address
-    if (sscanf(rs->rigport.pathname, "%d.%d.%d.%d:%d", &net1, &net2, &net3, &net4,
-               &port) == 5)
+    //
+    is_network |= sscanf(rs->rigport.pathname, "%u.%u.%u.%u:%u", &net1, &net2,
+                         &net3, &net4, &port) == 5;
+    is_network |= sscanf(rs->rigport.pathname, ":%u", &port) == 1;
+    is_network |= strstr(rs->rigport.pathname, "localhost") != NULL;
+    is_network |= sscanf(rs->rigport.pathname, "%u::%u:%u:%u:%u:%u", &net1, &net2,
+                         &net3, &net4, &net5, &port) == 6;
+    is_network |= sscanf(rs->rigport.pathname, "%u:%u:%u:%u:%u:%u:%u:%u:%u", &net1,
+                         &net2, &net3, &net4, &net5, &net6, &net7, &net8, &port) == 9;
+
+    if ((token = strtok_r(rs->rigport.pathname, ":", &strtokp)))
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: token1=%s\n", __func__, token);
+        token = strtok_r(strtokp, ":", &strtokp);
+
+        if (token)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: token2=%s\n",  __func__, token);
+
+            if (sscanf(token, "%d", &port)) { is_network |= 1; }
+        }
+    }
+
+    if (is_network)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: using network address %s\n", __func__,
                   rs->rigport.pathname);
         rs->rigport.type.rig = RIG_PORT_NETWORK;
     }
-    else if (sscanf(rs->rigport.pathname, ":%d", &port) == 1)
+    else if (sscanf(rs->rigport.pathname, ":%u", &port) == 1)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: using network address %s\n", __func__,
                   rs->rigport.pathname);
@@ -3026,7 +3050,8 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     if (caps->set_vfo)
     {
         // if the underlying rig has OP_XCHC we don't need to set VFO
-        if (!rig_has_vfo_op(rig, RIG_OP_XCHG)){
+        if (!rig_has_vfo_op(rig, RIG_OP_XCHG))
+        {
             retcode = caps->set_vfo(rig, tx_vfo);
         }
     }
