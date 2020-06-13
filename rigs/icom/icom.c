@@ -621,7 +621,7 @@ icom_init(RIG *rig)
     priv->no_xchg = priv_caps->no_xchg;
     priv->tx_vfo = RIG_VFO_NONE;
     priv->rx_vfo = RIG_VFO_NONE;
-    priv->curr_vfo = RIG_VFO_NONE;
+    rig->state.current_vfo = RIG_VFO_NONE;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: done\n", __func__);
 
@@ -804,10 +804,9 @@ icom_rig_close(RIG *rig)
 int icom_set_default_vfo(RIG *rig)
 {
     int retval;
-    struct icom_priv_data *priv = (struct icom_priv_data *) rig->state.priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called, curr_vfo=%s\n", __func__,
-              rig_strvfo(priv->curr_vfo));
+              rig_strvfo(rig->state.current_vfo));
 
     if (VFO_HAS_MAIN_SUB_A_B_ONLY)
     {
@@ -827,7 +826,7 @@ int icom_set_default_vfo(RIG *rig)
             return retval;
         }
 
-        priv->curr_vfo = RIG_VFO_MAIN;
+        rig->state.current_vfo = RIG_VFO_MAIN;
         return RIG_OK;
     }
 
@@ -836,7 +835,7 @@ int icom_set_default_vfo(RIG *rig)
         rig_debug(RIG_DEBUG_TRACE, "%s: setting default as MAIN\n",
                   __func__);
         retval = rig_set_vfo(rig, RIG_VFO_MAIN);  // we'll default to Main in this case
-        priv->curr_vfo = RIG_VFO_MAIN;
+        rig->state.current_vfo = RIG_VFO_MAIN;
     }
     else if (VFO_HAS_A_B)
     {
@@ -844,15 +843,15 @@ int icom_set_default_vfo(RIG *rig)
                   __func__);
         retval = rig_set_vfo(rig,
                              RIG_VFO_A);     // we'll default to VFOA for all others
-        priv->curr_vfo = RIG_VFO_A;
+        rig->state.current_vfo = RIG_VFO_A;
     }
     else
     {
         // we don't have any VFO selection
-        rig_debug(RIG_DEBUG_TRACE, "%s: setting default as VFO_CURR\n",
+        rig_debug(RIG_DEBUG_TRACE, "%s: Unknown VFO setup so setting default as VFOA\n",
                   __func__);
 
-        priv->curr_vfo = RIG_VFO_A;
+        rig->state.current_vfo = RIG_VFO_A;
         retval = RIG_OK;
     }
 
@@ -860,6 +859,7 @@ int icom_set_default_vfo(RIG *rig)
     {
         return retval;
     }
+    rig_debug(RIG_DEBUG_TRACE, "%s: curr_vfo now %s\n", __func__, rig_strvfo(rig->state.current_vfo));
 
     return RIG_OK;
 }
@@ -916,21 +916,21 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rs = &rig->state;
     priv = (struct icom_priv_data *) rs->priv;
 
-    if (priv->curr_vfo == RIG_VFO_NONE && vfo == RIG_VFO_CURR)
+    if (rig->state.current_vfo == RIG_VFO_NONE && vfo == RIG_VFO_CURR)
     {
         icom_set_default_vfo(rig);
     }
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = priv->curr_vfo;
+        vfo = rig->state.current_vfo;
         rig_debug(RIG_DEBUG_TRACE, "%s: currVFO asked for so vfo set to %s\n", __func__,
                   rig_strvfo(vfo));
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: set_vfo_curr=%s\n", __func__,
-              rig_strvfo(priv->curr_vfo));
-    retval = set_vfo_curr(rig, vfo, priv->curr_vfo);
+              rig_strvfo(rig->state.current_vfo));
+    retval = set_vfo_curr(rig, vfo, rig->state.current_vfo);
 
     if (retval != RIG_OK)
     {
@@ -1114,7 +1114,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = priv->curr_vfo;
+        vfo = rig->state.current_vfo;
 
         if (vfo == RIG_VFO_NONE) { vfo = RIG_VFO_A; }
 
@@ -1125,7 +1125,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 #endif
 
 
-    retval = set_vfo_curr(rig, vfo, priv->curr_vfo);
+    retval = set_vfo_curr(rig, vfo, rig->state.current_vfo);
 
     if (retval != RIG_OK)
     {
@@ -1137,7 +1137,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 #if 0
 
     // Pick the appropriate VFO when VFO_RX or VFO_TX is requested
-    if (vfo == RIG_VFO_RX && priv->curr_vfo)
+    if (vfo == RIG_VFO_RX && rig->state.current_vfo)
     {
         vfo = vfo_fixup(rig, vfo);
         rig_debug(RIG_DEBUG_TRACE, "%s: vfo_fixup vfo=%s\n", __func__, rig_strvfo(vfo));
@@ -1167,7 +1167,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: using vfo=%s\n", __func__,
               rig_strvfo(vfo));
 
-    if (priv->curr_vfo == RIG_VFO_NONE)
+    if (rig->state.current_vfo == RIG_VFO_NONE)
     {
         retval = rig_set_vfo(rig, vfo);
 
@@ -1952,7 +1952,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
     if (vfo == RIG_VFO_CURR)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: Asking for currVFO,  currVFO=%s\n", __func__,
-                  rig_strvfo(priv->curr_vfo));
+                  rig_strvfo(rig->state.current_vfo));
         return RIG_OK;
     }
 
@@ -2003,10 +2003,10 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: debug#1\n", __func__);
 
-    if (vfo != priv->curr_vfo)
+    if (vfo != rig->state.current_vfo)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: VFO changing from %s to %s\n", __func__,
-                  rig_strvfo(priv->curr_vfo), rig_strvfo(vfo));
+                  rig_strvfo(rig->state.current_vfo), rig_strvfo(vfo));
         priv->curr_freq = 0; // reset curr_freq so set_freq works 1st time
     }
 
@@ -2063,7 +2063,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
             return -RIG_ERJCTED;
         }
 
-        priv->curr_vfo = vfo;
+        rig->state.current_vfo = vfo;
         return RIG_OK;
 
     case RIG_VFO_MEM:
@@ -2082,7 +2082,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
             return -RIG_ERJCTED;
         }
 
-        priv->curr_vfo = vfo;
+        rig->state.current_vfo = vfo;
         return RIG_OK;
 
     case RIG_VFO_MAIN_A:    // we need to select Main before setting VFO
@@ -2102,7 +2102,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
             return -RIG_ERJCTED;
         }
 
-        priv->curr_vfo = vfo;
+        rig->state.current_vfo = vfo;
         return RIG_OK;
 
         break;
@@ -2124,7 +2124,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
             return -RIG_ERJCTED;
         }
 
-        priv->curr_vfo = vfo;
+        rig->state.current_vfo = vfo;
         return RIG_OK;
 
         break;
@@ -2152,9 +2152,8 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
         return -RIG_ERJCTED;
     }
 
-    priv->curr_vfo = vfo;
     rig->state.current_vfo = vfo;
-    rig_debug(RIG_DEBUG_TRACE, "%s: debug#5\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: debug#5 curr_vfo=%s\n", __func__, rig_strvfo(rig->state.current_vfo));
     return RIG_OK;
 }
 
@@ -3832,7 +3831,7 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     rs = &rig->state;
     priv = (struct icom_priv_data *) rs->priv;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: curr_vfo=%s\n", __func__,
-              rig_strvfo(priv->curr_vfo));
+              rig_strvfo(rig->state.current_vfo));
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: satmode=%d, subvfo=%s\n", __func__,
               rig->state.cache.satmode, rig_strvfo(priv->tx_vfo));
@@ -3847,7 +3846,7 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
     if (rig->state.cache.satmode && vfo == RIG_VFO_TX) { vfo = RIG_VFO_SUB; }
 
-    if (priv->curr_vfo == RIG_VFO_NONE)
+    if (rig->state.current_vfo == RIG_VFO_NONE)
     {
         retval = icom_set_default_vfo(rig);
 
@@ -4037,7 +4036,7 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     rs = &rig->state;
     priv = (struct icom_priv_data *) rs->priv;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: curr_vfo=%s\n", __func__,
-              rig_strvfo(priv->curr_vfo));
+              rig_strvfo(rig->state.current_vfo));
 
 
     if (rig->caps->rig_model == RIG_MODEL_IC910)
@@ -4061,9 +4060,9 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s curr_vfo=%s\n", __func__,
-              rig_strvfo(priv->curr_vfo));
+              rig_strvfo(rig->state.current_vfo));
 
-    if (priv->curr_vfo == RIG_VFO_NONE)
+    if (rig->state.current_vfo == RIG_VFO_NONE)
     {
         icom_set_default_vfo(rig);
     }
@@ -4442,13 +4441,13 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__,
               rig_strvfo(vfo));
     rig_debug(RIG_DEBUG_VERBOSE, "%s: curr_vfo=%s\n", __func__,
-              rig_strvfo(priv->curr_vfo));
+              rig_strvfo(rig->state.current_vfo));
 
     // If the user is asking to set split on VFO_CURR we'll assume split mode
     // WSJT-X calls this function before turning on split mode
     if (vfo == RIG_VFO_CURR) { split_assumed = 1; }
 
-    if (priv->curr_vfo == RIG_VFO_NONE)
+    if (rig->state.current_vfo == RIG_VFO_NONE)
     {
         icom_set_default_vfo(rig);
     }
@@ -4700,11 +4699,11 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
     rig_debug(RIG_DEBUG_VERBOSE,
               "%s called vfo='%s', split=%d, tx_vfo=%s, curr_vfo=%s\n", __func__,
-              rig_strvfo(vfo), split, rig_strvfo(tx_vfo), rig_strvfo(priv->curr_vfo));
+              rig_strvfo(vfo), split, rig_strvfo(tx_vfo), rig_strvfo(rig->state.current_vfo));
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = priv->curr_vfo;
+        vfo = rig->state.current_vfo;
     }
 
     // This should automaticaly switch between satmode on/off based on the requested split vfo
@@ -4713,7 +4712,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         if ((tx_vfo == RIG_VFO_SUB || tx_vfo == RIG_VFO_MAIN)
                 && !rig->state.cache.satmode)
         {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: VFO_SUB and satmode is off so turning on\n",
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: VFO_SUB and satmode is off so turning satmode on\n",
                       __func__);
             rig_set_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, 1);
             rig->state.cache.satmode = 1;
@@ -4722,7 +4721,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         else if ((tx_vfo == RIG_VFO_A || tx_vfo == RIG_VFO_B)
                  && rig->state.cache.satmode)
         {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: VFO_B and satmode is on so turning off\n",
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: VFO_B and satmode is on so turning satmode off\n",
                       __func__);
             rig_set_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, 0);
             rig->state.cache.satmode = 0;
@@ -4884,7 +4883,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
     priv->split_on = RIG_SPLIT_ON == split;
 
-    if (vfo_final != RIG_VFO_NONE && vfo_final != priv->curr_vfo)
+    if (vfo_final != RIG_VFO_NONE && vfo_final != rig->state.current_vfo)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: vfo_final set %s\n", __func__,
                   rig_strvfo(vfo_final));
@@ -4899,7 +4898,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
     rig_debug(RIG_DEBUG_VERBOSE,
               "%s: vfo=%s curr_vfo=%s rx_vfo=%s tx_vfo=%s split=%d\n",
-              __func__, rig_strvfo(vfo), rig_strvfo(priv->curr_vfo), rig_strvfo(priv->rx_vfo),
+              __func__, rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo), rig_strvfo(priv->rx_vfo),
               rig_strvfo(priv->tx_vfo), split);
     return RIG_OK;
 }
@@ -7144,7 +7143,7 @@ int icom_get_freq_range(RIG *rig)
     return RIG_OK;
 }
 
-// Sets rig vfo && priv->curr_vfo to default VFOA, or current vfo, or the vfo requested
+// Sets rig vfo && rig->state.current_vfo to default VFOA, or current vfo, or the vfo requested
 static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
 {
     int retval;
@@ -7156,8 +7155,8 @@ static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
     if (vfo == RIG_VFO_CURR)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: Asking for currVFO,  currVFO=%s\n", __func__,
-                  rig_strvfo(priv->curr_vfo));
-        vfo = priv->curr_vfo;
+                  rig_strvfo(rig->state.current_vfo));
+        vfo = rig->state.current_vfo;
     }
 
     if (vfo == RIG_VFO_MAIN && VFO_HAS_A_B_ONLY)
@@ -7176,22 +7175,22 @@ static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
     /* This method works also in memory mode(RIG_VFO_MEM) */
     // first time we will set default to VFOA or Main as
     // So if you ask for frequency or such without setting VFO first you'll get Main/VFOA
-    if (priv->curr_vfo == RIG_VFO_NONE && vfo == RIG_VFO_CURR)
+    if (rig->state.current_vfo == RIG_VFO_NONE && vfo == RIG_VFO_CURR)
     {
         icom_set_default_vfo(rig);
     }
     // asking for vfo_curr so give it to them
-    else if (priv->curr_vfo != RIG_VFO_NONE && vfo == RIG_VFO_CURR)
+    else if (rig->state.current_vfo != RIG_VFO_NONE && vfo == RIG_VFO_CURR)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: using curr_vfo=%s\n", __func__,
-                  rig_strvfo(priv->curr_vfo));
-        vfo = priv->curr_vfo;
+                  rig_strvfo(rig->state.current_vfo));
+        vfo = rig->state.current_vfo;
     }
     // only need to set vfo if it's changed
-    else if (priv->curr_vfo != vfo)
+    else if (rig->state.current_vfo != vfo)
     {
         if (!(VFO_HAS_MAIN_SUB_A_B_ONLY && !priv->split_on && !rig->state.cache.satmode
-                && vfo == RIG_VFO_SUB && priv->curr_vfo == RIG_VFO_B))
+                && vfo == RIG_VFO_SUB && rig->state.current_vfo == RIG_VFO_B))
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: setting new vfo=%s\n", __func__,
                       rig_strvfo(vfo));
@@ -7201,13 +7200,11 @@ static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
             {
                 return retval;
             }
-
-            priv->curr_vfo = vfo;
         }
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: curr_vfo now=%s\n", __func__,
-              rig_strvfo(priv->curr_vfo));
+              rig_strvfo(rig->state.current_vfo));
 
     rig->state.current_vfo = vfo;
 
