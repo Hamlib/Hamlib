@@ -52,7 +52,6 @@
 struct xg3_priv_data
 {
     /* current vfo already in rig_state ? */
-    vfo_t curr_vfo;
     vfo_t last_vfo;
     ptt_t ptt;
     powerstat_t powerstat;
@@ -107,9 +106,9 @@ const struct rig_caps xg3_caps =
     RIG_MODEL(RIG_MODEL_XG3),
     .model_name = "XG3",
     .mfg_name = "Elecraft",
-    .version = "20191218.0",
+    .version = "20200613.0",
     .copyright = "LGPL",
-    .status = RIG_STATUS_BETA,
+    .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
     .ptt_type = RIG_PTT_RIG,
     .dcd_type = RIG_DCD_RIG,
@@ -193,7 +192,7 @@ int xg3_init(RIG *rig)
 // Tried set_trn to turn transceiver on/off but turning it on isn't enabled in hamlib for some reason
 // So we use PTT instead
 //  rig->state.transceive = RIG_TRN_RIG; // this allows xg3_set_trn to be called
-    priv->curr_vfo = RIG_VFO_A;
+    rig->state.current_vfo = RIG_VFO_A;
     priv->last_vfo = RIG_VFO_A;
     priv->ptt = RIG_PTT_ON;
     priv->powerstat = RIG_POWER_ON;
@@ -334,8 +333,6 @@ int xg3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
  */
 int xg3_get_vfo(RIG *rig, vfo_t *vfo)
 {
-    struct xg3_priv_data *priv = (struct xg3_priv_data *)rig->state.priv;
-
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!vfo)
@@ -343,7 +340,7 @@ int xg3_get_vfo(RIG *rig, vfo_t *vfo)
         return -RIG_EINVAL;
     }
 
-    *vfo = priv->curr_vfo;      // VFOA or MEM
+    *vfo = rig->state.current_vfo;      // VFOA or MEM
     return RIG_OK;
 }
 
@@ -352,8 +349,6 @@ int xg3_get_vfo(RIG *rig, vfo_t *vfo)
  */
 int xg3_set_vfo(RIG *rig, vfo_t vfo)
 {
-    struct xg3_priv_data *priv = (struct xg3_priv_data *)rig->state.priv;
-
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!vfo)
@@ -365,7 +360,7 @@ int xg3_set_vfo(RIG *rig, vfo_t vfo)
 
     // We don't actually set the vfo on the XG3
     // But we need this so we can set frequencies on the band buttons
-    priv->curr_vfo = vfo;
+    rig->state.current_vfo = vfo;
     return RIG_OK;
 }
 

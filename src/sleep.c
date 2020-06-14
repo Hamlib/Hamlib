@@ -50,7 +50,7 @@ extern "C" {
 // In order to stop the usleep warnings in cppcheck we provide our own interface
 // So this will use system usleep or our usleep depending on availability of nanosleep
 // This version of usleep can handle > 1000000 usec values
-int hl_usleep(useconds_t usec)
+int hl_usleep(rig_useconds_t usec)
 {
     int retval = 0;
 
@@ -85,12 +85,13 @@ unsigned int sleep(unsigned int secs)
 }
 
 
+#if 0
 /**
  * \brief microsecond sleep
  * \param usec is microseconds to sleep
  * This does not have the same 1000000 limit as POSIX usleep
  */
-int usleep(useconds_t usec)
+int usleep(rig_useconds_t usec)
 {
     int retval;
     unsigned long sec = usec / 1000000ul;
@@ -106,6 +107,7 @@ int usleep(useconds_t usec)
 
     return 0;
 }
+#endif
 
 #endif // HAVE_NANOSLEEP
 #ifdef __cplusplus
