@@ -1521,8 +1521,8 @@ int newcat_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
         return err;
     }
 
-    // should this just return VFO_A/VFO_B?
-    if (*tx_vfo != vfo)
+    // we assume split is always on VFO_B
+    if (*tx_vfo == RIG_VFO_B)
     {
         *split = RIG_SPLIT_ON;
     }
@@ -4855,10 +4855,12 @@ int newcat_get_tx_vfo(RIG *rig, vfo_t *tx_vfo)
     {
     case '0':
         *tx_vfo = RIG_VFO_A;
+        rig->state.cache.split = 0;
         break;
 
     case '1' :
         *tx_vfo = RIG_VFO_B;
+        rig->state.cache.split = 1;
         break;
 
     default:
