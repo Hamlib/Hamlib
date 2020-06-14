@@ -859,7 +859,9 @@ int icom_set_default_vfo(RIG *rig)
     {
         return retval;
     }
-    rig_debug(RIG_DEBUG_TRACE, "%s: curr_vfo now %s\n", __func__, rig_strvfo(rig->state.current_vfo));
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: curr_vfo now %s\n", __func__,
+              rig_strvfo(rig->state.current_vfo));
 
     return RIG_OK;
 }
@@ -1036,7 +1038,7 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     case RIG_VFO_SUB: priv->sub_freq = freq; break;
 
-    case RIG_VFO_CURR: break; 
+    case RIG_VFO_CURR: break;
 
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unknown VFO?  VFO=%s\n", __func__,
@@ -1062,8 +1064,8 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     int ack_len = sizeof(ackbuf);
     int civ_731_mode = 0; // even these rigs have 5-byte channels
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called for %s\n", __func__,
-              rig_strvfo(vfo));
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called for %s, curr_vfo=%s\n", __func__,
+              rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
     rs = &rig->state;
     priv = (struct icom_priv_data *) rs->priv;
 
@@ -1241,13 +1243,15 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     case RIG_VFO_SUB: priv->sub_freq = *freq; break;
 
-    case RIG_VFO_CURR: break; 
+    case RIG_VFO_CURR: break;
 
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unknown VFO?  VFO=%s\n", __func__,
                   rig_strvfo(vfo));
     }
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s exit vfo=%s, curr_vfo=%s\n", __func__,
+              rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
     return RIG_OK;
 }
 
@@ -2153,7 +2157,8 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
     }
 
     rig->state.current_vfo = vfo;
-    rig_debug(RIG_DEBUG_TRACE, "%s: debug#5 curr_vfo=%s\n", __func__, rig_strvfo(rig->state.current_vfo));
+    rig_debug(RIG_DEBUG_TRACE, "%s: debug#5 curr_vfo=%s\n", __func__,
+              rig_strvfo(rig->state.current_vfo));
     return RIG_OK;
 }
 
@@ -4712,7 +4717,8 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         if ((tx_vfo == RIG_VFO_SUB || tx_vfo == RIG_VFO_MAIN)
                 && !rig->state.cache.satmode)
         {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: VFO_SUB and satmode is off so turning satmode on\n",
+            rig_debug(RIG_DEBUG_VERBOSE,
+                      "%s: VFO_SUB and satmode is off so turning satmode on\n",
                       __func__);
             rig_set_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, 1);
             rig->state.cache.satmode = 1;
@@ -4721,7 +4727,8 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         else if ((tx_vfo == RIG_VFO_A || tx_vfo == RIG_VFO_B)
                  && rig->state.cache.satmode)
         {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: VFO_B and satmode is on so turning satmode off\n",
+            rig_debug(RIG_DEBUG_VERBOSE,
+                      "%s: VFO_B and satmode is on so turning satmode off\n",
                       __func__);
             rig_set_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, 0);
             rig->state.cache.satmode = 0;
@@ -4898,7 +4905,8 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
     rig_debug(RIG_DEBUG_VERBOSE,
               "%s: vfo=%s curr_vfo=%s rx_vfo=%s tx_vfo=%s split=%d\n",
-              __func__, rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo), rig_strvfo(priv->rx_vfo),
+              __func__, rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo),
+              rig_strvfo(priv->rx_vfo),
               rig_strvfo(priv->tx_vfo), split);
     return RIG_OK;
 }
