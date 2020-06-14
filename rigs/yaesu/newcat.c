@@ -366,7 +366,10 @@ int newcat_open(RIG *rig)
               __func__, rig_s->rigport.post_write_delay);
 
     /* Ensure rig is powered on */
-    rig_set_powerstat(rig, 1);
+    if (priv->poweron == 0) {
+        priv->poweron = 1;
+        rig_set_powerstat(rig, 1);
+    }
 
     /* get current AI state so it can be restored */
     priv->trn_state = -1;
