@@ -31,7 +31,7 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "20200612"
+#define BACKEND_VER "20200613"
 
 /*
  * defines used by comp_cal_str in rig.c
@@ -179,9 +179,8 @@ struct icom_priv_data
     int split_on;                                   /* record split state */
     pltstate_t *pltstate;   /* only on optoscan */
     int serial_USB_echo_off; /* USB is not set to echo */
-    /* we track vfos internallhy for use with different functions like split */
+    /* we track vfos internally for use with different functions like split */
     /* this allows queries using CURR_VFO and Main/Sub to behave */
-    vfo_t curr_vfo; 
     vfo_t rx_vfo; 
     vfo_t tx_vfo; 
     freq_t curr_freq; // our current freq depending on which vfo is selected

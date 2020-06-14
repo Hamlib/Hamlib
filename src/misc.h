@@ -100,7 +100,7 @@ extern HAMLIB_EXPORT(void) rig_force_cache_timeout(struct timeval *tv);
 
 extern HAMLIB_EXPORT(setting_t) rig_idx2setting(int i);
 
-extern HAMLIB_EXPORT(int) hl_usleep(useconds_t usec);
+extern HAMLIB_EXPORT(int) hl_usleep(rig_useconds_t usec);
 
 extern HAMLIB_EXPORT(double) elapsed_ms(struct timespec *start, int start_flag);
 

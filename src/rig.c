@@ -586,6 +586,7 @@ int HAMLIB_API rig_open(RIG *rig)
                          &net3, &net4, &net5, &port) == 6;
     is_network |= sscanf(rs->rigport.pathname, "%u:%u:%u:%u:%u:%u:%u:%u:%u", &net1,
                          &net2, &net3, &net4, &net5, &net6, &net7, &net8, &port) == 9;
+
     // if we haven't met one of the condition above then we must have a hostname
     if (!is_network && (token = strtok_r(rs->rigport.pathname, ":", &strtokp)))
     {
@@ -596,7 +597,7 @@ int HAMLIB_API rig_open(RIG *rig)
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: token2=%s\n",  __func__, token);
 
-            if (sscanf(token, "%d", &port)) { is_network |= 1; }
+            if (sscanf(token, "%u", &port)) { is_network |= 1; }
         }
     }
 
@@ -1292,10 +1293,14 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             return RIG_OK; // would be better as error but other software won't handle errors
         }
 
+        rig_debug(RIG_DEBUG_TRACE, "%s: TARGETABLE_FREQ vfo=%s\n", __func__,
+                  rig_strvfo(vfo));
         retcode = caps->set_freq(rig, vfo, freq);
     }
     else
     {
+        rig_debug(RIG_DEBUG_TRACE, "%s: not a TARGETABLE_FREQ vfo=%s\n", __func__,
+                  rig_strvfo(vfo));
         int rc2;
         vfo_t curr_vfo;
 
@@ -2894,7 +2899,8 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     int retcode, rc2;
     vfo_t curr_vfo, tx_vfo;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, curr_vfo=%s\n", __func__,
+              rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
 
     if (CHECK_RIG_ARG(rig))
     {
@@ -2998,7 +3004,7 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
     const struct rig_caps *caps;
-    int retcode, rc2;
+    int retcode = -RIG_EPROTO, rc2;
     vfo_t save_vfo, tx_vfo;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -3042,10 +3048,11 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 
     if (caps->set_vfo)
     {
-        // if the underlying rig has OP_XCHC we don't need to set VFO
+        // if the underlying rig has OP_XCHG we don't need to set VFO
         if (!rig_has_vfo_op(rig, RIG_OP_XCHG))
         {
             retcode = caps->set_vfo(rig, tx_vfo);
+            return retcode;
         }
     }
     else if (rig_has_vfo_op(rig, RIG_OP_TOGGLE) && caps->vfo_op)
