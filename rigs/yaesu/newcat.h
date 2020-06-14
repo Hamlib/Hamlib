@@ -95,6 +95,7 @@ struct newcat_priv_data
     int width_frequency; /* found at startup */
     struct timespec cache_start;
     char last_if_response[NEWCAT_DATA_LEN];
+    int poweron; /* to prevent powering on more than once */
 };
 
 
