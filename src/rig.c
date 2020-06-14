@@ -3052,8 +3052,9 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
         if (!rig_has_vfo_op(rig, RIG_OP_XCHG))
         {
             retcode = caps->set_vfo(rig, tx_vfo);
-            return retcode;
+            if (retcode != RIG_OK) return retcode;
         }
+	retcode = RIG_OK;
     }
     else if (rig_has_vfo_op(rig, RIG_OP_TOGGLE) && caps->vfo_op)
     {
@@ -3081,6 +3082,11 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     /* try and revert even if we had an error above */
     if (caps->set_vfo)
     {
+	// If we started with RIG_VFO_CURR we need to choose VFO_A/MAIN as appropriate to return to
+	if (save_vfo == RIG_VFO_CURR) {
+            save_vfo = VFO_HAS_A_B_ONLY?RIG_VFO_A:RIG_VFO_MAIN;
+	}
+        rig_debug(RIG_DEBUG_TRACE,"%s: retoring vfo=%s\n", __func__, rig_strvfo(save_vfo));
         rc2 = caps->set_vfo(rig, save_vfo);
     }
     else
@@ -3610,14 +3616,17 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
     }
 
     curr_vfo = rig->state.current_vfo;
+#if 0 // why were we doing this?  Shouldn't need to set_vfo to figure out tx_vfo
     retcode = caps->set_vfo(rig, vfo);
 
     if (retcode != RIG_OK)
     {
         return retcode;
     }
+#endif
 
     retcode = caps->get_split_vfo(rig, vfo, split, tx_vfo);
+#if 0 // see above
     /* try and revert even if we had an error above */
     rc2 = caps->set_vfo(rig, curr_vfo);
 
@@ -3626,10 +3635,14 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
         /* return the first error code */
         retcode = rc2;
     }
+#endif
 
-    rig->state.cache.split = *split;
-    rig->state.cache.split_vfo = *tx_vfo;
-    elapsed_ms(&rig->state.cache.time_split, ELAPSED_SET);
+    if (retcode == RIG_OK)  // only update cache on success
+    {
+        rig->state.cache.split = *split;
+        rig->state.cache.split_vfo = *tx_vfo;
+        elapsed_ms(&rig->state.cache.time_split, ELAPSED_SET);
+    }
 
     return retcode;
 }
