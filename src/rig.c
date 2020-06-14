@@ -3563,8 +3563,14 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
                                  vfo_t *tx_vfo)
 {
     const struct rig_caps *caps;
+#if 0
     int retcode, rc2;
+#else
+    int retcode;
+#endif
+#if 0
     vfo_t curr_vfo;
+#endif
     int cache_ms;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -3615,8 +3621,8 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
         return -RIG_ENTARGET;
     }
 
-    curr_vfo = rig->state.current_vfo;
 #if 0 // why were we doing this?  Shouldn't need to set_vfo to figure out tx_vfo
+    curr_vfo = rig->state.current_vfo;
     retcode = caps->set_vfo(rig, vfo);
 
     if (retcode != RIG_OK)
