@@ -642,7 +642,7 @@ static rmode_t modeMapGetHamlib(const char *modeFLRig)
         }
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: Unknown mode requested: %s\n", __func__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: mode requested: %s, not in modeMap\n", __func__,
               modeFLRig);
     return RIG_MODE_NONE;
 }
@@ -1383,6 +1383,7 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     char value[MAXCMDLEN];
     char *cmdp;
     vfo_t curr_vfo;
+    rmode_t my_mode;
     struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
@@ -1456,14 +1457,8 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         return retval;
     }
 
-    retval = modeMapGetHamlib(value);
-
-    if (retval != RIG_OK)
-    {
-        return retval;
-    }
-
-    *mode = retval;
+    my_mode = modeMapGetHamlib(value);
+    *mode = my_mode;
     rig_debug(RIG_DEBUG_TRACE, "%s: mode='%s'\n", __func__,
               rig_strrmode(*mode));
 
