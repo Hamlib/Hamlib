@@ -196,7 +196,6 @@ struct ft1000mp_priv_data
 {
     unsigned char pacing;                     /* pacing value */
     unsigned int read_update_delay;           /* depends on pacing value */
-    unsigned char current_vfo;                /* active VFO from last cmd */
     unsigned char
     p_cmd[YAESU_CMD_LENGTH];    /* private copy of 1 constructed CAT cmd */
     yaesu_cmd_set_t pcs[FT1000MP_NATIVE_SIZE];  /* private cmd set */
@@ -216,7 +215,7 @@ const struct rig_caps ft1000mp_caps =
     RIG_MODEL(RIG_MODEL_FT1000MP),
     .model_name =         "FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20200522.0",
+    .version =            "20200616.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_BETA,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -231,8 +230,8 @@ const struct rig_caps ft1000mp_caps =
     .serial_handshake =   RIG_HANDSHAKE_NONE,
     .write_delay =        FT1000MP_WRITE_DELAY,
     .post_write_delay =   FT1000MP_POST_WRITE_DELAY,
-    .timeout =            2000,
-    .retry =              0,
+    .timeout =            1000, // was 2000 -- see https://github.com/Hamlib/Hamlib/issues/308
+    .retry =              1,
     .has_get_func =       FT1000MP_FUNC_ALL,
     .has_set_func =       FT1000MP_FUNC_ALL,
     .has_get_level =      FT1000MP_LEVEL_GET,
@@ -342,7 +341,7 @@ const struct rig_caps ft1000mpmkv_caps =
     RIG_MODEL(RIG_MODEL_FT1000MPMKV),
     .model_name =         "MARK-V FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20200522.0",
+    .version =            "20200616.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_BETA,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -357,8 +356,8 @@ const struct rig_caps ft1000mpmkv_caps =
     .serial_handshake =   RIG_HANDSHAKE_NONE,
     .write_delay =        FT1000MP_WRITE_DELAY,
     .post_write_delay =   FT1000MP_POST_WRITE_DELAY,
-    .timeout =            2000,
-    .retry =              0,
+    .timeout =            1000,
+    .retry =              1,
     .has_get_func =       FT1000MP_FUNC_ALL,
     .has_set_func =       FT1000MP_FUNC_ALL,
     .has_get_level =      FT1000MP_LEVEL_GET,
@@ -468,7 +467,7 @@ const struct rig_caps ft1000mpmkvfld_caps =
     RIG_MODEL(RIG_MODEL_FT1000MPMKVFLD),
     .model_name =         "MARK-V Field FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20200522.0",
+    .version =            "20200616.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_BETA,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -483,8 +482,8 @@ const struct rig_caps ft1000mpmkvfld_caps =
     .serial_handshake =   RIG_HANDSHAKE_NONE,
     .write_delay =        FT1000MP_WRITE_DELAY,
     .post_write_delay =   FT1000MP_POST_WRITE_DELAY,
-    .timeout =            2000,
-    .retry =              0,
+    .timeout =            1000,
+    .retry =              1,
     .has_get_func =       FT1000MP_FUNC_ALL,
     .has_set_func =       FT1000MP_FUNC_ALL,
     .has_get_level =      FT1000MP_LEVEL_GET,
@@ -622,7 +621,7 @@ int ft1000mp_init(RIG *rig)
         FT1000MP_PACING_DEFAULT_VALUE; /* set pacing to minimum for now */
     priv->read_update_delay =
         FT1000MP_DEFAULT_READ_TIMEOUT; /* set update timeout to safe value */
-    priv->current_vfo =  RIG_VFO_A;  /* default to VFO_A ? */
+    ft1000mp_get_vfo(rig, &rig->state.current_vfo);
 
     return RIG_OK;
 }
@@ -711,7 +710,7 @@ int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = p->current_vfo;
+        vfo = rig->state.current_vfo;
     }
 
     switch (vfo)
@@ -1008,13 +1007,10 @@ int ft1000mp_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 int ft1000mp_set_vfo(RIG *rig, vfo_t vfo)
 {
-    struct ft1000mp_priv_data *p;
     unsigned char cmd_index = 0;      /* index of sequence to send */
 
     rig_debug(RIG_DEBUG_TRACE, "ft1000mp: ft1000mp_set_vfo called %s\n",
               rig_strvfo(vfo));
-
-    p = (struct ft1000mp_priv_data *)rig->state.priv;
 
     /*
      * RIG_VFO_VFO/RIG_VFO_MEM are not available
@@ -1025,20 +1021,20 @@ int ft1000mp_set_vfo(RIG *rig, vfo_t vfo)
 
     if (vfo == RIG_VFO_VFO)
     {
-        vfo = p->current_vfo;
+        vfo = rig->state.current_vfo;
     }
 
     switch (vfo)
     {
     case RIG_VFO_A:
         cmd_index = FT1000MP_NATIVE_VFO_A;
-        p->current_vfo = vfo;       /* update active VFO */
+        rig->state.current_vfo = vfo;       /* update active VFO */
         rig_debug(RIG_DEBUG_TRACE, "%s: vfo == RIG_VFO_A\n", __func__);
         break;
 
     case RIG_VFO_B:
         cmd_index = FT1000MP_NATIVE_VFO_B;
-        p->current_vfo = vfo;       /* update active VFO */
+        rig->state.current_vfo = vfo;       /* update active VFO */
         rig_debug(RIG_DEBUG_TRACE, "%s: vfo == RIG_VFO_B\n", __func__);
         break;
 
@@ -1092,11 +1088,11 @@ int ft1000mp_get_vfo(RIG *rig, vfo_t *vfo)
     }
     else if (p->update_data[FT1000MP_SUMO_DISPLAYED_STATUS] & SF_VFOAB)
     {
-        *vfo = p->current_vfo = RIG_VFO_B;
+        *vfo = rig->state.current_vfo = RIG_VFO_B;
     }
     else
     {
-        *vfo = p->current_vfo = RIG_VFO_A;
+        *vfo = rig->state.current_vfo = RIG_VFO_A;
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo status = %x %x\n", __func__,
@@ -1155,7 +1151,7 @@ int ft1000mp_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = priv->current_vfo;
+        vfo = rig->state.current_vfo;
     }
 
     if (vfo == RIG_VFO_A || vfo == RIG_VFO_B)
@@ -1259,7 +1255,7 @@ int ft1000mp_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = priv->current_vfo;
+        vfo = rig->state.current_vfo;
     }
 
     if (vfo == RIG_VFO_A || vfo == RIG_VFO_B)
@@ -1320,6 +1316,7 @@ int ft1000mp_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     unsigned char lvl_data[YAESU_CMD_LENGTH];
     int m;
     int retval;
+    int retry = rig->caps->retry;
 
     rs = &rig->state;
     priv = (struct ft1000mp_priv_data *)rs->priv;
@@ -1333,7 +1330,7 @@ int ft1000mp_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_RAWSTR:
         if (vfo == RIG_VFO_CURR)
         {
-            vfo = priv->current_vfo;
+            vfo = rig->state.current_vfo;
         }
 
         m = vfo == RIG_VFO_B ? 0x01 : 0x00;
@@ -1376,9 +1373,13 @@ int ft1000mp_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     memset(&priv->p_cmd, m, YAESU_CMD_LENGTH - 1);
     priv->p_cmd[4] = 0xf7;
 
-    write_block(&rs->rigport, (char *) priv->p_cmd, YAESU_CMD_LENGTH);
+    do
+    {
+        write_block(&rs->rigport, (char *) priv->p_cmd, YAESU_CMD_LENGTH);
 
-    retval = read_block(&rs->rigport, (char *) lvl_data, YAESU_CMD_LENGTH);
+        retval = read_block(&rs->rigport, (char *) lvl_data, YAESU_CMD_LENGTH);
+    }
+    while (retry-- && retval == -RIG_ETIMEOUT);
 
     if (retval != YAESU_CMD_LENGTH)
     {
@@ -1441,6 +1442,7 @@ static int ft1000mp_get_update_data(RIG *rig, unsigned char ci,
     struct rig_state *rig_s;
     struct ft1000mp_priv_data *p;
     int n;                        /* for read_  */
+    int retry = rig->caps->retry;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
@@ -1448,10 +1450,14 @@ static int ft1000mp_get_update_data(RIG *rig, unsigned char ci,
     p = (struct ft1000mp_priv_data *)rig->state.priv;
     rig_s = &rig->state;
 
-    /* send UPDATE comand to fetch data*/
-    ft1000mp_send_priv_cmd(rig, ci);
+    do
+    {
+        /* send UPDATE comand to fetch data*/
+        ft1000mp_send_priv_cmd(rig, ci);
 
-    n = read_block(&rig_s->rigport, (char *) p->update_data, rl);
+        n = read_block(&rig_s->rigport, (char *) p->update_data, rl);
+    }
+    while (retry-- && n == -RIG_ETIMEOUT);
 
     return n;
 
@@ -1489,6 +1495,7 @@ static int ft1000mp_send_priv_cmd(RIG *rig, unsigned char ci)
     }
 
     cmd = (unsigned char *) p->pcs[cmd_index].nseq; /* get native sequence */
+    serial_flush(&rig_s->rigport);
     write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
 
     return RIG_OK;
