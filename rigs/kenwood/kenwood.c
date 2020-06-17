@@ -543,7 +543,7 @@ transaction_read:
 transaction_quit:
 
     // update the cache
-    if (strcmp(cmdstr, "IF") == 0)
+    if (retval == RIG_OK && strcmp(cmdstr, "IF") == 0)
     {
         elapsed_ms(&priv->cache_start, 1);
         strncpy(priv->last_if_response, buffer, caps->if_len);
