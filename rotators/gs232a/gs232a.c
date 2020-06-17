@@ -180,33 +180,27 @@ static int
 gs232a_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
     char posbuf[32];
-    int retval, angle;
+    int retval, int_az, int_el = 0;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     retval = gs232a_transaction(rot, "C2" EOM, posbuf, sizeof(posbuf), 0);
 
-    if (retval != RIG_OK || strlen(posbuf) < 10)
+    if (retval != RIG_OK)
     {
-        return retval < 0 ? retval : -RIG_EPROTO;
+        return retval;
     }
 
-    /* parse "+0aaa+0eee" */
-    if (sscanf(posbuf + 2, "%d", &angle) != 1)
+    // parse "+0aaa+0eee" and expect both arguments
+    if (sscanf(posbuf, "+0%d+0%d", &int_az, &int_el) != 2)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: wrong reply '%s'\n", __func__, posbuf);
+        rig_debug(RIG_DEBUG_ERR, "%s: wrong reply '%s', not +0xxx+0xxx format?\n",
+                  __func__, posbuf);
         return -RIG_EPROTO;
     }
 
-    *az = (azimuth_t)angle;
-
-    if (sscanf(posbuf + 7, "%d", &angle) != 1)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: wrong reply '%s'\n", __func__, posbuf);
-        return -RIG_EPROTO;
-    }
-
-    *el = (elevation_t)angle;
+    *az = (azimuth_t) int_az;
+    *el = (elevation_t) int_el;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: (az, el) = (%.1f, %.1f)\n",
               __func__, *az, *el);
@@ -298,9 +292,9 @@ const struct rot_caps gs23_rot_caps =
     ROT_MODEL(ROT_MODEL_GS23),
     .model_name =     "GS-23",
     .mfg_name =       "Yaesu/Kenpro",
-    .version =        "20200505.0",
+    .version =        "20200617.0",
     .copyright =      "LGPL",
-    .status =         RIG_STATUS_ALPHA,
+    .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_AZEL,
     .port_type =      RIG_PORT_SERIAL,
     .serial_rate_min =   150,
