@@ -30,5 +30,24 @@
 #include <math.h>
 
 #include <hamlib/rig.h>
+#include <register.h>
 
 #include "alinco.h"
+
+
+
+/*
+ * initrigs_alinco is called by rig_backend_load
+ */
+DECLARE_INITRIG_BACKEND(alinco)
+{
+    rig_register(&dx77_caps);
+    rig_register(&dxsr8_caps);
+
+    return RIG_OK;
+}
+
+/*
+ * Function definitions below
+ */
+
