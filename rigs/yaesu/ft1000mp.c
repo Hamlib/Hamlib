@@ -230,7 +230,7 @@ const struct rig_caps ft1000mp_caps =
     .serial_handshake =   RIG_HANDSHAKE_NONE,
     .write_delay =        FT1000MP_WRITE_DELAY,
     .post_write_delay =   FT1000MP_POST_WRITE_DELAY,
-    .timeout =            1000, // was 2000 -- see https://github.com/Hamlib/Hamlib/issues/308
+    .timeout =            500, // was 2000 -- see https://github.com/Hamlib/Hamlib/issues/308
     .retry =              1,
     .has_get_func =       FT1000MP_FUNC_ALL,
     .has_set_func =       FT1000MP_FUNC_ALL,
@@ -324,6 +324,8 @@ const struct rig_caps ft1000mp_caps =
     .get_mode =           ft1000mp_get_mode, /* get mode */
     .set_vfo =            ft1000mp_set_vfo,  /* set vfo */
     .get_vfo =            ft1000mp_get_vfo,  /* get vfo */
+
+    .set_split_vfo =      ft1000mp_set_split_vfo,
 
     .get_rit =            ft1000mp_get_rit,
     .set_rit =            ft1000mp_set_rit,
@@ -451,6 +453,8 @@ const struct rig_caps ft1000mpmkv_caps =
     .set_vfo =            ft1000mp_set_vfo,  /* set vfo */
     .get_vfo =            ft1000mp_get_vfo,  /* get vfo */
 
+    .set_split_vfo =      ft1000mp_set_split_vfo,
+
     .get_rit =            ft1000mp_get_rit,
     .set_rit =            ft1000mp_set_rit,
     .get_xit =            ft1000mp_get_xit,
@@ -576,6 +580,8 @@ const struct rig_caps ft1000mpmkvfld_caps =
     .get_mode =           ft1000mp_get_mode, /* get mode */
     .set_vfo =            ft1000mp_set_vfo,  /* set vfo */
     .get_vfo =            ft1000mp_get_vfo,  /* get vfo */
+
+    .set_split_vfo =      ft1000mp_set_split_vfo,
 
     .get_rit =            ft1000mp_get_rit,
     .set_rit =            ft1000mp_set_rit,
@@ -1505,4 +1511,36 @@ static int ft1000mp_send_priv_cmd(RIG *rig, unsigned char ci)
 
     return RIG_OK;
 
+}
+
+int newcat_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
+{
+    // FT1000 transmits on A and receives on B
+
+    unsigned char cmd_index = 0;      /* index of sequence to send */
+
+    rig_debug(RIG_DEBUG_TRACE, "%s called rx_vfo=%s, tx_vfo=%s\n", __func__,
+              rig_strvfo(vfo), rig_strvfo(tx_vfo));
+
+    switch (split)
+    {
+    case RIG_SPLIT_OFF:
+        cmd_index = FT1000MP_NATIVE_SPLIT_OFF;
+        break;
+
+    case RIG_SPLIT_ON:
+        cmd_index = FT1000MP_NATIVE_SPLIT_ON;
+        break;
+
+    default:
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Unknown split value = %d\n", __func__, split);
+        return -RIG_EINVAL;         /* sorry, wrong VFO */
+    }
+
+    rig->state.current_vfo = RIG_VFO_B; // Rx on VFO_B
+    rig->state.tx_vfo = RIG_VFO_A;
+    ft1000mp_send_priv_cmd(rig, FT1000MP_NATIVE_VFO_B); // make B active
+    ft1000mp_send_priv_cmd(rig, cmd_index);
+
+    return RIG_OK;
 }
