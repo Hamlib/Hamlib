@@ -215,7 +215,7 @@ const struct rig_caps ft1000mp_caps =
     RIG_MODEL(RIG_MODEL_FT1000MP),
     .model_name =         "FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20200616.0",
+    .version =            "20200617.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_BETA,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -621,7 +621,6 @@ int ft1000mp_init(RIG *rig)
         FT1000MP_PACING_DEFAULT_VALUE; /* set pacing to minimum for now */
     priv->read_update_delay =
         FT1000MP_DEFAULT_READ_TIMEOUT; /* set update timeout to safe value */
-    ft1000mp_get_vfo(rig, &rig->state.current_vfo);
 
     return RIG_OK;
 }
@@ -682,6 +681,7 @@ int ft1000mp_open(RIG *rig)
     cmd = p->p_cmd;
     write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
 
+    ft1000mp_get_vfo(rig, &rig->state.current_vfo);
     /* TODO */
 
     return RIG_OK;
