@@ -215,7 +215,7 @@ const struct rig_caps ft1000mp_caps =
     RIG_MODEL(RIG_MODEL_FT1000MP),
     .model_name =         "FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20200617.0",
+    .version =            "20200618.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_BETA,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -341,7 +341,7 @@ const struct rig_caps ft1000mpmkv_caps =
     RIG_MODEL(RIG_MODEL_FT1000MPMKV),
     .model_name =         "MARK-V FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20200616.0",
+    .version =            "20200618.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_BETA,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -467,7 +467,7 @@ const struct rig_caps ft1000mpmkvfld_caps =
     RIG_MODEL(RIG_MODEL_FT1000MPMKVFLD),
     .model_name =         "MARK-V Field FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20200616.0",
+    .version =            "20200618.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_BETA,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -1316,7 +1316,7 @@ int ft1000mp_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     unsigned char lvl_data[YAESU_CMD_LENGTH];
     int m;
     int retval;
-    int retry = rig->caps->retry;
+    int retry = rig->state.rigport.retry;
 
     rs = &rig->state;
     priv = (struct ft1000mp_priv_data *)rs->priv;
@@ -1442,7 +1442,7 @@ static int ft1000mp_get_update_data(RIG *rig, unsigned char ci,
     struct rig_state *rig_s;
     struct ft1000mp_priv_data *p;
     int n;                        /* for read_  */
-    int retry = rig->caps->retry;
+    int retry = rig->state.rigport.retry;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
