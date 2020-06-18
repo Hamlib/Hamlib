@@ -1456,6 +1456,11 @@ static int ft1000mp_get_update_data(RIG *rig, unsigned char ci,
         ft1000mp_send_priv_cmd(rig, ci);
 
         n = read_block(&rig_s->rigport, (char *) p->update_data, rl);
+
+        if (n == -RIG_ETIMEOUT)
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: Timeout retry count = %d\n", __func__, retry);
+        }
     }
     while (retry-- && n == -RIG_ETIMEOUT);
 
