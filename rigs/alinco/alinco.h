@@ -27,30 +27,12 @@
 
 #define BACKEND_VER "20200323"
 
-int alinco_set_vfo(RIG *rig, vfo_t vfo);
-int alinco_get_vfo(RIG *rig, vfo_t *vfo);
-int alinco_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
-int alinco_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
-int alinco_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
-int alinco_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
-int alinco_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
-int alinco_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
-int alinco_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
-int alinco_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq);
-int alinco_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
-int alinco_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
-int alinco_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
-int alinco_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-int alinco_set_parm(RIG *rig, setting_t parm, value_t val);
-int alinco_get_parm(RIG *rig, setting_t parm, value_t *val);
-int alinco_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone);
-int alinco_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
-int alinco_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
-int alinco_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd);
-int alinco_set_mem(RIG *rig, vfo_t vfo, int ch);
-int alinco_get_mem(RIG *rig, vfo_t vfo, int *ch);
-
 extern const struct rig_caps dx77_caps;
+extern const struct rig_caps dxsr8_caps;
+
+#define BUFSZ 32
+
+#define AL "AL"
 
 #endif /* _ALINCO_H */
 
