@@ -140,6 +140,9 @@ transaction_write:
 
 #endif
 
+#if 0
+https://github.com/Hamlib/Hamlib/issues/272
+
     // If asked for we will check for connection
     // we don't expect a reply...just a prompt return
     // Seems some GS232B's only echo the CR
@@ -150,6 +153,8 @@ transaction_write:
                   __func__, data, cmdstr);
         return -RIG_EPROTO;
     }
+
+#endif
 
     if (data[0] == '?')
     {
@@ -204,7 +209,7 @@ static int
 gs232b_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
     char posbuf[32];
-    int retval, int_az, int_el;
+    int retval, int_az = 0, int_el = 0;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
@@ -220,9 +225,10 @@ gs232b_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     /* With the format string containing a space character as one of the
      * directives, any amount of space is matched, including none in the input.
      */
-    if (sscanf(posbuf, "AZ=%d EL=%d", &int_az, &int_el) != 2)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: wrong reply '%s'\n", __func__,
+    // There's a 12PR1A rotor  that only returns AZ so we may only get AZ=xxx
+    if (sscanf(posbuf, "AZ=%d EL=%d", &int_az, &int_el) == 0)
+    { // only give error if we didn't parse anything
+        rig_debug(RIG_DEBUG_ERR, "%s: wrong reply '%s', expected AZ=xxx EL=xxx\n", __func__,
                   posbuf);
         return -RIG_EPROTO;
     }
@@ -321,7 +327,7 @@ const struct rot_caps gs232b_rot_caps =
     ROT_MODEL(ROT_MODEL_GS232B),
     .model_name = "GS-232B",
     .mfg_name = "Yaesu",
-    .version = "20200531.0",
+    .version = "20200617.0",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rot_type = ROT_TYPE_OTHER,

@@ -366,7 +366,10 @@ int newcat_open(RIG *rig)
               __func__, rig_s->rigport.post_write_delay);
 
     /* Ensure rig is powered on */
-    rig_set_powerstat(rig, 1);
+    if (priv->poweron == 0) {
+        priv->poweron = 1;
+        rig_set_powerstat(rig, 1);
+    }
 
     /* get current AI state so it can be restored */
     priv->trn_state = -1;
@@ -731,6 +734,7 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     struct newcat_priv_data *priv;
     int err;
+    split_t split_save = rig->state.cache.split;
 
     priv = (struct newcat_priv_data *)rig->state.priv;
 
@@ -785,6 +789,22 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     /* Set width after mode has been set */
     err = newcat_set_rx_bandwidth(rig, vfo, mode, width);
+
+    // some rigs if you set mode on VFOB it will turn off split
+    // so if we started in split we query split and turn it back on if needed
+    if (split_save)
+    {
+        split_t split;
+        vfo_t tx_vfo;
+        err = rig_get_split_vfo(rig, RIG_VFO_A, &split, &tx_vfo);
+
+        // we'll just reset to split to what we want if we need to
+        if (!split)
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: turning split back on...buggy rig\n", __func__);
+            err = rig_set_split_vfo(rig, RIG_VFO_A, split_save, RIG_VFO_B);
+        }
+    }
 
     return err;
 }
@@ -1504,7 +1524,8 @@ int newcat_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
         return err;
     }
 
-    if (*tx_vfo != vfo)
+    // we assume split is always on VFO_B
+    if (*tx_vfo == RIG_VFO_B)
     {
         *split = RIG_SPLIT_ON;
     }
@@ -4787,6 +4808,7 @@ int newcat_set_tx_vfo(RIG *rig, vfo_t tx_vfo)
         // The DX101D returns FT0 when in split and not transmitting
         command = "ST";
     }
+
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", command, p1, cat_term);
 
     rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
@@ -4836,10 +4858,12 @@ int newcat_get_tx_vfo(RIG *rig, vfo_t *tx_vfo)
     {
     case '0':
         *tx_vfo = RIG_VFO_A;
+        rig->state.cache.split = 0;
         break;
 
     case '1' :
         *tx_vfo = RIG_VFO_B;
+        rig->state.cache.split = 1;
         break;
 
     default:

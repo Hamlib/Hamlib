@@ -27,7 +27,7 @@
 #include <string.h>
 #include "token.h"
 
-#define BACKEND_VER "20200601"
+#define BACKEND_VER "20200617"
 
 #define EOM_KEN ';'
 #define EOM_TH '\r'
@@ -126,6 +126,7 @@ struct kenwood_priv_data
     int is_950;
     struct timespec cache_start;
     char last_if_response[KENWOOD_MAX_BUF_LEN];
+    int poweron; /* to avoid powering on more than once */
 };
 
 

@@ -31,7 +31,7 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "20200613"
+#define BACKEND_VER "20200614"
 
 /*
  * defines used by comp_cal_str in rig.c
@@ -190,6 +190,7 @@ struct icom_priv_data
     freq_t vfob_freq;  // track last setting of vfob -- used to return last freq when ptt is asserted
     int x25cmdfails;  // This will get set if the 0x25 command fails so we try just once
     int x1cx03cmdfails;  // This will get set if the 0x1c 0x03 command fails so we try just once
+    int poweron;  // to prevent powering on more than once
 };
 
 extern const struct ts_sc_list r8500_ts_sc_list[];
