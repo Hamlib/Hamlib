@@ -543,7 +543,7 @@ transaction_read:
 transaction_quit:
 
     // update the cache
-    if (strcmp(cmdstr, "IF") == 0)
+    if (retval == RIG_OK && strcmp(cmdstr, "IF") == 0)
     {
         elapsed_ms(&priv->cache_start, 1);
         strncpy(priv->last_if_response, buffer, caps->if_len);
@@ -719,11 +719,13 @@ int kenwood_open(RIG *rig)
         rig_debug(RIG_DEBUG_TRACE, "%s: got ID so try PS\n", __func__);
         err = rig_get_powerstat(rig, &powerstat);
 
-        if (err == RIG_OK && powerstat == 0)
+        if (err == RIG_OK && powerstat == 0 && priv->poweron == 0)
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: got PS0 so powerup\n", __func__);
             rig_set_powerstat(rig, 1);
         }
+
+        priv->poweron = 1;
 
         err = RIG_OK;  // reset our err back to OK for later checks
     }
@@ -2152,8 +2154,14 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     case RIG_LEVEL_AF:
-        snprintf(levelbuf, sizeof(levelbuf), "AG%03d", kenwood_val);
-        break;
+    {
+        // some rigs only recognize 0 for vfo_set
+        // hopefully they are asking for VFOA or Main otherwise this might not work
+        // https://github.com/Hamlib/Hamlib/issues/304
+        int vfo_set = vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN ? 0 : 1;
+        snprintf(levelbuf, sizeof(levelbuf), "AG%1d%03d", vfo_set, kenwood_val);
+    }
+    break;
 
     case RIG_LEVEL_RF:
         /* XXX check level range */

@@ -50,7 +50,7 @@
 typedef char ncboolean;
 
 /* shared function version */
-#define NEWCAT_VER "20200611"
+#define NEWCAT_VER "20200614"
 
 /* Hopefully large enough for future use, 128 chars plus '\0' */
 #define NEWCAT_DATA_LEN                 129
@@ -95,6 +95,7 @@ struct newcat_priv_data
     int width_frequency; /* found at startup */
     struct timespec cache_start;
     char last_if_response[NEWCAT_DATA_LEN];
+    int poweron; /* to prevent powering on more than once */
 };
 
 
