@@ -215,9 +215,9 @@ const struct rig_caps ft1000mp_caps =
     RIG_MODEL(RIG_MODEL_FT1000MP),
     .model_name =         "FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20200618.0",
+    .version =            "20200619.0",
     .copyright =          "LGPL",
-    .status =             RIG_STATUS_BETA,
+    .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
     .ptt_type =           RIG_PTT_RIG,
     .dcd_type =           RIG_DCD_RIG,
@@ -326,6 +326,7 @@ const struct rig_caps ft1000mp_caps =
     .get_vfo =            ft1000mp_get_vfo,  /* get vfo */
 
     .set_split_vfo =      ft1000mp_set_split_vfo,
+    .get_split_vfo =      ft1000mp_get_split_vfo,
 
     .get_rit =            ft1000mp_get_rit,
     .set_rit =            ft1000mp_set_rit,
@@ -343,9 +344,9 @@ const struct rig_caps ft1000mpmkv_caps =
     RIG_MODEL(RIG_MODEL_FT1000MPMKV),
     .model_name =         "MARK-V FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20200618.0",
+    .version =            "20200619.0",
     .copyright =          "LGPL",
-    .status =             RIG_STATUS_BETA,
+    .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
     .ptt_type =           RIG_PTT_RIG,
     .dcd_type =           RIG_DCD_RIG,
@@ -454,6 +455,7 @@ const struct rig_caps ft1000mpmkv_caps =
     .get_vfo =            ft1000mp_get_vfo,  /* get vfo */
 
     .set_split_vfo =      ft1000mp_set_split_vfo,
+    .get_split_vfo =      ft1000mp_get_split_vfo,
 
     .get_rit =            ft1000mp_get_rit,
     .set_rit =            ft1000mp_set_rit,
@@ -471,9 +473,9 @@ const struct rig_caps ft1000mpmkvfld_caps =
     RIG_MODEL(RIG_MODEL_FT1000MPMKVFLD),
     .model_name =         "MARK-V Field FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20200618.0",
+    .version =            "20200619.0",
     .copyright =          "LGPL",
-    .status =             RIG_STATUS_BETA,
+    .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
     .ptt_type =           RIG_PTT_RIG,
     .dcd_type =           RIG_DCD_RIG,
@@ -582,6 +584,7 @@ const struct rig_caps ft1000mpmkvfld_caps =
     .get_vfo =            ft1000mp_get_vfo,  /* get vfo */
 
     .set_split_vfo =      ft1000mp_set_split_vfo,
+    .get_split_vfo =      ft1000mp_get_split_vfo,
 
     .get_rit =            ft1000mp_get_rit,
     .set_rit =            ft1000mp_set_rit,
@@ -1541,6 +1544,44 @@ int ft1000mp_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     rig->state.tx_vfo = RIG_VFO_A;
     ft1000mp_send_priv_cmd(rig, FT1000MP_NATIVE_VFO_B); // make B active
     ft1000mp_send_priv_cmd(rig, cmd_index);
+
+    return RIG_OK;
+}
+
+/*
+ * get split
+ *
+ */
+
+int ft1000mp_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
+{
+    struct ft1000mp_priv_data *p;
+    int retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
+
+
+    p = (struct ft1000mp_priv_data *)rig->state.priv;
+
+    /* Get flags for split status */
+    retval = ft1000mp_get_update_data(rig, FT1000MP_NATIVE_UPDATE,
+                                      FT1000MP_STATUS_FLAGS_LENGTH);
+
+    if (retval < 0)
+    {
+        return retval;
+    }
+
+    if (p->update_data[0] & 0x01)
+    {
+        *tx_vfo = RIG_VFO_B;
+        *split = RIG_SPLIT_ON;
+    }
+    else
+    {
+        *tx_vfo = RIG_VFO_A;
+        *split = RIG_SPLIT_OFF;
+    }
 
     return RIG_OK;
 }
