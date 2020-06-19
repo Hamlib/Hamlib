@@ -2810,6 +2810,9 @@ int kenwood_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     case RIG_FUNC_AIP:
         return get_kenwood_func(rig, "MX", status);
 
+    case RIG_FUNC_RIT:
+        return get_kenwood_func(rig, "RT", status);
+
     default:
         rig_debug(RIG_DEBUG_ERR, "Unsupported get_func %s", rig_strfunc(func));
         return -RIG_EINVAL;
