@@ -1513,7 +1513,7 @@ static int ft1000mp_send_priv_cmd(RIG *rig, unsigned char ci)
 
 }
 
-int newcat_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
+int ft1000mp_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
     // FT1000 transmits on A and receives on B
 
