@@ -30,7 +30,7 @@
 
 #define FT1000MP_PACING_INTERVAL                5
 #define FT1000MP_PACING_DEFAULT_VALUE           0
-#define FT1000MP_WRITE_DELAY                    50
+#define FT1000MP_WRITE_DELAY                    5
 
 
 /* Delay sequential fast writes */
@@ -201,6 +201,8 @@ int ft1000mp_close(RIG *rig);
 
 int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int ft1000mp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+
+int ft1000mp_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
 
 int ft1000mp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width); /* select mode */
 int ft1000mp_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width); /* get mode */
