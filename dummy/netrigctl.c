@@ -2236,8 +2236,8 @@ struct rig_caps netrigctl_caps =
     .ptt_type =       RIG_PTT_RIG_MICDATA,
     .dcd_type =       RIG_DCD_RIG,
     .port_type =      RIG_PORT_NETWORK,
-    .timeout = 2500,  /* enough for a network */
-    .retry =   3,
+    .timeout = 1000,  /* enough for the worst rig we have */
+    .retry =   5,     /* 5 seconds total */
 
     /* following fields updated in rig_state at openning time */
     .has_get_func =   RIG_FUNC_NONE,
