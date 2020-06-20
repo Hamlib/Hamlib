@@ -58,6 +58,7 @@ int uniden_transaction (RIG *rig, const char *cmdstr, int cmd_len,
 		const char *replystr, char *data, size_t *datasize);
 int uniden_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int uniden_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+int uniden_get_freq_2(RIG *rig, vfo_t vfo, freq_t *freq);
 int uniden_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int uniden_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 int uniden_set_mem(RIG *rig, vfo_t vfo, int ch);
