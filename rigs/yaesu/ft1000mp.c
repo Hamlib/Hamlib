@@ -215,7 +215,7 @@ const struct rig_caps ft1000mp_caps =
     RIG_MODEL(RIG_MODEL_FT1000MP),
     .model_name =         "FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20200619.0",
+    .version =            "20200620.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -246,7 +246,7 @@ const struct rig_caps ft1000mp_caps =
     .max_rit =            Hz(9999),
     .max_xit =            Hz(9999),
     .max_ifshift =        kHz(1.12),
-    .targetable_vfo =     RIG_TARGETABLE_PURE,
+    .targetable_vfo =     RIG_TARGETABLE_FREQ,
     .transceive =         RIG_TRN_OFF,
     .bank_qty =           0,
     .chan_desc_sz =       0,
@@ -875,6 +875,10 @@ int ft1000mp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     case RIG_MODE_PKTLSB:
         cmd_index = FT1000MP_NATIVE_MODE_SET_DATA_LSB;
+        break;
+
+    case RIG_MODE_PKTUSB:
+        cmd_index = FT1000MP_NATIVE_MODE_SET_DATA_USB;
         break;
 
     case RIG_MODE_PKTFM:
