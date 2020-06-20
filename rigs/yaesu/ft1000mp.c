@@ -877,10 +877,6 @@ int ft1000mp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         cmd_index = FT1000MP_NATIVE_MODE_SET_DATA_LSB;
         break;
 
-    case RIG_MODE_PKTUSB:
-        cmd_index = FT1000MP_NATIVE_MODE_SET_DATA_USB;
-        break;
-
     case RIG_MODE_PKTFM:
         cmd_index = FT1000MP_NATIVE_MODE_SET_DATA_FM;
         break;
