@@ -318,6 +318,35 @@ int uniden_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     return RIG_OK;
 }
 
+/*
+ * uniden_get_freq
+ * Assumes rig!=NULL
+ */
+int uniden_get_freq_2(RIG *rig, vfo_t vfo, freq_t *freq)
+{
+    char freqbuf[BUFSZ];
+    size_t freq_len = BUFSZ;
+    int ret;
+
+    ret = uniden_transaction(rig, "SG" EOM, 3, "S", freqbuf, &freq_len);
+
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    if (freq_len < 10)
+    {
+        return -RIG_EPROTO;
+    }
+
+    sscanf(freqbuf + 6, "%"SCNfreq, freq);
+    /* returned freq in hundreds of Hz */
+    *freq *= 100;
+
+    return RIG_OK;
+}
+
 int uniden_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     const char *modebuf;
