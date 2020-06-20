@@ -570,13 +570,6 @@ int HAMLIB_API rig_open(RIG *rig)
     caps = rig->caps;
     rs = &rig->state;
 
-    if (rs->comm_state)
-    {
-        return -RIG_EINVAL;
-    }
-
-    rs->rigport.fd = -1;
-
     // determine if we have a network address
     //
     is_network |= sscanf(rs->rigport.pathname, "%u.%u.%u.%u:%u", &net1, &net2,
@@ -607,6 +600,14 @@ int HAMLIB_API rig_open(RIG *rig)
                   rs->rigport.pathname);
         rs->rigport.type.rig = RIG_PORT_NETWORK;
     }
+
+    if (rs->comm_state)
+    {
+        port_close(&rs->rigport, rs->rigport.type.rig);
+        return -RIG_EINVAL;
+    }
+
+    rs->rigport.fd = -1;
 
     if (rs->rigport.type.rig == RIG_PORT_SERIAL)
     {
