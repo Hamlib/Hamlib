@@ -229,8 +229,8 @@ transaction_write:
 #endif
 
     /* Special case for SQuelch */
-    if (replystr && !memcmp(cmdstr, "SQ", 2) && (replystr[0] == '-'
-            || replystr[0] == '+'))
+    if (replystr && !memcmp(cmdstr, "SQ", 2) && (data[0] == '-'
+            || data[0] == '+'))
     {
         retval = RIG_OK;
         goto transaction_quit;
@@ -406,7 +406,7 @@ int uniden_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     }
     else if (!strcmp(modebuf + 3, "WFM"))
     {
-        *mode = RIG_MODE_AM;
+        *mode = RIG_MODE_WFM;
     }
     else if (!strcmp(modebuf + 3, "FM"))
     {
