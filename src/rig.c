@@ -604,6 +604,7 @@ int HAMLIB_API rig_open(RIG *rig)
     if (rs->comm_state)
     {
         port_close(&rs->rigport, rs->rigport.type.rig);
+        rs->comm_state = 0;
         return -RIG_EINVAL;
     }
 
