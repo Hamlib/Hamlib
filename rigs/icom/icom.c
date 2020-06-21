@@ -754,6 +754,7 @@ icom_rig_open(RIG *rig)
             return retval;
         }
     }
+
     priv->poweron = 1;
 
     if (rig->caps->has_get_func & RIG_FUNC_SATMODE)
