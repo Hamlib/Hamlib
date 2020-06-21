@@ -229,8 +229,8 @@ transaction_write:
 #endif
 
     /* Special case for SQuelch */
-    if (replystr && !memcmp(cmdstr, "SQ", 2) && (replystr[0] == '-'
-            || replystr[0] == '+'))
+    if (replystr && !memcmp(cmdstr, "SQ", 2) && (data[0] == '-'
+            || data[0] == '+'))
     {
         retval = RIG_OK;
         goto transaction_quit;
