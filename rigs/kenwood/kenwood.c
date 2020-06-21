@@ -1679,7 +1679,7 @@ int kenwood_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 
     snprintf(buf, sizeof(buf), "R%c", (rit > 0) ? 'U' : 'D');
 
-    diff = labs((rit + rit>=0?5:-5) / 10); // round to nearest
+    diff = labs((rit + rit >= 0 ? 5 : -5) / 10); // round to nearest
     rig_debug(RIG_DEBUG_TRACE, "%s: rit change loop=%d\n", __func__, diff);
 
     for (i = 0; i < diff; i++)
