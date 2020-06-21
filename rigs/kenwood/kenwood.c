@@ -744,6 +744,18 @@ int kenwood_open(RIG *rig)
         }
     }
 
+    if (RIG_IS_TS2000
+            || RIG_IS_TS480
+            || RIG_IS_TS590S
+            || RIG_IS_TS590SG
+            || RIG_IS_TS890S
+            || RIG_IS_TS990S)
+    {
+        // rig has Set 2 RIT/XIT function
+        rig_debug(RIG_DEBUG_TRACE, "%s: rig has_rit2\n", __func__);
+        priv->has_rit2 = 1;
+    }
+
     if (RIG_IS_TS590S)
     {
         /* we need the firmware version for these rigs to deal with f/w defects */
@@ -1652,9 +1664,11 @@ int kenwood_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     int retval, i;
     shortfreq_t curr_rit;
     int diff;
+    struct kenwood_priv_data *priv = rig->state.priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called: vfo=%s, rit=%ld\n", __func__,
-              rig_strvfo(vfo), rit);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called: vfo=%s, rit=%ld, has_rit2=%d\n",
+              __func__,
+              rig_strvfo(vfo), rit, priv->has_rit2);
 
     retval = kenwood_get_rit(rig, vfo, &curr_rit);
 
@@ -1663,28 +1677,32 @@ int kenwood_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
         return retval;
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s get_rit=%ld\n", __func__, curr_rit);
-
-    if (rit == 0)
+    if (priv->has_rit2) // if backend shows it has the Set 2 command
     {
-        return kenwood_transaction(rig, "RC", NULL, 0);
+        char cmd[10];
+        snprintf(cmd, sizeof(cmd) - 1, "R%c%05d", rit > 0 ? 'U' : 'D', (int)rit);
+        retval = kenwood_transaction(rig, cmd, NULL, 0);
     }
-
-    retval = kenwood_transaction(rig, "RC", NULL, 0);
-
-    if (retval != RIG_OK)
+    else
     {
-        return retval;
-    }
+        retval = kenwood_transaction(rig, "RC", NULL, 0);
 
-    snprintf(buf, sizeof(buf), "R%c", (rit > 0) ? 'U' : 'D');
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
 
-    diff = labs((rit + rit >= 0 ? 5 : -5) / 10); // round to nearest
-    rig_debug(RIG_DEBUG_TRACE, "%s: rit change loop=%d\n", __func__, diff);
+        if (rit == 0) { return RIG_OK; } // we're done here
 
-    for (i = 0; i < diff; i++)
-    {
-        retval = kenwood_transaction(rig, buf, NULL, 0);
+        snprintf(buf, sizeof(buf), "R%c", (rit > 0) ? 'U' : 'D');
+
+        diff = labs((rit + rit >= 0 ? 5 : -5) / 10); // round to nearest
+        rig_debug(RIG_DEBUG_TRACE, "%s: rit change loop=%d\n", __func__, diff);
+
+        for (i = 0; i < diff; i++)
+        {
+            retval = kenwood_transaction(rig, buf, NULL, 0);
+        }
     }
 
     return retval;

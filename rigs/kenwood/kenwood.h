@@ -84,7 +84,7 @@ extern const struct confparams kenwood_cfg_params[];
 #define RIG_IS_TS2000    (rig->caps->rig_model == RIG_MODEL_TS2000)
 #define RIG_IS_TS50      (rig->caps->rig_model == RIG_MODEL_TS50)
 #define RIG_IS_TS450S    (rig->caps->rig_model == RIG_MODEL_TS450S)
-#define RIG_IS_TS450S    (rig->caps->rig_model == RIG_MODEL_TS450S)
+#define RIG_IS_TS480     (rig->caps->rig_model == RIG_MODEL_TS480)
 #define RIG_IS_TS590S    (rig->caps->rig_model == RIG_MODEL_TS590S)
 #define RIG_IS_TS590SG   (rig->caps->rig_model == RIG_MODEL_TS590SG)
 #define RIG_IS_TS690S    (rig->caps->rig_model == RIG_MODEL_TS690S)
@@ -120,13 +120,10 @@ struct kenwood_priv_data
     int is_emulation;     /* flag for TS-2000 emulations */
     void *data;           /* model specific data */
     rmode_t curr_mode;     /* used for is_emulation to avoid get_mode on VFOB */
-    // Boolean flags true when model is in use
-    int is_590s;
-    int is_590sg;
-    int is_950;
     struct timespec cache_start;
     char last_if_response[KENWOOD_MAX_BUF_LEN];
     int poweron; /* to avoid powering on more than once */
+    int has_rit2; /* rig has set 2 rit command */
 };
 
 
