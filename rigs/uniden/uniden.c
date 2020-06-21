@@ -619,12 +619,12 @@ int uniden_get_channel(RIG *rig, channel_t *chan, int read_only)
      */
     if (mem_len < 30 ||
             membuf[5] != 'F' ||
-            membuf[25] != 'T' ||
-            membuf[28] != 'D' ||
-            membuf[31] != 'L' ||
-            membuf[34] != 'A' ||
-            membuf[37] != 'R' ||
-            membuf[40] != 'N')
+            membuf[15] != 'T' ||
+            membuf[18] != 'D' ||
+            membuf[21] != 'L' ||
+            membuf[24] != 'A' ||
+            membuf[27] != 'R' ||
+            membuf[30] != 'N')
     {
         return -RIG_EPROTO;
     }
