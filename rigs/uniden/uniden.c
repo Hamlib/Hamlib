@@ -406,7 +406,7 @@ int uniden_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     }
     else if (!strcmp(modebuf + 3, "WFM"))
     {
-        *mode = RIG_MODE_AM;
+        *mode = RIG_MODE_WFM;
     }
     else if (!strcmp(modebuf + 3, "FM"))
     {
