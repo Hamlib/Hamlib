@@ -736,6 +736,7 @@ static int ft991_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
     {
         int i;
         ncboolean tone_match;
+
         for (i = 0, tone_match = FALSE; rig->caps->ctcss_list[i] != 0; i++)
         {
             if (tone == rig->caps->ctcss_list[i])
