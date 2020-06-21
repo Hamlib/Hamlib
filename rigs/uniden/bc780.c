@@ -98,7 +98,7 @@ const struct rig_caps bc780_caps =
     .str_cal = BC780_STR_CAL,
 
     .chan_list =  {
-        { 0, 499, RIG_MTYPE_MEM, {BC780_CHANNEL_CAPS} },
+        { 1, 500, RIG_MTYPE_MEM, {BC780_CHANNEL_CAPS} },
         RIG_CHAN_END,
     },
 
