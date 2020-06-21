@@ -1376,6 +1376,85 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo)
     return vfo;
 }
 
+int HAMLIB_API parse_hoststr(char *hoststr, char host[256], char port[6])
+{
+    unsigned int net1, net2, net3, net4, net5;
+    char dummy[2], link[32], *p;
+    host[0] = 0;
+    port[0] = 0;
+    dummy[0] = 0;
+
+    // bracketed IPV6 with optional port
+    int n = sscanf(hoststr, "[%255[^]]]:%s", host, port);
+
+    if (n >= 1)
+    {
+        return RIG_OK;
+    }
+
+    // non-bracketed IPV6 with optional link addr
+    n = sscanf(hoststr, "%x::%x:%x:%x:%x:%%%31[^:]:%s", &net1, &net2, &net3,
+               &net4, &net5, link, port);
+
+    if (strchr(hoststr, '%') && (n == 5 || n == 6))
+    {
+        strcpy(host, hoststr);
+        return RIG_OK;
+    }
+    else if (n == 7)
+    {
+        strcpy(host, hoststr);
+        p = strrchr(host, ':'); // remove port from host
+        *p = 0;
+        return RIG_OK;
+    }
+
+    // non-bracketed IPV6 short form with optional port
+    n = sscanf(hoststr, "%x::%x:%x:%x:%x:%5[0-9]%1s", &net1, &net2, &net3, &net4,
+               &net5, port, dummy);
+
+    if (n == 5)
+    {
+        strcpy(host, hoststr);
+        return RIG_OK;
+    }
+    else if (n == 6)
+    {
+        strcpy(host, hoststr);
+        p = strrchr(host, ':');
+        *p = 0;
+        return RIG_OK;
+    }
+    else if (n == 7)
+    {
+        return -RIG_EINVAL;
+    }
+
+    // bracketed localhost
+    if (strstr(hoststr, "::1"))
+    {
+        n = sscanf(hoststr, "::1%s", dummy);
+        strcpy(host, hoststr);
+
+        if (n == 1)
+        {
+            p = strrchr(host, ':');
+            *p = 0;
+            strcpy(port, p + 1);
+        }
+
+        return RIG_OK;
+    }
+
+    // if we're here then we must have a hostname
+    n = sscanf(hoststr, "%255[^:]:%5[0-9]%1s", host, port, dummy);
+
+    if (n >= 1 && strlen(dummy) == 0) { return RIG_OK; }
+
+    printf("Unhandled host=%s\n", hoststr);
+
+    return -1;
+}
 
 //! @endcond
 

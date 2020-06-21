@@ -106,6 +106,8 @@ extern HAMLIB_EXPORT(double) elapsed_ms(struct timespec *start, int start_flag);
 
 extern HAMLIB_EXPORT(vfo_t) vfo_fixup(RIG *rig, vfo_t vfo);
 
+extern HAMLIB_EXPORT(int) parse_hoststr(char *host, char hoststr[256], char port[6]);
+
 #ifdef PRId64
 /** \brief printf(3) format to be used for long long (64bits) type */
 #  define PRIll PRId64
