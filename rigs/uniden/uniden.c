@@ -187,7 +187,7 @@ transaction_write:
         goto transaction_quit;
     }
 
-    if (strcmp(data, "OK"EOM))
+    if (strcmp(data, "OK"EOM) == 0)
     {
         /* everything is fine */
         retval = RIG_OK;
@@ -198,7 +198,7 @@ transaction_write:
      *  in the right mode or using the correct parameters. ERR indicates
      *  an INVALID Command.
      */
-    if (strcmp(data, "NG"EOM) || strcmp(data, "ORER"EOM))
+    if (strcmp(data, "NG"EOM) == 0 || strcmp(data, "ORER"EOM) == 0)
     {
         /* Invalid command */
         rig_debug(RIG_DEBUG_VERBOSE, "%s: NG/Overflow for '%s'\n", __func__, cmdstr);
@@ -206,7 +206,7 @@ transaction_write:
         goto transaction_quit;
     }
 
-    if (strcmp(data, "ERR"EOM))
+    if (strcmp(data, "ERR"EOM) == 0)
     {
         /*  Command format error */
         rig_debug(RIG_DEBUG_VERBOSE, "%s: Error for '%s'\n", __func__, cmdstr);
