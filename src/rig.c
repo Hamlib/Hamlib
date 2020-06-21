@@ -556,9 +556,9 @@ int HAMLIB_API rig_open(RIG *rig)
     struct rig_state *rs;
     int status = RIG_OK;
     value_t parm_value;
-    unsigned int net1, net2, net3, net4, net5, net6, net7, net8, port;
+    //unsigned int net1, net2, net3, net4, net5, net6, net7, net8, port;
     int is_network = 0;
-    char *token, *strtokp;
+    char hoststr[256], portstr[6];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -570,6 +570,14 @@ int HAMLIB_API rig_open(RIG *rig)
     caps = rig->caps;
     rs = &rig->state;
 
+    if (strlen(rs->rigport.pathname) > 0)
+    {
+        status = parse_hoststr(rs->rigport.pathname, hoststr, portstr);
+
+        if (status == RIG_OK) { is_network = 1; }
+    }
+
+#if 0
     // determine if we have a network address
     //
     is_network |= sscanf(rs->rigport.pathname, "%u.%u.%u.%u:%u", &net1, &net2,
@@ -593,6 +601,8 @@ int HAMLIB_API rig_open(RIG *rig)
             if (sscanf(token, "%u", &port)) { is_network |= 1; }
         }
     }
+
+#endif
 
     if (is_network)
     {
@@ -3054,9 +3064,11 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
         if (!rig_has_vfo_op(rig, RIG_OP_XCHG))
         {
             retcode = caps->set_vfo(rig, tx_vfo);
-            if (retcode != RIG_OK) return retcode;
+
+            if (retcode != RIG_OK) { return retcode; }
         }
-	retcode = RIG_OK;
+
+        retcode = RIG_OK;
     }
     else if (rig_has_vfo_op(rig, RIG_OP_TOGGLE) && caps->vfo_op)
     {
@@ -3084,11 +3096,14 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     /* try and revert even if we had an error above */
     if (caps->set_vfo)
     {
-	// If we started with RIG_VFO_CURR we need to choose VFO_A/MAIN as appropriate to return to
-	if (save_vfo == RIG_VFO_CURR) {
-            save_vfo = VFO_HAS_A_B_ONLY?RIG_VFO_A:RIG_VFO_MAIN;
-	}
-        rig_debug(RIG_DEBUG_TRACE,"%s: retoring vfo=%s\n", __func__, rig_strvfo(save_vfo));
+        // If we started with RIG_VFO_CURR we need to choose VFO_A/MAIN as appropriate to return to
+        if (save_vfo == RIG_VFO_CURR)
+        {
+            save_vfo = VFO_HAS_A_B_ONLY ? RIG_VFO_A : RIG_VFO_MAIN;
+        }
+
+        rig_debug(RIG_DEBUG_TRACE, "%s: retoring vfo=%s\n", __func__,
+                  rig_strvfo(save_vfo));
         rc2 = caps->set_vfo(rig, save_vfo);
     }
     else
@@ -3631,6 +3646,7 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
     {
         return retcode;
     }
+
 #endif
 
     retcode = caps->get_split_vfo(rig, vfo, split, tx_vfo);
@@ -3643,6 +3659,7 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
         /* return the first error code */
         retcode = rc2;
     }
+
 #endif
 
     if (retcode == RIG_OK)  // only update cache on success

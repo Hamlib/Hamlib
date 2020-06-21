@@ -686,11 +686,20 @@ int main(int argc, char *argv[])
     hints.ai_family = AF_UNSPEC;    /* Allow IPv4 or IPv6 */
     hints.ai_socktype = SOCK_STREAM;/* TCP socket */
     hints.ai_flags = AI_PASSIVE;    /* For wildcard IP address */
+    hints.ai_flags = AI_CANONNAME;
     hints.ai_protocol = 0;          /* Any protocol */
 
     retcode = getaddrinfo(src_addr, portno, &hints, &result);
 
-    if (retcode != 0)
+    if (retcode == 0 && result->ai_family == AF_INET6)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: Using IPV6\n", __func__);
+    }
+    else if (retcode == 0)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: Using IPV4\n", __func__);
+    }
+    else
     {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(retcode));
         exit(2);

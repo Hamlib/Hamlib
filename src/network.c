@@ -114,7 +114,6 @@ static void handle_error(enum rig_debug_level_e lvl, const char *msg)
 #endif
 }
 
-
 /**
  * \brief Open network port using rig.state data
  *
@@ -130,9 +129,8 @@ int network_open(hamlib_port_t *rp, int default_port)
     int fd;             /* File descriptor for the port */
     int status;
     struct addrinfo hints, *res, *saved_res;
-    char *hoststr = NULL, *portstr = NULL, *bracketstr1, *bracketstr2;
-    char hostname[FILPATHLEN];
-    char defaultportstr[8];
+    struct in6_addr serveraddr;
+    char hoststr[256], portstr[6];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     rig_debug(RIG_DEBUG_VERBOSE, "%s version 1.0\n", __func__);
@@ -154,7 +152,8 @@ int network_open(hamlib_port_t *rp, int default_port)
     }
 
     memset(&hints, 0, sizeof(hints));
-    hints.ai_family = PF_UNSPEC;
+    hints.ai_flags = AI_NUMERICSERV;
+    hints.ai_family = AF_UNSPEC;
 
     if (rp->type.rig == RIG_PORT_UDP_NETWORK)
     {
@@ -165,52 +164,54 @@ int network_open(hamlib_port_t *rp, int default_port)
         hints.ai_socktype = SOCK_STREAM;
     }
 
-    /* default of all local interfaces */
-    hoststr = NULL;
-
-    if (rp->pathname[0] == ':')
+    if (rp->pathname[0] == ':' && rp->pathname[1] != ':')
     {
-        portstr = rp->pathname + 1;
+        snprintf(portstr, sizeof(portstr) - 1, "%s", rp->pathname + 1);
     }
     else
     {
         if (strlen(rp->pathname))
         {
-            snprintf(hostname, sizeof(hostname), "%s", rp->pathname);
-            hoststr = hostname;
-            /* look for IPv6 numeric form [<addr>] */
-            bracketstr1 = strchr(hoststr, '[');
-            bracketstr2 = strrchr(hoststr, ']');
+            status = parse_hoststr(rp->pathname, hoststr, portstr);
 
-            if (bracketstr1 && bracketstr2 && bracketstr2 > bracketstr1)
-            {
-                hoststr = bracketstr1 + 1;
-                *bracketstr2 = '\0';
-                portstr = bracketstr2 + 1; /* possible port after ]: */
-            }
-            else
-            {
-                bracketstr2 = NULL;
-                portstr = hoststr; /* possible port after : */
-            }
+            if (status != RIG_OK) { return status; }
 
-            /* search last ':' */
-            portstr = strrchr(portstr, ':');
+            rig_debug(RIG_DEBUG_ERR, "%s: hoststr=%s, portstr=%s\n", __func__, hoststr,
+                      portstr);
 
-            if (portstr)
-            {
-                *portstr++ = '\0';
-            }
         }
 
-        if (!portstr)
+        if (strlen(portstr) == 0)
         {
-            sprintf(defaultportstr, "%d", default_port);
-            portstr = defaultportstr;
+            sprintf(portstr, "%d", default_port);
+        }
+    }
+
+    status = inet_pton(AF_INET, hoststr, &serveraddr);
+
+    if (status == 1) /* valid IPv4 address */
+    {
+        hints.ai_family = AF_INET;
+        hints.ai_flags |= AI_NUMERICHOST;
+    }
+    else
+    {
+        status = inet_pton(AF_INET6, hoststr, &serveraddr);
+
+        if (status == 1) /* valide IPv6 address */
+        {
+            hints.ai_family = AF_INET6;
+            hints.ai_flags |= AI_NUMERICHOST;
         }
     }
 
     status = getaddrinfo(hoststr, portstr, &hints, &res);
+
+    if (status == 0 && res->ai_family == AF_INET6)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: Using IPV6\n", __func__);
+        //inet_pton(AF_INET6, hoststr, &h_addr.sin6_addr);
+    }
 
     if (status != 0)
     {
