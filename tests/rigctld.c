@@ -685,7 +685,7 @@ int main(int argc, char *argv[])
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = AF_UNSPEC;    /* Allow IPv4 or IPv6 */
     hints.ai_socktype = SOCK_STREAM;/* TCP socket */
-    hints.ai_flags = AI_PASSIVE | AI_CANONNAME;    /* For wildcard IP address */
+    hints.ai_flags = AI_PASSIVE;    /* For wildcard IP address */
     hints.ai_protocol = 0;          /* Any protocol */
 
     retcode = getaddrinfo(src_addr, portno, &hints, &result);
