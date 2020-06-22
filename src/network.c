@@ -152,7 +152,7 @@ int network_open(hamlib_port_t *rp, int default_port)
     }
 
     memset(&hints, 0, sizeof(hints));
-    hints.ai_flags = AI_NUMERICSERV;
+    hints.ai_flags = NI_NUMERICSERV;
     hints.ai_family = AF_UNSPEC;
 
     if (rp->type.rig == RIG_PORT_UDP_NETWORK)
