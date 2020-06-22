@@ -1378,7 +1378,7 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo)
 
 int HAMLIB_API parse_hoststr(char *hoststr, char host[256], char port[6])
 {
-    unsigned int net1, net2, net3, net4, net5;
+    unsigned int net1, net2, net3, net4, net5, net6, net7, net8;
     char dummy[2], link[32], *p;
     host[0] = 0;
     port[0] = 0;
@@ -1392,6 +1392,21 @@ int HAMLIB_API parse_hoststr(char *hoststr, char host[256], char port[6])
         return RIG_OK;
     }
 
+    // non-bracketed full IPV6 with optional link addr
+    n = sscanf(hoststr, "%x:%x:%x:%x:%x:%x:%x:%x:%%%31[^:]:%5s", &net1, &net2, &net3,
+               &net4, &net5, &net6, &net7, &net8, link, port);
+    if (n == 8 || n == 9)
+    {
+        strcpy(host, hoststr);
+        return RIG_OK;
+    }
+    else if (n == 10)
+    {
+        strcpy(host, hoststr);
+        p = strrchr(host, ':'); // remove port from host
+        *p = 0;
+        return RIG_OK;
+    }
     // non-bracketed IPV6 with optional link addr
     n = sscanf(hoststr, "%x::%x:%x:%x:%x:%%%31[^:]:%5s", &net1, &net2, &net3,
                &net4, &net5, link, port);
