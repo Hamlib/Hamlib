@@ -1386,7 +1386,7 @@ int HAMLIB_API parse_hoststr(char *hoststr, char host[256], char port[6])
 
     // Handle device names 1st
     if (strstr(hoststr, "/dev")) return -1;
-    if (strncasecmp(hoststr, "com", 3)) return -1;
+    if (strncasecmp(hoststr, "com", 3)==0) return -1;
 
     // bracketed IPV6 with optional port
     int n = sscanf(hoststr, "[%255[^]]]:%5s", host, port);
