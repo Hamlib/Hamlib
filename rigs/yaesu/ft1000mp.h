@@ -98,6 +98,7 @@ enum ft1000mp_native_cmd_e {
   FT1000MP_NATIVE_VFO_UPDATE,
   FT1000MP_NATIVE_CURR_VFO_UPDATE,
   FT1000MP_NATIVE_UPDATE,
+  FT1000MP_NATIVE_AB,
   FT1000MP_NATIVE_SIZE            /* end marker, value indicates number of */
 				                /* native cmd entries */
 

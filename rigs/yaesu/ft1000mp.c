@@ -123,6 +123,7 @@ static const yaesu_cmd_set_t ncmd[] =
     /*  { 1, { 0x00, 0x00, 0x00, 0x00, 0x81 } }, */ /* tuner off */
     /*  { 1, { 0x00, 0x00, 0x00, 0x01, 0x81 } }, */ /* tuner on */
     /*  { 1, { 0x00, 0x00, 0x00, 0x00, 0x82 } }, */ /* tuner start*/
+    { 1, { 0x00, 0x00, 0x00, 0x00, 0x85 } }, /* A>B */
 
 };
 
@@ -215,7 +216,7 @@ const struct rig_caps ft1000mp_caps =
     RIG_MODEL(RIG_MODEL_FT1000MP),
     .model_name =         "FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20200621.0",
+    .version =            "20200622.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -346,7 +347,7 @@ const struct rig_caps ft1000mpmkv_caps =
     RIG_MODEL(RIG_MODEL_FT1000MPMKV),
     .model_name =         "MARK-V FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20200619.0",
+    .version =            "202006ww.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -477,7 +478,7 @@ const struct rig_caps ft1000mpmkvfld_caps =
     RIG_MODEL(RIG_MODEL_FT1000MPMKVFLD),
     .model_name =         "MARK-V Field FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20200619.0",
+    .version =            "20200622.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -1549,7 +1550,8 @@ int ft1000mp_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     // manual says VFO_A=Tx and VFO_B=Rx but testing shows otherwise
     rig->state.current_vfo = RIG_VFO_A;
     rig->state.tx_vfo = RIG_VFO_B;
-    ft1000mp_send_priv_cmd(rig, FT1000MP_NATIVE_VFO_A); // make B active
+    ft1000mp_send_priv_cmd(rig, FT1000MP_NATIVE_AB); // Copy A to B
+    ft1000mp_send_priv_cmd(rig, FT1000MP_NATIVE_VFO_A); // make A active
     ft1000mp_send_priv_cmd(rig, cmd_index);
 
     return RIG_OK;
