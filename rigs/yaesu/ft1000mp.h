@@ -202,6 +202,8 @@ int ft1000mp_close(RIG *rig);
 int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int ft1000mp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 
+int ft1000mp_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
+int ft1000mp_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq);
 int ft1000mp_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
 int ft1000mp_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
 
