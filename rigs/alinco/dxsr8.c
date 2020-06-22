@@ -346,6 +346,7 @@ int dxsr8_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         return -RIG_EINVAL;
     }
 
+    // cppcheck-suppress *
     cmd_len = sprintf(cmd, AL "~RW_RXF%08"PRIll EOM, (int64_t)freq);
     return dxsr8_transaction(rig, cmd, cmd_len, NULL, NULL);
 }

@@ -130,7 +130,7 @@ int network_open(hamlib_port_t *rp, int default_port)
     int status;
     struct addrinfo hints, *res, *saved_res;
     struct in6_addr serveraddr;
-    char hoststr[256], portstr[6];
+    char hoststr[256], portstr[6] = "";
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     rig_debug(RIG_DEBUG_VERBOSE, "%s version 1.0\n", __func__);

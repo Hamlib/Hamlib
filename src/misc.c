@@ -1385,7 +1385,7 @@ int HAMLIB_API parse_hoststr(char *hoststr, char host[256], char port[6])
     dummy[0] = 0;
 
     // bracketed IPV6 with optional port
-    int n = sscanf(hoststr, "[%255[^]]]:%s", host, port);
+    int n = sscanf(hoststr, "[%255[^]]]:%5s", host, port);
 
     if (n >= 1)
     {
@@ -1393,7 +1393,7 @@ int HAMLIB_API parse_hoststr(char *hoststr, char host[256], char port[6])
     }
 
     // non-bracketed IPV6 with optional link addr
-    n = sscanf(hoststr, "%x::%x:%x:%x:%x:%%%31[^:]:%s", &net1, &net2, &net3,
+    n = sscanf(hoststr, "%x::%x:%x:%x:%x:%%%31[^:]:%5s", &net1, &net2, &net3,
                &net4, &net5, link, port);
 
     if (strchr(hoststr, '%') && (n == 5 || n == 6))
@@ -1433,7 +1433,7 @@ int HAMLIB_API parse_hoststr(char *hoststr, char host[256], char port[6])
     // bracketed localhost
     if (strstr(hoststr, "::1"))
     {
-        n = sscanf(hoststr, "::1%s", dummy);
+        n = sscanf(hoststr, "::1%5s", dummy);
         strcpy(host, hoststr);
 
         if (n == 1)
