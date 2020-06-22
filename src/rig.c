@@ -558,7 +558,6 @@ int HAMLIB_API rig_open(RIG *rig)
     value_t parm_value;
     //unsigned int net1, net2, net3, net4, net5, net6, net7, net8, port;
     int is_network = 0;
-    char hoststr[256], portstr[6];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -572,6 +571,7 @@ int HAMLIB_API rig_open(RIG *rig)
 
     if (strlen(rs->rigport.pathname) > 0)
     {
+        char hoststr[256], portstr[6];
         status = parse_hoststr(rs->rigport.pathname, hoststr, portstr);
 
         if (status == RIG_OK) { is_network = 1; }
@@ -2911,13 +2911,13 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     int retcode, rc2;
     vfo_t curr_vfo, tx_vfo;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, curr_vfo=%s\n", __func__,
-              rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
-
     if (CHECK_RIG_ARG(rig))
     {
         return -RIG_EINVAL;
     }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, curr_vfo=%s\n", __func__,
+              rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
 
     caps = rig->caps;
 
