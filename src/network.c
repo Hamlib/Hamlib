@@ -63,6 +63,7 @@
 #elif HAVE_WS2TCPIP_H
 #undef _WIN32_WINNT
 // We need inet_pton to get defined  and 0x0600 does it
+// Eventually we should be able to get rid of this hack
 #define _WIN32_WINNT 0x0600
 #  include <ws2tcpip.h>
 #undef _WIN32_WINNT
