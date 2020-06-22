@@ -61,7 +61,13 @@
 #  include <sys/socket.h>
 #  include <sys/ioctl.h>
 #elif HAVE_WS2TCPIP_H
+#undef _WIN32_WINNT
+// We need inet_pton to get defined  and 0x0600 does it
+#define _WIN32_WINNT 0x0600
 #  include <ws2tcpip.h>
+#undef _WIN32_WINNT
+// Then we'll go back to Server 2003
+#define _WIN32_WINNT 0x0502
 #  if defined(HAVE_WSPIAPI_H)
 #    include <wspiapi.h>
 #  endif
