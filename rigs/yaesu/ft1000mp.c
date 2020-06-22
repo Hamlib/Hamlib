@@ -215,7 +215,7 @@ const struct rig_caps ft1000mp_caps =
     RIG_MODEL(RIG_MODEL_FT1000MP),
     .model_name =         "FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20200620.0",
+    .version =            "20200621.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -325,6 +325,8 @@ const struct rig_caps ft1000mp_caps =
     .set_vfo =            ft1000mp_set_vfo,  /* set vfo */
     .get_vfo =            ft1000mp_get_vfo,  /* get vfo */
 
+    .set_split_freq =     ft1000mp_set_split_freq,
+    .get_split_freq =     ft1000mp_get_split_freq,
     .set_split_vfo =      ft1000mp_set_split_vfo,
     .get_split_vfo =      ft1000mp_get_split_vfo,
 
@@ -454,6 +456,8 @@ const struct rig_caps ft1000mpmkv_caps =
     .set_vfo =            ft1000mp_set_vfo,  /* set vfo */
     .get_vfo =            ft1000mp_get_vfo,  /* get vfo */
 
+    .set_split_freq =     ft1000mp_set_split_freq,
+    .get_split_freq =     ft1000mp_get_split_freq,
     .set_split_vfo =      ft1000mp_set_split_vfo,
     .get_split_vfo =      ft1000mp_get_split_vfo,
 
@@ -583,6 +587,8 @@ const struct rig_caps ft1000mpmkvfld_caps =
     .set_vfo =            ft1000mp_set_vfo,  /* set vfo */
     .get_vfo =            ft1000mp_get_vfo,  /* get vfo */
 
+    .set_split_freq =     ft1000mp_set_split_freq,
+    .get_split_freq =     ft1000mp_get_split_freq,
     .set_split_vfo =      ft1000mp_set_split_vfo,
     .get_split_vfo =      ft1000mp_get_split_vfo,
 
@@ -1540,9 +1546,10 @@ int ft1000mp_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         return -RIG_EINVAL;         /* sorry, wrong VFO */
     }
 
-    rig->state.current_vfo = RIG_VFO_B; // Rx on VFO_B
-    rig->state.tx_vfo = RIG_VFO_A;
-    ft1000mp_send_priv_cmd(rig, FT1000MP_NATIVE_VFO_B); // make B active
+    // manual says VFO_A=Tx and VFO_B=Rx but testing shows otherwise
+    rig->state.current_vfo = RIG_VFO_A;
+    rig->state.tx_vfo = RIG_VFO_B;
+    ft1000mp_send_priv_cmd(rig, FT1000MP_NATIVE_VFO_A); // make B active
     ft1000mp_send_priv_cmd(rig, cmd_index);
 
     return RIG_OK;
@@ -1584,4 +1591,14 @@ int ft1000mp_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
     }
 
     return RIG_OK;
+}
+
+int ft1000mp_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
+{
+    return ft1000mp_set_freq(rig, RIG_VFO_B, tx_freq);
+}
+
+int ft1000mp_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
+{
+    return ft1000mp_get_freq(rig, RIG_VFO_B, tx_freq);
 }
