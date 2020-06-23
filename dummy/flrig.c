@@ -442,8 +442,8 @@ static int read_transaction(RIG *rig, char *xml, int xml_len)
         else
         {
             rig_debug(RIG_DEBUG_ERR,
-                      "%s: xml buffer overflow!!\nTrying to add len=%d\n%sTo len=%d\n%s", __func__,
-                      (int)strlen(tmp_buf), tmp_buf, (int)strlen(xml), xml);
+                      "%s: xml buffer overflow!!\nTrying to add len=%d\nTo len=%d\n", __func__,
+                      (int)strlen(tmp_buf), (int)strlen(xml));
             return -RIG_EPROTO;
         }
     }
