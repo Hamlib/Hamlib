@@ -205,7 +205,7 @@ int network_open(hamlib_port_t *rp, int default_port)
     {
         status = inet_pton(AF_INET6, hoststr, &serveraddr);
 
-        if (status == 1) /* valide IPv6 address */
+        if (status == 1) /* valid IPv6 address */
         {
             hints.ai_family = AF_INET6;
             hints.ai_flags |= AI_NUMERICHOST;
