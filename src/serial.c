@@ -203,9 +203,7 @@ int HAMLIB_API serial_open(hamlib_port_t *rp)
     /*
      * Open in Non-blocking mode. Watch for EAGAIN errors!
      */
-    rig_debug(RIG_DEBUG_TRACE, "%s: OPEN before\n", __func__);
     fd = OPEN(rp->pathname, O_RDWR | O_NOCTTY | O_NDELAY);
-    rig_debug(RIG_DEBUG_TRACE, "%s: OPEN after\n", __func__);
 
     if (fd == -1)
     {
@@ -220,9 +218,7 @@ int HAMLIB_API serial_open(hamlib_port_t *rp)
 
     rp->fd = fd;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: serial_setup before\n", __func__);
     err = serial_setup(rp);
-    rig_debug(RIG_DEBUG_TRACE, "%s: serial_setup after\n", __func__);
 
     if (err != RIG_OK)
     {
@@ -230,9 +226,7 @@ int HAMLIB_API serial_open(hamlib_port_t *rp)
         return err;
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: serial_flush before\n", __func__);
     serial_flush(rp); // ensure nothing is there when we open
-    rig_debug(RIG_DEBUG_TRACE, "%s: serial_flush before\n", __func__);
 
     return RIG_OK;
 }

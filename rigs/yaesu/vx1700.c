@@ -240,7 +240,7 @@ static int vx1700_do_transaction(RIG *rig,
     rs = &rig->state;
     memset(retbuf, 0, retbuf_len);
 
-    serial_flush(&rs->rigport);
+    rig_flush(&rs->rigport);
     retval = write_block(&rs->rigport, (const char *)cmd, YAESU_CMD_LENGTH);
 
     if (retval != RIG_OK) { return retval; }

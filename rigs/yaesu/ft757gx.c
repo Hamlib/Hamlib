@@ -652,7 +652,7 @@ int ft757_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return -RIG_EINVAL;
     }
 
-    serial_flush(&rig->state.rigport);
+    rig_flush(&rig->state.rigport);
 
     /* send READ STATUS(Meter only) cmd to rig  */
     retval = write_block(&rig->state.rigport, (char *)cmd, YAESU_CMD_LENGTH);
@@ -702,7 +702,7 @@ int ft757_get_update_data(RIG *rig)
     does not fix things. So we restart the read from scratch, it works most of times. */
     for (nbtries = 0 ; nbtries < maxtries ; nbtries++)
     {
-        serial_flush(&rig->state.rigport);
+        rig_flush(&rig->state.rigport);
 
         /* send READ STATUS cmd to rig  */
         retval = write_block(&rig->state.rigport, (char *)cmd, YAESU_CMD_LENGTH);

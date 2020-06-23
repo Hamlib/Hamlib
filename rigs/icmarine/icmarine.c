@@ -256,7 +256,7 @@ int icmarine_transaction(RIG *rig, const char *cmd, const char *param,
     rs = &rig->state;
     priv = (struct icmarine_priv_data *)rs->priv;
 
-    serial_flush(&rs->rigport);
+    rig_flush(&rs->rigport);
 
     /* command formating */
     cmd_len = snprintf(cmdbuf, BUFSZ, "$PICOA,%02d,%02u,%s",

@@ -412,7 +412,7 @@ int vr5000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return -RIG_EINVAL;
     }
 
-    serial_flush(&rig->state.rigport);
+    rig_flush(&rig->state.rigport);
 
     /* send READ STATUS(Meter only) cmd to rig  */
     retval = write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
@@ -446,7 +446,7 @@ int vr5000_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
     unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0xe7};
     int retval;
 
-    serial_flush(&rig->state.rigport);
+    rig_flush(&rig->state.rigport);
 
     /* send READ STATUS(Meter only) cmd to rig  */
     retval = write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);

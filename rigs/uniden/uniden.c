@@ -132,7 +132,7 @@ uniden_transaction(RIG *rig, const char *cmdstr, int cmd_len,
 
 transaction_write:
 
-    serial_flush(&rs->rigport);
+    rig_flush(&rs->rigport);
 
     if (cmdstr)
     {

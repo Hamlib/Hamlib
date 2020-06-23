@@ -223,15 +223,7 @@ transaction_write:
         }
 
         /* flush anything in the read buffer before command is sent */
-        if (rs->rigport.type.rig == RIG_PORT_NETWORK
-                || rs->rigport.type.rig == RIG_PORT_UDP_NETWORK)
-        {
-            network_flush(&rs->rigport);
-        }
-        else
-        {
-            serial_flush(&rs->rigport);
-        }
+        rig_flush(&rs->rigport);
 
         retval = write_block(&rs->rigport, cmd, len);
 

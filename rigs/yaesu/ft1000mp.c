@@ -1516,7 +1516,7 @@ static int ft1000mp_send_priv_cmd(RIG *rig, unsigned char ci)
     }
 
     cmd = (unsigned char *) p->pcs[cmd_index].nseq; /* get native sequence */
-    serial_flush(&rig_s->rigport);
+    rig_flush(&rig_s->rigport);
     write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
 
     return RIG_OK;

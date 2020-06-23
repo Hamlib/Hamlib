@@ -58,7 +58,7 @@ static int tapr_cmd(RIG *rig, unsigned char cmd, unsigned char c1,
 
     rs = &rig->state;
 
-    serial_flush(&rs->rigport);
+    rig_flush(&rs->rigport);
 
     cmdbuf[0] = ESC;
     cmdbuf[1] = cmd;

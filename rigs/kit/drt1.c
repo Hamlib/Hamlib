@@ -415,7 +415,7 @@ int drt1_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     priv = (struct drt1_priv_data *)rig->state.priv;
 
-    serial_flush(port);
+    rig_flush(port);
 
     /* Initialization */
     ad_ioupd(port, 0);

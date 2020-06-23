@@ -130,7 +130,7 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
     // cppcheck-suppress *
     Hold_Decode(rig);
 
-    serial_flush(&rs->rigport);
+    rig_flush(&rs->rigport);
 
     retval = write_block(&rs->rigport, (char *) sendbuf, frm_len);
 

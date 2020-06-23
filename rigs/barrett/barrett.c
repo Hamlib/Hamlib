@@ -231,7 +231,7 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
 
     cmd_len = snprintf(cmd_buf, sizeof(cmd_buf), "%s%s", cmd, EOM);
 
-    serial_flush(&rs->rigport);
+    rig_flush(&rs->rigport);
     retval = write_block(&rs->rigport, cmd_buf, cmd_len);
 
     if (retval < 0)

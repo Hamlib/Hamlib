@@ -233,7 +233,7 @@ static int frg100_do_transaction(RIG *rig,
     rs = &rig->state;
     memset(retbuf, 0, retbuf_len);
 
-    serial_flush(&rs->rigport);
+    rig_flush(&rs->rigport);
     retval = write_block(&rs->rigport, (const char *)cmd, YAESU_CMD_LENGTH);
 
     if (retval != RIG_OK) { return retval; }
@@ -409,7 +409,7 @@ int frg100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return -RIG_EINVAL;
     }
 
-    serial_flush(&rig->state.rigport);
+    rig_flush(&rig->state.rigport);
 
     /* send READ STATUS(Meter only) cmd to rig  */
     retval = write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);

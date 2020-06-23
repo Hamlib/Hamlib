@@ -451,7 +451,7 @@ static int ft817_get_status(RIG *rig, int status)
 
     do
     {
-        serial_flush(&rig->state.rigport);
+        rig_flush(&rig->state.rigport);
         write_block(&rig->state.rigport, (char *) p->pcs[status].nseq,
                     YAESU_CMD_LENGTH);
         n = read_block(&rig->state.rigport, (char *) data, len);
