@@ -97,18 +97,18 @@ static const yaesu_cmd_set_t ncmd[] =
     { 1, { 0x00, 0x00, 0x00, 0x0a, 0x0c } }, /* vfo A mode set DATA-LSB */
     { 1, { 0x00, 0x00, 0x00, 0x0b, 0x0c } }, /* vfo A mode set DATA-FM */
 
-    /*  { 1, { 0x00, 0x00, 0x00, 0x80, 0x0c } }, */ /* vfo B mode set LSB */
-    /*  { 1, { 0x00, 0x00, 0x00, 0x81, 0x0c } }, */ /* vfo B mode set USB */
-    /*  { 1, { 0x00, 0x00, 0x00, 0x82, 0x0c } }, */ /* vfo B mode set CW-USB */
-    /*  { 1, { 0x00, 0x00, 0x00, 0x83, 0x0c } }, */ /* vfo B mode set CW-LSB */
-    /*  { 1, { 0x00, 0x00, 0x00, 0x84, 0x0c } }, */ /* vfo B mode set AM */
-    /*  { 1, { 0x00, 0x00, 0x00, 0x85, 0x0c } }, */ /* vfo B mode set AM */
-    /*  { 1, { 0x00, 0x00, 0x00, 0x86, 0x0c } }, */ /* vfo B mode set FM */
-    /*  { 1, { 0x00, 0x00, 0x00, 0x87, 0x0c } }, */ /* vfo B mode set FMN */
-    /*  { 1, { 0x00, 0x00, 0x00, 0x88, 0x0c } }, */ /* vfo B mode set DATA-LSB */
-    /*  { 1, { 0x00, 0x00, 0x00, 0x89, 0x0c } }, */ /* vfo B mode set DATA-LSB */
-    /*  { 1, { 0x00, 0x00, 0x00, 0x8a, 0x0c } }, */ /* vfo B mode set DATA-USB */
-    /*  { 1, { 0x00, 0x00, 0x00, 0x8b, 0x0c } }, */ /* vfo B mode set DATA-FM */
+    { 1, { 0x00, 0x00, 0x00, 0x80, 0x0c } }, /* vfo B mode set LSB */
+    { 1, { 0x00, 0x00, 0x00, 0x81, 0x0c } }, /* vfo B mode set USB */
+    { 1, { 0x00, 0x00, 0x00, 0x82, 0x0c } }, /* vfo B mode set CW-USB */
+    { 1, { 0x00, 0x00, 0x00, 0x83, 0x0c } }, /* vfo B mode set CW-LSB */
+    { 1, { 0x00, 0x00, 0x00, 0x84, 0x0c } }, /* vfo B mode set AM */
+    { 1, { 0x00, 0x00, 0x00, 0x85, 0x0c } }, /* vfo B mode set AM */
+    { 1, { 0x00, 0x00, 0x00, 0x86, 0x0c } }, /* vfo B mode set FM */
+    { 1, { 0x00, 0x00, 0x00, 0x87, 0x0c } }, /* vfo B mode set FMN */
+    { 1, { 0x00, 0x00, 0x00, 0x88, 0x0c } }, /* vfo B mode set DATA-LSB */
+    { 1, { 0x00, 0x00, 0x00, 0x89, 0x0c } }, /* vfo B mode set DATA-LSB */
+    { 1, { 0x00, 0x00, 0x00, 0x8a, 0x0c } }, /* vfo B mode set DATA-USB */
+    { 1, { 0x00, 0x00, 0x00, 0x8b, 0x0c } }, /* vfo B mode set DATA-FM */
 
     { 0, { 0x00, 0x00, 0x00, 0x00, 0x0e } }, /* update interval/pacing */
     { 1, { 0x00, 0x00, 0x00, 0x00, 0x0F } }, /* PTT OFF */
@@ -216,7 +216,7 @@ const struct rig_caps ft1000mp_caps =
     RIG_MODEL(RIG_MODEL_FT1000MP),
     .model_name =         "FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20200622.0",
+    .version =            "20200623.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -347,7 +347,7 @@ const struct rig_caps ft1000mpmkv_caps =
     RIG_MODEL(RIG_MODEL_FT1000MPMKV),
     .model_name =         "MARK-V FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "202006ww.0",
+    .version =            "20200623.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -478,7 +478,7 @@ const struct rig_caps ft1000mpmkvfld_caps =
     RIG_MODEL(RIG_MODEL_FT1000MPMKVFLD),
     .model_name =         "MARK-V Field FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20200622.0",
+    .version =            "20200623.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -850,42 +850,52 @@ int ft1000mp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
     case RIG_MODE_AM:
         cmd_index = FT1000MP_NATIVE_MODE_SET_AM;
+        if (vfo == RIG_VFO_B) cmd_index = FT1000MP_NATIVE_MODE_SET_AM_B;
         break;
 
     case RIG_MODE_CW:
         cmd_index = FT1000MP_NATIVE_MODE_SET_CWR;
+        if (vfo == RIG_VFO_B) cmd_index = FT1000MP_NATIVE_MODE_SET_CWR_B;
         break;
 
     case RIG_MODE_CWR:
         cmd_index = FT1000MP_NATIVE_MODE_SET_CW;
+        if (vfo == RIG_VFO_B) cmd_index = FT1000MP_NATIVE_MODE_SET_CW_B;
         break;
 
     case RIG_MODE_USB:
         cmd_index = FT1000MP_NATIVE_MODE_SET_USB;
+        if (vfo == RIG_VFO_B) cmd_index = FT1000MP_NATIVE_MODE_SET_USB_B;
         break;
 
     case RIG_MODE_LSB:
         cmd_index = FT1000MP_NATIVE_MODE_SET_LSB;
+        if (vfo == RIG_VFO_B) cmd_index = FT1000MP_NATIVE_MODE_SET_LSB_B;
         break;
 
     case RIG_MODE_FM:
         cmd_index = FT1000MP_NATIVE_MODE_SET_FM;
+        if (vfo == RIG_VFO_B) cmd_index = FT1000MP_NATIVE_MODE_SET_FM_B;
         break;
 
     case RIG_MODE_RTTY:
         cmd_index = FT1000MP_NATIVE_MODE_SET_RTTY_LSB;
+        if (vfo == RIG_VFO_B) cmd_index = FT1000MP_NATIVE_MODE_SET_RTTY_LSB_B;
         break;
 
     case RIG_MODE_RTTYR:
         cmd_index = FT1000MP_NATIVE_MODE_SET_RTTY_USB;
+        if (vfo == RIG_VFO_B) cmd_index = FT1000MP_NATIVE_MODE_SET_RTTY_USB_B;
         break;
 
     case RIG_MODE_PKTLSB:
         cmd_index = FT1000MP_NATIVE_MODE_SET_DATA_LSB;
+        if (vfo == RIG_VFO_B) cmd_index = FT1000MP_NATIVE_MODE_SET_DATA_LSB_B;
         break;
 
     case RIG_MODE_PKTFM:
         cmd_index = FT1000MP_NATIVE_MODE_SET_DATA_FM;
+        if (vfo == RIG_VFO_B) cmd_index = FT1000MP_NATIVE_MODE_SET_FM_B;
         break;
 
     default:
