@@ -1480,17 +1480,21 @@ int HAMLIB_API parse_hoststr(char *hoststr, char host[256], char port[6])
     return -1;
 }
 
-int HAMLIB_API rig_flush(RIG *rig)
+int HAMLIB_API rig_flush(hamlib_port_t *port)
 {
-    if (rig->state.rigport.type.rig == RIG_PORT_NETWORK
-            || rig->state.rigport.type.rig == RIG_PORT_UDP_NETWORK)
+    rig_debug(RIG_DEBUG_TRACE, "%s: called for %s device\n", __func__,
+              port->type.rig == RIG_PORT_SERIAL ? "serial" : "network");
+
+    if (port->type.rig == RIG_PORT_NETWORK
+            || port->type.rig == RIG_PORT_UDP_NETWORK)
     {
-        network_flush(&rig->state.rigport);
+        network_flush(port);
         return RIG_OK;
     }
-    return serial_flush(&rig->state.rigport);
+
+    return serial_flush(port);
 }
 
 //! @endcond
 
-    /** @} */
+/** @} */
