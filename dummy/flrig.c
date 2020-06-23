@@ -494,7 +494,7 @@ static int write_transaction(RIG *rig, char *xml, int xml_len)
 
     // appears we can lose sync if we don't clear things out
     // shouldn't be anything for us now anyways
-    network_flush(&rig->state.rigport);
+    rig_flush(&rig->state.rigport);
 
     while (try-- >= 0 && retval != RIG_OK)
         {

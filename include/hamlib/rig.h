@@ -2113,7 +2113,7 @@ extern HAMLIB_EXPORT(int) rig_open HAMLIB_PARAMS((RIG *rig));
  */
 
 extern HAMLIB_EXPORT(int)
-rig_flush(RIG *rig);
+rig_flush(hamlib_port_t *port);
 
 extern HAMLIB_EXPORT(int)
 rig_set_freq HAMLIB_PARAMS((RIG *rig,
