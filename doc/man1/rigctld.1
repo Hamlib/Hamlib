@@ -208,6 +208,34 @@ Use
 as the listening IP address.
 .IP
 The default is ANY.
+.IP
+Can be run and connected to like this:
+.IP
+.nf
+rigctld
+    rigctl -m 2
+    rigctl -m 2 -r 127.0.0.1
+    rigctl -m 2 -r localhost
+    rigctl -m 2 -r 192.168.1.1 (local IP address)
+    rigctl -m 2 -r ::1 (does not work on Linux as does not listen on IPV6 by default)
+.BR
+rigctld -T 127.0.0.1
+   rigctl -m 2
+   rigctl -m 2 -r 127.0.0.1
+   Exceptions:
+   rigctl -m 2 -r localhost (only works if localhost is IPV4 address)
+.BR
+rigctld -T localhost (will set up on IPV4 or IPV6 based on localhost)
+   rigctl -m 2
+   rigctl -m 2 -r localhost
+   rigctl -m 2 ip6-localhost
+   Exceptions:
+   rigctl -m 2 -r 127.0.0.1 (only works if localhost is IPV4 address)
+   rigctl -m 2 -r ::1 (only works localhost is IPV6 address)
+.BR
+On Linux only where ip6-localhost fe00::0
+rigctld -T ip6-localhost
+   rigctl -m 2 -r ip6-localhost
 .
 .TP
 .BR \-t ", " \-\-port = \fInumber\fP
