@@ -1528,6 +1528,7 @@ int ft1000mp_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     // FT1000 transmits on A and receives on B
 
     unsigned char cmd_index = 0;      /* index of sequence to send */
+    freq_t tx_freq;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called rx_vfo=%s, tx_vfo=%s\n", __func__,
               rig_strvfo(vfo), rig_strvfo(tx_vfo));
@@ -1547,12 +1548,14 @@ int ft1000mp_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         return -RIG_EINVAL;         /* sorry, wrong VFO */
     }
 
+    rig_get_freq(rig,RIG_VFO_B,&tx_freq);
     // manual says VFO_A=Tx and VFO_B=Rx but testing shows otherwise
     rig->state.current_vfo = RIG_VFO_A;
     rig->state.tx_vfo = RIG_VFO_B;
     ft1000mp_send_priv_cmd(rig, FT1000MP_NATIVE_AB); // Copy A to B
     ft1000mp_send_priv_cmd(rig, FT1000MP_NATIVE_VFO_A); // make A active
     ft1000mp_send_priv_cmd(rig, cmd_index);
+    rig_set_freq(rig,RIG_VFO_B,tx_freq); // restore orig frequency
 
     return RIG_OK;
 }
