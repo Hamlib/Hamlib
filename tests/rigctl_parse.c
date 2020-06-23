@@ -730,6 +730,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
                     *pcmd = '\0';
                     cmd = parse_arg((char *)cmd_name);
+                    rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd=%s\n", __func__, cmd_name);
                     break;
                 }
 
