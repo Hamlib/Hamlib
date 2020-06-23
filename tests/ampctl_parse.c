@@ -1937,7 +1937,7 @@ declare_proto_amp(send_cmd)
 
     rs = &amp->state;
 
-    serial_flush(&rs->ampport);
+    rig_flush(&rs->ampport);
 
     retval = write_block(&rs->ampport, bufcmd, cmd_len);
 

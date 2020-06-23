@@ -1959,7 +1959,7 @@ declare_proto_rot(send_cmd)
 
     rs = &rot->state;
 
-    serial_flush(&rs->rotport);
+    rig_flush(&rs->rotport);
 
     retval = write_block(&rs->rotport, bufcmd, cmd_len);
 
