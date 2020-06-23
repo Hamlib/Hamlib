@@ -63,7 +63,7 @@ easycomm_transaction(ROT *rot, const char *cmdstr, char *data, size_t data_len)
     }
 
     rs = &rot->state;
-    serial_flush(&rs->rotport);
+    rig_flush(&rs->rotport);
     retval = write_block(&rs->rotport, cmdstr, strlen(cmdstr));
 
     if (retval != RIG_OK)

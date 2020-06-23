@@ -111,7 +111,7 @@ static int meade_transaction(ROT *rot, const char *cmdstr,
     while (1)
     {
 transaction:
-        serial_flush(&rs->rotport);
+        rig_flush(&rs->rotport);
 
         if (cmdstr)
         {

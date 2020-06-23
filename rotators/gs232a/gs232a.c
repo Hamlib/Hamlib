@@ -74,7 +74,7 @@ gs232a_transaction(ROT *rot, const char *cmdstr,
 
 transaction_write:
 
-    serial_flush(&rs->rotport);
+    rig_flush(&rs->rotport);
 
     if (cmdstr)
     {
