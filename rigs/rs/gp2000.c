@@ -71,7 +71,7 @@ gp2000_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 
     rs = &rig->state;
 
-    serial_flush(&rs->rigport);
+    rig_flush(&rs->rigport);
 
     rig_debug(RIG_DEBUG_VERBOSE, "gp2000_transaction: len=%d,cmd=%s\n",
               cmd_len, cmd);

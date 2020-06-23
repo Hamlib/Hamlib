@@ -384,7 +384,7 @@ pcr_transaction(RIG *rig, const char *cmd)
 
     if (!priv->auto_update)
     {
-        serial_flush(&rs->rigport);
+        rig_flush(&rs->rigport);
     }
 
     pcr_send(rig, cmd);
@@ -582,7 +582,7 @@ pcr_open(RIG *rig)
 
     /* let the pcr settle and flush any remaining data*/
     hl_usleep(100 * 1000);
-    serial_flush(&rs->rigport);
+    rig_flush(&rs->rigport);
 
     /* try powering on twice, sometimes the pcr answers H100 (off) */
     pcr_send(rig, "H101");
@@ -591,7 +591,7 @@ pcr_open(RIG *rig)
     pcr_send(rig, "H101");
     hl_usleep(100 * 250);
 
-    serial_flush(&rs->rigport);
+    rig_flush(&rs->rigport);
 
     /* return RIG_ERJCTED if power is off */
     err = pcr_transaction(rig, "H1?");

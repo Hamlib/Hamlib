@@ -7279,7 +7279,7 @@ DECLARE_PROBERIG_BACKEND(icom)
             frm_len = make_cmd_frame((char *) buf, civ_addr, CTRLID,
                                      C_RD_TRXID, S_RD_TRXID, NULL, 0);
 
-            serial_flush(port);
+            rig_flush(port);
             write_block(port, (char *) buf, frm_len);
 
             /* read out the bytes we just sent
@@ -7353,7 +7353,7 @@ DECLARE_PROBERIG_BACKEND(icom)
             frm_len = make_cmd_frame((char *) buf, civ_addr, CTRLID,
                                      C_CTL_MISC, S_OPTO_RDID, NULL, 0);
 
-            serial_flush(port);
+            rig_flush(port);
             write_block(port, (char *) buf, frm_len);
 
             /* read out the bytes we just sent

@@ -1492,7 +1492,11 @@ int HAMLIB_API rig_flush(hamlib_port_t *port)
         return RIG_OK;
     }
 
-    return serial_flush(port);
+    if (port->type.rig != RIG_PORT_SERIAL)
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s: Expected serial port type!!\nWhat is this rig?\n", __func__); 
+    }
+    return serial_flush(port); // we must be on serial port
 }
 
 //! @endcond

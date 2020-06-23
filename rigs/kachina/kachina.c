@@ -84,7 +84,7 @@ static int kachina_transaction(RIG *rig, unsigned char cmd1, unsigned char cmd2)
     buf4[2] = cmd2;
     buf4[3] = ETX;
 
-    serial_flush(&rs->rigport);
+    rig_flush(&rs->rigport);
 
     retval = write_block(&rs->rigport, (char *) buf4, 4);
 
@@ -119,7 +119,7 @@ static int kachina_trans_n(RIG *rig, unsigned char cmd1, const char *data,
 
     cmd_len = data_len + 3;
 
-    serial_flush(&rs->rigport);
+    rig_flush(&rs->rigport);
 
     retval = write_block(&rs->rigport, (char *) buf, cmd_len);
 
@@ -270,7 +270,7 @@ int kachina_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     /* telemetry sent to the PC automatically at a 50msec rate */
 
-    serial_flush(&rig->state.rigport);
+    rig_flush(&rig->state.rigport);
 
     count = read_string(&rig->state.rigport, (char *) buf, 31, rcv_signal_range,
                         128);

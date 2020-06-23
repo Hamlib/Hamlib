@@ -130,7 +130,7 @@ static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
     {
         int retval;
         rs = &rig->state;
-        serial_flush(&rs->rigport); /* discard pending i/p */
+        rig_flush(&rs->rigport); /* discard pending i/p */
         retval = write_block(&rs->rigport, cmd, cmd_len);
 
         if (retval != RIG_OK)

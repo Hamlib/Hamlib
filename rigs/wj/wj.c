@@ -177,7 +177,7 @@ static int wj_transaction(RIG *rig, int monitor)
 
     /* buf[9]: not used if command byte, but must be transmitted */
 
-    serial_flush(&rig->state.rigport);
+    rig_flush(&rig->state.rigport);
 
     retval = write_block(&rig->state.rigport, (char *) buf, CMDSZ);
 

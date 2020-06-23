@@ -251,7 +251,7 @@ int dxsr8_transaction(RIG *rig,
 
     rs = &rig->state;
 
-    serial_flush(&rs->rigport);
+    rig_flush(&rs->rigport);
 
     retval = write_block(&rs->rigport, cmd, cmd_len);
 

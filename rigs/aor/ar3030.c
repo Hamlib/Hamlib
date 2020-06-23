@@ -231,7 +231,7 @@ static int ar3030_transaction(RIG *rig, const char *cmd, int cmd_len,
         data = tmpdata;
     }
 
-    serial_flush(&rs->rigport);
+    rig_flush(&rs->rigport);
 
     do
     {
@@ -315,7 +315,7 @@ int ar3030_close(RIG *rig)
     rig_debug(RIG_DEBUG_TRACE, "%s:\n", __func__);
 
     rs = &rig->state;
-    serial_flush(&rs->rigport);
+    rig_flush(&rs->rigport);
 
     retval = ar3030_transaction(rig, "Q" CR, strlen("Q" CR), NULL, NULL);
     rig_debug(RIG_DEBUG_TRACE, "%s: retval=%d\n", __func__, retval);

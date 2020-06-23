@@ -869,7 +869,7 @@ static int ft747_get_update_data(RIG *rig)
     {
         int ret;
         int port_timeout;
-        serial_flush(rigport);
+        rig_flush(rigport);
 
         /* send UPDATE comand to fetch data*/
 

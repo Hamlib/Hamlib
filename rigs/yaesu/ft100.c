@@ -403,7 +403,7 @@ static int ft100_read_status(RIG *rig)
 
     priv = (struct ft100_priv_data *)rig->state.priv;
 
-    serial_flush(&rig->state.rigport);
+    rig_flush(&rig->state.rigport);
 
     ret = ft100_send_priv_cmd(rig, FT100_NATIVE_CAT_READ_STATUS);
 
@@ -432,7 +432,7 @@ static int ft100_read_flags(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    serial_flush(&rig->state.rigport);
+    rig_flush(&rig->state.rigport);
 
     ret = ft100_send_priv_cmd(rig, FT100_NATIVE_CAT_READ_FLAGS);
 
