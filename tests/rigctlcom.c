@@ -614,7 +614,7 @@ int main(int argc, char *argv[])
         char *stop_set = ";\n\r";
 
         memset(ts2000, 0, sizeof(ts2000));
-        serial_flush(&my_com);  // get rid of anything in the queue
+        rig_flush(&my_com);  // get rid of anything in the queue
 
         status = read_string(&my_com,
                              ts2000,

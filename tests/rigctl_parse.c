@@ -4394,7 +4394,7 @@ declare_proto_rig(send_cmd)
 
     rs = &rig->state;
 
-    serial_flush(&rs->rigport);
+    rig_flush(&rs->rigport);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: rigport=%d, bufcmd=%s, cmd_len=%d\n", __func__,
               rs->rigport.fd, hasbinary(bufcmd) ? "BINARY" : bufcmd, cmd_len);
