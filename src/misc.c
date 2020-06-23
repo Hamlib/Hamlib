@@ -54,6 +54,8 @@
 #include <hamlib/amplifier.h>
 
 #include "misc.h"
+#include "serial.h"
+#include "network.h"
 
 
 /**
@@ -1385,8 +1387,9 @@ int HAMLIB_API parse_hoststr(char *hoststr, char host[256], char port[6])
     dummy[0] = 0;
 
     // Handle device names 1st
-    if (strstr(hoststr, "/dev")) return -1;
-    if (strncasecmp(hoststr, "com", 3)==0) return -1;
+    if (strstr(hoststr, "/dev")) { return -1; }
+
+    if (strncasecmp(hoststr, "com", 3) == 0) { return -1; }
 
     // bracketed IPV6 with optional port
     int n = sscanf(hoststr, "[%255[^]]]:%5s", host, port);
@@ -1399,6 +1402,7 @@ int HAMLIB_API parse_hoststr(char *hoststr, char host[256], char port[6])
     // non-bracketed full IPV6 with optional link addr
     n = sscanf(hoststr, "%x:%x:%x:%x:%x:%x:%x:%x%%%31[^:]:%5s", &net1, &net2, &net3,
                &net4, &net5, &net6, &net7, &net8, link, port);
+
     if (n == 8 || n == 9)
     {
         strcpy(host, hoststr);
@@ -1411,6 +1415,7 @@ int HAMLIB_API parse_hoststr(char *hoststr, char host[256], char port[6])
         *p = 0;
         return RIG_OK;
     }
+
     // non-bracketed IPV6 with optional link addr and optional port
     n = sscanf(hoststr, "%x::%x:%x:%x:%x%%%31[^:]:%5s", &net1, &net2, &net3,
                &net4, &net5, link, port);
@@ -1475,6 +1480,17 @@ int HAMLIB_API parse_hoststr(char *hoststr, char host[256], char port[6])
     return -1;
 }
 
+int HAMLIB_API rig_flush(RIG *rig)
+{
+    if (rig->state.rigport.type.rig == RIG_PORT_NETWORK
+            || rig->state.rigport.type.rig == RIG_PORT_UDP_NETWORK)
+    {
+        network_flush(&rig->state.rigport);
+        return RIG_OK;
+    }
+    return serial_flush(&rig->state.rigport);
+}
+
 //! @endcond
 
-/** @} */
+    /** @} */
