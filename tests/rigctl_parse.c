@@ -96,6 +96,7 @@ extern int read_history();
 
 /* variables for readline support */
 #ifdef HAVE_LIBREADLINE
+static int chk_vfo_executed;
 static char *input_line = (char *)NULL;
 static char *result = (char *)NULL;
 static char *parsed_input[sizeof(char *) * 5];
@@ -4081,9 +4082,12 @@ declare_proto_rig(dump_state)
     // protocol 1 allows fields can be listed/processed in any order
     // protocol 1 fields can be multi-line -- just write the thing to allow for it
     // backward compatible as new values will just generate warnings
-    fprintf(fout, "vfo_ops=0x%x\n", rig->caps->vfo_ops);
-    fprintf(fout, "ptt_type=0x%x\n", rig->state.pttport.type.ptt);
-    fprintf(fout, "done\n");
+    if (chk_vfo_executed) // for 3.3 compatiblility
+    {
+       fprintf(fout, "vfo_ops=0x%x\n", rig->caps->vfo_ops);
+       fprintf(fout, "ptt_type=0x%x\n", rig->state.pttport.type.ptt);
+       fprintf(fout, "done\n");
+    }
 
 #if 0 // why isn't this implemented?  Does anybody care?
     gran_t level_gran[RIG_SETTING_MAX];   /*!< level granularity */
@@ -4519,6 +4523,8 @@ declare_proto_rig(chk_vfo)
     }
 
     fprintf(fout, "%d\n", rig->state.vfo_opt);
+
+    chk_vfo_executed = 1; // this allows us to control dump_state version
 
     return RIG_OK;
 }
