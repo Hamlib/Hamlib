@@ -2030,6 +2030,7 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
 
     if (CHECK_RIG_ARG(rig) || !vfo)
     {
+        rig_debug(RIG_DEBUG_ERR, "%s: no rig and/or vfo?  rig=%p, vfo=%p\n", __func__, rig, vfo);
         return -RIG_EINVAL;
     }
 
@@ -2037,6 +2038,7 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
 
     if (caps->get_vfo == NULL)
     {
+        rig_debug(RIG_DEBUG_ERR, "%s: no get_vfo\n", __func__);
         return -RIG_ENAVAIL;
     }
 
@@ -2065,6 +2067,11 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
     else
     {
         cache_ms = elapsed_ms(&rig->state.cache.time_vfo, ELAPSED_INVALIDATE);
+    }
+
+    if (retcode != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: returning %d(%s)\n", __func__, retcode,rigerror(retcode));
     }
 
     return retcode;
