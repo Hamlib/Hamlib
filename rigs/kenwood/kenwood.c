@@ -700,9 +700,11 @@ int kenwood_open(RIG *rig)
     int err, i;
     char *idptr;
     char id[KENWOOD_MAX_BUF_LEN];
+    int retry_save = rig->state.rigport.retry;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
+    rig->state.rigport.retry = 0;
     err = kenwood_get_id(rig, id);
 
     if (err == RIG_OK)   // some rigs give ID while in standby
@@ -791,6 +793,7 @@ int kenwood_open(RIG *rig)
         if (RIG_OK != err)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: no response from rig\n", __func__);
+            rig->state.rigport.retry = retry_save;
             return err;
         }
 
@@ -804,6 +807,7 @@ int kenwood_open(RIG *rig)
         if (err != RIG_OK)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: cannot get identification\n", __func__);
+            rig->state.rigport.retry = retry_save;
             return err;
         }
     }
@@ -890,6 +894,7 @@ int kenwood_open(RIG *rig)
 
     // we're making this non fatal
     // mismatched IDs can still be tested
+    rig->state.rigport.retry = retry_save;
     return RIG_OK;
 }
 
@@ -3473,13 +3478,15 @@ int kenwood_set_powerstat(RIG *rig, powerstat_t status)
                                      (status == RIG_POWER_ON) ? ";;;;PS1;" : "PS0",
                                      NULL, 0);
     int i = 0;
-    int retry = rig->state.rigport.retry / 3;
+    int retry_save = rig->state.rigport.retry;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called status=%d\n", __func__, status);
 
+    rig->state.rigport.retry = 0;
+
     if (status == RIG_POWER_ON) // wait for wakeup only
     {
-        for (i = 0; i < retry; ++i) // up to 10 seconds
+        for (i = 0; i < 8; ++i) // up to ~10 seconds including the timeouts
         {
             freq_t freq;
             sleep(1);
@@ -3487,12 +3494,13 @@ int kenwood_set_powerstat(RIG *rig, powerstat_t status)
 
             if (retval == RIG_OK) { return retval; }
 
-            rig_debug(RIG_DEBUG_TRACE, "%s: Wait %d of %d for power up\n", __func__, i + 1,
-                      retry);
+            rig_debug(RIG_DEBUG_TRACE, "%s: Wait #%d for power up\n", __func__, i + 1);
         }
     }
 
-    if (i == retry)
+    rig->state.rigport.retry = retry_save;
+
+    if (i == 9)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: timeout waiting for powerup, try %d\n",
                   __func__,
@@ -4191,7 +4199,7 @@ DECLARE_PROBERIG_BACKEND(kenwood)
 
     port->write_delay = port->post_write_delay = 0;
     port->parm.serial.stop_bits = 2;
-    port->retry = 1;
+    port->retry = 0;
 
     /*
      * try for all different baud rates
