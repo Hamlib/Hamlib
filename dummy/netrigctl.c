@@ -68,15 +68,7 @@ static int netrigctl_transaction(RIG *rig, char *cmd, int len, char *buf)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called len=%d\n", __func__, len);
 
     /* flush anything in the read buffer before command is sent */
-    if (rig->state.rigport.type.rig == RIG_PORT_NETWORK
-            || rig->state.rigport.type.rig == RIG_PORT_UDP_NETWORK)
-    {
-        network_flush(&rig->state.rigport);
-    }
-    else
-    {
-        serial_flush(&rig->state.rigport);
-    }
+    rig_flush(&rig->state.rigport);
 
     ret = write_block(&rig->state.rigport, cmd, len);
 

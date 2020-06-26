@@ -253,7 +253,7 @@ static int rx331_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 
     rs = &rig->state;
 
-    serial_flush(&rs->rigport);
+    rig_flush(&rs->rigport);
 
     num_snprintf(str, BUFSZ, "$%u%s", priv->receiver_id, cmd);
     retval = write_block(&rs->rigport, str, strlen(str));

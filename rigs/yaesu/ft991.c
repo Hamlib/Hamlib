@@ -56,7 +56,7 @@ const struct rig_caps ft991_caps =
     RIG_MODEL(RIG_MODEL_FT991),
     .model_name =         "FT-991",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".1",
+    .version =            NEWCAT_VER ".2",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -736,6 +736,7 @@ static int ft991_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
     {
         int i;
         ncboolean tone_match;
+
         for (i = 0, tone_match = FALSE; rig->caps->ctcss_list[i] != 0; i++)
         {
             if (tone == rig->caps->ctcss_list[i])

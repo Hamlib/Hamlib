@@ -289,10 +289,10 @@ const struct rig_caps dx77_caps =
  * TODO: error case handling
  */
 int dx77_transaction(RIG *rig,
-                       const char *cmd,
-                       int cmd_len,
-                       char *data,
-                       int *data_len)
+                     const char *cmd,
+                     int cmd_len,
+                     char *data,
+                     int *data_len)
 {
 
     int retval;
@@ -308,7 +308,7 @@ int dx77_transaction(RIG *rig,
 
     rs = &rig->state;
 
-    serial_flush(&rs->rigport);
+    rig_flush(&rs->rigport);
 
     retval = write_block(&rs->rigport, cmd, cmd_len);
 
@@ -398,10 +398,10 @@ int dx77_set_vfo(RIG *rig, vfo_t vfo)
 
     case RIG_VFO_MEM:
         return dx77_transaction(rig,
-                                  AL CMD_MEMMD "0" EOM,
-                                  strlen(AL CMD_MEMMD "0" EOM),
-                                  NULL,
-                                  NULL);
+                                AL CMD_MEMMD "0" EOM,
+                                strlen(AL CMD_MEMMD "0" EOM),
+                                NULL,
+                                NULL);
 
     default:
         rig_debug(RIG_DEBUG_ERR,
@@ -427,10 +427,10 @@ int dx77_get_vfo(RIG *rig, vfo_t *vfo)
     int vfo_len, retval;
 
     retval = dx77_transaction(rig,
-                                AL CMD_RMV EOM,
-                                strlen(AL CMD_RMV EOM),
-                                vfobuf,
-                                &vfo_len);
+                              AL CMD_RMV EOM,
+                              strlen(AL CMD_RMV EOM),
+                              vfobuf,
+                              &vfo_len);
 
     if (retval != RIG_OK)
     {
@@ -506,10 +506,10 @@ static int current_data_read(RIG *rig, char *databuf)
     int data_len, retval;
 
     retval = dx77_transaction(rig,
-                                AL CMD_RDATA EOM,
-                                strlen(AL CMD_RDATA EOM),
-                                databuf,
-                                &data_len);
+                              AL CMD_RDATA EOM,
+                              strlen(AL CMD_RDATA EOM),
+                              databuf,
+                              &data_len);
 
     if (retval != RIG_OK)
     {
@@ -702,10 +702,10 @@ int dx77_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
     char spltbuf[BUFSZ];
 
     retval = dx77_transaction(rig,
-                                AL CMD_RSPLT EOM,
-                                strlen(AL CMD_RSPLT EOM),
-                                spltbuf,
-                                &splt_len);
+                              AL CMD_RSPLT EOM,
+                              strlen(AL CMD_RSPLT EOM),
+                              spltbuf,
+                              &splt_len);
 
     if (retval != RIG_OK)
     {
@@ -805,10 +805,10 @@ int dx77_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 
     /* read in Hertz unit */
     retval = dx77_transaction(rig,
-                                AL CMD_RIT "0" EOM,
-                                strlen(AL CMD_RIT "0" EOM),
-                                ritbuf,
-                                &rit_len);
+                              AL CMD_RIT "0" EOM,
+                              strlen(AL CMD_RIT "0" EOM),
+                              ritbuf,
+                              &rit_len);
 
     if (retval != RIG_OK)
     {
@@ -1113,10 +1113,10 @@ int dx77_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_RAWSTR:
         /* read A/D converted value */
         retval = dx77_transaction(rig,
-                                    AL CMD_SMETER "1" EOM,
-                                    strlen(AL CMD_SMETER "1" EOM),
-                                    lvlbuf,
-                                    &lvl_len);
+                                  AL CMD_SMETER "1" EOM,
+                                  strlen(AL CMD_SMETER "1" EOM),
+                                  lvlbuf,
+                                  &lvl_len);
 
         if (retval != RIG_OK)
         {
@@ -1187,10 +1187,10 @@ int dx77_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_RFPOWER:
         retval = dx77_transaction(rig,
-                                    AL CMD_RPOWER EOM,
-                                    strlen(AL CMD_RPOWER EOM),
-                                    lvlbuf,
-                                    &lvl_len);
+                                  AL CMD_RPOWER EOM,
+                                  strlen(AL CMD_RPOWER EOM),
+                                  lvlbuf,
+                                  &lvl_len);
 
         if (retval != RIG_OK)
         {
@@ -1294,10 +1294,10 @@ int dx77_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     int ptt_len, retval;
 
     retval = dx77_transaction(rig,
-                                AL CMD_PTT EOM,
-                                strlen(AL CMD_PTT EOM),
-                                pttbuf,
-                                &ptt_len);
+                              AL CMD_PTT EOM,
+                              strlen(AL CMD_PTT EOM),
+                              pttbuf,
+                              &ptt_len);
 
     if (retval != RIG_OK)
     {
@@ -1347,10 +1347,10 @@ int dx77_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
     int dcd_len, retval;
 
     retval = dx77_transaction(rig,
-                                AL CMD_SQL EOM,
-                                strlen(AL CMD_SQL EOM),
-                                dcdbuf,
-                                &dcd_len);
+                              AL CMD_SQL EOM,
+                              strlen(AL CMD_SQL EOM),
+                              dcdbuf,
+                              &dcd_len);
 
     if (retval != RIG_OK)
     {
@@ -1421,10 +1421,10 @@ int dx77_get_mem(RIG *rig, vfo_t vfo, int *ch)
     int mem_len, retval;
 
     retval = dx77_transaction(rig,
-                                AL CMD_RMEM EOM,
-                                strlen(AL CMD_RMEM EOM),
-                                membuf,
-                                &mem_len);
+                              AL CMD_RMEM EOM,
+                              strlen(AL CMD_RMEM EOM),
+                              membuf,
+                              &mem_len);
 
     if (retval != RIG_OK)
     {

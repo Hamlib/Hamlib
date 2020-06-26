@@ -85,7 +85,7 @@ tt550_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
     // cppcheck-suppress *
     Hold_Decode(rig);
 
-    serial_flush(&rs->rigport);
+    rig_flush(&rs->rigport);
 
     retval = write_block(&rs->rigport, cmd, cmd_len);
 

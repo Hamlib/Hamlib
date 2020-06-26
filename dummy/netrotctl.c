@@ -48,15 +48,7 @@ static int netrotctl_transaction(ROT *rot, char *cmd, int len, char *buf)
     int ret;
 
     /* flush anything in the read buffer before command is sent */
-    if (rot->state.rotport.type.rig == RIG_PORT_NETWORK
-            || rot->state.rotport.type.rig == RIG_PORT_UDP_NETWORK)
-    {
-        network_flush(&rot->state.rotport);
-    }
-    else
-    {
-        serial_flush(&rot->state.rotport);
-    }
+    rig_flush(&rot->state.rotport);
 
     ret = write_block(&rot->state.rotport, cmd, len);
 

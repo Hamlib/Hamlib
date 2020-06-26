@@ -92,12 +92,25 @@ enum ft1000mp_native_cmd_e {
   FT1000MP_NATIVE_MODE_SET_RTTY_USB,
   FT1000MP_NATIVE_MODE_SET_DATA_LSB,
   FT1000MP_NATIVE_MODE_SET_DATA_FM,
+  FT1000MP_NATIVE_MODE_SET_LSB_B,
+  FT1000MP_NATIVE_MODE_SET_USB_B,
+  FT1000MP_NATIVE_MODE_SET_CW_B,
+  FT1000MP_NATIVE_MODE_SET_CWR_B,
+  FT1000MP_NATIVE_MODE_SET_AM_B,
+  FT1000MP_NATIVE_MODE_SET_AMS_B,
+  FT1000MP_NATIVE_MODE_SET_FM_B,
+  FT1000MP_NATIVE_MODE_SET_FMW_B,
+  FT1000MP_NATIVE_MODE_SET_RTTY_LSB_B,
+  FT1000MP_NATIVE_MODE_SET_RTTY_USB_B,
+  FT1000MP_NATIVE_MODE_SET_DATA_LSB_B,
+  FT1000MP_NATIVE_MODE_SET_DATA_FM_B,
   FT1000MP_NATIVE_PACING,
   FT1000MP_NATIVE_PTT_OFF,
   FT1000MP_NATIVE_PTT_ON,
   FT1000MP_NATIVE_VFO_UPDATE,
   FT1000MP_NATIVE_CURR_VFO_UPDATE,
   FT1000MP_NATIVE_UPDATE,
+  FT1000MP_NATIVE_AB,
   FT1000MP_NATIVE_SIZE            /* end marker, value indicates number of */
 				                /* native cmd entries */
 
@@ -202,7 +215,10 @@ int ft1000mp_close(RIG *rig);
 int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int ft1000mp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 
+int ft1000mp_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
+int ft1000mp_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq);
 int ft1000mp_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
+int ft1000mp_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
 
 int ft1000mp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width); /* select mode */
 int ft1000mp_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width); /* get mode */

@@ -311,15 +311,7 @@ transaction_write:
         }
 
         /* flush anything in the read buffer before command is sent */
-        if (rs->rigport.type.rig == RIG_PORT_NETWORK
-                || rs->rigport.type.rig == RIG_PORT_UDP_NETWORK)
-        {
-            network_flush(&rs->rigport);
-        }
-        else
-        {
-            serial_flush(&rs->rigport);
-        }
+        rig_flush(&rs->rigport);
 
         retval = write_block(&rs->rigport, cmd, len);
 
@@ -708,9 +700,11 @@ int kenwood_open(RIG *rig)
     int err, i;
     char *idptr;
     char id[KENWOOD_MAX_BUF_LEN];
+    int retry_save = rig->state.rigport.retry;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
+    rig->state.rigport.retry = 0;
     err = kenwood_get_id(rig, id);
 
     if (err == RIG_OK)   // some rigs give ID while in standby
@@ -742,6 +736,18 @@ int kenwood_open(RIG *rig)
             rig_debug(RIG_DEBUG_ERR,
                       "%s: no response to get_id from rig...contintuing anyways.\n", __func__);
         }
+    }
+
+    if (RIG_IS_TS2000
+            || RIG_IS_TS480
+            || RIG_IS_TS590S
+            || RIG_IS_TS590SG
+            || RIG_IS_TS890S
+            || RIG_IS_TS990S)
+    {
+        // rig has Set 2 RIT/XIT function
+        rig_debug(RIG_DEBUG_TRACE, "%s: rig has_rit2\n", __func__);
+        priv->has_rit2 = 1;
     }
 
     if (RIG_IS_TS590S)
@@ -787,6 +793,7 @@ int kenwood_open(RIG *rig)
         if (RIG_OK != err)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: no response from rig\n", __func__);
+            rig->state.rigport.retry = retry_save;
             return err;
         }
 
@@ -800,6 +807,7 @@ int kenwood_open(RIG *rig)
         if (err != RIG_OK)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: cannot get identification\n", __func__);
+            rig->state.rigport.retry = retry_save;
             return err;
         }
     }
@@ -886,6 +894,7 @@ int kenwood_open(RIG *rig)
 
     // we're making this non fatal
     // mismatched IDs can still be tested
+    rig->state.rigport.retry = retry_save;
     return RIG_OK;
 }
 
@@ -1652,9 +1661,11 @@ int kenwood_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     int retval, i;
     shortfreq_t curr_rit;
     int diff;
+    struct kenwood_priv_data *priv = rig->state.priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called: vfo=%s, rit=%ld\n", __func__,
-              rig_strvfo(vfo), rit);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called: vfo=%s, rit=%ld, has_rit2=%d\n",
+              __func__,
+              rig_strvfo(vfo), rit, priv->has_rit2);
 
     retval = kenwood_get_rit(rig, vfo, &curr_rit);
 
@@ -1663,28 +1674,32 @@ int kenwood_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
         return retval;
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s get_rit=%ld\n", __func__, curr_rit);
-
-    if (rit == 0)
+    if (priv->has_rit2) // if backend shows it has the Set 2 command
     {
-        return kenwood_transaction(rig, "RC", NULL, 0);
+        char cmd[10];
+        snprintf(cmd, sizeof(cmd) - 1, "R%c%05d", rit > 0 ? 'U' : 'D', (int)rit);
+        retval = kenwood_transaction(rig, cmd, NULL, 0);
     }
-
-    retval = kenwood_transaction(rig, "RC", NULL, 0);
-
-    if (retval != RIG_OK)
+    else
     {
-        return retval;
-    }
+        retval = kenwood_transaction(rig, "RC", NULL, 0);
 
-    snprintf(buf, sizeof(buf), "R%c", (rit > 0) ? 'U' : 'D');
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
 
-    diff = labs((rit + 5) / 10); // round to nearest
-    rig_debug(RIG_DEBUG_TRACE, "%s: rit change loop=%d\n", __func__, diff);
+        if (rit == 0) { return RIG_OK; } // we're done here
 
-    for (i = 0; i < diff; i++)
-    {
-        retval = kenwood_transaction(rig, buf, NULL, 0);
+        snprintf(buf, sizeof(buf), "R%c", (rit > 0) ? 'U' : 'D');
+
+        diff = labs((rit + rit >= 0 ? 5 : -5) / 10); // round to nearest
+        rig_debug(RIG_DEBUG_TRACE, "%s: rit change loop=%d\n", __func__, diff);
+
+        for (i = 0; i < diff; i++)
+        {
+            retval = kenwood_transaction(rig, buf, NULL, 0);
+        }
     }
 
     return retval;
@@ -2810,6 +2825,9 @@ int kenwood_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     case RIG_FUNC_AIP:
         return get_kenwood_func(rig, "MX", status);
 
+    case RIG_FUNC_RIT:
+        return get_kenwood_func(rig, "RT", status);
+
     default:
         rig_debug(RIG_DEBUG_ERR, "Unsupported get_func %s", rig_strfunc(func));
         return -RIG_EINVAL;
@@ -3460,13 +3478,15 @@ int kenwood_set_powerstat(RIG *rig, powerstat_t status)
                                      (status == RIG_POWER_ON) ? ";;;;PS1;" : "PS0",
                                      NULL, 0);
     int i = 0;
-    int retry = rig->state.rigport.retry / 3;
+    int retry_save = rig->state.rigport.retry;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called status=%d\n", __func__, status);
 
+    rig->state.rigport.retry = 0;
+
     if (status == RIG_POWER_ON) // wait for wakeup only
     {
-        for (i = 0; i < retry; ++i) // up to 10 seconds
+        for (i = 0; i < 8; ++i) // up to ~10 seconds including the timeouts
         {
             freq_t freq;
             sleep(1);
@@ -3474,12 +3494,13 @@ int kenwood_set_powerstat(RIG *rig, powerstat_t status)
 
             if (retval == RIG_OK) { return retval; }
 
-            rig_debug(RIG_DEBUG_TRACE, "%s: Wait %d of %d for power up\n", __func__, i + 1,
-                      retry);
+            rig_debug(RIG_DEBUG_TRACE, "%s: Wait #%d for power up\n", __func__, i + 1);
         }
     }
 
-    if (i == retry)
+    rig->state.rigport.retry = retry_save;
+
+    if (i == 9)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: timeout waiting for powerup, try %d\n",
                   __func__,
@@ -4178,7 +4199,7 @@ DECLARE_PROBERIG_BACKEND(kenwood)
 
     port->write_delay = port->post_write_delay = 0;
     port->parm.serial.stop_bits = 2;
-    port->retry = 1;
+    port->retry = 0;
 
     /*
      * try for all different baud rates
