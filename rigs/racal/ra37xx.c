@@ -104,7 +104,7 @@ static int ra37xx_one_transaction(RIG *rig, const char *cmd, char *data,
         cmd_len = sprintf(cmdbuf, SOM "%s" EOM, cmd);
     }
 
-    serial_flush(&rs->rigport);
+    rig_flush(&rs->rigport);
 
     retval = write_block(&rs->rigport, cmdbuf, cmd_len);
 

@@ -74,7 +74,7 @@ int dxsr8_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 /*
  * DX-SR8 rig capabilities.
  *
- * thanks to 
+ * thanks to
  *      https://yo5ptd.wordpress.com/2017/02/12/alinco-dx-sr8/
  * for a partially documented protocol
  */
@@ -131,12 +131,12 @@ const struct rig_caps dxsr8_caps =
         RIG_CHAN_END,
     },
 
-    .rx_range_list1 = 
+    .rx_range_list1 =
     {
         {kHz(135), MHz(30), DXSR8_ALL_MODES, -1, -1, DXSR8_VFO, 0, "DX-SR8T"},
         RIG_FRNG_END,
     },
-    .tx_range_list1 =  
+    .tx_range_list1 =
     {
         {kHz(1800), MHz(2) - 100, DXSR8_OTHER_TX_MODES, W(10), W(100), DXSR8_VFO, 0, "DX-SR8T"},
         {kHz(1800), MHz(2) - 100, DXSR8_AM_TX_MODES, W(4), W(40), DXSR8_VFO, 0, "DX-SR8T"},
@@ -168,7 +168,7 @@ const struct rig_caps dxsr8_caps =
         {kHz(135), MHz(30), DXSR8_ALL_MODES, -1, -1, DXSR8_VFO, 0, "DX-SR8E"},
         RIG_FRNG_END,
     },
-    .tx_range_list2 =  
+    .tx_range_list2 =
     {
         {kHz(1800), MHz(2) - 100, DXSR8_OTHER_TX_MODES, W(10), W(100), DXSR8_VFO, 0, "DX-SR8E"},
         {kHz(1800), MHz(2) - 100, DXSR8_AM_TX_MODES, W(4), W(40), DXSR8_VFO, 0, "DX-SR8E"},
@@ -231,10 +231,10 @@ const struct rig_caps dxsr8_caps =
  * TODO: error case handling
  */
 int dxsr8_transaction(RIG *rig,
-                       const char *cmd,
-                       int cmd_len,
-                       char *data,
-                       int *data_len)
+                      const char *cmd,
+                      int cmd_len,
+                      char *data,
+                      int *data_len)
 {
 
     int retval;
@@ -251,7 +251,7 @@ int dxsr8_transaction(RIG *rig,
 
     rs = &rig->state;
 
-    serial_flush(&rs->rigport);
+    rig_flush(&rs->rigport);
 
     retval = write_block(&rs->rigport, cmd, cmd_len);
 
@@ -265,12 +265,12 @@ int dxsr8_transaction(RIG *rig,
      * TODO: check whether cmd and echobuf match (optional)
      */
     retval = read_string(&rs->rigport, replybuf, BUFSZ, LF, strlen(LF));
-    
+
     if (retval < 0)
     {
         return retval;
     }
-    
+
 
     retval = read_string(&rs->rigport, replybuf, BUFSZ, LF, strlen(LF));
 
@@ -302,7 +302,7 @@ int dxsr8_transaction(RIG *rig,
 
     strcpy(data, replybuf);
     *data_len = reply_len;
-    
+
     return RIG_OK;
 }
 
@@ -312,8 +312,8 @@ int dxsr8_transaction(RIG *rig,
  * Convenience function to read a numeric value from the radio
  */
 int dxsr8_read_num(RIG *rig,
-                       const char *cmd,
-                       int *reply_num) 
+                   const char *cmd,
+                   int *reply_num)
 {
     int retval;
     int reply_len;
@@ -334,8 +334,9 @@ int dxsr8_read_num(RIG *rig,
  * dxsr8_set_freq
  * Assumes rig!=NULL
  */
-int dxsr8_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
-    
+int dxsr8_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
+{
+
     char cmd[BUFSZ];
     int cmd_len;
 
@@ -345,6 +346,7 @@ int dxsr8_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
         return -RIG_EINVAL;
     }
 
+    // cppcheck-suppress *
     cmd_len = sprintf(cmd, AL "~RW_RXF%08"PRIll EOM, (int64_t)freq);
     return dxsr8_transaction(rig, cmd, cmd_len, NULL, NULL);
 }
@@ -353,9 +355,10 @@ int dxsr8_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
  * dxsr8_get_freq
  * Assumes rig!=NULL, freq!=NULL
  */
-int dxsr8_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
+int dxsr8_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
+{
     int retval, data_len;
-    
+
     char cmd[] = AL "~RR_RXF" EOM;
     char freqbuf[BUFSZ];
 
@@ -376,18 +379,24 @@ int dxsr8_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
  * dxsr8_set_mode
  * Assumes rig!=NULL
  */
-int dxsr8_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
-   char mdbuf[BUFSZ];
+int dxsr8_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
+{
+    char mdbuf[BUFSZ];
     int mdbuf_len, wide_filter, retval;
     int amode;
 
     switch (mode)
     {
     case RIG_MODE_CW:       amode = MD_CWU; break;
+
     case RIG_MODE_CWR:      amode = MD_CWL; break;
+
     case RIG_MODE_USB:      amode = MD_USB; break;
+
     case RIG_MODE_LSB:      amode = MD_LSB; break;
+
     case RIG_MODE_FM:       amode = MD_FM; break;
+
     case RIG_MODE_AM:       amode = MD_AM; break;
 
     default:
@@ -427,14 +436,16 @@ int dxsr8_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
  * dxsr8_get_mode
  * Assumes rig!=NULL, mode!=NULL
  */
-int dxsr8_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
-    
+int dxsr8_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+{
+
     int retval;
     int amode;
     int filter;
 
     retval = dxsr8_read_num(rig, AL "~RR_RFM" EOM, &amode);
-    if (retval != RIG_OK) 
+
+    if (retval != RIG_OK)
     {
         return retval;
     }
@@ -443,9 +454,13 @@ int dxsr8_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
     {
     case MD_CWL:
     case MD_CWU:      *mode = RIG_MODE_CW; break;
+
     case MD_USB:      *mode = RIG_MODE_USB; break;
+
     case MD_LSB:      *mode = RIG_MODE_LSB; break;
+
     case MD_AM:       *mode = RIG_MODE_AM; break;
+
     case MD_FM:       *mode = RIG_MODE_FM; break;
 
     default:
@@ -458,10 +473,12 @@ int dxsr8_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
 
     retval = dxsr8_read_num(rig, AL "~RR_NAR" EOM, &filter);
 
-    if (filter == 0) 
+    if (filter == 0)
     {
         *width = rig_passband_wide(rig, *mode);
-    } else {
+    }
+    else
+    {
         *width = rig_passband_normal(rig, *mode);
     }
 
@@ -472,7 +489,8 @@ int dxsr8_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
  * dxsr8_set_func
  * Assumes rig!=NULL
  */
-int dxsr8_set_func(RIG *rig, vfo_t vfo, setting_t func, int status) {
+int dxsr8_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
+{
 
     int cmd_len;
     char cmd[BUFSZ];
@@ -489,7 +507,7 @@ int dxsr8_set_func(RIG *rig, vfo_t vfo, setting_t func, int status) {
 
         return dxsr8_transaction(rig, cmd, cmd_len, NULL, NULL);
 
-    
+
     default:
         rig_debug(RIG_DEBUG_ERR, "Unsupported set_func %d\n", (int)func);
         return -RIG_EINVAL;
@@ -502,7 +520,8 @@ int dxsr8_set_func(RIG *rig, vfo_t vfo, setting_t func, int status) {
  * dxsr8_get_func
  * Assumes rig!=NULL, status!=NULL
  */
-int dxsr8_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status) {
+int dxsr8_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
+{
 
     int retval;
     int setting;
@@ -535,7 +554,7 @@ int dxsr8_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status) {
         *status = setting ? 1 : 0;
         break;
 
-    
+
     default:
         rig_debug(RIG_DEBUG_ERR, "Unsupported get_func %d\n", (int)func);
         return -RIG_EINVAL;
@@ -549,7 +568,8 @@ int dxsr8_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status) {
  * Assumes rig!=NULL
  * FIXME: cannot support PREAMP and ATT both at same time (make sense though)
  */
-int dxsr8_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val) {
+int dxsr8_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+{
     int cmd_len, lvl;
     char cmd[BUFSZ];
 
@@ -559,6 +579,7 @@ int dxsr8_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val) {
         switch (val.i)
         {
         case 0: lvl = 0; break; // AL~RW_RFG00 - RF gain  0dB
+
         case 10: lvl = 3; break; // AL~RW_RFG03 - RF gain +10dB
 
         default: rig_debug(RIG_DEBUG_ERR,
@@ -575,7 +596,9 @@ int dxsr8_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val) {
         switch (val.i)
         {
         case 0: lvl = 0; break; // AL~RW_RFG00 - RF gain  0dB
+
         case 10: lvl = 1; break; // AL~RW_RFG01 - RF gain -10dB
+
         case 20: lvl = 2; break; // AL~RW_RFG02 - RF gain -20dB
 
         default: rig_debug(RIG_DEBUG_ERR,
@@ -590,11 +613,16 @@ int dxsr8_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val) {
 
     case RIG_LEVEL_RFPOWER:
 
-        if (val.f <= 0.01) {
+        if (val.f <= 0.01)
+        {
             lvl = 2; // AL~RW_PWR02 - Sub low power (QRP mode)
-        } else if (val.f <= 0.1)  {
+        }
+        else if (val.f <= 0.1)
+        {
             lvl = 1; // AL~RW_PWR01 - Low power
-        } else {
+        }
+        else
+        {
             lvl = 0; // AL~RW_PWR00 - High power
         }
 
@@ -614,7 +642,8 @@ int dxsr8_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val) {
  * dxsr8_get_level
  * Assumes rig!=NULL, val!=NULL
  */
-int dxsr8_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val) {
+int dxsr8_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
 
     int retval;
     int lvl;
@@ -630,12 +659,15 @@ int dxsr8_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val) {
             return retval;
         }
 
-        switch (lvl) {
+        switch (lvl)
+        {
         case 0:
             val->i = 0; break; // RF gain  0dB
+
         case 3:
             val->i = 10; break; // RF gain +10dB
-        default: 
+
+        default:
             rig_debug(RIG_DEBUG_ERR, "Unknown RF Gain %02d\n", lvl);
         }
 
@@ -649,14 +681,18 @@ int dxsr8_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val) {
             return retval;
         }
 
-        switch (lvl) {
+        switch (lvl)
+        {
         case 0:
             val->i = 0; break; // RF gain  0dB
+
         case 1:
             val->i = 10; break; // RF gain -10dB
+
         case 2:
             val->i = 10; break; // RF gain -20dB
-        default: 
+
+        default:
             rig_debug(RIG_DEBUG_ERR, "Unknown RF Gain %02d\n", lvl);
         }
 
@@ -684,7 +720,7 @@ int dxsr8_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val) {
         case 3: // 02 - Sub low power (QRP mode)
             val->f = 0.01; // 1 W
             break;
-        
+
         default:
             rig_debug(RIG_DEBUG_ERR, "Unknown RF Power %02d\n", lvl);
             break;
@@ -705,7 +741,8 @@ int dxsr8_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val) {
  * dxsr8_get_ptt
  * Assumes rig!=NULL, ptt!=NULL
  */
-int dxsr8_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt) {
+int dxsr8_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
+{
 
     int retval;
     int pttval;
@@ -725,7 +762,8 @@ int dxsr8_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt) {
  * dxsr8_set_ptt
  * Assumes rig!=NULL
  */
-int dxsr8_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt) {
+int dxsr8_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
+{
 
     char cmd[BUFSZ];
     int cmd_len;

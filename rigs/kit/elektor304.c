@@ -345,7 +345,7 @@ int elektor304_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     priv = (struct elektor304_priv_data *)rig->state.priv;
 
-    serial_flush(port);
+    rig_flush(port);
 
     /* Initialization */
     ad_fsync(port, 0);

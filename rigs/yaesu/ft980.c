@@ -635,7 +635,7 @@ int ft980_transaction(RIG *rig, const unsigned char *cmd, unsigned char *data,
     int retval;
     char echo_back[YAESU_CMD_LENGTH];
 
-    serial_flush(&rig->state.rigport);
+    rig_flush(&rig->state.rigport);
 
     retval = write_block(&rig->state.rigport, (const char *)cmd, YAESU_CMD_LENGTH);
 

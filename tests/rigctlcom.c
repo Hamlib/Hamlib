@@ -614,7 +614,6 @@ int main(int argc, char *argv[])
         char *stop_set = ";\n\r";
 
         memset(ts2000, 0, sizeof(ts2000));
-        serial_flush(&my_com);  // get rid of anything in the queue
 
         status = read_string(&my_com,
                              ts2000,
@@ -648,7 +647,7 @@ static rmode_t ts2000_get_mode()
 {
     rmode_t mode;
     pbwidth_t width;
-    rig_get_mode(my_rig, RIG_VFO_A, &mode, &width);
+    rig_get_mode(my_rig, vfo_fixup(my_rig, RIG_VFO_A), &mode, &width);
 
     // Perhaps we should emulate a rig that has PKT modes instead??
     switch (mode)
@@ -735,10 +734,10 @@ static int handle_ts2000(void *arg)
         int p13 = 0;            // P13 Tone dummy value for now
         int p14 = 0;            // P14 Tone Freq dummy value for now
         int p15 = 0;            // P15 Shift status dummy value for now
-        int retval = rig_get_freq(my_rig, RIG_VFO_A, &freq);
+        int retval = rig_get_freq(my_rig, vfo_fixup(my_rig, RIG_VFO_A), &freq);
         char response[64];
-        // cppcheck-suppress *
         char *fmt =
+            // cppcheck-suppress *
             "IF%011"PRIll"%04d+%05d%1d%1d%1d%02d%1d%1"PRIll"%1d%1d%1d%1d%02d%1d;";
 
         if (retval != RIG_OK)
@@ -747,7 +746,7 @@ static int handle_ts2000(void *arg)
         }
 
         mode = ts2000_get_mode();
-        retval = rig_get_ptt(my_rig, RIG_VFO_A, &ptt);
+        retval = rig_get_ptt(my_rig, vfo_fixup(my_rig, RIG_VFO_A), &ptt);
 
         if (retval != RIG_OK)
         {
@@ -772,10 +771,16 @@ static int handle_ts2000(void *arg)
         switch (vfo)
         {
         case RIG_VFO_A:
+        case RIG_VFO_MAIN:
+        case RIG_VFO_MAIN_A:
+        case RIG_VFO_SUB_A:
             vfo = 0;
             break;
 
         case RIG_VFO_B:
+        case RIG_VFO_SUB:
+        case RIG_VFO_MAIN_B:
+        case RIG_VFO_SUB_B:
             vfo = 1;
             break;
 
@@ -823,7 +828,7 @@ static int handle_ts2000(void *arg)
         freq_t freq = 0;
         char response[32];
 
-        int retval = rig_get_freq(my_rig, RIG_VFO_A, &freq);
+        int retval = rig_get_freq(my_rig, vfo_fixup(my_rig, RIG_VFO_A), &freq);
 
         if (retval != RIG_OK)
         {
@@ -839,7 +844,7 @@ static int handle_ts2000(void *arg)
     {
         char response[32];
         freq_t freq = 0;
-        int retval = rig_get_freq(my_rig, RIG_VFO_B, &freq);
+        int retval = rig_get_freq(my_rig, vfo_fixup(my_rig, RIG_VFO_B), &freq);
 
         if (retval != RIG_OK)
         {
@@ -868,7 +873,7 @@ static int handle_ts2000(void *arg)
     // Now some commands to set things
     else if (strcmp(arg, "TX;") == 0)
     {
-        return rig_set_ptt(my_rig, RIG_VFO_A, 1);
+        return rig_set_ptt(my_rig, vfo_fixup(my_rig, RIG_VFO_A), 1);
     }
     else if (strcmp(arg, "AI0;") == 0)
     {
@@ -882,11 +887,11 @@ static int handle_ts2000(void *arg)
     }
     else if (strcmp(arg, "FR0;") == 0)
     {
-        return rig_set_vfo(my_rig, RIG_VFO_A);
+        return rig_set_vfo(my_rig, vfo_fixup(my_rig, RIG_VFO_A));
     }
     else if (strcmp(arg, "FR1;") == 0)
     {
-        return rig_set_vfo(my_rig, RIG_VFO_B);
+        return rig_set_vfo(my_rig, vfo_fixup(my_rig, RIG_VFO_B));
     }
     else if (strcmp(arg, "FR;") == 0)
     {
@@ -903,8 +908,8 @@ static int handle_ts2000(void *arg)
         }
 
 
-        if (vfo == RIG_VFO_A) { nvfo = 0; }
-        else if (vfo == RIG_VFO_B) { nvfo = 1; }
+        if (vfo == vfo_fixup(my_rig, RIG_VFO_A)) { nvfo = 0; }
+        else if (vfo == vfo_fixup(my_rig, RIG_VFO_B)) { nvfo = 1; }
         else
         {
             retval = -RIG_EPROTO;
@@ -919,7 +924,7 @@ static int handle_ts2000(void *arg)
     else if (strcmp(arg, "FT;") == 0)
     {
         char response[32];
-        vfo_t vfo, vfo_curr = RIG_VFO_A;
+        vfo_t vfo, vfo_curr = vfo_fixup(my_rig, RIG_VFO_A);
         split_t split;
         int nvfo = 0;
         int retval = rig_get_split_vfo(my_rig, vfo_curr, &split, &vfo);
@@ -932,8 +937,8 @@ static int handle_ts2000(void *arg)
         }
 
 
-        if (vfo == RIG_VFO_A) { nvfo = 0; }
-        else if (vfo == RIG_VFO_B) { nvfo = 1; }
+        if (vfo == vfo_fixup(my_rig, RIG_VFO_A)) { nvfo = 0; }
+        else if (vfo == vfo_fixup(my_rig, RIG_VFO_B)) { nvfo = 1; }
         else
         {
             retval = -RIG_EPROTO;
@@ -982,7 +987,8 @@ static int handle_ts2000(void *arg)
     {
         char response[32];
         int valA;
-        int retval = rig_get_func(my_rig, RIG_VFO_A, RIG_FUNC_AIP, &valA);
+        int retval = rig_get_func(my_rig, vfo_fixup(my_rig, RIG_VFO_A), RIG_FUNC_AIP,
+                                  &valA);
         int valB;
 
         if (retval != RIG_OK)
@@ -1000,7 +1006,8 @@ static int handle_ts2000(void *arg)
             return retval;
         }
 
-        retval = rig_get_func(my_rig, RIG_VFO_B, RIG_FUNC_AIP, &valB);
+        retval = rig_get_func(my_rig, vfo_fixup(my_rig, RIG_VFO_B), RIG_FUNC_AIP,
+                              &valB);
 
         if (retval != RIG_OK)
         {
@@ -1025,7 +1032,7 @@ static int handle_ts2000(void *arg)
                       (char *)arg);
         }
 
-        retval = rig_set_func(my_rig, RIG_VFO_A, RIG_FUNC_AIP, valA);
+        retval = rig_set_func(my_rig, vfo_fixup(my_rig, RIG_VFO_A), RIG_FUNC_AIP, valA);
 
         if (retval != RIG_OK)
         {
@@ -1034,7 +1041,7 @@ static int handle_ts2000(void *arg)
             return retval;
         }
 
-        retval = rig_set_func(my_rig, RIG_VFO_B, RIG_FUNC_AIP, valB);
+        retval = rig_set_func(my_rig, vfo_fixup(my_rig, RIG_VFO_B), RIG_FUNC_AIP, valB);
 
         if (retval != RIG_OK)
         {
@@ -1399,7 +1406,7 @@ static int handle_ts2000(void *arg)
     }
     else if (strcmp(arg, "DC;") == 0)
     {
-        vfo_t vfo, vfo_curr = RIG_VFO_A;
+        vfo_t vfo, vfo_curr = vfo_fixup(my_rig, RIG_VFO_A);
         split_t split;
         char response[32];
         int retval = rig_get_split_vfo(my_rig, vfo_curr, &split, &vfo);
@@ -1418,7 +1425,7 @@ static int handle_ts2000(void *arg)
     }
     else if (strncmp(arg, "DC", 2) == 0)
     {
-        vfo_t vfo_curr = RIG_VFO_A;
+        vfo_t vfo_curr = vfo_fixup(my_rig, RIG_VFO_A);
         split_t split;
         int isplit;
         int retval;
@@ -1449,25 +1456,27 @@ static int handle_ts2000(void *arg)
     }
     else if (strcmp(arg, "FT0;") == 0)
     {
-        return rig_set_split_vfo(my_rig, RIG_VFO_A, RIG_VFO_A, 0);
+        return rig_set_split_vfo(my_rig, vfo_fixup(my_rig, RIG_VFO_A), vfo_fixup(my_rig,
+                                 RIG_VFO_A), 0);
     }
     else if (strcmp(arg, "FT1;") == 0)
     {
-        return rig_set_split_vfo(my_rig, RIG_VFO_B, RIG_VFO_B, 0);
+        return rig_set_split_vfo(my_rig, vfo_fixup(my_rig, RIG_VFO_B), vfo_fixup(my_rig,
+                                 RIG_VFO_B), 0);
     }
     else if (strncmp(arg, "FA0", 3) == 0)
     {
         freq_t freq;
 
         sscanf((char *)arg + 2, "%"SCNfreq, &freq);
-        return rig_set_freq(my_rig, RIG_VFO_A, freq);
+        return rig_set_freq(my_rig, vfo_fixup(my_rig, RIG_VFO_A), freq);
     }
     else if (strncmp(arg, "FB0", 3) == 0)
     {
         freq_t freq;
 
         sscanf((char *)arg + 2, "%"SCNfreq, &freq);
-        return rig_set_freq(my_rig, RIG_VFO_A, freq);
+        return rig_set_freq(my_rig, vfo_fixup(my_rig, RIG_VFO_A), freq);
     }
     else if (strncmp(arg, "MD", 2) == 0)
     {

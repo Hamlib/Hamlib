@@ -690,7 +690,15 @@ int main(int argc, char *argv[])
 
     retcode = getaddrinfo(src_addr, portno, &hints, &result);
 
-    if (retcode != 0)
+    if (retcode == 0 && result->ai_family == AF_INET6)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: Using IPV6\n", __func__);
+    }
+    else if (retcode == 0)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: Using IPV4\n", __func__);
+    }
+    else
     {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(retcode));
         exit(2);

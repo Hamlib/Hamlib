@@ -79,7 +79,7 @@ static int rshfiq_open(RIG *rig)
         }
     }
 
-    serial_flush(&rig->state.rigport);
+    rig_flush(&rig->state.rigport);
 
     snprintf(versionstr, sizeof(versionstr), "*w\r");
     rig_debug(RIG_DEBUG_TRACE, "%s: cmdstr = %s\n", __func__, versionstr);
@@ -132,7 +132,7 @@ static int rshfiq_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_debug(RIG_DEBUG_TRACE, "%s called: %s %s\n", __func__,
               rig_strvfo(vfo), fstr);
 
-    serial_flush(&rig->state.rigport);
+    rig_flush(&rig->state.rigport);
 
     snprintf(cmdstr, sizeof(cmdstr), "*f%lu\r", (unsigned long int)(freq));
 
@@ -150,7 +150,7 @@ static int rshfiq_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     char cmdstr[15];
     char stopset[2];
     int retval;
-    serial_flush(&rig->state.rigport);
+    rig_flush(&rig->state.rigport);
 
     stopset[0] = '\r';
     stopset[1] = '\n';

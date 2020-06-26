@@ -98,7 +98,7 @@ int kpa_flushbuffer(AMP *amp)
 
     rs = &amp->state;
 
-    return serial_flush(&rs->ampport);
+    return rig_flush(&rs->ampport);
 }
 
 int kpa_transaction(AMP *amp, const char *cmd, char *response, int response_len)

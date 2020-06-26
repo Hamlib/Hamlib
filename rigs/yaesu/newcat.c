@@ -366,7 +366,8 @@ int newcat_open(RIG *rig)
               __func__, rig_s->rigport.post_write_delay);
 
     /* Ensure rig is powered on */
-    if (priv->poweron == 0) {
+    if (priv->poweron == 0)
+    {
         priv->poweron = 1;
         rig_set_powerstat(rig, 1);
     }
@@ -6519,7 +6520,7 @@ int newcat_set_cmd(RIG *rig)
 
     while (rc != RIG_OK && retry_count++ <= state->rigport.retry)
     {
-        serial_flush(&state->rigport);  /* discard any unsolicited data */
+        rig_flush(&state->rigport);  /* discard any unsolicited data */
         /* send the command */
         rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
 

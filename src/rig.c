@@ -556,9 +556,8 @@ int HAMLIB_API rig_open(RIG *rig)
     struct rig_state *rs;
     int status = RIG_OK;
     value_t parm_value;
-    unsigned int net1, net2, net3, net4, net5, net6, net7, net8, port;
+    //unsigned int net1, net2, net3, net4, net5, net6, net7, net8, port;
     int is_network = 0;
-    char *token, *strtokp;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -570,13 +569,15 @@ int HAMLIB_API rig_open(RIG *rig)
     caps = rig->caps;
     rs = &rig->state;
 
-    if (rs->comm_state)
+    if (strlen(rs->rigport.pathname) > 0)
     {
-        return -RIG_EINVAL;
+        char hoststr[256], portstr[6];
+        status = parse_hoststr(rs->rigport.pathname, hoststr, portstr);
+
+        if (status == RIG_OK) { is_network = 1; }
     }
 
-    rs->rigport.fd = -1;
-
+#if 0
     // determine if we have a network address
     //
     is_network |= sscanf(rs->rigport.pathname, "%u.%u.%u.%u:%u", &net1, &net2,
@@ -601,12 +602,23 @@ int HAMLIB_API rig_open(RIG *rig)
         }
     }
 
+#endif
+
     if (is_network)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: using network address %s\n", __func__,
                   rs->rigport.pathname);
         rs->rigport.type.rig = RIG_PORT_NETWORK;
     }
+
+    if (rs->comm_state)
+    {
+        port_close(&rs->rigport, rs->rigport.type.rig);
+        rs->comm_state = 0;
+        return -RIG_EINVAL;
+    }
+
+    rs->rigport.fd = -1;
 
     if (rs->rigport.type.rig == RIG_PORT_SERIAL)
     {
@@ -1447,10 +1459,10 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     // If we're in vfo_mode then rigctld will do any VFO swapping we need
     if ((caps->targetable_vfo & RIG_TARGETABLE_FREQ)
             || vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo
-            || rig->state.vfo_opt == 1)
-    {
-        // If rig does not have set_vfo we need to change vfo
-        if (vfo == RIG_VFO_CURR && caps->set_vfo == NULL)
+            || (rig->state.vfo_opt == 1 && rig->caps->rig_model == RIG_MODEL_NETRIGCTL))
+{
+    // If rig does not have set_vfo we need to change vfo
+    if (vfo == RIG_VFO_CURR && caps->set_vfo == NULL)
         {
             vfo = vfo_fixup(rig, RIG_VFO_A);
             rig_debug(RIG_DEBUG_TRACE, "%s: no set_vfo so vfo=%s\n", __func__,
@@ -1528,29 +1540,29 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     /* VFO compensation */
     if (rig->state.vfo_comp != 0.0)
-    {
-        *freq = (freq_t)(*freq / (1.0 + (double)rig->state.vfo_comp));
+{
+    *freq = (freq_t)(*freq / (1.0 + (double)rig->state.vfo_comp));
     }
 
     if (retcode == RIG_OK
             && (vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo))
-    {
-        rig->state.current_freq = *freq;
-    }
+{
+    rig->state.current_freq = *freq;
+}
 
-    if (rig->state.lo_freq != 0.0)
-    {
-        *freq += rig->state.lo_freq;
-    }
+if (rig->state.lo_freq != 0.0)
+{
+    *freq += rig->state.lo_freq;
+}
 
 
-    cache_ms = elapsed_ms(&(rig->state.cache.time_freq), ELAPSED_SET);
-    rig_debug(RIG_DEBUG_TRACE, "%s: cache reset age=%dms, vfo=%s, freq=%.0f\n",
-              __func__, cache_ms, rig_strvfo(vfo), *freq);
-    rig->state.cache.freq = *freq;
-    rig->state.cache.vfo_freq = vfo;
+cache_ms = elapsed_ms(&(rig->state.cache.time_freq), ELAPSED_SET);
+           rig_debug(RIG_DEBUG_TRACE, "%s: cache reset age=%dms, vfo=%s, freq=%.0f\n",
+                     __func__, cache_ms, rig_strvfo(vfo), *freq);
+           rig->state.cache.freq = *freq;
+           rig->state.cache.vfo_freq = vfo;
 
-    return retcode;
+           return retcode;
 }
 
 
@@ -2018,6 +2030,7 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
 
     if (CHECK_RIG_ARG(rig) || !vfo)
     {
+        rig_debug(RIG_DEBUG_ERR, "%s: no rig and/or vfo?  rig=%p, vfo=%p\n", __func__, rig, vfo);
         return -RIG_EINVAL;
     }
 
@@ -2025,6 +2038,7 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
 
     if (caps->get_vfo == NULL)
     {
+        rig_debug(RIG_DEBUG_ERR, "%s: no get_vfo\n", __func__);
         return -RIG_ENAVAIL;
     }
 
@@ -2053,6 +2067,11 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
     else
     {
         cache_ms = elapsed_ms(&rig->state.cache.time_vfo, ELAPSED_INVALIDATE);
+    }
+
+    if (retcode != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: returning %d(%s)\n", __func__, retcode,rigerror(retcode));
     }
 
     return retcode;
@@ -2899,13 +2918,13 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     int retcode, rc2;
     vfo_t curr_vfo, tx_vfo;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, curr_vfo=%s\n", __func__,
-              rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
-
     if (CHECK_RIG_ARG(rig))
     {
         return -RIG_EINVAL;
     }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, curr_vfo=%s\n", __func__,
+              rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
 
     caps = rig->caps;
 
@@ -3052,9 +3071,11 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
         if (!rig_has_vfo_op(rig, RIG_OP_XCHG))
         {
             retcode = caps->set_vfo(rig, tx_vfo);
-            if (retcode != RIG_OK) return retcode;
+
+            if (retcode != RIG_OK) { return retcode; }
         }
-	retcode = RIG_OK;
+
+        retcode = RIG_OK;
     }
     else if (rig_has_vfo_op(rig, RIG_OP_TOGGLE) && caps->vfo_op)
     {
@@ -3082,11 +3103,14 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     /* try and revert even if we had an error above */
     if (caps->set_vfo)
     {
-	// If we started with RIG_VFO_CURR we need to choose VFO_A/MAIN as appropriate to return to
-	if (save_vfo == RIG_VFO_CURR) {
-            save_vfo = VFO_HAS_A_B_ONLY?RIG_VFO_A:RIG_VFO_MAIN;
-	}
-        rig_debug(RIG_DEBUG_TRACE,"%s: retoring vfo=%s\n", __func__, rig_strvfo(save_vfo));
+        // If we started with RIG_VFO_CURR we need to choose VFO_A/MAIN as appropriate to return to
+        if (save_vfo == RIG_VFO_CURR)
+        {
+            save_vfo = VFO_HAS_A_B_ONLY ? RIG_VFO_A : RIG_VFO_MAIN;
+        }
+
+        rig_debug(RIG_DEBUG_TRACE, "%s: retoring vfo=%s\n", __func__,
+                  rig_strvfo(save_vfo));
         rc2 = caps->set_vfo(rig, save_vfo);
     }
     else
@@ -3629,6 +3653,7 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
     {
         return retcode;
     }
+
 #endif
 
     retcode = caps->get_split_vfo(rig, vfo, split, tx_vfo);
@@ -3641,6 +3666,7 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
         /* return the first error code */
         retcode = rc2;
     }
+
 #endif
 
     if (retcode == RIG_OK)  // only update cache on success

@@ -94,6 +94,8 @@ extern int read_history();
 #define ARG_IN  (ARG_IN1|ARG_IN2|ARG_IN3|ARG_IN4)
 #define ARG_OUT (ARG_OUT1|ARG_OUT2|ARG_OUT3|ARG_OUT4)
 
+static int chk_vfo_executed;
+
 /* variables for readline support */
 #ifdef HAVE_LIBREADLINE
 static char *input_line = (char *)NULL;
@@ -730,6 +732,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
                     *pcmd = '\0';
                     cmd = parse_arg((char *)cmd_name);
+                    rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd=%s\n", __func__, cmd_name);
                     break;
                 }
 
@@ -1957,6 +1960,7 @@ declare_proto_rig(get_freq)
 {
     int status;
     freq_t freq;
+    // cppcheck-suppress *
     char *fmt = "%"PRIll"%c";
 
     status = rig_get_freq(rig, vfo, &freq);
@@ -4079,9 +4083,12 @@ declare_proto_rig(dump_state)
     // protocol 1 allows fields can be listed/processed in any order
     // protocol 1 fields can be multi-line -- just write the thing to allow for it
     // backward compatible as new values will just generate warnings
-    fprintf(fout, "vfo_ops=0x%x\n", rig->caps->vfo_ops);
-    fprintf(fout, "ptt_type=0x%x\n", rig->state.pttport.type.ptt);
-    fprintf(fout, "done\n");
+    if (chk_vfo_executed) // for 3.3 compatiblility
+    {
+       fprintf(fout, "vfo_ops=0x%x\n", rig->caps->vfo_ops);
+       fprintf(fout, "ptt_type=0x%x\n", rig->state.pttport.type.ptt);
+       fprintf(fout, "done\n");
+    }
 
 #if 0 // why isn't this implemented?  Does anybody care?
     gran_t level_gran[RIG_SETTING_MAX];   /*!< level granularity */
@@ -4393,7 +4400,7 @@ declare_proto_rig(send_cmd)
 
     rs = &rig->state;
 
-    serial_flush(&rs->rigport);
+    rig_flush(&rs->rigport);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: rigport=%d, bufcmd=%s, cmd_len=%d\n", __func__,
               rs->rigport.fd, hasbinary(bufcmd) ? "BINARY" : bufcmd, cmd_len);
@@ -4517,6 +4524,8 @@ declare_proto_rig(chk_vfo)
     }
 
     fprintf(fout, "%d\n", rig->state.vfo_opt);
+
+    chk_vfo_executed = 1; // this allows us to control dump_state version
 
     return RIG_OK;
 }

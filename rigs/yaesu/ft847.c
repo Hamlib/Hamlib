@@ -1143,7 +1143,7 @@ static int ft847_get_status(RIG *rig, int status_ci)
         return -RIG_EINTERNAL;
     }
 
-    serial_flush(&rig->state.rigport);
+    rig_flush(&rig->state.rigport);
 
     n = write_block(&rig->state.rigport, (char *) ncmd[status_ci].nseq,
                     YAESU_CMD_LENGTH);

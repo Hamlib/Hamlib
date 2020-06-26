@@ -1264,7 +1264,7 @@ int adat_send(RIG  *pRig,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = %p, pcData = %s\n",
               gFnLevel, __func__, __FILE__, __LINE__, pRig, pcData);
 
-    serial_flush(&pRigState->rigport);
+    rig_flush(&pRigState->rigport);
 
     nRC = write_block(&pRigState->rigport, pcData, strlen(pcData));
 
@@ -1562,7 +1562,7 @@ int adat_get_single_cmd_result(RIG *pRig)
             }
         }
 
-        serial_flush(&pRigState->rigport);
+        rig_flush(&pRigState->rigport);
 
         pPriv->nRC = nRC;
     }

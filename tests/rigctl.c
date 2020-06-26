@@ -153,7 +153,6 @@ int main(int argc, char *argv[])
     char send_cmd_term = '\r';  /* send_cmd termination char */
     int ext_resp = 0;
     char resp_sep = '\n';
-    int i;
 
     while (1)
     {
@@ -524,19 +523,7 @@ int main(int argc, char *argv[])
         exit(0);
     }
 
-    i = 0;
-
-    do   // we'll try 5 times and sleep 200ms between tries
-    {
-        retcode = rig_open(my_rig);
-
-        if (retcode != RIG_OK)
-        {
-            hl_usleep(200000);
-            rig_debug(RIG_DEBUG_TRACE, "%s: error opening rig, try#%d\n", __func__, i + 1);
-        }
-    }
-    while (retcode != RIG_OK && ++i < 5);
+    retcode = rig_open(my_rig);
 
     if (retcode != RIG_OK)
     {

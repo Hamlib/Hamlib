@@ -60,7 +60,7 @@ const struct rig_caps bc780_caps =
     .mfg_name =  "Uniden",
     .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
-    .status =  RIG_STATUS_UNTESTED,
+    .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRUNKSCANNER,
     .ptt_type =  RIG_PTT_NONE,
     .dcd_type =  RIG_DCD_RIG,
@@ -98,7 +98,7 @@ const struct rig_caps bc780_caps =
     .str_cal = BC780_STR_CAL,
 
     .chan_list =  {
-        { 0, 499, RIG_MTYPE_MEM, {BC780_CHANNEL_CAPS} },
+        { 1, 500, RIG_MTYPE_MEM, {BC780_CHANNEL_CAPS} },
         RIG_CHAN_END,
     },
 
@@ -129,7 +129,7 @@ const struct rig_caps bc780_caps =
     .priv =  NULL,
 
     .set_freq =  uniden_set_freq,
-    .get_freq =  uniden_get_freq,
+    .get_freq =  uniden_get_freq_2,
     .set_mode =  uniden_set_mode,
     .get_mode =  uniden_get_mode,
     .set_mem =  uniden_set_mem,

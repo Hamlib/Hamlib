@@ -460,7 +460,7 @@ int ft767_open(RIG *rig)
     struct ft767_priv_data *priv = (struct ft767_priv_data *)rig->state.priv;
     int retval;
 
-    serial_flush(&rig->state.rigport);
+    rig_flush(&rig->state.rigport);
 
     /* send 0 delay PACING cmd to rig  */
     retval = ft767_enter_CAT(rig);
@@ -492,7 +492,7 @@ int ft767_open(RIG *rig)
 
 int ft767_close(RIG *rig)
 {
-    serial_flush(&rig->state.rigport);
+    rig_flush(&rig->state.rigport);
     return RIG_OK;
 }
 
@@ -1225,7 +1225,7 @@ int ft767_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
             return -RIG_EINVAL;       /* sorry, wrong VFO */
         }
 
-        serial_flush(&rig->state.rigport);
+        rig_flush(&rig->state.rigport);
 
         retval = ft767_enter_CAT(rig);
 
@@ -1538,7 +1538,7 @@ int ft767_get_update_data(RIG *rig)
     struct ft767_priv_data *priv = (struct ft767_priv_data *)rig->state.priv;
     int retval;
 
-    serial_flush(&rig->state.rigport);
+    rig_flush(&rig->state.rigport);
 
     /* Entering CAT updates our data structures */
     retval = ft767_enter_CAT(rig);
@@ -1569,7 +1569,7 @@ int ft767_set_split(RIG *rig, unsigned int split)
     int retval;
     unsigned int curr_split;
 
-    serial_flush(&rig->state.rigport);
+    rig_flush(&rig->state.rigport);
 
     /* Entering CAT updates our data structures */
     retval = ft767_enter_CAT(rig);

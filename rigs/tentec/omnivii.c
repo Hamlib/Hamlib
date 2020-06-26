@@ -268,7 +268,7 @@ static int tt588_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
     for (i = 0; i < 3; ++i) // We'll try 3 times
     {
         char xxbuf[32];
-        serial_flush(&rs->rigport);
+        rig_flush(&rs->rigport);
 
         // We add 1 to data_len here for the null byte inserted by read_string eventually
         // That way all the callers can use the expected response length for the cmd_len paramter here

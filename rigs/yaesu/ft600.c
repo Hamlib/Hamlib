@@ -313,7 +313,7 @@ static int ft600_read_status(RIG *rig)
 
     priv = (struct ft600_priv_data *)rig->state.priv;
 
-    serial_flush(&rig->state.rigport);
+    rig_flush(&rig->state.rigport);
 
     ret = ft600_send_priv_cmd(rig, FT600_NATIVE_CAT_READ_STATUS);
 

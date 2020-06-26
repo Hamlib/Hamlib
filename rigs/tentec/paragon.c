@@ -582,7 +582,7 @@ int tt585_get_status_data(RIG *rig)
         return RIG_OK;
     }
 
-    serial_flush(rigport);
+    rig_flush(rigport);
 
     /* send STATUS comand to fetch data*/
 
