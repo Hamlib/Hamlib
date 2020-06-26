@@ -164,7 +164,7 @@ const struct rig_caps ft817_caps =
     RIG_MODEL(RIG_MODEL_FT817),
     .model_name =          "FT-817",
     .mfg_name =            "Yaesu",
-    .version =             "20200616.0",
+    .version =             "20200625.0",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -495,14 +495,15 @@ int ft817_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     while ((f1 == 0 || f1 != f2) && retries-- > 0)
     {
-        if (check_cache_timeout(&p->fm_status_tv))
-            if ((n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_FREQ_MODE_STATUS)) < 0)
-            {
-                return n;
-            }
+        rig_debug(RIG_DEBUG_TRACE, "%s: retries=%d\n", __func__, retries);
+        if ((n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_FREQ_MODE_STATUS)) < 0)
+        {
+            return n;
+        }
 
         f1 = f2;
         f2 = from_bcd_be(p->fm_status, 8);
+        dump_hex(p->fm_status, 5);
     }
 
     if (retries >= 0)
