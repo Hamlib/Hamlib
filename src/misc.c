@@ -1470,6 +1470,14 @@ int HAMLIB_API parse_hoststr(char *hoststr, char host[256], char port[6])
         return RIG_OK;
     }
 
+    if (sscanf(hoststr, ":%5[0-9]%s", port,
+               dummy) == 1) // just a port if you please
+    {
+        sprintf(hoststr, "%s:%s\n", "localhost", port);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: hoststr=%s\n", __func__, hoststr);
+        return RIG_OK;
+    }
+
     // if we're here then we must have a hostname
     n = sscanf(hoststr, "%255[^:]:%5[0-9]%1s", host, port, dummy);
 
@@ -1494,8 +1502,10 @@ int HAMLIB_API rig_flush(hamlib_port_t *port)
 
     if (port->type.rig != RIG_PORT_SERIAL)
     {
-        rig_debug(RIG_DEBUG_WARN, "%s: Expected serial port type!!\nWhat is this rig?\n", __func__); 
+        rig_debug(RIG_DEBUG_WARN,
+                  "%s: Expected serial port type!!\nWhat is this rig?\n", __func__);
     }
+
     return serial_flush(port); // we must be on serial port
 }
 
