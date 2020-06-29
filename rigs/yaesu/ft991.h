@@ -121,7 +121,7 @@
 
 /* Delay sequential fast writes */
 
-#define FT991_POST_WRITE_DELAY               50
+#define FT991_POST_WRITE_DELAY               25
 
 typedef struct
 {
