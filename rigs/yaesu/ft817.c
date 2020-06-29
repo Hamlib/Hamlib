@@ -164,7 +164,7 @@ const struct rig_caps ft817_caps =
     RIG_MODEL(RIG_MODEL_FT817),
     .model_name =          "FT-817",
     .mfg_name =            "Yaesu",
-    .version =             "20200625.0",
+    .version =             "20200629.0",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -805,7 +805,9 @@ int ft817_read_ack(RIG *rig)
         if ((n = read_block(&rig->state.rigport, &dummy, 1)) < 0)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: error reading ack\n", __func__);
-            return n;
+            rig_debug(RIG_DEBUG_ERR, "%s: adjusting post_write_delay to avoid ack\n", __func__);
+            rig->state.rigport.post_write_delay = 10; // arbitrary choice right now of max 100 cmds/sec
+            return RIG_OK; // let it continue without checking for ack now
         }
 
         rig_debug(RIG_DEBUG_TRACE, "%s: ack received (%d)\n", __func__, dummy);
