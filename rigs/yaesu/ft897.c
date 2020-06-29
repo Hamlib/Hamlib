@@ -111,6 +111,7 @@ static int ft897_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift);
 static int ft897_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs);
 static int ft897_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
 static int ft897_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd);
+extern int ft817_read_ack(RIG *rig);
 // static int ft897_set_powerstat(RIG *rig, powerstat_t status);
 
 /* Native ft897 cmd set prototypes. These are READ ONLY as each */
@@ -190,7 +191,7 @@ const struct rig_caps ft897_caps =
     RIG_MODEL(RIG_MODEL_FT897),
     .model_name =     "FT-897",
     .mfg_name =       "Yaesu",
-    .version =        "20200607.0",
+    .version =        "20200628.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_TRANSCEIVER,
@@ -791,32 +792,6 @@ int ft897_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
     return RIG_OK;
 }
 
-/* ---------------------------------------------------------------------- */
-
-static int ft897_read_ack(RIG *rig)
-{
-#if (FT897_POST_WRITE_DELAY == 0)
-    char dummy;
-    int n;
-
-    if ((n = read_block(&rig->state.rigport, &dummy, 1)) < 0)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: error reading ack\n", __func__);
-        return n;
-    }
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: ack received (%d)\n", __func__, dummy);
-
-    if (dummy != 0)
-    {
-        return -RIG_ERJCTED;
-    }
-
-#endif
-
-    return RIG_OK;
-}
-
 /*
  * private helper function to send a private command sequence.
  * Must only be complete sequences.
@@ -832,7 +807,7 @@ static int ft897_send_cmd(RIG *rig, int index)
     }
 
     write_block(&rig->state.rigport, (char *) p->pcs[index].nseq, YAESU_CMD_LENGTH);
-    return ft897_read_ack(rig);
+    return ft817_read_ack(rig);
 }
 
 /*
@@ -853,7 +828,7 @@ static int ft897_send_icmd(RIG *rig, int index, unsigned char *data)
     memcpy(cmd, data, YAESU_CMD_LENGTH - 1);
 
     write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
-    return ft897_read_ack(rig);
+    return ft817_read_ack(rig);
 }
 
 /* ---------------------------------------------------------------------- */

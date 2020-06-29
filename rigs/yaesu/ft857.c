@@ -146,6 +146,7 @@ enum ft857_digi
 #define FT857_VFO_ALL           (RIG_VFO_A|RIG_VFO_B)
 #define FT857_ANTS              0
 
+extern int ft817_read_ack(RIG *rig);
 static int ft857_send_icmd(RIG *rig, int index, unsigned char *data);
 
 const struct rig_caps ft857_caps =
@@ -153,7 +154,7 @@ const struct rig_caps ft857_caps =
     RIG_MODEL(RIG_MODEL_FT857),
     .model_name =     "FT-857",
     .mfg_name =       "Yaesu",
-    .version =        "20200323.0",
+    .version =        "20200628.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_TRANSCEIVER,
@@ -468,32 +469,6 @@ static int ft857_get_status(RIG *rig, int status)
     return RIG_OK;
 }
 
-/* ---------------------------------------------------------------------- */
-
-static int ft857_read_ack(RIG *rig)
-{
-#if (FT857_POST_WRITE_DELAY == 0)
-    char dummy;
-    int n;
-
-    if ((n = read_block(&rig->state.rigport, &dummy, 1)) < 0)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: error reading ack\n", __func__);
-        return n;
-    }
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: ack received (%d)\n", __func__, dummy);
-
-    if (dummy != 0)
-    {
-        return -RIG_ERJCTED;
-    }
-
-#endif
-
-    return RIG_OK;
-}
-
 /*
  * private helper function to send a private command sequence.
  * Must only be complete sequences.
@@ -509,7 +484,7 @@ static int ft857_send_cmd(RIG *rig, int index)
     }
 
     write_block(&rig->state.rigport, (char *) p->pcs[index].nseq, YAESU_CMD_LENGTH);
-    return ft857_read_ack(rig);
+    return ft817_read_ack(rig);
 }
 
 /*
@@ -530,7 +505,7 @@ static int ft857_send_icmd(RIG *rig, int index, unsigned char *data)
     memcpy(cmd, data, YAESU_CMD_LENGTH - 1);
 
     write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
-    return ft857_read_ack(rig);
+    return ft817_read_ack(rig);
 }
 
 /* ---------------------------------------------------------------------- */
