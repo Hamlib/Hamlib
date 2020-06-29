@@ -392,6 +392,7 @@ static int ft817_read_eeprom(RIG *rig, unsigned short addr, unsigned char *out)
     unsigned char data[YAESU_CMD_LENGTH];
     int n;
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
     memcpy(data, (char *)p->pcs[FT817_NATIVE_CAT_EEPROM_READ].nseq,
            YAESU_CMD_LENGTH);
 
@@ -423,6 +424,8 @@ static int ft817_get_status(RIG *rig, int status)
     int len;
     int n;
     int retries = rig->state.rigport.retry;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
     switch (status)
     {
@@ -493,6 +496,8 @@ int ft817_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     int retries = rig->state.rigport.retry +
                   1; // +1 because, because 2 steps are needed even in best scenario
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
+
     while ((f1 == 0 || f1 != f2) && retries-- > 0)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: retries=%d\n", __func__, retries);
@@ -522,6 +527,8 @@ int ft817_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 int ft817_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
     if (check_cache_timeout(&p->fm_status_tv))
     {
@@ -604,6 +611,8 @@ int ft817_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
     struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
     int n;
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
+
     if (check_cache_timeout(&p->tx_status_tv))
         if ((n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_TX_STATUS)) < 0)
         {
@@ -634,6 +643,8 @@ int ft817_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
     struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
+
     if (check_cache_timeout(&p->tx_status_tv))
     {
         int n;
@@ -652,6 +663,8 @@ int ft817_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 static int ft817_get_pometer_level(RIG *rig, value_t *val)
 {
     struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
     if (check_cache_timeout(&p->tx_status_tv))
     {
@@ -686,6 +699,8 @@ static int ft817_get_smeter_level(RIG *rig, value_t *val)
 {
     struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
     int n;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
     if (check_cache_timeout(&p->rx_status_tv))
         if ((n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_RX_STATUS)) < 0)
@@ -724,6 +739,8 @@ static int ft817_get_smeter_level(RIG *rig, value_t *val)
 static int ft817_get_raw_smeter_level(RIG *rig, value_t *val)
 {
     struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
     if (check_cache_timeout(&p->rx_status_tv))
     {
@@ -770,6 +787,8 @@ int ft817_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
     struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
+
     if (check_cache_timeout(&p->rx_status_tv))
     {
         int n;
@@ -800,13 +819,17 @@ int ft817_read_ack(RIG *rig)
     char dummy;
     int n;
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
+
     if (rig->state.rigport.post_write_delay == 0)
     {
         if ((n = read_block(&rig->state.rigport, &dummy, 1)) < 0)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: error reading ack\n", __func__);
-            rig_debug(RIG_DEBUG_ERR, "%s: adjusting post_write_delay to avoid ack\n", __func__);
-            rig->state.rigport.post_write_delay = 10; // arbitrary choice right now of max 100 cmds/sec
+            rig_debug(RIG_DEBUG_ERR, "%s: adjusting post_write_delay to avoid ack\n",
+                      __func__);
+            rig->state.rigport.post_write_delay =
+                10; // arbitrary choice right now of max 100 cmds/sec
             return RIG_OK; // let it continue without checking for ack now
         }
 
@@ -829,6 +852,8 @@ static int ft817_send_cmd(RIG *rig, int index)
 {
     struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
+
     if (p->pcs[index].ncomp == 0)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: Incomplete sequence\n", __func__);
@@ -846,6 +871,8 @@ static int ft817_send_icmd(RIG *rig, int index, unsigned char *data)
 {
     struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
     unsigned char cmd[YAESU_CMD_LENGTH];
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
     if (p->pcs[index].ncomp == 1)
     {
@@ -998,6 +1025,8 @@ int ft817_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
 int ft817_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
+
     switch (func)
     {
     case RIG_FUNC_LOCK:
@@ -1205,6 +1234,8 @@ int ft817_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 
 int ft817_set_powerstat(RIG *rig, powerstat_t status)
 {
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
+
     switch (status)
     {
     case RIG_POWER_OFF:
@@ -1221,6 +1252,8 @@ int ft817_set_powerstat(RIG *rig, powerstat_t status)
 
 int ft817_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
+
     switch (op)
     {
         int n;
@@ -1287,6 +1320,7 @@ int ft817_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 int ft817_power2mW(RIG *rig, unsigned int *mwpower, float power,
                    freq_t freq, rmode_t mode)
 {
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
     *mwpower = (int)(power * 6000);
     return RIG_OK;
 }
@@ -1296,6 +1330,7 @@ int ft817_power2mW(RIG *rig, unsigned int *mwpower, float power,
 int ft817_mW2power(RIG *rig, float *power, unsigned int mwpower,
                    freq_t freq, rmode_t mode)
 {
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
     *power = mwpower / 6000.0;
     return RIG_OK;
 }
