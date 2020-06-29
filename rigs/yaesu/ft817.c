@@ -496,6 +496,7 @@ int ft817_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     while ((f1 == 0 || f1 != f2) && retries-- > 0)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: retries=%d\n", __func__, retries);
+
         if ((n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_FREQ_MODE_STATUS)) < 0)
         {
             return n;
@@ -794,26 +795,26 @@ int ft817_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 
 /* ---------------------------------------------------------------------- */
 
-static int ft817_read_ack(RIG *rig)
+int ft817_read_ack(RIG *rig)
 {
-#if (FT817_POST_WRITE_DELAY == 0)
     char dummy;
     int n;
 
-    if ((n = read_block(&rig->state.rigport, &dummy, 1)) < 0)
+    if (rig->state.rigport.post_write_delay == 0)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: error reading ack\n", __func__);
-        return n;
+        if ((n = read_block(&rig->state.rigport, &dummy, 1)) < 0)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: error reading ack\n", __func__);
+            return n;
+        }
+
+        rig_debug(RIG_DEBUG_TRACE, "%s: ack received (%d)\n", __func__, dummy);
+
+        if (dummy != 0)
+        {
+            return -RIG_ERJCTED;
+        }
     }
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: ack received (%d)\n", __func__, dummy);
-
-    if (dummy != 0)
-    {
-        return -RIG_ERJCTED;
-    }
-
-#endif
 
     return RIG_OK;
 }
