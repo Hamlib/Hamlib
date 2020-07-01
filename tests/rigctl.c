@@ -158,6 +158,7 @@ int main(int argc, char *argv[])
     {
         int c;
         int option_index = 0;
+        char dummy[2];
 
         c = getopt_long(argc,
                         argv,
@@ -353,7 +354,12 @@ int main(int argc, char *argv[])
                 exit(1);
             }
 
-            serial_rate = atoi(optarg);
+            if (sscanf(optarg, "%d%1s", &serial_rate, dummy) != 1)
+            {
+                fprintf(stderr, "Invalid baud rate of %s\n", optarg);
+                exit(1);
+            }
+
             break;
 
         case 'C':
