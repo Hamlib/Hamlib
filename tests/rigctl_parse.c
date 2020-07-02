@@ -4598,7 +4598,7 @@ declare_proto_rig(set_cache)
     int ms;
 
     CHKSCN1ARG(sscanf(arg1, "%d", &ms));
-    return rig_set_cache_timeout_ms(rig, CACHE_ALL, ms);
+    return rig_set_cache_timeout_ms(rig, HAMLIB_CACHE_ALL, ms);
 }
 
 
@@ -4607,7 +4607,7 @@ declare_proto_rig(get_cache)
 {
     int ms;
 
-    ms = rig_get_cache_timeout_ms(rig, CACHE_ALL);
+    ms = rig_get_cache_timeout_ms(rig, HAMLIB_CACHE_ALL);
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
