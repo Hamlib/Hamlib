@@ -1352,17 +1352,38 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         }
     }
 
-    if (retcode == RIG_OK
-            && (vfo == RIG_VFO_CURR
-                || vfo == rig->state.current_vfo))
-    {
-        rig->state.current_freq = freq;
-    }
-
     if (retcode == RIG_OK)
     {
+        freq_t freq_new = freq;
+
+        // verify our freq to ensure HZ mods are seen
+        // some rigs truncate or round e.g. 1,2,5,10,20,100Hz intervals
+        // we'll try this all the time and if it works out OK eliminate the #else
+
+        if ((unsigned long long)freq % 100 != 0 // only need to do if < 100Hz interval
+#if 0
+                // do we need to only do this when cache is turned on? 2020-07-02 W9MDB
+                && rig->state.cache.timeout_ms > 0
+#endif
+           )
+        {
+            retcode = rig_get_freq(rig, vfo, &freq_new);
+
+            if (retcode != RIG_OK) { return retcode; }
+        }
+
+        if (freq_new != freq)
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: Asked freq=%.0f, got freq=%.0f\n", __func__,
+                      freq,
+                      freq_new);
+        }
+
+        // update our current freq too
+        if (vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo) { rig->state.current_freq = freq_new; }
+
         elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_SET);
-        rig->state.cache.freq = freq;
+        rig->state.cache.freq = freq_new;
         rig->state.cache.vfo_freq = vfo;
     }
 
@@ -1460,9 +1481,9 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     if ((caps->targetable_vfo & RIG_TARGETABLE_FREQ)
             || vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo
             || (rig->state.vfo_opt == 1 && rig->caps->rig_model == RIG_MODEL_NETRIGCTL))
-{
-    // If rig does not have set_vfo we need to change vfo
-    if (vfo == RIG_VFO_CURR && caps->set_vfo == NULL)
+    {
+        // If rig does not have set_vfo we need to change vfo
+        if (vfo == RIG_VFO_CURR && caps->set_vfo == NULL)
         {
             vfo = vfo_fixup(rig, RIG_VFO_A);
             rig_debug(RIG_DEBUG_TRACE, "%s: no set_vfo so vfo=%s\n", __func__,
@@ -1540,29 +1561,29 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     /* VFO compensation */
     if (rig->state.vfo_comp != 0.0)
-{
-    *freq = (freq_t)(*freq / (1.0 + (double)rig->state.vfo_comp));
+    {
+        *freq = (freq_t)(*freq / (1.0 + (double)rig->state.vfo_comp));
     }
 
     if (retcode == RIG_OK
             && (vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo))
-{
-    rig->state.current_freq = *freq;
-}
+    {
+        rig->state.current_freq = *freq;
+    }
 
-if (rig->state.lo_freq != 0.0)
-{
-    *freq += rig->state.lo_freq;
-}
+    if (rig->state.lo_freq != 0.0)
+    {
+        *freq += rig->state.lo_freq;
+    }
 
 
-cache_ms = elapsed_ms(&(rig->state.cache.time_freq), HAMLIB_ELAPSED_SET);
-           rig_debug(RIG_DEBUG_TRACE, "%s: cache reset age=%dms, vfo=%s, freq=%.0f\n",
-                     __func__, cache_ms, rig_strvfo(vfo), *freq);
-           rig->state.cache.freq = *freq;
-           rig->state.cache.vfo_freq = vfo;
+    cache_ms = elapsed_ms(&(rig->state.cache.time_freq), HAMLIB_ELAPSED_SET);
+    rig_debug(RIG_DEBUG_TRACE, "%s: cache reset age=%dms, vfo=%s, freq=%.0f\n",
+              __func__, cache_ms, rig_strvfo(vfo), *freq);
+    rig->state.cache.freq = *freq;
+    rig->state.cache.vfo_freq = vfo;
 
-           return retcode;
+    return retcode;
 }
 
 
@@ -2030,7 +2051,8 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
 
     if (CHECK_RIG_ARG(rig) || !vfo)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: no rig and/or vfo?  rig=%p, vfo=%p\n", __func__, rig, vfo);
+        rig_debug(RIG_DEBUG_ERR, "%s: no rig and/or vfo?  rig=%p, vfo=%p\n", __func__,
+                  rig, vfo);
         return -RIG_EINVAL;
     }
 
@@ -2071,7 +2093,8 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
 
     if (retcode != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: returning %d(%s)\n", __func__, retcode,rigerror(retcode));
+        rig_debug(RIG_DEBUG_ERR, "%s: returning %d(%s)\n", __func__, retcode,
+                  rigerror(retcode));
     }
 
     return retcode;
