@@ -1368,6 +1368,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 #endif
            )
         {
+            elapsed_ms(&rig->state.cache.time_freq, HAMLIB_ELAPSED_INVALIDATE);
             retcode = rig_get_freq(rig, vfo, &freq_new);
 
             if (retcode != RIG_OK) { return retcode; }
