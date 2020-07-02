@@ -1903,12 +1903,12 @@ typedef hamlib_port_t port_t;
 #define HAMLIB_ELAPSED_INVALIDATE 2
 
 typedef enum {
-    CACHE_ALL, // to set all cache timeouts at once
-    CACHE_VFO,
-    CACHE_FREQ,
-    CACHE_MODE,
-    CACHE_PTT,
-    CACHE_SPLIT
+    HAMLIB_CACHE_ALL, // to set all cache timeouts at once
+    HAMLIB_CACHE_VFO,
+    HAMLIB_CACHE_FREQ,
+    HAMLIB_CACHE_MODE,
+    HAMLIB_CACHE_PTT,
+    HAMLIB_CACHE_SPLIT
 } hamlib_cache_t;
 
 /**
