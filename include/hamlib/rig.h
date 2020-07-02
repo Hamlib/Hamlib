@@ -1898,9 +1898,9 @@ typedef struct hamlib_port {
 typedef hamlib_port_t port_t;
 #endif
 
-#define ELAPSED_GET 0
-#define ELAPSED_SET 1
-#define ELAPSED_INVALIDATE 2
+#define HAMLIB_ELAPSED_GET 0
+#define HAMLIB_ELAPSED_SET 1
+#define HAMLIB_ELAPSED_INVALIDATE 2
 
 typedef enum {
     CACHE_ALL, // to set all cache timeouts at once
@@ -1909,7 +1909,7 @@ typedef enum {
     CACHE_MODE,
     CACHE_PTT,
     CACHE_SPLIT
-} cache_t;
+} hamlib_cache_t;
 
 /**
  * \brief Rig cache data
@@ -2739,8 +2739,8 @@ extern HAMLIB_EXPORT(const char *) rig_copyright HAMLIB_PARAMS(());
 
 extern HAMLIB_EXPORT(void) rig_no_restore_ai();
 
-extern HAMLIB_EXPORT(int) rig_get_cache_timeout_ms(RIG *rig, cache_t selection);
-extern HAMLIB_EXPORT(int) rig_set_cache_timeout_ms(RIG *rig, cache_t selection, int ms);
+extern HAMLIB_EXPORT(int) rig_get_cache_timeout_ms(RIG *rig, hamlib_cache_t selection);
+extern HAMLIB_EXPORT(int) rig_set_cache_timeout_ms(RIG *rig, hamlib_cache_t selection, int ms);
 
 extern HAMLIB_EXPORT(int) rig_set_vfo_opt(RIG *rig, int status);
 

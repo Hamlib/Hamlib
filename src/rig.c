@@ -1361,7 +1361,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (retcode == RIG_OK)
     {
-        elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
+        elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_SET);
         rig->state.cache.freq = freq;
         rig->state.cache.vfo_freq = vfo;
     }
@@ -1432,7 +1432,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
 
 
-    cache_ms = elapsed_ms(&rig->state.cache.time_freq, ELAPSED_GET);
+    cache_ms = elapsed_ms(&rig->state.cache.time_freq, HAMLIB_ELAPSED_GET);
     rig_debug(RIG_DEBUG_TRACE, "%s: cache check age=%dms\n", __func__, cache_ms);
 
     if (cache_ms < rig->state.cache.timeout_ms && rig->state.cache.vfo_freq == vfo)
@@ -1481,7 +1481,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
             case RIG_VFO_MAIN:
             case RIG_VFO_MAIN_A:
                 rig->state.cache.freqMainA = *freq;
-                elapsed_ms(&rig->state.cache.time_freqMainA, ELAPSED_SET);
+                elapsed_ms(&rig->state.cache.time_freqMainA, HAMLIB_ELAPSED_SET);
                 rig->state.cache.freqMainA = *freq;
                 break;
 
@@ -1489,17 +1489,17 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
             case RIG_VFO_SUB:
             case RIG_VFO_MAIN_B:
                 rig->state.cache.freqMainB = *freq;
-                elapsed_ms(&rig->state.cache.time_freqMainB, ELAPSED_SET);
+                elapsed_ms(&rig->state.cache.time_freqMainB, HAMLIB_ELAPSED_SET);
                 break;
 
             case RIG_VFO_SUB_A:
                 rig->state.cache.freqSubA = *freq;
-                elapsed_ms(&rig->state.cache.time_freqSubA, ELAPSED_SET);
+                elapsed_ms(&rig->state.cache.time_freqSubA, HAMLIB_ELAPSED_SET);
                 break;
 
             case RIG_VFO_SUB_B:
                 rig->state.cache.freqSubB = *freq;
-                elapsed_ms(&rig->state.cache.time_freqSubB, ELAPSED_SET);
+                elapsed_ms(&rig->state.cache.time_freqSubB, HAMLIB_ELAPSED_SET);
                 break;
             }
 
@@ -1528,7 +1528,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
         if (RIG_OK == retcode)
         {
-            cache_ms = elapsed_ms(&(rig->state.cache.time_freq), ELAPSED_SET);
+            cache_ms = elapsed_ms(&(rig->state.cache.time_freq), HAMLIB_ELAPSED_SET);
             rig_debug(RIG_DEBUG_TRACE, "%s: cache reset age=%dms, vfo=%s, freq=%.0f\n",
                       __func__, cache_ms, rig_strvfo(vfo), *freq);
             rig->state.cache.freq = *freq;
@@ -1556,7 +1556,7 @@ if (rig->state.lo_freq != 0.0)
 }
 
 
-cache_ms = elapsed_ms(&(rig->state.cache.time_freq), ELAPSED_SET);
+cache_ms = elapsed_ms(&(rig->state.cache.time_freq), HAMLIB_ELAPSED_SET);
            rig_debug(RIG_DEBUG_TRACE, "%s: cache reset age=%dms, vfo=%s, freq=%.0f\n",
                      __func__, cache_ms, rig_strvfo(vfo), *freq);
            rig->state.cache.freq = *freq;
@@ -1648,7 +1648,7 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     rig->state.cache.mode = mode;
     rig->state.cache.vfo_mode = vfo;
-    elapsed_ms(&rig->state.cache.time_mode, ELAPSED_SET);
+    elapsed_ms(&rig->state.cache.time_mode, HAMLIB_ELAPSED_SET);
 
     return retcode;
 }
@@ -1696,7 +1696,7 @@ int HAMLIB_API rig_get_mode(RIG *rig,
         return -RIG_ENAVAIL;
     }
 
-    cache_ms = elapsed_ms(&rig->state.cache.time_mode, ELAPSED_GET);
+    cache_ms = elapsed_ms(&rig->state.cache.time_mode, HAMLIB_ELAPSED_GET);
     rig_debug(RIG_DEBUG_TRACE, "%s: cache check age=%dms\n", __func__, cache_ms);
 
     if (cache_ms < rig->state.cache.timeout_ms && rig->state.cache.vfo_mode == vfo)
@@ -1761,7 +1761,7 @@ int HAMLIB_API rig_get_mode(RIG *rig,
     rig->state.cache.mode = *mode;
     rig->state.cache.width = *width;
     rig->state.cache.vfo_mode = vfo;
-    cache_ms = elapsed_ms(&rig->state.cache.time_mode, ELAPSED_SET);
+    cache_ms = elapsed_ms(&rig->state.cache.time_mode, HAMLIB_ELAPSED_SET);
 
     return retcode;
 }
@@ -1995,9 +1995,9 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
     }
 
     // expire several cached items when we switch VFOs
-    elapsed_ms(&rig->state.cache.time_vfo, ELAPSED_INVALIDATE);
-    elapsed_ms(&rig->state.cache.time_freq, ELAPSED_INVALIDATE);
-    elapsed_ms(&rig->state.cache.time_mode, ELAPSED_INVALIDATE);
+    elapsed_ms(&rig->state.cache.time_vfo, HAMLIB_ELAPSED_INVALIDATE);
+    elapsed_ms(&rig->state.cache.time_freq, HAMLIB_ELAPSED_INVALIDATE);
+    elapsed_ms(&rig->state.cache.time_mode, HAMLIB_ELAPSED_INVALIDATE);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: return %d, vfo=%s\n", __func__, retcode,
               rig_strvfo(vfo));
@@ -2042,7 +2042,7 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
         return -RIG_ENAVAIL;
     }
 
-    cache_ms = elapsed_ms(&rig->state.cache.time_vfo, ELAPSED_GET);
+    cache_ms = elapsed_ms(&rig->state.cache.time_vfo, HAMLIB_ELAPSED_GET);
     rig_debug(RIG_DEBUG_TRACE, "%s: cache check age=%dms\n", __func__, cache_ms);
 
     if (cache_ms < rig->state.cache.timeout_ms)
@@ -2062,11 +2062,11 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
     {
         rig->state.current_vfo = *vfo;
         rig->state.cache.vfo = *vfo;
-        cache_ms = elapsed_ms(&rig->state.cache.time_vfo, ELAPSED_SET);
+        cache_ms = elapsed_ms(&rig->state.cache.time_vfo, HAMLIB_ELAPSED_SET);
     }
     else
     {
-        cache_ms = elapsed_ms(&rig->state.cache.time_vfo, ELAPSED_INVALIDATE);
+        cache_ms = elapsed_ms(&rig->state.cache.time_vfo, HAMLIB_ELAPSED_INVALIDATE);
     }
 
     if (retcode != RIG_OK)
@@ -2273,7 +2273,7 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     }
 
     rig->state.cache.ptt = ptt;
-    elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
+    elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_SET);
 
     if (retcode != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s: return code=%d\n", __func__, retcode); }
 
@@ -2311,7 +2311,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         return -RIG_EINVAL;
     }
 
-    cache_ms = elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_GET);
+    cache_ms = elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_GET);
     rig_debug(RIG_DEBUG_TRACE, "%s: cache check age=%dms\n", __func__, cache_ms);
 
     if (cache_ms < rig->state.cache.timeout_ms)
@@ -2346,7 +2346,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
             if (retcode == RIG_OK)
             {
                 rig->state.cache.ptt = *ptt;
-                elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
+                elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_SET);
             }
 
             return retcode;
@@ -2374,7 +2374,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
             /* return the first error code */
             retcode = rc2;
             rig->state.cache.ptt = *ptt;
-            elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
+            elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_SET);
         }
 
         return retcode;
@@ -2386,7 +2386,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
             if (retcode == RIG_OK)
             {
-                elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
+                elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_SET);
                 rig->state.cache.ptt = *ptt;
             }
 
@@ -2407,7 +2407,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         }
 
         rig->state.cache.ptt = *ptt;
-        elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
+        elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_SET);
         return retcode;
 
     case RIG_PTT_SERIAL_DTR:
@@ -2417,7 +2417,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
             if (retcode == RIG_OK)
             {
-                elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
+                elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_SET);
                 rig->state.cache.ptt = *ptt;
             }
 
@@ -2438,7 +2438,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         }
 
         rig->state.cache.ptt = *ptt;
-        elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
+        elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_SET);
         return retcode;
 
     case RIG_PTT_PARALLEL:
@@ -2448,7 +2448,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
             if (retcode == RIG_OK)
             {
-                elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
+                elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_SET);
                 rig->state.cache.ptt = *ptt;
             }
 
@@ -2459,7 +2459,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
         if (retcode == RIG_OK)
         {
-            elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
+            elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_SET);
             rig->state.cache.ptt = *ptt;
         }
 
@@ -2472,7 +2472,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
             if (retcode == RIG_OK)
             {
-                elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
+                elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_SET);
                 rig->state.cache.ptt = *ptt;
             }
 
@@ -2483,7 +2483,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
         if (retcode == RIG_OK)
         {
-            elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
+            elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_SET);
             rig->state.cache.ptt = *ptt;
         }
 
@@ -2497,14 +2497,14 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
             if (retcode == RIG_OK)
             {
-                elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
+                elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_SET);
                 rig->state.cache.ptt = *ptt;
             }
 
             return retcode;
         }
 
-        elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
+        elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_SET);
         return gpio_ptt_get(&rig->state.pttport, ptt);
 
     case RIG_PTT_NONE:
@@ -2514,7 +2514,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         return -RIG_EINVAL;
     }
 
-    elapsed_ms(&rig->state.cache.time_ptt, ELAPSED_SET);
+    elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_SET);
     return RIG_OK;
 }
 
@@ -3523,7 +3523,7 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
 
         rig->state.cache.split = split;
         rig->state.cache.split_vfo = tx_vfo;
-        elapsed_ms(&rig->state.cache.time_split, ELAPSED_SET);
+        elapsed_ms(&rig->state.cache.time_split, HAMLIB_ELAPSED_SET);
         return retcode;
     }
 
@@ -3558,7 +3558,7 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
 
     rig->state.cache.split = split;
     rig->state.cache.split_vfo = tx_vfo;
-    elapsed_ms(&rig->state.cache.time_split, ELAPSED_SET);
+    elapsed_ms(&rig->state.cache.time_split, HAMLIB_ELAPSED_SET);
     return retcode;
 }
 
@@ -3608,7 +3608,7 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
         return -RIG_ENAVAIL;
     }
 
-    cache_ms = elapsed_ms(&rig->state.cache.time_split, ELAPSED_GET);
+    cache_ms = elapsed_ms(&rig->state.cache.time_split, HAMLIB_ELAPSED_GET);
     rig_debug(RIG_DEBUG_TRACE, "%s: cache check age=%dms\n", __func__, cache_ms);
 
     if (cache_ms < rig->state.cache.timeout_ms)
@@ -3633,7 +3633,7 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
         retcode = caps->get_split_vfo(rig, vfo, split, tx_vfo);
         rig->state.cache.split = *split;
         rig->state.cache.split_vfo = *tx_vfo;
-        elapsed_ms(&rig->state.cache.time_split, ELAPSED_SET);
+        elapsed_ms(&rig->state.cache.time_split, HAMLIB_ELAPSED_SET);
         return retcode;
     }
 
@@ -3670,7 +3670,7 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
     {
         rig->state.cache.split = *split;
         rig->state.cache.split_vfo = *tx_vfo;
-        elapsed_ms(&rig->state.cache.time_split, ELAPSED_SET);
+        elapsed_ms(&rig->state.cache.time_split, HAMLIB_ELAPSED_SET);
     }
 
     return retcode;
