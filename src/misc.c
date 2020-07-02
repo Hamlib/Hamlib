@@ -1262,7 +1262,7 @@ double HAMLIB_API elapsed_ms(struct timespec *start, int option)
     struct timespec stop;
     double elapsed_msec;
 
-    if (option == ELAPSED_SET)
+    if (option == HAMLIB_ELAPSED_SET)
     {
         start->tv_sec = start->tv_nsec = 0;
     }
@@ -1273,7 +1273,7 @@ double HAMLIB_API elapsed_ms(struct timespec *start, int option)
 
     switch (option)
     {
-    case ELAPSED_GET:
+    case HAMLIB_ELAPSED_GET:
         if (start->tv_nsec == 0)   // if we haven't done SET yet
         {
             clock_gettime(CLOCK_REALTIME, start);
@@ -1283,14 +1283,14 @@ double HAMLIB_API elapsed_ms(struct timespec *start, int option)
         clock_gettime(CLOCK_REALTIME, &stop);
         break;
 
-    case ELAPSED_SET:
+    case HAMLIB_ELAPSED_SET:
         clock_gettime(CLOCK_REALTIME, start);
         rig_debug(RIG_DEBUG_TRACE, "%s: after gettime, start = %ld,%ld\n", __func__,
                   (long)start->tv_sec, (long)start->tv_nsec);
         return 999 * 1000; // so we can tell the difference in debug where we came from
         break;
 
-    case ELAPSED_INVALIDATE:
+    case HAMLIB_ELAPSED_INVALIDATE:
         clock_gettime(CLOCK_REALTIME, start);
         start->tv_sec -= 3600;
         break;
@@ -1301,18 +1301,18 @@ double HAMLIB_API elapsed_ms(struct timespec *start, int option)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: elapsed_msecs=%g\n", __func__, elapsed_msec);
 
-    if (elapsed_msec < 0 || option == ELAPSED_INVALIDATE) { return 1000000; }
+    if (elapsed_msec < 0 || option == HAMLIB_ELAPSED_INVALIDATE) { return 1000000; }
 
     return elapsed_msec;
 }
 
-int HAMLIB_API rig_get_cache_timeout_ms(RIG *rig, cache_t selection)
+int HAMLIB_API rig_get_cache_timeout_ms(RIG *rig, hamlib_cache_t selection)
 {
     rig_debug(RIG_DEBUG_TRACE, "%s: called selection=%d\n", __func__, selection);
     return rig->state.cache.timeout_ms;
 }
 
-int HAMLIB_API rig_set_cache_timeout_ms(RIG *rig, cache_t selection, int ms)
+int HAMLIB_API rig_set_cache_timeout_ms(RIG *rig, hamlib_cache_t selection, int ms)
 {
     rig_debug(RIG_DEBUG_TRACE, "%s: called selection=%d, ms=%d\n", __func__,
               selection, ms);
