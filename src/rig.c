@@ -1268,7 +1268,8 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     const struct rig_caps *caps;
     int retcode;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, freq=%g\n", __func__, rig_strvfo(vfo), freq);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, freq=%g\n", __func__,
+              rig_strvfo(vfo), freq);
 
     if (CHECK_RIG_ARG(rig))
     {
