@@ -1014,7 +1014,6 @@ static int flrig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 static int flrig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     int retval;
-    char value[MAXXMLLEN];
     char cmd_arg[MAXARGLEN];
     char *cmd;
     struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
