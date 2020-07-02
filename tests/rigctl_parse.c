@@ -4085,9 +4085,9 @@ declare_proto_rig(dump_state)
     // backward compatible as new values will just generate warnings
     if (chk_vfo_executed) // for 3.3 compatiblility
     {
-       fprintf(fout, "vfo_ops=0x%x\n", rig->caps->vfo_ops);
-       fprintf(fout, "ptt_type=0x%x\n", rig->state.pttport.type.ptt);
-       fprintf(fout, "done\n");
+        fprintf(fout, "vfo_ops=0x%x\n", rig->caps->vfo_ops);
+        fprintf(fout, "ptt_type=0x%x\n", rig->state.pttport.type.ptt);
+        fprintf(fout, "done\n");
     }
 
 #if 0 // why isn't this implemented?  Does anybody care?
