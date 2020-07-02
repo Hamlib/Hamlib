@@ -81,5 +81,6 @@ extern const struct rig_caps vx1700_caps;
 extern const struct rig_caps ft1200_caps;
 extern const struct rig_caps ft847uni_caps;
 extern const struct rig_caps ftdx101d_caps;
+extern const struct rig_caps ft818_caps;
 
 #endif /* _YAESU_H */
