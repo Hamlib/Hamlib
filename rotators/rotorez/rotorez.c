@@ -552,7 +552,7 @@ static int rotorez_rot_get_position(ROT *rot, azimuth_t *azimuth,
                 err = -RIG_EINVAL;
             }
         }
-        else if (err == AZ_READ_LEN && az[0] == ';')
+        else if (err == AZ_READ_LEN)
         {
             /* Check if remaining chars are digits if az[0] == ';' */
             for (p = az + 1; p < az + 4; p++)
