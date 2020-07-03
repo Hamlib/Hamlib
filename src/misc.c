@@ -1292,14 +1292,15 @@ double HAMLIB_API elapsed_ms(struct timespec *start, int option)
 
     case HAMLIB_ELAPSED_INVALIDATE:
         clock_gettime(CLOCK_REALTIME, start);
-        start->tv_sec -= 3600;
+        stop = *start;
+        start->tv_sec -= 10; // ten seconds should be more than enough
         break;
     }
 
     elapsed_msec = ((stop.tv_sec - start->tv_sec) + (stop.tv_nsec / 1e9 -
                     start->tv_nsec / 1e9)) * 1e3;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: elapsed_msecs=%g\n", __func__, elapsed_msec);
+    rig_debug(RIG_DEBUG_TRACE, "%s: elapsed_msecs=%.0f\n", __func__, elapsed_msec);
 
     if (elapsed_msec < 0 || option == HAMLIB_ELAPSED_INVALIDATE) { return 1000000; }
 

@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    rig_set_cache_timeout_ms(my_rig, CACHE_ALL, cache_timeout);
+    rig_set_cache_timeout_ms(my_rig, HAMLIB_CACHE_ALL, cache_timeout);
     /* Give me ID info, e.g., firmware version. */
     info_buf = (char *)rig_get_info(my_rig);
 
