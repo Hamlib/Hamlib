@@ -115,6 +115,7 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
     int frm_len, retval;
     int ctrl_id;
 
+    sendbuf[0] = buf[0] = 0;
     rs = &rig->state;
     priv = (struct icom_priv_data *)rs->priv;
     priv_caps = (struct icom_priv_caps *)rig->caps->priv;
@@ -232,6 +233,7 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
      * FIXME: handle pading/collisions
      * ACKFRMLEN is the smallest frame we can expect from the rig
      */
+    buf[0] = 0;
     frm_len = read_icom_frame(&rs->rigport, buf, sizeof(buf));
 
     if (memcmp(buf, sendbuf, frm_len) == 0 && priv->serial_USB_echo_off)
