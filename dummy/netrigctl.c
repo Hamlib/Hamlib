@@ -629,8 +629,8 @@ static int netrigctl_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     char vfotmp[16];
 #endif
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called, vfo=%s, freq=%.0f\n", __func__,
-              rig_strvfo(vfo), *freq);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called, vfo=%s\n", __func__,
+              rig_strvfo(vfo));
 
     ret = netrigctl_vfostr(rig, vfostr, sizeof(vfostr), vfo);
 
