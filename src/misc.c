@@ -1292,7 +1292,8 @@ double HAMLIB_API elapsed_ms(struct timespec *start, int option)
 
     case HAMLIB_ELAPSED_INVALIDATE:
         clock_gettime(CLOCK_REALTIME, start);
-        start->tv_sec -= 3600;
+        stop = *start;
+        start->tv_sec -= 10; // ten seconds should be more than enough
         break;
     }
 
