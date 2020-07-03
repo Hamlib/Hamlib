@@ -1382,7 +1382,7 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo)
 int HAMLIB_API parse_hoststr(char *hoststr, char host[256], char port[6])
 {
     unsigned int net1, net2, net3, net4, net5, net6, net7, net8;
-    char dummy[2], link[32], *p;
+    char dummy[6], link[32], *p;
     host[0] = 0;
     port[0] = 0;
     dummy[0] = 0;
@@ -1471,7 +1471,7 @@ int HAMLIB_API parse_hoststr(char *hoststr, char host[256], char port[6])
         return RIG_OK;
     }
 
-    if (sscanf(hoststr, ":%5[0-9]%s", port,
+    if (sscanf(hoststr, ":%5[0-9]%1s", port,
                dummy) == 1) // just a port if you please
     {
         sprintf(hoststr, "%s:%s\n", "localhost", port);
