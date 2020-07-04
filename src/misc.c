@@ -1393,7 +1393,7 @@ int HAMLIB_API parse_hoststr(char *hoststr, char host[256], char port[6])
     if (strncasecmp(hoststr, "com", 3) == 0) { return -1; }
 
     // escaped COM port like \\.\COM3
-    if (strstr(hoststr,"\\")) { return -1; }
+    if (strstr(hoststr,"\\\\.\\")) { return -1; }
 
     // bracketed IPV6 with optional port
     int n = sscanf(hoststr, "[%255[^]]]:%5s", host, port);
