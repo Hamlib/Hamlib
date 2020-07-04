@@ -290,7 +290,7 @@ static char *mystrtok(char *s, char delim)
     {
     }
 
-    if (str[ pos + 1 ] == '\0')
+    if (str && str[ pos + 1 ] == '\0')
     {
         return NULL;
     }
@@ -1038,6 +1038,11 @@ int find_on_list(char **list, char *what)
         return -1;
     }
 
+    if (!list[i])
+    {
+        return -1;
+    }
+
     while (list[i] != NULL)
     {
         if (strcmp(list[i], what) == 0)
@@ -1049,13 +1054,5 @@ int find_on_list(char **list, char *what)
             i++;
         }
     }
-
-    if (!list[i])
-    {
-        return -1;
-    }
-    else
-    {
-        return i;
-    }
+    return i;
 }
