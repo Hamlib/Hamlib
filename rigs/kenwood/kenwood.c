@@ -725,7 +725,7 @@ int kenwood_open(RIG *rig)
         rig_debug(RIG_DEBUG_TRACE, "%s: got ID so try PS\n", __func__);
         err = rig_get_powerstat(rig, &powerstat);
 
-        if (err == RIG_OK && powerstat == 0 && priv->poweron == 0 && rig->state.auto_pwr_on_off)
+        if (err == RIG_OK && powerstat == 0 && priv->poweron == 0 && rig->state.auto_power_on)
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: got PS0 so powerup\n", __func__);
             rig_set_powerstat(rig, 1);
@@ -735,7 +735,7 @@ int kenwood_open(RIG *rig)
 
         err = RIG_OK;  // reset our err back to OK for later checks
     }
-    if (err == -RIG_ETIMEOUT && rig->state.auto_pwr_on_off)
+    if (err == -RIG_ETIMEOUT && rig->state.auto_power_on)
     {
         // Ensure rig is on
         rig_set_powerstat(rig, 1);

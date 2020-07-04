@@ -104,8 +104,8 @@
 #define TOK_RANGE_NAME  TOKEN_FRONTEND(122)
 /** \brief rig: Cache timeout */
 #define TOK_CACHE_TIMEOUT  TOKEN_FRONTEND(123)
-/** \brief rig: Auto power on/off */
-#define TOK_AUTO_PWR_ON_OFF  TOKEN_FRONTEND(124)
+/** \brief rig: Auto power on rig_open when supported */
+#define TOK_AUTO_POWER_ON  TOKEN_FRONTEND(124)
 /** \brief rig: Auto disable screensaver */
 #define TOK_AUTO_DISABLE_SCREENSAVER  TOKEN_FRONTEND(125)
 /*

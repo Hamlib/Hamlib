@@ -2028,8 +2028,8 @@ struct rig_state {
     int twiddle_timeout;        /*!< timeout to resume from twiddling */
     struct rig_cache cache;
     int vfo_opt;                /*!< Is -o switch turned on? */
-    int auto_pwr_on_off;        /*!< Allow Hamlib to power rig on and
-                                   off automatically if supported */
+    int auto_power_on;          /*!< Allow Hamlib to power rig
+                                   automatically if supported */
     int auto_disable_screensaver; /*!< Allow Hamlib to disable the
                                    rig's screen saver automatically if
                                    supported */

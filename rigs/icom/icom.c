@@ -727,7 +727,7 @@ icom_rig_open(RIG *rig)
               rig->caps->version);
     retval = icom_get_usb_echo_off(rig);
 
-    if (retval != RIG_OK && priv->poweron == 0 && rs->auto_pwr_on_off)
+    if (retval != RIG_OK && priv->poweron == 0 && rs->auto_power_on)
     {
         // maybe we need power on?
         rig_debug(RIG_DEBUG_VERBOSE, "%s trying power on\n", __func__);
