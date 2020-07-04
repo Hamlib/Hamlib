@@ -366,7 +366,7 @@ int newcat_open(RIG *rig)
               __func__, rig_s->rigport.post_write_delay);
 
     /* Ensure rig is powered on */
-    if (priv->poweron == 0 && rig_s->auto_pwr_on_off)
+    if (priv->poweron == 0 && rig_s->auto_power_on)
     {
         rig_set_powerstat(rig, 1);
         priv->poweron = 1;

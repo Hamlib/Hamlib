@@ -129,12 +129,12 @@ static const struct confparams frontend_cfg_params[] =
         "500", RIG_CONF_NUMERIC, { .n = {0, 5000, 1}}
     },
     {
-        TOK_AUTO_PWR_ON_OFF, "auto_pwr_on_off", "Auto power on/off",
+        TOK_AUTO_POWER_ON, "auto_power_on", "Auto power on",
         "True enables compatible rigs to be powered up on open",
         "0", RIG_CONF_CHECKBUTTON, { }
     },
     {
-        TOK_AUTO_PWR_ON_OFF, "auto_disable_screensaver", "Auto disable screen saver",
+        TOK_AUTO_DISABLE_SCREENSAVER, "auto_disable_screensaver", "Auto disable screen saver",
         "True enables compatible rigs to have their screen saver disabled on open",
         "0", RIG_CONF_CHECKBUTTON, { }
     },
@@ -562,12 +562,12 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         rig_set_cache_timeout_ms(rig, HAMLIB_CACHE_ALL, atol(val));
         break;
 
-    case TOK_AUTO_PWR_ON_OFF:
+    case TOK_AUTO_POWER_ON:
         if (1 != sscanf(val, "%d", &val_i))
         {
             return -RIG_EINVAL; //value format error
         }
-        rs->auto_pwr_on_off = val_i ? 1 : 0;
+        rs->auto_power_on = val_i ? 1 : 0;
         break;
 
     case TOK_AUTO_DISABLE_SCREENSAVER:
@@ -890,8 +890,8 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
         sprintf(val, "%d", rig_get_cache_timeout_ms(rig, HAMLIB_CACHE_ALL));
         break;
 
-    case TOK_AUTO_PWR_ON_OFF:
-        sprintf(val, "%d", rs->auto_pwr_on_off);
+    case TOK_AUTO_POWER_ON:
+        sprintf(val, "%d", rs->auto_power_on);
         break;
 
     case TOK_AUTO_DISABLE_SCREENSAVER:
