@@ -88,7 +88,7 @@ const struct rig_caps thd7a_caps =
     .mfg_name =  "Kenwood",
     .version =  TH_VER ".0",
     .copyright =  "LGPL",
-    .status =  RIG_STATUS_ALPHA,
+    .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_HANDHELD | RIG_FLAG_APRS | RIG_FLAG_TNC | RIG_FLAG_DXCLUSTER,
     .ptt_type =  RIG_PTT_RIG,
     .dcd_type =  RIG_DCD_RIG,
@@ -195,7 +195,7 @@ const struct rig_caps thd7a_caps =
     .get_parm =  th_get_parm,
     .get_info =  th_get_info,
 
-    .get_dcd =  kenwood_get_dcd,
+    .get_dcd =  th_get_dcd,
 
     .decode_event =  th_decode_event,
 };
