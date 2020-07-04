@@ -232,7 +232,7 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data,
     char buffer[KENWOOD_MAX_BUF_LEN]; /* use our own buffer since
                                        verification may need a longer
                                        buffer than the user supplied one */
-    char cmdtrm[2];  /* Default Command/Reply termination char */
+    char cmdtrm_str[2];   /* Default Command/Reply termination char */
     int retval;
     char *cmd;
     int len;
@@ -282,8 +282,8 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data,
         priv->cache_start.tv_sec = 0;
     }
 
-    cmdtrm[0] = caps->cmdtrm;
-    cmdtrm[1] = '\0';
+    cmdtrm_str[0] = caps->cmdtrm;
+    cmdtrm_str[1] = '\0';
 
 transaction_write:
 
@@ -306,7 +306,7 @@ transaction_write:
         /* XXX the if is temporary, until all invocations are fixed */
         if (cmdstr[len - 1] != ';' && cmdstr[len - 1] != '\r')
         {
-            cmd[len] = caps->cmdtrm[0];
+            cmd[len] = caps->cmdtrm;
             len++;
         }
 
@@ -341,7 +341,7 @@ transaction_read:
     /* allow room for most any response */
     len = min(datasize ? datasize + 1 : strlen(priv->verify_cmd) + 32,
               KENWOOD_MAX_BUF_LEN);
-    retval = read_string(&rs->rigport, buffer, len, cmdtrm, strlen(cmdtrm));
+    retval = read_string(&rs->rigport, buffer, len, cmdtrm_str, strlen(cmdtrm_str));
     rig_debug(RIG_DEBUG_TRACE, "%s: read_string(len=%d)='%s'\n", __func__,
               (int)strlen(buffer), buffer);
 
@@ -368,7 +368,7 @@ transaction_read:
     }
 
     /* Check that command termination is correct */
-    if (strchr(cmdtrm, buffer[strlen(buffer) - 1]) == NULL)
+    if (strchr(cmdtrm_str, buffer[strlen(buffer) - 1]) == NULL)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n",
                   __func__, buffer);
@@ -664,14 +664,14 @@ int kenwood_init(RIG *rig)
     memset(priv, 0x00, sizeof(struct kenwood_priv_data));
     if (RIG_IS_XG3)
     {
-        priv->verify_cmd[0] = caps->cmdtrm[0];
+        priv->verify_cmd[0] = caps->cmdtrm;
         priv->verify_cmd[1] ='\0';
     }
     else
     {
         priv->verify_cmd[0] ='I';
         priv->verify_cmd[1] ='D';
-        priv->verify_cmd[2] = caps->cmdtrm[0];
+        priv->verify_cmd[2] = caps->cmdtrm;
         priv->verify_cmd[3] ='\0';
     }
     priv->split = RIG_SPLIT_OFF;
@@ -811,10 +811,10 @@ int kenwood_open(RIG *rig)
 
         /* here we know there is something that responds to FA but not
            to ID so use FA as the command verification command */
-        priv->verify_cmd[0] = F';
-        priv->verify_cmd[1] = A';
-        priv->verify_cmd[2] = caps->cmdtrm ;
-        priv->verify_cmd[3] = \0;
+        priv->verify_cmd[0] = 'F';
+        priv->verify_cmd[1] = 'A';
+        priv->verify_cmd[2] = caps->cmdtrm;
+        priv->verify_cmd[3] = '\0';
         strcpy(id, "ID019");      /* fake a TS-2000 */
     }
     else
