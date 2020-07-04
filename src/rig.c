@@ -925,10 +925,13 @@ int HAMLIB_API rig_open(RIG *rig)
         }
     }
 
-    // try to turn off the screensaver if possible
-    // don't care about the return here...it's just a nice-to-have
-    parm_value.i = 0;
-    rig_set_parm(rig, RIG_PARM_SCREENSAVER, parm_value);
+    if (rs->auto_disable_screensaver)
+    {
+        // try to turn off the screensaver if possible
+        // don't care about the return here...it's just a nice-to-have
+        parm_value.i = 0;
+        rig_set_parm(rig, RIG_PARM_SCREENSAVER, parm_value);
+    }
 
 #if 0
 

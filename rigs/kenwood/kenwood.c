@@ -725,7 +725,7 @@ int kenwood_open(RIG *rig)
         rig_debug(RIG_DEBUG_TRACE, "%s: got ID so try PS\n", __func__);
         err = rig_get_powerstat(rig, &powerstat);
 
-        if (err == RIG_OK && powerstat == 0 && priv->poweron == 0)
+        if (err == RIG_OK && powerstat == 0 && priv->poweron == 0 && rig->state.auto_pwr_on_off)
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: got PS0 so powerup\n", __func__);
             rig_set_powerstat(rig, 1);
@@ -735,19 +735,17 @@ int kenwood_open(RIG *rig)
 
         err = RIG_OK;  // reset our err back to OK for later checks
     }
-
-    if (err == -RIG_ETIMEOUT)
+    if (err == -RIG_ETIMEOUT && rig->state.auto_pwr_on_off)
     {
         // Ensure rig is on
         rig_set_powerstat(rig, 1);
         /* Try get id again */
         err = kenwood_get_id(rig, id);
-
-        if (RIG_OK != err)
-        {
-            rig_debug(RIG_DEBUG_ERR,
-                      "%s: no response to get_id from rig...contintuing anyways.\n", __func__);
-        }
+    }
+    if (RIG_OK != err)
+    {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: no response to get_id from rig...contintuing anyways.\n", __func__);
     }
 
     if (RIG_IS_TS2000
