@@ -85,7 +85,6 @@ unsigned int sleep(unsigned int secs)
     return 0;
 }
 #endif
-#endif
 
 
 #if 0
