@@ -66,6 +66,7 @@ int hl_usleep(rig_useconds_t usec)
 }
 
 #ifdef HAVE_NANOSLEEP
+#ifndef HAVE_SLEEP
 /**
  * \brief sleep
  * \param secs is seconds to sleep
@@ -83,6 +84,8 @@ unsigned int sleep(unsigned int secs)
 
     return 0;
 }
+#endif
+#endif
 
 
 #if 0
