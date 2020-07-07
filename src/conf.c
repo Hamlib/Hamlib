@@ -567,6 +567,7 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         {
             return -RIG_EINVAL; //value format error
         }
+
         rs->auto_power_on = val_i ? 1 : 0;
         break;
 
@@ -575,6 +576,7 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         {
             return -RIG_EINVAL; //value format error
         }
+
         rs->auto_disable_screensaver = val_i ? 1 : 0;
         break;
 

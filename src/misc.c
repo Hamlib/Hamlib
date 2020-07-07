@@ -1313,7 +1313,8 @@ int HAMLIB_API rig_get_cache_timeout_ms(RIG *rig, hamlib_cache_t selection)
     return rig->state.cache.timeout_ms;
 }
 
-int HAMLIB_API rig_set_cache_timeout_ms(RIG *rig, hamlib_cache_t selection, int ms)
+int HAMLIB_API rig_set_cache_timeout_ms(RIG *rig, hamlib_cache_t selection,
+                                        int ms)
 {
     rig_debug(RIG_DEBUG_TRACE, "%s: called selection=%d, ms=%d\n", __func__,
               selection, ms);
@@ -1393,7 +1394,7 @@ int HAMLIB_API parse_hoststr(char *hoststr, char host[256], char port[6])
     if (strncasecmp(hoststr, "com", 3) == 0) { return -1; }
 
     // escaped COM port like \\.\COM3
-    if (strstr(hoststr,"\\\\.\\")) { return -1; }
+    if (strstr(hoststr, "\\\\.\\")) { return -1; }
 
     // bracketed IPV6 with optional port
     int n = sscanf(hoststr, "[%255[^]]]:%5s", host, port);

@@ -435,12 +435,12 @@ th_set_vfo(RIG *rig, vfo_t vfo)
         case RIG_VFO_A:
         case RIG_VFO_VFO:
         case RIG_VFO_MAIN:
-            strncpy (cmd, "BC 0", sizeof cmd);
+            strncpy(cmd, "BC 0", sizeof cmd);
             break;
 
         case RIG_VFO_B:
         case RIG_VFO_SUB:
-            strncpy (cmd, "BC 1", sizeof cmd);
+            strncpy(cmd, "BC 1", sizeof cmd);
             break;
 
         default:
@@ -463,29 +463,31 @@ th_set_vfo(RIG *rig, vfo_t vfo)
     case RIG_VFO_A:
     case RIG_VFO_VFO:
     case RIG_VFO_MAIN:
-        strncpy (cmd, "VMC 0,0", sizeof cmd);
+        strncpy(cmd, "VMC 0,0", sizeof cmd);
         break;
 
     case RIG_VFO_B:
     case RIG_VFO_SUB:
-        strncpy (cmd, "VMC 1,0", sizeof cmd);
+        strncpy(cmd, "VMC 1,0", sizeof cmd);
         break;
 
     case RIG_VFO_MEM:
-        strncpy (cmd, "BC", sizeof cmd);
-        retval = kenwood_transaction (rig, cmd, cmd, sizeof cmd);
+        strncpy(cmd, "BC", sizeof cmd);
+        retval = kenwood_transaction(rig, cmd, cmd, sizeof cmd);
+
         if (retval != RIG_OK)
         {
             return retval;
         }
+
         if (rig->caps->rig_model == RIG_MODEL_THF7E ||
                 rig->caps->rig_model == RIG_MODEL_THF6A)
         {
-            snprintf (cmd, sizeof cmd, "VMC %c,1", cmd[3]);
+            snprintf(cmd, sizeof cmd, "VMC %c,1", cmd[3]);
         }
         else
         {
-            snprintf (cmd, sizeof cmd, "VMC %c,2", cmd[3]);
+            snprintf(cmd, sizeof cmd, "VMC %c,2", cmd[3]);
         }
 
         break;
@@ -737,7 +739,7 @@ int th_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
     }
 
     /* Set VFO mode. To be done for TX vfo also? */
-    snprintf (vfobuf, sizeof vfobuf, "VMC %d,0", vfonum);
+    snprintf(vfobuf, sizeof vfobuf, "VMC %d,0", vfonum);
     retval = kenwood_transaction(rig, vfobuf, vfobuf, sizeof vfobuf);
 
     if (retval != RIG_OK)
@@ -745,7 +747,7 @@ int th_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
         return retval;
     }
 
-    snprintf (vfobuf, sizeof vfobuf, "BC %d,%d", vfonum, txvfonum);
+    snprintf(vfobuf, sizeof vfobuf, "BC %d,%d", vfonum, txvfonum);
     retval = kenwood_transaction(rig, vfobuf, NULL, 0);
 
     if (retval != RIG_OK)
@@ -804,8 +806,8 @@ int
 th_set_trn(RIG *rig, int trn)
 {
     char buf[5];
-    snprintf (buf, sizeof buf, "AI %c", RIG_TRN_RIG == trn ? '1' : '0');
-    return kenwood_transaction (rig, buf, buf, sizeof buf);
+    snprintf(buf, sizeof buf, "AI %c", RIG_TRN_RIG == trn ? '1' : '0');
+    return kenwood_transaction(rig, buf, buf, sizeof buf);
 }
 
 /*
@@ -1417,8 +1419,8 @@ th_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
     }
 
     i += (i == 0) ? 1 : 2;  /* Correct for TH-D7A index anomally */
-    snprintf (tonebuf, sizeof tonebuf, "TN %02d", i);
-    return kenwood_transaction (rig, tonebuf, tonebuf, sizeof tonebuf);
+    snprintf(tonebuf, sizeof tonebuf, "TN %02d", i);
+    return kenwood_transaction(rig, tonebuf, tonebuf, sizeof tonebuf);
 }
 
 /*
@@ -1495,8 +1497,8 @@ th_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
     }
 
     i += (i == 0) ? 1 : 2;  /* Correct for TH-D7A index anomally */
-    snprintf (tonebuf, sizeof tonebuf, "CTN %02d", i);
-    return kenwood_transaction (rig, tonebuf, tonebuf, sizeof tonebuf);
+    snprintf(tonebuf, sizeof tonebuf, "CTN %02d", i);
+    return kenwood_transaction(rig, tonebuf, tonebuf, sizeof tonebuf);
 }
 
 /*
@@ -1565,7 +1567,7 @@ th_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
 
     if (code == 0)
     {
-      snprintf (codebuf, sizeof codebuf, "DCS 0");
+        snprintf(codebuf, sizeof codebuf, "DCS 0");
         return kenwood_transaction(rig, codebuf, codebuf, sizeof codebuf);
     }
 
@@ -1582,14 +1584,16 @@ th_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
         return -RIG_EINVAL;
     }
 
-    snprintf (codebuf, sizeof codebuf, "DCS 1");
-    if ((retval = kenwood_transaction(rig, codebuf, codebuf, sizeof codebuf)) != RIG_OK)
+    snprintf(codebuf, sizeof codebuf, "DCS 1");
+
+    if ((retval = kenwood_transaction(rig, codebuf, codebuf,
+                                      sizeof codebuf)) != RIG_OK)
     {
         return retval;
     }
 
     snprintf(codebuf, sizeof codebuf, "DCSN %04d", (i + 1) * 10);
-    return kenwood_transaction (rig, codebuf, codebuf, sizeof codebuf);
+    return kenwood_transaction(rig, codebuf, codebuf, sizeof codebuf);
 }
 
 /*
@@ -1724,8 +1728,8 @@ th_set_mem(RIG *rig, vfo_t vfo, int ch)
         return retval;
     }
 
-    snprintf (membuf, sizeof membuf, "MC %c,%03i", vsel, ch);
-    return kenwood_transaction (rig, membuf, membuf, sizeof membuf);
+    snprintf(membuf, sizeof membuf, "MC %c,%03i", vsel, ch);
+    return kenwood_transaction(rig, membuf, membuf, sizeof membuf);
 }
 
 /* Get mem works only when the display is
@@ -1801,7 +1805,8 @@ th_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     char buf[3];
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
-    return kenwood_transaction(rig, (ptt == RIG_PTT_ON) ? "TX" : "RX", buf, sizeof buf);
+    return kenwood_transaction(rig, (ptt == RIG_PTT_ON) ? "TX" : "RX", buf,
+                               sizeof buf);
 }
 
 int th_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
@@ -2497,15 +2502,15 @@ int th_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
     switch (ant)
     {
     case RIG_ANT_1:
-        strncpy (cmd, "ANT 0", sizeof cmd);
+        strncpy(cmd, "ANT 0", sizeof cmd);
         break;
 
     case RIG_ANT_2:
-        strncpy (cmd, "ANT 1", sizeof cmd);
+        strncpy(cmd, "ANT 1", sizeof cmd);
         break;
 
     case RIG_ANT_3:
-        strncpy (cmd, "ANT 2", sizeof cmd);
+        strncpy(cmd, "ANT 2", sizeof cmd);
         break;
 
     default:
