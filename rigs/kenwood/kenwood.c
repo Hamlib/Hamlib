@@ -275,7 +275,7 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data,
     }
 
     if (strlen(cmdstr) > 2 || strcmp(cmdstr, "RX") == 0
-            || strcmp(cmdstr, "TX") == 0 || strcmp(cmdstr, "ZZTX") == 0)
+            || strncmp(cmdstr, "TX", 2) == 0 || strncmp(cmdstr, "ZZTX", 4) == 0)
     {
         // then we must be setting something so we'll invalidate the cache
         rig_debug(RIG_DEBUG_TRACE, "%s: cache invalidated\n", __func__);
