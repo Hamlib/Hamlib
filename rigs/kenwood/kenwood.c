@@ -323,6 +323,12 @@ transaction_write:
         }
     }
 
+    // we're not going to do the verify on RX cmd
+    // Seems some rigs (like TS-480) return "?" when RX is done while PTT=OFF
+    // So we'll skip the checks just on this one command for now
+    // The TS-480 PC Control says RX; should return RX0; but it doesn't
+    if (retval == RIG_OK && strncmp(cmdstr, "RX", 2) == 0) goto transaction_quit;
+
     if (!datasize)
     {
         rig->state.hold_decode = 0;
