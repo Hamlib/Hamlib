@@ -1054,5 +1054,6 @@ int find_on_list(char **list, char *what)
             i++;
         }
     }
+
     return i;
 }

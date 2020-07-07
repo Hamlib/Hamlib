@@ -850,52 +850,72 @@ int ft1000mp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
     case RIG_MODE_AM:
         cmd_index = FT1000MP_NATIVE_MODE_SET_AM;
-        if (vfo == RIG_VFO_B) cmd_index = FT1000MP_NATIVE_MODE_SET_AM_B;
+
+        if (vfo == RIG_VFO_B) { cmd_index = FT1000MP_NATIVE_MODE_SET_AM_B; }
+
         break;
 
     case RIG_MODE_CW:
         cmd_index = FT1000MP_NATIVE_MODE_SET_CWR;
-        if (vfo == RIG_VFO_B) cmd_index = FT1000MP_NATIVE_MODE_SET_CWR_B;
+
+        if (vfo == RIG_VFO_B) { cmd_index = FT1000MP_NATIVE_MODE_SET_CWR_B; }
+
         break;
 
     case RIG_MODE_CWR:
         cmd_index = FT1000MP_NATIVE_MODE_SET_CW;
-        if (vfo == RIG_VFO_B) cmd_index = FT1000MP_NATIVE_MODE_SET_CW_B;
+
+        if (vfo == RIG_VFO_B) { cmd_index = FT1000MP_NATIVE_MODE_SET_CW_B; }
+
         break;
 
     case RIG_MODE_USB:
         cmd_index = FT1000MP_NATIVE_MODE_SET_USB;
-        if (vfo == RIG_VFO_B) cmd_index = FT1000MP_NATIVE_MODE_SET_USB_B;
+
+        if (vfo == RIG_VFO_B) { cmd_index = FT1000MP_NATIVE_MODE_SET_USB_B; }
+
         break;
 
     case RIG_MODE_LSB:
         cmd_index = FT1000MP_NATIVE_MODE_SET_LSB;
-        if (vfo == RIG_VFO_B) cmd_index = FT1000MP_NATIVE_MODE_SET_LSB_B;
+
+        if (vfo == RIG_VFO_B) { cmd_index = FT1000MP_NATIVE_MODE_SET_LSB_B; }
+
         break;
 
     case RIG_MODE_FM:
         cmd_index = FT1000MP_NATIVE_MODE_SET_FM;
-        if (vfo == RIG_VFO_B) cmd_index = FT1000MP_NATIVE_MODE_SET_FM_B;
+
+        if (vfo == RIG_VFO_B) { cmd_index = FT1000MP_NATIVE_MODE_SET_FM_B; }
+
         break;
 
     case RIG_MODE_RTTY:
         cmd_index = FT1000MP_NATIVE_MODE_SET_RTTY_LSB;
-        if (vfo == RIG_VFO_B) cmd_index = FT1000MP_NATIVE_MODE_SET_RTTY_LSB_B;
+
+        if (vfo == RIG_VFO_B) { cmd_index = FT1000MP_NATIVE_MODE_SET_RTTY_LSB_B; }
+
         break;
 
     case RIG_MODE_RTTYR:
         cmd_index = FT1000MP_NATIVE_MODE_SET_RTTY_USB;
-        if (vfo == RIG_VFO_B) cmd_index = FT1000MP_NATIVE_MODE_SET_RTTY_USB_B;
+
+        if (vfo == RIG_VFO_B) { cmd_index = FT1000MP_NATIVE_MODE_SET_RTTY_USB_B; }
+
         break;
 
     case RIG_MODE_PKTLSB:
         cmd_index = FT1000MP_NATIVE_MODE_SET_DATA_LSB;
-        if (vfo == RIG_VFO_B) cmd_index = FT1000MP_NATIVE_MODE_SET_DATA_LSB_B;
+
+        if (vfo == RIG_VFO_B) { cmd_index = FT1000MP_NATIVE_MODE_SET_DATA_LSB_B; }
+
         break;
 
     case RIG_MODE_PKTFM:
         cmd_index = FT1000MP_NATIVE_MODE_SET_DATA_FM;
-        if (vfo == RIG_VFO_B) cmd_index = FT1000MP_NATIVE_MODE_SET_FM_B;
+
+        if (vfo == RIG_VFO_B) { cmd_index = FT1000MP_NATIVE_MODE_SET_FM_B; }
+
         break;
 
     default:
@@ -1558,14 +1578,14 @@ int ft1000mp_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         return -RIG_EINVAL;         /* sorry, wrong VFO */
     }
 
-    rig_get_freq(rig,RIG_VFO_B,&tx_freq);
+    rig_get_freq(rig, RIG_VFO_B, &tx_freq);
     // manual says VFO_A=Tx and VFO_B=Rx but testing shows otherwise
     rig->state.current_vfo = RIG_VFO_A;
     rig->state.tx_vfo = RIG_VFO_B;
     ft1000mp_send_priv_cmd(rig, FT1000MP_NATIVE_AB); // Copy A to B
     ft1000mp_send_priv_cmd(rig, FT1000MP_NATIVE_VFO_A); // make A active
     ft1000mp_send_priv_cmd(rig, cmd_index);
-    rig_set_freq(rig,RIG_VFO_B,tx_freq); // restore orig frequency
+    rig_set_freq(rig, RIG_VFO_B, tx_freq); // restore orig frequency
 
     return RIG_OK;
 }

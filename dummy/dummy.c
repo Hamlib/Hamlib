@@ -410,12 +410,14 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (vfo == RIG_VFO_A) { priv->curr->freq = freq; }
     else if (vfo == RIG_VFO_B) { priv->curr->tx_freq = freq; }
+
     if (!priv->split)
     {
         priv->curr->tx_freq = freq;
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: curr->freq=%.0f, curr->tx_freq=%.0f\n", __func__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: curr->freq=%.0f, curr->tx_freq=%.0f\n",
+              __func__,
               priv->curr->freq, priv->curr->tx_freq);
     return RIG_OK;
 }
