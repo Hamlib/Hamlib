@@ -598,6 +598,7 @@ int main(int argc, char *argv[])
         handle_socket(arg);
 #endif
     }
+    // cppcheck-suppress *
     while (retcode == 0);
 
     amp_close(my_amp); /* close port */

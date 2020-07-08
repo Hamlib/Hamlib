@@ -306,7 +306,7 @@ void hash_sort_by_model_id()
 /* Delete hash */
 void hash_delete_all()
 {
-    struct mod_lst *current_model, *tmp;
+    struct mod_lst *current_model, *tmp=NULL;
 
     HASH_ITER(hh, models, current_model, tmp)
     {

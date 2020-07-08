@@ -1606,6 +1606,7 @@ const chan_t *HAMLIB_API rig_lookup_mem_caps(RIG *rig, int ch)
              */
             for (j = 0; j < sizeof(channel_cap_t); j++)
             {
+                // cppcheck-suppress *
                 p1[j] |= p2[j];
             }
 
