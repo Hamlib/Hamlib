@@ -913,6 +913,9 @@ int ft857_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (vfo != RIG_VFO_CURR)
     {
+        rig_debug(RIG_DEBUG_ERR, "%s: must have RIG_VFO_CURR, got %s\n",
+                  rig_strvfo(RIG_VFO_CURR), rig_strvfo(vfo));
+
         return -RIG_ENTARGET;
     }
 
