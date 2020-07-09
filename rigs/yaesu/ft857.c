@@ -202,8 +202,10 @@ const struct rig_caps ft857_caps =
     },
     .tx_range_list1 =  {
         FRQ_RNG_HF(1, FT857_OTHER_TX_MODES, W(10), W(100), FT857_VFO_ALL, FT857_ANTS),
+        FRQ_RNG_6m(1, FT857_OTHER_TX_MODES, W(10), W(100), FT857_VFO_ALL, FT857_ANTS),
         /* AM class */
         FRQ_RNG_HF(1, FT857_AM_TX_MODES, W(2.5), W(25), FT857_VFO_ALL, FT857_ANTS),
+        FRQ_RNG_6m(1, FT857_AM_TX_MODES, W(2.5), W(25), FT857_VFO_ALL, FT857_ANTS),
         FRQ_RNG_2m(1, FT857_OTHER_TX_MODES, W(5), W(50), FT857_VFO_ALL, FT857_ANTS),
         /* AM class */
         FRQ_RNG_2m(1, FT857_AM_TX_MODES, W(2.5), W(25), FT857_VFO_ALL, FT857_ANTS),
