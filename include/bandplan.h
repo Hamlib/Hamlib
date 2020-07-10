@@ -156,11 +156,12 @@
 
 /*
  * ITU Region 3: South Pacific and Southern Asia
+ * https://web.archive.org/web/20171216012537/http://www.iaru-r3.org/wp-content/files/R3-004%20Band%20Plans%20IARU%20Region%203.docx
  */
 
 /* MF: 300 kHz - 3 MHz */
 #define FRQ_RNG_160m_REGION3(md,lp,hp,v,a) \
-            { kHz(1810),MHz(2), (md), (lp), (hp), (v), (a), "ITU3" }
+            { kHz(1800),MHz(2), (md), (lp), (hp), (v), (a), "ITU3" }
 
 /* HF: 3 MHz - 30 MHz */
 #define FRQ_RNG_80m_REGION3(md,lp,hp,v,a) \
@@ -170,7 +171,7 @@
             { kHz(5351.5),kHz(5366.5), (md), (lp), (hp), (v), (a), "ITU3" }
 
 #define FRQ_RNG_40m_REGION3(md,lp,hp,v,a) \
-            { MHz(7),kHz(7100), (md), (lp), (hp), (v), (a), "ITU3" }
+            { MHz(7),kHz(7300), (md), (lp), (hp), (v), (a), "ITU3" }
 
 #define FRQ_RNG_30m_REGION3(md,lp,hp,v,a) \
             { kHz(10100),kHz(10150), (md), (lp), (hp), (v), (a), "ITU3" }
@@ -199,7 +200,7 @@
 
 /* UHF: 300 MHz - 3 GHz */
 #define FRQ_RNG_70cm_REGION3(md,lp,hp,v,a) \
-            { MHz(430),MHz(440), (md), (lp), (hp), (v), (a), "ITU3" }
+            { MHz(430),MHz(450), (md), (lp), (hp), (v), (a), "ITU3" }
 
 #define FRQ_RNG_23cm_REGION3(md,lp,hp,v,a) \
             { MHz(1240),MHz(1300), (md), (lp), (hp), (v), (a), "ITU3" }
