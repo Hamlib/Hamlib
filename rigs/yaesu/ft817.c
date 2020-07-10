@@ -164,7 +164,7 @@ const struct rig_caps ft817_caps =
     RIG_MODEL(RIG_MODEL_FT817),
     .model_name =          "FT-817",
     .mfg_name =            "Yaesu",
-    .version =             "20200629.0",
+    .version =             "20200710.0",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -302,7 +302,7 @@ const struct rig_caps ft818_caps =
     RIG_MODEL(RIG_MODEL_FT818),
     .model_name =          "FT-818",
     .mfg_name =            "Yaesu",
-    .version =             "20200629.0",
+    .version =             "20200710.0",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -650,6 +650,12 @@ int ft817_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         dump_hex(p->fm_status, 5);
     }
 
+#if 1 // user must be twiddling the VFO
+    // usually get_freq is OK but we have to allow that f1 != f2 when knob is moving
+    *freq = f2 * 10;
+    return RIG_OK;
+#else // remove this if no complaints
+
     if (retries >= 0)
     {
         *freq = f1 * 10;
@@ -659,6 +665,8 @@ int ft817_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     {
         return -RIG_EIO;
     }
+
+#endif
 
 }
 
