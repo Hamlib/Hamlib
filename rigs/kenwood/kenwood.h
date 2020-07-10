@@ -27,7 +27,7 @@
 #include <string.h>
 #include "token.h"
 
-#define BACKEND_VER "20200624"
+#define BACKEND_VER "20200707"
 
 #define EOM_KEN ';'
 #define EOM_TH '\r'
@@ -80,6 +80,7 @@ extern const struct confparams kenwood_cfg_params[];
 #define RIG_IS_HPSDR     (rig->caps->rig_model == RIG_MODEL_HPSDR)
 #define RIG_IS_K2        (rig->caps->rig_model == RIG_MODEL_K2)
 #define RIG_IS_K3        (rig->caps->rig_model == RIG_MODEL_K3)
+#define RIG_IS_THD7A     (rig->caps->rig_model == RIG_MODEL_THD7A)
 #define RIG_IS_THD74     (rig->caps->rig_model == RIG_MODEL_THD74)
 #define RIG_IS_TS2000    (rig->caps->rig_model == RIG_MODEL_TS2000)
 #define RIG_IS_TS50      (rig->caps->rig_model == RIG_MODEL_TS50)

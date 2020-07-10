@@ -629,7 +629,6 @@ static int ft817_get_status(RIG *rig, int status)
 int ft817_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
-    int n;
     freq_t f1 = 0, f2 = 0;
     int retries = rig->state.rigport.retry +
                   1; // +1 because, because 2 steps are needed even in best scenario
@@ -638,6 +637,7 @@ int ft817_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     while ((f1 == 0 || f1 != f2) && retries-- > 0)
     {
+        int n;
         rig_debug(RIG_DEBUG_TRACE, "%s: retries=%d\n", __func__, retries);
 
         if ((n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_FREQ_MODE_STATUS)) < 0)
@@ -955,13 +955,11 @@ int ft817_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 int ft817_read_ack(RIG *rig)
 {
     char dummy;
-    int n;
-
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
     if (rig->state.rigport.post_write_delay == 0)
     {
-        if ((n = read_block(&rig->state.rigport, &dummy, 1)) < 0)
+        if (read_block(&rig->state.rigport, &dummy, 1) < 0)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: error reading ack\n", __func__);
             rig_debug(RIG_DEBUG_ERR, "%s: adjusting post_write_delay to avoid ack\n",

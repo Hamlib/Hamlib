@@ -299,7 +299,7 @@ int HAMLIB_API rig_check_backend(rig_model_t rig_model)
     if (be_idx == -1)
     {
         rig_debug(RIG_DEBUG_VERBOSE,
-                  "rig_check_backend: unsupported backend %d for model %u\n",
+                  "rig_check_backend: unsupported backend %u for model %u\n",
                   RIG_BACKEND_NUM(rig_model),
                   rig_model);
         return -RIG_ENAVAIL;

@@ -925,10 +925,13 @@ int HAMLIB_API rig_open(RIG *rig)
         }
     }
 
-    // try to turn off the screensaver if possible
-    // don't care about the return here...it's just a nice-to-have
-    parm_value.i = 0;
-    rig_set_parm(rig, RIG_PARM_SCREENSAVER, parm_value);
+    if (rs->auto_disable_screensaver)
+    {
+        // try to turn off the screensaver if possible
+        // don't care about the return here...it's just a nice-to-have
+        parm_value.i = 0;
+        rig_set_parm(rig, RIG_PARM_SCREENSAVER, parm_value);
+    }
 
 #if 0
 
@@ -1362,6 +1365,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         // we'll try this all the time and if it works out OK eliminate the #else
 
         if ((unsigned long long)freq % 100 != 0 // only need to do if < 100Hz interval
+                || freq > 100e6  // or if we are in the VHF and up range
 #if 0
                 // do we need to only do this when cache is turned on? 2020-07-02 W9MDB
                 && rig->state.cache.timeout_ms > 0

@@ -376,7 +376,7 @@ static char *xml_parse(char *xml, char *value, int value_len)
         xml_parse2(next, value, value_len);
     }
 
-    if (strstr(value, "faultString"))
+    if (value && strstr(value, "faultString"))
     {
         rig_debug(RIG_DEBUG_ERR, "%s error:\n%s\n", __func__, value);
         value[0] = 0; /* truncate to give empty response */
