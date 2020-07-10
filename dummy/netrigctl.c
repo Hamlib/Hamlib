@@ -718,7 +718,7 @@ static int netrigctl_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    if (ret > 0 && buf[ret - 1] == '\n') { buf[ret - 1] = '\0'; } /* chomp */
+    if (buf[ret - 1] == '\n') { buf[ret - 1] = '\0'; } /* chomp */
 
     *mode = rig_parse_mode(buf);
 
@@ -790,7 +790,7 @@ static int netrigctl_get_vfo(RIG *rig, vfo_t *vfo)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    if (ret > 0 && buf[ret - 1] == '\n') { buf[ret - 1] = '\0'; } /* chomp */
+    if (buf[ret - 1] == '\n') { buf[ret - 1] = '\0'; } /* chomp */
 
     *vfo = rig_parse_vfo(buf);
 
@@ -935,7 +935,7 @@ static int netrigctl_get_rptr_shift(RIG *rig, vfo_t vfo,
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    if (ret > 0 && buf[ret - 1] == '\n') { buf[ret - 1] = '\0'; } /* chomp */
+    if (buf[ret - 1] == '\n') { buf[ret - 1] = '\0'; } /* chomp */
 
     *rptr_shift = rig_parse_rptr_shift(buf);
 
@@ -1329,7 +1329,7 @@ static int netrigctl_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    if (ret > 0 && buf[ret - 1] == '\n') { buf[ret - 1] = '\0'; } /* chomp */
+    if (buf[ret - 1] == '\n') { buf[ret - 1] = '\0'; } /* chomp */
 
     *tx_mode = rig_parse_mode(buf);
 
@@ -1407,7 +1407,7 @@ static int netrigctl_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
     }
 
 
-    if (ret > 0 && buf[ret - 1] == '\n') { buf[ret - 1] = '\0'; } /* chomp */
+    if (buf[ret - 1] == '\n') { buf[ret - 1] = '\0'; } /* chomp */
 
     *tx_vfo = rig_parse_vfo(buf);
 

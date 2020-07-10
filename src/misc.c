@@ -1313,7 +1313,8 @@ int HAMLIB_API rig_get_cache_timeout_ms(RIG *rig, hamlib_cache_t selection)
     return rig->state.cache.timeout_ms;
 }
 
-int HAMLIB_API rig_set_cache_timeout_ms(RIG *rig, hamlib_cache_t selection, int ms)
+int HAMLIB_API rig_set_cache_timeout_ms(RIG *rig, hamlib_cache_t selection,
+                                        int ms)
 {
     rig_debug(RIG_DEBUG_TRACE, "%s: called selection=%d, ms=%d\n", __func__,
               selection, ms);
@@ -1382,7 +1383,7 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo)
 int HAMLIB_API parse_hoststr(char *hoststr, char host[256], char port[6])
 {
     unsigned int net1, net2, net3, net4, net5, net6, net7, net8;
-    char dummy[2], link[32], *p;
+    char dummy[6], link[32], *p;
     host[0] = 0;
     port[0] = 0;
     dummy[0] = 0;
@@ -1391,6 +1392,9 @@ int HAMLIB_API parse_hoststr(char *hoststr, char host[256], char port[6])
     if (strstr(hoststr, "/dev")) { return -1; }
 
     if (strncasecmp(hoststr, "com", 3) == 0) { return -1; }
+
+    // escaped COM port like \\.\COM3
+    if (strstr(hoststr, "\\\\.\\")) { return -1; }
 
     // bracketed IPV6 with optional port
     int n = sscanf(hoststr, "[%255[^]]]:%5s", host, port);
@@ -1471,7 +1475,7 @@ int HAMLIB_API parse_hoststr(char *hoststr, char host[256], char port[6])
         return RIG_OK;
     }
 
-    if (sscanf(hoststr, ":%5[0-9]%s", port,
+    if (sscanf(hoststr, ":%5[0-9]%1s", port,
                dummy) == 1) // just a port if you please
     {
         sprintf(hoststr, "%s:%s\n", "localhost", port);

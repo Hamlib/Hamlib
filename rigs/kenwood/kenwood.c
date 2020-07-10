@@ -232,7 +232,7 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data,
     char buffer[KENWOOD_MAX_BUF_LEN]; /* use our own buffer since
                                        verification may need a longer
                                        buffer than the user supplied one */
-    char cmdtrm[2];  /* Default Command/Reply termination char */
+    char cmdtrm_str[2];   /* Default Command/Reply termination char */
     int retval;
     char *cmd;
     int len;
@@ -275,15 +275,15 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data,
     }
 
     if (strlen(cmdstr) > 2 || strcmp(cmdstr, "RX") == 0
-            || strcmp(cmdstr, "TX") == 0 || strcmp(cmdstr, "ZZTX") == 0)
+            || strncmp(cmdstr, "TX", 2) == 0 || strncmp(cmdstr, "ZZTX", 4) == 0)
     {
         // then we must be setting something so we'll invalidate the cache
         rig_debug(RIG_DEBUG_TRACE, "%s: cache invalidated\n", __func__);
         priv->cache_start.tv_sec = 0;
     }
 
-    cmdtrm[0] = caps->cmdtrm;
-    cmdtrm[1] = '\0';
+    cmdtrm_str[0] = caps->cmdtrm;
+    cmdtrm_str[1] = '\0';
 
 transaction_write:
 
@@ -323,6 +323,13 @@ transaction_write:
         }
     }
 
+    // we're not going to do the verify on RX cmd
+    // Seems some rigs (like TS-480) return "?" when RX is done while PTT=OFF
+    // So we'll skip the checks just on this one command for now
+    // The TS-480 PC Control says RX; should return RX0; but it doesn't
+    // We may eventually want to verify PTT with rig_get_ptt instead
+    if (retval == RIG_OK && strncmp(cmdstr, "RX", 2) == 0) { goto transaction_quit; }
+
     if (!datasize)
     {
         rig->state.hold_decode = 0;
@@ -341,7 +348,7 @@ transaction_read:
     /* allow room for most any response */
     len = min(datasize ? datasize + 1 : strlen(priv->verify_cmd) + 32,
               KENWOOD_MAX_BUF_LEN);
-    retval = read_string(&rs->rigport, buffer, len, cmdtrm, strlen(cmdtrm));
+    retval = read_string(&rs->rigport, buffer, len, cmdtrm_str, strlen(cmdtrm_str));
     rig_debug(RIG_DEBUG_TRACE, "%s: read_string(len=%d)='%s'\n", __func__,
               (int)strlen(buffer), buffer);
 
@@ -368,7 +375,7 @@ transaction_read:
     }
 
     /* Check that command termination is correct */
-    if (strchr(cmdtrm, buffer[strlen(buffer) - 1]) == NULL)
+    if (strchr(cmdtrm_str, buffer[strlen(buffer) - 1]) == NULL)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n",
                   __func__, buffer);
@@ -662,7 +669,20 @@ int kenwood_init(RIG *rig)
     priv = rig->state.priv;
 
     memset(priv, 0x00, sizeof(struct kenwood_priv_data));
-    strcpy(priv->verify_cmd, RIG_IS_XG3 ? ";" : "ID;");
+
+    if (RIG_IS_XG3)
+    {
+        priv->verify_cmd[0] = caps->cmdtrm;
+        priv->verify_cmd[1] = '\0';
+    }
+    else
+    {
+        priv->verify_cmd[0] = 'I';
+        priv->verify_cmd[1] = 'D';
+        priv->verify_cmd[2] = caps->cmdtrm;
+        priv->verify_cmd[3] = '\0';
+    }
+
     priv->split = RIG_SPLIT_OFF;
     priv->trn_state = -1;
     priv->curr_mode = 0;
@@ -697,6 +717,7 @@ int kenwood_cleanup(RIG *rig)
 int kenwood_open(RIG *rig)
 {
     struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_caps *caps = kenwood_caps(rig);
     int err, i;
     char *idptr;
     char id[KENWOOD_MAX_BUF_LEN];
@@ -713,7 +734,8 @@ int kenwood_open(RIG *rig)
         rig_debug(RIG_DEBUG_TRACE, "%s: got ID so try PS\n", __func__);
         err = rig_get_powerstat(rig, &powerstat);
 
-        if (err == RIG_OK && powerstat == 0 && priv->poweron == 0)
+        if (err == RIG_OK && powerstat == 0 && priv->poweron == 0
+                && rig->state.auto_power_on)
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: got PS0 so powerup\n", __func__);
             rig_set_powerstat(rig, 1);
@@ -724,18 +746,18 @@ int kenwood_open(RIG *rig)
         err = RIG_OK;  // reset our err back to OK for later checks
     }
 
-    if (err == -RIG_ETIMEOUT)
+    if (err == -RIG_ETIMEOUT && rig->state.auto_power_on)
     {
         // Ensure rig is on
         rig_set_powerstat(rig, 1);
         /* Try get id again */
         err = kenwood_get_id(rig, id);
+    }
 
-        if (RIG_OK != err)
-        {
-            rig_debug(RIG_DEBUG_ERR,
-                      "%s: no response to get_id from rig...contintuing anyways.\n", __func__);
-        }
+    if (RIG_OK != err)
+    {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: no response to get_id from rig...contintuing anyways.\n", __func__);
     }
 
     if (RIG_IS_TS2000
@@ -799,7 +821,10 @@ int kenwood_open(RIG *rig)
 
         /* here we know there is something that responds to FA but not
            to ID so use FA as the command verification command */
-        strcpy(priv->verify_cmd, "FA;");
+        priv->verify_cmd[0] = 'F';
+        priv->verify_cmd[1] = 'A';
+        priv->verify_cmd[2] = caps->cmdtrm;
+        priv->verify_cmd[3] = '\0';
         strcpy(id, "ID019");      /* fake a TS-2000 */
     }
     else
@@ -860,21 +885,30 @@ int kenwood_open(RIG *rig)
             vfo_t tx_vfo;
             /* get current AI state so it can be restored */
             kenwood_get_trn(rig, &priv->trn_state);  /* ignore errors */
+
             /* Currently we cannot cope with AI mode so turn it off in
                case last client left it on */
-            kenwood_set_trn(rig, RIG_TRN_OFF); /* ignore status in case
-                                            it's not supported */
-            // call get_split to fill in current split and tx_vfo status
-            retval = kenwood_get_split_vfo_if(rig, RIG_VFO_A, &split, &tx_vfo);
-
-            if (retval != RIG_OK)
+            if (priv->trn_state != RIG_TRN_OFF)
             {
-                rig_debug(RIG_DEBUG_ERR, "%s: %s\n", __func__, rigerror(retval));
+                kenwood_set_trn(rig, RIG_TRN_OFF); /* ignore status in case
+                                                      it's not supported */
             }
 
-            priv->tx_vfo = tx_vfo;
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: priv->tx_vfo=%s\n", __func__,
-                      rig_strvfo(priv->tx_vfo));
+            if (!RIG_IS_THD74 && !RIG_IS_THD7A)
+            {
+                // call get_split to fill in current split and tx_vfo status
+                retval = kenwood_get_split_vfo_if(rig, RIG_VFO_A, &split, &tx_vfo);
+
+                if (retval != RIG_OK)
+                {
+                    rig_debug(RIG_DEBUG_ERR, "%s: %s\n", __func__, rigerror(retval));
+                }
+
+                priv->tx_vfo = tx_vfo;
+                rig_debug(RIG_DEBUG_VERBOSE, "%s: priv->tx_vfo=%s\n", __func__,
+                          rig_strvfo(priv->tx_vfo));
+            }
+
             return RIG_OK;
         }
 
@@ -3402,6 +3436,7 @@ int kenwood_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
  */
 int kenwood_set_trn(RIG *rig, int trn)
 {
+    char buf[5];
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     switch (rig->caps->rig_model)
@@ -3410,9 +3445,10 @@ int kenwood_set_trn(RIG *rig, int trn)
         return kenwood_transaction(rig, (trn == RIG_TRN_RIG) ? "AI2" : "AI0", NULL, 0);
         break;
 
+    case RIG_MODEL_THD7A:
     case RIG_MODEL_THD74:
-        return kenwood_transaction(rig, (trn == RIG_TRN_RIG) ? "AI 1" : "AI 0", NULL,
-                                   4);
+        return kenwood_transaction(rig, (trn == RIG_TRN_RIG) ? "AI 1" : "AI 0", buf,
+                                   sizeof buf);
         break;
 
     default:
@@ -3443,7 +3479,7 @@ int kenwood_get_trn(RIG *rig, int *trn)
         return -RIG_ENAVAIL;
     }
 
-    if (RIG_IS_THD74)
+    if (RIG_IS_THD74 || RIG_IS_THD7A)
     {
         retval = kenwood_safe_transaction(rig, "AI", trnbuf, 6, 4);
     }
@@ -3457,7 +3493,7 @@ int kenwood_get_trn(RIG *rig, int *trn)
         return retval;
     }
 
-    if (RIG_IS_THD74)
+    if (RIG_IS_THD74 || RIG_IS_THD7A)
     {
         *trn = trnbuf[3] != '0' ? RIG_TRN_RIG : RIG_TRN_OFF;
     }

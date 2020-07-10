@@ -106,14 +106,18 @@ static int netampctl_open(AMP *amp)
     {
         ret = read_string(&amp->state.ampport, buf, BUF_MAX, "\n", sizeof("\n"));
 
-        if (ret <= 0)
+        if (ret > 0)
         {
-            return (ret < 0) ? ret : -RIG_EPROTO;
+            rig_debug(RIG_DEBUG_VERBOSE, "%s called, string=%s\n", __func__, buf);
         }
-
-        rig_debug(RIG_DEBUG_VERBOSE, "%s called, string=%s\n", __func__, buf);
     }
     while (ret > 0);
+
+    if (ret < 0)
+    {
+        return -RIG_EPROTO;
+    }
+
 
     return RIG_OK;
 }

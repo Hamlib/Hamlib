@@ -727,7 +727,7 @@ icom_rig_open(RIG *rig)
               rig->caps->version);
     retval = icom_get_usb_echo_off(rig);
 
-    if (retval != RIG_OK && priv->poweron == 0)
+    if (retval != RIG_OK && priv->poweron == 0 && rs->auto_power_on)
     {
         // maybe we need power on?
         rig_debug(RIG_DEBUG_VERBOSE, "%s trying power on\n", __func__);
@@ -1576,6 +1576,8 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
     switch (mode)
     {
     case RIG_MODE_PKTUSB:
+        // xFE xFE x6E xE0 x1A x06 x01 xFD switchs mod input from MIC to ACC
+        // This apparently works for IC-756ProIII but nobody has asked for it yet
         icom_mode = RIG_MODE_USB;
         break;
 

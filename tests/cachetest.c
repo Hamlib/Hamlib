@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
     int model;
     int baud;
     int loops;
-    int cache_timeout;
+    int cache_timeout = 500;
     int i;
     struct timespec start, startall;
 
