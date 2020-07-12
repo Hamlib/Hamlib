@@ -1711,7 +1711,7 @@ int kenwood_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     if (priv->has_rit2) // if backend shows it has the Set 2 command
     {
         char cmd[10];
-        snprintf(cmd, sizeof(cmd) - 1, "R%c%05d", rit > 0 ? 'U' : 'D', (int)rit);
+        snprintf(cmd, sizeof(cmd) - 1, "R%c%05d", rit > 0 ? 'U' : 'D', abs((int)rit));
         retval = kenwood_transaction(rig, cmd, NULL, 0);
     }
     else
