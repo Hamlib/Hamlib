@@ -1678,9 +1678,9 @@ int kenwood_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
         return retval;
     }
 
-    memcpy(buf, &priv->info[18], 5);
+    memcpy(buf, &priv->info[17], 6);
 
-    buf[5] = '\0';
+    buf[6] = '\0';
     *rit = atoi(buf);
 
     return RIG_OK;
