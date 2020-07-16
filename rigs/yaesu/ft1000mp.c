@@ -216,7 +216,7 @@ const struct rig_caps ft1000mp_caps =
     RIG_MODEL(RIG_MODEL_FT1000MP),
     .model_name =         "FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20200715.0",
+    .version =            "20200716.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -347,7 +347,7 @@ const struct rig_caps ft1000mpmkv_caps =
     RIG_MODEL(RIG_MODEL_FT1000MPMKV),
     .model_name =         "MARK-V FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20200715.0",
+    .version =            "20200716.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -478,7 +478,7 @@ const struct rig_caps ft1000mpmkvfld_caps =
     RIG_MODEL(RIG_MODEL_FT1000MPMKVFLD),
     .model_name =         "MARK-V Field FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20200715.0",
+    .version =            "20200716.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -1232,13 +1232,10 @@ int ft1000mp_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
     }
 
     /* big endian integer, kinda */
+    f = ((p[0] && 0x7f) << 8) + p[1];
     if (p[0] & 0x80)
     {
-        f = (p[0] << 8) + p[1] * -1;
-    }
-    else
-    {
-        f = (p[0] << 8) + p[1];
+        f *= -1;
     }
 
     f = f * 10 / 16;
