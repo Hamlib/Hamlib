@@ -853,7 +853,7 @@ int drake_get_chan(RIG *rig, channel_t *chan, int read_only)
 
 
     strncpy(chan->channel_desc, mdbuf + 25, 7);
-    chan->channel_desc[8]='\0'; // in case strncpy did not terminate the string
+    chan->channel_desc[7]='\0'; // in case strncpy did not terminate the string
 
     //now put the radio back the way it was
     //we apparently can't do a read-only channel read
