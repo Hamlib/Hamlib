@@ -563,6 +563,7 @@ int drake_set_mem(RIG *rig, vfo_t vfo, int ch)
 
     len = sprintf(buf, "C%03d" EOM, ch);
 
+    ack_len=0; // fix compile-time warning "possibly uninitialized"
     retval = drake_transaction(rig, buf, len, ackbuf, &ack_len);
 
     if (ack_len != 2)
@@ -852,6 +853,7 @@ int drake_get_chan(RIG *rig, channel_t *chan, int read_only)
 
 
     strncpy(chan->channel_desc, mdbuf + 25, 7);
+    chan->channel_desc[7]='\0'; // in case strncpy did not terminate the string
 
     //now put the radio back the way it was
     //we apparently can't do a read-only channel read
