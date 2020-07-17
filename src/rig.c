@@ -182,8 +182,7 @@ static const char *rigerror_table[] =
     "Communication bus collision",
     "NULL RIG handle or invalid pointer parameter",
     "Invalid VFO",
-    "Argument out of domain of func",
-    NULL,
+    "Argument out of domain of func"
 };
 
 
@@ -294,7 +293,8 @@ const char *HAMLIB_API rigerror(int errnum)
 
     if (errnum >= ERROR_TBL_SZ)
     {
-        return NULL;
+        // This should not happen, but if it happens don't return NULL
+        return "ERR_OUT_OF_RANGE";
     }
 
     return rigerror_table[errnum];
