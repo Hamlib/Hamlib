@@ -490,7 +490,7 @@ gp2000_get_info(RIG *rig)
             break;
 
         default:
-            printf("Unknown reponse: %s\n", p);
+            printf("Unknown response: %s\n", p);
 
         }
 
