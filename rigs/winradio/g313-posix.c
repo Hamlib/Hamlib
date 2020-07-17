@@ -196,7 +196,7 @@ int g313_open(RIG *rig)
         return -RIG_EIO;    /* huh! */
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: Openned G313\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: Opened G313\n", __func__);
 
     /* Make sure the receiver is switched on */
     SetPower(priv->hRadio, 1);
