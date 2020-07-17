@@ -1232,7 +1232,8 @@ int ft1000mp_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
     }
 
     /* big endian integer, kinda */
-    f = ((p[0] && 0x7f) << 8) + p[1];
+    f = ((p[0] & 0x7f) << 8) + p[1];
+
     if (p[0] & 0x80)
     {
         f *= -1;
