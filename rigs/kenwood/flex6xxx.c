@@ -62,10 +62,32 @@ static rmode_t flex_mode_table[KENWOOD_MODE_TABLE_MAX] =
     [9] = RIG_MODE_PKTUSB
 };
 
+static rmode_t powersdr_mode_table[KENWOOD_MODE_TABLE_MAX] =
+{
+    [0] = RIG_MODE_LSB,
+    [1] = RIG_MODE_USB,
+    [2] = RIG_MODE_DSB,
+    [3] = RIG_MODE_CWR,
+    [4] = RIG_MODE_CW,
+    [5] = RIG_MODE_FM,
+    [6] = RIG_MODE_AM,
+    [7] = RIG_MODE_PKTUSB,
+    [8] = RIG_MODE_NONE,
+    [8] = RIG_MODE_PKTLSB,
+    [10] = RIG_MODE_SAM,
+    [11] = RIG_MODE_NONE
+};
+
 static struct kenwood_priv_caps f6k_priv_caps  =
 {
     .cmdtrm =  EOM_KEN,
     .mode_table = flex_mode_table,
+};
+
+static struct kenwood_priv_caps powersdr_priv_caps  =
+{
+    .cmdtrm =  EOM_KEN,
+    .mode_table = powersdr_mode_table,
 };
 
 #define DSP_BW_NUM 8
@@ -89,6 +111,37 @@ static int dsp_bw_dig[DSP_BW_NUM] =
 {
     3000, 2000, 1500, 1000, 600, 300, 150, 100
 };
+
+// PowerSDR settings
+#define DSP_BW_NUM_POWERSDR 12
+
+static int dsp_bw_ssb_powersdr[DSP_BW_NUM_POWERSDR] =
+{
+    5000, 4400, 3800, 3300, 2900, 2700, 2400, 2100, 1800, 1000, 0, 0
+};
+
+static int dsp_bw_am_powersdr[DSP_BW_NUM_POWERSDR] =
+{
+    16000, 12000, 10000, 8000, 6600, 5200, 4000, 3100, 2900, 2400, 0, 0
+};
+
+static int dsp_bw_cw_powersdr[DSP_BW_NUM_POWERSDR] =
+{
+    1000, 800, 600, 500, 400, 250, 150, 100, 50, 25, 0, 0
+};
+
+static int dsp_bw_dig_powersdr[DSP_BW_NUM_POWERSDR] =
+{
+    3000, 2500, 2000, 1500, 1000, 800, 600, 300, 150, 75, 0, 0
+};
+
+#if 0 // not used yet
+static int dsp_bw_sam_powersdr[DSP_BW_NUM_POWERSDR] =
+{
+    20000, 18000, 16000, 12000, 10000, 9000, 8000, 7000, 6000, 5000, 0, 0
+};
+#endif
+
 
 /* Private helper functions */
 
@@ -123,7 +176,8 @@ static int flex6k_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     /*
      * The Flex CAT interface does not support FW for reading filter width,
-     * so use the ZZFI or ZZFJ command
+     * so use the ZZFI
+     * Have to determine what to do with receiver#2 if anybody ever asks
      */
     switch (vfo)
     {
@@ -150,13 +204,14 @@ static int flex6k_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     if (index >= DSP_BW_NUM)
     {
         rig_debug(RIG_DEBUG_ERR,
-                  "flex6k_get_mode: unexpected ZZF[IJ] answer, index=%d\n", index);
+                  "%s: unexpected ZZF[IJ] answer, index=%d\n", __func__, index);
         return -RIG_ERJCTED;
     }
 
     switch (*mode)
     {
     case RIG_MODE_AM:
+    case RIG_MODE_DSB:
         *width = dsp_bw_am[index];
         break;
 
@@ -187,6 +242,75 @@ static int flex6k_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     return RIG_OK;
 }
 
+static int powersdr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
+                             pbwidth_t *width)
+{
+    struct kenwood_priv_caps *caps = kenwood_caps(rig);
+    char modebuf[10];
+    int retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!mode || !width)
+    {
+        return -RIG_EINVAL;
+    }
+
+    retval = kenwood_safe_transaction(rig, "ZZMD", modebuf, 10, 6);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    *mode = kenwood2rmode(atoi(&modebuf[4]), caps->mode_table);
+
+    if ((vfo == RIG_VFO_VFO) || (vfo == RIG_VFO_CURR))
+    {
+        vfo = rig->state.current_vfo;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: setting VFO to current\n", __func__);
+    }
+
+    /*
+     * The Flex CAT interface does not support FW for reading filter width,
+     * so use the ZZFI or ZZFJ command
+     */
+    switch (vfo)
+    {
+        int lo, hi;
+
+    case RIG_VFO_A:
+    case RIG_VFO_B:
+        retval = kenwood_safe_transaction(rig, "ZZFL", modebuf, 10, 9);
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        lo = atoi(&modebuf[4]);
+        retval = kenwood_safe_transaction(rig, "ZZFH", modebuf, 10, 9);
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        hi = atoi(&modebuf[4]);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: lo=%d, hi=%d\n", __func__, lo, hi);
+        *width = hi - lo;
+        break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
+        return -RIG_EINVAL;
+    }
+
+    return RIG_OK;
+}
+
+/* Private helper functions */
+
 static int flex6k_find_width(rmode_t mode, pbwidth_t width, int *ridx)
 {
     int *w_a; // Width array, these are all ordered in descending order!
@@ -215,6 +339,58 @@ static int flex6k_find_width(rmode_t mode, pbwidth_t width, int *ridx)
     case RIG_MODE_PKTLSB:
     case RIG_MODE_PKTUSB:
         w_a = dsp_bw_dig;
+        break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %s\n", __func__,
+                  rig_strrmode(mode));
+        return -RIG_EINVAL;
+    }
+
+    // return the first smaller or equal possibility
+    while ((idx < DSP_BW_NUM) && (w_a[idx] > width))
+    {
+        idx++;
+    }
+
+    if (idx >= DSP_BW_NUM)
+    {
+        idx = DSP_BW_NUM - 1;
+    }
+
+    *ridx = idx;
+    return RIG_OK;
+}
+
+static int powersdr_find_width(rmode_t mode, pbwidth_t width, int *ridx)
+{
+    int *w_a; // Width array, these are all ordered in descending order!
+    int idx = 0;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    switch (mode)
+    {
+    case RIG_MODE_AM:
+        w_a = dsp_bw_am_powersdr;
+        break;
+
+    case RIG_MODE_CW:
+    case RIG_MODE_CWR:
+        w_a = dsp_bw_cw_powersdr;
+        break;
+
+    case RIG_MODE_USB:
+    case RIG_MODE_LSB:
+        w_a = dsp_bw_ssb_powersdr;
+        break;
+
+    //case RIG_MODE_FM:
+    //*width = 3000; /* not supported yet, needs followup */
+    //break;
+    case RIG_MODE_PKTLSB:
+    case RIG_MODE_PKTUSB:
+        w_a = dsp_bw_dig_powersdr;
         break;
 
     default:
@@ -293,6 +469,87 @@ static int flex6k_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     case RIG_VFO_B:
         sprintf(buf, "ZZFJ%02d;", idx);
         break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
+        return -RIG_EINVAL;
+    }
+
+    err = kenwood_transaction(rig, buf, NULL, 0);
+
+    if (err != RIG_OK)
+    {
+        return err;
+    }
+
+    return RIG_OK;
+}
+
+static int powersdr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
+{
+    struct kenwood_priv_caps *caps = kenwood_caps(rig);
+    char buf[64];
+    char kmode;
+    int idx;
+    int err;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called mode=%s, width=%d\n", __func__,
+              rig_strrmode(mode), (int)width);
+
+    kmode = rmode2kenwood(mode, caps->mode_table);
+
+    if (kmode < 0)
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s: unsupported mode '%s'\n",
+                  __func__, rig_strrmode(mode));
+        return -RIG_EINVAL;
+    }
+
+    sprintf(buf, "ZZMD%02d", kmode);
+    err = kenwood_transaction(rig, buf, NULL, 0);
+
+    if (err != RIG_OK)
+    {
+        return err;
+    }
+
+    if ((vfo == RIG_VFO_VFO) || (vfo == RIG_VFO_CURR))
+    {
+        vfo = rig->state.current_vfo;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: setting VFO to current\n", __func__);
+    }
+
+    if (RIG_PASSBAND_NOCHANGE == width) { return err; }
+
+    err = powersdr_find_width(mode, width, &idx);
+
+    if (err != RIG_OK)
+    {
+        return err;
+    }
+
+    /*
+     * The Flex CAT interface does not support FW for reading filter width,
+     * so use the ZZFI or ZZFJ command
+     */
+    switch (vfo)
+    {
+    case RIG_VFO_B:
+    case RIG_VFO_A:
+        if ((mode == RIG_MODE_PKTUSB || mode == RIG_MODE_PKTLSB) && width > 3000)
+        {
+            // 150Hz on the low end should be enough
+            // Set high to the width requested
+            sprintf(buf, "ZZFL00150;ZZFH%05d;", (int)width);
+        }
+        else
+        {
+            sprintf(buf, "ZZFI%02d;", idx);
+        }
+
+        break;
+
+    // what do we do about RX2 ??
 
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
@@ -504,9 +761,9 @@ const struct rig_caps powersdr_caps =
     RIG_MODEL(RIG_MODEL_POWERSDR),
     .model_name =       "PowerSDR",
     .mfg_name =     "FlexRadio",
-    .version =      "20200528.0",
+    .version =      "20200716.0",
     .copyright =        "LGPL",
-    .status =       RIG_STATUS_BETA,
+    .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
     .ptt_type =     RIG_PTT_RIG,
     .dcd_type =     RIG_DCD_NONE,
@@ -518,12 +775,12 @@ const struct rig_caps powersdr_caps =
     .serial_parity =  RIG_PARITY_NONE,
     .serial_handshake =  RIG_HANDSHAKE_NONE,
     .write_delay =  0,
-    .post_write_delay =  0, /* ms */
+    .post_write_delay = 20,
     // The combination of timeout and retry is important
     // We need at least 3 seconds to do profile switches
     // Hitting the timeout is OK as long as we retry
     // Previous note showed FA/FB may take up to 500ms on band change
-    .timeout =      250,
+    .timeout =      800, // some band transitions can take 600ms
     .retry =        3,
 
     .has_get_func =     RIG_FUNC_NONE, /* has VOX but not implemented here */
@@ -536,7 +793,6 @@ const struct rig_caps powersdr_caps =
     .parm_gran =        {},
     //.extlevels =      elecraft_ext_levels,
     //.extparms =       kenwood_cfg_params,
-    .post_write_delay = 20,
     .preamp =       { RIG_DBLST_END, },
     .attenuator =       { RIG_DBLST_END, },
     .max_rit =      Hz(0),
@@ -604,7 +860,7 @@ const struct rig_caps powersdr_caps =
         {RIG_MODE_FM, kHz(13)}, /* TBC */
         RIG_FLT_END,
     },
-    .priv = (void *)& f6k_priv_caps,
+    .priv = (void *)& powersdr_priv_caps,
 
     .rig_init =     kenwood_init,
     .rig_cleanup =      kenwood_cleanup,
@@ -612,8 +868,8 @@ const struct rig_caps powersdr_caps =
     .rig_close =        kenwood_close,
     .set_freq =     kenwood_set_freq,
     .get_freq =     kenwood_get_freq,
-    .set_mode =     flex6k_set_mode,
-    .get_mode =     flex6k_get_mode,
+    .set_mode =     powersdr_set_mode,
+    .get_mode =     powersdr_get_mode,
     .set_vfo =      kenwood_set_vfo,
     .get_vfo =      kenwood_get_vfo_if,
     .set_split_vfo =    kenwood_set_split_vfo,
