@@ -2111,8 +2111,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
             return -RIG_ERJCTED;
         }
 
-        rig->state.current_vfo = vfo;
-        return RIG_OK;
+        icvfo = RIG_VFO_MAIN_A ? S_VFOA : S_VFOB;
 
         break;
 
@@ -2133,8 +2132,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
             return -RIG_ERJCTED;
         }
 
-        rig->state.current_vfo = vfo;
-        return RIG_OK;
+        icvfo = RIG_VFO_SUB_A ? S_VFOA : S_VFOB;
 
         break;
 
