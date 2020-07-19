@@ -72,10 +72,10 @@ static rmode_t powersdr_mode_table[KENWOOD_MODE_TABLE_MAX] =
     [5] = RIG_MODE_FM,
     [6] = RIG_MODE_AM,
     [7] = RIG_MODE_PKTUSB,
-    [8] = RIG_MODE_NONE,
+    [8] = RIG_MODE_NONE, // SPEC -- not implemented
     [8] = RIG_MODE_PKTLSB,
     [10] = RIG_MODE_SAM,
-    [11] = RIG_MODE_NONE
+    [11] = RIG_MODE_NONE // DRM -- not implemented
 };
 
 static struct kenwood_priv_caps f6k_priv_caps  =
