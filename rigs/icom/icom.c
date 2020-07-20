@@ -2096,7 +2096,8 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 
     case RIG_VFO_MAIN_A:    // we need to select Main before setting VFO
     case RIG_VFO_MAIN_B:
-        retval = icom_transaction(rig, C_SET_VFO, RIG_VFO_MAIN, NULL, 0,
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: MainA/B logic\n", __func__);
+        retval = icom_transaction(rig, C_SET_VFO, S_MAIN, NULL, 0,
                                   ackbuf, &ack_len);
 
         if (retval != RIG_OK)
@@ -2111,13 +2112,14 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
             return -RIG_ERJCTED;
         }
 
-        icvfo = RIG_VFO_MAIN_A ? S_VFOA : S_VFOB;
+        icvfo = vfo == RIG_VFO_MAIN_A ? S_VFOA : S_VFOB;
 
         break;
 
     case RIG_VFO_SUB_A: // we need to select Sub before setting VFO
     case RIG_VFO_SUB_B:
-        retval = icom_transaction(rig, C_SET_VFO, RIG_VFO_SUB, NULL, 0,
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: SubA/B logic\n", __func__);
+        retval = icom_transaction(rig, C_SET_VFO, S_SUB, NULL, 0,
                                   ackbuf, &ack_len);
 
         if (retval != RIG_OK)
@@ -2132,7 +2134,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
             return -RIG_ERJCTED;
         }
 
-        icvfo = RIG_VFO_SUB_A ? S_VFOA : S_VFOB;
+        icvfo = vfo == RIG_VFO_SUB_A ? S_VFOA : S_VFOB;
 
         break;
 
