@@ -602,7 +602,7 @@ AC_MSG_RESULT([$cf_with_lua_binding])
 dnl AX_LUA_DEVEL from macros/ax_lua_devel.m4
 AS_IF([test x"${cf_with_lua_binding}" = "xyes"],[
 
-    AX_PROG_LUA([5.2], [5.4])
+    AX_PROG_LUA([5.2], [5.5])
     AX_LUA_HEADERS
     AX_LUA_LIBS
 
