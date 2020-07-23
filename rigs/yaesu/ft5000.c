@@ -388,7 +388,7 @@ const struct rig_caps ftdx101d_caps =
     .mfg_name =           "Yaesu",
     .version =            NEWCAT_VER ".0",
     .copyright =          "LGPL",
-    .status =             RIG_STATUS_BETA,
+    .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
     .ptt_type =           RIG_PTT_RIG,
     .dcd_type =           RIG_DCD_NONE,
@@ -457,6 +457,8 @@ const struct rig_caps ftdx101d_caps =
         FRQ_RNG_HF(2, FTDX5000_AM_TX_MODES, W(2), W(75), FTDX5000_VFO_ALL, FTDX5000_TX_ANTS),   /* AM class */
         FRQ_RNG_6m(2, FTDX5000_OTHER_TX_MODES, W(5), W(200), FTDX5000_VFO_ALL, FTDX5000_TX_ANTS),
         FRQ_RNG_6m(2, FTDX5000_AM_TX_MODES, W(2), W(75), FTDX5000_VFO_ALL, FTDX5000_TX_ANTS),   /* AM class */
+        FRQ_RNG_4m(2, FTDX5000_OTHER_TX_MODES, W(5), W(200), FTDX5000_VFO_ALL, FTDX5000_TX_ANTS),
+        FRQ_RNG_4m(2, FTDX5000_AM_TX_MODES, W(2), W(75), FTDX5000_VFO_ALL, FTDX5000_TX_ANTS),   /* AM class */
 
         RIG_FRNG_END,
     },
