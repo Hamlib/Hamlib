@@ -99,29 +99,29 @@ const struct rig_caps ftdx5000_caps =
 
     .rx_range_list1 =     {
         /* General coverage + ham, ANT_5 is RX only antenna */
-        {kHz(30), MHz(60), FTDX5000_ALL_RX_MODES, -1, -1, FTDX5000_VFO_ALL, FTDX5000_TX_ANTS | RIG_ANT_5},
+        {kHz(30), MHz(60), FTDX5000_ALL_RX_MODES, -1, -1, FTDX5000_VFO_ALL, FTDX5000_TX_ANTS | RIG_ANT_5, "USA"},
         RIG_FRNG_END,
     },
 
     .tx_range_list1 =     {
         FRQ_RNG_HF(1, FTDX5000_OTHER_TX_MODES, W(5), W(200), FTDX5000_VFO_ALL, FTDX5000_TX_ANTS),
         FRQ_RNG_HF(1, FTDX5000_AM_TX_MODES, W(2), W(75), FTDX5000_VFO_ALL, FTDX5000_TX_ANTS),   /* AM class */
-        FRQ_RNG_6m(1, FTDX5000_OTHER_TX_MODES, W(5), W(200), FTDX5000_VFO_ALL, FTDX5000_TX_ANTS),
-        FRQ_RNG_6m(1, FTDX5000_AM_TX_MODES, W(2), W(75), FTDX5000_VFO_ALL, FTDX5000_TX_ANTS),   /* AM class */
+        FRQ_RNG_6m_REGION1(FTDX5000_OTHER_TX_MODES, W(5), W(200), FTDX5000_VFO_ALL, FTDX5000_TX_ANTS),
+        FRQ_RNG_6m_REGION1(FTDX5000_AM_TX_MODES, W(2), W(75), FTDX5000_VFO_ALL, FTDX5000_TX_ANTS),   /* AM class */
 
         RIG_FRNG_END,
     },
 
     .rx_range_list2 =     {
-        {kHz(30), MHz(60), FTDX5000_ALL_RX_MODES, -1, -1, FTDX5000_VFO_ALL, FTDX5000_TX_ANTS | RIG_ANT_5},
+        {kHz(30), MHz(60), FTDX5000_ALL_RX_MODES, -1, -1, FTDX5000_VFO_ALL, FTDX5000_TX_ANTS | RIG_ANT_5, "EUR"},
         RIG_FRNG_END,
     },
 
     .tx_range_list2 =     {
         FRQ_RNG_HF(2, FTDX5000_OTHER_TX_MODES, W(5), W(200), FTDX5000_VFO_ALL, FTDX5000_TX_ANTS),
         FRQ_RNG_HF(2, FTDX5000_AM_TX_MODES, W(2), W(75), FTDX5000_VFO_ALL, FTDX5000_TX_ANTS),   /* AM class */
-        FRQ_RNG_6m(2, FTDX5000_OTHER_TX_MODES, W(5), W(200), FTDX5000_VFO_ALL, FTDX5000_TX_ANTS),
-        FRQ_RNG_6m(2, FTDX5000_AM_TX_MODES, W(2), W(75), FTDX5000_VFO_ALL, FTDX5000_TX_ANTS),   /* AM class */
+        FRQ_RNG_6m_REGION2(FTDX5000_OTHER_TX_MODES, W(5), W(200), FTDX5000_VFO_ALL, FTDX5000_TX_ANTS),
+        FRQ_RNG_6m_REGION2(FTDX5000_AM_TX_MODES, W(2), W(75), FTDX5000_VFO_ALL, FTDX5000_TX_ANTS),   /* AM class */
 
         RIG_FRNG_END,
     },
@@ -271,7 +271,7 @@ const struct rig_caps ftdx3000_caps =
 
     .rx_range_list1 =     {
         /* General coverage + ham, ANT_5 is RX only antenna */
-        {kHz(30), MHz(60), FTDX5000_ALL_RX_MODES, -1, -1, FTDX5000_VFO_ALL, FTDX5000_TX_ANTS | RIG_ANT_5},
+        {kHz(30), MHz(60), FTDX5000_ALL_RX_MODES, -1, -1, FTDX5000_VFO_ALL, FTDX5000_TX_ANTS | RIG_ANT_5, "USA"},
         RIG_FRNG_END,
     },
 
@@ -285,7 +285,7 @@ const struct rig_caps ftdx3000_caps =
     },
 
     .rx_range_list2 =     {
-        {kHz(30), MHz(60), FTDX5000_ALL_RX_MODES, -1, -1, FTDX5000_VFO_ALL, FTDX5000_TX_ANTS | RIG_ANT_5},
+        {kHz(30), MHz(60), FTDX5000_ALL_RX_MODES, -1, -1, FTDX5000_VFO_ALL, FTDX5000_TX_ANTS | RIG_ANT_5, "EUR"},
         RIG_FRNG_END,
     },
 
@@ -388,7 +388,7 @@ const struct rig_caps ftdx101d_caps =
     .mfg_name =           "Yaesu",
     .version =            NEWCAT_VER ".0",
     .copyright =          "LGPL",
-    .status =             RIG_STATUS_BETA,
+    .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
     .ptt_type =           RIG_PTT_RIG,
     .dcd_type =           RIG_DCD_NONE,
@@ -434,7 +434,7 @@ const struct rig_caps ftdx101d_caps =
 
     .rx_range_list1 =     {
         /* General coverage + ham, ANT_5 is RX only antenna */
-        {kHz(30), MHz(60), FTDX5000_ALL_RX_MODES, -1, -1, FTDX5000_VFO_ALL, FTDX5000_TX_ANTS | RIG_ANT_5},
+        {kHz(30), MHz(60), FTDX5000_ALL_RX_MODES, -1, -1, FTDX5000_VFO_ALL, FTDX5000_TX_ANTS | RIG_ANT_5, "USA"},
         RIG_FRNG_END,
     },
 
@@ -448,7 +448,7 @@ const struct rig_caps ftdx101d_caps =
     },
 
     .rx_range_list2 =     {
-        {kHz(30), MHz(60), FTDX5000_ALL_RX_MODES, -1, -1, FTDX5000_VFO_ALL, FTDX5000_TX_ANTS | RIG_ANT_5},
+        {kHz(30), MHz(60), FTDX5000_ALL_RX_MODES, -1, -1, FTDX5000_VFO_ALL, FTDX5000_TX_ANTS | RIG_ANT_5, "EUR"},
         RIG_FRNG_END,
     },
 
@@ -457,6 +457,8 @@ const struct rig_caps ftdx101d_caps =
         FRQ_RNG_HF(2, FTDX5000_AM_TX_MODES, W(2), W(75), FTDX5000_VFO_ALL, FTDX5000_TX_ANTS),   /* AM class */
         FRQ_RNG_6m(2, FTDX5000_OTHER_TX_MODES, W(5), W(200), FTDX5000_VFO_ALL, FTDX5000_TX_ANTS),
         FRQ_RNG_6m(2, FTDX5000_AM_TX_MODES, W(2), W(75), FTDX5000_VFO_ALL, FTDX5000_TX_ANTS),   /* AM class */
+        FRQ_RNG_4m_REGION2(FTDX5000_OTHER_TX_MODES, W(5), W(200), FTDX5000_VFO_ALL, FTDX5000_TX_ANTS),
+        FRQ_RNG_4m_REGION2(FTDX5000_AM_TX_MODES, W(2), W(75), FTDX5000_VFO_ALL, FTDX5000_TX_ANTS),   /* AM class */
 
         RIG_FRNG_END,
     },

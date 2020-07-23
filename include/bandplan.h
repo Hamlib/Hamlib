@@ -141,6 +141,9 @@
 #define FRQ_RNG_6m_REGION2(md,lp,hp,v,a) \
             { MHz(50),MHz(54), (md), (lp), (hp), (v), (a), "ITU2" }
 
+#define FRQ_RNG_4m_REGION2(md,lp,hp,v,a) \
+            { MHz(70),MHz(70.5), (md), (lp), (hp), (v), (a), "ITU2" }
+
 #define FRQ_RNG_2m_REGION2(md,lp,hp,v,a) \
             { MHz(144),MHz(148), (md), (lp), (hp), (v), (a), "ITU2" }
 
