@@ -60,7 +60,7 @@ struct meade_priv_data
  * Not the full set of available commands is used, the list here shows
  * only the commands of the telescope used by hamlib
  *
- * All used Commands are supportet by Meade Telescopes with LX-200 protocol
+ * All used Commands are supported by Meade Telescopes with LX-200 protocol
  * (e.g. DS-2000 with Autostar) and should also work with the LX16 and
  * LX200GPS.
  * Tested only with DS-2000 and AutoStar 494 together with Meade 506 i2c to
@@ -398,7 +398,7 @@ static int meade_park(ROT *rot)
 }
 
 /*
- * Reset: Nothing to do exept parking
+ * Reset: Nothing to do except parking
  */
 static int meade_reset(ROT *rot, rot_reset_t reset)
 {
