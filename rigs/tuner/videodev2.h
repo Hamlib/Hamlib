@@ -483,7 +483,7 @@ struct v4l2_jpegcompression {
 	__u32 jpeg_markers;     /* Which markers should go into the JPEG
 				 * output. Unless you exactly know what
 				 * you do, leave them untouched.
-				 * Inluding less markers will make the
+				 * Including less markers will make the
 				 * resulting code smaller, but there will
 				 * be fewer applications which can read it.
 				 * The presence of the APP and COM marker
@@ -495,7 +495,7 @@ struct v4l2_jpegcompression {
 #define V4L2_JPEG_MARKER_DRI (1<<5)    /* Define Restart Interval */
 #define V4L2_JPEG_MARKER_COM (1<<6)    /* Comment segment */
 #define V4L2_JPEG_MARKER_APP (1<<7)    /* App segment, driver will
-					* allways use APP0 */
+					* always use APP0 */
 };
 
 /*

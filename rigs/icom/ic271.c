@@ -39,7 +39,7 @@
  * IC-271 A/E
  * IC-271 H is high power (75W)
  *
- * Independant transmit/receive
+ * Independent transmit/receive
  *
  * specs: http://www.qsl.net/sm7vhs/radio/icom/Ic271/specs.htm
  *

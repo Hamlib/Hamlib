@@ -149,7 +149,7 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
          * read what we just sent, because TX and RX are looped,
          * and discard it...
          * - if what we read is not what we sent, then it means
-         *          a collision on the CI-V bus occured!
+         *          a collision on the CI-V bus occurred!
          *      - if we get a timeout, then retry to send the frame,
          *          up to rs->retry times.
          */
@@ -158,7 +158,7 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
 
         if (retval == -RIG_ETIMEOUT || retval == 0)
         {
-            /* Nothing recieved, CI-V interface is not echoing */
+            /* Nothing received, CI-V interface is not echoing */
             // cppcheck-suppress *
             Unhold_Decode(rig);
             return -RIG_BUSERROR;
@@ -230,7 +230,7 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
 
     /*
      * wait for ACK ...
-     * FIXME: handle pading/collisions
+     * FIXME: handle padding/collisions
      * ACKFRMLEN is the smallest frame we can expect from the rig
      */
     buf[0] = 0;

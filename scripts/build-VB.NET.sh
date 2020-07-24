@@ -99,11 +99,11 @@ Covered are:
 	- get Riginfo
 
 	-rig_debug_level_e not verified  (Function is Void, VB Dokumentation
-sais this is not possible to be marshaled, but Compiler is still accapting this)
+says this is not possible to be marshaled, but Compiler is still accapting this)
 
 
 To get access to the Class you have to add something like this in your Main Class
-    Dim RigLib As RigControll = New RigControll   'get Acces to RigLib Klass
+    Dim RigLib As RigControll = New RigControll   'get Access to RigLib Klass
 
 
 

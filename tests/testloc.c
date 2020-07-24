@@ -1,6 +1,6 @@
 
 /*
- * Very simple test program to check locator convertion against some other --SF
+ * Very simple test program to check locator conversion against some other --SF
  * This is mainly to test longlat2locator and locator2longlat functions.
  *
  * Takes at least two arguments, which is a locator and desired locater
@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 
     if (retcode != RIG_OK)
     {
-        fprintf(stderr, "dec2dms() failed, invalid paramter address.\n");
+        fprintf(stderr, "dec2dms() failed, invalid parameter address.\n");
         exit(2);
     }
 
@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 
     if (retcode != RIG_OK)
     {
-        fprintf(stderr, "dec2dmmm() failed, invalid paramter address.\n");
+        fprintf(stderr, "dec2dmmm() failed, invalid parameter address.\n");
         exit(2);
     }
 
@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
 
     if (retcode != RIG_OK)
     {
-        fprintf(stderr, "dec2dms() failed, invalid paramter address.\n");
+        fprintf(stderr, "dec2dms() failed, invalid parameter address.\n");
         exit(2);
     }
 
@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
 
     if (retcode != RIG_OK)
     {
-        fprintf(stderr, "dec2dmmm() failed, invalid paramter address.\n");
+        fprintf(stderr, "dec2dmmm() failed, invalid parameter address.\n");
         exit(2);
     }
 
@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
 
     if (retcode != RIG_OK)
     {
-        fprintf(stderr, "dec2dms() failed, invalid paramter address.\n");
+        fprintf(stderr, "dec2dms() failed, invalid parameter address.\n");
         exit(2);
     }
 
@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
 
     if (retcode != RIG_OK)
     {
-        fprintf(stderr, "dec2dmmm() failed, invalid paramter address.\n");
+        fprintf(stderr, "dec2dmmm() failed, invalid parameter address.\n");
         exit(2);
     }
 
@@ -223,7 +223,7 @@ int main(int argc, char *argv[])
 
     if (retcode != RIG_OK)
     {
-        fprintf(stderr, "dec2dms() failed, invalid paramter address.\n");
+        fprintf(stderr, "dec2dms() failed, invalid parameter address.\n");
         exit(2);
     }
 
@@ -247,7 +247,7 @@ int main(int argc, char *argv[])
 
     if (retcode != RIG_OK)
     {
-        fprintf(stderr, "dec2dmmm() failed, invalid paramter address.\n");
+        fprintf(stderr, "dec2dmmm() failed, invalid parameter address.\n");
         exit(2);
     }
 

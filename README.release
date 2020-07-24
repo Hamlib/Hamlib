@@ -69,11 +69,11 @@ remote repository, "origin"):
   ABI_REVISION, and ABI_AGE are set in configure.ac. ABI_VERSION should be
   advanced when the ABI is affected by changes in the library interface.
   ABI_REVISION is the revision and indicates source changes in Hamlib but no
-  change in ABI.  ABI_AGE reflects backward compatibity to a previous version.
+  change in ABI.  ABI_AGE reflects backward compatibility to a previous version.
   Per the libtool manual, this value is subtracted from ABI_VERSION to note
   compatible prior versions.  Per the libtool manual, so long as the library
   interface is added to and nothing is removed or changed, backward
-  compatibity should exist.  When the API is changed, ABI_VERSION will be
+  compatibility should exist.  When the API is changed, ABI_VERSION will be
   advanced, ABI_REVISION will be reset to 0, and ABI_AGE may be advanced
   pending API/ABI changes.
 
@@ -113,7 +113,7 @@ See README.build-win32 for information on prerequisites, etc.
 
 * Build Windows DLL with stdcall convention (script in progress):
   Ditto but with HAMLIB_API set to __stdcall in include/hamlib/rig_dll.h before re-compiling.
-  Subsitute cdecl by stdcall in README.txt.
+  Substitute cdecl by stdcall in README.txt.
 
 
 * Release the file(s)

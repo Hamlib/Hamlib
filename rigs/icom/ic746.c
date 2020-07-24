@@ -513,7 +513,7 @@ const struct rig_caps ic746pro_caps =
         {RIG_MODE_FM, kHz(15)},
         {RIG_MODE_FM, kHz(7)},
 
-        /* There are 5 rtty filters when rtty filter mode is set (default condition) { 1k, 500, 350, 300, 250 }. These are fixed. If rtty filter mode is unset there are 3 general IF filters { 2.4k, 500, 250 are the defaults }.  These can be changed. There is a "twin-peak" filter mode as well.  It boosts the 2125 and 2295 recieve frequency reponse.    The S_FUNC_RF (rtty filter) turns the rtty filter mode on and off. */
+        /* There are 5 rtty filters when rtty filter mode is set (default condition) { 1k, 500, 350, 300, 250 }. These are fixed. If rtty filter mode is unset there are 3 general IF filters { 2.4k, 500, 250 are the defaults }.  These can be changed. There is a "twin-peak" filter mode as well.  It boosts the 2125 and 2295 receive frequency response.    The S_FUNC_RF (rtty filter) turns the rtty filter mode on and off. */
 
         {RIG_MODE_CW | RIG_MODE_CWR | RIG_MODE_RTTY | RIG_MODE_RTTYR, Hz(500)}, /* RTTY &  "normal" IF Filters */
         {RIG_MODE_CW | RIG_MODE_CWR | RIG_MODE_RTTY | RIG_MODE_RTTYR, Hz(250)}, /* RTTY & "narrow" IF Filters */

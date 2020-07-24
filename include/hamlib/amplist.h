@@ -61,7 +61,7 @@
  *
  *  The dummy backend, as the name suggests, is a backend which performs
  *  no hardware operations and always behaves as one would expect. It can
- *  be thought of as a hardware simulator and is very usefull for testing
+ *  be thought of as a hardware simulator and is very useful for testing
  *  client applications.
  */
 /**

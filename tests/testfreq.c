@@ -1,6 +1,6 @@
 
 /*
- * Very simple test program to check freq convertion --SF
+ * Very simple test program to check freq conversion --SF
  * This is mainly to test kHz, MHz, GHz macros and int64_t support.
  */
 

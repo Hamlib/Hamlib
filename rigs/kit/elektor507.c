@@ -550,7 +550,7 @@ int elektor507_ftdi_write_data(RIG *rig, void *FTOutBuf,
  * This kit is a QSD based on a CY27EE16ZE PLL.
  * The receiver is controlled via USB (through FTDI FT232R).
  *
- * Original artical:
+ * Original article:
  * http://www.elektor.com/magazines/2007/may/software-defined-radio.91527.lynkx
  *
  * Author (Burkhard Kainka) page, in german:

@@ -186,7 +186,7 @@ typedef enum {
  *  \def ROT_MOVE_CW
  *  \brief A macro that returns the flag for the \b clockwise direction.
  *
- *  This macro defines the value of the \b clockwise direction wich can be
+ *  This macro defines the value of the \b clockwise direction which can be
  *  used with the rot_move() function. This value is equivalent to
  *  ROT_MOVE_RIGHT .
  *
@@ -198,7 +198,7 @@ typedef enum {
 
 /* Basic rot type, can store some useful info about different rotators. Each
  * lib must be able to populate this structure, so we can make useful
- * enquiries about capablilities.
+ * enquiries about capabilities.
  */
 
 /**

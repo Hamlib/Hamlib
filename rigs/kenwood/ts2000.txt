@@ -3,7 +3,7 @@ Version: June 6, 2002
 
 	This document provides some data on translating commands from the
 	TS-2000 to/from hamlib.  It shows the sequence that should be used
-	to acheive a particular function result.  Sometimes a particular
+	to achieve a particular function result.  Sometimes a particular
 	sequence should be called.
 							--D. Edmons, kd7eni
 
@@ -52,7 +52,7 @@ rig_init()	"id;"			ts2000_init()
 		"?;"	If this occurs, one of the above may be the cause.  Also,
 			the user may have a menu currently selected using the
 			rig front panel.  I currently don't know any way to get
-			this info from the rig.  I highly reccomend that a
+			this info from the rig.  I highly recommend that a
 			message be sent to the user if "?;" occurs on more than
 			one retry, that he/she must deselect this manually.
 			There is no other way.  (I've enabled "ai2;" and no
@@ -67,13 +67,13 @@ rig_cleanup()				none
 
 rig_get_freq()				Independent of PTT/CTRL
 rig_set_freq()	"fa...;", "fb...;"	main receiver only
-		"fc...;"		sub reciever only
+		"fc...;"		sub receiver only
 
 rig_get_mode()
 rig_set_mode()	"if...;"		CTRL receiver only
-					Reads multiple paramaters at once.
+					Reads multiple parameters at once.
 		"oi...;"		!CTRL receiver only
-					Reads multiple paramaters at once.
+					Reads multiple parameters at once.
 		"md...;"		Changes the operating mod of the current
 					receiver (main or sub)
 					ts2000_sub_pwr()
@@ -92,7 +92,7 @@ rig_set_vfo()	"fr...;", "ft...;"	These can force split mode if not driven
 					These should be set in rig_set_vfo()
 					unless split frequency is being changed.
 					*Sub* only
-					Both "ft...;" and "fr...;" alway match
+					Both "ft...;" and "fr...;" always match
 					and split not available.  Setting vfo_b
 					is not an error but reads back as vfo_a
 					which would be an error.  
@@ -151,7 +151,7 @@ rig_set_xit()
 					"dc;" to determine which transceiver
 					has CTRL selected at any given moment!
 
-	Proceedure:	As far as I can tell, do as follows:
+	Procedure:	As far as I can tell, do as follows:
 		1) turn on xit or rit
 			"rt1;" or "xt;"
 		2) read current offset ("if;")
@@ -246,14 +246,14 @@ rig_mv_ctl()	"fa...;", "fb...;", "fc...;"	vfo freq
 rig_set_bank()				none (only 300 memories)
 
 		Note: There is a related function: "pm...;".  There are five
-			of these "programable memories".  The manual barely even
+			of these "programmable memories".  The manual barely even
 			mentions it.  I don't know of any way to access these
 			other than with the "pm...;"  As far as I have been able
 			to determine, the menu A/B settings etc get saved but
 			*not* the channel memories!  These may be related or
 			similar to the five or ten satellite memories etc??
 
-			To set the programable memory use "pi...;" and use
+			To set the programmable memory use "pi...;" and use
 			"pm...;" to recall it.  Values are 0-5.  "pi0;" is
 			not valid, but "pm0;" is.
 
@@ -306,7 +306,7 @@ End of functions documented in hamlib-1.1.0.pdf.
 				1) TNC on sub
 				2) sub freq set to station sending packet clusters
 				3) "cm1;" sent to rig
-		Sending "pk;" to the receiver retreives the PCT data.  If you
+		Sending "pk;" to the receiver retrieves the PCT data.  If you
 		send the ";" again, the rig sends the data again.  Up to 10
 		are saved in temporary memory pushing out the oldest.  But,
 		true to form, there is a bug.  When PCT is active "qr...;"
@@ -321,7 +321,7 @@ End of functions documented in hamlib-1.1.0.pdf.
 		Kenwood isn't telling us! 
 
 		TNC summary:
-			"pk...;"	retreive last PCT data
+			"pk...;"	retrieve last PCT data
 			"cm...;"	enable/disable PCT
 			"tc ..;"	(note space) TNC ext/int (sortof)
 			"ex055...;"	enable (*cannot* disable) TNC

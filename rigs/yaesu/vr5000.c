@@ -42,10 +42,10 @@
  * The vr5000 has no CAT commands for reading the frequency, ts nor mode.
  * These function are emulated, because the vr5000 thunkates the input
  * frequency. Secondly when changing the mode, ts will change, and since
- * ts it the one that desides how the frequency is thunkated, the frequency
+ * ts it the one that decides how the frequency is thunkated, the frequency
  * will change.
  *
- * True reciever range was not specified correctly in manual. No all
+ * True receiver range was not specified correctly in manual. No all
  * mode allow to go down to 100 Khz. Therefore the minimum frequency
  * which will be allowed is 101.5 kKz. Maximum is 2599.99 Mhz.
  *
@@ -569,7 +569,7 @@ void correct_frequency(RIG *rig, vfo_t vfo, freq_t curr_freq, freq_t *freq)
 
 /*
  * Set mode and ts, then frequency. Both mode/ts and frequency are set
- * everytime one of them changes.
+ * every time one of them changes.
  */
 int set_vr5000(RIG *rig, vfo_t vfo, freq_t freq, rmode_t mode, pbwidth_t width,
                shortfreq_t ts)

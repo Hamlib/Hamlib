@@ -56,7 +56,7 @@
  *      http://www.rfsquared.com/
  *
  * Only set_freq is supposed to work.
- * This is a skelton.
+ * This is a skeleton.
  */
 const struct rig_caps rx350_caps =
 {

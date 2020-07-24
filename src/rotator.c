@@ -155,7 +155,7 @@ static int remove_opened_rot(ROT *rot)
  *
  *  Calls cfunc() function for each opened rot.  The contents of the opened
  *  rot table is processed in random order according to a function pointed to
- *  by \a cfunc, whic is called with two arguments, the first pointing to the
+ *  by \a cfunc, which is called with two arguments, the first pointing to the
  *  #ROT handle, the second to a data pointer \a data.
  *
  *  If \a data is not needed, then it can be set to NULL.  The processing of
@@ -306,11 +306,11 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
  * Opens communication to a rotator which \a ROT handle has been passed
  * by argument.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
- * \retval RIG_EINVAL   \a rot is NULL or unconsistent.
+ * \retval RIG_EINVAL   \a rot is NULL or inconsistent.
  * \retval RIG_ENIMPL   port type communication is not implemented yet.
  *
  * \sa rot_init(), rot_close()
@@ -441,8 +441,8 @@ int HAMLIB_API rot_open(ROT *rot)
  * Closes communication to a rotator which \a ROT handle has been passed
  * by argument that was previously open with rot_open().
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rot_cleanup(), rot_open()
@@ -517,11 +517,11 @@ int HAMLIB_API rot_close(ROT *rot)
  * \brief release a rot handle and free associated memory
  * \param rot   The #ROT handle of the radio to be closed
  *
- * Releases a rot struct which port has eventualy been closed already
+ * Releases a rot struct which port has eventually been closed already
  * with rot_close().
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rot_init(), rot_close()
@@ -565,8 +565,8 @@ int HAMLIB_API rot_cleanup(ROT *rot)
  *
  * Sets the azimuth and elevation of the rotator.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rot_get_position()
@@ -625,8 +625,8 @@ int HAMLIB_API rot_set_position(ROT *rot,
  *
  *  Retrieves the current azimuth and elevation of the rotator.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rot_set_position()
@@ -677,8 +677,8 @@ int HAMLIB_API rot_get_position(ROT *rot,
  *
  *  Park the antenna.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  */
@@ -710,8 +710,8 @@ int HAMLIB_API rot_park(ROT *rot)
  *
  *  Stop the rotator.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  */
@@ -744,8 +744,8 @@ int HAMLIB_API rot_stop(ROT *rot)
  *
  *  Resets the rotator.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  */
@@ -810,7 +810,7 @@ int HAMLIB_API rot_move(ROT *rot, int direction, int speed)
  * This can include firmware revision, exact model name, or just nothing.
  *
  * \return a pointer to static memory containing the ASCIIZ string
- * if the operation has been sucessful, otherwise NULL if an error occured
+ * if the operation has been successful, otherwise NULL if an error occurred
  * or get_info not part of capabilities.
  */
 const char *HAMLIB_API rot_get_info(ROT *rot)

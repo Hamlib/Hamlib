@@ -623,8 +623,8 @@ token_t HAMLIB_API rot_token_lookup(ROT *rot, const char *name)
  *
  *  Sets a configuration parameter.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rot_get_conf()
@@ -673,10 +673,10 @@ int HAMLIB_API rot_set_conf(ROT *rot, token_t token, const char *val)
  * \param token The parameter
  * \param val   The location where to store the value of config \a token
  *
- *  Retrieves the value of a configuration paramter associated with \a token.
+ *  Retrieves the value of a configuration parameter associated with \a token.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rot_set_conf()

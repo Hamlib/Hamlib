@@ -219,7 +219,7 @@ typedef enum ft840_native_cmd_e ft840_native_cmd_t;
 /*
  * Offsets for VFO record retrieved via 0x10 P1 = 02, 03, 04
  *
- * The FT-840 returns frequency and mode data via three seperate commands.
+ * The FT-840 returns frequency and mode data via three separate commands.
  * CAT command 0x10, P1 = 02 returns the current main and sub displays' data (19 bytes)
  * CAT command 0x10, P1 = 03 returns VFO A & B data  (18 bytes)
  * CAT command 0x10, P1 = 04, P4 = 0x01-0x20 returns memory channel data (19 bytes)

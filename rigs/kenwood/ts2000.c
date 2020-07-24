@@ -415,7 +415,7 @@ int ts2000_get_channel(RIG *rig, channel_t *chan, int read_only)
 
     /* Memory group no */
     chan->scan_group = buf[ 40 ] - '0';
-    /* Fileds 38-39 contain tuning step as a number 00 - 09.
+    /* Fields 38-39 contain tuning step as a number 00 - 09.
        Tuning step depends on this number and the mode,
        just save it for now */
     buf[ 40 ] = '\0';
@@ -665,7 +665,7 @@ int ts2000_set_channel(RIG *rig, const channel_t *chan)
     }
     else
     {
-        tone = -1; /* -1 because we will add 1 when outputing; this is necessary as CTCSS codes are numbered from 1 */
+        tone = -1; /* -1 because we will add 1 when outputting; this is necessary as CTCSS codes are numbered from 1 */
     }
 
     /* find CTCSS code */

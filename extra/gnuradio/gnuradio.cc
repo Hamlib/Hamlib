@@ -220,7 +220,7 @@ static void *gnuradio_process(void *arg)
 
 	priv = (struct gnuradio_priv_data*)rig->state.priv;
 
-	/* the mutex lock is not to gurantee reentrancy of rig_debug,
+	/* the mutex lock is not to guarantee reentrancy of rig_debug,
 	 * this is just to know when backend want us start running
 	 */
 	pthread_mutex_lock(&priv->mutex_process);
