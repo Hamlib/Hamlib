@@ -4004,7 +4004,11 @@ declare_proto_rig(dump_state)
 #define RIGCTLD_PROT_VER 1
     fprintf(fout, "%d\n", RIGCTLD_PROT_VER);
     fprintf(fout, "%d\n", rig->caps->rig_model);
+#if 0 // deprecated -- not one rig uses this
     fprintf(fout, "%d\n", rs->itu_region);
+#else  // need to print something to maintain backward compatbility
+    fprintf(fout, "%d\n", 0);
+#endif
 
     for (i = 0; i < FRQRANGESIZ && !RIG_IS_FRNG_END(rs->rx_range_list[i]); i++)
     {
