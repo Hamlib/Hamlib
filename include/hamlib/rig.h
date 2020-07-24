@@ -1970,7 +1970,7 @@ struct rig_state {
 
     double vfo_comp;        /*!< VFO compensation in PPM, 0.0 to disable */
 
-    int itu_region;         /*!< ITU region to select among freq_range_t */
+    int deprecated_itu_region;         /*!< ITU region to select among freq_range_t */
     freq_range_t rx_range_list[FRQRANGESIZ];    /*!< Receive frequency range list */
     freq_range_t tx_range_list[FRQRANGESIZ];    /*!< Transmit frequency range list */
 

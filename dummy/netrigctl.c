@@ -234,7 +234,7 @@ static int netrigctl_open(RIG *rig)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    rs->itu_region = atoi(buf);
+    rs->deprecated_itu_region = atoi(buf);
 
     for (i = 0; i < FRQRANGESIZ; i++)
     {
