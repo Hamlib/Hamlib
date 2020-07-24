@@ -656,7 +656,7 @@ sub chk_opt {
         last if $_ =~ /^$_[0]/;
     }
 
-    # The CHK* line will have a space separated interger of 0 or 1
+    # The CHK* line will have a space separated integer of 0 or 1
     # for 'rigctld' invocation without and with -b|--block or
     # -o|--vfo options respectively
     foreach (@lines) {
@@ -736,7 +736,7 @@ which should resolve to 127.0.0.1 if I</etc/hosts> is configured correctly.
 
 =item B<--port>
 
-TCP port of the target I<rigctld> process.  Default is 4532.  Mutliple instances
+TCP port of the target I<rigctld> process.  Default is 4532.  Multiple instances
 of I<rigctld> will require unique port numbers.
 
 =item B<--help>

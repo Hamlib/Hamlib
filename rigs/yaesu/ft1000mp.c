@@ -820,7 +820,7 @@ int ft1000mp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     rig_debug(RIG_DEBUG_TRACE, "ft1000mp: freq = %"PRIfreq" Hz for VFO [%x]\n", f,
               vfo);
 
-    *freq = f;                    /* return diplayed frequency */
+    *freq = f;                    /* return displayed frequency */
 
     return RIG_OK;
 }
@@ -1244,7 +1244,7 @@ int ft1000mp_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
     rig_debug(RIG_DEBUG_TRACE, "%s: freq = %d Hz for VFO [%s]\n", __func__, (int)f,
               rig_strvfo(vfo));
 
-    *rit = f;     /* return diplayed frequency */
+    *rit = f;     /* return displayed frequency */
 
     return RIG_OK;
 }
@@ -1348,7 +1348,7 @@ int ft1000mp_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
     rig_debug(RIG_DEBUG_TRACE, "%s: freq = %d Hz for VFO [%s]\n", __func__, (int)f,
               rig_strvfo(vfo));
 
-    *xit = f;     /* return diplayed frequency */
+    *xit = f;     /* return displayed frequency */
 
     return RIG_OK;
 }
@@ -1496,7 +1496,7 @@ static int ft1000mp_get_update_data(RIG *rig, unsigned char ci,
 
     do
     {
-        /* send UPDATE comand to fetch data*/
+        /* send UPDATE command to fetch data*/
         ft1000mp_send_priv_cmd(rig, ci);
 
         n = read_block(&rig_s->rigport, (char *) p->update_data, rl);

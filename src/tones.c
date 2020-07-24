@@ -91,8 +91,8 @@ const tone_t full_dcs_list[] = { FULL_DCS_LIST };
  *  a call to rig_set_func() with arg RIG_FUNC_TONE, unless it is
  *  unavailable and the \a tone arg has to be set to 0.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rig_get_ctcss_tone(), rig_set_ctcss_sql()
@@ -158,8 +158,8 @@ int HAMLIB_API rig_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
  *  for example, then the real tone is 88.5 Hz.
  *  Also, a value of 0 for \a *tone means the Tone encoding is disabled.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rig_set_ctcss_tone(), rig_get_ctcss_sql()
@@ -220,8 +220,8 @@ int HAMLIB_API rig_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
  *
  * Sets the current encoding Digitally-Coded Squelch code.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rig_get_dcs_code(), rig_set_dcs_sql()
@@ -283,8 +283,8 @@ int HAMLIB_API rig_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
  *
  * Retrieves the current encoding Digitally-Coded Squelch code.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rig_set_dcs_code(), rig_get_dcs_sql()
@@ -353,8 +353,8 @@ int HAMLIB_API rig_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
  *  a call to rig_set_func() with arg RIG_FUNC_TSQL, unless it is
  *  unavailable and the \a tone arg has to be set to 0.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rig_get_ctcss_sql(), rig_set_ctcss_tone()
@@ -420,8 +420,8 @@ int HAMLIB_API rig_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
  *  for example, then the real tone is 88.5 Hz.
  *  Also, a value of 0 for \a tone means the Tone squelch is disabled.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rig_set_ctcss_sql(), rig_get_ctcss_tone()
@@ -482,8 +482,8 @@ int HAMLIB_API rig_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
  *
  * Sets the current Digitally-Coded *Squelch* code.
  *
- * \return returns RIG_OK if the operation has been sucessful, ortherwise
- * a negative value if an error occured (in which case, cause is set
+ * \return returns RIG_OK if the operation has been successful, ortherwise
+ * a negative value if an error occurred (in which case, cause is set
  * appropriately).
  *
  * \sa rig_get_dcs_sql(), rig_set_dcs_code()
@@ -544,8 +544,8 @@ int HAMLIB_API rig_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
  *
  * Retrieves the current Digitally-Coded *Squelch* code.
  *
- * \return RIG_OK if the operation has been sucessful, ortherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, ortherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rig_set_dcs_sql(), rig_get_dcs_code()

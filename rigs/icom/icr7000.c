@@ -309,7 +309,7 @@ static int r7000_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     long long f = (long long)freq;
 
     /*
-     * The R7000 cannot set freqencies higher than 1GHz,
+     * The R7000 cannot set frequencies higher than 1GHz,
      * this is done by flipping a switch on the front panel and
      * stripping the most significant digit.
      * This is the only change with the common icom_set_freq

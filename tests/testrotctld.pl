@@ -629,7 +629,7 @@ which should resolve to 127.0.0.1 if I</etc/hosts> is configured correctly.
 
 =item B<--port>
 
-TCP port of the target I<rotctld> process.  Default is 4533.  Mutliple instances
+TCP port of the target I<rotctld> process.  Default is 4533.  Multiple instances
 of I<rotctld> will require unique port numbers.
 
 =item B<--help>

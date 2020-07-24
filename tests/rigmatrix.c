@@ -218,7 +218,7 @@ int print_caps_parameters(const struct rig_caps *caps, void *data)
 #define print_yn(fn) printf("<TD>%c</TD>", (fn) ? 'Y':'N')
 
 /*
- * backend functions definied
+ * backend functions defined
  *
  * TODO: add new API calls!
  */

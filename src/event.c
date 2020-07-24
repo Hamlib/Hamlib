@@ -517,8 +517,8 @@ static void sa_sigalrmhandler(int signum)
  *
  *  Install a callback for freq events, to be called when in transceive mode.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rig_set_trn()
@@ -547,8 +547,8 @@ int HAMLIB_API rig_set_freq_callback(RIG *rig, freq_cb_t cb, rig_ptr_t arg)
  *
  *  Install a callback for mode events, to be called when in transceive mode.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rig_set_trn()
@@ -577,8 +577,8 @@ int HAMLIB_API rig_set_mode_callback(RIG *rig, mode_cb_t cb, rig_ptr_t arg)
  *
  *  Install a callback for vfo events, to be called when in transceive mode.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rig_set_trn()
@@ -607,8 +607,8 @@ int HAMLIB_API rig_set_vfo_callback(RIG *rig, vfo_cb_t cb, rig_ptr_t arg)
  *
  *  Install a callback for ptt events, to be called when in transceive mode.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rig_set_trn()
@@ -637,8 +637,8 @@ int HAMLIB_API rig_set_ptt_callback(RIG *rig, ptt_cb_t cb, rig_ptr_t arg)
  *
  *  Install a callback for dcd events, to be called when in transceive mode.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rig_set_trn()
@@ -669,8 +669,8 @@ int HAMLIB_API rig_set_dcd_callback(RIG *rig, dcd_cb_t cb, rig_ptr_t arg)
  *  Install a callback for pipelined tuning module, to be called when the
  *  rig_scan( SCAN_PLT ) loop needs a new frequency, mode and width.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rig_set_trn()
@@ -698,8 +698,8 @@ int HAMLIB_API rig_set_pltune_callback(RIG *rig, pltune_cb_t cb, rig_ptr_t arg)
  *
  *  Enable/disable the transceive handling of a rig and kick off async mode.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rig_get_trn()
@@ -730,7 +730,7 @@ int HAMLIB_API rig_set_trn(RIG *rig, int trn)
         }
         else
         {
-            /* when going POLL<->RIG, transtition to OFF */
+            /* when going POLL<->RIG, transition to OFF */
             retcode = rig_set_trn(rig, RIG_TRN_OFF);
 
             if (retcode != RIG_OK)
@@ -846,8 +846,8 @@ int HAMLIB_API rig_set_trn(RIG *rig, int trn)
  *  Retrieves the current status of the transceive mode, i.e. if radio
  *  sends new status automatically when some changes happened on the radio.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rig_set_trn()

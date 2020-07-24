@@ -35,7 +35,7 @@
 
 
 /*
- * the amp may be in amp_init state, but not openned
+ * the amp may be in amp_init state, but not opened
  */
 int dumpcaps_amp(AMP *amp, FILE *fout)
 {

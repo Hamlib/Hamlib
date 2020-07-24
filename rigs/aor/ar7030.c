@@ -154,19 +154,19 @@ static void setMemPtr(RIG *rig, int page, int address)
 {
     rxr_writeByte(rig, 0x50 + page);          //Set Page
 
-    if (address <= 0xFF)                  //*** <= 8 Bit Adresse ***
+    if (address <= 0xFF)                  //*** <= 8 Bit Address ***
     {
         rxr_writeByte(rig, 0x30 + (address >> 4));      //Set H-Register 4 Bits
         rxr_writeByte(rig, 0x40 + (address &
-                                   0x0F));    //Set Adress(12 Bits = (4 Bit H Register) + 8 Bit)
+                                   0x0F));    //Set Address(12 Bits = (4 Bit H Register) + 8 Bit)
     }
-    else                          //*** > 8 Bit Adresse ***
+    else                          //*** > 8 Bit Address ***
     {
         rxr_writeByte(rig, 0x30 + ((address >> 4) & 0x0F)) ;//Set H-Register 4 Bits
         rxr_writeByte(rig, 0x40 + (address &
-                                   0x0F));    //Set Adress(12 Bits = (4 Bit H Register) + 8 Bit)
+                                   0x0F));    //Set Address(12 Bits = (4 Bit H Register) + 8 Bit)
         rxr_writeByte(rig, 0x10 + (address >>
-                                   8));      //Set Adress high(12 Bits=(4 Bit H Register)+8 Bit)
+                                   8));      //Set Address high(12 Bits=(4 Bit H Register)+8 Bit)
     }
 }
 

@@ -58,7 +58,7 @@ static int setDirection(hamlib_port_t *port, unsigned char outputvalue,
     // set the data bits
     par_write_data(port, outputvalue);
 
-    // autofd=true --> azimuth otherwhise elevation
+    // autofd=true --> azimuth otherwise elevation
     if (direction)
     {
         outputstatus = PARPORT_CONTROL_AUTOFD;

@@ -83,7 +83,7 @@ o available "set mode" items (ie. rig setup), and provide a way to modify them
 o DSP ?
 
 o max memory channel
-o per rig timeout/retry (can be overriden)
+o per rig timeout/retry (can be overridden)
 o Write some memory channel handling (name, mode, freq/vfo, duplex, split, ..)
 
 Any other ideas?

@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 
     printf("testrig: Hello, I am your main() !\n");
 
-    /* Turn off backend debugging ouput */
+    /* Turn off backend debugging output */
     rig_set_debug_level(RIG_DEBUG_NONE);
 
     /*
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     if (argc < 2)
     {
         hamlib_port_t myport;
-        /* may be overriden by backend probe */
+        /* may be overridden by backend probe */
         myport.type.rig = RIG_PORT_SERIAL;
         myport.parm.serial.rate = 9600;
         myport.parm.serial.data_bits = 8;
