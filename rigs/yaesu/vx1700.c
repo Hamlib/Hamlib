@@ -352,7 +352,7 @@ static int vx1700_do_freq_cmd(RIG *rig, unsigned char ci, freq_t freq)
     if ((ci != VX1700_NATIVE_FREQ_SET) && (ci != VX1700_NATIVE_TX_FREQ_SET))
     {
         rig_debug(RIG_DEBUG_TRACE,
-                  "%s: Attempt to use non freqency sequence\n", __func__);
+                  "%s: Attempt to use non frequency sequence\n", __func__);
         return -RIG_EINVAL;
     }
 

@@ -62,7 +62,7 @@ Version 3.2
         * New Flrig backend, Mike, W9MDB
         * New model, IC-M710, Mike, W9MDB
         * Build instructions and test script for Python3
-        * Rename autogen.sh to bootsrap and don't call configure
+        * Rename autogen.sh to bootstrap and don't call configure
         * micro-ham support. Christoph, DL1YCF
         * New rotator, SPID MD-01/02 in ROT2 mode, Norvald Ryeng, LA6YKA
         * New model, Flex 6400/6600, Mike, W9MDB
@@ -378,13 +378,13 @@ Version 1.2.0
 		- locator and dec/dms interface rework
 		- bump library CURRENT version info
 	* new backends: Lowe (HF-235), FlexRadio (SDR-1000),
-			skelton TAPR (DSP-10), skelton RFT,
+			skeleton TAPR (DSP-10), skeleton RFT,
 			Ten-Tec models and many new models & fixes
 	* new rotator backends: sartek
 	* frontend: emulated transceive mode using polling
 	* icom: implemented retry, esp. useful for CI-V
 	* icom: pipelined tuning on Optoscan's
-	* microtune: no need of root priviledges anymore
+	* microtune: no need of root privileges anymore
 	* bindings: added Python, new install method (perl is installed in $prefix)
 	* rigmem: new command to load/store memory content from/to XML file
 	* port: NetBSD & FreeBSD, mingw32(Windows) port, MacOSX ready

@@ -20,7 +20,7 @@
  */
 /*
  *
- * For informations about the controls see
+ * For information about the controls see
  * https://sites.google.com/site/rshfiqtransceiver/home/technical-data/interface-commands
  *
  */

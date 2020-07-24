@@ -1418,7 +1418,7 @@ th_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
         return -RIG_EINVAL;
     }
 
-    i += (i == 0) ? 1 : 2;  /* Correct for TH-D7A index anomally */
+    i += (i == 0) ? 1 : 2;  /* Correct for TH-D7A index anomaly */
     snprintf(tonebuf, sizeof tonebuf, "TN %02d", i);
     return kenwood_transaction(rig, tonebuf, tonebuf, sizeof tonebuf);
 }
@@ -1496,7 +1496,7 @@ th_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
         return -RIG_EINVAL;
     }
 
-    i += (i == 0) ? 1 : 2;  /* Correct for TH-D7A index anomally */
+    i += (i == 0) ? 1 : 2;  /* Correct for TH-D7A index anomaly */
     snprintf(tonebuf, sizeof tonebuf, "CTN %02d", i);
     return kenwood_transaction(rig, tonebuf, tonebuf, sizeof tonebuf);
 }

@@ -181,7 +181,7 @@ the hamlib-developer mailing list.  See section 8.3.
 One of the most powerful features of Git is its ability to make working with
 branches easy.  It also allows the developers to "cherry pick" patches from
 the master development branch into stable release branches.  In this manner
-we can accomodate patches submitted against a stable release and merge them
+we can accommodate patches submitted against a stable release and merge them
 into master as well.  Such parallel development is a new feature for our
 project and there will be a learning curve!
 
@@ -513,11 +513,11 @@ So far, Hamlib has been tested successfully under the following systems:
          Note:  The '.' character is a Git wildcard that includes all new and
                 modified files in your working tree.
 
-                The '-m' option may be ommitted, in which case Git will start
+                The '-m' option may be omitted, in which case Git will start
                 your default editor for a longer commit message.  Commit
                 messages generally have the form of a short subject line, then
                 a blank line, and then as much text (broken into paragraphs as
-                needed) as needed for a good decription of the commit.
+                needed) as needed for a good description of the commit.
 
                 Assuming your working tree was cloned from the SF.net repository
                 or N0NB's GitHub repository, you can now issue a pull request
@@ -722,7 +722,7 @@ the rules hereunder:
     * Touching the frontend (files in src/ and include/hamlib) always
       requires discussion beforehand on the hamlib-developer list.
     * Announce on the hamlib-developer list if you're about to do serious
-      maintainance work
+      maintenance work
 
 Thanks for contributing and have fun!
 

@@ -1,5 +1,5 @@
 /*
- *  Hamlib CI-V backend - description of IC-9100 (HF/VHF/UHF All-Mode Tranceiver)
+ *  Hamlib CI-V backend - description of IC-9100 (HF/VHF/UHF All-Mode Transceiver)
  *  Copyright (c) 2000-2011 by Stephane Fillod
  *
  *

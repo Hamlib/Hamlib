@@ -64,7 +64,7 @@ The advantage of the Git snapshot is that you won't need as many tools
 installed to build Hamlib as the work of the GNU Build System has already
 been done.  Most of the other packages listed below will be needed.  If you
 tell the 'configure' script to build certain parts of Hamlib like
-documentation or scripting language bindings the relavent optional packages
+documentation or scripting language bindings the relevant optional packages
 will be needed.  See 'configure --help' for more information.
 
 Here is a list of development packages needed for a complete build of the

@@ -25,7 +25,7 @@ File change summary:	(Hopefully, I'll keep this updated...)
 
 	Makefile.am	Added ts2k.c, ts2k.h
 	ts2k.status	current status in the form of rigctl help
-			Takes alot of time.  May or may not be kept
+			Takes a lot of time.  May or may not be kept
 			up to date.  Anybody write an expect script?
 	ts2k.c		New
 	ts2k_menu.c	(not implemented; work to allow menus to set the
@@ -36,7 +36,7 @@ File change summary:	(Hopefully, I'll keep this updated...)
 			(Currently every menu item number and text is entered
 			but the menu default is not set.  For example, grig
 			can't be expected to know every rig's menu's.  in work!)
-			It just occured to me that it would be very nice to
+			It just occurred to me that it would be very nice to
 			have a default hamlib menu.  If a rig don't have any
 			or no menu functions yet, the levels and other items
 			can be presented as a default menu.

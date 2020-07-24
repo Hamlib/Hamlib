@@ -12,7 +12,7 @@ make up the roff system.
 Documentation written in roff can be transformed into a number of formats for
 final publication.  For the Hamlib project, the output formats are the classic
 man(1) format to a terminal screen, HTML, and PDF.  While groff includes a
-number of macro pacakges suitable for a variety of document styles, Hamlib
+number of macro packages suitable for a variety of document styles, Hamlib
 source files are written using the man(7) macro package.  The layout of Hamlib
 man pages generally follow the format specified in man-pages(7).  The macros
 used in the man pages format is specified in groff_man(7).

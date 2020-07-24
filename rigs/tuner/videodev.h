@@ -217,7 +217,7 @@ struct video_info
 {
 	uint32_t	frame_count;	/* frames output since decode/encode began */
 	uint32_t	h_size;		/* current unscaled horizontal size */
-	uint32_t	v_size;		/* current unscaled veritcal size */
+	uint32_t	v_size;		/* current unscaled vertical size */
 	uint32_t	smpte_timecode;	/* current SMPTE timecode (for current GOP) */
 	uint32_t	picture_type;	/* current picture type */
 	uint32_t	temporal_reference;	/* current temporal reference */

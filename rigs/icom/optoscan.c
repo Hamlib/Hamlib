@@ -788,7 +788,7 @@ static int optoscan_send_freq(RIG *rig, pltstate_t *state)
     /* read echo'd chars only...there will be no ACK from this command
      *
      * Note:
-     *  It may have waited fro pltstate->usleep_time before reading the echo'd
+     *  It may have waited for pltstate->usleep_time before reading the echo'd
      *  chars, but the read will be blocking anyway. --SF
      * */
     return icom_transaction(rig, C_CTL_MISC, S_OPTO_NXT, buff, 6, NULL, NULL);

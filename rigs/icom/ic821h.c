@@ -1,5 +1,5 @@
 /*
- *  Hamlib CI-V backend - description of IC-821H (VHF/UHF All-Mode Tranceiver)
+ *  Hamlib CI-V backend - description of IC-821H (VHF/UHF All-Mode Transceiver)
  *  Contributed by Francois Retief <fgretief@sun.ac.za>
  *  Copyright (c) 2000-2010 by Stephane Fillod
  *

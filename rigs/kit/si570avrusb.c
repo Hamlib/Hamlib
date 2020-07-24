@@ -968,7 +968,7 @@ static int setBPF(RIG *rig, int enable)
     unsigned short FilterCrossOver[16];
     int nBytes;
 
-    // Does FilterCrossOver needs endianess ordering ?
+    // Does FilterCrossOver needs endianness ordering ?
 
     // first find out how may cross over points there are for the 1st bank, use 255 for index
     nBytes = libusb_control_transfer(udh, REQUEST_TYPE_IN,

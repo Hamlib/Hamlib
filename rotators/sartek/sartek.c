@@ -38,7 +38,7 @@
 
 /* *************************************
  *
- * Seperate model capabilities
+ * Separate model capabilities
  *
  * *************************************
  */

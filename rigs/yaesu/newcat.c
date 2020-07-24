@@ -254,7 +254,7 @@ int                     valid_commands_count = sizeof(valid_commands) / sizeof(
 const struct confparams newcat_cfg_params[] =
 {
     {
-        TOK_FAST_SET_CMD, "fast_commands_token", "High troughput of commands", "Enabled high throughput of >200 messages/sec by not waiting for ACK/NAK of messages", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } }
+        TOK_FAST_SET_CMD, "fast_commands_token", "High throughput of commands", "Enabled high throughput of >200 messages/sec by not waiting for ACK/NAK of messages", "0", RIG_CONF_NUMERIC, { .n = { 0, 1, 1 } }
     },
     { RIG_CONF_END, NULL, }
 };
@@ -4008,7 +4008,7 @@ int newcat_set_mem(RIG *rig, vfo_t vfo, int ch)
         break;
 
     case RIG_VFO_MEM:
-        /* Jump from channel to channel in memmory mode */
+        /* Jump from channel to channel in memory mode */
         restore_vfo = FALSE;
         break;
 
@@ -4300,7 +4300,7 @@ int newcat_set_channel(RIG *rig, const channel_t *chan)
         break;
 
     case RIG_VFO_MEM:
-        /* Jump from channel to channel in memmory mode */
+        /* Jump from channel to channel in memory mode */
         restore_vfo = FALSE;
         break;
 
@@ -4936,7 +4936,7 @@ int newcat_set_vfo_from_alias(RIG *rig, vfo_t *vfo)
  *  Using rigctl on FT950 I was trying to set RIG_LEVEL_COMP to 12
  *  I kept setting it to 11.  I wrote some test software and
  *  found out that 0.12 * 100 = 11 with my setup.
- *  Compilier is gcc 4.2.4, CPU is AMD X2
+ *  Compiler is gcc 4.2.4, CPU is AMD X2
  *  This works somewhat but Find a better way.
  *  The newcat_get_level() seems to work correctly.
  *  Terry KJ4EED
@@ -6321,7 +6321,7 @@ int newcat_get_vfo_mode(RIG *rig, vfo_t *vfo_mode)
 
 
 /*
- * Writed data and waits for responce
+ * Writes data and waits for response
  * input:  complete CAT command string including termination in cmd_str
  * output: complete CAT command answer string in ret_data
  * return: RIG_OK or error

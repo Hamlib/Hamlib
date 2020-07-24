@@ -60,28 +60,28 @@ struct meade_priv_data
  * Not the full set of available commands is used, the list here shows
  * only the commands of the telescope used by hamlib
  *
- * All used Commands are supportet by Meade Telescopes with LX-200 protocol
+ * All used Commands are supported by Meade Telescopes with LX-200 protocol
  * (e.g. DS-2000 with Autostar) and should also work with the LX16 and
  * LX200GPS.
  * Tested only with DS-2000 and AutoStar 494 together with Meade 506 i2c to
  * Serial cable. But should also work with other AutoStars and the regular
  * Serial Cable.
  *
- * | Command     | Atribute | Return value | Description              |
- * --------------------------------------------------------------------
- * | :Me#        | -        | -            | Moves telescope east     |
- * | :Mn#        | -        | -            | Moves telescope north    |
- * | :Ms#        | -        | -            | Moves telescope south    |
- * | :Mw#        | -        | -            | Moves telescope west     |
- * | :AL#        | -        | -            | Set to Land mode         |
- * | :Sz DDD*MM# | D,M      | 1' == OK     | Set Target azimuth       |
- * | :SasDD*MM#  | s,D,M    | 1' == OK     | Set Target elevation     |
- * | :Mw#        | -        | -            | Moves telescope west     |
- * | :Q#         | -        | -            | Halt all slewing         |
- * | :SoDD#      | D        | '1' == OK    | Set minimal elevation    |
- * | :ShDD#      | D        | '1' == OK    | Set maximal elevation    |
- * | :MA#        | -        | '0' == OK    | GoTo Target              |
- * | :D#         | -        | 0x7F == YES  | Check if active movement |
+ * | Command     | Attribute | Return value | Description              |
+ * ---------------------------------------------------------------------
+ * | :Me#        | -         | -            | Moves telescope east     |
+ * | :Mn#        | -         | -            | Moves telescope north    |
+ * | :Ms#        | -         | -            | Moves telescope south    |
+ * | :Mw#        | -         | -            | Moves telescope west     |
+ * | :AL#        | -         | -            | Set to Land mode         |
+ * | :Sz DDD*MM# | D,M       | 1' == OK     | Set Target azimuth       |
+ * | :SasDD*MM#  | s,D,M     | 1' == OK     | Set Target elevation     |
+ * | :Mw#        | -         | -            | Moves telescope west     |
+ * | :Q#         | -         | -            | Halt all slewing         |
+ * | :SoDD#      | D         | '1' == OK    | Set minimal elevation    |
+ * | :ShDD#      | D         | '1' == OK    | Set maximal elevation    |
+ * | :MA#        | -         | '0' == OK    | GoTo Target              |
+ * | :D#         | -         | 0x7F == YES  | Check if active movement |
  *
  */
 
@@ -204,7 +204,7 @@ static int meade_cleanup(ROT *rot)
 }
 
 /*
- * Opens the Port and sets all needed parametes for operation
+ * Opens the Port and sets all needed parameters for operation
  */
 static int meade_open(ROT *rot)
 {
@@ -398,7 +398,7 @@ static int meade_park(ROT *rot)
 }
 
 /*
- * Reset: Nothing to do exept parking
+ * Reset: Nothing to do except parking
  */
 static int meade_reset(ROT *rot, rot_reset_t reset)
 {

@@ -31,7 +31,7 @@ type
     rot_model_t = integer;
     rot_reset_t = integer;
 
-    PRot = ^TRot;   // forward decleration
+    PRot = ^TRot;   // forward declaration
 
     rot_caps = packed record
         rot_model : rot_model_t;

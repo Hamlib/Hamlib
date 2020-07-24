@@ -566,7 +566,7 @@ int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
 
         if (retval == 0)
         {
-            /* Record timeout time and caculate elapsed time */
+            /* Record timeout time and calculate elapsed time */
             gettimeofday(&end_time, NULL);
             timersub(&end_time, &start_time, &elapsed_time);
 
@@ -637,8 +637,8 @@ int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
  * \param rxmax maximum string size + 1
  * \param stopset string of recognized end of string characters
  * \param stopset_len length of stopset
- * \return number of characters read if the operation has been sucessful,
- * otherwise a negative value if an error occured (in which case, cause is
+ * \return number of characters read if the operation has been successful,
+ * otherwise a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * Read a string from "fd" and put result into
@@ -707,7 +707,7 @@ int HAMLIB_API read_string(hamlib_port_t *p,
         {
             if (0 == total_count)
             {
-                /* Record timeout time and caculate elapsed time */
+                /* Record timeout time and calculate elapsed time */
                 gettimeofday(&end_time, NULL);
                 timersub(&end_time, &start_time, &elapsed_time);
 

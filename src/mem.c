@@ -63,8 +63,8 @@
  *  It is not mandatory for the radio to be in memory mode. Actually
  *  it depends on rigs. YMMV.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rig_get_mem()
@@ -126,8 +126,8 @@ int HAMLIB_API rig_set_mem(RIG *rig, vfo_t vfo, int ch)
  *  It is not mandatory for the radio to be in memory mode. Actually
  *  it depends on rigs. YMMV.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rig_set_mem()
@@ -189,8 +189,8 @@ int HAMLIB_API rig_get_mem(RIG *rig, vfo_t vfo, int *ch)
  *  It is not mandatory for the radio to be in memory mode. Actually
  *  it depends on rigs. YMMV.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rig_set_mem()
@@ -679,8 +679,8 @@ static int generic_restore_channel(RIG *rig, const channel_t *chan)
  *  and memory number selected. Depending on backend and rig capabilities,
  *  the chan struct may not be set completely.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rig_get_channel()
@@ -820,11 +820,11 @@ int HAMLIB_API rig_set_channel(RIG *rig, const channel_t *chan)
  *  the chan struct may not be filled in completely.
  *
  *  Note: chan->ext_levels is a pointer to a newly mallocated memory.
- *  This is the responsability of the caller to manage and eventually
+ *  This is the responsibility of the caller to manage and eventually
  *  free it.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rig_set_channel()
@@ -1070,8 +1070,8 @@ static int map_chan(RIG *rig,
  *  Write the data associated with a all the memory channels.
  *  This is the preferred method to support clonable rigs.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rig_set_chan_all(), rig_get_chan_all_cb()
@@ -1116,8 +1116,8 @@ int HAMLIB_API rig_set_chan_all_cb(RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
  *  future data for channel channel_num. If channel_num == chan->channel_num,
  *  the application does not need to provide a new allocated structure.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rig_get_chan_all(), rig_set_chan_all_cb()
@@ -1156,8 +1156,8 @@ int HAMLIB_API rig_get_chan_all_cb(RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
  *
  * Write the data associated with all the memory channels.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rig_set_chan_all_cb(), rig_get_chan_all()
@@ -1198,8 +1198,8 @@ int HAMLIB_API rig_set_chan_all(RIG *rig, const channel_t chans[])
  *
  * Retrieves the data associated with all the memory channels.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rig_get_chan_all_cb(), rig_set_chan_all()
@@ -1244,8 +1244,8 @@ int HAMLIB_API rig_get_chan_all(RIG *rig, channel_t chans[])
  *
  * Copies the data associated with one channel structure to another
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rig_get_chan_all_cb(), rig_set_chan_all()
@@ -1310,8 +1310,8 @@ int set_parm_all_cb_generic(RIG *rig, confval_cb_t parm_cb, rig_ptr_t cfgps,
  * and rigs memory parameters, by callback.
  * This is the preferred method to support clonable rigs.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rig_get_mem_all_cb(), rig_set_mem_all()
@@ -1375,8 +1375,8 @@ int HAMLIB_API rig_set_mem_all_cb(RIG *rig,
  * and rigs memory parameters, by callback.
  * This is the preferred method to support clonable rigs.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rig_get_mem_all_cb(), rig_set_mem_all()
@@ -1440,8 +1440,8 @@ int HAMLIB_API rig_get_mem_all_cb(RIG *rig,
  * Writes the data associated with all the memory channels,
  * and rigs memory parameters.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rig_get_mem_all(), rig_set_mem_all_cb()
@@ -1509,8 +1509,8 @@ int HAMLIB_API rig_set_mem_all(RIG *rig,
  * and rigs memory parameters.
  * This is the preferred method to support clonable rigs.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rig_get_mem_all(), rig_set_mem_all_cb()
@@ -1570,7 +1570,7 @@ int HAMLIB_API rig_get_mem_all(RIG *rig,
  *  If \a ch equals RIG_MEM_CAPS_ALL, then a union of all the mem_caps sets
  *  is returned (pointer to static memory).
  *
- * \return a pointer to a chan_t structure if the operation has been sucessful,
+ * \return a pointer to a chan_t structure if the operation has been successful,
  * otherwise a NULL pointer, most probably because of incorrect channel number
  * or buggy backend.
  */

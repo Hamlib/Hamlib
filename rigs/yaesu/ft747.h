@@ -129,7 +129,7 @@ typedef enum ft747_native_cmd_e ft747_native_cmd_t;
 #define MODE_LSB    0x10
 #define MODE_NAR    0x80
 
-/* All relevent bits */
+/* All relevant bits */
 #define MODE_MASK   0x9f
 
 

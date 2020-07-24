@@ -35,7 +35,7 @@
 
 
 /*
- * the rot may be in rot_init state, but not openned
+ * the rot may be in rot_init state, but not opened
  */
 int dumpcaps_rot(ROT *rot, FILE *fout)
 {
