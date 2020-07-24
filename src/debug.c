@@ -149,12 +149,10 @@ void HAMLIB_API rig_set_debug_time_stamp(int flag)
 char *date_strget(char *buf, int buflen)
 {
     char tmp[16];
-    time_t mytime;
     struct tm *mytm;
     struct timeval tv;
-    mytime = time(NULL);
-    mytm = gmtime(&mytime);
     gettimeofday(&tv, NULL);
+    mytm = gmtime(&tv.tv_sec);
     strftime(buf, buflen, "%Y-%m-%d:%H:%M:%S.", mytm);
     sprintf(tmp, "%06ld", (long)tv.tv_usec);
     strcat(buf, tmp);
