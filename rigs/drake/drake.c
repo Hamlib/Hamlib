@@ -722,7 +722,7 @@ int drake_get_chan(RIG *rig, channel_t *chan, int read_only)
         return RIG_OK;
     }
 
-    //now decypher it
+    //now decipher it
     retval = drake_transaction(rig, "RA" EOM, 3, mdbuf, &mdbuf_len);
 
     if (retval != RIG_OK)

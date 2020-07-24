@@ -82,7 +82,7 @@
 #   appropriate Automake primary, e.g. lua_SCRIPS or luaexec_LIBRARIES.
 #
 #   If an acceptable Lua interpreter is found, then ACTION-IF-FOUND is
-#   performed, otherwise ACTION-IF-NOT-FOUND is preformed. If ACTION-IF-NOT-
+#   performed, otherwise ACTION-IF-NOT-FOUND is performed. If ACTION-IF-NOT-
 #   FOUND is blank, then it will default to printing an error. To prevent
 #   the default behavior, give ':' as an action.
 #

@@ -954,7 +954,7 @@ int bcd2Int(const unsigned char bcd)
  *
  * \param int Integer value (0-99)
  *
- * \return 2 digit BCD equvalent (0-99), 0xff on failure
+ * \return 2 digit BCD equivalent (0-99), 0xff on failure
  */
 unsigned char int2BCD(const unsigned int val)
 {
@@ -1042,7 +1042,7 @@ int getCalLevel(RIG *rig, unsigned char rawAgc, int *dbm)
             }
             else
             {
-                step = 20; /* HACK - try and fix mimimum AGC readings */
+                step = 20; /* HACK - try and fix minimum AGC readings */
             }
 
             rig_debug(RIG_DEBUG_VERBOSE, "%s: got step size %d\n", __func__, step);

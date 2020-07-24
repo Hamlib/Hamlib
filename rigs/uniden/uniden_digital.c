@@ -68,7 +68,7 @@ uniden_id_string_list[] =
 };
 #endif
 
-/* EOM is not consistant with this BCD996T!
+/* EOM is not consistent with this BCD996T!
  * Some commands  return newline while others carriage return.
  * Some commands return nothing special for End of Line char. */
 #define EOM "\r"  /* end of message */
@@ -92,8 +92,8 @@ uniden_id_string_list[] =
  *            out: location where to store number of bytes read.
  *
  * returns:
- *   RIG_OK  -  if no error occured.
- *   RIG_EIO  -  if an I/O error occured while sending/receiving data.
+ *   RIG_OK  -  if no error occurred.
+ *   RIG_EIO  -  if an I/O error occurred while sending/receiving data.
  *   RIG_ETIMEOUT  -  if timeout expires without any characters received.
  *   RIG_REJECTED  -  if a negative acknowledge was received or command not
  *                    recognized by rig.
@@ -156,7 +156,7 @@ transaction_write:
 
     /* Check that command termination is correct
      * FIXME: Sometimes the BCD996T DOES NOT return  a
-     * consistant carriage return or newline.
+     * consistent carriage return or newline.
      * ie: STS command will not return either "\r" or "\n"! */
     /*if (strchr(EOM, data[strlen(data)-1])==NULL) {
         rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n", __func__, data);

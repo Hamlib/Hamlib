@@ -383,7 +383,7 @@ static void finddevices()
 
                     TRACE("SerialPort opened: %s fd=%d\n", uh_device_path, fd);
                     uh_device_fd = fd;
-                    // The first time we were successfull, we skip all what might come
+                    // The first time we were successful, we skip all what might come
                     return;
                 }
             }
@@ -1171,7 +1171,7 @@ int uh_open_wkey()
 // Number of stop bits must be 1 or 2.
 // Number of data bits can be 5,6,7,8
 // Hardware handshake (rtscts) can be on of off.
-// microHam devices ALWAY use "no parity".
+// microHam devices ALWAYS use "no parity".
 //
 int uh_open_radio(int baud, int databits, int stopbits, int rtscts)
 {

@@ -56,7 +56,7 @@
  *
  *  The dummy backend, as the name suggests, is a backend which performs no
  *  hardware operations and always behaves as one would expect. It can be
- *  thought of as a hardware simulator and is very usefull for testing client
+ *  thought of as a hardware simulator and is very useful for testing client
  *  applications.
  *
  *  It has also been expanded to provide support to "virtual" type of rigs
@@ -327,7 +327,7 @@
 
 /*
  * Radio Shack
- * Actualy, they might be either Icom or Uniden. TBC --SF
+ * Actually, they might be either Icom or Uniden. TBC --SF
  */
 #define RIG_RADIOSHACK 7
 #define RIG_BACKEND_RADIOSHACK "radioshack"

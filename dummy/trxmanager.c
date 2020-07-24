@@ -67,7 +67,7 @@
 #define FLRIG_MODE_PKTFM   'E'
 #define FLRIG_MODE_PKTAM   'F'
 // Hamlib doesn't support D2/D3 modes in hamlib yet
-// So we define them here but they aren't implmented
+// So we define them here but they aren't implemented
 #define FLRIG_MODE_PKTLSB2 'G'
 #define FLRIG_MODE_PKTUSB2 'H'
 #define FLRIG_MODE_PKTFM2  'I'

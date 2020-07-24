@@ -307,7 +307,7 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]],
                   [[struct{char a;int b;}s[8]={[3]={.b=5}};]])],
                   [AC_MSG_RESULT(yes)],
                   [AC_MSG_ERROR([""
-"You need a C99 compliant C compiler that supports struct/array intializers."
+"You need a C99 compliant C compiler that supports struct/array initializers."
 "Have you considered GCC lately?."])
                   ])
 

@@ -227,7 +227,7 @@ int usb_port_open(hamlib_port_t *port)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    /* init defaut libusb-1.0 library contexte, if needed */
+    /* init default libusb-1.0 library contexte, if needed */
     r = libusb_init(NULL);
 
     if (r < 0)

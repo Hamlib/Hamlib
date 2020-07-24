@@ -136,7 +136,7 @@ enum amp_level_e
 
 /* Basic amp type, can store some useful info about different amplifiers. Each
  * lib must be able to populate this structure, so we can make useful
- * enquiries about capablilities.
+ * enquiries about capabilities.
  */
 
 /**

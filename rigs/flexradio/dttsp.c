@@ -192,7 +192,7 @@ const struct rig_caps dttsp_rig_caps =
     .transceive =     RIG_TRN_OFF,
     .attenuator =     { RIG_DBLST_END, },
     .preamp =      { RIG_DBLST_END, },
-    /* In fact, RX and TX ranges are dependant on the tuner */
+    /* In fact, RX and TX ranges are dependent on the tuner */
     .rx_range_list1 =  { {
             .startf = kHz(150), .endf = MHz(1500), .modes = DTTSP_MODES,
             .low_power = -1, .high_power = -1, DTTSP_VFO
@@ -276,7 +276,7 @@ const struct rig_caps dttsp_udp_rig_caps =
     .transceive =     RIG_TRN_OFF,
     .attenuator =     { RIG_DBLST_END, },
     .preamp =      { RIG_DBLST_END, },
-    /* In fact, RX and TX ranges are dependant on the tuner */
+    /* In fact, RX and TX ranges are dependent on the tuner */
     .rx_range_list1 =  { {
             .startf = kHz(150), .endf = MHz(1500), .modes = DTTSP_MODES,
             .low_power = -1, .high_power = -1, DTTSP_VFO

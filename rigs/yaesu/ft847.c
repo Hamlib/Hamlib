@@ -652,7 +652,7 @@ static int ft847_send_priv_cmd(RIG *rig, int cmd_index)
 
 /*
  * opcode_vfo() copy into cmd the 5 byte command designated by cmd_index,
- * and patch the opcode with VFO targetting (MAIN 0x0-, SAT RX 0x1-, SAT TX 0x2-)
+ * and patch the opcode with VFO targeting (MAIN 0x0-, SAT RX 0x1-, SAT TX 0x2-)
  */
 static int opcode_vfo(RIG *rig, unsigned char *cmd, int cmd_index, vfo_t vfo)
 {
