@@ -204,7 +204,7 @@ struct test_table *find_cmd_entry(int cmd)
 
 /* Structure for hash table provided by uthash.h
  *
- * Structure and hash funtions patterned after/copied from example.c
+ * Structure and hash functions patterned after/copied from example.c
  * distributed with the uthash package. See:  http://uthash.sourceforge.net/
  */
 struct mod_lst
@@ -971,14 +971,14 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
             snprintf(cmd_name, sizeof(cmd_name), "%s", parsed_input[0] + 1);
 
             /* Sanity check as valid multiple character commands consist of
-             * alpha-numeric characters and the underscore ('_') character.
+             * alphanumeric characters and the underscore ('_') character.
              */
             for (j = 0; cmd_name[j] != '\0'; j++)
             {
                 if (!(isalnum((int)cmd_name[j]) || cmd_name[j] == '_'))
                 {
                     fprintf(stderr,
-                            "Valid multiple character command names contain alpha-numeric characters plus '_'\n");
+                            "Valid multiple character command names contain alphanumeric characters plus '_'\n");
                     return 0;
                 }
             }

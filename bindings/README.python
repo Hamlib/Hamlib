@@ -31,7 +31,7 @@ the main source directory.  Adjust your paths accordingly.  Adjust your
 --prefix option as needed (installation to the user's home directory is
 shown to avoid root privileges).
 
-Asssuming that Python2 is the default installed Python interpreter, build
+Assuming that Python2 is the default installed Python interpreter, build
 its bindings first:
 
     ../hamlib/configure --with-python-binding --prefix=$HOME/local
@@ -154,7 +154,7 @@ paths separated by colons.  In this case, if PYTHONPATH was already set the
 new path is prepended to its prior setting.
 
 While setting the environment variable is good for a one-off run, a more
-permanent solution can be acheived by placing a file that ends in .pth in a
+permanent solution can be achieved by placing a file that ends in .pth in a
 directory that Python will process when starting.  The special place is:
 
     ~/.local/lib64/python3.6/site-packages

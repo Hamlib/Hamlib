@@ -137,7 +137,7 @@ static int remove_opened_amp(AMP *amp)
  *
  *  Calls cfunc() function for each opened amp.  The contents of the opened
  *  amp table is processed in random order according to a function pointed to
- *  by \a cfunc, whic is called with two arguments, the first pointing to the
+ *  by \a cfunc, which is called with two arguments, the first pointing to the
  *  #AMP handle, the second to a data pointer \a data.
  *
  *  If \a data is not needed, then it can be set to NULL.  The processing of
@@ -282,11 +282,11 @@ AMP *HAMLIB_API amp_init(amp_model_t amp_model)
  * Opens communication to a amplifier which \a AMP handle has been passed
  * by argument.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
- * \retval RIG_EINVAL   \a amp is NULL or unconsistent.
+ * \retval RIG_EINVAL   \a amp is NULL or inconsistent.
  *
  * \sa amp_init(), amp_close()
  */
@@ -416,8 +416,8 @@ int HAMLIB_API amp_open(AMP *amp)
  * Closes communication to a amplifier which \a AMP handle has been passed
  * by argument that was previously open with amp_open().
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa amp_cleanup(), amp_open()
@@ -492,11 +492,11 @@ int HAMLIB_API amp_close(AMP *amp)
  * \brief release a amp handle and free associated memory
  * \param amp   The #AMP handle of the radio to be closed
  *
- * Releases a amp struct which port has eventualy been closed already
+ * Releases a amp struct which port has eventually been closed already
  * with amp_close().
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa amp_init(), amp_close()
@@ -538,8 +538,8 @@ int HAMLIB_API amp_cleanup(AMP *amp)
  *
  *  Resets the amplifier.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  */
@@ -619,7 +619,7 @@ int HAMLIB_API amp_set_freq(AMP *amp, freq_t freq)
  * This can include firmware revision, exact model name, or just nothing.
  *
  * \return a pointer to static memory containing the ASCIIZ string
- * if the operation has been sucessful, otherwise NULL if an error occured
+ * if the operation has been successful, otherwise NULL if an error occurred
  * or get_info not part of capabilities.
  */
 const char *HAMLIB_API amp_get_info(AMP *amp)
@@ -686,8 +686,8 @@ int HAMLIB_API amp_get_ext_level(AMP *amp, token_t level, value_t *val)
  * See #RIG_POWER_ON, #RIG_POWER_OFF and #RIG_POWER_STANDBY #RIG_POWER_OPERATE defines
  * for the \a status.
  *
- * \return RIG_OK if the operation has been sucessful, ortherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, ortherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa amp_get_powerstat()

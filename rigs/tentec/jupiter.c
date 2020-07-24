@@ -1103,7 +1103,7 @@ int tt538_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
          * |__|__|__| (a 3 bit value, 0 - 7 indicating NB "strength"
          *  4  2  1
          *
-         * Apparently the "ON" / "OFF" state ot the NB is NOT available for reading.  This
+         * Apparently the "ON" / "OFF" state of the NB is NOT available for reading.  This
          * state is visible in the Jupiter's menu.  Hamlib does not support a "level" for
          * NB.  We only recognize zero (off) or non-zero (on) for this function on read.
          */

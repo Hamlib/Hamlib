@@ -67,7 +67,7 @@ int main(int argc, char **argv)
     if (argc < 3 || argc > 5)
     {
         fprintf(stderr, "Usage: peekpoke BIT_WIDTH ADDRESS <VALUE <x>>\n");
-        fprintf(stderr, "<x> can be anything; supresses read-back on write\n");
+        fprintf(stderr, "<x> can be anything; suppresses read-back on write\n");
         return 0;
     }
 

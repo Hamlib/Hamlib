@@ -204,7 +204,7 @@ int csv_load(RIG *rig, const char *infilename)
     \param line (input) - a line to be tokenized, the line will be modified!
     \param token_list (output) - a resulting table containing pointers to
          tokens, or NULLs (the table will be initially nulled )
-         all the pointers schould point to addresses within the line
+         all the pointers should point to addresses within the line
     \param siz (input) - size of the table
     \param delim (input) - delimiter character
     \return number of tokens on success, 0 if \param token_list is too small to contain all the tokens,
@@ -754,7 +754,7 @@ int set_channel_data(RIG *rig,
 
     n = chan->channel_num = atoi(line_data_list[ i ]);
 
-    /* find chanel caps of appropriate memory group? */
+    /* find channel caps of appropriate memory group? */
     for (j = 0; j < CHANLSTSIZ; j++)
     {
         if (rig->state.chan_list[j].startc <= n && rig->state.chan_list[j].endc >= n)

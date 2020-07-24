@@ -115,7 +115,7 @@ constructor TRotatorComponent.CreateRotator(AOwner: TComponent; AModel: rot_mode
 begin
     inherited Create(AOwner);
 
-    {* Initialize the library for the spesified model *}
+    {* Initialize the library for the specified model *}
     FRot := rot_init(AModel);
     if (FRot = nil)
     then raise ERotatorException.Create('Rig initialization error');
@@ -291,7 +291,7 @@ constructor TRigComponent.CreateRig(AOwner: TComponent; AModel: integer);
 begin
     inherited Create(AOwner);
 
-    {* Initialize the library for the spesified model *}
+    {* Initialize the library for the specified model *}
     FRig := rig_init(AModel);
     if (FRig = nil)
     then raise ERigException.Create('Rig initialization error');

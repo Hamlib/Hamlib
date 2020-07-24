@@ -482,7 +482,7 @@ int ft747_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     rig_debug(RIG_DEBUG_VERBOSE, "ft747:  freq = %"PRIfreq" Hz  for VFO = %s\n",
               f, rig_strvfo(vfo));
 
-    (*freq) = f;          /* return diplayed frequency */
+    (*freq) = f;          /* return displayed frequency */
 
     return RIG_OK;
 }
@@ -871,7 +871,7 @@ static int ft747_get_update_data(RIG *rig)
         int port_timeout;
         rig_flush(rigport);
 
-        /* send UPDATE comand to fetch data*/
+        /* send UPDATE command to fetch data*/
 
         ret = ft747_send_priv_cmd(rig, FT_747_NATIVE_UPDATE);
 

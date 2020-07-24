@@ -271,7 +271,7 @@ static int tt588_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
         rig_flush(&rs->rigport);
 
         // We add 1 to data_len here for the null byte inserted by read_string eventually
-        // That way all the callers can use the expected response length for the cmd_len paramter here
+        // That way all the callers can use the expected response length for the cmd_len parameter here
         // Callers all need to ensure they have enough room in data for this
         retval = write_block(&rs->rigport, cmd, cmd_len);
 

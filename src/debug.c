@@ -269,8 +269,8 @@ rig_message_cb(enum rig_debug_level_e debug_level,
     rig_set_debug_callback (rig_message_cb, (rig_ptr_t)cookie);
 \endcode
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause
  * is set appropriately).
  *
  * \sa rig_debug()

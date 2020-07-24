@@ -121,7 +121,7 @@ transaction:
 
         if (strncmp("ID", buffer, 2))
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: expected ID reponse and got %s\n", __func__,
+            rig_debug(RIG_DEBUG_ERR, "%s: expected ID response and got %s\n", __func__,
                       buffer);
             return retval;
         }
@@ -147,7 +147,7 @@ transaction:
 }
 
 /*
- * Get the anwser of IF command, with retry handling
+ * Get the answer of IF command, with retry handling
  */
 static int get_ic10_if(RIG *rig, char *data)
 {

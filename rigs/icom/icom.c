@@ -1578,7 +1578,7 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
     switch (mode)
     {
     case RIG_MODE_PKTUSB:
-        // xFE xFE x6E xE0 x1A x06 x01 xFD switchs mod input from MIC to ACC
+        // xFE xFE x6E xE0 x1A x06 x01 xFD switches mod input from MIC to ACC
         // This apparently works for IC-756ProIII but nobody has asked for it yet
         icom_mode = RIG_MODE_USB;
         break;
@@ -4716,7 +4716,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         vfo = rig->state.current_vfo;
     }
 
-    // This should automaticaly switch between satmode on/off based on the requested split vfo
+    // This should automatically switch between satmode on/off based on the requested split vfo
     if (rig->caps->has_get_func & RIG_FUNC_SATMODE)
     {
         if ((tx_vfo == RIG_VFO_SUB || tx_vfo == RIG_VFO_MAIN)
@@ -6406,7 +6406,7 @@ int icom_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 /*
  * icom_get_ant
  * Assumes rig!=NULL, rig->state.priv!=NULL
- * only meaningfull for HF
+ * only meaningful for HF
  */
 int icom_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
                  ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
@@ -7272,7 +7272,7 @@ DECLARE_PROBERIG_BACKEND(icom)
 
         /*
          * try all possible addresses on the CI-V bus
-         * FIXME: actualy, old rigs do not support C_RD_TRXID cmd!
+         * FIXME: actually, old rigs do not support C_RD_TRXID cmd!
          *      Try to be smart, and deduce model depending
          *      on freq range, return address, and
          *      available commands.

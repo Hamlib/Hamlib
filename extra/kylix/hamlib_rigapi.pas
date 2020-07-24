@@ -25,7 +25,7 @@ const
     {*
      * Error codes that can be returned by the Hamlib functions
      *}
-    RIG_OK          = 0;          {* completed sucessfully *}
+    RIG_OK          = 0;          {* completed successfully *}
     RIG_EINVAL      = 1;          {* invalid parameter *}
     RIG_ECONF       = 2;          {* invalid configuration (serial,..) *}
     RIG_ENOMEM      = 3;          {* memory shortage *}
@@ -81,7 +81,7 @@ type
      * Basic rig type, can store some useful
      * info about different radios. Each lib must
      * be able to populate this structure, so we can make
-     * useful enquiries about capablilities.
+     * useful enquiries about capabilities.
      *}
     rig_port_e = (
 	    RIG_PORT_NONE = 0,	{* as bizarre as it could be :) *}
@@ -663,7 +663,7 @@ type
 {* Basic rig type, can store some useful
  * info about different radios. Each lib must
  * be able to populate this structure, so we can make
- * useful enquiries about capablilities.
+ * useful enquiries about capabilities.
  *}
 
 {*

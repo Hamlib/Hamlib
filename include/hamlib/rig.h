@@ -533,7 +533,7 @@ typedef enum {
  * \brief PTT status
  */
 typedef enum {
-    RIG_PTT_OFF = 0,    /*!< PTT desactivated */
+    RIG_PTT_OFF = 0,    /*!< PTT deactivated */
     RIG_PTT_ON,         /*!< PTT activated */
     RIG_PTT_ON_MIC,     /*!< PTT Mic only, fallbacks on RIG_PTT_ON if unavailable */
     RIG_PTT_ON_DATA     /*!< PTT Data (Mic-muted), fallbacks on RIG_PTT_ON if unavailable */
@@ -1920,13 +1920,13 @@ struct rig_cache {
     int timeout_ms;  // the cache timeout for invalidating itself
     vfo_t vfo;
     freq_t freq; // to be deprecated
-    // othe abstraction here is based on dual vfo rigs and mapped to all others
+    // other abstraction here is based on dual vfo rigs and mapped to all others
     // So we have four possible states of rig
     // MainA, MainB, SubA, SubB
     // Main is the Main VFO and Sub is for the 2nd VFO
     // Most rigs have MainA and MainB
     // Dual VFO rigs can have SubA and SubB too
-    // For dual VFO rigs simplex opeations are all done on MainA/MainB -- ergo this abstraction
+    // For dual VFO rigs simplex operations are all done on MainA/MainB -- ergo this abstraction
     freq_t freqMainA; // VFO_A, VFO_MAIN, and VFO_MAINA
     freq_t freqMainB; // VFO_B, VFO_SUB, and VFO_MAINB
     freq_t freqSubA;  // VFO_SUBA

@@ -317,7 +317,7 @@ non-default --prefix is passed to 'configure', the 'lappend' line in tcltest.tcl
 script will need to be modified accordingly so the script can load the Hamlib
 package.  As TCL doesn't seem to have a "standard" location for additional
 packages and since there seemed to be no common location among distributions,
-this path was chosen abitrarily.  Any patches to improve installation path
+this path was chosen arbitrarily.  Any patches to improve installation path
 discovery of local packages are welcome.
 
     Lua binding will be installed into $(libdir)/lua/$(LUA_VERSION) (default).

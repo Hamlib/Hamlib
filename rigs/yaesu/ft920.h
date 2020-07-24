@@ -240,7 +240,7 @@ typedef enum ft920_native_cmd_e ft920_native_cmd_t;
 /*
  * Offsets for VFO record retrieved via 0x10 P1 = 02, 03
  *
- * The FT-920 returns frequency and mode data via three seperate commands.
+ * The FT-920 returns frequency and mode data via three separate commands.
  * CAT command 0x10, P1 = 02 returns the current main and sub displays' data (28 bytes)
  * CAT command 0x10, P1 = 03 returns VFO A data and the sub display data (sub display is always VFO B) (28 bytes)
  * CAT command 0x10, P1 = 04, P4 = 0x00-0x89 returns memory channel data (14 bytes)
@@ -301,7 +301,7 @@ typedef enum ft920_native_cmd_e ft920_native_cmd_t;
 #define MODE_USBN       0xc0    /* Not sure this actually exists */
 #define MODE_CW_UN      0xc1
 
-/* All relevent bits */
+/* All relevant bits */
 #define MODE_MASK       0xc7
 
 

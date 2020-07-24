@@ -548,7 +548,7 @@ static int netrigctl_open(RIG *rig)
             }
             else
             {
-                // not an error -- just a warning for backward compatibily
+                // not an error -- just a warning for backward compatibility
                 rig_debug(RIG_DEBUG_ERR, "%s: unknown setting='%s'\n", __func__, buf);
             }
         }
@@ -625,7 +625,7 @@ static int netrigctl_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
     char vfostr[6] = "";
-#if 0 // disable until we figure out if we can do this without breaking backwards compability
+#if 0 // disable until we figure out if we can do this without breaking backwards compatibility
     char vfotmp[16];
 #endif
 
@@ -2231,7 +2231,7 @@ struct rig_caps netrigctl_caps =
     .timeout = 1000,  /* enough for the worst rig we have */
     .retry =   5,     /* 5 seconds total */
 
-    /* following fields updated in rig_state at openning time */
+    /* following fields updated in rig_state at opening time */
     .has_get_func =   RIG_FUNC_NONE,
     .has_set_func =   RIG_FUNC_NONE,
     .has_get_level =  RIG_LEVEL_NONE,

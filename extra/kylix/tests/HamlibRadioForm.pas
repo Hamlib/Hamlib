@@ -69,7 +69,7 @@ begin
     except
         on e: ERigException do
             begin
-            ShowMessage('Error occured while using the rig: %s', [e.Message]);
+            ShowMessage('Error occurred while using the rig: %s', [e.Message]);
             FRigComponent.CloseRig;
             FRigComponent.Free;
             end;
@@ -114,7 +114,7 @@ end;
 procedure TRadioForm.MagicCheckButtonClick(Sender: TObject);
 begin
     if FRigComponent.checkMagic
-    then ShowMessage('Magic check succeded.')
+    then ShowMessage('Magic check succeeded.')
     else ShowMessage('Magic check FAILED!!!');
 end;
 

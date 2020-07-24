@@ -164,7 +164,7 @@ ars_init(ROT *rot)
     priv->pp_data = 0;
 
     /* Always use 10 bit resolution, which supports also 8 bits
-     * at the cost of 2 potentialy wrong lsb */
+     * at the cost of 2 potentially wrong lsb */
     priv->adc_res = 10; /* 8 bits vs. 10 bits ADC */
     priv->brake_off = 0; /* i.e. brake is ON */
     priv->curr_move = 0;
@@ -319,7 +319,7 @@ ars_move(ROT *rot, int direction, int speed)
         if (ars_has_el(rot))
         {
             // RCI Model Azim & Elev
-            // Desactivated CCW/CW relays
+            // Deactivated CCW/CW relays
             CHKPPRET(ars_clear_ctrl_pin(rot, CTL_PIN17 | CTL_PIN16));
             // Relay Aux
             CHKPPRET(ars_set_data_pin(rot, DTA_PIN02 | DTA_PIN04 | DTA_PIN06 | DTA_PIN08));
@@ -328,7 +328,7 @@ ars_move(ROT *rot, int direction, int speed)
         else
         {
             // RCI Model Azimuth only
-            // Desactivated CCW/CW relays
+            // Deactivated CCW/CW relays
             CHKPPRET(ars_clear_ctrl_pin(rot, CTL_PIN17 | CTL_PIN16));
             // Relay Aux
             CHKPPRET(ars_set_data_pin(rot,
