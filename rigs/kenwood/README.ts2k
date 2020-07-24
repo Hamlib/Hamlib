@@ -25,7 +25,7 @@ File change summary:	(Hopefully, I'll keep this updated...)
 
 	Makefile.am	Added ts2k.c, ts2k.h
 	ts2k.status	current status in the form of rigctl help
-			Takes alot of time.  May or may not be kept
+			Takes a lot of time.  May or may not be kept
 			up to date.  Anybody write an expect script?
 	ts2k.c		New
 	ts2k_menu.c	(not implemented; work to allow menus to set the
