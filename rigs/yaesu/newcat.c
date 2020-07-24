@@ -6321,7 +6321,7 @@ int newcat_get_vfo_mode(RIG *rig, vfo_t *vfo_mode)
 
 
 /*
- * Writed data and waits for response
+ * Writes data and waits for response
  * input:  complete CAT command string including termination in cmd_str
  * output: complete CAT command answer string in ret_data
  * return: RIG_OK or error

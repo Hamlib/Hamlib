@@ -68,20 +68,20 @@ struct meade_priv_data
  * Serial Cable.
  *
  * | Command     | Attribute | Return value | Description              |
- * --------------------------------------------------------------------
- * | :Me#        | -        | -            | Moves telescope east     |
- * | :Mn#        | -        | -            | Moves telescope north    |
- * | :Ms#        | -        | -            | Moves telescope south    |
- * | :Mw#        | -        | -            | Moves telescope west     |
- * | :AL#        | -        | -            | Set to Land mode         |
- * | :Sz DDD*MM# | D,M      | 1' == OK     | Set Target azimuth       |
- * | :SasDD*MM#  | s,D,M    | 1' == OK     | Set Target elevation     |
- * | :Mw#        | -        | -            | Moves telescope west     |
- * | :Q#         | -        | -            | Halt all slewing         |
- * | :SoDD#      | D        | '1' == OK    | Set minimal elevation    |
- * | :ShDD#      | D        | '1' == OK    | Set maximal elevation    |
- * | :MA#        | -        | '0' == OK    | GoTo Target              |
- * | :D#         | -        | 0x7F == YES  | Check if active movement |
+ * ---------------------------------------------------------------------
+ * | :Me#        | -         | -            | Moves telescope east     |
+ * | :Mn#        | -         | -            | Moves telescope north    |
+ * | :Ms#        | -         | -            | Moves telescope south    |
+ * | :Mw#        | -         | -            | Moves telescope west     |
+ * | :AL#        | -         | -            | Set to Land mode         |
+ * | :Sz DDD*MM# | D,M       | 1' == OK     | Set Target azimuth       |
+ * | :SasDD*MM#  | s,D,M     | 1' == OK     | Set Target elevation     |
+ * | :Mw#        | -         | -            | Moves telescope west     |
+ * | :Q#         | -         | -            | Halt all slewing         |
+ * | :SoDD#      | D         | '1' == OK    | Set minimal elevation    |
+ * | :ShDD#      | D         | '1' == OK    | Set maximal elevation    |
+ * | :MA#        | -         | '0' == OK    | GoTo Target              |
+ * | :D#         | -         | 0x7F == YES  | Check if active movement |
  *
  */
 
