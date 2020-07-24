@@ -7,7 +7,7 @@ EASYCOMM I Standard
 -------------------
 
 The EasyComm 1 standard is a simple ASCII character based standard for
-controling antennas and rotators.
+controlling antennas and rotators.
 
 The host PC issues a single line command as follows -:
 

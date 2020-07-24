@@ -160,7 +160,7 @@ const struct confparams elad_cfg_params[] =
  *
  * returns:
  *   RIG_OK -   if no error occurred.
- *   RIG_EIO -    if an I/O error occured while sending/receiving data.
+ *   RIG_EIO -    if an I/O error occurred while sending/receiving data.
  *   RIG_ETIMEOUT - if timeout expires without any characters received.
  *   RIG_REJECTED - if a negative acknowledge was received or command not
  *          recognized by rig.
@@ -431,7 +431,7 @@ transaction_quit:
  *  expected  Value of expected string length
  *
  * Returns:
- *   RIG_OK -   if no error occured.
+ *   RIG_OK -   if no error occurred.
  *   RIG_EPROTO   if returned string and expected are not equal
  *   Error from elad_transaction() if any
  *

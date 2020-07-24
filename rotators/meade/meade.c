@@ -67,7 +67,7 @@ struct meade_priv_data
  * Serial cable. But should also work with other AutoStars and the regular
  * Serial Cable.
  *
- * | Command     | Atribute | Return value | Description              |
+ * | Command     | Attribute | Return value | Description              |
  * --------------------------------------------------------------------
  * | :Me#        | -        | -            | Moves telescope east     |
  * | :Mn#        | -        | -            | Moves telescope north    |
@@ -204,7 +204,7 @@ static int meade_cleanup(ROT *rot)
 }
 
 /*
- * Opens the Port and sets all needed parametes for operation
+ * Opens the Port and sets all needed parameters for operation
  */
 static int meade_open(ROT *rot)
 {

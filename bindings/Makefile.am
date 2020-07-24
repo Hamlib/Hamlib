@@ -157,7 +157,7 @@ hamlibtcl_la_DATA = pkgIndex.tcl
 # set by $(hamlibtcl_ladir)
 hamlibtcl_la_LTLIBRARIES = $(tcl_ltlib)
 
-# Having the first occurance of 'hamlib' capitalized seemed to cause confusion
+# Having the first occurrence of 'hamlib' capitalized seemed to cause confusion
 # for the TCL interpreter loading the Hamlib module.
 pkgIndex.tcl: Makefile
 	$(AM_V_at)echo 'package ifneeded hamlib $(PKG_VER) [list load [file join $$dir $(DLL)] Hamlib]' > pkgIndex.tcl

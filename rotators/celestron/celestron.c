@@ -50,8 +50,8 @@
  *            a large enough buffer for all possible replies for a command.
  *
  * returns:
- *   RIG_OK  -  if no error occured.
- *   RIG_EIO  -  if an I/O error occured while sending/receiving data.
+ *   RIG_OK  -  if no error occurred.
+ *   RIG_EIO  -  if an I/O error occurred while sending/receiving data.
  *   RIG_ETIMEOUT  -  if timeout expires without any characters received.
  */
 static int

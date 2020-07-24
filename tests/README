@@ -16,7 +16,7 @@ If you don't know the number, listrigs can give it to you,
     [etc.]
 
 In any case, you are encouraged to check for correct initialization
-by reading the source code, at the begining of the main().  Check also
+by reading the source code, at the beginning of the main().  Check also
 that the program is setup for your rig path strncpy(my_rig->state.rig_path...
 
 dumpcaps  - Output the caps contents of a rig

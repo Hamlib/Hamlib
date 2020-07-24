@@ -89,7 +89,7 @@
 #define FT757GX_ALL_TX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM)
 
 
-/* Backend fucntion prototypes.  These map to frontend functions. */
+/* Backend function prototypes.  These map to frontend functions. */
 static int ft757_init(RIG *rig);
 static int ft757_cleanup(RIG *rig);
 static int ft757_open(RIG *rig);

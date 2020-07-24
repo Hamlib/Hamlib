@@ -918,8 +918,8 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
  * rig_token_foreach starts first with backend conf table, then finish
  * with frontend table.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  */
 int HAMLIB_API rig_token_foreach(RIG *rig,
@@ -1057,8 +1057,8 @@ token_t HAMLIB_API rig_token_lookup(RIG *rig, const char *name)
  *
  *  Sets a configuration parameter.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rig_get_conf()
@@ -1107,11 +1107,11 @@ int HAMLIB_API rig_set_conf(RIG *rig, token_t token, const char *val)
  * \param token The parameter
  * \param val   The location where to store the value of config \a token
  *
- *  Retrieves the value of a configuration paramter associated with \a token.
+ *  Retrieves the value of a configuration parameter associated with \a token.
  *  The location pointed to by val must be large enough to hold the value of the config.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause is
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
  * \sa rig_set_conf()

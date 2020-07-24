@@ -83,7 +83,7 @@
 #define CMD_RDATA   "3H"    /* Current Data read */
 #define CMD_RSPLT   "3I"    /* Split read */
 #define CMD_RPOWER  "3J"    /* Transmitter Output read */
-#define CMD_RSELECT "3K"    /* SELECT Postion read */
+#define CMD_RSELECT "3K"    /* SELECT Position read */
 
 
 #define DX77_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM)

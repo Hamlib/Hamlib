@@ -1108,7 +1108,7 @@ static int thd74_set_parm(RIG *rig, setting_t parm, value_t val)
 
     switch (parm)
     {
-    case RIG_PARM_TIME: // FIXME check val, send formated via RT
+    case RIG_PARM_TIME: // FIXME check val, send formatted via RT
     default:
         return -RIG_EINVAL;
     }

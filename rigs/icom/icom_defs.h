@@ -526,7 +526,7 @@
 /*
  * Tokens for Extra Level and Parameters common to multiple rigs.  Use token # > 99.  Defined here so they
  * will be available in ICOM name space. They have different internal commands primarily in dsp rigs.  These
- * tokens are used ext_lvl and ext_parm funtions in the individual rig files.
+ * tokens are used ext_lvl and ext_parm functions in the individual rig files.
  * Extra parameters which are rig specific should be coded in the individual rig files and token #s < 100.
  */
 

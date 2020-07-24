@@ -234,7 +234,7 @@ int icmarine_get_conf(RIG *rig, token_t token, char *val)
  * We assume that rig!=NULL, rig->state!= NULL, data!=NULL, data_len!=NULL
  *
  * cmd: mandatory
- * param: only 1 optional NMEA paramter, NULL for none (=query)
+ * param: only 1 optional NMEA parameter, NULL for none (=query)
  * response: optional (holding BUFSZ bytes)
  */
 int icmarine_transaction(RIG *rig, const char *cmd, const char *param,
@@ -258,7 +258,7 @@ int icmarine_transaction(RIG *rig, const char *cmd, const char *param,
 
     rig_flush(&rs->rigport);
 
-    /* command formating */
+    /* command formatting */
     cmd_len = snprintf(cmdbuf, BUFSZ, "$PICOA,%02d,%02u,%s",
                        CONTROLLER_ID,
                        priv->remote_id,

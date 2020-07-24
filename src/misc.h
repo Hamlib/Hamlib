@@ -26,7 +26,7 @@
 
 
 /*
- * Carefull!! These macros are NOT reentrant!
+ * Careful!! These macros are NOT reentrant!
  * ie. they may not be executed atomically,
  * thus not ensure mutual exclusion.
  * Fix it when making Hamlib reentrant!  --SF
@@ -49,7 +49,7 @@ void dump_hex(const unsigned char ptr[], size_t size);
  *  and return a pointer to this array.
  *
  * from_bcd() converts a little endian BCD array to long long int
- *  reprensentation, and return it.
+ *  representation, and return it.
  *
  * bcd_len is the number of digits in the BCD array.
  */

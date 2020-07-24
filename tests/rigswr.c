@@ -294,7 +294,7 @@ int main(int argc, char *argv[])
 
         fprintf(stderr,
                 "rig backend for %s could not get SWR"
-                "or has unsufficient capability\nSorry\n",
+                "or has insufficient capability\nSorry\n",
                 rig->caps->model_name);
 
         exit(3);

@@ -238,11 +238,11 @@ const struct rig_caps ic706_caps =
 
     /* mode/filter list, remember: order matters! */
     .filters =  {
-        {RIG_MODE_SSB | RIG_MODE_CW | RIG_MODE_RTTY, kHz(2.4)}, /* bultin FL-272 */
-        {RIG_MODE_AM, kHz(8)},      /* mid w/ bultin FL-94 */
-        {RIG_MODE_AM, kHz(2.4)},    /* narrow w/ bultin FL-272 */
-        {RIG_MODE_FM, kHz(15)},     /* ?? TBC, mid w/ bultin FL-23+SFPC455E */
-        {RIG_MODE_FM, kHz(8)},      /* narrow w/ bultin FL-94 */
+        {RIG_MODE_SSB | RIG_MODE_CW | RIG_MODE_RTTY, kHz(2.4)}, /* builtin FL-272 */
+        {RIG_MODE_AM, kHz(8)},      /* mid w/ builtin FL-94 */
+        {RIG_MODE_AM, kHz(2.4)},    /* narrow w/ builtin FL-272 */
+        {RIG_MODE_FM, kHz(15)},     /* ?? TBC, mid w/ builtin FL-23+SFPC455E */
+        {RIG_MODE_FM, kHz(8)},      /* narrow w/ builtin FL-94 */
         {RIG_MODE_WFM, kHz(230)},   /* WideFM, filter FL?? */
         RIG_FLT_END,
     },
@@ -379,11 +379,11 @@ const struct rig_caps ic706mkii_caps =
 
     /* mode/filter list, remember: order matters! */
     .filters =  {
-        {RIG_MODE_SSB | RIG_MODE_CW | RIG_MODE_RTTY, kHz(2.4)}, /* bultin FL-272 */
-        {RIG_MODE_AM, kHz(8)},      /* mid w/ bultin FL-94 */
-        {RIG_MODE_AM, kHz(2.4)},    /* narrow w/ bultin FL-272 */
-        {RIG_MODE_FM, kHz(15)},     /* ?? TBC, mid w/ bultin FL-23+SFPC455E */
-        {RIG_MODE_FM, kHz(8)},      /* narrow w/ bultin FL-94 */
+        {RIG_MODE_SSB | RIG_MODE_CW | RIG_MODE_RTTY, kHz(2.4)}, /* builtin FL-272 */
+        {RIG_MODE_AM, kHz(8)},      /* mid w/ builtin FL-94 */
+        {RIG_MODE_AM, kHz(2.4)},    /* narrow w/ builtin FL-272 */
+        {RIG_MODE_FM, kHz(15)},     /* ?? TBC, mid w/ builtin FL-23+SFPC455E */
+        {RIG_MODE_FM, kHz(8)},      /* narrow w/ builtin FL-94 */
         {RIG_MODE_WFM, kHz(230)},   /* WideFM, filter FL?? */
         RIG_FLT_END,
     },
@@ -565,11 +565,11 @@ const struct rig_caps ic706mkiig_caps =
     },
     /* mode/filter list, remember: order matters! */
     .filters =  {
-        {RIG_MODE_SSB | RIG_MODE_CW | RIG_MODE_RTTY, kHz(2.4)}, /* bultin FL-272 */
-        {RIG_MODE_AM, kHz(8)},      /* mid w/ bultin FL-94 */
-        {RIG_MODE_AM, kHz(2.4)},    /* narrow w/ bultin FL-272 */
-        {RIG_MODE_FM, kHz(15)},     /* ?? TBC, mid w/ bultin FL-23+SFPC455E */
-        {RIG_MODE_FM, kHz(8)},      /* narrow w/ bultin FL-94 */
+        {RIG_MODE_SSB | RIG_MODE_CW | RIG_MODE_RTTY, kHz(2.4)}, /* builtin FL-272 */
+        {RIG_MODE_AM, kHz(8)},      /* mid w/ builtin FL-94 */
+        {RIG_MODE_AM, kHz(2.4)},    /* narrow w/ builtin FL-272 */
+        {RIG_MODE_FM, kHz(15)},     /* ?? TBC, mid w/ builtin FL-23+SFPC455E */
+        {RIG_MODE_FM, kHz(8)},      /* narrow w/ builtin FL-94 */
         {RIG_MODE_WFM, kHz(230)},   /* WideFM, filter FL?? */
         RIG_FLT_END,
     },

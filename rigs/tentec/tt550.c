@@ -1417,7 +1417,7 @@ tt550_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     }
 
     /*
-     * buf should contain either Sxx for Receive Signal strenth
+     * buf should contain either Sxx for Receive Signal strength
      * or Txx for Transmit power/reflected power
      */
 

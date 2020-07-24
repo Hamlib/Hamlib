@@ -1,6 +1,6 @@
 
 /*
- * Very simple test program to check BCD convertion against some other --SF
+ * Very simple test program to check BCD conversion against some other --SF
  * This is mainly to test freq2bcd and bcd2freq functions.
  */
 
