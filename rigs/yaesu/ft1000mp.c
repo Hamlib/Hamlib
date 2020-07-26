@@ -711,8 +711,6 @@ int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     struct ft1000mp_priv_data *p;
     unsigned char *cmd;           /* points to sequence to send */
     int cmd_index = 0;
-    // cppcheck-suppress *
-    char *fmt = "%s: requested freq after conversion = %"PRIll" Hz\n";
 
     rig_debug(RIG_DEBUG_TRACE, "%s: ft1000mp_set_freq called\n", __func__);
 
@@ -756,7 +754,10 @@ int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     to_bcd(p->p_cmd, freq / 10, 8); /* store bcd format in in p_cmd */
     /* TODO -- fix 10Hz resolution -- FS */
 
-    rig_debug(RIG_DEBUG_TRACE, fmt, __func__, (int64_t)from_bcd(p->p_cmd, 8) * 10);
+    // cppcheck-suppress *
+    rig_debug(RIG_DEBUG_TRACE,
+              "%s: requested freq after conversion = %"PRIll" Hz\n", __func__,
+              (int64_t)from_bcd(p->p_cmd, 8) * 10);
 
     cmd = p->p_cmd;               /* get native sequence */
     write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
@@ -1231,12 +1232,11 @@ int ft1000mp_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
         p = &priv->update_data[FT1000MP_SUMO_VFO_A_CLAR];    /* CURR_VFO has VFOA offset */
     }
 
-    /* big endian integer, kinda */
-    f = ((p[0] & 0x7f) << 8) + p[1];
+    f = (p[0] << 8) + p[1];
 
     if (p[0] & 0x80)
     {
-        f *= -1;
+        f = ~(f - 1) & 0x7fff; // two's complement
     }
 
     f = f * 10 / 16;
