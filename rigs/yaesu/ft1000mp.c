@@ -1170,8 +1170,10 @@ int ft1000mp_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
      */
     memcpy(&priv->p_cmd, &ncmd[FT1000MP_NATIVE_RIT_ON].nseq, YAESU_CMD_LENGTH);
 
-    to_bcd(priv->p_cmd, labs(rit) / 10, 4); /* store bcd format in in p_cmd */
-    priv->p_cmd[2] = rit >= 0 ? 0x00 : 0xff;
+    // scaled 2's complement
+    rit = ((~(rit*16/10))&0xffff)+1;
+    priv->p_cmd[0] = rit>>8;
+    priv->p_cmd[1] = rit&0xff;
 
     cmd = priv->p_cmd;               /* get native sequence */
     write_block(&rs->rigport, (char *) cmd, YAESU_CMD_LENGTH);
