@@ -216,7 +216,7 @@ const struct rig_caps ft1000mp_caps =
     RIG_MODEL(RIG_MODEL_FT1000MP),
     .model_name =         "FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20200716.0",
+    .version =            "20200727.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -1170,10 +1170,8 @@ int ft1000mp_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
      */
     memcpy(&priv->p_cmd, &ncmd[FT1000MP_NATIVE_RIT_ON].nseq, YAESU_CMD_LENGTH);
 
-    // scaled 2's complement
-    rit = ((~(rit*16/10))&0xffff)+1;
-    priv->p_cmd[0] = rit>>8;
-    priv->p_cmd[1] = rit&0xff;
+    to_bcd(priv->p_cmd, labs(rit) / 10, 4); /* store bcd format in in p_cmd */
+    priv->p_cmd[2] = rit >= 0 ? 0x00 : 0xff;
 
     cmd = priv->p_cmd;               /* get native sequence */
     write_block(&rs->rigport, (char *) cmd, YAESU_CMD_LENGTH);
@@ -1238,7 +1236,7 @@ int ft1000mp_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 
     if (p[0] & 0x80)
     {
-        f = ~(f - 1) & 0x7fff; // two's complement
+        f = (~(f - 1) & 0x7fff) * -1; // two's complement
     }
 
     f = f * 10 / 16;
