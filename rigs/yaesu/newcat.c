@@ -40,6 +40,7 @@
 #include "iofunc.h"
 #include "serial.h"
 #include "misc.h"
+#include "cal.h"
 #include "newcat.h"
 
 /* global variables */
@@ -92,6 +93,19 @@ typedef struct _yaesu_newcat_commands
     ncboolean           ft3000;
     ncboolean           ft101;
 } yaesu_newcat_commands_t;
+
+const cal_table_float_t yaesu_default_swr_cal =
+{
+    4,
+    { // first cut at generic Yaesu table, need more points probably
+      // based on testing by Adam M7OTP on FT-991
+        {12, 1.0f},
+        {39, 1.35f},
+        {89, 2.0f},
+        {242, 5.0f}
+    }
+};
+
 
 // Easy reference to rig model -- it is set in newcat_valid_command
 static ncboolean is_ft450;
@@ -3346,11 +3360,20 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         val->f = (float)atoi(retlvl) / scale;
         break;
 
+    case RIG_LEVEL_SWR:
+        if (rig->caps->swr_cal.size == 0)
+        {
+            val->f = rig_raw2val_float(atoi(retlvl), &yaesu_default_swr_cal);
+        }
+        else
+        {
+            val->f = rig_raw2val_float(atoi(retlvl), &rig->caps->swr_cal);
+        }
+        break;
     case RIG_LEVEL_AF:
     case RIG_LEVEL_MICGAIN:
     case RIG_LEVEL_RF:
     case RIG_LEVEL_SQL:
-    case RIG_LEVEL_SWR:
     case RIG_LEVEL_ALC:
         val->f = (float)atoi(retlvl) / 255.;
         break;
