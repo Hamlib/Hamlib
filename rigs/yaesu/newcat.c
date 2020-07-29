@@ -3349,6 +3349,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         scale = newcat_is_rig(rig, RIG_MODEL_FT891) ? 100. : scale ;
         scale = newcat_is_rig(rig, RIG_MODEL_FT950) ? 100. : scale ;
         scale = newcat_is_rig(rig, RIG_MODEL_FT1200) ? 100. : scale ;
+        scale = newcat_is_rig(rig, RIG_MODEL_FT991) ? 100. : scale ;
         val->f = (float)atoi(retlvl) / scale;
         break;
 
