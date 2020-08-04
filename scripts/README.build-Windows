@@ -29,9 +29,9 @@ to be built.  Download the latest libusb-1.0 from:
 
 https://sourceforge.net/projects/libusb/files/libusb-1.0/
 
-and unzip the archive in ~/builds
+:nd unzip the archive in ~/builds
 
-Any version of libusb from 1.0.20 is known to work.
+Libusb 1.0.20 is known to work. Presumably any 1.X.X version should work.
 
 Several variables may need to be set differently at the top of the script file
 depending on your system.
