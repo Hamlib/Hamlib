@@ -757,7 +757,7 @@ int kenwood_open(RIG *rig)
     if (RIG_OK != err)
     {
         rig_debug(RIG_DEBUG_ERR,
-                  "%s: no response to get_id from rig...contintuing anyways.\n", __func__);
+                  "%s: no response to get_id from rig...continuing anyways.\n", __func__);
     }
 
     if (RIG_IS_TS2000
