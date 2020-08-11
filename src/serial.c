@@ -345,9 +345,11 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
     }
 
     /* TODO */
-    rig_debug(RIG_DEBUG_TRACE, "%s: cfsetispeed=%d\n", __func__, speed);
+    rig_debug(RIG_DEBUG_TRACE, "%s: cfsetispeed=%d,%d\n", __func__,
+              rp->parm.serial.rate, speed);
     cfsetispeed(&options, speed);
-    rig_debug(RIG_DEBUG_TRACE, "%s: cfsetospeed=%d\n", __func__, speed);
+    rig_debug(RIG_DEBUG_TRACE, "%s: cfsetospeed=%d,%d\n", __func__,
+              rp->parm.serial.rate, speed);
     cfsetospeed(&options, speed);
 
     /*
