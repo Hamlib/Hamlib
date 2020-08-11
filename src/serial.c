@@ -334,6 +334,12 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
         speed = B115200;    /* awesome! */
         break;
 
+#ifdef B230400
+    case 230400:
+        speed = B230400;    /* super awesome! */
+        break;
+#endif
+
     default:
         rig_debug(RIG_DEBUG_ERR,
                   "%s: unsupported rate specified: %d\n",
