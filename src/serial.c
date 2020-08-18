@@ -227,6 +227,7 @@ int HAMLIB_API serial_open(hamlib_port_t *rp)
     }
 
     serial_flush(rp); // ensure nothing is there when we open
+    hl_usleep(50 * 1000); // give a little time for MicroKeyer to finish
 
     return RIG_OK;
 }
@@ -335,6 +336,7 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
         break;
 
 #ifdef B230400
+
     case 230400:
         speed = B230400;    /* super awesome! */
         break;
