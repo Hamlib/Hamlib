@@ -239,8 +239,6 @@ const struct rig_caps ic7410_caps =
     .set_ant =  icom_set_ant,
     .get_ant =  icom_get_ant,
 
-    .set_rit =  icom_set_rit,
-
     .decode_event =  icom_decode_event,
     .set_level =  ic7410_set_level,
     .get_level =  ic7410_get_level,

@@ -271,8 +271,6 @@ const struct rig_caps x108g_caps =
     .set_ant =  NULL,  /*automatically set by rig depending band */
     .get_ant =  NULL,
 
-    .set_rit =  icom_set_rit,
-
     .decode_event =  icom_decode_event,
     .set_level =  icom_set_level,
     .get_level =  icom_get_level,
