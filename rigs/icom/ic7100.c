@@ -360,8 +360,6 @@ const struct rig_caps ic7100_caps =
     .set_ptt =  icom_set_ptt,
     .get_ptt =  icom_get_ptt,
 
-    .set_rit =  icom_set_rit,
-
     .set_rptr_shift =  icom_set_rptr_shift,
     .get_rptr_shift =  icom_get_rptr_shift,
     .set_rptr_offs =  icom_set_rptr_offs,
