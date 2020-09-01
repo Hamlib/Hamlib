@@ -97,8 +97,9 @@ typedef struct _yaesu_newcat_commands
 const cal_table_float_t yaesu_default_swr_cal =
 {
     4,
-    { // first cut at generic Yaesu table, need more points probably
-      // based on testing by Adam M7OTP on FT-991
+    {
+        // first cut at generic Yaesu table, need more points probably
+        // based on testing by Adam M7OTP on FT-991
         {12, 1.0f},
         {39, 1.35f},
         {89, 2.0f},
@@ -252,7 +253,7 @@ static const yaesu_newcat_commands_t valid_commands[] =
     {"VT",      FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE    },
     {"VV",      TRUE,   FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE   },
     {"VX",      TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
-    {"XT",      FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
+    {"XT",      FALSE,  TRUE,   FALSE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE    },
     {"ZI",      FALSE,  FALSE,  TRUE,   TRUE,   FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE    },
 };
 int                     valid_commands_count = sizeof(valid_commands) / sizeof(
@@ -1158,9 +1159,9 @@ int newcat_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         *ptt = RIG_PTT_OFF;
         break;
 
-    case '1' :                /* Just because,    what the CAT Manual Shows */
-    case '2' :                /* FT-950 Radio:    Mic, Dataport, CW "TX ON" */
-    case '3' :                /* FT-950 CAT port: Radio in "TX ON" mode     [Not what the CAT Manual Shows] */
+    case '1' :                /* Just because,    what the CAT Manual Shows */
+    case '2' :                /* FT-950 Radio:    Mic, Dataport, CW "TX ON" */
+    case '3' :                /* FT-950 CAT port: Radio in "TX ON" mode     [Not what the CAT Manual Shows] */
         *ptt = RIG_PTT_ON;
         break;
 
@@ -1575,9 +1576,9 @@ int newcat_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
         rit = - rig->caps->max_rit;    /* - */
     }
 
-    if (rit == 0)
+    if (rit == 0)   // don't turn it off just because it is zero
     {
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC%cRT0%c", cat_term,
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC%c",
                  cat_term);
     }
     else if (rit < 0)
@@ -1599,7 +1600,7 @@ int newcat_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     char *retval;
-    char rit_on;
+    //char rit_on;
     int err;
     int offset = 0;
 
@@ -1643,11 +1644,12 @@ int newcat_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
     }
 
     retval = priv->ret_data + offset;
-    rit_on = retval[5];
+    //rit_on = retval[5];
     retval[5] = '\0';
 
-    if (rit_on == '1')
+    //if (rit_on == '1')
     {
+        // return the current offset even if turned off
         *rit = (shortfreq_t) atoi(retval);
     }
 
@@ -1675,7 +1677,8 @@ int newcat_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 
     if (xit == 0)
     {
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC%cXT0%c", cat_term,
+        // don't turn it off just because the offset is zero
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC%c",
                  cat_term);
     }
     else if (xit < 0)
@@ -1697,7 +1700,7 @@ int newcat_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     char *retval;
-    char xit_on;
+    //char xit_on;
     int err;
     int offset = 0;
 
@@ -1741,11 +1744,12 @@ int newcat_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
     }
 
     retval = priv->ret_data + offset;
-    xit_on = retval[6];
+    //xit_on = retval[6];
     retval[5] = '\0';
 
-    if (xit_on == '1')
+    //if (xit_on == '1')
     {
+        // return the offset even when turned off
         *xit = (shortfreq_t) atoi(retval);
     }
 
@@ -3371,7 +3375,9 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             val->f = rig_raw2val_float(atoi(retlvl), &rig->caps->swr_cal);
         }
+
         break;
+
     case RIG_LEVEL_AF:
     case RIG_LEVEL_MICGAIN:
     case RIG_LEVEL_RF:
@@ -3687,6 +3693,26 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
                  cat_term);
         break;
 
+    case RIG_FUNC_RIT:
+        if (!newcat_valid_command(rig, "RT"))
+        {
+            return -RIG_ENAVAIL;
+        }
+
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RT%d%c", status ? 1 : 0,
+                 cat_term);
+        break;
+
+    case RIG_FUNC_XIT:
+        if (!newcat_valid_command(rig, "XT"))
+        {
+            return -RIG_ENAVAIL;
+        }
+
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "XT%d9%c", status ? 1 : 0,
+                 cat_term);
+        break;
+
     default:
         return -RIG_EINVAL;
     }
@@ -3831,6 +3857,24 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "AC%c", cat_term);
         break;
 
+    case RIG_FUNC_RIT:
+        if (!newcat_valid_command(rig, "RT"))
+        {
+            return -RIG_ENAVAIL;
+        }
+
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RT%c", cat_term);
+        break;
+
+    case RIG_FUNC_XIT:
+        if (!newcat_valid_command(rig, "XT"))
+        {
+            return -RIG_ENAVAIL;
+        }
+
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "XT%c", cat_term);
+        break;
+
     default:
         return -RIG_EINVAL;
     }
@@ -3874,6 +3918,14 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
     case RIG_FUNC_TUNER:
         *status = (retfunc[2] == '1') ? 1 : 0;
+        break;
+
+    case RIG_FUNC_RIT:
+        *status = (retfunc[0] == '1') ? 1 : 0;
+        break;
+
+    case RIG_FUNC_XIT:
+        *status = (retfunc[0] == '1') ? 1 : 0;
         break;
 
     default:

@@ -41,3 +41,18 @@ icr8600	3	2
 icr9000	2	2
 icr9500	3	2
 
+2020-09, G0GJV Attempting to support RIT. I asked ICOM technical support
+
+"I am doing some work on the Hamlib amateur radio control library, and in 
+particular looking at control of RIT via CI-V on the Icom IC-9100 Is my 
+reading of the manual correct - on this (and most older Icom rigs) - 
+there is no RIT/XIT control available?"
+
+and received the answer
+
+"Hi Mike,
+Yes that's right
+Thanks
+Virgil"
+
+So I've removed the erroneous icom_set_rit function.
