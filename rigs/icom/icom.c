@@ -1314,6 +1314,7 @@ static int icom_set_it_new(RIG *rig, vfo_t vfo, shortfreq_t ts, int set_xit)
     }
 
 #if 0 // why is this here?  We have another function to turn it on/off
+
     if (ts == 0)          // Turn off both RIT/XIT
     {
         if (rig->caps->has_get_func & RIG_FUNC_XIT)
@@ -1339,6 +1340,7 @@ static int icom_set_it_new(RIG *rig, vfo_t vfo, shortfreq_t ts, int set_xit)
         retval =
             icom_set_func(rig, vfo, set_xit ? RIG_FUNC_XIT : RIG_FUNC_RIT, 1);
     }
+
 #endif
 
     return retval;
@@ -2065,7 +2067,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 
     case RIG_VFO_MAIN_A:    // we need to select Main before setting VFO
     case RIG_VFO_MAIN_B:
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: MainA/B logic\n", __func__);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: MainA/B logic\n", __func__);
         retval = icom_transaction(rig, C_SET_VFO, S_MAIN, NULL, 0,
                                   ackbuf, &ack_len);
 
@@ -2087,7 +2089,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 
     case RIG_VFO_SUB_A: // we need to select Sub before setting VFO
     case RIG_VFO_SUB_B:
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: SubA/B logic\n", __func__);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: SubA/B logic\n", __func__);
         retval = icom_transaction(rig, C_SET_VFO, S_SUB, NULL, 0,
                                   ackbuf, &ack_len);
 

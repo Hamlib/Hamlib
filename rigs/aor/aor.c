@@ -467,7 +467,7 @@ int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         if (retval != RIG_OK) { return retval; }
 
         strncpy(mdbuf2, mdbuf + 4, 3); /* Extract first 'BW' part */
-        mdbuf2[3]='\0'; // in case strnpy produces and un-terminated string
+        mdbuf2[3] = '\0'; // in case strnpy produces and un-terminated string
         mdbuf2_len = strlen(mdbuf2);
 
         retval = aor_transaction(rig, mdbuf2, mdbuf2_len, NULL, NULL);
