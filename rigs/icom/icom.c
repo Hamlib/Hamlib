@@ -1256,37 +1256,6 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     return RIG_OK;
 }
 
-int icom_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
-{
-    unsigned char freqbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
-    int freq_len, ack_len = sizeof(ackbuf), retval;
-
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-    freq_len = 2;
-    /*
-     * to_bcd requires nibble len
-     */
-    to_bcd(freqbuf, rit, freq_len * 2);
-
-    retval = icom_transaction(rig, C_SET_OFFS, -1, freqbuf, freq_len,
-                              ackbuf, &ack_len);
-
-    if (retval != RIG_OK)
-    {
-        return retval;
-    }
-
-    if (ack_len != 1 || ackbuf[0] != ACK)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
-                  ackbuf[0], ack_len);
-        return -RIG_ERJCTED;
-    }
-
-    return RIG_OK;
-}
-
 int icom_get_rit_new(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 {
     unsigned char tsbuf[MAXFRAMELEN];

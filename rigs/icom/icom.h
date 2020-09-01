@@ -222,7 +222,6 @@ int icom_rig_close(RIG *rig);
 int icom_cleanup(RIG *rig);
 int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
-int icom_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
 int icom_get_rit_new(RIG *rig, vfo_t vfo, shortfreq_t *ts);
 int icom_set_rit_new(RIG *rig, vfo_t vfo, shortfreq_t ts);
 int icom_set_xit_new(RIG *rig, vfo_t vfo, shortfreq_t ts);
