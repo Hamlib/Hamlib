@@ -476,7 +476,7 @@ const struct rig_caps fasdr_caps =
 {
     RIG_MODEL(RIG_MODEL_FASDR),
     .model_name =       "FA-SDR",
-    .mfg_name =     "Funkamatuer",
+    .mfg_name =     "Funkamateur",
     .version =      BACKEND_VER ".0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_ALPHA,
