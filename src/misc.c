@@ -578,7 +578,6 @@ static struct
  * utility function to convert index to bit value
  *
  */
-// cppcheck-suppress *
 uint64_t rig_idx2setting(int i)
 {
     return ((uint64_t)1) << i;

@@ -49,7 +49,7 @@ extern char *readline();
 #else
 /* no readline */
 #endif                              /* HAVE_LIBREADLINE */
-
+#warn here1
 #ifdef HAVE_READLINE_HISTORY
 #  include <sys/stat.h>
 #  define HST_SHRT_OPTS "iI"

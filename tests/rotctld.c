@@ -612,7 +612,6 @@ int main(int argc, char *argv[])
 #endif
     }
 
-    // cppcheck-suppress *
     while (retcode == 0);
 
     rot_close(my_rot); /* close port */

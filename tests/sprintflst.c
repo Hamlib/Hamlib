@@ -70,7 +70,6 @@ int sprintf_vfo(char *str, vfo_t vfo)
 
 int sprintf_mode(char *str, rmode_t mode)
 {
-    // cppcheck-suppress *
     uint64_t i, len = 0;
 
     *str = '\0';
@@ -82,7 +81,6 @@ int sprintf_mode(char *str, rmode_t mode)
 
     for (i = 0; i < 63; i++)
     {
-        // cppcheck-suppress *
         const char *ms = rig_strrmode(mode & (1ULL << i));
 
         if (!ms || !ms[0])
@@ -148,7 +146,6 @@ int sprintf_ant(char *str, ant_t ant)
 
 int sprintf_func(char *str, setting_t func)
 {
-    // cppcheck-suppress *
     uint64_t i, len = 0;
 
     *str = '\0';

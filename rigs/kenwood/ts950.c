@@ -217,8 +217,8 @@ const struct rig_caps ts950sdx_caps =
     .serial_parity =  RIG_PARITY_NONE,
     .serial_handshake =  RIG_HANDSHAKE_NONE,
     .write_delay =  0,
-    .post_write_delay =  0,
-    .timeout =  500, // this rig takes over 250ms to respond an IF command
+    .post_write_delay =  50,
+    .timeout =  600, // this rig takes over 250ms to respond an IF command
     .retry =  10,
 
     .has_get_func =  RIG_FUNC_NONE,

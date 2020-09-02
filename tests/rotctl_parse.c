@@ -298,7 +298,6 @@ int hash_model_id_sort(struct mod_lst *a, struct mod_lst *b)
 
 void hash_sort_by_model_id()
 {
-    // cppcheck-suppress *
     HASH_SORT(models, hash_model_id_sort);
 }
 
