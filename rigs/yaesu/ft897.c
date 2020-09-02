@@ -334,10 +334,8 @@ int ft897_init(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
-    // cppcheck-suppress *
     if ((rig->state.priv = calloc(1, sizeof(struct ft897_priv_data))) == NULL)
     {
-        // cppcheck-suppress *
         return -RIG_ENOMEM;
     }
 
@@ -346,7 +344,6 @@ int ft897_init(RIG *rig)
     /* Copy complete native cmd set to private cmd storage area */
     memcpy(priv->pcs, ncmd, sizeof(ncmd));
 
-    // cppcheck-suppress *
     return RIG_OK;
 }
 

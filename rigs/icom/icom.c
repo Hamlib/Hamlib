@@ -1870,13 +1870,19 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
      * Lets check for dsp filters
      */
 
-    if (width && (retval = icom_get_dsp_flt(rig, *mode)) != 0)
+    if (width != NULL && (retval = icom_get_dsp_flt(rig, *mode)) != 0)
     {
         *width = retval;
+        rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s returning mode=%s, width=%d\n", __func__,
+                  rig_strvfo(vfo), rig_strrmode(*mode), (int)*width);
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_TRACE,
+                  "%s: vfo=%s returning mode=%s, width not available\n", __func__,
+                  rig_strvfo(vfo), rig_strrmode(*mode));
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s returning mode=%s, width=%d\n", __func__,
-              rig_strvfo(vfo), rig_strrmode(*mode), (int)*width);
     return RIG_OK;
 }
 
