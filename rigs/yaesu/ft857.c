@@ -118,7 +118,7 @@ static const yaesu_cmd_set_t ncmd[] =
     { 1, { 0x00, 0x00, 0x00, 0x00, 0xe7 } }, /* get RX status  */
     { 1, { 0x00, 0x00, 0x00, 0x00, 0xf7 } }, /* get TX status  */
     { 1, { 0x00, 0x00, 0x00, 0x00, 0x03 } }, /* get FREQ and MODE status */
-    { 1, { 0x00, 0x00, 0x00, 0x00, 0x00 } }, /* pwr wakeup sequence */
+    { 1, { 0xff, 0xff, 0xff, 0xff, 0xff } }, /* pwr wakeup sequence */
     { 1, { 0x00, 0x00, 0x00, 0x00, 0x0f } }, /* pwr on */
     { 1, { 0x00, 0x00, 0x00, 0x00, 0x8f } }, /* pwr off */
     { 0, { 0x00, 0x00, 0x00, 0x00, 0xbb } }, /* eeprom read */
@@ -147,6 +147,7 @@ enum ft857_digi
 #define FT857_ANTS              0
 
 extern int ft817_read_ack(RIG *rig);
+extern int ft817_set_powerstat(RIG *rig, powerstat_t status);
 static int ft857_send_icmd(RIG *rig, int index, unsigned char *data);
 
 const struct rig_caps ft857_caps =
@@ -285,6 +286,8 @@ const struct rig_caps ft857_caps =
     .set_ctcss_tone =     ft857_set_ctcss_tone,
     .set_dcs_sql =    ft857_set_dcs_sql,
     .set_ctcss_sql =  ft857_set_ctcss_sql,
+    .set_powerstat =    ft817_set_powerstat,
+
     .get_level =      ft857_get_level,
     .set_func =       ft857_set_func,
     .vfo_op =             ft857_vfo_op,
@@ -1378,27 +1381,6 @@ int ft857_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 
     return -RIG_EINVAL;
 }
-
-#if 0
-/*
- * This doesn't seem to work on FT857. It might work with FT817 though.
- */
-int ft857_set_powerstat(RIG *rig, powerstat_t status)
-{
-    switch (status)
-    {
-    case RIG_POWER_OFF:
-        return ft857_send_cmd(rig, FT857_NATIVE_CAT_PWR_OFF);
-
-    case RIG_POWER_ON:
-        return ft857_send_cmd(rig, FT857_NATIVE_CAT_PWR_ON);
-
-    case RIG_POWER_STANDBY:
-    default:
-        return -RIG_EINVAL;
-    }
-}
-#endif
 
 /* ---------------------------------------------------------------------- */
 

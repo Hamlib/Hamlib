@@ -112,7 +112,7 @@ static int ft897_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs);
 static int ft897_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
 static int ft897_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd);
 extern int ft817_read_ack(RIG *rig);
-// static int ft897_set_powerstat(RIG *rig, powerstat_t status);
+extern int ft817_set_powerstat(RIG *rig, powerstat_t status);
 
 /* Native ft897 cmd set prototypes. These are READ ONLY as each */
 /* rig instance will copy from these and modify if required . */
@@ -158,7 +158,7 @@ static const yaesu_cmd_set_t ncmd[] =
     { 1, { 0x00, 0x00, 0x00, 0x00, 0xe7 } }, /* get RX status  */
     { 1, { 0x00, 0x00, 0x00, 0x00, 0xf7 } }, /* get TX status  */
     { 1, { 0x00, 0x00, 0x00, 0x00, 0x03 } }, /* get FREQ and MODE status */
-    { 1, { 0x00, 0x00, 0x00, 0x00, 0x00 } }, /* pwr wakeup sequence */
+    { 1, { 0xff, 0xff, 0xff, 0xff, 0xff } }, /* pwr wakeup sequence */
     { 1, { 0x00, 0x00, 0x00, 0x00, 0x0f } }, /* pwr on */
     { 1, { 0x00, 0x00, 0x00, 0x00, 0x8f } }, /* pwr off */
     { 0, { 0x00, 0x00, 0x00, 0x00, 0xbb } }, /* eeprom read */
@@ -191,7 +191,7 @@ const struct rig_caps ft897_caps =
     RIG_MODEL(RIG_MODEL_FT897),
     .model_name =     "FT-897",
     .mfg_name =       "Yaesu",
-    .version =        "20200628.0",
+    .version =        "20200903.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_TRANSCEIVER,
@@ -1375,27 +1375,6 @@ int ft897_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 
     return RIG_OK;
 }
-
-#if 0
-/*
- * This doesn't seem to work on FT897. It might work with FT817 though.
- */
-int ft897_set_powerstat(RIG *rig, powerstat_t status)
-{
-    switch (status)
-    {
-    case RIG_POWER_OFF:
-        return ft897_send_cmd(rig, FT897_NATIVE_CAT_PWR_OFF);
-
-    case RIG_POWER_ON:
-        return ft897_send_cmd(rig, FT897_NATIVE_CAT_PWR_ON);
-
-    case RIG_POWER_STANDBY:
-    default:
-        return -RIG_EINVAL;
-    }
-}
-#endif
 
 /* ---------------------------------------------------------------------- */
 
