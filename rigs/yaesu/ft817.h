@@ -158,7 +158,7 @@ static int ft817_set_rptr_shift (RIG *rig, vfo_t vfo, rptr_shift_t shift);
 static int ft817_set_rptr_offs  (RIG *rig, vfo_t vfo, shortfreq_t offs);
 static int ft817_set_rit        (RIG *rig, vfo_t vfo, shortfreq_t rit);
 static int ft817_get_dcd        (RIG *rig, vfo_t vfo, dcd_t *dcd);
-static int ft817_set_powerstat  (RIG *rig, powerstat_t status);
+int ft817_set_powerstat  (RIG *rig, powerstat_t status);
 static int ft817_vfo_op         (RIG *rig, vfo_t vfo, vfo_op_t op);
 static int ft817_get_split_vfo  (RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
 static int ft817_set_split_vfo  (RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);

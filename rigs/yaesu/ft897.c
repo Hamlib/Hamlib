@@ -321,6 +321,7 @@ const struct rig_caps ft897_caps =
     .set_ctcss_tone =     ft897_set_ctcss_tone,
     .set_dcs_sql =    ft897_set_dcs_sql,
     .set_ctcss_sql =  ft897_set_ctcss_sql,
+    .set_powerstat =    ft817_set_powerstat,
     .get_level =      ft897_get_level,
     .set_func =       ft897_set_func,
     .vfo_op =     ft897_vfo_op,
