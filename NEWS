@@ -6,8 +6,8 @@ Copyright (C) 2000-2020  Michael Black W9MDB, and others
 
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
-Version 4.0
-        2020-??-??
+Version 4.0-rc1
+        2020-09-05
         * API/ABI changes, advance ABI to 4 0 0.
         * Add GPIO and GPION options for DCD.  Jeroen Vreeken
         * New backend: ELAD FDM DUO.  Giovanni, HB9EIK.
@@ -20,14 +20,16 @@ Version 4.0
 	* Fix a lot of static code analysis errors and warnings.  Mike, W9MDB
 	* Rearrange directory structure to put rigs and rotators sources
 	  under their own subdirectories.  Mike, W9MDB
-        * rig_get_channel changed to add read_only flag
-        * rigctl(d) f command also returns VFO now
-        * caching of vfo, frequency, mode, and ptt speeds up rigctld for all
-        * caching of kenwood/yaesu "IF" speeds up polling from WSJTX/JTDX
-        * rig_get_channel now has read_only flag but it still needs to be implemented based on rig behavior
-        *    So if you use rig_get_channel you may get a RIG_ENIMPL error to contact us for fixing it
-    * New rig backend for Elecraft K4
-    * New rig backend for PowerSDR (Flex and Apache users)
+        * rig_get_channel changed to add read_only flag.
+        * rigctl(d) f command also returns VFO now.
+        * caching of vfo, frequency, mode, and ptt speeds up rigctld for all.
+        * caching of kenwood/yaesu "IF" speeds up polling from WSJTX/JTDX.
+        * rig_get_channel now has read_only flag but it still needs to be
+          implemented based on rig behavior, so if you use rig_get_channel you
+          may get a RIG_ENIMPL error to contact us for fixing it.
+        * New rig backend for Elecraft K4.
+        * New rig backend for PowerSDR (Flex and Apache users).
+        * Many fixes and enhancements.  Mike, W9MDB and many contributors
 
 Version 3.3
         2018-08-12
