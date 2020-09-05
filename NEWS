@@ -6,8 +6,8 @@ Copyright (C) 2000-2020  Michael Black W9MDB, and others
 
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
-Version 4.0-rc1
-        2020-09-05
+Version 4.0
+        2020-09-??
         * API/ABI changes, advance ABI to 4 0 0.
         * Add GPIO and GPION options for DCD.  Jeroen Vreeken
         * New backend: ELAD FDM DUO.  Giovanni, HB9EIK.
