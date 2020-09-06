@@ -24,7 +24,7 @@
 
 #include <hamlib/rig.h>
 
-#define SPRINTF_MAX_SIZE 256
+#define SPRINTF_MAX_SIZE 512
 
 __BEGIN_DECLS
 
