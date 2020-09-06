@@ -3,7 +3,7 @@
 # Author Michael Black W9MDB
 # This SUPPRESS setting results in no warnings as of 2020-01-14
 # There are things that could still be done...especially in the C++ area
-echo "Idealy there should be no errors or warnings"
+echo "Ideally there should be no errors or warnings"
 
 # We do suppress some errors which are expected or other code
 # There are quite a few C++ items to take care of still if anybody cares
