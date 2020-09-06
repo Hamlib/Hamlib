@@ -397,5 +397,10 @@ int dump_chan(RIG *rig, int chan_num)
         printf("BKINDL: %d\n", chan.levels[rig_setting2idx(RIG_LEVEL_BKINDL)].i);
     }
 
+    if (rig_has_set_level(rig, RIG_LEVEL_BRIGHT))
+    {
+        printf("BRIGHT: %d\n", chan.levels[rig_setting2idx(RIG_LEVEL_BRIGHT)].i);
+    }
+
     return 0;
 }
