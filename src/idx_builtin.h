@@ -150,7 +150,8 @@
 
 #define LVL_NB            setting2idx_builtin(RIG_LEVEL_NB)
 
-#define LVL_39            setting2idx_builtin(RIG_LEVEL_41)
+#define LVL_BRIGHT        setting2idx_builtin(RIG_LEVEL_BRIGHT)
+
 #define LVL_40            setting2idx_builtin(RIG_LEVEL_40)
 #define LVL_41            setting2idx_builtin(RIG_LEVEL_41)
 #define LVL_42            setting2idx_builtin(RIG_LEVEL_42)

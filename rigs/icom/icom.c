@@ -353,6 +353,26 @@ const struct ts_sc_list r8600_ts_sc_list[] =
     {0, 0},
 };
 
+const struct ts_sc_list ic705_ts_sc_list[] =
+{
+    {10, 0x00},
+    {100, 0x01},
+    {500, 0x02},
+    {kHz(1), 0x03},
+    {kHz(5), 0x04},
+    {kHz(6.25), 0x05},
+    {kHz(8.33), 0x06},
+    {kHz(9), 0x07},
+    {kHz(10), 0x08},
+    {kHz(12.5), 0x09},
+    {kHz(20), 0x10},
+    {kHz(25), 0x11},
+    {kHz(50), 0x12},
+    {kHz(100), 0x13},
+    {0, 0x13},            /* programmable tuning step not supported */
+    {0, 0},
+};
+
 
 
 /* rtty filter list for some DSP rigs ie PRO */
@@ -2631,6 +2651,11 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     case RIG_LEVEL_MONITOR_GAIN:
         lvl_cn = C_CTL_LVL;
         lvl_sc = S_LVL_MON;
+        break;
+
+    case RIG_LEVEL_BRIGHT:
+        lvl_cn = C_CTL_LVL;
+        lvl_sc = S_LVL_BRIGHT;
         break;
 
     default:
@@ -7409,6 +7434,7 @@ DECLARE_INITRIG_BACKEND(icom)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
     rig_register(&ic703_caps);
+    rig_register(&ic705_caps);
     rig_register(&ic706_caps);
     rig_register(&ic706mkii_caps);
     rig_register(&ic706mkiig_caps);

@@ -486,7 +486,7 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     status = range_sanity_check(caps->tx_range_list1, 0);
     fprintf(fout,
-            "TX ranges #1 status for:%s \t%s (%d)\n", label1,
+            "TX ranges #1 status for %s:\t%s (%d)\n", label1,
             status ? "Bad" : "OK",
             status);
 

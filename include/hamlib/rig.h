@@ -880,7 +880,7 @@ enum rig_level_e {
     RIG_LEVEL_NOTCHF_RAW =    CONSTANT_64BIT_FLAG(36),      /*!< \c NOTCHF_RAW -- Notch Freq., arg float [0.0 ... 1.0] */
     RIG_LEVEL_MONITOR_GAIN =  CONSTANT_64BIT_FLAG(37),      /*!< \c MONITOR_GAIN -- Monitor gain (level for monitoring of transmitted audio), arg float [0.0 ... 1.0] */
     RIG_LEVEL_NB =            CONSTANT_64BIT_FLAG(38),      /*!< \c NB -- Noise Blanker level, arg float [0.0 ... 1.0] */
-    RIG_LEVEL_39 =            CONSTANT_64BIT_FLAG(39),      /*!< \c Future use */
+    RIG_LEVEL_BRIGHT =        CONSTANT_64BIT_FLAG(39),      /*!< \c Display brightness */
     RIG_LEVEL_40 =            CONSTANT_64BIT_FLAG(40),      /*!< \c Future use */
     RIG_LEVEL_41 =            CONSTANT_64BIT_FLAG(41),      /*!< \c Future use */
     RIG_LEVEL_42 =            CONSTANT_64BIT_FLAG(42),      /*!< \c Future use */
