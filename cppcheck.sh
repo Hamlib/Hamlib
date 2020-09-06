@@ -3,9 +3,7 @@
 # Author Michael Black W9MDB
 # This SUPPRESS setting results in no warnings as of 2020-01-14
 # There are things that could still be done...especially in the C++ area
-echo "See cppcheck.log when done"
-echo "There should be no errors or warnings"
-echo "This takes several hours to run"
+echo "Idealy there should be no errors or warnings"
 
 # We do suppress some errors which are expected or other code
 # There are quite a few C++ items to take care of still if anybody cares
@@ -78,6 +76,8 @@ CHECK="\
 
 # If no directory or file name provided, scan the entire project.
 if test $# -eq 0 ; then
+        echo "See cppcheck.log when done"
+        echo "This takes a while to run"
         cppcheck --inline-suppr \
                  -I src \
                  -I include \
