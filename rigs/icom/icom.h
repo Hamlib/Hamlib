@@ -31,7 +31,7 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "20200720"
+#define BACKEND_VER "20200906"
 
 /*
  * defines used by comp_cal_str in rig.c
@@ -202,6 +202,7 @@ extern const struct ts_sc_list r9000_ts_sc_list[];
 extern const struct ts_sc_list r9500_ts_sc_list[];
 extern const struct ts_sc_list ic756_ts_sc_list[];
 extern const struct ts_sc_list ic756pro_ts_sc_list[];
+extern const struct ts_sc_list ic705_ts_sc_list[];
 extern const struct ts_sc_list ic706_ts_sc_list[];
 extern const struct ts_sc_list ic7000_ts_sc_list[];
 extern const struct ts_sc_list ic7100_ts_sc_list[];
@@ -322,6 +323,7 @@ extern const struct confparams icom_ext_parms[];
 extern const struct cmdparams icom_ext_cmds[];
 
 extern const struct rig_caps ic703_caps;
+extern const struct rig_caps ic705_caps;
 extern const struct rig_caps ic706_caps;
 extern const struct rig_caps ic706mkii_caps;
 extern const struct rig_caps ic706mkiig_caps;
