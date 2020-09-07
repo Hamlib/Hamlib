@@ -432,7 +432,7 @@ static int netrigctl_open(RIG *rig)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    rs->has_get_func = strtol(buf, NULL, 0);
+    rs->has_get_func = strtoll(buf, NULL, 0);
 
     ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
 
@@ -441,7 +441,7 @@ static int netrigctl_open(RIG *rig)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    rs->has_set_func = strtol(buf, NULL, 0);
+    rs->has_set_func = strtoll(buf, NULL, 0);
 
     ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
 
@@ -450,7 +450,7 @@ static int netrigctl_open(RIG *rig)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    rs->has_get_level = strtol(buf, NULL, 0);
+    rs->has_get_level = strtoll(buf, NULL, 0);
 
     if (rs->has_get_level & RIG_LEVEL_RAWSTR)
     {
@@ -467,7 +467,7 @@ static int netrigctl_open(RIG *rig)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    rs->has_set_level = strtol(buf, NULL, 0);
+    rs->has_set_level = strtoll(buf, NULL, 0);
 
     ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
 
@@ -476,7 +476,7 @@ static int netrigctl_open(RIG *rig)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    rs->has_get_parm = strtol(buf, NULL, 0);
+    rs->has_get_parm = strtoll(buf, NULL, 0);
 
     ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
 
@@ -485,7 +485,7 @@ static int netrigctl_open(RIG *rig)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    rs->has_set_parm = strtol(buf, NULL, 0);
+    rs->has_set_parm = strtoll(buf, NULL, 0);
 
 #if 0
     gran_t level_gran[RIG_SETTING_MAX];   /*!< level granularity */
@@ -526,7 +526,7 @@ static int netrigctl_open(RIG *rig)
         {
             if (strcmp(setting, "vfo_ops") == 0)
             {
-                rig->caps->vfo_ops = strtol(value, NULL, 0);
+                rig->caps->vfo_ops = strtoll(value, NULL, 0);
                 rig_debug(RIG_DEBUG_TRACE, "%s: %s set to %d\n", __func__, setting,
                           rig->caps->vfo_ops);
             }
