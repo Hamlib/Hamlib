@@ -1049,7 +1049,7 @@ void *handle_socket(void *arg)
 
         if (retcode == -1)
         {
-            sleep(1);
+            //sleep(1); // probably don't need this delay
             continue;
         }
 
