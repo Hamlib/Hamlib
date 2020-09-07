@@ -9,13 +9,15 @@ AM_CPPFLAGS = @AM_CPPFLAGS@ -I$(top_srcdir)/bindings $(PYTHON_CPPFLAGS) \
 AM_CFLAGS = -fno-strict-aliasing
 AM_CXXFLAGS = -O2
 
-SWGFILES = hamlib.swg ignore.swg rig.swg rotator.swg
+SWGFILES = hamlib.swg ignore.swg rig.swg rotator.swg amplifier.swg
 
 SWGDEP = \
 	$(top_srcdir)/include/hamlib/rig.h \
 	$(top_srcdir)/include/hamlib/riglist.h \
 	$(top_srcdir)/include/hamlib/rotator.h \
 	$(top_srcdir)/include/hamlib/rotlist.h \
+	$(top_srcdir)/include/hamlib/amplifier.h \
+	$(top_srcdir)/include/hamlib/amplist.h \
 	$(SWGFILES)
 
 EXTRA_DIST = $(SWGFILES) \
