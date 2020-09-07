@@ -155,7 +155,7 @@ const struct rig_caps ft857_caps =
     RIG_MODEL(RIG_MODEL_FT857),
     .model_name =     "FT-857",
     .mfg_name =       "Yaesu",
-    .version =        "20200628.0",
+    .version =        "20200907.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_TRANSCEIVER,
@@ -796,11 +796,11 @@ static int ft857_get_pometer_level(RIG *rig, value_t *val)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: bars=%d\n", __func__, p->tx_status & 0x0F);
         // does rig have 10 bars or 15?
-        val->i = (p->tx_status & 0x0F) / 10.0;
+        val->f = (p->tx_status & 0x0F) / 10.0;
     }
     else
     {
-        val->i = 0;    // invalid value return
+        val->f = 0;    // invalid value return
     }
 
     return RIG_OK;
