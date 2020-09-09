@@ -853,7 +853,7 @@ int HAMLIB_API rig_get_channel(RIG *rig, channel_t *chan, int read_only)
 
     if (rc->get_channel)
     {
-        return rc->get_channel(rig, chan, 0);
+        return rc->get_channel(rig, chan, read_only);
     }
 
     /*
