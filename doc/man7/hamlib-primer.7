@@ -5,7 +5,7 @@
 .\"
 .\" Please keep this file in sync with doc/getting_started.texi
 .\"
-.TH HAMLIB-PRIMER "7" "2018-05-27" "Hamlib" "Hamlib Information Manual"
+.TH HAMLIB-PRIMER "7" "2020-09-08" "Hamlib" "Hamlib Information Manual"
 .
 .
 .SH NAME
@@ -73,11 +73,13 @@ SourceForge.net Hamlib files
 .UE
 Web page.
 .
-As a convenience, release archives are also mirrored at the
-.UR https://github.com/Hamlib/Hamlib/releases
-GitHub Hamlib releases
-.UE
-page.
+.\" It appears as of early September 2020 that the uploaded releases have been
+.\" deleted from GitHub
+'\" As a convenience, release archives are also mirrored at the
+.\" .UR https://github.com/Hamlib/Hamlib/releases
+.\" GitHub Hamlib releases
+'\" .UE
+.\" page.
 .
 The most recent release is listed first.
 .
@@ -87,14 +89,17 @@ The most recent release is listed first.
 Testing release candidates (RCs) are posted during the period (often a few
 weeks) before a planned release.
 .
-Beginning with the 3.2 release, RCs are hosted by the
-.UR https://github.com/Hamlib/Hamlib/releases
-GitHub release archive
-.UE .
+Beginning with the 4.0 release, RCs are hosted by the
+.UR http://sourceforge.net/projects/hamlib/files/hamlib/
+SourceForge.net Hamlib files
+.UE
+Web page.
 .
 RCs are identifed by having a
-.I ~rc
-suffix.
+.I ~rcX
+suffix where the
+.I X
+is replace by a numeral for successive release candidates.
 .
 .PP
 Daily snapshots of the development repository are available via the World Wide
@@ -140,21 +145,21 @@ None of the meta-data is hidden away on some central server.
 .PP
 To clone the repository use the following command:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-git clone https://git.code.sf.net/p/hamlib/code hamlib
+.B git clone https://git.code.sf.net/p/hamlib/code hamlib
 .EE
-.RE
+.in
 .
 .PP
 or:
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-git clone https://github.com/Hamlib/Hamlib.git
+.B git clone https://github.com/Hamlib/Hamlib.git
 .EE
-.RE
+.in
 .
 .PP
 .
@@ -194,18 +199,22 @@ Any is a good reason to build from the source code archive.
 .PP
 Before going further, this manual assumes familiarity with working from the
 command prompt in a Linux/BSD/Unix like system's
-.I shell
-environment, either in a
+.I Bourne shell
+environment (compatible Bourne shells include
+.BR bash (1),
+.BR ksh (1),
+.BR zsh (1),
+and several more) either in a
 .I virtual console
 (a text only screen with no graphics) or in a
 .I terminal
 in a desktop environment
-.RB ( xterm ,
-.BR rxvt ,
-.BR konsole ,
-.BR gnome\-terminal ,
-.BR xfce4\-terminal ,
-.BR terminal ,
+.RB ( xterm (1),
+.BR rxvt (1),
+.BR konsole "(1) (included with the KDE desktop),"
+.BR gnome\-terminal (1),
+.BR xfce4\-terminal (1),
+.BR terminal "(1) (included in macOS),"
 etc.).
 .
 If this is new to you, take some time and read up on using the shell.
@@ -250,14 +259,14 @@ or daily development snapshot follows the same set of commands, known as the
 .I three step
 which are each run from the top-level directory:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-\&./configure
-make
-sudo make install
+.B ./configure
+.B make
+.B sudo make install
 .EE
-.RE
+.in
 .
 .SS configure
 .
@@ -279,12 +288,12 @@ command could be lurking elsewhere and we don't want to run that!
 .PP
 Run:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-\&./configure
+.B ./configure
 .EE
-.RE
+.in
 .
 .PP
 from the top-level directory.
@@ -346,12 +355,12 @@ file system hierarchy.
 .
 Perhaps you want to install to your home directory instead:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-\&./configure \-\-prefix=$HOME/local
+.B ./configure \-\-prefix=$HOME/local
 .EE
-.RE
+.in
 .
 .IP
 .BR Note :
@@ -365,7 +374,7 @@ installed to
 .IR $HOME/local .
 .
 .PP
-All of the files will be installed in the
+As a result of this option, all of the files will be installed in the
 .I local
 directory of your home directory.
 .
@@ -380,6 +389,26 @@ or superuser (administrator) privileges are not required when running
 .
 On the other hand, some extra work will need to be done so other programs can
 use the library.
+.
+The utilities that are compiled as a part of the Hamlib build system will work
+as they are
+.I linked
+to the library installed under
+.IR local .
+.
+Running them will require declaring the complete path:
+.
+.PP
+.in +4n
+.EX
+.B local/bin/rigctl
+.EE
+.in
+.
+.PP
+or modifying your shell's
+.I PATH
+environment variable (see the shell tutorial site above).
 .
 .\" (TODO: describe library hackery in an appendix).
 .
@@ -397,7 +426,7 @@ combination to scroll back up.
 .
 Conversely, Shift\-PageDown can be used to scroll down toward the end of the
 output and the shell prompt (Shift\-UpArrow/Shift\-DownArrow may also work to
-scroll one line at a time).
+scroll one line at a time (terminal dependent)).
 .
 .PP
 After a fair amount of time, depending on your computer, and a lot of screen
@@ -411,7 +440,7 @@ or some such failure message Hamlib is ready to be compiled.
 If there is an error and all of the required packages listed in
 .I README.betatester
 have been installed, please ask for help on the
-.MT hamlib\-developer@@lists.sourceforge.net
+.MT hamlib\-developer@lists.sourceforge.net
 hamlib-developer mailing list
 .ME .
 .
@@ -435,12 +464,12 @@ library files and its executable programs.
 .PP
 Run:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-make
+.B make
 .EE
-.RE
+.in
 .
 .PP
 from the top-level directory.
@@ -449,7 +478,7 @@ from the top-level directory.
 Any error that causes
 .B make
 to stop early is cause for a question to the
-.MT hamlib\-developer@@lists.sourceforge.net
+.MT hamlib\-developer@lists.sourceforge.net
 hamlib-developer mailing list
 .ME .
 .
@@ -460,9 +489,9 @@ will take longer than
 .B configure
 to complete its run.
 .
-As it is a system command, and therefore found in the
-.BR PATH ,
-prefixing
+As it is a system command, and therefore found in the shell's
+.B PATH
+environment variable, prefixing
 .B make
 with
 .I ./
@@ -490,15 +519,43 @@ family of distributions.
 .PP
 Run:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-sudo make install
+.B sudo make install
 .EE
-.RE
+.in
+.
+.PP
+or:
+.
+.PP
+.in +4n
+.EX
+.RB $ " su -l"
+Password:
+.RB # " make install"
+.EE
+.in
 .
 .PP
 as root from the top-level directory.
+.
+.IP
+.BR Note :
+The shell session is shown to show the change in prompt from a normal user
+account to the root accout.
+.
+.PP
+The
+.B \-l
+option to
+.B su
+forces a
+.I login
+shell so that environment variables such as
+.I PATH
+are set correctly.
 .
 .PP
 Running
@@ -536,22 +593,22 @@ It too will need to be run with root privileges:
 .PP
 Run:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-sudo ldconfig
+.B sudo ldconfig
 .EE
-.RE
+.in
 .
 .PP
-as root from any directory.
+as root from any directory or while logged in as root from above.
 .
-.PP
+.IP
 .BR Note :
 Subsequent installations of Hamlib will not need to have
 .B ldconfig
 run after each installation if a newer version of Hamlib was not installed,
-i.e. when recompiling the same version during development.
+i.e., when recompiling the same version during development.
 .
 .PP
 On some distributions a bit of configuration will be needed before
@@ -637,7 +694,7 @@ executable files generated by running
 .B make
 freeing up considerable disk space.
 .
-.PP
+.IP
 .BR Note :
 During development of individual source files, it is not necessary to
 run
@@ -709,12 +766,12 @@ the needed compiler and linker options are passed as environment variables.
 .
 .PP
 Run:
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-\&../hamlib/configure CFLAGS="-ggdb3 -O0" CXXFLAGS="-ggdb3 -O0"
+.B ../hamlib/configure CFLAGS="-ggdb3 -O0" CXXFLAGS="-ggdb3 -O0"
 .EE
-.RE
+.in
 .
 .PP
 from a sibling build directory intended for a debugging build.
@@ -738,7 +795,7 @@ and
 .B CXXFLAGS
 may be set independently for each compiler.
 .
-.PP
+.IP
 .BR Note :
 There are a number compiler options available for controlling debugging
 symbols and setting optimization levels.
@@ -748,7 +805,7 @@ Please consult the compiler's manual for all the details.
 .
 .SS Compiling for Microsoft Windows
 .
-Currently compiling is done on a Debian 8 (Jessie) virtual machine using
+Currently compiling is done on a Debian 10 (Buster) virtual machine using
 .UR http://www.mingw.org
 MinGW
 .UE .
@@ -764,16 +821,18 @@ Pre-compiled binaries for Microsoft Windows 32 and 64 bit architectures
 (Windows NT and newer) are available for both official releases and daily
 development snapshots.
 .
+.PP
 Official releases are available through the
 .UR http://sourceforge.net/projects/hamlib/files/hamlib/
 SourceForge.net file download service
 .UE .
 .
-As an alternative, official releases are also available though the
-.UR https://github.com/Hamlib/Hamlib/releases
-Hamlib archive at GitHub
-.UE .
+.\"As an alternative, official releases are also available though the
+.\".UR https://github.com/Hamlib/Hamlib/releases
+.\"Hamlib archive at GitHub
+.\".UE .
 .
+.PP
 Daily development snapshots are available from the
 .UR http://n0nb.users.sourceforge.net/
 daily snapshots page
@@ -786,7 +845,7 @@ available.
 Among its features are selecting which portions of Hamlib are installed.
 .
 The
-.B PATH
+.I PATH
 environment variable will need to be set manually per the included
 .I README.w32-bin
 or
@@ -799,7 +858,7 @@ extracting installer.
 .
 .PP
 Bug reports and questions about these archives should be sent to the
-.MT hamlib-developer@@lists.sourceforge.net
+.MT hamlib-developer@lists.sourceforge.net
 hamlib-developer mailing list
 .ME .
 .
@@ -811,7 +870,7 @@ radio and rotator control functions for developers of software primarily of
 interest to radio amateurs and those interested in radio communications.
 .
 .PP
-Copyright \(co 2001-2018 Hamlib Group (various contributors)
+Copyright \(co 2001-2020 Hamlib Group (various contributors)
 .
 .PP
 This is free software; see the file COPYING for copying conditions.  There is
@@ -831,8 +890,8 @@ NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 .SH COLOPHON
 .
 Links to the Hamlib Wiki, Git repository, release archives, and daily snapshot
-archives:
-.IP
+archives are available via
+.
 .UR http://www.hamlib.org
 hamlib.org
 .UE .

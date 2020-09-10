@@ -5,7 +5,7 @@
 .\"
 .\" Please keep this file in sync with doc/utility-programs.texi
 .\"
-.TH HAMLIB-UTILITIES "7" "2018-05-27" "Hamlib" "Hamlib Information Manual"
+.TH HAMLIB-UTILITIES "7" "2020-09-08" "Hamlib" "Hamlib Information Manual"
 .
 .
 .SH NAME
@@ -26,17 +26,20 @@ library functions both through the
 .SM API.
 .
 .PP
-This page summarizes the two test programs,
+This page summarizes the three test programs,
+.BR ampctl (1)
+for testing amplifier back ends,
 .BR rigctl (1)
-for testing radio back ends and
+for testing radio back ends, and
 .BR rotctl (1)
-for testing rotator back ends and the two network daemons,
-.BR rigctld (1)
+for testing rotator back ends and the three network daemons,
+.BR ampctld (1),
+.BR rigctld (1),
 and
 .BR rotcltd (1)
-for radio and rotator access via network sockets.
+for amplifier, radio, and rotator access via network sockets.
 .
-Also included are three demonstation utilities,
+Also included are three demonstration utilities,
 .BR rigmem (1),
 .BR rigsmtr (1),
 and
@@ -70,42 +73,40 @@ additional commands.
 .
 .PP
 In its most simple use as a
-.I "command line"
+.I command line
 program, rigctl is used to set frequency and mode by typing commands after any
 rigctl options:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-rigctl F 14205000
-.br
-rigctl M USB 2400
+.B rigctl F 14205000
+.B rigctl M USB 2400
 .EE
-.RE
+.in
 .
 .PP
 and then query those values:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-rigctl f
-.br
-rigctl m
+.B rigctl f
+.B rigctl m
 .EE
-.RE
+.in
 .
 .PP
 Entering
-.I "interactive mode"
+.I interactive mode
 is a simple matter of not placing any commands after any rigctl options:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-rigctl
+.B rigctl
 .EE
-.RE
+.in
 .
 .PP
 Entering interactive mode allows successive commands to be entered without
@@ -121,35 +122,31 @@ library.
 .PP
 Interactive mode is indicated by the spartan prompt:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
 Rig command:
 .EE
-.RE
+.in
 .
 .PP
 Commands are given at the prompt and follow the general rule that upper case
 letters set a value and lower case letters query a value:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-Rig command: M
-.br
+.RB "Rig command: " M
+.RB "Mode: " USB
+.RB "Passband: " 2500
+
+.RB "Rig command: " m
 Mode: USB
-.br
 Passband: 2500
-.sp
-Rig command: m
-.br
-Mode: USB
-.br
-Passband: 2500
-.sp
+
 Rig command:
 .EE
-.RE
+.in
 .
 .PP
 An additional prompt is printed when more information is required by the
@@ -168,7 +165,7 @@ The above examples invoked rigctl without specifying a radio model.
 .
 This is a feature where the Hamlib internal radio model 1
 .I dummy
-is used instead.
+is used.
 .
 The dummy radio provides a way to test Hamlib functions without the need for
 actual radio hardware.
@@ -179,32 +176,29 @@ the actual radio connected to the computer is necessary for debugging.
 .PP
 For example, to quickly set frequency on an Elecraft K3:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-rigctl -m 229 -r /dev/rig F 3900000
+.B rigctl -m 2029 -r /dev/rig F 3900000
 .EE
-.RE
+.in
 .
 .PP
 and to query the frequency and then mode:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-rigctl -m 229 -r /dev/rig f
-.br
+.B rigctl -m 2029 -r /dev/rig f
 3900000
-.sp
-rigctl -m 229 -r /dev/rig m
-.br
+
+.B rigctl -m 2029 -r /dev/rig m
 LSB
-.br
 2000
 .EE
-.RE
+.in
 .
-.PP
+.IP
 .BR Note :
 the returned values do not have the prompt strings associated with interactive
 mode as shown above.
@@ -220,40 +214,29 @@ option takes the path to the port device on
 .SM POSIX
 and the device name on Microsoft Windows.
 .
-.PP
+.IP
 .BR Note :
 A complete list of supported radio models may be seen by use of the
 .B -l
 option:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-rigctl -l
-.br
+.B rigctl -l
  Rig #  Mfg              Model         Version    Status
-.br
      1  Hamlib           Dummy         0.5        Beta
-.br
      2  Hamlib           NET rigctl    0.3        Beta
-.br
-   101  Yaesu            FT-847        0.5        Beta
-.br
-   103  Yaesu            FT-1000D      0.0.6      Alpha
-.br
+  1001  Yaesu            FT-847        0.5        Beta
+  1003  Yaesu            FT-1000D      0.0.6      Alpha
 \&.
-.br
 \&.
-.br
 \&.
-.br
-  2702  Rohde&Schwarz    EB200         0.1        Untested
-.br
-  2801  Philips/Simoco   PRM8060       0.1        Alpha
-.br
-  2901  ADAT www.adat.ch ADT-200A      1.36       Beta
+ 27002  Rohde&Schwarz    EB200         0.1        Untested
+ 28001  Philips/Simoco   PRM8060       0.1        Alpha
+ 29001  ADAT www.adat.ch ADT-200A      1.36       Beta
 .EE
-.RE
+.in
 .
 .PP
 The list is long so use \f(CWShift\-PageUp\fP/\f(CWShift\-PageDown\fP on
@@ -264,7 +247,7 @@ window on Microsoft Windows) or the output can be piped to
 .BR more (1)
 or
 .BR less (1),
-e.g. \(lq\f(CWrigctl -l | more\fP\(rq to scroll back up the list.
+e.g., \(lq\f(CWrigctl -l | more\fP\(rq to scroll back up the list.
 .
 The list is sorted numerically by model number since Hamlib 1.2.15.1.
 .
@@ -305,40 +288,39 @@ additional commands.
 .
 .PP
 In its most simple use as a
-.I "command line"
+.I command line
 program, rotctl is used to set azimuth position and (optionally) elevation by
 typing commands after any rotctl options:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-rotctl P 145.0 23.0
-.br
-rotctl M 8 25
+.B rotctl P 145.0 23.0
+.B rotctl M 8 25
 .EE
-.RE
+.in
 .
 .PP
 and then query those values:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-rotctl p
+.B rotctl p
 .EE
-.RE
+.in
 .
 .PP
 Entering
-.I "interactive mode"
+.I interactive mode
 is a simple matter of not placing any commands after any rotctl options:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-rotctl
+.B rotctl
 .EE
-.RE
+.in
 .
 .PP
 Entering interactive mode allows successive commands to be entered without
@@ -354,40 +336,34 @@ library.
 .PP
 Interactive mode is indicated by the spartan prompt:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
 Rotator command:
 .EE
-.RE
+.in
 .
 .PP
 Commands are given at the prompt:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-Rotator command: M
-.br
-Direction: 16
-.br
-Speed: 60
-.sp
-Rotator command: p
-.br
+.RB "Rotator command: " M
+.RB "Direction: " 16
+.RB "Speed: " 60
+
+.RB "Rotator command: " p
 Azimuth: 11.352000
-.br
 Elevation: 0.000000
-.sp
-Rotator command: p
-.br
+
+.RB "Rotator command: " p
 Azimuth: 27.594000
-.br
 Elevation: 0.000000
-.sp
+
 Rotator command:
 .EE
-.RE
+.in
 .
 .PP
 An additional prompt is printed when more information is required by the
@@ -417,26 +393,24 @@ controller connected to the computer is necessary for debugging.
 .PP
 For example, to quickly set position for RotorEZ:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-rotctl -m 401 -r /dev/rotor P 100.0 0.0
+.B rotctl -m 401 -r /dev/rotor P 100.0 0.0
 .EE
-.RE
+.in
 .
 .PP
 and to query the position:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-rotctl -m 401 -r /dev/rotor p
-.br
+.B rotctl -m 401 -r /dev/rotor p
 100.000000
-.br
 0.000000
 .EE
-.RE
+.in
 .
 .PP
 The returned values do not have the prompt strings associated with interactive
@@ -453,40 +427,29 @@ option takes the path to the port device on
 .SM POSIX
 or the device name on Microsoft Windows.
 .
-.PP
+.IP
 .BR Note :
 A complete list of supported rotator models may be seen by use of the
 .B -l
 option:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-rotctl -l
-.br
+.B rotctl -l
  Rot #  Mfg              Model         Version    Status
-.br
      1  Hamlib           Dummy         0.5        Beta
-.br
      2  Hamlib           NET rotctl    0.3        Beta
-.br
    201  Hamlib           EasycommI     0.3        Beta
-.br
    202  Hamlib           EasycommII    0.3        Beta
-.br
 \&.
-.br
 \&.
-.br
 \&.
-.br
   1201  AMSAT            IF-100        0.1        Untested
-.br
   1301  LA7LKA           ts7400        0.1        Beta
-.br
   1401  Celestron        NexStar       0.1        Untested
 .EE
-.RE
+.in
 .
 .PP
 The list is long so use \f(CWShift\-PageUp\fP/\f(CWShift\-PageDown\fP on
@@ -509,6 +472,21 @@ Model numbers of a manufacturer/protocol family are grouped together.
 The complete reference for rotctl can be found in the
 .BR rotctl (1)
 manual page.
+.
+.
+.SH ampctl
+.
+The
+.BR ampctl (1)
+utility is a recent addition to the Hamlib utilities as a part of the 4.0
+development cycle.
+.
+It is intended to test the Hamlib implementation of amplifier control and is
+similar in function to the utilities previously described.
+.
+See the
+.BR ampctl (1)
+manual page for the complete reference.
 .
 .
 .SH rigctld
@@ -698,6 +676,22 @@ The complete reference for rotctld can be found in the
 manual page.
 .
 .
+.SH ampctl
+.
+The
+.BR ampctld (1)
+utility is a recent addition to the Hamlib utilities as a part of the 4.0
+development cycle.
+.
+It provides network socket access for the Hamlib implementation of amplifier
+control and is similar in function to the network utilities previously
+described.
+.
+See the
+.BR ampctld (1)
+manual page for the complete reference.
+.
+.
 .SH rigmem
 .
 .B rigmem
@@ -803,7 +797,7 @@ radio and rotator control functions for developers of software primarily of
 interest to radio amateurs and those interested in radio communications.
 .
 .PP
-Copyright \(co 2001-2018 Hamlib Group (various contributors)
+Copyright \(co 2001-2020 Hamlib Group (various contributors)
 .
 .PP
 This is free software; see the file COPYING for copying conditions.  There is
@@ -814,6 +808,8 @@ NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 .
 .BR less (1),
 .BR more (1),
+.BR ampctl (1),
+.BR ampctld (1),
 .BR rigctl (1),
 .BR rigctld (1),
 .BR rotctl (1),
@@ -828,8 +824,8 @@ NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 .SH COLOPHON
 .
 Links to the Hamlib Wiki, Git repository, release archives, and daily snapshot
-archives:
-.IP
+archives are available via
+.
 .UR http://www.hamlib.org
 hamlib.org
 .UE .
