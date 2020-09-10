@@ -60,7 +60,7 @@ const struct rig_caps icm803_caps =
     RIG_MODEL(RIG_MODEL_IC_M803),
     .model_name = "IC-M803",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".0",
+    .version =  "20200524.0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =   RIG_TYPE_TRANSCEIVER,
