@@ -5,7 +5,7 @@
 .\"
 .\" Note: Please keep this page in sync with the source, rigctl.c
 .\"
-.TH RIGCTL "1" "2019-12-10" "Hamlib" "Hamlib Utilities"
+.TH RIGCTL "1" "2020-09-09" "Hamlib" "Hamlib Utilities"
 .
 .
 .SH NAME
@@ -284,7 +284,7 @@ Set verbose mode, cumulative (see
 below).
 .TP
 .BR \-Y "," \-\-\ignore\-err
-Ignores rig open errors 
+Ignores rig open errors
 .
 .TP
 .BR \-Z ", " \-\-debug\-time\-stamps
@@ -337,12 +337,12 @@ typed in when in interactive mode or provided as argument(s) in command line
 interface mode.  In interactive mode commands and their arguments may be
 entered on a single line:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-M LSB 2400
+.B M LSB 2400
 .EE
-.RE
+.in
 .
 .PP
 Since most of the
@@ -360,7 +360,7 @@ backslash, \(oq\\\(cq, to enter a long command name.
 Example: Use \(lq\\dump_caps\(rq to see what capabilities this radio and
 backend support.
 .
-.PP
+.IP
 .BR Note :
 The backend for the radio to be controlled, or the radio itself may not
 support some commands. In that case, the operation will fail with a
@@ -383,19 +383,19 @@ up until the end of the current line including the \(oq#\(cq character is
 ignored.
 .
 .PP
-A simple example:
+A simple example (typed text is in bold):
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-$ cat <<.EOF. >cmds.txt
-> # File of commands
-> v f m	# query rig
-> V VFOB F 14200000 M CW 500	# set rig
-> v f m	# query rig
-> .EOF.
+.RB $ " cat <<.EOF. >cmds.txt"
+.RB > " # File of commands"
+.RB > " v f m	# query rig"
+.RB > " V VFOB F 14200000 M CW 500	# set rig"
+.RB > " v f m	# query rig"
+.RB > " .EOF."
 
-$ rigctl -m1 - <cmds.txt
+.RB $ " rigctl -m1 - <cmds.txt"
 
 v VFOA
 
@@ -416,7 +416,7 @@ m CW
 
 $
 .EE
-.RE
+.in
 .
 .
 .SS rigctl Commands
@@ -498,17 +498,17 @@ In VFO mode (see
 .B \-\-vfo
 option above) only a single VFO parameter is required:
 .
-.sp
-.RS 1.0i
+.IP
+.in +4n
 .EX
-$ rigctl -m 229 -r /dev/rig -o
+.RB $ " rigctl -m 229 -r /dev/rig -o"
 
 Rig command: V
 VFO: VFOB
 
 Rig command:
 .EE
-.RE
+.in
 .
 .TP
 .BR v ", " get_vfo
@@ -1119,7 +1119,7 @@ Get
 .RI \(aq Status \(aq
 .IP
 Returns Status as 1 if vfo option is on and 0 if vfo option is off.
-This command reflects the -o switch for rigctl and ritctld and can be dynamically changed by 
+This command reflects the -o switch for rigctl and ritctld and can be dynamically changed by
 .B set_vfo_opt.
 .
 .TP
@@ -1128,7 +1128,7 @@ Set
 .RI \(aq Status \(aq
 .IP
 Set vfo option Status 1=on or 0=off
-This is the same as using the -o switch for rigctl and ritctld. 
+This is the same as using the -o switch for rigctl and ritctld.
 This can be dyamically changed while running.
 .
 .TP
@@ -1252,18 +1252,18 @@ if an error was returned by
 .BR Hamlib .
 .
 .
-.SH EXAMPLE
+.SH EXAMPLES
 .
 Start
 .B rigctl
 for a Yaesu FT-920 using a USB to serial adapter on Linux in interactive mode:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-$ rigctl -m 114 -r /dev/ttyUSB1
+.RB $ " rigctl -m 1014 -r /dev/ttyUSB1"
 .EE
-.RE
+.in
 .
 .PP
 Start
@@ -1271,12 +1271,12 @@ Start
 for a Yaesu FT-920 using COM1 on MS Windows while generating TRACE output to
 .IR stderr :
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-> rigctl -m 114 -r COM1 -vvvvv
+.RB > " rigctl -m 1014 -r COM1 -vvvvv"
 .EE
-.RE
+.in
 .
 .PP
 Start
@@ -1284,12 +1284,12 @@ Start
 for a Yaesu FT-920 using a USB to serial adapter while setting baud rate and
 stop bits:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-$ rigctl -m 114 -r /dev/ttyUSB1 -s 4800 -C stop_bits=2
+.RB $ " rigctl -m 1014 -r /dev/ttyUSB1 -s 4800 -C stop_bits=2"
 .EE
-.RE
+.in
 .
 .PP
 Start
@@ -1299,12 +1299,12 @@ terminator for the
 .B w
 command:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-$ rigctl -m 229 -r /dev/ttyUSB0 -t';'
+.RB $ " rigctl -m 2029 -r /dev/ttyUSB0 -t';'"
 .EE
-.RE
+.in
 .
 .PP
 Connect to a running
@@ -1312,12 +1312,12 @@ Connect to a running
 with radio model 2 (\(lqNET rigctl\(rq) on the local host and specifying the
 TCP port, setting frequency and mode:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-$ rigctl -m 2 -r localhost:4532 F 7253500 M LSB 0
+.RB $ " rigctl -m 2 -r localhost:4532 F 7253500 M LSB 0"
 .EE
-.RE
+.in
 .
 .
 .SH BUGS
@@ -1348,7 +1348,7 @@ Copyright \(co 2000-2011 Stephane Fillod
 .br
 Copyright \(co 2000-2018 the Hamlib Group (various contributors)
 .br
-Copyright \(co 2010-2019 Nate Bargmann
+Copyright \(co 2010-2020 Nate Bargmann
 .
 .PP
 This is free software; see the file COPYING for copying conditions.  There is
@@ -1366,8 +1366,8 @@ NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 .SH COLOPHON
 .
 Links to the Hamlib Wiki, Git repository, release archives, and daily snapshot
-archives:
-.IP
+archives are available via
+.
 .UR http://www.hamlib.org
 hamlib.org
 .UE .

@@ -5,7 +5,7 @@
 .\"
 .\" Note: Please keep this page in sync with the source, rigswr.c
 .\"
-.TH RIGSWR "1" "2019-12-10" "Hamlib" "Hamlib Utilities"
+.TH RIGSWR "1" "2020-09-09" "Hamlib" "Hamlib Utilities"
 .
 .
 .SH NAME
@@ -242,49 +242,45 @@ if the rig doesn't have the required capabilities.
 .
 Scans frequencies between 14.000 MHz and 14.200 MHz with 50 kHz step on a
 TS-850 and records VSWR measurements in file
-.IR cswr .
-.
-.sp
-.RS 0.5i
-.EX
-rigswr -m 209 -r /dev/ttyS1 14000000 14200000 50000 > cswr
-.EE
-.RE
+.I cswr
+(typed text shown in bold):
 .
 .PP
-After completion, cswr file contains the following lines:
+.in +4n
+.EX
+.RB $ " rigswr -m 2009 -r /dev/ttyS1 14000000 14200000 50000 > cswr"
+.EE
+.in
 .
-.sp
-.RS 0.5i
+.PP
+After completion,
+.I cswr
+contains the following lines:
+.
+.PP
+.in +4n
 .EX
 14000000 1.50
-.br
 14050000 1.31
-.br
 14100000 1.22
-.br
 14150000 1.07
-.br
 14200000 1.07
 .EE
-.RE
+.in
 .
 .PP
 The result can be plotted with
 .BR gnuplot (1):
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-gnuplot
-.br
-set data style linespoints
-.br
-set grid
-.br
-.RI plot " cswr"
+.RB $ " gnuplot"
+.B set data style linespoints
+.B set grid
+.B plot cswr
 .EE
-.RE
+.in
 .
 .
 .SH BUGS
@@ -314,7 +310,7 @@ Copyright \(co 2004 Thierry Leconte
 .br
 Copyright \(co 2004-2011 Stephane Fillod
 .br
-Copyright \(co 2007,2018,2019 Nate Bargmann
+Copyright \(co 2007,2018-2020 Nate Bargmann
 .PP
 This is free software; see the file COPYING for copying conditions.  There is
 NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
@@ -330,8 +326,8 @@ NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 .SH COLOPHON
 .
 Links to the Hamlib Wiki, Git repository, release archives, and daily snapshot
-archives:
-.IP
+archives are available via
+.
 .UR http://www.hamlib.org
 hamlib.org
 .UE .

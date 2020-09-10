@@ -5,7 +5,7 @@
 .\"
 .\" Note: Please keep this page in sync with the source, rigsmtr.c
 .\"
-.TH RIGSMTR "1" "2019-12-10" "Hamlib" "Hamlib Utilities"
+.TH RIGSMTR "1" "2020-09-09" "Hamlib" "Hamlib Utilities"
 .
 .
 .SH NAME
@@ -239,81 +239,60 @@ if the radio doesn't have the required capabilities.
 .
 Collect S-Meter readings on a TS\-850 while an EasycommII rotator makes a full
 360\(de rotation and record measurements in the file
-.IR csmtr :
+.I csmtr
+(typed text shown in bold):
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-rigsmtr \-m 209 \-r /dev/ttyS1 \-M 202 > csmtr
+.RB $ " rigsmtr \-m 2009 \-r /dev/ttyS1 \-M 202 > csmtr"
 .EE
-.RE
+.in
 .
 .PP
 After completion the file
 .I csmtr
 contains lines such as:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
 0 \-47
-.br
 30 \-40
-.br
 60 \-22
-.br
 90 \-3
-.br
 120 10
-.br
 150 1
-.br
 180 \-11
-.br
 210 \-24
-.br
 240 \-35
-.br
 270 \-42
-.br
 300 \-48
-.br
 330 \-51
-.br
 360 \-49
 .EE
-.RE
+.in
 .
 .PP
 The results can be plotted with
 .BR gnuplot (1):
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-gnuplot
-.br
-set angles degrees
-.br
-set polar
-.br
-set grid polar 15.
-.br
-unset border
-.br
-unset param
-.br
-set style data line
-.br
-set rrange [-60:60]
-.br
-set xrange [-60:60]
-.br
-set yrange [-60:60]
-.br
-.RI plot " csmtr"
+.RB $ " gnuplot"
+.B set angles degrees
+.B set polar
+.B set grid polar 15.
+.B unset border
+.B unset param
+.B set style data line
+.B set rrange [-60:60]
+.B set xrange [-60:60]
+.B set yrange [-60:60]
+.B plot csmtr
 .EE
-.RE
+.in
 .
 .
 .SH BUGS
@@ -337,7 +316,7 @@ communications.
 .PP
 Copyright \(co 2007-2009 Stephane Fillod
 .br
-Copyright \(co 2018,2019 Nate Bargmann
+Copyright \(co 2018-2020 Nate Bargmann
 .PP
 This is free software; see the file COPYING for copying conditions.  There is
 NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
@@ -354,8 +333,8 @@ NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 .SH COLOPHON
 .
 Links to the Hamlib Wiki, Git repository, release archives, and daily snapshot
-archives:
-.IP
+archives are available via
+.
 .UR http://www.hamlib.org
 hamlib.org
 .UE .
