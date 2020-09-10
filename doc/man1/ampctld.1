@@ -5,7 +5,7 @@
 .\"
 .\" Note: Please keep this page in sync with the source, ampctld.c
 .\"
-.TH AMPCTLD "1" "2019-12-10" "Hamlib" "Hamlib Utilities"
+.TH AMPCTLD "1" "2020-09-09" "Hamlib" "Hamlib Utilities"
 .
 .
 .SH NAME
@@ -402,16 +402,15 @@ needed values.  In practice, reliable results are obtained by terminating each
 command string with a newline character, \(oq\\n\(cq.
 .
 .PP
-Example set frequency and mode commands (Perl code):
+Example set frequency and mode commands (Perl code (typed text shown in bold)):
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-print $socket "F 14250000\\n";
-.br
-print $socket "\\\\set_powerstat 1\\n";   # escape leading '\\'
+\fBprint $socket "F 14250000\\n";\fP
+\fBprint $socket "\\\\set_powerstat 1\\n";\fP # escape leading '\\'
 .EE
-.RE
+.in
 .
 .PP
 A one line response will be sent as a reply to
@@ -434,14 +433,13 @@ is the Hamlib error code.
 .PP
 Example get frequency (Perl code):
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-print $socket "f\\n";
-.br
+\fBprint $socket "f\\n";\fP
 "14250000\\n"
 .EE
-.RE
+.in
 .
 .PP
 Most
@@ -509,16 +507,14 @@ An example response to a
 .B set_frequency
 command sent from the shell prompt (note the prepended \(oq+\(cq):
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-$ echo "+F 14250000" | nc -w 1 localhost 4531
-.br
+$ \fBecho "+F 14250000" | nc -w 1 localhost 4531\fP
 set_freq: 14250000
-.br
 RPRT 0
 .EE
-.RE
+.in
 .
 .PP
 In this case the long command name and values are returned on the first line
@@ -530,18 +526,15 @@ An example response to a
 .B get_freq
 query:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-$ echo "+\\get_freq" | nc -w 1 localhost 4531
-.br
+$ \fBecho "+\\get_freq" | nc -w 1 localhost 4531\fP
 get_freq:
-.br
 Frequency(Hz): 14250000
-.br
 RPRT 0
 .EE
-.RE
+.in
 .
 .IP
 .BR Note :
@@ -600,34 +593,34 @@ For example, invoking a
 .B get_freq
 query with a leading \(oq;\(cq returns:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
 get_freq:;Frequency(Hz): 14250000;RPRT 0
 .EE
-.RE
+.in
 .
 .PP
 Or, using the pipe character \(oq|\(cq returns:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
 get_freq:|Frequency(Hz): 14250000|RPRT 0
 .EE
-.RE
+.in
 .
 .PP
 And a
 .B set_freq
 command prepended with a \(oq|\(cq returns:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
 set_freq: 14250000|RPRT 0
 .EE
-.RE
+.in
 .
 .PP
 Such a format will allow reading a response as a single event using a preferred
@@ -659,30 +652,30 @@ sent to and received from the amplifier which is very useful for amplifier
 backend library development and may be requested by the developers.
 .
 .
-.SH EXAMPLE
+.SH EXAMPLES
 .
 Start
 .B ampctld
 for an Elecraft KPA-1500 using a USB-to-serial adapter and backgrounding:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-$ ampctld -m 201 -r /dev/ttyUSB1 &
+.RB $ " ampctld -m 201 -r /dev/ttyUSB1 &"
 .EE
-.RE
+.in
 .
 .PP
 Start
 .B ampctld
 for an Elecraft KPA-1500 using COM2 on MS Windows:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-$ ampctld -m 201 -r COM2
+.RB $ " ampctld -m 201 -r COM2"
 .EE
-.RE
+.in
 .
 .PP
 Connect to the already running
@@ -690,12 +683,12 @@ Connect to the already running
 and set the frequency to 14.266 MHz with a 1 second read timeout using the
 default protocol from the shell prompt:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-$ echo "\\set_freq 14266000" | nc -w 1 localhost 4531
+$ \fBecho "\\set_freq 14266000" | nc -w 1 localhost 4531\fP
 .EE
-.RE
+.in
 .
 .PP
 Connect to a running
@@ -704,12 +697,12 @@ with
 .B ampctl
 on the local host:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-$ ampctl -m2
+.RB $ " ampctl -m2"
 .EE
-.RE
+.in
 .
 .
 .SH SECURITY
@@ -765,7 +758,7 @@ Copyright \(co 2000-2010 Stephane Fillod
 .br
 Copyright \(co 2000-2018 the Hamlib Group (various contributors)
 .br
-Copyright \(co 2011-2019 Nate Bargmann
+Copyright \(co 2011-2020 Nate Bargmann
 .
 .PP
 This is free software; see the file COPYING for copying conditions.  There is
@@ -783,8 +776,8 @@ NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 .SH COLOPHON
 .
 Links to the Hamlib Wiki, Git repository, release archives, and daily snapshot
-archives:
-.IP
+archives are available via
+.
 .UR http://www.hamlib.org
 hamlib.org
 .UE .

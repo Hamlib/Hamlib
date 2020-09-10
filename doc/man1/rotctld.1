@@ -5,7 +5,7 @@
 .\"
 .\" Note: Please keep this page in sync with the source, rotctld.c
 .\"
-.TH ROTCTLD "1" "2019-12-10" "Hamlib" "Hamlib Utilities"
+.TH ROTCTLD "1" "2020-09-09" "Hamlib" "Hamlib Utilities"
 .
 .
 .SH NAME
@@ -293,14 +293,15 @@ and
 .RI \(aq Elevation \(aq
 are floating point values.
 .IP
-For example:
+For example (typed text shown in bold):
 .
-.sp
-.RS 1.0i
+.IP
+.in +4n
 .EX
-P 163.0 41.0
+.B P 163.0 41.0
 .EE
-.RE
+.in
+.
 .IP
 .BR Note :
 If the rotator does not support setting elevation (most do not) supply
@@ -408,21 +409,22 @@ value between 2 and 12.
 .IP
 For example:
 .
-.sp
-.RS 1.0i
+.IP
+.in +4n
 .EX
-L -170.0 -85.0 12
+.B L -170.0 -85.0 12
 .EE
-.RE
+.in
+.
 .IP
 returns:
 .
-.sp
-.RS 1.0i
+.IP
+.in +4n
 .EX
 Locator: AA55AA00AA00
 .EE
-.RE
+.in
 .
 .TP
 .BR l ", " loc2lonlat " \(aq" \fILocator\fP \(aq
@@ -442,21 +444,23 @@ expressed as a negative value.
 .IP
 For example:
 .
-.sp
-.RS 1.0i
+.IP
+.in +4n
 .EX
-l AA55AA00AA00
+.B l AA55AA00AA00
 .EE
-.RE
+.in
+.
 .IP
 returns:
 .
-.sp
-.RS 1.0i
+.IP
+.in +4n
 .EX
 Longitude: -169.999983 Latitude: -84.999991
 .EE
-.RE
+.in
+.
 .IP
 .BR Note :
 Despite the use of double precision variables internally, some rounding error
@@ -594,22 +598,22 @@ command string with a newline character, \(oq\\n\(cq.
 .PP
 Example set position (Perl code):
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-print $socket "P 135 10\\n";
+\fBprint $socket "P 135 10\\n";\fP
 .EE
-.RE
+.in
 .
 .PP
 or:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
+.EX
+\fBprint $socket "\\\\set_pos 135 10\\n";\fP   # escape leading \(oq\\\(cq
 .EE
-print $socket "\\\\set_pos 135 10\\n";   # escape leading \(oq\\\(cq
-.EE
-.RE
+.in
 .
 .PP
 A one line response will be sent as a reply to
@@ -632,16 +636,14 @@ is the Hamlib error code.
 .PP
 Example get position (Perl code):
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-print $socket "p\\n";
-.br
+\fBprint $socket "p\\n";\fP
 "135"
-.br
 "10"
 .EE
-.RE
+.IN
 .
 .PP
 Most
@@ -703,16 +705,14 @@ An example response to a
 .B P
 command sent from the shell prompt (note the prepended \(oq+\(cq):
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-$ echo "+P 90 45" | nc -w 1 localhost 4533
-.br
+$ \fBecho "+P 90 45" | nc -w 1 localhost 4533\fP
 set_pos: 90 45
-.br
 RPRT 0
 .EE
-.RE
+.in
 .
 .PP
 In this case the long command name and values are returned on the first line
@@ -724,20 +724,17 @@ An example response to a
 .B get_pos
 query:
 .
-.sp
-.RS 0.5i
+.PP
+.in +3n
 .EX
-$ echo "+\\get_pos" | nc -w 1 localhost 4533
-.br
+$ \fBecho "+\\get_pos" | nc -w 1 localhost 4533\fP
 get_pos:
-.br
 Azimuth: 90.000000
-.br
 Elevation: 45.000000
-.br
 RPRT 0
 .EE
-.RE
+.in
+.
 .IP
 .BR Note :
 The \(oq\\\(cq is still required for the long command name even with the ERP
@@ -796,34 +793,34 @@ For example, invoking a
 .B get_pos
 query with a leading \(oq;\(cq returns:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
 get_pos:;Azimuth: 90.000000;Elevation: 45.000000;RPRT 0
 .EE
-.RE
+.in
 .
 .PP
 Or, using the pipe character \(oq|\(cq returns:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
 get_pos:|Azimuth: 90.000000|Elevation: 45.000000|RPRT 0
 .EE
-.RE
+.in
 .
 .PP
 And a
 .B set_pos
 command prepended with a \(oq|\(cq returns:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
 set_pos: 135 22.5|RPRT 0
 .EE
-.RE
+.in
 .
 .PP
 Such a format will allow reading a response as a single event using a preferred
@@ -863,31 +860,31 @@ sent to and received from the radio which is very useful for radio backend
 library development and may be requested by the developers.
 .
 .
-.SH EXAMPLE
+.SH EXAMPLES
 .
 Start
 .B rotctld
 for a Hy-Gain Ham IV rotor with the Idiom Press RotorEZ board installed using
 a USB-to-serial adapter and backgrounding:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-$ rotctld \-m 401 \-r /dev/ttyUSB1 &
+$ \fBrotctld \-m 401 \-r /dev/ttyUSB1 &\fP
 .EE
-.RE
+.in
 .
 .PP
 Start
 .B rotctld
 for RotorEZ using COM2 on Win32:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-.RE
-$ rotctl \-m 401 \-r COM2
+> \fBrotctl \-m 401 \-r COM2\fP
 .EE
+.in
 .
 .PP
 Connect to the already running
@@ -895,12 +892,12 @@ Connect to the already running
 and set position to 135.0 degrees azimuth and 30.0 degrees elevation with a 1
 second read timeout from the shell prompt:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-$ echo "\\set_pos 135.0 30.0" | nc \-w 1 localhost 4533
+$ \fBecho "\\set_pos 135.0 30.0" | nc \-w 1 localhost 4533\fP
 .EE
-.RE
+.in
 .
 .PP
 Connect to a running
@@ -908,12 +905,12 @@ Connect to a running
 with
 .B rotctl
 on the local host:
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-$ rotctl \-m 2
+$ \fBrotctl \-m 2\fP
 .EE
-.RE
+.in
 .
 .
 .SH SECURITY
@@ -970,7 +967,7 @@ Copyright \(co 2000-2009 Stephane Fillod
 .br
 Copyright \(co 2000-2018 the Hamlib Group (various contributors)
 .br
-Copyright \(co 2011-2019 Nate Bargmann
+Copyright \(co 2011-2020 Nate Bargmann
 .
 .PP
 This is free software; see the file COPYING for copying conditions.  There is
@@ -988,8 +985,8 @@ NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 .SH COLOPHON
 .
 Links to the Hamlib Wiki, Git repository, release archives, and daily snapshot
-archives:
-.IP
+archives are available via
+.
 .UR http://www.hamlib.org
 hamlib.org
 .UE .
