@@ -5,7 +5,7 @@
 .\"
 .\" Note: Please keep this page in sync with the source, rotctl.c
 .\"
-.TH ROTCTL "1" "2019-12-10" "Hamlib" "Hamlib Utilities"
+.TH ROTCTL "1" "2020-09-09" "Hamlib" "Hamlib Utilities"
 .
 .
 .SH NAME
@@ -252,14 +252,14 @@ Commands can be entered either as a single char, or as a long command name.
 The commands are not prefixed with a dash as the options are.  They may be
 typed in when in interactive mode or provided as argument(s) in command line
 interface mode.  In interactive mode commands and their arguments may be
-entered on a single line:
+entered on a single line (typed text shown in bold):
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-P 123 45
+.B P 123 45
 .EE
-.RE
+.in
 .
 .PP
 Since most of the
@@ -277,7 +277,7 @@ backslash, \(oq\\\(cq, to enter a long command name.
 Example: Use \(lq\\get_info\(rq in interactive mode to see the rotator's
 information.
 .
-.PP
+.IP
 .BR Note :
 The backend for the rotator to be controlled, or the rotator itself may not
 support some commands. In that case, the operation will fail with a
@@ -302,17 +302,17 @@ ignored.
 .PP
 A simple example:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-$ cat <<.EOF. >cmds.txt
-> # File of commands
-> set_pos 180.0 10.0	# rotate
-> pause 30  # wait for action to complete
-> get_pos   # query rotator
-> .EOF.
+.RB $ " cat <<.EOF. >cmds.txt"
+.RB > " # File of commands"
+.RB > " set_pos 180.0 10.0	# rotate"
+.RB > " pause 30  # wait for action to complete"
+.RB > " get_pos   # query rotator"
+.RB > .EOF.
 
-$ rotctl -m 1 - <cmds.txt
+.RB $ " rotctl -m 1 - <cmds.txt"
 
 set_pos 180.0 10.0
 pause 30
@@ -321,7 +321,7 @@ get_pos 180.000000
 
 $
 .EE
-.RE
+.in
 .
 .
 .SS Rotator Commands
@@ -357,12 +357,13 @@ Elevation can be -20 to 210 depending on the rotator.
 .IP
 For example:
 .
-.sp
-.RS 1.0i
+.IP
+.in +4n
 .EX
-P 163.0 41.0
+.B P 163.0 41.0
 .EE
-.RE
+.in
+.
 .IP
 .BR Note :
 If the rotator does not support setting elevation (most do not) supply
@@ -474,21 +475,22 @@ which should be an even numbered integer value between 2 and 12.
 .IP
 For example:
 .
-.sp
-.RS 1.0i
+.IP
+.in +4n
 .EX
-L -170.0 -85.0 12
+.B L -170.0 -85.0 12
 .EE
-.RE
+.in
+.
 .IP
 returns:
 .
-.sp
-.RS 1.0i
+.IP
+.in +4n
 .EX
 Locator: AA55AA00AA00
 .EE
-.RE
+.in
 .
 .TP
 .BR l ", " loc2lonlat " \(aq" \fILocator\fP \(aq
@@ -508,21 +510,23 @@ expressed as a negative value.
 .IP
 For example:
 .
-.sp
-.RS 1.0i
+.IP
+.in +4n
 .EX
-l AA55AA00AA00
+.B l AA55AA00AA00
 .EE
-.RE
+.in
+.
 .IP
 returns:
 .
-.sp
-.RS 1.0i
+.IP
+.in +4n
 .EX
 Longitude: -169.999983 Latitude: -84.999991
 .EE
-.RE
+.in
+.
 .IP
 .BR Note :
 Despite the use of double precision variables internally, some rounding error
@@ -737,30 +741,30 @@ if an error was returned by
 .BR Hamlib .
 .
 .
-.SH EXAMPLE
+.SH EXAMPLES
 .
 Start
 .B rotctl
 for RotorEZ using the first serial port on Linux:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-$ rotctl -m 401 -r /dev/ttyS0
+.RB $ " rotctl -m 401 -r /dev/ttyS0"
 .EE
-.RE
+.in
 .
 .PP
 Start
 .B rotctl
 for RotorEZ using COM2 on MS Windows:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-$ rotctl -m 401 -r COM2
+.RB > " rotctl -m 401 -r COM2"
 .EE
-.RE
+.in
 .
 .PP
 Connect to a running
@@ -768,12 +772,12 @@ Connect to a running
 with rotator model 2 (\(lqNET rotctl\(rq) on the local host and specifying the
 TCP port, and querying the position:
 .
-.sp
-.RS 0.5i
+.PP
+.in +4n
 .EX
-$ rotctl -m 2 -r localhost:4533 \\get_pos
+.RB $ " rotctl -m 2 -r localhost:4533 \\get_pos"
 .EE
-.RE
+.in
 .
 .
 .SH BUGS
@@ -799,7 +803,7 @@ Copyright \(co 2001-2011 Stephane Fillod
 .br
 Copyright \(co 2002-2017 the Hamlib Group (various contributors)
 .br
-Copyright \(co 2003-2019 Nate Bargmann
+Copyright \(co 2003-2020 Nate Bargmann
 .
 .PP
 This is free software; see the file COPYING for copying conditions.  There is
@@ -817,8 +821,8 @@ NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 .SH COLOPHON
 .
 Links to the Hamlib Wiki, Git repository, release archives, and daily snapshot
-archives:
-.IP
+archives are available via
+.
 .UR http://www.hamlib.org
 hamlib.org
 .UE .
