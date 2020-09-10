@@ -5,7 +5,7 @@
 .\"
 .\" Please keep this file in sync with doc/nutshell.texi
 .\"
-.TH HAMLIB "7" "2018-05-21" "Hamlib" "Hamlib Information Manual"
+.TH HAMLIB "7" "2020-09-08" "Hamlib" "Hamlib Information Manual"
 .
 .
 .SH NAME
@@ -153,20 +153,21 @@ in a few years.
 A major milestone was reached when Hamlib 1.2.0 was released in March 2004.
 .
 The API and Application Binary Interface (ABI) interfaces have remained stable
-since that time up to the latest release of 3.2 in early 2018.
+since that time up to the release of 3.3 in mid 2018.
+.
+Version 4.0 marks a major change to the ABI and certain changes to the API.
 .
 .PP
 Development continues through the major version number
-.RI 3. x
+.RI 4. x
 series and beyond.
 .
-While some API tweaks are planned, ABI compatibility with the prior
-.RI 1.2. x
-releases remains a priority.
+The 4.0 release marks a major change in the ABI with several changes for
+additional modes and such that will require client programs that use the C ABI
+to be recompiled/relinked, etc.
 .
-Other goals include streamlining the build system (done), improving the SWIG
-generated language bindings (done), improving the overall documentation (this
-man page with more in progress), and other updates as warranted.
+Other goals include improving the overall documentation (this man page with
+more in progress), and other updates as warranted.
 .
 .PP
 The Project is hosted by
@@ -255,28 +256,37 @@ atmosphere for development.
 Hamlib's source code is released under two
 licenses, the
 .B Lesser General Public License
-(LGPL) for the library portion, and the
+(LGPL) version 2.1 for the library portion, and the
 .B General Public License
-(GPL) for the utility programs.
+(GPL) version 2 for the utility programs.
 .
 .PP
 The LGPL allows the library to be used (linked) by programs regardless of
 their individual license.
 .
-However, any contributions to the library source remain under copyleft which
-means that the library source code may not be used in violation of the terms
-of the LGPL.
+However, any contributions to the library source remain under a copyleft
+license which means that the library source code may not be used in violation
+of the terms of the LGPL (see the file
+.B COPYING.LIB
+in the main source directory).
+.
+Concepts learned by studying these sources for the purpose of understanding
+the Hamlib API is not covered nor prohibited by the LGPL, however, directly
+copying LGPL sources into any work that is incompatible with the terms of the
+LGPL is a violation of the terms of the license.
 .
 .PP
 The utility program source files are released under the GPL.
 .
 Any direct use of these sources must be in a form that complies with the terms
-of the GPL.
+of the GPL (see the file
+.B COPYING
+in the main source directory).
 .
 Concepts learned by studying these sources for the purpose of understanding
 the Hamlib API is not covered nor prohibited by the GPL, however, directly
 copying GPL sources into any work that is incompatible with the terms of the
-GPL is prohibited.
+GPL is a violation of the terms of the license.
 .
 .
 .SS Radios with a clone capability
@@ -289,11 +299,11 @@ for cloning the memory contents from radio to another of the same model.
 .
 A related project,
 .UR http://chirp.danplanet.com
-CHIRP
+.B Chirp
 .UE ,
 aims to support radios with such a clone capability.
 .
-Please contact the CHIRP project for support of such radios.
+Please contact the Chirp project for support of such radios.
 .
 .
 .SS Pronouncing Hamlib
@@ -319,11 +329,12 @@ If you're French, the above does not apply! :-)
 .SH COPYING
 .
 This file is part of Hamlib, a project to develop a library that simplifies
-radio and rotator control functions for developers of software primarily of
-interest to radio amateurs and those interested in radio communications.
+radio, rotator, and amplifier control functions for developers of software
+primarily of interest to radio amateurs and those interested in radio
+communications.
 .
 .PP
-Copyright \(co 2001-2018 Hamlib Group (various contributors)
+Copyright \(co 2001-2020 Hamlib Group (various contributors)
 .
 .PP
 This is free software; see the file COPYING for copying conditions.  There is
@@ -338,8 +349,8 @@ NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 .SH COLOPHON
 .
 Links to the Hamlib Wiki, Git repository, release archives, and daily snapshot
-archives:
-.IP
+archives are available via
+.
 .UR http://www.hamlib.org
 hamlib.org
 .UE .
