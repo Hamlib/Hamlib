@@ -15,7 +15,8 @@ man(1) format to a terminal screen, HTML, and PDF.  While groff includes a
 number of macro packages suitable for a variety of document styles, Hamlib
 source files are written using the man(7) macro package.  The layout of Hamlib
 man pages generally follow the format specified in man-pages(7).  The macros
-used in the man pages format is specified in groff_man(7).
+used in the man pages format is specified in groff_man(7).  Additional style
+cues can be found in groff_man_style(7).
 
 The use of mdoc from the BSD projects has been considered and may be used in
 the future if the need arises.  Conversely, the classic man macros are
@@ -96,6 +97,8 @@ in the Hamlib man pages:
         .nf             Do not justify following text (encloses the .MT block)
         .fi             Resume justification
 
+Note: ".br" and ".sp" should be used sparingly.
+
 Structure
 ---------
 
@@ -109,7 +112,7 @@ Layout Tips
 ===========
 
 Keep in mind that roff documents are most often processed in a single pass,
-i.e.  the document processor reads the file from top to bottom and formats the
+i.e., the document processor reads the file from top to bottom and formats the
 text per the macros and escapes found along the way.  Anything that is not a
 macro or an escape gets rendered into the output file and that includes blank
 lines.  As a result, best practice is to not include blank lines in the
@@ -122,16 +125,8 @@ Note:  While the man macro package recognizes ".LP" and ".P" as synonyms for
 ".PP", some tools may only recognize ".PP".  One such tool is the older
 'man2html' converter.
 
-Blank lines may be included as part of an example block placed between the
-".EX" and ".EE" macros.  Lines between these macros are rendered in HTML and
-PDF as blocks of constant width text and should be verbatim input or output
-from the shell, programs, or blocks of source code.
-
-Examples should be indented from the blocks of text.  The ".RS 0.5i" macro is
-used for indentation of normal text blocks while ".RS 1.0i" is used for
-indented text blocks, such as a block indented using the ".TP" macro.  For
-each case the indented block must be followed by the ".RE" macro to return the
-next block of text to the normal indentation level.
+Headings
+--------
 
 Normal section headings use the ".SH" macro which provides for vertical space
 between the previous text and the heading and also begins the next block of
@@ -142,6 +137,70 @@ Sub-headings use the ".SS" macro which provides vertical space above the
 previous block of text and indents the sub-heading to about half the distance
 from the left margin and the block of text that follows.  Only one level of
 sub-headings is provided.
+
+Examples
+--------
+
+Examples should be indented from the blocks of text.  The ".in +4n" macro is
+used for indentation of four characters regardless of text indentation level.
+
+Precede each such macro with either the ".PP" or the ".IP" macro, the latter
+being used with a block indented using the ".TP" macro.
+
+The indented block must be ended using the ".in" macro to return the next
+block of text to the normal indentation level.
+
+In the Hamlib man pages this indentation is combined with the ".EX" and ".EE"
+macro pair.  See the man1/rigctl.1 file for examples.
+
+Blank lines should be included as part of an example block placed between the
+".EX" and ".EE" macros.  Lines between these macros are rendered in HTML and
+PDF as blocks of constant width text and should be verbatim input or output
+in the shell, programs, or blocks of source code.
+
+Text intended to be typed at a shell or program prompt should be in bold and
+program orshell output in normal weight.  In some cases it will be necessary
+to use the "\fB...\fP" font formatting calls especially where backslash
+escapes ("\\") are required.
+
+Notes
+-----
+
+Notes are those asides that bring attention to an important bit of
+information.
+
+Indent the note with the ".IP" macro in all levels of text.
+
+Bold the word "Note" and set the colon in Roman, e.g., ".BR Note :".
+
+
+Testing
+=======
+
+While writing a manual page it is very useful to check the output.
+
+Terminal output
+---------------
+
+At the shell prompt this may be done with:
+
+   man ./manual_page.1
+
+This will direct the man program to format the file in question rather than
+searching through its database.
+
+PDF and HTML output
+-------------------
+
+It is very useful to generate PDF and HTML files while writing a manual page
+to assure the font effects and indentation are as you intend.
+
+Use these commands to generate these files:
+
+    groff -mandoc -Tpdf >manual_page.1.pdf manual_page.1
+    groff -mandoc -Thtml >manual_page.1.html manual_page.1
+
+Use your favorite PDF viewer and browser to view them.
 
 
 Getting Help
