@@ -2653,11 +2653,6 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         lvl_sc = S_LVL_MON;
         break;
 
-    case RIG_LEVEL_BRIGHT:
-        lvl_cn = C_CTL_LVL;
-        lvl_sc = S_LVL_BRIGHT;
-        break;
-
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported set_level %s", __func__,
                   rig_strlevel(level));
