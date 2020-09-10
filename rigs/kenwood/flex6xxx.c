@@ -47,6 +47,9 @@
 
 #define F6K_ANTS (RIG_ANT_1|RIG_ANT_2|RIG_ANT_3)
 
+/* PowerSDR differences */
+#define POWERSDR_LEVEL_ALL (RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW|RIG_LEVEL_KEYSPD|RIG_LEVEL_RFPOWER_METER)
+
 
 static rmode_t flex_mode_table[KENWOOD_MODE_TABLE_MAX] =
 {
@@ -628,6 +631,52 @@ int flex6k_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     return err;
 }
+/*
+ * powersdr_get_level
+ */
+int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
+    char lvlbuf[KENWOOD_MAX_BUF_LEN];
+    char *cmd;
+    int retval;
+    int len;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!val)
+    {
+        return -RIG_EINVAL;
+    }
+
+    switch (level)
+    {
+        case RIG_LEVEL_RFPOWER_METER:
+            cmd = "ZZRM5";
+            len = 5;
+            break;
+        default:
+            return kenwood_get_level(rig,vfo,level,val);
+    }
+    retval = kenwood_safe_transaction(rig, cmd, lvlbuf, 10, len + 3);
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+    int n;
+    switch (level)
+    {
+        case RIG_LEVEL_RFPOWER_METER:
+            n = sscanf(lvlbuf + len, "%f", &val->f);
+            if (n != 1) {
+                rig_debug(RIG_DEBUG_ERR,"%s: Error parsing RFPOWER from lvlbuf='%s'\n",__func__,lvlbuf);
+                return -RIG_EPROTO;
+            }
+            val->f /= 100;
+            break;
+    }
+    return RIG_OK;
+}
+
 
 /*
  * F6K rig capabilities.
@@ -785,7 +834,7 @@ const struct rig_caps powersdr_caps =
 
     .has_get_func =     RIG_FUNC_NONE, /* has VOX but not implemented here */
     .has_set_func =     RIG_FUNC_NONE,
-    .has_get_level =    F6K_LEVEL_ALL,
+    .has_get_level =    POWERSDR_LEVEL_ALL,
     .has_set_level =    F6K_LEVEL_ALL,
     .has_get_parm =     RIG_PARM_NONE,
     .has_set_parm =     RIG_PARM_NONE,  /* FIXME: parms */
@@ -879,7 +928,8 @@ const struct rig_caps powersdr_caps =
     // TODO copy over kenwood_[set|get]_level and modify to handle DSP filter values
     // correctly - use actual values instead of indices
     .set_level =        kenwood_set_level,
-    .get_level =        kenwood_get_level,
+    .get_level =        powersdr_get_level,
     //.set_ant =       kenwood_set_ant_no_ack,
     //.get_ant =       kenwood_get_ant,
 };
+
