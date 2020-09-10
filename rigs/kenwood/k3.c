@@ -180,7 +180,7 @@ const struct rig_caps k3_caps =
     RIG_MODEL(RIG_MODEL_K3),
     .model_name =       "K3",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".0",
+    .version =      BACKEND_VER ".1",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -329,7 +329,7 @@ const struct rig_caps k3s_caps =
     RIG_MODEL(RIG_MODEL_K3S),
     .model_name =       "K3S",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".0",
+    .version =      BACKEND_VER ".1",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -479,7 +479,7 @@ const struct rig_caps k4_caps =
     RIG_MODEL(RIG_MODEL_K4),
     .model_name =       "K4",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".0",
+    .version =      BACKEND_VER ".1",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_ALPHA,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -628,7 +628,7 @@ const struct rig_caps kx3_caps =
     RIG_MODEL(RIG_MODEL_KX3),
     .model_name =       "KX3",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".0",
+    .version =      BACKEND_VER ".1",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_BETA,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -777,7 +777,7 @@ const struct rig_caps kx2_caps =
     RIG_MODEL(RIG_MODEL_KX2),
     .model_name =       "KX2",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".0",
+    .version =      BACKEND_VER ".1",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_BETA,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -1664,6 +1664,10 @@ int k3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         snprintf(levelbuf, sizeof(levelbuf), "SQ%03d", (int)(val.f * 29.0f));
         break;
 
+    case RIG_LEVEL_AF:
+        snprintf(levelbuf, sizeof(levelbuf), "AG%03d", (int)(val.f * 250.0f));
+        break;
+
     case RIG_LEVEL_RF:
         snprintf(levelbuf, sizeof(levelbuf), "RG%03d", (int)(val.f * 250.0f));
         break;
@@ -1906,6 +1910,18 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         sscanf(lvlbuf + 2, "%d", &lvl);
         val->f = (float) lvl / 29.0f;
+        break;
+
+    case RIG_LEVEL_AF:
+        retval = kenwood_safe_transaction(rig, "AG", lvlbuf, sizeof(lvlbuf), 5);
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        sscanf(lvlbuf + 2, "%d", &lvl);
+        val->f = (float) lvl / 250.0f;
         break;
 
     case RIG_LEVEL_RF:
