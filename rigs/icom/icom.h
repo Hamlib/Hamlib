@@ -31,7 +31,7 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "20200910"
+#define BACKEND_VER "20200911"
 
 /*
  * defines used by comp_cal_str in rig.c
@@ -167,6 +167,8 @@ struct icom_priv_caps
     int agc_levels_present;     /* Flag to indicate that agc_levels array is populated */
     struct icom_agc_level agc_levels[RIG_AGC_LAST + 1]; /* Icom rig-specific AGC levels, the last entry should have level -1 */
     struct cmdparams *extcmds;  /* Pointer to extended operations array */
+    struct cmdparams *extlevels; /* Pointer to extended operations array */
+    struct cmdparams *extparms;  /* Pointer to extended operations array */
 };
 
 
