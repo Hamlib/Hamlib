@@ -68,9 +68,9 @@ struct confparams icr30_ext[] =
 
 struct cmdparams icr30_extcmds[] =
 {
-    { {.t = TOK_ANL}, C_CTL_MEM, S_MEM_ANL, SC_MOD_RW, 0, {}, CMD_DAT_BOL, 1 },
-    { {.t = TOK_EAR}, C_CTL_MEM, S_MEM_EAR, SC_MOD_RW, 0, {}, CMD_DAT_BOL, 1 },
-    { {.t = TOK_REC}, C_CTL_MEM, S_MEM_REC, SC_MOD_WR, 0, {}, CMD_DAT_BOL, 1 },
+    { {.t = TOK_ANL}, CMD_PARAM_TYPE_TOKEN, C_CTL_MEM, S_MEM_ANL, SC_MOD_RW, 0, {}, CMD_DAT_BOL, 1 },
+    { {.t = TOK_EAR}, CMD_PARAM_TYPE_TOKEN, C_CTL_MEM, S_MEM_EAR, SC_MOD_RW, 0, {}, CMD_DAT_BOL, 1 },
+    { {.t = TOK_REC}, CMD_PARAM_TYPE_TOKEN, C_CTL_MEM, S_MEM_REC, SC_MOD_WR, 0, {}, CMD_DAT_BOL, 1 },
     { {0} }
 };
 
