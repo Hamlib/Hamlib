@@ -2700,13 +2700,16 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     const struct cmdparams *cmd = priv->extcmds;
     int i;
 
+
     for (i = 0; cmd && cmd[i].id.s != 0; i++)
     {
+	rig_debug(RIG_DEBUG_TRACE, "%s: i=%d\n", __func__, i);
         if (cmd[i].cmdparamtype == CMD_PARAM_TYPE_LEVEL && cmd[i].id.s == level)
         {
             return icom_get_cmd(rig, vfo, (struct cmdparams *)&cmd[i], val);
         }
     }
+    rig_debug(RIG_DEBUG_TRACE, "%s: no extcmd found\n", __func__);
 
     rs = &rig->state;
 
