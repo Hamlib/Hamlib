@@ -15,12 +15,9 @@ $rig->set_conf("rig_pathname","/dev/Rig");
 
 $rig->open();
 
-# 1073741944 is token value for "itu_region"
-# but using get_conf is much more convenient
-$region = $rig->get_conf(1073741944);
 $rpath = $rig->get_conf("rig_pathname");
 $retry = $rig->get_conf("retry");
-print "get_conf:\t\tpath = \"$rpath\", retry = $retry, ITU region = $region\n";
+print "get_conf:\t\tpath = \"$rpath\", retry = $retry\n";
 
 
 $rig->set_freq($Hamlib::RIG_VFO_A, 14266000);
@@ -38,7 +35,6 @@ $rig->set_vfo($Hamlib::RIG_VFO_B);
 
 $rig->set_mode($Hamlib::RIG_MODE_CW, $Hamlib::RIG_PASSBAND_NORMAL);
 
-print "ITU region:\t\t$rig->{state}->{itu_region}\n";
 print "Backend copyright:\t$rig->{caps}->{copyright}\n";
 print "Model:\t\t\t$rig->{caps}->{model_name}\n";
 print "Manufacturer:\t\t$rig->{caps}->{mfg_name}\n";

@@ -22,15 +22,11 @@ function doStartup()
     my_rig:set_conf("retry", "5")
     my_rig:open()
 
-    -- 1073741944 is token value for "itu_region"
-    -- but using get_conf is much more convenient
-    region = my_rig:get_conf(1073741944)
-    regionstr = my_rig:get_conf("itu_region")
     tpath = my_rig:get_conf("rig_pathname")
     retry = my_rig:get_conf("retry")
 
     print (string.format("status(str):\t\t%s", Hamlib.rigerror(my_rig.error_status)))
-    print (string.format("get_conf:\t\tpath = %s, retry = %s, ITU region = %s, ITU region (str) = %s", tpath, retry, region, regionstr))
+    print (string.format("get_conf:\t\tpath = %s, retry = %s", tpath, retry))
 
     my_rig:set_freq(Hamlib.RIG_VFO_B, 5700000000)
     my_rig:set_vfo(Hamlib.RIG_VFO_B)
@@ -45,7 +41,6 @@ function doStartup()
     mode, width = my_rig:get_mode()
     print(string.format("mode:\t\t\t%s\nbandwidth:\t\t%d", Hamlib.rig_strrmode(mode), width))
 
-    print(string.format("ITU_region:\t\t%s", my_rig.state.itu_region))
     print(string.format("Backend copyright:\t%s",my_rig.caps.copyright))
 
     print(string.format("Model:\t\t\t%s", my_rig.caps.model_name))

@@ -31,10 +31,8 @@ set mode [rig_strrmode [lindex $moderes 0]]
 puts "mode:\t\t$mode\nbandwidth:\t[lindex $moderes 1]Hz"
 
 set state [my_rig cget -state]
-puts "ITU_region:\t[$state cget -itu_region]"
 
 # The following works well also
-# puts ITU_region:[[my_rig cget -state] cget -itu_region]
 
 set rigcaps [my_rig cget -caps]
 #set model [$rigcaps cget -model_name]
