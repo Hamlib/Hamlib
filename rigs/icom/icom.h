@@ -31,7 +31,7 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "20200911"
+#define BACKEND_VER "20200912"
 
 /*
  * defines used by comp_cal_str in rig.c
@@ -106,11 +106,21 @@ struct icom_agc_level
     icom_level; /* Icom AGC level for C_CTL_FUNC (0x16), S_FUNC_AGC (0x12) command */
 };
 
+typedef enum
+{
+    CMD_PARAM_TYPE_NONE,
+    CMD_PARAM_TYPE_LEVEL,
+    CMD_PARAM_TYPE_PARM,
+    CMD_PARAM_TYPE_TOKEN,
+    CMD_PARAM_TYPE_FUNC,
+} cmd_param_t;
+
 struct cmdparams {      /* Lookup table item for levels & parms */
     union {
         setting_t s;    /* Level or parm */
         token_t t;      /* TOKEN_BACKEND */
     } id;
+    cmd_param_t cmdparamtype;  /* CMD_PARAM_TYPE_LEVEL or CMD_PARAM_TYPE_PARM */
     int command;        /* CI-V command */
     int subcmd;         /* CI-V Subcommand */
     int submod;         /* Subcommand modifier */
@@ -167,8 +177,6 @@ struct icom_priv_caps
     int agc_levels_present;     /* Flag to indicate that agc_levels array is populated */
     struct icom_agc_level agc_levels[RIG_AGC_LAST + 1]; /* Icom rig-specific AGC levels, the last entry should have level -1 */
     struct cmdparams *extcmds;  /* Pointer to extended operations array */
-    struct cmdparams *extlevels; /* Pointer to extended operations array */
-    struct cmdparams *extparms;  /* Pointer to extended operations array */
 };
 
 
@@ -282,7 +290,7 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val);
 int icom_set_ext_parm(RIG *rig, token_t token, value_t val);
 int icom_get_ext_parm(RIG *rig, token_t token, value_t *val);
 int icom_set_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t val);
-int icom_get_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t *val);
+int icom_get_ext_cmd(RIG *rig, vfo_t vfo, cmd_param_t cmdparamtype, token_t token, value_t *val);
 int icom_set_conf(RIG *rig, token_t token, const char *val);
 int icom_get_conf(RIG *rig, token_t token, char *val);
 int icom_set_powerstat(RIG *rig, powerstat_t status);
