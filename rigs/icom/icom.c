@@ -2217,7 +2217,7 @@ int icom_set_cmd(RIG *rig, vfo_t vfo, struct cmdparams *par, value_t val)
         to_bcd_be(&cmdbuf[cmdlen], (int)(val.f * 255.0), (cmdlen * 2));
         break;
 
-    case CMD_DAT_TIM:
+    case CMD_DAT_TIM: // returned as seconds since midnight
         to_bcd_be(&cmdbuf[cmdlen],
                   ((((int)val.f / 3600) * 100) + (((int)val.f / 60) % 60)), (par->datlen * 2));
         break;
@@ -5628,7 +5628,7 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 
     for (i = 0; cmd && cmd[i].id.s != 0; i++)
     {
-        if (cmd[i].id.s == parm)
+        if (cmd[i].cmdparamtype == CMD_PARAM_TYPE_PARM && cmd[i].id.s == parm)
         {
             return icom_get_cmd(rig, RIG_VFO_NONE, (struct cmdparams *)&cmd[i], val);
         }
