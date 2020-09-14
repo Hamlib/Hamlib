@@ -965,26 +965,25 @@ int ic7300_set_parm(RIG *rig, setting_t parm, value_t val)
         hr = (int)((float) val.i / 3600.0);
         min = (int)((float)(val.i - (hr * 3600)) / 60.0);
 
-        prmbuf[0] = 0x05;
         switch (rig->caps->rig_model) {
         case RIG_MODEL_IC7300:
-            prmbuf[2] = 0x00;
-            prmbuf[3] = 0x95;
+            prmbuf[0] = 0x00;
+            prmbuf[1] = 0x95;
             break;
         case RIG_MODEL_IC9700:
-            prmbuf[2] = 0x01;
-            prmbuf[3] = 0x80;
+            prmbuf[0] = 0x01;
+            prmbuf[1] = 0x80;
             break;
         case RIG_MODEL_IC705:
-            prmbuf[2] = 0x01;
-            prmbuf[3] = 0x66;
+            prmbuf[0] = 0x01;
+            prmbuf[1] = 0x66;
             break;
         default:
             return -RIG_ENIMPL;
         }
-        to_bcd_be(prmbuf + 3, (long long) hr, 2);
-        to_bcd_be(prmbuf + 4, (long long) min, 2);
-        return icom_set_raw(rig, C_CTL_MEM, S_MEM_PARM, 5, prmbuf, 0, 0);
+        to_bcd_be(prmbuf + 2, (long long) hr, 2);
+        to_bcd_be(prmbuf + 3, (long long) min, 2);
+        return icom_set_raw(rig, C_CTL_MEM, S_MEM_PARM, 4, prmbuf, 0, 0);
 
     default:
         rig_debug(RIG_DEBUG_ERR, "Unsupported set_parm %s\n", rig_strparm(parm));
