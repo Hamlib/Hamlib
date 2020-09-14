@@ -38,6 +38,10 @@
 #include "bandplan.h"
 #include "tones.h"
 
+static int ic7300_set_parm(RIG *rig, setting_t parm, value_t val);
+static int ic7300_get_parm(RIG *rig, setting_t parm, value_t *val);
+
+
 #define IC7300_ALL_RX_MODES (RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTFM|RIG_MODE_PKTAM)
 #define IC7300_1HZ_TS_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTFM|RIG_MODE_PKTAM)
 #define IC7300_NOT_TS_MODES (IC7300_ALL_RX_MODES &~IC7300_1HZ_TS_MODES)
@@ -404,8 +408,8 @@ const struct rig_caps ic7300_caps =
     .get_ext_level =  icom_get_ext_level,
     .set_func =  icom_set_func,
     .get_func =  icom_get_func,
-    .set_parm =  icom_set_parm,
-    .get_parm =  icom_get_parm,
+    .set_parm =  ic7300_set_parm,
+    .get_parm =  ic7300_get_parm,
     .set_mem =  icom_set_mem,
     .vfo_op =  icom_vfo_op,
     .scan =  icom_scan,
@@ -885,3 +889,162 @@ const struct rig_caps ic705_caps =
     .send_morse = icom_send_morse,
     .send_voice_mem = icom_send_voice_mem
 };
+
+int ic7300_set_parm(RIG *rig, setting_t parm, value_t val)
+{
+    unsigned char prmbuf[MAXFRAMELEN];
+    int min, hr;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    switch (parm)
+    {
+    case RIG_PARM_ANN:
+    {
+        int ann_mode = -1;
+        int ann_lang = -1;
+
+        switch (val.i)
+        {
+        case RIG_ANN_OFF:
+            ann_mode = S_ANN_ALL;
+            break;
+
+        case RIG_ANN_FREQ:
+            ann_mode = S_ANN_FREQ;
+            break;
+
+        case RIG_ANN_RXMODE:
+            ann_mode = S_ANN_MODE;
+            break;
+
+        case RIG_ANN_ENG:
+        case RIG_ANN_JAP:
+            ann_lang = (val.i == RIG_ANN_ENG) ? 0 : 1;
+            break;
+
+        default:
+            rig_debug(RIG_DEBUG_ERR, "Unsupported RIG_PARM_ANN %d\n", val.i);
+            return -RIG_EINVAL;
+        }
+
+        if (ann_mode >= 0)
+        {
+            return icom_set_raw(rig, C_CTL_ANN, ann_mode, 0, NULL, 0, 0);
+        }
+        else if (ann_lang >= 0)
+        {
+            prmbuf[0] = 0x1a;
+            prmbuf[1] = 0x05;
+            switch (rig->caps->rig_model) {
+            case RIG_MODEL_IC7300:
+                prmbuf[2] = 0x00;
+                prmbuf[3] = 0x39;
+                break;
+            case RIG_MODEL_IC9700:
+                prmbuf[2] = 0x01;
+                prmbuf[3] = 0x77;
+                break;
+            case RIG_MODEL_IC705:
+                prmbuf[2] = 0x00;
+                prmbuf[3] = 0x53;
+                break;
+            default:
+                return -RIG_ENIMPL;
+            }
+
+            prmbuf[4] = ann_lang;
+            return icom_set_raw(rig, C_CTL_MEM, S_MEM_MODE_SLCT, 5, prmbuf, 0, 0);
+        }
+
+        rig_debug(RIG_DEBUG_ERR, "Unsupported RIG_PARM_ANN %d\n", val.i);
+        return -RIG_EINVAL;
+    }
+
+    case RIG_PARM_TIME:
+        hr = (int)((float) val.i / 3600.0);
+        min = (int)((float)(val.i - (hr * 3600)) / 60.0);
+
+        prmbuf[0] = 0x05;
+        switch (rig->caps->rig_model) {
+        case RIG_MODEL_IC7300:
+            prmbuf[2] = 0x00;
+            prmbuf[3] = 0x95;
+            break;
+        case RIG_MODEL_IC9700:
+            prmbuf[2] = 0x01;
+            prmbuf[3] = 0x80;
+            break;
+        case RIG_MODEL_IC705:
+            prmbuf[2] = 0x01;
+            prmbuf[3] = 0x66;
+            break;
+        default:
+            return -RIG_ENIMPL;
+        }
+        to_bcd_be(prmbuf + 3, (long long) hr, 2);
+        to_bcd_be(prmbuf + 4, (long long) min, 2);
+        return icom_set_raw(rig, C_CTL_MEM, S_MEM_PARM, 5, prmbuf, 0, 0);
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "Unsupported set_parm %s\n", rig_strparm(parm));
+        return -RIG_EINVAL;
+    }
+}
+
+int ic7300_get_parm(RIG *rig, setting_t parm, value_t *val)
+{
+    unsigned char prmbuf[MAXFRAMELEN], resbuf[MAXFRAMELEN];
+    int prm_len, res_len;
+    int prm_cn, prm_sc;
+    int icom_val = 0;
+    int cmdhead;
+    int retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    switch (parm)
+    {
+    case RIG_PARM_ANN:
+        return -RIG_ENIMPL; // How can we implement this?
+
+    default:
+        rig_debug(RIG_DEBUG_TRACE, "%s: using icom routine for PARM=%s", __func__, rig_strparm(parm));
+        return icom_get_parm(rig,parm,val);
+    }
+
+    retval = icom_transaction(rig, prm_cn, prm_sc, prmbuf, prm_len, resbuf,
+                              &res_len);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    cmdhead = 3;
+    res_len -= cmdhead;
+
+    if (resbuf[0] != ACK && resbuf[0] != prm_cn)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__, resbuf[0],
+                  res_len);
+        return -RIG_ERJCTED;
+    }
+
+    switch (parm)
+    {
+
+    case RIG_PARM_ANN: 
+        rig_debug(RIG_DEBUG_WARN, "%s: not implemented\n", __func__);
+        return -RIG_ENIMPL;
+    default:
+        return icom_get_parm(rig,parm,val);
+    }
+
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: %d %d %d %f\n", __func__, res_len, icom_val,
+              val->i, val->f);
+
+    return RIG_OK;
+}
+
