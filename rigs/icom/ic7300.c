@@ -1008,7 +1008,7 @@ int ic7300_get_parm(RIG *rig, setting_t parm, value_t *val)
         return -RIG_ENIMPL; // How can we implement this?
 
     default:
-        rig_debug(RIG_DEBUG_TRACE, "%s: using icom routine for PARM=%s", __func__, rig_strparm(parm));
+        rig_debug(RIG_DEBUG_TRACE, "%s: using icom routine for PARM=%s\n", __func__, rig_strparm(parm));
         return icom_get_parm(rig,parm,val);
     }
 
