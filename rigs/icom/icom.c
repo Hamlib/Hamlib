@@ -2344,7 +2344,7 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     for (i = 0; cmd && cmd[i].id.s != 0; i++)
     {
-        if (cmd[i].id.s == level)
+        if (cmd[i].cmdparamtype == CMD_PARAM_TYPE_LEVEL && cmd[i].id.s == level)
         {
             return icom_set_cmd(rig, vfo, (struct cmdparams *)&cmd[i], val);
         }
@@ -5566,7 +5566,7 @@ int icom_set_parm(RIG *rig, setting_t parm, value_t val)
 
     for (i = 0; cmd && cmd[i].id.s != 0; i++)
     {
-        if (cmd[i].id.s == parm)
+        if (cmd[i].cmdparamtype == CMD_PARAM_TYPE_PARM && cmd[i].id.s == parm)
         {
             return icom_set_cmd(rig, RIG_VFO_NONE, (struct cmdparams *)&cmd[i], val);
         }
