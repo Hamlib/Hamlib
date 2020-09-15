@@ -828,7 +828,7 @@ int win32_serial_close(int fd)
     if ( index->filename ) free( index->filename );
     */
     free(index);
-    
+
 
     LEAVE("serial_close");
     return 0;
@@ -2496,6 +2496,7 @@ int tcgetattr(int fd, struct termios *s_termios)
     myDCB.fParity = 1;
 
 #if 0 // redundant
+
     if (myDCB.fParity)
     {
 #endif
@@ -2524,12 +2525,14 @@ int tcgetattr(int fd, struct termios *s_termios)
         {
             s_termios->c_cflag &= ~(PARODD | CMSPAR | PARENB);
         }
+
 #if 0 // see redundant above
     }
     else
     {
         s_termios->c_cflag &= ~PARENB;
     }
+
 #endif
 
     /* CSIZE */

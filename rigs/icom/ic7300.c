@@ -324,9 +324,9 @@ const struct rig_caps ic7300_caps =
         RIG_CHAN_END,
     },
 
-    .rx_range_list1 =   { 
-        {kHz(30), MHz(74.8), IC7300_ALL_RX_MODES, -1, -1, IC7300_VFOS}, RIG_FRNG_END, 
-        },
+    .rx_range_list1 =   {
+        {kHz(30), MHz(74.8), IC7300_ALL_RX_MODES, -1, -1, IC7300_VFOS}, RIG_FRNG_END,
+    },
     .tx_range_list1 =   {
         FRQ_RNG_HF(1, IC7300_OTHER_TX_MODES, W(2), W(100), IC7300_VFOS, RIG_ANT_1),
         FRQ_RNG_60m(1, IC7300_OTHER_TX_MODES, W(2), W(100), IC7300_VFOS, RIG_ANT_1),
@@ -741,46 +741,46 @@ const struct rig_caps ic705_caps =
         RIG_CHAN_END,
     },
 
-    .rx_range_list1 =   { 
+    .rx_range_list1 =   {
         {kHz(30), MHz(199.999999), IC705_ALL_RX_MODES, -1, -1, IC7300_VFOS, RIG_ANT_1, "USA"},
         {MHz(400), MHz(470), IC705_ALL_RX_MODES, -1, -1, IC7300_VFOS, RIG_ANT_1, "USA"},
-        RIG_FRNG_END, 
+        RIG_FRNG_END,
     },
     .tx_range_list1 =   {
-        { kHz(1800), MHz(1.999999),IC705_ALL_TX_MODES, W(0.1) , W(10) , IC7300_VFOS, RIG_ANT_1, "USA" },
-        { MHz(3.5), MHz(3.999999),IC705_ALL_TX_MODES ,W(0.1) , W(10) , IC7300_VFOS, RIG_ANT_1, "USA" },
-        { MHz(5.255), MHz(5.405),IC705_ALL_TX_MODES ,W(0.1) , W(10) , IC7300_VFOS, RIG_ANT_1, "USA" },
-        { MHz(7.0), MHz(7.3),IC705_ALL_TX_MODES ,W(0.1) , W(10) , IC7300_VFOS, RIG_ANT_1, "USA" },
-        { MHz(10.1), MHz(10.15),IC705_ALL_TX_MODES ,W(0.1) , W(10) , IC7300_VFOS, RIG_ANT_1, "USA" },
-        { MHz(14.0), MHz(14.35),IC705_ALL_TX_MODES ,W(0.1) , W(10) , IC7300_VFOS, RIG_ANT_1, "USA" },
-        { MHz(18.068), MHz(18.168),IC705_ALL_TX_MODES ,W(0.1) , W(10) , IC7300_VFOS, RIG_ANT_1, "USA" },
-        { MHz(21.00), MHz(21.45),IC705_ALL_TX_MODES ,W(0.1) , W(10) , IC7300_VFOS, RIG_ANT_1, "USA" },
-        { MHz(24.89), MHz(24.99),IC705_ALL_TX_MODES ,W(0.1) , W(10) , IC7300_VFOS, RIG_ANT_1, "USA" },
-        { MHz(28.00), MHz(29.70),IC705_ALL_TX_MODES ,W(0.1) , W(10) , IC7300_VFOS, RIG_ANT_1, "USA" },
-        { MHz(50.00), MHz(54.00),IC705_ALL_TX_MODES ,W(0.1) , W(10) , IC7300_VFOS, RIG_ANT_1, "USA" },
-        { MHz(144.00), MHz(148.00),IC705_ALL_TX_MODES ,W(0.1) , W(10) , IC7300_VFOS, RIG_ANT_1, "USA" },
-        { MHz(430.00), MHz(450.00),IC705_ALL_TX_MODES ,W(0.1) , W(10) , IC7300_VFOS, RIG_ANT_1, "USA" },
+        { kHz(1800), MHz(1.999999), IC705_ALL_TX_MODES, W(0.1), W(10), IC7300_VFOS, RIG_ANT_1, "USA" },
+        { MHz(3.5), MHz(3.999999), IC705_ALL_TX_MODES, W(0.1), W(10), IC7300_VFOS, RIG_ANT_1, "USA" },
+        { MHz(5.255), MHz(5.405), IC705_ALL_TX_MODES, W(0.1), W(10), IC7300_VFOS, RIG_ANT_1, "USA" },
+        { MHz(7.0), MHz(7.3), IC705_ALL_TX_MODES, W(0.1), W(10), IC7300_VFOS, RIG_ANT_1, "USA" },
+        { MHz(10.1), MHz(10.15), IC705_ALL_TX_MODES, W(0.1), W(10), IC7300_VFOS, RIG_ANT_1, "USA" },
+        { MHz(14.0), MHz(14.35), IC705_ALL_TX_MODES, W(0.1), W(10), IC7300_VFOS, RIG_ANT_1, "USA" },
+        { MHz(18.068), MHz(18.168), IC705_ALL_TX_MODES, W(0.1), W(10), IC7300_VFOS, RIG_ANT_1, "USA" },
+        { MHz(21.00), MHz(21.45), IC705_ALL_TX_MODES, W(0.1), W(10), IC7300_VFOS, RIG_ANT_1, "USA" },
+        { MHz(24.89), MHz(24.99), IC705_ALL_TX_MODES, W(0.1), W(10), IC7300_VFOS, RIG_ANT_1, "USA" },
+        { MHz(28.00), MHz(29.70), IC705_ALL_TX_MODES, W(0.1), W(10), IC7300_VFOS, RIG_ANT_1, "USA" },
+        { MHz(50.00), MHz(54.00), IC705_ALL_TX_MODES, W(0.1), W(10), IC7300_VFOS, RIG_ANT_1, "USA" },
+        { MHz(144.00), MHz(148.00), IC705_ALL_TX_MODES, W(0.1), W(10), IC7300_VFOS, RIG_ANT_1, "USA" },
+        { MHz(430.00), MHz(450.00), IC705_ALL_TX_MODES, W(0.1), W(10), IC7300_VFOS, RIG_ANT_1, "USA" },
         RIG_FRNG_END,
     },
 
-    .rx_range_list2 =   { 
+    .rx_range_list2 =   {
         {kHz(30), MHz(199.999999), IC705_ALL_RX_MODES, -1, -1, IC7300_VFOS, RIG_ANT_1, "EUR"},
         {MHz(400), MHz(470), IC705_ALL_RX_MODES, -1, -1, IC7300_VFOS, RIG_ANT_1, "EUR"},
-        RIG_FRNG_END, 
+        RIG_FRNG_END,
     },
     .tx_range_list2 =   {
-        { kHz(1810), MHz(1.999999),IC705_ALL_TX_MODES, W(0.1) , W(10) , IC7300_VFOS, RIG_ANT_1, "EUR" },
-        { MHz(3.5), MHz(3.8),IC705_ALL_TX_MODES ,W(0.1) , W(10) , IC7300_VFOS, RIG_ANT_1, "EUR" },
-        { MHz(7.0), MHz(7.2),IC705_ALL_TX_MODES ,W(0.1) , W(10) , IC7300_VFOS, RIG_ANT_1, "EUR" },
-        { MHz(10.1), MHz(10.15),IC705_ALL_TX_MODES ,W(0.1) , W(10) , IC7300_VFOS, RIG_ANT_1, "EUR" },
-        { MHz(14.0), MHz(14.35),IC705_ALL_TX_MODES ,W(0.1) , W(10) , IC7300_VFOS, RIG_ANT_1, "EUR" },
-        { MHz(18.068), MHz(18.168),IC705_ALL_TX_MODES ,W(0.1) , W(10) , IC7300_VFOS, RIG_ANT_1, "EUR" },
-        { MHz(21.00), MHz(21.45),IC705_ALL_TX_MODES ,W(0.1) , W(10) , IC7300_VFOS, RIG_ANT_1, "EUR" },
-        { MHz(24.89), MHz(24.99),IC705_ALL_TX_MODES ,W(0.1) , W(10) , IC7300_VFOS, RIG_ANT_1, "EUR" },
-        { MHz(28.00), MHz(29.70),IC705_ALL_TX_MODES ,W(0.1) , W(10) , IC7300_VFOS, RIG_ANT_1, "EUR" },
-        { MHz(50.00), MHz(52.00),IC705_ALL_TX_MODES ,W(0.1) , W(10) , IC7300_VFOS, RIG_ANT_1, "EUR" },
-        { MHz(144.00), MHz(146.00),IC705_ALL_TX_MODES ,W(0.1) , W(10) , IC7300_VFOS, RIG_ANT_1, "EUR" },
-        { MHz(430.00), MHz(440.00),IC705_ALL_TX_MODES ,W(0.1) , W(10) , IC7300_VFOS, RIG_ANT_1, "EUR" },
+        { kHz(1810), MHz(1.999999), IC705_ALL_TX_MODES, W(0.1), W(10), IC7300_VFOS, RIG_ANT_1, "EUR" },
+        { MHz(3.5), MHz(3.8), IC705_ALL_TX_MODES, W(0.1), W(10), IC7300_VFOS, RIG_ANT_1, "EUR" },
+        { MHz(7.0), MHz(7.2), IC705_ALL_TX_MODES, W(0.1), W(10), IC7300_VFOS, RIG_ANT_1, "EUR" },
+        { MHz(10.1), MHz(10.15), IC705_ALL_TX_MODES, W(0.1), W(10), IC7300_VFOS, RIG_ANT_1, "EUR" },
+        { MHz(14.0), MHz(14.35), IC705_ALL_TX_MODES, W(0.1), W(10), IC7300_VFOS, RIG_ANT_1, "EUR" },
+        { MHz(18.068), MHz(18.168), IC705_ALL_TX_MODES, W(0.1), W(10), IC7300_VFOS, RIG_ANT_1, "EUR" },
+        { MHz(21.00), MHz(21.45), IC705_ALL_TX_MODES, W(0.1), W(10), IC7300_VFOS, RIG_ANT_1, "EUR" },
+        { MHz(24.89), MHz(24.99), IC705_ALL_TX_MODES, W(0.1), W(10), IC7300_VFOS, RIG_ANT_1, "EUR" },
+        { MHz(28.00), MHz(29.70), IC705_ALL_TX_MODES, W(0.1), W(10), IC7300_VFOS, RIG_ANT_1, "EUR" },
+        { MHz(50.00), MHz(52.00), IC705_ALL_TX_MODES, W(0.1), W(10), IC7300_VFOS, RIG_ANT_1, "EUR" },
+        { MHz(144.00), MHz(146.00), IC705_ALL_TX_MODES, W(0.1), W(10), IC7300_VFOS, RIG_ANT_1, "EUR" },
+        { MHz(430.00), MHz(440.00), IC705_ALL_TX_MODES, W(0.1), W(10), IC7300_VFOS, RIG_ANT_1, "EUR" },
         RIG_FRNG_END,
     },
 
@@ -936,19 +936,24 @@ int ic7300_set_parm(RIG *rig, setting_t parm, value_t val)
         {
             prmbuf[0] = 0x1a;
             prmbuf[1] = 0x05;
-            switch (rig->caps->rig_model) {
+
+            switch (rig->caps->rig_model)
+            {
             case RIG_MODEL_IC7300:
                 prmbuf[2] = 0x00;
                 prmbuf[3] = 0x39;
                 break;
+
             case RIG_MODEL_IC9700:
                 prmbuf[2] = 0x01;
                 prmbuf[3] = 0x77;
                 break;
+
             case RIG_MODEL_IC705:
                 prmbuf[2] = 0x00;
                 prmbuf[3] = 0x53;
                 break;
+
             default:
                 return -RIG_ENIMPL;
             }
@@ -965,22 +970,27 @@ int ic7300_set_parm(RIG *rig, setting_t parm, value_t val)
         hr = (int)((float) val.i / 3600.0);
         min = (int)((float)(val.i - (hr * 3600)) / 60.0);
 
-        switch (rig->caps->rig_model) {
+        switch (rig->caps->rig_model)
+        {
         case RIG_MODEL_IC7300:
             prmbuf[0] = 0x00;
             prmbuf[1] = 0x95;
             break;
+
         case RIG_MODEL_IC9700:
             prmbuf[0] = 0x01;
             prmbuf[1] = 0x80;
             break;
+
         case RIG_MODEL_IC705:
             prmbuf[0] = 0x01;
             prmbuf[1] = 0x66;
             break;
+
         default:
             return -RIG_ENIMPL;
         }
+
         to_bcd_be(prmbuf + 2, (long long) hr, 2);
         to_bcd_be(prmbuf + 3, (long long) min, 2);
         return icom_set_raw(rig, C_CTL_MEM, S_MEM_PARM, 4, prmbuf, 0, 0);
@@ -1008,8 +1018,9 @@ int ic7300_get_parm(RIG *rig, setting_t parm, value_t *val)
         return -RIG_ENIMPL; // How can we implement this?
 
     default:
-        rig_debug(RIG_DEBUG_TRACE, "%s: using icom routine for PARM=%s\n", __func__, rig_strparm(parm));
-        return icom_get_parm(rig,parm,val);
+        rig_debug(RIG_DEBUG_TRACE, "%s: using icom routine for PARM=%s\n", __func__,
+                  rig_strparm(parm));
+        return icom_get_parm(rig, parm, val);
     }
 
     retval = icom_transaction(rig, prm_cn, prm_sc, prmbuf, prm_len, resbuf,
@@ -1033,11 +1044,12 @@ int ic7300_get_parm(RIG *rig, setting_t parm, value_t *val)
     switch (parm)
     {
 
-    case RIG_PARM_ANN: 
+    case RIG_PARM_ANN:
         rig_debug(RIG_DEBUG_WARN, "%s: not implemented\n", __func__);
         return -RIG_ENIMPL;
+
     default:
-        return icom_get_parm(rig,parm,val);
+        return icom_get_parm(rig, parm, val);
     }
 
 
