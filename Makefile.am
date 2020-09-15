@@ -6,7 +6,7 @@ aclocal_DATA = hamlib.m4
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = hamlib.pc
 
-EXTRA_DIST = PLAN TODO LICENSE hamlib.m4 hamlib.pc.in README.developer \
+EXTRA_DIST = PLAN LICENSE hamlib.m4 hamlib.pc.in README.developer \
 	README.betatester README.win32 Android.mk
 
 doc_DATA = ChangeLog COPYING COPYING.LIB LICENSE \
