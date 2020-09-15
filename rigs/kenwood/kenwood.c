@@ -355,7 +355,8 @@ transaction_read:
     if (retval < 0)
     {
         rig_debug(RIG_DEBUG_WARN,
-                  "%s: read_string retval < 0, retval = %d, retry_read=%d, rs->rigport.retry=%d\n", __func__,
+                  "%s: read_string retval < 0, retval = %d, retry_read=%d, rs->rigport.retry=%d\n",
+                  __func__,
                   retval, retry_read, rs->rigport.retry);
 
         // only retry if we expect a response from the command
@@ -476,8 +477,10 @@ transaction_read:
             rig_debug(RIG_DEBUG_ERR, "%s: wrong reply %c%c for command %c%c\n",
                       __func__, buffer[0], buffer[1], cmdstr[0], cmdstr[1]);
 
-            rig_debug(RIG_DEBUG_ERR, "%s: retry_read=%d, rs->rigport.retry=%d\n", __func__, retry_read, rs->rigport.retry);
-            if (retry_read++ < rs->rigport.retry) 
+            rig_debug(RIG_DEBUG_ERR, "%s: retry_read=%d, rs->rigport.retry=%d\n", __func__,
+                      retry_read, rs->rigport.retry);
+
+            if (retry_read++ < rs->rigport.retry)
             {
                 goto transaction_write;
             }
