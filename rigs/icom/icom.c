@@ -2703,12 +2703,14 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     for (i = 0; cmd && cmd[i].id.s != 0; i++)
     {
-	rig_debug(RIG_DEBUG_TRACE, "%s: i=%d\n", __func__, i);
+        rig_debug(RIG_DEBUG_TRACE, "%s: i=%d\n", __func__, i);
+
         if (cmd[i].cmdparamtype == CMD_PARAM_TYPE_LEVEL && cmd[i].id.s == level)
         {
             return icom_get_cmd(rig, vfo, (struct cmdparams *)&cmd[i], val);
         }
     }
+
     rig_debug(RIG_DEBUG_TRACE, "%s: no extcmd found\n", __func__);
 
     rs = &rig->state;
@@ -3189,7 +3191,7 @@ int icom_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
         }
         else if (cfp[i].token == token)
         {
-            return icom_get_ext_cmd(rig, vfo, CMD_PARAM_TYPE_LEVEL, token, val);  
+            return icom_get_ext_cmd(rig, vfo, CMD_PARAM_TYPE_LEVEL, token, val);
         }
         else { i++; }
     }
@@ -3239,7 +3241,8 @@ int icom_get_ext_func(RIG *rig, vfo_t vfo, token_t token, int *status)
         }
         else if (cfp[i].token == token)
         {
-            return icom_get_ext_cmd(rig, vfo, CMD_PARAM_TYPE_FUNC, token, (value_t *)status);
+            return icom_get_ext_cmd(rig, vfo, CMD_PARAM_TYPE_FUNC, token,
+                                    (value_t *)status);
         }
         else { i++; }
     }
@@ -3297,7 +3300,8 @@ int icom_get_ext_parm(RIG *rig, token_t token, value_t *val)
     return -RIG_EINVAL;
 }
 
-int icom_get_ext_cmd(RIG *rig, vfo_t vfo, cmd_param_t cmdparamtype, token_t token, value_t *val)
+int icom_get_ext_cmd(RIG *rig, vfo_t vfo, cmd_param_t cmdparamtype,
+                     token_t token, value_t *val)
 {
     int i;
 

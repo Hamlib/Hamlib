@@ -650,30 +650,40 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     switch (level)
     {
-        case RIG_LEVEL_RFPOWER_METER:
-            cmd = "ZZRM5";
-            len = 5;
-            break;
-        default:
-            return kenwood_get_level(rig,vfo,level,val);
+    case RIG_LEVEL_RFPOWER_METER:
+        cmd = "ZZRM5";
+        len = 5;
+        break;
+
+    default:
+        return kenwood_get_level(rig, vfo, level, val);
     }
+
     retval = kenwood_safe_transaction(rig, cmd, lvlbuf, 10, len + 3);
+
     if (retval != RIG_OK)
     {
         return retval;
     }
+
     int n;
+
     switch (level)
     {
-        case RIG_LEVEL_RFPOWER_METER:
-            n = sscanf(lvlbuf + len, "%f", &val->f);
-            if (n != 1) {
-                rig_debug(RIG_DEBUG_ERR,"%s: Error parsing RFPOWER from lvlbuf='%s'\n",__func__,lvlbuf);
-                return -RIG_EPROTO;
-            }
-            val->f /= 100;
-            break;
+    case RIG_LEVEL_RFPOWER_METER:
+        n = sscanf(lvlbuf + len, "%f", &val->f);
+
+        if (n != 1)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: Error parsing RFPOWER from lvlbuf='%s'\n",
+                      __func__, lvlbuf);
+            return -RIG_EPROTO;
+        }
+
+        val->f /= 100;
+        break;
     }
+
     return RIG_OK;
 }
 
