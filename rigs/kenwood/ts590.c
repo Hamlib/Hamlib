@@ -479,6 +479,7 @@ int ts590_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_RFPOWER:
     case RIG_LEVEL_RF:
     case RIG_LEVEL_AF:
+    case RIG_LEVEL_MICGAIN:
         return kenwood_get_level(rig, vfo, level, val);
 
 
