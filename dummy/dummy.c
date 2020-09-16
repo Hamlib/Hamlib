@@ -73,6 +73,7 @@ struct dummy_priv_data
     channel_t vfo_b;
     channel_t mem[NB_CHAN];
 
+    struct ext_list *ext_funcs;
     struct ext_list *ext_parms;
 
     char *magic_conf;
@@ -100,6 +101,15 @@ static const struct confparams dummy_ext_levels[] =
     {
         TOK_EL_MAGICCOMBO, "MGC", "Magic combo", "Magic combo, as an example",
         "VALUE1", RIG_CONF_COMBO, { .c = { .combostr = { "VALUE1", "VALUE2", "NONE", NULL } } }
+    },
+    { RIG_CONF_END, NULL, }
+};
+
+static const struct confparams dummy_ext_funcs[] =
+{
+    {
+        TOK_EL_MAGICEXTFUNC, "MGEF", "Magic ext func", "Magic ext function, as an example",
+        NULL, RIG_CONF_CHECKBUTTON
     },
     { RIG_CONF_END, NULL, }
 };
@@ -270,6 +280,13 @@ static int dummy_init(RIG *rig)
         return -RIG_ENOMEM;
     }
 
+    priv->ext_funcs = alloc_init_ext(dummy_ext_funcs);
+
+    if (!priv->ext_funcs)
+    {
+        return -RIG_ENOMEM;
+    }
+
     priv->ext_parms = alloc_init_ext(dummy_ext_parms);
 
     if (!priv->ext_parms)
@@ -309,6 +326,7 @@ static int dummy_cleanup(RIG *rig)
 
     free(priv->vfo_a.ext_levels);
     free(priv->vfo_b.ext_levels);
+    free(priv->ext_funcs);
     free(priv->ext_parms);
     free(priv->magic_conf);
 
@@ -1240,6 +1258,93 @@ static int dummy_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 }
 
 
+static int dummy_set_ext_func(RIG *rig, vfo_t vfo, token_t token, int status)
+{
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    const struct confparams *cfp;
+    struct ext_list *elp;
+
+    cfp = rig_ext_lookup_tok(rig, token);
+
+    if (!cfp)
+    {
+        return -RIG_EINVAL;
+    }
+
+    switch (token)
+    {
+        case TOK_EL_MAGICEXTFUNC:
+            break;
+
+        default:
+            return -RIG_EINVAL;
+    }
+
+    switch (cfp->type)
+    {
+        case RIG_CONF_CHECKBUTTON:
+            break;
+        case RIG_CONF_BUTTON:
+            break;
+        default:
+            return -RIG_EINTERNAL;
+    }
+
+    elp = find_ext(priv->ext_funcs, token);
+
+    if (!elp)
+    {
+        return -RIG_EINTERNAL;
+    }
+
+    /* store value */
+    elp->val.i = status;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %d\n", __func__,
+            cfp->name, status);
+
+    return RIG_OK;
+}
+
+
+static int dummy_get_ext_func(RIG *rig, vfo_t vfo, token_t token, int *status)
+{
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    const struct confparams *cfp;
+    struct ext_list *elp;
+
+    cfp = rig_ext_lookup_tok(rig, token);
+
+    if (!cfp)
+    {
+        return -RIG_EINVAL;
+    }
+
+    switch (token)
+    {
+        case TOK_EL_MAGICEXTFUNC:
+            break;
+        default:
+            return -RIG_EINVAL;
+    }
+
+    elp = find_ext(priv->ext_funcs, token);
+
+    if (!elp)
+    {
+        return -RIG_EINTERNAL;
+    }
+
+    /* load value */
+    *status = elp->val.i;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__,
+            cfp->name);
+
+    return RIG_OK;
+}
+
+
 static int dummy_set_powerstat(RIG *rig, powerstat_t status)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
@@ -2034,6 +2139,7 @@ struct rig_caps dummy_caps =
     .priv =  NULL,    /* priv */
 
     .extlevels =    dummy_ext_levels,
+    .extfuncs =     dummy_ext_funcs,
     .extparms =     dummy_ext_parms,
     .cfgparams =    dummy_cfg_params,
 
@@ -2062,6 +2168,8 @@ struct rig_caps dummy_caps =
     .get_parm =      dummy_get_parm,
     .set_ext_level = dummy_set_ext_level,
     .get_ext_level = dummy_get_ext_level,
+    .set_ext_func =  dummy_set_ext_func,
+    .get_ext_func =  dummy_get_ext_func,
     .set_ext_parm =  dummy_set_ext_parm,
     .get_ext_parm =  dummy_get_ext_parm,
 
@@ -2196,6 +2304,7 @@ struct rig_caps dummy_no_vfo_caps =
     .priv =  NULL,    /* priv */
 
     .extlevels =    dummy_ext_levels,
+    .extfuncs =     dummy_ext_funcs,
     .extparms =     dummy_ext_parms,
     .cfgparams =    dummy_cfg_params,
 
@@ -2224,6 +2333,8 @@ struct rig_caps dummy_no_vfo_caps =
     .get_parm =      dummy_get_parm,
     .set_ext_level = dummy_set_ext_level,
     .get_ext_level = dummy_get_ext_level,
+    .set_ext_func =  dummy_set_ext_func,
+    .get_ext_func =  dummy_get_ext_func,
     .set_ext_parm =  dummy_set_ext_parm,
     .get_ext_parm =  dummy_get_ext_parm,
 

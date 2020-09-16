@@ -897,7 +897,6 @@ const struct rig_caps ic705_caps =
 int ic7300_set_parm(RIG *rig, setting_t parm, value_t val)
 {
     unsigned char prmbuf[MAXFRAMELEN];
-    int min, hr;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -971,8 +970,7 @@ int ic7300_set_parm(RIG *rig, setting_t parm, value_t val)
     }
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "Unsupported set_parm %s\n", rig_strparm(parm));
-        return -RIG_EINVAL;
+        return icom_set_parm(rig, parm, val);
     }
 }
 
