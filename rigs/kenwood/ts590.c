@@ -478,10 +478,9 @@ int ts590_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_CWPITCH:
     case RIG_LEVEL_RFPOWER:
     case RIG_LEVEL_RF:
+    case RIG_LEVEL_AF:
         return kenwood_get_level(rig, vfo, level, val);
 
-    case RIG_LEVEL_AF:
-        return get_kenwood_level(rig, "AG0", &val->f);
 
     case RIG_LEVEL_METER:
         retval = kenwood_transaction(rig, "RM0", lvlbuf, sizeof(lvlbuf));
