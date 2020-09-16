@@ -787,7 +787,7 @@ int HAMLIB_API rig_set_ext_func(RIG *rig,
 
     caps = rig->caps;
 
-    if (caps->set_ext_level == NULL)
+    if (caps->set_ext_func == NULL)
     {
         return -RIG_ENAVAIL;
     }

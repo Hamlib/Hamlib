@@ -105,13 +105,18 @@
          { 241, 15.0f } \
     } }
 
-int ic7700_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
-int ic7700_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+struct cmdparams ic7700_extcmds[] =
+{
+    { {.s = RIG_LEVEL_VOXDELAY}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x82}, CMD_DAT_INT, 1 },
+    { { 0 } }
+};
+
+int ic7700_ext_tokens[] = {
+    TOK_DRIVE_GAIN, TOK_DIGI_SEL_FUNC, TOK_DIGI_SEL_LEVEL, TOK_BACKEND_NONE
+};
 
 /*
  * IC-7700 rig capabilities.
- *
- * TODO: complete command set (esp. the $1A bunch!) and testing..
  */
 static const struct icom_priv_caps ic7700_priv_caps =
 {
@@ -129,23 +134,7 @@ static const struct icom_priv_caps ic7700_priv_caps =
         { .level = RIG_AGC_SLOW, .icom_level = 3 },
         { .level = -1, .icom_level = 0 },
     },
-};
-
-const struct confparams ic7700_ext_levels[] =
-{
-    {
-        TOK_DRIVE_GAIN, "drive_gain", "Drive gain", "Drive gain",
-        NULL, RIG_CONF_NUMERIC, { .n = { 0, 255, 1 } },
-    },
-    {
-        TOK_DIGI_SEL_FUNC, "digi_sel", "DIGI-SEL enable", "DIGI-SEL enable",
-        NULL, RIG_CONF_CHECKBUTTON, { },
-    },
-    {
-        TOK_DIGI_SEL_LEVEL, "digi_sel_level", "DIGI-SEL level", "DIGI-SEL level",
-        NULL, RIG_CONF_NUMERIC, { .n = { 0, 255, 1 } },
-    },
-    { RIG_CONF_END, NULL, }
+    .extcmds = ic7700_extcmds,
 };
 
 const struct rig_caps ic7700_caps =
@@ -183,7 +172,7 @@ const struct rig_caps ic7700_caps =
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 900 }, .step = { .i = 1 } },
     },
     .parm_gran =  {},
-    .extlevels = ic7700_ext_levels,
+    .ext_tokens = ic7700_ext_tokens,
     .ctcss_list =  common_ctcss_list,
     .dcs_list =  NULL,
     .preamp =   { 10, 20, RIG_DBLST_END, }, /* FIXME: TBC */
@@ -293,8 +282,8 @@ const struct rig_caps ic7700_caps =
     .set_xit =  icom_set_xit_new,
 
     .decode_event =  icom_decode_event,
-    .set_level =  ic7700_set_level,
-    .get_level =  ic7700_get_level,
+    .set_level =  icom_set_level,
+    .get_level =  icom_get_level,
     .set_ext_level =  icom_set_ext_level,
     .get_ext_level =  icom_get_ext_level,
     .set_func =  icom_set_func,
@@ -323,39 +312,3 @@ const struct rig_caps ic7700_caps =
     .get_powerstat = icom_get_powerstat,
     .send_morse = icom_send_morse
 };
-
-int ic7700_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
-{
-    unsigned char cmdbuf[MAXFRAMELEN];
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    switch (level)
-    {
-    case RIG_LEVEL_VOXDELAY:
-        cmdbuf[0] = 0x01;
-        cmdbuf[1] = 0x82;
-        return icom_set_level_raw(rig, level, C_CTL_MEM, 0x05, 2, cmdbuf, 1, val);
-
-    default:
-        return icom_set_level(rig, vfo, level, val);
-    }
-}
-
-int ic7700_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
-{
-    unsigned char cmdbuf[MAXFRAMELEN];
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    switch (level)
-    {
-    case RIG_LEVEL_VOXDELAY:
-        cmdbuf[0] = 0x01;
-        cmdbuf[1] = 0x82;
-        return icom_get_level_raw(rig, level, C_CTL_MEM, 0x05, 2, cmdbuf, val);
-
-    default:
-        return icom_get_level(rig, vfo, level, val);
-    }
-}

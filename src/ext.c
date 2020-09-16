@@ -48,6 +48,77 @@
 
 #include "token.h"
 
+static int rig_has_ext_token(RIG *rig, token_t token)
+{
+    int *ext_tokens = rig->caps->ext_tokens;
+    int i;
+
+    if (ext_tokens == NULL)
+    {
+        // Assume that all listed extfuncs/extlevels/extparms are supported if
+        // the ext_tokens list is not defined to preserve backwards-compatibility
+        return 1;
+    }
+
+    for (i = 0; ext_tokens[i] != TOK_BACKEND_NONE; i++)
+    {
+        if (ext_tokens[i] == token) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+
+/**
+ * \param rig The rig handle
+ * \param cfunc callback function of each extfunc
+ * \param data cookie to be passed to \a cfunc callback
+ * \brief Executes cfunc on all the elements stored in the extfuncs table
+ *
+ * The callback \a cfunc is called until it returns a value which is not
+ * strictly positive.  A zero value means a normal end of iteration, and a
+ * negative value an abnormal end, which will be the return value of
+ * rig_ext_func_foreach.
+ */
+int HAMLIB_API rig_ext_func_foreach(RIG *rig,
+        int (*cfunc)(RIG *,
+                const struct confparams *,
+                rig_ptr_t),
+        rig_ptr_t data)
+{
+    const struct confparams *cfp;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!rig || !rig->caps || !cfunc)
+    {
+        return -RIG_EINVAL;
+    }
+
+    for (cfp = rig->caps->extfuncs; cfp && cfp->name; cfp++)
+    {
+        if (!rig_has_ext_token(rig, cfp->token)) {
+            continue;
+        }
+
+        int ret = (*cfunc)(rig, cfp, data);
+
+        if (ret == 0)
+        {
+            return RIG_OK;
+        }
+
+        if (ret < 0)
+        {
+            return ret;
+        }
+    }
+
+    return RIG_OK;
+}
+
 
 /**
  * \param rig The rig handle
@@ -77,6 +148,10 @@ int HAMLIB_API rig_ext_level_foreach(RIG *rig,
 
     for (cfp = rig->caps->extlevels; cfp && cfp->name; cfp++)
     {
+        if (!rig_has_ext_token(rig, cfp->token)) {
+            continue;
+        }
+
         int ret = (*cfunc)(rig, cfp, data);
 
         if (ret == 0)
@@ -122,6 +197,10 @@ int HAMLIB_API rig_ext_parm_foreach(RIG *rig,
 
     for (cfp = rig->caps->extparms; cfp && cfp->name; cfp++)
     {
+        if (!rig_has_ext_token(rig, cfp->token)) {
+            continue;
+        }
+
         int ret = (*cfunc)(rig, cfp, data);
 
         if (ret == 0)
@@ -193,7 +272,7 @@ const struct confparams *HAMLIB_API rig_ext_lookup(RIG *rig, const char *name)
  * \param token
  * \brief lookup ext token, return pointer to confparams struct.
  *
- * lookup extlevels table first, then fall back to extparms.
+ * lookup extlevels table first, then extfuncs, then fall back to extparms.
  *
  * Returns NULL if nothing found
  */
@@ -216,6 +295,14 @@ const struct confparams *HAMLIB_API rig_ext_lookup_tok(RIG *rig, token_t token)
         }
     }
 
+    for (cfp = rig->caps->extfuncs; cfp && cfp->token; cfp++)
+    {
+        if (cfp->token == token)
+        {
+            return cfp;
+        }
+    }
+
     for (cfp = rig->caps->extparms; cfp && cfp->token; cfp++)
     {
         if (cfp->token == token)
@@ -231,7 +318,7 @@ const struct confparams *HAMLIB_API rig_ext_lookup_tok(RIG *rig, token_t token)
 /**
  * \param rig
  * \param name
- * \brief Simple lookup returning token id assicated with name
+ * \brief Simple lookup returning token id associated with name
  */
 token_t HAMLIB_API rig_ext_token_lookup(RIG *rig, const char *name)
 {
