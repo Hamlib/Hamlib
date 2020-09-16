@@ -290,7 +290,7 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val);
 int icom_set_ext_parm(RIG *rig, token_t token, value_t val);
 int icom_get_ext_parm(RIG *rig, token_t token, value_t *val);
 int icom_set_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t val);
-int icom_get_ext_cmd(RIG *rig, vfo_t vfo, cmd_param_t cmdparamtype, token_t token, value_t *val);
+int icom_get_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t *val);
 int icom_set_conf(RIG *rig, token_t token, const char *val);
 int icom_get_conf(RIG *rig, token_t token, char *val);
 int icom_set_powerstat(RIG *rig, powerstat_t status);
