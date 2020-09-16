@@ -27,7 +27,7 @@
 #include <string.h>
 #include "token.h"
 
-#define BACKEND_VER "20200901"
+#define BACKEND_VER "20200916"
 
 #define EOM_KEN ';'
 #define EOM_TH '\r'
@@ -125,6 +125,7 @@ struct kenwood_priv_data
     char last_if_response[KENWOOD_MAX_BUF_LEN];
     int poweron; /* to avoid powering on more than once */
     int has_rit2; /* rig has set 2 rit command */
+    int ag_format;    /* which AG command is being used...see LEVEL_AF in kenwood.c*/
 };
 
 

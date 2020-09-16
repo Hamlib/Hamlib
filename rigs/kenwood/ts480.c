@@ -116,18 +116,7 @@ kenwood_ts480_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     case RIG_LEVEL_AF:
-        kenwood_val = val.f * 255;    /* possible values for TS480 are 000.. 255 */
-
-        if (rig->caps->rig_model == RIG_MODEL_TS890S)
-        {
-            sprintf(levelbuf, "AG%03d", kenwood_val);
-        }
-        else
-        {
-            sprintf(levelbuf, "AG0%03d", kenwood_val);
-        }
-
-        break;
+        return kenwood_set_level(rig, vfo, level, val);
 
     case RIG_LEVEL_RF:
         if (rig->caps->rig_model == RIG_MODEL_TS890S)
