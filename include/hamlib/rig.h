@@ -2383,6 +2383,12 @@ rig_get_ext_parm HAMLIB_PARAMS((RIG *rig,
                                 value_t *val));
 
 extern HAMLIB_EXPORT(int)
+rig_ext_func_foreach HAMLIB_PARAMS((RIG *rig,
+                                     int (*cfunc)(RIG *,
+                                                  const struct confparams *,
+                                                  rig_ptr_t),
+                                     rig_ptr_t data));
+extern HAMLIB_EXPORT(int)
 rig_ext_level_foreach HAMLIB_PARAMS((RIG *rig,
                                      int (*cfunc)(RIG *,
                                                   const struct confparams *,
