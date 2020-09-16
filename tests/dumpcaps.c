@@ -334,6 +334,9 @@ int dumpcaps(RIG *rig, FILE *fout)
     sprintf_func(prntbuf, caps->has_set_func);
     fprintf(fout, "Set functions: %s\n", prntbuf);
 
+    fprintf(fout, "Extra functions:\n");
+    rig_ext_func_foreach(rig, print_ext, fout);
+
     sprintf_level_gran(prntbuf, caps->has_get_level, caps->level_gran);
     fprintf(fout, "Get level: %s\n", prntbuf);
 

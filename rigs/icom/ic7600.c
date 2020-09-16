@@ -53,15 +53,6 @@
 
 #define IC7600_ANTS (RIG_ANT_1|RIG_ANT_2)
 
-struct cmdparams ic7600_extcmds[] =
-{
-    { {.s = RIG_PARM_BEEP}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x59}, CMD_DAT_BOL, 1 },
-    { {.s = RIG_PARM_BACKLIGHT}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x38}, CMD_DAT_LVL, 2 },
-    { {.s = RIG_PARM_TIME}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x54}, CMD_DAT_TIM, 2 },
-    { {.s = RIG_LEVEL_VOXDELAY}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x67}, CMD_DAT_INT, 1 },
-    { {.s = RIG_PARM_NONE} }
-};
-
 /*
  * Measurement by Roeland, PA3MET
  */
@@ -129,10 +120,21 @@ struct cmdparams ic7600_extcmds[] =
          { 241, 25.0f } \
     } }
 
+struct cmdparams ic7600_extcmds[] =
+{
+    { {.s = RIG_PARM_BEEP}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x59}, CMD_DAT_BOL, 1 },
+    { {.s = RIG_PARM_BACKLIGHT}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x38}, CMD_DAT_LVL, 2 },
+    { {.s = RIG_PARM_TIME}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x54}, CMD_DAT_TIM, 2 },
+    { {.s = RIG_LEVEL_VOXDELAY}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x67}, CMD_DAT_INT, 1 },
+    { { 0 } }
+};
+
+int ic7600_ext_tokens[] = {
+    TOK_DRIVE_GAIN, TOK_BACKEND_NONE
+};
+
 /*
  * IC-7600 rig capabilities.
- *
- * TODO: complete command set (esp. the $1A bunch!) and testing..
  */
 static const struct icom_priv_caps ic7600_priv_caps =
 {
@@ -150,15 +152,6 @@ static const struct icom_priv_caps ic7600_priv_caps =
         { .level = -1, .icom_level = 0 },
     },
     .extcmds = ic7600_extcmds,   /* Custom op parameters */
-};
-
-const struct confparams ic7600_ext_levels[] =
-{
-    {
-        TOK_DRIVE_GAIN, "drive_gain", "Drive gain", "Drive gain",
-        NULL, RIG_CONF_NUMERIC, { .n = { 0, 255, 1 } },
-    },
-    { RIG_CONF_END, NULL, }
 };
 
 const struct rig_caps ic7600_caps =
@@ -196,7 +189,10 @@ const struct rig_caps ic7600_caps =
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 900 }, .step = { .i = 1 } },
     },
     .parm_gran =  {},
-    .extlevels = ic7600_ext_levels,
+    .ext_tokens = ic7600_ext_tokens,
+    .extfuncs = icom_ext_funcs,
+    .extlevels = icom_ext_levels,
+    .extparms = icom_ext_parms,
     .ctcss_list =  common_ctcss_list,
     .dcs_list =  NULL,
     .preamp =   { 10, 20, RIG_DBLST_END, }, /* FIXME: TBC */

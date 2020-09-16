@@ -61,19 +61,6 @@ static int ic7300_get_parm(RIG *rig, setting_t parm, value_t *val);
 
 #define IC7300_ANTS (RIG_ANT_1) /* ant-1 is Hf-6m */
 
-struct cmdparams ic7300_extcmds[] =
-{
-    { {.s = RIG_PARM_BEEP}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x23}, CMD_DAT_BOL, 1 },
-    { {.s = RIG_PARM_BACKLIGHT}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x81}, CMD_DAT_LVL, 2 },
-    { {.s = RIG_PARM_TIME}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x95}, CMD_DAT_TIM, 2 },
-    { {.s = RIG_LEVEL_VOXDELAY}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x59}, CMD_DAT_INT, 1 },
-    { {.s = RIG_PARM_NONE} }
-};
-
-struct cmdparams ic7300_extlevels[] =
-{
-};
-
 /*
  * IC-7300 S-meter levels measured from live signals on multiple bands. Provides a good approximation.
  */
@@ -153,15 +140,6 @@ struct cmdparams ic7300_extlevels[] =
 #define IC9700_ALL_TX_MODES (RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_DSTAR|RIG_MODE_DD)
 #define IC9700_ALL_RX_MODES (RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_DSTAR|RIG_MODE_DD)
 
-struct cmdparams ic9700_extcmds[] =
-{
-    { {.s = RIG_PARM_BEEP}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x29}, CMD_DAT_BOL, 1 },
-    { {.s = RIG_PARM_BACKLIGHT}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x52}, CMD_DAT_LVL, 2 },
-    { {.s = RIG_PARM_SCREENSAVER}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x67}, CMD_DAT_INT, 1 },
-    { {.s = RIG_LEVEL_VOXDELAY}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x03, 0x30}, CMD_DAT_INT, 1 },
-    { {0} }
-};
-
 #define IC9700_STR_CAL { 7, \
     { \
         {   0, -54 }, \
@@ -216,6 +194,35 @@ struct cmdparams ic9700_extcmds[] =
          { 241, 20.0f } \
     } }
 
+struct cmdparams ic7300_extcmds[] =
+{
+    { {.s = RIG_PARM_BEEP}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x23}, CMD_DAT_BOL, 1 },
+    { {.s = RIG_PARM_BACKLIGHT}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x81}, CMD_DAT_LVL, 2 },
+    { {.s = RIG_PARM_TIME}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x95}, CMD_DAT_TIM, 2 },
+    { {.s = RIG_LEVEL_VOXDELAY}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x59}, CMD_DAT_INT, 1 },
+    { {.s = RIG_PARM_NONE} }
+};
+
+struct cmdparams ic9700_extcmds[] =
+{
+    { {.s = RIG_PARM_BEEP}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x29}, CMD_DAT_BOL, 1 },
+    { {.s = RIG_PARM_BACKLIGHT}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x52}, CMD_DAT_LVL, 2 },
+    { {.s = RIG_PARM_SCREENSAVER}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x67}, CMD_DAT_INT, 1 },
+    { {.s = RIG_PARM_TIME}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x80}, CMD_DAT_TIM, 2 },
+    { {.s = RIG_LEVEL_VOXDELAY}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x03, 0x30}, CMD_DAT_INT, 1 },
+    { {0} }
+};
+
+struct cmdparams ic705_extcmds[] =
+{
+    { {.s = RIG_PARM_BEEP}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x31}, CMD_DAT_BOL, 1 },
+    { {.s = RIG_PARM_BACKLIGHT}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x36}, CMD_DAT_LVL, 2 },
+    { {.s = RIG_PARM_SCREENSAVER}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x38}, CMD_DAT_INT, 1 },
+    { {.s = RIG_PARM_TIME}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x66}, CMD_DAT_TIM, 2 },
+    { {.s = RIG_LEVEL_VOXDELAY}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x03, 0x59}, CMD_DAT_INT, 1 },
+    { {0} }
+};
+
 /*
  * IC-7300 rig capabilities.
  */
@@ -266,7 +273,7 @@ static const struct icom_priv_caps IC705_priv_caps =
         { .level = RIG_AGC_SLOW, .icom_level = 3 },
         { .level = -1, .icom_level = 0 },
     },
-    .extcmds = ic7300_extcmds,     /* Custom parameters */
+    .extcmds = ic705_extcmds,     /* Custom parameters */
 };
 
 const struct rig_caps ic7300_caps =
@@ -391,7 +398,6 @@ const struct rig_caps ic7300_caps =
     .get_freq =  icom_get_freq,
     .set_mode =  icom_set_mode_with_data,
     .get_mode =  icom_get_mode_with_data,
-//.get_vfo =  icom_get_vfo,
     .set_vfo =  icom_set_vfo,
     .set_ant =  NULL,
     .get_ant =  NULL,
@@ -640,7 +646,6 @@ const struct rig_caps ic9700_caps =
     .get_freq =  icom_get_freq,
     .set_mode =  icom_set_mode_with_data,
     .get_mode =  icom_get_mode_with_data,
-//.get_vfo =  icom_get_vfo,
     .set_vfo =  icom_set_vfo,
     .set_ant =  NULL,
     .get_ant =  NULL,
@@ -841,7 +846,6 @@ const struct rig_caps ic705_caps =
     .get_freq =  icom_get_freq,
     .set_mode =  icom_set_mode_with_data,
     .get_mode =  icom_get_mode_with_data,
-//.get_vfo =  icom_get_vfo,
     .set_vfo =  icom_set_vfo,
     .set_ant =  NULL,
     .get_ant =  NULL,
@@ -893,7 +897,6 @@ const struct rig_caps ic705_caps =
 int ic7300_set_parm(RIG *rig, setting_t parm, value_t val)
 {
     unsigned char prmbuf[MAXFRAMELEN];
-    int min, hr;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -966,38 +969,8 @@ int ic7300_set_parm(RIG *rig, setting_t parm, value_t val)
         return -RIG_EINVAL;
     }
 
-    case RIG_PARM_TIME:
-        hr = (int)((float) val.i / 3600.0);
-        min = (int)((float)(val.i - (hr * 3600)) / 60.0);
-
-        switch (rig->caps->rig_model)
-        {
-        case RIG_MODEL_IC7300:
-            prmbuf[0] = 0x00;
-            prmbuf[1] = 0x95;
-            break;
-
-        case RIG_MODEL_IC9700:
-            prmbuf[0] = 0x01;
-            prmbuf[1] = 0x80;
-            break;
-
-        case RIG_MODEL_IC705:
-            prmbuf[0] = 0x01;
-            prmbuf[1] = 0x66;
-            break;
-
-        default:
-            return -RIG_ENIMPL;
-        }
-
-        to_bcd_be(prmbuf + 2, (long long) hr, 2);
-        to_bcd_be(prmbuf + 3, (long long) min, 2);
-        return icom_set_raw(rig, C_CTL_MEM, S_MEM_PARM, 4, prmbuf, 0, 0);
-
     default:
-        rig_debug(RIG_DEBUG_ERR, "Unsupported set_parm %s\n", rig_strparm(parm));
-        return -RIG_EINVAL;
+        return icom_set_parm(rig, parm, val);
     }
 }
 
@@ -1058,4 +1031,3 @@ int ic7300_get_parm(RIG *rig, setting_t parm, value_t *val)
 
     return RIG_OK;
 }
-
