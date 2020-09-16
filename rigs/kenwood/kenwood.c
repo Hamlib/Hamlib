@@ -703,6 +703,8 @@ int kenwood_init(RIG *rig)
         caps->if_len = 37;
     }
 
+    priv->ag_format = -1;  // force determination of AG format
+
     rig_debug(RIG_DEBUG_TRACE, "%s: if_len = %d\n", __func__, caps->if_len);
 
     return RIG_OK;
@@ -811,9 +813,9 @@ int kenwood_open(RIG *rig)
 
     if (!RIG_IS_XG3 && -RIG_ETIMEOUT == err)
     {
+        char buffer[KENWOOD_MAX_BUF_LEN];
         /* Some Kenwood emulations have no ID command response :(
          * Try an FA command to see if anyone is listening */
-        char buffer[KENWOOD_MAX_BUF_LEN];
         err = kenwood_transaction(rig, "FA", buffer, sizeof(buffer));
 
         if (RIG_OK != err)
@@ -2181,6 +2183,7 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     char levelbuf[16];
     int i, kenwood_val;
+    struct kenwood_priv_data *priv = rig->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -2208,11 +2211,31 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     case RIG_LEVEL_AF:
     {
-        // some rigs only recognize 0 for vfo_set
-        // hopefully they are asking for VFOA or Main otherwise this might not work
-        // https://github.com/Hamlib/Hamlib/issues/304
         int vfo_set = vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN ? 0 : 1;
-        snprintf(levelbuf, sizeof(levelbuf), "AG%1d%03d", vfo_set, kenwood_val);
+
+        // some rigs only recognize 0 for vfo_set
+        // https://github.com/Hamlib/Hamlib/issues/304
+        // This is now fixed for all rigs
+        // https://github.com/Hamlib/Hamlib/issues/380
+        // ag_format is determined in kenwood_get_level
+        switch (priv->ag_format)
+        {
+        case 1:
+            snprintf(levelbuf, sizeof(levelbuf), "AG%03d", kenwood_val);
+            break;
+
+        case 2:
+            snprintf(levelbuf, sizeof(levelbuf), "AG0%03d", kenwood_val);
+            break;
+
+        case 3:
+            snprintf(levelbuf, sizeof(levelbuf), "AG%d%03d", vfo_set, kenwood_val);
+            break;
+
+        default:
+            rig_debug(RIG_DEBUG_ERR, "%s: Unknown ag_format=%d\n", __func__,
+                      priv->ag_format);
+        }
     }
     break;
 
@@ -2376,6 +2399,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     int retval;
     int lvl;
     int i, ret, agclevel, len;
+    struct kenwood_priv_data *priv = rig->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -2533,7 +2557,83 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return ret;
 
     case RIG_LEVEL_AF:
-        return get_kenwood_level(rig, "AG", &val->f);
+
+        // first time through we'll determine the AG format
+        // Can be "AG" "AG0" or "AG0/1"
+        // This could be done by rig but easy enough to make it automagic
+        if (priv->ag_format < 0)
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: AF format check determination...\n", __func__);
+            // Determine AG format
+            // =-1 == Undetermine
+            // 0 == Unknown
+            // 1 == AG
+            // 2 == AG0 (fixed VFO)
+            // 3 == AG0/1 (with VFO arg)
+            char buffer[KENWOOD_MAX_BUF_LEN];
+            int err = kenwood_transaction(rig, "AG", buffer, sizeof(buffer));
+
+            if (err == RIG_OK)
+            {
+                priv->ag_format = 1;
+            }
+            else
+            {
+                err = kenwood_transaction(rig, "AG1", buffer, sizeof(buffer));
+
+                if (err == RIG_OK)
+                {
+                    priv->ag_format = 3;
+                }
+                else
+                {
+                    err = kenwood_transaction(rig, "AG0", buffer, sizeof(buffer));
+
+                    if (err == RIG_OK)
+                    {
+                        priv->ag_format = 2;
+                    }
+                    else
+                    {
+                        priv->ag_format = 0; // rats....can't figure it out
+                    }
+                }
+            }
+        }
+
+        rig_debug(RIG_DEBUG_TRACE, "%s: ag_format=%d\n", __func__, priv->ag_format);
+
+        if (priv->ag_format == 0)
+        {
+            priv->ag_format = -1;  // we'll keep trying next time
+            rig_debug(RIG_DEBUG_WARN, "%s: Unable to set AG format?\n", __func__);
+            return RIG_OK;  // this is non-fatal for now
+        }
+
+        switch (priv->ag_format)
+        {
+        case 0:
+            priv->ag_format = -1; // reset to try again
+            return RIG_OK;
+            break;
+
+        case 1:
+            return get_kenwood_level(rig, "AG", &val->f);
+            break;
+
+        case 2:
+            return get_kenwood_level(rig, "AG0", &val->f);
+            break;
+
+        case 3:
+            return get_kenwood_level(rig, vfo == RIG_VFO_MAIN ? "AG0" : "AG1", &val->f);
+            break;
+
+        default:
+            rig_debug(RIG_DEBUG_WARN, "%s: Invalid ag_format=%d?\n", __func__,
+                      priv->ag_format);
+            return -RIG_EPROTO;
+        }
 
     case RIG_LEVEL_RF:
         return get_kenwood_level(rig, "RG", &val->f);
