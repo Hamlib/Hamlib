@@ -2587,7 +2587,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                 }
                 else
                 {
-                    err = kenwood_transaction(rig, "AG1", buffer, sizeof(buffer));
+                    err = kenwood_transaction(rig, "AG0", buffer, sizeof(buffer));
 
                     if (err == RIG_OK)
                     {
