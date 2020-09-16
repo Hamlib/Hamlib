@@ -92,8 +92,12 @@
 
 #define IC9100_HF_ANTS (RIG_ANT_1|RIG_ANT_2)
 
-/*
- */
+struct cmdparams ic9100_extcmds[] =
+{
+    { {.s = RIG_LEVEL_VOXDELAY}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x27}, CMD_DAT_INT, 1 },
+    { {.s = RIG_PARM_NONE} }
+};
+
 static const struct icom_priv_caps ic9100_priv_caps =
 {
     0x7c,           /* default address */
@@ -102,6 +106,7 @@ static const struct icom_priv_caps ic9100_priv_caps =
     ic910_ts_sc_list,   /* FIXME */
     .antack_len = 2,
     .ant_count = 2,
+    .extcmds = ic9100_extcmds,
 };
 
 const struct rig_caps ic9100_caps =
@@ -279,45 +284,3 @@ const struct rig_caps ic9100_caps =
     .get_split_mode = icom_get_split_mode,
 
 };
-
-#ifdef XXREMOVEDXX
-// Not referenced anywhere
-int ic9100_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
-{
-    unsigned char cmdbuf[MAXFRAMELEN];
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    switch (level)
-    {
-    case RIG_LEVEL_VOXDELAY:
-        cmdbuf[0] = 0x01;
-        cmdbuf[1] = 0x27;
-        return icom_set_level_raw(rig, level, C_CTL_MEM, 0x05, 2, cmdbuf, 1, val);
-
-    default:
-        return icom_set_level(rig, vfo, level, val);
-    }
-}
-#endif
-
-#ifdef XXREMOVEDXX
-// Not referenced anywhere
-int ic9100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
-{
-    unsigned char cmdbuf[MAXFRAMELEN];
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    switch (level)
-    {
-    case RIG_LEVEL_VOXDELAY:
-        cmdbuf[0] = 0x01;
-        cmdbuf[1] = 0x27;
-        return icom_get_level_raw(rig, level, C_CTL_MEM, 0x05, 2, cmdbuf, val);
-
-    default:
-        return icom_get_level(rig, vfo, level, val);
-    }
-}
-#endif
