@@ -2240,8 +2240,10 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     break;
 
     case RIG_LEVEL_MICGAIN:
+
         /* XXX check level range */
         if (RIG_LEVEL_IS_FLOAT(level)) { kenwood_val = val.f * 100; }
+
         snprintf(levelbuf, sizeof(levelbuf), "MG%03d", kenwood_val);
         break;
 
@@ -2649,10 +2651,13 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_MICGAIN:
         ret = get_kenwood_level(rig, "MG", &val->f);
-        if (ret != RIG_OK) {
+
+        if (ret != RIG_OK)
+        {
             rig_debug(RIG_DEBUG_ERR, "%s: Error getting MICGAIN\n", __func__);
             return ret;
         }
+
         val->f = val->f * (255.0 / 100.0);
         return RIG_OK;
 
