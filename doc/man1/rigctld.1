@@ -648,6 +648,22 @@ above.
 Set
 .RI \(aq Antenna \(aq
 number (\(oq0\(cq, \(oq1\(cq, \(oq2\(cq, ...).
+.IP
+.IP
+Option depends on rig..for Icom it probably sets the Tx & Rx antennas as in the IC-7851. See your manual for rig specific option values. Most rigs don't care about the option.
+.IP
+For the IC-7851 (and perhaps others) it means this:
+.IP
+.in +4n
+.EX
+1 = TX/RX = ANT1
+2 = TX/RX = ANT2
+3 = TX/RX = ANT3
+4 = TX/RX = ANT1/ANT4
+5 = TX/RX = ANT2/ANT4
+6 = TX/RX = ANT3/ANT4
+.EE
+.in
 .
 .TP
 .BR y ", " get_ant
