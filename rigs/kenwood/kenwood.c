@@ -2239,6 +2239,11 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     }
     break;
 
+    case RIG_LEVEL_MICGAIN:
+        /* XXX check level range */
+        snprintf(levelbuf, sizeof(levelbuf), "MG%03d", kenwood_val);
+        break;
+
     case RIG_LEVEL_RF:
         /* XXX check level range */
         snprintf(levelbuf, sizeof(levelbuf), "RG%03d", kenwood_val);
