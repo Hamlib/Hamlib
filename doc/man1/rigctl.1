@@ -959,12 +959,11 @@ data.
 Sets memory channel information
 .
 .TP
-.BR h ", " get_channel
-Get memory
-.RI \(aq Channel \(aq
-data.
+.BR h ", " get_channel " \(aq" \fIreadonly\fP \(aq
+Get channel memory.
 .IP
-Returns programmed channel information for specified channel
+If readonly!=0 then only channel data is returned and rig remains on the current channel.  If readonly=0 then rig will be set to the channel requested.
+data.
 .
 .TP
 .BR A ", " set_trn " \(aq" \fITransceive\fP \(aq
