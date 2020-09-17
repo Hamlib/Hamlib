@@ -2241,6 +2241,7 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     case RIG_LEVEL_MICGAIN:
         /* XXX check level range */
+        if (RIG_LEVEL_IS_FLOAT(level)) { kenwood_val = val.f * 100; }
         snprintf(levelbuf, sizeof(levelbuf), "MG%03d", kenwood_val);
         break;
 
@@ -2576,25 +2577,25 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             // 2 == AG0 (fixed VFO)
             // 3 == AG0/1 (with VFO arg)
             char buffer[KENWOOD_MAX_BUF_LEN];
-            int err = kenwood_transaction(rig, "AG", buffer, sizeof(buffer));
+            ret = kenwood_transaction(rig, "AG", buffer, sizeof(buffer));
 
-            if (err == RIG_OK)
+            if (ret == RIG_OK)
             {
                 priv->ag_format = 1;
             }
             else
             {
-                err = kenwood_transaction(rig, "AG1", buffer, sizeof(buffer));
+                ret = kenwood_transaction(rig, "AG1", buffer, sizeof(buffer));
 
-                if (err == RIG_OK)
+                if (ret == RIG_OK)
                 {
                     priv->ag_format = 3;
                 }
                 else
                 {
-                    err = kenwood_transaction(rig, "AG0", buffer, sizeof(buffer));
+                    ret = kenwood_transaction(rig, "AG0", buffer, sizeof(buffer));
 
-                    if (err == RIG_OK)
+                    if (ret == RIG_OK)
                     {
                         priv->ag_format = 2;
                     }
@@ -2647,7 +2648,13 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return get_kenwood_level(rig, "SQ", &val->f);
 
     case RIG_LEVEL_MICGAIN:
-        return get_kenwood_level(rig, "MG", &val->f);
+        ret = get_kenwood_level(rig, "MG", &val->f);
+        if (ret != RIG_OK) {
+            rig_debug(RIG_DEBUG_ERR, "%s: Error getting MICGAIN\n", __func__);
+            return ret;
+        }
+        val->f = val->f * (255.0 / 100.0);
+        return RIG_OK;
 
     case RIG_LEVEL_AGC:
         ret = get_kenwood_level(rig, "GT", &val->f);
