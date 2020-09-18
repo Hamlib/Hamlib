@@ -51,7 +51,7 @@
 /* PowerSDR differences */
 #define POWERSDR_FUNC_ALL (RIG_FUNC_VOX|RIG_FUNC_SQL)
 
-#define POWERSDR_LEVEL_ALL (RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW|RIG_LEVEL_KEYSPD|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_MICGAIN|RIG_LEVEL_VOXGAIN|RIG_LEVEL_SQL)
+#define POWERSDR_LEVEL_ALL (RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW|RIG_LEVEL_KEYSPD|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_MICGAIN|RIG_LEVEL_VOXGAIN|RIG_LEVEL_SQL|RIG_LEVEL_AF)
 
 
 static rmode_t flex_mode_table[KENWOOD_MODE_TABLE_MAX] =
@@ -650,6 +650,10 @@ int powersdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     switch (level)
     {
+    case RIG_LEVEL_AF:
+        ival = val.f * 100;
+        snprintf(cmd, sizeof(cmd) - 1, "ZZAG%03d", ival);
+        break;
     case RIG_LEVEL_MICGAIN:
         ival = val.f * (10 - -40) - 40;
         snprintf(cmd, sizeof(cmd) - 1, "ZZMG%03d", ival);
@@ -713,6 +717,11 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     switch (level)
     {
+    case RIG_LEVEL_AF:
+        cmd = "ZZAG";
+        len = 4;
+        ans = 3;
+        break;
     case RIG_LEVEL_RFPOWER_METER:
         cmd = "ZZRM5";
         len = 5;
@@ -752,12 +761,13 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     switch (level)
     {
+    case RIG_LEVEL_AF:
     case RIG_LEVEL_RFPOWER_METER:
         n = sscanf(lvlbuf + len, "%f", &val->f);
 
         if (n != 1)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: Error parsing RFPOWER from lvlbuf='%s'\n",
+            rig_debug(RIG_DEBUG_ERR, "%s: Error parsing value from lvlbuf='%s'\n",
                       __func__, lvlbuf);
             return -RIG_EPROTO;
         }
