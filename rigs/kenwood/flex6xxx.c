@@ -48,7 +48,9 @@
 #define F6K_ANTS (RIG_ANT_1|RIG_ANT_2|RIG_ANT_3)
 
 /* PowerSDR differences */
-#define POWERSDR_LEVEL_ALL (RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW|RIG_LEVEL_KEYSPD|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_MICGAIN)
+#define POWERSDR_FUNC_ALL (RIG_FUNC_VOX)
+
+#define POWERSDR_LEVEL_ALL (RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW|RIG_LEVEL_KEYSPD|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_MICGAIN|RIG_LEVEL_VOXGAIN)
 
 
 static rmode_t flex_mode_table[KENWOOD_MODE_TABLE_MAX] =
@@ -657,6 +659,18 @@ int powersdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
         break;
 
+    case RIG_LEVEL_VOXGAIN:
+        ival = val.f * 1000;
+        snprintf(cmd, sizeof(cmd) - 1, "ZZVG%04d", ival);
+        retval = kenwood_transaction(rig, cmd, NULL, 0);
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        break;
+
     default:
         return kenwood_set_level(rig, vfo, level, val);
     }
@@ -674,7 +688,7 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     char lvlbuf[KENWOOD_MAX_BUF_LEN];
     char *cmd;
     int retval;
-    int len;
+    int len, ans;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -688,18 +702,26 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_RFPOWER_METER:
         cmd = "ZZRM5";
         len = 5;
+        ans = 3;
         break;
 
     case RIG_LEVEL_MICGAIN:
         cmd = "ZZMG";
         len = 4;
+        ans = 3;
+        break;
+
+    case RIG_LEVEL_VOXGAIN:
+        cmd = "ZZVG";
+        len = 4;
+        ans = 4;
         break;
 
     default:
         return kenwood_get_level(rig, vfo, level, val);
     }
 
-    retval = kenwood_safe_transaction(rig, cmd, lvlbuf, 10, len + 3);
+    retval = kenwood_safe_transaction(rig, cmd, lvlbuf, 10, len + ans);
 
     if (retval != RIG_OK)
     {
@@ -729,11 +751,92 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         // Setting
         val->f = (val->f - -40) / (10 - -40);
         break;
+
+    case RIG_LEVEL_VOXGAIN:
+        // return is 0-1000
+        n = sscanf(lvlbuf + len, "%f", &val->f);
+        val->f /= 1000;
+        break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: should never get here\n", __func__);
     }
 
     return RIG_OK;
 }
 
+int powersdr_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
+{
+    char cmd[KENWOOD_MAX_BUF_LEN];
+    int retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    switch (func)
+    {
+    case RIG_FUNC_VOX:
+        snprintf(cmd, sizeof(cmd) - 1, "ZZVE%01d", status);
+        retval = kenwood_transaction(rig, cmd, NULL, 0);
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        break;
+
+    default:
+        return kenwood_set_func(rig, vfo, func, status);
+    }
+
+    return RIG_OK;
+}
+
+int powersdr_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
+{
+    char lvlbuf[KENWOOD_MAX_BUF_LEN];
+    char *cmd;
+    int retval;
+    int len, ans;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!status)
+    {
+        return -RIG_EINVAL;
+    }
+
+    switch (func)
+    {
+    case RIG_FUNC_VOX:
+        cmd = "ZZVE";
+        len = 4;
+        ans = 1;
+        break;
+
+    default:
+        return kenwood_get_func(rig, vfo, func, status);
+    }
+
+    retval = kenwood_safe_transaction(rig, cmd, lvlbuf, 10, len + ans);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    switch (func)
+    {
+    case RIG_FUNC_VOX:
+        sscanf(lvlbuf + len, "%d", status);
+        break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: should never get here\n", __func__);
+    }
+
+    return RIG_OK;
+}
 
 /*
  * F6K rig capabilities.
@@ -889,8 +992,8 @@ const struct rig_caps powersdr_caps =
     .timeout =      800, // some band transitions can take 600ms
     .retry =        3,
 
-    .has_get_func =     RIG_FUNC_NONE, /* has VOX but not implemented here */
-    .has_set_func =     RIG_FUNC_NONE,
+    .has_get_func =     POWERSDR_FUNC_ALL,
+    .has_set_func =     POWERSDR_FUNC_ALL,
     .has_get_level =    POWERSDR_LEVEL_ALL,
     .has_set_level =    POWERSDR_LEVEL_ALL,
     .has_get_parm =     RIG_PARM_NONE,
@@ -986,6 +1089,8 @@ const struct rig_caps powersdr_caps =
     // correctly - use actual values instead of indices
     .set_level =        powersdr_set_level,
     .get_level =        powersdr_get_level,
+    .get_func =         powersdr_get_func,
+    .set_func =         powersdr_set_func,
     //.set_ant =       kenwood_set_ant_no_ack,
     //.get_ant =       kenwood_get_ant,
 };
