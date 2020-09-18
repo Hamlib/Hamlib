@@ -48,7 +48,7 @@
 #define F6K_ANTS (RIG_ANT_1|RIG_ANT_2|RIG_ANT_3)
 
 /* PowerSDR differences */
-#define POWERSDR_LEVEL_ALL (RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW|RIG_LEVEL_KEYSPD|RIG_LEVEL_RFPOWER_METER)
+#define POWERSDR_LEVEL_ALL (RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW|RIG_LEVEL_KEYSPD|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_MICGAIN)
 
 
 static rmode_t flex_mode_table[KENWOOD_MODE_TABLE_MAX] =
@@ -631,6 +631,41 @@ int flex6k_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     return err;
 }
+
+/*
+ * powersdr_set_level
+ */
+int powersdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+{
+    char cmd[KENWOOD_MAX_BUF_LEN];
+    int retval;
+    int ival;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    switch (level)
+    {
+    case RIG_LEVEL_MICGAIN:
+        ival = val.f * (10 - -40) - 40;
+        snprintf(cmd, sizeof(cmd) - 1, "ZZMG%03d", ival);
+        retval = kenwood_transaction(rig, cmd, NULL, 0);
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        break;
+
+    default:
+        return kenwood_set_level(rig, vfo, level, val);
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s exiting\n", __func__);
+
+    return RIG_OK;
+}
+
 /*
  * powersdr_get_level
  */
@@ -653,6 +688,11 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_RFPOWER_METER:
         cmd = "ZZRM5";
         len = 5;
+        break;
+
+    case RIG_LEVEL_MICGAIN:
+        cmd = "ZZMG";
+        len = 4;
         break;
 
     default:
@@ -681,6 +721,13 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
 
         val->f /= 100;
+        break;
+
+    case RIG_LEVEL_MICGAIN:
+        n = sscanf(lvlbuf + len, "%f", &val->f);
+        // Thetis returns -40 to 10 -- does PowerSDR do the same?
+        // Setting
+        val->f = (val->f - -40) / (10 - -40);
         break;
     }
 
@@ -845,7 +892,7 @@ const struct rig_caps powersdr_caps =
     .has_get_func =     RIG_FUNC_NONE, /* has VOX but not implemented here */
     .has_set_func =     RIG_FUNC_NONE,
     .has_get_level =    POWERSDR_LEVEL_ALL,
-    .has_set_level =    F6K_LEVEL_ALL,
+    .has_set_level =    POWERSDR_LEVEL_ALL,
     .has_get_parm =     RIG_PARM_NONE,
     .has_set_parm =     RIG_PARM_NONE,  /* FIXME: parms */
     .level_gran =       {},     /* FIXME: granularity */
@@ -937,7 +984,7 @@ const struct rig_caps powersdr_caps =
     .set_ptt =      flex6k_set_ptt,
     // TODO copy over kenwood_[set|get]_level and modify to handle DSP filter values
     // correctly - use actual values instead of indices
-    .set_level =        kenwood_set_level,
+    .set_level =        powersdr_set_level,
     .get_level =        powersdr_get_level,
     //.set_ant =       kenwood_set_ant_no_ack,
     //.get_ant =       kenwood_get_ant,
