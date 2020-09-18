@@ -49,7 +49,7 @@
 #define F6K_ANTS (RIG_ANT_1|RIG_ANT_2|RIG_ANT_3)
 
 /* PowerSDR differences */
-#define POWERSDR_FUNC_ALL (RIG_FUNC_VOX|RIG_FUNC_SQL)
+#define POWERSDR_FUNC_ALL (RIG_FUNC_VOX|RIG_FUNC_SQL|RIG_FUNC_NB|RIG_FUNC_ANF|RIG_FUNC_MUTE)
 
 #define POWERSDR_LEVEL_ALL (RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW|RIG_LEVEL_KEYSPD|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_MICGAIN|RIG_LEVEL_VOXGAIN|RIG_LEVEL_SQL|RIG_LEVEL_AF)
 
@@ -654,6 +654,7 @@ int powersdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         ival = val.f * 100;
         snprintf(cmd, sizeof(cmd) - 1, "ZZAG%03d", ival);
         break;
+
     case RIG_LEVEL_MICGAIN:
         ival = val.f * (10 - -40) - 40;
         snprintf(cmd, sizeof(cmd) - 1, "ZZMG%03d", ival);
@@ -722,6 +723,7 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         len = 4;
         ans = 3;
         break;
+
     case RIG_LEVEL_RFPOWER_METER:
         cmd = "ZZRM5";
         len = 5;
@@ -819,6 +821,10 @@ int powersdr_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
     switch (func)
     {
+    case RIG_FUNC_MUTE:
+        snprintf(cmd, sizeof(cmd) - 1, "ZZMA%01d", status);
+        break;
+
     case RIG_FUNC_VOX:
         snprintf(cmd, sizeof(cmd) - 1, "ZZVE%01d", status);
         break;
@@ -850,6 +856,12 @@ int powersdr_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
     switch (func)
     {
+    case RIG_FUNC_MUTE:
+        cmd = "ZZMA";
+        len = 4;
+        ans = 1;
+        break;
+
     case RIG_FUNC_VOX:
         cmd = "ZZVE";
         len = 4;
@@ -875,10 +887,8 @@ int powersdr_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
     switch (func)
     {
+    case RIG_FUNC_MUTE:
     case RIG_FUNC_VOX:
-        sscanf(lvlbuf + len, "%d", status);
-        break;
-
     case RIG_FUNC_SQL:
         sscanf(lvlbuf + len, "%d", status);
         break;
