@@ -49,9 +49,9 @@
 #define F6K_ANTS (RIG_ANT_1|RIG_ANT_2|RIG_ANT_3)
 
 /* PowerSDR differences */
-#define POWERSDR_FUNC_ALL (RIG_FUNC_VOX|RIG_FUNC_SQL|RIG_FUNC_NB|RIG_FUNC_ANF|RIG_FUNC_MUTE)
+#define POWERSDR_FUNC_ALL (RIG_FUNC_VOX|RIG_FUNC_SQL|RIG_FUNC_NB|RIG_FUNC_ANF|RIG_FUNC_MUTE|RIG_FUNC_RIT|RIG_FUNC_XIT)
 
-#define POWERSDR_LEVEL_ALL (RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW|RIG_LEVEL_KEYSPD|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_MICGAIN|RIG_LEVEL_VOXGAIN|RIG_LEVEL_SQL|RIG_LEVEL_AF)
+#define POWERSDR_LEVEL_ALL (RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW|RIG_LEVEL_KEYSPD|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_MICGAIN|RIG_LEVEL_VOXGAIN|RIG_LEVEL_SQL|RIG_LEVEL_AF|RIG_LEVEL_AGC)
 
 
 static rmode_t flex_mode_table[KENWOOD_MODE_TABLE_MAX] =
@@ -660,6 +660,15 @@ int powersdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         snprintf(cmd, sizeof(cmd) - 1, "ZZMG%03d", ival);
         break;
 
+    case RIG_LEVEL_AGC:
+        if (val.i > 5)
+        {
+            val.i = 5;    /* 0.. 255 */
+        }
+
+        snprintf(cmd, sizeof(cmd), "GT%03d", (int)val.i);
+        break;
+
     case RIG_LEVEL_VOXGAIN:
         ival = val.f * 1000;
         snprintf(cmd, sizeof(cmd) - 1, "ZZVG%04d", ival);
@@ -718,6 +727,12 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     switch (level)
     {
+    case RIG_LEVEL_AGC:
+        cmd = "GT";
+        len = 2;
+        ans = 3;
+        break;
+
     case RIG_LEVEL_AF:
         cmd = "ZZAG";
         len = 4;
@@ -763,6 +778,18 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     switch (level)
     {
+    case RIG_LEVEL_AGC:
+        n = sscanf(lvlbuf + len, "%d", &val->i);
+
+        if (n != 1)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: Error parsing value from lvlbuf='%s'\n",
+                      __func__, lvlbuf);
+            return -RIG_EPROTO;
+        }
+
+        break;
+
     case RIG_LEVEL_AF:
     case RIG_LEVEL_RFPOWER_METER:
         n = sscanf(lvlbuf + len, "%f", &val->f);
