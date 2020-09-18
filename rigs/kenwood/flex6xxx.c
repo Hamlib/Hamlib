@@ -28,6 +28,7 @@
 #endif
 
 #include <stdlib.h>
+#include <math.h>
 
 #include <hamlib/rig.h>
 #include "kenwood.h"
@@ -48,9 +49,9 @@
 #define F6K_ANTS (RIG_ANT_1|RIG_ANT_2|RIG_ANT_3)
 
 /* PowerSDR differences */
-#define POWERSDR_FUNC_ALL (RIG_FUNC_VOX)
+#define POWERSDR_FUNC_ALL (RIG_FUNC_VOX|RIG_FUNC_SQL)
 
-#define POWERSDR_LEVEL_ALL (RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW|RIG_LEVEL_KEYSPD|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_MICGAIN|RIG_LEVEL_VOXGAIN)
+#define POWERSDR_LEVEL_ALL (RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW|RIG_LEVEL_KEYSPD|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_MICGAIN|RIG_LEVEL_VOXGAIN|RIG_LEVEL_SQL)
 
 
 static rmode_t flex_mode_table[KENWOOD_MODE_TABLE_MAX] =
@@ -642,6 +643,8 @@ int powersdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     char cmd[KENWOOD_MAX_BUF_LEN];
     int retval;
     int ival;
+    rmode_t mode;
+    pbwidth_t width;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -650,30 +653,39 @@ int powersdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     case RIG_LEVEL_MICGAIN:
         ival = val.f * (10 - -40) - 40;
         snprintf(cmd, sizeof(cmd) - 1, "ZZMG%03d", ival);
-        retval = kenwood_transaction(rig, cmd, NULL, 0);
-
-        if (retval != RIG_OK)
-        {
-            return retval;
-        }
-
         break;
 
     case RIG_LEVEL_VOXGAIN:
         ival = val.f * 1000;
         snprintf(cmd, sizeof(cmd) - 1, "ZZVG%04d", ival);
-        retval = kenwood_transaction(rig, cmd, NULL, 0);
+        break;
 
-        if (retval != RIG_OK)
+    case RIG_LEVEL_SQL:
+        powersdr_get_mode(rig, vfo, &mode, &width);
+
+        if (mode == RIG_MODE_FM)
         {
-            return retval;
+            ival = val.f * 100; // FM mode is 0 to 100
+        }
+        else
+        {
+            ival = 160 - (val.f * 160); // all other modes  0 to 160
         }
 
+        snprintf(cmd, sizeof(cmd) - 1, "ZZSQ%03d", ival);
         break;
 
     default:
         return kenwood_set_level(rig, vfo, level, val);
     }
+
+    retval = kenwood_transaction(rig, cmd, NULL, 0);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s exiting\n", __func__);
 
@@ -689,6 +701,8 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     char *cmd;
     int retval;
     int len, ans;
+    rmode_t mode;
+    pbwidth_t width;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -715,6 +729,12 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         cmd = "ZZVG";
         len = 4;
         ans = 4;
+        break;
+
+    case RIG_LEVEL_SQL:
+        cmd = "ZZSQ";
+        len = 4;
+        ans = 3;
         break;
 
     default:
@@ -758,6 +778,22 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         val->f /= 1000;
         break;
 
+    case RIG_LEVEL_SQL:
+        n = sscanf(lvlbuf + len, "%f", &val->f);
+
+        powersdr_get_mode(rig, vfo, &mode, &width);
+
+        if (mode == RIG_MODE_FM)
+        {
+            val->f /= 100; // FM mode is 0 to 100
+        }
+        else
+        {
+            val->f = fabs((val->f - 160) / -160); // all other modes  0 to 160
+        }
+
+        break;
+
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: should never get here\n", __func__);
     }
@@ -768,7 +804,6 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 int powersdr_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
     char cmd[KENWOOD_MAX_BUF_LEN];
-    int retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -776,20 +811,17 @@ int powersdr_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     {
     case RIG_FUNC_VOX:
         snprintf(cmd, sizeof(cmd) - 1, "ZZVE%01d", status);
-        retval = kenwood_transaction(rig, cmd, NULL, 0);
+        break;
 
-        if (retval != RIG_OK)
-        {
-            return retval;
-        }
-
+    case RIG_FUNC_SQL:
+        snprintf(cmd, sizeof(cmd) - 1, "ZZSO%01d", status);
         break;
 
     default:
         return kenwood_set_func(rig, vfo, func, status);
     }
 
-    return RIG_OK;
+    return kenwood_transaction(rig, cmd, NULL, 0);
 }
 
 int powersdr_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
@@ -814,6 +846,12 @@ int powersdr_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         ans = 1;
         break;
 
+    case RIG_FUNC_SQL:
+        cmd = "ZZSO";
+        len = 4;
+        ans = 1;
+        break;
+
     default:
         return kenwood_get_func(rig, vfo, func, status);
     }
@@ -828,6 +866,10 @@ int powersdr_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     switch (func)
     {
     case RIG_FUNC_VOX:
+        sscanf(lvlbuf + len, "%d", status);
+        break;
+
+    case RIG_FUNC_SQL:
         sscanf(lvlbuf + len, "%d", status);
         break;
 
