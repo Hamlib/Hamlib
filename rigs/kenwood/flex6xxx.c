@@ -1010,9 +1010,9 @@ const struct rig_caps f6k_caps =
 const struct rig_caps powersdr_caps =
 {
     RIG_MODEL(RIG_MODEL_POWERSDR),
-    .model_name =       "PowerSDR",
-    .mfg_name =     "FlexRadio",
-    .version =      "20200716.0",
+    .model_name =       "PowerSDR/Thetis",
+    .mfg_name =     "FlexRadio/ANAN",
+    .version =      "20200918.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
