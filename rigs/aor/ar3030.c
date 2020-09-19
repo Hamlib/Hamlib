@@ -799,6 +799,7 @@ int ar3030_get_channel(RIG *rig, channel_t *chan, int read_only)
                   rig_passband_normal(rig, chan->mode);
 
 
+    // cppcheck-suppress *
     chan->levels[LVL_ATT].i = infobuf[6] == '0' ? 0 :
                               rig->caps->attenuator[infobuf[4] - '1'];
 

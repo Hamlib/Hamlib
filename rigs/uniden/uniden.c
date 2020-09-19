@@ -637,6 +637,7 @@ int uniden_get_channel(RIG *rig, channel_t *chan, int read_only)
     /* TODO: Trunk, Delay, Recording */
 
     chan->flags = (membuf[22] == 'N') ? RIG_CHFLAG_SKIP : 0;
+    // cppcheck-suppress *
     chan->levels[LVL_ATT].i = (membuf[25] == 'N') ? rig->state.attenuator[0] : 0;
     sscanf(membuf + 41, "%d", &tone);
 

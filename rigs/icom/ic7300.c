@@ -305,6 +305,7 @@ const struct rig_caps ic7300_caps =
     .has_get_parm =  IC7300_PARMS,
     .has_set_parm =  RIG_PARM_SET(IC7300_PARMS),
     .level_gran = {
+        // cppcheck-suppress *
         [LVL_RAWSTR] = {.min = {.i = 0}, .max = {.i = 255}},
         [LVL_VOXDELAY] = {.min = {.i = 0}, .max = {.i = 20}, .step = {.i = 1}},
         [LVL_KEYSPD] = {.min = {.i = 6}, .max = {.i = 48}, .step = {.i = 1}},

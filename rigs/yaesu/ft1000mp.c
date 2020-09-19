@@ -769,8 +769,8 @@ int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     to_bcd(p->p_cmd, freq / 10, 8); /* store bcd format in in p_cmd */
     /* TODO -- fix 10Hz resolution -- FS */
 
-    rig_debug(RIG_DEBUG_TRACE,
-              "%s: requested freq after conversion = %"PRIll" Hz\n", __func__,
+    // cppcheck-suppress *
+    rig_debug(RIG_DEBUG_TRACE, "%s: freq = %"PRIll" Hz\n", __func__,
               (int64_t)from_bcd(p->p_cmd, 8) * 10);
 
     cmd = p->p_cmd;               /* get native sequence */
