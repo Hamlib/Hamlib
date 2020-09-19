@@ -806,6 +806,14 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_MICGAIN:
         n = sscanf(lvlbuf + len, "%f", &val->f);
+
+        if (n != 1)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: Error parsing value from lvlbuf='%s'\n",
+                      __func__, lvlbuf);
+            return -RIG_EPROTO;
+        }
+
         // Thetis returns -40 to 10 -- does PowerSDR do the same?
         // Setting
         val->f = (val->f - -40) / (10 - -40);
@@ -814,11 +822,27 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_VOXGAIN:
         // return is 0-1000
         n = sscanf(lvlbuf + len, "%f", &val->f);
+
+        if (n != 1)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: Error parsing value from lvlbuf='%s'\n",
+                      __func__, lvlbuf);
+            return -RIG_EPROTO;
+        }
+
         val->f /= 1000;
         break;
 
     case RIG_LEVEL_SQL:
         n = sscanf(lvlbuf + len, "%f", &val->f);
+
+        if (n != 1)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: Error parsing value from lvlbuf='%s'\n",
+                      __func__, lvlbuf);
+            return -RIG_EPROTO;
+        }
+
 
         powersdr_get_mode(rig, vfo, &mode, &width);
 
