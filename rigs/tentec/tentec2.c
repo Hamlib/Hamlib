@@ -699,6 +699,7 @@ const char *tentec2_get_info(RIG *rig)
     /*
      * protocol version
      */
+    buf[0] = 0;
     firmware_len = 100;
     retval = tentec_transaction(rig, "?V\r", 3, buf, &firmware_len);
 
@@ -708,15 +709,6 @@ const char *tentec2_get_info(RIG *rig)
         rig_debug(RIG_DEBUG_ERR, "%s: ack NG, len=%d\n",
                   __func__, firmware_len);
         return NULL;
-    }
-
-    if (firmware_len < 100)
-    {
-        buf[firmware_len] = 0;
-    }
-    else
-    {
-        buf[0] = 0;
     }
 
     return buf;
