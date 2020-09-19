@@ -220,6 +220,7 @@ const struct rig_caps ic7100_caps =
     .has_get_parm =  IC7100_PARM_ALL,
     .has_set_parm =  IC7100_PARM_ALL,
     .level_gran = {
+        // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
         [LVL_KEYSPD] = { .min = { .i = 6 }, .max = { .i = 48 }, .step = { .i = 1 } },

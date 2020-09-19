@@ -809,6 +809,7 @@ const struct rig_caps ar7030_caps =
     .has_get_parm =  AR7030_PARM,
     .has_set_parm =  RIG_PARM_NONE,
     .level_gran =  {
+        // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
     },
     .parm_gran =  {},
