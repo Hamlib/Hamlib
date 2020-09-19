@@ -266,7 +266,7 @@ static int ar3030_transaction(RIG *rig, const char *cmd, int cmd_len,
         *data_len = 0;
 
         /* only set data_len non-zero if not a command response */
-        if (retval > 0 && data[0] != 0x00 && data[0] != 0x0d)
+        if (data[0] != 0x00 && data[0] != 0x0d)
         {
             *data_len = retval;
         }
