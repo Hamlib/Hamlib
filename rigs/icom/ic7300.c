@@ -896,12 +896,12 @@ const struct rig_caps ic705_caps =
 
 int ic7300_set_parm(RIG *rig, setting_t parm, value_t val)
 {
-    unsigned char prmbuf[MAXFRAMELEN];
-
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     switch (parm)
     {
+    unsigned char prmbuf[MAXFRAMELEN];
+
     case RIG_PARM_ANN:
     {
         int ann_mode = -1;
