@@ -100,6 +100,7 @@ const struct rig_caps icr9000_caps =
     .has_get_parm =  ICR9000_PARMS,
     .has_set_parm =  RIG_PARM_SET(ICR9000_PARMS),
     .level_gran = {
+        // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
     },
     .parm_gran =  {},

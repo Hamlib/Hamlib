@@ -1675,6 +1675,7 @@ static int ar7030p_get_channel(RIG *rig, channel_t *chan, int read_only)
 
         if (RIG_OK == rc)
         {
+            // cppcheck-suppress *
             chan->levels[ LVL_SQL ].f = (float) v / 255.0;
         }
 

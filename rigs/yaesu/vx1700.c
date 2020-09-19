@@ -129,6 +129,7 @@ const struct rig_caps vx1700_caps =
     .has_get_parm =  RIG_PARM_NONE,
     .has_set_parm =  RIG_PARM_NONE,
     .level_gran =  {
+        // cppcheck-suppress *
         [LVL_RFPOWER] = { .min = { .i = 0 }, .max = { .i = 2 } },
     },
     .parm_gran =  {},

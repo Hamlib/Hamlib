@@ -205,6 +205,7 @@ const struct rig_caps k3_caps =
     .has_get_parm =     RIG_PARM_NONE,
     .has_set_parm =     RIG_PARM_NONE,  /* FIXME: parms */
     .level_gran = {
+        // cppcheck-suppress *
         [LVL_KEYSPD] = { .min = { .i = 8 }, .max = { .i = 50 }, .step = { .i = 1 } },
     },
     .parm_gran =        {},

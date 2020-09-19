@@ -138,6 +138,7 @@ const struct rig_caps ic9100_caps =
     .has_get_parm =  IC9100_PARM_ALL,
     .has_set_parm =  IC9100_PARM_ALL,
     .level_gran = {
+        // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
     },

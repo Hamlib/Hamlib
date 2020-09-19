@@ -104,6 +104,7 @@ const struct rig_caps icr8500_caps =
     .has_get_parm =  RIG_PARM_NONE,
     .has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
     .level_gran = {
+        // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_IF] = { .min = { .i = 0 }, .max = { .i = 255 }, .step = { .i = 1 } },
     },

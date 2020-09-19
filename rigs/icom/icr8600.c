@@ -137,6 +137,7 @@ const struct rig_caps icr8600_caps =
     .has_set_level = RIG_LEVEL_SET(ICR8600_LEVEL_ALL),
     .has_get_parm = ICR8600_PARM_ALL,
     .has_set_parm = RIG_PARM_SET(ICR8600_PARM_ALL),
+    // cppcheck-suppress *
     .level_gran = { [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } } },
     .parm_gran = { [PARM_TIME] = { .min = { .i = 0 }, .max = { .i = 86399} } },
     .ext_tokens = icr8600_tokens,

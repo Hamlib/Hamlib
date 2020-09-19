@@ -141,6 +141,7 @@ const struct rig_caps thf7e_caps =
     .has_get_parm =  THF7_PARMS,
     .has_set_parm =  THF7_PARMS,
     .level_gran = {
+        // cppcheck-suppress *
         [LVL_SQL] = { .min = { .i = 0 }, .max = { .i = 5 } },
         [LVL_RFPOWER] = { .min = { .i = 2 }, .max = { .i = 0 } },
     },

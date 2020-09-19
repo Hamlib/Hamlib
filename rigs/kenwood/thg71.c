@@ -112,6 +112,7 @@ const struct rig_caps thg71_caps =
     .has_get_level =  THG71_LEVEL_ALL,
     .has_set_level =  RIG_LEVEL_SET(THG71_LEVEL_ALL),
     .level_gran = {
+        // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 5 } },
         [LVL_SQL] = { .min = { .i = 0 }, .max = { .i = 5 } },
         [LVL_RFPOWER] = { .min = { .i = 3 }, .max = { .i = 0 } },

@@ -321,6 +321,7 @@ int prm80_get_channel(RIG *rig, channel_t *chan, int read_only)
                        (chanstate & 0x04) ? RIG_RPT_SHIFT_PLUS : RIG_RPT_SHIFT_NONE;
     chan->flags = (chanstate & 0x08) ? RIG_CHFLAG_SKIP : 0;
 
+    // cppcheck-suppress *
     chan->levels[LVL_SQL].f = ((float)(hhtoi(statebuf + 6) >> 4)) / 15.;
     chan->levels[LVL_AF].f  = ((float)(hhtoi(statebuf + 8) >> 4)) / 15.;
     /* same as chanstate bit 1 */
