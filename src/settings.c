@@ -534,6 +534,10 @@ int HAMLIB_API rig_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
         return caps->set_func(rig, vfo, func, status);
     }
+    else {
+        int targetable = caps->targetable_vfo & RIG_TARGETABLE_FUNC;
+        rig_debug(RIG_DEBUG_TRACE, "%s: targetable=%d, vfo=%s, currvfo=%s\n", __func__, targetable, rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
+    }
 
     if (!caps->set_vfo)
     {
