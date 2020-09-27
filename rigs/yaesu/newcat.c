@@ -3550,7 +3550,7 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         return err;
     }
 
-    if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
+    if (rig->caps->targetable_vfo & (RIG_TARGETABLE_MODE | RIG_TARGETABLE_TONE))
     {
         main_sub_vfo = (RIG_VFO_B == vfo) ? '1' : '0';
     }
@@ -3607,7 +3607,12 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CT0%d%c", status ? 2 : 0,
                  cat_term);
-        priv->cmd_str[2] = main_sub_vfo;
+
+        if (rig->caps->targetable_vfo & RIG_TARGETABLE_TONE)
+        {
+            priv->cmd_str[2] = main_sub_vfo;
+        }
+
         break;
 
     case RIG_FUNC_TSQL:
@@ -3618,7 +3623,12 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CT0%d%c", status ? 1 : 0,
                  cat_term);
-        priv->cmd_str[2] = main_sub_vfo;
+
+        if (rig->caps->targetable_vfo & RIG_TARGETABLE_TONE)
+        {
+            priv->cmd_str[2] = main_sub_vfo;
+        }
+
         break;
 
     case RIG_FUNC_LOCK:
@@ -3649,7 +3659,9 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "NB0%d%c", status ? 1 : 0,
                  cat_term);
+        if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE){
         priv->cmd_str[2] = main_sub_vfo;
+        }
         break;
 
     case RIG_FUNC_NR:
@@ -3660,7 +3672,9 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "NR0%d%c", status ? 1 : 0,
                  cat_term);
+        if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE){
         priv->cmd_str[2] = main_sub_vfo;
+        }
         break;
 
     case RIG_FUNC_COMP:
@@ -3780,7 +3794,7 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CT0%c", cat_term);
 
-        if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
+        if (rig->caps->targetable_vfo & RIG_TARGETABLE_TONE)
         {
             priv->cmd_str[2] = main_sub_vfo;
         }
@@ -3795,7 +3809,7 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CT0%c", cat_term);
 
-        if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
+        if (rig->caps->targetable_vfo & RIG_TARGETABLE_TONE)
         {
             priv->cmd_str[2] = main_sub_vfo;
         }
@@ -6485,56 +6499,56 @@ int newcat_get_cmd(RIG *rig)
     }
 
     // any command that is read only should not expire cache
-    is_read_cmd = 
-           strcmp(priv->cmd_str,"AG0;")==0
-        || strcmp(priv->cmd_str,"AG1;")==0
-        || strcmp(priv->cmd_str,"AN0;")==0
-        || strcmp(priv->cmd_str,"AN1;")==0
-        || strcmp(priv->cmd_str,"BP00;")==0
-        || strcmp(priv->cmd_str,"BP01;")==0
-        || strcmp(priv->cmd_str,"BP10;")==0
-        || strcmp(priv->cmd_str,"BP11;")==0
-        || strcmp(priv->cmd_str,"CN00;")==0
-        || strcmp(priv->cmd_str,"CN10;")==0
-        || strcmp(priv->cmd_str,"CO00;")==0
-        || strcmp(priv->cmd_str,"CO01;")==0
-        || strcmp(priv->cmd_str,"CO02;")==0
-        || strcmp(priv->cmd_str,"CO03;")==0
-        || strcmp(priv->cmd_str,"CO10;")==0
-        || strcmp(priv->cmd_str,"CO11;")==0
-        || strcmp(priv->cmd_str,"CO12;")==0
-        || strcmp(priv->cmd_str,"CO13;")==0
-        || strcmp(priv->cmd_str,"IS1;")==0
-        || strcmp(priv->cmd_str,"IS0;")==0
-        || strcmp(priv->cmd_str,"IS1;")==0
-        || strcmp(priv->cmd_str,"MD0;")==0
-        || strcmp(priv->cmd_str,"MD1;")==0
-        || strcmp(priv->cmd_str,"NA0;")==0
-        || strcmp(priv->cmd_str,"NA1;")==0
-        || strcmp(priv->cmd_str,"NB0;")==0
-        || strcmp(priv->cmd_str,"NB1;")==0
-        || strcmp(priv->cmd_str,"NL0;")==0
-        || strcmp(priv->cmd_str,"NL1;")==0
-        || strcmp(priv->cmd_str,"NR0;")==0
-        || strcmp(priv->cmd_str,"NR1;")==0
-        || strcmp(priv->cmd_str,"OS0;")==0
-        || strcmp(priv->cmd_str,"OS1;")==0
-        || strcmp(priv->cmd_str,"PA0;")==0
-        || strcmp(priv->cmd_str,"PA1;")==0
-        || strcmp(priv->cmd_str,"RA0;")==0
-        || strcmp(priv->cmd_str,"RA1;")==0
-        || strcmp(priv->cmd_str,"RF0;")==0
-        || strcmp(priv->cmd_str,"RF1;")==0
-        || strcmp(priv->cmd_str,"RL0;")==0
-        || strcmp(priv->cmd_str,"RL1;")==0
-        || strcmp(priv->cmd_str,"RM0;")==0
-        || strcmp(priv->cmd_str,"RM1;")==0
-        || strcmp(priv->cmd_str,"SM0;")==0
-        || strcmp(priv->cmd_str,"SM1;")==0
-        || strcmp(priv->cmd_str,"SQ0;")==0
-        || strcmp(priv->cmd_str,"SQ1;")==0
-        || strcmp(priv->cmd_str,"VT0;")==0
-        || strcmp(priv->cmd_str,"VT1;")==0;
+    is_read_cmd =
+        strcmp(priv->cmd_str, "AG0;") == 0
+        || strcmp(priv->cmd_str, "AG1;") == 0
+        || strcmp(priv->cmd_str, "AN0;") == 0
+        || strcmp(priv->cmd_str, "AN1;") == 0
+        || strcmp(priv->cmd_str, "BP00;") == 0
+        || strcmp(priv->cmd_str, "BP01;") == 0
+        || strcmp(priv->cmd_str, "BP10;") == 0
+        || strcmp(priv->cmd_str, "BP11;") == 0
+        || strcmp(priv->cmd_str, "CN00;") == 0
+        || strcmp(priv->cmd_str, "CN10;") == 0
+        || strcmp(priv->cmd_str, "CO00;") == 0
+        || strcmp(priv->cmd_str, "CO01;") == 0
+        || strcmp(priv->cmd_str, "CO02;") == 0
+        || strcmp(priv->cmd_str, "CO03;") == 0
+        || strcmp(priv->cmd_str, "CO10;") == 0
+        || strcmp(priv->cmd_str, "CO11;") == 0
+        || strcmp(priv->cmd_str, "CO12;") == 0
+        || strcmp(priv->cmd_str, "CO13;") == 0
+        || strcmp(priv->cmd_str, "IS1;") == 0
+        || strcmp(priv->cmd_str, "IS0;") == 0
+        || strcmp(priv->cmd_str, "IS1;") == 0
+        || strcmp(priv->cmd_str, "MD0;") == 0
+        || strcmp(priv->cmd_str, "MD1;") == 0
+        || strcmp(priv->cmd_str, "NA0;") == 0
+        || strcmp(priv->cmd_str, "NA1;") == 0
+        || strcmp(priv->cmd_str, "NB0;") == 0
+        || strcmp(priv->cmd_str, "NB1;") == 0
+        || strcmp(priv->cmd_str, "NL0;") == 0
+        || strcmp(priv->cmd_str, "NL1;") == 0
+        || strcmp(priv->cmd_str, "NR0;") == 0
+        || strcmp(priv->cmd_str, "NR1;") == 0
+        || strcmp(priv->cmd_str, "OS0;") == 0
+        || strcmp(priv->cmd_str, "OS1;") == 0
+        || strcmp(priv->cmd_str, "PA0;") == 0
+        || strcmp(priv->cmd_str, "PA1;") == 0
+        || strcmp(priv->cmd_str, "RA0;") == 0
+        || strcmp(priv->cmd_str, "RA1;") == 0
+        || strcmp(priv->cmd_str, "RF0;") == 0
+        || strcmp(priv->cmd_str, "RF1;") == 0
+        || strcmp(priv->cmd_str, "RL0;") == 0
+        || strcmp(priv->cmd_str, "RL1;") == 0
+        || strcmp(priv->cmd_str, "RM0;") == 0
+        || strcmp(priv->cmd_str, "RM1;") == 0
+        || strcmp(priv->cmd_str, "SM0;") == 0
+        || strcmp(priv->cmd_str, "SM1;") == 0
+        || strcmp(priv->cmd_str, "SQ0;") == 0
+        || strcmp(priv->cmd_str, "SQ1;") == 0
+        || strcmp(priv->cmd_str, "VT0;") == 0
+        || strcmp(priv->cmd_str, "VT1;") == 0;
 
     if (priv->cmd_str[2] !=
             ';' && !is_read_cmd) // then we must be setting something so we'll invalidate the cache
