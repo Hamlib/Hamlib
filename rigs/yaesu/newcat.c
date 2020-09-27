@@ -6484,6 +6484,7 @@ int newcat_get_cmd(RIG *rig)
         // we drop through and do the real IF command
     }
 
+    // any command that is read only should not expire cache
     is_read_cmd = 
            strcmp(priv->cmd_str,"AG0;")==0
         || strcmp(priv->cmd_str,"AG1;")==0
@@ -6533,8 +6534,7 @@ int newcat_get_cmd(RIG *rig)
         || strcmp(priv->cmd_str,"SQ0;")==0
         || strcmp(priv->cmd_str,"SQ1;")==0
         || strcmp(priv->cmd_str,"VT0;")==0
-        || strcmp(priv->cmd_str,"VT1;")==0
-        || strcmp(priv->cmd_str,"SQ1;")==0;
+        || strcmp(priv->cmd_str,"VT1;")==0;
 
     if (priv->cmd_str[2] !=
             ';' && !is_read_cmd) // then we must be setting something so we'll invalidate the cache
