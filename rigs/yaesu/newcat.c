@@ -2527,6 +2527,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     int scale;
     int fpf;
     char main_sub_vfo = '0';
+    char *format;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -2538,7 +2539,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         return err;
     }
 
-    if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
+    if (rig->caps->targetable_vfo & RIG_TARGETABLE_PURE)
     {
         main_sub_vfo = (RIG_VFO_B == vfo) ? '1' : '0';
     }
@@ -2684,10 +2685,22 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             return -RIG_ENAVAIL;
         }
+        if (newcat_is_rig(rig, RIG_MODEL_TS890S)) // new format for the command with VFO selection
+        {
+            format = "MS0%d;";
+            if (vfo == RIG_VFO_SUB)
+            {
+                format = "MS1%d";
+            }
+        }
+        else
+        {
+            format = "MS%d";
+        }
 
         switch (val.i)
         {
-        case RIG_METER_ALC: snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MS1;");
+        case RIG_METER_ALC: snprintf(priv->cmd_str, sizeof(priv->cmd_str), format, 1);
             break;
 
         case RIG_METER_PO:
@@ -2697,21 +2710,21 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             }
             else
             {
-                snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MS2;");
+                snprintf(priv->cmd_str, sizeof(priv->cmd_str), format, 2);
             }
 
             break;
 
-        case RIG_METER_SWR:  snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MS3;");
+        case RIG_METER_SWR:  snprintf(priv->cmd_str, sizeof(priv->cmd_str), format, 3);
             break;
 
-        case RIG_METER_COMP: snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MS0;");
+        case RIG_METER_COMP: snprintf(priv->cmd_str, sizeof(priv->cmd_str), format, 0);
             break;
 
-        case RIG_METER_IC:   snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MS4;");
+        case RIG_METER_IC:   snprintf(priv->cmd_str, sizeof(priv->cmd_str), format, 4);
             break;
 
-        case RIG_METER_VDD:  snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MS5;");
+        case RIG_METER_VDD:  snprintf(priv->cmd_str, sizeof(priv->cmd_str), format, 5);
             break;
 
         default: return -RIG_EINVAL;
