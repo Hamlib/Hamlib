@@ -561,7 +561,7 @@ int ts990s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_MICGAIN:
-        retval = get_kenwood_level(rig, "MG", val);
+        retval = get_kenwood_level(rig, "MG", val, NULL);
 
         if (retval != RIG_OK)
         {
@@ -670,7 +670,7 @@ int ts990s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_VOXGAIN:
-        retval = get_kenwood_level(rig, "VG00", val);
+        retval = get_kenwood_level(rig, "VG00", &val->f, NULL);
 
         if (retval != RIG_OK)
         {
@@ -680,7 +680,7 @@ int ts990s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_ANTIVOX:
-        retval = get_kenwood_level(rig, "VG00", val);
+        retval = get_kenwood_level(rig, "VG00", &val->f, NULL);
 
         if (retval != RIG_OK)
         {
