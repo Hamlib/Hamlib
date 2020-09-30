@@ -2202,9 +2202,15 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
         /*
          * Best estimate: 1.0 corresponds to 100W
-         * Anything better must be done in rig-specific files.
          */
-        if (RIG_LEVEL_IS_FLOAT(level)) { kenwood_val = val.f * 100; }
+        if (RIG_IS_K3 || RIG_IS_KX3 || RIG_IS_KX2) 
+        {
+            kenwood_val = val.f * 12;
+        } // range is 0-12 if there is no KPA3 installed
+        else 
+        {
+            kenwood_val = val.f * 100; 
+        }
 
         snprintf(levelbuf, sizeof(levelbuf), "PC%03d", kenwood_val);
         break;
@@ -2589,11 +2595,15 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 #endif
         /*
          * an answer "PC100" means 100 Watt
-         * which is val=1.0 on most rigs, but
-         * get_kenwood_level maps 0...255 onto 0.0 ... 1.0
          */
-        ret = get_kenwood_level(rig, "PC", &val->f, NULL);
-        val->f = val->f * (255.0 / 100.0);
+        ret = get_kenwood_level(rig, "PC", NULL, &val->i);
+        if (RIG_IS_K3 || RIG_IS_KX3 || RIG_IS_KX2)
+        { // range is 0-12 if there is no KPA3 installed
+            val->f = val->i / 12.0;
+        }
+        else {
+            val->f = val->f / 100.0;
+        }
         return ret;
 
     case RIG_LEVEL_AF:
