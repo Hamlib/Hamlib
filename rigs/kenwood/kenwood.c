@@ -2380,7 +2380,7 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     return kenwood_transaction(rig, levelbuf, NULL, 0);
 }
 
-int get_kenwood_level(RIG *rig, const char *cmd, value_t *val)
+int get_kenwood_level(RIG *rig, const char *cmd, float *fval, int *ival)
 {
     char lvlbuf[10];
     int retval;
@@ -2389,7 +2389,7 @@ int get_kenwood_level(RIG *rig, const char *cmd, value_t *val)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!val)
+    if (!fval && !ival)
     {
         return -RIG_EINVAL;
     }
@@ -2403,8 +2403,8 @@ int get_kenwood_level(RIG *rig, const char *cmd, value_t *val)
 
     /* 000..255 */
     sscanf(lvlbuf + len, "%d", &lvl);
-    val->i = lvl; // raw value
-    val->f = lvl / 255.0; // our default scaling of 0-255
+    if (ival) *ival = lvl; // raw value
+    if (fval) *fval = lvl / 255.0; // our default scaling of 0-255
     return RIG_OK;
 };
 
@@ -2572,7 +2572,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
          * which is val=1.0 on most rigs, but
          * get_kenwood_level maps 0...255 onto 0.0 ... 1.0
          */
-        ret = get_kenwood_level(rig, "PC", val);
+        ret = get_kenwood_level(rig, "PC", &val->f, NULL);
         val->f = val->f * (255.0 / 100.0);
         return ret;
 
@@ -2638,15 +2638,15 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             break;
 
         case 1:
-            return get_kenwood_level(rig, "AG", val);
+            return get_kenwood_level(rig, "AG", &val->f, NULL);
             break;
 
         case 2:
-            return get_kenwood_level(rig, "AG0", val);
+            return get_kenwood_level(rig, "AG0", &val->f, NULL);
             break;
 
         case 3:
-            return get_kenwood_level(rig, vfo == RIG_VFO_MAIN ? "AG0" : "AG1", val);
+            return get_kenwood_level(rig, vfo == RIG_VFO_MAIN ? "AG0" : "AG1", &val->f, NULL);
             break;
 
         default:
@@ -2656,23 +2656,27 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
 
     case RIG_LEVEL_RF:
-        retval = get_kenwood_level(rig, "RG", val);
+        retval = get_kenwood_level(rig, "RG", NULL, &val->i);
         if (retval != RIG_OK) return retval;
         // KX2 and KX3 have range 190 to 250
         if (RIG_IS_KX2 || RIG_IS_KX3) {
             val->f = (val->i - 190) / (250-190);
         }
+        // K3 is 0 to 250
         else if (RIG_IS_K3 || RIG_IS_K3S) {
             val->f = val->i / 250.0;
         }
-        // other kenwod rigs are the default 0-255
+        // all others default to 0-255
+        else { 
+            val->f = val->i / 255.0;
+        }
         return retval;
 
     case RIG_LEVEL_SQL:
-        return get_kenwood_level(rig, "SQ", val);
+        return get_kenwood_level(rig, "SQ", &val->f, NULL);
 
     case RIG_LEVEL_MICGAIN:
-        ret = get_kenwood_level(rig, "MG", val);
+        ret = get_kenwood_level(rig, "MG", &val->f, NULL);
 
         if (ret != RIG_OK)
         {
@@ -2684,7 +2688,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return RIG_OK;
 
     case RIG_LEVEL_AGC:
-        ret = get_kenwood_level(rig, "GT", val);
+        ret = get_kenwood_level(rig, "GT", NULL, &val->i);
         agclevel = val->i;
 
         if (agclevel == 0) { val->i = 0; }
