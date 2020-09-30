@@ -677,7 +677,16 @@ int ser_open(hamlib_port_t *p)
             /*
              * pathname is not uh_rig or uh_ptt: simply open()
              */
-            ret = OPEN(p->pathname, O_RDWR | O_NOCTTY | O_NDELAY);
+            int i;
+            for(i=0, ret=-1;i<5 && ret < 0;++i)
+            {
+                ret = OPEN(p->pathname, O_RDWR | O_NOCTTY | O_NDELAY);
+                if (ret < 0) {
+                    rig_debug(RIG_DEBUG_ERR, "%s: OPEN attempt#%d failed %d=%s\n", __func__, i+1, ret, strerror(errno));
+                    hl_usleep(100*1000); // 100ms between attempts
+                }
+            }
+
         }
     }
     if (ret == -1)
