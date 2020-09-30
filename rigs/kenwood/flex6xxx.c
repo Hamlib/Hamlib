@@ -651,11 +651,19 @@ int powersdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     switch (level)
     {
     case RIG_LEVEL_AF:
+        if (val.f > 1.0) return -RIG_EINVAL;
         ival = val.f * 100;
         snprintf(cmd, sizeof(cmd) - 1, "ZZAG%03d", ival);
         break;
 
+    case RIG_LEVEL_RF:
+        if (val.f > 1.0) return -RIG_EINVAL;
+        ival = val.f * (120 - -20) - 20;
+        snprintf(cmd, sizeof(cmd) - 1, "ZZAR%+04d", ival);
+        break;
+
     case RIG_LEVEL_MICGAIN:
+        if (val.f > 1.0) return -RIG_EINVAL;
         ival = val.f * (10 - -40) - 40;
         snprintf(cmd, sizeof(cmd) - 1, "ZZMG%03d", ival);
         break;
@@ -670,11 +678,13 @@ int powersdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     case RIG_LEVEL_VOXGAIN:
+        if (val.f > 1.0) return -RIG_EINVAL;
         ival = val.f * 1000;
         snprintf(cmd, sizeof(cmd) - 1, "ZZVG%04d", ival);
         break;
 
     case RIG_LEVEL_SQL:
+        if (val.f > 1.0) return -RIG_EINVAL;
         powersdr_get_mode(rig, vfo, &mode, &width);
 
         if (mode == RIG_MODE_FM)
@@ -784,7 +794,6 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     switch (level)
     {
-        int i;
     case RIG_LEVEL_AGC:
         n = sscanf(lvlbuf + len, "%d", &val->i);
 
@@ -812,10 +821,7 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_RF:
-        n = sscanf(lvlbuf + len, "%d", &i);
-        val->i = i;
-        rig_debug(RIG_DEBUG_TRACE, "%s: lvlbuf+len=%s, len=%d, i=%d, val->i=%d\n", __func__, lvlbuf+len, len, i, val->i);
-                
+        n = sscanf(lvlbuf + len, "%d", &val->i);
 
         if (n != 1)
         {
@@ -823,8 +829,7 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                       __func__, lvlbuf);
             return -RIG_EPROTO;
         }
-        val->f = (val->i + 20) / (120 - -20);
-        rig_debug(RIG_DEBUG_TRACE, "%s: lvlbuf=%s, val->i=%d, val->f=%g\n", __func__, lvlbuf, i, val->f);
+        val->f = (val->i + 20.0) / (120.0 - -20.0);
 
         break;
 
@@ -1107,7 +1112,7 @@ const struct rig_caps powersdr_caps =
     RIG_MODEL(RIG_MODEL_POWERSDR),
     .model_name =       "PowerSDR/Thetis",
     .mfg_name =     "FlexRadio/ANAN",
-    .version =      "20200918.0",
+    .version =      "20200930.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
