@@ -2248,18 +2248,24 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     case RIG_LEVEL_RF:
+
         /* XXX check level range */
         // KX2 and KX3 have range -190 to 250
-        if (val.f > 1.0) return -RIG_EINVAL;
-        if (RIG_IS_KX2 || RIG_IS_KX3) {
+        if (val.f > 1.0) { return -RIG_EINVAL; }
+
+        if (RIG_IS_KX2 || RIG_IS_KX3)
+        {
             val.f = val.f * (250.0 - 190.0) + 190;
         }
-        else if (RIG_IS_K3 || RIG_IS_K3S) {
+        else if (RIG_IS_K3 || RIG_IS_K3S)
+        {
             val.f = val.f * (250.0 / 100.0);
         }
-        else { // other kenwood rigs
+        else   // other kenwood rigs
+        {
             val.f = val.f * 255.0;
         }
+
         snprintf(levelbuf, sizeof(levelbuf), "RG%03d", kenwood_val);
         break;
 
@@ -2403,8 +2409,11 @@ int get_kenwood_level(RIG *rig, const char *cmd, float *fval, int *ival)
 
     /* 000..255 */
     sscanf(lvlbuf + len, "%d", &lvl);
-    if (ival) *ival = lvl; // raw value
-    if (fval) *fval = lvl / 255.0; // our default scaling of 0-255
+
+    if (ival) { *ival = lvl; } // raw value
+
+    if (fval) { *fval = lvl / 255.0; } // our default scaling of 0-255
+
     return RIG_OK;
 };
 
@@ -2646,7 +2655,8 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             break;
 
         case 3:
-            return get_kenwood_level(rig, vfo == RIG_VFO_MAIN ? "AG0" : "AG1", &val->f, NULL);
+            return get_kenwood_level(rig, vfo == RIG_VFO_MAIN ? "AG0" : "AG1", &val->f,
+                                     NULL);
             break;
 
         default:
@@ -2657,19 +2667,25 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_RF:
         retval = get_kenwood_level(rig, "RG", NULL, &val->i);
-        if (retval != RIG_OK) return retval;
+
+        if (retval != RIG_OK) { return retval; }
+
         // KX2 and KX3 have range 190 to 250
-        if (RIG_IS_KX2 || RIG_IS_KX3) {
-            val->f = (val->i - 190) / (250-190);
+        if (RIG_IS_KX2 || RIG_IS_KX3)
+        {
+            val->f = (val->i - 190) / (250 - 190);
         }
         // K3 is 0 to 250
-        else if (RIG_IS_K3 || RIG_IS_K3S) {
+        else if (RIG_IS_K3 || RIG_IS_K3S)
+        {
             val->f = val->i / 250.0;
         }
         // all others default to 0-255
-        else { 
+        else
+        {
             val->f = val->i / 255.0;
         }
+
         return retval;
 
     case RIG_LEVEL_SQL:
