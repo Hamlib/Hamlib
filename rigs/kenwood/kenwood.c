@@ -2673,7 +2673,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         // KX2 and KX3 have range 190 to 250
         if (RIG_IS_KX2 || RIG_IS_KX3)
         {
-            val->f = (val->i - 190) / (250 - 190);
+            val->f = (val->i - 190.0) / (250.0 - 190.0);
         }
         // K3 is 0 to 250
         else if (RIG_IS_K3 || RIG_IS_K3S)
