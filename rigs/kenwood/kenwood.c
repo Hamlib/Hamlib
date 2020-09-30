@@ -2687,27 +2687,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
 
     case RIG_LEVEL_RF:
-        retval = get_kenwood_level(rig, "RG", NULL, &val->i);
-
-        if (retval != RIG_OK) { return retval; }
-
-        // KX2 and KX3 have range 190 to 250
-        if (RIG_IS_KX2 || RIG_IS_KX3)
-        {
-            val->f = (val->i - 190.0) / (250.0 - 190.0);
-        }
-        // K3 is 0 to 250
-        else if (RIG_IS_K3 || RIG_IS_K3S)
-        {
-            val->f = val->i / 250.0;
-        }
-        // all others default to 0-255
-        else
-        {
-            val->f = val->i / 255.0;
-        }
-
-        return retval;
+        return get_kenwood_level(rig, "RG", &val->f, NULL);
 
     case RIG_LEVEL_SQL:
         return get_kenwood_level(rig, "SQ", &val->f, NULL);
