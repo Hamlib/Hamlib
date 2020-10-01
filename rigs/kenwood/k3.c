@@ -1681,6 +1681,11 @@ int k3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         snprintf(levelbuf, sizeof(levelbuf), "ML%03d", (int)(val.f * 60.0f));
         break;
 
+    case RIG_LEVEL_RFPOWER:
+	// range is 0-12 if there is no KPA3 installed
+        snprintf(levelbuf, sizeof(levelbuf), "PC%03d", (int)(val.f * 12.0f));
+        break;
+
     default:
         return kenwood_set_level(rig, vfo, level, val);
     }
