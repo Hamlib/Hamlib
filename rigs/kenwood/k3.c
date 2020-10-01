@@ -1579,6 +1579,48 @@ int k3_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
     return RIG_OK;
 }
 
+static int k3_get_maxpower(RIG *rig)
+{
+	int retval;
+    	int maxpower = 12; // K3 default power level
+    	char levelbuf[16];
+    	struct kenwood_priv_data *priv = rig->state.priv;
+	// default range is 0-12 if there is no KPA3 installed
+	if (priv->has_kpa3 || priv->has_kpa100) maxpower = 110;
+	if (RIG_IS_KX2 || RIG_IS_KX3) {
+
+            int bandnum = -1;
+            retval = kenwood_safe_transaction(rig, "BN", levelbuf, KENWOOD_MAX_BUF_LEN, 4);
+	    if (retval != RIG_OK) { return retval; }
+	    sscanf(levelbuf,"BN%d", &bandnum);
+	    switch(bandnum)
+	    {
+		    case 1:
+		    case 2:
+		    case 3:
+		    case 4:
+		    case 5:
+			    maxpower = 15;
+			    break;
+		    case 0: // 160M
+		    case 6: // 17M
+		    case 7: // 15M
+		    case 8: // 12M
+		    case 9: // 10M
+			    maxpower = 12;
+			    break;
+		    case 10: // 6M
+			    maxpower = 10;
+			    break;
+		    default: // are transverters all limited to 3W??
+			    maxpower = 3;
+			    break;
+	    }
+	}
+	rig_debug(RIG_DEBUG_TRACE, "%s: maxpower=%d\n", __func__, maxpower);
+	return maxpower;
+}
+
 int k3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     char levelbuf[16];
@@ -1682,9 +1724,8 @@ int k3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     case RIG_LEVEL_RFPOWER:
-	// range is 0-12 if there is no KPA3 installed
-        snprintf(levelbuf, sizeof(levelbuf), "PC%03d", (int)(val.f * 12.0f));
-        break;
+        snprintf(levelbuf, sizeof(levelbuf), "PC%03d", (int)(val.f * k3_get_maxpower(rig)));
+	break;
 
     default:
         return kenwood_set_level(rig, vfo, level, val);
@@ -1957,6 +1998,17 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         sscanf(levelbuf + 2, "%d", &lvl);
         val->f = (float) lvl / 60.0f;
         break;
+    case RIG_LEVEL_RFPOWER:
+        retval = kenwood_safe_transaction(rig, "PC", levelbuf, sizeof(levelbuf), 5);
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        sscanf(levelbuf + 2, "%d", &lvl);
+        val->f = (float) lvl / k3_get_maxpower(rig);
+	break;
 
     default:
         return kenwood_get_level(rig, vfo, level, val);
