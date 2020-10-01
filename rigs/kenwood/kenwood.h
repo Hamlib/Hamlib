@@ -117,18 +117,20 @@ struct kenwood_priv_data
     int k2_ext_lvl;   /* Initial K2 extension level */
     int k3_ext_lvl;   /* Initial K3 extension level */
     int k2_md_rtty;   /* K2 RTTY mode available flag, 1 = RTTY, 0 = N/A */
-    char *fw_rev;   /* firmware revision level */
-    int trn_state;  /* AI state discovered at startup */
+    int has_kpa3;     /* Elecraft K3 has k3pa for PC command */
+    int has_kpa100;   /* Elecraft KX3/KX2 has kpa100 for PC command */
+    char *fw_rev;     /* firmware revision level */
+    int trn_state;    /* AI state discovered at startup */
     unsigned fw_rev_uint; /* firmware revision as a number 1.07 -> 107 */
     char verify_cmd[4];   /* command used to verify set commands */
     int is_emulation;     /* flag for TS-2000 emulations */
     void *data;           /* model specific data */
-    rmode_t curr_mode;     /* used for is_emulation to avoid get_mode on VFOB */
+    rmode_t curr_mode;    /* used for is_emulation to avoid get_mode on VFOB */
     struct timespec cache_start;
     char last_if_response[KENWOOD_MAX_BUF_LEN];
-    int poweron; /* to avoid powering on more than once */
-    int has_rit2; /* rig has set 2 rit command */
-    int ag_format;    /* which AG command is being used...see LEVEL_AF in kenwood.c*/
+    int poweron;   /* to avoid powering on more than once */
+    int has_rit2;  /* rig has set 2 rit command */
+    int ag_format; /* which AG command is being used...see LEVEL_AF in kenwood.c*/
 };
 
 
