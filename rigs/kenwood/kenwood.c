@@ -2203,15 +2203,7 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         /*
          * Best estimate: 1.0 corresponds to 100W
          */
-        if (RIG_IS_K3 || RIG_IS_KX3 || RIG_IS_KX2) 
-        {
-            kenwood_val = val.f * 12;
-        } // range is 0-12 if there is no KPA3 installed
-        else 
-        {
-            kenwood_val = val.f * 100; 
-        }
-
+        kenwood_val = val.f * 100; 
         snprintf(levelbuf, sizeof(levelbuf), "PC%03d", kenwood_val);
         break;
 
@@ -2247,14 +2239,8 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     case RIG_LEVEL_MICGAIN:
 
-        /* XXX check level range */
-        if (RIG_IS_KX2 || RIG_IS_KX3 || RIG_IS_K2 || RIG_IS_K3 || RIG_IS_K3S) { // range is 0-255
-            kenwood_val = val.f * 100 * (60.0/255.0);
-        }
-        else { // range is 0-100
-            kenwood_val = val.f * 100;
-        }
-
+        if (val.f > 1.0 || val.f < 0) { return -RIG_EINVAL; }
+        kenwood_val = val.f * 100;
         snprintf(levelbuf, sizeof(levelbuf), "MG%03d", kenwood_val);
         break;
 
@@ -2262,21 +2248,8 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
         /* XXX check level range */
         // KX2 and KX3 have range -190 to 250
-        if (val.f > 1.0) { return -RIG_EINVAL; }
-
-        if (RIG_IS_KX2 || RIG_IS_KX3)
-        {
-            kenwood_val = val.f * (250.0 - 190.0) + 190;
-        }
-        else if (RIG_IS_K3 || RIG_IS_K3S)
-        {
-            kenwood_val = val.f * (250.0 / 100.0);
-        }
-        else   // other kenwood rigs
-        {
-            kenwood_val = val.f * 255.0;
-        }
-
+        if (val.f > 1.0 || val.f < 0) { return -RIG_EINVAL; }
+        kenwood_val = val.f * 255.0;
         snprintf(levelbuf, sizeof(levelbuf), "RG%03d", kenwood_val);
         break;
 
@@ -2587,23 +2560,11 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_RFPOWER:
-#if 0 // TBD
-        if (RIG_IS_K3) { // see if KPA3 is enabled
-            ret = get_kenwood_level(rig, "MP055", NULL, &val->i);
-            if (val->i == 
-        }
-#endif
         /*
          * an answer "PC100" means 100 Watt
          */
         ret = get_kenwood_level(rig, "PC", NULL, &val->i);
-        if (RIG_IS_K3 || RIG_IS_KX3 || RIG_IS_KX2)
-        { // range is 0-12 if there is no KPA3 installed
-            val->f = val->i / 12.0;
-        }
-        else {
-            val->f = val->f / 100.0;
-        }
+        val->f = val->f / 100.0;
         return ret;
 
     case RIG_LEVEL_AF:
@@ -2700,12 +2661,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             rig_debug(RIG_DEBUG_ERR, "%s: Error getting MICGAIN\n", __func__);
             return ret;
         }
-        if (RIG_IS_KX2 || RIG_IS_KX3 || RIG_IS_K2 || RIG_IS_K3 || RIG_IS_K3S) {
-            val->f = val->i * (255.0/60.0);
-        }
-        else {
-            val->f = val->i / 255.0;
-        }
+        val->f = val->i / 255.0;
         return RIG_OK;
 
     case RIG_LEVEL_AGC:
