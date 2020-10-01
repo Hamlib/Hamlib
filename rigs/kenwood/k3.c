@@ -1985,8 +1985,8 @@ int kx3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         snprintf(cmdbuf, sizeof(cmdbuf), "AG%03d", (int)(val.f * 60.0f));
 	return kenwood_transaction(rig, cmdbuf, NULL, 0);
     case RIG_LEVEL_MICGAIN:
-	// manual says 0-255 as of Rev G5 but experiment says 0-99
-        snprintf(cmdbuf, sizeof(cmdbuf), "MG%03d", (int)(val.f * 99.0f));
+	// manual says 0-255 as of Rev G5 but experiment says 0-80
+        snprintf(cmdbuf, sizeof(cmdbuf), "MG%03d", (int)(val.f * 80.0f));
 	return kenwood_transaction(rig, cmdbuf, NULL, 0);
     }
 
@@ -2017,7 +2017,7 @@ int kx3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_MICGAIN:
         retval = get_kenwood_level(rig, "MG", NULL, &val->i);
         if (retval != RIG_OK) { return retval; }
-        val->f = val->i / 99.0;
+        val->f = val->i / 80.0;
         return retval;
 
     case RIG_LEVEL_RFPOWER_METER:
