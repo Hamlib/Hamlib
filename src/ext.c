@@ -62,7 +62,8 @@ static int rig_has_ext_token(RIG *rig, token_t token)
 
     for (i = 0; ext_tokens[i] != TOK_BACKEND_NONE; i++)
     {
-        if (ext_tokens[i] == token) {
+        if (ext_tokens[i] == token)
+        {
             return 1;
         }
     }
@@ -83,10 +84,10 @@ static int rig_has_ext_token(RIG *rig, token_t token)
  * rig_ext_func_foreach.
  */
 int HAMLIB_API rig_ext_func_foreach(RIG *rig,
-        int (*cfunc)(RIG *,
-                const struct confparams *,
-                rig_ptr_t),
-        rig_ptr_t data)
+                                    int (*cfunc)(RIG *,
+                                            const struct confparams *,
+                                            rig_ptr_t),
+                                    rig_ptr_t data)
 {
     const struct confparams *cfp;
 
@@ -99,7 +100,8 @@ int HAMLIB_API rig_ext_func_foreach(RIG *rig,
 
     for (cfp = rig->caps->extfuncs; cfp && cfp->name; cfp++)
     {
-        if (!rig_has_ext_token(rig, cfp->token)) {
+        if (!rig_has_ext_token(rig, cfp->token))
+        {
             continue;
         }
 
@@ -148,7 +150,8 @@ int HAMLIB_API rig_ext_level_foreach(RIG *rig,
 
     for (cfp = rig->caps->extlevels; cfp && cfp->name; cfp++)
     {
-        if (!rig_has_ext_token(rig, cfp->token)) {
+        if (!rig_has_ext_token(rig, cfp->token))
+        {
             continue;
         }
 
@@ -197,7 +200,8 @@ int HAMLIB_API rig_ext_parm_foreach(RIG *rig,
 
     for (cfp = rig->caps->extparms; cfp && cfp->name; cfp++)
     {
-        if (!rig_has_ext_token(rig, cfp->token)) {
+        if (!rig_has_ext_token(rig, cfp->token))
+        {
             continue;
         }
 

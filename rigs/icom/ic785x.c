@@ -120,7 +120,8 @@ struct cmdparams ic785x_extcmds[] =
 };
 
 
-int ic785x_ext_tokens[] = {
+int ic785x_ext_tokens[] =
+{
     TOK_DRIVE_GAIN, TOK_DIGI_SEL_FUNC, TOK_DIGI_SEL_LEVEL, TOK_BACKEND_NONE
 };
 
@@ -331,5 +332,5 @@ int ic785x_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
 int ic785x_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-   return ic7800_get_level(rig, vfo, level, val);
+    return ic7800_get_level(rig, vfo, level, val);
 }

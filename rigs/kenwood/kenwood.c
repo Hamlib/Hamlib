@@ -2203,7 +2203,7 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         /*
          * Best estimate: 1.0 corresponds to 100W
          */
-        kenwood_val = val.f * 100; 
+        kenwood_val = val.f * 100;
         snprintf(levelbuf, sizeof(levelbuf), "PC%03d", kenwood_val);
         break;
 
@@ -2240,6 +2240,7 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     case RIG_LEVEL_MICGAIN:
 
         if (val.f > 1.0 || val.f < 0) { return -RIG_EINVAL; }
+
         kenwood_val = val.f * 100;
         snprintf(levelbuf, sizeof(levelbuf), "MG%03d", kenwood_val);
         break;
@@ -2249,6 +2250,7 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         /* XXX check level range */
         // KX2 and KX3 have range -190 to 250
         if (val.f > 1.0 || val.f < 0) { return -RIG_EINVAL; }
+
         kenwood_val = val.f * 255.0;
         snprintf(levelbuf, sizeof(levelbuf), "RG%03d", kenwood_val);
         break;
@@ -2661,6 +2663,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             rig_debug(RIG_DEBUG_ERR, "%s: Error getting MICGAIN\n", __func__);
             return ret;
         }
+
         val->f = val->i / 255.0;
         return RIG_OK;
 
