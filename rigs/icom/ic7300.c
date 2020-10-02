@@ -901,7 +901,7 @@ int ic7300_set_parm(RIG *rig, setting_t parm, value_t val)
 
     switch (parm)
     {
-    unsigned char prmbuf[MAXFRAMELEN];
+        unsigned char prmbuf[MAXFRAMELEN];
 
     case RIG_PARM_ANN:
     {

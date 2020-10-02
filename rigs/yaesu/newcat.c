@@ -2685,9 +2685,12 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             return -RIG_ENAVAIL;
         }
-        if (newcat_is_rig(rig, RIG_MODEL_TS890S)) // new format for the command with VFO selection
+
+        if (newcat_is_rig(rig,
+                          RIG_MODEL_TS890S)) // new format for the command with VFO selection
         {
             format = "MS0%d;";
+
             if (vfo == RIG_VFO_SUB)
             {
                 format = "MS1%d";
@@ -3672,9 +3675,12 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "NB0%d%c", status ? 1 : 0,
                  cat_term);
-        if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE){
-        priv->cmd_str[2] = main_sub_vfo;
+
+        if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
+        {
+            priv->cmd_str[2] = main_sub_vfo;
         }
+
         break;
 
     case RIG_FUNC_NR:
@@ -3685,9 +3691,12 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "NR0%d%c", status ? 1 : 0,
                  cat_term);
-        if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE){
-        priv->cmd_str[2] = main_sub_vfo;
+
+        if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
+        {
+            priv->cmd_str[2] = main_sub_vfo;
         }
+
         break;
 
     case RIG_FUNC_COMP:

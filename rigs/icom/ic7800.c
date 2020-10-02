@@ -114,7 +114,8 @@ struct cmdparams ic7800_extcmds[] =
     { { 0 } }
 };
 
-int ic7800_ext_tokens[] = {
+int ic7800_ext_tokens[] =
+{
     TOK_DRIVE_GAIN, TOK_DIGI_SEL_FUNC, TOK_DIGI_SEL_LEVEL, TOK_BACKEND_NONE
 };
 
@@ -347,6 +348,7 @@ int ic7800_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
 
         return icom_set_level(rig, vfo, level, val);
+
     default:
         return icom_set_level(rig, vfo, level, val);
     }
@@ -378,7 +380,9 @@ int ic7800_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             val->i = rig->state.attenuator[val->i - 1];
         }
+
         break;
+
     default:
         return icom_get_level(rig, vfo, level, val);
     }

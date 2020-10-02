@@ -1273,21 +1273,23 @@ static int dummy_set_ext_func(RIG *rig, vfo_t vfo, token_t token, int status)
 
     switch (token)
     {
-        case TOK_EL_MAGICEXTFUNC:
-            break;
+    case TOK_EL_MAGICEXTFUNC:
+        break;
 
-        default:
-            return -RIG_EINVAL;
+    default:
+        return -RIG_EINVAL;
     }
 
     switch (cfp->type)
     {
-        case RIG_CONF_CHECKBUTTON:
-            break;
-        case RIG_CONF_BUTTON:
-            break;
-        default:
-            return -RIG_EINTERNAL;
+    case RIG_CONF_CHECKBUTTON:
+        break;
+
+    case RIG_CONF_BUTTON:
+        break;
+
+    default:
+        return -RIG_EINTERNAL;
     }
 
     elp = find_ext(priv->ext_funcs, token);
@@ -1301,7 +1303,7 @@ static int dummy_set_ext_func(RIG *rig, vfo_t vfo, token_t token, int status)
     elp->val.i = status;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %d\n", __func__,
-            cfp->name, status);
+              cfp->name, status);
 
     return RIG_OK;
 }
@@ -1322,10 +1324,11 @@ static int dummy_get_ext_func(RIG *rig, vfo_t vfo, token_t token, int *status)
 
     switch (token)
     {
-        case TOK_EL_MAGICEXTFUNC:
-            break;
-        default:
-            return -RIG_EINVAL;
+    case TOK_EL_MAGICEXTFUNC:
+        break;
+
+    default:
+        return -RIG_EINVAL;
     }
 
     elp = find_ext(priv->ext_funcs, token);
@@ -1339,7 +1342,7 @@ static int dummy_get_ext_func(RIG *rig, vfo_t vfo, token_t token, int *status)
     *status = elp->val.i;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__,
-            cfp->name);
+              cfp->name);
 
     return RIG_OK;
 }

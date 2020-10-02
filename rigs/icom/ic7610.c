@@ -127,7 +127,8 @@ struct cmdparams ic7610_extcmds[] =
     { { 0 } }
 };
 
-int ic7610_ext_tokens[] = {
+int ic7610_ext_tokens[] =
+{
     TOK_DRIVE_GAIN, TOK_DIGI_SEL_FUNC, TOK_DIGI_SEL_LEVEL, TOK_BACKEND_NONE
 };
 

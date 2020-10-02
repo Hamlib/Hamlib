@@ -129,7 +129,8 @@ struct cmdparams ic7600_extcmds[] =
     { { 0 } }
 };
 
-int ic7600_ext_tokens[] = {
+int ic7600_ext_tokens[] =
+{
     TOK_DRIVE_GAIN, TOK_BACKEND_NONE
 };
 

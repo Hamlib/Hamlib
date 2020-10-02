@@ -1581,44 +1581,54 @@ int k3_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
 
 static int k3_get_maxpower(RIG *rig)
 {
-	int retval;
-    	int maxpower = 12; // K3 default power level
-    	char levelbuf[16];
-    	struct kenwood_priv_data *priv = rig->state.priv;
-	// default range is 0-12 if there is no KPA3 installed
-	if (priv->has_kpa3 || priv->has_kpa100) maxpower = 110;
-	if (RIG_IS_KX2 || RIG_IS_KX3) {
+    int retval;
+    int maxpower = 12; // K3 default power level
+    char levelbuf[16];
+    struct kenwood_priv_data *priv = rig->state.priv;
 
-            int bandnum = -1;
-            retval = kenwood_safe_transaction(rig, "BN", levelbuf, KENWOOD_MAX_BUF_LEN, 4);
-	    if (retval != RIG_OK) { return retval; }
-	    sscanf(levelbuf,"BN%d", &bandnum);
-	    switch(bandnum)
-	    {
-		    case 1:
-		    case 2:
-		    case 3:
-		    case 4:
-		    case 5:
-			    maxpower = 15;
-			    break;
-		    case 0: // 160M
-		    case 6: // 17M
-		    case 7: // 15M
-		    case 8: // 12M
-		    case 9: // 10M
-			    maxpower = 12;
-			    break;
-		    case 10: // 6M
-			    maxpower = 10;
-			    break;
-		    default: // are transverters all limited to 3W??
-			    maxpower = 3;
-			    break;
-	    }
-	}
-	rig_debug(RIG_DEBUG_TRACE, "%s: maxpower=%d\n", __func__, maxpower);
-	return maxpower;
+    // default range is 0-12 if there is no KPA3 installed
+    if (priv->has_kpa3 || priv->has_kpa100) { maxpower = 110; }
+
+    if (RIG_IS_KX2 || RIG_IS_KX3)
+    {
+
+        int bandnum = -1;
+        retval = kenwood_safe_transaction(rig, "BN", levelbuf, KENWOOD_MAX_BUF_LEN, 4);
+
+        if (retval != RIG_OK) { return retval; }
+
+        sscanf(levelbuf, "BN%d", &bandnum);
+
+        switch (bandnum)
+        {
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+            maxpower = 15;
+            break;
+
+        case 0: // 160M
+        case 6: // 17M
+        case 7: // 15M
+        case 8: // 12M
+        case 9: // 10M
+            maxpower = 12;
+            break;
+
+        case 10: // 6M
+            maxpower = 10;
+            break;
+
+        default: // are transverters all limited to 3W??
+            maxpower = 3;
+            break;
+        }
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: maxpower=%d\n", __func__, maxpower);
+    return maxpower;
 }
 
 int k3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
@@ -1724,8 +1734,9 @@ int k3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     case RIG_LEVEL_RFPOWER:
-        snprintf(levelbuf, sizeof(levelbuf), "PC%03d", (int)(val.f * k3_get_maxpower(rig)));
-	break;
+        snprintf(levelbuf, sizeof(levelbuf), "PC%03d",
+                 (int)(val.f * k3_get_maxpower(rig)));
+        break;
 
     default:
         return kenwood_set_level(rig, vfo, level, val);
@@ -1970,7 +1981,7 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         sscanf(levelbuf + 2, "%d", &lvl);
         val->f = (float) lvl / 250.0f;
-	break;
+        break;
 
     case RIG_LEVEL_AF:
         retval = kenwood_safe_transaction(rig, "AG", levelbuf, sizeof(levelbuf), 5);
@@ -1998,6 +2009,7 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         sscanf(levelbuf + 2, "%d", &lvl);
         val->f = (float) lvl / 60.0f;
         break;
+
     case RIG_LEVEL_RFPOWER:
         retval = kenwood_safe_transaction(rig, "PC", levelbuf, sizeof(levelbuf), 5);
 
@@ -2008,7 +2020,7 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         sscanf(levelbuf + 2, "%d", &lvl);
         val->f = (float) lvl / k3_get_maxpower(rig);
-	break;
+        break;
 
     default:
         return kenwood_get_level(rig, vfo, level, val);
@@ -2030,16 +2042,18 @@ int kx3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     {
     case RIG_LEVEL_RF:
         ival = val.f * (250.0 - 190.0) + 190.0;
-        snprintf(cmdbuf,sizeof(cmdbuf)-1,"RG%03d", ival);
-	return kenwood_transaction(rig, cmdbuf, NULL, 0);
+        snprintf(cmdbuf, sizeof(cmdbuf) - 1, "RG%03d", ival);
+        return kenwood_transaction(rig, cmdbuf, NULL, 0);
+
     case RIG_LEVEL_AF:
-	// manual says 0-255 as of Rev G5 but experiment says 0-60
+        // manual says 0-255 as of Rev G5 but experiment says 0-60
         snprintf(cmdbuf, sizeof(cmdbuf), "AG%03d", (int)(val.f * 60.0f));
-	return kenwood_transaction(rig, cmdbuf, NULL, 0);
+        return kenwood_transaction(rig, cmdbuf, NULL, 0);
+
     case RIG_LEVEL_MICGAIN:
-	// manual says 0-255 as of Rev G5 but experiment says 0-80
+        // manual says 0-255 as of Rev G5 but experiment says 0-80
         snprintf(cmdbuf, sizeof(cmdbuf), "MG%03d", (int)(val.f * 80.0f));
-	return kenwood_transaction(rig, cmdbuf, NULL, 0);
+        return kenwood_transaction(rig, cmdbuf, NULL, 0);
     }
 
     return k3_set_level(rig, vfo, level, val);
@@ -2055,20 +2069,26 @@ int kx3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     {
     case RIG_LEVEL_AF:
         retval = get_kenwood_level(rig, "AG", NULL, &val->i);
+
         if (retval != RIG_OK) { return retval; }
-	// manual says 0-255 as of Rev G5 but experiment says 0-60
+
+        // manual says 0-255 as of Rev G5 but experiment says 0-60
         val->f = val->i / 60.0;
         return retval;
 
     case RIG_LEVEL_RF:
         retval = get_kenwood_level(rig, "RG", NULL, &val->i);
+
         if (retval != RIG_OK) { return retval; }
-        val->f = (val->i - 190.0) / (250.0-190.0);
+
+        val->f = (val->i - 190.0) / (250.0 - 190.0);
         return retval;
 
     case RIG_LEVEL_MICGAIN:
         retval = get_kenwood_level(rig, "MG", NULL, &val->i);
+
         if (retval != RIG_OK) { return retval; }
+
         val->f = val->i / 80.0;
         return retval;
 
