@@ -989,11 +989,13 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             {
                 rig_debug(RIG_DEBUG_TRACE, "%s: debug7\n", __func__);
 
+#if 0 // was printing Reply: twice
                 if (prompt)
                 {
                     rig_debug(RIG_DEBUG_TRACE, "%s: debug8\n", __func__);
                     fprintf_flush(fout, "%s: ", cmd_entry->arg2);
                 }
+#endif
 
                 if (scanfc(fin, "%s", arg2) < 1)
                 {
@@ -4285,11 +4287,11 @@ declare_proto_rig(get_powerstat)
     return status;
 }
 
-static int hasbinary(char *s)
+static int hasbinary(char *s, int len)
 {
     int i;
 
-    for (i = 0; s[i] != 0; ++i)
+    for (i = 0; i < len; ++i)
     {
         if (!isascii(s[i])) { return 1; }
     }
@@ -4309,7 +4311,7 @@ declare_proto_rig(send_cmd)
     struct rig_state *rs;
     int backend_num, cmd_len;
 #define BUFSZ 128
-    char bufcmd[BUFSZ];
+    char bufcmd[BUFSZ*5]; // allow for 5 chars for binary
     unsigned char buf[BUFSZ];
     char eom_buf[4] = { 0xa, 0xd, 0, 0 };
     int binary = 0;
@@ -4414,7 +4416,7 @@ declare_proto_rig(send_cmd)
     rig_flush(&rs->rigport);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: rigport=%d, bufcmd=%s, cmd_len=%d\n", __func__,
-              rs->rigport.fd, hasbinary(bufcmd) ? "BINARY" : bufcmd, cmd_len);
+              rs->rigport.fd, hasbinary(bufcmd, cmd_len) ? "BINARY" : bufcmd, cmd_len);
     retval = write_block(&rs->rigport, (char *)bufcmd, cmd_len);
 
     if (retval != RIG_OK)
@@ -4426,7 +4428,7 @@ declare_proto_rig(send_cmd)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: debug Cmd\n", __func__);
         fwrite(cmd->arg2, 1, strlen(cmd->arg2), fout); /* i.e. "Frequency" */
-        fwrite(":", 1, 1, fout); /* i.e. "Frequency" */
+        fwrite(": ", 1, 2, fout); /* i.e. "Frequency" */
     }
 
     do
@@ -4436,9 +4438,6 @@ declare_proto_rig(send_cmd)
         if (rxbytes > 0)
         {
             ++rxbytes;  // need length + 1 for end of string
-
-            if (cmd->cmd == 'W') { rxbytes *= 5; }
-
             eom_buf[0] = 0;
         }
 
@@ -4463,10 +4462,10 @@ declare_proto_rig(send_cmd)
             buf[BUFSZ - 1] = '\0';
         }
 
-        if (rig->caps->rig_model != RIG_MODEL_NETRIGCTL)
+        //if (rig->caps->rig_model != RIG_MODEL_NETRIGCTL)
         {
             // see if we have binary being returned
-            binary = hasbinary((char *)buf);
+            binary = hasbinary((char *)buf, retval);
         }
 
         if (binary)   // convert our buf to a hex representation
