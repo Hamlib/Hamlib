@@ -3241,9 +3241,12 @@ int icom_get_ext_func(RIG *rig, vfo_t vfo, token_t token, int *status)
         {
             value_t value;
             int result = icom_get_ext_cmd(rig, vfo, token, &value);
-            if (result == RIG_OK) {
+
+            if (result == RIG_OK)
+            {
                 *status = value.i;
             }
+
             return result;
         }
         else { i++; }
@@ -5411,6 +5414,7 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     value_t value;
+
     for (i = 0; extcmds && extcmds[i].id.s != 0; i++)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: i=%d\n", __func__, i);
@@ -5418,9 +5422,12 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         if (extcmds[i].cmdparamtype == CMD_PARAM_TYPE_FUNC && extcmds[i].id.s == func)
         {
             int result = icom_get_cmd(rig, vfo, (struct cmdparams *)&extcmds[i], &value);
-            if (result == RIG_OK) {
+
+            if (result == RIG_OK)
+            {
                 *status = value.i;
             }
+
             return result;
         }
     }

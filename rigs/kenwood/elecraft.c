@@ -183,31 +183,44 @@ int elecraft_open(RIG *rig)
     case RIG_MODEL_K3S:
     case RIG_MODEL_KX2:
     case RIG_MODEL_KX3:
-	// we need to know what's hooked up for PC command max levels
-	err =  kenwood_safe_transaction(rig, "OM", buf, KENWOOD_MAX_BUF_LEN, 15);
-	if (err != RIG_OK) { return err; }
-	rig_debug(RIG_DEBUG_TRACE, "%s: OM=%s\n", __func__, buf);
-	priv->has_kpa3 = 0;
-	if (strstr(buf,"P")) priv->has_kpa3 = 1;
-	if (buf[13] == '0') // then we have a KX3 or KX2
-	{
-		char modelnum;
-		modelnum = buf[14];
-		switch (modelnum)
-		{
-			case '1': model = "KX2";break;
-			case '2': model = "KX3";break;
-			default:
-				  rig_debug(RIG_DEBUG_ERR, "%s: Unknown Elecraft modelnum=%c, expected 1 or 2\n", __func__, modelnum);
-				  break;
-		}
-		if (strstr(buf,"P")) priv->has_kpa100 = 1;
-	}
-	else {
-		model = "K3";
-		if (strstr(buf,"R")) model = "K3S";
-	}
-	rig_debug(RIG_DEBUG_TRACE, "%s: model=%s, kpa3%d\n", __func__, model, priv->has_kpa3);
+        // we need to know what's hooked up for PC command max levels
+        err =  kenwood_safe_transaction(rig, "OM", buf, KENWOOD_MAX_BUF_LEN, 15);
+
+        if (err != RIG_OK) { return err; }
+
+        rig_debug(RIG_DEBUG_TRACE, "%s: OM=%s\n", __func__, buf);
+        priv->has_kpa3 = 0;
+
+        if (strstr(buf, "P")) { priv->has_kpa3 = 1; }
+
+        if (buf[13] == '0') // then we have a KX3 or KX2
+        {
+            char modelnum;
+            modelnum = buf[14];
+
+            switch (modelnum)
+            {
+            case '1': model = "KX2"; break;
+
+            case '2': model = "KX3"; break;
+
+            default:
+                rig_debug(RIG_DEBUG_ERR, "%s: Unknown Elecraft modelnum=%c, expected 1 or 2\n",
+                          __func__, modelnum);
+                break;
+            }
+
+            if (strstr(buf, "P")) { priv->has_kpa100 = 1; }
+        }
+        else
+        {
+            model = "K3";
+
+            if (strstr(buf, "R")) { model = "K3S"; }
+        }
+
+        rig_debug(RIG_DEBUG_TRACE, "%s: model=%s, kpa3%d\n", __func__, model,
+                  priv->has_kpa3);
 
         err = elecraft_get_extension_level(rig, "K2", &priv->k2_ext_lvl);
 
