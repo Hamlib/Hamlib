@@ -2566,7 +2566,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
          * an answer "PC100" means 100 Watt
          */
         ret = get_kenwood_level(rig, "PC", NULL, &val->i);
-        val->f = val->f / 100.0;
+        val->f = val->i / 100.0;
         return ret;
 
     case RIG_LEVEL_AF:
