@@ -2899,8 +2899,25 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
         val.i = 5000 / val.i;
 
-        if (newcat_is_rig(rig, RIG_MODEL_FT950) || newcat_is_rig(rig, RIG_MODEL_FT450)
-                || newcat_is_rig(rig, RIG_MODEL_FT1200))
+        if (is_ft101)
+        {
+            if (val.i <= 30) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD00;"); }
+
+            if (val.i <= 50) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD01;"); }
+
+            if (val.i <= 100) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD02;"); }
+
+            if (val.i <= 150) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD03;"); }
+
+            if (val.i <= 200) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD04;"); }
+
+            if (val.i <= 250) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD05;"); }
+
+            if (val.i > 2900) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD33;"); }
+            // this covers 300-2900 06-32
+            else { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD%02d;", 6 + ((val.i - 300) / 100)); }
+        }
+        else if (is_ft950 || is_ft450 || is_ft1200)
         {
             if (val.i < 30)
             {
@@ -3404,6 +3421,30 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_BKINDL:
         val->i = atoi(retlvl);      /* milliseconds */
+
+        if (is_ft101)
+        {
+            switch (val->i)
+            {
+            case 0: val->i = 30; break;
+
+            case 1: val->i = 50; break;
+
+            case 2: val->i = 100; break;
+
+            case 3: val->i = 150; break;
+
+            case 4: val->i = 200; break;
+
+            case 5: val->i = 250; break;
+
+            case 6: val->i = 300; break;
+
+            default: val->i = (val->i - 6) * 100 + 300;
+            }
+
+            return RIG_OK;
+        }
 
         if (val->i < 1)
         {
