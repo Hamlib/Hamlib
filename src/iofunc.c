@@ -753,7 +753,6 @@ int HAMLIB_API read_string(hamlib_port_t *p,
          */
         rd_count = port_read(p, &rxbuffer[total_count], 1);
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: YYY rd_count=%d, total_count=%d\n", __func__, rd_count, total_count);
         /* if we get 0 bytes or an error something is wrong */
         if (rd_count <= 0)
         {
