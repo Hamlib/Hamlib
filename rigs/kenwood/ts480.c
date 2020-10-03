@@ -111,9 +111,7 @@ kenwood_ts480_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     switch (level)
     {
     case RIG_LEVEL_RFPOWER:
-        kenwood_val = val.f * 100;    /* level for TS480SAT is from 0.. 100W in SSB */
-        sprintf(levelbuf, "PC%03d", kenwood_val);
-        break;
+        return kenwood_set_level(rig, vfo, level, val);
 
     case RIG_LEVEL_AF:
         return kenwood_set_level(rig, vfo, level, val);
@@ -246,29 +244,6 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     switch (level)
     {
-    case RIG_LEVEL_RFPOWER:
-        retval = kenwood_transaction(rig, "PC", ackbuf, sizeof(ackbuf));
-
-        if (RIG_OK != retval)
-        {
-            return retval;
-        }
-
-        ack_len = strlen(ackbuf);
-
-        if (5 != ack_len)
-        {
-            return -RIG_EPROTO;
-        }
-
-        if (1 != sscanf(&ackbuf[2], "%d", &levelint))
-        {
-            return -RIG_EPROTO;
-        }
-
-        val->f = (float) levelint / 100.;
-        return RIG_OK;
-
     case RIG_LEVEL_AF:
         if (rig->caps->rig_model == RIG_MODEL_TS890S)
         {
@@ -423,6 +398,9 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
 
         return RIG_OK;
+
+    case RIG_LEVEL_RFPOWER:
+        return kenwood_get_level(rig, vfo, level, val);
 
     case RIG_LEVEL_MICGAIN:
     case RIG_LEVEL_PREAMP:
