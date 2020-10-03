@@ -51,7 +51,7 @@
 /* PowerSDR differences */
 #define POWERSDR_FUNC_ALL (RIG_FUNC_VOX|RIG_FUNC_SQL|RIG_FUNC_NB|RIG_FUNC_ANF|RIG_FUNC_MUTE|RIG_FUNC_RIT|RIG_FUNC_XIT)
 
-#define POWERSDR_LEVEL_ALL (RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW|RIG_LEVEL_KEYSPD|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_MICGAIN|RIG_LEVEL_VOXGAIN|RIG_LEVEL_SQL|RIG_LEVEL_AF|RIG_LEVEL_AGC|RIG_LEVEL_RF)
+#define POWERSDR_LEVEL_ALL (RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW|RIG_LEVEL_KEYSPD|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_MICGAIN|RIG_LEVEL_VOXGAIN|RIG_LEVEL_SQL|RIG_LEVEL_AF|RIG_LEVEL_AGC|RIG_LEVEL_RF|RIG_LEVEL_IF)
 
 
 static rmode_t flex_mode_table[KENWOOD_MODE_TABLE_MAX] =
@@ -657,6 +657,10 @@ int powersdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         snprintf(cmd, sizeof(cmd) - 1, "ZZAG%03d", ival);
         break;
 
+    case RIG_LEVEL_IF:
+        snprintf(cmd, sizeof(cmd) - 1, "ZZIT%+05d", val.i);
+        break;
+
     case RIG_LEVEL_RF:
         if (val.f > 1.0) { return -RIG_EINVAL; }
 
@@ -754,6 +758,12 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         ans = 3;
         break;
 
+    case RIG_LEVEL_IF:
+        cmd = "ZZIT";
+        len = 4;
+        ans = 5;
+        break;
+
     case RIG_LEVEL_RF:
         cmd = "ZZAR";
         len = 4;
@@ -800,6 +810,18 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     switch (level)
     {
     case RIG_LEVEL_AGC:
+        n = sscanf(lvlbuf + len, "%d", &val->i);
+
+        if (n != 1)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: Error parsing value from lvlbuf='%s'\n",
+                      __func__, lvlbuf);
+            return -RIG_EPROTO;
+        }
+
+        break;
+
+    case RIG_LEVEL_IF:
         n = sscanf(lvlbuf + len, "%d", &val->i);
 
         if (n != 1)
@@ -1118,7 +1140,7 @@ const struct rig_caps powersdr_caps =
     RIG_MODEL(RIG_MODEL_POWERSDR),
     .model_name =       "PowerSDR/Thetis",
     .mfg_name =     "FlexRadio/ANAN",
-    .version =      "20200930.0",
+    .version =      "20201003.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
