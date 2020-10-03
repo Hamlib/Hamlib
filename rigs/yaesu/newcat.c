@@ -2891,6 +2891,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             return -RIG_ENAVAIL;
         }
+
         val.i *= 10; // tenths to ms conversion
 
         if (is_ft101)
@@ -2923,7 +2924,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
                 val.i = 3000;
             }
         }
-        else // default 
+        else // default
         {
             if (val.i < 1)
             {
@@ -2956,8 +2957,8 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             return -RIG_ENAVAIL;
         }
 
-        /* VOX delay, arg int (tenth of seconds), 100ms UI */
-        val.i = val.i * 100;
+        /* VOX delay, api int (tenth of seconds), ms for rig */
+        val.i = val.i * 10;
 
         if (is_ft950 || is_ft450 || is_ft1200)
         {
@@ -2970,11 +2971,13 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             {
                 val.i = 3000;
             }
+
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VD%04d%c", val.i, cat_term);
         }
         else if (is_ft101) // new lookup table argument
         {
             val.i *= 10;  // Change tenths to ms since rig works in ms
+
             if (val.i <= 30) { val.i = 0; }
             else if (val.i <= 50) { val.i = 1; }
             else if (val.i <= 100) { val.i = 2; }
@@ -2997,6 +3000,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             {
                 val.i = 5000;
             }
+
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VD%04d%c", val.i, cat_term);
         }
 
