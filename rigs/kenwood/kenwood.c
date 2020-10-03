@@ -2179,6 +2179,63 @@ int kenwood_get_mode_if(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     return RIG_OK;
 }
 
+/* kenwood_get_power_minmax
+ * Kenwood rigs have different power levels by mode and by rig
+ * This routine relies on the idea that setting the power
+ * to 0 and 255 will result in the minimum and maximum values being set
+ * If a rig doesn't behave this way then customize inside that rig's backend
+*/
+static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
+                                    int *power_max,
+                                    int restore)
+{
+    int retval;
+    char levelbuf[19];
+    // read power_now, set 0, read power_min, set 255, read_power_max; set 0
+    // we set back to 0 for safety and if restore is true we restore power_min
+    // otherwise we expect calling routine to be setting new power level
+    // we batch these commands together for speed
+    char *cmd = "PC;PC000;PC;PC255;PC;PC000;";
+    int n;
+    struct rig_state *rs = &rig->state;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+    retval = write_block(&rs->rigport, cmd, strlen(cmd));
+
+    if (retval != RIG_OK) { return retval; }
+
+    retval = read_string(&rs->rigport, levelbuf, sizeof(levelbuf), NULL, 0);
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: retval=%d\n", __func__, retval);
+
+    if (retval != 18)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: expected 19, got %d in '%s'\n", __func__, retval,
+                  levelbuf);
+        return -RIG_EPROTO;
+    }
+
+    n = sscanf(levelbuf, "PC%d;PC%d;PC%d", power_now, power_min, power_max);
+
+    if (n != 3)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: count not parse 3 values from '%s'\n", __func__,
+                  levelbuf);
+        return -RIG_EPROTO;
+    }
+
+    if (restore)
+    {
+        snprintf(levelbuf, sizeof(levelbuf), "PC%03d;", *power_now);
+        retval = kenwood_transaction(rig, levelbuf, NULL, 0);
+        return retval;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: returning now=%d, min=%d, max=%d\n", __func__,
+              *power_now, *power_min, *power_max);
+    return RIG_OK;
+}
+
 int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     char levelbuf[16];
@@ -2198,12 +2255,16 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     switch (level)
     {
-    case RIG_LEVEL_RFPOWER:
+        int power_now, power_min, power_max;
+        int retval;
 
-        /*
-         * Best estimate: 1.0 corresponds to 100W
-         */
-        kenwood_val = val.f * 100;
+    case RIG_LEVEL_RFPOWER:
+        // Power min/max can vary so we query to find them out every time
+        retval = kenwood_get_power_minmax(rig, &power_now, &power_min, &power_max, 0);
+
+        if (retval != RIG_OK) { return retval; }
+
+        kenwood_val = val.f * (power_max - power_min) + power_min;
         snprintf(levelbuf, sizeof(levelbuf), "PC%03d", kenwood_val);
         break;
 
@@ -2425,6 +2486,8 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     switch (level)
     {
+        int power_now, power_min, power_max;
+
     case RIG_LEVEL_RAWSTR:
         if (RIG_IS_TS590S || RIG_IS_TS590SG)
         {
@@ -2562,12 +2625,13 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_RFPOWER:
-        /*
-         * an answer "PC100" means 100 Watt
-         */
-        ret = get_kenwood_level(rig, "PC", NULL, &val->i);
-        val->f = val->i / 100.0;
-        return ret;
+        // Power min/max can vary so we query to find them out every time
+        retval = kenwood_get_power_minmax(rig, &power_now, &power_min, &power_max, 1);
+
+        if (retval != RIG_OK) { return retval; }
+
+        val->f = (power_now - power_min) / (float)(power_max - power_min);
+        return RIG_OK;
 
     case RIG_LEVEL_AF:
 
