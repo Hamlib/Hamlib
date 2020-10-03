@@ -5773,6 +5773,66 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             return -RIG_EINVAL;
         }   /* end switch(mode) */
     }
+    else if (newcat_is_rig(rig, RIG_MODEL_FTDX101D))
+    {
+        switch (mode)
+        {
+        case RIG_MODE_PKTUSB:
+        case RIG_MODE_PKTLSB:
+        case RIG_MODE_RTTY:
+        case RIG_MODE_RTTYR:
+        case RIG_MODE_CW:
+        case RIG_MODE_CWR:
+            if (width == 0) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH00;"); }
+            else if (width <= 50) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH01;"); }
+            else if (width <= 100) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH02;"); }
+            else if (width <= 150) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH03;"); }
+            else if (width <= 200) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH04;"); }
+            else if (width <= 250) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH05;"); }
+            else if (width <= 300) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH06;"); }
+            else if (width <= 350) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH07;"); }
+            else if (width <= 400) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH08;"); }
+            else if (width <= 450) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH09;"); }
+            else if (width <= 500) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH10;"); }
+            else if (width <= 600) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH11;"); }
+            else if (width <= 800) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH12;"); }
+            else if (width <= 1200) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH13;"); }
+            else if (width <= 1400) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH14;"); }
+            else if (width <= 1700) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH15;"); }
+            else if (width <= 2000) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH16;"); }
+            else if (width <= 2400) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH17;"); }
+            else { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH18;"); }
+
+            break;
+
+        case RIG_MODE_LSB:
+        case RIG_MODE_USB:
+            if (width == 0) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH00;"); }
+            else if (width <= 300) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH01;"); }
+            else if (width <= 400) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH02;"); }
+            else if (width <= 600) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH03;"); }
+            else if (width <= 850) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH04;"); }
+            else if (width <= 1100) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH05;"); }
+            else if (width <= 1200) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH06;"); }
+            else if (width <= 1500) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH07;"); }
+            else if (width <= 1650) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH08;"); }
+            else if (width <= 1800) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH09;"); }
+            else if (width <= 1950) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH10;"); }
+            else if (width <= 2100) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH11;"); }
+            else if (width <= 2200) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH12;"); }
+            else if (width <= 2300) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH13;"); }
+            else if (width <= 2400) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH14;"); }
+            else if (width <= 2500) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH15;"); }
+            else if (width <= 2600) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH16;"); }
+            else if (width <= 2700) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH17;"); }
+            else if (width <= 2800) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH18;"); }
+            else if (width <= 2900) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH19;"); }
+            else if (width <= 3000) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH20;"); }
+            else { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH21;"); }
+        }
+
+        return newcat_set_cmd(rig);
+    }
     else       /* end if FT1200 */
     {
         /* FT450, FT2000, FT5000, FT9000 */
@@ -5844,7 +5904,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "NA%c%c%cSH%c%s%c",
              main_sub_vfo, narrow, cat_term, main_sub_vfo, width_str, cat_term);
 
-    rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
+    rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
 
     /* Set RX Bandwidth */
     return newcat_set_cmd(rig);
