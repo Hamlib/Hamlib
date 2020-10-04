@@ -96,14 +96,31 @@ typedef struct _yaesu_newcat_commands
 
 const cal_table_float_t yaesu_default_swr_cal =
 {
-    4,
+    5,
     {
         // first cut at generic Yaesu table, need more points probably
         // based on testing by Adam M7OTP on FT-991
         {12, 1.0f},
         {39, 1.35f},
+        {65, 1.5f},
         {89, 2.0f},
         {242, 5.0f}
+    }
+};
+
+const cal_table_float_t yaesu_ftdx101d_swr_cal =
+{
+    7,
+    {
+        // first cut at generic Yaesu table, need more points probably
+        // based on testing by Adam M7OTP on FT-991
+        {12, 1.0f},
+        {26, 1.2f},
+        {39, 1.3f},
+        {63, 1.5f},
+        {112, 2.5f},
+        {161, 4.0f},
+        {223, 5.0f}
     }
 };
 
@@ -2686,8 +2703,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             return -RIG_ENAVAIL;
         }
 
-        if (newcat_is_rig(rig,
-                          RIG_MODEL_TS890S)) // new format for the command with VFO selection
+        if (is_ft101) // new format for the command with VFO selection
         {
             format = "MS0%d;";
 
@@ -2700,7 +2716,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             format = "MS%d";
         }
-
+	rig_debug(RIG_DEBUG_TRACE, "%s: format=%s\n", __func__, format);
         switch (val.i)
         {
         case RIG_METER_ALC: snprintf(priv->cmd_str, sizeof(priv->cmd_str), format, 1);
@@ -2730,6 +2746,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         case RIG_METER_VDD:  snprintf(priv->cmd_str, sizeof(priv->cmd_str), format, 5);
             break;
 
+	rig_debug(RIG_DEBUG_ERR, "%s: unknown val.i=%d\n", __func__, val.i);
         default: return -RIG_EINVAL;
         }
 
@@ -3323,16 +3340,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             return -RIG_ENAVAIL;
         }
-
-        if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
-        {
-            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM09%c", cat_term);
-        }
-        else
-        {
-            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM6%c", cat_term);
-        }
-
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM6%c", cat_term);
         break;
 
     case RIG_LEVEL_ALC:
@@ -3341,15 +3349,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return -RIG_ENAVAIL;
         }
 
-        if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
-        {
-            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM07%c", cat_term);
-        }
-        else
-        {
-            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM4%c", cat_term);
-        }
-
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM4%c", cat_term);
         break;
 
     case RIG_LEVEL_ANTIVOX:
@@ -3420,7 +3420,13 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_SWR:
-        if (rig->caps->swr_cal.size == 0)
+        if (is_ft101)
+        {
+            retlvl[3]=0;
+            rig_debug(RIG_DEBUG_TRACE, "%s: retlvl=%s\n", __func__, retlvl);
+            val->f = rig_raw2val_float(atoi(retlvl), &yaesu_ftdx101d_swr_cal);
+        }
+        else if (rig->caps->swr_cal.size == 0)
         {
             val->f = rig_raw2val_float(atoi(retlvl), &yaesu_default_swr_cal);
         }
@@ -5863,7 +5869,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     }
     else if (newcat_is_rig(rig, RIG_MODEL_FTDX101D))
     {
-        int w; // our width index for the rig
+        int w=0; // our width index for the rig
 
         switch (mode)
         {
@@ -6586,7 +6592,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
             return -RIG_EINVAL;
         }   /* end switch(mode) */
 
-    }   /* end if FT950 */
+    }   /* end if FTDX101D */
     else      /* end if FT991 */
     {
         /* FT450, FT2000, FT5000, FT9000 */
