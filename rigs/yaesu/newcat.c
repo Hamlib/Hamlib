@@ -5971,6 +5971,42 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     return newcat_set_cmd(rig);
 }
 
+static char get_roofing_filter(RIG *rig, vfo_t vfo)
+{
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    char roofing_filter;
+    char main_sub_vfo = '0';
+    char rf_vfo = 'X';
+    int err;
+    int n;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+    if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
+    {
+        main_sub_vfo = (RIG_VFO_B == vfo) ? '1' : '0';
+    }
+
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RF%c%c", main_sub_vfo,
+             cat_term);
+
+    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    {
+        return err;
+    }
+
+    n = sscanf(priv->ret_data, "RF%c%c", &rf_vfo, &roofing_filter);
+
+    if (n != 2)
+    {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: error parsing '%s' for vfo and roofing filter, got %d parsed\n", __func__,
+                  priv->ret_data, n);
+        return -RIG_EPROTO;
+    }
+
+    return roofing_filter;
+}
 
 int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 {
@@ -6374,6 +6410,149 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         }   /* end switch(mode) */
 
     }
+
+    if (newcat_is_rig(rig, RIG_MODEL_FTDX101D))
+    {
+        if (w == 0) // then we need to know the roofing filter
+        {
+            char roofing_filter = get_roofing_filter(rig, vfo);
+
+            switch (roofing_filter)
+            {
+            case '6': *width = 12000; break;
+
+            case '7': *width = 3000; break;
+
+            case '8': *width = 1200; break;
+
+            case '9': *width = 600; break;
+
+            case 'A': *width = 300; break;
+
+            default:
+                rig_debug(RIG_DEBUG_ERR,
+                          "%s: Expected roofing filter 6,7,8,9,A but got %c from '%s'\n", __func__,
+                          roofing_filter, priv->ret_data);
+                return RIG_OK;
+            }
+        }
+
+        switch (mode)
+        {
+        case RIG_MODE_PKTUSB:
+        case RIG_MODE_PKTLSB:
+        case RIG_MODE_RTTY:
+        case RIG_MODE_RTTYR:
+        case RIG_MODE_CW:
+        case RIG_MODE_CWR:
+            switch (w)
+            {
+            case 0: *width = 50; break; /* this is the default but 50 is probably wrong */
+
+            case 1: *width = 50; break;
+
+            case 2: *width = 100; break;
+
+            case 3: *width = 150; break;
+
+            case 4: *width = 200; break;
+
+            case 5: *width = 250; break;
+
+            case 6: *width = 300; break;
+
+            case 7: *width = 350; break;
+
+            case 8: *width = 400; break;
+
+            case 9: *width = 450;  break;
+
+            case 10: *width = 500;  break;
+
+            case 11: *width = 600;  break;
+
+            case 12: *width = 800;  break;
+
+            case 13: *width = 1200;  break;
+
+            case 14: *width = 1400;  break;
+
+            case 15: *width = 1700;  break;
+
+            case 16: *width = 2000;  break;
+
+            case 17: *width = 2400;  break;
+
+            case 18: *width = 3000;  break;
+
+            default: return -RIG_EINVAL;
+            }
+
+            break;
+
+        case RIG_MODE_LSB:
+        case RIG_MODE_USB:
+            switch (w)
+            {
+            case 0: *width = 300; break; /* this is the default but 300 is probably wrong */
+
+            case 1: *width = 300; break;
+
+            case 2: *width = 400; break;
+
+            case 3: *width = 600; break;
+
+            case 4: *width = 850; break;
+
+            case 5: *width = 1100; break;
+
+            case 6: *width = 1200; break;
+
+            case 7: *width = 1500; break;
+
+            case 8: *width = 1650; break;
+
+            case 9: *width = 1800; break;
+
+            case 10: *width = 1950;  break;
+
+            case 11: *width = 2100;  break;
+
+            case 12: *width = 2200;  break;
+
+            case 13: *width = 2300;  break;
+
+            case 14: *width = 2400;  break;
+
+            case 15: *width = 2500;  break;
+
+            case 16: *width = 2600;  break;
+
+            case 17: *width = 2700;  break;
+
+            case 18: *width = 2800;  break;
+
+            case 19: *width = 2900;  break;
+
+            case 20: *width = 3000;  break;
+
+            case 21: *width = 3200;  break;
+
+            default: return -RIG_EINVAL;
+            }
+
+            break;
+
+        case RIG_MODE_AM:
+        case RIG_MODE_PKTFM:
+        case RIG_MODE_FM:
+            return RIG_OK;
+
+        default:
+            return -RIG_EINVAL;
+        }   /* end switch(mode) */
+
+    }   /* end if FT950 */
     else      /* end if FT991 */
     {
         /* FT450, FT2000, FT5000, FT9000 */
