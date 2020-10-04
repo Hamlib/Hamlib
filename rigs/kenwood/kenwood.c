@@ -690,6 +690,8 @@ int kenwood_init(RIG *rig)
     priv->split = RIG_SPLIT_OFF;
     priv->trn_state = -1;
     priv->curr_mode = 0;
+    priv->micgain_min = -1;
+    priv->micgain_max = -1;
 
     /* default mode_table */
     if (caps->mode_table == NULL)
@@ -2179,6 +2181,64 @@ int kenwood_get_mode_if(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     return RIG_OK;
 }
 
+/* kenwood_get_micgain_minmax
+ * Kenwood rigs have different micgain levels
+ * This routine relies on the idea that setting the micgain
+ * to 0 and 255 will result in the minimum and maximum values being set
+ * If a rig doesn't behave this way then customize inside that rig's backend
+*/
+static int kenwood_get_micgain_minmax(RIG *rig, int *micgain_now,
+                                      int *micgain_min,
+                                      int *micgain_max,
+                                      int restore)
+{
+    int retval;
+    char levelbuf[19];
+    // read micgain_now, set 0, read micgain_min, set 255, read_micgain_max; set 0
+    // we set back to 0 for safety and if restore is true we restore micgain_min
+    // otherwise we expect calling routine to be setting new micgain level
+    // we batch these commands together for speed
+    char *cmd = "MG;MG000;MG;MG255;MG;MG000;";
+    int n;
+    struct rig_state *rs = &rig->state;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+    retval = write_block(&rs->rigport, cmd, strlen(cmd));
+
+    if (retval != RIG_OK) { return retval; }
+
+    retval = read_string(&rs->rigport, levelbuf, sizeof(levelbuf), NULL, 0);
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: retval=%d\n", __func__, retval);
+
+    if (retval != 18)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: expected 19, got %d in '%s'\n", __func__, retval,
+                  levelbuf);
+        return -RIG_EPROTO;
+    }
+
+    n = sscanf(levelbuf, "MG%d;MG%d;MG%d", micgain_now, micgain_min, micgain_max);
+
+    if (n != 3)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: count not parse 3 values from '%s'\n", __func__,
+                  levelbuf);
+        return -RIG_EPROTO;
+    }
+
+    if (restore)
+    {
+        snprintf(levelbuf, sizeof(levelbuf), "MG%03d;", *micgain_now);
+        retval = kenwood_transaction(rig, levelbuf, NULL, 0);
+        return retval;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: returning now=%d, min=%d, max=%d\n", __func__,
+              *micgain_now, *micgain_min, *micgain_max);
+    return RIG_OK;
+}
+
 /* kenwood_get_power_minmax
  * Kenwood rigs have different power levels by mode and by rig
  * This routine relies on the idea that setting the power
@@ -2255,10 +2315,11 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     switch (level)
     {
-        int power_now, power_min, power_max;
         int retval;
 
     case RIG_LEVEL_RFPOWER:
+    {
+        int power_now, power_min, power_max;
         // Power min/max can vary so we query to find them out every time
         retval = kenwood_get_power_minmax(rig, &power_now, &power_min, &power_max, 0);
 
@@ -2267,6 +2328,8 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         kenwood_val = val.f * (power_max - power_min) + power_min;
         snprintf(levelbuf, sizeof(levelbuf), "PC%03d", kenwood_val);
         break;
+    }
+
 
     case RIG_LEVEL_AF:
     {
@@ -2299,12 +2362,25 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     break;
 
     case RIG_LEVEL_MICGAIN:
+    {
+        int micgain_now;
+
+        if (priv->micgain_min == -1) // then we need to know our min/max
+        {
+            retval = kenwood_get_micgain_minmax(rig, &micgain_now, &priv->micgain_min,
+                                                &priv->micgain_max, 0);
+
+            if (retval != RIG_OK) { return retval; }
+        }
 
         if (val.f > 1.0 || val.f < 0) { return -RIG_EINVAL; }
 
-        kenwood_val = val.f * 100;
+        // is micgain_min ever > 0 ??
+        kenwood_val = val.f * (priv->micgain_max - priv->micgain_min) +
+                      priv->micgain_min;
         snprintf(levelbuf, sizeof(levelbuf), "MG%03d", kenwood_val);
         break;
+    }
 
     case RIG_LEVEL_RF:
 
@@ -2720,6 +2796,20 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return get_kenwood_level(rig, "SQ", &val->f, NULL);
 
     case RIG_LEVEL_MICGAIN:
+    {
+        int micgain_now;
+
+        rig_debug(RIG_DEBUG_TRACE, "%s: micgain_min = %d\n", __func__,
+                  priv->micgain_min);
+
+        if (priv->micgain_min == -1) // then we need to know our min/max
+        {
+            retval = kenwood_get_micgain_minmax(rig, &micgain_now, &priv->micgain_min,
+                                                &priv->micgain_max, 1);
+
+            if (retval != RIG_OK) { return retval; }
+        }
+
         ret = get_kenwood_level(rig, "MG", NULL, &val->i);
 
         if (ret != RIG_OK)
@@ -2728,8 +2818,10 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return ret;
         }
 
-        val->f = val->i / 255.0;
+        val->f = (micgain_now - priv->micgain_min) / (float)(priv->micgain_max -
+                 priv->micgain_min);
         return RIG_OK;
+    }
 
     case RIG_LEVEL_AGC:
         ret = get_kenwood_level(rig, "GT", NULL, &val->i);

@@ -997,25 +997,7 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_MICGAIN:
-        retval = kenwood_transaction(rig, "MG", lvlbuf, sizeof(lvlbuf));
-
-        if (retval != RIG_OK)
-        {
-            return retval;
-        }
-
-        lvl_len = strlen(lvlbuf);
-
-        if (lvl_len != 5)
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: unexpected answer len=%d\n", __func__,
-                      (int)lvl_len);
-            return -RIG_ERJCTED;
-        }
-
-        sscanf(lvlbuf + 2, "%d", &lvl);
-        val->f = lvl / 100.0;
-        break;
+        return kenwood_get_level(rig, vfo, level, val);
 
     case RIG_LEVEL_KEYSPD:
         retval = kenwood_transaction(rig, "KS", lvlbuf, sizeof(lvlbuf));
