@@ -2990,7 +2990,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             else if (val.i > 3000) { val.i = 33; }
             else { val.i = (val.i - 300) / 100 + 6; }
 
-            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VD%02d%c", val.i, cat_term);
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VD%04d%c", val.i, cat_term);
         }
         else if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
         {
@@ -3532,8 +3532,35 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_VOXDELAY:
-        /* VOX delay, arg int (tenth of seconds), 100ms intervals */
-        val->i = atoi(retlvl) / 100;
+        val->i = atoi(retlvl);
+
+        if (is_ft101)
+        {
+            switch (val->i)
+            {
+            case 0:  val->i = 30; break;
+
+            case 1:  val->i = 50; break;
+
+            case 2:  val->i = 100; break;
+
+            case 3:  val->i = 150; break;
+
+            case 4:  val->i = 200; break;
+
+            case 5:  val->i = 250; break;
+
+            default:
+                val->i = (val->i - 6) * 100 + 300;
+                break;
+            }
+        }
+        else
+        {
+            /* VOX delay, arg int (tenth of seconds), rig in ms */
+            val->i /= 10;  // Convert from ms to tenths
+        }
+
         break;
 
     case RIG_LEVEL_PREAMP:
