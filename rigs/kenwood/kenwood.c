@@ -2799,9 +2799,6 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     {
         int micgain_now;
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: micgain_min = %d\n", __func__,
-                  priv->micgain_min);
-
         if (priv->micgain_min == -1) // then we need to know our min/max
         {
             retval = kenwood_get_micgain_minmax(rig, &micgain_now, &priv->micgain_min,
@@ -2809,6 +2806,9 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
             if (retval != RIG_OK) { return retval; }
         }
+
+        rig_debug(RIG_DEBUG_TRACE, "%s: micgain_min=%d, micgain_max=%d\n", __func__,
+                  priv->micgain_min, priv->micgain_max);
 
         ret = get_kenwood_level(rig, "MG", NULL, &val->i);
 
@@ -2818,7 +2818,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return ret;
         }
 
-        val->f = (micgain_now - priv->micgain_min) / (float)(priv->micgain_max -
+        val->f = (val->i - priv->micgain_min) / (float)(priv->micgain_max -
                  priv->micgain_min);
         return RIG_OK;
     }
