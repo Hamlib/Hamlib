@@ -6142,27 +6142,37 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 
                 break;
 
-            case 3: *width = 100; break;
+            case 1: *width = 50; break; // ft1200 only
 
-            case 4: *width = 200; break;
+            case 2: *width = 100; break; // ft1200 only
 
-            case 5: *width = 300; break;
+            case 3: *width = is_ft950 ? 100 : 150; break;
 
-            case 6: *width = 400; break;
+            case 4: *width = is_ft950 ? 200 : 200; break;
 
-            case 7: *width = 500; break;
+            case 5: *width = is_ft950 ? 300 : 250; break;
 
-            case 8: *width = 800; break;
+            case 6: *width = is_ft950 ? 400 : 300; break;
 
-            case 9: *width = 1200; break;
+            case 7: *width = is_ft950 ? 500 : 350; break;
 
-            case 10: *width = 1400; break;
+            case 8: *width = is_ft950 ? 800 : 400; break;
 
-            case 11: *width = 1700; break;
+            case 9: *width = is_ft950 ? 1200 : 450; break;
 
-            case 12: *width = 2000; break;
+            case 10: *width = is_ft950 ? 1400 : 500; break;
 
-            case 13: *width = 2400; break;
+            case 11: *width = is_ft950 ? 1700 : 800; break;
+
+            case 12: *width = is_ft950 ? 2000 : 1200; break;
+
+            case 13: *width = is_ft950 ? 2400 : 1400; break;
+
+            case 14: *width = 1700; break; // 14+ is ft1200 only
+
+            case 15: *width = 2000; break;
+
+            case 16: *width = 2400; break;
 
             default: return -RIG_EINVAL;
             }
@@ -6171,7 +6181,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
-            switch (w)
+            switch (w) // ft950 and ft1200 overlap
             {
             case 0:
                 if (is_ft950) { *width = narrow ? 1800 : 2400; }
@@ -6248,6 +6258,11 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 
     else if (newcat_is_rig(rig, RIG_MODEL_FT991))
     {
+        if ((narrow = get_narrow(rig)) < 0)
+        {
+            return -RIG_EPROTO;
+        }
+
         switch (mode)
         {
         case RIG_MODE_PKTUSB:
@@ -6258,40 +6273,6 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         case RIG_MODE_CWR:
             switch (w)
             {
-            case  0:
-            case 10: *width =  500; break;  /* narrow */
-
-            case 16: *width = 2400; break;  /* wide   */
-
-            case 17: *width = 3000; break;
-
-            case 15: *width = 2000; break;
-
-            case 14: *width = 1700; break;
-
-            case 13: *width = 1400; break;
-
-            case 12: *width = 1200; break;
-
-            case 11: *width =  800; break;
-
-            case  9: *width =  450; break;
-
-            case  8: *width =  400; break;
-
-            case  7: *width =  350; break;
-
-            case  6: *width =  300; break;
-
-            case  5: *width =  250; break;
-
-            case  4: *width =  200; break;
-
-            case  3: *width =  150; break;
-
-            case  2: *width =  100; break;
-
-            case  1: *width =   50; break;
 
             default: return -RIG_EINVAL;
             }
