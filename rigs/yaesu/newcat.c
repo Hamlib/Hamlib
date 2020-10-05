@@ -3010,7 +3010,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             else if (val.i > 3000) { val.i = 33; }
             else { val.i = (val.i - 300) / 100 + 6; }
 
-            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VD%04d%c", val.i, cat_term);
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VD%02d%c", val.i, cat_term);
         }
         else if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
         {
