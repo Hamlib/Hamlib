@@ -35,7 +35,7 @@
 #define OFF     FALSE
 #endif
 
-#define FTDX5000_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
+#define FTDX5000_VFO_ALL (RIG_VFO_MAIN|RIG_VFO_SUB)
 
 /* Receiver caps */
 
