@@ -72,7 +72,6 @@ extern int read_history();
 #include "iofunc.h"
 #include "serial.h"
 #include "sprintflst.h"
-#include "dummy/dummy.h"
 #include "rigctl_parse.h"
 
 #define MAXNAMSIZ 32

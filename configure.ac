@@ -51,8 +51,7 @@ dnl added to AC_CONFIG_FILES near the end of this file.  See README.developer
 dnl Beware of duplication should a backend directory include both rig and
 dnl rotor definitions, e.g. "dummy".  Optional backends will not be listed
 dnl here but will be added later, e.g. "winradio".
-BACKEND_LIST="dummy"
-RIG_BACKEND_LIST="rigs/adat rigs/alinco rigs/aor rigs/barrett rigs/dorji rigs/drake rigs/elad rigs/flexradio rigs/icom rigs/icmarine rigs/jrc rigs/kachina rigs/kenwood rigs/kit rigs/lowe rigs/pcr rigs/prm80 rigs/racal rigs/rft rigs/rs rigs/skanti rigs/tapr rigs/tentec rigs/tuner rigs/uniden rigs/winradio rigs/wj rigs/yaesu"
+RIG_BACKEND_LIST="rigs/adat rigs/alinco rigs/aor rigs/barrett rigs/dorji rigs/drake rigs/dummy rigs/elad rigs/flexradio rigs/icom rigs/icmarine rigs/jrc rigs/kachina rigs/kenwood rigs/kit rigs/lowe rigs/pcr rigs/prm80 rigs/racal rigs/rft rigs/rs rigs/skanti rigs/tapr rigs/tentec rigs/tuner rigs/uniden rigs/winradio rigs/wj rigs/yaesu"
 ROT_BACKEND_LIST="rotators/amsat rotators/ars rotators/celestron rotators/cnctrk rotators/easycomm rotators/ether6 rotators/fodtrack rotators/gs232a rotators/heathkit rotators/m2 rotators/meade rotators/rotorez rotators/sartek rotators/spid rotators/ts7400 rotators/prosistel rotators/ioptron"
 # Amplifiers are all in the amplifiers directory
 AMP_BACKEND_LIST="amplifiers/elecraft"
@@ -724,17 +723,6 @@ echo Build_OS is $build_os
 dnl otherwise parallel 'make -jn' will fail
 
 ## ---------------------------------- ##
-## Prepare toplevel backend dependencies ##
-## ---------------------------------- ##
-
-for be in ${BACKEND_LIST} ; do
-        BACKENDEPS="${BACKENDEPS} \$(top_builddir)/${be}/libhamlib-${be}.la"
-done
-
-AC_SUBST([BACKEND_LIST])
-AC_SUBST([BACKENDEPS])
-
-## ---------------------------------- ##
 ## Prepare rig backend dependencies ##
 ## ---------------------------------- ##
 
@@ -791,7 +779,6 @@ AC_CONFIG_FILES([Makefile
 macros/Makefile
 include/Makefile
 lib/Makefile
-dummy/Makefile
 src/Makefile
 c++/Makefile
 bindings/Makefile
@@ -820,6 +807,7 @@ rigs/aor/Makefile
 rigs/barrett/Makefile
 rigs/dorji/Makefile
 rigs/drake/Makefile
+rigs/dummy/Makefile
 rigs/elad/Makefile
 rigs/flexradio/Makefile
 rigs/icmarine/Makefile
