@@ -3420,13 +3420,9 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_SWR:
-        if (is_ft101)
-        {
-            retlvl[3]=0;
-            rig_debug(RIG_DEBUG_TRACE, "%s: retlvl=%s\n", __func__, retlvl);
-            val->f = rig_raw2val_float(atoi(retlvl), &yaesu_ftdx101d_swr_cal);
-        }
-        else if (rig->caps->swr_cal.size == 0)
+        // some rigs like ft101dx have 6 byte return so we just truncate
+        retlvl[3] = 0;
+        if (rig->caps->swr_cal.size == 0)
         {
             val->f = rig_raw2val_float(atoi(retlvl), &yaesu_default_swr_cal);
         }
@@ -5321,6 +5317,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_RTTYR:
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
+            if (width <= 500)
             switch (width)
             {
             case 1700: snprintf(width_str, sizeof(width_str), "11"); narrow = '0';
