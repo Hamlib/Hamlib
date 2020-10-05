@@ -5291,8 +5291,9 @@ static int get_narrow(RIG *rig, vfo_t vfo)
     int err;
 
     // find out if we're in narrow or wide mode
-    
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "NA%c%c", vfo == RIG_VFO_SUB?'1':'0', cat_term);
+
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "NA%c%c",
+             vfo == RIG_VFO_SUB ? '1' : '0', cat_term);
 
     if (RIG_OK != (err = newcat_get_cmd(rig)))
     {
@@ -5313,9 +5314,8 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int err;
-    char width_str[6];        /* extra larger buffer */
+    int w;
     char main_sub_vfo = '0';
-    char narrow = '!'; // if still "!" at command then no narrow/wide command needed
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     rig_debug(RIG_DEBUG_TRACE, "%s vfo=%s, mode=%s, width=%d\n", __func__,
@@ -5333,12 +5333,12 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         return err;
     }
 
-    if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE && !is_ft2000)
+    if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
     {
-        main_sub_vfo = (RIG_VFO_B == vfo) ? '1' : '0';
+        main_sub_vfo = (RIG_VFO_SUB == vfo) ? '1' : '0';
     }
 
-    if (newcat_is_rig(rig, RIG_MODEL_FT950))
+    if (is_ft950)
     {
         switch (mode)
         {
@@ -5348,88 +5348,42 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_RTTYR:
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
-            if (width <= 500)
-                switch (width)
-                {
-                case 1700: snprintf(width_str, sizeof(width_str), "11"); narrow = '0';
-                    break;  /* normal */
-
-                case  500: snprintf(width_str, sizeof(width_str), "07"); narrow = '0';
-                    break;  /* narrow */
-
-                case 2400: snprintf(width_str, sizeof(width_str), "13"); narrow = '0';
-                    break;  /* wide */
-
-                case 2000: snprintf(width_str, sizeof(width_str), "12"); narrow = '0'; break;
-
-                case 1400: snprintf(width_str, sizeof(width_str), "10"); narrow = '0'; break;
-
-                case 1200: snprintf(width_str, sizeof(width_str), "09"); narrow = '0'; break;
-
-                case  800: snprintf(width_str, sizeof(width_str), "08"); narrow = '0'; break;
-
-                case  400: snprintf(width_str, sizeof(width_str), "06"); narrow = '1'; break;
-
-                case  300: snprintf(width_str, sizeof(width_str), "05"); narrow = '1'; break;
-
-                case  200: snprintf(width_str, sizeof(width_str), "04"); narrow = '1'; break;
-
-                case  100: snprintf(width_str, sizeof(width_str), "03"); narrow = '1'; break;
-
-                default: return -RIG_EINVAL;
-                }
+            if (width <= 100) { w = 3; }
+            else if (width <= 200) { w = 4; }
+            else if (width <= 300) { w = 5; }
+            else if (width <= 400) { w = 6; }
+            else if (width <= 500) { w = 7; }
+            else if (width <= 800) { w = 8; }
+            else if (width <= 1200) { w = 9; }
+            else if (width <= 1400) { w = 10; }
+            else if (width <= 1700) { w = 11; }
+            else if (width <= 2000) { w = 12; }
+            else { w = 13; } // 2400 is the max
 
             break;
 
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
-            switch (width)
-            {
-            case 2400: snprintf(width_str, sizeof(width_str), "13"); narrow = '0';
-                break;  /* normal */
-
-            case 1800: snprintf(width_str, sizeof(width_str), "09"); narrow = '0';
-                break;  /* narrow */
-
-            case 3000: snprintf(width_str, sizeof(width_str), "20"); narrow = '0';
-                break;  /* wide */
-
-            case 2900: snprintf(width_str, sizeof(width_str), "19"); narrow = '0'; break;
-
-            case 2800: snprintf(width_str, sizeof(width_str), "18"); narrow = '0'; break;
-
-            case 2700: snprintf(width_str, sizeof(width_str), "17"); narrow = '0'; break;
-
-            case 2600: snprintf(width_str, sizeof(width_str), "16"); narrow = '0'; break;
-
-            case 2500: snprintf(width_str, sizeof(width_str), "15"); narrow = '0'; break;
-
-            case 2450: snprintf(width_str, sizeof(width_str), "14"); narrow = '0'; break;
-
-            case 2250: snprintf(width_str, sizeof(width_str), "12"); narrow = '0'; break;
-
-            case 2100: snprintf(width_str, sizeof(width_str), "11"); narrow = '0'; break;
-
-            case 1950: snprintf(width_str, sizeof(width_str), "10"); narrow = '0'; break;
-
-            case 1650: snprintf(width_str, sizeof(width_str), "08"); narrow = '1'; break;
-
-            case 1500: snprintf(width_str, sizeof(width_str), "07"); narrow = '1'; break;
-
-            case 1350: snprintf(width_str, sizeof(width_str), "06"); narrow = '1'; break;
-
-            case 1100: snprintf(width_str, sizeof(width_str), "05"); narrow = '1'; break;
-
-            case  850: snprintf(width_str, sizeof(width_str), "04"); narrow = '1'; break;
-
-            case  600: snprintf(width_str, sizeof(width_str), "03"); narrow = '1'; break;
-
-            case  400: snprintf(width_str, sizeof(width_str), "02"); narrow = '1'; break;
-
-            case  200: snprintf(width_str, sizeof(width_str), "01"); narrow = '1';  break;
-
-            default: return -RIG_EINVAL;
-            }
+            if (width <= 200) { w = 1; }
+            else if (width <= 400) { w = 2; }
+            else if (width <= 600) { w = 3; }
+            else if (width <= 850) { w = 4; }
+            else if (width <= 1100) { w = 5; }
+            else if (width <= 1350) { w = 6; }
+            else if (width <= 1500) { w = 7; }
+            else if (width <= 1650) { w = 8; }
+            else if (width <= 1800) { w = 9; }
+            else if (width <= 1950) { w = 10; }
+            else if (width <= 2100) { w = 11; }
+            else if (width <= 2250) { w = 12; }
+            else if (width <= 2400) { w = 13; }
+            else if (width <= 2450) { w = 14; }
+            else if (width <= 2500) { w = 15; }
+            else if (width <= 2600) { w = 16; }
+            else if (width <= 2700) { w = 17; }
+            else if (width <= 2800) { w = 18; }
+            else if (width <= 2900) { w = 19; }
+            else { w = 20; } // 3000 is the max
 
             break;
 
@@ -5449,9 +5403,9 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
         default:
             return -RIG_EINVAL;
-        }   /* end switch(mode) */
-    }   /* end if FT950 */
-    else if (newcat_is_rig(rig, RIG_MODEL_FT891))
+        }   // end switch(mode)
+    }   // end is_ft950 */
+    else if (is_ft891)
     {
         switch (mode)
         {
@@ -5461,104 +5415,53 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_RTTYR:
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
-            switch (width)   // the defaults can be different for CW and RTTY (e.g. FT991) but I don't think it matters here
-            {
-            case 1700: snprintf(width_str, sizeof(width_str), "14"); narrow = '0';
-                break;  /* normal */
-
-            case  500: snprintf(width_str, sizeof(width_str), "10"); narrow = '0';
-                break;  /* narrow */
-
-            case 3000: snprintf(width_str, sizeof(width_str), "17"); narrow = '0';
-                break;  /* wide */
-
-            case 2400: snprintf(width_str, sizeof(width_str), "16"); narrow = '0'; break;
-
-            case 2000: snprintf(width_str, sizeof(width_str), "15"); narrow = '0'; break;
-
-            case 1400: snprintf(width_str, sizeof(width_str), "13"); narrow = '0'; break;
-
-            case 1200: snprintf(width_str, sizeof(width_str), "12"); narrow = '0'; break;
-
-            case  800: snprintf(width_str, sizeof(width_str), "11"); narrow = '0'; break;
-
-            case  450: snprintf(width_str, sizeof(width_str), "09"); narrow = '1'; break;
-
-            case  400: snprintf(width_str, sizeof(width_str), "08"); narrow = '1'; break;
-
-            case  350: snprintf(width_str, sizeof(width_str), "07"); narrow = '1'; break;
-
-            case  300: snprintf(width_str, sizeof(width_str), "06"); narrow = '1'; break;
-
-            case  250: snprintf(width_str, sizeof(width_str), "05"); narrow = '1'; break;
-
-            case  200: snprintf(width_str, sizeof(width_str), "04"); narrow = '1'; break;
-
-            case  150: snprintf(width_str, sizeof(width_str), "03"); narrow = '1'; break;
-
-            case  100: snprintf(width_str, sizeof(width_str), "02"); narrow = '1'; break;
-
-            case   50: snprintf(width_str, sizeof(width_str), "01"); narrow = '1'; break;
-
-            default: return -RIG_EINVAL;
-            }
+            if (width <= 50) { w = 1; }
+            else if (width <= 100) { w = 2; }
+            else if (width <= 150) { w = 3; }
+            else if (width <= 200) { w = 4; }
+            else if (width <= 250) { w = 5; }
+            else if (width <= 300) { w = 6; }
+            else if (width <= 350) { w = 7; }
+            else if (width <= 400) { w = 8; }
+            else if (width <= 450) { w = 9; }
+            else if (width <= 500) { w = 10; }
+            else if (width <= 800) { w = 11; }
+            else if (width <= 1200) { w = 12; }
+            else if (width <= 1400) { w = 13; }
+            else if (width <= 1700) { w = 14; }
+            else if (width <= 2000) { w = 15; }
+            else if (width <= 2400) { w = 16; }
+            else { w = 17; } // 3000 is the max
 
             break;
 
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
-            switch (width)
-            {
-            case 2400: snprintf(width_str, sizeof(width_str), "14"); narrow = '0';
-                break;  /* normal */
-
-            case 1500: snprintf(width_str, sizeof(width_str), "07"); narrow = '0';
-                break;  /* narrow */
-
-            case 3200: snprintf(width_str, sizeof(width_str), "21"); narrow = '0';
-                break;  /* wide */
-
-            case 3000: snprintf(width_str, sizeof(width_str), "20"); narrow = '0'; break;
-
-            case 2900: snprintf(width_str, sizeof(width_str), "19"); narrow = '0'; break;
-
-            case 2800: snprintf(width_str, sizeof(width_str), "18"); narrow = '0'; break;
-
-            case 2700: snprintf(width_str, sizeof(width_str), "17"); narrow = '0'; break;
-
-            case 2600: snprintf(width_str, sizeof(width_str), "16"); narrow = '0'; break;
-
-            case 2500: snprintf(width_str, sizeof(width_str), "15"); narrow = '0'; break;
-
-            case 2250: snprintf(width_str, sizeof(width_str), "12"); narrow = '0'; break;
-
-            case 2100: snprintf(width_str, sizeof(width_str), "11"); narrow = '0'; break;
-
-            case 1950: snprintf(width_str, sizeof(width_str), "10"); narrow = '0'; break;
-
-            case 1800: snprintf(width_str, sizeof(width_str), "09"); narrow = '0'; break;
-
-            case 1650: snprintf(width_str, sizeof(width_str), "08"); narrow = '1'; break;
-
-            case 1350: snprintf(width_str, sizeof(width_str), "06"); narrow = '1'; break;
-
-            case 1100: snprintf(width_str, sizeof(width_str), "05"); narrow = '1'; break;
-
-            case  850: snprintf(width_str, sizeof(width_str), "04"); narrow = '1'; break;
-
-            case  600: snprintf(width_str, sizeof(width_str), "03"); narrow = '1'; break;
-
-            case  400: snprintf(width_str, sizeof(width_str), "02"); narrow = '1'; break;
-
-            case  200: snprintf(width_str, sizeof(width_str), "01"); narrow = '1';  break;
-
-            default: return -RIG_EINVAL;
-            }
+            if (width <= 200) { w = 1; }
+            else if (width <= 400) { w = 2; }
+            else if (width <= 600) { w = 3; }
+            else if (width <= 850) { w = 4; }
+            else if (width <= 1100) { w = 5; }
+            else if (width <= 1350) { w = 6; }
+            else if (width <= 1500) { w = 7; }
+            else if (width <= 1600) { w = 8; }
+            else if (width <= 1800) { w = 9; }
+            else if (width <= 1950) { w = 10; }
+            else if (width <= 2100) { w = 11; }
+            else if (width <= 2200) { w = 12; }
+            else if (width <= 2300) { w = 13; }
+            else if (width <= 2400) { w = 14; }
+            else if (width <= 2500) { w = 15; }
+            else if (width <= 2600) { w = 16; }
+            else if (width <= 2700) { w = 17; }
+            else if (width <= 2800) { w = 18; }
+            else if (width <= 2900) { w = 19; }
+            else if (width <= 3000) { w = 20; }
+            else { w = 21; } // 3000 is the max
 
             break;
 
         case RIG_MODE_AM:
-
         case RIG_MODE_FM:
         case RIG_MODE_PKTFM:
             if (width < rig_passband_normal(rig, mode))
@@ -5574,9 +5477,9 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
         default:
             return -RIG_EINVAL;
-        }   /* end switch(mode) */
-    }   /* end if FT891 */
-    else if (newcat_is_rig(rig, RIG_MODEL_FT991))
+        }   // end switch(mode)
+    }   // end is_ft891
+    else if (is_ft991)
     {
         switch (mode)
         {
@@ -5586,99 +5489,49 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_RTTYR:
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
-            switch (width)   // the defaults can be different for CW and RTTY (e.g. FT991) but I don't think it matters here
-            {
-            case 1700: snprintf(width_str, sizeof(width_str), "14"); narrow = '0';
-                break;  /* normal */
-
-            case  500: snprintf(width_str, sizeof(width_str), "10"); narrow = '0';
-                break;  /* narrow */
-
-            case 3000: snprintf(width_str, sizeof(width_str), "17"); narrow = '0';
-                break;  /* wide */
-
-            case 2400: snprintf(width_str, sizeof(width_str), "16"); narrow = '0'; break;
-
-            case 2000: snprintf(width_str, sizeof(width_str), "15"); narrow = '0'; break;
-
-            case 1400: snprintf(width_str, sizeof(width_str), "13"); narrow = '0'; break;
-
-            case 1200: snprintf(width_str, sizeof(width_str), "12"); narrow = '0'; break;
-
-            case  800: snprintf(width_str, sizeof(width_str), "11"); narrow = '0'; break;
-
-            case  450: snprintf(width_str, sizeof(width_str), "09"); narrow = '1'; break;
-
-            case  400: snprintf(width_str, sizeof(width_str), "08"); narrow = '1'; break;
-
-            case  350: snprintf(width_str, sizeof(width_str), "07"); narrow = '1'; break;
-
-            case  300: snprintf(width_str, sizeof(width_str), "06"); narrow = '1'; break;
-
-            case  250: snprintf(width_str, sizeof(width_str), "05"); narrow = '1'; break;
-
-            case  200: snprintf(width_str, sizeof(width_str), "04"); narrow = '1'; break;
-
-            case  150: snprintf(width_str, sizeof(width_str), "03"); narrow = '1'; break;
-
-            case  100: snprintf(width_str, sizeof(width_str), "02"); narrow = '1'; break;
-
-            case   50: snprintf(width_str, sizeof(width_str), "01"); narrow = '1'; break;
-
-            default: return -RIG_EINVAL;
-            }
+            if (width <= 50) { w = 1; }
+            else if (width <= 100) { w = 2; }
+            else if (width <= 150) { w = 3; }
+            else if (width <= 200) { w = 4; }
+            else if (width <= 250) { w = 5; }
+            else if (width <= 305) { w = 6; }
+            else if (width <= 350) { w = 7; }
+            else if (width <= 400) { w = 8; }
+            else if (width <= 450) { w = 9; }
+            else if (width <= 500) { w = 10; }
+            else if (width <= 800) { w = 11; }
+            else if (width <= 1200) { w = 12; }
+            else if (width <= 1400) { w = 13; }
+            else if (width <= 1700) { w = 14; }
+            else if (width <= 2000) { w = 15; }
+            else if (width <= 2400) { w = 16; }
+            else { w = 17; } // 3000 is the max
 
             break;
 
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
-            switch (width)
-            {
-            case 2400: snprintf(width_str, sizeof(width_str), "14"); narrow = '0';
-                break;  /* normal */
-
-            case 1500: snprintf(width_str, sizeof(width_str), "07"); narrow = '0';
-                break;  /* narrow */
-
-            case 3200: snprintf(width_str, sizeof(width_str), "21"); narrow = '0';
-                break;  /* wide */
-
-            case 3000: snprintf(width_str, sizeof(width_str), "20"); narrow = '0'; break;
-
-            case 2900: snprintf(width_str, sizeof(width_str), "19"); narrow = '0'; break;
-
-            case 2800: snprintf(width_str, sizeof(width_str), "18"); narrow = '0'; break;
-
-            case 2700: snprintf(width_str, sizeof(width_str), "17"); narrow = '0'; break;
-
-            case 2600: snprintf(width_str, sizeof(width_str), "16"); narrow = '0'; break;
-
-            case 2500: snprintf(width_str, sizeof(width_str), "15"); narrow = '0'; break;
-
-            case 2250: snprintf(width_str, sizeof(width_str), "12"); narrow = '0'; break;
-
-            case 2100: snprintf(width_str, sizeof(width_str), "11"); narrow = '0'; break;
-
-            case 1950: snprintf(width_str, sizeof(width_str), "10"); narrow = '0'; break;
-
-            case 1800: snprintf(width_str, sizeof(width_str), "09"); narrow = '0'; break;
-
-            case 1650: snprintf(width_str, sizeof(width_str), "08"); narrow = '1'; break;
-
-            case 1350: snprintf(width_str, sizeof(width_str), "06"); narrow = '1'; break;
-
-            case 1100: snprintf(width_str, sizeof(width_str), "05"); narrow = '1'; break;
-
-            case  850: snprintf(width_str, sizeof(width_str), "04"); narrow = '1'; break;
-
-            case  600: snprintf(width_str, sizeof(width_str), "03"); narrow = '1'; break;
-
-            case  400: snprintf(width_str, sizeof(width_str), "02"); narrow = '1'; break;
-
-            case  200: snprintf(width_str, sizeof(width_str), "01"); narrow = '1';  break;
-
-            default: return -RIG_EINVAL;
-            }
+            if (width <= 200) { w = 1; }
+            else if (width <= 400) { w = 2; }
+            else if (width <= 600) { w = 3; }
+            else if (width <= 850) { w = 4; }
+            else if (width <= 1100) { w = 5; }
+            else if (width <= 1350) { w = 6; }
+            else if (width <= 1500) { w = 7; }
+            else if (width <= 1660) { w = 8; }
+            else if (width <= 1800) { w = 9; }
+            else if (width <= 1950) { w = 10; }
+            else if (width <= 2100) { w = 11; }
+            else if (width <= 2200) { w = 12; }
+            else if (width <= 2300) { w = 13; }
+            else if (width <= 2400) { w = 14; }
+            else if (width <= 2500) { w = 15; }
+            else if (width <= 2600) { w = 16; }
+            else if (width <= 2700) { w = 17; }
+            else if (width <= 2800) { w = 18; }
+            else if (width <= 2900) { w = 19; }
+            else if (width <= 3000) { w = 20; }
+            else { w = 21; } // 3200 is the max
 
             break;
 
@@ -5690,8 +5543,6 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
             return err;
 
-            break;
-
         case RIG_MODE_AMN:
             if (width == 0 || width == 6000)
             {
@@ -5699,8 +5550,6 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             }
 
             return err;
-
-            break;
 
         case RIG_MODE_FM: //Only 1 passband each for FM or FMN
 
@@ -5711,8 +5560,6 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
             return err;
 
-            break;
-
         case RIG_MODE_FMN:
 
             if (width == 0 || width == 9000)
@@ -5721,8 +5568,6 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             }
 
             return err;
-
-            break;
 
         case RIG_MODE_C4FM:
 
@@ -5741,8 +5586,6 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
             return err;
 
-            break;
-
         case RIG_MODE_PKTFM:
             if (width < rig_passband_normal(rig, mode))
             {
@@ -5757,9 +5600,9 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
         default:
             return -RIG_EINVAL;
-        }   /* end switch(mode) */
-    }   /* end if FT991 */
-    else if (newcat_is_rig(rig, RIG_MODEL_FT1200))
+        }   // end switch(mode)
+    }   // end is_ft991
+    else if (is_ft1200)
     {
         switch (mode)
         {
@@ -5769,111 +5612,54 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_RTTYR:
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
-            switch (width)
-            {
-            case 2400: snprintf(width_str, sizeof(width_str), "16"); narrow = '0';
-                break;  /* wide */
-
-            case 2000: snprintf(width_str, sizeof(width_str), "15"); narrow = '0';
-                break;  /* wide */
-
-            case 1700: snprintf(width_str, sizeof(width_str), "14"); narrow = '0'; break;
-
-            case 1400: snprintf(width_str, sizeof(width_str), "13"); narrow = '0'; break;
-
-            case 1200: snprintf(width_str, sizeof(width_str), "12"); narrow = '0'; break;
-
-            case  800: snprintf(width_str, sizeof(width_str), "11"); narrow = '0'; break;
-
-            case  500: snprintf(width_str, sizeof(width_str), "10"); narrow = '1'; break;
-
-            case  450: snprintf(width_str, sizeof(width_str), "09"); narrow = '1'; break;
-
-            case  400: snprintf(width_str, sizeof(width_str), "08"); narrow = '1'; break;
-
-            case  350: snprintf(width_str, sizeof(width_str), "07"); narrow = '1'; break;
-
-            case  300: snprintf(width_str, sizeof(width_str), "06"); narrow = '1'; break;
-
-            case  250: snprintf(width_str, sizeof(width_str), "05"); narrow = '1'; break;
-
-            case  200: snprintf(width_str, sizeof(width_str), "04"); narrow = '1'; break;
-
-            case  150: snprintf(width_str, sizeof(width_str), "03"); narrow = '1'; break;
-
-            case  100: snprintf(width_str, sizeof(width_str), "02"); narrow = '1'; break;
-
-            case   50: snprintf(width_str, sizeof(width_str), "01"); narrow = '1'; break;
-
-            default: return -RIG_EINVAL;
-            }
+            if (width == 0) { w = 0; }
+            else if (width <= 50) { w = 1; }
+            else if (width <= 100) { w = 2; }
+            else if (width <= 150) { w = 3; }
+            else if (width <= 200) { w = 4; }
+            else if (width <= 250) { w = 5; }
+            else if (width <= 300) { w = 6; }
+            else if (width <= 350) { w = 7; }
+            else if (width <= 400) { w = 8; }
+            else if (width <= 450) { w = 9; }
+            else if (width <= 500) { w = 10; }
+            else if (width <= 800) { w = 11; }
+            else if (width <= 1200) { w = 12; }
+            else if (width <= 1400) { w = 13; }
+            else if (width <= 1700) { w = 14; }
+            else if (width <= 2000) { w = 15; }
+            else { w = 16; } // 2400 is max
 
             break;
 
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
-            switch (width)
-            {
-            case 2300: snprintf(width_str, sizeof(width_str), "13"); narrow = '0';
-                break;  /* normal */
-
-            case 1800: snprintf(width_str, sizeof(width_str), "09"); narrow = '0';
-                break;  /* narrow */
-
-            case 3000: snprintf(width_str, sizeof(width_str), "20"); narrow = '0';
-                break;  /* wide */
-
-            case 3200: snprintf(width_str, sizeof(width_str), "21"); narrow = '0';
-                break;  /* wide */
-
-            case 3400: snprintf(width_str, sizeof(width_str), "22"); narrow = '0';
-                break;  /* wide */
-
-            case 3600: snprintf(width_str, sizeof(width_str), "23"); narrow = '0';
-                break;  /* wide */
-
-            case 3800: snprintf(width_str, sizeof(width_str), "24"); narrow = '0';
-                break;  /* wide */
-
-            case 4000: snprintf(width_str, sizeof(width_str), "25"); narrow = '0';
-                break;  /* wide */
-
-            case 2900: snprintf(width_str, sizeof(width_str), "19"); narrow = '0'; break;
-
-            case 2800: snprintf(width_str, sizeof(width_str), "18"); narrow = '0'; break;
-
-            case 2700: snprintf(width_str, sizeof(width_str), "17"); narrow = '0'; break;
-
-            case 2600: snprintf(width_str, sizeof(width_str), "16"); narrow = '0'; break;
-
-            case 2500: snprintf(width_str, sizeof(width_str), "15"); narrow = '0'; break;
-
-            case 2400: snprintf(width_str, sizeof(width_str), "14"); narrow = '0'; break;
-
-            case 2200: snprintf(width_str, sizeof(width_str), "12"); narrow = '0'; break;
-
-            case 2100: snprintf(width_str, sizeof(width_str), "11"); narrow = '0'; break;
-
-            case 1950: snprintf(width_str, sizeof(width_str), "10"); narrow = '0'; break;
-
-            case 1650: snprintf(width_str, sizeof(width_str), "08"); narrow = '1'; break;
-
-            case 1500: snprintf(width_str, sizeof(width_str), "07"); narrow = '1'; break;
-
-            case 1350: snprintf(width_str, sizeof(width_str), "06"); narrow = '1'; break;
-
-            case 1100: snprintf(width_str, sizeof(width_str), "05"); narrow = '1'; break;
-
-            case  850: snprintf(width_str, sizeof(width_str), "04"); narrow = '1'; break;
-
-            case  600: snprintf(width_str, sizeof(width_str), "03"); narrow = '1'; break;
-
-            case  400: snprintf(width_str, sizeof(width_str), "02"); narrow = '1'; break;
-
-            case  200: snprintf(width_str, sizeof(width_str), "01"); narrow = '1';  break;
-
-            default: return -RIG_EINVAL;
-            }
+            if (width == 0) { w = 0; }
+            else if (width <= 200) {  w = 1; }
+            else if (width <= 400) {  w = 2; }
+            else if (width <= 600) {  w = 3; }
+            else if (width <= 850) {  w = 4; }
+            else if (width <= 1100) {  w = 5; }
+            else if (width <= 1350) {  w = 6; }
+            else if (width <= 1500) {  w = 7; }
+            else if (width <= 1650) {  w = 8; }
+            else if (width <= 1800) {  w = 9; }
+            else if (width <= 1950) {  w = 10; }
+            else if (width <= 2100) {  w = 11; }
+            else if (width <= 2200) {  w = 12; }
+            else if (width <= 2300) {  w = 13; }
+            else if (width <= 2400) {  w = 14; }
+            else if (width <= 2500) {  w = 15; }
+            else if (width <= 2600) {  w = 16; }
+            else if (width <= 2700) {  w = 17; }
+            else if (width <= 2800) {  w = 18; }
+            else if (width <= 2900) {  w = 19; }
+            else if (width <= 3000) {  w = 20; }
+            else if (width <= 3200) {  w = 21; }
+            else if (width <= 3400) {  w = 22; }
+            else if (width <= 3600) {  w = 23; }
+            else if (width <= 3800) {  w = 24; }
+            else { w = 25; } // 4000Hz is max
 
             break;
 
@@ -5893,12 +5679,10 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
         default:
             return -RIG_EINVAL;
-        }   /* end switch(mode) */
-    }
-    else if (newcat_is_rig(rig, RIG_MODEL_FTDX101D))
+        }   // end switch(mode)
+    } // end is_ft1200
+    else if (is_ft101)
     {
-        int w = 0; // our width index for the rig
-
         switch (mode)
         {
         case RIG_MODE_PKTUSB:
@@ -5927,7 +5711,6 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             else if (width <= 2400) { w = 17; }
             else { w = 18; }
 
-            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH%c0%02d;", main_sub_vfo, w);
             break;
 
         case RIG_MODE_LSB:
@@ -5956,15 +5739,13 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             else if (width <= 3200) {  w = 21; }
             else if (width <= 3500) {  w = 22; }
             else { w = 23; } // 4000Hz
-        }
+        } // end switch(mode)
 
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH%c0%02d;", main_sub_vfo, w);
-
-        return newcat_set_cmd(rig);
-    }
-    else       /* end if FT1200 */
+    } // end is_ft101
+    else      
     {
-        /* FT450, FT2000, FT5000, FT9000 */
+        // FT450, FT2000, FT5000, FT9000 
+        // we need details on the widths here...manuals lack information
         switch (mode)
         {
         case RIG_MODE_PKTUSB:
@@ -5973,38 +5754,16 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_RTTYR:
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
-            switch (width)
-            {
-            case 1800: snprintf(width_str, sizeof(width_str), "16"); narrow = '0';
-                break;  /* normal */
-
-            case  500: snprintf(width_str, sizeof(width_str), "06"); narrow = '0';
-                break;  /* narrow */
-
-            case 2400: snprintf(width_str, sizeof(width_str), "24"); narrow = '0';
-                break;  /* wide   */
-
-            default: return -RIG_EINVAL;
-            }
-
+            if (width <= 500) w = 6;
+            else if (width <= 1800) w = 16;
+            else w = 24;
             break;
 
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
-            switch (width)
-            {
-            case 2400: snprintf(width_str, sizeof(width_str), "16"); narrow = '0';
-                break;  /* normal */
-
-            case 1800: snprintf(width_str, sizeof(width_str), "08"); narrow = '0';
-                break;  /* narrow */
-
-            case 3000: snprintf(width_str, sizeof(width_str), "25"); narrow = '0';
-                break;  /* wide   */
-
-            default: return -RIG_EINVAL;
-            }
-
+            if (width <= 1800) w = 8;
+            else if (width <= 2400) w = 16;
+            else w = 25; // 3000
             break;
 
         case RIG_MODE_AM:
@@ -6024,14 +5783,12 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         default:
             return -RIG_EINVAL;
         }   /* end switch(mode) */
+
     }
 
     /* end else */
 
-    rig_debug(RIG_DEBUG_TRACE, "sizeof(width_str) = %d\n", (int)sizeof(width_str));
-
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "NA%c%c%cSH%c%s%c",
-             main_sub_vfo, narrow, cat_term, main_sub_vfo, width_str, cat_term);
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH%c%02d;", main_sub_vfo, w);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
 
@@ -6525,8 +6282,10 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         case RIG_MODE_FMN:
         case RIG_MODE_PKTFMN:
             *width = 9000; break;
+
         case RIG_MODE_AMN:
             *width = 6000; break;
+
         case RIG_MODE_FM:
         case RIG_MODE_PKTFM:
             *width = 16000; break;
