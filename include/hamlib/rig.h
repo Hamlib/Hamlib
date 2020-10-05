@@ -1144,7 +1144,7 @@ typedef uint64_t rmode_t;
 /* hide the top 32 bits from the Lua binding as they will not work */
 #define    RIG_MODE_DD        CONSTANT_64BIT_FLAG (32)  /*!< \c DD Mode IC-9700 */
 #define    RIG_MODE_C4FM      CONSTANT_64BIT_FLAG (33)  /*!< \c Yaesu C4FM mode */
-#define    RIG_MODE_BIT34     CONSTANT_64BIT_FLAG (34)  /*!< \c reserved for future expansion */
+#define    RIG_MODE_PKTFMN    CONSTANT_64BIT_FLAG (34)  /*!< \c Yaesu DATA-FM-N */
 #define    RIG_MODE_BIT35     CONSTANT_64BIT_FLAG (35)  /*!< \c reserved for future expansion */
 #define    RIG_MODE_BIT36     CONSTANT_64BIT_FLAG (36)  /*!< \c reserved for future expansion */
 #define    RIG_MODE_BIT37     CONSTANT_64BIT_FLAG (37)  /*!< \c reserved for future expansion */

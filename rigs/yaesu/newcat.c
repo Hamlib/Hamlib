@@ -5283,14 +5283,16 @@ int newcat_get_narrow(RIG *rig, vfo_t vfo, ncboolean *narrow)
 }
 
 // returns 1 if in narrow mode 0 if not, < 0 if error
-static int get_narrow(RIG *rig)
+// if vfo != RIG_VFO_NONE then will use NA0 or NA1 depending on vfo Main or Sub
+static int get_narrow(RIG *rig, vfo_t vfo)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int narrow = 0;
     int err;
 
     // find out if we're in narrow or wide mode
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "NA0%c", cat_term);
+    
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "NA%c%c", vfo == RIG_VFO_SUB?'1':'0', cat_term);
 
     if (RIG_OK != (err = newcat_get_cmd(rig)))
     {
@@ -6079,7 +6081,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int err;
     int w;
-    char narrow = '!'; // if still "!" at command then no narrow/wide command needed
+    char narrow = '!';
     char cmd[] = "SH";
     char main_sub_vfo = '0';
 
@@ -6121,7 +6123,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
     // ft950 and ft1200 overlap so we'll combine them
     if (is_ft950 || is_ft1200)
     {
-        if ((narrow = get_narrow(rig)) < 0)
+        if ((narrow = get_narrow(rig, RIG_VFO_MAIN)) < 0)
         {
             return -RIG_EPROTO;
         }
@@ -6258,7 +6260,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 
     else if (newcat_is_rig(rig, RIG_MODEL_FT991))
     {
-        if ((narrow = get_narrow(rig)) < 0)
+        if ((narrow = get_narrow(rig, vfo)) < 0)
         {
             return -RIG_EPROTO;
         }
@@ -6273,6 +6275,45 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         case RIG_MODE_CWR:
             switch (w)
             {
+            case 0:
+                if (mode == RIG_MODE_CW || RIG_MODE_CWR) { *width = narrow ? 500 : 2400; }
+                else { *width = narrow ? 300 : 500; }
+
+                break;
+
+            case 1: *width = 50; break;
+
+            case 2: *width = 100; break;
+
+            case 3: *width = 150; break;
+
+            case 4: *width = 200; break;
+
+            case 5: *width = 250; break;
+
+            case 6: *width = 300; break;
+
+            case 7: *width = 350; break;
+
+            case 8: *width = 400; break;
+
+            case 9: *width = 450; break;
+
+            case 10: *width = 500; break;
+
+            case 11: *width = 800; break;
+
+            case 12: *width = 1200; break;
+
+            case 13: *width = 1400; break;
+
+            case 14: *width = 1700; break;
+
+            case 15: *width = 2000; break;
+
+            case 16: *width = 2400; break;
+
+            case 17: *width = 3000; break;
 
             default: return -RIG_EINVAL;
             }
@@ -6283,78 +6324,63 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         case RIG_MODE_USB:
             switch (w)
             {
-            case  0:
-            case 14: *width = 2400; break;  /* normal */
+            case 0: *width = narrow ? 1500 : 2400; break;
 
-            case  9: *width = 1800; break;  /* narrow */
-
-            case 21: *width = 3200; break;
-
-            case 20: *width = 3000; break;
-
-            case 19: *width = 2900; break;
-
-            case 18: *width = 2800; break;
-
-            case 17: *width = 2700; break;
-
-            case 16: *width = 2600; break;
-
-            case 15: *width = 2500; break;
-
-            case 13: *width = 2300; break;
-
-            case 12: *width = 2200; break;
-
-            case 11: *width = 2100; break;
-
-            case 10: *width = 1950; break;
-
-            case  8: *width = 1650; break;
-
-            case  7: *width = 1500; break;
-
-            case  6: *width = 1350; break;
-
-            case  5: *width = 1100; break;
-
-            case  4: *width =  850; break;
-
-            case  3: *width =  600; break;
+            case  1: *width =  200; break;
 
             case  2: *width =  400; break;
 
-            case  1: *width =  200; break;
+            case  3: *width =  600; break;
+
+            case  4: *width =  850; break;
+
+            case  5: *width = 1100; break;
+
+            case  6: *width = 1350; break;
+
+            case  7: *width = 1500; break;
+
+            case  8: *width = 1650; break;
+
+            case  9: *width = 1800; break;
+
+            case 10: *width = 1950; break;
+
+            case 11: *width = 2100; break;
+
+            case 12: *width = 2200; break;
+
+            case 13: *width = 2300; break;
+
+            case 14: *width = 2400; break;
+
+            case 15: *width = 2500; break;
+
+            case 16: *width = 2600; break;
+
+            case 17: *width = 2700; break;
+
+            case 18: *width = 2800; break;
+
+            case 19: *width = 2900; break;
+
+            case 20: *width = 3000; break;
+
+            case 21: *width = 3200; break;
 
             default: return -RIG_EINVAL;
             }
 
             break;
 
-        case RIG_MODE_FM:
-            *width =  16000; break;  /* wide */
-
-        case RIG_MODE_FMN:
-            *width =  9000; break;  /* narrow */
-
         case RIG_MODE_AM:
-            *width =  9000; break;  /* wide */
-
         case RIG_MODE_AMN:
-            *width =  6000; break;  /* wide */
+            *width =  9000; break;
 
+        case RIG_MODE_FM:
         case RIG_MODE_C4FM:
         case RIG_MODE_PKTFM:
-            switch (w)
-            {
-            case  0:
-            case  2: *width =  16000; break;
-
-            case  1: *width =  9000; break;
-
-            default: return -RIG_EINVAL;
-            }
-
+            *width = 16000;
             break;
 
         default:
@@ -6496,9 +6522,14 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
             break;
 
         case RIG_MODE_AM:
-        case RIG_MODE_PKTFM:
+        case RIG_MODE_FMN:
+        case RIG_MODE_PKTFMN:
+            *width = 9000; break;
+        case RIG_MODE_AMN:
+            *width = 6000; break;
         case RIG_MODE_FM:
-            return RIG_OK;
+        case RIG_MODE_PKTFM:
+            *width = 16000; break;
 
         default:
             return -RIG_EINVAL;
@@ -7084,7 +7115,8 @@ struct
     { RIG_MODE_FMN,    'B', TRUE },
     { RIG_MODE_PKTUSB, 'C', FALSE },
     { RIG_MODE_AMN,    'D', TRUE },
-    { RIG_MODE_C4FM,   'E', TRUE }
+    { RIG_MODE_C4FM,   'E', TRUE },
+    { RIG_MODE_PKTFMN, 'F', TRUE }
 };
 
 rmode_t newcat_rmode(char mode)
