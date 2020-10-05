@@ -2716,7 +2716,9 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             format = "MS%d";
         }
-	rig_debug(RIG_DEBUG_TRACE, "%s: format=%s\n", __func__, format);
+
+        rig_debug(RIG_DEBUG_TRACE, "%s: format=%s\n", __func__, format);
+
         switch (val.i)
         {
         case RIG_METER_ALC: snprintf(priv->cmd_str, sizeof(priv->cmd_str), format, 1);
@@ -2746,7 +2748,8 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         case RIG_METER_VDD:  snprintf(priv->cmd_str, sizeof(priv->cmd_str), format, 5);
             break;
 
-	rig_debug(RIG_DEBUG_ERR, "%s: unknown val.i=%d\n", __func__, val.i);
+            rig_debug(RIG_DEBUG_ERR, "%s: unknown val.i=%d\n", __func__, val.i);
+
         default: return -RIG_EINVAL;
         }
 
@@ -3340,6 +3343,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             return -RIG_ENAVAIL;
         }
+
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM6%c", cat_term);
         break;
 
@@ -3422,6 +3426,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_SWR:
         // some rigs like ft101dx have 6 byte return so we just truncate
         retlvl[3] = 0;
+
         if (rig->caps->swr_cal.size == 0)
         {
             val->f = rig_raw2val_float(atoi(retlvl), &yaesu_default_swr_cal);
@@ -5277,6 +5282,30 @@ int newcat_get_narrow(RIG *rig, vfo_t vfo, ncboolean *narrow)
     return RIG_OK;
 }
 
+// returns 1 if in narrow mode 0 if not, < 0 if error
+static int get_narrow(RIG *rig)
+{
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    int narrow = 0;
+    int err;
+
+    // find out if we're in narrow or wide mode
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "NA0%c", cat_term);
+
+    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    {
+        return err;
+    }
+
+    if (sscanf(priv->ret_data, "NA%*1d%3d", &narrow) != 1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: unable to parse width from '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    return narrow;
+}
 
 int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
@@ -5284,7 +5313,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     int err;
     char width_str[6];        /* extra larger buffer */
     char main_sub_vfo = '0';
-    char narrow;
+    char narrow = '!'; // if still "!" at command then no narrow/wide command needed
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     rig_debug(RIG_DEBUG_TRACE, "%s vfo=%s, mode=%s, width=%d\n", __func__,
@@ -5318,35 +5347,35 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
             if (width <= 500)
-            switch (width)
-            {
-            case 1700: snprintf(width_str, sizeof(width_str), "11"); narrow = '0';
-                break;  /* normal */
+                switch (width)
+                {
+                case 1700: snprintf(width_str, sizeof(width_str), "11"); narrow = '0';
+                    break;  /* normal */
 
-            case  500: snprintf(width_str, sizeof(width_str), "07"); narrow = '0';
-                break;  /* narrow */
+                case  500: snprintf(width_str, sizeof(width_str), "07"); narrow = '0';
+                    break;  /* narrow */
 
-            case 2400: snprintf(width_str, sizeof(width_str), "13"); narrow = '0';
-                break;  /* wide */
+                case 2400: snprintf(width_str, sizeof(width_str), "13"); narrow = '0';
+                    break;  /* wide */
 
-            case 2000: snprintf(width_str, sizeof(width_str), "12"); narrow = '0'; break;
+                case 2000: snprintf(width_str, sizeof(width_str), "12"); narrow = '0'; break;
 
-            case 1400: snprintf(width_str, sizeof(width_str), "10"); narrow = '0'; break;
+                case 1400: snprintf(width_str, sizeof(width_str), "10"); narrow = '0'; break;
 
-            case 1200: snprintf(width_str, sizeof(width_str), "09"); narrow = '0'; break;
+                case 1200: snprintf(width_str, sizeof(width_str), "09"); narrow = '0'; break;
 
-            case  800: snprintf(width_str, sizeof(width_str), "08"); narrow = '0'; break;
+                case  800: snprintf(width_str, sizeof(width_str), "08"); narrow = '0'; break;
 
-            case  400: snprintf(width_str, sizeof(width_str), "06"); narrow = '1'; break;
+                case  400: snprintf(width_str, sizeof(width_str), "06"); narrow = '1'; break;
 
-            case  300: snprintf(width_str, sizeof(width_str), "05"); narrow = '1'; break;
+                case  300: snprintf(width_str, sizeof(width_str), "05"); narrow = '1'; break;
 
-            case  200: snprintf(width_str, sizeof(width_str), "04"); narrow = '1'; break;
+                case  200: snprintf(width_str, sizeof(width_str), "04"); narrow = '1'; break;
 
-            case  100: snprintf(width_str, sizeof(width_str), "03"); narrow = '1'; break;
+                case  100: snprintf(width_str, sizeof(width_str), "03"); narrow = '1'; break;
 
-            default: return -RIG_EINVAL;
-            }
+                default: return -RIG_EINVAL;
+                }
 
             break;
 
@@ -5866,7 +5895,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     }
     else if (newcat_is_rig(rig, RIG_MODEL_FTDX101D))
     {
-        int w=0; // our width index for the rig
+        int w = 0; // our width index for the rig
 
         switch (mode)
         {
@@ -6049,9 +6078,8 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int err;
-    int ret_data_len;
-    char *retlvl;
     int w;
+    char narrow = '!'; // if still "!" at command then no narrow/wide command needed
     char cmd[] = "SH";
     char main_sub_vfo = '0';
 
@@ -6083,17 +6111,21 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         return err;
     }
 
-    ret_data_len = strlen(priv->ret_data);
-
-    /* skip command */
-    retlvl = priv->ret_data + strlen(priv->cmd_str) - 1;
-    /* chop term */
-    priv->ret_data[ret_data_len - 1] = '\0';
-
-    w = atoi(retlvl);   /*  width */
-
-    if (newcat_is_rig(rig, RIG_MODEL_FT950))
+    if (sscanf(priv->ret_data, "SH%*1d%3d", &w) != 1)
     {
+        rig_debug(RIG_DEBUG_ERR, "%s: unable to parse width from '%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
+    }
+
+    // ft950 and ft1200 overlap so we'll combine them
+    if (is_ft950 || is_ft1200)
+    {
+        if ((narrow = get_narrow(rig)) < 0)
+        {
+            return -RIG_EPROTO;
+        }
+
         switch (mode)
         {
         case RIG_MODE_PKTUSB:
@@ -6104,28 +6136,33 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         case RIG_MODE_CWR:
             switch (w)
             {
-            case 11: *width = 1700; break;  /* normal */
+            case 0:
+                if (is_ft950) { *width = narrow ? 300 : 500; }
+                else { *width = narrow ? 500 : 2400; } // ft1200
 
-            case  0:
-            case  7: *width =  500; break;  /* narrow */
+                break;
 
-            case 13: *width = 2400; break;  /* wide   */
+            case 3: *width = 100; break;
 
-            case 12: *width = 2000; break;
+            case 4: *width = 200; break;
+
+            case 5: *width = 300; break;
+
+            case 6: *width = 400; break;
+
+            case 7: *width = 500; break;
+
+            case 8: *width = 800; break;
+
+            case 9: *width = 1200; break;
 
             case 10: *width = 1400; break;
 
-            case  9: *width = 1200; break;
+            case 11: *width = 1700; break;
 
-            case  8: *width =  800; break;
+            case 12: *width = 2000; break;
 
-            case  6: *width =  400; break;
-
-            case  5: *width =  300; break;
-
-            case  3: *width =  100; break;
-
-            case  4: *width =  200; break;
+            case 13: *width = 2400; break;
 
             default: return -RIG_EINVAL;
             }
@@ -6136,166 +6173,62 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         case RIG_MODE_USB:
             switch (w)
             {
-            case  0:
-            case 13: *width = 2400; break;  /* normal */
+            case 0:
+                if (is_ft950) { *width = narrow ? 1800 : 2400; }
+                else { *width = narrow ? 1500 : 2400; } // ft1200
 
-            case  9: *width = 1800; break;  /* narrow */
+                break;
 
-            case 20: *width = 3000; break;  /* wide   */
+            case  1: *width =  200; break;
 
-            case 19: *width = 2900; break;
+            case  2: *width =  400; break;
 
-            case 18: *width = 2800; break;
+            case  3: *width =  600; break;
 
-            case 17: *width = 2700; break;
+            case  4: *width =  850; break;
 
-            case 16: *width = 2600; break;
+            case  5: *width = 1100; break;
 
-            case 15: *width = 2500; break;
+            case  6: *width = 1350; break;
 
-            case 14: *width = 2450; break;
+            case  7: *width = 1500; break;
+
+            case  8: *width = 1650; break;
+
+            case  9: *width = 1800; break;
+
+            case 10: *width = 1950; break;
+
+            case 11: *width = 2100; break;
 
             case 12: *width = 2250; break;
 
-            case 11: *width = 2100; break;
+            case 13: *width = 2400; break;
 
-            case 10: *width = 1950; break;
-
-            case  8: *width = 1650; break;
-
-            case  7: *width = 1500; break;
-
-            case  6: *width = 1350; break;
-
-            case  5: *width = 1100; break;
-
-            case  4: *width =  850; break;
-
-            case  3: *width =  600; break;
-
-            case  2: *width =  400; break;
-
-            case  1: *width =  200; break;
-
-            default: return -RIG_EINVAL;
-            }
-
-            break;
-
-        case RIG_MODE_AM:
-        case RIG_MODE_PKTFM:
-        case RIG_MODE_FM:
-            return RIG_OK;
-
-        default:
-            return -RIG_EINVAL;
-        }   /* end switch(mode) */
-
-    }   /* end if FT950 */
-    else if (newcat_is_rig(rig, RIG_MODEL_FT1200))
-    {
-        switch (mode)
-        {
-        case RIG_MODE_PKTUSB:
-        case RIG_MODE_PKTLSB:
-        case RIG_MODE_RTTY:
-        case RIG_MODE_RTTYR:
-        case RIG_MODE_CW:
-        case RIG_MODE_CWR:
-            switch (w)
-            {
-            case  0:
-            case 10: *width =  500; break;  /* narrow */
-
-            case 16: *width = 2400; break;  /* wide   */
-
-            case 15: *width = 2000; break;  /* wide   */
-
-            case 14: *width = 1700; break;  /* wide   */
-
-            case 13: *width = 1400; break;  /* wide   */
-
-            case 12: *width = 1200; break;
-
-            case 11: *width =  800; break;
-
-            case  9: *width =  450; break;
-
-            case  8: *width =  400; break;
-
-            case  7: *width =  350; break;
-
-            case  6: *width =  300; break;
-
-            case  5: *width =  250; break;
-
-            case  4: *width =  200; break;
-
-            case  3: *width =  150; break;
-
-            case  2: *width =  100; break;
-
-            case  1: *width =   50; break;
-
-            default: return -RIG_EINVAL;
-            }
-
-            break;
-
-        case RIG_MODE_LSB:
-        case RIG_MODE_USB:
-            switch (w)
-            {
-            case  0:
-            case 14: *width = 2400; break;  /* normal */
-
-            case  9: *width = 1800; break;  /* narrow */
-
-            case 25: *width = 4000; break;  /* wide   */
-
-            case 24: *width = 3800; break;  /* wide   */
-
-            case 23: *width = 3600; break;  /* wide   */
-
-            case 22: *width = 3400; break;  /* wide   */
-
-            case 21: *width = 3200; break;  /* wide   */
-
-            case 20: *width = 3000; break;  /* wide   */
-
-            case 19: *width = 2900; break;
-
-            case 18: *width = 2800; break;
-
-            case 17: *width = 2700; break;
-
-            case 16: *width = 2600; break;
+            case 14: *width = 2450; break;
 
             case 15: *width = 2500; break;
 
-            case 13: *width = 2300; break;
+            case 16: *width = 2600; break;
 
-            case 12: *width = 2200; break;
+            case 17: *width = 2700; break;
 
-            case 11: *width = 2100; break;
+            case 18: *width = 2800; break;
 
-            case 10: *width = 1950; break;
+            case 19: *width = 2900; break;
 
-            case  8: *width = 1650; break;
+            case 20: *width = 3000; break;
 
-            case  7: *width = 1500; break;
+            // 21+ is for the FT1200
+            case 21: *width = 3200; break;
 
-            case  6: *width = 1350; break;
+            case 22: *width = 3400; break;
 
-            case  5: *width = 1100; break;
+            case 23: *width = 3600; break;
 
-            case  4: *width =  850; break;
+            case 24: *width = 3800; break;
 
-            case  3: *width =  600; break;
-
-            case  2: *width =  400; break;
-
-            case  1: *width =  200; break;
+            case 25: *width = 4000; break;
 
             default: return -RIG_EINVAL;
             }
@@ -6311,7 +6244,8 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
             return -RIG_EINVAL;
         }   /* end switch(mode) */
 
-    }  /* end if FT1200 */
+    }   /* end if FT950 FT1200 */
+
     else if (newcat_is_rig(rig, RIG_MODEL_FT991))
     {
         switch (mode)
@@ -6448,7 +6382,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 
     }
 
-    if (newcat_is_rig(rig, RIG_MODEL_FTDX101D))
+    else if (newcat_is_rig(rig, RIG_MODEL_FTDX101D))
     {
         if (w == 0) // then we need to know the roofing filter
         {
