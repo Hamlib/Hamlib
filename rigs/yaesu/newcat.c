@@ -2581,13 +2581,13 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             return -RIG_ENAVAIL;
         }
 
-        scale = (newcat_is_rig(rig, RIG_MODEL_FT450)) &&
-                (newcat_get_rigid(rig) == NC_RIGID_FT450D) ? 100. : 255.;
-        scale = newcat_is_rig(rig, RIG_MODEL_FT891) ? 100. : scale ;
-        scale = newcat_is_rig(rig, RIG_MODEL_FT950) ? 100. : scale ;
-        scale = newcat_is_rig(rig, RIG_MODEL_FT1200) ? 100. : scale ;
-        scale = newcat_is_rig(rig, RIG_MODEL_FT991) ? 100. : scale ;
+        scale = (is_ft450 || newcat_get_rigid(rig) == NC_RIGID_FT450D) ? 100. : 255.;
+        scale = is_ft891 ? 100. : scale ;
+        scale = is_ft950 ? 100. : scale ;
+        scale = is_ft1200 ? 100. : scale ;
+        scale = is_ft991 ? 100. : scale ;
         fpf = newcat_scale_float(scale, val.f);
+        if (is_ft950 && fpf < 5) fpf = 5; // min 5 watts on FT950
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PC%03d%c", fpf, cat_term);
         break;
 
@@ -5895,9 +5895,9 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
     { // can't query SH in some modes
         switch(rig->state.current_mode)
         {
-            case RIG_MODE_FM: val->i = 12000; break;
-            case RIG_MODE_AM: val->i = 6000; break;
-            case RIG_MODE_AMN: val->i = 2400; break;
+            case RIG_MODE_FM: *width = 12000; break;
+            case RIG_MODE_AM: *width = 6000; break;
+            case RIG_MODE_AMN: *width = 2400; break;
         }
         return RIG_OK;
     }
