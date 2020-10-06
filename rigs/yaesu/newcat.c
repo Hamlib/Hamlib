@@ -2901,8 +2901,8 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             return -RIG_ENAVAIL;
         }
 
-        scale = (newcat_is_rig(rig, RIG_MODEL_FT950)) ? 100 : 255;
-        scale = (newcat_is_rig(rig, RIG_MODEL_FT1200)) ? 100 : scale ;
+        scale = (is_ft950) ? 100 : 255;
+        scale = (is_ft1200 | is_ft101) ? 100 : scale ;
         fpf = newcat_scale_float(scale, val.f);
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PL%03d%c", fpf, cat_term);
         break;
@@ -3421,8 +3421,8 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_VOXGAIN:
     case RIG_LEVEL_COMP:
     case RIG_LEVEL_ANTIVOX:
-        scale = (newcat_is_rig(rig, RIG_MODEL_FT950)) ? 100. : 255.;
-        scale = (newcat_is_rig(rig, RIG_MODEL_FT1200)) ? 100. : scale ;
+        scale = (is_ft950) ? 100. : 255.;
+        scale = (is_ft1200 | is_ft101) ? 100. : scale ;
         val->f = (float)atoi(retlvl) / scale;
         break;
 
