@@ -6286,6 +6286,10 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 
             case 21: *width = 3200;  break;
 
+            case 22: *width = 3500;  break;
+
+            case 23: *width = 4000;  break;
+
             default: return -RIG_EINVAL;
             }
 
