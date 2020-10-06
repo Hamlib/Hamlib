@@ -5891,6 +5891,17 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         return err;
     }
 
+    if (is_ft950)
+    { // can't query SH in some modes
+        switch(rig->state.current_mode)
+        {
+            case RIG_MODE_FM: val->i = 12000; break;
+            case RIG_MODE_AM: val->i = 6000; break;
+            case RIG_MODE_AMN: val->i = 2400; break;
+        }
+        return RIG_OK;
+    }
+
     if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
     {
         main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';

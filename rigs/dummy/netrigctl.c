@@ -123,7 +123,7 @@ static int netrigctl_vfostr(RIG *rig, char *vfostr, int len, vfo_t vfo)
 
     if (rig->state.vfo_opt)
     {
-	rig_debug(RIG_DEBUG_TRACE, "%s: vfo_opt vfo=%d\n", __func__, vfo);
+	rig_debug(RIG_DEBUG_TRACE, "%s: vfo_opt vfo=%u\n", __func__, vfo);
 	char *myvfo;
         switch(vfo)
 	{
