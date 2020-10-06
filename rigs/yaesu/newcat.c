@@ -2624,7 +2624,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             return -RIG_ENAVAIL;
         }
-
+	rig_debug(RIG_DEBUG_TRACE, "%s: LEVEL_IF val.i=%d\n", __func__, val.i);
         if (abs(val.i) > rig->caps->max_ifshift)
         {
             if (val.i > 0)
@@ -2637,8 +2637,13 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             }
         }
 
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "IS0%+.4d%c", val.i,
-                 cat_term);  /* problem with %+04d */
+	if (is_ft101)
+	{
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "IS%c0%+.4d%c", main_sub_vfo, val.i, cat_term);  
+	}
+	else {
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "IS%c%+.4d%c", main_sub_vfo, val.i, cat_term);  
+	}
 
         if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE && !is_ft2000)
         {
@@ -3188,7 +3193,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return -RIG_ENAVAIL;
         }
 
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "IS0%c", cat_term);
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "IS%c%c", main_sub_vfo, cat_term);
 
         if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
         {
@@ -3519,7 +3524,17 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_RAWSTR:
     case RIG_LEVEL_KEYSPD:
     case RIG_LEVEL_IF:
-        val->i = atoi(retlvl);
+	// IS00+0400
+	rig_debug(RIG_DEBUG_TRACE, "%s: ret_data=%s(%d), retlvl=%s\n", __func__, priv->ret_data, (int)strlen(priv->ret_data), retlvl);
+	if (strlen(priv->ret_data) == 9) {
+		int n = sscanf(priv->ret_data,"IS%*c0%d\n", &val->i);
+		if (n != 1) {
+			rig_debug(RIG_DEBUG_ERR, "%s: unable to parse level from  %s\n", __func__, priv->ret_data);
+		}
+	}
+	else {
+	val->i = atoi(retlvl);
+	}
         break;
 
     case RIG_LEVEL_NR:

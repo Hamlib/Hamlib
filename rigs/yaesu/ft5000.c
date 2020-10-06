@@ -435,7 +435,7 @@ const struct rig_caps ftdx101d_caps =
     RIG_MODEL(RIG_MODEL_FTDX101D),
     .model_name =         "FT-DX101D",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".2",
+    .version =            NEWCAT_VER ".3",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -468,7 +468,7 @@ const struct rig_caps ftdx101d_caps =
     .attenuator =         { 6, 12, 18, RIG_DBLST_END, },
     .max_rit =            Hz(9999),
     .max_xit =            Hz(9999),
-    .max_ifshift =        Hz(1000),
+    .max_ifshift =        Hz(1200),
     .vfo_ops =            FTDX5000_VFO_OPS,
     .targetable_vfo =     RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE | RIG_TARGETABLE_FUNC | RIG_TARGETABLE_PURE,
     .transceive =         RIG_TRN_OFF,        /* May enable later as the 5000 has an Auto Info command */
