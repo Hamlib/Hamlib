@@ -2981,8 +2981,8 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
 
         /* VOX delay, api int (tenth of seconds), ms for rig */
-        val.i = val.i * 10;
-
+        val.i = val.i * 100;
+rig_debug(RIG_DEBUG_TRACE, "%s: vali=%d\n", __func__, val.i);
         if (is_ft950 || is_ft450 || is_ft1200)
         {
             if (val.i < 100)         /* min is 30ms but spec is 100ms Unit Intervals */
@@ -2999,16 +2999,14 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
         else if (is_ft101) // new lookup table argument
         {
-            val.i *= 10;  // Change tenths to ms since rig works in ms
+rig_debug(RIG_DEBUG_TRACE, "%s: ft101 #1 val.i=%d\n", __func__, val.i);
 
-            if (val.i <= 30) { val.i = 0; }
-            else if (val.i <= 50) { val.i = 1; }
+            if (val.i == 0) { val.i = 0; }
             else if (val.i <= 100) { val.i = 2; }
-            else if (val.i <= 150) { val.i = 3; }
             else if (val.i <= 200) { val.i = 4; }
-            else if (val.i <= 250) { val.i = 5; }
             else if (val.i > 3000) { val.i = 33; }
             else { val.i = (val.i - 300) / 100 + 6; }
+rig_debug(RIG_DEBUG_TRACE, "%s: ft101 #1 val.i=%d\n", __func__, val.i);
 
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VD%02d%c", val.i, cat_term);
         }
@@ -3545,20 +3543,20 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             switch (val->i)
             {
-            case 0:  val->i = 30; break;
+            case 0:  val->i = 0; break; // 30ms=0 we only do tenths
 
-            case 1:  val->i = 50; break;
+            case 1:  val->i = 0; break; // 50ms=0
 
-            case 2:  val->i = 100; break;
+            case 2:  val->i = 1; break; // 100ms=1
 
-            case 3:  val->i = 150; break;
+            case 3:  val->i = 1; break; // 150ms=1
 
-            case 4:  val->i = 200; break;
+            case 4:  val->i = 2; break; // 200ms=2
 
-            case 5:  val->i = 250; break;
+            case 5:  val->i = 2; break; // 250ms=2
 
             default:
-                val->i = (val->i - 6) * 100 + 300;
+                val->i = (val->i - 6) + 3;
                 break;
             }
         }
