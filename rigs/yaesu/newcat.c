@@ -589,10 +589,12 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     switch (vfo)
     {
     case RIG_VFO_A:
+    case RIG_VFO_MAIN:
         c = 'A';
         break;
 
     case RIG_VFO_B:
+    case RIG_VFO_SUB:
         c = 'B';
         break;
 
@@ -720,10 +722,12 @@ int newcat_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     switch (vfo)
     {
     case RIG_VFO_A:
+    case RIG_VFO_MAIN: // what about MAIN_A/MAIN_B?
         c = 'A';
         break;
 
     case RIG_VFO_B:
+    case RIG_VFO_SUB: // what about SUB_A/SUB_B?
         c = 'B';
         break;
 
@@ -792,7 +796,7 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     /* FT2000 mode only */
     if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
     {
-        priv->cmd_str[2] = (RIG_VFO_B == vfo) ? '1' : '0';
+        priv->cmd_str[2] = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: generic mode = %s \n",
@@ -866,7 +870,7 @@ int newcat_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
     {
-        main_sub_vfo = RIG_VFO_B == vfo ? '1' : '0';
+        main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo)  ? '1' : '0';
     }
 
     /* Build the command string */
@@ -902,6 +906,7 @@ int newcat_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         *width = rig_passband_normal(rig, *mode);
     }
 
+    rig_debug(RIG_DEBUG_TRACE, "%s: returning newcat_get_rx_bandwidth\n", __func__);
     return newcat_get_rx_bandwidth(rig, vfo, *mode, width);
 }
 
@@ -947,7 +952,7 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo)
     {
     case RIG_VFO_A:
     case RIG_VFO_B:
-        if (vfo == RIG_VFO_B)
+        if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB)
         {
             c = '1';
         }
@@ -1077,10 +1082,12 @@ int newcat_get_vfo(RIG *rig, vfo_t *vfo)
     switch (priv->ret_data[2])
     {
     case '0':
-        *vfo = RIG_VFO_A;
+	if (rig->state.vfo_list & RIG_VFO_MAIN) *vfo = RIG_VFO_MAIN;
+	else *vfo = RIG_VFO_A;
         break;
 
     case '1':
+	if (rig->state.vfo_list & RIG_VFO_SUB) *vfo = RIG_VFO_SUB;
         *vfo = RIG_VFO_B;
         break;
 
@@ -1221,7 +1228,7 @@ int newcat_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 
     if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
     {
-        main_sub_vfo = RIG_VFO_B == vfo ? '1' : '0';
+        main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
 
     switch (rptr_shift)
@@ -1274,7 +1281,7 @@ int newcat_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 
     if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
     {
-        main_sub_vfo = (RIG_VFO_B == vfo) ? '1' : '0';
+        main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", command, main_sub_vfo,
@@ -1472,10 +1479,15 @@ int newcat_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         return err;
     }
 
-    if (newcat_is_rig(rig, RIG_MODEL_FT991))
+    if (is_ft991)
     {
         vfo = RIG_VFO_A;
         tx_vfo = RIG_SPLIT_ON == split ? RIG_VFO_B : RIG_VFO_A;
+    }
+    else if (is_ft101)
+    {
+        vfo = RIG_VFO_MAIN;
+        tx_vfo = RIG_SPLIT_ON == split ? RIG_VFO_SUB : RIG_VFO_MAIN;
     }
     else
     {
@@ -1558,7 +1570,7 @@ int newcat_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
     }
 
     // we assume split is always on VFO_B
-    if (*tx_vfo == RIG_VFO_B)
+    if (*tx_vfo == RIG_VFO_B || *tx_vfo == RIG_VFO_SUB)
     {
         *split = RIG_SPLIT_ON;
     }
@@ -1944,7 +1956,7 @@ int newcat_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 
     if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
     {
-        main_sub_vfo = (RIG_VFO_B == vfo) ? '1' : '0';
+        main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB== vfo) ? '1' : '0';
     }
 
     for (i = 0, tone_match = FALSE; rig->caps->ctcss_list[i] != 0; i++)
@@ -2003,7 +2015,7 @@ int newcat_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 
     if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
     {
-        main_sub_vfo = (RIG_VFO_B == vfo) ? '1' : '0';
+        main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", cmd, main_sub_vfo,
@@ -2398,7 +2410,7 @@ int newcat_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 
     if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
     {
-        main_sub_vfo = RIG_VFO_B == vfo ? '1' : '0';
+        main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
 
     switch (ant)
@@ -2490,7 +2502,7 @@ int newcat_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
 
     if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
     {
-        main_sub_vfo = (RIG_VFO_B == vfo) ? '1' : '0';
+        main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", command, main_sub_vfo,
@@ -2558,7 +2570,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     if (rig->caps->targetable_vfo & RIG_TARGETABLE_PURE)
     {
-        main_sub_vfo = (RIG_VFO_B == vfo) ? '1' : '0';
+        main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
 
     switch (level)
@@ -2917,7 +2929,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             return -RIG_ENAVAIL;
         }
 
-        val.i *= 10; // tenths to ms conversion
+        val.i *= 100; // tenths to ms conversion
 
         if (is_ft101)
         {
@@ -3138,7 +3150,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     if (rig->caps->targetable_vfo & RIG_TARGETABLE_PURE)
     {
-        main_sub_vfo = (RIG_VFO_B == vfo) ? '1' : '0';
+        main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
 
     switch (level)
@@ -3456,21 +3468,21 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             switch (val->i)
             {
-            case 0: val->i = 3; break;
+            case 0: val->i = 1; break;
 
-            case 1: val->i = 5; break;
+            case 1: val->i = 1; break;
 
-            case 2: val->i = 10; break;
+            case 2: val->i = 1; break;
 
-            case 3: val->i = 15; break;
+            case 3: val->i = 2; break;
 
-            case 4: val->i = 20; break;
+            case 4: val->i = 2; break;
 
-            case 5: val->i = 25; break;
+            case 5: val->i = 3; break;
 
-            case 6: val->i = 30; break;
+            case 6: val->i = 3; break;
 
-            default: val->i = (val->i - 6) * 10 + 30;
+            default: val->i = (val->i - 6) + 3;
             }
 
             return RIG_OK;
@@ -3676,7 +3688,7 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
     if (rig->caps->targetable_vfo & (RIG_TARGETABLE_MODE | RIG_TARGETABLE_TONE))
     {
-        main_sub_vfo = (RIG_VFO_B == vfo) ? '1' : '0';
+        main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
 
     switch (func)
@@ -4244,6 +4256,7 @@ int newcat_set_mem(RIG *rig, vfo_t vfo, int ch)
     switch (vfo)
     {
     case RIG_VFO_A:
+    case RIG_VFO_MAIN:
         /* Jump back from memory channel */
         restore_vfo = TRUE;
         break;
@@ -4254,6 +4267,7 @@ int newcat_set_mem(RIG *rig, vfo_t vfo, int ch)
         break;
 
     case RIG_VFO_B:
+    case RIG_VFO_SUB:
     default:
         /* Only works with VFO A */
         return -RIG_ENTARGET;
@@ -4333,7 +4347,7 @@ int newcat_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 
     if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
     {
-        main_sub_vfo = (RIG_VFO_B == vfo) ? '1' : '0';
+        main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
 
     switch (op)
@@ -4536,6 +4550,7 @@ int newcat_set_channel(RIG *rig, const channel_t *chan)
     switch (state->current_vfo)
     {
     case RIG_VFO_A:
+    case RIG_VFO_B:
         /* Jump back from memory channel */
         restore_vfo = TRUE;
         break;
@@ -4545,7 +4560,7 @@ int newcat_set_channel(RIG *rig, const channel_t *chan)
         restore_vfo = FALSE;
         break;
 
-    case RIG_VFO_B:
+    case RIG_VFO_SUB:
     default:
         /* Only works with VFO A */
         return -RIG_ENTARGET;
@@ -5006,10 +5021,12 @@ int newcat_set_tx_vfo(RIG *rig, vfo_t tx_vfo)
     switch (tx_vfo)
     {
     case RIG_VFO_A:
+    case RIG_VFO_MAIN:
         p1 = '0';
         break;
 
     case RIG_VFO_B:
+    case RIG_VFO_SUB:
         p1 = '1';
         break;
 
@@ -5099,12 +5116,14 @@ int newcat_get_tx_vfo(RIG *rig, vfo_t *tx_vfo)
     switch (c)
     {
     case '0':
-        *tx_vfo = RIG_VFO_A;
+	if (rig->state.vfo_list && RIG_VFO_MAIN) *tx_vfo = RIG_VFO_MAIN;
+	else *tx_vfo = RIG_VFO_A;
         rig->state.cache.split = 0;
         break;
 
     case '1' :
-        *tx_vfo = RIG_VFO_B;
+	if (rig->state.vfo_list && RIG_VFO_SUB) *tx_vfo = RIG_VFO_SUB;
+	else *tx_vfo = RIG_VFO_B;
         rig->state.cache.split = 1;
         break;
 
@@ -5153,15 +5172,18 @@ int newcat_set_vfo_from_alias(RIG *rig, vfo_t *vfo)
 
     case RIG_VFO_TX:
         /* set to another vfo for split or uplink */
+	if (rig->state.vfo_list & RIG_VFO_MAIN)
+        *vfo = (rig->state.current_vfo == RIG_VFO_SUB) ? RIG_VFO_MAIN : RIG_VFO_SUB;
+	else
         *vfo = (rig->state.current_vfo == RIG_VFO_B) ? RIG_VFO_A : RIG_VFO_B;
         break;
 
     case RIG_VFO_MAIN:
-        *vfo = RIG_VFO_A;
+        *vfo = RIG_VFO_MAIN;
         break;
 
     case RIG_VFO_SUB:
-        *vfo = RIG_VFO_B;
+        *vfo = RIG_VFO_SUB;
         break;
 
     default:
@@ -5224,7 +5246,7 @@ int newcat_set_narrow(RIG *rig, vfo_t vfo, ncboolean narrow)
 
     if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
     {
-        main_sub_vfo = (RIG_VFO_B == vfo) ? '1' : '0';
+        main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
 
     if (narrow == TRUE)
@@ -5269,7 +5291,7 @@ int newcat_get_narrow(RIG *rig, vfo_t vfo, ncboolean *narrow)
 
     if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
     {
-        main_sub_vfo = (RIG_VFO_B == vfo) ? '1' : '0';
+        main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", command, main_sub_vfo,
@@ -5822,7 +5844,7 @@ static char get_roofing_filter(RIG *rig, vfo_t vfo)
 
     if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
     {
-        main_sub_vfo = (RIG_VFO_B == vfo) ? '1' : '0';
+        main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RF%c%c", main_sub_vfo,
@@ -5871,7 +5893,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 
     if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
     {
-        main_sub_vfo = (RIG_VFO_B == vfo) ? '1' : '0';
+        main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", cmd, main_sub_vfo,
@@ -5889,6 +5911,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
                   priv->ret_data);
         return -RIG_EPROTO;
     }
+    rig_debug(RIG_DEBUG_TRACE, "%s: w=%d\n", __func__, w);
 
     // ft950 and ft1200 overlap so we'll combine them
     if (is_ft950 || is_ft1200)
@@ -6161,6 +6184,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 
     else if (newcat_is_rig(rig, RIG_MODEL_FTDX101D))
     {
+        rig_debug(RIG_DEBUG_TRACE, "%s: is_ft101 w=%d, mode=%s\n", __func__, w, rig_strrmode(mode));
         if (w == 0) // then we need to know the roofing filter
         {
             char roofing_filter = get_roofing_filter(rig, vfo);
@@ -6290,7 +6314,9 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 
             case 23: *width = 4000;  break;
 
-            default: return -RIG_EINVAL;
+            default: 
+		     rig_debug(RIG_DEBUG_ERR, "%s: unknown width=%d\n", __func__, w);
+		     return -RIG_EINVAL;
             }
 
             break;
@@ -6308,8 +6334,10 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
             *width = 16000; break;
 
         default:
+	    rig_debug(RIG_DEBUG_TRACE, "%s: bad mode\n", __func__);
             return -RIG_EINVAL;
         }   /* end switch(mode) */
+	rig_debug(RIG_DEBUG_TRACE, "%s: end if FTDX101D\n", __func__);
 
     }   /* end if FTDX101D */
     else      /* end if FT991 */
@@ -6349,7 +6377,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
             return -RIG_EINVAL;
         }   /* end switch (mode) */
     }   /* end else */
-
+    rig_debug(RIG_DEBUG_TRACE,"%s: return RIG_OK\n", __func__);
     return RIG_OK;
 }
 
