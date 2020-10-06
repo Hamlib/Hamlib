@@ -2259,6 +2259,7 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
     int n;
     struct rig_state *rs = &rig->state;
 
+    if (RIG_IS_TS950S) cmd = "PC;PC005;PC;PC255;PC;PC005;";
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
     retval = write_block(&rs->rigport, cmd, strlen(cmd));
 
@@ -2283,6 +2284,7 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
                   levelbuf);
         return -RIG_EPROTO;
     }
+    if (RIG_IS_TS950S) *power_min = 5;
 
     if (restore)
     {
