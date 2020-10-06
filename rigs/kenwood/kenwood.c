@@ -2846,6 +2846,16 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_SLOPE_HIGH:
+        if (RIG_IS_TS950S)
+        { // can't query SH in some modes
+            switch(rig->state.current_mode)
+            {
+                case RIG_MODE_FM: val->i = 12000; break;
+                case RIG_MODE_AM: val->i = 6000; break;
+                case RIG_MODE_AMN: val->i = 2400; break;
+            }
+            return RIG_OK;
+        }
         retval = kenwood_transaction(rig, "SH", lvlbuf, sizeof(lvlbuf));
 
         if (retval != RIG_OK)
