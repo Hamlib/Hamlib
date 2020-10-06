@@ -2581,7 +2581,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             return -RIG_ENAVAIL;
         }
 
-        scale = (is_ft450 || newcat_get_rigid(rig) == NC_RIGID_FT450D) ? 100. : 255.;
+        scale = (is_ft450 && newcat_get_rigid(rig) == NC_RIGID_FT450D) ? 100. : 255.;
         scale = is_ft891 ? 100. : scale ;
         scale = is_ft950 ? 100. : scale ;
         scale = is_ft1200 ? 100. : scale ;
