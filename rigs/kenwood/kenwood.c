@@ -2259,7 +2259,6 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
     int n;
     struct rig_state *rs = &rig->state;
 
-    if (RIG_IS_TS950S) cmd = "PC;PC005;PC;PC255;PC;PC005;";
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
     retval = write_block(&rs->rigport, cmd, strlen(cmd));
 
@@ -2284,7 +2283,6 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
                   levelbuf);
         return -RIG_EPROTO;
     }
-    if (RIG_IS_TS950S) *power_min = 5;
 
     if (restore)
     {
@@ -2848,16 +2846,6 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_SLOPE_HIGH:
-        if (RIG_IS_TS950S)
-        { // can't query SH in some modes
-            switch(rig->state.current_mode)
-            {
-                case RIG_MODE_FM: val->i = 12000; break;
-                case RIG_MODE_AM: val->i = 6000; break;
-                case RIG_MODE_AMN: val->i = 2400; break;
-            }
-            return RIG_OK;
-        }
         retval = kenwood_transaction(rig, "SH", lvlbuf, sizeof(lvlbuf));
 
         if (retval != RIG_OK)
