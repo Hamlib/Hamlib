@@ -2264,7 +2264,8 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
     // Don't do this if PTT is on...don't want to max out power!!
     if (rig->state.cache.ptt == RIG_PTT_ON)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: ptt on so not checking min/max power levels\n", __func__);
+        rig_debug(RIG_DEBUG_TRACE, "%s: ptt on so not checking min/max power levels\n",
+                  __func__);
         // return the last values we got
         *power_now = rig->state.power_now;
         *power_min = rig->state.power_min;
