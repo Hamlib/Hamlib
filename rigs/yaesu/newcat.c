@@ -817,6 +817,23 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         return err;
     }
 
+    if (is_ft950)
+    { // we need to turn on the appropriate filter for some modes
+        if (mode == RIG_MODE_AM || mode == RIG_MODE_FM)
+        {
+            sprintf(priv->cmd_str, sizeof(priv->cmd_str), "FL00%c", cat_term);
+            err = newcat_set_cmd(rig);
+            if (err != RIG_OK) return err;
+        }
+        else if (mode == RIG_MODE_AMN || mode == RIG_MODE_FMN)
+        {
+            sprintf(priv->cmd_str, sizeof(priv->cmd_str), "FL01%c", cat_term);
+            err = newcat_set_cmd(rig);
+            if (err != RIG_OK) return err;
+        }
+    }
+
+
     if (RIG_PASSBAND_NOCHANGE == width) { return err; }
 
     if (RIG_PASSBAND_NORMAL == width)
