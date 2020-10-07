@@ -3066,8 +3066,8 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             return -RIG_ENAVAIL;
         }
 
-        scale = (newcat_is_rig(rig, RIG_MODEL_FT950)) ? 100 : 255;
-        scale = (newcat_is_rig(rig, RIG_MODEL_FT1200)) ? 100 : scale;
+        scale = (is_ft950 || is_ft101) ? 100 : 255;
+        scale = (is_ft1200) ? 100 : scale;
         fpf = newcat_scale_float(scale, val.f);
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VG%03d%c", fpf, cat_term);
         break;
