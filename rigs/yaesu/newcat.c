@@ -3073,12 +3073,17 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     case RIG_LEVEL_ANTIVOX:
-        if (newcat_is_rig(rig, RIG_MODEL_FT950))
+        if (is_ft950)
         {
             fpf = newcat_scale_float(100, val.f);
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "EX117%03d%c", fpf, cat_term);
         }
-        else if (newcat_is_rig(rig, RIG_MODEL_FT1200))
+        else if (is_ft101)
+        {
+            fpf = newcat_scale_float(100, val.f);
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "AV%03d%c", fpf, cat_term);
+        }
+        else if (is_ft1200)
         {
             fpf = newcat_scale_float(100, val.f);
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "EX183%03d%c", fpf, cat_term);
@@ -3384,11 +3389,15 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_ANTIVOX:
-        if (newcat_is_rig(rig, RIG_MODEL_FT950))
+        if (is_ft950)
         {
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "EX117%c", cat_term);
         }
-        else if (newcat_is_rig(rig, RIG_MODEL_FT1200))
+        else if (is_ft101)
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "AV%c", cat_term);
+        }
+        else if (is_ft1200)
         {
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "EX183%c", cat_term);
         }
@@ -3445,7 +3454,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_VOXGAIN:
     case RIG_LEVEL_COMP:
     case RIG_LEVEL_ANTIVOX:
-        scale = (is_ft950) ? 100. : 255.;
+        scale = (is_ft950 || is_ft101) ? 100. : 255.;
         scale = (is_ft1200 || is_ft101) ? 100. : scale ;
         val->f = (float)atoi(retlvl) / scale;
         break;
