@@ -5763,7 +5763,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_RTTYR:
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
-            if (width == 0) { w = 0; }
+            if (width == RIG_PASSBAND_ROOF) { w = 0; }
             else if (width <= 50) { w = 1; }
             else if (width <= 100) { w = 2; }
             else if (width <= 150) { w = 3; }
@@ -5787,7 +5787,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
-            if (width == 0) { w = 0; }
+            if (width == RIG_PASSBAND_ROOF) { w = 0; }
             else if (width <= 300) {  w = 1; }
             else if (width <= 400) {  w = 2; }
             else if (width <= 600) {  w = 3; }
