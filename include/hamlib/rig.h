@@ -490,7 +490,11 @@ typedef unsigned int vfo_t;
  * \brief Macro for bandpass to be set to normal
  * \def RIG_PASSBAND_NORMAL
  */
+// This will change in 5.0 to it does not collide
 #define RIG_PASSBAND_NORMAL     s_Hz(-2) // was 0 but collided with Yasue SH00; capability
+#define RIG_PASSBAND_NORMAL     s_Hz(0) // was 0 but collided with Yasue SH00; capability
+
+
 /**
  * \brief Macro for bandpass to be left alone
  */
