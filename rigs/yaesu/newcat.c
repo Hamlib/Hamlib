@@ -5755,7 +5755,8 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     } // end is_ft1200
     else if (is_ft101)
     {
-	int roof_width;
+        int roof_width;
+
         switch (mode)
         {
         case RIG_MODE_PKTUSB:
@@ -5813,13 +5814,16 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             else if (width <= 3500) {  w = 22; }
             else { w = 23; } // 4000Hz
         } // end switch(mode)
-	// set roofing filter to allow for requested bandwith
-	// widths of 3 and 5 are optional so won't do them
-	if (width <= 600) roof_width = 4;
-	else if (width <= 3000) roof_width = 2;
-	else roof_width = 1;
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RF%c%1d%c", main_sub_vfo, roof_width,
-             cat_term);
+
+        // set roofing filter to allow for requested bandwith
+        // widths of 3 and 5 are optional so won't do them
+        if (width <= 600) { roof_width = 4; }
+        else if (width <= 3000) { roof_width = 2; }
+        else { roof_width = 1; }
+
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RF%c%1d%c", main_sub_vfo,
+                 roof_width,
+                 cat_term);
 
         if (RIG_OK != (err = newcat_set_cmd(rig)))
         {
@@ -5982,17 +5986,24 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
     if (strlen(priv->ret_data) == 7)
     {
         if (sscanf(priv->ret_data, "SH%*1d0%3d", &w) != 1)
-	err = -RIG_EPROTO;
+        {
+            err = -RIG_EPROTO;
+        }
     }
     else if (strlen(priv->ret_data) == 6)
     {
-        if (sscanf(priv->ret_data, "SH%*1d%3d", &w) != 1) 
-	err = -RIG_EPROTO;
+        if (sscanf(priv->ret_data, "SH%*1d%3d", &w) != 1)
+        {
+            err = -RIG_EPROTO;
+        }
     }
-    else {
-        rig_debug(RIG_DEBUG_ERR, "%s: unknown SH response='%s'\n", __func__, priv->ret_data);
-	return -RIG_EPROTO;
+    else
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: unknown SH response='%s'\n", __func__,
+                  priv->ret_data);
+        return -RIG_EPROTO;
     }
+
     if (err != RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: unable to parse width from '%s'\n", __func__,
