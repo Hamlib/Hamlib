@@ -1636,7 +1636,8 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             || vfo == rig->state.current_vfo)
     {
         retcode = caps->set_mode(rig, vfo, mode, width);
-	rig_debug(RIG_DEBUG_TRACE, "%s: retcode after set_mode=%d\n", __func__, retcode);
+        rig_debug(RIG_DEBUG_TRACE, "%s: retcode after set_mode=%d\n", __func__,
+                  retcode);
     }
     else
     {
@@ -1744,13 +1745,14 @@ int HAMLIB_API rig_get_mode(RIG *rig,
             || vfo == rig->state.current_vfo)
     {
         retcode = caps->get_mode(rig, vfo, mode, width);
-	rig_debug(RIG_DEBUG_TRACE, "%s: retcode after get_mode=%d\n", __func__, retcode);
+        rig_debug(RIG_DEBUG_TRACE, "%s: retcode after get_mode=%d\n", __func__,
+                  retcode);
     }
     else
     {
         int rc2;
         vfo_t curr_vfo;
-	rig_debug(RIG_DEBUG_TRACE, "%s(%d): debug", __func__,__LINE__);
+        rig_debug(RIG_DEBUG_TRACE, "%s(%d): debug", __func__, __LINE__);
 
         if (!caps->set_vfo)
         {
@@ -1779,14 +1781,14 @@ int HAMLIB_API rig_get_mode(RIG *rig,
     if (retcode == RIG_OK
             && (vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo))
     {
-	rig_debug(RIG_DEBUG_TRACE, "%s(%d): debug", __func__,__LINE__);
+        rig_debug(RIG_DEBUG_TRACE, "%s(%d): debug", __func__, __LINE__);
         rig->state.current_mode = *mode;
         rig->state.current_width = *width;
     }
 
     if (*width == RIG_PASSBAND_NORMAL && *mode != RIG_MODE_NONE)
     {
-	rig_debug(RIG_DEBUG_TRACE, "%s(%d): debug", __func__,__LINE__);
+        rig_debug(RIG_DEBUG_TRACE, "%s(%d): debug", __func__, __LINE__);
         *width = rig_passband_normal(rig, *mode);
     }
 
