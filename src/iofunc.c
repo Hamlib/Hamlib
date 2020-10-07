@@ -766,7 +766,8 @@ int HAMLIB_API read_string(hamlib_port_t *p,
         }
 
         // check to see if our string startis with \...if so we need more chars
-        if (total_count == 0 && rxbuffer[total_count] == '\\') rxmax = (rxmax-1)*5;
+        if (total_count == 0 && rxbuffer[total_count] == '\\') { rxmax = (rxmax - 1) * 5; }
+
         ++total_count;
 
         if (stopset && memchr(stopset, rxbuffer[total_count - 1], stopset_len))

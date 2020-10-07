@@ -101,6 +101,7 @@ static int netrigctl_vfostr(RIG *rig, char *vfostr, int len, vfo_t vfo)
     struct netrigctl_priv_data *priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called vfo=%s\n", __func__, rig_strvfo(vfo));
+
     if (len < 5)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: len must be >=5, len=%d\n", __func__, len);
@@ -113,7 +114,8 @@ static int netrigctl_vfostr(RIG *rig, char *vfostr, int len, vfo_t vfo)
 
     if (vfo == RIG_VFO_CURR)
     {
-	rig_debug(RIG_DEBUG_TRACE, "%s: vfo==RIG_VFO_CURR, curr=%s\n", __func__, rig_strvfo(priv->vfo_curr));
+        rig_debug(RIG_DEBUG_TRACE, "%s: vfo==RIG_VFO_CURR, curr=%s\n", __func__,
+                  rig_strvfo(priv->vfo_curr));
         vfo = priv->vfo_curr;
 
         if (vfo == RIG_VFO_NONE) { vfo = RIG_VFO_A; }
@@ -123,21 +125,32 @@ static int netrigctl_vfostr(RIG *rig, char *vfostr, int len, vfo_t vfo)
 
     if (rig->state.vfo_opt)
     {
-	rig_debug(RIG_DEBUG_TRACE, "%s: vfo_opt vfo=%u\n", __func__, vfo);
-	char *myvfo;
-        switch(vfo)
-	{
-		case RIG_VFO_B: myvfo = "VFOB";break;
-		case RIG_VFO_C: myvfo = "VFOC";break;
-		case RIG_VFO_MAIN: myvfo = "Main";break;
-		case RIG_VFO_MAIN_A: myvfo = "MainA";break;
-		case RIG_VFO_MAIN_B: myvfo = "MainB";break;
-		case RIG_VFO_SUB: myvfo = "Sub";break;
-		case RIG_VFO_SUB_A: myvfo = "SubA";break;
-		case RIG_VFO_SUB_B: myvfo = "SubB";break;
-		case RIG_VFO_MEM: myvfo = "MEM";break;
-		default: myvfo = "VFOA";
-	}
+        rig_debug(RIG_DEBUG_TRACE, "%s: vfo_opt vfo=%u\n", __func__, vfo);
+        char *myvfo;
+
+        switch (vfo)
+        {
+        case RIG_VFO_B: myvfo = "VFOB"; break;
+
+        case RIG_VFO_C: myvfo = "VFOC"; break;
+
+        case RIG_VFO_MAIN: myvfo = "Main"; break;
+
+        case RIG_VFO_MAIN_A: myvfo = "MainA"; break;
+
+        case RIG_VFO_MAIN_B: myvfo = "MainB"; break;
+
+        case RIG_VFO_SUB: myvfo = "Sub"; break;
+
+        case RIG_VFO_SUB_A: myvfo = "SubA"; break;
+
+        case RIG_VFO_SUB_B: myvfo = "SubB"; break;
+
+        case RIG_VFO_MEM: myvfo = "MEM"; break;
+
+        default: myvfo = "VFOA";
+        }
+
         snprintf(vfostr, len, " %s", myvfo);
     }
 
@@ -563,10 +576,10 @@ static int netrigctl_open(RIG *rig)
                               rig->state.pttport.type.ptt);
                 }
             }
-	    else if (strcmp(setting,"targetable_vfo") == 0)
-	    {
-		    rig->caps->targetable_vfo = strtol(value, NULL, 0);
-	    }
+            else if (strcmp(setting, "targetable_vfo") == 0)
+            {
+                rig->caps->targetable_vfo = strtol(value, NULL, 0);
+            }
             else
             {
                 // not an error -- just a warning for backward compatibility

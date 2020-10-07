@@ -1082,12 +1082,14 @@ int newcat_get_vfo(RIG *rig, vfo_t *vfo)
     switch (priv->ret_data[2])
     {
     case '0':
-	if (rig->state.vfo_list & RIG_VFO_MAIN) *vfo = RIG_VFO_MAIN;
-	else *vfo = RIG_VFO_A;
+        if (rig->state.vfo_list & RIG_VFO_MAIN) { *vfo = RIG_VFO_MAIN; }
+        else { *vfo = RIG_VFO_A; }
+
         break;
 
     case '1':
-	if (rig->state.vfo_list & RIG_VFO_SUB) *vfo = RIG_VFO_SUB;
+        if (rig->state.vfo_list & RIG_VFO_SUB) { *vfo = RIG_VFO_SUB; }
+
         *vfo = RIG_VFO_B;
         break;
 
@@ -1956,7 +1958,7 @@ int newcat_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 
     if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
     {
-        main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB== vfo) ? '1' : '0';
+        main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
 
     for (i = 0, tone_match = FALSE; rig->caps->ctcss_list[i] != 0; i++)
@@ -2587,7 +2589,9 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         scale = is_ft1200 ? 100. : scale ;
         scale = is_ft991 ? 100. : scale ;
         fpf = newcat_scale_float(scale, val.f);
-        if (is_ft950 && fpf < 5) fpf = 5; // min 5 watts on FT950
+
+        if (is_ft950 && fpf < 5) { fpf = 5; } // min 5 watts on FT950
+
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PC%03d%c", fpf, cat_term);
         break;
 
@@ -2636,7 +2640,9 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             return -RIG_ENAVAIL;
         }
-	rig_debug(RIG_DEBUG_TRACE, "%s: LEVEL_IF val.i=%d\n", __func__, val.i);
+
+        rig_debug(RIG_DEBUG_TRACE, "%s: LEVEL_IF val.i=%d\n", __func__, val.i);
+
         if (abs(val.i) > rig->caps->max_ifshift)
         {
             if (val.i > 0)
@@ -2649,13 +2655,16 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             }
         }
 
-	if (is_ft101)
-	{
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "IS%c0%+.4d%c", main_sub_vfo, val.i, cat_term);  
-	}
-	else {
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "IS%c%+.4d%c", main_sub_vfo, val.i, cat_term);  
-	}
+        if (is_ft101)
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "IS%c0%+.4d%c", main_sub_vfo,
+                     val.i, cat_term);
+        }
+        else
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "IS%c%+.4d%c", main_sub_vfo,
+                     val.i, cat_term);
+        }
 
         if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE && !is_ft2000)
         {
@@ -2999,7 +3008,8 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
         /* VOX delay, api int (tenth of seconds), ms for rig */
         val.i = val.i * 100;
-rig_debug(RIG_DEBUG_TRACE, "%s: vali=%d\n", __func__, val.i);
+        rig_debug(RIG_DEBUG_TRACE, "%s: vali=%d\n", __func__, val.i);
+
         if (is_ft950 || is_ft450 || is_ft1200)
         {
             if (val.i < 100)         /* min is 30ms but spec is 100ms Unit Intervals */
@@ -3016,14 +3026,15 @@ rig_debug(RIG_DEBUG_TRACE, "%s: vali=%d\n", __func__, val.i);
         }
         else if (is_ft101) // new lookup table argument
         {
-rig_debug(RIG_DEBUG_TRACE, "%s: ft101 #1 val.i=%d\n", __func__, val.i);
+            rig_debug(RIG_DEBUG_TRACE, "%s: ft101 #1 val.i=%d\n", __func__, val.i);
 
             if (val.i == 0) { val.i = 0; }
             else if (val.i <= 100) { val.i = 2; }
             else if (val.i <= 200) { val.i = 4; }
             else if (val.i > 3000) { val.i = 33; }
             else { val.i = (val.i - 300) / 100 + 6; }
-rig_debug(RIG_DEBUG_TRACE, "%s: ft101 #1 val.i=%d\n", __func__, val.i);
+
+            rig_debug(RIG_DEBUG_TRACE, "%s: ft101 #1 val.i=%d\n", __func__, val.i);
 
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VD%02d%c", val.i, cat_term);
         }
@@ -3205,7 +3216,8 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return -RIG_ENAVAIL;
         }
 
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "IS%c%c", main_sub_vfo, cat_term);
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "IS%c%c", main_sub_vfo,
+                 cat_term);
 
         if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
         {
@@ -3536,17 +3548,25 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_RAWSTR:
     case RIG_LEVEL_KEYSPD:
     case RIG_LEVEL_IF:
-	// IS00+0400
-	rig_debug(RIG_DEBUG_TRACE, "%s: ret_data=%s(%d), retlvl=%s\n", __func__, priv->ret_data, (int)strlen(priv->ret_data), retlvl);
-	if (strlen(priv->ret_data) == 9) {
-		int n = sscanf(priv->ret_data,"IS%*c0%d\n", &val->i);
-		if (n != 1) {
-			rig_debug(RIG_DEBUG_ERR, "%s: unable to parse level from  %s\n", __func__, priv->ret_data);
-		}
-	}
-	else {
-	val->i = atoi(retlvl);
-	}
+        // IS00+0400
+        rig_debug(RIG_DEBUG_TRACE, "%s: ret_data=%s(%d), retlvl=%s\n", __func__,
+                  priv->ret_data, (int)strlen(priv->ret_data), retlvl);
+
+        if (strlen(priv->ret_data) == 9)
+        {
+            int n = sscanf(priv->ret_data, "IS%*c0%d\n", &val->i);
+
+            if (n != 1)
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: unable to parse level from  %s\n", __func__,
+                          priv->ret_data);
+            }
+        }
+        else
+        {
+            val->i = atoi(retlvl);
+        }
+
         break;
 
     case RIG_LEVEL_NR:
@@ -5116,14 +5136,16 @@ int newcat_get_tx_vfo(RIG *rig, vfo_t *tx_vfo)
     switch (c)
     {
     case '0':
-	if (rig->state.vfo_list && RIG_VFO_MAIN) *tx_vfo = RIG_VFO_MAIN;
-	else *tx_vfo = RIG_VFO_A;
+        if (rig->state.vfo_list && RIG_VFO_MAIN) { *tx_vfo = RIG_VFO_MAIN; }
+        else { *tx_vfo = RIG_VFO_A; }
+
         rig->state.cache.split = 0;
         break;
 
     case '1' :
-	if (rig->state.vfo_list && RIG_VFO_SUB) *tx_vfo = RIG_VFO_SUB;
-	else *tx_vfo = RIG_VFO_B;
+        if (rig->state.vfo_list && RIG_VFO_SUB) { *tx_vfo = RIG_VFO_SUB; }
+        else { *tx_vfo = RIG_VFO_B; }
+
         rig->state.cache.split = 1;
         break;
 
@@ -5171,11 +5193,17 @@ int newcat_set_vfo_from_alias(RIG *rig, vfo_t *vfo)
         break;
 
     case RIG_VFO_TX:
+
         /* set to another vfo for split or uplink */
-	if (rig->state.vfo_list & RIG_VFO_MAIN)
-        *vfo = (rig->state.current_vfo == RIG_VFO_SUB) ? RIG_VFO_MAIN : RIG_VFO_SUB;
-	else
-        *vfo = (rig->state.current_vfo == RIG_VFO_B) ? RIG_VFO_A : RIG_VFO_B;
+        if (rig->state.vfo_list & RIG_VFO_MAIN)
+        {
+            *vfo = (rig->state.current_vfo == RIG_VFO_SUB) ? RIG_VFO_MAIN : RIG_VFO_SUB;
+        }
+        else
+        {
+            *vfo = (rig->state.current_vfo == RIG_VFO_B) ? RIG_VFO_A : RIG_VFO_B;
+        }
+
         break;
 
     case RIG_VFO_MAIN:
@@ -5777,9 +5805,9 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         } // end switch(mode)
 
     } // end is_ft101
-    else      
+    else
     {
-        // FT450, FT2000, FT5000, FT9000 
+        // FT450, FT2000, FT5000, FT9000
         // we need details on the widths here...manuals lack information
         switch (mode)
         {
@@ -5789,16 +5817,18 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_RTTYR:
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
-            if (width <= 500) w = 6;
-            else if (width <= 1800) w = 16;
-            else w = 24;
+            if (width <= 500) { w = 6; }
+            else if (width <= 1800) { w = 16; }
+            else { w = 24; }
+
             break;
 
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
-            if (width <= 1800) w = 8;
-            else if (width <= 2400) w = 16;
-            else w = 25; // 3000
+            if (width <= 1800) { w = 8; }
+            else if (width <= 2400) { w = 16; }
+            else { w = 25; } // 3000
+
             break;
 
         case RIG_MODE_AM:
@@ -5892,13 +5922,17 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
     }
 
     if (is_ft950)
-    { // can't query SH in some modes
-        switch(rig->state.current_mode)
+    {
+        // can't query SH in some modes
+        switch (rig->state.current_mode)
         {
-            case RIG_MODE_FM: *width = 12000; break;
-            case RIG_MODE_AM: *width = 6000; break;
-            case RIG_MODE_AMN: *width = 2400; break;
+        case RIG_MODE_FM: *width = 12000; break;
+
+        case RIG_MODE_AM: *width = 6000; break;
+
+        case RIG_MODE_AMN: *width = 2400; break;
         }
+
         return RIG_OK;
     }
 
@@ -5922,6 +5956,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
                   priv->ret_data);
         return -RIG_EPROTO;
     }
+
     rig_debug(RIG_DEBUG_TRACE, "%s: w=%d\n", __func__, w);
 
     // ft950 and ft1200 overlap so we'll combine them
@@ -6195,7 +6230,9 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 
     else if (newcat_is_rig(rig, RIG_MODEL_FTDX101D))
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: is_ft101 w=%d, mode=%s\n", __func__, w, rig_strrmode(mode));
+        rig_debug(RIG_DEBUG_TRACE, "%s: is_ft101 w=%d, mode=%s\n", __func__, w,
+                  rig_strrmode(mode));
+
         if (w == 0) // then we need to know the roofing filter
         {
             char roofing_filter = get_roofing_filter(rig, vfo);
@@ -6325,9 +6362,9 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 
             case 23: *width = 4000;  break;
 
-            default: 
-		     rig_debug(RIG_DEBUG_ERR, "%s: unknown width=%d\n", __func__, w);
-		     return -RIG_EINVAL;
+            default:
+                rig_debug(RIG_DEBUG_ERR, "%s: unknown width=%d\n", __func__, w);
+                return -RIG_EINVAL;
             }
 
             break;
@@ -6345,10 +6382,11 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
             *width = 16000; break;
 
         default:
-	    rig_debug(RIG_DEBUG_TRACE, "%s: bad mode\n", __func__);
+            rig_debug(RIG_DEBUG_TRACE, "%s: bad mode\n", __func__);
             return -RIG_EINVAL;
         }   /* end switch(mode) */
-	rig_debug(RIG_DEBUG_TRACE, "%s: end if FTDX101D\n", __func__);
+
+        rig_debug(RIG_DEBUG_TRACE, "%s: end if FTDX101D\n", __func__);
 
     }   /* end if FTDX101D */
     else      /* end if FT991 */
@@ -6388,7 +6426,8 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
             return -RIG_EINVAL;
         }   /* end switch (mode) */
     }   /* end else */
-    rig_debug(RIG_DEBUG_TRACE,"%s: return RIG_OK\n", __func__);
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: return RIG_OK\n", __func__);
     return RIG_OK;
 }
 

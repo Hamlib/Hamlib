@@ -990,11 +990,13 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 rig_debug(RIG_DEBUG_TRACE, "%s: debug7\n", __func__);
 
 #if 0 // was printing Reply: twice
+
                 if (prompt)
                 {
                     rig_debug(RIG_DEBUG_TRACE, "%s: debug8\n", __func__);
                     fprintf_flush(fout, "%s: ", cmd_entry->arg2);
                 }
+
 #endif
 
                 if (scanfc(fin, "%s", arg2) < 1)
@@ -4312,7 +4314,7 @@ declare_proto_rig(send_cmd)
     struct rig_state *rs;
     int backend_num, cmd_len;
 #define BUFSZ 128
-    char bufcmd[BUFSZ*5]; // allow for 5 chars for binary
+    char bufcmd[BUFSZ * 5]; // allow for 5 chars for binary
     unsigned char buf[BUFSZ];
     char eom_buf[4] = { 0xa, 0xd, 0, 0 };
     int binary = 0;
