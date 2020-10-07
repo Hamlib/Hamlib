@@ -5755,6 +5755,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     } // end is_ft1200
     else if (is_ft101)
     {
+	int roof_width;
         switch (mode)
         {
         case RIG_MODE_PKTUSB:
@@ -5812,6 +5813,18 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             else if (width <= 3500) {  w = 22; }
             else { w = 23; } // 4000Hz
         } // end switch(mode)
+	// set roofing filter to allow for requested bandwith
+	// widths of 3 and 5 are optional so won't do them
+	if (width <= 600) roof_width = 4;
+	else if (width <= 3000) roof_width = 2;
+	else roof_width = 1;
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RF%c%1d%c", main_sub_vfo, roof_width,
+             cat_term);
+
+        if (RIG_OK != (err = newcat_set_cmd(rig)))
+        {
+            return err;
+        }
 
     } // end is_ft101
     else
