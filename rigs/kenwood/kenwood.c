@@ -2260,6 +2260,18 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
     struct rig_state *rs = &rig->state;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+    // Don't do this if PTT is on...don't want to max out power!!
+    if (rig->state.cache.ptt == RIG_PTT_ON)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: ptt on so not checking min/max power levels\n", __func__);
+        // return the last values we got
+        *power_now = rig->state.power_now;
+        *power_min = rig->state.power_min;
+        *power_max = rig->state.power_max;
+        return RIG_OK;
+    }
+
     retval = write_block(&rs->rigport, cmd, strlen(cmd));
 
     if (retval != RIG_OK) { return retval; }
@@ -2293,6 +2305,10 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
 
     rig_debug(RIG_DEBUG_TRACE, "%s: returning now=%d, min=%d, max=%d\n", __func__,
               *power_now, *power_min, *power_max);
+
+    rig->state.power_now = *power_now;
+    rig->state.power_min = *power_min;
+    rig->state.power_max = *power_max;
     return RIG_OK;
 }
 
