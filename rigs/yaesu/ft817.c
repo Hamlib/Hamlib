@@ -69,6 +69,7 @@
 #include "misc.h"
 #include "tones.h"
 #include "bandplan.h"
+#include "cal.h"
 
 
 /* Native ft817 cmd set prototypes. These are READ ONLY as each */
@@ -159,12 +160,43 @@ enum ft817_digi
                     { 0x0F,  60 }  /* +60 */ \
                 } }
 
+// Thanks to Olivier Schmitt sc.olivier@gmail.com for these tables
+#define FT817_PWR_CAL { 9, \
+                { \
+                    { 0x00, 0 }, \
+                    { 0x01, 10 }, \
+                    { 0x02, 14 }, \
+                    { 0x03, 20 }, \
+                    { 0x04, 34 }, \
+                    { 0x05, 50 }, \
+                    { 0x06, 66 }, \
+                    { 0x07, 82 }, \
+                    { 0x08, 100 } \
+                } }
+
+#define FT817_ALC_CAL { 6, \
+                { \
+                    { 0x00, 0 }, \
+                    { 0x01, 20 }, \
+                    { 0x02, 40 }, \
+                    { 0x03, 60 }, \
+                    { 0x04, 80 }, \
+                    { 0x05, 100 } \
+                } }
+
+#define FT817_SWR_CAL { 2, \
+                { \
+                    { 0, 0 }, \
+                    { 15, 100 } \
+                } }
+
+
 const struct rig_caps ft817_caps =
 {
     RIG_MODEL(RIG_MODEL_FT817),
     .model_name =          "FT-817",
     .mfg_name =            "Yaesu",
-    .version =             "20200903.0",
+    .version =             "20201009.0",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -267,7 +299,10 @@ const struct rig_caps ft817_caps =
         RIG_FLT_END,
     },
 
-    .str_cal = FT817_STR_CAL,
+    .str_cal =          FT817_STR_CAL,
+    .swr_cal =          FT817_SWR_CAL,
+    .alc_cal =          FT817_ALC_CAL,
+    .rfpower_meter_cal = FT817_PWR_CAL,
 
     .rig_init =         ft817_init,
     .rig_cleanup =          ft817_cleanup,
@@ -572,7 +607,7 @@ static int ft817_get_status(RIG *rig, int status)
 
     case FT817_NATIVE_CAT_GET_RX_STATUS:
         data = &p->rx_status;
-        len  = 1;
+        len  = 2;
         tv   = &p->rx_status_tv;
         break;
 
@@ -803,6 +838,37 @@ int ft817_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     return RIG_OK;
 }
 
+static int ft817_get_alc_level(RIG *rig, value_t *val)
+{
+    struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
+
+    if (check_cache_timeout(&p->tx_status_tv))
+    {
+        int n;
+
+        if ((n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_TX_STATUS)) < 0)
+        {
+            return n;
+        }
+    }
+
+    /* Valid only if PTT is on.
+       FT-817 returns the number of bars in the lowest 4 bits
+    */
+    if ((p->tx_status & 0x80) == 0)
+    {
+        val->f = rig_raw2val_float(p->tx_status >> 4, &rig->caps->alc_cal);
+    }
+    else // not transmitting so zero
+    {
+        val->f = 0.0;
+    }
+
+    return RIG_OK;
+}
+
 static int ft817_get_pometer_level(RIG *rig, value_t *val)
 {
     struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
@@ -824,18 +890,15 @@ static int ft817_get_pometer_level(RIG *rig, value_t *val)
     */
     if ((p->tx_status & 0x80) == 0)
     {
-        /* the rig has 10 bars on its display */
-        val->f = (p->tx_status & 0x0F) / 10.0;
-
+        val->f = rig_raw2val_float(p->tx_status >> 4, &rig->caps->rfpower_meter_cal);
     }
-    else
+    else // not transmitting so zero
     {
         val->f = 0.0;
     }
 
     return RIG_OK;
 }
-
 
 /* frontend will always use RAWSTR+cal_table */
 static int ft817_get_smeter_level(RIG *rig, value_t *val)
@@ -917,6 +980,10 @@ int ft817_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_RFPOWER:
         return ft817_get_pometer_level(rig, val);
+        break;
+
+    case RIG_LEVEL_ALC:
+        return ft817_get_alc_level(rig, val);
         break;
 
     default:
