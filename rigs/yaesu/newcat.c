@@ -110,17 +110,18 @@ const cal_table_float_t yaesu_default_swr_cal =
 
 const cal_table_float_t yaesu_ftdx101d_swr_cal =
 {
-    7,
+    8,
     {
         // first cut at generic Yaesu table, need more points probably
         // based on testing by Adam M7OTP on FT-991
-        {12, 1.0f},
+        {0, 1.0f},
         {26, 1.2f},
-        {39, 1.3f},
-        {63, 1.5f},
-        {112, 2.5f},
-        {161, 4.0f},
-        {223, 5.0f}
+        {52, 1.5f},
+        {89, 2.0f},
+        {126, 3.0f},
+        {173, 4.0f},
+        {236, 5.0f},
+        {255, 25.0f},
     }
 };
 
