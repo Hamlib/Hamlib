@@ -147,7 +147,7 @@ const struct rig_caps ft990_caps =
     RIG_MODEL(RIG_MODEL_FT990),
     .model_name =         "FT-990",
     .mfg_name =           "Yaesu",
-    .version =            "20200323.0",
+    .version =            "20201009.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_ALPHA,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -1893,27 +1893,10 @@ int ft990_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         return RIG_OK;
     }
 
-    switch (width)
-    {
-    case 250:
-        bw = FT990_BW_F250;
-        break;
-
-    case 500:
-        bw = FT990_BW_F500;
-        break;
-
-    case 2000:
-        bw = FT990_BW_F2000;
-        break;
-
-    case 2400:
-        bw = FT990_BW_F2400;
-        break;
-
-    default:
-        return -RIG_EINVAL;
-    }
+    if (width <= 250) { bw = FT990_BW_F250; }
+    else if (width <= 500) { bw = FT990_BW_F500; }
+    else if (width <= 2000) { bw = FT990_BW_F2000; }
+    else { bw = FT990_BW_F2400; }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: set bw = 0x%02x\n", __func__, bw);
 
