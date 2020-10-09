@@ -136,7 +136,7 @@ const struct rig_caps ft600_caps =
     RIG_MODEL(RIG_MODEL_FT600),
     .model_name =     "FT-600",
     .mfg_name =       "Yaesu",
-    .version =        "20200113.0",
+    .version =        "20201009.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_BETA,
     .rig_type =       RIG_TYPE_TRANSCEIVER,
@@ -560,27 +560,10 @@ int ft600_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         p_cmd[3] = 0x00; /* to be filled in */
         p_cmd[4] = 0x8C; /* Op: filter selection */
 
-        switch (width)
-        {
-        case 2400:
-            p_cmd[3] = 0x00;
-            break;
-
-        case 6000:
-            p_cmd[3] = 0x01;
-            break;
-
-        case 500:
-            p_cmd[3] = 0x02;
-            break;
-
-        case 300:
-            p_cmd[3] = 0x03;
-            break;
-
-        default:
-            return -RIG_EINVAL;
-        };
+        if (width <= 300) { p_cmd[3] = 0x03; }
+        else if (width <= 500) { p_cmd[3] = 0x02; }
+        else if (width <= 2400) { p_cmd[3] = 0x00; }
+        else { p_cmd[3] = 0x01; }
 
         ret = write_block(&rig->state.rigport, (char *) p_cmd, YAESU_CMD_LENGTH);
 
