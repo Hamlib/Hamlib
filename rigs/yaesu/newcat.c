@@ -2938,23 +2938,25 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             return -RIG_ENAVAIL;
         }
 
+        // we don't get full resolution as long as val->i is in integer tenths
+        // consider changing this to float or to milliseconds
         val.i *= 100; // tenths to ms conversion
 
         if (is_ft101)
         {
             if (val.i <= 30) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD00;"); }
 
-            if (val.i <= 50) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD01;"); }
+            else if (val.i <= 50) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD01;"); }
 
-            if (val.i <= 100) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD02;"); }
+            else if (val.i <= 100) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD02;"); }
 
-            if (val.i <= 150) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD03;"); }
+            else if (val.i <= 150) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD03;"); }
 
-            if (val.i <= 200) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD04;"); }
+            else if (val.i <= 200) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD04;"); }
 
-            if (val.i <= 250) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD05;"); }
+            else if (val.i <= 250) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD05;"); }
 
-            if (val.i > 2900) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD33;"); }
+            else if (val.i > 2900) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD33;"); }
             // this covers 300-2900 06-32
             else { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD%02d;", 6 + ((val.i - 300) / 100)); }
         }
