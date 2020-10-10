@@ -1147,6 +1147,10 @@ int newcat_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s", txoff);
         rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
         err = newcat_set_cmd(rig);
+	// some rigs like the FT991 need time before doing anything else like set_freq
+	// We won't mess with CW mode -- no freq change expected hopefully
+	if (rig->state.current_mode != RIG_MODE_CW)
+	hl_usleep(100*1000);
         break;
 
     default:
