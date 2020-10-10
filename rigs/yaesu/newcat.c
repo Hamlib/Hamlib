@@ -953,6 +953,8 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo)
     {
     case RIG_VFO_A:
     case RIG_VFO_B:
+    case RIG_VFO_MAIN:
+    case RIG_VFO_SUB:
         if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB)
         {
             c = '1';
@@ -983,7 +985,7 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo)
         if (priv->current_mem == NC_MEM_CHANNEL_NONE)
         {
             /* Only works correctly for VFO A */
-            if (state->current_vfo == RIG_VFO_B)
+            if (state->current_vfo != RIG_VFO_A && state->current_vfo != RIG_VFOMAIN)
             {
                 return -RIG_ENTARGET;
             }
@@ -1090,8 +1092,8 @@ int newcat_get_vfo(RIG *rig, vfo_t *vfo)
 
     case '1':
         if (rig->state.vfo_list & RIG_VFO_SUB) { *vfo = RIG_VFO_SUB; }
+        else { *vfo = RIG_VFO_B; }
 
-        *vfo = RIG_VFO_B;
         break;
 
     default:
@@ -4598,7 +4600,7 @@ int newcat_set_channel(RIG *rig, const channel_t *chan)
 
     case RIG_VFO_SUB:
     default:
-        /* Only works with VFO A */
+        /* Only works with VFO Main */
         return -RIG_ENTARGET;
     }
 
