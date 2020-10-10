@@ -5135,7 +5135,6 @@ int newcat_get_tx_vfo(RIG *rig, vfo_t *tx_vfo)
     }
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c", command, cat_term);
-    rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
 
     /* Get TX VFO */
     if (RIG_OK != (err = newcat_get_cmd(rig)))
@@ -5148,14 +5147,14 @@ int newcat_get_tx_vfo(RIG *rig, vfo_t *tx_vfo)
     switch (c)
     {
     case '0':
-        if (rig->state.vfo_list && RIG_VFO_MAIN) { *tx_vfo = RIG_VFO_MAIN; }
+        if ((rig->state.vfo_list & RIG_VFO_MAIN) == RIG_VFO_MAIN) { *tx_vfo = RIG_VFO_MAIN; }
         else { *tx_vfo = RIG_VFO_A; }
 
         rig->state.cache.split = 0;
         break;
 
     case '1' :
-        if (rig->state.vfo_list && RIG_VFO_SUB) { *tx_vfo = RIG_VFO_SUB; }
+        if ((rig->state.vfo_list & RIG_VFO_SUB) == RIG_VFO_SUB) { *tx_vfo = RIG_VFO_SUB; }
         else { *tx_vfo = RIG_VFO_B; }
 
         rig->state.cache.split = 1;
