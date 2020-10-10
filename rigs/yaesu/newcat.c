@@ -125,7 +125,6 @@ const cal_table_float_t yaesu_ftdx101d_swr_cal =
     }
 };
 
-
 // Easy reference to rig model -- it is set in newcat_valid_command
 static ncboolean is_ft450;
 static ncboolean is_ft891;
@@ -985,7 +984,7 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo)
         if (priv->current_mem == NC_MEM_CHANNEL_NONE)
         {
             /* Only works correctly for VFO A */
-            if (state->current_vfo != RIG_VFO_A && state->current_vfo != RIG_VFOMAIN)
+            if (state->current_vfo != RIG_VFO_A && state->current_vfo != RIG_VFO_MAIN)
             {
                 return -RIG_ENTARGET;
             }
@@ -5153,14 +5152,14 @@ int newcat_get_tx_vfo(RIG *rig, vfo_t *tx_vfo)
     switch (c)
     {
     case '0':
-        if ((rig->state.vfo_list & RIG_VFO_MAIN) == RIG_VFO_MAIN) { *tx_vfo = RIG_VFO_MAIN; }
+        if (rig->state.vfo_list & RIG_VFO_MAIN) { *tx_vfo = RIG_VFO_MAIN; }
         else { *tx_vfo = RIG_VFO_A; }
 
         rig->state.cache.split = 0;
         break;
 
     case '1' :
-        if ((rig->state.vfo_list & RIG_VFO_SUB) == RIG_VFO_SUB) { *tx_vfo = RIG_VFO_SUB; }
+        if (rig->state.vfo_list & RIG_VFO_SUB) { *tx_vfo = RIG_VFO_SUB; }
         else { *tx_vfo = RIG_VFO_B; }
 
         rig->state.cache.split = 1;
