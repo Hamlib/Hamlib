@@ -3882,7 +3882,9 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             return -RIG_ENAVAIL;
         }
 
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "AC00%d%c", status ? 1 : 0,
+        // some rigs use AC02 to actually start tuning
+        if (status == 1 && (is_ft101 || is_ft5000)) status = 2;
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "AC00%d%c", status == 0 ? 0 : status,
                  cat_term);
         break;
 
