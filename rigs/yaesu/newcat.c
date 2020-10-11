@@ -5824,7 +5824,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             else { w = 23; } // 4000Hz
         } // end switch(mode)
 
-        // set roofing filter to allow for requested bandwith
+        // set roofing filter to allow for requested bandwidth
         // widths of 3 and 5 are optional so won't do them
         if (width <= 600) { roof_width = 4; }
         else if (width <= 3000) { roof_width = 2; }
