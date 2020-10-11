@@ -108,7 +108,7 @@ struct serial_icounter_struct {
 	int dsr;		/* data set ready count */
 	int rng;		/* ring count */
 	int dcd;		/* carrier detect count */
-	int rx;			/* recieved byte count */
+	int rx;			/* received byte count */
 	int tx;			/* transmitted byte count */
 	int frame;		/* frame error count */
 	int overrun;		/* hardware overrun error count */

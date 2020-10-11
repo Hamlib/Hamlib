@@ -4010,7 +4010,7 @@ declare_proto_rig(dump_state)
     fprintf(fout, "%d\n", rig->caps->rig_model);
 #if 0 // deprecated -- not one rig uses this
     fprintf(fout, "%d\n", rs->itu_region);
-#else  // need to print something to maintain backward compatbility
+#else  // need to print something to maintain backward compatibility
     fprintf(fout, "%d\n", 0);
 #endif
 
