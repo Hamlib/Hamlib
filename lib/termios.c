@@ -1255,7 +1255,7 @@ static struct termios_list *add_port(const char *filename)
 
     strncpy(port->filename, filename, sizeof(port->filename) - 1);
 
-    /* didnt free well? strdup( filename ); */
+    /* didn't free well? strdup( filename ); */
     if (! port->filename)
     {
         goto fail;
@@ -2562,7 +2562,7 @@ int tcgetattr(int fd, struct termios *s_termios)
     /* ECHONL: ICANON only: echo newline even with no ECHO */
     /* ECHOCTL: if ECHO, then control-A are printed as '^A' */
     /* ISIG: recognize INTR, QUIT & SUSP */
-    /* IEXTEN: implmentation defined */
+    /* IEXTEN: implementation defined */
     /* NOFLSH: dont clear i/o queues on INTR, QUIT or SUSP */
     /* TOSTOP: background process generate SIGTTOU */
     /* ALTWERASE: alt-w erase distance */
@@ -2893,7 +2893,7 @@ int tcsendbreak(int fd, int duration)
 tcdrain()
 
    accept:       file descriptor
-   perform:      wait for ouput to be written.
+   perform:      wait for output to be written.
    return:       0 on success, -1 otherwise
    exceptions:   None
    win32api:     FlushFileBuffers
@@ -3492,7 +3492,7 @@ int win32_serial_ioctl(int fd, int request, ...)
                 index->event_flag = old_flag;
                 *arg = 1;
                 index->tx_happened = 0;
-                report("ioctl: ouput empty\n");
+                report("ioctl: output empty\n");
             }
             else
             {
