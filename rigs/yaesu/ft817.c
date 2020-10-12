@@ -476,7 +476,7 @@ int ft817_init(RIG *rig)
 {
     struct ft817_priv_data *priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called, version %s\n", __func__, rig->caps->version);
 
     if ((rig->state.priv = calloc(1, sizeof(struct ft817_priv_data))) == NULL)
     {
