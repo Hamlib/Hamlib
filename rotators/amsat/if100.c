@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
+#include <math.h>
 
 #ifdef HAVE_SYS_IOCTL_H
 #  include <sys/ioctl.h>
@@ -35,7 +36,6 @@
 #include "parallel.h"
 #include "misc.h"
 #include "register.h"
-#include "math.h"
 
 static int
 if100_set_position(ROT *rot, azimuth_t az, elevation_t el)
