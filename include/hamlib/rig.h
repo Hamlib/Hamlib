@@ -469,6 +469,7 @@ typedef unsigned int vfo_t;
 #define RIG_TARGETABLE_PURE (1<<2)
 #define RIG_TARGETABLE_TONE (1<<3)
 #define RIG_TARGETABLE_FUNC (1<<4)
+#define RIG_TARGETABLE_LEVEL (1<<5)
 #define RIG_TARGETABLE_ALL  0x7fffffff
 //! @endcond
 //
