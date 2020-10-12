@@ -3926,6 +3926,11 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
+    if (rig->caps->targetable_vfo & (RIG_TARGETABLE_MODE | RIG_TARGETABLE_TONE))
+    {
+        main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
+    }
+
     switch (func)
     {
     case RIG_FUNC_ANF:
@@ -6753,6 +6758,9 @@ int newcat_get_cmd(RIG *rig)
         || strcmp(priv->cmd_str, "NL1;") == 0
         || strcmp(priv->cmd_str, "NR0;") == 0
         || strcmp(priv->cmd_str, "NR1;") == 0
+        || strcmp(priv->cmd_str, "NR0;") == 0
+        || strcmp(priv->cmd_str, "NR1;") == 0
+        || strcmp(priv->cmd_str, "OS0;") == 0
         || strcmp(priv->cmd_str, "OS0;") == 0
         || strcmp(priv->cmd_str, "OS1;") == 0
         || strcmp(priv->cmd_str, "PA0;") == 0
