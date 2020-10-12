@@ -2576,7 +2576,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         return err;
     }
 
-    if (rig->caps->targetable_vfo & RIG_TARGETABLE_PURE)
+    if (rig->caps->targetable_vfo & RIG_TARGETABLE_LEVEL)
     {
         main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
@@ -3172,7 +3172,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return err;
     }
 
-    if (rig->caps->targetable_vfo & RIG_TARGETABLE_PURE)
+    if (rig->caps->targetable_vfo & RIG_TARGETABLE_LEVEL)
     {
         main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
