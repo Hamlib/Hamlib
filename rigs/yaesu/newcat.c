@@ -3862,8 +3862,16 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             return -RIG_ENAVAIL;
         }
 
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PR%d%c", status ? 1 : 0,
+        if (is_ft101)
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PR0%d%c", status ? 1 : 0,
                  cat_term);
+        }
+        else
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PR%d%c", status ? 1 : 0,
+                 cat_term);
+        }
         break;
 
     case RIG_FUNC_VOX:
@@ -4056,7 +4064,14 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
             return -RIG_ENAVAIL;
         }
 
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PR%c", cat_term);
+        if (is_ft101)
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PR0%c", cat_term);
+        }
+        else
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PR%c", cat_term);
+        }
         break;
 
     case RIG_FUNC_VOX:
@@ -4117,13 +4132,20 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         *status = (retfunc[2] == '0') ? 0 : 1;
         break;
 
+    case RIG_FUNC_COMP:
+        // future Yaesu's may use the new command format
+        // so we do this check here instead of the back end
+        // only need to add the "|| is_XXX" here
+        if (is_ft101) *status = (retfunc[1] == '0') ? 0 : 1;
+        else *status = (retfunc[0] == '0') ? 0 : 1;
+        break;
+
     case RIG_FUNC_ANF:
     case RIG_FUNC_FBKIN:
     case RIG_FUNC_LOCK:
     case RIG_FUNC_MON:
     case RIG_FUNC_NB:
     case RIG_FUNC_NR:
-    case RIG_FUNC_COMP:
     case RIG_FUNC_VOX:
         *status = (retfunc[0] == '0') ? 0 : 1;
         break;
