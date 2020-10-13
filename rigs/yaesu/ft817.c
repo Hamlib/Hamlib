@@ -196,7 +196,7 @@ const struct rig_caps ft817_caps =
     RIG_MODEL(RIG_MODEL_FT817),
     .model_name =          "FT-817",
     .mfg_name =            "Yaesu",
-    .version =             "20201012.0",
+    .version =             "20201013.0",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -1100,6 +1100,7 @@ static int ft817_send_icmd(RIG *rig, int index, unsigned char *data)
 int ft817_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     unsigned char data[YAESU_CMD_LENGTH - 1];
+    int retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "ft817: requested freq = %"PRIfreq" Hz\n", freq);
 
@@ -1109,7 +1110,9 @@ int ft817_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_force_cache_timeout(
         &((struct ft817_priv_data *)rig->state.priv)->fm_status_tv);
 
-    return ft817_send_icmd(rig, FT817_NATIVE_CAT_SET_FREQ, data);
+    retval = ft817_send_icmd(rig, FT817_NATIVE_CAT_SET_FREQ, data);
+    hl_usleep(50*1000); // FT817 needs a little time after setting freq
+    return retval;
 }
 
 int ft817_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
