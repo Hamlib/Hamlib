@@ -2039,6 +2039,7 @@ struct rig_state {
     int auto_disable_screensaver; /*!< Allow Hamlib to disable the
                                    rig's screen saver automatically if
                                    supported */
+    int ptt_share;              /*!< Share ptt port by open/close during get_ptt, set_ptt hogs the port while active */
     int power_now;              /*!< Current RF power level in rig units */
     int power_min;              /*!< Minimum RF power level in rig units */
     int power_max;              /*!< Maximum RF power level in rig units */

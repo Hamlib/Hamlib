@@ -87,6 +87,8 @@
 #define TOK_DCD_PATHNAME    TOKEN_FRONTEND(33)
 /** \brief  CM108 GPIO bit number for PTT */
 #define TOK_PTT_BITNUM        TOKEN_FRONTEND(34)
+/** \brief  PTT share with other applications */
+#define TOK_PTT_SHARE        TOKEN_FRONTEND(35)
 /*
  * rig specific tokens
  */

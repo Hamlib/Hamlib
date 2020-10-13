@@ -30,6 +30,7 @@ Version 4.0
         * New rig backend for Elecraft K4.
         * New rig backend for PowerSDR (Flex and Apache users).
         * Many fixes and enhancements.  Mike, W9MDB and many contributors
+    * PTT port is no longer shared by default, use --set-conf=ptt_share=1 to enable
 
 Version 3.3
         2018-08-12
