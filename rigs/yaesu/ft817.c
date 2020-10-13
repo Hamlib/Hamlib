@@ -196,7 +196,7 @@ const struct rig_caps ft817_caps =
     RIG_MODEL(RIG_MODEL_FT817),
     .model_name =          "FT-817",
     .mfg_name =            "Yaesu",
-    .version =             "20201009.0",
+    .version =             "20201012.0",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -607,7 +607,7 @@ static int ft817_get_status(RIG *rig, int status)
 
     case FT817_NATIVE_CAT_GET_RX_STATUS:
         data = &p->rx_status;
-        len  = 2;
+        len  = 1;
         tv   = &p->rx_status_tv;
         break;
 
