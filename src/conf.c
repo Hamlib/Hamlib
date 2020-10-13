@@ -138,6 +138,11 @@ static const struct confparams frontend_cfg_params[] =
         "True enables compatible rigs to have their screen saver disabled on open",
         "0", RIG_CONF_CHECKBUTTON, { }
     },
+    {
+        TOK_PTT_SHARE, "ptt_share", "Share ptt port with other apps",
+        "True enables ptt port to be shared with other apps",
+        "0", RIG_CONF_CHECKBUTTON, { }
+    },
 
     { RIG_CONF_END, NULL, }
 };
@@ -579,6 +584,16 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
 
         rs->auto_disable_screensaver = val_i ? 1 : 0;
         break;
+
+    case TOK_PTT_SHARE:
+        if (1 != sscanf(val, "%d", &val_i))
+        {
+            return -RIG_EINVAL; //value format error
+        }
+
+        rs->ptt_share = val_i ? 1 : 0;
+        break;
+
 
     default:
         return -RIG_EINVAL;
