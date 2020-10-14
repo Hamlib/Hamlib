@@ -218,6 +218,7 @@ extern const struct ts_sc_list ic7000_ts_sc_list[];
 extern const struct ts_sc_list ic7100_ts_sc_list[];
 extern const struct ts_sc_list ic7200_ts_sc_list[];
 extern const struct ts_sc_list ic7300_ts_sc_list[];
+extern const struct ts_sc_list ic9700_ts_sc_list[];
 extern const struct ts_sc_list ic910_ts_sc_list[];
 extern const struct ts_sc_list ic718_ts_sc_list[];
 extern const struct ts_sc_list x108g_ts_sc_list[];

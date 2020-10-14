@@ -207,6 +207,7 @@
 #define S_DUP_OFF	0x10		/* Simplex mode */
 #define S_DUP_M 	0x11		/* Duplex - mode */
 #define S_DUP_P		0x12		/* Duplex + mode */
+#define S_DUP_DD_RPS	0x13		/* DD Repeater Simplex mode (RPS) */
 
 /*
  * Set Attenuator (C_CTL_ATT) subcommands
