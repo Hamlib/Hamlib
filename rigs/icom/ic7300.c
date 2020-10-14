@@ -247,7 +247,7 @@ static const struct icom_priv_caps IC9700_priv_caps =
     0xA2,   /* default address */
     0,      /* 731 mode */
     1,      /* no XCHG to avoid display flickering */
-    ic7300_ts_sc_list,
+    ic9700_ts_sc_list,
     .serial_USB_echo_check = 1,  /* USB CI-V may not echo */
     .agc_levels_present = 1,
     .agc_levels = {
