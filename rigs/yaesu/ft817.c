@@ -476,7 +476,8 @@ int ft817_init(RIG *rig)
 {
     struct ft817_priv_data *priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: called, version %s\n", __func__, rig->caps->version);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called, version %s\n", __func__,
+              rig->caps->version);
 
     if ((rig->state.priv = calloc(1, sizeof(struct ft817_priv_data))) == NULL)
     {
@@ -1112,7 +1113,7 @@ int ft817_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         &((struct ft817_priv_data *)rig->state.priv)->fm_status_tv);
 
     retval = ft817_send_icmd(rig, FT817_NATIVE_CAT_SET_FREQ, data);
-    hl_usleep(50*1000); // FT817 needs a little time after setting freq
+    hl_usleep(50 * 1000); // FT817 needs a little time after setting freq
     return retval;
 }
 
@@ -1457,9 +1458,11 @@ int ft817_set_powerstat(RIG *rig, powerstat_t status)
 
     case RIG_POWER_ON:
         // send 5 bytes first, snooze a bit, then PWR_ON
-        write_block(&rig->state.rigport, (char *) p->pcs[FT817_NATIVE_CAT_PWR_WAKE].nseq, YAESU_CMD_LENGTH);
-        hl_usleep(200*1000);
-        write_block(&rig->state.rigport, (char *) p->pcs[FT817_NATIVE_CAT_PWR_ON].nseq, YAESU_CMD_LENGTH);
+        write_block(&rig->state.rigport,
+                    (char *) p->pcs[FT817_NATIVE_CAT_PWR_WAKE].nseq, YAESU_CMD_LENGTH);
+        hl_usleep(200 * 1000);
+        write_block(&rig->state.rigport, (char *) p->pcs[FT817_NATIVE_CAT_PWR_ON].nseq,
+                    YAESU_CMD_LENGTH);
         return RIG_OK;
 
     case RIG_POWER_STANDBY:
