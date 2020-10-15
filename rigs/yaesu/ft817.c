@@ -1460,7 +1460,7 @@ int ft817_set_powerstat(RIG *rig, powerstat_t status)
         write_block(&rig->state.rigport, (char *) p->pcs[FT817_NATIVE_CAT_PWR_WAKE].nseq, YAESU_CMD_LENGTH);
         hl_usleep(200*1000);
         write_block(&rig->state.rigport, (char *) p->pcs[FT817_NATIVE_CAT_PWR_ON].nseq, YAESU_CMD_LENGTH);
-        return RIG_OKn;
+        return RIG_OK;
 
     case RIG_POWER_STANDBY:
     default:
