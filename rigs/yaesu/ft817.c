@@ -1068,6 +1068,7 @@ static int ft817_send_cmd(RIG *rig, int index)
         return -RIG_EINTERNAL;
     }
 
+    rig_flush(&rig->state.rigport);
     write_block(&rig->state.rigport, (char *) p->pcs[index].nseq, YAESU_CMD_LENGTH);
     return ft817_read_ack(rig);
 }
