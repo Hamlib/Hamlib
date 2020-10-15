@@ -4126,6 +4126,7 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     /* chop term */
     priv->ret_data[ret_data_len - 1] = '\0';
 
+    rig_debug(RIG_DEBUG_TRACE, "%s: retfunc='%s'\n", __func__, retfunc);
     switch (func)
     {
     case RIG_FUNC_MN:
@@ -4136,7 +4137,7 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         // future Yaesu's may use the new command format
         // so we do this check here instead of the back end
         // only need to add the "|| is_XXX" here
-        if (is_ft101) *status = (retfunc[1] == '0') ? 0 : 1;
+        if (is_ft101) *status = (retfunc[0] == '0') ? 0 : 1;
         else *status = (retfunc[0] == '0') ? 0 : 1;
         break;
 

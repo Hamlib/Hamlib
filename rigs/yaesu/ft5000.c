@@ -74,8 +74,8 @@ int ftdx101d_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         retval = newcat_get_cmd(rig);
 
         if (RIG_OK != retval) { return retval; }
-
         n = sscanf(priv->ret_data, "PR0%d\n", status);
+rig_debug(RIG_DEBUG_TRACE, "%s: n=%d, ret_data='%s'\n", __func__, n, priv->ret_data);
 
         if (n == 1) { return RIG_OK; }
 
