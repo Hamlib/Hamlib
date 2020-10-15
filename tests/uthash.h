@@ -24,11 +24,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef UTHASH_H
 #define UTHASH_H 
 
-// cppcheck-suppress *
 #include <string.h>   /* memcmp,strlen */
-// cppcheck-suppress *
 #include <stddef.h>   /* ptrdiff_t */
-// cppcheck-suppress *
 #include <stdlib.h>   /* exit() */
 
 /* These macros use decltype or the earlier __typeof GNU extension.
@@ -64,7 +61,6 @@ do {                                                                            
 typedef unsigned int uint32_t;
 typedef unsigned char uint8_t;
 #else
-// cppcheck-suppress *
 #include <inttypes.h>   /* uint32_t */
 #endif
 
