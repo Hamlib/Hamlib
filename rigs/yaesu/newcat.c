@@ -3862,7 +3862,7 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             return -RIG_ENAVAIL;
         }
 
-        if (is_ft101)
+        if (is_ft101 || is_ft5000)
         {
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PR0%d%c", status ? 1 : 0,
                  cat_term);
@@ -4064,7 +4064,7 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
             return -RIG_ENAVAIL;
         }
 
-        if (is_ft101)
+        if (is_ft101 || is_ft5000)
         {
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PR0%c", cat_term);
         }
