@@ -1445,7 +1445,8 @@ int ft817_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 
 int ft817_set_powerstat(RIG *rig, powerstat_t status)
 {
-    char wakedata[5];
+    struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
     switch (status)
@@ -1454,9 +1455,9 @@ int ft817_set_powerstat(RIG *rig, powerstat_t status)
         return ft817_send_cmd(rig, FT817_NATIVE_CAT_PWR_OFF);
 
     case RIG_POWER_ON:
-        // send 5 null bytes first then PWR_ON
-        memset(wakedata,0,5);
-        write_block(&rig->state.rigport, (char *) wakedata, 5);
+        // send 5 bytes first, snooze a bit, then PWR_ON
+        write_block(&rig->state.rigport, (char *) p->pcs[FT817_NATIVE_CAT_PWR_WAKE].nseq, YAESU_CMD_LENGTH);
+        hl_usleep(200*1000);
         return ft817_send_cmd(rig, FT817_NATIVE_CAT_PWR_ON);
 
     case RIG_POWER_STANDBY:
