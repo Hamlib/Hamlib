@@ -40,54 +40,6 @@
 #include "idx_builtin.h"
 #include "tones.h"
 
-int ftdx101d_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
-{
-    //char main_sub_vfo = (RIG_VFO_B == vfo) ? '1' : '0';
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
-
-    switch (func)
-    {
-    case RIG_FUNC_COMP: break;
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PR0%d;", status ? 1 : 0);
-        return newcat_set_cmd(rig);
-    }
-
-    return newcat_set_func(rig, vfo, func, status);
-}
-
-int ftdx101d_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
-{
-    int retval;
-    //char main_sub_vfo = (RIG_VFO_B == vfo) ? '1' : '0';
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
-
-    switch (func)
-    {
-        int n;
-
-    case RIG_FUNC_COMP:
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PR0;");
-        retval = newcat_get_cmd(rig);
-
-        if (RIG_OK != retval) { return retval; }
-
-        n = sscanf(priv->ret_data, "PR0%d\n", status);
-
-        if (n == 1) { return RIG_OK; }
-
-        rig_debug(RIG_DEBUG_ERR, "%s: PR0; reply failed, reply='%s'\n", __func__,
-                  priv->ret_data);
-
-        return -RIG_EPROTO;
-    }
-
-    return newcat_get_func(rig, vfo, func, status);
-}
-
 /*
  * ft5000 rigs capabilities.
  * Also this struct is READONLY!
@@ -272,9 +224,9 @@ const struct rig_caps ftdx3000_caps =
     RIG_MODEL(RIG_MODEL_FTDX3000),
     .model_name =         "FT-DX3000",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".1",
+    .version =            NEWCAT_VER ".2",
     .copyright =          "LGPL",
-    .status =             RIG_STATUS_BETA,
+    .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
     .ptt_type =           RIG_PTT_RIG,
     .dcd_type =           RIG_DCD_NONE,
@@ -403,8 +355,8 @@ const struct rig_caps ftdx3000_caps =
     .get_xit =            newcat_get_xit,
     .set_ant =            newcat_set_ant,
     .get_ant =            newcat_get_ant,
-    .get_func =           ftdx101d_get_func,
-    .set_func =           ftdx101d_set_func,
+    .get_func =           newcat_get_func,
+    .set_func =           newcat_set_func,
     .get_level =          newcat_get_level,
     .set_level =          newcat_set_level,
     .get_mem =            newcat_get_mem,
