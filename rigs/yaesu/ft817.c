@@ -196,7 +196,7 @@ const struct rig_caps ft817_caps =
     RIG_MODEL(RIG_MODEL_FT817),
     .model_name =          "FT-817",
     .mfg_name =            "Yaesu",
-    .version =             "20201013.0",
+    .version =             "20201015.0",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -1445,6 +1445,7 @@ int ft817_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 
 int ft817_set_powerstat(RIG *rig, powerstat_t status)
 {
+    char wakedata[5];
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
     switch (status)
@@ -1453,7 +1454,9 @@ int ft817_set_powerstat(RIG *rig, powerstat_t status)
         return ft817_send_cmd(rig, FT817_NATIVE_CAT_PWR_OFF);
 
     case RIG_POWER_ON:
-        ft817_send_cmd(rig, FT817_NATIVE_CAT_PWR_WAKE);
+        // send 5 null bytes first then PWR_ON
+        memset(wakedata,0,5);
+        write_block(&rig->state.rigport, (char *) data, 5);
         return ft817_send_cmd(rig, FT817_NATIVE_CAT_PWR_ON);
 
     case RIG_POWER_STANDBY:
