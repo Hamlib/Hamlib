@@ -1456,7 +1456,7 @@ int ft817_set_powerstat(RIG *rig, powerstat_t status)
     case RIG_POWER_ON:
         // send 5 null bytes first then PWR_ON
         memset(wakedata,0,5);
-        write_block(&rig->state.rigport, (char *) data, 5);
+        write_block(&rig->state.rigport, (char *) wakedata, 5);
         return ft817_send_cmd(rig, FT817_NATIVE_CAT_PWR_ON);
 
     case RIG_POWER_STANDBY:
