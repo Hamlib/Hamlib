@@ -1471,7 +1471,7 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     tvfo = (vfo == RIG_VFO_CURR
             || vfo == RIG_VFO_VFO) ? rig->state.current_vfo : vfo;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: tvfo=%s\n", __func__, rig_strvfo(vfo));
+    rig_debug(RIG_DEBUG_TRACE, "%s: tvfo=%s\n", __func__, rig_strvfo(tvfo));
 
     if (tvfo == RIG_VFO_CURR || tvfo == RIG_VFO_NONE)
     {
