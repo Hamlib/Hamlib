@@ -102,8 +102,8 @@ testloc.sh:
 hamlibdatetime.h: FORCE
 	echo "SHA=$(SHA)"
 	test ! -x $(top_srcdir)/.git || echo "/* This date time is from the last non-merge commit to Hamlib. */" > $(srcdir)/hamlibdatetime.h
-	test ! -x $(top_srcdir)/.git || echo "#define HAMLIBDATETIME "\"$$(TZ=UTC git --git-dir=$(top_srcdir)/.git log --no-merges --date='format-local:%a %b %d %H:%M:%S %Y %z SHA=' --format='%cd' -n 1)$$(git --git-dir=$(top_srcdir)/.git log --no-merges | grep commit | head -n 1 | cut -c8-13)\"  >> $(srcdir)/hamlibdatetime.h
-	test -f $(srcdir)/hamlibdatetime.h || cp $(srcdir)/hamlibdatetime.h.in $(srcdir)/hamlibdatetime.h
+	test ! -x $(top_srcdir)/.git || echo "#define HAMLIBDATETIME "\"$$(TZ=UTC git --git-dir=$(top_srcdir)/.git log --no-merges --date='format-local:%a %b %d %H:%M:%S %Y %z SHA=' --format='%cd' -n 1)$$(git --git-dir=$(top_srcdir)/.git log --no-merges | grep commit | head -n 1 | cut -c8-13)\"  >> $(top_builddir)/tests//hamlibdatetime.h
+	test -f $(top_builddir)/tests/hamlibdatetime.h || cp $(top_builddir)/tests/hamlibdatetime.h.in $(top_builddir)/tests/hamlibdatetime.h
 
 FORCE: ;
 
