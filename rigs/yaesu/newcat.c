@@ -6215,7 +6215,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
             switch (w)
             {
             case 0:
-                if (mode == RIG_MODE_CW || RIG_MODE_CWR) { *width = narrow ? 500 : 2400; }
+                if (mode == RIG_MODE_CW || mode == RIG_MODE_CWR) { *width = narrow ? 500 : 2400; }
                 else { *width = narrow ? 300 : 500; }
 
                 break;

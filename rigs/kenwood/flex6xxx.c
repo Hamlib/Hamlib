@@ -79,7 +79,7 @@ static rmode_t powersdr_mode_table[KENWOOD_MODE_TABLE_MAX] =
     [6] = RIG_MODE_AM,
     [7] = RIG_MODE_PKTUSB,
     [8] = RIG_MODE_NONE, // SPEC -- not implemented
-    [8] = RIG_MODE_PKTLSB,
+    [9] = RIG_MODE_PKTLSB,
     [10] = RIG_MODE_SAM,
     [11] = RIG_MODE_NONE // DRM -- not implemented
 };
@@ -1140,7 +1140,7 @@ const struct rig_caps powersdr_caps =
     RIG_MODEL(RIG_MODEL_POWERSDR),
     .model_name =       "PowerSDR/Thetis",
     .mfg_name =     "FlexRadio/ANAN",
-    .version =      "20201003.0",
+    .version =      "20201016.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
