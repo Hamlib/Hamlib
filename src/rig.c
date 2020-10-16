@@ -5000,6 +5000,65 @@ int HAMLIB_API rig_send_morse(RIG *rig, vfo_t vfo, const char *msg)
     return retcode;
 }
 
+/**
+ * \brief stop morse code
+ * \param rig   The rig handle
+ * \param vfo   The target VFO
+ *
+ *  Stops the send morse message.
+ *
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
+ * set appropriately).
+ *
+ */
+int HAMLIB_API rig_stop_morse(RIG *rig, vfo_t vfo)
+{
+    const struct rig_caps *caps;
+    int retcode, rc2;
+    vfo_t curr_vfo;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    caps = rig->caps;
+
+    if (caps->stop_morse == NULL)
+    {
+        return -RIG_ENAVAIL;
+    }
+
+    if ((caps->targetable_vfo & RIG_TARGETABLE_PURE)
+            || vfo == RIG_VFO_CURR
+            || vfo == rig->state.current_vfo)
+    {
+        return caps->stop_morse(rig, vfo);
+    }
+
+    if (!caps->set_vfo)
+    {
+        return -RIG_ENTARGET;
+    }
+
+    curr_vfo = rig->state.current_vfo;
+    retcode = caps->set_vfo(rig, vfo);
+
+    if (retcode != RIG_OK)
+    {
+        return retcode;
+    }
+
+    retcode = caps->stop_morse(rig, vfo);
+    /* try and revert even if we had an error above */
+    rc2 = caps->set_vfo(rig, curr_vfo);
+
+    if (RIG_OK == retcode)
+    {
+        /* return the first error code */
+        retcode = rc2;
+    }
+
+    return retcode;
+}
+
 
 /**
  * \brief send voice memory content
