@@ -56,8 +56,8 @@
 }
 
 typedef unsigned char   cc_t;
-typedef unsigned int32_t    speed_t;
-typedef unsigned int32_t    tcflag_t;
+typedef int32_t    speed_t;
+typedef int32_t    tcflag_t;
 
 /* structs are from linux includes or linux man pages to match
    interfaces.
