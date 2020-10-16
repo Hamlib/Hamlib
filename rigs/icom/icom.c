@@ -6798,6 +6798,39 @@ int icom_send_morse(RIG *rig, vfo_t vfo, const char *msg)
     return RIG_OK;
 }
 
+/*
+ * icom_stop_morse
+ * Assumes rig!=NULL, msg!=NULL
+ */
+int icom_stop_morse(RIG *rig, vfo_t vfo)
+{
+    unsigned char ackbuf[MAXFRAMELEN];
+    unsigned char cmd[MAXFRAMELEN];
+    int ack_len = sizeof(ackbuf), retval;
+    int len;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    cmd[0] = 0xff;
+
+    retval = icom_transaction(rig, C_SND_CW, -1, (unsigned char *) cmd, 1,
+                              ackbuf, &ack_len);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    if (ack_len != 1 || ackbuf[0] != ACK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
+                  ackbuf[0], ack_len);
+        return -RIG_ERJCTED;
+    }
+
+    return RIG_OK;
+}
+
 int icom_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq,
                   rmode_t mode)
 {
