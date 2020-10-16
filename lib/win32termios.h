@@ -30,6 +30,7 @@
 #include <windows.h>
 #include <sys/types.h>
 #include <io.h>
+#include <stdint.h>
 #ifdef TRACE
 #define ENTER(x) report("entering "x" \n");
 #define LEAVE(x) report("leaving "x" \n");
