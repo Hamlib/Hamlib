@@ -6807,7 +6807,6 @@ int icom_stop_morse(RIG *rig, vfo_t vfo)
     unsigned char ackbuf[MAXFRAMELEN];
     unsigned char cmd[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf), retval;
-    int len;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
