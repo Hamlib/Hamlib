@@ -273,5 +273,6 @@ const struct rig_caps ic7410_caps =
     .set_split_vfo =  icom_set_split_vfo,
     .get_split_vfo =  icom_mem_get_split_vfo,
     .send_morse =  icom_send_morse,
+    .stop_morse =  icom_stop_morse,
 
 };

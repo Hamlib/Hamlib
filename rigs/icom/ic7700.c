@@ -312,5 +312,6 @@ const struct rig_caps ic7700_caps =
     .get_split_vfo =  icom_get_split_vfo,
     .set_powerstat = icom_set_powerstat,
     .get_powerstat = icom_get_powerstat,
-    .send_morse = icom_send_morse
+    .send_morse = icom_send_morse,
+    .stop_morse = icom_stop_morse
 };
