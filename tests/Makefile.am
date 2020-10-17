@@ -27,6 +27,7 @@ rigswr_SOURCES = rigswr.c
 rigsmtr_SOURCES = rigsmtr.c
 rigmem_SOURCES = rigmem.c memsave.c memload.c memcsv.c sprintflst.c sprintflst.h
 
+# include generated include files ahead of any in sources
 rigctl_CPPFLAGS = -I$(top_builddir)/tests -I$(top_srcdir) $(AM_CPPFLAGS)
 
 # all the programs need this
@@ -97,13 +98,16 @@ testloc.sh:
 	echo './testloc EM79UT96LW 5' > testloc.sh
 	chmod +x ./testloc.sh
 
-# If we have a .git directory then we will generate the hamlibdate.h file.
-# if not, then copy the placeholder.
+# If we have a .git directory then we will generate the hamlibdate.h
+# file.  If not, then copy the placeholder. Either way copy the result
+# to the build directory for inclusion in compiles, which avoids race
+# conditions with parallel builds.
 hamlibdatetime.h: FORCE
 	echo "SHA=$(SHA)"
-	test ! -x $(top_srcdir)/.git || echo "/* This date time is from the last non-merge commit to Hamlib. */" > $(top_builddir)/tests/hamlibdatetime.h
-	test ! -x $(top_srcdir)/.git || echo "#define HAMLIBDATETIME "\"$$(TZ=UTC git --git-dir=$(top_srcdir)/.git log --no-merges --date='format-local:%a %b %d %H:%M:%S %Y %z SHA=' --format='%cd' -n 1)$$(git --git-dir=$(top_srcdir)/.git log --no-merges | grep commit | head -n 1 | cut -c8-13)\"  >> $(top_builddir)/tests/hamlibdatetime.h
-	test -f $(top_builddir)/tests/hamlibdatetime.h || cp $(top_srcdir)/tests/hamlibdatetime.h.in $(top_builddir)/tests/hamlibdatetime.h
+	test ! -x $(top_srcdir)/.git || echo "/* This date time is from the last non-merge commit to Hamlib. */" > $(top_srcdir)/tests/hamlibdatetime.h
+	test ! -x $(top_srcdir)/.git || echo "#define HAMLIBDATETIME "\"$$(TZ=UTC git --git-dir=$(top_srcdir)/.git log --no-merges --date='format-local:%a %b %d %H:%M:%S %Y %z SHA=' --format='%cd' -n 1)$$(git --git-dir=$(top_srcdir)/.git log --no-merges | grep commit | head -n 1 | cut -c8-13)\"  >> $(top_srcdir)/tests/hamlibdatetime.h
+	test -f $(top_srcdir)/tests/hamlibdatetime.h || cp $(top_srcdir)/tests/hamlibdatetime.h.in $(top_srcdir)/tests/hamlibdatetime.h
+	cp $(top_srcdir)/tests/hamlibdatetime.h $(top_builddir)/tests/
 
 FORCE: ;
 
