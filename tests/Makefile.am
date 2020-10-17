@@ -27,7 +27,7 @@ rigswr_SOURCES = rigswr.c
 rigsmtr_SOURCES = rigsmtr.c
 rigmem_SOURCES = rigmem.c memsave.c memload.c memcsv.c sprintflst.c sprintflst.h
 
-rigctl_CPPFLAGS = -I$(top_srcdir) -I$(top_builddir)/tests $(AM_CPPFLAGS)
+rigctl_CPPFLAGS = -I$(top_builddir)/tests -I$(top_srcdir) $(AM_CPPFLAGS)
 
 # all the programs need this
 LDADD = $(top_builddir)/src/libhamlib.la $(top_builddir)/lib/libmisc.la $(DL_LIBS)
@@ -101,8 +101,8 @@ testloc.sh:
 # if not, then copy the placeholder.
 hamlibdatetime.h: FORCE
 	echo "SHA=$(SHA)"
-	test ! -x $(top_builddir)/.git || echo "/* This date time is from the last non-merge commit to Hamlib. */" > $(top_builddir)/tests/hamlibdatetime.h
-	test ! -x $(top_builddir)/.git || echo "#define HAMLIBDATETIME "\"$$(TZ=UTC git --git-dir=$(top_srcdir)/.git log --no-merges --date='format-local:%a %b %d %H:%M:%S %Y %z SHA=' --format='%cd' -n 1)$$(git --git-dir=$(top_srcdir)/.git log --no-merges | grep commit | head -n 1 | cut -c8-13)\"  >> $(top_builddir)/tests//hamlibdatetime.h
+	test ! -x $(top_srcdir)/.git || echo "/* This date time is from the last non-merge commit to Hamlib. */" > $(top_builddir)/tests/hamlibdatetime.h
+	test ! -x $(top_srcdir)/.git || echo "#define HAMLIBDATETIME "\"$$(TZ=UTC git --git-dir=$(top_srcdir)/.git log --no-merges --date='format-local:%a %b %d %H:%M:%S %Y %z SHA=' --format='%cd' -n 1)$$(git --git-dir=$(top_srcdir)/.git log --no-merges | grep commit | head -n 1 | cut -c8-13)\"  >> $(top_builddir)/tests/hamlibdatetime.h
 	test -f $(top_builddir)/tests/hamlibdatetime.h || cp $(top_srcdir)/tests/hamlibdatetime.h.in $(top_builddir)/tests/hamlibdatetime.h
 
 FORCE: ;
