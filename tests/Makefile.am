@@ -98,17 +98,18 @@ testloc.sh:
 	echo './testloc EM79UT96LW 5' > testloc.sh
 	chmod +x ./testloc.sh
 
-# If we have a .git directory then we will generate the hamlibdate.h
+# If we have  a .git directory then we will  generate the hamlibdate.h
 # file.  If not, then copy the placeholder. Either way copy the result
-# to the build directory for inclusion in compiles, which avoids race
-# conditions with parallel builds.
-hamlibdatetime.h: FORCE
+# to  the  sources directory  if  it  is  different for  inclusion  in
+# distribution tarballs,  which avoids  race conditions  with parallel
+# builds.
+hamlibdatetime.h: Makefile
 	echo "SHA=$(SHA)"
-	test ! -x $(top_srcdir)/.git || echo "/* This date time is from the last non-merge commit to Hamlib. */" > $(top_srcdir)/tests/hamlibdatetime.h
-	test ! -x $(top_srcdir)/.git || echo "#define HAMLIBDATETIME "\"$$(TZ=UTC git --git-dir=$(top_srcdir)/.git log --no-merges --date='format-local:%a %b %d %H:%M:%S %Y %z SHA=' --format='%cd' -n 1)$$(git --git-dir=$(top_srcdir)/.git log --no-merges | grep commit | head -n 1 | cut -c8-13)\"  >> $(top_srcdir)/tests/hamlibdatetime.h
-	test -f $(top_srcdir)/tests/hamlibdatetime.h || cp $(top_srcdir)/tests/hamlibdatetime.h.in $(top_srcdir)/tests/hamlibdatetime.h
-	test $(top_srcdir) == $(top_builddir) || cp $(top_srcdir)/tests/hamlibdatetime.h $(top_builddir)/tests/;
-
-FORCE: ;
+	if test -x $(top_srcdir)/.git ; then \
+		echo "/* This date time is from the last non-merge commit to Hamlib. */" > $@ ;\
+		echo "#define HAMLIBDATETIME "\"$$(TZ=UTC git --git-dir=$(top_srcdir)/.git log --no-merges --date='format-local:%a %b %d %H:%M:%S %Y %z SHA=' --format='%cd' -n 1)$$(git --git-dir=$(top_srcdir)/.git log --no-merges | grep commit | head -n 1 | cut -c8-13)\"  >> $@ ;\
+		cp $@ $(top_srcdir)/tests/$(@F) ;\
+	fi
+	test -f $(top_srcdir)/tests/$(@F) || cp $(top_srcdir)/tests/$(@F).in $(top_srcdir)/tests/$(@F)
 
 CLEANFILES = testrig.sh testfreq.sh testbcd.sh testloc.sh
