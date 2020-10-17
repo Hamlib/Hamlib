@@ -103,7 +103,7 @@ testloc.sh:
 # to  the  sources directory  if  it  is  different for  inclusion  in
 # distribution tarballs,  which avoids  race conditions  with parallel
 # builds.
-hamlibdatetime.h: Makefile
+hamlibdatetime.h: FORCE
 	echo "SHA=$(SHA)"
 	if test -x $(top_srcdir)/.git ; then \
 		echo "/* This date time is from the last non-merge commit to Hamlib. */" > $@ ;\
@@ -112,5 +112,7 @@ hamlibdatetime.h: Makefile
 	fi
 	test -f $(top_srcdir)/tests/$(@F) || cp $(top_srcdir)/tests/$(@F).in $(top_srcdir)/tests/$(@F)
 	test -f $@ || cp $(top_srcdir)/tests/$(@F).in $@
+
+FORCE:
 
 CLEANFILES = testrig.sh testfreq.sh testbcd.sh testloc.sh
