@@ -4,7 +4,7 @@
 # AUTOMAKE_OPTIONS = dejagnu
 # DEJATOOL = testfreq testbcd testloc rigctl
 
-BUILT_SOURCES = hamlibdatetime.h
+BUILT_SOURCES = $(builddir)/hamlibdatetime.h
 
 DISTCLEANFILES = rigctl.log rigctl.sum testbcd.log testbcd.sum hamlibdatetime.h
 
@@ -28,7 +28,7 @@ rigsmtr_SOURCES = rigsmtr.c
 rigmem_SOURCES = rigmem.c memsave.c memload.c memcsv.c sprintflst.c sprintflst.h
 
 # include generated include files ahead of any in sources
-rigctl_CPPFLAGS = -I$(top_builddir)/tests -I$(top_srcdir) $(AM_CPPFLAGS)
+rigctl_CPPFLAGS = -I$(builddir)/tests -I$(srcdir) $(AM_CPPFLAGS)
 
 # all the programs need this
 LDADD = $(top_builddir)/src/libhamlib.la $(top_builddir)/lib/libmisc.la $(DL_LIBS)
@@ -99,23 +99,26 @@ testloc.sh:
 	chmod +x ./testloc.sh
 
 # If we have  a .git directory then we will  generate the hamlibdate.h
-# file.  If not, then copy the placeholder. Either way copy the result
-# to  the  sources directory  if  it  is  different for  inclusion  in
-# distribution tarballs,  which avoids  race conditions  with parallel
-# builds.
+# file and  replace it if it  is different. Fall  back to a copy  of a
+# generic hamlibdatetime.h.in in the source tree. Build looks in build
+# directory  before  the  source directory  for  the  hamlibdatetime.h
+# header.
 hamlibdatetime.h: FORCE
-	echo "SHA=$(SHA)"
-	if test -x $(top_srcdir)/.git ; then \
-		echo "/* This date time is from the last non-merge commit to Hamlib. */" > $@.tmp ;\
-		echo "#define HAMLIBDATETIME "\"$$(TZ=UTC git --git-dir=$(top_srcdir)/.git log --no-merges --date='format-local:%a %b %d %H:%M:%S %Y %z SHA=' --format='%cd' -n 1)$$(git --git-dir=$(top_srcdir)/.git log --no-merges | grep commit | head -n 1 | cut -c8-13)\"  >> $@.tmp ;\
-		if $$(diff $@.tmp $@) ; then \
-			mv -f $@.tmp $@ ;\
-			cp -f $@ $(top_srcdir)/tests/$(@F) ;\
-		fi \
+	@if test -x $(top_srcdir)/.git ; then \
+		echo "/* This date time is from the last non-merge commit to Hamlib. */" > $(builddir)/$(@F).tmp ;\
+		echo "#define HAMLIBDATETIME "\"$$(TZ=UTC git --git-dir=$(top_srcdir)/.git log --no-merges --date='format-local:%a %b %d %H:%M:%S %Y %z SHA=' --format='%cd' -n 1)$$(git --git-dir=$(top_srcdir)/.git log --no-merges | grep commit | head -n 1 | cut -c8-13)\"  >> $(builddir)/$(@F).tmp ;\
+		diff -qN $(builddir)/$(@F).tmp $(builddir)/$(@F) ; test $$? -eq 0 || { echo "Generating SCS header \"$(builddir)/$(@F)\"" ; mv -f $(builddir)/$(@F).tmp $(builddir)/$(@F) ; } ;\
+	else \
+		test -f $(srcdir)/$(@F) || cp $(srcdir)/$(@F).in $(srcdir)/$(@F) ;\
 	fi
-	test -f $(top_srcdir)/tests/$(@F) || cp $(top_srcdir)/tests/$(@F).in $(top_srcdir)/tests/$(@F)
-	test -f $@ || cp $(top_srcdir)/tests/$(@F) $@
 
 FORCE:
+
+# If we are making a  distribution out-of-source and we have generated
+# a  hamlibdatetime.h; then  copy it  to  the tests  directory of  the
+# source  tarball  so  that  downstream builds  pick  up  the  version
+# information we know about.
+dist-hook:
+	test ./ -ef $(srcdir)/ || test ! -f hamlibdatetime.h || cp -f hamlibdatetime.h $(srcdir)/
 
 CLEANFILES = testrig.sh testfreq.sh testbcd.sh testloc.sh
