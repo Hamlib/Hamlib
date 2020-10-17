@@ -106,9 +106,12 @@ testloc.sh:
 hamlibdatetime.h: FORCE
 	echo "SHA=$(SHA)"
 	if test -x $(top_srcdir)/.git ; then \
-		echo "/* This date time is from the last non-merge commit to Hamlib. */" > $@ ;\
-		echo "#define HAMLIBDATETIME "\"$$(TZ=UTC git --git-dir=$(top_srcdir)/.git log --no-merges --date='format-local:%a %b %d %H:%M:%S %Y %z SHA=' --format='%cd' -n 1)$$(git --git-dir=$(top_srcdir)/.git log --no-merges | grep commit | head -n 1 | cut -c8-13)\"  >> $@ ;\
-		cp -f $@ $(top_srcdir)/tests/$(@F) ;\
+		echo "/* This date time is from the last non-merge commit to Hamlib. */" > $@.tmp ;\
+		echo "#define HAMLIBDATETIME "\"$$(TZ=UTC git --git-dir=$(top_srcdir)/.git log --no-merges --date='format-local:%a %b %d %H:%M:%S %Y %z SHA=' --format='%cd' -n 1)$$(git --git-dir=$(top_srcdir)/.git log --no-merges | grep commit | head -n 1 | cut -c8-13)\"  >> $@.tmp ;\
+		if test $$(diff $@.tmp $@) ; then \
+			mv $@.tmp $@ ;\
+			cp -f $@ $(top_srcdir)/tests/$(@F) ;\
+		fi \
 	fi
 	test -f $(top_srcdir)/tests/$(@F) || cp $(top_srcdir)/tests/$(@F).in $(top_srcdir)/tests/$(@F)
 	test -f $@ || cp $(top_srcdir)/tests/$(@F) $@
