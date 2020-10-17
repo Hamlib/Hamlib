@@ -111,5 +111,6 @@ hamlibdatetime.h: Makefile
 		cp $@ $(top_srcdir)/tests/$(@F) ;\
 	fi
 	test -f $(top_srcdir)/tests/$(@F) || cp $(top_srcdir)/tests/$(@F).in $(top_srcdir)/tests/$(@F)
+	test -f $@ || cp $(top_srcdir)/tests/$(@F).in $@
 
 CLEANFILES = testrig.sh testfreq.sh testbcd.sh testloc.sh
