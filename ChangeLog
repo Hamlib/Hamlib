@@ -8,3 +8,5 @@ RIG_LEVEL_VOX has been deprecated and replaced by RIG_LEVEL_VOXDELAY
 rigctl 'f' command now returns VFO argument too
 rigctl 'y' and 'Y' command now take/show antenna argument and option.
 range_list items are undergoing changes towards a different model TBD
+RTS/DTR PTT sharing is off by default now -- use serial_share=1 option to
+enable
