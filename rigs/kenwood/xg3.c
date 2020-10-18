@@ -166,7 +166,6 @@ const struct rig_caps xg3_caps =
     .get_powerstat = xg3_get_powerstat,
     .set_parm = xg3_set_parm,
     .get_parm = xg3_get_parm,
-//  .send_morse =       kenwood_send_morse, // we could do this
 };
 
 

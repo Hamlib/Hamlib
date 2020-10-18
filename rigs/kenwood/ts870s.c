@@ -669,6 +669,7 @@ const struct rig_caps ts870s_caps =
     .set_ant =  kenwood_set_ant,
     .get_ant =  kenwood_get_ant,
     .send_morse =  kenwood_send_morse,
+    .wait_morse =  rig_wait_morse,
     .vfo_op =  kenwood_vfo_op,
     .set_mem =  kenwood_set_mem,
     .get_mem =  kenwood_get_mem,

@@ -323,6 +323,7 @@ const struct rig_caps k3_caps =
     .set_ant =      kenwood_set_ant_no_ack,
     .get_ant =      kenwood_get_ant,
     .send_morse =       kenwood_send_morse,
+    .wait_morse =       rig_wait_morse
 
 };
 
@@ -472,7 +473,7 @@ const struct rig_caps k3s_caps =
     .set_ant =      kenwood_set_ant_no_ack,
     .get_ant =      kenwood_get_ant,
     .send_morse =       kenwood_send_morse,
-
+    .wait_morse =       rig_wait_morse
 };
 
 // How similar is this to the K3S?
@@ -622,7 +623,7 @@ const struct rig_caps k4_caps =
     .set_ant =      kenwood_set_ant_no_ack,
     .get_ant =      kenwood_get_ant,
     .send_morse =       kenwood_send_morse,
-
+    .wait_morse =       rig_wait_morse
 };
 
 const struct rig_caps kx3_caps =
@@ -771,7 +772,7 @@ const struct rig_caps kx3_caps =
     .set_ant =      kenwood_set_ant_no_ack,
     .get_ant =      kenwood_get_ant,
     .send_morse =       kenwood_send_morse,
-
+    .wait_morse =       rig_wait_morse
 };
 
 const struct rig_caps kx2_caps =
@@ -920,7 +921,7 @@ const struct rig_caps kx2_caps =
     .set_ant =      kenwood_set_ant_no_ack,
     .get_ant =      kenwood_get_ant,
     .send_morse =       kenwood_send_morse,
-
+    .wait_morse =       rig_wait_morse
 };
 
 /*
