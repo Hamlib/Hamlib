@@ -218,6 +218,7 @@ declare_proto_rig(get_ant);
 declare_proto_rig(reset);
 declare_proto_rig(send_morse);
 declare_proto_rig(stop_morse);
+declare_proto_rig(wait_morse);
 declare_proto_rig(send_voice_mem);
 declare_proto_rig(send_cmd);
 declare_proto_rig(set_powerstat);
@@ -313,7 +314,8 @@ static struct test_table test_list[] =
     { 'W',  "send_cmd_rx",      ACTION(send_cmd),       ARG_IN | ARG_OUT2 | ARG_NOVFO, "Cmd", "Reply"},
     { 'b',  "send_morse",       ACTION(send_morse),     ARG_IN  | ARG_IN_LINE, "Morse" },
     { 0xbb, "stop_morse",       ACTION(stop_morse),     },
-    { 0x94,  "send_voice_mem",  ACTION(send_voice_mem), ARG_IN, "Voice Mem#" },
+    { 0xbc, "wait_morse",       ACTION(wait_morse),     },
+    { 0x94, "send_voice_mem",   ACTION(send_voice_mem), ARG_IN, "Voice Mem#" },
     { 0x8b, "get_dcd",          ACTION(get_dcd),        ARG_OUT, "DCD" },
     { 0x8d, "set_twiddle",      ACTION(set_twiddle),  ARG_IN  | ARG_NOVFO, "Timeout (secs)" },
     { 0x8e, "get_twiddle",      ACTION(get_twiddle),  ARG_OUT | ARG_NOVFO, "Timeout (secs)" },
@@ -4223,6 +4225,11 @@ declare_proto_rig(send_morse)
 declare_proto_rig(stop_morse)
 {
     return rig_stop_morse(rig, vfo);
+}
+
+declare_proto_rig(wait_morse)
+{
+    return rig_wait_morse(rig, vfo);
 }
 
 /* '8' */
