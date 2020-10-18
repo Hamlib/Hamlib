@@ -244,7 +244,7 @@ const struct rig_caps k2_caps =
     .set_ant =      kenwood_set_ant,
     .get_ant =      kenwood_get_ant,
     .send_morse =       kenwood_send_morse,
-
+    .wait_morse =       rig_wait_morse
 };
 
 
