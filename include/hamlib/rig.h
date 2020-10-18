@@ -1936,6 +1936,7 @@ struct rig_cache {
     // For dual VFO rigs simplex operations are all done on MainA/MainB -- ergo this abstraction
     freq_t freqMainA; // VFO_A, VFO_MAIN, and VFO_MAINA
     freq_t freqMainB; // VFO_B, VFO_SUB, and VFO_MAINB
+    freq_t freqMainC; // VFO_B, VFO_SUB, and VFO_MAINB
     freq_t freqSubA;  // VFO_SUBA
     freq_t freqSubB;  // VFO_SUBB
     rmode_t mode;
