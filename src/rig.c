@@ -5120,6 +5120,98 @@ int HAMLIB_API rig_stop_morse(RIG *rig, vfo_t vfo)
     return retcode;
 }
 
+/*
+ * wait_morse_ptt
+ * generic routine to wait for ptt=0
+ * should work on any full breakin CW morse send
+ * Assumes rig!=NULL, msg!=NULL
+ */
+static int wait_morse_ptt(RIG *rig, vfo_t vfo)
+{
+    ptt_t pttStatus = RIG_PTT_OFF;
+    int loops = 0;
+    int retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    do
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: loop#%d until ptt=0, ptt=%d\n", __func__, loops,
+                  pttStatus);
+        retval = rig_get_ptt(rig, vfo, &pttStatus);
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        hl_usleep(50 * 1000);
+        ++loops;
+    }
+    while (pttStatus == RIG_PTT_ON && loops <= 600);
+
+    return RIG_OK;
+}
+
+/**
+ * \brief wait morse code
+ * \param rig   The rig handle
+ * \param vfo   The target VFO
+ *
+ *  waits for the end of the morse message to be sent.
+ *
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
+ * set appropriately).
+ *
+ */
+int HAMLIB_API rig_wait_morse(RIG *rig, vfo_t vfo)
+{
+    const struct rig_caps *caps;
+    int retcode, rc2;
+    vfo_t curr_vfo;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    caps = rig->caps;
+
+    if (caps->wait_morse == NULL)
+    {
+        return wait_morse_ptt(rig, vfo);
+    }
+
+    if ((caps->targetable_vfo & RIG_TARGETABLE_PURE)
+            || vfo == RIG_VFO_CURR
+            || vfo == rig->state.current_vfo)
+    {
+        return caps->wait_morse(rig, vfo);
+    }
+
+    if (!caps->set_vfo)
+    {
+        return -RIG_ENTARGET;
+    }
+
+    curr_vfo = rig->state.current_vfo;
+    retcode = caps->set_vfo(rig, vfo);
+
+    if (retcode != RIG_OK)
+    {
+        return retcode;
+    }
+
+    retcode = caps->wait_morse(rig, vfo);
+    /* try and revert even if we had an error above */
+    rc2 = caps->set_vfo(rig, curr_vfo);
+
+    if (RIG_OK == retcode)
+    {
+        /* return the first error code */
+        retcode = rc2;
+    }
+
+    return retcode;
+}
+
 
 /**
  * \brief send voice memory content
