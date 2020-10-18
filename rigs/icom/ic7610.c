@@ -327,5 +327,6 @@ const struct rig_caps ic7610_caps =
     .get_split_vfo =  icom_get_split_vfo,
     .set_powerstat = icom_set_powerstat,
     .get_powerstat = icom_get_powerstat,
-    .stop_morse = icom_stop_morse
+    .stop_morse = icom_stop_morse,
+    .wait_morse = rig_stop_morse
 };

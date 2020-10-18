@@ -445,6 +445,7 @@ const struct rig_caps ic7300_caps =
     .mW2power = icom_mW2power,
     .send_morse = icom_send_morse,
     .stop_morse = icom_stop_morse,
+    .wait_morse = rig_stop_morse,
     .send_voice_mem = icom_send_voice_mem
 };
 
@@ -691,6 +692,7 @@ const struct rig_caps ic9700_caps =
     .mW2power = icom_mW2power,
     .send_morse = icom_send_morse,
     .stop_morse = icom_stop_morse,
+    .wait_morse = rig_stop_morse,
     .send_voice_mem = icom_send_voice_mem
 };
 
@@ -895,6 +897,7 @@ const struct rig_caps ic705_caps =
     .mW2power = icom_mW2power,
     .send_morse = icom_send_morse,
     .stop_morse = icom_stop_morse,
+    .wait_morse = rig_stop_morse,
     .send_voice_mem = icom_send_voice_mem
 };
 

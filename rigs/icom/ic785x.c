@@ -322,8 +322,8 @@ const struct rig_caps ic785x_caps =
     .set_powerstat =  icom_set_powerstat,
     .get_powerstat =  icom_get_powerstat,
     .send_morse = icom_send_morse,
-    .stop_morse = icom_stop_morse
-
+    .stop_morse = icom_stop_morse,
+    .wait_morse = rig_stop_morse
 };
 
 int ic785x_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
