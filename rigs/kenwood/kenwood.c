@@ -3741,6 +3741,8 @@ int kenwood_set_trn(RIG *rig, int trn)
 
     switch (rig->caps->rig_model)
     {
+    case RIG_MODEL_POWERSDR: // powersdr doesn't have AI command
+       return -RIG_ENAVAIL;
     case RIG_MODEL_TS990S:
         return kenwood_transaction(rig, (trn == RIG_TRN_RIG) ? "AI2" : "AI0", NULL, 0);
         break;
@@ -3774,7 +3776,7 @@ int kenwood_get_trn(RIG *rig, int *trn)
 
     /* these rigs only have AI[0|1] set commands and no AI query */
     if (RIG_IS_TS450S || RIG_IS_TS690S || RIG_IS_TS790 || RIG_IS_TS850
-            || RIG_IS_TS950S || RIG_IS_TS950SDX)
+            || RIG_IS_TS950S || RIG_IS_TS950SDX || RIG_IS_POWERSDR)
     {
         return -RIG_ENAVAIL;
     }
