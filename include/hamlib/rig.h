@@ -1926,7 +1926,7 @@ typedef enum {
 struct rig_cache {
     int timeout_ms;  // the cache timeout for invalidating itself
     vfo_t vfo;
-    freq_t freq; // to be deprecated
+    freq_t freq; // to be deprecated in 4.1 when full Main/Sub/A/B caching is implemented in 4.1
     // other abstraction here is based on dual vfo rigs and mapped to all others
     // So we have four possible states of rig
     // MainA, MainB, SubA, SubB
