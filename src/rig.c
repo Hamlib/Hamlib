@@ -1252,6 +1252,85 @@ int twiddling(RIG *rig)
     return 0; //
 }
 
+/* caching prototype to be fully implemented in 4.1 */
+static int set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
+{
+    switch (vfo)
+    {
+    case RIG_VFO_A:
+    case RIG_VFO_MAIN:
+    case RIG_VFO_MAIN_A:
+        rig->state.cache.freqMainA = freq;
+        elapsed_ms(&rig->state.cache.time_freqMainA, HAMLIB_ELAPSED_SET);
+        break;
+
+    case RIG_VFO_B:
+    case RIG_VFO_MAIN_B:
+    case RIG_VFO_SUB:
+        rig->state.cache.freqMainB = freq;
+        elapsed_ms(&rig->state.cache.time_freqMainB, HAMLIB_ELAPSED_SET);
+        break;
+
+    case RIG_VFO_C: // is there a MainC/SubC we need to cover?
+        rig->state.cache.freqMainC = freq;
+        elapsed_ms(&rig->state.cache.time_freqMainC, HAMLIB_ELAPSED_SET);
+        break;
+
+    case RIG_VFO_SUB_A:
+        rig->state.cache.freqSubA = freq;
+        elapsed_ms(&rig->state.cache.time_freqSubA, HAMLIB_ELAPSED_SET);
+        break;
+
+    case RIG_VFO_SUB_B:
+        rig->state.cache.freqSubB = freq;
+        elapsed_ms(&rig->state.cache.time_freqSubB, HAMLIB_ELAPSED_SET);
+        break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unknown vfo?, vfo=%s\n", __func__,
+                  rig_strvfo(vfo));
+        return -RIG_EINVAL;
+    }
+
+    return RIG_OK;
+}
+
+/* caching prototype to be fully implemented in 4.1 */
+static int get_cache_freq(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms)
+{
+    // VFO_C to be implemented
+    switch (vfo)
+    {
+    case RIG_VFO_A:
+    case RIG_VFO_MAIN:
+    case RIG_VFO_MAIN_A:
+        *freq = rig->state.cache.freqMainA;
+        break;
+
+    case RIG_VFO_B:
+    case RIG_VFO_SUB:
+        *freq = rig->state.cache.freqMainB;
+        break;
+
+    case RIG_VFO_SUB_A:
+        *freq = rig->state.cache.freqSubA;
+        break;
+
+    case RIG_VFO_SUB_B:
+        *freq = rig->state.cache.freqSubB;
+        break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unknown vfo?, vfo=%s\n", __func__,
+                  rig_strvfo(vfo));
+        return -RIG_EINVAL;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s, freq=%g\n", __func__, rig_strvfo(vfo),
+              (double)*freq);
+    return RIG_OK;
+}
+
 /**
  * \brief set the frequency of the target VFO
  * \param rig   The rig handle
@@ -1390,6 +1469,8 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
         elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_SET);
         rig->state.cache.freq = freq_new;
+        //future 4.1 caching
+        set_cache_freq(rig, vfo, freq_new);
         rig->state.cache.vfo_freq = vfo;
     }
 
@@ -1459,6 +1540,9 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
 
 
+    //future 4.1 caching
+    get_cache_freq(rig, vfo, freq, &cache_ms);
+    //future 4.1 caching needs to check individual VFO timeouts
     cache_ms = elapsed_ms(&rig->state.cache.time_freq, HAMLIB_ELAPSED_GET);
     rig_debug(RIG_DEBUG_TRACE, "%s: cache check age=%dms\n", __func__, cache_ms);
 
@@ -1501,35 +1585,8 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         if (retcode == RIG_OK)
         {
             rig->state.cache.freq = *freq;
-
-            switch (vfo)
-            {
-            case RIG_VFO_A:
-            case RIG_VFO_MAIN:
-            case RIG_VFO_MAIN_A:
-                rig->state.cache.freqMainA = *freq;
-                elapsed_ms(&rig->state.cache.time_freqMainA, HAMLIB_ELAPSED_SET);
-                rig->state.cache.freqMainA = *freq;
-                break;
-
-            case RIG_VFO_B:
-            case RIG_VFO_SUB:
-            case RIG_VFO_MAIN_B:
-                rig->state.cache.freqMainB = *freq;
-                elapsed_ms(&rig->state.cache.time_freqMainB, HAMLIB_ELAPSED_SET);
-                break;
-
-            case RIG_VFO_SUB_A:
-                rig->state.cache.freqSubA = *freq;
-                elapsed_ms(&rig->state.cache.time_freqSubA, HAMLIB_ELAPSED_SET);
-                break;
-
-            case RIG_VFO_SUB_B:
-                rig->state.cache.freqSubB = *freq;
-                elapsed_ms(&rig->state.cache.time_freqSubB, HAMLIB_ELAPSED_SET);
-                break;
-            }
-
+            //future 4.1 caching
+            set_cache_freq(rig, vfo, *freq);
             rig->state.cache.vfo_freq = vfo;
         }
     }
@@ -1559,6 +1616,8 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
             rig_debug(RIG_DEBUG_TRACE, "%s: cache reset age=%dms, vfo=%s, freq=%.0f\n",
                       __func__, cache_ms, rig_strvfo(vfo), *freq);
             rig->state.cache.freq = *freq;
+            //future 4.1 caching
+            set_cache_freq(rig, vfo, *freq);
             rig->state.cache.vfo_freq = vfo;
             /* return the first error code */
             retcode = rc2;
@@ -1587,6 +1646,8 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     rig_debug(RIG_DEBUG_TRACE, "%s: cache reset age=%dms, vfo=%s, freq=%.0f\n",
               __func__, cache_ms, rig_strvfo(vfo), *freq);
     rig->state.cache.freq = *freq;
+    //future 4.1 caching
+    set_cache_freq(rig, vfo, *freq);
     rig->state.cache.vfo_freq = vfo;
 
     return retcode;
