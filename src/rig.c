@@ -5174,16 +5174,11 @@ int HAMLIB_API rig_wait_morse(RIG *rig, vfo_t vfo)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     caps = rig->caps;
 
-    if (caps->wait_morse == NULL)
-    {
-        return wait_morse_ptt(rig, vfo);
-    }
-
     if ((caps->targetable_vfo & RIG_TARGETABLE_PURE)
             || vfo == RIG_VFO_CURR
             || vfo == rig->state.current_vfo)
     {
-        return caps->wait_morse(rig, vfo);
+        return wait_morse_ptt(rig, vfo);
     }
 
     if (!caps->set_vfo)
@@ -5199,7 +5194,7 @@ int HAMLIB_API rig_wait_morse(RIG *rig, vfo_t vfo)
         return retcode;
     }
 
-    retcode = caps->wait_morse(rig, vfo);
+    retcode = wait_morse_ptt(rig, vfo);
     /* try and revert even if we had an error above */
     rc2 = caps->set_vfo(rig, curr_vfo);
 
