@@ -5138,14 +5138,15 @@ static int wait_morse_ptt(RIG *rig, vfo_t vfo)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: loop#%d until ptt=0, ptt=%d\n", __func__, loops,
                   pttStatus);
+        elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_INVALIDATE);
         retval = rig_get_ptt(rig, vfo, &pttStatus);
 
         if (retval != RIG_OK)
         {
             return retval;
         }
-
-        hl_usleep(50 * 1000);
+        // every 25ms should be short enough
+        hl_usleep(25 * 1000);
         ++loops;
     }
     while (pttStatus == RIG_PTT_ON && loops <= 600);
