@@ -5134,6 +5134,7 @@ static int wait_morse_ptt(RIG *rig, vfo_t vfo)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
+    hl_usleep(200*1000);  // give little time for CW to start PTT
     do
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: loop#%d until ptt=0, ptt=%d\n", __func__, loops,
