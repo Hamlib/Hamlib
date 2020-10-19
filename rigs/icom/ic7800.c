@@ -317,7 +317,7 @@ const struct rig_caps ic7800_caps =
     .get_powerstat = icom_get_powerstat,
     .send_morse = icom_send_morse,
     .stop_morse = icom_stop_morse,
-    .wait_morse = rig_stop_morse
+    .wait_morse = rig_wait_morse
 };
 
 /*
