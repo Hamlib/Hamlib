@@ -1947,6 +1947,7 @@ struct rig_cache {
     split_t split;
     vfo_t split_vfo;  // split caches two values
     struct timespec time_freq;
+    struct timespec time_freqCurr;
     struct timespec time_freqMainA;
     struct timespec time_freqMainB;
     struct timespec time_freqMainC;
