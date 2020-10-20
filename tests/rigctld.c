@@ -107,7 +107,7 @@ static struct option long_options[] =
     {"verbose",         0, 0, 'v'},
     {"help",            0, 0, 'h'},
     {"version",         0, 0, 'V'},
-    {"twiddle_timeout", 1, 0, 'X'},
+    {"twiddle_timeout", 1, 0, 'W'},
     {"debug-time-stamps", 0, 0, 'Z'},
     {0, 0, 0, 0}
 };
@@ -514,7 +514,7 @@ int main(int argc, char *argv[])
             dump_caps_opt++;
             break;
 
-        case 'X':
+        case 'W':
             if (!optarg)
             {
                 usage();    /* wrong arg count */
