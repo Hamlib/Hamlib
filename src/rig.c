@@ -1257,6 +1257,11 @@ static int set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     switch (vfo)
     {
+    case RIG_VFO_CURR:
+        rig->state.cache.freqCurr = freq;
+        elapsed_ms(&rig->state.cache.time_freqCurr, HAMLIB_ELAPSED_SET);
+        break;
+
     case RIG_VFO_A:
     case RIG_VFO_MAIN:
     case RIG_VFO_MAIN_A:
@@ -1301,6 +1306,9 @@ static int get_cache_freq(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms)
     // VFO_C to be implemented
     switch (vfo)
     {
+    case RIG_VFO_CURR:
+        *freq = rig->state.cache.freqCurr;
+        break;
     case RIG_VFO_A:
     case RIG_VFO_MAIN:
     case RIG_VFO_MAIN_A:
