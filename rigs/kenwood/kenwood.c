@@ -2298,13 +2298,6 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
 
     rig_debug(RIG_DEBUG_TRACE, "%s: retval=%d\n", __func__, retval);
 
-    if (retval != 18)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: expected 18, got %d in '%s'\n", __func__, retval,
-                  levelbuf);
-        return -RIG_EPROTO;
-    }
-
     if (RIG_IS_TS890S)
     {
         n = sscanf(levelbuf, "PC%d;", power_now);
