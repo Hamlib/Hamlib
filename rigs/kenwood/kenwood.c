@@ -2261,7 +2261,7 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-    if (RIG_IS_TS890S)
+    if (RIG_IS_TS890S || RIG_IS_TS990S || RIG_IS_TS950S)
     {
         cmd = "PC;PC005;PC;PC255;PC;PC005;";
     }
