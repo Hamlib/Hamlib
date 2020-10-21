@@ -2261,6 +2261,11 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
+    if (RIG_IS_TS890S)
+    {
+        cmd = "PC;PC005;PC;PC255;PC;PC005;";
+    }
+
     // Don't do this if PTT is on...don't want to max out power!!
     if (rig->state.cache.ptt == RIG_PTT_ON)
     {
@@ -3742,7 +3747,8 @@ int kenwood_set_trn(RIG *rig, int trn)
     switch (rig->caps->rig_model)
     {
     case RIG_MODEL_POWERSDR: // powersdr doesn't have AI command
-       return -RIG_ENAVAIL;
+        return -RIG_ENAVAIL;
+
     case RIG_MODEL_TS990S:
         return kenwood_transaction(rig, (trn == RIG_TRN_RIG) ? "AI2" : "AI0", NULL, 0);
         break;
