@@ -86,7 +86,7 @@
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:p:d:P:D:s:c:T:t:C:X:lLuovhVZ"
+#define SHORT_OPTIONS "m:r:p:d:P:D:s:c:T:t:C:W:lLuovhVZ"
 static struct option long_options[] =
 {
     {"model",           1, 0, 'm'},
@@ -277,7 +277,6 @@ int main(int argc, char *argv[])
         {
             break;
         }
-
         switch (c)
         {
         case 'h':
