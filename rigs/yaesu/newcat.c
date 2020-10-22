@@ -2721,7 +2721,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             return -RIG_ENAVAIL;
         }
 
-        if (newcat_is_rig(rig, RIG_MODEL_FT1200))
+        if (is_ft1200 || is_ft3000 || is_ft891 || is_ft991 || is_ft101)
         {
             fpf = newcat_scale_float(100, val.f);
         }
@@ -3148,6 +3148,24 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
         break;
 
+    case RIG_LEVEL_MONITOR_GAIN:
+        if (!newcat_valid_command(rig, "ML"))
+        {
+            return -RIG_ENAVAIL;
+        }
+
+        if (is_ft1200 || is_ft3000 || is_ft891 || is_ft991 || is_ft101)
+        {
+            fpf = newcat_scale_float(100, val.f);
+        }
+        else
+        {
+            fpf = newcat_scale_float(255, val.f);
+        }
+
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "ML1%03d%c", fpf, cat_term);
+        break;
+
     default:
         return -RIG_EINVAL;
     }
@@ -3435,6 +3453,15 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         break;
 
+    case RIG_LEVEL_MONITOR_GAIN:
+        if (!newcat_valid_command(rig, "ML"))
+        {
+            return -RIG_ENAVAIL;
+        }
+
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "ML1%c", cat_term);
+        break;
+
     default:
         return -RIG_EINVAL;
     }
@@ -3486,8 +3513,19 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         break;
 
-    case RIG_LEVEL_AF:
     case RIG_LEVEL_MICGAIN:
+        if (is_ft1200 || is_ft3000 || is_ft891 || is_ft991 || is_ft101)
+        {
+            scale = 100.;
+        }
+        else
+        {
+            scale = 255.;
+        }
+        val->f = (float)atoi(retlvl) / scale;
+        break;
+
+    case RIG_LEVEL_AF:
     case RIG_LEVEL_RF:
     case RIG_LEVEL_SQL:
     case RIG_LEVEL_ALC:
@@ -3703,6 +3741,18 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         val->i = atoi(retlvl) * 10;
         break;
 
+    case RIG_LEVEL_MONITOR_GAIN:
+        if (is_ft1200 || is_ft3000 || is_ft891 || is_ft991 || is_ft101)
+        {
+            scale = 100.;
+        }
+        else
+        {
+            scale = 255.;
+        }
+        val->f = (float)atoi(retlvl) / scale;
+        break;
+
     default:
         return -RIG_EINVAL;
     }
@@ -3866,7 +3916,13 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             return -RIG_ENAVAIL;
         }
 
-        if (is_ft101 || is_ft5000)
+        if (is_ft1200 || is_ft3000 || is_ft991 || is_ft101)
+        {
+            // 1 = OFF, 2 = ON for these rigs
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PR0%d%c", status ? 2 : 1,
+                     cat_term);
+        }
+        else if (is_ft891)
         {
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PR0%d%c", status ? 1 : 0,
                      cat_term);
@@ -3936,6 +3992,7 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int err;
     int ret_data_len;
+    int last_digit_index;
     char *retfunc;
     char main_sub_vfo = '0';
 
@@ -4071,7 +4128,7 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
             return -RIG_ENAVAIL;
         }
 
-        if (is_ft101 || is_ft5000)
+        if (is_ft1200 || is_ft3000 || is_ft891 || is_ft991 || is_ft101)
         {
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PR0%c", cat_term);
         }
@@ -4128,6 +4185,7 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     }
 
     ret_data_len = strlen(priv->ret_data);
+    last_digit_index = ret_data_len - 1;
 
     /* skip command */
     retfunc = priv->ret_data + strlen(priv->cmd_str) - 1;
@@ -4142,19 +4200,28 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         break;
 
     case RIG_FUNC_COMP:
-
-        // future Yaesu's may use the new command format
-        // so we do this check here instead of the back end
-        // only need to add the "|| is_XXX" here
-        if (is_ft101) { *status = (retfunc[1] == '0') ? 0 : 1; }
-        else { *status = (retfunc[0] == '0') ? 0 : 1; }
-
+        if (is_ft1200 || is_ft3000 || is_ft991 || is_ft101)
+        {
+            // The return values are 1=OFF and 2=ON for these rigs
+            *status = (retfunc[1] == '2') ? 1 : 0;
+        }
+        else if (is_ft891)
+        {
+            *status = (retfunc[1] == '1') ? 1 : 0;
+        }
+        else
+        {
+            *status = (retfunc[0] == '0') ? 0 : 1;
+        }
         break;
 
+    case RIG_FUNC_MON:
+        // The number of digits varies by rig, but the last digit indicates the status always
+        *status = (retfunc[last_digit_index] == '0') ? 0 : 1;
+        break;
     case RIG_FUNC_ANF:
     case RIG_FUNC_FBKIN:
     case RIG_FUNC_LOCK:
-    case RIG_FUNC_MON:
     case RIG_FUNC_NB:
     case RIG_FUNC_NR:
     case RIG_FUNC_VOX:
