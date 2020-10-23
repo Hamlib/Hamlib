@@ -2269,7 +2269,15 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
         rig->state.power_min = *power_min = 5;
         rig->state.power_max = *power_max = 100;
 
-        if (rig->state.current_mode == RIG_MODE_AM) { *power_max = 25; }
+        if (rig->state.current_mode == RIG_MODE_AM) { *power_max = 50; }
+
+        if (rig->state.current_freq >= 70)
+        {
+            rig->state.power_max = 50;
+
+            if (rig->state.current_mode == RIG_MODE_AM) { *power_max = 13; }
+        }
+
 
         cmd = "PC;";
         break;
@@ -2299,13 +2307,18 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
     rig_debug(RIG_DEBUG_TRACE, "%s: retval=%d\n", __func__, retval);
 
     if (RIG_IS_TS890S)
-	    expval = 6;
-    	else
-	    expval = 18;
+    {
+        expval = 6;
+    }
+    else
+    {
+        expval = 18;
+    }
 
     if (retval != expval)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: expected %d, got %d in '%s'\n", __func__, expval, retval,
+        rig_debug(RIG_DEBUG_ERR, "%s: expected %d, got %d in '%s'\n", __func__, expval,
+                  retval,
                   levelbuf);
         return -RIG_EPROTO;
     }
