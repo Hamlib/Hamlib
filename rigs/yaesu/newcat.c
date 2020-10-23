@@ -114,6 +114,7 @@ typedef struct _yaesu_newcat_commands
  */
 const cal_table_t yaesu_default_str_cal =
 {
+    11,
     {
         { 0, -54, }, // S0
         { 26, -42, }, // S2
