@@ -34,11 +34,10 @@
 
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
-#include <unistd.h>  /* UNIX standard function definitions */
+#include <math.h>
 
 #include "hamlib/rig.h"
 #include "iofunc.h"
-#include "serial.h"
 #include "misc.h"
 #include "cal.h"
 #include "newcat.h"
@@ -93,6 +92,42 @@ typedef struct _yaesu_newcat_commands
     ncboolean           ft3000;
     ncboolean           ft101;
 } yaesu_newcat_commands_t;
+
+/**
+ * Yaesu FT-991 S-meter scale, default for new Yaesu rigs.
+ * Determined by data from W6HN -- seems to be pretty linear
+ *
+ * SMeter, rig answer, %fullscale
+ * S0    SM0000 0
+ * S2    SM0026 10
+ * S4    SM0051 20
+ * S6    SM0081 30
+ * S7.5  SM0105 40
+ * S9    SM0130 50
+ * +12db SM0157 60
+ * +25db SM0186 70
+ * +35db SM0203 80
+ * +50db SM0237 90
+ * +60db SM0255 100
+ *
+ * 114dB range over 0-255 referenced to S0 of -54dB
+ */
+const cal_table_t yaesu_default_str_cal =
+{
+    {
+        { 0, -54, }, // S0
+        { 26, -42, }, // S2
+        { 51, -30, }, // S4
+        { 81, -18, }, // S6
+        { 105, -9, }, // S7.5
+        { 130, 0, }, // S9
+        { 157, 12, }, // S9+12dB
+        { 186, 25, }, // S9+25dB
+        { 203, 35, }, // S9+35dB
+        { 237, 50, }, // S9+50dB
+        { 255, 60, }, // S9+60dB
+    }
+};
 
 const cal_table_float_t yaesu_default_swr_cal =
 {
@@ -3775,35 +3810,23 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         break;
 
-    case RIG_LEVEL_STRENGTH: // Yaesu's return straight s-meter answers
-
-
-        if (newcat_is_rig(rig, RIG_MODEL_FT991))
+    case RIG_LEVEL_STRENGTH:
+        if (rig->caps->str_cal.size > 0)
         {
-            // value of 0.448 determined by data from W6HN
-            // seems to be pretty linear
-            // SMeter, rig answer, %fullscale
-            // S0    SM0000 0
-            // S2    SM0026 10
-            // S4    SM0051 20
-            // S6    SM0081 30
-            // S7.5  SM0105 40
-            // S9    SM0130 50
-            // +12db SM0157 60
-            // +25db SM0186 70
-            // +35db SM0203 80
-            // +50db SM0237 90
-            // +60db SM0255 100
-            // 114dB range over 0-255 referenced to S0 of -54dB
-            val->i = atoi(retlvl) * (114.0 / 255.0) - 54;
+            val->i = round(rig_raw2val(atoi(retlvl), &rig->caps->str_cal));
+            break;
         }
-        else // some Yaesu's return straight s-meter answers
+
+        if (is_ft1200 || is_ft3000 || is_ft5000 || is_ft891 || is_ft991 || is_ft101)
+        {
+            val->i = round(rig_raw2val(atoi(retlvl), &yaesu_default_str_cal));
+        }
+        else // some Yaesu rigs return straight s-meter answers
         {
             // Return dbS9 -- does >S9 mean 10dB increments? If not, add to rig driver
             if (val->i > 0) { val->i = (atoi(retlvl) - 9) * 10; }
             else { val->i = (atoi(retlvl) - 9) * 6; } // Return dbS9  does >S9 mean 10dB increments?
         }
-
         break;
 
     case RIG_LEVEL_RAWSTR:
