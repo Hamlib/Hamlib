@@ -588,7 +588,7 @@ int main(int argc, char *argv[])
     my_rig->state.twiddle_timeout = twiddle;
     my_rig->state.uplink = uplink;
     rig_debug(RIG_DEBUG_TRACE, "%s: twiddle=%d, uplink=%d\n", __func__,
-                 my_rig->state.twiddle_timeout, my_rig->state.uplink);
+              my_rig->state.twiddle_timeout, my_rig->state.uplink);
 
     /*
      * ex: RIG_PTT_PARALLEL and /dev/parport0
