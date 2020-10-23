@@ -450,9 +450,11 @@ static int dummy_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     if ((vfo == RIG_VFO_SUB && rig->state.uplink == 1)
             || (vfo == RIG_VFO_MAIN && rig->state.uplink == 2))
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: uplink=%d, ignoring get_freq\n", __func__, rig->state.uplink);
+        rig_debug(RIG_DEBUG_TRACE, "%s: uplink=%d, ignoring get_freq\n", __func__,
+                  rig->state.uplink);
         return RIG_OK;
     }
+
     usleep(CMDSLEEP);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, rig_strvfo(vfo));
 
