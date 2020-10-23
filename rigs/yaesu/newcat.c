@@ -3916,13 +3916,7 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             return -RIG_ENAVAIL;
         }
 
-        if (is_ft1200 || is_ft3000 || is_ft991 || is_ft101)
-        {
-            // 1 = OFF, 2 = ON for these rigs
-            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PR0%d%c", status ? 2 : 1,
-                     cat_term);
-        }
-        else if (is_ft891)
+        if (is_ft1200 || is_ft3000 || is_ft891 || is_ft991 || is_ft101)
         {
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PR0%d%c", status ? 1 : 0,
                      cat_term);
@@ -4201,12 +4195,7 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         break;
 
     case RIG_FUNC_COMP:
-        if (is_ft1200 || is_ft3000 || is_ft991 || is_ft101)
-        {
-            // The return values are 1=OFF and 2=ON for these rigs
-            *status = (retfunc[1] == '2') ? 1 : 0;
-        }
-        else if (is_ft891)
+        if (is_ft1200 || is_ft3000 || is_ft891 || is_ft991 || is_ft101)
         {
             *status = (retfunc[1] == '1') ? 1 : 0;
         }
