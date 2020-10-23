@@ -328,6 +328,7 @@ static struct
     { RIG_MODE_PKTLSB, "PKTLSB" },
     { RIG_MODE_PKTUSB, "PKTUSB" },
     { RIG_MODE_PKTFM, "PKTFM" },
+    { RIG_MODE_PKTFMN, "PKTFMN" },
     { RIG_MODE_ECSSUSB, "ECSSUSB" },
     { RIG_MODE_ECSSLSB, "ECSSLSB" },
     { RIG_MODE_FAX, "FAX" },
