@@ -4134,6 +4134,7 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     priv->ret_data[ret_data_len - 1] = '\0';
 
     rig_debug(RIG_DEBUG_TRACE, "%s: retfunc='%s'\n", __func__, retfunc);
+
     switch (func)
     {
     case RIG_FUNC_MN:
