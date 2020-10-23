@@ -4195,14 +4195,7 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         break;
 
     case RIG_FUNC_COMP:
-        if (is_ft1200 || is_ft3000 || is_ft891 || is_ft991 || is_ft101)
-        {
-            *status = (retfunc[1] == '1') ? 1 : 0;
-        }
-        else
-        {
-            *status = (retfunc[0] == '0') ? 0 : 1;
-        }
+        *status = (retfunc[0] == '0') ? 0 : 1;
         break;
 
     case RIG_FUNC_MON:
