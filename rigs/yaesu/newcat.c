@@ -3992,7 +3992,7 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int err;
     int ret_data_len;
-    int last_digit_index;
+    int last_char_index;
     char *retfunc;
     char main_sub_vfo = '0';
 
@@ -4185,12 +4185,13 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     }
 
     ret_data_len = strlen(priv->ret_data);
-    last_digit_index = ret_data_len - 1;
 
     /* skip command */
     retfunc = priv->ret_data + strlen(priv->cmd_str) - 1;
     /* chop term */
     priv->ret_data[ret_data_len - 1] = '\0';
+
+    last_char_index = ret_data_len - 2;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: retfunc='%s'\n", __func__, retfunc);
     switch (func)
@@ -4217,7 +4218,7 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
     case RIG_FUNC_MON:
         // The number of digits varies by rig, but the last digit indicates the status always
-        *status = (retfunc[last_digit_index] == '0') ? 0 : 1;
+        *status = (retfunc[last_char_index] == '0') ? 0 : 1;
         break;
     case RIG_FUNC_ANF:
     case RIG_FUNC_FBKIN:
