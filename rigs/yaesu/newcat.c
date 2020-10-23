@@ -3242,6 +3242,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     int err;
     int ret_data_len;
     char *retlvl;
+    int retlvl_len;
     float scale;
     char main_sub_vfo = '0';
 
@@ -3572,6 +3573,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     /* skip command */
     retlvl = priv->ret_data + strlen(priv->cmd_str) - 1;
+    retlvl_len = strlen(retlvl);
     /* chop term */
     priv->ret_data[ret_data_len - 1] = '\0';
 
@@ -3596,8 +3598,10 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_SWR:
-        // some rigs like ft101dx have 6 byte return so we just truncate
-        retlvl[3] = 0;
+        if (retlvl_len > 3) {
+            // Some rigs like FTDX101 have 6-byte return so we just truncate
+            retlvl[3] = 0;
+        }
 
         if (rig->caps->swr_cal.size == 0)
         {
@@ -3611,6 +3615,11 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_ALC:
+        if (retlvl_len > 3) {
+            // Some rigs like FTDX101 have 6-byte return so we just truncate
+            retlvl[3] = 0;
+        }
+
         if (rig->caps->alc_cal.size == 0)
         {
             val->f = rig_raw2val_float(atoi(retlvl), &yaesu_default_alc_cal);
@@ -3622,6 +3631,11 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_RFPOWER_METER:
+        if (retlvl_len > 3) {
+            // Some rigs like FTDX101 have 6-byte return so we just truncate
+            retlvl[3] = 0;
+        }
+
         if (rig->caps->rfpower_meter_cal.size == 0)
         {
             val->f = rig_raw2val_float(atoi(retlvl), &yaesu_default_rfpower_meter_cal);
@@ -3633,6 +3647,11 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_COMP_METER:
+        if (retlvl_len > 3) {
+            // Some rigs like FTDX101 have 6-byte return so we just truncate
+            retlvl[3] = 0;
+        }
+
         if (rig->caps->comp_meter_cal.size == 0)
         {
             val->f = rig_raw2val_float(atoi(retlvl), &yaesu_default_comp_meter_cal);
@@ -3644,6 +3663,11 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_VD_METER:
+        if (retlvl_len > 3) {
+            // Some rigs like FTDX101 have 6-byte return so we just truncate
+            retlvl[3] = 0;
+        }
+
         if (rig->caps->vd_meter_cal.size == 0)
         {
             val->f = rig_raw2val_float(atoi(retlvl), &yaesu_default_vd_meter_cal);
@@ -3655,6 +3679,11 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_ID_METER:
+        if (retlvl_len > 3) {
+            // Some rigs like FTDX101 have 6-byte return so we just truncate
+            retlvl[3] = 0;
+        }
+
         if (rig->caps->id_meter_cal.size == 0)
         {
             val->f = rig_raw2val_float(atoi(retlvl), &yaesu_default_id_meter_cal);
