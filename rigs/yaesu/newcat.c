@@ -125,6 +125,57 @@ const cal_table_float_t yaesu_ftdx101d_swr_cal =
     }
 };
 
+// TBC
+const cal_table_float_t yaesu_default_alc_cal =
+{
+    3,
+    {
+        {0, 0.0f},
+        {128, 1.0f},
+        {255, 2.0f},
+    }
+};
+
+// TBC
+const cal_table_float_t yaesu_default_comp_meter_cal =
+{
+    2,
+    {
+        {0, 0.0f},
+        {255, 1.0f},
+    }
+};
+
+// TBC
+const cal_table_float_t yaesu_default_rfpower_meter_cal =
+{
+    2,
+    {
+        {0, 0.0f},
+        {255, 1.0f},
+    }
+};
+
+// TBC
+const cal_table_float_t yaesu_default_vd_meter_cal =
+{
+    2,
+    {
+        {0, 0.0f},
+        {255, 1.0f},
+    }
+};
+
+// TBC
+const cal_table_float_t yaesu_default_id_meter_cal =
+{
+    2,
+    {
+        {0, 0.0f},
+        {255, 1.0f},
+    }
+};
+
 // Easy reference to rig model -- it is set in newcat_valid_command
 static ncboolean is_ft450;
 static ncboolean is_ft891;
@@ -1641,7 +1692,6 @@ int newcat_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     char *retval;
-    //char rit_on;
     int err;
     int offset = 0;
 
@@ -1685,14 +1735,10 @@ int newcat_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
     }
 
     retval = priv->ret_data + offset;
-    //rit_on = retval[5];
     retval[5] = '\0';
 
-    //if (rit_on == '1')
-    {
-        // return the current offset even if turned off
-        *rit = (shortfreq_t) atoi(retval);
-    }
+    // return the current offset even if turned off
+    *rit = (shortfreq_t) atoi(retval);
 
     return RIG_OK;
 }
@@ -1741,7 +1787,6 @@ int newcat_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     char *retval;
-    //char xit_on;
     int err;
     int offset = 0;
 
@@ -1785,14 +1830,10 @@ int newcat_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
     }
 
     retval = priv->ret_data + offset;
-    //xit_on = retval[6];
     retval[5] = '\0';
 
-    //if (xit_on == '1')
-    {
-        // return the offset even when turned off
-        *xit = (shortfreq_t) atoi(retval);
-    }
+    // return the offset even when turned off
+    *xit = (shortfreq_t) atoi(retval);
 
     return RIG_OK;
 }
@@ -3438,6 +3479,42 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM4%c", cat_term);
         break;
 
+    case RIG_LEVEL_RFPOWER_METER:
+        if (!newcat_valid_command(rig, "RM"))
+        {
+            return -RIG_ENAVAIL;
+        }
+
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM5%c", cat_term);
+        break;
+
+    case RIG_LEVEL_COMP_METER:
+        if (!newcat_valid_command(rig, "RM"))
+        {
+            return -RIG_ENAVAIL;
+        }
+
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM3%c", cat_term);
+        break;
+
+    case RIG_LEVEL_VD_METER:
+        if (!newcat_valid_command(rig, "RM"))
+        {
+            return -RIG_ENAVAIL;
+        }
+
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM8%c", cat_term);
+        break;
+
+    case RIG_LEVEL_ID_METER:
+        if (!newcat_valid_command(rig, "RM"))
+        {
+            return -RIG_ENAVAIL;
+        }
+
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM7%c", cat_term);
+        break;
+
     case RIG_LEVEL_ANTIVOX:
         if (is_ft950)
         {
@@ -3533,6 +3610,61 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         break;
 
+    case RIG_LEVEL_ALC:
+        if (rig->caps->alc_cal.size == 0)
+        {
+            val->f = rig_raw2val_float(atoi(retlvl), &yaesu_default_alc_cal);
+        }
+        else
+        {
+            val->f = rig_raw2val_float(atoi(retlvl), &rig->caps->alc_cal);
+        }
+        break;
+
+    case RIG_LEVEL_RFPOWER_METER:
+        if (rig->caps->rfpower_meter_cal.size == 0)
+        {
+            val->f = rig_raw2val_float(atoi(retlvl), &yaesu_default_rfpower_meter_cal);
+        }
+        else
+        {
+            val->f = rig_raw2val_float(atoi(retlvl), &rig->caps->rfpower_meter_cal);
+        }
+        break;
+
+    case RIG_LEVEL_COMP_METER:
+        if (rig->caps->comp_meter_cal.size == 0)
+        {
+            val->f = rig_raw2val_float(atoi(retlvl), &yaesu_default_comp_meter_cal);
+        }
+        else
+        {
+            val->f = rig_raw2val_float(atoi(retlvl), &rig->caps->comp_meter_cal);
+        }
+        break;
+
+    case RIG_LEVEL_VD_METER:
+        if (rig->caps->vd_meter_cal.size == 0)
+        {
+            val->f = rig_raw2val_float(atoi(retlvl), &yaesu_default_vd_meter_cal);
+        }
+        else
+        {
+            val->f = rig_raw2val_float(atoi(retlvl), &rig->caps->vd_meter_cal);
+        }
+        break;
+
+    case RIG_LEVEL_ID_METER:
+        if (rig->caps->id_meter_cal.size == 0)
+        {
+            val->f = rig_raw2val_float(atoi(retlvl), &yaesu_default_id_meter_cal);
+        }
+        else
+        {
+            val->f = rig_raw2val_float(atoi(retlvl), &rig->caps->id_meter_cal);
+        }
+        break;
+
     case RIG_LEVEL_MICGAIN:
         if (is_ft1200 || is_ft3000 || is_ft891 || is_ft991 || is_ft101)
         {
@@ -3548,7 +3680,6 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_AF:
     case RIG_LEVEL_RF:
     case RIG_LEVEL_SQL:
-    case RIG_LEVEL_ALC:
         val->f = (float)atoi(retlvl) / 255.;
         break;
 
