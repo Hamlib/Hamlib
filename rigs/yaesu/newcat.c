@@ -4191,7 +4191,7 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     /* chop term */
     priv->ret_data[ret_data_len - 1] = '\0';
 
-    last_char_index = ret_data_len - 2;
+    last_char_index = strlen(retfunc) - 1;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: retfunc='%s'\n", __func__, retfunc);
     switch (func)
