@@ -3864,8 +3864,15 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             return -RIG_ENAVAIL;
         }
 
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "LK%d%c", status ? 1 : 0,
-                 cat_term);
+        if (is_ft1200 || is_ft3000 || is_ft5000 || is_ft101)
+        {
+            // These rigs can lock Main/Sub VFO dials individually
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "LK%d%c", status ? 7 : 4, cat_term);
+        }
+        else
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "LK%d%c", status ? 1 : 0, cat_term);
+        }
         break;
 
     case RIG_FUNC_MON:
@@ -4202,9 +4209,20 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         // The number of digits varies by rig, but the last digit indicates the status always
         *status = (retfunc[last_char_index] == '0') ? 0 : 1;
         break;
+    case RIG_FUNC_LOCK:
+        if (is_ft1200 || is_ft3000 || is_ft5000 || is_ft101)
+        {
+            // These rigs can lock Main/Sub VFO dials individually
+            *status = (retfunc[0] == '0' || retfunc[0] == '4') ? 0 : 1;
+        }
+        else
+        {
+            *status = (retfunc[0] == '0') ? 0 : 1;
+        }
+        break;
+
     case RIG_FUNC_ANF:
     case RIG_FUNC_FBKIN:
-    case RIG_FUNC_LOCK:
     case RIG_FUNC_NB:
     case RIG_FUNC_NR:
     case RIG_FUNC_VOX:
