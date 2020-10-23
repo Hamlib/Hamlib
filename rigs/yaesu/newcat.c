@@ -2654,14 +2654,29 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             return -RIG_ENAVAIL;
         }
 
-        scale = (is_ft450 && newcat_get_rigid(rig) == NC_RIGID_FT450D) ? 100. : 255.;
-        scale = is_ft891 ? 100. : scale ;
-        scale = is_ft950 ? 100. : scale ;
-        scale = is_ft1200 ? 100. : scale ;
-        scale = is_ft991 ? 100. : scale ;
+        if (is_ft950 || is_ft1200 || is_ft3000 || is_ft891 || is_ft991 || is_ft101)
+        {
+            scale = 100.;
+        }
+        else if (is_ft450 && newcat_get_rigid(rig) == NC_RIGID_FT450D)
+        {
+            scale = 100.;
+        }
+        else
+        {
+            scale = 255.;
+        }
+
         fpf = newcat_scale_float(scale, val.f);
 
-        if (is_ft950 && fpf < 5) { fpf = 5; } // min 5 watts on FT950
+        if (is_ft950 || is_ft891 || is_ft991 || is_ft3000 || is_ft101)
+        {
+            // Minimum is 5 watts on these rigs
+            if (fpf < 5)
+            {
+                fpf = 5;
+            }
+        }
 
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PC%03d%c", fpf, cat_term);
         break;
@@ -3580,12 +3595,19 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     switch (level)
     {
     case RIG_LEVEL_RFPOWER:
-        scale = (newcat_is_rig(rig, RIG_MODEL_FT450)) &&
-                (newcat_get_rigid(rig) == NC_RIGID_FT450D) ? 100. : 255.;
-        scale = newcat_is_rig(rig, RIG_MODEL_FT891) ? 100. : scale ;
-        scale = newcat_is_rig(rig, RIG_MODEL_FT950) ? 100. : scale ;
-        scale = newcat_is_rig(rig, RIG_MODEL_FT1200) ? 100. : scale ;
-        scale = newcat_is_rig(rig, RIG_MODEL_FT991) ? 100. : scale ;
+        if (is_ft950 || is_ft1200 || is_ft3000 || is_ft891 || is_ft991 || is_ft101)
+        {
+            scale = 100.;
+        }
+        else if (is_ft450 && newcat_get_rigid(rig) == NC_RIGID_FT450D)
+        {
+            scale = 100.;
+        }
+        else
+        {
+            scale = 255.;
+        }
+
         val->f = (float)atoi(retlvl) / scale;
         break;
 
