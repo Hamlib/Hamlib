@@ -86,7 +86,7 @@
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:p:d:P:D:s:c:T:t:C:W:lLuovhVZ"
+#define SHORT_OPTIONS "m:r:p:d:P:D:s:c:T:t:C:W:x:z:lLuovhVZ"
 static struct option long_options[] =
 {
     {"model",           1, 0, 'm'},
@@ -108,6 +108,7 @@ static struct option long_options[] =
     {"help",            0, 0, 'h'},
     {"version",         0, 0, 'V'},
     {"twiddle_timeout", 1, 0, 'W'},
+    {"uplink",          1, 0, 'x'},
     {"debug-time-stamps", 0, 0, 'Z'},
     {0, 0, 0, 0}
 };
@@ -248,6 +249,7 @@ int main(int argc, char *argv[])
     int sock_listen;
     int reuseaddr = 1;
     int twiddle = 0;
+    int uplink = 0;
     char host[NI_MAXHOST];
     char serv[NI_MAXSERV];
 #if HAVE_SIGACTION
@@ -277,6 +279,7 @@ int main(int argc, char *argv[])
         {
             break;
         }
+
         switch (c)
         {
         case 'h':
@@ -523,6 +526,17 @@ int main(int argc, char *argv[])
             twiddle = atoi(optarg);
             break;
 
+        case 'x':
+            if (!optarg)
+            {
+                usage();    /* wrong arg count */
+                exit(1);
+            }
+
+            uplink = atoi(optarg);
+            break;
+
+
         case 'Z':
             rig_set_debug_time_stamp(1);
             break;
@@ -572,6 +586,9 @@ int main(int argc, char *argv[])
     }
 
     my_rig->state.twiddle_timeout = twiddle;
+    my_rig->state.uplink = uplink;
+    rig_debug(RIG_DEBUG_TRACE, "%s: twiddle=%d, uplink=%d\n", __func__,
+                 my_rig->state.twiddle_timeout, my_rig->state.uplink);
 
     /*
      * ex: RIG_PTT_PARALLEL and /dev/parport0
@@ -1168,6 +1185,7 @@ void usage(void)
         "  -o, --vfo                     do not default to VFO_CURR, require extra vfo arg\n"
         "  -v, --verbose                 set verbose mode, cumulative (-v to -vvvvv)\n"
         "  -W, --twiddle_timeout         timeout after detecting vfo manual change\n"
+        "  -x, --uplink                  set uplink get_freq ignore, 1=Sub, 2=Main\n"
         "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
         "  -h, --help                    display this help and exit\n"
         "  -V, --version                 output version information and exit\n\n",
