@@ -1986,15 +1986,29 @@ int newcat_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
         return -RIG_ENAVAIL;
     }
 
-    if (tone == 0)     /* turn off ctcss */
+    if (tone == 0) /* turn off ctcss */
     {
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CT%c0%c", main_sub_vfo,
-                 cat_term);
+        if (is_ft891 || is_ft991 || is_ft101)
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CT%c00%c", main_sub_vfo, cat_term);
+        }
+        else
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CT%c0%c", main_sub_vfo, cat_term);
+        }
     }
     else
     {
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CN%c%02d%cCT%c2%c",
-                 main_sub_vfo, i, cat_term, main_sub_vfo, cat_term);
+        if (is_ft891 || is_ft991 || is_ft101)
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CN%c0%03d%cCT%c2%c",
+                    main_sub_vfo, i, cat_term, main_sub_vfo, cat_term);
+        }
+        else
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CN%c%02d%cCT%c2%c",
+                    main_sub_vfo, i, cat_term, main_sub_vfo, cat_term);
+        }
     }
 
     return newcat_set_cmd(rig);
@@ -2030,8 +2044,14 @@ int newcat_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
         main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
 
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", cmd, main_sub_vfo,
-             cat_term);
+    if (is_ft891 || is_ft991 || is_ft101)
+    {
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c0%c", cmd, main_sub_vfo, cat_term);
+    }
+    else
+    {
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", cmd, main_sub_vfo, cat_term);
+    }
 
     /* Get CTCSS TONE */
     if (RIG_OK != (err = newcat_get_cmd(rig)))
