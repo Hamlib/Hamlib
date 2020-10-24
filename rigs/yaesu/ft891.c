@@ -98,7 +98,6 @@ const struct rig_caps ft891_caps =
     .str_cal =            FT891_STR_CAL,
     .chan_list =          {
         {   1,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
-        { 100, 117, RIG_MTYPE_EDGE, NEWCAT_MEM_CAP },    /* two by two */
         RIG_CHAN_END,
     },
 

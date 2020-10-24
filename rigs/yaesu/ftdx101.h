@@ -29,7 +29,7 @@
 #ifndef _FTDX101_H
 #define _FTDX101_H 1
 
-#define FTDX101_VFO_ALL (RIG_VFO_MAIN|RIG_VFO_SUB)
+#define FTDX101_VFO_ALL (RIG_VFO_MAIN|RIG_VFO_SUB|RIG_VFO_MEM)
 
 /* Receiver caps */
 
@@ -71,26 +71,20 @@
                RIG_OP_UP|RIG_OP_DOWN|RIG_OP_BAND_UP|RIG_OP_BAND_DOWN|\
                RIG_OP_TO_VFO|RIG_OP_FROM_VFO|RIG_OP_TOGGLE)
 
-/* TBC */
-#define FTDX101_STR_CAL { 16, \
-	       { \
-			{   0, -54 }, /*  S0 */ \
-			{  12, -48 }, /*  S1 */ \
-			{  27, -42 }, /*  S2 */ \
-			{  40, -36 }, /*  S3 */ \
-			{  55, -30 }, /*  S4 */ \
-			{  65, -24 }, /*  S5 */ \
-			{  80, -18 }, /*  S6 */ \
-			{  95, -12 }, /*  S7 */ \
-			{ 112,  -6 }, /*  S8 */ \
-			{ 130,   0 }, /*  S9 */ \
-			{ 150,  10 }, /* +10 */ \
-			{ 172,  20 }, /* +20 */ \
-			{ 190,  30 }, /* +30 */ \
-			{ 220,  40 }, /* +40 */ \
-			{ 240,  50 }, /* +50 */ \
-			{ 255,  60 }, /* +60 */ \
-		} }
+#define FTDX101D_SWR_CAL \
+    { \
+        8, \
+        { \
+            {0, 1.0f}, \
+            {26, 1.2f}, \
+            {52, 1.5f}, \
+            {89, 2.0f}, \
+            {126, 3.0f}, \
+            {173, 4.0f}, \
+            {236, 5.0f}, \
+            {255, 25.0f}, \
+        } \
+    }
 
 /*
  * Other features (used by rig_caps)

@@ -28,7 +28,7 @@
 #ifndef _FT5000_H
 #define _FT5000_H 1
 
-#define FTDX5000_VFO_ALL (RIG_VFO_MAIN|RIG_VFO_SUB)
+#define FTDX5000_VFO_ALL (RIG_VFO_MAIN|RIG_VFO_SUB|RIG_VFO_MEM)
 
 /* Receiver caps */
 
