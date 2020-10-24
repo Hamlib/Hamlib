@@ -37,6 +37,8 @@
 #include "newcat.h"
 #include "ftdx101.h"
 
+cal_table_float_t yaesu_ftdx101d_swr_cal = FTDX101D_SWR_CAL;
+
 const struct rig_caps ftdx101d_caps =
 {
     RIG_MODEL(RIG_MODEL_FTDX101D),
@@ -81,10 +83,9 @@ const struct rig_caps ftdx101d_caps =
     .transceive =         RIG_TRN_OFF, /* May enable later as the FTDX101 has an Auto Info command */
     .bank_qty =           0,
     .chan_desc_sz =       0,
-    .str_cal =            FTDX101_STR_CAL,
+    .swr_cal =            FTDX101D_SWR_CAL,
     .chan_list =          {
         {   1,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
-        { 100, 117, RIG_MTYPE_EDGE, NEWCAT_MEM_CAP },    /* two by two */
         RIG_CHAN_END,
     },
 

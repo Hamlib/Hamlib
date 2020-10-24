@@ -28,7 +28,7 @@
 #ifndef _FT991_H
 #define _FT991_H 1
 
-#define FT991_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
+#define FT991_VFO_ALL (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)
 
 /* Receiver caps */
 

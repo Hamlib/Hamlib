@@ -130,12 +130,14 @@ const cal_table_t yaesu_default_str_cal =
     }
 };
 
+/**
+ * First cut at generic Yaesu table, need more points probably
+ * based on testing by Adam M7OTP on FT-991
+ */
 const cal_table_float_t yaesu_default_swr_cal =
 {
     5,
     {
-        // first cut at generic Yaesu table, need more points probably
-        // based on testing by Adam M7OTP on FT-991
         {12, 1.0f},
         {39, 1.35f},
         {65, 1.5f},
@@ -144,24 +146,7 @@ const cal_table_float_t yaesu_default_swr_cal =
     }
 };
 
-const cal_table_float_t yaesu_ftdx101d_swr_cal =
-{
-    8,
-    {
-        // first cut at generic Yaesu table, need more points probably
-        // based on testing by Adam M7OTP on FT-991
-        {0, 1.0f},
-        {26, 1.2f},
-        {52, 1.5f},
-        {89, 2.0f},
-        {126, 3.0f},
-        {173, 4.0f},
-        {236, 5.0f},
-        {255, 25.0f},
-    }
-};
-
-// TBC
+// TODO: Provide sane defaults
 const cal_table_float_t yaesu_default_alc_cal =
 {
     3,
@@ -172,7 +157,7 @@ const cal_table_float_t yaesu_default_alc_cal =
     }
 };
 
-// TBC
+// TODO: Provide sane defaults
 const cal_table_float_t yaesu_default_comp_meter_cal =
 {
     2,
@@ -182,7 +167,7 @@ const cal_table_float_t yaesu_default_comp_meter_cal =
     }
 };
 
-// TBC
+// TODO: Provide sane defaults
 const cal_table_float_t yaesu_default_rfpower_meter_cal =
 {
     2,
@@ -192,7 +177,7 @@ const cal_table_float_t yaesu_default_rfpower_meter_cal =
     }
 };
 
-// TBC
+// TODO: Provide sane defaults
 const cal_table_float_t yaesu_default_vd_meter_cal =
 {
     2,
@@ -202,7 +187,7 @@ const cal_table_float_t yaesu_default_vd_meter_cal =
     }
 };
 
-// TBC
+// TODO: Provide sane defaults
 const cal_table_float_t yaesu_default_id_meter_cal =
 {
     2,
@@ -1711,13 +1696,13 @@ int newcat_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     }
     else if (rit < 0)
     {
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC%cRD%04ld%cRT1%c", cat_term,
-                 labs(rit), cat_term, cat_term);
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC%cRD%04ld%c", cat_term,
+                 labs(rit), cat_term);
     }
     else
     {
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC%cRU%04ld%cRT1%c", cat_term,
-                 labs(rit), cat_term, cat_term);
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC%cRU%04ld%c", cat_term,
+                 labs(rit), cat_term);
     }
 
     return newcat_set_cmd(rig);
@@ -1806,13 +1791,13 @@ int newcat_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
     }
     else if (xit < 0)
     {
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC%cRD%04ld%cXT1%c", cat_term,
-                 labs(xit), cat_term, cat_term);
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC%cRD%04ld%c", cat_term,
+                 labs(xit), cat_term);
     }
     else
     {
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC%cRU%04ld%cXT1%c", cat_term,
-                 labs(xit), cat_term, cat_term);
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC%cRU%04ld%c", cat_term,
+                 labs(xit), cat_term);
     }
 
     return newcat_set_cmd(rig);
