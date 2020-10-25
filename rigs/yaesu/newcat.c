@@ -6255,6 +6255,7 @@ static int set_roofing_filter(RIG *rig, vfo_t vfo, int index)
     char main_sub_vfo = '0';
     char roofing_filter_choice = 0;
     int err;
+    int i;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
@@ -6273,9 +6274,9 @@ static int set_roofing_filter(RIG *rig, vfo_t vfo, int index)
         return -RIG_ENAVAIL;
     }
 
-    for (index = 0; roofing_filters[index].index >= 0; index++)
+    for (i = 0; roofing_filters[i].index >= 0; i++)
     {
-        struct newcat_roofing_filter *current_filter = &roofing_filters[index];
+        struct newcat_roofing_filter *current_filter = &roofing_filters[i];
         char set_value = current_filter->set_value;
         if (set_value == 0)
         {
