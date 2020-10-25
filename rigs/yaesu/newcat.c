@@ -4522,6 +4522,7 @@ int newcat_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
             }
 
             val->i = roofing_filter->index;
+            break;
         }
 
         default:
@@ -6400,7 +6401,7 @@ static int get_roofing_filter(RIG *rig, vfo_t vfo, struct newcat_roofing_filter 
             "%s: Expected a valid roofing filter but got %c from '%s'\n", __func__,
             roofing_filter_choice, priv->ret_data);
 
-    return RIG_ENIMPL;
+    return RIG_EPROTO;
 }
 
 int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
