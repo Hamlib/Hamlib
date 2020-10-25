@@ -438,7 +438,7 @@ int newcat_open(RIG *rig)
 
     /* Currently we cannot cope with AI mode so turn it off in case
        last client left it on */
-    if (priv->trn_state >= 0)
+    if (priv->trn_state > 0)
     {
         newcat_set_trn(rig, RIG_TRN_OFF);
     } /* ignore status in case it's not supported */
