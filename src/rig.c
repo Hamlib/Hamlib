@@ -5179,7 +5179,6 @@ static int wait_morse_ptt(RIG *rig, vfo_t vfo)
 {
     ptt_t pttStatus = RIG_PTT_OFF;
     int loops = 0;
-    int retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -5187,6 +5186,7 @@ static int wait_morse_ptt(RIG *rig, vfo_t vfo)
 
     do
     {
+        int retval;
         rig_debug(RIG_DEBUG_TRACE, "%s: loop#%d until ptt=0, ptt=%d\n", __func__, loops,
                   pttStatus);
         elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_INVALIDATE);
