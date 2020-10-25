@@ -72,12 +72,34 @@ typedef char ncboolean;
 extern const struct confparams newcat_cfg_params[];
 
 /*
- * future - private data
- *
- * FIXME: Does this need to be exposed to the application/frontend through
- * rig_caps.priv?  I'm guessing not since it's private to the backend.  -N0NB
+ * Private caps for newcat rigs
  */
 
+#define NEWCAT_ROOFING_FILTER_COUNT 12
+
+struct newcat_roofing_filter
+{
+    /* Index of the roofing filter in the ext level combo */
+    int index;
+    /* Value to set the selected roofing filter, must be 0 for a get-only choice */
+    char set_value;
+    /* Value returned by the rig for this roofing filter, must be 0 for a set-only choice */
+    char get_value;
+    /* Width of the filter in Hz */
+    int width;
+    /* 0 = Always available, 1 = Optional filter */
+    int optional;
+};
+
+struct newcat_priv_caps
+{
+    int roofing_filter_count;
+    struct newcat_roofing_filter roofing_filters[NEWCAT_ROOFING_FILTER_COUNT];
+};
+
+/*
+ * Private state for newcat rigs
+ */
 struct newcat_priv_data
 {
     unsigned int
@@ -96,8 +118,8 @@ struct newcat_priv_data
     struct timespec cache_start;
     char last_if_response[NEWCAT_DATA_LEN];
     int poweron; /* to prevent powering on more than once */
+    int question_mark_response_means_rejected;
 };
-
 
 /*
  * Functions considered to be Stable:
@@ -132,9 +154,7 @@ struct newcat_priv_data
  */
 
 int newcat_get_cmd(RIG *rig);
-int newcat_get_cmd_ext(RIG *rig, int question_mark_response_means_rejected);
 int newcat_set_cmd(RIG *rig);
-int newcat_set_cmd_ext(RIG *rig, int question_mark_response_means_rejected);
 
 int newcat_init(RIG *rig);
 int newcat_cleanup(RIG *rig);
@@ -197,5 +217,8 @@ rmode_t newcat_rmode(char mode);
 char newcat_modechar(rmode_t rmode);
 rmode_t newcat_rmode_width(RIG *rig, vfo_t vfo, char mode, pbwidth_t *width);
 
+#define TOKEN_BACKEND(t) (t)
+
+#define TOK_ROOFING_FILTER TOKEN_BACKEND(100)
 
 #endif /* _NEWCAT_H */
