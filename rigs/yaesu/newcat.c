@@ -6298,7 +6298,11 @@ static int set_roofing_filter(RIG *rig, vfo_t vfo, int index)
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RF%c%c%c", main_sub_vfo, roofing_filter_choice, cat_term);
 
-    if (RIG_OK != (err = newcat_set_cmd(rig)))
+    priv->question_mark_response_means_rejected = 1;
+    err = newcat_set_cmd(rig);
+    priv->question_mark_response_means_rejected = 0;
+
+    if (RIG_OK != err)
     {
         return err;
     }
