@@ -482,9 +482,11 @@ int newcat_open(RIG *rig)
 
     /* Currently we cannot cope with AI mode so turn it off in case
        last client left it on */
-    newcat_set_trn(rig, RIG_TRN_OFF); /* ignore status in case it's
+    if (priv->trn_state == RIG_TRN_ON)
+    {
+        newcat_set_trn(rig, RIG_TRN_OFF);
+    } /* ignore status in case it's not supported */
 
-                                         not supported */
     /* Initialize rig_id in case any subsequent commands need it */
     (void)newcat_get_rigid(rig);
 
@@ -753,7 +755,8 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         }
         else
         {
-            rig_debug(RIG_DEBUG_TRACE, "%s: need to restore band settings=%s\n", __func__, priv->ret_data);
+            rig_debug(RIG_DEBUG_TRACE, "%s: need to restore band settings=%s\n", __func__,
+                      priv->ret_data);
         }
     }
 
