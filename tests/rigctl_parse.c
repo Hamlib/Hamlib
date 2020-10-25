@@ -78,7 +78,7 @@ extern int read_history();
 
 #define MAXNAMSIZ 32
 #define MAXNBOPT 100    /* max number of different options */
-#define MAXARGSZ 127
+#define MAXARGSZ 511
 
 #define ARG_IN1  0x01
 #define ARG_OUT1 0x02
@@ -4330,7 +4330,7 @@ declare_proto_rig(send_cmd)
     int retval;
     struct rig_state *rs;
     int backend_num, cmd_len;
-#define BUFSZ 128
+#define BUFSZ 512
     char bufcmd[BUFSZ * 5]; // allow for 5 chars for binary
     unsigned char buf[BUFSZ];
     char eom_buf[4] = { 0xa, 0xd, 0, 0 };
