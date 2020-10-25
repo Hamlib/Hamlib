@@ -6295,7 +6295,7 @@ static int set_roofing_filter(RIG *rig, vfo_t vfo, int index)
         return -RIG_EINVAL;
     }
 
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RF%c%1d%c", main_sub_vfo, roofing_filter_choice, cat_term);
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RF%c%c%c", main_sub_vfo, roofing_filter_choice, cat_term);
 
     if (RIG_OK != (err = newcat_set_cmd(rig)))
     {
