@@ -5062,7 +5062,7 @@ int newcat_get_channel(RIG *rig, channel_t *chan, int read_only)
 
 
     /* Get Memory Channel */
-    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    if (RIG_OK != (err = newcat_get_cmd_ext(rig, 1)))
     {
         if (-RIG_ERJCTED == err)
         {
@@ -7009,7 +7009,7 @@ int newcat_vfomem_toggle(RIG *rig)
  * "?;" busy please wait response; the command is not resent but up to
  * 'retry' retries to receive a valid response are made.
  */
-int newcat_get_cmd(RIG *rig)
+int newcat_get_cmd_ext(RIG *rig, int question_mark_response_means_rejected)
 {
     struct rig_state *state = &rig->state;
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
@@ -7169,6 +7169,13 @@ int newcat_get_cmd(RIG *rig)
                 break;            /* retry */
 
             case '?':
+                if (question_mark_response_means_rejected)
+                {
+                    /* Some commands, like MR and MC return "?;" when choosing a channel that doesn't exist */
+                    rig_debug(RIG_DEBUG_ERR, "%s: Command rejected: '%s'\n", __func__, priv->cmd_str);
+                    return -RIG_ERJCTED;
+                }
+
                 /* Rig busy wait please */
                 rig_debug(RIG_DEBUG_ERR, "%s: Rig busy\n", __func__);
                 rc = -RIG_BUSBUSY;
@@ -7201,6 +7208,11 @@ int newcat_get_cmd(RIG *rig)
     }
 
     return rc;
+}
+
+int newcat_get_cmd(RIG *rig)
+{
+    return newcat_get_cmd_ext(rig, 0);
 }
 
 /*
