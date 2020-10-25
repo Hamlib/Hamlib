@@ -6334,13 +6334,13 @@ static int set_roofing_filter_for_width(RIG *rig, vfo_t vfo, int width)
             continue;
         }
 
-        index = i;
-
         // The last filter is always the narrowest
         if (current_filter->width < width)
         {
             break;
         }
+
+        index = i;
     }
 
     if (index < 0)
