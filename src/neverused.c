@@ -109,6 +109,7 @@ void never_used()
     icom_power2mW();
     icom_send_morse();
     icom_send_voice_mem();
+    icom_stop_morse();
     icom_set_bank();
     icom_set_ctcss_sql();
     icom_set_ctcss_tone();
