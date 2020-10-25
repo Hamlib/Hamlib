@@ -217,6 +217,9 @@ rmode_t newcat_rmode(char mode);
 char newcat_modechar(rmode_t rmode);
 rmode_t newcat_rmode_width(RIG *rig, vfo_t vfo, char mode, pbwidth_t *width);
 
+int newcat_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val);
+int newcat_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val);
+
 #define TOKEN_BACKEND(t) (t)
 
 #define TOK_ROOFING_FILTER TOKEN_BACKEND(100)
