@@ -133,6 +133,7 @@ struct newcat_priv_data
 
 int newcat_get_cmd(RIG *rig);
 int newcat_set_cmd(RIG *rig);
+int newcat_set_cmd_ext(RIG *rig, int question_mark_response_means_rejected);
 
 int newcat_init(RIG *rig);
 int newcat_cleanup(RIG *rig);
