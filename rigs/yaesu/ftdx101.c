@@ -39,6 +39,34 @@
 
 cal_table_float_t yaesu_ftdx101d_swr_cal = FTDX101D_SWR_CAL;
 
+const struct newcat_priv_caps ftdx101d_priv_caps =
+{
+    .roofing_filter_count = 5,
+    .roofing_filters =
+    {
+        // The index must match ext level combo index
+        { .index = 0, .set_value = '1', .get_value = '6', .width = 12000, .optional = 0 },
+        { .index = 1, .set_value = '2', .get_value = '7', .width = 3000, .optional = 0 },
+        { .index = 2, .set_value = '3', .get_value = '8', .width = 1200, .optional = 1 },
+        { .index = 3, .set_value = '4', .get_value = '9', .width = 600, .optional = 0 },
+        { .index = 4, .set_value = '5', .get_value = 'A', .width = 300, .optional = 1 },
+    }
+};
+
+const struct confparams ftdx101d_ext_levels[] =
+{
+    {
+        TOK_ROOFING_FILTER,
+        "ROOFINGFILTER",
+        "Roofing filter",
+        "Roofing filter",
+        NULL,
+        RIG_CONF_COMBO,
+        { .c = { .combostr = { "12 kHz", "3 kHz", "1.2 kHz (optional)", "600 Hz", "300 Hz (optional)", NULL } } }
+    },
+    { RIG_CONF_END, NULL, }
+};
+
 const struct rig_caps ftdx101d_caps =
 {
     RIG_MODEL(RIG_MODEL_FTDX101D),
@@ -152,7 +180,9 @@ const struct rig_caps ftdx101d_caps =
         RIG_FLT_END,
     },
 
-    .priv =               NULL,
+    .extlevels =          ftdx101d_ext_levels,
+
+    .priv =               &ftdx101d_priv_caps,
 
     .rig_init =           newcat_init,
     .rig_cleanup =        newcat_cleanup,

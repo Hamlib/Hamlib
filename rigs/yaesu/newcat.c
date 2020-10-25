@@ -379,6 +379,9 @@ static int newcat_get_faststep(RIG *rig, ncboolean *fast_step);
 static int newcat_get_rigid(RIG *rig);
 static int newcat_get_vfo_mode(RIG *rig, vfo_t *vfo_mode);
 static int newcat_vfomem_toggle(RIG *rig);
+static int set_roofing_filter(RIG *rig, vfo_t vfo, int index);
+static int set_roofing_filter_for_width(RIG *rig, vfo_t vfo, int width);
+static int get_roofing_filter(RIG *rig, vfo_t vfo, struct newcat_roofing_filter **roofing_filter);
 static ncboolean newcat_valid_command(RIG *rig, char const *const command);
 
 /*
@@ -475,6 +478,8 @@ int newcat_open(RIG *rig)
         rig_set_powerstat(rig, 1);
         priv->poweron = 1;
     }
+
+    priv->question_mark_response_means_rejected = 0;
 
     /* get current AI state so it can be restored */
     priv->trn_state = -1;
@@ -4488,17 +4493,44 @@ int newcat_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return -RIG_ENAVAIL;
-}
+    switch (token)
+    {
+        case TOK_ROOFING_FILTER:
+            return set_roofing_filter(rig, vfo, val.i);
 
+        default:
+            rig_debug(RIG_DEBUG_ERR, "%s: Unsupported ext level %s\n", __func__, rig_strlevel(token));
+            return -RIG_EINVAL;
+    }
+}
 
 int newcat_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 {
+    int retval;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return -RIG_ENAVAIL;
-}
+    switch (token)
+    {
+        case TOK_ROOFING_FILTER:
+        {
+            struct newcat_roofing_filter *roofing_filter;
+            retval = get_roofing_filter(rig, vfo, &roofing_filter);
+            if (retval != RIG_OK)
+            {
+                return retval;
+            }
 
+            val->i = roofing_filter->index;
+        }
+
+        default:
+            rig_debug(RIG_DEBUG_ERR, "%s: Unsupported ext level %s\n", __func__, rig_strlevel(token));
+            return -RIG_EINVAL;
+    }
+
+    return RIG_OK;
+}
 
 int newcat_set_ext_parm(RIG *rig, token_t token, value_t val)
 {
@@ -4636,7 +4668,9 @@ int newcat_set_mem(RIG *rig, vfo_t vfo, int ch)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
 
-    err = newcat_set_cmd_ext(rig, 1);
+    priv->question_mark_response_means_rejected = 1;
+    err = newcat_set_cmd(rig);
+    priv->question_mark_response_means_rejected = 0;
 
     if (err != RIG_OK)
     {
@@ -4999,7 +5033,9 @@ int newcat_set_channel(RIG *rig, const channel_t *chan)
     rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
 
     /* Set Memory Channel */
-    err = newcat_set_cmd_ext(rig, 1);
+    priv->question_mark_response_means_rejected = 1;
+    err = newcat_set_cmd(rig);
+    priv->question_mark_response_means_rejected = 0;
 
     if (err != RIG_OK)
     {
@@ -5062,7 +5098,10 @@ int newcat_get_channel(RIG *rig, channel_t *chan, int read_only)
 
 
     /* Get Memory Channel */
-    if (RIG_OK != (err = newcat_get_cmd_ext(rig, 1)))
+    priv->question_mark_response_means_rejected = 1;
+    err = newcat_get_cmd(rig);
+    priv->question_mark_response_means_rejected = 0;
+    if (RIG_OK != err)
     {
         if (-RIG_ERJCTED == err)
         {
@@ -6081,8 +6120,6 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     } // end is_ft1200
     else if (is_ft101)
     {
-        int roof_width;
-
         switch (mode)
         {
         case RIG_MODE_PKTUSB:
@@ -6141,21 +6178,10 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             else { w = 23; } // 4000Hz
         } // end switch(mode)
 
-        // set roofing filter to allow for requested bandwidth
-        // widths of 3 and 5 are optional so won't do them
-        if (width <= 600) { roof_width = 4; }
-        else if (width <= 3000) { roof_width = 2; }
-        else { roof_width = 1; }
-
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RF%c%1d%c", main_sub_vfo,
-                 roof_width,
-                 cat_term);
-
-        if (RIG_OK != (err = newcat_set_cmd(rig)))
+        if ((err = set_roofing_filter_for_width(rig, vfo, width)) != RIG_OK)
         {
             return err;
         }
-
     } // end is_ft101
     else
     {
@@ -6220,31 +6246,137 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     return newcat_set_cmd(rig);
 }
 
-static char get_roofing_filter(RIG *rig, vfo_t vfo)
+static int set_roofing_filter(RIG *rig, vfo_t vfo, int index)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
-    char roofing_filter;
+    struct newcat_priv_caps *priv_caps = (struct newcat_priv_caps *)rig->caps->priv;
+    struct newcat_roofing_filter *roofing_filters = priv_caps->roofing_filters;
     char main_sub_vfo = '0';
-    char rf_vfo = 'X';
+    char roofing_filter_choice = 0;
     int err;
-    int n;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+    if (priv_caps == NULL)
+    {
+        return -RIG_ENAVAIL;
+    }
 
     if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
     {
         main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
 
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RF%c%c", main_sub_vfo,
-             cat_term);
+    if (!newcat_valid_command(rig, "RF"))
+    {
+        return -RIG_ENAVAIL;
+    }
+
+    for (index = 0; roofing_filters[index].index >= 0; index++)
+    {
+        struct newcat_roofing_filter *current_filter = &roofing_filters[index];
+        char set_value = current_filter->set_value;
+        if (set_value == 0)
+        {
+            continue;
+        }
+
+        roofing_filter_choice = set_value;
+
+        if (current_filter->index == index)
+        {
+            break;
+        }
+    }
+
+    if (roofing_filter_choice == 0)
+    {
+        return -RIG_EINVAL;
+    }
+
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RF%c%1d%c", main_sub_vfo, roofing_filter_choice, cat_term);
+
+    if (RIG_OK != (err = newcat_set_cmd(rig)))
+    {
+        return err;
+    }
+
+    return RIG_OK;
+}
+
+static int set_roofing_filter_for_width(RIG *rig, vfo_t vfo, int width)
+{
+    struct newcat_priv_caps *priv_caps = (struct newcat_priv_caps *)rig->caps->priv;
+    int index = -1;
+    int i;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+    if (priv_caps == NULL)
+    {
+        return -RIG_ENAVAIL;
+    }
+
+    for (i = 0; i < priv_caps->roofing_filter_count; i++)
+    {
+        struct newcat_roofing_filter *current_filter = &priv_caps->roofing_filters[i];
+        char set_value = current_filter->set_value;
+
+        // Skip get-only values and optional filters
+        if (set_value == 0 || current_filter->optional)
+        {
+            continue;
+        }
+
+        index = i;
+
+        // The last filter is always the narrowest
+        if (current_filter->width < width)
+        {
+            break;
+        }
+    }
+
+    if (index < 0)
+    {
+        return -RIG_EINVAL;
+    }
+
+    return set_roofing_filter(rig, vfo, index);
+}
+
+static int get_roofing_filter(RIG *rig, vfo_t vfo, struct newcat_roofing_filter **roofing_filter)
+{
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_caps *priv_caps = (struct newcat_priv_caps *)rig->caps->priv;
+    struct newcat_roofing_filter *roofing_filters = priv_caps->roofing_filters;
+    char roofing_filter_choice;
+    char main_sub_vfo = '0';
+    char rf_vfo = 'X';
+    int err;
+    int n;
+    int i;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+    if (priv_caps == NULL)
+    {
+        return -RIG_ENAVAIL;
+    }
+
+    if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
+    {
+        main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
+    }
+
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RF%c%c", main_sub_vfo, cat_term);
 
     if (RIG_OK != (err = newcat_get_cmd(rig)))
     {
         return err;
     }
 
-    n = sscanf(priv->ret_data, "RF%c%c", &rf_vfo, &roofing_filter);
+    n = sscanf(priv->ret_data, "RF%c%c", &rf_vfo, &roofing_filter_choice);
 
     if (n != 2)
     {
@@ -6254,7 +6386,21 @@ static char get_roofing_filter(RIG *rig, vfo_t vfo)
         return -RIG_EPROTO;
     }
 
-    return roofing_filter;
+    for (i = 0; i < priv_caps->roofing_filter_count; i++)
+    {
+        struct newcat_roofing_filter *current_filter = &roofing_filters[i];
+        if (current_filter->get_value == roofing_filter_choice)
+        {
+            *roofing_filter = current_filter;
+            return RIG_OK;
+        }
+    }
+
+    rig_debug(RIG_DEBUG_ERR,
+            "%s: Expected a valid roofing filter but got %c from '%s'\n", __func__,
+            roofing_filter_choice, priv->ret_data);
+
+    return RIG_ENIMPL;
 }
 
 int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
@@ -6615,25 +6761,12 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 
         if (w == 0) // then we need to know the roofing filter
         {
-            char roofing_filter = get_roofing_filter(rig, vfo);
+            struct newcat_roofing_filter *roofing_filter;
+            int err = get_roofing_filter(rig, vfo, &roofing_filter);
 
-            switch (roofing_filter)
+            if (err == RIG_OK)
             {
-            case '6': *width = 12000; break;
-
-            case '7': *width = 3000; break;
-
-            case '8': *width = 1200; break;
-
-            case '9': *width = 600; break;
-
-            case 'A': *width = 300; break;
-
-            default:
-                rig_debug(RIG_DEBUG_ERR,
-                          "%s: Expected roofing filter 6,7,8,9,A but got %c from '%s'\n", __func__,
-                          roofing_filter, priv->ret_data);
-                return RIG_OK;
+                *width = roofing_filter->width;
             }
         }
 
@@ -7009,7 +7142,7 @@ int newcat_vfomem_toggle(RIG *rig)
  * "?;" busy please wait response; the command is not resent but up to
  * 'retry' retries to receive a valid response are made.
  */
-int newcat_get_cmd_ext(RIG *rig, int question_mark_response_means_rejected)
+int newcat_get_cmd(RIG *rig)
 {
     struct rig_state *state = &rig->state;
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
@@ -7169,7 +7302,7 @@ int newcat_get_cmd_ext(RIG *rig, int question_mark_response_means_rejected)
                 break;            /* retry */
 
             case '?':
-                if (question_mark_response_means_rejected)
+                if (priv->question_mark_response_means_rejected)
                 {
                     /* Some commands, like MR and MC return "?;" when choosing a channel that doesn't exist */
                     rig_debug(RIG_DEBUG_ERR, "%s: Command rejected: '%s'\n", __func__, priv->cmd_str);
@@ -7210,11 +7343,6 @@ int newcat_get_cmd_ext(RIG *rig, int question_mark_response_means_rejected)
     return rc;
 }
 
-int newcat_get_cmd(RIG *rig)
-{
-    return newcat_get_cmd_ext(rig, 0);
-}
-
 /*
  * Writes a null  terminated command string from  priv->cmd_str to the
  * CAT  port that is not expected to have a response.
@@ -7225,7 +7353,7 @@ int newcat_get_cmd(RIG *rig)
  * "?;" busy please wait response; the command is not resent but up to
  * 'retry' retries to receive a valid response are made.
  */
-int newcat_set_cmd_ext(RIG *rig, int question_mark_response_means_rejected)
+int newcat_set_cmd(RIG *rig)
 {
     struct rig_state *state = &rig->state;
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
@@ -7304,7 +7432,7 @@ int newcat_set_cmd_ext(RIG *rig, int question_mark_response_means_rejected)
                 break;            /* retry */
 
             case '?':
-                if (question_mark_response_means_rejected)
+                if (priv->question_mark_response_means_rejected)
                 {
                     /* Some commands, like MR and MC return "?;" when choosing a channel that doesn't exist */
                     rig_debug(RIG_DEBUG_ERR, "%s: Command rejected: '%s'\n", __func__, priv->cmd_str);
@@ -7349,11 +7477,6 @@ int newcat_set_cmd_ext(RIG *rig, int question_mark_response_means_rejected)
     }
 
     return rc;
-}
-
-int newcat_set_cmd(RIG *rig)
-{
-    return newcat_set_cmd_ext(rig, 0);
 }
 
 struct
