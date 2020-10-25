@@ -67,6 +67,11 @@ const struct confparams ftdx101d_ext_levels[] =
     { RIG_CONF_END, NULL, }
 };
 
+int ftdx101d_ext_tokens[] =
+{
+    TOK_ROOFING_FILTER, TOK_BACKEND_NONE
+};
+
 const struct rig_caps ftdx101d_caps =
 {
     RIG_MODEL(RIG_MODEL_FTDX101D),
@@ -180,6 +185,7 @@ const struct rig_caps ftdx101d_caps =
         RIG_FLT_END,
     },
 
+    .ext_tokens =         ftdx101d_ext_tokens,
     .extlevels =          ftdx101d_ext_levels,
 
     .priv =               &ftdx101d_priv_caps,
