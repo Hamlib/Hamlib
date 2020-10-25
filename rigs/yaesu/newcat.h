@@ -50,7 +50,7 @@
 typedef char ncboolean;
 
 /* shared function version */
-#define NEWCAT_VER "20201016"
+#define NEWCAT_VER "20201025"
 
 /* Hopefully large enough for future use, 512 chars plus '\0' */
 #define NEWCAT_DATA_LEN                 513
