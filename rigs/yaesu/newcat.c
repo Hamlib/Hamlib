@@ -709,7 +709,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         }
         else
         {
-            rig_debug(RIG_DEBUG_TRACE, "%s: need to restore band settings\n", __func__);
+            rig_debug(RIG_DEBUG_TRACE, "%s: need to restore band settings=%s\n", __func__, priv->ret_data);
         }
     }
 
