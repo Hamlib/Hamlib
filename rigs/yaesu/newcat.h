@@ -52,8 +52,8 @@ typedef char ncboolean;
 /* shared function version */
 #define NEWCAT_VER "20201016"
 
-/* Hopefully large enough for future use, 128 chars plus '\0' */
-#define NEWCAT_DATA_LEN                 129
+/* Hopefully large enough for future use, 512 chars plus '\0' */
+#define NEWCAT_DATA_LEN                 513
 
 /* arbitrary value for now.  11 bits (8N2+1) == 2.2917 mS @ 4800 bps */
 #define NEWCAT_DEFAULT_READ_TIMEOUT     (NEWCAT_DATA_LEN * 5)
@@ -96,6 +96,7 @@ struct newcat_priv_data
     struct timespec cache_start;
     char last_if_response[NEWCAT_DATA_LEN];
     int poweron; /* to prevent powering on more than once */
+    int has_bs_cmd; // used to restore band memory */
 };
 
 
