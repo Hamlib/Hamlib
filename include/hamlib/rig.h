@@ -2038,6 +2038,8 @@ struct rig_state {
     freq_t lo_freq;             /*!< Local oscillator frequency of any transverter */
     time_t twiddle_time;        /*!< time when vfo twiddling was detected */
     int twiddle_timeout;        /*!< timeout to resume from twiddling */
+    // uplink allows gpredict to behave better by no reading the uplink VFO
+    int uplink;                 /*!< uplink=1 will not read Sub, uplink=2 will not read Main */
     struct rig_cache cache;
     int vfo_opt;                /*!< Is -o switch turned on? */
     int auto_power_on;          /*!< Allow Hamlib to power rig
@@ -2650,6 +2652,11 @@ rig_set_twiddle HAMLIB_PARAMS((RIG *rig,
 extern HAMLIB_EXPORT(int)
 rig_get_twiddle HAMLIB_PARAMS((RIG *rig,
                                  int *seconds));
+
+extern HAMLIB_EXPORT(int)
+rig_set_uplink HAMLIB_PARAMS((RIG *rig,
+                                 int val));
+
 
 extern HAMLIB_EXPORT(const char *)
 rig_get_info HAMLIB_PARAMS((RIG *rig));

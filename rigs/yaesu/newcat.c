@@ -385,6 +385,33 @@ static int get_roofing_filter(RIG *rig, vfo_t vfo, struct newcat_roofing_filter 
 static ncboolean newcat_valid_command(RIG *rig, char const *const command);
 
 /*
+ * The BS command needs to know what band we're on so we can restore band info
+ * So this converts freq to band index
+ */
+static int newcat_band_index(freq_t freq)
+{
+    // FTDX101D has band=12=MW...what is that?
+    int band = 11; // general
+
+    if (freq >= 1.8) { band = 0; }
+    else if (freq >= 3.5) { band = 1; }
+    else if (freq >= 5) { band = 2; }
+    else if (freq >= 7) { band = 3; }
+    else if (freq >= 10) { band = 4; }
+    else if (freq >= 14) { band = 5; }
+    else if (freq >= 18) { band = 6; }
+    else if (freq >= 21) { band = 7; }
+    else if (freq >= 24.5) { band = 8; }
+    else if (freq >= 28) { band = 9; }
+    else if (freq >= 50) { band = 10; }
+    // what about 11-16?
+    else if (freq >= 70) { band = 17; }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: band=%d\n", __func__, band);
+    return band;
+}
+
+/*
  * ************************************
  *
  * Hamlib API functions
@@ -424,6 +451,7 @@ int newcat_init(RIG *rig)
     priv->rig_id = NC_RIGID_NONE;
     priv->current_mem = NC_MEM_CHANNEL_NONE;
     priv->fast_set_commands = FALSE;
+    priv->has_bs_cmd = 1; // assume true until proven otherwise..in set_freq
 
     return RIG_OK;
 }
@@ -488,9 +516,11 @@ int newcat_open(RIG *rig)
 
     /* Currently we cannot cope with AI mode so turn it off in case
        last client left it on */
-    newcat_set_trn(rig, RIG_TRN_OFF); /* ignore status in case it's
+    if (priv->trn_state > 0)
+    {
+        newcat_set_trn(rig, RIG_TRN_OFF);
+    } /* ignore status in case it's not supported */
 
-                                         not supported */
     /* Initialize rig_id in case any subsequent commands need it */
     (void)newcat_get_rigid(rig);
 
@@ -741,6 +771,27 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         rig_debug(RIG_DEBUG_VERBOSE, "%s:%d command err = %d\n", __func__, __LINE__,
                   err);
         return err;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: band changing? old=%d, new=%d\n", __func__,
+              newcat_band_index(freq), newcat_band_index(rig->state.current_freq));
+
+    // Restore band memory if we can
+    if (priv->has_bs_cmd
+            && newcat_band_index(freq) != newcat_band_index(rig->state.current_freq))
+    {
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "BS%c", cat_term);
+
+        if (RIG_OK != (err = newcat_set_cmd(rig)))
+        {
+            priv->has_bs_cmd = 0; // guess we can't do this so don't try again
+            rig_debug(RIG_DEBUG_TRACE, "%s: rig does not have BS command\n", __func__);
+        }
+        else
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: need to restore band settings=%s\n", __func__,
+                      priv->ret_data);
+        }
     }
 
     if (RIG_MODEL_FT450 == caps->rig_model && priv->ret_data[2] != target_vfo)
@@ -4411,6 +4462,7 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     last_char_index = strlen(retfunc) - 1;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: retfunc='%s'\n", __func__, retfunc);
+
     switch (func)
     {
     case RIG_FUNC_MN:
@@ -5222,7 +5274,7 @@ int newcat_get_channel(RIG *rig, channel_t *chan, int read_only)
 const char *newcat_get_info(RIG *rig)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
-    static char idbuf[129]; /* extra large static string array */
+    static char idbuf[513]; /* extra large static string array */
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 

@@ -78,7 +78,7 @@ extern int read_history();
 
 #define MAXNAMSIZ 32
 #define MAXNBOPT 100    /* max number of different options */
-#define MAXARGSZ 127
+#define MAXARGSZ 511
 
 #define ARG_IN1  0x01
 #define ARG_OUT1 0x02
@@ -229,6 +229,7 @@ declare_proto_rig(chk_vfo);
 declare_proto_rig(set_vfo_opt);
 declare_proto_rig(set_twiddle);
 declare_proto_rig(get_twiddle);
+declare_proto_rig(set_uplink);
 declare_proto_rig(set_cache);
 declare_proto_rig(get_cache);
 declare_proto_rig(halt);
@@ -317,8 +318,9 @@ static struct test_table test_list[] =
     { 0xbc, "wait_morse",       ACTION(wait_morse),     },
     { 0x94, "send_voice_mem",   ACTION(send_voice_mem), ARG_IN, "Voice Mem#" },
     { 0x8b, "get_dcd",          ACTION(get_dcd),        ARG_OUT, "DCD" },
-    { 0x8d, "set_twiddle",      ACTION(set_twiddle),  ARG_IN  | ARG_NOVFO, "Timeout (secs)" },
-    { 0x8e, "get_twiddle",      ACTION(get_twiddle),  ARG_OUT | ARG_NOVFO, "Timeout (secs)" },
+    { 0x8d, "set_twiddle",      ACTION(set_twiddle),    ARG_IN  | ARG_NOVFO, "Timeout (secs)" },
+    { 0x8e, "get_twiddle",      ACTION(get_twiddle),    ARG_OUT | ARG_NOVFO, "Timeout (secs)" },
+    { 0x97, "uplink",           ACTION(set_uplink),     ARG_IN | ARG_NOVFO, "1=Sub, 2=Main" },
     { 0x95, "set_cache",        ACTION(set_cache),      ARG_IN | ARG_NOVFO, "Timeout (msecs)" },
     { 0x96, "get_cache",        ACTION(get_cache),      ARG_OUT | ARG_NOVFO, "Timeout (msecs)" },
     { '2',  "power2mW",         ACTION(power2mW),       ARG_IN1 | ARG_IN2 | ARG_IN3 | ARG_OUT1 | ARG_NOVFO, "Power [0.0..1.0]", "Frequency", "Mode", "Power mW" },
@@ -4328,7 +4330,7 @@ declare_proto_rig(send_cmd)
     int retval;
     struct rig_state *rs;
     int backend_num, cmd_len;
-#define BUFSZ 128
+#define BUFSZ 512
     char bufcmd[BUFSZ * 5]; // allow for 5 chars for binary
     unsigned char buf[BUFSZ];
     char eom_buf[4] = { 0xa, 0xd, 0, 0 };
@@ -4595,6 +4597,16 @@ declare_proto_rig(set_twiddle)
     CHKSCN1ARG(sscanf(arg1, "%d", &seconds));
     return rig_set_twiddle(rig, seconds);
 }
+
+/* '0x97' */
+declare_proto_rig(set_uplink)
+{
+    int val;
+
+    CHKSCN1ARG(sscanf(arg1, "%d", &val));
+    return rig_set_uplink(rig, val);
+}
+
 
 
 /* '0x8e' */

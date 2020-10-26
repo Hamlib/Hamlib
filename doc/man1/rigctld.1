@@ -335,12 +335,19 @@ Set verbose mode, cumulative (see
 below).
 .
 .TP
-.BR \-X ", " \-\-twiddle = \fIseconds\fP
+.BR \-W ", " \-\-twiddle_timeout = \fIseconds\fP
 Enables timeout when VFO twiddling is detected.  Some functions will be ignored.
 .IP
 Should only be needed when controlling software should be "paused"
-.B -v
 so you can move the VFO.  Continuous movement extends the timeout.
+.
+.TP
+.BR \-x ", " \-\-uplink=option
+1=Sub, 2=Main 
+.IP
+For GPredict use to ignore get_freq for Sub or Main uplink VFO.
+.IP
+Should allow downlink VFO movement without confusing GPredict or the uplink
 .
 .TP
 .BR \-Z ", " \-\-debug\-time\-stamps

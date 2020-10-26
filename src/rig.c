@@ -1160,11 +1160,11 @@ int HAMLIB_API rig_cleanup(RIG *rig)
  * timeout seconds to stop rigctld when VFO is manually changed
  * turns on/off the radio.
  *
- * \return RIG_OK if the operation has been successful, ortherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
- * \sa rig_get_twiddle()
+ * \sa rig_set_twiddle()
  */
 int HAMLIB_API rig_set_twiddle(RIG *rig, int seconds)
 {
@@ -1179,6 +1179,32 @@ int HAMLIB_API rig_set_twiddle(RIG *rig, int seconds)
 
     return RIG_OK;
 }
+
+/**
+ * \brief For GPredict to avoid reading frequency on uplink VFO
+ * \param rig   The rig handle
+ * \param seconds    1=Ignore Sub, 2=Ignore Main
+ *
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
+ * set appropriately).
+ *
+ * \sa rig_set_uplink()
+ */
+int HAMLIB_API rig_set_uplink(RIG *rig, int val)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (CHECK_RIG_ARG(rig))
+    {
+        return -RIG_EINVAL;
+    }
+
+    rig->state.uplink = val;
+
+    return RIG_OK;
+}
+
 
 /**
  * \brief get the twiddle timeout value (secs)
@@ -1309,6 +1335,7 @@ static int get_cache_freq(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms)
     case RIG_VFO_CURR:
         *freq = rig->state.cache.freqCurr;
         break;
+
     case RIG_VFO_A:
     case RIG_VFO_MAIN:
     case RIG_VFO_MAIN_A:
@@ -1520,6 +1547,20 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     curr_vfo = rig->state.current_vfo; // save vfo for restore later
 
     vfo = vfo_fixup(rig, vfo);
+
+    // we ignore get_freq for the uplink VFO for gpredict to behave better
+    if ((rig->state.uplink == 1 && vfo == RIG_VFO_SUB)
+            || (rig->state.uplink == 2 && vfo == RIG_VFO_MAIN))
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: uplink=%d, ignoring get_freq\n", __func__,
+                  rig->state.uplink);
+        rig_debug(RIG_DEBUG_TRACE, "%s: split=%d, satmode=%d, tx_vfo=%s\n", __func__,
+                  rig->state.cache.split, rig->state.cache.satmode,
+                  rig_strvfo(rig->state.tx_vfo));
+        // always return the cached freq for this clause
+        get_cache_freq(rig, vfo, freq, &cache_ms);
+        return RIG_OK;
+    }
 
     // there are some rigs that can't get VFOA freq while VFOB is transmitting
     // so we'll return the cached VFOA freq for them
@@ -5138,13 +5179,14 @@ static int wait_morse_ptt(RIG *rig, vfo_t vfo)
 {
     ptt_t pttStatus = RIG_PTT_OFF;
     int loops = 0;
-    int retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    hl_usleep(200*1000);  // give little time for CW to start PTT
+    hl_usleep(200 * 1000); // give little time for CW to start PTT
+
     do
     {
+        int retval;
         rig_debug(RIG_DEBUG_TRACE, "%s: loop#%d until ptt=0, ptt=%d\n", __func__, loops,
                   pttStatus);
         elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_INVALIDATE);
@@ -5154,6 +5196,7 @@ static int wait_morse_ptt(RIG *rig, vfo_t vfo)
         {
             return retval;
         }
+
         // every 25ms should be short enough
         hl_usleep(25 * 1000);
         ++loops;
