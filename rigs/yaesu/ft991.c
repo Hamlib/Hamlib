@@ -37,20 +37,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include "hamlib/rig.h"
-#include "bandplan.h"
-#include "serial.h"
-#include "misc.h"
-#include "yaesu.h"
 #include "newcat.h"
 #include "ft991.h"
 #include "idx_builtin.h"
 
 /*
- * ft991 rigs capabilities.
- * Also this struct is READONLY!
- *
+ * FT-991 rig capabilities
  */
-
 const struct rig_caps ft991_caps =
 {
     RIG_MODEL(RIG_MODEL_FT991),
