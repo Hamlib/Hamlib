@@ -2249,7 +2249,7 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
                                     int *power_max,
                                     int restore)
 {
-    int retval;
+    int retval, expval;
     char levelbuf[19];
     // read power_now, set 0, read power_min, set 255, read_power_max; set 0
     // we set back to 0 for safety and if restore is true we restore power_min
@@ -2263,13 +2263,21 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
 
     switch (rig->caps->rig_model)
     {
-    // TS890S can't take power levels outside 5-100 and 5-50
+    // TS890S can't take power levels outside 5-100 and 5-25
     // So all we'll do is read power_now
     case RIG_MODEL_TS890S:
         rig->state.power_min = *power_min = 5;
         rig->state.power_max = *power_max = 100;
 
         if (rig->state.current_mode == RIG_MODE_AM) { *power_max = 50; }
+
+        if (rig->state.current_freq >= 70)
+        {
+            rig->state.power_max = 50;
+
+            if (rig->state.current_mode == RIG_MODE_AM) { *power_max = 13; }
+        }
+
 
         cmd = "PC;";
         break;
@@ -2297,6 +2305,23 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
     retval = read_string(&rs->rigport, levelbuf, sizeof(levelbuf), NULL, 0);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: retval=%d\n", __func__, retval);
+
+    if (RIG_IS_TS890S)
+    {
+        expval = 6;
+    }
+    else
+    {
+        expval = 18;
+    }
+
+    if (retval != expval)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: expected %d, got %d in '%s'\n", __func__, expval,
+                  retval,
+                  levelbuf);
+        return -RIG_EPROTO;
+    }
 
     if (RIG_IS_TS890S)
     {

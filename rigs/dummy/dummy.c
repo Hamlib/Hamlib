@@ -426,8 +426,8 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %s\n", __func__,
               rig_strvfo(vfo), fstr);
 
-    if (vfo == RIG_VFO_A) { priv->curr->freq = freq; }
-    else if (vfo == RIG_VFO_B) { priv->curr->tx_freq = freq; }
+    if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN) { priv->curr->freq = freq; }
+    else if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB) { priv->curr->tx_freq = freq; }
 
     if (!priv->split)
     {
@@ -447,13 +447,23 @@ static int dummy_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if (vfo == RIG_VFO_CURR && rig->caps->rig_model != RIG_MODEL_DUMMY_NOVFO) { vfo = priv->curr_vfo; }
 
+    if ((vfo == RIG_VFO_SUB && rig->state.uplink == 1)
+            || (vfo == RIG_VFO_MAIN && rig->state.uplink == 2))
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: uplink=%d, ignoring get_freq\n", __func__,
+                  rig->state.uplink);
+        return RIG_OK;
+    }
+
     usleep(CMDSLEEP);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, rig_strvfo(vfo));
 
     switch (vfo)
     {
+    case RIG_VFO_MAIN:
     case RIG_VFO_A:  *freq = priv->curr->freq; break;
 
+    case RIG_VFO_SUB:
     case RIG_VFO_B:  *freq = priv->curr->tx_freq; break;
 
     default: return -RIG_EINVAL;
@@ -2025,7 +2035,7 @@ static int dummy_mW2power(RIG *rig, float *power, unsigned int mwpower,
 #define DUMMY_VFO_OP  0x7ffffffUL /* All possible VFO OPs */
 #define DUMMY_SCAN    0x7ffffffUL /* All possible scan OPs */
 
-#define DUMMY_VFOS (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)
+#define DUMMY_VFOS (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM|RIG_VFO_MAIN|RIG_VFO_SUB)
 
 #define DUMMY_MODES (RIG_MODE_AM | RIG_MODE_CW | RIG_MODE_RTTY | \
                      RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_WFM | \
