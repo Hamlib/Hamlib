@@ -1,7 +1,7 @@
 /*
  * hamlib - (C) Frank Singleton 2000 (javabear at users.sourceforge.net)
  *
- * ft2000.c - (C) Nate Bargmann 2007 (n0nb at arrl.net)
+ * ft1200.c - (C) Nate Bargmann 2007 (n0nb at arrl.net)
  *            (C) Stephane Fillod 2008
  *            (C) Terry Embry 2008-2009
  * ft1200.c - (C) David Fannin 2015 (kk6df at arrl.net)
@@ -33,24 +33,57 @@
 
 #include "hamlib/rig.h"
 #include "bandplan.h"
-#include "serial.h"
-#include "misc.h"
-#include "yaesu.h"
 #include "newcat.h"
 #include "ft1200.h"
 #include "idx_builtin.h"
 #include "tones.h"
 
-/*
- * ft1200 rigs capabilities.
- * Also this struct is READONLY!
- *
- */
-
-const struct rig_caps ft1200_caps =
+const struct newcat_priv_caps ftdx1200_priv_caps =
 {
-    RIG_MODEL(RIG_MODEL_FT1200),
-    .model_name =         "FT-1200",
+    .roofing_filter_count = 7,
+    .roofing_filters =
+        {
+            // The index must match ext level combo index
+            { .index = 0, .set_value = '0', .get_value = 0, .width = 15000, .optional = 0 },
+            { .index = 1, .set_value = '1', .get_value = '1', .width = 15000, .optional = 0 },
+            { .index = 2, .set_value = '2', .get_value = '2', .width = 6000, .optional = 0 },
+            { .index = 3, .set_value = '3', .get_value = '3', .width = 3000, .optional = 0 },
+            { .index = 4, .set_value = 0, .get_value = '4', .width = 15000, .optional = 0 },
+            { .index = 5, .set_value = 0, .get_value = '5', .width = 6000, .optional = 0 },
+            { .index = 6, .set_value = 0, .get_value = '6', .width = 3000, .optional = 0 },
+        }
+};
+
+const struct confparams ftdx1200_ext_levels[] =
+{
+    {
+        TOK_ROOFING_FILTER,
+        "ROOFINGFILTER",
+        "Roofing filter",
+        "Roofing filter",
+        NULL,
+        RIG_CONF_COMBO,
+        { .c = { .combostr = {
+                "AUTO", "15 kHz", "6 kHz", "3 kHz",
+                "AUTO - 15 kHz", "AUTO - 6 kHz", "AUTO - 3 kHz",
+                NULL }
+        } }
+    },
+    { RIG_CONF_END, NULL, }
+};
+
+int ftdx1200_ext_tokens[] =
+{
+    TOK_ROOFING_FILTER, TOK_BACKEND_NONE
+};
+
+/*
+ * FTDX 1200 rig capabilities
+ */
+const struct rig_caps ftdx1200_caps =
+{
+    RIG_MODEL(RIG_MODEL_FTDX1200),
+    .model_name =         "FTDX 1200",
     .mfg_name =           "Yaesu",
     .version =            NEWCAT_VER ".0",
     .copyright =          "LGPL",
@@ -65,14 +98,14 @@ const struct rig_caps ft1200_caps =
     .serial_stop_bits =   1,            /* Assumed since manual makes no mention */
     .serial_parity =      RIG_PARITY_NONE,
     .serial_handshake =   RIG_HANDSHAKE_HARDWARE,
-    .write_delay =        FT1200_WRITE_DELAY,
-    .post_write_delay =   FT1200_POST_WRITE_DELAY,
+    .write_delay =        FTDX1200_WRITE_DELAY,
+    .post_write_delay =   FTDX1200_POST_WRITE_DELAY,
     .timeout =            2000,
     .retry =              3,
-    .has_get_func =       FT1200_FUNCS,
-    .has_set_func =       FT1200_FUNCS,
-    .has_get_level =      FT1200_LEVELS,
-    .has_set_level =      RIG_LEVEL_SET(FT1200_LEVELS),
+    .has_get_func =       FTDX1200_FUNCS,
+    .has_set_func =       FTDX1200_FUNCS,
+    .has_get_level =      FTDX1200_LEVELS,
+    .has_set_level =      RIG_LEVEL_SET(FTDX1200_LEVELS),
     .has_get_parm =       RIG_PARM_NONE,
     .has_set_parm =       RIG_PARM_NONE,
     .level_gran = {
@@ -87,12 +120,12 @@ const struct rig_caps ft1200_caps =
     .max_rit =            Hz(9999),
     .max_xit =            Hz(9999),
     .max_ifshift =        Hz(1000),
-    .vfo_ops =            FT1200_VFO_OPS,
+    .vfo_ops =            FTDX1200_VFO_OPS,
     .targetable_vfo =     RIG_TARGETABLE_FREQ,
     .transceive =         RIG_TRN_OFF,        /* May enable later as the 1200 has an Auto Info command */
     .bank_qty =           0,
     .chan_desc_sz =       0,
-    .str_cal =            FT1200_STR_CAL,
+    .str_cal =            FTDX1200_STR_CAL,
     .chan_list =          {
         {   1,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
         { 100, 117, RIG_MTYPE_EDGE, NEWCAT_MEM_CAP },    /* two by two */
@@ -101,42 +134,42 @@ const struct rig_caps ft1200_caps =
 
     .rx_range_list1 =     {
         /* General coverage + ham, ANT_5 is RX only antenna */
-        {kHz(30), MHz(56), FT1200_ALL_RX_MODES, -1, -1, FT1200_VFO_ALL, FT1200_TX_ANTS},
+        {kHz(30), MHz(56), FTDX1200_ALL_RX_MODES, -1, -1, FTDX1200_VFO_ALL, FTDX1200_TX_ANTS},
         RIG_FRNG_END,
     },
 
     .tx_range_list1 =     {
-        FRQ_RNG_HF(1, FT1200_OTHER_TX_MODES, W(5), W(100), FT1200_VFO_ALL, FT1200_TX_ANTS),
-        FRQ_RNG_HF(1, FT1200_AM_TX_MODES, W(2), W(25), FT1200_VFO_ALL, FT1200_TX_ANTS), /* AM class */
-        FRQ_RNG_6m(1, FT1200_OTHER_TX_MODES, W(5), W(100), FT1200_VFO_ALL, FT1200_TX_ANTS),
-        FRQ_RNG_6m(1, FT1200_AM_TX_MODES, W(2), W(25), FT1200_VFO_ALL, FT1200_TX_ANTS), /* AM class */
+        FRQ_RNG_HF(1, FTDX1200_OTHER_TX_MODES, W(5), W(100), FTDX1200_VFO_ALL, FTDX1200_TX_ANTS),
+        FRQ_RNG_HF(1, FTDX1200_AM_TX_MODES, W(2), W(25), FTDX1200_VFO_ALL, FTDX1200_TX_ANTS), /* AM class */
+        FRQ_RNG_6m(1, FTDX1200_OTHER_TX_MODES, W(5), W(100), FTDX1200_VFO_ALL, FTDX1200_TX_ANTS),
+        FRQ_RNG_6m(1, FTDX1200_AM_TX_MODES, W(2), W(25), FTDX1200_VFO_ALL, FTDX1200_TX_ANTS), /* AM class */
 
         RIG_FRNG_END,
     },
 
     .rx_range_list2 =     {
-        {kHz(30), MHz(56), FT1200_ALL_RX_MODES, -1, -1, FT1200_VFO_ALL, FT1200_TX_ANTS},
+        {kHz(30), MHz(56), FTDX1200_ALL_RX_MODES, -1, -1, FTDX1200_VFO_ALL, FTDX1200_TX_ANTS},
         RIG_FRNG_END,
     },
 
     .tx_range_list2 =     {
-        FRQ_RNG_HF(2, FT1200_OTHER_TX_MODES, W(5), W(100), FT1200_VFO_ALL, FT1200_TX_ANTS),
-        FRQ_RNG_HF(2, FT1200_AM_TX_MODES, W(2), W(25), FT1200_VFO_ALL, FT1200_TX_ANTS), /* AM class */
-        FRQ_RNG_6m(2, FT1200_OTHER_TX_MODES, W(5), W(100), FT1200_VFO_ALL, FT1200_TX_ANTS),
-        FRQ_RNG_6m(2, FT1200_AM_TX_MODES, W(2), W(25), FT1200_VFO_ALL, FT1200_TX_ANTS), /* AM class */
+        FRQ_RNG_HF(2, FTDX1200_OTHER_TX_MODES, W(5), W(100), FTDX1200_VFO_ALL, FTDX1200_TX_ANTS),
+        FRQ_RNG_HF(2, FTDX1200_AM_TX_MODES, W(2), W(25), FTDX1200_VFO_ALL, FTDX1200_TX_ANTS), /* AM class */
+        FRQ_RNG_6m(2, FTDX1200_OTHER_TX_MODES, W(5), W(100), FTDX1200_VFO_ALL, FTDX1200_TX_ANTS),
+        FRQ_RNG_6m(2, FTDX1200_AM_TX_MODES, W(2), W(25), FTDX1200_VFO_ALL, FTDX1200_TX_ANTS), /* AM class */
 
         RIG_FRNG_END,
     },
 
     .tuning_steps =       {
-        {FT1200_SSB_CW_RX_MODES, Hz(10)},    /* Normal */
-        {FT1200_SSB_CW_RX_MODES, Hz(100)},   /* Fast */
+        {FTDX1200_SSB_CW_RX_MODES, Hz(10)},    /* Normal */
+        {FTDX1200_SSB_CW_RX_MODES, Hz(100)},   /* Fast */
 
-        {FT1200_AM_RX_MODES,     Hz(100)},   /* Normal */
-        {FT1200_AM_RX_MODES,     kHz(1)},    /* Fast */
+        {FTDX1200_AM_RX_MODES,     Hz(100)},   /* Normal */
+        {FTDX1200_AM_RX_MODES,     kHz(1)},    /* Fast */
 
-        {FT1200_FM_RX_MODES,     Hz(100)},   /* Normal */
-        {FT1200_FM_RX_MODES,     kHz(1)},    /* Fast */
+        {FTDX1200_FM_RX_MODES,     Hz(100)},   /* Normal */
+        {FTDX1200_FM_RX_MODES,     kHz(1)},    /* Fast */
 
         RIG_TS_END,
 
@@ -144,21 +177,24 @@ const struct rig_caps ft1200_caps =
 
     /* mode/filter list, .remember =  order matters! */
     .filters =            {
-        {FT1200_CW_RTTY_PKT_RX_MODES,  Hz(2400)},   /* Normal CW, RTTY, PKT/USER */
-        {FT1200_CW_RTTY_PKT_RX_MODES,  Hz(500)},    /* Narrow CW, RTTY, PKT/USER */
-        {FT1200_CW_RTTY_PKT_RX_MODES,  Hz(2400)},   /* Wide   CW, RTTY, PKT/USER */
+        {FTDX1200_CW_RTTY_PKT_RX_MODES,  Hz(2400)},   /* Normal CW, RTTY, PKT/USER */
+        {FTDX1200_CW_RTTY_PKT_RX_MODES,  Hz(500)},    /* Narrow CW, RTTY, PKT/USER */
+        {FTDX1200_CW_RTTY_PKT_RX_MODES,  Hz(2400)},   /* Wide   CW, RTTY, PKT/USER */
         {RIG_MODE_SSB,                 Hz(2400)},   /* Normal SSB */
         {RIG_MODE_SSB,                 Hz(1800)},   /* Narrow SSB */
         {RIG_MODE_SSB,                 Hz(4000)},   /* Wide   SSB */
         {RIG_MODE_AM,                  Hz(9000)},   /* Normal AM  */
         {RIG_MODE_AM,                  Hz(6000)},   /* Narrow AM  */
-        {FT1200_FM_RX_MODES,           Hz(12000)},  /* Normal FM  */
-        {FT1200_FM_RX_MODES,           Hz(8000)},   /* Narrow FM  */
+        {FTDX1200_FM_RX_MODES,           Hz(12000)},  /* Normal FM  */
+        {FTDX1200_FM_RX_MODES,           Hz(8000)},   /* Narrow FM  */
 
         RIG_FLT_END,
     },
 
-    .priv =               NULL,
+    .ext_tokens =         ftdx1200_ext_tokens,
+    .extlevels =          ftdx1200_ext_levels,
+
+    .priv =               &ftdx1200_priv_caps,
 
     .rig_init =           newcat_init,
     .rig_cleanup =        newcat_cleanup,
@@ -208,5 +244,7 @@ const struct rig_caps ft1200_caps =
     .get_trn =            newcat_get_trn,
     .set_channel =        newcat_set_channel,
     .get_channel =        newcat_get_channel,
+    .set_ext_level =      newcat_set_ext_level,
+    .get_ext_level =      newcat_get_ext_level,
 
 };

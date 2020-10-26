@@ -1,7 +1,7 @@
 /*
  * hamlib - (C) Frank Singleton 2000 (javabear at users.sourceforge.net)
  *
- * ft2000.h - (C) Nate Bargmann 2007 (n0nb at arrl.net)
+ * ft1200.h - (C) Nate Bargmann 2007 (n0nb at arrl.net)
  *           (C) Stephane Fillod 2008
  *
  * ft1200.h - (C) David Fannin 2015 (kk6df at arrl.net)
@@ -26,31 +26,31 @@
  */
 
 
-#ifndef _FT1200_H
-#define _FT1200_H 1
+#ifndef _FTDX1200_H
+#define _FTDX1200_H 1
 
-#define FT1200_VFO_ALL (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)
+#define FTDX1200_VFO_ALL (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)
 
 /* Receiver caps */
 
-#define FT1200_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|\
+#define FTDX1200_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|\
         RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTFM|RIG_MODE_FM)
 
-#define FT1200_SSB_CW_RX_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|\
+#define FTDX1200_SSB_CW_RX_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|\
 		RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB)
-#define FT1200_AM_RX_MODES (RIG_MODE_AM)
-#define FT1200_FM_RX_MODES (RIG_MODE_FM|RIG_MODE_PKTFM)
-#define FT1200_CW_RTTY_PKT_RX_MODES (RIG_MODE_RTTY|RIG_MODE_RTTYR|\
+#define FTDX1200_AM_RX_MODES (RIG_MODE_AM)
+#define FTDX1200_FM_RX_MODES (RIG_MODE_FM|RIG_MODE_PKTFM)
+#define FTDX1200_CW_RTTY_PKT_RX_MODES (RIG_MODE_RTTY|RIG_MODE_RTTYR|\
         RIG_MODE_PKTUSB|RIG_MODE_PKTLSB|RIG_MODE_CW|RIG_MODE_CWR)
 
 /* TRX caps */
 
-#define FT1200_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY| \
+#define FTDX1200_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY| \
 		                RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTFM|RIG_MODE_FM) /* 100 W class */
-#define FT1200_AM_TX_MODES (RIG_MODE_AM)    /* set 25W max */
+#define FTDX1200_AM_TX_MODES (RIG_MODE_AM)    /* set 25W max */
 
 /* TBC */
-#define FT1200_LEVELS (RIG_LEVEL_ATT|RIG_LEVEL_PREAMP|\
+#define FTDX1200_LEVELS (RIG_LEVEL_ATT|RIG_LEVEL_PREAMP|\
                RIG_LEVEL_ALC|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_SWR|\
                RIG_LEVEL_RFPOWER|RIG_LEVEL_RF|RIG_LEVEL_SQL|\
                RIG_LEVEL_MICGAIN|RIG_LEVEL_IF|RIG_LEVEL_CWPITCH|\
@@ -62,18 +62,18 @@
                RIG_LEVEL_COMP_METER|RIG_LEVEL_VD_METER|RIG_LEVEL_ID_METER)
 
 /* TBC */
-#define FT1200_FUNCS (RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_LOCK|\
+#define FTDX1200_FUNCS (RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_LOCK|\
                RIG_FUNC_MON|RIG_FUNC_NB|RIG_FUNC_NR|RIG_FUNC_VOX|\
                RIG_FUNC_FBKIN|RIG_FUNC_COMP|RIG_FUNC_ANF|RIG_FUNC_MN|\
                RIG_FUNC_TUNER)
 
 /* TBC */
-#define FT1200_VFO_OPS (RIG_OP_TUNE|RIG_OP_CPY|RIG_OP_XCHG|\
+#define FTDX1200_VFO_OPS (RIG_OP_TUNE|RIG_OP_CPY|RIG_OP_XCHG|\
                RIG_OP_UP|RIG_OP_DOWN|RIG_OP_BAND_UP|RIG_OP_BAND_DOWN|\
                RIG_OP_TO_VFO|RIG_OP_FROM_VFO|RIG_OP_TOGGLE)
 
 /* TBC */
-#define FT1200_STR_CAL { 16, \
+#define FTDX1200_STR_CAL { 16, \
 	       { \
 			{   0, -54 }, /*  S0 */ \
 			{  12, -48 }, /*  S1 */ \
@@ -99,14 +99,14 @@
  *
  */
 
-#define FT1200_TX_ANTS  (RIG_ANT_1|RIG_ANT_2)
+#define FTDX1200_TX_ANTS  (RIG_ANT_1|RIG_ANT_2)
 
-#define FT1200_MEM_CHNL_LENGTH           1       /* 0x10 P1 = 01 return size */
-#define FT1200_OP_DATA_LENGTH            19      /* 0x10 P1 = 03 return size */
-#define FT1200_VFO_DATA_LENGTH           18      /* 0x10 P1 = 03 return size -- A & B returned */
-#define FT1200_MEM_CHNL_DATA_LENGTH      19      /* 0x10 P1 = 04, P4 = 0x01-0x20 return size */
-#define FT1200_STATUS_FLAGS_LENGTH       5       /* 0xf7, 0xfa return size */
-#define FT1200_ALL_DATA_LENGTH           649     /* 0x10 P1 = 00 return size */
+#define FTDX1200_MEM_CHNL_LENGTH           1       /* 0x10 P1 = 01 return size */
+#define FTDX1200_OP_DATA_LENGTH            19      /* 0x10 P1 = 03 return size */
+#define FTDX1200_VFO_DATA_LENGTH           18      /* 0x10 P1 = 03 return size -- A & B returned */
+#define FTDX1200_MEM_CHNL_DATA_LENGTH      19      /* 0x10 P1 = 04, P4 = 0x01-0x20 return size */
+#define FTDX1200_STATUS_FLAGS_LENGTH       5       /* 0xf7, 0xfa return size */
+#define FTDX1200_ALL_DATA_LENGTH           649     /* 0x10 P1 = 00 return size */
 
 /* Timing values in mS */
 
@@ -116,11 +116,11 @@
 /* Delay between bytes sent to FT-2000
  * Should not exceed value set in CAT TOT menu (rig default is 10 mSec)
  */
-#define FT1200_WRITE_DELAY                    0
+#define FTDX1200_WRITE_DELAY                    0
 
 
 /* Delay sequential fast writes */
 
-#define FT1200_POST_WRITE_DELAY               5
+#define FTDX1200_POST_WRITE_DELAY               5
 
-#endif /* _FT1200_H */
+#endif /* _FTDX1200_H */
