@@ -62,7 +62,7 @@ typedef enum nc_rigid_e
     NC_RIGID_FT991           = 135,
     NC_RIGID_FT2000          = 251,
     NC_RIGID_FT2000D         = 252,
-    NC_RIGID_FT1200          = 583,
+    NC_RIGID_FTDX1200        = 583,
     NC_RIGID_FTDX9000D       = 101,
     NC_RIGID_FTDX9000Contest = 102,
     NC_RIGID_FTDX9000MP      = 103,
@@ -170,10 +170,10 @@ static ncboolean is_ft950;
 static ncboolean is_ft991;
 static ncboolean is_ft2000;
 static ncboolean is_ft9000;
-static ncboolean is_ft5000;
-static ncboolean is_ft1200;
-static ncboolean is_ft3000;
-static ncboolean is_ft101;
+static ncboolean is_ftdx5000;
+static ncboolean is_ftdx1200;
+static ncboolean is_ftdx3000;
+static ncboolean is_ftdx101;
 
 /*
  * Even thought this table does make a handy reference, it could be depreciated as it is not really needed.
@@ -1590,7 +1590,7 @@ int newcat_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         vfo = RIG_VFO_A;
         tx_vfo = RIG_SPLIT_ON == split ? RIG_VFO_B : RIG_VFO_A;
     }
-    else if (is_ft101)
+    else if (is_ftdx101)
     {
         vfo = RIG_VFO_MAIN;
         tx_vfo = RIG_SPLIT_ON == split ? RIG_VFO_SUB : RIG_VFO_MAIN;
@@ -2072,7 +2072,7 @@ int newcat_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 
     if (tone == 0) /* turn off ctcss */
     {
-        if (is_ft891 || is_ft991 || is_ft101)
+        if (is_ft891 || is_ft991 || is_ftdx101)
         {
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CT%c00%c", main_sub_vfo, cat_term);
         }
@@ -2083,7 +2083,7 @@ int newcat_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
     }
     else
     {
-        if (is_ft891 || is_ft991 || is_ft101)
+        if (is_ft891 || is_ft991 || is_ftdx101)
         {
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CN%c0%03d%cCT%c2%c",
                     main_sub_vfo, i, cat_term, main_sub_vfo, cat_term);
@@ -2128,7 +2128,7 @@ int newcat_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
         main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
 
-    if (is_ft891 || is_ft991 || is_ft101)
+    if (is_ft891 || is_ft991 || is_ftdx101)
     {
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c0%c", cmd, main_sub_vfo, cat_term);
     }
@@ -2303,10 +2303,10 @@ int newcat_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq,
                   rig_id, *mwpower);
         break;
 
-    case NC_RIGID_FT1200:
+    case NC_RIGID_FTDX1200:
         /* 100 Watts */
         *mwpower = power * 100000;
-        rig_debug(RIG_DEBUG_TRACE, "case FT1200 - rig_id = %d, *mwpower = %d\n", rig_id,
+        rig_debug(RIG_DEBUG_TRACE, "case FTDX1200 - rig_id = %d, *mwpower = %d\n", rig_id,
                   *mwpower);
         break;
 
@@ -2389,10 +2389,10 @@ int newcat_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq,
                   rig_id, *power);
         break;
 
-    case NC_RIGID_FT1200:
+    case NC_RIGID_FTDX1200:
         /* 100 Watts */
         *power = mwpower / 100000.0;
-        rig_debug(RIG_DEBUG_TRACE, "case FT1200 - rig_id = %d, *power = %f\n", rig_id,
+        rig_debug(RIG_DEBUG_TRACE, "case FTDX1200 - rig_id = %d, *power = %f\n", rig_id,
                   *power);
         break;
 
@@ -2540,12 +2540,12 @@ int newcat_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
         break;
 
     case RIG_ANT_3:
-        if (newcat_is_rig(rig, RIG_MODEL_FT950)) /* FT2000 also */
+        if (newcat_is_rig(rig, RIG_MODEL_FT950))
         {
             return -RIG_EINVAL;
         }
 
-        if (newcat_is_rig(rig, RIG_MODEL_FT1200)) /* FT2000 also */
+        if (newcat_is_rig(rig, RIG_MODEL_FTDX1200))
         {
             return -RIG_EINVAL;
         }
@@ -2559,7 +2559,7 @@ int newcat_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
             return -RIG_EINVAL;
         }
 
-        if (newcat_is_rig(rig, RIG_MODEL_FT1200))
+        if (newcat_is_rig(rig, RIG_MODEL_FTDX1200))
         {
             return -RIG_EINVAL;
         }
@@ -2573,7 +2573,7 @@ int newcat_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
             return -RIG_EINVAL;
         }
 
-        if (newcat_is_rig(rig, RIG_MODEL_FT1200))
+        if (newcat_is_rig(rig, RIG_MODEL_FTDX1200))
         {
             return -RIG_EINVAL;
         }
@@ -2697,7 +2697,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             return -RIG_ENAVAIL;
         }
 
-        if (is_ft950 || is_ft1200 || is_ft3000 || is_ft891 || is_ft991 || is_ft101)
+        if (is_ft950 || is_ftdx1200 || is_ftdx3000 || is_ft891 || is_ft991 || is_ftdx101)
         {
             scale = 100.;
         }
@@ -2712,7 +2712,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
         fpf = newcat_scale_float(scale, val.f);
 
-        if (is_ft950 || is_ft891 || is_ft991 || is_ft3000 || is_ft101)
+        if (is_ft950 || is_ft891 || is_ft991 || is_ftdx3000 || is_ftdx101)
         {
             // Minimum is 5 watts on these rigs
             if (fpf < 5)
@@ -2784,7 +2784,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             }
         }
 
-        if (is_ft101)
+        if (is_ftdx101)
         {
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "IS%c0%+.4d%c", main_sub_vfo,
                      val.i, cat_term);
@@ -2840,7 +2840,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             return -RIG_ENAVAIL;
         }
 
-        if (is_ft1200 || is_ft3000 || is_ft891 || is_ft991 || is_ft101)
+        if (is_ftdx1200 || is_ftdx3000 || is_ft891 || is_ft991 || is_ftdx101)
         {
             fpf = newcat_scale_float(100, val.f);
         }
@@ -2858,7 +2858,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             return -RIG_ENAVAIL;
         }
 
-        if (is_ft101) // new format for the command with VFO selection
+        if (is_ftdx101) // new format for the command with VFO selection
         {
             format = "MS0%d;";
 
@@ -3052,7 +3052,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
 
         scale = (is_ft950) ? 100 : 255;
-        scale = (is_ft1200 || is_ft101) ? 100 : scale ;
+        scale = (is_ftdx1200 || is_ftdx101) ? 100 : scale ;
         fpf = newcat_scale_float(scale, val.f);
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PL%03d%c", fpf, cat_term);
         break;
@@ -3071,7 +3071,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         // consider changing this to float or to milliseconds
         val.i *= 100; // tenths to ms conversion
 
-        if (is_ft101)
+        if (is_ftdx101)
         {
             if (val.i <= 30) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD00;"); }
 
@@ -3089,7 +3089,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             // this covers 300-2900 06-32
             else { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD%02d;", 6 + ((val.i - 300) / 100)); }
         }
-        else if (is_ft950 || is_ft450 || is_ft1200)
+        else if (is_ft950 || is_ft450 || is_ftdx1200)
         {
             if (val.i < 30)
             {
@@ -3141,7 +3141,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         val.i = val.i * 100;
         rig_debug(RIG_DEBUG_TRACE, "%s: vali=%d\n", __func__, val.i);
 
-        if (is_ft950 || is_ft450 || is_ft1200)
+        if (is_ft950 || is_ft450 || is_ftdx1200)
         {
             if (val.i < 100)         /* min is 30ms but spec is 100ms Unit Intervals */
             {
@@ -3155,7 +3155,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VD%04d%c", val.i, cat_term);
         }
-        else if (is_ft101) // new lookup table argument
+        else if (is_ftdx101) // new lookup table argument
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: ft101 #1 val.i=%d\n", __func__, val.i);
 
@@ -3197,8 +3197,8 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             return -RIG_ENAVAIL;
         }
 
-        scale = (is_ft950 || is_ft101) ? 100 : 255;
-        scale = (is_ft1200) ? 100 : scale;
+        scale = (is_ft950 || is_ftdx101) ? 100 : 255;
+        scale = (is_ftdx1200) ? 100 : scale;
         fpf = newcat_scale_float(scale, val.f);
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VG%03d%c", fpf, cat_term);
         break;
@@ -3209,12 +3209,12 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             fpf = newcat_scale_float(100, val.f);
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "EX117%03d%c", fpf, cat_term);
         }
-        else if (is_ft101)
+        else if (is_ftdx101)
         {
             fpf = newcat_scale_float(100, val.f);
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "AV%03d%c", fpf, cat_term);
         }
-        else if (is_ft1200)
+        else if (is_ftdx1200)
         {
             fpf = newcat_scale_float(100, val.f);
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "EX183%03d%c", fpf, cat_term);
@@ -3273,7 +3273,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             return -RIG_ENAVAIL;
         }
 
-        if (is_ft1200 || is_ft3000 || is_ft891 || is_ft991 || is_ft101)
+        if (is_ftdx1200 || is_ftdx3000 || is_ft891 || is_ft991 || is_ftdx101)
         {
             fpf = newcat_scale_float(100, val.f);
         }
@@ -3579,11 +3579,11 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "EX117%c", cat_term);
         }
-        else if (is_ft101)
+        else if (is_ftdx101)
         {
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "AV%c", cat_term);
         }
-        else if (is_ft1200)
+        else if (is_ftdx1200)
         {
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "EX183%c", cat_term);
         }
@@ -3638,7 +3638,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     switch (level)
     {
     case RIG_LEVEL_RFPOWER:
-        if (is_ft950 || is_ft1200 || is_ft3000 || is_ft891 || is_ft991 || is_ft101)
+        if (is_ft950 || is_ftdx1200 || is_ftdx3000 || is_ft891 || is_ft991 || is_ftdx101)
         {
             scale = 100.;
         }
@@ -3657,8 +3657,8 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_VOXGAIN:
     case RIG_LEVEL_COMP:
     case RIG_LEVEL_ANTIVOX:
-        scale = (is_ft950 || is_ft101) ? 100. : 255.;
-        scale = (is_ft1200 || is_ft101) ? 100. : scale ;
+        scale = (is_ft950 || is_ftdx101) ? 100. : 255.;
+        scale = (is_ftdx1200 || is_ftdx101) ? 100. : scale ;
         val->f = (float)atoi(retlvl) / scale;
         break;
 
@@ -3760,7 +3760,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_MICGAIN:
-        if (is_ft1200 || is_ft3000 || is_ft891 || is_ft991 || is_ft101)
+        if (is_ftdx1200 || is_ftdx3000 || is_ft891 || is_ft991 || is_ftdx101)
         {
             scale = 100.;
         }
@@ -3780,7 +3780,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_BKINDL:
         val->i = atoi(retlvl);      /* milliseconds */
 
-        if (is_ft101)
+        if (is_ftdx101)
         {
             switch (val->i)
             {
@@ -3825,7 +3825,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             break;
         }
 
-        if (is_ft1200 || is_ft3000 || is_ft5000 || is_ft891 || is_ft991 || is_ft101)
+        if (is_ftdx1200 || is_ftdx3000 || is_ftdx5000 || is_ft891 || is_ft991 || is_ftdx101)
         {
             val->i = round(rig_raw2val(atoi(retlvl), &yaesu_default_str_cal));
         }
@@ -3878,7 +3878,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_VOXDELAY:
         val->i = atoi(retlvl);
 
-        if (is_ft101)
+        if (is_ftdx101)
         {
             switch (val->i)
             {
@@ -3975,7 +3975,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_MONITOR_GAIN:
-        if (is_ft1200 || is_ft3000 || is_ft891 || is_ft991 || is_ft101)
+        if (is_ftdx1200 || is_ftdx3000 || is_ft891 || is_ft991 || is_ftdx101)
         {
             scale = 100.;
         }
@@ -4097,7 +4097,7 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             return -RIG_ENAVAIL;
         }
 
-        if (is_ft1200 || is_ft3000 || is_ft5000 || is_ft101)
+        if (is_ftdx1200 || is_ftdx3000 || is_ftdx5000 || is_ftdx101)
         {
             // These rigs can lock Main/Sub VFO dials individually
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "LK%d%c", status ? 7 : 4, cat_term);
@@ -4156,7 +4156,7 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             return -RIG_ENAVAIL;
         }
 
-        if (is_ft1200 || is_ft3000 || is_ft891 || is_ft991 || is_ft101)
+        if (is_ftdx1200 || is_ftdx3000 || is_ft891 || is_ft991 || is_ftdx101)
         {
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PR0%d%c", status ? 1 : 0,
                      cat_term);
@@ -4186,7 +4186,7 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         }
 
         // some rigs use AC02 to actually start tuning
-        if (status == 1 && (is_ft101 || is_ft5000)) { status = 2; }
+        if (status == 1 && (is_ftdx101 || is_ftdx5000)) { status = 2; }
 
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "AC00%d%c",
                  status == 0 ? 0 : status,
@@ -4362,7 +4362,7 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
             return -RIG_ENAVAIL;
         }
 
-        if (is_ft1200 || is_ft3000 || is_ft891 || is_ft991 || is_ft101)
+        if (is_ftdx1200 || is_ftdx3000 || is_ft891 || is_ft991 || is_ftdx101)
         {
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PR0%c", cat_term);
         }
@@ -4444,7 +4444,7 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         *status = (retfunc[last_char_index] == '0') ? 0 : 1;
         break;
     case RIG_FUNC_LOCK:
-        if (is_ft1200 || is_ft3000 || is_ft5000 || is_ft101)
+        if (is_ftdx1200 || is_ftdx3000 || is_ftdx5000 || is_ftdx101)
         {
             // These rigs can lock Main/Sub VFO dials individually
             *status = (retfunc[0] == '0' || retfunc[0] == '4') ? 0 : 1;
@@ -5300,23 +5300,21 @@ ncboolean newcat_valid_command(RIG *rig, char const *const command)
     is_ft991 = newcat_is_rig(rig, RIG_MODEL_FT991);
     is_ft2000 = newcat_is_rig(rig, RIG_MODEL_FT2000);
     is_ft9000 = newcat_is_rig(rig, RIG_MODEL_FT9000);
-    is_ft5000 = newcat_is_rig(rig, RIG_MODEL_FTDX5000);
-    is_ft1200 = newcat_is_rig(rig, RIG_MODEL_FT1200);
-    is_ft3000 = newcat_is_rig(rig, RIG_MODEL_FTDX3000);
-    is_ft101 = newcat_is_rig(rig, RIG_MODEL_FTDX101D);
-
+    is_ftdx5000 = newcat_is_rig(rig, RIG_MODEL_FTDX5000);
+    is_ftdx1200 = newcat_is_rig(rig, RIG_MODEL_FTDX1200);
+    is_ftdx3000 = newcat_is_rig(rig, RIG_MODEL_FTDX3000);
+    is_ftdx101 = newcat_is_rig(rig, RIG_MODEL_FTDX101D);
 
     if (!is_ft450 && !is_ft950 && !is_ft891 && !is_ft991 && !is_ft2000
-            && !is_ft5000 && !is_ft9000 && !is_ft1200 && !is_ft3000 && !is_ft101)
+        && !is_ftdx5000 && !is_ft9000 && !is_ftdx1200 && !is_ftdx3000 && !is_ftdx101)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: '%s' is unknown\n",
-                  __func__, caps->model_name);
+        rig_debug(RIG_DEBUG_ERR, "%s: '%s' is unknown\n", __func__, caps->model_name);
         return FALSE;
     }
 
     /*
      * Make sure the command is known, and then check to make sure
-     * is it valud for the rig.
+     * is it valid for the rig.
      */
 
     search_low = 0;
@@ -5363,7 +5361,7 @@ ncboolean newcat_valid_command(RIG *rig, char const *const command)
             {
                 return TRUE;
             }
-            else if (is_ft5000 && valid_commands[search_index].ft5000)
+            else if (is_ftdx5000 && valid_commands[search_index].ft5000)
             {
                 return TRUE;
             }
@@ -5371,15 +5369,15 @@ ncboolean newcat_valid_command(RIG *rig, char const *const command)
             {
                 return TRUE;
             }
-            else if (is_ft1200 && valid_commands[search_index].ft1200)
+            else if (is_ftdx1200 && valid_commands[search_index].ft1200)
             {
                 return TRUE;
             }
-            else if (is_ft3000 && valid_commands[search_index].ft3000)
+            else if (is_ftdx3000 && valid_commands[search_index].ft3000)
             {
                 return TRUE;
             }
-            else if (is_ft101 && valid_commands[search_index].ft101)
+            else if (is_ftdx101 && valid_commands[search_index].ft101)
             {
                 return TRUE;
             }
@@ -5475,7 +5473,7 @@ int newcat_set_tx_vfo(RIG *rig, vfo_t tx_vfo)
         p1 = p1 + 2;    /* use non-Toggle commands */
     }
 
-    if (is_ft101)
+    if (is_ftdx101)
     {
         // what other Yaeus rigs should be using this?
         // The DX101D returns FT0 when in split and not transmitting
@@ -5502,7 +5500,7 @@ int newcat_get_tx_vfo(RIG *rig, vfo_t *tx_vfo)
     vfo_t vfo_mode;
     char const *command = "FT";
 
-    if (is_ft101)
+    if (is_ftdx101)
     {
         // what other Yaeus rigs should be using this?
         // The DX101D returns FT0 when in split and not transmitting
@@ -6058,7 +6056,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             return -RIG_EINVAL;
         }   // end switch(mode)
     }   // end is_ft991
-    else if (is_ft1200)
+    else if (is_ftdx1200)
     {
         switch (mode)
         {
@@ -6136,8 +6134,8 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         default:
             return -RIG_EINVAL;
         }   // end switch(mode)
-    } // end is_ft1200
-    else if (is_ft101)
+    } // end is_ftdx1200
+    else if (is_ftdx101)
     {
         switch (mode)
         {
@@ -6201,7 +6199,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         {
             return err;
         }
-    } // end is_ft101
+    } // end is_ftdx101
     else
     {
         // FT450, FT2000, FT5000, FT9000
@@ -6250,7 +6248,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     /* end else */
 
-    if (is_ft101)
+    if (is_ftdx101)
     {
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH%c0%02d;", main_sub_vfo, w);
     }
@@ -6510,7 +6508,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
     rig_debug(RIG_DEBUG_TRACE, "%s: w=%d\n", __func__, w);
 
     // ft950 and ft1200 overlap so we'll combine them
-    if (is_ft950 || is_ft1200)
+    if (is_ft950 || is_ftdx1200)
     {
         if ((narrow = get_narrow(rig, RIG_VFO_MAIN)) < 0)
         {
@@ -6780,7 +6778,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 
     else if (newcat_is_rig(rig, RIG_MODEL_FTDX101D))
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: is_ft101 w=%d, mode=%s\n", __func__, w,
+        rig_debug(RIG_DEBUG_TRACE, "%s: is_ftdx101 w=%d, mode=%s\n", __func__, w,
                   rig_strrmode(mode));
 
         if (w == 0) // then we need to know the roofing filter
