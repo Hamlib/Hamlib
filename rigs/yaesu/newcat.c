@@ -6301,7 +6301,7 @@ static int set_roofing_filter(RIG *rig, vfo_t vfo, int index)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     struct newcat_priv_caps *priv_caps = (struct newcat_priv_caps *)rig->caps->priv;
-    struct newcat_roofing_filter *roofing_filters = priv_caps->roofing_filters;
+    struct newcat_roofing_filter *roofing_filters;
     char main_sub_vfo = '0';
     char roofing_filter_choice = 0;
     int err;
@@ -6313,6 +6313,8 @@ static int set_roofing_filter(RIG *rig, vfo_t vfo, int index)
     {
         return -RIG_ENAVAIL;
     }
+
+    roofing_filters = priv_caps->roofing_filters;
 
     if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
     {
@@ -6405,7 +6407,7 @@ static int get_roofing_filter(RIG *rig, vfo_t vfo, struct newcat_roofing_filter 
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     struct newcat_priv_caps *priv_caps = (struct newcat_priv_caps *)rig->caps->priv;
-    struct newcat_roofing_filter *roofing_filters = priv_caps->roofing_filters;
+    struct newcat_roofing_filter *roofing_filters;
     char roofing_filter_choice;
     char main_sub_vfo = '0';
     char rf_vfo = 'X';
@@ -6419,6 +6421,8 @@ static int get_roofing_filter(RIG *rig, vfo_t vfo, struct newcat_roofing_filter 
     {
         return -RIG_ENAVAIL;
     }
+
+    roofing_filters = priv_caps->roofing_filters;
 
     if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
     {
