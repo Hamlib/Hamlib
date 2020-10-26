@@ -107,7 +107,7 @@ DECLARE_INITRIG_BACKEND(yaesu)
     rig_register(&frg9600_caps);
     rig_register(&vr5000_caps);
     rig_register(&vx1700_caps);
-    rig_register(&ft1200_caps);
+    rig_register(&ftdx1200_caps);
     rig_register(&ft991_caps);
     rig_register(&ft891_caps);
     rig_register(&ft847uni_caps);
