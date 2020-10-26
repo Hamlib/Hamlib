@@ -6340,7 +6340,7 @@ static int set_roofing_filter_for_width(RIG *rig, vfo_t vfo, int width)
             break;
         }
 
-        index = i;
+        index = current_filter->index;
     }
 
     if (index < 0)
