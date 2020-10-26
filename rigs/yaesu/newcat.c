@@ -5466,7 +5466,7 @@ int newcat_set_tx_vfo(RIG *rig, vfo_t tx_vfo)
     if (newcat_is_rig(rig, RIG_MODEL_FT950) ||
             newcat_is_rig(rig, RIG_MODEL_FT2000) ||
             newcat_is_rig(rig, RIG_MODEL_FTDX5000) ||
-            newcat_is_rig(rig, RIG_MODEL_FT1200) ||
+            newcat_is_rig(rig, RIG_MODEL_FTDX1200) ||
             newcat_is_rig(rig, RIG_MODEL_FT991) ||
             newcat_is_rig(rig, RIG_MODEL_FTDX3000))
     {
@@ -6507,7 +6507,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: w=%d\n", __func__, w);
 
-    // ft950 and ft1200 overlap so we'll combine them
+    // ft950 and ftdx1200 overlap so we'll combine them
     if (is_ft950 || is_ftdx1200)
     {
         if ((narrow = get_narrow(rig, RIG_VFO_MAIN)) < 0)
@@ -6618,7 +6618,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 
             case 20: *width = 3000; break;
 
-            // 21+ is for the FT1200
+            // 21+ is for the FTDX1200
             case 21: *width = 3200; break;
 
             case 22: *width = 3400; break;
@@ -6643,7 +6643,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
             return -RIG_EINVAL;
         }   /* end switch(mode) */
 
-    }   /* end if FT950 FT1200 */
+    }   /* end if FT950 FTDX1200 */
 
     else if (newcat_is_rig(rig, RIG_MODEL_FT991))
     {
