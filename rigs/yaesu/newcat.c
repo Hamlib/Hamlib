@@ -731,7 +731,8 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     if (newcat_valid_command(rig, "BS")
             && newcat_band_index(freq) != newcat_band_index(rig->state.current_freq))
     {
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "BS%c", cat_term);
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "BS%02d%c",
+                 newcat_band_index(freq), cat_term);
 
         if (RIG_OK != (err = newcat_set_cmd(rig)))
         {
