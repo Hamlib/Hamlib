@@ -394,19 +394,19 @@ static int newcat_band_index(freq_t freq)
     // FTDX101D has band=12=MW...what is that?
     int band = 11; // general
 
-    if (freq >= 1.8) { band = 0; }
-    else if (freq >= 3.5) { band = 1; }
-    else if (freq >= 5) { band = 2; }
-    else if (freq >= 7) { band = 3; }
-    else if (freq >= 10) { band = 4; }
-    else if (freq >= 14) { band = 5; }
-    else if (freq >= 18) { band = 6; }
-    else if (freq >= 21) { band = 7; }
-    else if (freq >= 24.5) { band = 8; }
-    else if (freq >= 28) { band = 9; }
-    else if (freq >= 50) { band = 10; }
+    if (freq >= 70) { band = 17; }
     // what about 11-16?
-    else if (freq >= 70) { band = 17; }
+    else if (freq >= 50) { band = 10; }
+    else if (freq >= 28) { band = 9; }
+    else if (freq >= 24.5) { band = 8; }
+    else if (freq >= 21) { band = 7; }
+    else if (freq >= 18) { band = 6; }
+    else if (freq >= 14) { band = 5; }
+    else if (freq >= 10) { band = 4; }
+    else if (freq >= 7) { band = 3; }
+    else if (freq >= 5) { band = 2; }
+    else if (freq >= 3.5) { band = 1; }
+    else if (freq >= 1.8) { band = 0; }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: band=%d\n", __func__, band);
     return band;
