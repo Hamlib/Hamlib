@@ -381,7 +381,8 @@ static int newcat_get_vfo_mode(RIG *rig, vfo_t *vfo_mode);
 static int newcat_vfomem_toggle(RIG *rig);
 static int set_roofing_filter(RIG *rig, vfo_t vfo, int index);
 static int set_roofing_filter_for_width(RIG *rig, vfo_t vfo, int width);
-static int get_roofing_filter(RIG *rig, vfo_t vfo, struct newcat_roofing_filter **roofing_filter);
+static int get_roofing_filter(RIG *rig, vfo_t vfo,
+                              struct newcat_roofing_filter **roofing_filter);
 static ncboolean newcat_valid_command(RIG *rig, char const *const command);
 
 /*
@@ -451,7 +452,6 @@ int newcat_init(RIG *rig)
     priv->rig_id = NC_RIGID_NONE;
     priv->current_mem = NC_MEM_CHANNEL_NONE;
     priv->fast_set_commands = FALSE;
-    priv->has_bs_cmd = 1; // assume true until proven otherwise..in set_freq
 
     return RIG_OK;
 }
@@ -760,6 +760,23 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         newcat_get_vfo_mode(rig, &vfo_mode);
     }
 
+    //
+    // Restore band memory if we can and band is changing -- we do it before we set the frequency
+    if (newcat_valid_command(rig, "BS")
+            && newcat_band_index(freq) != newcat_band_index(rig->state.current_freq))
+    {
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "BS%c", cat_term);
+
+        if (RIG_OK != (err = newcat_set_cmd(rig)))
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected error with BS command=%s\n", __func__,
+                      rigerror(err));
+        }
+
+        // just drop through
+    }
+
+
     // cppcheck-suppress *
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "F%c%0*"PRIll"%c", c,
              priv->width_frequency, (int64_t)freq, cat_term);
@@ -775,24 +792,6 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: band changing? old=%d, new=%d\n", __func__,
               newcat_band_index(freq), newcat_band_index(rig->state.current_freq));
-
-    // Restore band memory if we can
-    if (priv->has_bs_cmd
-            && newcat_band_index(freq) != newcat_band_index(rig->state.current_freq))
-    {
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "BS%c", cat_term);
-
-        if (RIG_OK != (err = newcat_set_cmd(rig)))
-        {
-            priv->has_bs_cmd = 0; // guess we can't do this so don't try again
-            rig_debug(RIG_DEBUG_TRACE, "%s: rig does not have BS command\n", __func__);
-        }
-        else
-        {
-            rig_debug(RIG_DEBUG_TRACE, "%s: need to restore band settings=%s\n", __func__,
-                      priv->ret_data);
-        }
-    }
 
     if (RIG_MODEL_FT450 == caps->rig_model && priv->ret_data[2] != target_vfo)
     {
@@ -2108,11 +2107,13 @@ int newcat_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
     {
         if (is_ft891 || is_ft991 || is_ftdx101)
         {
-            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CT%c00%c", main_sub_vfo, cat_term);
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CT%c00%c", main_sub_vfo,
+                     cat_term);
         }
         else
         {
-            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CT%c0%c", main_sub_vfo, cat_term);
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CT%c0%c", main_sub_vfo,
+                     cat_term);
         }
     }
     else
@@ -2120,12 +2121,12 @@ int newcat_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
         if (is_ft891 || is_ft991 || is_ftdx101)
         {
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CN%c0%03d%cCT%c2%c",
-                    main_sub_vfo, i, cat_term, main_sub_vfo, cat_term);
+                     main_sub_vfo, i, cat_term, main_sub_vfo, cat_term);
         }
         else
         {
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CN%c%02d%cCT%c2%c",
-                    main_sub_vfo, i, cat_term, main_sub_vfo, cat_term);
+                     main_sub_vfo, i, cat_term, main_sub_vfo, cat_term);
         }
     }
 
@@ -2164,11 +2165,13 @@ int newcat_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 
     if (is_ft891 || is_ft991 || is_ftdx101)
     {
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c0%c", cmd, main_sub_vfo, cat_term);
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c0%c", cmd, main_sub_vfo,
+                 cat_term);
     }
     else
     {
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", cmd, main_sub_vfo, cat_term);
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", cmd, main_sub_vfo,
+                 cat_term);
     }
 
     /* Get CTCSS TONE */
@@ -2340,7 +2343,8 @@ int newcat_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq,
     case NC_RIGID_FTDX1200:
         /* 100 Watts */
         *mwpower = power * 100000;
-        rig_debug(RIG_DEBUG_TRACE, "case FTDX1200 - rig_id = %d, *mwpower = %d\n", rig_id,
+        rig_debug(RIG_DEBUG_TRACE, "case FTDX1200 - rig_id = %d, *mwpower = %d\n",
+                  rig_id,
                   *mwpower);
         break;
 
@@ -2731,7 +2735,8 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             return -RIG_ENAVAIL;
         }
 
-        if (is_ft950 || is_ftdx1200 || is_ftdx3000 || is_ft891 || is_ft991 || is_ftdx101)
+        if (is_ft950 || is_ftdx1200 || is_ftdx3000 || is_ft891 || is_ft991
+                || is_ftdx101)
         {
             scale = 100.;
         }
@@ -3672,7 +3677,8 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     switch (level)
     {
     case RIG_LEVEL_RFPOWER:
-        if (is_ft950 || is_ftdx1200 || is_ftdx3000 || is_ft891 || is_ft991 || is_ftdx101)
+        if (is_ft950 || is_ftdx1200 || is_ftdx3000 || is_ft891 || is_ft991
+                || is_ftdx101)
         {
             scale = 100.;
         }
@@ -3697,7 +3703,8 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_SWR:
-        if (retlvl_len > 3) {
+        if (retlvl_len > 3)
+        {
             // Some rigs like FTDX101 have 6-byte return so we just truncate
             retlvl[3] = 0;
         }
@@ -3714,7 +3721,8 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_ALC:
-        if (retlvl_len > 3) {
+        if (retlvl_len > 3)
+        {
             // Some rigs like FTDX101 have 6-byte return so we just truncate
             retlvl[3] = 0;
         }
@@ -3727,10 +3735,12 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             val->f = rig_raw2val_float(atoi(retlvl), &rig->caps->alc_cal);
         }
+
         break;
 
     case RIG_LEVEL_RFPOWER_METER:
-        if (retlvl_len > 3) {
+        if (retlvl_len > 3)
+        {
             // Some rigs like FTDX101 have 6-byte return so we just truncate
             retlvl[3] = 0;
         }
@@ -3743,10 +3753,12 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             val->f = rig_raw2val_float(atoi(retlvl), &rig->caps->rfpower_meter_cal);
         }
+
         break;
 
     case RIG_LEVEL_COMP_METER:
-        if (retlvl_len > 3) {
+        if (retlvl_len > 3)
+        {
             // Some rigs like FTDX101 have 6-byte return so we just truncate
             retlvl[3] = 0;
         }
@@ -3759,10 +3771,12 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             val->f = rig_raw2val_float(atoi(retlvl), &rig->caps->comp_meter_cal);
         }
+
         break;
 
     case RIG_LEVEL_VD_METER:
-        if (retlvl_len > 3) {
+        if (retlvl_len > 3)
+        {
             // Some rigs like FTDX101 have 6-byte return so we just truncate
             retlvl[3] = 0;
         }
@@ -3775,10 +3789,12 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             val->f = rig_raw2val_float(atoi(retlvl), &rig->caps->vd_meter_cal);
         }
+
         break;
 
     case RIG_LEVEL_ID_METER:
-        if (retlvl_len > 3) {
+        if (retlvl_len > 3)
+        {
             // Some rigs like FTDX101 have 6-byte return so we just truncate
             retlvl[3] = 0;
         }
@@ -3791,6 +3807,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             val->f = rig_raw2val_float(atoi(retlvl), &rig->caps->id_meter_cal);
         }
+
         break;
 
     case RIG_LEVEL_MICGAIN:
@@ -3802,6 +3819,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             scale = 255.;
         }
+
         val->f = (float)atoi(retlvl) / scale;
         break;
 
@@ -3859,7 +3877,8 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             break;
         }
 
-        if (is_ftdx1200 || is_ftdx3000 || is_ftdx5000 || is_ft891 || is_ft991 || is_ftdx101)
+        if (is_ftdx1200 || is_ftdx3000 || is_ftdx5000 || is_ft891 || is_ft991
+                || is_ftdx101)
         {
             val->i = round(rig_raw2val(atoi(retlvl), &yaesu_default_str_cal));
         }
@@ -3869,6 +3888,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             if (val->i > 0) { val->i = (atoi(retlvl) - 9) * 10; }
             else { val->i = (atoi(retlvl) - 9) * 6; } // Return dbS9  does >S9 mean 10dB increments?
         }
+
         break;
 
     case RIG_LEVEL_RAWSTR:
@@ -4017,6 +4037,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             scale = 255.;
         }
+
         val->f = (float)atoi(retlvl) / scale;
         break;
 
@@ -4134,12 +4155,15 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         if (is_ftdx1200 || is_ftdx3000 || is_ftdx5000 || is_ftdx101)
         {
             // These rigs can lock Main/Sub VFO dials individually
-            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "LK%d%c", status ? 7 : 4, cat_term);
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "LK%d%c", status ? 7 : 4,
+                     cat_term);
         }
         else
         {
-            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "LK%d%c", status ? 1 : 0, cat_term);
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "LK%d%c", status ? 1 : 0,
+                     cat_term);
         }
+
         break;
 
     case RIG_FUNC_MON:
@@ -4477,6 +4501,7 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         // The number of digits varies by rig, but the last digit indicates the status always
         *status = (retfunc[last_char_index] == '0') ? 0 : 1;
         break;
+
     case RIG_FUNC_LOCK:
         if (is_ftdx1200 || is_ftdx3000 || is_ftdx5000 || is_ftdx101)
         {
@@ -4487,6 +4512,7 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         {
             *status = (retfunc[0] == '0') ? 0 : 1;
         }
+
         break;
 
     case RIG_FUNC_ANF:
@@ -4547,12 +4573,13 @@ int newcat_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
 
     switch (token)
     {
-        case TOK_ROOFING_FILTER:
-            return set_roofing_filter(rig, vfo, val.i);
+    case TOK_ROOFING_FILTER:
+        return set_roofing_filter(rig, vfo, val.i);
 
-        default:
-            rig_debug(RIG_DEBUG_ERR, "%s: Unsupported ext level %s\n", __func__, rig_strlevel(token));
-            return -RIG_EINVAL;
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported ext level %s\n", __func__,
+                  rig_strlevel(token));
+        return -RIG_EINVAL;
     }
 }
 
@@ -4564,22 +4591,24 @@ int newcat_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 
     switch (token)
     {
-        case TOK_ROOFING_FILTER:
-        {
-            struct newcat_roofing_filter *roofing_filter;
-            retval = get_roofing_filter(rig, vfo, &roofing_filter);
-            if (retval != RIG_OK)
-            {
-                return retval;
-            }
+    case TOK_ROOFING_FILTER:
+    {
+        struct newcat_roofing_filter *roofing_filter;
+        retval = get_roofing_filter(rig, vfo, &roofing_filter);
 
-            val->i = roofing_filter->index;
-            break;
+        if (retval != RIG_OK)
+        {
+            return retval;
         }
 
-        default:
-            rig_debug(RIG_DEBUG_ERR, "%s: Unsupported ext level %s\n", __func__, rig_strlevel(token));
-            return -RIG_EINVAL;
+        val->i = roofing_filter->index;
+        break;
+    }
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported ext level %s\n", __func__,
+                  rig_strlevel(token));
+        return -RIG_EINVAL;
     }
 
     return RIG_OK;
@@ -5154,6 +5183,7 @@ int newcat_get_channel(RIG *rig, channel_t *chan, int read_only)
     priv->question_mark_response_means_rejected = 1;
     err = newcat_get_cmd(rig);
     priv->question_mark_response_means_rejected = 0;
+
     if (RIG_OK != err)
     {
         if (-RIG_ERJCTED == err)
@@ -5340,7 +5370,7 @@ ncboolean newcat_valid_command(RIG *rig, char const *const command)
     is_ftdx101 = newcat_is_rig(rig, RIG_MODEL_FTDX101D);
 
     if (!is_ft450 && !is_ft950 && !is_ft891 && !is_ft991 && !is_ft2000
-        && !is_ftdx5000 && !is_ft9000 && !is_ftdx1200 && !is_ftdx3000 && !is_ftdx101)
+            && !is_ftdx5000 && !is_ft9000 && !is_ftdx1200 && !is_ftdx3000 && !is_ftdx101)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: '%s' is unknown\n", __func__, caps->model_name);
         return FALSE;
@@ -6330,6 +6360,7 @@ static int set_roofing_filter(RIG *rig, vfo_t vfo, int index)
     {
         struct newcat_roofing_filter *current_filter = &roofing_filters[i];
         char set_value = current_filter->set_value;
+
         if (set_value == 0)
         {
             continue;
@@ -6348,7 +6379,8 @@ static int set_roofing_filter(RIG *rig, vfo_t vfo, int index)
         return -RIG_EINVAL;
     }
 
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RF%c%c%c", main_sub_vfo, roofing_filter_choice, cat_term);
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RF%c%c%c", main_sub_vfo,
+             roofing_filter_choice, cat_term);
 
     priv->question_mark_response_means_rejected = 1;
     err = newcat_set_cmd(rig);
@@ -6403,7 +6435,8 @@ static int set_roofing_filter_for_width(RIG *rig, vfo_t vfo, int width)
     return set_roofing_filter(rig, vfo, index);
 }
 
-static int get_roofing_filter(RIG *rig, vfo_t vfo, struct newcat_roofing_filter **roofing_filter)
+static int get_roofing_filter(RIG *rig, vfo_t vfo,
+                              struct newcat_roofing_filter **roofing_filter)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     struct newcat_priv_caps *priv_caps = (struct newcat_priv_caps *)rig->caps->priv;
@@ -6429,7 +6462,8 @@ static int get_roofing_filter(RIG *rig, vfo_t vfo, struct newcat_roofing_filter 
         main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
 
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RF%c%c", main_sub_vfo, cat_term);
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RF%c%c", main_sub_vfo,
+             cat_term);
 
     if (RIG_OK != (err = newcat_get_cmd(rig)))
     {
@@ -6449,6 +6483,7 @@ static int get_roofing_filter(RIG *rig, vfo_t vfo, struct newcat_roofing_filter 
     for (i = 0; i < priv_caps->roofing_filter_count; i++)
     {
         struct newcat_roofing_filter *current_filter = &roofing_filters[i];
+
         if (current_filter->get_value == roofing_filter_choice)
         {
             *roofing_filter = current_filter;
@@ -6457,8 +6492,8 @@ static int get_roofing_filter(RIG *rig, vfo_t vfo, struct newcat_roofing_filter 
     }
 
     rig_debug(RIG_DEBUG_ERR,
-            "%s: Expected a valid roofing filter but got %c from '%s'\n", __func__,
-            roofing_filter_choice, priv->ret_data);
+              "%s: Expected a valid roofing filter but got %c from '%s'\n", __func__,
+              roofing_filter_choice, priv->ret_data);
 
     return RIG_EPROTO;
 }
@@ -7365,7 +7400,8 @@ int newcat_get_cmd(RIG *rig)
                 if (priv->question_mark_response_means_rejected)
                 {
                     /* Some commands, like MR and MC return "?;" when choosing a channel that doesn't exist */
-                    rig_debug(RIG_DEBUG_ERR, "%s: Command rejected: '%s'\n", __func__, priv->cmd_str);
+                    rig_debug(RIG_DEBUG_ERR, "%s: Command rejected: '%s'\n", __func__,
+                              priv->cmd_str);
                     return -RIG_ERJCTED;
                 }
 
@@ -7495,11 +7531,12 @@ int newcat_set_cmd(RIG *rig)
                 if (priv->question_mark_response_means_rejected)
                 {
                     /* Some commands, like MR and MC return "?;" when choosing a channel that doesn't exist */
-                    rig_debug(RIG_DEBUG_ERR, "%s: Command rejected: '%s'\n", __func__, priv->cmd_str);
+                    rig_debug(RIG_DEBUG_ERR, "%s: Command rejected: '%s'\n", __func__,
+                              priv->cmd_str);
                     return -RIG_ERJCTED;
                 }
 
-                    /* Rig busy wait please */
+                /* Rig busy wait please */
                 rig_debug(RIG_DEBUG_WARN, "%s: Rig busy - retrying\n", __func__);
 
                 /* read the verify command reply */
