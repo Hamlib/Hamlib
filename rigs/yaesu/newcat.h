@@ -118,7 +118,7 @@ struct newcat_priv_data
     struct timespec cache_start;
     char last_if_response[NEWCAT_DATA_LEN];
     int poweron; /* to prevent powering on more than once */
-    int has_bs_cmd; // used to restore band memory */
+    int question_mark_response_means_rejected; /* the question mark response has multiple meanings */
 };
 
 /*
