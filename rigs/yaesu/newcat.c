@@ -5240,7 +5240,7 @@ int newcat_get_channel(RIG *rig, channel_t *chan, int read_only)
 const char *newcat_get_info(RIG *rig)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
-    static char idbuf[513]; /* extra large static string array */
+    static char idbuf[129]; /* extra large static string array */
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
