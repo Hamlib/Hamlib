@@ -27,7 +27,6 @@
 #include "tones.h"
 
 #ifdef HAVE_SYS_TIME_H
-// cppcheck-suppress *
 #include <sys/time.h>
 #endif
 
