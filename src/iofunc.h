@@ -22,7 +22,6 @@
 #ifndef _IOFUNC_H
 #define _IOFUNC_H 1
  
-// cppcheck-suppress * 
 #include <sys/types.h>
 #include <hamlib/rig.h>
 

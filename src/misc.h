@@ -84,12 +84,10 @@ extern int no_restore_ai;
 
 /* needs config.h included beforehand in .c file */
 #ifdef HAVE_INTTYPES_H
-// cppcheck-suppress *
 #  include <inttypes.h>
 #endif
 
 #ifdef HAVE_SYS_TIME_H
-// cppcheck-suppress *
 #  include <sys/time.h>
 #endif
 
