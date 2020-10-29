@@ -151,15 +151,49 @@ const cal_table_float_t yaesu_default_alc_cal =
 {
     3,
     {
-        // Based on testing with G3VPX Ian Sumner
-        {0, 1.0f},
-        {26, 1.2f},
-        {52, 1.5f},
-        {89, 2.0f},
-        {126, 3.0f},
-        {173, 4.0f},
-        {236, 5.0f},
-        {255, 25.0f},
+        {0, 0.0f},
+        {128, 1.0f},
+        {255, 2.0f},
+    }
+};
+
+// TODO: Provide sane defaults
+const cal_table_float_t yaesu_default_comp_meter_cal =
+{
+    2,
+    {
+        {0, 0.0f},
+        {255, 1.0f},
+    }
+};
+
+// TODO: Provide sane defaults
+const cal_table_float_t yaesu_default_rfpower_meter_cal =
+{
+    2,
+    {
+        {0, 0.0f},
+        {255, 1.0f},
+    }
+};
+
+// TODO: Provide sane defaults
+const cal_table_float_t yaesu_default_vd_meter_cal =
+{
+    2,
+    {
+        {0, 0.0f},
+        {255, 1.0f},
+    }
+};
+
+// TODO: Provide sane defaults
+const cal_table_float_t yaesu_default_id_meter_cal =
+{
+    2,
+    {
+        {0, 0.0f},
+        {255, 1.0f},
     }
 };
 

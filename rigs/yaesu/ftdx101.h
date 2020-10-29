@@ -71,6 +71,7 @@
                RIG_OP_UP|RIG_OP_DOWN|RIG_OP_BAND_UP|RIG_OP_BAND_DOWN|\
                RIG_OP_TO_VFO|RIG_OP_FROM_VFO|RIG_OP_TOGGLE)
 
+// Based on testing with G3VPX Ian Sumner
 #define FTDX101D_SWR_CAL \
     { \
         8, \
