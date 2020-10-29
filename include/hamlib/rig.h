@@ -24,13 +24,9 @@
 #ifndef _RIG_H
 #define _RIG_H 1
 
-// cppcheck-suppress *
 #include <stdio.h>
-// cppcheck-suppress *
 #include <stdarg.h>
-// cppcheck-suppress *
 #include <inttypes.h>
-// cppcheck-suppress *
 #include <time.h>
 
 /* Rig list is in a separate file so as not to mess up w/ this one */
@@ -2787,7 +2783,6 @@ extern HAMLIB_EXPORT(int) rig_set_cache_timeout_ms(RIG *rig, hamlib_cache_t sele
 extern HAMLIB_EXPORT(int) rig_set_vfo_opt(RIG *rig, int status);
 
 
-// cppcheck-suppress *
 typedef unsigned long rig_useconds_t;
 extern HAMLIB_EXPORT(int) hl_usleep(rig_useconds_t msec);
 
