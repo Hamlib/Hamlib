@@ -27,7 +27,6 @@
 #include "iofunc.h"
 
 #ifdef HAVE_LINUX_PARPORT_H
-// cppcheck-suppress *
 #  include <linux/parport.h>
 #endif
 
