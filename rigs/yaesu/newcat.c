@@ -391,28 +391,29 @@ static ncboolean newcat_valid_command(RIG *rig, char const *const command);
  */
 static int newcat_band_index(freq_t freq)
 {
-    // FTDX101D has band=12=MW...what is that?
+    // FTDX101D has band=12=MW Medium Wave
     int band = 11; // general
 
     // what about 13?
-    if (freq >= 420 && freq < 470) { band = 16; }
-    else if (freq >= 144 && freq < 148) { band = 15; }
-    else if (freq >= 118 && freq < 164) { band = 14; }
-    else if (freq >= 70 && freq < 75) { band = 17; }
-    else if (freq >= 50 && freq < 54) { band = 10; }
+    if (freq >= MHz(420) && freq < MHz(470)) { band = 16; }
+    else if (freq >= MHz(144) && freq < MHz(148)) { band = 15; }
+    else if (freq >= MHz(118) && freq < MHz(164)) { band = 14; }
+    else if (freq >= MHz(70) && freq < MHz(75)) { band = 17; }
+    else if (freq >= MHz(50) && freq < MHz(54)) { band = 10; }
     // do we need to restrict ranges below here?
-    else if (freq >= 28) { band = 9; }
-    else if (freq >= 24.5) { band = 8; }
-    else if (freq >= 21) { band = 7; }
-    else if (freq >= 18) { band = 6; }
-    else if (freq >= 14) { band = 5; }
-    else if (freq >= 10) { band = 4; }
-    else if (freq >= 7) { band = 3; }
-    else if (freq >= 5) { band = 2; }
-    else if (freq >= 3.5) { band = 1; }
-    else if (freq >= 1.8) { band = 0; }
+    else if (freq >= MHz(28)) { band = 9; }
+    else if (freq >= MHz(24.5)) { band = 8; }
+    else if (freq >= MHz(21)) { band = 7; }
+    else if (freq >= MHz(18)) { band = 6; }
+    else if (freq >= MHz(14)) { band = 5; }
+    else if (freq >= MHz(10)) { band = 4; }
+    else if (freq >= MHz(7)) { band = 3; }
+    else if (freq >= MHz(5)) { band = 2; }
+    else if (freq >= MHz(3.5)) { band = 1; }
+    else if (freq >= MHz(1.8)) { band = 0; }
+    else if (freq >= MHz(0.5)) { band = 12; } // MW Medium Wave
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: band=%d\n", __func__, band);
+    rig_debug(RIG_DEBUG_TRACE, "%s: freq=%g, band=%d\n", __func__, freq, band);
     return band;
 }
 
