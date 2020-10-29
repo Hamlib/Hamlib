@@ -136,6 +136,35 @@ struct cmdparams ic7000_extcmds[] =
 };
 
 /*
+ *  This function does the special bandwidth coding for IC-7000
+ */
+static int ic7000_r2i_mode(RIG *rig, rmode_t mode, pbwidth_t width,
+                           unsigned char *md, signed char *pd)
+{
+    int err;
+
+    err = rig2icom_mode(rig, mode, width, md, pd);
+
+    if (err != RIG_OK)
+    {
+        return err;
+    }
+
+    // CAT section of manual says: nn = 0 -40 > bw = 50Hz > 3600Hz
+    // Tested by Ian G3VPX 20201029
+    // 0 - 9 > bw 50Hz to 500Hz in 50Hz steps
+    // 10 - 40 > bw 600Hz to 3600Hz in 100Hz steps
+    if (width != RIG_PASSBAND_NOCHANGE)
+    {
+        if (width <= 500) { *pd = width / 50 - 1; }
+        else if (width <= 3600) { *pd = width / 100 + 4; }
+        else { *pd = 40; }
+    }
+
+    return RIG_OK;
+}
+
+/*
  * IC-7000 rig capabilities.
  */
 static const struct icom_priv_caps IC7000_priv_caps =
@@ -152,6 +181,7 @@ static const struct icom_priv_caps IC7000_priv_caps =
         { .level = -1, .icom_level = 0 },
     },
     .extcmds = ic7000_extcmds,
+    .r2i_mode = ic7000_r2i_mode
 };
 
 const struct rig_caps ic7000_caps =
@@ -159,9 +189,9 @@ const struct rig_caps ic7000_caps =
     RIG_MODEL(RIG_MODEL_IC7000),
     .model_name = "IC-7000",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".0",
+    .version =  BACKEND_VER ".1",
     .copyright =  "LGPL",
-    .status =  RIG_STATUS_BETA,
+    .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
     .ptt_type =  RIG_PTT_RIG,
     .dcd_type =  RIG_DCD_RIG,
