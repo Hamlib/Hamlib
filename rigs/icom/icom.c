@@ -7570,6 +7570,7 @@ DECLARE_INITRIG_BACKEND(icom)
     rig_register(&ic781_caps);
     rig_register(&ic707_caps);
     rig_register(&ic728_caps);
+    rig_register(&ic729_caps);
 
     rig_register(&ic820h_caps);
     rig_register(&ic821h_caps);
