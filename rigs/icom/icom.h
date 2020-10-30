@@ -347,6 +347,7 @@ extern const struct rig_caps ic718_caps;
 extern const struct rig_caps ic725_caps;
 extern const struct rig_caps ic726_caps;
 extern const struct rig_caps ic728_caps;
+extern const struct rig_caps ic729_caps;
 extern const struct rig_caps ic735_caps;
 extern const struct rig_caps ic736_caps;
 extern const struct rig_caps ic737_caps;
