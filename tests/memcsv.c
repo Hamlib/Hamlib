@@ -304,7 +304,7 @@ static char *mystrtok(char *s, char delim)
         }
     }
 
-    // cppcheck-suppress nullPointerArithmeticRedundantCheck
+    // cppcheck-suppress *
     return str + ent_pos;
 }
 
