@@ -937,6 +937,12 @@ int kenwood_open(RIG *rig)
     // we're making this non fatal
     // mismatched IDs can still be tested
     rig->state.rigport.retry = retry_save;
+
+    // All Kenwood rigs as of 20201031 do not need VFO switch for PTT and RITXIT
+    // They are non-VFO specific commands
+    // If they ever become VFO specific implement in the backend
+
+    rig->caps->targetable_vfo |= RIG_TARGETABLE_PTT | RIG_TARGETABLE_RITXIT;
     return RIG_OK;
 }
 
