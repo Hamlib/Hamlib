@@ -814,11 +814,6 @@ icom_rig_open(RIG *rig)
 #if 0 // do not do this here -- needs to be done when ranges are requested instead as this is very slow
     icom_get_freq_range(rig); // try get to get rig range capability dyamically
 #endif
-    // All Icom rigs as of 20201031 do not need VFO switch for PTT and RITXIT
-    // They are non-VFO specific commands
-    // If they ever become VFO specific implement in the backend
-    //rig->caps->targetable_vfo |= RIG_TARGETABLE_PTT | RIG_TARGETABLE_RITXIT |
-    //                             RIG_TARGETABLE_MEM | RIG_TARGETABLE_BANK;
 
     return RIG_OK;
 }
