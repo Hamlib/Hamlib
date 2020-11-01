@@ -529,14 +529,6 @@ int newcat_open(RIG *rig)
     /* Initialize rig_id in case any subsequent commands need it */
     (void)newcat_get_rigid(rig);
 
-    // All Yaeus rigs as of 20201031 do not need VFO switch for PTT and RITXIT
-    // They are non-VFO specific commands
-    // A couple of rigs do have vfo-specific in the backends
-    // If they ever become VFO specific implement in the backend
-    // this is getting a segfault on Linux -- read only??
-    //rig->caps->targetable_vfo |= RIG_TARGETABLE_PTT | RIG_TARGETABLE_RITXIT |
-    //                             RIG_TARGETABLE_MEM | RIG_TARGETABLE_BANK;
-
     return RIG_OK;
 }
 
