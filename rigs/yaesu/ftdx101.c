@@ -78,7 +78,7 @@ const struct rig_caps ftdx101d_caps =
     RIG_MODEL(RIG_MODEL_FTDX101D),
     .model_name =         "FTDX101D",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".5",
+    .version =            NEWCAT_VER ".6",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -113,7 +113,7 @@ const struct rig_caps ftdx101d_caps =
     .max_xit =            Hz(9999),
     .max_ifshift =        Hz(1200),
     .vfo_ops =            FTDX101_VFO_OPS,
-    .targetable_vfo =     RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE | RIG_TARGETABLE_FUNC | RIG_TARGETABLE_LEVEL,
+    .targetable_vfo =     RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE | RIG_TARGETABLE_FUNC | RIG_TARGETABLE_LEVEL | RIG_TARGETABLE_COMMON,
     .transceive =         RIG_TRN_OFF, /* May enable later as the FTDX101 has an Auto Info command */
     .bank_qty =           0,
     .chan_desc_sz =       0,
