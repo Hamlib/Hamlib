@@ -89,7 +89,7 @@ int HAMLIB_API rig_set_mem(RIG *rig, vfo_t vfo, int ch)
         return -RIG_ENAVAIL;
     }
 
-    if ((caps->targetable_vfo & RIG_TARGETABLE_PURE)
+    if ((caps->targetable_vfo & RIG_TARGETABLE_MEM)
             || vfo == RIG_VFO_CURR
             || vfo == rig->state.current_vfo)
     {
@@ -152,7 +152,7 @@ int HAMLIB_API rig_get_mem(RIG *rig, vfo_t vfo, int *ch)
         return -RIG_ENAVAIL;
     }
 
-    if ((caps->targetable_vfo & RIG_TARGETABLE_PURE)
+    if ((caps->targetable_vfo & RIG_TARGETABLE_MEM)
             || vfo == RIG_VFO_CURR
             || vfo == rig->state.current_vfo)
     {
@@ -215,7 +215,7 @@ int HAMLIB_API rig_set_bank(RIG *rig, vfo_t vfo, int bank)
         return -RIG_ENAVAIL;
     }
 
-    if ((caps->targetable_vfo & RIG_TARGETABLE_PURE)
+    if ((caps->targetable_vfo & RIG_TARGETABLE_BANK)
             || vfo == RIG_VFO_CURR
             || vfo == rig->state.current_vfo)
     {
