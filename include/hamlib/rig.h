@@ -459,7 +459,7 @@ typedef unsigned int vfo_t;
  * RIG_TARGETABLE_PURE means a pure targetable radio on every command
  * In rig.c lack of a flag will case a VFO change if needed
  * So setting this flag will mean the backend handles any VFO needs
- * For many rigs RITXIT and PTT are non-VFO commands so need these flags
+ * For many rigs RITXIT, PTT, MEM, and BANK are non-VFO commands so need these flags to avoid unnecessary VFO swapping
  */
 //! @cond Doxygen_Suppress
 #define RIG_TARGETABLE_NONE 0
@@ -471,6 +471,8 @@ typedef unsigned int vfo_t;
 #define RIG_TARGETABLE_LEVEL (1<<5)
 #define RIG_TARGETABLE_RITXIT (1<<6)
 #define RIG_TARGETABLE_PTT (1<<7)
+#define RIG_TARGETABLE_MEM (1<<8)
+#define RIG_TARGETABLE_BANK (1<<9)
 #define RIG_TARGETABLE_ALL  0x7fffffff
 //! @endcond
 //
