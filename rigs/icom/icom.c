@@ -817,8 +817,8 @@ icom_rig_open(RIG *rig)
     // All Icom rigs as of 20201031 do not need VFO switch for PTT and RITXIT
     // They are non-VFO specific commands
     // If they ever become VFO specific implement in the backend
-    rig->caps->targetable_vfo |= RIG_TARGETABLE_PTT | RIG_TARGETABLE_RITXIT |
-                                 RIG_TARGETABLE_MEM | RIG_TARGETABLE_BANK;
+    //rig->caps->targetable_vfo |= RIG_TARGETABLE_PTT | RIG_TARGETABLE_RITXIT |
+    //                             RIG_TARGETABLE_MEM | RIG_TARGETABLE_BANK;
 
     return RIG_OK;
 }

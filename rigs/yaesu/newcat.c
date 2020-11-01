@@ -533,8 +533,9 @@ int newcat_open(RIG *rig)
     // They are non-VFO specific commands
     // A couple of rigs do have vfo-specific in the backends
     // If they ever become VFO specific implement in the backend
-    rig->caps->targetable_vfo |= RIG_TARGETABLE_PTT | RIG_TARGETABLE_RITXIT |
-                                 RIG_TARGETABLE_MEM | RIG_TARGETABLE_BANK;
+    // this is getting a segfault on Linux -- read only??
+    //rig->caps->targetable_vfo |= RIG_TARGETABLE_PTT | RIG_TARGETABLE_RITXIT |
+    //                             RIG_TARGETABLE_MEM | RIG_TARGETABLE_BANK;
 
     return RIG_OK;
 }
