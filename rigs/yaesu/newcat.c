@@ -1735,10 +1735,27 @@ int newcat_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 int newcat_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    int vfo_swap = 0;
+    vfo_t oldvfo;
+    int ret;
 
     if (!newcat_valid_command(rig, "RT"))
     {
         return -RIG_ENAVAIL;
+    }
+
+    if (rig->state.current_vfo != vfo)
+    {
+        oldvfo = rig->state.current_vfo;
+        ret = newcat_set_vfo(rig, vfo);
+
+        if (ret != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: error setting vfo=%s\n", __func__,
+                      rig_strvfo(vfo));
+        }
+
+        vfo_swap = 1;
     }
 
     if (rit > rig->caps->max_rit)
@@ -1766,7 +1783,20 @@ int newcat_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
                  labs(rit), cat_term);
     }
 
-    return newcat_set_cmd(rig);
+    ret = newcat_set_cmd(rig);
+
+    if (vfo_swap)
+    {
+        newcat_set_vfo(rig, oldvfo);
+
+        if (ret != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: error setting vfo=%s\n", __func__,
+                      rig_strvfo(vfo));
+        }
+    }
+
+    return ret;
 }
 
 
@@ -1776,8 +1806,14 @@ int newcat_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
     char *retval;
     int err;
     int offset = 0;
+    char *cmd = "IF";
 
-    if (!newcat_valid_command(rig, "IF"))
+    if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB)
+    {
+        cmd = "OI";
+    }
+
+    if (!newcat_valid_command(rig, cmd))
     {
         return -RIG_ENAVAIL;
     }
@@ -1786,7 +1822,7 @@ int newcat_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c", "IF", cat_term);
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c", cmd, cat_term);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
 
