@@ -391,27 +391,30 @@ static ncboolean newcat_valid_command(RIG *rig, char const *const command);
  */
 static int newcat_band_index(freq_t freq)
 {
-    // FTDX101D has band=12=MW Medium Wave
     int band = 11; // general
 
-    // what about 13?
+    // restrict band memory recall to ITU 1,2,3 band ranges
+    // using < instead of <= for the moment
+    // does anybody work LSB or RTTYR at the upper band edge?
+    // what about band 13 -- what is it?
     if (freq >= MHz(420) && freq < MHz(470)) { band = 16; }
-    else if (freq >= MHz(144) && freq < MHz(148)) { band = 15; }
+    // band 14 is RX only
     else if (freq >= MHz(118) && freq < MHz(164)) { band = 14; }
-    else if (freq >= MHz(70) && freq < MHz(75)) { band = 17; }
-    else if (freq >= MHz(50) && freq < MHz(54)) { band = 10; }
-    // do we need to restrict ranges below here?
-    else if (freq >= MHz(28)) { band = 9; }
-    else if (freq >= MHz(24.5)) { band = 8; }
-    else if (freq >= MHz(21)) { band = 7; }
-    else if (freq >= MHz(18)) { band = 6; }
-    else if (freq >= MHz(14)) { band = 5; }
-    else if (freq >= MHz(10)) { band = 4; }
-    else if (freq >= MHz(7)) { band = 3; }
-    else if (freq >= MHz(5)) { band = 2; }
-    else if (freq >= MHz(3.5)) { band = 1; }
-    else if (freq >= MHz(1.8)) { band = 0; }
-    else if (freq >= MHz(0.5)) { band = 12; } // MW Medium Wave
+    // override band 14 with 15 if needed
+    else if (freq >= MHz(144) && freq < MHz(148)) { band = 15; }
+    else if (freq >= MHz(70) && freq < MHz(70.5)) { band = 17; }
+    else if (freq >= MHz(50) && freq < MHz(55)) { band = 10; }
+    else if (freq >= MHz(28) && freq < MHz(29.7)) { band = 9; }
+    else if (freq >= MHz(24.890) && freq < MHz(24.990)) { band = 8; }
+    else if (freq >= MHz(21) && freq < MHz(21.45)) { band = 7; }
+    else if (freq >= MHz(18) && freq < MHz(18.168)) { band = 6; }
+    else if (freq >= MHz(14) && freq < MHz(14.35)) { band = 5; }
+    else if (freq >= MHz(10) && freq < MHz(10.15)) { band = 4; }
+    else if (freq >= MHz(7) && freq < MHz(7.3)) { band = 3; }
+    else if (freq >= MHz(5.3515) && freq < MHz(5.3665)) { band = 2; }
+    else if (freq >= MHz(3.5) && freq < MHz(4)) { band = 1; }
+    else if (freq >= MHz(1.8) && freq < MHz(2)) { band = 0; }
+    else if (freq >= MHz(0.5) && freq < MHz(1.705)) { band = 12; } // MW Medium Wave
 
     rig_debug(RIG_DEBUG_TRACE, "%s: freq=%g, band=%d\n", __func__, freq, band);
     return band;
