@@ -115,7 +115,7 @@ const struct rig_caps ftdx3000_caps =
     .has_set_parm =       RIG_PARM_NONE,
     .level_gran = {
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
-        [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 50 } },
+        [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 10 } },
     },
     .ctcss_list =         common_ctcss_list,
     .dcs_list =           NULL,

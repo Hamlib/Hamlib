@@ -110,7 +110,7 @@ const struct rig_caps ftdx5000_caps =
     .level_gran = {
         // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
-        [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 50 } },
+        [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 10 } },
     },
     .ctcss_list =         common_ctcss_list,
     .dcs_list =           NULL,
