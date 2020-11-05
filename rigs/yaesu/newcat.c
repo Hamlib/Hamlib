@@ -4528,13 +4528,10 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             return -RIG_ENAVAIL;
         }
 
-        if (is_ft891)
+        if (is_ft891 || is_ft991 || is_ftdx1200 || is_ftdx3000 || is_ftdx101)
         {
+            // There seems to be an error in the manuals for some of these rigs stating that values should be 1 = OFF and 2 = ON, but they are 0 = OFF and 1 = ON instead
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PR0%d%c", status ? 1 : 0, cat_term);
-        }
-        else if (is_ft991 || is_ftdx1200 || is_ftdx3000 || is_ftdx101)
-        {
-            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PR0%d%c", status ? 2 : 1, cat_term);
         }
         else
         {
@@ -4810,14 +4807,7 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         break;
 
     case RIG_FUNC_COMP:
-        if (is_ft991 || is_ftdx1200 || is_ftdx3000 || is_ftdx101)
-        {
-            *status = (retfunc[0] == '2') ? 1 : 0;
-        }
-        else
-        {
-            *status = (retfunc[0] == '0') ? 0 : 1;
-        }
+        *status = (retfunc[0] == '0') ? 0 : 1;
         break;
 
     case RIG_FUNC_MON:
