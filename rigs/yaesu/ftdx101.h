@@ -91,7 +91,7 @@
  * Other features (used by rig_caps)
  */
 
-#define FTDX101_TX_ANTS  (RIG_ANT_1|RIG_ANT_2)
+#define FTDX101_TX_ANTS  (RIG_ANT_1|RIG_ANT_2|RIG_ANT_3)
 
 #define FTDX101_MEM_CHNL_LENGTH           1       /* 0x10 P1 = 01 return size */
 #define FTDX101_OP_DATA_LENGTH            19      /* 0x10 P1 = 03 return size */

@@ -77,10 +77,12 @@ const struct rig_caps ft950_caps =
         // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 50 } },
+        [LVL_KEYSPD] = { .min = { .i = 4 }, .max = { .i = 60 }, .step = { .i = 1 } },
+        [LVL_NOTCHF] = { .min = { .i = 1 }, .max = { .i = 3000 }, .step = { .i = 10 } },
     },
     .ctcss_list =         common_ctcss_list,
     .dcs_list =           NULL,
-    .preamp =             { 10, 20, RIG_DBLST_END, }, /* TBC */
+    .preamp =             { 10, 17, RIG_DBLST_END, },
     .attenuator =         { 6, 12, 18, RIG_DBLST_END, },
     .max_rit =            Hz(9999),
     .max_xit =            Hz(9999),

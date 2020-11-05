@@ -100,7 +100,7 @@
  *
  */
 
-#define FTDX5000_TX_ANTS  (RIG_ANT_1|RIG_ANT_2)
+#define FTDX5000_TX_ANTS  (RIG_ANT_1|RIG_ANT_2|RIG_ANT_3|RIG_ANT_4)
 
 #define FTDX5000_MEM_CHNL_LENGTH           1       /* 0x10 P1 = 01 return size */
 #define FTDX5000_OP_DATA_LENGTH            19      /* 0x10 P1 = 03 return size */
