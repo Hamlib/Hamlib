@@ -77,14 +77,16 @@ const struct rig_caps ft891_caps =
         // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 50 } },
+        [LVL_KEYSPD] = { .min = { .i = 4 }, .max = { .i = 60 }, .step = { .i = 1 } },
+        [LVL_NOTCHF] = { .min = { .i = 1 }, .max = { .i = 3200 }, .step = { .i = 10 } },
     },
     .ctcss_list =         common_ctcss_list,
     .dcs_list =           NULL,
-    .preamp =             { 10, 20, RIG_DBLST_END, }, /* TBC */
-    .attenuator =         { 6, 12, 18, RIG_DBLST_END, },
+    .preamp =             { 10, RIG_DBLST_END, }, /* TBC */
+    .attenuator =         { 12, RIG_DBLST_END, },
     .max_rit =            Hz(9999),
     .max_xit =            Hz(9999),
-    .max_ifshift =        Hz(1000),
+    .max_ifshift =        Hz(1200),
     .vfo_ops =            FT891_VFO_OPS,
     .targetable_vfo =     RIG_TARGETABLE_FREQ,
     .transceive =         RIG_TRN_OFF,        /* May enable later as the 950 has an Auto Info command */
@@ -200,8 +202,6 @@ const struct rig_caps ft891_caps =
     .get_rit =            newcat_get_rit,
     .set_xit =            newcat_set_xit,
     .get_xit =            newcat_get_xit,
-    .set_ant =            newcat_set_ant,
-    .get_ant =            newcat_get_ant,
     .get_func =           newcat_get_func,
     .set_func =           newcat_set_func,
     .get_level =          newcat_get_level,

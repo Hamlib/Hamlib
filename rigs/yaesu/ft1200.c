@@ -112,14 +112,16 @@ const struct rig_caps ftdx1200_caps =
         // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 10 } },
+        [LVL_KEYSPD] = { .min = { .i = 4 }, .max = { .i = 60 }, .step = { .i = 1 } },
+        [LVL_NOTCHF] = { .min = { .i = 1 }, .max = { .i = 4000 }, .step = { .i = 10 } },
     },
     .ctcss_list =         common_ctcss_list,
     .dcs_list =           NULL,
-    .preamp =             { 10, 20, RIG_DBLST_END, }, /* TBC */
+    .preamp =             { 10, 20, RIG_DBLST_END, },
     .attenuator =         { 6, 12, 18, RIG_DBLST_END, },
     .max_rit =            Hz(9999),
     .max_xit =            Hz(9999),
-    .max_ifshift =        Hz(1000),
+    .max_ifshift =        Hz(1200),
     .vfo_ops =            FTDX1200_VFO_OPS,
     .targetable_vfo =     RIG_TARGETABLE_FREQ,
     .transceive =         RIG_TRN_OFF,        /* May enable later as the 1200 has an Auto Info command */
