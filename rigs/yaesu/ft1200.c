@@ -174,12 +174,11 @@ const struct rig_caps ftdx1200_caps =
         {FTDX1200_FM_RX_MODES,     kHz(1)},    /* Fast */
 
         RIG_TS_END,
-
     },
 
     /* mode/filter list, .remember =  order matters! */
     .filters =            {
-        {FTDX1200_CW_RTTY_PKT_RX_MODES,  Hz(2400)},   /* Normal CW, RTTY, PKT/USER */
+        {FTDX1200_CW_RTTY_PKT_RX_MODES,  Hz(1800)},   /* Normal CW, RTTY, PKT/USER */
         {FTDX1200_CW_RTTY_PKT_RX_MODES,  Hz(500)},    /* Narrow CW, RTTY, PKT/USER */
         {FTDX1200_CW_RTTY_PKT_RX_MODES,  Hz(2400)},   /* Wide   CW, RTTY, PKT/USER */
         {RIG_MODE_SSB,                 Hz(2400)},   /* Normal SSB */
@@ -187,8 +186,10 @@ const struct rig_caps ftdx1200_caps =
         {RIG_MODE_SSB,                 Hz(4000)},   /* Wide   SSB */
         {RIG_MODE_AM,                  Hz(9000)},   /* Normal AM  */
         {RIG_MODE_AM,                  Hz(6000)},   /* Narrow AM  */
-        {FTDX1200_FM_RX_MODES,           Hz(12000)},  /* Normal FM  */
-        {FTDX1200_FM_RX_MODES,           Hz(8000)},   /* Narrow FM  */
+        {FTDX1200_FM_WIDE_RX_MODES,    Hz(16000)},  /* Normal FM  */
+        {FTDX1200_FM_WIDE_RX_MODES,    Hz(9000)},   /* Narrow FM  */
+        {RIG_MODE_FMN,                 Hz(9000)},   /* Narrow FM  */
+        {FTDX1200_CW_RTTY_PKT_RX_MODES | RIG_MODE_SSB, RIG_FLT_ANY},
 
         RIG_FLT_END,
     },
