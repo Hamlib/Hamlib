@@ -6179,6 +6179,13 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_RTTYR:
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
+            // Narrow mode must be chosen correctly before filter width
+            err = newcat_set_narrow(rig, vfo, width <= 500 ? TRUE : FALSE);
+            if (err != RIG_OK)
+            {
+                return err;
+            }
+
             if (width == RIG_PASSBAND_NORMAL) { w = 0; }
             else if (width <= 100) { w = 3; }
             else if (width <= 200) { w = 4; }
@@ -6195,6 +6202,13 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
+            // Narrow mode must be chosen correctly before filter width
+            err = newcat_set_narrow(rig, vfo, width <= 1800 ? TRUE : FALSE);
+            if (err != RIG_OK)
+            {
+                return err;
+            }
+
             if (width == RIG_PASSBAND_NORMAL) { w = 0; }
             else if (width <= 200) { w = 1; }
             else if (width <= 400) { w = 2; }
@@ -6221,6 +6235,24 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_AM:
         case RIG_MODE_FM:
         case RIG_MODE_PKTFM:
+        case RIG_MODE_FMN:
+            // Set roofing filter and narrow mode
+            break;
+
+        default:
+            return -RIG_EINVAL;
+        } // end switch(mode)
+
+        if ((err = set_roofing_filter_for_width(rig, vfo, width)) != RIG_OK)
+        {
+            return err;
+        }
+
+        switch (mode)
+        {
+        case RIG_MODE_AM:
+        case RIG_MODE_FM:
+        case RIG_MODE_PKTFM:
             if (width < rig_passband_normal(rig, mode))
             {
                 err = newcat_set_narrow(rig, vfo, TRUE);
@@ -6232,15 +6264,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             return err;
 
         case RIG_MODE_FMN:
-            break;
-
-        default:
-            return -RIG_EINVAL;
-        } // end switch(mode)
-
-        if ((err = set_roofing_filter_for_width(rig, vfo, width)) != RIG_OK)
-        {
-            return err;
+            return RIG_OK;
         }
     } // end is_ft950 */
     else if (is_ft891)
@@ -6253,6 +6277,13 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_RTTYR:
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
+            // Narrow mode must be chosen correctly before filter width
+            err = newcat_set_narrow(rig, vfo, width <= 500 ? TRUE : FALSE);
+            if (err != RIG_OK)
+            {
+                return err;
+            }
+
             if (width == RIG_PASSBAND_NORMAL) { w = 0; }
             else if (width <= 50) { w = 1; }
             else if (width <= 100) { w = 2; }
@@ -6275,6 +6306,13 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
+            // Narrow mode must be chosen correctly before filter width
+            err = newcat_set_narrow(rig, vfo, width <= 1800 ? TRUE : FALSE);
+            if (err != RIG_OK)
+            {
+                return err;
+            }
+
             if (width == RIG_PASSBAND_NORMAL) { w = 0; }
             else if (width <= 200) { w = 1; }
             else if (width <= 400) { w = 2; }
@@ -6329,6 +6367,13 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_RTTYR:
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
+            // Narrow mode must be chosen correctly before filter width
+            err = newcat_set_narrow(rig, vfo, width <= 500 ? TRUE : FALSE);
+            if (err != RIG_OK)
+            {
+                return err;
+            }
+
             if (width == RIG_PASSBAND_NORMAL) { w = 0; }
             else if (width <= 50) { w = 1; }
             else if (width <= 100) { w = 2; }
@@ -6351,6 +6396,13 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
+            // Narrow mode must be chosen correctly before filter width
+            err = newcat_set_narrow(rig, vfo, width <= 1800 ? TRUE : FALSE);
+            if (err != RIG_OK)
+            {
+                return err;
+            }
+
             if (width == RIG_PASSBAND_NORMAL) { w = 0; }
             else if (width <= 200) { w = 1; }
             else if (width <= 400) { w = 2; }
@@ -6444,6 +6496,13 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_RTTYR:
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
+            // Narrow mode must be chosen correctly before filter width
+            err = newcat_set_narrow(rig, vfo, width <= 500 ? TRUE : FALSE);
+            if (err != RIG_OK)
+            {
+                return err;
+            }
+
             if (width == RIG_PASSBAND_NORMAL) { w = 0; }
             else if (width <= 50) { w = 1; }
             else if (width <= 100) { w = 2; }
@@ -6465,6 +6524,13 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
+            // Narrow mode must be chosen correctly before filter width
+            err = newcat_set_narrow(rig, vfo, width <= 1800 ? TRUE : FALSE);
+            if (err != RIG_OK)
+            {
+                return err;
+            }
+
             if (width == RIG_PASSBAND_NORMAL) { w = 0; }
             else if (width <= 200) {  w = 1; }
             else if (width <= 400) {  w = 2; }
@@ -6496,6 +6562,24 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_AM:
         case RIG_MODE_FM:
         case RIG_MODE_PKTFM:
+        case RIG_MODE_FMN:
+            // Set roofing filter and narrow mode
+            break;
+
+        default:
+            return -RIG_EINVAL;
+        } // end switch(mode)
+
+        if ((err = set_roofing_filter_for_width(rig, vfo, width)) != RIG_OK)
+        {
+            return err;
+        }
+
+        switch (mode)
+        {
+        case RIG_MODE_AM:
+        case RIG_MODE_FM:
+        case RIG_MODE_PKTFM:
             if (width < rig_passband_normal(rig, mode))
             {
                 err = newcat_set_narrow(rig, vfo, TRUE);
@@ -6506,13 +6590,8 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             }
             return err;
 
-        default:
-            return -RIG_EINVAL;
-        } // end switch(mode)
-
-        if ((err = set_roofing_filter_for_width(rig, vfo, width)) != RIG_OK)
-        {
-            return err;
+        case RIG_MODE_FMN:
+            return RIG_OK;
         }
     } // end is_ftdx1200 and is_ftdx3000
     else if (is_ftdx5000)
@@ -6525,6 +6604,13 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_RTTYR:
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
+            // Narrow mode must be chosen correctly before filter width
+            err = newcat_set_narrow(rig, vfo, width <= 500 ? TRUE : FALSE);
+            if (err != RIG_OK)
+            {
+                return err;
+            }
+
             if (width == RIG_PASSBAND_NORMAL) { w = 0; }
             else if (width <= 50) { w = 1; }
             else if (width <= 100) { w = 2; }
@@ -6546,6 +6632,13 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
+            // Narrow mode must be chosen correctly before filter width
+            err = newcat_set_narrow(rig, vfo, width <= 1800 ? TRUE : FALSE);
+            if (err != RIG_OK)
+            {
+                return err;
+            }
+
             if (width == RIG_PASSBAND_NORMAL) { w = 0; }
             else if (width <= 200) {  w = 1; }
             else if (width <= 400) {  w = 2; }
@@ -6576,6 +6669,24 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_AM:
         case RIG_MODE_FM:
         case RIG_MODE_PKTFM:
+        case RIG_MODE_FMN:
+            // Set roofing filter and narrow mode
+            break;
+
+        default:
+            return -RIG_EINVAL;
+        } // end switch(mode)
+
+        if ((err = set_roofing_filter_for_width(rig, vfo, width)) != RIG_OK)
+        {
+            return err;
+        }
+
+        switch (mode)
+        {
+        case RIG_MODE_AM:
+        case RIG_MODE_FM:
+        case RIG_MODE_PKTFM:
             if (width < rig_passband_normal(rig, mode))
             {
                 err = newcat_set_narrow(rig, vfo, TRUE);
@@ -6585,11 +6696,9 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                 err = newcat_set_narrow(rig, vfo, FALSE);
             }
             return err;
-        } // end switch(mode)
 
-        if ((err = set_roofing_filter_for_width(rig, vfo, width)) != RIG_OK)
-        {
-            return err;
+        case RIG_MODE_FMN:
+            return RIG_OK;
         }
     } // end is_ftdx5000
     else if (is_ftdx101)
@@ -6650,11 +6759,42 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             else if (width <= 3500) {  w = 22; }
             else { w = 23; } // 4000Hz
             break;
+
+        case RIG_MODE_AM:
+        case RIG_MODE_AMN:
+        case RIG_MODE_FM:
+        case RIG_MODE_PKTFM:
+        case RIG_MODE_FMN:
+            // Set roofing filter and narrow mode
+            break;
+
+        default:
+            return -RIG_EINVAL;
         } // end switch(mode)
 
         if ((err = set_roofing_filter_for_width(rig, vfo, width)) != RIG_OK)
         {
             return err;
+        }
+
+        switch (mode)
+        {
+        case RIG_MODE_AM:
+        case RIG_MODE_FM:
+        case RIG_MODE_PKTFM:
+            if (width < rig_passband_normal(rig, mode))
+            {
+                err = newcat_set_narrow(rig, vfo, TRUE);
+            }
+            else
+            {
+                err = newcat_set_narrow(rig, vfo, FALSE);
+            }
+            return err;
+
+        case RIG_MODE_AMN:
+        case RIG_MODE_FMN:
+            return RIG_OK;
         }
     } // end is_ftdx101
     else
@@ -6694,9 +6834,12 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             }
             return err;
 
+        case RIG_MODE_FMN:
+            return RIG_OK;
+
         default:
             return -RIG_EINVAL;
-        }   /* end switch(mode) */
+        } /* end switch(mode) */
 
     } /* end else */
 
