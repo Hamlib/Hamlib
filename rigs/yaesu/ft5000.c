@@ -177,7 +177,7 @@ const struct rig_caps ftdx5000_caps =
 
     /* mode/filter list, .remember =  order matters! */
     .filters =            {
-        {FTDX5000_CW_RTTY_PKT_RX_MODES,  Hz(1800)},   /* Normal CW, RTTY, PKT/USER */
+        {FTDX5000_CW_RTTY_PKT_RX_MODES,  Hz(1700)},   /* Normal CW, RTTY, PKT/USER */
         {FTDX5000_CW_RTTY_PKT_RX_MODES,  Hz(500)},    /* Narrow CW, RTTY, PKT/USER */
         {FTDX5000_CW_RTTY_PKT_RX_MODES,  Hz(2400)},   /* Wide   CW, RTTY, PKT/USER */
         {RIG_MODE_SSB,                 Hz(2400)},   /* Normal SSB */
