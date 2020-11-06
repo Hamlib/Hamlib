@@ -25,7 +25,6 @@
  *
  */
 
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -39,12 +38,48 @@
 #include "ft950.h"
 #include "idx_builtin.h"
 
-/*
- * ft950 rigs capabilities.
- * Also this struct is READONLY!
- *
- */
+const struct newcat_priv_caps ft950_priv_caps =
+{
+    .roofing_filter_count = 7,
+    .roofing_filters =
+        {
+            // The index must match ext level combo index
+            { .index = 0, .set_value = '0', .get_value = 0, .width = 15000, .optional = 0 },
+            { .index = 1, .set_value = '1', .get_value = '1', .width = 15000, .optional = 0 },
+            { .index = 2, .set_value = '2', .get_value = '2', .width = 6000, .optional = 0 },
+            { .index = 3, .set_value = '3', .get_value = '3', .width = 3000, .optional = 0 },
+            { .index = 4, .set_value = 0, .get_value = '4', .width = 15000, .optional = 0 },
+            { .index = 5, .set_value = 0, .get_value = '5', .width = 6000, .optional = 0 },
+            { .index = 6, .set_value = 0, .get_value = '6', .width = 3000, .optional = 0 },
+        }
+};
 
+const struct confparams ft950_ext_levels[] =
+{
+    {
+        TOK_ROOFING_FILTER,
+        "ROOFINGFILTER",
+        "Roofing filter",
+        "Roofing filter",
+        NULL,
+        RIG_CONF_COMBO,
+        { .c = { .combostr = {
+                "AUTO", "15 kHz", "6 kHz", "3 kHz",
+                "AUTO - 15 kHz", "AUTO - 6 kHz", "AUTO - 3 kHz",
+                NULL }
+        } }
+    },
+    { RIG_CONF_END, NULL, }
+};
+
+int ft950_ext_tokens[] =
+{
+    TOK_ROOFING_FILTER, TOK_BACKEND_NONE
+};
+
+/*
+ * FT-950 rig capabilities
+ */
 const struct rig_caps ft950_caps =
 {
     RIG_MODEL(RIG_MODEL_FT950),
@@ -142,7 +177,6 @@ const struct rig_caps ft950_caps =
         {FT950_FM_RX_MODES,     kHz(1)},    /* Fast */
 
         RIG_TS_END,
-
     },
 
     /* mode/filter list, .remember =  order matters! */
@@ -179,22 +213,25 @@ const struct rig_caps ft950_caps =
         {RIG_MODE_SSB,                Hz(200)},     /*        SSB */
         {RIG_MODE_AM,                 Hz(9000)},    /* Normal AM */
         {RIG_MODE_AM,                 Hz(6000)},    /* Narrow AM */
-        {FT950_FM_RX_MODES,           Hz(16000)},   /* Normal FM */
-        {FT950_FM_RX_MODES,           Hz(9000)},    /* Narrow FM */
+        {FT950_FM_WIDE_RX_MODES,      Hz(16000)},   /* Normal FM */
+        {FT950_FM_WIDE_RX_MODES,      Hz(9000)},    /* Narrow FM */
+        {RIG_MODE_FMN,                Hz(9000)},    /* Narrow FM */
+        {FT950_CW_RTTY_PKT_RX_MODES | RIG_MODE_SSB, RIG_FLT_ANY},
 
         RIG_FLT_END,
     },
 
+    .ext_tokens =         ft950_ext_tokens,
+    .extlevels =          ft950_ext_levels,
 
-
-    .priv =               NULL,           /* private data FIXME: */
+    .priv =               &ft950_priv_caps,
 
     .rig_init =           newcat_init,
     .rig_cleanup =        newcat_cleanup,
     .rig_open =           newcat_open,     /* port opened */
     .rig_close =          newcat_close,    /* port closed */
 
-    .cfgparams =            newcat_cfg_params,
+    .cfgparams =          newcat_cfg_params,
     .set_conf =           newcat_set_conf,
     .get_conf =           newcat_get_conf,
     .set_freq =           newcat_set_freq,
@@ -237,5 +274,7 @@ const struct rig_caps ft950_caps =
     .get_trn =            newcat_get_trn,
     .set_channel =        newcat_set_channel,
     .get_channel =        newcat_get_channel,
+    .set_ext_level =      newcat_set_ext_level,
+    .get_ext_level =      newcat_get_ext_level,
 
 };

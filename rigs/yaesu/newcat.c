@@ -6179,7 +6179,8 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_RTTYR:
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
-            if (width <= 100) { w = 3; }
+            if (width == RIG_PASSBAND_NORMAL) { w = 0; }
+            else if (width <= 100) { w = 3; }
             else if (width <= 200) { w = 4; }
             else if (width <= 300) { w = 5; }
             else if (width <= 400) { w = 6; }
@@ -6189,13 +6190,13 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             else if (width <= 1400) { w = 10; }
             else if (width <= 1700) { w = 11; }
             else if (width <= 2000) { w = 12; }
-            else { w = 13; } // 2400 is the max
-
+            else { w = 13; } // 2400 Hz
             break;
 
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
-            if (width <= 200) { w = 1; }
+            if (width == RIG_PASSBAND_NORMAL) { w = 0; }
+            else if (width <= 200) { w = 1; }
             else if (width <= 400) { w = 2; }
             else if (width <= 600) { w = 3; }
             else if (width <= 850) { w = 4; }
@@ -6214,8 +6215,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             else if (width <= 2700) { w = 17; }
             else if (width <= 2800) { w = 18; }
             else if (width <= 2900) { w = 19; }
-            else { w = 20; } // 3000 is the max
-
+            else { w = 20; } // 3000 Hz
             break;
 
         case RIG_MODE_AM:
@@ -6229,13 +6229,20 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             {
                 err = newcat_set_narrow(rig, vfo, FALSE);
             }
-
             return err;
+
+        case RIG_MODE_FMN:
+            break;
 
         default:
             return -RIG_EINVAL;
-        }   // end switch(mode)
-    }   // end is_ft950 */
+        } // end switch(mode)
+
+        if ((err = set_roofing_filter_for_width(rig, vfo, width)) != RIG_OK)
+        {
+            return err;
+        }
+    } // end is_ft950 */
     else if (is_ft891)
     {
         switch (mode)
@@ -6246,204 +6253,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_RTTYR:
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
-            if (width <= 50) { w = 1; }
-            else if (width <= 100) { w = 2; }
-            else if (width <= 150) { w = 3; }
-            else if (width <= 200) { w = 4; }
-            else if (width <= 250) { w = 5; }
-            else if (width <= 300) { w = 6; }
-            else if (width <= 350) { w = 7; }
-            else if (width <= 400) { w = 8; }
-            else if (width <= 450) { w = 9; }
-            else if (width <= 500) { w = 10; }
-            else if (width <= 800) { w = 11; }
-            else if (width <= 1200) { w = 12; }
-            else if (width <= 1400) { w = 13; }
-            else if (width <= 1700) { w = 14; }
-            else if (width <= 2000) { w = 15; }
-            else if (width <= 2400) { w = 16; }
-            else { w = 17; } // 3000 is the max
-
-            break;
-
-        case RIG_MODE_LSB:
-        case RIG_MODE_USB:
-            if (width <= 200) { w = 1; }
-            else if (width <= 400) { w = 2; }
-            else if (width <= 600) { w = 3; }
-            else if (width <= 850) { w = 4; }
-            else if (width <= 1100) { w = 5; }
-            else if (width <= 1350) { w = 6; }
-            else if (width <= 1500) { w = 7; }
-            else if (width <= 1600) { w = 8; }
-            else if (width <= 1800) { w = 9; }
-            else if (width <= 1950) { w = 10; }
-            else if (width <= 2100) { w = 11; }
-            else if (width <= 2200) { w = 12; }
-            else if (width <= 2300) { w = 13; }
-            else if (width <= 2400) { w = 14; }
-            else if (width <= 2500) { w = 15; }
-            else if (width <= 2600) { w = 16; }
-            else if (width <= 2700) { w = 17; }
-            else if (width <= 2800) { w = 18; }
-            else if (width <= 2900) { w = 19; }
-            else if (width <= 3000) { w = 20; }
-            else { w = 21; } // 3000 is the max
-
-            break;
-
-        case RIG_MODE_AM:
-        case RIG_MODE_FM:
-        case RIG_MODE_PKTFM:
-            if (width < rig_passband_normal(rig, mode))
-            {
-                err = newcat_set_narrow(rig, vfo, TRUE);
-            }
-            else
-            {
-                err = newcat_set_narrow(rig, vfo, FALSE);
-            }
-
-            return err;
-
-        default:
-            return -RIG_EINVAL;
-        }   // end switch(mode)
-    }   // end is_ft891
-    else if (is_ft991)
-    {
-        switch (mode)
-        {
-        case RIG_MODE_PKTUSB:
-        case RIG_MODE_PKTLSB:
-        case RIG_MODE_RTTY:
-        case RIG_MODE_RTTYR:
-        case RIG_MODE_CW:
-        case RIG_MODE_CWR:
-            if (width <= 50) { w = 1; }
-            else if (width <= 100) { w = 2; }
-            else if (width <= 150) { w = 3; }
-            else if (width <= 200) { w = 4; }
-            else if (width <= 250) { w = 5; }
-            else if (width <= 305) { w = 6; }
-            else if (width <= 350) { w = 7; }
-            else if (width <= 400) { w = 8; }
-            else if (width <= 450) { w = 9; }
-            else if (width <= 500) { w = 10; }
-            else if (width <= 800) { w = 11; }
-            else if (width <= 1200) { w = 12; }
-            else if (width <= 1400) { w = 13; }
-            else if (width <= 1700) { w = 14; }
-            else if (width <= 2000) { w = 15; }
-            else if (width <= 2400) { w = 16; }
-            else { w = 17; } // 3000 is the max
-
-            break;
-
-        case RIG_MODE_LSB:
-        case RIG_MODE_USB:
-            if (width <= 200) { w = 1; }
-            else if (width <= 400) { w = 2; }
-            else if (width <= 600) { w = 3; }
-            else if (width <= 850) { w = 4; }
-            else if (width <= 1100) { w = 5; }
-            else if (width <= 1350) { w = 6; }
-            else if (width <= 1500) { w = 7; }
-            else if (width <= 1660) { w = 8; }
-            else if (width <= 1800) { w = 9; }
-            else if (width <= 1950) { w = 10; }
-            else if (width <= 2100) { w = 11; }
-            else if (width <= 2200) { w = 12; }
-            else if (width <= 2300) { w = 13; }
-            else if (width <= 2400) { w = 14; }
-            else if (width <= 2500) { w = 15; }
-            else if (width <= 2600) { w = 16; }
-            else if (width <= 2700) { w = 17; }
-            else if (width <= 2800) { w = 18; }
-            else if (width <= 2900) { w = 19; }
-            else if (width <= 3000) { w = 20; }
-            else { w = 21; } // 3200 is the max
-
-            break;
-
-        case RIG_MODE_AM: //Only 1 passband each for AM or AMN
-            if (width == 0 || width == 9000)
-            {
-                err = newcat_set_narrow(rig, vfo, FALSE);
-            }
-
-            return err;
-
-        case RIG_MODE_AMN:
-            if (width == 0 || width == 6000)
-            {
-                err = newcat_set_narrow(rig, vfo, TRUE);
-            }
-
-            return err;
-
-        case RIG_MODE_FM: //Only 1 passband each for FM or FMN
-
-            if (width == 0 || width == 16000)
-            {
-                err = newcat_set_narrow(rig, vfo, FALSE);
-            }
-
-            return err;
-
-        case RIG_MODE_FMN:
-
-            if (width == 0 || width == 9000)
-            {
-                err = newcat_set_narrow(rig, vfo, TRUE);
-            }
-
-            return err;
-
-        case RIG_MODE_C4FM:
-
-            if (width == 0 || width == 16000)
-            {
-                err = newcat_set_narrow(rig, vfo, TRUE);
-            }
-            else if (width == 9000)
-            {
-                err = newcat_set_narrow(rig, vfo, FALSE);
-            }
-            else
-            {
-                return -RIG_EINVAL;
-            }
-
-            return err;
-
-        case RIG_MODE_PKTFM:
-            if (width < rig_passband_normal(rig, mode))
-            {
-                err = newcat_set_narrow(rig, vfo, TRUE);
-            }
-            else
-            {
-                err = newcat_set_narrow(rig, vfo, FALSE);
-            }
-
-            return err;
-
-        default:
-            return -RIG_EINVAL;
-        }   // end switch(mode)
-    }   // end is_ft991
-    else if (is_ftdx1200)
-    {
-        switch (mode)
-        {
-        case RIG_MODE_PKTUSB:
-        case RIG_MODE_PKTLSB:
-        case RIG_MODE_RTTY:
-        case RIG_MODE_RTTYR:
-        case RIG_MODE_CW:
-        case RIG_MODE_CWR:
-            if (width == 0) { w = 0; }
+            if (width == RIG_PASSBAND_NORMAL) { w = 0; }
             else if (width <= 50) { w = 1; }
             else if (width <= 100) { w = 2; }
             else if (width <= 150) { w = 3; }
@@ -6459,13 +6269,203 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             else if (width <= 1400) { w = 13; }
             else if (width <= 1700) { w = 14; }
             else if (width <= 2000) { w = 15; }
-            else { w = 16; } // 2400 is max
-
+            else if (width <= 2400) { w = 16; }
+            else { w = 17; } // 3000 Hz
             break;
 
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
-            if (width == 0) { w = 0; }
+            if (width == RIG_PASSBAND_NORMAL) { w = 0; }
+            else if (width <= 200) { w = 1; }
+            else if (width <= 400) { w = 2; }
+            else if (width <= 600) { w = 3; }
+            else if (width <= 850) { w = 4; }
+            else if (width <= 1100) { w = 5; }
+            else if (width <= 1350) { w = 6; }
+            else if (width <= 1500) { w = 7; }
+            else if (width <= 1650) { w = 8; }
+            else if (width <= 1800) { w = 9; }
+            else if (width <= 1950) { w = 10; }
+            else if (width <= 2100) { w = 11; }
+            else if (width <= 2200) { w = 12; }
+            else if (width <= 2300) { w = 13; }
+            else if (width <= 2400) { w = 14; }
+            else if (width <= 2500) { w = 15; }
+            else if (width <= 2600) { w = 16; }
+            else if (width <= 2700) { w = 17; }
+            else if (width <= 2800) { w = 18; }
+            else if (width <= 2900) { w = 19; }
+            else if (width <= 3000) { w = 20; }
+            else { w = 21; } // 3000 Hz
+            break;
+
+        case RIG_MODE_AM:
+        case RIG_MODE_FM:
+        case RIG_MODE_PKTFM:
+            if (width < rig_passband_normal(rig, mode))
+            {
+                err = newcat_set_narrow(rig, vfo, TRUE);
+            }
+            else
+            {
+                err = newcat_set_narrow(rig, vfo, FALSE);
+            }
+            return err;
+
+        case RIG_MODE_FMN:
+            break;
+
+        default:
+            return -RIG_EINVAL;
+        } // end switch(mode)
+    } // end is_ft891
+    else if (is_ft991)
+    {
+        switch (mode)
+        {
+        case RIG_MODE_PKTUSB:
+        case RIG_MODE_PKTLSB:
+        case RIG_MODE_RTTY:
+        case RIG_MODE_RTTYR:
+        case RIG_MODE_CW:
+        case RIG_MODE_CWR:
+            if (width == RIG_PASSBAND_NORMAL) { w = 0; }
+            else if (width <= 50) { w = 1; }
+            else if (width <= 100) { w = 2; }
+            else if (width <= 150) { w = 3; }
+            else if (width <= 200) { w = 4; }
+            else if (width <= 250) { w = 5; }
+            else if (width <= 305) { w = 6; }
+            else if (width <= 350) { w = 7; }
+            else if (width <= 400) { w = 8; }
+            else if (width <= 450) { w = 9; }
+            else if (width <= 500) { w = 10; }
+            else if (width <= 800) { w = 11; }
+            else if (width <= 1200) { w = 12; }
+            else if (width <= 1400) { w = 13; }
+            else if (width <= 1700) { w = 14; }
+            else if (width <= 2000) { w = 15; }
+            else if (width <= 2400) { w = 16; }
+            else { w = 17; } // 3000 Hz
+            break;
+
+        case RIG_MODE_LSB:
+        case RIG_MODE_USB:
+            if (width == RIG_PASSBAND_NORMAL) { w = 0; }
+            else if (width <= 200) { w = 1; }
+            else if (width <= 400) { w = 2; }
+            else if (width <= 600) { w = 3; }
+            else if (width <= 850) { w = 4; }
+            else if (width <= 1100) { w = 5; }
+            else if (width <= 1350) { w = 6; }
+            else if (width <= 1500) { w = 7; }
+            else if (width <= 1650) { w = 8; }
+            else if (width <= 1800) { w = 9; }
+            else if (width <= 1950) { w = 10; }
+            else if (width <= 2100) { w = 11; }
+            else if (width <= 2200) { w = 12; }
+            else if (width <= 2300) { w = 13; }
+            else if (width <= 2400) { w = 14; }
+            else if (width <= 2500) { w = 15; }
+            else if (width <= 2600) { w = 16; }
+            else if (width <= 2700) { w = 17; }
+            else if (width <= 2800) { w = 18; }
+            else if (width <= 2900) { w = 19; }
+            else if (width <= 3000) { w = 20; }
+            else { w = 21; } // 3200 Hz
+            break;
+
+        case RIG_MODE_AM: // Only 1 passband each for AM or AMN
+            if (width == RIG_PASSBAND_NORMAL || width == 9000)
+            {
+                err = newcat_set_narrow(rig, vfo, FALSE);
+            }
+            return err;
+
+        case RIG_MODE_AMN:
+            if (width == RIG_PASSBAND_NORMAL || width == 6000)
+            {
+                err = newcat_set_narrow(rig, vfo, TRUE);
+            }
+            return err;
+
+        case RIG_MODE_FM: // Only 1 passband each for FM or FMN
+            if (width == RIG_PASSBAND_NORMAL || width == 16000)
+            {
+                err = newcat_set_narrow(rig, vfo, FALSE);
+            }
+            return err;
+
+        case RIG_MODE_FMN:
+            if (width == RIG_PASSBAND_NORMAL || width == 9000)
+            {
+                err = newcat_set_narrow(rig, vfo, TRUE);
+            }
+            return err;
+
+        case RIG_MODE_C4FM:
+            if (width == RIG_PASSBAND_NORMAL || width == 16000)
+            {
+                err = newcat_set_narrow(rig, vfo, TRUE);
+            }
+            else if (width == 9000)
+            {
+                err = newcat_set_narrow(rig, vfo, FALSE);
+            }
+            else
+            {
+                return -RIG_EINVAL;
+            }
+            return err;
+
+        case RIG_MODE_PKTFM:
+            if (width < rig_passband_normal(rig, mode))
+            {
+                err = newcat_set_narrow(rig, vfo, TRUE);
+            }
+            else
+            {
+                err = newcat_set_narrow(rig, vfo, FALSE);
+            }
+            return err;
+
+        default:
+            return -RIG_EINVAL;
+        } // end switch(mode)
+    } // end is_ft991
+    else if (is_ftdx1200 || is_ftdx3000)
+    {
+        // FTDX 1200 and FTDX 3000 have the same set of filter choices
+        switch (mode)
+        {
+        case RIG_MODE_PKTUSB:
+        case RIG_MODE_PKTLSB:
+        case RIG_MODE_RTTY:
+        case RIG_MODE_RTTYR:
+        case RIG_MODE_CW:
+        case RIG_MODE_CWR:
+            if (width == RIG_PASSBAND_NORMAL) { w = 0; }
+            else if (width <= 50) { w = 1; }
+            else if (width <= 100) { w = 2; }
+            else if (width <= 150) { w = 3; }
+            else if (width <= 200) { w = 4; }
+            else if (width <= 250) { w = 5; }
+            else if (width <= 300) { w = 6; }
+            else if (width <= 350) { w = 7; }
+            else if (width <= 400) { w = 8; }
+            else if (width <= 450) { w = 9; }
+            else if (width <= 500) { w = 10; }
+            else if (width <= 800) { w = 11; }
+            else if (width <= 1200) { w = 12; }
+            else if (width <= 1400) { w = 13; }
+            else if (width <= 1700) { w = 14; }
+            else if (width <= 2000) { w = 15; }
+            else { w = 16; } // 2400 Hz
+            break;
+
+        case RIG_MODE_LSB:
+        case RIG_MODE_USB:
+            if (width == RIG_PASSBAND_NORMAL) { w = 0; }
             else if (width <= 200) {  w = 1; }
             else if (width <= 400) {  w = 2; }
             else if (width <= 600) {  w = 3; }
@@ -6490,8 +6490,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             else if (width <= 3400) {  w = 22; }
             else if (width <= 3600) {  w = 23; }
             else if (width <= 3800) {  w = 24; }
-            else { w = 25; } // 4000Hz is max
-
+            else { w = 25; } // 4000 Hz
             break;
 
         case RIG_MODE_AM:
@@ -6505,13 +6504,94 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             {
                 err = newcat_set_narrow(rig, vfo, FALSE);
             }
-
             return err;
 
         default:
             return -RIG_EINVAL;
-        }   // end switch(mode)
-    } // end is_ftdx1200
+        } // end switch(mode)
+
+        if ((err = set_roofing_filter_for_width(rig, vfo, width)) != RIG_OK)
+        {
+            return err;
+        }
+    } // end is_ftdx1200 and is_ftdx3000
+    else if (is_ftdx5000)
+    {
+        switch (mode)
+        {
+        case RIG_MODE_PKTUSB:
+        case RIG_MODE_PKTLSB:
+        case RIG_MODE_RTTY:
+        case RIG_MODE_RTTYR:
+        case RIG_MODE_CW:
+        case RIG_MODE_CWR:
+            if (width == RIG_PASSBAND_NORMAL) { w = 0; }
+            else if (width <= 50) { w = 1; }
+            else if (width <= 100) { w = 2; }
+            else if (width <= 150) { w = 3; }
+            else if (width <= 200) { w = 4; }
+            else if (width <= 250) { w = 5; }
+            else if (width <= 300) { w = 6; }
+            else if (width <= 350) { w = 7; }
+            else if (width <= 400) { w = 8; }
+            else if (width <= 450) { w = 9; }
+            else if (width <= 500) { w = 10; }
+            else if (width <= 800) { w = 11; }
+            else if (width <= 1200) { w = 12; }
+            else if (width <= 1400) { w = 13; }
+            else if (width <= 1700) { w = 14; }
+            else if (width <= 2000) { w = 15; }
+            else { w = 16; } // 2400 Hz
+            break;
+
+        case RIG_MODE_LSB:
+        case RIG_MODE_USB:
+            if (width == RIG_PASSBAND_NORMAL) { w = 0; }
+            else if (width <= 200) {  w = 1; }
+            else if (width <= 400) {  w = 2; }
+            else if (width <= 600) {  w = 3; }
+            else if (width <= 850) {  w = 4; }
+            else if (width <= 1100) {  w = 5; }
+            else if (width <= 1350) {  w = 6; }
+            else if (width <= 1500) {  w = 7; }
+            else if (width <= 1650) {  w = 8; }
+            else if (width <= 1800) {  w = 9; }
+            else if (width <= 1950) {  w = 10; }
+            else if (width <= 2100) {  w = 11; }
+            else if (width <= 2250) {  w = 12; }
+            else if (width <= 2400) {  w = 13; }
+            else if (width <= 2500) {  w = 15; }
+            else if (width <= 2600) {  w = 16; }
+            else if (width <= 2700) {  w = 17; }
+            else if (width <= 2800) {  w = 18; }
+            else if (width <= 2900) {  w = 19; }
+            else if (width <= 3000) {  w = 20; }
+            else if (width <= 3200) {  w = 21; }
+            else if (width <= 3400) {  w = 22; }
+            else if (width <= 3600) {  w = 23; }
+            else if (width <= 3800) {  w = 24; }
+            else { w = 25; } // 4000 Hz
+            break;
+
+        case RIG_MODE_AM:
+        case RIG_MODE_FM:
+        case RIG_MODE_PKTFM:
+            if (width < rig_passband_normal(rig, mode))
+            {
+                err = newcat_set_narrow(rig, vfo, TRUE);
+            }
+            else
+            {
+                err = newcat_set_narrow(rig, vfo, FALSE);
+            }
+            return err;
+        } // end switch(mode)
+
+        if ((err = set_roofing_filter_for_width(rig, vfo, width)) != RIG_OK)
+        {
+            return err;
+        }
+    } // end is_ftdx5000
     else if (is_ftdx101)
     {
         switch (mode)
@@ -6541,7 +6621,6 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             else if (width <= 2000) { w = 16; }
             else if (width <= 2400) { w = 17; }
             else { w = 18; }
-
             break;
 
         case RIG_MODE_LSB:
@@ -6570,6 +6649,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             else if (width <= 3200) {  w = 21; }
             else if (width <= 3500) {  w = 22; }
             else { w = 23; } // 4000Hz
+            break;
         } // end switch(mode)
 
         if ((err = set_roofing_filter_for_width(rig, vfo, width)) != RIG_OK)
@@ -6577,8 +6657,6 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             return err;
         }
     } // end is_ftdx101
-    // TODO: Implement filter widths for FTDX 5000 -- add support for roofing filters
-    // TODO: Check if FTDX 3000 is the same as FTDX 1200 -- add support for roofing filters
     else
     {
         // FT-450, FT-2000, FTDX 9000
@@ -6594,7 +6672,6 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             if (width <= 500) { w = 6; }
             else if (width <= 1800) { w = 16; }
             else { w = 24; }
-
             break;
 
         case RIG_MODE_LSB:
@@ -6602,7 +6679,6 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             if (width <= 1800) { w = 8; }
             else if (width <= 2400) { w = 16; }
             else { w = 25; } // 3000
-
             break;
 
         case RIG_MODE_AM:
@@ -6616,16 +6692,13 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             {
                 err = newcat_set_narrow(rig, vfo, FALSE);
             }
-
             return err;
 
         default:
             return -RIG_EINVAL;
         }   /* end switch(mode) */
 
-    }
-
-    /* end else */
+    } /* end else */
 
     if (is_ftdx101)
     {
@@ -6841,11 +6914,11 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         // can't query SH in some modes
         switch (rig->state.current_mode)
         {
-        case RIG_MODE_FM: *width = 12000; break;
+        case RIG_MODE_FM: *width = 16000; break;
 
-        case RIG_MODE_AM: *width = 6000; break;
+        case RIG_MODE_AM: *width = 9000; break;
 
-        case RIG_MODE_AMN: *width = 2400; break;
+        case RIG_MODE_AMN: *width = 6000; break;
         }
 
         return RIG_OK;
@@ -6895,8 +6968,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: w=%d\n", __func__, w);
 
-    // ft950 and ftdx1200 overlap so we'll combine them
-    if (is_ft950 || is_ftdx1200)
+    if (is_ft950)
     {
         if ((narrow = get_narrow(rig, RIG_VFO_MAIN)) < 0)
         {
@@ -6914,42 +6986,30 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
             switch (w)
             {
             case 0:
-                if (is_ft950) { *width = narrow ? 300 : 500; }
-                else { *width = narrow ? 500 : 2400; } // ft1200
-
+                *width = narrow ? 300 : 500;
                 break;
 
-            case 1: *width = 50; break; // ft1200 only
+            case 3: *width = 100; break;
 
-            case 2: *width = 100; break; // ft1200 only
+            case 4: *width = 200; break;
 
-            case 3: *width = is_ft950 ? 100 : 150; break;
+            case 5: *width = 300; break;
 
-            case 4: *width = is_ft950 ? 200 : 200; break;
+            case 6: *width = 400; break;
 
-            case 5: *width = is_ft950 ? 300 : 250; break;
+            case 7: *width = 5000; break;
 
-            case 6: *width = is_ft950 ? 400 : 300; break;
+            case 8: *width = 800; break;
 
-            case 7: *width = is_ft950 ? 500 : 350; break;
+            case 9: *width = 1200; break;
 
-            case 8: *width = is_ft950 ? 800 : 400; break;
+            case 10: *width = 1400; break;
 
-            case 9: *width = is_ft950 ? 1200 : 450; break;
+            case 11: *width = 1700; break;
 
-            case 10: *width = is_ft950 ? 1400 : 500; break;
+            case 12: *width = 2000; break;
 
-            case 11: *width = is_ft950 ? 1700 : 800; break;
-
-            case 12: *width = is_ft950 ? 2000 : 1200; break;
-
-            case 13: *width = is_ft950 ? 2400 : 1400; break;
-
-            case 14: *width = 1700; break; // 14+ is ft1200 only
-
-            case 15: *width = 2000; break;
-
-            case 16: *width = 2400; break;
+            case 13: *width = 2400; break;
 
             default: return -RIG_EINVAL;
             }
@@ -6958,12 +7018,10 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
-            switch (w) // ft950 and ft1200 overlap
+            switch (w)
             {
             case 0:
-                if (is_ft950) { *width = narrow ? 1800 : 2400; }
-                else { *width = narrow ? 1500 : 2400; } // ft1200
-
+                *width = narrow ? 1800 : 2400;
                 break;
 
             case  1: *width =  200; break;
@@ -7006,34 +7064,30 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 
             case 20: *width = 3000; break;
 
-            // 21+ is for the FTDX1200
-            case 21: *width = 3200; break;
-
-            case 22: *width = 3400; break;
-
-            case 23: *width = 3600; break;
-
-            case 24: *width = 3800; break;
-
-            case 25: *width = 4000; break;
-
-            default: return -RIG_EINVAL;
+            default:
+                return -RIG_EINVAL;
             }
-
             break;
 
         case RIG_MODE_AM:
+            *width = narrow ? 6000 : 9000;
+            break;
+
         case RIG_MODE_PKTFM:
         case RIG_MODE_FM:
-            return RIG_OK;
+            *width = narrow ? 9000 : 16000;
+            break;
+
+        case RIG_MODE_FMN:
+            *width = 9000;
+            break;
 
         default:
             return -RIG_EINVAL;
         }   /* end switch(mode) */
 
-    }   /* end if FT950 FTDX1200 */
-
-    else if (newcat_is_rig(rig, RIG_MODEL_FT991))
+    } /* end if is_ft950 */
+    else if (is_ft891)
     {
         if ((narrow = get_narrow(rig, vfo)) < 0)
         {
@@ -7051,9 +7105,14 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
             switch (w)
             {
             case 0:
-                if (mode == RIG_MODE_CW || mode == RIG_MODE_CWR) { *width = narrow ? 500 : 2400; }
-                else { *width = narrow ? 300 : 500; }
-
+                if (mode == RIG_MODE_CW || mode == RIG_MODE_CWR)
+                {
+                    *width = narrow ? 500 : 2400;
+                }
+                else
+                {
+                    *width = narrow ? 300 : 500;
+                }
                 break;
 
             case 1: *width = 50; break;
@@ -7149,9 +7208,152 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
             break;
 
         case RIG_MODE_AM:
-        case RIG_MODE_AMN:
         case RIG_MODE_FMN:
-            *width =  9000; break;
+            *width =  9000;
+            break;
+
+        case RIG_MODE_AMN:
+            *width =  6000;
+            break;
+
+        case RIG_MODE_FM:
+        case RIG_MODE_PKTFM:
+            *width = 16000;
+            break;
+
+        default:
+            return -RIG_EINVAL;
+        }   /* end switch(mode) */
+
+    } /* end if is_ft891 */
+    else if (is_ft991)
+    {
+        if ((narrow = get_narrow(rig, vfo)) < 0)
+        {
+            return -RIG_EPROTO;
+        }
+
+        switch (mode)
+        {
+        case RIG_MODE_PKTUSB:
+        case RIG_MODE_PKTLSB:
+        case RIG_MODE_RTTY:
+        case RIG_MODE_RTTYR:
+        case RIG_MODE_CW:
+        case RIG_MODE_CWR:
+            switch (w)
+            {
+            case 0:
+                if (mode == RIG_MODE_CW || mode == RIG_MODE_CWR)
+                {
+                    *width = narrow ? 500 : 2400;
+                }
+                else
+                {
+                    *width = narrow ? 300 : 500;
+                }
+                break;
+
+            case 1: *width = 50; break;
+
+            case 2: *width = 100; break;
+
+            case 3: *width = 150; break;
+
+            case 4: *width = 200; break;
+
+            case 5: *width = 250; break;
+
+            case 6: *width = 300; break;
+
+            case 7: *width = 350; break;
+
+            case 8: *width = 400; break;
+
+            case 9: *width = 450; break;
+
+            case 10: *width = 500; break;
+
+            case 11: *width = 800; break;
+
+            case 12: *width = 1200; break;
+
+            case 13: *width = 1400; break;
+
+            case 14: *width = 1700; break;
+
+            case 15: *width = 2000; break;
+
+            case 16: *width = 2400; break;
+
+            case 17: *width = 3000; break;
+
+            default: return -RIG_EINVAL;
+            }
+
+            break;
+
+        case RIG_MODE_LSB:
+        case RIG_MODE_USB:
+            switch (w)
+            {
+            case 0: *width = narrow ? 1500 : 2400; break;
+
+            case  1: *width =  200; break;
+
+            case  2: *width =  400; break;
+
+            case  3: *width =  600; break;
+
+            case  4: *width =  850; break;
+
+            case  5: *width = 1100; break;
+
+            case  6: *width = 1350; break;
+
+            case  7: *width = 1500; break;
+
+            case  8: *width = 1650; break;
+
+            case  9: *width = 1800; break;
+
+            case 10: *width = 1950; break;
+
+            case 11: *width = 2100; break;
+
+            case 12: *width = 2200; break;
+
+            case 13: *width = 2300; break;
+
+            case 14: *width = 2400; break;
+
+            case 15: *width = 2500; break;
+
+            case 16: *width = 2600; break;
+
+            case 17: *width = 2700; break;
+
+            case 18: *width = 2800; break;
+
+            case 19: *width = 2900; break;
+
+            case 20: *width = 3000; break;
+
+            case 21: *width = 3200; break;
+
+            default: return -RIG_EINVAL;
+            }
+
+            break;
+
+        case RIG_MODE_AM:
+        case RIG_MODE_FMN:
+            *width =  9000;
+            break;
+
+        case RIG_MODE_AMN:
+            *width =  6000;
+            break;
 
         case RIG_MODE_FM:
         case RIG_MODE_C4FM:
@@ -7163,9 +7365,287 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
             return -RIG_EINVAL;
         }   /* end switch(mode) */
 
-    }
+    } /* end if is_ft991 */
+    else if (is_ftdx1200 || is_ftdx3000)
+    {
+        if ((narrow = get_narrow(rig, RIG_VFO_MAIN)) < 0)
+        {
+            return -RIG_EPROTO;
+        }
 
-    else if (newcat_is_rig(rig, RIG_MODEL_FTDX101D))
+        switch (mode)
+        {
+        case RIG_MODE_PKTUSB:
+        case RIG_MODE_PKTLSB:
+        case RIG_MODE_RTTY:
+        case RIG_MODE_RTTYR:
+        case RIG_MODE_CW:
+        case RIG_MODE_CWR:
+            switch (w)
+            {
+            case 0:
+                *width = narrow ? 500 : 2400;
+                break;
+
+            case 1: *width = 50; break;
+
+            case 2: *width = 100; break;
+
+            case 3: *width = 150; break;
+
+            case 4: *width = 200; break;
+
+            case 5: *width = 250; break;
+
+            case 6: *width = 300; break;
+
+            case 7: *width = 350; break;
+
+            case 8: *width = 400; break;
+
+            case 9: *width = 450; break;
+
+            case 10: *width = 500; break;
+
+            case 11: *width = 800; break;
+
+            case 12: *width = 1200; break;
+
+            case 13: *width = 1400; break;
+
+            case 14: *width = 1700; break;
+
+            case 15: *width = 2000; break;
+
+            case 16: *width = 2400; break;
+
+            default: return -RIG_EINVAL;
+            }
+
+            break;
+
+        case RIG_MODE_LSB:
+        case RIG_MODE_USB:
+            switch (w)
+            {
+            case 0:
+                *width = narrow ? 1500 : 2400;
+                break;
+
+            case  1: *width =  200; break;
+
+            case  2: *width =  400; break;
+
+            case  3: *width =  600; break;
+
+            case  4: *width =  850; break;
+
+            case  5: *width = 1100; break;
+
+            case  6: *width = 1350; break;
+
+            case  7: *width = 1500; break;
+
+            case  8: *width = 1650; break;
+
+            case  9: *width = 1800; break;
+
+            case 10: *width = 1950; break;
+
+            case 11: *width = 2100; break;
+
+            case 12: *width = 2250; break;
+
+            case 13: *width = 2400; break;
+
+            case 14: *width = 2450; break;
+
+            case 15: *width = 2500; break;
+
+            case 16: *width = 2600; break;
+
+            case 17: *width = 2700; break;
+
+            case 18: *width = 2800; break;
+
+            case 19: *width = 2900; break;
+
+            case 20: *width = 3000; break;
+
+            case 21: *width = 3200; break;
+
+            case 22: *width = 3400; break;
+
+            case 23: *width = 3600; break;
+
+            case 24: *width = 3800; break;
+
+            case 25: *width = 4000; break;
+
+            default: return -RIG_EINVAL;
+            }
+
+            break;
+
+        case RIG_MODE_AM:
+            *width = narrow ? 6000 : 9000;
+            break;
+
+        case RIG_MODE_PKTFM:
+        case RIG_MODE_FM:
+            *width = narrow ? 9000 : 16000;
+            break;
+
+        case RIG_MODE_FMN:
+            *width = 9000;
+            break;
+
+        default:
+            return -RIG_EINVAL;
+        }   /* end switch(mode) */
+
+    } /* end if is_ftdx1200 or is_ftdx3000 */
+    else if (is_ftdx5000)
+    {
+        if ((narrow = get_narrow(rig, RIG_VFO_MAIN)) < 0)
+        {
+            return -RIG_EPROTO;
+        }
+
+        switch (mode)
+        {
+        case RIG_MODE_PKTUSB:
+        case RIG_MODE_PKTLSB:
+        case RIG_MODE_RTTY:
+        case RIG_MODE_RTTYR:
+        case RIG_MODE_CW:
+        case RIG_MODE_CWR:
+            switch (w)
+            {
+            case 0:
+                *width = narrow ? 500 : 2400;
+                break;
+
+            case 1: *width = 50; break;
+
+            case 2: *width = 100; break;
+
+            case 3: *width = 150; break;
+
+            case 4: *width = 200; break;
+
+            case 5: *width = 250; break;
+
+            case 6: *width = 300; break;
+
+            case 7: *width = 350; break;
+
+            case 8: *width = 400; break;
+
+            case 9: *width = 450; break;
+
+            case 10: *width = 500; break;
+
+            case 11: *width = 800; break;
+
+            case 12: *width = 1200; break;
+
+            case 13: *width = 1400; break;
+
+            case 14: *width = 1700; break;
+
+            case 15: *width = 2000; break;
+
+            case 16: *width = 2400; break;
+
+            default: return -RIG_EINVAL;
+            }
+
+            break;
+
+        case RIG_MODE_LSB:
+        case RIG_MODE_USB:
+            switch (w)
+            {
+            case 0:
+                *width = narrow ? 1500 : 2400;
+                break;
+
+            case  1: *width =  200; break;
+
+            case  2: *width =  400; break;
+
+            case  3: *width =  600; break;
+
+            case  4: *width =  850; break;
+
+            case  5: *width = 1100; break;
+
+            case  6: *width = 1350; break;
+
+            case  7: *width = 1500; break;
+
+            case  8: *width = 1650; break;
+
+            case  9: *width = 1800; break;
+
+            case 10: *width = 1950; break;
+
+            case 11: *width = 2100; break;
+
+            case 12: *width = 2250; break;
+
+            case 13: *width = 2400; break;
+
+            // 14 is not defined for FTDX 5000, but leaving here for completeness
+            case 14: *width = 2400; break;
+
+            case 15: *width = 2500; break;
+
+            case 16: *width = 2600; break;
+
+            case 17: *width = 2700; break;
+
+            case 18: *width = 2800; break;
+
+            case 19: *width = 2900; break;
+
+            case 20: *width = 3000; break;
+
+            case 21: *width = 3200; break;
+
+            case 22: *width = 3400; break;
+
+            case 23: *width = 3600; break;
+
+            case 24: *width = 3800; break;
+
+            case 25: *width = 4000; break;
+
+            default: return -RIG_EINVAL;
+            }
+
+            break;
+
+        case RIG_MODE_AM:
+            *width = narrow ? 6000 : 9000;
+            break;
+
+        case RIG_MODE_PKTFM:
+        case RIG_MODE_FM:
+            *width = narrow ? 9000 : 16000;
+            break;
+
+        case RIG_MODE_FMN:
+            *width = 9000;
+            break;
+
+        default:
+            return -RIG_EINVAL;
+        }   /* end switch(mode) */
+
+    } /* end if is_ftdx5000 */
+    else if (is_ftdx101)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: is_ftdx101 w=%d, mode=%s\n", __func__, w,
                   rig_strrmode(mode));
@@ -7191,7 +7671,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         case RIG_MODE_CWR:
             switch (w)
             {
-            case 0: *width = 50; break; /* this is the default but 50 is probably wrong */
+            case 0: break; /* use roofing filter width */
 
             case 1: *width = 50; break;
 
@@ -7238,7 +7718,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         case RIG_MODE_USB:
             switch (w)
             {
-            case 0: *width = 300; break; /* this is the default but 300 is probably wrong */
+            case 0: break; /* use roofing filter width */
 
             case 1: *width = 300; break;
 
@@ -7296,14 +7776,17 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         case RIG_MODE_AM:
         case RIG_MODE_FMN:
         case RIG_MODE_PKTFMN:
-            *width = 9000; break;
+            *width = 9000;
+            break;
 
         case RIG_MODE_AMN:
-            *width = 6000; break;
+            *width = 6000;
+            break;
 
         case RIG_MODE_FM:
         case RIG_MODE_PKTFM:
-            *width = 16000; break;
+            *width = 16000;
+            break;
 
         default:
             rig_debug(RIG_DEBUG_TRACE, "%s: bad mode\n", __func__);
@@ -7311,11 +7794,10 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         }   /* end switch(mode) */
 
         rig_debug(RIG_DEBUG_TRACE, "%s: end if FTDX101D\n", __func__);
-
-    }   /* end if FTDX101D */
-    else      /* end if FT991 */
+    } /* end if is_ftdx101 */
+    else
     {
-        /* FT450, FT2000, FT5000, FT9000 */
+        /* FT450, FT2000, FT9000 */
         switch (mode)
         {
         case RIG_MODE_PKTUSB:
@@ -7338,7 +7820,6 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
             {
                 *width = rig_passband_normal(rig, mode);
             }
-
             break;
 
         case RIG_MODE_AM:
@@ -7349,7 +7830,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         default:
             return -RIG_EINVAL;
         }   /* end switch (mode) */
-    }   /* end else */
+    } /* end else */
 
     rig_debug(RIG_DEBUG_TRACE, "%s: return RIG_OK\n", __func__);
     return RIG_OK;
