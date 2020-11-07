@@ -7047,6 +7047,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int err;
     int w;
+    int sh_command_valid = 1;
     char narrow = '!';
     char cmd[] = "SH";
     char main_sub_vfo = '0';
@@ -7065,19 +7066,20 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         return err;
     }
 
-    if (is_ft950)
+    if (is_ft950 || is_ftdx5000)
     {
-        // can't query SH in some modes
+        // Some Yaesu rigs cannot query SH in modes such as AM/FM
         switch (rig->state.current_mode)
         {
-        case RIG_MODE_FM: *width = 16000; break;
-
-        case RIG_MODE_AM: *width = 9000; break;
-
-        case RIG_MODE_AMN: *width = 6000; break;
+        case RIG_MODE_FM:
+        case RIG_MODE_FMN:
+        case RIG_MODE_PKTFM:
+        case RIG_MODE_AM:
+        case RIG_MODE_AMN:
+        case RIG_MODE_PKTAM:
+            sh_command_valid = 0;
+            break;
         }
-
-        return RIG_OK;
     }
 
     if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
@@ -7085,44 +7087,52 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
 
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", cmd, main_sub_vfo,
-             cat_term);
+    if (sh_command_valid)
+    {
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", cmd, main_sub_vfo,
+                 cat_term);
 
-    /* Get RX BANDWIDTH */
-    if (RIG_OK != (err = newcat_get_cmd(rig)))
-    {
-        return err;
-    }
+        err = newcat_get_cmd(rig);
+        if (err != RIG_OK)
+        {
+            return err;
+        }
 
-    if (strlen(priv->ret_data) == 7)
-    {
-        if (sscanf(priv->ret_data, "SH%*1d0%3d", &w) != 1)
+        if (strlen(priv->ret_data) == 7)
         {
-            err = -RIG_EPROTO;
+            if (sscanf(priv->ret_data, "SH%*1d0%3d", &w) != 1)
+            {
+                err = -RIG_EPROTO;
+            }
         }
-    }
-    else if (strlen(priv->ret_data) == 6)
-    {
-        if (sscanf(priv->ret_data, "SH%*1d%3d", &w) != 1)
+        else if (strlen(priv->ret_data) == 6)
         {
-            err = -RIG_EPROTO;
+            if (sscanf(priv->ret_data, "SH%*1d%3d", &w) != 1)
+            {
+                err = -RIG_EPROTO;
+            }
         }
+        else
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: unknown SH response='%s'\n", __func__,
+                      priv->ret_data);
+            return -RIG_EPROTO;
+        }
+
+        if (err != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: unable to parse width from '%s'\n", __func__,
+                      priv->ret_data);
+            return -RIG_EPROTO;
+        }
+
+        rig_debug(RIG_DEBUG_TRACE, "%s: w=%d\n", __func__, w);
     }
     else
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: unknown SH response='%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
+        // Some Yaesu rigs cannot query filter width using SH command in modes such as AM/FM
+        w = 0;
     }
-
-    if (err != RIG_OK)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: unable to parse width from '%s'\n", __func__,
-                  priv->ret_data);
-        return -RIG_EPROTO;
-    }
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: w=%d\n", __func__, w);
 
     if (is_ft950)
     {
