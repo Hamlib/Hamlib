@@ -6941,7 +6941,7 @@ static int set_roofing_filter(RIG *rig, vfo_t vfo, int index)
 static int set_roofing_filter_for_width(RIG *rig, vfo_t vfo, int width)
 {
     struct newcat_priv_caps *priv_caps = (struct newcat_priv_caps *)rig->caps->priv;
-    int index = -1;
+    int index = 0;
     int i;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
@@ -6969,11 +6969,6 @@ static int set_roofing_filter_for_width(RIG *rig, vfo_t vfo, int width)
         }
 
         index = current_filter->index;
-    }
-
-    if (index < 0)
-    {
-        return -RIG_EINVAL;
     }
 
     return set_roofing_filter(rig, vfo, index);
@@ -7069,7 +7064,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
     if (is_ft950 || is_ftdx5000)
     {
         // Some Yaesu rigs cannot query SH in modes such as AM/FM
-        switch (rig->state.current_mode)
+        switch (mode)
         {
         case RIG_MODE_FM:
         case RIG_MODE_FMN:
