@@ -6573,6 +6573,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             break;
 
         case RIG_MODE_AM:
+        case RIG_MODE_AMN:
         case RIG_MODE_FM:
         case RIG_MODE_PKTFM:
         case RIG_MODE_FMN:
@@ -6591,8 +6592,10 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         switch (mode)
         {
         case RIG_MODE_AM:
+        case RIG_MODE_AMN:
         case RIG_MODE_FM:
         case RIG_MODE_PKTFM:
+        case RIG_MODE_FMN:
             if (width < rig_passband_normal(rig, mode))
             {
                 err = newcat_set_narrow(rig, vfo, TRUE);
@@ -6602,9 +6605,6 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                 err = newcat_set_narrow(rig, vfo, FALSE);
             }
             return err;
-
-        case RIG_MODE_FMN:
-            return RIG_OK;
         }
     } // end is_ftdx1200 and is_ftdx3000
     else if (is_ftdx5000)
@@ -6680,6 +6680,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             break;
 
         case RIG_MODE_AM:
+        case RIG_MODE_AMN:
         case RIG_MODE_FM:
         case RIG_MODE_PKTFM:
         case RIG_MODE_FMN:
@@ -6698,8 +6699,10 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         switch (mode)
         {
         case RIG_MODE_AM:
+        case RIG_MODE_AMN:
         case RIG_MODE_FM:
         case RIG_MODE_PKTFM:
+        case RIG_MODE_FMN:
             if (width < rig_passband_normal(rig, mode))
             {
                 err = newcat_set_narrow(rig, vfo, TRUE);
@@ -6709,9 +6712,6 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                 err = newcat_set_narrow(rig, vfo, FALSE);
             }
             return err;
-
-        case RIG_MODE_FMN:
-            return RIG_OK;
         }
     } // end is_ftdx5000
     else if (is_ftdx101)
@@ -7661,6 +7661,10 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
             *width = 9000;
             break;
 
+        case RIG_MODE_AMN:
+            *width = 6000;
+            break;
+
         default:
             return -RIG_EINVAL;
         }   /* end switch(mode) */
@@ -7799,6 +7803,10 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 
         case RIG_MODE_FMN:
             *width = 9000;
+            break;
+
+        case RIG_MODE_AMN:
+            *width = 6000;
             break;
 
         default:
