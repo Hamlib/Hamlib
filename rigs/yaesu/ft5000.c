@@ -183,11 +183,10 @@ const struct rig_caps ftdx5000_caps =
         {RIG_MODE_SSB,                 Hz(2400)},   /* Normal SSB */
         {RIG_MODE_SSB,                 Hz(1800)},   /* Narrow SSB */
         {RIG_MODE_SSB,                 Hz(4000)},   /* Wide   SSB */
-        {RIG_MODE_AM,                  Hz(9000)},   /* Normal AM  */
-        {RIG_MODE_AM,                  Hz(6000)},   /* Narrow AM  */
-        {FTDX5000_FM_WIDE_RX_MODES,    Hz(16000)},  /* Normal FM  */
-        {FTDX5000_FM_WIDE_RX_MODES,    Hz(9000)},   /* Narrow FM  */
-        {RIG_MODE_FMN,                 Hz(9000)},   /* Narrow FM  */
+        {FTDX5000_AM_RX_MODES,         Hz(9000)},   /* Normal AM  */
+        {FTDX5000_AM_RX_MODES,         Hz(6000)},   /* Narrow AM  */
+        {FTDX5000_FM_RX_MODES,         Hz(16000)},  /* Normal FM  */
+        {FTDX5000_FM_RX_MODES,         Hz(9000)},   /* Narrow FM  */
         {FTDX5000_CW_RTTY_PKT_RX_MODES | RIG_MODE_SSB, RIG_FLT_ANY},
 
         RIG_FLT_END,
