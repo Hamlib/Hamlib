@@ -3208,96 +3208,94 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PL%03d%c", fpf, cat_term);
         break;
 
-    case RIG_LEVEL_BKINDL:
+    case RIG_LEVEL_BKINDL: {
+        int millis;
+        value_t keyspd;
 
-        /* Standard: word "PARIS" == 50 Unit Intervals, UIs */
-        /* 1 dot == 2 UIs */
-        /* tenth_dots-per-second -to- milliseconds */
         if (!newcat_valid_command(rig, "SD"))
         {
             return -RIG_ENAVAIL;
         }
 
-        // we don't get full resolution as long as val->i is in integer tenths
-        // consider changing this to float or to milliseconds
-        val.i *= 100; // tenths to ms conversion
+        // Convert 10/ths of dots to milliseconds using the current key speed
+        err = newcat_get_level(rig, vfo, RIG_LEVEL_KEYSPD, &keyspd);
+        if (err != RIG_OK)
+        {
+            return err;
+        }
+
+        millis = dot10ths_to_millis(val.i, keyspd.i);
 
         if (is_ftdx101)
         {
-            if (val.i <= 30) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD00;"); }
-
-            else if (val.i <= 50) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD01;"); }
-
-            else if (val.i <= 100) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD02;"); }
-
-            else if (val.i <= 150) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD03;"); }
-
-            else if (val.i <= 200) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD04;"); }
-
-            else if (val.i <= 250) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD05;"); }
-
-            else if (val.i > 2900) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD33;"); }
-            // this covers 300-2900 06-32
-            else { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD%02d;", 6 + ((val.i - 300) / 100)); }
+            if (millis <= 30) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD00;"); }
+            else if (millis <= 50) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD01;"); }
+            else if (millis <= 100) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD02;"); }
+            else if (millis <= 150) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD03;"); }
+            else if (millis <= 200) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD04;"); }
+            else if (millis <= 250) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD05;"); }
+            else if (millis > 2900) { snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD33;"); }
+            else
+            {
+                // This covers 300-2900 06-32
+                snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD%02d;", 6 + ((millis - 300) / 100));
+            }
         }
         else if (is_ftdx5000)
         {
-            if (val.i < 20)
+            if (millis < 20)
             {
-                val.i = 20;
+                millis = 20;
+            }
+            if (millis > 5000)
+            {
+                millis = 5000;
             }
 
-            if (val.i > 5000)
-            {
-                val.i = 5000;
-            }
-
-            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD%04d%c", val.i, cat_term);
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD%04d%c", millis, cat_term);
         }
         else if (is_ft950 || is_ft450 || is_ft891 || is_ft991 || is_ftdx1200 || is_ftdx3000)
         {
-            if (val.i < 30)
+            if (millis < 30)
             {
-                val.i = 30;
+                millis = 30;
+            }
+            if (millis > 3000)
+            {
+                millis = 3000;
             }
 
-            if (val.i > 3000)
-            {
-                val.i = 3000;
-            }
-
-            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD%04d%c", val.i, cat_term);
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD%04d%c", millis, cat_term);
         }
         else if (is_ft2000 || is_ftdx9000)
         {
-            if (val.i < 0)
+            if (millis < 0)
             {
-                val.i = 0;
+                millis = 0;
+            }
+            if (millis > 5000)
+            {
+                millis = 5000;
             }
 
-            if (val.i > 5000)
-            {
-                val.i = 5000;
-            }
-
-            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD%04d%c", val.i, cat_term);
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD%04d%c", millis, cat_term);
         }
         else // default
         {
-            if (val.i < 1)
+            if (millis < 1)
             {
-                val.i = 1;
+                millis = 1;
+            }
+            if (millis > 5000)
+            {
+                millis = 5000;
             }
 
-            if (val.i > 5000)
-            {
-                val.i = 5000;
-            }
-
-            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD%04d%c", val.i, cat_term);
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD%04d%c", millis, cat_term);
         }
 
         break;
+    }
 
     case RIG_LEVEL_SQL:
         if (!newcat_valid_command(rig, "SQ"))
@@ -3711,7 +3709,6 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return -RIG_ENAVAIL;
         }
 
-        /* should be tenth of dots */
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SD%c", cat_term);
         break;
 
@@ -4094,49 +4091,42 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         val->f = (float)atoi(retlvl) / scale;
         break;
 
-    case RIG_LEVEL_BKINDL:
-        val->i = atoi(retlvl);      /* milliseconds */
+    case RIG_LEVEL_BKINDL: {
+        int raw_value = atoi(retlvl);
+        int millis;
+        value_t keyspd;
 
         if (is_ftdx101)
         {
-            switch (val->i)
+            switch (raw_value)
             {
-            case 0: val->i = 1; break;
-
-            case 1: val->i = 1; break;
-
-            case 2: val->i = 1; break;
-
-            case 3: val->i = 2; break;
-
-            case 4: val->i = 2; break;
-
-            case 5: val->i = 3; break;
-
-            case 6: val->i = 3; break;
-
-            default: val->i = (val->i - 6) + 3;
+            case 0: millis = 30; break;
+            case 1: millis = 50; break;
+            case 2: millis = 100; break;
+            case 3: millis = 150; break;
+            case 4: millis = 200; break;
+            case 5: millis = 250; break;
+            case 6: millis = 300; break;
+            default:
+                millis = (raw_value - 6) * 100 + 300;
             }
-
-            return RIG_OK;
         }
-
-        if (val->i < 1)
+        else
         {
-            val->i = 1;
+            // The rest of Yaesu rigs indicate break-in delay directly as milliseconds
+            millis = raw_value;
         }
 
-        // The rest of Yaesu rigs indicate break-in delay directly as milliseconds
-        // TODO: Fix BKINDL conversion from milliseconds ???
-        val->i = 5000 / val->i;   /* ms -to- tenth_dots-per-second */
-
-        if (val->i < 1)
+        // Convert milliseconds to 10/ths of dots using the current key speed
+        err = newcat_get_level(rig, vfo, RIG_LEVEL_KEYSPD, &keyspd);
+        if (err != RIG_OK)
         {
-            val->i = 1;
+            return err;
         }
 
+        val->i = millis_to_dot10ths(millis, keyspd.i);
         break;
-
+    }
     case RIG_LEVEL_STRENGTH:
         if (rig->caps->str_cal.size > 0)
         {
@@ -4149,17 +4139,27 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             val->i = round(rig_raw2val(atoi(retlvl), &yaesu_default_str_cal));
         }
-        else // some Yaesu rigs return straight s-meter answers
+        else
         {
+            // Some Yaesu rigs return straight S-meter answers
             // Return dbS9 -- does >S9 mean 10dB increments? If not, add to rig driver
-            if (val->i > 0) { val->i = (atoi(retlvl) - 9) * 10; }
-            else { val->i = (atoi(retlvl) - 9) * 6; } // Return dbS9  does >S9 mean 10dB increments?
+            if (val->i > 0)
+            {
+                val->i = (atoi(retlvl) - 9) * 10;
+            }
+            else
+            {
+                val->i = (atoi(retlvl) - 9) * 6;
+            }
         }
 
         break;
 
     case RIG_LEVEL_RAWSTR:
     case RIG_LEVEL_KEYSPD:
+        val->i = atoi(retlvl);
+        break;
+
     case RIG_LEVEL_IF:
         // IS00+0400
         rig_debug(RIG_DEBUG_TRACE, "%s: ret_data=%s(%d), retlvl=%s\n", __func__,
@@ -4183,9 +4183,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_NR:
-
-        /*  ratio 0 - 1.0 */
-        if (newcat_is_rig(rig, RIG_MODEL_FT450))
+        if (is_ft450)
         {
             val->f = (float)(atoi(retlvl) / 11.);
         }

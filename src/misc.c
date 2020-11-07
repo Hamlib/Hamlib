@@ -49,6 +49,7 @@
 #endif
 
 #include <unistd.h>
+#include <math.h>
 
 #include <hamlib/rig.h>
 #include <hamlib/amplifier.h>
@@ -230,6 +231,48 @@ unsigned long long HAMLIB_API from_bcd_be(const unsigned char bcd_data[],
     return f;
 }
 
+/**
+ * \brief Convert duration of one morse code dot (element) to milliseconds at the given speed.
+ * \param wpm morse code speed in words per minute
+ * \return double duration in milliseconds
+ *
+ * The morse code speed is calculated using the standard based on word PARIS.
+ *
+ * "If you send PARIS 5 times in a minute (5WPM) you have sent 250 elements (using correct spacing).
+ * 250 elements into 60 seconds per minute = 240 milliseconds per element."
+ *
+ * Source: http://kent-engineers.com/codespeed.htm
+ */
+double morse_code_dot_to_millis(int wpm)
+{
+    return 240.0 * (5.0 / (double) wpm);
+}
+
+/**
+ * \brief Convert duration of tenths of morse code dots to milliseconds at the given speed.
+ * \param tenths_of_dots number of 1/10ths of dots
+ * \param wpm morse code speed in words per minute
+ * \return int duration in milliseconds
+ *
+ * The morse code speed is calculated using the standard based on word PARIS.
+ */
+int dot10ths_to_millis(int dot10ths, int wpm)
+{
+    return ceil(morse_code_dot_to_millis(wpm) * (double) dot10ths / 10.0);
+}
+
+/**
+ * \brief Convert duration in milliseconds to tenths of morse code dots at the given speed.
+ * \param millis duration in milliseconds
+ * \param wpm morse code speed in words per minute
+ * \return int number of 1/10ths of dots
+ *
+ * The morse code speed is calculated using the standard based on word PARIS.
+ */
+int millis_to_dot10ths(int millis, int wpm)
+{
+    return ceil(millis / morse_code_dot_to_millis(wpm) * 10.0);
+}
 
 //! @cond Doxygen_Suppress
 #ifndef llabs
