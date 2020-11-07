@@ -172,6 +172,7 @@ const struct rig_caps ft891_caps =
         {RIG_MODE_SSB,                Hz(600)},     /*        SSB */
         {RIG_MODE_SSB,                Hz(400)},     /*        SSB */
         {RIG_MODE_SSB,                Hz(200)},     /*        SSB */
+        {FT891_CW_RTTY_PKT_RX_MODES | RIG_MODE_SSB, RIG_FLT_ANY },
         {RIG_MODE_AM,                 Hz(9000)},    /* Normal AM */
         {RIG_MODE_AM,                 Hz(6000)},    /* Narrow AM */
         {FT891_FM_RX_MODES,           Hz(16000)},   /* Normal FM */
