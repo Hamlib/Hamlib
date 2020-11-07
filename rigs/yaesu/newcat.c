@@ -2920,6 +2920,8 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             priv->cmd_str[2] = main_sub_vfo;
         }
 
+        // Some Yaesu rigs reject IF shift command in AM/FM modes
+        priv->question_mark_response_means_rejected = 1;
         break;
 
     case RIG_LEVEL_CWPITCH: {
@@ -3526,7 +3528,12 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         return -RIG_EINVAL;
     }
 
-    return newcat_set_cmd(rig);
+    err = newcat_set_cmd(rig);
+
+    // Clear flag after executing command
+    priv->question_mark_response_means_rejected = 0;
+
+    return err;
 }
 
 
@@ -3616,6 +3623,9 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             priv->cmd_str[2] = main_sub_vfo;
         }
+
+        // Some Yaesu rigs reject IF shift command in AM/FM modes
+        priv->question_mark_response_means_rejected = 1;
         break;
 
     case RIG_LEVEL_CWPITCH:
@@ -3889,7 +3899,12 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return -RIG_EINVAL;
     }
 
-    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    err = newcat_get_cmd(rig);
+
+    // Clear flag after executing command
+    priv->question_mark_response_means_rejected = 0;
+
+    if (err != RIG_OK)
     {
         return err;
     }
