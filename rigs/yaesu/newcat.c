@@ -2920,7 +2920,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             priv->cmd_str[2] = main_sub_vfo;
         }
 
-        // Some Yaesu rigs reject IF shift command in AM/FM modes
+        // Some Yaesu rigs reject this command in AM/FM modes
         priv->question_mark_response_means_rejected = 1;
         break;
 
@@ -2983,6 +2983,9 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
 
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MG%03d%c", fpf, cat_term);
+
+        // Some Yaesu rigs reject this command in RTTY modes
+        priv->question_mark_response_means_rejected = 1;
         break;
 
     case RIG_LEVEL_METER:
@@ -3189,6 +3192,8 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             }
         }
 
+        // Some Yaesu rigs reject this command in AM/FM modes
+        priv->question_mark_response_means_rejected = 1;
         break;
 
     case RIG_LEVEL_COMP:
@@ -3623,9 +3628,6 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             priv->cmd_str[2] = main_sub_vfo;
         }
-
-        // Some Yaesu rigs reject IF shift command in AM/FM modes
-        priv->question_mark_response_means_rejected = 1;
         break;
 
     case RIG_LEVEL_CWPITCH:
@@ -3900,9 +3902,6 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     }
 
     err = newcat_get_cmd(rig);
-
-    // Clear flag after executing command
-    priv->question_mark_response_means_rejected = 0;
 
     if (err != RIG_OK)
     {
@@ -4413,6 +4412,8 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             priv->cmd_str[2] = main_sub_vfo;
         }
 
+        // Some Yaesu rigs reject this command in AM/FM modes
+        priv->question_mark_response_means_rejected = 1;
         break;
 
     case RIG_FUNC_MN:
@@ -4429,6 +4430,8 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             priv->cmd_str[2] = main_sub_vfo;
         }
 
+        // Some Yaesu rigs reject this command in AM/FM modes
+        priv->question_mark_response_means_rejected = 1;
         break;
 
     case RIG_FUNC_FBKIN:
@@ -4533,6 +4536,8 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             priv->cmd_str[2] = main_sub_vfo;
         }
 
+        // Some Yaesu rigs reject this command in AM/FM modes
+        priv->question_mark_response_means_rejected = 1;
         break;
 
     case RIG_FUNC_COMP:
@@ -4601,7 +4606,12 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         return -RIG_EINVAL;
     }
 
-    return newcat_set_cmd(rig);
+    err = newcat_set_cmd(rig);
+
+    // Clear flag after executing command
+    priv->question_mark_response_means_rejected = 0;
+
+    return err;
 }
 
 
@@ -8363,18 +8373,25 @@ int newcat_get_cmd(RIG *rig)
                 break;            /* retry */
 
             case '?':
-                if (priv->question_mark_response_means_rejected)
-                {
-                    /* Some commands, like MR and MC return "?;" when choosing a channel that doesn't exist */
-                    rig_debug(RIG_DEBUG_ERR, "%s: Command rejected: '%s'\n", __func__,
-                              priv->cmd_str);
-                    return -RIG_ERJCTED;
-                }
-
-                /* Rig busy wait please */
-                rig_debug(RIG_DEBUG_ERR, "%s: Rig busy\n", __func__);
-                rc = -RIG_BUSBUSY;
-                break;            /* retry read only */
+                /* The ? response is ambiguous and undocumented by Yaesu, but for get commands it seems to
+                 * indicate that the rig rejected the command because the state of the rig is not valid for the command
+                 * or that the command parameter is invalid. Retrying the command does not fix the issue,
+                 * as the error is caused by the an invalid combination of rig state.
+                 *
+                 * For example, the following cases have been observed:
+                 * - MR and MC commands are rejected when referring to an _empty_ memory channel even
+                 *   if the channel number is in a valid range
+                 * - BC (ANF) and RL (NR) commands fail in AM/FM modes, because they are
+                 *   supported only in SSB/CW/RTTY modes
+                 * - MG (MICGAIN) command fails in RTTY mode, as it's a digital mode
+                 *
+                 * There are many more cases like these and they vary by rig model.
+                 *
+                 * So far, "rig busy" type situations with the ? response have not been observed for get commands.
+                 */
+                rig_debug(RIG_DEBUG_ERR, "%s: Command rejected by the rig: '%s'\n", __func__,
+                          priv->cmd_str);
+                return -RIG_ERJCTED;
             }
 
             continue;
@@ -8494,10 +8511,25 @@ int newcat_set_cmd(RIG *rig)
                 break;            /* retry */
 
             case '?':
+                /* The ? response is ambiguous and undocumented by Yaesu. For set commands it seems to indicate:
+                 * 1) either that the rig is busy and the command needs to be retried
+                 * 2) or that the rig rejected the command because the state of the rig is not valid for the command
+                 *    or that the command parameter is invalid. Retrying the command does not fix the issue
+                 *    in this case, as the error is caused by the an invalid combination of rig state.
+                 *    The latter case is consistent with behaviour of get commands.
+                 *
+                 * For example, the following cases have been observed:
+                 * - MR and MC commands are rejected when referring to an _empty_ memory channel even
+                 *   if the channel number is in a valid range
+                 * - BC (ANF) and RL (NR) commands fail in AM/FM modes, because they are
+                 *   supported only in SSB/CW/RTTY modes
+                 * - MG (MICGAIN) command fails in RTTY mode, as it's a digital mode
+                 *
+                 * There are many more cases like these and they vary by rig model.
+                 */
                 if (priv->question_mark_response_means_rejected)
                 {
-                    /* Some commands, like MR and MC return "?;" when choosing a channel that doesn't exist */
-                    rig_debug(RIG_DEBUG_ERR, "%s: Command rejected: '%s'\n", __func__,
+                    rig_debug(RIG_DEBUG_ERR, "%s: Command rejected by the rig: '%s'\n", __func__,
                               priv->cmd_str);
                     return -RIG_ERJCTED;
                 }
