@@ -40,12 +40,49 @@
 #include "idx_builtin.h"
 #include "tones.h"
 
-/*
- * ft2000 rigs capabilities.
- * Also this struct is READONLY!
- *
- */
+const struct newcat_priv_caps ft2000_priv_caps =
+{
+    .roofing_filter_count = 7,
+    .roofing_filters =
+        {
+            // The index must match ext level combo index
+            { .index = 0, .set_value = '0', .get_value = 0, .width = 15000, .optional = 0 },
+            { .index = 1, .set_value = '1', .get_value = '1', .width = 15000, .optional = 0 },
+            { .index = 2, .set_value = '2', .get_value = '2', .width = 6000, .optional = 0 },
+            { .index = 3, .set_value = '3', .get_value = '3', .width = 3000, .optional = 0 },
+            { .index = 4, .set_value = 0, .get_value = '4', .width = 15000, .optional = 0 },
+            { .index = 5, .set_value = 0, .get_value = '5', .width = 6000, .optional = 0 },
+            { .index = 6, .set_value = 0, .get_value = '6', .width = 3000, .optional = 0 },
+        }
+};
 
+const struct confparams ft2000_ext_levels[] =
+{
+    {
+        TOK_ROOFING_FILTER,
+        "ROOFINGFILTER",
+        "Roofing filter",
+        "Roofing filter",
+        NULL,
+        RIG_CONF_COMBO,
+        { .c = { .combostr = {
+                "AUTO", "15 kHz", "6 kHz", "3 kHz",
+                "AUTO - 15 kHz", "AUTO - 6 kHz", "AUTO - 3 kHz",
+                NULL }
+        } }
+    },
+    { RIG_CONF_END, NULL, }
+};
+
+int ft2000_ext_tokens[] =
+{
+    TOK_ROOFING_FILTER, TOK_BACKEND_NONE
+};
+
+
+/*
+ * FT-2000 rig capabilities
+ */
 const struct rig_caps ft2000_caps =
 {
     RIG_MODEL(RIG_MODEL_FT2000),
@@ -78,10 +115,12 @@ const struct rig_caps ft2000_caps =
         // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 50 } },
+        [LVL_KEYSPD] = { .min = { .i = 4 }, .max = { .i = 60 }, .step = { .i = 1 } },
+        [LVL_NOTCHF] = { .min = { .i = 1 }, .max = { .i = 4000 }, .step = { .i = 10 } },
     },
     .ctcss_list =         common_ctcss_list,
     .dcs_list =           NULL,
-    .preamp =             { 10, 20, RIG_DBLST_END, }, /* TBC */
+    .preamp =             { 10, 17, RIG_DBLST_END, },
     .attenuator =         { 6, 12, 18, RIG_DBLST_END, },
     .max_rit =            Hz(9999),
     .max_xit =            Hz(9999),
@@ -138,7 +177,6 @@ const struct rig_caps ft2000_caps =
         {FT2000_FM_RX_MODES,     kHz(1)},    /* Fast */
 
         RIG_TS_END,
-
     },
 
     /* mode/filter list, .remember =  order matters! */
@@ -157,7 +195,10 @@ const struct rig_caps ft2000_caps =
         RIG_FLT_END,
     },
 
-    .priv =               NULL,
+    .ext_tokens =         ft2000_ext_tokens,
+    .extlevels =          ft2000_ext_levels,
+
+    .priv =               &ft2000_priv_caps,
 
     .rig_init =           newcat_init,
     .rig_cleanup =        newcat_cleanup,
@@ -207,5 +248,7 @@ const struct rig_caps ft2000_caps =
     .get_trn =            newcat_get_trn,
     .set_channel =        newcat_set_channel,
     .get_channel =        newcat_get_channel,
+    .set_ext_level =      newcat_set_ext_level,
+    .get_ext_level =      newcat_get_ext_level,
 
 };
