@@ -110,11 +110,13 @@ const struct rig_caps ftdx5000_caps =
     .level_gran = {
         // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
-        [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 50 } },
+        [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 10 } },
+        [LVL_KEYSPD] = { .min = { .i = 4 }, .max = { .i = 60 }, .step = { .i = 1 } },
+        [LVL_NOTCHF] = { .min = { .i = 1 }, .max = { .i = 4000 }, .step = { .i = 10 } },
     },
     .ctcss_list =         common_ctcss_list,
     .dcs_list =           NULL,
-    .preamp =             { 10, 20, RIG_DBLST_END, }, /* TBC */
+    .preamp =             { 10, 20, RIG_DBLST_END, }, /* TBC: Not specified in manual */
     .attenuator =         { 6, 12, 18, RIG_DBLST_END, },
     .max_rit =            Hz(9999),
     .max_xit =            Hz(9999),
@@ -171,21 +173,21 @@ const struct rig_caps ftdx5000_caps =
         {FTDX5000_FM_RX_MODES,     kHz(1)},    /* Fast */
 
         RIG_TS_END,
-
     },
 
     /* mode/filter list, .remember =  order matters! */
     .filters =            {
-        {FTDX5000_CW_RTTY_PKT_RX_MODES,  Hz(1800)},   /* Normal CW, RTTY, PKT/USER */
+        {FTDX5000_CW_RTTY_PKT_RX_MODES,  Hz(1700)},   /* Normal CW, RTTY, PKT/USER */
         {FTDX5000_CW_RTTY_PKT_RX_MODES,  Hz(500)},    /* Narrow CW, RTTY, PKT/USER */
         {FTDX5000_CW_RTTY_PKT_RX_MODES,  Hz(2400)},   /* Wide   CW, RTTY, PKT/USER */
         {RIG_MODE_SSB,                 Hz(2400)},   /* Normal SSB */
         {RIG_MODE_SSB,                 Hz(1800)},   /* Narrow SSB */
-        {RIG_MODE_SSB,                 Hz(3000)},   /* Wide   SSB */
-        {RIG_MODE_AM,                  Hz(9000)},   /* Normal AM  */
-        {RIG_MODE_AM,                  Hz(6000)},   /* Narrow AM  */
-        {FTDX5000_FM_RX_MODES,           Hz(15000)},  /* Normal FM  */
-        {FTDX5000_FM_RX_MODES,           Hz(8000)},   /* Narrow FM  */
+        {RIG_MODE_SSB,                 Hz(4000)},   /* Wide   SSB */
+        {FTDX5000_AM_RX_MODES,         Hz(9000)},   /* Normal AM  */
+        {FTDX5000_AM_RX_MODES,         Hz(6000)},   /* Narrow AM  */
+        {FTDX5000_FM_RX_MODES,         Hz(16000)},  /* Normal FM  */
+        {FTDX5000_FM_RX_MODES,         Hz(9000)},   /* Narrow FM  */
+        {FTDX5000_CW_RTTY_PKT_RX_MODES | RIG_MODE_SSB, RIG_FLT_ANY},
 
         RIG_FLT_END,
     },
