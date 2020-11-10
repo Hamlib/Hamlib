@@ -1492,21 +1492,91 @@ int newcat_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int err;
-    char command[16] ;
-    freq_t freq;
+    char command[32];
+    freq_t freq = 0;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (newcat_is_rig(rig, RIG_MODEL_FT991))
+    err = newcat_get_freq(rig, vfo, &freq); // Need to get freq to determine band
+    if (err < 0)
     {
-        freq = 0;
-        err = newcat_get_freq(rig, vfo, &freq); // Need to get freq to determine band
+        return err;
+    }
 
-        if (err < 0)
+    if (is_ft450)
+    {
+        strcpy(command, "EX050");
+
+        // Step size is 100 kHz
+        offs /= 100000;
+
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%03li%c", command, offs, cat_term);
+    }
+    else if (is_ft2000)
+    {
+        if (freq >= 28000000 && freq <= 29700000)
         {
-            return err;
+            strcpy(command, "EX076");
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            strcpy(command, "EX077");
+        }
+        else
+        {
+            // only valid on 10m and 6m bands
+            return -RIG_EINVAL;
         }
 
+        // Step size is 1 kHz
+        offs /= 1000;
+
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%04li%c", command, offs, cat_term);
+    }
+    else if (is_ft950)
+    {
+        if (freq >= 28000000 && freq <= 29700000)
+        {
+            strcpy(command, "EX057");
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            strcpy(command, "EX058");
+        }
+        else
+        {
+            // only valid on 10m and 6m bands
+            return -RIG_EINVAL;
+        }
+
+        // Step size is 1 kHz
+        offs /= 1000;
+
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%04li%c", command, offs, cat_term);
+    }
+    else if (is_ft891)
+    {
+        if (freq >= 28000000 && freq <= 29700000)
+        {
+            strcpy(command, "EX0904");
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            strcpy(command, "EX0905");
+        }
+        else
+        {
+            // only valid on 10m and 6m bands
+            return -RIG_EINVAL;
+        }
+
+        // Step size is 1 kHz
+        offs /= 1000;
+
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%04li%c", command, offs, cat_term);
+    }
+    else if (is_ft991)
+    {
         if (freq >= 28000000 && freq <= 29700000)
         {
             strcpy(command, "EX080");
@@ -1526,15 +1596,104 @@ int newcat_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
         else
         {
             // only valid on 10m to 70cm bands
-            return RIG_OK;
+            return -RIG_EINVAL;
         }
 
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%04li%c", command, offs,
-                 cat_term);
-        return newcat_set_cmd(rig);
+        // Step size is 1 kHz
+        offs /= 1000;
+
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%04li%c", command, offs, cat_term);
+    }
+    else if (is_ftdx1200)
+    {
+        if (freq >= 28000000 && freq <= 29700000)
+        {
+            strcpy(command, "EX087");
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            strcpy(command, "EX088");
+        }
+        else
+        {
+            // only valid on 10m and 6m bands
+            return -RIG_EINVAL;
+        }
+
+        // Step size is 1 kHz
+        offs /= 1000;
+
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%04li%c", command, offs, cat_term);
+    }
+    else if (is_ftdx3000)
+    {
+        if (freq >= 28000000 && freq <= 29700000)
+        {
+            strcpy(command, "EX086");
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            strcpy(command, "EX087");
+        }
+        else
+        {
+            // only valid on 10m and 6m bands
+            return -RIG_EINVAL;
+        }
+
+        // Step size is 1 kHz
+        offs /= 1000;
+
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%04li%c", command, offs, cat_term);
+    }
+    else if (is_ftdx5000)
+    {
+        if (freq >= 28000000 && freq <= 29700000)
+        {
+            strcpy(command, "EX081");
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            strcpy(command, "EX082");
+        }
+        else
+        {
+            // only valid on 10m and 6m bands
+            return -RIG_EINVAL;
+        }
+
+        // Step size is 1 kHz
+        offs /= 1000;
+
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%04li%c", command, offs, cat_term);
+    }
+    else if (is_ftdx101)
+    {
+        if (freq >= 28000000 && freq <= 29700000)
+        {
+            strcpy(command, "EX010315");
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            strcpy(command, "EX010316");
+        }
+        else
+        {
+            // only valid on 10m and 6m bands
+            return -RIG_EINVAL;
+        }
+
+        // Step size is 1 kHz
+        offs /= 1000;
+
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%04li%c", command, offs, cat_term);
+    }
+    else
+    {
+        return -RIG_ENAVAIL;
     }
 
-    return -RIG_ENAVAIL;
+    return newcat_set_cmd(rig);
 }
 
 
@@ -1544,20 +1703,86 @@ int newcat_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *offs)
     int err;
     int ret_data_len;
     char *retoffs;
-    freq_t freq;
+    freq_t freq = 0;
+    int step;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (newcat_is_rig(rig, RIG_MODEL_FT991))
+    err = newcat_get_freq(rig, vfo, &freq); // Need to get freq to determine band
+    if (err < 0)
     {
-        freq = 0;
-        err = newcat_get_freq(rig, vfo, &freq); // Need to get freq to determine band
+        return err;
+    }
 
-        if (err < 0)
+    if (is_ft450)
+    {
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "EX050%c", cat_term);
+
+        // Step size is 100 kHz
+        step = 100000;
+    }
+    else if (is_ft2000)
+    {
+        if (freq >= 28000000 && freq <= 29700000)
         {
-            return err;
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "EX076%c", cat_term);
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "EX077%c", cat_term);
+        }
+        else
+        {
+            // only valid on 10m and 6m bands
+            *offs = 0;
+            return RIG_OK;
         }
 
+        // Step size is 1 kHz
+        step = 1000;
+    }
+    else if (is_ft950)
+    {
+        if (freq >= 28000000 && freq <= 29700000)
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "EX057%c", cat_term);
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "EX058%c", cat_term);
+        }
+        else
+        {
+            // only valid on 10m and 6m bands
+            *offs = 0;
+            return RIG_OK;
+        }
+
+        // Step size is 1 kHz
+        step = 1000;
+    }
+    else if (is_ft891)
+    {
+        if (freq >= 28000000 && freq <= 29700000)
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "EX0904%c", cat_term);
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "EX0905%c", cat_term);
+        }
+        else
+        {
+            // only valid on 10m and 6m bands
+            *offs = 0;
+            return RIG_OK;
+        }
+
+        // Step size is 1 kHz
+        step = 1000;
+    }
+    else if (is_ft991)
+    {
         if (freq >= 28000000 && freq <= 29700000)
         {
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "EX080%c", cat_term);
@@ -1576,27 +1801,113 @@ int newcat_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *offs)
         }
         else
         {
-            *offs = 0;     // only valid on 10m to 70cm bands
+            // only valid on 10m to 70cm bands
+            *offs = 0;
             return RIG_OK;
         }
 
-        if (RIG_OK != (err = newcat_get_cmd(rig)))
+        // Step size is 1 kHz
+        step = 1000;
+    }
+    else if (is_ftdx1200)
+    {
+        if (freq >= 28000000 && freq <= 29700000)
         {
-            return err;
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "EX087%c", cat_term);
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "EX088%c", cat_term);
+        }
+        else
+        {
+            // only valid on 10m and 6m bands
+            *offs = 0;
+            return RIG_OK;
         }
 
-        ret_data_len = strlen(priv->ret_data);
+        // Step size is 1 kHz
+        step = 1000;
+    }
+    else if (is_ftdx3000)
+    {
+        if (freq >= 28000000 && freq <= 29700000)
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "EX086%c", cat_term);
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "EX087%c", cat_term);
+        }
+        else
+        {
+            // only valid on 10m and 6m bands
+            *offs = 0;
+            return RIG_OK;
+        }
 
-        /* skip command */
-        retoffs = priv->ret_data + strlen(priv->cmd_str) - 1;
-        /* chop term */
-        priv->ret_data[ret_data_len - 1] = '\0';
-        *offs = atoi(retoffs);
+        // Step size is 1 kHz
+        step = 1000;
+    }
+    else if (is_ftdx5000)
+    {
+        if (freq >= 28000000 && freq <= 29700000)
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "EX081%c", cat_term);
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "EX082%c", cat_term);
+        }
+        else
+        {
+            // only valid on 10m and 6m bands
+            *offs = 0;
+            return RIG_OK;
+        }
+
+        // Step size is 1 kHz
+        step = 1000;
+    }
+    else if (is_ftdx101)
+    {
+        if (freq >= 28000000 && freq <= 29700000)
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "EX010315%c", cat_term);
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "EX010316%c", cat_term);
+        }
+        else
+        {
+            // only valid on 10m and 6m bands
+            *offs = 0;
+            return RIG_OK;
+        }
+
+        // Step size is 1 kHz
+        step = 1000;
     }
     else
     {
         return -RIG_ENAVAIL;
     }
+
+    err = newcat_get_cmd(rig);
+    if (err != RIG_OK)
+    {
+        return err;
+    }
+
+    ret_data_len = strlen(priv->ret_data);
+
+    /* skip command */
+    retoffs = priv->ret_data + strlen(priv->cmd_str) - 1;
+    /* chop term */
+    priv->ret_data[ret_data_len - 1] = '\0';
+
+    *offs = atoi(retoffs) * step;
 
     return RIG_OK;
 }
