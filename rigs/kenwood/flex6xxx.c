@@ -39,7 +39,7 @@
 
 #define F6K_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB)
 
-#define F6K_FUNC_ALL (RIG_FUNC_VOX)
+#define F6K_FUNC_ALL (RIG_FUNC_VOX|RIG_FUNC_TUNER)
 
 #define F6K_LEVEL_ALL (RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW|RIG_LEVEL_KEYSPD)
 
@@ -49,7 +49,7 @@
 #define F6K_ANTS (RIG_ANT_1|RIG_ANT_2|RIG_ANT_3)
 
 /* PowerSDR differences */
-#define POWERSDR_FUNC_ALL (RIG_FUNC_VOX|RIG_FUNC_SQL|RIG_FUNC_NB|RIG_FUNC_ANF|RIG_FUNC_MUTE|RIG_FUNC_RIT|RIG_FUNC_XIT)
+#define POWERSDR_FUNC_ALL (RIG_FUNC_VOX|RIG_FUNC_SQL|RIG_FUNC_NB|RIG_FUNC_ANF|RIG_FUNC_MUTE|RIG_FUNC_RIT|RIG_FUNC_XIT|RIG_FUNC_TUNER)
 
 #define POWERSDR_LEVEL_ALL (RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW|RIG_LEVEL_KEYSPD|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_MICGAIN|RIG_LEVEL_VOXGAIN|RIG_LEVEL_SQL|RIG_LEVEL_AF|RIG_LEVEL_AGC|RIG_LEVEL_RF|RIG_LEVEL_IF)
 
@@ -941,6 +941,10 @@ int powersdr_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         snprintf(cmd, sizeof(cmd) - 1, "ZZSO%01d", status);
         break;
 
+    case RIG_FUNC_TUNER:
+        snprintf(cmd, sizeof(cmd) - 1, "ZZTU%01d", status);
+        break;
+
     default:
         return kenwood_set_func(rig, vfo, func, status);
     }
@@ -1140,7 +1144,7 @@ const struct rig_caps powersdr_caps =
     RIG_MODEL(RIG_MODEL_POWERSDR),
     .model_name =       "PowerSDR/Thetis",
     .mfg_name =     "FlexRadio/ANAN",
-    .version =      "20201016.0",
+    .version =      "20201108.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
