@@ -1641,7 +1641,7 @@ int newcat_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
             return -RIG_EINVAL;
         }
 
-        // TODO: Confirm: Step size is 1 kHz or 10 kHz -- CAT documentation is difficult to interpret
+        // Step size is 1 kHz
         offs /= 1000;
 
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%04li%c", command, offs, cat_term);
@@ -1662,7 +1662,7 @@ int newcat_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
             return -RIG_EINVAL;
         }
 
-        // TODO: Confirm: Step size is 1 kHz or 10 kHz -- CAT documentation is difficult to interpret
+        // Step size is 1 kHz
         offs /= 1000;
 
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%04li%c", command, offs, cat_term);
@@ -1846,7 +1846,7 @@ int newcat_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *offs)
             return RIG_OK;
         }
 
-        // TODO: Confirm: Step size is 1 kHz or 10 kHz -- CAT documentation is difficult to interpret
+        // Step size is 1 kHz
         step = 1000;
     }
     else if (is_ftdx5000)
@@ -1866,7 +1866,7 @@ int newcat_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *offs)
             return RIG_OK;
         }
 
-        // TODO: Confirm: Step size is 1 kHz or 10 kHz -- CAT documentation is difficult to interpret
+        // Step size is 1 kHz
         step = 1000;
     }
     else if (is_ftdx101)
