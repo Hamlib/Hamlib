@@ -4777,8 +4777,7 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             return -RIG_ENAVAIL;
         }
 
-        // FTDX101D has 3 states 0,1,2
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CT0%d%c", status , cat_term);
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CT0%d%c", status ? 1 : 0 , cat_term);
 
         if (rig->caps->targetable_vfo & RIG_TARGETABLE_TONE)
         {
