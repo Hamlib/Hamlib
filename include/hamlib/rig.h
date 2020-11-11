@@ -812,7 +812,8 @@ enum meter_level_e {
     RIG_METER_IC =      (1 << 3),   /*< IC */
     RIG_METER_DB =      (1 << 4),   /*< DB */
     RIG_METER_PO =      (1 << 5),   /*< Power Out */
-    RIG_METER_VDD =     (1 << 6)    /*< Final Amp Voltage */
+    RIG_METER_VDD =     (1 << 6),   /*< Final Amp Voltage */
+    RIG_METER_TEMP =    (1 << 7)    /*< Final Amp Voltage */
 };
 
 
@@ -1006,8 +1007,8 @@ typedef uint64_t setting_t;
 #define RIG_FUNC_NB         CONSTANT_64BIT_FLAG (1)    /*!< \c NB -- Noise Blanker */
 #define RIG_FUNC_COMP       CONSTANT_64BIT_FLAG (2)    /*!< \c COMP -- Speech Compression */
 #define RIG_FUNC_VOX        CONSTANT_64BIT_FLAG (3)    /*!< \c VOX -- Voice Operated Relay */
-#define RIG_FUNC_TONE       CONSTANT_64BIT_FLAG (4)    /*!< \c TONE -- CTCSS Tone */
-#define RIG_FUNC_TSQL       CONSTANT_64BIT_FLAG (5)    /*!< \c TSQL -- CTCSS Activate/De-activate and Encode-only value=2 if available */
+#define RIG_FUNC_TONE       CONSTANT_64BIT_FLAG (4)    /*!< \c TONE -- CTCSS Tone TX */
+#define RIG_FUNC_TSQL       CONSTANT_64BIT_FLAG (5)    /*!< \c TSQL -- CTCSS Activate/De-activate RX */
 #define RIG_FUNC_SBKIN      CONSTANT_64BIT_FLAG (6)    /*!< \c SBKIN -- Semi Break-in (CW mode) */
 #define RIG_FUNC_FBKIN      CONSTANT_64BIT_FLAG (7)    /*!< \c FBKIN -- Full Break-in (CW mode) */
 #define RIG_FUNC_ANF        CONSTANT_64BIT_FLAG (8)    /*!< \c ANF -- Automatic Notch Filter (DSP) */
