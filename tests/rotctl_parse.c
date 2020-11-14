@@ -1692,6 +1692,22 @@ declare_proto_rot(set_position)
 {
     azimuth_t az;
     elevation_t el;
+    char *comma_pos;
+
+    /* Fixing args with an invalid decimal separator. */
+    comma_pos = strchr(arg1, ',');
+
+    if (comma_pos)
+    {
+        *comma_pos = '.';
+    }
+
+    comma_pos = strchr(arg2, ',');
+
+    if (comma_pos)
+    {
+        *comma_pos = '.';
+    }
 
     CHKSCN1ARG(sscanf(arg1, "%f", &az));
     CHKSCN1ARG(sscanf(arg2, "%f", &el));
