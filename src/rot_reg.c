@@ -84,6 +84,9 @@ DEFINE_INITROT_BACKEND(cnctrk);
 DEFINE_INITROT_BACKEND(prosistel);
 DEFINE_INITROT_BACKEND(meade);
 DEFINE_INITROT_BACKEND(ioptron);
+#if HAVE_LIBINDI
+DEFINE_INITROT_BACKEND(indi);
+#endif
 //! @endcond
 
 /**
@@ -123,6 +126,9 @@ static struct
     { ROT_PROSISTEL, ROT_BACKEND_PROSISTEL, ROT_FUNCNAMA(prosistel) },
     { ROT_MEADE, ROT_BACKEND_MEADE, ROT_FUNCNAMA(meade) },
     { ROT_IOPTRON, ROT_BACKEND_IOPTRON, ROT_FUNCNAMA(ioptron) },
+#if HAVE_LIBINDI
+    { ROT_INDI, ROT_BACKEND_INDI, ROT_FUNCNAMA(indi) },
+#endif
     { 0, NULL }, /* end */
 };
 
