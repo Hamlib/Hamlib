@@ -363,6 +363,46 @@ AS_IF([test x"$ax_cv_lib_readline" = "xno"], [
     cf_with_readline_support=no
     ])
 
+dnl Check if INDI support in rigctl/rotctl is wanted
+AC_MSG_CHECKING([whether to use INDI in rigctl/rotctl])
+AC_ARG_WITH([indi],
+    [AS_HELP_STRING([--without-indi],
+        [disable INDI in rigctl/rotctl @<:@default=yes@:>@])],
+        [cf_with_indi_support=no],
+        [cf_with_indi_support=yes]
+    )
+
+AS_IF([test x"$cf_with_indi_support" != "xno"], [
+    # INDI support needs a C++ compiler, tested for presence above.
+    AS_IF([test x"${cf_with_cxx}" != "xyes"], [
+        AC_MSG_WARN([INDI support needs a C++ compiler.])
+        cf_with_indi_support=no
+    ])
+])
+
+AS_IF([test x"$cf_with_indi_support" != "xno"], [
+    # macros/ax_lib_nova.m4
+    AX_LIB_NOVA
+
+    AS_IF([test x"$ax_cv_lib_nova" = "xno"], [
+        AC_MSG_WARN([libnova support not found, required by INDI.])
+        cf_with_indi_support=no
+        ])
+
+    AS_IF([test x"$ax_cv_lib_nova" != "xno"], [
+        # macros/ax_lib_indi.m4
+        AX_LIB_INDI
+
+        AS_IF([test x"$ax_cv_lib_indi" = "xno"], [
+            AC_MSG_WARN([INDI support not found.])
+            cf_with_indi_support=no
+        ])
+
+        AS_IF([test x"$cf_with_indi_support" != "xno"], [
+            ROT_BACKEND_LIST="$ROT_BACKEND_LIST rotators/indi"
+        ])
+    ])
+])
 
 dnl Check if libgd-dev is installed, so we can enable rigmatrix
 AC_MSG_CHECKING([whether to build HTML rig feature matrix])
@@ -801,6 +841,7 @@ rotators/rotorez/Makefile
 rotators/sartek/Makefile
 rotators/spid/Makefile
 rotators/ts7400/Makefile
+rotators/indi/Makefile
 rigs/adat/Makefile
 rigs/alinco/Makefile
 rigs/aor/Makefile
@@ -857,6 +898,7 @@ echo \
     With Lua binding                ${cf_with_lua_binding}
     With rigmem XML support         ${cf_with_xml_support}
     With Readline support           ${cf_with_readline_support}
+    With INDI support               ${cf_with_indi_support}
 
     Enable HTML rig feature matrix  ${cf_enable_html_matrix}
     Enable WinRadio                 ${cf_with_winradio}
