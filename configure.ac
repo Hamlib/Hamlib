@@ -52,7 +52,7 @@ dnl Beware of duplication should a backend directory include both rig and
 dnl rotor definitions, e.g. "dummy".  Optional backends will not be listed
 dnl here but will be added later, e.g. "winradio".
 RIG_BACKEND_LIST="rigs/adat rigs/alinco rigs/aor rigs/barrett rigs/dorji rigs/drake rigs/dummy rigs/elad rigs/flexradio rigs/icom rigs/icmarine rigs/jrc rigs/kachina rigs/kenwood rigs/kit rigs/lowe rigs/pcr rigs/prm80 rigs/racal rigs/rft rigs/rs rigs/skanti rigs/tapr rigs/tentec rigs/tuner rigs/uniden rigs/winradio rigs/wj rigs/yaesu"
-ROT_BACKEND_LIST="rotators/amsat rotators/ars rotators/celestron rotators/cnctrk rotators/easycomm rotators/ether6 rotators/fodtrack rotators/gs232a rotators/heathkit rotators/m2 rotators/meade rotators/rotorez rotators/sartek rotators/spid rotators/ts7400 rotators/prosistel rotators/ioptron rotators/indi"
+ROT_BACKEND_LIST="rotators/amsat rotators/ars rotators/celestron rotators/cnctrk rotators/easycomm rotators/ether6 rotators/fodtrack rotators/gs232a rotators/heathkit rotators/m2 rotators/meade rotators/rotorez rotators/sartek rotators/spid rotators/ts7400 rotators/prosistel rotators/ioptron"
 # Amplifiers are all in the amplifiers directory
 AMP_BACKEND_LIST="amplifiers/elecraft"
 
