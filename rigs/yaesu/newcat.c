@@ -8644,7 +8644,8 @@ int newcat_get_cmd(RIG *rig)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n",
                       __func__, priv->ret_data);
-            rc = -RIG_BUSBUSY;    /* don't write command again */
+            // we were using BUSBUSY but microham devices need retries
+            //rc = -RIG_BUSBUSY;    /* don't write command again */
             /* we could decrement retry_count
                here but there is a danger of
                infinite looping so we just use up
@@ -8717,7 +8718,9 @@ int newcat_get_cmd(RIG *rig)
              */
             rig_debug(RIG_DEBUG_ERR, "%s: wrong reply %.2s for command %.2s\n",
                       __func__, priv->ret_data, priv->cmd_str);
-            rc = -RIG_BUSBUSY;    /* retry read only */
+            // we were using BUSBUSY but microham devices need retries
+            // this should be OK under all other circumstances too
+            //rc = -RIG_BUSBUSY;    /* retry read only */
         }
     }
 
