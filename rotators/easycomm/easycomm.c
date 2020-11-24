@@ -250,34 +250,44 @@ easycomm_rot_move(ROT *rot, int direction, int speed)
 static int
 easycomm_rot_move_velocity(ROT *rot, int direction, int speed)
 {
+    struct rot_state *rs = &rot->state;
     char cmdstr[24];
     int retval;
+    int easycomm_speed;
+
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-    if (speed < 0 || speed > 9999)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: Invalid speed value!(0-9999) (%d)\n", __func__,
-                  speed);
-        return -RIG_EINVAL;
+    if (speed == ROT_SPEED_NOCHANGE) {
+        easycomm_speed = ((rs->current_speed - 1) * 100);
+    } else {
+        if (speed < 1 || speed > 100)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: Invalid speed value (1-100)! (%d)\n", __func__,
+                    speed);
+            return -RIG_EINVAL;
+        }
+
+        rs->current_speed = speed;
+        easycomm_speed = ((speed - 1) * 100);
     }
 
     /* Speed for EasyComm 3 */
     switch (direction)
     {
     case ROT_MOVE_UP:       /* Elevation increase */
-        sprintf(cmdstr, "VU%04d\n", speed);
+        sprintf(cmdstr, "VU%04d\n", easycomm_speed);
         break;
 
     case ROT_MOVE_DOWN:     /* Elevation decrease */
-        sprintf(cmdstr, "VD%04d\n", speed);
+        sprintf(cmdstr, "VD%04d\n", easycomm_speed);
         break;
 
     case ROT_MOVE_LEFT:     /* Azimuth decrease */
-        sprintf(cmdstr, "VL%04d\n", speed);
+        sprintf(cmdstr, "VL%04d\n", easycomm_speed);
         break;
 
     case ROT_MOVE_RIGHT:    /* Azimuth increase */
-        sprintf(cmdstr, "VR%04d\n", speed);
+        sprintf(cmdstr, "VR%04d\n", easycomm_speed);
         break;
 
     default:
@@ -527,7 +537,7 @@ const struct rot_caps easycomm3_rot_caps =
     ROT_MODEL(ROT_MODEL_EASYCOMM3),
     .model_name =     "EasycommIII",
     .mfg_name =       "Hamlib",
-    .version =        "20191206.0",
+    .version =        "20201118.0",
     .copyright =   "LGPL",
     .status =         RIG_STATUS_ALPHA,
     .rot_type =       ROT_TYPE_OTHER,

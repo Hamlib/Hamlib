@@ -13,7 +13,7 @@ bin_PROGRAMS = rigctl rigctld rigmem rigsmtr rigswr rotctl rotctld rigctlcom amp
 check_PROGRAMS = dumpmem testrig testtrn testbcd testfreq listrigs testloc rig_bench cachetest cachetest2
 
 RIGCOMMONSRC = rigctl_parse.c rigctl_parse.h dumpcaps.c sprintflst.c sprintflst.h uthash.h hamlibdatetime.h
-ROTCOMMONSRC = rotctl_parse.c rotctl_parse.h dumpcaps_rot.c uthash.h hamlibdatetime.h
+ROTCOMMONSRC = rotctl_parse.c rotctl_parse.h dumpcaps_rot.c sprintflst.c sprintflst.h uthash.h hamlibdatetime.h
 AMPCOMMONSRC = ampctl_parse.c ampctl_parse.h dumpcaps_amp.c sprintflst.c sprintflst.h uthash.h hamlibdatetime.h
 
 rigctl_SOURCES = rigctl.c $(RIGCOMMONSRC)

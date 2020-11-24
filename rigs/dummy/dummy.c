@@ -37,6 +37,7 @@
 #include <time.h>
 
 #include "hamlib/rig.h"
+#include "dummy_common.h"
 #include "serial.h"
 #include "parallel.h"
 #include "cm108.h"
@@ -186,47 +187,6 @@ static void copy_chan(channel_t *dest, const channel_t *src)
     saved_ext_levels = dest->ext_levels;
     memcpy(dest, src, sizeof(channel_t));
     dest->ext_levels = saved_ext_levels;
-}
-
-static struct ext_list *alloc_init_ext(const struct confparams *cfp)
-{
-    struct ext_list *elp;
-    int i, nb_ext;
-
-    for (nb_ext = 0; !RIG_IS_EXT_END(cfp[nb_ext]); nb_ext++)
-        ;
-
-    elp = calloc((nb_ext + 1), sizeof(struct ext_list));
-
-    if (!elp)
-    {
-        return NULL;
-    }
-
-    for (i = 0; !RIG_IS_EXT_END(cfp[i]); i++)
-    {
-        elp[i].token = cfp[i].token;
-        /* value reset already by calloc */
-    }
-
-    /* last token in array is set to 0 by calloc */
-
-    return elp;
-}
-
-static struct ext_list *find_ext(struct ext_list *elp, token_t token)
-{
-    int i;
-
-    for (i = 0; elp[i].token != 0; i++)
-    {
-        if (elp[i].token == token)
-        {
-            return &elp[i];
-        }
-    }
-
-    return NULL;
 }
 
 static int dummy_init(RIG *rig)

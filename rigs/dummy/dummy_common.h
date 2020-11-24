@@ -1,6 +1,6 @@
 /*
- *  Hamlib Dummy backend - main header
- *  Copyright (c) 2001-2008 by Stephane Fillod
+ *  Hamlib Dummy backend - shard routines
+ *  Copyright (c) 2020 by Mikael Nousiainen
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -19,24 +19,12 @@
  *
  */
 
-#ifndef _ROT_DUMMY_H
-#define _ROT_DUMMY_H 1
+#ifndef _DUMMY_COMMON_H
+#define _DUMMY_COMMON_H 1
 
-#include "token.h"
+#include "hamlib/rig.h"
 
-/* backend conf */
-#define TOK_CFG_ROT_MAGICCONF    TOKEN_BACKEND(1)
-#define TOK_CFG_ROT_STATIC_DATA  TOKEN_BACKEND(2)
+struct ext_list *alloc_init_ext(const struct confparams *cfp);
+struct ext_list *find_ext(struct ext_list *elp, token_t token);
 
-/* ext_level's and ext_parm's tokens */
-#define TOK_EL_ROT_MAGICLEVEL    TOKEN_BACKEND(1)
-#define TOK_EL_ROT_MAGICFUNC     TOKEN_BACKEND(2)
-#define TOK_EL_ROT_MAGICOP       TOKEN_BACKEND(3)
-#define TOK_EP_ROT_MAGICPARM     TOKEN_BACKEND(4)
-#define TOK_EL_ROT_MAGICCOMBO    TOKEN_BACKEND(5)
-#define TOK_EL_ROT_MAGICEXTFUNC  TOKEN_BACKEND(6)
-
-extern const struct rot_caps dummy_rot_caps;
-extern const struct rot_caps netrotctl_caps;
-
-#endif /* _ROT_DUMMY_H */
+#endif /* _DUMMY_H */

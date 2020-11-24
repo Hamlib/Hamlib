@@ -50,8 +50,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
 
 #include <hamlib/amplifier.h>
@@ -59,7 +57,6 @@
 #include "parallel.h"
 #include "usb_port.h"
 #include "network.h"
-#include "amp_conf.h"
 #include "token.h"
 
 //! @cond Doxygen_Suppress

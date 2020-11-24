@@ -267,6 +267,7 @@ gs232b_rot_stop(ROT *rot)
 static int
 gs232b_rot_move(ROT *rot, int direction, int speed)
 {
+    struct rot_state *rs = &rot->state;
     char cmdstr[24];
     int retval;
     unsigned x_speed;
@@ -274,15 +275,25 @@ gs232b_rot_move(ROT *rot, int direction, int speed)
     rig_debug(RIG_DEBUG_TRACE, "%s called %d %d\n", __func__,
               direction, speed);
 
-    x_speed = (3 * speed) / 100 + 1;
+    if (speed != ROT_SPEED_NOCHANGE) {
+        if (speed < 1 || speed > 100)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: Invalid speed value (1-100)! (%d)\n", __func__, speed);
+            return -RIG_EINVAL;
+        }
 
-    /* between 1 (slowest) and 4 (fastest) */
-    sprintf(cmdstr, "X%u" EOM, x_speed);
-    retval = gs232b_transaction(rot, cmdstr, NULL, 0, 1);
+        x_speed = (3 * speed) / 100 + 1;
 
-    if (retval != RIG_OK)
-    {
-        return retval;
+        /* between 1 (slowest) and 4 (fastest) */
+        sprintf(cmdstr, "X%u" EOM, x_speed);
+        retval = gs232b_transaction(rot, cmdstr, NULL, 0, 1);
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        rs->current_speed = speed;
     }
 
     switch (direction)
