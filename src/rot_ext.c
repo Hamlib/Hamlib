@@ -1,6 +1,6 @@
 /*
- *  Hamlib Interface - rig ext parameter interface
- *  Copyright (c) 2000-2008 by Stephane Fillod
+ *  Hamlib Interface - rotator ext parameter interface
+ *  Copyright (c) 2020 by Mikael Nousiainen
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -20,37 +20,35 @@
  */
 
 /**
- * \addtogroup rig
+ * \addtogroup rotator
  * @{
  */
 
 /**
- * \file ext.c
- * \brief Extension request parameter interface
+ * \file rot_ext.c
+ * \brief Extension request parameter interface for rotators
  *
  * An open-ended set of extension parameters, functions and levels are available
- * for each rig, as provided in the rigcaps extparms, extfuncs and extlevels lists.
- * These provide a way to work with rig-specific functions that don't fit into the
- * basic "virtual rig" of Hamlib.  See icom/ic746.c for an example.
+ * for each rotator, as provided in the rotcaps extparms, extfuncs and extlevels lists.
+ * These provide a way to work with rotator-specific functions that don't fit into the
+ * basic "virtual rotator" of Hamlib.
  */
 
 #ifdef HAVE_CONFIG_H
 #  include "config.h"
 #endif
 
-#include <stdlib.h>
-#include <stdarg.h>
 #include <stdio.h>   /* Standard input/output definitions */
 #include <string.h>  /* String function definitions */
-#include <unistd.h>  /* UNIX standard function definitions */
 
 #include <hamlib/rig.h>
+#include <hamlib/rotator.h>
 
 #include "token.h"
 
-static int rig_has_ext_token(RIG *rig, token_t token)
+static int rot_has_ext_token(ROT *rot, token_t token)
 {
-    int *ext_tokens = rig->caps->ext_tokens;
+    int *ext_tokens = rot->caps->ext_tokens;
     int i;
 
     if (ext_tokens == NULL)
@@ -73,7 +71,7 @@ static int rig_has_ext_token(RIG *rig, token_t token)
 
 
 /**
- * \param rig The rig handle
+ * \param rot The rotator handle
  * \param cfunc callback function of each extfunc
  * \param data cookie to be passed to \a cfunc callback
  * \brief Executes cfunc on all the elements stored in the extfuncs table
@@ -81,10 +79,10 @@ static int rig_has_ext_token(RIG *rig, token_t token)
  * The callback \a cfunc is called until it returns a value which is not
  * strictly positive.  A zero value means a normal end of iteration, and a
  * negative value an abnormal end, which will be the return value of
- * rig_ext_func_foreach.
+ * rot_ext_func_foreach.
  */
-int HAMLIB_API rig_ext_func_foreach(RIG *rig,
-                                    int (*cfunc)(RIG *,
+int HAMLIB_API rot_ext_func_foreach(ROT *rot,
+                                    int (*cfunc)(ROT *,
                                             const struct confparams *,
                                             rig_ptr_t),
                                     rig_ptr_t data)
@@ -93,19 +91,19 @@ int HAMLIB_API rig_ext_func_foreach(RIG *rig,
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !rig->caps || !cfunc)
+    if (!rot || !rot->caps || !cfunc)
     {
         return -RIG_EINVAL;
     }
 
-    for (cfp = rig->caps->extfuncs; cfp && cfp->name; cfp++)
+    for (cfp = rot->caps->extfuncs; cfp && cfp->name; cfp++)
     {
-        if (!rig_has_ext_token(rig, cfp->token))
+        if (!rot_has_ext_token(rot, cfp->token))
         {
             continue;
         }
 
-        int ret = (*cfunc)(rig, cfp, data);
+        int ret = (*cfunc)(rot, cfp, data);
 
         if (ret == 0)
         {
@@ -123,7 +121,7 @@ int HAMLIB_API rig_ext_func_foreach(RIG *rig,
 
 
 /**
- * \param rig The rig handle
+ * \param rot The rotator handle
  * \param cfunc callback function of each extlevel
  * \param data cookie to be passed to \a cfunc callback
  * \brief Executes cfunc on all the elements stored in the extlevels table
@@ -131,10 +129,10 @@ int HAMLIB_API rig_ext_func_foreach(RIG *rig,
  * The callback \a cfunc is called until it returns a value which is not
  * strictly positive.  A zero value means a normal end of iteration, and a
  * negative value an abnormal end, which will be the return value of
- * rig_ext_level_foreach.
+ * rot_ext_level_foreach.
  */
-int HAMLIB_API rig_ext_level_foreach(RIG *rig,
-                                     int (*cfunc)(RIG *,
+int HAMLIB_API rot_ext_level_foreach(ROT *rot,
+                                     int (*cfunc)(ROT *,
                                              const struct confparams *,
                                              rig_ptr_t),
                                      rig_ptr_t data)
@@ -143,19 +141,19 @@ int HAMLIB_API rig_ext_level_foreach(RIG *rig,
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !rig->caps || !cfunc)
+    if (!rot || !rot->caps || !cfunc)
     {
         return -RIG_EINVAL;
     }
 
-    for (cfp = rig->caps->extlevels; cfp && cfp->name; cfp++)
+    for (cfp = rot->caps->extlevels; cfp && cfp->name; cfp++)
     {
-        if (!rig_has_ext_token(rig, cfp->token))
+        if (!rot_has_ext_token(rot, cfp->token))
         {
             continue;
         }
 
-        int ret = (*cfunc)(rig, cfp, data);
+        int ret = (*cfunc)(rot, cfp, data);
 
         if (ret == 0)
         {
@@ -173,7 +171,7 @@ int HAMLIB_API rig_ext_level_foreach(RIG *rig,
 
 
 /**
- * \param rig The rig handle
+ * \param rot The rotator handle
  * \param cfunc callback function of each extparm
  * \param data cookie to be passed to \a cfunc callback
  * \brief Executes cfunc on all the elements stored in the extparms table
@@ -181,10 +179,10 @@ int HAMLIB_API rig_ext_level_foreach(RIG *rig,
  * The callback \a cfunc is called until it returns a value which is not
  * strictly positive.  A zero value means a normal end of iteration, and a
  * negative value an abnormal end, which will be the return value of
- * rig_ext_parm_foreach.
+ * rot_ext_parm_foreach.
  */
-int HAMLIB_API rig_ext_parm_foreach(RIG *rig,
-                                    int (*cfunc)(RIG *,
+int HAMLIB_API rot_ext_parm_foreach(ROT *rot,
+                                    int (*cfunc)(ROT *,
                                             const struct confparams *,
                                             rig_ptr_t),
                                     rig_ptr_t data)
@@ -193,19 +191,19 @@ int HAMLIB_API rig_ext_parm_foreach(RIG *rig,
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !rig->caps || !cfunc)
+    if (!rot || !rot->caps || !cfunc)
     {
         return -RIG_EINVAL;
     }
 
-    for (cfp = rig->caps->extparms; cfp && cfp->name; cfp++)
+    for (cfp = rot->caps->extparms; cfp && cfp->name; cfp++)
     {
-        if (!rig_has_ext_token(rig, cfp->token))
+        if (!rot_has_ext_token(rot, cfp->token))
         {
             continue;
         }
 
-        int ret = (*cfunc)(rig, cfp, data);
+        int ret = (*cfunc)(rot, cfp, data);
 
         if (ret == 0)
         {
@@ -223,7 +221,7 @@ int HAMLIB_API rig_ext_parm_foreach(RIG *rig,
 
 
 /**
- * \param rig
+ * \param rot
  * \param name
  * \brief lookup ext token by its name, return pointer to confparams struct.
  *
@@ -233,18 +231,18 @@ int HAMLIB_API rig_ext_parm_foreach(RIG *rig,
  *
  * TODO: should use Lex to speed it up, strcmp hurts!
  */
-const struct confparams *HAMLIB_API rig_ext_lookup(RIG *rig, const char *name)
+const struct confparams *HAMLIB_API rot_ext_lookup(ROT *rot, const char *name)
 {
     const struct confparams *cfp;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !rig->caps)
+    if (!rot || !rot->caps)
     {
         return NULL;
     }
 
-    for (cfp = rig->caps->extlevels; cfp && cfp->name; cfp++)
+    for (cfp = rot->caps->extlevels; cfp && cfp->name; cfp++)
     {
         if (!strcmp(cfp->name, name))
         {
@@ -252,7 +250,7 @@ const struct confparams *HAMLIB_API rig_ext_lookup(RIG *rig, const char *name)
         }
     }
 
-    for (cfp = rig->caps->extfuncs; cfp && cfp->name; cfp++)
+    for (cfp = rot->caps->extfuncs; cfp && cfp->name; cfp++)
     {
         if (!strcmp(cfp->name, name))
         {
@@ -260,7 +258,7 @@ const struct confparams *HAMLIB_API rig_ext_lookup(RIG *rig, const char *name)
         }
     }
 
-    for (cfp = rig->caps->extparms; cfp && cfp->name; cfp++)
+    for (cfp = rot->caps->extparms; cfp && cfp->name; cfp++)
     {
         if (!strcmp(cfp->name, name))
         {
@@ -272,7 +270,7 @@ const struct confparams *HAMLIB_API rig_ext_lookup(RIG *rig, const char *name)
 }
 
 /**
- * \param rig
+ * \param rot
  * \param token
  * \brief lookup ext token, return pointer to confparams struct.
  *
@@ -280,18 +278,18 @@ const struct confparams *HAMLIB_API rig_ext_lookup(RIG *rig, const char *name)
  *
  * Returns NULL if nothing found
  */
-const struct confparams *HAMLIB_API rig_ext_lookup_tok(RIG *rig, token_t token)
+const struct confparams *HAMLIB_API rot_ext_lookup_tok(ROT *rot, token_t token)
 {
     const struct confparams *cfp;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!rig || !rig->caps)
+    if (!rot || !rot->caps)
     {
         return NULL;
     }
 
-    for (cfp = rig->caps->extlevels; cfp && cfp->token; cfp++)
+    for (cfp = rot->caps->extlevels; cfp && cfp->token; cfp++)
     {
         if (cfp->token == token)
         {
@@ -299,7 +297,7 @@ const struct confparams *HAMLIB_API rig_ext_lookup_tok(RIG *rig, token_t token)
         }
     }
 
-    for (cfp = rig->caps->extfuncs; cfp && cfp->token; cfp++)
+    for (cfp = rot->caps->extfuncs; cfp && cfp->token; cfp++)
     {
         if (cfp->token == token)
         {
@@ -307,7 +305,7 @@ const struct confparams *HAMLIB_API rig_ext_lookup_tok(RIG *rig, token_t token)
         }
     }
 
-    for (cfp = rig->caps->extparms; cfp && cfp->token; cfp++)
+    for (cfp = rot->caps->extparms; cfp && cfp->token; cfp++)
     {
         if (cfp->token == token)
         {
@@ -320,17 +318,17 @@ const struct confparams *HAMLIB_API rig_ext_lookup_tok(RIG *rig, token_t token)
 
 
 /**
- * \param rig
+ * \param rot
  * \param name
  * \brief Simple lookup returning token id associated with name
  */
-token_t HAMLIB_API rig_ext_token_lookup(RIG *rig, const char *name)
+token_t HAMLIB_API rot_ext_token_lookup(ROT *rot, const char *name)
 {
     const struct confparams *cfp;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    cfp = rig_ext_lookup(rig, name);
+    cfp = rot_ext_lookup(rot, name);
 
     if (!cfp)
     {
