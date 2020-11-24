@@ -52,6 +52,7 @@
 #include <math.h>
 
 #include <hamlib/rig.h>
+#include <hamlib/rotator.h>
 #include <hamlib/amplifier.h>
 
 #include "misc.h"
@@ -572,7 +573,7 @@ static struct
 {
     setting_t func;
     const char *str;
-} func_str[] =
+} rig_func_str[] =
 {
     { RIG_FUNC_FAGC, "FAGC" },
     { RIG_FUNC_NB, "NB" },
@@ -618,6 +619,17 @@ static struct
     { RIG_FUNC_NONE, "" },
 };
 
+
+static struct
+{
+    setting_t func;
+    const char *str;
+} rot_func_str[] =
+{
+    { ROT_FUNC_NONE, "" },
+};
+
+
 /**
  * utility function to convert index to bit value
  *
@@ -640,15 +652,40 @@ setting_t HAMLIB_API rig_parse_func(const char *s)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    for (i = 0 ; func_str[i].str[0] != '\0'; i++)
+    for (i = 0 ; rig_func_str[i].str[0] != '\0'; i++)
     {
-        if (!strcmp(s, func_str[i].str))
+        if (!strcmp(s, rig_func_str[i].str))
         {
-            return func_str[i].func;
+            return rig_func_str[i].func;
         }
     }
 
     return RIG_FUNC_NONE;
+}
+
+
+/**
+ * \brief Convert alpha string to enum ROT_FUNC_...
+ * \param s input alpha string
+ * \return ROT_FUNC_...
+ *
+ * \sa rot_func_e()
+ */
+setting_t HAMLIB_API rot_parse_func(const char *s)
+{
+    int i;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    for (i = 0 ; rot_func_str[i].str[0] != '\0'; i++)
+    {
+        if (!strcmp(s, rot_func_str[i].str))
+        {
+            return rot_func_str[i].func;
+        }
+    }
+
+    return ROT_FUNC_NONE;
 }
 
 
@@ -671,11 +708,42 @@ const char *HAMLIB_API rig_strfunc(setting_t func)
         return "";
     }
 
-    for (i = 0; func_str[i].str[0] != '\0'; i++)
+    for (i = 0; rig_func_str[i].str[0] != '\0'; i++)
     {
-        if (func == func_str[i].func)
+        if (func == rig_func_str[i].func)
         {
-            return func_str[i].str;
+            return rig_func_str[i].str;
+        }
+    }
+
+    return "";
+}
+
+
+/**
+ * \brief Convert enum ROT_FUNC_... to alpha string
+ * \param func ROT_FUNC_...
+ * \return alpha string
+ *
+ * \sa rot_func_e()
+ */
+const char *HAMLIB_API rot_strfunc(setting_t func)
+{
+    int i;
+
+    // too verbose to keep on unless debugging this in particular
+    //rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (func == ROT_FUNC_NONE)
+    {
+        return "";
+    }
+
+    for (i = 0; rot_func_str[i].str[0] != '\0'; i++)
+    {
+        if (func == rot_func_str[i].func)
+        {
+            return rot_func_str[i].str;
         }
     }
 
@@ -687,7 +755,7 @@ static struct
 {
     setting_t level;
     const char *str;
-} level_str[] =
+} rig_level_str[] =
 {
     { RIG_LEVEL_PREAMP, "PREAMP" },
     { RIG_LEVEL_ATT, "ATT" },
@@ -730,11 +798,23 @@ static struct
     { RIG_LEVEL_NONE, "" },
 };
 
+
 static struct
 {
     setting_t level;
     const char *str;
-} levelamp_str[] =
+} rot_level_str[] =
+{
+    { ROT_LEVEL_SPEED, "SPEED" },
+    { ROT_LEVEL_NONE, "" },
+};
+
+
+static struct
+{
+    setting_t level;
+    const char *str;
+} amp_level_str[] =
 {
     { AMP_LEVEL_SWR, "SWR" },
     { AMP_LEVEL_NH, "NH" },
@@ -761,16 +841,42 @@ setting_t HAMLIB_API rig_parse_level(const char *s)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    for (i = 0 ; level_str[i].str[0] != '\0'; i++)
+    for (i = 0 ; rig_level_str[i].str[0] != '\0'; i++)
     {
-        if (!strcmp(s, level_str[i].str))
+        if (!strcmp(s, rig_level_str[i].str))
         {
-            return level_str[i].level;
+            return rig_level_str[i].level;
         }
     }
 
     return RIG_LEVEL_NONE;
 }
+
+
+/**
+ * \brief Convert alpha string to enum ROT_LEVEL_...
+ * \param s input alpha string
+ * \return ROT_LEVEL_...
+ *
+ * \sa rot_level_e()
+ */
+setting_t HAMLIB_API rot_parse_level(const char *s)
+{
+    int i;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    for (i = 0 ; rot_level_str[i].str[0] != '\0'; i++)
+    {
+        if (!strcmp(s, rot_level_str[i].str))
+        {
+            return rot_level_str[i].level;
+        }
+    }
+
+    return ROT_LEVEL_NONE;
+}
+
 
 /**
  * \brief Convert alpha string to enum AMP_LEVEL_...
@@ -786,20 +892,20 @@ setting_t HAMLIB_API amp_parse_level(const char *s)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called level=%s\n", __func__, s);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called str=%s\n", __func__,
-              levelamp_str[0].str);
+              amp_level_str[0].str);
 
-    for (i = 0 ; levelamp_str[i].str[0] != '\0'; i++)
+    for (i = 0 ; amp_level_str[i].str[0] != '\0'; i++)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s called checking=%s\n", __func__,
-                  levelamp_str[i].str);
+                  amp_level_str[i].str);
 
-        if (!strcmp(s, levelamp_str[i].str))
+        if (!strcmp(s, amp_level_str[i].str))
         {
-            return levelamp_str[i].level;
+            return amp_level_str[i].level;
         }
     }
 
-    return RIG_LEVEL_NONE;
+    return AMP_LEVEL_NONE;
 }
 
 
@@ -821,16 +927,47 @@ const char *HAMLIB_API rig_strlevel(setting_t level)
         return "";
     }
 
-    for (i = 0; level_str[i].str[0] != '\0'; i++)
+    for (i = 0; rig_level_str[i].str[0] != '\0'; i++)
     {
-        if (level == level_str[i].level)
+        if (level == rig_level_str[i].level)
         {
-            return level_str[i].str;
+            return rig_level_str[i].str;
         }
     }
 
     return "";
 }
+
+
+/**
+ * \brief Convert enum ROT_LEVEL_... to alpha string
+ * \param level ROT_LEVEL_...
+ * \return alpha string
+ *
+ * \sa rot_level_e()
+ */
+const char *HAMLIB_API rot_strlevel(setting_t level)
+{
+    int i;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (level == ROT_LEVEL_NONE)
+    {
+        return "";
+    }
+
+    for (i = 0; rot_level_str[i].str[0] != '\0'; i++)
+    {
+        if (level == rot_level_str[i].level)
+        {
+            return rot_level_str[i].str;
+        }
+    }
+
+    return "";
+}
+
 
 /**
  * \brief Convert enum AMP_LEVEL_... to alpha string
@@ -850,11 +987,11 @@ const char *HAMLIB_API amp_strlevel(setting_t level)
         return "";
     }
 
-    for (i = 0; levelamp_str[i].str[0] != '\0'; i++)
+    for (i = 0; amp_level_str[i].str[0] != '\0'; i++)
     {
-        if (level == levelamp_str[i].level)
+        if (level == amp_level_str[i].level)
         {
-            return levelamp_str[i].str;
+            return amp_level_str[i].str;
         }
     }
 
@@ -866,7 +1003,7 @@ static struct
 {
     setting_t parm;
     const char *str;
-} parm_str[] =
+} rig_parm_str[] =
 {
     { RIG_PARM_ANN, "ANN" },
     { RIG_PARM_APO, "APO" },
@@ -877,6 +1014,16 @@ static struct
     { RIG_PARM_KEYLIGHT, "KEYLIGHT"},
     { RIG_PARM_SCREENSAVER, "SCREENSAVER"},
     { RIG_PARM_NONE, "" },
+};
+
+
+static struct
+{
+    setting_t parm;
+    const char *str;
+} rot_parm_str[] =
+{
+    { ROT_PARM_NONE, "" },
 };
 
 
@@ -893,15 +1040,40 @@ setting_t HAMLIB_API rig_parse_parm(const char *s)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    for (i = 0 ; parm_str[i].str[0] != '\0'; i++)
+    for (i = 0 ; rig_parm_str[i].str[0] != '\0'; i++)
     {
-        if (!strcmp(s, parm_str[i].str))
+        if (!strcmp(s, rig_parm_str[i].str))
         {
-            return parm_str[i].parm;
+            return rig_parm_str[i].parm;
         }
     }
 
     return RIG_PARM_NONE;
+}
+
+
+/**
+ * \brief Convert alpha string to ROT_PARM_...
+ * \param s input alpha string
+ * \return ROT_PARM_...
+ *
+ * \sa rot_parm_e()
+ */
+setting_t HAMLIB_API rot_parse_parm(const char *s)
+{
+    int i;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    for (i = 0 ; rot_parm_str[i].str[0] != '\0'; i++)
+    {
+        if (!strcmp(s, rot_parm_str[i].str))
+        {
+            return rot_parm_str[i].parm;
+        }
+    }
+
+    return ROT_PARM_NONE;
 }
 
 
@@ -923,11 +1095,41 @@ const char *HAMLIB_API rig_strparm(setting_t parm)
         return "";
     }
 
-    for (i = 0; parm_str[i].str[0] != '\0'; i++)
+    for (i = 0; rig_parm_str[i].str[0] != '\0'; i++)
     {
-        if (parm == parm_str[i].parm)
+        if (parm == rig_parm_str[i].parm)
         {
-            return parm_str[i].str;
+            return rig_parm_str[i].str;
+        }
+    }
+
+    return "";
+}
+
+
+/**
+ * \brief Convert enum ROT_PARM_... to alpha string
+ * \param parm ROT_PARM_...
+ * \return alpha string
+ *
+ * \sa rot_parm_e()
+ */
+const char *HAMLIB_API rot_strparm(setting_t parm)
+{
+    int i;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (parm == ROT_PARM_NONE)
+    {
+        return "";
+    }
+
+    for (i = 0; rot_parm_str[i].str[0] != '\0'; i++)
+    {
+        if (parm == rot_parm_str[i].parm)
+        {
+            return rot_parm_str[i].str;
         }
     }
 

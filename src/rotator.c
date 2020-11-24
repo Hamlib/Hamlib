@@ -272,8 +272,19 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
     rs->max_el = caps->max_el;
     rs->min_az = caps->min_az;
     rs->max_az = caps->max_az;
+    rs->current_speed = 50; // Set default speed to 50%
 
     rs->rotport.fd = -1;
+
+    rs->has_get_func = caps->has_get_func;
+    rs->has_set_func = caps->has_set_func;
+    rs->has_get_level = caps->has_get_level;
+    rs->has_set_level = caps->has_set_level;
+    rs->has_get_parm = caps->has_get_parm;
+    rs->has_set_parm = caps->has_set_parm;
+
+    memcpy(rs->level_gran, caps->level_gran, sizeof(gran_t)*RIG_SETTING_MAX);
+    memcpy(rs->parm_gran, caps->parm_gran, sizeof(gran_t)*RIG_SETTING_MAX);
 
     /*
      * let the backend a chance to setup his private data

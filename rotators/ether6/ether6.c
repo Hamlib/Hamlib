@@ -263,19 +263,34 @@ static int ether_rot_reset(ROT *rot, rot_reset_t reset)
 */
 static int ether_rot_move(ROT *rot, int direction, int speed)
 {
+    struct rot_state *rs = &rot->state;
     int ret, len;
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
+    int ether_speed;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
+    if (speed == ROT_SPEED_NOCHANGE) {
+        ether_speed = rs->current_speed;
+    } else {
+        if (speed < 1 || speed > 100)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: Invalid speed value (1-100)! (%d)\n", __func__, speed);
+            return -RIG_EINVAL;
+        }
+
+        rs->current_speed = speed;
+        ether_speed = speed;
+    }
+
     if (direction == 0)
     {
-        len = sprintf(cmd, "rotor cw %d\n", speed);
+        len = sprintf(cmd, "rotor cw %d\n", ether_speed);
     }
     else
     {
-        len = sprintf(cmd, "rotor ccw %d\n", speed);
+        len = sprintf(cmd, "rotor ccw %d\n", ether_speed);
     }
 
     ret = ether_transaction(rot, cmd, len, buf);

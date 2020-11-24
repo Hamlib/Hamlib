@@ -1674,7 +1674,7 @@ declare_proto_amp(get_level)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        sprintf_level_amp(s, amp->state.has_get_level);
+        amp_sprintf_level(s, amp->state.has_get_level);
 
         fputs(s, fout);
 

@@ -328,16 +328,16 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     fprintf(fout, "\n");
 
-    sprintf_func(prntbuf, caps->has_get_func);
+    rig_sprintf_func(prntbuf, caps->has_get_func);
     fprintf(fout, "Get functions: %s\n", prntbuf);
 
-    sprintf_func(prntbuf, caps->has_set_func);
+    rig_sprintf_func(prntbuf, caps->has_set_func);
     fprintf(fout, "Set functions: %s\n", prntbuf);
 
     fprintf(fout, "Extra functions:\n");
     rig_ext_func_foreach(rig, print_ext, fout);
 
-    sprintf_level_gran(prntbuf, caps->has_get_level, caps->level_gran);
+    rig_sprintf_level_gran(prntbuf, caps->has_get_level, caps->level_gran);
     fprintf(fout, "Get level: %s\n", prntbuf);
 
     if ((caps->has_get_level & RIG_LEVEL_SQLSTAT))
@@ -356,7 +356,7 @@ int dumpcaps(RIG *rig, FILE *fout)
         backend_warnings++;
     }
 
-    sprintf_level_gran(prntbuf, caps->has_set_level, caps->level_gran);
+    rig_sprintf_level_gran(prntbuf, caps->has_set_level, caps->level_gran);
     fprintf(fout, "Set level: %s\n", prntbuf);
 
     if (caps->has_set_level & RIG_LEVEL_READONLY_LIST)
@@ -368,10 +368,10 @@ int dumpcaps(RIG *rig, FILE *fout)
     fprintf(fout, "Extra levels:\n");
     rig_ext_level_foreach(rig, print_ext, fout);
 
-    sprintf_parm_gran(prntbuf, caps->has_get_parm, caps->parm_gran);
+    rig_sprintf_parm_gran(prntbuf, caps->has_get_parm, caps->parm_gran);
     fprintf(fout, "Get parameters: %s\n", prntbuf);
 
-    sprintf_parm_gran(prntbuf, caps->has_set_parm, caps->parm_gran);
+    rig_sprintf_parm_gran(prntbuf, caps->has_set_parm, caps->parm_gran);
     fprintf(fout, "Set parameters: %s\n", prntbuf);
 
     if (caps->has_set_parm & RIG_PARM_READONLY_LIST)
@@ -386,7 +386,7 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     if (rig->state.mode_list != 0)
     {
-        sprintf_mode(prntbuf, rig->state.mode_list);
+        rig_sprintf_mode(prntbuf, rig->state.mode_list);
     }
     else
     {
@@ -398,7 +398,7 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     if (rig->state.vfo_list != 0)
     {
-        sprintf_vfo(prntbuf, rig->state.vfo_list);
+        rig_sprintf_vfo(prntbuf, rig->state.vfo_list);
     }
     else
     {
@@ -408,10 +408,10 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     fprintf(fout, "VFO list: %s\n", prntbuf);
 
-    sprintf_vfop(prntbuf, caps->vfo_ops);
+    rig_sprintf_vfop(prntbuf, caps->vfo_ops);
     fprintf(fout, "VFO Ops: %s\n", prntbuf);
 
-    sprintf_scan(prntbuf, caps->scan_ops);
+    rig_sprintf_scan(prntbuf, caps->scan_ops);
     fprintf(fout, "Scan Ops: %s\n", prntbuf);
 
     fprintf(fout, "Number of banks:\t%d\n", caps->bank_qty);
@@ -610,7 +610,7 @@ int dumpcaps(RIG *rig, FILE *fout)
             sprintf_freq(freqbuf, caps->tuning_steps[i].ts);
         }
 
-        sprintf_mode(prntbuf, caps->tuning_steps[i].modes);
+        rig_sprintf_mode(prntbuf, caps->tuning_steps[i].modes);
         fprintf(fout, "\n\t%s:   \t%s", freqbuf, prntbuf);
     }
 
@@ -642,7 +642,7 @@ int dumpcaps(RIG *rig, FILE *fout)
             sprintf_freq(freqbuf, caps->filters[i].width);
         }
 
-        sprintf_mode(prntbuf, caps->filters[i].modes);
+        rig_sprintf_mode(prntbuf, caps->filters[i].modes);
         fprintf(fout, "\n\t%s:   \t%s", freqbuf, prntbuf);
     }
 
@@ -883,17 +883,17 @@ void range_print(FILE *fout, const struct freq_range_list range_list[], int rx)
                 range_list[i].endf);
 
         fprintf(fout, "\t\tVFO list: ");
-        sprintf_vfo(prntbuf, range_list[i].vfo);
+        rig_sprintf_vfo(prntbuf, range_list[i].vfo);
         fprintf(fout, "%s", prntbuf);
         fprintf(fout, "\n");
 
         fprintf(fout, "\t\tMode list: ");
-        sprintf_mode(prntbuf, range_list[i].modes);
+        rig_sprintf_mode(prntbuf, range_list[i].modes);
         fprintf(fout, "%s", prntbuf);
         fprintf(fout, "\n");
 
         fprintf(fout, "\t\tAntenna list: ");
-        sprintf_ant(prntbuf, range_list[i].ant);
+        rig_sprintf_ant(prntbuf, range_list[i].ant);
         fprintf(fout, "%s", prntbuf);
         fprintf(fout, "\n");
 
