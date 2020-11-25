@@ -607,7 +607,7 @@ int HAMLIB_API serial_flush(hamlib_port_t *p)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (p->fd == uh_ptt_fd || p->fd == uh_radio_fd)
+    if (p->fd == uh_ptt_fd || p->fd == uh_radio_fd || p->flushx)
     {
         unsigned char buf[32];
         /*
@@ -615,24 +615,26 @@ int HAMLIB_API serial_flush(hamlib_port_t *p)
          * if fd corresponds to a microHam device drain the line
          * (which is a socket) by reading until it is empty.
          */
-        int n;
+        int n, nbytes=0;
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: flushing: ", __func__);
+        rig_debug(RIG_DEBUG_TRACE, "%s: flushing\n", __func__);
 
         while ((n = read(p->fd, buf, 32)) > 0)
         {
+            nbytes += n;
             //int i;
 
             //for (i = 0; i < n; ++i) { printf("0x%02x(%c) ", buf[i], isprint(buf[i]) ? buf[i] : '~'); }
 
             /* do nothing */
         }
+        rig_debug(RIG_DEBUG_TRACE, "read flushed %d bytes\n", nbytes);
 
 
         return RIG_OK;
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: tcflush\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "tcflush%s\n", "");
     tcflush(p->fd, TCIFLUSH);
     return RIG_OK;
 }
