@@ -1901,6 +1901,7 @@ typedef struct hamlib_port {
             int value;      /*!< Toggle PTT ON or OFF */
         } gpio;             /*!< GPIO attributes */
     } parm;                 /*!< Port parameter union */
+    int flushx;             /*!< If true flush is done with read instead of TCFLUSH - MicroHam */
 } hamlib_port_t;
 //! @endcond
 

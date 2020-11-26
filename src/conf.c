@@ -143,6 +143,11 @@ static const struct confparams frontend_cfg_params[] =
         "True enables ptt port to be shared with other apps",
         "0", RIG_CONF_CHECKBUTTON, { }
     },
+    {
+        TOK_FLUSHX, "flushx", "Flush with read instead of TCFLUSH",
+        "True enables flushing serial port with read instead of TCFLUSH -- MicroHam",
+        "0", RIG_CONF_CHECKBUTTON, { }
+    },
 
     { RIG_CONF_END, NULL, }
 };
@@ -594,6 +599,14 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         rs->ptt_share = val_i ? 1 : 0;
         break;
 
+    case TOK_FLUSHX:
+        if (1 != sscanf(val, "%d", &val_i))
+        {
+            return -RIG_EINVAL; //value format error
+        }
+
+        rs->rigport.flushx = val_i ? 1 : 0;
+        break;
 
     default:
         return -RIG_EINVAL;

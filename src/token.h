@@ -89,6 +89,8 @@
 #define TOK_PTT_BITNUM        TOKEN_FRONTEND(34)
 /** \brief  PTT share with other applications */
 #define TOK_PTT_SHARE        TOKEN_FRONTEND(35)
+/** \brief  PTT share with other applications */
+#define TOK_FLUSHX        TOKEN_FRONTEND(36)
 /*
  * rig specific tokens
  */
