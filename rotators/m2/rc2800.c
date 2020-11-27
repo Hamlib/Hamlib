@@ -204,7 +204,7 @@ transaction_write:
 
     /* first reply is an echo */
     memset(data, 0, data_len);
-    retval = read_string(&rs->rotport, data, data_len, LF, strlen(LF));
+    retval = read_string(&rs->rotport, data, data_len, CR, strlen(CR));
 
     if (retval < 0)
     {
@@ -218,7 +218,7 @@ transaction_write:
 
     /* then comes the answer */
     memset(data, 0, data_len);
-    retval = read_string(&rs->rotport, data, data_len, LF, strlen(LF));
+    retval = read_string(&rs->rotport, data, data_len, CR, strlen(CR));
 
     if (retval < 0)
     {
@@ -365,7 +365,7 @@ const struct rot_caps rc2800_rot_caps =
     ROT_MODEL(ROT_MODEL_RC2800),
     .model_name =     "RC2800",
     .mfg_name =       "M2",
-    .version =        "20200107.0",
+    .version =        "20201127.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_BETA,
     .rot_type =       ROT_TYPE_AZEL,
