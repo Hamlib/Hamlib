@@ -202,6 +202,7 @@ transaction_write:
         data_len = BUFSZ;
     }
 
+#if 0 // manual says no echos
     /* first reply is an echo */
     memset(data, 0, data_len);
     retval = read_string(&rs->rotport, data, data_len, CR, strlen(CR));
@@ -215,6 +216,7 @@ transaction_write:
 
         goto transaction_quit;
     }
+#endif
 
     /* then comes the answer */
     memset(data, 0, data_len);
