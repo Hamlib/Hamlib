@@ -791,6 +791,7 @@ int kenwood_open(RIG *rig)
         if (RIG_OK != err)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: cannot get f/w version\n", __func__);
+            rig->state.rigport.retry = retry_save;
             return err;
         }
 
@@ -806,6 +807,7 @@ int kenwood_open(RIG *rig)
         else
         {
             rig_debug(RIG_DEBUG_ERR, "%s: cannot get f/w version\n", __func__);
+            rig->state.rigport.retry = retry_save;
             return -RIG_EPROTO;
         }
 
@@ -849,6 +851,7 @@ int kenwood_open(RIG *rig)
     if (strlen(id) < 5)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: unknown id type (%s)\n", __func__, id);
+        rig->state.rigport.retry = retry_save;
         return -RIG_EPROTO;
     }
 
@@ -917,6 +920,7 @@ int kenwood_open(RIG *rig)
                           rig_strvfo(priv->tx_vfo));
             }
 
+            rig->state.rigport.retry = retry_save;
             return RIG_OK;
         }
 
