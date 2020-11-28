@@ -444,6 +444,7 @@ DECLARE_INITROT_BACKEND(m2)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     rot_register(&rc2800_rot_caps);
+    rot_register(&rc2800az_rot_caps);
 
     return RIG_OK;
 }
