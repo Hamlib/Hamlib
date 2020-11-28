@@ -216,6 +216,7 @@ transaction_write:
 
         goto transaction_quit;
     }
+
 #endif
 
     /* then comes the answer */
@@ -242,22 +243,25 @@ static int
 rc2800_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
     char cmdstr[64];
-    int retval1, retval2;
+    int retval1, retval2 = RIG_OK;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
 
     num_sprintf(cmdstr, "A%3.1f"CR, az);
     retval1 = rc2800_transaction(rot, cmdstr, NULL, 0);
 
-    /* do not overwhelm the MCU? */
-    hl_usleep(200 * 1000);
-
-    num_sprintf(cmdstr, "E%3.1f"CR, el);
-    retval2 = rc2800_transaction(rot, cmdstr, NULL, 0);
-
-    if (retval1 == retval2)
+    if (rot->caps->rot_model == ROT_MODEL_RC2800)
     {
-        return retval1;
+        /* do not overwhelm the MCU? */
+        hl_usleep(200 * 1000);
+
+        num_sprintf(cmdstr, "E%3.1f"CR, el);
+        retval2 = rc2800_transaction(rot, cmdstr, NULL, 0);
+
+        if (retval1 == retval2)
+        {
+            return retval1;
+        }
     }
 
     return (retval1 != RIG_OK ? retval1 : retval2);
@@ -292,27 +296,36 @@ rc2800_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
         }
     }
 
-    retval = rc2800_transaction(rot, "E" CR, posbuf, sizeof(posbuf));
-
-    if (retval != RIG_OK || strlen(posbuf) < 5)
+    if (rot->caps->rot_model == ROT_MODEL_RC2800)
     {
-        return retval < 0 ? retval : -RIG_EPROTO;
+        retval = rc2800_transaction(rot, "E" CR, posbuf, sizeof(posbuf));
+
+        if (retval != RIG_OK || strlen(posbuf) < 5)
+        {
+            return retval < 0 ? retval : -RIG_EPROTO;
+        }
+
+        if (rc2800_parse(posbuf, &device, &value) == RIG_OK)
+        {
+            if (device == 'E')
+            {
+                *el = (elevation_t) value;
+            }
+            else
+            {
+                return -RIG_EPROTO;
+            }
+        }
+
+        rig_debug(RIG_DEBUG_TRACE, "%s: (az, el) = (%.1f, %.1f)\n",
+                  __func__, *az, *el);
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: (az) = (%.1f)\n",
+                  __func__, *az);
     }
 
-    if (rc2800_parse(posbuf, &device, &value) == RIG_OK)
-    {
-        if (device == 'E')
-        {
-            *el = (elevation_t) value;
-        }
-        else
-        {
-            return -RIG_EPROTO;
-        }
-    }
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: (az, el) = (%.1f, %.1f)\n",
-              __func__, *az, *el);
 
     return RIG_OK;
 }
@@ -367,10 +380,41 @@ const struct rot_caps rc2800_rot_caps =
     ROT_MODEL(ROT_MODEL_RC2800),
     .model_name =     "RC2800",
     .mfg_name =       "M2",
-    .version =        "20201127.0",
+    .version =        "20201128.0",
     .copyright =      "LGPL",
-    .status =         RIG_STATUS_BETA,
+    .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_AZEL,
+    .port_type =      RIG_PORT_SERIAL,
+    .serial_rate_min  = 9600,
+    .serial_rate_max  = 9600,
+    .serial_data_bits = 8,
+    .serial_stop_bits = 1,
+    .serial_parity    = RIG_PARITY_NONE,
+    .serial_handshake = RIG_HANDSHAKE_NONE,
+    .write_delay      = 0,
+    .post_write_delay = 0,
+    .timeout          = 1000,
+    .retry            = 3,
+
+    .min_az =     0.0,
+    .max_az =     360.0,
+    .min_el =     0.0,
+    .max_el =     180.0,
+
+    .get_position = rc2800_rot_get_position,
+    .set_position = rc2800_rot_set_position,
+    .stop         = rc2800_rot_stop,
+};
+
+const struct rot_caps rc2800az_rot_caps =
+{
+    ROT_MODEL(ROT_MODEL_RC2800AZ),
+    .model_name =     "RC2800AZ",
+    .mfg_name =       "M2",
+    .version =        "20201128.0",
+    .copyright =      "LGPL",
+    .status =         RIG_STATUS_STABLE,
+    .rot_type =       ROT_TYPE_AZIMUTH,
     .port_type =      RIG_PORT_SERIAL,
     .serial_rate_min  = 9600,
     .serial_rate_max  = 9600,
