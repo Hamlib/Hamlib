@@ -325,6 +325,7 @@
 #define ROT_BACKEND_M2 "m2"
 //! @endcond
 #define ROT_MODEL_RC2800 ROT_MAKE_MODEL(ROT_M2, 1)
+#define ROT_MODEL_RC2800AZ ROT_MAKE_MODEL(ROT_M2, 2)
 
 
 /**
