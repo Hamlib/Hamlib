@@ -53,7 +53,7 @@
 
 
 /*
-  rc2800_parse
+  c2800_parse
 
   Parse output from the rotator controller
 
@@ -247,7 +247,7 @@ rc2800_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 
     rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
 
-    num_sprintf(cmdstr, "A%3.1f"CR, az);
+    num_sprintf(cmdstr, "A%3f"CR, az);
     retval1 = rc2800_transaction(rot, cmdstr, NULL, 0);
 
     if (rot->caps->rot_model == ROT_MODEL_RC2800)
@@ -255,7 +255,7 @@ rc2800_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
         /* do not overwhelm the MCU? */
         hl_usleep(200 * 1000);
 
-        num_sprintf(cmdstr, "E%3.1f"CR, el);
+        num_sprintf(cmdstr, "E%3f"CR, el);
         retval2 = rc2800_transaction(rot, cmdstr, NULL, 0);
 
         if (retval1 == retval2)
@@ -380,7 +380,7 @@ const struct rot_caps rc2800_rot_caps =
     ROT_MODEL(ROT_MODEL_RC2800),
     .model_name =     "RC2800",
     .mfg_name =       "M2",
-    .version =        "20201128.0",
+    .version =        "20201129.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_AZEL,
