@@ -64,7 +64,8 @@ static int pihpsdr_open(RIG *rig);
 static int pihpsdr_get_level(RIG *rig, vfo_t vfo, setting_t level,
                              value_t *val);
 static int pihpsdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
-static int pihspdr_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only);
+static int pihspdr_get_channel(RIG *rig, vfo_t vfo, channel_t *chan,
+                               int read_only);
 static int pihspdr_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan);
 
 

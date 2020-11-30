@@ -153,7 +153,8 @@ typedef channel_str_t band_stack_reg_t;
 
 static int ic746_set_parm(RIG *rig, setting_t parm, value_t val);
 static int ic746_get_parm(RIG *rig, setting_t parm, value_t *val);
-static int ic746pro_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only);
+static int ic746pro_get_channel(RIG *rig, vfo_t vfo, channel_t *chan,
+                                int read_only);
 static int ic746pro_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan);
 static int ic746pro_set_ext_parm(RIG *rig, token_t token, value_t val);
 static int ic746pro_get_ext_parm(RIG *rig, token_t token, value_t *val);

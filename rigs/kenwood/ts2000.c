@@ -58,7 +58,8 @@
 
 /* prototypes */
 static int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-static int ts2000_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only);
+static int ts2000_get_channel(RIG *rig, vfo_t vfo, channel_t *chan,
+                              int read_only);
 static int ts2000_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan);
 
 /*

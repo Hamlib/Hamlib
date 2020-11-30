@@ -208,7 +208,7 @@ int HAMLIB_API serial_open(hamlib_port_t *rp)
          *    (or equivalent for other manufacturers) within its timeout period.
          * 2) The results of router's polling are not passed to the Host/apps.
          * 3) Router only polls when there is no activity from the applications.
-         * 4) Router is designed to be transparent as far as the applications   
+         * 4) Router is designed to be transparent as far as the applications
          *    are concerned.  The only exception is when the user chooses to
          *    run two applications (CAT and 2nd CAT) at the same time and has
          *    "auto-information" or CI-V enabled.  In that case asynchronous data
@@ -633,7 +633,7 @@ int HAMLIB_API serial_flush(hamlib_port_t *p)
          * if fd corresponds to a microHam device drain the line
          * (which is a socket) by reading until it is empty.
          */
-        int n, nbytes=0;
+        int n, nbytes = 0;
 
         rig_debug(RIG_DEBUG_TRACE, "%s: flushing\n", __func__);
 
@@ -646,6 +646,7 @@ int HAMLIB_API serial_flush(hamlib_port_t *p)
 
             /* do nothing */
         }
+
         rig_debug(RIG_DEBUG_TRACE, "read flushed %d bytes\n", nbytes);
 
 

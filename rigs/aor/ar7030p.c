@@ -1638,7 +1638,8 @@ static int ar7030p_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
     return (-RIG_ENIMPL);
 }
 
-static int ar7030p_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
+static int ar7030p_get_channel(RIG *rig, vfo_t vfo, channel_t *chan,
+                               int read_only)
 {
     int rc = RIG_OK;
     unsigned char v;
