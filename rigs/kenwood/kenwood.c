@@ -4242,7 +4242,7 @@ int kenwood_get_mem_if(RIG *rig, vfo_t vfo, int *ch)
     return RIG_OK;
 }
 
-int kenwood_get_channel(RIG *rig, channel_t *chan, int read_only)
+int kenwood_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 {
     int err;
     char buf[26];
@@ -4364,7 +4364,7 @@ int kenwood_get_channel(RIG *rig, channel_t *chan, int read_only)
     return RIG_OK;
 }
 
-int kenwood_set_channel(RIG *rig, const channel_t *chan)
+int kenwood_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
     char buf[128];
     char mode, tx_mode = 0;

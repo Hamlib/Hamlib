@@ -45,7 +45,7 @@ static int ar3030_set_mem(RIG *rig, vfo_t vfo, int ch);
 static int ar3030_get_mem(RIG *rig, vfo_t vfo, int *ch);
 static int ar3030_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 static int ar3030_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-static int ar3030_get_channel(RIG *rig, channel_t *chan, int read_only);
+static int ar3030_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only);
 static int ar3030_init(RIG *rig);
 static int ar3030_cleanup(RIG *rig);
 static int ar3030_close(RIG *rig);
@@ -721,7 +721,7 @@ int ar3030_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     return RIG_OK;
 }
 
-int ar3030_get_channel(RIG *rig, channel_t *chan, int read_only)
+int ar3030_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 {
     struct ar3030_priv_data *priv = (struct ar3030_priv_data *)rig->state.priv;
     char cmdbuf[BUFSZ], infobuf[BUFSZ];

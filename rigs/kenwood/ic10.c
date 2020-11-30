@@ -634,7 +634,7 @@ int ic10_set_mem(RIG *rig, vfo_t vfo, int ch)
 }
 
 
-int ic10_get_channel(RIG *rig, channel_t *chan, int read_only)
+int ic10_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 {
     char membuf[16], infobuf[32];
     int retval, info_len, len;
@@ -731,7 +731,7 @@ int ic10_get_channel(RIG *rig, channel_t *chan, int read_only)
 }
 
 
-int ic10_set_channel(RIG *rig, const channel_t *chan)
+int ic10_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
     char membuf[64];
     int retval, len, md;

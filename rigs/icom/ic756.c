@@ -97,12 +97,12 @@ int ic756_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
  *  This function deals with the older type radios with only 2 filter widths
  *  (0 - normal, 1 - narrow)
  */
-static int r2i_mode(RIG *rig, rmode_t mode, pbwidth_t width,
+static int r2i_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width,
                     unsigned char *md, signed char *pd)
 {
     int err;
 
-    err = rig2icom_mode(rig, mode, width, md, pd);
+    err = rig2icom_mode(rig, vfo, mode, width, md, pd);
 
     if (err != RIG_OK)
     {
