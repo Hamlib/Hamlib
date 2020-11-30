@@ -829,12 +829,13 @@ int HAMLIB_API rig_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
  *
  * \sa rig_set_channel()
  */
-int HAMLIB_API rig_get_channel(RIG *rig, vfo_t vfox, channel_t *chan, int read_only)
+int HAMLIB_API rig_get_channel(RIG *rig, vfo_t vfox, channel_t *chan,
+                               int read_only)
 {
     struct rig_caps *rc;
     int curr_chan_num, get_mem_status = RIG_OK;
     vfo_t curr_vfo;
-    vfo_t vfotmp=RIG_VFO_NONE;  /* requested vfo */
+    vfo_t vfotmp = RIG_VFO_NONE; /* requested vfo */
     int retcode = RIG_OK;
     int can_emulate_by_vfo_mem, can_emulate_by_vfo_op;
 
@@ -939,7 +940,8 @@ int HAMLIB_API rig_get_channel(RIG *rig, vfo_t vfox, channel_t *chan, int read_o
 
 
 #ifndef DOC_HIDDEN
-int get_chan_all_cb_generic(RIG *rig, vfo_t vfo, chan_cb_t chan_cb, rig_ptr_t arg)
+int get_chan_all_cb_generic(RIG *rig, vfo_t vfo, chan_cb_t chan_cb,
+                            rig_ptr_t arg)
 {
     int i, j;
     chan_t *chan_list = rig->state.chan_list;
@@ -1004,7 +1006,8 @@ int get_chan_all_cb_generic(RIG *rig, vfo_t vfo, chan_cb_t chan_cb, rig_ptr_t ar
 }
 
 
-int set_chan_all_cb_generic(RIG *rig, vfo_t vfo, chan_cb_t chan_cb, rig_ptr_t arg)
+int set_chan_all_cb_generic(RIG *rig, vfo_t vfo, chan_cb_t chan_cb,
+                            rig_ptr_t arg)
 {
     int i, j, retval;
     chan_t *chan_list = rig->state.chan_list;
@@ -1076,7 +1079,8 @@ static int map_chan(RIG *rig,
  *
  * \sa rig_set_chan_all(), rig_get_chan_all_cb()
  */
-int HAMLIB_API rig_set_chan_all_cb(RIG *rig, vfo_t vfo, chan_cb_t chan_cb, rig_ptr_t arg)
+int HAMLIB_API rig_set_chan_all_cb(RIG *rig, vfo_t vfo, chan_cb_t chan_cb,
+                                   rig_ptr_t arg)
 {
     struct rig_caps *rc;
     int retval;
@@ -1122,7 +1126,8 @@ int HAMLIB_API rig_set_chan_all_cb(RIG *rig, vfo_t vfo, chan_cb_t chan_cb, rig_p
  *
  * \sa rig_get_chan_all(), rig_set_chan_all_cb()
  */
-int HAMLIB_API rig_get_chan_all_cb(RIG *rig, vfo_t vfo, chan_cb_t chan_cb, rig_ptr_t arg)
+int HAMLIB_API rig_get_chan_all_cb(RIG *rig, vfo_t vfo, chan_cb_t chan_cb,
+                                   rig_ptr_t arg)
 {
     struct rig_caps *rc;
     int retval;
@@ -1283,14 +1288,16 @@ static int map_parm(RIG *rig, const struct confparams *cfgps, value_t *value,
 }
 
 
-int get_parm_all_cb_generic(RIG *rig, vfo_t vfo, confval_cb_t parm_cb, rig_ptr_t cfgps,
+int get_parm_all_cb_generic(RIG *rig, vfo_t vfo, confval_cb_t parm_cb,
+                            rig_ptr_t cfgps,
                             rig_ptr_t vals)
 {
     return -RIG_ENIMPL;
 }
 
 
-int set_parm_all_cb_generic(RIG *rig, vfo_t vfo, confval_cb_t parm_cb, rig_ptr_t cfgps,
+int set_parm_all_cb_generic(RIG *rig, vfo_t vfo, confval_cb_t parm_cb,
+                            rig_ptr_t cfgps,
                             rig_ptr_t vals)
 {
     return -RIG_ENIMPL;
@@ -1557,7 +1564,7 @@ int HAMLIB_API rig_get_mem_all(RIG *rig,
         return retval;
     }
 
-    retval = get_parm_all_cb_generic(rig, vfo, map_parm, 
+    retval = get_parm_all_cb_generic(rig, vfo, map_parm,
                                      (rig_ptr_t)cfgps,
                                      (rig_ptr_t)vals);
 

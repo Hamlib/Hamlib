@@ -92,7 +92,8 @@
 }
 
 static int icr75_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan);
-static int icr75_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only);
+static int icr75_get_channel(RIG *rig, vfo_t vfo, channel_t *chan,
+                             int read_only);
 static int icr75_set_parm(RIG *rig, setting_t parm, value_t val);
 static int icr75_get_parm(RIG *rig, setting_t parm, value_t *val);
 

@@ -53,7 +53,7 @@
 
 
 /*
-  c2800_parse
+  rc2800_parse
 
   Parse output from the rotator controller
 
@@ -249,17 +249,18 @@ rc2800_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 
     if (rot->caps->rot_model == ROT_MODEL_RC2800_EARLY_AZ)
     {
-	// we only do azimuth and this is the old protocol
-	// we have to switch modes and then send azimuth
-	// an extra CR gives us a response to expect
-    	num_sprintf(cmdstr, "A\r%.0f\r\r", az);
+        // we only do azimuth and this is the old protocol
+        // we have to switch modes and then send azimuth
+        // an extra CR gives us a response to expect
+        num_sprintf(cmdstr, "A\r%.0f\r\r", az);
     }
-    else 
+    else
     {
         // does the new protocol use decimal points?
-	// we'll assume no for now
-    	num_sprintf(cmdstr, "A%0f"CR, az);
+        // we'll assume no for now
+        num_sprintf(cmdstr, "A%0f"CR, az);
     }
+
     retval1 = rc2800_transaction(rot, cmdstr, NULL, 0);
 
     if (rot->caps->rot_type == ROT_TYPE_AZIMUTH)
@@ -272,15 +273,16 @@ rc2800_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 
     if (rot->caps->rot_model == ROT_MODEL_RC2800_EARLY_AZEL)
     {
-	// this is the old protocol
-	// we have to switch modes and then send azimuth
-	// an extra CR gives us a response to expect
-    	num_sprintf(cmdstr, "E\r%.0f\r\r", el);
+        // this is the old protocol
+        // we have to switch modes and then send azimuth
+        // an extra CR gives us a response to expect
+        num_sprintf(cmdstr, "E\r%.0f\r\r", el);
     }
-    else 
+    else
     {
         num_sprintf(cmdstr, "E%.0f"CR, el);
     }
+
     retval2 = rc2800_transaction(rot, cmdstr, NULL, 0);
 
     if (retval1 == retval2)

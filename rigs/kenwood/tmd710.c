@@ -71,7 +71,8 @@ static int tmd710_set_mem(RIG *rig, vfo_t vfo, int ch);
 static int tmd710_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code);
 static int tmd710_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code);
 static int tmd710_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan);
-static int tmd710_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only);
+static int tmd710_get_channel(RIG *rig, vfo_t vfo, channel_t *chan,
+                              int read_only);
 static int tmd710_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 static int tmd710_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd);
 static int tmd710_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
