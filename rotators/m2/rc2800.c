@@ -39,6 +39,7 @@
 
 #define CR "\r"
 #define LF "\x0a"
+#define LFCR "\x0a\r"
 
 #define BUFSZ 128
 
@@ -247,7 +248,7 @@ rc2800_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 
     rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
 
-    num_sprintf(cmdstr, "A%3.0f"CR, az);
+    num_sprintf(cmdstr, "A%3.0f"LFCR, az);
     retval1 = rc2800_transaction(rot, cmdstr, NULL, 0);
 
     if (rot->caps->rot_model == ROT_MODEL_RC2800)
@@ -255,7 +256,7 @@ rc2800_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
         /* do not overwhelm the MCU? */
         hl_usleep(200 * 1000);
 
-        num_sprintf(cmdstr, "E%3.0f"CR, el);
+        num_sprintf(cmdstr, "E%3.0f"LFCR, el);
         retval2 = rc2800_transaction(rot, cmdstr, NULL, 0);
 
         if (retval1 == retval2)
@@ -380,7 +381,7 @@ const struct rot_caps rc2800_rot_caps =
     ROT_MODEL(ROT_MODEL_RC2800),
     .model_name =     "RC2800",
     .mfg_name =       "M2",
-    .version =        "20201129.1",
+    .version =        "20201130",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_AZEL,
@@ -411,7 +412,7 @@ const struct rot_caps rc2800az_rot_caps =
     ROT_MODEL(ROT_MODEL_RC2800AZ),
     .model_name =     "RC2800AZ",
     .mfg_name =       "M2",
-    .version =        "20201129.1",
+    .version =        "20201130",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_AZIMUTH,
