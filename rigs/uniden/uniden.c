@@ -590,7 +590,7 @@ int uniden_get_mem(RIG *rig, vfo_t vfo, int *ch)
  * uniden_get_channel
  * Assumes rig!=NULL
  */
-int uniden_get_channel(RIG *rig, channel_t *chan, int read_only)
+int uniden_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 {
     char cmdbuf[BUFSZ], membuf[BUFSZ];
     size_t cmd_len = BUFSZ, mem_len = BUFSZ;
@@ -689,7 +689,7 @@ int uniden_get_channel(RIG *rig, channel_t *chan, int read_only)
  *
  * Only freq can be set?
  */
-int uniden_set_channel(RIG *rig, const channel_t *chan)
+int uniden_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
     char cmdbuf[BUFSZ], membuf[BUFSZ];
     size_t cmd_len = BUFSZ, mem_len = BUFSZ;

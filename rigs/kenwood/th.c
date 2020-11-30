@@ -1895,7 +1895,7 @@ int th_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 /* get and set channel tested on thg71&thf7e    */
 /* must work on other th and tm kenwood rigs  */
 /* --------------------------------------------------------------------- */
-int th_get_channel(RIG *rig, channel_t *chan, int read_only)
+int th_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 {
     char membuf[64], ackbuf[ACKBUF_LEN];
     int retval;
@@ -1904,7 +1904,7 @@ int th_get_channel(RIG *rig, channel_t *chan, int read_only)
     int step, shift, rev, tone, ctcss, tonefq, ctcssfq, dcs, dcscode, mode, lockout;
     const char *mr_extra;
     int channel_num;
-    vfo_t vfo;
+    vfo_t vfotmp;
     const struct kenwood_priv_caps *priv = (const struct kenwood_priv_caps *)
                                            rig->caps->priv;
     const chan_t *chan_caps;
@@ -1926,10 +1926,10 @@ int th_get_channel(RIG *rig, channel_t *chan, int read_only)
     }
 
     channel_num = chan->channel_num;
-    vfo = chan->vfo;
+    vfotmp = chan->vfo;
     memset(chan, 0, sizeof(channel_t));
     chan->channel_num = channel_num;
-    chan->vfo = vfo;
+    chan->vfo = vfotmp;
 
     if (rig->caps->rig_model == RIG_MODEL_THF7E ||
             rig->caps->rig_model == RIG_MODEL_THF6A)
@@ -2215,7 +2215,7 @@ static int find_tone_index(const tone_t *tone_list, tone_t tone)
 }
 
 /* --------------------------------------------------------------------- */
-int th_set_channel(RIG *rig, const channel_t *chan)
+int th_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
     char membuf[256];
     int retval;

@@ -161,7 +161,7 @@ struct icom_priv_caps
     // the 4 elements above are mandatory
     // everything below here is optional in the backends
     int settle_time; /*!< Receiver settle time, in ms */
-    int (*r2i_mode)(RIG *rig, rmode_t mode, pbwidth_t width,
+    int (*r2i_mode)(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width,
                     unsigned char *md, signed char *pd); /*< backend specific code
                                to convert bandwidth and
                                mode to cmd tokens */
