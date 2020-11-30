@@ -191,7 +191,7 @@ const struct rig_caps ft897_caps =
     RIG_MODEL(RIG_MODEL_FT897),
     .model_name =     "FT-897",
     .mfg_name =       "Yaesu",
-    .version =        "20201121.0",
+    .version =        "20201130.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_TRANSCEIVER,
@@ -303,7 +303,7 @@ const struct rig_caps ft897_caps =
     .rig_cleanup =    ft897_cleanup,
     .rig_open =       ft897_open,
     .rig_close =      ft897_close,
-    .get_vfo =        ft857_get_vfo,
+//    .get_vfo =        ft857_get_vfo,
     // set_vfo not working on serial# 5n660296
 //    .set_vfo =        ft857_set_vfo,
     .set_vfo =        NULL,
