@@ -38,12 +38,12 @@
  *  and IC-706MKIIG
  *  (0 - wide, 1 - normal, 2 - narrow)
  */
-static int ic706_r2i_mode(RIG *rig, rmode_t mode, pbwidth_t width,
+static int ic706_r2i_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width,
                           unsigned char *md, signed char *pd)
 {
     int err;
 
-    err = rig2icom_mode(rig, mode, width, md, pd);
+    err = rig2icom_mode(rig, vfo, mode, width, md, pd);
 
     if (err != RIG_OK)
     {

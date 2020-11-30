@@ -1843,7 +1843,7 @@ static int dummy_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
     return RIG_OK;
 }
 
-static int dummy_set_channel(RIG *rig, const channel_t *chan)
+static int dummy_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
 
@@ -1888,7 +1888,7 @@ static int dummy_set_channel(RIG *rig, const channel_t *chan)
 }
 
 
-static int dummy_get_channel(RIG *rig, channel_t *chan, int read_only)
+static int dummy_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
 

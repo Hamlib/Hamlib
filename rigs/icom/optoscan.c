@@ -54,7 +54,7 @@ const struct confparams opto_ext_parms[] =
 };
 
 static int optoscan_get_status_block(RIG *rig, struct optostat *status_block);
-static int optoscan_send_freq(RIG *rig, pltstate_t *state);
+static int optoscan_send_freq(RIG *rig, vfo_t vfo, pltstate_t *state);
 static int optoscan_RTS_toggle(RIG *rig);
 static int optoscan_start_timer(RIG *rig, pltstate_t *state);
 static int optoscan_wait_timer(RIG *rig, pltstate_t *state);
@@ -643,7 +643,7 @@ int optoscan_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
         }
 
         /* Step 1 is implicit, since hamlib does this when it opens the device */
-        optoscan_send_freq(rig, state); /*Step 2*/
+        optoscan_send_freq(rig, vfo, state); /*Step 2*/
     }
 
     rc = 0;
@@ -662,7 +662,7 @@ int optoscan_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 
         if (rc != RIG_SCAN_STOP)
         {
-            optoscan_send_freq(rig, state); /*Step 4*/
+            optoscan_send_freq(rig, vfo, state); /*Step 4*/
         }
 
         optoscan_wait_timer(rig, state); /*Step 5*/
@@ -768,7 +768,7 @@ static int optoscan_get_status_block(RIG *rig, struct optostat *status_block)
 }
 
 
-static int optoscan_send_freq(RIG *rig, pltstate_t *state)
+static int optoscan_send_freq(RIG *rig, vfo_t vfo, pltstate_t *state)
 {
     unsigned char buff[OPTO_BUFF_SIZE];
     char md, pd;
@@ -782,7 +782,7 @@ static int optoscan_send_freq(RIG *rig, pltstate_t *state)
 
     to_bcd(buff, freq, 5 * 2); /* to_bcd requires nibble len */
 
-    rig2icom_mode(rig, mode, 0, (unsigned char *) &md, (signed char *) &pd);
+    rig2icom_mode(rig, vfo, mode, 0, (unsigned char *) &md, (signed char *) &pd);
     buff[5] = md;
 
     /* read echo'd chars only...there will be no ACK from this command

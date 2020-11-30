@@ -2666,7 +2666,7 @@ int ft1000d_get_mem(RIG *rig, vfo_t vfo, int *ch)
  * -------------------------------------------------------------------------
  * Returns RIG_OK on success or an error code on failure
  */
-int ft1000d_set_channel(RIG *rig, const channel_t *chan)
+int ft1000d_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -2698,7 +2698,7 @@ int ft1000d_set_channel(RIG *rig, const channel_t *chan)
  *           Status for split operation, active rig functions and tuning steps
  *           are only relevant for currVFO
  */
-int ft1000d_get_channel(RIG *rig, channel_t *chan, int read_only)
+int ft1000d_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 {
     struct ft1000d_priv_data *priv;
     ft1000d_op_data_t *p;

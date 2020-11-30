@@ -64,8 +64,8 @@ static int pihpsdr_open(RIG *rig);
 static int pihpsdr_get_level(RIG *rig, vfo_t vfo, setting_t level,
                              value_t *val);
 static int pihpsdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
-static int pihspdr_get_channel(RIG *rig, channel_t *chan, int read_only);
-static int pihspdr_set_channel(RIG *rig, const channel_t *chan);
+static int pihspdr_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only);
+static int pihspdr_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan);
 
 
 static struct kenwood_priv_caps  ts2000_priv_caps  =
@@ -342,7 +342,7 @@ const struct rig_caps pihpsdr_caps =
 
  */
 
-int pihspdr_get_channel(RIG *rig, channel_t *chan, int read_only)
+int pihspdr_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 {
     int err;
     int tmp;
@@ -580,7 +580,7 @@ int pihspdr_get_channel(RIG *rig, channel_t *chan, int read_only)
     return RIG_OK;
 }
 
-int pihspdr_set_channel(RIG *rig, const channel_t *chan)
+int pihspdr_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
     char sqltype;
     char shift;

@@ -138,12 +138,12 @@ struct cmdparams ic7000_extcmds[] =
 /*
  *  This function does the special bandwidth coding for IC-7000
  */
-static int ic7000_r2i_mode(RIG *rig, rmode_t mode, pbwidth_t width,
+static int ic7000_r2i_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width,
                            unsigned char *md, signed char *pd)
 {
     int err;
 
-    err = rig2icom_mode(rig, mode, width, md, pd);
+    err = rig2icom_mode(rig, vfo, mode, width, md, pd);
 
     if (err != RIG_OK)
     {

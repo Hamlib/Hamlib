@@ -460,11 +460,11 @@ typedef channel_t * const_channel_t_p;
 	}
 
 	void set_channel(const struct channel *chan) {
-		self->error_status = rig_set_channel(self->rig, chan);
+		self->error_status = rig_set_channel(self->rig, RIG_VFO_NONE, chan);
 	}
 
 	void get_channel(struct channel *chan, int read_only) {
-		self->error_status = rig_get_channel(self->rig, chan, read_only);
+		self->error_status = rig_get_channel(self->rig, RIG_VFO_NONE, chan, read_only);
 		/* TODO: handle ext_level's */
 	}
 
@@ -473,7 +473,7 @@ typedef channel_t * const_channel_t_p;
 	}
 
 	void get_chan_all(struct channel *chans) {
-		self->error_status = rig_get_chan_all(self->rig, chans);
+		self->error_status = rig_get_chan_all(self->rig, RIG_VFO_NONE, chans);
 		/* TODO: handle ext_level's */
 	}
 
@@ -495,7 +495,7 @@ typedef channel_t * const_channel_t_p;
 			self->error_status = -RIG_ENOMEM;
 			return NULL;
 		}
-		self->error_status = rig_get_channel(self->rig, chan, read_only);
+		self->error_status = rig_get_channel(self->rig, RIG_VFO_NONE, chan, read_only);
 		/* TODO: copy ext_level's */
 		return chan;
 	}
@@ -613,7 +613,7 @@ struct channel *Rig_get_chan_all(Rig *self)
 		self->error_status = -RIG_ENOMEM;
 		return NULL;
 	}
-	self->error_status = rig_get_chan_all(self->rig, chans);
+	self->error_status = rig_get_chan_all(self->rig, RIG_VFO_NONE, chans);
 	/* TODO: copy ext_level's */
 	return chans;
 }

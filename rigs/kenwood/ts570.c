@@ -688,7 +688,7 @@ int ts570_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
     .ctcss_tone=1       \
 }
 
-int ts570_set_channel(RIG *rig, const channel_t *chan)
+int ts570_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
     char cmdbuf[30];
     int retval, cmd_len;
