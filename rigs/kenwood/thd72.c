@@ -1358,7 +1358,8 @@ static int thd72_parse_channel(int kind, const char *buf, channel_t *chan)
     return RIG_OK;
 }
 
-static int thd72_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
+static int thd72_get_channel(RIG *rig, vfo_t vfo, channel_t *chan,
+                             int read_only)
 {
     int retval;
     char buf[72];

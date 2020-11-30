@@ -44,16 +44,16 @@ const struct newcat_priv_caps ft2000_priv_caps =
 {
     .roofing_filter_count = 7,
     .roofing_filters =
-        {
-            // The index must match ext level combo index
-            { .index = 0, .set_value = '0', .get_value = 0, .width = 15000, .optional = 0 },
-            { .index = 1, .set_value = '1', .get_value = '1', .width = 15000, .optional = 0 },
-            { .index = 2, .set_value = '2', .get_value = '2', .width = 6000, .optional = 0 },
-            { .index = 3, .set_value = '3', .get_value = '3', .width = 3000, .optional = 0 },
-            { .index = 4, .set_value = 0, .get_value = '4', .width = 15000, .optional = 0 },
-            { .index = 5, .set_value = 0, .get_value = '5', .width = 6000, .optional = 0 },
-            { .index = 6, .set_value = 0, .get_value = '6', .width = 3000, .optional = 0 },
-        }
+    {
+        // The index must match ext level combo index
+        { .index = 0, .set_value = '0', .get_value = 0, .width = 15000, .optional = 0 },
+        { .index = 1, .set_value = '1', .get_value = '1', .width = 15000, .optional = 0 },
+        { .index = 2, .set_value = '2', .get_value = '2', .width = 6000, .optional = 0 },
+        { .index = 3, .set_value = '3', .get_value = '3', .width = 3000, .optional = 0 },
+        { .index = 4, .set_value = 0, .get_value = '4', .width = 15000, .optional = 0 },
+        { .index = 5, .set_value = 0, .get_value = '5', .width = 6000, .optional = 0 },
+        { .index = 6, .set_value = 0, .get_value = '6', .width = 3000, .optional = 0 },
+    }
 };
 
 const struct confparams ft2000_ext_levels[] =
@@ -65,11 +65,15 @@ const struct confparams ft2000_ext_levels[] =
         "Roofing filter",
         NULL,
         RIG_CONF_COMBO,
-        { .c = { .combostr = {
-                "AUTO", "15 kHz", "6 kHz", "3 kHz",
-                "AUTO - 15 kHz", "AUTO - 6 kHz", "AUTO - 3 kHz",
-                NULL }
-        } }
+        {
+            .c = {
+                .combostr = {
+                    "AUTO", "15 kHz", "6 kHz", "3 kHz",
+                    "AUTO - 15 kHz", "AUTO - 6 kHz", "AUTO - 3 kHz",
+                    NULL
+                }
+            }
+        }
     },
     { RIG_CONF_END, NULL, }
 };

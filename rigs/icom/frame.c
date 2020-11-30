@@ -395,9 +395,12 @@ int rig2icom_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width,
     {
         rmode_t tmode;
         int ret = rig_get_mode(rig, vfo, &tmode, &width);
+
         if (ret != RIG_OK)
         {
-            rig_debug(RIG_DEBUG_WARN, "%s: Failed to get width for passband nochange err=%s\n", __func__, rigerror(ret));
+            rig_debug(RIG_DEBUG_WARN,
+                      "%s: Failed to get width for passband nochange err=%s\n", __func__,
+                      rigerror(ret));
         }
     }
 

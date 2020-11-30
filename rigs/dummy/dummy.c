@@ -1888,7 +1888,8 @@ static int dummy_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 }
 
 
-static int dummy_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
+static int dummy_get_channel(RIG *rig, vfo_t vfo, channel_t *chan,
+                             int read_only)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
 
@@ -2078,7 +2079,7 @@ struct rig_caps dummy_caps =
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
-    .targetable_vfo =      RIG_TARGETABLE_PTT|RIG_TARGETABLE_RITXIT,
+    .targetable_vfo =      RIG_TARGETABLE_PTT | RIG_TARGETABLE_RITXIT,
     .ptt_type =       RIG_PTT_RIG,
     .dcd_type =       RIG_DCD_RIG,
     .port_type =      RIG_PORT_NONE,
@@ -2243,7 +2244,7 @@ struct rig_caps dummy_no_vfo_caps =
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
-    .targetable_vfo =      RIG_TARGETABLE_PTT|RIG_TARGETABLE_RITXIT,
+    .targetable_vfo =      RIG_TARGETABLE_PTT | RIG_TARGETABLE_RITXIT,
     .ptt_type =       RIG_PTT_RIG,
     .dcd_type =       RIG_DCD_RIG,
     .port_type =      RIG_PORT_NONE,

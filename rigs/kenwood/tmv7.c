@@ -87,7 +87,8 @@ static int tmv7_decode_event(RIG *rig);
 static int tmv7_set_vfo(RIG *rig, vfo_t vfo);
 static int tmv7_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 static int tmv7_get_powerstat(RIG *rig, powerstat_t *status);
-static int tmv7_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only);
+static int tmv7_get_channel(RIG *rig, vfo_t vfo, channel_t *chan,
+                            int read_only);
 static int tmv7_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan);
 
 /*

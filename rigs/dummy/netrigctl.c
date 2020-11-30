@@ -2106,7 +2106,8 @@ static int netrigctl_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 }
 
 
-static int netrigctl_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
+static int netrigctl_get_channel(RIG *rig, vfo_t vfo, channel_t *chan,
+                                 int read_only)
 {
     return -RIG_ENIMPL;
 }
