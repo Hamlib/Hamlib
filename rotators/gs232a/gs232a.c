@@ -42,7 +42,7 @@
 #include "gs232a.h"
 
 #define EOM "\r"
-#define REPLY_EOM "\r\n"
+#define REPLY_EOM "\n"
 
 #define BUFSZ 64
 
@@ -292,7 +292,7 @@ const struct rot_caps gs23_rot_caps =
     ROT_MODEL(ROT_MODEL_GS23),
     .model_name =     "GS-23",
     .mfg_name =       "Yaesu/Kenpro",
-    .version =        "20200617.0",
+    .version =        "20201201.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_AZEL,
@@ -328,7 +328,7 @@ const struct rot_caps gs232_rot_caps =
     ROT_MODEL(ROT_MODEL_GS232),
     .model_name =     "GS-232",
     .mfg_name =       "Yaesu/Kenpro",
-    .version =        "20200605.0",
+    .version =        "20201201.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_AZEL,
@@ -364,7 +364,7 @@ const struct rot_caps gs232a_rot_caps =
     ROT_MODEL(ROT_MODEL_GS232A),
     .model_name =     "GS-232A",
     .mfg_name =       "Yaesu",
-    .version =        "20200505.0",
+    .version =        "20201205.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_BETA,
     .rot_type =       ROT_TYPE_OTHER,
