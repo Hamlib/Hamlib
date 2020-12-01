@@ -103,6 +103,8 @@ transaction_write:
         retval = read_string(&rs->rotport, data, data_len, REPLY_EOM,
                              strlen(REPLY_EOM));
 
+        if (strncmp(data,"\r\n",2)==0) retval = -1;
+
         if (retval < 0)
         {
             if (retry_read++ < rot->state.rotport.retry)
@@ -304,7 +306,7 @@ const struct rot_caps gs23_rot_caps =
     .serial_parity =     RIG_PARITY_NONE,
     .serial_handshake =  RIG_HANDSHAKE_NONE,
     .write_delay =  0,
-    .post_write_delay =  0,
+    .post_write_delay =  25,
     .timeout =  400,
     .retry =  3,
 
@@ -340,7 +342,7 @@ const struct rot_caps gs232_rot_caps =
     .serial_parity =     RIG_PARITY_NONE,
     .serial_handshake =  RIG_HANDSHAKE_NONE,
     .write_delay =  0,
-    .post_write_delay =  0,
+    .post_write_delay =  25,
     .timeout =  400,
     .retry =  3,
 
@@ -376,7 +378,7 @@ const struct rot_caps gs232a_rot_caps =
     .serial_parity =  RIG_PARITY_NONE,
     .serial_handshake =  RIG_HANDSHAKE_NONE,
     .write_delay =  0,
-    .post_write_delay =  0,
+    .post_write_delay =  25,
     .timeout =  400,
     .retry =  3,
 
