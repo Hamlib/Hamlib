@@ -43,7 +43,7 @@
 #include "gs232a.h"
 
 #define EOM "\r"
-#define REPLY_EOM "\r\n"
+#define REPLY_EOM "\n"
 
 #define BUFSZ 64
 
@@ -329,7 +329,7 @@ const struct rot_caps gs232b_rot_caps =
     ROT_MODEL(ROT_MODEL_GS232B),
     .model_name = "GS-232B",
     .mfg_name = "Yaesu",
-    .version = "20200617.0",
+    .version = "20201201.0",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rot_type = ROT_TYPE_OTHER,
