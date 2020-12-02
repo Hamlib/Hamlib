@@ -50,7 +50,7 @@
 typedef char ncboolean;
 
 /* shared function version */
-#define NEWCAT_VER "20201111"
+#define NEWCAT_VER "20201121"
 
 /* Hopefully large enough for future use, 128 chars plus '\0' */
 #define NEWCAT_DATA_LEN                 129
@@ -211,8 +211,8 @@ int newcat_set_ts(RIG * rig, vfo_t vfo, shortfreq_t ts);
 int newcat_get_ts(RIG * rig, vfo_t vfo, shortfreq_t * ts);
 int newcat_set_trn(RIG * rig, int trn);
 int newcat_get_trn(RIG * rig, int *trn);
-int newcat_set_channel(RIG * rig, const channel_t * chan);
-int newcat_get_channel(RIG * rig, channel_t * chan, int read_only);
+int newcat_set_channel(RIG * rig, vfo_t vfo, const channel_t * chan);
+int newcat_get_channel(RIG * rig, vfo_t vfo, channel_t * chan, int read_only);
 rmode_t newcat_rmode(char mode);
 char newcat_modechar(rmode_t rmode);
 rmode_t newcat_rmode_width(RIG *rig, vfo_t vfo, char mode, pbwidth_t *width);

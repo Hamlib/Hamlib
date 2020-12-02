@@ -509,7 +509,7 @@ int clear_chans(RIG *rig, const char *infilename)
         {
 
             chan.channel_num = j;
-            ret = rig_set_channel(rig, &chan);
+            ret = rig_set_channel(rig, RIG_VFO_NONE, &chan);
 
             if (ret != RIG_OK)
             {

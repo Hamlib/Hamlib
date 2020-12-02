@@ -73,7 +73,7 @@ static struct kenwood_priv_caps  ts850_priv_caps  =
 static int ts850_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
 static int ts850_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit);
 static int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-static int ts850_set_channel(RIG *rig, const channel_t *chan);
+static int ts850_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan);
 
 static const struct confparams ts850_ext_parms[] =
 {
@@ -513,7 +513,7 @@ int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     return retval; // Never gets here.
 }
 
-int ts850_set_channel(RIG *rig, const channel_t *chan)
+int ts850_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
     char cmdbuf[30];
     int retval;

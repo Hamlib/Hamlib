@@ -3659,7 +3659,7 @@ declare_proto_rig(set_channel)
 
 #endif
 
-    status = rig_set_channel(rig, &chan);
+    status = rig_set_channel(rig, vfo, &chan);
 
     return status;
 }
@@ -3687,7 +3687,7 @@ declare_proto_rig(get_channel)
 
     CHKSCN1ARG(sscanf(arg2, "%d", &read_only));
 
-    status = rig_get_channel(rig, &chan, read_only);
+    status = rig_get_channel(rig, RIG_VFO_NONE, &chan, read_only);
 
     if (status != RIG_OK)
     {

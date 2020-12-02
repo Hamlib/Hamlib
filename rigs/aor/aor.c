@@ -1029,7 +1029,7 @@ int aor_set_bank(RIG *rig, vfo_t vfo, int bank)
 }
 
 
-int aor_set_channel(RIG *rig, const channel_t *chan)
+int aor_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
     struct aor_priv_caps *priv = (struct aor_priv_caps *)rig->caps->priv;
     char aorcmd[BUFSZ];
@@ -1240,7 +1240,7 @@ static int parse_chan_line(RIG *rig, channel_t *chan, char *basep,
 }
 
 
-int aor_get_channel(RIG *rig, channel_t *chan, int read_only)
+int aor_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 {
     struct aor_priv_caps *priv = (struct aor_priv_caps *)rig->caps->priv;
     char aorcmd[BUFSZ];
@@ -1346,7 +1346,7 @@ int aor_get_channel(RIG *rig, channel_t *chan, int read_only)
 
 #define LINES_PER_MA    10
 
-int aor_get_chan_all_cb(RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
+int aor_get_chan_all_cb(RIG *rig, vfo_t vfo, chan_cb_t chan_cb, rig_ptr_t arg)
 {
     struct aor_priv_caps *priv = (struct aor_priv_caps *)rig->caps->priv;
     int i, j, retval;

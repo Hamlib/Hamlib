@@ -2100,13 +2100,14 @@ static int netrigctl_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
     }
 }
 
-static int netrigctl_set_channel(RIG *rig, const channel_t *chan)
+static int netrigctl_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
     return -RIG_ENIMPL;
 }
 
 
-static int netrigctl_get_channel(RIG *rig, channel_t *chan, int read_only)
+static int netrigctl_get_channel(RIG *rig, vfo_t vfo, channel_t *chan,
+                                 int read_only)
 {
     return -RIG_ENIMPL;
 }

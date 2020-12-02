@@ -87,8 +87,9 @@ static int tmv7_decode_event(RIG *rig);
 static int tmv7_set_vfo(RIG *rig, vfo_t vfo);
 static int tmv7_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 static int tmv7_get_powerstat(RIG *rig, powerstat_t *status);
-static int tmv7_get_channel(RIG *rig, channel_t *chan, int read_only);
-static int tmv7_set_channel(RIG *rig, const channel_t *chan);
+static int tmv7_get_channel(RIG *rig, vfo_t vfo, channel_t *chan,
+                            int read_only);
+static int tmv7_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan);
 
 /*
  * tm-v7 rig capabilities.
@@ -496,7 +497,7 @@ int tmv7_get_powerstat(RIG *rig, powerstat_t *status)
 
 
 /* --------------------------------------------------------------------- */
-int tmv7_get_channel(RIG *rig, channel_t *chan, int read_only)
+int tmv7_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 {
     char membuf[64], ackbuf[ACKBUF_LEN];
     int retval;
@@ -662,7 +663,7 @@ int tmv7_get_channel(RIG *rig, channel_t *chan, int read_only)
     return RIG_OK;
 }
 /* --------------------------------------------------------------------- */
-int tmv7_set_channel(RIG *rig, const channel_t *chan)
+int tmv7_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
     char membuf[ACKBUF_LEN];
     int retval;

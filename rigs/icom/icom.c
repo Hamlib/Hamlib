@@ -1631,7 +1631,7 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
         {
             unsigned char mode_icom; // not used as it will map to USB/LSB
             signed char width_icom;
-            rig2icom_mode(rig, mode, width, &mode_icom, &width_icom);
+            rig2icom_mode(rig, vfo, mode, width, &mode_icom, &width_icom);
             // since width_icom is 0-2 for rigs that need this here we have to make it 1-3
             datamode[1] = datamode[0] ? width_icom : 0;
             retval =
@@ -1688,11 +1688,11 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (priv_caps->r2i_mode != NULL)  /* call priv code if defined */
     {
-        err = priv_caps->r2i_mode(rig, mode, width, &icmode, &icmode_ext);
+        err = priv_caps->r2i_mode(rig, vfo, mode, width, &icmode, &icmode_ext);
     }
     else              /* else call default */
     {
-        err = rig2icom_mode(rig, mode, width, &icmode, &icmode_ext);
+        err = rig2icom_mode(rig, vfo, mode, width, &icmode, &icmode_ext);
     }
 
     if (err < 0)
