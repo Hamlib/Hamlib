@@ -33,12 +33,15 @@
 #include "sprintflst.h"
 #include "rigctl_parse.h"
 
-static int print_ext(RIG *rig, const struct confparams *cfp, rig_ptr_t ptr);
 void range_print(FILE *fout, const struct freq_range_list range_list[], int rx);
 int range_sanity_check(const struct freq_range_list range_list[], int rx);
 int ts_sanity_check(const struct tuning_step_list tuning_step[]);
 static void dump_chan_caps(const channel_cap_t *chan, FILE *fout);
 
+static int print_ext(RIG *rig, const struct confparams *cfp, rig_ptr_t ptr)
+{
+    return print_ext_param(cfp, ptr);
+}
 
 /*
  * the rig may be in rig_init state, but not opened
@@ -830,41 +833,6 @@ int dumpcaps(RIG *rig, FILE *fout)
     fprintf(fout, "\nOverall backend warnings: %d\n", backend_warnings);
 
     return backend_warnings;
-}
-
-static int print_ext(RIG *rig, const struct confparams *cfp, rig_ptr_t ptr)
-{
-    int i;
-    fprintf((FILE *)ptr, "\t%s\n", cfp->name);
-    fprintf((FILE *)ptr, "\t\tType: %s\n", get_rig_conf_type(cfp->type));
-    fprintf((FILE *)ptr, "\t\tDefault: %s\n", cfp->dflt != NULL ? cfp->dflt : "");
-    fprintf((FILE *)ptr, "\t\tLabel: %s\n", cfp->label != NULL ? cfp->label : "");
-    fprintf((FILE *)ptr, "\t\tTooltip: %s\n",
-            cfp->tooltip != NULL ? cfp->tooltip : "");
-
-    switch (cfp->type)
-    {
-    case RIG_CONF_NUMERIC:
-        fprintf((FILE *)ptr, "\t\tRange: %g..%g/%g\n", cfp->u.n.min, cfp->u.n.max,
-                cfp->u.n.step);
-        break;
-
-    case RIG_CONF_COMBO:
-        fprintf((FILE *)ptr, "\t\tValues:");
-
-        for (i = 0; i < RIG_COMBO_MAX && cfp->u.c.combostr[i] != NULL; i++)
-        {
-            fprintf((FILE *)ptr, " %d=\"%s\"", i, cfp->u.c.combostr[i]);
-        }
-
-        fprintf((FILE *)ptr, "\n");
-        break;
-
-    default:
-        break;
-    }
-
-    return 1;       /* process them all */
 }
 
 void range_print(FILE *fout, const struct freq_range_list range_list[], int rx)

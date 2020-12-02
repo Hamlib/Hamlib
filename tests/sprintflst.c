@@ -690,3 +690,38 @@ char *get_rig_conf_type(enum rig_conf_e type)
 
     return "UNKNOWN";
 }
+
+int print_ext_param(const struct confparams *cfp, rig_ptr_t ptr)
+{
+    int i;
+    fprintf((FILE *)ptr, "\t%s\n", cfp->name);
+    fprintf((FILE *)ptr, "\t\tType: %s\n", get_rig_conf_type(cfp->type));
+    fprintf((FILE *)ptr, "\t\tDefault: %s\n", cfp->dflt != NULL ? cfp->dflt : "");
+    fprintf((FILE *)ptr, "\t\tLabel: %s\n", cfp->label != NULL ? cfp->label : "");
+    fprintf((FILE *)ptr, "\t\tTooltip: %s\n",
+            cfp->tooltip != NULL ? cfp->tooltip : "");
+
+    switch (cfp->type)
+    {
+    case RIG_CONF_NUMERIC:
+        fprintf((FILE *)ptr, "\t\tRange: %g..%g/%g\n", cfp->u.n.min, cfp->u.n.max,
+                cfp->u.n.step);
+        break;
+
+    case RIG_CONF_COMBO:
+        fprintf((FILE *)ptr, "\t\tValues:");
+
+        for (i = 0; i < RIG_COMBO_MAX && cfp->u.c.combostr[i] != NULL; i++)
+        {
+            fprintf((FILE *)ptr, " %d=\"%s\"", i, cfp->u.c.combostr[i]);
+        }
+
+        fprintf((FILE *)ptr, "\n");
+        break;
+
+    default:
+        break;
+    }
+
+    return 1;       /* process them all */
+}
