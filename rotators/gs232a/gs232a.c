@@ -103,11 +103,12 @@ transaction_write:
         retval = read_string(&rs->rotport, data, data_len, REPLY_EOM,
                              strlen(REPLY_EOM));
 
-        if (strncmp(data,"\r\n",2) == 0
-            ||strchr(data,'>')) 
+        if (strncmp(data, "\r\n", 2) == 0
+                || strchr(data, '>'))
         {
-            rig_debug(RIG_DEBUG_ERR,"%s: wrong response nbytes=%d\n", __func__, (int)strlen(data));
-            dump_hex((unsigned char*)data,strlen(data));
+            rig_debug(RIG_DEBUG_ERR, "%s: wrong response nbytes=%d\n", __func__,
+                      (int)strlen(data));
+            dump_hex((unsigned char *)data, strlen(data));
             retval = -1; // force retry
         }
 
