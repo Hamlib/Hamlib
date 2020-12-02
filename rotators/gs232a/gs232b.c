@@ -110,7 +110,14 @@ transaction_write:
     retval = read_string(&rs->rotport, data, data_len, REPLY_EOM,
                          strlen(REPLY_EOM));
 
-    if (strncmp(data,"\r\n",2)==0) retval = -1;
+    if (strncmp(data,"\r\n",2) == 0
+        ||strchr(data,'>'))
+    {
+        rig_debug(RIG_DEBUG_ERR,"%s: wrong response nbytes=%d\n", __func__, (int)strlen(data));
+        dump_hex((unsigned char*)data,strlen(data));
+        retval = -1; // force retry
+    }
+
 
     if (retval < 0)
     {
@@ -331,7 +338,7 @@ const struct rot_caps gs232b_rot_caps =
     ROT_MODEL(ROT_MODEL_GS232B),
     .model_name = "GS-232B",
     .mfg_name = "Yaesu",
-    .version = "20201201.0",
+    .version = "20201202.0",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rot_type = ROT_TYPE_OTHER,
@@ -343,7 +350,7 @@ const struct rot_caps gs232b_rot_caps =
     .serial_parity = RIG_PARITY_NONE,
     .serial_handshake = RIG_HANDSHAKE_NONE,
     .write_delay = 0,
-    .post_write_delay = 25,
+    .post_write_delay = 50,
     .timeout = 400,
     .retry = 3,
 
