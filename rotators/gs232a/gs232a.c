@@ -42,7 +42,7 @@
 #include "gs232a.h"
 
 #define EOM "\r"
-#define REPLY_EOM "\r\n"
+#define REPLY_EOM "\n"
 
 #define BUFSZ 64
 
@@ -102,6 +102,15 @@ transaction_write:
         memset(data, 0, data_len);
         retval = read_string(&rs->rotport, data, data_len, REPLY_EOM,
                              strlen(REPLY_EOM));
+
+        if (strncmp(data, "\r\n", 2) == 0
+                || strchr(data, '>'))
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: wrong response nbytes=%d\n", __func__,
+                      (int)strlen(data));
+            dump_hex((unsigned char *)data, strlen(data));
+            retval = -1; // force retry
+        }
 
         if (retval < 0)
         {
@@ -303,7 +312,7 @@ const struct rot_caps gs23_rot_caps =
     ROT_MODEL(ROT_MODEL_GS23),
     .model_name =     "GS-23",
     .mfg_name =       "Yaesu/Kenpro",
-    .version =        "20200617.0",
+    .version =        "20201202.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_AZEL,
@@ -315,7 +324,7 @@ const struct rot_caps gs23_rot_caps =
     .serial_parity =     RIG_PARITY_NONE,
     .serial_handshake =  RIG_HANDSHAKE_NONE,
     .write_delay =  0,
-    .post_write_delay =  0,
+    .post_write_delay =  50,
     .timeout =  400,
     .retry =  3,
 
@@ -339,7 +348,7 @@ const struct rot_caps gs232_rot_caps =
     ROT_MODEL(ROT_MODEL_GS232),
     .model_name =     "GS-232",
     .mfg_name =       "Yaesu/Kenpro",
-    .version =        "20200605.0",
+    .version =        "20201202.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_AZEL,
@@ -351,7 +360,7 @@ const struct rot_caps gs232_rot_caps =
     .serial_parity =     RIG_PARITY_NONE,
     .serial_handshake =  RIG_HANDSHAKE_NONE,
     .write_delay =  0,
-    .post_write_delay =  0,
+    .post_write_delay =  50,
     .timeout =  400,
     .retry =  3,
 
@@ -375,7 +384,7 @@ const struct rot_caps gs232a_rot_caps =
     ROT_MODEL(ROT_MODEL_GS232A),
     .model_name =     "GS-232A",
     .mfg_name =       "Yaesu",
-    .version =        "20200505.0",
+    .version =        "20201205.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_BETA,
     .rot_type =       ROT_TYPE_OTHER,
@@ -387,7 +396,7 @@ const struct rot_caps gs232a_rot_caps =
     .serial_parity =  RIG_PARITY_NONE,
     .serial_handshake =  RIG_HANDSHAKE_NONE,
     .write_delay =  0,
-    .post_write_delay =  0,
+    .post_write_delay =  50,
     .timeout =  400,
     .retry =  3,
 

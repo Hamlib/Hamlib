@@ -383,13 +383,26 @@ int read_icom_frame(hamlib_port_t *p, unsigned char rxbuffer[],
  * TODO: be more exhaustive
  * assumes rig!=NULL
  */
-int rig2icom_mode(RIG *rig, rmode_t mode, pbwidth_t width,
+int rig2icom_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width,
                   unsigned char *md, signed char *pd)
 {
     unsigned char icmode;
     signed char icmode_ext;
 
     icmode_ext = -1;
+
+    if (width == RIG_PASSBAND_NOCHANGE) // then we read width so we can reuse it
+    {
+        rmode_t tmode;
+        int ret = rig_get_mode(rig, vfo, &tmode, &width);
+
+        if (ret != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_WARN,
+                      "%s: Failed to get width for passband nochange err=%s\n", __func__,
+                      rigerror(ret));
+        }
+    }
 
     switch (mode)
     {

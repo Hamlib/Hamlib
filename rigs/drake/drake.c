@@ -615,7 +615,7 @@ int drake_get_mem(RIG *rig, vfo_t vfo, int *ch)
  * drake_set_chan
  * Assumes rig!=NULL
  */
-int drake_set_chan(RIG *rig, const channel_t *chan)
+int drake_set_chan(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
     struct drake_priv_data *priv = rig->state.priv;
     vfo_t   old_vfo;
@@ -671,7 +671,7 @@ int drake_set_chan(RIG *rig, const channel_t *chan)
  * drake_get_chan
  * Assumes rig!=NULL
  */
-int drake_get_chan(RIG *rig, channel_t *chan, int read_only)
+int drake_get_chan(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 {
     struct drake_priv_data *priv = rig->state.priv;
     vfo_t   old_vfo;

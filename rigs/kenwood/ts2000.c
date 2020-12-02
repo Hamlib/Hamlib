@@ -58,8 +58,9 @@
 
 /* prototypes */
 static int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-static int ts2000_get_channel(RIG *rig, channel_t *chan, int read_only);
-static int ts2000_set_channel(RIG *rig, const channel_t *chan);
+static int ts2000_get_channel(RIG *rig, vfo_t vfo, channel_t *chan,
+                              int read_only);
+static int ts2000_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan);
 
 /*
  * 38 CTCSS sub-audible tones + 1750 tone
@@ -369,7 +370,7 @@ const struct rig_caps ts2000_caps =
 
  */
 
-int ts2000_get_channel(RIG *rig, channel_t *chan, int read_only)
+int ts2000_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 {
     int err;
     int tmp;
@@ -607,7 +608,7 @@ int ts2000_get_channel(RIG *rig, channel_t *chan, int read_only)
     return RIG_OK;
 }
 
-int ts2000_set_channel(RIG *rig, const channel_t *chan)
+int ts2000_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
     char sqltype = '0';
     char buf[128];

@@ -329,12 +329,12 @@ static int ic910_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  * This function does the special bandwidth coding for IC-910
  * (1 - normal, 2 - narrow)
  */
-static int ic910_r2i_mode(RIG *rig, rmode_t mode, pbwidth_t width,
+static int ic910_r2i_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width,
                           unsigned char *md, signed char *pd)
 {
     int err;
 
-    err = rig2icom_mode(rig, mode, width, md, pd);
+    err = rig2icom_mode(rig, vfo, mode, width, md, pd);
 
     if (*pd == PD_NARROW_3)
     {

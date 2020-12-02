@@ -1488,7 +1488,7 @@ int adat_get_single_cmd_result(RIG *pRig)
 
             pcPos      = acBuf;
 
-            if ((nRC == RIG_OK))
+            if (nRC == RIG_OK)
             {
                 int   nBufLength  = 0;
 

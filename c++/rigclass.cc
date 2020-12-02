@@ -643,14 +643,14 @@ int Rig::getMem (vfo_t vfo)
 	return mem;
 }
 
-void Rig::setChannel (const channel_t *chan)
+void Rig::setChannel (const channel_t *chan, vfo_t vfo)
 {
-	CHECK_RIG( rig_set_channel(theRig, chan) );
+	CHECK_RIG( rig_set_channel(theRig, vfo, chan) );
 }
 
-void Rig::getChannel (channel_t *chan, int readOnly)
+void Rig::getChannel (channel_t *chan,vfo_t vfo, int readOnly)
 {
-	CHECK_RIG( rig_get_channel(theRig, chan, readOnly) );
+	CHECK_RIG( rig_get_channel(theRig, vfo, chan, readOnly) );
 }
 
 

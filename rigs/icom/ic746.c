@@ -153,8 +153,9 @@ typedef channel_str_t band_stack_reg_t;
 
 static int ic746_set_parm(RIG *rig, setting_t parm, value_t val);
 static int ic746_get_parm(RIG *rig, setting_t parm, value_t *val);
-static int ic746pro_get_channel(RIG *rig, channel_t *chan, int read_only);
-static int ic746pro_set_channel(RIG *rig, const channel_t *chan);
+static int ic746pro_get_channel(RIG *rig, vfo_t vfo, channel_t *chan,
+                                int read_only);
+static int ic746pro_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan);
 static int ic746pro_set_ext_parm(RIG *rig, token_t token, value_t val);
 static int ic746pro_get_ext_parm(RIG *rig, token_t token, value_t *val);
 
@@ -905,7 +906,7 @@ int ic746_get_parm(RIG *rig, setting_t parm, value_t *val)
  *
  * If memory is empty it will return RIG_OK,but every thing will be null. Where do we boundary check?
  */
-int ic746pro_get_channel(RIG *rig, channel_t *chan, int read_only)
+int ic746pro_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 {
     struct icom_priv_data *priv;
     struct rig_state *rs;
@@ -1071,7 +1072,7 @@ int ic746pro_get_channel(RIG *rig, channel_t *chan, int read_only)
  * ic746pro_set_channel
  * Assumes rig!=NULL, rig->state.priv!=NULL, chan!=NULL
  */
-int ic746pro_set_channel(RIG *rig, const channel_t *chan)
+int ic746pro_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
     struct icom_priv_data *priv;
     struct rig_state *rs;
@@ -1103,7 +1104,7 @@ int ic746pro_set_channel(RIG *rig, const channel_t *chan)
         // RX
         to_bcd(membuf.rx.freq, chan->freq, freq_len * 2);
 
-        retval = rig2icom_mode(rig, chan->mode, chan->width,
+        retval = rig2icom_mode(rig, vfo, chan->mode, chan->width,
                                &membuf.rx.mode, &membuf.rx.pb);
 
         if (retval != RIG_OK)
@@ -1150,7 +1151,7 @@ int ic746pro_set_channel(RIG *rig, const channel_t *chan)
         // TX
         to_bcd(membuf.tx.freq, chan->tx_freq, freq_len * 2);
 
-        retval = rig2icom_mode(rig, chan->tx_mode, chan->tx_width,
+        retval = rig2icom_mode(rig, vfo, chan->tx_mode, chan->tx_width,
                                &membuf.tx.mode, &membuf.tx.pb);
 
         if (retval != RIG_OK)

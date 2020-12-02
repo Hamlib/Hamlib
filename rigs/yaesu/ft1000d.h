@@ -193,8 +193,8 @@ int ft1000d_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *value);
 int ft1000d_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
 int ft1000d_set_mem(RIG *rig, vfo_t vfo, int ch);
 int ft1000d_get_mem(RIG *rig, vfo_t vfo, int *ch);
-int ft1000d_set_channel (RIG *rig, const channel_t *chan);
-int ft1000d_get_channel (RIG *rig, channel_t *chan, int read_only);
+int ft1000d_set_channel (RIG *rig, vfo_t vfo, const channel_t *chan);
+int ft1000d_get_channel (RIG *rig, vfo_t vfo, channel_t *chan, int read_only);
 
 
 /*

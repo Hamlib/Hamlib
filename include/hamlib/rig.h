@@ -1813,13 +1813,13 @@ struct rig_caps {
 
     int (*decode_event)(RIG *rig);
 
-    int (*set_channel)(RIG *rig, const channel_t *chan);
-    int (*get_channel)(RIG *rig, channel_t *chan, int read_only);
+    int (*set_channel)(RIG *rig, vfo_t vfo, const channel_t *chan);
+    int (*get_channel)(RIG *rig, vfo_t vfo, channel_t *chan, int read_only);
 
     const char * (*get_info)(RIG *rig);
 
-    int (*set_chan_all_cb)(RIG *rig, chan_cb_t chan_cb, rig_ptr_t);
-    int (*get_chan_all_cb)(RIG *rig, chan_cb_t chan_cb, rig_ptr_t);
+    int (*set_chan_all_cb)(RIG *rig, vfo_t vfo, chan_cb_t chan_cb, rig_ptr_t);
+    int (*get_chan_all_cb)(RIG *rig, vfo_t vfo, chan_cb_t chan_cb, rig_ptr_t);
 
     int (*set_mem_all_cb)(RIG *rig,
                           chan_cb_t chan_cb,
@@ -1901,6 +1901,7 @@ typedef struct hamlib_port {
             int value;      /*!< Toggle PTT ON or OFF */
         } gpio;             /*!< GPIO attributes */
     } parm;                 /*!< Port parameter union */
+    int flushx;             /*!< If true flush is done with read instead of TCFLUSH - MicroHam */
 } hamlib_port_t;
 //! @endcond
 
@@ -2560,46 +2561,56 @@ rig_has_scan HAMLIB_PARAMS((RIG *rig,
                             scan_t scan));
 
 extern HAMLIB_EXPORT(int)
-rig_set_channel HAMLIB_PARAMS((RIG *rig,
+rig_set_channel HAMLIB_PARAMS((RIG *rig, 
+                               vfo_t vfo,
                                const channel_t *chan)); /* mem */
 extern HAMLIB_EXPORT(int)
-rig_get_channel HAMLIB_PARAMS((RIG *rig,
+rig_get_channel HAMLIB_PARAMS((RIG *rig, 
+                               vfo_t vfo,
                                channel_t *chan, int read_only));
 
 extern HAMLIB_EXPORT(int)
-rig_set_chan_all HAMLIB_PARAMS((RIG *rig,
+rig_set_chan_all HAMLIB_PARAMS((RIG *rig, 
+                                vfo_t vfo,
                                 const channel_t chans[]));
 extern HAMLIB_EXPORT(int)
-rig_get_chan_all HAMLIB_PARAMS((RIG *rig,
+rig_get_chan_all HAMLIB_PARAMS((RIG *rig, 
+                                vfo_t vfo,
                                 channel_t chans[]));
 
 extern HAMLIB_EXPORT(int)
-rig_set_chan_all_cb HAMLIB_PARAMS((RIG *rig,
+rig_set_chan_all_cb HAMLIB_PARAMS((RIG *rig, 
+                                   vfo_t vfo,
                                    chan_cb_t chan_cb,
                                    rig_ptr_t));
 extern HAMLIB_EXPORT(int)
-rig_get_chan_all_cb HAMLIB_PARAMS((RIG *rig,
+rig_get_chan_all_cb HAMLIB_PARAMS((RIG *rig, 
+                                   vfo_t vfo,
                                    chan_cb_t chan_cb,
                                    rig_ptr_t));
 
 extern HAMLIB_EXPORT(int)
 rig_set_mem_all_cb HAMLIB_PARAMS((RIG *rig,
+                                  vfo_t vfo,
                                   chan_cb_t chan_cb,
                                   confval_cb_t parm_cb,
                                   rig_ptr_t));
 extern HAMLIB_EXPORT(int)
-rig_get_mem_all_cb HAMLIB_PARAMS((RIG *rig,
+rig_get_mem_all_cb HAMLIB_PARAMS((RIG *rig, 
+                                  vfo_t vfo,
                                   chan_cb_t chan_cb,
                                   confval_cb_t parm_cb,
                                   rig_ptr_t));
 
 extern HAMLIB_EXPORT(int)
 rig_set_mem_all HAMLIB_PARAMS((RIG *rig,
+                               vfo_t vfo,
                                const channel_t *chan,
                                const struct confparams *,
                                const value_t *));
 extern HAMLIB_EXPORT(int)
 rig_get_mem_all HAMLIB_PARAMS((RIG *rig,
+                               vfo_t vfo,
                                channel_t *chan,
                                const struct confparams *,
                                value_t *));
