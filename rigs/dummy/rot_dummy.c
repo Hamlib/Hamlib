@@ -31,6 +31,7 @@
 #include "hamlib/rotator.h"
 #include "dummy_common.h"
 #include "register.h"
+#include "idx_builtin.h"
 
 #include "rot_dummy.h"
 
@@ -847,7 +848,7 @@ const struct rot_caps dummy_rot_caps =
     ROT_MODEL(ROT_MODEL_DUMMY),
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
-    .version =        "20200310.0",
+    .version =        "20201202.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_AZEL,
@@ -867,7 +868,7 @@ const struct rot_caps dummy_rot_caps =
     .has_get_parm =    DUMMY_ROT_PARM,
     .has_set_parm =    ROT_PARM_SET(DUMMY_ROT_PARM),
 
-    .level_gran =      { [ROT_LEVEL_SPEED] = { .min = { .i = 1 }, .max = { .i = 4 }, .step = { .i = 1 } } },
+    .level_gran =      { [ROT_LVL_SPEED] = { .min = { .i = 1 }, .max = { .i = 4 }, .step = { .i = 1 } } },
 
     .extlevels =    dummy_ext_levels,
     .extfuncs =     dummy_ext_funcs,
