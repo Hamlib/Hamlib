@@ -238,7 +238,7 @@ typedef enum {
  */
 enum rot_level_e {
     ROT_LEVEL_NONE =        0,              /*!< '' -- No Level */
-    ROT_LEVEL_SPEED =       (1 << 0),       /*!< \c SPEED -- Rotation speed, arg int (1-100) */
+    ROT_LEVEL_SPEED =       (1 << 0),       /*!< \c SPEED -- Rotation speed, arg int (default range 1-100 if not specified) */
     ROT_LEVEL_63 =          CONSTANT_64BIT_FLAG(63),      /*!< \c Future use, last level */
 };
 
