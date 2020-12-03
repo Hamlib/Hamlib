@@ -35,11 +35,14 @@
 #include "serial.h"
 #include "misc.h"
 #include "register.h"
+#include "idx_builtin.h"
 
 #include "ether6.h"
 
 #define CMD_MAX 32
 #define BUF_MAX 64
+
+#define ETHER_LEVELS ROT_LEVEL_SPEED
 
 /*
  * Helper function with protocol return code parsing
@@ -306,6 +309,51 @@ static int ether_rot_move(ROT *rot, int direction, int speed)
 }
 
 
+static int ether_rot_get_level(ROT *rot, setting_t level, value_t *val)
+{
+    struct rot_state *rs = &rot->state;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, rot_strlevel(level));
+
+    switch (level) {
+        case ROT_LEVEL_SPEED:
+            val->i = rs->current_speed;
+            break;
+        default:
+            return -RIG_ENAVAIL;
+    }
+
+    return RIG_OK;
+}
+
+
+static int ether_rot_set_level(ROT *rot, setting_t level, value_t val)
+{
+    struct rot_state *rs = &rot->state;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, rot_strlevel(level));
+
+    switch (level) {
+        case ROT_LEVEL_SPEED: {
+            int speed = val.i;
+            if (speed < 1) {
+                speed = 1;
+            } else if (speed > 100) {
+                speed = 100;
+            }
+
+            rs->current_speed = speed;
+            break;
+        }
+        default:
+            return -RIG_ENAVAIL;
+    }
+
+    return RIG_OK;
+}
+
+
+
 static const char *ether_rot_get_info(ROT *rot)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -313,6 +361,18 @@ static const char *ether_rot_get_info(ROT *rot)
     return "ip rotator via ethersex";
 }
 
+
+static int ether_rot_init(ROT *rot)
+{
+    struct rot_state *rs = &rot->state;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    // Set default speed to half of maximum
+    rs->current_speed = 00;
+
+    return RIG_OK;
+}
 
 
 /*
@@ -324,7 +384,7 @@ const struct rot_caps ether6_rot_caps =
     ROT_MODEL(ROT_MODEL_ETHER6),
     .model_name =     "Ether6 (via ethernet)",
     .mfg_name =       "DG9OAA",
-    .version =        "20200106.0",
+    .version =        "20201203.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_BETA,
     .rot_type =       ROT_FLAG_AZIMUTH,
@@ -339,8 +399,13 @@ const struct rot_caps ether6_rot_caps =
 
     .priv =  NULL,    /* priv */
 
-    /* .rot_init     =  ether_rot_init, */
-    /* .rot_cleanup  =  ether_rot_cleanup, */
+    .has_get_level =  ETHER_LEVELS,
+    .has_set_level =  ROT_LEVEL_SET(ETHER_LEVELS),
+
+    .level_gran =      { [ROT_LVL_SPEED] = { .min = { .i = 0 }, .max = { .i = 9999 }, .step = { .i = 1 } } },
+
+    .rot_init     =  ether_rot_init,
+    .rot_cleanup  =  NULL,
 
     .rot_open     =  ether_rot_open,
     .rot_close    =  ether_rot_close,
@@ -351,6 +416,8 @@ const struct rot_caps ether6_rot_caps =
     .stop         =  ether_rot_stop,
     .reset        =  ether_rot_reset,
     .move         =  ether_rot_move,
+    .get_level    =  ether_rot_get_level,
+    .set_level    =  ether_rot_set_level,
 
     .get_info     =  ether_rot_get_info,
 };

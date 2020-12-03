@@ -23,8 +23,12 @@
 #define _ROT_GS232A_H 1
 
 extern const struct rot_caps gs232a_rot_caps;
+extern const struct rot_caps gs232a_az_rot_caps;
+extern const struct rot_caps gs232a_el_rot_caps;
 extern const struct rot_caps gs232_generic_rot_caps;
 extern const struct rot_caps gs232b_rot_caps;
+extern const struct rot_caps gs232b_az_rot_caps;
+extern const struct rot_caps gs232b_el_rot_caps;
 extern const struct rot_caps f1tetracker_rot_caps;
 extern const struct rot_caps gs23_rot_caps;
 extern const struct rot_caps gs232_rot_caps;

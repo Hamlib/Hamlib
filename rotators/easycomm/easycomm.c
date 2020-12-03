@@ -35,8 +35,11 @@
 #include "serial.h"
 #include "misc.h"
 #include "register.h"
+#include "idx_builtin.h"
 
 #include "easycomm.h"
+
+#define EASYCOMM3_LEVELS ROT_LEVEL_SPEED
 
 /* ************************************************************************* */
 /**
@@ -247,8 +250,7 @@ easycomm_rot_move(ROT *rot, int direction, int speed)
     return RIG_OK;
 }
 
-static int
-easycomm_rot_move_velocity(ROT *rot, int direction, int speed)
+static int easycomm_rot_move_velocity(ROT *rot, int direction, int speed)
 {
     struct rot_state *rs = &rot->state;
     char cmdstr[24];
@@ -258,7 +260,7 @@ easycomm_rot_move_velocity(ROT *rot, int direction, int speed)
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     if (speed == ROT_SPEED_NOCHANGE) {
-        easycomm_speed = ((rs->current_speed - 1) * 100);
+        easycomm_speed = rs->current_speed;
     } else {
         if (speed < 1 || speed > 100)
         {
@@ -267,8 +269,8 @@ easycomm_rot_move_velocity(ROT *rot, int direction, int speed)
             return -RIG_EINVAL;
         }
 
-        rs->current_speed = speed;
         easycomm_speed = ((speed - 1) * 100);
+        rs->current_speed = easycomm_speed;
     }
 
     /* Speed for EasyComm 3 */
@@ -301,6 +303,49 @@ easycomm_rot_move_velocity(ROT *rot, int direction, int speed)
     if (retval != RIG_OK)
     {
         return retval;
+    }
+
+    return RIG_OK;
+}
+
+static int easycomm_rot_get_level(ROT *rot, setting_t level, value_t *val)
+{
+    struct rot_state *rs = &rot->state;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, rot_strlevel(level));
+
+    switch (level) {
+        case ROT_LEVEL_SPEED:
+            val->i = rs->current_speed;
+            break;
+        default:
+            return -RIG_ENAVAIL;
+    }
+
+    return RIG_OK;
+}
+
+
+static int easycomm_rot_set_level(ROT *rot, setting_t level, value_t val)
+{
+    struct rot_state *rs = &rot->state;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, rot_strlevel(level));
+
+    switch (level) {
+        case ROT_LEVEL_SPEED: {
+            int speed = val.i;
+            if (speed < 0) {
+                speed = 0;
+            } else if (speed > 9999) {
+                speed = 9999;
+            }
+
+            rs->current_speed = speed;
+            break;
+        }
+        default:
+            return -RIG_ENAVAIL;
     }
 
     return RIG_OK;
@@ -441,6 +486,19 @@ static int easycomm_rot_set_conf(ROT *rot, token_t token, const char *val)
     return RIG_OK;
 }
 
+
+static int easycomm_rot_init(ROT *rot)
+{
+    struct rot_state *rs = &rot->state;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    // Set default speed to half of maximum
+    rs->current_speed = 5000;
+
+    return RIG_OK;
+}
+
 /* ************************************************************************* */
 /*
  * Easycomm rotator capabilities.
@@ -537,7 +595,7 @@ const struct rot_caps easycomm3_rot_caps =
     ROT_MODEL(ROT_MODEL_EASYCOMM3),
     .model_name =     "EasycommIII",
     .mfg_name =       "Hamlib",
-    .version =        "20201118.0",
+    .version =        "20201203.0",
     .copyright =   "LGPL",
     .status =         RIG_STATUS_ALPHA,
     .rot_type =       ROT_TYPE_OTHER,
@@ -560,7 +618,12 @@ const struct rot_caps easycomm3_rot_caps =
 
     .priv =  NULL,    /* priv */
 
-    .rot_init =  NULL,
+    .has_get_level =  EASYCOMM3_LEVELS,
+    .has_set_level =  ROT_LEVEL_SET(EASYCOMM3_LEVELS),
+
+    .level_gran =      { [ROT_LVL_SPEED] = { .min = { .i = 0 }, .max = { .i = 9999 }, .step = { .i = 1 } } },
+
+    .rot_init =  easycomm_rot_init,
     .rot_cleanup =  NULL,
     .rot_open =  NULL,
     .rot_close =  NULL,
@@ -571,6 +634,8 @@ const struct rot_caps easycomm3_rot_caps =
     .park =  easycomm_rot_park,
     .reset =  easycomm_rot_reset,
     .move =  easycomm_rot_move_velocity,
+    .get_level = easycomm_rot_get_level,
+    .set_level = easycomm_rot_set_level,
     .set_conf = easycomm_rot_set_conf,
     .get_conf = easycomm_rot_get_conf,
     .get_info =  easycomm_rot_get_info,
