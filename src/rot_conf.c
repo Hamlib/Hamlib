@@ -73,6 +73,12 @@ static const struct confparams rotfrontend_cfg_params[] =
         TOK_RETRY, "retry", "Retry", "Max number of retry",
         "0", RIG_CONF_NUMERIC, { .n = { 0, 10, 1 } }
     },
+    {
+        TOK_FLUSHX, "flushx", "Flush with read instead of TCFLUSH",
+        "True enables flushing serial port with read instead of TCFLUSH -- MicroHam",
+        "0", RIG_CONF_CHECKBUTTON, { }
+    },
+
 
     {
         TOK_MIN_AZ, "min_az", "Minimum azimuth",
@@ -294,6 +300,10 @@ int frontrot_set_conf(ROT *rot, token_t token, const char *val)
             return -RIG_EINVAL;
         }
 
+        break;
+
+    case TOK_FLUSHX:
+        rs->rotport.flushx = atoi(val);
         break;
 
     case TOK_MIN_AZ:
