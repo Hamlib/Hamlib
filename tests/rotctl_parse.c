@@ -187,6 +187,7 @@ declare_proto_rot(get_func);
 declare_proto_rot(set_parm);
 declare_proto_rot(get_parm);
 declare_proto_rot(get_info);
+declare_proto_rot(get_status);
 declare_proto_rot(inter_set_conf);  /* interactive mode set_conf */
 declare_proto_rot(send_cmd);
 declare_proto_rot(dump_state);
@@ -224,6 +225,7 @@ struct test_table test_list[] =
     { 'x',  "get_parm",     ACTION(get_parm),           ARG_IN1 | ARG_OUT2, "Parm", "Parm Value" },
     { 'C', "set_conf",      ACTION(inter_set_conf),     ARG_IN, "Token", "Value" },
     { '_', "get_info",      ACTION(get_info),           ARG_OUT, "Info" },
+    { 's', "get_status",    ACTION(get_status),         ARG_OUT, "Status flags" },
     { 'w', "send_cmd",      ACTION(send_cmd),           ARG_IN1 | ARG_IN_LINE | ARG_OUT2, "Cmd", "Reply" },
     { '1', "dump_caps",     ACTION(dump_caps), },
     { 0x8f, "dump_state",   ACTION(dump_state),         ARG_OUT },
@@ -1729,7 +1731,7 @@ declare_proto_rot(set_position)
 
     CHKSCN1ARG(sscanf(arg1, "%f", &az));
     CHKSCN1ARG(sscanf(arg2, "%f", &el));
-    return rot_set_position(rot, az + rot->state.az_offset, el);
+    return rot_set_position(rot, az, el);
 }
 
 
@@ -1741,8 +1743,6 @@ declare_proto_rot(get_position)
     elevation_t el;
 
     status = rot_get_position(rot, &az, &el);
-
-    az -= rot->state.az_offset;
 
     if (status != RIG_OK)
     {
@@ -1804,6 +1804,32 @@ declare_proto_rot(get_info)
     }
 
     fprintf(fout, "%s%c", s ? s : "None", resp_sep);
+
+    return RIG_OK;
+}
+
+
+/* 's' */
+declare_proto_rot(get_status)
+{
+    int result;
+    rot_status_t status;
+    char s[SPRINTF_MAX_SIZE];
+
+    result = rot_get_status(rot, &status);
+
+    if (result != RIG_OK)
+    {
+        return result;
+    }
+
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
+        fprintf(fout, "%s: ", cmd->arg1);
+    }
+
+    rot_sprintf_status(s, status);
+    fprintf(fout, "%s%c", s, resp_sep);
 
     return RIG_OK;
 }

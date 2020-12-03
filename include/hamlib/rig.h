@@ -2787,16 +2787,6 @@ extern HAMLIB_EXPORT(scan_t) rig_parse_scan(const char *s);
 extern HAMLIB_EXPORT(rptr_shift_t) rig_parse_rptr_shift(const char *s);
 extern HAMLIB_EXPORT(chan_type_t) rig_parse_mtype(const char *s);
 
-extern HAMLIB_EXPORT(setting_t) rot_parse_func(const char *s);
-extern HAMLIB_EXPORT(setting_t) rot_parse_level(const char *s);
-extern HAMLIB_EXPORT(setting_t) rot_parse_parm(const char *s);
-extern HAMLIB_EXPORT(const char *) rot_strfunc(setting_t);
-extern HAMLIB_EXPORT(const char *) rot_strlevel(setting_t);
-extern HAMLIB_EXPORT(const char *) rot_strparm(setting_t);
-
-extern HAMLIB_EXPORT(setting_t) amp_parse_level(const char *s);
-extern HAMLIB_EXPORT(const char *) amp_strlevel(setting_t);
-
 extern HAMLIB_EXPORT(const char *) rig_license HAMLIB_PARAMS(());
 extern HAMLIB_EXPORT(const char *) rig_version HAMLIB_PARAMS(());
 extern HAMLIB_EXPORT(const char *) rig_copyright HAMLIB_PARAMS(());

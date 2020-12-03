@@ -397,6 +397,10 @@ extern HAMLIB_EXPORT(const char *) amp_strlevel(setting_t);
 extern HAMLIB_EXPORT(const struct confparams *)
 rig_ext_lookup HAMLIB_PARAMS((RIG *rig,
                               const char *name));
+
+extern HAMLIB_EXPORT(setting_t) amp_parse_level(const char *s);
+extern HAMLIB_EXPORT(const char *) amp_strlevel(setting_t);
+
 //! @endcond
 
 
