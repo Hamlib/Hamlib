@@ -23,6 +23,7 @@
 #define _SPRINTFLST_H 1
 
 #include <hamlib/rig.h>
+#include <hamlib/rotator.h>
 
 #define SPRINTF_MAX_SIZE 512
 
@@ -45,6 +46,7 @@ extern int rig_sprintf_parm_gran(char *str, setting_t parm, const gran_t *gran);
 extern int rot_sprintf_parm_gran(char *str, setting_t parm, const gran_t *gran);
 extern int rig_sprintf_vfop(char *str, vfo_op_t op);
 extern int rig_sprintf_scan(char *str, scan_t rscan);
+extern int rot_sprintf_status(char *str, rot_status_t status);
 extern char *get_rig_conf_type(enum rig_conf_e type);
 int print_ext_param(const struct confparams *cfp, rig_ptr_t ptr);
 

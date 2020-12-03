@@ -39,6 +39,10 @@
 #define DUMMY_ROT_LEVEL ROT_LEVEL_SPEED
 #define DUMMY_ROT_PARM 0
 
+#define DUMMY_ROT_STATUS (ROT_STATUS_MOVING | ROT_STATUS_MOVING_AZ | ROT_STATUS_MOVING_LEFT | ROT_STATUS_MOVING_RIGHT | \
+        ROT_STATUS_MOVING_EL | ROT_STATUS_MOVING_UP | ROT_STATUS_MOVING_DOWN | \
+        ROT_STATUS_LIMIT_UP | ROT_STATUS_LIMIT_DOWN | ROT_STATUS_LIMIT_LEFT | ROT_STATUS_LIMIT_RIGHT)
+
 struct dummy_rot_priv_data
 {
     azimuth_t az;
@@ -47,6 +51,7 @@ struct dummy_rot_priv_data
     struct timeval tv;  /* time last az/el update */
     azimuth_t target_az;
     elevation_t target_el;
+    rot_status_t status;
 
     setting_t funcs;
     value_t levels[RIG_SETTING_MAX];
@@ -254,26 +259,12 @@ static int dummy_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
     return RIG_OK;
 }
 
-
-/*
- * Get position of rotor, simulating slow rotation
- */
-static int dummy_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
+static void dummy_rot_simulate_rotation(ROT *rot)
 {
-    struct dummy_rot_priv_data *priv = (struct dummy_rot_priv_data *)
+   struct dummy_rot_priv_data *priv = (struct dummy_rot_priv_data *)
                                        rot->state.priv;
     struct timeval tv;
     unsigned elapsed; /* ms */
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (priv->az == priv->target_az &&
-            priv->el == priv->target_el)
-    {
-        *az = priv->az;
-        *el = priv->el;
-        return RIG_OK;
-    }
 
     gettimeofday(&tv, NULL);
 
@@ -289,16 +280,19 @@ static int dummy_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     {
         /* target reached */
         priv->az = priv->target_az;
+        priv->status &= ~(ROT_STATUS_MOVING_AZ | ROT_STATUS_MOVING_LEFT | ROT_STATUS_MOVING_RIGHT);
     }
     else
     {
         if (priv->az < priv->target_az)
         {
             priv->az += (azimuth_t)elapsed * DEG_PER_MS;
+            priv->status |= ROT_STATUS_MOVING_AZ | ROT_STATUS_MOVING_RIGHT;
         }
         else
         {
             priv->az -= (azimuth_t)elapsed * DEG_PER_MS;
+            priv->status |=  ROT_STATUS_MOVING_AZ | ROT_STATUS_MOVING_LEFT;
         }
     }
 
@@ -306,23 +300,54 @@ static int dummy_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     {
         /* target reached */
         priv->el = priv->target_el;
+        priv->status &= ~(ROT_STATUS_MOVING_EL | ROT_STATUS_MOVING_UP | ROT_STATUS_MOVING_DOWN);
     }
     else
     {
         if (priv->el < priv->target_el)
         {
             priv->el += (elevation_t)elapsed * DEG_PER_MS;
+            priv->status |= ROT_STATUS_MOVING_EL | ROT_STATUS_MOVING_UP;
         }
         else
         {
             priv->el -= (elevation_t)elapsed * DEG_PER_MS;
+            priv->status |= ROT_STATUS_MOVING_EL | ROT_STATUS_MOVING_DOWN;
         }
     }
 
-    *az = priv->az;
-    *el = priv->el;
+    if (priv->status & (ROT_STATUS_MOVING_AZ | ROT_STATUS_MOVING_EL)) {
+        priv->status |= ROT_STATUS_MOVING;
+    } else {
+        priv->status &= ~(ROT_STATUS_MOVING);
+    }
 
     priv->tv = tv;
+}
+
+
+/*
+ * Get position of rotor, simulating slow rotation
+ */
+static int dummy_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
+{
+    struct dummy_rot_priv_data *priv = (struct dummy_rot_priv_data *)
+                                       rot->state.priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (priv->az == priv->target_az &&
+            priv->el == priv->target_el)
+    {
+        *az = priv->az;
+        *el = priv->el;
+        return RIG_OK;
+    }
+
+    dummy_rot_simulate_rotation(rot);
+
+    *az = priv->az;
+    *el = priv->el;
 
     return RIG_OK;
 }
@@ -839,16 +864,27 @@ static int dummy_get_ext_parm(ROT *rot, token_t token, value_t *val)
 }
 
 
+static int dummy_rot_get_status(ROT *rot, rot_status_t *status)
+{
+    struct dummy_rot_priv_data *priv = (struct dummy_rot_priv_data *)rot->state.priv;
+
+    dummy_rot_simulate_rotation(rot);
+
+    *status = priv->status;
+
+    return RIG_OK;
+}
+
+
 /*
  * Dummy rotator capabilities.
  */
-
 const struct rot_caps dummy_rot_caps =
 {
     ROT_MODEL(ROT_MODEL_DUMMY),
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
-    .version =        "20201202.0",
+    .version =        "20201203.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_AZEL,
@@ -874,6 +910,8 @@ const struct rot_caps dummy_rot_caps =
     .extfuncs =     dummy_ext_funcs,
     .extparms =     dummy_ext_parms,
     .cfgparams =    dummy_cfg_params,
+
+    .has_status = DUMMY_ROT_STATUS,
 
     .rot_init =     dummy_rot_init,
     .rot_cleanup =  dummy_rot_cleanup,
@@ -904,7 +942,8 @@ const struct rot_caps dummy_rot_caps =
     .set_ext_parm = dummy_set_ext_parm,
     .get_ext_parm = dummy_get_ext_parm,
 
-    .get_info =      dummy_rot_get_info,
+    .get_info = dummy_rot_get_info,
+    .get_status = dummy_rot_get_status,
 };
 
 DECLARE_INITROT_BACKEND(dummy)

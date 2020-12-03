@@ -48,7 +48,6 @@
 #  include <sys/time.h>
 #endif
 
-#include <unistd.h>
 #include <math.h>
 
 #include <hamlib/rig.h>
@@ -1758,6 +1757,54 @@ int HAMLIB_API rig_flush(hamlib_port_t *port)
 
     return serial_flush(port); // we must be on serial port
 }
+
+
+static struct
+{
+    rot_status_t status;
+    const char *str;
+} rot_status_str[] =
+{
+    { ROT_STATUS_BUSY, "BUSY" },
+    { ROT_STATUS_MOVING, "MOVING" },
+    { ROT_STATUS_MOVING_AZ, "MOVING_AZ" },
+    { ROT_STATUS_MOVING_LEFT, "MOVING_LEFT" },
+    { ROT_STATUS_MOVING_RIGHT, "MOVING_RIGHT" },
+    { ROT_STATUS_MOVING_EL, "MOVING_EL" },
+    { ROT_STATUS_MOVING_UP, "MOVING_UP" },
+    { ROT_STATUS_MOVING_DOWN, "MOVING_DOWN" },
+    { ROT_STATUS_LIMIT_UP, "LIMIT_UP" },
+    { ROT_STATUS_LIMIT_DOWN, "LIMIT_DOWN" },
+    { ROT_STATUS_LIMIT_LEFT, "LIMIT_LEFT" },
+    { ROT_STATUS_LIMIT_RIGHT, "LIMIT_RIGHT" },
+    { ROT_STATUS_OVERLAP_UP, "OVERLAP_UP" },
+    { ROT_STATUS_OVERLAP_DOWN, "OVERLAP_DOWN" },
+    { ROT_STATUS_OVERLAP_LEFT, "OVERLAP_LEFT" },
+    { ROT_STATUS_OVERLAP_RIGHT, "OVERLAP_RIGHT" },
+    { 0xffffff, "" },
+};
+
+
+/**
+ * \brief Convert enum ROT_STATUS_... to a string
+ * \param status ROT_STATUS_...
+ * \return the corresponding string value
+ */
+const char *HAMLIB_API rot_strstatus(rot_status_t status)
+{
+    int i;
+
+    for (i = 0 ; rot_status_str[i].str[0] != '\0'; i++)
+    {
+        if (status == rot_status_str[i].status)
+        {
+            return rot_status_str[i].str;
+        }
+    }
+
+    return "";
+}
+
 
 //! @endcond
 

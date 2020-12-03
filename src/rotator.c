@@ -283,6 +283,8 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
     rs->has_get_parm = caps->has_get_parm;
     rs->has_set_parm = caps->has_set_parm;
 
+    rs->has_status = caps->has_status;
+
     memcpy(rs->level_gran, caps->level_gran, sizeof(gran_t)*RIG_SETTING_MAX);
     memcpy(rs->parm_gran, caps->parm_gran, sizeof(gran_t)*RIG_SETTING_MAX);
 
@@ -597,6 +599,9 @@ int HAMLIB_API rot_set_position(ROT *rot,
         return -RIG_EINVAL;
     }
 
+    azimuth += rot->state.az_offset;
+    elevation += rot->state.el_offset;
+
     caps = rot->caps;
     rs = &rot->state;
 
@@ -648,6 +653,8 @@ int HAMLIB_API rot_get_position(ROT *rot,
 {
     const struct rot_caps *caps;
     const struct rot_state *rs;
+    azimuth_t az;
+    elevation_t el;
     int retval;
 
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -665,18 +672,20 @@ int HAMLIB_API rot_get_position(ROT *rot,
         return -RIG_ENAVAIL;
     }
 
-    retval = caps->get_position(rot, azimuth, elevation);
+    retval = caps->get_position(rot, &az, &el);
 
     if (retval != RIG_OK) { return retval; }
 
-    rot_debug(RIG_DEBUG_VERBOSE, "%s: got az=%.2f, el=%.2f\n", __func__, *azimuth,
-              *elevation);
+    rot_debug(RIG_DEBUG_VERBOSE, "%s: got az=%.2f, el=%.2f\n", __func__, az, el);
 
     if (rs->south_zero)
     {
-        *azimuth += *azimuth >= 180 ? -180 : 180;
-        rot_debug(RIG_DEBUG_VERBOSE, "%s: south adj to az=%.2f\n", __func__, *azimuth);
+        az += az >= 180 ? -180 : 180;
+        rot_debug(RIG_DEBUG_VERBOSE, "%s: south adj to az=%.2f\n", __func__, az);
     }
+
+    *azimuth = az - rot->state.az_offset;
+    *elevation = el - rot->state.el_offset;
 
     return RIG_OK;
 }
@@ -839,6 +848,35 @@ const char *HAMLIB_API rot_get_info(ROT *rot)
     }
 
     return rot->caps->get_info(rot);
+}
+
+
+/**
+ * \brief get status flags from the rotator
+ * \param rot The rot handle
+ * \param status a pointer to a rot_status_t variable that will receive the status flags
+ *
+ * Gets the active status flags from the rotator.
+ *
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
+ * set appropriately).
+ */
+int HAMLIB_API rot_get_status(ROT *rot, rot_status_t *status)
+{
+    rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (CHECK_ROT_ARG(rot))
+    {
+        return -RIG_EINVAL;
+    }
+
+    if (rot->caps->get_status == NULL)
+    {
+        return -RIG_ENAVAIL;
+    }
+
+    return rot->caps->get_status(rot, status);
 }
 
 /*! @} */

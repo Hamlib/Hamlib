@@ -665,6 +665,33 @@ int rig_sprintf_scan(char *str, scan_t rscan)
 }
 
 
+int rot_sprintf_status(char *str, rot_status_t status)
+{
+    int i, len = 0;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: status=%08x\n", __func__, status);
+    *str = '\0';
+
+    if (status == ROT_STATUS_NONE)
+    {
+        return 0;
+    }
+
+    for (i = 0; i < 32; i++)
+    {
+        const char *sv;
+        sv = rot_strstatus(status & ROT_STATUS_N(i));
+
+        if (sv && sv[0] && (strstr(sv, "None") == 0))
+        {
+            len += sprintf(str + len, "%s ", sv);
+        }
+    }
+
+    return len;
+}
+
+
 char *get_rig_conf_type(enum rig_conf_e type)
 {
     switch (type)
