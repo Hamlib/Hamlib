@@ -23,24 +23,32 @@
 #define _SPRINTFLST_H 1
 
 #include <hamlib/rig.h>
+#include <hamlib/rotator.h>
 
 #define SPRINTF_MAX_SIZE 512
 
 __BEGIN_DECLS
 
-extern int sprintf_mode(char *str, rmode_t);
-extern int sprintf_vfo(char *str, vfo_t);
-extern int sprintf_ant(char *str, ant_t);
-extern int sprintf_func(char *str, setting_t);
-extern int sprintf_level(char *str, setting_t);
-extern int sprintf_level_amp(char *str, setting_t);
-extern int sprintf_level_ext(char *str, const struct confparams *);
-extern int sprintf_level_gran(char *str, setting_t, const gran_t gran[]);
-extern int sprintf_parm(char *str, setting_t);
-extern int sprintf_parm_gran(char *str, setting_t, const gran_t gran[]);
-extern int sprintf_vfop(char *str, vfo_op_t);
-extern int sprintf_scan(char *str, scan_t);
+extern int rig_sprintf_mode(char *str, rmode_t mode);
+extern int rig_sprintf_vfo(char *str, vfo_t vfo);
+extern int rig_sprintf_ant(char *str, ant_t ant);
+extern int rig_sprintf_func(char *str, setting_t func);
+extern int rot_sprintf_func(char *str, setting_t func);
+extern int rig_sprintf_level(char *str, setting_t level);
+extern int rot_sprintf_level(char *str, setting_t level);
+extern int amp_sprintf_level(char *str, setting_t level);
+extern int sprintf_level_ext(char *str, const struct confparams *extlevels);
+extern int rig_sprintf_level_gran(char *str, setting_t level, const gran_t *gran);
+extern int rot_sprintf_level_gran(char *str, setting_t level, const gran_t *gran);
+extern int rig_sprintf_parm(char *str, setting_t parm);
+extern int rot_sprintf_parm(char *str, setting_t parm);
+extern int rig_sprintf_parm_gran(char *str, setting_t parm, const gran_t *gran);
+extern int rot_sprintf_parm_gran(char *str, setting_t parm, const gran_t *gran);
+extern int rig_sprintf_vfop(char *str, vfo_op_t op);
+extern int rig_sprintf_scan(char *str, scan_t rscan);
+extern int rot_sprintf_status(char *str, rot_status_t status);
 extern char *get_rig_conf_type(enum rig_conf_e type);
+int print_ext_param(const struct confparams *cfp, rig_ptr_t ptr);
 
 __END_DECLS
 

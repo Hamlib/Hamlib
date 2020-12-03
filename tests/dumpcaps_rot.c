@@ -34,6 +34,11 @@
 #include "rotctl_parse.h"
 
 
+static int print_ext(ROT *rot, const struct confparams *cfp, rig_ptr_t ptr)
+{
+    return print_ext_param(cfp, ptr);
+}
+
 /*
  * the rot may be in rot_init state, but not opened
  */
@@ -41,6 +46,7 @@ int dumpcaps_rot(ROT *rot, FILE *fout)
 {
     const struct rot_caps *caps;
     int backend_warnings = 0;
+    static char prntbuf[1024];
 
     if (!rot || !rot->caps)
     {
@@ -140,6 +146,62 @@ int dumpcaps_rot(ROT *rot, FILE *fout)
             "Post Write delay:\t%dmS\n",
             caps->post_write_delay);
 
+    if (rot->state.has_status != 0)
+    {
+        rot_sprintf_status(prntbuf, rot->state.has_status);
+    }
+    else
+    {
+        strcpy(prntbuf, "None\n");
+    }
+
+    fprintf(fout, "Status flags: %s\n", prntbuf);
+
+    rot_sprintf_func(prntbuf, caps->has_get_func);
+    fprintf(fout, "Get functions: %s\n", prntbuf);
+
+    rot_sprintf_func(prntbuf, caps->has_set_func);
+    fprintf(fout, "Set functions: %s\n", prntbuf);
+
+    fprintf(fout, "Extra functions:\n");
+    rot_ext_func_foreach(rot, print_ext, fout);
+
+    rot_sprintf_level_gran(prntbuf, caps->has_get_level, caps->level_gran);
+    fprintf(fout, "Get level: %s\n", prntbuf);
+
+    if ((caps->has_get_level & RIG_LEVEL_SQLSTAT))
+    {
+        fprintf(fout, "Warning--backend uses deprecated SQLSTAT level!\n");
+        backend_warnings++;
+    }
+
+    rot_sprintf_level_gran(prntbuf, caps->has_set_level, caps->level_gran);
+    fprintf(fout, "Set level: %s\n", prntbuf);
+
+    if (caps->has_set_level & ROT_LEVEL_READONLY_LIST)
+    {
+        fprintf(fout, "Warning--backend can set readonly levels!\n");
+        backend_warnings++;
+    }
+
+    fprintf(fout, "Extra levels:\n");
+    rot_ext_level_foreach(rot, print_ext, fout);
+
+    rot_sprintf_parm_gran(prntbuf, caps->has_get_parm, caps->parm_gran);
+    fprintf(fout, "Get parameters: %s\n", prntbuf);
+
+    rot_sprintf_parm_gran(prntbuf, caps->has_set_parm, caps->parm_gran);
+    fprintf(fout, "Set parameters: %s\n", prntbuf);
+
+    if (caps->has_set_parm & ROT_PARM_READONLY_LIST)
+    {
+        fprintf(fout, "Warning--backend can set readonly parms!\n");
+        backend_warnings++;
+    }
+
+    fprintf(fout, "Extra parameters:\n");
+    rot_ext_parm_foreach(rot, print_ext, fout);
+
     fprintf(fout, "Min Azimuth:\t\t%.2f\n", caps->min_az);
     fprintf(fout, "Max Azimuth:\t\t%.2f\n", caps->max_az);
 
@@ -172,7 +234,16 @@ int dumpcaps_rot(ROT *rot, FILE *fout)
     fprintf(fout, "Can Park:\t\t%c\n", caps->park != NULL ? 'Y' : 'N');
     fprintf(fout, "Can Reset:\t\t%c\n", caps->reset != NULL ? 'Y' : 'N');
     fprintf(fout, "Can Move:\t\t%c\n", caps->move != NULL ? 'Y' : 'N');
+
     fprintf(fout, "Can get Info:\t\t%c\n", caps->get_info != NULL ? 'Y' : 'N');
+    fprintf(fout, "Can get Status:\t\t%c\n", caps->get_status != NULL ? 'Y' : 'N');
+
+    fprintf(fout, "Can set Func:\t%c\n", caps->set_func != NULL ? 'Y' : 'N');
+    fprintf(fout, "Can get Func:\t%c\n", caps->get_func != NULL ? 'Y' : 'N');
+    fprintf(fout, "Can set Level:\t%c\n", caps->set_level != NULL ? 'Y' : 'N');
+    fprintf(fout, "Can get Level:\t%c\n", caps->get_level != NULL ? 'Y' : 'N');
+    fprintf(fout, "Can set Param:\t%c\n", caps->set_parm != NULL ? 'Y' : 'N');
+    fprintf(fout, "Can get Param:\t%c\n", caps->get_parm != NULL ? 'Y' : 'N');
 
     fprintf(fout, "\nOverall backend warnings: %d\n", backend_warnings);
 

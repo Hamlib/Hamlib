@@ -24,15 +24,11 @@
 #  include "config.h"
 #endif
 
-#include <stdlib.h>
-#include <stdarg.h>
 #include <stdio.h>   /* Standard input/output definitions */
 #include <string.h>  /* String function definitions */
-#include <unistd.h>  /* UNIX standard function definitions */
-#include <sys/types.h>
-#include <unistd.h>
 
 #include <hamlib/rig.h>
+#include <hamlib/rotator.h>
 #include <hamlib/amplifier.h>
 
 #include "sprintflst.h"
@@ -41,7 +37,7 @@
 /* #define DUMMY_ALL 0x7ffffffffffffffLL */
 #define DUMMY_ALL ((setting_t)-1)
 
-int sprintf_vfo(char *str, vfo_t vfo)
+int rig_sprintf_vfo(char *str, vfo_t vfo)
 {
     unsigned int i, len = 0;
 
@@ -68,7 +64,7 @@ int sprintf_vfo(char *str, vfo_t vfo)
 }
 
 
-int sprintf_mode(char *str, rmode_t mode)
+int rig_sprintf_mode(char *str, rmode_t mode)
 {
     uint64_t i, len = 0;
 
@@ -97,7 +93,7 @@ int sprintf_mode(char *str, rmode_t mode)
 }
 
 
-int sprintf_ant(char *str, ant_t ant)
+int rig_sprintf_ant(char *str, ant_t ant)
 {
     int i, len = 0;
     char *ant_name;
@@ -144,7 +140,7 @@ int sprintf_ant(char *str, ant_t ant)
 }
 
 
-int sprintf_func(char *str, setting_t func)
+int rig_sprintf_func(char *str, setting_t func)
 {
     uint64_t i, len = 0;
 
@@ -173,7 +169,36 @@ int sprintf_func(char *str, setting_t func)
 }
 
 
-int sprintf_level(char *str, setting_t level)
+int rot_sprintf_func(char *str, setting_t func)
+{
+    uint64_t i, len = 0;
+
+    *str = '\0';
+
+    if (func == ROT_FUNC_NONE)
+    {
+        return 0;
+    }
+
+    for (i = 0; i < RIG_SETTING_MAX; i++)
+    {
+        const char *ms = rot_strfunc(func & rig_idx2setting(i));
+
+        if (!ms || !ms[0])
+        {
+            continue;    /* unknown, FIXME! */
+        }
+
+        strcat(str, ms);
+        strcat(str, " ");
+        len += strlen(ms) + 1;
+    }
+
+    return len;
+}
+
+
+int rig_sprintf_level(char *str, setting_t level)
 {
     int i, len = 0;
 
@@ -201,7 +226,37 @@ int sprintf_level(char *str, setting_t level)
     return len;
 }
 
-int sprintf_level_amp(char *str, setting_t level)
+
+int rot_sprintf_level(char *str, setting_t level)
+{
+    int i, len = 0;
+
+    *str = '\0';
+
+    if (level == ROT_LEVEL_NONE)
+    {
+        return 0;
+    }
+
+    for (i = 0; i < RIG_SETTING_MAX; i++)
+    {
+        const char *ms = rot_strlevel(level & rig_idx2setting(i));
+
+        if (!ms || !ms[0])
+        {
+            continue;    /* unknown, FIXME! */
+        }
+
+        strcat(str, ms);
+        strcat(str, " ");
+        len += strlen(ms) + 1;
+    }
+
+    return len;
+}
+
+
+int amp_sprintf_level(char *str, setting_t level)
 {
     int i, len = 0;
 
@@ -270,7 +325,7 @@ int sprintf_level_ext(char *str, const struct confparams *extlevels)
 }
 
 
-int sprintf_level_gran(char *str, setting_t level, const gran_t gran[])
+int rig_sprintf_level_gran(char *str, setting_t level, const gran_t *gran)
 {
     int i, len = 0;
 
@@ -326,7 +381,63 @@ int sprintf_level_gran(char *str, setting_t level, const gran_t gran[])
 }
 
 
-int sprintf_parm(char *str, setting_t parm)
+int rot_sprintf_level_gran(char *str, setting_t level, const gran_t *gran)
+{
+    int i, len = 0;
+
+    *str = '\0';
+
+    if (level == ROT_LEVEL_NONE)
+    {
+        return 0;
+    }
+
+    for (i = 0; i < RIG_SETTING_MAX; i++)
+    {
+        const char *ms;
+
+        if (!(level & rig_idx2setting(i)))
+        {
+            continue;
+        }
+
+        ms = rot_strlevel(level & rig_idx2setting(i));
+
+        if (!ms || !ms[0])
+        {
+            if (level != DUMMY_ALL && level != ROT_LEVEL_SET(DUMMY_ALL))
+            {
+                rig_debug(RIG_DEBUG_BUG, "unknown level idx %d\n", i);
+            }
+
+            continue;
+        }
+
+        if (ROT_LEVEL_IS_FLOAT(rig_idx2setting(i)))
+        {
+            len += sprintf(str + len,
+                           "%s(%g..%g/%g) ",
+                           ms,
+                           gran[i].min.f,
+                           gran[i].max.f,
+                           gran[i].step.f);
+        }
+        else
+        {
+            len += sprintf(str + len,
+                           "%s(%d..%d/%d) ",
+                           ms,
+                           gran[i].min.i,
+                           gran[i].max.i,
+                           gran[i].step.i);
+        }
+    }
+
+    return len;
+}
+
+
+int rig_sprintf_parm(char *str, setting_t parm)
 {
     int i, len = 0;
 
@@ -355,7 +466,36 @@ int sprintf_parm(char *str, setting_t parm)
 }
 
 
-int sprintf_parm_gran(char *str, setting_t parm, const gran_t gran[])
+int rot_sprintf_parm(char *str, setting_t parm)
+{
+    int i, len = 0;
+
+    *str = '\0';
+
+    if (parm == ROT_PARM_NONE)
+    {
+        return 0;
+    }
+
+    for (i = 0; i < RIG_SETTING_MAX; i++)
+    {
+        const char *ms = rot_strparm(parm & rig_idx2setting(i));
+
+        if (!ms || !ms[0])
+        {
+            continue;    /* unknown, FIXME! */
+        }
+
+        strcat(str, ms);
+        strcat(str, " ");
+        len += strlen(ms) + 1;
+    }
+
+    return len;
+}
+
+
+int rig_sprintf_parm_gran(char *str, setting_t parm, const gran_t *gran)
 {
     int i, len = 0;
 
@@ -411,7 +551,63 @@ int sprintf_parm_gran(char *str, setting_t parm, const gran_t gran[])
 }
 
 
-int sprintf_vfop(char *str, vfo_op_t op)
+int rot_sprintf_parm_gran(char *str, setting_t parm, const gran_t *gran)
+{
+    int i, len = 0;
+
+    *str = '\0';
+
+    if (parm == ROT_PARM_NONE)
+    {
+        return 0;
+    }
+
+    for (i = 0; i < RIG_SETTING_MAX; i++)
+    {
+        const char *ms;
+
+        if (!(parm & rig_idx2setting(i)))
+        {
+            continue;
+        }
+
+        ms = rot_strparm(parm & rig_idx2setting(i));
+
+        if (!ms || !ms[0])
+        {
+            if (parm != DUMMY_ALL && parm != ROT_PARM_SET(DUMMY_ALL))
+            {
+                rig_debug(RIG_DEBUG_BUG, "unknown parm idx %d\n", i);
+            }
+
+            continue;
+        }
+
+        if (ROT_PARM_IS_FLOAT(rig_idx2setting(i)))
+        {
+            len += sprintf(str + len,
+                           "%s(%g..%g/%g) ",
+                           ms,
+                           gran[i].min.f,
+                           gran[i].max.f,
+                           gran[i].step.f);
+        }
+        else
+        {
+            len += sprintf(str + len,
+                           "%s(%d..%d/%d) ",
+                           ms,
+                           gran[i].min.i,
+                           gran[i].max.i,
+                           gran[i].step.i);
+        }
+    }
+
+    return len;
+}
+
+
+int rig_sprintf_vfop(char *str, vfo_op_t op)
 {
     int i, len = 0;
 
@@ -440,7 +636,7 @@ int sprintf_vfop(char *str, vfo_op_t op)
 }
 
 
-int sprintf_scan(char *str, scan_t rscan)
+int rig_sprintf_scan(char *str, scan_t rscan)
 {
     int i, len = 0;
 
@@ -468,6 +664,34 @@ int sprintf_scan(char *str, scan_t rscan)
     return len;
 }
 
+
+int rot_sprintf_status(char *str, rot_status_t status)
+{
+    int i, len = 0;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: status=%08x\n", __func__, status);
+    *str = '\0';
+
+    if (status == ROT_STATUS_NONE)
+    {
+        return 0;
+    }
+
+    for (i = 0; i < 32; i++)
+    {
+        const char *sv;
+        sv = rot_strstatus(status & ROT_STATUS_N(i));
+
+        if (sv && sv[0] && (strstr(sv, "None") == 0))
+        {
+            len += sprintf(str + len, "%s ", sv);
+        }
+    }
+
+    return len;
+}
+
+
 char *get_rig_conf_type(enum rig_conf_e type)
 {
     switch (type)
@@ -492,4 +716,39 @@ char *get_rig_conf_type(enum rig_conf_e type)
     }
 
     return "UNKNOWN";
+}
+
+int print_ext_param(const struct confparams *cfp, rig_ptr_t ptr)
+{
+    int i;
+    fprintf((FILE *)ptr, "\t%s\n", cfp->name);
+    fprintf((FILE *)ptr, "\t\tType: %s\n", get_rig_conf_type(cfp->type));
+    fprintf((FILE *)ptr, "\t\tDefault: %s\n", cfp->dflt != NULL ? cfp->dflt : "");
+    fprintf((FILE *)ptr, "\t\tLabel: %s\n", cfp->label != NULL ? cfp->label : "");
+    fprintf((FILE *)ptr, "\t\tTooltip: %s\n",
+            cfp->tooltip != NULL ? cfp->tooltip : "");
+
+    switch (cfp->type)
+    {
+    case RIG_CONF_NUMERIC:
+        fprintf((FILE *)ptr, "\t\tRange: %g..%g/%g\n", cfp->u.n.min, cfp->u.n.max,
+                cfp->u.n.step);
+        break;
+
+    case RIG_CONF_COMBO:
+        fprintf((FILE *)ptr, "\t\tValues:");
+
+        for (i = 0; i < RIG_COMBO_MAX && cfp->u.c.combostr[i] != NULL; i++)
+        {
+            fprintf((FILE *)ptr, " %d=\"%s\"", i, cfp->u.c.combostr[i]);
+        }
+
+        fprintf((FILE *)ptr, "\n");
+        break;
+
+    default:
+        break;
+    }
+
+    return 1;       /* process them all */
 }

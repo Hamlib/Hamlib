@@ -1,6 +1,6 @@
 /*
- *  Hamlib Rotator backend - GS-232 interface protocol
- *  Copyright (c) 2001-2010 by Stephane Fillod
+ *  Hamlib Dummy backend - shared routines
+ *  Copyright (c) 2020 by Mikael Nousiainen
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -19,20 +19,12 @@
  *
  */
 
-#ifndef _ROT_GS232A_H
-#define _ROT_GS232A_H 1
+#ifndef _DUMMY_COMMON_H
+#define _DUMMY_COMMON_H 1
 
-extern const struct rot_caps gs232a_rot_caps;
-extern const struct rot_caps gs232a_az_rot_caps;
-extern const struct rot_caps gs232a_el_rot_caps;
-extern const struct rot_caps gs232_generic_rot_caps;
-extern const struct rot_caps gs232b_rot_caps;
-extern const struct rot_caps gs232b_az_rot_caps;
-extern const struct rot_caps gs232b_el_rot_caps;
-extern const struct rot_caps f1tetracker_rot_caps;
-extern const struct rot_caps gs23_rot_caps;
-extern const struct rot_caps gs232_rot_caps;
-extern const struct rot_caps amsat_lvb_rot_caps;
-extern const struct rot_caps st2_rot_caps;
+#include "hamlib/rig.h"
 
-#endif /* _ROT_GS232A_H */
+struct ext_list *alloc_init_ext(const struct confparams *cfp);
+struct ext_list *find_ext(struct ext_list *elp, token_t token);
+
+#endif /* _DUMMY_H */
