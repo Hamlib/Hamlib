@@ -200,19 +200,26 @@ typedef enum {
  * \brief Rotator status flags
  */
 typedef enum {
-    ROT_STATUS_BUSY =              (1 << 1), /*!< Rotator is busy, not accepting commands */
-    ROT_STATUS_MOVING =            (1 << 2), /*!< Rotator is currently moving (direction type not specified) */
-    ROT_STATUS_MOVING_AZ =         (1 << 3), /*!< Azimuth rotator is currently moving */
-    ROT_STATUS_MOVING_EL =         (1 << 4), /*!< Elevation rotator is currently moving */
-    ROT_STATUS_UP_LIMIT =          (1 << 5), /*!< The elevation rotator has reached its limit to move up */
-    ROT_STATUS_DOWN_LIMIT =        (1 << 6), /*!< The elevation rotator has reached its limit to move down */
-    ROT_STATUS_LEFT_LIMIT =        (1 << 7), /*!< The azimuth rotator has reached its limit to move left (CCW) */
-    ROT_STATUS_RIGHT_LIMIT =       (1 << 8), /*!< The azimuth rotator has reached its limit to move right (CW) */
-    ROT_STATUS_UP_OVERLAP =        (1 << 9), /*!< The elevation rotator has rotated up past 360 degrees */
-    ROT_STATUS_DOWN_OVERLAP =      (1 << 10), /*!< The elevation rotator has rotated down past 0 degrees */
-    ROT_STATUS_LEFT_OVERLAP =      (1 << 11), /*!< The azimuth rotator has rotated left (CCW) past 0 degrees */
-    ROT_STATUS_RIGHT_OVERLAP =     (1 << 12), /*!< The azimuth rotator has rotated right (CW) past 360 degrees */
+    ROT_STATUS_NONE =              0,
+    ROT_STATUS_BUSY =              (1 << 0), /*!< Rotator is busy, not accepting commands */
+    ROT_STATUS_MOVING =            (1 << 1), /*!< Rotator is currently moving (direction type not specified) */
+    ROT_STATUS_MOVING_AZ =         (1 << 2), /*!< Azimuth rotator is currently moving (direction not specified) */
+    ROT_STATUS_MOVING_LEFT =       (1 << 3), /*!< Azimuth rotator is currently moving left */
+    ROT_STATUS_MOVING_RIGHT =      (1 << 4), /*!< Azimuth rotator is currently moving right */
+    ROT_STATUS_MOVING_EL =         (1 << 5), /*!< Elevation rotator is currently moving (direction not specified) */
+    ROT_STATUS_MOVING_UP =         (1 << 6), /*!< Elevation rotator is currently moving up */
+    ROT_STATUS_MOVING_DOWN =       (1 << 7), /*!< Elevation rotator is currently moving down */
+    ROT_STATUS_LIMIT_UP =          (1 << 8), /*!< The elevation rotator has reached its limit to move up */
+    ROT_STATUS_LIMIT_DOWN =        (1 << 9), /*!< The elevation rotator has reached its limit to move down */
+    ROT_STATUS_LIMIT_LEFT =        (1 << 10), /*!< The azimuth rotator has reached its limit to move left (CCW) */
+    ROT_STATUS_LIMIT_RIGHT =       (1 << 11), /*!< The azimuth rotator has reached its limit to move right (CW) */
+    ROT_STATUS_OVERLAP_UP =        (1 << 12), /*!< The elevation rotator has rotated up past 360 degrees */
+    ROT_STATUS_OVERLAP_DOWN =      (1 << 13), /*!< The elevation rotator has rotated down past 0 degrees */
+    ROT_STATUS_OVERLAP_LEFT =      (1 << 14), /*!< The azimuth rotator has rotated left (CCW) past 0 degrees */
+    ROT_STATUS_OVERLAP_RIGHT =     (1 << 16), /*!< The azimuth rotator has rotated right (CW) past 360 degrees */
 } rot_status_t;
+
+#define ROT_STATUS_N(n)        (1u<<(n))
 
 
 /**
@@ -339,6 +346,8 @@ struct rot_caps {
     setting_t has_get_parm;     /*!< List of get parm */
     setting_t has_set_parm;     /*!< List of set parm */
 
+    rot_status_t has_status;    /*!< Supported status flags */
+
     gran_t level_gran[RIG_SETTING_MAX]; /*!< level granularity (i.e. steps) */
     gran_t parm_gran[RIG_SETTING_MAX];  /*!< parm granularity (i.e. steps) */
 
@@ -409,12 +418,9 @@ struct rot_caps {
     int (*set_ext_parm)(ROT *rot, token_t token, value_t val);
     int (*get_ext_parm)(ROT *rot, token_t token, value_t *val);
 
+    int (*get_status)(ROT *rot, rot_status_t *status);
+
     const char *macro_name;                     /*!< Macro name. */
-
-    rot_status_t status_caps;                   /*!< Supported status flags */
-
-    rot_status_t (*get_status)(ROT *rot);
-    /* more to come... */
 };
 //! @endcond
 
@@ -448,6 +454,8 @@ struct rot_state {
     setting_t has_set_level;    /*!< List of set level */
     setting_t has_get_parm;     /*!< List of get parm */
     setting_t has_set_parm;     /*!< List of set parm */
+
+    rot_status_t has_status;    /*!< Supported status flags */
 
     gran_t level_gran[RIG_SETTING_MAX]; /*!< level granularity */
     gran_t parm_gran[RIG_SETTING_MAX];  /*!< parm granularity */
@@ -615,6 +623,10 @@ extern HAMLIB_EXPORT(const char *)
 rot_get_info HAMLIB_PARAMS((ROT *rot));
 
 extern HAMLIB_EXPORT(int)
+rot_get_status HAMLIB_PARAMS((ROT *rot,
+        rot_status_t *status));
+
+extern HAMLIB_EXPORT(int)
 rot_register HAMLIB_PARAMS((const struct rot_caps *caps));
 
 extern HAMLIB_EXPORT(int)
@@ -733,6 +745,14 @@ dmmm2dec HAMLIB_PARAMS((int degrees,
                         double minutes,
                         double seconds,
                         int sw));
+
+extern HAMLIB_EXPORT(setting_t) rot_parse_func(const char *s);
+extern HAMLIB_EXPORT(setting_t) rot_parse_level(const char *s);
+extern HAMLIB_EXPORT(setting_t) rot_parse_parm(const char *s);
+extern HAMLIB_EXPORT(const char *) rot_strfunc(setting_t);
+extern HAMLIB_EXPORT(const char *) rot_strlevel(setting_t);
+extern HAMLIB_EXPORT(const char *) rot_strparm(setting_t);
+extern HAMLIB_EXPORT(const char *) rot_strstatus(rot_status_t);
 
 //! @endcond
 
