@@ -1,5 +1,5 @@
 /*
- *  Hamlib Dummy backend - shard routines
+ *  Hamlib Dummy backend - shared routines
  *  Copyright (c) 2020 by Mikael Nousiainen
  *
  *
