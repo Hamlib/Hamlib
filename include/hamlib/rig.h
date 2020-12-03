@@ -996,11 +996,11 @@ typedef uint64_t setting_t;
 /*
  * The C standard dictates that an enum constant is a 32 bit signed integer.
  * Setting a constant's bit 31 created a negative value that on amd64 had the
- * upper 32 bits set as well when assigned to the misc.c:func_str structure.
+ * upper 32 bits set as well when assigned to the misc.c:rig_func_str structure.
  * This caused misc.c:rig_strfunc() to fail its comparison for RIG_FUNC_XIT
  * on amd64 (x86_64).  To use bit 31 as an unsigned long, preprocessor macros
  * have been used instead as a 'const unsigned long' which cannot be used to
- * initialize the func_str.func members.  TNX KA6MAL, AC6SL.  - N0NB
+ * initialize the rig_func_str.func members.  TNX KA6MAL, AC6SL.  - N0NB
  */
 #define RIG_FUNC_NONE       0                          /*!< '' -- No Function */
 #define RIG_FUNC_FAGC       CONSTANT_64BIT_FLAG (0)    /*!< \c FAGC -- Fast AGC */
@@ -2781,7 +2781,6 @@ extern HAMLIB_EXPORT(rmode_t) rig_parse_mode(const char *s);
 extern HAMLIB_EXPORT(vfo_t) rig_parse_vfo(const char *s);
 extern HAMLIB_EXPORT(setting_t) rig_parse_func(const char *s);
 extern HAMLIB_EXPORT(setting_t) rig_parse_level(const char *s);
-extern HAMLIB_EXPORT(setting_t) amp_parse_level(const char *s);
 extern HAMLIB_EXPORT(setting_t) rig_parse_parm(const char *s);
 extern HAMLIB_EXPORT(vfo_op_t) rig_parse_vfo_op(const char *s);
 extern HAMLIB_EXPORT(scan_t) rig_parse_scan(const char *s);

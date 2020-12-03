@@ -22,6 +22,19 @@
 #ifndef _ROT_DUMMY_H
 #define _ROT_DUMMY_H 1
 
+#include "token.h"
+
+/* backend conf */
+#define TOK_CFG_ROT_MAGICCONF    TOKEN_BACKEND(1)
+#define TOK_CFG_ROT_STATIC_DATA  TOKEN_BACKEND(2)
+
+/* ext_level's and ext_parm's tokens */
+#define TOK_EL_ROT_MAGICLEVEL    TOKEN_BACKEND(1)
+#define TOK_EL_ROT_MAGICFUNC     TOKEN_BACKEND(2)
+#define TOK_EL_ROT_MAGICOP       TOKEN_BACKEND(3)
+#define TOK_EP_ROT_MAGICPARM     TOKEN_BACKEND(4)
+#define TOK_EL_ROT_MAGICCOMBO    TOKEN_BACKEND(5)
+#define TOK_EL_ROT_MAGICEXTFUNC  TOKEN_BACKEND(6)
 
 extern const struct rot_caps dummy_rot_caps;
 extern const struct rot_caps netrotctl_caps;

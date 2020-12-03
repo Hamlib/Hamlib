@@ -23,6 +23,7 @@
 #define _IDX_BUILTIN_H 1
 
 #include <hamlib/rig.h>
+#include <hamlib/rotator.h>
 
 /*
  * only for Hamlib internal use (backend caps)
@@ -184,6 +185,10 @@
 #define PARM_TIME      setting2idx_builtin(RIG_PARM_TIME)
 #define PARM_BAT       setting2idx_builtin(RIG_PARM_BAT)
 #define PARM_KEYLIGHT  setting2idx_builtin(RIG_PARM_KEYLIGHT)
+
+/* Rotator levels */
+
+#define ROT_LVL_SPEED  setting2idx_builtin(ROT_LEVEL_SPEED)
 
 
 #endif  /* _IDX_BUILTIN_H */

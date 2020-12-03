@@ -131,7 +131,7 @@ int dumpcaps_amp(AMP *amp, FILE *fout)
 
     fprintf(fout, "Has priv data:\t\t%c\n", caps->priv != NULL ? 'Y' : 'N');
 
-    sprintf_level_amp(prntbuf, caps->has_get_level);
+    amp_sprintf_level(prntbuf, caps->has_get_level);
     fprintf(fout, "Get level: %s\n", prntbuf);
 
     /*
