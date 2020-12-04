@@ -15,7 +15,7 @@ dnl however, the use of '~' should be fine as apt (others?) will treat
 dnl it as an earlier version than the actual release.  TNX KA6MAL
 dnl PACKAGE_NAME + " " + PACKAGE_VERSION must not exceed 20 chars!
 AC_INIT([Hamlib],
-	[4.1~git],
+	[4.0~rc3],
 	[hamlib-developer@lists.sourceforge.net],
 	[hamlib],
 	[http://www.hamlib.org])
@@ -60,7 +60,7 @@ dnl See README.release on setting these values
 # Values given to -version-info when linking.  See libtool documentation.
 # Set them here to keep c++/Makefile and src/Makefile in sync.
 ABI_VERSION=4
-ABI_REVISION=1
+ABI_REVISION=0
 ABI_AGE=0
 
 AC_DEFINE_UNQUOTED([ABI_VERSION], [$ABI_VERSION], [Frontend ABI version])
