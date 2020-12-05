@@ -7220,15 +7220,27 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         // We need details on the widths here, manuals lack information.
         switch (mode)
         {
-        case RIG_MODE_RTTY:
-        case RIG_MODE_RTTYR:
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
             // Narrow mode overrides DSP filter width on FT-2000
             newcat_set_narrow(rig, vfo, FALSE);
 
+            // CW bandwidth is 2400 Hz at value 16
             if (width == RIG_PASSBAND_NORMAL) { w = 16; }
-            else if (width <= 100) { w = 4; }
+            else if (width <= 200) { w = 4; }
+            else if (width <= 500) { w = 6; }
+            else if (width <= 2400) { w = 16; }
+            else { w = 31; } // No effect?
+
+            break;
+
+        case RIG_MODE_RTTY:
+        case RIG_MODE_RTTYR:
+            // Narrow mode overrides DSP filter width on FT-2000
+            newcat_set_narrow(rig, vfo, FALSE);
+
+            if (width == RIG_PASSBAND_NORMAL) { w = 16; }
+            else if (width <= 300) { w = 8; }
             else if (width <= 500) { w = 16; }
             else { w = 31; } // 2400
 
@@ -8463,13 +8475,31 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
     {
         switch (mode)
         {
-        case RIG_MODE_RTTY:
-        case RIG_MODE_RTTYR:
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
             if (w <= 4)
             {
-                *width = 100;
+                *width = 200;
+            }
+            else if (w <= 6)
+            {
+                *width = 500;
+            }
+            else if (w <= 16)
+            {
+                *width = 2400;
+            }
+            else
+            {
+                *width = 2400;
+            }
+            break;
+
+        case RIG_MODE_RTTY:
+        case RIG_MODE_RTTYR:
+            if (w <= 8)
+            {
+                *width = 300;
             }
             else if (w <= 16)
             {

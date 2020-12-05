@@ -184,15 +184,22 @@ const struct rig_caps ft2000_caps =
 
     /* mode/filter list, .remember =  order matters! */
     .filters =            {
-        {FT2000_CW_RTTY_PKT_RX_MODES,  Hz(500)},   /* Normal CW, RTTY, PKT/USER */
-        {FT2000_CW_RTTY_PKT_RX_MODES,  Hz(100)},    /* Narrow CW, RTTY, PKT/USER */
-        {FT2000_CW_RTTY_PKT_RX_MODES,  Hz(2400)},   /* Wide   CW, RTTY, PKT/USER */
+        {RIG_MODE_CW|RIG_MODE_CWR,     Hz(500)},    /* Normal CW, RTTY, PKT/USER */
+        {RIG_MODE_CW|RIG_MODE_CWR,     Hz(200)},    /* Narrow CW, RTTY, PKT/USER */
+        {RIG_MODE_CW|RIG_MODE_CWR,     Hz(2400)},   /* Wide   CW, RTTY, PKT/USER */
+        {RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(500)},    /* Normal RTTY */
+        {RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(300)},    /* Narrow RTTY */
+        {RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(2400)},   /* Wide   RTTY */
         {RIG_MODE_SSB,                 Hz(2400)},   /* Normal SSB */
         {RIG_MODE_SSB,                 Hz(1800)},   /* Narrow SSB */
         {RIG_MODE_SSB,                 Hz(3000)},   /* Wide   SSB */
         {RIG_MODE_SSB,                 Hz(4000)},   /* Wide   SSB */
-        {RIG_MODE_AM,                  Hz(9000)},   /* Normal AM  */
-        {RIG_MODE_AM,                  Hz(6000)},   /* Narrow AM  */
+        {FT2000_PKTSSB_RX_MODES,       Hz(2400)},   /* Normal PKTSSB */
+        {FT2000_PKTSSB_RX_MODES,       Hz(1800)},   /* Narrow PKTSSB */
+        {FT2000_PKTSSB_RX_MODES,       Hz(3000)},   /* Wide   PKTSSB */
+        {FT2000_PKTSSB_RX_MODES,       Hz(4000)},   /* Wide   PKTSSB */
+        {FT2000_AM_RX_MODES,           Hz(9000)},   /* Normal AM  */
+        {FT2000_AM_RX_MODES,           Hz(6000)},   /* Narrow AM  */
         {FT2000_FM_RX_MODES,           Hz(16000)},  /* Normal FM  */
         {FT2000_FM_RX_MODES,           Hz(9000)},   /* Narrow FM  */
 
