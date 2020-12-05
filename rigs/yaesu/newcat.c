@@ -7545,7 +7545,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
     int err;
     int w;
     int sh_command_valid = 1;
-    char narrow = '!';
+    int narrow = 0;
     char cmd[] = "SH";
     char main_sub_vfo = '0';
 
@@ -8473,6 +8473,11 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
     } /* end if is_ftdx101 */
     else if (is_ft2000)
     {
+        if ((narrow = get_narrow(rig, RIG_VFO_MAIN)) < 0)
+        {
+            return -RIG_EPROTO;
+        }
+
         switch (mode)
         {
         case RIG_MODE_CW:
@@ -8497,17 +8502,13 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 
         case RIG_MODE_PKTUSB:
         case RIG_MODE_PKTLSB:
-            if (w <= 4)
+            if (w <= 8)
             {
                 *width = 200;
             }
-            else if (w <= 6)
-            {
-                *width = 500;
-            }
             else if (w <= 16)
             {
-                *width = 2400;
+                *width = 500;
             }
             else
             {
