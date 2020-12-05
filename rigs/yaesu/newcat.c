@@ -6642,7 +6642,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_AM:
         case RIG_MODE_FM:
         case RIG_MODE_PKTFM:
-            if (width < rig_passband_normal(rig, mode))
+            if (width > 0 && width < rig_passband_normal(rig, mode))
             {
                 err = newcat_set_narrow(rig, vfo, TRUE);
             }
@@ -6734,7 +6734,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_AM:
         case RIG_MODE_FM:
         case RIG_MODE_PKTFM:
-            if (width < rig_passband_normal(rig, mode))
+            if (width > 0 && width < rig_passband_normal(rig, mode))
             {
                 err = newcat_set_narrow(rig, vfo, TRUE);
             }
@@ -6875,7 +6875,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             return err;
 
         case RIG_MODE_PKTFM:
-            if (width < rig_passband_normal(rig, mode))
+            if (width > 0 && width < rig_passband_normal(rig, mode))
             {
                 err = newcat_set_narrow(rig, vfo, TRUE);
             }
@@ -6992,7 +6992,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_FM:
         case RIG_MODE_PKTFM:
         case RIG_MODE_FMN:
-            if (width < rig_passband_normal(rig, mode))
+            if (width > 0 && width < rig_passband_normal(rig, mode))
             {
                 err = newcat_set_narrow(rig, vfo, TRUE);
             }
@@ -7104,7 +7104,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_FM:
         case RIG_MODE_PKTFM:
         case RIG_MODE_FMN:
-            if (width < rig_passband_normal(rig, mode))
+            if (width > 0 && width < rig_passband_normal(rig, mode))
             {
                 err = newcat_set_narrow(rig, vfo, TRUE);
             }
@@ -7199,7 +7199,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_AM:
         case RIG_MODE_FM:
         case RIG_MODE_PKTFM:
-            if (width < rig_passband_normal(rig, mode))
+            if (width > 0 && width < rig_passband_normal(rig, mode))
             {
                 err = newcat_set_narrow(rig, vfo, TRUE);
             }
@@ -7234,6 +7234,19 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
             break;
 
+        case RIG_MODE_PKTUSB:
+        case RIG_MODE_PKTLSB:
+            // Narrow mode overrides DSP filter width on FT-2000
+            newcat_set_narrow(rig, vfo, FALSE);
+
+            // Packet SSB bandwidth is 2400 Hz at value 31
+            if (width == RIG_PASSBAND_NORMAL) { w = 31; }
+            else if (width <= 200) { w = 8; }
+            else if (width <= 500) { w = 16; }
+            else { w = 31; } // 2400
+
+            break;
+
         case RIG_MODE_RTTY:
         case RIG_MODE_RTTYR:
             // Narrow mode overrides DSP filter width on FT-2000
@@ -7246,8 +7259,6 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
             break;
 
-        case RIG_MODE_PKTUSB:
-        case RIG_MODE_PKTLSB:
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
             // Narrow mode overrides DSP filter width on FT-2000
@@ -7264,17 +7275,6 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_AM:
         case RIG_MODE_FM:
         case RIG_MODE_PKTFM:
-            if (width < rig_passband_normal(rig, mode))
-            {
-                err = newcat_set_narrow(rig, vfo, TRUE);
-            }
-            else
-            {
-                err = newcat_set_narrow(rig, vfo, FALSE);
-            }
-
-            return err;
-
         case RIG_MODE_AMN:
         case RIG_MODE_FMN:
             return RIG_OK;
@@ -7295,7 +7295,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_FM:
         case RIG_MODE_PKTFM:
         case RIG_MODE_FMN:
-            if (width < rig_passband_normal(rig, mode))
+            if (width > 0 && width < rig_passband_normal(rig, mode))
             {
                 err = newcat_set_narrow(rig, vfo, TRUE);
             }
@@ -7338,7 +7338,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_AM:
         case RIG_MODE_FM:
         case RIG_MODE_PKTFM:
-            if (width < rig_passband_normal(rig, mode))
+            if (width > 0 && width < rig_passband_normal(rig, mode))
             {
                 err = newcat_set_narrow(rig, vfo, TRUE);
             }
@@ -8491,6 +8491,26 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
             }
             else
             {
+                *width = 3000;
+            }
+            break;
+
+        case RIG_MODE_PKTUSB:
+        case RIG_MODE_PKTLSB:
+            if (w <= 4)
+            {
+                *width = 200;
+            }
+            else if (w <= 6)
+            {
+                *width = 500;
+            }
+            else if (w <= 16)
+            {
+                *width = 2400;
+            }
+            else
+            {
                 *width = 2400;
             }
             break;
@@ -8511,8 +8531,6 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
             }
             break;
 
-        case RIG_MODE_PKTUSB:
-        case RIG_MODE_PKTLSB:
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
             if (w <= 8)
