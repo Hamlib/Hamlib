@@ -2868,6 +2868,9 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
         return -RIG_ENAVAIL;
     }
 
+    // TODO: According to FTDX3000 CAT manual: "This command requires dummy data be initially sent. Then after one second and before two seconds the command is sent."
+    // TODO: According to FTDX5000 CAT manual: "Send the PS1; command twice every one second."
+
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PS%c%c", ps, cat_term);
 
     err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
@@ -5404,7 +5407,7 @@ int newcat_set_mem(RIG *rig, vfo_t vfo, int ch)
     /* Out of Range, or empty */
     if (!mem_caps)
     {
-        return -RIG_ENAVAIL;
+        return -RIG_EINVAL;
     }
 
     /* set to usable vfo if needed */
@@ -7212,9 +7215,89 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             return RIG_OK;
         }
     } // end is_ftdx101
+    else if (is_ft2000)
+    {
+        // We need details on the widths here, manuals lack information.
+        switch (mode)
+        {
+        case RIG_MODE_RTTY:
+        case RIG_MODE_RTTYR:
+        case RIG_MODE_CW:
+        case RIG_MODE_CWR:
+            // Narrow mode overrides DSP filter width on FT-2000
+            newcat_set_narrow(rig, vfo, FALSE);
+
+            if (width == RIG_PASSBAND_NORMAL) { w = 16; }
+            else if (width <= 100) { w = 4; }
+            else if (width <= 500) { w = 16; }
+            else { w = 31; } // 2400
+
+            break;
+
+        case RIG_MODE_PKTUSB:
+        case RIG_MODE_PKTLSB:
+        case RIG_MODE_LSB:
+        case RIG_MODE_USB:
+            // Narrow mode overrides DSP filter width on FT-2000
+            newcat_set_narrow(rig, vfo, FALSE);
+
+            if (width == RIG_PASSBAND_NORMAL) { w = 16; }
+            else if (width <= 1800) { w = 8; }
+            else if (width <= 2400) { w = 16; }
+            else if (width <= 3000) { w = 25; }
+            else { w = 31; } // 4000
+
+            break;
+
+        case RIG_MODE_AM:
+        case RIG_MODE_FM:
+        case RIG_MODE_PKTFM:
+            if (width < rig_passband_normal(rig, mode))
+            {
+                err = newcat_set_narrow(rig, vfo, TRUE);
+            }
+            else
+            {
+                err = newcat_set_narrow(rig, vfo, FALSE);
+            }
+
+            return err;
+
+        case RIG_MODE_AMN:
+        case RIG_MODE_FMN:
+            return RIG_OK;
+
+        default:
+            return -RIG_EINVAL;
+        }
+
+        if ((err = set_roofing_filter_for_width(rig, vfo, width)) != RIG_OK)
+        {
+            return err;
+        }
+
+        switch (mode)
+        {
+        case RIG_MODE_AM:
+        case RIG_MODE_AMN:
+        case RIG_MODE_FM:
+        case RIG_MODE_PKTFM:
+        case RIG_MODE_FMN:
+            if (width < rig_passband_normal(rig, mode))
+            {
+                err = newcat_set_narrow(rig, vfo, TRUE);
+            }
+            else
+            {
+                err = newcat_set_narrow(rig, vfo, FALSE);
+            }
+
+            return err;
+        }
+    }
     else
     {
-        // FT-450, FT-2000, FTDX 9000
+        // FT-450, FTDX 9000
         // We need details on the widths here, manuals lack information.
         switch (mode)
         {
@@ -7224,7 +7307,8 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_RTTYR:
         case RIG_MODE_CW:
         case RIG_MODE_CWR:
-            if (width <= 500) { w = 6; }
+            if (width == RIG_PASSBAND_NORMAL) { w = 16; }
+            else if (width <= 500) { w = 6; }
             else if (width <= 1800) { w = 16; }
             else { w = 24; }
 
@@ -7232,7 +7316,8 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
         case RIG_MODE_LSB:
         case RIG_MODE_USB:
-            if (width <= 1800) { w = 8; }
+            if (width == RIG_PASSBAND_NORMAL) { w = 16; }
+            else if (width <= 1800) { w = 8; }
             else if (width <= 2400) { w = 16; }
             else { w = 25; } // 3000
 
@@ -7466,6 +7551,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         return err;
     }
 
+    // TODO: check if ft-2000 needs this fix too?
     if (is_ft950 || is_ftdx5000)
     {
         // Some Yaesu rigs cannot query SH in modes such as AM/FM
@@ -8373,9 +8459,74 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 
         rig_debug(RIG_DEBUG_TRACE, "%s: end if FTDX101D\n", __func__);
     } /* end if is_ftdx101 */
+    else if (is_ft2000)
+    {
+        switch (mode)
+        {
+        case RIG_MODE_RTTY:
+        case RIG_MODE_RTTYR:
+        case RIG_MODE_CW:
+        case RIG_MODE_CWR:
+            if (w <= 4)
+            {
+                *width = 100;
+            }
+            else if (w <= 16)
+            {
+                *width = 500;
+            }
+            else
+            {
+                *width = 2400;
+            }
+            break;
+
+        case RIG_MODE_PKTUSB:
+        case RIG_MODE_PKTLSB:
+        case RIG_MODE_LSB:
+        case RIG_MODE_USB:
+            if (w <= 8)
+            {
+                *width = 1800;
+            }
+            else if (w <= 16)
+            {
+                *width = 2400;
+            }
+            else if (w <= 25)
+            {
+                *width = 3000;
+            }
+            else
+            {
+                *width = 4000;
+            }
+            break;
+
+        case RIG_MODE_AM:
+            *width = narrow ? 6000 : 9000;
+            break;
+
+        case RIG_MODE_PKTFM:
+        case RIG_MODE_FM:
+            *width = narrow ? 9000 : 16000;
+            break;
+
+        case RIG_MODE_FMN:
+            *width = 9000;
+            break;
+
+        case RIG_MODE_AMN:
+            *width = 6000;
+            break;
+
+        default:
+            return -RIG_EINVAL;
+        } /* end switch (mode) */
+    } /* end if is_ft2000 */
     else
     {
-        /* FT450, FT2000, FT9000 */
+        /* FT450, FT9000 */
         switch (mode)
         {
         case RIG_MODE_PKTUSB:
@@ -8398,13 +8549,24 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
             {
                 *width = rig_passband_normal(rig, mode);
             }
-
             break;
 
         case RIG_MODE_AM:
+            *width = narrow ? 6000 : 9000;
+            break;
+
         case RIG_MODE_PKTFM:
         case RIG_MODE_FM:
-            return RIG_OK;
+            *width = narrow ? 9000 : 16000;
+            break;
+
+        case RIG_MODE_FMN:
+            *width = 9000;
+            break;
+
+        case RIG_MODE_AMN:
+            *width = 6000;
+            break;
 
         default:
             return -RIG_EINVAL;
