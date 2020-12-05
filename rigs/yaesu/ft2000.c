@@ -194,10 +194,9 @@ const struct rig_caps ft2000_caps =
         {RIG_MODE_SSB,                 Hz(1800)},   /* Narrow SSB */
         {RIG_MODE_SSB,                 Hz(3000)},   /* Wide   SSB */
         {RIG_MODE_SSB,                 Hz(4000)},   /* Wide   SSB */
-        {FT2000_PKTSSB_RX_MODES,       Hz(2400)},   /* Normal PKTSSB */
-        {FT2000_PKTSSB_RX_MODES,       Hz(1800)},   /* Narrow PKTSSB */
-        {FT2000_PKTSSB_RX_MODES,       Hz(3000)},   /* Wide   PKTSSB */
-        {FT2000_PKTSSB_RX_MODES,       Hz(4000)},   /* Wide   PKTSSB */
+        {FT2000_PKTSSB_RX_MODES,       Hz(500)},    /* Normal PKTSSB */
+        {FT2000_PKTSSB_RX_MODES,       Hz(200)},    /* Narrow PKTSSB */
+        {FT2000_PKTSSB_RX_MODES,       Hz(2400)},   /* Wide   PKTSSB */
         {FT2000_AM_RX_MODES,           Hz(9000)},   /* Normal AM  */
         {FT2000_AM_RX_MODES,           Hz(6000)},   /* Narrow AM  */
         {FT2000_FM_RX_MODES,           Hz(16000)},  /* Normal FM  */
