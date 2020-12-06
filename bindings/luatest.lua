@@ -5,6 +5,16 @@ Hamlib = require("Hamliblua")
 -- you can see the Hamlib properties:
 -- for key,value in pairs(Hamlib) do print(key,value) end
 
+function version()
+    ver = string.sub(_VERSION,4)
+    -- should only get one match to this
+    for ver2 in string.gmatch(ver,"%d.%d") do
+        ver = tonumber(ver2)
+    end
+    return ver
+end
+
+
 function doStartup()
     print(string.format("%s test, %s\n", _VERSION, Hamlib.hamlib_version))
 
@@ -107,9 +117,13 @@ function doStartup()
 
     if sw2 > 0 then D = 'S' else D = 'N' end
     print(string.format("Latitude:\t%4.4f, %4.0f° %.0f' %2.0f\" %1s\trecoded: %9.4f", lat1, deg2, mins2, sec2, D, lat3))
-    print(string.format("The next two lines should show 0x8000000000000000"));
-    print(string.format("RIG_MODE_TESTS_MAX: 0x%08x", Hamlib.RIG_MODE_TESTS_MAX));
-    print(string.format("RIG_FUNC_BIT63: 0x%08x", Hamlib.RIG_FUNC_BIT63));
+    if (version() >= 5.4) then
+        -- older version may not handle 64-bit values
+        -- not sure when this was fixed...might have been 5.3 somehwere
+        print(string.format("The next two lines should show 0x8000000000000000"));
+        print(string.format("RIG_MODE_TESTS_MAX: 0x%08x", Hamlib.RIG_MODE_TESTS_MAX));
+        print(string.format("RIG_FUNC_BIT63: 0x%08x", Hamlib.RIG_FUNC_BIT63));
+    end
 
 end
 
