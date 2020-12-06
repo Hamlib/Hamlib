@@ -106,13 +106,12 @@ transaction_write:
     retval = read_string(&rs->rotport, data, data_len, REPLY_EOM,
                          strlen(REPLY_EOM));
 
-    if (strncmp(data, "\r\n", 2) == 0
-            || strchr(data, '>'))
+    if (strncmp(data, "\r\n", 2) == 0 || strchr(data, '>'))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: wrong response nbytes=%d\n", __func__,
-                  (int)strlen(data));
+        rig_debug(RIG_DEBUG_ERR, "%s: Invalid response for '%s': '%s' (length=%d)\n",
+                __func__, cmdstr, data, (int) strlen(data));
         dump_hex((unsigned char *)data, strlen(data));
-        retval = -1; // force retry
+        retval = -RIG_EPROTO; // force retry
     }
 
 
@@ -253,13 +252,12 @@ gs232b_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 static int
 gs232b_rot_stop(ROT *rot)
 {
-    char buf[32];
     int retval;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     /* All Stop */
-    retval = gs232b_transaction(rot, "S" EOM, buf, sizeof(buf), 0);
+    retval = gs232b_transaction(rot, "S" EOM, NULL, 0, 0);
 
     if (retval != RIG_OK)
     {
