@@ -12,6 +12,7 @@
 #include <string.h>
 #include <hamlib/rig.h>
 #include <hamlib/riglist.h>
+#include <hamlib/rotator.h>
 #include "sprintflst.h"
 
 #if 0
