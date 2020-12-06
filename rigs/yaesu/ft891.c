@@ -50,7 +50,7 @@ const struct rig_caps ft891_caps =
     RIG_MODEL(RIG_MODEL_FT891),
     .model_name =         "FT-891",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".0",
+    .version =            NEWCAT_VER ".1",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -507,7 +507,7 @@ int ft891_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     // Copy A to B
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "AB;");
 
-    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    if (RIG_OK != (err = newcat_set_cmd(rig)))
     {
         return err;
     }
