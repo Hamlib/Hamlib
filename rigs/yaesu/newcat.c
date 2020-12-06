@@ -2868,9 +2868,6 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
         return -RIG_ENAVAIL;
     }
 
-    // TODO: According to FTDX3000 CAT manual: "This command requires dummy data be initially sent. Then after one second and before two seconds the command is sent."
-    // TODO: According to FTDX5000 CAT manual: "Send the PS1; command twice every one second."
-
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PS%c%c", ps, cat_term);
 
     err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
@@ -7563,7 +7560,6 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         return err;
     }
 
-    // TODO: check if ft-2000 needs this fix too?
     if (is_ft950 || is_ftdx5000)
     {
         // Some Yaesu rigs cannot query SH in modes such as AM/FM
