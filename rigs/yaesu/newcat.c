@@ -7593,25 +7593,10 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
             return err;
         }
 
-        if (strlen(priv->ret_data) == 7)
+        if (sscanf(priv->ret_data, "SH%3d;", &w) != 1 &&
+            sscanf(priv->ret_data, "SH0%3d;", &w) != 1)
         {
-            if (sscanf(priv->ret_data, "SH%*1d0%3d", &w) != 1)
-            {
-                err = -RIG_EPROTO;
-            }
-        }
-        else if (strlen(priv->ret_data) == 6)
-        {
-            if (sscanf(priv->ret_data, "SH%*1d%3d", &w) != 1)
-            {
-                err = -RIG_EPROTO;
-            }
-        }
-        else
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: unknown SH response='%s'\n", __func__,
-                      priv->ret_data);
-            return -RIG_EPROTO;
+            err = -RIG_EPROTO;
         }
 
         if (err != RIG_OK)
