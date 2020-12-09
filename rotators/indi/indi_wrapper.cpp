@@ -58,7 +58,7 @@ int RotINDIClient::setSpeed(int speedPercent)
 
     int speed = DIV_ROUND_UP(speedPercent, 10);
 
-    for (int i = 1; i <= 10; i++)
+    for (unsigned int i = 1; i <= 10; i++)
     {
         char switchName[4];
         snprintf(switchName, sizeof(switchName), "%ux", i);
@@ -519,10 +519,9 @@ void RotINDIClient::serverDisconnected(int exit_code)
 
 const char *RotINDIClient::getInfo(void)
 {
-    static char info[128];
-
     if (mTelescope && mTelescope->isConnected())
     {
+        static char info[128];
         snprintf(info, sizeof(info), "using INDI device %s",
                  mTelescope->getDeviceName());
         return info;
