@@ -2872,7 +2872,7 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
 
     err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
     
-    hl_usleep(1000000); // give it a second to turn on
+    if (ps) hl_usleep(1000000); // give it a second to turn on
 
     return err;
 }
