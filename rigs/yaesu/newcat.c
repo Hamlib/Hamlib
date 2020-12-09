@@ -2839,7 +2839,9 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
 {
     struct rig_state *state = &rig->state;
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
-    int err;
+    int retval;
+    int i;
+    int retry_save;
     char ps;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -2870,11 +2872,36 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PS%c%c", ps, cat_term);
 
-    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    retval = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
     
-    if (ps) hl_usleep(1000000); // give it a second to turn on
+    retry_save = rig->state.rigport.retry;
+    rig->state.rigport.retry = 0;
 
-    return err;
+    if (status == RIG_POWER_ON) // wait for wakeup only
+    {
+        for (i = 0; i < 8; ++i) // up to ~10 seconds including the timeouts
+        {
+            freq_t freq;
+            hl_usleep(1000000);
+            retval = rig_get_freq(rig, RIG_VFO_A, &freq);
+
+            if (retval == RIG_OK) { return retval; }
+
+            rig_debug(RIG_DEBUG_TRACE, "%s: Wait #%d for power up\n", __func__, i + 1);
+        }
+    }
+
+    rig->state.rigport.retry = retry_save;
+
+    if (i == 9)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: timeout waiting for powerup, try %d\n",
+                  __func__,
+                  i + 1);
+        retval = -RIG_ETIMEOUT;
+    }
+
+    return retval;
 }
 
 
