@@ -192,7 +192,6 @@ const struct rig_caps ft891_caps =
     .get_freq =           newcat_get_freq,
     .set_mode =           ft891_set_mode,
     .get_mode =           newcat_get_mode,
-//    .get_vfo =            newcat_get_vfo,
     .set_ptt =            newcat_set_ptt,
     .get_ptt =            newcat_get_ptt,
     .set_split_vfo =      ft891_set_split_vfo,
