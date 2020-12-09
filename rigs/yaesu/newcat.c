@@ -2871,6 +2871,8 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PS%c%c", ps, cat_term);
 
     err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    
+    hl_usleep(1000000); // give it a second to turn on
 
     return err;
 }
