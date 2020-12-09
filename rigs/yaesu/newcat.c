@@ -7622,11 +7622,14 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
             return err;
         }
 
-        if (sscanf(priv->ret_data, "SH%3d;", &w) != 1 &&
-            sscanf(priv->ret_data, "SH0%3d;", &w) != 1)
+        if (sscanf(priv->ret_data, "SH0%3d;", &w) != 1)
         {
-            err = -RIG_EPROTO;
+            if (sscanf(priv->ret_data, "SH%3d;", &w) != 1) 
+            {
+                err = -RIG_EPROTO;
+	    }
         }
+	rig_debug(RIG_DEBUG_TRACE, "%s: w=%d\n", __func__, w);
 
         if (err != RIG_OK)
         {
@@ -7634,8 +7637,6 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
                       priv->ret_data);
             return -RIG_EPROTO;
         }
-
-        rig_debug(RIG_DEBUG_TRACE, "%s: w=%d\n", __func__, w);
     }
     else
     {
@@ -8929,6 +8930,7 @@ int newcat_get_cmd(RIG *rig)
     {
         if (rc != -RIG_BUSBUSY)
         {
+            rig_flush(&state->rigport);  /* discard any unsolicited data */
             /* send the command */
             rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
 
