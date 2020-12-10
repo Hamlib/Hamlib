@@ -3885,7 +3885,11 @@ int kenwood_set_powerstat(RIG *rig, powerstat_t status)
             sleep(1);
             retval = rig_get_freq(rig, RIG_VFO_A, &freq);
 
-            if (retval == RIG_OK) { return retval; }
+            if (retval == RIG_OK) 
+            { 
+                rig->state.rigport.retry = retry_save;
+                return retval;
+            }
 
             rig_debug(RIG_DEBUG_TRACE, "%s: Wait #%d for power up\n", __func__, i + 1);
         }
