@@ -72,6 +72,21 @@
                RIG_OP_UP|RIG_OP_DOWN|RIG_OP_BAND_UP|RIG_OP_BAND_DOWN|\
                RIG_OP_TO_VFO|RIG_OP_FROM_VFO|RIG_OP_TOGGLE)
 
+// Borrowed from FLRig -- Thanks to Dave W1HKJ
+#define FT950_RFPOWER_METER_CAL \
+    { \
+        6, \
+        { \
+            {10, 0.8f}, \
+            {50, 8.0f}, \
+            {100, 26.0f}, \
+            {150, 54.0f}, \
+            {200, 92.0f}, \
+            {250, 140.0f}, \
+        } \
+    }
+
+
 /* TBC */
 #define FT950_STR_CAL { 16, \
 	       { \
