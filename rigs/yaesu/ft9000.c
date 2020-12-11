@@ -93,6 +93,7 @@ const struct rig_caps ft9000_caps =
     .transceive =         RIG_TRN_OFF,        /* May enable later as the 9000 has an Auto Info command */
     .bank_qty =           0,
     .chan_desc_sz =       0,
+    .rfpower_meter_cal = FT9000_RFPOWER_METER_CAL,
     .str_cal =            FT9000_STR_CAL,
     .chan_list =          {
         /* TBC */
