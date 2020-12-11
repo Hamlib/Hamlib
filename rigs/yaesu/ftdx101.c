@@ -37,8 +37,6 @@
 #include "newcat.h"
 #include "ftdx101.h"
 
-cal_table_float_t yaesu_ftdx101d_swr_cal = FTDX101D_SWR_CAL;
-
 const struct newcat_priv_caps ftdx101d_priv_caps =
 {
     .roofing_filter_count = 6,
@@ -78,7 +76,7 @@ const struct rig_caps ftdx101d_caps =
     RIG_MODEL(RIG_MODEL_FTDX101D),
     .model_name =         "FTDX101D",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".6",
+    .version =            NEWCAT_VER ".7",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -119,6 +117,7 @@ const struct rig_caps ftdx101d_caps =
     .transceive =         RIG_TRN_OFF, /* May enable later as the FTDX101 has an Auto Info command */
     .bank_qty =           0,
     .chan_desc_sz =       0,
+    .rfpower_meter_cal =  FTDX101D_RFPOWER_METER_CAL,
     .swr_cal =            FTDX101D_SWR_CAL,
     .chan_list =          {
         {   1,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },

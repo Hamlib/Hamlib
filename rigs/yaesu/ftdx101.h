@@ -71,6 +71,19 @@
                RIG_OP_UP|RIG_OP_DOWN|RIG_OP_BAND_UP|RIG_OP_BAND_DOWN|\
                RIG_OP_TO_VFO|RIG_OP_FROM_VFO|RIG_OP_TOGGLE)
 
+// Borrowed from FLRig -- Thanks to Dave W
+#define FTDX101D_RFPOWER_METER_CAL \
+    { \
+        5, \
+        { \
+            {35, 5.0f}, \
+            {94, 25.0f}, \
+            {147, 50.0f}, \
+            {176, 75.0f}, \
+            {205, 100.0f}, \
+        } \
+    }
+
 // Based on testing with G3VPX Ian Sumner
 #define FTDX101D_SWR_CAL \
     { \
