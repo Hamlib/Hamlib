@@ -68,6 +68,16 @@
                RIG_OP_UP|RIG_OP_DOWN|RIG_OP_BAND_UP|RIG_OP_BAND_DOWN|\
                RIG_OP_TO_VFO|RIG_OP_FROM_VFO)
 
+// Borrowed from FLRig -- Thanks to Dave W1HKJ
+#define FT891_RFPOWER_METER_CAL \
+    { \
+        2, \
+        { \
+            {0, 0.0f}, \
+            {100, 100.0f}, \
+        } \
+    }
+
 /* TBC */
 #define FT891_STR_CAL { 16, \
 	       { \
