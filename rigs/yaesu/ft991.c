@@ -91,6 +91,7 @@ const struct rig_caps ft991_caps =
     .transceive =         RIG_TRN_OFF,        /* May enable later as the 950 has an Auto Info command */
     .bank_qty =           0,
     .chan_desc_sz =       0,
+    .rfpower_meter_cal =  FT991_RFPOWER_METER_CAL,
     .str_cal =            FT991_STR_CAL,
     .chan_list =          {
         {   1,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
