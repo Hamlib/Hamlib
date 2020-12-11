@@ -57,6 +57,8 @@
                      RIG_MODE_SSB | RIG_MODE_LSB | RIG_MODE_USB |\
              RIG_MODE_FM | RIG_MODE_WFM | RIG_MODE_FMN |RIG_MODE_PKTFM )
 
+#define FLRIG_LEVELS (RIG_LEVEL_AF | RIG_LEVEL_RF | RIG_LEVEL_MICGAIN | RIG_LEVEL_STRENGTH)
+
 #define streq(s1,s2) (strcmp(s1,s2)==0)
 
 static int flrig_init(RIG *rig);
@@ -84,6 +86,8 @@ static int flrig_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq,
                                      rmode_t mode, pbwidth_t width);
 static int flrig_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *freq,
                                      rmode_t *mode, pbwidth_t *width);
+static int flrig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+static int flrig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
 static const char *flrig_get_info(RIG *rig);
 
@@ -124,8 +128,8 @@ const struct rig_caps flrig_caps =
 
     .has_get_func = RIG_FUNC_NONE,
     .has_set_func = RIG_FUNC_NONE,
-    .has_get_level = RIG_LEVEL_NONE,
-    .has_set_level = RIG_LEVEL_NONE,
+    .has_get_level = FLRIG_LEVELS,
+    .has_set_level = RIG_LEVEL_SET(FLRIG_LEVELS),
     .has_get_parm = RIG_PARM_NONE,
     .has_set_parm = RIG_PARM_NONE,
     .filters =  {
@@ -169,7 +173,9 @@ const struct rig_caps flrig_caps =
     .set_split_vfo = flrig_set_split_vfo,
     .get_split_vfo = flrig_get_split_vfo,
     .set_split_freq_mode = flrig_set_split_freq_mode,
-    .get_split_freq_mode = flrig_get_split_freq_mode
+    .get_split_freq_mode = flrig_get_split_freq_mode,
+    .set_level = flrig_set_level,
+    .get_level = flrig_get_level
 };
 
 // Structure for mapping flrig dynmamic modes to hamlib modes
@@ -1849,6 +1855,93 @@ static int flrig_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *freq,
     }
 
     return retval;
+}
+
+static int flrig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+{
+    int retval;
+    char cmd_arg[MAXARGLEN];
+    char *cmd;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s level=%d, val=%f\n", __func__,
+              rig_strvfo(vfo), (int)level, val.f);
+
+    if (check_vfo(vfo) == FALSE)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n",
+                  __func__, rig_strvfo(vfo));
+        return -RIG_EINVAL;
+    }
+
+    sprintf(cmd_arg,
+            "<params><param><value><double>%d</double></value></param></params>", (int)val.f);
+
+    switch (level)
+    {
+    case RIG_LEVEL_RF: cmd = "rig.set_rfgain"; break;
+
+    case RIG_LEVEL_AF: cmd = "rig.set_volume"; break;
+
+    case RIG_LEVEL_MICGAIN: cmd = "rig.set_micgain"; break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid level=%d\n", __func__, (int)level);
+        return -RIG_EINVAL;
+    }
+
+    retval = flrig_transaction(rig, cmd, cmd_arg, NULL, 0);
+
+    if (retval < 0)
+    {
+        return retval;
+    }
+
+    return RIG_OK;
+}
+
+/*
+ * flrig_get_level
+ * Assumes rig!=NULL, rig->state.priv!=NULL, val!=NULL
+ */
+static int flrig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
+    char value[MAXARGLEN];
+    char *cmd;
+    int retval;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
+              rig_strvfo(vfo));
+
+
+    switch (level)
+    {
+    case RIG_LEVEL_AF: cmd = "rig.get_volume"; break;
+
+    case RIG_LEVEL_RF: cmd = "rig.get_rfgain"; break;
+
+    case RIG_LEVEL_MICGAIN: cmd = "rig.get_micgain"; break;
+
+    case RIG_LEVEL_STRENGTH: cmd = "rig.get_power"; break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unknown level=%d\n", __func__, (int)level);
+        return -RIG_EINVAL;
+    }
+
+    retval = flrig_transaction(rig, cmd, NULL, value, sizeof(value));
+
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: flrig_transaction failed retval=%s\n", __func__,
+                  rigerror(retval));
+        return retval;
+    }
+
+    val->f = atof(value);
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: val='%s'(%f)\n", __func__, value, val->f);
+
+    return RIG_OK;
 }
 
 /*
