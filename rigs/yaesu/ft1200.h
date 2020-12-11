@@ -73,6 +73,19 @@
                RIG_OP_UP|RIG_OP_DOWN|RIG_OP_BAND_UP|RIG_OP_BAND_DOWN|\
                RIG_OP_TO_VFO|RIG_OP_FROM_VFO|RIG_OP_TOGGLE)
 
+// Borrowed from FLRig -- Thanks to Dave W1HKJ
+#define FTDX1200_RFPOWER_METER_CAL \
+    { \
+        5, \
+        { \
+            {35, 5.0f}, \
+            {94, 25.0f}, \
+            {147, 50.0f}, \
+            {176, 75.0f}, \
+            {205, 100.0f}, \
+        } \
+    }
+
 /* TBC */
 #define FTDX1200_STR_CAL { 16, \
 	       { \

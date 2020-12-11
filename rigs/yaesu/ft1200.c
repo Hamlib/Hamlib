@@ -131,6 +131,7 @@ const struct rig_caps ftdx1200_caps =
     .transceive =         RIG_TRN_OFF,        /* May enable later as the 1200 has an Auto Info command */
     .bank_qty =           0,
     .chan_desc_sz =       0,
+    .rfpower_meter_cal =  FTDX1200_RFPOWER_METER_CAL,
     .str_cal =            FTDX1200_STR_CAL,
     .chan_list =          {
         {   1,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
