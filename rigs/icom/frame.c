@@ -389,6 +389,7 @@ int rig2icom_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width,
     unsigned char icmode;
     signed char icmode_ext;
     pbwidth_t width_tmp = width;
+    struct icom_priv_data *priv_data = (struct icom_priv_data *) rig->state.priv;
 
     icmode_ext = -1;
 
@@ -490,6 +491,11 @@ int rig2icom_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width,
                 icmode_ext = PD_WIDE_3; /* default to Wide */
             }
         }
+    }
+    else
+    {
+        // filter should already be set elsewhere
+        icmode_ext = priv_data->filter;
     }
 
     *md = icmode;
