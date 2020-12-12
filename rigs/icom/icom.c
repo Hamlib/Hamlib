@@ -1627,6 +1627,7 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
             break;
         }
 
+        if (width != RIG_PASSBAND_NOCHANGE) {
         if (filter_byte)   // then we need the width byte too
         {
             unsigned char mode_icom; // not used as it will map to USB/LSB
@@ -1644,6 +1645,11 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
             retval =
                 icom_transaction(rig, C_CTL_MEM, dm_sub_cmd, datamode, 1, ackbuf,
                                  &ack_len);
+        }
+        }
+        else
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s RIG_PASSBAND_NOCHANGE\n", __func__);
         }
 
         if (retval != RIG_OK)
