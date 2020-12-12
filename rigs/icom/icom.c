@@ -1868,7 +1868,7 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     if (mode_len == 3)
     {
-        priv_data->filter = modebuf[2] - '0';
+        priv_data->filter = modebuf[2];
         rig_debug(RIG_DEBUG_TRACE,
                   "%s: modebuf[0]=0x%02x, modebuf[1]=0x%02x, modebuf[2]=0x%02x, mode_len=%d, filter=%d\n",
                   __func__, modebuf[0],
