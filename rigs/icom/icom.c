@@ -1651,6 +1651,7 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
         else
         {
             rig_debug(RIG_DEBUG_TRACE, "%s RIG_PASSBAND_NOCHANGE\n", __func__);
+            return RIG_OK;
         }
 
         if (retval != RIG_OK)
