@@ -1681,6 +1681,7 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     struct icom_priv_data *priv;
     const struct icom_priv_caps *priv_caps;
+    const struct icom_priv_data *priv_data;
     struct rig_state *rs;
     unsigned char ackbuf[MAXFRAMELEN];
     unsigned char icmode;
@@ -1693,6 +1694,7 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     priv = (struct icom_priv_data *) rs->priv;
 
     priv_caps = (const struct icom_priv_caps *) rig->caps->priv;
+    priv_data = (const struct icom_priv_data *) rig->state.priv;
 
     if (priv_caps->r2i_mode != NULL)  /* call priv code if defined */
     {
@@ -1719,6 +1721,7 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         icmode_ext = -1;
     }
 
+    if (icmode_ext == -1) icmode_ext = priv_data->filter;
     retval = icom_transaction(rig, C_SET_MODE, icmode,
                               (unsigned char *) &icmode_ext,
                               (icmode_ext == -1 ? 0 : 1), ackbuf, &ack_len);
