@@ -163,7 +163,7 @@ const cal_table_float_t yaesu_default_comp_meter_cal =
     2,
     {
         {0, 0.0f},
-        {255, 1.0f},
+        {255, 100.0f},
     }
 };
 
@@ -4372,7 +4372,9 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         if (retlvl_len > 3)
         {
             // Some rigs like FTDX101 have 6-byte return so we just truncate
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: retlvl of %s getting truncated\n", __func__, retlvl);
             retlvl[3] = 0;
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: retlvl truncated to %s\n", __func__, retlvl);
         }
 
         if (rig->caps->rfpower_meter_cal.size == 0)
@@ -4382,6 +4384,12 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         else
         {
             val->f = rig_raw2val_float(atoi(retlvl), &rig->caps->rfpower_meter_cal);
+        }
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: RFPOWER_METER=%s, converted to %f\n", __func__, retlvl, val->f);
+        if (val->f > 1.0) 
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: val->f(%f) clipped at 1.0\n", __func__, val->f);
+            val->f = 1.0;
         }
 
         break;
@@ -4395,11 +4403,11 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         if (rig->caps->comp_meter_cal.size == 0)
         {
-            val->f = rig_raw2val_float(atoi(retlvl), &yaesu_default_comp_meter_cal);
+            val->f = rig_raw2val_float(atoi(retlvl), &yaesu_default_comp_meter_cal)/100;
         }
         else
         {
-            val->f = rig_raw2val_float(atoi(retlvl), &rig->caps->comp_meter_cal);
+            val->f = rig_raw2val_float(atoi(retlvl), &rig->caps->comp_meter_cal)/100;
         }
 
         break;
