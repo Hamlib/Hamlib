@@ -4369,6 +4369,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_RFPOWER_METER:
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: RFPOWER_METER retlvl=%s\n", __func__, retlvl);
         if (retlvl_len > 3)
         {
             // Some rigs like FTDX101 have 6-byte return so we just truncate
