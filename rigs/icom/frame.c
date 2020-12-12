@@ -388,6 +388,7 @@ int rig2icom_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width,
 {
     unsigned char icmode;
     signed char icmode_ext;
+    pbwidth_t width_tmp = width;
 
     icmode_ext = -1;
 
@@ -402,6 +403,7 @@ int rig2icom_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width,
                       "%s: Failed to get width for passband nochange err=%s\n", __func__,
                       rigerror(ret));
         }
+        return RIG_OK;
     }
 
     switch (mode)
@@ -458,7 +460,7 @@ int rig2icom_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width,
         return -RIG_EINVAL;
     }
 
-    if (width != RIG_PASSBAND_NOCHANGE)
+    if (width_tmp != RIG_PASSBAND_NOCHANGE)
     {
         pbwidth_t medium_width = rig_passband_normal(rig, mode);
 
