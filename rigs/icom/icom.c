@@ -1857,16 +1857,29 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     unsigned char modebuf[MAXFRAMELEN];
     const struct icom_priv_caps *priv_caps;
+    struct icom_priv_data *priv_data;
     int mode_len, retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__, rig_strvfo(vfo));
     priv_caps = (const struct icom_priv_caps *) rig->caps->priv;
+    priv_data = (struct icom_priv_data *) rig->state.priv;
 
     retval = icom_transaction(rig, C_RD_MODE, -1, NULL, 0, modebuf, &mode_len);
 
-    rig_debug(RIG_DEBUG_TRACE,
-              "%s: modebuf[0]=0x%02x, modebuf[1]=0x%02x, mode_len=%d\n", __func__, modebuf[0],
-              modebuf[1], mode_len);
+    if (mode_len == 3)
+    {
+        priv_data->filter = modebuf[2] - '0';
+        rig_debug(RIG_DEBUG_TRACE,
+                  "%s: modebuf[0]=0x%02x, modebuf[1]=0x%02x, modebuf[2]=0x%02x, mode_len=%d, filter=%d\n",
+                  __func__, modebuf[0],
+                  modebuf[1], modebuf[2], mode_len, priv_data->filter);
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_TRACE,
+                  "%s: modebuf[0]=0x%02x, modebuf[1]=0x%02x, mode_len=%d\n", __func__, modebuf[0],
+                  modebuf[1], mode_len);
+    }
 
     if (retval != RIG_OK)
     {
