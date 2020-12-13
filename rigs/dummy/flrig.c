@@ -57,7 +57,7 @@
                      RIG_MODE_SSB | RIG_MODE_LSB | RIG_MODE_USB |\
              RIG_MODE_FM | RIG_MODE_WFM | RIG_MODE_FMN |RIG_MODE_PKTFM )
 
-#define FLRIG_LEVELS (RIG_LEVEL_AF | RIG_LEVEL_RF | RIG_LEVEL_MICGAIN | RIG_LEVEL_STRENGTH)
+#define FLRIG_LEVELS (RIG_LEVEL_AF | RIG_LEVEL_RF | RIG_LEVEL_MICGAIN | RIG_LEVEL_STRENGTH | RIG_LEVEL_RFPOWER_METER)
 
 #define streq(s1,s2) (strcmp(s1,s2)==0)
 
@@ -1874,7 +1874,8 @@ static int flrig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     }
 
     sprintf(cmd_arg,
-            "<params><param><value><double>%d</double></value></param></params>", (int)val.f);
+            "<params><param><value><double>%d</double></value></param></params>",
+            (int)val.f);
 
     switch (level)
     {
@@ -1923,6 +1924,8 @@ static int flrig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_STRENGTH: cmd = "rig.get_power"; break;
 
+    case RIG_LEVEL_RFPOWER_METER: cmd = "rig.get_pwrmeter"; break;
+
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unknown level=%d\n", __func__, (int)level);
         return -RIG_EINVAL;
@@ -1937,9 +1940,20 @@ static int flrig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return retval;
     }
 
-    val->f = atof(value);
+    // most levels are 0-100 -- may have to allow for different ranges
+    switch (level)
+    {
+    case RIG_LEVEL_STRENGTH:
+    case RIG_LEVEL_RFPOWER_METER:
+        val->i = atoi(value);
+        rig_debug(RIG_DEBUG_TRACE, "%s: val.i='%s'(%d)\n", __func__, value, val->i);
+        break;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: val='%s'(%f)\n", __func__, value, val->f);
+    default:
+        val->f = atof(value) / 100;
+        rig_debug(RIG_DEBUG_TRACE, "%s: val.f='%s'(%f)\n", __func__, value, val->f);
+    }
+
 
     return RIG_OK;
 }
