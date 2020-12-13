@@ -404,7 +404,6 @@ int rig2icom_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width,
                       "%s: Failed to get width for passband nochange err=%s\n", __func__,
                       rigerror(ret));
         }
-        return RIG_OK;
     }
 
     switch (mode)
@@ -491,15 +490,15 @@ int rig2icom_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width,
                 icmode_ext = PD_WIDE_3; /* default to Wide */
             }
         }
+        *pd = icmode_ext;
     }
     else
     {
         // filter should already be set elsewhere
-        icmode_ext = priv_data->filter;
+        *pd = priv_data->filter;
     }
 
     *md = icmode;
-    *pd = icmode_ext;
     return RIG_OK;
 }
 
