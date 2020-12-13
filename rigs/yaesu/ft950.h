@@ -137,6 +137,6 @@
 /* Delay sequential fast writes */
 
 //#define FT950_POST_WRITE_DELAY               5
-#define FT950_POST_WRITE_DELAY               25
+#define FT950_POST_WRITE_DELAY               50
 
 #endif /* _FT950_H */
