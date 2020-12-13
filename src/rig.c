@@ -1891,14 +1891,14 @@ int HAMLIB_API rig_get_mode(RIG *rig,
     if (retcode == RIG_OK
             && (vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo))
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s(%d): debug", __func__, __LINE__);
+        rig_debug(RIG_DEBUG_TRACE, "%s(%d): debug\n", __func__, __LINE__);
         rig->state.current_mode = *mode;
         rig->state.current_width = *width;
     }
 
     if (*width == RIG_PASSBAND_NORMAL && *mode != RIG_MODE_NONE)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s(%d): debug", __func__, __LINE__);
+        rig_debug(RIG_DEBUG_TRACE, "%s(%d): debug\n", __func__, __LINE__);
         *width = rig_passband_normal(rig, *mode);
     }
 
