@@ -1604,6 +1604,7 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
         break;
     }
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s mode=%d, width=%d\n", __func__, (int)icom_mode, (int)width);
     retval = icom_set_mode(rig, vfo, icom_mode, width);
 
     if (RIG_OK == retval)
@@ -1704,16 +1705,18 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
         err = rig2icom_mode(rig, vfo, mode, width, &icmode, &icmode_ext);
     }
+    if (width == RIG_PASSBAND_NOCHANGE) icmode_ext = priv_data->filter;
 
     if (err < 0)
     {
+        rig_debug(RIG_DEBUG_ERR, "%s: Error on rig2icom err=%d\n", __func__, err);
         return err;
     }
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: icmode=%d, icmode_ext=%d\n", __func__, icmode, icmode_ext);
     /* IC-731, IC-735, IC-7000 don't support passband data */
     /* IC-726 & IC-475A/E also limited support - only on CW */
     /* TODO: G4WJS CW wide/narrow are possible with above two radios */
-    if (icmode_ext == -1) icmode_ext = priv_data->filter;
     if (priv->civ_731_mode || rig->caps->rig_model == RIG_MODEL_OS456
             || rig->caps->rig_model == RIG_MODEL_IC726
             || rig->caps->rig_model == RIG_MODEL_IC475
@@ -1722,6 +1725,7 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         icmode_ext = -1;
     }
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: #2 icmode=%d, icmode_ext=%d\n", __func__, icmode, icmode_ext);
     retval = icom_transaction(rig, C_SET_MODE, icmode,
                               (unsigned char *) &icmode_ext,
                               (icmode_ext == -1 ? 0 : 1), ackbuf, &ack_len);
@@ -1771,6 +1775,7 @@ int icom_get_mode_with_data(RIG *rig, vfo_t vfo, rmode_t *mode,
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     retval = icom_get_mode(rig, vfo, mode, width);
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s mode=%d\n", __func__, (int)*mode);
     if (retval != RIG_OK)
     {
         return retval;
@@ -1816,6 +1821,7 @@ int icom_get_mode_with_data(RIG *rig, vfo_t vfo, rmode_t *mode,
             return -RIG_ERJCTED;
         }
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s databuf[2]=%d, mode=%d\n", __func__, (int)databuf[2], (int)*mode);
         if (databuf[2])       /* 0x01/0x02/0x03 -> data mode, 0x00 -> not data mode */
         {
             switch (*mode)
@@ -2044,8 +2050,6 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
                   __func__);
         return -RIG_EINVAL;
     }
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: debug#1\n", __func__);
 
     if (vfo != rig->state.current_vfo)
     {
