@@ -1862,7 +1862,7 @@ int HAMLIB_API rig_get_mode(RIG *rig,
     {
         int rc2;
         vfo_t curr_vfo;
-        rig_debug(RIG_DEBUG_TRACE, "%s(%d): debug", __func__, __LINE__);
+        rig_debug(RIG_DEBUG_TRACE, "%s(%d): debug\n", __func__, __LINE__);
 
         if (!caps->set_vfo)
         {
