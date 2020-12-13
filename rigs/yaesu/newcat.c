@@ -9032,10 +9032,12 @@ int newcat_get_cmd(RIG *rig)
                  * There are many more cases like these and they vary by rig model.
                  *
                  * So far, "rig busy" type situations with the ? response have not been observed for get commands.
+                 * Followup 20201213 FTDX3000 FB; command returning ?; so do NOT abort
+                 * see https://github.com/Hamlib/Hamlib/issues/464
                  */
                 rig_debug(RIG_DEBUG_ERR, "%s: Command rejected by the rig: '%s'\n", __func__,
                           priv->cmd_str);
-                return -RIG_ERJCTED;
+                // return -RIG_ERJCTED; 
             }
 
             continue;
