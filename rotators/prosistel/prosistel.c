@@ -228,10 +228,13 @@ static int prosistel_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     /*
      * Elevation section
     */
+
     num_sprintf(cmdstr, STX"B?"CR);
     retval = prosistel_transaction(rot, cmdstr, data, sizeof(data));
     // Example response  of 90 elevation
     // 02 42 2c 3f 2c 30 39 30 30 2c 52 0d   .B,?,0900,R.
+    // Could be error if no el available e.g. .B,?,E,00003.
+    if (data[5] == 'E') return RIG_OK;
     n = sscanf(data, "%*cB,?,%f,%*c.", &posval);
     posval /= 10.0;
 
@@ -261,7 +264,7 @@ const struct rot_caps prosistel_rot_caps =
     ROT_MODEL(ROT_MODEL_PROSISTEL),
     .model_name =     "Prosistel D",
     .mfg_name =       "Prosistel",
-    .version =        "20191219.0",
+    .version =        "20201214.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_AZIMUTH,
