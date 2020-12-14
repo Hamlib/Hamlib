@@ -2396,7 +2396,10 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
         if (retval != RIG_OK) { return retval; }
 
-        kenwood_val = val.f * (power_max - power_min) + power_min;
+        // https://github.com/Hamlib/Hamlib/issues/465
+        kenwood_val = val.f * power_max;
+        if (kenwood_val < power_min) kenwood_val = power_min;
+        if (kenwood_val > power_max) kenwood_val = power_max;
         snprintf(levelbuf, sizeof(levelbuf), "PC%03d", kenwood_val);
         break;
     }
