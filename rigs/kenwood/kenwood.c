@@ -1691,6 +1691,7 @@ int kenwood_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
         return retval;
     }
 
+    // TODO: Fix for different rigs
     memcpy(buf, &priv->info[17], 6);
 
     buf[6] = '\0';
@@ -2566,7 +2567,7 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     case RIG_LEVEL_KEYSPD:
-        if (val.i > 50 || val.i < 5)
+        if (val.i > 60 || val.i < 5)
         {
             return -RIG_EINVAL;
         }
@@ -2662,7 +2663,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_STRENGTH:
-        if (RIG_IS_TS590S || RIG_IS_TS590SG)
+        if (RIG_IS_TS590S || RIG_IS_TS590SG || RIG_IS_TS480)
         {
             cmd = "SM0";
             len = 3;
