@@ -22,7 +22,8 @@
 #ifndef _ROT_PROSISTEL_H
 #define _ROT_PROSISTEL_H 1
 
-
-extern const struct rot_caps prosistel_rot_caps;
+extern const struct rot_caps prosistel_d_az_rot_caps;
+extern const struct rot_caps prosistel_d_el_rot_caps;
+extern const struct rot_caps prosistel_combi_track_azel_rot_caps;
 
 #endif /* _ROT_PROSISTEL_H */
