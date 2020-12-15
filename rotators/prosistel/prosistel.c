@@ -363,7 +363,7 @@ static const struct prosistel_rot_priv_caps prosistel_rot_combitrack_priv_caps =
 const struct rot_caps prosistel_az_rot_caps =
 {
     ROT_MODEL(ROT_MODEL_PROSISTEL_AZ),
-    .model_name =     "Prosistel D azimuth",
+    .model_name =     "D azimuth",
     .mfg_name =       "Prosistel",
     .version =        "20201215.0",
     .copyright =      "LGPL",
@@ -398,7 +398,7 @@ const struct rot_caps prosistel_az_rot_caps =
 const struct rot_caps prosistel_el_rot_caps =
 {
     ROT_MODEL(ROT_MODEL_PROSISTEL_EL),
-    .model_name =     "Prosistel D elevation",
+    .model_name =     "D elevation",
     .mfg_name =       "Prosistel",
     .version =        "20201215.0",
     .copyright =      "LGPL",
@@ -433,7 +433,7 @@ const struct rot_caps prosistel_el_rot_caps =
 const struct rot_caps prosistel_azel_combo_rot_caps =
 {
     ROT_MODEL(ROT_MODEL_PROSISTEL_AZEL_COMBO),
-    .model_name =     "Prosistel Combi-Track az+el",
+    .model_name =     "Combi-Track az+el",
     .mfg_name =       "Prosistel",
     .version =        "20201215.0",
     .copyright =      "LGPL",
