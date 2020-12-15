@@ -191,7 +191,7 @@ const struct rig_caps ft897_caps =
     RIG_MODEL(RIG_MODEL_FT897),
     .model_name =     "FT-897",
     .mfg_name =       "Yaesu",
-    .version =        "20201130.0",
+    .version =        "20201215.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_TRANSCEIVER,
@@ -518,7 +518,8 @@ int ft897_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
-    if (vfo != RIG_VFO_CURR)
+    // can only deal with VFO_CURR and VFO_A
+    if (vfo != RIG_VFO_CURR && vfo != RIG_VFO_A)
     {
         return -RIG_ENTARGET;
     }
