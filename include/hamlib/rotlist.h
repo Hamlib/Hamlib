@@ -424,31 +424,31 @@
 
 
 /**
- *  \def ROT_MODEL_PROSISTEL_AZ
- *  \brief A macro that returns the model number of the PROSISTEL azimuth backend.
+ *  \def ROT_MODEL_PROSISTEL_D_AZ
+ *  \brief A macro that returns the model number of the PROSISTEL D azimuth backend.
  *
  */
 //! @cond Doxygen_Suppress
 #define ROT_PROSISTEL 17
 #define ROT_BACKEND_PROSISTEL "prosistel"
 //! @endcond
-#define ROT_MODEL_PROSISTEL_AZ ROT_MAKE_MODEL(ROT_PROSISTEL, 1)
+#define ROT_MODEL_PROSISTEL_D_AZ ROT_MAKE_MODEL(ROT_PROSISTEL, 1)
 
 
 /**
- *  \def ROT_MODEL_PROSISTEL_EL
- *  \brief A macro that returns the model number of the PROSISTEL elevation backend.
+ *  \def ROT_MODEL_PROSISTEL_D_EL
+ *  \brief A macro that returns the model number of the PROSISTEL D elevation backend.
  *
  */
-#define ROT_MODEL_PROSISTEL_EL ROT_MAKE_MODEL(ROT_PROSISTEL, 2)
+#define ROT_MODEL_PROSISTEL_D_EL ROT_MAKE_MODEL(ROT_PROSISTEL, 2)
 
 
 /**
  *  \def ROT_MODEL_PROSISTEL_AZEL_COMBO
- *  \brief A macro that returns the model number of the PROSISTEL azimuth + elevation combo backend.
+ *  \brief A macro that returns the model number of the PROSISTEL Combi-Track azimuth + elevation combo backend.
  *
  */
-#define ROT_MODEL_PROSISTEL_AZEL_COMBO ROT_MAKE_MODEL(ROT_PROSISTEL, 3)
+#define ROT_MODEL_PROSISTEL_COMBI_TRACK_AZEL ROT_MAKE_MODEL(ROT_PROSISTEL, 3)
 
 
 /**
