@@ -1,6 +1,7 @@
 /*
  *  Hamlib Prosistel backend
  *  Copyright (c) 2015 by Dario Ventura IZ7CRX
+ *  Copyright (c) 2020 by Mikael Nousiainen OH3BHX
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -24,16 +25,10 @@
 #endif
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>  /* String function definitions */
-#include <unistd.h>  /* UNIX standard function definitions */
-#include <math.h>
-#include <sys/time.h>
-#include <time.h>
+#include <string.h>
 
 #include "hamlib/rotator.h"
 #include "serial.h"
-#include "misc.h"
 #include "register.h"
 #include "num_stdio.h"
 
@@ -43,19 +38,14 @@
 #define CR "\r"
 #define STX "\x02"
 
-
-#if 0
-struct prosistel_rot_priv_data
+struct prosistel_rot_priv_caps
 {
-    azimuth_t az;
-    elevation_t el;
+    float angle_multiplier;
+    char azimuth_id;
+    char elevation_id;
 
-    azimuth_t target_az;
-    elevation_t target_el;
+    int stop_angle;
 };
-#endif
-
-
 
 /**
  * prosistel_transaction
@@ -69,6 +59,7 @@ struct prosistel_rot_priv_data
  * returns:
  *   RIG_OK  -  if no error occurred.
  *   RIG_EIO  -  if an I/O error occurred while sending/receiving data.
+ *   RIG_EPROTO - if a the response does not follow Prosistel protocol
  *   RIG_ETIMEOUT  -  if timeout expires without any characters received.
  */
 static int prosistel_transaction(ROT *rot, const char *cmdstr,
@@ -106,7 +97,7 @@ transaction_write:
         data_len = BUFSZ;
     }
 
-    //remember check for STXA,G,R or STXA,?,XXX,R 10 bytes
+    // Remember to check for STXA,G,R or STXA,?,XXX,R 10 bytes
     retval = read_string(&rs->rotport, data, 20, CR, strlen(CR));
 
     if (retval < 0)
@@ -119,7 +110,7 @@ transaction_write:
         goto transaction_quit;
     }
 
-    //check if reply match issued command
+    // Check if reply matches issued command
     if (cmdstr && data[0] == 0x02 && data[3] == cmdstr[2])
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s Command %c reply received\n", __func__,
@@ -131,7 +122,7 @@ transaction_write:
         rig_debug(RIG_DEBUG_VERBOSE,
                   "%s Error Command issued: %c doesn't match reply %c\n", __func__, cmdstr[2],
                   data[3]);
-        retval = RIG_EIO;
+        retval = -RIG_EPROTO;
     }
 
 transaction_quit:
@@ -139,132 +130,242 @@ transaction_quit:
 }
 
 
-
-
-
-
 static int prosistel_rot_open(ROT *rot)
 {
+    struct prosistel_rot_priv_caps *priv_caps =
+            (struct prosistel_rot_priv_caps *) rot->caps->priv;
     char cmdstr[64];
     int retval;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-    rot_open(rot);
-    //disable CPM mode - CPM stands for Continuous Position Monitor operating mode
-    //MCU continuously sends position data when CPM enabled
-    num_sprintf(cmdstr, STX"AS"CR);
-    retval = prosistel_transaction(rot, cmdstr, NULL, 0);
-    return retval;
-}
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+
+    // Disable CPM mode - CPM stands for Continuous Position Monitor operating mode
+    // The rotator controller sends position data continuously when CPM is enabled
+
+    // Disable CPM for azimuth if the rotator has an azimuth rotator
+    if (rot->caps->rot_type == ROT_TYPE_AZIMUTH || rot->caps->rot_type == ROT_TYPE_AZEL)
+    {
+        num_sprintf(cmdstr, STX"%cS"CR, priv_caps->azimuth_id);
+        retval = prosistel_transaction(rot, cmdstr, NULL, 0);
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+    }
+
+    // Disable CPM for elevation if the rotator has an elevation rotator
+    if (rot->caps->rot_type == ROT_TYPE_ELEVATION || rot->caps->rot_type == ROT_TYPE_AZEL)
+    {
+        num_sprintf(cmdstr, STX"%cS"CR, priv_caps->elevation_id);
+        retval = prosistel_transaction(rot, cmdstr, NULL, 0);
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+    }
+
+    return RIG_OK;
+}
 
 
 static int prosistel_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
-
+    struct prosistel_rot_priv_caps *priv_caps =
+            (struct prosistel_rot_priv_caps *) rot->caps->priv;
     char cmdstr[64];
     int retval;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called: %.1f %.1f\n", __func__,
-              az, el);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called: %.1f %.1f\n", __func__, az, el);
 
-    num_sprintf(cmdstr, STX"AG%04.0f"CR, az * 10);
-    retval = prosistel_transaction(rot, cmdstr, NULL, 0);
+    // Leading zeros in angle values are optional according to Prosistel protocol documentation
 
-    if (retval != RIG_OK)
+    // Set azimuth only if the rotator has the capability to do so
+    // It is an error to set azimuth if it's not supported by the rotator controller
+    if (rot->caps->rot_type == ROT_TYPE_AZIMUTH || rot->caps->rot_type == ROT_TYPE_AZEL)
     {
-        return retval;
+        num_sprintf(cmdstr, STX"%cG%.0f"CR, priv_caps->azimuth_id, az * priv_caps->angle_multiplier);
+        retval = prosistel_transaction(rot, cmdstr, NULL, 0);
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
     }
 
-    /*
-     * Elevation section
-    */
-    num_sprintf(cmdstr, STX"EG%04.0f"CR, el * 10);
-    retval = prosistel_transaction(rot, cmdstr, NULL, 0);
-
-    if (retval != RIG_OK)
+    // Set elevation only if the rotator has the capability to do so
+    // It is an error to set elevation if it's not supported by the rotator controller
+    if (rot->caps->rot_type == ROT_TYPE_ELEVATION || rot->caps->rot_type == ROT_TYPE_AZEL)
     {
-        return retval;
+        num_sprintf(cmdstr, STX"%cG%.0f"CR, priv_caps->elevation_id, el * priv_caps->angle_multiplier);
+        retval = prosistel_transaction(rot, cmdstr, NULL, 0);
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
     }
 
     return retval;
 }
 
 
-/*
- * Get position of rotor
- */
 static int prosistel_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
+    struct prosistel_rot_priv_caps *priv_caps =
+            (struct prosistel_rot_priv_caps *) rot->caps->priv;
     char cmdstr[64];
     char data[20];
     float posval;
     int retval;
     int n;
 
-    num_sprintf(cmdstr, STX"A?"CR);
-    retval = prosistel_transaction(rot, cmdstr, data, sizeof(data));
-
-    if (retval != RIG_OK)
+    // Query azimuth only if the rotator has the capability to do so
+    // It is an error to query for azimuth if it's not supported by the rotator controller
+    if (rot->caps->rot_type == ROT_TYPE_AZIMUTH || rot->caps->rot_type == ROT_TYPE_AZEL)
     {
-        return retval;
+        char rot_id;
+
+        num_sprintf(cmdstr, STX"%c?"CR, priv_caps->azimuth_id);
+        retval = prosistel_transaction(rot, cmdstr, data, sizeof(data));
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        // Example response of 290 degree azimuth with 3 digits
+        // 02 41 2c 3f 2c 32 39 30 2c 52 0d      .A,?,290,R.
+        // Example response of 100 degree azimuth with 4 digits
+        // 02 41 2c 3f 2c 31 30 30 30 2c 52 0d   .A,?,1000,R.
+        n = sscanf(data, "%*c%c,?,%f,%*c.", &rot_id, &posval);
+
+        if (n != 2 || rot_id != priv_caps->azimuth_id)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s failed to parse azimuth '%s'\n", __func__, data);
+            return -RIG_EPROTO;
+        }
+
+        posval /= priv_caps->angle_multiplier;
+
+        rig_debug(RIG_DEBUG_VERBOSE, "%s got position from '%s' converted to %f\n",
+                __func__, data, posval);
+
+        *az = (azimuth_t) posval;
     }
 
-    // Example response  of 100 azimuth
-    // 02 41 2c 3f 2c 31 30 30 30 2c 52 0d   .A,?,1000,R.
-    n = sscanf(data, "%*cA,?,%f,%*c.", &posval);
-
-    if (n != 1)
+    // Query elevation only if the rotator has the capability to do so
+    // It is an error to query for elevation if it's not supported by the rotator controller
+    if (rot->caps->rot_type == ROT_TYPE_ELEVATION || rot->caps->rot_type == ROT_TYPE_AZEL)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s failed to parse azimuth '%s'\n", __func__, data);
-        return RIG_EPROTO;
+        char rot_id;
+
+        num_sprintf(cmdstr, STX"%c?"CR, priv_caps->elevation_id);
+        retval = prosistel_transaction(rot, cmdstr, data, sizeof(data));
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        // Example response of 90 degree elevation with 4 digits
+        // 02 42 2c 3f 2c 30 39 30 30 2c 52 0d   .B,?,0900,R.
+        // The response will be an error if no elevation is available
+        // 02 42 2c 3f 2c 45 2c 30 30 30 30 33 0d    .B,?,E,00003.
+        n = sscanf(data, "%*c%c,?,%f,%*c.", &rot_id, &posval);
+
+        if (n != 2 || rot_id != priv_caps->elevation_id)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s failed to parse elevation '%s'\n", __func__, data);
+            return -RIG_EPROTO;
+        }
+
+        posval /= priv_caps->angle_multiplier;
+
+        rig_debug(RIG_DEBUG_VERBOSE, "%s got position from '%s' converted to %f\n",
+                __func__, data, posval);
+
+        *el = (elevation_t) posval;
     }
-
-    posval /= 10.0;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s got position from '%s' converted to %f\n",
-              __func__, data, posval);
-    *az = (azimuth_t) posval;
-
-
-    /*
-     * Elevation section
-    */
-
-    num_sprintf(cmdstr, STX"B?"CR);
-    retval = prosistel_transaction(rot, cmdstr, data, sizeof(data));
-    // Example response  of 90 elevation
-    // 02 42 2c 3f 2c 30 39 30 30 2c 52 0d   .B,?,0900,R.
-    // Could be error if no el available e.g. .B,?,E,00003.
-    if (data[5] == 'E') return RIG_OK;
-    n = sscanf(data, "%*cB,?,%f,%*c.", &posval);
-    posval /= 10.0;
-
-    if (n != 1)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s failed to parse elevation '%s'\n", __func__, data);
-        return RIG_EPROTO;
-    }
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s got position from '%s' converted to %f\n",
-              __func__, data, posval);
-    *el = (elevation_t) posval;
 
     return retval;
 }
 
 
+static int prosistel_rot_stop(ROT *rot)
+{
+    struct prosistel_rot_priv_caps *priv_caps =
+            (struct prosistel_rot_priv_caps *) rot->caps->priv;
+    char cmdstr[64];
+    int retval;
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    // Stop azimuth only if the rotator has the capability to do so
+    if (rot->caps->rot_type == ROT_TYPE_AZIMUTH || rot->caps->rot_type == ROT_TYPE_AZEL)
+    {
+        num_sprintf(cmdstr, STX"%cG%d"CR, priv_caps->azimuth_id, priv_caps->stop_angle);
+        retval = prosistel_transaction(rot, cmdstr, NULL, 0);
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+    }
+
+    // Stop elevation only if the rotator has the capability to do so
+    if (rot->caps->rot_type == ROT_TYPE_ELEVATION || rot->caps->rot_type == ROT_TYPE_AZEL)
+    {
+        num_sprintf(cmdstr, STX"%cG%d"CR, priv_caps->elevation_id, priv_caps->stop_angle);
+        retval = prosistel_transaction(rot, cmdstr, NULL, 0);
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+    }
+
+    return retval;
+}
+
+
+static const struct prosistel_rot_priv_caps prosistel_rot_az_or_el_priv_caps =
+{
+    .angle_multiplier = 1.0f,
+    /**
+     * Angle 977 = soft stop, stops the rotator using using PWM if PWM mode is enabled, otherwise results in a fast stop
+     * Angle 999 = fast stop, stops the rotator immediately
+     */
+    .stop_angle = 997,
+    .azimuth_id = 'A',
+    .elevation_id = 'E',
+};
 
 
 /*
- * Prosistel rotator capabilities.
+ * The Prosistel Combi-Track azimuth + elevation controllers use angle values multiplied by 10 and have
+ * two "units" with identifier A and B (instead of A and E).
  */
-
-const struct rot_caps prosistel_rot_caps =
+static const struct prosistel_rot_priv_caps prosistel_rot_combitrack_priv_caps =
 {
-    ROT_MODEL(ROT_MODEL_PROSISTEL),
-    .model_name =     "Prosistel D",
+    .angle_multiplier = 10.0f,
+    /**
+     * Angle 9777 = soft stop, stops the rotator using using PWM if PWM mode is enabled, otherwise results in a fast stop
+     * Angle 9999 = fast stop, stops the rotator immediately
+     */
+    .stop_angle = 9777,
+    .azimuth_id = 'A',
+    .elevation_id = 'B',
+};
+
+
+/*
+ * Prosistel rotator capabilities
+ */
+const struct rot_caps prosistel_az_rot_caps =
+{
+    ROT_MODEL(ROT_MODEL_PROSISTEL_AZ),
+    .model_name =     "Prosistel D azimuth",
     .mfg_name =       "Prosistel",
-    .version =        "20201214.0",
+    .version =        "20201215.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_AZIMUTH,
@@ -280,24 +381,96 @@ const struct rot_caps prosistel_rot_caps =
     .timeout          = 3000,
     .retry            = 3,
 
+    .min_az =     0.0,
+    .max_az =     360.0,
+    .min_el =     0.0,
+    .max_el =     0.0,
+
+    .priv = &prosistel_rot_az_or_el_priv_caps,
+
+    .rot_open = prosistel_rot_open,
+    .stop = prosistel_rot_stop,
+    .set_position = prosistel_rot_set_position,
+    .get_position = prosistel_rot_get_position,
+};
+
+
+const struct rot_caps prosistel_el_rot_caps =
+{
+    ROT_MODEL(ROT_MODEL_PROSISTEL_EL),
+    .model_name =     "Prosistel D elevation",
+    .mfg_name =       "Prosistel",
+    .version =        "20201215.0",
+    .copyright =      "LGPL",
+    .status =         RIG_STATUS_STABLE,
+    .rot_type =       ROT_TYPE_ELEVATION,
+    .port_type =      RIG_PORT_SERIAL,
+    .serial_rate_min  = 9600,
+    .serial_rate_max  = 9600,
+    .serial_data_bits = 8,
+    .serial_stop_bits = 1,
+    .serial_parity    = RIG_PARITY_NONE,
+    .serial_handshake = RIG_HANDSHAKE_NONE,
+    .write_delay      = 0,
+    .post_write_delay = 0,
+    .timeout          = 3000,
+    .retry            = 3,
+
+    .min_az =     0.0,
+    .max_az =     0.0,
+    .min_el =     0.0,
+    .max_el =     90.0,
+
+    .priv = &prosistel_rot_az_or_el_priv_caps,
+
+    .rot_open = prosistel_rot_open,
+    .stop = prosistel_rot_stop,
+    .set_position = prosistel_rot_set_position,
+    .get_position = prosistel_rot_get_position,
+};
+
+
+const struct rot_caps prosistel_azel_combo_rot_caps =
+{
+    ROT_MODEL(ROT_MODEL_PROSISTEL_AZEL_COMBO),
+    .model_name =     "Prosistel Combi-Track az+el",
+    .mfg_name =       "Prosistel",
+    .version =        "20201215.0",
+    .copyright =      "LGPL",
+    .status =         RIG_STATUS_STABLE,
+    .rot_type =       ROT_TYPE_AZEL,
+    .port_type =      RIG_PORT_SERIAL,
+    .serial_rate_min  = 9600,
+    .serial_rate_max  = 9600,
+    .serial_data_bits = 8,
+    .serial_stop_bits = 1,
+    .serial_parity    = RIG_PARITY_NONE,
+    .serial_handshake = RIG_HANDSHAKE_NONE,
+    .write_delay      = 0,
+    .post_write_delay = 0,
+    .timeout          = 3000,
+    .retry            = 3,
 
     .min_az =     0.0,
     .max_az =     360.0,
     .min_el =     0.0,
     .max_el =     90.0,
 
-    .rot_open =     prosistel_rot_open,
-    .set_position =     prosistel_rot_set_position,
-    .get_position =     prosistel_rot_get_position,
+    .priv = &prosistel_rot_combitrack_priv_caps,
 
+    .rot_open = prosistel_rot_open,
+    .stop = prosistel_rot_stop,
+    .set_position = prosistel_rot_set_position,
+    .get_position = prosistel_rot_get_position,
 };
 
 DECLARE_INITROT_BACKEND(prosistel)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
-    rot_register(&prosistel_rot_caps);
-
+    rot_register(&prosistel_az_rot_caps);
+    rot_register(&prosistel_el_rot_caps);
+    rot_register(&prosistel_azel_combo_rot_caps);
 
     return RIG_OK;
 }
