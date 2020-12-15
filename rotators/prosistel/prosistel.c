@@ -360,9 +360,9 @@ static const struct prosistel_rot_priv_caps prosistel_rot_combitrack_priv_caps =
 /*
  * Prosistel rotator capabilities
  */
-const struct rot_caps prosistel_az_rot_caps =
+const struct rot_caps prosistel_d_az_rot_caps =
 {
-    ROT_MODEL(ROT_MODEL_PROSISTEL_AZ),
+    ROT_MODEL(ROT_MODEL_PROSISTEL_D_AZ),
     .model_name =     "D azimuth",
     .mfg_name =       "Prosistel",
     .version =        "20201215.0",
@@ -395,9 +395,9 @@ const struct rot_caps prosistel_az_rot_caps =
 };
 
 
-const struct rot_caps prosistel_el_rot_caps =
+const struct rot_caps prosistel_d_el_rot_caps =
 {
-    ROT_MODEL(ROT_MODEL_PROSISTEL_EL),
+    ROT_MODEL(ROT_MODEL_PROSISTEL_D_EL),
     .model_name =     "D elevation",
     .mfg_name =       "Prosistel",
     .version =        "20201215.0",
@@ -430,9 +430,9 @@ const struct rot_caps prosistel_el_rot_caps =
 };
 
 
-const struct rot_caps prosistel_azel_combo_rot_caps =
+const struct rot_caps prosistel_combi_track_azel_rot_caps =
 {
-    ROT_MODEL(ROT_MODEL_PROSISTEL_AZEL_COMBO),
+    ROT_MODEL(ROT_MODEL_PROSISTEL_COMBI_TRACK_AZEL),
     .model_name =     "Combi-Track az+el",
     .mfg_name =       "Prosistel",
     .version =        "20201215.0",
@@ -468,9 +468,9 @@ DECLARE_INITROT_BACKEND(prosistel)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
-    rot_register(&prosistel_az_rot_caps);
-    rot_register(&prosistel_el_rot_caps);
-    rot_register(&prosistel_azel_combo_rot_caps);
+    rot_register(&prosistel_d_az_rot_caps);
+    rot_register(&prosistel_d_el_rot_caps);
+    rot_register(&prosistel_combi_track_azel_rot_caps);
 
     return RIG_OK;
 }
