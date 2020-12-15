@@ -252,6 +252,10 @@ static int prosistel_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
         *az = (azimuth_t) posval;
     }
+    else
+    {
+        *az = 0;
+    }
 
     // Query elevation only if the rotator has the capability to do so
     // It is an error to query for elevation if it's not supported by the rotator controller
@@ -284,6 +288,10 @@ static int prosistel_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
                 __func__, data, posval);
 
         *el = (elevation_t) posval;
+    }
+    else
+    {
+        *el = 0;
     }
 
     return retval;
