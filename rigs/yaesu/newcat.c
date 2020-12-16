@@ -532,6 +532,15 @@ int newcat_open(RIG *rig)
     /* Initialize rig_id in case any subsequent commands need it */
     (void)newcat_get_rigid(rig);
 
+    if (priv->rig_id == NC_RIGID_FT2000)
+    { //  then we need to readjust rfpowermeter cal table in half
+        int i;
+        for(i=0;i<rig->caps->rfpower_meter_cal.size; ++i)
+        { // we may need a table for the FT2000 instead of this
+            rig->caps->rfpower_meter_cal.table[i].raw/=2;
+        }
+    }
+
     return RIG_OK;
 }
 
