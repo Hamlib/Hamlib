@@ -107,6 +107,7 @@ struct flrig_priv_data
     pbwidth_t curr_widthB;
     int has_get_modeA; /* True if this function is available */
     int has_get_bwA; /* True if this function is available */
+    float powermeter_scale;  /* So we can scale power meter to 0-1 */
 };
 
 const struct rig_caps flrig_caps =
@@ -734,6 +735,19 @@ static int flrig_open(RIG *rig)
 
     strncpy(priv->info, value, sizeof(priv->info));
     rig_debug(RIG_DEBUG_VERBOSE, "Transceiver=%s\n", value);
+
+    /* see if get_pwrmeter_scale is available */
+    retval = flrig_transaction(rig, "rig.get_pwrmeter_scale", NULL, value,
+                               sizeof(value));
+
+    if (retval != RIG_OK) { return retval; }
+
+    priv->powermeter_scale = 100; // default
+
+    if (strlen(value) > 0)
+    {
+        priv->powermeter_scale = atof(value);
+    }
 
     /* see if get_modeA is available */
     retval = flrig_transaction(rig, "rig.get_modeA", NULL, value, sizeof(value));
@@ -1909,6 +1923,7 @@ static int flrig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     char value[MAXARGLEN];
     char *cmd;
     int retval;
+    //struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
               rig_strvfo(vfo));
@@ -1944,9 +1959,17 @@ static int flrig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     switch (level)
     {
     case RIG_LEVEL_STRENGTH:
-    case RIG_LEVEL_RFPOWER_METER:
         val->i = atoi(value);
         rig_debug(RIG_DEBUG_TRACE, "%s: val.i='%s'(%d)\n", __func__, value, val->i);
+
+    case RIG_LEVEL_RFPOWER_METER:
+        val->f = atof(value)/100.0;
+        rig_debug(RIG_DEBUG_TRACE, "%s: val.f='%s'(%g)\n", __func__, value, val->f);
+        break;
+
+    case RIG_LEVEL_RFPOWER_METER_WATTS:
+        val->f = atof(value);
+        rig_debug(RIG_DEBUG_TRACE, "%s: val.f='%s'(%g)\n", __func__, value, val->f);
         break;
 
     default:

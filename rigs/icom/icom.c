@@ -2775,6 +2775,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_RFPOWER_METER:
+    case RIG_LEVEL_RFPOWER_METER_WATTS:
         lvl_cn = C_RD_SQSM;
         lvl_sc = S_RFML;
         break;
@@ -3078,6 +3079,21 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             val->f =
                 rig_raw2val_float(icom_val, &rig->caps->rfpower_meter_cal);
+        }
+
+        break;
+
+    case RIG_LEVEL_RFPOWER_METER_WATTS:
+        // eventually we should change all the Icom tables to watts
+        if (rig->caps->rfpower_meter_cal.size == 0)
+        {
+            val->f =
+                rig_raw2val_float(icom_val, &icom_default_rfpower_meter_cal)*100;
+        }
+        else
+        {
+            val->f =
+                rig_raw2val_float(icom_val, &rig->caps->rfpower_meter_cal)*100;
         }
 
         break;

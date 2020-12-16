@@ -93,6 +93,7 @@
                             RIG_LEVEL_SWR| \
                             RIG_LEVEL_ALC| \
                             RIG_LEVEL_RFPOWER_METER| \
+                            RIG_LEVEL_RFPOWER_METER_WATTS| \
                             RIG_LEVEL_COMP_METER| \
                             RIG_LEVEL_VD_METER| \
                             RIG_LEVEL_ID_METER| \

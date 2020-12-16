@@ -170,10 +170,11 @@ const cal_table_float_t yaesu_default_comp_meter_cal =
 // TODO: Provide sane defaults
 const cal_table_float_t yaesu_default_rfpower_meter_cal =
 {
-    2,
+    3,
     {
         {0, 0.0f},
-        {255, 1.0f},
+        {148, 50.0f},
+        {255, 100.0f},
     }
 };
 
@@ -4167,6 +4168,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_RFPOWER_METER:
+    case RIG_LEVEL_RFPOWER_METER_WATTS:
         if (!newcat_valid_command(rig, "RM"))
         {
             return -RIG_ENAVAIL;
@@ -4379,6 +4381,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_RFPOWER_METER:
+    case RIG_LEVEL_RFPOWER_METER_WATTS:
         rig_debug(RIG_DEBUG_VERBOSE, "%s: RFPOWER_METER retlvl=%s\n", __func__, retlvl);
         if (retlvl_len > 3)
         {
@@ -4390,14 +4393,14 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         if (rig->caps->rfpower_meter_cal.size == 0)
         {
-            val->f = rig_raw2val_float(atoi(retlvl), &yaesu_default_rfpower_meter_cal);
+            val->f = rig_raw2val_float(atoi(retlvl), &yaesu_default_rfpower_meter_cal)/(level == RIG_LEVEL_RFPOWER_METER_WATTS?1.0:100.0);
         }
         else
         {
-            val->f = rig_raw2val_float(atoi(retlvl), &rig->caps->rfpower_meter_cal);
+            val->f = rig_raw2val_float(atoi(retlvl), &rig->caps->rfpower_meter_cal)/(level == RIG_LEVEL_RFPOWER_METER_WATTS?1.0:100.0);
         }
         rig_debug(RIG_DEBUG_VERBOSE, "%s: RFPOWER_METER=%s, converted to %f\n", __func__, retlvl, val->f);
-        if (val->f > 1.0) 
+        if (level == RIG_LEVEL_RFPOWER_METER && val->f > 1.0) 
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s: val->f(%f) clipped at 1.0\n", __func__, val->f);
             val->f = 1.0;
