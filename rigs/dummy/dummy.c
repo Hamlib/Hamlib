@@ -1069,6 +1069,20 @@ static int dummy_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         break;
 
+    case RIG_LEVEL_RFPOWER_METER_WATTS:
+        if (priv->static_data)
+        {
+            curr->levels[idx].f = 50.0f;
+        }
+        else
+        {
+            curr->levels[idx].f = (float)(time(NULL) % 32) / 64.0f + (float)(
+                                      rand() % 4) / 8.0f;
+            curr->levels[idx].f *= 100.0f;
+        }
+
+        break;
+
     case RIG_LEVEL_COMP_METER:
         if (priv->static_data)
         {

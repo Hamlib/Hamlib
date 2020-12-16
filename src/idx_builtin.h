@@ -142,6 +142,7 @@
 /*#define LVL_BWC          setting2idx_builtin(RIG_LEVEL_BWC)*/
 
 #define LVL_RFPOWER_METER setting2idx_builtin(RIG_LEVEL_RFPOWER_METER)
+#define LVL_RFPOWER_METER_WATTS setting2idx_builtin(RIG_LEVEL_RFPOWER_METER_WATTS)
 #define LVL_COMP_METER    setting2idx_builtin(RIG_LEVEL_COMP_METER)
 #define LVL_VD_METER      setting2idx_builtin(RIG_LEVEL_VD_METER)
 #define LVL_ID_METER      setting2idx_builtin(RIG_LEVEL_ID_METER)

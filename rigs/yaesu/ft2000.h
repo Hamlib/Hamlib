@@ -57,7 +57,7 @@
                RIG_LEVEL_METER|RIG_LEVEL_BKINDL|RIG_LEVEL_SQL|\
                RIG_LEVEL_VOXGAIN|RIG_LEVEL_VOXDELAY|RIG_LEVEL_COMP|\
                RIG_LEVEL_ANTIVOX|RIG_LEVEL_NR|RIG_LEVEL_NOTCHF|\
-               RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_RFPOWER_METER|\
+               RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS|\
                RIG_LEVEL_COMP_METER|RIG_LEVEL_VD_METER|RIG_LEVEL_ID_METER)
 
 #define FT2000_FUNCS (RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_LOCK|\
@@ -69,6 +69,24 @@
 #define FT2000_VFO_OPS (RIG_OP_TUNE|RIG_OP_CPY|RIG_OP_XCHG|\
                RIG_OP_UP|RIG_OP_DOWN|RIG_OP_BAND_UP|RIG_OP_BAND_DOWN|\
                RIG_OP_TO_VFO|RIG_OP_FROM_VFO|RIG_OP_TOGGLE)
+
+// From measurements on FT2000D by Stan UA3SAQ
+// We'll reuse this for now and divide by 2 for FT2000
+#define FT2000D_RFPOWER_METER_CAL { 11, \
+        { \
+            {51, 10.0f}, \
+            {67, 20.0f}, \
+            {97, 40.0f}, \
+            {123, 60.0f}, \
+            {140, 80.0f}, \
+            {161, 100.0f}, \
+            {168, 120.0f}, \
+            {184, 140.0f}, \
+            {195, 160.0f}, \
+            {215, 180.0f}, \
+            {224, 200.0f}, \
+        } \
+    }
 
 #define FT2000_STR_CAL { 16, \
 	       { \

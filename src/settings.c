@@ -940,6 +940,7 @@ int HAMLIB_API rig_setting2idx(setting_t s)
     {
         if (s & rig_idx2setting(i))
         {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: idx=%d\n", __func__, i);
             return i;
         }
     }

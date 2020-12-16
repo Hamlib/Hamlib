@@ -11,6 +11,7 @@ Version 4.0
         * API/ABI changes, advance ABI to 4 0 0.
         * Add GPIO and GPION options for DCD.  Jeroen Vreeken
         * New backend: ELAD FDM DUO.  Giovanni, HB9EIK.
+    * New RIG_LEVEL_RFPOWER_METER_WATTS level
     * All channel functions now take a vfo argument
 	* New rotator backend: iOptron. Bob, KD8CGH
 	* New model: Icom IC-R8600.  Ekki, DF4OR
