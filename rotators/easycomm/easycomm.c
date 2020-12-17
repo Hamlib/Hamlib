@@ -259,13 +259,16 @@ static int easycomm_rot_move_velocity(ROT *rot, int direction, int speed)
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-    if (speed == ROT_SPEED_NOCHANGE) {
+    if (speed == ROT_SPEED_NOCHANGE)
+    {
         easycomm_speed = rs->current_speed;
-    } else {
+    }
+    else
+    {
         if (speed < 1 || speed > 100)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: Invalid speed value (1-100)! (%d)\n", __func__,
-                    speed);
+                      speed);
             return -RIG_EINVAL;
         }
 
@@ -314,12 +317,14 @@ static int easycomm_rot_get_level(ROT *rot, setting_t level, value_t *val)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, rot_strlevel(level));
 
-    switch (level) {
-        case ROT_LEVEL_SPEED:
-            val->i = rs->current_speed;
-            break;
-        default:
-            return -RIG_ENAVAIL;
+    switch (level)
+    {
+    case ROT_LEVEL_SPEED:
+        val->i = rs->current_speed;
+        break;
+
+    default:
+        return -RIG_ENAVAIL;
     }
 
     return RIG_OK;
@@ -332,20 +337,27 @@ static int easycomm_rot_set_level(ROT *rot, setting_t level, value_t val)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, rot_strlevel(level));
 
-    switch (level) {
-        case ROT_LEVEL_SPEED: {
-            int speed = val.i;
-            if (speed < 0) {
-                speed = 0;
-            } else if (speed > 9999) {
-                speed = 9999;
-            }
+    switch (level)
+    {
+    case ROT_LEVEL_SPEED:
+    {
+        int speed = val.i;
 
-            rs->current_speed = speed;
-            break;
+        if (speed < 0)
+        {
+            speed = 0;
         }
-        default:
-            return -RIG_ENAVAIL;
+        else if (speed > 9999)
+        {
+            speed = 9999;
+        }
+
+        rs->current_speed = speed;
+        break;
+    }
+
+    default:
+        return -RIG_ENAVAIL;
     }
 
     return RIG_OK;

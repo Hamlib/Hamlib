@@ -2398,8 +2398,11 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
         // https://github.com/Hamlib/Hamlib/issues/465
         kenwood_val = val.f * power_max;
-        if (kenwood_val < power_min) kenwood_val = power_min;
-        if (kenwood_val > power_max) kenwood_val = power_max;
+
+        if (kenwood_val < power_min) { kenwood_val = power_min; }
+
+        if (kenwood_val > power_max) { kenwood_val = power_max; }
+
         snprintf(levelbuf, sizeof(levelbuf), "PC%03d", kenwood_val);
         break;
     }
@@ -3888,8 +3891,8 @@ int kenwood_set_powerstat(RIG *rig, powerstat_t status)
             sleep(1);
             retval = rig_get_freq(rig, RIG_VFO_A, &freq);
 
-            if (retval == RIG_OK) 
-            { 
+            if (retval == RIG_OK)
+            {
                 rig->state.rigport.retry = retry_save;
                 return retval;
             }
