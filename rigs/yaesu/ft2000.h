@@ -72,8 +72,9 @@
 
 // From measurements on FT2000D by Stan UA3SAQ
 // We'll reuse this for now and divide by 2 for FT2000
-#define FT2000D_RFPOWER_METER_CAL { 11, \
+#define FT2000_RFPOWER_METER_CAL { 12, \
         { \
+            {0, 0.0f}, \
             {51, 10.0f}, \
             {67, 20.0f}, \
             {97, 40.0f}, \
