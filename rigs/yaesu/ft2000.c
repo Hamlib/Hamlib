@@ -133,7 +133,7 @@ const struct rig_caps ft2000_caps =
     .transceive =         RIG_TRN_OFF,        /* May enable later as the 2000 has an Auto Info command */
     .bank_qty =           0,
     .chan_desc_sz =       0,
-    .rfpower_meter_cal =  FT2000D_RFPOWER_METER_CAL,
+    .rfpower_meter_cal =  FT2000_RFPOWER_METER_CAL,
     .str_cal =            FT2000_STR_CAL,
     .chan_list =          {
         {   1,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
