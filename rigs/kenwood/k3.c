@@ -1864,10 +1864,12 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
 
         val->f = pwr;
+
         if (level == RIG_LEVEL_RFPOWER_METER_WATTS)
         {
             val->f *= 100;
         }
+
         break;
     }
 
