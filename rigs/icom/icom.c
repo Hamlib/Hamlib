@@ -1604,7 +1604,8 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
         break;
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s mode=%d, width=%d\n", __func__, (int)icom_mode, (int)width);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s mode=%d, width=%d\n", __func__, (int)icom_mode,
+              (int)width);
     retval = icom_set_mode(rig, vfo, icom_mode, width);
 
     if (RIG_OK == retval)
@@ -1627,6 +1628,7 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
             datamode[0] = 0x00;
             break;
         }
+
         if (width != RIG_PASSBAND_NOCHANGE)
         {
             if (filter_byte)   // then we need the width byte too
@@ -1704,7 +1706,8 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
         err = rig2icom_mode(rig, vfo, mode, width, &icmode, &icmode_ext);
     }
-    if (width == RIG_PASSBAND_NOCHANGE) icmode_ext = priv_data->filter;
+
+    if (width == RIG_PASSBAND_NOCHANGE) { icmode_ext = priv_data->filter; }
 
     if (err < 0)
     {
@@ -1712,7 +1715,9 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         return err;
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: icmode=%d, icmode_ext=%d\n", __func__, icmode, icmode_ext);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: icmode=%d, icmode_ext=%d\n", __func__, icmode,
+              icmode_ext);
+
     /* IC-731, IC-735, IC-7000 don't support passband data */
     /* IC-726 & IC-475A/E also limited support - only on CW */
     /* TODO: G4WJS CW wide/narrow are possible with above two radios */
@@ -1724,7 +1729,8 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         icmode_ext = -1;
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: #2 icmode=%d, icmode_ext=%d\n", __func__, icmode, icmode_ext);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: #2 icmode=%d, icmode_ext=%d\n", __func__,
+              icmode, icmode_ext);
     retval = icom_transaction(rig, C_SET_MODE, icmode,
                               (unsigned char *) &icmode_ext,
                               (icmode_ext == -1 ? 0 : 1), ackbuf, &ack_len);
@@ -1775,6 +1781,7 @@ int icom_get_mode_with_data(RIG *rig, vfo_t vfo, rmode_t *mode,
     retval = icom_get_mode(rig, vfo, mode, width);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s mode=%d\n", __func__, (int)*mode);
+
     if (retval != RIG_OK)
     {
         return retval;
@@ -1820,7 +1827,9 @@ int icom_get_mode_with_data(RIG *rig, vfo_t vfo, rmode_t *mode,
             return -RIG_ERJCTED;
         }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s databuf[2]=%d, mode=%d\n", __func__, (int)databuf[2], (int)*mode);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s databuf[2]=%d, mode=%d\n", __func__,
+                  (int)databuf[2], (int)*mode);
+
         if (databuf[2])       /* 0x01/0x02/0x03 -> data mode, 0x00 -> not data mode */
         {
             switch (*mode)
@@ -3084,16 +3093,17 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_RFPOWER_METER_WATTS:
+
         // eventually we should change all the Icom tables to watts
         if (rig->caps->rfpower_meter_cal.size == 0)
         {
             val->f =
-                rig_raw2val_float(icom_val, &icom_default_rfpower_meter_cal)*100;
+                rig_raw2val_float(icom_val, &icom_default_rfpower_meter_cal) * 100;
         }
         else
         {
             val->f =
-                rig_raw2val_float(icom_val, &rig->caps->rfpower_meter_cal)*100;
+                rig_raw2val_float(icom_val, &rig->caps->rfpower_meter_cal) * 100;
         }
 
         break;

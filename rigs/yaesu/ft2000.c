@@ -185,12 +185,12 @@ const struct rig_caps ft2000_caps =
 
     /* mode/filter list, .remember =  order matters! */
     .filters =            {
-        {RIG_MODE_CW|RIG_MODE_CWR,     Hz(500)},    /* Normal CW, RTTY, PKT/USER */
-        {RIG_MODE_CW|RIG_MODE_CWR,     Hz(200)},    /* Narrow CW, RTTY, PKT/USER */
-        {RIG_MODE_CW|RIG_MODE_CWR,     Hz(2400)},   /* Wide   CW, RTTY, PKT/USER */
-        {RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(500)},    /* Normal RTTY */
-        {RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(300)},    /* Narrow RTTY */
-        {RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(2400)},   /* Wide   RTTY */
+        {RIG_MODE_CW | RIG_MODE_CWR,     Hz(500)},  /* Normal CW, RTTY, PKT/USER */
+        {RIG_MODE_CW | RIG_MODE_CWR,     Hz(200)},  /* Narrow CW, RTTY, PKT/USER */
+        {RIG_MODE_CW | RIG_MODE_CWR,     Hz(2400)}, /* Wide   CW, RTTY, PKT/USER */
+        {RIG_MODE_RTTY | RIG_MODE_RTTYR, Hz(500)},  /* Normal RTTY */
+        {RIG_MODE_RTTY | RIG_MODE_RTTYR, Hz(300)},  /* Narrow RTTY */
+        {RIG_MODE_RTTY | RIG_MODE_RTTYR, Hz(2400)}, /* Wide   RTTY */
         {RIG_MODE_SSB,                 Hz(2400)},   /* Normal SSB */
         {RIG_MODE_SSB,                 Hz(1800)},   /* Narrow SSB */
         {RIG_MODE_SSB,                 Hz(3000)},   /* Wide   SSB */

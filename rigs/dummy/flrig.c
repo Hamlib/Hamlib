@@ -1963,7 +1963,7 @@ static int flrig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         rig_debug(RIG_DEBUG_TRACE, "%s: val.i='%s'(%d)\n", __func__, value, val->i);
 
     case RIG_LEVEL_RFPOWER_METER:
-        val->f = atof(value)/100.0;
+        val->f = atof(value) / 100.0;
         rig_debug(RIG_DEBUG_TRACE, "%s: val.f='%s'(%g)\n", __func__, value, val->f);
         break;
 

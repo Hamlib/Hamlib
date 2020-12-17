@@ -133,7 +133,7 @@ transaction_quit:
 static int prosistel_rot_open(ROT *rot)
 {
     struct prosistel_rot_priv_caps *priv_caps =
-            (struct prosistel_rot_priv_caps *) rot->caps->priv;
+        (struct prosistel_rot_priv_caps *) rot->caps->priv;
     char cmdstr[64];
     int retval;
 
@@ -144,10 +144,12 @@ static int prosistel_rot_open(ROT *rot)
     // The rotator controller sends position data continuously when CPM is enabled
 
     // Disable CPM for azimuth if the rotator has an azimuth rotator
-    if (rot->caps->rot_type == ROT_TYPE_AZIMUTH || rot->caps->rot_type == ROT_TYPE_AZEL)
+    if (rot->caps->rot_type == ROT_TYPE_AZIMUTH
+            || rot->caps->rot_type == ROT_TYPE_AZEL)
     {
         num_sprintf(cmdstr, STX"%cS"CR, priv_caps->azimuth_id);
         retval = prosistel_transaction(rot, cmdstr, NULL, 0);
+
         if (retval != RIG_OK)
         {
             return retval;
@@ -155,10 +157,12 @@ static int prosistel_rot_open(ROT *rot)
     }
 
     // Disable CPM for elevation if the rotator has an elevation rotator
-    if (rot->caps->rot_type == ROT_TYPE_ELEVATION || rot->caps->rot_type == ROT_TYPE_AZEL)
+    if (rot->caps->rot_type == ROT_TYPE_ELEVATION
+            || rot->caps->rot_type == ROT_TYPE_AZEL)
     {
         num_sprintf(cmdstr, STX"%cS"CR, priv_caps->elevation_id);
         retval = prosistel_transaction(rot, cmdstr, NULL, 0);
+
         if (retval != RIG_OK)
         {
             return retval;
@@ -172,7 +176,7 @@ static int prosistel_rot_open(ROT *rot)
 static int prosistel_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
     struct prosistel_rot_priv_caps *priv_caps =
-            (struct prosistel_rot_priv_caps *) rot->caps->priv;
+        (struct prosistel_rot_priv_caps *) rot->caps->priv;
     char cmdstr[64];
     int retval;
 
@@ -182,9 +186,11 @@ static int prosistel_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 
     // Set azimuth only if the rotator has the capability to do so
     // It is an error to set azimuth if it's not supported by the rotator controller
-    if (rot->caps->rot_type == ROT_TYPE_AZIMUTH || rot->caps->rot_type == ROT_TYPE_AZEL)
+    if (rot->caps->rot_type == ROT_TYPE_AZIMUTH
+            || rot->caps->rot_type == ROT_TYPE_AZEL)
     {
-        num_sprintf(cmdstr, STX"%cG%.0f"CR, priv_caps->azimuth_id, az * priv_caps->angle_multiplier);
+        num_sprintf(cmdstr, STX"%cG%.0f"CR, priv_caps->azimuth_id,
+                    az * priv_caps->angle_multiplier);
         retval = prosistel_transaction(rot, cmdstr, NULL, 0);
 
         if (retval != RIG_OK)
@@ -195,9 +201,11 @@ static int prosistel_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 
     // Set elevation only if the rotator has the capability to do so
     // It is an error to set elevation if it's not supported by the rotator controller
-    if (rot->caps->rot_type == ROT_TYPE_ELEVATION || rot->caps->rot_type == ROT_TYPE_AZEL)
+    if (rot->caps->rot_type == ROT_TYPE_ELEVATION
+            || rot->caps->rot_type == ROT_TYPE_AZEL)
     {
-        num_sprintf(cmdstr, STX"%cG%.0f"CR, priv_caps->elevation_id, el * priv_caps->angle_multiplier);
+        num_sprintf(cmdstr, STX"%cG%.0f"CR, priv_caps->elevation_id,
+                    el * priv_caps->angle_multiplier);
         retval = prosistel_transaction(rot, cmdstr, NULL, 0);
 
         if (retval != RIG_OK)
@@ -213,7 +221,7 @@ static int prosistel_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 static int prosistel_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
     struct prosistel_rot_priv_caps *priv_caps =
-            (struct prosistel_rot_priv_caps *) rot->caps->priv;
+        (struct prosistel_rot_priv_caps *) rot->caps->priv;
     char cmdstr[64];
     char data[20];
     float posval;
@@ -222,12 +230,14 @@ static int prosistel_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
     // Query azimuth only if the rotator has the capability to do so
     // It is an error to query for azimuth if it's not supported by the rotator controller
-    if (rot->caps->rot_type == ROT_TYPE_AZIMUTH || rot->caps->rot_type == ROT_TYPE_AZEL)
+    if (rot->caps->rot_type == ROT_TYPE_AZIMUTH
+            || rot->caps->rot_type == ROT_TYPE_AZEL)
     {
         char rot_id;
 
         num_sprintf(cmdstr, STX"%c?"CR, priv_caps->azimuth_id);
         retval = prosistel_transaction(rot, cmdstr, data, sizeof(data));
+
         if (retval != RIG_OK)
         {
             return retval;
@@ -248,7 +258,7 @@ static int prosistel_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
         posval /= priv_caps->angle_multiplier;
 
         rig_debug(RIG_DEBUG_VERBOSE, "%s got position from '%s' converted to %f\n",
-                __func__, data, posval);
+                  __func__, data, posval);
 
         *az = (azimuth_t) posval;
     }
@@ -259,12 +269,14 @@ static int prosistel_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
     // Query elevation only if the rotator has the capability to do so
     // It is an error to query for elevation if it's not supported by the rotator controller
-    if (rot->caps->rot_type == ROT_TYPE_ELEVATION || rot->caps->rot_type == ROT_TYPE_AZEL)
+    if (rot->caps->rot_type == ROT_TYPE_ELEVATION
+            || rot->caps->rot_type == ROT_TYPE_AZEL)
     {
         char rot_id;
 
         num_sprintf(cmdstr, STX"%c?"CR, priv_caps->elevation_id);
         retval = prosistel_transaction(rot, cmdstr, data, sizeof(data));
+
         if (retval != RIG_OK)
         {
             return retval;
@@ -285,7 +297,7 @@ static int prosistel_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
         posval /= priv_caps->angle_multiplier;
 
         rig_debug(RIG_DEBUG_VERBOSE, "%s got position from '%s' converted to %f\n",
-                __func__, data, posval);
+                  __func__, data, posval);
 
         *el = (elevation_t) posval;
     }
@@ -301,14 +313,15 @@ static int prosistel_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 static int prosistel_rot_stop(ROT *rot)
 {
     struct prosistel_rot_priv_caps *priv_caps =
-            (struct prosistel_rot_priv_caps *) rot->caps->priv;
+        (struct prosistel_rot_priv_caps *) rot->caps->priv;
     char cmdstr[64];
     int retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     // Stop azimuth only if the rotator has the capability to do so
-    if (rot->caps->rot_type == ROT_TYPE_AZIMUTH || rot->caps->rot_type == ROT_TYPE_AZEL)
+    if (rot->caps->rot_type == ROT_TYPE_AZIMUTH
+            || rot->caps->rot_type == ROT_TYPE_AZEL)
     {
         num_sprintf(cmdstr, STX"%cG%d"CR, priv_caps->azimuth_id, priv_caps->stop_angle);
         retval = prosistel_transaction(rot, cmdstr, NULL, 0);
@@ -320,9 +333,11 @@ static int prosistel_rot_stop(ROT *rot)
     }
 
     // Stop elevation only if the rotator has the capability to do so
-    if (rot->caps->rot_type == ROT_TYPE_ELEVATION || rot->caps->rot_type == ROT_TYPE_AZEL)
+    if (rot->caps->rot_type == ROT_TYPE_ELEVATION
+            || rot->caps->rot_type == ROT_TYPE_AZEL)
     {
-        num_sprintf(cmdstr, STX"%cG%d"CR, priv_caps->elevation_id, priv_caps->stop_angle);
+        num_sprintf(cmdstr, STX"%cG%d"CR, priv_caps->elevation_id,
+                    priv_caps->stop_angle);
         retval = prosistel_transaction(rot, cmdstr, NULL, 0);
 
         if (retval != RIG_OK)
