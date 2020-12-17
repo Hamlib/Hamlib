@@ -742,7 +742,7 @@ static int flrig_open(RIG *rig)
 
     if (retval != RIG_OK) { return retval; }
 
-    priv->powermeter_scale = 100; // default
+    priv->powermeter_scale = 1; // default
 
     if (strlen(value) > 0)
     {
