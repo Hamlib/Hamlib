@@ -7675,8 +7675,14 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         if (strlen(priv->ret_data) == 7)
         {
             int on;
-            int n = sscanf(priv->ret_data, "SH0%1d%3d", &on, &w);
+            // do we need to pay attention to the Main/Sub here?
+            int n = sscanf(priv->ret_data, "SH%*1d%1d%3d", &on, &w);
+            if (n != 2)
+            {
+                err = -RIG_EPROTO;
+            }
 
+#if 0 // this may apply to another Yaesu rig
             if (n == 2)
             {
                 if (!on) { w = 0; }
@@ -7685,6 +7691,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
             {
                 err = -RIG_EPROTO;
             }
+#endif
         }
         else if (strlen(priv->ret_data) == 6)
         {
