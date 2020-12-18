@@ -783,8 +783,10 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     //
     // Restore band memory if we can and band is changing -- we do it before we set the frequency
+    // And only when not in split mode
     if (newcat_valid_command(rig, "BS")
-            && newcat_band_index(freq) != newcat_band_index(rig->state.current_freq))
+            && newcat_band_index(freq) != newcat_band_index(rig->state.current_freq)
+            && !rig->state.cache.split)
     {
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "BS%02d%c",
                  newcat_band_index(freq), cat_term);
