@@ -399,10 +399,10 @@ static int newcat_band_index(freq_t freq)
     // does anybody work LSB or RTTYR at the upper band edge?
     // what about band 13 -- what is it?
     if (freq >= MHz(420) && freq < MHz(470)) { band = 16; }
-    // band 14 is RX only
-    else if (freq >= MHz(118) && freq < MHz(164)) { band = 14; }
-    // override band 14 with 15 if needed
     else if (freq >= MHz(144) && freq < MHz(148)) { band = 15; }
+    // band 14 is RX only
+    // override band 15 with 14 if needed
+    else if (freq >= MHz(118) && freq < MHz(164)) { band = 14; }
     else if (freq >= MHz(70) && freq < MHz(70.5)) { band = 17; }
     else if (freq >= MHz(50) && freq < MHz(55)) { band = 10; }
     else if (freq >= MHz(28) && freq < MHz(29.7)) { band = 9; }
@@ -9051,7 +9051,7 @@ int newcat_get_cmd(RIG *rig)
                       __func__, priv->ret_data);
             // we were using BUSBUSY but microham devices need retries
             //rc = -RIG_BUSBUSY;    /* don't write command again */
-            rc = -RIG_EPROTO;
+            // rc = -RIG_EPROTO;
             /* we could decrement retry_count
                here but there is a danger of
                infinite looping so we just use up
