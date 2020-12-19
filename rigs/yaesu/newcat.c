@@ -786,7 +786,8 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     // And only when not in split mode
     if (newcat_valid_command(rig, "BS")
             && newcat_band_index(freq) != newcat_band_index(rig->state.current_freq)
-            && !rig->state.cache.split)
+            && !rig->state.cache.split
+            && !is_ft891) // 891 does not remember bandwidth so don't do this
     {
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "BS%02d%c",
                  newcat_band_index(freq), cat_term);
@@ -7626,7 +7627,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
     char cmd[] = "SH";
     char main_sub_vfo = '0';
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called, vfo=%s, mode=%s\n", __func__, rig_strvfo(vfo), rig_strrmode(mode));
 
     if (!newcat_valid_command(rig, cmd))
     {
