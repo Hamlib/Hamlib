@@ -1631,11 +1631,11 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
 
         if (width != RIG_PASSBAND_NOCHANGE)
         {
-            if (filter_byte)   // then we need the width byte too
+            unsigned char mode_icom; // not usb as it will map to USB/LSB
+            signed char width_icom;
+            rig2icom_mode(rig, vfo, mode, width, &mode_icom, &width_icom);
+            if (filter_byte && width_icom != -1)   // then we need the width byte too
             {
-                unsigned char mode_icom; // not used as it will map to USB/LSB
-                signed char width_icom;
-                rig2icom_mode(rig, vfo, mode, width, &mode_icom, &width_icom);
                 // since width_icom is 0-2 for rigs that need this here we have to make it 1-3
                 datamode[1] = datamode[0] ? width_icom : 0;
                 retval =

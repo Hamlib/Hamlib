@@ -1941,10 +1941,12 @@ pbwidth_t HAMLIB_API rig_passband_normal(RIG *rig, rmode_t mode)
     {
         if (rs->filters[i].modes & mode)
         {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: return filter#%d, width=%d\n", __func__, i, (int)rs->filters[i].width);
             return rs->filters[i].width;
         }
     }
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: filter not found...return RIG_PASSBAND_NORMAL=%d\n", __func__, (int)RIG_PASSBAND_NORMAL);
     return RIG_PASSBAND_NORMAL;
 }
 
