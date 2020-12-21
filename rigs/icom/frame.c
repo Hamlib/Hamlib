@@ -414,6 +414,8 @@ int rig2icom_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width,
     {
     case RIG_MODE_AM:   icmode = S_AM; break;
 
+    case RIG_MODE_PKTAM:   icmode = S_AM; break;
+
     case RIG_MODE_AMN:  icmode = S_AMN; break;
 
     case RIG_MODE_AMS:  icmode = S_AMS; break;
@@ -440,7 +442,11 @@ int rig2icom_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width,
 
     case RIG_MODE_FM:   icmode = S_FM; break;
 
+    case RIG_MODE_PKTFM: icmode = S_FM; break;
+
     case RIG_MODE_FMN:  icmode = S_FMN; break;
+
+    case RIG_MODE_PKTFMN:  icmode = S_FMN; break;
 
     case RIG_MODE_WFM:  icmode = S_WFM; break;
 
@@ -468,14 +474,18 @@ int rig2icom_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width,
     {
         pbwidth_t medium_width = rig_passband_normal(rig, mode);
 
-        if (width == medium_width || width == RIG_PASSBAND_NORMAL)
+        if (width == RIG_PASSBAND_NORMAL)
         {
-            icmode_ext =
-                -1;    /* medium, no passband data-> rig default. Is medium always the default? */
+            // Use rig default for "normal" passband
+            icmode_ext = -1;
         }
         else if (width < medium_width)
         {
             icmode_ext = PD_NARROW_3;
+        }
+        else if (width == medium_width)
+        {
+            icmode_ext = PD_MEDIUM_3;
         }
         else
         {
