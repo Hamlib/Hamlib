@@ -1572,10 +1572,19 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf);
     rmode_t icom_mode;
-    unsigned char dm_sub_cmd = RIG_MODEL_IC7200 == rig->caps->rig_model ? 0x04 :
-                               S_MEM_DATA_MODE;
-    int filter_byte = rig->caps->rig_model == RIG_MODEL_IC7300
-                      || rig->caps->rig_model == RIG_MODEL_IC7610;
+    unsigned char dm_sub_cmd =
+            rig->caps->rig_model == RIG_MODEL_IC7200  ? 0x04 : S_MEM_DATA_MODE;
+    int filter_byte = rig->caps->rig_model == RIG_MODEL_IC7100
+            || rig->caps->rig_model == RIG_MODEL_IC7200
+            || rig->caps->rig_model == RIG_MODEL_IC7300
+            || rig->caps->rig_model == RIG_MODEL_IC7600
+            || rig->caps->rig_model == RIG_MODEL_IC7610
+            || rig->caps->rig_model == RIG_MODEL_IC7700
+            || rig->caps->rig_model == RIG_MODEL_IC7800
+            || rig->caps->rig_model == RIG_MODEL_IC785x
+            || rig->caps->rig_model == RIG_MODEL_IC9100
+            || rig->caps->rig_model == RIG_MODEL_IC9700
+            || rig->caps->rig_model == RIG_MODEL_IC705;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1611,6 +1620,8 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
     if (RIG_OK == retval)
     {
         unsigned char datamode[2];
+        unsigned char mode_icom; // Not used, we only need the width
+        signed char width_icom;
 
         switch (mode)
         {
@@ -1629,31 +1640,21 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
             break;
         }
 
-        if (width != RIG_PASSBAND_NOCHANGE)
+        rig2icom_mode(rig, vfo, mode, width, &mode_icom, &width_icom);
+        if (filter_byte && width_icom != -1)   // then we need the width byte too
         {
-            unsigned char mode_icom; // not usb as it will map to USB/LSB
-            signed char width_icom;
-            rig2icom_mode(rig, vfo, mode, width, &mode_icom, &width_icom);
-            if (filter_byte && width_icom != -1)   // then we need the width byte too
-            {
-                // since width_icom is 0-2 for rigs that need this here we have to make it 1-3
-                datamode[1] = datamode[0] ? width_icom : 0;
-                retval =
-                    icom_transaction(rig, C_CTL_MEM, dm_sub_cmd, datamode, 2,
-                                     ackbuf,
-                                     &ack_len);
-            }
-            else
-            {
-                retval =
-                    icom_transaction(rig, C_CTL_MEM, dm_sub_cmd, datamode, 1, ackbuf,
-                                     &ack_len);
-            }
+            // since width_icom is 0-2 for rigs that need this here we have to make it 1-3
+            datamode[1] = datamode[0] ? width_icom : 0;
+            retval =
+                icom_transaction(rig, C_CTL_MEM, dm_sub_cmd, datamode, 2,
+                                 ackbuf,
+                                 &ack_len);
         }
         else
         {
-            rig_debug(RIG_DEBUG_TRACE, "%s RIG_PASSBAND_NOCHANGE\n", __func__);
-            return RIG_OK;
+            retval =
+                icom_transaction(rig, C_CTL_MEM, dm_sub_cmd, datamode, 1, ackbuf,
+                                 &ack_len);
         }
 
         if (retval != RIG_OK)
