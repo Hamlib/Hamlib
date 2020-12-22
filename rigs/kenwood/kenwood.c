@@ -637,7 +637,7 @@ rmode_t kenwood2rmode(unsigned char mode, const rmode_t mode_table[])
 
 char rmode2kenwood(rmode_t mode, const rmode_t mode_table[])
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called, mode=%s\n", __func__, rig_strrmode(mode));
 
     if (mode != RIG_MODE_NONE)
     {
@@ -647,6 +647,7 @@ char rmode2kenwood(rmode_t mode, const rmode_t mode_table[])
         {
             if (mode_table[i] == mode)
             {
+                rig_debug(RIG_DEBUG_VERBOSE, "%s: returning %d\n", __func__, i);
                 return i;
             }
         }
@@ -1839,7 +1840,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
 
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called, vfo=%s, mode=%s, width=%d\n", __func__, rig_strvfo(vfo), rig_strrmode(mode), (int)width);
 
     if (RIG_IS_TS590S || RIG_IS_TS590SG || RIG_IS_TS950S || RIG_IS_TS950SDX)
     {
@@ -1891,6 +1892,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
         c = 'A' + kmode - 10;
     }
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: kmode=%d, cmode=%c\n", __func__, kmode, c);
 
     if (RIG_IS_TS990S)
     {
