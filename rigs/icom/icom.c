@@ -1573,18 +1573,18 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
     int ack_len = sizeof(ackbuf);
     rmode_t icom_mode;
     unsigned char dm_sub_cmd =
-            rig->caps->rig_model == RIG_MODEL_IC7200  ? 0x04 : S_MEM_DATA_MODE;
+        rig->caps->rig_model == RIG_MODEL_IC7200  ? 0x04 : S_MEM_DATA_MODE;
     int filter_byte = rig->caps->rig_model == RIG_MODEL_IC7100
-            || rig->caps->rig_model == RIG_MODEL_IC7200
-            || rig->caps->rig_model == RIG_MODEL_IC7300
-            || rig->caps->rig_model == RIG_MODEL_IC7600
-            || rig->caps->rig_model == RIG_MODEL_IC7610
-            || rig->caps->rig_model == RIG_MODEL_IC7700
-            || rig->caps->rig_model == RIG_MODEL_IC7800
-            || rig->caps->rig_model == RIG_MODEL_IC785x
-            || rig->caps->rig_model == RIG_MODEL_IC9100
-            || rig->caps->rig_model == RIG_MODEL_IC9700
-            || rig->caps->rig_model == RIG_MODEL_IC705;
+                      || rig->caps->rig_model == RIG_MODEL_IC7200
+                      || rig->caps->rig_model == RIG_MODEL_IC7300
+                      || rig->caps->rig_model == RIG_MODEL_IC7600
+                      || rig->caps->rig_model == RIG_MODEL_IC7610
+                      || rig->caps->rig_model == RIG_MODEL_IC7700
+                      || rig->caps->rig_model == RIG_MODEL_IC7800
+                      || rig->caps->rig_model == RIG_MODEL_IC785x
+                      || rig->caps->rig_model == RIG_MODEL_IC9100
+                      || rig->caps->rig_model == RIG_MODEL_IC9700
+                      || rig->caps->rig_model == RIG_MODEL_IC705;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1641,6 +1641,7 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
         }
 
         rig2icom_mode(rig, vfo, mode, width, &mode_icom, &width_icom);
+
         if (filter_byte && width_icom != -1)   // then we need the width byte too
         {
             // since width_icom is 0-2 for rigs that need this here we have to make it 1-3
