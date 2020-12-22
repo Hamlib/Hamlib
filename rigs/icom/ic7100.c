@@ -243,7 +243,7 @@ const struct rig_caps ic7100_caps =
     .vfo_ops =  IC7100_VFO_OPS,
     .scan_ops =  IC7100_SCAN_OPS,
     .transceive =  RIG_TRN_RIG,
-    .bank_qty =   0,
+    .bank_qty =   5,
     .chan_desc_sz =  9, /* TODO */
 
     .chan_list =  { /* TBC */
@@ -380,6 +380,7 @@ const struct rig_caps ic7100_caps =
     .set_ext_func =  icom_set_ext_func,
     .get_ext_func =  icom_get_ext_func,
     .set_mem =  icom_set_mem,
+    .set_bank =  icom_set_bank,
     .vfo_op =  icom_vfo_op,
     .scan =  icom_scan,
     .get_dcd =  icom_get_dcd,
