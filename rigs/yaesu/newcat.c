@@ -7438,7 +7438,8 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
         // some rigs now require the bandwidth be turned "on"
         int on = is_ft891;
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH%c%d%02d;", main_sub_vfo, on, w);
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH%c%d%02d;", main_sub_vfo, on,
+                 w);
     }
     else
     {
@@ -7627,7 +7628,8 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
     char cmd[] = "SH";
     char main_sub_vfo = '0';
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called, vfo=%s, mode=%s\n", __func__, rig_strvfo(vfo), rig_strrmode(mode));
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called, vfo=%s, mode=%s\n", __func__,
+              rig_strvfo(vfo), rig_strrmode(mode));
 
     if (!newcat_valid_command(rig, cmd))
     {
@@ -7682,12 +7684,14 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
             int on;
             // do we need to pay attention to the Main/Sub here?
             int n = sscanf(priv->ret_data, "SH%*1d%1d%3d", &on, &w);
+
             if (n != 2)
             {
                 err = -RIG_EPROTO;
             }
 
 #if 0 // this may apply to another Yaesu rig
+
             if (n == 2)
             {
                 if (!on) { w = 0; }
@@ -7696,6 +7700,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
             {
                 err = -RIG_EPROTO;
             }
+
 #endif
         }
         else if (strlen(priv->ret_data) == 6)
