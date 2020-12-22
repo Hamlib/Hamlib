@@ -2857,7 +2857,7 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
     struct rig_state *state = &rig->state;
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int retval;
-    int i;
+    int i = 0;
     int retry_save;
     char ps;
 
