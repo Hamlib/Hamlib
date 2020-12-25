@@ -55,7 +55,8 @@
                      RIG_MODE_RTTY | RIG_MODE_RTTYR |\
                      RIG_MODE_PKTLSB | RIG_MODE_PKTUSB |\
                      RIG_MODE_SSB | RIG_MODE_LSB | RIG_MODE_USB |\
-             RIG_MODE_FM | RIG_MODE_WFM | RIG_MODE_FMN |RIG_MODE_PKTFM )
+                     RIG_MODE_FM | RIG_MODE_WFM | RIG_MODE_FMN | RIG_MODE_PKTFM |\
+                     RIG_MODE_C4FM)
 
 #define FLRIG_LEVELS (RIG_LEVEL_AF | RIG_LEVEL_RF | RIG_LEVEL_MICGAIN | RIG_LEVEL_STRENGTH | RIG_LEVEL_RFPOWER_METER | RIG_LEVEL_RFPOWER_METER_WATTS)
 
@@ -207,6 +208,7 @@ static struct s_modeMap modeMap[] =
     {RIG_MODE_CWR, NULL},
     {RIG_MODE_RTTY, NULL},
     {RIG_MODE_RTTYR, NULL},
+    {RIG_MODE_C4FM, NULL},
     {0, NULL}
 };
 
@@ -906,6 +908,7 @@ static int flrig_open(RIG *rig)
         else if (streq(p, "W-FM")) { modeMapAdd(&modes, RIG_MODE_WFM, p); }
         else if (streq(p, "WFM")) { modeMapAdd(&modes, RIG_MODE_WFM, p); }
         else if (streq(p, "UCW")) { modeMapAdd(&modes, RIG_MODE_CW, p); }
+        else if (streq(p, "C4FM")) { modeMapAdd(&modes, RIG_MODE_C4FM, p); }
         else { rig_debug(RIG_DEBUG_ERR, "%s: Unknown mode (new?) for this rig='%s'\n", __func__, p); }
     }
 
