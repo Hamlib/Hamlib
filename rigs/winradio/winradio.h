@@ -59,6 +59,8 @@ extern const struct rig_caps wr3500_caps;
 extern const struct rig_caps wr3700_caps;
 extern const struct rig_caps g303_caps;
 extern const struct rig_caps g305_caps;
+#ifdef _WIN32
 extern const struct rig_caps g313_caps;
+#endif
 
 #endif /* _WINRADIO_H */
