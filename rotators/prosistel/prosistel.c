@@ -225,7 +225,7 @@ static int prosistel_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     char cmdstr[64];
     char data[20];
     float posval;
-    int retval;
+    int retval = RIG_OK;
     int n;
 
     // Query azimuth only if the rotator has the capability to do so
