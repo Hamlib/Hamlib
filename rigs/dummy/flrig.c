@@ -196,15 +196,11 @@ static struct s_modeMap modeMap[] =
     {RIG_MODE_LSB, NULL},
     {RIG_MODE_PKTUSB, NULL},
     {RIG_MODE_PKTLSB, NULL},
-    {RIG_MODE_PKTUSB, NULL},
-    {RIG_MODE_PKTLSB, NULL},
     {RIG_MODE_AM, NULL},
     {RIG_MODE_FM, NULL},
     {RIG_MODE_FMN, NULL},
     {RIG_MODE_WFM, NULL},
     {RIG_MODE_CW, NULL},
-    {RIG_MODE_CW, NULL},
-    {RIG_MODE_CWR, NULL},
     {RIG_MODE_CWR, NULL},
     {RIG_MODE_RTTY, NULL},
     {RIG_MODE_RTTYR, NULL},
@@ -865,6 +861,8 @@ static int flrig_open(RIG *rig)
         else if (streq(p, "DATA-U")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
         else if (streq(p, "DIG")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
         else if (streq(p, "DIGI")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
+        else if (streq(p, "DIGL")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p); }
+        else if (streq(p, "DIGU")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
         else if (streq(p, "DATA-L")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p); }
         else if (streq(p, "DATA-R")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p); }
         else if (streq(p, "FM")) { modeMapAdd(&modes, RIG_MODE_FM, p); }
