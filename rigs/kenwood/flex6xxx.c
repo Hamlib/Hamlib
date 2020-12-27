@@ -49,6 +49,8 @@
 #define F6K_ANTS (RIG_ANT_1|RIG_ANT_2|RIG_ANT_3)
 
 /* PowerSDR differences */
+#define POWERSDR_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_SPEC)
+
 #define POWERSDR_FUNC_ALL (RIG_FUNC_VOX|RIG_FUNC_SQL|RIG_FUNC_NB|RIG_FUNC_ANF|RIG_FUNC_MUTE|RIG_FUNC_RIT|RIG_FUNC_XIT|RIG_FUNC_TUNER)
 
 #define POWERSDR_LEVEL_ALL (RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW|RIG_LEVEL_KEYSPD|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS|RIG_LEVEL_MICGAIN|RIG_LEVEL_VOXGAIN|RIG_LEVEL_SQL|RIG_LEVEL_AF|RIG_LEVEL_AGC|RIG_LEVEL_RF|RIG_LEVEL_IF)
@@ -1206,31 +1208,31 @@ const struct rig_caps powersdr_caps =
     .chan_list =        { RIG_CHAN_END },
 
     .rx_range_list1 =  {
-        {kHz(30), MHz(77), F6K_MODES, -1, -1, F6K_VFO, F6K_ANTS},
-        {MHz(135), MHz(165), F6K_MODES, -1, - 1, F6K_VFO, F6K_ANTS},
+        {kHz(30), MHz(77), POWERSDR_MODES, -1, -1, F6K_VFO, F6K_ANTS},
+        {MHz(135), MHz(165), POWERSDR_MODES, -1, - 1, F6K_VFO, F6K_ANTS},
         RIG_FRNG_END,
     }, /* rx range */
     .tx_range_list1 =  {
-        FRQ_RNG_HF(1, F6K_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
-        FRQ_RNG_6m(1, F6K_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
-        FRQ_RNG_2m(1, F6K_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
+        FRQ_RNG_HF(1, POWERSDR_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
+        FRQ_RNG_6m(1, POWERSDR_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
+        FRQ_RNG_2m(1, POWERSDR_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
         RIG_FRNG_END,
     }, /* tx range */
 
     .rx_range_list2 =  {
-        {kHz(30), MHz(77), F6K_MODES, -1, -1, F6K_VFO, F6K_ANTS},
-        { MHz(135), MHz(165), F6K_MODES, -1, -1, F6K_VFO, F6K_ANTS},
+        {kHz(30), MHz(77), POWERSDR_MODES, -1, -1, F6K_VFO, F6K_ANTS},
+        { MHz(135), MHz(165), POWERSDR_MODES, -1, -1, F6K_VFO, F6K_ANTS},
         RIG_FRNG_END,
     }, /* rx range */
     .tx_range_list2 =  {
-        FRQ_RNG_HF(2, F6K_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
-        FRQ_RNG_6m(2, F6K_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
-        FRQ_RNG_2m(2, F6K_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
+        FRQ_RNG_HF(2, POWERSDR_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
+        FRQ_RNG_6m(2, POWERSDR_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
+        FRQ_RNG_2m(2, POWERSDR_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
         RIG_FRNG_END,
     }, /* tx range */
 
     .tuning_steps =  {
-        {F6K_MODES, 1},
+        {POWERSDR_MODES, 1},
         RIG_TS_END,
     },
 

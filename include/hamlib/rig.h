@@ -1153,7 +1153,7 @@ typedef uint64_t rmode_t;
 #define    RIG_MODE_DD        CONSTANT_64BIT_FLAG (32)  /*!< \c DD Mode IC-9700 */
 #define    RIG_MODE_C4FM      CONSTANT_64BIT_FLAG (33)  /*!< \c Yaesu C4FM mode */
 #define    RIG_MODE_PKTFMN    CONSTANT_64BIT_FLAG (34)  /*!< \c Yaesu DATA-FM-N */
-#define    RIG_MODE_BIT35     CONSTANT_64BIT_FLAG (35)  /*!< \c reserved for future expansion */
+#define    RIG_MODE_SPEC      CONSTANT_64BIT_FLAG (35)  /*!< \c Unfiltered as in PowerSDR */
 #define    RIG_MODE_BIT36     CONSTANT_64BIT_FLAG (36)  /*!< \c reserved for future expansion */
 #define    RIG_MODE_BIT37     CONSTANT_64BIT_FLAG (37)  /*!< \c reserved for future expansion */
 #define    RIG_MODE_BIT38     CONSTANT_64BIT_FLAG (38)  /*!< \c reserved for future expansion */
