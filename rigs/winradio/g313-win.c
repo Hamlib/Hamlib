@@ -27,7 +27,7 @@
 
 #define G313_MODES (RIG_MODE_NONE)
 
-#ifdef _WIN32
+#if defined (_WIN32) || !defined(OTHER_POSIX)
 
 #ifdef HAVE_WINDOWS_H
 #include <windows.h>
