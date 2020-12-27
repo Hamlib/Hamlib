@@ -908,7 +908,8 @@ static int flrig_open(RIG *rig)
         else if (streq(p, "WFM")) { modeMapAdd(&modes, RIG_MODE_WFM, p); }
         else if (streq(p, "UCW")) { modeMapAdd(&modes, RIG_MODE_CW, p); }
         else if (streq(p, "C4FM")) { modeMapAdd(&modes, RIG_MODE_C4FM, p); }
-        else if (streq(p, "SPEC") || streq(p,"DRM"))
+        else if (streq(p, "SPEC")) { modeMapAdd(&modes, RIG_MODE_SPEC, p); }
+        else if (streq(p,"DRM")) // we don't support DRM yet (or maybe ever)
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s: no mapping for mode %s\n", __func__, p);
         }
