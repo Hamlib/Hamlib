@@ -92,7 +92,7 @@ int ftdx3000_ext_tokens[] =
 const struct rig_caps ftdx3000_caps =
 {
     RIG_MODEL(RIG_MODEL_FTDX3000),
-    .model_name =         "FTDX 3000",
+    .model_name =         "FTDX-3000",
     .mfg_name =           "Yaesu",
     .version =            NEWCAT_VER ".2",
     .copyright =          "LGPL",
