@@ -94,6 +94,7 @@ const char *hamlib_version2 = "Hamlib " PACKAGE_VERSION;
 const char *hamlib_copyright2 =
     "Copyright (C) 2000-2012 Stephane Fillod\n"
     "Copyright (C) 2000-2003 Frank Singleton\n"
+    "Copyright (C) 2014-2020 Michael Black W9MDB\n"
     "This is free software; see the source for copying conditions.  There is NO\n"
     "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.";
 //! @cond Doxygen_Suppress
