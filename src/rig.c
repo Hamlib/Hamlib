@@ -475,6 +475,16 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
         rs->vfo_list |= caps->tx_range_list2[i].vfo;
         rs->mode_list |= caps->tx_range_list2[i].modes;
     }
+    if (rs->vfo_list & RIG_VFO_A) rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has VFO_A\n", __func__);
+    if (rs->vfo_list & RIG_VFO_B) rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has VFO_B\n", __func__);
+    if (rs->vfo_list & RIG_VFO_C) rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has VFO_C\n", __func__);
+    if (rs->vfo_list & RIG_VFO_SUB_A) rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has VFO_SUB_A\n", __func__);
+    if (rs->vfo_list & RIG_VFO_SUB_B) rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has VFO_SUB_B\n", __func__);
+    if (rs->vfo_list & RIG_VFO_MAIN_A) rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has VFO_MAIN_A\n", __func__);
+    if (rs->vfo_list & RIG_VFO_MAIN_B) rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has VFO_MAIN_B\n", __func__);
+    if (rs->vfo_list & RIG_VFO_SUB) rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has VFO_SUB\n", __func__);
+    if (rs->vfo_list & RIG_VFO_MAIN) rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has VFO_MAIN\n", __func__);
+    if (rs->vfo_list & RIG_VFO_MEM) rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has VFO_MEM\n", __func__);
 
     memcpy(rs->preamp, caps->preamp, sizeof(int)*MAXDBLSTSIZ);
     memcpy(rs->attenuator, caps->attenuator, sizeof(int)*MAXDBLSTSIZ);
