@@ -454,6 +454,8 @@ int rig_load_all_backends()
 {
     int i;
 
+    memset(rig_hash_table, 0 , sizeof(rig_hash_table));
+
     for (i = 0; i < RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++)
     {
         rig_load_backend(rig_backend_list[i].be_name);
