@@ -598,6 +598,8 @@ int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
     do
     {
         size_t length;
+        // some PowerSDR commands have variable len
+        int checklen =  !RIG_IS_POWERSDR;
         err = kenwood_transaction(rig, cmd, buf, buf_size);
 
         if (err != RIG_OK)        /* return immediately on error as any
@@ -608,7 +610,7 @@ int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
 
         length = strlen(buf);
 
-        if (length != expected) /* worth retrying as some rigs
+        if (checklen && length != expected) /* worth retrying as some rigs
                                    occasionally send short results */
         {
             rig_debug(RIG_DEBUG_ERR,
@@ -637,7 +639,8 @@ rmode_t kenwood2rmode(unsigned char mode, const rmode_t mode_table[])
 
 char rmode2kenwood(rmode_t mode, const rmode_t mode_table[])
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called, mode=%s\n", __func__, rig_strrmode(mode));
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called, mode=%s\n", __func__,
+              rig_strrmode(mode));
 
     if (mode != RIG_MODE_NONE)
     {
@@ -1840,7 +1843,8 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
 
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called, vfo=%s, mode=%s, width=%d\n", __func__, rig_strvfo(vfo), rig_strrmode(mode), (int)width);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called, vfo=%s, mode=%s, width=%d\n", __func__,
+              rig_strvfo(vfo), rig_strrmode(mode), (int)width);
 
     if (RIG_IS_TS590S || RIG_IS_TS590SG || RIG_IS_TS950S || RIG_IS_TS950SDX)
     {
@@ -1892,6 +1896,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
         c = 'A' + kmode - 10;
     }
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s: kmode=%d, cmode=%c\n", __func__, kmode, c);
 
     if (RIG_IS_TS990S)
