@@ -53,7 +53,7 @@
 
 #define POWERSDR_FUNC_ALL (RIG_FUNC_VOX|RIG_FUNC_SQL|RIG_FUNC_NB|RIG_FUNC_ANF|RIG_FUNC_MUTE|RIG_FUNC_RIT|RIG_FUNC_XIT|RIG_FUNC_TUNER)
 
-#define POWERSDR_LEVEL_ALL (RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW|RIG_LEVEL_KEYSPD|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS|RIG_LEVEL_MICGAIN|RIG_LEVEL_VOXGAIN|RIG_LEVEL_SQL|RIG_LEVEL_AF|RIG_LEVEL_AGC|RIG_LEVEL_RF|RIG_LEVEL_IF)
+#define POWERSDR_LEVEL_ALL (RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW|RIG_LEVEL_KEYSPD|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS|RIG_LEVEL_MICGAIN|RIG_LEVEL_VOXGAIN|RIG_LEVEL_SQL|RIG_LEVEL_AF|RIG_LEVEL_AGC|RIG_LEVEL_RF|RIG_LEVEL_IF|RIG_LEVEL_STRENGTH)
 
 
 static rmode_t flex_mode_table[KENWOOD_MODE_TABLE_MAX] =
@@ -739,6 +739,7 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     rmode_t mode;
     pbwidth_t width;
     ptt_t ptt;
+    double dval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -771,6 +772,20 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         cmd = "ZZAR";
         len = 4;
         ans = 4;
+        break;
+
+    case RIG_LEVEL_STRENGTH:
+        flex6k_get_ptt(rig, vfo, &ptt);
+
+        if (ptt) // not applicable if transmitting
+        {
+            val->f = 0;
+            return RIG_OK;
+        }
+
+        cmd = "ZZRM0";
+        len = 5;
+        ans = 9;
         break;
 
     case RIG_LEVEL_RFPOWER_METER:
@@ -810,7 +825,7 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return kenwood_get_level(rig, vfo, level, val);
     }
 
-    retval = kenwood_safe_transaction(rig, cmd, lvlbuf, 10, len + ans);
+    retval = kenwood_safe_transaction(rig, cmd, lvlbuf, sizeof(lvlbuf), len + ans);
 
     if (retval != RIG_OK)
     {
@@ -844,6 +859,21 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
 
         break;
+
+    case RIG_LEVEL_STRENGTH:
+        n = sscanf(lvlbuf, "ZZRM0%lf", &dval);
+
+        if (n != 1)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: Error parsing value from lvlbuf='%s'\n",
+                      __func__, lvlbuf);
+            val->i = 0;
+            return -RIG_EPROTO;
+        }
+
+        val->i = dval + 73; // dbm to S9-based=0dB
+        break;
+
 
     case RIG_LEVEL_AF:
     case RIG_LEVEL_RFPOWER_METER:
@@ -1162,7 +1192,7 @@ const struct rig_caps powersdr_caps =
     RIG_MODEL(RIG_MODEL_POWERSDR),
     .model_name =       "PowerSDR/Thetis",
     .mfg_name =     "FlexRadio/ANAN",
-    .version =      "20201227.0",
+    .version =      "20201231.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,

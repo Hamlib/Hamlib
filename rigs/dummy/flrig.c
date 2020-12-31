@@ -1967,7 +1967,8 @@ static int flrig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     switch (level)
     {
     case RIG_LEVEL_STRENGTH:
-        val->i = atoi(value);
+        val->i = atoi(value) - 54;
+        //if (val->i > 0) val->i /= 10;
         rig_debug(RIG_DEBUG_TRACE, "%s: val.i='%s'(%d)\n", __func__, value, val->i);
         break;
 
