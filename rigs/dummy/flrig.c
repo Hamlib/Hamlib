@@ -1969,6 +1969,7 @@ static int flrig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_STRENGTH:
         val->i = atoi(value);
         rig_debug(RIG_DEBUG_TRACE, "%s: val.i='%s'(%d)\n", __func__, value, val->i);
+        break;
 
     case RIG_LEVEL_RFPOWER_METER:
         val->f = atof(value) / 100.0 * priv->powermeter_scale;
