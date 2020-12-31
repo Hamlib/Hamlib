@@ -1944,7 +1944,7 @@ static int flrig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_MICGAIN: cmd = "rig.get_micgain"; break;
 
-    case RIG_LEVEL_STRENGTH: cmd = "rig.get_power"; break;
+    case RIG_LEVEL_STRENGTH: cmd = "rig.get_smeter"; break;
 
     case RIG_LEVEL_RFPOWER_METER_WATTS:
     case RIG_LEVEL_RFPOWER_METER: cmd = "rig.get_pwrmeter"; break;
