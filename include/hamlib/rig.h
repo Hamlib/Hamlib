@@ -1939,6 +1939,39 @@ enum rig_function_e {
 extern void *rig_get_function_ptr(RIG *rig, enum rig_function_e rig_function);
 
 /**
+ * \brief Enumeration of rig->caps values
+ *
+ */
+//! @cond Doxygen_Suppress
+// values enumerated for rig->caps values
+enum rig_caps_int_e {
+    RIG_CAPS_TARGETABLE_VFO,
+    RIG_CAPS_RIG_MODEL,
+    RIG_CAPS_PORT_TYPE,
+    RIG_CAPS_PTT_TYPE
+};
+
+enum rig_caps_cptr_e {
+    RIG_CAPS_VERSION,
+    RIG_CAPS_MFG_NAME,
+    RIG_CAPS_MODEL_NAME
+};
+
+/**
+ * \brief Function to return int value from rig->caps
+ *
+ */
+//! @cond Doxygen_Suppress
+extern int rig_get_caps_int(RIG *rig, enum rig_caps_int_e rig_caps);
+
+/**
+ * \brief Function to return char pointer value from rig->caps
+ *
+ */
+//! @cond Doxygen_Suppress
+extern const char* rig_get_caps_cptr(RIG *rig, enum rig_caps_cptr_e rig_caps);
+
+/**
  * \brief Port definition
  *
  * Of course, looks like OO painstakingly programmed in C, sigh.

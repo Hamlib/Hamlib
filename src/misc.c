@@ -2077,7 +2077,48 @@ void *rig_get_function_ptr(RIG *rig, enum rig_function_e rig_function)
     return RIG_OK;
 }
 
+int rig_get_caps_int(RIG *rig, enum rig_caps_int_e rig_caps)
+{
+    switch (rig_caps)
+    {
+    case RIG_CAPS_TARGETABLE_VFO:
+        return rig->caps->targetable_vfo;
 
+    case RIG_CAPS_RIG_MODEL:
+        return rig->caps->rig_model;
+
+    case RIG_CAPS_PTT_TYPE:
+        return rig->caps->ptt_type;
+
+    case RIG_CAPS_PORT_TYPE:
+        return rig->caps->port_type;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: Unknown rig_caps value=%d\n", __func__, rig_caps);
+        return -RIG_EINVAL;
+    }
+
+    return RIG_OK;
+}
+
+const char *rig_get_caps_cptr(RIG *rig, enum rig_caps_cptr_e rig_caps)
+{
+    switch (rig_caps)
+    {
+    case RIG_CAPS_VERSION:
+        return rig->caps->version;
+
+    case RIG_CAPS_MFG_NAME:
+        return rig->caps->mfg_name;
+
+    case RIG_CAPS_MODEL_NAME:
+        return rig->caps->model_name;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: Unknown rig_caps value=%d\n", __func__, rig_caps);
+        return "Unknown caps value";
+    }
+}
 
 //! @endcond
 

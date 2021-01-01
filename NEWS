@@ -6,6 +6,10 @@ Copyright (C) 2000-2020  Michael Black W9MDB, and others
 
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
+Version 4.1
+    * New rig_get_caps_int and rig_get_caps_cptr functions to replace using caps-> values
+    * New rig_get_function to replace using caps-> function pointers
+
 Version 4.0
         2020-11-29
         * API/ABI changes, advance ABI to 4 0 0.
