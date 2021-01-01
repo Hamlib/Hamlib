@@ -2105,13 +2105,13 @@ const char *rig_get_caps_cptr(RIG *rig, enum rig_caps_cptr_e rig_caps)
 {
     switch (rig_caps)
     {
-    case RIG_CAPS_VERSION:
+    case RIG_CAPS_VERSION_CPTR:
         return rig->caps->version;
 
-    case RIG_CAPS_MFG_NAME:
+    case RIG_CAPS_MFG_NAME_CPTR:
         return rig->caps->mfg_name;
 
-    case RIG_CAPS_MODEL_NAME:
+    case RIG_CAPS_MODEL_NAME_CPTR:
         return rig->caps->model_name;
 
     default:
