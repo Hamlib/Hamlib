@@ -7,6 +7,9 @@ Copyright (C) 2000-2020  Michael Black W9MDB, and others
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 Version 4.1
+    * Nobody should need to use rig->caps or rig->state anymore
+        If you need a variable added please contact us.
+        Note that rig->state abstraction is not implemented yet...no need known
     * New rig_get_caps_int and rig_get_caps_cptr functions to replace using caps-> values
     * New rig_get_function to replace using caps-> function pointers
 
