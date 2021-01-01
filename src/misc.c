@@ -1807,6 +1807,277 @@ const char *HAMLIB_API rot_strstatus(rot_status_t status)
     return "";
 }
 
+/**
+ * \brief Get pointer to rig function instead of using rig->caps
+ * \param RIG* and rig_function_e
+ * \return the corresponding function pointer
+ */
+void *rig_get_function_ptr(RIG *rig, enum rig_function_e rig_function)
+{
+    switch (rig_function)
+    {
+    case RIG_FUNCTION_RIG_INIT:
+        return rig->caps->rig_init;
+
+    case RIG_FUNCTION_RIG_CLEANUP:
+        return rig->caps->rig_cleanup;
+
+    case RIG_FUNCTION_RIG_OPEN:
+        return rig->caps->rig_open;
+
+    case RIG_FUNCTION_RIG_CLOSE:
+        return rig->caps->rig_close;
+
+    case RIG_FUNCTION_RIG_SET_FREQ:
+        return rig->caps->set_freq;
+
+    case RIG_FUNCTION_RIG_GET_FREQ:
+        return rig->caps->get_freq;
+
+    case RIG_FUNCTION_RIG_SET_MODE:
+        return rig->caps->set_mode;
+
+    case RIG_FUNCTION_RIG_GET_MODE:
+        return rig->caps->get_mode;
+
+    case RIG_FUNCTION_RIG_SET_VFO:
+        return rig->caps->set_vfo;
+
+    case RIG_FUNCTION_RIG_GET_VFO:
+        return rig->caps->get_vfo;
+
+    case RIG_FUNCTION_RIG_SET_PTT:
+        return rig->caps->set_ptt;
+
+    case RIG_FUNCTION_RIG_GET_PTT:
+        return rig->caps->get_ptt;
+
+    case RIG_FUNCTION_RIG_GET_DCD:
+        return rig->caps->get_dcd;
+
+    case RIG_FUNCTION_RIG_SET_RPTR_SHIFT:
+        return rig->caps->set_rptr_shift;
+
+    case RIG_FUNCTION_RIG_GET_RPTR_SHIFT:
+        return rig->caps->get_rptr_shift;
+
+    case RIG_FUNCTION_RIG_SET_RPTR_OFFS:
+        return rig->caps->set_rptr_offs;
+
+    case RIG_FUNCTION_RIG_GET_RPTR_OFFS:
+        return rig->caps->get_rptr_offs;
+
+    case RIG_FUNCTION_RIG_SET_SPLIT_FREQ:
+        return rig->caps->set_split_freq;
+
+    case RIG_FUNCTION_RIG_GET_SPLIT_FREQ:
+        return rig->caps->get_split_freq;
+
+    case RIG_FUNCTION_RIG_SET_SPLIT_MODE:
+        return rig->caps->set_split_mode;
+
+    case RIG_FUNCTION_RIG_SET_SPLIT_FREQ_MODE:
+        return rig->caps->set_split_freq_mode;
+
+    case RIG_FUNCTION_RIG_GET_SPLIT_FREQ_MODE:
+        return rig->caps->get_split_freq_mode;
+
+    case RIG_FUNCTION_RIG_SET_SPLIT_VFO:
+        return rig->caps->set_split_vfo;
+
+    case RIG_FUNCTION_RIG_GET_SPLIT_VFO:
+        return rig->caps->get_split_vfo;
+
+    case RIG_FUNCTION_RIG_SET_RIT:
+        return rig->caps->set_rit;
+
+    case RIG_FUNCTION_RIG_GET_RIT:
+        return rig->caps->get_rit;
+
+    case RIG_FUNCTION_RIG_SET_XIT:
+        return rig->caps->set_xit;
+
+    case RIG_FUNCTION_RIG_GET_XIT:
+        return rig->caps->get_xit;
+
+    case RIG_FUNCTION_RIG_SET_TS:
+        return rig->caps->set_ts;
+
+    case RIG_FUNCTION_RIG_GET_TS:
+        return rig->caps->get_ts;
+
+    case RIG_FUNCTION_RIG_SET_DCS_CODE:
+        return rig->caps->set_dcs_code;
+
+    case RIG_FUNCTION_RIG_GET_DCS_CODE:
+        return rig->caps->get_dcs_code;
+
+    case RIG_FUNCTION_RIG_SET_TONE:
+        return rig->caps->set_tone;
+
+    case RIG_FUNCTION_RIG_GET_TONE:
+        return rig->caps->get_tone;
+
+    case RIG_FUNCTION_RIG_SET_CTCSS_TONE:
+        return rig->caps->set_ctcss_tone;
+
+    case RIG_FUNCTION_RIG_GET_CTCSS_TONE:
+        return rig->caps->get_ctcss_tone;
+
+    case RIG_FUNCTION_RIG_SET_DCS_SQL:
+        return rig->caps->set_dcs_sql;
+
+    case RIG_FUNCTION_RIG_GET_DCS_SQL:
+        return rig->caps->get_dcs_sql;
+
+    case RIG_FUNCTION_RIG_SET_TONE_SQL:
+        return rig->caps->set_tone_sql;
+
+    case RIG_FUNCTION_RIG_GET_TONE_SQL:
+        return rig->caps->get_tone_sql;
+
+    case RIG_FUNCTION_RIG_SET_CTCSS_SQL:
+        return rig->caps->set_ctcss_sql;
+
+    case RIG_FUNCTION_RIG_GET_CTCSS_SQL:
+        return rig->caps->get_ctcss_sql;
+
+    case RIG_FUNCTION_RIG_POWER2MW:
+        return rig->caps->power2mW;
+
+    case RIG_FUNCTION_RIG_MW2POWER:
+        return rig->caps->mW2power;
+
+    case RIG_FUNCTION_RIG_SET_POWERSTAT:
+        return rig->caps->set_powerstat;
+
+    case RIG_FUNCTION_RIG_GET_POWERSTAT:
+        return rig->caps->get_powerstat;
+
+    case RIG_FUNCTION_RIG_RESET:
+        return rig->caps->reset;
+
+    case RIG_FUNCTION_RIG_SET_ANT:
+        return rig->caps->set_ant;
+
+    case RIG_FUNCTION_RIG_GET_ANT:
+        return rig->caps->get_ant;
+
+    case RIG_FUNCTION_RIG_SET_LEVEL:
+        return rig->caps->set_level;
+
+    case RIG_FUNCTION_RIG_GET_LEVEL:
+        return rig->caps->get_level;
+
+    case RIG_FUNCTION_RIG_SET_FUNC:
+        return rig->caps->set_func;
+
+    case RIG_FUNCTION_RIG_GET_FUNC:
+        return rig->caps->get_func;
+
+    case RIG_FUNCTION_RIG_SET_PARM:
+        return rig->caps->set_parm;
+
+    case RIG_FUNCTION_RIG_GET_PARM:
+        return rig->caps->get_parm;
+
+    case RIG_FUNCTION_RIG_SET_EXT_LEVEL:
+        return rig->caps->set_ext_level;
+
+    case RIG_FUNCTION_RIG_GET_EXT_LEVEL:
+        return rig->caps->get_ext_level;
+
+    case RIG_FUNCTION_RIG_SET_EXT_FUNC:
+        return rig->caps->set_ext_func;
+
+    case RIG_FUNCTION_RIG_GET_EXT_FUNC:
+        return rig->caps->get_ext_func;
+
+    case RIG_FUNCTION_RIG_SET_EXT_PARM:
+        return rig->caps->set_ext_parm;
+
+    case RIG_FUNCTION_RIG_GET_EXT_PARM:
+        return rig->caps->get_ext_parm;
+
+    case RIG_FUNCTION_RIG_SET_CONF:
+        return rig->caps->set_conf;
+
+    case RIG_FUNCTION_RIG_GET_CONF:
+        return rig->caps->get_conf;
+
+    case RIG_FUNCTION_RIG_SEND_DTMF:
+        return rig->caps->send_dtmf;
+
+    case RIG_FUNCTION_RIG_SEND_MORSE:
+        return rig->caps->send_morse;
+
+    case RIG_FUNCTION_RIG_STOP_MORSE:
+        return rig->caps->stop_morse;
+
+    case RIG_FUNCTION_RIG_WAIT_MORSE:
+        return rig->caps->wait_morse;
+
+    case RIG_FUNCTION_RIG_SEND_VOICE_MEM:
+        return rig->caps->send_voice_mem;
+
+    case RIG_FUNCTION_RIG_SET_BANK:
+        return rig->caps->set_bank;
+
+    case RIG_FUNCTION_RIG_SET_MEM:
+        return rig->caps->set_mem;
+
+    case RIG_FUNCTION_RIG_GET_MEM:
+        return rig->caps->get_mem;
+
+    case RIG_FUNCTION_RIG_VFO_OP:
+        return rig->caps->vfo_op;
+
+    case RIG_FUNCTION_RIG_SCAN:
+        return rig->caps->scan;
+
+    case RIG_FUNCTION_RIG_SET_TRN:
+        return rig->caps->set_trn;
+
+    case RIG_FUNCTION_RIG_GET_TRN:
+        return rig->caps->get_trn;
+
+    case RIG_FUNCTION_RIG_DECODE_EVENT:
+        return rig->caps->decode_event;
+
+    case RIG_FUNCTION_RIG_SET_CHANNEL:
+        return rig->caps->set_channel;
+
+    case RIG_FUNCTION_RIG_GET_CHANNEL:
+        return rig->caps->get_channel;
+
+    case RIG_FUNCTION_RIG_GET_INFO:
+        return rig->caps->get_info;
+
+    case RIG_FUNCTION_RIG_SET_CHAN_ALL_CB:
+        return rig->caps->set_chan_all_cb;
+
+    case RIG_FUNCTION_RIG_GET_CHAN_ALL_CB:
+        return rig->caps->get_chan_all_cb;
+
+    case RIG_FUNCTION_RIG_SET_MEM_ALL_CB:
+        return rig->caps->set_mem_all_cb;
+
+    case RIG_FUNCTION_RIG_GET_MEM_ALL_CB:
+        return rig->caps->get_mem_all_cb;
+
+    case RIG_FUNCTION_RIG_SET_VFO_OPT:
+        return rig->caps->set_vfo_opt;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "Unknown function?? function=%d\n", rig_function);
+        return NULL;
+
+    }
+
+    return RIG_OK;
+}
+
+
 
 //! @endcond
 
