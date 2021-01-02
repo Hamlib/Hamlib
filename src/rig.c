@@ -1395,6 +1395,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     const struct rig_caps *caps;
     int retcode;
+    freq_t freq_new = freq;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, freq=%g\n", __func__,
               rig_strvfo(vfo), freq);
@@ -1483,7 +1484,6 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (retcode == RIG_OK && caps->get_freq != NULL)
     {
-        freq_t freq_new = freq;
 
         // verify our freq to ensure HZ mods are seen
         // some rigs truncate or round e.g. 1,2,5,10,20,100Hz intervals
