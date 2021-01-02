@@ -1936,7 +1936,7 @@ enum rig_function_e {
  *
  */
 //! @cond Doxygen_Suppress
-extern void *rig_get_function_ptr(RIG *rig, enum rig_function_e rig_function);
+extern void *rig_get_function_ptr(rig_model_t rig_model, enum rig_function_e rig_function);
 
 /**
  * \brief Enumeration of rig->caps values
@@ -1962,14 +1962,14 @@ enum rig_caps_cptr_e {
  *
  */
 //! @cond Doxygen_Suppress
-extern int rig_get_caps_int(RIG *rig, enum rig_caps_int_e rig_caps);
+extern int rig_get_caps_int(rig_model_t rig_model, enum rig_caps_int_e rig_caps);
 
 /**
  * \brief Function to return char pointer value from rig->caps
  *
  */
 //! @cond Doxygen_Suppress
-extern const char* rig_get_caps_cptr(RIG *rig, enum rig_caps_cptr_e rig_caps);
+extern const char* rig_get_caps_cptr(rig_model_t rig_model, enum rig_caps_cptr_e rig_caps);
 
 /**
  * \brief Port definition
