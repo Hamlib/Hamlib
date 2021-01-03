@@ -171,7 +171,7 @@ static int ft100_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code);
 //static int ft100_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code);
 
 static int ft100_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone);
-//static int ft100_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone);
+static int ft100_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone);
 
 //static int ft100_get_info(RIG *rig, FT100_STATUS_INFO *ft100_status, FT100_METER_INFO *ft100_meter, FT100_FLAG_INFO *ft100_flags);
 
