@@ -2120,6 +2120,9 @@ const char *rig_get_caps_cptr(rig_model_t rig_model, enum rig_caps_cptr_e rig_ca
     case RIG_CAPS_MODEL_NAME_CPTR:
         return caps->model_name;
 
+    case RIG_CAPS_STATUS_CPTR:
+        return rig_strstatus(caps->status);
+
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: Unknown requested rig_caps value=%d\n", __func__, rig_caps);
         return "Unknown caps value";
