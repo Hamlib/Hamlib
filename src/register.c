@@ -382,6 +382,41 @@ int HAMLIB_API rig_list_foreach(int (*cfunc)(const struct rig_caps *,
 }
 //! @endcond
 
+/*
+ * rig_list_foreach_model
+ * executes cfunc on all the elements stored in the rig hash list
+ */
+//! @cond Doxygen_Suppress
+int HAMLIB_API rig_list_foreach_model(int (*cfunc)(const rig_model_t rig_model,
+                                rig_ptr_t),
+                                rig_ptr_t data)
+{
+    struct rig_list *p;
+    int i;
+
+    if (!cfunc)
+    {
+        return -RIG_EINVAL;
+    }
+
+    for (i = 0; i < RIGLSTHASHSZ; i++)
+    {
+        struct rig_list *next = NULL;
+
+        for (p = rig_hash_table[i]; p; p = next)
+        {
+            next = p->next;       /* read before call in case it is unregistered */
+
+            if ((*cfunc)(p->caps->rig_model, data) == 0)
+            {
+                return RIG_OK;
+            }
+        }
+    }
+
+    return RIG_OK;
+}
+//! @endcond
 
 //! @cond Doxygen_Suppress
 static int dummy_rig_probe(const hamlib_port_t *p,

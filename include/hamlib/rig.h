@@ -2877,6 +2877,10 @@ rig_list_foreach HAMLIB_PARAMS((int (*cfunc)(const struct rig_caps *, rig_ptr_t)
                                 rig_ptr_t data));
 
 extern HAMLIB_EXPORT(int)
+rig_list_foreach_model HAMLIB_PARAMS((int (*cfunc)(const rig_model_t rig_model, rig_ptr_t),
+                                rig_ptr_t data));
+
+extern HAMLIB_EXPORT(int)
 rig_load_backend HAMLIB_PARAMS((const char *be_name));
 
 extern HAMLIB_EXPORT(int)
