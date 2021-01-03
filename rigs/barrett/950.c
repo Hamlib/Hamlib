@@ -61,7 +61,7 @@ const struct rig_caps barrett950_caps =
     .mfg_name =         "Barrett",
     .version =          BACKEND_VER ".0",
     .copyright =        "LGPL",
-    .status =           RIG_STATUS_ALPHA,
+    .status =           RIG_STATUS_BETA,
     .rig_type =         RIG_TYPE_TRANSCEIVER,
     .targetable_vfo =   RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
     .ptt_type =         RIG_PTT_RIG,
@@ -139,7 +139,7 @@ int barrett950_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     if (vfo != RIG_VFO_B)
     {
         char *response = NULL;
-        sprintf((char *) cmd_buf, "OR%08.0f", freq);
+        sprintf((char *) cmd_buf, "PR%08.0f", freq);
         retval = barrett_transaction(rig, cmd_buf, 0, &response);
 
         if (retval < 0)
@@ -152,7 +152,7 @@ int barrett950_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         if (strncmp(response, "OK", 2) != 0)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: Expected OK, got '%s'\n", __func__, response);
-            return -RIG_EINVAL;
+            return -RIG_EPROTO;
         }
     }
 
@@ -172,7 +172,7 @@ int barrett950_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         if (strncmp(response, "OK", 2) != 0)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: Expected OK, got '%s'\n", __func__, response);
-            return -RIG_EINVAL;
+            return -RIG_EPROTO;
         }
     }
 
