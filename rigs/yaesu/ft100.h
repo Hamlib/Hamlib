@@ -165,10 +165,10 @@ static int ft100_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 static int ft100_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
 
 static int ft100_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift);
-//static int ft100_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *shift);
+static int ft100_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *shift);
 
 static int ft100_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code);
-//static int ft100_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code);
+static int ft100_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code);
 
 static int ft100_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone);
 static int ft100_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone);

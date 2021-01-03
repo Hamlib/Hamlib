@@ -286,7 +286,7 @@ const struct rig_caps ft100_caps =
     .get_ptt =        ft100_get_ptt,
     .get_dcd =        NULL,
     .set_rptr_shift = ft100_set_rptr_shift,
-    .get_rptr_shift = NULL,
+    .get_rptr_shift = ft100_get_rptr_shift,
     .set_rptr_offs =  NULL,
     .get_rptr_offs =  NULL,
     .set_split_freq = NULL,
@@ -302,7 +302,7 @@ const struct rig_caps ft100_caps =
     .set_ts =         NULL,
     .get_ts =         NULL,
     .set_dcs_code =   ft100_set_dcs_code,
-    .get_dcs_code =   NULL,
+    .get_dcs_code =   ft100_get_dcs_code,
     .set_ctcss_tone = ft100_set_ctcss_tone,
     .get_ctcss_tone = ft100_get_ctcss_tone,
     .set_dcs_sql =    NULL,
@@ -1008,6 +1008,28 @@ int ft100_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift)
     return ft100_send_priv_cmd(rig, cmd_index);
 }
 
+int ft100_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *shift)
+{
+    int ret;
+    struct ft100_priv_data *priv = (struct ft100_priv_data *)rig->state.priv;
+
+    ret = ft100_read_status(rig);
+
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    *shift = RIG_RPT_SHIFT_NONE;
+
+    if (priv->status.flag1 && 1 << 2) { *shift = RIG_RPT_SHIFT_MINUS; }
+    else if (priv->status.flag1 && 1 << 3) { *shift = RIG_RPT_SHIFT_PLUS; }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: flag1=0x%02x\n", __func__,
+              priv->status.flag1);
+
+    return RIG_OK;
+}
 
 
 /*
@@ -1048,6 +1070,24 @@ int ft100_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
     return write_block(&rig_s->rigport, (char *) p_cmd, YAESU_CMD_LENGTH);
 }
 
+int ft100_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
+{
+    int ret;
+    struct ft100_priv_data *priv = (struct ft100_priv_data *)rig->state.priv;
+
+    ret = ft100_read_status(rig);
+
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    *code = ft100_dcs_list[priv->status.dcs];
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: P1=0x%02x, code=%d\n", __func__,
+              priv->status.dcs, *code);
+
+    return RIG_OK;
+}
 
 /*
  * TODO: enable/disable encoding/decoding
