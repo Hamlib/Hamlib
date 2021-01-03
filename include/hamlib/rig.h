@@ -1953,7 +1953,8 @@ enum rig_caps_int_e {
 enum rig_caps_cptr_e {
     RIG_CAPS_VERSION_CPTR,
     RIG_CAPS_MFG_NAME_CPTR,
-    RIG_CAPS_MODEL_NAME_CPTR
+    RIG_CAPS_MODEL_NAME_CPTR,
+    RIG_CAPS_STATUS_CPTR
 };
 
 /**
