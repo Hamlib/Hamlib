@@ -124,15 +124,14 @@ static const tone_t ft100_ctcss_list[] =
 {
     670,  693,  719,  744,  770,  797,  825,  854,  885,  915, \
     948,  974, 1000, 1035, 1072, 1109, 1148, 1188, 1230, 1273, \
-    1318, 1365, 1413, 1462, 1514, 1567,       1622,       1679, \
-    1738,       1799,       1862,       1928,             \
-    2035,       2107, 2181, 2257,       2336, 2418, 2503,       \
-    0,
+    1318, 1365, 1413, 1462, 1514, 1567, 1622, 1679, 1738, 1799, \
+    1738, 1799, 1862, 1928, 2035, 2107, 2181, 2257, 2336, 2418, \
+    2503, 0
 };
 
 static const tone_t ft100_dcs_list[] =
 {
-    23,  25,  26,  31,  32,  36,  43,  47,       51,  53, \
+    23,  25,  26,  31,  32,  36,  43,  47,  51,  53, \
     54,  65,  71,  72,  73,  74, 114, 115, 116, 122, 125, 131, \
     132, 134, 143, 145, 152, 155, 156, 162, 165, 172, 174, 205, \
     212, 223, 225, 226, 243, 244, 245, 246, 251, 252, 255, 261, \
@@ -175,7 +174,7 @@ const struct rig_caps ft100_caps =
     RIG_MODEL(RIG_MODEL_FT100),
     .model_name =     "FT-100",
     .mfg_name =       "Yaesu",
-    .version =        "20201009.0",
+    .version =        "20210102.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_TRANSCEIVER,
@@ -283,17 +282,17 @@ const struct rig_caps ft100_caps =
     .get_mode =       ft100_get_mode,
     .set_vfo =        ft100_set_vfo,
     .get_vfo =        ft100_get_vfo,
-    .set_ptt =            ft100_set_ptt,
-    .get_ptt =            ft100_get_ptt,
+    .set_ptt =        ft100_set_ptt,
+    .get_ptt =        ft100_get_ptt,
     .get_dcd =        NULL,
-    .set_rptr_shift =     ft100_set_rptr_shift,
-    .get_rptr_shift =     NULL,
+    .set_rptr_shift = ft100_set_rptr_shift,
+    .get_rptr_shift = NULL,
     .set_rptr_offs =  NULL,
     .get_rptr_offs =  NULL,
-    .set_split_freq =     NULL,
-    .get_split_freq =     NULL,
-    .set_split_mode =     NULL,
-    .get_split_mode =     NULL,
+    .set_split_freq = NULL,
+    .get_split_freq = NULL,
+    .set_split_mode = NULL,
+    .get_split_mode = NULL,
     .set_split_vfo =  ft100_set_split_vfo,
     .get_split_vfo =  ft100_get_split_vfo,
     .set_rit =        NULL,
@@ -304,15 +303,15 @@ const struct rig_caps ft100_caps =
     .get_ts =         NULL,
     .set_dcs_code =   ft100_set_dcs_code,
     .get_dcs_code =   NULL,
-    .set_ctcss_tone =     ft100_set_ctcss_tone,
-    .get_ctcss_tone =     NULL,
+    .set_ctcss_tone = ft100_set_ctcss_tone,
+    .get_ctcss_tone = ft100_get_ctcss_tone,
     .set_dcs_sql =    NULL,
     .get_dcs_sql =    NULL,
     .set_ctcss_sql =  NULL,
     .get_ctcss_sql =  NULL,
     .set_powerstat =  NULL,
     .get_powerstat =  NULL,
-    .reset =      NULL,
+    .reset =          NULL,
     .set_ant =        NULL,
     .get_ant =        NULL,
     .set_level =      NULL,
@@ -1088,3 +1087,21 @@ int ft100_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
     return write_block(&rig_s->rigport, (char *) p_cmd, YAESU_CMD_LENGTH);
 }
 
+int ft100_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
+{
+    int ret;
+    struct ft100_priv_data *priv = (struct ft100_priv_data *)rig->state.priv;
+
+    ret = ft100_read_status(rig);
+
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    *tone = ft100_ctcss_list[priv->status.ctcss];
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: P1=0x%02x, tone=%.1f\n", __func__,
+              priv->status.ctcss, *tone / 10.0);
+
+    return RIG_OK;
+}
