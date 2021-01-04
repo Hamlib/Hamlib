@@ -4423,7 +4423,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                                        &rig->caps->rfpower_meter_cal) / (level == RIG_LEVEL_RFPOWER_METER_WATTS ? 1.0 :
                                                100.0);
 
-            if (level == RIG_LEVEL_RFPOWER_METER && priv->rig_id == NC_RIGID_FT2000)
+            if (priv->rig_id == NC_RIGID_FT2000)
             {
                 // we reuse the FT2000D table for the FT2000 so need to divide by 2
                 // hopefully this works well otherwise we need a separate table
