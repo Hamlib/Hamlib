@@ -32,7 +32,7 @@
 /*
  * No need to wait between written characters.
  */
-#define FT897_WRITE_DELAY		0
+#define FT897_WRITE_DELAY		5
 
 /*
  * Wait 'delay' milliseconds after writing a command sequence.
