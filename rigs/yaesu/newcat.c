@@ -351,7 +351,8 @@ static const yaesu_newcat_commands_t valid_commands[] =
     {"ZI",     FALSE,  FALSE,  TRUE,   TRUE,   FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE,   TRUE   },
 };
 
-int valid_commands_count = sizeof(valid_commands) / sizeof(yaesu_newcat_commands_t);
+int valid_commands_count = sizeof(valid_commands) / sizeof(
+                               yaesu_newcat_commands_t);
 
 /*
  * configuration Tokens
@@ -537,19 +538,6 @@ int newcat_open(RIG *rig)
     /* Initialize rig_id in case any subsequent commands need it */
     (void)newcat_get_rigid(rig);
     rig_debug(RIG_DEBUG_VERBOSE, "%s: rig_id=%d\n", __func__, priv->rig_id);
-#if 0 // what's the right way to do this?
-    if (priv->rig_id == NC_RIGID_FT2000)
-    {
-        //  then we need to readjust rfpowermeter cal table in half
-        int i;
-
-        for (i = 0; i < rig->caps->rfpower_meter_cal.size; ++i)
-        {
-            // we may need a table for the FT2000 instead of this
-            rig->caps->rfpower_meter_cal.table[i].raw /= 2;
-        }
-    }
-#endif
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: returning RIG_OK\n", __func__);
     return RIG_OK;
@@ -1705,12 +1693,14 @@ int newcat_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
         if (freq >= 28000000 && freq <= 29700000)
         {
             strcpy(command, "EX010315");
-            if (is_ftdx10) strcpy(command, "EX010317");
+
+            if (is_ftdx10) { strcpy(command, "EX010317"); }
         }
         else if (freq >= 50000000 && freq <= 54000000)
         {
             strcpy(command, "EX010316");
-            if (is_ftdx10) strcpy(command, "EX010318");
+
+            if (is_ftdx10) { strcpy(command, "EX010318"); }
         }
         else
         {
@@ -1911,13 +1901,17 @@ int newcat_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *offs)
         if (freq >= 28000000 && freq <= 29700000)
         {
             char *cmd = "EX010315%c";
-            if (is_ftdx10) cmd = "EX010317%c";
+
+            if (is_ftdx10) { cmd = "EX010317%c"; }
+
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), cmd, cat_term);
         }
         else if (freq >= 50000000 && freq <= 54000000)
         {
             char *cmd = "EX010316%c";
-            if (is_ftdx10) cmd = "EX010318%c";
+
+            if (is_ftdx10) { cmd = "EX010318%c"; }
+
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), cmd, cat_term);
         }
         else
@@ -3364,7 +3358,8 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             return -RIG_ENAVAIL;
         }
 
-        if (is_ftdx1200 || is_ftdx3000 || is_ft891 || is_ft991 || is_ftdx101 || is_ftdx10)
+        if (is_ftdx1200 || is_ftdx3000 || is_ft891 || is_ft991 || is_ftdx101
+                || is_ftdx10)
         {
             fpf = newcat_scale_float(100, val.f);
         }
@@ -3910,7 +3905,8 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             return -RIG_ENAVAIL;
         }
 
-        if (is_ftdx1200 || is_ftdx3000 || is_ft891 || is_ft991 || is_ftdx101 || is_ftdx10)
+        if (is_ftdx1200 || is_ftdx3000 || is_ft891 || is_ft991 || is_ftdx101
+                || is_ftdx10)
         {
             fpf = newcat_scale_float(100, val.f);
         }
@@ -4426,6 +4422,13 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             val->f = rig_raw2val_float(atoi(retlvl),
                                        &rig->caps->rfpower_meter_cal) / (level == RIG_LEVEL_RFPOWER_METER_WATTS ? 1.0 :
                                                100.0);
+
+            if (level == RIG_LEVEL_RFPOWER_METER && priv->rig_id == NC_RIGID_FT2000)
+            {
+                // we reuse the FT2000D table for the FT2000 so need to divide by 2
+                // hopefully this works well otherwise we need a separate table
+                val->f /= 2;
+            }
         }
 
         rig_debug(RIG_DEBUG_VERBOSE, "%s: RFPOWER_METER=%s, converted to %f\n",
@@ -4495,7 +4498,8 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_MICGAIN:
-        if (is_ftdx1200 || is_ftdx3000 || is_ft891 || is_ft991 || is_ftdx101 || is_ftdx10)
+        if (is_ftdx1200 || is_ftdx3000 || is_ft891 || is_ft991 || is_ftdx101
+                || is_ftdx10)
         {
             scale = 100.;
         }
