@@ -536,7 +536,7 @@ int newcat_open(RIG *rig)
 
     /* Initialize rig_id in case any subsequent commands need it */
     (void)newcat_get_rigid(rig);
-
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: rig_id=%d\n", __func__, priv->rig_id);
     if (priv->rig_id == NC_RIGID_FT2000)
     {
         //  then we need to readjust rfpowermeter cal table in half
@@ -549,6 +549,7 @@ int newcat_open(RIG *rig)
         }
     }
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: returning RIG_OK\n", __func__);
     return RIG_OK;
 }
 
