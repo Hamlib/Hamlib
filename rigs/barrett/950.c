@@ -82,7 +82,7 @@ const struct rig_caps barrett950_caps =
     RIG_MODEL(RIG_MODEL_BARRETT_950),
     .model_name =       "950",
     .mfg_name =         "Barrett",
-    .version =          BACKEND_VER "/20210105",
+    .version =          BACKEND_VER ".0",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_BETA,
     .rig_type =         RIG_TYPE_TRANSCEIVER,
