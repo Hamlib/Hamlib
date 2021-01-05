@@ -49,17 +49,40 @@
 static int barrett950_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 
 static int barrett950_get_level(RIG *rig, vfo_t vfo, setting_t level,
-                             value_t *val);
+                                value_t *val);
 
 static const char *barrett950_get_info(RIG *rig);
 
+// 10 band channel from 441 to 450
+#define CHANNEL_BASE 441
+
+struct chan_map_s
+{
+    float lo, hi;
+    int chan_offset;
+};
+
+// Our 10 bands
+struct chan_map_s chan_map[] =
+{
+    { 1.8, 2.0, 0},
+    { 3.5, 4.0, 1},
+    { 5.3, 5.4, 2},
+    { 7.0, 7.3, 3},
+    { 10.1, 10.15, 4},
+    { 14.0, 14.35, 5},
+    { 18.068, 18.168, 6},
+    { 21.0, 21.45, 7},
+    { 24.89, 24.99, 8},
+    { 28.0, 29.7, 9}
+};
 
 const struct rig_caps barrett950_caps =
 {
     RIG_MODEL(RIG_MODEL_BARRETT_950),
     .model_name =       "950",
     .mfg_name =         "Barrett",
-    .version =          BACKEND_VER ".0",
+    .version =          BACKEND_VER "/20210105",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_BETA,
     .rig_type =         RIG_TYPE_TRANSCEIVER,
@@ -130,50 +153,79 @@ int barrett950_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     char cmd_buf[MAXCMDLEN];
     int retval;
-    struct barrett_priv_data *priv = rig->state.priv;
+    int i;
+    int chan;
+    freq_t freq_rx, freq_tx;
+    freq_t freq_MHz;
+    char *response = NULL;
+    //struct barrett_priv_data *priv = rig->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s freq=%.0f\n", __func__,
               rig_strvfo(vfo), freq);
 
-    // If we are not explicitly asking for VFO_B then we'll set the receive side also
-    if (vfo != RIG_VFO_B)
+    // 950 can only set freq via memory channel
+    // So we make a 10-channel memory from 441-450 by band
+    // And we don't care about VFO -- we set TX=RX to avoid doing split freq changes
+    // Trying to minimize writes to EEPROM
+
+    // What band is being requested?
+    freq_MHz = freq / 1e6;
+
+    for (i = 0; i < 10; ++i)
     {
-        char *response = NULL;
-        sprintf((char *) cmd_buf, "PR%08.0f", freq);
-        retval = barrett_transaction(rig, cmd_buf, 0, &response);
-
-        if (retval < 0)
+        if (freq_MHz >= chan_map[i].lo && freq_MHz <= chan_map[i].hi)
         {
-            return retval;
-        }
-
-        //dump_hex((unsigned char *)response, strlen(response));
-
-        if (strncmp(response, "OK", 2) != 0)
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: Expected OK, got '%s'\n", __func__, response);
-            return -RIG_EPROTO;
+            chan = CHANNEL_BASE + chan_map[i].chan_offset;
         }
     }
 
-    if (priv->split == 0
-            || vfo == RIG_VFO_B)   // if we aren't in split mode we have to set the TX VFO too
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: using chan %d for freq %.0f \n", __func__,
+              chan, freq);
+
+    // Set the channel
+    sprintf((char *) cmd_buf, "XC%04d", chan);
+    retval = barrett_transaction(rig, cmd_buf, 0, &response);
+
+    if (retval < 0)
     {
+        return retval;
+    }
 
-        char *response = NULL;
-        sprintf((char *) cmd_buf, "PT%08.0f", freq);
-        retval = barrett_transaction(rig, cmd_buf, 0, &response);
+    // Read the current channel for the requested freq to see if it needs changing
+    sprintf((char *) cmd_buf, "IDC%04d", chan);
+    retval = barrett_transaction(rig, cmd_buf, 0, &response);
 
-        if (retval < 0)
-        {
-            return retval;
-        }
+    if (retval < 0)
+    {
+        return retval;
+    }
 
-        if (strncmp(response, "OK", 2) != 0)
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: Expected OK, got '%s'\n", __func__, response);
-            return -RIG_EPROTO;
-        }
+    if (sscanf(response, "%4d%8lf%8lf", &chan, &freq_rx, &freq_tx) != 2)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: unable to parse chan/freq from %s\n", __func__,
+                  response);
+        return -RIG_EPROTO;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: got chan %d, freq_rx=%.0f, freq_tx=%.0f",
+              __func__, chan,
+              freq_rx, freq_tx);
+
+    if (freq_rx == freq && freq_tx == freq)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: no freq change needed\n", __func__);
+        return RIG_OK;
+    }
+
+    // New freq so let's update the channel
+    // We do not support split mode -- too many writes to EEPROM to support it
+    sprintf((char *) cmd_buf, "PC%04dR%08.0lfT%08.0lf", chan, freq, freq);
+    retval = barrett_transaction(rig, cmd_buf, 0, &response);
+
+    if (strncmp(response, "OK", 2) != 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: Expected OK, got '%s'\n", __func__, response);
+        return -RIG_EPROTO;
     }
 
     return RIG_OK;
