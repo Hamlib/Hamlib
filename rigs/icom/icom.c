@@ -655,6 +655,7 @@ icom_init(RIG *rig)
     priv->tx_vfo = RIG_VFO_NONE;
     priv->rx_vfo = RIG_VFO_NONE;
     rig->state.current_vfo = RIG_VFO_NONE;
+    priv->filter = RIG_PASSBAND_NOCHANGE;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: done\n", __func__);
 
