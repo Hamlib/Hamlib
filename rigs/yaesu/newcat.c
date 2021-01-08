@@ -3010,7 +3010,7 @@ int newcat_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
         return err;
     }
 
-    if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
+    if ((rig->caps->targetable_vfo & RIG_TARGETABLE_MODE) && !is_ft2000)
     {
         main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
@@ -3102,7 +3102,7 @@ int newcat_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
         return err;
     }
 
-    if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
+    if ((rig->caps->targetable_vfo & RIG_TARGETABLE_MODE) && !is_ft2000)
     {
         main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
@@ -7465,6 +7465,10 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH%c%d%02d;", main_sub_vfo, on,
                  w);
     }
+    else if (is_ft2000)
+    {
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH0%02d;", w);
+    }
     else
     {
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH%c%02d;", main_sub_vfo, w);
@@ -7690,8 +7694,15 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 
     if (sh_command_valid)
     {
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", cmd, main_sub_vfo,
-                 cat_term);
+        if (is_ft2000)
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s0%c", cmd, cat_term);
+        }
+        else
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", cmd, main_sub_vfo,
+                    cat_term);
+        }
 
         err = newcat_get_cmd(rig);
 
