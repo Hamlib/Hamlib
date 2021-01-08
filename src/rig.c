@@ -4289,7 +4289,7 @@ int HAMLIB_API rig_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
         return -RIG_ENAVAIL;
     }
 
-    if ((caps->targetable_vfo & RIG_TARGETABLE_PURE)
+    if ((caps->targetable_vfo & RIG_TARGETABLE_ANT)
             || vfo == RIG_VFO_CURR
             || vfo == rig->state.current_vfo)
     {
@@ -4364,7 +4364,7 @@ int HAMLIB_API rig_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
         return -RIG_ENAVAIL;
     }
 
-    if ((caps->targetable_vfo & RIG_TARGETABLE_PURE)
+    if ((caps->targetable_vfo & RIG_TARGETABLE_ANT)
             || vfo == RIG_VFO_CURR
             || vfo == rig->state.current_vfo)
     {
