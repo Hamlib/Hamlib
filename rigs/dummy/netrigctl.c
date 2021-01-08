@@ -578,7 +578,28 @@ static int netrigctl_open(RIG *rig)
             }
             else if (strcmp(setting, "targetable_vfo") == 0)
             {
-                rig->caps->targetable_vfo = strtol(value, NULL, 0);
+                int has = strtol(value, NULL, 0);
+                if (!has) rig->caps->targetable_vfo = strtol(value, NULL, 0);
+            }
+            else if (strcmp(setting, "has_set_vfo") == 0)
+            {
+                int has = strtol(value, NULL, 0);
+                if (!has) rig->caps->set_vfo = NULL;
+            }
+            else if (strcmp(setting, "has_get_vfo") == 0)
+            {
+                int has = strtol(value, NULL, 0);
+                if (!has) rig->caps->get_vfo = NULL;
+            }
+            else if (strcmp(setting, "has_set_freq") == 0)
+            {
+                int has = strtol(value, NULL, 0);
+                if (!has) rig->caps->set_freq = NULL;
+            }
+            else if (strcmp(setting, "has_get_freq") == 0)
+            {
+                int has = strtol(value, NULL, 0);
+                if (!has) rig->caps->get_freq= NULL;
             }
             else
             {
@@ -775,12 +796,11 @@ static int netrigctl_set_vfo(RIG *rig, vfo_t vfo)
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
     char vfostr[16] = "";
+    struct netrigctl_priv_data *priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    //ret = netrigctl_vfostr(rig, vfostr, sizeof(vfostr), RIG_VFO_A);
-
-    //if (ret != RIG_OK) { return ret; }
+    priv = (struct netrigctl_priv_data *)rig->state.priv;
 
     len = sprintf(cmd, "V%s %s\n", vfostr, rig_strvfo(vfo));
     rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd='%s'\n", __func__, cmd);
@@ -790,10 +810,9 @@ static int netrigctl_set_vfo(RIG *rig, vfo_t vfo)
     {
         return -RIG_EPROTO;
     }
-    else
-    {
-        return ret;
-    }
+
+    priv->vfo_curr = vfo; // remember our vfo
+    return ret;
 }
 
 
@@ -817,7 +836,12 @@ static int netrigctl_get_vfo(RIG *rig, vfo_t *vfo)
 
     ret = netrigctl_transaction(rig, cmd, len, buf);
 
-    if (ret == -RIG_ENAVAIL) { return ret; }
+    if (ret == -RIG_ENAVAIL || ret == -RIG_ENIMPL) 
+    { 
+        // for rigs without get_vfo we'll use our saved vfo
+        *vfo = priv->vfo_curr;
+        return RIG_OK; 
+    }
 
     if (ret <= 0)
     {
@@ -2255,7 +2279,7 @@ struct rig_caps netrigctl_caps =
     RIG_MODEL(RIG_MODEL_NETRIGCTL),
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
-    .version =        "20200503.0",
+    .version =        "20210108.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
