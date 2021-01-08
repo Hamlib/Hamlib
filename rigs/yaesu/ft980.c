@@ -995,7 +995,7 @@ int ft980_set_mem(RIG *rig, vfo_t vfo, int ch)
     unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x0A };
     struct ft980_priv_data *priv = (struct ft980_priv_data *)rig->state.priv;
 
-    if (ch >= 16 || ch < 1)
+    if (ch > 16 || ch < 1)
     {
         return -RIG_EINVAL;
     }
@@ -1021,4 +1021,3 @@ int ft980_get_mem(RIG *rig, vfo_t vfo, int *ch)
 
     return RIG_OK;
 }
-
