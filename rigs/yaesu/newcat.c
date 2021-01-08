@@ -3010,7 +3010,7 @@ int newcat_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
         return err;
     }
 
-    if ((rig->caps->targetable_vfo & RIG_TARGETABLE_MODE) && !is_ft2000)
+    if ((rig->caps->targetable_vfo & RIG_TARGETABLE_ANT))
     {
         main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
