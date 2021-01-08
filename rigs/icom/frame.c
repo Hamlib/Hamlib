@@ -395,7 +395,7 @@ int rig2icom_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width,
     pbwidth_t width_tmp = width;
     struct icom_priv_data *priv_data = (struct icom_priv_data *) rig->state.priv;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: mode=%ld, width=%ld\n", __func__, mode, width);
+    rig_debug(RIG_DEBUG_TRACE, "%s: mode=%d, width=%d\n", __func__, (int)mode, (int)width);
     icmode_ext = -1;
 
     if (width == RIG_PASSBAND_NOCHANGE) // then we read width so we can reuse it
