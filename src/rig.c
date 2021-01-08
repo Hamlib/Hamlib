@@ -418,10 +418,25 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     // Eventually we will have separate model number for different rig variations
     // So range_list1 will become just range_list (per model)
     // See ic9700.c for a 5-model example
-    memcpy(rs->tx_range_list, caps->tx_range_list1,
-           sizeof(struct freq_range_list)*FRQRANGESIZ);
+    // Every rig should have a rx_range
+    // Rig backends need updating for new range_list format
     memcpy(rs->rx_range_list, caps->rx_range_list1,
            sizeof(struct freq_range_list)*FRQRANGESIZ);
+    memcpy(rs->tx_range_list, caps->tx_range_list1,
+           sizeof(struct freq_range_list)*FRQRANGESIZ);
+    // if we don't have list1 we'll try list2
+    if (RIG_IS_FRNG_END(rs->rx_range_list[0]))
+    {
+        memcpy(rs->tx_range_list, caps->rx_range_list2,
+               sizeof(struct freq_range_list)*FRQRANGESIZ);
+        memcpy(rs->rx_range_list, caps->tx_range_list2,
+               sizeof(struct freq_range_list)*FRQRANGESIZ);
+    }
+    if (RIG_IS_FRNG_END(rs->rx_range_list[0]))
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: rig does not have rx_range!!\n", __func__);
+    }
+
 #if 0 // this is no longer applicable -- replace it with something?
 
 // we need to be able to figure out what model radio we have
