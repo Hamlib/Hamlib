@@ -424,6 +424,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
            sizeof(struct freq_range_list)*FRQRANGESIZ);
     memcpy(rs->tx_range_list, caps->tx_range_list1,
            sizeof(struct freq_range_list)*FRQRANGESIZ);
+
     // if we don't have list1 we'll try list2
     if (RIG_IS_FRNG_END(rs->rx_range_list[0]))
     {
@@ -432,6 +433,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
         memcpy(rs->rx_range_list, caps->tx_range_list2,
                sizeof(struct freq_range_list)*FRQRANGESIZ);
     }
+
     if (RIG_IS_FRNG_END(rs->rx_range_list[0]))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: rig does not have rx_range!!\n", __func__);
@@ -490,16 +492,26 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
         rs->vfo_list |= caps->tx_range_list2[i].vfo;
         rs->mode_list |= caps->tx_range_list2[i].modes;
     }
-    if (rs->vfo_list & RIG_VFO_A) rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has VFO_A\n", __func__);
-    if (rs->vfo_list & RIG_VFO_B) rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has VFO_B\n", __func__);
-    if (rs->vfo_list & RIG_VFO_C) rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has VFO_C\n", __func__);
-    if (rs->vfo_list & RIG_VFO_SUB_A) rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has VFO_SUB_A\n", __func__);
-    if (rs->vfo_list & RIG_VFO_SUB_B) rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has VFO_SUB_B\n", __func__);
-    if (rs->vfo_list & RIG_VFO_MAIN_A) rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has VFO_MAIN_A\n", __func__);
-    if (rs->vfo_list & RIG_VFO_MAIN_B) rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has VFO_MAIN_B\n", __func__);
-    if (rs->vfo_list & RIG_VFO_SUB) rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has VFO_SUB\n", __func__);
-    if (rs->vfo_list & RIG_VFO_MAIN) rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has VFO_MAIN\n", __func__);
-    if (rs->vfo_list & RIG_VFO_MEM) rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has VFO_MEM\n", __func__);
+
+    if (rs->vfo_list & RIG_VFO_A) { rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has VFO_A\n", __func__); }
+
+    if (rs->vfo_list & RIG_VFO_B) { rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has VFO_B\n", __func__); }
+
+    if (rs->vfo_list & RIG_VFO_C) { rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has VFO_C\n", __func__); }
+
+    if (rs->vfo_list & RIG_VFO_SUB_A) { rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has VFO_SUB_A\n", __func__); }
+
+    if (rs->vfo_list & RIG_VFO_SUB_B) { rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has VFO_SUB_B\n", __func__); }
+
+    if (rs->vfo_list & RIG_VFO_MAIN_A) { rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has VFO_MAIN_A\n", __func__); }
+
+    if (rs->vfo_list & RIG_VFO_MAIN_B) { rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has VFO_MAIN_B\n", __func__); }
+
+    if (rs->vfo_list & RIG_VFO_SUB) { rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has VFO_SUB\n", __func__); }
+
+    if (rs->vfo_list & RIG_VFO_MAIN) { rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has VFO_MAIN\n", __func__); }
+
+    if (rs->vfo_list & RIG_VFO_MEM) { rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has VFO_MEM\n", __func__); }
 
     memcpy(rs->preamp, caps->preamp, sizeof(int)*MAXDBLSTSIZ);
     memcpy(rs->attenuator, caps->attenuator, sizeof(int)*MAXDBLSTSIZ);
@@ -1526,6 +1538,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         }
 
     }
+
     // update our current freq too
     if (vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo) { rig->state.current_freq = freq_new; }
 
@@ -1753,7 +1766,8 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     const struct rig_caps *caps;
     int retcode;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called, vfo=%s, mode=%s, width=%d\n", __func__, rig_strvfo(vfo), rig_strrmode(mode), (int)width);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called, vfo=%s, mode=%s, width=%d\n", __func__,
+              rig_strvfo(vfo), rig_strrmode(mode), (int)width);
 
     if (CHECK_RIG_ARG(rig))
     {

@@ -579,27 +579,32 @@ static int netrigctl_open(RIG *rig)
             else if (strcmp(setting, "targetable_vfo") == 0)
             {
                 int has = strtol(value, NULL, 0);
-                if (!has) rig->caps->targetable_vfo = strtol(value, NULL, 0);
+
+                if (!has) { rig->caps->targetable_vfo = strtol(value, NULL, 0); }
             }
             else if (strcmp(setting, "has_set_vfo") == 0)
             {
                 int has = strtol(value, NULL, 0);
-                if (!has) rig->caps->set_vfo = NULL;
+
+                if (!has) { rig->caps->set_vfo = NULL; }
             }
             else if (strcmp(setting, "has_get_vfo") == 0)
             {
                 int has = strtol(value, NULL, 0);
-                if (!has) rig->caps->get_vfo = NULL;
+
+                if (!has) { rig->caps->get_vfo = NULL; }
             }
             else if (strcmp(setting, "has_set_freq") == 0)
             {
                 int has = strtol(value, NULL, 0);
-                if (!has) rig->caps->set_freq = NULL;
+
+                if (!has) { rig->caps->set_freq = NULL; }
             }
             else if (strcmp(setting, "has_get_freq") == 0)
             {
                 int has = strtol(value, NULL, 0);
-                if (!has) rig->caps->get_freq= NULL;
+
+                if (!has) { rig->caps->get_freq = NULL; }
             }
             else
             {
@@ -836,11 +841,11 @@ static int netrigctl_get_vfo(RIG *rig, vfo_t *vfo)
 
     ret = netrigctl_transaction(rig, cmd, len, buf);
 
-    if (ret == -RIG_ENAVAIL || ret == -RIG_ENIMPL) 
-    { 
+    if (ret == -RIG_ENAVAIL || ret == -RIG_ENIMPL)
+    {
         // for rigs without get_vfo we'll use our saved vfo
         *vfo = priv->vfo_curr;
-        return RIG_OK; 
+        return RIG_OK;
     }
 
     if (ret <= 0)
