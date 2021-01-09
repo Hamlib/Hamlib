@@ -469,11 +469,7 @@ int g313_cleanup(RIG *rig)
     FreeLibrary(priv->WinMM);
     FreeLibrary(priv->hWRG313WO);
 
-
-    if (rig->state.priv)
-    {
-        free(rig->state.priv);
-    }
+    free(rig->state.priv);
 
     rig->state.priv = NULL;
 
