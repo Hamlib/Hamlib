@@ -1812,7 +1812,8 @@ const char *HAMLIB_API rot_strstatus(rot_status_t status)
  * \param RIG* and rig_function_e
  * \return the corresponding function pointer
  */
-void *rig_get_function_ptr(rig_model_t rig_model, enum rig_function_e rig_function)
+void *rig_get_function_ptr(rig_model_t rig_model,
+                           enum rig_function_e rig_function)
 {
     const struct rig_caps *caps = rig_get_caps(rig_model);
 
@@ -2105,7 +2106,8 @@ int rig_get_caps_int(rig_model_t rig_model, enum rig_caps_int_e rig_caps)
     return RIG_OK;
 }
 
-const char *rig_get_caps_cptr(rig_model_t rig_model, enum rig_caps_cptr_e rig_caps)
+const char *rig_get_caps_cptr(rig_model_t rig_model,
+                              enum rig_caps_cptr_e rig_caps)
 {
     const struct rig_caps *caps = rig_get_caps(rig_model);
 
@@ -2124,7 +2126,8 @@ const char *rig_get_caps_cptr(rig_model_t rig_model, enum rig_caps_cptr_e rig_ca
         return rig_strstatus(caps->status);
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: Unknown requested rig_caps value=%d\n", __func__, rig_caps);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unknown requested rig_caps value=%d\n", __func__,
+                  rig_caps);
         return "Unknown caps value";
     }
 }

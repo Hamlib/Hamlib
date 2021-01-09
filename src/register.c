@@ -388,8 +388,8 @@ int HAMLIB_API rig_list_foreach(int (*cfunc)(const struct rig_caps *,
  */
 //! @cond Doxygen_Suppress
 int HAMLIB_API rig_list_foreach_model(int (*cfunc)(const rig_model_t rig_model,
-                                rig_ptr_t),
-                                rig_ptr_t data)
+                                      rig_ptr_t),
+                                      rig_ptr_t data)
 {
     struct rig_list *p;
     int i;
@@ -489,7 +489,7 @@ int rig_load_all_backends()
 {
     int i;
 
-    memset(rig_hash_table, 0 , sizeof(rig_hash_table));
+    memset(rig_hash_table, 0, sizeof(rig_hash_table));
 
     for (i = 0; i < RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++)
     {

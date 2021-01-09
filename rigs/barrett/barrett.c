@@ -54,14 +54,14 @@ int barrett_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 static int barrett_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 int barrett_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int barrett_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
-                            pbwidth_t *width);
+                     pbwidth_t *width);
 
 int barrett_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
 int barrett_set_split_vfo(RIG *rig, vfo_t rxvfo, split_t split,
-                                 vfo_t txvfo);
+                          vfo_t txvfo);
 
 int barrett_get_split_vfo(RIG *rig, vfo_t rxvfo, split_t *split,
-                                 vfo_t *txvfo);
+                          vfo_t *txvfo);
 
 static int barrett_get_level(RIG *rig, vfo_t vfo, setting_t level,
                              value_t *val);

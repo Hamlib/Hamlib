@@ -7701,7 +7701,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         else
         {
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", cmd, main_sub_vfo,
-                    cat_term);
+                     cat_term);
         }
 
         err = newcat_get_cmd(rig);
