@@ -222,7 +222,7 @@ int barrett950_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     sprintf((char *) cmd_buf, "PC%04dR%08.0lfT%08.0lf", chan, freq, freq);
     retval = barrett_transaction(rig, cmd_buf, 0, &response);
 
-    if (strncmp(response, "OK", 2) != 0)
+    if (retval != RIG_OK || strncmp(response, "OK", 2) != 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: Expected OK, got '%s'\n", __func__, response);
         return -RIG_EPROTO;

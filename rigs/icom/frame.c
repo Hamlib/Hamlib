@@ -306,8 +306,8 @@ int icom_transaction(RIG *rig, int cmd, int subcmd,
     int retval, retry;
 
     rig_debug(RIG_DEBUG_VERBOSE,
-              "%s: cmd=0x%02x, subcmd=0x%02x, payload_len=%d, data_len=%d\n", __func__,
-              cmd, subcmd, payload_len, *data_len);
+              "%s: cmd=0x%02x, subcmd=0x%02x, payload_len=%d\n", __func__,
+              cmd, subcmd, payload_len);
 
     retry = rig->state.rigport.retry;
 

@@ -437,6 +437,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     if (RIG_IS_FRNG_END(rs->rx_range_list[0]))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: rig does not have rx_range!!\n", __func__);
+        return NULL;
     }
 
 #if 0 // this is no longer applicable -- replace it with something?
