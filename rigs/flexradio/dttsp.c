@@ -660,7 +660,7 @@ int dttsp_cleanup(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (priv->tuner)
+    if (priv && priv->tuner)
     {
         rig_cleanup(priv->tuner);
     }
