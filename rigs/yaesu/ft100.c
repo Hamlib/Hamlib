@@ -174,7 +174,7 @@ const struct rig_caps ft100_caps =
     RIG_MODEL(RIG_MODEL_FT100),
     .model_name =     "FT-100",
     .mfg_name =       "Yaesu",
-    .version =        "20210102.0",
+    .version =        "20210110.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_TRANSCEIVER,
@@ -1022,8 +1022,8 @@ int ft100_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *shift)
 
     *shift = RIG_RPT_SHIFT_NONE;
 
-    if (priv->status.flag1 && 1 << 2) { *shift = RIG_RPT_SHIFT_MINUS; }
-    else if (priv->status.flag1 && 1 << 3) { *shift = RIG_RPT_SHIFT_PLUS; }
+    if (priv->status.flag1 & (1 << 2)) { *shift = RIG_RPT_SHIFT_MINUS; }
+    else if (priv->status.flag1 & (1 << 3)) { *shift = RIG_RPT_SHIFT_PLUS; }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: flag1=0x%02x\n", __func__,
               priv->status.flag1);
