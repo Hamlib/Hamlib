@@ -1996,7 +1996,8 @@ typedef struct hamlib_port {
     } post_write_date;      /*!< hamlib internal use */
 
     int timeout;            /*!< Timeout, in mS */
-    int retry;              /*!< Maximum number of retries, 0 to disable */
+    short retry;            /*!< Maximum number of retries, 0 to disable */
+    short flushx;           /*!< If true flush is done with read instead of TCFLUSH - MicroHam */
 
     char pathname[FILPATHLEN];      /*!< Port pathname */
 
@@ -2034,7 +2035,6 @@ typedef struct hamlib_port {
             int value;      /*!< Toggle PTT ON or OFF */
         } gpio;             /*!< GPIO attributes */
     } parm;                 /*!< Port parameter union */
-    int flushx;             /*!< If true flush is done with read instead of TCFLUSH - MicroHam */
 } hamlib_port_t;
 //! @endcond
 
