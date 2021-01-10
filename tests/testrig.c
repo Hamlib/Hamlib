@@ -15,7 +15,7 @@
 #  include "config.h"
 #endif
 
-#define SERIAL_PORT "/dev/pts/3"
+#define SERIAL_PORT "/dev/ttyUSB0"
 
 
 int main(int argc, char *argv[])
@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
     printf("testrig: Hello, I am your main() !\n");
 
     /* Turn off backend debugging output */
-    rig_set_debug_level(RIG_DEBUG_ERR);
+    rig_set_debug_level(RIG_DEBUG_NONE);
 
     /*
      * allocate memory, setup & open port
@@ -66,13 +66,10 @@ int main(int argc, char *argv[])
 
     if (!my_rig)
     {
-        fprintf(stderr, "Rig Not OK!!!\n");
-        //fprintf(stderr, "Unknown rig num: %d\n", myrig_model);
-        //fprintf(stderr, "Please check riglist.h\n");
+        fprintf(stderr, "Unknown rig num: %d\n", myrig_model);
+        fprintf(stderr, "Please check riglist.h\n");
         exit(1); /* whoops! something went wrong (mem alloc?) */
     }
-    fprintf(stderr, "Rig OK\n");
-    exit(0);
 
     strncpy(my_rig->state.rigport.pathname, SERIAL_PORT, FILPATHLEN - 1);
 
@@ -86,7 +83,6 @@ int main(int argc, char *argv[])
 
     printf("Port %s opened ok\n", SERIAL_PORT);
 
-    printf("Offset of vfo_list=%p\n", &my_rig->state.vfo_list);
     /*
      * Below are examples of set/get routines.
      * Must add checking of functionality map prior to command execution -- FS
