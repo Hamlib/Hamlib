@@ -4061,10 +4061,10 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             priv->cmd_str[2] = main_sub_vfo;
         }
 
-        // Some Yaesu rigs reject this command in FM mode
+        // Some Yaesu rigs reject this command in AM/FM modes
         if (is_ft991 || is_ftdx5000 || is_ftdx101)
         {
-            if (mode & RIG_MODE_FM || mode & RIG_MODE_FMN)
+            if (mode & RIG_MODE_AM || mode & RIG_MODE_FM || mode & RIG_MODE_AMN || mode & RIG_MODE_FMN)
             {
                 priv->question_mark_response_means_rejected = 1;
             }
