@@ -9085,19 +9085,17 @@ int newcat_get_cmd(RIG *rig)
         rc = RIG_OK;              /* received something */
 
         /* Check that command termination is correct - alternative is
-           response is longer that the buffer */
+           response is longer than the buffer */
         if (cat_term  != priv->ret_data[strlen(priv->ret_data) - 1])
         {
             rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n",
                       __func__, priv->ret_data);
-            // we were using BUSBUSY but microham devices need retries
-            //rc = -RIG_BUSBUSY;    /* don't write command again */
-            // rc = -RIG_EPROTO;
+            rc = -RIG_EPROTO; /* retry */
             /* we could decrement retry_count
                here but there is a danger of
                infinite looping so we just use up
                a retry for safety's sake */
-            continue;             /* retry */
+            continue;
         }
 
         /* check for error codes */
@@ -9158,7 +9156,7 @@ int newcat_get_cmd(RIG *rig)
                 rig_debug(RIG_DEBUG_WARN, "%s: Rig busy - retrying: '%s'\n", __func__,
                         priv->cmd_str);
 
-                rc = -RIG_BUSBUSY; /* retry */
+                rc = -RIG_ERJCTED; /* retry */
                 break;
             }
 
