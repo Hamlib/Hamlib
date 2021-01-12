@@ -3304,9 +3304,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
 
         // Some Yaesu rigs reject this command in AM/FM modes
-        // Disabling as it's too general
-        // Need to be rig/mode specific
-        //priv->question_mark_response_means_rejected = 1;
+        priv->question_mark_response_means_rejected = 1;
         break;
 
     case RIG_LEVEL_CWPITCH:
@@ -3373,9 +3371,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MG%03d%c", fpf, cat_term);
 
         // Some Yaesu rigs reject this command in RTTY modes
-        // Disabling as it's too general
-        // Need to be rig/mode specific
-        //priv->question_mark_response_means_rejected = 1;
+        priv->question_mark_response_means_rejected = 1;
         break;
 
     case RIG_LEVEL_METER:
@@ -3583,9 +3579,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
 
         // Some Yaesu rigs reject this command in AM/FM modes
-        // Disabling as it's too general
-        // Need to be rig/mode specific
-        //priv->question_mark_response_means_rejected = 1;
+        priv->question_mark_response_means_rejected = 1;
         break;
 
     case RIG_LEVEL_COMP:
@@ -4874,9 +4868,7 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         }
 
         // Some Yaesu rigs reject this command in AM/FM modes
-        // Disabling as it's too general
-        // Need to be rig/mode specific
-        //priv->question_mark_response_means_rejected = 1;
+        priv->question_mark_response_means_rejected = 1;
         break;
 
     case RIG_FUNC_MN:
@@ -4894,9 +4886,7 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         }
 
         // Some Yaesu rigs reject this command in AM/FM modes
-        // Disabling as it's too general
-        // Need to be rig/mode specific
-        //priv->question_mark_response_means_rejected = 1;
+        priv->question_mark_response_means_rejected = 1;
         break;
 
     case RIG_FUNC_FBKIN:
@@ -5002,9 +4992,7 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         }
 
         // Some Yaesu rigs reject this command in AM/FM modes
-        // Disabling as it's too general
-        // Need to be rig/mode specific
-        //priv->question_mark_response_means_rejected = 1;
+        priv->question_mark_response_means_rejected = 1;
         break;
 
     case RIG_FUNC_COMP:
@@ -9160,9 +9148,18 @@ int newcat_get_cmd(RIG *rig)
                  * Followup 20201213 FTDX3000 FB; command returning ?; so do NOT abort
                  * see https://github.com/Hamlib/Hamlib/issues/464
                  */
-                rig_debug(RIG_DEBUG_ERR, "%s: Command rejected by the rig: '%s'\n", __func__,
-                          priv->cmd_str);
-                // return -RIG_ERJCTED;
+                if (priv->question_mark_response_means_rejected)
+                {
+                    rig_debug(RIG_DEBUG_ERR, "%s: Command rejected by the rig: '%s'\n", __func__,
+                            priv->cmd_str);
+                    return -RIG_ERJCTED;
+                }
+
+                rig_debug(RIG_DEBUG_WARN, "%s: Rig busy - retrying: '%s'\n", __func__,
+                        priv->cmd_str);
+
+                rc = -RIG_BUSBUSY; /* retry */
+                break;
             }
 
             continue;
@@ -9305,12 +9302,13 @@ int newcat_set_cmd(RIG *rig)
                 if (priv->question_mark_response_means_rejected)
                 {
                     rig_debug(RIG_DEBUG_ERR, "%s: Command rejected by the rig: '%s'\n", __func__,
-                              priv->cmd_str);
+                            priv->cmd_str);
                     return -RIG_ERJCTED;
                 }
 
                 /* Rig busy wait please */
-                rig_debug(RIG_DEBUG_WARN, "%s: Rig busy - retrying\n", __func__);
+                rig_debug(RIG_DEBUG_WARN, "%s: Rig busy - retrying: '%s'\n", __func__,
+                        priv->cmd_str);
 
                 /* read the verify command reply */
                 if ((rc = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data),
