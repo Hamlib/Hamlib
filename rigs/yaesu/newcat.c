@@ -9148,7 +9148,7 @@ int newcat_get_cmd(RIG *rig)
                  */
                 if (priv->question_mark_response_means_rejected)
                 {
-                    rig_debug(RIG_DEBUG_ERR, "%s: Command rejected by the rig: '%s'\n", __func__,
+                    rig_debug(RIG_DEBUG_ERR, "%s: Command rejected by the rig (get): '%s'\n", __func__,
                             priv->cmd_str);
                     return -RIG_ERJCTED;
                 }
@@ -9299,8 +9299,8 @@ int newcat_set_cmd(RIG *rig)
                  */
                 if (priv->question_mark_response_means_rejected)
                 {
-                    rig_debug(RIG_DEBUG_ERR, "%s: Command rejected by the rig: '%s'\n", __func__,
-                            priv->cmd_str);
+                    rig_debug(RIG_DEBUG_ERR, "%s: Command rejected by the rig (set): '%s'\n", __func__,
+                              priv->cmd_str);
                     return -RIG_ERJCTED;
                 }
 
