@@ -4090,14 +4090,32 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "KS%c", cat_term);
         break;
 
-    case RIG_LEVEL_MICGAIN:
+    case RIG_LEVEL_MICGAIN: {
+        pbwidth_t width;
+        rmode_t mode = 0;
+
         if (!newcat_valid_command(rig, "MG"))
         {
             return -RIG_ENAVAIL;
         }
 
+        if (is_ft991 || is_ftdx5000 || is_ftdx101)
+        {
+            newcat_get_mode(rig, vfo, &mode, &width);
+        }
+
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MG%c", cat_term);
+
+        // Some Yaesu rigs reject this command in RTTY modes
+        if (is_ft991 || is_ftdx5000 || is_ftdx101)
+        {
+            if (mode & RIG_MODE_RTTY || mode & RIG_MODE_RTTYR)
+            {
+                priv->question_mark_response_means_rejected = 1;
+            }
+        }
         break;
+    }
 
     case RIG_LEVEL_METER:
         if (!newcat_valid_command(rig, "MS"))
