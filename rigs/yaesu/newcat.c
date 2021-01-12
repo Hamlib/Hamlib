@@ -2519,17 +2519,8 @@ int newcat_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 
     if (tone == 0) /* turn off ctcss */
     {
-        if (is_ft891 || is_ft991 || is_ftdx101)
-        {
-            // note ftdx101 cat manual says CTP1P2; not CTP1P2P3; so is this correct?
-            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CT%c00%c", main_sub_vfo,
-                     cat_term);
-        }
-        else
-        {
-            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CT%c0%c", main_sub_vfo,
-                     cat_term);
-        }
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CT%c0%c", main_sub_vfo,
+                cat_term);
     }
     else
     {
