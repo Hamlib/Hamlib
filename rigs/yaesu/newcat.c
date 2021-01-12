@@ -5067,6 +5067,7 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         {
             newcat_get_mode(rig, vfo, &mode, &width);
         }
+
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "NR0%d%c", status ? 1 : 0,
                  cat_term);
 
@@ -5086,10 +5087,18 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         break;
     }
 
-    case RIG_FUNC_COMP:
+    case RIG_FUNC_COMP: {
+        pbwidth_t width;
+        rmode_t mode = 0;
+
         if (!newcat_valid_command(rig, "PR"))
         {
             return -RIG_ENAVAIL;
+        }
+
+        if (is_ft991 || is_ftdx5000 || is_ftdx101)
+        {
+            newcat_get_mode(rig, vfo, &mode, &width);
         }
 
         if (is_ft891 || is_ft991 || is_ftdx1200 || is_ftdx3000 || is_ftdx101)
@@ -5104,7 +5113,17 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
                      cat_term);
         }
 
+        // Some Yaesu rigs reject this command in AM/FM/RTTY modes
+        if (is_ft991 || is_ftdx5000 || is_ftdx101)
+        {
+            if (mode & RIG_MODE_AM || mode & RIG_MODE_FM || mode & RIG_MODE_AMN || mode & RIG_MODE_FMN ||
+                    mode & RIG_MODE_RTTY || mode & RIG_MODE_RTTYR)
+            {
+                priv->question_mark_response_means_rejected = 1;
+            }
+        }
         break;
+    }
 
     case RIG_FUNC_VOX:
         if (!newcat_valid_command(rig, "VX"))
