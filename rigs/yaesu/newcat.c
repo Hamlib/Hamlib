@@ -3304,7 +3304,17 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
 
         // Some Yaesu rigs reject this command in AM/FM modes
-        priv->question_mark_response_means_rejected = 1;
+        if (is_ft991 || is_ftdx5000 || is_ftdx101)
+        {
+            pbwidth_t width;
+            rmode_t mode;
+            err = newcat_get_mode(rig, vfo, &mode, &width);
+
+            if (mode & RIG_MODE_AM || mode & RIG_MODE_FM || mode & RIG_MODE_AMN || mode & RIG_MODE_FMN)
+            {
+                priv->question_mark_response_means_rejected = 1;
+            }
+        }
         break;
 
     case RIG_LEVEL_CWPITCH:
@@ -3371,7 +3381,17 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MG%03d%c", fpf, cat_term);
 
         // Some Yaesu rigs reject this command in RTTY modes
-        priv->question_mark_response_means_rejected = 1;
+        if (is_ft991 || is_ftdx5000 || is_ftdx101)
+        {
+            pbwidth_t width;
+            rmode_t mode;
+            err = newcat_get_mode(rig, vfo, &mode, &width);
+
+            if (mode & RIG_MODE_RTTY || mode & RIG_MODE_RTTYR)
+            {
+                priv->question_mark_response_means_rejected = 1;
+            }
+        }
         break;
 
     case RIG_LEVEL_METER:
@@ -3577,9 +3597,6 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
                 priv->cmd_str[2] = main_sub_vfo;
             }
         }
-
-        // Some Yaesu rigs reject this command in AM/FM modes
-        priv->question_mark_response_means_rejected = 1;
         break;
 
     case RIG_LEVEL_COMP:
@@ -4026,6 +4043,18 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             priv->cmd_str[2] = main_sub_vfo;
         }
 
+        // Some Yaesu rigs reject this command in FM mode
+        if (is_ft991 || is_ftdx5000 || is_ftdx101)
+        {
+            pbwidth_t width;
+            rmode_t mode;
+            err = newcat_get_mode(rig, vfo, &mode, &width);
+
+            if (mode & RIG_MODE_FM || mode & RIG_MODE_FMN)
+            {
+                priv->question_mark_response_means_rejected = 1;
+            }
+        }
         break;
 
     case RIG_LEVEL_CWPITCH:
@@ -4310,6 +4339,9 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     }
 
     err = newcat_get_cmd(rig);
+
+    // Clear flag after executing command
+    priv->question_mark_response_means_rejected = 0;
 
     if (err != RIG_OK)
     {
@@ -4867,8 +4899,18 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             priv->cmd_str[2] = main_sub_vfo;
         }
 
-        // Some Yaesu rigs reject this command in AM/FM modes
-        priv->question_mark_response_means_rejected = 1;
+        // Some Yaesu rigs reject this command in FM mode
+        if (is_ft991 || is_ftdx5000 || is_ftdx101)
+        {
+            pbwidth_t width;
+            rmode_t mode;
+            err = newcat_get_mode(rig, vfo, &mode, &width);
+
+            if (mode & RIG_MODE_FM || mode & RIG_MODE_FMN)
+            {
+                priv->question_mark_response_means_rejected = 1;
+            }
+        }
         break;
 
     case RIG_FUNC_MN:
@@ -4885,8 +4927,18 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             priv->cmd_str[2] = main_sub_vfo;
         }
 
-        // Some Yaesu rigs reject this command in AM/FM modes
-        priv->question_mark_response_means_rejected = 1;
+        // Some Yaesu rigs reject this command in FM mode
+        if (is_ft991 || is_ftdx5000 || is_ftdx101)
+        {
+            pbwidth_t width;
+            rmode_t mode;
+            err = newcat_get_mode(rig, vfo, &mode, &width);
+
+            if (mode & RIG_MODE_FM || mode & RIG_MODE_FMN)
+            {
+                priv->question_mark_response_means_rejected = 1;
+            }
+        }
         break;
 
     case RIG_FUNC_FBKIN:
@@ -4991,8 +5043,18 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             priv->cmd_str[2] = main_sub_vfo;
         }
 
-        // Some Yaesu rigs reject this command in AM/FM modes
-        priv->question_mark_response_means_rejected = 1;
+        // Some Yaesu rigs reject this command in FM mode
+        if (is_ft991 || is_ftdx5000 || is_ftdx101)
+        {
+            pbwidth_t width;
+            rmode_t mode;
+            err = newcat_get_mode(rig, vfo, &mode, &width);
+
+            if (mode & RIG_MODE_FM || mode & RIG_MODE_FMN)
+            {
+                priv->question_mark_response_means_rejected = 1;
+            }
+        }
         break;
 
     case RIG_FUNC_COMP:
@@ -5100,6 +5162,18 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
             priv->cmd_str[2] = main_sub_vfo;
         }
 
+        // Some Yaesu rigs reject this command in FM mode
+        if (is_ft991 || is_ftdx5000 || is_ftdx101)
+        {
+            pbwidth_t width;
+            rmode_t mode;
+            err = newcat_get_mode(rig, vfo, &mode, &width);
+
+            if (mode & RIG_MODE_FM || mode & RIG_MODE_FMN)
+            {
+                priv->question_mark_response_means_rejected = 1;
+            }
+        }
         break;
 
     case RIG_FUNC_MN:
@@ -5261,7 +5335,12 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         return -RIG_EINVAL;
     }
 
-    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    err = newcat_get_cmd(rig);
+
+    // Clear flag after executing command
+    priv->question_mark_response_means_rejected = 0;
+
+    if (err != RIG_OK)
     {
         return err;
     }
