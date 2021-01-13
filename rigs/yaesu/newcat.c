@@ -9396,6 +9396,7 @@ int newcat_set_cmd(RIG *rig)
             return RIG_OK;
         }
 
+        hl_usleep(11*1000); // some Yaeus rigs have 10ms timeout -- does this fix the ?; reponse problem?
         /* send the verification command */
         rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", verify_cmd);
 
