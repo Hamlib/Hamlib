@@ -715,6 +715,8 @@ int icom_get_usb_echo_off(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: ack_len=%d\n", __func__, ack_len);
 
+    if (retval == -RIG_ETIMEOUT) return retval;
+
     if (retval == RIG_OK)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo on detected\n",
