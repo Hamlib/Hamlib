@@ -801,13 +801,13 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     //
     // Restore band memory if we can and band is changing -- we do it before we set the frequency
-    // And only when not in split mode
+    // And only when not in split mode (note this check has been removed for testing)
     if (newcat_valid_command(rig, "BS")
             && newcat_band_index(freq) != newcat_band_index(rig->state.current_freq)
-            && !rig->state.cache.split
+            // remove the split check here -- hopefully works OK 
+            //&& !rig->state.cache.split
             && !is_ft891) // 891 does not remember bandwidth so don't do this
     {
-        hl_usleep(200*1000);  // seems we need some time before doing band select 200ms enough?
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "BS%02d%c",
                  newcat_band_index(freq), cat_term);
 
@@ -815,6 +815,23 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: Unexpected error with BS command=%s\n", __func__,
                       rigerror(err));
+        }
+        else
+        {
+            // after band select re-read things -- may not have to change anything
+            freq_t tmp_freqA, tmp_freqB;
+            rmode_t tmp_mode;
+            pbwidth_t tmp_width;
+            rig_get_freq(rig, RIG_VFO_A, &tmp_freqA);
+            rig_get_freq(rig, RIG_VFO_B, &tmp_freqB);
+            rig_get_mode(rig, RIG_VFO_A, &tmp_mode, &tmp_width);
+            rig_get_mode(rig, RIG_VFO_B, &tmp_mode, &tmp_width);
+            if ((target_vfo == 0 && tmp_freqA == freq)
+                || (target_vfo == 1 && tmp_freqB == freq))
+            {
+                rig_debug(RIG_DEBUG_VERBOSE, "%s: freq after band select already set to %"PRIfreq"\n", __func__, freq);
+                return RIG_OK; // we're done then!!
+            }
         }
 
         // just drop through
@@ -9396,7 +9413,12 @@ int newcat_set_cmd(RIG *rig)
             return RIG_OK;
         }
 
-        hl_usleep(11*1000); // some Yaeus rigs have 10ms timeout -- does this fix the ?; reponse problem?
+        if (strncmp(priv->cmd_str,"BS",2)==0)
+        {   // the BS command needs time to do it's thing
+            hl_usleep(200*1000); 
+            priv->cache_start.tv_sec = 0; // invalidate the cache
+        }
+
         /* send the verification command */
         rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", verify_cmd);
 
