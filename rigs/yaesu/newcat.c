@@ -9382,7 +9382,7 @@ int newcat_set_cmd_validate(RIG *rig)
 {
     struct rig_state *state = &rig->state;
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
-    char *valcmd;
+    char valcmd[16];
     int retries=5;
     int retry=0;
     int sleepms = 50;
@@ -9391,31 +9391,33 @@ int newcat_set_cmd_validate(RIG *rig)
     rig_debug(RIG_DEBUG_TRACE, "%s: priv->cmd_str=%s\n", __func__, priv->cmd_str);
     if ((strncmp(priv->cmd_str,"FA",2)==0) && (strlen(priv->cmd_str)>3))
     {
-        valcmd = "FA;";
+        strcpy(valcmd,"FA;");
     }
     else if ((strncmp(priv->cmd_str,"FB",2)==0) && (strlen(priv->cmd_str)>3))
     {
-        valcmd = "FB;";
+        strcpy(valcmd,"FB;");
     }
     else if ((strncmp(priv->cmd_str,"MD",2)==0) && (strlen(priv->cmd_str)>3))
     {
-        valcmd = "MD;";
+        strcpy(valcmd,priv->cmd_str); // pull the needed part of the cmd
+        valcmd[3]=';';
+        valcmd[4]=0;
     }
     else if ((strncmp(priv->cmd_str,"TX",2)==0) && (strlen(priv->cmd_str)>3))
     {
-        valcmd = "TX;";
+        strcpy(valcmd,"TX;");
     }
     else if ((strncmp(priv->cmd_str,"FT",2)==0) && (strlen(priv->cmd_str)>3))
     {
-        valcmd = "FT;";
+        strcpy(valcmd,"FT;");
     }
     else if ((strncmp(priv->cmd_str,"BS",2)==0) && (strlen(priv->cmd_str)>3))
     {
-        valcmd = "BS;";
+        strcpy(valcmd,"BS;");
     }
     else if ((strncmp(priv->cmd_str,"AI",2)==0) && (strlen(priv->cmd_str)>3))
     {
-        valcmd = "AI;";
+        strcpy(valcmd,"AI;");
     }
     else
     {
