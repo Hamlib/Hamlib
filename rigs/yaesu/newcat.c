@@ -9469,11 +9469,17 @@ int newcat_set_cmd(RIG *rig)
         /* send the command */
         rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
 
-        if (newcat_set_cmd_validate(rig)==RIG_OK) {
+        rc =  newcat_set_cmd_validate(rig);
+        if (rc==RIG_OK) {
             rig_debug(RIG_DEBUG_TRACE, "%s: cmd_validate OK\n", __func__);
             return RIG_OK;
         }
-        rig_debug(RIG_DEBUG_TRACE, "%s: cmd_validate not OK...continuing\n", __func__);
+        else if (rc == -RIG_EPROTO)
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: set_cmd_validate failed\n", __func__);
+            return rc;
+        }
+        rig_debug(RIG_DEBUG_TRACE, "%s: newcat_set_cmd_validate not implemented...continuing\n", __func__);
 
         if (RIG_OK != (rc = write_block(&state->rigport, priv->cmd_str,
                                         strlen(priv->cmd_str))))
