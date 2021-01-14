@@ -9375,6 +9375,73 @@ int newcat_get_cmd(RIG *rig)
 }
 
 /*
+ * This tries to set and read to validate the set command actually worked
+ * returns RIG_OK if set, -RIG_EIMPL if not implemented yet, or -RIG_EPROTO if unsuccesful
+ */
+int newcat_set_cmd_validate(RIG *rig)
+{
+    struct rig_state *state = &rig->state;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    char *valcmd;
+    int retries=5;
+    int retry=0;
+    int sleepms = 50;
+    int rc = -RIG_EPROTO;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: priv->cmd_str=%s\n", __func__, priv->cmd_str);
+    if ((strncmp(priv->cmd_str,"FA",2)==0) && (strlen(priv->cmd_str)>3))
+    {
+        valcmd = "FA;";
+    }
+    else if ((strncmp(priv->cmd_str,"FB",2)==0) && (strlen(priv->cmd_str)>3))
+    {
+        valcmd = "FB;";
+    }
+    else if ((strncmp(priv->cmd_str,"MD",2)==0) && (strlen(priv->cmd_str)>3))
+    {
+        valcmd = "MD;";
+    }
+    else if ((strncmp(priv->cmd_str,"TX",2)==0) && (strlen(priv->cmd_str)>3))
+    {
+        valcmd = "TX;";
+    }
+    else if ((strncmp(priv->cmd_str,"FT",2)==0) && (strlen(priv->cmd_str)>3))
+    {
+        valcmd = "FT;";
+    }
+    else if ((strncmp(priv->cmd_str,"BS",2)==0) && (strlen(priv->cmd_str)>3))
+    {
+        valcmd = "BS;";
+    }
+    else if ((strncmp(priv->cmd_str,"AI",2)==0) && (strlen(priv->cmd_str)>3))
+    {
+        valcmd = "AI;";
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: %s not implemented\n", __func__, priv->cmd_str);
+        return -RIG_ENIMPL;
+    }
+    while (rc != RIG_OK && retry++ < retries)
+    {
+        rc = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+        if (rc != RIG_OK) return -RIG_EIO;
+        rc = write_block(&state->rigport, valcmd, strlen(valcmd));
+        if (rc != RIG_OK) return -RIG_EIO;
+        rc = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data),
+                              &cat_term, sizeof(cat_term));
+        if (rc == RIG_OK)
+        {
+            // if they match we are validated
+            if (strcmp(priv->cmd_str, priv->ret_data)==0) return RIG_OK;
+            else rc = -RIG_EPROTO;
+        }
+        rig_debug(RIG_DEBUG_ERR, "%s: cmd validation failed, try#%d\n", __func__, retry);
+        hl_usleep(sleepms*1000);
+    } while(--retry > 0);
+    return -RIG_EPROTO;
+}
+/*
  * Writes a null  terminated command string from  priv->cmd_str to the
  * CAT  port that is not expected to have a response.
  *
@@ -9400,6 +9467,12 @@ int newcat_set_cmd(RIG *rig)
         rig_flush(&state->rigport);  /* discard any unsolicited data */
         /* send the command */
         rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
+
+        if (newcat_set_cmd_validate(rig)==RIG_OK) {
+            rig_debug(RIG_DEBUG_TRACE, "%s: cmd_validate OK\n", __func__);
+            return RIG_OK;
+        }
+        rig_debug(RIG_DEBUG_TRACE, "%s: cmd_validate not OK...continuing\n", __func__);
 
         if (RIG_OK != (rc = write_block(&state->rigport, priv->cmd_str,
                                         strlen(priv->cmd_str))))
