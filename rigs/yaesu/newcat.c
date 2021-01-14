@@ -9424,6 +9424,7 @@ int newcat_set_cmd_validate(RIG *rig)
     }
     while (rc != RIG_OK && retry++ < retries)
     {
+        rig_flush(&state->rigport);  /* discard any unsolicited data */
         rc = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
         if (rc != RIG_OK) return -RIG_EIO;
         rc = write_block(&state->rigport, valcmd, strlen(valcmd));
