@@ -9427,10 +9427,10 @@ int newcat_set_cmd_validate(RIG *rig)
     while (rc != RIG_OK && retry++ < retries)
     {
         int bytes;
+        char cmd[256]; // big enough
         rig_flush(&state->rigport);  /* discard any unsolicited data */
-        rc = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
-        if (rc != RIG_OK) return -RIG_EIO;
-        rc = write_block(&state->rigport, valcmd, strlen(valcmd));
+        snprintf(cmd,sizeof(cmd),"%s%s",priv->cmd_str,priv->valcmd);
+        rc = write_block(&state->rigport, cmd, strlen(cmd));
         if (rc != RIG_OK) return -RIG_EIO;
         bytes = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data),
                               &cat_term, sizeof(cat_term));
