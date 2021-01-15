@@ -9383,7 +9383,7 @@ int newcat_set_cmd_validate(RIG *rig)
     struct rig_state *state = &rig->state;
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     char valcmd[16];
-    int retries=5;
+    int retries=8;
     int retry=0;
     int sleepms = 50;
     int rc = -RIG_EPROTO;
