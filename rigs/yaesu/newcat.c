@@ -9426,14 +9426,15 @@ int newcat_set_cmd_validate(RIG *rig)
     }
     while (rc != RIG_OK && retry++ < retries)
     {
+        int bytes;
         rig_flush(&state->rigport);  /* discard any unsolicited data */
         rc = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
         if (rc != RIG_OK) return -RIG_EIO;
         rc = write_block(&state->rigport, valcmd, strlen(valcmd));
         if (rc != RIG_OK) return -RIG_EIO;
-        rc = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data),
+        bytes = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data),
                               &cat_term, sizeof(cat_term));
-        if (rc == RIG_OK)
+        if (bytes > 0)
         {
             // if they match we are validated
             if (strcmp(priv->cmd_str, priv->ret_data)==0) return RIG_OK;
