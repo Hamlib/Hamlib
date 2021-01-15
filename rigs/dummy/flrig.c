@@ -1883,7 +1883,7 @@ static int flrig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     int retval;
     char cmd_arg[MAXARGLEN];
     char *cmd;
-    char *param_type="i4";
+    char *param_type = "i4";
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s level=%d, val=%f\n", __func__,
               rig_strvfo(vfo), (int)level, val.f);
@@ -1897,13 +1897,13 @@ static int flrig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     switch (level)
     {
-    case RIG_LEVEL_RF: cmd = "rig.set_rfgain"; val.f*= 100; break;
+    case RIG_LEVEL_RF: cmd = "rig.set_rfgain"; val.f *= 100; break;
 
-    case RIG_LEVEL_AF: cmd = "rig.set_volume"; val.f*= 100; break;
+    case RIG_LEVEL_AF: cmd = "rig.set_volume"; val.f *= 100; break;
 
-    case RIG_LEVEL_MICGAIN: cmd = "rig.set_micgain"; val.f*= 100; break;
+    case RIG_LEVEL_MICGAIN: cmd = "rig.set_micgain"; val.f *= 100; break;
 
-    case RIG_LEVEL_RFPOWER: cmd = "rig.set_power"; val.f*= 100; break;
+    case RIG_LEVEL_RFPOWER: cmd = "rig.set_power"; val.f *= 100; break;
 
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: invalid level=%d\n", __func__, (int)level);
@@ -1949,7 +1949,7 @@ static int flrig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_MICGAIN: cmd = "rig.get_micgain"; break;
 
     case RIG_LEVEL_STRENGTH: cmd = "rig.get_smeter"; break;
-    
+
     case RIG_LEVEL_RFPOWER: cmd = "rig.get_power"; break;
 
     case RIG_LEVEL_RFPOWER_METER_WATTS:
