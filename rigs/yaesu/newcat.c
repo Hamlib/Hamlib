@@ -813,19 +813,34 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
         if (RIG_OK != (err = newcat_set_cmd(rig)))
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected error with BS command=%s\n", __func__,
+            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected error with BS command#1=%s\n", __func__,
                       rigerror(err));
         }
         else
         {
+            // Also need to do this for the other VFO on some Yaesu rigs
+            // is redundant for rigs where band stack includes both vfos
+            vfo_t vfotmp;
+            err = rig_get_vfo(rig, &vfotmp); 
+            if (err != RIG_OK) return err;
+            err = rig_set_vfo(rig, vfotmp==RIG_VFO_MAIN?RIG_VFO_SUB:RIG_VFO_MAIN);
+            if (err != RIG_OK) return err;
+            if (RIG_OK != (err = newcat_set_cmd(rig)))
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: Unexpected error with BS command#2=%s\n", __func__,
+                      rigerror(err));
+            }
+            // switch back to the starting vfo
+            err = rig_set_vfo(rig, vfotmp==RIG_VFO_MAIN?RIG_VFO_MAIN:RIG_VFO_SUB);
+            if (err != RIG_OK) return err;
             // after band select re-read things -- may not have to change anything
             freq_t tmp_freqA, tmp_freqB;
             rmode_t tmp_mode;
             pbwidth_t tmp_width;
-            rig_get_freq(rig, RIG_VFO_A, &tmp_freqA);
-            rig_get_freq(rig, RIG_VFO_B, &tmp_freqB);
-            rig_get_mode(rig, RIG_VFO_A, &tmp_mode, &tmp_width);
-            rig_get_mode(rig, RIG_VFO_B, &tmp_mode, &tmp_width);
+            rig_get_freq(rig, RIG_VFO_MAIN, &tmp_freqA);
+            rig_get_freq(rig, RIG_VFO_SUB, &tmp_freqB);
+            rig_get_mode(rig, RIG_VFO_MAIN, &tmp_mode, &tmp_width);
+            rig_get_mode(rig, RIG_VFO_SUB, &tmp_mode, &tmp_width);
             if ((target_vfo == 0 && tmp_freqA == freq)
                 || (target_vfo == 1 && tmp_freqB == freq))
             {
@@ -9414,6 +9429,10 @@ int newcat_set_cmd_validate(RIG *rig)
     else if ((strncmp(priv->cmd_str,"AI",2)==0) && (strlen(priv->cmd_str)>3))
     {
         strcpy(valcmd,"AI;");
+    }
+    else if ((strncmp(priv->cmd_str,"VS",2)==0) && (strlen(priv->cmd_str)>3))
+    {
+        strcpy(valcmd,"VS;");
     }
     else
     {
