@@ -9434,6 +9434,11 @@ int newcat_set_cmd_validate(RIG *rig)
         if (rc != RIG_OK) return -RIG_EIO;
         bytes = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data),
                               &cat_term, sizeof(cat_term));
+        if (strncmp(priv->cmd_str,"FT",2)==0 && strncmp(priv->ret_data,"FT",2)==0)
+        {
+            // FT command does not echo what's sent so we just check the basic command
+            return RIG_OK;
+        }
         if (bytes > 0)
         {
             // if they match we are validated
