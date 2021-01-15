@@ -806,8 +806,20 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     //
     // Restore band memory if we can and band is changing -- we do it before we set the frequency
     // And only when not in split mode (note this check has been removed for testing)
-    if (newcat_valid_command(rig, "BS")
-            && newcat_band_index(freq) != newcat_band_index(rig->state.current_freq)
+    int changing;
+
+    if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN)
+    {
+        changing = newcat_band_index(freq) != rig->state.cache.freqMainA;
+        rig_debug(RIG_DEBUG_TRACE, "%s: VFO_A freq changing=%d\n", __func__, changing);
+    }
+    else
+    {
+        changing = newcat_band_index(freq) != rig->state.cache.freqMainB;
+        rig_debug(RIG_DEBUG_TRACE, "%s: VFO_B freq changing=%d\n", __func__, changing);
+    }
+
+    if (newcat_valid_command(rig, "BS") && changing
             // remove the split check here -- hopefully works OK
             //&& !rig->state.cache.split
             && !is_ft891) // 891 does not remember bandwidth so don't do this
