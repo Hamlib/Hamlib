@@ -9439,6 +9439,11 @@ int newcat_set_cmd_validate(RIG *rig)
             // FT command does not echo what's sent so we just check the basic command
             return RIG_OK;
         }
+        if (strncmp(priv->cmd_str,"TX",2)==0 && strncmp(priv->ret_data,"TX",2)==0)
+        {
+            // TX command does not echo what's sent so we just check the basic command
+            return RIG_OK;
+        }
         if (bytes > 0)
         {
             // if they match we are validated
