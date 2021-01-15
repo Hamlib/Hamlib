@@ -9429,7 +9429,7 @@ int newcat_set_cmd_validate(RIG *rig)
         int bytes;
         char cmd[256]; // big enough
         rig_flush(&state->rigport);  /* discard any unsolicited data */
-        snprintf(cmd,sizeof(cmd),"%s%s",priv->cmd_str,priv->valcmd);
+        snprintf(cmd,sizeof(cmd),"%s%s",priv->cmd_str,valcmd);
         rc = write_block(&state->rigport, cmd, strlen(cmd));
         if (rc != RIG_OK) return -RIG_EIO;
         bytes = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data),
