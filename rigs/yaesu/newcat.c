@@ -9439,9 +9439,9 @@ int newcat_set_cmd_validate(RIG *rig)
             if (strcmp(priv->cmd_str, priv->ret_data)==0) return RIG_OK;
             else rc = -RIG_EPROTO;
         }
-        rig_debug(RIG_DEBUG_ERR, "%s: cmd validation failed, try#%d\n", __func__, retry);
+        rig_debug(RIG_DEBUG_ERR, "%s: cmd validation failed, '%s'!='%s', try#%d\n", __func__, priv->cmd_str, priv->ret_data, retry);
         hl_usleep(sleepms*1000);
-    } while(--retry > 0);
+    } 
     return -RIG_EPROTO;
 }
 /*
