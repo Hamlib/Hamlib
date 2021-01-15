@@ -842,7 +842,15 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
             if (err != RIG_OK) { return err; }
 
-            err = rig_set_vfo(rig, vfotmp == RIG_VFO_MAIN ? RIG_VFO_SUB : RIG_VFO_MAIN);
+            if (rig->state.vfo_list & RIG_VFO_MAIN)
+            {
+                err = rig_set_vfo(rig, vfotmp == RIG_VFO_MAIN ? RIG_VFO_SUB : RIG_VFO_MAIN);
+            }
+            else
+            {
+                err = rig_set_vfo(rig, vfotmp == RIG_VFO_A ? RIG_VFO_B : RIG_VFO_A);
+            }
+
 
             if (err != RIG_OK) { return err; }
 
@@ -854,7 +862,14 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             }
 
             // switch back to the starting vfo
-            err = rig_set_vfo(rig, vfotmp == RIG_VFO_MAIN ? RIG_VFO_MAIN : RIG_VFO_SUB);
+            if (rig->state.vfo_list & RIG_VFO_MAIN)
+            {
+                err = rig_set_vfo(rig, vfotmp == RIG_VFO_MAIN ? RIG_VFO_MAIN : RIG_VFO_SUB);
+            }
+            else
+            {
+                err = rig_set_vfo(rig, vfotmp == RIG_VFO_A ? RIG_VFO_A : RIG_VFO_B);
+            }
 
             if (err != RIG_OK) { return err; }
 
