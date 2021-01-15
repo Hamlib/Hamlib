@@ -9411,10 +9411,6 @@ int newcat_set_cmd_validate(RIG *rig)
     {
         strcpy(valcmd,"FT;");
     }
-    else if ((strncmp(priv->cmd_str,"BS",2)==0) && (strlen(priv->cmd_str)>3))
-    {
-        strcpy(valcmd,"BS;");
-    }
     else if ((strncmp(priv->cmd_str,"AI",2)==0) && (strlen(priv->cmd_str)>3))
     {
         strcpy(valcmd,"AI;");
