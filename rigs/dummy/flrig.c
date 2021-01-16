@@ -517,6 +517,7 @@ static int write_transaction(RIG *rig, char *xml, int xml_len)
 static int flrig_transaction(RIG *rig, char *cmd, char *cmd_arg, char *value,
                              int value_len)
 {
+    char xml[MAXXMLLEN];
     int retry = 2;
 
     if (value)
@@ -526,7 +527,6 @@ static int flrig_transaction(RIG *rig, char *cmd, char *cmd_arg, char *value,
 
     do
     {
-        char xml[MAXXMLLEN];
         char *pxml;
         int retval;
 
@@ -551,7 +551,7 @@ static int flrig_transaction(RIG *rig, char *cmd, char *cmd_arg, char *value,
             xml_parse(xml, value, value_len);
         }
     }
-    while (value && strlen(value) == 0 && retry--); // we'll do retries if needed
+    while (((value && strlen(value) == 0) || (strlen(xml)==0)) && retry--); // we'll do retries if needed
 
     if (value && strlen(value) == 0) { return RIG_EPROTO; }
 
