@@ -822,7 +822,8 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     if (newcat_valid_command(rig, "BS") && changing
             // remove the split check here -- hopefully works OK
             //&& !rig->state.cache.split
-            && !is_ft891) // 891 does not remember bandwidth so don't do this
+            && !is_ft891 // 891 does not remember bandwidth so don't do this
+            && rig->caps->get_vfo!=NULL && rig->caps->set_vfo!=NULL)  // gotta' have get_vfo too
     {
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "BS%02d%c",
                  newcat_band_index(freq), cat_term);
@@ -874,7 +875,10 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
                 err = rig_set_vfo(rig, vfotmp == RIG_VFO_A ? RIG_VFO_A : RIG_VFO_B);
             }
 
-            if (err != RIG_OK) { return err; }
+            if (err != RIG_OK) { 
+                rig_debug(RIG_DEBUG_ERR, "%s: rig_set_vfo failed: %s\n", __func__, rigerror(err));
+                return err; 
+            }
 
             // after band select re-read things -- may not have to change anything
             freq_t tmp_freqA, tmp_freqB;
