@@ -352,7 +352,12 @@ static const yaesu_newcat_commands_t valid_commands[] =
 };
 
 int valid_commands_count = sizeof(valid_commands) / sizeof(
-                               yaesu_newcat_commands_t);
+                              yaesu_newcat_commands_t);
+
+static void errmsg(int err, const char *func, const char *file, int line, char *s)
+{
+    rig_debug(RIG_DEBUG_ERR, "%s(%s:%d): %s: %s\b", __func__,file,line,s,rigerror(err));
+}
 
 /*
  * configuration Tokens
@@ -726,6 +731,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (err < 0)
     {
+        errmsg(err, __func__, __FILE__, __LINE__, "newcat_set_vfo_from_alias");
         return err;
     }
 
@@ -775,6 +781,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
         if (RIG_OK != (err = newcat_get_cmd(rig)))
         {
+            errmsg(err, __func__, __FILE__, __LINE__, "newcat_get_cmd");
             return err;
         }
 
@@ -785,6 +792,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
             if (RIG_OK != (err = newcat_set_cmd(rig)))
             {
+                errmsg(err,__func__,__FILE__,__LINE__, "newcat_set_cmd failed");
                 return err;
             }
         }
@@ -810,12 +818,12 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN)
     {
-        changing = newcat_band_index(freq) != rig->state.cache.freqMainA;
+        changing = newcat_band_index(freq) != newcat_band_index(rig->state.cache.freqMainA);
         rig_debug(RIG_DEBUG_TRACE, "%s: VFO_A freq changing=%d\n", __func__, changing);
     }
     else
     {
-        changing = newcat_band_index(freq) != rig->state.cache.freqMainB;
+        changing = newcat_band_index(freq) != newcat_band_index(rig->state.cache.freqMainB);
         rig_debug(RIG_DEBUG_TRACE, "%s: VFO_B freq changing=%d\n", __func__, changing);
     }
 
