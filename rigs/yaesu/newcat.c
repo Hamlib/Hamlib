@@ -352,11 +352,13 @@ static const yaesu_newcat_commands_t valid_commands[] =
 };
 
 int valid_commands_count = sizeof(valid_commands) / sizeof(
-                              yaesu_newcat_commands_t);
+                               yaesu_newcat_commands_t);
 
-static void errmsg(int err, const char *func, const char *file, int line, char *s)
+static void errmsg(int err, const char *func, const char *file, int line,
+                   char *s)
 {
-    rig_debug(RIG_DEBUG_ERR, "%s(%s:%d): %s: %s\b", __func__,file,line,s,rigerror(err));
+    rig_debug(RIG_DEBUG_ERR, "%s(%s:%d): %s: %s\b", __func__, file, line, s,
+              rigerror(err));
 }
 
 /*
@@ -792,7 +794,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
             if (RIG_OK != (err = newcat_set_cmd(rig)))
             {
-                errmsg(err,__func__,__FILE__,__LINE__, "newcat_set_cmd failed");
+                errmsg(err, __func__, __FILE__, __LINE__, "newcat_set_cmd failed");
                 return err;
             }
         }
@@ -818,12 +820,14 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN)
     {
-        changing = newcat_band_index(freq) != newcat_band_index(rig->state.cache.freqMainA);
+        changing = newcat_band_index(freq) != newcat_band_index(
+                       rig->state.cache.freqMainA);
         rig_debug(RIG_DEBUG_TRACE, "%s: VFO_A freq changing=%d\n", __func__, changing);
     }
     else
     {
-        changing = newcat_band_index(freq) != newcat_band_index(rig->state.cache.freqMainB);
+        changing = newcat_band_index(freq) != newcat_band_index(
+                       rig->state.cache.freqMainB);
         rig_debug(RIG_DEBUG_TRACE, "%s: VFO_B freq changing=%d\n", __func__, changing);
     }
 
@@ -831,10 +835,24 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             // remove the split check here -- hopefully works OK
             //&& !rig->state.cache.split
             && !is_ft891 // 891 does not remember bandwidth so don't do this
-            && rig->caps->get_vfo!=NULL && rig->caps->set_vfo!=NULL)  // gotta' have get_vfo too
+            && rig->caps->get_vfo != NULL
+            && rig->caps->set_vfo != NULL) // gotta' have get_vfo too
     {
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "BS%02d%c",
-                 newcat_band_index(freq), cat_term);
+        if (rig->state.current_vfo != vfo)
+        {
+            // then we need to change vfos, BS, and change back
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VS1;BS%02d%c;VS0;",
+                     newcat_band_index(freq), cat_term);
+
+            if (vfo  == RIG_VFO_A || vfo == RIG_VFO_MAIN)
+                snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VS0;BS%02d%c;VS1;",
+                         newcat_band_index(freq), cat_term);
+        }
+        else
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "BS%02d%c",
+                     newcat_band_index(freq), cat_term);
+        }
 
         if (RIG_OK != (err = newcat_set_cmd(rig)))
         {
@@ -883,9 +901,11 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
                 err = rig_set_vfo(rig, vfotmp == RIG_VFO_A ? RIG_VFO_A : RIG_VFO_B);
             }
 
-            if (err != RIG_OK) { 
-                rig_debug(RIG_DEBUG_ERR, "%s: rig_set_vfo failed: %s\n", __func__, rigerror(err));
-                return err; 
+            if (err != RIG_OK)
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: rig_set_vfo failed: %s\n", __func__,
+                          rigerror(err));
+                return err;
             }
 
             // after band select re-read things -- may not have to change anything
