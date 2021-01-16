@@ -854,6 +854,9 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
             if (err != RIG_OK) { return err; }
 
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "BS%02d%c",
+                     newcat_band_index(freq), cat_term);
+
             if (RIG_OK != (err = newcat_set_cmd(rig)))
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: Unexpected error with BS command#2=%s\n",
