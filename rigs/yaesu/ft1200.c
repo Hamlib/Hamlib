@@ -89,7 +89,7 @@ const struct rig_caps ftdx1200_caps =
     RIG_MODEL(RIG_MODEL_FTDX1200),
     .model_name =         "FTDX-1200",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".0",
+    .version =            NEWCAT_VER ".1",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -99,7 +99,7 @@ const struct rig_caps ftdx1200_caps =
     .serial_rate_min =    4800,         /* Default rate per manual */
     .serial_rate_max =    38400,
     .serial_data_bits =   8,
-    .serial_stop_bits =   1,            /* Assumed since manual makes no mention */
+    .serial_stop_bits =   2,            /* found by testing with remote serial port */
     .serial_parity =      RIG_PARITY_NONE,
     .serial_handshake =   RIG_HANDSHAKE_HARDWARE,
     .write_delay =        FTDX1200_WRITE_DELAY,
