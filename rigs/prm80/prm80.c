@@ -406,7 +406,7 @@ int prm80_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
                   "%s: please contact hamlib mailing list to implement this, rxfreq=%.0f, txfreq=%.0f\n", __func__, chan->freq, chan->tx_freq);
         rig_debug(RIG_DEBUG_ERR,
                   "%s: need to know if rig updates when channel read or not\n", __func__);
-        return -RIG_ENIMPL;
+        //return -RIG_ENIMPL;
     }
 
     return RIG_OK;
