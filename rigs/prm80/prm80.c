@@ -371,6 +371,7 @@ int prm80_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 
     if (statebuf_len < 20)
     {
+        rig_debug(RIG_DEBUG_ERR, "%s: statebuf_len < 20, statebuf='%s'\n", __func__, statebuf);
         RETURNFUNC(-RIG_EPROTO);
     }
 
