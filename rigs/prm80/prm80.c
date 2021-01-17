@@ -248,14 +248,19 @@ int prm80_reset(RIG *rig, reset_t reset)
 int prm80_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     char freqbuf[BUFSZ];
+    char data[BUFSZ];
     int freq_len;
+    int rc;
+    struct rig_state *rs = &rig->state;
 
     /* wild guess */
     freq_len = sprintf(freqbuf, "R%04X%04X",
                        (unsigned)(freq / 12500.),
                        (unsigned)(freq / 12500.));
 
-    return prm80_transaction(rig, freqbuf, freq_len, NULL, NULL);
+    rc = prm80_transaction(rig, freqbuf, freq_len, NULL, NULL);
+    read_string(&rs->rigport, data, BUFSZ, LF, strlen(LF));
+    return rc;
 }
 
 /*
