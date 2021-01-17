@@ -139,7 +139,7 @@ int network_open(hamlib_port_t *rp, int default_port)
     struct in6_addr serveraddr;
     char hoststr[256], portstr[6] = "";
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    ENTERFUNC;
     rig_debug(RIG_DEBUG_VERBOSE, "%s version 1.0\n", __func__);
 
 #ifdef __MINGW32__
@@ -183,7 +183,7 @@ int network_open(hamlib_port_t *rp, int default_port)
 
             if (status != RIG_OK) { return status; }
 
-            rig_debug(RIG_DEBUG_ERR, "%s: hoststr=%s, portstr=%s\n", __func__, hoststr,
+            rig_debug(RIG_DEBUG_TRACE, "%s: hoststr=%s, portstr=%s\n", __func__, hoststr,
                       portstr);
 
         }
