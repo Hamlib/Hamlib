@@ -814,9 +814,10 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     // And only when not in split mode (note this check has been removed for testing)
     int changing;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: rig->state.current_vfo=%s\n", __func__, rig_strvfo(rig->state.current_vfo));
-    if (target_vfo == 0)
+    rig_debug(RIG_DEBUG_TRACE, "%s(%d)%s: rig->state.current_vfo=%s\n", __FILE__, __LINE__, __func__, rig_strvfo(rig->state.current_vfo));
+    if (rig->state.current_vfo == RIG_VFO_A || rig->state.current_vfo == RIG_VFO_MAIN)
     {
+         rig_debug(RIG_DEBUG_TRACE, "%s(%d)%s: checking VFOA for band change \n", __FILE__, __LINE__, __func__);
         if (rig->state.cache.freqMainA == 0)
         {
             freq_t freqtmp;
@@ -825,10 +826,11 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         }
         changing = newcat_band_index(freq) != newcat_band_index(
                        rig->state.cache.freqMainA);
-        rig_debug(RIG_DEBUG_TRACE, "%s: VFO_A freq changing=%d\n", __func__, changing);
+        rig_debug(RIG_DEBUG_TRACE, "%s: VFO_A band changing=%d\n", __func__, changing);
     }
     else
     {
+        rig_debug(RIG_DEBUG_TRACE, "%s(%d)%s: checking VFOB for band change \n", __FILE__, __LINE__, __func__);
         if (rig->state.cache.freqMainB == 0)
         {
             freq_t freqtmp;
@@ -837,7 +839,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         }
         changing = newcat_band_index(freq) != newcat_band_index(
                        rig->state.cache.freqMainB);
-        rig_debug(RIG_DEBUG_TRACE, "%s: VFO_B freq changing=%d\n", __func__, changing);
+        rig_debug(RIG_DEBUG_TRACE, "%s: VFO_B band changing=%d\n", __func__, changing);
     }
 
     if (newcat_valid_command(rig, "BS") && changing
@@ -6464,7 +6466,7 @@ ncboolean newcat_valid_command(RIG *rig, char const *const command)
     int search_high;
     int search_low;
 
-    ENTERFUNC;
+    //ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s %s\n", __func__, command);
 
     caps = rig->caps;
