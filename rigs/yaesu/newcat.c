@@ -814,7 +814,8 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     // And only when not in split mode (note this check has been removed for testing)
     int changing;
 
-    if (rig->state.current_vfo == RIG_VFO_A || rig->state.current_vfo == RIG_VFO_MAIN)
+    rig_debug(RIG_DEBUG_TRACE, "%s: rig->state.current_vfo=%s\n", __func__, rig_strvfo(rig->state.current_vfo));
+    if (target_vfo == 0)
     {
         if (rig->state.cache.freqMainA == 0)
         {
