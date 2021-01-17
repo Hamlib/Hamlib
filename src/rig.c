@@ -426,7 +426,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
            sizeof(struct freq_range_list)*FRQRANGESIZ);
 
     // if we don't have list1 we'll try list2
-    if (rs->rx_range_list == NULL)
+    if (rs->rx_range_list[0].startf == 0)
     {
         rig_debug(RIG_DEBUG_TRACE,
                   "%s: rx_range_list1 is empty, using rx_range_list2\n", __func__);
