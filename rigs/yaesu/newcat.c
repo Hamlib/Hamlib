@@ -893,8 +893,11 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
             if (err != RIG_OK) { return err; }
 
-            // we'll ignore UHF/VHF frequencies -- need to see the behavior
-            if (newcat_band_index(freqtmp) != newcat_band_index(freq) && freq < 100e6)
+            // Cross band should work too
+            // If the BS works on both VFOs then VFOB will have the band select answer
+            // so now change needed
+            // If the BS is by VFO then we'll need to do BS for the other VFO too
+            if (newcat_band_index(freqtmp) != newcat_band_index(freq))
             {
 
                 snprintf(priv->cmd_str, sizeof(priv->cmd_str), "BS%02d%c",
