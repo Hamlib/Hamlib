@@ -1634,6 +1634,7 @@ int HAMLIB_API parse_hoststr(char *hoststr, char host[256], char port[6])
     port[0] = 0;
     dummy[0] = 0;
 
+    // Exclude any names that aren't a host:port format
     // Handle device names 1st
     if (strstr(hoststr, "/dev")) { return -1; }
 
@@ -1644,6 +1645,7 @@ int HAMLIB_API parse_hoststr(char *hoststr, char host[256], char port[6])
     // escaped COM port like \\.\COM3
     if (strstr(hoststr, "\\\\.\\")) { return -1; }
 
+    // Now let's try and parse a host:port thing
     // bracketed IPV6 with optional port
     int n = sscanf(hoststr, "[%255[^]]]:%5s", host, port);
 
