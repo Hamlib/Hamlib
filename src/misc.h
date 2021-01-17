@@ -141,7 +141,7 @@ extern HAMLIB_EXPORT(int) parse_hoststr(char *host, char hoststr[256], char port
 void errmsg(int err, char *s, const char *func, const char *file, int line);
 #define ERRMSG(err, s) errmsg(err,  s, __func__, __FILE__, __LINE__)
 #define ENTERFUNC rig_debug(RIG_DEBUG_VERBOSE, "%s(%d):%s entered\n", __FILE__, __LINE__, __func__)
-#define RETURNFUNC(rc) rig_debug(RIG_DEBUG_VERBOSE, "%s(%d):%s return\n", __FILE__, __LINE__, __func__);return rc
+#define RETURNFUNC(rc) {rig_debug(RIG_DEBUG_VERBOSE, "%s(%d):%s return\n", __FILE__, __LINE__, __func__);return rc;}
 
 __END_DECLS
 
