@@ -2132,6 +2132,13 @@ const char *rig_get_caps_cptr(rig_model_t rig_model,
     }
 }
 
+void errmsg(int err, char *s, const char *func, const char *file, int line)
+{
+    rig_debug(RIG_DEBUG_ERR, "%s(%s:%d): %s: %s\b", __func__, file, line, s,
+              rigerror(err));
+}
+
+
 //! @endcond
 
 /** @} */
