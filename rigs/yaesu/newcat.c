@@ -790,7 +790,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
             if (RIG_OK != (err = newcat_set_cmd(rig)))
             {
-                ERRMSG(err,"newcat_set_cmd failed");
+                ERRMSG(err, "newcat_set_cmd failed");
                 return err;
             }
         }
@@ -816,12 +816,24 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN)
     {
+        if (rig->state.cache.freqMainA == 0)
+        {
+            freq_t freqtmp;
+            err = rig_get_freq(rig,RIG_VFO_CURR,&freqtmp);
+            if (err != RIG_OK) RETURNFUNC(err);
+        }
         changing = newcat_band_index(freq) != newcat_band_index(
                        rig->state.cache.freqMainA);
         rig_debug(RIG_DEBUG_TRACE, "%s: VFO_A freq changing=%d\n", __func__, changing);
     }
     else
     {
+        if (rig->state.cache.freqMainB == 0)
+        {
+            freq_t freqtmp;
+            err = rig_get_freq(rig,RIG_VFO_CURR,&freqtmp);
+            if (err != RIG_OK) RETURNFUNC(err);
+        }
         changing = newcat_band_index(freq) != newcat_band_index(
                        rig->state.cache.freqMainB);
         rig_debug(RIG_DEBUG_TRACE, "%s: VFO_B freq changing=%d\n", __func__, changing);
@@ -861,6 +873,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             // Also need to do this for the other VFO on some Yaesu rigs
             // is redundant for rigs where band stack includes both vfos
             vfo_t vfotmp;
+            freq_t freqtmp;
             err = rig_get_vfo(rig, &vfotmp);
 
             if (err != RIG_OK) { return err; }
@@ -874,17 +887,25 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
                 err = rig_set_vfo(rig, vfotmp == RIG_VFO_A ? RIG_VFO_B : RIG_VFO_A);
             }
 
+            if (err != RIG_OK) { return err; }
+
+            rig_get_freq(rig, RIG_VFO_CURR, &freqtmp);
 
             if (err != RIG_OK) { return err; }
 
-            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "BS%02d%c",
-                     newcat_band_index(freq), cat_term);
-
-            if (RIG_OK != (err = newcat_set_cmd(rig)))
+            // we'll ignore UHF/VHF frequencies -- need to see the behavior
+            if (newcat_band_index(freqtmp) != newcat_band_index(freq) && freq < 100e6)
             {
-                rig_debug(RIG_DEBUG_ERR, "%s: Unexpected error with BS command#2=%s\n",
-                          __func__,
-                          rigerror(err));
+
+                snprintf(priv->cmd_str, sizeof(priv->cmd_str), "BS%02d%c",
+                         newcat_band_index(freq), cat_term);
+
+                if (RIG_OK != (err = newcat_set_cmd(rig)))
+                {
+                    rig_debug(RIG_DEBUG_ERR, "%s: Unexpected error with BS command#2=%s\n",
+                              __func__,
+                              rigerror(err));
+                }
             }
 
             // switch back to the starting vfo
@@ -9289,6 +9310,7 @@ int newcat_get_cmd(RIG *rig)
     int is_read_cmd = 0;
 
     ENTERFUNC;
+
     // try to cache rapid repeats of the IF command
     // this is for WSJT-X/JTDX sequence of v/f/m/t
     // should allow rapid repeat of any call using the IF; cmd
@@ -9812,11 +9834,11 @@ rmode_t newcat_rmode(char mode)
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: %s for %c\n", __func__,
                       rig_strrmode(newcat_mode_conv[i].mode), mode);
-            RETURNFUNC (newcat_mode_conv[i].mode);
+            RETURNFUNC(newcat_mode_conv[i].mode);
         }
     }
 
-    RETURNFUNC (RIG_MODE_NONE);
+    RETURNFUNC(RIG_MODE_NONE);
 }
 
 char newcat_modechar(rmode_t rmode)
@@ -9831,11 +9853,11 @@ char newcat_modechar(rmode_t rmode)
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: return %c for %s\n", __func__,
                       newcat_mode_conv[i].modechar, rig_strrmode(rmode));
-            RETURNFUNC (newcat_mode_conv[i].modechar);
+            RETURNFUNC(newcat_mode_conv[i].modechar);
         }
     }
 
-    RETURNFUNC ('0');
+    RETURNFUNC('0');
 }
 
 rmode_t newcat_rmode_width(RIG *rig, vfo_t vfo, char mode, pbwidth_t *width)
@@ -9866,7 +9888,7 @@ rmode_t newcat_rmode_width(RIG *rig, vfo_t vfo, char mode, pbwidth_t *width)
                 {
                     if (newcat_get_narrow(rig, vfo, &narrow) != RIG_OK)
                     {
-                        RETURNFUNC (newcat_mode_conv[i].mode);
+                        RETURNFUNC(newcat_mode_conv[i].mode);
                     }
 
                     if (narrow == TRUE)
@@ -9880,12 +9902,12 @@ rmode_t newcat_rmode_width(RIG *rig, vfo_t vfo, char mode, pbwidth_t *width)
                 }
             }
 
-            RETURNFUNC (newcat_mode_conv[i].mode);
+            RETURNFUNC(newcat_mode_conv[i].mode);
         }
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s fell out the bottom %c %s\n", __func__,
               mode, rig_strrmode(mode));
 
-    RETURNFUNC ('0');
+    RETURNFUNC('0');
 }
