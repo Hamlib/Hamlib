@@ -501,7 +501,7 @@ int prm80_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     memset(&chan, 0, sizeof(chan));
     chan.vfo = RIG_VFO_CURR;
 
-    ret = prm80_get_channel(rig, vfo, &chan, 1);
+    ret = prm80_get_channel(rig, vfo, &chan, 0);
 
     if (ret != RIG_OK)
     {
