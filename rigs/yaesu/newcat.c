@@ -814,7 +814,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     // And only when not in split mode (note this check has been removed for testing)
     int changing;
 
-    if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN)
+    if (rig->state.current_vfo == RIG_VFO_A || rig->state.current_vfo == RIG_VFO_MAIN)
     {
         if (rig->state.cache.freqMainA == 0)
         {
@@ -6592,8 +6592,8 @@ ncboolean newcat_is_rig(RIG *rig, rig_model_t model)
 {
     ncboolean is_rig;
 
-    //a bit too verbose so TRACE level here
-    rig_debug(RIG_DEBUG_TRACE, "%s(%d):%s called\n", __FILE__, __LINE__, __func__);
+    //a bit too verbose so disable this unless needed
+    //rig_debug(RIG_DEBUG_TRACE, "%s(%d):%s called\n", __FILE__, __LINE__, __func__);
     is_rig = (model == rig->caps->rig_model) ? TRUE : FALSE;
 
     return is_rig;
