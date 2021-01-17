@@ -125,7 +125,7 @@ const struct rig_caps flrig_caps =
     .port_type = RIG_PORT_NETWORK,
     .write_delay = 0,
     .post_write_delay = 0,
-    .timeout = 2000,
+    .timeout = 5000,
     .retry = 5,
 
     .has_get_func = RIG_FUNC_NONE,
@@ -518,7 +518,7 @@ static int flrig_transaction(RIG *rig, char *cmd, char *cmd_arg, char *value,
                              int value_len)
 {
     char xml[MAXXMLLEN];
-    int retry = 2;
+    int retry = 5;
 
     if (value)
     {
