@@ -1637,7 +1637,7 @@ int HAMLIB_API parse_hoststr(char *hoststr, char host[256], char port[6])
     // Handle device names 1st
     if (strstr(hoststr, "/dev")) { return -1; }
 
-    if (strstr(hoststr, "/")) { return -1; } // posible path -- no hostname starts with /
+    if (strstr(hoststr, "/")) { return -1; } // probably a path so not a hoststr 
 
     if (strncasecmp(hoststr, "com", 3) == 0) { return -1; }
 
