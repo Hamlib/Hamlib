@@ -2074,9 +2074,12 @@ struct rig_cache {
     freq_t freqCurr;  // VFO_CURR
     freq_t freqMainA; // VFO_A, VFO_MAIN, and VFO_MAINA
     freq_t freqMainB; // VFO_B, VFO_SUB, and VFO_MAINB
-    freq_t freqMainC; // VFO_C (future MainC?)
+    freq_t freqMainC; // VFO_C, VFO_MAINC
     freq_t freqSubA;  // VFO_SUBA -- only for rigs with dual Sub VFOs
     freq_t freqSubB;  // VFO_SUBB -- only for rigs with dual Sub VFOs
+#if 0 // future
+    freq_t freqSubC;  // VFO_SUBC -- only for rigs with 3 Sub VFOs
+#endif
     rmode_t mode;
     pbwidth_t width;
     ptt_t ptt;
