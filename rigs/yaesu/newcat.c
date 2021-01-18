@@ -886,6 +886,8 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
                       __func__,
                       rigerror(err));
         }
+
+#if 0 // disable for testing
         else
         {
             // Also need to do this for the other VFO on some Yaesu rigs
@@ -962,6 +964,26 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
                           "%s: freq after band select already set to %"PRIfreq"\n", __func__, freq);
                 RETURNFUNC(RIG_OK); // we're done then!!
             }
+        }
+
+#endif
+        // after band select re-read things -- may not have to change anything
+        // reading both VFOs is really only needed for rigs with just one VFO stack
+        // but we read them all to ensure we cover both types
+        freq_t tmp_freqA, tmp_freqB;
+        rmode_t tmp_mode;
+        pbwidth_t tmp_width;
+        rig_get_freq(rig, RIG_VFO_MAIN, &tmp_freqA);
+        rig_get_freq(rig, RIG_VFO_SUB, &tmp_freqB);
+        rig_get_mode(rig, RIG_VFO_MAIN, &tmp_mode, &tmp_width);
+        rig_get_mode(rig, RIG_VFO_SUB, &tmp_mode, &tmp_width);
+
+        if ((target_vfo == 0 && tmp_freqA == freq)
+                || (target_vfo == 1 && tmp_freqB == freq))
+        {
+            rig_debug(RIG_DEBUG_VERBOSE,
+                      "%s: freq after band select already set to %"PRIfreq"\n", __func__, freq);
+            RETURNFUNC(RIG_OK); // we're done then!!
         }
 
         // just drop through
