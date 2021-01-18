@@ -9654,8 +9654,8 @@ int newcat_set_cmd_validate(RIG *rig)
 
         if (bytes > 0)
         {
-            // if they match we are validated
-            if (strcmp(priv->cmd_str, priv->ret_data) == 0) { RETURNFUNC(RIG_OK); }
+            // if the first two chars match we are validated
+            if (strncmp(priv->cmd_str, priv->ret_data, 2) == 0) { RETURNFUNC(RIG_OK); }
             else { rc = -RIG_EPROTO; }
         }
 
