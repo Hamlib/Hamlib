@@ -1322,6 +1322,11 @@ int twiddling(RIG *rig)
 /* caching prototype to be fully implemented in 4.1 */
 static int set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
+    rig_debug(RIG_DEBUG_TRACE, "%s:  vfo=%s, current_vfo=%s\n", __func__,
+              rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
+
+    if (vfo == RIG_VFO_CURR) { vfo = rig->state.current_vfo; }
+
     switch (vfo)
     {
     case RIG_VFO_CURR:
@@ -1343,10 +1348,13 @@ static int set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
         elapsed_ms(&rig->state.cache.time_freqMainB, HAMLIB_ELAPSED_SET);
         break;
 
+#if 0
+
     case RIG_VFO_C: // is there a MainC/SubC we need to cover?
         rig->state.cache.freqMainC = freq;
         elapsed_ms(&rig->state.cache.time_freqMainC, HAMLIB_ELAPSED_SET);
         break;
+#endif
 
     case RIG_VFO_SUB_A:
         rig->state.cache.freqSubA = freq;
@@ -1370,31 +1378,55 @@ static int set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
 /* caching prototype to be fully implemented in 4.1 */
 static int get_cache_freq(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms)
 {
+    rig_debug(RIG_DEBUG_TRACE, "%s:  vfo=%s, current_vfo=%s\n", __func__,
+              rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
+
+    if (vfo == RIG_VFO_CURR) { vfo = rig->state.current_vfo; }
+
     // VFO_C to be implemented
     switch (vfo)
     {
     case RIG_VFO_CURR:
         *freq = rig->state.cache.freqCurr;
+        *cache_ms = elapsed_ms(&rig->state.cache.time_freqCurr, HAMLIB_ELAPSED_GET);
         break;
 
     case RIG_VFO_A:
     case RIG_VFO_MAIN:
     case RIG_VFO_MAIN_A:
         *freq = rig->state.cache.freqMainA;
+        *cache_ms = elapsed_ms(&rig->state.cache.time_freqMainA, HAMLIB_ELAPSED_GET);
         break;
 
     case RIG_VFO_B:
     case RIG_VFO_SUB:
         *freq = rig->state.cache.freqMainB;
+        *cache_ms = elapsed_ms(&rig->state.cache.time_freqMainB, HAMLIB_ELAPSED_GET);
         break;
 
     case RIG_VFO_SUB_A:
         *freq = rig->state.cache.freqSubA;
+        *cache_ms = elapsed_ms(&rig->state.cache.time_freqSubA, HAMLIB_ELAPSED_GET);
         break;
 
     case RIG_VFO_SUB_B:
         *freq = rig->state.cache.freqSubB;
+        *cache_ms = elapsed_ms(&rig->state.cache.time_freqSubB, HAMLIB_ELAPSED_GET);
         break;
+
+#if 0 // future
+
+    case RIG_VFO_C:
+    case RIG_VFO_MAINC:
+        *freq = rig->state.cache.freqMainC;
+        *cache_ms = rig->state.cache.time_freqMainC;
+        break;
+
+    case RIG_VFO_SUBC:
+        *freq = rig->state.cache.freqSubC;
+        *cache_ms = rig->state.cache.time_freqSubC;
+        break;
+#endif
 
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unknown vfo?, vfo=%s\n", __func__,
@@ -1462,7 +1494,8 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: Ignoring set_freq due to VFO twiddling\n",
                       __func__);
-            RETURNFUNC(RIG_OK); // would be better as error but other software won't handle errors
+            RETURNFUNC(
+                RIG_OK); // would be better as error but other software won't handle errors
         }
 
         rig_debug(RIG_DEBUG_TRACE, "%s: TARGETABLE_FREQ vfo=%s\n", __func__,
@@ -1485,7 +1518,8 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: Ignoring set_freq due to VFO twiddling\n",
                       __func__);
-            RETURNFUNC(RIG_OK); // would be better as error but other software won't handle errors
+            RETURNFUNC(
+                RIG_OK); // would be better as error but other software won't handle errors
         }
 
         curr_vfo = rig->state.current_vfo;
@@ -1632,12 +1666,15 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 
     //future 4.1 caching
+    cache_ms = 10000;
     get_cache_freq(rig, vfo, freq, &cache_ms);
+    rig_debug(RIG_DEBUG_TRACE, "%s: cache check1 age=%dms\n", __func__, cache_ms);
     //future 4.1 caching needs to check individual VFO timeouts
-    cache_ms = elapsed_ms(&rig->state.cache.time_freq, HAMLIB_ELAPSED_GET);
-    rig_debug(RIG_DEBUG_TRACE, "%s: cache check age=%dms\n", __func__, cache_ms);
+    //cache_ms = elapsed_ms(&rig->state.cache.time_freq, HAMLIB_ELAPSED_GET);
+    //rig_debug(RIG_DEBUG_TRACE, "%s: cache check2 age=%dms\n", __func__, cache_ms);
 
-    if (cache_ms < rig->state.cache.timeout_ms && rig->state.cache.vfo_freq == vfo)
+    if (freq != 0 && cache_ms < rig->state.cache.timeout_ms
+            && rig->state.cache.vfo_freq == vfo)
     {
         *freq = rig->state.cache.freq;
         rig_debug(RIG_DEBUG_TRACE, "%s: %s cache hit age=%dms, freq=%.0f\n", __func__,
@@ -2160,7 +2197,8 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: Ignoring set_vfo due to VFO twiddling\n",
                   __func__);
-        RETURNFUNC(RIG_OK); // would be better as error but other software won't handle errors
+        RETURNFUNC(
+            RIG_OK); // would be better as error but other software won't handle errors
     }
 
     retcode = caps->set_vfo(rig, vfo);
@@ -4550,7 +4588,7 @@ int HAMLIB_API rig_mW2power(RIG *rig,
         *power = 1.0;
     }
 
-    RETURNFUNC (mwpower > txrange->high_power ? RIG_OK : -RIG_ETRUNC);
+    RETURNFUNC(mwpower > txrange->high_power ? RIG_OK : -RIG_ETRUNC);
 }
 
 
@@ -4782,7 +4820,7 @@ vfo_op_t HAMLIB_API rig_has_vfo_op(RIG *rig, vfo_op_t op)
         RETURNFUNC(0);
     }
 
-    RETURNFUNC (rig->caps->vfo_ops & op);
+    RETURNFUNC(rig->caps->vfo_ops & op);
 }
 
 
@@ -4880,7 +4918,7 @@ scan_t HAMLIB_API rig_has_scan(RIG *rig, scan_t scan)
         RETURNFUNC(0);
     }
 
-    RETURNFUNC (rig->caps->scan_ops & scan);
+    RETURNFUNC(rig->caps->scan_ops & scan);
 }
 
 
