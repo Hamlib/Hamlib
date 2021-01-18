@@ -821,8 +821,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_debug(RIG_DEBUG_TRACE, "%s(%d)%s: rig->state.current_vfo=%s\n", __FILE__,
               __LINE__, __func__, rig_strvfo(rig->state.current_vfo));
 
-    if (rig->state.current_vfo == RIG_VFO_A
-            || rig->state.current_vfo == RIG_VFO_MAIN)
+    if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s(%d)%s: checking VFOA for band change \n",
                   __FILE__, __LINE__, __func__);
