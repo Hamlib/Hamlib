@@ -526,6 +526,9 @@ int newcat_open(RIG *rig)
     /* get current AI state so it can be restored */
     priv->trn_state = -1;
 
+    // for this sequence we will shorten the timeout so we can detect rig is powered off faster
+    int timeout = rig->state.rigport.timeout;
+    rig->state.rigport.timeout = 100;
     newcat_get_trn(rig, &priv->trn_state);  /* ignore errors */
 
     /* Currently we cannot cope with AI mode so turn it off in case
@@ -538,6 +541,7 @@ int newcat_open(RIG *rig)
     /* Initialize rig_id in case any subsequent commands need it */
     (void)newcat_get_rigid(rig);
     rig_debug(RIG_DEBUG_VERBOSE, "%s: rig_id=%d\n", __func__, priv->rig_id);
+    rig->state.rigport.timeout = timeout;
 
 #if 0 // possible future enhancement?
 
@@ -814,29 +818,40 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     // And only when not in split mode (note this check has been removed for testing)
     int changing;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s(%d)%s: rig->state.current_vfo=%s\n", __FILE__, __LINE__, __func__, rig_strvfo(rig->state.current_vfo));
-    if (rig->state.current_vfo == RIG_VFO_A || rig->state.current_vfo == RIG_VFO_MAIN)
+    rig_debug(RIG_DEBUG_TRACE, "%s(%d)%s: rig->state.current_vfo=%s\n", __FILE__,
+              __LINE__, __func__, rig_strvfo(rig->state.current_vfo));
+
+    if (rig->state.current_vfo == RIG_VFO_A
+            || rig->state.current_vfo == RIG_VFO_MAIN)
     {
-         rig_debug(RIG_DEBUG_TRACE, "%s(%d)%s: checking VFOA for band change \n", __FILE__, __LINE__, __func__);
+        rig_debug(RIG_DEBUG_TRACE, "%s(%d)%s: checking VFOA for band change \n",
+                  __FILE__, __LINE__, __func__);
+
         if (rig->state.cache.freqMainA == 0)
         {
             freq_t freqtmp;
-            err = rig_get_freq(rig,RIG_VFO_CURR,&freqtmp);
-            if (err != RIG_OK) RETURNFUNC(err);
+            err = rig_get_freq(rig, RIG_VFO_CURR, &freqtmp);
+
+            if (err != RIG_OK) { RETURNFUNC(err); }
         }
+
         changing = newcat_band_index(freq) != newcat_band_index(
                        rig->state.cache.freqMainA);
         rig_debug(RIG_DEBUG_TRACE, "%s: VFO_A band changing=%d\n", __func__, changing);
     }
     else
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s(%d)%s: checking VFOB for band change \n", __FILE__, __LINE__, __func__);
+        rig_debug(RIG_DEBUG_TRACE, "%s(%d)%s: checking VFOB for band change \n",
+                  __FILE__, __LINE__, __func__);
+
         if (rig->state.cache.freqMainB == 0)
         {
             freq_t freqtmp;
-            err = rig_get_freq(rig,RIG_VFO_CURR,&freqtmp);
-            if (err != RIG_OK) RETURNFUNC(err);
+            err = rig_get_freq(rig, RIG_VFO_CURR, &freqtmp);
+
+            if (err != RIG_OK) { RETURNFUNC(err); }
         }
+
         changing = newcat_band_index(freq) != newcat_band_index(
                        rig->state.cache.freqMainB);
         rig_debug(RIG_DEBUG_TRACE, "%s: VFO_B band changing=%d\n", __func__, changing);
@@ -6599,7 +6614,7 @@ ncboolean newcat_is_rig(RIG *rig, rig_model_t model)
     //rig_debug(RIG_DEBUG_TRACE, "%s(%d):%s called\n", __FILE__, __LINE__, __func__);
     is_rig = (model == rig->caps->rig_model) ? TRUE : FALSE;
 
-    return(is_rig);
+    return (is_rig);
 }
 
 
