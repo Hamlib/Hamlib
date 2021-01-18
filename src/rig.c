@@ -1402,7 +1402,7 @@ static int get_cache_freq(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s, freq=%g\n", __func__, rig_strvfo(vfo),
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s, freq=%.0f\n", __func__, rig_strvfo(vfo),
               (double)*freq);
     RETURNFUNC(RIG_OK);
 }
@@ -1427,7 +1427,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     int retcode;
     freq_t freq_new = freq;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, freq=%g\n", __func__,
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, freq=%.0f\n", __func__,
               rig_strvfo(vfo), freq);
 
     if (CHECK_RIG_ARG(rig))
@@ -1535,7 +1535,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
         if (freq_new != freq)
         {
-            rig_debug(RIG_DEBUG_TRACE, "%s: Asked freq=%g, got freq=%g\n", __func__,
+            rig_debug(RIG_DEBUG_TRACE, "%s: Asked freq=%.0fg, got freq=%.0fg\n", __func__,
                       freq,
                       freq_new);
         }
