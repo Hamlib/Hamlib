@@ -836,7 +836,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     else
     {
         freq_t freqB;
-        rig_get_freq(rig, RIG_VFO_A, &freqB);
+        rig_get_freq(rig, RIG_VFO_B, &freqB);
         rig_debug(RIG_DEBUG_TRACE, "%s(%d)%s: checking VFOB for band change \n",
                   __FILE__, __LINE__, __func__);
 
