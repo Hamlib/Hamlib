@@ -1109,8 +1109,8 @@ option above, will terminate each command string sent to the radio.  This
 character should not be a part of the input string.
 .
 .TP
-.BR W ", " send_cmd_rx " \(aq" \fICmd\fP \(aq
-Send a raw command string to the radio and expect a number of bytes returned.
+.BR W ", " send_cmd_rx " \(aq" \fICmd\fP\(aq " " \fInbytes\FP
+Send a raw command string to the radio and expect nbytes returned.
 .IP
 This is useful for testing and troubleshooting radio commands and responses when
 developing a backend.  If the # of bytes requested is <= the number actually returned no timeout will occur.
