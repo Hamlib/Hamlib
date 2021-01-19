@@ -1277,6 +1277,9 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo)
     rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = %s\n", __func__,
               rig_strvfo(vfo));
 
+    // we can't change VFO while transmitting
+    if (rig->state.cache.ptt == RIG_PTT_ON) return RIG_OK;
+
     if (!newcat_valid_command(rig, command))
     {
         RETURNFUNC(-RIG_ENAVAIL);
