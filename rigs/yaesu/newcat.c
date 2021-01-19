@@ -9657,6 +9657,10 @@ int newcat_set_cmd_validate(RIG *rig)
 
         if (bytes > 0)
         {
+            // for the BS command we can only run it once
+            // so we'll assume it worked
+            // maybe Yaeus will make this command more intelligent
+            if (strstr(priv->cmd_str,"BS")) return RIG_OK;
             // if the first two chars match we are validated
             if (strncmp(priv->cmd_str, "VS", 2) == 0
                     && strncmp(priv->cmd_str, priv->ret_data, 2) == 0) { RETURNFUNC(RIG_OK); }
