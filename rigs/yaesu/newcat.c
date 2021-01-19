@@ -866,12 +866,12 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         if (rig->state.current_vfo != vfo)
         {
             // then we need to change vfos, BS, and change back
-            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VS1;BS%02d%c;VS0;",
-                     newcat_band_index(freq), cat_term);
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VS1;BS%02d;VS0;",
+                     newcat_band_index(freq));
 
             if (vfo  == RIG_VFO_A || vfo == RIG_VFO_MAIN)
-                snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VS0;BS%02d%c;VS1;",
-                         newcat_band_index(freq), cat_term);
+                snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VS0;BS%02d;VS1;",
+                         newcat_band_index(freq));
         }
         else
         {
@@ -951,6 +951,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             freq_t tmp_freqA, tmp_freqB;
             rmode_t tmp_mode;
             pbwidth_t tmp_width;
+
             rig_get_freq(rig, RIG_VFO_MAIN, &tmp_freqA);
             rig_get_freq(rig, RIG_VFO_SUB, &tmp_freqB);
             rig_get_mode(rig, RIG_VFO_MAIN, &tmp_mode, &tmp_width);
@@ -972,8 +973,17 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         freq_t tmp_freqA, tmp_freqB;
         rmode_t tmp_mode;
         pbwidth_t tmp_width;
-        rig_get_freq(rig, RIG_VFO_MAIN, &tmp_freqA);
-        rig_get_freq(rig, RIG_VFO_SUB, &tmp_freqB);
+
+        // we need to update some info that BS may have caused
+        if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN)
+        {
+            rig_get_freq(rig, RIG_VFO_SUB, &tmp_freqA);
+        }
+        else
+        {
+            rig_get_freq(rig, RIG_VFO_MAIN, &tmp_freqB);
+        }
+
         rig_get_mode(rig, RIG_VFO_MAIN, &tmp_mode, &tmp_width);
         rig_get_mode(rig, RIG_VFO_SUB, &tmp_mode, &tmp_width);
 
