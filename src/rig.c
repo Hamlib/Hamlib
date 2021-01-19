@@ -991,10 +991,10 @@ int HAMLIB_API rig_open(RIG *rig)
     }
 
 #endif
-    // read frequence to update internal status
-    freq_t freq;
-    if (caps->get_freq) rig_get_freq(rig, RIG_VFO_A, &freq);
-    if (caps->get_freq) rig_get_freq(rig, RIG_VFO_B, &freq);
+    // read frequency to update internal status
+//    freq_t freq;
+//    if (caps->get_freq) rig_get_freq(rig, RIG_VFO_A, &freq);
+//    if (caps->get_freq) rig_get_freq(rig, RIG_VFO_B, &freq);
     RETURNFUNC(RIG_OK);
 }
 
