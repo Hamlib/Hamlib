@@ -821,38 +821,25 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_debug(RIG_DEBUG_TRACE, "%s(%d)%s: rig->state.current_vfo=%s\n", __FILE__,
               __LINE__, __func__, rig_strvfo(rig->state.current_vfo));
 
+    CACHE_RESET;
     if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN)
     {
+        freq_t freqA;
+        rig_get_freq(rig, RIG_VFO_A, &freqA);
         rig_debug(RIG_DEBUG_TRACE, "%s(%d)%s: checking VFOA for band change \n",
                   __FILE__, __LINE__, __func__);
 
-        if (rig->state.cache.freqMainA == 0)
-        {
-            freq_t freqtmp;
-            err = rig_get_freq(rig, RIG_VFO_CURR, &freqtmp);
-
-            if (err != RIG_OK) { RETURNFUNC(err); }
-        }
-
-        changing = newcat_band_index(freq) != newcat_band_index(
-                       rig->state.cache.freqMainA);
+        changing = newcat_band_index(freq) != newcat_band_index(freqA);
         rig_debug(RIG_DEBUG_TRACE, "%s: VFO_A band changing=%d\n", __func__, changing);
     }
     else
     {
+        freq_t freqB;
+        rig_get_freq(rig, RIG_VFO_A, &freqB);
         rig_debug(RIG_DEBUG_TRACE, "%s(%d)%s: checking VFOB for band change \n",
                   __FILE__, __LINE__, __func__);
 
-        if (rig->state.cache.freqMainB == 0)
-        {
-            freq_t freqtmp;
-            err = rig_get_freq(rig, RIG_VFO_CURR, &freqtmp);
-
-            if (err != RIG_OK) { RETURNFUNC(err); }
-        }
-
-        changing = newcat_band_index(freq) != newcat_band_index(
-                       rig->state.cache.freqMainB);
+        changing = newcat_band_index(freq) != newcat_band_index(freqB);
         rig_debug(RIG_DEBUG_TRACE, "%s: VFO_B band changing=%d\n", __func__, changing);
     }
 
@@ -975,6 +962,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         pbwidth_t tmp_width;
 
         // we need to update some info that BS may have caused
+        CACHE_RESET;
         if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN)
         {
             rig_get_freq(rig, RIG_VFO_SUB, &tmp_freqA);
