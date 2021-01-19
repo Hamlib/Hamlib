@@ -822,6 +822,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
               __LINE__, __func__, rig_strvfo(rig->state.current_vfo));
 
     CACHE_RESET;
+
     if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN)
     {
         freq_t freqA;
@@ -963,6 +964,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
         // we need to update some info that BS may have caused
         CACHE_RESET;
+
         if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN)
         {
             rig_get_freq(rig, RIG_VFO_SUB, &tmp_freqA);
