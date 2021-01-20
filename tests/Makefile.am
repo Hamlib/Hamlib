@@ -126,4 +126,4 @@ FORCE:
 dist-hook:
 	test ./ -ef $(srcdir)/ || test ! -f hamlibdatetime.h || cp -f hamlibdatetime.h $(srcdir)/
 
-CLEANFILES = testrig.sh testfreq.sh testbcd.sh testloc.sh
+CLEANFILES = testrig.sh testfreq.sh testbcd.sh testloc.sh testrigcaps.sh
