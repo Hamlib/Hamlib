@@ -779,6 +779,9 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
            current VFO so we must use the VS[0|1]; command to check
            and select the correct VFO before setting the frequency
         */
+        // Plus we can't do the VFO swap if transmitting
+        if (target_vfo == 'B' && rig->state.cache.ptt == RIG_PTT_ON) return -RIG_ENTARGET;
+
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VS%c", cat_term);
 
         if (RIG_OK != (err = newcat_get_cmd(rig)))
