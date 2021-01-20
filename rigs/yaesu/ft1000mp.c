@@ -222,7 +222,7 @@ const struct rig_caps ft1000mp_caps =
     RIG_MODEL(RIG_MODEL_FT1000MP),
     .model_name =         "FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20200731.0",
+    .version =            "20210120.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -356,7 +356,7 @@ const struct rig_caps ft1000mpmkv_caps =
     RIG_MODEL(RIG_MODEL_FT1000MPMKV),
     .model_name =         "MARK-V FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20200731.0",
+    .version =            "20210120.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -490,7 +490,7 @@ const struct rig_caps ft1000mpmkvfld_caps =
     RIG_MODEL(RIG_MODEL_FT1000MPMKVFLD),
     .model_name =         "MARK-V Field FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20200731.0",
+    .version =            "20210120.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -1528,7 +1528,9 @@ static int ft1000mp_get_update_data(RIG *rig, unsigned char ci,
     p = (struct ft1000mp_priv_data *)rig->state.priv;
     rig_s = &rig->state;
 
-    do
+    // timeout retries are done in read_block now
+    // based on rig backed retry value
+//    do
     {
         /* send UPDATE command to fetch data*/
         ft1000mp_send_priv_cmd(rig, ci);
@@ -1538,9 +1540,10 @@ static int ft1000mp_get_update_data(RIG *rig, unsigned char ci,
         if (n == -RIG_ETIMEOUT)
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: Timeout retry count = %d\n", __func__, retry);
+            //rig_debug(RIG_DEBUG_TRACE, "%s: Timeout\n", __func__, retry);
         }
     }
-    while (retry-- && n == -RIG_ETIMEOUT);
+//    while (retry-- && n == -RIG_ETIMEOUT);
 
     return n;
 
