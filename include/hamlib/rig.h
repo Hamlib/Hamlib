@@ -2190,6 +2190,7 @@ struct rig_state {
     int power_now;              /*!< Current RF power level in rig units */
     int power_min;              /*!< Minimum RF power level in rig units */
     int power_max;              /*!< Maximum RF power level in rig units */
+    unsigned char disable_yaesu_bandselect; /*!< Disables Yaeus band select logic */
 };
 
 //! @cond Doxygen_Suppress
