@@ -991,8 +991,25 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 
     // cppcheck-suppress *
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "F%c%0*"PRIll"%c", c,
-             priv->width_frequency, (int64_t)freq, cat_term);
+    if (RIG_MODEL_FT450 == caps->rig_model)
+    {
+        if (c == 'B')
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VS1;F%c%0*"PRIll"%c;VS0;", c,
+                     priv->width_frequency, (int64_t)freq, cat_term);
+        }
+        else
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "F%c%0*"PRIll"%c", c,
+                     priv->width_frequency, (int64_t)freq, cat_term);
+        }
+    }
+    else
+    {
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "F%c%0*"PRIll"%c", c,
+                 priv->width_frequency, (int64_t)freq, cat_term);
+    }
+
     rig_debug(RIG_DEBUG_TRACE, "%s:%d cmd_str = %s\n", __func__, __LINE__,
               priv->cmd_str);
 
@@ -1279,7 +1296,7 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo)
               rig_strvfo(vfo));
 
     // we can't change VFO while transmitting
-    if (rig->state.cache.ptt == RIG_PTT_ON) return RIG_OK;
+    if (rig->state.cache.ptt == RIG_PTT_ON) { return RIG_OK; }
 
     if (!newcat_valid_command(rig, command))
     {
@@ -9661,7 +9678,8 @@ int newcat_set_cmd_validate(RIG *rig)
             // for the BS command we can only run it once
             // so we'll assume it worked
             // maybe Yaeus will make this command more intelligent
-            if (strstr(priv->cmd_str,"BS")) return RIG_OK;
+            if (strstr(priv->cmd_str, "BS")) { return RIG_OK; }
+
             // if the first two chars match we are validated
             if (strncmp(priv->cmd_str, "VS", 2) == 0
                     && strncmp(priv->cmd_str, priv->ret_data, 2) == 0) { RETURNFUNC(RIG_OK); }
