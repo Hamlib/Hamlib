@@ -845,6 +845,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     }
 
     if (newcat_valid_command(rig, "BS") && changing
+            && !rig->state.disable_yaesu_bandselect
             // remove the split check here -- hopefully works OK
             //&& !rig->state.cache.split
             && !is_ft891 // 891 does not remember bandwidth so don't do this

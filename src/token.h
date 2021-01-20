@@ -112,6 +112,8 @@
 #define TOK_AUTO_POWER_ON  TOKEN_FRONTEND(124)
 /** \brief rig: Auto disable screensaver */
 #define TOK_AUTO_DISABLE_SCREENSAVER  TOKEN_FRONTEND(125)
+/** \brief rig: Disable Yaesu band select logic */
+#define TOK_DISABLE_YAESU_BANDSELECT  TOKEN_FRONTEND(126)
 /*
  * rotator specific tokens
  * (strictly, should be documented as rotator_internal)

@@ -139,6 +139,11 @@ static const struct confparams frontend_cfg_params[] =
         "0", RIG_CONF_CHECKBUTTON, { }
     },
     {
+        TOK_DISABLE_YAESU_BANDSELECT, "disable_yaesu_bandselect", "Disable Yaesu band select logic",
+        "True disables the automatic band select on band change for Yaesu rigs",
+        "0", RIG_CONF_CHECKBUTTON, { }
+    },
+    {
         TOK_PTT_SHARE, "ptt_share", "Share ptt port with other apps",
         "True enables ptt port to be shared with other apps",
         "0", RIG_CONF_CHECKBUTTON, { }
@@ -590,6 +595,15 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         rs->auto_disable_screensaver = val_i ? 1 : 0;
         break;
 
+    case TOK_DISABLE_YAESU_BANDSELECT:
+        if (1 != sscanf(val, "%d", &val_i))
+        {
+            return -RIG_EINVAL; //value format error
+        }
+
+        rs->disable_yaesu_bandselect = val_i ? 1 : 0;
+        break;
+
     case TOK_PTT_SHARE:
         if (1 != sscanf(val, "%d", &val_i))
         {
@@ -927,6 +941,19 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
     case TOK_AUTO_DISABLE_SCREENSAVER:
         sprintf(val, "%d", rs->auto_disable_screensaver);
         break;
+
+    case TOK_PTT_SHARE:
+        sprintf(val, "%d", rs->ptt_share);
+        break;
+
+    case TOK_FLUSHX:
+        sprintf(val, "%d", rs->rigport.flushx);
+        break;
+
+    case TOK_DISABLE_YAESU_BANDSELECT:
+        sprintf(val, "%d", rs->disable_yaesu_bandselect);
+        break;
+
 
     default:
         return -RIG_EINVAL;
