@@ -158,7 +158,7 @@ const struct rig_caps ft1000d_caps =
     RIG_MODEL(RIG_MODEL_FT1000D),
     .model_name =         "FT-1000D",
     .mfg_name =           "Yaesu",
-    .version =            "20201009.0",
+    .version =            "20210120.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -3274,7 +3274,7 @@ int ft1000d_get_update_data(RIG *rig, unsigned char ci, unsigned short ch)
         n = read_block(&rig_s->rigport, p, rl);
 
     }
-    while (n < 0 && retry >= 0);
+    while (n < 0 && retry-- >= 0);
 
     if (n < 0)
     {
