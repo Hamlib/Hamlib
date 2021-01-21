@@ -88,6 +88,8 @@ const char hamlib_version[21] = "Hamlib " PACKAGE_VERSION;
 const char *hamlib_version2 = "Hamlib " PACKAGE_VERSION;
 //! @endcond
 
+struct rig_caps caps_test;
+
 /**
  * \brief Hamlib copyright notice
  */
@@ -301,6 +303,37 @@ const char *HAMLIB_API rigerror(int errnum)
     return rigerror_table[errnum];
 }
 
+// We use a couple of defined pointer to determine if the shared library changes
+void *caps_test_rig_model = &caps_test.rig_model;
+void *caps_test_macro_name = &caps_test.macro_name;
+
+// check and show WARN if rig_caps structure doesn't match
+// this tests for shared library incompatibility
+int rig_check_rig_caps()
+{
+    int rc = RIG_OK;
+
+    if (&caps_test.rig_model != caps_test_rig_model)
+    {
+        rc = -RIG_EINTERNAL;
+        rig_debug(RIG_DEBUG_WARN, "%s: shared libary change#1\n", __func__);
+    }
+
+    if (&caps_test.macro_name != caps_test_macro_name)
+    {
+        rc = -RIG_EINTERNAL;
+        rig_debug(RIG_DEBUG_WARN, "%s: shared libary change#2\n", __func__);
+    }
+
+    if (rc != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: p1=%p, p2=%p, rig_model=%p, macro_name=%p\n",
+                  __func__, caps_test_rig_model, caps_test_macro_name, &caps_test.rig_model,
+                  &caps_test.macro_name);
+    }
+
+    return rc;
+}
 
 /**
  * \brief allocate a new RIG handle
@@ -322,6 +355,8 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     int i;
 
     ENTERFUNC;
+
+    rig_check_rig_caps();
 
     rig_check_backend(rig_model);
 
