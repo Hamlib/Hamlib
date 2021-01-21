@@ -13,12 +13,18 @@ int main()
     void *p2 = &rig->state.vfo_list;
     unsigned long offset = p2 - p1;
     printf("offset vfo_list=%ld\n", offset);
-    int expected = 13280;
-    int expected32 = 10144;
-    if (offset != expected && offset != expected32)
+#if defined(__MINGW32__)
+    int expected = 10144; // mingw32
+#elif defined(__MINGW64__)
+    int expected = 13264; // mingw64
+#else
+    int expected = 13280; // should be most 64-bit compilers
+#endif
+
+    if (offset != expected)
     {
         printf("offset of vfo_list has changed!!!\n");
-        printf("64-bit was %d, 32-bit was %d, now %lu\n", expected, expected32, offset );
+        printf("was %d, now %lu\n", expected, offset);
         retcode = 1;
     }
 
@@ -26,12 +32,18 @@ int main()
     offset = p2 - p1;
     printf("offset power_max=%ld\n", offset);
 
+#if defined(__MINGW32__)
+    expected = 10448; // mingw32
+#elif defined(__MINGW64__)
+    expected = 13664; // mingw64
+#else
     expected = 13696;
-    expected32 = 10448;
-    if (offset != expected && offset != expected32)
+#endif
+
+    if (offset != expected)
     {
         printf("offset of power_max has changed!!!\n");
-        printf("64-bit was %d, 32-bit was %d, now %lu\n", expected, expected32, offset );
+        printf("was %d, now %lu\n", expected, offset);
         retcode = 1;
     }
 
