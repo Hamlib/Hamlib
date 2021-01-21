@@ -14,10 +14,11 @@ int main()
     unsigned long offset = p2 - p1;
     printf("offset vfo_list=%ld\n", offset);
     int expected = 13280;
-    if (offset != expected)
+    int expected32 = 10144;
+    if (offset != expected && offset != expected32)
     {
         printf("offset of vfo_list has changed!!!\n");
-        printf("was %d, now %lu\n", expected, offset );
+        printf("64-bit was %d, 32-bit was %d, now %lu\n", expected, expected32, offset );
         retcode = 1;
     }
 
@@ -26,10 +27,11 @@ int main()
     printf("offset power_max=%ld\n", offset);
 
     expected = 13696;
-    if (offset != expected)
+    expected32 = 10448;
+    if (offset != expected && offset != expected32)
     {
         printf("offset of power_max has changed!!!\n");
-        printf("was %d, now %lu\n", expected, offset );
+        printf("64-bit was %d, 32-bit was %d, now %lu\n", expected, expected32, offset );
         retcode = 1;
     }
 
