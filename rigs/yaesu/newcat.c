@@ -738,11 +738,12 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     }
 
     /* vfo should now be modified to a valid VFO constant. */
-    /* DX3000/DX5000 can only do VFO_MEM on 60M */
+    /* DX3000/DX5000/450 can only do VFO_MEM on 60M */
     /* So we will not change freq in that case */
     special_60m = newcat_is_rig(rig, RIG_MODEL_FTDX3000);
     /* duplicate the following line to add more rigs */
     special_60m |= newcat_is_rig(rig, RIG_MODEL_FTDX5000);
+    special_60m |= newcat_is_rig(rig, RIG_MODEL_FT450);
 
     switch (vfo)
     {
@@ -998,19 +999,19 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     {
         if (c == 'B')
         {
-            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VS1;F%c%0*"PRIll"%c;VS0;", c,
-                     priv->width_frequency, (int64_t)freq, cat_term);
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VS1;F%c%0*"PRIll";VS0;", c,
+                     priv->width_frequency, (int64_t)freq);
         }
         else
         {
-            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "F%c%0*"PRIll"%c", c,
-                     priv->width_frequency, (int64_t)freq, cat_term);
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "F%c%0*"PRIll";", c,
+                     priv->width_frequency, (int64_t)freq);
         }
     }
     else
     {
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "F%c%0*"PRIll"%c", c,
-                 priv->width_frequency, (int64_t)freq, cat_term);
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "F%c%0*"PRIll";", c,
+                 priv->width_frequency, (int64_t)freq);
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s:%d cmd_str = %s\n", __func__, __LINE__,
