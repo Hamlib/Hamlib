@@ -745,6 +745,13 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     special_60m |= newcat_is_rig(rig, RIG_MODEL_FTDX5000);
     special_60m |= newcat_is_rig(rig, RIG_MODEL_FT450);
 
+    if (special_60m && (freq >= 5300000 && freq <= 5410000))
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: 60M VFO_MEM exception, no freq change done\n",
+                  __func__);
+        RETURNFUNC(RIG_OK); /* make it look like we changed */
+    }
+
     switch (vfo)
     {
     case RIG_VFO_A:
@@ -755,17 +762,6 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     case RIG_VFO_B:
     case RIG_VFO_SUB:
         c = 'B';
-        break;
-
-    case RIG_VFO_MEM:
-        if (special_60m && (freq >= 5300000 && freq <= 5410000))
-        {
-            rig_debug(RIG_DEBUG_TRACE, "%s: 60M VFO_MEM exception, no freq change done\n",
-                      __func__);
-            RETURNFUNC(RIG_OK); /* make it look like we changed */
-        }
-
-        c = 'A';
         break;
 
     default:
