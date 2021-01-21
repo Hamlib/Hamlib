@@ -3119,7 +3119,6 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             }
             val->f =
                 rig_raw2val_float(icom_val, &rig->caps->rfpower_meter_cal) * scale;
-            }
         }
 
         break;
