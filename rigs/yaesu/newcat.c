@@ -781,7 +781,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
            and select the correct VFO before setting the frequency
         */
         // Plus we can't do the VFO swap if transmitting
-        if (target_vfo == 'B' && rig->state.cache.ptt == RIG_PTT_ON) { return -RIG_ENTARGET; }
+        if (target_vfo == 'B' && rig->state.cache.ptt == RIG_PTT_ON) { RETURNFUNC(-RIG_ENTARGET); }
 
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VS%c", cat_term);
 
@@ -1301,7 +1301,7 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo)
               rig_strvfo(vfo));
 
     // we can't change VFO while transmitting
-    if (rig->state.cache.ptt == RIG_PTT_ON) { return RIG_OK; }
+    if (rig->state.cache.ptt == RIG_PTT_ON) { RETURNFUNC(RIG_OK); }
 
     if (!newcat_valid_command(rig, command))
     {
@@ -2346,7 +2346,7 @@ int newcat_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 
     oldvfo = newcat_set_vfo_if_needed(rig, vfo);
 
-    if (oldvfo < 0) { return oldvfo; }
+    if (oldvfo < 0) { RETURNFUNC(oldvfo); }
 
     if (rit > rig->caps->max_rit)
     {
@@ -2377,7 +2377,7 @@ int newcat_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 
     oldvfo = newcat_set_vfo_if_needed(rig, oldvfo);
 
-    if (oldvfo < 0) { return oldvfo; }
+    if (oldvfo < 0) { RETURNFUNC(oldvfo); }
 
     RETURNFUNC(ret);
 }
@@ -2460,7 +2460,7 @@ int newcat_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 
     oldvfo = newcat_set_vfo_if_needed(rig, vfo);
 
-    if (oldvfo < 0) { return oldvfo; }
+    if (oldvfo < 0) { RETURNFUNC(oldvfo); }
 
     if (xit > rig->caps->max_xit)
     {
@@ -2492,7 +2492,7 @@ int newcat_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 
     oldvfo = newcat_set_vfo_if_needed(rig, vfo);
 
-    if (oldvfo < 0) { return oldvfo; }
+    if (oldvfo < 0) { RETURNFUNC(oldvfo); }
 
     RETURNFUNC(ret);
 }
@@ -6141,7 +6141,7 @@ int newcat_get_trn(RIG *rig, int *trn)
         // if we failed to get AI we turn it off and try again
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s0%c", command, cat_term);
         hl_usleep(500 * 1000); // is 500ms enough for the rig to stop sending info?
-        newcat_set_cmd(rig); // don't care about the return here
+        newcat_set_cmd(rig); // don't care about any errors here
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c", command, cat_term);
         err = newcat_get_cmd(rig);
         RETURNFUNC(err);
@@ -6667,7 +6667,7 @@ ncboolean newcat_is_rig(RIG *rig, rig_model_t model)
     //rig_debug(RIG_DEBUG_TRACE, "%s(%d):%s called\n", __FILE__, __LINE__, __func__);
     is_rig = (model == rig->caps->rig_model) ? TRUE : FALSE;
 
-    return (is_rig);
+    return (is_rig); // RETURN is too verbose here
 }
 
 
@@ -6905,7 +6905,7 @@ int newcat_scale_float(int scale, float fval)
         f = scale * (fval + fudge);
     }
 
-    return (int) f;
+    return (int) f; // RETURN is too verbose here
 }
 
 
@@ -9202,9 +9202,9 @@ int newcat_set_faststep(RIG *rig, ncboolean fast_step)
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "FS%c%c", c, cat_term);
 
-    rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
+    rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
 
-    return newcat_set_cmd(rig);
+    RETURNFUNC(newcat_set_cmd(rig));
 }
 
 
@@ -9267,7 +9267,7 @@ int newcat_get_rigid(RIG *rig)
     rig_debug(RIG_DEBUG_TRACE, "rig_id = %d, *s = %s\n", priv->rig_id,
               s == NULL ? "NULL" : s);
 
-    return priv->rig_id;
+    RETURNFUNC(priv->rig_id);
 }
 
 
@@ -9362,7 +9362,7 @@ int newcat_vfomem_toggle(RIG *rig)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
 
-    return newcat_set_cmd(rig);
+    RETURNFUNC(newcat_set_cmd(rig));
 }
 
 /*
@@ -9690,7 +9690,7 @@ int newcat_set_cmd_validate(RIG *rig)
             // for the BS command we can only run it once
             // so we'll assume it worked
             // maybe Yaeus will make this command more intelligent
-            if (strstr(priv->cmd_str, "BS")) { return RIG_OK; }
+            if (strstr(priv->cmd_str, "BS")) { RETURNFUNC(RIG_OK); }
 
             // if the first two chars match we are validated
             if (strncmp(priv->cmd_str, "VS", 2) == 0
