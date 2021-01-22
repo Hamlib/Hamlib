@@ -6722,6 +6722,7 @@ int newcat_set_tx_vfo(RIG *rig, vfo_t tx_vfo)
             newcat_is_rig(rig, RIG_MODEL_FTDX5000) ||
             newcat_is_rig(rig, RIG_MODEL_FTDX1200) ||
             newcat_is_rig(rig, RIG_MODEL_FT991) ||
+            newcat_is_rig(rig, RIG_MODEL_FTDX10) ||
             newcat_is_rig(rig, RIG_MODEL_FTDX3000))
     {
         p1 = p1 + 2;    /* use non-Toggle commands */
