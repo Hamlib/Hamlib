@@ -20,7 +20,7 @@
 
 int callback(const struct rig_caps *caps, rig_ptr_t rigp)
 {
-    RIG *rig = (RIG*) rigp;
+    RIG *rig = (RIG *) rigp;
 
     rig = rig_init(caps->rig_model);
 
@@ -35,13 +35,13 @@ int callback(const struct rig_caps *caps, rig_ptr_t rigp)
     strcpy(rig->state.rigport.pathname, port);
 
     printf("%20s:", caps->model_name);
-    fflush(stdout); 
-    struct timeval start,end;
-    gettimeofday(&start,NULL);
+    fflush(stdout);
+    struct timeval start, end;
+    gettimeofday(&start, NULL);
     rig_open(rig);
-    gettimeofday(&end,NULL);
-    double dstart = start.tv_sec + start.tv_usec/1e6;
-    double dend = end.tv_sec + end.tv_usec/(double)1e6;
+    gettimeofday(&end, NULL);
+    double dstart = start.tv_sec + start.tv_usec / 1e6;
+    double dend = end.tv_sec + end.tv_usec / (double)1e6;
     printf(" %.1f\n",  dend - dstart);
 
     rig_close(rig); /* close port */

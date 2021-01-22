@@ -551,7 +551,8 @@ static int flrig_transaction(RIG *rig, char *cmd, char *cmd_arg, char *value,
             xml_parse(xml, value, value_len);
         }
     }
-    while (((value && strlen(value) == 0) || (strlen(xml)==0)) && retry--); // we'll do retries if needed
+    while (((value && strlen(value) == 0) || (strlen(xml) == 0))
+            && retry--); // we'll do retries if needed
 
     if (value && strlen(value) == 0) { return RIG_EPROTO; }
 
