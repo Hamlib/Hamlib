@@ -740,9 +740,10 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     /* vfo should now be modified to a valid VFO constant. */
     /* DX3000/DX5000/450 can only do VFO_MEM on 60M */
     /* So we will not change freq in that case */
-    special_60m = newcat_is_rig(rig, RIG_MODEL_FTDX3000);
+    // did have FTDX3000 as not capable of 60M set_freq but as of 2021-01-21 it works
+    // special_60m = newcat_is_rig(rig, RIG_MODEL_FTDX3000);
     /* duplicate the following line to add more rigs */
-    special_60m |= newcat_is_rig(rig, RIG_MODEL_FTDX5000);
+    special_60m = newcat_is_rig(rig, RIG_MODEL_FTDX5000);
     special_60m |= newcat_is_rig(rig, RIG_MODEL_FT450);
 
     if (special_60m && (freq >= 5300000 && freq <= 5410000))
@@ -848,6 +849,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             && !rig->state.disable_yaesu_bandselect
             // remove the split check here -- hopefully works OK
             //&& !rig->state.cache.split
+            && !(is_ftdx3000 && newcat_band_index(freq) == 2)
             && !is_ft891 // 891 does not remember bandwidth so don't do this
             && rig->caps->get_vfo != NULL
             && rig->caps->set_vfo != NULL) // gotta' have get_vfo too
