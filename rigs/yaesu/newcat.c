@@ -745,7 +745,9 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     /* duplicate the following line to add more rigs */
     special_60m = newcat_is_rig(rig, RIG_MODEL_FTDX5000);
     special_60m |= newcat_is_rig(rig, RIG_MODEL_FT450);
-    rig_debug(RIG_DEBUG_TRACE, "%s: special_60m=%d, 60m freq=%d, is_ftdx3000=%d\n", __func__, special_60m, freq >= 5300000 && freq <= 5410000, newcat_is_rig(rig, RIG_MODEL_FTDX3000));
+    rig_debug(RIG_DEBUG_TRACE, "%s: special_60m=%d, 60m freq=%d, is_ftdx3000=%d\n",
+              __func__, special_60m, freq >= 5300000
+              && freq <= 5410000, newcat_is_rig(rig, RIG_MODEL_FTDX3000));
 
     if (special_60m && (freq >= 5300000 && freq <= 5410000))
     {
@@ -779,7 +781,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
            and select the correct VFO before setting the frequency
         */
         // Plus we can't do the VFO swap if transmitting
-        if (target_vfo == 'B' && rig->state.cache.ptt == RIG_PTT_ON) return -RIG_ENTARGET;
+        if (target_vfo == 'B' && rig->state.cache.ptt == RIG_PTT_ON) { return -RIG_ENTARGET; }
 
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VS%c", cat_term);
 
@@ -6136,6 +6138,12 @@ int newcat_get_trn(RIG *rig, int *trn)
     /* Get Auto Information */
     if (RIG_OK != (err = newcat_get_cmd(rig)))
     {
+        // if we failed to get AI we turn it off and try again
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s0%c", command, cat_term);
+        hl_usleep(500 * 1000); // is 500ms enough for the rig to stop sending info?
+        newcat_set_cmd(rig); // don't care about the return here
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c", command, cat_term);
+        err = newcat_get_cmd(rig);
         RETURNFUNC(err);
     }
 
