@@ -325,7 +325,7 @@ int rig_check_rig_caps()
         rig_debug(RIG_DEBUG_WARN, "%s: shared libary change#2\n", __func__);
     }
 
-    if (rc != RIG_OK)
+    //if (rc != RIG_OK)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: p1=%p, p2=%p, rig_model=%p, macro_name=%p\n",
                   __func__, caps_test_rig_model, caps_test_macro_name, &caps_test.rig_model,
