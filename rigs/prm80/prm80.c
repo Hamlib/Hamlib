@@ -376,7 +376,8 @@ int prm80_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 
     if (statebuf_len < 20)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: statebuf_len < 20, statebuf='%s'\n", __func__, statebuf);
+        rig_debug(RIG_DEBUG_ERR, "%s: statebuf_len < 20, statebuf='%s'\n", __func__,
+                  statebuf);
         RETURNFUNC(-RIG_EPROTO);
     }
 
@@ -409,7 +410,8 @@ int prm80_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
     {
         // Set rig to channel values
         rig_debug(RIG_DEBUG_ERR,
-                  "%s: please contact hamlib mailing list to implement this, rxfreq=%.0f, txfreq=%.0f\n", __func__, chan->freq, chan->tx_freq);
+                  "%s: please contact hamlib mailing list to implement this, rxfreq=%.0f, txfreq=%.0f\n",
+                  __func__, chan->freq, chan->tx_freq);
         rig_debug(RIG_DEBUG_ERR,
                   "%s: need to know if rig updates when channel read or not\n", __func__);
         //return -RIG_ENIMPL;

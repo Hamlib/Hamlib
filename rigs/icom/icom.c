@@ -3112,11 +3112,13 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         else
         {
             float scale = 100;
+
             if (rig->caps->rig_model == RIG_MODEL_IC705
                     || rig->caps->rig_model == RIG_MODEL_IC703)
             {
                 scale = 10;
             }
+
             val->f =
                 rig_raw2val_float(icom_val, &rig->caps->rfpower_meter_cal) * scale;
         }
