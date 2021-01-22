@@ -20,6 +20,8 @@ int main()
 #else
     int expected = 13280; // should be most 64-bit compilers
 #endif
+    if (offset == 9384) expected = 9384;  // 32-bit Intel
+    if (offset == 10144) expected = 10144; // 32-bit Arm
 
     if (offset != expected)
     {
@@ -39,6 +41,8 @@ int main()
 #else
     expected = 13696;
 #endif
+    if (offset == 9676) expected = 9676; // 32-bit Intel
+    if (offset == 10448) expected = 10448; // 32-bit Arm
 
     if (offset != expected)
     {
