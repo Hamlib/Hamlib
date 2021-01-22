@@ -779,9 +779,9 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     {
         // should be true whether we're on VFOA or VFOB but only restricting VFOB right now
         // we return RIG_OK as we dont' want
-        if (is_ftdx3000 && target_vfo == 'B') { return RIG_OK; }
+        if (is_ftdx3000) { return RIG_ENTARGET; }
 
-        if (is_ftdx5000 && target_vfo == 'B') { return RIG_OK; }
+        if (is_ftdx5000) { return RIG_ENTARGET; }
     }
 
     if (RIG_MODEL_FT450 == caps->rig_model)
