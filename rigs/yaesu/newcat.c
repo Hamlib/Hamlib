@@ -7854,14 +7854,14 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     } /* end else */
 
-    if (is_ftdx101 || is_ft891 || is_ftdx10)
+    if (is_ftdx101 || is_ft891)
     {
         // some rigs now require the bandwidth be turned "on"
         int on = is_ft891;
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH%c%d%02d;", main_sub_vfo, on,
                  w);
     }
-    else if (is_ft2000)
+    else if (is_ft2000 || is_ftdx10)
     {
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "SH0%02d;", w);
     }
@@ -8091,7 +8091,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 
     if (sh_command_valid)
     {
-        if (is_ft2000)
+        if (is_ft2000 || is_ftdx10)
         {
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s0%c", cmd, cat_term);
         }
