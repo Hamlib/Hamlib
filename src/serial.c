@@ -807,7 +807,7 @@ int ser_close(hamlib_port_t *p)
     }
     else
     {
-        rig_debug(RIG_DEBUG_WARN, "%s: no options for fd to restore\n", __func__);
+        rig_debug(RIG_DEBUG_TRACE, "%s: no options for fd to restore\n", __func__);
     }
 
     rc = CLOSE(p->fd);
