@@ -774,6 +774,13 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     target_vfo = 'A' == c ? '0' : '1';
 
+    if(rig->state.cache.ptt == RIG_PTT_ON) // we have a few rigs that can't set TX VFO while PTT_ON
+    {  // should be true whether we're on VFOA or VFOB but only restricting VFOB right now
+       // we return RIG_OK as we dont' want 
+       if (is_ftdx3000 && target_vfo == 'B') return RIG_OK; 
+       if (is_ftdx5000 && target_vfo == 'B') return RIG_OK; 
+    }
+
     if (RIG_MODEL_FT450 == caps->rig_model)
     {
         /* The FT450 only accepts F[A|B]nnnnnnnn; commands for the
