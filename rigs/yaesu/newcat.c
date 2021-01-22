@@ -9654,7 +9654,7 @@ int newcat_set_cmd_validate(RIG *rig)
     }
     else
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: %s not implemented\n", __func__, priv->cmd_str);
+        rig_debug(RIG_DEBUG_TRACE, "%s: %s not implemented\n", __func__, priv->cmd_str);
         RETURNFUNC(-RIG_ENIMPL);
     }
 
