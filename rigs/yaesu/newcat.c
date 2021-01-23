@@ -743,8 +743,9 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     // did have FTDX3000 as not capable of 60M set_freq but as of 2021-01-21 it works
     // special_60m = newcat_is_rig(rig, RIG_MODEL_FTDX3000);
     /* duplicate the following line to add more rigs */
-    special_60m = newcat_is_rig(rig, RIG_MODEL_FTDX5000);
-    special_60m |= newcat_is_rig(rig, RIG_MODEL_FT450);
+    // disabled to check 2019 firmware on FTDX5000 and FT450 behavior
+    //special_60m = newcat_is_rig(rig, RIG_MODEL_FTDX5000);
+    //special_60m |= newcat_is_rig(rig, RIG_MODEL_FT450);
     rig_debug(RIG_DEBUG_TRACE, "%s: special_60m=%d, 60m freq=%d, is_ftdx3000=%d\n",
               __func__, special_60m, freq >= 5300000
               && freq <= 5410000, newcat_is_rig(rig, RIG_MODEL_FTDX3000));
