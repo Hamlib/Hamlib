@@ -972,6 +972,7 @@ int main(int argc, char *argv[])
 static FILE*get_fsockout(struct handle_data *handle_data_arg)
 {
 #ifdef __MINGW32__
+    int sock_osfhandle = _open_osfhandle(handle_data_arg->sock, _O_RDONLY);
     return _fdopen(sock_osfhandle, "wb");
 #else
     return fdopen(handle_data_arg->sock, "wb");
@@ -986,7 +987,7 @@ static FILE* get_fsockin(struct handle_data *handle_data_arg)
     if (sock_osfhandle == -1)
     {
         rig_debug(RIG_DEBUG_ERR, "_open_osfhandle error: %s\n", strerror(errno));
-        goto handle_exit;
+        return NULL;
     }
 
     return _fdopen(sock_osfhandle,  "rb");
