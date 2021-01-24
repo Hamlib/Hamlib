@@ -1653,11 +1653,15 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__, rig_strvfo(vfo));
 
+#if 0 // don't think we really need this check
+
     if (CHECK_RIG_ARG(rig) || !freq)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: rig or freq ptr invalid\n", __func__);
         RETURNFUNC(-RIG_EINVAL);
     }
+
+#endif
 
     curr_vfo = rig->state.current_vfo; // save vfo for restore later
 

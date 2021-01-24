@@ -541,6 +541,11 @@ static int flrig_transaction(RIG *rig, char *cmd, char *cmd_arg, char *value,
         if (retval != RIG_OK)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: write_transaction error=%d\n", __func__, retval);
+
+            // if we get RIG_EIO the socket has probably disappeared
+            // so bubble up the error so port can re re-opened
+            if (retval == -RIG_EIO) { return retval; }
+
             hl_usleep(50 * 1000); // 50ms sleep if error
         }
 
