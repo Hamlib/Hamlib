@@ -781,9 +781,9 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: ftdx101 check vfo OK, vfo=%s, tx_vfo=%s\n", __func__, rig_strvfo(vfo), rig_strvfo(rig->state.tx_vfo));
         // when in split we can change VFOB but not VFOA
-        if (rig->state.split == RIG_SPLIT_ON && target_vfo == '0') return -RIG_ENTARGET;
+        if (rig->state.cache.split == RIG_SPLIT_ON && target_vfo == '0') return -RIG_ENTARGET;
         // when not in split we can't change VFOA at all
-        if (rig->state.split == RIG_SPLIT_OFF && target_vfo == '0') return -RIG_ENTARGET;
+        if (rig->state.cache.split == RIG_SPLIT_OFF && target_vfo == '0') return -RIG_ENTARGET;
         if (vfo != rig->state.tx_vfo) return -RIG_ENTARGET;
     }
 
