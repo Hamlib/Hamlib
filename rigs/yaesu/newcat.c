@@ -863,7 +863,10 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             && !rig->state.disable_yaesu_bandselect
             // remove the split check here -- hopefully works OK
             //&& !rig->state.cache.split
+            // some rigs can't do BS command on 60M
             && !(is_ftdx3000 && newcat_band_index(freq) == 2)
+            && !(is_ft2000 && newcat_band_index(freq) == 2)
+            && !(is_ftdx1200 && newcat_band_index(freq) == 2)
             && !is_ft891 // 891 does not remember bandwidth so don't do this
             && rig->caps->get_vfo != NULL
             && rig->caps->set_vfo != NULL) // gotta' have get_vfo too
