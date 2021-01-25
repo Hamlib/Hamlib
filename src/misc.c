@@ -57,6 +57,46 @@
 #include "misc.h"
 #include "serial.h"
 #include "network.h"
+#ifdef __APPLE__
+
+#if !HAVE_CLOCK_GETTIME
+
+#   include <mach/mach_time.h>
+#	ifndef __clockid_t_defined
+		typedef int clockid_t;
+		#define __clockid_t_defined 1
+#	endif  /* __clockid_t_defined */
+
+#	define CLOCK_REALTIME 0
+#	define CLOCK_MONOTONIC 6
+
+int clock_gettime(clockid_t clock_id, struct timespec* tp)
+{
+	if (clock_id == CLOCK_REALTIME) {
+		struct timeval t;
+		if (gettimeofday(&t, NULL) != 0)
+			return -1;
+		tp->tv_sec = t.tv_sec;
+		tp->tv_nsec = t.tv_usec * 1000;
+	}
+	else if (clock_id == CLOCK_MONOTONIC) {
+		static mach_timebase_info_data_t info = { 0, 0 };
+		if (info.denom == 0)
+			mach_timebase_info(&info);
+		uint64_t t = mach_absolute_time() * info.numer / info.denom;
+		tp->tv_sec = t / 1000000000;
+		tp->tv_nsec = t % 1000000000;
+	}
+	else {
+		errno = EINVAL;
+		return -1;
+	}
+
+	return 0;
+}
+#endif // !HAVE_CLOCK_GETTIME
+
+#endif // __APPLE__
 
 
 /**
