@@ -2129,6 +2129,7 @@ int kx3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         val->f = pwr;
         return retval;
     }
+
     case RIG_LEVEL_RFPOWER_METER_WATTS:
     {
         struct kenwood_priv_data *priv = rig->state.priv;
