@@ -1,5 +1,5 @@
 /*
- *  Hamlib Sat/El backend - main file
+ *  Hamlib SatEL backend - main file
  *  Copyright (c) 2021 Joshua Lynch
  *
  *
@@ -19,6 +19,7 @@
  *
  */
 
+#include "hamlib/rig.h"
 #include <strings.h>
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -32,6 +33,7 @@
 #include <ctype.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "hamlib/rotator.h"
 #include "serial.h"
@@ -41,13 +43,131 @@
 #include "satel.h"
 
 
-static int satel_rot_open(ROT *rot)
+/**
+ * Protocol documentation.
+ *
+ * Apparently, the system is modeled after this one:
+ * “An Inexpensive Az-El Rotator System”
+ *   "Dec, 1999, QST article by Jim Koehler, VE5FP
+ *
+ * '?' - returns 'SatEL\r\n'. a good test to see if there's
+ *       connectivity.
+ *
+ * 'g' - enable motion. nothing happens without this enabled.
+ *
+ * 'z' - display rotator status. contains current Az/El among other
+ *       things. here's an example:
+ *
+ *       Motion ENABLED
+ *       Mode 0 - azimuth break at NORTH
+ *       Time: 2001/00/00 00:00:07
+ *       Azimuth = 000     Absolute = 000
+ *       Elevation = 000
+ *
+ *       Number of stored positions: 00
+ *
+ *
+ * '*' - reset the rotator controller.
+ *
+ * 'pAZ EL\r\n' - tell the rotator where to point where AZ is the
+ *                integer azimuth and EL is the integer
+ *                elevation. e.g. 'p010 045\n'. the controller will
+ *                report the current pointing status after the
+ *                operation has completed.
+ *
+ * NOTE: The SatEL system changed a few commands as described in the
+ * user's manual. They are not used here. You can find the manual for
+ * this rotator here:
+ *
+ * http://www.codeposse.com/~jlynch/SatEL%20Az-EL.pdf
+ *
+ */
+
+/**
+ * Idiosyncrasies
+ *
+ * - the controller does zero input checking. you can put it into an
+ *   incredibly bad state very easily.
+ *
+ * - the controller doesn't accept any data whilst moving the
+ *   rotators. In fact, you can put the controller into a bad state on
+ *   occasion if you try and send it commands while its slewing the
+ *   rotators. this means we have a really long read timeout so we can
+ *   wait for the rotators to slew around before accepting any more
+ *   commands.
+ *
+ */
+
+
+
+#define BUF_SIZE 256
+
+
+typedef struct satel_stat satel_stat_t;
+struct satel_stat
 {
-    #define RES_BUF_SIZE 256
-    char buf[RES_BUF_SIZE];
+    bool   motion_enabled;
+    int    mode;
+    time_t time;
+    int    absolute;
+    int    az;
+    int    el;
+};
+
+
+static int satel_read_status(ROT *rot, satel_stat_t *stat)
+{
+    char resbuf[BUF_SIZE];
+    char *p;
     int ret;
     struct rot_state *rs;
 
+
+    rs = &rot->state;
+
+    
+    // XXX skip for now
+    for (int i = 0; i < 3; i++)
+    {
+        ret = read_string(&rs->rotport, resbuf, BUF_SIZE, "\n", 1);
+        if (ret < 0)
+            return ret;
+    }
+    
+    // read azimuth line
+    ret = read_string(&rs->rotport, resbuf, BUF_SIZE, "\n", 1);
+    if (ret < 0)
+        return ret;
+
+    p = resbuf + 10;
+    p[3] = '\0';
+    stat->az = (int)strtof(p, NULL);
+    
+    // read elevation line
+    ret = read_string(&rs->rotport, resbuf, BUF_SIZE, "\n", 1);
+    if (ret < 0)
+        return ret;
+
+    p = resbuf + 12;
+    p[3] = '\0';
+    stat->el = (int)strtof(p, NULL);
+    
+    // XXX skip for now
+    for (int i = 0; i < 2; i++)
+    {
+        ret = read_string(&rs->rotport, resbuf, BUF_SIZE, "\n", 1);
+        if (ret < 0)
+            return ret;
+    }
+
+    return RIG_OK;
+}
+
+
+static int satel_cmd(ROT *rot, char *cmd, int cmdlen, char *res, int reslen)
+{
+    int ret;
+    struct rot_state *rs;
 
     
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -57,135 +177,122 @@ static int satel_rot_open(ROT *rot)
 
     rig_flush(&rs->rotport);
 
-    // check if we're connected to the rotator
-    ret = write_block(&rs->rotport, "?", 1);
+    ret = write_block(&rs->rotport, cmd, cmdlen);
     if (ret != RIG_OK)
         return ret;
 
-    ret = read_string(&rs->rotport, buf, RES_BUF_SIZE, "\n", 1);
-    if (ret < 0)
-        return ret;
-
-    ret = strncasecmp("SatEL", buf, 5); 
-    if (ret != 0)
-        return RIG_EIO;
-
-    // yep, now enable motion
-    ret = write_block(&rs->rotport, "g", 1);
-    if (ret != RIG_OK)
-        return ret;
-
+    if (reslen > 0 && res != NULL)
+    {
+        ret = read_string(&rs->rotport, res, reslen, "\n", 1);
+        if (ret < 0)
+            return ret;
+    }
     
+
     return RIG_OK;
 }
 
+
+static int satel_rot_open(ROT *rot)
+{
+    char resbuf[BUF_SIZE];
+    int ret;
+
+    
+    
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+
+    // are we connected?
+    ret = satel_cmd(rot, "?", 1, resbuf, BUF_SIZE);
+    if (ret != RIG_OK)
+        return ret;
+
+    ret = strncasecmp("SatEL", resbuf, 5); 
+    if (ret != 0)
+        return -RIG_EIO;
+
+    // yep, reset system
+    ret = satel_cmd(rot, "*", 1, NULL, 0);
+    if (ret != RIG_OK)
+        return ret;
+
+    // enable motion
+    ret = satel_cmd(rot, "g", 1, NULL, 0);
+    if (ret != RIG_OK)
+        return ret;
+
+    return RIG_OK;
+}
+
+
 static int satel_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
-#define BUF_CMD_SIZE 20
-    char buf[BUF_CMD_SIZE];
-    struct rot_state *rs;
+    char cmdbuf[BUF_SIZE];
+    int ret;
+    satel_stat_t stat;
 
     
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %.2f %.2f\n", __func__,
               az, el);
 
     
-    rs = &rot->state;
-
-    rig_flush(&rs->rotport);
-
-    snprintf(buf, BUF_CMD_SIZE, "p%03d %03d\r\n", (int)az, (int)el);
-    return write_block(&rs->rotport, buf, strlen(buf));
-}
-
-static int satel_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
-{
-    #define RES_BUF_SIZE 256
-    char buf[RES_BUF_SIZE];
-    char *p;
-    int ret;
-    struct rot_state *rs;
-
-
-    
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    
-    rs = &rot->state;
-
-    rig_flush(&rs->rotport);
-    
-    ret = write_block(&rs->rotport, "z", 1);
+    snprintf(cmdbuf, BUF_SIZE, "p%d %d\r\n", (int)az, (int)el);
+    ret = satel_cmd(rot, cmdbuf, strlen(cmdbuf), NULL, 0);
     if (ret != RIG_OK)
         return ret;
 
-
-    // skip header information
-    for (int i = 0; i < 3; i++)
-    {
-        ret = read_string(&rs->rotport, buf, RES_BUF_SIZE, "\n", 1);
-        if (ret < 0)
-            return ret;
-    }
-
-    
-    // read azimuth line
-    ret = read_string(&rs->rotport, buf, RES_BUF_SIZE, "\n", 1);
+    // wait-for, read and discard the status message
+    ret = satel_read_status(rot, &stat);
     if (ret < 0)
         return ret;
-
-    p = buf + 10;
-    p[3] = '\0';
-    *az = strtof(p, NULL);
-
-    rig_debug(RIG_DEBUG_VERBOSE, "AZIMUTH %f[%s]", *az, p);
-    
-    
-    // read elevation line
-    ret = read_string(&rs->rotport, buf, RES_BUF_SIZE, "\n", 1);
-    if (ret < 0)
-        return ret;
-
-    p = buf + 12;
-    p[3] = '\0';
-    *el = strtof(p, NULL);
-
-    rig_debug(RIG_DEBUG_VERBOSE, "ELEVATION %f[%s]", *el, p);
-    
-    // skip trailer information
-    for (int i = 0; i < 2; i++)
-    {
-        ret = read_string(&rs->rotport, buf, RES_BUF_SIZE, "\n", 1);
-        if (ret < 0)
-            return ret;
-    }
     
 
     return RIG_OK;
 }
 
 
-static int satel_rot_stop(ROT *rot)
+static int satel_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
-    struct rot_state *rs;
+    int ret;
+    satel_stat_t stat;
 
     
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     
-    rs = &rot->state;
+    ret = satel_cmd(rot, "z", 1, NULL, 0);
+    if (ret != RIG_OK)
+        return ret;
 
-    rig_flush(&rs->rotport);
+    ret = satel_read_status(rot, &stat);
+    if (ret < 0)
+        return ret;
+
+    *az = stat.az;
+    *el = stat.el;
+
     
-    return write_block(&rs->rotport, "*", 1);
+    return RIG_OK;
 }
+
+
+static int satel_rot_stop(ROT *rot)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    // send reset command
+    return satel_cmd(rot, "*", 1, NULL, 0);
+}
+
 
 static const char *satel_rot_get_info(ROT *rot)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return "Satel rotator";
+    return "SatEL rotator";
 }
+
 
 /*
  * Satel rotator capabilities.
@@ -206,9 +313,9 @@ const struct rot_caps satel_rot_caps =
     .serial_stop_bits = 1,
     .serial_parity    = RIG_PARITY_NONE,
     .serial_handshake = RIG_HANDSHAKE_NONE,
-    .write_delay      = 250,
+    .write_delay      = 0,
     .post_write_delay = 0,
-    .timeout          = 1000,
+    .timeout          = 60000,
     .retry            = 0,
     .min_az           = 0.,
     .max_az           = 360.,

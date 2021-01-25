@@ -1,5 +1,5 @@
 /*
- *  Hamlib Sat/El backend - main header
+ *  Hamlib SatEL backend - main header
  *  Copyright (c) 2021 Joshua Lynch
  *
  *
