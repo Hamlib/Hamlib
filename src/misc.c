@@ -59,11 +59,11 @@
 #include "network.h"
 #ifdef __APPLE__
 
-#if !HAVE_CLOCK_GETTIME
+#ifndef HAVE_CLOCK_GETTIME
 
 #   include <mach/mach_time.h>
 #	ifndef __clockid_t_defined
-		typedef int clockid_t;
+		typedef enum clockid_t;
 		#define __clockid_t_defined 1
 #	endif  /* __clockid_t_defined */
 
