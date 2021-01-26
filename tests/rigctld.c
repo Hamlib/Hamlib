@@ -287,7 +287,7 @@ int main(int argc, char *argv[])
             exit(0);
 
         case 'V':
-            version();
+            printf("rigctl %s\nLast commit was %s\n", hamlib_version, HAMLIBDATETIME);
             exit(0);
 
         case 'm':
