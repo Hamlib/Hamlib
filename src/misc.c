@@ -60,22 +60,23 @@
 
 #ifdef __APPLE__
 
-#include <AvailabilityMacros.h>
+#include <time.h>
 
-#if AVAILABLE_MAC_OS_X_VERSION_10_8_AND_LATER
+#if !defined(CLOCK_REALTIME) && !defined(CLOCK_MONOTONIC)
+//
+// MacOS < 10.12 does not have clock_gettime
+//
+// Contribution from github user "ra1nb0w"
+//
 
-#else
-
-#   include <mach/mach_time.h>
-#    ifndef __clockid_t_defined
+#define CLOCK_REALTIME  0
+#define CLOCK_MONOTONIC 6
 typedef int clockid_t;
-#define __clockid_t_defined 1
-#    endif  /* __clockid_t_defined */
 
-#    define CLOCK_REALTIME 0
-#    define CLOCK_MONOTONIC 1
+#include <sys/time.h>
+#include <mach/mach_time.h>
 
-int clock_gettime(clockid_t clock_id, struct timespec *tp)
+static int clock_gettime(clockid_t clock_id, struct timespec *tp)
 {
     if (clock_id == CLOCK_REALTIME)
     {
