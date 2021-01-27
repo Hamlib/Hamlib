@@ -115,55 +115,6 @@ struct satel_stat
 };
 
 
-static int satel_read_status(ROT *rot, satel_stat_t *stat)
-{
-    char resbuf[BUF_SIZE];
-    char *p;
-    int ret;
-    struct rot_state *rs;
-
-
-    rs = &rot->state;
-
-    
-    // XXX skip for now
-    for (int i = 0; i < 3; i++)
-    {
-        ret = read_string(&rs->rotport, resbuf, BUF_SIZE, "\n", 1);
-        if (ret < 0)
-            return ret;
-    }
-    
-    // read azimuth line
-    ret = read_string(&rs->rotport, resbuf, BUF_SIZE, "\n", 1);
-    if (ret < 0)
-        return ret;
-
-    p = resbuf + 10;
-    p[3] = '\0';
-    stat->az = (int)strtof(p, NULL);
-    
-    // read elevation line
-    ret = read_string(&rs->rotport, resbuf, BUF_SIZE, "\n", 1);
-    if (ret < 0)
-        return ret;
-
-    p = resbuf + 12;
-    p[3] = '\0';
-    stat->el = (int)strtof(p, NULL);
-    
-    // XXX skip for now
-    for (int i = 0; i < 2; i++)
-    {
-        ret = read_string(&rs->rotport, resbuf, BUF_SIZE, "\n", 1);
-        if (ret < 0)
-            return ret;
-    }
-
-    return RIG_OK;
-}
-
-
 static int satel_cmd(ROT *rot, char *cmd, int cmdlen, char *res, int reslen)
 {
     int ret;
@@ -193,6 +144,82 @@ static int satel_cmd(ROT *rot, char *cmd, int cmdlen, char *res, int reslen)
 }
 
 
+static int satel_read_status(ROT *rot, satel_stat_t *stat)
+{
+    char resbuf[BUF_SIZE];
+    char *p;
+    int ret;
+    struct rot_state *rs;
+
+
+    rs = &rot->state;
+
+
+    
+    // read motion state
+    ret = read_string(&rs->rotport, resbuf, BUF_SIZE, "\n", 1);
+    if (ret < 0)
+        return ret;
+
+    stat->motion_enabled = strcmp(resbuf, "Motion ENABLED") == 0 ? true : false;
+
+    // XXX skip mode
+    ret = read_string(&rs->rotport, resbuf, BUF_SIZE, "\n", 1);
+    if (ret < 0)
+        return ret;
+
+    // XXX skip time
+    ret = read_string(&rs->rotport, resbuf, BUF_SIZE, "\n", 1);
+    if (ret < 0)
+        return ret;
+    
+    // read azimuth line
+    ret = read_string(&rs->rotport, resbuf, BUF_SIZE, "\n", 1);
+    if (ret < 0)
+        return ret;
+
+    p = resbuf + 10;
+    p[3] = '\0';
+    stat->az = (int)strtof(p, NULL);
+    
+    // read elevation line
+    ret = read_string(&rs->rotport, resbuf, BUF_SIZE, "\n", 1);
+    if (ret < 0)
+        return ret;
+
+    p = resbuf + 12;
+    p[3] = '\0';
+    stat->el = (int)strtof(p, NULL);
+    
+    // skip blank line
+    ret = read_string(&rs->rotport, resbuf, BUF_SIZE, "\n", 1);
+    if (ret < 0)
+        return ret;
+
+    // XXX skip stored position count
+    ret = read_string(&rs->rotport, resbuf, BUF_SIZE, "\n", 1);
+    if (ret < 0)
+        return ret;
+
+
+    return RIG_OK;
+}
+
+
+static int satel_get_status(ROT *rot, satel_stat_t *stat)
+{
+    int ret;
+
+    
+    ret = satel_cmd(rot, "z", 1, NULL, 0);
+    if (ret != RIG_OK)
+        return ret;
+
+
+    return satel_read_status(rot, stat);
+}
+
+
 static int satel_rot_open(ROT *rot)
 {
     char resbuf[BUF_SIZE];
@@ -217,11 +244,6 @@ static int satel_rot_open(ROT *rot)
     if (ret != RIG_OK)
         return ret;
 
-    // enable motion
-    ret = satel_cmd(rot, "g", 1, NULL, 0);
-    if (ret != RIG_OK)
-        return ret;
-
     return RIG_OK;
 }
 
@@ -236,6 +258,17 @@ static int satel_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %.2f %.2f\n", __func__,
               az, el);
 
+
+    ret = satel_get_status(rot, &stat);
+    if (ret < 0)
+        return ret;
+
+    if (stat.motion_enabled == false)
+    {
+        ret = satel_cmd(rot, "g", 1, NULL, 0);
+        if (ret != RIG_OK)
+            return ret;
+    }        
     
     snprintf(cmdbuf, BUF_SIZE, "p%d %d\r\n", (int)az, (int)el);
     ret = satel_cmd(rot, cmdbuf, strlen(cmdbuf), NULL, 0);
@@ -261,11 +294,7 @@ static int satel_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     
-    ret = satel_cmd(rot, "z", 1, NULL, 0);
-    if (ret != RIG_OK)
-        return ret;
-
-    ret = satel_read_status(rot, &stat);
+    ret = satel_get_status(rot, &stat);
     if (ret < 0)
         return ret;
 
