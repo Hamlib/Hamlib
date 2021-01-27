@@ -287,7 +287,7 @@ int main(int argc, char *argv[])
             exit(0);
 
         case 'V':
-            version();
+            printf("rigctl %s\nLast commit was %s\n", hamlib_version, HAMLIBDATETIME);
             exit(0);
 
         case 'm':
@@ -969,6 +969,32 @@ int main(int argc, char *argv[])
     return 0;
 }
 
+static FILE*get_fsockout(struct handle_data *handle_data_arg)
+{
+#ifdef __MINGW32__
+    int sock_osfhandle = _open_osfhandle(handle_data_arg->sock, _O_RDONLY);
+    return _fdopen(sock_osfhandle, "wb");
+#else
+    return fdopen(handle_data_arg->sock, "wb");
+#endif
+}
+
+static FILE* get_fsockin(struct handle_data *handle_data_arg)
+{
+#ifdef __MINGW32__
+    int sock_osfhandle = _open_osfhandle(handle_data_arg->sock, _O_RDONLY);
+
+    if (sock_osfhandle == -1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "_open_osfhandle error: %s\n", strerror(errno));
+        return NULL;
+    }
+
+    return _fdopen(sock_osfhandle,  "rb");
+#else
+    return fdopen(handle_data_arg->sock, "rb");
+#endif
+}
 
 /*
  * This is the function run by the threads
@@ -985,19 +1011,7 @@ void *handle_socket(void *arg)
     int ext_resp = 0;
     char resp_sep = '\n';
 
-#ifdef __MINGW32__
-    int sock_osfhandle = _open_osfhandle(handle_data_arg->sock, _O_RDONLY);
-
-    if (sock_osfhandle == -1)
-    {
-        rig_debug(RIG_DEBUG_ERR, "_open_osfhandle error: %s\n", strerror(errno));
-        goto handle_exit;
-    }
-
-    fsockin = _fdopen(sock_osfhandle,  "rb");
-#else
-    fsockin = fdopen(handle_data_arg->sock, "rb");
-#endif
+    fsockin = get_fsockin(handle_data_arg);
 
     if (!fsockin)
     {
@@ -1006,11 +1020,7 @@ void *handle_socket(void *arg)
         goto handle_exit;
     }
 
-#ifdef __MINGW32__
-    fsockout = _fdopen(sock_osfhandle, "wb");
-#else
-    fsockout = fdopen(handle_data_arg->sock, "wb");
-#endif
+    fsockout = get_fsockout(handle_data_arg);
 
     if (!fsockout)
     {
@@ -1055,7 +1065,7 @@ void *handle_socket(void *arg)
 
     do
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: vfo_mode=%d\n", __func__,
+        rig_debug(RIG_DEBUG_TRACE, "%s: doing rigctl_parse vfo_mode=%d\n", __func__,
                   handle_data_arg->vfo_mode);
         retcode = rigctl_parse(handle_data_arg->rig, fsockin, fsockout, NULL, 0,
                                sync_callback,
@@ -1063,24 +1073,42 @@ void *handle_socket(void *arg)
 
         if (retcode != 0) { rig_debug(RIG_DEBUG_ERR, "%s: rigctl_parse retcode=%d\n", __func__, retcode); }
 
+
+#if 0 // disabled -- don't think we need this
+
+        // see https://github.com/Hamlib/Hamlib/issues/516
         if (retcode == -1)
         {
             //sleep(1); // probably don't need this delay
-            continue;
+            //continue;
         }
 
-        if (ferror(fsockin) || ferror(fsockout))
+#endif
+
+        // if socket error or rigctld gets RIG_EIO we'll try to reopen
+        if (ferror(fsockin))
         {
+            rig_debug(RIG_DEBUG_ERR, "%s: sockin err=%s\n", __func__, strerror(errno));
+            RETURNFUNC(NULL);
+        }
+
+        if (ferror(fsockin) || ferror(fsockout) || retcode == 2)
+        {
+            if (ferror(fsockout)) fsockout = get_fsockout(handle_data_arg);
             rig_debug(RIG_DEBUG_ERR, "%s: socket error in=%d, out=%d\n", __func__,
                       ferror(fsockin), ferror(fsockout));
 
-            retcode = rig_close(my_rig);
-            rig_debug(RIG_DEBUG_ERR, "%s: rig_close retcode=%d\n", __func__, retcode);
-            retcode = rig_open(my_rig);
-            rig_debug(RIG_DEBUG_ERR, "%s: rig_open retcode=%d\n", __func__, retcode);
+            do
+            {
+                retcode = rig_close(my_rig);
+                hl_usleep(1000 * 1000);
+                rig_debug(RIG_DEBUG_ERR, "%s: rig_close retcode=%d\n", __func__, retcode);
+                retcode = rig_open(my_rig);
+                rig_debug(RIG_DEBUG_ERR, "%s: rig_open retcode=%d\n", __func__, retcode);
+            }
+            while (retcode != RIG_OK);
         }
     }
-
     while (retcode == 0 || retcode == 2 || retcode == -RIG_ENAVAIL);
 
 #ifdef HAVE_PTHREAD

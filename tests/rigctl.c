@@ -177,7 +177,7 @@ int main(int argc, char *argv[])
             exit(0);
 
         case 'V':
-            version();
+            printf("rigctl %s\nLast commit was %s\n", hamlib_version, HAMLIBDATETIME);
             exit(0);
 
         case 'm':
@@ -433,8 +433,7 @@ int main(int argc, char *argv[])
 
     rig_set_debug(verbose);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "rigctl %s\nLast commit was %s\n", hamlib_version,
-              HAMLIBDATETIME);
+    rig_debug(RIG_DEBUG_VERBOSE, "rigctl %s\nLast commit was %s\n", hamlib_version,HAMLIBDATETIME);
     rig_debug(RIG_DEBUG_VERBOSE, "%s",
               "Report bugs to <hamlib-developer@lists.sourceforge.net>\n\n");
 
@@ -614,6 +613,23 @@ int main(int argc, char *argv[])
         if (retcode == 2)
         {
             exitcode = 2;
+        }
+
+        rig_debug(RIG_DEBUG_ERR, "%s: XXXXXXXXX#1 retcode=%d\n", __func__, retcode); 
+        if (retcode == -RIG_EIO || retcode == 2)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: i/o error\n", __func__)
+
+            do
+            {
+                retcode = rig_close(my_rig);
+                hl_usleep(1000 * 1000);
+                rig_debug(RIG_DEBUG_ERR, "%s: rig_close retcode=%d\n", __func__, retcode);
+                retcode = rig_open(my_rig);
+                rig_debug(RIG_DEBUG_ERR, "%s: rig_open retcode=%d\n", __func__, retcode);
+            }
+            while (retcode != RIG_OK);
+
         }
     }
     while (retcode == 0 || retcode == 2 || retcode == -RIG_ENAVAIL);
