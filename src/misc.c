@@ -58,6 +58,63 @@
 #include "serial.h"
 #include "network.h"
 
+#ifdef __APPLE__
+
+#include <time.h>
+
+#if !defined(CLOCK_REALTIME) && !defined(CLOCK_MONOTONIC)
+//
+// MacOS < 10.12 does not have clock_gettime
+//
+// Contribution from github user "ra1nb0w"
+//
+
+#define CLOCK_REALTIME  0
+#define CLOCK_MONOTONIC 6
+typedef int clockid_t;
+
+#include <sys/time.h>
+#include <mach/mach_time.h>
+
+static int clock_gettime(clockid_t clock_id, struct timespec *tp)
+{
+    if (clock_id == CLOCK_REALTIME)
+    {
+        struct timeval t;
+
+        if (gettimeofday(&t, NULL) != 0)
+        {
+            return -1;
+        }
+
+        tp->tv_sec = t.tv_sec;
+        tp->tv_nsec = t.tv_usec * 1000;
+    }
+    else if (clock_id == CLOCK_MONOTONIC)
+    {
+        static mach_timebase_info_data_t info = { 0, 0 };
+
+        if (info.denom == 0)
+        {
+            mach_timebase_info(&info);
+        }
+
+        uint64_t t = mach_absolute_time() * info.numer / info.denom;
+        tp->tv_sec = t / 1000000000;
+        tp->tv_nsec = t % 1000000000;
+    }
+    else
+    {
+        errno = EINVAL;
+        return -1;
+    }
+
+    return 0;
+}
+
+#endif // !HAVE_CLOCK_GETTIME
+
+#endif // __APPLE__
 
 /**
  * \brief Convert from binary to 4-bit BCD digits, little-endian

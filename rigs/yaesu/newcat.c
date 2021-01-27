@@ -775,6 +775,18 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     target_vfo = 'A' == c ? '0' : '1';
 
+    // some rigs like FTDX101D cannot change non-TX vfo freq
+    // but they can change the TX vfo
+    if (is_ftdx101 && rig->state.cache.ptt == RIG_PTT_ON)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: ftdx101 check vfo OK, vfo=%s, tx_vfo=%s\n", __func__, rig_strvfo(vfo), rig_strvfo(rig->state.tx_vfo));
+        // when in split we can change VFOB but not VFOA
+        if (rig->state.cache.split == RIG_SPLIT_ON && target_vfo == '0') return -RIG_ENTARGET;
+        // when not in split we can't change VFOA at all
+        if (rig->state.cache.split == RIG_SPLIT_OFF && target_vfo == '0') return -RIG_ENTARGET;
+        if (vfo != rig->state.tx_vfo) return -RIG_ENTARGET;
+    }
+
     if (rig->state.cache.ptt ==
             RIG_PTT_ON) // we have a few rigs that can't set TX VFO while PTT_ON
     {
@@ -6687,6 +6699,7 @@ ncboolean newcat_is_rig(RIG *rig, rig_model_t model)
 
 /*
  * newcat_set_tx_vfo does not set priv->curr_vfo
+ * does set rig->state.tx_vfo
  */
 int newcat_set_tx_vfo(RIG *rig, vfo_t tx_vfo)
 {
@@ -6762,9 +6775,10 @@ int newcat_set_tx_vfo(RIG *rig, vfo_t tx_vfo)
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", command, p1, cat_term);
 
-    rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
+    rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s, vfo=%s\n", priv->cmd_str, rig_strvfo(tx_vfo));
 
-    /* Set TX VFO */
+    rig->state.tx_vfo = tx_vfo;
+
     RETURNFUNC(newcat_set_cmd(rig));
 }
 

@@ -181,7 +181,7 @@ const struct rig_caps k3_caps =
     RIG_MODEL(RIG_MODEL_K3),
     .model_name =       "K3",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".2",
+    .version =      BACKEND_VER ".3",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -1584,7 +1584,7 @@ static int k3_get_maxpower(RIG *rig)
 {
     int retval;
     int maxpower = 12; // K3 default power level
-    char levelbuf[16];
+    char levelbuf[KENWOOD_MAX_BUF_LEN];
     struct kenwood_priv_data *priv = rig->state.priv;
 
     // default range is 0-12 if there is no KPA3 installed
@@ -2127,6 +2127,24 @@ int kx3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
 
         val->f = pwr;
+        return retval;
+    }
+
+    case RIG_LEVEL_RFPOWER_METER_WATTS:
+    {
+        struct kenwood_priv_data *priv = rig->state.priv;
+        char levelbuf[KENWOOD_MAX_BUF_LEN];
+        int pwr;
+
+        retval = kenwood_safe_transaction(rig, "PO", levelbuf, sizeof(levelbuf), 5);
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        sscanf(levelbuf + 2, "%d", &pwr);
+        val->f = priv->has_kpa100 ? pwr : pwr / 10.0;
         return retval;
     }
     }
