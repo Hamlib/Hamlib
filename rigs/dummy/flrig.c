@@ -404,8 +404,6 @@ static int read_transaction(RIG *rig, char *xml, int xml_len)
 
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
 
-    rs->rigport.timeout = 1000; // 1 second read string timeout
-
     retry = 2;
     delims = "\n";
     xml[0] = 0;
