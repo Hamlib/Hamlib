@@ -713,10 +713,10 @@ int HAMLIB_API read_string(hamlib_port_t *p,
 
                 dump_hex((unsigned char *) rxbuffer, total_count);
                 rig_debug(RIG_DEBUG_WARN,
-                          "%s(): Timed out %d.%d seconds after %d chars\n",
+                          "%s(): Timed out %d.%03d seconds after %d chars\n",
                           __func__,
                           (int)elapsed_time.tv_sec,
-                          (int)elapsed_time.tv_usec,
+                          (int)elapsed_time.tv_usec/1000,
                           total_count);
 
                 return -RIG_ETIMEOUT;
