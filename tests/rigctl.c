@@ -615,7 +615,6 @@ int main(int argc, char *argv[])
             exitcode = 2;
         }
 
-        rig_debug(RIG_DEBUG_ERR, "%s: XXXXXXXXX#1 retcode=%d\n", __func__, retcode); 
         if (retcode == -RIG_EIO || retcode == 2)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: i/o error\n", __func__)
