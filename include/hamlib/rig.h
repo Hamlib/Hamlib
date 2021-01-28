@@ -24,6 +24,8 @@
 #ifndef _RIG_H
 #define _RIG_H 1
 
+#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+
 #include <stdio.h>
 #include <stdarg.h>
 #include <inttypes.h>
