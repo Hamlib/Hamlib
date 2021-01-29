@@ -2855,11 +2855,13 @@ extern HAMLIB_EXPORT(int)
 rig_need_debug HAMLIB_PARAMS((enum rig_debug_level_e debug_level));
 
 
-
+#define DEBUGMSGSAVE_SIZE 16384
+extern char debugmsgsave[DEBUGMSGSAVE_SIZE];  // last debug msg
 #ifndef __cplusplus
 #ifdef __GNUC__
 // doing the debug macro with a dummy sprintf allows gcc to check the format string
-#define rig_debug(debug_level,fmt,...) { char xxxbuf[16384]="";snprintf(xxxbuf,sizeof(xxxbuf),fmt,__VA_ARGS__);rig_debug(debug_level,fmt,##__VA_ARGS__); }
+//#define rig_debug(debug_level,fmt,...) { char xxxbuf[16384]="";snprintf(xxxbuf,sizeof(xxxbuf),fmt,__VA_ARGS__);rig_debug(debug_level,fmt,##__VA_ARGS__); }
+#define rig_debug(debug_level,fmt,...) { snprintf(debugmsgsave,sizeof(debugmsgsave),fmt,__VA_ARGS__);rig_debug(debug_level,fmt,##__VA_ARGS__); }
 #endif
 #endif
 extern HAMLIB_EXPORT(void)
