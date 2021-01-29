@@ -207,7 +207,7 @@ transaction_write:
     retval = read_string(&rs->rotport, data, data_len, CR, strlen(CR));
 
     // some models seem to echo -- so we'll check and read again if echoed
-    if (strcmp(data, cmdstr)==0)
+    if (strcmp(data, cmdstr) == 0)
     {
         memset(data, 0, data_len);
         retval = read_string(&rs->rotport, data, data_len, CR, strlen(CR));
