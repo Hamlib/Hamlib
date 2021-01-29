@@ -1911,7 +1911,8 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     /*
      * modebuf should contain Cn,Data area
      */
-    mode_len--;
+    // when mode gets here it should be 2 or 1
+    // mode_len--;
 
     if (mode_len != 2 && mode_len != 1)
     {
