@@ -290,6 +290,8 @@ int foreach_opened_rig(int (*cfunc)(RIG *, rig_ptr_t), rig_ptr_t data)
  *
  * \todo support gettext/localization
  */
+char debugmsgsave[DEBUGMSGSAVE_SIZE];
+
 const char *HAMLIB_API rigerror(int errnum)
 {
     errnum = abs(errnum);
@@ -300,7 +302,9 @@ const char *HAMLIB_API rigerror(int errnum)
         return "ERR_OUT_OF_RANGE";
     }
 
-    return rigerror_table[errnum];
+    static char msg[20000];
+    snprintf(msg, sizeof(msg), "%s\n%s", rigerror_table[errnum], debugmsgsave);
+    return msg;
 }
 
 // We use a couple of defined pointer to determine if the shared library changes
@@ -474,7 +478,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     if (rs->tx_range_list[0].startf == 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: rig does not have tx_range!!\n", __func__);
-        RETURNFUNC(NULL);
+        //RETURNFUNC(NULL); // this is not fatal
     }
 
 #if 0 // this is no longer applicable -- replace it with something?
