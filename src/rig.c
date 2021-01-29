@@ -471,9 +471,9 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
                sizeof(struct freq_range_list)*FRQRANGESIZ);
     }
 
-    if (rs->tx_range_list == NULL)
+    if (rs->tx_range_list[0].startf == 0)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig does not have rx_range!!\n", __func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig does not have tx_range!!\n", __func__);
         RETURNFUNC(NULL);
     }
 
