@@ -7064,7 +7064,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int err;
-    int w;
+    int w = 0;
     char main_sub_vfo = '0';
 
     ENTERFUNC;
