@@ -2855,7 +2855,8 @@ extern HAMLIB_EXPORT(int)
 rig_need_debug HAMLIB_PARAMS((enum rig_debug_level_e debug_level));
 
 
-#define DEBUGMSGSAVE_SIZE 16384
+// this need to be fairly big to avoid compiler warnings
+#define DEBUGMSGSAVE_SIZE 24000
 extern char debugmsgsave[DEBUGMSGSAVE_SIZE];  // last debug msg
 #ifndef __cplusplus
 #ifdef __GNUC__
