@@ -2857,7 +2857,7 @@ rig_need_debug HAMLIB_PARAMS((enum rig_debug_level_e debug_level));
 
 // this need to be fairly big to avoid compiler warnings
 #define DEBUGMSGSAVE_SIZE 24000
-extern char debugmsgsave[DEBUGMSGSAVE_SIZE];  // last debug msg
+extern HAMLIB_EXPORT_VAR(char) debugmsgsave[DEBUGMSGSAVE_SIZE];  // last debug msg
 #ifndef __cplusplus
 #ifdef __GNUC__
 // doing the debug macro with a dummy sprintf allows gcc to check the format string
