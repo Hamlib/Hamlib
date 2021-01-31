@@ -290,7 +290,7 @@ int foreach_opened_rig(int (*cfunc)(RIG *, rig_ptr_t), rig_ptr_t data)
  *
  * \todo support gettext/localization
  */
-char debugmsgsave[DEBUGMSGSAVE_SIZE];
+char debugmsgsave[DEBUGMSGSAVE_SIZE] = "No message";
 
 const char *HAMLIB_API rigerror(int errnum)
 {
@@ -302,8 +302,8 @@ const char *HAMLIB_API rigerror(int errnum)
         return "ERR_OUT_OF_RANGE";
     }
 
-    static char msg[20000];
-    snprintf(msg, sizeof(msg), "%s\n%s", rigerror_table[errnum], debugmsgsave);
+    static char msg[25000];
+    snprintf(msg, sizeof(msg), "%80s\n%15000s", rigerror_table[errnum], debugmsgsave);
     return msg;
 }
 
