@@ -74,8 +74,9 @@
 // Borrowed from FLRig -- Thanks to Dave W1HKJ
 #define FTDX101D_RFPOWER_METER_CAL \
     { \
-        5, \
+        6, \
         { \
+            {0, 0.0f}, \
             {35, 5.0f}, \
             {94, 25.0f}, \
             {147, 50.0f}, \
