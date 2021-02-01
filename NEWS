@@ -7,23 +7,24 @@ Copyright (C) 2000-2020  Michael Black W9MDB, and others
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 Version 4.1
-    * rigctld and rigs should be more robust for disconnect problemsy
-    * Several fixes for Icom and Yaesu rigs
-    * Nobody should need to use rig->caps or rig->state anymore
-        If you need a variable added please contact us.
-        Note that rig->state abstraction is not implemented yet...no need known
-    * New rig_get_caps_int and rig_get_caps_cptr functions to replace using caps-> values
-    * New rig_get_function to replace using caps-> function pointers
-    * Fix shared library problem with WSJTX, JTDX, and JS8Call
-    * New model Barrett 950
+        2021-01-31
+        * rigctld and rigs should be more robust for disconnect problems
+        * Several fixes for Icom and Yaesu rigs
+        * Nobody should need to use rig->caps or rig->state anymore
+             If you need a variable added please contact us.
+             Note that rig->state abstraction is not implemented yet...no need known
+        * New rig_get_caps_int and rig_get_caps_cptr functions to replace using caps-> values
+        * New rig_get_function to replace using caps-> function pointers
+        * Fix shared library problem with WSJTX, JTDX, and JS8Call
+        * New model Barrett 950
 
 Version 4.0
         2020-11-29
         * API/ABI changes, advance ABI to 4 0 0.
         * Add GPIO and GPION options for DCD.  Jeroen Vreeken
         * New backend: ELAD FDM DUO.  Giovanni, HB9EIK.
-    * New RIG_LEVEL_RFPOWER_METER_WATTS level
-    * All channel functions now take a vfo argument
+        * New RIG_LEVEL_RFPOWER_METER_WATTS level
+        * All channel functions now take a vfo argument
 	* New rotator backend: iOptron. Bob, KD8CGH
 	* New model: Icom IC-R8600.  Ekki, DF4OR
 	* New utility: rigctlcom.  Mike, W9MDB
@@ -43,7 +44,7 @@ Version 4.0
         * New rig backend for Elecraft K4.
         * New rig backend for PowerSDR (Flex and Apache users).
         * Many fixes and enhancements.  Mike, W9MDB and many contributors
-    * PTT port is no longer shared by default, use --set-conf=ptt_share=1 to enable
+        * PTT port is no longer shared by default, use --set-conf=ptt_share=1 to enable
 
 Version 3.3
         2018-08-12
