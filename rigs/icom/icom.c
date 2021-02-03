@@ -704,7 +704,7 @@ int icom_get_usb_echo_off(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     // reduce the retry here so it's quicker
-    rs->rigport.retry = 1;
+    rs->rigport.retry = 0;
     // Check for echo on first
     priv->serial_USB_echo_off = 0;
 
