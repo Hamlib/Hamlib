@@ -6231,6 +6231,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
         retval =
             icom_transaction(rig, C_SET_PWR, pwr_sc, NULL, 0, ackbuf, &ack_len);
         rs->rigport.retry = retry;
+        hl_usleep(3000*1000); // give it 3 seconds to wake up
 
         break;
 
