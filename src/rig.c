@@ -303,6 +303,9 @@ const char *HAMLIB_API rigerror(int errnum)
     }
 
     static char msg[25000];
+    // we have to remove LF from debugmsgsave since calling function controls LF
+    char *p = &debugmsgsave[strlen(debugmsgsave)-1];
+    if (*p=='\n') *p=0;
     snprintf(msg, sizeof(msg), "%.80s\n%.15000s", rigerror_table[errnum], debugmsgsave);
     return msg;
 }
