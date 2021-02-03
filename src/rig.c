@@ -303,7 +303,7 @@ const char *HAMLIB_API rigerror(int errnum)
     }
 
     static char msg[25000];
-    snprintf(msg, sizeof(msg), "%80s\n%15000s", rigerror_table[errnum], debugmsgsave);
+    snprintf(msg, sizeof(msg), "%.80s\n%.15000s", rigerror_table[errnum], debugmsgsave);
     return msg;
 }
 
@@ -1573,7 +1573,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
         if (retcode != RIG_OK)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: set_vfo err %s\n", __func__, rigerror(retcode));
+            rig_debug(RIG_DEBUG_ERR, "%s: set_vfo err %.10000s\n", __func__, rigerror(retcode));
             RETURNFUNC(retcode);
         }
 
@@ -2257,7 +2257,7 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
     }
     else
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: set_vfo %s failed with '%s'\n", __func__,
+        rig_debug(RIG_DEBUG_ERR, "%s: set_vfo %s failed with '%.10000s'\n", __func__,
                   rig_strvfo(vfo), rigerror(retcode));
     }
 
@@ -2266,7 +2266,7 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
     if (retcode == RIG_OK && caps->get_freq)
     {
         retcode = caps->get_freq(rig, vfo, &curr_freq);
-        rig_debug(RIG_DEBUG_TRACE, "%s: retcode from rig_get_freq = %s\n", __func__,
+        rig_debug(RIG_DEBUG_TRACE, "%s: retcode from rig_get_freq = %.10000s\n", __func__,
                   rigerror(retcode));
     }
     else // don't expire cache if we just read it
@@ -2351,7 +2351,7 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
 
     if (retcode != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: returning %d(%s)\n", __func__, retcode,
+        rig_debug(RIG_DEBUG_ERR, "%s: returning %d(%.10000s)\n", __func__, retcode,
                   rigerror(retcode));
     }
 
