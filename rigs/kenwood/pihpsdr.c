@@ -1117,7 +1117,7 @@ int pihpsdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return -RIG_ERJCTED;
         }
 
-        sscanf(lvlbuf + 3, "%d", &lvl);
+        sscanf(lvlbuf + 2, "%d", &lvl);
         val->f = lvl / 100.0; /* FIXME: for 1.2GHZ need to divide by 10 */
         break;
 
