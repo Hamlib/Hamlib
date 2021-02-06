@@ -995,15 +995,11 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             {
                 rig_debug(RIG_DEBUG_TRACE, "%s: debug7\n", __func__);
 
-#if 0 // was printing Reply: twice
-
                 if (prompt)
                 {
                     rig_debug(RIG_DEBUG_TRACE, "%s: debug8\n", __func__);
                     fprintf_flush(fout, "%s: ", cmd_entry->arg2);
                 }
-
-#endif
 
                 if (scanfc(fin, "%s", arg2) < 1)
                 {
