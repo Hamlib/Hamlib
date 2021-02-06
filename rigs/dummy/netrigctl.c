@@ -215,7 +215,11 @@ static int netrigctl_open(RIG *rig)
     len = sprintf(cmd, "\\chk_vfo\n");
     ret = netrigctl_transaction(rig, cmd, len, buf);
 
-    if (ret == 2)
+    if (sscanf(buf,"CHKVFO %d", &priv->rigctld_vfo_mode)==1)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: chkvfo=%d\n", __func__, priv->rigctld_vfo_mode);
+    }
+    else if (ret == 2)
     {
         if (buf[0]) { sscanf(buf, "%d", &priv->rigctld_vfo_mode); }
     }
@@ -2284,7 +2288,7 @@ struct rig_caps netrigctl_caps =
     RIG_MODEL(RIG_MODEL_NETRIGCTL),
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
-    .version =        "20210108.0",
+    .version =        "20210204.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
