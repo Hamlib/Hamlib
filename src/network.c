@@ -216,7 +216,7 @@ int network_open(hamlib_port_t *rp, int default_port)
 
     if (status == 0 && res->ai_family == AF_INET6)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: Using IPV6\n", __func__);
+        rig_debug(RIG_DEBUG_TRACE, "%s: Using IPV6\n", __func__);
         //inet_pton(AF_INET6, hoststr, &h_addr.sin6_addr);
     }
 
