@@ -2159,6 +2159,9 @@ int rig_get_caps_int(rig_model_t rig_model, enum rig_caps_int_e rig_caps)
     case RIG_CAPS_PORT_TYPE:
         return caps->port_type;
 
+    case RIG_CAPS_HAS_GET_LEVEL:
+        return caps->has_get_level;
+
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: Unknown rig_caps value=%d\n", __func__, rig_caps);
         return -RIG_EINVAL;
