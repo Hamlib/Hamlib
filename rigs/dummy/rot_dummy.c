@@ -43,6 +43,8 @@
         ROT_STATUS_MOVING_EL | ROT_STATUS_MOVING_UP | ROT_STATUS_MOVING_DOWN | \
         ROT_STATUS_LIMIT_UP | ROT_STATUS_LIMIT_DOWN | ROT_STATUS_LIMIT_LEFT | ROT_STATUS_LIMIT_RIGHT)
 
+static int simulating = 0;  // do we need rotator emulation for debug?
+
 struct dummy_rot_priv_data
 {
     azimuth_t az;
@@ -251,10 +253,17 @@ static int dummy_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %.2f %.2f\n", __func__,
               az, el);
 
-    priv->target_az = az;
-    priv->target_el = el;
+    if (simulating)
+    {
+        priv->target_az = az;
+        priv->target_el = el;
+        gettimeofday(&priv->tv, NULL);
+    }
+    else {
+        priv->az = az;
+        priv->el = el;
+    }
 
-    gettimeofday(&priv->tv, NULL);
 
     return RIG_OK;
 }
@@ -341,7 +350,7 @@ static int dummy_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (priv->az == priv->target_az &&
+    if (simulating && priv->az == priv->target_az &&
             priv->el == priv->target_el)
     {
         *az = priv->az;
@@ -349,7 +358,10 @@ static int dummy_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
         return RIG_OK;
     }
 
-    dummy_rot_simulate_rotation(rot);
+    if (simulating) 
+    {
+        dummy_rot_simulate_rotation(rot);
+    }
 
     *az = priv->az;
     *el = priv->el;
@@ -886,7 +898,7 @@ static int dummy_rot_get_status(ROT *rot, rot_status_t *status)
     struct dummy_rot_priv_data *priv = (struct dummy_rot_priv_data *)
                                        rot->state.priv;
 
-    dummy_rot_simulate_rotation(rot);
+    //dummy_rot_simulate_rotation(rot);
 
     *status = priv->status;
 
@@ -902,7 +914,7 @@ const struct rot_caps dummy_rot_caps =
     ROT_MODEL(ROT_MODEL_DUMMY),
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
-    .version =        "20201203.0",
+    .version =        "20210207.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_AZEL,
