@@ -5554,6 +5554,9 @@ const char *HAMLIB_API rig_get_info(RIG *rig)
  * \brief get freq/mode/width for requested VFO
  * \param rig   The rig handle
  * \param vfo   The VFO to get
+ * \param *freq frequency answer
+ * \param *mode mode answer
+ * \param *width bandwidth answer
  *
  *  Gets the current VFO information. The VFO can be RIG_VFO_A, RIG_VFO_B, RIG_VFO_C
  *  for VFOA, VFOB, VFOC respectively or RIG_VFO_MEM for Memory mode.
