@@ -5550,6 +5550,37 @@ const char *HAMLIB_API rig_get_info(RIG *rig)
     RETURNFUNC(rig->caps->get_info(rig));
 }
 
+/**
+ * \brief get freq/mode/width for requested VFO
+ * \param rig   The rig handle
+ * \param vfo   The VFO to get
+ *
+ *  Gets the current VFO information. The VFO can be RIG_VFO_A, RIG_VFO_B, RIG_VFO_C
+ *  for VFOA, VFOB, VFOC respectively or RIG_VFO_MEM for Memory mode.
+ *  Supported VFOs depends on rig capabilities.
+ *
+ * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case use rigerror(return)
+ * for error message).
+ *
+ */
+int HAMLIB_API rig_get_vfo_info(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode, pbwidth_t *width)
+{
+    int retcode;
+
+    ENTERFUNC;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__, rig_strvfo(vfo));
+
+    if (CHECK_RIG_ARG(rig))
+    {
+        RETURNFUNC(-RIG_EINVAL);
+    }
+
+    retcode = rig_get_freq(rig,vfo,freq);
+    if (retcode != RIG_OK) RETURNFUNC(retcode);
+    retcode = rig_get_mode(rig,vfo,mode,width);
+    RETURNFUNC(retcode);
+}
 
 /**
  * \brief get the Hamlib license
