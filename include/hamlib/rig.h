@@ -1950,7 +1950,8 @@ enum rig_caps_int_e {
     RIG_CAPS_TARGETABLE_VFO,
     RIG_CAPS_RIG_MODEL,
     RIG_CAPS_PORT_TYPE,
-    RIG_CAPS_PTT_TYPE
+    RIG_CAPS_PTT_TYPE,
+    RIG_CAPS_HAS_GET_LEVEL
 };
 
 enum rig_caps_cptr_e {
