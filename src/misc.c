@@ -2140,8 +2140,13 @@ void *rig_get_function_ptr(rig_model_t rig_model,
 }
 
 // negative return indicates error
-// watch out for integer values that may be negative
-int rig_get_caps_int(rig_model_t rig_model, enum rig_caps_int_e rig_caps)
+/**
+ * \brief Get integer/long instead of using rig->caps
+ *  watch out for integer values that may be negative -- if needed must change hamlib
+ * \param RIG* and rig_caps_int_e
+ * \return the corresponding long value -- -RIG_EINVAL is the only error possible
+ */
+long rig_get_caps_int(rig_model_t rig_model, enum rig_caps_int_e rig_caps)
 {
     const struct rig_caps *caps = rig_get_caps(rig_model);
 

@@ -1966,7 +1966,7 @@ enum rig_caps_cptr_e {
  *
  */
 //! @cond Doxygen_Suppress
-extern int rig_get_caps_int(rig_model_t rig_model, enum rig_caps_int_e rig_caps);
+extern long rig_get_caps_int(rig_model_t rig_model, enum rig_caps_int_e rig_caps);
 
 /**
  * \brief Function to return char pointer value from rig->caps
@@ -2307,6 +2307,10 @@ rig_set_vfo HAMLIB_PARAMS((RIG *rig,
 extern HAMLIB_EXPORT(int)
 rig_get_vfo HAMLIB_PARAMS((RIG *rig,
                            vfo_t *vfo));
+
+extern HAMLIB_EXPORT(int)
+rig_get_vfo_info HAMLIB_PARAMS((RIG *rig,
+                           vfo_t vfo, freq_t *freq, rmode_t *mode, pbwidth_t *width));
 
 extern HAMLIB_EXPORT(int)
 netrigctl_get_vfo_mode HAMLIB_PARAMS((RIG *rig));
@@ -2784,6 +2788,11 @@ rig_set_vfo_callback HAMLIB_PARAMS((RIG *,
                                     rig_ptr_t));
 
 extern HAMLIB_EXPORT(int)
+rig_get_vfo_info_callback HAMLIB_PARAMS((RIG *,
+                                          vfo_cb_t,
+                                          rig_ptr_t));
+
+extern HAMLIB_EXPORT(int)
 rig_set_ptt_callback HAMLIB_PARAMS((RIG *,
                                     ptt_cb_t,
                                     rig_ptr_t));
@@ -2944,6 +2953,7 @@ extern HAMLIB_EXPORT(int) rig_get_cache_timeout_ms(RIG *rig, hamlib_cache_t sele
 extern HAMLIB_EXPORT(int) rig_set_cache_timeout_ms(RIG *rig, hamlib_cache_t selection, int ms);
 
 extern HAMLIB_EXPORT(int) rig_set_vfo_opt(RIG *rig, int status);
+extern HAMLIB_EXPORT(int) rig_get_vfo_info(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode, pbwidth_t *width);
 
 
 typedef unsigned long rig_useconds_t;
