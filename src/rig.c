@@ -1394,13 +1394,10 @@ static int set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
         elapsed_ms(&rig->state.cache.time_freqMainB, HAMLIB_ELAPSED_SET);
         break;
 
-#if 0
-
     case RIG_VFO_C: // is there a MainC/SubC we need to cover?
         rig->state.cache.freqMainC = freq;
         elapsed_ms(&rig->state.cache.time_freqMainC, HAMLIB_ELAPSED_SET);
         break;
-#endif
 
     case RIG_VFO_SUB_A:
         rig->state.cache.freqSubA = freq;
@@ -1410,6 +1407,11 @@ static int set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
     case RIG_VFO_SUB_B:
         rig->state.cache.freqSubB = freq;
         elapsed_ms(&rig->state.cache.time_freqSubB, HAMLIB_ELAPSED_SET);
+        break;
+
+    case RIG_VFO_MEM:
+        rig->state.cache.freqMem = freq;
+        elapsed_ms(&rig->state.cache.time_freqMem, HAMLIB_ELAPSED_SET);
         break;
 
     default:
@@ -1460,19 +1462,23 @@ static int get_cache_freq(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms)
         *cache_ms = elapsed_ms(&rig->state.cache.time_freqSubB, HAMLIB_ELAPSED_GET);
         break;
 
-#if 0 // future
-
     case RIG_VFO_C:
-    case RIG_VFO_MAINC:
+    //case RIG_VFO_MAINC: // not used by any rig yet
         *freq = rig->state.cache.freqMainC;
-        *cache_ms = rig->state.cache.time_freqMainC;
+        *cache_ms = elapsed_ms(&rig->state.cache.time_freqMainC, HAMLIB_ELAPSED_GET);
         break;
 
+#if 0 // no known rigs use this yet
     case RIG_VFO_SUBC:
         *freq = rig->state.cache.freqSubC;
         *cache_ms = rig->state.cache.time_freqSubC;
         break;
 #endif
+
+    case RIG_VFO_MEM:
+        *freq = rig->state.cache.freqMem;
+        *cache_ms = elapsed_ms(&rig->state.cache.time_freqMem, HAMLIB_ELAPSED_GET);
+        break;
 
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unknown vfo?, vfo=%s\n", __func__,
