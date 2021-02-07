@@ -260,8 +260,8 @@ static int dummy_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
         gettimeofday(&priv->tv, NULL);
     }
     else {
-        priv->az = az;
-        priv->el = el;
+        priv->az = priv->target_az = az;
+        priv->el = priv->target_az = el;
     }
 
 
@@ -898,7 +898,10 @@ static int dummy_rot_get_status(ROT *rot, rot_status_t *status)
     struct dummy_rot_priv_data *priv = (struct dummy_rot_priv_data *)
                                        rot->state.priv;
 
-    //dummy_rot_simulate_rotation(rot);
+    if (simulating)
+    {
+        dummy_rot_simulate_rotation(rot);
+    }
 
     *status = priv->status;
 
