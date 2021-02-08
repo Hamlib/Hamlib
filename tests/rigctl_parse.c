@@ -840,7 +840,10 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
         {
             if (interactive)
             {
-                if (prompt)
+                arg1[0] = fgetc(fin);
+                arg1[1] = 0;
+
+                if (prompt && arg1[0] == 0x0a)
                 {
                     fprintf_flush(fout, "VFO: ");
                 }
@@ -945,19 +948,18 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
             if (interactive)
             {
-                int c = fgetc(fin);
-                rig_debug(RIG_DEBUG_TRACE, "%s: debug4 c=%02x\n", __func__, c);
+                int index = 1;
+                arg1[0] = fgetc(fin);
+                arg1[1] = 0;
+                rig_debug(RIG_DEBUG_TRACE, "%s: debug4 arg1=%c\n", __func__, arg1[0]);
 
-                if (prompt && c == 0x0a)
+                if (prompt && arg1[0] == 0x0a)
                 {
                     fprintf_flush(fout, "%s: ", cmd_entry->arg1);
-                }
-                else
-                {
-                    ungetc(c, fin);
+                    index = 0;
                 }
 
-                if (scanfc(fin, "%s", arg1) < 1)
+                if (scanfc(fin, "%s", &arg1[index]) < 1)
                 {
                     rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#8?\n", __func__);
                     return -1;
