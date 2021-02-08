@@ -2,6 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2012 by Stephane Fillod
  *  Copyright (c) 2000-2003 by Frank Singleton
+ *  Copyright (C) 2019-2020 by Michael Black
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -30,16 +31,21 @@
  * \brief Amplifier interface
  * \author Stephane Fillod
  * \date 2000-2012
+ * \author Frank Singleton
+ * \date 2000-2003
+ * \author Michael Black
+ * \date 2019-2020
  *
- * Hamlib interface is a frontend implementing amplifier wrapper functions.
+ * This Hamlib interface is a frontend implementing the amplifier wrapper
+ * functions.
  */
 
 
 /**
  * \page amp Amplifier interface
  *
- * Amplifier can be any kind of azimuth or azimuth and elevation controlled
- * antenna system.
+ * An amplifier can be any kind of external power amplifier that is capable of
+ * CAT type control.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -163,14 +169,14 @@ int foreach_opened_amp(int (*cfunc)(AMP *, rig_ptr_t), rig_ptr_t data)
 
 
 /**
- * \brief allocate a new #AMP handle
- * \param amp_model The amp model for this new handle
+ * \brief Allocate a new #AMP handle
+ * \param amp_model The amplifier model for this new handle
  *
  * Allocates a new #AMP handle and initializes the associated data
- * for \a amp_model.
+ * for \a amp_model (see amplist.h or `ampctl -l`).
  *
- * \return a pointer to the #AMP handle otherwise NULL if memory allocation
- * failed or \a amp_model is unknown (e.g. backend autoload failed).
+ * \return Pointer to the #AMP handle otherwise NULL if memory allocation
+ * failed or \a amp_model is unknown, e.g. backend autoload failed.
  *
  * \sa amp_cleanup(), amp_open()
  */
@@ -273,17 +279,17 @@ AMP *HAMLIB_API amp_init(amp_model_t amp_model)
 
 
 /**
- * \brief open the communication to the amp
- * \param amp   The #AMP handle of the amplifier to be opened
+ * \brief Open the communication channel to the amplifier.
+ * \param amp The #AMP handle of the amplifier to be opened
  *
- * Opens communication to a amplifier which \a AMP handle has been passed
- * by argument.
+ * Opens the communication channel to an amplifier for which the #AMP handle
+ * has been passed.
  *
- * \return RIG_OK if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
+ * \return RIG_OK if the operation has been successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
  *
- * \retval RIG_EINVAL   \a amp is NULL or inconsistent.
+ * \retval RIG_OK Communication channel succesfully opened.
+ * \retval RIG_EINVAL \a amp is NULL or inconsistent.
  *
  * \sa amp_init(), amp_close()
  */
@@ -407,15 +413,18 @@ int HAMLIB_API amp_open(AMP *amp)
 
 
 /**
- * \brief close the communication to the amp
- * \param amp   The #AMP handle of the amplifier to be closed
+ * \brief Close the communication channel to the amplifier.
+ * \param amp The #AMP handle of the amplifier to be closed.
  *
- * Closes communication to a amplifier which \a AMP handle has been passed
- * by argument that was previously open with amp_open().
+ * Closes the communication channel to an amplifier for which the #AMP
+ * handle has been passed by argument that was previously opened with
+ * amp_open().
  *
- * \return RIG_OK if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
+ * \return RIG_OK if the operation has been successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK Communication channel successfully closed.
+ * \retval RIG_EINVAL \a amp is NULL or inconsistent.
  *
  * \sa amp_cleanup(), amp_open()
  */
@@ -486,15 +495,17 @@ int HAMLIB_API amp_close(AMP *amp)
 
 
 /**
- * \brief release a amp handle and free associated memory
- * \param amp   The #AMP handle of the radio to be closed
+ * \brief Release an #AMP handle and free associated memory.
+ * \param amp The #AMP handle to be released.
  *
- * Releases a amp struct which port has eventually been closed already
- * with amp_close().
+ * Releases an #AMP handle for which the communications channel has been
+ * closed with amp_close().
  *
- * \return RIG_OK if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
+ * \return RIG_OK if the operation has been successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK #AMP handle successfully released.
+ * \retval RIG_EINVAL \a amp is NULL or inconsistent.
  *
  * \sa amp_init(), amp_close()
  */
@@ -528,17 +539,20 @@ int HAMLIB_API amp_cleanup(AMP *amp)
     return RIG_OK;
 }
 
+
 /**
- * \brief reset the amplifier
- * \param amp   The amp handle
- * \param reset The reset operation to perform
+ * \brief Reset the amplifier
+ * \param amp   The #AMP handle
+ * \param reset The reset operation to perform.
  *
- *  Resets the amplifier.
+ *  Perform a reset of the amplifier.
  *
- * \return RIG_OK if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
+ * \return RIG_OK if the operation has been successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
  *
+ * \retval RIG_OK The reset command was successful.
+ * \retval RIG_EINVAL \a amp is NULL or inconsistent.
+ * \retval RIG_ENAVAIL amp_caps#reset() capability is not available.
  */
 int HAMLIB_API amp_reset(AMP *amp, amp_reset_t reset)
 {
@@ -560,9 +574,24 @@ int HAMLIB_API amp_reset(AMP *amp, amp_reset_t reset)
 
     return caps->reset(amp, reset);
 }
-//! @endcond
 
-//! @cond Doxygen_Suppress
+
+/**
+ * \brief Query the operating frequency of the amplifier.
+ * \param amp The #AMP handle.
+ * \param freq The variable to store the operating frequency.
+ *
+ * Retrieves the operating frequency from the amplifier.
+ *
+ * \return RIG_OK if the operation was successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK The query was successful.
+ * \retval RIG_EINVAL \a amp is NULL or inconsistent.
+ * \retval RIG_ENAVAIL amp_caps#get_freq() capability is not available.
+ *
+ * \sa amp_set_freq()
+ */
 int HAMLIB_API amp_get_freq(AMP *amp, freq_t *freq)
 {
     const struct amp_caps *caps;
@@ -583,9 +612,25 @@ int HAMLIB_API amp_get_freq(AMP *amp, freq_t *freq)
 
     return caps->get_freq(amp, freq);
 }
-//! @endcond
 
-//! @cond Doxygen_Suppress
+
+/**
+ * \brief Set the operating frequency of the amplifier.
+ * \param amp The #AMP handle.
+ * \param freq The operating frequency.
+ *
+ * Set the operating frequency of the amplifier.  Depending on the amplifier
+ * this may simply set the bandpass filters, etc.
+ *
+ * \return RIG_OK if the operation was successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK Setting the frequency was successful.
+ * \retval RIG_EINVAL \a amp is NULL or inconsistent.
+ * \retval RIG_ENAVAIL amp_caps#set_freq() capability is not available.
+ *
+ * \sa amp_get_freq()
+ */
 int HAMLIB_API amp_set_freq(AMP *amp, freq_t freq)
 {
     const struct amp_caps *caps;
@@ -606,18 +651,18 @@ int HAMLIB_API amp_set_freq(AMP *amp, freq_t freq)
 
     return caps->set_freq(amp, freq);
 }
-//! @endcond
+
 
 /**
- * \brief get general information from the amplifier
- * \param amp   The amp handle
+ * \brief Query general information from the amplifier.
+ * \param amp The #AMP handle.
  *
- * Retrieves some general information from the amplifier.
- * This can include firmware revision, exact model name, or just nothing.
+ * Retrieves some general information from the amplifier.  This can include
+ * firmware revision, exact model name, or just nothing.
  *
- * \return a pointer to static memory containing the ASCIIZ string
- * if the operation has been successful, otherwise NULL if an error occurred
- * or get_info not part of capabilities.
+ * \return A pointer to static memory containing an ASCII nul terminated
+ * string (C string) if the operation has been successful, otherwise NULL if
+ * an error occurred or the amp_caps#get_info() capability is not available.
  */
 const char *HAMLIB_API amp_get_info(AMP *amp)
 {
@@ -636,7 +681,24 @@ const char *HAMLIB_API amp_get_info(AMP *amp)
     return amp->caps->get_info(amp);
 }
 
-//! @cond Doxygen_Suppress
+
+/**
+ * \brief Query the value of a requested level.
+ * \param amp The #AMP handle.
+ * \param level The requested level.
+ * \param val The variable to store the \a level value.
+ *
+ * Query the \a val corresponding to the \a level.
+ *
+ * \return RIG_OK if the operation was successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK The query was successful.
+ * \retval RIG_EINVAL \a amp is NULL or inconsistent.
+ * \retval RIG_ENAVAIL amp_caps#get_level() capability is not available.
+ *
+ * \sa amp_get_ext_level()
+ */
 int HAMLIB_API amp_get_level(AMP *amp, setting_t level, value_t *val)
 {
     amp_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -653,9 +715,25 @@ int HAMLIB_API amp_get_level(AMP *amp, setting_t level, value_t *val)
 
     return amp->caps->get_level(amp, level, val);
 }
-//! @endcond
 
-//! @cond Doxygen_Suppress
+
+/**
+ * \brief Query the value of a requested extra level token.
+ * \param amp The #AMP handle.
+ * \param level The requested extra level token.
+ * \param val The variable to store the extra \a level token value.
+ *
+ * Query the \a val corresponding to the extra \a level token.
+ *
+ * \return RIG_OK if the operation was successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK The query was successful.
+ * \retval RIG_EINVAL \a amp is NULL or inconsistent.
+ * \retval RIG_ENAVAIL amp_caps#get_ext_level() capability is not available.
+ *
+ * \sa amp_get_level()
+ */
 int HAMLIB_API amp_get_ext_level(AMP *amp, token_t level, value_t *val)
 {
     amp_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -672,24 +750,26 @@ int HAMLIB_API amp_get_ext_level(AMP *amp, token_t level, value_t *val)
 
     return amp->caps->get_ext_level(amp, level, val);
 }
-//! @endcond
+
 
 /**
- * \brief turn on/off the amplifier or standby/operate toggle
- * \param amp   The amp handle
- * \param status    The status to set to
+ * \brief Turn the amplifier On or Off or toggle the Standby or Operate status.
+ * \param amp The #AMP handle
+ * \param status The #powerstat_t setting.
  *
- * turns on/off the amplifier.
- * See #RIG_POWER_ON, #RIG_POWER_OFF and #RIG_POWER_STANDBY #RIG_POWER_OPERATE defines
- * for the \a status.
+ * Turns the amplifier On or Off or toggles the Standby or Operate status.
+ * See #RIG_POWER_ON, #RIG_POWER_OFF and #RIG_POWER_OPERATE,
+ * #RIG_POWER_STANDBY for the value of \a status.
  *
- * \return RIG_OK if the operation has been successful, ortherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
+ * \return RIG_OK if the operation was successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK The requested power/standby state was successful.
+ * \retval RIG_EINVAL \a amp is NULL or inconsistent.
+ * \retval RIG_ENAVAIL amp_caps#set_powerstat() capability is not available.
  *
  * \sa amp_get_powerstat()
  */
-
 int HAMLIB_API amp_set_powerstat(AMP *amp, powerstat_t status)
 {
     amp_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -707,7 +787,25 @@ int HAMLIB_API amp_set_powerstat(AMP *amp, powerstat_t status)
     return amp->caps->set_powerstat(amp, status);
 }
 
-//! @cond Doxygen_Suppress
+
+/**
+ * \brief Query the power or standby status of the amplifier.
+ * \param amp The #AMP handle.
+ * \param status The variable to store the amplifier \a status.
+ *
+ * Query the amplifier's power or standby condition.  The value stored in
+ * \a status will be one of #RIG_POWER_ON, #RIG_POWER_OFF and
+ * #RIG_POWER_OPERATE, #RIG_POWER_STANDBY, or #RIG_POWER_UNKNOWN.
+ *
+ *\return RIG_OK if the query was successful, otherwise a **negative value**
+ * if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK Querying the power/standby state was successful.
+ * \retval RIG_EINVAL \a amp is NULL or inconsistent.
+ * \retval RIG_ENAVAIL amp_caps#get_powerstat() capability is not available.
+ *
+ * \sa amp_set_powerstat()
+ */
 int HAMLIB_API amp_get_powerstat(AMP *amp, powerstat_t *status)
 {
     amp_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -724,7 +822,6 @@ int HAMLIB_API amp_get_powerstat(AMP *amp, powerstat_t *status)
 
     return amp->caps->get_powerstat(amp, status);
 }
-//! @endcond
 
 
 /*! @} */
