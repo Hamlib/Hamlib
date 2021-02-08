@@ -109,7 +109,7 @@ static const struct confparams ampfrontend_serial_cfg_params[] =
     { RIG_CONF_END, NULL, }
 };
 
-
+//! @cond Doxygen_Suppress
 /**
  * \brief Set amplifier state info from alpha input
  * \param amp
@@ -295,8 +295,10 @@ int frontamp_set_conf(AMP *amp, token_t token, const char *val)
 
     return RIG_OK;
 }
+//! @endcond
 
 
+//! @cond Doxygen_Suppress
 /**
  * \brief Get data from amplifier state in alpha form
  * \param amp non-null
@@ -430,6 +432,7 @@ int frontamp_get_conf(AMP *amp, token_t token, char *val)
 
     return RIG_OK;
 }
+//! @endcond
 
 
 #ifdef XXREMOVEDXXC
@@ -489,13 +492,20 @@ int HAMLIB_API amp_token_foreach(AMP *amp,
 
 
 /**
- * \brief lookup conf token by its name, return pointer to confparams struct.
- * \param amp
- * \param name
- * \return confparams or NULL
+ * \brief Query an amplifier configuration parameter token by its name.
+ * \param amp The #AMP handle.
+ * \param name Configuration parameter token name (C string).
  *
- * lookup backend config table first, then fall back to frontend.
- * TODO: should use Lex to speed it up, strcmp hurts!
+ * Use this function to get a pointer to the token in the #confparams
+ * structure.  Searches the backend config params table first, then falls back
+ * to the frontend config params table.
+ *
+ * TODO: Should use Lex to speed it up, strcmp() hurts!
+ *
+ * \return A pointer to the token in the #confparams structure or NULL if #AMP
+ * is invalid or token not found (how can the caller know which occurred?).
+ *
+ * \sa amp_token_lookup()
  */
 const struct confparams *HAMLIB_API amp_confparam_lookup(AMP *amp,
         const char *name)
@@ -545,10 +555,16 @@ const struct confparams *HAMLIB_API amp_confparam_lookup(AMP *amp,
 
 
 /**
- * \brief Simple lookup returning token id associated with name
- * \param amp
- * \param name
- * \return token enum
+ * \brief Search for the token ID associated with an amplifier configuration parameter token name.
+ * \param amp The #AMP handle.
+ * \param name Configuration parameter token name (C string).
+ *
+ * Searches the backend and frontend configuration parameters tables for the
+ * token ID.
+ *
+ * \return The token ID value or RIG_CONF_END if the lookup failed.
+ *
+ * \sa amp_confparam_lookup()
  */
 token_t HAMLIB_API amp_token_lookup(AMP *amp, const char *name)
 {
@@ -568,16 +584,19 @@ token_t HAMLIB_API amp_token_lookup(AMP *amp, const char *name)
 
 
 /**
- * \brief set a amplifier configuration parameter
- * \param amp   The amp handle
- * \param token The parameter
- * \param val   The value to set the parameter to
+ * \brief Set an amplifier configuration parameter.
+ * \param amp   The #AMP handle.
+ * \param token The token of the parameter to set.
+ * \param val   The value to set the parameter to.
  *
- *  Sets a configuration parameter.
+ *  Sets an amplifier configuration parameter to \a val.
  *
- * \return RIG_OK if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
+ * \return RIG_OK if the operation has been successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK The parameter was set successfully.
+ * \retval RIG_EINVAL The #AMP handle or token was invalid.
+ * \retval RIG_ENAVAIL amp_caps#set_conf() capability is not available.
  *
  * \sa amp_get_conf()
  */
@@ -620,16 +639,19 @@ int HAMLIB_API amp_set_conf(AMP *amp, token_t token, const char *val)
 
 
 /**
- * \brief get the value of a configuration parameter
- * \param amp   The amp handle
- * \param token The parameter
- * \param val   The location where to store the value of config \a token
+ * \brief Query the value of an amplifier configuration parameter.
+ * \param amp   The #AMP handle.
+ * \param token The token of the parameter to query.
+ * \param val   The location where to store the value of configuration \a token.
  *
  *  Retrieves the value of a configuration parameter associated with \a token.
  *
- * \return RIG_OK if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
+ * \return RIG_OK if the operation has been successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK Querying the parameter was successful.
+ * \retval RIG_EINVAL The #AMP handle was invalid.
+ * \retval RIG_ENAVAIL amp_caps#get_conf() capability is not available.
  *
  * \sa amp_set_conf()
  */
