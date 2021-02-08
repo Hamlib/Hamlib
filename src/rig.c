@@ -1625,7 +1625,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
         if (freq_new != freq)
         {
-            rig_debug(RIG_DEBUG_TRACE, "%s: Asked freq=%.0fg, got freq=%.0fg\n", __func__,
+            rig_debug(RIG_DEBUG_TRACE, "%s: Asked freq=%.0f, got freq=%.0f\n", __func__,
                       freq,
                       freq_new);
         }
