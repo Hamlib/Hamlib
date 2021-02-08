@@ -1,20 +1,7 @@
-/**
- * \addtogroup amplifier
- * @{
- */
-
-/**
- * \file amp_settings.c
- * \brief amplifiter func/level/parm interface
- * \author Stephane Fillod
- * \date 2000-2010
- *
- * Hamlib interface is a frontend implementing wrapper functions.
- */
-
 /*
  *  Hamlib Interface - amplifier func/level/parm
  *  Copyright (c) 2000-2010 by Stephane Fillod
+ *  Copyright (c) 2020 by Mikael Nousiainen
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -33,6 +20,23 @@
  *
  */
 
+
+/**
+ * \addtogroup amplifier
+ * @{
+ */
+
+/**
+ * \file amp_settings.c
+ * \brief amplifiter func/level/parm interface
+ * \author Stephane Fillod
+ * \date 2000-2010
+ * \author Mikael Nousiainen
+ * \date 2020
+ *
+ * Hamlib interface is a frontend implementing wrapper functions.
+ */
+
 #ifdef HAVE_CONFIG_H
 #  include "config.h"
 #endif
@@ -44,17 +48,17 @@
 
 
 /**
- * \brief check retrieval ability of level settings
- * \param amp   The amp handle
- * \param level The level settings
+ * \brief Check retrieval ability of level settings.
+ * \param amp   The #AMP handle.
+ * \param level The level settings to check.
  *
- *  Checks if an amp is capable of *getting* a level setting.
- *  Since the \a level is an OR'ed bitwise argument, more than
- *  one level can be checked at the same time.
+ *  Checks if an amplifier is capable of *getting* a level setting.  Since the
+ *  \a level is an OR'ed bitwise argument, more than one level can be checked
+ *  at the same time.
  *
- *  EXAMPLE: if (amp_has_get_level(my_amp, AMP_LVL_SWR)) disp_SWR();
+ *  EXAMPLE: \code if (amp_has_get_level(my_amp, AMP_LVL_SWR)) disp_SWR();\endcode
  *
- * \return a bit map of supported level settings that can be retrieved,
+ * \return A bit map of supported level settings that can be retrieved,
  * otherwise 0 if none supported.
  *
  * \sa amp_has_set_level(), amp_get_level()
