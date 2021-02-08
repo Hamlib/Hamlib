@@ -1839,6 +1839,30 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     RETURNFUNC(retcode);
 }
 
+/**
+ * \brief get the frequency of VFOA and VFOB
+ * \param rig   The rig handle
+ * \param freqA  The location where to store the VFOA/Main frequency
+ * \param freqB  The location where to store the VFOB/Sub frequency
+ *
+ *  Retrieves the frequency of  VFOA/Main and VFOB/Sub
+ *  The value stored at \a freq location equals RIG_FREQ_NONE when the current
+ *  frequency of the VFO is not defined (e.g. blank memory).
+ *
+ * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
+ * set appropriately).
+ *
+ * \sa rig_set_freq()
+ */
+int HAMLIB_API rig_get_freqs(RIG *rig, freq_t *freqA, freq_t freqB)
+{
+    // we will attempt to avoid vfo swapping in this routine
+
+    return -RIG_ENIMPL;
+
+}
+
 
 /**
  * \brief set the mode of the target VFO

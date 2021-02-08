@@ -787,20 +787,17 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         if (vfo != rig->state.tx_vfo) return -RIG_ENTARGET;
     }
 
-    ptt_t ptt;
-    if (RIG_OK != (err = newcat_get_ptt(rig, vfo, &ptt)))
+    if (is_ftdx3000 || is_ftdx5000)
     {
-        ERRMSG(err, "newcat_set_cmd failed");
-        RETURNFUNC(err);
-    }
+        // we have a few rigs that can't set freq while PTT_ON
+        ptt_t ptt;
+        if (RIG_OK != (err = newcat_get_ptt(rig, vfo, &ptt)))
+        {
+            ERRMSG(err, "newcat_set_cmd failed");
+            RETURNFUNC(err);
+        }
 
-    if (ptt == RIG_PTT_ON) // we have a few rigs that can't set TX VFO while PTT_ON
-    {
-        // should be true whether we're on VFOA or VFOB but only restricting VFOB right now
-        // we return RIG_OK as we dont' want
-        if (is_ftdx3000) { return RIG_ENTARGET; }
-
-        if (is_ftdx5000) { return RIG_ENTARGET; }
+        if (ptt) { return RIG_ENTARGET; }
     }
 
     if (RIG_MODEL_FT450 == caps->rig_model)
