@@ -2077,7 +2077,9 @@ struct rig_cache {
     freq_t freqCurr;  // VFO_CURR
     freq_t freqMainA; // VFO_A, VFO_MAIN, and VFO_MAINA
     freq_t freqMainB; // VFO_B, VFO_SUB, and VFO_MAINB
+#if 0
     freq_t freqMainC; // VFO_C, VFO_MAINC
+#endif
     freq_t freqSubA;  // VFO_SUBA -- only for rigs with dual Sub VFOs
     freq_t freqSubB;  // VFO_SUBB -- only for rigs with dual Sub VFOs
     freq_t freqMem;   // VFO_MEM -- last MEM channel 
@@ -2093,7 +2095,9 @@ struct rig_cache {
     struct timespec time_freqCurr;
     struct timespec time_freqMainA;
     struct timespec time_freqMainB;
+#if 0
     struct timespec time_freqMainC;
+#endif
     struct timespec time_freqSubA;
     struct timespec time_freqSubB;
     struct timespec time_freqMem;
