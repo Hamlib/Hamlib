@@ -21,7 +21,8 @@ INPUT            = @top_srcdir@/doc/index.doxygen \
                     @top_srcdir@/include/hamlib/ \
                     @top_srcdir@/src/
 
-EXCLUDE          = @top_srcdir@/src/amp_conf.h
+EXCLUDE          = @top_srcdir@/src/amp_conf.h \
+                   @top_srcdir@/include/hamlib/ampclass.h
 
 INCLUDE_PATH     = @top_srcdir@/include
 
