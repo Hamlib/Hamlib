@@ -442,6 +442,10 @@ typedef unsigned int vfo_t;
 
 /** \brief \c Flag to set if VFO can transmit */
 #define RIG_VFO_TX_FLAG     RIG_VFO_N(30)
+
+/** \brief \c Flag to set all VFOS */
+#define RIG_VFO_ALL     RIG_VFO_N(31)
+
 // we and also use RIG_VFO_N(31) if needed
 
 // Misc VFO Macros
