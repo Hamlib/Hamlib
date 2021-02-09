@@ -260,7 +260,7 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data,
     {
         int cache_age_ms;
 
-        cache_age_ms = elapsed_ms(&priv->cache_start, 0);
+        cache_age_ms = elapsed_ms(&priv->cache_start, HAMLIB_ELAPSED_GET);
 
         if (cache_age_ms < 500) // 500ms cache time
         {
@@ -548,7 +548,7 @@ transaction_quit:
     // update the cache
     if (retval == RIG_OK && strcmp(cmdstr, "IF") == 0)
     {
-        elapsed_ms(&priv->cache_start, 1);
+        elapsed_ms(&priv->cache_start, HAMLIB_ELAPSED_SET);
         strncpy(priv->last_if_response, buffer, caps->if_len);
     }
 
@@ -613,10 +613,12 @@ int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
         if (checklen && length != expected) /* worth retrying as some rigs
                                    occasionally send short results */
         {
+            struct kenwood_priv_data *priv = rig->state.priv;
             rig_debug(RIG_DEBUG_ERR,
                       "%s: wrong answer; len for cmd %s: expected = %d, got %d\n",
                       __func__, cmd, (int)expected, (int)length);
             err =  -RIG_EPROTO;
+            elapsed_ms(&priv->cache_start, HAMLIB_ELAPSED_INVALIDATE);
             hl_usleep(50 * 1000); // let's do a short wait
         }
     }
