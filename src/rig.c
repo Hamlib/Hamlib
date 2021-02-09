@@ -1377,6 +1377,14 @@ static int set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     switch (vfo)
     {
+    case RIG_VFO_ALL: // we'll use NONE to reset all VFO caches
+        elapsed_ms(&rig->state.cache.time_freqCurr, HAMLIB_ELAPSED_INVALIDATE);
+        elapsed_ms(&rig->state.cache.time_freqMainA, HAMLIB_ELAPSED_INVALIDATE);
+        elapsed_ms(&rig->state.cache.time_freqMainB, HAMLIB_ELAPSED_INVALIDATE);
+        elapsed_ms(&rig->state.cache.time_freqSubA, HAMLIB_ELAPSED_INVALIDATE);
+        elapsed_ms(&rig->state.cache.time_freqSubB, HAMLIB_ELAPSED_INVALIDATE);
+        elapsed_ms(&rig->state.cache.time_freqMem, HAMLIB_ELAPSED_INVALIDATE);
+        break;
     case RIG_VFO_CURR:
         rig->state.cache.freqCurr = freq;
         elapsed_ms(&rig->state.cache.time_freqCurr, HAMLIB_ELAPSED_SET);
@@ -1622,6 +1630,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
            )
         {
             elapsed_ms(&rig->state.cache.time_freq, HAMLIB_ELAPSED_INVALIDATE);
+            set_cache_freq(rig, RIG_VFO_ALL, (freq_t)0);
             retcode = rig_get_freq(rig, vfo, &freq_new);
 
             if (retcode != RIG_OK) { RETURNFUNC(retcode); }
