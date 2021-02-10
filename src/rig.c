@@ -1371,7 +1371,13 @@ static int set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_debug(RIG_DEBUG_TRACE, "%s:  vfo=%s, current_vfo=%s\n", __func__,
               rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
 
-    if (vfo == RIG_VFO_CURR) { vfo = rig->state.current_vfo; }
+    if (vfo == RIG_VFO_CURR) 
+    { 
+        // if CURR then update this before we figure out the real VFO
+        rig->state.cache.freqCurr = freq;
+        elapsed_ms(&rig->state.cache.time_freqCurr, HAMLIB_ELAPSED_SET);
+        vfo = rig->state.current_vfo; 
+    }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: set vfo=%s to freq=%.0f\n", __func__, rig_strvfo(vfo), freq);
 
