@@ -729,6 +729,10 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                         return -1;
                     }
 
+#if 1
+                    fscanf(fin, "%s", ++pcmd);
+                    while(*++pcmd);
+#else
                     while (c_len-- && (isalnum(*pcmd) || *pcmd == '_'))
                     {
                         if (scanfc(fin, "%c", ++pcmd) < 1)
@@ -737,6 +741,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                             return -1;
                         }
                     }
+#endif
 
                     *pcmd = '\0';
                     cmd = parse_arg((char *)cmd_name);
