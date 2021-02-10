@@ -291,6 +291,7 @@ int foreach_opened_rig(int (*cfunc)(RIG *, rig_ptr_t), rig_ptr_t data)
  * \todo support gettext/localization
  */
 char debugmsgsave[DEBUGMSGSAVE_SIZE] = "No message";
+char debugmsgsave2[DEBUGMSGSAVE_SIZE] = "No message";
 
 const char *HAMLIB_API rigerror(int errnum)
 {
@@ -302,11 +303,11 @@ const char *HAMLIB_API rigerror(int errnum)
         return "ERR_OUT_OF_RANGE";
     }
 
-    static char msg[25000];
+    static char msg[DEBUGMSGSAVE_SIZE*2];
     // we have to remove LF from debugmsgsave since calling function controls LF
     char *p = &debugmsgsave[strlen(debugmsgsave)-1];
     if (*p=='\n') *p=0;
-    snprintf(msg, sizeof(msg), "%.80s\n%.15000s", rigerror_table[errnum], debugmsgsave);
+    snprintf(msg, sizeof(msg), "%.80s\n%.15000s\n%.15000s", rigerror_table[errnum], debugmsgsave2, debugmsgsave);
     return msg;
 }
 
@@ -1604,7 +1605,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
         if (retcode != RIG_OK)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: set_vfo err %.10000s\n", __func__, rigerror(retcode));
+            rig_debug(RIG_DEBUG_ERR, "%s: set_vfo(%s) err %.10000s\n", __func__, rig_strvfo(vfo), rigerror(retcode));
             RETURNFUNC(retcode);
         }
 
@@ -5636,6 +5637,27 @@ int HAMLIB_API rig_get_vfo_info(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode
     if (retcode != RIG_OK) RETURNFUNC(retcode);
     retcode = rig_get_mode(rig,vfo,mode,width);
     RETURNFUNC(retcode);
+}
+
+/**
+ * \brief get list of available vfos 
+ * \param rig   The rig handle
+ *
+ * Retrieves all usable vfo entries for the rig
+ *
+ * \return a pointer to a string, e.g. "VFOA VFOB Mem"
+ * if the operation has been successful, otherwise NULL if an error occurred
+ */
+const char *HAMLIB_API rig_get_vfo_list(RIG *rig)
+{
+    ENTERFUNC;
+
+    if (CHECK_RIG_ARG(rig))
+    {
+        RETURNFUNC(NULL);
+    }
+
+    RETURNFUNC(RIG_OK);
 }
 
 /**

@@ -167,6 +167,7 @@ declare_proto_rig(get_mode);
 declare_proto_rig(set_vfo);
 declare_proto_rig(get_vfo);
 declare_proto_rig(get_vfo_info);
+declare_proto_rig(get_vfo_list);
 declare_proto_rig(set_ptt);
 declare_proto_rig(get_ptt);
 declare_proto_rig(get_ptt);
@@ -332,6 +333,7 @@ static struct test_table test_list[] =
     { 0xf0, "chk_vfo",          ACTION(chk_vfo),        ARG_NOVFO, "ChkVFO" },   /* rigctld only--check for VFO mode */
     { 0xf2, "set_vfo_opt",      ACTION(set_vfo_opt),    ARG_NOVFO | ARG_IN, "Status" }, /* turn vfo option on/off */
     { 0xf3, "get_vfo_info",     ACTION(get_vfo_info),   ARG_NOVFO | ARG_IN1 | ARG_OUT3, "VFO", "Freq", "Mode", "Width" }, /* turn vfo option on/off */
+    { 0xf4,  "get_vfo_list",    ACTION(get_vfo_list),       ARG_OUT | ARG_NOVFO, "VFOs" },
     { 0xf1, "halt",             ACTION(halt),           ARG_NOVFO },   /* rigctld only--halt the daemon */
     { 0x8c, "pause",            ACTION(pause),          ARG_IN, "Seconds" },
     { 0x00, "", NULL },
@@ -721,7 +723,6 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 if (cmd == '\\')
                 {
                     unsigned char cmd_name[MAXNAMSIZ], *pcmd = cmd_name;
-                    int c_len = MAXNAMSIZ;
 
                     if (scanfc(fin, "%c", pcmd) < 1)
                     {
@@ -729,19 +730,8 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                         return -1;
                     }
 
-#if 1
                     fscanf(fin, "%s", ++pcmd);
                     while(*++pcmd);
-#else
-                    while (c_len-- && (isalnum(*pcmd) || *pcmd == '_'))
-                    {
-                        if (scanfc(fin, "%c", ++pcmd) < 1)
-                        {
-                            rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#5?\n", __func__);
-                            return -1;
-                        }
-                    }
-#endif
 
                     *pcmd = '\0';
                     cmd = parse_arg((char *)cmd_name);
@@ -2161,6 +2151,10 @@ declare_proto_rig(set_vfo)
 
 #endif
 
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: set_vfo(%s) failed, requested %s\n", __func__, rig_strvfo(vfo), arg1);
+    }
     return retval;
 }
 
@@ -2219,6 +2213,23 @@ declare_proto_rig(get_vfo_info)
         fprintf(fout,"%.0f\n%s\n%d\n", freq, rig_strrmode(mode), (int)width);
     }
     RETURNFUNC(retval);
+}
+
+/* '\get_vfo_list' */
+declare_proto_rig(get_vfo_list)
+{
+    static char prntbuf[256];
+
+    rig_sprintf_vfo(prntbuf, rig->state.vfo_list);
+
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
+        fprintf(fout, "%s: ", cmd->arg1);
+    }
+
+    fprintf(fout, "%s%c", prntbuf[0] ? prntbuf : "None", ext_resp);
+
+    return RIG_OK;
 }
 
 
