@@ -28,6 +28,7 @@
 
 #include <stdio.h>
 #include <stdarg.h>
+#include <string.h>
 #include <inttypes.h>
 #include <time.h>
 
@@ -2322,6 +2323,9 @@ extern HAMLIB_EXPORT(int)
 rig_get_vfo_info HAMLIB_PARAMS((RIG *rig,
                            vfo_t vfo, freq_t *freq, rmode_t *mode, pbwidth_t *width));
 
+extern HAMLIB_EXPORT(const char *)
+rig_get_vfo_list HAMLIB_PARAMS((RIG *rig));
+
 extern HAMLIB_EXPORT(int)
 netrigctl_get_vfo_mode HAMLIB_PARAMS((RIG *rig));
 
@@ -2829,7 +2833,6 @@ extern HAMLIB_EXPORT(int)
 rig_set_uplink HAMLIB_PARAMS((RIG *rig,
                                  int val));
 
-
 extern HAMLIB_EXPORT(const char *)
 rig_get_info HAMLIB_PARAMS((RIG *rig));
 
@@ -2878,11 +2881,12 @@ rig_need_debug HAMLIB_PARAMS((enum rig_debug_level_e debug_level));
 // this need to be fairly big to avoid compiler warnings
 #define DEBUGMSGSAVE_SIZE 24000
 extern HAMLIB_EXPORT_VAR(char) debugmsgsave[DEBUGMSGSAVE_SIZE];  // last debug msg
+extern HAMLIB_EXPORT_VAR(char) debugmsgsave2[DEBUGMSGSAVE_SIZE];  // last-1 debug msg
 #ifndef __cplusplus
 #ifdef __GNUC__
 // doing the debug macro with a dummy sprintf allows gcc to check the format string
 //#define rig_debug(debug_level,fmt,...) { char xxxbuf[16384]="";snprintf(xxxbuf,sizeof(xxxbuf),fmt,__VA_ARGS__);rig_debug(debug_level,fmt,##__VA_ARGS__); }
-#define rig_debug(debug_level,fmt,...) { snprintf(debugmsgsave,sizeof(debugmsgsave),fmt,__VA_ARGS__);rig_debug(debug_level,fmt,##__VA_ARGS__); }
+#define rig_debug(debug_level,fmt,...) { strcpy(debugmsgsave2, debugmsgsave);snprintf(debugmsgsave,sizeof(debugmsgsave),fmt,__VA_ARGS__);rig_debug(debug_level,fmt,##__VA_ARGS__); }
 #endif
 #endif
 extern HAMLIB_EXPORT(void)
