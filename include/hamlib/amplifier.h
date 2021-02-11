@@ -26,7 +26,7 @@
 #include <hamlib/amplist.h>
 
 /**
- * \addtogroup amp
+ * \addtogroup amplifier
  * @{
  */
 
