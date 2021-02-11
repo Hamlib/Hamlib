@@ -7,11 +7,11 @@ St&eacute;phane Fillod, F8CFE, and Frank Singleton, VK3FCS and the Hamlib Group
 
 \section s1 Preface
 
-This document describes the Hamlib library Application Programming Interface 
-(API) for this distribution. 
+This document describes the Hamlib library Application Programming Interface
+(API) for this distribution.
 
-We attempt to document the complete API of the core modules of Hamlib, i.e., 
-the API seen by end-user application developers.  You may navigate the 
+We attempt to document the complete API of the core modules of Hamlib, i.e.,
+the API seen by end-user application developers.  You may navigate the
 documentation through the tabs at the top of this page.
 
 Please report any problems to hamlib-developer@lists.sourceforge.net.
@@ -44,10 +44,10 @@ Other files: \subpage INSTALL;
 
 \section slic Documentation License
 
-\li \subpage doclicense 
+\li \subpage doclicense
 */
 /*! \page doclicense License for Documentation
-This documentation is free; you can redistribute it without 
+This documentation is free; you can redistribute it without
 any restrictions. The modification or derived work must retain
 copyright and list all authors.
 
@@ -101,4 +101,5 @@ of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *  \defgroup rotator Rotator API
  *  \defgroup utilities Utility Routines API
  *  \defgroup rig_internal Rig Internal API
+ *  \defgroup amplifier Amplifier API
  */
