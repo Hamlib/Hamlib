@@ -2884,6 +2884,10 @@ declare_proto_rig(set_level)
             return -RIG_ENAVAIL;    /* no such parameter */
         }
 
+        // some Java apps send comma in international setups so substitute period
+        char *p = strchr(arg2,',');
+        if (p) *p = '.';
+
         switch (cfp->type)
         {
         case RIG_CONF_BUTTON:
