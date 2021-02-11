@@ -2873,6 +2873,10 @@ declare_proto_rig(set_level)
 
     level = rig_parse_level(arg1);
 
+    // some Java apps send comma in international setups so substitute period
+    char *p = strchr(arg2,',');
+    if (p) *p = '.';
+
     if (!rig_has_set_level(rig, level))
     {
         const struct confparams *cfp;
@@ -2883,10 +2887,6 @@ declare_proto_rig(set_level)
         {
             return -RIG_ENAVAIL;    /* no such parameter */
         }
-
-        // some Java apps send comma in international setups so substitute period
-        char *p = strchr(arg2,',');
-        if (p) *p = '.';
 
         switch (cfp->type)
         {
