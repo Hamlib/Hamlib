@@ -31,13 +31,13 @@
  */
 
 /**
- *  \file amplifier.h
- *  \brief Hamlib amplifier data structures.
+ * \file amplifier.h
+ * \brief Hamlib amplifier data structures.
  *
- *  This file contains the data structures and declarations for the Hamlib
- *  amplifier Application Programming Interface (API).
+ * This file contains the data structures and declarations for the Hamlib
+ * amplifier Application Programming Interface (API).
  *
- *  See the `amplifier.c` file for details on the amplifier API functions.
+ * See the amplifier.c file for details on the amplifier API functions.
  */
 
 
@@ -51,47 +51,47 @@ struct amp_state;
 
 
 /**
- *  \typedef typedef struct amp AMP
- *  \brief Main amplifier handle type definition.
+ * \typedef typedef struct amp AMP
+ * \brief Main amplifier handle type definition.
  *
- *  The AMP handle is returned by amp_init() and is passed as a parameter to
- *  every amplifier specific API call.
+ * The #AMP handle is returned by amp_init() and is passed as a parameter to
+ * every amplifier specific API call.
  *
- *  amp_cleanup() must be called when this handle is no longer needed.
+ * amp_cleanup() must be called when this handle is no longer needed.
  */
 typedef struct amp AMP;
 
 
 /**
- *  \typedef typedef float swr_t
- *  \brief Type definition for
- *  <a href="https://en.wikipedia.org/wiki/Standing_wave_ratio" >SWR (Standing Wave Ratio)</a>.
+ * \typedef typedef float swr_t
+ * \brief Type definition for
+ * <a href="https://en.wikipedia.org/wiki/Standing_wave_ratio" >SWR (Standing Wave Ratio)</a>.
  *
- *  The \c swr_t type is used as a parameter for the amp_get_swr() function.
+ * The \a swr_t type is used as a parameter for the amp_get_swr() function.
  *
- *  The unit of \c swr_t is 1.0 to the maximum value reported by the amplifier's
- *  internal antenna system tuner, i.e.
- *  <a href="http://www.arrl.org/transmatch-antenna-tuner" >transmatch</a>,
- *  representing the ratio of 1.0:1 to Maximum:1.
+ * The unit of \a swr_t is 1.0 to the maximum value reported by the amplifier's
+ * internal antenna system tuner, i.e.
+ * <a href="http://www.arrl.org/transmatch-antenna-tuner" >transmatch</a>,
+ * representing the ratio of 1.0:1 to Maximum:1.
  */
 typedef float swr_t;
 
 
 /**
- *  \typedef typedef float tune_value_t
- *  \brief Type definition for the
- *  <a href="http://www.arrl.org/transmatch-antenna-tuner" >transmatch</a>
- *  tuning values of
- *  <a href="https://en.wikipedia.org/wiki/Capacitance" >capacitance</a>
- *  and
- *  <a href="https://en.wikipedia.org/wiki/Inductance" >inductance</a>.
+ * \typedef typedef float tune_value_t
+ * \brief Type definition for the
+ * <a href="http://www.arrl.org/transmatch-antenna-tuner" >transmatch</a>
+ * tuning values of
+ * <a href="https://en.wikipedia.org/wiki/Capacitance" >capacitance</a>
+ * and
+ * <a href="https://en.wikipedia.org/wiki/Inductance" >inductance</a>.
  *
- *  The \c tune_value_t type is used as a parameter for amp_get_level().
+ * The \a tune_value_t type is used as a parameter for amp_get_level().
  *
- *  The unit of \c tune_value_t is
- *  <a href="https://en.wikipedia.org/wiki/Farad" >picoFarads (pF)</a>
- *  or
- *  <a href="https://en.wikipedia.org/wiki/Henry_(unit)" >nanoHenrys (nH)</a>.
+ * The unit of \a tune_value_t is
+ * <a href="https://en.wikipedia.org/wiki/Farad" >picoFarads (pF)</a>
+ * or
+ * <a href="https://en.wikipedia.org/wiki/Henry_(unit)" >nanoHenrys (nH)</a>.
  */
 typedef int tune_value_t;
 
@@ -168,23 +168,23 @@ enum amp_level_e
  *
  * The main idea of this struct is that it will be defined by the backend
  * amplifier driver and will remain read-only for the application.  Fields
- * that need to be modifiable by the application are copied into the struct
- * \c amp_state, which is the private memory area of the AMP instance.
+ * that need to be modifiable by the application are copied into the
+ * amp_state structure, which is the private memory area of the #AMP instance.
  *
  * This way you can have several amplifiers running within the same
- * application, sharing the struct \c amp_caps of the backend, while keeping
+ * application, sharing the amp_caps structure of the backend, while keeping
  * their own customized data.
  *
  * \b Note: Don't move fields around and only add new fields at the end of the
- * caps structure. Shared libraries depend on a constant structure to maintain
- * compatibility.
+ * amp_caps structure.  Shared libraries and DLLs depend on a constant
+ * structure to maintain compatibility.
  */
 struct amp_caps
 {
-  amp_model_t amp_model;                      /*!< Amplifier model as defined in `amplist.h`. */
+  amp_model_t amp_model;                      /*!< Amplifier model as defined in amplist.h. */
   const char *model_name;                     /*!< Model name, e.g. MM-5k. */
   const char *mfg_name;                       /*!< Manufacturer, e.g. Moonbeam. */
-  const char *version;                        /*!< Driver version. */
+  const char *version;                        /*!< Driver version, typically in YYYYMMDD.x format. */
   const char *copyright;                      /*!< Copyright info (should be LGPL). */
   enum rig_status_e status;                   /*!< Driver status. */
 
@@ -207,42 +207,42 @@ struct amp_caps
   const rig_ptr_t priv;                       /*!< Private data. */
   const char *amp_model_macro_name;           /*!< Model macro name. */
 
-  setting_t has_get_level;                    /*!< Has get_level capability.  */
-  setting_t has_set_level;                    /*!< Has set_level capability.  */
+  setting_t has_get_level;                    /*!< List of get levels. */
+  setting_t has_set_level;                    /*!< List of set levels.  */
 
-  gran_t level_gran[RIG_SETTING_MAX];         /*!< level granularity */
-  gran_t parm_gran[RIG_SETTING_MAX];          /*!< level granularity */
+  gran_t level_gran[RIG_SETTING_MAX];         /*!< Level granularity. */
+  gran_t parm_gran[RIG_SETTING_MAX];          /*!< Parameter granularity. */
 
   /*
    * Amp Admin API
    *
    */
 
-  int (*amp_init)(AMP *amp);    /*!< Initializes data structures and returns an #AMP handle--call before amp_open().  */
-  int (*amp_cleanup)(AMP *amp); /*!< Frees the data structures associated with the #AMP handle--call after amp_close().  */
-  int (*amp_open)(AMP *amp);    /*!< Opens the communication channel to the amplifier.  */
-  int (*amp_close)(AMP *amp);   /*!< Closes the communication channel to the amplifier.  */
+  int (*amp_init)(AMP *amp);    /*!< Pointer to backend implementation of ::amp_init(). */
+  int (*amp_cleanup)(AMP *amp); /*!< Pointer to backend implementation of ::amp_cleanup(). */
+  int (*amp_open)(AMP *amp);    /*!< Pointer to backend implementation of ::amp_open(). */
+  int (*amp_close)(AMP *amp);   /*!< Pointer to backend implementation of ::amp_close(). */
 
-  int (*set_freq)(AMP *amp, freq_t val);  /*!< Set the frequency of the amplifier. */
-  int (*get_freq)(AMP *amp, freq_t *val); /*!< Query the frequency of the amplifier.  */
+  int (*set_freq)(AMP *amp, freq_t val);  /*!< Pointer to backend implementation of ::amp_set_freq(). */
+  int (*get_freq)(AMP *amp, freq_t *val); /*!< Pointer to backend implementation of ::amp_get_freq(). */
 
-  int (*set_conf)(AMP *amp, token_t token, const char *val); /*!< Set the configuration parameter \a val corresponding to the \a token.  */
-  int (*get_conf)(AMP *amp, token_t token, char *val);       /*!< Query the configuration parameter \a val corresponding to the \a token.  */
+  int (*set_conf)(AMP *amp, token_t token, const char *val); /*!< Pointer to backend implementation of ::amp_set_conf(). */
+  int (*get_conf)(AMP *amp, token_t token, char *val);       /*!< Pointer to backend implementation of ::amp_get_conf(). */
 
   /*
    *  General API commands, from most primitive to least.. :()
    *  List Set/Get functions pairs
    */
 
-  int (*reset)(AMP *amp, amp_reset_t reset);                   /*!< Reset the amplifier (careful!).  */
-  int (*get_level)(AMP *amp, setting_t level, value_t *val);   /*!< Query the \a val corresponding to the \a level. */
-  int (*get_ext_level)(AMP *amp, token_t level, value_t *val); /*!< Query the \a val corresponding to the extra \a level. */
-  int (*set_powerstat)(AMP *amp, powerstat_t status);          /*!< Turn the amplifier On or Off or toggle the Standby or Operate status. */
-  int (*get_powerstat)(AMP *amp, powerstat_t *status);         /*!< Query the power or standby status of the amplifier. */
+  int (*reset)(AMP *amp, amp_reset_t reset);                   /*!< Pointer to backend implementation of ::amp_reset(). */
+  int (*get_level)(AMP *amp, setting_t level, value_t *val);   /*!< Pointer to backend implementation of ::amp_get_level(). */
+  int (*get_ext_level)(AMP *amp, token_t level, value_t *val); /*!< Pointer to backend implementation of ::amp_get_ext_level(). */
+  int (*set_powerstat)(AMP *amp, powerstat_t status);          /*!< Pointer to backend implementation of ::amp_set_powerstat(). */
+  int (*get_powerstat)(AMP *amp, powerstat_t *status);         /*!< Pointer to backend implementation of ::amp_get_powerstat(). */
 
 
   /* get firmware info, etc. */
-  const char *(*get_info)(AMP *amp); /*!< Query available internal information of the amplifier (firmware version, etc.). */
+  const char *(*get_info)(AMP *amp); /*!< Pointer to backend implementation of ::amp_get_info(). */
 
 //! @cond Doxygen_Suppress
   setting_t levels;
@@ -251,19 +251,19 @@ struct amp_caps
   const struct confparams *extlevels;         /*!< Extra levels structure.  */
   const struct confparams *extparms;          /*!< Extra parameters structure.  */
 
-  const char *macro_name;                     /*!< Macro name. */
+  const char *macro_name;                     /*!< Amplifier model macro name. */
 };
 
 
 /**
  * \struct amp_state
- * \brief Amplifier state
+ * \brief Amplifier state structure
  *
  * This structure contains live data, as well as a copy of capability fields
- * that may be updated (ie. customized)
+ * that may be updated, i.e. customized while the #AMP handle is instantiated.
  *
- * It is fine to move fields around, as this kind of struct should
- * not be initialized like caps are.
+ * It is fine to move fields around, as this kind of struct should not be
+ * initialized like amp_caps are.
  */
 struct amp_state
 {
@@ -280,26 +280,23 @@ struct amp_state
   rig_ptr_t priv;         /*!< Pointer to private amplifier state data. */
   rig_ptr_t obj;          /*!< Internal use by hamlib++ for event handling. */
 
-//! @cond Doxygen_Suppress
-  setting_t has_get_level;
-//! @endcond
+  setting_t has_get_level; /*!< List of get levels. */
 
-  gran_t level_gran[RIG_SETTING_MAX]; /*!< level granularity */
-  gran_t parm_gran[RIG_SETTING_MAX];  /*!< level granularity */
+  gran_t level_gran[RIG_SETTING_MAX]; /*!< Level granularity. */
+  gran_t parm_gran[RIG_SETTING_MAX];  /*!< Parameter granularity. */
 };
 
 
 /**
  * \struct amp
- * \brief Amplifier structure
+ * \brief Master amplifier structure
  *
- * Master amplifier data structure acting as a handle for the
- * controlled amplifier.
+ * Master amplifier data structure acting as the #AMP handle for the
+ * controlled amplifier.  A pointer to this structure is returned by the
+ * amp_init() API function and is passed as a parameter to every amplifier
+ * specific API call.
  *
- * A pointer to this structure is returned by the amp_init() API function and
- * is passed as a parameter to every amplifier specific API call.
- *
- * \sa amp_caps(), amp_state()
+ * \sa amp_init(), amp_caps, amp_state
  */
 struct amp
 {
@@ -426,11 +423,11 @@ extern HAMLIB_EXPORT(const char *) amp_strlevel(setting_t);
 
 
 /**
- *  \def amp_debug
- *  \brief Convenience macro for generating debugging messages.
+ * \def amp_debug
+ * \brief Convenience macro for generating debugging messages.
  *
- *  This is an alias of the rig_debug() function call and is used in the same
- *  manner.
+ * This is an alias of the rig_debug() function call and is used in the same
+ * manner.
  */
 #define amp_debug rig_debug
 
