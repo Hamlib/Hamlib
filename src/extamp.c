@@ -22,7 +22,7 @@
  */
 
 /**
- * \addtogroup amp
+ * \addtogroup amplifier
  * @{
  */
 
